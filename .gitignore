@@ -1,0 +1,59 @@
+# Ignore thumbnails created by windows
+*.db
+
+# Ignore files build by Visual Studio
+*.obj
+*.exe
+*.pdb
+*.aps
+*.vcproj.*.user
+*.vspscc
+*_i.c
+*.i
+*.icf
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+[Bb]in
+[Dd]ebug*/
+*.sbr
+*.sdf
+obj/
+[Rr]elease*/
+_ReSharper*/
+[Tt]est[Rr]esult*
+ipch/
+*.opensdf
+
+# Ignore files build by ndk and eclipse
+bin/
+obj/
+gen/
+assets/
+local.properties
+
+# Ignore files built by Android
+
+# Ignore files build by xcode
+*.nib
+*.mode*v*
+*.pbxuser
+*.xcbkptlist
+*.xcscheme
+*.xcworkspacedata
+*.xcuserstate
+xcschememanagement.plist
+build/
+.DS_Store
+._.*
+xcuserdata/
+DerivedData/
+
+# Ignore vim swaps
+*.swp
