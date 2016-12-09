@@ -23,7 +23,7 @@ int App::run()
 
 	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
 #if BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
-	windowFlags |= SDL_WINDOW_BORDERLESS;
+	windowFlags |= SDL_WINDOW_FULLSCREEN;
 #endif
 
 	SDL_Window* window = SDL_CreateWindow("Study BGFX & SDL",
@@ -82,6 +82,7 @@ void App::setSdlWindow(SDL_Window* window)
 #elif BX_PLATFORM_ANDROID
 	pd.ndt = NULL;
 	pd.nwh = wmi.info.android.window;
+	SDL_GL_GetDrawableSize(window, &winWidth, &winHeight);
 #endif
 	pd.context = NULL;
 	pd.backBuffer = NULL;
