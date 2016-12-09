@@ -1,0 +1,585 @@
+local progressInfo = [[
+--- Cocos Class-----
+ccColor4	390	n
+	a	3	n
+	r	2	n
+	b	2	n
+	g	2	n
+ccColor3	249	n
+	r	2	n
+	b	2	n
+	g	2	n
+CCDirector	241	n
+	winSize	179	n
+	schedule	97	n
+	unschedule	65	n
+	scheduler	30	n
+	currentScene	8	n
+	eclapsedInterval	8	n
+	pause	6	n
+	notificationNode	6	n
+	sceneStackSize	4	n
+	popScene	3	n
+	replaceScene	2	n
+	stop	1	n
+	resume	1	n
+	updateInterval	1	n
+	drawInterval	1	n
+	run	1	n
+	displayStats	1	n
+	numberOfDraws	1	n
+CCSize	214	n
+	height	885	n
+	width	849	n
+	zero	397	n
+CCMenu	146	n
+	addChild	1138	n
+	enabled	318	n
+	runAction	206	n
+	DefaultHandlerPriority	61	n
+	alignItems	43	n
+	alignItemsVertically	6	n
+	alignItemsHorizontally	1	n
+	moveAndCullItems	1	n
+CCDrawNode	132	n
+	drawPolygon	84	n
+	drawDot	52	n
+	drawSegment	26	n
+	clear	4	n
+CCNode	129	n
+	addChild	1138	n
+	height	885	n
+	width	849	n
+	visible	587	n
+	slot	571	n
+	position	533	n
+	emit	399	n
+	positionX	392	n
+	positionY	381	n
+	children	261	n
+	contentSize	247	n
+	opacity	241	n
+	color	236	n
+	gslot	219	n
+	anchor	214	n
+	scaleX	212	n
+	runAction	206	n
+	scaleY	202	n
+	parent	170	n
+	angle	109	n
+	schedule	97	n
+	removeChild	92	n
+	unschedule	65	n
+	convertToNodeSpace	60	n
+	cascadeOpacity	59	n
+	stopAllActions	45	n
+	transformTarget	40	n
+	cascadeColor	39	n
+	eachChild	32	n
+	data	31	n
+	scheduler	30	n
+	skewY	25	n
+	skewX	25	n
+	removeAllChildrenWithCleanup	23	n
+	cleanup	18	n
+	convertToWorldSpace	17	n
+	tag	15	n
+	zOrder	9	n
+	stopAction	8	n
+	scheduled	7	n
+	numberOfRunningActions	6	n
+	boundingBox	5	n
+	getChildByTag	5	n
+	perform	3	n
+	addTo	3	n
+	removeChildByTag	2	n
+	running	2	n
+CCScene	63	n
+	addChild	1138	n
+	fade	13	n
+	crossFade	8	n
+	move	8	n
+CCRect	62	n
+	height	885	n
+	width	849	n
+	y	482	n
+	x	448	n
+	zero	397	n
+	origin	49	n
+	size	22	n
+	containsPoint	21	n
+	bottom	20	n
+	left	20	n
+	right	19	n
+	top	15	n
+	intersectsRect	10	n
+	set	7	n
+	centerY	2	n
+	centerX	2	n
+CCLayer	37	n
+	addChild	1138	n
+	slot	571	n
+	touchEnabled	214	n
+	touchPriority	143	n
+	schedule	97	n
+	swallowTouches	73	n
+	unschedule	65	n
+	convertToNodeSpace	60	n
+	multiTouches	4	n
+	keypadEnabled	1	n
+CCSprite	29	n
+	texture	144	n
+	textureRect	14	n
+	blendFunc	3	n
+CCLayerColor	25	n
+	blendFunc	3	n
+	resetColor	3	n
+CCMenuItem	24	n
+	addChild	1138	n
+	slot	571	n
+	enabled	318	n
+CCClipNode	11	n
+	stencil	4	n
+CCUserDefault	10	n
+	get	8	n
+	set	7	n
+	filePath	2	n
+ccBlendFunc	9	n
+	Zero	3	n
+	One	3	n
+CCDictionary	9	n
+	each	13	n
+	count	11	n
+	get	8	n
+	set	7	n
+	clear	4	n
+	keys	3	n
+CCObject	9	n
+	count	11	n
+	id	7	n
+	callRefCount	2	n
+	luaRefCount	2	n
+	ref	1	n
+	maxCount	1	n
+	maxLuaRefCount	1	n
+	maxCallRefCount	1	n
+CCLabelBMFont	8	n
+	text	247	n
+	texture	144	n
+	colorText	19	n
+	getChar	3	n
+	AutomaticWidth	2	n
+	horizontalAlignment	1	n
+CCRenderTarget	8	n
+	save	13	n
+	endDraw	8	n
+	draw	8	n
+	beginDraw	8	n
+CCTextAlign	7	n
+	HLeft	5	n
+	HCenter	1	n
+	HRight	1	n
+CCTargetPlatform	6	n
+	Iphone	2	n
+	Ipad	2	n
+	MacOS	1	n
+	Windows	1	n
+CCApplication	6	n
+	targetPlatform	6	n
+CCKeyboard	6	n
+	isKeyPressed	6	n
+CCScheduler	5	n
+	schedule	97	n
+	unschedule	65	n
+	timeScale	4	n
+CCTextFieldTTF	4	n
+	text	247	n
+	attachWithIME	12	n
+	detachWithIME	12	n
+	placeHolder	8	n
+	colorPlaceHolder	1	n
+CCOrientation	3	n
+	Up	9	n
+	Down	8	n
+	Right	6	n
+	Left	6	n
+CCView	2	n
+	scaleX	212	n
+	scaleY	202	n
+	setDesignResolution	1	n
+	ExactFit	1	n
+CCEase	2	n
+	sineInOut	2	n
+CCGrid	1	n
+	stop	1	n
+	twirl	1	n
+CCProgressTimer	1	n
+	type	83	n
+	sprite	76	n
+	reverseDirection	2	n
+----- Dorothy Class-----
+oVec2	1861	n
+	y	482	n
+	x	448	n
+	zero	397	n
+	angle	109	n
+	length	25	n
+	normalize	17	n
+	distance	14	n
+	clamp	1	n
+oEase	394	n
+	OutQuad	177	n
+	OutBack	116	n
+	InBack	53	n
+	OutElastic	8	n
+	Linear	6	n
+	OutExpo	6	n
+	func	5	n
+	InQuad	2	n
+	InSine	1	n
+	OutSine	1	n
+oContent	259	n
+	exist	90	n
+	remove	53	n
+	saveToFile	42	n
+	getEntries	36	n
+	mkdir	29	n
+	writablePath	12	n
+	loadFile	9	n
+	addSearchPath	4	n
+	copyAsync	4	n
+	removeSearchPath	2	n
+	loadFileAsync	1	n
+oLine	146	n
+	set	7	n
+oCache	103	n
+	Texture	24	n
+	Model	23	n
+	Clip	20	n
+	Effect	10	n
+	removeUnused	7	n
+	Animation	5	n
+	loadAsync	5	n
+	clear	4	n
+	Pool	3	n
+	Particle	2	n
+oBodyDef	49	n
+	position	533	n
+	angle	109	n
+	face	85	n
+	type	83	n
+	angularDamping	15	n
+	fixedRotation	15	n
+	gravityScale	15	n
+	isBullet	15	n
+	linearDamping	15	n
+	loop	14	n
+	attachPolygon	14	n
+	Dynamic	12	n
+	facePos	12	n
+	attachPolygonSensor	10	n
+	attachCircle	8	n
+	circle	7	n
+	attachLoop	6	n
+	attachChain	5	n
+	attachCircleSensor	5	n
+	Static	5	n
+	polygon	5	n
+	Kinematic	2	n
+	chain	1	n
+oRoutine	28	n
+	remove	53	n
+	start	13	n
+	clear	4	n
+	stop	1	n
+oJointDef	20	n
+	position	533	n
+	angle	109	n
+	distance	14	n
+	rope	4	n
+	pulley	3	n
+	spring	3	n
+	revolute	3	n
+	weld	3	n
+	prismatic	3	n
+	gear	3	n
+	center	2	n
+	friction	2	n
+	wheel	1	n
+oBody	20	n
+	bodyDef	171	n
+	world	41	n
+	group	35	n
+	owner	17	n
+	angularDamping	15	n
+	linearDamping	15	n
+	attach	5	n
+	attachSensor	3	n
+	sensor	3	n
+	angularRate	2	n
+	receivingContact	1	n
+	getSensorByTag	1	n
+	destroy	1	n
+	mass	1	n
+oData	17	n
+	GroupTerrain	5	n
+	GroupDetect	3	n
+	GroupHide	3	n
+	GroupDetectPlayer	3	n
+	apply	2	n
+	isTerrain	1	n
+oJoint	14	n
+	world	41	n
+	distance	14	n
+	move	8	n
+	rope	4	n
+	revolute	3	n
+	weld	3	n
+	gear	3	n
+	pulley	3	n
+	prismatic	3	n
+	spring	3	n
+	friction	2	n
+	destroy	1	n
+	wheel	1	n
+oAI	11	n
+	self	7	n
+	clear	4	n
+	add	2	n
+oModel	9	n
+	look	31	n
+	duration	21	n
+	loop	14	n
+	reset	14	n
+	faceRight	7	n
+	time	6	n
+	pause	6	n
+	speed	6	n
+	play	4	n
+	playing	2	n
+	resume	1	n
+	getChildByName	1	n
+	recovery	1	n
+	stop	1	n
+oWorld	6	n
+	gravity	14	n
+	setShouldContact	10	n
+	showDebug	9	n
+	setIterations	5	n
+	query	5	n
+	getShouldContact	1	n
+oPlatformWorld	5	n
+	camera	34	n
+	UILayer	14	n
+	swapLayer	6	n
+	setLayerOffset	6	n
+	getLayer	6	n
+	setLayerRatio	2	n
+	removeLayer	1	n
+oUnit	4	n
+	height	885	n
+	width	849	n
+	remove	53	n
+	unitDef	20	n
+	model	19	n
+	start	13	n
+	get	8	n
+	move	8	n
+	faceRight	7	n
+	set	7	n
+	jump	7	n
+	clear	4	n
+	reflexArc	4	n
+	isDoing	3	n
+	detectDistance	1	n
+	stop	1	n
+	moveSpeed	1	n
+	maxHp	1	n
+	currentAction	1	n
+	sensity	1	n
+oEffect	4	n
+	start	13	n
+	autoRemove	3	n
+	playing	2	n
+	update	2	n
+	stop	1	n
+oAction	3	n
+	name	134	n
+	owner	17	n
+	clear	4	n
+	add	2	n
+	doing	2	n
+	recovery	1	n
+	priority	1	n
+	reaction	1	n
+oUnitDef	2	n
+	bodyDef	171	n
+	name	134	n
+	scale	71	n
+	size	22	n
+	model	19	n
+	tag	15	n
+	move	8	n
+	jump	7	n
+	reflexArc	4	n
+	static	2	n
+	setActions	2	n
+	restitution	2	n
+	friction	2	n
+	density	2	n
+	detectDistance	1	n
+	maxHp	1	n
+	sensity	1	n
+oNode3D	1	n
+	angleX	4	n
+----- Other Class-----
+math	430	d
+	floor	168	d
+	ceil	73	d
+	max	53	d
+	min	44	d
+	cos	23	d
+	sin	23	d
+	pi	16	d
+	abs	16	d
+	rad	6	d
+	acos	3	d
+	atan2	3	d
+	pow	2	d
+	deg	1	d
+	tan	1	d
+	huge	1	d
+table	319	d
+	insert	217	d
+	remove	53	d
+	concat	26	d
+	sort	23	d
+string	90	d
+	format	60	d
+	gsub	43	d
+	match	10	d
+	char	8	d
+	lower	8	d
+	find	6	d
+	len	4	d
+	rep	3	d
+	upper	3	d
+	dump	2	d
+	gmatch	1	d
+	reverse	1	d
+	sub	1	d
+tolua	26	n
+	type	83	n
+	class	64	n
+package	8	d
+	path	39	d
+	loaded	8	d
+debug	7	n
+	getmetatable	10	d
+	debug	7	d
+	getinfo	7	d
+	getlocal	6	d
+	setfenv	3	d
+	setmetatable	1	d
+	traceback	1	n
+io	1	n
+	type	83	n
+	output	47	n
+	input	30	n
+	lines	3	n
+	close	2	n
+	read	1	n
+	open	1	n
+----- Cocos Function-----
+CCSequence	181	n
+CCLabelTTF	98	n
+CCCall	77	n
+CCDelay	65	n
+CCHide	50	n
+CCSpawn	44	n
+CCShow	22	n
+cclog	9	n
+CCRepeatForever	7	n
+CCProgress	2	n
+CCRepeat	2	n
+----- Dorothy Function-----
+oOpacity	221	n
+oScale	194	n
+oPos	83	n
+once	50	n
+oCon	9	n
+oAct	6	n
+oRotate	4	n
+----- Other Function-----
+require	2168	n
+tostring	448	d
+emit	399	n
+property	145	n
+pairs	126	d
+ipairs	108	d
+sleep	97	n
+type	93	d
+print	75	n
+Dorothy	69	n
+using	60	n
+thread	41	n
+setmetatable	32	d
+unpack	25	d
+rawget	18	d
+load	17	n
+select	17	d
+module	13	d
+dofile	12	n
+rawset	12	d
+getmetatable	10	d
+tonumber	10	d
+error	10	d
+wait	6	n
+seconds	5	n
+loadfile	5	n
+setfenv	3	d
+loadstring	3	n
+loop	2	n
+ubox	2	n
+assert	2	d
+next	1	d
+xmlToLua	1	n
+]]
+
+local cocosTotal = 0
+local cocosCount = 0
+local otherTotal = 0
+local otherCount = 0
+local isCocos = true
+for line in progressInfo:gmatch("([^\n]+)\n") do
+	if not line:match("^%-") then
+		if not line:match("d$") then
+			if isCocos then cocosTotal = cocosTotal + 1
+			else otherTotal = otherTotal + 1 end
+			if not line:match("n$") then
+				if isCocos then cocosCount = cocosCount + 1
+				else otherCount = otherCount + 1 end
+			end
+		end
+	else
+		isCocos = line:match("Cocos") ~= nil
+	end
+end
+local result = string.format("```\nRedo: %d/%d %.2f%%\n```\n",cocosCount,cocosTotal,cocosCount*100/cocosTotal)
+result = result..string.format("```\nShip: %d/%d %.2f%%\n```\n",otherCount,otherTotal,otherCount*100/otherTotal)
+
+local function displayProgress(percent)
+	local length = 15
+	local n = math.floor(percent*length+0.5)
+	return string.format("[ %s%s ] %.2f%%", string.rep("#",n), string.rep(" ",length-n), percent*100)
+end
+result = result..string.format("```\nTotal: %s\n```\n",displayProgress((otherCount+cocosCount)/(cocosTotal+otherTotal)))
+
+local file = io.open("../README.md","r")
+local readme = file:read("*a")
+file:close()
+readme = readme:gsub("##当前进度.*","##当前进度  \n")
+readme = readme..result
+file = io.open("../README.md","w+")
+file:write(readme)
+file:close()

@@ -1,0 +1,2 @@
+void CCLuaLog(char * pszFormat);
+void CCMessageBox(char * pszMsg, char * pszTitle);
