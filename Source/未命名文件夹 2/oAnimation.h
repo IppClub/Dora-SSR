@@ -1,1 +1,0 @@
-CCFiniteTimeAction* oFrameAction::create @ oFrameAction(const char* filename);
