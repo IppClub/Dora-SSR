@@ -9,7 +9,8 @@
 /* Begin PBXBuildFile section */
 		3C17D5911D9C404A008758E8 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C17D5901D9C404A008758E8 /* libbgfx.a */; };
 		3C17D5931D9C4059008758E8 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C17D5921D9C4059008758E8 /* libSDL2.a */; };
-		3C1F87D51DF802B4005F1B4D /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1F87D31DF802B4005F1B4D /* App.cpp */; };
+		3C9ADE4C1E00EFD000D42018 /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* App.cpp */; };
+		3C9ADE5A1E00F24200D42018 /* oObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* oObject.cpp */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
 		3CE331431D96D00000F9C3F6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331421D96D00000F9C3F6 /* CoreVideo.framework */; };
@@ -22,13 +23,25 @@
 		3CE331531D96D12200F9C3F6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331521D96D12200F9C3F6 /* Carbon.framework */; };
 		3CE331571D96D30100F9C3F6 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331561D96D30100F9C3F6 /* Metal.framework */; };
 		3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */; };
+		3CFF5F251E012961004E3CA6 /* oLuaHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F241E012961004E3CA6 /* oLuaHelper.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3C17D5901D9C404A008758E8 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/OSX/libbgfx.a; sourceTree = "<group>"; };
 		3C17D5921D9C4059008758E8 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/OSX/libSDL2.a; sourceTree = "<group>"; };
-		3C1F87D31DF802B4005F1B4D /* App.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = App.cpp; path = ../../../Source/Basic/App.cpp; sourceTree = "<group>"; };
-		3C1F87D41DF802B4005F1B4D /* App.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = App.h; path = ../../../Source/Basic/App.h; sourceTree = "<group>"; };
+		3C9ADE4A1E00EFD000D42018 /* App.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = App.cpp; path = ../../../Source/Basic/App.cpp; sourceTree = "<group>"; };
+		3C9ADE4B1E00EFD000D42018 /* App.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = App.h; path = ../../../Source/Basic/App.h; sourceTree = "<group>"; };
+		3C9ADE4E1E00F14900D42018 /* oHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oHeader.h; path = ../../../Source/Const/oHeader.h; sourceTree = "<group>"; };
+		3C9ADE501E00F16100D42018 /* oHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oHelper.h; path = ../../../Source/Common/oHelper.h; sourceTree = "<group>"; };
+		3C9ADE511E00F16100D42018 /* oMemoryPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oMemoryPool.h; path = ../../../Source/Common/oMemoryPool.h; sourceTree = "<group>"; };
+		3C9ADE521E00F16100D42018 /* oOwn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oOwn.h; path = ../../../Source/Common/oOwn.h; sourceTree = "<group>"; };
+		3C9ADE531E00F16100D42018 /* oOwnVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oOwnVector.h; path = ../../../Source/Common/oOwnVector.h; sourceTree = "<group>"; };
+		3C9ADE541E00F16100D42018 /* oRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oRef.h; path = ../../../Source/Common/oRef.h; sourceTree = "<group>"; };
+		3C9ADE551E00F16100D42018 /* oRefVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oRefVector.h; path = ../../../Source/Common/oRefVector.h; sourceTree = "<group>"; };
+		3C9ADE561E00F16100D42018 /* oWRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oWRef.h; path = ../../../Source/Common/oWRef.h; sourceTree = "<group>"; };
+		3C9ADE571E00F16100D42018 /* oWRefVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oWRefVector.h; path = ../../../Source/Common/oWRefVector.h; sourceTree = "<group>"; };
+		3C9ADE581E00F24200D42018 /* oObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oObject.cpp; path = ../../../Source/Basic/oObject.cpp; sourceTree = "<group>"; };
+		3C9ADE591E00F24200D42018 /* oObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oObject.h; path = ../../../Source/Basic/oObject.h; sourceTree = "<group>"; };
 		3CC81FE61D966770008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -43,6 +56,8 @@
 		3CE331521D96D12200F9C3F6 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		3CE331561D96D30100F9C3F6 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		3CFF5F231E0128AE004E3CA6 /* oLuaHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = oLuaHelper.h; path = ../../../Source/Lua/oLuaHelper.h; sourceTree = "<group>"; };
+		3CFF5F241E012961004E3CA6 /* oLuaHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oLuaHelper.cpp; path = ../../../Source/Lua/oLuaHelper.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,13 +104,38 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		3C1F87D61DF802C0005F1B4D /* Basic */ = {
+		3C9ADE491E00EFB200D42018 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
-				3C1F87D31DF802B4005F1B4D /* App.cpp */,
-				3C1F87D41DF802B4005F1B4D /* App.h */,
+				3C9ADE581E00F24200D42018 /* oObject.cpp */,
+				3C9ADE591E00F24200D42018 /* oObject.h */,
+				3C9ADE4A1E00EFD000D42018 /* App.cpp */,
+				3C9ADE4B1E00EFD000D42018 /* App.h */,
 			);
 			name = Basic;
+			sourceTree = "<group>";
+		};
+		3C9ADE4D1E00F13500D42018 /* Const */ = {
+			isa = PBXGroup;
+			children = (
+				3C9ADE4E1E00F14900D42018 /* oHeader.h */,
+			);
+			name = Const;
+			sourceTree = "<group>";
+		};
+		3C9ADE4F1E00F14E00D42018 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				3C9ADE501E00F16100D42018 /* oHelper.h */,
+				3C9ADE511E00F16100D42018 /* oMemoryPool.h */,
+				3C9ADE521E00F16100D42018 /* oOwn.h */,
+				3C9ADE531E00F16100D42018 /* oOwnVector.h */,
+				3C9ADE541E00F16100D42018 /* oRef.h */,
+				3C9ADE551E00F16100D42018 /* oRefVector.h */,
+				3C9ADE561E00F16100D42018 /* oWRef.h */,
+				3C9ADE571E00F16100D42018 /* oWRefVector.h */,
+			);
+			name = Common;
 			sourceTree = "<group>";
 		};
 		3CC81FDD1D966770008C8B77 = {
@@ -118,11 +158,23 @@
 		3CC81FE81D966770008C8B77 /* Dorothy */ = {
 			isa = PBXGroup;
 			children = (
-				3C1F87D61DF802C0005F1B4D /* Basic */,
+				3CFF5F221E012874004E3CA6 /* Lua */,
+				3C9ADE4F1E00F14E00D42018 /* Common */,
+				3C9ADE4D1E00F13500D42018 /* Const */,
+				3C9ADE491E00EFB200D42018 /* Basic */,
 				3CC81FF51D966770008C8B77 /* Assets.xcassets */,
 				3CC81FFA1D966770008C8B77 /* Info.plist */,
 			);
 			path = Dorothy;
+			sourceTree = "<group>";
+		};
+		3CFF5F221E012874004E3CA6 /* Lua */ = {
+			isa = PBXGroup;
+			children = (
+				3CFF5F231E0128AE004E3CA6 /* oLuaHelper.h */,
+				3CFF5F241E012961004E3CA6 /* oLuaHelper.cpp */,
+			);
+			name = Lua;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -193,7 +245,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3C1F87D51DF802B4005F1B4D /* App.cpp in Sources */,
+				3CFF5F251E012961004E3CA6 /* oLuaHelper.cpp in Sources */,
+				3C9ADE5A1E00F24200D42018 /* oObject.cpp in Sources */,
+				3C9ADE4C1E00EFD000D42018 /* App.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,7 +358,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/common ../../Source/3rdParty/BGFX/Header/compat/osx ../../Source/3rdParty/SDL2/Header";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/osx ../../Source/3rdParty/SDL2/Header";
 			};
 			name = Debug;
 		};
@@ -327,7 +381,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/common ../../Source/3rdParty/BGFX/Header/compat/osx ../../Source/3rdParty/SDL2/Header";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/osx ../../Source/3rdParty/SDL2/Header";
 			};
 			name = Release;
 		};

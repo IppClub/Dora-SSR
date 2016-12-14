@@ -4,15 +4,63 @@
     <Filter Include="Basic">
       <UniqueIdentifier>{7e412dfc-d970-4102-8df1-ea9c1fcc4564}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{a66627dd-27c0-4d88-9074-aa9314579f62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Const">
+      <UniqueIdentifier>{bf255db1-a6de-41a1-9658-306936ac8c55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lua">
+      <UniqueIdentifier>{5ea049b6-5bb0-4a28-a7e1-bcc3705b7ad0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Basic\App.cpp">
       <Filter>Basic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\oObject.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\oLuaHelper.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\Basic\App.h">
       <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\oObject.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oHelper.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oMemoryPool.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oOwn.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oOwnVector.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oRef.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oRefVector.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oWRef.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oWRefVector.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Const\oHeader.h">
+      <Filter>Const</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\oLuaHelper.h">
+      <Filter>Lua</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

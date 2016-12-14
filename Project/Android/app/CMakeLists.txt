@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.4.1)
 file(GLOB_RECURSE src-files FOLLOW_SYMLINKS *.cpp)
 
 include_directories(
+	src/main/cpp
+	src/main/cpp/3rdParty
 	src/main/cpp/3rdParty/SDL2/Header
 	src/main/cpp/3rdParty/BGFX/Header
 )

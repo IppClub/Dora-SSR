@@ -1,4 +1,5 @@
 local progressInfo = [[
+--- f: Finished n:Not Finished d:Deleted ---
 --- Cocos Class-----
 ccColor4	390	n
 	a	3	n
@@ -155,13 +156,13 @@ CCDictionary	9	n
 	clear	4	n
 	keys	3	n
 CCObject	9	n
-	count	11	n
-	id	7	n
+	count	11	f
+	id	7	f
 	callRefCount	2	n
-	luaRefCount	2	n
-	ref	1	n
-	maxCount	1	n
-	maxLuaRefCount	1	n
+	luaRefCount	2	f
+	ref	1	f
+	maxCount	1	f
+	maxLuaRefCount	1	f
 	maxCallRefCount	1	n
 CCLabelBMFont	8	n
 	text	247	n

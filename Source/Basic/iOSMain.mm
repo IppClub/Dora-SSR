@@ -1,6 +1,7 @@
+#include "bgfx/platform.h"
+#if BX_PLATFORM_IOS
 #include "SDL.h"
 #include "SDL_syswm.h"
-#include "bgfx/platform.h"
 #include "bx/thread.h"
 #include "App.h"
 #import <QuartzCore/CAEAGLLayer.h>
@@ -41,3 +42,5 @@ int main(int argc, char *argv[])
 	iOSApp app;
 	return app.run();
 }
+
+#endif // BX_PLATFORM_IOS

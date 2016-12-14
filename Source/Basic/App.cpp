@@ -11,6 +11,7 @@
 #include "SDL.h"
 #include "bgfx/platform.h"
 #include "bx/thread.h"
+#include "Const/oHeader.h"
 
 int App::winWidth = 800;
 int App::winHeight = 600;

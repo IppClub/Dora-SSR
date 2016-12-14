@@ -11,7 +11,6 @@
 		3C1F87CB1DF7B560005F1B4D /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C1F87CA1DF7B560005F1B4D /* Default-568h@2x.png */; };
 		3C1F87CF1DF7B6AB005F1B4D /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C1F87CE1DF7B6AB005F1B4D /* Launch Screen.storyboard */; };
 		3C1F87DB1DF8034B005F1B4D /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1F87D81DF8034B005F1B4D /* App.cpp */; };
-		3C1F87DC1DF8034B005F1B4D /* iOSmain.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C1F87DA1DF8034B005F1B4D /* iOSmain.mm */; };
 		3C9862721D9CA4500056A045 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862701D9CA4500056A045 /* libbgfx.a */; };
 		3C9862741D9CA4830056A045 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862731D9CA4830056A045 /* libSDL2.a */; };
 		3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC8201B1D96680C008C8B77 /* Assets.xcassets */; };
@@ -24,6 +23,9 @@
 		3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331791D96D98700F9C3F6 /* Foundation.framework */; };
 		3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */; };
 		3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331831D96E19100F9C3F6 /* OpenGLES.framework */; };
+		3CFF5F271E0136A0004E3CA6 /* iOSMain.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */; };
+		3CFF5F341E0136CF004E3CA6 /* oObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F321E0136CF004E3CA6 /* oObject.cpp */; };
+		3CFF5F381E013716004E3CA6 /* oLuaHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F361E013716004E3CA6 /* oLuaHelper.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,7 +34,6 @@
 		3C1F87CE1DF7B6AB005F1B4D /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		3C1F87D81DF8034B005F1B4D /* App.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = App.cpp; path = ../../../Source/Basic/App.cpp; sourceTree = "<group>"; };
 		3C1F87D91DF8034B005F1B4D /* App.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = App.h; path = ../../../Source/Basic/App.h; sourceTree = "<group>"; };
-		3C1F87DA1DF8034B005F1B4D /* iOSmain.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSmain.mm; path = ../../../Source/Basic/iOSmain.mm; sourceTree = "<group>"; };
 		3C98626F1D9CA4500056A045 /* libbgfx-common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libbgfx-common.a"; path = "../../Source/3rdParty/BGFX/Lib/iOS/libbgfx-common.a"; sourceTree = "<group>"; };
 		3C9862701D9CA4500056A045 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbgfx.a; sourceTree = "<group>"; };
 		3C9862731D9CA4830056A045 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
@@ -48,6 +49,19 @@
 		3CE331791D96D98700F9C3F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		3CE331831D96E19100F9C3F6 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSMain.mm; path = ../../../Source/Basic/iOSMain.mm; sourceTree = "<group>"; };
+		3CFF5F291E0136B4004E3CA6 /* oHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oHelper.h; path = ../../../Source/Common/oHelper.h; sourceTree = "<group>"; };
+		3CFF5F2A1E0136B4004E3CA6 /* oMemoryPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oMemoryPool.h; path = ../../../Source/Common/oMemoryPool.h; sourceTree = "<group>"; };
+		3CFF5F2B1E0136B4004E3CA6 /* oOwn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oOwn.h; path = ../../../Source/Common/oOwn.h; sourceTree = "<group>"; };
+		3CFF5F2C1E0136B4004E3CA6 /* oOwnVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oOwnVector.h; path = ../../../Source/Common/oOwnVector.h; sourceTree = "<group>"; };
+		3CFF5F2D1E0136B4004E3CA6 /* oRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oRef.h; path = ../../../Source/Common/oRef.h; sourceTree = "<group>"; };
+		3CFF5F2E1E0136B4004E3CA6 /* oRefVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oRefVector.h; path = ../../../Source/Common/oRefVector.h; sourceTree = "<group>"; };
+		3CFF5F2F1E0136B4004E3CA6 /* oWRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oWRef.h; path = ../../../Source/Common/oWRef.h; sourceTree = "<group>"; };
+		3CFF5F301E0136B4004E3CA6 /* oWRefVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oWRefVector.h; path = ../../../Source/Common/oWRefVector.h; sourceTree = "<group>"; };
+		3CFF5F321E0136CF004E3CA6 /* oObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oObject.cpp; path = ../../../Source/Basic/oObject.cpp; sourceTree = "<group>"; };
+		3CFF5F331E0136CF004E3CA6 /* oObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oObject.h; path = ../../../Source/Basic/oObject.h; sourceTree = "<group>"; };
+		3CFF5F361E013716004E3CA6 /* oLuaHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oLuaHelper.cpp; path = ../../../Source/Lua/oLuaHelper.cpp; sourceTree = "<group>"; };
+		3CFF5F371E013716004E3CA6 /* oLuaHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oLuaHelper.h; path = ../../../Source/Lua/oLuaHelper.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,9 +98,9 @@
 		3C1F87D71DF80334005F1B4D /* Basic */ = {
 			isa = PBXGroup;
 			children = (
+				3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */,
 				3C1F87D81DF8034B005F1B4D /* App.cpp */,
 				3C1F87D91DF8034B005F1B4D /* App.h */,
-				3C1F87DA1DF8034B005F1B4D /* iOSmain.mm */,
 			);
 			name = Basic;
 			sourceTree = "<group>";
@@ -134,6 +148,9 @@
 		3CC8200B1D96680C008C8B77 /* Dorothy */ = {
 			isa = PBXGroup;
 			children = (
+				3CFF5F351E013708004E3CA6 /* Lua */,
+				3CFF5F311E0136BB004E3CA6 /* Basic */,
+				3CFF5F281E0136A5004E3CA6 /* Common */,
 				3C1F87D71DF80334005F1B4D /* Basic */,
 				3CC8201B1D96680C008C8B77 /* Assets.xcassets */,
 				3CC820201D96680C008C8B77 /* Info.plist */,
@@ -146,6 +163,39 @@
 			children = (
 			);
 			name = Library;
+			sourceTree = "<group>";
+		};
+		3CFF5F281E0136A5004E3CA6 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				3CFF5F291E0136B4004E3CA6 /* oHelper.h */,
+				3CFF5F2A1E0136B4004E3CA6 /* oMemoryPool.h */,
+				3CFF5F2B1E0136B4004E3CA6 /* oOwn.h */,
+				3CFF5F2C1E0136B4004E3CA6 /* oOwnVector.h */,
+				3CFF5F2D1E0136B4004E3CA6 /* oRef.h */,
+				3CFF5F2E1E0136B4004E3CA6 /* oRefVector.h */,
+				3CFF5F2F1E0136B4004E3CA6 /* oWRef.h */,
+				3CFF5F301E0136B4004E3CA6 /* oWRefVector.h */,
+			);
+			name = Common;
+			sourceTree = "<group>";
+		};
+		3CFF5F311E0136BB004E3CA6 /* Basic */ = {
+			isa = PBXGroup;
+			children = (
+				3CFF5F321E0136CF004E3CA6 /* oObject.cpp */,
+				3CFF5F331E0136CF004E3CA6 /* oObject.h */,
+			);
+			name = Basic;
+			sourceTree = "<group>";
+		};
+		3CFF5F351E013708004E3CA6 /* Lua */ = {
+			isa = PBXGroup;
+			children = (
+				3CFF5F361E013716004E3CA6 /* oLuaHelper.cpp */,
+				3CFF5F371E013716004E3CA6 /* oLuaHelper.h */,
+			);
+			name = Lua;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -218,7 +268,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3C1F87DC1DF8034B005F1B4D /* iOSmain.mm in Sources */,
+				3CFF5F381E013716004E3CA6 /* oLuaHelper.cpp in Sources */,
+				3CFF5F341E0136CF004E3CA6 /* oObject.cpp in Sources */,
+				3CFF5F271E0136A0004E3CA6 /* iOSMain.mm in Sources */,
 				3C1F87DB1DF8034B005F1B4D /* App.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -327,7 +379,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios ../../Source/3rdParty/BGFX/Header/common";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios";
 			};
 			name = Debug;
 		};
@@ -344,7 +396,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios ../../Source/3rdParty/BGFX/Header/common";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios";
 			};
 			name = Release;
 		};

@@ -70,4 +70,4 @@ extern "C" {
 		return status;
 	}
 }
-#endif
+#endif // BX_PLATFORM_ANDROID

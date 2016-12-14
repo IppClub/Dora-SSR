@@ -20,9 +20,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Basic\App.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\oObject.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\oLuaHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\Basic\App.h" />
+    <ClInclude Include="..\..\..\Source\Basic\oObject.h" />
+    <ClInclude Include="..\..\..\Source\Common\oHelper.h" />
+    <ClInclude Include="..\..\..\Source\Common\oMemoryPool.h" />
+    <ClInclude Include="..\..\..\Source\Common\oOwn.h" />
+    <ClInclude Include="..\..\..\Source\Common\oOwnVector.h" />
+    <ClInclude Include="..\..\..\Source\Common\oRef.h" />
+    <ClInclude Include="..\..\..\Source\Common\oRefVector.h" />
+    <ClInclude Include="..\..\..\Source\Common\oWRef.h" />
+    <ClInclude Include="..\..\..\Source\Common\oWRefVector.h" />
+    <ClInclude Include="..\..\..\Source\Const\oHeader.h" />
+    <ClInclude Include="..\..\..\Source\Lua\oLuaHelper.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>
@@ -98,7 +111,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header/common;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -135,7 +148,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(O
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header/common;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
