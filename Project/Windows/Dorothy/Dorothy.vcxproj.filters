@@ -28,6 +28,9 @@
     <Filter Include="3rdParty\Zip\Support">
       <UniqueIdentifier>{d1511dd1-faf5-49b1-b057-d66d058bb6e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\Lua">
+      <UniqueIdentifier>{b778508f-d7cd-45bd-9891-0fe5c526fa3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Basic\App.cpp">
@@ -62,6 +65,27 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Basic\oContent.cpp">
       <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\oLuaEngine.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\tolua_event.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\tolua_fix.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\tolua_is.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\tolua_map.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\tolua_push.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\tolua_to.cpp">
+      <Filter>Lua</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +160,33 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Const\oDefine.h">
       <Filter>Const</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lauxlib.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\oLuaEngine.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\tolua_event.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\tolua_fix.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\tolua++.h">
+      <Filter>Lua</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

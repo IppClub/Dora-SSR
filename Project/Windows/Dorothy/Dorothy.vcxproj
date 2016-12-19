@@ -29,11 +29,23 @@
     <ClCompile Include="..\..\..\Source\Basic\oAutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\oContent.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\oObject.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\oLuaEngine.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\oLuaHelper.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\tolua_event.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\tolua_fix.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\tolua_is.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\tolua_map.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\tolua_push.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\tolua_to.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lauxlib.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
@@ -55,7 +67,11 @@
     <ClInclude Include="..\..\..\Source\Common\oWRefVector.h" />
     <ClInclude Include="..\..\..\Source\Const\oDefine.h" />
     <ClInclude Include="..\..\..\Source\Const\oHeader.h" />
+    <ClInclude Include="..\..\..\Source\Lua\oLuaEngine.h" />
     <ClInclude Include="..\..\..\Source\Lua\oLuaHelper.h" />
+    <ClInclude Include="..\..\..\Source\Lua\tolua++.h" />
+    <ClInclude Include="..\..\..\Source\Lua\tolua_event.h" />
+    <ClInclude Include="..\..\..\Source\Lua\tolua_fix.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>
@@ -137,7 +153,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxd.lib;psapi.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxd.lib;psapi.lib;zlib.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
@@ -181,7 +197,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;psapi.lib;msvcrt.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfx.lib;psapi.lib;msvcrt.lib;zlib.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

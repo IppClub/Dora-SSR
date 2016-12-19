@@ -23,6 +23,12 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/BGFX/Lib/Android/${ANDROID_ABI}/libbgfx.a
 )
 
+add_library( luajit-lib STATIC IMPORTED )
+set_target_properties(
+	luajit-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/Lua/Lib/Android/${ANDROID_ABI}/libluajit.a
+)
+
 add_library( main SHARED ${src-files} )
 
-target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib )
+target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib luajit-lib )

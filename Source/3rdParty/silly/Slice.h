@@ -96,6 +96,13 @@ class Slice {
     return *this;
   }
 
+  std::string getFilePath() const;
+  std::string getFileName() const;
+  std::string getFileExtension() const;
+  std::string toLower() const;
+  std::string toUpper() const;
+
+  static const std::string Empty;
  private:
   const char *str_;
   size_t len_;

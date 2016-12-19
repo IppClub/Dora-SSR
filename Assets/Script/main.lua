@@ -1,1 +1,1 @@
-print("hello Dorothy SSR")
+print("hello Dorothy SSR\n")

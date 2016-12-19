@@ -101,13 +101,13 @@ int App::mainLogic(void* userData)
 	bgfx::frame();
 
 	oLog("Start");
-
 	Sint64 size;
 	oSharedContent.addSearchPath("Script");
+	oSharedLueEngine.executeScriptFile("main.lua");
 	oLog("Before load");
 	auto text = oSharedContent.loadFile("main.lua", size);
 	oLog("Get full Path");
-	oLog("%s %s", (char*)text.get(), oSharedContent.getFullPath("main.lua"));
+	oLog("%s %s", string((char*)text.get(),(size_t)size), oSharedContent.getFullPath("main.lua"));
 	oLog("Get Entries");
 	auto files = oSharedContent.getDirEntries("", true);
 	oLog("%d %s",files.size(),files[0]);

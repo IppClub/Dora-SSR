@@ -26,6 +26,8 @@ using std::unordered_set;
 using std::ostringstream;
 #include <tuple>
 using std::tuple;
+#include <algorithm>
+using std::max;
 #include "Other/AcfDelegate.h"
 using Acf::Delegate;
 #include "SDL_syswm.h"
@@ -49,5 +51,6 @@ using silly::Slice;
 #include "Common/oDebug.h"
 #include "Basic/oAutoreleasePool.h"
 #include "Basic/oContent.h"
+#include "Lua/oLuaEngine.h"
 
 #endif // __DOROTHY_CONST_OHEADER_H__

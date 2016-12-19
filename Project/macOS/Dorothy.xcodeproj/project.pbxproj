@@ -7,13 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3C17D5911D9C404A008758E8 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C17D5901D9C404A008758E8 /* libbgfx.a */; };
-		3C17D5931D9C4059008758E8 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C17D5921D9C4059008758E8 /* libSDL2.a */; };
 		3C291D331E025A980098C860 /* oAutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D311E025A980098C860 /* oAutoreleasePool.cpp */; };
 		3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */; };
 		3C291D4E1E0279990098C860 /* oContent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D4C1E0279990098C860 /* oContent.cpp */; };
 		3C291D581E02932B0098C860 /* oContent.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D571E02932B0098C860 /* oContent.mm */; };
 		3C31CB9E1E02293E00A8079D /* oDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C31CB9C1E02293E00A8079D /* oDebug.cpp */; };
+		3C6A1FB11E07F569006DD8C7 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029171E07DEB10016E1EC /* libluajit.a */; };
 		3C9ADE4C1E00EFD000D42018 /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* App.cpp */; };
 		3C9ADE5A1E00F24200D42018 /* oObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* oObject.cpp */; };
 		3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E911E03C09F00462FD7 /* ioapi.cpp */; };
@@ -24,6 +23,15 @@
 		3CC54E9F1E03C71100462FD7 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3CC54E9E1E03C71100462FD7 /* Script */; };
 		3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54EA01E03CA6C00462FD7 /* Slice.cpp */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
+		3CD029091E07D3C50016E1EC /* oLuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD028FE1E07D3C50016E1EC /* oLuaEngine.cpp */; };
+		3CD0290A1E07D3C50016E1EC /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029001E07D3C50016E1EC /* tolua_event.cpp */; };
+		3CD0290B1E07D3C50016E1EC /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029021E07D3C50016E1EC /* tolua_fix.cpp */; };
+		3CD0290C1E07D3C50016E1EC /* tolua_is.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029041E07D3C50016E1EC /* tolua_is.cpp */; };
+		3CD0290D1E07D3C50016E1EC /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029051E07D3C50016E1EC /* tolua_map.cpp */; };
+		3CD0290E1E07D3C50016E1EC /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029061E07D3C50016E1EC /* tolua_push.cpp */; };
+		3CD0290F1E07D3C50016E1EC /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029071E07D3C50016E1EC /* tolua_to.cpp */; };
+		3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
+		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
 		3CE331431D96D00000F9C3F6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331421D96D00000F9C3F6 /* CoreVideo.framework */; };
 		3CE331451D96D01200F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331441D96D01200F9C3F6 /* CoreAudio.framework */; };
@@ -39,8 +47,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		3C17D5901D9C404A008758E8 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/OSX/libbgfx.a; sourceTree = "<group>"; };
-		3C17D5921D9C4059008758E8 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/OSX/libSDL2.a; sourceTree = "<group>"; };
 		3C291D311E025A980098C860 /* oAutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oAutoreleasePool.cpp; path = ../../../Source/Basic/oAutoreleasePool.cpp; sourceTree = "<group>"; };
 		3C291D321E025A980098C860 /* oAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oAutoreleasePool.h; path = ../../../Source/Basic/oAutoreleasePool.h; sourceTree = "<group>"; };
 		3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LifeCycledSingleton.cpp; path = ../../../Source/3rdParty/silly/LifeCycledSingleton.cpp; sourceTree = "<group>"; };
@@ -83,6 +89,20 @@
 		3CC81FE61D966770008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3CD028FE1E07D3C50016E1EC /* oLuaEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oLuaEngine.cpp; path = ../../../Source/Lua/oLuaEngine.cpp; sourceTree = "<group>"; };
+		3CD028FF1E07D3C50016E1EC /* oLuaEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oLuaEngine.h; path = ../../../Source/Lua/oLuaEngine.h; sourceTree = "<group>"; };
+		3CD029001E07D3C50016E1EC /* tolua_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_event.cpp; path = ../../../Source/Lua/tolua_event.cpp; sourceTree = "<group>"; };
+		3CD029011E07D3C50016E1EC /* tolua_event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tolua_event.h; path = ../../../Source/Lua/tolua_event.h; sourceTree = "<group>"; };
+		3CD029021E07D3C50016E1EC /* tolua_fix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_fix.cpp; path = ../../../Source/Lua/tolua_fix.cpp; sourceTree = "<group>"; };
+		3CD029031E07D3C50016E1EC /* tolua_fix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tolua_fix.h; path = ../../../Source/Lua/tolua_fix.h; sourceTree = "<group>"; };
+		3CD029041E07D3C50016E1EC /* tolua_is.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_is.cpp; path = ../../../Source/Lua/tolua_is.cpp; sourceTree = "<group>"; };
+		3CD029051E07D3C50016E1EC /* tolua_map.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_map.cpp; path = ../../../Source/Lua/tolua_map.cpp; sourceTree = "<group>"; };
+		3CD029061E07D3C50016E1EC /* tolua_push.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_push.cpp; path = ../../../Source/Lua/tolua_push.cpp; sourceTree = "<group>"; };
+		3CD029071E07D3C50016E1EC /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/tolua_to.cpp; sourceTree = "<group>"; };
+		3CD029081E07D3C50016E1EC /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/tolua++.h"; sourceTree = "<group>"; };
+		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbgfx.a; sourceTree = "<group>"; };
+		3CD029151E07DD720016E1EC /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/macOS/libSDL2.a; sourceTree = "<group>"; };
+		3CD029171E07DEB10016E1EC /* libluajit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libluajit.a; path = ../../Source/3rdParty/Lua/Lib/macOS/libluajit.a; sourceTree = "<group>"; };
 		3CDCB0651E02204300AD73FC /* oDefine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oDefine.h; path = ../../../Source/Const/oDefine.h; sourceTree = "<group>"; };
 		3CE331401D96CFF700F9C3F6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		3CE331421D96D00000F9C3F6 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -104,9 +124,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C6A1FB11E07F569006DD8C7 /* libluajit.a in Frameworks */,
+				3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */,
+				3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */,
 				3CC54E9D1E03C0B100462FD7 /* libz.1.2.8.tbd in Frameworks */,
-				3C17D5931D9C4059008758E8 /* libSDL2.a in Frameworks */,
-				3C17D5911D9C404A008758E8 /* libbgfx.a in Frameworks */,
 				3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */,
 				3CE331571D96D30100F9C3F6 /* Metal.framework in Frameworks */,
 				3CE331531D96D12200F9C3F6 /* Carbon.framework in Frameworks */,
@@ -127,9 +148,10 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CD029171E07DEB10016E1EC /* libluajit.a */,
+				3CD029151E07DD720016E1EC /* libSDL2.a */,
+				3CD029131E07DD5F0016E1EC /* libbgfx.a */,
 				3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */,
-				3C17D5921D9C4059008758E8 /* libSDL2.a */,
-				3C17D5901D9C404A008758E8 /* libbgfx.a */,
 				3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */,
 				3CE331561D96D30100F9C3F6 /* Metal.framework */,
 				3CE331521D96D12200F9C3F6 /* Carbon.framework */,
@@ -294,6 +316,17 @@
 		3CFF5F221E012874004E3CA6 /* Lua */ = {
 			isa = PBXGroup;
 			children = (
+				3CD028FE1E07D3C50016E1EC /* oLuaEngine.cpp */,
+				3CD028FF1E07D3C50016E1EC /* oLuaEngine.h */,
+				3CD029001E07D3C50016E1EC /* tolua_event.cpp */,
+				3CD029011E07D3C50016E1EC /* tolua_event.h */,
+				3CD029021E07D3C50016E1EC /* tolua_fix.cpp */,
+				3CD029031E07D3C50016E1EC /* tolua_fix.h */,
+				3CD029041E07D3C50016E1EC /* tolua_is.cpp */,
+				3CD029051E07D3C50016E1EC /* tolua_map.cpp */,
+				3CD029061E07D3C50016E1EC /* tolua_push.cpp */,
+				3CD029071E07D3C50016E1EC /* tolua_to.cpp */,
+				3CD029081E07D3C50016E1EC /* tolua++.h */,
 				3CFF5F231E0128AE004E3CA6 /* oLuaHelper.h */,
 				3CFF5F241E012961004E3CA6 /* oLuaHelper.cpp */,
 			);
@@ -369,6 +402,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CD0290D1E07D3C50016E1EC /* tolua_map.cpp in Sources */,
+				3CD0290A1E07D3C50016E1EC /* tolua_event.cpp in Sources */,
 				3CFF5F251E012961004E3CA6 /* oLuaHelper.cpp in Sources */,
 				3C291D331E025A980098C860 /* oAutoreleasePool.cpp in Sources */,
 				3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */,
@@ -377,10 +412,15 @@
 				3C31CB9E1E02293E00A8079D /* oDebug.cpp in Sources */,
 				3C9ADE4C1E00EFD000D42018 /* App.cpp in Sources */,
 				3C291D4E1E0279990098C860 /* oContent.cpp in Sources */,
+				3CD0290C1E07D3C50016E1EC /* tolua_is.cpp in Sources */,
+				3CD0290B1E07D3C50016E1EC /* tolua_fix.cpp in Sources */,
+				3CD0290F1E07D3C50016E1EC /* tolua_to.cpp in Sources */,
+				3CD0290E1E07D3C50016E1EC /* tolua_push.cpp in Sources */,
 				3C291D581E02932B0098C860 /* oContent.mm in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,
 				3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */,
+				3CD029091E07D3C50016E1EC /* oLuaEngine.cpp in Sources */,
 				3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -430,6 +470,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -469,6 +510,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -484,16 +526,22 @@
 				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
-					../../Source/3rdParty/BGFX/Lib/macOS,
-					../../Source/3rdParty/SDL2/Lib/macOS,
-					../../Source/3rdParty/Lua/Lib/macOS,
+					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/BGFX/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/Lua/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				OTHER_LDFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-pagezero_size",
+					10000,
+					"-image_base",
+					100000000,
+				);
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/osx ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/Zip";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip";
+				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
 		};
@@ -508,16 +556,22 @@
 				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
-					../../Source/3rdParty/BGFX/Lib/macOS,
-					../../Source/3rdParty/SDL2/Lib/macOS,
-					../../Source/3rdParty/Lua/Lib/macOS,
+					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/BGFX/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/Lua/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				OTHER_LDFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-pagezero_size",
+					10000,
+					"-image_base",
+					100000000,
+				);
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/osx ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/Zip";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip";
+				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;
 		};
