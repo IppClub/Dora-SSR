@@ -6,12 +6,10 @@
 //  Copyright © 2016年 Dorothy. All rights reserved.
 //
 
-#include "SDL_syswm.h"
-#include "App.h"
-#include "SDL.h"
-#include "bgfx/platform.h"
-#include "bx/thread.h"
 #include "Const/oHeader.h"
+#include "App.h"
+
+NS_DOROTHY_BEGIN
 
 int App::winWidth = 800;
 int App::winHeight = 600;
@@ -34,7 +32,7 @@ int App::run()
 	setSdlWindow(window);
 
 	bgfx::renderFrame();
-	
+
 	bx::Thread thread;
 	thread.init(App::mainLogic);
 
@@ -102,9 +100,22 @@ int App::mainLogic(void* userData)
 		0x303030ff, 1.0f, 0);
 	bgfx::frame();
 
+	oLog("Start");
+
+	Sint64 size;
+	oSharedContent.addSearchPath("Script");
+	oLog("Before load");
+	auto text = oSharedContent.loadFile("main.lua", size);
+	oLog("Get full Path");
+	oLog("%s %s", (char*)text.get(), oSharedContent.getFullPath("main.lua"));
+	oLog("Get Entries");
+	auto files = oSharedContent.getDirEntries("", true);
+	oLog("%d %s",files.size(),files[0]);
+
 	// Update and invoke render apis
 	while (running)
 	{
+		oSharedPoolManager.push();
 		bgfx::setViewRect(0, 0, 0, winWidth, winHeight);
 
 		// This dummy draw call is here to make sure that view 0 is cleared
@@ -128,6 +139,7 @@ int App::mainLogic(void* userData)
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
 		bgfx::frame();
+		oSharedPoolManager.pop();
 	}
 
 	// Shut down frameworks
@@ -139,11 +151,13 @@ int App::mainLogic(void* userData)
 	return 0;
 }
 
+NS_DOROTHY_END
+
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 int main(int argc, char *argv[])
 {
-	App app;
+	Dorothy::App app;
 	return app.run();
 }
 #elif BX_PLATFORM_WINDOWS
@@ -153,7 +167,20 @@ int CALLBACK WinMain(
 	_In_ LPSTR lpCmdLine,
 	_In_ int nCmdShow)
 {
-	App app;
-	return app.run();
+#ifndef NDEBUG
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+#endif
+
+	Dorothy::App app;
+	int result = app.run();
+
+#ifndef NDEBUG
+	FreeConsole();
+#endif
+
+	return result;
 }
 #endif // BX_PLATFORM_

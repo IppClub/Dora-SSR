@@ -5,49 +5,37 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+#ifndef __DOROTHY_BASIC_OAUTORELEASEPOOL_H__
+#define __DOROTHY_BASIC_OAUTORELEASEPOOL_H__
 
-#ifndef __DOROTHY_CONST_OHEADER_H__
-#define __DOROTHY_CONST_OHEADER_H__
+NS_DOROTHY_BEGIN
 
-#include <string>
-using std::string;
-#include <vector>
-using std::vector;
-#include <functional>
-using std::function;
-#include <unordered_map>
-using std::unordered_map;
-#include <stack>
-using std::stack;
-#include <unordered_set>
-using std::unordered_set;
-#include <memory>
-#include <sstream>
-using std::ostringstream;
-#include <tuple>
-using std::tuple;
-#include "Other/AcfDelegate.h"
-using Acf::Delegate;
-#include "SDL_syswm.h"
-#include "SDL.h"
-#include "bgfx/platform.h"
-#include "bgfx/bgfx.h"
-#include "bx/thread.h"
-#include "silly/LifeCycledSingleton.h"
-#include "silly/Slice.h"
-using silly::Slice;
-#include "Common/oHelper.h"
-#include "Const/oDefine.h"
-#include "Lua/oLuaHelper.h"
-#include "Basic/oObject.h"
-#include "Common/oRef.h"
-#include "Common/oRefVector.h"
-#include "Common/oOwn.h"
-#include "Common/oOwnVector.h"
-#include "Common/oWRef.h"
-#include "Common/oWRefVector.h"
-#include "Common/oDebug.h"
-#include "Basic/oAutoreleasePool.h"
-#include "Basic/oContent.h"
+class oAutoreleasePool : public oObject
+{
+public:
+	virtual ~oAutoreleasePool();
+	void addObject(oObject* object);
+	void removeObject(oObject* object);
+	void clear();
+private:
+	oRefVector<oObject> _managedObjects;
+};
 
-#endif // __DOROTHY_CONST_OHEADER_H__
+class oPoolManager : public oObject
+{
+public:
+	void push();
+	void pop();
+	void clear();
+	void removeObject(oObject* pObject);
+	void addObject(oObject* pObject);
+private:
+	stack<oRef<oAutoreleasePool>> _releasePoolStack;
+};
+
+#define oSharedPoolManager \
+	silly::Singleton<oPoolManager, oSingletonIndex::PoolManager>::shared()
+
+NS_DOROTHY_END
+
+#endif //__DOROTHY_BASIC_OAUTORELEASEPOOL_H__

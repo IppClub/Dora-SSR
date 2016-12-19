@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+//
 #define PROPERTY(varType, varName, funName)\
 protected: varType varName;\
 public: varType get##funName() const;\
@@ -134,6 +135,17 @@ public:\
 private:\
 	xEnum _value;\
 };
+
+#ifdef __GNUC__
+	#define DORA_UNUSED __attribute__ ((unused))
+#else
+	#define DORA_UNUSED
+#endif
+
+#define DORA_UNUSED_PARAM(unusedparam) (void)unusedparam
+#define DORA_DUMMY do {} while (0)
+
+typedef const Slice& oSlice;
 
 NS_DOROTHY_END
 

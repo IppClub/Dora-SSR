@@ -47,9 +47,9 @@ public:
 	}
 	bool fast_remove(T* item)
 	{
-		int size = vector<oRef<T>>::size();
-		oRef<T>* data = data();
-		for (int i = 0; i < size; i++)
+		size_t size = vector<oRef<T>>::size();
+		oRef<T>* data = vector<oRef<T>>::data();
+		for (size_t i = 0; i < size; i++)
 		{
 			if (data[i] == item)
 			{

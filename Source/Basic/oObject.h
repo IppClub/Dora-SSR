@@ -34,7 +34,7 @@ public:
 	PROPERTY_READONLY_CLASS(Uint32, MaxObjectCount);
 	PROPERTY_READONLY_CLASS(Uint32, LuaRefCount);
 	PROPERTY_READONLY_CLASS(Uint32, MaxLuaRefCount);
-	PROPERTY_READONLY(Uint32, RetainCount);
+	PROPERTY_READONLY(Uint32, RefCount);
 	PROPERTY_READONLY_CALL(oWeak*, WeakRef);
 	oObject();
 	virtual ~oObject();
@@ -46,6 +46,7 @@ public:
 	oObject* autorelease();
 	virtual void update(float dt);
 private:
+	bool _managed;
 	Uint32 _id; // object id, each object has unique one
 	Uint32 _refCount; // count of C++ references
 	Uint32 _luaRef; // lua reference id

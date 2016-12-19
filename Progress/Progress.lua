@@ -156,13 +156,13 @@ CCDictionary	9	n
 	clear	4	n
 	keys	3	n
 CCObject	9	n
-	count	11	f
-	id	7	f
+	count	11	y
+	id	7	y
 	callRefCount	2	n
-	luaRefCount	2	f
-	ref	1	f
-	maxCount	1	f
-	maxLuaRefCount	1	f
+	luaRefCount	2	y
+	ref	1	y
+	maxCount	1	y
+	maxLuaRefCount	1	y
 	maxCallRefCount	1	n
 CCLabelBMFont	8	n
 	text	247	n
@@ -240,16 +240,16 @@ oEase	394	n
 	InSine	1	n
 	OutSine	1	n
 oContent	259	n
-	exist	90	n
-	remove	53	n
-	saveToFile	42	n
-	getEntries	36	n
-	mkdir	29	n
-	writablePath	12	n
-	loadFile	9	n
-	addSearchPath	4	n
+	exist	90	y
+	remove	53	y
+	saveToFile	42	y
+	getEntries	36	y
+	mkdir	29	y
+	writablePath	12	y
+	loadFile	9	y
+	addSearchPath	4	y
 	copyAsync	4	n
-	removeSearchPath	2	n
+	removeSearchPath	2	y
 	loadFileAsync	1	n
 oLine	146	n
 	set	7	n

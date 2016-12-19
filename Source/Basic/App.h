@@ -11,6 +11,8 @@
 
 struct SDL_Window;
 
+NS_DOROTHY_BEGIN
+
 class App
 {
 public:
@@ -22,5 +24,7 @@ protected:
 	static int winHeight;
 	static bool running;
 };
+
+NS_DOROTHY_END
 
 #endif /* App_h */

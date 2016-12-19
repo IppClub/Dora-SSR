@@ -19,12 +19,31 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\unzip.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\zip.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\App.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\oAutoreleasePool.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\oContent.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\oObject.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\oLuaHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\unzip.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\zip.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.h" />
     <ClInclude Include="..\..\..\Source\Basic\App.h" />
+    <ClInclude Include="..\..\..\Source\Basic\oAutoreleasePool.h" />
+    <ClInclude Include="..\..\..\Source\Basic\oContent.h" />
     <ClInclude Include="..\..\..\Source\Basic\oObject.h" />
     <ClInclude Include="..\..\..\Source\Common\oHelper.h" />
     <ClInclude Include="..\..\..\Source\Common\oMemoryPool.h" />
@@ -34,6 +53,7 @@
     <ClInclude Include="..\..\..\Source\Common\oRefVector.h" />
     <ClInclude Include="..\..\..\Source\Common\oWRef.h" />
     <ClInclude Include="..\..\..\Source\Common\oWRefVector.h" />
+    <ClInclude Include="..\..\..\Source\Const\oDefine.h" />
     <ClInclude Include="..\..\..\Source\Const\oHeader.h" />
     <ClInclude Include="..\..\..\Source\Lua\oLuaHelper.h" />
   </ItemGroup>
@@ -48,14 +68,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -91,7 +111,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)..\..\Build\$(Configuration).Win32\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -99,7 +119,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -110,19 +130,21 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxd.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxd.lib;psapi.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(OutDir)"
+xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Zip\Lib\Windows\zlib1.dll" "$(OutDir)"
+xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -147,8 +169,8 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(O
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -159,12 +181,14 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(O
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;psapi.lib;msvcrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfx.lib;psapi.lib;msvcrt.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(OutDir)"
+xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Zip\Lib\Windows\zlib1.dll" "$(OutDir)"
+xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

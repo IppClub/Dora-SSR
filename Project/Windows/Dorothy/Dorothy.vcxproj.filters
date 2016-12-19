@@ -13,6 +13,21 @@
     <Filter Include="Lua">
       <UniqueIdentifier>{5ea049b6-5bb0-4a28-a7e1-bcc3705b7ad0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{164271c1-5a03-4f56-ab29-4b899af981af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\silly">
+      <UniqueIdentifier>{d3d5ca95-9734-4684-8f81-8cd17fbdb6dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\FileSystem">
+      <UniqueIdentifier>{d6cfce9a-f6d0-44ec-9576-0b9ff9c321d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Zip">
+      <UniqueIdentifier>{c5c729d4-c12c-4299-bc2f-ad1309722d81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Zip\Support">
+      <UniqueIdentifier>{d1511dd1-faf5-49b1-b057-d66d058bb6e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Basic\App.cpp">
@@ -23,6 +38,30 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\oLuaHelper.cpp">
       <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\unzip.cpp">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\zip.cpp">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.cpp">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.cpp">
+      <Filter>3rdParty\silly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
+      <Filter>3rdParty\silly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\oAutoreleasePool.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\oContent.cpp">
+      <Filter>Basic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +100,42 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\oLuaHelper.h">
       <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
+      <Filter>3rdParty\FileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h">
+      <Filter>3rdParty\FileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.h">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\unzip.h">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\zip.h">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.h">
+      <Filter>3rdParty\Zip\Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.h">
+      <Filter>3rdParty\silly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
+      <Filter>3rdParty\silly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\oAutoreleasePool.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\oContent.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Const\oDefine.h">
+      <Filter>Const</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

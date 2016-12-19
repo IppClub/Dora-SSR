@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/oHeader.h"
 #include "Basic/oObject.h"
+#include "Basic/oAutoreleasePool.h"
 
 NS_DOROTHY_BEGIN
 
@@ -38,6 +39,7 @@ stack<Uint32> oObject::_availableIds;
 stack<Uint32> oObject::_availableLuaRefs;
 
 oObject::oObject():
+_managed(false),
 _refCount(1),
 _luaRef(0),
 _weak(nullptr)
@@ -55,7 +57,7 @@ _weak(nullptr)
 
 oObject::~oObject()
 {
-	//CCAssert(!_isManaged, "object is still managed when destroyed");
+	oAssertIf(_managed, "object is still managed when destroyed");
 	_availableIds.push(_id);
 	if (_luaRef != 0)
 	{
@@ -65,13 +67,13 @@ oObject::~oObject()
 
 bool oObject::init()
 {
-	// CCLOG("%s", typeid(*this).name());
+	// oLog("%s", typeid(*this).name());
 	return true;
 }
 
 void oObject::release()
 {
-	// CCAssert(_refCount > 0, "reference count should greater than 0");
+	oAssertUnless(_refCount > 0, "reference count should greater than 0");
     --_refCount;
     if (_refCount == 0)
     {
@@ -86,14 +88,14 @@ void oObject::release()
 
 void oObject::retain()
 {
-	//CCAssert(_ref > 0, "reference count should greater than 0");
+	oAssertUnless(_refCount > 0, "reference count should greater than 0");
     ++_refCount;
 }
 
 oObject* oObject::autorelease()
 {
-	// CCAssert(!_isManaged, "object is already managed");
-	// CCPoolManager::sharedPoolManager()->addObject(this);
+	oAssertIf(_managed, "object is already managed");
+	oSharedPoolManager.addObject(this);
 	return this;
 }
 
@@ -102,14 +104,14 @@ bool oObject::isSingleReferenced() const
     return _refCount == 1;
 }
 
-Uint32 oObject::getRetainCount() const
+Uint32 oObject::getRefCount() const
 {
     return _refCount;
 }
 
 void oObject::update(float dt)
 {
-	// CC_UNUSED_PARAM(dt);
+	DORA_UNUSED_PARAM(dt);
 }
 
 Uint32 oObject::getId() const

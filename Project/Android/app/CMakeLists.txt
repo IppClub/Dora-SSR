@@ -7,6 +7,8 @@ include_directories(
 	src/main/cpp/3rdParty
 	src/main/cpp/3rdParty/SDL2/Header
 	src/main/cpp/3rdParty/BGFX/Header
+	src/main/cpp/3rdParty/Lua/Header
+	src/main/cpp/3rdParty/Zip/Header
 )
 
 add_library( SDL2-lib SHARED IMPORTED )
@@ -23,4 +25,4 @@ set_target_properties(
 
 add_library( main SHARED ${src-files} )
 
-target_link_libraries( main android log EGL GLESv1_CM GLESv2 SDL2-lib BGFX-lib )
+target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib )

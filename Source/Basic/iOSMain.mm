@@ -1,10 +1,12 @@
-#include "bgfx/platform.h"
+#include "Const/oHeader.h"
 #if BX_PLATFORM_IOS
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "bx/thread.h"
 #include "App.h"
 #import <QuartzCore/CAEAGLLayer.h>
+
+NS_DOROTHY_BEGIN
 
 class iOSApp : public App
 {
@@ -37,9 +39,11 @@ public:
 	}
 };
 
+NS_DOROTHY_END
+
 int main(int argc, char *argv[])
 {
-	iOSApp app;
+	Dorothy::iOSApp app;
 	return app.run();
 }
 

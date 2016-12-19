@@ -24,6 +24,10 @@ int oLuaType()
 public: virtual int getLuaType() const \
 { \
 	return oLuaType<type>(); \
+} \
+virtual const char* getLuaName() const \
+{ \
+	return #type; \
 }
 
 template <class OutT, class InT>

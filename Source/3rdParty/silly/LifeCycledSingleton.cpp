@@ -18,7 +18,7 @@ namespace silly {
     }
 
     void add(Life* life) {
-      lives_.push_back(std::move(LifeOwner(life)));
+      lives_.push_back(LifeOwner(life));
     }
 
     static LifeCycler& shared() {

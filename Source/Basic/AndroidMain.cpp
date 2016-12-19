@@ -1,3 +1,4 @@
+#include "Basic/AndroidMain.h"
 #include "bgfx/platform.h"
 
 #if BX_PLATFORM_ANDROID
@@ -5,7 +6,21 @@
 #include <jni.h>
 #include <android/log.h>
 
+static string g_androidAPKPath;
+
+string getAndroidAPKPath()
+{
+	return g_androidAPKPath;
+}
+
 extern "C" {
+
+	JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath)
+	{
+		const char* chars = env->GetStringUTFChars(apkPath, NULL);
+		g_androidAPKPath = chars;
+		env->ReleaseStringUTFChars(apkPath, chars);
+	}
 
 	/* Called before SDL_main() to initialize JNI bindings in SDL library */
 	extern void SDL_Android_Init(JNIEnv* env, jclass cls);

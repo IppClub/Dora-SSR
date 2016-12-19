@@ -6,48 +6,39 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#ifndef __DOROTHY_CONST_OHEADER_H__
-#define __DOROTHY_CONST_OHEADER_H__
+#ifndef __DOROTHY_CONST_ODEFINE_H__
+#define __DOROTHY_CONST_ODEFINE_H__
 
-#include <string>
-using std::string;
-#include <vector>
-using std::vector;
-#include <functional>
-using std::function;
-#include <unordered_map>
-using std::unordered_map;
-#include <stack>
-using std::stack;
-#include <unordered_set>
-using std::unordered_set;
-#include <memory>
-#include <sstream>
-using std::ostringstream;
-#include <tuple>
-using std::tuple;
-#include "Other/AcfDelegate.h"
-using Acf::Delegate;
-#include "SDL_syswm.h"
-#include "SDL.h"
-#include "bgfx/platform.h"
-#include "bgfx/bgfx.h"
-#include "bx/thread.h"
-#include "silly/LifeCycledSingleton.h"
-#include "silly/Slice.h"
-using silly::Slice;
-#include "Common/oHelper.h"
-#include "Const/oDefine.h"
-#include "Lua/oLuaHelper.h"
-#include "Basic/oObject.h"
-#include "Common/oRef.h"
-#include "Common/oRefVector.h"
-#include "Common/oOwn.h"
-#include "Common/oOwnVector.h"
-#include "Common/oWRef.h"
-#include "Common/oWRefVector.h"
-#include "Common/oDebug.h"
-#include "Basic/oAutoreleasePool.h"
-#include "Basic/oContent.h"
+#define DORA_DEFAULT_ORG_NAME "LuvFight"
+#define DORA_DEFAULT_APP_NAME "DorothySSR"
 
-#endif // __DOROTHY_CONST_OHEADER_H__
+/** @brief Define the destruction orders of singleton intances,
+	the lowest indiced instance will be destroyed first. */
+ENUM_START(oSingletonIndex)
+{
+	ContentManager,
+	PoolManager,
+	LuaEngine,
+	Director
+}
+ENUM_END(oSingletonIndex)
+
+/** @brief Debug flag, set with the compilar flag by default. */
+#ifndef DORA_DEBUG
+	#if NDEBUG
+		#define DORA_DEBUG 0
+	#else
+		#define DORA_DEBUG 1
+	#endif
+#endif
+
+/** @brief Disable assert, set with the debug flag. */
+#ifndef DORA_DISABLE_ASSERT
+	#if DORA_DEBUG
+		#define DORA_DISABLE_ASSERT 0
+	#else
+		#define DORA_DISABLE_ASSERT 1
+	#endif
+#endif
+
+#endif // __DOROTHY_CONST_ODEFINE_H__
