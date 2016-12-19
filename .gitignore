@@ -31,15 +31,6 @@ _ReSharper*/
 ipch/
 *.opensdf
 
-# Ignore files build by ndk and eclipse
-bin/
-obj/
-gen/
-assets/
-local.properties
-
-# Ignore files built by Android
-
 # Ignore files build by xcode
 *.nib
 *.mode*v*
