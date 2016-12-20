@@ -155,15 +155,15 @@ CCDictionary	9	n
 	set	7	n
 	clear	4	n
 	keys	3	n
-CCObject	9	n
+CCObject	9	y
 	count	11	y
 	id	7	y
-	callRefCount	2	n
+	callRefCount	2	y
 	luaRefCount	2	y
 	ref	1	y
 	maxCount	1	y
 	maxLuaRefCount	1	y
-	maxCallRefCount	1	n
+	maxCallRefCount	1	y
 CCLabelBMFont	8	n
 	text	247	n
 	texture	144	n
@@ -469,9 +469,9 @@ string	90	d
 	gmatch	1	d
 	reverse	1	d
 	sub	1	d
-tolua	26	n
-	type	83	n
-	class	64	n
+tolua	26	y
+	type	83	y
+	class	64	y
 package	8	d
 	path	39	d
 	loaded	8	d
@@ -482,7 +482,7 @@ debug	7	n
 	getlocal	6	d
 	setfenv	3	d
 	setmetatable	1	d
-	traceback	1	n
+	traceback	1	y
 io	1	n
 	type	83	n
 	output	47	n
@@ -515,33 +515,33 @@ oRotate	4	n
 require	2168	n
 tostring	448	d
 emit	399	n
-property	145	n
+property	145	y
 pairs	126	d
 ipairs	108	d
 sleep	97	n
 type	93	d
-print	75	n
-Dorothy	69	n
+print	75	y
+Dorothy	69	y
 using	60	n
 thread	41	n
 setmetatable	32	d
 unpack	25	d
 rawget	18	d
-load	17	n
+load	17	y
 select	17	d
 module	13	d
-dofile	12	n
+dofile	12	y
 rawset	12	d
 getmetatable	10	d
 tonumber	10	d
 error	10	d
 wait	6	n
 seconds	5	n
-loadfile	5	n
+loadfile	5	y
 setfenv	3	d
-loadstring	3	n
+loadstring	3	y
 loop	2	n
-ubox	2	n
+ubox	2	y
 assert	2	d
 next	1	d
 xmlToLua	1	n
