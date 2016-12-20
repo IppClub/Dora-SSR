@@ -48,3 +48,7 @@ DerivedData/
 
 # Ignore vim swaps
 *.swp
+
+# Ignore lua binding generated codes
+oLuaCode.cpp
+oLuaBinding.cpp
