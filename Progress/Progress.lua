@@ -572,7 +572,7 @@ result = result..string.format("```\nShip: %d/%d %.2f%%\n```\n",otherCount,other
 local function displayProgress(percent)
 	local length = 15
 	local n = math.floor(percent*length+0.5)
-	return string.format("[ %s%s ] %.2f%%", string.rep("\\#",n), string.rep(" ",length-n), percent*100)
+	return string.format("[ %s%s ] %.2f%%", string.rep("#",n), string.rep(" ",length-n), percent*100)
 end
 result = result..string.format("```\nTotal: %s\n```\n",displayProgress((otherCount+cocosCount)/(cocosTotal+otherTotal)))
 
