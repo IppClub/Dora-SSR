@@ -132,7 +132,7 @@ void tolua_dobuffer(lua_State* L, char* B, unsigned int size, const char* name);
 
 int class_gc_event(lua_State* L);
 
-int tolua_collect_ccobject(lua_State* tolua_S);
+int tolua_collect_object(lua_State* tolua_S);
 
 inline const char* tolua_tocppstring(lua_State* L, int narg, const char* def)
 {
@@ -175,12 +175,15 @@ void tolua_typeid(lua_State *L, int typeId, const char* className);
 #endif
 
 #ifndef Mtolua_typeid
-	#define Mtolua_typeid(L,type,name) tolua_typeid(L,CCLuaType<type>(),name)
+	#define Mtolua_typeid(L,type,name) tolua_typeid(L,oLuaType<type>(),name)
 #endif
 
 #if DORA_DEBUG == 0
 	#define TOLUA_RELEASE
 #endif
+
+#define TOLUA_API
+#define _cstring char*
 
 NS_DOROTHY_END
 

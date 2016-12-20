@@ -34,6 +34,8 @@ public:
 	PROPERTY_READONLY_CLASS(Uint32, MaxObjectCount);
 	PROPERTY_READONLY_CLASS(Uint32, LuaRefCount);
 	PROPERTY_READONLY_CLASS(Uint32, MaxLuaRefCount);
+	PROPERTY_READONLY_CLASS(Uint32, LuaCallbackCount);
+	PROPERTY_READONLY_CLASS(Uint32, MaxLuaCallbackCount);
 	PROPERTY_READONLY(Uint32, RefCount);
 	PROPERTY_READONLY_CALL(oWeak*, WeakRef);
 	oObject();

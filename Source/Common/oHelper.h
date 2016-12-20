@@ -100,6 +100,7 @@ inline size_t oHash(const string& str) { return std::hash<std::string>{}(str); }
 #define __CASE_STR0(x, name, flag) static size_t name##flag = oHash(x);if (__strHashCodeForSwitch == name##flag && __targetStrForSwitch == x)
 #define __CASE_STR1(x, flag) __CASE_STR0(x, __strCase, flag)
 #define CASE_STR(x) __CASE_STR1(#x, x)
+#define DEFAULT_STR()
 #define SWITCH_STR_END while (false); }
 
 /** @brief A better Enum

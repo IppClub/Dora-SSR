@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/oHeader.h"
 #include "Basic/oObject.h"
 #include "Basic/oAutoreleasePool.h"
+#include "Lua/tolua_fix.h"
 
 NS_DOROTHY_BEGIN
 
@@ -124,19 +125,29 @@ Uint32 oObject::getObjectCount()
 	return _maxIdCount - (Uint32)_availableIds.size();
 }
 
-Uint32 oObject::getLuaRefCount()
-{
-	return _luaRefCount;
-}
-
 Uint32 oObject::getMaxObjectCount()
 {
 	return _maxIdCount;
 }
 
+Uint32 oObject::getLuaRefCount()
+{
+	return _luaRefCount;
+}
+
 Uint32 oObject::getMaxLuaRefCount()
 {
 	return _maxLuaRefCount;
+}
+
+Uint32 oObject::getLuaCallbackCount()
+{
+	return tolua_get_callback_ref_count();
+}
+
+Uint32 oObject::getMaxLuaCallbackCount()
+{
+	return tolua_get_max_callback_ref_count();
 }
 
 oWeak* oObject::getWeakRef()

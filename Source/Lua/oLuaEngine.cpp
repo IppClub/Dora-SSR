@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #include "Const/oHeader.h"
 #include "Lua/oLuaEngine.h"
+#include "Lua/oLuaBinding.h"
 
 NS_DOROTHY_BEGIN
 
@@ -36,7 +37,7 @@ static int olua_print(lua_State* L)
 		}
 		if (i != nargs) t += "\t";
 	}
-	oPrint(t.c_str());
+	oPrint("%s\n", t);
 	return 0;
 }
 
@@ -54,10 +55,10 @@ static int olua_traceback(lua_State* L)
 
 static int olua_loadfile(lua_State* L, oSlice filename)
 {
-	bool isXml = false;
+	oAssertIf(filename.empty(), "passing empty filename string to lua loader.");
 	string extension = filename.getFileExtension();
 	string targetFile = filename;
-	if (extension.empty())
+	if (extension.empty() && targetFile.back() != '.')
 	{
 		if (oSharedContent.isFileExist(targetFile + ".lua"))
 		{
@@ -68,54 +69,58 @@ static int olua_loadfile(lua_State* L, oSlice filename)
 			if (oSharedContent.isFileExist(targetFile + ".xml"))
 			{
 				targetFile.append(".xml");
-				isXml = true;
+				extension = "xml";
 			}
 			else
 			{
 				lua_pushnil(L);
-				lua_pushliteral(L, "Xml and Lua files not found");
+				lua_pushliteral(L, "xml and lua files not found");
 				return 2;
 			}
 		}
-	}
-	else
-	{
-		isXml = extension == "xml";
 	}
 
 	Sint64 codeBufferSize = 0;
 	oOwnArray<Uint8> buffer;
 	const char* codeBuffer = nullptr;
 	string codes;
-	if (isXml)
+	SWITCH_STR_START(extension)
 	{
-		//codes = oSharedXMLLoader.load(filename.c_str());
-		if (codes.empty())
+		CASE_STR(xml)
 		{
-			//luaL_error(L, "error parsing xml file: %s\n%s", filename.c_str(), oSharedXMLLoader.getLastError().c_str());
+			//codes = oSharedXMLLoader.load(filename.c_str());
+			if (codes.empty())
+			{
+				//luaL_error(L, "error parsing xml file: %s\n%s", filename.c_str(), oSharedXMLLoader.getLastError().c_str());
+			}
+			else
+			{
+				codeBuffer = codes.c_str();
+				codeBufferSize = codes.size();
+			}
+			break;
 		}
-		else
+		DEFAULT_STR()
 		{
-			codeBuffer = codes.c_str();
-			codeBufferSize = codes.size();
+			buffer = oSharedContent.loadFile(targetFile, codeBufferSize);
+			codeBuffer = (const char*)buffer.get();
+			break;
 		}
 	}
-	else
-	{
-		buffer = oSharedContent.loadFile(filename, codeBufferSize);
-		codeBuffer = (const char*)buffer.get();
-	}
+	SWITCH_STR_END
+
 	if (codeBuffer)
 	{
 		if (luaL_loadbuffer(L, codeBuffer, (size_t)codeBufferSize, filename.c_str()) != 0)
 		{
-			luaL_error(L, "error loading module %s from file %s :\n\t%s",
+			luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
 				lua_tostring(L, 1), filename.c_str(), lua_tostring(L, -1));
 		}
 	}
 	else
 	{
-		luaL_error(L, "can not get file data of %s", filename.c_str());
+		luaL_error(L, "can not get data from file \"%s\"", filename.c_str());
+		return 2;
 	}
 	return 1;
 
@@ -194,7 +199,8 @@ static int olua_ubox(lua_State* L)
 
 static int olua_loadlibs(lua_State* L)
 {
-	const luaL_Reg lualibs[] = {
+	const luaL_Reg lualibs[] =
+	{
 		{ "", luaopen_base },
 		{ LUA_LOADLIBNAME, luaopen_package },
 		{ LUA_TABLIBNAME, luaopen_table },
@@ -205,8 +211,7 @@ static int olua_loadlibs(lua_State* L)
 		{ LUA_DBLIBNAME, luaopen_debug },
 		{ NULL, NULL }
 	};
-	const luaL_Reg* lib = lualibs;
-	for (; lib->func; lib++)
+	for (const luaL_Reg* lib = lualibs; lib->func; lib++)
 	{
 		lua_pushcfunction(L, lib->func);
 		lua_pushstring(L, lib->name);
@@ -226,16 +231,14 @@ oLuaEngine::oLuaEngine()
 	olua_loadlibs(L);
 	tolua_open(L);
 	//luaopen_lpeg(L);
-	//toluafix_open(L);
-	//tolua_LuaBinding_open(L);
 
 	// Register our version of the global "print" function
 	const luaL_reg global_functions[] =
 	{
 		{ "print", olua_print },
 		{ "loadfile", olua_loadfile },
-		/*
 		{ "dofile", olua_dofile },
+		/*
 		{ "doXml", olua_doXml },
 		{ "xmlToLua", olua_xmlToLua },
 		*/
@@ -246,6 +249,10 @@ oLuaEngine::oLuaEngine()
 
 	// add cocos2dx loader
 	addLuaLoader(olua_loader);
+
+	// load binding codes
+	tolua_LuaBinding_open(L);
+	tolua_LuaCode_open(L);
 /*
 	tolua_beginmodule(L, 0);//stack: package.loaded
 	tolua_beginmodule(L, "CCNode");

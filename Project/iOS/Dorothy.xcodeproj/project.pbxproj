@@ -19,6 +19,9 @@
 		3C6A1FC31E082B24006DD8C7 /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A1FBB1E082B24006DD8C7 /* tolua_map.cpp */; };
 		3C6A1FC41E082B24006DD8C7 /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A1FBC1E082B24006DD8C7 /* tolua_push.cpp */; };
 		3C6A1FC51E082B24006DD8C7 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A1FBD1E082B24006DD8C7 /* tolua_to.cpp */; };
+		3C77083A1E08D9EF00B38C2A /* oLuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708351E08D9EF00B38C2A /* oLuaBinding.cpp */; };
+		3C77083B1E08D9EF00B38C2A /* oLuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708371E08D9EF00B38C2A /* oLuaCode.cpp */; };
+		3C77083C1E08D9EF00B38C2A /* oLuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708381E08D9EF00B38C2A /* oLuaManual.cpp */; };
 		3C9862721D9CA4500056A045 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862701D9CA4500056A045 /* libbgfx.a */; };
 		3C9862741D9CA4830056A045 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862731D9CA4830056A045 /* libSDL2.a */; };
 		3CB410281E05B0C500A8804D /* LifeCycledSingleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410241E05B0C500A8804D /* LifeCycledSingleton.cpp */; };
@@ -65,6 +68,11 @@
 		3C6A1FBC1E082B24006DD8C7 /* tolua_push.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_push.cpp; path = ../../../Source/Lua/tolua_push.cpp; sourceTree = "<group>"; };
 		3C6A1FBD1E082B24006DD8C7 /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/tolua_to.cpp; sourceTree = "<group>"; };
 		3C6A1FBE1E082B24006DD8C7 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/tolua++.h"; sourceTree = "<group>"; };
+		3C7708351E08D9EF00B38C2A /* oLuaBinding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oLuaBinding.cpp; path = ../../../Source/Lua/oLuaBinding.cpp; sourceTree = "<group>"; };
+		3C7708361E08D9EF00B38C2A /* oLuaBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oLuaBinding.h; path = ../../../Source/Lua/oLuaBinding.h; sourceTree = "<group>"; };
+		3C7708371E08D9EF00B38C2A /* oLuaCode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oLuaCode.cpp; path = ../../../Source/Lua/oLuaCode.cpp; sourceTree = "<group>"; };
+		3C7708381E08D9EF00B38C2A /* oLuaManual.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oLuaManual.cpp; path = ../../../Source/Lua/oLuaManual.cpp; sourceTree = "<group>"; };
+		3C7708391E08D9EF00B38C2A /* oLuaManual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oLuaManual.h; path = ../../../Source/Lua/oLuaManual.h; sourceTree = "<group>"; };
 		3C9862701D9CA4500056A045 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbgfx.a; sourceTree = "<group>"; };
 		3C9862731D9CA4830056A045 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
 		3CB410241E05B0C500A8804D /* LifeCycledSingleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LifeCycledSingleton.cpp; path = ../../../Source/3rdParty/silly/LifeCycledSingleton.cpp; sourceTree = "<group>"; };
@@ -167,6 +175,22 @@
 				3C1F87D91DF8034B005F1B4D /* App.h */,
 			);
 			name = Basic;
+			sourceTree = "<group>";
+		};
+		3C77083D1E08D9F500B38C2A /* tolua */ = {
+			isa = PBXGroup;
+			children = (
+				3C6A1FB61E082B24006DD8C7 /* tolua_event.cpp */,
+				3C6A1FB71E082B24006DD8C7 /* tolua_event.h */,
+				3C6A1FB81E082B24006DD8C7 /* tolua_fix.cpp */,
+				3C6A1FB91E082B24006DD8C7 /* tolua_fix.h */,
+				3C6A1FBA1E082B24006DD8C7 /* tolua_is.cpp */,
+				3C6A1FBB1E082B24006DD8C7 /* tolua_map.cpp */,
+				3C6A1FBC1E082B24006DD8C7 /* tolua_push.cpp */,
+				3C6A1FBD1E082B24006DD8C7 /* tolua_to.cpp */,
+				3C6A1FBE1E082B24006DD8C7 /* tolua++.h */,
+			);
+			name = tolua;
 			sourceTree = "<group>";
 		};
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
@@ -304,17 +328,14 @@
 		3CFF5F351E013708004E3CA6 /* Lua */ = {
 			isa = PBXGroup;
 			children = (
+				3C77083D1E08D9F500B38C2A /* tolua */,
+				3C7708351E08D9EF00B38C2A /* oLuaBinding.cpp */,
+				3C7708361E08D9EF00B38C2A /* oLuaBinding.h */,
+				3C7708371E08D9EF00B38C2A /* oLuaCode.cpp */,
+				3C7708381E08D9EF00B38C2A /* oLuaManual.cpp */,
+				3C7708391E08D9EF00B38C2A /* oLuaManual.h */,
 				3C6A1FB41E082B24006DD8C7 /* oLuaEngine.cpp */,
 				3C6A1FB51E082B24006DD8C7 /* oLuaEngine.h */,
-				3C6A1FB61E082B24006DD8C7 /* tolua_event.cpp */,
-				3C6A1FB71E082B24006DD8C7 /* tolua_event.h */,
-				3C6A1FB81E082B24006DD8C7 /* tolua_fix.cpp */,
-				3C6A1FB91E082B24006DD8C7 /* tolua_fix.h */,
-				3C6A1FBA1E082B24006DD8C7 /* tolua_is.cpp */,
-				3C6A1FBB1E082B24006DD8C7 /* tolua_map.cpp */,
-				3C6A1FBC1E082B24006DD8C7 /* tolua_push.cpp */,
-				3C6A1FBD1E082B24006DD8C7 /* tolua_to.cpp */,
-				3C6A1FBE1E082B24006DD8C7 /* tolua++.h */,
 				3CFF5F361E013716004E3CA6 /* oLuaHelper.cpp */,
 				3CFF5F371E013716004E3CA6 /* oLuaHelper.h */,
 			);
@@ -399,6 +420,7 @@
 				3CFF5F341E0136CF004E3CA6 /* oObject.cpp in Sources */,
 				3CB410421E05B19A00A8804D /* zip.cpp in Sources */,
 				3CB410291E05B0C500A8804D /* Slice.cpp in Sources */,
+				3C77083C1E08D9EF00B38C2A /* oLuaManual.cpp in Sources */,
 				3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */,
 				3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */,
 				3CB410281E05B0C500A8804D /* LifeCycledSingleton.cpp in Sources */,
@@ -409,7 +431,9 @@
 				3CB410341E05B13E00A8804D /* oContent.mm in Sources */,
 				3CFF5F271E0136A0004E3CA6 /* iOSMain.mm in Sources */,
 				3CB410411E05B19A00A8804D /* unzip.cpp in Sources */,
+				3C77083B1E08D9EF00B38C2A /* oLuaCode.cpp in Sources */,
 				3C1F87DB1DF8034B005F1B4D /* App.cpp in Sources */,
+				3C77083A1E08D9EF00B38C2A /* oLuaBinding.cpp in Sources */,
 				3C6A1FBF1E082B24006DD8C7 /* oLuaEngine.cpp in Sources */,
 				3CB410331E05B13E00A8804D /* oContent.cpp in Sources */,
 			);

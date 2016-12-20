@@ -100,17 +100,7 @@ int App::mainLogic(void* userData)
 		0x303030ff, 1.0f, 0);
 	bgfx::frame();
 
-	oLog("Start");
-	Sint64 size;
-	oSharedContent.addSearchPath("Script");
-	oSharedLueEngine.executeScriptFile("main.lua");
-	oLog("Before load");
-	auto text = oSharedContent.loadFile("main.lua", size);
-	oLog("Get full Path");
-	oLog("%s %s", string((char*)text.get(),(size_t)size), oSharedContent.getFullPath("main.lua"));
-	oLog("Get Entries");
-	auto files = oSharedContent.getDirEntries("", true);
-	oLog("%d %s",files.size(),files[0]);
+	oSharedLueEngine.executeScriptFile("Script/main");
 
 	// Update and invoke render apis
 	while (running)

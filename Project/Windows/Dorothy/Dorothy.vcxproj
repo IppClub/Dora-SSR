@@ -29,8 +29,11 @@
     <ClCompile Include="..\..\..\Source\Basic\oAutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\oContent.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\oObject.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\oLuaBinding.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\oLuaCode.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\oLuaEngine.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\oLuaHelper.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\oLuaManual.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\tolua_event.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\tolua_fix.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\tolua_is.cpp" />
@@ -67,8 +70,10 @@
     <ClInclude Include="..\..\..\Source\Common\oWRefVector.h" />
     <ClInclude Include="..\..\..\Source\Const\oDefine.h" />
     <ClInclude Include="..\..\..\Source\Const\oHeader.h" />
+    <ClInclude Include="..\..\..\Source\Lua\oLuaBinding.h" />
     <ClInclude Include="..\..\..\Source\Lua\oLuaEngine.h" />
     <ClInclude Include="..\..\..\Source\Lua\oLuaHelper.h" />
+    <ClInclude Include="..\..\..\Source\Lua\oLuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\tolua_event.h" />
     <ClInclude Include="..\..\..\Source\Lua\tolua_fix.h" />
