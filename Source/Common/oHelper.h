@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-//
+/** @brief Helper macros to define setters and getters */
 #define PROPERTY(varType, varName, funName)\
 protected: varType varName;\
 public: varType get##funName() const;\
@@ -100,7 +100,7 @@ inline size_t oHash(const string& str) { return std::hash<std::string>{}(str); }
 #define __CASE_STR0(x, name, flag) static size_t name##flag = oHash(x);if (__strHashCodeForSwitch == name##flag && __targetStrForSwitch == x)
 #define __CASE_STR1(x, flag) __CASE_STR0(x, __strCase, flag)
 #define CASE_STR(x) __CASE_STR1(#x, x)
-#define DEFAULT_STR()
+#define CASE_DEFAULT
 #define SWITCH_STR_END while (false); }
 
 /** @brief A better Enum
@@ -137,6 +137,8 @@ private:\
 	xEnum _value;\
 };
 
+
+/** @brief Compiler compact macros */
 #ifdef __GNUC__
 	#define DORA_UNUSED __attribute__ ((unused))
 #else
@@ -146,7 +148,81 @@ private:\
 #define DORA_UNUSED_PARAM(unusedparam) (void)unusedparam
 #define DORA_DUMMY do {} while (0)
 
+/** @brief Short name for Slice used for argument type */
 typedef const Slice& oSlice;
+
+/** @brief Helper function to add create style codes for oObject derivations.
+ The added create(...) functions accept the same argument with the class constructors.
+ @example
+ // Add the macro in subclass of oObject
+ class MyItem : public oObject
+ {
+ 	public:
+		MyItem();
+		MyItem(int value);
+		virtual bool init() override;
+		CREATE_FUNC(MyItem)
+ };
+ 
+ // Use the create functions
+ auto itemA = MyItem::create();
+ auto itemB = MyItem::create(998);
+ */
+#define CREATE_FUNC(type) \
+template<class... Args> \
+static type* create(Args&&... args) \
+{ \
+    type* item = new type(std::forward<Args>(args)...); \
+    if (item && item->init()) \
+    { \
+        item->autorelease(); \
+    } \
+    else \
+    { \
+        delete item; \
+        item = nullptr; \
+    } \
+	return item; \
+}
+
+/** @brief Helper function to iterate a std::tuple.
+ @example
+ // I have a tuple
+ auto item = std::make_tuple(998, 233, "a pen");
+ // I have a handler
+ struct Handler
+ {
+ 	template<typename T>
+ 	void operator()(const T& element)
+ 	{
+ 		cout << element << "\n";
+ 	}
+ };
+ // Em, start iteration
+ oTupleForeach(item, Handler());
+ */
+template<typename Tuple, size_t Size>
+struct oTuple
+{
+	template<typename Func>
+	static void foreach(const Tuple& item, Func&& func)
+	{
+		oTuple<Tuple, Size - 1>::foreach(item, func);
+		func(std::get<Size - 1>(item));
+	}
+};
+template<typename Tuple>
+struct oTuple<Tuple, 0>
+{
+	template<typename Func>
+	static void foreach(const Tuple&, Func&&)
+	{ }
+};
+template<typename Tuple, typename Func>
+inline void oTupleForeach(const Tuple& item, Func&& func)
+{
+	oTuple<Tuple, std::tuple_size<Tuple>::value>::foreach(item, func);
+}
 
 NS_DOROTHY_END
 

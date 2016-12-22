@@ -5,6 +5,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 #include "Const/oHeader.h"
 #include "Lua/oLuaEngine.h"
 #include "tolua++.h"
@@ -52,14 +53,13 @@ int tolua_collect_object(lua_State* L)
 	return 0;
 }
 
-void tolua_pushobject(lua_State* L, void* ptr)
+void tolua_pushobject(lua_State* L, oObject* object)
 {
-	if (!ptr)
+	if (!object)
 	{
 		lua_pushnil(L);
 		return;
 	}
-	oObject* object = (oObject*)ptr;
 	int refid = object->getLuaRef();
 
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_UBOX); // ubox
@@ -68,7 +68,7 @@ void tolua_pushobject(lua_State* L, void* ptr)
 	if (lua_isnil(L, -1)) // ud == nil
 	{
 		lua_pop(L, 1); // ubox
-		*(void**)lua_newuserdata(L, sizeof(void*)) = ptr; // ubox newud
+		*(void**)lua_newuserdata(L, sizeof(void*)) = object; // ubox newud
 		lua_pushvalue(L, -1); // ubox newud newud
 		lua_insert(L, -3); // newud ubox newud
 		lua_rawseti(L, -2, refid); // ubox[refid] = newud, newud ubox

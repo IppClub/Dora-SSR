@@ -6,15 +6,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#ifndef __DOROTHY_LUA_OLUABINDING_H__
-#define __DOROTHY_LUA_OLUABINDING_H__
+#ifndef __DOROTHY_BASIC_OAPPLICATION_H__
+#define __DOROTHY_BASIC_OAPPLICATION_H__
 
-#include "Const/oHeader.h"
-#include "Lua/oLuaManual.h"
-#include "tolua++.h"
-#include "tolua_fix.h"
+struct SDL_Window;
 
-int tolua_LuaBinding_open(lua_State* tolua_S);
-int tolua_LuaCode_open(lua_State* tolua_S);
+NS_DOROTHY_BEGIN
 
-#endif // __DOROTHY_LUA_OLUABINDING_H__
+class oApplication
+{
+public:
+	int run();
+	virtual void setSdlWindow(SDL_Window* window);
+	static int mainLogic(void* userData);
+protected:
+	static int winWidth;
+	static int winHeight;
+	static bool running;
+};
+
+NS_DOROTHY_END
+
+#endif // __DOROTHY_BASIC_OAPPLICATION_H__

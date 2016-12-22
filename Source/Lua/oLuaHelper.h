@@ -21,11 +21,31 @@ int oLuaType()
 }
 
 #define LUA_TYPE(type) \
+public: int getLuaType() const \
+{ \
+	return oLuaType<type>(); \
+} \
+const char* getLuaName() const \
+{ \
+	return #type; \
+}
+
+#define LUA_TYPE_BASE(type) \
 public: virtual int getLuaType() const \
 { \
 	return oLuaType<type>(); \
 } \
 virtual const char* getLuaName() const \
+{ \
+	return #type; \
+}
+
+#define LUA_TYPE_OVERRIDE(type) \
+public: virtual int getLuaType() const override \
+{ \
+	return oLuaType<type>(); \
+} \
+virtual const char* getLuaName() const override \
 { \
 	return #type; \
 }

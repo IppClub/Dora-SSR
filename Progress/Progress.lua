@@ -1,5 +1,5 @@
 local progressInfo = [[
---- f: Finished n:Not Finished d:Deleted ---
+--- y: Done n: Not Finished d: Deleted ---
 --- Cocos Class-----
 ccColor4	390	n
 	a	3	n

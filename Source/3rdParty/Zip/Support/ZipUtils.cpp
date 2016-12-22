@@ -159,8 +159,8 @@ int ZipUtils::ccInflateMemory(unsigned char *in, unsigned int inLength, unsigned
 
 int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
 {
-	 oAssertUnless(out, "ZipUtils: invalid out buffer");
-     oAssertUnless(&*out, "ZipUtils: invalid out buffer");
+	 oAssertIf(out == nullptr, "ZipUtils: invalid out buffer.");
+     oAssertIf(&*out == nullptr, "ZipUtils: invalid out buffer.");
 
     int len;
     unsigned int offset = 0;
@@ -223,7 +223,7 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
 
     if (gzclose(inFile) != Z_OK)
     {
-        oLog("ZipUtils: gzclose failed");
+        oLog("ZipUtils: gzclose failed.");
     }
 
     return offset;
@@ -231,8 +231,8 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
 
 int ZipUtils::ccInflateCCZFile(const char* path, unsigned char** out)
 {
-	 oAssertUnless(out, "ZipUtils: invalid out buffer");
-     oAssertUnless(&*out, "ZipUtils: invalid out buffer");
+	 oAssertIf(out == nullptr, "ZipUtils: invalid out buffer.");
+     oAssertIf(&*out == nullptr, "ZipUtils: invalid out buffer.");
 
      // load file into memory
      unsigned char* compressed = NULL;
@@ -507,7 +507,7 @@ unsigned char* ZipFile::getFileData(const std::string& fileName, unsigned long* 
 
         pBuffer = new unsigned char[fileInfo.uncompressed_size];
         int nSize = unzReadCurrentFile(m_data->zipFile, pBuffer, (unsigned int)fileInfo.uncompressed_size);
-        oAssertUnless(nSize == 0 || nSize == (int)fileInfo.uncompressed_size, "the file size is wrong");
+        oAssertUnless(nSize == 0 || nSize == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
 
         if (pSize)
         {

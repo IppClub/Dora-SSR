@@ -7,44 +7,12 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/oHeader.h"
-#include "Lua/oLuaEngine.h"
-#include "Lua/tolua++.h"
+#include "Basic/oDirector.h"
 
 NS_DOROTHY_BEGIN
 
-void __oContent_loadFile(lua_State* L, oContent* self, const char* filename)
+void oDirector::mainLoop()
 {
-	Sint64 size = 0;
-	oOwnArray<Uint8> data = self->loadFile(filename, size);
-	if (!data)
-	{
-		lua_pushnil(L);
-	}
-	else
-	{
-		lua_pushlstring(L, (const char*)data.get(), (size_t)size);
-	}
-}
-
-void __oContent_getDirEntries(lua_State* L, oContent* self, const char* path, bool isFolder)
-{
-	auto dirs = self->getDirEntries(path, isFolder);
-	lua_createtable(L, (int)dirs.size(), 0);
-	for (int i = 0; i < (int)dirs.size(); i++)
-	{
-		lua_pushstring(L, dirs[i].c_str());
-		lua_rawseti(L, -2, i+1);
-	}
-}
-
-void oContent_setSearchPaths(oContent* self, char* paths[], int length)
-{
-	vector<string> searchPaths(length);
-	for (int i = 0; i < length; i++)
-	{
-		searchPaths[i] = paths[i];
-	}
-	self->setSearchPaths(searchPaths);
 }
 
 NS_DOROTHY_END

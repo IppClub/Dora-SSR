@@ -54,41 +54,34 @@ inline void oPrint(char const * const str)
 			"\n", ##__VA_ARGS__)
 #endif
 
+#if DORA_DISABLE_ASSERT_IN_LUA
+	#define DORA_ASSERT(cond) assert(cond)
+#else
+	#define DORA_ASSERT(cond) \
+		if (!oSharedLueEngine.executeAssert(cond, #cond)) \
+		{ \
+			assert(cond); \
+		}
+#endif
+
 #if DORA_DISABLE_ASSERT
 	#define oAssertIf(cond, msg) DORA_DUMMY
 	#define oAssertUnless(cond, msg) DORA_DUMMY
 #else
-	#if BX_PLATFORM_ANDROID
-		#define oAssertIf(cond, msg) \
-		    if (cond) \
-			{ \
-        		__android_log_print(ANDROID_LOG_ERROR, \
-					"dorothy assert", "file:%s function:%s line:%d, %s", \
-					__FILE__, __FUNCTION__, __LINE__, msg); \
-    		}
-		#define oAssertUnless(cond, msg) \
-		    if (!(cond)) \
-			{ \
-        		__android_log_print(ANDROID_LOG_ERROR, \
-					"dorothy assert", "file:%s function:%s line:%d, %s", \
-					__FILE__, __FUNCTION__, __LINE__, msg); \
-    		}
-	#else
-		#define oAssertIf(cond, msg) \
-			if (cond) \
-			{ \
-				oPrint("dorothy assert, file:%s function:%s line:%d, %s", \
-					__FILE__, __FUNCTION__, __LINE__, msg); \
-				assert(!(cond)); \
-			}
-		#define oAssertUnless(cond, msg) \
-			if (!(cond)) \
-			{ \
-				oPrint("dorothy assert, file:%s function:%s line:%d, %s", \
-					__FILE__, __FUNCTION__, __LINE__, msg); \
-				assert(cond); \
-			}
-	#endif
+	#define oAssertIf(cond, msg) \
+		if (cond) \
+		{ \
+			oPrint("dorothy assert, file:%s function:%s line:%d, %s\n", \
+				__FILE__, __FUNCTION__, __LINE__, msg); \
+			DORA_ASSERT(!(cond)); \
+		}
+	#define oAssertUnless(cond, msg) \
+		if (!(cond)) \
+		{ \
+			oPrint("dorothy assert, file:%s function:%s line:%d, %s\n", \
+				__FILE__, __FUNCTION__, __LINE__, msg); \
+			DORA_ASSERT(cond); \
+		}
 #endif
 
 NS_DOROTHY_END

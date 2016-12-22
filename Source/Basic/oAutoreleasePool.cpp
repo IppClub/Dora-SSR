@@ -5,6 +5,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 #include "Const/oHeader.h"
 #include "Basic/oAutoreleasePool.h"
 
@@ -18,7 +19,7 @@ oAutoreleasePool::~oAutoreleasePool()
 void oAutoreleasePool::addObject(oObject* object)
 {
 	_managedObjects.push_back(object);
-	oAssertUnless(object->getRefCount() > 1, "reference count should be greater than 1");
+	oAssertUnless(object->getRefCount() > 1, "reference count should be greater than 1.");
 	object->_managed = true;
 	object->release();
 }
@@ -65,13 +66,13 @@ void oPoolManager::pop()
 
 void oPoolManager::removeObject(oObject* object)
 {
-	oAssertIf(_releasePoolStack.empty(), "current auto release pool stack should not be empty");
+	oAssertIf(_releasePoolStack.empty(), "current auto release pool stack should not be empty.");
 	_releasePoolStack.top()->removeObject(object);
 }
 
 void oPoolManager::addObject(oObject* object)
 {
-	oAssertIf(_releasePoolStack.empty(), "current auto release pool stack should not be empty");
+	oAssertIf(_releasePoolStack.empty(), "current auto release pool stack should not be empty.");
 	_releasePoolStack.top()->addObject(object);
 }
 

@@ -12,6 +12,11 @@
 		3C291D4E1E0279990098C860 /* oContent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D4C1E0279990098C860 /* oContent.cpp */; };
 		3C291D581E02932B0098C860 /* oContent.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D571E02932B0098C860 /* oContent.mm */; };
 		3C31CB9E1E02293E00A8079D /* oDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C31CB9C1E02293E00A8079D /* oDebug.cpp */; };
+		3C374C571E09241600527752 /* oDirector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C374C551E09241600527752 /* oDirector.cpp */; };
+		3C374C5A1E092E9A00527752 /* oApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C374C581E092E9A00527752 /* oApplication.cpp */; };
+		3C57A3A11E0A05AD002141DF /* oEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* oEvent.cpp */; };
+		3C57A3A21E0A05AD002141DF /* oEventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* oEventType.cpp */; };
+		3C57A3A31E0A05AD002141DF /* oListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* oListener.cpp */; };
 		3C6A1FB11E07F569006DD8C7 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029171E07DEB10016E1EC /* libluajit.a */; };
 		3C77082E1E08C72900B38C2A /* oLuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C77082C1E08C72900B38C2A /* oLuaManual.cpp */; };
 		3C7708321E08CB4300B38C2A /* oLuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708301E08CB4300B38C2A /* oLuaBinding.cpp */; };
@@ -58,6 +63,16 @@
 		3C291D571E02932B0098C860 /* oContent.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = oContent.mm; path = ../../../Source/Basic/oContent.mm; sourceTree = "<group>"; };
 		3C31CB9C1E02293E00A8079D /* oDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oDebug.cpp; path = ../../../Source/Common/oDebug.cpp; sourceTree = "<group>"; };
 		3C31CB9D1E02293E00A8079D /* oDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oDebug.h; path = ../../../Source/Common/oDebug.h; sourceTree = "<group>"; };
+		3C374C551E09241600527752 /* oDirector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oDirector.cpp; path = ../../../Source/Basic/oDirector.cpp; sourceTree = "<group>"; };
+		3C374C561E09241600527752 /* oDirector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oDirector.h; path = ../../../Source/Basic/oDirector.h; sourceTree = "<group>"; };
+		3C374C581E092E9A00527752 /* oApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oApplication.cpp; path = ../../../Source/Basic/oApplication.cpp; sourceTree = "<group>"; };
+		3C374C591E092E9A00527752 /* oApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oApplication.h; path = ../../../Source/Basic/oApplication.h; sourceTree = "<group>"; };
+		3C57A39B1E0A05AD002141DF /* oEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oEvent.cpp; path = ../../../Source/Event/oEvent.cpp; sourceTree = "<group>"; };
+		3C57A39C1E0A05AD002141DF /* oEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oEvent.h; path = ../../../Source/Event/oEvent.h; sourceTree = "<group>"; };
+		3C57A39D1E0A05AD002141DF /* oEventType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oEventType.cpp; path = ../../../Source/Event/oEventType.cpp; sourceTree = "<group>"; };
+		3C57A39E1E0A05AD002141DF /* oEventType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oEventType.h; path = ../../../Source/Event/oEventType.h; sourceTree = "<group>"; };
+		3C57A39F1E0A05AD002141DF /* oListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oListener.cpp; path = ../../../Source/Event/oListener.cpp; sourceTree = "<group>"; };
+		3C57A3A01E0A05AD002141DF /* oListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oListener.h; path = ../../../Source/Event/oListener.h; sourceTree = "<group>"; };
 		3C77082C1E08C72900B38C2A /* oLuaManual.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oLuaManual.cpp; path = ../../../Source/Lua/oLuaManual.cpp; sourceTree = "<group>"; };
 		3C77082D1E08C72900B38C2A /* oLuaManual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oLuaManual.h; path = ../../../Source/Lua/oLuaManual.h; sourceTree = "<group>"; };
 		3C77082F1E08CA0900B38C2A /* oLuaBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oLuaBinding.h; path = ../../../Source/Lua/oLuaBinding.h; sourceTree = "<group>"; };
@@ -197,6 +212,19 @@
 			name = 3rdParty;
 			sourceTree = "<group>";
 		};
+		3C57A39A1E0A059A002141DF /* Event */ = {
+			isa = PBXGroup;
+			children = (
+				3C57A39B1E0A05AD002141DF /* oEvent.cpp */,
+				3C57A39C1E0A05AD002141DF /* oEvent.h */,
+				3C57A39D1E0A05AD002141DF /* oEventType.cpp */,
+				3C57A39E1E0A05AD002141DF /* oEventType.h */,
+				3C57A39F1E0A05AD002141DF /* oListener.cpp */,
+				3C57A3A01E0A05AD002141DF /* oListener.h */,
+			);
+			name = Event;
+			sourceTree = "<group>";
+		};
 		3C7708341E08D98F00B38C2A /* tolua */ = {
 			isa = PBXGroup;
 			children = (
@@ -216,6 +244,10 @@
 		3C9ADE491E00EFB200D42018 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
+				3C374C581E092E9A00527752 /* oApplication.cpp */,
+				3C374C591E092E9A00527752 /* oApplication.h */,
+				3C374C551E09241600527752 /* oDirector.cpp */,
+				3C374C561E09241600527752 /* oDirector.h */,
 				3C291D571E02932B0098C860 /* oContent.mm */,
 				3C291D4C1E0279990098C860 /* oContent.cpp */,
 				3C291D4D1E0279990098C860 /* oContent.h */,
@@ -327,6 +359,7 @@
 			isa = PBXGroup;
 			children = (
 				3C291D371E0264510098C860 /* 3rdParty */,
+				3C57A39A1E0A059A002141DF /* Event */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
 				3C9ADE4F1E00F14E00D42018 /* Common */,
 				3C9ADE4D1E00F13500D42018 /* Const */,
@@ -427,18 +460,23 @@
 				3C7708321E08CB4300B38C2A /* oLuaBinding.cpp in Sources */,
 				3CD0290D1E07D3C50016E1EC /* tolua_map.cpp in Sources */,
 				3CD0290A1E07D3C50016E1EC /* tolua_event.cpp in Sources */,
+				3C57A3A11E0A05AD002141DF /* oEvent.cpp in Sources */,
 				3CFF5F251E012961004E3CA6 /* oLuaHelper.cpp in Sources */,
 				3C291D331E025A980098C860 /* oAutoreleasePool.cpp in Sources */,
+				3C57A3A31E0A05AD002141DF /* oListener.cpp in Sources */,
 				3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */,
 				3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */,
 				3C9ADE5A1E00F24200D42018 /* oObject.cpp in Sources */,
+				3C374C571E09241600527752 /* oDirector.cpp in Sources */,
 				3C31CB9E1E02293E00A8079D /* oDebug.cpp in Sources */,
 				3C9ADE4C1E00EFD000D42018 /* App.cpp in Sources */,
 				3C291D4E1E0279990098C860 /* oContent.cpp in Sources */,
 				3CD0290C1E07D3C50016E1EC /* tolua_is.cpp in Sources */,
 				3CD0290B1E07D3C50016E1EC /* tolua_fix.cpp in Sources */,
+				3C57A3A21E0A05AD002141DF /* oEventType.cpp in Sources */,
 				3CD0290F1E07D3C50016E1EC /* tolua_to.cpp in Sources */,
 				3CD0290E1E07D3C50016E1EC /* tolua_push.cpp in Sources */,
+				3C374C5A1E092E9A00527752 /* oApplication.cpp in Sources */,
 				3C291D581E02932B0098C860 /* oContent.mm in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,

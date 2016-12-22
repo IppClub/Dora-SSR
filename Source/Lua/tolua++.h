@@ -12,7 +12,6 @@
 ** enhancements, or modifications.
 */
 
-
 #ifndef __DOROTHY_LUA_TOLUAPP_H__
 #define __DOROTHY_LUA_TOLUAPP_H__
 
@@ -114,13 +113,13 @@ void tolua_pushfieldboolean(lua_State* L, int lo, int index, int v);
 void tolua_pushfieldnumber(lua_State* L, int lo, int index, lua_Number v);
 void tolua_pushfieldstring(lua_State* L, int lo, int index, const char* v);
 void tolua_pushfieldusertype(lua_State* L, int lo, int index, void* v, int typeId);
-void tolua_pushobject(lua_State* L, void* ptr);
+void tolua_pushobject(lua_State* L, oObject* object);
 
 lua_Number tolua_tonumber(lua_State* L, int narg, lua_Number def);
 const char* tolua_tostring(lua_State* L, int narg, const char* def);
 void* tolua_tousertype(lua_State* L, int narg, void* def);
 int tolua_tovalue(lua_State* L, int narg, int def);
-int tolua_toboolean(lua_State* L, int narg, int def);
+bool tolua_toboolean(lua_State* L, int narg, int def);
 lua_Number tolua_tofieldnumber(lua_State* L, int lo, int index, lua_Number def);
 const char* tolua_tofieldstring(lua_State* L, int lo, int index, const char* def);
 void* tolua_tofielduserdata(lua_State* L, int lo, int index, void* def);

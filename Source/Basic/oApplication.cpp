@@ -1,26 +1,23 @@
-//
-//  App.cpp
-//  Dorothy
-//
-//  Created by Li Jin on 2016/12/7.
-//  Copyright © 2016年 Dorothy. All rights reserved.
-//
+/* Copyright (c) 2016 Jin Li, http://www.luvfight.me
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/oHeader.h"
-#include "App.h"
+#include "Basic/oApplication.h"
 #include "bx/timer.h"
-
-#include <iostream>
-using std::cout;
 
 NS_DOROTHY_BEGIN
 
-int App::winWidth = 800;
-int App::winHeight = 600;
-bool App::running = true;
+int oApplication::winWidth = 800;
+int oApplication::winHeight = 600;
+bool oApplication::running = true;
 
 // This function runs in main thread, and do render work
-int App::run()
+int oApplication::run()
 {
 	SDL_Init(SDL_INIT_EVENTS);
 
@@ -38,7 +35,7 @@ int App::run()
 	bgfx::renderFrame();
 
 	bx::Thread thread;
-	thread.init(App::mainLogic);
+	thread.init(oApplication::mainLogic);
 
 	SDL_Event event;
 	while (running)
@@ -69,7 +66,7 @@ int App::run()
 	return thread.getExitCode();
 }
 
-void App::setSdlWindow(SDL_Window* window)
+void oApplication::setSdlWindow(SDL_Window* window)
 {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
@@ -77,47 +74,23 @@ void App::setSdlWindow(SDL_Window* window)
 
 	bgfx::PlatformData pd;
 #if BX_PLATFORM_OSX
-	pd.ndt = NULL;
+	pd.ndt = nullptr;
 	pd.nwh = wmi.info.cocoa.window;
 #elif BX_PLATFORM_WINDOWS
-	pd.ndt = NULL;
+	pd.ndt = nullptr;
 	pd.nwh = wmi.info.win.window;
 #elif BX_PLATFORM_ANDROID
-	pd.ndt = NULL;
+	pd.ndt = nullptr;
 	pd.nwh = wmi.info.android.window;
 	SDL_GL_GetDrawableSize(window, &winWidth, &winHeight);
 #endif
-	pd.context = NULL;
-	pd.backBuffer = NULL;
-	pd.backBufferDS = NULL;
+	pd.context = nullptr;
+	pd.backBuffer = nullptr;
+	pd.backBufferDS = nullptr;
 	bgfx::setPlatformData(pd);
 }
 
-double App::getDeltaTime()
-{
-	int64_t now = bx::getHPCounter();
-	static int64_t last = now;
-	const int64_t frameTime = now - last;
-	last = now;
-	const int64_t freq = bx::getHPFrequency();
-	const double seconds = frameTime/double(freq);
-	return seconds;
-}
-
-struct Visitor
-{
- template<typename T>
- void operator()(const T& element)
- {
- 	cout << element << "\n";
- }
- void operator()(const char* element)
- {
- 	cout << element << "\n";
- }
-};
-
-int App::mainLogic(void* userData)
+int oApplication::mainLogic(void* userData)
 {
 	// Initialization
 	bgfx::init();
@@ -128,39 +101,12 @@ int App::mainLogic(void* userData)
 		0x303030ff, 1.0f, 0);
 	bgfx::frame();
 
- // I have a tuple
- auto item = ::std::make_tuple(998, 233, "a pen");
-
- // Em, start iteration
- oTupleForeach(item, Visitor());
- oTupleForeach(std::tuple<>(), Visitor());
-
 	oSharedLueEngine.executeScriptFile("Script/main");
 
 	// Update and invoke render apis
-	double deltaTime = 0;
 	while (running)
 	{
-		deltaTime += getDeltaTime();
-		if (deltaTime < 1.0/60)
-		{
-			continue;
-		}
-		else
-		{
-			deltaTime = 0;
-		}
-
 		oSharedPoolManager.push();
-		oEvent::addListener("test", [](oEvent* event)
-		{
-			Slice msg;
-			oEvent::retrieve(event, msg);
-			oLog("Event!!! %s", msg);
-		});
-
-		oEvent::send("test", Slice("info1"));
-		oEvent::send("test", Slice("msg2"));
 		bgfx::setViewRect(0, 0, 0, winWidth, winHeight);
 
 		// This dummy draw call is here to make sure that view 0 is cleared
@@ -197,7 +143,7 @@ int App::mainLogic(void* userData)
 }
 
 NS_DOROTHY_END
-
+/*
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 int main(int argc, char *argv[])
@@ -229,3 +175,4 @@ int CALLBACK WinMain(
 	return result;
 }
 #endif // BX_PLATFORM_
+*/

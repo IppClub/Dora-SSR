@@ -2,7 +2,7 @@
 ** Support code for Lua bindings.
 ** Written by Waldemar Celes, modified by Jin Li
 ** TeCGraf/PUC-Rio
-** Apr 2003, Apr 2016
+** Apr 2003, Apr 2014
 ** $Id: $
 */
 
@@ -11,6 +11,7 @@
 ** the author has no obligation to provide maintenance, support, updates,
 ** enhancements, or modifications.
 */
+
 #ifndef __DOROTHY_LUA_TOLUA_EVENT_H__
 #define __DOROTHY_LUA_TOLUA_EVENT_H__
 

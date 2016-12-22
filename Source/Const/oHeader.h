@@ -52,5 +52,6 @@ using silly::Slice;
 #include "Basic/oAutoreleasePool.h"
 #include "Basic/oContent.h"
 #include "Lua/oLuaEngine.h"
+#include "Event/oEvent.h"
 
 #endif // __DOROTHY_CONST_OHEADER_H__

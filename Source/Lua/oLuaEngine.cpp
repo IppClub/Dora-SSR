@@ -5,6 +5,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 #include "Const/oHeader.h"
 #include "Lua/oLuaEngine.h"
 #include "Lua/oLuaBinding.h"
@@ -74,7 +75,7 @@ static int olua_loadfile(lua_State* L, oSlice filename)
 			else
 			{
 				lua_pushnil(L);
-				lua_pushliteral(L, "xml and lua files not found");
+				lua_pushfstring(L, "xml or lua file not found for filename \"%s\"", filename.c_str());
 				return 2;
 			}
 		}
@@ -100,7 +101,7 @@ static int olua_loadfile(lua_State* L, oSlice filename)
 			}
 			break;
 		}
-		DEFAULT_STR()
+		CASE_DEFAULT
 		{
 			buffer = oSharedContent.loadFile(targetFile, codeBufferSize);
 			codeBuffer = (const char*)buffer.get();
@@ -284,22 +285,20 @@ oLuaEngine::oLuaEngine()
 void oLuaEngine::addLuaLoader(lua_CFunction func)
 {
 	if (!func) return;
-	// stack content after the invoking of the function
-	// get loader table
-	lua_getglobal(L, "package");/* L: package */
-	lua_getfield(L, -1, "loaders");/* L: package, loaders */
+	lua_getglobal(L, "package"); // package
+	lua_getfield(L, -1, "loaders"); // package, loaders
 	// insert loader into index 1
-	lua_pushcfunction(L, func);/* L: package, loaders, func */
+	lua_pushcfunction(L, func); // package, loaders, func
 	for (int i = (int)lua_objlen(L, -2) + 1; i > 1; --i)
 	{
-		lua_rawgeti(L, -2, i - 1);/* L: package, loaders, func, function */
+		lua_rawgeti(L, -2, i - 1); // package, loaders, func, function
 		// we call lua_rawgeti, so the loader table now is at -3
-		lua_rawseti(L, -3, i);/* L: package, loaders, func */
+		lua_rawseti(L, -3, i); // package, loaders, func
 	}
-	lua_rawseti(L, -2, 1);/* L: package, loaders */
+	lua_rawseti(L, -2, 1); // package, loaders
 	// set loaders into package
-	lua_setfield(L, -2, "loaders");/* L: package */
-	lua_pop(L, 1);
+	lua_setfield(L, -2, "loaders"); // package
+	lua_pop(L, 1); // stack empty
 }
 
 void oLuaEngine::removeScriptHandler(int nHandler)
@@ -312,14 +311,14 @@ void oLuaEngine::removePeer(oObject* object)
 	if (object->isLuaReferenced())
 	{
 		int refid = object->getLuaRef();
-		lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_UBOX);// ubox
-		lua_rawgeti(L, -1, refid);// ubox ud
+		lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_UBOX); // ubox
+		lua_rawgeti(L, -1, refid); // ubox ud
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushvalue(L, TOLUA_NOPEER);// ubox ud nopeer
-			lua_setfenv(L, -2);// ud<nopeer>, ubox ud
+			lua_pushvalue(L, TOLUA_NOPEER); // ubox ud nopeer
+			lua_setfenv(L, -2); // ud<nopeer>, ubox ud
 		}
-		lua_pop(L, 2);// empty
+		lua_pop(L, 2); // empty
 	}
 }
 
@@ -331,31 +330,42 @@ int oLuaEngine::executeString(oSlice codes)
 
 int oLuaEngine::executeScriptFile(oSlice filename)
 {
+	int top = lua_gettop(L);
+	lua_getglobal(L, "dofile"); // file, dofile
 	lua_pushlstring(L, filename.c_str(), filename.size());
-	return olua_dofile(L);
+	int result = oLuaEngine::call(L, 1, LUA_MULTRET); // dofile(file)
+	lua_settop(L, top);
+	return result;
 }
 
-int oLuaEngine::executeFunction(int nHandler, int paramCount, oObject* params[])
+void oLuaEngine::push(int value)
 {
-	for (int i = 0; i < paramCount; i++)
-	{
-		tolua_pushobject(L, params[i]);
-	}
-	return oLuaEngine::execute(L, nHandler, paramCount);
+	lua_pushinteger(L, (lua_Integer)value);
 }
 
-int oLuaEngine::executeFunction(int nHandler, int paramCount, void* params[], int paramTypes[])
+void oLuaEngine::push(float value)
 {
-	for (int i = 0; i < paramCount; i++)
-	{
-		tolua_pushusertype(L, params[i], paramTypes[i]);
-	}
-	return oLuaEngine::execute(L, nHandler, paramCount);
+	lua_pushnumber(L, (lua_Number)value);
 }
 
-int oLuaEngine::executeFunction(int nHandler, int paramCount)
+void oLuaEngine::push(double value)
 {
-	return oLuaEngine::execute(L, nHandler, paramCount);
+	lua_pushnumber(L, (lua_Number)value);
+}
+
+void oLuaEngine::push(oObject* value)
+{
+	tolua_pushobject(L, value);
+}
+
+void oLuaEngine::push(oSlice value)
+{
+	lua_pushlstring(L, value.c_str(), value.size());
+}
+
+int oLuaEngine::executeFunction(int handler, int paramCount)
+{
+	return oLuaEngine::execute(L, handler, paramCount);
 }
 
 bool oLuaEngine::executeAssert(bool cond, oSlice msg)
@@ -364,7 +374,7 @@ bool oLuaEngine::executeAssert(bool cond, oSlice msg)
 	{
 		return false;
 	}
-	lua_pushfstring(L, "ASSERT FAILED ON LUA EXECUTE: %s", msg.empty() ? msg.c_str() : "unknown");
+	lua_pushfstring(L, "assert failed on Lua execution: %s", msg.empty() ? msg.c_str() : "unknown");
 	lua_error(L);
 	return true;
 }

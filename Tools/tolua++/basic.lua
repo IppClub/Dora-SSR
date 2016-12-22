@@ -2,6 +2,7 @@ _push_functions = _push_functions or {}
 _collect_functions = _collect_functions or {}
 local objects = {
 "oObject",
+"oListener",
 }
 
 -- register CCObject types

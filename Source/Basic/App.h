@@ -18,6 +18,7 @@ class App
 public:
 	int run();
 	virtual void setSdlWindow(SDL_Window* window);
+	static double getDeltaTime();
 	static int mainLogic(void* userData);
 protected:
 	static int winWidth;

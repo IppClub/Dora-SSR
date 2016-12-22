@@ -58,7 +58,7 @@ _weak(nullptr)
 
 oObject::~oObject()
 {
-	oAssertIf(_managed, "object is still managed when destroyed");
+	oAssertIf(_managed, "object is still managed when destroyed.");
 	_availableIds.push(_id);
 	if (_luaRef != 0)
 	{
@@ -74,7 +74,7 @@ bool oObject::init()
 
 void oObject::release()
 {
-	oAssertUnless(_refCount > 0, "reference count should greater than 0");
+	oAssertUnless(_refCount > 0, "reference count should greater than 0.");
     --_refCount;
     if (_refCount == 0)
     {
@@ -89,13 +89,13 @@ void oObject::release()
 
 void oObject::retain()
 {
-	oAssertUnless(_refCount > 0, "reference count should greater than 0");
+	oAssertUnless(_refCount > 0, "reference count should greater than 0.");
     ++_refCount;
 }
 
 oObject* oObject::autorelease()
 {
-	oAssertIf(_managed, "object is already managed");
+	oAssertIf(_managed, "object is already managed.");
 	oSharedPoolManager.addObject(this);
 	return this;
 }

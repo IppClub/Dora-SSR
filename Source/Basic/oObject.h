@@ -59,7 +59,7 @@ private:
 	static stack<Uint32> _availableLuaRefs;
 	static Uint32 _luaRefCount;
 	friend class oAutoreleasePool;
-	LUA_TYPE(oObject)
+	LUA_TYPE_BASE(oObject)
 };
 
 NS_DOROTHY_END

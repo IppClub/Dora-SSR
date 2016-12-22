@@ -34,6 +34,9 @@
     <Filter Include="Lua\tolua">
       <UniqueIdentifier>{ec6d2c9a-2629-49b5-ab13-61aeebe8eaa5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Event">
+      <UniqueIdentifier>{7f70ed61-7367-4bcf-9c84-fe0283bce4be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\Basic\App.cpp">
@@ -98,6 +101,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\tolua_to.cpp">
       <Filter>Lua\tolua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Event\oEvent.cpp">
+      <Filter>Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Event\oEventType.cpp">
+      <Filter>Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Event\oListener.cpp">
+      <Filter>Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\oDebug.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -205,6 +220,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\tolua++.h">
       <Filter>Lua\tolua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Event\oEvent.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Event\oEventType.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Event\oListener.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\oDebug.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

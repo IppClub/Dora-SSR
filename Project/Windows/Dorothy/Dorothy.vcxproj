@@ -29,6 +29,10 @@
     <ClCompile Include="..\..\..\Source\Basic\oAutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\oContent.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\oObject.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\oDebug.cpp" />
+    <ClCompile Include="..\..\..\Source\Event\oEvent.cpp" />
+    <ClCompile Include="..\..\..\Source\Event\oEventType.cpp" />
+    <ClCompile Include="..\..\..\Source\Event\oListener.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\oLuaBinding.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\oLuaCode.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\oLuaEngine.cpp" />
@@ -60,6 +64,7 @@
     <ClInclude Include="..\..\..\Source\Basic\oAutoreleasePool.h" />
     <ClInclude Include="..\..\..\Source\Basic\oContent.h" />
     <ClInclude Include="..\..\..\Source\Basic\oObject.h" />
+    <ClInclude Include="..\..\..\Source\Common\oDebug.h" />
     <ClInclude Include="..\..\..\Source\Common\oHelper.h" />
     <ClInclude Include="..\..\..\Source\Common\oMemoryPool.h" />
     <ClInclude Include="..\..\..\Source\Common\oOwn.h" />
@@ -70,6 +75,9 @@
     <ClInclude Include="..\..\..\Source\Common\oWRefVector.h" />
     <ClInclude Include="..\..\..\Source\Const\oDefine.h" />
     <ClInclude Include="..\..\..\Source\Const\oHeader.h" />
+    <ClInclude Include="..\..\..\Source\Event\oEvent.h" />
+    <ClInclude Include="..\..\..\Source\Event\oEventType.h" />
+    <ClInclude Include="..\..\..\Source\Event\oListener.h" />
     <ClInclude Include="..\..\..\Source\Lua\oLuaBinding.h" />
     <ClInclude Include="..\..\..\Source\Lua\oLuaEngine.h" />
     <ClInclude Include="..\..\..\Source\Lua\oLuaHelper.h" />

@@ -11,6 +11,7 @@
 ** the author has no obligation to provide maintenance, support, updates,
 ** enhancements, or modifications.
 */
+
 #include "Const/oHeader.h"
 #include "tolua++.h"
 
@@ -59,9 +60,9 @@ int tolua_tovalue(lua_State* L, int narg, int def)
 	return lua_gettop(L) < abs(narg) ? def : narg;
 }
 
-int tolua_toboolean(lua_State* L, int narg, int def)
+bool tolua_toboolean(lua_State* L, int narg, int def)
 {
-	return lua_gettop(L) < abs(narg) ? def : lua_toboolean(L, narg);
+	return (lua_gettop(L) < abs(narg) ? def : lua_toboolean(L, narg)) != 0;
 }
 
 lua_Number tolua_tofieldnumber(lua_State* L, int lo, int index, lua_Number def)

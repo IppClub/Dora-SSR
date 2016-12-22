@@ -5,6 +5,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 #ifndef __DOROTHY_LUA_OLUAENGINE_H__
 #define __DOROTHY_LUA_OLUAENGINE_H__
 
@@ -25,11 +26,21 @@ public:
 
 	int executeString(oSlice codes);
 	int executeScriptFile(oSlice filename);
-	int executeFunction(int nHandler, int paramCount, oObject* params[]);
-	int executeFunction(int nHandler, int paramCount, void* params[], int paramTypes[]);
-	int executeFunction(int nHandler, int paramCount = 0);
+	int executeFunction(int handler, int paramCount = 0);
 
-	bool executeAssert(bool cond, oSlice msg = Slice::Empty);
+	void push(int value);
+	void push(float value);
+	void push(double value);
+	void push(oObject* value);
+	void push(oSlice value);
+
+	template<typename T>
+	void push(T* t)
+	{
+		tolua_pushusertype(L, t, oLuaType<T>());
+	}
+
+	bool executeAssert(bool cond, oSlice condStr);
 	bool scriptHandlerEqual(int nHandlerA, int nHandlerB);
 
 	static int call(lua_State* L, int paramCount, int returnCount);

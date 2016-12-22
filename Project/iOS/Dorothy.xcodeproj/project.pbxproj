@@ -45,6 +45,10 @@
 		3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331791D96D98700F9C3F6 /* Foundation.framework */; };
 		3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */; };
 		3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331831D96E19100F9C3F6 /* OpenGLES.framework */; };
+		3CF2D95F1E0BC1B9006B9903 /* oDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF2D95D1E0BC1B9006B9903 /* oDebug.cpp */; };
+		3CF2D9671E0BC1E1006B9903 /* oEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF2D9611E0BC1E1006B9903 /* oEvent.cpp */; };
+		3CF2D9681E0BC1E1006B9903 /* oEventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF2D9631E0BC1E1006B9903 /* oEventType.cpp */; };
+		3CF2D9691E0BC1E1006B9903 /* oListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF2D9651E0BC1E1006B9903 /* oListener.cpp */; };
 		3CFF5F271E0136A0004E3CA6 /* iOSMain.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */; };
 		3CFF5F341E0136CF004E3CA6 /* oObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F321E0136CF004E3CA6 /* oObject.cpp */; };
 		3CFF5F381E013716004E3CA6 /* oLuaHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F361E013716004E3CA6 /* oLuaHelper.cpp */; };
@@ -111,6 +115,14 @@
 		3CE331791D96D98700F9C3F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		3CE331831D96E19100F9C3F6 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		3CF2D95D1E0BC1B9006B9903 /* oDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oDebug.cpp; path = ../../../Source/Common/oDebug.cpp; sourceTree = "<group>"; };
+		3CF2D95E1E0BC1B9006B9903 /* oDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oDebug.h; path = ../../../Source/Common/oDebug.h; sourceTree = "<group>"; };
+		3CF2D9611E0BC1E1006B9903 /* oEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oEvent.cpp; path = ../../../Source/Event/oEvent.cpp; sourceTree = "<group>"; };
+		3CF2D9621E0BC1E1006B9903 /* oEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oEvent.h; path = ../../../Source/Event/oEvent.h; sourceTree = "<group>"; };
+		3CF2D9631E0BC1E1006B9903 /* oEventType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oEventType.cpp; path = ../../../Source/Event/oEventType.cpp; sourceTree = "<group>"; };
+		3CF2D9641E0BC1E1006B9903 /* oEventType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oEventType.h; path = ../../../Source/Event/oEventType.h; sourceTree = "<group>"; };
+		3CF2D9651E0BC1E1006B9903 /* oListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oListener.cpp; path = ../../../Source/Event/oListener.cpp; sourceTree = "<group>"; };
+		3CF2D9661E0BC1E1006B9903 /* oListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oListener.h; path = ../../../Source/Event/oListener.h; sourceTree = "<group>"; };
 		3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSMain.mm; path = ../../../Source/Basic/iOSMain.mm; sourceTree = "<group>"; };
 		3CFF5F291E0136B4004E3CA6 /* oHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oHelper.h; path = ../../../Source/Common/oHelper.h; sourceTree = "<group>"; };
 		3CFF5F2A1E0136B4004E3CA6 /* oMemoryPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oMemoryPool.h; path = ../../../Source/Common/oMemoryPool.h; sourceTree = "<group>"; };
@@ -299,6 +311,7 @@
 		3CC8200B1D96680C008C8B77 /* Dorothy */ = {
 			isa = PBXGroup;
 			children = (
+				3CF2D9601E0BC1D1006B9903 /* Event */,
 				3CB410441E05B1F300A8804D /* Const */,
 				3CB410221E05B08B00A8804D /* 3rdParty */,
 				3CFF5F351E013708004E3CA6 /* Lua */,
@@ -310,9 +323,24 @@
 			path = Dorothy;
 			sourceTree = "<group>";
 		};
+		3CF2D9601E0BC1D1006B9903 /* Event */ = {
+			isa = PBXGroup;
+			children = (
+				3CF2D9611E0BC1E1006B9903 /* oEvent.cpp */,
+				3CF2D9621E0BC1E1006B9903 /* oEvent.h */,
+				3CF2D9631E0BC1E1006B9903 /* oEventType.cpp */,
+				3CF2D9641E0BC1E1006B9903 /* oEventType.h */,
+				3CF2D9651E0BC1E1006B9903 /* oListener.cpp */,
+				3CF2D9661E0BC1E1006B9903 /* oListener.h */,
+			);
+			name = Event;
+			sourceTree = "<group>";
+		};
 		3CFF5F281E0136A5004E3CA6 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				3CF2D95D1E0BC1B9006B9903 /* oDebug.cpp */,
+				3CF2D95E1E0BC1B9006B9903 /* oDebug.h */,
 				3CFF5F291E0136B4004E3CA6 /* oHelper.h */,
 				3CFF5F2A1E0136B4004E3CA6 /* oMemoryPool.h */,
 				3CFF5F2B1E0136B4004E3CA6 /* oOwn.h */,
@@ -414,6 +442,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3C6A1FC31E082B24006DD8C7 /* tolua_map.cpp in Sources */,
+				3CF2D95F1E0BC1B9006B9903 /* oDebug.cpp in Sources */,
 				3C6A1FC01E082B24006DD8C7 /* tolua_event.cpp in Sources */,
 				3CFF5F381E013716004E3CA6 /* oLuaHelper.cpp in Sources */,
 				3CB410321E05B13E00A8804D /* oAutoreleasePool.cpp in Sources */,
@@ -430,9 +459,12 @@
 				3C6A1FC41E082B24006DD8C7 /* tolua_push.cpp in Sources */,
 				3CB410341E05B13E00A8804D /* oContent.mm in Sources */,
 				3CFF5F271E0136A0004E3CA6 /* iOSMain.mm in Sources */,
+				3CF2D9671E0BC1E1006B9903 /* oEvent.cpp in Sources */,
+				3CF2D9691E0BC1E1006B9903 /* oListener.cpp in Sources */,
 				3CB410411E05B19A00A8804D /* unzip.cpp in Sources */,
 				3C77083B1E08D9EF00B38C2A /* oLuaCode.cpp in Sources */,
 				3C1F87DB1DF8034B005F1B4D /* App.cpp in Sources */,
+				3CF2D9681E0BC1E1006B9903 /* oEventType.cpp in Sources */,
 				3C77083A1E08D9EF00B38C2A /* oLuaBinding.cpp in Sources */,
 				3C6A1FBF1E082B24006DD8C7 /* oLuaEngine.cpp in Sources */,
 				3CB410331E05B13E00A8804D /* oContent.cpp in Sources */,

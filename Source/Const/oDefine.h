@@ -41,4 +41,9 @@ ENUM_END(oSingletonIndex)
 	#endif
 #endif
 
+#ifndef DORA_DISABLE_ASSERT_IN_LUA
+	#define DORA_DISABLE_ASSERT_IN_LUA 0
+#endif
+
+
 #endif // __DOROTHY_CONST_ODEFINE_H__
