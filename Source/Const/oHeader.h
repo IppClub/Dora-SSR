@@ -53,5 +53,6 @@ using silly::Slice;
 #include "Basic/oContent.h"
 #include "Lua/oLuaEngine.h"
 #include "Event/oEvent.h"
+#include "Event/oListener.h"
 
 #endif // __DOROTHY_CONST_OHEADER_H__

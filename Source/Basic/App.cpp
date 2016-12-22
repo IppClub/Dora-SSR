@@ -128,14 +128,32 @@ int App::mainLogic(void* userData)
 		0x303030ff, 1.0f, 0);
 	bgfx::frame();
 
- // I have a tuple
- auto item = ::std::make_tuple(998, 233, "a pen");
+	oSharedPoolManager.push();
 
- // Em, start iteration
- oTupleForeach(item, Visitor());
- oTupleForeach(std::tuple<>(), Visitor());
+	// I have a tuple
+	auto item = ::std::make_tuple(998, 233, "a pen");
 
+	// Em, start iteration
+	oTupleForeach(item, Visitor());
+	oTupleForeach(std::tuple<>(), Visitor());
+
+	oEvent::addListener("test", [](oEvent* event)
+	{
+		Slice msg;
+		oEvent::retrieve(event, msg);
+		oLog("Event!!! %s", msg);
+	});
+
+	oEvent::send("test", Slice("info1"));
+	oEvent::send("test", Slice("msg2"));
+
+	oEvent::addListener("UserEvent", [](oEvent* event)
+	{
+		oLog("Recieve user event from Lua!");
+	});
 	oSharedLueEngine.executeScriptFile("Script/main");
+
+	oSharedPoolManager.pop();
 
 	// Update and invoke render apis
 	double deltaTime = 0;
@@ -152,15 +170,6 @@ int App::mainLogic(void* userData)
 		}
 
 		oSharedPoolManager.push();
-		oEvent::addListener("test", [](oEvent* event)
-		{
-			Slice msg;
-			oEvent::retrieve(event, msg);
-			oLog("Event!!! %s", msg);
-		});
-
-		oEvent::send("test", Slice("info1"));
-		oEvent::send("test", Slice("msg2"));
 		bgfx::setViewRect(0, 0, 0, winWidth, winHeight);
 
 		// This dummy draw call is here to make sure that view 0 is cleared

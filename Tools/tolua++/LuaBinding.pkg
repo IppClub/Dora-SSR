@@ -4,3 +4,4 @@ $using namespace Dorothy;
 $pfile "oDefine.h"
 $pfile "oObject.h"
 $pfile "oContent.h"
+$pfile "oEvent.h"
