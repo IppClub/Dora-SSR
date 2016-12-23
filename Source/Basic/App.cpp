@@ -17,7 +17,8 @@ NS_DOROTHY_BEGIN
 
 int App::winWidth = 800;
 int App::winHeight = 600;
-bool App::running = true;
+EventQueue App::_logicEvent;
+EventQueue App::_renderEvent;
 
 // This function runs in main thread, and do render work
 int App::run()
@@ -41,20 +42,39 @@ int App::run()
 	thread.init(App::mainLogic);
 
 	SDL_Event event;
+	bool running = true;
 	while (running)
 	{
 		// do render staff and swap buffers
 		bgfx::renderFrame();
 		// handle SDL event in this main thread only
-		while(SDL_PollEvent(&event))
+		while (SDL_PollEvent(&event))
 		{
 			switch (event.type)
 			{
 			case SDL_QUIT:
     			running = false;
+				_logicEvent.post("Quit");
     			break;
 			default:
 				break;
+			}
+		}
+		for (Own<QEvent> event = _renderEvent.poll();
+			event != nullptr;
+			event = _renderEvent.poll())
+		{
+			switch (Switch::hash(event->getName()))
+			{
+				case "Quit"_hash:
+				{
+					SDL_Event ev;
+					ev.type = SDL_QUIT;
+					SDL_PushEvent(&ev);
+					break;
+				}
+				default:
+					break;
 			}
 		}
 	}
@@ -157,6 +177,7 @@ int App::mainLogic(void* userData)
 
 	// Update and invoke render apis
 	double deltaTime = 0;
+	bool running = true;
 	while (running)
 	{
 		deltaTime += getDeltaTime();
@@ -193,6 +214,20 @@ int App::mainLogic(void* userData)
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
 		bgfx::frame();
+
+		for (Own<QEvent> event = _logicEvent.poll();
+			event != nullptr;
+			event = _logicEvent.poll())
+		{
+			switch (Switch::hash(event->getName()))
+			{
+				case "Quit"_hash:
+					running = false;
+					break;
+				default:
+					break;
+			}
+		}
 		SharedPoolManager.pop();
 	}
 

@@ -28,7 +28,7 @@ typedef Delegate<void (Event* event)> EventHandler;
 	Log("Recieved Event with msg: %s", msg);
  });
 
- // Send event, then the callback function will be invoked.
+ // Send event with all types of arguments, then the callback function will be invoked.
  Event::send("UserEvent", Slice("info1"));
  Event::send("UserEvent", Slice("msg2"));
  */
@@ -100,7 +100,7 @@ void Event::send(String name, Args&&... args)
 template<class... Args>
 void Event::retrieve(Event* event, Args&... args)
 {
-	auto targetEvent = dynamic_cast<EventArgs<Args...>*>(event);
+	auto targetEvent = d_cast<EventArgs<Args...>*>(event);
 	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
 	std::tie(args...) = targetEvent->arguments;
 }

@@ -41,7 +41,7 @@ public: virtual int getLuaType() const override \
 template <class OutT, class InT>
 OutT* LuaCast(InT* obj)
 {
-	return (obj && obj->getLuaType() == LuaType<OutT>()) ? (OutT*)obj : nullptr;
+	return (obj && obj->getLuaType() == LuaType<OutT>()) ? s_cast<OutT*>(obj) : nullptr;
 }
 
 NS_DOROTHY_END

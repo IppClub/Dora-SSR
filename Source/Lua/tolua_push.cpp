@@ -52,7 +52,7 @@ void tolua_pushusertype(lua_State* L, void* value, int typeId)
 		lua_pushnil(L);
 		return;
 	}
-	*(void**)lua_newuserdata(L, sizeof(void*)) = value;// mt newud
+	*r_cast<void**>(lua_newuserdata(L, sizeof(void*))) = value;// mt newud
 	lua_insert(L, -2);// newud mt
 	lua_setmetatable(L, -2);// newud<mt>, newud
 	lua_pushvalue(L, TOLUA_NOPEER);

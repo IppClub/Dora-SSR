@@ -117,7 +117,7 @@ public:
 	}
 	inline T* get() const
 	{
-		if (_weak) return (T*)_weak->target;
+		if (_weak) return s_cast<T*>(_weak->target);
 		else return nullptr;
 	}
 private:

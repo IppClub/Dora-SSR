@@ -222,7 +222,7 @@ void tolua_open(lua_State* L)
 */
 void* tolua_copy(lua_State* L, void* value, unsigned int size)
 {
-	void* clone = (void*)malloc(size);
+	void* clone = r_cast<void*>(malloc(size));
 	if (clone) memcpy(clone, value, size);
 	else tolua_error(L, "insuficient memory", NULL);
 	return clone;

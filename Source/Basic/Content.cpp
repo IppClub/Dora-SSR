@@ -65,7 +65,7 @@ void Content::copyFile(String src, String dst)
 			//CCLOG("now copy file %s",file);
 			auto buffer = Content::loadFile((srcPath + '/' + file), size);
 			ofstream stream((dstPath + '/' + file), std::ios::out | std::ios::trunc | std::ios::binary);
-			if (!stream.write((char*)buffer.get(), size))
+			if (!stream.write(r_cast<char*>(buffer.get()), size))
 			{
 				Log("write file failed! %s", dstPath + '/' + file);
 			}
@@ -76,7 +76,7 @@ void Content::copyFile(String src, String dst)
 		Sint64 size;
 		auto buffer = Content::loadFile(src, size);
 		ofstream stream(dst, std::ios::out | std::ios::trunc | std::ios::binary);
-		stream.write((char*)buffer.get(), size);
+		stream.write(r_cast<char*>(buffer.get()), size);
 	}
 }
 
@@ -257,7 +257,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 	string fullPath = Content::getFullPath(filename);
 	if (fullPath[0] != '/')
 	{
-		data = g_zipFile->getFileData(fullPath, (unsigned long*)&size);
+		data = g_zipFile->getFileData(fullPath, r_cast<unsigned long*>(&size));
 	}
 	else
 	{

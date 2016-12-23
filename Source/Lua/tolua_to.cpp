@@ -51,7 +51,7 @@ void* tolua_tousertype(lua_State* L, int narg, void* def)
 	{
 		void* u = lua_touserdata(L, narg);
 		/* nil represents NULL */
-		return (u == NULL) ? NULL : *((void**)u);
+		return (u == NULL) ? NULL : *(r_cast<void**>(u));
 	}
 }
 
@@ -100,7 +100,7 @@ void* tolua_tofieldusertype(lua_State* L, int lo, int index, void* def)
 	void* v;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	v = lua_isnil(L, -1) ? def :(*(void **)(lua_touserdata(L, -1))); /* lua_unboxpointer(L,-1); */
+	v = lua_isnil(L, -1) ? def : (*r_cast<void**>(lua_touserdata(L, -1))); /* lua_unboxpointer(L,-1); */
 	lua_pop(L, 1);
 	return v;
 }

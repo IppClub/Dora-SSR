@@ -158,7 +158,7 @@ void tolua_typeid(lua_State *L, int typeId, const char* className);
 #endif
 
 #ifndef Mtolua_new_dim
-	#define Mtolua_new_dim(EXP, len) (EXP*)alloca(sizeof(EXP)*len) //new EXP[len]
+	#define Mtolua_new_dim(EXP, len) r_cast<EXP*>(alloca(sizeof(EXP)*len)) //new EXP[len]
 #endif
 
 #ifndef Mtolua_delete_dim

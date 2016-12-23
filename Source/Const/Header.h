@@ -55,5 +55,6 @@ using namespace Dorothy::Switch::Literals;
 #include "Lua/LuaEngine.h"
 #include "Event/Event.h"
 #include "Event/Listener.h"
+#include "Event/EventQueue.h"
 
 #endif // __DOROTHY_CONST_HEADER_H__

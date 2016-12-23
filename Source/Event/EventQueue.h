@@ -16,41 +16,52 @@ NS_DOROTHY_BEGIN
 class QEvent
 {
 public:
-	QEvent(int id);
+	QEvent(String name);
 	virtual ~QEvent();
-private:
-	int _id;
+	inline const string& getName() const { return _name; }
+protected:
+	string _name;
+};
+
+template<class... Fields>
+class QEventArgs : public QEvent
+{
+public:
+	template<class... Args>
+	QEventArgs(String name, Args&&... args):
+	QEvent(name),
+	arguments(std::make_tuple(args...))
+	{ }
+	std::tuple<Fields...> arguments;
 };
 
 class EventQueue
 {
 public:
-	~EventQueue()
+	~EventQueue();
+
+	/** @brief Post a new event,
+	 for producer thread use only. */
+	template<class... Args>
+	void post(String name, const Args& ...args)
 	{
-		for (const QEvent* ev = poll(); ev; ev = poll())
-		{
-			release(ev);
-		}
+		auto event = new QEventArgs<Args...>(name, args...);
+		_queue.push(event);
 	}
 
-	void postEvent()
-	{
-		QEvent* ev = new QEvent(0);
-		m_queue.push(ev);
-	}
+	/** @brief Try get a posted event,
+	 for consumer thread use only. */
+	Own<QEvent> poll();
 
-	const QEvent* poll()
+	template<class... Args>
+	static void retrieve(QEvent* event, Args&... args)
 	{
-		return m_queue.pop();
+		auto targetEvent = d_cast<QEventArgs<Args...>*>(event);
+		AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
+		std::tie(args...) = targetEvent->arguments;
 	}
-
-	void release(const QEvent* _event) const
-	{
-		delete _event;
-	}
-
 private:
-	bx::SpScUnboundedQueue<QEvent> m_queue;
+	bx::SpScUnboundedQueue<QEvent> _queue;
 };
 
 NS_DOROTHY_END

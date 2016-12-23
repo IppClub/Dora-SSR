@@ -22,7 +22,7 @@ void __Content_loadFile(lua_State* L, Content* self, const char* filename)
 	}
 	else
 	{
-		lua_pushlstring(L, (const char*)data.get(), (size_t)size);
+		lua_pushlstring(L, r_cast<char*>(data.get()), (size_t)size);
 	}
 }
 

@@ -252,6 +252,12 @@ namespace Switch {
 	}
 } // namespace SwitchStr
 
+/* Short names for C++ casts */
+#define s_cast static_cast
+#define r_cast reinterpret_cast
+#define c_cast const_cast
+#define d_cast dynamic_cast
+
 NS_DOROTHY_END
 
 #endif // __DOROTHY_COMMON_HELPER_H__

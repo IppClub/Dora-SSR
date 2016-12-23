@@ -37,7 +37,7 @@ public:
 		{
 			FreeList* head = _freeList;
 			_freeList = _freeList->next;
-			return (void*)head;
+			return r_cast<void*>(head);
 		}
 		else
 		{
@@ -53,25 +53,25 @@ public:
 			}
 			char* addr = _chunk->buffer + _chunk->size;
 			_chunk->size += ITEM_SIZE;
-			return (void*)addr;
+			return r_cast<void*>(addr);
 		}
 	}
 	void free(void* addr)
 	{
-		FreeList* freeItem = (FreeList*)addr;
+		FreeList* freeItem = r_cast<FreeList*>(addr);
 		freeItem->next = _freeList;
 		_freeList = freeItem;
 	}
 	template<class... Args>
 	Item* newItem(Args&&... args)
 	{
-		Item* mem = (Item*)MemoryPool<Item, CHUNK_CAPACITY>::alloc();
+		Item* mem = r_cast<Item*>(MemoryPool<Item, CHUNK_CAPACITY>::alloc());
 		return new (mem) Item(std::forward<Args>(args)...);
 	}
 	void deleteItem(Item* item)
 	{
 		item->~Item();
-		MemoryPool<Item, CHUNK_CAPACITY>::free((void*)item);
+		MemoryPool<Item, CHUNK_CAPACITY>::free(r_cast<void*>(item));
 	}
 	int capacity()
 	{

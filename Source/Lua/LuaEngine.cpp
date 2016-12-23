@@ -101,7 +101,7 @@ static int dora_loadfile(lua_State* L, String filename)
 			break;
 		default:
 			buffer = SharedContent.loadFile(targetFile, codeBufferSize);
-			codeBuffer = (const char*)buffer.get();
+			codeBuffer = r_cast<char*>(buffer.get());
 			break;
 	}
 

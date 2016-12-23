@@ -11,4 +11,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+QEvent::QEvent(String name):
+_name(name)
+{ }
+
+QEvent::~QEvent()
+{ }
+
+EventQueue::~EventQueue()
+{
+	for (QEvent* e = poll(); e; e = poll());
+}
+
+Own<QEvent> EventQueue::poll()
+{
+	return OwnMake(_queue.pop());
+}
+
 NS_DOROTHY_END

@@ -23,7 +23,8 @@ public:
 protected:
 	static int winWidth;
 	static int winHeight;
-	static bool running;
+	static EventQueue _logicEvent;
+	static EventQueue _renderEvent;
 };
 
 NS_DOROTHY_END
