@@ -39,6 +39,7 @@ using Acf::Delegate;
 #include "silly/Slice.h"
 using silly::Slice;
 #include "Common/Helper.h"
+using namespace Dorothy::Switch::Literals;
 #include "Const/Define.h"
 #include "Lua/LuaHelper.h"
 #include "Basic/Object.h"

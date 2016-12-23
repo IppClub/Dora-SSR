@@ -72,7 +72,7 @@ public:
 	}
 	virtual int pushArgsToLua() override
 	{
-		TupleForeach(arguments, ArgsPusher());
+		Tuple::foreach(arguments, ArgsPusher());
 		return std::tuple_size<decltype(arguments)>::value;
 	}
 	std::tuple<Fields...> arguments;

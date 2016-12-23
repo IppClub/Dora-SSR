@@ -12,22 +12,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/spscqueue.h"
 
 NS_DOROTHY_BEGIN
-/*
-class oQEvent
+
+class QEvent
 {
 public:
-	oQEvent(int id);
-	virtual ~oQEvent();
+	QEvent(int id);
+	virtual ~QEvent();
 private:
 	int _id;
 };
 
-class oEventQueue
+class EventQueue
 {
 public:
-	~oEventQueue()
+	~EventQueue()
 	{
-		for (const Event* ev = poll(); NULL != ev; ev = poll() )
+		for (const QEvent* ev = poll(); ev; ev = poll())
 		{
 			release(ev);
 		}
@@ -35,24 +35,23 @@ public:
 
 	void postEvent()
 	{
-		Event* ev = new Event(Event::Exit);
+		QEvent* ev = new QEvent(0);
 		m_queue.push(ev);
 	}
 
-	const Event* poll()
+	const QEvent* poll()
 	{
 		return m_queue.pop();
 	}
 
-	void release(const Event* _event) const
+	void release(const QEvent* _event) const
 	{
 		delete _event;
 	}
 
 private:
-	bx::SpScUnboundedQueue<Event> m_queue;
+	bx::SpScUnboundedQueue<QEvent> m_queue;
 };
-*/
 
 NS_DOROTHY_END
 

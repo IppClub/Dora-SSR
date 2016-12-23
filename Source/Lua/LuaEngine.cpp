@@ -85,10 +85,9 @@ static int dora_loadfile(lua_State* L, String filename)
 	OwnArray<Uint8> buffer;
 	const char* codeBuffer = nullptr;
 	string codes;
-	SWITCH_STR_START(extension)
+	switch (Switch::hash(extension))
 	{
-		CASE_STR(xml)
-		{
+		case "xml"_hash:
 			//codes = oSharedXMLLoader.load(filename.c_str());
 			if (codes.empty())
 			{
@@ -100,15 +99,11 @@ static int dora_loadfile(lua_State* L, String filename)
 				codeBufferSize = codes.size();
 			}
 			break;
-		}
-		CASE_DEFAULT
-		{
+		default:
 			buffer = SharedContent.loadFile(targetFile, codeBufferSize);
 			codeBuffer = (const char*)buffer.get();
 			break;
-		}
 	}
-	SWITCH_STR_END
 
 	if (codeBuffer)
 	{

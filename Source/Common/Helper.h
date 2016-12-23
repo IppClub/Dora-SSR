@@ -62,8 +62,8 @@ public: void set##funName(bool var)
 #define PROPERTY_READONLY_BOOL(funName)\
 public: bool is##funName() const
 
-/** @brief Code block for condition check
-	@example as below
+/** @brief Code block for condition check.
+	@example Use it as below.
 
 	BLOCK_START
 	...
@@ -78,33 +78,8 @@ public: bool is##funName() const
 #define BREAK_UNLESS(cond) if (!cond) break;
 #define BLOCK_END } while (false);
 
-/** @brief A more efficient switch case for strings
-	@example Use it as below
-
-	string str = "abc";
-	SWITCH_STR_START(str)
-	{
-		CASE_STR(Pig)
-		{
-			break;
-		}
-		CASE_STR(Dog)
-		{
-			break;
-		}
-	}
-	SWITCH_STR_END
-*/
-inline size_t Hash(const string& str) { return std::hash<std::string>{}(str); }
-#define SWITCH_STR_START(x) { size_t __strHashCodeForSwitch = Hash(x);string __targetStrForSwitch(x); do
-#define __CASE_STR0(x, name, flag) static size_t name##flag = Hash(x);if (__strHashCodeForSwitch == name##flag && (DORA_HASH_CHECK_EQUAL || __targetStrForSwitch == x))
-#define __CASE_STR1(x, flag) __CASE_STR0(x, __strCase, flag)
-#define CASE_STR(x) __CASE_STR1(#x, x)
-#define CASE_DEFAULT
-#define SWITCH_STR_END while (false); }
-
-/** @brief A better Enum
-	@example Use it as below
+/** @brief A better Enum.
+	@example Use it as below.
 
 	ENUM_START(MyFlag)
 	{
@@ -152,7 +127,8 @@ typedef const Slice& String;
 
 /** @brief Helper function to add create style codes for oObject derivations.
  The added create(...) functions accept the same argument with the class constructors.
- @example
+ @example Use it as below.
+
  // Add the macro in subclass of Object
  class MyItem : public Object
  {
@@ -185,9 +161,11 @@ static type* create(Args&&... args) \
 }
 
 /** @brief Helper function to iterate a std::tuple.
- @example
+ @example Use it as below.
+
  // I have a tuple
  auto item = std::make_tuple(998, 233, "a pen");
+
  // I have a handler
  struct Handler
  {
@@ -197,44 +175,65 @@ static type* create(Args&&... args) \
  		cout << element << "\n";
  	}
  };
- // Em, start iteration
- TupleForeach(item, Handler());
- */
-template<typename Tuple, size_t Size>
-struct TupleHelper
-{
-	template<typename Func>
-	static void foreach(const Tuple& item, Func&& func)
-	{
-		TupleHelper<Tuple, Size - 1>::foreach(item, func);
-		func(std::get<Size - 1>(item));
-	}
-};
-template<typename Tuple>
-struct TupleHelper<Tuple, 0>
-{
-	template<typename Func>
-	static void foreach(const Tuple&, Func&&)
-	{ }
-};
-template<typename Tuple, typename Func>
-inline void TupleForeach(const Tuple& item, Func&& func)
-{
-	TupleHelper<Tuple, std::tuple_size<Tuple>::value>::foreach(item, func);
-}
 
-namespace my_hash {
-	template<class> struct hasher;
-	template<>
-	struct hasher<std::string>
+ // Em, start iteration
+ Tuple::foreach(item, Handler());
+ */
+namespace Tuple {
+	template<typename TupleT, size_t Size>
+	struct TupleHelper
 	{
-		std::size_t constexpr operator()(char const *input) const
+		template<typename Func>
+		static void foreach(const TupleT& item, Func&& func)
+		{
+			TupleHelper<TupleT, Size - 1>::foreach(item, func);
+			func(std::get<Size - 1>(item));
+		}
+	};
+	template<typename TupleT>
+	struct TupleHelper<TupleT, 0>
+	{
+		template<typename Func>
+		static void foreach(const TupleT&, Func&&)
+		{ }
+	};
+	template<typename TupleT, typename Func>
+	inline void foreach(const TupleT& item, Func&& func)
+	{
+		TupleHelper<TupleT, std::tuple_size<TupleT>::value>::foreach(item, func);
+	}
+} // namespace Tuple
+
+/** @brief Helper functions to hash string in compile time for use of
+ string switch case.
+ @example Use it as below.
+
+ string extension = "png";
+ switch (Switch::hash(extension))
+ {
+ 	case "xml"_hash:
+ 		// ...
+ 		break;
+ 	case "cpp"_hash:
+ 		// ...
+ 		break;
+ 	default:
+		// ...
+ 		break;
+ }
+ */
+namespace Switch {
+	template<class> struct Hasher;
+	template<>
+	struct Hasher<string>
+	{
+		size_t constexpr operator()(char const* input) const
 		{
 			return *input ?
 			static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) :
 			5381;
 		}
-		std::size_t operator()( const std::string& str ) const
+		std::size_t operator()(String str) const
 		{
 			return (*this)(str.c_str());
 		}
@@ -242,16 +241,16 @@ namespace my_hash {
 	template<typename T>
 	std::size_t constexpr hash(T&& t)
 	{
-		return hasher< typename std::decay<T>::type >()(std::forward<T>(t));
+		return Hasher<typename std::decay<T>::type>()(std::forward<T>(t));
 	}
-	inline namespace literals
+	namespace Literals
 	{
-		std::size_t constexpr operator "" _hash(const char* s,size_t)
+		std::size_t constexpr operator "" _hash(const char* s, size_t)
 		{
-			return hasher<std::string>()(s);
+			return Hasher<string>()(s);
 		}
 	}
-} // namespace my_hash
+} // namespace SwitchStr
 
 NS_DOROTHY_END
 

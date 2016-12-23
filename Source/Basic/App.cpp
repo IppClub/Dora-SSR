@@ -134,8 +134,8 @@ int App::mainLogic(void* userData)
 	auto item = ::std::make_tuple(998, 233, "a pen");
 
 	// Em, start iteration
-	TupleForeach(item, Visitor());
-	TupleForeach(std::tuple<>(), Visitor());
+	Tuple::foreach(item, Visitor());
+	Tuple::foreach(std::tuple<>(), Visitor());
 
 	Event::addListener("test", [](Event* event)
 	{
