@@ -115,7 +115,7 @@ function classOperator:supcode_tmp()
 			if push_func == _push_object_func_name then
 				output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret);")
 			elseif push_func == "tolua_pushusertype" then
-				output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret,oLuaType<"..t..">());")
+				output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret,LuaType<"..t..">());")
 			else
 				output(' ',push_func,'(tolua_S,(void*)'..ref..'tolua_ret,"',t,'");')
 			end

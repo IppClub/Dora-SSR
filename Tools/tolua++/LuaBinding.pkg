@@ -1,7 +1,4 @@
-$#include "Lua/oLuaBinding.h"
+$#include "Lua/LuaBinding.h"
 $using namespace Dorothy;
 
-$pfile "oDefine.h"
-$pfile "oObject.h"
-$pfile "oContent.h"
-$pfile "oEvent.h"
+$pfile "Header.h"

@@ -6,7 +6,7 @@
 //  Copyright © 2016年 Dorothy. All rights reserved.
 //
 
-#include "Const/oHeader.h"
+#include "Const/Header.h"
 #include "App.h"
 #include "bx/timer.h"
 
@@ -106,15 +106,15 @@ double App::getDeltaTime()
 
 struct Visitor
 {
- template<typename T>
- void operator()(const T& element)
- {
- 	cout << element << "\n";
- }
- void operator()(const char* element)
- {
- 	cout << element << "\n";
- }
+	template<typename T>
+	void operator()(const T& element)
+	{
+		cout << element << "\n";
+	}
+	void operator()(const char* element)
+	{
+		cout << element << "\n";
+	}
 };
 
 int App::mainLogic(void* userData)
@@ -128,32 +128,32 @@ int App::mainLogic(void* userData)
 		0x303030ff, 1.0f, 0);
 	bgfx::frame();
 
-	oSharedPoolManager.push();
+	SharedPoolManager.push();
 
 	// I have a tuple
 	auto item = ::std::make_tuple(998, 233, "a pen");
 
 	// Em, start iteration
-	oTupleForeach(item, Visitor());
-	oTupleForeach(std::tuple<>(), Visitor());
+	TupleForeach(item, Visitor());
+	TupleForeach(std::tuple<>(), Visitor());
 
-	oEvent::addListener("test", [](oEvent* event)
+	Event::addListener("test", [](Event* event)
 	{
 		Slice msg;
-		oEvent::retrieve(event, msg);
-		oLog("Event!!! %s", msg);
+		Event::retrieve(event, msg);
+		Log("Event!!! %s", msg);
 	});
 
-	oEvent::send("test", Slice("info1"));
-	oEvent::send("test", Slice("msg2"));
+	//Event::send("test", Slice("info1"));
+	//Event::send("test", Slice("msg2"));
 
-	oEvent::addListener("UserEvent", [](oEvent* event)
+	Event::addListener("UserEvent", [](Event* event)
 	{
-		oLog("Recieve user event from Lua!");
+		Log("Recieve user event from Lua!");
 	});
-	oSharedLueEngine.executeScriptFile("Script/main");
+	SharedLueEngine.executeScriptFile("Script/main");
 
-	oSharedPoolManager.pop();
+	SharedPoolManager.pop();
 
 	// Update and invoke render apis
 	double deltaTime = 0;
@@ -169,7 +169,7 @@ int App::mainLogic(void* userData)
 			deltaTime = 0;
 		}
 
-		oSharedPoolManager.push();
+		SharedPoolManager.push();
 		bgfx::setViewRect(0, 0, 0, winWidth, winHeight);
 
 		// This dummy draw call is here to make sure that view 0 is cleared
@@ -193,7 +193,7 @@ int App::mainLogic(void* userData)
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
 		bgfx::frame();
-		oSharedPoolManager.pop();
+		SharedPoolManager.pop();
 	}
 
 	// Shut down frameworks

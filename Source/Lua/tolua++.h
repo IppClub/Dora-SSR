@@ -15,7 +15,7 @@
 #ifndef __DOROTHY_LUA_TOLUAPP_H__
 #define __DOROTHY_LUA_TOLUAPP_H__
 
-#include "Const/oHeader.h"
+#include "Const/Header.h"
 #include "lua.hpp"
 
 NS_DOROTHY_BEGIN
@@ -113,7 +113,7 @@ void tolua_pushfieldboolean(lua_State* L, int lo, int index, int v);
 void tolua_pushfieldnumber(lua_State* L, int lo, int index, lua_Number v);
 void tolua_pushfieldstring(lua_State* L, int lo, int index, const char* v);
 void tolua_pushfieldusertype(lua_State* L, int lo, int index, void* v, int typeId);
-void tolua_pushobject(lua_State* L, oObject* object);
+void tolua_pushobject(lua_State* L, Object* object);
 
 lua_Number tolua_tonumber(lua_State* L, int narg, lua_Number def);
 const char* tolua_tostring(lua_State* L, int narg, const char* def);
@@ -174,7 +174,7 @@ void tolua_typeid(lua_State *L, int typeId, const char* className);
 #endif
 
 #ifndef Mtolua_typeid
-	#define Mtolua_typeid(L,type,name) tolua_typeid(L,oLuaType<type>(),name)
+	#define Mtolua_typeid(L,type,name) tolua_typeid(L,LuaType<type>(),name)
 #endif
 
 #if DORA_DEBUG == 0

@@ -6,8 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "Const/oHeader.h"
-#include "Lua/oLuaEngine.h"
+#include "Const/Header.h"
+#include "Lua/LuaEngine.h"
 #include "tolua++.h"
 #include "tolua_fix.h"
 
@@ -47,13 +47,13 @@ void tolua_collect_callback_ref_id(int refid)
 
 int tolua_collect_object(lua_State* L)
 {
-	oObject* object = (oObject*)tolua_tousertype(L, 1, 0);
+	Object* object = (Object*)tolua_tousertype(L, 1, 0);
 	object->removeLuaRef();
 	object->release();
 	return 0;
 }
 
-void tolua_pushobject(lua_State* L, oObject* object)
+void tolua_pushobject(lua_State* L, Object* object)
 {
 	if (!object)
 	{
@@ -96,8 +96,8 @@ int tolua_isobject(lua_State* L, int lo)
 	{
 		lua_getmetatable(L, lo); // mt
 		lua_rawgeti(L, -1, MT_SUPER); // mt tb
-		lua_rawgeti(L, LUA_REGISTRYINDEX, oLuaType<oObject>()); // mt tb ccobjmt
-		lua_rawget(L, LUA_REGISTRYINDEX); // mt tb "oObject"
+		lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<Object>()); // mt tb ccobjmt
+		lua_rawget(L, LUA_REGISTRYINDEX); // mt tb "Object"
 		lua_rawget(L, -2); // tb["oObject"], mt tb flag
 		int result = lua_toboolean(L, -1);
 		lua_pop(L, 3); // empty
@@ -110,10 +110,10 @@ void tolua_dobuffer(lua_State* L, char* codes, unsigned int size, const char* na
 {
 	if (luaL_loadbuffer(L, codes, size, name) != 0)
 	{
-		oLog("error loading module %s from %s :\n\t%s",
+		Log("error loading module %s from %s :\n\t%s",
 			lua_tostring(L, 1), name, lua_tostring(L, -1));
 	}
-	else oLuaEngine::call(L, 0, 0);
+	else LuaEngine::call(L, 0, 0);
 }
 
 int tolua_ref_function(lua_State* L, int lo)
@@ -163,23 +163,23 @@ void tolua_stack_dump(lua_State* L, int offset, const char* label)
 	{
 		return;
 	}
-    oPrint("Total [%d] in lua stack: %s\n", top, label != 0 ? label : "");
+    Print("Total [%d] in lua stack: %s\n", top, label != 0 ? label : "");
     for (int i = -1; i >= -top; i--)
     {
         int t = lua_type(L, i);
         switch (t)
         {
             case LUA_TSTRING:
-                oPrint("  [%02d] [string] %s\n", i, lua_tostring(L, i));
+                Print("  [%02d] [string] %s\n", i, lua_tostring(L, i));
                 break;
             case LUA_TBOOLEAN:
-                oPrint("  [%02d] [boolean] %s\n", i, lua_toboolean(L, i) ? "true" : "false");
+                Print("  [%02d] [boolean] %s\n", i, lua_toboolean(L, i) ? "true" : "false");
                 break;
             case LUA_TNUMBER:
-                oPrint("  [%02d] [number] %g\n", i, lua_tonumber(L, i));
+                Print("  [%02d] [number] %g\n", i, lua_tonumber(L, i));
                 break;
             default:
-                oPrint("  [%02d] %s\n", i, lua_typename(L, t));
+                Print("  [%02d] %s\n", i, lua_typename(L, t));
         }
     }
 }

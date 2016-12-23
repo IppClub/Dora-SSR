@@ -166,7 +166,7 @@ else
 		if push_func == _push_object_func_name then
 			output(' ',push_func,"(tolua_S,tolua_obj);")
 		elseif push_func == "tolua_pushusertype" then
-			output(' ',push_func,"(tolua_S,tolua_obj,oLuaType<"..t..">());")
+			output(' ',push_func,"(tolua_S,tolua_obj,LuaType<"..t..">());")
 		else
 			output(' ',push_func,'(tolua_S,tolua_obj,"',t,'");')
 		end
@@ -176,7 +176,7 @@ else
 		if push_func == _push_object_func_name then
 			output(' ',push_func,'(tolua_S,(void*)'..ref..value..");")
 		elseif push_func == "tolua_pushusertype" then
-			output(' ',push_func,'(tolua_S,(void*)'..ref..value..",oLuaType<"..t..">());")
+			output(' ',push_func,'(tolua_S,(void*)'..ref..value..",LuaType<"..t..">());")
 		else
 			output(' ',push_func,'(tolua_S,(void*)'..ref..value..',"',t,'");')
 		end

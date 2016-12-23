@@ -425,7 +425,7 @@ function classDeclaration:retvalue ()
    if push_func == _push_object_func_name then
     output(' ',push_func,'(tolua_S,(void*)'..self.name..");")
    elseif push_func == "tolua_pushusertype" then
-    output(' ',push_func,'(tolua_S,(void*)'..self.name..",oLuaType<"..t..">());")
+    output(' ',push_func,'(tolua_S,(void*)'..self.name..",LuaType<"..t..">());")
    else
     output('   ',push_func,'(tolua_S,(void*)'..self.name..',"',t,'");')
    end

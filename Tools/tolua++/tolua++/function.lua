@@ -284,7 +284,7 @@ function classFunction:supcode(local_constructor)
      if push_func == _push_object_func_name then
       output('    ',push_func,"(tolua_S,tolua_obj);")
      elseif push_func == "tolua_pushusertype" then
-      output('    ',push_func,"(tolua_S,tolua_obj,oLuaType<"..new_t..">());")
+      output('    ',push_func,"(tolua_S,tolua_obj,LuaType<"..new_t..">());")
      else
       output('    ',push_func,'(tolua_S,tolua_obj,"',new_t,'");')
      end
@@ -294,7 +294,7 @@ function classFunction:supcode(local_constructor)
      if push_func == _push_object_func_name then
       output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret);")
      elseif push_func == "tolua_pushusertype" then
-      output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret,oLuaType<"..new_t..">());")
+      output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret,LuaType<"..new_t..">());")
      else
       output(' ',push_func,'(tolua_S,(void*)'..ref..'tolua_ret,"',new_t,'");')
      end

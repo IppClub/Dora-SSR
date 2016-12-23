@@ -12,10 +12,8 @@
 ** enhancements, or modifications.
 */
 
-#include "Const/oHeader.h"
+#include "Const/Header.h"
 #include "tolua++.h"
-#include <stdlib.h>
-#include <string.h>
 
 NS_DOROTHY_BEGIN
 

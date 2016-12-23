@@ -1,10 +1,7 @@
+#include "Const/Header.h"
 #include "Basic/AndroidMain.h"
-#include "bgfx/platform.h"
 
 #if BX_PLATFORM_ANDROID
-#include "SDL.h"
-#include <jni.h>
-#include <android/log.h>
 
 static string g_androidAPKPath;
 

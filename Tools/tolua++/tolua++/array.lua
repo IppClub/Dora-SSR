@@ -111,7 +111,7 @@ function classArray:supcode ()
    if push_func == _push_object_func_name then
     output(' ',push_func,'(tolua_S,(void*)'..ref..self:getvalue(class,static)..");")
    elseif push_func == "tolua_pushusertype" then
-    output(' ',push_func,'(tolua_S,(void*)'..ref..self:getvalue(class,static)..",oLuaType<"..t..">());")
+    output(' ',push_func,'(tolua_S,(void*)'..ref..self:getvalue(class,static)..",LuaType<"..t..">());")
    else
     output(' ',push_func,'(tolua_S,(void*)'..ref..self:getvalue(class,static)..',"',t,'");')
    end

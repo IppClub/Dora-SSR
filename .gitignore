@@ -30,6 +30,7 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 ipch/
 *.opensdf
+*.opendb
 
 # Ignore files build by xcode
 *.nib
@@ -50,5 +51,5 @@ DerivedData/
 *.swp
 
 # Ignore lua binding generated codes
-oLuaCode.cpp
-oLuaBinding.cpp
+LuaCode.cpp
+LuaBinding.cpp

@@ -9,7 +9,7 @@
          For more info read MiniZip_info.txt
 
 */
-#include "Const/oHeader.h"
+#include "Const/Header.h"
 #include "Zip/Support/ioapi.h"
 
 voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,const void*filename,int mode)

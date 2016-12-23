@@ -709,22 +709,26 @@ namespace bgfx
 	///
 	struct Stats
 	{
-		uint64_t cpuTimeBegin; //!< CPU frame begin time.
-		uint64_t cpuTimeEnd;   //!< CPU frame end time.
-		uint64_t cpuTimerFreq; //!< CPU timer frequency.
+		uint64_t cpuTimeBegin;  //!< CPU frame begin time.
+		uint64_t cpuTimeEnd;    //!< CPU frame end time.
+		uint64_t cpuTimerFreq;  //!< CPU timer frequency.
 
-		uint64_t gpuTimeBegin; //!< GPU frame begin time.
-		uint64_t gpuTimeEnd;   //!< GPU frame end time.
-		uint64_t gpuTimerFreq; //!< GPU timer frequency.
+		uint64_t gpuTimeBegin;  //!< GPU frame begin time.
+		uint64_t gpuTimeEnd;    //!< GPU frame end time.
+		uint64_t gpuTimerFreq;  //!< GPU timer frequency.
 
-		int64_t waitRender;    //!< Time spent waiting for render backend thread to finish issuing
-		                       //!  draw commands to underlying graphics API.
-		int64_t waitSubmit;    //!< Time spent waiting for submit thread to advance to next frame.
+		int64_t waitRender;     //!< Time spent waiting for render backend thread to finish issuing
+		                        //!  draw commands to underlying graphics API.
+		int64_t waitSubmit;     //!< Time spent waiting for submit thread to advance to next frame.
 
-		uint16_t width;        //!< Backbuffer width in pixels.
-		uint16_t height;       //!< Backbuffer height in pixels.
-		uint16_t textWidth;    //!< Debug text width in characters.
-		uint16_t textHeight;   //!< Debug text height in characters.
+		uint32_t numDraw;       //!< Number of draw calls submitted.
+		uint32_t numCompute;    //!< Number of compute calls submitted.
+		uint32_t maxGpuLatency; //!< GPU driver latency.
+
+		uint16_t width;         //!< Backbuffer width in pixels.
+		uint16_t height;        //!< Backbuffer height in pixels.
+		uint16_t textWidth;     //!< Debug text width in characters.
+		uint16_t textHeight;    //!< Debug text height in characters.
 	};
 
 	/// Vertex declaration.
@@ -2002,7 +2006,7 @@ namespace bgfx
 	///      multiple times with the same uniform name. The library will always
 	///      return the same handle, but the handle reference count will be
 	///      incremented. This means that the same number of `bgfx::destroyUniform`
-	///      must be called to proprely destroy the uniform.
+	///      must be called to properly destroy the uniform.
 	///
 	///   2. Predefined uniforms (declared in `bgfx_shader.sh`):
 	///      - `u_viewRect vec4(x, y, width, height)` - view rectangle for current

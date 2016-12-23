@@ -1,7 +1,6 @@
-#include "Const/oHeader.h"
+#include "Const/Header.h"
+
 #if BX_PLATFORM_IOS
-#include "SDL.h"
-#include "SDL_syswm.h"
 #include "bx/thread.h"
 #include "App.h"
 #import <QuartzCore/CAEAGLLayer.h>

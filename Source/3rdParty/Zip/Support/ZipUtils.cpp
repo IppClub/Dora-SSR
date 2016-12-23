@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 #include "Zip/Support/ZipUtils.h"
 #include "Zip/Support/unzip.h"
-#include "Const/oHeader.h"
+#include "Const/Header.h"
 using namespace Dorothy;
 
 /// when define returns true it means that our architecture uses big endian
@@ -105,7 +105,7 @@ int ZipUtils::ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, 
             /* not enough memory, ouch */
             if (!*out)
             {
-                oLog("ZipUtils: realloc failed");
+                Log("ZipUtils: realloc failed");
                 inflateEnd(&d_stream);
                 return Z_MEM_ERROR;
             }
@@ -129,19 +129,19 @@ int ZipUtils::ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, 
     if (err != Z_OK || *out == NULL) {
         if (err == Z_MEM_ERROR)
         {
-            oLog("ZipUtils: Out of memory while decompressing map data!");
+            Log("ZipUtils: Out of memory while decompressing map data!");
         } else 
         if (err == Z_VERSION_ERROR)
         {
-            oLog("ZipUtils: Incompatible zlib version!");
+            Log("ZipUtils: Incompatible zlib version!");
         } else 
         if (err == Z_DATA_ERROR)
         {
-            oLog("ZipUtils: Incorrect zlib compressed data!");
+            Log("ZipUtils: Incorrect zlib compressed data!");
         }
         else
         {
-            oLog("ZipUtils: Unknown error while decompressing map data!");
+            Log("ZipUtils: Unknown error while decompressing map data!");
         }
         delete[] *out;
         *out = NULL;
@@ -159,8 +159,8 @@ int ZipUtils::ccInflateMemory(unsigned char *in, unsigned int inLength, unsigned
 
 int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
 {
-	 oAssertIf(out == nullptr, "ZipUtils: invalid out buffer.");
-     oAssertIf(&*out == nullptr, "ZipUtils: invalid out buffer.");
+	 AssertIf(out == nullptr, "ZipUtils: invalid out buffer.");
+     AssertIf(&*out == nullptr, "ZipUtils: invalid out buffer.");
 
     int len;
     unsigned int offset = 0;
@@ -168,7 +168,7 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
     gzFile inFile = gzopen(path, "rb");
     if (inFile == NULL)
 	{
-		oLog("ZipUtils: error open gzip file: %s", path);
+		Log("ZipUtils: error open gzip file: %s", path);
         return -1;
     }
 
@@ -179,7 +179,7 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
     *out = (unsigned char*)malloc(bufferSize);
     if (!out)
     {
-        oLog("ZipUtils: out of memory");
+        Log("ZipUtils: out of memory");
         return -1;
     }
 
@@ -188,7 +188,7 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
         len = gzread(inFile, *out + offset, bufferSize);
         if (len < 0) 
         {
-            oLog("ZipUtils: error in gzread");
+            Log("ZipUtils: error in gzread");
             free(*out);
             *out = NULL;
             return -1;
@@ -212,7 +212,7 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
 
         if (!tmp)
         {
-			oLog("ZipUtils: out of memory");
+			Log("ZipUtils: out of memory");
             free(*out);
 			*out = NULL;
             return -1;
@@ -223,7 +223,7 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
 
     if (gzclose(inFile) != Z_OK)
     {
-        oLog("ZipUtils: gzclose failed.");
+        Log("ZipUtils: gzclose failed.");
     }
 
     return offset;
@@ -231,18 +231,18 @@ int ZipUtils::ccInflateGZipFile(const char *path, unsigned char **out)
 
 int ZipUtils::ccInflateCCZFile(const char* path, unsigned char** out)
 {
-	 oAssertIf(out == nullptr, "ZipUtils: invalid out buffer.");
-     oAssertIf(&*out == nullptr, "ZipUtils: invalid out buffer.");
+	 AssertIf(out == nullptr, "ZipUtils: invalid out buffer.");
+     AssertIf(&*out == nullptr, "ZipUtils: invalid out buffer.");
 
      // load file into memory
      unsigned char* compressed = NULL;
     
      Sint64 fileLen = 0;
-     compressed = oSharedContent.loadFile(path, fileLen);
+     compressed = SharedContent.loadFile(path, fileLen);
 
      if (NULL == compressed || 0 == fileLen)
      {
-         oLog("ZipUtils: Error loading CCZ compressed file");
+         Log("ZipUtils: Error loading CCZ compressed file");
          return -1;
      }
 
@@ -251,7 +251,7 @@ int ZipUtils::ccInflateCCZFile(const char* path, unsigned char** out)
      // verify header
      if (header->sig[0] != 'C' || header->sig[1] != 'C' || header->sig[2] != 'Z' || header->sig[3] != '!')
      {
-         oLog("ZipUtils: Invalid CCZ file");
+         Log("ZipUtils: Invalid CCZ file");
          delete [] compressed;
          return -1;
      }
@@ -260,7 +260,7 @@ int ZipUtils::ccInflateCCZFile(const char* path, unsigned char** out)
      unsigned int version = CC_SWAP_INT16_BIG_TO_HOST(header->version);
      if (version > 2)
      {
-         oLog("ZipUtils: Unsupported CCZ header format");
+         Log("ZipUtils: Unsupported CCZ header format");
          delete [] compressed;
          return -1;
      }
@@ -268,7 +268,7 @@ int ZipUtils::ccInflateCCZFile(const char* path, unsigned char** out)
      // verify compression format
      if (CC_SWAP_INT16_BIG_TO_HOST(header->compression_type) != CCZ_COMPRESSION_ZLIB)
      {
-         oLog("ZipUtils: Unsupported compression method");
+         Log("ZipUtils: Unsupported compression method");
          delete [] compressed;
          return -1;
      }
@@ -278,7 +278,7 @@ int ZipUtils::ccInflateCCZFile(const char* path, unsigned char** out)
      *out = (unsigned char*)malloc(len);
      if (!*out)
      {
-         oLog("ZipUtils: Failed to allocate memory for texture");
+         Log("ZipUtils: Failed to allocate memory for texture");
          delete [] compressed;
          return -1;
      }
@@ -291,7 +291,7 @@ int ZipUtils::ccInflateCCZFile(const char* path, unsigned char** out)
 
      if (ret != Z_OK)
      {
-         oLog("ZipUtils: Failed to uncompress data");
+         Log("ZipUtils: Failed to uncompress data");
          free( *out );
          *out = NULL;
          return -1;
@@ -507,7 +507,7 @@ unsigned char* ZipFile::getFileData(const std::string& fileName, unsigned long* 
 
         pBuffer = new unsigned char[fileInfo.uncompressed_size];
         int nSize = unzReadCurrentFile(m_data->zipFile, pBuffer, (unsigned int)fileInfo.uncompressed_size);
-        oAssertUnless(nSize == 0 || nSize == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
+        AssertUnless(nSize == 0 || nSize == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
 
         if (pSize)
         {
