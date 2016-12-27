@@ -66,9 +66,7 @@ namespace silly {
 
     Singleton() : Life(LifeTime) { }
     static T& shared() {
-      if (!instance_) {
-        instance_ = new Singleton<T, LifeTime>();
-      }
+      static auto* instance_ = new Singleton<T, LifeTime>();
       return *instance_;
     }
 

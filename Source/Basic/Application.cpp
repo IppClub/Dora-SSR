@@ -12,38 +12,66 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-int Application::winWidth = 800;
-int Application::winHeight = 600;
-bool Application::running = true;
+Application::Application():
+_width(800),
+_height(600),
+_deltaTime(0),
+_updateTime(0),
+_frequency(double(bx::getHPFrequency()))
+{
+	_lastTime = bx::getHPCounter() / _frequency;
+}
+
+int Application::getWidth() const
+{
+	return _width;
+}
+
+int Application::getHeight() const
+{
+	return _height;
+}
 
 // This function runs in main thread, and do render work
 int Application::run()
 {
-	SDL_Init(SDL_INIT_EVENTS);
+	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0)
+	{
+		Log("SDL fail to initialize! %s", SDL_GetError());
+		return 1;
+	}
 
 	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
 #if BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN;
 #endif
 
-	SDL_Window* window = SDL_CreateWindow("Study BGFX & SDL",
+	SDL_Window* window = SDL_CreateWindow("Dorothy-SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		winWidth, winHeight, windowFlags);
+		_width, _height, windowFlags);
+	if (!window)
+	{
+		Log("SDL fail to create window!");
+		return 1;
+	}
 
-	setSdlWindow(window);
+	Application::setSdlWindow(window);
 
+	// call this function here to disable default render threads creation of bgfx
 	bgfx::renderFrame();
 
-	bx::Thread thread;
-	thread.init(Application::mainLogic);
+	// start running logic thread
+	_logicThread.init(Application::mainLogic, this);
 
 	SDL_Event event;
+	bool running = true;
 	while (running)
 	{
 		// do render staff and swap buffers
 		bgfx::renderFrame();
+
 		// handle SDL event in this main thread only
-		while(SDL_PollEvent(&event))
+		while (SDL_PollEvent(&event))
 		{
 			switch (event.type)
 			{
@@ -53,25 +81,156 @@ int Application::run()
 			default:
 				break;
 			}
+			_logicEvent.post("SDLEvent", event);
+		}
+
+		// poll events from logic thread
+		for (Own<QEvent> event = _renderEvent.poll();
+			event != nullptr;
+			event = _renderEvent.poll())
+		{
+			switch (Switch::hash(event->getName()))
+			{
+				case "Quit"_hash:
+				{
+					SDL_Event ev;
+					ev.quit.type = SDL_QUIT;
+					SDL_PushEvent(&ev);
+					break;
+				}
+				default:
+					break;
+			}
 		}
 	}
 
 	// wait for render process to stop
 	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
-	thread.shutdown();
+	_logicThread.shutdown();
 
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
-	return thread.getExitCode();
+	return _logicThread.getExitCode();
 }
 
+void Application::updateDeltaTime()
+{
+	double currentTime = bx::getHPCounter() / _frequency;
+	_deltaTime = currentTime - _lastTime ;
+	if (_deltaTime <= 0)
+	{
+		_deltaTime = FLT_EPSILON;
+		_lastTime = currentTime;
+	}
+	// only accept frames drop to 30 FPS
+	_deltaTime = min(_deltaTime, 1.0/30);
+}
+
+double Application::getEclapsedTime() const
+{
+	double currentTime = bx::getHPCounter() / _frequency;
+	return max(currentTime - _lastTime, 0.0);
+}
+
+double Application::getLastTime() const
+{
+	return _lastTime;
+}
+
+double Application::getDeltaTime() const
+{
+	return _deltaTime;
+}
+
+double Application::getUpdateTime() const
+{
+	return _updateTime;
+}
+
+void Application::makeTimeNow()
+{
+	_lastTime = bx::getHPCounter() / _frequency;
+}
+
+void Application::shutdown()
+{
+	_renderEvent.post("Quit");
+}
+
+int Application::mainLogic(void* userData)
+{
+	Application* app = r_cast<Application*>(userData);
+	
+	if (!bgfx::init())
+	{
+		Log("bgfx fail to initialize!");
+		return 1;
+	}
+	if (!SharedDirector.init())
+	{
+		Log("Director fail to initialize!");
+		return 1;
+	}
+
+	// Update and invoke render apis
+	app->updateDeltaTime();
+	bool running = true;
+	while (running)
+	{
+		SharedPoolManager.push();
+		// poll events from render thread
+		for (Own<QEvent> event = app->_logicEvent.poll();
+			event != nullptr;
+			event = app->_logicEvent.poll())
+		{
+			switch (Switch::hash(event->getName()))
+			{
+				case "SDLEvent"_hash:
+				{
+					SDL_Event sdlEvent;
+					EventQueue::retrieve(event, sdlEvent);
+					switch (sdlEvent.type)
+					{
+						case SDL_QUIT:
+							running = false;
+							break;
+						default:
+							break;
+					}
+					SharedDirector.handleSDLEvent(sdlEvent);
+					break;
+				}
+				default:
+					break;
+			}
+		}
+		SharedDirector.mainLoop();
+		SharedPoolManager.pop();
+
+		app->_updateTime = app->getEclapsedTime();
+
+		// Advance to next frame. Rendering thread will be kicked to
+		// process submitted rendering primitives.
+		bgfx::frame();
+
+		// limit for 60 FPS
+		do {
+			app->updateDeltaTime();
+		} while (app->getDeltaTime() < 1.0/60);
+		app->makeTimeNow();
+	}
+
+	bgfx::shutdown();
+	return 0;
+}
+
+#if !BX_PLATFORM_IOS
 void Application::setSdlWindow(SDL_Window* window)
 {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
 	SDL_GetWindowWMInfo(window, &wmi);
-
 	bgfx::PlatformData pd;
 #if BX_PLATFORM_OSX
 	pd.ndt = nullptr;
@@ -82,76 +241,26 @@ void Application::setSdlWindow(SDL_Window* window)
 #elif BX_PLATFORM_ANDROID
 	pd.ndt = nullptr;
 	pd.nwh = wmi.info.android.window;
-	SDL_GL_GetDrawableSize(window, &winWidth, &winHeight);
+	SDL_GL_GetDrawableSize(window, &_width, &_height);
 #endif
 	pd.context = nullptr;
 	pd.backBuffer = nullptr;
 	pd.backBufferDS = nullptr;
 	bgfx::setPlatformData(pd);
 }
-
-int Application::mainLogic(void* userData)
-{
-	// Initialization
-	bgfx::init();
-	bgfx::reset(winWidth, winHeight, BGFX_RESET_VSYNC);
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
-	bgfx::setViewClear(0,
-		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
-		0x303030ff, 1.0f, 0);
-	bgfx::frame();
-
-	SharedLueEngine.executeScriptFile("Script/main");
-
-	// Update and invoke render apis
-	while (running)
-	{
-		SharedPoolManager.push();
-		bgfx::setViewRect(0, 0, 0, winWidth, winHeight);
-
-		// This dummy draw call is here to make sure that view 0 is cleared
-		// if no other draw calls are submitted to view 0.
-		bgfx::touch(0);
-
-		// Use debug font to print information about this example.
-		bgfx::dbgTextClear();
-		bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/00-helloworld");
-		bgfx::dbgTextPrintf(0, 2, 0x6f, "Description: Initialization and debug text.");
-
-		bgfx::dbgTextPrintf(0, 4, 0x0f, "Color can be changed with ANSI \x1b[9;me\x1b[10;ms\x1b[11;mc\x1b[12;ma\x1b[13;mp\x1b[14;me\x1b[0m code too.");
-
-		const bgfx::Stats* stats = bgfx::getStats();
-		bgfx::dbgTextPrintf(0, 6, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
-				, stats->width
-				, stats->height
-				, stats->textWidth
-				, stats->textHeight);
-
-		// Advance to next frame. Rendering thread will be kicked to
-		// process submitted rendering primitives.
-		bgfx::frame();
-		SharedPoolManager.pop();
-	}
-
-	// Shut down frameworks
-	bgfx::shutdown();
-	SDL_Event event;
-	SDL_QuitEvent& qev = event.quit;
-	qev.type = SDL_QUIT;
-	SDL_PushEvent(&event);
-	return 0;
-}
+#endif
 
 NS_DOROTHY_END
-/*
+
 // Entry functions needed by SDL2
-#if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 int main(int argc, char *argv[])
 {
-	Dorothy::App app;
-	return app.run();
+	return SharedApplication.run();
 }
-#elif BX_PLATFORM_WINDOWS
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+
+#if BX_PLATFORM_WINDOWS
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -165,14 +274,11 @@ int CALLBACK WinMain(
 	freopen("CONOUT$", "w", stderr);
 #endif
 
-	Dorothy::App app;
-	int result = app.run();
+	int result = SharedApplication.run();
 
 #ifndef NDEBUG
 	FreeConsole();
 #endif
-
 	return result;
 }
-#endif // BX_PLATFORM_
-*/
+#endif // BX_PLATFORM_WINDOWS

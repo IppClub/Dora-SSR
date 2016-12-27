@@ -11,38 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-AutoreleasePool::~AutoreleasePool()
-{
-	AutoreleasePool::clear();
-}
-
-void AutoreleasePool::addObject(Object* object)
-{
-	_managedObjects.push_back(object);
-	AssertUnless(object->getRefCount() > 1, "reference count should be greater than 1.");
-	object->_managed = true;
-	object->release();
-}
-
-void AutoreleasePool::removeObject(Object* object)
-{
-	Ref<Object> objectRef(object);
-	if (_managedObjects.fast_remove(object))
-	{
-		object->_managed = false;
-		object->retain();
-	}
-}
-
-void AutoreleasePool::clear()
-{
-	for (Object* object : _managedObjects)
-	{
-		object->_managed = false;
-	}
-	_managedObjects.clear();
-}
-
 void PoolManager::clear()
 {
 	stack<Ref<AutoreleasePool>> emptyStack;
@@ -74,6 +42,39 @@ void PoolManager::addObject(Object* object)
 {
 	AssertIf(_releasePoolStack.empty(), "current auto release pool stack should not be empty.");
 	_releasePoolStack.top()->addObject(object);
+}
+
+
+PoolManager::AutoreleasePool::~AutoreleasePool()
+{
+	AutoreleasePool::clear();
+}
+
+void PoolManager::AutoreleasePool::addObject(Object* object)
+{
+	_managedObjects.push_back(object);
+	AssertUnless(object->getRefCount() > 1, "reference count should be greater than 1.");
+	object->_managed = true;
+	object->release();
+}
+
+void PoolManager::AutoreleasePool::removeObject(Object* object)
+{
+	Ref<Object> objectRef(object);
+	if (_managedObjects.fast_remove(object))
+	{
+		object->_managed = false;
+		object->retain();
+	}
+}
+
+void PoolManager::AutoreleasePool::clear()
+{
+	for (Object* object : _managedObjects)
+	{
+		object->_managed = false;
+	}
+	_managedObjects.clear();
 }
 
 NS_DOROTHY_END

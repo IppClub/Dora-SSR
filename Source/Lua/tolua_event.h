@@ -12,8 +12,7 @@
 ** enhancements, or modifications.
 */
 
-#ifndef __DOROTHY_LUA_TOLUA_EVENT_H__
-#define __DOROTHY_LUA_TOLUA_EVENT_H__
+#pragma once
 
 #include "tolua++.h"
 
@@ -24,5 +23,3 @@ int tolua_ismodulemetatable(lua_State* L);
 void tolua_classevents(lua_State* L);
 
 NS_DOROTHY_END
-
-#endif // __DOROTHY_LUA_TOLUA_EVENT_H__

@@ -20,7 +20,7 @@ using std::ofstream;
 #if BX_PLATFORM_ANDROID
 #include "Zip/Support/ZipUtils.h"
 #include "Basic/AndroidMain.h"
-static Dorothy::Own<ZipFile> g_zipFile;
+static Dorothy::Own<ZipFile> g_apkFile;
 #endif // BX_PLATFORM_ANDROID
 
 NS_DOROTHY_BEGIN
@@ -209,7 +209,7 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 #if BX_PLATFORM_ANDROID
 	if (fullPath[0] != '/')
 	{
-		return g_zipFile->getDirEntries(fullPath, isFolder);
+		return g_apkFile->getDirEntries(fullPath, isFolder);
 	}
 #endif // BX_PLATFORM_ANDROID
 	vector<string> files;
@@ -240,7 +240,7 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 Content::Content()
 {
 	_currentPath = "assets/";
-	g_zipFile = OwnNew<ZipFile>(getAndroidAPKPath(), _currentPath);
+	g_apkFile = OwnNew<ZipFile>(getAndroidAPKPath(), _currentPath);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
@@ -257,7 +257,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 	string fullPath = Content::getFullPath(filename);
 	if (fullPath[0] != '/')
 	{
-		data = g_zipFile->getFileData(fullPath, r_cast<unsigned long*>(&size));
+		data = g_apkFile->getFileData(fullPath, r_cast<unsigned long*>(&size));
 	}
 	else
 	{
@@ -265,11 +265,11 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 		{
 			FILE* fp = fopen(fullPath.c_str(), "rb");
 			BREAK_IF(!fp);
-			fseek(fp,0,SEEK_END);
+			fseek(fp, 0, SEEK_END);
 			unsigned long dataSize = ftell(fp);
-			fseek(fp,0,SEEK_SET);
+			fseek(fp, 0, SEEK_SET);
 			data = new unsigned char[dataSize];
-			dataSize = fread(data,sizeof(unsigned char), dataSize,fp);
+			dataSize = fread(data, sizeof(unsigned char), dataSize,fp);
 			fclose(fp);
 			if (dataSize)
 			{
@@ -287,30 +287,32 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 
 bool Content::isFileExist(String strFilePath)
 {
+	if (strFilePath.empty())
+	{
+		return false;
+	}
 	bool found = false;
-
 	// Check whether file exists in apk.
 	if (strFilePath[0] != '/')
 	{
-		std::string strPath = strFilePath;
+		string strPath = strFilePath;
 		if (strPath.find(_currentPath) != 0)
 		{
 			// Didn't find "assets/" at the beginning of the path, adding it.
 			strPath.insert(0, _currentPath);
 		}
-
-		if (g_zipFile->fileExists(strPath))
+		if (g_apkFile->fileExists(strPath))
 		{
 			found = true;
 		}
 	}
 	else
 	{
-		FILE* fp = fopen(strFilePath.c_str(), "r");
-		if (fp)
+		FILE* file = fopen(strFilePath.c_str(), "r");
+		if (file)
 		{
 			found = true;
-			fclose(fp);
+			fclose(file);
 		}
 	}
 	return found;
@@ -318,7 +320,7 @@ bool Content::isFileExist(String strFilePath)
 
 bool Content::isFolder(String path)
 {
-	return g_zipFile->isFolder(path);
+	return g_apkFile->isFolder(path);
 }
 
 bool Content::isAbsolutePath(String strPath)

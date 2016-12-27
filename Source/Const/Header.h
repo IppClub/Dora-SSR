@@ -6,8 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#ifndef __DOROTHY_CONST_HEADER_H__
-#define __DOROTHY_CONST_HEADER_H__
+#pragma once
 
 #include <string>
 using std::string;
@@ -28,6 +27,7 @@ using std::ostringstream;
 using std::tuple;
 #include <algorithm>
 using std::max;
+using std::min;
 #include "Other/AcfDelegate.h"
 using Acf::Delegate;
 #include "SDL_syswm.h"
@@ -38,9 +38,9 @@ using Acf::Delegate;
 #include "silly/LifeCycledSingleton.h"
 #include "silly/Slice.h"
 using silly::Slice;
+#include "Const/Define.h"
 #include "Common/Helper.h"
 using namespace Dorothy::Switch::Literals;
-#include "Const/Define.h"
 #include "Lua/LuaHelper.h"
 #include "Basic/Object.h"
 #include "Common/Ref.h"
@@ -56,5 +56,5 @@ using namespace Dorothy::Switch::Literals;
 #include "Event/Event.h"
 #include "Event/Listener.h"
 #include "Event/EventQueue.h"
-
-#endif // __DOROTHY_CONST_HEADER_H__
+#include "Basic/Application.h"
+#include "Basic/Director.h"

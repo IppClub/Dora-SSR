@@ -6,22 +6,28 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#ifndef __DOROTHY_CONST_DEFINE_H__
-#define __DOROTHY_CONST_DEFINE_H__
+#pragma once
 
 #define DORA_DEFAULT_ORG_NAME "LuvFight"
 #define DORA_DEFAULT_APP_NAME "DorothySSR"
 
+#define NS_DOROTHY_BEGIN namespace Dorothy {
+#define NS_DOROTHY_END }
+
+NS_DOROTHY_BEGIN
+
 /** @brief Define the destruction orders of singleton intances,
 	the lowest indiced instance will be destroyed first. */
-ENUM_START(SingletonIndex)
+namespace SingletonIndex
 {
-	ContentManager,
-	PoolManager,
-	LuaEngine,
-	Director
+	enum {
+		ContentManager,
+		PoolManager,
+		LuaEngine,
+		Director,
+		Application
+	};
 }
-ENUM_END(SingletonIndex)
 
 /** @brief Debug flag, set with the compilar flag by default. */
 #ifndef DORA_DEBUG
@@ -61,4 +67,4 @@ ENUM_END(SingletonIndex)
 	#define DORA_HASH_CHECK_EQUAL true
 #endif
 
-#endif // __DOROTHY_CONST_DEFINE_H__
+NS_DOROTHY_END

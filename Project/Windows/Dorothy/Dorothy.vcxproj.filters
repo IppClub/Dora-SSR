@@ -75,9 +75,6 @@
     <ClCompile Include="..\..\..\Source\Lua\tolua_to.cpp">
       <Filter>Lua\tolua</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Basic\App.cpp">
-      <Filter>Basic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp">
       <Filter>Basic</Filter>
     </ClCompile>
@@ -175,9 +172,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\tolua++.h">
       <Filter>Lua\tolua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Basic\App.h">
-      <Filter>Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Basic\Application.h">
       <Filter>Basic</Filter>

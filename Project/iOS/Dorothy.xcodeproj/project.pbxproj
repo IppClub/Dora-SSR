@@ -26,7 +26,6 @@
 		3C1F87C91DF7B4C5005F1B4D /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
 		3C1F87CB1DF7B560005F1B4D /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C1F87CA1DF7B560005F1B4D /* Default-568h@2x.png */; };
 		3C1F87CF1DF7B6AB005F1B4D /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C1F87CE1DF7B6AB005F1B4D /* Launch Screen.storyboard */; };
-		3C1F87DB1DF8034B005F1B4D /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1F87D81DF8034B005F1B4D /* App.cpp */; };
 		3C6A1FB31E082B00006DD8C7 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C6A1FB21E082B00006DD8C7 /* libluajit.a */; };
 		3C6A1FC01E082B24006DD8C7 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A1FB61E082B24006DD8C7 /* tolua_event.cpp */; };
 		3C6A1FC11E082B24006DD8C7 /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A1FB81E082B24006DD8C7 /* tolua_fix.cpp */; };
@@ -54,7 +53,7 @@
 		3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331791D96D98700F9C3F6 /* Foundation.framework */; };
 		3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */; };
 		3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331831D96E19100F9C3F6 /* OpenGLES.framework */; };
-		3CFF5F271E0136A0004E3CA6 /* iOSMain.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */; };
+		3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F261E0136A0004E3CA6 /* Application.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -101,8 +100,6 @@
 		3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3C1F87CA1DF7B560005F1B4D /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		3C1F87CE1DF7B6AB005F1B4D /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
-		3C1F87D81DF8034B005F1B4D /* App.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = App.cpp; path = ../../../Source/Basic/App.cpp; sourceTree = "<group>"; };
-		3C1F87D91DF8034B005F1B4D /* App.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = App.h; path = ../../../Source/Basic/App.h; sourceTree = "<group>"; };
 		3C6A1FB21E082B00006DD8C7 /* libluajit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libluajit.a; path = ../../Source/3rdParty/Lua/Lib/iOS/libluajit.a; sourceTree = "<group>"; };
 		3C6A1FB61E082B24006DD8C7 /* tolua_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_event.cpp; path = ../../../Source/Lua/tolua_event.cpp; sourceTree = "<group>"; };
 		3C6A1FB71E082B24006DD8C7 /* tolua_event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tolua_event.h; path = ../../../Source/Lua/tolua_event.h; sourceTree = "<group>"; };
@@ -144,7 +141,7 @@
 		3CE331791D96D98700F9C3F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		3CE331831D96E19100F9C3F6 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
-		3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iOSMain.mm; path = ../../../Source/Basic/iOSMain.mm; sourceTree = "<group>"; };
+		3CFF5F261E0136A0004E3CA6 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../../Source/Basic/Application.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,20 +181,18 @@
 		3C1F87D71DF80334005F1B4D /* Basic */ = {
 			isa = PBXGroup;
 			children = (
+				3CFF5F261E0136A0004E3CA6 /* Application.mm */,
 				3C0AD7DA1E0CE9D00033AD59 /* Application.cpp */,
 				3C0AD7DB1E0CE9D00033AD59 /* Application.h */,
 				3C0AD7DC1E0CE9D00033AD59 /* AutoreleasePool.cpp */,
 				3C0AD7DD1E0CE9D00033AD59 /* AutoreleasePool.h */,
+				3C0AD7E01E0CE9D00033AD59 /* Content.mm */,
 				3C0AD7DE1E0CE9D00033AD59 /* Content.cpp */,
 				3C0AD7DF1E0CE9D00033AD59 /* Content.h */,
-				3C0AD7E01E0CE9D00033AD59 /* Content.mm */,
 				3C0AD7E11E0CE9D00033AD59 /* Director.cpp */,
 				3C0AD7E21E0CE9D00033AD59 /* Director.h */,
 				3C0AD7E31E0CE9D00033AD59 /* Object.cpp */,
 				3C0AD7E41E0CE9D00033AD59 /* Object.h */,
-				3CFF5F261E0136A0004E3CA6 /* iOSMain.mm */,
-				3C1F87D81DF8034B005F1B4D /* App.cpp */,
-				3C1F87D91DF8034B005F1B4D /* App.h */,
 			);
 			name = Basic;
 			sourceTree = "<group>";
@@ -475,13 +470,12 @@
 				3C6A1FC11E082B24006DD8C7 /* tolua_fix.cpp in Sources */,
 				3C6A1FC51E082B24006DD8C7 /* tolua_to.cpp in Sources */,
 				3C6A1FC41E082B24006DD8C7 /* tolua_push.cpp in Sources */,
-				3CFF5F271E0136A0004E3CA6 /* iOSMain.mm in Sources */,
+				3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */,
 				3C0AD7E71E0CE9D00033AD59 /* Content.cpp in Sources */,
 				3C0AD7E51E0CE9D00033AD59 /* Application.cpp in Sources */,
 				3CB410411E05B19A00A8804D /* unzip.cpp in Sources */,
 				3C0AD7CA1E0CE9990033AD59 /* LuaBinding.cpp in Sources */,
 				3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */,
-				3C1F87DB1DF8034B005F1B4D /* App.cpp in Sources */,
 				3C0AD7CC1E0CE9990033AD59 /* LuaEngine.cpp in Sources */,
 				3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */,
 				3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */,
@@ -584,6 +578,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -602,6 +597,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

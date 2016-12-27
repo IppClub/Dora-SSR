@@ -6,25 +6,41 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#ifndef __DOROTHY_BASIC_APPLICATION_H__
-#define __DOROTHY_BASIC_APPLICATION_H__
+#pragma once
 
 struct SDL_Window;
 
 NS_DOROTHY_BEGIN
 
-class Application
+class Application : public Object
 {
 public:
+	PROPERTY_READONLY(int, Width);
+	PROPERTY_READONLY(int, Height);
+	PROPERTY_READONLY(double, LastTime);
+	PROPERTY_READONLY(double, DeltaTime);
+	PROPERTY_READONLY(double, EclapsedTime);
+	PROPERTY_READONLY(double, UpdateTime);
+	Application();
 	int run();
-	virtual void setSdlWindow(SDL_Window* window);
+	void shutdown();
 	static int mainLogic(void* userData);
 protected:
-	static int winWidth;
-	static int winHeight;
-	static bool running;
+	void updateDeltaTime();
+	void makeTimeNow();
+	void setSdlWindow(SDL_Window* window);
+	const double _frequency;
+	bx::Thread _logicThread;
+	double _lastTime;
+	double _deltaTime;
+	double _updateTime;
+	int _width;
+	int _height;
+	EventQueue _logicEvent;
+	EventQueue _renderEvent;
 };
 
-NS_DOROTHY_END
+#define SharedApplication \
+	silly::Singleton<Dorothy::Application, Dorothy::SingletonIndex::Application>::shared()
 
-#endif // __DOROTHY_BASIC_APPLICATION_H__
+NS_DOROTHY_END

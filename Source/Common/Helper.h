@@ -6,11 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#ifndef __DOROTHY_COMMON_HELPER_H__
-#define __DOROTHY_COMMON_HELPER_H__
-
-#define NS_DOROTHY_BEGIN namespace Dorothy {
-#define NS_DOROTHY_END }
+#pragma once
 
 NS_DOROTHY_BEGIN
 
@@ -230,8 +226,7 @@ namespace Switch {
 		size_t constexpr operator()(char const* input) const
 		{
 			return *input ?
-			static_cast<unsigned int>(*input) + 33 * (*this)(input + 1) :
-			5381;
+			static_cast<size_t>(*input) + 33ull * (*this)(input + 1ull) : 5381ull;
 		}
 		std::size_t operator()(String str) const
 		{
@@ -258,6 +253,8 @@ namespace Switch {
 #define c_cast const_cast
 #define d_cast dynamic_cast
 
-NS_DOROTHY_END
+#ifndef FLT_EPSILON
+	#define FLT_EPSILON 1.192092896e-07F
+#endif // FLT_EPSILON
 
-#endif // __DOROTHY_COMMON_HELPER_H__
+NS_DOROTHY_END

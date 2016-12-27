@@ -12,8 +12,7 @@
 ** enhancements, or modifications.
 */
 
-#ifndef __DOROTHY_LUA_TOLUAPP_H__
-#define __DOROTHY_LUA_TOLUAPP_H__
+#pragma once
 
 #include "Const/Header.h"
 #include "lua.hpp"
@@ -185,5 +184,3 @@ void tolua_typeid(lua_State *L, int typeId, const char* className);
 #define _cstring char*
 
 NS_DOROTHY_END
-
-#endif // __DOROTHY_LUA_TOLUAPP_H__

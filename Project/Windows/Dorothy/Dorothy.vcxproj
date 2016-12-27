@@ -25,7 +25,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\unzip.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\zip.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.cpp" />
-    <ClCompile Include="..\..\..\Source\Basic\App.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Content.cpp" />
@@ -63,7 +62,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\unzip.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\zip.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.h" />
-    <ClInclude Include="..\..\..\Source\Basic\App.h" />
     <ClInclude Include="..\..\..\Source\Basic\Application.h" />
     <ClInclude Include="..\..\..\Source\Basic\AutoreleasePool.h" />
     <ClInclude Include="..\..\..\Source\Basic\Content.h" />

@@ -6,21 +6,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#ifndef __DOROTHY_BASIC_AUTORELEASEPOOL_H__
-#define __DOROTHY_BASIC_AUTORELEASEPOOL_H__
+#pragma once
 
 NS_DOROTHY_BEGIN
-
-class AutoreleasePool : public Object
-{
-public:
-	virtual ~AutoreleasePool();
-	void addObject(Object* object);
-	void removeObject(Object* object);
-	void clear();
-private:
-	RefVector<Object> _managedObjects;
-};
 
 class PoolManager : public Object
 {
@@ -31,6 +19,16 @@ public:
 	void removeObject(Object* object);
 	void addObject(Object* object);
 private:
+	class AutoreleasePool : public Object
+	{
+	public:
+		virtual ~AutoreleasePool();
+		void addObject(Object* object);
+		void removeObject(Object* object);
+		void clear();
+	private:
+		RefVector<Object> _managedObjects;
+	};
 	stack<Ref<AutoreleasePool>> _releasePoolStack;
 };
 
@@ -38,5 +36,3 @@ private:
 	silly::Singleton<PoolManager, SingletonIndex::PoolManager>::shared()
 
 NS_DOROTHY_END
-
-#endif //__DOROTHY_BASIC_AUTORELEASEPOOL_H__
