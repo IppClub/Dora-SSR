@@ -46,7 +46,7 @@ void Content::copyFile(String src, String dst)
 void Content::saveToFile(String filename, String content)
 {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
-	stream.write(content.c_str(), content.size());
+	stream.write(content.rawData(), content.size());
 }
 
 void Content::saveToFile(String filename, Uint8* content, Sint64 size)
@@ -63,7 +63,40 @@ bool Content::removeFile(String filename)
 
 bool Content::createFolder(String path)
 {
-	return CreateDir(path.c_str(), path.size()) == 0;
+	const int MAX_PATH_LEN = 256;
+	size_t len = path.size();
+	if (len > MAX_PATH_LEN - 2)
+	{
+		return false;
+	}
+	char pszDir[MAX_PATH_LEN];
+	path.copyTo(pszDir);
+
+	if (pszDir[len - 1] != '\\' && pszDir[len - 1] != '/')
+	{
+		pszDir[len] = '/';
+		pszDir[len + 1] = '\0';
+	}
+	for (size_t i = 0; i < len + 1; i++)
+	{
+		if (i != 0 && (pszDir[i] == '\\' || pszDir[i] == '/') && pszDir[i - 1] != ':')
+		{
+			pszDir[i] = '\0';
+			// file exist
+			struct stat buf;
+			int iRet = ::stat(pszDir, &buf);
+			if (iRet != 0)
+			{
+				iRet = MKDIR(pszDir);
+				if (iRet != 0)
+				{
+					return false;
+				}
+			}
+			pszDir[i] = '/';
+		}
+	}
+	return true;
 }
 
 const string& Content::getWritablePath() const
@@ -437,7 +470,7 @@ bool Content::isFileExist(String strFilePath)
 	}
 	else
 	{
-		FILE* file = fopen(strFilePath.c_str(), "r");
+		FILE* file = fopen(strFilePath.toString().c_str(), "r");
 		if (file)
 		{
 			found = true;
@@ -553,7 +586,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 bool Content::isFolder(String path)
 {
 	struct stat buf;
-	if (::stat(path.c_str(), &buf) == 0)
+	if (::stat(path.toString().c_str(), &buf) == 0)
 	{
 		return (buf.st_mode & S_IFDIR) != 0;
 	}

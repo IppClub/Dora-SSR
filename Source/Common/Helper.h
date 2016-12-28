@@ -228,7 +228,7 @@ namespace Switch {
 			return *input ?
 			static_cast<size_t>(*input) + 33ull * (*this)(input + 1ull) : 5381ull;
 		}
-		std::size_t operator()(String str) const
+		std::size_t operator()(const string& str) const
 		{
 			return (*this)(str.c_str());
 		}

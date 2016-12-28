@@ -28,9 +28,14 @@
 
 namespace silly {
 
+namespace slice {
 // A Slice object wraps a "const char *" or a "const std::string&" but
 // without copying their contents.
 class Slice {
+ private:
+  struct TrustedInitTag {};
+  constexpr Slice(const char* s, size_t n, TrustedInitTag) : str_(s), len_(n) {}
+
  public:
   // implicit conversion from std::string to Slice
   Slice(const std::string &s) : Slice(s.data(), s.size()) {}
@@ -40,6 +45,8 @@ class Slice {
   Slice(const char *s, size_t n) : str_(s), len_(n) {}
 
   constexpr Slice(std::nullptr_t p = nullptr) : str_(nullptr), len_(0) {}
+
+  using const_iterator = const char*;
 
   operator std::string() const {
   	return std::string(str_, len_);
@@ -53,7 +60,7 @@ class Slice {
     return len_;
   }
 
-  const char *c_str() const {
+  const char *rawData() const {
     return str_;
   }
 
@@ -96,6 +103,14 @@ class Slice {
     return *this;
   }
 
+  const_iterator begin() const {
+    return str_;
+  }
+
+  const_iterator end() const {
+    return str_ + len_;
+  }
+
   std::string getFilePath() const;
   std::string getFileName() const;
   std::string getFileExtension() const;
@@ -103,6 +118,8 @@ class Slice {
   std::string toUpper() const;
 
   static const std::string Empty;
+
+  constexpr friend Slice operator"" _slice(const char* s, size_t n);
  private:
   const char *str_;
   size_t len_;
@@ -122,7 +139,13 @@ inline bool operator!=(const Slice &lhs, const Slice &rhs) {
 }
 
 inline std::string operator+(const std::string& lhs, const Slice &rhs) {
-  return lhs + (std::string)rhs;
+  return lhs + rhs.toString();
 }
+
+constexpr Slice operator"" _slice(const char* s, size_t n) {
+	return Slice(s, n, Slice::TrustedInitTag{});
+}
+
+} // namespace slice
 
 }  // namespace silly

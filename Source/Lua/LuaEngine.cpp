@@ -75,7 +75,7 @@ static int dora_loadfile(lua_State* L, String filename)
 			else
 			{
 				lua_pushnil(L);
-				lua_pushfstring(L, "xml or lua file not found for filename \"%s\"", filename.c_str());
+				lua_pushfstring(L, "xml or lua file not found for filename \"%s\"", filename.toString().c_str());
 				return 2;
 			}
 		}
@@ -107,15 +107,15 @@ static int dora_loadfile(lua_State* L, String filename)
 
 	if (codeBuffer)
 	{
-		if (luaL_loadbuffer(L, codeBuffer, (size_t)codeBufferSize, filename.c_str()) != 0)
+		if (luaL_loadbuffer(L, codeBuffer, (size_t)codeBufferSize, filename.toString().c_str()) != 0)
 		{
 			luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
-				lua_tostring(L, 1), filename.c_str(), lua_tostring(L, -1));
+				lua_tostring(L, 1), filename.toString().c_str(), lua_tostring(L, -1));
 		}
 	}
 	else
 	{
-		luaL_error(L, "can not get data from file \"%s\"", filename.c_str());
+		luaL_error(L, "can not get data from file \"%s\"", filename.toString().c_str());
 		return 2;
 	}
 	return 1;
@@ -319,7 +319,7 @@ void LuaEngine::removePeer(Object* object)
 
 int LuaEngine::executeString(String codes)
 {
-	luaL_loadstring(L, codes.c_str());
+	luaL_loadstring(L, codes.toString().c_str());
 	return LuaEngine::execute(L, 0);
 }
 
@@ -327,7 +327,7 @@ int LuaEngine::executeScriptFile(String filename)
 {
 	int top = lua_gettop(L);
 	lua_getglobal(L, "dofile"); // file, dofile
-	lua_pushlstring(L, filename.c_str(), filename.size());
+	lua_pushlstring(L, filename.toString().c_str(), filename.size());
 	int result = LuaEngine::call(L, 1, LUA_MULTRET); // dofile(file)
 	lua_settop(L, top);
 	return result;
@@ -355,7 +355,7 @@ void LuaEngine::push(Object* value)
 
 void LuaEngine::push(String value)
 {
-	lua_pushlstring(L, value.c_str(), value.size());
+	lua_pushlstring(L, value.toString().c_str(), value.size());
 }
 
 int LuaEngine::executeFunction(int handler, int paramCount)
@@ -369,7 +369,7 @@ bool LuaEngine::executeAssert(bool cond, String msg)
 	{
 		return false;
 	}
-	luaL_error(L, "assert failed with C++ condition: %s", msg.empty() ? "unknown" : msg.c_str());
+	luaL_error(L, "assert failed with C++ condition: %s", msg.empty() ? "unknown" : msg.toString().c_str());
 	return true;
 }
 

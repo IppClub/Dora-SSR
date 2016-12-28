@@ -38,7 +38,7 @@ using Acf::Delegate;
 #include "bx/sem.h"
 #include "silly/LifeCycledSingleton.h"
 #include "silly/Slice.h"
-using silly::Slice;
+using namespace silly::slice;
 #include "Const/Define.h"
 #include "Common/Helper.h"
 using namespace Dorothy::Switch::Literals;

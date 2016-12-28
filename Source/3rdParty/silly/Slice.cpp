@@ -24,6 +24,8 @@
 
 namespace silly {
 
+namespace slice {
+
 const std::string Slice::Empty;
 
 int Slice::compare(const Slice &rhs) const {
@@ -96,5 +98,7 @@ std::string Slice::getFileExtension() const
 	}
 	return Slice(filename.substr(pos + 1)).toLower();
 }
+
+}  // namespace slice
 
 }  // namespace silly

@@ -70,28 +70,28 @@ void Director::handleSDLEvent(const SDL_Event& event)
 	{
 		// User-requested quit
 		case SDL_QUIT:
-			Event::send("AppQuit");
+			Event::send("AppQuit"_slice);
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:
-			Event::send("AppQuit");
+			Event::send("AppQuit"_slice);
 			break;
 		// The application is low on memory, free memory if possible.
 		case SDL_APP_LOWMEMORY:
-			Event::send("AppLowMemory");
+			Event::send("AppLowMemory"_slice);
 			break;
 		// The application is about to enter the background.
 		case SDL_APP_WILLENTERBACKGROUND:
-			Event::send("AppWillEnterBackground");
+			Event::send("AppWillEnterBackground"_slice);
 			break;
 		case SDL_APP_DIDENTERBACKGROUND:
-			Event::send("AppDidEnterBackground");
+			Event::send("AppDidEnterBackground"_slice);
 			break;
 		case SDL_APP_WILLENTERFOREGROUND:
-			Event::send("AppWillEnterForeground");
+			Event::send("AppWillEnterForeground"_slice);
 			break;
 		case SDL_APP_DIDENTERFOREGROUND:
-			Event::send("AppDidEnterForeground");
+			Event::send("AppDidEnterForeground"_slice);
 			break;
 		case SDL_WINDOWEVENT:
 			break;

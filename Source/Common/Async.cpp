@@ -19,7 +19,7 @@ Async::~Async()
 	if (_thread.isRunning())
 	{
 		Async::cancel();
-		_workerEvent.post("Stop");
+		_workerEvent.post("Stop"_slice);
 		_workerSemaphore.post();
 		_thread.shutdown();
 	}
@@ -45,7 +45,7 @@ void Async::run(function<void*()> worker, function<void(void*)> finisher)
 		});
 	}
 	auto package = std::make_pair(worker, finisher);
-	_workerEvent.post("Work", package);
+	_workerEvent.post("Work"_slice, package);
 	_workerSemaphore.post();
 }
 
@@ -103,7 +103,7 @@ void Async::resume()
 	{
 		for (const auto& package : _packages)
 		{
-			_workerEvent.post("Work", package);
+			_workerEvent.post("Work"_slice, package);
 		}
 		_packages.clear();
 		_workerSemaphore.post();
