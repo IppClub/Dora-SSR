@@ -30,6 +30,8 @@
     <ClCompile Include="..\..\..\Source\Basic\Content.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Director.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Debug.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp" />
@@ -67,6 +69,8 @@
     <ClInclude Include="..\..\..\Source\Basic\Content.h" />
     <ClInclude Include="..\..\..\Source\Basic\Director.h" />
     <ClInclude Include="..\..\..\Source\Basic\Object.h" />
+    <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
+    <ClInclude Include="..\..\..\Source\Common\Async.h" />
     <ClInclude Include="..\..\..\Source\Common\Debug.h" />
     <ClInclude Include="..\..\..\Source\Common\Helper.h" />
     <ClInclude Include="..\..\..\Source\Common\MemoryPool.h" />

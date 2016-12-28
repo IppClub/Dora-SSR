@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-EventType::EventType( const string& name ):
+EventType::EventType(const string& name):
 _name(name)
 { }
 
@@ -22,45 +22,38 @@ const string& EventType::getName() const
 	return _name;
 }
 
-void EventType::add( Listener* listener )
+void EventType::add(Listener* listener)
 {
-	if (listener->_order == Listener::InvalidOrder)
+	if (!listener->_enabled)
 	{
-		listener->_order = (int)_listeners.size();
+		listener->_enabled = true;
 		_listeners.push_back(listener);
 	}
 }
 
-void EventType::remove( Listener* listener )
+void EventType::remove(Listener* listener)
 {
-	if (listener->_order != Listener::InvalidOrder)
+	if (listener->_enabled)
 	{
-		_listeners[listener->_order] = nullptr;
-		listener->_order = Listener::InvalidOrder;
+		listener->_enabled = false;
+		_listeners.erase(std::remove(_listeners.begin(), _listeners.end(), listener));
 	}
 }
 
-void EventType::handle( Event* e )
+void EventType::handle(Event* event, int index)
 {
-	for (int i = 0; i < (int)_listeners.size(); i++)
+	if (index >= 0)
 	{
-		if (_listeners[i] == nullptr)
-		{
-			int last = (int)_listeners.size() - 1;
-			for (;last >= 0 && _listeners[last] == nullptr;_listeners.pop_back(), --last);
-			if (i > last)
-			{
-				break;
-			}
-			if (_listeners.size() > 0)
-			{
-				_listeners[i] = _listeners[_listeners.size() - 1];
-				_listeners[i]->_order = i;
-				_listeners.pop_back();
-			}
-		}
-		_listeners[i]->handle(e);
+		// save listener on stack and make a reference here
+		Ref<Listener> listener(_listeners[index]);
+		EventType::handle(event, index-1);
+		listener->handle(event);
 	}
+}
+
+void EventType::handle(Event* event)
+{
+	EventType::handle(event, (int)_listeners.size()-1);
 }
 
 bool EventType::isEmpty() const

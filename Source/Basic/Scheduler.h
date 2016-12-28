@@ -8,48 +8,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Common/Own.h"
-
 NS_DOROTHY_BEGIN
 
-/** @brief vector of pointers, but accessed as values
- pointers pushed into OwnVector are owned by the vector,
- pointers will be auto deleted when it`s erased/removed from the vector
- or the vector is destroyed.
- Used with Composition Relationship.
-*/
-template<class T>
-class OwnVector: public vector<Own<T>>
+class Scheduler : public Object
 {
-	typedef vector<Own<T>> OwnV;
+	typedef Delegate<void (double deltaTime, Scheduler* scheduler)> UpdateHandler;
 public:
-	inline void push_back(T* item)
-	{
-		OwnV::push_back(oOwnMake(item));
-	}
-	inline bool insert(size_t where, T* item)
-	{
-		if (where >= 0 && where < OwnV::size())
-		{
-			auto it = OwnV::begin();
-			for (int i = 0; i < where; ++i, ++it);
-			OwnV::insert(it, oOwnMake(item));
-			return true;
-		}
-		return false;
-	}
-	bool remove(T* item)
-	{
-		for (auto it = OwnV::begin(); it != OwnV::end(); ++it)
-		{
-			if ((*it) == item)
-			{
-				OwnV::erase(it);
-				return true;
-			}
-		}
-		return false;
-	}
+	PROPERTY(float, _timeScale, TimeScale);
+	void schedule(Object* object);
+	void schedule(const function<bool (double)>& handler);
+	void unschedule(Object* object);
+	void unschedule(const function<bool (double)>& handler);
+	virtual bool update(double deltaTime) override;
+	CREATE_FUNC(Scheduler)
+protected:	
+	Scheduler();
+private:
+	UpdateHandler _updateHandler;
+	LUA_TYPE_OVERRIDE(Scheduler)
 };
 
 NS_DOROTHY_END

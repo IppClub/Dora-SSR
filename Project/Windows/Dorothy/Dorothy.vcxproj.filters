@@ -120,6 +120,12 @@
     <ClCompile Include="..\..\..\Source\Lua\LuaManual.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Async.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -244,6 +250,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h">
       <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Scheduler.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Async.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

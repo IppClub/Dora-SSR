@@ -24,72 +24,9 @@ THE SOFTWARE.
 #ifndef __SUPPORT_ZIPUTILS_H__
 #define __SUPPORT_ZIPUTILS_H__
 
-#include <string>
 #include <vector>
-
-struct CCZHeader
-{
-	unsigned char sig[4]; // signature. Should be 'CCZ!' 4 bytes
-	unsigned short compression_type;    // should 0
-	unsigned short version; // should be 2 (although version type==1 is also supported)
-	unsigned int reserved; // Reserved for users.
-	unsigned int len; // size of the uncompressed file
-};
-
-enum
-{
-	CCZ_COMPRESSION_ZLIB, // zlib format.
-	CCZ_COMPRESSION_BZIP2, // bzip2 format (not supported yet)
-	CCZ_COMPRESSION_GZIP, // gzip format (not supported yet)
-	CCZ_COMPRESSION_NONE, // plain (not supported yet)
-};
-
-class ZipUtils
-{
-public:
-	/**
-	* Inflates either zlib or gzip deflated memory. The inflated memory is
-	* expected to be freed by the caller.
-	*
-	* It will allocate 256k for the destination buffer. If it is not enough it will multiply the previous buffer size per 2, until there is enough memory.
-	* @returns the length of the deflated buffer
-	*
-	@since v0.8.1
-	*/
-	static int ccInflateMemory(unsigned char *in, unsigned int inLength, unsigned char **out);
-
-	/**
-	* Inflates either zlib or gzip deflated memory. The inflated memory is
-	* expected to be freed by the caller.
-	*
-	* outLenghtHint is assumed to be the needed room to allocate the inflated buffer.
-	*
-	* @returns the length of the deflated buffer
-	*
-	@since v1.0.0
-	*/
-	static int ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, unsigned char **out, unsigned int outLenghtHint);
-
-	/** inflates a GZip file into memory
-	*
-	* @returns the length of the deflated buffer
-	*
-	* @since v0.99.5
-	*/
-	static int ccInflateGZipFile(const char *filename, unsigned char **out);
-
-	/** inflates a CCZ file into memory
-	*
-	* @returns the length of the deflated buffer
-	*
-	* @since v0.99.5
-	*/
-	static int ccInflateCCZFile(const char *filename, unsigned char **out);
-
-private:
-	static int ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, unsigned char **out, unsigned int *outLength,
-	unsigned int outLenghtHint);
-};
+#include <string>
+#include <functional>
 
 // forward declaration
 class ZipFilePrivate;
@@ -114,7 +51,7 @@ public:
 	*
 	* @since v2.0.5
 	*/
-	ZipFile(const std::string &zipFile, const std::string &filter = std::string());
+	ZipFile(const std::string& zipFile, const std::string& filter = "");
 	virtual ~ZipFile();
 
 	/**
@@ -126,7 +63,7 @@ public:
 	*
 	* @since v2.0.5
 	*/
-	bool setFilter(const std::string &filter);
+	bool setFilter(const std::string& filter);
 
 	/**
 	* Check does a file exists or not in zip file
@@ -147,12 +84,14 @@ public:
 	*
 	* @since v2.0.5
 	*/
-	unsigned char *getFileData(const std::string &fileName, unsigned long *pSize);
+	unsigned char* getFileData(const std::string&, unsigned long* size);
+
+	void getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*,int)>& handler);
 
 	std::vector<std::string> getDirEntries(const std::string& path, bool isFolder);
 private:
 	/** Internal data like zip file pointer / file list array and so on */
-        ZipFilePrivate *m_data;
+	ZipFilePrivate* m_data;
 };
 
 #endif // __SUPPORT_ZIPUTILS_H__

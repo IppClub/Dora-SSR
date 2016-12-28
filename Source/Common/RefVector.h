@@ -16,29 +16,30 @@ NS_DOROTHY_BEGIN
 template<class T = Object>
 class RefVector: public vector<Ref<T>>
 {
+	typedef vector<Ref<T>> RefV;
 public:
 	inline void push_back(T* item)
 	{
-		vector<Ref<T>>::push_back(RefMake(item));
+		RefV::push_back(RefMake(item));
 	}
 	bool insert(size_t where, T* item)
 	{
-		if (where >= 0 && where < vector<Ref<T>>::size())
+		if (where >= 0 && where < RefV::size())
 		{
-			auto it = vector<Ref<T>>::begin();
+			auto it = RefV::begin();
 			for (int i = 0; i < where; ++i, ++it);
-			vector<Ref<T>>::insert(it, oRefMake(item));
+			RefV::insert(it, oRefMake(item));
 			return true;
 		}
 		return false;
 	}
 	bool remove(T* item)
 	{
-		for (auto it = vector<Ref<T>>::begin(); it != vector<Ref<T>>::end(); it++)
+		for (auto it = RefV::begin(); it != RefV::end(); it++)
 		{
 			if ((*it) == item)
 			{
-				vector<Ref<T>>::erase(it);
+				RefV::erase(it);
 				return true;
 			}
 		}
@@ -46,14 +47,14 @@ public:
 	}
 	bool fast_remove(T* item)
 	{
-		size_t size = vector<Ref<T>>::size();
-		Ref<T>* data = vector<Ref<T>>::data();
+		size_t size = RefV::size();
+		Ref<T>* data = RefV::data();
 		for (size_t i = 0; i < size; i++)
 		{
 			if (data[i] == item)
 			{
 				data[i] = data[size - 1];
-				vector<Ref<T>>::pop_back();
+				RefV::pop_back();
 				return true;
 			}
 		}

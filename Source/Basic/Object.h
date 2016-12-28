@@ -37,7 +37,6 @@ public:
 	PROPERTY_READONLY_CLASS(Uint32, MaxLuaCallbackCount);
 	PROPERTY_READONLY(Uint32, RefCount);
 	PROPERTY_READONLY_CALL(Weak*, WeakRef);
-	Object();
 	virtual ~Object();
 	virtual bool init();
 	void addLuaRef();
@@ -45,7 +44,10 @@ public:
 	void release();
 	void retain();
 	Object* autorelease();
-	virtual void update(float dt);
+	/** @brief return true to stop updating, false to continue. */
+	virtual bool update(double deltaTime);
+protected:
+	Object();
 private:
 	bool _managed;
 	Uint32 _id; // object id, each object has unique one

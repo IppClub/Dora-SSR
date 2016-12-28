@@ -110,9 +110,10 @@ Uint32 Object::getRefCount() const
     return _refCount;
 }
 
-void Object::update(float dt)
+bool Object::update(double deltaTime)
 {
-	DORA_UNUSED_PARAM(dt);
+	DORA_UNUSED_PARAM(deltaTime);
+	return true;
 }
 
 Uint32 Object::getId() const

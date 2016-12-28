@@ -10,16 +10,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class Scheduler;
+
 class Director : public Object
 {
 public:
+	PROPERTY_NAME(Scheduler*, Scheduler);
+	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	Director();
 	bool init() override;
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
 protected:
-	int64_t _lastTime;
-	double _deltaTime;
+	Ref<Scheduler> _scheduler;
+	Ref<Scheduler> _systemScheduler;
 };
 
 #define SharedDirector \

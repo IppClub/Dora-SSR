@@ -12,6 +12,16 @@ struct SDL_Window;
 
 NS_DOROTHY_BEGIN
 
+ENUM_START(TargetPlatform)
+{
+	Windows,
+	Android,
+	macOS,
+	iOS,
+	Unknown
+}
+ENUM_END(TargetPlatform)
+
 class Application : public Object
 {
 public:
@@ -21,6 +31,7 @@ public:
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
 	PROPERTY_READONLY(double, UpdateTime);
+	PROPERTY_READONLY(TargetPlatform, Platform);
 	Application();
 	int run();
 	void shutdown();

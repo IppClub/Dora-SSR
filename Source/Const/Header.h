@@ -35,6 +35,7 @@ using Acf::Delegate;
 #include "bgfx/platform.h"
 #include "bgfx/bgfx.h"
 #include "bx/thread.h"
+#include "bx/sem.h"
 #include "silly/LifeCycledSingleton.h"
 #include "silly/Slice.h"
 using silly::Slice;
@@ -58,3 +59,5 @@ using namespace Dorothy::Switch::Literals;
 #include "Event/EventQueue.h"
 #include "Basic/Application.h"
 #include "Basic/Director.h"
+#include "Basic/Scheduler.h"
+#include "Common/Async.h"

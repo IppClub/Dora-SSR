@@ -18,7 +18,7 @@ unordered_map<string, Own<EventType>> Event::_eventMap;
 Event::Event()
 {}
 
-Event::Event( String name ):
+Event::Event(String name):
 _name(name)
 { }
 
@@ -30,7 +30,7 @@ void Event::clear()
 	_eventMap.clear();
 }
 
-void Event::unreg( Listener* listener )
+void Event::unreg(Listener* listener)
 {
 	auto it = _eventMap.find(listener->getName());
 	if (it != _eventMap.end())
@@ -44,7 +44,7 @@ void Event::unreg( Listener* listener )
 	}
 }
 
-void Event::reg( Listener* listener )
+void Event::reg(Listener* listener)
 {
 	auto it = _eventMap.find(listener->getName());
 	if (it != _eventMap.end())
@@ -59,7 +59,7 @@ void Event::reg( Listener* listener )
 	}
 }
 
-void Event::send( Event* e )
+void Event::send(Event* e)
 {
 	auto it = _eventMap.find(e->getName());
 	if (it != _eventMap.end())
@@ -68,7 +68,7 @@ void Event::send( Event* e )
 	}
 }
 
-Listener* Event::addListener( const string& name, const EventHandler& handler )
+Listener* Event::addListener(String name, const EventHandler& handler)
 {
 	Listener* listener = Listener::create(name, handler);
 	return listener;

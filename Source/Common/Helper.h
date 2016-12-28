@@ -87,25 +87,25 @@ public: bool is##funName() const
 
 	MyFlag flag = MyFlag::FlagTwo;
 */
-#define ENUM_START(x) struct x\
-{\
-public:\
+#define ENUM_START(x) struct x \
+{ \
+public: \
 	enum xEnum
 
 #define ENUM_END(x) ;\
-	inline x(){}\
-	inline x(const xEnum value):_value(value){}\
-	explicit inline x(int value):_value((xEnum)value){}\
-	inline void operator=( const xEnum inValue )\
-{\
-	_value = inValue;\
-}\
-	inline operator xEnum() const\
-{\
-	return _value;\
-}\
-private:\
-	xEnum _value;\
+	inline x() { } \
+	inline x(const xEnum value):_value(value) { } \
+	explicit inline x(int value):_value((xEnum)value) { } \
+	inline void operator=(const xEnum inValue) \
+	{ \
+		_value = inValue; \
+	} \
+	inline operator xEnum() const \
+	{ \
+		return _value; \
+	} \
+private: \
+	xEnum _value; \
 };
 
 /** @brief Compiler compact macros */

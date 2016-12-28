@@ -48,7 +48,7 @@ namespace SingletonIndex
 #endif
 
 /** @brief Disable replacing C++ assert with lua_error.
- Use lua_error, assert info will be print in lua console and program
+ Use lua_error, assert info will be printed in lua console and program
  won`t be aborted.
  */
 #ifndef DORA_DISABLE_ASSERT_IN_LUA
@@ -57,14 +57,10 @@ namespace SingletonIndex
 	#define DORA_DISABLE_ASSERT_IN_LUA 1
 #endif
 
-/** @brief The SWITCH_STR_START() helper macros for doing faster string
- switch case, will do a string equal comparation to prevent string hash
- collision but that is a pretty rare case.
+/** @brief The buffer size for content copy function.
 */
-#ifdef DORA_FEAR_HASH_COLLISION
-	#define DORA_HASH_CHECK_EQUAL false
-#else
-	#define DORA_HASH_CHECK_EQUAL true
+#ifndef DORA_COPY_BUFFER_SIZE
+	#define DORA_COPY_BUFFER_SIZE 4096
 #endif
 
 NS_DOROTHY_END

@@ -40,7 +40,7 @@ public:
 	inline const string& getName() const { return _name; }
 	virtual int pushArgsToLua() { return 0; }
 public:
-	static Listener* addListener(const string& name, const EventHandler& handler);
+	static Listener* addListener(String name, const EventHandler& handler);
 	static void clear();
 
 	template<class... Args>

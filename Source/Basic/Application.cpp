@@ -117,10 +117,11 @@ int Application::run()
 void Application::updateDeltaTime()
 {
 	double currentTime = bx::getHPCounter() / _frequency;
-	_deltaTime = currentTime - _lastTime ;
-	if (_deltaTime <= 0)
+	_deltaTime = currentTime - _lastTime;
+	// in case of system timer api error
+	if (_deltaTime < 0)
 	{
-		_deltaTime = FLT_EPSILON;
+		_deltaTime = 0;
 		_lastTime = currentTime;
 	}
 	// only accept frames drop to 30 FPS
@@ -167,11 +168,14 @@ int Application::mainLogic(void* userData)
 		Log("bgfx fail to initialize!");
 		return 1;
 	}
+
+	SharedPoolManager.push();
 	if (!SharedDirector.init())
 	{
 		Log("Director fail to initialize!");
 		return 1;
 	}
+	SharedPoolManager.pop();
 
 	// Update and invoke render apis
 	app->updateDeltaTime();
@@ -223,6 +227,21 @@ int Application::mainLogic(void* userData)
 
 	bgfx::shutdown();
 	return 0;
+}
+
+TargetPlatform Application::getPlatform() const
+{
+#if BX_PLATFORM_WINDOWS
+	return TargetPlatform::Windows;
+#elif BX_PLATFORM_ANDROID
+	return TargetPlatform::Android;
+#elif BX_PLATFORM_OSX
+	return TargetPlatform::macOS;
+#elif BX_PLATFORM_IOS
+	return TargetPlatform::iOS;
+#else
+	return TargetPlatform::Unknown;
+#endif
 }
 
 #if !BX_PLATFORM_IOS

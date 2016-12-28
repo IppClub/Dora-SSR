@@ -12,8 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-const int Listener::InvalidOrder = -1;
-
 bool Listener::init()
 {
 	Listener::setEnabled(true);
@@ -34,7 +32,7 @@ void Listener::setEnabled( bool enable )
 
 bool Listener::isEnabled() const
 {
-	return _order != Listener::InvalidOrder;
+	return _enabled;
 }
 
 void Listener::setHandler( const EventHandler& handler )
@@ -63,7 +61,7 @@ void Listener::handle( Event* e )
 Listener::Listener( const string& name, const EventHandler& handler ):
 _name(name),
 _handler(handler),
-_order(Listener::InvalidOrder)
+_enabled(false)
 { }
 
 const string& Listener::getName() const

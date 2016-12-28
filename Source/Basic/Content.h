@@ -16,28 +16,33 @@ public:
 	PROPERTY_READONLY_REF(string, CurrentPath);
 	PROPERTY_READONLY_REF(string, WritablePath);
 	virtual ~Content();
-	OwnArray<Uint8> loadFile(String filename, Sint64& size);
-	void copyFile(String src, String dst);
-
 	bool isFileExist(String filePath);
 	bool isFolder(String path);
-	vector<string> getDirEntries(String path, bool isFolder);
     bool isAbsolutePath(String strPath);
-
+	string getFullPath(String filename);
+	OwnArray<Uint8> loadFile(String filename, Sint64& size);
+	void copyFile(String src, String dst);
 	bool removeFile(String filename);
 	void saveToFile(String filename, String content);
+	void saveToFile(String filename, Uint8* content, Sint64 size);
 	bool createFolder(String path);
-
-	string getFullPath(String filename);
-
+	vector<string> getDirEntries(String path, bool isFolder);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
 	void setSearchPaths(const vector<string>& searchPaths);
-
-	Uint8* loadFileUnsafe(String filename, Sint64& size);
+	void loadFileAsync(String filename, const function<void(OwnArray<Uint8>, Sint64)>& callback);
+	void copyFileAsync(String src, String dst, const function<void()>& callback);
+	void saveToFileAsync(String filename, String content, const function<void()>& callback);
+	void saveToFileAsync(String filename, OwnArray<Uint8> content, Sint64 size, const function<void()>& callback);
 protected:
 	Content();
 	string getFullPathForDirectoryAndFilename(String directory, String filename);
+	void copyFileUnsafe(String srcFile, String dstFile);
+	Uint8* loadFileUnsafe(String filename, Sint64& size);
+	void loadFileByChunks(String filename, const function<void(Uint8*,int)>& handler);
+	void loadFileAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback);
+	void saveToFileUnsafe(String filename, String content);
+	void saveToFileUnsafe(String filename, Uint8* content, Sint64 size);
 private:
 	string _currentPath;
 	string _writablePath;

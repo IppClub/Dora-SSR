@@ -14,7 +14,7 @@ CCDirector	241	n
 	winSize	179	n
 	schedule	97	n
 	unschedule	65	n
-	scheduler	30	n
+	scheduler	30	y
 	currentScene	8	n
 	eclapsedInterval	8	n
 	pause	6	n
@@ -180,19 +180,19 @@ CCTextAlign	7	n
 	HLeft	5	n
 	HCenter	1	n
 	HRight	1	n
-CCTargetPlatform	6	n
-	Iphone	2	n
-	Ipad	2	n
-	MacOS	1	n
-	Windows	1	n
-CCApplication	6	n
-	targetPlatform	6	n
+CCTargetPlatform	6	y
+	Iphone	2	y
+	Ipad	2	y
+	MacOS	1	y
+	Windows	1	y
+CCApplication	6	y
+	targetPlatform	6	y
 CCKeyboard	6	n
 	isKeyPressed	6	n
-CCScheduler	5	n
-	schedule	97	n
-	unschedule	65	n
-	timeScale	4	n
+CCScheduler	5	y
+	schedule	97	y
+	unschedule	65	y
+	timeScale	4	y
 CCTextFieldTTF	4	n
 	text	247	n
 	attachWithIME	12	n
@@ -239,7 +239,7 @@ oEase	394	n
 	InQuad	2	n
 	InSine	1	n
 	OutSine	1	n
-oContent	259	n
+oContent	259	y
 	exist	90	y
 	remove	53	y
 	saveToFile	42	y
@@ -248,9 +248,9 @@ oContent	259	n
 	writablePath	12	y
 	loadFile	9	y
 	addSearchPath	4	y
-	copyAsync	4	n
+	copyAsync	4	y
 	removeSearchPath	2	y
-	loadFileAsync	1	n
+	loadFileAsync	1	y
 oLine	146	n
 	set	7	n
 oCache	103	n

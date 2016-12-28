@@ -19,12 +19,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 template <typename T>
-inline T Argument(T value)
+inline typename std::enable_if<!std::is_same<T,Slice>::value,T>::type Argument(T value)
 {
 	return value;
 }
 
-inline const char* Argument(const string& value) noexcept
+inline const char* Argument(const string& value)
 {
 	return value.empty() ? "" : value.c_str();
 }

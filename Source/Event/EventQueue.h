@@ -51,6 +51,7 @@ public:
 	/** @brief Try get a posted event,
 	 for consumer thread use only. */
 	Own<QEvent> poll();
+	QEvent* peek();
 
 	template<class... Args>
 	static void retrieve(QEvent* event, Args&... args)

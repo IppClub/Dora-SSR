@@ -28,4 +28,9 @@ Own<QEvent> EventQueue::poll()
 	return OwnMake(_queue.pop());
 }
 
+QEvent* EventQueue::peek()
+{
+	return _queue.peek();
+}
+
 NS_DOROTHY_END

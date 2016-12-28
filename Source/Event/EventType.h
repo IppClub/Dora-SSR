@@ -21,11 +21,12 @@ public:
 	const string& getName() const;
 	void add(Listener* listener);
 	void remove(Listener* listener);
-	void handle(Event* e);
+	void handle(Event* event);
 	bool isEmpty() const;
 protected:
 	string _name;
 private:
+	void handle(Event* event, int index);
 	vector<Listener*> _listeners;
 };
 

@@ -12,12 +12,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Director::Director()
+Director::Director():
+_scheduler(Scheduler::create()),
+_systemScheduler(Scheduler::create())
 { }
 
 bool Director::init()
 {
-	// Initialization
 	bgfx::reset(SharedApplication.getWidth(), SharedApplication.getHeight(), BGFX_RESET_VSYNC);
 	bgfx::setDebug(BGFX_DEBUG_TEXT);
 	bgfx::setViewClear(0,
@@ -26,42 +27,145 @@ bool Director::init()
 	return true;
 }
 
+void Director::setScheduler(Scheduler* scheduler)
+{
+	_scheduler = scheduler ? scheduler : Scheduler::create();
+}
+
+Scheduler* Director::getScheduler() const
+{
+	return _scheduler;
+}
+
+Scheduler* Director::getSystemScheduler() const
+{
+	return _systemScheduler;
+}
+
 void Director::mainLoop()
 {
-		bgfx::setViewRect(0, 0, 0, SharedApplication.getWidth(), SharedApplication.getHeight());
+	bgfx::setViewRect(0, 0, 0, SharedApplication.getWidth(), SharedApplication.getHeight());
+	bgfx::touch(0);
+	bgfx::dbgTextClear();
+	const bgfx::Stats* stats = bgfx::getStats();
+	bgfx::dbgTextPrintf(0, 1, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
+			, stats->width
+			, stats->height
+			, stats->textWidth
+			, stats->textHeight);
+	bgfx::dbgTextPrintf(0, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f"
+			, stats->numCompute
+			, stats->numDraw
+			, SharedApplication.getUpdateTime()
+			, (stats->cpuTimeEnd - stats->cpuTimeBegin) / double(stats->cpuTimerFreq)
+			, (stats->gpuTimeEnd - stats->gpuTimeBegin) / double(stats->gpuTimerFreq));
 
-		// This dummy draw call is here to make sure that view 0 is cleared
-		// if no other draw calls are submitted to view 0.
-		bgfx::touch(0);
-
-		// Use debug font to print information about this example.
-		bgfx::dbgTextClear();
-		bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/00-helloworld");
-		bgfx::dbgTextPrintf(0, 2, 0x6f, "Description: Initialization and debug text.");
-
-		bgfx::dbgTextPrintf(0, 4, 0x0f, "Color can be changed with ANSI \x1b[9;me\x1b[10;ms\x1b[11;mc\x1b[12;ma\x1b[13;mp\x1b[14;me\x1b[0m code too.");
-
-		const bgfx::Stats* stats = bgfx::getStats();
-
-		bgfx::dbgTextPrintf(0, 6, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
-				, stats->width
-				, stats->height
-				, stats->textWidth
-				, stats->textHeight);
-
-		bgfx::dbgTextPrintf(0, 8, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f"
-				, stats->numCompute
-				, stats->numDraw
-				, SharedApplication.getUpdateTime()
-				, (stats->cpuTimeEnd - stats->cpuTimeBegin) / double(stats->cpuTimerFreq)
-				, (stats->gpuTimeEnd - stats->gpuTimeBegin) / double(stats->gpuTimerFreq));
+	_systemScheduler->update(SharedApplication.getDeltaTime());
+	_scheduler->update(SharedApplication.getDeltaTime());
 }
 
 void Director::handleSDLEvent(const SDL_Event& event)
 {
 	switch (event.type)
 	{
+		// User-requested quit
 		case SDL_QUIT:
+			Event::send("AppQuit");
+			break;
+		// The application is being terminated by the OS.
+		case SDL_APP_TERMINATING:
+			Event::send("AppQuit");
+			break;
+		// The application is low on memory, free memory if possible.
+		case SDL_APP_LOWMEMORY:
+			Event::send("AppLowMemory");
+			break;
+		// The application is about to enter the background.
+		case SDL_APP_WILLENTERBACKGROUND:
+			Event::send("AppWillEnterBackground");
+			break;
+		case SDL_APP_DIDENTERBACKGROUND:
+			Event::send("AppDidEnterBackground");
+			break;
+		case SDL_APP_WILLENTERFOREGROUND:
+			Event::send("AppWillEnterForeground");
+			break;
+		case SDL_APP_DIDENTERFOREGROUND:
+			Event::send("AppDidEnterForeground");
+			break;
+		case SDL_WINDOWEVENT:
+			break;
+		case SDL_SYSWMEVENT:
+			break;
+		case SDL_KEYDOWN:
+			break;
+		case SDL_KEYUP:
+			break;
+		case SDL_TEXTEDITING:
+			break;
+		case SDL_TEXTINPUT:
+			break;
+		case SDL_KEYMAPCHANGED:
+			break;
+		case SDL_MOUSEMOTION:
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			break;
+		case SDL_MOUSEBUTTONUP:
+			break;
+		case SDL_MOUSEWHEEL:
+			break;
+		case SDL_JOYAXISMOTION:
+			break;
+		case SDL_JOYBALLMOTION:
+			break;
+		case SDL_JOYHATMOTION:
+			break;
+		case SDL_JOYBUTTONDOWN:
+			break;
+		case SDL_JOYBUTTONUP:
+			break;
+		case SDL_JOYDEVICEADDED:
+			break;
+		case SDL_JOYDEVICEREMOVED:
+			break;
+		case SDL_CONTROLLERAXISMOTION:
+			break;
+		case SDL_CONTROLLERBUTTONDOWN:
+			break;
+		case SDL_CONTROLLERBUTTONUP:
+			break;
+		case SDL_CONTROLLERDEVICEADDED:
+			break;
+		case SDL_CONTROLLERDEVICEREMOVED:
+			break;
+		case SDL_CONTROLLERDEVICEREMAPPED:
+			break;
+		case SDL_FINGERDOWN:
+			break;
+		case SDL_FINGERUP:
+			break;
+		case SDL_FINGERMOTION:
+			break;
+		case SDL_DOLLARGESTURE:
+			break;
+		case SDL_DOLLARRECORD:
+			break;
+		case SDL_MULTIGESTURE:
+			break;
+		case SDL_CLIPBOARDUPDATE:
+			break;
+		case SDL_DROPFILE:
+			break;
+		case SDL_DROPTEXT:
+			break;
+		case SDL_DROPBEGIN:
+			break;
+		case SDL_DROPCOMPLETE:
+			break;
+		case SDL_AUDIODEVICEADDED:
+			break;
+		case SDL_AUDIODEVICEREMOVED:
 			break;
 		default:
 			break;

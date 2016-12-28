@@ -16,29 +16,30 @@ NS_DOROTHY_BEGIN
 template<class T = Object>
 class WRefVector: public vector<WRef<T>>
 {
+	typedef vector<WRef<T>> WRefV;
 public:
 	inline void push_back(T* item)
 	{
-		vector<WRef<T>>::push_back(oWRefMake(item));
+		WRefV::push_back(oWRefMake(item));
 	}
 	bool insert(size_t where, T* item)
 	{
-		if (where >= 0 && where < vector<WRef<T>>::size())
+		if (where >= 0 && where < WRefV::size())
 		{
-			auto it = vector<WRef<T>>::begin();
+			auto it = WRefV::begin();
 			for (int i = 0; i < where; ++i, ++it);
-			vector<WRef<T>>::insert(it, WRefMake(item));
+			WRefV::insert(it, WRefMake(item));
 			return true;
 		}
 		return false;
 	}
 	bool remove(T* item)
 	{
-		for (auto it = vector<WRef<T>>::begin(); it != vector<WRef<T>>::end(); it++)
+		for (auto it = WRefV::begin(); it != WRefV::end(); it++)
 		{
 			if ((*it) == item)
 			{
-				vector<WRef<T>>::erase(it);
+				WRefV::erase(it);
 				return true;
 			}
 		}
@@ -46,14 +47,14 @@ public:
 	}
 	bool fast_remove(T* item)
 	{
-		int size = vector<WRef<T>>::size();
+		int size = WRefV::size();
 		WRef<T>* data = data();
 		for (int i = 0; i < size; i++)
 		{
 			if (data[i] == item)
 			{
 				data[i] = data[size - 1];
-				vector<WRef<T>>::pop_back();
+				WRefV::pop_back();
 				return true;
 			}
 		}

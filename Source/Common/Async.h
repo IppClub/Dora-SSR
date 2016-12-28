@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2013 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,48 +8,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Common/Own.h"
-
 NS_DOROTHY_BEGIN
 
-/** @brief vector of pointers, but accessed as values
- pointers pushed into OwnVector are owned by the vector,
- pointers will be auto deleted when it`s erased/removed from the vector
- or the vector is destroyed.
- Used with Composition Relationship.
-*/
-template<class T>
-class OwnVector: public vector<Own<T>>
+/** @brief get a worker runs in another thread and returns a result,
+ get a finisher receives the result and runs in main thread. */
+class Async
 {
-	typedef vector<Own<T>> OwnV;
+	typedef std::pair<function<void*()>,function<void(void*)>> Package;
 public:
-	inline void push_back(T* item)
-	{
-		OwnV::push_back(oOwnMake(item));
-	}
-	inline bool insert(size_t where, T* item)
-	{
-		if (where >= 0 && where < OwnV::size())
-		{
-			auto it = OwnV::begin();
-			for (int i = 0; i < where; ++i, ++it);
-			OwnV::insert(it, oOwnMake(item));
-			return true;
-		}
-		return false;
-	}
-	bool remove(T* item)
-	{
-		for (auto it = OwnV::begin(); it != OwnV::end(); ++it)
-		{
-			if ((*it) == item)
-			{
-				OwnV::erase(it);
-				return true;
-			}
-		}
-		return false;
-	}
+	~Async();
+	void run(function<void*()> worker, function<void(void*)> finisher);
+	void pause();
+	void resume();
+	void cancel();
+	static Async FileIO;
+	static Async Process;
+	static int work(void* userData);
+private:
+	bx::Thread _thread;
+	bx::Semaphore _workerSemaphore;
+	bx::Semaphore _pauseSemaphore;
+	vector<Package> _packages;
+	EventQueue _workerEvent;
+	EventQueue _finisherEvent;
 };
 
 NS_DOROTHY_END

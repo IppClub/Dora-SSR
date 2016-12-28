@@ -16,7 +16,7 @@ class EventType;
 typedef Delegate<void (Event* event)> EventHandler;
 
 /** @brief Use event listener to handle event. */
-class Listener: public Object
+class Listener : public Object
 {
 public:
 	virtual ~Listener();
@@ -38,9 +38,8 @@ public:
 protected:
 	Listener(const string& name, const EventHandler& handler);
 	Listener(const string& name, int handler);
-	static const int InvalidOrder;
+	bool _enabled;
 	string _name;
-	int _order;
 	EventHandler _handler;
 	friend class EventType;
 	LUA_TYPE_OVERRIDE(Listener)
