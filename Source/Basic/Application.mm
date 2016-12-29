@@ -1,10 +1,20 @@
 #include "Const/Header.h"
 #include "Basic/Application.h"
 
+NS_DOROTHY_BEGIN
+
+#if BX_PLATFORM_OSX
+void Application::renderFrame()
+{
+	@autoreleasepool
+	{
+		bgfx::renderFrame();
+	}
+}
+#endif // BX_PLATFORM_OSX
+
 #if BX_PLATFORM_IOS
 #import <QuartzCore/CAEAGLLayer.h>
-
-NS_DOROTHY_BEGIN
 
 void Application::setSdlWindow(SDL_Window* window)
 {
@@ -32,7 +42,6 @@ void Application::setSdlWindow(SDL_Window* window)
 	pd.backBufferDS = NULL;
 	bgfx::setPlatformData(pd);
 }
+#endif // BX_PLATFORM_IOS
 
 NS_DOROTHY_END
-
-#endif // BX_PLATFORM_IOS

@@ -40,6 +40,7 @@ protected:
 	void updateDeltaTime();
 	void makeTimeNow();
 	void setSdlWindow(SDL_Window* window);
+	void renderFrame();
 private:
 	const double _frequency;
 	bx::Thread _logicThread;

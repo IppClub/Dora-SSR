@@ -58,7 +58,7 @@ int Application::run()
 	Application::setSdlWindow(window);
 
 	// call this function here to disable default render threads creation of bgfx
-	bgfx::renderFrame();
+	Application::renderFrame();
 
 	// start running logic thread
 	_logicThread.init(Application::mainLogic, this);
@@ -68,7 +68,7 @@ int Application::run()
 	while (running)
 	{
 		// do render staff and swap buffers
-		bgfx::renderFrame();
+		Application::renderFrame();
 
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event))
@@ -229,6 +229,13 @@ int Application::mainLogic(void* userData)
 	return 0;
 }
 
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+void Application::renderFrame()
+{
+	bgfx::renderFrame();
+}
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+
 TargetPlatform Application::getPlatform() const
 {
 #if BX_PLATFORM_WINDOWS
@@ -244,7 +251,7 @@ TargetPlatform Application::getPlatform() const
 #endif
 }
 
-#if !BX_PLATFORM_IOS
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 void Application::setSdlWindow(SDL_Window* window)
 {
 	SDL_SysWMinfo wmi;
@@ -267,7 +274,7 @@ void Application::setSdlWindow(SDL_Window* window)
 	pd.backBufferDS = nullptr;
 	bgfx::setPlatformData(pd);
 }
-#endif
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 
 NS_DOROTHY_END
 
@@ -292,9 +299,7 @@ int CALLBACK WinMain(
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);
 #endif
-
 	int result = SharedApplication.run();
-
 #ifndef NDEBUG
 	FreeConsole();
 #endif
