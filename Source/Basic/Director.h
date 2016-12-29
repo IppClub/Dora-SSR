@@ -17,11 +17,11 @@ class Director : public Object
 public:
 	PROPERTY_NAME(Scheduler*, Scheduler);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
-	Director();
 	bool init() override;
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
 protected:
+	Director();
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
 };

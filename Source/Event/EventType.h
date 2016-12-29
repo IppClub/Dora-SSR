@@ -17,16 +17,16 @@ class Listener;
 class EventType
 {
 public:
+	PROPERTY_READONLY_REF(string, Name);
+	PROPERTY_READONLY_BOOL(Empty);
 	EventType(const string& name);
-	const string& getName() const;
 	void add(Listener* listener);
 	void remove(Listener* listener);
 	void handle(Event* event);
-	bool isEmpty() const;
 protected:
-	string _name;
-private:
 	void handle(Event* event, int index);
+private:
+	string _name;
 	vector<Listener*> _listeners;
 };
 

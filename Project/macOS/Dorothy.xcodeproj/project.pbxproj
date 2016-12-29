@@ -367,15 +367,31 @@
 			isa = PBXGroup;
 			children = (
 				3C291D371E0264510098C860 /* 3rdParty */,
-				3C57A39A1E0A059A002141DF /* Event */,
-				3CFF5F221E012874004E3CA6 /* Lua */,
+				3C9ADE491E00EFB200D42018 /* Basic */,
 				3C9ADE4F1E00F14E00D42018 /* Common */,
 				3C9ADE4D1E00F13500D42018 /* Const */,
-				3C9ADE491E00EFB200D42018 /* Basic */,
+				3CCBBA391E14B51100C0416B /* Dispacher */,
+				3C57A39A1E0A059A002141DF /* Event */,
+				3CFF5F221E012874004E3CA6 /* Lua */,
+				3CCBBA381E14B50B00C0416B /* Node */,
 				3CC81FF51D966770008C8B77 /* Assets.xcassets */,
 				3CC81FFA1D966770008C8B77 /* Info.plist */,
 			);
 			path = Dorothy;
+			sourceTree = "<group>";
+		};
+		3CCBBA381E14B50B00C0416B /* Node */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Node;
+			sourceTree = "<group>";
+		};
+		3CCBBA391E14B51100C0416B /* Dispacher */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Dispacher;
 			sourceTree = "<group>";
 		};
 		3CFF5F221E012874004E3CA6 /* Lua */ = {

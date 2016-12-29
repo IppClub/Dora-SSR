@@ -166,7 +166,7 @@ void Content::addSearchPath(String path)
 	string searchPath = (Content::isAbsolutePath(path) ? "" : _currentPath) + path;
 	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
 	{
-		searchPath += "/";
+		searchPath.append("/");
 	}
 	_searchPaths.push_back(searchPath);
 }
@@ -176,7 +176,7 @@ void Content::removeSearchPath(String path)
 	string realPath = (Content::isAbsolutePath(path) ? "" : _currentPath) + path;
 	if (realPath.length() > 0 && (realPath.back() != '/' && realPath.back() != '\\'))
 	{
-		realPath += "/";
+		realPath.append("/");
 	}
 	for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it)
 	{
@@ -202,8 +202,8 @@ void Content::setSearchPaths(const vector<string>& searchPaths)
 void Content::copyFileUnsafe(String src, String dst)
 {
 	string srcPath = Content::getFullPath(src);
-	// LOG("copy file from %s", srcPath);
-	// LOG("copy file to %s", dst);
+	// Log("copy file from %s", srcPath);
+	// Log("copy file to %s", dst);
 	if (Content::isFolder(srcPath))
 	{
 		string dstPath = dst;
@@ -212,7 +212,7 @@ void Content::copyFileUnsafe(String src, String dst)
 		{
 			if (folder != "." && folder != "..")
 			{
-				// LOG("now copy folder %s", folder);
+				// Log("now copy folder %s", folder);
 				string dstFolder = dstPath+'/'+folder;
 				if (!Content::isFileExist(dstFolder))
 				{
@@ -227,7 +227,7 @@ void Content::copyFileUnsafe(String src, String dst)
 		auto files = Content::getDirEntries(src, false);
 		for (const string& file : files)
 		{
-			// LOG("now copy file %s",file);
+			// Log("now copy file %s",file);
 			ofstream stream((dstPath + '/' + file), std::ios::out | std::ios::trunc | std::ios::binary);
 			Content::loadFileByChunks((srcPath + '/' + file), [&](Uint8* buffer, int size)
 			{
@@ -264,7 +264,7 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 	{
 		Uint8* buffer;
 		Sint64 size;
-		auto data = OwnMake((std::tuple<Uint8*,Sint64>*)result);
+		auto data = OwnMake(r_cast<std::tuple<Uint8*,Sint64>*>(result));
 		std::tie(buffer,size) = *data;
 		callback(buffer,size);
 	});

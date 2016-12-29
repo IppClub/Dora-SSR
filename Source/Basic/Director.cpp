@@ -53,12 +53,13 @@ void Director::mainLoop()
 			, stats->height
 			, stats->textWidth
 			, stats->textHeight);
-	bgfx::dbgTextPrintf(0, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f"
+	bgfx::dbgTextPrintf(0, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f, MultiThreaded %s"
 			, stats->numCompute
 			, stats->numDraw
 			, SharedApplication.getUpdateTime()
 			, (stats->cpuTimeEnd - stats->cpuTimeBegin) / double(stats->cpuTimerFreq)
-			, (stats->gpuTimeEnd - stats->gpuTimeBegin) / double(stats->gpuTimerFreq));
+			, (stats->gpuTimeEnd - stats->gpuTimeBegin) / double(stats->gpuTimerFreq)
+			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
 
 	_systemScheduler->update(SharedApplication.getDeltaTime());
 	_scheduler->update(SharedApplication.getDeltaTime());

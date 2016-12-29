@@ -15,8 +15,9 @@ class EventType;
 class Event;
 typedef Delegate<void (Event* event)> EventHandler;
 
-/** @brief The event system can only be used in single threaded
+/** @brief This event system is designed to be used in a single threaded
  environment and is associated with event, event type and event listener.
+ Events sent and recieved are all in a shared space.
  Use this system as following.
  @example User defined event.
  // Register callback function.
@@ -46,15 +47,17 @@ public:
 	template<class... Args>
 	static void send(String name, Args&&... args);
 
+	/** @brief Helper function to retrieve the passed event arguments.
+	*/
 	template<class... Args>
 	static void retrieve(Event* event, Args&... args);
-private:
+protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
-	static unordered_map<string, Own<EventType>> _eventMap;
-protected:
 	static void send(Event* event);
 	string _name;
+private:
+	static unordered_map<string, Own<EventType>> _eventMap;
 	friend class Listener;
 };
 

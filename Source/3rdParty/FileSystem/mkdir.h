@@ -9,7 +9,6 @@
 #else
 	#include <fcntl.h>
 	#include <unistd.h>
-	#include <stdarg.h>
 #endif
 
 #ifdef _MSC_VER

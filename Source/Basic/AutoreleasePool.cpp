@@ -44,7 +44,6 @@ void PoolManager::addObject(Object* object)
 	_releasePoolStack.top()->addObject(object);
 }
 
-
 PoolManager::AutoreleasePool::~AutoreleasePool()
 {
 	AutoreleasePool::clear();

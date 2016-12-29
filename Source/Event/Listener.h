@@ -19,28 +19,19 @@ typedef Delegate<void (Event* event)> EventHandler;
 class Listener : public Object
 {
 public:
+	PROPERTY_BOOL(_enabled, Enabled);
+	PROPERTY_REF(EventHandler, _handler, Handler);
+	PROPERTY_READONLY_REF(string, Name);
 	virtual ~Listener();
 	virtual bool init() override;
-	const string& getName() const;
-	/** True to receive event and handle it, false to not receive event. */
-	void setEnabled(bool enable);
-	/** Get is registered. */
-	bool isEnabled() const;
-	/** Change the callback delegate. */
-	void setHandler(const EventHandler& handler);
-	/** Get callback delegate. */
-	const EventHandler& getHandler() const;
 	void clearHandler();
-	/** Invoked when event is received. */
 	void handle(Event* e);
-	/** Use it to create a new listener. You may want to get the listener retained for future use. */
 	CREATE_FUNC(Listener);
 protected:
 	Listener(const string& name, const EventHandler& handler);
 	Listener(const string& name, int handler);
-	bool _enabled;
+private:
 	string _name;
-	EventHandler _handler;
 	friend class EventType;
 	LUA_TYPE_OVERRIDE(Listener)
 };

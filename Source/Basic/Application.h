@@ -32,14 +32,15 @@ public:
 	PROPERTY_READONLY(double, EclapsedTime);
 	PROPERTY_READONLY(double, UpdateTime);
 	PROPERTY_READONLY(TargetPlatform, Platform);
-	Application();
 	int run();
 	void shutdown();
 	static int mainLogic(void* userData);
 protected:
+	Application();
 	void updateDeltaTime();
 	void makeTimeNow();
 	void setSdlWindow(SDL_Window* window);
+private:
 	const double _frequency;
 	bx::Thread _logicThread;
 	double _lastTime;

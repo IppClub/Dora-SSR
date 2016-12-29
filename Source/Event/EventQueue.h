@@ -34,13 +34,56 @@ public:
 	std::tuple<Fields...> arguments;
 };
 
+/** @brief This event system is designed to be used in a multi-threaded
+ environment to communicated between two threads.
+ Use this system as following.
+ @example Communicate between threads.
+ // Define a event queue.
+ EventQueue _eventForOne;
+
+ // Define worker functions.
+ int threadOneFunc(void* userData)
+ {
+ 	while (true)
+	{
+		for (Own<QEvent> event = _eventForOne.poll();
+			event != nullptr;
+			event = _eventForOne.poll())
+		{
+			switch (Switch::hash(event->getName()))
+			{
+				case "Whatever"_hash:
+					int val1, val2;
+					Slice msg;
+					EventQueue::retrieve(event, val1, val2, msg);
+					Log("%d, %d, %s", val1, val2, msg);
+					break;
+			}
+		}
+	}
+ 	return 0;
+ }
+ int threadTwoFunc(void* userData)
+ {
+ 	while (true)
+	{
+		_eventForOne.post("Whatever"_slice, 998, 233, "msg"_slice);
+	}
+ 	return 0;
+ }
+ 
+ // execute threads
+ threadOne.init(threadOneFunc);
+ threadTwo.init(threadTwoFunc);
+ */
 class EventQueue
 {
 public:
 	~EventQueue();
 
 	/** @brief Post a new event,
-	 for producer thread use only. */
+	 for producer thread use.
+	 */
 	template<class... Args>
 	void post(String name, const Args& ...args)
 	{
@@ -48,11 +91,20 @@ public:
 		_queue.push(event);
 	}
 
-	/** @brief Try get a posted event,
-	 for consumer thread use only. */
+	/** @brief Try get a posted event and consume it,
+	 for consumer thread use.
+	 Return null item if there is no event posted.
+	 */
 	Own<QEvent> poll();
+
+	/** @brief Try get a posted event and not consume it,
+	 for consumer thread use.
+	 Return null item if there is no event posted.
+	 */
 	QEvent* peek();
 
+	/** @brief Helper function to retrieve the passed event arguments.
+	 */
 	template<class... Args>
 	static void retrieve(QEvent* event, Args&... args)
 	{
