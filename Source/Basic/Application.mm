@@ -3,15 +3,17 @@
 
 NS_DOROTHY_BEGIN
 
-#if BX_PLATFORM_OSX
-void Application::renderFrame()
+#if BX_PLATFORM_OSX || BX_PLATFORM_IOS
+bgfx::RenderFrame::Enum Application::renderFrame()
 {
+	bgfx::RenderFrame::Enum result;
 	@autoreleasepool
 	{
-		bgfx::renderFrame();
+		result = bgfx::renderFrame();
 	}
+	return result;
 }
-#endif // BX_PLATFORM_OSX
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_IOS
 #import <QuartzCore/CAEAGLLayer.h>

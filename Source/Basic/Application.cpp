@@ -105,7 +105,7 @@ int Application::run()
 	}
 
 	// wait for render process to stop
-	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
+	while (bgfx::RenderFrame::NoContext != Application::renderFrame());
 	_logicThread.shutdown();
 
 	SDL_DestroyWindow(window);
@@ -229,12 +229,12 @@ int Application::mainLogic(void* userData)
 	return 0;
 }
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
-void Application::renderFrame()
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+bgfx::RenderFrame::Enum Application::renderFrame()
 {
-	bgfx::renderFrame();
+	return bgfx::renderFrame();
 }
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 
 TargetPlatform Application::getPlatform() const
 {
