@@ -29,10 +29,10 @@ CCDirector	241	n
 	run	1	n
 	displayStats	1	n
 	numberOfDraws	1	n
-CCSize	214	n
-	height	885	n
-	width	849	n
-	zero	397	n
+CCSize	214	y
+	height	885	y
+	width	849	y
+	zero	397	y
 CCMenu	146	n
 	addChild	1138	n
 	enabled	318	n
@@ -100,23 +100,23 @@ CCScene	63	n
 	fade	13	n
 	crossFade	8	n
 	move	8	n
-CCRect	62	n
-	height	885	n
-	width	849	n
-	y	482	n
-	x	448	n
-	zero	397	n
-	origin	49	n
-	size	22	n
-	containsPoint	21	n
-	bottom	20	n
-	left	20	n
-	right	19	n
-	top	15	n
-	intersectsRect	10	n
-	set	7	n
-	centerY	2	n
-	centerX	2	n
+CCRect	62	y
+	height	885	y
+	width	849	y
+	y	482	y
+	x	448	y
+	zero	397	y
+	origin	49	y
+	size	22	y
+	containsPoint	21	y
+	bottom	20	y
+	left	20	y
+	right	19	y
+	top	15	y
+	intersectsRect	10	y
+	set	7	y
+	centerY	2	y
+	centerX	2	y
 CCLayer	37	n
 	addChild	1138	n
 	slot	571	n
@@ -219,15 +219,15 @@ CCProgressTimer	1	n
 	sprite	76	n
 	reverseDirection	2	n
 ----- Dorothy Class-----
-oVec2	1861	n
-	y	482	n
-	x	448	n
-	zero	397	n
-	angle	109	n
-	length	25	n
-	normalize	17	n
-	distance	14	n
-	clamp	1	n
+oVec2	1861	y
+	y	482	y
+	x	448	y
+	zero	397	y
+	angle	109	y
+	length	25	y
+	normalize	17	y
+	distance	14	y
+	clamp	1	y
 oEase	394	n
 	OutQuad	177	n
 	OutBack	116	n

@@ -8,8 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Lua/LuaEngine.h"
-#include "tolua++.h"
-#include "tolua_fix.h"
+#include "Lua/ToLua/tolua++.h"
+#include "Lua/ToLua/tolua_fix.h"
 
 NS_DOROTHY_BEGIN
 
@@ -62,7 +62,7 @@ void tolua_pushobject(lua_State* L, Object* object)
 	}
 	int refid = object->getLuaRef();
 
-	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_UBOX); // ubox
+	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
 	lua_rawgeti(L, -1, refid); // ubox ud
 
 	if (lua_isnil(L, -1)) // ud == nil
@@ -121,7 +121,7 @@ int tolua_ref_function(lua_State* L, int lo)
 	/* function at lo */
     if (!lua_isfunction(L, lo)) return 0;
 	int refid = tolua_alloc_callback_ref_id();
-	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_CALLBACK); // funcMap
+	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
     lua_pushvalue(L, lo); // funcMap fun
     lua_rawseti(L, -2, refid); // funcMap[refid] = fun, funcMap
 	lua_pop(L, 1); // empty
@@ -130,14 +130,14 @@ int tolua_ref_function(lua_State* L, int lo)
 
 void tolua_get_function_by_refid(lua_State* L, int refid)
 {
-	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_CALLBACK); // funcMap
+	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
     lua_rawgeti(L, -1, refid); // funcMap fun
     lua_remove(L, -2); // fun
 }
 
 void tolua_remove_function_by_refid(lua_State* L, int refid)
 {
-	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_CALLBACK); // funcMap
+	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
 	lua_pushnil(L); // funcMap nil
 	lua_rawseti(L, -2, refid); // funcMap[refid] = nil, funcMap
 	lua_pop(L, 1); // empty

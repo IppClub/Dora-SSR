@@ -200,6 +200,16 @@ namespace Tuple {
 	}
 } // namespace Tuple
 
+/* Short names for C++ casts */
+#define s_cast static_cast
+#define r_cast reinterpret_cast
+#define c_cast const_cast
+#define d_cast dynamic_cast
+
+#ifndef FLT_EPSILON
+	#define FLT_EPSILON 1.192092896e-07F
+#endif // FLT_EPSILON
+
 /** @brief Helper functions to hash string in compile time for use of
  string switch case.
  @example Use it as below.
@@ -219,42 +229,25 @@ namespace Tuple {
  }
  */
 namespace Switch {
-	template<class> struct Hasher;
-	template<>
-	struct Hasher<string>
+	inline constexpr std::size_t hash(char const* input)
 	{
-		size_t constexpr operator()(char const* input) const
-		{
-			return *input ?
-			static_cast<size_t>(*input) + 33ull * (*this)(input + 1ull) : 5381ull;
-		}
-		std::size_t operator()(const string& str) const
-		{
-			return (*this)(str.c_str());
-		}
-	};
-	template<typename T>
-	std::size_t constexpr hash(T&& t)
+		return *input ? *input + 33ull * hash(input + 1) : 5381;
+	}
+	inline std::size_t hash(const char* input, int size, int index)
 	{
-		return Hasher<typename std::decay<T>::type>()(std::forward<T>(t));
+		return index < size ? input[index] + 33ull * hash(input, size, index + 1) : 5381;
+	}
+	inline std::size_t hash(String str)
+	{
+		return hash(str.rawData(), s_cast<int>(str.size()), 0);
 	}
 	namespace Literals
 	{
-		std::size_t constexpr operator "" _hash(const char* s, size_t)
+		inline std::size_t constexpr operator"" _hash(const char* s, size_t)
 		{
-			return Hasher<string>()(s);
+			return hash(s);
 		}
 	}
-} // namespace SwitchStr
-
-/* Short names for C++ casts */
-#define s_cast static_cast
-#define r_cast reinterpret_cast
-#define c_cast const_cast
-#define d_cast dynamic_cast
-
-#ifndef FLT_EPSILON
-	#define FLT_EPSILON 1.192092896e-07F
-#endif // FLT_EPSILON
+} // namespace Switch
 
 NS_DOROTHY_END

@@ -8,8 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Lua/tolua++.h"
-#include "Lua/tolua_fix.h"
+#include "lua.hpp"
 
 NS_DOROTHY_BEGIN
 

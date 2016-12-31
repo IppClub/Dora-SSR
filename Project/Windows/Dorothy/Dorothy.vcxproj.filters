@@ -31,11 +31,14 @@
     <Filter Include="3rdParty\Lua">
       <UniqueIdentifier>{b778508f-d7cd-45bd-9891-0fe5c526fa3a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Lua\tolua">
-      <UniqueIdentifier>{ec6d2c9a-2629-49b5-ab13-61aeebe8eaa5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Event">
       <UniqueIdentifier>{7f70ed61-7367-4bcf-9c84-fe0283bce4be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lua\ToLua">
+      <UniqueIdentifier>{ec6d2c9a-2629-49b5-ab13-61aeebe8eaa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Node">
+      <UniqueIdentifier>{1c47b2cc-37f8-4db4-9351-ffef75ba037a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -56,24 +59,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
       <Filter>3rdParty\silly</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\tolua_event.cpp">
-      <Filter>Lua\tolua</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\tolua_fix.cpp">
-      <Filter>Lua\tolua</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\tolua_is.cpp">
-      <Filter>Lua\tolua</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\tolua_map.cpp">
-      <Filter>Lua\tolua</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\tolua_push.cpp">
-      <Filter>Lua\tolua</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\tolua_to.cpp">
-      <Filter>Lua\tolua</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp">
       <Filter>Basic</Filter>
@@ -126,6 +111,27 @@
     <ClCompile Include="..\..\..\Source\Common\Async.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_event.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_fix.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_is.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Node.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -170,15 +176,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h">
       <Filter>3rdParty\Lua</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\tolua_event.h">
-      <Filter>Lua\tolua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\tolua_fix.h">
-      <Filter>Lua\tolua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\tolua++.h">
-      <Filter>Lua\tolua</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Basic\Application.h">
       <Filter>Basic</Filter>
     </ClInclude>
@@ -195,9 +192,6 @@
       <Filter>Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Debug.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Common\Helper.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\MemoryPool.h">
@@ -256,6 +250,21 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Async.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Utils.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h">
+      <Filter>Lua\ToLua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_fix.h">
+      <Filter>Lua\ToLua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h">
+      <Filter>Lua\ToLua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Node.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

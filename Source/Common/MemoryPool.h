@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Common/Define.h"
+#include "Const/Define.h"
 #include <utility>
 #include <new>
 
@@ -46,7 +46,7 @@ public:
 				int consumption = MemoryPool::capacity();
 				if (consumption > WARNING_SIZE * 1024)
 				{
-					oLog("[WARNING] MemoryPool consumes %d KB memory larger than %d KB for type %s",
+					Log("[WARNING] MemoryPool consumes %d KB memory larger than %d KB for type %s",
 						consumption / 1024, WARNING_SIZE, typeid(Item).name());
 				}
 			}
@@ -183,9 +183,9 @@ public:\
 		return _memory.capacity();\
 	}\
 private:\
-	static MemoryPool<type> _memory;
+	static MemoryPool<type> _memory
 
 #define MEMORY_POOL(type) \
-MemoryPool<type> type::_memory;
+MemoryPool<type> type::_memory
 
 NS_DOROTHY_END

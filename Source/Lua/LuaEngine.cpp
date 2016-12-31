@@ -189,7 +189,7 @@ static int cclua_xmlToLua(lua_State* L)
 
 static int dora_ubox(lua_State* L)
 {
-	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_UBOX); // ubox
+	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
 	return 1;
 }
 
@@ -306,7 +306,7 @@ void LuaEngine::removePeer(Object* object)
 	if (object->isLuaReferenced())
 	{
 		int refid = object->getLuaRef();
-		lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_UBOX); // ubox
+		lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
 		lua_rawgeti(L, -1, refid); // ubox ud
 		if (!lua_isnil(L, -1))
 		{

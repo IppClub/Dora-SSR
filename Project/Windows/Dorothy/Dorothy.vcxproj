@@ -42,12 +42,13 @@
     <ClCompile Include="..\..\..\Source\Lua\LuaEngine.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaHelper.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaManual.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\tolua_event.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\tolua_fix.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\tolua_is.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\tolua_map.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\tolua_push.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\tolua_to.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_event.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_fix.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_is.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
@@ -72,12 +73,12 @@
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
     <ClInclude Include="..\..\..\Source\Common\Async.h" />
     <ClInclude Include="..\..\..\Source\Common\Debug.h" />
-    <ClInclude Include="..\..\..\Source\Common\Helper.h" />
     <ClInclude Include="..\..\..\Source\Common\MemoryPool.h" />
     <ClInclude Include="..\..\..\Source\Common\Own.h" />
     <ClInclude Include="..\..\..\Source\Common\OwnVector.h" />
     <ClInclude Include="..\..\..\Source\Common\Ref.h" />
     <ClInclude Include="..\..\..\Source\Common\RefVector.h" />
+    <ClInclude Include="..\..\..\Source\Common\Utils.h" />
     <ClInclude Include="..\..\..\Source\Common\WRef.h" />
     <ClInclude Include="..\..\..\Source\Common\WRefVector.h" />
     <ClInclude Include="..\..\..\Source\Const\Define.h" />
@@ -90,9 +91,10 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaEngine.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaHelper.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
-    <ClInclude Include="..\..\..\Source\Lua\tolua++.h" />
-    <ClInclude Include="..\..\..\Source\Lua\tolua_event.h" />
-    <ClInclude Include="..\..\..\Source\Lua\tolua_fix.h" />
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_fix.h" />
+    <ClInclude Include="..\..\..\Source\Node\Node.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>

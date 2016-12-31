@@ -46,8 +46,6 @@ class Slice {
 
   constexpr Slice(std::nullptr_t p = nullptr) : str_(nullptr), len_(0) {}
 
-  using const_iterator = const char*;
-
   operator std::string() const {
   	return std::string(str_, len_);
   }
@@ -101,14 +99,6 @@ class Slice {
     str_ += start;
     len_ = end - start + 1;
     return *this;
-  }
-
-  const_iterator begin() const {
-    return str_;
-  }
-
-  const_iterator end() const {
-    return str_ + len_;
   }
 
   std::string getFilePath() const;

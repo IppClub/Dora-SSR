@@ -13,8 +13,8 @@
 */
 
 #include "Const/Header.h"
-#include "tolua++.h"
-#include "tolua_event.h"
+#include "Lua/ToLua/tolua++.h"
+#include "Lua/ToLua/tolua_event.h"
 
 NS_DOROTHY_BEGIN
 
@@ -211,9 +211,9 @@ void tolua_open(lua_State* L)
 	lua_pushliteral(L, "v");
 	lua_rawset(L, -3);
 	lua_setmetatable(L, -2);
-	lua_rawseti(L, LUA_REGISTRYINDEX, TOLUA_UBOX);
+	lua_rawseti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX);
     lua_newtable(L);
-	lua_rawseti(L, LUA_REGISTRYINDEX, TOLUA_CALLBACK);
+	lua_rawseti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK);
 
 	lua_settop(L, top);
 }

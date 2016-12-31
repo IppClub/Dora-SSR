@@ -47,8 +47,9 @@ NS_DOROTHY_BEGIN
 #define MT_LT 11
 #define MT_LE 12
 
-#define TOLUA_UBOX 1
-#define TOLUA_CALLBACK 2
+#define TOLUA_REG_INDEX_UBOX 1
+#define TOLUA_REG_INDEX_CALLBACK 2
+#define TOLUA_REG_INDEX_TYPE 3
 
 typedef int lua_Object;
 

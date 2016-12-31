@@ -26,6 +26,14 @@
 		3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */; };
 		3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* Application.cpp */; };
 		3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* Object.cpp */; };
+		3CB487061E1635A500D51749 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487041E1635A500D51749 /* Node.cpp */; };
+		3CB487131E16398700D51749 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870A1E16398700D51749 /* tolua_event.cpp */; };
+		3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870C1E16398700D51749 /* tolua_fix.cpp */; };
+		3CB487151E16398700D51749 /* tolua_is.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870E1E16398700D51749 /* tolua_is.cpp */; };
+		3CB487161E16398700D51749 /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870F1E16398700D51749 /* tolua_map.cpp */; };
+		3CB487171E16398700D51749 /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487101E16398700D51749 /* tolua_push.cpp */; };
+		3CB487181E16398700D51749 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487111E16398700D51749 /* tolua_to.cpp */; };
+		3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4871C1E16419800D51749 /* Geometry.cpp */; };
 		3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E911E03C09F00462FD7 /* ioapi.cpp */; };
 		3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E931E03C09F00462FD7 /* unzip.cpp */; };
 		3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E951E03C09F00462FD7 /* zip.cpp */; };
@@ -35,12 +43,6 @@
 		3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54EA01E03CA6C00462FD7 /* Slice.cpp */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
 		3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD028FE1E07D3C50016E1EC /* LuaEngine.cpp */; };
-		3CD0290A1E07D3C50016E1EC /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029001E07D3C50016E1EC /* tolua_event.cpp */; };
-		3CD0290B1E07D3C50016E1EC /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029021E07D3C50016E1EC /* tolua_fix.cpp */; };
-		3CD0290C1E07D3C50016E1EC /* tolua_is.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029041E07D3C50016E1EC /* tolua_is.cpp */; };
-		3CD0290D1E07D3C50016E1EC /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029051E07D3C50016E1EC /* tolua_map.cpp */; };
-		3CD0290E1E07D3C50016E1EC /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029061E07D3C50016E1EC /* tolua_push.cpp */; };
-		3CD0290F1E07D3C50016E1EC /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD029071E07D3C50016E1EC /* tolua_to.cpp */; };
 		3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
@@ -89,7 +91,7 @@
 		3C9ADE4A1E00EFD000D42018 /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Application.cpp; path = ../../../Source/Basic/Application.cpp; sourceTree = "<group>"; };
 		3C9ADE4B1E00EFD000D42018 /* Application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Application.h; path = ../../../Source/Basic/Application.h; sourceTree = "<group>"; };
 		3C9ADE4E1E00F14900D42018 /* Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Header.h; path = ../../../Source/Const/Header.h; sourceTree = "<group>"; };
-		3C9ADE501E00F16100D42018 /* Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Helper.h; path = ../../../Source/Common/Helper.h; sourceTree = "<group>"; };
+		3C9ADE501E00F16100D42018 /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = ../../../Source/Common/Utils.h; sourceTree = "<group>"; };
 		3C9ADE511E00F16100D42018 /* MemoryPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MemoryPool.h; path = ../../../Source/Common/MemoryPool.h; sourceTree = "<group>"; };
 		3C9ADE521E00F16100D42018 /* Own.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Own.h; path = ../../../Source/Common/Own.h; sourceTree = "<group>"; };
 		3C9ADE531E00F16100D42018 /* OwnVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OwnVector.h; path = ../../../Source/Common/OwnVector.h; sourceTree = "<group>"; };
@@ -99,6 +101,19 @@
 		3C9ADE571E00F16100D42018 /* WRefVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRefVector.h; path = ../../../Source/Common/WRefVector.h; sourceTree = "<group>"; };
 		3C9ADE581E00F24200D42018 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../Source/Basic/Object.cpp; sourceTree = "<group>"; };
 		3C9ADE591E00F24200D42018 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = ../../../Source/Basic/Object.h; sourceTree = "<group>"; };
+		3CB487041E1635A500D51749 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = ../../../Source/Node/Node.cpp; sourceTree = "<group>"; };
+		3CB487051E1635A500D51749 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Node.h; path = ../../../Source/Node/Node.h; sourceTree = "<group>"; };
+		3CB4870A1E16398700D51749 /* tolua_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_event.cpp; path = ../../../Source/Lua/ToLua/tolua_event.cpp; sourceTree = "<group>"; };
+		3CB4870B1E16398700D51749 /* tolua_event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tolua_event.h; path = ../../../Source/Lua/ToLua/tolua_event.h; sourceTree = "<group>"; };
+		3CB4870C1E16398700D51749 /* tolua_fix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_fix.cpp; path = ../../../Source/Lua/ToLua/tolua_fix.cpp; sourceTree = "<group>"; };
+		3CB4870D1E16398700D51749 /* tolua_fix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tolua_fix.h; path = ../../../Source/Lua/ToLua/tolua_fix.h; sourceTree = "<group>"; };
+		3CB4870E1E16398700D51749 /* tolua_is.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_is.cpp; path = ../../../Source/Lua/ToLua/tolua_is.cpp; sourceTree = "<group>"; };
+		3CB4870F1E16398700D51749 /* tolua_map.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_map.cpp; path = ../../../Source/Lua/ToLua/tolua_map.cpp; sourceTree = "<group>"; };
+		3CB487101E16398700D51749 /* tolua_push.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_push.cpp; path = ../../../Source/Lua/ToLua/tolua_push.cpp; sourceTree = "<group>"; };
+		3CB487111E16398700D51749 /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/ToLua/tolua_to.cpp; sourceTree = "<group>"; };
+		3CB487121E16398700D51749 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/ToLua/tolua++.h"; sourceTree = "<group>"; };
+		3CB4871C1E16419800D51749 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Geometry.cpp; path = ../../../Source/Support/Geometry.cpp; sourceTree = "<group>"; };
+		3CB4871D1E16419800D51749 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
 		3CC54E5D1E039E0800462FD7 /* LifeCycledSingleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LifeCycledSingleton.h; path = ../../../Source/3rdParty/silly/LifeCycledSingleton.h; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
 		3CC54E631E03AA7A00462FD7 /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
@@ -121,15 +136,6 @@
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3CD028FE1E07D3C50016E1EC /* LuaEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaEngine.cpp; path = ../../../Source/Lua/LuaEngine.cpp; sourceTree = "<group>"; };
 		3CD028FF1E07D3C50016E1EC /* LuaEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaEngine.h; path = ../../../Source/Lua/LuaEngine.h; sourceTree = "<group>"; };
-		3CD029001E07D3C50016E1EC /* tolua_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_event.cpp; path = ../../../Source/Lua/tolua_event.cpp; sourceTree = "<group>"; };
-		3CD029011E07D3C50016E1EC /* tolua_event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tolua_event.h; path = ../../../Source/Lua/tolua_event.h; sourceTree = "<group>"; };
-		3CD029021E07D3C50016E1EC /* tolua_fix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_fix.cpp; path = ../../../Source/Lua/tolua_fix.cpp; sourceTree = "<group>"; };
-		3CD029031E07D3C50016E1EC /* tolua_fix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tolua_fix.h; path = ../../../Source/Lua/tolua_fix.h; sourceTree = "<group>"; };
-		3CD029041E07D3C50016E1EC /* tolua_is.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_is.cpp; path = ../../../Source/Lua/tolua_is.cpp; sourceTree = "<group>"; };
-		3CD029051E07D3C50016E1EC /* tolua_map.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_map.cpp; path = ../../../Source/Lua/tolua_map.cpp; sourceTree = "<group>"; };
-		3CD029061E07D3C50016E1EC /* tolua_push.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_push.cpp; path = ../../../Source/Lua/tolua_push.cpp; sourceTree = "<group>"; };
-		3CD029071E07D3C50016E1EC /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/tolua_to.cpp; sourceTree = "<group>"; };
-		3CD029081E07D3C50016E1EC /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/tolua++.h"; sourceTree = "<group>"; };
 		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbgfx.a; sourceTree = "<group>"; };
 		3CD029151E07DD720016E1EC /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/macOS/libSDL2.a; sourceTree = "<group>"; };
 		3CD029171E07DEB10016E1EC /* libluajit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libluajit.a; path = ../../Source/3rdParty/Lua/Lib/macOS/libluajit.a; sourceTree = "<group>"; };
@@ -234,20 +240,20 @@
 			name = Event;
 			sourceTree = "<group>";
 		};
-		3C7708341E08D98F00B38C2A /* tolua */ = {
+		3C7708341E08D98F00B38C2A /* ToLua */ = {
 			isa = PBXGroup;
 			children = (
-				3CD029001E07D3C50016E1EC /* tolua_event.cpp */,
-				3CD029011E07D3C50016E1EC /* tolua_event.h */,
-				3CD029021E07D3C50016E1EC /* tolua_fix.cpp */,
-				3CD029031E07D3C50016E1EC /* tolua_fix.h */,
-				3CD029041E07D3C50016E1EC /* tolua_is.cpp */,
-				3CD029051E07D3C50016E1EC /* tolua_map.cpp */,
-				3CD029061E07D3C50016E1EC /* tolua_push.cpp */,
-				3CD029071E07D3C50016E1EC /* tolua_to.cpp */,
-				3CD029081E07D3C50016E1EC /* tolua++.h */,
+				3CB4870A1E16398700D51749 /* tolua_event.cpp */,
+				3CB4870B1E16398700D51749 /* tolua_event.h */,
+				3CB4870C1E16398700D51749 /* tolua_fix.cpp */,
+				3CB4870D1E16398700D51749 /* tolua_fix.h */,
+				3CB4870E1E16398700D51749 /* tolua_is.cpp */,
+				3CB4870F1E16398700D51749 /* tolua_map.cpp */,
+				3CB487101E16398700D51749 /* tolua_push.cpp */,
+				3CB487111E16398700D51749 /* tolua_to.cpp */,
+				3CB487121E16398700D51749 /* tolua++.h */,
 			);
-			name = tolua;
+			name = ToLua;
 			sourceTree = "<group>";
 		};
 		3C9ADE491E00EFB200D42018 /* Basic */ = {
@@ -285,7 +291,6 @@
 			children = (
 				3C3598301E1254D600E62C16 /* Async.cpp */,
 				3C3598311E1254D600E62C16 /* Async.h */,
-				3C9ADE501E00F16100D42018 /* Helper.h */,
 				3C9ADE511E00F16100D42018 /* MemoryPool.h */,
 				3C9ADE521E00F16100D42018 /* Own.h */,
 				3C9ADE531E00F16100D42018 /* OwnVector.h */,
@@ -293,10 +298,20 @@
 				3C9ADE551E00F16100D42018 /* RefVector.h */,
 				3C9ADE561E00F16100D42018 /* WRef.h */,
 				3C9ADE571E00F16100D42018 /* WRefVector.h */,
+				3C9ADE501E00F16100D42018 /* Utils.h */,
 				3C31CB9C1E02293E00A8079D /* Debug.cpp */,
 				3C31CB9D1E02293E00A8079D /* Debug.h */,
 			);
 			name = Common;
+			sourceTree = "<group>";
+		};
+		3CB4871A1E163E9400D51749 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				3CB4871C1E16419800D51749 /* Geometry.cpp */,
+				3CB4871D1E16419800D51749 /* Geometry.h */,
+			);
+			name = Support;
 			sourceTree = "<group>";
 		};
 		3CC54E5E1E039E1300462FD7 /* Other */ = {
@@ -377,6 +392,7 @@
 				3C57A39A1E0A059A002141DF /* Event */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
 				3CCBBA381E14B50B00C0416B /* Node */,
+				3CB4871A1E163E9400D51749 /* Support */,
 				3CC81FF51D966770008C8B77 /* Assets.xcassets */,
 				3CC81FFA1D966770008C8B77 /* Info.plist */,
 			);
@@ -386,6 +402,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CB487041E1635A500D51749 /* Node.cpp */,
+				3CB487051E1635A500D51749 /* Node.h */,
 			);
 			name = Node;
 			sourceTree = "<group>";
@@ -400,7 +418,7 @@
 		3CFF5F221E012874004E3CA6 /* Lua */ = {
 			isa = PBXGroup;
 			children = (
-				3C7708341E08D98F00B38C2A /* tolua */,
+				3C7708341E08D98F00B38C2A /* ToLua */,
 				3C7708301E08CB4300B38C2A /* LuaBinding.cpp */,
 				3C77082F1E08CA0900B38C2A /* LuaBinding.h */,
 				3C7708311E08CB4300B38C2A /* LuaCode.cpp */,
@@ -484,28 +502,29 @@
 			buildActionMask = 2147483647;
 			files = (
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
+				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */,
 				3C38E6AC1E1513E5003E9189 /* Application.mm in Sources */,
-				3CD0290D1E07D3C50016E1EC /* tolua_map.cpp in Sources */,
-				3CD0290A1E07D3C50016E1EC /* tolua_event.cpp in Sources */,
+				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
 				3CFF5F251E012961004E3CA6 /* LuaHelper.cpp in Sources */,
+				3CB487151E16398700D51749 /* tolua_is.cpp in Sources */,
 				3C291D331E025A980098C860 /* AutoreleasePool.cpp in Sources */,
 				3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */,
 				3C3598321E1254D600E62C16 /* Async.cpp in Sources */,
 				3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */,
 				3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */,
+				3CB487171E16398700D51749 /* tolua_push.cpp in Sources */,
+				3CB487161E16398700D51749 /* tolua_map.cpp in Sources */,
+				3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */,
 				3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */,
 				3C374C571E09241600527752 /* Director.cpp in Sources */,
+				3CB487131E16398700D51749 /* tolua_event.cpp in Sources */,
 				3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */,
 				3C31CB9E1E02293E00A8079D /* Debug.cpp in Sources */,
 				3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */,
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
-				3CD0290C1E07D3C50016E1EC /* tolua_is.cpp in Sources */,
-				3CD0290B1E07D3C50016E1EC /* tolua_fix.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
-				3CD0290F1E07D3C50016E1EC /* tolua_to.cpp in Sources */,
-				3CD0290E1E07D3C50016E1EC /* tolua_push.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
@@ -514,6 +533,7 @@
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
 				3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */,
+				3CB487061E1635A500D51749 /* Node.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

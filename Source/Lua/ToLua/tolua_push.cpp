@@ -13,7 +13,7 @@
 */
 
 #include "Const/Header.h"
-#include "Lua/tolua++.h"
+#include "Lua/ToLua/tolua++.h"
 
 NS_DOROTHY_BEGIN
 

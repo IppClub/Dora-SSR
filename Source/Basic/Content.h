@@ -48,7 +48,7 @@ private:
 	string _writablePath;
 	vector<string> _searchPaths;
 	unordered_map<string, string> _fullPathCache;
-	LUA_TYPE_OVERRIDE(Content)
+	LUA_TYPE_OVERRIDE(Content);
 };
 
 #define SharedContent \

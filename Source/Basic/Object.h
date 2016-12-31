@@ -60,7 +60,7 @@ private:
 	static stack<Uint32> _availableLuaRefs;
 	static Uint32 _luaRefCount;
 	friend class PoolManager;
-	LUA_TYPE_BASE(Object)
+	LUA_TYPE_BASE(Object);
 };
 
 NS_DOROTHY_END

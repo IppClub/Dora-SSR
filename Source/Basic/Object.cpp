@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Basic/Object.h"
 #include "Basic/AutoreleasePool.h"
-#include "Lua/tolua_fix.h"
+#include "Lua/ToLua/tolua_fix.h"
 
 NS_DOROTHY_BEGIN
 

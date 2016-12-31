@@ -28,6 +28,7 @@ using std::tuple;
 #include <algorithm>
 using std::max;
 using std::min;
+#include <cmath>
 #include "Other/AcfDelegate.h"
 using Acf::Delegate;
 #include "SDL_syswm.h"
@@ -40,7 +41,7 @@ using Acf::Delegate;
 #include "silly/Slice.h"
 using namespace silly::slice;
 #include "Const/Define.h"
-#include "Common/Helper.h"
+#include "Common/Utils.h"
 using namespace Dorothy::Switch::Literals;
 #include "Lua/LuaHelper.h"
 #include "Basic/Object.h"
@@ -51,6 +52,7 @@ using namespace Dorothy::Switch::Literals;
 #include "Common/WRef.h"
 #include "Common/WRefVector.h"
 #include "Common/Debug.h"
+#include "Common/MemoryPool.h"
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Content.h"
 #include "Lua/LuaEngine.h"

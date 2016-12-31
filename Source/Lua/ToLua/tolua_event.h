@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "tolua++.h"
+#include "Lua/ToLua/tolua++.h"
 
 NS_DOROTHY_BEGIN
 

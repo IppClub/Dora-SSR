@@ -25,7 +25,7 @@ protected:
 	Scheduler();
 private:
 	UpdateHandler _updateHandler;
-	LUA_TYPE_OVERRIDE(Scheduler)
+	LUA_TYPE_OVERRIDE(Scheduler);
 };
 
 NS_DOROTHY_END

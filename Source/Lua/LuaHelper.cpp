@@ -8,9 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Lua/LuaHelper.h"
+#include "Lua/ToLua/tolua++.h"
 
 NS_DOROTHY_BEGIN
 
-int g_luaType = 3; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
+int g_luaType = TOLUA_REG_INDEX_TYPE; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
 
 NS_DOROTHY_END
