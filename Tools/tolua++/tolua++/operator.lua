@@ -103,7 +103,7 @@ function classOperator:supcode_tmp()
 		t = self.type
 		local push_func = get_push_function(t)
 		new_t = string.gsub(t, "const%s+", "")
-		t = _userltype[t]
+		-- t = _userltype[t] -- convert to renamed type
 		if self.ptr == '' then
 			output('   {')
 			output('    void* tolua_obj = Mtolua_new((',new_t,')(tolua_ret));')

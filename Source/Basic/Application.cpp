@@ -16,7 +16,7 @@ Application::Application():
 _width(800),
 _height(600),
 _deltaTime(0),
-_updateTime(0),
+_cpuTime(0),
 _frequency(double(bx::getHPFrequency()))
 {
 	_lastTime = bx::getHPCounter() / _frequency;
@@ -32,9 +32,22 @@ int Application::getHeight() const
 	return _height;
 }
 
+void Application::setSeed(unsigned int var)
+{
+	_seed = var;
+	std::srand(var);
+}
+
+unsigned int Application::getSeed() const
+{
+	return _seed;
+}
+
 // This function runs in main thread, and do render work
 int Application::run()
 {
+	Application::setSeed((unsigned int)std::time(nullptr));
+
 	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0)
 	{
 		Log("SDL fail to initialize! %s", SDL_GetError());
@@ -124,14 +137,12 @@ void Application::updateDeltaTime()
 		_deltaTime = 0;
 		_lastTime = currentTime;
 	}
-	// only accept frames drop to 30 FPS
-	_deltaTime = min(_deltaTime, 1.0/30);
 }
 
 double Application::getEclapsedTime() const
 {
 	double currentTime = bx::getHPCounter() / _frequency;
-	return max(currentTime - _lastTime, 0.0);
+	return std::max(currentTime - _lastTime, 0.0);
 }
 
 double Application::getLastTime() const
@@ -144,9 +155,9 @@ double Application::getDeltaTime() const
 	return _deltaTime;
 }
 
-double Application::getUpdateTime() const
+double Application::getCPUTime() const
 {
-	return _updateTime;
+	return _cpuTime;
 }
 
 void Application::makeTimeNow()
@@ -212,7 +223,7 @@ int Application::mainLogic(void* userData)
 		SharedDirector.mainLoop();
 		SharedPoolManager.pop();
 
-		app->_updateTime = app->getEclapsedTime();
+		app->_cpuTime = app->getEclapsedTime();
 
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.

@@ -160,7 +160,7 @@ else
 	local push_func = get_push_function(self.type)
 	t = self.type
 	local new_t = string.gsub(t, "const%s+", "")
-	t = _userltype[t]
+	-- t = _userltype[t] -- convert to renamed type
 	if self.ptr == '' then
 		output('    void* tolua_obj = Mtolua_new((',new_t,')('..self:getvalue(class,static,prop_get)..'));')
 		if push_func == _push_object_func_name then
@@ -220,7 +220,7 @@ end
   -- check variable type
   local var_index = static and 3 or 2
   if is_function then
-    output('  if (!(toluafix_isfunction(tolua_S,'..tostring(var_index)..',&tolua_err) || lua_isnil(tolua_S, 2)))')
+    output('  if (!(tolua_isfunction(tolua_S,'..tostring(var_index)..',&tolua_err) || lua_isnil(tolua_S, 2)))')
   else
     output('  if ('..self:outchecktype(var_index)..')')
   end
@@ -231,7 +231,7 @@ end
 		if self.def ~= '' then def = self.def end
 		if is_function then
 			local name = prop_set or self.name
-			output('  self->'..name..'(toluafix_ref_function(tolua_S,'..tostring(var_index)..'));')
+			output('  self->'..name..'(tolua_ref_function(tolua_S,'..tostring(var_index)..'));')
 		elseif self.type == 'char*' and self.dim ~= '' then -- is string
 			output(' strncpy((char*)')
 			if class and static then

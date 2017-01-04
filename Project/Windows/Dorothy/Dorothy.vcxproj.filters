@@ -132,6 +132,9 @@
     <ClCompile Include="..\..\..\Source\Node\Node.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaHandler.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -265,6 +268,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\Node.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\LuaHandler.h">
+      <Filter>Lua</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

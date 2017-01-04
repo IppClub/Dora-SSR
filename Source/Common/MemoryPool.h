@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-template<class Item, int CHUNK_CAPACITY = 4096, int WARNING_SIZE = 1024>// 4KB 1024KB
+template<class Item, int CHUNK_CAPACITY = 4096, int WARNING_SIZE = 1024>// 4KB 1MB
 class MemoryPool
 {
 #define ITEM_SIZE sizeof(Item)
@@ -167,7 +167,7 @@ private:
 	}
 };
 
-#define USE_MEMORY_POOL(type) \
+#define USE_MEMORY_POOL_SIZE(type, SIZE) \
 public:\
 	inline void* operator new(size_t size) { return _memory.alloc(); }\
 	inline void operator delete(void* ptr, size_t size) { _memory.free(ptr); }\
@@ -183,9 +183,13 @@ public:\
 		return _memory.capacity();\
 	}\
 private:\
-	static MemoryPool<type> _memory
+	static MemoryPool<type, SIZE> _memory
 
-#define MEMORY_POOL(type) \
-MemoryPool<type> type::_memory
+#define USE_MEMORY_POOL(type) USE_MEMORY_POOL_SIZE(type, 4096)
+
+#define MEMORY_POOL_SIZE(type, SIZE) \
+MemoryPool<type, SIZE> type::_memory
+
+#define MEMORY_POOL(type) MEMORY_POOL_SIZE(type, 4096)
 
 NS_DOROTHY_END

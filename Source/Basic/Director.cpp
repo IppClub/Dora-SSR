@@ -24,6 +24,7 @@ bool Director::init()
 	bgfx::setViewClear(0,
 		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
 		0x303030ff, 1.0f, 0);
+	SharedLueEngine.executeScriptFile("Script/main.lua");
 	return true;
 }
 
@@ -42,6 +43,12 @@ Scheduler* Director::getSystemScheduler() const
 	return _systemScheduler;
 }
 
+double Director::getDeltaTime() const
+{
+	// only accept frames drop to 30 FPS
+	return std::min(SharedApplication.getDeltaTime(), 1.0/30);
+}
+
 void Director::mainLoop()
 {
 	bgfx::setViewRect(0, 0, 0, SharedApplication.getWidth(), SharedApplication.getHeight());
@@ -56,9 +63,9 @@ void Director::mainLoop()
 	bgfx::dbgTextPrintf(0, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f, MultiThreaded %s"
 			, stats->numCompute
 			, stats->numDraw
-			, SharedApplication.getUpdateTime()
-			, (stats->cpuTimeEnd - stats->cpuTimeBegin) / double(stats->cpuTimerFreq)
-			, (stats->gpuTimeEnd - stats->gpuTimeBegin) / double(stats->gpuTimerFreq)
+			, SharedApplication.getCPUTime()
+			, SharedApplication.getDeltaTime()
+			, (std::max(stats->gpuTimeEnd, stats->gpuTimeBegin) - std::min(stats->gpuTimeEnd, stats->gpuTimeBegin)) / double(stats->gpuTimerFreq)
 			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
 
 	_systemScheduler->update(SharedApplication.getDeltaTime());

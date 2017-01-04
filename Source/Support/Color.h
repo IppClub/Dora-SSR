@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2013 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,58 +8,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Common/Ref.h"
-
 NS_DOROTHY_BEGIN
 
-/** @brief Used with Aggregation Relationship. */
-template<class T = Object>
-class RefVector: public vector<Ref<T>>
+struct Color
 {
-	typedef vector<Ref<T>> RefV;
-public:
-	inline void push_back(T* item)
-	{
-		RefV::push_back(RefMake(item));
-	}
-	bool insert(size_t where, T* item)
-	{
-		if (where >= 0 && where < RefV::size())
-		{
-			auto it = RefV::begin();
-			for (int i = 0; i < where; ++i, ++it);
-			RefV::insert(it, oRefMake(item));
-			return true;
-		}
-		return false;
-	}
-	bool remove(T* item)
-	{
-		for (auto it = RefV::begin(); it != RefV::end(); it++)
-		{
-			if ((*it) == item)
-			{
-				RefV::erase(it);
-				return true;
-			}
-		}
-		return false;
-	}
-	bool fast_remove(T* item)
-	{
-		size_t size = RefV::size();
-		Ref<T>* data = RefV::data();
-		for (size_t i = 0; i < size; i++)
-		{
-			if (data[i] == item)
-			{
-				data[i] = data[size - 1];
-				RefV::pop_back();
-				return true;
-			}
-		}
-		return false;
-	}
+    Uint8 r;
+    Uint8 g;
+    Uint8 b;
+    Uint8 a;
+	Color();
+	Color(Uint32 argb);
+	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+	Uint32 toRGBA() const;
+	PROPERTY(float, Opacity);
+	bool operator==(const Color& other) const;
+	bool operator!=(const Color& other) const;
 };
 
 NS_DOROTHY_END

@@ -217,7 +217,7 @@ function classDeclaration:outchecktype (narg)
  if self.type == "tolua_table" then
   return '!tolua_istable(tolua_S,'..narg..',0,&tolua_err)'
  elseif self.type == "tolua_function" then
-   return '!toluafix_isfunction(tolua_S,'..narg..',&tolua_err)'
+   return '!tolua_isfunction(tolua_S,'..narg..',&tolua_err)'
  end
  local def
  local t = isbasic(self.type)
@@ -248,7 +248,7 @@ function classDeclaration:builddeclaration (narg, cplusplus)
  if self.type == "tolua_table" then
   return "  int "..self.name.." = "..tostring(narg)..";"
  elseif self.type == "tolua_function" then
-  return "  int "..self.name.." = toluafix_ref_function(tolua_S,"..tostring(narg)..");"
+  return "  int "..self.name.." = tolua_ref_function(tolua_S,"..tostring(narg)..");"
  end
  local array = self.dim ~= '' and tonumber(self.dim)==nil
 	local line = ""
@@ -421,7 +421,7 @@ function classDeclaration:retvalue ()
    output('   tolua_push'..t..'(tolua_S,(',ct,')'..self.name..');')
   else
    local push_func = get_push_function(self.type)
-   local t = _userltype[self.type]
+   -- t = _userltype[t] -- convert to renamed type
    if push_func == _push_object_func_name then
     output(' ',push_func,'(tolua_S,(void*)'..self.name..");")
    elseif push_func == "tolua_pushusertype" then

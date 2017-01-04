@@ -6,41 +6,12 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
+#include "Const/Header.h"
+#include "Common/Utils.h"
+#include "Lua/ToLua/tolua++.h"
 
 NS_DOROTHY_BEGIN
 
-extern int g_luaType;
-
-template <class T>
-int LuaType()
-{
-	static int type = g_luaType++;
-	return type;
-}
-
-#define LUA_TYPE(type) \
-public: int getLuaType() const \
-{ \
-	return LuaType<type>(); \
-}
-
-#define LUA_TYPE_BASE(type) \
-public: virtual int getLuaType() const \
-{ \
-	return LuaType<type>(); \
-}
-
-#define LUA_TYPE_OVERRIDE(type) \
-public: virtual int getLuaType() const override \
-{ \
-	return LuaType<type>(); \
-}
-
-template <class OutT, class InT>
-OutT* LuaCast(InT* obj)
-{
-	return (obj && obj->getLuaType() == LuaType<OutT>()) ? s_cast<OutT*>(obj) : nullptr;
-}
+int doraType = TOLUA_REG_INDEX_TYPE; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
 
 NS_DOROTHY_END

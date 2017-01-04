@@ -54,7 +54,7 @@ void Event::reg(Listener* listener)
 	else
 	{
 		EventType* type = new EventType(listener->getName());
-		_eventMap[listener->getName()] = OwnMake(type);
+		_eventMap[listener->getName()] = MakeOwn(type);
 		type->add(listener);
 	}
 }

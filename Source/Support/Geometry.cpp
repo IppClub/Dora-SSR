@@ -148,8 +148,8 @@ void Vec2::normalize()
 
 void Vec2::clamp(const Vec2& from, const Vec2& to)
 {
-	x = from.x < to.x ? min(max(x, from.x), to.x) : min(max(x, to.x), from.x);
-	y = from.y < to.y ? min(max(y, from.y), to.y) : min(max(y, to.y), from.y);
+	x = Clamp(x, from.x, to.x);
+	y = Clamp(y, from.y, to.y);
 }
 
 // Size

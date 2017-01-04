@@ -10,69 +10,120 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Node
+class Node : public Object
 {
 public:
-/*
-	PROPERTY(int, _zOrder, ZOrder);
-	PROPERTY(float, _angle, Angle);
-	PROPERTY(float, _scaleX, ScaleX);
-	PROPERTY(float, _scaleY, ScaleY);
-	tolua_property__common oVec2 position;
-	tolua_property__common float positionX;
-	tolua_property__common float positionY;
-	tolua_property__common float positionZ;
-	tolua_property__common float skewX;
-	tolua_property__common float skewY;
-	tolua_property__bool bool visible;
-	tolua_property__common oVec2 anchorPoint @ anchor;
-	tolua_property__common CCSize contentSize;
-	tolua_property__common float width;
-	tolua_property__common float height;
-	tolua_property__common int tag;
-	tolua_property__common ccColor3 color;
-	tolua_property__common float opacity;
-	tolua_property__bool bool cascadeOpacity;
-	tolua_property__bool bool cascadeColor;
-	tolua_property__common CCNode* transformTarget;
-	//tolua_property__common CCGLProgram* shaderProgram;
-	tolua_property__common CCScheduler* scheduler;
-	tolua_property__common CCObject* userObject @ data;
-	tolua_readonly tolua_property__common CCNode* parent;
-	tolua_readonly tolua_property__common CCArray* children;
-	tolua_readonly tolua_property__common CCRect boundingBox;
-	tolua_readonly tolua_property__qt const char* description;
-	tolua_readonly tolua_property__qt int numberOfRunningActions;
-	tolua_readonly tolua_property__bool bool running;
+	PROPERTY(int, ZOrder);
+	PROPERTY(float, Angle);
+	PROPERTY(float, ScaleX);
+	PROPERTY(float, ScaleY);
+	PROPERTY(float, X);
+	PROPERTY(float, Y);
+	PROPERTY(float, Z);
+	PROPERTY_VIRTUAL_REF(Vec2, Position);
+	PROPERTY(float, SkewX);
+	PROPERTY(float, SkewY);
+	PROPERTY_BOOL(Visible);
+	PROPERTY_REF(Vec2, Anchor);
+	PROPERTY(float, Width);
+	PROPERTY(float, Height);
+	PROPERTY_REF(Size, Size);
+	PROPERTY(int, Tag);
+	PROPERTY(float, Opacity);
+	PROPERTY(Color, Color);
+	PROPERTY_BOOL(PassOpacity);
+	PROPERTY_BOOL(PassColor);
+	PROPERTY(Node*, TransformTarget);
+	PROPERTY(Scheduler*, Scheduler);
+	PROPERTY(Object*, UserData);
+	PROPERTY_READONLY(Node*, Parent);
+	PROPERTY_READONLY_VIRTUAL(Rect, BoundingBox);
+	PROPERTY_READONLY(const char*, Description);
+	PROPERTY_READONLY(Array*, Children);
+	PROPERTY_READONLY_BOOL(Running);
+	PROPERTY_READONLY_BOOL(Updating);
+	PROPERTY_READONLY_BOOL(Scheduled);
 
-	CCNode* addTo(CCNode* child, int zOrder, int tag);
-	CCNode* addTo(CCNode* child, int zOrder);
-	CCNode* addTo(CCNode* child);
+	virtual void addChild(Node* child, int zOrder, int tag);
+	void addChild(Node* child, int zOrder);
+	void addChild(Node* child);
 
-	void addChild(CCNode* child, int zOrder, int tag);
-	void addChild(CCNode* child, int zOrder);
-	void addChild(CCNode* child);
-	void removeChild(CCNode* child, bool cleanup = true);
+	virtual Node* addTo(Node* parent, int zOrder, int tag);
+	Node* addTo(Node* parent, int zOrder);
+	Node* addTo(Node* parent);
+
+	void removeChild(Node* child, bool cleanup = true);
 	void removeChildByTag(int tag, bool cleanup = true);
-	void removeAllChildrenWithCleanup(bool cleanup = true);
+	void removeAllChildren(bool cleanup = true);
+
+	virtual void cleanup();
+
+	Node* getChildByTag(int tag);
+
+	void schedule(const function<bool(double)>& func);
+	void unschedule();
+
+	Vec2 convertToNodeSpace(const Vec2& worldPoint);
+	Vec2 convertToWorldSpace(const Vec2& nodePoint);
+
+	void scheduleUpdate();
+	void unscheduleUpdate();
+
+	virtual void visit();
+	virtual void render();
+	virtual bool update(double deltaTime) override;
+
+	CREATE_FUNC(Node);
+/*
+	PROPERTY_READONLY(int, ActionCount);
 	void runAction(CCAction* action);
 	void stopAllActions();
 	void perform(CCAction* action);
 	void stopAction(CCAction* action);
-	void cleanup();
-
-	CCNode* getChildByTag(int tag);
-
-	void scheduleUpdateWithPriorityLua @ schedule(tolua_function nHandler, int priority = 0);
-	void unscheduleUpdate @ unschedule();
-	tolua_readonly tolua_property__bool bool updateScheduled @ scheduled;
-
-	oVec2 convertToNodeSpaceAR @ convertToNodeSpace(oVec2& worldPoint);
-	oVec2 convertToWorldSpaceAR @ convertToWorldSpace(oVec2& nodePoint);
-	oVec2 convertToGameSpace(oVec2& nodePoint);
-
-	static CCNode* create();
-	*/
+*/
+protected:
+	Node();
+	virtual ~Node();
+	void setOn(Uint32 type);
+	void setOff(Uint32 type);
+	bool isOn(Uint32 type) const;
+	bool isOff(Uint32 type) const;
+protected:
+	Uint32 _flags;
+	int _tag;
+	int _zOrder;
+	Color _color;
+	float _angle;
+	float _angleX;
+	float _angleY;
+	float _scaleX;
+	float _scaleY;
+	float _skewX;
+	float _skewY;
+	float _positionZ;
+	Vec2 _position;
+	Vec2 _anchor;
+	Size _size;
+	float localTransform[16];
+	WRef<Node> _transformTarget;
+	WRef<Node> _parent;
+	Ref<Object> _userData;
+	Ref<Array> _children;
+	Ref<Scheduler> _scheduler;
+	function<bool(double)> _scheduleFunc;
+	enum
+	{
+		Visible = 1,
+		Dirty = 1<<1,
+		Running = 1<<2,
+		Updating = 1<<3,
+		Scheduling = 1<<4,
+		PassOpacity = 1<<5,
+		PassColor = 1<<6,
+		Reorder = 1<<7,
+		Cleanup = 1<<8
+	};
+	DORA_TYPE_OVERRIDE(Node);
 };
 
 NS_DOROTHY_END

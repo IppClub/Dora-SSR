@@ -15,13 +15,15 @@ class Scheduler;
 class Director : public Object
 {
 public:
-	PROPERTY_NAME(Scheduler*, Scheduler);
+	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
+	PROPERTY_READONLY(double, DeltaTime);
 	bool init() override;
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
 protected:
 	Director();
+private:
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
 };

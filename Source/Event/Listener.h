@@ -19,8 +19,8 @@ typedef Delegate<void (Event* event)> EventHandler;
 class Listener : public Object
 {
 public:
-	PROPERTY_BOOL(_enabled, Enabled);
-	PROPERTY_REF(EventHandler, _handler, Handler);
+	PROPERTY_BOOL(Enabled);
+	PROPERTY_REF(EventHandler, Handler);
 	PROPERTY_READONLY_REF(string, Name);
 	virtual ~Listener();
 	virtual bool init() override;
@@ -31,9 +31,11 @@ protected:
 	Listener(const string& name, const EventHandler& handler);
 	Listener(const string& name, int handler);
 private:
+	bool _enabled;
 	string _name;
+	EventHandler _handler;
 	friend class EventType;
-	LUA_TYPE_OVERRIDE(Listener)
+	DORA_TYPE_OVERRIDE(Listener);
 };
 
 NS_DOROTHY_END

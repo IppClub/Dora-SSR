@@ -123,10 +123,51 @@ private:
 	Weak* _weak;
 };
 
-template <class name>
-inline WRef<name> WRefMake(name* item)
+template <class T>
+inline WRef<T> MakeWRef(T* item)
 {
-	return WRef<name>(item);
+	return WRef<T>(item);
 }
+
+/** @brief Used with Aggregation Relationship. */
+template<class T = Object>
+class WRefVector : public vector<WRef<T>>
+{
+	typedef vector<WRef<T>> WRefV;
+public:
+	using WRefV::WRefV;
+	using WRefV::insert;
+
+	inline void push_back(T* item)
+	{
+		WRefV::push_back(MakeWRef(item));
+	}
+	typename WRefV::iterator insert(size_t where, T* item)
+	{
+		return WRefV::insert(WRefV::begin() + where, MakeWRef(item));
+	}
+	bool remove(T* item)
+	{
+		auto it = std::remove(WRefV::begin(), WRefV::end(), item);
+		if (it == WRefV::end()) return false;
+		WRefV::erase(it);
+		return true;
+	}
+	typename WRefV::iterator index(T* item)
+	{
+		return std::find(WRefV::begin(), WRefV::end(), item);
+	}
+	bool fast_remove(T* item)
+	{
+		size_t index = std::distance(WRefV::begin(), WRefVector::index(item));
+		if (index < WRefV::size())
+		{
+			std::swap(WRefV::at(index), WRefV::back());
+			WRefV::pop_back();
+			return true;
+		}
+		return false;
+	}
+};
 
 NS_DOROTHY_END

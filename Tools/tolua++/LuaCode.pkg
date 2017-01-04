@@ -1,5 +1,5 @@
 $#include "Lua/LuaBinding.h"
 $using namespace Dorothy;
 
-$lfile "Class.lua"
-$lfile "Init.lua"
+$lfile "../../Assets/Script/Lib/Class.lua"
+$lfile "../../Assets/Script/Lib/Initialization.lua"

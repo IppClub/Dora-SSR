@@ -57,6 +57,7 @@
 		3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331791D96D98700F9C3F6 /* Foundation.framework */; };
 		3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */; };
 		3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331831D96E19100F9C3F6 /* OpenGLES.framework */; };
+		3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE355601E1B7A6300268A19 /* LuaHandler.cpp */; };
 		3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F261E0136A0004E3CA6 /* Application.mm */; };
 /* End PBXBuildFile section */
 
@@ -153,6 +154,8 @@
 		3CE331791D96D98700F9C3F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		3CE331831D96E19100F9C3F6 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		3CE355601E1B7A6300268A19 /* LuaHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaHandler.cpp; path = ../../../Source/Lua/LuaHandler.cpp; sourceTree = "<group>"; };
+		3CE355611E1B7A6300268A19 /* LuaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaHandler.h; path = ../../../Source/Lua/LuaHandler.h; sourceTree = "<group>"; };
 		3CFF5F261E0136A0004E3CA6 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../../Source/Basic/Application.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -420,6 +423,8 @@
 				3C0AD7C71E0CE9990033AD59 /* LuaHelper.h */,
 				3C0AD7C81E0CE9990033AD59 /* LuaManual.cpp */,
 				3C0AD7C91E0CE9990033AD59 /* LuaManual.h */,
+				3CE355601E1B7A6300268A19 /* LuaHandler.cpp */,
+				3CE355611E1B7A6300268A19 /* LuaHandler.h */,
 			);
 			name = Lua;
 			sourceTree = "<group>";
@@ -512,6 +517,7 @@
 				3C0AD7D91E0CE9B10033AD59 /* Debug.cpp in Sources */,
 				3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */,
 				3CB410281E05B0C500A8804D /* LifeCycledSingleton.cpp in Sources */,
+				3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */,
 				3C4BC65A1E17F18300292200 /* Node.cpp in Sources */,
 				3C0AD7BC1E0CE95F0033AD59 /* EventQueue.cpp in Sources */,
 				3C0AD7BB1E0CE95F0033AD59 /* Event.cpp in Sources */,

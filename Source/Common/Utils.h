@@ -11,52 +11,43 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 /** @brief Helper macros to define setters and getters */
-#define PROPERTY(varType, varName, funName)\
-protected: varType varName;\
-public: varType get##funName() const;\
+#define PROPERTY(varType, funName) \
+public: varType get##funName() const; \
 public: void set##funName(varType var)
 
-#define PROPERTY_NAME(varType, funName)\
-public: varType get##funName() const;\
-public: void set##funName(varType var)
-
-#define PROPERTY_REF(varType, varName, funName)\
-protected: varType varName;\
-public: const varType& get##funName() const;\
+#define PROPERTY_REF(varType, funName) \
+public: const varType& get##funName() const; \
 public: void set##funName(const varType& var)
 
-#define PROPERTY_NAME_REF(varType, funName)\
-public: const varType& get##funName() const;\
-public: void set##funName(const varType& var)
-
-#define PROPERTY_VIRTUAL(varType, varName, funName)\
-protected: varType varName;\
-public: varType get##funName() const;\
+#define PROPERTY_VIRTUAL(varType, funName) \
+public: varType get##funName() const; \
 public: virtual void set##funName(varType var)
 
-#define PROPERTY_READONLY(varType, funName)\
+#define PROPERTY_VIRTUAL_REF(varType, funName) \
+public: const varType& get##funName() const; \
+public: virtual void set##funName(const varType& var)
+
+#define PROPERTY_READONLY_VIRTUAL(varType, funName) \
+public: virtual varType get##funName() const
+
+#define PROPERTY_READONLY(varType, funName) \
 public: varType get##funName() const
 
-#define PROPERTY_READONLY_REF(varType, funName)\
+#define PROPERTY_READONLY_REF(varType, funName) \
 public: const varType& get##funName() const
 
-#define PROPERTY_READONLY_CLASS(varType, funName)\
+#define PROPERTY_READONLY_BOOL(funName) \
+public: bool is##funName() const
+
+#define PROPERTY_READONLY_CLASS(varType, funName) \
 public: static varType get##funName()
 
-#define PROPERTY_READONLY_CALL(varType, funName)\
+#define PROPERTY_READONLY_CALL(varType, funName) \
 public: varType get##funName()
 
-#define PROPERTY_BOOL(varName, funName)\
-protected: bool varName;\
-public: bool is##funName() const;\
+#define PROPERTY_BOOL(funName) \
+public: bool is##funName() const; \
 public: void set##funName(bool var)
-
-#define PROPERTY_BOOL_NAME(funName)\
-public: bool is##funName() const;\
-public: void set##funName(bool var)
-
-#define PROPERTY_READONLY_BOOL(funName)\
-public: bool is##funName() const
 
 /** @brief Code block for condition check.
 	@example Use it as below.
@@ -194,9 +185,10 @@ namespace Tuple {
 		{ }
 	};
 	template<typename TupleT, typename Func>
-	inline void foreach(const TupleT& item, Func&& func)
+	inline int foreach(const TupleT& item, Func&& func)
 	{
 		TupleHelper<TupleT, std::tuple_size<TupleT>::value>::foreach(item, func);
+		return (int)std::tuple_size<TupleT>::value;
 	}
 } // namespace Tuple
 
@@ -249,5 +241,57 @@ namespace Switch {
 		}
 	}
 } // namespace Switch
+
+/** @brief Helpers for number comparision */
+#ifdef min
+	#undef min
+#endif
+#ifdef max
+	#undef max
+#endif
+template <class T>
+inline T Clamp(T value, T minVal, T maxVal)
+{
+	auto pair = std::minmax(minVal, maxVal);
+	return std::max(std::min(value, pair.second), pair.first);
+}
+
+/** @brief Dorothy`s type system for lua and
+ be the alternative for dynamic_cast.
+ */
+extern int doraType;
+
+template <class T>
+int DoraType()
+{
+	static int type = doraType++;
+	return type;
+}
+
+#define DORA_TYPE(type) \
+public: int getDoraType() const \
+{ \
+	return DoraType<type>(); \
+}
+
+#define DORA_TYPE_BASE(type) \
+public: virtual int getDoraType() const \
+{ \
+	return DoraType<type>(); \
+}
+
+#define DORA_TYPE_OVERRIDE(type) \
+public: virtual int getDoraType() const override \
+{ \
+	return DoraType<type>(); \
+}
+
+template <class OutT, class InT>
+OutT* DoraCast(InT* obj)
+{
+	return (obj && obj->getDoraType() == DoraType<OutT>()) ? s_cast<OutT*>(obj) : nullptr;
+}
+
+#define LuaType DoraType
 
 NS_DOROTHY_END

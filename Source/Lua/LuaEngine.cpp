@@ -355,7 +355,12 @@ void LuaEngine::push(Object* value)
 
 void LuaEngine::push(String value)
 {
-	lua_pushlstring(L, value.toString().c_str(), value.size());
+	lua_pushlstring(L, value.rawData(), value.size());
+}
+
+void LuaEngine::push(std::nullptr_t)
+{
+	lua_pushnil(L);
 }
 
 int LuaEngine::executeFunction(int handler, int paramCount)
@@ -387,7 +392,7 @@ int LuaEngine::call(lua_State* L, int paramCount, int returnCount)
 #ifndef TOLUA_RELEASE
 	int functionIndex = -(paramCount + 1);
 	int top = lua_gettop(L);
-	int traceIndex = max(functionIndex + top, 1);
+	int traceIndex = std::max(functionIndex + top, 1);
 	if (!lua_isfunction(L, functionIndex))
 	{
 		Log("[Lua Error] value at stack [%d] is not function in LuaEngine::call", functionIndex);
@@ -421,7 +426,7 @@ int LuaEngine::execute(lua_State* L, int numArgs)
 	if (LuaEngine::call(L, numArgs, 1))
 	{
 		// get return value
-		if (lua_isnumber(L, -1))// traceback ret
+		if (lua_isnumber(L, -1)) // traceback ret
 		{
 			ret = (int)(lua_tointeger(L, -1));
 		}
@@ -431,7 +436,7 @@ int LuaEngine::execute(lua_State* L, int numArgs)
 		}
 	}
 	else ret = 1;
-	lua_settop(L, top);// stack clear
+	lua_settop(L, top); // stack clear
 	return ret;
 }
 

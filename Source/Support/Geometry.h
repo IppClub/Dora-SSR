@@ -41,6 +41,7 @@ struct Vec2
 	void clamp(const Vec2& from, const Vec2& to);
 	static const Vec2 zero;
 	USE_MEMORY_POOL(Vec2);
+	DORA_TYPE(Vec2);
 };
 
 struct Size
@@ -55,22 +56,23 @@ struct Size
 	bool operator==(const Size& other) const;
 	bool operator!=(const Size& other) const;
 	static const Size zero;
+	DORA_TYPE(Size);
 };
 
 struct Rect
 {
     Vec2 origin;
     Size size;
-	PROPERTY_NAME(float, X);
-	PROPERTY_NAME(float, Y);
-	PROPERTY_NAME(float, Width);
-	PROPERTY_NAME(float, Height);
-	PROPERTY_NAME(float, Left);
-	PROPERTY_NAME(float, Right);
-	PROPERTY_NAME(float, CenterX);
-	PROPERTY_NAME(float, CenterY);
-	PROPERTY_NAME(float, Bottom);
-	PROPERTY_NAME(float, Top);
+	PROPERTY(float, X);
+	PROPERTY(float, Y);
+	PROPERTY(float, Width);
+	PROPERTY(float, Height);
+	PROPERTY(float, Left);
+	PROPERTY(float, Right);
+	PROPERTY(float, CenterX);
+	PROPERTY(float, CenterY);
+	PROPERTY(float, Bottom);
+	PROPERTY(float, Top);
 	Rect();
 	Rect(const Vec2& origin, const Size& size);
 	Rect(float x, float y, float width, float height);
@@ -86,6 +88,7 @@ struct Rect
     bool containsPoint(const Vec2& point) const;
 	bool intersectsRect(const Rect& rect) const;
 	static const Rect zero;
+	DORA_TYPE(Rect);
 };
 
 NS_DOROTHY_END

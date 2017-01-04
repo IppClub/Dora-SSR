@@ -20,7 +20,7 @@ void PoolManager::clear()
 void PoolManager::push()
 {
 	AutoreleasePool* pool = new AutoreleasePool();
-	_releasePoolStack.push(RefMake(pool));
+	_releasePoolStack.push(MakeRef(pool));
 	pool->release();
 }
 

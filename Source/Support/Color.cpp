@@ -6,50 +6,55 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
-
-#include "Common/Own.h"
+#include "Const/Header.h"
+#include "Support/Color.h"
 
 NS_DOROTHY_BEGIN
 
-/** @brief vector of pointers, but accessed as values
- pointers pushed into OwnVector are owned by the vector,
- pointers will be auto deleted when it`s erased/removed from the vector
- or the vector is destroyed.
- Used with Composition Relationship.
-*/
-template<class T>
-class OwnVector: public vector<Own<T>>
+Color::Color():
+r(255),
+g(255),
+b(255),
+a(255)
+{ }
+
+Color::Color(Uint32 argb):
+a(argb >> 24),
+r((argb & 0x00FF0000) >> 16),
+g((argb & 0x0000FF00) >> 8),
+b(argb & 0x000000FF)
+{ }
+
+Color::Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a):
+r(r),
+g(g),
+b(b),
+a(a)
+{ }
+
+Uint32 Color::toRGBA() const
 {
-	typedef vector<Own<T>> OwnV;
-public:
-	inline void push_back(T* item)
-	{
-		OwnV::push_back(oOwnMake(item));
-	}
-	inline bool insert(size_t where, T* item)
-	{
-		if (where >= 0 && where < OwnV::size())
-		{
-			auto it = OwnV::begin();
-			for (int i = 0; i < where; ++i, ++it);
-			OwnV::insert(it, oOwnMake(item));
-			return true;
-		}
-		return false;
-	}
-	bool remove(T* item)
-	{
-		for (auto it = OwnV::begin(); it != OwnV::end(); ++it)
-		{
-			if ((*it) == item)
-			{
-				OwnV::erase(it);
-				return true;
-			}
-		}
-		return false;
-	}
-};
+	return *r_cast<Uint32*>(c_cast<Color*>(this));
+}
+
+void Color::setOpacity(float var)
+{
+	a = s_cast<Uint8>(Clamp(var, 0.0f, 1.0f) * 255.0f);
+}
+
+float Color::getOpacity() const
+{
+	return a / 255.0f;
+}
+
+bool Color::operator==(const Color& other) const
+{
+	return Color::toRGBA() == other.toRGBA();
+}
+
+bool Color::operator!=(const Color& other) const
+{
+	return Color::toRGBA() != other.toRGBA();
+}
 
 NS_DOROTHY_END

@@ -12,18 +12,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+/* Content */
+
 void __Content_loadFile(lua_State* L, Content* self, const char* filename)
 {
 	Sint64 size = 0;
 	OwnArray<Uint8> data = self->loadFile(filename, size);
-	if (!data)
-	{
-		lua_pushnil(L);
-	}
-	else
-	{
-		lua_pushlstring(L, r_cast<char*>(data.get()), (size_t)size);
-	}
+	if (data) lua_pushlstring(L, r_cast<char*>(data.get()), (size_t)size);
+	else lua_pushnil(L);
 }
 
 void __Content_getDirEntries(lua_State* L, Content* self, const char* path, bool isFolder)
@@ -45,6 +41,47 @@ void Content_setSearchPaths(Content* self, char* paths[], int length)
 		searchPaths[i] = paths[i];
 	}
 	self->setSearchPaths(searchPaths);
+}
+
+void Content_loadFileAsync(Content* self, String filename, int handler)
+{
+	LuaFunctor func(handler);
+	string file(filename);
+	self->loadFileAsync(filename, [file,func](OwnArray<Uint8> data, Sint64 size)
+	{
+		Slice str(r_cast<char*>(data.get()), size);
+		func(file,str);
+	});
+}
+
+void Content_copyFileAsync(Content* self, String src, String dst, int handler)
+{
+	LuaFunctor func(handler);
+	self->copyFileAsync(src, dst, func);
+}
+
+/* Scheduler */
+
+void Scheduler_schedule(Scheduler* self, int handler)
+{
+	self->schedule(LuaHandler::create(handler));
+}
+
+void Scheduler_unschedule(Scheduler* self, int handler)
+{
+	self->unschedule(LuaHandler::create(handler));
+}
+
+/* Director */
+
+void Director_schedule(Director* self, int handler)
+{
+	self->getSystemScheduler()->schedule(LuaHandler::create(handler));
+}
+
+void Director_unschedule(Director* self, int handler)
+{
+	self->getSystemScheduler()->unschedule(LuaHandler::create(handler));
 }
 
 NS_DOROTHY_END

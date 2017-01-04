@@ -69,6 +69,7 @@ function classCode:register (pre)
  output(b)
  output('\n'..pre..' };\n')
  if first_line and first_line ~= "" then
+	first_line = first_line:match("[^\\/]+$")
  	output(pre..' tolua_dobuffer(tolua_S,(char*)B,sizeof(B),"tolua_embedded/'..first_line..'");')
  else
  	output(pre..' tolua_dobuffer(tolua_S,(char*)B,sizeof(B),"tolua_embedded_code/'..code_n..'");')

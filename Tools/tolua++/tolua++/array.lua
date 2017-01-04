@@ -105,7 +105,7 @@ function classArray:supcode ()
  if t then
   output(' tolua_push'..t..'(tolua_S,(',ct,')'..self:getvalue(class,static)..');')
  else
-  t = _userltype[t]
+  -- t = _userltype[t] -- convert to renamed type
   local ref = ""
   if self.ptr == '&' or self.ptr == '' then ref = "&" end
    if push_func == _push_object_func_name then

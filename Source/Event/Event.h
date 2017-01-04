@@ -74,19 +74,10 @@ public:
 	}
 	virtual int pushArgsToLua() override
 	{
-		Tuple::foreach(arguments, ArgsPusher());
-		return std::tuple_size<decltype(arguments)>::value;
+		return Tuple::foreach(arguments, LuaArgsPusher());
 	}
 	std::tuple<Fields...> arguments;
 private:
-	struct ArgsPusher
-	{
-		template<typename T>
-		void operator()(const T& element)
-		{
-			SharedLueEngine.push(element);
-		}
-	};
 	static EventArgs<Fields...> _event;
 };
 

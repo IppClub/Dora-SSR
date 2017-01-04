@@ -13,6 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+MEMORY_POOL(Weak);
+
 Weak::Weak(Object* target):
 target(target),
 _refCount(1)
@@ -114,6 +116,11 @@ bool Object::update(double deltaTime)
 {
 	DORA_UNUSED_PARAM(deltaTime);
 	return true;
+}
+
+bool Object::equals(Object* other) const
+{
+	return this == other;
 }
 
 Uint32 Object::getId() const

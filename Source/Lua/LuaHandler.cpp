@@ -6,60 +6,42 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
-
-#include "Common/WRef.h"
+#include "Const/Header.h"
+#include "Lua/LuaHandler.h"
 
 NS_DOROTHY_BEGIN
 
-/** @brief Used with Aggregation Relationship. */
-template<class T = Object>
-class WRefVector: public vector<WRef<T>>
+LuaHandler::LuaHandler(int handler):
+_handler(handler)
 {
-	typedef vector<WRef<T>> WRefV;
-public:
-	inline void push_back(T* item)
-	{
-		WRefV::push_back(oWRefMake(item));
-	}
-	bool insert(size_t where, T* item)
-	{
-		if (where >= 0 && where < WRefV::size())
-		{
-			auto it = WRefV::begin();
-			for (int i = 0; i < where; ++i, ++it);
-			WRefV::insert(it, WRefMake(item));
-			return true;
-		}
-		return false;
-	}
-	bool remove(T* item)
-	{
-		for (auto it = WRefV::begin(); it != WRefV::end(); it++)
-		{
-			if ((*it) == item)
-			{
-				WRefV::erase(it);
-				return true;
-			}
-		}
-		return false;
-	}
-	bool fast_remove(T* item)
-	{
-		int size = WRefV::size();
-		WRef<T>* data = data();
-		for (int i = 0; i < size; i++)
-		{
-			if (data[i] == item)
-			{
-				data[i] = data[size - 1];
-				WRefV::pop_back();
-				return true;
-			}
-		}
-		return false;
-	}
-};
+	AssertIf(handler == 0, "invalid lua handler.");
+}
+
+LuaHandler::~LuaHandler()
+{
+	SharedLueEngine.removeScriptHandler(_handler);
+}
+
+bool LuaHandler::update(double deltaTime)
+{
+	SharedLueEngine.push(deltaTime);
+	return SharedLueEngine.executeFunction(_handler, 1) != 0;
+}
+
+bool LuaHandler::equals(Object* other) const
+{
+	LuaHandler* otherHandler = DoraCast<LuaHandler>(other);
+	return otherHandler && equals(otherHandler);
+}
+
+bool LuaHandler::equals(LuaHandler* other) const
+{
+	return SharedLueEngine.scriptHandlerEqual(_handler, other->_handler);
+}
+
+int LuaHandler::get() const
+{
+	return _handler;
+}
 
 NS_DOROTHY_END

@@ -73,7 +73,7 @@ void tolua_pushobject(lua_State* L, Object* object)
 		lua_insert(L, -3); // newud ubox newud
 		lua_rawseti(L, -2, refid); // ubox[refid] = newud, newud ubox
 		lua_pop(L, 1); // newud
-		lua_rawgeti(L, LUA_REGISTRYINDEX, object->getLuaType()); // newud mt
+		lua_rawgeti(L, LUA_REGISTRYINDEX, object->getDoraType()); // newud mt
 		lua_setmetatable(L, -2); // newud<mt>, newud
 		lua_pushvalue(L, TOLUA_NOPEER);
 		lua_setfenv(L, -2);

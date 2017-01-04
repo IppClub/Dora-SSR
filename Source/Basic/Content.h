@@ -37,10 +37,10 @@ public:
 protected:
 	Content();
 	string getFullPathForDirectoryAndFilename(String directory, String filename);
-	void copyFileUnsafe(String srcFile, String dstFile);
 	Uint8* loadFileUnsafe(String filename, Sint64& size);
-	void loadFileByChunks(String filename, const function<void(Uint8*,int)>& handler);
 	void loadFileAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback);
+	void copyFileUnsafe(String srcFile, String dstFile);
+	void loadFileByChunks(String filename, const function<void(Uint8*,int)>& handler);
 	void saveToFileUnsafe(String filename, String content);
 	void saveToFileUnsafe(String filename, Uint8* content, Sint64 size);
 private:
@@ -48,7 +48,7 @@ private:
 	string _writablePath;
 	vector<string> _searchPaths;
 	unordered_map<string, string> _fullPathCache;
-	LUA_TYPE_OVERRIDE(Content);
+	DORA_TYPE_OVERRIDE(Content);
 };
 
 #define SharedContent \

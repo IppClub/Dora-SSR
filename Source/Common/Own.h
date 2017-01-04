@@ -12,7 +12,7 @@ NS_DOROTHY_BEGIN
 
 /** @brief Used with Composition Relationship. */
 template<class Item, class Del = std::default_delete<Item>>
-class Own: public std::unique_ptr<Item, Del>
+class Own : public std::unique_ptr<Item, Del>
 {
 public:
 	Own(){}
@@ -33,8 +33,8 @@ public:
 		return *this;
 	}
 private:
-	Own(const Own& own);
-	const Own& operator=(const Own& own);
+	Own(const Own& own) = delete;
+	const Own& operator=(const Own& own) = delete;
 };
 
 template<class Item>
@@ -61,21 +61,67 @@ private:
 
 /** Useless */
 template<class T>
-inline Own<T> OwnMake(T* item)
+inline Own<T> MakeOwn(T* item)
 {
 	return Own<T>(item);
 }
 
 template<class T, class... Args>
-inline Own<T> OwnNew(Args&&... args)
+inline Own<T> NewOwn(Args&&... args)
 {
 	return Own<T>(new T(std::forward<Args>(args)...));
 }
 
 template<class T>
-inline OwnArray<T> OwnArrayMake(T* item)
+inline OwnArray<T> MakeOwnArray(T* item)
 {
 	return OwnArray<T>(item);
 }
+
+/** @brief vector of pointers, but accessed as values
+ pointers pushed into OwnVector are owned by the vector,
+ pointers will be auto deleted when it`s erased/removed from the vector
+ or the vector is destroyed.
+ Used with Composition Relationship.
+*/
+template<class T>
+class OwnVector : public vector<Own<T>>
+{
+	typedef vector<Own<T>> OwnV;
+public:
+	using OwnV::OwnV;
+	using OwnV::insert;
+
+	inline void push_back(T* item)
+	{
+		OwnV::push_back(MakeOwn(item));
+	}
+	typename OwnV::iterator insert(size_t where, T* item)
+	{
+		return OwnV::insert(OwnV::begin() + where, MakeOwn(item));
+	}
+	bool remove(T* item)
+	{
+		auto it = std::remove(OwnV::begin(), OwnV::end(), item);
+		if (it == OwnV::end()) return false;
+		OwnV::erase(it);
+		return true;
+	}
+	typename OwnV::iterator index(T* item)
+	{
+		return std::find(OwnV::begin(), OwnV::end(), item);
+	}
+	bool fast_remove(T* item)
+	{
+		size_t index = std::distance(OwnV::begin(), OwnVector::index(item));
+		if (index < OwnV::size())
+		{
+			std::swap(OwnV::at(index), OwnV::back());
+			OwnV::pop_back();
+			return true;
+		}
+		return false;
+	}
+};
 
 NS_DOROTHY_END

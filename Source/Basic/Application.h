@@ -30,8 +30,9 @@ public:
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
-	PROPERTY_READONLY(double, UpdateTime);
+	PROPERTY_READONLY(double, CPUTime);
 	PROPERTY_READONLY(TargetPlatform, Platform);
+	PROPERTY(unsigned int, Seed);
 	int run();
 	void shutdown();
 	static int mainLogic(void* userData);
@@ -42,13 +43,14 @@ protected:
 	void setSdlWindow(SDL_Window* window);
 	bgfx::RenderFrame::Enum renderFrame();
 private:
-	const double _frequency;
-	bx::Thread _logicThread;
-	double _lastTime;
-	double _deltaTime;
-	double _updateTime;
+	unsigned int _seed;
 	int _width;
 	int _height;
+	const double _frequency;
+	double _lastTime;
+	double _deltaTime;
+	double _cpuTime;
+	bx::Thread _logicThread;
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
 };

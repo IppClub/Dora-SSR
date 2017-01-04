@@ -11,46 +11,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-// pretend to be a compactible object for AcfDelegate
-class FuncWrapper
+class FuncWrapper : public Object
 {
 public:
-	FuncWrapper(const function<bool (double)>& func):_func(func) { }
-	const FuncWrapper& operator*() const { return *this; }
-	bool operator==(const FuncWrapper& wrapper) const
+	virtual bool update(double deltaTime) override
 	{
-		return _func.target<bool(*)(double)>() == wrapper._func.target<bool(*)(double)>();
+		return func(deltaTime);
 	}
-	void call(double deltaTime, Scheduler* scheduler) const
-	{
-		if (_func(deltaTime))
-		{
-			scheduler->unschedule(_func);
-		}
-	}
-private:
-	function<bool (double)> _func;
-};
-
-// tweak to deal with return value
-class ObjectWrapper
-{
-public:
-	ObjectWrapper(Object* object):_object(object) { }
-	const ObjectWrapper& operator*() const { return *this; }
-	bool operator==(const ObjectWrapper& wrapper) const
-	{
-		return _object == wrapper._object;
-	}
-	void call(double deltaTime, Scheduler* scheduler) const
-	{
-		if (_object->update(deltaTime))
-		{
-			scheduler->unschedule(_object);
-		}
-	}
-private:
-	Ref<Object> _object;
+	function<bool (double)> func;
+	list<Ref<Object>>::iterator it;
+	CREATE_FUNC(FuncWrapper);
+protected:
+	FuncWrapper(const function<bool (double)>& func):func(func) { }
+	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
 Scheduler::Scheduler():
@@ -59,7 +32,7 @@ _timeScale(1.0f)
 
 void Scheduler::setTimeScale(float value)
 {
-	_timeScale = max(0.0f, value);
+	_timeScale = std::max(0.0f, value);
 }
 
 float Scheduler::getTimeScale() const
@@ -69,27 +42,50 @@ float Scheduler::getTimeScale() const
 
 void Scheduler::schedule(Object* object)
 {
-	_updateHandler += std::make_pair(ObjectWrapper(object), &ObjectWrapper::call);
+	auto it = _updateList.insert(_updateList.end(), MakeRef(object));
+	_updateMap[object] = it;
 }
 
 void Scheduler::schedule(const function<bool (double)>& handler)
 {
-	_updateHandler += std::make_pair(FuncWrapper(handler), &FuncWrapper::call);
+	FuncWrapper* func = FuncWrapper::create(handler);
+	func->it = _updateList.insert(_updateList.end(), Ref<Object>(func));
 }
 
 void Scheduler::unschedule(Object* object)
 {
-	_updateHandler -= std::make_pair(ObjectWrapper(object), &ObjectWrapper::call);
+	auto it = _updateMap.find(object);
+	if (it != _updateMap.end())
+	{
+		_updateList.erase(it->second);
+		_updateMap.erase(it);
+	}
 }
 
-void Scheduler::unschedule(const function<bool (double)>& handler)
+void Scheduler::doUpdate()
 {
-	_updateHandler -= std::make_pair(FuncWrapper(handler), &FuncWrapper::call);
+	if (_it != _updateList.rend())
+	{
+		Ref<Object> item(*_it);
+		++_it;
+		doUpdate();
+		if (item->update(_deltaTime))
+		{
+			FuncWrapper* func = DoraCast<FuncWrapper>(item.get());
+			if (func)
+			{
+				_updateList.erase(func->it);
+			}
+			else unschedule(item);
+		}
+	}
 }
 
 bool Scheduler::update(double deltaTime)
 {
-	_updateHandler(deltaTime * _timeScale, this);
+	_deltaTime = deltaTime * _timeScale;
+	_it = _updateList.rbegin();
+	doUpdate();
 	return false;
 }
 

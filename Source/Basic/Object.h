@@ -20,6 +20,7 @@ public:
 	Object* target;
 private:
 	int _refCount;
+	USE_MEMORY_POOL(Weak);
 };
 
 class Object
@@ -29,23 +30,24 @@ public:
 	PROPERTY_READONLY_CALL(Uint32, LuaRef);
 	PROPERTY_READONLY_BOOL(LuaReferenced);
 	PROPERTY_READONLY_BOOL(SingleReferenced);
+	PROPERTY_READONLY(Uint32, RefCount);
+	PROPERTY_READONLY_CALL(Weak*, WeakRef);
 	PROPERTY_READONLY_CLASS(Uint32, ObjectCount);
 	PROPERTY_READONLY_CLASS(Uint32, MaxObjectCount);
 	PROPERTY_READONLY_CLASS(Uint32, LuaRefCount);
 	PROPERTY_READONLY_CLASS(Uint32, MaxLuaRefCount);
 	PROPERTY_READONLY_CLASS(Uint32, LuaCallbackCount);
 	PROPERTY_READONLY_CLASS(Uint32, MaxLuaCallbackCount);
-	PROPERTY_READONLY(Uint32, RefCount);
-	PROPERTY_READONLY_CALL(Weak*, WeakRef);
 	virtual ~Object();
 	virtual bool init();
+	/** @brief return true to stop updating, false to continue. */
+	virtual bool update(double deltaTime);
+	virtual bool equals(Object* other) const;
 	void addLuaRef();
 	void removeLuaRef();
 	void release();
 	void retain();
 	Object* autorelease();
-	/** @brief return true to stop updating, false to continue. */
-	virtual bool update(double deltaTime);
 protected:
 	Object();
 private:
@@ -60,7 +62,7 @@ private:
 	static stack<Uint32> _availableLuaRefs;
 	static Uint32 _luaRefCount;
 	friend class PoolManager;
-	LUA_TYPE_BASE(Object);
+	DORA_TYPE_BASE(Object);
 };
 
 NS_DOROTHY_END

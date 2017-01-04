@@ -264,7 +264,7 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 	{
 		Uint8* buffer;
 		Sint64 size;
-		auto data = OwnMake(r_cast<std::tuple<Uint8*,Sint64>*>(result));
+		auto data = MakeOwn(r_cast<std::tuple<Uint8*,Sint64>*>(result));
 		std::tie(buffer,size) = *data;
 		callback(buffer,size);
 	});
@@ -274,7 +274,7 @@ void Content::loadFileAsync(String filename, const function<void (OwnArray<Uint8
 {
 	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
-		callback(OwnArrayMake(buffer), size);
+		callback(MakeOwnArray(buffer), size);
 	});
 }
 
@@ -299,7 +299,7 @@ void Content::saveToFileAsync(String filename, String content, const function<vo
 	auto data = new string(content);
 	Async::FileIO.run([file,data,this]()
 	{
-		Content::saveToFile(file, *OwnMake(data));
+		Content::saveToFile(file, *MakeOwn(data));
 		return nullptr;
 	},
 	[callback](void* result)
@@ -315,7 +315,7 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, Sint64 s
 	auto data = new OwnArray<Uint8>(std::move(content));
 	Async::FileIO.run([file,data,size,this]()
 	{
-		Content::saveToFile(file, *OwnMake(data).get(), size);
+		Content::saveToFile(file, *MakeOwn(data).get(), size);
 		return nullptr;
 	},
 	[callback](void* result)

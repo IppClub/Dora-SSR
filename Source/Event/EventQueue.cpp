@@ -25,7 +25,7 @@ EventQueue::~EventQueue()
 
 Own<QEvent> EventQueue::poll()
 {
-	return OwnMake(_queue.pop());
+	return MakeOwn(_queue.pop());
 }
 
 QEvent* EventQueue::peek()

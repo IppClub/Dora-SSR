@@ -13,7 +13,7 @@ NS_DOROTHY_BEGIN
 /** @brief Used with Aggregation Relationship. 
  @param T Object
 */
-template<class T>
+template<class T = Object>
 class Ref
 {
 public:
@@ -118,10 +118,51 @@ private:
 	T* _item;
 };
 
-template <class name>
-inline Ref<name> RefMake(name* item)
+template <class T>
+inline Ref<T> MakeRef(T* item)
 {
-	return Ref<name>(item);
+	return Ref<T>(item);
 }
+
+/** @brief Used with Aggregation Relationship. */
+template<class T = Object>
+class RefVector : public vector<Ref<T>>
+{
+	typedef vector<Ref<T>> RefV;
+public:
+	using RefV::RefV;
+	using RefV::insert;
+	
+	inline void push_back(T* item)
+	{
+		RefV::push_back(MakeRef(item));
+	}
+	typename RefV::iterator insert(size_t where, T* item)
+	{
+		return RefV::insert(RefV::begin() + where, MakeRef(item));
+	}
+	bool remove(T* item)
+	{
+		auto it = std::remove(RefV::begin(), RefV::end(), item);
+		if (it == RefV::end()) return false;
+		RefV::erase(it);
+		return true;
+	}
+	typename RefV::iterator index(T* item)
+	{
+		return std::find(RefV::begin(), RefV::end(), item);
+	}
+	bool fast_remove(T* item)
+	{
+		size_t index = std::distance(RefV::begin(), RefVector::index(item));
+		if (index < RefV::size())
+		{
+			std::swap(RefV::at(index), RefV::back());
+			RefV::pop_back();
+			return true;
+		}
+		return false;
+	}
+};
 
 NS_DOROTHY_END

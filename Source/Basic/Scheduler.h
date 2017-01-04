@@ -12,20 +12,25 @@ NS_DOROTHY_BEGIN
 
 class Scheduler : public Object
 {
-	typedef Delegate<void (double deltaTime, Scheduler* scheduler)> UpdateHandler;
+	typedef list<Ref<Object>> UpdateList;
+	typedef unordered_map<Object*, UpdateList::iterator> UpdateMap;
 public:
-	PROPERTY(float, _timeScale, TimeScale);
+	PROPERTY(float, TimeScale);
 	void schedule(Object* object);
 	void schedule(const function<bool (double)>& handler);
 	void unschedule(Object* object);
-	void unschedule(const function<bool (double)>& handler);
 	virtual bool update(double deltaTime) override;
-	CREATE_FUNC(Scheduler)
+	CREATE_FUNC(Scheduler);
 protected:	
 	Scheduler();
+	void doUpdate();
 private:
-	UpdateHandler _updateHandler;
-	LUA_TYPE_OVERRIDE(Scheduler);
+	float _timeScale;
+	float _deltaTime;
+	UpdateList::reverse_iterator _it;
+	UpdateList _updateList;
+	UpdateMap _updateMap;
+	DORA_TYPE_OVERRIDE(Scheduler);
 };
 
 NS_DOROTHY_END

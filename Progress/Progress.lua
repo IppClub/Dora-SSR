@@ -95,6 +95,21 @@ CCNode	129	n
 	addTo	3	n
 	removeChildByTag	2	n
 	running	2	n
+CCArray	100	n
+	insert	214	n
+	remove	52	n
+	index	32	n
+	each	12	n
+	get	8	n
+	last	7	n
+	count	7	n
+	set	7	n
+	exchange	5	n
+	clear	4	n
+	removeLast	3	n
+	add	2	n
+	reverse	1	n
+	contains	1	n
 CCScene	63	n
 	addChild	1138	n
 	fade	13	n
@@ -475,7 +490,7 @@ tolua	26	y
 package	8	d
 	path	39	d
 	loaded	8	d
-debug	7	n
+debug	7	y
 	getmetatable	10	d
 	debug	7	d
 	getinfo	7	d
@@ -499,7 +514,7 @@ CCDelay	65	n
 CCHide	50	n
 CCSpawn	44	n
 CCShow	22	n
-cclog	9	n
+cclog	9	y
 CCRepeatForever	7	n
 CCProgress	2	n
 CCRepeat	2	n
@@ -507,23 +522,23 @@ CCRepeat	2	n
 oOpacity	221	n
 oScale	194	n
 oPos	83	n
-once	50	n
+once	50	y
 oCon	9	n
 oAct	6	n
 oRotate	4	n
 ----- Other Function-----
-require	2168	n
+require	2168	y
 tostring	448	d
-emit	399	n
+emit	399	y
 property	145	y
 pairs	126	d
 ipairs	108	d
-sleep	97	n
+sleep	97	y
 type	93	d
 print	75	y
 Dorothy	69	y
-using	60	n
-thread	41	n
+using	60	y
+thread	41	y
 setmetatable	32	d
 unpack	25	d
 rawget	18	d
@@ -535,12 +550,12 @@ rawset	12	d
 getmetatable	10	d
 tonumber	10	d
 error	10	d
-wait	6	n
-seconds	5	n
+wait	6	y
+seconds	5	y
 loadfile	5	y
 setfenv	3	d
 loadstring	3	y
-loop	2	n
+loop	2	y
 ubox	2	y
 assert	2	d
 next	1	d

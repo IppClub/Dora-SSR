@@ -31,6 +31,7 @@ public:
 	void push(double value);
 	void push(Object* value);
 	void push(String value);
+	void push(std::nullptr_t);
 
 	template<typename T>
 	void push(T* t)

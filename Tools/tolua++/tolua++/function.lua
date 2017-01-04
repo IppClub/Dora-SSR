@@ -277,7 +277,7 @@ function classFunction:supcode(local_constructor)
 		owned = true
 	end
     local push_func = get_push_function(t)
-	t = _userltype[self.type]
+	-- new_t = _userltype[new_t] -- convert to renamed type
     if self.ptr == '' then
      output('   {')
      output('    void* tolua_obj = Mtolua_new((',new_t,')(tolua_ret));')

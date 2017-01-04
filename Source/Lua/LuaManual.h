@@ -16,6 +16,20 @@ void __Content_loadFile(lua_State* L, Content* self, const char* filename);
 void __Content_getDirEntries(lua_State* L, Content* self, const char* path, bool isFolder);
 #define Content_getDirEntries(self,path,isFolder) {__Content_getDirEntries(tolua_S,self,path,isFolder);return 1;}
 void Content_setSearchPaths(Content* self, char* paths[], int length);
+void Content_loadFileAsync(Content* self, String filename, int handler);
+void Content_copyFileAsync(Content* self, String src, String dst, int handler);
 inline Content* Content_shared() { return &SharedContent; }
+
+/* Scheduler */
+void Scheduler_schedule(Scheduler* self, int handler);
+void Scheduler_unschedule(Scheduler* self, int handler);
+
+/* Director */
+void Director_schedule(Director* self, int handler);
+void Director_unschedule(Director* self, int handler);
+inline Director* Director_shared() { return &SharedDirector; }
+
+/* Log */
+inline void Dora_Log(String msg) { Log("%s", msg); }
 
 NS_DOROTHY_END
