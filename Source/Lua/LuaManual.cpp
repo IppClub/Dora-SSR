@@ -49,7 +49,7 @@ void Content_loadFileAsync(Content* self, String filename, int handler)
 	string file(filename);
 	self->loadFileAsync(filename, [file,func](OwnArray<Uint8> data, Sint64 size)
 	{
-		Slice str(r_cast<char*>(data.get()), size);
+		Slice str(r_cast<char*>(data.get()), s_cast<size_t>(size));
 		func(file,str);
 	});
 }

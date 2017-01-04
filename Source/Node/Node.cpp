@@ -432,7 +432,7 @@ void Node::setOff(Uint32 type)
 
 bool Node::isOn(Uint32 type) const
 {
-	return _flags & type;
+	return (_flags & type) != 0;
 }
 
 bool Node::isOff(Uint32 type) const

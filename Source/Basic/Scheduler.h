@@ -26,7 +26,7 @@ protected:
 	void doUpdate();
 private:
 	float _timeScale;
-	float _deltaTime;
+	double _deltaTime;
 	UpdateList::reverse_iterator _it;
 	UpdateList _updateList;
 	UpdateMap _updateMap;

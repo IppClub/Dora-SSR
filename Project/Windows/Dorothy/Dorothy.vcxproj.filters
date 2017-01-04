@@ -40,6 +40,9 @@
     <Filter Include="Node">
       <UniqueIdentifier>{1c47b2cc-37f8-4db4-9351-ffef75ba037a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Support">
+      <UniqueIdentifier>{da89bd03-e4d8-4c9e-aa63-f0e5e41cb1f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -99,9 +102,6 @@
     <ClCompile Include="..\..\..\Source\Lua\LuaEngine.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\LuaHelper.cpp">
-      <Filter>Lua</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\LuaManual.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
@@ -134,6 +134,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\LuaHandler.cpp">
       <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Array.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Color.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Geometry.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Utils.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -203,19 +215,10 @@
     <ClInclude Include="..\..\..\Source\Common\Own.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Common\OwnVector.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Ref.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Common\RefVector.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\WRef.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Common\WRefVector.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Const\Define.h">
@@ -240,9 +243,6 @@
       <Filter>Lua</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\LuaEngine.h">
-      <Filter>Lua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\LuaHelper.h">
       <Filter>Lua</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h">
@@ -271,6 +271,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\LuaHandler.h">
       <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Array.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Color.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Geometry.h">
+      <Filter>Support</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

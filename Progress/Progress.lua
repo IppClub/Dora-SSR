@@ -68,9 +68,9 @@ CCNode	129	n
 	scaleY	202	n
 	parent	170	n
 	angle	109	n
-	schedule	97	n
+	schedule	97	y
 	removeChild	92	n
-	unschedule	65	n
+	unschedule	65	y
 	convertToNodeSpace	60	n
 	cascadeOpacity	59	n
 	stopAllActions	45	n
@@ -78,16 +78,16 @@ CCNode	129	n
 	cascadeColor	39	n
 	eachChild	32	n
 	data	31	n
-	scheduler	30	n
+	scheduler	30	y
 	skewY	25	n
 	skewX	25	n
 	removeAllChildrenWithCleanup	23	n
 	cleanup	18	n
 	convertToWorldSpace	17	n
-	tag	15	n
+	tag	15	y
 	zOrder	9	n
 	stopAction	8	n
-	scheduled	7	n
+	scheduled	7	y
 	numberOfRunningActions	6	n
 	boundingBox	5	n
 	getChildByTag	5	n
@@ -95,21 +95,21 @@ CCNode	129	n
 	addTo	3	n
 	removeChildByTag	2	n
 	running	2	n
-CCArray	100	n
-	insert	214	n
-	remove	52	n
-	index	32	n
-	each	12	n
-	get	8	n
-	last	7	n
-	count	7	n
-	set	7	n
-	exchange	5	n
-	clear	4	n
-	removeLast	3	n
-	add	2	n
-	reverse	1	n
-	contains	1	n
+CCArray	100	y
+	insert	214	y
+	remove	52	y
+	index	32	y
+	each	12	y
+	get	8	y
+	last	7	y
+	count	7	y
+	set	7	y
+	exchange	5	y
+	clear	4	y
+	removeLast	3	y
+	add	2	y
+	reverse	1	y
+	contains	1	y
 CCScene	63	n
 	addChild	1138	n
 	fade	13	n
