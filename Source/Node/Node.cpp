@@ -27,21 +27,22 @@ _positionZ(0.0f),
 _position(),
 _anchor(0.5f, 0.5f),
 _size(),
-localTransform{},
 _scheduler(SharedDirector.getScheduler())
-{ }
+{
+	bx::mtxIdentity(_localTransform);
+}
 
 Node::~Node()
-{
-}
+{ }
 
 void Node::setZOrder(int var)
 {
 	if (_zOrder != var)
 	{
+		_zOrder = var;
 		if (_parent)
 		{
-
+			_parent->setOn(Node::Reorder);
 		}
 	}
 }
@@ -53,6 +54,8 @@ int Node::getZOrder() const
 
 void Node::setAngle(float var)
 {
+	_angle = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getAngle() const
@@ -62,6 +65,8 @@ float Node::getAngle() const
 
 void Node::setScaleX(float var)
 {
+	_scaleX = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getScaleX() const
@@ -71,6 +76,8 @@ float Node::getScaleX() const
 
 void Node::setScaleY(float var)
 {
+	_scaleY = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getScaleY() const
@@ -80,6 +87,8 @@ float Node::getScaleY() const
 
 void Node::setX(float var)
 {
+	_position.x = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getX() const
@@ -89,6 +98,8 @@ float Node::getX() const
 
 void Node::setY(float var)
 {
+	_position.y = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getY() const
@@ -98,6 +109,8 @@ float Node::getY() const
 
 void Node::setZ(float var)
 {
+	_positionZ = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getZ() const
@@ -107,6 +120,8 @@ float Node::getZ() const
 
 void Node::setPosition(const Vec2& var)
 {
+	_position = var;
+	setOn(Node::Dirty);
 }
 
 const Vec2& Node::getPosition() const
@@ -116,6 +131,8 @@ const Vec2& Node::getPosition() const
 
 void Node::setSkewX(float var)
 {
+	_skewX = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getSkewX() const
@@ -125,6 +142,8 @@ float Node::getSkewX() const
 
 void Node::setSkewY(float var)
 {
+	_skewY = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getSkewY() const
@@ -134,6 +153,7 @@ float Node::getSkewY() const
 
 void Node::setVisible(bool var)
 {
+	setFlag(Node::Visible, var);
 }
 
 bool Node::isVisible() const
@@ -143,6 +163,8 @@ bool Node::isVisible() const
 
 void Node::setAnchor(const Vec2& var)
 {
+	_anchor = var;
+	setOn(Node::Dirty);
 }
 
 const Vec2& Node::getAnchor() const
@@ -152,6 +174,8 @@ const Vec2& Node::getAnchor() const
 
 void Node::setWidth(float var)
 {
+	_size.width = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getWidth() const
@@ -161,6 +185,8 @@ float Node::getWidth() const
 
 void Node::setHeight(float var)
 {
+	_size.height = var;
+	setOn(Node::Dirty);
 }
 
 float Node::getHeight() const
@@ -170,6 +196,8 @@ float Node::getHeight() const
 
 void Node::setSize(const Size& var)
 {
+	_size = var;
+	setOn(Node::Dirty);
 }
 
 const Size& Node::getSize() const
@@ -179,6 +207,7 @@ const Size& Node::getSize() const
 
 void Node::setTag(int var)
 {
+	_tag = var;
 }
 
 int Node::getTag() const
@@ -188,6 +217,7 @@ int Node::getTag() const
 
 void Node::setOpacity(float var)
 {
+	_color.setOpacity(var);
 }
 
 float Node::getOpacity() const
@@ -197,6 +227,7 @@ float Node::getOpacity() const
 
 void Node::setColor(Color var)
 {
+	_color = var;
 }
 
 Color Node::getColor() const
@@ -204,8 +235,19 @@ Color Node::getColor() const
 	return _color;
 }
 
+void Node::setColor3(Color3 var)
+{
+	_color = var;
+}
+
+Color3 Node::getColor3() const
+{
+	return _color.toColor3();
+}
+
 void Node::setPassOpacity(bool var)
 {
+	setFlag(Node::PassOpacity, var);
 }
 
 bool Node::isPassOpacity() const
@@ -215,6 +257,7 @@ bool Node::isPassOpacity() const
 
 void Node::setPassColor(bool var)
 {
+	setFlag(Node::PassColor, var);
 }
 
 bool Node::isPassColor() const
@@ -234,7 +277,16 @@ Node* Node::getTransformTarget() const
 
 void Node::setScheduler(Scheduler* var)
 {
-	_scheduler = var;
+	if (isUpdating())
+	{
+		_scheduler->unschedule(this);
+		_scheduler = var;
+		_scheduler->schedule(this);
+	}
+	else
+	{
+		_scheduler = var;
+	}
 }
 
 Scheduler* Node::getScheduler() const
@@ -325,6 +377,7 @@ void Node::cleanup()
 		setOn(Node::Cleanup);
 		unschedule();
 		unscheduleUpdate();
+		_userData = nullptr;
 	}
 }
 
@@ -430,6 +483,18 @@ void Node::setOff(Uint32 type)
 	_flags &= ~type;
 }
 
+void Node::setFlag(Uint32 type, bool value)
+{
+	if (value)
+	{
+		_flags |= type;
+	}
+	else
+	{
+		_flags &= ~type;
+	}
+}
+
 bool Node::isOn(Uint32 type) const
 {
 	return (_flags & type) != 0;
@@ -438,6 +503,28 @@ bool Node::isOn(Uint32 type) const
 bool Node::isOff(Uint32 type) const
 {
 	return !(_flags & type);
+}
+
+void Node::sortAllChildren()
+{
+	if (isOn(Node::Reorder))
+	{
+		RefVector<Object>& data = _children->data();
+		// insertion sort
+		int count = _children->getCount();
+		for (int i = 1; i < count; i++)
+		{
+			Node* item = data[i].to<Node>();
+			int j = i - 1;
+			while (j >= 0 && item->_zOrder < data[j].to<Node>()->_zOrder)
+			{
+				data[j + 1] = data[j];
+				j--;
+			}
+			data[j + 1] = item;
+		}
+		setOff(Node::Reorder);
+	}
 }
 
 NS_DOROTHY_END

@@ -67,21 +67,11 @@ void Scheduler_schedule(Scheduler* self, int handler)
 	self->schedule(LuaHandler::create(handler));
 }
 
-void Scheduler_unschedule(Scheduler* self, int handler)
-{
-	self->unschedule(LuaHandler::create(handler));
-}
-
 /* Director */
 
 void Director_schedule(Director* self, int handler)
 {
 	self->getSystemScheduler()->schedule(LuaHandler::create(handler));
-}
-
-void Director_unschedule(Director* self, int handler)
-{
-	self->getSystemScheduler()->unschedule(LuaHandler::create(handler));
 }
 
 NS_DOROTHY_END

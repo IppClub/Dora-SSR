@@ -28,12 +28,6 @@ bool LuaHandler::update(double deltaTime)
 	return SharedLueEngine.executeFunction(_handler, 1) != 0;
 }
 
-bool LuaHandler::equals(Object* other) const
-{
-	LuaHandler* otherHandler = DoraCast<LuaHandler>(other);
-	return otherHandler && equals(otherHandler);
-}
-
 bool LuaHandler::equals(LuaHandler* other) const
 {
 	return SharedLueEngine.scriptHandlerEqual(_handler, other->_handler);

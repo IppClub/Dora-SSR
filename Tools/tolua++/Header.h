@@ -50,7 +50,6 @@ class Scheduler : public Object
 	void schedule(Object* object);
 	tolua_outside void Scheduler_schedule @ schedule(tolua_function handler);
 	void unschedule(Object* object);
-	tolua_outside void Scheduler_unschedule @ unschedule(tolua_function handler);
 	static Scheduler* create();
 };
 
@@ -59,7 +58,6 @@ class Director
 	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common double deltaTime;
 	tolua_outside void Director_schedule @ schedule(tolua_function handler);
-	tolua_outside void Director_unschedule @ unschedule(tolua_function handler);
 	static tolua_outside Director* Director_shared @ create();
 };
 

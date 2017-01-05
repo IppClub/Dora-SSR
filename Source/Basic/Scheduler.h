@@ -21,7 +21,7 @@ public:
 	void unschedule(Object* object);
 	virtual bool update(double deltaTime) override;
 	CREATE_FUNC(Scheduler);
-protected:	
+protected:
 	Scheduler();
 	void doUpdate();
 private:

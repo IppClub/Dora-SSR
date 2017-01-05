@@ -145,7 +145,7 @@ void Array::fastRemoveAt(int index)
 	_data.erase(_data.begin() + index);
 }
 
-const RefVector<Object>& Array::data() const
+RefVector<Object>& Array::data()
 {
 	return _data;
 }

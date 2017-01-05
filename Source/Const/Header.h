@@ -39,6 +39,7 @@ using Acf::Delegate;
 #include "bgfx/bgfx.h"
 #include "bx/thread.h"
 #include "bx/sem.h"
+#include "bx/fpumath.h"
 #include "silly/LifeCycledSingleton.h"
 #include "silly/Slice.h"
 using namespace silly::slice;

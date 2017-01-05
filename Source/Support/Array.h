@@ -36,7 +36,7 @@ public:
 	void insert(int index, Object* object);
 	void removeAt(int index);
 	void fastRemoveAt(int index);
-	const RefVector<Object>& data() const;
+	RefVector<Object>& data();
 	CREATE_FUNC(Array);
 protected:
 	Array();

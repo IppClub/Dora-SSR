@@ -84,7 +84,7 @@ setmetatable(Routine,
 	end,
 })
 
-local function Routine_update()
+Director:schedule(function()
 	local i,count = 1,#Routine
 	while i <= count do
 		if Routine[i]() then
@@ -95,18 +95,8 @@ local function Routine_update()
 		end
 		i = i+1
 	end
-end
-
-Routine.start = function(self)
-	Routine:stop()
-	Director:schedule(Routine_update)
-end
-
-Routine.stop = function(self)
-	Director:unschedule(Routine_update)
-end
-
-Routine:start()
+	return false
+end)
 
 builtin.Routine = Routine
 builtin.wait = wait

@@ -118,11 +118,6 @@ bool Object::update(double deltaTime)
 	return true;
 }
 
-bool Object::equals(Object* other) const
-{
-	return this == other;
-}
-
 Uint32 Object::getId() const
 {
 	return _id;

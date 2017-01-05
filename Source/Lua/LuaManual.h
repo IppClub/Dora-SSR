@@ -22,11 +22,9 @@ inline Content* Content_shared() { return &SharedContent; }
 
 /* Scheduler */
 void Scheduler_schedule(Scheduler* self, int handler);
-void Scheduler_unschedule(Scheduler* self, int handler);
 
 /* Director */
 void Director_schedule(Director* self, int handler);
-void Director_unschedule(Director* self, int handler);
 inline Director* Director_shared() { return &SharedDirector; }
 
 /* Log */

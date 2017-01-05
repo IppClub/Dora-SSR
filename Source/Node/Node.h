@@ -31,6 +31,7 @@ public:
 	PROPERTY(int, Tag);
 	PROPERTY(float, Opacity);
 	PROPERTY(Color, Color);
+	PROPERTY(Color3, Color3);
 	PROPERTY_BOOL(PassOpacity);
 	PROPERTY_BOOL(PassColor);
 	PROPERTY(Node*, TransformTarget);
@@ -86,8 +87,10 @@ protected:
 	virtual ~Node();
 	void setOn(Uint32 type);
 	void setOff(Uint32 type);
+	void setFlag(Uint32 type, bool value);
 	bool isOn(Uint32 type) const;
 	bool isOff(Uint32 type) const;
+	void sortAllChildren();
 protected:
 	Uint32 _flags;
 	int _tag;
@@ -104,7 +107,7 @@ protected:
 	Vec2 _position;
 	Vec2 _anchor;
 	Size _size;
-	float localTransform[16];
+	float _localTransform[16];
 	WRef<Node> _transformTarget;
 	WRef<Node> _parent;
 	Ref<Object> _userData;

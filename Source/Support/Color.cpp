@@ -11,11 +11,40 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+Color3::Color3():
+r(255),
+g(255),
+b(255)
+{ }
+
+Color3::Color3(Uint32 rgb):
+r((rgb & 0x00FF0000) >> 16),
+g((rgb & 0x0000FF00) >> 8),
+b(rgb & 0x000000FF)
+{ }
+
+Color3::Color3(Uint8 r, Uint8 g, Uint8 b):
+r(r),
+g(g),
+b(b)
+{ }
+
+Uint32 Color3::toRGB() const
+{
+	return r << 16 | g << 8 | b;
+}
+
 Color::Color():
 r(255),
 g(255),
 b(255),
 a(255)
+{ }
+
+Color::Color(Color3 color):
+r(color.r),
+g(color.g),
+b(color.b)
 { }
 
 Color::Color(Uint32 argb):
@@ -37,6 +66,11 @@ Uint32 Color::toRGBA() const
 	return *r_cast<Uint32*>(c_cast<Color*>(this));
 }
 
+Color3 Color::toColor3() const
+{
+	return Color3(r, g, b);
+}
+
 void Color::setOpacity(float var)
 {
 	a = s_cast<Uint8>(Clamp(var, 0.0f, 1.0f) * 255.0f);
@@ -47,14 +81,21 @@ float Color::getOpacity() const
 	return a / 255.0f;
 }
 
-bool Color::operator==(const Color& other) const
+Color& Color::operator=(const Color3& color)
 {
-	return Color::toRGBA() == other.toRGBA();
+	r = color.r;
+	g = color.g;
+	b = color.b;
+	return *this;
 }
 
-bool Color::operator!=(const Color& other) const
+Color& Color::operator=(const Color& color)
 {
-	return Color::toRGBA() != other.toRGBA();
+	r = color.r;
+	g = color.g;
+	b = color.b;
+	a = color.a;
+	return *this;
 }
 
 NS_DOROTHY_END

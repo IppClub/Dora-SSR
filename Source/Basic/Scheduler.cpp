@@ -65,10 +65,9 @@ void Scheduler::unschedule(Object* object)
 
 void Scheduler::doUpdate()
 {
-	// not copy _it and _deltaTime to the stack memory
 	if (_it != _updateList.rend())
 	{
-		/** copy object ptrs to the stack memory and keep them referenced
+		/** save object ptrs on the stack memory and keep them referenced
 		 in case they are deleted during iteration
 		 */
 		Ref<Object> item(*_it);
@@ -88,6 +87,7 @@ void Scheduler::doUpdate()
 
 bool Scheduler::update(double deltaTime)
 {
+	// not save _it and _deltaTime on the stack memory
 	_deltaTime = deltaTime * _timeScale;
 	_it = _updateList.rbegin();
 	doUpdate();

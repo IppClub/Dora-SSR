@@ -114,6 +114,11 @@ public:
 	{
 		return _item;
 	}
+	template<class Type>
+	inline Type* to()
+	{
+		return s_cast<Type*>(_item);
+	}
 private:
 	T* _item;
 };
