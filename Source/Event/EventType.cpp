@@ -46,14 +46,14 @@ void EventType::handle(Event* event, int index)
 	{
 		// save listener on stack and make a reference here
 		Ref<Listener> listener(_listeners[index]);
-		EventType::handle(event, index-1);
+		EventType::handle(event, index - 1);
 		listener->handle(event);
 	}
 }
 
 void EventType::handle(Event* event)
 {
-	EventType::handle(event, (int)_listeners.size()-1);
+	EventType::handle(event, (int)_listeners.size() - 1);
 }
 
 bool EventType::isEmpty() const

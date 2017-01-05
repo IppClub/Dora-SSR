@@ -15,7 +15,6 @@
 		3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C31E0CE9990033AD59 /* LuaCode.cpp */; };
 		3C0AD7CC1E0CE9990033AD59 /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C41E0CE9990033AD59 /* LuaEngine.cpp */; };
 		3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C81E0CE9990033AD59 /* LuaManual.cpp */; };
-		3C0AD7D91E0CE9B10033AD59 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7CF1E0CE9B10033AD59 /* Debug.cpp */; };
 		3C0AD7E51E0CE9D00033AD59 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7DA1E0CE9D00033AD59 /* Application.cpp */; };
 		3C0AD7E61E0CE9D00033AD59 /* AutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7DC1E0CE9D00033AD59 /* AutoreleasePool.cpp */; };
 		3C0AD7E71E0CE9D00033AD59 /* Content.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7DE1E0CE9D00033AD59 /* Content.cpp */; };
@@ -81,7 +80,6 @@
 		3C0AD7C51E0CE9990033AD59 /* LuaEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaEngine.h; path = ../../../Source/Lua/LuaEngine.h; sourceTree = "<group>"; };
 		3C0AD7C81E0CE9990033AD59 /* LuaManual.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaManual.cpp; path = ../../../Source/Lua/LuaManual.cpp; sourceTree = "<group>"; };
 		3C0AD7C91E0CE9990033AD59 /* LuaManual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaManual.h; path = ../../../Source/Lua/LuaManual.h; sourceTree = "<group>"; };
-		3C0AD7CF1E0CE9B10033AD59 /* Debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Debug.cpp; path = ../../../Source/Common/Debug.cpp; sourceTree = "<group>"; };
 		3C0AD7D01E0CE9B10033AD59 /* Debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../Source/Common/Debug.h; sourceTree = "<group>"; };
 		3C0AD7D21E0CE9B10033AD59 /* MemoryPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MemoryPool.h; path = ../../../Source/Common/MemoryPool.h; sourceTree = "<group>"; };
 		3C0AD7D31E0CE9B10033AD59 /* Own.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Own.h; path = ../../../Source/Common/Own.h; sourceTree = "<group>"; };
@@ -402,7 +400,6 @@
 			children = (
 				3C1070681E13A2D800EB8C7A /* Async.cpp */,
 				3C1070691E13A2D800EB8C7A /* Async.h */,
-				3C0AD7CF1E0CE9B10033AD59 /* Debug.cpp */,
 				3C0AD7D01E0CE9B10033AD59 /* Debug.h */,
 				3C0AD7D21E0CE9B10033AD59 /* MemoryPool.h */,
 				3C0AD7D31E0CE9B10033AD59 /* Own.h */,
@@ -516,7 +513,6 @@
 				3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */,
 				3C0AD7EA1E0CE9D00033AD59 /* Object.cpp in Sources */,
 				3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */,
-				3C0AD7D91E0CE9B10033AD59 /* Debug.cpp in Sources */,
 				3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */,
 				3CB410281E05B0C500A8804D /* LifeCycledSingleton.cpp in Sources */,
 				3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */,

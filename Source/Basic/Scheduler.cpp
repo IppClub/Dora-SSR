@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -42,8 +42,8 @@ float Scheduler::getTimeScale() const
 
 void Scheduler::schedule(Object* object)
 {
-	auto it = _updateList.insert(_updateList.end(), MakeRef(object));
-	_updateMap[object] = it;
+	// O(1) insert operation
+	_updateMap[object] = _updateList.insert(_updateList.end(), MakeRef(object));
 }
 
 void Scheduler::schedule(const function<bool (double)>& handler)
@@ -57,6 +57,7 @@ void Scheduler::unschedule(Object* object)
 	auto it = _updateMap.find(object);
 	if (it != _updateMap.end())
 	{
+		// O(1) remove operation
 		_updateList.erase(it->second);
 		_updateMap.erase(it);
 	}
@@ -64,8 +65,12 @@ void Scheduler::unschedule(Object* object)
 
 void Scheduler::doUpdate()
 {
+	// not copy _it and _deltaTime to the stack memory
 	if (_it != _updateList.rend())
 	{
+		/** copy object ptrs to the stack memory and keep them referenced
+		 in case they are deleted during iteration
+		 */
 		Ref<Object> item(*_it);
 		++_it;
 		doUpdate();

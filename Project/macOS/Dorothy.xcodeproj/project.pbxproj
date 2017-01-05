@@ -13,7 +13,6 @@
 		3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */; };
 		3C291D4E1E0279990098C860 /* Content.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D4C1E0279990098C860 /* Content.cpp */; };
 		3C291D581E02932B0098C860 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D571E02932B0098C860 /* Content.mm */; };
-		3C31CB9E1E02293E00A8079D /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C31CB9C1E02293E00A8079D /* Debug.cpp */; };
 		3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C35982B1E12060D00E62C16 /* Scheduler.cpp */; };
 		3C3598321E1254D600E62C16 /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3598301E1254D600E62C16 /* Async.cpp */; };
 		3C374C571E09241600527752 /* Director.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C374C551E09241600527752 /* Director.cpp */; };
@@ -73,7 +72,6 @@
 		3C291D4C1E0279990098C860 /* Content.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Content.cpp; path = ../../../Source/Basic/Content.cpp; sourceTree = "<group>"; };
 		3C291D4D1E0279990098C860 /* Content.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Content.h; path = ../../../Source/Basic/Content.h; sourceTree = "<group>"; };
 		3C291D571E02932B0098C860 /* Content.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Content.mm; path = ../../../Source/Basic/Content.mm; sourceTree = "<group>"; };
-		3C31CB9C1E02293E00A8079D /* Debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Debug.cpp; path = ../../../Source/Common/Debug.cpp; sourceTree = "<group>"; };
 		3C31CB9D1E02293E00A8079D /* Debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../Source/Common/Debug.h; sourceTree = "<group>"; };
 		3C35982B1E12060D00E62C16 /* Scheduler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Scheduler.cpp; path = ../../../Source/Basic/Scheduler.cpp; sourceTree = "<group>"; };
 		3C35982C1E12060D00E62C16 /* Scheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Scheduler.h; path = ../../../Source/Basic/Scheduler.h; sourceTree = "<group>"; };
@@ -302,7 +300,6 @@
 				3C9ADE561E00F16100D42018 /* WRef.h */,
 				3CCEDD461E1D55BF00F32295 /* Utils.cpp */,
 				3C9ADE501E00F16100D42018 /* Utils.h */,
-				3C31CB9C1E02293E00A8079D /* Debug.cpp */,
 				3C31CB9D1E02293E00A8079D /* Debug.h */,
 			);
 			name = Common;
@@ -530,7 +527,6 @@
 				3C374C571E09241600527752 /* Director.cpp in Sources */,
 				3CB487131E16398700D51749 /* tolua_event.cpp in Sources */,
 				3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */,
-				3C31CB9E1E02293E00A8079D /* Debug.cpp in Sources */,
 				3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */,
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,

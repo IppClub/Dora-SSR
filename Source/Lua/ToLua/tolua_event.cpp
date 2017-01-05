@@ -29,10 +29,10 @@ static void storeatubox(lua_State* L, int lo)
 		lua_pop(L, 1);
 		lua_newtable(L);
 		lua_pushvalue(L, -1);
-		lua_setfenv(L, lo);/* stack: k,v,table  */
+		lua_setfenv(L, lo); /* stack: k,v,table  */
 	}
 	lua_insert(L, -3);
-	lua_settable(L, -3);/* on lua 5.1, we trade the "tolua_peers" lookup for a settable call */
+	lua_settable(L, -3); /* on lua 5.1, we trade the "tolua_peers" lookup for a settable call */
 	lua_pop(L, 1);
 }
 
@@ -91,7 +91,7 @@ static int module_newindex_event(lua_State* L)
 			lua_pushvalue(L, 1); // tb key value set setter tb
 			lua_pushvalue(L, 2); // tb key value set setter tb key
 			lua_pushvalue(L, 3); // tb key value set setter tb key value
-			lua_call(L, 3, 0);// setter(tb,key,value), tb key value set
+			lua_call(L, 3, 0); // setter(tb,key,value), tb key value set
 			return 0;
 		}
 	}
@@ -109,31 +109,31 @@ static int class_index_event(lua_State* L)
 {
 	/* 1 ud 2 key */
 	int t = lua_type(L, 1);
-	if (t == LUA_TUSERDATA)// __index for ud
+	if (t == LUA_TUSERDATA) // __index for ud
 	{
 		/* access peer table */
-		lua_getfenv(L, 1);// peer
+		lua_getfenv(L, 1); // peer
 		if (!lua_rawequal(L, -1, TOLUA_NOPEER))
 		{
-			lua_pushvalue(L, 2);// peer key
-			lua_gettable(L, -2);// peer[key], peer value
-			if (!lua_isnil(L, -1))// value != nil
+			lua_pushvalue(L, 2); // peer key
+			lua_gettable(L, -2); // peer[key], peer value
+			if (!lua_isnil(L, -1)) // value != nil
 			{
 				return 1;
 			}
 		}
-		lua_settop(L, 2);// ud key
-		lua_getmetatable(L, 1);// ud key mt
+		lua_settop(L, 2); // ud key
+		lua_getmetatable(L, 1); // ud key mt
 		/* 1 ud, 2 key, 3 mt */
 		/* try metatables */
-		lua_pushvalue(L, 1);// ud key mt ud
+		lua_pushvalue(L, 1); // ud key mt ud
 		int loop = 0;
 		while (lua_getmetatable(L, -1))
 		{
 			/* ud key mt ud mt */
-			lua_remove(L, -2);// ud key mt mt
-			lua_pushvalue(L, 2);// ud key mt mt key
-			lua_rawget(L, -2);// mt[key], ud key mt mt value
+			lua_remove(L, -2); // ud key mt mt
+			lua_pushvalue(L, 2); // ud key mt mt key
+			lua_rawget(L, -2); // mt[key], ud key mt mt value
 			if (!lua_isnil(L, -1))
 			{
 				if (loop)
@@ -168,12 +168,12 @@ static int class_index_event(lua_State* L)
 						lua_rawset(L, -3); // tget[key] = cfunc, cfunc tget
 						lua_pop(L, 1); // cfunc
 					}
-					lua_pushvalue(L, 1);// cfunc ud
-					lua_call(L, 1, 1);// return cfunc(ud)
+					lua_pushvalue(L, 1); // cfunc ud
+					lua_call(L, 1, 1); // return cfunc(ud)
 					return 1;
 				}
 			}
-			lua_settop(L, 4);// ud key mt basemt
+			lua_settop(L, 4); // ud key mt basemt
 			loop++;
 		}
 		lua_pushnil(L);
@@ -197,7 +197,7 @@ static int class_newindex_event(lua_State* L)
 {
 	/* 1 ud, 2 key, 3 value */
 	int t = lua_type(L, 1);
-	if (t == LUA_TUSERDATA)// __newindex for ud
+	if (t == LUA_TUSERDATA) // __newindex for ud
 	{
 		int loop = 0;
 		lua_getmetatable(L, 1); // ud key value mt
@@ -231,23 +231,23 @@ static int class_newindex_event(lua_State* L)
 					lua_call(L, 2, 0);
 					return 0;
 				}
-				lua_pop(L, 1);/* stack: t k v mt tset */
+				lua_pop(L, 1); /* stack: t k v mt tset */
 			}
-			lua_pop(L, 1);/* stack: t k v mt */
+			lua_pop(L, 1); /* stack: t k v mt */
 
-			if (!lua_getmetatable(L, -1))/* stack: t k v mt mt */
+			if (!lua_getmetatable(L, -1)) /* stack: t k v mt mt */
 			{
 				lua_pushnil(L);
 			}
-			lua_remove(L, -2);/* stack: t k v mt */
+			lua_remove(L, -2); /* stack: t k v mt */
 			loop++;
 		}
-		lua_settop(L, 3);/* stack: t k v */
+		lua_settop(L, 3); /* stack: t k v */
 
 		/* then, store as a new field */
 		storeatubox(L, 1);
 	}
-	else if (t == LUA_TTABLE)// __newindex for ud`s class
+	else if (t == LUA_TTABLE) // __newindex for ud`s class
 	{
 		module_newindex_event(L);
 	}
@@ -275,11 +275,11 @@ static int do_operator(lua_State* L, int op)
 	if (lua_isuserdata(L, 1))
 	{
 		/* Try metatables */
-		lua_pushvalue(L, 1);                     /* stack: op1 op2 */
+		lua_pushvalue(L, 1); /* stack: op1 op2 */
 		while (lua_getmetatable(L, -1))
 		{   /* stack: op1 op2 op1 mt */
-			lua_remove(L, -2);                      /* stack: op1 op2 mt */
-			lua_rawgeti(L, -1, op);                      /* stack: obj key mt func */
+			lua_remove(L, -2); /* stack: op1 op2 mt */
+			lua_rawgeti(L, -1, op); /* stack: obj key mt func */
 			if (lua_isfunction(L, -1))
 			{
 				lua_pushvalue(L, 1);
@@ -330,11 +330,11 @@ static int class_eq_event(lua_State* L)
 	if (lua_isuserdata(L, 1))
 	{
 		/* Try metatables */
-		lua_pushvalue(L, 1);                     /* stack: op1 op2 */
+		lua_pushvalue(L, 1); /* stack: op1 op2 */
 		while (lua_getmetatable(L, -1))
 		{   /* stack: op1 op2 op1 mt */
-			lua_remove(L, -2);                      /* stack: op1 op2 mt */
-			lua_rawgeti(L, -1, MT_EQ);                      /* stack: obj key mt func */
+			lua_remove(L, -2); /* stack: op1 op2 mt */
+			lua_rawgeti(L, -1, MT_EQ); /* stack: obj key mt func */
 			if (lua_isfunction(L, -1))
 			{
 				lua_pushvalue(L, 1);

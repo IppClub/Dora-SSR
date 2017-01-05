@@ -78,9 +78,6 @@
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp">
       <Filter>Basic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Common\Debug.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Event\Event.cpp">
       <Filter>Event</Filter>
     </ClCompile>
