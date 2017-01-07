@@ -38,7 +38,7 @@ public:
 	Event();
 	virtual ~Event();
 	Event(String name);
-	inline const string& getName() const { return _name; }
+	inline String getName() const { return _name; }
 	virtual int pushArgsToLua() { return 0; }
 public:
 	static Listener* addListener(String name, const EventHandler& handler);
@@ -55,7 +55,7 @@ protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
 	static void send(Event* event);
-	string _name;
+	Slice _name;
 private:
 	static unordered_map<string, Own<EventType>> _eventMap;
 	friend class Listener;
@@ -65,24 +65,22 @@ template<class... Fields>
 class EventArgs : public Event
 {
 public:
+	EventArgs(String name, Fields&&... args):
+	Event(name),
+	arguments(std::make_tuple(args...))
+	{ }
 	template<class... Args>
 	static void send(String name, Args&&... args)
 	{
-		_event._name = name;
-		_event.arguments = std::make_tuple(args...);
-		Event::send(&_event);
+		EventArgs<Fields...> event(name, args...);
+		Event::send(&event);
 	}
 	virtual int pushArgsToLua() override
 	{
 		return Tuple::foreach(arguments, LuaArgsPusher());
 	}
 	std::tuple<Fields...> arguments;
-private:
-	static EventArgs<Fields...> _event;
 };
-
-template<class... Fields>
-EventArgs<Fields...> EventArgs<Fields...>::_event;
 
 template<class... Args>
 void Event::send(String name, Args&&... args)

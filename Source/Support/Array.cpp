@@ -32,20 +32,25 @@ int Array::getCapacity() const
 	return s_cast<int>(_data.capacity());
 }
 
-Object* Array::getLast() const
+const Ref<Object>& Array::getLast() const
 {
 	return _data.back();
 }
 
-Object* Array::getFirst() const
+const Ref<Object>& Array::getFirst() const
 {
 	return _data.front();
 }
 
-Object* Array::getRandomObject() const
+const Ref<Object>& Array::getRandomObject() const
 {
 	AssertIf(_data.empty(), "retrieving random item from an empty array.");
-	return _data[rand()%_data.size()];
+	return _data[std::rand()%_data.size()];
+}
+
+bool Array::isEmpty() const
+{
+	return _data.empty();
 }
 
 bool Array::contains(Object* object) const
@@ -124,7 +129,7 @@ void Array::set(int index, Object* object)
 	_data[index] = object;
 }
 
-Object* Array::get(int index) const
+const Ref<Object>& Array::get(int index) const
 {
 	return _data[index];
 }

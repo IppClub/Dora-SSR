@@ -15,9 +15,10 @@ class Array : public Object
 public:
 	PROPERTY_READONLY(int, Count);
 	PROPERTY(int, Capacity);
-	PROPERTY(Object*, Last);
-	PROPERTY(Object*, First);
-	PROPERTY(Object*, RandomObject);
+	PROPERTY_REF(Ref<Object>, Last);
+	PROPERTY_REF(Ref<Object>, First);
+	PROPERTY_REF(Ref<Object>, RandomObject);
+	PROPERTY_READONLY_BOOL(Empty);
 	bool contains(Object* object) const;
 	void add(Object* object);
 	void addRange(Array* other);
@@ -32,7 +33,7 @@ public:
 	void shrink();
 	int index(Object* object);
 	void set(int index, Object* object);
-	Object* get(int index) const;
+	const Ref<Object>& get(int index) const;
 	void insert(int index, Object* object);
 	void removeAt(int index);
 	void fastRemoveAt(int index);
@@ -46,5 +47,14 @@ private:
 	RefVector<Object> _data;
 	DORA_TYPE_OVERRIDE(Array);
 };
+
+#define ARRAY_START(type,varName,array) \
+	if (array) \
+	{ \
+		for (const auto& _item_ : array->data()) \
+		{ \
+			type* varName = _item_.to<type>();
+
+#define ARRAY_END }}
 
 NS_DOROTHY_END

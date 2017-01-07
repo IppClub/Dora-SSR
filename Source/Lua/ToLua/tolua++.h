@@ -114,6 +114,7 @@ void tolua_pushfieldnumber(lua_State* L, int lo, int index, lua_Number v);
 void tolua_pushfieldstring(lua_State* L, int lo, int index, const char* v);
 void tolua_pushfieldusertype(lua_State* L, int lo, int index, void* v, int typeId);
 void tolua_pushobject(lua_State* L, Object* object);
+void tolua_pushslice(lua_State* L, String str);
 
 lua_Number tolua_tonumber(lua_State* L, int narg, lua_Number def);
 const char* tolua_tostring(lua_State* L, int narg, const char* def);

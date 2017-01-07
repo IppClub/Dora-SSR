@@ -14,4 +14,11 @@ NS_DOROTHY_BEGIN
 
 int doraType = TOLUA_REG_INDEX_TYPE; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
 
+const float Matrix::Indentity[16] = {
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+};
+
 NS_DOROTHY_END

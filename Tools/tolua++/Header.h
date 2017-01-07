@@ -34,7 +34,7 @@ class Content
 
 class Event
 {
-	tolua_readonly tolua_property__common string name;
+	tolua_readonly tolua_property__common Slice name;
 };
 void Event::send @ emit(String name);
 

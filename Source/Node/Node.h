@@ -10,10 +10,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class Event;
+
+typedef Delegate<void (Event* event)> EventHandler;
+
 class Node : public Object
 {
 public:
-	PROPERTY(int, ZOrder);
+	PROPERTY(int, Order);
 	PROPERTY(float, Angle);
 	PROPERTY(float, ScaleX);
 	PROPERTY(float, ScaleY);
@@ -30,33 +34,40 @@ public:
 	PROPERTY_REF(Size, Size);
 	PROPERTY(int, Tag);
 	PROPERTY(float, Opacity);
+	PROPERTY_READONLY(float, RealOpacity);
 	PROPERTY(Color, Color);
 	PROPERTY(Color3, Color3);
+	PROPERTY_READONLY(Color, RealColor);
 	PROPERTY_BOOL(PassOpacity);
-	PROPERTY_BOOL(PassColor);
+	PROPERTY_BOOL(PassColor3);
 	PROPERTY(Node*, TransformTarget);
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(Object*, UserData);
 	PROPERTY_READONLY(Node*, Parent);
-	PROPERTY_READONLY_VIRTUAL(Rect, BoundingBox);
-	PROPERTY_READONLY(const char*, Description);
+	PROPERTY_READONLY(Node*, TargetParent);
 	PROPERTY_READONLY(Array*, Children);
 	PROPERTY_READONLY_BOOL(Running);
 	PROPERTY_READONLY_BOOL(Updating);
 	PROPERTY_READONLY_BOOL(Scheduled);
 
-	virtual void addChild(Node* child, int zOrder, int tag);
-	void addChild(Node* child, int zOrder);
+	virtual void addChild(Node* child, int order, int tag);
+	void addChild(Node* child, int order);
 	void addChild(Node* child);
 
-	virtual Node* addTo(Node* parent, int zOrder, int tag);
-	Node* addTo(Node* parent, int zOrder);
+	virtual Node* addTo(Node* parent, int order, int tag);
+	Node* addTo(Node* parent, int order);
 	Node* addTo(Node* parent);
 
 	void removeChild(Node* child, bool cleanup = true);
 	void removeChildByTag(int tag, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
 
+	virtual Rect getBoundingBox();
+
+	virtual void onEnter();
+	virtual void onEnterFinished();
+	virtual void onExit();
+	virtual void onExitFinished();
 	virtual void cleanup();
 
 	Node* getChildByTag(int tag);
@@ -70,9 +81,19 @@ public:
 	void scheduleUpdate();
 	void unscheduleUpdate();
 
-	virtual void visit();
-	virtual void render();
+	virtual void visit(const float* world = Matrix::Indentity);
+	virtual void render(float* world);
 	virtual bool update(double deltaTime) override;
+
+	const AffineTransform& getLocalTransform();
+	AffineTransform getWorldTransform();
+
+	void getLocalWorld(float* localWorld);
+	void getWorld(float* world);
+
+	void emit(String name);
+	void slot(String name, const EventHandler& handler);
+	Listener* gslot(String name);
 
 	CREATE_FUNC(Node);
 /*
@@ -88,14 +109,18 @@ protected:
 	void setOn(Uint32 type);
 	void setOff(Uint32 type);
 	void setFlag(Uint32 type, bool value);
+	void markDirty();
 	bool isOn(Uint32 type) const;
 	bool isOff(Uint32 type) const;
+	void updateRealColor3();
+	void updateRealOpacity();
 	void sortAllChildren();
 protected:
 	Uint32 _flags;
 	int _tag;
-	int _zOrder;
+	int _order;
 	Color _color;
+	Color _realColor;
 	float _angle;
 	float _angleX;
 	float _angleY;
@@ -104,12 +129,14 @@ protected:
 	float _skewX;
 	float _skewY;
 	float _positionZ;
+	float* _world;
 	Vec2 _position;
 	Vec2 _anchor;
+	Vec2 _anchorPoint;
 	Size _size;
-	float _localTransform[16];
+	AffineTransform _transform;
 	WRef<Node> _transformTarget;
-	WRef<Node> _parent;
+	Node* _parent;
 	Ref<Object> _userData;
 	Ref<Array> _children;
 	Ref<Scheduler> _scheduler;
@@ -117,14 +144,14 @@ protected:
 	enum
 	{
 		Visible = 1,
-		Dirty = 1<<1,
-		Running = 1<<2,
-		Updating = 1<<3,
-		Scheduling = 1<<4,
-		PassOpacity = 1<<5,
-		PassColor = 1<<6,
-		Reorder = 1<<7,
-		Cleanup = 1<<8
+		TransformDirty = 1 << 1,
+		Running = 1 << 2,
+		Updating = 1 << 3,
+		Scheduling = 1 << 4,
+		PassOpacity = 1 << 5,
+		PassColor3 = 1 << 6,
+		Reorder = 1 << 7,
+		Cleanup = 1 << 8
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

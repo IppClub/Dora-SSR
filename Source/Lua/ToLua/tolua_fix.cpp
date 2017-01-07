@@ -84,6 +84,11 @@ void tolua_pushobject(lua_State* L, Object* object)
 	else lua_remove(L, -2);// ud
 }
 
+void tolua_pushslice(lua_State* L, String str)
+{
+	lua_pushlstring(L, str.rawData(), str.size());
+}
+
 void tolua_typeid(lua_State* L, int typeId, const char* className)
 {
 	lua_getfield(L, LUA_REGISTRYINDEX, className); // mt

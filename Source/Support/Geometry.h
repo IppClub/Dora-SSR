@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+struct Size;
+
 struct Vec2
 {
 	float x;
@@ -32,6 +34,7 @@ struct Vec2
 	Vec2& operator/=(float value);
 	bool operator==(const Vec2& vec) const;
 	bool operator!=(const Vec2& vec) const;
+	Vec2 operator*(const Size& size) const;
 	float distance(const Vec2& vec) const;
 	float distanceSquared(const Vec2& vec) const;
 	float length() const;
@@ -55,6 +58,7 @@ struct Size
 	Size& operator=(const Size& other);
 	bool operator==(const Size& other) const;
 	bool operator!=(const Size& other) const;
+	Size operator*(const Vec2& vec) const;
 	static const Size zero;
 	DORA_TYPE(Size);
 };
@@ -89,6 +93,22 @@ struct Rect
 	bool intersectsRect(const Rect& rect) const;
 	static const Rect zero;
 	DORA_TYPE(Rect);
+};
+
+struct AffineTransform
+{
+	float a, b, c, d;
+	float tx, ty;
+	static Vec2 applyPoint(const AffineTransform& t, const Vec2& point);
+	static Size applySize(const AffineTransform& t, const Size& size);
+	static Rect applyRect(const AffineTransform& t, const Rect& size);
+	static AffineTransform translate(const AffineTransform& t, float tx, float ty);
+	static AffineTransform rotate(const AffineTransform& t, float angle);
+	static AffineTransform scale(const AffineTransform& t, float sx, float sy);
+	static AffineTransform concat(const AffineTransform& t1, const AffineTransform& t2);
+	static AffineTransform invert(const AffineTransform& t);
+	static void toMatrix(const AffineTransform& t, float* matrix);
+	static AffineTransform Indentity;
 };
 
 NS_DOROTHY_END

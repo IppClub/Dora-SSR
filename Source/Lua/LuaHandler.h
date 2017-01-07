@@ -68,4 +68,18 @@ private:
 	Ref<LuaHandler> _handler;
 };
 
+class Event;
+class LuaFunctorEvent
+{
+public:
+	LuaFunctorEvent(int handler):_handler(LuaHandler::create(handler)) { }
+	inline bool operator==(const LuaFunctorEvent& other) const
+	{
+		return _handler->equals(other._handler);
+	}
+	void operator()(Event* event) const;
+private:
+	Ref<LuaHandler> _handler;
+};
+
 NS_DOROTHY_END

@@ -20,7 +20,6 @@ public:
 	Object* target;
 private:
 	int _refCount;
-	USE_MEMORY_POOL(Weak);
 };
 
 class Object

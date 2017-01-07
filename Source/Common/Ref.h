@@ -115,7 +115,7 @@ public:
 		return _item;
 	}
 	template<class Type>
-	inline Type* to()
+	inline Type* to() const
 	{
 		return s_cast<Type*>(_item);
 	}

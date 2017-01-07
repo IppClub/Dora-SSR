@@ -38,4 +38,9 @@ int LuaHandler::get() const
 	return _handler;
 }
 
+void LuaFunctorEvent::operator()(Event* event) const
+{
+	SharedLueEngine.executeFunction(_handler->get(), event->pushArgsToLua());
+}
+
 NS_DOROTHY_END
