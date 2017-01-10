@@ -13,7 +13,6 @@ NS_DOROTHY_BEGIN
 
 Node::Node():
 _flags(Node::Visible|Node::PassOpacity|Node::PassColor3),
-_tag(0),
 _order(0),
 _color(),
 _angle(0.0f),
@@ -208,14 +207,14 @@ const Size& Node::getSize() const
 	return _size;
 }
 
-void Node::setTag(int var)
+void Node::setName(const string& name)
 {
-	_tag = var;
+	_name = name;
 }
 
-int Node::getTag() const
+const string& Node::getName() const
 {
-	return _tag;
+	return _name;
 }
 
 void Node::setOpacity(float var)
@@ -395,11 +394,11 @@ bool Node::isRunning() const
 	return isOn(Node::Running);
 }
 
-void Node::addChild(Node* child, int order, int tag)
+void Node::addChild(Node* child, int order, String name)
 {
-	AssertUnless(child, "add invalid child to node.");
+	AssertIf(child == nullptr, "add invalid child to node.");
 	AssertIf(child->_parent, "child already added. It can't be added again.");
-	child->setTag(tag);
+	child->setName(name);
 	child->setOrder(order);
 	if (!_children)
 	{
@@ -427,29 +426,29 @@ void Node::addChild(Node* child, int order, int tag)
 
 void Node::addChild(Node* child, int order)
 {
-	addChild(child, order, child->getTag());
+	addChild(child, order, child->getName());
 }
 
 void Node::addChild(Node* child)
 {
-	addChild(child, child->getOrder(), child->getTag());
+	addChild(child, child->getOrder(), child->getName());
 }
 
-Node* Node::addTo(Node* parent, int order, int tag)
+Node* Node::addTo(Node* parent, int order, String name)
 {
-	AssertUnless(parent, "add node to invalid parent.");
-	parent->addChild(this, order, tag);
+	AssertIf(parent == nullptr, "add node to invalid parent.");
+	parent->addChild(this, order, name);
 	return this;
 }
 
 Node* Node::addTo(Node* parent, int zOrder)
 {
-	return addTo(parent, zOrder, getTag());
+	return addTo(parent, zOrder, getName());
 }
 
 Node* Node::addTo(Node* parent)
 {
-	return addTo(parent, getOrder(), getTag());
+	return addTo(parent, getOrder(), getName());
 }
 
 void Node::removeChild(Node* child, bool cleanup)
@@ -474,9 +473,9 @@ void Node::removeChild(Node* child, bool cleanup)
 	}
 }
 
-void Node::removeChildByTag(int tag, bool cleanup)
+void Node::removeChildByName(String name, bool cleanup)
 {
-	removeChild(getChildByTag(tag), cleanup);
+	removeChild(getChildByName(name), cleanup);
 }
 
 void Node::removeAllChildren(bool cleanup)
@@ -514,15 +513,16 @@ void Node::cleanup()
 		unschedule();
 		unscheduleUpdate();
 		_userData = nullptr;
+		_signal = nullptr;
 	}
 }
 
-Node* Node::getChildByTag(int tag)
+Node* Node::getChildByName(String name)
 {
 	Node* targetNode = nullptr;
 	ARRAY_START(Node, child, _children)
 	{
-		if (child->getTag() == tag)
+		if (name == child->getName())
 		{
 			targetNode = child;
 			break;
@@ -820,6 +820,75 @@ void Node::getWorld(float* world)
 	}
 }
 
+void Node::emit(Event* event)
+{
+	if (_signal)
+	{
+		_signal->emit(event);
+	}
+}
+
+
+Slot* Node::slot(String name)
+{
+	if (!_signal)
+	{
+		_signal = New<Signal>();
+	}
+	return _signal->addSlot(name, EventHandler());
+}
+
+Slot* Node::slot(String name, const EventHandler& handler)
+{
+	if (!_signal)
+	{
+		_signal = New<Signal>();
+	}
+	return _signal->addSlot(name, handler);
+}
+
+void Node::slot(String name, std::nullptr_t)
+{
+	if (_signal)
+	{
+		_signal->removeSlots(name);
+	}
+}
+
+Listener* Node::gslot(String name, const EventHandler& handler)
+{
+	if (!_signal)
+	{
+		_signal = New<Signal>();
+	}
+	return _signal->addGSlot(name, handler);
+}
+
+void Node::gslot(String name, std::nullptr_t)
+{
+	if (_signal)
+	{
+		_signal->removeGSlots(name);
+	}
+}
+
+void Node::gslot(Listener* listener, std::nullptr_t)
+{
+	if (_signal)
+	{
+		_signal->removeGSlot(listener);
+	}
+}
+
+RefVector<Listener> Node::gslot(String name)
+{
+	if (_signal)
+	{
+		return _signal->getGSlots(name);
+	}
+	return RefVector<Listener>();
+}
+
 void Node::setOn(Uint32 type)
 {
 	_flags |= type;
@@ -875,9 +944,9 @@ void Node::updateRealColor3()
 	if (_parent && _parent->isPassColor3())
 	{
 		Color parentColor = _parent->_realColor;
-		_realColor.r = _color.r * parentColor.r / 255.0f;
-		_realColor.g = _color.g * parentColor.g / 255.0f;
-		_realColor.b = _color.b * parentColor.b / 255.0f;
+		_realColor.r = s_cast<Uint8>(_color.r * parentColor.r / 255.0f);
+		_realColor.g = s_cast<Uint8>(_color.g * parentColor.g / 255.0f);
+		_realColor.b = s_cast<Uint8>(_color.b * parentColor.b / 255.0f);
 	}
 	else
 	{
@@ -911,6 +980,197 @@ void Node::updateRealOpacity()
 			child->updateRealOpacity();
 		}
 		ARRAY_END
+	}
+}
+
+Slot::Slot(const EventHandler& handler):
+_handler(handler)
+{ }
+
+void Slot::add(const EventHandler& handler)
+{
+	_handler += handler;
+}
+
+void Slot::set(const EventHandler& handler)
+{
+	_handler = handler;
+}
+
+void Slot::remove(const EventHandler& handler)
+{
+	_handler -= handler;
+}
+
+void Slot::clear()
+{
+	_handler = nullptr;
+}
+
+void Slot::handle(Event* event)
+{
+	_handler(event);
+}
+
+const size_t Signal::MaxSlotArraySize = 5;
+
+Slot* Signal::addSlot(String name, const EventHandler& handler)
+{
+	if (_slots)
+	{
+		auto it = _slots->find(name);
+		if (it != _slots->end())
+		{
+			it->second->add(handler);
+			return it->second;
+		}
+		else
+		{
+			Slot* slot = Slot::create(handler);
+			(*_slots)[name] = slot;
+			return slot;
+		}
+	}
+	else if (_slotsArray)
+	{
+		for (auto& item : *_slotsArray)
+		{
+			if (name == item.first)
+			{
+				item.second->add(handler);
+				return item.second;
+			}
+		}
+		if (_slotsArray->size() < Signal::MaxSlotArraySize)
+		{
+			Slot* slot = Slot::create(handler);
+			_slotsArray->push_back(
+				std::make_pair(name.toString(), MakeRef(slot)));
+			return slot;
+		}
+		else
+		{
+			_slots = New<unordered_map<string, Ref<Slot>>>();
+			for (auto& item : *_slotsArray)
+			{
+				(*_slots)[item.first] = item.second;
+			}
+			Slot* slot = Slot::create(handler);
+			(*_slots)[name] = slot;
+			_slotsArray = nullptr;
+			return slot;
+		}
+	}
+	else
+	{
+		_slotsArray = New<vector<std::pair<string, Ref<Slot>>>>(MaxSlotArraySize);
+		Slot* slot = Slot::create(handler);
+		_slotsArray->push_back(std::make_pair(name.toString(), MakeRef(slot)));
+		return slot;
+	}
+}
+
+Listener* Signal::addGSlot(String name, const EventHandler& handler)
+{
+	Listener* gslot = Listener::create(name, handler);
+	_gslots.push_back(gslot);
+	return gslot;
+}
+
+void Signal::removeSlot(String name, const EventHandler& handler)
+{
+	if (_slots)
+	{
+		auto it = _slots->find(name);
+		if (it != _slots->end())
+		{
+			it->second->remove(handler);
+			return;
+		}
+	}
+	else if (_slotsArray)
+	{
+		for (auto& item : *_slotsArray)
+		{
+			if (name == item.first)
+			{
+				item.second->remove(handler);
+				return;
+			}
+		}
+	}
+}
+
+void Signal::removeGSlot(Listener* gslot)
+{
+	_gslots.remove(gslot);
+}
+
+void Signal::removeSlots(String name)
+{
+	if (_slots)
+	{
+		auto it = _slots->find(name);
+		if (it != _slots->end())
+		{
+			it->second->clear();
+			return;
+		}
+	}
+	else if (_slotsArray)
+	{
+		for (auto it = _slotsArray->begin(); it != _slotsArray->end(); ++it)
+		{
+			if (name == it->first)
+			{
+				_slotsArray->erase(it);
+				return;
+			}
+		}
+	}
+}
+
+void Signal::removeGSlots(String name)
+{
+	_gslots.erase(std::remove_if(_gslots.begin(), _gslots.end(), [&name](const Ref<Listener>& gslot)
+	{
+		return name == gslot->getName();
+	}), _gslots.end());
+}
+
+RefVector<Listener> Signal::getGSlots(String name) const
+{
+	RefVector<Listener> listeners;
+	for (const auto& item : _gslots)
+	{
+		if (name == item->getName())
+		{
+			listeners.push_back(item);
+		}
+	}
+	return listeners;
+}
+
+void Signal::emit(Event* event)
+{
+	if (_slots)
+	{
+		auto it = _slots->find(event->getName());
+		if (it != _slots->end())
+		{
+			it->second->handle(event);
+		}
+	}
+	else if (_slotsArray)
+	{
+		for (auto& item : *_slotsArray)
+		{
+			if (event->getName() == item.first)
+			{
+				item.second->handle(event);
+				return;
+			}
+		}
 	}
 }
 

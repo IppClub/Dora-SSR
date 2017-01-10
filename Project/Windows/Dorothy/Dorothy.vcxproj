@@ -93,7 +93,6 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
-    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_fix.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Support\Array.h" />
     <ClInclude Include="..\..\..\Source\Support\Color.h" />

@@ -112,6 +112,7 @@ public:
     template <class TFunctor>
     Delegate(const TFunctor& f)
     {
+		static_assert(!std::is_same<TFunctor, std::nullptr_t>::value,"construct delegate with nullptr.");
         this->_last = nullptr;
         *this = f;
     }
@@ -302,6 +303,12 @@ public:
         return *this;
     }
 
+	Delegate& operator=(std::nullptr_t)
+    {
+		Clear();
+        return *this;
+    }
+
     template <class TFunctor>
     Delegate& operator+=(const TFunctor& f)
     {
@@ -332,6 +339,11 @@ public:
     Delegate operator-(const TFunctor& f) const
     {
         return (Delegate(*this) -= f);
+    }
+
+    friend bool operator==(const Delegate& d, const Delegate& other)
+    {
+        return d.Equals(other);
     }
 
     template <class TFunctor>

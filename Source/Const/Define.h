@@ -63,4 +63,10 @@ namespace SingletonIndex
 	#define DORA_COPY_BUFFER_SIZE 4096
 #endif
 
+/** @brief Flag to disable lua binding debug codes.
+*/
+#if !DORA_DEBUG
+	#define TOLUA_RELEASE
+#endif
+
 NS_DOROTHY_END

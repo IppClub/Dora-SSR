@@ -34,11 +34,12 @@ struct LuaArgsPusher
 	}
 };
 
-class LuaFunctor
+class Event;
+class LuaFunction
 {
 public:
-	LuaFunctor(int handler):_handler(LuaHandler::create(handler)) { }
-	inline bool operator==(const LuaFunctor& other) const
+	LuaFunction(int handler):_handler(LuaHandler::create(handler)) { }
+	inline bool operator==(const LuaFunction& other) const
 	{
 		return _handler->equals(other._handler);
 	}
@@ -47,15 +48,16 @@ public:
 	{
 		SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
 	}
+	void operator()(Event* event) const;
 private:
 	Ref<LuaHandler> _handler;
 };
 
-class LuaFunctorBool
+class LuaFunctionBool
 {
 public:
-	LuaFunctorBool(int handler):_handler(LuaHandler::create(handler)) { }
-	inline bool operator==(const LuaFunctorBool& other) const
+	LuaFunctionBool(int handler):_handler(LuaHandler::create(handler)) { }
+	inline bool operator==(const LuaFunctionBool& other) const
 	{
 		return _handler->equals(other._handler);
 	}
@@ -64,20 +66,6 @@ public:
 	{
 		return SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())) != 0;
 	}
-private:
-	Ref<LuaHandler> _handler;
-};
-
-class Event;
-class LuaFunctorEvent
-{
-public:
-	LuaFunctorEvent(int handler):_handler(LuaHandler::create(handler)) { }
-	inline bool operator==(const LuaFunctorEvent& other) const
-	{
-		return _handler->equals(other._handler);
-	}
-	void operator()(Event* event) const;
 private:
 	Ref<LuaHandler> _handler;
 };

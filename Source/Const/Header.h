@@ -66,3 +66,4 @@ using namespace Dorothy::Switch::Literals;
 #include "Support/Geometry.h"
 #include "Support/Color.h"
 #include "Support/Array.h"
+#include "Node/Node.h"

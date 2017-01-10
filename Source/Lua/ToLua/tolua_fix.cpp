@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Lua/LuaEngine.h"
 #include "Lua/ToLua/tolua++.h"
-#include "Lua/ToLua/tolua_fix.h"
 
 NS_DOROTHY_BEGIN
 
@@ -84,11 +83,6 @@ void tolua_pushobject(lua_State* L, Object* object)
 	else lua_remove(L, -2);// ud
 }
 
-void tolua_pushslice(lua_State* L, String str)
-{
-	lua_pushlstring(L, str.rawData(), str.size());
-}
-
 void tolua_typeid(lua_State* L, int typeId, const char* className)
 {
 	lua_getfield(L, LUA_REGISTRYINDEX, className); // mt
@@ -100,10 +94,10 @@ int tolua_isobject(lua_State* L, int lo)
 	if (lua_isuserdata(L, lo))
 	{
 		lua_getmetatable(L, lo); // mt
-		lua_rawgeti(L, -1, MT_SUPER); // mt tb
-		lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<Object>()); // mt tb ccobjmt
-		lua_rawget(L, LUA_REGISTRYINDEX); // mt tb "Object"
-		lua_rawget(L, -2); // tb["oObject"], mt tb flag
+		lua_rawgeti(L, -1, MT_SUPER); // mt super
+		lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<Object>()); // mt super objmt
+		lua_rawget(L, LUA_REGISTRYINDEX); // reg[objmt], mt super "Object"
+		lua_rawget(L, -2); // super["Object"], mt super flag
 		int result = lua_toboolean(L, -1);
 		lua_pop(L, 3); // empty
 		return result;
@@ -187,6 +181,51 @@ void tolua_stack_dump(lua_State* L, int offset, const char* label)
                 Print("  [%02d] %s\n", i, lua_typename(L, t));
         }
     }
+}
+
+Slice tolua_toslice(lua_State* L, int narg, const char* def)
+{
+	if (lua_gettop(L) < abs(narg))
+	{
+		return Slice(def);
+	}
+	size_t size = 0;
+	const char* str = lua_tolstring(L, narg, &size);
+	return Slice(str, size);
+}
+
+int tolua_isslice(lua_State* L, int lo, int def, tolua_Error* err)
+{
+    if (def && lua_gettop(L) < abs(lo)) return 1;
+	if (lua_isstring(L, lo)) return 1;
+    err->index = lo;
+    err->array = 0;
+    err->type = "string";
+    return 0;
+}
+
+void tolua_pushslice(lua_State* L, String str)
+{
+	lua_pushlstring(L, str.rawData(), str.size());
+}
+
+Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def)
+{
+	Slice slice;
+	lua_pushnumber(L, index);
+	lua_gettable(L, lo);
+	if (lua_isnil(L, -1))
+	{
+		slice = def;
+	}
+	else
+	{
+		size_t size = 0;
+		const char* str = lua_tolstring(L, -1, &size);
+		slice = Slice(str, size);
+	}
+	lua_pop(L, 1);
+	return slice;
 }
 
 NS_DOROTHY_END

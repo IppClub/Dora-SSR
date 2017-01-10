@@ -16,8 +16,8 @@ class Own : public std::unique_ptr<Item, Del>
 {
 public:
 	Own(){}
-	Own(Own&& own):std::unique_ptr<Item>(std::move(own)){}
-	explicit Own(Item* item):std::unique_ptr<Item>(item){}
+	Own(Own&& own):std::unique_ptr<Item>(std::move(own)) { }
+	explicit Own(Item* item):std::unique_ptr<Item>(item) { }
 	inline operator Item*() const
 	{
 		return std::unique_ptr<Item, Del>::get();
@@ -42,9 +42,9 @@ class OwnArray : public std::unique_ptr<Item, std::default_delete<Item[]>>
 {
 	typedef std::unique_ptr<Item, std::default_delete<Item[]>> UPtr;
 public:
-	OwnArray(){}
-	OwnArray(OwnArray&& own):UPtr(std::move(own)){}
-	explicit OwnArray(Item* item):UPtr(item){}
+	OwnArray():_size(0){}
+	OwnArray(OwnArray&& own):UPtr(std::move(own)),_size(own._size) { }
+	OwnArray(Item* item, size_t size):UPtr(item), _size(size) { }
 	inline operator Item*() const
 	{
 		return std::unique_ptr<Item, std::default_delete<Item[]>>::get();
@@ -52,11 +52,14 @@ public:
 	inline const OwnArray& operator=(OwnArray&& own)
 	{
 		UPtr::operator=(std::move(own));
+		_size = own._size;
 		return *this;
 	}
+	size_t size() const { return _size; }
 private:
-	OwnArray(const OwnArray& own);
-	const OwnArray& operator=(const OwnArray& own);
+	size_t _size;
+	OwnArray(const OwnArray& own) = delete;
+	const OwnArray& operator=(const OwnArray& own) = delete;
 };
 
 /** Useless */
@@ -67,15 +70,15 @@ inline Own<T> MakeOwn(T* item)
 }
 
 template<class T, class... Args>
-inline Own<T> NewOwn(Args&&... args)
+inline Own<T> New(Args&&... args)
 {
 	return Own<T>(new T(std::forward<Args>(args)...));
 }
 
 template<class T>
-inline OwnArray<T> MakeOwnArray(T* item)
+inline OwnArray<T> MakeOwnArray(T* item, size_t size)
 {
-	return OwnArray<T>(item);
+	return OwnArray<T>(item, size);
 }
 
 /** @brief vector of pointers, but accessed as values

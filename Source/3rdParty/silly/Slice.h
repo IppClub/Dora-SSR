@@ -128,6 +128,14 @@ inline bool operator!=(const Slice &lhs, const Slice &rhs) {
   return !(lhs == rhs);
 }
 
+inline bool operator==(const std::string &lhs, const Slice &rhs) {
+  return rhs.compare(lhs) == 0;
+}
+
+inline bool operator!=(const std::string &lhs, const Slice &rhs) {
+  return !(lhs == rhs);
+}
+
 inline std::string operator+(const std::string& lhs, const Slice &rhs) {
   return lhs + rhs.toString();
 }

@@ -10,24 +10,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+/* Event */
+int dora_emit(lua_State* L);
+
 /* Content */
-void __Content_loadFile(lua_State* L, Content* self, const char* filename);
+void __Content_loadFile(lua_State* L, Content* self, String filename);
 #define Content_loadFile(self,filename) {__Content_loadFile(tolua_S,self,filename);return 1;}
-void __Content_getDirEntries(lua_State* L, Content* self, const char* path, bool isFolder);
+void __Content_getDirEntries(lua_State* L, Content* self, String path, bool isFolder);
 #define Content_getDirEntries(self,path,isFolder) {__Content_getDirEntries(tolua_S,self,path,isFolder);return 1;}
-void Content_setSearchPaths(Content* self, char* paths[], int length);
-void Content_loadFileAsync(Content* self, String filename, int handler);
-void Content_copyFileAsync(Content* self, String src, String dst, int handler);
+void Content_setSearchPaths(Content* self, Slice paths[], int length);
 inline Content* Content_shared() { return &SharedContent; }
 
-/* Scheduler */
-void Scheduler_schedule(Scheduler* self, int handler);
-
 /* Director */
-void Director_schedule(Director* self, int handler);
 inline Director* Director_shared() { return &SharedDirector; }
 
 /* Log */
 inline void Dora_Log(String msg) { Log("%s", msg); }
+
+/* Node */
+int Node_emit(lua_State* L);
+int Node_slot(lua_State* L);
+int Node_gslot(lua_State* L);
 
 NS_DOROTHY_END

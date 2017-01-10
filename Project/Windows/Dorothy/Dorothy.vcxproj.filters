@@ -257,9 +257,6 @@
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h">
       <Filter>Lua\ToLua</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_fix.h">
-      <Filter>Lua\ToLua</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h">
       <Filter>Lua\ToLua</Filter>
     </ClInclude>

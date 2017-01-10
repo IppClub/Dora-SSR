@@ -28,12 +28,13 @@ NS_DOROTHY_BEGIN
 Content::~Content()
 { }
 
-OwnArray<Uint8> Content::loadFile(String filename, Sint64& size)
+OwnArray<Uint8> Content::loadFile(String filename)
 {
 	Async::FileIO.pause();
+	Sint64 size = 0;
 	Uint8* data = Content::loadFileUnsafe(filename, size);
 	Async::FileIO.resume();
-	return OwnArray<Uint8>(data);
+	return OwnArray<Uint8>(data, s_cast<size_t>(size));
 }
 
 void Content::copyFile(String src, String dst)
@@ -270,11 +271,12 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 	});
 }
 
-void Content::loadFileAsync(String filename, const function<void (OwnArray<Uint8>, Sint64)>& callback)
+void Content::loadFileAsync(String filename, const function<void(String)>& callback)
 {
 	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
-		callback(MakeOwnArray(buffer), size);
+		auto data = MakeOwnArray(buffer, s_cast<size_t>(size));
+		callback(Slice(r_cast<char*>(data.get()), data.size()));
 	});
 }
 
@@ -309,13 +311,13 @@ void Content::saveToFileAsync(String filename, String content, const function<vo
 	});
 }
 
-void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, Sint64 size, const function<void()>& callback)
+void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, const function<void()>& callback)
 {
 	string file(filename);
 	auto data = new OwnArray<Uint8>(std::move(content));
-	Async::FileIO.run([file,data,size,this]()
+	Async::FileIO.run([file,data,this]()
 	{
-		Content::saveToFile(file, *MakeOwn(data).get(), size);
+		Content::saveToFile(file, *MakeOwn(data).get(), data->size());
 		return nullptr;
 	},
 	[callback](void* result)

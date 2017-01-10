@@ -175,12 +175,6 @@ Size::Size(const Size& other)
 , height(other.height)
 { }
 
-Size& Size::operator=(const Size& other)
-{
-    set(other.width, other.height);
-    return *this;
-}
-
 void Size::set(float width, float height)
 {
     this->width = width;
@@ -222,12 +216,6 @@ Rect::Rect(const Rect& other):
 origin(other.origin),
 size(other.size)
 { }
-
-Rect& Rect::operator=(const Rect& other)
-{
-    Rect::set(other.origin.x, other.origin.y, other.size.width, other.size.height);
-    return *this;
-}
 
 void Rect::set(float x, float y, float width, float height)
 {

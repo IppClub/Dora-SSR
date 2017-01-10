@@ -22,6 +22,15 @@ Array::Array(int capacity):
 _data(capacity)
 { }
 
+Array::Array(Object* objects[], int size):
+_data(size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		_data[i] = objects[i];
+	}
+}
+
 int Array::getCount() const
 {
 	return s_cast<int>(_data.size());
@@ -153,6 +162,14 @@ void Array::fastRemoveAt(int index)
 RefVector<Object>& Array::data()
 {
 	return _data;
+}
+
+void Array::each(const function<bool (Object*,int)>& handler)
+{
+	for (int i = 0; i < getCount(); i++)
+	{
+		if (handler(get(i), i)) break;
+	}
 }
 
 NS_DOROTHY_END

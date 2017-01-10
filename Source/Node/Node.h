@@ -11,6 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 class Event;
+class Listener;
+class Signal;
+class Slot;
 
 typedef Delegate<void (Event* event)> EventHandler;
 
@@ -32,7 +35,7 @@ public:
 	PROPERTY(float, Width);
 	PROPERTY(float, Height);
 	PROPERTY_REF(Size, Size);
-	PROPERTY(int, Tag);
+	PROPERTY_REF(string, Name);
 	PROPERTY(float, Opacity);
 	PROPERTY_READONLY(float, RealOpacity);
 	PROPERTY(Color, Color);
@@ -50,16 +53,16 @@ public:
 	PROPERTY_READONLY_BOOL(Updating);
 	PROPERTY_READONLY_BOOL(Scheduled);
 
-	virtual void addChild(Node* child, int order, int tag);
+	virtual void addChild(Node* child, int order, String name);
 	void addChild(Node* child, int order);
 	void addChild(Node* child);
 
-	virtual Node* addTo(Node* parent, int order, int tag);
+	virtual Node* addTo(Node* parent, int order, String name);
 	Node* addTo(Node* parent, int order);
 	Node* addTo(Node* parent);
 
 	void removeChild(Node* child, bool cleanup = true);
-	void removeChildByTag(int tag, bool cleanup = true);
+	void removeChildByName(String name, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
 
 	virtual Rect getBoundingBox();
@@ -70,7 +73,7 @@ public:
 	virtual void onExitFinished();
 	virtual void cleanup();
 
-	Node* getChildByTag(int tag);
+	Node* getChildByName(String name);
 
 	void schedule(const function<bool(double)>& func);
 	void unschedule();
@@ -91,9 +94,26 @@ public:
 	void getLocalWorld(float* localWorld);
 	void getWorld(float* world);
 
-	void emit(String name);
-	void slot(String name, const EventHandler& handler);
-	Listener* gslot(String name);
+	void emit(Event* event);
+
+	template <class ...Args>
+	void emit(String name, Args ...args)
+	{
+		if (_signal)
+		{
+			EventArgs<Args...> event(name, args...);
+			emit(&event);
+		}
+	}
+
+	Slot* slot(String name);
+	Slot* slot(String name, const EventHandler& handler);
+	void slot(String name, std::nullptr_t);
+
+	Listener* gslot(String name, const EventHandler& handler);
+	void gslot(String name, std::nullptr_t);
+	void gslot(Listener* listener, std::nullptr_t);
+	RefVector<Listener> gslot(String name);
 
 	CREATE_FUNC(Node);
 /*
@@ -117,7 +137,6 @@ protected:
 	void sortAllChildren();
 protected:
 	Uint32 _flags;
-	int _tag;
 	int _order;
 	Color _color;
 	Color _realColor;
@@ -140,6 +159,8 @@ protected:
 	Ref<Object> _userData;
 	Ref<Array> _children;
 	Ref<Scheduler> _scheduler;
+	Own<Signal> _signal;
+	string _name;
 	function<bool(double)> _scheduleFunc;
 	enum
 	{
@@ -154,6 +175,40 @@ protected:
 		Cleanup = 1 << 8
 	};
 	DORA_TYPE_OVERRIDE(Node);
+};
+
+class Slot : public Object
+{
+public:
+	void add(const EventHandler& handler);
+	void set(const EventHandler& handler);
+	void remove(const EventHandler& handler);
+	void clear();
+	void handle(Event* event);
+	CREATE_FUNC(Slot);
+protected:
+	Slot(const EventHandler& handler);
+private:
+	EventHandler _handler;
+	DORA_TYPE_OVERRIDE(Slot);
+};
+
+class Signal
+{
+public:
+	Slot* addSlot(String name, const EventHandler& handler);
+	Listener* addGSlot(String name, const EventHandler& handler);
+	void removeSlot(String name, const EventHandler& handler);
+	void removeGSlot(Listener* gslot);
+	void removeSlots(String name);
+	void removeGSlots(String name);
+	RefVector<Listener> getGSlots(String name) const;
+	void emit(Event* event);
+	static const size_t MaxSlotArraySize;
+private:
+	Own<unordered_map<string, Ref<Slot>>> _slots;
+	Own<vector<std::pair<string, Ref<Slot>>>> _slotsArray;
+	RefVector<Listener> _gslots;
 };
 
 NS_DOROTHY_END

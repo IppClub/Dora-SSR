@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Lua/LuaEngine.h"
 #include "Lua/LuaBinding.h"
+#include "Lua/LuaManual.h"
 
 NS_DOROTHY_BEGIN
 
@@ -81,9 +82,9 @@ static int dora_loadfile(lua_State* L, String filename)
 		}
 	}
 
+	const char* codeBuffer = nullptr;
 	Sint64 codeBufferSize = 0;
 	OwnArray<Uint8> buffer;
-	const char* codeBuffer = nullptr;
 	string codes;
 	switch (Switch::hash(extension))
 	{
@@ -100,8 +101,9 @@ static int dora_loadfile(lua_State* L, String filename)
 			}
 			break;
 		default:
-			buffer = SharedContent.loadFile(targetFile, codeBufferSize);
+			buffer = SharedContent.loadFile(targetFile);
 			codeBuffer = r_cast<char*>(buffer.get());
+			codeBufferSize = buffer.size();
 			break;
 	}
 
@@ -239,6 +241,7 @@ LuaEngine::LuaEngine()
 		{ "xmlToLua", olua_xmlToLua },
 		*/
 		{ "ubox", dora_ubox },
+		{ "emit", dora_emit },
 		{ NULL, NULL }
 	};
 	luaL_register(L, "_G", global_functions);
@@ -249,15 +252,17 @@ LuaEngine::LuaEngine()
 	// load binding codes
 	tolua_LuaBinding_open(L);
 	tolua_LuaCode_open(L);
-/*
-	tolua_beginmodule(L, 0);//stack: package.loaded
-	tolua_beginmodule(L, "CCNode");
-	tolua_function(L, "gslot", CCNode_gslot);
-	tolua_function(L, "slot", CCNode_slot);
-	tolua_function(L, "emit", CCNode_emit);
-	tolua_function(L, "traverse", CCNode_traverse);
-	tolua_function(L, "eachChild", CCNode_eachChild);
+
+	tolua_beginmodule(L, nullptr); // stack: package.loaded
+		tolua_beginmodule(L, "Node");
+			tolua_function(L, "gslot", Node_gslot);
+			tolua_function(L, "slot", Node_slot);
+			tolua_function(L, "emit", Node_emit);
+			//tolua_function(L, "traverse", CCNode_traverse);
+			//tolua_function(L, "eachChild", CCNode_eachChild);
+		tolua_endmodule(L);
 	tolua_endmodule(L);
+/*
 	tolua_beginmodule(L, "CCDictionary");//stack: package.loaded CCDictionary
 	tolua_variable(L, "randomObject", CCDictionary_randomObject, nullptr);
 	tolua_function(L, "set", CCDictionary_set);
@@ -361,6 +366,56 @@ void LuaEngine::push(String value)
 void LuaEngine::push(std::nullptr_t)
 {
 	lua_pushnil(L);
+}
+
+bool LuaEngine::to(int& value, int index)
+{
+	if (lua_isnumber(L, index))
+	{
+		value = s_cast<int>(lua_tonumber(L, index));
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(float& value, int index)
+{
+	if (lua_isnumber(L, index))
+	{
+		value = s_cast<float>(lua_tonumber(L, index));
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(double& value, int index)
+{
+	if (lua_isnumber(L, index))
+	{
+		value = lua_tonumber(L, index);
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(Object*& value, int index)
+{
+	if (tolua_isobject(L, index))
+	{
+		value = r_cast<Object*>(tolua_tousertype(L, index, nullptr));
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(Slice& value, int index)
+{
+	if (lua_isstring(L, index))
+	{
+		value = tolua_toslice(L, index, 0);
+		return true;
+	}
+	return false;
 }
 
 int LuaEngine::executeFunction(int handler, int paramCount)

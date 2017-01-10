@@ -145,7 +145,7 @@ function classVariable:supcode ()
 		output('#endif\n')
  end
 
-local is_function = self.type == "tolua_function"
+local is_function = self.type == "tolua_function" or self.type == "tolua_function_bool" or self.type == "tolua_handler"
  -- return value
 local t,ct = isbasic(self.type)
 if is_function then
@@ -174,7 +174,7 @@ else
 		local ref = self.ptr == '&' and "&" or ""
 		local value = self:getvalue(class,static,prop_get)
 		if push_func == _push_object_func_name then
-			output(' ',push_func,'(tolua_S,(void*)'..ref..value..");")
+			output(' ',push_func,'(tolua_S,'..ref..value..");")
 		elseif push_func == "tolua_pushusertype" then
 			output(' ',push_func,'(tolua_S,(void*)'..ref..value..",LuaType<"..t..">());")
 		else
@@ -231,7 +231,13 @@ end
 		if self.def ~= '' then def = self.def end
 		if is_function then
 			local name = prop_set or self.name
-			output('  self->'..name..'(tolua_ref_function(tolua_S,'..tostring(var_index)..'));')
+			if self.type == 'tolua_function' then
+			  output('  self->'..name..'(LuaFunction(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
+			elseif self.type == 'tolua_function_bool' then
+			  output('  self->'..name..'(LuaFunctionBool(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
+			elseif self.type == 'tolua_handler' then
+			  output('  self->'..name..'(LuaHandler::create(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
+			end
 		elseif self.type == 'char*' and self.dim ~= '' then -- is string
 			output(' strncpy((char*)')
 			if class and static then

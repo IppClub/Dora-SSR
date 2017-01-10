@@ -113,7 +113,7 @@ function classOperator:supcode_tmp()
 			local ref = ""
 			if self.ptr == '&' then ref = "&" end
 			if push_func == _push_object_func_name then
-				output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret);")
+				output(' ',push_func,'(tolua_S,'..ref.."tolua_ret);")
 			elseif push_func == "tolua_pushusertype" then
 				output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret,LuaType<"..t..">());")
 			else

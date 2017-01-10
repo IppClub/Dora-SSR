@@ -2,7 +2,11 @@ _push_functions = _push_functions or {}
 _collect_functions = _collect_functions or {}
 local objects = {
 "Object",
+"Scheduler",
 "Listener",
+"Array",
+"Slot",
+"Node",
 }
 
 -- register CCObject types
@@ -10,6 +14,17 @@ for i = 1, #objects do
     _push_functions[objects[i]] = "tolua_pushobject"
 	_collect_functions[objects[i]] = "tolua_collect_object"
 end
+
+-- Name -> push'name'
+_basic["Slice"] = "slice"
+_basic["Uint8"] = "number"
+_basic["Uint32"] = "number"
+_basic["size_t"] = "number"
+_basic['string'] = 'slice'
+_basic['std::string'] = 'slice'
+
+-- c types
+_basic_ctype.slice = "Slice"
 
 local toWrite = {}
 local currentString = ''

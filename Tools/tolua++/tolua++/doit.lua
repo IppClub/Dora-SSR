@@ -43,15 +43,6 @@ function doit ()
 		dofile(flags['L'])
 	end
 
-	-- add cppstring
-	if not flags['S'] then
-		_basic['string'] = 'cppstring'
-		_basic['std::string'] = 'cppstring'
-		_basic['Slice'] = 'slice'
-		_basic_ctype.cppstring = 'const char*'
-		_basic_ctype.slice = 'Slice'
-	end
-
 	-- proccess package
 	local p  = Package(flags.n,flags.f)
 

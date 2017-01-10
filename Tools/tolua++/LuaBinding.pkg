@@ -1,4 +1,6 @@
 $#include "Lua/LuaBinding.h"
 $using namespace Dorothy;
+$#define Size Dorothy::Size
+$#define Rect Dorothy::Rect
 
 $pfile "Header.h"

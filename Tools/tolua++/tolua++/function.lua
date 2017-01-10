@@ -292,7 +292,7 @@ function classFunction:supcode(local_constructor)
     else
      local ref = self.ptr == '&' and "&" or ""
      if push_func == _push_object_func_name then
-      output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret);")
+      output(' ',push_func,'(tolua_S,'..ref.."tolua_ret);")
      elseif push_func == "tolua_pushusertype" then
       output(' ',push_func,'(tolua_S,(void*)'..ref.."tolua_ret,LuaType<"..new_t..">());")
      else

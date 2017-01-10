@@ -33,6 +33,12 @@ public:
 	void push(String value);
 	void push(std::nullptr_t);
 
+	bool to(int& value, int index);
+	bool to(float& value, int index);
+	bool to(double& value, int index);
+	bool to(Object*& value, int index);
+	bool to(Slice& value, int index);
+
 	template<typename T>
 	void push(T* t)
 	{

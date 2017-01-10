@@ -216,7 +216,7 @@ end
 function classDeclaration:outchecktype (narg)
  if self.type == "tolua_table" then
   return '!tolua_istable(tolua_S,'..narg..',0,&tolua_err)'
- elseif self.type == "tolua_function" then
+ elseif self.type == "tolua_function" or self.type == "tolua_function_bool" or self.type == "tolua_handler" then
    return '!tolua_isfunction(tolua_S,'..narg..',&tolua_err)'
  end
  local def
@@ -248,7 +248,11 @@ function classDeclaration:builddeclaration (narg, cplusplus)
  if self.type == "tolua_table" then
   return "  int "..self.name.." = "..tostring(narg)..";"
  elseif self.type == "tolua_function" then
-  return "  int "..self.name.." = tolua_ref_function(tolua_S,"..tostring(narg)..");"
+  return "  LuaFunction "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
+ elseif self.type == "tolua_function_bool" then
+  return "  LuaFunctionBool "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
+ elseif self.type == "tolua_handler" then
+  return "  LuaHandler* "..self.name.." = LuaHandler::create(tolua_ref_function(tolua_S,"..tostring(narg).."));"
  end
  local array = self.dim ~= '' and tonumber(self.dim)==nil
 	local line = ""
@@ -397,7 +401,7 @@ end
 
 -- Pass parameter
 function classDeclaration:passpar ()
- if self.type == "tolua_table" or self.type == "tolua_function" then
+ if self.type == "tolua_table" or self.type == "tolua_function" or self.type == "tolua_function_bool" or self.type == "tolua_handler" then
   output(self.name)
   return
  end
@@ -423,7 +427,7 @@ function classDeclaration:retvalue ()
    local push_func = get_push_function(self.type)
    -- t = _userltype[t] -- convert to renamed type
    if push_func == _push_object_func_name then
-    output(' ',push_func,'(tolua_S,(void*)'..self.name..");")
+    output(' ',push_func,'(tolua_S,'..self.name..");")
    elseif push_func == "tolua_pushusertype" then
     output(' ',push_func,'(tolua_S,(void*)'..self.name..",LuaType<"..t..">());")
    else

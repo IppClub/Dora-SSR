@@ -29,7 +29,6 @@ public:
 	CREATE_FUNC(Listener);
 protected:
 	Listener(const string& name, const EventHandler& handler);
-	Listener(const string& name, int handler);
 private:
 	bool _enabled;
 	string _name;

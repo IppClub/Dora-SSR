@@ -59,6 +59,7 @@ protected:
 private:
 	static unordered_map<string, Own<EventType>> _eventMap;
 	friend class Listener;
+	DORA_TYPE_BASE(Event);
 };
 
 template<class... Fields>
@@ -69,8 +70,7 @@ public:
 	Event(name),
 	arguments(std::make_tuple(args...))
 	{ }
-	template<class... Args>
-	static void send(String name, Args&&... args)
+	static void send(String name, Fields&&... args)
 	{
 		EventArgs<Fields...> event(name, args...);
 		Event::send(&event);
@@ -88,12 +88,43 @@ void Event::send(String name, Args&&... args)
 	EventArgs<Args...>::send(name, args...);
 }
 
+class LuaEventArgs : public Event
+{
+public:
+	LuaEventArgs(String name, int paramCount);
+	virtual int pushArgsToLua() override;
+	static void send(String name, int paramCount);
+
+	template<class... Args>
+	void retrieve(Args&... args)
+	{
+		lua_State* L = SharedLueEngine.getState();
+		int i = lua_gettop(L) - _paramCount;
+		bool results[] = {SharedLueEngine.to(args, ++i)...};
+		for (bool result : results)
+		{
+			AssertUnless(result, "lua event arguments mismatch.");
+		}
+	}
+private:
+	int _paramCount;
+	DORA_TYPE_OVERRIDE(LuaEventArgs);
+};
+
 template<class... Args>
 void Event::retrieve(Event* event, Args&... args)
 {
-	auto targetEvent = d_cast<EventArgs<Args...>*>(event);
-	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
-	std::tie(args...) = targetEvent->arguments;
+	LuaEventArgs* luaEvent = DoraCast<LuaEventArgs>(event);
+	if (luaEvent)
+	{
+		luaEvent->retrieve(args...);
+	}
+	else
+	{
+		auto targetEvent = d_cast<EventArgs<Args...>*>(event);
+		AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
+		std::tie(args...) = targetEvent->arguments;
+	}
 }
 
 NS_DOROTHY_END

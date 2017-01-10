@@ -55,7 +55,6 @@ struct Size
     Size(float width, float height);
     Size(const Size& other);
 	void set(float width, float height);
-	Size& operator=(const Size& other);
 	bool operator==(const Size& other) const;
 	bool operator!=(const Size& other) const;
 	Size operator*(const Vec2& vec) const;
@@ -81,7 +80,6 @@ struct Rect
 	Rect(const Vec2& origin, const Size& size);
 	Rect(float x, float y, float width, float height);
 	Rect(const Rect& other);
-	Rect& operator=(const Rect& other);
 	bool operator==(const Rect& other) const;
 	bool operator!=(const Rect& other) const;
 	void setLowerBound(const Vec2& lowerBound);

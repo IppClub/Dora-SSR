@@ -326,8 +326,7 @@ int tolua_isnumberarray(lua_State* L, int lo, int dim, int def, tolua_Error* err
 	return 1;
 }
 
-int tolua_isstringarray
-(lua_State* L, int lo, int dim, int def, tolua_Error* err)
+int tolua_isstringarray(lua_State* L, int lo, int dim, int def, tolua_Error* err)
 {
 	if (!tolua_istable(L, lo, def, err))
 	{

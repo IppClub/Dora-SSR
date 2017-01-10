@@ -74,4 +74,26 @@ Listener* Event::addListener(String name, const EventHandler& handler)
 	return listener;
 }
 
+LuaEventArgs::LuaEventArgs(String name, int paramCount):
+Event(name),
+_paramCount(paramCount)
+{ }
+
+void LuaEventArgs::send(String name, int paramCount)
+{
+	LuaEventArgs event(name, paramCount);
+	Event::send(&event);
+}
+
+int LuaEventArgs::pushArgsToLua()
+{
+	lua_State* L = SharedLueEngine.getState();
+	int top = lua_gettop(L);
+	for (int index = top-_paramCount+1; index <= top; index++)
+	{
+		lua_pushvalue(L, index);
+	}
+	return _paramCount;
+}
+
 NS_DOROTHY_END

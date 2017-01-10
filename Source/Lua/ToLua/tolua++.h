@@ -19,12 +19,6 @@
 
 NS_DOROTHY_BEGIN
 
-#define tolua_pushcppstring(x,y) tolua_pushstring(x,y.c_str())
-#define tolua_iscppstring tolua_isstring
-
-#define tolua_iscppstringarray tolua_isstringarray
-#define tolua_pushfieldcppstring(L,lo,idx,s) tolua_pushfieldstring(L, lo, idx, s.c_str())
-
 #ifndef TEMPLATE_BIND
 	#define TEMPLATE_BIND(p)
 #endif
@@ -107,6 +101,7 @@ void tolua_pushvalue(lua_State* L, int lo);
 void tolua_pushboolean(lua_State* L, int value);
 void tolua_pushnumber(lua_State* L, lua_Number value);
 void tolua_pushstring(lua_State* L, const char* value);
+void tolua_pushstring(lua_State* L, const char* value, size_t len);
 void tolua_pushusertype(lua_State* L, void* value, int typeId);
 void tolua_pushfieldvalue(lua_State* L, int lo, int index, int v);
 void tolua_pushfieldboolean(lua_State* L, int lo, int index, int v);
@@ -114,7 +109,6 @@ void tolua_pushfieldnumber(lua_State* L, int lo, int index, lua_Number v);
 void tolua_pushfieldstring(lua_State* L, int lo, int index, const char* v);
 void tolua_pushfieldusertype(lua_State* L, int lo, int index, void* v, int typeId);
 void tolua_pushobject(lua_State* L, Object* object);
-void tolua_pushslice(lua_State* L, String str);
 
 lua_Number tolua_tonumber(lua_State* L, int narg, lua_Number def);
 const char* tolua_tostring(lua_State* L, int narg, const char* def);
@@ -147,8 +141,22 @@ inline const char* tolua_tofieldcppstring(lua_State* L, int lo, int index, const
 }
 
 int tolua_fast_isa(lua_State *L, int mt_indexa, int mt_indexb);
-int tolua_isccobject(lua_State* L, int mt_idx);
+int tolua_isobject(lua_State* L, int mt_idx);
 void tolua_typeid(lua_State *L, int typeId, const char* className);
+
+/* tolua_fix */
+int tolua_ref_function(lua_State* L, int lo);
+void tolua_get_function_by_refid(lua_State* L, int refid);
+void tolua_remove_function_by_refid(lua_State* L, int refid);
+int tolua_isfunction(lua_State* L, int lo, tolua_Error* err);
+void tolua_stack_dump(lua_State* L, int offset, const char* label);
+int tolua_get_callback_ref_count();
+int tolua_get_max_callback_ref_count();
+Slice tolua_toslice(lua_State* L, int narg, const char* def);
+int tolua_isslice(lua_State* L, int lo, int def, tolua_Error* err);
+void tolua_pushslice(lua_State* L, String str);
+#define tolua_isslicearray tolua_isstringarray
+Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 
 #ifndef Mtolua_new
 	#define Mtolua_new(EXP) new EXP
@@ -176,10 +184,6 @@ void tolua_typeid(lua_State *L, int typeId, const char* className);
 
 #ifndef Mtolua_typeid
 	#define Mtolua_typeid(L,type,name) tolua_typeid(L,LuaType<type>(),name)
-#endif
-
-#if DORA_DEBUG == 0
-	#define TOLUA_RELEASE
 #endif
 
 #define TOLUA_API

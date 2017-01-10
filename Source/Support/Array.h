@@ -38,11 +38,13 @@ public:
 	void removeAt(int index);
 	void fastRemoveAt(int index);
 	RefVector<Object>& data();
+	void each(const function<bool (Object*,int)>& handler);
 	CREATE_FUNC(Array);
 protected:
 	Array();
 	Array(Array* other);
 	Array(int capacity);
+	Array(Object* objects[], int size);
 private:
 	RefVector<Object> _data;
 	DORA_TYPE_OVERRIDE(Array);

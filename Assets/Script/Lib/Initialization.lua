@@ -84,7 +84,7 @@ setmetatable(Routine,
 	end,
 })
 
-Director:schedule(function()
+Director.systemScheduler:schedule(function()
 	local i,count = 1,#Routine
 	while i <= count do
 		if Routine[i]() then
@@ -144,9 +144,9 @@ local Content_loadAsync = Content.loadAsync
 Content.loadAsync = function(self,filename,handler)
 	local isloaded = false
 	local loadedData
-	Content_loadAsync(self,filename,function(file,data)
+	Content_loadAsync(self,filename,function(data)
 		if handler then
-			handler(file,data)
+			handler(filename, data)
 		end
 		loadedData = data
 		isloaded = true

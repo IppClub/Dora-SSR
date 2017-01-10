@@ -129,6 +129,12 @@ inline Ref<T> MakeRef(T* item)
 	return Ref<T>(item);
 }
 
+template<class T, class... Args>
+inline Ref<T> NewRef(Args&&... args)
+{
+	return Ref<T>(T::create(std::forward<Args>(args)...));
+}
+
 /** @brief Used with Aggregation Relationship. */
 template<class T = Object>
 class RefVector : public vector<Ref<T>>
