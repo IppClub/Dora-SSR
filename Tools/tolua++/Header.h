@@ -1,5 +1,22 @@
 typedef Slice String;
 
+module TargetPlatform
+{
+    #define TargetPlatform::Windows @ Windows
+    #define TargetPlatform::Android @ Android
+    #define TargetPlatform::macOS @ macOS
+    #define TargetPlatform::iOS @ iOS
+}
+
+class Application
+{
+	tolua_readonly tolua_property__common int width;
+	tolua_readonly tolua_property__common int height;
+	tolua_readonly tolua_property__common int platform;
+	tolua_property__common unsigned int seed;
+	static tolua_outside Application* Application_shared @ create();
+};
+
 class Object
 {
 	tolua_readonly tolua_property__common Uint32 id;
@@ -187,7 +204,7 @@ class Array : public Object
 	void insert(int index, Object* object);
 	void removeAt(int index);
 	void fastRemoveAt(int index);
-	void each(tolua_function_bool func);
+	bool each(tolua_function_bool func);
 
 	static Array* create();
 	static Array* create(Array* other);
@@ -260,6 +277,9 @@ class Node : public Object
 
 	void scheduleUpdate();
 	void unscheduleUpdate();
+	
+	bool eachChild(tolua_function_bool func);
+	bool traverse(tolua_function_bool func);
 
 	static Node* create();
 };

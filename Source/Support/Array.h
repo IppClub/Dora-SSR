@@ -41,12 +41,13 @@ public:
 	CREATE_FUNC(Array);
 public:
 	template <class Func>
-	void each(const Func& handler)
+	bool each(const Func& handler)
 	{
 		for (int i = 0; i < getCount(); i++)
 		{
-			if (handler(get(i), i)) break;
+			if (handler(get(i), i)) return true;
 		}
+		return false;
 	}
 	template <class Cond>
 	void removeIf(const Cond& cond)

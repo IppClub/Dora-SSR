@@ -12,21 +12,21 @@ ccColor3	249	n
 	g	2	n
 CCDirector	241	n
 	winSize	179	n
-	schedule	97	n
-	unschedule	65	n
+	schedule	97	y
+	unschedule	65	y
 	scheduler	30	y
-	currentScene	8	n
+	currentScene	8	y
 	eclapsedInterval	8	n
 	pause	6	n
 	notificationNode	6	n
-	sceneStackSize	4	n
-	popScene	3	n
-	replaceScene	2	n
+	sceneStackSize	4	y
+	popScene	3	y
+	replaceScene	2	y
 	stop	1	n
 	resume	1	n
 	updateInterval	1	n
 	drawInterval	1	n
-	run	1	n
+	run	1	y
 	displayStats	1	n
 	numberOfDraws	1	n
 CCSize	214	y
@@ -48,53 +48,53 @@ CCDrawNode	132	n
 	drawSegment	26	n
 	clear	4	n
 CCNode	129	n
-	addChild	1138	n
-	height	885	n
-	width	849	n
-	visible	587	n
-	slot	571	n
-	position	533	n
-	emit	399	n
-	positionX	392	n
-	positionY	381	n
-	children	261	n
-	contentSize	247	n
-	opacity	241	n
-	color	236	n
-	gslot	219	n
-	anchor	214	n
-	scaleX	212	n
+	addChild	1138	y
+	height	885	y
+	width	849	y
+	visible	587	y
+	slot	571	y
+	position	533	y
+	emit	399	y
+	positionX	392	y
+	positionY	381	y
+	children	261	y
+	contentSize	247	y
+	opacity	241	y
+	color	236	y
+	gslot	219	y
+	anchor	214	y
+	scaleX	212	y
 	runAction	206	n
-	scaleY	202	n
-	parent	170	n
-	angle	109	n
+	scaleY	202	y
+	parent	170	y
+	angle	109	y
 	schedule	97	y
-	removeChild	92	n
+	removeChild	92	y
 	unschedule	65	y
-	convertToNodeSpace	60	n
-	cascadeOpacity	59	n
+	convertToNodeSpace	60	y
+	cascadeOpacity	59	y
 	stopAllActions	45	n
-	transformTarget	40	n
-	cascadeColor	39	n
-	eachChild	32	n
-	data	31	n
+	transformTarget	40	y
+	cascadeColor	39	y
+	eachChild	32	y
+	data	31	y
 	scheduler	30	y
-	skewY	25	n
-	skewX	25	n
-	removeAllChildrenWithCleanup	23	n
-	cleanup	18	n
-	convertToWorldSpace	17	n
+	skewY	25	y
+	skewX	25	y
+	removeAllChildrenWithCleanup	23	y
+	cleanup	18	y
+	convertToWorldSpace	17	y
 	tag	15	y
-	zOrder	9	n
+	zOrder	9	y
 	stopAction	8	n
 	scheduled	7	y
 	numberOfRunningActions	6	n
-	boundingBox	5	n
-	getChildByTag	5	n
+	boundingBox	5	y
+	getChildByTag	5	y
 	perform	3	n
-	addTo	3	n
-	removeChildByTag	2	n
-	running	2	n
+	addTo	3	y
+	removeChildByTag	2	y
+	running	2	y
 CCArray	100	y
 	insert	214	y
 	remove	52	y
@@ -110,11 +110,11 @@ CCArray	100	y
 	add	2	y
 	reverse	1	y
 	contains	1	y
-CCScene	63	n
-	addChild	1138	n
-	fade	13	n
-	crossFade	8	n
-	move	8	n
+CCScene	63	y
+	addChild	1138	y
+	fade	13	d
+	crossFade	8	d
+	move	8	d
 CCRect	62	y
 	height	885	y
 	width	849	y

@@ -10,6 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+/* Application */
+inline Application* Application_shared() { return &SharedApplication; }
+
 /* Event */
 int dora_emit(lua_State* L);
 

@@ -101,6 +101,16 @@ class Slice {
     return *this;
   }
 
+  typedef const char *const_iterator;
+
+  const_iterator begin() const {
+    return str_;
+  }
+
+  const_iterator end() const {
+    return str_ + len_;
+  }
+
   std::string getFilePath() const;
   std::string getFileName() const;
   std::string getFileExtension() const;
@@ -125,14 +135,6 @@ inline bool operator==(const Slice &lhs, const Slice &rhs) {
 }
 
 inline bool operator!=(const Slice &lhs, const Slice &rhs) {
-  return !(lhs == rhs);
-}
-
-inline bool operator==(const std::string &lhs, const Slice &rhs) {
-  return rhs.compare(lhs) == 0;
-}
-
-inline bool operator!=(const std::string &lhs, const Slice &rhs) {
   return !(lhs == rhs);
 }
 

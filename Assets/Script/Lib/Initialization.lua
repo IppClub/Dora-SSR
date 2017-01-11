@@ -1,3 +1,4 @@
+local Application = builtin.Application()
 local Content = builtin.Content()
 local Director = builtin.Director()
 
@@ -8,6 +9,7 @@ local table_insert = table.insert
 local table_remove = table.remove
 local type = type
 
+builtin.Application = Application
 builtin.Content = Content
 builtin.Director = Director
 

@@ -94,16 +94,6 @@ public:
 
 	void emit(Event* event);
 
-	template <class ...Args>
-	void emit(String name, Args ...args)
-	{
-		if (_signal)
-		{
-			EventArgs<Args...> event(name, args...);
-			emit(&event);
-		}
-	}
-
 	Slot* slot(String name);
 	Slot* slot(String name, const EventHandler& handler);
 	void slot(String name, std::nullptr_t);
@@ -114,6 +104,46 @@ public:
 	RefVector<Listener> gslot(String name);
 
 	CREATE_FUNC(Node);
+public:
+	template <class ...Args>
+	void emit(String name, Args ...args)
+	{
+		if (_signal)
+		{
+			EventArgs<Args...> event(name, args...);
+			emit(&event);
+		}
+	}
+
+	/** @brief traverse children, return true to stop. */
+	template <class Func>
+	bool eachChild(const Func& func)
+	{
+		if (_children)
+		{
+			return _children->each(func);
+		}
+		return false;
+	}
+
+	/** @brief traverse node tree, return true to stop. */
+	template <class Func>
+	bool traverse(const Func& func)
+	{
+		if (func(this)) return true;
+		if (_children)
+		{
+			for (auto child : _children->data())
+			{
+				if (child.to<Node>()->traverse(func))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 /*
 	PROPERTY_READONLY(int, ActionCount);
 	void runAction(CCAction* action);
@@ -146,7 +176,6 @@ protected:
 	float _skewX;
 	float _skewY;
 	float _positionZ;
-	float* _world;
 	Vec2 _position;
 	Vec2 _anchor;
 	Vec2 _anchorPoint;
