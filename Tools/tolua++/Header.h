@@ -50,7 +50,15 @@ class Director
 {
 	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
+	tolua_readonly tolua_property__common Array* entries;
 	tolua_readonly tolua_property__common double deltaTime;
+	void setEntry(Node* entry);
+	void pushEntry(Node* entry);
+	Node* popEntry();
+	void popToEntry(Node* entry);
+	void popToRootEntry();
+	void swapEntry(Node* entryA, Node* entryB);
+	void clearEntry();
 	static tolua_outside Director* Director_shared @ create();
 };
 

@@ -14,7 +14,8 @@ NS_DOROTHY_BEGIN
 
 Director::Director():
 _scheduler(Scheduler::create()),
-_systemScheduler(Scheduler::create())
+_systemScheduler(Scheduler::create()),
+_entryStack(Array::create())
 { }
 
 bool Director::init()
@@ -49,6 +50,16 @@ double Director::getDeltaTime() const
 	return std::min(SharedApplication.getDeltaTime(), 1.0/30);
 }
 
+Array* Director::getEntries() const
+{
+	return _entryStack;
+}
+
+Node* Director::getCurrentEntry() const
+{
+	return _entryStack->isEmpty() ? nullptr : _entryStack->getLast().to<Node>();
+}
+
 void Director::mainLoop()
 {
 	bgfx::setViewRect(0, 0, 0, SharedApplication.getWidth(), SharedApplication.getHeight());
@@ -70,6 +81,114 @@ void Director::mainLoop()
 
 	_systemScheduler->update(SharedApplication.getDeltaTime());
 	_scheduler->update(SharedApplication.getDeltaTime());
+	if (!_entryStack->isEmpty())
+	{
+		Node* currentEntry = _entryStack->getLast().to<Node>();
+		currentEntry->visit();
+	}
+}
+
+void Director::setEntry(Node* entry)
+{
+	_entryStack->removeIf([entry](const Ref<>& item)
+	{
+		return item == entry;
+	});
+	pushEntry(entry);
+}
+
+void Director::pushEntry(Node* entry)
+{
+	if (!_entryStack->isEmpty())
+	{
+		if (entry == _entryStack->getLast())
+		{
+			Log("target entry pushed is already running!");
+			return;
+		}
+		Node* last = _entryStack->getLast().to<Node>();
+		last->onExit();
+	}
+	_entryStack->add(entry);
+	entry->onEnter();
+}
+
+Ref<Node> Director::popEntry()
+{
+	if (_entryStack->isEmpty())
+	{
+		Log("pop from an empty entry stack.");
+		return Ref<Node>();
+	}
+	Ref<Node> last(_entryStack->removeLast().to<Node>());
+	last->onExit();
+	if (!_entryStack->contains(last))
+	{
+		last->cleanup();
+	}
+	if (!_entryStack->isEmpty())
+	{
+		Node* current = _entryStack->getLast().to<Node>();
+		current->onEnter();
+	}
+	return last;
+}
+
+void Director::popToEntry(Node* entry)
+{
+	if (_entryStack->isEmpty())
+	{
+		Log("pop from an empty entry stack.");
+		return;
+	}
+	if (_entryStack->contains(entry))
+	{
+		while (_entryStack->getLast() != entry)
+		{
+			popEntry();
+		}
+		return;
+	}
+	Log("entry to pop is not in entry stack.");
+}
+
+void Director::popToRootEntry()
+{
+	if (_entryStack->isEmpty())
+	{
+		Log("pop from an empty entry stack.");
+		return;
+	}
+	popToEntry(_entryStack->getFirst().to<Node>());
+}
+
+void Director::swapEntry(Node* entryA, Node* entryB)
+{
+	AssertUnless(_entryStack->contains(entryA) && _entryStack->contains(entryB), "entry to swap is not in entry stack.");
+	Node* currentEntry = getCurrentEntry();
+	Node* entryToEnter = nullptr;
+	Node* entryToExit = nullptr;
+	if (entryA == currentEntry)
+	{
+		entryToEnter = entryB;
+		entryToExit = entryA;
+	}
+	if (entryB == currentEntry)
+	{
+		entryToEnter = entryA;
+		entryToExit = entryB;
+	}
+	_entryStack->swap(entryA, entryB);
+	if (entryToExit) entryToExit->onExit();
+	if (entryToEnter) entryToEnter->onEnter();
+}
+
+void Director::clearEntry()
+{
+	while (!_entryStack->isEmpty())
+	{
+		popEntry();
+	}
 }
 
 void Director::handleSDLEvent(const SDL_Event& event)
@@ -79,6 +198,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		// User-requested quit
 		case SDL_QUIT:
 			Event::send("AppQuit"_slice);
+			clearEntry();
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:

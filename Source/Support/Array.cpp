@@ -164,12 +164,4 @@ RefVector<Object>& Array::data()
 	return _data;
 }
 
-void Array::each(const function<bool (Object*,int)>& handler)
-{
-	for (int i = 0; i < getCount(); i++)
-	{
-		if (handler(get(i), i)) break;
-	}
-}
-
 NS_DOROTHY_END

@@ -68,9 +68,7 @@ public:
 	virtual Rect getBoundingBox();
 
 	virtual void onEnter();
-	virtual void onEnterFinished();
 	virtual void onExit();
-	virtual void onExitFinished();
 	virtual void cleanup();
 
 	Node* getChildByName(String name);
@@ -172,7 +170,10 @@ protected:
 		PassOpacity = 1 << 5,
 		PassColor3 = 1 << 6,
 		Reorder = 1 << 7,
-		Cleanup = 1 << 8
+		Cleanup = 1 << 8,
+		TouchEnabled = 1<<9,
+		KeypadEnabled = 1<<10,
+		KeyboardEnabled = 1<<11,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

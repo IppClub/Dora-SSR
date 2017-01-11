@@ -14,10 +14,10 @@ class Array : public Object
 {
 public:
 	PROPERTY_READONLY(int, Count);
-	PROPERTY(int, Capacity);
-	PROPERTY_REF(Ref<Object>, Last);
-	PROPERTY_REF(Ref<Object>, First);
-	PROPERTY_REF(Ref<Object>, RandomObject);
+	PROPERTY_READONLY(int, Capacity);
+	PROPERTY_READONLY_REF(Ref<Object>, Last);
+	PROPERTY_READONLY_REF(Ref<Object>, First);
+	PROPERTY_READONLY_REF(Ref<Object>, RandomObject);
 	PROPERTY_READONLY_BOOL(Empty);
 	bool contains(Object* object) const;
 	void add(Object* object);
@@ -38,8 +38,21 @@ public:
 	void removeAt(int index);
 	void fastRemoveAt(int index);
 	RefVector<Object>& data();
-	void each(const function<bool (Object*,int)>& handler);
 	CREATE_FUNC(Array);
+public:
+	template <class Func>
+	void each(const Func& handler)
+	{
+		for (int i = 0; i < getCount(); i++)
+		{
+			if (handler(get(i), i)) break;
+		}
+	}
+	template <class Cond>
+	void removeIf(const Cond& cond)
+	{
+		_data.erase(std::remove_if(_data.begin(), _data.end(), cond), _data.end());
+	}
 protected:
 	Array();
 	Array(Array* other);

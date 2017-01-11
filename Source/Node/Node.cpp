@@ -350,15 +350,7 @@ void Node::onEnter()
 	{
 		_scheduler->schedule(this);
 	}
-}
-
-void Node::onEnterFinished()
-{
-	ARRAY_START(Node, child, _children)
-	{
-		child->onEnterFinished();
-	}
-	ARRAY_END
+	emit("Enter"_slice);
 }
 
 void Node::onExit()
@@ -373,15 +365,7 @@ void Node::onExit()
 	{
 		_scheduler->unschedule(this);
 	}
-}
-
-void Node::onExitFinished()
-{
-	ARRAY_START(Node, child, _children)
-	{
-		child->onExitFinished();
-	}
-	ARRAY_END
+	emit("Exit"_slice);
 }
 
 Array* Node::getChildren() const
@@ -420,7 +404,6 @@ void Node::addChild(Node* child, int order, String name)
 	if (isOn(Node::Running))
 	{
 		child->onEnter();
-		child->onEnterFinished();
 	}
 }
 
@@ -463,7 +446,6 @@ void Node::removeChild(Node* child, bool cleanup)
 		if (isOn(Node::Running))
 		{
 			child->onExit();
-			child->onExitFinished();
 		}
 		if (cleanup)
 		{
@@ -485,7 +467,6 @@ void Node::removeAllChildren(bool cleanup)
 		if (isOn(Node::Running))
 		{
 			child->onExit();
-			child->onExitFinished();
 		}
 		if (cleanup)
 		{
@@ -505,6 +486,7 @@ void Node::cleanup()
 	if (isOff(Node::Cleanup))
 	{
 		setOn(Node::Cleanup);
+		emit("Cleanup"_slice);
 		ARRAY_START(Node, child, _children)
 		{
 			child->cleanup();

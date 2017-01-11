@@ -8,9 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Array.h"
+
 NS_DOROTHY_BEGIN
 
 class Scheduler;
+class Node;
 
 class Director : public Object
 {
@@ -18,12 +21,24 @@ public:
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
+	PROPERTY_READONLY(Array*, Entries);
+	PROPERTY_READONLY(Node*, CurrentEntry);
 	bool init() override;
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
+
+	void setEntry(Node* entry);
+	void pushEntry(Node* entry);
+	Ref<Node> popEntry();
+	void popToEntry(Node* entry);
+	void popToRootEntry();
+	void swapEntry(Node* entryA, Node* entryB);
+	void clearEntry();
 protected:
 	Director();
 private:
+	Ref<Array> _entryStack;
+	Ref<Node> _currentScene;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
 };
