@@ -6,36 +6,56 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
+#include "Const/Header.h"
+#include "Basic/View.h"
 
 NS_DOROTHY_BEGIN
 
-struct Color3
-{
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
-	Uint32 toRGB() const;
-};
+View::View():
+_flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC),
+_resetRequired(false),
+_size(s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight()))
+{ }
 
-struct Color
+Size View::getSize() const
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
-	Color();
-	Color(Color3 color);
-	Color(Uint32 argb);
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Uint32 toRGBA() const;
-	Color3 toColor3() const;
-	PROPERTY(float, Opacity);
-	Color& operator=(const Color3& color);
-	Color& operator=(const Color& color);
-};
+	return _size;
+}
+
+void View::setVSync(bool var)
+{
+	if (var != isVSync())
+	{
+		if (var)
+		{
+			_flag |= BGFX_RESET_VSYNC;
+		}
+		else
+		{
+			_flag &= ~BGFX_RESET_VSYNC;
+		}
+		_resetRequired = true;
+	}
+}
+
+bool View::isVSync() const
+{
+	return (_flag & BGFX_RESET_VSYNC) != 0;
+}
+
+void View::update()
+{
+	Size size(s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight()));
+	if (_size != size)
+	{
+		_size = size;
+		_resetRequired = true;
+	}
+	if (_resetRequired)
+	{
+		_resetRequired = false;
+		bgfx::reset(s_cast<uint32_t>(_size.width), s_cast<uint32_t>(_size.height), _flag);
+	}
+}
 
 NS_DOROTHY_END

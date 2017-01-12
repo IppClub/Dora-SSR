@@ -34,11 +34,12 @@ public:
 	void copyFileAsync(String src, String dst, const function<void()>& callback);
 	void saveToFileAsync(String filename, String content, const function<void()>& callback);
 	void saveToFileAsync(String filename, OwnArray<Uint8> content, const function<void()>& callback);
+public:
+	void loadFileAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback);
 protected:
 	Content();
 	string getFullPathForDirectoryAndFilename(String directory, String filename);
 	Uint8* loadFileUnsafe(String filename, Sint64& size);
-	void loadFileAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback);
 	void copyFileUnsafe(String srcFile, String dstFile);
 	void loadFileByChunks(String filename, const function<void(Uint8*,int)>& handler);
 	void saveToFileUnsafe(String filename, String content);

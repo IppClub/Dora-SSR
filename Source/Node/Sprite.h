@@ -10,32 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-struct Color3
+class Sprite : public Node
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
-	Uint32 toRGB() const;
-};
-
-struct Color
-{
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
-	Color();
-	Color(Color3 color);
-	Color(Uint32 argb);
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Uint32 toRGBA() const;
-	Color3 toColor3() const;
-	PROPERTY(float, Opacity);
-	Color& operator=(const Color3& color);
-	Color& operator=(const Color& color);
 };
 
 NS_DOROTHY_END

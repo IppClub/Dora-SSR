@@ -17,6 +17,7 @@
 		3C3598321E1254D600E62C16 /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3598301E1254D600E62C16 /* Async.cpp */; };
 		3C374C571E09241600527752 /* Director.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C374C551E09241600527752 /* Director.cpp */; };
 		3C38E6AC1E1513E5003E9189 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C38E6AB1E1513E5003E9189 /* Application.mm */; };
+		3C3A6FB01E27B50A0074C076 /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A6FAE1E27B50A0074C076 /* View.cpp */; };
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
@@ -35,6 +36,7 @@
 		3CB487171E16398700D51749 /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487101E16398700D51749 /* tolua_push.cpp */; };
 		3CB487181E16398700D51749 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487111E16398700D51749 /* tolua_to.cpp */; };
 		3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4871C1E16419800D51749 /* Geometry.cpp */; };
+		3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC098681E262F85006F4B76 /* Sprite.cpp */; };
 		3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E911E03C09F00462FD7 /* ioapi.cpp */; };
 		3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E931E03C09F00462FD7 /* unzip.cpp */; };
 		3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E951E03C09F00462FD7 /* zip.cpp */; };
@@ -47,6 +49,9 @@
 		3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD028FE1E07D3C50016E1EC /* LuaEngine.cpp */; };
 		3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
+		3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */; };
+		3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634E1E27275D00BA9D30 /* lodepng.cpp */; };
+		3CD463531E2776A400BA9D30 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD463511E2776A400BA9D30 /* Camera.cpp */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
 		3CE331431D96D00000F9C3F6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331421D96D00000F9C3F6 /* CoreVideo.framework */; };
 		3CE331451D96D01200F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331441D96D01200F9C3F6 /* CoreAudio.framework */; };
@@ -80,6 +85,8 @@
 		3C374C551E09241600527752 /* Director.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Director.cpp; path = ../../../Source/Basic/Director.cpp; sourceTree = "<group>"; };
 		3C374C561E09241600527752 /* Director.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Director.h; path = ../../../Source/Basic/Director.h; sourceTree = "<group>"; };
 		3C38E6AB1E1513E5003E9189 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../../Source/Basic/Application.mm; sourceTree = "<group>"; };
+		3C3A6FAE1E27B50A0074C076 /* View.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = View.cpp; path = ../../../Source/Basic/View.cpp; sourceTree = "<group>"; };
+		3C3A6FAF1E27B50A0074C076 /* View.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = View.h; path = ../../../Source/Basic/View.h; sourceTree = "<group>"; };
 		3C57A39B1E0A05AD002141DF /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C57A39C1E0A05AD002141DF /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C57A39D1E0A05AD002141DF /* EventType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventType.cpp; path = ../../../Source/Event/EventType.cpp; sourceTree = "<group>"; };
@@ -115,6 +122,8 @@
 		3CB487121E16398700D51749 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/ToLua/tolua++.h"; sourceTree = "<group>"; };
 		3CB4871C1E16419800D51749 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Geometry.cpp; path = ../../../Source/Support/Geometry.cpp; sourceTree = "<group>"; };
 		3CB4871D1E16419800D51749 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
+		3CC098681E262F85006F4B76 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
+		3CC098691E262F85006F4B76 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
 		3CC54E5D1E039E0800462FD7 /* LifeCycledSingleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LifeCycledSingleton.h; path = ../../../Source/3rdParty/silly/LifeCycledSingleton.h; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
 		3CC54E631E03AA7A00462FD7 /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
@@ -141,6 +150,12 @@
 		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbgfx.a; sourceTree = "<group>"; };
 		3CD029151E07DD720016E1EC /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/macOS/libSDL2.a; sourceTree = "<group>"; };
 		3CD029171E07DEB10016E1EC /* libluajit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libluajit.a; path = ../../Source/3rdParty/Lua/Lib/macOS/libluajit.a; sourceTree = "<group>"; };
+		3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureCache.cpp; path = ../../../Source/Cache/TextureCache.cpp; sourceTree = "<group>"; };
+		3CD4634B1E27239B00BA9D30 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
+		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
+		3CD4634F1E27275D00BA9D30 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
+		3CD463511E2776A400BA9D30 /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Camera/Camera.cpp; sourceTree = "<group>"; };
+		3CD463521E2776A400BA9D30 /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Camera/Camera.h; sourceTree = "<group>"; };
 		3CDCB0651E02204300AD73FC /* Define.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Define.h; path = ../../../Source/Const/Define.h; sourceTree = "<group>"; };
 		3CE331401D96CFF700F9C3F6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		3CE331421D96D00000F9C3F6 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -219,10 +234,11 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
-				3CC54E8E1E03C08200462FD7 /* Zip */,
 				3CC54E621E03AA6800462FD7 /* FileSystem */,
+				3CD4634D1E27273300BA9D30 /* lodepng */,
 				3CC54E5E1E039E1300462FD7 /* Other */,
 				3C291D341E0264380098C860 /* silly */,
+				3CC54E8E1E03C08200462FD7 /* Zip */,
 			);
 			name = 3rdParty;
 			sourceTree = "<group>";
@@ -260,6 +276,8 @@
 		3C9ADE491E00EFB200D42018 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
+				3C3A6FAE1E27B50A0074C076 /* View.cpp */,
+				3C3A6FAF1E27B50A0074C076 /* View.h */,
 				3C35982B1E12060D00E62C16 /* Scheduler.cpp */,
 				3C35982C1E12060D00E62C16 /* Scheduler.h */,
 				3C374C551E09241600527752 /* Director.cpp */,
@@ -314,6 +332,24 @@
 				3CB4871D1E16419800D51749 /* Geometry.h */,
 			);
 			name = Support;
+			sourceTree = "<group>";
+		};
+		3CC098671E262F0C006F4B76 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				3CD463511E2776A400BA9D30 /* Camera.cpp */,
+				3CD463521E2776A400BA9D30 /* Camera.h */,
+			);
+			name = Camera;
+			sourceTree = "<group>";
+		};
+		3CC0986B1E2630D5006F4B76 /* Cache */ = {
+			isa = PBXGroup;
+			children = (
+				3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */,
+				3CD4634B1E27239B00BA9D30 /* TextureCache.h */,
+			);
+			name = Cache;
 			sourceTree = "<group>";
 		};
 		3CC54E5E1E039E1300462FD7 /* Other */ = {
@@ -388,9 +424,10 @@
 			children = (
 				3C291D371E0264510098C860 /* 3rdParty */,
 				3C9ADE491E00EFB200D42018 /* Basic */,
+				3CC0986B1E2630D5006F4B76 /* Cache */,
+				3CC098671E262F0C006F4B76 /* Camera */,
 				3C9ADE4F1E00F14E00D42018 /* Common */,
 				3C9ADE4D1E00F13500D42018 /* Const */,
-				3CCBBA391E14B51100C0416B /* Dispacher */,
 				3C57A39A1E0A059A002141DF /* Event */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
 				3CCBBA381E14B50B00C0416B /* Node */,
@@ -404,17 +441,21 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CC098681E262F85006F4B76 /* Sprite.cpp */,
+				3CC098691E262F85006F4B76 /* Sprite.h */,
 				3CB487041E1635A500D51749 /* Node.cpp */,
 				3CB487051E1635A500D51749 /* Node.h */,
 			);
 			name = Node;
 			sourceTree = "<group>";
 		};
-		3CCBBA391E14B51100C0416B /* Dispacher */ = {
+		3CD4634D1E27273300BA9D30 /* lodepng */ = {
 			isa = PBXGroup;
 			children = (
+				3CD4634E1E27275D00BA9D30 /* lodepng.cpp */,
+				3CD4634F1E27275D00BA9D30 /* lodepng.h */,
 			);
-			name = Dispacher;
+			name = lodepng;
 			sourceTree = "<group>";
 		};
 		3CFF5F221E012874004E3CA6 /* Lua */ = {
@@ -507,6 +548,7 @@
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */,
 				3C38E6AC1E1513E5003E9189 /* Application.mm in Sources */,
+				3C3A6FB01E27B50A0074C076 /* View.cpp in Sources */,
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
 				3C0D399D1E1BA603007FEFC3 /* Color.cpp in Sources */,
@@ -516,6 +558,7 @@
 				3C3598321E1254D600E62C16 /* Async.cpp in Sources */,
 				3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */,
 				3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */,
+				3CD463531E2776A400BA9D30 /* Camera.cpp in Sources */,
 				3CB487171E16398700D51749 /* tolua_push.cpp in Sources */,
 				3CB487161E16398700D51749 /* tolua_map.cpp in Sources */,
 				3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */,
@@ -529,13 +572,16 @@
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
+				3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
+				3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,
 				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,
 				3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
+				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
 				3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */,
 				3CB487061E1635A500D51749 /* Node.cpp in Sources */,
 			);
@@ -656,7 +702,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
@@ -686,7 +732,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;

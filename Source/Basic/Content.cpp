@@ -257,7 +257,7 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 	string fileStr = filename;
 	Async::FileIO.run([fileStr, this]()
 	{
-		Sint64 size;
+		Sint64 size = 0;
 		Uint8* buffer = this->loadFileUnsafe(fileStr, size);
 		return new std::tuple<Uint8*,Sint64>(buffer,size);
 	},

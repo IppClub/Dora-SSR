@@ -67,3 +67,5 @@ using namespace Dorothy::Switch::Literals;
 #include "Support/Color.h"
 #include "Support/Array.h"
 #include "Node/Node.h"
+#include "Cache/TextureCache.h"
+#include "Basic/View.h"

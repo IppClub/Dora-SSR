@@ -233,6 +233,34 @@ CCProgressTimer	1	n
 	type	83	n
 	sprite	76	n
 	reverseDirection	2	n
+Pool	4	n
+	collect	1	n
+	size	4	n
+Texture	24	n
+	unload	12	n
+	removeUnused	7	n
+	loadAsync	5	n
+	add	4	n
+	load	2	n
+Particle	2	n
+	unload	12	n
+	removeUnused	7	n
+	loadAsync	5	n
+	load	2	n
+Model	1	n
+	save	1	n
+	unload	1	n
+	loadAsync	1	n
+	loadData	1	n
+	getClipFile	1	n
+	getLookNames	1	n
+	getClipNames	1	n
+	getAnimationNames	1	n
+Body	1	n
+	load	1	n
+	unload	1	n
+Effect	1	n
+	load	1	n
 ----- Dorothy Class-----
 oVec2	1861	y
 	y	482	y

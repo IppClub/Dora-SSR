@@ -1,4 +1,4 @@
-/* Copyright (c) 2013 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -82,15 +82,15 @@ public:
 	void scheduleUpdate();
 	void unscheduleUpdate();
 
-	virtual void visit(const float* world = Matrix::Indentity);
-	virtual void render(float* world);
+	virtual void visit();
+	virtual void render();
 	virtual bool update(double deltaTime) override;
 
 	const AffineTransform& getLocalTransform();
 	AffineTransform getWorldTransform();
 
 	void getLocalWorld(float* localWorld);
-	void getWorld(float* world);
+	const float* getWorld();
 
 	void emit(Event* event);
 
@@ -180,6 +180,7 @@ protected:
 	Vec2 _anchor;
 	Vec2 _anchorPoint;
 	Size _size;
+	float _world[16];
 	AffineTransform _transform;
 	WRef<Node> _transformTarget;
 	Node* _parent;
@@ -193,16 +194,17 @@ protected:
 	{
 		Visible = 1,
 		TransformDirty = 1 << 1,
-		Running = 1 << 2,
-		Updating = 1 << 3,
-		Scheduling = 1 << 4,
-		PassOpacity = 1 << 5,
-		PassColor3 = 1 << 6,
-		Reorder = 1 << 7,
-		Cleanup = 1 << 8,
-		TouchEnabled = 1<<9,
-		KeypadEnabled = 1<<10,
-		KeyboardEnabled = 1<<11,
+		WorldDirty = 1 << 2,
+		Running = 1 << 3,
+		Updating = 1 << 4,
+		Scheduling = 1 << 5,
+		PassOpacity = 1 << 6,
+		PassColor3 = 1 << 7,
+		Reorder = 1 << 8,
+		Cleanup = 1 << 9,
+		TouchEnabled = 1<<10,
+		KeypadEnabled = 1<<11,
+		KeyboardEnabled = 1<<12,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

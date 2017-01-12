@@ -6,36 +6,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
+#include "Const/Header.h"
+#include "Node/Sprite.h"
 
 NS_DOROTHY_BEGIN
-
-struct Color3
-{
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
-	Uint32 toRGB() const;
-};
-
-struct Color
-{
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
-	Color();
-	Color(Color3 color);
-	Color(Uint32 argb);
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Uint32 toRGBA() const;
-	Color3 toColor3() const;
-	PROPERTY(float, Opacity);
-	Color& operator=(const Color3& color);
-	Color& operator=(const Color& color);
-};
 
 NS_DOROTHY_END

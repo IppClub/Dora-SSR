@@ -10,32 +10,39 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-struct Color3
+class Camera : public Object
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
-	Uint32 toRGB() const;
+public:
+	PROPERTY_READONLY_REF(string, Name);
+	virtual const Vec3& getPosition();
+	virtual const Vec3& getTarget();
+	virtual const Vec3& getUp();
+	virtual void getView(float* view);
+protected:
+	Camera(String name);
+protected:
+	string _name;
+	Vec3 _position;
+	Vec3 _target;
+	Vec3 _up;
+	float _view[16];
 };
 
-struct Color
+class BasicCamera : public Camera
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
-	Color();
-	Color(Color3 color);
-	Color(Uint32 argb);
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Uint32 toRGBA() const;
-	Color3 toColor3() const;
-	PROPERTY(float, Opacity);
-	Color& operator=(const Color3& color);
-	Color& operator=(const Color& color);
+public:
+	PROPERTY(float, Rotation);
+	void setPosition(const Vec3& position);
+	void setTarget(const Vec3& position);
+	virtual const Vec3& getUp();
+	virtual void getView(float* view);
+	CREATE_FUNC(BasicCamera);
+protected:
+	BasicCamera(String name);
+	void updateView();
+private:
+	bool _transformDirty;
+	float _rotation;
 };
 
 NS_DOROTHY_END

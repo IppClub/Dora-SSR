@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Source\3rdParty\lodepng\lodepng.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp" />
@@ -31,6 +32,8 @@
     <ClCompile Include="..\..\..\Source\Basic\Director.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Utils.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
@@ -49,6 +52,7 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Array.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Color.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp" />
@@ -56,6 +60,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lauxlib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp" />
@@ -74,6 +79,8 @@
     <ClInclude Include="..\..\..\Source\Basic\Director.h" />
     <ClInclude Include="..\..\..\Source\Basic\Object.h" />
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
+    <ClInclude Include="..\..\..\Source\Basic\View.h" />
+    <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
     <ClInclude Include="..\..\..\Source\Common\Async.h" />
     <ClInclude Include="..\..\..\Source\Common\Debug.h" />
     <ClInclude Include="..\..\..\Source\Common\MemoryPool.h" />
@@ -94,6 +101,7 @@
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
+    <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
     <ClInclude Include="..\..\..\Source\Support\Array.h" />
     <ClInclude Include="..\..\..\Source\Support\Color.h" />
     <ClInclude Include="..\..\..\Source\Support\Geometry.h" />
@@ -172,7 +180,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/lodepng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -211,7 +219,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/lodepng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>

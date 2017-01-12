@@ -62,7 +62,8 @@ Node* Director::getCurrentEntry() const
 
 void Director::mainLoop()
 {
-	bgfx::setViewRect(0, 0, 0, SharedApplication.getWidth(), SharedApplication.getHeight());
+	SharedView.update();
+	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
 	bgfx::touch(0);
 	bgfx::dbgTextClear();
 	const bgfx::Stats* stats = bgfx::getStats();

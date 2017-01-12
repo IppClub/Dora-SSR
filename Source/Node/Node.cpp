@@ -28,7 +28,9 @@ _anchor(0.5f, 0.5f),
 _size(),
 _transform(AffineTransform::Indentity),
 _scheduler(SharedDirector.getScheduler())
-{ }
+{
+	bx::mtxIdentity(_world);
+}
 
 Node::~Node()
 { }
@@ -590,19 +592,10 @@ bool Node::update(double deltaTime)
 	return Object::update(deltaTime);
 }
 
-void Node::visit(const float* parentWorld)
+void Node::visit()
 {
 	/* get world matrix */
-	float world[16];
-	getLocalWorld(world);
-
-	if (_transformTarget)
-	{
-		float targetWorld[16];
-		_transformTarget->getWorld(targetWorld);
-		parentWorld = targetWorld;
-	}
-	bx::mtxMul(world, parentWorld, world);
+	getWorld();
 
 	if (_children && !_children->isEmpty())
 	{
@@ -615,26 +608,24 @@ void Node::visit(const float* parentWorld)
 		{
 			Node* node = data[index].to<Node>();
 			if (node->getOrder() >= 0) break;
-			node->visit(world);
+			node->visit();
 		}
 
 		/* render self */
-		render(world);
+		render();
 
 		/* visit and render child whose order is greater equal than 0 */
 		for (; index < data.size(); index++)
 		{
 			Node* node = data[index].to<Node>();
-			node->visit(world);
+			node->visit();
 		}
 	}
-	else render(world);
+	else render();
 }
 
-void Node::render(float* world)
-{
-	DORA_UNUSED_PARAM(world);
-}
+void Node::render()
+{ }
 
 const AffineTransform& Node::getLocalTransform()
 {
@@ -789,17 +780,33 @@ void Node::getLocalWorld(float* localWorld)
 	}
 }
 
-void Node::getWorld(float* world)
+const float* Node::getWorld()
 {
-	float parentWorld[16];
-	getLocalWorld(world);
-	for (Node* parent = this->getTargetParent();
-		parent != nullptr;
-		parent = parent->getTargetParent())
+	if (isOn(Node::WorldDirty))
 	{
-		parent->getLocalWorld(parentWorld);
-		bx::mtxMul(world, parentWorld, world);
+		setOff(WorldDirty);
+		getLocalWorld(_world);
+		const float* parentWorld;
+		if (_transformTarget)
+		{
+			parentWorld = _transformTarget->getWorld();
+		}
+		else if (_parent)
+		{
+			parentWorld = _parent->getWorld();
+		}
+		else
+		{
+			parentWorld = Matrix::Indentity;
+		}
+		bx::mtxMul(_world, parentWorld, _world);
+		ARRAY_START(Node, child, _children)
+		{
+			child->setOn(Node::WorldDirty);
+		}
+		ARRAY_END
 	}
+	return _world;
 }
 
 void Node::emit(Event* event)
@@ -895,7 +902,8 @@ void Node::setFlag(Uint32 type, bool value)
 
 void Node::markDirty()
 {
-	_flags |= Node::TransformDirty;
+	setOn(Node::TransformDirty);
+	setOn(Node::WorldDirty);
 }
 
 bool Node::isOn(Uint32 type) const

@@ -43,6 +43,12 @@
     <Filter Include="Support">
       <UniqueIdentifier>{da89bd03-e4d8-4c9e-aa63-f0e5e41cb1f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Cache">
+      <UniqueIdentifier>{e0778c45-31d9-491a-8d4c-1be11101a327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\lodepng">
+      <UniqueIdentifier>{e02d705b-c0ec-468c-bae9-b4f62a446794}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -143,6 +149,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Common\Utils.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Sprite.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\View.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lodepng\lodepng.cpp">
+      <Filter>3rdParty\lodepng</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -274,6 +292,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Support\Geometry.h">
       <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Sprite.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\View.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\TextureCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h">
+      <Filter>3rdParty\lodepng</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

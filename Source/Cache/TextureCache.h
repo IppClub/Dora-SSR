@@ -10,32 +10,41 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-struct Color3
+class Texture2D : public Object
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
-	Uint32 toRGB() const;
+public:
+	PROPERTY_READONLY(bgfx::TextureHandle, Handle);
+	PROPERTY_READONLY_REF(bgfx::TextureInfo, Info);
+	virtual ~Texture2D();
+	CREATE_FUNC(Texture2D);
+protected:
+	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info);
+private:
+	bgfx::TextureHandle _handle;
+	bgfx::TextureInfo _info;
 };
 
-struct Color
+class TextureCache : public Object
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
-	Color();
-	Color(Color3 color);
-	Color(Uint32 argb);
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Uint32 toRGBA() const;
-	Color3 toColor3() const;
-	PROPERTY(float, Opacity);
-	Color& operator=(const Color3& color);
-	Color& operator=(const Color& color);
+public:
+	void set(String name, Texture2D* texture);
+	/** @brief support format .png .dds .pvr .ktx */
+	Texture2D* load(String filename);
+	void loadAsync(String filename, const function<void(Texture2D*)>& handler);
+    void unload(Texture2D* texture);
+    void unload(String filename);
+    void clear();
+    void clearUnused();
+protected:
+	TextureCache();
+	static void loadPNG(const OwnArray<Uint8>& data, uint8_t*& out,
+		uint32_t& width, uint32_t& height, uint32_t& bpp,
+		bgfx::TextureFormat::Enum& format);
+private:
+	unordered_map<string, Ref<Texture2D>> _textures;
 };
+
+#define SharedTextureCache \
+	silly::Singleton<TextureCache, SingletonIndex::TextureCache>::shared()
 
 NS_DOROTHY_END
