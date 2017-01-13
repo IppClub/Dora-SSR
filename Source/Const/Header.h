@@ -69,3 +69,4 @@ using namespace Dorothy::Switch::Literals;
 #include "Node/Node.h"
 #include "Cache/TextureCache.h"
 #include "Basic/View.h"
+#include "Basic/Camera.h"

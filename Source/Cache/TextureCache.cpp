@@ -32,6 +32,12 @@ void lodepng_free(void* ptr)
 	::free(ptr);
 }
 
+static void lodepng_free(void* _ptr, void* _userData)
+{
+	DORA_UNUSED_PARAM(_userData);
+	lodepng_free(_ptr);
+}
+
 NS_DOROTHY_BEGIN
 
 Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info):
@@ -82,11 +88,10 @@ Texture2D* TextureCache::load(String filename)
 		case "ktx"_hash:
 		{
 			bgfx::TextureInfo info;
-			auto data = SharedContent.loadFile(fullPath);
-			if (data)
+			const bgfx::Memory* mem = SharedContent.loadFileBX(fullPath);
+			if (mem->data)
 			{
-				bgfx::Memory mem = {data.get(), s_cast<uint32_t>(data.size())};
-				bgfx::TextureHandle handle = bgfx::createTexture(&mem, BGFX_TEXTURE_NONE, 0, &info);
+				bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_NONE, 0, &info);
 				Texture2D* texture = Texture2D::create(handle, info);
 				_textures[fullPath] = texture;
 				return texture;
@@ -96,7 +101,6 @@ Texture2D* TextureCache::load(String filename)
 		}
 		case "png"_hash:
 		{
-			bgfx::TextureInfo info;
 			auto data = SharedContent.loadFile(fullPath);
 			if (data)
 			{
@@ -108,14 +112,19 @@ Texture2D* TextureCache::load(String filename)
 				TextureCache::loadPNG(data, out, width, height, bpp, format);
 				if (out)
 				{
+					const bgfx::Memory* mem = bgfx::makeRef(
+						out, width * height * bpp / 8, lodepng_free);
+
 					bgfx::TextureHandle handle = bgfx::createTexture2D(
 						  uint16_t(width), uint16_t(height),
 						  false, 1, format, BGFX_TEXTURE_NONE,
-						  bgfx::copy(out, width*height*bpp/8));
-					lodepng_free(out);
+						  mem);
+
+					bgfx::TextureInfo info;
 					bgfx::calcTextureSize(info,
 						uint16_t(width), uint16_t(height),
 						0, false, false, 1, format);
+
 					Texture2D* texture = Texture2D::create(handle, info);
 					_textures[fullPath] = texture;
 					return texture;
@@ -150,16 +159,12 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 		{
 			Ref<TextureCache> self(this);
 			string file(filename);
-			SharedContent.loadFileAsync(filename, [self, file, fullPath, handler](String data)
+			SharedContent.loadFileAsyncBX(filename, [self, file, fullPath, handler](const bgfx::Memory* mem)
 			{
-				if (!data.empty())
+				if (mem->data)
 				{
-					bgfx::Memory mem = {
-						r_cast<uint8_t*>(c_cast<char*>(data.rawData())),
-						s_cast<uint32_t>(data.size())
-					};
 					bgfx::TextureInfo info;
-					bgfx::TextureHandle handle = bgfx::createTexture(&mem, BGFX_TEXTURE_NONE, 0, &info);
+					bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_NONE, 0, &info);
 					Texture2D* texture = Texture2D::create(handle, info);
 					self->_textures[fullPath] = texture;
 					handler(texture);
@@ -187,25 +192,29 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 						uint32_t width = 0, height = 0, bpp = 32;
 						bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8;
 						TextureCache::loadPNG(localData, out, width, height, bpp, format);
-						return new std::tuple<uint8_t*,uint32_t,uint32_t,uint32_t,bgfx::TextureFormat::Enum>(out,width,height,bpp,format);
+						return new std::tuple<uint8_t*, uint32_t, uint32_t, uint32_t, bgfx::TextureFormat::Enum>(out, width, height, bpp, format);
 					}, [self, fullPath, handler](void* result)
 					{
-						auto data = MakeOwn(r_cast<std::tuple<uint8_t*,uint32_t,uint32_t,uint32_t,bgfx::TextureFormat::Enum>*>(result));
+						auto data = MakeOwn(r_cast<std::tuple<uint8_t*, uint32_t, uint32_t, uint32_t, bgfx::TextureFormat::Enum>*>(result));
 						uint8_t* out;
 						uint32_t width, height, bpp;
 						bgfx::TextureFormat::Enum format;
 						std::tie(out, width, height, bpp, format) = *data;
 						if (out)
 						{
+							const bgfx::Memory* mem = bgfx::makeRef(
+								out, width * height * bpp / 8, lodepng_free);
+
 							bgfx::TextureHandle handle = bgfx::createTexture2D(
 								  uint16_t(width), uint16_t(height),
 								  false, 1, format, BGFX_TEXTURE_NONE,
-								  bgfx::copy(out, width*height*bpp/8));
-							lodepng_free(out);
+								  mem);
+
 							bgfx::TextureInfo info;
 							bgfx::calcTextureSize(info,
 								uint16_t(width), uint16_t(height),
 								0, false, false, 1, format);
+
 							Texture2D* texture = Texture2D::create(handle, info);
 							self->_textures[fullPath] = texture;
 							handler(texture);

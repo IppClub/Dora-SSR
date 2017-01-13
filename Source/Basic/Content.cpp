@@ -23,6 +23,16 @@ using std::ofstream;
 static Dorothy::Own<ZipFile> g_apkFile;
 #endif // BX_PLATFORM_ANDROID
 
+static void releaseFileData(void* _ptr, void* _userData)
+{
+	DORA_UNUSED_PARAM(_userData);
+	if (_ptr)
+	{
+		Uint8* data = r_cast<Uint8*>(_ptr);
+		delete [] data;
+	}
+}
+
 NS_DOROTHY_BEGIN
 
 Content::~Content()
@@ -35,6 +45,15 @@ OwnArray<Uint8> Content::loadFile(String filename)
 	Uint8* data = Content::loadFileUnsafe(filename, size);
 	Async::FileIO.resume();
 	return OwnArray<Uint8>(data, s_cast<size_t>(size));
+}
+
+const bgfx::Memory* Content::loadFileBX(String filename)
+{
+	Async::FileIO.pause();
+	Sint64 size = 0;
+	Uint8* data = Content::loadFileUnsafe(filename, size);
+	Async::FileIO.resume();
+	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
 
 void Content::copyFile(String src, String dst)
@@ -277,6 +296,14 @@ void Content::loadFileAsync(String filename, const function<void(String)>& callb
 	{
 		auto data = MakeOwnArray(buffer, s_cast<size_t>(size));
 		callback(Slice(r_cast<char*>(data.get()), data.size()));
+	});
+}
+
+void Content::loadFileAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback)
+{
+	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	{
+		callback(bgfx::makeRef(buffer, (uint32_t)size, releaseFileData));
 	});
 }
 

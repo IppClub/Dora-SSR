@@ -122,6 +122,10 @@ struct Vec3
 	{
 		return r_cast<const float*>(this);
 	}
+	inline operator const Vec2() const
+	{
+		return Vec2(x, y);
+	}
 };
 
 NS_DOROTHY_END

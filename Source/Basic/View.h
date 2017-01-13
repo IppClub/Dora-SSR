@@ -8,21 +8,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Geometry.h"
+
 NS_DOROTHY_BEGIN
 
 class View : public Object
 {
 public:
 	PROPERTY_READONLY(Size, Size);
+	PROPERTY_READONLY(float, StandardDistance);
+	PROPERTY_READONLY(float, AspectRatio);
+	PROPERTY_READONLY(const float*, Projection);
+	PROPERTY(float, NearPlaneDistance);
+	PROPERTY(float, FarPlaneDistance);
+	PROPERTY(float, FieldOfView);
 	PROPERTY_BOOL(VSync);
-	void update();
-	DORA_TYPE_OVERRIDE(View);
+	void reset();
 protected:
 	View();
+	void updateProjection();
 private:
 	Uint32 _flag;
-	bool _resetRequired;
-	Size _size;
+	float _nearPlaneDistance;
+	float _farPlaneDistance;
+	float _fieldOfView;
+	float _projection[16];
+	DORA_TYPE_OVERRIDE(View);
 };
 
 #define SharedView \

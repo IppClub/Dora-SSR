@@ -14,11 +14,13 @@ NS_DOROTHY_BEGIN
 
 class Scheduler;
 class Node;
+class Camera;
 
 class Director : public Object
 {
 public:
 	PROPERTY(Scheduler*, Scheduler);
+	PROPERTY(Camera*, Camera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(Array*, Entries);
@@ -41,6 +43,7 @@ private:
 	Ref<Node> _currentScene;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
+	Ref<Camera> _camera;
 };
 
 #define SharedDirector \

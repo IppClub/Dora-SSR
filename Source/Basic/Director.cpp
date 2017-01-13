@@ -15,19 +15,9 @@ NS_DOROTHY_BEGIN
 Director::Director():
 _scheduler(Scheduler::create()),
 _systemScheduler(Scheduler::create()),
-_entryStack(Array::create())
+_entryStack(Array::create()),
+_camera(Camera2D::create("Default"_slice))
 { }
-
-bool Director::init()
-{
-	bgfx::reset(SharedApplication.getWidth(), SharedApplication.getHeight(), BGFX_RESET_VSYNC);
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
-	bgfx::setViewClear(0,
-		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
-		0x303030ff, 1.0f, 0);
-	SharedLueEngine.executeScriptFile("Script/main.lua");
-	return true;
-}
 
 void Director::setScheduler(Scheduler* scheduler)
 {
@@ -50,6 +40,16 @@ double Director::getDeltaTime() const
 	return std::min(SharedApplication.getDeltaTime(), 1.0/30);
 }
 
+void Director::setCamera(Camera* var)
+{
+	_camera = var ? var : Camera2D::create("Default"_slice);
+}
+
+Camera* Director::getCamera() const
+{
+	return _camera;
+}
+
 Array* Director::getEntries() const
 {
 	return _entryStack;
@@ -60,10 +60,21 @@ Node* Director::getCurrentEntry() const
 	return _entryStack->isEmpty() ? nullptr : _entryStack->getLast().to<Node>();
 }
 
+bool Director::init()
+{
+	SharedView.reset();
+	bgfx::setDebug(BGFX_DEBUG_TEXT);
+	bgfx::setViewClear(0,
+		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
+		0x303030ff, 1.0f, 0);
+	SharedLueEngine.executeScriptFile("Script/main.lua");
+	return true;
+}
+
 void Director::mainLoop()
 {
-	SharedView.update();
 	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
+	bgfx::setViewTransform(0, getCamera()->getView(), SharedView.getProjection());
 	bgfx::touch(0);
 	bgfx::dbgTextClear();
 	const bgfx::Stats* stats = bgfx::getStats();

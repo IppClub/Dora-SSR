@@ -12,14 +12,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 View::View():
-_flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC),
-_resetRequired(false),
-_size(s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight()))
+_nearPlaneDistance(1.0f),
+_farPlaneDistance(10000.0f),
+_fieldOfView(bx::pi/4.0f),
+_flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC)
 { }
 
 Size View::getSize() const
 {
-	return _size;
+	return Size((float)SharedApplication.getWidth(), (float)SharedApplication.getHeight());
 }
 
 void View::setVSync(bool var)
@@ -34,7 +35,7 @@ void View::setVSync(bool var)
 		{
 			_flag &= ~BGFX_RESET_VSYNC;
 		}
-		_resetRequired = true;
+		bgfx::reset((uint32_t)SharedApplication.getWidth(), (uint32_t)SharedApplication.getHeight(), _flag);
 	}
 }
 
@@ -43,19 +44,66 @@ bool View::isVSync() const
 	return (_flag & BGFX_RESET_VSYNC) != 0;
 }
 
-void View::update()
+float View::getStandardDistance() const
 {
-	Size size(s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight()));
-	if (_size != size)
-	{
-		_size = size;
-		_resetRequired = true;
-	}
-	if (_resetRequired)
-	{
-		_resetRequired = false;
-		bgfx::reset(s_cast<uint32_t>(_size.width), s_cast<uint32_t>(_size.height), _flag);
-	}
+	return SharedApplication.getHeight() * 0.5f / std::tan(_fieldOfView * 0.5f);
+}
+
+float View::getAspectRatio() const
+{
+	return (float)SharedApplication.getWidth() / (float)SharedApplication.getHeight();
+}
+
+void View::setNearPlaneDistance(float var)
+{
+	_nearPlaneDistance = var;
+	updateProjection();
+}
+
+float View::getNearPlaneDistance() const
+{
+	return _nearPlaneDistance;
+}
+
+void View::setFarPlaneDistance(float var)
+{
+	_farPlaneDistance = var;
+	updateProjection();
+}
+
+float View::getFarPlaneDistance() const
+{
+	return _farPlaneDistance;
+}
+
+void View::setFieldOfView(float var)
+{
+	_fieldOfView = var;
+	updateProjection();
+}
+
+float View::getFieldOfView() const
+{
+	return _fieldOfView;
+}
+
+void View::updateProjection()
+{
+	bx::mtxProj(_projection, _fieldOfView, getAspectRatio(), _nearPlaneDistance, _farPlaneDistance);
+}
+
+const float* View::getProjection() const
+{
+	return _projection;
+}
+
+void View::reset()
+{
+	bgfx::reset(
+		(uint32_t)SharedApplication.getWidth(),
+		(uint32_t)SharedApplication.getHeight(),
+		_flag);
+	updateProjection();
 }
 
 NS_DOROTHY_END

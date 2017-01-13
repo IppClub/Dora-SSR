@@ -711,7 +711,7 @@ void Node::getLocalWorld(float* localWorld)
 
 			/* rotateXY */
 			float rotate[16];
-			bx::mtxRotateXY(rotate, bx::toRad(_angleX), bx::toRad(_angleY));
+			bx::mtxRotateXY(rotate, -bx::toRad(_angleX), -bx::toRad(_angleY));
 			bx::mtxMul(localWorld, localWorld, rotate);
 
 			/* skewXY */
@@ -748,7 +748,7 @@ void Node::getLocalWorld(float* localWorld)
 
 				/* rotateXY */
 				float rotate[16];
-				bx::mtxRotateXY(rotate, bx::toRad(_angleX), bx::toRad(_angleY));
+				bx::mtxRotateXY(rotate, -bx::toRad(_angleX), -bx::toRad(_angleY));
 				bx::mtxMul(localWorld, translate, rotate);
 
 				/* translateAnchorXY */
@@ -764,7 +764,7 @@ void Node::getLocalWorld(float* localWorld)
 
 				/* rotateXY */
 				float rotate[16];
-				bx::mtxRotateXY(rotate, bx::toRad(_angleX), bx::toRad(_angleY));
+				bx::mtxRotateXY(rotate, -bx::toRad(_angleX), -bx::toRad(_angleY));
 				bx::mtxMul(localWorld, localWorld, rotate);
 			}
 		}

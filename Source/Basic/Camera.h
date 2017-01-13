@@ -17,7 +17,7 @@ public:
 	virtual const Vec3& getPosition();
 	virtual const Vec3& getTarget();
 	virtual const Vec3& getUp();
-	virtual void getView(float* view);
+	virtual const float* getView();
 protected:
 	Camera(String name);
 protected:
@@ -26,6 +26,7 @@ protected:
 	Vec3 _target;
 	Vec3 _up;
 	float _view[16];
+	DORA_TYPE_OVERRIDE(Camera);
 };
 
 class BasicCamera : public Camera
@@ -34,8 +35,8 @@ public:
 	PROPERTY(float, Rotation);
 	void setPosition(const Vec3& position);
 	void setTarget(const Vec3& position);
-	virtual const Vec3& getUp();
-	virtual void getView(float* view);
+	virtual const Vec3& getUp() override;
+	virtual const float* getView() override;
 	CREATE_FUNC(BasicCamera);
 protected:
 	BasicCamera(String name);
@@ -43,6 +44,26 @@ protected:
 private:
 	bool _transformDirty;
 	float _rotation;
+	DORA_TYPE_OVERRIDE(BasicCamera);
+};
+
+class Camera2D : public Camera
+{
+public:
+	PROPERTY(float, Rotation);
+	PROPERTY(float, Zoom);
+	void setPosition(const Vec2& position);
+	virtual const Vec3& getUp() override;
+	virtual const float* getView() override;
+	CREATE_FUNC(Camera2D);
+protected:
+	Camera2D(String name);
+	void updateView();
+private:
+	bool _transformDirty;
+	float _rotation;
+	float _zoom;
+	DORA_TYPE_OVERRIDE(Camera2D);
 };
 
 NS_DOROTHY_END

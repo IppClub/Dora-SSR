@@ -51,7 +51,6 @@
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
 		3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */; };
 		3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634E1E27275D00BA9D30 /* lodepng.cpp */; };
-		3CD463531E2776A400BA9D30 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD463511E2776A400BA9D30 /* Camera.cpp */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
 		3CE331431D96D00000F9C3F6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331421D96D00000F9C3F6 /* CoreVideo.framework */; };
 		3CE331451D96D01200F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331441D96D01200F9C3F6 /* CoreAudio.framework */; };
@@ -64,6 +63,7 @@
 		3CE331571D96D30100F9C3F6 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331561D96D30100F9C3F6 /* Metal.framework */; };
 		3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */; };
 		3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE3555D1E1B3F7200268A19 /* LuaHandler.cpp */; };
+		3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A7E1E28A6FE00645F2D /* Camera.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -154,8 +154,6 @@
 		3CD4634B1E27239B00BA9D30 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
 		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
 		3CD4634F1E27275D00BA9D30 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
-		3CD463511E2776A400BA9D30 /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Camera/Camera.cpp; sourceTree = "<group>"; };
-		3CD463521E2776A400BA9D30 /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Camera/Camera.h; sourceTree = "<group>"; };
 		3CDCB0651E02204300AD73FC /* Define.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Define.h; path = ../../../Source/Const/Define.h; sourceTree = "<group>"; };
 		3CE331401D96CFF700F9C3F6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		3CE331421D96D00000F9C3F6 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -170,6 +168,8 @@
 		3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		3CE3555D1E1B3F7200268A19 /* LuaHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaHandler.cpp; path = ../../../Source/Lua/LuaHandler.cpp; sourceTree = "<group>"; };
 		3CE3555E1E1B3F7200268A19 /* LuaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaHandler.h; path = ../../../Source/Lua/LuaHandler.h; sourceTree = "<group>"; };
+		3CEA9A7E1E28A6FE00645F2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
+		3CEA9A7F1E28A6FE00645F2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -276,6 +276,8 @@
 		3C9ADE491E00EFB200D42018 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
+				3CEA9A7E1E28A6FE00645F2D /* Camera.cpp */,
+				3CEA9A7F1E28A6FE00645F2D /* Camera.h */,
 				3C3A6FAE1E27B50A0074C076 /* View.cpp */,
 				3C3A6FAF1E27B50A0074C076 /* View.h */,
 				3C35982B1E12060D00E62C16 /* Scheduler.cpp */,
@@ -332,15 +334,6 @@
 				3CB4871D1E16419800D51749 /* Geometry.h */,
 			);
 			name = Support;
-			sourceTree = "<group>";
-		};
-		3CC098671E262F0C006F4B76 /* Camera */ = {
-			isa = PBXGroup;
-			children = (
-				3CD463511E2776A400BA9D30 /* Camera.cpp */,
-				3CD463521E2776A400BA9D30 /* Camera.h */,
-			);
-			name = Camera;
 			sourceTree = "<group>";
 		};
 		3CC0986B1E2630D5006F4B76 /* Cache */ = {
@@ -425,7 +418,6 @@
 				3C291D371E0264510098C860 /* 3rdParty */,
 				3C9ADE491E00EFB200D42018 /* Basic */,
 				3CC0986B1E2630D5006F4B76 /* Cache */,
-				3CC098671E262F0C006F4B76 /* Camera */,
 				3C9ADE4F1E00F14E00D42018 /* Common */,
 				3C9ADE4D1E00F13500D42018 /* Const */,
 				3C57A39A1E0A059A002141DF /* Event */,
@@ -558,7 +550,6 @@
 				3C3598321E1254D600E62C16 /* Async.cpp in Sources */,
 				3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */,
 				3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */,
-				3CD463531E2776A400BA9D30 /* Camera.cpp in Sources */,
 				3CB487171E16398700D51749 /* tolua_push.cpp in Sources */,
 				3CB487161E16398700D51749 /* tolua_map.cpp in Sources */,
 				3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */,
@@ -572,6 +563,7 @@
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
+				3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */,
 				3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,

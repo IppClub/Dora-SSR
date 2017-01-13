@@ -21,6 +21,7 @@ public:
     bool isAbsolutePath(String strPath);
 	string getFullPath(String filename);
 	OwnArray<Uint8> loadFile(String filename);
+	const bgfx::Memory* loadFileBX(String filename);
 	void copyFile(String src, String dst);
 	bool removeFile(String filename);
 	void saveToFile(String filename, String content);
@@ -31,6 +32,7 @@ public:
 	void removeSearchPath(String path);
 	void setSearchPaths(const vector<string>& searchPaths);
 	void loadFileAsync(String filename, const function<void(String)>& callback);
+	void loadFileAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback);
 	void copyFileAsync(String src, String dst, const function<void()>& callback);
 	void saveToFileAsync(String filename, String content, const function<void()>& callback);
 	void saveToFileAsync(String filename, OwnArray<Uint8> content, const function<void()>& callback);

@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Camera/Camera.h"
+#include "Basic/Camera.h"
 
 NS_DOROTHY_BEGIN
 
@@ -41,9 +41,9 @@ const Vec3& Camera::getUp()
 	return _up;
 }
 
-void Camera::getView(float* view)
+const float* Camera::getView()
 {
-	memcpy(view, _view, sizeof(float) * 16);
+	return _view;
 }
 
 /* BasicCamera */
@@ -104,17 +104,82 @@ void BasicCamera::updateView()
 				rotateY = -std::atan(dest.z / dest.x);
 			}
 			float transform[16];
-			bx::mtxRotateZYX(transform, rotateX, rotateY, _rotation);
-			bx::vec3MulMtx(_up, Vec3 {0, 1.0f, 0}, transform);
+			bx::mtxRotateZYX(transform, rotateX, rotateY, -bx::toRad(_rotation));
+			bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, transform);
+			bx::vec3Norm(_up, _up);
 			bx::mtxLookAt(_view, _target, _position, _up);
 		}
 	}
 }
 
-void BasicCamera::getView(float* view)
+const float* BasicCamera::getView()
 {
 	updateView();
-	Camera::getView(view);
+	return Camera::getView();
+}
+
+/* Camera2D */
+
+Camera2D::Camera2D(String name):
+Camera(name),
+_transformDirty(true),
+_rotation(0.0f),
+_zoom(1.0f)
+{ }
+
+void Camera2D::setPosition(const Vec2& position)
+{
+	_position.x = _target.x = position.x;
+	_position.y = _target.y = position.y;
+	_transformDirty = true;
+}
+
+void Camera2D::setRotation(float var)
+{
+	_rotation = var;
+	_transformDirty = true;
+}
+
+float Camera2D::getRotation() const
+{
+	return _rotation;
+}
+
+void Camera2D::setZoom(float var)
+{
+	_zoom = var;
+	_transformDirty = true;
+}
+
+float Camera2D::getZoom() const
+{
+	return _zoom;
+}
+
+const Vec3& Camera2D::getUp()
+{
+	updateView();
+	return _up;
+}
+
+const float* Camera2D::getView()
+{
+	updateView();
+	return Camera::getView();
+}
+
+void Camera2D::updateView()
+{
+	if (_transformDirty)
+	{
+		_transformDirty = false;
+		_position.z = SharedView.getStandardDistance() / _zoom;
+		float rotateZ[16];
+		bx::mtxRotateZ(rotateZ, -bx::toRad(_rotation));
+		bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, rotateZ);
+		bx::vec3Norm(_up, _up);
+		bx::mtxLookAt(_view, _target, _position, _up);
+	}
 }
 
 NS_DOROTHY_END

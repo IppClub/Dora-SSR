@@ -19,6 +19,14 @@ public: void set##funName(varType var)
 public: const varType& get##funName() const; \
 public: void set##funName(const varType& var)
 
+#define PROPERTY_CLASS(varType, funName) \
+public: static varType get##funName(); \
+public: static void set##funName(varType var)
+
+#define PROPERTY(varType, funName) \
+public: varType get##funName() const; \
+public: void set##funName(varType var)
+
 #define PROPERTY_VIRTUAL(varType, funName) \
 public: varType get##funName() const; \
 public: virtual void set##funName(varType var)
