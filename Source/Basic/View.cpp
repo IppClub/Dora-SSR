@@ -12,9 +12,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 View::View():
-_nearPlaneDistance(1.0f),
-_farPlaneDistance(10000.0f),
-_fieldOfView(bx::pi/4.0f),
+_nearPlaneDistance(0.0f),
+_farPlaneDistance(1000.0f),
+_fieldOfView(45.0f),
 _flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC)
 { }
 
@@ -51,7 +51,7 @@ float View::getStandardDistance() const
 
 float View::getAspectRatio() const
 {
-	return (float)SharedApplication.getWidth() / (float)SharedApplication.getHeight();
+	return (float)SharedApplication.getHeight() / (float)SharedApplication.getWidth();
 }
 
 void View::setNearPlaneDistance(float var)
