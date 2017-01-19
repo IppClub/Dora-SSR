@@ -90,7 +90,6 @@ struct Color3
 	Color3(Uint32 rgb);
 	Color3(Uint8 r, Uint8 g, Uint8 b);
 	~Color3();
-	Uint32 toRGB();
 };
 
 struct Color
@@ -105,7 +104,6 @@ struct Color
 	Color(Uint32 argb);
 	~Color();
 	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Uint32 toRGBA();
 	Color3 toColor3();
 };
 
@@ -224,6 +222,8 @@ class Node : public Object
 {
 	tolua_property__common int order;
 	tolua_property__common float angle;
+	tolua_property__common float angleX;
+	tolua_property__common float angleY;
 	tolua_property__common float scaleX;
 	tolua_property__common float scaleY;
 	tolua_property__common float x;
@@ -282,4 +282,12 @@ class Node : public Object
 	bool traverse(tolua_function_bool func);
 
 	static Node* create();
+};
+
+class Sprite : public Node
+{
+	static Sprite* create();
+	//static Sprite* create(Texture2D* texture, const Rect& textureRect);
+	//static Sprite* create(Texture2D* texture);
+	static Sprite* create(String filename);
 };

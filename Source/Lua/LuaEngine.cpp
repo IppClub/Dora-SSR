@@ -282,6 +282,10 @@ LuaEngine::LuaEngine()
 	lua_settop(L, 0); // clear stack
 }
 
+LuaEngine::~LuaEngine()
+{
+}
+
 void LuaEngine::addLuaLoader(lua_CFunction func)
 {
 	if (!func) return;

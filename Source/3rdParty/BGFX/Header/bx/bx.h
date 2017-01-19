@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2017 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
@@ -8,6 +8,7 @@
 
 #include <stdint.h> // uint32_t
 #include <stdlib.h> // size_t
+#include <stddef.h> // ptrdiff_t
 #include <string.h> // memcpy
 
 #include "config.h"

@@ -21,14 +21,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-#include <zlib.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "Const/Header.h"
 using namespace Dorothy;
 #include "Zip/Support/ZipUtils.h"
 #include "Zip/Support/unzip.h"
+
+#include <zlib.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 /// when define returns true it means that our architecture uses big endian
 #define CC_HOST_IS_BIG_ENDIAN (bool)(*(unsigned short *)"\0\xff" < 0x100) 

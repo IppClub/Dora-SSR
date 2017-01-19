@@ -183,7 +183,7 @@ string Content::getFullPath(String filename)
 
 void Content::addSearchPath(String path)
 {
-	string searchPath = (Content::isAbsolutePath(path) ? "" : _currentPath) + path;
+	string searchPath = (Content::isAbsolutePath(path) ? "" : _assetPath) + path;
 	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
 	{
 		searchPath.append("/");
@@ -193,7 +193,7 @@ void Content::addSearchPath(String path)
 
 void Content::removeSearchPath(String path)
 {
-	string realPath = (Content::isAbsolutePath(path) ? "" : _currentPath) + path;
+	string realPath = (Content::isAbsolutePath(path) ? "" : _assetPath) + path;
 	if (realPath.length() > 0 && (realPath.back() != '/' && realPath.back() != '\\'))
 	{
 		realPath.append("/");
@@ -356,7 +356,7 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, const fu
 
 vector<string> Content::getDirEntries(String path, bool isFolder)
 {
-	string searchName = path.empty() ? _currentPath : path.toString();
+	string searchName = path.empty() ? _assetPath : path.toString();
 	char last = searchName.back();
 	if (last == '/' || last == '\\')
 	{
@@ -396,8 +396,8 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 #if BX_PLATFORM_ANDROID
 Content::Content()
 {
-	_currentPath = "assets/";
-	g_apkFile = OwnNew<ZipFile>(getAndroidAPKPath(), _currentPath);
+	_assetPath = "assets/";
+	g_apkFile = OwnNew<ZipFile>(getAndroidAPKPath(), _assetPath);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
@@ -487,10 +487,10 @@ bool Content::isFileExist(String strFilePath)
 	if (strFilePath[0] != '/')
 	{
 		string strPath = strFilePath;
-		if (strPath.find(_currentPath) != 0)
+		if (strPath.find(_assetPath) != 0)
 		{
 			// Didn't find "assets/" at the beginning of the path, adding it.
-			strPath.insert(0, _currentPath);
+			strPath.insert(0, _assetPath);
 		}
 		if (g_apkFile->fileExists(strPath))
 		{
@@ -520,7 +520,7 @@ bool Content::isAbsolutePath(String strPath)
 	// 1) Files in APK, e.g. assets/path/path/file.png
 	// 2) Files not in APK, e.g. /data/data/org.cocos2dx.hellocpp/cache/path/path/file.png, or /sdcard/path/path/file.png.
 	// So these two situations need to be checked on Android.
-	if (strPath[0] == '/' || string(strPath).find(_currentPath) == 0)
+	if (strPath[0] == '/' || string(strPath).find(_assetPath) == 0)
 	{
 		return true;
 	}
@@ -533,7 +533,7 @@ Content::Content()
 {
 	char currentPath[MAX_PATH] = {0};
 	GetCurrentDirectory(sizeof(currentPath), currentPath);
-	_currentPath = string(currentPath) + "\\";
+	_assetPath = string(currentPath) + "\\";
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
@@ -545,7 +545,7 @@ bool Content::isFileExist(String filePath)
 	string strPath = filePath;
 	if (!Content::isAbsolutePath(strPath))
 	{
-		strPath.insert(0, _currentPath);
+		strPath.insert(0, _assetPath);
 	}
 	return GetFileAttributesA(strPath.c_str()) != -1 ? true : false;
 }
@@ -566,7 +566,7 @@ bool Content::isAbsolutePath(String strPath)
 Content::Content()
 {
 	char* currentPath = SDL_GetBasePath();
-	_currentPath = currentPath;
+	_assetPath = currentPath;
 	SDL_free(currentPath);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
@@ -626,7 +626,7 @@ bool Content::isFolder(String path)
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
 {
-	string fullPath = (Content::isAbsolutePath(directory) ? "" : _currentPath);
+	string fullPath = (Content::isAbsolutePath(directory) ? "" : _assetPath);
 	fullPath.append(directory + filename);
 	if (!Content::isFileExist(fullPath))
 	{

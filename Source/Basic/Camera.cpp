@@ -107,7 +107,7 @@ void BasicCamera::updateView()
 			bx::mtxRotateZYX(transform, rotateX, rotateY, -bx::toRad(_rotation));
 			bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, transform);
 			bx::vec3Norm(_up, _up);
-			bx::mtxLookAt(_view, _target, _position, _up);
+			bx::mtxLookAt(_view, _position, _target, _up);
 		}
 	}
 }
@@ -173,12 +173,12 @@ void Camera2D::updateView()
 	if (_transformDirty)
 	{
 		_transformDirty = false;
-		_position.z = SharedView.getStandardDistance() / _zoom;
+		_position.z = -SharedView.getStandardDistance() / _zoom;
 		float rotateZ[16];
 		bx::mtxRotateZ(rotateZ, -bx::toRad(_rotation));
 		bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, rotateZ);
 		bx::vec3Norm(_up, _up);
-		bx::mtxLookAt(_view, _target, _position, _up);
+		bx::mtxLookAt(_view, _position, _target, _up);
 	}
 }
 

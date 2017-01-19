@@ -22,6 +22,8 @@ class Node : public Object
 public:
 	PROPERTY(int, Order);
 	PROPERTY(float, Angle);
+	PROPERTY(float, AngleX);
+	PROPERTY(float, AngleY);
 	PROPERTY(float, ScaleX);
 	PROPERTY(float, ScaleY);
 	PROPERTY(float, X);
@@ -202,9 +204,10 @@ protected:
 		PassColor3 = 1 << 7,
 		Reorder = 1 << 8,
 		Cleanup = 1 << 9,
-		TouchEnabled = 1<<10,
-		KeypadEnabled = 1<<11,
-		KeyboardEnabled = 1<<12,
+		TouchEnabled = 1 << 10,
+		KeypadEnabled = 1 << 11,
+		KeyboardEnabled = 1 << 12,
+		UserFlag = 1 << 13,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

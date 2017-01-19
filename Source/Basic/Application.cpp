@@ -236,6 +236,9 @@ int Application::mainLogic(void* userData)
 		app->makeTimeNow();
 	}
 
+	silly::Life::destroy(SharedSpriteEffect.getLife());
+	silly::Life::destroy(SharedShaderCache.getLife());
+	silly::Life::destroy(SharedTextureCache.getLife());
 	bgfx::shutdown();
 	return 0;
 }

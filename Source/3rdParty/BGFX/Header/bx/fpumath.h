@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 Branimir Karadzic. All rights reserved.
+ * Copyright 2011-2017 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
@@ -18,6 +18,11 @@ namespace bx
 	static const float invPi  = 1.0f/3.14159265358979323846f;
 	static const float piHalf = 1.57079632679489661923f;
 	static const float sqrt2  = 1.41421356237309504880f;
+#if BX_COMPILER_MSVC
+	static const float huge   = float(HUGE_VAL);
+#else
+	static const float huge   = HUGE_VALF;
+#endif // BX_COMPILER_MSVC
 
 	struct Handness
 	{
@@ -102,16 +107,6 @@ namespace bx
 		return _a < 0.0f ? -1.0f : 1.0f;
 	}
 
-	inline float fstep(float _edge, float _a)
-	{
-		return _a < _edge ? 0.0f : 1.0f;
-	}
-
-	inline float fpulse(float _a, float _start, float _end)
-	{
-		return fstep(_a, _start) - fstep(_a, _end);
-	}
-
 	inline float fabsolute(float _a)
 	{
 		return fabsf(_a);
@@ -127,9 +122,24 @@ namespace bx
 		return sinf(_a);
 	}
 
+	inline float fasin(float _a)
+	{
+		return asinf(_a);
+	}
+
 	inline float fcos(float _a)
 	{
 		return cosf(_a);
+	}
+
+	inline float facos(float _a)
+	{
+		return acosf(_a);
+	}
+
+	inline float fatan2(float _y, float _x)
+	{
+		return atan2f(_y, _x);
 	}
 
 	inline float fpow(float _a, float _b)
@@ -195,6 +205,21 @@ namespace bx
 		const float mod    = fmod(_a, _wrap);
 		const float result = mod < 0.0f ? _wrap + mod : mod;
 		return result;
+	}
+
+	inline float fstep(float _edge, float _a)
+	{
+		return _a < _edge ? 0.0f : 1.0f;
+	}
+
+	inline float fpulse(float _a, float _start, float _end)
+	{
+		return fstep(_a, _start) - fstep(_a, _end);
+	}
+
+	inline float fsmoothstep(float _a)
+	{
+		return fsq(_a)*(3.0f - 2.0f*_a);
 	}
 
 	// References:
@@ -477,9 +502,9 @@ namespace bx
 		const float zz = z * z;
 
 		const float xx = x * x;
-		_result[0] = atan2f(2.0f * (x * w - y * z), 1.0f - 2.0f * (xx + zz) );
-		_result[1] = atan2f(2.0f * (y * w + x * z), 1.0f - 2.0f * (yy + zz) );
-		_result[2] = asinf (2.0f * (x * y + z * w) );
+		_result[0] = fatan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (xx + zz) );
+		_result[1] = fatan2(2.0f * (y * w + x * z), 1.0f - 2.0f * (yy + zz) );
+		_result[2] = fasin (2.0f * (x * y + z * w) );
 	}
 
 	inline void quatRotateAxis(float* __restrict _result, const float* _axis, float _angle)

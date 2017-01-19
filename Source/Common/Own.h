@@ -47,7 +47,7 @@ public:
 	OwnArray(Item* item, size_t size):UPtr(item), _size(size) { }
 	inline operator Item*() const
 	{
-		return std::unique_ptr<Item, std::default_delete<Item[]>>::get();
+		return UPtr::get();
 	}
 	inline const OwnArray& operator=(OwnArray&& own)
 	{

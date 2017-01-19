@@ -21,8 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-#ifndef __SUPPORT_ZIPUTILS_H__
-#define __SUPPORT_ZIPUTILS_H__
+#pragma once
 
 #include <vector>
 #include <string>
@@ -93,5 +92,3 @@ private:
 	/** Internal data like zip file pointer / file list array and so on */
 	ZipFilePrivate* m_data;
 };
-
-#endif // __SUPPORT_ZIPUTILS_H__

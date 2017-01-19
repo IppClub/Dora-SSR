@@ -68,28 +68,56 @@ bool Director::init()
 		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
 		0x303030ff, 1.0f, 0);
 	SharedLueEngine.executeScriptFile("Script/main.lua");
+
 	return true;
 }
 
 void Director::mainLoop()
 {
-	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
 	bgfx::setViewTransform(0, getCamera()->getView(), SharedView.getProjection());
+	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
 	bgfx::touch(0);
+
 	bgfx::dbgTextClear();
 	const bgfx::Stats* stats = bgfx::getStats();
+	const char* renderer;
+	switch (bgfx::getCaps()->rendererType)
+	{
+	case bgfx::RendererType::Direct3D9:
+		renderer = "Direct3D9";
+		break;
+	case bgfx::RendererType::Direct3D11:
+		renderer = "Direct3D11";
+		break;
+	case bgfx::RendererType::Direct3D12:
+		renderer = "Direct3D12";
+		break;
+	case bgfx::RendererType::Metal:
+		renderer = "Metal";
+		break;
+	case bgfx::RendererType::OpenGL:
+		renderer = "OpenGL";
+		break;
+	case bgfx::RendererType::OpenGLES:
+		renderer = "OpenGLES";
+		break;
+	default:
+		renderer = "Other";
+		break;
+	}
 	bgfx::dbgTextPrintf(0, 1, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
 			, stats->width
 			, stats->height
 			, stats->textWidth
 			, stats->textHeight);
-	bgfx::dbgTextPrintf(0, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f, MultiThreaded %s"
+	bgfx::dbgTextPrintf(0, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f, MultiThreaded %s, Renderer %s"
 			, stats->numCompute
 			, stats->numDraw
 			, SharedApplication.getCPUTime()
 			, SharedApplication.getDeltaTime()
 			, (std::max(stats->gpuTimeEnd, stats->gpuTimeBegin) - std::min(stats->gpuTimeEnd, stats->gpuTimeBegin)) / double(stats->gpuTimerFreq)
-			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
+			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false"
+			, renderer);
 
 	_systemScheduler->update(SharedApplication.getDeltaTime());
 	_scheduler->update(SharedApplication.getDeltaTime());

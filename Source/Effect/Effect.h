@@ -10,32 +10,38 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-struct Color3
+class Shader;
+
+class Effect : public Object
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
-	Uint32 toRGB() const;
+public:
+	PROPERTY_READONLY(bgfx::ProgramHandle, Program);
+	PROPERTY_READONLY_VIRTUAL(bgfx::UniformHandle, Sampler);
+	virtual ~Effect();
+	virtual bool init() override;
+	CREATE_FUNC(Effect);
+protected:
+	Effect(Shader* fragShader, Shader* vertShader);
+private:
+	Ref<Shader> _fragShader;
+	Ref<Shader> _vertShader;
+	bgfx::ProgramHandle _program;
+	DORA_TYPE_OVERRIDE(Effect);
 };
 
-struct Color
+class SpriteEffect : public Effect
 {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
-	Color();
-	Color(Color3 color);
-	Color(Uint32 argb);
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Uint32 toRGBA() const;
-	Color3 toColor3() const;
-	PROPERTY(float, Opacity);
-	Color& operator=(const Color3& color);
-	Color& operator=(const Color& color);
+public:
+	virtual ~SpriteEffect();
+	virtual bgfx::UniformHandle getSampler() const override;
+protected:
+	SpriteEffect();
+private:
+	bgfx::UniformHandle _sampler;
+	DORA_TYPE_OVERRIDE(SpriteEffect);
 };
+
+#define SharedSpriteEffect \
+	silly::Singleton<SpriteEffect, SingletonIndex::SpriteEffect>::shared()
 
 NS_DOROTHY_END

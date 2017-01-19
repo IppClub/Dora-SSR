@@ -27,7 +27,8 @@ _position(),
 _anchor(0.5f, 0.5f),
 _size(),
 _transform(AffineTransform::Indentity),
-_scheduler(SharedDirector.getScheduler())
+_scheduler(SharedDirector.getScheduler()),
+_parent(nullptr)
 {
 	bx::mtxIdentity(_world);
 }
@@ -61,6 +62,28 @@ void Node::setAngle(float var)
 float Node::getAngle() const
 {
 	return _angle;
+}
+
+void Node::setAngleX(float var)
+{
+	_angleX = var;
+	markDirty();
+}
+
+float Node::getAngleX() const
+{
+	return _angleX;
+}
+
+void Node::setAngleY(float var)
+{
+	_angleY = var;
+	markDirty();
+}
+
+float Node::getAngleY() const
+{
+	return _angleY;
 }
 
 void Node::setScaleX(float var)
@@ -690,83 +713,36 @@ void Node::getLocalWorld(float* localWorld)
 {
 	if (_angleX || _angleY)
 	{
-		if (_skewX || _skewY)
+		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
+		AffineTransform transform = getLocalTransform();
+		if (_anchorPoint != Vec2::zero)
 		{
-			/* cos(rotateZ), sin(rotateZ) */
-			float c = 1, s = 0;
-			if (_angle)
+			/* -translateAnchorXY */
+			float mtxBase[16];
 			{
-				float radians = -bx::toRad(_angle);
-				c = std::cos(radians);
-				s = std::sin(radians);
+				AffineTransform::toMatrix(transform, mtxBase);
+				/* translateZ */
+				mtxBase[14] = _positionZ;
 			}
-
-			/* tanslateXY, scaleXY, rotateZ */
-			AffineTransform::toMatrix(
-				{c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, _position.x, _position.y},
-				localWorld);
-
-			/* translateZ */
-			localWorld[14] = _positionZ;
 
 			/* rotateXY */
-			float rotate[16];
-			bx::mtxRotateXY(rotate, -bx::toRad(_angleX), -bx::toRad(_angleY));
-			bx::mtxMul(localWorld, localWorld, rotate);
-
-			/* skewXY */
-			float skewMatrix[16] = {
-				1.0f, std::tan(bx::toRad(_skewY)), 0.0f, 0.0f,
-				std::tan(bx::toRad(_skewX)), 1.0f, 0.0f, 0.0f,
-				0.0f, 0.0f, 1.0f, 0.0f,
-				0.0f, 0.0f, 0.0f, 1.0f
-			};
-			bx::mtxMul(localWorld, localWorld, skewMatrix);
-
-			/* translateAnchorXY */
-			if (_anchorPoint != Vec2::zero)
-			{
-				float translate[16];
-				bx::mtxTranslate(translate, -_anchorPoint.x, -_anchorPoint.y, 0);
-				bx::mtxMul(localWorld, localWorld, translate);
-			}
+			float mtxRot[16];
+			bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
+			bx::mtxMul(localWorld, mtxBase, mtxRot);
 		}
 		else
 		{
-			/* translateXY, scaleXY, rotateZ, translateAnchorXY */
-			AffineTransform transform = getLocalTransform();
-			if (_anchorPoint != Vec2::zero)
+			float mtxBase[16];
 			{
-				/* -translateAnchorXY */
-				float translate[16];
-				AffineTransform::toMatrix(
-					AffineTransform::translate(transform, -_anchorPoint.x, -_anchorPoint.y),
-					translate);
-
+				AffineTransform::toMatrix(transform, mtxBase);
 				/* translateZ */
-				translate[14] = _positionZ;
-
-				/* rotateXY */
-				float rotate[16];
-				bx::mtxRotateXY(rotate, -bx::toRad(_angleX), -bx::toRad(_angleY));
-				bx::mtxMul(localWorld, translate, rotate);
-
-				/* translateAnchorXY */
-				bx::mtxTranslate(translate, _anchorPoint.x, _anchorPoint.y, 0);
-				bx::mtxMul(localWorld, localWorld, translate);
+				mtxBase[14] = _positionZ;
 			}
-			else
-			{
-				AffineTransform::toMatrix(transform, localWorld);
 
-				/* translateZ */
-				localWorld[14] = _positionZ;
-
-				/* rotateXY */
-				float rotate[16];
-				bx::mtxRotateXY(rotate, -bx::toRad(_angleX), -bx::toRad(_angleY));
-				bx::mtxMul(localWorld, localWorld, rotate);
-			}
+			/* rotateXY */
+			float mtxRot[16];
+			bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
+			bx::mtxMul(localWorld, mtxBase, mtxRot);
 		}
 	}
 	else
@@ -785,7 +761,8 @@ const float* Node::getWorld()
 	if (isOn(Node::WorldDirty))
 	{
 		setOff(WorldDirty);
-		getLocalWorld(_world);
+		float localWorld[16];
+		getLocalWorld(localWorld);
 		const float* parentWorld;
 		if (_transformTarget)
 		{
@@ -799,7 +776,7 @@ const float* Node::getWorld()
 		{
 			parentWorld = Matrix::Indentity;
 		}
-		bx::mtxMul(_world, parentWorld, _world);
+		bx::mtxMul(_world, localWorld, parentWorld);
 		ARRAY_START(Node, child, _children)
 		{
 			child->setOn(Node::WorldDirty);

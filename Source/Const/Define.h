@@ -21,13 +21,15 @@ NS_DOROTHY_BEGIN
 namespace SingletonIndex
 {
 	enum {
+		SpriteEffect,
+		ShaderCache,
 		TextureCache,
 		ContentManager,
 		PoolManager,
-		LuaEngine,
 		Director,
 		View,
-		Application
+		Application,
+		LuaEngine
 	};
 }
 

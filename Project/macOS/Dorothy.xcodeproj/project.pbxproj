@@ -7,8 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3C0D399D1E1BA603007FEFC3 /* Color.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399B1E1BA603007FEFC3 /* Color.cpp */; };
+		3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399B1E1BA603007FEFC3 /* Common.cpp */; };
 		3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */; };
+		3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE2F1E2DB3FB0066450A /* libbx.a */; };
+		3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EBE341E2E1D840066450A /* ShaderCache.cpp */; };
+		3C0EBE381E2F04060066450A /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = 3C0EBE371E2F04060066450A /* Shader */; };
+		3C0EBE3C1E2F69410066450A /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3C0EBE3B1E2F69400066450A /* Image */; };
 		3C291D331E025A980098C860 /* AutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D311E025A980098C860 /* AutoreleasePool.cpp */; };
 		3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */; };
 		3C291D4E1E0279990098C860 /* Content.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D4C1E0279990098C860 /* Content.cpp */; };
@@ -21,6 +25,7 @@
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
+		3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6929701E2C60BE0097AC49 /* Effect.cpp */; };
 		3C6A1FB11E07F569006DD8C7 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029171E07DEB10016E1EC /* libluajit.a */; };
 		3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C77082C1E08C72900B38C2A /* LuaManual.cpp */; };
 		3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708301E08CB4300B38C2A /* LuaBinding.cpp */; };
@@ -67,10 +72,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		3C0D399B1E1BA603007FEFC3 /* Color.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Color.cpp; path = ../../../Source/Support/Color.cpp; sourceTree = "<group>"; };
-		3C0D399C1E1BA603007FEFC3 /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Color.h; path = ../../../Source/Support/Color.h; sourceTree = "<group>"; };
+		3C0D399B1E1BA603007FEFC3 /* Common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Common.cpp; path = ../../../Source/Support/Common.cpp; sourceTree = "<group>"; };
+		3C0D399C1E1BA603007FEFC3 /* Common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Common.h; path = ../../../Source/Support/Common.h; sourceTree = "<group>"; };
 		3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Array.cpp; path = ../../../Source/Support/Array.cpp; sourceTree = "<group>"; };
 		3C0D399F1E1BA8FB007FEFC3 /* Array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Array.h; path = ../../../Source/Support/Array.h; sourceTree = "<group>"; };
+		3C0EBE2F1E2DB3FB0066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbx.a; sourceTree = "<group>"; };
+		3C0EBE341E2E1D840066450A /* ShaderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShaderCache.cpp; path = ../../../Source/Cache/ShaderCache.cpp; sourceTree = "<group>"; };
+		3C0EBE351E2E1D840066450A /* ShaderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShaderCache.h; path = ../../../Source/Cache/ShaderCache.h; sourceTree = "<group>"; };
+		3C0EBE371E2F04060066450A /* Shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shader; path = ../../Assets/Shader; sourceTree = "<group>"; };
+		3C0EBE3B1E2F69400066450A /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Image; path = ../../Assets/Image; sourceTree = "<group>"; };
 		3C291D311E025A980098C860 /* AutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AutoreleasePool.cpp; path = ../../../Source/Basic/AutoreleasePool.cpp; sourceTree = "<group>"; };
 		3C291D321E025A980098C860 /* AutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AutoreleasePool.h; path = ../../../Source/Basic/AutoreleasePool.h; sourceTree = "<group>"; };
 		3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LifeCycledSingleton.cpp; path = ../../../Source/3rdParty/silly/LifeCycledSingleton.cpp; sourceTree = "<group>"; };
@@ -93,6 +103,8 @@
 		3C57A39E1E0A05AD002141DF /* EventType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventType.h; path = ../../../Source/Event/EventType.h; sourceTree = "<group>"; };
 		3C57A39F1E0A05AD002141DF /* Listener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Listener.cpp; path = ../../../Source/Event/Listener.cpp; sourceTree = "<group>"; };
 		3C57A3A01E0A05AD002141DF /* Listener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Listener.h; path = ../../../Source/Event/Listener.h; sourceTree = "<group>"; };
+		3C6929701E2C60BE0097AC49 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = ../../../Source/Effect/Effect.cpp; sourceTree = "<group>"; };
+		3C6929711E2C60BE0097AC49 /* Effect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Effect.h; path = ../../../Source/Effect/Effect.h; sourceTree = "<group>"; };
 		3C77082C1E08C72900B38C2A /* LuaManual.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaManual.cpp; path = ../../../Source/Lua/LuaManual.cpp; sourceTree = "<group>"; };
 		3C77082D1E08C72900B38C2A /* LuaManual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaManual.h; path = ../../../Source/Lua/LuaManual.h; sourceTree = "<group>"; };
 		3C77082F1E08CA0900B38C2A /* LuaBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaBinding.h; path = ../../../Source/Lua/LuaBinding.h; sourceTree = "<group>"; };
@@ -177,6 +189,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */,
 				3C6A1FB11E07F569006DD8C7 /* libluajit.a in Frameworks */,
 				3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */,
 				3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */,
@@ -201,6 +214,7 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3C0EBE2F1E2DB3FB0066450A /* libbx.a */,
 				3CD029171E07DEB10016E1EC /* libluajit.a */,
 				3CD029151E07DD720016E1EC /* libSDL2.a */,
 				3CD029131E07DD5F0016E1EC /* libbgfx.a */,
@@ -256,6 +270,15 @@
 				3C57A3A01E0A05AD002141DF /* Listener.h */,
 			);
 			name = Event;
+			sourceTree = "<group>";
+		};
+		3C69296F1E2C60890097AC49 /* Effect */ = {
+			isa = PBXGroup;
+			children = (
+				3C6929701E2C60BE0097AC49 /* Effect.cpp */,
+				3C6929711E2C60BE0097AC49 /* Effect.h */,
+			);
+			name = Effect;
 			sourceTree = "<group>";
 		};
 		3C7708341E08D98F00B38C2A /* ToLua */ = {
@@ -328,8 +351,8 @@
 			children = (
 				3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */,
 				3C0D399F1E1BA8FB007FEFC3 /* Array.h */,
-				3C0D399B1E1BA603007FEFC3 /* Color.cpp */,
-				3C0D399C1E1BA603007FEFC3 /* Color.h */,
+				3C0D399B1E1BA603007FEFC3 /* Common.cpp */,
+				3C0D399C1E1BA603007FEFC3 /* Common.h */,
 				3CB4871C1E16419800D51749 /* Geometry.cpp */,
 				3CB4871D1E16419800D51749 /* Geometry.h */,
 			);
@@ -339,6 +362,8 @@
 		3CC0986B1E2630D5006F4B76 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C0EBE341E2E1D840066450A /* ShaderCache.cpp */,
+				3C0EBE351E2E1D840066450A /* ShaderCache.h */,
 				3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */,
 				3CD4634B1E27239B00BA9D30 /* TextureCache.h */,
 			);
@@ -365,6 +390,8 @@
 		3CC54E8B1E03BC9700462FD7 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3C0EBE3B1E2F69400066450A /* Image */,
+				3C0EBE371E2F04060066450A /* Shader */,
 				3CC54E9E1E03C71100462FD7 /* Script */,
 			);
 			name = Resources;
@@ -420,6 +447,7 @@
 				3CC0986B1E2630D5006F4B76 /* Cache */,
 				3C9ADE4F1E00F14E00D42018 /* Common */,
 				3C9ADE4D1E00F13500D42018 /* Const */,
+				3C69296F1E2C60890097AC49 /* Effect */,
 				3C57A39A1E0A059A002141DF /* Event */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
 				3CCBBA381E14B50B00C0416B /* Node */,
@@ -524,8 +552,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C0EBE3C1E2F69410066450A /* Image in Resources */,
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CC54E9F1E03C71100462FD7 /* Script in Resources */,
+				3C0EBE381E2F04060066450A /* Shader in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -539,11 +569,12 @@
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */,
+				3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */,
 				3C38E6AC1E1513E5003E9189 /* Application.mm in Sources */,
 				3C3A6FB01E27B50A0074C076 /* View.cpp in Sources */,
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
-				3C0D399D1E1BA603007FEFC3 /* Color.cpp in Sources */,
+				3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */,
 				3CB487151E16398700D51749 /* tolua_is.cpp in Sources */,
 				3C291D331E025A980098C860 /* AutoreleasePool.cpp in Sources */,
 				3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */,
@@ -566,6 +597,7 @@
 				3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */,
 				3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
+				3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */,
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
 				3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,

@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Support/Color.h"
+#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
 
@@ -61,7 +61,7 @@ b(b),
 a(a)
 { }
 
-Uint32 Color::toRGBA() const
+Uint32 Color::toABGR() const
 {
 	return *r_cast<Uint32*>(c_cast<Color*>(this));
 }
@@ -96,6 +96,13 @@ Color& Color::operator=(const Color& color)
 	b = color.b;
 	a = color.a;
 	return *this;
+}
+
+const BlendState BlendState::Normal{BlendState::One, BlendState::InvSrcAlpha};
+
+Uint64 BlendState::toValue()
+{
+	return BGFX_STATE_BLEND_FUNC(src, dst);
 }
 
 NS_DOROTHY_END

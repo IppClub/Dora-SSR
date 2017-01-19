@@ -28,14 +28,17 @@
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\Camera.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Content.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Director.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Utils.cpp" />
+    <ClCompile Include="..\..\..\Source\Effect\Effect.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventType.cpp" />
@@ -54,7 +57,7 @@
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Array.cpp" />
-    <ClCompile Include="..\..\..\Source\Support\Color.cpp" />
+    <ClCompile Include="..\..\..\Source\Support\Common.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -75,11 +78,13 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.h" />
     <ClInclude Include="..\..\..\Source\Basic\Application.h" />
     <ClInclude Include="..\..\..\Source\Basic\AutoreleasePool.h" />
+    <ClInclude Include="..\..\..\Source\Basic\Camera.h" />
     <ClInclude Include="..\..\..\Source\Basic\Content.h" />
     <ClInclude Include="..\..\..\Source\Basic\Director.h" />
     <ClInclude Include="..\..\..\Source\Basic\Object.h" />
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
+    <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
     <ClInclude Include="..\..\..\Source\Common\Async.h" />
     <ClInclude Include="..\..\..\Source\Common\Debug.h" />
@@ -90,6 +95,7 @@
     <ClInclude Include="..\..\..\Source\Common\WRef.h" />
     <ClInclude Include="..\..\..\Source\Const\Define.h" />
     <ClInclude Include="..\..\..\Source\Const\Header.h" />
+    <ClInclude Include="..\..\..\Source\Effect\Effect.h" />
     <ClInclude Include="..\..\..\Source\Event\Event.h" />
     <ClInclude Include="..\..\..\Source\Event\EventQueue.h" />
     <ClInclude Include="..\..\..\Source\Event\EventType.h" />
@@ -103,7 +109,7 @@
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
     <ClInclude Include="..\..\..\Source\Support\Array.h" />
-    <ClInclude Include="..\..\..\Source\Support\Color.h" />
+    <ClInclude Include="..\..\..\Source\Support\Common.h" />
     <ClInclude Include="..\..\..\Source\Support\Geometry.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -186,7 +192,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxd.lib;psapi.lib;zlib.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxd.lib;bxd.lib;psapi.lib;zlib.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
@@ -230,7 +236,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;psapi.lib;msvcrt.lib;zlib.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfx.lib;bx.lib;psapi.lib;msvcrt.lib;zlib.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

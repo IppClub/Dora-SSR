@@ -16,6 +16,8 @@
  
 #pragma once
 
+#include <cassert>
+
 /*
  * A simple yet useful singleton tool for single threaded program (e.g. game). 
  * Features: Create singleton instances the first time they are used at runtime,
@@ -54,26 +56,41 @@ namespace silly {
     Life(int time);
     virtual ~Life() { }
     inline int getTime() const { return time_; }
+    static void destroy(Life* life);
 
   private:
     int time_;
   };
 
-  template <class T, int LifeTime = 0>
+  template <class T, int LifeTime>
   class Singleton : public T, public Life {
 
    public:
 
     Singleton() : Life(LifeTime) { }
-    static T& shared() {
-      static auto* instance_ = new Singleton<T, LifeTime>();
+    static Singleton& shared() {
+      static auto* instance_ = new Singleton();
+      assert(!Singleton::disposed);
       return *instance_;
     }
 
-  private:
-    static T* instance_;
+    virtual ~Singleton() {
+      disposed = true;
+    }
+
+    Life* getLife() {
+      return dynamic_cast<Life*>(this);
+    }
+
+    T* getTarget() {
+      return dynamic_cast<T*>(this);
+    }
+
+   private:
+
+    static bool disposed;
   };
-  
+
   template <class T, int LifeTime>
-  T* Singleton<T, LifeTime>::instance_;
+  bool Singleton<T, LifeTime>::disposed = false;
 } // namespace silly

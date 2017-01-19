@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2017 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
@@ -13,7 +13,7 @@
 
 #if BX_CONFIG_SUPPORTS_THREADING
 
-#if BX_PLATFORM_NACL || BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || BX_PLATFORM_OSX
+#if BX_PLATFORM_NACL || BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_IOS
 #	include <pthread.h>
 #elif BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOX360 || BX_PLATFORM_WINRT
 #	include <errno.h>

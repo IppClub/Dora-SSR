@@ -13,7 +13,7 @@ NS_DOROTHY_BEGIN
 class Content : public Object
 {
 public:
-	PROPERTY_READONLY_REF(string, CurrentPath);
+	PROPERTY_READONLY_REF(string, AssetPath);
 	PROPERTY_READONLY_REF(string, WritablePath);
 	virtual ~Content();
 	bool isFileExist(String filePath);
@@ -47,7 +47,7 @@ protected:
 	void saveToFileUnsafe(String filename, String content);
 	void saveToFileUnsafe(String filename, Uint8* content, Sint64 size);
 private:
-	string _currentPath;
+	string _assetPath;
 	string _writablePath;
 	vector<string> _searchPaths;
 	unordered_map<string, string> _fullPathCache;

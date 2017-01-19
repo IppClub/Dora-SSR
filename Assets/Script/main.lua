@@ -4,6 +4,20 @@ print("hello Dorothy SSR")
 
 print("Object.count",Object.count)
 
+local sprite = Sprite("Image/logo.png")
+--sprite.anchor = Vec2.zero
+sprite.skewX = 45
+sprite.scaleX = 0.5
+sprite.scaleY = 0.5
+sprite:addChild(Sprite("Image/test.pvr"))
+sprite:schedule(once(function()
+	cycle(1000,function(dt)
+		sprite.angle = sprite.angle + 1
+	end)
+end))
+Director:pushEntry(sprite)
+
+--[[
 Content:addSearchPath("Script")
 
 thread(function()
@@ -77,3 +91,4 @@ thread(function()
 	print(s1,s1.width,s1.height)
 	Log("stop!")
 end)
+]]

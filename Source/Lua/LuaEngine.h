@@ -15,6 +15,7 @@ NS_DOROTHY_BEGIN
 class LuaEngine : public Object
 {
 public:
+	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
 
 	void addLuaLoader(lua_CFunction func);

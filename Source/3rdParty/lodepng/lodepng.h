@@ -28,6 +28,12 @@ freely, subject to the following restrictions:
 
 #include <string.h> /*for size_t*/
 
+#define LODEPNG_NO_COMPILE_DISK
+#define LODEPNG_NO_COMPILE_ALLOCATORS
+#define LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
+#define LODEPNG_NO_COMPILE_ERROR_TEXT
+#define LODEPNG_NO_COMPILE_CPP
+
 extern const char* LODEPNG_VERSION_STRING;
 
 /*

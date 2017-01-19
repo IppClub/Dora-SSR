@@ -9,12 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Cache/TextureCache.h"
 #include "bx/endian.h"
-#define LODEPNG_NO_COMPILE_ENCODER
-#define LODEPNG_NO_COMPILE_DISK
-#define LODEPNG_NO_COMPILE_ALLOCATORS
-#define LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
-#define LODEPNG_NO_COMPILE_ERROR_TEXT
-#define LODEPNG_NO_COMPILE_CPP
 #include "lodepng.h"
 
 void* lodepng_malloc(size_t size)
@@ -91,7 +85,7 @@ Texture2D* TextureCache::load(String filename)
 			const bgfx::Memory* mem = SharedContent.loadFileBX(fullPath);
 			if (mem->data)
 			{
-				bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_NONE, 0, &info);
+				bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
 				Texture2D* texture = Texture2D::create(handle, info);
 				_textures[fullPath] = texture;
 				return texture;
@@ -117,7 +111,7 @@ Texture2D* TextureCache::load(String filename)
 
 					bgfx::TextureHandle handle = bgfx::createTexture2D(
 						  uint16_t(width), uint16_t(height),
-						  false, 1, format, BGFX_TEXTURE_NONE,
+						  false, 1, format, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP,
 						  mem);
 
 					bgfx::TextureInfo info;
@@ -164,7 +158,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 				if (mem->data)
 				{
 					bgfx::TextureInfo info;
-					bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_NONE, 0, &info);
+					bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
 					Texture2D* texture = Texture2D::create(handle, info);
 					self->_textures[fullPath] = texture;
 					handler(texture);
@@ -207,7 +201,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 
 							bgfx::TextureHandle handle = bgfx::createTexture2D(
 								  uint16_t(width), uint16_t(height),
-								  false, 1, format, BGFX_TEXTURE_NONE,
+								  false, 1, format, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP,
 								  mem);
 
 							bgfx::TextureInfo info;
@@ -237,7 +231,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 
 void TextureCache::loadPNG(const OwnArray<Uint8>& data, uint8_t*& out, uint32_t& width, uint32_t& height, uint32_t& bpp, bgfx::TextureFormat::Enum& format)
 {
-	static const uint8_t pngMagic[] = { 0x89, 0x50, 0x4E, 0x47, 0x0d, 0x0a };
+	static const uint8_t pngMagic[] = {0x89, 0x50, 0x4E, 0x47, 0x0d, 0x0a};
 	if (0 == memcmp(data, pngMagic, sizeof(pngMagic)))
 	{
 		unsigned error;

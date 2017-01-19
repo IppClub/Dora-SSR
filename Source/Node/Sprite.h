@@ -10,8 +10,63 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+struct SpriteVertex
+{
+	float x;
+	float y;
+	float u;
+	float v;
+	uint32_t abgr;
+	struct Init
+	{
+		Init()
+		{
+			ms_decl
+				.begin()
+					.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+					.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+					.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+				.end();
+		}
+	};
+	static bgfx::VertexDecl ms_decl;
+	static Init init;
+};
+
 class Sprite : public Node
 {
+public:
+	PROPERTY(Effect*, Effect);
+	PROPERTY(Texture2D*, Texture);
+	PROPERTY_REF(Rect, TextureRect);
+	PROPERTY_REF(BlendState, BlendState);
+	PROPERTY_BOOL(DepthWrite);
+	virtual ~Sprite();
+	virtual bool init() override;
+	virtual void render() override;
+	CREATE_FUNC(Sprite);
+protected:
+	Sprite();
+	Sprite(String filename);
+	Sprite(Texture2D* texture);
+	Sprite(Texture2D* texture, const Rect& textureRect);
+	void updateVertTexCoord();
+	void updateVertPosition();
+	void updateVertColor();
+private:
+	Rect _textureRect;
+	Ref<Effect> _effect;
+	Ref<Texture2D> _texture;
+	SpriteVertex _vertices[4];
+	bgfx::DynamicVertexBufferHandle _vertexBuffer;
+	bgfx::IndexBufferHandle _indexBuffer;
+	BlendState _blendState;
+	enum
+	{
+		VertexDirty = Node::UserFlag,
+		DepthWrite = Node::UserFlag<<1
+	};
+	DORA_TYPE_OVERRIDE(Sprite);
 };
 
 NS_DOROTHY_END

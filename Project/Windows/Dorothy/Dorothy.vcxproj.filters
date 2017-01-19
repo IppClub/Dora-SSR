@@ -49,6 +49,9 @@
     <Filter Include="3rdParty\lodepng">
       <UniqueIdentifier>{e02d705b-c0ec-468c-bae9-b4f62a446794}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Effect">
+      <UniqueIdentifier>{d10b80ca-8eae-4068-8d2a-14ee1d2dbbd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -141,9 +144,6 @@
     <ClCompile Include="..\..\..\Source\Support\Array.cpp">
       <Filter>Support</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Support\Color.cpp">
-      <Filter>Support</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp">
       <Filter>Support</Filter>
     </ClCompile>
@@ -161,6 +161,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\lodepng\lodepng.cpp">
       <Filter>3rdParty\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Camera.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Common.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Effect\Effect.cpp">
+      <Filter>Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -287,9 +299,6 @@
     <ClInclude Include="..\..\..\Source\Support\Array.h">
       <Filter>Support</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Support\Color.h">
-      <Filter>Support</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Support\Geometry.h">
       <Filter>Support</Filter>
     </ClInclude>
@@ -304,6 +313,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h">
       <Filter>3rdParty\lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Camera.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Common.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Effect\Effect.h">
+      <Filter>Effect</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
