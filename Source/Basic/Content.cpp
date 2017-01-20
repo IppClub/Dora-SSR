@@ -397,7 +397,7 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 Content::Content()
 {
 	_assetPath = "assets/";
-	g_apkFile = OwnNew<ZipFile>(getAndroidAPKPath(), _assetPath);
+	g_apkFile = New<ZipFile>(getAndroidAPKPath(), _assetPath);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;

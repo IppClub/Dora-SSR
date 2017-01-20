@@ -143,10 +143,10 @@ CCLayer	37	n
 	convertToNodeSpace	60	n
 	multiTouches	4	n
 	keypadEnabled	1	n
-CCSprite	29	n
-	texture	144	n
-	textureRect	14	n
-	blendFunc	3	n
+CCSprite	29	y
+	texture	144	y
+	textureRect	14	y
+	blendFunc	3	y
 CCLayerColor	25	n
 	blendFunc	3	n
 	resetColor	3	n

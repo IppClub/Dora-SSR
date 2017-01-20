@@ -89,26 +89,62 @@ namespace bx
 	};
 
 	///
-	bool toBool(const char* _str);
-
-	/// Case insensitive string compare.
-	int32_t stricmp(const char* _a, const char* _b);
+	bool isSpace(char _ch);
 
 	///
-	size_t strnlen(const char* _str, size_t _max);
+	bool isUpper(char _ch);
+
+	///
+	bool isLower(char _ch);
+
+	///
+	bool isAlpha(char _ch);
+
+	///
+	bool isNumeric(char _ch);
+
+	///
+	bool isAlphaNum(char _ch);
+
+	///
+	bool isPrint(char _ch);
+
+	///
+	char toLower(char _ch);
+
+	///
+	char toUpper(char _ch);
+
+	///
+	bool toBool(const char* _str);
+
+	/// String compare.
+	int32_t strncmp(const char* _lhs, const char* _rhs, size_t _max = INT32_MAX);
+
+	/// Case insensitive string compare.
+	int32_t strincmp(const char* _lhs, const char* _rhs, size_t _max = INT32_MAX);
+
+	///
+	size_t strnlen(const char* _str, size_t _max = -1);
 
 	/// Copy _num characters from string _src to _dst buffer of maximum _dstSize capacity
 	/// including zero terminator. Copy will be terminated with '\0'.
-	size_t strlncpy(char* _dst, size_t _dstSize, const char* _src, size_t _num = -1);
+	size_t strlncpy(char* _dst, size_t _dstSize, const char* _src, size_t _num = INT32_MAX);
+
+	///
+	size_t strlncat(char* _dst, size_t _dstSize, const char* _src, size_t _num = INT32_MAX);
+
+	///
+	const char* strnchr(const char* _str, char _ch, size_t _max = INT32_MAX);
+
+	///
+	const char* strnrchr(const char* _str, char _ch, size_t _max = INT32_MAX);
 
 	/// Find substring in string. Limit search to _size.
-	const char* strnstr(const char* _str, const char* _find, size_t _size);
-
-	/// Find substring in string. Case insensitive.
-	const char* stristr(const char* _str, const char* _find);
+	const char* strnstr(const char* _str, const char* _find, size_t _max = INT32_MAX);
 
 	/// Find substring in string. Case insensitive. Limit search to _max.
-	const char* stristr(const char* _str, const char* _find, size_t _max);
+	const char* stristr(const char* _str, const char* _find, size_t _max = INT32_MAX);
 
 	/// Find new line. Returns pointer after new line terminator.
 	const char* strnl(const char* _str);
@@ -174,14 +210,14 @@ namespace bx
 	/// Copy src to string dst of size siz.  At most siz-1 characters
 	/// will be copied.  Always NUL terminates (unless siz == 0).
 	/// Returns strlen(src); if retval >= siz, truncation occurred.
-	size_t strlcpy(char* _dst, const char* _src, size_t _siz);
+	size_t strlcpy(char* _dst, const char* _src, size_t _max);
 
 	/// Appends src to string dst of size siz (unlike strncat, siz is the
 	/// full size of dst, not space left).  At most siz-1 characters
 	/// will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
 	/// Returns strlen(src) + MIN(siz, strlen(initial dst)).
 	/// If retval >= siz, truncation occurred.
-	size_t strlcat(char* _dst, const char* _src, size_t _siz);
+	size_t strlcat(char* _dst, const char* _src, size_t _max);
 
 	///
 	uint32_t hashMurmur2A(const StringView& _data);
