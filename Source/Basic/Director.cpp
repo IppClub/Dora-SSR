@@ -261,7 +261,19 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_APP_DIDENTERFOREGROUND:
 			Event::send("AppDidEnterForeground"_slice);
 			break;
+		case SDL_WINDOWEVENT_RESIZED:
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+			break;
 		case SDL_WINDOWEVENT:
+			{
+				switch (event.window.event)
+				{
+					case SDL_WINDOWEVENT_RESIZED:
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+						SharedView.reset();
+						break;
+				}
+			}
 			break;
 		case SDL_SYSWMEVENT:
 			break;

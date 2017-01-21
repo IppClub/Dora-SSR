@@ -11,7 +11,7 @@ sprite.scaleX = 0.5
 sprite.scaleY = 0.5
 sprite:addChild(Sprite("Image/test.pvr"))
 sprite:schedule(once(function()
-	cycle(1000,function(dt)
+	cycle(10000,function(dt)
 		sprite.angle = sprite.angle + 1
 	end)
 end))

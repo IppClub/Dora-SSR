@@ -11,9 +11,8 @@
 		android:theme="@style/AppTheme" >
 		<activity android:name=".MainActivity"
 			android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-			android:screenOrientation="landscape"
-			android:configChanges="orientation"
-			android:launchMode="singleInstance">
+			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale"
+			android:launchMode="singleTask">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />

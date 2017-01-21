@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 
 import android.app.*;
 import android.content.*;
+import android.content.res.Configuration;
 import android.text.InputType;
 import android.view.*;
 import android.view.inputmethod.BaseInputConnection;
@@ -126,7 +127,8 @@ public class SDLActivity extends Activity {
 		SDLActivity.initialize();
 		// So we can call stuff from static callbacks
 		mSingleton = this;
-
+		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                
 		// Load shared libraries
 		String errorMsgBrokenLib = "";
 		try {
@@ -293,6 +295,11 @@ public class SDLActivity extends Activity {
 			return false;
 		}
 		return super.dispatchKeyEvent(event);
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
 	}
 
 	/** Called by onPause or surfaceDestroyed. Even if surfaceDestroyed
@@ -1172,10 +1179,12 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
 		else if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 		{
 			if (mWidth > mHeight) {
+				Log.v("SDL", "not SCREEN_ORIENTATION_PORTRAIT");
 				skip = true;
 			}
 		} else if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
 			if (mWidth < mHeight) {
+				Log.v("SDL", "not SCREEN_ORIENTATION_LANDSCAPE");
 				skip = true;
 			}
 		}

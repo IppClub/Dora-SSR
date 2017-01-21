@@ -148,7 +148,6 @@ float Camera2D::getRotation() const
 void Camera2D::setZoom(float var)
 {
 	_zoom = var;
-	_transformDirty = true;
 }
 
 float Camera2D::getZoom() const
@@ -170,10 +169,15 @@ const float* Camera2D::getView()
 
 void Camera2D::updateView()
 {
+	float z = -SharedView.getStandardDistance() / _zoom;
+	if (_position.z != z)
+	{
+		_position.z = z;
+		_transformDirty = true;
+	}
 	if (_transformDirty)
 	{
 		_transformDirty = false;
-		_position.z = -SharedView.getStandardDistance() / _zoom;
 		float rotateZ[16];
 		bx::mtxRotateZ(rotateZ, -bx::toRad(_rotation));
 		bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, rotateZ);

@@ -10,6 +10,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "bx/timer.h"
 
+#if BX_PLATFORM_ANDROID
+#include <jni.h>
+extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
+#endif // BX_PLATFORM_ANDROID
+
 NS_DOROTHY_BEGIN
 
 Application::Application():
@@ -80,17 +85,30 @@ int Application::run()
 	bool running = true;
 	while (running)
 	{
-		// do render staff and swap buffers
-		Application::renderFrame();
-
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event))
 		{
 			switch (event.type)
 			{
 			case SDL_QUIT:
-    			running = false;
-    			break;
+				running = false;
+				break;
+			case SDL_WINDOWEVENT:
+			{
+				switch (event.window.event)
+				{
+					case SDL_WINDOWEVENT_RESIZED:
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+#if BX_PLATFORM_ANDROID
+						bgfx::PlatformData pd{};
+						pd.nwh = Android_JNI_GetNativeWindow();
+						bgfx::setPlatformData(pd);
+						SDL_GL_GetDrawableSize(window, &_width, &_height);
+#endif // BX_PLATFORM_ANDROID
+						break;
+				}
+				break;
+			}
 			default:
 				break;
 			}
@@ -115,6 +133,9 @@ int Application::run()
 					break;
 			}
 		}
+
+		// do render staff and swap buffers
+		Application::renderFrame();
 	}
 
 	// wait for render process to stop
@@ -271,21 +292,15 @@ void Application::setSdlWindow(SDL_Window* window)
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
 	SDL_GetWindowWMInfo(window, &wmi);
-	bgfx::PlatformData pd;
+	bgfx::PlatformData pd{};
 #if BX_PLATFORM_OSX
-	pd.ndt = nullptr;
 	pd.nwh = wmi.info.cocoa.window;
 #elif BX_PLATFORM_WINDOWS
-	pd.ndt = nullptr;
 	pd.nwh = wmi.info.win.window;
 #elif BX_PLATFORM_ANDROID
-	pd.ndt = nullptr;
 	pd.nwh = wmi.info.android.window;
 	SDL_GL_GetDrawableSize(window, &_width, &_height);
 #endif
-	pd.context = nullptr;
-	pd.backBuffer = nullptr;
-	pd.backBufferDS = nullptr;
 	bgfx::setPlatformData(pd);
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
