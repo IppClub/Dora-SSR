@@ -278,14 +278,13 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 	{
 		Sint64 size = 0;
 		Uint8* buffer = this->loadFileUnsafe(fileStr, size);
-		return new std::tuple<Uint8*,Sint64>(buffer,size);
+		return Values::create(buffer, size);
 	},
-	[callback](void* result)
+	[callback](Values* result)
 	{
 		Uint8* buffer;
 		Sint64 size;
-		auto data = MakeOwn(r_cast<std::tuple<Uint8*,Sint64>*>(result));
-		std::tie(buffer,size) = *data;
+		result->get(buffer, size);
 		callback(buffer,size);
 	});
 }
@@ -303,7 +302,7 @@ void Content::loadFileAsyncBX(String filename, const function<void(const bgfx::M
 {
 	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
-		callback(bgfx::makeRef(buffer, (uint32_t)size, releaseFileData));
+		callback(bgfx::makeRef(buffer, s_cast<uint32_t>(size), releaseFileData));
 	});
 }
 
@@ -313,9 +312,9 @@ void Content::copyFileAsync(String src, String dst, const function<void()>& call
 	Async::FileIO.run([srcFile,dstFile,this]()
 	{
 		Content::copyFileUnsafe(srcFile, dstFile);
-		return nullptr;
+		return Values::None;
 	},
-	[callback](void* result)
+	[callback](Values* result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();
@@ -329,9 +328,9 @@ void Content::saveToFileAsync(String filename, String content, const function<vo
 	Async::FileIO.run([file,data,this]()
 	{
 		Content::saveToFile(file, *MakeOwn(data));
-		return nullptr;
+		return Values::None;
 	},
-	[callback](void* result)
+	[callback](Values* result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();
@@ -345,9 +344,9 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, const fu
 	Async::FileIO.run([file,data,this]()
 	{
 		Content::saveToFile(file, *MakeOwn(data).get(), data->size());
-		return nullptr;
+		return Values::None;
 	},
-	[callback](void* result)
+	[callback](Values* result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();

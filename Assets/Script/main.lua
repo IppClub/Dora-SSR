@@ -4,18 +4,35 @@ print("hello Dorothy SSR")
 
 print("Object.count",Object.count)
 
-local sprite = Sprite("Image/logo.png")
---sprite.anchor = Vec2.zero
-sprite.skewX = 45
-sprite.scaleX = 0.5
-sprite.scaleY = 0.5
-sprite:addChild(Sprite("Image/test.pvr"))
-sprite:schedule(once(function()
-	cycle(10000,function(dt)
-		sprite.angle = sprite.angle + 1
-	end)
-end))
-Director:pushEntry(sprite)
+local tex
+
+thread(function()
+	tex = TextureCache:loadAsync("Image/logo.png")
+	print(tex.width, tex.height)
+end)
+
+thread(function()
+	sleep()
+	sleep()
+	sleep()
+	local sprite = Sprite("Image/logo.png")
+	--sprite.anchor = Vec2.zero
+	sprite.skewX = 45
+	sprite.scaleX = 0.5
+	sprite.scaleY = 0.5
+	sprite:addChild(Sprite("Image/test.pvr"))
+	sprite:schedule(once(function()
+		cycle(10000,function(dt)
+			sprite.angle = sprite.angle + 1
+		end)
+	end))
+	sleep(1)
+	print(tex, sprite.texture, tex == sprite.texture)
+	print(tostring(Dorothy))
+	--Director:pushEntry(sprite)
+end)
+
+print("continue")
 
 --[[
 Content:addSearchPath("Script")

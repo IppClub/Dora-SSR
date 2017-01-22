@@ -14,14 +14,30 @@ NS_DOROTHY_BEGIN
 bgfx::VertexDecl SpriteVertex::ms_decl;
 SpriteVertex::Init SpriteVertex::init;
 
-static const uint16_t spriteIndices[] = {0, 1, 2, 3};
+const uint16_t SpriteIndexBuffer::spriteIndices[] = {0, 1, 2, 3};
+
+SpriteIndexBuffer::SpriteIndexBuffer():
+_indexBuffer(bgfx::createIndexBuffer(bgfx::makeRef(spriteIndices, sizeof(spriteIndices))))
+{ }
+
+SpriteIndexBuffer::~SpriteIndexBuffer()
+{
+	if (bgfx::isValid(_indexBuffer))
+	{
+		bgfx::destroyIndexBuffer(_indexBuffer);
+	}
+}
+
+bgfx::IndexBufferHandle SpriteIndexBuffer::getHandler() const
+{
+	return _indexBuffer;
+}
 
 Sprite::Sprite():
 _effect(&SharedSpriteEffect),
 _vertices{},
 _blendState(BlendState::Normal),
-_vertexBuffer(bgfx::createDynamicVertexBuffer(4, SpriteVertex::ms_decl)),
-_indexBuffer(bgfx::createIndexBuffer(bgfx::makeRef(spriteIndices, sizeof(spriteIndices))))
+_vertexBuffer(bgfx::createDynamicVertexBuffer(4, SpriteVertex::ms_decl))
 { }
 
 Sprite::Sprite(Texture2D* texture):
@@ -51,10 +67,6 @@ Sprite::~Sprite()
 	if (bgfx::isValid(_vertexBuffer))
 	{
 		bgfx::destroyDynamicVertexBuffer(_vertexBuffer);
-	}
-	if (bgfx::isValid(_indexBuffer))
-	{
-		bgfx::destroyIndexBuffer(_indexBuffer);
 	}
 }
 
@@ -185,7 +197,7 @@ void Sprite::render()
 
 	bgfx::setTransform(getWorld());
 	bgfx::setVertexBuffer(_vertexBuffer);
-	bgfx::setIndexBuffer(_indexBuffer);
+	bgfx::setIndexBuffer(SharedSpriteIndexBuffer.getHandler());
 	bgfx::setTexture(0, _effect->getSampler(), _texture->getHandle());
 	bgfx::setState(state);
 	bgfx::submit(0, _effect->getProgram());

@@ -11,6 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+const Ref<Values> Values::None;
+
 Async Async::FileIO;
 Async Async::Process;
 
@@ -25,7 +27,7 @@ Async::~Async()
 	}
 }
 
-void Async::run(function<void*()> worker, function<void(void*)> finisher)
+void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finisher)
 {
 	if (!_thread.isRunning())
 	{
@@ -37,8 +39,8 @@ void Async::run(function<void*()> worker, function<void(void*)> finisher)
 			if (event)
 			{
 				Package package;
-				void* result;
-				EventQueue::retrieve(event, package, result);
+				Ref<Values> result;
+				event->retrieve(package, result);
 				package.second(result);
 			}
 			return false;
@@ -63,8 +65,8 @@ int Async::work(void* userData)
 				case "Work"_hash:
 				{
 					Package package;
-					EventQueue::retrieve(event, package);
-					void* result = package.first();
+					event->retrieve(package);
+					Ref<Values> result = package.first();
 					worker->_finisherEvent.post(Slice::Empty, package, result);
 					break;
 				}
@@ -89,11 +91,11 @@ void Async::pause()
 			event = _workerEvent.poll())
 		{
 			Package package;
-			EventQueue::retrieve(event, package);
+			event->retrieve(package);
 			_packages.push_back(package);
 		}
 		_workerSemaphore.post();
-		_pauseSemaphore.wait();
+		_pauseSemaphore.wait(); // wait for worker to stop
 	}
 }
 
@@ -106,7 +108,7 @@ void Async::resume()
 			_workerEvent.post("Work"_slice, package);
 		}
 		_packages.clear();
-		_workerSemaphore.post();
+		_workerSemaphore.post(); // make worker work again
 	}
 }
 

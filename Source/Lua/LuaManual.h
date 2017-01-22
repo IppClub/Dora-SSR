@@ -35,4 +35,7 @@ int Node_emit(lua_State* L);
 int Node_slot(lua_State* L);
 int Node_gslot(lua_State* L);
 
+/* TextureCache */
+inline TextureCache* TextureCache_shared() { return &SharedTextureCache; }
+
 NS_DOROTHY_END

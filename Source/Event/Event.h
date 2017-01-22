@@ -24,7 +24,7 @@ typedef Delegate<void (Event* event)> EventHandler;
  Event::addListener("UserEvent", [](Event* event)
  {
  	Slice msg;
- 	Event::retrieve(event, msg);
+ 	event->retrieve(msg);
 	Log("Recieved Event with msg: %s", msg);
  });
 
@@ -50,7 +50,7 @@ public:
 	/** @brief Helper function to retrieve the passed event arguments.
 	*/
 	template<class... Args>
-	static void retrieve(Event* event, Args&... args);
+	void retrieve(Args&... args);
 protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
@@ -82,46 +82,41 @@ public:
 	std::tuple<Fields...> arguments;
 };
 
-template<class... Args>
-void Event::send(String name, Args&&... args)
-{
-	EventArgs<Args...>::send(name, args...);
-}
-
 class LuaEventArgs : public Event
 {
 public:
 	LuaEventArgs(String name, int paramCount);
 	virtual int pushArgsToLua() override;
+	int getParamCount() const;
 	static void send(String name, int paramCount);
-
-	template<class... Args>
-	void retrieve(Args&... args)
-	{
-		lua_State* L = SharedLueEngine.getState();
-		int i = lua_gettop(L) - _paramCount;
-		bool results[] = {SharedLueEngine.to(args, ++i)...};
-		for (bool result : results)
-		{
-			AssertUnless(result, "lua event arguments mismatch.");
-		}
-	}
 private:
 	int _paramCount;
 	DORA_TYPE_OVERRIDE(LuaEventArgs);
 };
 
 template<class... Args>
-void Event::retrieve(Event* event, Args&... args)
+void Event::send(String name, Args&&... args)
 {
-	LuaEventArgs* luaEvent = DoraCast<LuaEventArgs>(event);
+	EventArgs<Args...>::send(name, args...);
+}
+
+template<class... Args>
+void Event::retrieve(Args&... args)
+{
+	LuaEventArgs* luaEvent = DoraCast<LuaEventArgs>(this);
 	if (luaEvent)
 	{
-		luaEvent->retrieve(args...);
+		lua_State* L = SharedLueEngine.getState();
+		int i = lua_gettop(L) - luaEvent->getParamCount();
+		bool results[] = {SharedLueEngine.to(args, ++i)...};
+		for (bool result : results)
+		{
+			AssertUnless(result, "lua event arguments mismatch.");
+		}
 	}
 	else
 	{
-		auto targetEvent = d_cast<EventArgs<Args...>*>(event);
+		auto targetEvent = d_cast<EventArgs<Args...>*>(this);
 		AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
 		std::tie(args...) = targetEvent->arguments;
 	}

@@ -44,6 +44,16 @@ bgfx::TextureHandle Texture2D::getHandle() const
 	return _handle;
 }
 
+int Texture2D::getWidth() const
+{
+	return s_cast<int>(_info.width);
+}
+
+int Texture2D::getHeight() const
+{
+	return s_cast<int>(_info.height);
+}
+
 const bgfx::TextureInfo& Texture2D::getInfo() const
 {
 	return _info;
@@ -160,8 +170,17 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 					bgfx::TextureInfo info;
 					bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
 					Texture2D* texture = Texture2D::create(handle, info);
-					self->_textures[fullPath] = texture;
-					handler(texture);
+					auto it = self->_textures.find(fullPath);
+					if (it == self->_textures.end())
+					{
+						self->_textures[fullPath] = texture;
+						handler(texture);
+					}
+					else
+					{
+						Log("duplicated copy of \"%s\" was loaded.", file);
+						handler(it->second);
+					}
 				}
 				else
 				{
@@ -175,25 +194,25 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 		{
 			Ref<TextureCache> self(this);
 			string fullPath = SharedContent.getFullPath(filename);
-			SharedContent.loadFileAsyncUnsafe(filename, [self, fullPath, handler](Uint8* data, Sint64 size)
+			string file(filename);
+			SharedContent.loadFileAsyncUnsafe(filename, [self, file, fullPath, handler](Uint8* data, Sint64 size)
 			{
 				if (data)
 				{
-					Async::Process.run([data,size,self]()
+					Async::Process.run([data, size, self]()
 					{
 						auto localData = MakeOwnArray(data, s_cast<size_t>(size));
 						uint8_t* out = nullptr;
 						uint32_t width = 0, height = 0, bpp = 32;
 						bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8;
 						TextureCache::loadPNG(localData, out, width, height, bpp, format);
-						return new std::tuple<uint8_t*, uint32_t, uint32_t, uint32_t, bgfx::TextureFormat::Enum>(out, width, height, bpp, format);
-					}, [self, fullPath, handler](void* result)
+						return Values::create(out, width, height, bpp, format);
+					}, [self, file, fullPath, handler](Values* result)
 					{
-						auto data = MakeOwn(r_cast<std::tuple<uint8_t*, uint32_t, uint32_t, uint32_t, bgfx::TextureFormat::Enum>*>(result));
 						uint8_t* out;
 						uint32_t width, height, bpp;
 						bgfx::TextureFormat::Enum format;
-						std::tie(out, width, height, bpp, format) = *data;
+						result->get(out, width, height, bpp, format);
 						if (out)
 						{
 							const bgfx::Memory* mem = bgfx::makeRef(
@@ -210,14 +229,26 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 								0, false, false, 1, format);
 
 							Texture2D* texture = Texture2D::create(handle, info);
-							self->_textures[fullPath] = texture;
-							handler(texture);
+							auto it = self->_textures.find(fullPath);
+							if (it == self->_textures.end())
+							{
+								self->_textures[fullPath] = texture;
+								handler(texture);
+							}
+							else
+							{
+								Log("duplicated copy of \"%s\" was loaded.", file);
+								handler(it->second);
+							}
 						}
 					});
 				}
+				else
+				{
+					Log("failed to load texture \"%s\".", file);
+					handler(nullptr);
+				}
 			});
-			Log("failed to load texture \"%s\".", filename);
-			handler(nullptr);
 			break;
 		}
 		default:

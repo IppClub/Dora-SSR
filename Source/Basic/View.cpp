@@ -20,7 +20,7 @@ _flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC)
 
 Size View::getSize() const
 {
-	return Size((float)SharedApplication.getWidth(), (float)SharedApplication.getHeight());
+	return Size(s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight()));
 }
 
 void View::setVSync(bool var)
@@ -35,7 +35,7 @@ void View::setVSync(bool var)
 		{
 			_flag &= ~BGFX_RESET_VSYNC;
 		}
-		bgfx::reset((uint32_t)SharedApplication.getWidth(), (uint32_t)SharedApplication.getHeight(), _flag);
+		bgfx::reset(s_cast<Uint32>(SharedApplication.getWidth()), s_cast<Uint32>(SharedApplication.getHeight()), _flag);
 	}
 }
 
@@ -51,7 +51,7 @@ float View::getStandardDistance() const
 
 float View::getAspectRatio() const
 {
-	return (float)SharedApplication.getWidth() / (float)SharedApplication.getHeight();
+	return s_cast<float>(SharedApplication.getWidth()) / s_cast<float>(SharedApplication.getHeight());
 }
 
 void View::setNearPlaneDistance(float var)
@@ -100,8 +100,8 @@ const float* View::getProjection() const
 void View::reset()
 {
 	bgfx::reset(
-		(uint32_t)SharedApplication.getWidth(),
-		(uint32_t)SharedApplication.getHeight(),
+		s_cast<uint32_t>(SharedApplication.getWidth()),
+		s_cast<uint32_t>(SharedApplication.getHeight()),
 		_flag);
 	updateProjection();
 }

@@ -33,6 +33,20 @@ struct SpriteVertex
 	static Init init;
 };
 
+class SpriteIndexBuffer : public Object
+{
+public:
+	SpriteIndexBuffer();
+	virtual ~SpriteIndexBuffer();
+	PROPERTY_READONLY(bgfx::IndexBufferHandle, Handler);
+private:
+	static const uint16_t spriteIndices[4];
+	bgfx::IndexBufferHandle _indexBuffer;
+};
+
+#define SharedSpriteIndexBuffer \
+	silly::Singleton<SpriteIndexBuffer, SingletonIndex::SpriteIndexBuffer>::shared()
+
 class Sprite : public Node
 {
 public:
@@ -59,7 +73,6 @@ private:
 	Ref<Texture2D> _texture;
 	SpriteVertex _vertices[4];
 	bgfx::DynamicVertexBufferHandle _vertexBuffer;
-	bgfx::IndexBufferHandle _indexBuffer;
 	BlendState _blendState;
 	enum
 	{

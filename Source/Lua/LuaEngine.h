@@ -41,7 +41,7 @@ public:
 	bool to(Slice& value, int index);
 
 	template<typename T>
-	void push(T* t)
+	typename std::enable_if<!std::is_base_of<Object, T>::value>::type push(T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());
 	}

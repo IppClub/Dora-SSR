@@ -1,18 +1,10 @@
 typedef Slice String;
 
-module TargetPlatform
-{
-    #define TargetPlatform::Windows @ Windows
-    #define TargetPlatform::Android @ Android
-    #define TargetPlatform::macOS @ macOS
-    #define TargetPlatform::iOS @ iOS
-}
-
 class Application
 {
 	tolua_readonly tolua_property__common int width;
 	tolua_readonly tolua_property__common int height;
-	tolua_readonly tolua_property__common int platform;
+	tolua_readonly tolua_property__common String platform;
 	tolua_property__common unsigned int seed;
 	static tolua_outside Application* Application_shared @ create();
 };
@@ -284,10 +276,30 @@ class Node : public Object
 	static Node* create();
 };
 
+class Texture2D : public Object
+{
+	tolua_readonly tolua_property__common int width;
+	tolua_readonly tolua_property__common int height;
+};
+
+class TextureCache
+{
+	void set(String name, Texture2D* texture);
+	Texture2D* load(String filename);
+	void loadAsync(String filename, tolua_function handler);
+    void unload(Texture2D* texture);
+    void unload(String filename);
+    void clear();
+    void clearUnused();
+	static tolua_outside TextureCache* TextureCache_shared @ create();
+};
+
 class Sprite : public Node
 {
+	tolua_property__common Rect textureRect;
+	tolua_readonly tolua_property__common Texture2D* texture;
 	static Sprite* create();
-	//static Sprite* create(Texture2D* texture, const Rect& textureRect);
-	//static Sprite* create(Texture2D* texture);
+	static Sprite* create(Texture2D* texture, Rect textureRect);
+	static Sprite* create(Texture2D* texture);
 	static Sprite* create(String filename);
 };

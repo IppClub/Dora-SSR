@@ -7,6 +7,8 @@ local objects = {
 "Array",
 "Slot",
 "Node",
+"Texture2D",
+"Sprite",
 }
 
 -- register CCObject types

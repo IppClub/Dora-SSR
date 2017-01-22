@@ -21,6 +21,7 @@ NS_DOROTHY_BEGIN
 namespace SingletonIndex
 {
 	enum {
+		SpriteIndexBuffer,
 		SpriteEffect,
 		ShaderCache,
 		TextureCache,

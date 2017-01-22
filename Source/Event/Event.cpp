@@ -96,4 +96,9 @@ int LuaEventArgs::pushArgsToLua()
 	return _paramCount;
 }
 
+int LuaEventArgs::getParamCount() const
+{
+	return _paramCount;
+}
+
 NS_DOROTHY_END

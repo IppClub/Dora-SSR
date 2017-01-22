@@ -322,8 +322,10 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_CONTROLLERDEVICEREMAPPED:
 			break;
 		case SDL_FINGERDOWN:
+			Log("down id:%d x:%d y:%d", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
 			break;
 		case SDL_FINGERUP:
+			Log("up id:%d x:%d y:%d", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
 			break;
 		case SDL_FINGERMOTION:
 			break;

@@ -1,6 +1,7 @@
 local Application = builtin.Application()
 local Content = builtin.Content()
 local Director = builtin.Director()
+local TextureCache = builtin.TextureCache()
 
 local tolua = builtin.tolua
 local yield = coroutine.yield
@@ -12,6 +13,7 @@ local type = type
 builtin.Application = Application
 builtin.Content = Content
 builtin.Director = Director
+builtin.TextureCache = TextureCache
 
 local function wait(cond)
 	repeat
@@ -164,6 +166,21 @@ Content.copyAsync = function(self,src,dst)
 		loaded = true
 	end)
 	wait(function() return not loaded end)
+end
+
+local TextureCache_loadAsync = TextureCache.loadAsync
+TextureCache.loadAsync = function(self,filename,handler)
+	local isloaded = false
+	local loadedTexture
+	TextureCache_loadAsync(self,filename,function(texture)
+		if handler then
+			handler(texture)
+		end
+		loadedTexture = texture
+		isloaded = true
+	end)
+	wait(function() return not isloaded end)
+	return loadedTexture
 end
 
 local function disallowAssignGlobal(_,name)

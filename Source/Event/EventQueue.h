@@ -18,6 +18,11 @@ public:
 	QEvent(String name);
 	virtual ~QEvent();
 	inline const string& getName() const { return _name; }
+	
+	/** @brief Helper function to retrieve the passed event arguments.
+	 */
+	template<class... Args>
+	void retrieve(Args&... args);
 protected:
 	string _name;
 };
@@ -33,6 +38,14 @@ public:
 	{ }
 	std::tuple<Fields...> arguments;
 };
+
+template<class... Args>
+void QEvent::retrieve(Args&... args)
+{
+	auto targetEvent = d_cast<QEventArgs<Args...>*>(this);
+	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
+	std::tie(args...) = targetEvent->arguments;
+}
 
 /** @brief This event system is designed to be used in a multi-threaded
  environment to communicated between two threads.
@@ -102,16 +115,6 @@ public:
 	 Return null item if there is no event posted.
 	 */
 	QEvent* peek();
-
-	/** @brief Helper function to retrieve the passed event arguments.
-	 */
-	template<class... Args>
-	static void retrieve(QEvent* event, Args&... args)
-	{
-		auto targetEvent = d_cast<QEventArgs<Args...>*>(event);
-		AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
-		std::tie(args...) = targetEvent->arguments;
-	}
 private:
 	bx::SpScUnboundedQueue<QEvent> _queue;
 };

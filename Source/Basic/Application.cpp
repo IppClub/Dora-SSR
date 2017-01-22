@@ -225,7 +225,7 @@ int Application::mainLogic(void* userData)
 				case "SDLEvent"_hash:
 				{
 					SDL_Event sdlEvent;
-					EventQueue::retrieve(event, sdlEvent);
+					event->retrieve(sdlEvent);
 					switch (sdlEvent.type)
 					{
 						case SDL_QUIT:
@@ -257,9 +257,11 @@ int Application::mainLogic(void* userData)
 		app->makeTimeNow();
 	}
 
+	SharedPoolManager.push();
 	silly::Life::destroy(SharedSpriteEffect.getLife());
 	silly::Life::destroy(SharedShaderCache.getLife());
 	silly::Life::destroy(SharedTextureCache.getLife());
+	SharedPoolManager.pop();
 	bgfx::shutdown();
 	return 0;
 }
@@ -271,18 +273,18 @@ bgfx::RenderFrame::Enum Application::renderFrame()
 }
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 
-TargetPlatform Application::getPlatform() const
+const Slice Application::getPlatform() const
 {
 #if BX_PLATFORM_WINDOWS
-	return TargetPlatform::Windows;
+	return "Windows"_slice;
 #elif BX_PLATFORM_ANDROID
-	return TargetPlatform::Android;
+	return "Android"_slice;
 #elif BX_PLATFORM_OSX
-	return TargetPlatform::macOS;
+	return "macOS"_slice;
 #elif BX_PLATFORM_IOS
-	return TargetPlatform::iOS;
+	return "iOS"_slice;
 #else
-	return TargetPlatform::Unknown;
+	return "Unknown"_slice;
 #endif
 }
 

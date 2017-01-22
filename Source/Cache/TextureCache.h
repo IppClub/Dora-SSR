@@ -14,6 +14,8 @@ class Texture2D : public Object
 {
 public:
 	PROPERTY_READONLY(bgfx::TextureHandle, Handle);
+	PROPERTY_READONLY(int, Width);
+	PROPERTY_READONLY(int, Height);
 	PROPERTY_READONLY_REF(bgfx::TextureInfo, Info);
 	virtual ~Texture2D();
 	CREATE_FUNC(Texture2D);
@@ -22,6 +24,7 @@ protected:
 private:
 	bgfx::TextureHandle _handle;
 	bgfx::TextureInfo _info;
+	DORA_TYPE_OVERRIDE(Texture2D);
 };
 
 class TextureCache : public Object
@@ -42,6 +45,7 @@ protected:
 		bgfx::TextureFormat::Enum& format);
 private:
 	unordered_map<string, Ref<Texture2D>> _textures;
+	DORA_TYPE_OVERRIDE(TextureCache);
 };
 
 #define SharedTextureCache \
