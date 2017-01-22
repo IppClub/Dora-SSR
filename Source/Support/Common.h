@@ -38,10 +38,11 @@ struct Color
 	Color& operator=(const Color& color);
 };
 
-struct BlendState
+struct BlendFunc
 {
 	Uint32 src;
 	Uint32 dst;
+	BlendFunc(Uint32 src, Uint32 dst);
 	enum
 	{
 		One = Uint32(BGFX_STATE_BLEND_ONE),
@@ -56,7 +57,7 @@ struct BlendState
 		InvDstAlpha = Uint32(BGFX_STATE_BLEND_INV_DST_ALPHA)
 	};
 	Uint64 toValue();
-	static const BlendState Normal;
+	static const BlendFunc Normal;
 };
 
 NS_DOROTHY_END

@@ -34,17 +34,17 @@ public:
 	void push(String value);
 	void push(std::nullptr_t);
 
-	bool to(int& value, int index);
-	bool to(float& value, int index);
-	bool to(double& value, int index);
-	bool to(Object*& value, int index);
-	bool to(Slice& value, int index);
-
 	template<typename T>
 	typename std::enable_if<!std::is_base_of<Object, T>::value>::type push(T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
+
+	bool to(int& value, int index);
+	bool to(float& value, int index);
+	bool to(double& value, int index);
+	bool to(Object*& value, int index);
+	bool to(Slice& value, int index);
 
 	bool executeAssert(bool cond, String condStr);
 	bool scriptHandlerEqual(int handlerA, int handlerB);

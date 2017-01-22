@@ -283,8 +283,7 @@ LuaEngine::LuaEngine()
 }
 
 LuaEngine::~LuaEngine()
-{
-}
+{ }
 
 void LuaEngine::addLuaLoader(lua_CFunction func)
 {

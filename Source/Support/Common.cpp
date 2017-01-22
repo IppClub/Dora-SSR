@@ -98,9 +98,12 @@ Color& Color::operator=(const Color& color)
 	return *this;
 }
 
-const BlendState BlendState::Normal{BlendState::One, BlendState::InvSrcAlpha};
+BlendFunc::BlendFunc(Uint32 src, Uint32 dst):src(src), dst(dst)
+{ }
 
-Uint64 BlendState::toValue()
+const BlendFunc BlendFunc::Normal(BlendFunc::One, BlendFunc::InvSrcAlpha);
+
+Uint64 BlendFunc::toValue()
 {
 	return BGFX_STATE_BLEND_FUNC(src, dst);
 }

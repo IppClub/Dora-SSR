@@ -294,9 +294,33 @@ class TextureCache
 	static tolua_outside TextureCache* TextureCache_shared @ create();
 };
 
+struct BlendFunc
+{
+	Uint32 src;
+	Uint32 dst;
+	BlendFunc(Uint32 src, Uint32 dst);
+	~BlendFunc();
+	enum
+	{
+		One,
+		Zero,
+		SrcColor,
+		SrcAlpha,
+		DstColor,
+		DstAlpha,
+		InvSrcColor,
+		InvSrcAlpha,
+		InvDstColor,
+		InvDstAlpha
+	};
+	static const BlendFunc Normal;
+};
+
 class Sprite : public Node
 {
+	tolua_property__bool bool depthWrite;
 	tolua_property__common Rect textureRect;
+	tolua_property__common BlendFunc blendFunc;
 	tolua_readonly tolua_property__common Texture2D* texture;
 	static Sprite* create();
 	static Sprite* create(Texture2D* texture, Rect textureRect);

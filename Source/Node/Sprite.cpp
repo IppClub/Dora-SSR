@@ -36,7 +36,7 @@ bgfx::IndexBufferHandle SpriteIndexBuffer::getHandler() const
 Sprite::Sprite():
 _effect(&SharedSpriteEffect),
 _vertices{},
-_blendState(BlendState::Normal),
+_blendFunc(BlendFunc::Normal),
 _vertexBuffer(bgfx::createDynamicVertexBuffer(4, SpriteVertex::ms_decl))
 { }
 
@@ -103,14 +103,14 @@ Texture2D* Sprite::getTexture() const
 	return _texture;
 }
 
-void Sprite::setBlendState(const BlendState& var)
+void Sprite::setBlendFunc(const BlendFunc& var)
 {
-	_blendState = var;
+	_blendFunc = var;
 }
 
-const BlendState& Sprite::getBlendState() const
+const BlendFunc& Sprite::getBlendFunc() const
 {
-	return _blendState;
+	return _blendFunc;
 }
 
 void Sprite::setDepthWrite(bool var)
@@ -189,7 +189,7 @@ void Sprite::render()
 	Uint64 state = (
 		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE /*|
 		BGFX_STATE_CULL_CW*/ | BGFX_STATE_MSAA |
-		BGFX_STATE_PT_TRISTRIP | _blendState.toValue());
+		BGFX_STATE_PT_TRISTRIP | _blendFunc.toValue());
 	if (isOn(Sprite::DepthWrite))
 	{
 		state |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);

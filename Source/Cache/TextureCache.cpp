@@ -178,7 +178,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 					}
 					else
 					{
-						Log("duplicated copy of \"%s\" was loaded.", file);
+						Log("duplicated copy of \"%s\" was loaded and will then be destroyed.", file);
 						handler(it->second);
 					}
 				}
@@ -237,7 +237,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 							}
 							else
 							{
-								Log("duplicated copy of \"%s\" was loaded.", file);
+								Log("duplicated copy of \"%s\" was loaded and will then be destroyed.", file);
 								handler(it->second);
 							}
 						}

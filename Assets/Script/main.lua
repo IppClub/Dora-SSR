@@ -12,9 +12,6 @@ thread(function()
 end)
 
 thread(function()
-	sleep()
-	sleep()
-	sleep()
 	local sprite = Sprite("Image/logo.png")
 	--sprite.anchor = Vec2.zero
 	sprite.skewX = 45

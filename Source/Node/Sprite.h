@@ -53,7 +53,7 @@ public:
 	PROPERTY(Effect*, Effect);
 	PROPERTY(Texture2D*, Texture);
 	PROPERTY_REF(Rect, TextureRect);
-	PROPERTY_REF(BlendState, BlendState);
+	PROPERTY_REF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	virtual ~Sprite();
 	virtual bool init() override;
@@ -73,7 +73,7 @@ private:
 	Ref<Texture2D> _texture;
 	SpriteVertex _vertices[4];
 	bgfx::DynamicVertexBufferHandle _vertexBuffer;
-	BlendState _blendState;
+	BlendFunc _blendFunc;
 	enum
 	{
 		VertexDirty = Node::UserFlag,

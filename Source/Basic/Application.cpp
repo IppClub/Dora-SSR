@@ -261,7 +261,9 @@ int Application::mainLogic(void* userData)
 	silly::Life::destroy(SharedSpriteEffect.getLife());
 	silly::Life::destroy(SharedShaderCache.getLife());
 	silly::Life::destroy(SharedTextureCache.getLife());
+	silly::Life::destroy(SharedSpriteIndexBuffer.getLife());
 	SharedPoolManager.pop();
+
 	bgfx::shutdown();
 	return 0;
 }
