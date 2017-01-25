@@ -13,6 +13,13 @@ NS_DOROTHY_BEGIN
 
 /* Touch */
 
+Uint32 Touch::source =
+#if BX_PLATFORM_OSX
+	Touch::FromMouse;
+#else
+	Touch::FromMouseAndTouch;
+#endif
+
 Touch::Touch(int id):
 _flags(Touch::Enabled),
 _id(id)
@@ -50,7 +57,8 @@ const Vec2& Touch::getPreLocation() const
 
 /* TouchHandler */
 
-TouchHandler::TouchHandler(Node* target):_target(target)
+TouchHandler::TouchHandler(Node* target):
+_target(target)
 { }
 
 Touch* TouchHandler::alloc(SDL_FingerID fingerId)
@@ -96,33 +104,84 @@ void TouchHandler::collect(SDL_FingerID fingerId)
 	}
 }
 
-Vec2 TouchHandler::getPos(const SDL_TouchFingerEvent& event)
+Vec2 TouchHandler::getPos(const SDL_Event& event)
 {
-	Vec2 ratio(event.x - 0.5f, 0.5f - event.y);
-	Vec3 pos{ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};
-	Vec3 result;
-	float invWorld[16];
-	bx::mtxInverse(invWorld, _target->getWorld());
-	bx::vec3MulMtx(result, pos, invWorld);
-	return pos;
+	switch (event.type)
+	{
+		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONDOWN:
+		{
+			Vec2 pos = Vec2(event.button.x - SharedApplication.getWidth() * 0.5f,
+				SharedApplication.getHeight() * 0.5f - event.button.y);
+			return _target->convertToNodeSpace(pos);
+		}
+		case SDL_MOUSEMOTION:
+		{
+			Vec2 pos = Vec2(event.motion.x - SharedApplication.getWidth() * 0.5f,
+				SharedApplication.getHeight() * 0.5f - event.motion.y);
+			return _target->convertToNodeSpace(pos);
+		}
+		case SDL_FINGERUP:
+		{
+			Vec2 ratio(event.tfinger.x - 0.5f, 0.5f - event.tfinger.y);
+			Vec3 pos{ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};
+			return _target->convertToNodeSpace(pos);
+		}
+		default:
+		{
+			return Vec2::zero;
+		}
+	}
 }
 
-void TouchHandler::touchDown(const SDL_TouchFingerEvent& event)
+void TouchHandler::down(const SDL_Event& event)
 {
+	Sint64 id = 0;
+	switch (event.type)
+	{
+		case SDL_MOUSEBUTTONDOWN:
+			if ((Touch::source & Touch::FromMouse) == 0) return;
+			id = INT64_MAX;
+			break;
+		case SDL_FINGERDOWN:
+			if ((Touch::source & Touch::FromTouch) == 0) return;
+			id = event.tfinger.fingerId;
+			break;
+		default:
+			return;
+	}
 	Vec2 pos = getPos(event);
+	Touch* touch = alloc(id);
 	if (Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
 	{
-		Touch* touch = alloc(event.fingerId);
 		touch->_preLocation = touch->_location = pos;
 		touch->_flags.setOn(Touch::Selected);
 		_target->emit("TapBegan"_slice, touch);
 	}
+	else
+	{
+		touch->setEnabled(false);
+	}
 }
 
-void TouchHandler::touchUp(const SDL_TouchFingerEvent& event)
+void TouchHandler::up(const SDL_Event& event)
 {
-	Touch* touch = get(event.fingerId);
-	if (touch)
+	Sint64 id = 0;
+	switch (event.type)
+	{
+		case SDL_MOUSEBUTTONUP:
+			if ((Touch::source & Touch::FromMouse) == 0) return;
+			id = INT64_MAX;
+			break;
+		case SDL_FINGERUP:
+			if ((Touch::source & Touch::FromTouch) == 0) return;
+			id = event.tfinger.fingerId;
+			break;
+		default:
+			return;
+	}
+	Touch*  touch = get(id);
+	if (touch && touch->isEnabled())
 	{
 		Vec2 pos = getPos(event);
 		touch->_preLocation = touch->_location;
@@ -132,14 +191,27 @@ void TouchHandler::touchUp(const SDL_TouchFingerEvent& event)
 			_target->emit("TapEnded"_slice, touch);
 			_target->emit("Tapped"_slice, touch);
 		}
-		collect(event.fingerId);
+		collect(id);
 	}
 }
 
-void TouchHandler::touchMove(const SDL_TouchFingerEvent& event)
+void TouchHandler::move(const SDL_Event& event)
 {
-	Touch* touch = get(event.fingerId);
-	if (touch)
+	Touch* touch = nullptr;
+	switch (event.type)
+	{
+		case SDL_MOUSEMOTION:
+			if ((Touch::source & Touch::FromMouse) == 0) return;
+			touch = get(INT64_MAX);
+			break;
+		case SDL_FINGERMOTION:
+			if ((Touch::source & Touch::FromTouch) == 0) return;
+			touch = get(event.tfinger.fingerId);
+			break;
+		default:
+			return;
+	}
+	if (touch && touch->isEnabled())
 	{
 		Vec2 pos = getPos(event);
 		touch->_preLocation = touch->_location;

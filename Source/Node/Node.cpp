@@ -197,6 +197,11 @@ const Vec2& Node::getAnchor() const
 	return _anchor;
 }
 
+const Vec2& Node::getAnchorPoint() const
+{
+	return _anchorPoint;
+}
+
 void Node::setWidth(float var)
 {
 	_size.width = var;
@@ -542,12 +547,12 @@ Node* Node::getChildByName(String name)
 
 Vec2 Node::convertToNodeSpace(const Vec2& worldPoint)
 {
-	return AffineTransform::applyPoint(getWorldTransform(), worldPoint);
+	return AffineTransform::applyPoint(AffineTransform::invert(getWorldTransform()), worldPoint);
 }
 
 Vec2 Node::convertToWorldSpace(const Vec2& nodePoint)
 {
-	return AffineTransform::applyPoint(getLocalTransform(), nodePoint);
+	return AffineTransform::applyPoint(getWorldTransform(), nodePoint);
 }
 
 bool Node::isScheduled() const

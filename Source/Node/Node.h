@@ -34,6 +34,7 @@ public:
 	PROPERTY(float, SkewY);
 	PROPERTY_BOOL(Visible);
 	PROPERTY_REF(Vec2, Anchor);
+	PROPERTY_READONLY_REF(Vec2, AnchorPoint);
 	PROPERTY(float, Width);
 	PROPERTY(float, Height);
 	PROPERTY_REF(Size, Size);

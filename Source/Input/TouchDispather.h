@@ -15,11 +15,18 @@ class Node;
 class Touch : public Object
 {
 public:
+	enum
+	{
+		FromMouse = 1,
+		FromTouch = 1<<1,
+		FromMouseAndTouch = FromMouse | FromTouch
+	};
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_READONLY(int, Id);
 	PROPERTY_READONLY(Vec2, Delta);
 	PROPERTY_READONLY_REF(Vec2, Location);
 	PROPERTY_READONLY_REF(Vec2, PreLocation);
+	static Uint32 source;
 	CREATE_FUNC(Touch);
 protected:
 	Touch(int id);
@@ -41,14 +48,14 @@ class TouchHandler
 {
 public:
 	TouchHandler(Node* target);
-	void touchDown(const SDL_TouchFingerEvent& event);
-	void touchUp(const SDL_TouchFingerEvent& event);
-	void touchMove(const SDL_TouchFingerEvent& event);
+	void down(const SDL_Event& event);
+	void up(const SDL_Event& event);
+	void move(const SDL_Event& event);
 protected:
 	Touch* alloc(SDL_FingerID fingerId);
 	Touch* get(SDL_FingerID fingerId);
 	void collect(SDL_FingerID fingerId);
-	Vec2 getPos(const SDL_TouchFingerEvent& event);
+	Vec2 getPos(const SDL_Event& event);
 private:
 	Node* _target;
 	stack<int> _availableTouchIds;

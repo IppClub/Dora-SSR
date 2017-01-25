@@ -23,12 +23,11 @@ struct SpriteVertex
 	{
 		Init()
 		{
-			ms_decl
-				.begin()
-					.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
-					.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-					.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-				.end();
+			ms_decl.begin()
+				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+				.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+			.end();
 		}
 	};
 	static bgfx::VertexDecl ms_decl;

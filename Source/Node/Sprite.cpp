@@ -30,9 +30,9 @@ void SpriteBuffer::doRender()
 	{
 		bgfx::TransientVertexBuffer vertexBuffer;
 		bgfx::TransientIndexBuffer indexBuffer;
-		size_t vertexCount = _vertices.size();
-		size_t spriteCount = vertexCount >> 2;
-		size_t indexCount = spriteCount * 6;
+		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
+		Uint32 spriteCount = vertexCount >> 2;
+		Uint32 indexCount = spriteCount * 6;
 		if (bgfx::allocTransientBuffers(
 			&vertexBuffer, SpriteVertex::ms_decl, vertexCount,
 			&indexBuffer, indexCount))
