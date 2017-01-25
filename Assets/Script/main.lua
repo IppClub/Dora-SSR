@@ -13,20 +13,46 @@ end)
 
 thread(function()
 	local sprite = Sprite("Image/logo.png")
-	--sprite.anchor = Vec2.zero
-	sprite.skewX = 45
-	sprite.scaleX = 0.5
-	sprite.scaleY = 0.5
-	sprite:addChild(Sprite("Image/test.pvr"))
+	Director:pushEntry(sprite)
+	--sprite.passOpacity = false
+	local pos = sprite:convertToWorldSpace(Vec2.zero)
+	print(pos.x, pos.y)
+	sprite.anchor = Vec2.zero
+	--sprite.skewX = 45
+	--sprite.scaleX = 0.5
+	--sprite.scaleY = 0.5
+
+	local s = Sprite("Image/logo.png")
+	s.position = Vec2(1,1)
+	sprite:addChild(s)
+
+	local sp = Sprite("Image/logo.png")
+	s:addChild(sp)
+
+	local sp1 = Sprite("Image/logo.png")
+	sp:addChild(sp1)
+--[[
+	sleep(1)
+
 	sprite:schedule(once(function()
 		cycle(10000,function(dt)
 			sprite.angle = sprite.angle + 1
 		end)
 	end))
-	sleep(1)
 	print(tex, sprite.texture, tex == sprite.texture)
 	print(tostring(Dorothy))
-	--Director:pushEntry(sprite)
+	sprite.opacity = 0.05
+	sprite:slot("TapBegan", function(touch)
+		print("TapBegan", touch.location.x, touch.location.y)
+		local sp = Sprite("Image/logo.png")
+		sp.position = touch.location
+		sp.scaleX = 0.1
+		sp.scaleY = 0.1
+		sprite:addChild(sp)
+	end)
+	sprite:slot("Tapped", function(touch)
+		print("Tapped", touch.location.x, touch.location.y)
+	end)]]
 end)
 
 print("continue")

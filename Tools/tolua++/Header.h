@@ -327,3 +327,11 @@ class Sprite : public Node
 	static Sprite* create(Texture2D* texture);
 	static Sprite* create(String filename);
 };
+
+class Touch : public Object
+{
+	tolua_property__bool bool enabled;
+	tolua_readonly tolua_property__common int id;
+	tolua_readonly tolua_property__common Vec2 delta;
+	tolua_readonly tolua_property__common Vec2 location;
+};

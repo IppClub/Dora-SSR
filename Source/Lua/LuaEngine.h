@@ -35,6 +35,12 @@ public:
 	void push(std::nullptr_t);
 
 	template<typename T>
+	typename std::enable_if<!std::is_pointer<T>::value>::type push(const T& t)
+	{
+		tolua_pushusertype(L, new T(t), LuaType<T>());
+	}
+
+	template<typename T>
 	typename std::enable_if<!std::is_base_of<Object, T>::value>::type push(T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());

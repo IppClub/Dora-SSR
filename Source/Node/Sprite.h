@@ -14,6 +14,8 @@ struct SpriteVertex
 {
 	float x;
 	float y;
+	float z;
+	float w;
 	float u;
 	float v;
 	uint32_t abgr;
@@ -23,7 +25,7 @@ struct SpriteVertex
 		{
 			ms_decl
 				.begin()
-					.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+					.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
 					.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 					.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 				.end();
@@ -33,20 +35,6 @@ struct SpriteVertex
 	static Init init;
 };
 
-class SpriteIndexBuffer : public Object
-{
-public:
-	SpriteIndexBuffer();
-	virtual ~SpriteIndexBuffer();
-	PROPERTY_READONLY(bgfx::IndexBufferHandle, Handler);
-private:
-	static const uint16_t spriteIndices[4];
-	bgfx::IndexBufferHandle _indexBuffer;
-};
-
-#define SharedSpriteIndexBuffer \
-	silly::Singleton<SpriteIndexBuffer, SingletonIndex::SpriteIndexBuffer>::shared()
-
 class Sprite : public Node
 {
 public:
@@ -55,6 +43,8 @@ public:
 	PROPERTY_REF(Rect, TextureRect);
 	PROPERTY_REF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
+	PROPERTY_READONLY(Uint64, RenderState);
+	PROPERTY_READONLY(const SpriteVertex*, Vertices);
 	virtual ~Sprite();
 	virtual bool init() override;
 	virtual void render() override;
@@ -67,19 +57,40 @@ protected:
 	void updateVertTexCoord();
 	void updateVertPosition();
 	void updateVertColor();
+	virtual void updateRealColor3() override;
+	virtual void updateRealOpacity() override;
 private:
 	Rect _textureRect;
 	Ref<Effect> _effect;
 	Ref<Texture2D> _texture;
 	SpriteVertex _vertices[4];
-	bgfx::DynamicVertexBufferHandle _vertexBuffer;
 	BlendFunc _blendFunc;
+	Uint64 _renderState;
 	enum
 	{
-		VertexDirty = Node::UserFlag,
+		VertexColorDirty = Node::UserFlag,
 		DepthWrite = Node::UserFlag<<1
 	};
 	DORA_TYPE_OVERRIDE(Sprite);
 };
+
+class SpriteBuffer : public Object
+{
+public:
+	virtual ~SpriteBuffer();
+	void render(Sprite* sprite = nullptr);
+protected:
+	SpriteBuffer();
+	void doRender();
+private:
+	Texture2D* _lastTexture;
+	Effect* _lastEffect;
+	Uint64 _lastState;
+	vector<SpriteVertex> _vertices;
+	const uint16_t _spriteIndices[6];
+};
+
+#define SharedSpriteBuffer \
+	silly::Singleton<SpriteBuffer, SingletonIndex::SpriteBuffer>::shared()
 
 NS_DOROTHY_END

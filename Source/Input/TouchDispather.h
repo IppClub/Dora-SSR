@@ -6,59 +6,53 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "Const/Header.h"
-#include "Common/Utils.h"
-#include "Lua/ToLua/tolua++.h"
+#pragma once
 
 NS_DOROTHY_BEGIN
 
-int doraType = TOLUA_REG_INDEX_TYPE; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
+class Node;
 
-const float Matrix::Indentity[16] = {
-	1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 1, 0,
-	0, 0, 0, 1
+class Touch : public Object
+{
+public:
+	PROPERTY_BOOL(Enabled);
+	PROPERTY_READONLY(int, Id);
+	PROPERTY_READONLY(Vec2, Delta);
+	PROPERTY_READONLY_REF(Vec2, Location);
+	PROPERTY_READONLY_REF(Vec2, PreLocation);
+	CREATE_FUNC(Touch);
+protected:
+	Touch(int id);
+private:
+	Flag _flags;
+	int _id;
+	Vec2 _location;
+	Vec2 _preLocation;
+	enum
+	{
+		Enabled = 1,
+		Selected = 1<<1
+	};
+	friend class TouchHandler;
+	DORA_TYPE_OVERRIDE(Touch);
 };
 
-Flag::Flag(Uint32 flags):_flags(flags)
-{ }
-
-void Flag::setOn(Uint32 type)
+class TouchHandler
 {
-	_flags |= type;
-}
-
-void Flag::setOff(Uint32 type)
-{
-	_flags &= ~type;
-}
-
-void Flag::setFlag(Uint32 type, bool value)
-{
-	if (value)
-	{
-		_flags |= type;
-	}
-	else
-	{
-		_flags &= ~type;
-	}
-}
-
-void Flag::toggle(Uint32 type)
-{
-	setFlag(type, !isOn(type));
-}
-
-bool Flag::isOn(Uint32 type) const
-{
-	return (_flags & type) != 0;
-}
-
-bool Flag::isOff(Uint32 type) const
-{
-	return (_flags & type) == 0;
-}
+public:
+	TouchHandler(Node* target);
+	void touchDown(const SDL_TouchFingerEvent& event);
+	void touchUp(const SDL_TouchFingerEvent& event);
+	void touchMove(const SDL_TouchFingerEvent& event);
+protected:
+	Touch* alloc(SDL_FingerID fingerId);
+	Touch* get(SDL_FingerID fingerId);
+	void collect(SDL_FingerID fingerId);
+	Vec2 getPos(const SDL_TouchFingerEvent& event);
+private:
+	Node* _target;
+	stack<int> _availableTouchIds;
+	unordered_map<SDL_FingerID, Ref<Touch>> _touchMap;
+};
 
 NS_DOROTHY_END

@@ -9,6 +9,7 @@ local objects = {
 "Node",
 "Texture2D",
 "Sprite",
+"Touch",
 }
 
 -- register CCObject types

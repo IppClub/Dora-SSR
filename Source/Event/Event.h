@@ -45,7 +45,7 @@ public:
 	static void clear();
 
 	template<class... Args>
-	static void send(String name, Args&&... args);
+	static void send(String name, const Args&... args);
 
 	/** @brief Helper function to retrieve the passed event arguments.
 	*/
@@ -66,11 +66,11 @@ template<class... Fields>
 class EventArgs : public Event
 {
 public:
-	EventArgs(String name, Fields&&... args):
+	EventArgs(String name, const Fields&... args):
 	Event(name),
 	arguments(std::make_tuple(args...))
 	{ }
-	static void send(String name, Fields&&... args)
+	static void send(String name, const Fields&... args)
 	{
 		EventArgs<Fields...> event(name, args...);
 		Event::send(&event);
@@ -95,7 +95,7 @@ private:
 };
 
 template<class... Args>
-void Event::send(String name, Args&&... args)
+void Event::send(String name, const Args&... args)
 {
 	EventArgs<Args...>::send(name, args...);
 }

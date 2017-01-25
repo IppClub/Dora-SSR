@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Node::Node():
+handler(this),
 _flags(Node::Visible|Node::PassOpacity|Node::PassColor3),
 _order(0),
 _color(),
@@ -43,7 +44,7 @@ void Node::setOrder(int var)
 		_order = var;
 		if (_parent)
 		{
-			_parent->setOn(Node::Reorder);
+			_parent->_flags.setOn(Node::Reorder);
 		}
 	}
 }
@@ -176,12 +177,12 @@ float Node::getSkewY() const
 
 void Node::setVisible(bool var)
 {
-	setFlag(Node::Visible, var);
+	_flags.setFlag(Node::Visible, var);
 }
 
 bool Node::isVisible() const
 {
-	return isOn(Node::Visible);
+	return _flags.isOn(Node::Visible);
 }
 
 void Node::setAnchor(const Vec2& var)
@@ -288,24 +289,24 @@ Color Node::getRealColor() const
 
 void Node::setPassOpacity(bool var)
 {
-	setFlag(Node::PassOpacity, var);
+	_flags.setFlag(Node::PassOpacity, var);
 	setOpacity(_color.getOpacity());
 }
 
 bool Node::isPassOpacity() const
 {
-	return isOn(Node::PassOpacity);
+	return _flags.isOn(Node::PassOpacity);
 }
 
 void Node::setPassColor3(bool var)
 {
-	setFlag(Node::PassColor3, var);
+	_flags.setFlag(Node::PassColor3, var);
 	setColor3(_color.toColor3());
 }
 
 bool Node::isPassColor3() const
 {
-	return isOn(Node::PassColor3);
+	return _flags.isOn(Node::PassColor3);
 }
 
 void Node::setTransformTarget(Node* var)
@@ -370,7 +371,7 @@ void Node::onEnter()
 		child->onEnter();
 	}
 	ARRAY_END
-	setOn(Node::Running);
+	_flags.setOn(Node::Running);
 	if (isUpdating())
 	{
 		_scheduler->schedule(this);
@@ -385,7 +386,7 @@ void Node::onExit()
 		child->onExit();
 	}
 	ARRAY_END
-	setOff(Node::Running);
+	_flags.setOff(Node::Running);
 	if (isUpdating())
 	{
 		_scheduler->unschedule(this);
@@ -400,7 +401,7 @@ Array* Node::getChildren() const
 
 bool Node::isRunning() const
 {
-	return isOn(Node::Running);
+	return _flags.isOn(Node::Running);
 }
 
 void Node::addChild(Node* child, int order, String name)
@@ -421,12 +422,12 @@ void Node::addChild(Node* child, int order, String name)
 	_children->add(child);
 	if (last && last->getOrder() > child->getOrder())
 	{
-		setOn(Node::Reorder);
+		_flags.setOn(Node::Reorder);
 	}
 	child->_parent = this;
 	child->updateRealColor3();
 	child->updateRealOpacity();
-	if (isOn(Node::Running))
+	if (_flags.isOn(Node::Running))
 	{
 		child->onEnter();
 	}
@@ -468,7 +469,7 @@ void Node::removeChild(Node* child, bool cleanup)
 	Ref<> childRef(child);
 	if (_children->remove(child))
 	{
-		if (isOn(Node::Running))
+		if (_flags.isOn(Node::Running))
 		{
 			child->onExit();
 		}
@@ -489,7 +490,7 @@ void Node::removeAllChildren(bool cleanup)
 {
 	ARRAY_START(Node, child, _children)
 	{
-		if (isOn(Node::Running))
+		if (_flags.isOn(Node::Running))
 		{
 			child->onExit();
 		}
@@ -508,9 +509,9 @@ void Node::removeAllChildren(bool cleanup)
 
 void Node::cleanup()
 {
-	if (isOff(Node::Cleanup))
+	if (_flags.isOff(Node::Cleanup))
 	{
-		setOn(Node::Cleanup);
+		_flags.setOn(Node::Cleanup);
 		emit("Cleanup"_slice);
 		ARRAY_START(Node, child, _children)
 		{
@@ -551,19 +552,19 @@ Vec2 Node::convertToWorldSpace(const Vec2& nodePoint)
 
 bool Node::isScheduled() const
 {
-	return isOn(Node::Scheduling);
+	return _flags.isOn(Node::Scheduling);
 }
 
 void Node::schedule(const function<bool(double)>& func)
 {
 	_scheduleFunc = func;
-	if (isOn(Node::Scheduling))
+	if (_flags.isOn(Node::Scheduling))
 	{
 		return;
 	}
-	if (isOn(Node::Updating))
+	if (_flags.isOn(Node::Updating))
 	{
-		setOn(Node::Scheduling);
+		_flags.setOn(Node::Scheduling);
 		return;
 	}
 	_scheduler->schedule(this);
@@ -572,8 +573,8 @@ void Node::schedule(const function<bool(double)>& func)
 void Node::unschedule()
 {
 	_scheduleFunc = nullptr;
-	setOff(Node::Scheduling);
-	if (isOff(Node::Updating))
+	_flags.setOff(Node::Scheduling);
+	if (_flags.isOff(Node::Updating))
 	{
 		_scheduler->unschedule(this);
 	}
@@ -581,27 +582,27 @@ void Node::unschedule()
 
 bool Node::isUpdating() const
 {
-	return isOn(Node::Updating) || isOn(Node::Scheduling);
+	return _flags.isOn(Node::Updating) || _flags.isOn(Node::Scheduling);
 }
 
 void Node::scheduleUpdate()
 {
-	if (isOn(Node::Updating)) return;
-	if (isOn(Node::Scheduling))
+	if (_flags.isOn(Node::Updating)) return;
+	if (_flags.isOn(Node::Scheduling))
 	{
-		setOn(Node::Updating);
+		_flags.setOn(Node::Updating);
 		return;
 	}
-	setOn(Node::Updating);
+	_flags.setOn(Node::Updating);
 	_scheduler->schedule(this);
 }
 
 void Node::unscheduleUpdate()
 {
-	if (isOn(Node::Updating) || isOn(Node::Scheduling))
+	if (_flags.isOn(Node::Updating) || _flags.isOn(Node::Scheduling))
 	{
-		setOff(Node::Updating);
-		setOff(Node::Scheduling);
+		_flags.setOff(Node::Updating);
+		_flags.setOff(Node::Scheduling);
 		_scheduler->unschedule(this);
 	}
 }
@@ -648,11 +649,13 @@ void Node::visit()
 }
 
 void Node::render()
-{ }
+{
+	SharedSpriteBuffer.render();
+}
 
 const AffineTransform& Node::getLocalTransform()
 {
-	if (isOn(Node::TransformDirty))
+	if (_flags.isOn(Node::TransformDirty))
 	{
 		/* cos(rotateZ), sin(rotateZ) */
 		float c = 1, s = 0;
@@ -692,7 +695,7 @@ const AffineTransform& Node::getLocalTransform()
 			}
 			_transform = {c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, x, y};
 		}
-		setOff(Node::TransformDirty);
+		_flags.setOff(Node::TransformDirty);
 	}
 	return _transform;
 }
@@ -758,9 +761,9 @@ void Node::getLocalWorld(float* localWorld)
 
 const float* Node::getWorld()
 {
-	if (isOn(Node::WorldDirty))
+	if (_flags.isOn(Node::WorldDirty))
 	{
-		setOff(WorldDirty);
+		_flags.setOff(WorldDirty);
 		float localWorld[16];
 		getLocalWorld(localWorld);
 		const float* parentWorld;
@@ -779,7 +782,7 @@ const float* Node::getWorld()
 		bx::mtxMul(_world, localWorld, parentWorld);
 		ARRAY_START(Node, child, _children)
 		{
-			child->setOn(Node::WorldDirty);
+			child->_flags.setOn(Node::WorldDirty);
 		}
 		ARRAY_END
 	}
@@ -855,54 +858,22 @@ RefVector<Listener> Node::gslot(String name)
 	return RefVector<Listener>();
 }
 
-void Node::setOn(Uint32 type)
-{
-	_flags |= type;
-}
-
-void Node::setOff(Uint32 type)
-{
-	_flags &= ~type;
-}
-
-void Node::setFlag(Uint32 type, bool value)
-{
-	if (value)
-	{
-		_flags |= type;
-	}
-	else
-	{
-		_flags &= ~type;
-	}
-}
-
 void Node::markDirty()
 {
-	setOn(Node::TransformDirty);
-	setOn(Node::WorldDirty);
-}
-
-bool Node::isOn(Uint32 type) const
-{
-	return (_flags & type) != 0;
-}
-
-bool Node::isOff(Uint32 type) const
-{
-	return !(_flags & type);
+	_flags.setOn(Node::TransformDirty);
+	_flags.setOn(Node::WorldDirty);
 }
 
 void Node::sortAllChildren()
 {
-	if (isOn(Node::Reorder))
+	if (_flags.isOn(Node::Reorder))
 	{
 		RefVector<Object>& data = _children->data();
 		std::stable_sort(data.begin(), data.end(), [](const Ref<>& a, const Ref<>& b)
 		{
 			return a.to<Node>()->getOrder() < b.to<Node>()->getOrder();
 		});
-		setOff(Node::Reorder);
+		_flags.setOff(Node::Reorder);
 	}
 }
 
@@ -919,7 +890,7 @@ void Node::updateRealColor3()
 	{
 		_realColor = _color;
 	}
-	if (isOn(Node::PassColor3))
+	if (_flags.isOn(Node::PassColor3))
 	{
 		ARRAY_START(Node, child, _children)
 		{
@@ -940,7 +911,7 @@ void Node::updateRealOpacity()
 	{
 		_realColor.setOpacity(_color.getOpacity());
 	}
-	if (isOn(Node::PassOpacity))
+	if (_flags.isOn(Node::PassOpacity))
 	{
 		ARRAY_START(Node, child, _children)
 		{

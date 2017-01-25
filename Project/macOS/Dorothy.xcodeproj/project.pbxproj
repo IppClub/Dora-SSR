@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */; };
 		3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399B1E1BA603007FEFC3 /* Common.cpp */; };
 		3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */; };
 		3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE2F1E2DB3FB0066450A /* libbx.a */; };
@@ -72,6 +73,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
+		3C05BCA31E3594C500CC6986 /* TouchDispather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchDispather.h; path = ../../Source/Input/TouchDispather.h; sourceTree = "<group>"; };
 		3C0D399B1E1BA603007FEFC3 /* Common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Common.cpp; path = ../../../Source/Support/Common.cpp; sourceTree = "<group>"; };
 		3C0D399C1E1BA603007FEFC3 /* Common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Common.h; path = ../../../Source/Support/Common.h; sourceTree = "<group>"; };
 		3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Array.cpp; path = ../../../Source/Support/Array.cpp; sourceTree = "<group>"; };
@@ -211,6 +214,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3C05BCA11E35948200CC6986 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */,
+				3C05BCA31E3594C500CC6986 /* TouchDispather.h */,
+			);
+			name = Input;
+			path = ..;
+			sourceTree = "<group>";
+		};
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -449,6 +462,7 @@
 				3C9ADE4D1E00F13500D42018 /* Const */,
 				3C69296F1E2C60890097AC49 /* Effect */,
 				3C57A39A1E0A059A002141DF /* Event */,
+				3C05BCA11E35948200CC6986 /* Input */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
 				3CCBBA381E14B50B00C0416B /* Node */,
 				3CB4871A1E163E9400D51749 /* Support */,
@@ -595,6 +609,7 @@
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
 				3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */,
+				3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */,
 				3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */,

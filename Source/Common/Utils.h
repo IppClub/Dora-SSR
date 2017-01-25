@@ -305,6 +305,20 @@ struct Matrix
 	static const float Indentity[16];
 };
 
+class Flag
+{
+public:
+	Flag(Uint32 value);
+	void setOn(Uint32 type);
+	void setOff(Uint32 type);
+	void setFlag(Uint32 type, bool value);
+	void toggle(Uint32 type);
+	bool isOn(Uint32 type) const;
+	bool isOff(Uint32 type) const;
+private:
+	Uint32 _flags;
+};
+
 #define LuaType DoraType
 
 NS_DOROTHY_END

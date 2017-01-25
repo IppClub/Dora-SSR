@@ -60,6 +60,11 @@ Node* Director::getCurrentEntry() const
 	return _entryStack->isEmpty() ? nullptr : _entryStack->getLast().to<Node>();
 }
 
+const float* Director::getViewProjection() const
+{
+	return _viewProj;
+}
+
 bool Director::init()
 {
 	SharedView.reset();
@@ -74,7 +79,9 @@ bool Director::init()
 
 void Director::mainLoop()
 {
-	bgfx::setViewTransform(0, getCamera()->getView(), SharedView.getProjection());
+	bx::mtxMul(_viewProj, getCamera()->getView(), SharedView.getProjection());
+	//bgfx::setViewTransform(0, getCamera()->getView(), SharedView.getProjection());
+	//bgfx::setViewTransform(0, nullptr, Matrix::Indentity);
 	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
 	bgfx::touch(0);
 
@@ -125,6 +132,7 @@ void Director::mainLoop()
 	{
 		Node* currentEntry = _entryStack->getLast().to<Node>();
 		currentEntry->visit();
+		SharedSpriteBuffer.render();
 	}
 }
 
@@ -233,6 +241,9 @@ void Director::clearEntry()
 
 void Director::handleSDLEvent(const SDL_Event& event)
 {
+	Node* currentEntry = nullptr;
+	if (!_entryStack->isEmpty()) currentEntry = _entryStack->getLast().to<Node>();
+
 	switch (event.type)
 	{
 		// User-requested quit
@@ -261,9 +272,6 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_APP_DIDENTERFOREGROUND:
 			Event::send("AppDidEnterForeground"_slice);
 			break;
-		case SDL_WINDOWEVENT_RESIZED:
-		case SDL_WINDOWEVENT_SIZE_CHANGED:
-			break;
 		case SDL_WINDOWEVENT:
 			{
 				switch (event.window.event)
@@ -288,10 +296,13 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_KEYMAPCHANGED:
 			break;
 		case SDL_MOUSEMOTION:
+			//Log("Mouse move x:%d, y:%d", event.button.x, event.button.y);
 			break;
 		case SDL_MOUSEBUTTONDOWN:
+			//Log("Mouse down x:%d, y:%d", event.button.x, event.button.y);
 			break;
 		case SDL_MOUSEBUTTONUP:
+			//Log("Mouse up x:%d, y:%d, click:%d", event.button.x, event.button.y, event.button.clicks);
 			break;
 		case SDL_MOUSEWHEEL:
 			break;
@@ -322,12 +333,15 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_CONTROLLERDEVICEREMAPPED:
 			break;
 		case SDL_FINGERDOWN:
-			Log("down id:%d x:%d y:%d", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
+			//Log("down x:%.2f y:%.2f id:%lld", event.tfinger.x, event.tfinger.y, event.tfinger.fingerId);
+			if (currentEntry) currentEntry->handler.touchDown(event.tfinger);
 			break;
 		case SDL_FINGERUP:
-			Log("up id:%d x:%d y:%d", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
+			//Log("up x:%.2f y:%.2f id:%lld", event.tfinger.x, event.tfinger.y, event.tfinger.fingerId);
+			if (currentEntry) currentEntry->handler.touchUp(event.tfinger);
 			break;
 		case SDL_FINGERMOTION:
+			if (currentEntry) currentEntry->handler.touchMove(event.tfinger);
 			break;
 		case SDL_DOLLARGESTURE:
 			break;

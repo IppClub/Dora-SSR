@@ -101,7 +101,7 @@ Color& Color::operator=(const Color& color)
 BlendFunc::BlendFunc(Uint32 src, Uint32 dst):src(src), dst(dst)
 { }
 
-const BlendFunc BlendFunc::Normal(BlendFunc::One, BlendFunc::InvSrcAlpha);
+const BlendFunc BlendFunc::Normal(BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha);
 
 Uint64 BlendFunc::toValue()
 {

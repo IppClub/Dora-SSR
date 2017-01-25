@@ -146,6 +146,7 @@ public:
 		return false;
 	}
 
+	TouchHandler handler;
 /*
 	PROPERTY_READONLY(int, ActionCount);
 	void runAction(CCAction* action);
@@ -156,17 +157,12 @@ public:
 protected:
 	Node();
 	virtual ~Node();
-	void setOn(Uint32 type);
-	void setOff(Uint32 type);
-	void setFlag(Uint32 type, bool value);
 	void markDirty();
-	bool isOn(Uint32 type) const;
-	bool isOff(Uint32 type) const;
-	void updateRealColor3();
-	void updateRealOpacity();
+	virtual void updateRealColor3();
+	virtual void updateRealOpacity();
 	void sortAllChildren();
 protected:
-	Uint32 _flags;
+	Flag _flags;
 	int _order;
 	Color _color;
 	Color _realColor;

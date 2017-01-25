@@ -32,7 +32,7 @@ class QEventArgs : public QEvent
 {
 public:
 	template<class... Args>
-	QEventArgs(String name, Args&&... args):
+	QEventArgs(String name, const Args&... args):
 	QEvent(name),
 	arguments(std::make_tuple(args...))
 	{ }

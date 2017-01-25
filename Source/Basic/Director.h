@@ -25,6 +25,7 @@ public:
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(Array*, Entries);
 	PROPERTY_READONLY(Node*, CurrentEntry);
+	PROPERTY_READONLY(const float*, ViewProjection);
 	bool init() override;
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
@@ -39,6 +40,7 @@ public:
 protected:
 	Director();
 private:
+	float _viewProj[16];
 	Ref<Array> _entryStack;
 	Ref<Node> _currentScene;
 	Ref<Scheduler> _scheduler;

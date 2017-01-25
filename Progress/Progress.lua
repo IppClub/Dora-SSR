@@ -95,6 +95,11 @@ CCNode	129	n
 	addTo	3	y
 	removeChildByTag	2	y
 	running	2	y
+CCTouch	100	n
+	delta	52	n
+	location	46	n
+	preLocation	18	n
+	id	7	n
 CCArray	100	y
 	insert	214	y
 	remove	52	y

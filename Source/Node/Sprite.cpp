@@ -14,30 +14,91 @@ NS_DOROTHY_BEGIN
 bgfx::VertexDecl SpriteVertex::ms_decl;
 SpriteVertex::Init SpriteVertex::init;
 
-const uint16_t SpriteIndexBuffer::spriteIndices[] = {0, 1, 2, 3};
-
-SpriteIndexBuffer::SpriteIndexBuffer():
-_indexBuffer(bgfx::createIndexBuffer(bgfx::makeRef(spriteIndices, sizeof(spriteIndices))))
+SpriteBuffer::SpriteBuffer():
+_spriteIndices{0, 1, 2, 1, 3, 2},
+_lastEffect(nullptr),
+_lastTexture(nullptr),
+_lastState(0)
 { }
 
-SpriteIndexBuffer::~SpriteIndexBuffer()
+SpriteBuffer::~SpriteBuffer()
+{ }
+
+void SpriteBuffer::doRender()
 {
-	if (bgfx::isValid(_indexBuffer))
+	if (!_vertices.empty())
 	{
-		bgfx::destroyIndexBuffer(_indexBuffer);
+		bgfx::TransientVertexBuffer vertexBuffer;
+		bgfx::TransientIndexBuffer indexBuffer;
+		size_t vertexCount = _vertices.size();
+		size_t spriteCount = vertexCount >> 2;
+		size_t indexCount = spriteCount * 6;
+		if (bgfx::allocTransientBuffers(
+			&vertexBuffer, SpriteVertex::ms_decl, vertexCount,
+			&indexBuffer, indexCount))
+		{
+			memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(SpriteVertex));
+			uint16_t* indices = r_cast<uint16_t*>(indexBuffer.data);
+			for (size_t i = 0; i < spriteCount; i++)
+			{
+				for (size_t j = 0; j < 6; j++)
+				{
+					indices[i * 6 + j] = s_cast<uint16_t>(_spriteIndices[j] + i * 4);
+				}
+			}
+			bgfx::setVertexBuffer(&vertexBuffer);
+			bgfx::setIndexBuffer(&indexBuffer);
+			bgfx::setTexture(0, _lastEffect->getSampler(), _lastTexture->getHandle());
+			bgfx::setState(_lastState);
+			bgfx::submit(0, _lastEffect->getProgram());
+		}
+		else
+		{
+			Log("not enough transient buffer for %d vertices, %d indices.", vertexCount, indexCount);
+		}
+		_vertices.clear();
+		_lastEffect = nullptr;
+		_lastTexture = nullptr;
+		_lastState = 0;
 	}
 }
 
-bgfx::IndexBufferHandle SpriteIndexBuffer::getHandler() const
+void SpriteBuffer::render(Sprite* sprite)
 {
-	return _indexBuffer;
+	if (!sprite)
+	{
+		doRender();
+		return;
+	}
+
+	Effect* effect = sprite->getEffect();
+	Texture2D* texture = sprite->getTexture();
+	Uint64 state = sprite->getRenderState();
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState)
+	{
+		doRender();
+	}
+
+	_lastEffect = effect;
+	_lastTexture = texture;
+	_lastState = state;
+
+	const SpriteVertex* verts = sprite->getVertices();
+	float transform[16];
+	bx::mtxMul(transform, sprite->getWorld(), SharedDirector.getViewProjection());
+	for (int i = 0; i < 4; i++)
+	{
+		SpriteVertex vertex = verts[i];
+		bx::vec4MulMtx(r_cast<float*>(&vertex), r_cast<float*>(c_cast<SpriteVertex*>(verts) + i), transform);
+		_vertices.push_back(vertex);
+	}
 }
 
 Sprite::Sprite():
 _effect(&SharedSpriteEffect),
-_vertices{},
+_vertices{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
 _blendFunc(BlendFunc::Normal),
-_vertexBuffer(bgfx::createDynamicVertexBuffer(4, SpriteVertex::ms_decl))
+_renderState(BGFX_STATE_NONE)
 { }
 
 Sprite::Sprite(Texture2D* texture):
@@ -63,12 +124,7 @@ Sprite(SharedTextureCache.load(filename))
 { }
 
 Sprite::~Sprite()
-{
-	if (bgfx::isValid(_vertexBuffer))
-	{
-		bgfx::destroyDynamicVertexBuffer(_vertexBuffer);
-	}
-}
+{ }
 
 bool Sprite::init()
 {
@@ -78,6 +134,16 @@ bool Sprite::init()
 	updateVertTexCoord();
 	updateVertColor();
 	return true;
+}
+
+void Sprite::setEffect(Effect* var)
+{
+	_effect = var;
+}
+
+Effect* Sprite::getEffect() const
+{
+	return _effect;
 }
 
 void Sprite::setTextureRect(const Rect& var)
@@ -115,12 +181,22 @@ const BlendFunc& Sprite::getBlendFunc() const
 
 void Sprite::setDepthWrite(bool var)
 {
-	setFlag(Sprite::DepthWrite, var);
+	_flags.setFlag(Sprite::DepthWrite, var);
 }
 
 bool Sprite::isDepthWrite() const
 {
-	return isOn(Sprite::DepthWrite);
+	return _flags.isOn(Sprite::DepthWrite);
+}
+
+Uint64 Sprite::getRenderState() const
+{
+	return _renderState;
+}
+
+const SpriteVertex* Sprite::getVertices() const
+{
+	return _vertices;
 }
 
 void Sprite::updateVertTexCoord()
@@ -134,13 +210,12 @@ void Sprite::updateVertTexCoord()
 		float bottom = (_textureRect.getY() + _textureRect.getHeight()) / info.height;
 		_vertices[0].u = left;
 		_vertices[0].v = top;
-		_vertices[1].u = left;
-		_vertices[1].v = bottom;
-		_vertices[2].u = right;
-		_vertices[2].v = top;
+		_vertices[1].u = right;
+		_vertices[1].v = top;
+		_vertices[2].u = left;
+		_vertices[2].v = bottom;
 		_vertices[3].u = right;
 		_vertices[3].v = bottom;
-		setOn(Sprite::VertexDirty);
 	}
 }
 
@@ -153,13 +228,12 @@ void Sprite::updateVertPosition()
 		float left = 0, right = width, top = height, bottom = 0;
 		_vertices[0].x = left;
 		_vertices[0].y = top;
-		_vertices[1].x = left;
-		_vertices[1].y = bottom;
-		_vertices[2].x = right;
-		_vertices[2].y = top;
+		_vertices[1].x = right;
+		_vertices[1].y = top;
+		_vertices[2].x = left;
+		_vertices[2].y = bottom;
 		_vertices[3].x = right;
 		_vertices[3].y = bottom;
-		setOn(Sprite::VertexDirty);
 	}
 }
 
@@ -167,40 +241,45 @@ void Sprite::updateVertColor()
 {
 	if (_texture)
 	{
-		Uint32 abgr = _color.toABGR();
+		Uint32 abgr = _realColor.toABGR();
 		_vertices[0].abgr = abgr;
 		_vertices[1].abgr = abgr;
 		_vertices[2].abgr = abgr;
 		_vertices[3].abgr = abgr;
-		setOn(Sprite::VertexDirty);
 	}
+}
+
+void Sprite::updateRealColor3()
+{
+	Node::updateRealColor3();
+	_flags.setOn(Sprite::VertexColorDirty);
+}
+
+void Sprite::updateRealOpacity()
+{
+	Node::updateRealOpacity();
+	_flags.setOn(Sprite::VertexColorDirty);
 }
 
 void Sprite::render()
 {
 	if (!_texture || !_effect) return;
 
-	if (isOn(Sprite::VertexDirty))
+	if (_flags.isOn(Sprite::VertexColorDirty))
 	{
-		setOff(Sprite::VertexDirty);
-		bgfx::updateDynamicVertexBuffer(_vertexBuffer, 0, bgfx::makeRef(_vertices, sizeof(_vertices)));
+		_flags.setOff(Sprite::VertexColorDirty);
+		updateVertColor();
 	}
 
-	Uint64 state = (
-		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE /*|
-		BGFX_STATE_CULL_CW*/ | BGFX_STATE_MSAA |
-		BGFX_STATE_PT_TRISTRIP | _blendFunc.toValue());
-	if (isOn(Sprite::DepthWrite))
+	_renderState = (
+		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+		BGFX_STATE_MSAA | _blendFunc.toValue());
+	if (_flags.isOn(Sprite::DepthWrite))
 	{
-		state |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
+		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	bgfx::setTransform(getWorld());
-	bgfx::setVertexBuffer(_vertexBuffer);
-	bgfx::setIndexBuffer(SharedSpriteIndexBuffer.getHandler());
-	bgfx::setTexture(0, _effect->getSampler(), _texture->getHandle());
-	bgfx::setState(state);
-	bgfx::submit(0, _effect->getProgram());
+	SharedSpriteBuffer.render(this);
 }
 
 NS_DOROTHY_END

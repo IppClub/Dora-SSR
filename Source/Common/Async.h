@@ -15,7 +15,7 @@ class Values : public Object
 public:
 	virtual ~Values() { }
 	template<class... Args>
-	static Ref<Values> create(Args&... args);
+	static Ref<Values> create(const Args&... args);
 	template<class... Args>
 	void get(Args&... args);
 	static const Ref<Values> None;
@@ -28,13 +28,13 @@ class ValuesEx : public Values
 {
 public:
 	template<class... Args>
-	ValuesEx(Args&&... args):values(std::make_tuple(args...))
+	ValuesEx(const Args&... args):values(std::make_tuple(args...))
 	{ }
 	std::tuple<Fields...> values;
 };
 
 template<class... Args>
-Ref<Values> Values::create(Args&... args)
+Ref<Values> Values::create(const Args&... args)
 {
 	auto item = new ValuesEx<Args...>(args...);
 	Ref<Values> itemRef(item);

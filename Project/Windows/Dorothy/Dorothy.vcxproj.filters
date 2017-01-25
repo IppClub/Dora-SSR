@@ -52,6 +52,9 @@
     <Filter Include="Effect">
       <UniqueIdentifier>{d10b80ca-8eae-4068-8d2a-14ee1d2dbbd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{0d438360-861d-4264-b4b1-0f9051f65f34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -173,6 +176,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Effect\Effect.cpp">
       <Filter>Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Input\TouchDispather.cpp">
+      <Filter>Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -325,6 +331,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Effect\Effect.h">
       <Filter>Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Input\TouchDispather.h">
+      <Filter>Input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
