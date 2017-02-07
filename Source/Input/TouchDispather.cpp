@@ -104,6 +104,32 @@ void TouchHandler::collect(SDL_FingerID fingerId)
 	}
 }
 
+int glhUnProjectf(float winx, float winy, float winz, const float *modelview, const float *projection, int *viewport, float *objectCoordinate)
+  {  
+      //Transformation matrices  
+      float m[16], A[16];  
+      float in[4], out[4];  
+      //Calculation for inverting a matrix, compute projection x modelview  
+      //and store in A[16]  
+      bx::mtxMul(A, projection, modelview);
+      //Now compute the inverse of matrix A
+	  bx::mtxInverse(m, A);
+      //Transformation of normalized coordinates between -1 and 1  
+      in[0]=(winx-(float)viewport[0])/(float)viewport[2]*2.0-1.0;  
+      in[1]=(winy-(float)viewport[1])/(float)viewport[3]*2.0-1.0;  
+      in[2]=2.0*winz-1.0;  
+      in[3]=1.0;  
+      //Objects coordinates  
+      bx::vec4MulMtx(out, in, m);
+      if(out[3]==0.0)  
+         return 0;  
+      out[3]=1.0/out[3];  
+      objectCoordinate[0]=out[0]*out[3];  
+      objectCoordinate[1]=out[1]*out[3];  
+      objectCoordinate[2]=out[2]*out[3];  
+      return 1;  
+  }
+
 Vec2 TouchHandler::getPos(const SDL_Event& event)
 {
 	switch (event.type)
@@ -111,9 +137,43 @@ Vec2 TouchHandler::getPos(const SDL_Event& event)
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
 		{
-			Vec2 pos = Vec2(event.button.x - SharedApplication.getWidth() * 0.5f,
-				SharedApplication.getHeight() * 0.5f - event.button.y);
-			return _target->convertToNodeSpace(pos);
+			float modelView[16];
+			bx::mtxMul(modelView, _target->getWorld(), SharedDirector.getCamera()->getView());
+			float invWorld[16];
+			bx::mtxInverse(invWorld, _target->getWorld());
+			Vec3 planeVec[3];
+			bx::vec3MulMtx(planeVec[0], Vec3{0,0,0}, _target->getWorld());
+			bx::vec3MulMtx(planeVec[1], Vec3{1,0,0}, _target->getWorld());
+			bx::vec3MulMtx(planeVec[2], Vec3{0,1,0}, _target->getWorld());
+			float plane[4];
+			bx::calcPlane(plane, Vec3{0,0,0}, Vec3{1,0,0}, Vec3{0,1,0});
+			Vec3 pos{event.button.x - SharedApplication.getWidth() * 0.5f,
+				SharedApplication.getHeight() * 0.5f - event.button.y, 0};
+			Vec3 posTarget{pos[0], pos[1], pos[2] + 1.0f};
+
+			Vec3 origin, target;
+			int viewPort[4]{0,0,SharedApplication.getWidth(),SharedApplication.getHeight()};
+			glhUnProjectf(pos[0], pos[1], pos[2], modelView, SharedView.getProjection(), viewPort, origin);
+			glhUnProjectf(posTarget[0], posTarget[1], posTarget[2], modelView, SharedView.getProjection(), viewPort, target);
+
+			Vec3 dir, dirNorm;
+			bx::vec3Sub(dir, target, origin);
+			bx::vec3Norm(dirNorm, dir);
+			float denom = bx::vec3Dot(dirNorm, plane);
+			if (std::abs(denom) >= std::numeric_limits<float>::epsilon())
+			{
+				float nom = bx::vec3Dot(origin, plane) + plane[3];
+				float t = -(nom/denom);
+				if (t >= 0)
+				{
+					Vec3 offset;
+					bx::vec3Mul(offset, dirNorm, t);
+					Vec3 result;
+					bx::vec3Add(result, origin, offset);
+					return result;
+				}
+			}
+			return Vec2(-1.0f, -1.0f);
 		}
 		case SDL_MOUSEMOTION:
 		{
@@ -122,6 +182,8 @@ Vec2 TouchHandler::getPos(const SDL_Event& event)
 			return _target->convertToNodeSpace(pos);
 		}
 		case SDL_FINGERUP:
+		case SDL_FINGERDOWN:
+		case SDL_FINGERMOTION:
 		{
 			Vec2 ratio(event.tfinger.x - 0.5f, 0.5f - event.tfinger.y);
 			Vec3 pos{ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};

@@ -207,7 +207,7 @@ namespace Tuple {
 #define d_cast dynamic_cast
 
 #ifndef FLT_EPSILON
-	#define FLT_EPSILON 1.192092896e-07F
+	#define FLT_EPSILON std::numeric_limits<float>::epsilon()
 #endif // FLT_EPSILON
 
 /** @brief Helper functions to hash string in compile time for use of

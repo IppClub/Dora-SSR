@@ -21,6 +21,7 @@ thread(function()
 	--sprite.skewX = 45
 	sprite.scaleX = 5
 	sprite.scaleY = 5
+	sprite.angleY = -45
 --[[
 	local s = Sprite("Image/logo.png")
 	s.position = Vec2(1,1)
@@ -43,7 +44,7 @@ thread(function()
 	print(tex, sprite.texture, tex == sprite.texture)
 	print(tostring(Dorothy))
 --]]
-	sprite.opacity = 0.05
+	--sprite.opacity = 0.05
 	sprite:slot("TapBegan", function(touch)
 		print("TapBegan", touch.location.x, touch.location.y)
 		local sp = Sprite("Image/logo.png")

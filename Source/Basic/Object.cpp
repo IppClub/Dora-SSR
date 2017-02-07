@@ -123,7 +123,7 @@ Uint32 Object::getId() const
 
 Uint32 Object::getObjectCount()
 {
-	return _maxIdCount - (Uint32)_availableIds.size();
+	return _maxIdCount - s_cast<Uint32>(_availableIds.size());
 }
 
 Uint32 Object::getMaxObjectCount()

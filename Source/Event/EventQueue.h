@@ -66,11 +66,13 @@ void QEvent::retrieve(Args&... args)
 			switch (Switch::hash(event->getName()))
 			{
 				case "Whatever"_hash:
+				{
 					int val1, val2;
 					Slice msg;
-					EventQueue::retrieve(event, val1, val2, msg);
+					event->retrieve(val1, val2, msg);
 					Log("%d, %d, %s", val1, val2, msg);
 					break;
+				}
 			}
 		}
 	}

@@ -64,13 +64,13 @@ public:
 	template<class... Args>
 	Item* newItem(Args&&... args)
 	{
-		Item* mem = r_cast<Item*>(MemoryPool<Item, CHUNK_CAPACITY>::alloc());
+		Item* mem = r_cast<Item*>(MemoryPool::alloc());
 		return new (mem) Item(std::forward<Args>(args)...);
 	}
 	void deleteItem(Item* item)
 	{
 		item->~Item();
-		MemoryPool<Item, CHUNK_CAPACITY>::free(r_cast<void*>(item));
+		MemoryPool::free(r_cast<void*>(item));
 	}
 	int capacity()
 	{

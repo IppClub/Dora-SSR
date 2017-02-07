@@ -343,17 +343,17 @@ int LuaEngine::executeScriptFile(String filename)
 
 void LuaEngine::push(int value)
 {
-	lua_pushinteger(L, (lua_Integer)value);
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
 void LuaEngine::push(float value)
 {
-	lua_pushnumber(L, (lua_Number)value);
+	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
 
 void LuaEngine::push(double value)
 {
-	lua_pushnumber(L, (lua_Number)value);
+	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
 
 void LuaEngine::push(Object* value)
