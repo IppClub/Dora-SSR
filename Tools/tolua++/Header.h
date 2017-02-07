@@ -244,6 +244,7 @@ class Node : public Object
 	tolua_readonly tolua_property__bool bool running;
 	tolua_readonly tolua_property__bool bool updating;
 	tolua_readonly tolua_property__bool bool scheduled;
+	tolua_property__bool bool touchEnabled;
 
 	void addChild(Node* child, int order, String name);
 	void addChild(Node* child, int order);
@@ -318,7 +319,7 @@ struct BlendFunc
 
 class Sprite : public Node
 {
-	tolua_property__bool bool depthWrite;
+	tolua_property__bool bool depthWrite @ is3D;
 	tolua_property__common Rect textureRect;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_readonly tolua_property__common Texture2D* texture;

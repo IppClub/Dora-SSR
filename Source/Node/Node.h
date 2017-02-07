@@ -55,6 +55,9 @@ public:
 	PROPERTY_READONLY_BOOL(Running);
 	PROPERTY_READONLY_BOOL(Updating);
 	PROPERTY_READONLY_BOOL(Scheduled);
+	PROPERTY_BOOL(TouchEnabled);
+	PROPERTY_BOOL(SwallowTouches);
+	PROPERTY_READONLY(TouchHandler*, TouchHandler);
 
 	virtual void addChild(Node* child, int order, String name);
 	void addChild(Node* child, int order);
@@ -146,8 +149,6 @@ public:
 		}
 		return false;
 	}
-
-	TouchHandler handler;
 /*
 	PROPERTY_READONLY(int, ActionCount);
 	void runAction(CCAction* action);
@@ -188,6 +189,7 @@ protected:
 	Ref<Scheduler> _scheduler;
 	Own<Signal> _signal;
 	string _name;
+	Own<TouchHandler> _touchHandler;
 	function<bool(double)> _scheduleFunc;
 	enum
 	{
@@ -202,9 +204,10 @@ protected:
 		Reorder = 1 << 8,
 		Cleanup = 1 << 9,
 		TouchEnabled = 1 << 10,
-		KeypadEnabled = 1 << 11,
-		KeyboardEnabled = 1 << 12,
-		UserFlag = 1 << 13,
+		SwallowTouches = 1 << 11,
+		KeypadEnabled = 1 << 12,
+		KeyboardEnabled = 1 << 13,
+		UserFlag = 1 << 14
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

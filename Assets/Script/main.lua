@@ -13,14 +13,20 @@ end)
 
 thread(function()
 	local sprite = Sprite("Image/logo.png")
-	Director:pushEntry(sprite)
+	sprite.is3D = true
+	local node = Sprite("Image/logo.png")
+	node.is3D = true
+	node.scaleX = 2
+	node.scaleY = 2
+	node:addChild(sprite)
+	Director:pushEntry(node)
 	--sprite.passOpacity = false
 	local pos = sprite:convertToWorldSpace(Vec2.zero)
 	print(pos.x, pos.y)
 	--sprite.anchor = Vec2.zero
 	--sprite.skewX = 45
-	sprite.scaleX = 5
-	sprite.scaleY = 5
+	sprite.scaleX = 0.5
+	sprite.scaleY = 0.5
 	sprite.angleY = -45
 --[[
 	local s = Sprite("Image/logo.png")
@@ -44,7 +50,17 @@ thread(function()
 	print(tex, sprite.texture, tex == sprite.texture)
 	print(tostring(Dorothy))
 --]]
-	--sprite.opacity = 0.05
+	node.touchEnabled = true
+	node:slot("TapBegan", function(touch)
+		print("TapBegan", touch.location.x, touch.location.y)
+		local sp = Sprite("Image/logo.png")
+		sp.position = touch.location
+		sp.scaleX = 0.1
+		sp.scaleY = 0.1
+		node:addChild(sp)
+	end)
+	sprite.opacity = 0.05
+	sprite.touchEnabled = true
 	sprite:slot("TapBegan", function(touch)
 		print("TapBegan", touch.location.x, touch.location.y)
 		local sp = Sprite("Image/logo.png")

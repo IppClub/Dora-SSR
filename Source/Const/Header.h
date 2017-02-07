@@ -74,3 +74,4 @@ using namespace Dorothy::Switch::Literals;
 #include "Cache/ShaderCache.h"
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
+#include "Input/TouchDispather.h"

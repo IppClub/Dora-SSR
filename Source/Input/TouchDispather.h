@@ -48,18 +48,35 @@ class TouchHandler
 {
 public:
 	TouchHandler(Node* target);
-	void down(const SDL_Event& event);
-	void up(const SDL_Event& event);
-	void move(const SDL_Event& event);
+	bool handle(const SDL_Event& event);
 protected:
 	Touch* alloc(SDL_FingerID fingerId);
 	Touch* get(SDL_FingerID fingerId);
 	void collect(SDL_FingerID fingerId);
 	Vec2 getPos(const SDL_Event& event);
+	bool up(const SDL_Event& event);
+	bool down(const SDL_Event& event);
+	bool move(const SDL_Event& event);
 private:
 	Node* _target;
 	stack<int> _availableTouchIds;
 	unordered_map<SDL_FingerID, Ref<Touch>> _touchMap;
 };
+
+class TouchDispatcher : public Object
+{
+public:
+	void add(const SDL_Event& event);
+	void add(Node* node);
+	void dispatch();
+protected:
+	TouchDispatcher() { }
+private:
+	vector<Node*> _nodes;
+	list<SDL_Event> _events;
+};
+
+#define SharedTouchDispatcher \
+	silly::Singleton<TouchDispatcher, SingletonIndex::TouchDispatcher>::shared()
 
 NS_DOROTHY_END

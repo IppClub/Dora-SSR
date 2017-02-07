@@ -12,8 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Node::Node():
-handler(this),
-_flags(Node::Visible|Node::PassOpacity|Node::PassColor3),
+_flags(Node::Visible|Node::PassOpacity|Node::PassColor3|Node::SwallowTouches),
 _order(0),
 _color(),
 _angle(0.0f),
@@ -29,7 +28,8 @@ _anchor(0.5f, 0.5f),
 _size(),
 _transform(AffineTransform::Indentity),
 _scheduler(SharedDirector.getScheduler()),
-_parent(nullptr)
+_parent(nullptr),
+_touchHandler(nullptr)
 {
 	bx::mtxIdentity(_world);
 }
@@ -558,6 +558,35 @@ Vec2 Node::convertToWorldSpace(const Vec2& nodePoint)
 bool Node::isScheduled() const
 {
 	return _flags.isOn(Node::Scheduling);
+}
+
+void Node::setTouchEnabled(bool var)
+{
+	if (!_touchHandler)
+	{
+		_touchHandler = New<TouchHandler>(this);
+	}
+	_flags.setFlag(Node::TouchEnabled, var);
+}
+
+bool Node::isTouchEnabled() const
+{
+	return _flags.isOn(Node::TouchEnabled);
+}
+
+void Node::setSwallowTouches(bool var)
+{
+	_flags.setFlag(Node::SwallowTouches, var);
+}
+
+bool Node::isSwallowTouches() const
+{
+	return _flags.isOn(Node::SwallowTouches);
+}
+
+TouchHandler* Node::getTouchHandler() const
+{
+	return _touchHandler;
 }
 
 void Node::schedule(const function<bool(double)>& func)

@@ -125,13 +125,27 @@ void Director::mainLoop()
 			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false"
 			, renderer);
 
-	_systemScheduler->update(SharedApplication.getDeltaTime());
-	_scheduler->update(SharedApplication.getDeltaTime());
 	if (!_entryStack->isEmpty())
 	{
 		Node* currentEntry = _entryStack->getLast().to<Node>();
+		currentEntry->traverse([](Node* node)
+		{
+			if (node->isTouchEnabled())
+			{
+				SharedTouchDispatcher.add(node);
+			}
+			return false;
+		});
+		SharedTouchDispatcher.dispatch();
+		_systemScheduler->update(SharedApplication.getDeltaTime());
+		_scheduler->update(SharedApplication.getDeltaTime());
 		currentEntry->visit();
 		SharedSpriteBuffer.render();
+	}
+	else
+	{
+		_systemScheduler->update(SharedApplication.getDeltaTime());
+		_scheduler->update(SharedApplication.getDeltaTime());
 	}
 }
 
@@ -282,6 +296,14 @@ void Director::handleSDLEvent(const SDL_Event& event)
 				}
 			}
 			break;
+		case SDL_MOUSEMOTION:
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONUP:
+		case SDL_FINGERDOWN:
+		case SDL_FINGERUP:
+		case SDL_FINGERMOTION:
+			SharedTouchDispatcher.add(event);
+			break;
 		case SDL_SYSWMEVENT:
 			break;
 		case SDL_KEYDOWN:
@@ -293,18 +315,6 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_TEXTINPUT:
 			break;
 		case SDL_KEYMAPCHANGED:
-			break;
-		case SDL_MOUSEMOTION:
-			if (currentEntry) currentEntry->handler.move(event);
-			//Log("Mouse move x:%d, y:%d", event.button.x, event.button.y);
-			break;
-		case SDL_MOUSEBUTTONDOWN:
-			if (currentEntry) currentEntry->handler.down(event);
-			//Log("Mouse down x:%d, y:%d", event.button.x, event.button.y);
-			break;
-		case SDL_MOUSEBUTTONUP:
-			if (currentEntry) currentEntry->handler.up(event);
-			//Log("Mouse up x:%d, y:%d, click:%d", event.button.x, event.button.y, event.button.clicks);
 			break;
 		case SDL_MOUSEWHEEL:
 			break;
@@ -333,17 +343,6 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_CONTROLLERDEVICEREMOVED:
 			break;
 		case SDL_CONTROLLERDEVICEREMAPPED:
-			break;
-		case SDL_FINGERDOWN:
-			//Log("down x:%.2f y:%.2f id:%lld", event.tfinger.x, event.tfinger.y, event.tfinger.fingerId);
-			if (currentEntry) currentEntry->handler.down(event);
-			break;
-		case SDL_FINGERUP:
-			//Log("up x:%.2f y:%.2f id:%lld", event.tfinger.x, event.tfinger.y, event.tfinger.fingerId);
-			if (currentEntry) currentEntry->handler.up(event);
-			break;
-		case SDL_FINGERMOTION:
-			if (currentEntry) currentEntry->handler.move(event);
 			break;
 		case SDL_DOLLARGESTURE:
 			break;
