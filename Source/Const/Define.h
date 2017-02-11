@@ -21,6 +21,7 @@ NS_DOROTHY_BEGIN
 namespace SingletonIndex
 {
 	enum {
+		ImGUIDora,
 		TouchDispatcher,
 		SpriteBuffer,
 		SpriteEffect,

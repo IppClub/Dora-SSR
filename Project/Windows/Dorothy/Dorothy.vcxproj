@@ -19,7 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\lodepng\lodepng.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp" />
@@ -43,6 +47,7 @@
     <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventType.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Listener.cpp" />
+    <ClCompile Include="..\..\..\Source\GUI\ImGUIDora.cpp" />
     <ClCompile Include="..\..\..\Source\Input\TouchDispather.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaBinding.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaCode.cpp" />
@@ -64,12 +69,20 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_rect_pack.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_textedit.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_truetype.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lauxlib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
@@ -101,6 +114,7 @@
     <ClInclude Include="..\..\..\Source\Event\EventQueue.h" />
     <ClInclude Include="..\..\..\Source\Event\EventType.h" />
     <ClInclude Include="..\..\..\Source\Event\Listener.h" />
+    <ClInclude Include="..\..\..\Source\GUI\ImGUIDora.h" />
     <ClInclude Include="..\..\..\Source\Input\TouchDispather.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaBinding.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaEngine.h" />
@@ -188,7 +202,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/lodepng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -227,7 +241,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/lodepng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>

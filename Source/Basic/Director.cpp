@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Basic/Director.h"
 #include "bx/timer.h"
+#include "imgui.h"
 
 NS_DOROTHY_BEGIN
 
@@ -27,6 +28,25 @@ void Director::setScheduler(Scheduler* scheduler)
 Scheduler* Director::getScheduler() const
 {
 	return _scheduler;
+}
+
+void Director::setUI(Node* var)
+{
+	if (_ui)
+	{
+		_ui->onExit();
+		_ui->cleanup();
+	}
+	_ui = var;
+	if (_ui)
+	{
+		_ui->onEnter();
+	}
+}
+
+Node* Director::getUI() const
+{
+	return _ui;
 }
 
 Scheduler* Director::getSystemScheduler() const
@@ -65,25 +85,36 @@ const float* Director::getViewProjection() const
 	return _viewProj;
 }
 
+void registerTouchHandler(Node* target)
+{
+	target->traverse([](Node* node)
+	{
+		if (node->isTouchEnabled())
+		{
+			SharedTouchDispatcher.add(node->getTouchHandler());
+		}
+		return false;
+	});
+}
+
 bool Director::init()
 {
 	SharedView.reset();
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
+	//bgfx::setDebug(BGFX_DEBUG_TEXT);
 	bgfx::setViewClear(0,
 		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
 		0x303030ff, 1.0f, 0);
 	SharedLueEngine.executeScriptFile("Script/main.lua");
-
+	if (!SharedImGUI.init())
+	{
+		return false;
+	}
 	return true;
 }
 
 void Director::mainLoop()
 {
-	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
-	bx::mtxMul(_viewProj, getCamera()->getView(), SharedView.getProjection());
-	bgfx::setViewTransform(0, nullptr, _viewProj);
-	bgfx::touch(0);
-
+	/*
 	bgfx::dbgTextClear();
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* renderer;
@@ -124,29 +155,54 @@ void Director::mainLoop()
 			, (std::max(stats->gpuTimeEnd, stats->gpuTimeBegin) - std::min(stats->gpuTimeEnd, stats->gpuTimeBegin)) / double(stats->gpuTimerFreq)
 			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false"
 			, renderer);
+	*/
 
+	SharedImGUI.begin();
+	ImGui::ShowTestWindow();
+	SharedImGUI.end();
+
+	/* update logic */
+	_systemScheduler->update(SharedApplication.getDeltaTime());
+	_scheduler->update(SharedApplication.getDeltaTime());
+
+	/* handle touches */
+	SharedTouchDispatcher.add(SharedImGUI.getTarget());
+	SharedTouchDispatcher.dispatch();
+	float ortho[16];
+	bx::mtxOrtho(ortho, 0, s_cast<float>(SharedApplication.getWidth()), 0, s_cast<float>(SharedApplication.getHeight()), -1000.0f, 1000.0f);
+	if (_ui)
+	{
+		registerTouchHandler(_ui);
+		memcpy(_viewProj, ortho, sizeof(float) * 16);
+		SharedTouchDispatcher.dispatch();
+	}
+	Node* currentEntry = nullptr;
 	if (!_entryStack->isEmpty())
 	{
-		Node* currentEntry = _entryStack->getLast().to<Node>();
-		currentEntry->traverse([](Node* node)
-		{
-			if (node->isTouchEnabled())
-			{
-				SharedTouchDispatcher.add(node);
-			}
-			return false;
-		});
+		currentEntry = _entryStack->getLast().to<Node>();
+		registerTouchHandler(currentEntry);
+		bx::mtxMul(_viewProj, getCamera()->getView(), SharedView.getProjection());
 		SharedTouchDispatcher.dispatch();
-		_systemScheduler->update(SharedApplication.getDeltaTime());
-		_scheduler->update(SharedApplication.getDeltaTime());
-		currentEntry->visit();
-		SharedSpriteBuffer.render();
 	}
-	else
+	SharedTouchDispatcher.clearEvents();
+
+	/* render scene tree */
+	bgfx::setViewSeq(0, true);
+	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
+	bgfx::touch(0);
+
+	if (currentEntry)
 	{
-		_systemScheduler->update(SharedApplication.getDeltaTime());
-		_scheduler->update(SharedApplication.getDeltaTime());
+		bgfx::setViewTransform(0, nullptr, _viewProj);
+		currentEntry->visit();
 	}
+	if (_ui)
+	{
+		memcpy(_viewProj, ortho, sizeof(float) * 16);
+		bgfx::setViewTransform(0, nullptr, _viewProj);
+		_ui->visit();
+	}
+	SharedSpriteBuffer.render();
 }
 
 void Director::setEntry(Node* entry)
@@ -254,15 +310,14 @@ void Director::clearEntry()
 
 void Director::handleSDLEvent(const SDL_Event& event)
 {
-	Node* currentEntry = nullptr;
-	if (!_entryStack->isEmpty()) currentEntry = _entryStack->getLast().to<Node>();
-
+	Event::sendInternal("AppSDLEvent"_slice, event);
 	switch (event.type)
 	{
 		// User-requested quit
 		case SDL_QUIT:
 			Event::send("AppQuit"_slice);
 			clearEntry();
+			setUI(nullptr);
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:

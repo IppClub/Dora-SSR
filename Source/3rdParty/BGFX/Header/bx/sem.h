@@ -7,7 +7,6 @@
 #define BX_SEM_H_HEADER_GUARD
 
 #include "bx.h"
-#include "mutex.h"
 
 #if BX_CONFIG_SUPPORTS_THREADING
 
@@ -16,12 +15,15 @@
 #	include <semaphore.h>
 #	include <time.h>
 #	include <pthread.h>
-#elif BX_PLATFORM_XBOXONE
-#	include <synchapi.h>
-#elif BX_PLATFORM_XBOX360 || BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT
+#elif BX_PLATFORM_XBOX360 || BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT || BX_PLATFORM_XBOXONE
 #	include <windows.h>
 #	include <limits.h>
+#	if BX_PLATFORM_XBOXONE
+#		include <synchapi.h>
+#	endif // BX_PLATFORM_XBOXONE
 #endif // BX_PLATFORM_
+
+#include "mutex.h"
 
 namespace bx
 {

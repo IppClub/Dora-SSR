@@ -55,9 +55,12 @@ class Scheduler : public Object
 	static Scheduler* create();
 };
 
+class Node;
+
 class Director
 {
 	tolua_property__common Scheduler* scheduler;
+	tolua_property__common Node* uI @ ui;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Array* entries;
 	tolua_readonly tolua_property__common double deltaTime;

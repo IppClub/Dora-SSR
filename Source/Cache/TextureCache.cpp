@@ -161,19 +161,18 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 		case "pvr"_hash:
 		case "ktx"_hash:
 		{
-			Ref<TextureCache> self(this);
 			string file(filename);
-			SharedContent.loadFileAsyncBX(filename, [self, file, fullPath, handler](const bgfx::Memory* mem)
+			SharedContent.loadFileAsyncBX(filename, [this, file, fullPath, handler](const bgfx::Memory* mem)
 			{
 				if (mem->data)
 				{
 					bgfx::TextureInfo info;
 					bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
 					Texture2D* texture = Texture2D::create(handle, info);
-					auto it = self->_textures.find(fullPath);
-					if (it == self->_textures.end())
+					auto it = _textures.find(fullPath);
+					if (it == _textures.end())
 					{
-						self->_textures[fullPath] = texture;
+						_textures[fullPath] = texture;
 						handler(texture);
 					}
 					else
@@ -192,14 +191,13 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 		}
 		case "png"_hash:
 		{
-			Ref<TextureCache> self(this);
 			string fullPath = SharedContent.getFullPath(filename);
 			string file(filename);
-			SharedContent.loadFileAsyncUnsafe(filename, [self, file, fullPath, handler](Uint8* data, Sint64 size)
+			SharedContent.loadFileAsyncUnsafe(filename, [this, file, fullPath, handler](Uint8* data, Sint64 size)
 			{
 				if (data)
 				{
-					Async::Process.run([data, size, self]()
+					Async::Process.run([data, size]()
 					{
 						auto localData = MakeOwnArray(data, s_cast<size_t>(size));
 						uint8_t* out = nullptr;
@@ -207,7 +205,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 						bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8;
 						TextureCache::loadPNG(localData, out, width, height, bpp, format);
 						return Values::create(out, width, height, bpp, format);
-					}, [self, file, fullPath, handler](Values* result)
+					}, [this, file, fullPath, handler](Values* result)
 					{
 						uint8_t* out;
 						uint32_t width, height, bpp;
@@ -229,10 +227,10 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 								0, false, false, 1, format);
 
 							Texture2D* texture = Texture2D::create(handle, info);
-							auto it = self->_textures.find(fullPath);
-							if (it == self->_textures.end())
+							auto it = _textures.find(fullPath);
+							if (it == _textures.end())
 							{
-								self->_textures[fullPath] = texture;
+								_textures[fullPath] = texture;
 								handler(texture);
 							}
 							else

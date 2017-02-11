@@ -22,7 +22,7 @@ private:
 	bgfx::ShaderHandle _handle;
 };
 
-class ShaderCache : public Object
+class ShaderCache
 {
 public:
 	void set(String name, Shader* shader);

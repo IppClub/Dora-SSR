@@ -15,10 +15,8 @@ NS_DOROTHY_BEGIN
 
 unordered_map<string, Own<EventType>> Event::_eventMap;
 
-Event::Event()
-{}
-
-Event::Event(String name):
+Event::Event(String name, bool internal):
+_internal(internal),
 _name(name)
 { }
 
@@ -75,7 +73,7 @@ Listener* Event::addListener(String name, const EventHandler& handler)
 }
 
 LuaEventArgs::LuaEventArgs(String name, int paramCount):
-Event(name),
+Event(name, false),
 _paramCount(paramCount)
 { }
 

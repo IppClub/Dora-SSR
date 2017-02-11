@@ -1639,9 +1639,9 @@ namespace bgfx
 	///   - `BGFX_TEXTURE_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic
 	///     sampling.
 	///
-	/// @param[in] _mem Texture data. If `_mem` is non-NULL, created texture will be immutable.
-	///   When `_numLayers` is more than 1, expected memory layout is texture and all mips together
-	///   for each array element.
+	/// @param[in] _mem Texture data. If `_mem` is non-NULL, created texture will be immutable. If
+	///   `_mem` is NULL content of the texture is uninitialized. When `_numLayers` is more than
+	///   1, expected memory layout is texture and all mips together for each array element.
 	///
 	/// @attention C99 equivalent is `bgfx_create_texture_2d`.
 	///
@@ -1695,7 +1695,8 @@ namespace bgfx
 	///   - `BGFX_TEXTURE_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic
 	///     sampling.
 	///
-	/// @param[in] _mem Texture data. If `_mem` is non-NULL, created texture will be immutable.
+	/// @param[in] _mem Texture data. If `_mem` is non-NULL, created texture will be immutable. If
+	///   `_mem` is NULL content of the texture is uninitialized.
 	///
 	/// @attention C99 equivalent is `bgfx_create_texture_3d`.
 	///
@@ -1723,9 +1724,9 @@ namespace bgfx
 	///   - `BGFX_TEXTURE_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic
 	///     sampling.
 	///
-	/// @param[in] _mem Texture data. If `_mem` is non-NULL, created texture will be immutable.
-	///   When `_numLayers` is more than 1, expected memory layout is cubemap texture and all mips
-	///   together for each array element.
+	/// @param[in] _mem Texture data. If `_mem` is non-NULL, created texture will be immutable. If
+	///   `_mem` is NULL content of the texture is uninitialized. When `_numLayers` is more than
+	///   1, expected memory layout is texture and all mips together for each array element.
 	///
 	/// @attention C99 equivalent is `bgfx_create_texture_cube`.
 	///
@@ -1907,7 +1908,7 @@ namespace bgfx
 		, uint32_t _textureFlags = BGFX_TEXTURE_U_CLAMP|BGFX_TEXTURE_V_CLAMP
 		);
 
-	/// Create frame buffer.
+	/// Create MRT frame buffer from texture handles (simple).
 	///
 	/// @param[in] _num Number of texture attachments.
 	/// @param[in] _handles Texture attachments.
@@ -1924,7 +1925,8 @@ namespace bgfx
 		, bool _destroyTextures = false
 		);
 
-	/// Create frame buffer.
+	/// Create MRT frame buffer from texture handles with specific layer and
+	/// mip level.
 	///
 	/// @param[in] _num Number of texture attachments.
 	/// @param[in] _attachment Attachment texture info. See: `Attachment`.

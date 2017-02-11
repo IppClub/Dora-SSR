@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class View : public Object
+class View
 {
 public:
 	PROPERTY_READONLY(Size, Size);
@@ -33,7 +33,7 @@ private:
 	float _farPlaneDistance;
 	float _fieldOfView;
 	float _projection[16];
-	DORA_TYPE_OVERRIDE(View);
+	DORA_TYPE(View);
 };
 
 #define SharedView \

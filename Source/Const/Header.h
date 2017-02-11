@@ -18,6 +18,8 @@ using std::function;
 using std::unordered_map;
 #include <stack>
 using std::stack;
+#include <queue>
+using std::queue;
 #include <unordered_set>
 using std::unordered_set;
 #include <list>
@@ -37,6 +39,7 @@ using Acf::Delegate;
 #include "SDL.h"
 #include "bgfx/platform.h"
 #include "bgfx/bgfx.h"
+#include "bgfx/embedded_shader.h"
 #include "bx/thread.h"
 #include "bx/sem.h"
 #include "bx/fpumath.h"
@@ -75,3 +78,4 @@ using namespace Dorothy::Switch::Literals;
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
 #include "Input/TouchDispather.h"
+#include "GUI/ImGUIDora.h"

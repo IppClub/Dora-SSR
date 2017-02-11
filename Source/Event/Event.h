@@ -35,10 +35,10 @@ typedef Delegate<void (Event* event)> EventHandler;
 class Event
 {
 public:
-	Event();
 	virtual ~Event();
-	Event(String name);
+	Event(String name, bool internal);
 	inline String getName() const { return _name; }
+	inline bool isInternal() const { return _internal; }
 	virtual int pushArgsToLua() { return 0; }
 public:
 	static Listener* addListener(String name, const EventHandler& handler);
@@ -46,6 +46,9 @@ public:
 
 	template<class... Args>
 	static void send(String name, const Args&... args);
+
+	template<class... Args>
+	static void sendInternal(String name, const Args&... args);
 
 	/** @brief Helper function to retrieve the passed event arguments.
 	*/
@@ -55,6 +58,7 @@ protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
 	static void send(Event* event);
+	bool _internal;
 	Slice _name;
 private:
 	static unordered_map<string, Own<EventType>> _eventMap;
@@ -66,15 +70,10 @@ template<class... Fields>
 class EventArgs : public Event
 {
 public:
-	EventArgs(String name, const Fields&... args):
-	Event(name),
+	EventArgs(String name, bool internal, const Fields&... args):
+	Event(name, internal),
 	arguments(std::make_tuple(args...))
 	{ }
-	static void send(String name, const Fields&... args)
-	{
-		EventArgs<Fields...> event(name, args...);
-		Event::send(&event);
-	}
 	virtual int pushArgsToLua() override
 	{
 		return Tuple::foreach(arguments, LuaArgsPusher());
@@ -97,7 +96,15 @@ private:
 template<class... Args>
 void Event::send(String name, const Args&... args)
 {
-	EventArgs<Args...>::send(name, args...);
+	EventArgs<Args...> event(name, false, args...);
+	Event::send(&event);
+}
+
+template<class... Args>
+void Event::sendInternal(String name, const Args&... args)
+{
+	EventArgs<Args...> event(name, true, args...);
+	Event::send(&event);
 }
 
 template<class... Args>

@@ -13,9 +13,9 @@ NS_DOROTHY_BEGIN
 
 /* Effect */
 
-Effect::Effect(Shader* fragShader, Shader* vertShader):
-_fragShader(fragShader),
-_vertShader(vertShader)
+Effect::Effect(Shader* vertShader, Shader* fragShader):
+_vertShader(vertShader),
+_fragShader(fragShader)
 { }
 
 Effect::~Effect()
@@ -45,7 +45,7 @@ bool Effect::init()
 /* SpriteEffect */
 
 SpriteEffect::SpriteEffect():
-Effect(SharedShaderCache.load("fs_sprite.bin"_slice), SharedShaderCache.load("vs_sprite.bin"_slice)),
+Effect(SharedShaderCache.load("vs_sprite.bin"_slice), SharedShaderCache.load("fs_sprite.bin"_slice)),
 _sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Int1))
 {
 	Effect::init();

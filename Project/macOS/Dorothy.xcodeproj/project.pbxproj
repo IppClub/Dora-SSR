@@ -34,6 +34,7 @@
 		3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */; };
 		3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* Application.cpp */; };
 		3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* Object.cpp */; };
+		3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2487D1E4DB41500B6BF26 /* utf8.cpp */; };
 		3CB487061E1635A500D51749 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487041E1635A500D51749 /* Node.cpp */; };
 		3CB487131E16398700D51749 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870A1E16398700D51749 /* tolua_event.cpp */; };
 		3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870C1E16398700D51749 /* tolua_fix.cpp */; };
@@ -55,6 +56,10 @@
 		3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD028FE1E07D3C50016E1EC /* LuaEngine.cpp */; };
 		3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
+		3CD3282B1E4B0A4E0036906C /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328231E4B0A4E0036906C /* imgui_demo.cpp */; };
+		3CD3282C1E4B0A4E0036906C /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328241E4B0A4E0036906C /* imgui_draw.cpp */; };
+		3CD3282D1E4B0A4E0036906C /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328261E4B0A4E0036906C /* imgui.cpp */; };
+		3CD328311E4B0B530036906C /* ImGUIDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */; };
 		3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */; };
 		3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634E1E27275D00BA9D30 /* lodepng.cpp */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
@@ -125,6 +130,8 @@
 		3C9ADE561E00F16100D42018 /* WRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRef.h; path = ../../../Source/Common/WRef.h; sourceTree = "<group>"; };
 		3C9ADE581E00F24200D42018 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../Source/Basic/Object.cpp; sourceTree = "<group>"; };
 		3C9ADE591E00F24200D42018 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = ../../../Source/Basic/Object.h; sourceTree = "<group>"; };
+		3CB2487D1E4DB41500B6BF26 /* utf8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utf8.cpp; path = ../../../Source/3rdParty/Other/utf8.cpp; sourceTree = "<group>"; };
+		3CB2487E1E4DB41500B6BF26 /* utf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utf8.h; path = ../../../Source/3rdParty/Other/utf8.h; sourceTree = "<group>"; };
 		3CB487041E1635A500D51749 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = ../../../Source/Node/Node.cpp; sourceTree = "<group>"; };
 		3CB487051E1635A500D51749 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Node.h; path = ../../../Source/Node/Node.h; sourceTree = "<group>"; };
 		3CB4870A1E16398700D51749 /* tolua_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_event.cpp; path = ../../../Source/Lua/ToLua/tolua_event.cpp; sourceTree = "<group>"; };
@@ -165,6 +172,19 @@
 		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbgfx.a; sourceTree = "<group>"; };
 		3CD029151E07DD720016E1EC /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/macOS/libSDL2.a; sourceTree = "<group>"; };
 		3CD029171E07DEB10016E1EC /* libluajit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libluajit.a; path = ../../Source/3rdParty/Lua/Lib/macOS/libluajit.a; sourceTree = "<group>"; };
+		3CD328221E4B0A4E0036906C /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../../../Source/3rdParty/imgui/imconfig.h; sourceTree = "<group>"; };
+		3CD328231E4B0A4E0036906C /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = ../../../Source/3rdParty/imgui/imgui_demo.cpp; sourceTree = "<group>"; };
+		3CD328241E4B0A4E0036906C /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../../../Source/3rdParty/imgui/imgui_draw.cpp; sourceTree = "<group>"; };
+		3CD328251E4B0A4E0036906C /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../../Source/3rdParty/imgui/imgui_internal.h; sourceTree = "<group>"; };
+		3CD328261E4B0A4E0036906C /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
+		3CD328271E4B0A4E0036906C /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../Source/3rdParty/imgui/imgui.h; sourceTree = "<group>"; };
+		3CD328281E4B0A4E0036906C /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/imgui/stb_rect_pack.h; sourceTree = "<group>"; };
+		3CD328291E4B0A4E0036906C /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../../../Source/3rdParty/imgui/stb_textedit.h; sourceTree = "<group>"; };
+		3CD3282A1E4B0A4E0036906C /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/imgui/stb_truetype.h; sourceTree = "<group>"; };
+		3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGUIDora.cpp; path = ../../../Source/GUI/ImGUIDora.cpp; sourceTree = "<group>"; };
+		3CD328301E4B0B530036906C /* ImGUIDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGUIDora.h; path = ../../../Source/GUI/ImGUIDora.h; sourceTree = "<group>"; };
+		3CD328321E4BFFCF0036906C /* fs_ocornut_imgui.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fs_ocornut_imgui.bin.h; path = ../../../Source/GUI/fs_ocornut_imgui.bin.h; sourceTree = "<group>"; };
+		3CD328331E4BFFCF0036906C /* vs_ocornut_imgui.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vs_ocornut_imgui.bin.h; path = ../../../Source/GUI/vs_ocornut_imgui.bin.h; sourceTree = "<group>"; };
 		3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureCache.cpp; path = ../../../Source/Cache/TextureCache.cpp; sourceTree = "<group>"; };
 		3CD4634B1E27239B00BA9D30 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
 		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
@@ -261,6 +281,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CD328211E4B0A370036906C /* imgui */,
 				3CC54E621E03AA6800462FD7 /* FileSystem */,
 				3CD4634D1E27273300BA9D30 /* lodepng */,
 				3CC54E5E1E039E1300462FD7 /* Other */,
@@ -387,6 +408,8 @@
 			isa = PBXGroup;
 			children = (
 				3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */,
+				3CB2487D1E4DB41500B6BF26 /* utf8.cpp */,
+				3CB2487E1E4DB41500B6BF26 /* utf8.h */,
 			);
 			name = Other;
 			sourceTree = "<group>";
@@ -462,6 +485,7 @@
 				3C9ADE4D1E00F13500D42018 /* Const */,
 				3C69296F1E2C60890097AC49 /* Effect */,
 				3C57A39A1E0A059A002141DF /* Event */,
+				3CD3282E1E4B0B3C0036906C /* GUI */,
 				3C05BCA11E35948200CC6986 /* Input */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
 				3CCBBA381E14B50B00C0416B /* Node */,
@@ -481,6 +505,33 @@
 				3CB487051E1635A500D51749 /* Node.h */,
 			);
 			name = Node;
+			sourceTree = "<group>";
+		};
+		3CD328211E4B0A370036906C /* imgui */ = {
+			isa = PBXGroup;
+			children = (
+				3CD328221E4B0A4E0036906C /* imconfig.h */,
+				3CD328231E4B0A4E0036906C /* imgui_demo.cpp */,
+				3CD328241E4B0A4E0036906C /* imgui_draw.cpp */,
+				3CD328251E4B0A4E0036906C /* imgui_internal.h */,
+				3CD328261E4B0A4E0036906C /* imgui.cpp */,
+				3CD328271E4B0A4E0036906C /* imgui.h */,
+				3CD328281E4B0A4E0036906C /* stb_rect_pack.h */,
+				3CD328291E4B0A4E0036906C /* stb_textedit.h */,
+				3CD3282A1E4B0A4E0036906C /* stb_truetype.h */,
+			);
+			name = imgui;
+			sourceTree = "<group>";
+		};
+		3CD3282E1E4B0B3C0036906C /* GUI */ = {
+			isa = PBXGroup;
+			children = (
+				3CD328321E4BFFCF0036906C /* fs_ocornut_imgui.bin.h */,
+				3CD328331E4BFFCF0036906C /* vs_ocornut_imgui.bin.h */,
+				3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */,
+				3CD328301E4B0B530036906C /* ImGUIDora.h */,
+			);
+			name = GUI;
 			sourceTree = "<group>";
 		};
 		3CD4634D1E27273300BA9D30 /* lodepng */ = {
@@ -583,9 +634,11 @@
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */,
+				3CD3282C1E4B0A4E0036906C /* imgui_draw.cpp in Sources */,
 				3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */,
 				3C38E6AC1E1513E5003E9189 /* Application.mm in Sources */,
 				3C3A6FB01E27B50A0074C076 /* View.cpp in Sources */,
+				3CD3282D1E4B0A4E0036906C /* imgui.cpp in Sources */,
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
 				3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */,
@@ -609,6 +662,8 @@
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
 				3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */,
+				3CD328311E4B0B530036906C /* ImGUIDora.cpp in Sources */,
+				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,
 				3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */,
 				3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
@@ -618,6 +673,7 @@
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,
 				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,
 				3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */,
+				3CD3282B1E4B0A4E0036906C /* imgui_demo.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
@@ -741,7 +797,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
@@ -771,7 +827,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;

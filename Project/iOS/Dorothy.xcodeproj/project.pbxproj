@@ -53,6 +53,11 @@
 		3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC8201B1D96680C008C8B77 /* Assets.xcassets */; };
 		3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD481E1D589500F32295 /* Utils.cpp */; };
 		3CCEDD4E1E1D58D500F32295 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD4A1E1D58D500F32295 /* Array.cpp */; };
+		3CD3283E1E4C42A60036906C /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328361E4C42A60036906C /* imgui_demo.cpp */; };
+		3CD3283F1E4C42A60036906C /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328371E4C42A60036906C /* imgui_draw.cpp */; };
+		3CD328401E4C42A60036906C /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328391E4C42A60036906C /* imgui.cpp */; };
+		3CD328461E4C42FF0036906C /* ImGUIDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328431E4C42FF0036906C /* ImGUIDora.cpp */; };
+		3CD3284A1E4C431B0036906C /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328481E4C431B0036906C /* TouchDispather.cpp */; };
 		3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD6C29F1E30C14800B36FFC /* ShaderCache.cpp */; };
 		3CD6C2A51E30C1F500B36FFC /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD6C2A31E30C1F500B36FFC /* Effect.cpp */; };
 		3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD6C2A61E30C22300B36FFC /* Common.cpp */; };
@@ -161,6 +166,21 @@
 		3CCEDD481E1D589500F32295 /* Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utils.cpp; path = ../../../Source/Common/Utils.cpp; sourceTree = "<group>"; };
 		3CCEDD4A1E1D58D500F32295 /* Array.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Array.cpp; path = ../../../Source/Support/Array.cpp; sourceTree = "<group>"; };
 		3CCEDD4B1E1D58D500F32295 /* Array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Array.h; path = ../../../Source/Support/Array.h; sourceTree = "<group>"; };
+		3CD328351E4C42A60036906C /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../../../Source/3rdParty/imgui/imconfig.h; sourceTree = "<group>"; };
+		3CD328361E4C42A60036906C /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = ../../../Source/3rdParty/imgui/imgui_demo.cpp; sourceTree = "<group>"; };
+		3CD328371E4C42A60036906C /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../../../Source/3rdParty/imgui/imgui_draw.cpp; sourceTree = "<group>"; };
+		3CD328381E4C42A60036906C /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../../Source/3rdParty/imgui/imgui_internal.h; sourceTree = "<group>"; };
+		3CD328391E4C42A60036906C /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
+		3CD3283A1E4C42A60036906C /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../Source/3rdParty/imgui/imgui.h; sourceTree = "<group>"; };
+		3CD3283B1E4C42A60036906C /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/imgui/stb_rect_pack.h; sourceTree = "<group>"; };
+		3CD3283C1E4C42A60036906C /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../../../Source/3rdParty/imgui/stb_textedit.h; sourceTree = "<group>"; };
+		3CD3283D1E4C42A60036906C /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/imgui/stb_truetype.h; sourceTree = "<group>"; };
+		3CD328421E4C42FF0036906C /* fs_ocornut_imgui.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fs_ocornut_imgui.bin.h; path = ../../../Source/GUI/fs_ocornut_imgui.bin.h; sourceTree = "<group>"; };
+		3CD328431E4C42FF0036906C /* ImGUIDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGUIDora.cpp; path = ../../../Source/GUI/ImGUIDora.cpp; sourceTree = "<group>"; };
+		3CD328441E4C42FF0036906C /* ImGUIDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGUIDora.h; path = ../../../Source/GUI/ImGUIDora.h; sourceTree = "<group>"; };
+		3CD328451E4C42FF0036906C /* vs_ocornut_imgui.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vs_ocornut_imgui.bin.h; path = ../../../Source/GUI/vs_ocornut_imgui.bin.h; sourceTree = "<group>"; };
+		3CD328481E4C431B0036906C /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
+		3CD328491E4C431B0036906C /* TouchDispather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchDispather.h; path = ../../../Source/Input/TouchDispather.h; sourceTree = "<group>"; };
 		3CD6C29F1E30C14800B36FFC /* ShaderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShaderCache.cpp; path = ../../../Source/Cache/ShaderCache.cpp; sourceTree = "<group>"; };
 		3CD6C2A01E30C14800B36FFC /* ShaderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShaderCache.h; path = ../../../Source/Cache/ShaderCache.h; sourceTree = "<group>"; };
 		3CD6C2A31E30C1F500B36FFC /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = ../../../Source/Effect/Effect.cpp; sourceTree = "<group>"; };
@@ -331,6 +351,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CD328341E4C428E0036906C /* imgui */,
 				3C6D37261E27D9F6008C92E8 /* lodepng */,
 				3CB410351E05B17F00A8804D /* Zip */,
 				3CB4102A1E05B0E200A8804D /* FileSystem */,
@@ -414,20 +435,58 @@
 		3CC8200B1D96680C008C8B77 /* Dorothy */ = {
 			isa = PBXGroup;
 			children = (
-				3C6D37221E27D9BE008C92E8 /* Cache */,
-				3CD6C2A21E30C1E500B36FFC /* Effect */,
-				3C4BC6541E17F15C00292200 /* Support */,
 				3CB410221E05B08B00A8804D /* 3rdParty */,
+				3C6D37221E27D9BE008C92E8 /* Cache */,
 				3C1F87D71DF80334005F1B4D /* Basic */,
 				3CFF5F281E0136A5004E3CA6 /* Common */,
 				3CB410441E05B1F300A8804D /* Const */,
+				3CD6C2A21E30C1E500B36FFC /* Effect */,
 				3CF2D9601E0BC1D1006B9903 /* Event */,
-				3C1038511E15103600D37A60 /* Node */,
+				3CD328411E4C42E80036906C /* GUI */,
+				3CD328471E4C43040036906C /* Input */,
 				3CFF5F351E013708004E3CA6 /* Lua */,
+				3C1038511E15103600D37A60 /* Node */,
+				3C4BC6541E17F15C00292200 /* Support */,
 				3CC8201B1D96680C008C8B77 /* Assets.xcassets */,
 				3CC820201D96680C008C8B77 /* Info.plist */,
 			);
 			path = Dorothy;
+			sourceTree = "<group>";
+		};
+		3CD328341E4C428E0036906C /* imgui */ = {
+			isa = PBXGroup;
+			children = (
+				3CD328351E4C42A60036906C /* imconfig.h */,
+				3CD328361E4C42A60036906C /* imgui_demo.cpp */,
+				3CD328371E4C42A60036906C /* imgui_draw.cpp */,
+				3CD328381E4C42A60036906C /* imgui_internal.h */,
+				3CD328391E4C42A60036906C /* imgui.cpp */,
+				3CD3283A1E4C42A60036906C /* imgui.h */,
+				3CD3283B1E4C42A60036906C /* stb_rect_pack.h */,
+				3CD3283C1E4C42A60036906C /* stb_textedit.h */,
+				3CD3283D1E4C42A60036906C /* stb_truetype.h */,
+			);
+			name = imgui;
+			sourceTree = "<group>";
+		};
+		3CD328411E4C42E80036906C /* GUI */ = {
+			isa = PBXGroup;
+			children = (
+				3CD328421E4C42FF0036906C /* fs_ocornut_imgui.bin.h */,
+				3CD328431E4C42FF0036906C /* ImGUIDora.cpp */,
+				3CD328441E4C42FF0036906C /* ImGUIDora.h */,
+				3CD328451E4C42FF0036906C /* vs_ocornut_imgui.bin.h */,
+			);
+			name = GUI;
+			sourceTree = "<group>";
+		};
+		3CD328471E4C43040036906C /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				3CD328481E4C431B0036906C /* TouchDispather.cpp */,
+				3CD328491E4C431B0036906C /* TouchDispather.h */,
+			);
+			name = Input;
 			sourceTree = "<group>";
 		};
 		3CD6C2A21E30C1E500B36FFC /* Effect */ = {
@@ -568,6 +627,7 @@
 				3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */,
 				3C4BC6641E17F1B500292200 /* tolua_event.cpp in Sources */,
 				3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */,
+				3CD3284A1E4C431B0036906C /* TouchDispather.cpp in Sources */,
 				3C0AD7BE1E0CE95F0033AD59 /* Listener.cpp in Sources */,
 				3CB410291E05B0C500A8804D /* Slice.cpp in Sources */,
 				3C0AD7E61E0CE9D00033AD59 /* AutoreleasePool.cpp in Sources */,
@@ -581,6 +641,7 @@
 				3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */,
 				3CB410281E05B0C500A8804D /* LifeCycledSingleton.cpp in Sources */,
 				3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */,
+				3CD3283E1E4C42A60036906C /* imgui_demo.cpp in Sources */,
 				3C4BC65A1E17F18300292200 /* Node.cpp in Sources */,
 				3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */,
 				3C0AD7BC1E0CE95F0033AD59 /* EventQueue.cpp in Sources */,
@@ -588,6 +649,7 @@
 				3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */,
 				3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */,
 				3C0AD7E71E0CE9D00033AD59 /* Content.cpp in Sources */,
+				3CD328461E4C42FF0036906C /* ImGUIDora.cpp in Sources */,
 				3C4BC6671E17F1B500292200 /* tolua_map.cpp in Sources */,
 				3C0AD7E51E0CE9D00033AD59 /* Application.cpp in Sources */,
 				3CB410411E05B19A00A8804D /* unzip.cpp in Sources */,
@@ -598,10 +660,12 @@
 				3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */,
 				3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */,
 				3C0AD7E91E0CE9D00033AD59 /* Director.cpp in Sources */,
+				3CD3283F1E4C42A60036906C /* imgui_draw.cpp in Sources */,
 				3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */,
 				3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */,
 				3C4BC6651E17F1B500292200 /* tolua_fix.cpp in Sources */,
 				3CCEDD4E1E1D58D500F32295 /* Array.cpp in Sources */,
+				3CD328401E4C42A60036906C /* imgui.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

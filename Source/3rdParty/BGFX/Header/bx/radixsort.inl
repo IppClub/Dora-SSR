@@ -23,7 +23,7 @@ namespace bx
 		uint32_t pass = 0;
 		for (; pass < 3; ++pass)
 		{
-			memset(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
+			memSet(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
 
 			bool sorted = true;
 			{
@@ -70,7 +70,7 @@ done:
 		if (0 != (pass&1) )
 		{
 			// Odd number of passes needs to do copy to the destination.
-			memcpy(_keys, _tempKeys, _size*sizeof(uint32_t) );
+			memCopy(_keys, _tempKeys, _size*sizeof(uint32_t) );
 		}
 	}
 
@@ -87,7 +87,7 @@ done:
 		uint32_t pass = 0;
 		for (; pass < 3; ++pass)
 		{
-			memset(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
+			memSet(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
 
 			bool sorted = true;
 			{
@@ -139,7 +139,7 @@ done:
 		if (0 != (pass&1) )
 		{
 			// Odd number of passes needs to do copy to the destination.
-			memcpy(_keys, _tempKeys, _size*sizeof(uint32_t) );
+			memCopy(_keys, _tempKeys, _size*sizeof(uint32_t) );
 			for (uint32_t ii = 0; ii < _size; ++ii)
 			{
 				_values[ii] = _tempValues[ii];
@@ -157,7 +157,7 @@ done:
 		uint32_t pass = 0;
 		for (; pass < 6; ++pass)
 		{
-			memset(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
+			memSet(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
 
 			bool sorted = true;
 			{
@@ -204,7 +204,7 @@ done:
 		if (0 != (pass&1) )
 		{
 			// Odd number of passes needs to do copy to the destination.
-			memcpy(_keys, _tempKeys, _size*sizeof(uint64_t) );
+			memCopy(_keys, _tempKeys, _size*sizeof(uint64_t) );
 		}
 	}
 
@@ -221,7 +221,7 @@ done:
 		uint32_t pass = 0;
 		for (; pass < 6; ++pass)
 		{
-			memset(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
+			memSet(histogram, 0, sizeof(uint32_t)*BX_RADIXSORT_HISTOGRAM_SIZE);
 
 			bool sorted = true;
 			{
@@ -273,7 +273,7 @@ done:
 		if (0 != (pass&1) )
 		{
 			// Odd number of passes needs to do copy to the destination.
-			memcpy(_keys, _tempKeys, _size*sizeof(uint64_t) );
+			memCopy(_keys, _tempKeys, _size*sizeof(uint64_t) );
 			for (uint32_t ii = 0; ii < _size; ++ii)
 			{
 				_values[ii] = _tempValues[ii];

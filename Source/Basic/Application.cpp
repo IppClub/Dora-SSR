@@ -18,11 +18,13 @@ extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 NS_DOROTHY_BEGIN
 
 Application::Application():
+_inputing(false),
 _width(800),
 _height(600),
 _deltaTime(0),
 _cpuTime(0),
-_frequency(double(bx::getHPFrequency()))
+_frequency(double(bx::getHPFrequency())),
+_sdlWindow(nullptr)
 {
 	_lastTime = bx::getHPCounter() / _frequency;
 }
@@ -48,32 +50,37 @@ unsigned int Application::getSeed() const
 	return _seed;
 }
 
+SDL_Window* Application::getSDLWindow() const
+{
+	return _sdlWindow;
+}
+
 // This function runs in main thread, and do render work
 int Application::run()
 {
 	Application::setSeed((unsigned int)std::time(nullptr));
 
-	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0)
+	if (SDL_Init(SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER) != 0)
 	{
 		Log("SDL fail to initialize! %s", SDL_GetError());
 		return 1;
 	}
 
-	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
+	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS;
 #if BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN;
 #endif
 
-	SDL_Window* window = SDL_CreateWindow("Dorothy-SSR",
+	_sdlWindow = SDL_CreateWindow("Dorothy-SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_width, _height, windowFlags);
-	if (!window)
+	if (!_sdlWindow)
 	{
 		Log("SDL fail to create window!");
 		return 1;
 	}
 
-	Application::setSdlWindow(window);
+	Application::setupSdlWindow();
 
 	// call this function here to disable default render threads creation of bgfx
 	Application::renderFrame();
@@ -103,8 +110,8 @@ int Application::run()
 						bgfx::PlatformData pd{};
 						pd.nwh = Android_JNI_GetNativeWindow();
 						bgfx::setPlatformData(pd);
-						SDL_GL_GetDrawableSize(window, &_width, &_height);
 #endif // BX_PLATFORM_ANDROID
+						updateWindowSize();
 						break;
 				}
 				break;
@@ -129,6 +136,16 @@ int Application::run()
 					SDL_PushEvent(&ev);
 					break;
 				}
+				case "TextInputStart"_hash:
+				{
+					SDL_StartTextInput();
+					break;
+				}
+				case "TextInputStop"_hash:
+				{
+					SDL_StopTextInput();
+					break;
+				}
 				default:
 					break;
 			}
@@ -142,7 +159,7 @@ int Application::run()
 	while (bgfx::RenderFrame::NoContext != Application::renderFrame());
 	_logicThread.shutdown();
 
-	SDL_DestroyWindow(window);
+	SDL_DestroyWindow(_sdlWindow);
 	SDL_Quit();
 
 	return _logicThread.getExitCode();
@@ -159,6 +176,13 @@ void Application::updateDeltaTime()
 		_lastTime = currentTime;
 	}
 }
+
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+void Application::updateWindowSize()
+{
+	SDL_GL_GetDrawableSize(_sdlWindow, &_width, &_height);
+}
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 
 double Application::getEclapsedTime() const
 {
@@ -188,7 +212,25 @@ void Application::makeTimeNow()
 
 void Application::shutdown()
 {
-	_renderEvent.post("Quit");
+	_renderEvent.post("Quit"_slice);
+}
+
+void Application::textInputStart(Event* event)
+{
+	if (event->isInternal() && !_inputing)
+	{
+		_inputing = true;
+		_renderEvent.post("TextInputStart"_slice);
+	}
+}
+
+void Application::textInputStop(Event* event)
+{
+	if (event->isInternal() && _inputing)
+	{
+		_inputing = false;
+		_renderEvent.post("TextInputStop"_slice);
+	}
 }
 
 int Application::mainLogic(void* userData)
@@ -207,7 +249,18 @@ int Application::mainLogic(void* userData)
 		Log("Director fail to initialize!");
 		return 1;
 	}
+
+	app->_textInputStart = Listener::create(
+		"AppTextInputStart"_slice,
+		std::make_pair(app, &Application::textInputStart));
+
+	app->_textInputStop = Listener::create(
+		"AppTextInputStop"_slice,
+		std::make_pair(app, &Application::textInputStop));
+
 	SharedPoolManager.pop();
+
+	bgfx::frame();
 
 	// Update and invoke render apis
 	app->updateDeltaTime();
@@ -262,6 +315,7 @@ int Application::mainLogic(void* userData)
 	silly::Life::destroy(SharedShaderCache.getLife());
 	silly::Life::destroy(SharedTextureCache.getLife());
 	silly::Life::destroy(SharedSpriteBuffer.getLife());
+	silly::Life::destroy(SharedImGUI.getLife());
 	SharedPoolManager.pop();
 
 	bgfx::shutdown();
@@ -291,11 +345,11 @@ const Slice Application::getPlatform() const
 }
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
-void Application::setSdlWindow(SDL_Window* window)
+void Application::setupSdlWindow()
 {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
-	SDL_GetWindowWMInfo(window, &wmi);
+	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
 	bgfx::PlatformData pd{};
 #if BX_PLATFORM_OSX
 	pd.nwh = wmi.info.cocoa.window;
@@ -303,9 +357,9 @@ void Application::setSdlWindow(SDL_Window* window)
 	pd.nwh = wmi.info.win.window;
 #elif BX_PLATFORM_ANDROID
 	pd.nwh = wmi.info.android.window;
-	SDL_GL_GetDrawableSize(window, &_width, &_height);
 #endif
 	bgfx::setPlatformData(pd);
+	updateWindowSize();
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 

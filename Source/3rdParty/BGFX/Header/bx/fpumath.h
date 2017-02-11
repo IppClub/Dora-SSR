@@ -10,7 +10,6 @@
 
 #include "bx.h"
 #include <math.h>
-#include <string.h>
 
 namespace bx
 {
@@ -45,6 +44,36 @@ namespace bx
 
 	///
 	float toDeg(float _rad);
+
+	///
+	uint32_t floatToBits(float _a);
+
+	///
+	float bitsToFloat(uint32_t _a);
+
+	///
+	uint64_t doubleToBits(double _a);
+
+	///
+	double bitsToDouble(uint64_t _a);
+
+	///
+	bool isNan(float _f);
+
+	///
+	bool isNan(double _f);
+
+	///
+	bool isFinite(float _f);
+
+	///
+	bool isFinite(double _f);
+
+	///
+	bool isInfinite(float _f);
+
+	///
+	bool isInfinite(double _f);
 
 	///
 	float ffloor(float _f);

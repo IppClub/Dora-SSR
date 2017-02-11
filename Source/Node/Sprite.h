@@ -73,7 +73,7 @@ private:
 	DORA_TYPE_OVERRIDE(Sprite);
 };
 
-class SpriteBuffer : public Object
+class SpriteBuffer
 {
 public:
 	virtual ~SpriteBuffer();

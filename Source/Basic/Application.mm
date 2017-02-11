@@ -18,19 +18,25 @@ bgfx::RenderFrame::Enum Application::renderFrame()
 #if BX_PLATFORM_IOS
 #import <QuartzCore/CAEAGLLayer.h>
 
-void Application::setSdlWindow(SDL_Window* window)
+void Application::updateWindowSize()
 {
 	CGRect bounds = [UIScreen mainScreen].bounds;
 	CGFloat scale = [UIScreen mainScreen].scale;
 	_width = bounds.size.width * scale;
 	_height = bounds.size.height * scale;
+}
 
+void Application::setupSdlWindow()
+{
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
-	SDL_GetWindowWMInfo(window, &wmi);
+	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
 
 	CALayer* layer = wmi.info.uikit.window.rootViewController.view.layer;
 	CAEAGLLayer* displayLayer = [[CAEAGLLayer alloc] init];
+	
+	CGRect bounds = [UIScreen mainScreen].bounds;
+	CGFloat scale = [UIScreen mainScreen].scale;
 	displayLayer.contentsScale = scale;
 	displayLayer.frame = bounds;
 	[layer addSublayer:displayLayer];
@@ -43,6 +49,7 @@ void Application::setSdlWindow(SDL_Window* window)
 	pd.backBuffer = NULL;
 	pd.backBufferDS = NULL;
 	bgfx::setPlatformData(pd);
+	updateWindowSize();
 }
 #endif // BX_PLATFORM_IOS
 

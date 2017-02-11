@@ -55,6 +55,15 @@
     <Filter Include="Input">
       <UniqueIdentifier>{0d438360-861d-4264-b4b1-0f9051f65f34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\imgui">
+      <UniqueIdentifier>{1bb3a45b-b849-4232-bf4f-37cbdcd84363}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{daee0542-3318-43b6-97cf-7e4ec67f625e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Other">
+      <UniqueIdentifier>{35572a68-51e5-44af-bd7d-cf56c3a5c2cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -179,6 +188,21 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Input\TouchDispather.cpp">
       <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_demo.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\GUI\ImGUIDora.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp">
+      <Filter>3rdParty\Other</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -334,6 +358,33 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Input\TouchDispather.h">
       <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_rect_pack.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_textedit.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_truetype.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\GUI\ImGUIDora.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h">
+      <Filter>3rdParty\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h">
+      <Filter>3rdParty\Other</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

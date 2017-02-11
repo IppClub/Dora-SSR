@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Content : public Object
+class Content
 {
 public:
 	PROPERTY_READONLY_REF(string, AssetPath);
@@ -51,7 +51,7 @@ private:
 	string _writablePath;
 	vector<string> _searchPaths;
 	unordered_map<string, string> _fullPathCache;
-	DORA_TYPE_OVERRIDE(Content);
+	DORA_TYPE(Content);
 };
 
 #define SharedContent \

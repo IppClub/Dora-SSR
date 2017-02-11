@@ -95,14 +95,13 @@ Shader* ShaderCache::load(String filename)
 void ShaderCache::loadAsync(String filename, const function<void(Shader*)>& handler)
 {
 	string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
-	Ref<ShaderCache> self(this);
-	SharedContent.loadFileAsyncBX(shaderFile, [self, shaderFile, handler](const bgfx::Memory* mem)
+	SharedContent.loadFileAsyncBX(shaderFile, [this, shaderFile, handler](const bgfx::Memory* mem)
 	{
 		bgfx::ShaderHandle handle = bgfx::createShader(mem);
 		if (bgfx::isValid(handle))
 		{
 			Shader* shader = Shader::create(handle);
-			self->_shaders[shaderFile] = shader;
+			_shaders[shaderFile] = shader;
 			handler(shader);
 		}
 		else

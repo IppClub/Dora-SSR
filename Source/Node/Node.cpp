@@ -564,7 +564,8 @@ void Node::setTouchEnabled(bool var)
 {
 	if (!_touchHandler)
 	{
-		_touchHandler = New<TouchHandler>(this);
+		_touchHandler = New<NodeTouchHandler>(this);
+		_touchHandler->setSwallowTouches(_flags.isOn(Node::SwallowTouches));
 	}
 	_flags.setFlag(Node::TouchEnabled, var);
 }
@@ -577,6 +578,10 @@ bool Node::isTouchEnabled() const
 void Node::setSwallowTouches(bool var)
 {
 	_flags.setFlag(Node::SwallowTouches, var);
+	if (_touchHandler)
+	{
+		_touchHandler->setSwallowTouches(var);
+	}
 }
 
 bool Node::isSwallowTouches() const

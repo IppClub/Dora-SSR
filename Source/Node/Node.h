@@ -116,7 +116,7 @@ public:
 	{
 		if (_signal)
 		{
-			EventArgs<Args...> event(name, args...);
+			EventArgs<Args...> event(name, false, args...);
 			emit(&event);
 		}
 	}
@@ -189,7 +189,7 @@ protected:
 	Ref<Scheduler> _scheduler;
 	Own<Signal> _signal;
 	string _name;
-	Own<TouchHandler> _touchHandler;
+	Own<NodeTouchHandler> _touchHandler;
 	function<bool(double)> _scheduleFunc;
 	enum
 	{

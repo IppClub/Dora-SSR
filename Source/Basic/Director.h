@@ -16,17 +16,18 @@ class Scheduler;
 class Node;
 class Camera;
 
-class Director : public Object
+class Director
 {
 public:
 	PROPERTY(Scheduler*, Scheduler);
+	PROPERTY(Node*, UI);
 	PROPERTY(Camera*, Camera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(Array*, Entries);
 	PROPERTY_READONLY(Node*, CurrentEntry);
 	PROPERTY_READONLY(const float*, ViewProjection);
-	bool init() override;
+	bool init();
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
 
@@ -41,6 +42,7 @@ protected:
 	Director();
 private:
 	float _viewProj[16];
+	Ref<Node> _ui;
 	Ref<Array> _entryStack;
 	Ref<Node> _currentScene;
 	Ref<Scheduler> _scheduler;

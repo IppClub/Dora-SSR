@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "lua.hpp"
+#include "Lua/ToLua/tolua++.h"
 
 NS_DOROTHY_BEGIN
 
-class LuaEngine : public Object
+class LuaEngine
 {
 public:
 	virtual ~LuaEngine();
@@ -51,6 +51,9 @@ public:
 	bool to(double& value, int index);
 	bool to(Object*& value, int index);
 	bool to(Slice& value, int index);
+
+	template<typename T>
+	bool to(T&, int) { return false; }
 
 	bool executeAssert(bool cond, String condStr);
 	bool scriptHandlerEqual(int handlerA, int handlerB);

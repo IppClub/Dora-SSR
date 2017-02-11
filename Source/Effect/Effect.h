@@ -21,7 +21,7 @@ public:
 	virtual bool init() override;
 	CREATE_FUNC(Effect);
 protected:
-	Effect(Shader* fragShader, Shader* vertShader);
+	Effect(Shader* vertShader, Shader* fragShader);
 private:
 	Ref<Shader> _fragShader;
 	Ref<Shader> _vertShader;

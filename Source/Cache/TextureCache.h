@@ -27,7 +27,7 @@ private:
 	DORA_TYPE_OVERRIDE(Texture2D);
 };
 
-class TextureCache : public Object
+class TextureCache
 {
 public:
 	void set(String name, Texture2D* texture);
@@ -45,7 +45,7 @@ protected:
 		bgfx::TextureFormat::Enum& format);
 private:
 	unordered_map<string, Ref<Texture2D>> _textures;
-	DORA_TYPE_OVERRIDE(TextureCache);
+	DORA_TYPE(TextureCache);
 };
 
 #define SharedTextureCache \

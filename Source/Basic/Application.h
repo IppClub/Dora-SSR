@@ -12,7 +12,7 @@ struct SDL_Window;
 
 NS_DOROTHY_BEGIN
 
-class Application : public Object
+class Application
 {
 public:
 	PROPERTY_READONLY(int, Width);
@@ -22,17 +22,22 @@ public:
 	PROPERTY_READONLY(double, EclapsedTime);
 	PROPERTY_READONLY(double, CPUTime);
 	PROPERTY_READONLY(const Slice, Platform);
+	PROPERTY_READONLY(SDL_Window*, SDLWindow);
 	PROPERTY(unsigned int, Seed);
 	int run();
 	void shutdown();
+	void textInputStart(Event* event);
+	void textInputStop(Event* event);
 	static int mainLogic(void* userData);
 protected:
 	Application();
 	void updateDeltaTime();
+	void updateWindowSize();
 	void makeTimeNow();
-	void setSdlWindow(SDL_Window* window);
+	void setupSdlWindow();
 	bgfx::RenderFrame::Enum renderFrame();
 private:
+	bool _inputing;
 	unsigned int _seed;
 	int _width;
 	int _height;
@@ -43,6 +48,9 @@ private:
 	bx::Thread _logicThread;
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
+	SDL_Window* _sdlWindow;
+	Ref<Listener> _textInputStart;
+	Ref<Listener> _textInputStop;
 };
 
 #define SharedApplication \

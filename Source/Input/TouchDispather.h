@@ -10,6 +10,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class TouchHandler
+{
+public:
+	PROPERTY_BOOL(SwallowTouches);
+	TouchHandler();
+	virtual ~TouchHandler();
+	virtual bool handle(const SDL_Event& event) = 0;
+private:
+	bool _swallowTouches;
+};
+
 class Node;
 
 class Touch : public Object
@@ -40,15 +51,15 @@ private:
 		Enabled = 1,
 		Selected = 1<<1
 	};
-	friend class TouchHandler;
+	friend class NodeTouchHandler;
 	DORA_TYPE_OVERRIDE(Touch);
 };
 
-class TouchHandler
+class NodeTouchHandler : public TouchHandler
 {
 public:
-	TouchHandler(Node* target);
-	bool handle(const SDL_Event& event);
+	NodeTouchHandler(Node* target);
+	virtual bool handle(const SDL_Event& event) override;
 protected:
 	Touch* alloc(SDL_FingerID fingerId);
 	Touch* get(SDL_FingerID fingerId);
@@ -63,16 +74,18 @@ private:
 	unordered_map<SDL_FingerID, Ref<Touch>> _touchMap;
 };
 
-class TouchDispatcher : public Object
+class TouchDispatcher
 {
 public:
 	void add(const SDL_Event& event);
-	void add(Node* node);
+	void add(TouchHandler* handler);
 	void dispatch();
+	void clearHandlers();
+	void clearEvents();
 protected:
 	TouchDispatcher() { }
 private:
-	vector<Node*> _nodes;
+	vector<TouchHandler*> _handlers;
 	list<SDL_Event> _events;
 };
 

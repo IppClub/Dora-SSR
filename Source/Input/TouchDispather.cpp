@@ -57,11 +57,30 @@ const Vec2& Touch::getPreLocation() const
 
 /* TouchHandler */
 
-TouchHandler::TouchHandler(Node* target):
+TouchHandler::TouchHandler():
+_swallowTouches(true)
+{ }
+
+TouchHandler::~TouchHandler()
+{ }
+
+void TouchHandler::setSwallowTouches(bool var)
+{
+	_swallowTouches = var;
+}
+
+bool TouchHandler::isSwallowTouches() const
+{
+	return _swallowTouches;
+}
+
+/* NodeTouchHandler */
+
+NodeTouchHandler::NodeTouchHandler(Node* target):
 _target(target)
 { }
 
-bool TouchHandler::handle(const SDL_Event& event)
+bool NodeTouchHandler::handle(const SDL_Event& event)
 {
 	switch (event.type)
 	{
@@ -78,7 +97,7 @@ bool TouchHandler::handle(const SDL_Event& event)
 	return false;
 }
 
-Touch* TouchHandler::alloc(SDL_FingerID fingerId)
+Touch* NodeTouchHandler::alloc(SDL_FingerID fingerId)
 {
 	auto it  = _touchMap.find(fingerId);
 	if (it != _touchMap.end())
@@ -101,7 +120,7 @@ Touch* TouchHandler::alloc(SDL_FingerID fingerId)
 	}
 }
 
-Touch* TouchHandler::get(SDL_FingerID fingerId)
+Touch* NodeTouchHandler::get(SDL_FingerID fingerId)
 {
 	auto it  = _touchMap.find(fingerId);
 	if (it != _touchMap.end())
@@ -111,7 +130,7 @@ Touch* TouchHandler::get(SDL_FingerID fingerId)
 	return nullptr;
 }
 
-void TouchHandler::collect(SDL_FingerID fingerId)
+void NodeTouchHandler::collect(SDL_FingerID fingerId)
 {
 	auto it  = _touchMap.find(fingerId);
 	if (it != _touchMap.end())
@@ -142,7 +161,7 @@ int unProject(float winx, float winy, float winz, const float* invTransform, con
 	return 1;
 }
 
-Vec2 TouchHandler::getPos(const SDL_Event& event)
+Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 {
 	Vec3 pos{-1.0f, -1.0f, 0.0f};
 	switch (event.type)
@@ -198,7 +217,7 @@ Vec2 TouchHandler::getPos(const SDL_Event& event)
 	return Vec2(-1.0f, -1.0f);
 }
 
-bool TouchHandler::down(const SDL_Event& event)
+bool NodeTouchHandler::down(const SDL_Event& event)
 {
 	Sint64 id = 0;
 	switch (event.type)
@@ -230,7 +249,7 @@ bool TouchHandler::down(const SDL_Event& event)
 	}
 }
 
-bool TouchHandler::up(const SDL_Event& event)
+bool NodeTouchHandler::up(const SDL_Event& event)
 {
 	Sint64 id = 0;
 	switch (event.type)
@@ -263,7 +282,7 @@ bool TouchHandler::up(const SDL_Event& event)
 	return false;
 }
 
-bool TouchHandler::move(const SDL_Event& event)
+bool NodeTouchHandler::move(const SDL_Event& event)
 {
 	Touch* touch = nullptr;
 	switch (event.type)
@@ -311,22 +330,22 @@ void TouchDispatcher::add(const SDL_Event& event)
 	_events.push_back(event);
 }
 
-void TouchDispatcher::add(Node* node)
+void TouchDispatcher::add(TouchHandler* handler)
 {
-	_nodes.push_back(node);
+	_handlers.push_back(handler);
 }
 
 void TouchDispatcher::dispatch()
 {
-	if (!_events.empty() && !_nodes.empty())
+	if (!_events.empty() && !_handlers.empty())
 	{
-		for (auto it  = _nodes.rbegin(); it != _nodes.rend(); ++it)
+		for (auto it  = _handlers.rbegin(); it != _handlers.rend(); ++it)
 		{
-			Node* node = *it;
+			TouchHandler* handler = *it;
 			for (auto eit = _events.begin(); eit != _events.end();)
 			{
-				bool result = node->getTouchHandler()->handle(*eit);
-				if (result && node->isSwallowTouches())
+				bool result = handler->handle(*eit);
+				if (result && handler->isSwallowTouches())
 				{
 					eit = _events.erase(eit);
 				}
@@ -341,9 +360,17 @@ void TouchDispatcher::dispatch()
 			}
 		}
 	}
-	_events.clear();
-	_nodes.clear();
+	clearHandlers();
 }
 
+void TouchDispatcher::clearHandlers()
+{
+	_handlers.clear();
+}
+
+void TouchDispatcher::clearEvents()
+{
+	_events.clear();
+}
 
 NS_DOROTHY_END
