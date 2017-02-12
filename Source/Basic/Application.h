@@ -26,8 +26,8 @@ public:
 	PROPERTY(unsigned int, Seed);
 	int run();
 	void shutdown();
-	void textInputStart(Event* event);
-	void textInputStop(Event* event);
+	void invokeInRender(const function<void()>& func);
+	void invokeInLogic(const function<void()>& func);
 	static int mainLogic(void* userData);
 protected:
 	Application();
@@ -37,7 +37,6 @@ protected:
 	void setupSdlWindow();
 	bgfx::RenderFrame::Enum renderFrame();
 private:
-	bool _inputing;
 	unsigned int _seed;
 	int _width;
 	int _height;
@@ -49,8 +48,6 @@ private:
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
 	SDL_Window* _sdlWindow;
-	Ref<Listener> _textInputStart;
-	Ref<Listener> _textInputStop;
 };
 
 #define SharedApplication \

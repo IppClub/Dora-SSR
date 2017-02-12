@@ -785,7 +785,7 @@ struct ImGuiIO
     bool        KeyAlt;                     // Keyboard modifier pressed: Alt
     bool        KeySuper;                   // Keyboard modifier pressed: Cmd/Super/Windows
     bool        KeysDown[512];              // Keyboard keys that are pressed (in whatever storage order you naturally have access to keyboard data)
-    ImWchar     InputCharacters[16+1];      // List of characters input (translated by user from keypress+keyboard state). Fill using AddInputCharacter() helper.
+    ImWchar     InputCharacters[32];      // List of characters input (translated by user from keypress+keyboard state). Fill using AddInputCharacter() helper.
 
     // Functions
     IMGUI_API void AddInputCharacter(ImWchar c);                        // Add new character into InputCharacters[]

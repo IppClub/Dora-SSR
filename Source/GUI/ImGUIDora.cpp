@@ -14,8 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 ImGUIDora::ImGUIDora():
-_keydownDel(0),
-_editingDel(0),
+_cursor(0),
+_editingDel(false),
 _textLength(0),
 _textEditing{},
 _textInputing(false),
@@ -51,6 +51,15 @@ void ImGUIDora::setClipboardText(void*, const char* text)
 	SDL_SetClipboardText(text);
 }
 
+void ImGUIDora::setImePositionHint(int x, int y)
+{
+	SDL_Rect rc = { x, y, 0, 0 };
+	SharedApplication.invokeInRender([rc]()
+	{
+		SDL_SetTextInputRect(c_cast<SDL_Rect*>(&rc));
+	});
+}
+
 bool ImGUIDora::init()
 {
 	bgfx::setViewName(_viewId, "ImGui");
@@ -80,15 +89,8 @@ bool ImGUIDora::init()
 	io.RenderDrawListsFn = ImGUIDora::renderDrawLists;
 	io.SetClipboardTextFn = ImGUIDora::setClipboardText;
 	io.GetClipboardTextFn = ImGUIDora::getClipboardText;
+	io.ImeSetInputScreenPosFn = ImGUIDora::setImePositionHint;
 	io.ClipboardUserData = nullptr;
-
-#if BX_PLATFORM_WINDOWS
-	SDL_Window* window = SharedApplication.getSDLWindow();
-	SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window, &wmInfo);
-	io.ImeWindowHandle = wmInfo.info.win.window;
-#endif // BX_PLATFORM_WINDOWS
 
 	Shader* vertShader = SharedShaderCache.load("vs_ocornut_imgui.bin");
 	Shader* fragShader = SharedShaderCache.load("fs_ocornut_imgui.bin");
@@ -130,10 +132,13 @@ bool ImGUIDora::init()
 				{
 					int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
 					io.KeysDown[key] = (event.type == SDL_KEYDOWN);
-					io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-					io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-					io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-					io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+					if (_textLength == 0)
+					{
+						io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+						io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+						io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+						io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+					}
 					break;
 				}
 			}
@@ -156,13 +161,30 @@ void ImGUIDora::begin()
 	if (_textInputing != io.WantTextInput)
 	{
 		_textInputing = io.WantTextInput;
-		Event::sendInternal(_textInputing ? "AppTextInputStart"_slice : "AppTextInputStop"_slice);
+		if (_textInputing)
+		{
+			memset(_textEditing, 0, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+			_cursor = 0;
+			_textLength = 0;
+			_editingDel = false;
+		}
+		SharedApplication.invokeInRender([this]()
+		{
+			if (_textInputing)
+			{
+				SDL_StartTextInput();
+			}
+			else
+			{
+				SDL_StopTextInput();
+			}
+		});
 	}
 
 	int mx, my;
-	SDL_Window* window = SharedApplication.getSDLWindow();
 	Uint32 mouseMask = SDL_GetMouseState(&mx, &my);
 	int w, h;
+	SDL_Window* window = SharedApplication.getSDLWindow();
 	SDL_GetWindowSize(window, &w, &h);
 	mx = s_cast<int>(io.DisplaySize.x * (s_cast<float>(mx) / w));
 	my = s_cast<int>(io.DisplaySize.y * (s_cast<float>(my) / h));
@@ -287,6 +309,19 @@ void ImGUIDora::renderDrawLists(ImDrawData* _drawData)
 	}
 }
 
+void ImGUIDora::sendKey(int key, int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		SDL_Event e;
+		e.type = SDL_KEYDOWN;
+		e.key.keysym.sym = key;
+		_inputs.push_back(e);
+		e.type = SDL_KEYUP;
+		_inputs.push_back(e);
+	}
+}
+
 void ImGUIDora::handleEvent(Event* e)
 {
 	if (!e->isInternal()) return;
@@ -321,12 +356,12 @@ void ImGUIDora::handleEvent(Event* e)
 			int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
 			if (event.type == SDL_KEYDOWN && key == SDLK_BACKSPACE)
 			{
-				if (_editingDel == 0)
+				if (!_editingDel)
 				{
 					_inputs.push_back(event);
 				}
 			}
-			else
+			else if (_textLength == 0)
 			{
 				_inputs.push_back(event);
 			}
@@ -339,33 +374,34 @@ void ImGUIDora::handleEvent(Event* e)
 			{
 				if (_textLength > 0)
 				{
-					for (int i = 0; i < _textLength; i++)
+					if (_cursor < _textLength)
 					{
-						SDL_Event e;
-						e.type = SDL_KEYDOWN;
-						e.key.keysym.sym = SDLK_BACKSPACE;
-						_inputs.push_back(e);
-						e.type = SDL_KEYUP;
-						_inputs.push_back(e);
+						sendKey(SDLK_RIGHT, _textLength - _cursor);
 					}
+					sendKey(SDLK_BACKSPACE, _textLength);
 				}
 				_inputs.push_back(event);
 			}
 			memset(_textEditing, 0, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+			_cursor = 0;
 			_textLength = 0;
-			_keydownDel = 0;
-			_editingDel = 0;
+			_editingDel = false;
 			break;
 		}
 		case SDL_TEXTEDITING:
 		{
-			const char* newText = event.text.text;
+			Sint32 cursor = event.edit.start;
+			const char* newText = event.edit.text;
 			if (strcmp(newText, _textEditing) != 0)
 			{
 				size_t lastLength = strlen(_textEditing);
 				size_t newLength = strlen(newText);
 				const char* oldChar = _textEditing;
 				const char* newChar = newText;
+				if (_cursor < _textLength)
+				{
+					sendKey(SDLK_RIGHT, _textLength - _cursor);
+				}
 				while (*oldChar == *newChar && *oldChar != '\0' && *newChar != '\0')
 				{
 					oldChar++; newChar++;
@@ -376,27 +412,32 @@ void ImGUIDora::handleEvent(Event* e)
 				{
 					int charCount = utf8_countCharacters(oldChar);
 					_textLength -= charCount;
-					_editingDel = charCount - _keydownDel;
-					for (int i = 0; i < _editingDel; i++)
-					{
-						SDL_Event e;
-						e.type = SDL_KEYDOWN;
-						e.key.keysym.sym = SDLK_BACKSPACE;
-						_inputs.push_back(e);
-						e.type = SDL_KEYUP;
-						_inputs.push_back(e);
-					}
+					sendKey(SDLK_BACKSPACE, charCount);
 				}
+				_editingDel = (toDel > 0);
 				if (toAdd > 0)
 				{
 					SDL_Event e;
-					_textLength += toAdd;
-					if (toDel == 0) _editingDel = 0;
 					e.type = SDL_TEXTINPUT;
+					_textLength += utf8_countCharacters(newChar);
 					memcpy(e.text.text, newChar, toAdd + 1);
 					_inputs.push_back(e);
 				}
 				memcpy(_textEditing, newText, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+				_cursor = cursor;
+				sendKey(SDLK_LEFT, _textLength - _cursor);
+			}
+			else if (_cursor != cursor)
+			{
+				if (_cursor < cursor)
+				{
+					sendKey(SDLK_RIGHT, cursor - _cursor);
+				}
+				else
+				{
+					sendKey(SDLK_LEFT, _cursor - cursor);
+				}
+				_cursor = cursor;
 			}
 			break;
 		}

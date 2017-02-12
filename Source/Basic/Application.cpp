@@ -18,7 +18,6 @@ extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 NS_DOROTHY_BEGIN
 
 Application::Application():
-_inputing(false),
 _width(800),
 _height(600),
 _deltaTime(0),
@@ -66,7 +65,7 @@ int Application::run()
 		return 1;
 	}
 
-	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS;
+	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
 #if BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN;
 #endif
@@ -136,14 +135,11 @@ int Application::run()
 					SDL_PushEvent(&ev);
 					break;
 				}
-				case "TextInputStart"_hash:
+				case "Invoke"_hash:
 				{
-					SDL_StartTextInput();
-					break;
-				}
-				case "TextInputStop"_hash:
-				{
-					SDL_StopTextInput();
+					function<void()> func;
+					event->retrieve(func);
+					func();
 					break;
 				}
 				default:
@@ -215,22 +211,14 @@ void Application::shutdown()
 	_renderEvent.post("Quit"_slice);
 }
 
-void Application::textInputStart(Event* event)
+void Application::invokeInRender(const function<void()>& func)
 {
-	if (event->isInternal() && !_inputing)
-	{
-		_inputing = true;
-		_renderEvent.post("TextInputStart"_slice);
-	}
+	_renderEvent.post("Invoke"_slice, func);
 }
 
-void Application::textInputStop(Event* event)
+void Application::invokeInLogic(const function<void()>& func)
 {
-	if (event->isInternal() && _inputing)
-	{
-		_inputing = false;
-		_renderEvent.post("TextInputStop"_slice);
-	}
+	_logicEvent.post("Invoke"_slice, func);
 }
 
 int Application::mainLogic(void* userData)
@@ -249,14 +237,6 @@ int Application::mainLogic(void* userData)
 		Log("Director fail to initialize!");
 		return 1;
 	}
-
-	app->_textInputStart = Listener::create(
-		"AppTextInputStart"_slice,
-		std::make_pair(app, &Application::textInputStart));
-
-	app->_textInputStop = Listener::create(
-		"AppTextInputStop"_slice,
-		std::make_pair(app, &Application::textInputStop));
 
 	SharedPoolManager.pop();
 
@@ -288,6 +268,13 @@ int Application::mainLogic(void* userData)
 							break;
 					}
 					SharedDirector.handleSDLEvent(sdlEvent);
+					break;
+				}
+				case "Invoke"_hash:
+				{
+					function<void()> func;
+					event->retrieve(func);
+					func();
 					break;
 				}
 				default:

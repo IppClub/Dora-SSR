@@ -28,11 +28,14 @@ public:
 	virtual bool handle(const SDL_Event& event) override;
 protected:
 	ImGUIDora();
+	void sendKey(int key, int count = 1);
 	static const char* getClipboardText(void*);
 	static void setClipboardText(void*, const char* text);
+	static void setImePositionHint(int x, int y);
 	static void renderDrawLists(ImDrawData* _drawData);
 private:
 	bool _textInputing;
+	bool _editingDel;
 	bool _mousePressed[3];
 	float _mouseWheel;
 	Ref<Texture2D> _fontTexture;
@@ -42,9 +45,8 @@ private:
 	bgfx::VertexDecl _vertexDecl;
 	uint8_t _viewId;
 	list<SDL_Event> _inputs;
-	int _editingDel;
-	int _keydownDel;
 	int _textLength;
+	int _cursor;
 	char _textEditing[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 };
 
