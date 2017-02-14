@@ -10,6 +10,7 @@ include_directories(
 	src/main/cpp/3rdParty/Lua/Header
 	src/main/cpp/3rdParty/Zip/Header
 	src/main/cpp/3rdParty/lodepng
+	src/main/cpp/3rdParty/imgui
 )
 
 add_library( SDL2-lib SHARED IMPORTED )

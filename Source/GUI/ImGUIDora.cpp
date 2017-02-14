@@ -21,8 +21,7 @@ _textEditing{},
 _textInputing(false),
 _viewId(255),
 _mousePressed{ false, false, false },
-_mouseWheel(0.0f),
-_listener(Listener::create("AppSDLEvent"_slice, std::make_pair(this, &ImGUIDora::handleEvent)))
+_mouseWheel(0.0f)
 {
 	_vertexDecl
 		.begin()
@@ -30,6 +29,8 @@ _listener(Listener::create("AppSDLEvent"_slice, std::make_pair(this, &ImGUIDora:
 			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
+
+	SharedApplication.eventHandler += std::make_pair(this, &ImGUIDora::handleEvent);
 }
 
 ImGUIDora::~ImGUIDora()
@@ -53,7 +54,18 @@ void ImGUIDora::setClipboardText(void*, const char* text)
 
 void ImGUIDora::setImePositionHint(int x, int y)
 {
-	SDL_Rect rc = { x, y, 0, 0 };
+	int w;
+	SDL_GetWindowSize(SharedApplication.getSDLWindow(), &w, nullptr);
+	float scale = s_cast<float>(w) / SharedApplication.getWidth();
+	int offset =
+#if BX_PLATFORM_IOS
+		45;
+#elif BX_PLATFORM_OSX
+		10;
+#else
+		0;
+#endif
+	SDL_Rect rc = { s_cast<int>(x * scale), s_cast<int>(y * scale), 0, offset };
 	SharedApplication.invokeInRender([rc]()
 	{
 		SDL_SetTextInputRect(c_cast<SDL_Rect*>(&rc));
@@ -170,14 +182,8 @@ void ImGUIDora::begin()
 		}
 		SharedApplication.invokeInRender([this]()
 		{
-			if (_textInputing)
-			{
-				SDL_StartTextInput();
-			}
-			else
-			{
-				SDL_StopTextInput();
-			}
+			if (_textInputing) SDL_StartTextInput();
+			else SDL_StopTextInput();
 		});
 	}
 
@@ -322,13 +328,8 @@ void ImGUIDora::sendKey(int key, int count)
 	}
 }
 
-void ImGUIDora::handleEvent(Event* e)
+void ImGUIDora::handleEvent(const SDL_Event& event)
 {
-	if (!e->isInternal()) return;
-
-	SDL_Event event;
-	e->retrieve(event);
-
 	switch (event.type)
 	{
 		case SDL_MOUSEWHEEL:

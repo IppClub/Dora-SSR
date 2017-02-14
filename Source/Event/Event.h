@@ -36,9 +36,8 @@ class Event
 {
 public:
 	virtual ~Event();
-	Event(String name, bool internal);
+	Event(String name);
 	inline String getName() const { return _name; }
-	inline bool isInternal() const { return _internal; }
 	virtual int pushArgsToLua() { return 0; }
 public:
 	static Listener* addListener(String name, const EventHandler& handler);
@@ -58,7 +57,6 @@ protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
 	static void send(Event* event);
-	bool _internal;
 	Slice _name;
 private:
 	static unordered_map<string, Own<EventType>> _eventMap;
@@ -70,8 +68,8 @@ template<class... Fields>
 class EventArgs : public Event
 {
 public:
-	EventArgs(String name, bool internal, const Fields&... args):
-	Event(name, internal),
+	EventArgs(String name, const Fields&... args):
+	Event(name),
 	arguments(std::make_tuple(args...))
 	{ }
 	virtual int pushArgsToLua() override
@@ -96,14 +94,7 @@ private:
 template<class... Args>
 void Event::send(String name, const Args&... args)
 {
-	EventArgs<Args...> event(name, false, args...);
-	Event::send(&event);
-}
-
-template<class... Args>
-void Event::sendInternal(String name, const Args&... args)
-{
-	EventArgs<Args...> event(name, true, args...);
+	EventArgs<Args...> event(name, args...);
 	Event::send(&event);
 }
 

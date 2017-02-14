@@ -116,7 +116,7 @@ public:
 	{
 		if (_signal)
 		{
-			EventArgs<Args...> event(name, false, args...);
+			EventArgs<Args...> event(name, args...);
 			emit(&event);
 		}
 	}

@@ -24,7 +24,7 @@ public:
 	bool init();
 	void begin();
 	void end();
-	void handleEvent(Event* e);
+	void handleEvent(const SDL_Event& event);
 	virtual bool handle(const SDL_Event& event) override;
 protected:
 	ImGUIDora();
@@ -40,7 +40,6 @@ private:
 	float _mouseWheel;
 	Ref<Texture2D> _fontTexture;
 	Ref<Effect> _effect;
-	Ref<Listener> _listener;
 	bgfx::UniformHandle _textureSampler;
 	bgfx::VertexDecl _vertexDecl;
 	uint8_t _viewId;

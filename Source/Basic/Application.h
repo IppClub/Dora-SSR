@@ -9,8 +9,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 struct SDL_Window;
+union SDL_Event;
 
 NS_DOROTHY_BEGIN
+
+typedef Delegate<void(const SDL_Event&)> SDLEventHandler;
 
 class Application
 {
@@ -24,6 +27,7 @@ public:
 	PROPERTY_READONLY(const Slice, Platform);
 	PROPERTY_READONLY(SDL_Window*, SDLWindow);
 	PROPERTY(unsigned int, Seed);
+	SDLEventHandler eventHandler;
 	int run();
 	void shutdown();
 	void invokeInRender(const function<void()>& func);

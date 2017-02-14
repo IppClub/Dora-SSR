@@ -310,7 +310,6 @@ void Director::clearEntry()
 
 void Director::handleSDLEvent(const SDL_Event& event)
 {
-	Event::sendInternal("AppSDLEvent"_slice, event);
 	switch (event.type)
 	{
 		// User-requested quit

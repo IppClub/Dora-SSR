@@ -268,6 +268,7 @@ int Application::mainLogic(void* userData)
 							break;
 					}
 					SharedDirector.handleSDLEvent(sdlEvent);
+					app->eventHandler(sdlEvent);
 					break;
 				}
 				case "Invoke"_hash:
