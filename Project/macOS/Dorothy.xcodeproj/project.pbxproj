@@ -32,6 +32,9 @@
 		3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708301E08CB4300B38C2A /* LuaBinding.cpp */; };
 		3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708311E08CB4300B38C2A /* LuaCode.cpp */; };
 		3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */; };
+		3C9A7D701E53F9EF00205094 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C9A7D6F1E53F9EF00205094 /* Font */; };
+		3C9A7D731E5428A200205094 /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D711E5428A200205094 /* Label.cpp */; };
+		3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D781E55957500205094 /* atlas.cpp */; };
 		3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* Application.cpp */; };
 		3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* Object.cpp */; };
 		3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2487D1E4DB41500B6BF26 /* utf8.cpp */; };
@@ -62,6 +65,8 @@
 		3CD328311E4B0B530036906C /* ImGUIDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */; };
 		3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */; };
 		3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634E1E27275D00BA9D30 /* lodepng.cpp */; };
+		3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CDED0391E52F55100B5E578 /* font_manager.cpp */; };
+		3CDED0411E52F55100B5E578 /* text_metrics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CDED03D1E52F55100B5E578 /* text_metrics.cpp */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
 		3CE331431D96D00000F9C3F6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331421D96D00000F9C3F6 /* CoreVideo.framework */; };
 		3CE331451D96D01200F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331441D96D01200F9C3F6 /* CoreAudio.framework */; };
@@ -120,6 +125,12 @@
 		3C7708311E08CB4300B38C2A /* LuaCode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaCode.cpp; path = ../../../Source/Lua/LuaCode.cpp; sourceTree = "<group>"; };
 		3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventQueue.cpp; path = ../../../Source/Event/EventQueue.cpp; sourceTree = "<group>"; };
 		3C78C93F1E0CB1A2004D0A3C /* EventQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventQueue.h; path = ../../../Source/Event/EventQueue.h; sourceTree = "<group>"; };
+		3C9A7D6F1E53F9EF00205094 /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Font; path = ../../Assets/Font; sourceTree = "<group>"; };
+		3C9A7D711E5428A200205094 /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Label.cpp; path = ../../../Source/Node/Label.cpp; sourceTree = "<group>"; };
+		3C9A7D721E5428A200205094 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Label.h; path = ../../../Source/Node/Label.h; sourceTree = "<group>"; };
+		3C9A7D781E55957500205094 /* atlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = atlas.cpp; path = ../../../Source/3rdParty/Other/atlas.cpp; sourceTree = "<group>"; };
+		3C9A7D791E55957500205094 /* atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = atlas.h; path = ../../../Source/3rdParty/Other/atlas.h; sourceTree = "<group>"; };
+		3C9A7D7C1E56D88700205094 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/imgui/stb_truetype.h; sourceTree = "<group>"; };
 		3C9ADE4A1E00EFD000D42018 /* Application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Application.cpp; path = ../../../Source/Basic/Application.cpp; sourceTree = "<group>"; };
 		3C9ADE4B1E00EFD000D42018 /* Application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Application.h; path = ../../../Source/Basic/Application.h; sourceTree = "<group>"; };
 		3C9ADE4E1E00F14900D42018 /* Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Header.h; path = ../../../Source/Const/Header.h; sourceTree = "<group>"; };
@@ -180,7 +191,6 @@
 		3CD328271E4B0A4E0036906C /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../Source/3rdParty/imgui/imgui.h; sourceTree = "<group>"; };
 		3CD328281E4B0A4E0036906C /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/imgui/stb_rect_pack.h; sourceTree = "<group>"; };
 		3CD328291E4B0A4E0036906C /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../../../Source/3rdParty/imgui/stb_textedit.h; sourceTree = "<group>"; };
-		3CD3282A1E4B0A4E0036906C /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/imgui/stb_truetype.h; sourceTree = "<group>"; };
 		3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGUIDora.cpp; path = ../../../Source/GUI/ImGUIDora.cpp; sourceTree = "<group>"; };
 		3CD328301E4B0B530036906C /* ImGUIDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGUIDora.h; path = ../../../Source/GUI/ImGUIDora.h; sourceTree = "<group>"; };
 		3CD328321E4BFFCF0036906C /* fs_ocornut_imgui.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fs_ocornut_imgui.bin.h; path = ../../../Source/GUI/fs_ocornut_imgui.bin.h; sourceTree = "<group>"; };
@@ -190,6 +200,11 @@
 		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
 		3CD4634F1E27275D00BA9D30 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
 		3CDCB0651E02204300AD73FC /* Define.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Define.h; path = ../../../Source/Const/Define.h; sourceTree = "<group>"; };
+		3CDED0371E52DFF700B5E578 /* freetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = freetype.h; path = ../../../Source/3rdParty/freetype/freetype.h; sourceTree = "<group>"; };
+		3CDED0391E52F55100B5E578 /* font_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = font_manager.cpp; path = ../../../Source/3rdParty/font/font_manager.cpp; sourceTree = "<group>"; };
+		3CDED03A1E52F55100B5E578 /* font_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = font_manager.h; path = ../../../Source/3rdParty/font/font_manager.h; sourceTree = "<group>"; };
+		3CDED03D1E52F55100B5E578 /* text_metrics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = text_metrics.cpp; path = ../../../Source/3rdParty/font/text_metrics.cpp; sourceTree = "<group>"; };
+		3CDED03E1E52F55100B5E578 /* text_metrics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = text_metrics.h; path = ../../../Source/3rdParty/font/text_metrics.h; sourceTree = "<group>"; };
 		3CE331401D96CFF700F9C3F6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		3CE331421D96D00000F9C3F6 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		3CE331441D96D01200F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -281,6 +296,8 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CDED0381E52F53F00B5E578 /* font */,
+				3CDED0361E52DFCC00B5E578 /* freetype */,
 				3CD328211E4B0A370036906C /* imgui */,
 				3CC54E621E03AA6800462FD7 /* FileSystem */,
 				3CD4634D1E27273300BA9D30 /* lodepng */,
@@ -407,6 +424,8 @@
 		3CC54E5E1E039E1300462FD7 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				3C9A7D781E55957500205094 /* atlas.cpp */,
+				3C9A7D791E55957500205094 /* atlas.h */,
 				3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */,
 				3CB2487D1E4DB41500B6BF26 /* utf8.cpp */,
 				3CB2487E1E4DB41500B6BF26 /* utf8.h */,
@@ -426,6 +445,7 @@
 		3CC54E8B1E03BC9700462FD7 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3C9A7D6F1E53F9EF00205094 /* Font */,
 				3C0EBE3B1E2F69400066450A /* Image */,
 				3C0EBE371E2F04060066450A /* Shader */,
 				3CC54E9E1E03C71100462FD7 /* Script */,
@@ -499,6 +519,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C9A7D711E5428A200205094 /* Label.cpp */,
+				3C9A7D721E5428A200205094 /* Label.h */,
 				3CC098681E262F85006F4B76 /* Sprite.cpp */,
 				3CC098691E262F85006F4B76 /* Sprite.h */,
 				3CB487041E1635A500D51749 /* Node.cpp */,
@@ -518,7 +540,7 @@
 				3CD328271E4B0A4E0036906C /* imgui.h */,
 				3CD328281E4B0A4E0036906C /* stb_rect_pack.h */,
 				3CD328291E4B0A4E0036906C /* stb_textedit.h */,
-				3CD3282A1E4B0A4E0036906C /* stb_truetype.h */,
+				3C9A7D7C1E56D88700205094 /* stb_truetype.h */,
 			);
 			name = imgui;
 			sourceTree = "<group>";
@@ -541,6 +563,25 @@
 				3CD4634F1E27275D00BA9D30 /* lodepng.h */,
 			);
 			name = lodepng;
+			sourceTree = "<group>";
+		};
+		3CDED0361E52DFCC00B5E578 /* freetype */ = {
+			isa = PBXGroup;
+			children = (
+				3CDED0371E52DFF700B5E578 /* freetype.h */,
+			);
+			name = freetype;
+			sourceTree = "<group>";
+		};
+		3CDED0381E52F53F00B5E578 /* font */ = {
+			isa = PBXGroup;
+			children = (
+				3CDED0391E52F55100B5E578 /* font_manager.cpp */,
+				3CDED03A1E52F55100B5E578 /* font_manager.h */,
+				3CDED03D1E52F55100B5E578 /* text_metrics.cpp */,
+				3CDED03E1E52F55100B5E578 /* text_metrics.h */,
+			);
+			name = font;
 			sourceTree = "<group>";
 		};
 		3CFF5F221E012874004E3CA6 /* Lua */ = {
@@ -617,6 +658,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C9A7D701E53F9EF00205094 /* Font in Resources */,
 				3C0EBE3C1E2F69410066450A /* Image in Resources */,
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CC54E9F1E03C71100462FD7 /* Script in Resources */,
@@ -635,8 +677,10 @@
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */,
 				3CD3282C1E4B0A4E0036906C /* imgui_draw.cpp in Sources */,
+				3C9A7D731E5428A200205094 /* Label.cpp in Sources */,
 				3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */,
 				3C38E6AC1E1513E5003E9189 /* Application.mm in Sources */,
+				3CDED0411E52F55100B5E578 /* text_metrics.cpp in Sources */,
 				3C3A6FB01E27B50A0074C076 /* View.cpp in Sources */,
 				3CD3282D1E4B0A4E0036906C /* imgui.cpp in Sources */,
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
@@ -658,6 +702,7 @@
 				3CB487131E16398700D51749 /* tolua_event.cpp in Sources */,
 				3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */,
 				3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */,
+				3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */,
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
@@ -675,6 +720,7 @@
 				3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */,
 				3CD3282B1E4B0A4E0036906C /* imgui_demo.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
+				3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
 				3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */,
@@ -797,7 +843,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/font";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
@@ -827,7 +873,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/font";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;

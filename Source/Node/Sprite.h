@@ -37,7 +37,7 @@ struct SpriteVertex
 class Sprite : public Node
 {
 public:
-	PROPERTY(Effect*, Effect);
+	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY(Texture2D*, Texture);
 	PROPERTY_REF(Rect, TextureRect);
 	PROPERTY_REF(BlendFunc, BlendFunc);
@@ -47,6 +47,7 @@ public:
 	virtual ~Sprite();
 	virtual bool init() override;
 	virtual void render() override;
+	virtual const float* getWorld() override;
 	CREATE_FUNC(Sprite);
 protected:
 	Sprite();
@@ -60,36 +61,40 @@ protected:
 	virtual void updateRealOpacity() override;
 private:
 	Rect _textureRect;
-	Ref<Effect> _effect;
+	Ref<SpriteEffect> _effect;
 	Ref<Texture2D> _texture;
+	Vec4 _positions[4];
 	SpriteVertex _vertices[4];
 	BlendFunc _blendFunc;
 	Uint64 _renderState;
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
-		DepthWrite = Node::UserFlag<<1
+		VertexPosDirty = Node::UserFlag<<1,
+		DepthWrite = Node::UserFlag<<2
 	};
 	DORA_TYPE_OVERRIDE(Sprite);
 };
 
-class SpriteBuffer
+class SpriteRenderer
 {
 public:
-	virtual ~SpriteBuffer();
+	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
+	virtual ~SpriteRenderer();
 	void render(Sprite* sprite = nullptr);
 protected:
-	SpriteBuffer();
+	SpriteRenderer();
 	void doRender();
 private:
+	Ref<SpriteEffect> _defaultEffect;
 	Texture2D* _lastTexture;
-	Effect* _lastEffect;
+	SpriteEffect* _lastEffect;
 	Uint64 _lastState;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
 };
 
-#define SharedSpriteBuffer \
-	silly::Singleton<SpriteBuffer, SingletonIndex::SpriteBuffer>::shared()
+#define SharedSpriteRenderer \
+	silly::Singleton<SpriteRenderer, SingletonIndex::SpriteRenderer>::shared()
 
 NS_DOROTHY_END

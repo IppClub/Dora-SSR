@@ -50,7 +50,7 @@ inline void Print(const char* str)
 	#define Log(format, ...) \
 		Print("[Dorothy Log] " \
 			format \
-			"\n", ##__VA_ARGS__)
+			"\n",  ##__VA_ARGS__)
 #endif
 
 #if DORA_DISABLE_ASSERT_IN_LUA
@@ -64,22 +64,30 @@ inline void Print(const char* str)
 #endif
 
 #if DORA_DISABLE_ASSERT
-	#define AssertIf(cond, msg) DORA_DUMMY
-	#define AssertUnless(cond, msg) DORA_DUMMY
+	#define AssertIf(cond, ...) DORA_DUMMY
+	#define AssertUnless(cond, ...) DORA_DUMMY
 #else
-	#define AssertIf(cond, msg) \
-		if (cond) \
+	#define AssertIf(cond, ...) \
 		{ \
-			Print("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] %s\n", \
-				__FILE__, __FUNCTION__, __LINE__, msg); \
-			DORA_ASSERT(!(cond)); \
+			if (cond) \
+			{ \
+				Print("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+					__FILE__, __FUNCTION__, __LINE__); \
+				Print(__VA_ARGS__); \
+				Print("\n"); \
+				DORA_ASSERT(!(cond)); \
+			} \
 		}
-	#define AssertUnless(cond, msg) \
-		if (!(cond)) \
+	#define AssertUnless(cond, ...) \
 		{ \
-			Print("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] %s\n", \
-				__FILE__, __FUNCTION__, __LINE__, msg); \
-			DORA_ASSERT(cond); \
+			if (!(cond)) \
+			{ \
+				Print("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+					__FILE__, __FUNCTION__, __LINE__); \
+				Print(__VA_ARGS__); \
+				Print("\n"); \
+				DORA_ASSERT(cond); \
+			} \
 		}
 #endif
 

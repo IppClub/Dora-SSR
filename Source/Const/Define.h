@@ -21,10 +21,10 @@ NS_DOROTHY_BEGIN
 namespace SingletonIndex
 {
 	enum {
+		FontCache,
 		ImGUIDora,
 		TouchDispatcher,
-		SpriteBuffer,
-		SpriteEffect,
+		SpriteRenderer,
 		ShaderCache,
 		TextureCache,
 		ContentManager,

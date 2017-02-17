@@ -28,6 +28,10 @@
 #	define EARLY_DEPTH_STENCIL
 #endif // BGFX_SHADER_LANGUAGE_HLSL > 3 && BGFX_SHADER_TYPE_FRAGMENT
 
+#if BGFX_SHADER_LANGUAGE_ESSL
+#include "essl_extension.sh"
+#endif // BGFX_SHADER_LANGUAGE_ESSL
+
 #if BGFX_SHADER_LANGUAGE_HLSL || BGFX_SHADER_LANGUAGE_PSSL || BGFX_SHADER_LANGUAGE_SPIRV
 #	define CONST(_x) static const _x
 #	define dFdx(_x) ddx(_x)
@@ -278,9 +282,9 @@ vec4 bgfxTexelFetch(BgfxSampler3D _sampler, ivec3 _coord, int _lod)
 #		define sampler2DMS BgfxSampler2DMS
 
 #		define SAMPLER2DSHADOW(_name, _reg) \
-			uniform SamplerComparisonState _name ## Sampler : REGISTER(s, _reg); \
+			uniform SamplerComparisonState _name ## SamplerComparison : REGISTER(s, _reg); \
 			uniform Texture2D _name ## Texture : REGISTER(t, _reg); \
-			static BgfxSampler2DShadow _name = { _name ## Sampler, _name ## Texture }
+			static BgfxSampler2DShadow _name = { _name ## SamplerComparison, _name ## Texture }
 #		define sampler2DShadow BgfxSampler2DShadow
 #		define shadow2D(_sampler, _coord) bgfxShadow2D(_sampler, _coord)
 #		define shadow2DProj(_sampler, _coord) bgfxShadow2DProj(_sampler, _coord)

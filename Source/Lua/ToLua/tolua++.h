@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "Const/Header.h"
 #include "lua.hpp"
 
 NS_DOROTHY_BEGIN
@@ -56,6 +55,8 @@ struct tolua_Error
 typedef struct tolua_Error tolua_Error;
 
 #define TOLUA_NOPEER LUA_REGISTRYINDEX /* for lua 5.1 */
+
+class Object;
 
 const char* tolua_typename(lua_State* L, int lo);
 void tolua_error(lua_State* L, const char* msg, tolua_Error* err);

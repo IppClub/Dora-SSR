@@ -76,6 +76,12 @@ inline Own<T> New(Args&&... args)
 }
 
 template<class T>
+inline OwnArray<T> NewArray(size_t size)
+{
+	return OwnArray<T>(new T[size], size);
+}
+
+template<class T>
 inline OwnArray<T> MakeOwnArray(T* item, size_t size)
 {
 	return OwnArray<T>(item, size);

@@ -105,6 +105,15 @@ bool Director::init()
 		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
 		0x303030ff, 1.0f, 0);
 	SharedLueEngine.executeScriptFile("Script/main.lua");
+
+	const wchar_t* ch = L"瑾";
+	bgfx::FontHandle fontHandle = SharedFontCache.load("NotoSansHans-Regular", 36);
+	Sprite* sp = SharedFontCache.createCharacter(fontHandle, ch[0]);
+	//sp->setScaleX(0.5f);
+	//sp->setScaleY(0.5f);
+	sp->setColor3(0x00ffff);
+	pushEntry(sp);
+
 	if (!SharedImGUI.init())
 	{
 		return false;
@@ -202,7 +211,7 @@ void Director::mainLoop()
 		bgfx::setViewTransform(0, nullptr, _viewProj);
 		_ui->visit();
 	}
-	SharedSpriteBuffer.render();
+	SharedSpriteRenderer.render();
 }
 
 void Director::setEntry(Node* entry)
@@ -345,8 +354,15 @@ void Director::handleSDLEvent(const SDL_Event& event)
 				{
 					case SDL_WINDOWEVENT_RESIZED:
 					case SDL_WINDOWEVENT_SIZE_CHANGED:
+					{
 						SharedView.reset();
+						Node* entry = getCurrentEntry();
+						if (entry)
+						{
+							entry->markDirty();
+						}
 						break;
+					}
 				}
 			}
 			break;

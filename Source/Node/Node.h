@@ -96,7 +96,9 @@ public:
 	AffineTransform getWorldTransform();
 
 	void getLocalWorld(float* localWorld);
-	const float* getWorld();
+	virtual const float* getWorld();
+
+	void markDirty();
 
 	void emit(Event* event);
 
@@ -159,7 +161,6 @@ public:
 protected:
 	Node();
 	virtual ~Node();
-	void markDirty();
 	virtual void updateRealColor3();
 	virtual void updateRealOpacity();
 	void sortAllChildren();

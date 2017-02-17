@@ -16,7 +16,6 @@ class Effect : public Object
 {
 public:
 	PROPERTY_READONLY(bgfx::ProgramHandle, Program);
-	PROPERTY_READONLY_VIRTUAL(bgfx::UniformHandle, Sampler);
 	virtual ~Effect();
 	virtual bool init() override;
 	CREATE_FUNC(Effect);
@@ -33,15 +32,13 @@ class SpriteEffect : public Effect
 {
 public:
 	virtual ~SpriteEffect();
-	virtual bgfx::UniformHandle getSampler() const override;
+	bgfx::UniformHandle getSampler() const;
+	CREATE_FUNC(SpriteEffect);
 protected:
-	SpriteEffect();
+	SpriteEffect(Shader* vertShader, Shader* fragShader);
 private:
 	bgfx::UniformHandle _sampler;
 	DORA_TYPE_OVERRIDE(SpriteEffect);
 };
-
-#define SharedSpriteEffect \
-	silly::Singleton<SpriteEffect, SingletonIndex::SpriteEffect>::shared()
 
 NS_DOROTHY_END

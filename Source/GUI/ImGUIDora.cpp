@@ -110,19 +110,29 @@ bool ImGUIDora::init()
 	_textureSampler = bgfx::createUniform("s_tex", bgfx::UniformType::Int1);
 
 	uint8_t* data;
+
+	Sint64 size;
+	data = SharedContent.loadFileUnsafe("Font/fangzhen14.TTF", size);
+	ImFontConfig fontConfig;
+	fontConfig.PixelSnapH = true;
+	fontConfig.OversampleH = 1;
+	fontConfig.OversampleV = 1;
+	fontConfig.GlyphRanges = io.Fonts->GetGlyphRangesChinese();
+	io.Fonts->AddFontFromMemoryTTF(data, s_cast<int>(size), 14, &fontConfig);
+
 	int32_t width;
 	int32_t height;
-	io.Fonts->GetTexDataAsRGBA32(&data, &width, &height);
+	io.Fonts->GetTexDataAsAlpha8(&data, &width, &height);
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
-		false, 1, bgfx::TextureFormat::BGRA8, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP,
-		bgfx::copy(data, width*height * 4));
+		false, 1, bgfx::TextureFormat::A8, BGFX_TEXTURE_NONE,
+		bgfx::copy(data, width*height * 1));
 
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
-		0, false, false, 1, bgfx::TextureFormat::BGRA8);
+		0, false, false, 1, bgfx::TextureFormat::A8);
 
 	_fontTexture = Texture2D::create(textureHandle, info);
 

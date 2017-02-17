@@ -128,4 +128,24 @@ struct Vec3
 	}
 };
 
+struct Vec4
+{
+	float x;
+	float y;
+	float z;
+	float w;
+	inline operator float*()
+	{
+		return r_cast<float*>(this);
+	}
+	inline operator const float*() const
+	{
+		return r_cast<const float*>(this);
+	}
+	inline operator const Vec2() const
+	{
+		return Vec2(x, y);
+	}
+};
+
 NS_DOROTHY_END

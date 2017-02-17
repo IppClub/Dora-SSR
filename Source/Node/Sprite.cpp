@@ -14,17 +14,23 @@ NS_DOROTHY_BEGIN
 bgfx::VertexDecl SpriteVertex::ms_decl;
 SpriteVertex::Init SpriteVertex::init;
 
-SpriteBuffer::SpriteBuffer():
+SpriteRenderer::SpriteRenderer():
 _spriteIndices{0, 1, 2, 1, 3, 2},
 _lastEffect(nullptr),
 _lastTexture(nullptr),
-_lastState(0)
+_lastState(0),
+_defaultEffect(SpriteEffect::create(SharedShaderCache.load("vs_sprite.bin"_slice), SharedShaderCache.load("fs_sprite.bin"_slice)))
 { }
 
-SpriteBuffer::~SpriteBuffer()
+SpriteEffect* SpriteRenderer::getDefaultEffect() const
+{
+	return _defaultEffect;
+}
+
+SpriteRenderer::~SpriteRenderer()
 { }
 
-void SpriteBuffer::doRender()
+void SpriteRenderer::doRender()
 {
 	if (!_vertices.empty())
 	{
@@ -63,7 +69,7 @@ void SpriteBuffer::doRender()
 	}
 }
 
-void SpriteBuffer::render(Sprite* sprite)
+void SpriteRenderer::render(Sprite* sprite)
 {
 	if (!sprite)
 	{
@@ -71,7 +77,7 @@ void SpriteBuffer::render(Sprite* sprite)
 		return;
 	}
 
-	Effect* effect = sprite->getEffect();
+	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
 	Uint64 state = sprite->getRenderState();
 	if (effect != _lastEffect || texture != _lastTexture || state != _lastState)
@@ -84,19 +90,15 @@ void SpriteBuffer::render(Sprite* sprite)
 	_lastState = state;
 
 	const SpriteVertex* verts = sprite->getVertices();
-	float transform[16];
-	bx::mtxMul(transform, sprite->getWorld(), SharedDirector.getViewProjection());
 	for (int i = 0; i < 4; i++)
 	{
-		SpriteVertex vertex = verts[i];
-		bx::vec4MulMtx(r_cast<float*>(&vertex), r_cast<float*>(c_cast<SpriteVertex*>(verts) + i), transform);
-		_vertices.push_back(vertex);
+		_vertices.push_back(verts[i]);
 	}
 }
 
 Sprite::Sprite():
-_effect(&SharedSpriteEffect),
-_vertices{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
+_effect(SharedSpriteRenderer.getDefaultEffect()),
+_positions{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
 _blendFunc(BlendFunc::Normal),
 _renderState(BGFX_STATE_NONE)
 { }
@@ -136,12 +138,12 @@ bool Sprite::init()
 	return true;
 }
 
-void Sprite::setEffect(Effect* var)
+void Sprite::setEffect(SpriteEffect* var)
 {
 	_effect = var;
 }
 
-Effect* Sprite::getEffect() const
+SpriteEffect* Sprite::getEffect() const
 {
 	return _effect;
 }
@@ -226,14 +228,15 @@ void Sprite::updateVertPosition()
 		float width = _textureRect.getWidth();
 		float height = _textureRect.getHeight();
 		float left = 0, right = width, top = height, bottom = 0;
-		_vertices[0].x = left;
-		_vertices[0].y = top;
-		_vertices[1].x = right;
-		_vertices[1].y = top;
-		_vertices[2].x = left;
-		_vertices[2].y = bottom;
-		_vertices[3].x = right;
-		_vertices[3].y = bottom;
+		_positions[0].x = left;
+		_positions[0].y = top;
+		_positions[1].x = right;
+		_positions[1].y = top;
+		_positions[2].x = left;
+		_positions[2].y = bottom;
+		_positions[3].x = right;
+		_positions[3].y = bottom;
+		_flags.setOn(Sprite::VertexPosDirty);
 	}
 }
 
@@ -261,6 +264,15 @@ void Sprite::updateRealOpacity()
 	_flags.setOn(Sprite::VertexColorDirty);
 }
 
+const float* Sprite::getWorld()
+{
+	if (_flags.isOn(Node::WorldDirty))
+	{
+		_flags.setOn(Sprite::VertexPosDirty);
+	}
+	return Node::getWorld();
+}
+
 void Sprite::render()
 {
 	if (!_texture || !_effect) return;
@@ -271,6 +283,17 @@ void Sprite::render()
 		updateVertColor();
 	}
 
+	if (_flags.isOn(Sprite::VertexPosDirty))
+	{
+		_flags.setOff(Sprite::VertexPosDirty);
+		float transform[16];
+		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		for (int i = 0; i < 4; i++)
+		{
+			bx::vec4MulMtx(r_cast<float*>(_vertices + i), r_cast<float*>(_positions + i), transform);
+		}
+	}
+
 	_renderState = (
 		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
 		BGFX_STATE_MSAA | _blendFunc.toValue());
@@ -279,7 +302,7 @@ void Sprite::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedSpriteBuffer.render(this);
+	SharedSpriteRenderer.render(this);
 }
 
 NS_DOROTHY_END

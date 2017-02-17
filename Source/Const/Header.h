@@ -79,3 +79,4 @@ using namespace Dorothy::Switch::Literals;
 #include "Node/Sprite.h"
 #include "Input/TouchDispather.h"
 #include "GUI/ImGUIDora.h"
+#include "Node/Label.h"

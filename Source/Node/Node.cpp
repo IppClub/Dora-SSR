@@ -689,7 +689,7 @@ void Node::visit()
 
 void Node::render()
 {
-	SharedSpriteBuffer.render();
+	SharedSpriteRenderer.render();
 }
 
 const AffineTransform& Node::getLocalTransform()

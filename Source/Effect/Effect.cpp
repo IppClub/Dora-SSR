@@ -31,11 +31,6 @@ bgfx::ProgramHandle Effect::getProgram() const
 	return _program;
 }
 
-bgfx::UniformHandle Effect::getSampler() const
-{
-	return bgfx::UniformHandle{bgfx::invalidHandle};
-}
-
 bool Effect::init()
 {
 	_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
@@ -44,12 +39,10 @@ bool Effect::init()
 
 /* SpriteEffect */
 
-SpriteEffect::SpriteEffect():
-Effect(SharedShaderCache.load("vs_sprite.bin"_slice), SharedShaderCache.load("fs_sprite.bin"_slice)),
+SpriteEffect::SpriteEffect(Shader* vertShader, Shader* fragShader):
+Effect(vertShader, fragShader),
 _sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Int1))
-{
-	Effect::init();
-}
+{ }
 
 SpriteEffect::~SpriteEffect()
 {
