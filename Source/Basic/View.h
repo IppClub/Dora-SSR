@@ -34,9 +34,10 @@ private:
 	float _fieldOfView;
 	float _projection[16];
 	DORA_TYPE(View);
+	SINGLETON(View, "Director");
 };
 
 #define SharedView \
-	silly::Singleton<View, SingletonIndex::View>::shared()
+	Dorothy::Singleton<Dorothy::View>::shared()
 
 NS_DOROTHY_END

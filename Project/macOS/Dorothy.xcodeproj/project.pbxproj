@@ -15,7 +15,6 @@
 		3C0EBE381E2F04060066450A /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = 3C0EBE371E2F04060066450A /* Shader */; };
 		3C0EBE3C1E2F69410066450A /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3C0EBE3B1E2F69400066450A /* Image */; };
 		3C291D331E025A980098C860 /* AutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D311E025A980098C860 /* AutoreleasePool.cpp */; };
-		3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */; };
 		3C291D4E1E0279990098C860 /* Content.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D4C1E0279990098C860 /* Content.cpp */; };
 		3C291D581E02932B0098C860 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D571E02932B0098C860 /* Content.mm */; };
 		3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C35982B1E12060D00E62C16 /* Scheduler.cpp */; };
@@ -80,6 +79,7 @@
 		3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */; };
 		3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE3555D1E1B3F7200268A19 /* LuaHandler.cpp */; };
 		3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A7E1E28A6FE00645F2D /* Camera.cpp */; };
+		3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF09EF51E581AAD009E8C6F /* Singleton.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -96,7 +96,6 @@
 		3C0EBE3B1E2F69400066450A /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Image; path = ../../Assets/Image; sourceTree = "<group>"; };
 		3C291D311E025A980098C860 /* AutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AutoreleasePool.cpp; path = ../../../Source/Basic/AutoreleasePool.cpp; sourceTree = "<group>"; };
 		3C291D321E025A980098C860 /* AutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AutoreleasePool.h; path = ../../../Source/Basic/AutoreleasePool.h; sourceTree = "<group>"; };
-		3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LifeCycledSingleton.cpp; path = ../../../Source/3rdParty/silly/LifeCycledSingleton.cpp; sourceTree = "<group>"; };
 		3C291D4C1E0279990098C860 /* Content.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Content.cpp; path = ../../../Source/Basic/Content.cpp; sourceTree = "<group>"; };
 		3C291D4D1E0279990098C860 /* Content.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Content.h; path = ../../../Source/Basic/Content.h; sourceTree = "<group>"; };
 		3C291D571E02932B0098C860 /* Content.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Content.mm; path = ../../../Source/Basic/Content.mm; sourceTree = "<group>"; };
@@ -157,7 +156,6 @@
 		3CB4871D1E16419800D51749 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
 		3CC098681E262F85006F4B76 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
 		3CC098691E262F85006F4B76 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
-		3CC54E5D1E039E0800462FD7 /* LifeCycledSingleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LifeCycledSingleton.h; path = ../../../Source/3rdParty/silly/LifeCycledSingleton.h; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
 		3CC54E631E03AA7A00462FD7 /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
 		3CC54E641E03AA7A00462FD7 /* tinydir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinydir.h; path = ../../../Source/3rdParty/FileSystem/tinydir.h; sourceTree = "<group>"; };
@@ -220,6 +218,8 @@
 		3CE3555E1E1B3F7200268A19 /* LuaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaHandler.h; path = ../../../Source/Lua/LuaHandler.h; sourceTree = "<group>"; };
 		3CEA9A7E1E28A6FE00645F2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
 		3CEA9A7F1E28A6FE00645F2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
+		3CF09EF51E581AAD009E8C6F /* Singleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Singleton.cpp; path = ../../../Source/Common/Singleton.cpp; sourceTree = "<group>"; };
+		3CF09EF61E581AAD009E8C6F /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -287,8 +287,6 @@
 			children = (
 				3CC54EA01E03CA6C00462FD7 /* Slice.cpp */,
 				3CC54EA11E03CA6C00462FD7 /* Slice.h */,
-				3C291D351E02644A0098C860 /* LifeCycledSingleton.cpp */,
-				3CC54E5D1E039E0800462FD7 /* LifeCycledSingleton.h */,
 			);
 			name = silly;
 			sourceTree = "<group>";
@@ -384,6 +382,8 @@
 		3C9ADE4F1E00F14E00D42018 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				3CF09EF51E581AAD009E8C6F /* Singleton.cpp */,
+				3CF09EF61E581AAD009E8C6F /* Singleton.h */,
 				3C3598301E1254D600E62C16 /* Async.cpp */,
 				3C3598311E1254D600E62C16 /* Async.h */,
 				3C9ADE511E00F16100D42018 /* MemoryPool.h */,
@@ -703,6 +703,7 @@
 				3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */,
 				3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */,
 				3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */,
+				3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */,
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
@@ -717,7 +718,6 @@
 				3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,
 				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,
-				3C291D361E02644A0098C860 /* LifeCycledSingleton.cpp in Sources */,
 				3CD3282B1E4B0A4E0036906C /* imgui_demo.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
 				3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */,

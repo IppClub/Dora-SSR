@@ -13,6 +13,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class ObjectBase
+{
+public:
+	ObjectBase():
+	maxIdCount(0),
+	maxLuaRefCount(0),
+	luaRefCount(0)
+	{ }
+	virtual ~ObjectBase() { }
+	Uint32 maxIdCount;
+	Uint32 maxLuaRefCount;
+	Uint32 luaRefCount;
+	stack<Uint32> availableLuaRefs;
+	stack<Uint32> availableIds;
+	SINGLETON(ObjectBase);
+};
+
+#define SharedObjectBase \
+	Singleton<ObjectBase>::shared()
+
 Weak::Weak(Object* target):
 target(target),
 _refCount(1)
@@ -32,37 +52,32 @@ void Weak::retain()
 	++_refCount;
 }
 
-Uint32 Object::_maxIdCount;
-Uint32 Object::_maxLuaRefCount;
-Uint32 Object::_luaRefCount;
-
-stack<Uint32> Object::_availableIds;
-stack<Uint32> Object::_availableLuaRefs;
-
 Object::Object():
 _managed(false),
 _refCount(1),
 _luaRef(0),
 _weak(nullptr)
 {
-	if (_availableIds.empty())
+	auto& info = SharedObjectBase;
+	if (info.availableIds.empty())
 	{
-		_id = ++_maxIdCount;
+		_id = ++info.maxIdCount;
 	}
 	else
 	{
-		_id = _availableIds.top();
-		_availableIds.pop();
+		_id = info.availableIds.top();
+		info.availableIds.pop();
 	}
 }
 
 Object::~Object()
 {
+	auto& info = SharedObjectBase;
 	AssertIf(_managed, "object is still managed when destroyed.");
-	_availableIds.push(_id);
+	info.availableIds.push(_id);
 	if (_luaRef != 0)
 	{
-		_availableLuaRefs.push(_luaRef);
+		info.availableLuaRefs.push(_luaRef);
 	}
 }
 
@@ -123,22 +138,23 @@ Uint32 Object::getId() const
 
 Uint32 Object::getObjectCount()
 {
-	return _maxIdCount - s_cast<Uint32>(_availableIds.size());
+	auto& info = SharedObjectBase;
+	return info.maxIdCount - s_cast<Uint32>(info.availableIds.size());
 }
 
 Uint32 Object::getMaxObjectCount()
 {
-	return _maxIdCount;
+	return SharedObjectBase.maxIdCount;
 }
 
 Uint32 Object::getLuaRefCount()
 {
-	return _luaRefCount;
+	return SharedObjectBase.luaRefCount;
 }
 
 Uint32 Object::getMaxLuaRefCount()
 {
-	return _maxLuaRefCount;
+	return SharedObjectBase.maxLuaRefCount;
 }
 
 Uint32 Object::getLuaCallbackCount()
@@ -163,26 +179,27 @@ Weak* Object::getWeakRef()
 
 void Object::addLuaRef()
 {
-	++_luaRefCount;
+	++SharedObjectBase.luaRefCount;
 }
 
 void Object::removeLuaRef()
 {
-	--_luaRefCount;
+	--SharedObjectBase.luaRefCount;
 }
 
 Uint32 Object::getLuaRef()
 {
 	if (_luaRef == 0)
 	{
-		if (_availableLuaRefs.empty())
+		auto& info = SharedObjectBase;
+		if (info.availableLuaRefs.empty())
 		{
-			_luaRef = ++_maxLuaRefCount;
+			_luaRef = ++info.maxLuaRefCount;
 		}
 		else
 		{
-			_luaRef = _availableLuaRefs.top();
-			_availableLuaRefs.pop();
+			_luaRef = info.availableLuaRefs.top();
+			info.availableLuaRefs.pop();
 		}
 	}
 	return _luaRef;

@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Source\3rdParty\font\font_manager.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\font\text_metrics.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\lodepng\lodepng.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\Other\atlas.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp" />
-    <ClCompile Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\unzip.cpp" />
@@ -41,6 +43,7 @@
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\Singleton.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Utils.cpp" />
     <ClCompile Include="..\..\..\Source\Effect\Effect.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
@@ -60,6 +63,7 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Array.cpp" />
@@ -69,6 +73,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\font\text_metrics.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h" />
@@ -82,8 +88,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\atlas.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\silly\LifeCycledSingleton.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.h" />
@@ -105,6 +111,7 @@
     <ClInclude Include="..\..\..\Source\Common\MemoryPool.h" />
     <ClInclude Include="..\..\..\Source\Common\Own.h" />
     <ClInclude Include="..\..\..\Source\Common\Ref.h" />
+    <ClInclude Include="..\..\..\Source\Common\Singleton.h" />
     <ClInclude Include="..\..\..\Source\Common\Utils.h" />
     <ClInclude Include="..\..\..\Source\Common\WRef.h" />
     <ClInclude Include="..\..\..\Source\Const\Define.h" />
@@ -122,6 +129,7 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
+    <ClInclude Include="..\..\..\Source\Node\Label.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
     <ClInclude Include="..\..\..\Source\Support\Array.h" />

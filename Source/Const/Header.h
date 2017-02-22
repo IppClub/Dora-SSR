@@ -30,6 +30,7 @@ using std::ostringstream;
 #include <tuple>
 using std::tuple;
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -41,9 +42,8 @@ using Acf::Delegate;
 #include "bgfx/bgfx.h"
 #include "bgfx/embedded_shader.h"
 #include "bx/thread.h"
-#include "bx/sem.h"
+#include "bx/semaphore.h"
 #include "bx/fpumath.h"
-#include "silly/LifeCycledSingleton.h"
 #include "silly/Slice.h"
 using namespace silly::slice;
 #include "Const/Define.h"
@@ -51,8 +51,9 @@ using namespace silly::slice;
 using namespace Dorothy::Switch::Literals;
 #include "Common/Debug.h"
 #include "Common/MemoryPool.h"
-#include "Basic/Object.h"
 #include "Common/Own.h"
+#include "Common/Singleton.h"
+#include "Basic/Object.h"
 #include "Common/Ref.h"
 #include "Common/WRef.h"
 #include "Basic/AutoreleasePool.h"

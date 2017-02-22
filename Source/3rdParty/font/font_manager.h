@@ -39,6 +39,7 @@ struct FontInfo
 	float underlineThickness;
 	/// The position of the underline relatively to the baseline.
 	float underlinePosition;
+	float commonHeight;
 
 	/// Scale to apply to glyph data.
 	float scale;
@@ -82,7 +83,7 @@ typedef int32_t CodePoint;
 struct GlyphInfo
 {
 	/// Index for faster retrieval.
-	int32_t glyphIndex;
+	uint32_t glyphIndex;
 
 	/// Glyph's width in pixels.
 	float width;
@@ -164,6 +165,8 @@ public:
 	///
 	const GlyphInfo* getGlyphInfo(FontHandle _handle, CodePoint _codePoint);
 
+	bool hasKerning(FontHandle _handle);
+	uint32_t getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
 private:
 	struct CachedFont;
 	struct CachedFile

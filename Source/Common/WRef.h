@@ -10,7 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-/** @brief Used for weak reference. */
+/** @brief Used for weak reference.
+ @param T Object
+*/
 template<class T = Object>
 class WRef
 {
@@ -129,7 +131,9 @@ inline WRef<T> MakeWRef(T* item)
 	return WRef<T>(item);
 }
 
-/** @brief Used with Aggregation Relationship. */
+/** @brief Used with Aggregation Relationship.
+ @param T Object
+*/
 template<class T = Object>
 class WRefVector : public vector<WRef<T>>
 {

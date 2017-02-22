@@ -40,27 +40,27 @@ Content::~Content()
 
 OwnArray<Uint8> Content::loadFile(String filename)
 {
-	Async::FileIO.pause();
+	SharedAsyncThread.FileIO.pause();
 	Sint64 size = 0;
 	Uint8* data = Content::loadFileUnsafe(filename, size);
-	Async::FileIO.resume();
+	SharedAsyncThread.FileIO.resume();
 	return OwnArray<Uint8>(data, s_cast<size_t>(size));
 }
 
 const bgfx::Memory* Content::loadFileBX(String filename)
 {
-	Async::FileIO.pause();
+	SharedAsyncThread.FileIO.pause();
 	Sint64 size = 0;
 	Uint8* data = Content::loadFileUnsafe(filename, size);
-	Async::FileIO.resume();
+	SharedAsyncThread.FileIO.resume();
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
 
 void Content::copyFile(String src, String dst)
 {
-	Async::FileIO.pause();
+	SharedAsyncThread.FileIO.pause();
 	Content::copyFileUnsafe(src, dst);
-	Async::FileIO.resume();
+	SharedAsyncThread.FileIO.resume();
 }
 
 void Content::saveToFile(String filename, String content)
@@ -274,7 +274,7 @@ void Content::copyFileUnsafe(String src, String dst)
 void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback)
 {
 	string fileStr = filename;
-	Async::FileIO.run([fileStr, this]()
+	SharedAsyncThread.FileIO.run([fileStr, this]()
 	{
 		Sint64 size = 0;
 		Uint8* buffer = this->loadFileUnsafe(fileStr, size);
@@ -309,7 +309,7 @@ void Content::loadFileAsyncBX(String filename, const function<void(const bgfx::M
 void Content::copyFileAsync(String src, String dst, const function<void()>& callback)
 {
 	string srcFile(src), dstFile(dst);
-	Async::FileIO.run([srcFile,dstFile,this]()
+	SharedAsyncThread.FileIO.run([srcFile,dstFile,this]()
 	{
 		Content::copyFileUnsafe(srcFile, dstFile);
 		return Values::None;
@@ -325,7 +325,7 @@ void Content::saveToFileAsync(String filename, String content, const function<vo
 {
 	string file(filename);
 	auto data = new string(content);
-	Async::FileIO.run([file,data,this]()
+	SharedAsyncThread.FileIO.run([file,data,this]()
 	{
 		Content::saveToFile(file, *MakeOwn(data));
 		return Values::None;
@@ -341,7 +341,7 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, const fu
 {
 	string file(filename);
 	auto data = new OwnArray<Uint8>(std::move(content));
-	Async::FileIO.run([file,data,this]()
+	SharedAsyncThread.FileIO.run([file,data,this]()
 	{
 		Content::saveToFile(file, *MakeOwn(data).get(), data->size());
 		return Values::None;

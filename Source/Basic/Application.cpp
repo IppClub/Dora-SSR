@@ -17,6 +17,16 @@ extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 
 NS_DOROTHY_BEGIN
 
+bool BGFXDora::init()
+{
+	return bgfx::init();
+}
+
+BGFXDora::~BGFXDora()
+{
+	bgfx::shutdown();
+}
+
 Application::Application():
 _width(800),
 _height(600),
@@ -225,7 +235,7 @@ int Application::mainLogic(void* userData)
 {
 	Application* app = r_cast<Application*>(userData);
 	
-	if (!bgfx::init())
+	if (!SharedBGFX.init())
 	{
 		Log("bgfx fail to initialize!");
 		return 1;
@@ -299,14 +309,8 @@ int Application::mainLogic(void* userData)
 	}
 
 	SharedPoolManager.push();
-	silly::Life::destroy(SharedFontCache.getLife());
-	silly::Life::destroy(SharedShaderCache.getLife());
-	silly::Life::destroy(SharedTextureCache.getLife());
-	silly::Life::destroy(SharedSpriteRenderer.getLife());
-	silly::Life::destroy(SharedImGUI.getLife());
+	Life::destroy("BGFXDora");
 	SharedPoolManager.pop();
-
-	bgfx::shutdown();
 	return 0;
 }
 

@@ -35,6 +35,8 @@ _mouseWheel(0.0f)
 
 ImGUIDora::~ImGUIDora()
 {
+	SharedApplication.eventHandler -= std::make_pair(this, &ImGUIDora::handleEvent);
+
 	if (bgfx::isValid(_textureSampler))
 	{
 		bgfx::destroyUniform(_textureSampler);
@@ -109,32 +111,42 @@ bool ImGUIDora::init()
 	_effect = Effect::create(vertShader, fragShader);
 	_textureSampler = bgfx::createUniform("s_tex", bgfx::UniformType::Int1);
 
-	uint8_t* data;
-
 	Sint64 size;
-	data = SharedContent.loadFileUnsafe("Font/fangzhen14.TTF", size);
+	Uint8* fileData = SharedContent.loadFileUnsafe("Font/fangzhen14.TTF", size);
+	
 	ImFontConfig fontConfig;
+	fontConfig.FontDataOwnedByAtlas = false;
 	fontConfig.PixelSnapH = true;
 	fontConfig.OversampleH = 1;
 	fontConfig.OversampleV = 1;
-	fontConfig.GlyphRanges = io.Fonts->GetGlyphRangesChinese();
-	io.Fonts->AddFontFromMemoryTTF(data, s_cast<int>(size), 14, &fontConfig);
+	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), 14, &fontConfig, io.Fonts->GetGlyphRangesDefault());
+	Uint8* texData;
+	int width;
+	int height;
+	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
+	updateTexture(texData, width, height);
+	io.Fonts->ClearTexData();
+	io.Fonts->ClearInputData();
 
-	int32_t width;
-	int32_t height;
-	io.Fonts->GetTexDataAsAlpha8(&data, &width, &height);
-
-	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
-		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
-		false, 1, bgfx::TextureFormat::A8, BGFX_TEXTURE_NONE,
-		bgfx::copy(data, width*height * 1));
-
-	bgfx::TextureInfo info;
-	bgfx::calcTextureSize(info,
-		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
-		0, false, false, 1, bgfx::TextureFormat::A8);
-
-	_fontTexture = Texture2D::create(textureHandle, info);
+	fontConfig.FontDataOwnedByAtlas = true;
+	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), 14, &fontConfig, io.Fonts->GetGlyphRangesChinese());
+	SharedAsyncThread.Process.run([]()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		int texWidth, texHeight;
+		ImVec2 texUvWhitePixel;
+		unsigned char* texPixelsAlpha8;
+		io.Fonts->Build(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
+		return Values::create(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
+	}, [this](Values* result)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		result->get(io.Fonts->TexWidth, io.Fonts->TexHeight, io.Fonts->TexUvWhitePixel, io.Fonts->TexPixelsAlpha8);
+		io.Fonts->Fonts.erase(io.Fonts->Fonts.begin());
+		updateTexture(io.Fonts->TexPixelsAlpha8, io.Fonts->TexWidth, io.Fonts->TexHeight);
+		io.Fonts->ClearTexData();
+		io.Fonts->ClearInputData();
+	});
 
 	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime)
 	{
@@ -287,21 +299,6 @@ void ImGUIDora::renderDrawLists(ImDrawData* _drawData)
 			}
 			else if (0 != cmd->ElemCount)
 			{
-				if (nullptr != cmd->TextureId)
-				{
-					union
-					{
-						ImTextureID ptr;
-						struct
-						{
-							bgfx::TextureHandle handle;
-							uint8_t flags;
-							uint8_t mip;
-						} s;
-					} texture = { cmd->TextureId };
-					textureHandle = texture.s.handle;
-				}
-
 				uint64_t state = 0
 					| BGFX_STATE_RGB_WRITE
 					| BGFX_STATE_ALPHA_WRITE
@@ -336,6 +333,21 @@ void ImGUIDora::sendKey(int key, int count)
 		e.type = SDL_KEYUP;
 		_inputs.push_back(e);
 	}
+}
+
+void ImGUIDora::updateTexture(Uint8* data, int width, int height)
+{
+	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
+		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
+		false, 1, bgfx::TextureFormat::A8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT,
+		bgfx::copy(data, width*height * 1));
+
+	bgfx::TextureInfo info;
+	bgfx::calcTextureSize(info,
+		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
+		0, false, false, 1, bgfx::TextureFormat::A8);
+
+	_fontTexture = Texture2D::create(textureHandle, info);
 }
 
 void ImGUIDora::handleEvent(const SDL_Event& event)
@@ -421,7 +433,7 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 				size_t toAdd = newText + newLength - newChar;
 				if (toDel > 0)
 				{
-					int charCount = utf8_countCharacters(oldChar);
+					int charCount = utf8_count_characters(oldChar);
 					_textLength -= charCount;
 					sendKey(SDLK_BACKSPACE, charCount);
 				}
@@ -430,7 +442,7 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 				{
 					SDL_Event e;
 					e.type = SDL_TEXTINPUT;
-					_textLength += utf8_countCharacters(newChar);
+					_textLength += utf8_count_characters(newChar);
 					memcpy(e.text.text, newChar, toAdd + 1);
 					_inputs.push_back(e);
 				}

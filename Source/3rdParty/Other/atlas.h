@@ -37,7 +37,7 @@ public:
 	/// create an empty dynamic atlas (region can be updated and added)
 	/// @param textureSize an atlas creates a texture cube of 6 faces with size equal to (textureSize*textureSize * sizeof(RGBA) )
 	/// @param maxRegionCount maximum number of region allowed in the atlas
-	Atlas(uint16_t _textureSize, Type type, uint16_t _maxRegionsCount = 4096);
+	Atlas(uint16_t _textureSize, Type type, bool antiAlias = true, uint16_t _maxRegionsCount = 4096);
 
 	~Atlas();
 

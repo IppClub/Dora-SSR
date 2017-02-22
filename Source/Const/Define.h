@@ -16,26 +16,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-/** @brief Define the destruction orders of singleton intances,
-	the lowest indiced instance will be destroyed first. */
-namespace SingletonIndex
-{
-	enum {
-		FontCache,
-		ImGUIDora,
-		TouchDispatcher,
-		SpriteRenderer,
-		ShaderCache,
-		TextureCache,
-		ContentManager,
-		PoolManager,
-		Director,
-		View,
-		Application,
-		LuaEngine
-	};
-}
-
 /** @brief Debug flag, set with the compilar flag by default. */
 #ifndef DORA_DEBUG
 	#if NDEBUG

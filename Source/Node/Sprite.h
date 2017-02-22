@@ -92,9 +92,10 @@ private:
 	Uint64 _lastState;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
+	SINGLETON(SpriteRenderer, "BGFXDora");
 };
 
 #define SharedSpriteRenderer \
-	silly::Singleton<SpriteRenderer, SingletonIndex::SpriteRenderer>::shared()
+	Dorothy::Singleton<Dorothy::SpriteRenderer>::shared()
 
 NS_DOROTHY_END

@@ -38,9 +38,10 @@ protected:
 	string getShaderPath() const;
 private:
 	unordered_map<string, Ref<Shader>> _shaders;
+	SINGLETON(ShaderCache, "BGFXDora");
 };
 
 #define SharedShaderCache \
-	silly::Singleton<ShaderCache, SingletonIndex::ShaderCache>::shared()
+	Dorothy::Singleton<Dorothy::ShaderCache>::shared()
 
 NS_DOROTHY_END

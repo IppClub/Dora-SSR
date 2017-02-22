@@ -1101,7 +1101,7 @@ void    ImFontAtlas::GetTexDataAsAlpha8(unsigned char** out_pixels, int* out_wid
     {
         if (ConfigData.empty())
             AddFontDefault();
-        Build();
+        Build(TexWidth, TexHeight, TexUvWhitePixel, TexPixelsAlpha8);
     }
 
     *out_pixels = TexPixelsAlpha8;
@@ -1247,14 +1247,13 @@ ImFont* ImFontAtlas::AddFontFromMemoryCompressedBase85TTF(const char* compressed
     return font;
 }
 
-bool    ImFontAtlas::Build()
+bool    ImFontAtlas::Build(int& texWidth, int& texHeight, ImVec2& texUvWhitePixel, unsigned char*& texPixelsAlpha8)
 {
     IM_ASSERT(ConfigData.Size > 0);
 
-    TexID = NULL;
-    TexWidth = TexHeight = 0;
-    TexUvWhitePixel = ImVec2(0, 0);
-    ClearTexData();
+    texWidth = texHeight = 0;
+    texUvWhitePixel = ImVec2(0, 0);
+    //ClearTexData();
 
     struct ImFontTempBuildData
     {
@@ -1291,20 +1290,20 @@ bool    ImFontAtlas::Build()
 
     // Start packing. We need a known width for the skyline algorithm. Using a cheap heuristic here to decide of width. User can override TexDesiredWidth if they wish.
     // After packing is done, width shouldn't matter much, but some API/GPU have texture size limitations and increasing width can decrease height.
-    TexWidth = (TexDesiredWidth > 0) ? TexDesiredWidth : (total_glyph_count > 4000) ? 4096 : (total_glyph_count > 2000) ? 2048 : (total_glyph_count > 1000) ? 1024 : 512;
-    TexHeight = 0;
+    texWidth = (TexDesiredWidth > 0) ? TexDesiredWidth : (total_glyph_count > 4000) ? 4096 : (total_glyph_count > 2000) ? 2048 : (total_glyph_count > 1000) ? 1024 : 512;
+    texHeight = 0;
     const int max_tex_height = 1024*32;
     stbtt_pack_context spc;
-    stbtt_PackBegin(&spc, NULL, TexWidth, max_tex_height, 0, 1, NULL);
+    stbtt_PackBegin(&spc, NULL, texWidth, max_tex_height, 0, 1, NULL);
 
     // Pack our extra data rectangles first, so it will be on the upper-left corner of our texture (UV will have small values).
     ImVector<stbrp_rect> extra_rects;
-    RenderCustomTexData(0, &extra_rects);
+    RenderCustomTexData(0, &extra_rects, texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
     stbtt_PackSetOversampling(&spc, 1, 1);
     stbrp_pack_rects((stbrp_context*)spc.pack_info, &extra_rects[0], extra_rects.Size);
     for (int i = 0; i < extra_rects.Size; i++)
         if (extra_rects[i].was_packed)
-            TexHeight = ImMax(TexHeight, extra_rects[i].y + extra_rects[i].h);
+            texHeight = ImMax(texHeight, extra_rects[i].y + extra_rects[i].h);
 
     // Allocate packing character data and flag packed characters buffer as non-packed (x0=y0=x1=y1=0)
     int buf_packedchars_n = 0, buf_rects_n = 0, buf_ranges_n = 0;
@@ -1353,18 +1352,18 @@ bool    ImFontAtlas::Build()
         // Extend texture height
         for (int i = 0; i < n; i++)
             if (tmp.Rects[i].was_packed)
-                TexHeight = ImMax(TexHeight, tmp.Rects[i].y + tmp.Rects[i].h);
+                texHeight = ImMax(texHeight, tmp.Rects[i].y + tmp.Rects[i].h);
     }
     IM_ASSERT(buf_rects_n == total_glyph_count);
     IM_ASSERT(buf_packedchars_n == total_glyph_count);
     IM_ASSERT(buf_ranges_n == total_glyph_range_count);
 
     // Create texture
-    TexHeight = ImUpperPowerOfTwo(TexHeight);
-    TexPixelsAlpha8 = (unsigned char*)ImGui::MemAlloc(TexWidth * TexHeight);
-    memset(TexPixelsAlpha8, 0, TexWidth * TexHeight);
-    spc.pixels = TexPixelsAlpha8;
-    spc.height = TexHeight;
+    texHeight = ImUpperPowerOfTwo(texHeight);
+    texPixelsAlpha8 = (unsigned char*)ImGui::MemAlloc(texWidth * texHeight);
+    memset(texPixelsAlpha8, 0, texWidth * texHeight);
+    spc.pixels = texPixelsAlpha8;
+    spc.height = texHeight;
 
     // Second pass: render characters
     for (int input_i = 0; input_i < ConfigData.Size; input_i++)
@@ -1423,7 +1422,7 @@ bool    ImFontAtlas::Build()
 
                 stbtt_aligned_quad q;
                 float dummy_x = 0.0f, dummy_y = 0.0f;
-                stbtt_GetPackedQuad(range.chardata_for_range, TexWidth, TexHeight, char_idx, &dummy_x, &dummy_y, &q, 0);
+                stbtt_GetPackedQuad(range.chardata_for_range, texWidth, texHeight, char_idx, &dummy_x, &dummy_y, &q, 0);
 
                 dst_font->Glyphs.resize(dst_font->Glyphs.Size + 1);
                 ImFont::Glyph& glyph = dst_font->Glyphs.back();
@@ -1446,12 +1445,12 @@ bool    ImFontAtlas::Build()
     ImGui::MemFree(tmp_array);
 
     // Render into our custom data block
-    RenderCustomTexData(1, &extra_rects);
+    RenderCustomTexData(1, &extra_rects, texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
 
     return true;
 }
 
-void ImFontAtlas::RenderCustomTexData(int pass, void* p_rects)
+void ImFontAtlas::RenderCustomTexData(int pass, void* p_rects, int texWidth, int texHeight, ImVec2& texUvWhitePixel, unsigned char* texPixelsAlpha8)
 {
     // A work of art lies ahead! (. = white layer, X = black layer, others are blank)
     // The white texels on the top left are the ones we'll use everywhere in ImGui to render filled shapes.
@@ -1505,13 +1504,13 @@ void ImFontAtlas::RenderCustomTexData(int pass, void* p_rects)
         for (int y = 0, n = 0; y < TEX_DATA_H; y++)
             for (int x = 0; x < TEX_DATA_W; x++, n++)
             {
-                const int offset0 = (int)(r.x + x) + (int)(r.y + y) * TexWidth;
+                const int offset0 = (int)(r.x + x) + (int)(r.y + y) * texWidth;
                 const int offset1 = offset0 + 1 + TEX_DATA_W;
-                TexPixelsAlpha8[offset0] = texture_data[n] == '.' ? 0xFF : 0x00;
-                TexPixelsAlpha8[offset1] = texture_data[n] == 'X' ? 0xFF : 0x00;
+				texPixelsAlpha8[offset0] = texture_data[n] == '.' ? 0xFF : 0x00;
+				texPixelsAlpha8[offset1] = texture_data[n] == 'X' ? 0xFF : 0x00;
             }
-        const ImVec2 tex_uv_scale(1.0f / TexWidth, 1.0f / TexHeight);
-        TexUvWhitePixel = ImVec2((r.x + 0.5f) * tex_uv_scale.x, (r.y + 0.5f) * tex_uv_scale.y);
+        const ImVec2 tex_uv_scale(1.0f / texWidth, 1.0f / texHeight);
+		texUvWhitePixel = ImVec2((r.x + 0.5f) * tex_uv_scale.x, (r.y + 0.5f) * tex_uv_scale.y);
 
         // Setup mouse cursors
         const ImVec2 cursor_datas[ImGuiMouseCursor_Count_][3] =

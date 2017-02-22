@@ -54,11 +54,6 @@ private:
 	Uint32 _refCount; // count of C++ references
 	Uint32 _luaRef; // lua reference id
 	Weak* _weak; // weak ref object
-	static Uint32 _maxIdCount;
-	static stack<Uint32> _availableIds;
-	static Uint32 _maxLuaRefCount;
-	static stack<Uint32> _availableLuaRefs;
-	static Uint32 _luaRefCount;
 	friend class PoolManager;
 	DORA_TYPE_BASE(Object);
 };

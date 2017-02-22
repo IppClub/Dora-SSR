@@ -30,9 +30,10 @@ private:
 		RefVector<Object> _managedObjects;
 	};
 	stack<Ref<AutoreleasePool>> _releasePoolStack;
+	SINGLETON(PoolManager, "ObjectBase");
 };
 
 #define SharedPoolManager \
-	silly::Singleton<PoolManager, SingletonIndex::PoolManager>::shared()
+	Dorothy::Singleton<Dorothy::PoolManager>::shared()
 
 NS_DOROTHY_END

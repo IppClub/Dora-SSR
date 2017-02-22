@@ -66,9 +66,10 @@ protected:
 	LuaEngine();
 	static int _callFromLua;
 	lua_State* L;
+	SINGLETON(LuaEngine, "ObjectBase");
 };
 
 #define SharedLueEngine \
-	silly::Singleton<LuaEngine, SingletonIndex::LuaEngine>::shared()
+	Dorothy::Singleton<Dorothy::LuaEngine>::shared()
 
 NS_DOROTHY_END

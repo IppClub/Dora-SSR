@@ -81,16 +81,6 @@ namespace bx
 		return tmp == UINT64_C(0x7ff0000000000000);
 	}
 
-	inline float ffloor(float _f)
-	{
-		return floorf(_f);
-	}
-
-	inline float fceil(float _f)
-	{
-		return ceilf(_f);
-	}
-
 	inline float fround(float _f)
 	{
 		return ffloor(_f + 0.5f);
@@ -136,44 +126,9 @@ namespace bx
 		return _a < 0.0f ? -1.0f : 1.0f;
 	}
 
-	inline float fabsolute(float _a)
-	{
-		return fabsf(_a);
-	}
-
 	inline float fsq(float _a)
 	{
 		return _a * _a;
-	}
-
-	inline float fsin(float _a)
-	{
-		return sinf(_a);
-	}
-
-	inline float fasin(float _a)
-	{
-		return asinf(_a);
-	}
-
-	inline float fcos(float _a)
-	{
-		return cosf(_a);
-	}
-
-	inline float facos(float _a)
-	{
-		return acosf(_a);
-	}
-
-	inline float fatan2(float _y, float _x)
-	{
-		return atan2f(_y, _x);
-	}
-
-	inline float fpow(float _a, float _b)
-	{
-		return powf(_a, _b);
 	}
 
 	inline float fexp2(float _a)
@@ -181,19 +136,9 @@ namespace bx
 		return fpow(2.0f, _a);
 	}
 
-	inline float flog(float _a)
-	{
-		return logf(_a);
-	}
-
 	inline float flog2(float _a)
 	{
 		return flog(_a) * 1.442695041f;
-	}
-
-	inline float fsqrt(float _a)
-	{
-		return sqrtf(_a);
 	}
 
 	inline float frsqrt(float _a)
@@ -203,12 +148,7 @@ namespace bx
 
 	inline float ffract(float _a)
 	{
-		return _a - floorf(_a);
-	}
-
-	inline float fmod(float _a, float _b)
-	{
-		return fmodf(_a, _b);
+		return _a - ffloor(_a);
 	}
 
 	inline bool fequal(float _a, float _b, float _epsilon)
@@ -219,7 +159,7 @@ namespace bx
 		return lhs <= rhs;
 	}
 
-	inline bool fequal(const float* __restrict _a, const float* __restrict _b, uint32_t _num, float _epsilon)
+	inline bool fequal(const float* _a, const float* _b, uint32_t _num, float _epsilon)
 	{
 		bool equal = fequal(_a[0], _b[0], _epsilon);
 		for (uint32_t ii = 1; equal && ii < _num; ++ii)
@@ -266,75 +206,75 @@ namespace bx
 		return fbias(_time * 2.0f - 1.0f, 1.0f - _gain) * 0.5f + 0.5f;
 	}
 
-	inline void vec3Move(float* __restrict _result, const float* __restrict _a)
+	inline void vec3Move(float* _result, const float* _a)
 	{
 		_result[0] = _a[0];
 		_result[1] = _a[1];
 		_result[2] = _a[2];
 	}
 
-	inline void vec3Abs(float* __restrict _result, const float* __restrict _a)
+	inline void vec3Abs(float* _result, const float* _a)
 	{
 		_result[0] = fabsolute(_a[0]);
 		_result[1] = fabsolute(_a[1]);
 		_result[2] = fabsolute(_a[2]);
 	}
 
-	inline void vec3Neg(float* __restrict _result, const float* __restrict _a)
+	inline void vec3Neg(float* _result, const float* _a)
 	{
 		_result[0] = -_a[0];
 		_result[1] = -_a[1];
 		_result[2] = -_a[2];
 	}
 
-	inline void vec3Add(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	inline void vec3Add(float* _result, const float* _a, const float* _b)
 	{
 		_result[0] = _a[0] + _b[0];
 		_result[1] = _a[1] + _b[1];
 		_result[2] = _a[2] + _b[2];
 	}
 
-	inline void vec3Add(float* __restrict _result, const float* __restrict _a, float _b)
+	inline void vec3Add(float* _result, const float* _a, float _b)
 	{
 		_result[0] = _a[0] + _b;
 		_result[1] = _a[1] + _b;
 		_result[2] = _a[2] + _b;
 	}
 
-	inline void vec3Sub(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	inline void vec3Sub(float* _result, const float* _a, const float* _b)
 	{
 		_result[0] = _a[0] - _b[0];
 		_result[1] = _a[1] - _b[1];
 		_result[2] = _a[2] - _b[2];
 	}
 
-	inline void vec3Sub(float* __restrict _result, const float* __restrict _a, float _b)
+	inline void vec3Sub(float* _result, const float* _a, float _b)
 	{
 		_result[0] = _a[0] - _b;
 		_result[1] = _a[1] - _b;
 		_result[2] = _a[2] - _b;
 	}
 
-	inline void vec3Mul(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	inline void vec3Mul(float* _result, const float* _a, const float* _b)
 	{
 		_result[0] = _a[0] * _b[0];
 		_result[1] = _a[1] * _b[1];
 		_result[2] = _a[2] * _b[2];
 	}
 
-	inline void vec3Mul(float* __restrict _result, const float* __restrict _a, float _b)
+	inline void vec3Mul(float* _result, const float* _a, float _b)
 	{
 		_result[0] = _a[0] * _b;
 		_result[1] = _a[1] * _b;
 		_result[2] = _a[2] * _b;
 	}
 
-	inline float vec3Dot(const float* __restrict _a, const float* __restrict _b)
+	inline float vec3Dot(const float* _a, const float* _b)
 	{
 		return _a[0]*_b[0] + _a[1]*_b[1] + _a[2]*_b[2];
 	}
 
-	inline void vec3Cross(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	inline void vec3Cross(float* _result, const float* _a, const float* _b)
 	{
 		_result[0] = _a[1]*_b[2] - _a[2]*_b[1];
 		_result[1] = _a[2]*_b[0] - _a[0]*_b[2];
@@ -346,21 +286,21 @@ namespace bx
 		return fsqrt(vec3Dot(_a, _a) );
 	}
 
-	inline void vec3Lerp(float* __restrict _result, const float* __restrict _a, const float* __restrict _b, float _t)
+	inline void vec3Lerp(float* _result, const float* _a, const float* _b, float _t)
 	{
 		_result[0] = flerp(_a[0], _b[0], _t);
 		_result[1] = flerp(_a[1], _b[1], _t);
 		_result[2] = flerp(_a[2], _b[2], _t);
 	}
 
-	inline void vec3Lerp(float* __restrict _result, const float* __restrict _a, const float* __restrict _b, const float* __restrict _c)
+	inline void vec3Lerp(float* _result, const float* _a, const float* _b, const float* _c)
 	{
 		_result[0] = flerp(_a[0], _b[0], _c[0]);
 		_result[1] = flerp(_a[1], _b[1], _c[1]);
 		_result[2] = flerp(_a[2], _b[2], _c[2]);
 	}
 
-	inline float vec3Norm(float* __restrict _result, const float* __restrict _a)
+	inline float vec3Norm(float* _result, const float* _a)
 	{
 		const float len = vec3Length(_a);
 		const float invLen = 1.0f/len;
@@ -370,28 +310,28 @@ namespace bx
 		return len;
 	}
 
-	inline void vec3Min(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	inline void vec3Min(float* _result, const float* _a, const float* _b)
 	{
 		_result[0] = fmin(_a[0], _b[0]);
 		_result[1] = fmin(_a[1], _b[1]);
 		_result[2] = fmin(_a[2], _b[2]);
 	}
 
-	inline void vec3Max(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	inline void vec3Max(float* _result, const float* _a, const float* _b)
 	{
 		_result[0] = fmax(_a[0], _b[0]);
 		_result[1] = fmax(_a[1], _b[1]);
 		_result[2] = fmax(_a[2], _b[2]);
 	}
 
-	inline void vec3Rcp(float* __restrict _result, const float* __restrict _a)
+	inline void vec3Rcp(float* _result, const float* _a)
 	{
 		_result[0] = 1.0f / _a[0];
 		_result[1] = 1.0f / _a[1];
 		_result[2] = 1.0f / _a[2];
 	}
 
-	inline void vec3TangentFrame(const float* __restrict _n, float* __restrict _t, float* __restrict _b)
+	inline void vec3TangentFrame(const float* _n, float* _t, float* _b)
 	{
 		const float nx = _n[0];
 		const float ny = _n[1];
@@ -415,7 +355,7 @@ namespace bx
 		bx::vec3Cross(_b, _n, _t);
 	}
 
-	inline void vec3TangentFrame(const float* __restrict _n, float* __restrict _t, float* __restrict _b, float _angle)
+	inline void vec3TangentFrame(const float* _n, float* _t, float* _b, float _angle)
 	{
 		vec3TangentFrame(_n, _t, _b);
 
@@ -437,7 +377,7 @@ namespace bx
 		_result[3] = 1.0f;
 	}
 
-	inline void quatMove(float* __restrict _result, const float* __restrict _a)
+	inline void quatMove(float* _result, const float* _a)
 	{
 		_result[0] = _a[0];
 		_result[1] = _a[1];
@@ -445,7 +385,7 @@ namespace bx
 		_result[3] = _a[3];
 	}
 
-	inline void quatMulXYZ(float* __restrict _result, const float* __restrict _qa, const float* __restrict _qb)
+	inline void quatMulXYZ(float* _result, const float* _qa, const float* _qb)
 	{
 		const float ax = _qa[0];
 		const float ay = _qa[1];
@@ -462,7 +402,7 @@ namespace bx
 		_result[2] = aw * bz + ax * by - ay * bx + az * bw;
 	}
 
-	inline void quatMul(float* __restrict _result, const float* __restrict _qa, const float* __restrict _qb)
+	inline void quatMul(float* _result, const float* _qa, const float* _qb)
 	{
 		const float ax = _qa[0];
 		const float ay = _qa[1];
@@ -480,7 +420,7 @@ namespace bx
 		_result[3] = aw * bw - ax * bx - ay * by - az * bz;
 	}
 
-	inline void quatInvert(float* __restrict _result, const float* __restrict _quat)
+	inline void quatInvert(float* _result, const float* _quat)
 	{
 		_result[0] = -_quat[0];
 		_result[1] = -_quat[1];
@@ -488,7 +428,7 @@ namespace bx
 		_result[3] =  _quat[3];
 	}
 
-	inline float quatDot(const float* __restrict _a, const float* __restrict _b)
+	inline float quatDot(const float* _a, const float* _b)
 	{
 		return _a[0]*_b[0]
 			 + _a[1]*_b[1]
@@ -497,7 +437,7 @@ namespace bx
 			 ;
 	}
 
-	inline void quatNorm(float* __restrict _result, const float* __restrict _quat)
+	inline void quatNorm(float* _result, const float* _quat)
 	{
 		const float norm = quatDot(_quat, _quat);
 		if (0.0f < norm)
@@ -514,7 +454,7 @@ namespace bx
 		}
 	}
 
-	inline void quatToEuler(float* __restrict _result, const float* __restrict _quat)
+	inline void quatToEuler(float* _result, const float* _quat)
 	{
 		const float x = _quat[0];
 		const float y = _quat[1];
@@ -530,7 +470,7 @@ namespace bx
 		_result[2] = fasin (2.0f * (x * y + z * w) );
 	}
 
-	inline void quatRotateAxis(float* __restrict _result, const float* _axis, float _angle)
+	inline void quatRotateAxis(float* _result, const float* _axis, float _angle)
 	{
 		const float ha = _angle * 0.5f;
 		const float ca = fcos(ha);
@@ -574,7 +514,7 @@ namespace bx
 		_result[3] = cz;
 	}
 
-	inline void vec3MulQuat(float* __restrict _result, const float* __restrict _vec, const float* __restrict _quat)
+	inline void vec3MulQuat(float* _result, const float* _vec, const float* _quat)
 	{
 		float tmp0[4];
 		quatInvert(tmp0, _quat);
@@ -619,7 +559,7 @@ namespace bx
 		mtxScale(_result, _scale, _scale, _scale);
 	}
 
-	inline void mtxFromNormal(float* __restrict _result, const float* __restrict _normal, float _scale, const float* __restrict _pos)
+	inline void mtxFromNormal(float* _result, const float* _normal, float _scale, const float* _pos)
 	{
 		float tangent[3];
 		float bitangent[3];
@@ -638,7 +578,7 @@ namespace bx
 		_result[15] = 1.0f;
 	}
 
-	inline void mtxFromNormal(float* __restrict _result, const float* __restrict _normal, float _scale, const float* __restrict _pos, float _angle)
+	inline void mtxFromNormal(float* _result, const float* _normal, float _scale, const float* _pos, float _angle)
 	{
 		float tangent[3];
 		float bitangent[3];
@@ -657,7 +597,7 @@ namespace bx
 		_result[15] = 1.0f;
 	}
 
-	inline void mtxQuat(float* __restrict _result, const float* __restrict _quat)
+	inline void mtxQuat(float* _result, const float* _quat)
 	{
 		const float x = _quat[0];
 		const float y = _quat[1];
@@ -698,7 +638,7 @@ namespace bx
 		_result[15] = 1.0f;
 	}
 
-	inline void mtxQuatTranslation(float* __restrict _result, const float* __restrict _quat, const float* __restrict _translation)
+	inline void mtxQuatTranslation(float* _result, const float* _quat, const float* _translation)
 	{
 		mtxQuat(_result, _quat);
 		_result[12] = -(_result[0]*_translation[0] + _result[4]*_translation[1] + _result[ 8]*_translation[2]);
@@ -706,7 +646,7 @@ namespace bx
 		_result[14] = -(_result[2]*_translation[0] + _result[6]*_translation[1] + _result[10]*_translation[2]);
 	}
 
-	inline void mtxQuatTranslationHMD(float* __restrict _result, const float* __restrict _quat, const float* __restrict _translation)
+	inline void mtxQuatTranslationHMD(float* _result, const float* _quat, const float* _translation)
 	{
 		float quat[4];
 		quat[0] = -_quat[0];
@@ -716,7 +656,7 @@ namespace bx
 		mtxQuatTranslation(_result, quat, _translation);
 	}
 
-	inline void mtxLookAt_Impl(float* __restrict _result, const float* __restrict _eye, const float* __restrict _view, const float* __restrict _up)
+	inline void mtxLookAt_Impl(float* _result, const float* _eye, const float* _view, const float* _up)
 	{
 		float up[3] = { 0.0f, 1.0f, 0.0f };
 		if (NULL != _up)
@@ -753,7 +693,7 @@ namespace bx
 		_result[15] = 1.0f;
 	}
 
-	inline void mtxLookAtLh(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up)
+	inline void mtxLookAtLh(float* _result, const float* _eye, const float* _at, const float* _up)
 	{
 		float tmp[4];
 		vec3Sub(tmp, _at, _eye);
@@ -764,7 +704,7 @@ namespace bx
 		mtxLookAt_Impl(_result, _eye, view, _up);
 	}
 
-	inline void mtxLookAtRh(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up)
+	inline void mtxLookAtRh(float* _result, const float* _eye, const float* _at, const float* _up)
 	{
 		float tmp[4];
 		vec3Sub(tmp, _eye, _at);
@@ -775,7 +715,7 @@ namespace bx
 		mtxLookAt_Impl(_result, _eye, view, _up);
 	}
 
-	inline void mtxLookAt(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up)
+	inline void mtxLookAt(float* _result, const float* _eye, const float* _at, const float* _up)
 	{
 		mtxLookAtLh(_result, _eye, _at, _up);
 	}
@@ -818,7 +758,7 @@ namespace bx
 	template <Handness::Enum HandnessT>
 	inline void mtxProj_impl(float* _result, float _fovy, float _aspect, float _near, float _far, bool _oglNdc)
 	{
-		const float height = 1.0f/tanf(toRad(_fovy)*0.5f);
+		const float height = 1.0f/ftan(toRad(_fovy)*0.5f);
 		const float width  = height * 1.0f/_aspect;
 		mtxProjXYWH<HandnessT>(_result, 0.0f, 0.0f, width, height, _near, _far, _oglNdc);
 	}
@@ -915,7 +855,7 @@ namespace bx
 	template <NearFar::Enum NearFarT, Handness::Enum HandnessT>
 	inline void mtxProjInf_impl(float* _result, float _fovy, float _aspect, float _near, bool _oglNdc)
 	{
-		const float height = 1.0f/tanf(toRad(_fovy)*0.5f);
+		const float height = 1.0f/ftan(toRad(_fovy)*0.5f);
 		const float width  = height * 1.0f/_aspect;
 		mtxProjInfXYWH<NearFarT,HandnessT>(_result, 0.0f, 0.0f, width, height, _near, _oglNdc);
 	}
@@ -1168,14 +1108,14 @@ namespace bx
 		_result[15] = 1.0f;
 	}
 
-	inline void vec3MulMtx(float* __restrict _result, const float* __restrict _vec, const float* __restrict _mat)
+	inline void vec3MulMtx(float* _result, const float* _vec, const float* _mat)
 	{
 		_result[0] = _vec[0] * _mat[ 0] + _vec[1] * _mat[4] + _vec[2] * _mat[ 8] + _mat[12];
 		_result[1] = _vec[0] * _mat[ 1] + _vec[1] * _mat[5] + _vec[2] * _mat[ 9] + _mat[13];
 		_result[2] = _vec[0] * _mat[ 2] + _vec[1] * _mat[6] + _vec[2] * _mat[10] + _mat[14];
 	}
 
-	inline void vec3MulMtxH(float* __restrict _result, const float* __restrict _vec, const float* __restrict _mat)
+	inline void vec3MulMtxH(float* _result, const float* _vec, const float* _mat)
 	{
 		float xx = _vec[0] * _mat[ 0] + _vec[1] * _mat[4] + _vec[2] * _mat[ 8] + _mat[12];
 		float yy = _vec[0] * _mat[ 1] + _vec[1] * _mat[5] + _vec[2] * _mat[ 9] + _mat[13];
@@ -1187,7 +1127,7 @@ namespace bx
 		_result[2] = zz*invW;
 	}
 
-	inline void vec4MulMtx(float* __restrict _result, const float* __restrict _vec, const float* __restrict _mat)
+	inline void vec4MulMtx(float* _result, const float* _vec, const float* _mat)
 	{
 		_result[0] = _vec[0] * _mat[ 0] + _vec[1] * _mat[4] + _vec[2] * _mat[ 8] + _vec[3] * _mat[12];
 		_result[1] = _vec[0] * _mat[ 1] + _vec[1] * _mat[5] + _vec[2] * _mat[ 9] + _vec[3] * _mat[13];
@@ -1195,7 +1135,7 @@ namespace bx
 		_result[3] = _vec[0] * _mat[ 3] + _vec[1] * _mat[7] + _vec[2] * _mat[11] + _vec[3] * _mat[15];
 	}
 
-	inline void mtxMul(float* __restrict _result, const float* __restrict _a, const float* __restrict _b)
+	inline void mtxMul(float* _result, const float* _a, const float* _b)
 	{
 		vec4MulMtx(&_result[ 0], &_a[ 0], _b);
 		vec4MulMtx(&_result[ 4], &_a[ 4], _b);
@@ -1203,7 +1143,7 @@ namespace bx
 		vec4MulMtx(&_result[12], &_a[12], _b);
 	}
 
-	inline void mtxTranspose(float* __restrict _result, const float* __restrict _a)
+	inline void mtxTranspose(float* _result, const float* _a)
 	{
 		_result[ 0] = _a[ 0];
 		_result[ 4] = _a[ 1];
@@ -1224,7 +1164,7 @@ namespace bx
 	}
 
 	/// Convert LH to RH projection matrix and vice versa.
-	inline void mtxProjFlipHandedness(float* __restrict _dst, const float* __restrict _src)
+	inline void mtxProjFlipHandedness(float* _dst, const float* _src)
 	{
 		_dst[ 0] = -_src[ 0];
 		_dst[ 1] = -_src[ 1];
@@ -1245,7 +1185,7 @@ namespace bx
 	}
 
 	/// Convert LH to RH view matrix and vice versa.
-	inline void mtxViewFlipHandedness(float* __restrict _dst, const float* __restrict _src)
+	inline void mtxViewFlipHandedness(float* _dst, const float* _src)
 	{
 		_dst[ 0] = -_src[ 0];
 		_dst[ 1] =  _src[ 1];

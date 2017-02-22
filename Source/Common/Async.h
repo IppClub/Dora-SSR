@@ -61,8 +61,6 @@ public:
 	void pause();
 	void resume();
 	void cancel();
-	static Async FileIO;
-	static Async Process;
 	static int work(void* userData);
 private:
 	bx::Thread _thread;
@@ -72,5 +70,26 @@ private:
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
 };
+
+class AsyncThread
+{
+public:
+	Async FileIO;
+	Async Process;
+#if BX_PLATFORM_WINDOWS
+	inline void* operator new(size_t i)
+	{
+		return _mm_malloc(i, 16);
+	}
+	inline void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
+#endif // BX_PLATFORM_WINDOWS
+	SINGLETON(AsyncThread, "ObjectBase");
+};
+
+#define SharedAsyncThread \
+	Dorothy::Singleton<Dorothy::AsyncThread>::shared()
 
 NS_DOROTHY_END

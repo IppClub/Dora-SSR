@@ -1335,8 +1335,8 @@ struct ImFontAtlas
 
     // Private
     ImVector<ImFontConfig>      ConfigData;         // Internal data
-    IMGUI_API bool              Build();            // Build pixels data. This is automatically for you by the GetTexData*** functions.
-    IMGUI_API void              RenderCustomTexData(int pass, void* rects);
+    IMGUI_API bool              Build(int& texWidth, int& texHeight, ImVec2& texUvWhitePixel, unsigned char*& texPixelsAlpha8);            // Build pixels data. This is automatically for you by the GetTexData*** functions.
+    IMGUI_API void              RenderCustomTexData(int pass, void* rects, int texWidth, int texHeight, ImVec2& texUvWhitePixel, unsigned char* texPixelsAlpha8);
 };
 
 // Font runtime data and rendering

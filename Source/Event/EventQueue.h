@@ -118,7 +118,7 @@ public:
 	 */
 	QEvent* peek();
 private:
-	bx::SpScUnboundedQueue<QEvent> _queue;
+	bx::SpScUnboundedQueueT<QEvent> _queue;
 };
 
 NS_DOROTHY_END

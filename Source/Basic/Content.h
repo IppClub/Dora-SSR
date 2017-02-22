@@ -52,9 +52,10 @@ private:
 	vector<string> _searchPaths;
 	unordered_map<string, string> _fullPathCache;
 	DORA_TYPE(Content);
+	SINGLETON(Content, "Application");
 };
 
 #define SharedContent \
-	silly::Singleton<Content, SingletonIndex::ContentManager>::shared()
+	Dorothy::Singleton<Dorothy::Content>::shared()
 
 NS_DOROTHY_END

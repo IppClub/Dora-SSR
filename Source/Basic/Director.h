@@ -41,16 +41,17 @@ public:
 protected:
 	Director();
 private:
-	float _viewProj[16];
 	Ref<Node> _ui;
 	Ref<Array> _entryStack;
 	Ref<Node> _currentScene;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
 	Ref<Camera> _camera;
+	float _viewProj[16];
+	SINGLETON(Director, "Application");
 };
 
 #define SharedDirector \
-	silly::Singleton<Director, SingletonIndex::Director>::shared()
+	Dorothy::Singleton<Dorothy::Director>::shared()
 
 NS_DOROTHY_END

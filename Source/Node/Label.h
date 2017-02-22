@@ -12,29 +12,67 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class TrueTypeFile : public Object
+{
+public:
+	PROPERTY_READONLY(bgfx::TrueTypeHandle, Handle);
+	CREATE_FUNC(TrueTypeFile);
+	virtual ~TrueTypeFile();
+protected:
+	TrueTypeFile(bgfx::TrueTypeHandle handle);
+private:
+	bgfx::TrueTypeHandle _handle;
+};
+
+class Font : public Object
+{
+public:
+	PROPERTY_READONLY(bgfx::FontHandle, Handle);
+	PROPERTY_READONLY_REF(bgfx::FontInfo, Info);
+	CREATE_FUNC(Font);
+	virtual ~Font();
+protected:
+	Font(TrueTypeFile* file, bgfx::FontHandle handle);
+private:
+	bgfx::FontHandle _handle;
+	Ref<TrueTypeFile> _file;
+};
+
+class FontManager : public bgfx::FontManager
+{
+protected:
+	FontManager() { }
+	SINGLETON(FontManager, "FontCache");
+};
+
+#define SharedFontManager \
+	Dorothy::Singleton<Dorothy::FontManager>::shared()
+
 class FontCache
 {
 public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
+	PROPERTY_READONLY(bgfx::FontManager*, Manager);
 	virtual ~FontCache();
 	void loadAync(String fontName, Uint32 fontSize, Uint32 fontIndex,
-		const function<void(bgfx::FontHandle fontHandle)>& callback);
-	bgfx::FontHandle load(String fontName, Uint32 fontSize, Uint32 fontIndex = 0);
+		const function<void(Font* font)>& callback);
+	Font* load(String fontName, Uint32 fontSize, Uint32 fontIndex = 0);
 	void unload();
-	Sprite* createCharacter(bgfx::FontHandle fontHandle, bgfx::CodePoint character);
-	std::tuple<Texture2D*, Rect> getCharacterInfo(bgfx::FontHandle fontHandle, bgfx::CodePoint character);
-	const bgfx::GlyphInfo* getGlyphInfo(bgfx::FontHandle fontHandle, bgfx::CodePoint character);
+	Sprite* createCharacter(Font* font, bgfx::CodePoint character);
+	std::tuple<Texture2D*, Rect> getCharacterInfo(Font* font, bgfx::CodePoint character);
+	const bgfx::GlyphInfo* getGlyphInfo(Font* font, bgfx::CodePoint character);
+	const bgfx::GlyphInfo* updateCharacter(Sprite* sp, Font* font, bgfx::CodePoint character);
 protected:
 	FontCache();
 private:
 	Ref<SpriteEffect> _defaultEffect;
-	unordered_map<string, bgfx::TrueTypeHandle> _fonts;
-	unordered_map<string, bgfx::FontHandle> _fontFaces;
-	bgfx::FontManager _fontManager;
+	unordered_map<string, Ref<TrueTypeFile>> _fontFiles;
+	unordered_map<string, Ref<Font>> _fonts;
+	SINGLETON(FontCache, "BGFXDora", "FontManager");
 };
 
 #define SharedFontCache \
-	silly::Singleton<FontCache, SingletonIndex::FontCache>::shared()
+	Dorothy::Singleton<Dorothy::FontCache>::shared()
 
 ENUM_START(TextAlignment)
 {
@@ -47,12 +85,29 @@ ENUM_END(TextAlignment)
 class Label : public Node
 {
 public:
-	static const int AutomaticWidth;
+	virtual ~Label();
+	PROPERTY(TextAlignment, Alignment);
+	PROPERTY(float, TextWidth);
+	PROPERTY(float, LineGap);
+	PROPERTY(const char*, Text);
+	Sprite* getCharacter(int index) const;
+	int getCharacterCount() const;
+	static const float AutomaticWidth;
+	CREATE_FUNC(Label);
 protected:
-
+	Label(String fontName, Uint32 fontSize);
+	void updateCharacters(const vector<Uint32>& chars);
+	void updateLabel();
+	float getLetterPosXLeft(Sprite* sp);
+	float getLetterPosXRight(Sprite* sp);
 private:
-
+	float _textWidth;
+	float _lineGap;
+	Ref<Font> _font;
+	TextAlignment _alignment;
+	string _textUTF8;
+	vector<Uint32> _text;
+	vector<Sprite*> _characters;
 };
-
 
 NS_DOROTHY_END

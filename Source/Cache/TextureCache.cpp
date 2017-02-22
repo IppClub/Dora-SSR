@@ -197,7 +197,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			{
 				if (data)
 				{
-					Async::Process.run([data, size]()
+					SharedAsyncThread.Process.run([data, size]()
 					{
 						auto localData = MakeOwnArray(data, s_cast<size_t>(size));
 						uint8_t* out = nullptr;

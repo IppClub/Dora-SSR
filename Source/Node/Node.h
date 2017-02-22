@@ -139,7 +139,7 @@ public:
 	bool traverse(const Func& func)
 	{
 		if (func(this)) return true;
-		if (_children)
+		if (_children && _flags.isOn(Node::TraverseEnabled))
 		{
 			for (auto child : _children->data())
 			{
@@ -208,7 +208,8 @@ protected:
 		SwallowTouches = 1 << 11,
 		KeypadEnabled = 1 << 12,
 		KeyboardEnabled = 1 << 13,
-		UserFlag = 1 << 14
+		TraverseEnabled = 1 << 14,
+		UserFlag = 1 << 15
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

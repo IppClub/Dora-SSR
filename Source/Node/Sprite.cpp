@@ -275,7 +275,7 @@ const float* Sprite::getWorld()
 
 void Sprite::render()
 {
-	if (!_texture || !_effect) return;
+	if (!_texture || !_effect || _textureRect.size == Size::zero) return;
 
 	if (_flags.isOn(Sprite::VertexColorDirty))
 	{

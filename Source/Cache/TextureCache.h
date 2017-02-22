@@ -46,9 +46,10 @@ protected:
 private:
 	unordered_map<string, Ref<Texture2D>> _textures;
 	DORA_TYPE(TextureCache);
+	SINGLETON(TextureCache, "BGFXDora");
 };
 
 #define SharedTextureCache \
-	silly::Singleton<TextureCache, SingletonIndex::TextureCache>::shared()
+	Dorothy::Singleton<Dorothy::TextureCache>::shared()
 
 NS_DOROTHY_END

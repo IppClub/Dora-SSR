@@ -33,6 +33,16 @@ public:
 	void invokeInRender(const function<void()>& func);
 	void invokeInLogic(const function<void()>& func);
 	static int mainLogic(void* userData);
+#if BX_PLATFORM_WINDOWS
+	inline void* operator new(size_t i)
+	{
+		return _mm_malloc(i, 16);
+	}
+	inline void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
+#endif // BX_PLATFORM_WINDOWS
 protected:
 	Application();
 	void updateDeltaTime();
@@ -52,9 +62,21 @@ private:
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
 	SDL_Window* _sdlWindow;
+	SINGLETON(Application, "LuaEngine");
 };
 
 #define SharedApplication \
-	silly::Singleton<Dorothy::Application, Dorothy::SingletonIndex::Application>::shared()
+	Dorothy::Singleton<Dorothy::Application>::shared()
+
+class BGFXDora
+{
+public:
+	bool init();
+	virtual ~BGFXDora();
+	SINGLETON(BGFXDora, "Director");
+};
+
+#define SharedBGFX \
+	Dorothy::Singleton<Dorothy::BGFXDora>::shared()
 
 NS_DOROTHY_END

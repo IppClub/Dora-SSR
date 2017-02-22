@@ -87,9 +87,10 @@ protected:
 private:
 	vector<TouchHandler*> _handlers;
 	list<SDL_Event> _events;
+	SINGLETON(TouchDispatcher, "Director");
 };
 
 #define SharedTouchDispatcher \
-	silly::Singleton<TouchDispatcher, SingletonIndex::TouchDispatcher>::shared()
+	Dorothy::Singleton<Dorothy::TouchDispatcher>::shared()
 
 NS_DOROTHY_END

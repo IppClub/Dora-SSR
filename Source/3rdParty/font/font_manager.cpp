@@ -74,6 +74,7 @@ public:
 	/// @ remark buffer min size: glyphInfo.m_width * glyphInfo * height * sizeof(char)
 	bool bakeGlyphDistance(CodePoint _codePoint, GlyphInfo& _outGlyphInfo, uint8_t* _outBuffer);
 
+	FT_Face getFace() const;
 private:
 	FTHolder* m_font;
 };
@@ -165,6 +166,7 @@ FontInfo TrueTypeFont::getFontInfo()
 	outFontInfo.descender = metrics.descender / 64.0f;
 	outFontInfo.lineGap = (metrics.height - metrics.ascender + metrics.descender) / 64.0f;
 	outFontInfo.maxAdvanceWidth = metrics.max_advance/ 64.0f;
+	outFontInfo.commonHeight = metrics.height / 64.0f;
 
 	outFontInfo.underlinePosition = FT_MulFix(m_font->face->underline_position, metrics.y_scale) / 64.0f;
 	outFontInfo.underlineThickness = FT_MulFix(m_font->face->underline_thickness, metrics.y_scale) / 64.0f;
@@ -361,6 +363,11 @@ struct FontManager::CachedFont
 	int16_t padding;
 };
 
+FT_Face TrueTypeFont::getFace() const
+{
+	return m_font->face;
+}
+
 #define MAX_FONT_BUFFER_SIZE (512 * 512 * 4)
 
 FontManager::FontManager(uint16_t _textureSideWidth)
@@ -375,7 +382,7 @@ void FontManager::init()
 	m_cachedFiles = NewArray<CachedFile>(MAX_OPENED_FILES);
 	m_cachedFonts = NewArray<CachedFont>(MAX_OPENED_FONT);
 	m_buffer = NewArray<uint8_t>(MAX_FONT_BUFFER_SIZE);
-	m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray);
+	m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray, false);
 	m_atlases.push_back(m_currentAtlas);
 	
 	const uint32_t W = 3;
@@ -609,6 +616,28 @@ bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data)
 	_glyphInfo.regionIndex = regionIndex;
 	_glyphInfo.atlas = m_currentAtlas;
 	return true;
+}
+
+uint32_t FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight)
+{
+	const CachedFont& font = m_cachedFonts[_handle.idx];
+	TrueTypeFont* trueTypeFont = font.trueTypeFont ? font.trueTypeFont : m_cachedFonts[font.masterFontHandle.idx].trueTypeFont;
+	if (!FT_HAS_KERNING(trueTypeFont->getFace()))
+	{
+		return 0;
+	}
+	const GlyphHashMap& cachedGlyphs = font.cachedGlyphs;
+	GlyphHashMap::const_iterator left = cachedGlyphs.find(_codeLeft);
+	GlyphHashMap::const_iterator right = cachedGlyphs.find(_codeRight);
+	if (left != cachedGlyphs.end() && right != cachedGlyphs.end())
+	{
+		int32_t leftIndex= left->second.glyphIndex;
+		int32_t rightIndex= right->second.glyphIndex;
+		FT_Vector vec;
+		FT_Get_Kerning(trueTypeFont->getFace(), leftIndex, rightIndex, FT_KERNING_DEFAULT, &vec);
+		return s_cast<uint32_t>(vec.x >> 6);
+	}
+	return 0;
 }
 
 } // namespace bgfx

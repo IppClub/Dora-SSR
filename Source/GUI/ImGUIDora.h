@@ -25,6 +25,7 @@ public:
 	void begin();
 	void end();
 	void handleEvent(const SDL_Event& event);
+	void updateTexture(Uint8* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
 protected:
 	ImGUIDora();
@@ -47,9 +48,10 @@ private:
 	int _textLength;
 	int _cursor;
 	char _textEditing[SDL_TEXTINPUTEVENT_TEXT_SIZE];
+	SINGLETON(ImGUIDora, "BGFXDora");
 };
 
 #define SharedImGUI \
-	silly::Singleton<ImGUIDora, SingletonIndex::ImGUIDora>::shared()
+	Dorothy::Singleton<Dorothy::ImGUIDora>::shared()
 
 NS_DOROTHY_END

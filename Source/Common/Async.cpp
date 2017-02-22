@@ -13,9 +13,6 @@ NS_DOROTHY_BEGIN
 
 const Ref<Values> Values::None;
 
-Async Async::FileIO;
-Async Async::Process;
-
 Async::~Async()
 {
 	if (_thread.isRunning())

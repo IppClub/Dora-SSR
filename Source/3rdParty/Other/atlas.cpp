@@ -248,7 +248,7 @@ void RectanglePacker::merge()
 	}
 }
 
-Atlas::Atlas(uint16_t _textureSize, Type type, uint16_t _maxRegionsCount)
+Atlas::Atlas(uint16_t _textureSize, Type type, bool antiAlias, uint16_t _maxRegionsCount)
 	: m_textureSize(_textureSize)
 	, m_regionCount(0)
 	, m_maxRegionCount(_maxRegionsCount)
@@ -274,6 +274,7 @@ Atlas::Atlas(uint16_t _textureSize, Type type, uint16_t _maxRegionsCount)
 		, false
 		, 1
 		, format
+		, antiAlias ? (BGFX_TEXTURE_NONE) : (BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT)
 		);
 
 	bgfx::TextureInfo info;
@@ -299,7 +300,7 @@ Atlas::~Atlas()
 void Atlas::init()
 {
 	m_texelSize = float(UINT16_MAX) / float(m_textureSize);
-	float texelHalf = m_texelSize/2.0f;
+	float texelHalf = m_texelSize / 2.0f;
 	switch (bgfx::getRendererType() )
 	{
 	case bgfx::RendererType::Direct3D9:

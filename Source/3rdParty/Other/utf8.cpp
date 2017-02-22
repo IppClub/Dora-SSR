@@ -20,7 +20,7 @@
 // DEALINGS IN THE SOFTWARE.
 
 #include "Other/utf8.h"
-#include <string>
+#include <cctype>
 
 static const uint8_t s_utf8d[364] =
 {
@@ -50,18 +50,19 @@ uint32_t utf8_decode(uint32_t* _state, uint32_t* _codep, uint8_t _ch)
 	uint32_t type = s_utf8d[byte];
 
 	*_codep = (*_state != UTF8_ACCEPT) ?
-			  (byte & 0x3fu) | (*_codep << 6) :
-			  (0xff >> type) & (byte);
+		(byte & 0x3fu) | (*_codep << 6) :
+		(0xff >> type) & (byte);
 
 	*_state = s_utf8d[256 + *_state + type];
 	return *_state;
 }
 
-int utf8_countCharacters(const char* str)
+int utf8_count_characters(const char* utf8str)
 {
 	uint32_t codepoint = 0;
 	uint32_t state = 0;
 	int count = 0;
+	const char* str = utf8str;
 	const char* end = str + strlen(str);
 	for (; *str && str < end; ++str)
 	{
@@ -71,4 +72,95 @@ int utf8_countCharacters(const char* str)
 		}
 	}
 	return state == UTF8_ACCEPT ? count : 0;
+}
+
+std::vector<uint32_t> utf8_get_characters(const char* utf8str)
+{
+	std::vector<uint32_t> characters;
+	uint32_t codepoint = 0;
+	uint32_t state = UTF8_ACCEPT;
+	const char* str = utf8str;
+	const char* end = str + strlen(str);
+	for (; *str && str < end; ++str)
+	{
+		if (utf8_decode(&state, &codepoint, *str) == UTF8_ACCEPT)
+		{
+			characters.push_back(codepoint);
+		}
+	}
+	if (state != UTF8_ACCEPT)
+	{
+		characters.clear();
+	}
+	return characters;
+}
+
+bool utf8_isspace(uint32_t ch)
+{
+	return  (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 || ch == 0x1680
+		|| (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 || ch == 0x202F
+		|| ch == 0x205F || ch == 0x3000;
+}
+
+static void utf8_trim_from(std::vector<uint32_t>& str, int index)
+{
+	int size = (int)str.size();
+	if (index >= size || index < 0)
+	{
+		return;
+	}
+	str.erase(str.begin() + index, str.begin() + size);
+}
+
+void utf8_trim_ws(std::vector<uint32_t>& str)
+{
+	if (str.empty())
+	{
+		return;
+	}
+	int last_index = (int)str.size() - 1;
+	// Only start trimming if the last character is whitespace..
+	if (utf8_isspace(str[last_index]))
+	{
+		for (int i = last_index - 1; i >= 0; --i)
+		{
+			if (utf8_isspace(str[i]))
+			{
+				last_index = i;
+			}
+			else
+			{
+				break;
+			}
+		}
+		utf8_trim_from(str, last_index);
+	}
+}
+
+uint32_t utf8_find_last_not_char(const std::vector<uint32_t>& str, uint32_t ch)
+{
+	int len = (int)str.size();
+	int i = len - 1;
+	for (; i >= 0; --i)
+	{
+		if (str[i] != ch)
+		{
+			return i;
+		}
+	}
+	return i;
+}
+
+uint32_t utf8_find_last_not_alnum(const std::vector<uint32_t>& str)
+{
+	int len = (int)str.size();
+	int i = len - 1;
+	for (; i >= 0; --i)
+	{
+		if (str[i] > 255 || !std::isalnum(str[i]))
+		{
+			return i;
+		}
+	}
+	return i;
 }

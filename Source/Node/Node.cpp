@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Node::Node():
-_flags(Node::Visible|Node::PassOpacity|Node::PassColor3|Node::SwallowTouches),
+_flags(Node::Visible|Node::PassOpacity|Node::PassColor3|Node::SwallowTouches|Node::TraverseEnabled),
 _order(0),
 _color(),
 _angle(0.0f),
@@ -317,6 +317,7 @@ bool Node::isPassColor3() const
 void Node::setTransformTarget(Node* var)
 {
 	_transformTarget = var;
+	_flags.setOn(Node::WorldDirty);
 }
 
 Node* Node::getTransformTarget() const
@@ -657,6 +658,11 @@ bool Node::update(double deltaTime)
 
 void Node::visit()
 {
+	if (_flags.isOff(Node::Visible))
+	{
+		return;
+	}
+
 	/* get world matrix */
 	getWorld();
 
@@ -809,6 +815,7 @@ const float* Node::getWorld()
 		if (_transformTarget)
 		{
 			parentWorld = _transformTarget->getWorld();
+			_flags.setOn(Node::WorldDirty);
 		}
 		else if (_parent)
 		{
