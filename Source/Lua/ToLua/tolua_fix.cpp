@@ -162,23 +162,23 @@ void tolua_stack_dump(lua_State* L, int offset, const char* label)
 	{
 		return;
 	}
-    Print("Total [%d] in lua stack: %s\n", top, label != 0 ? label : "");
+    LogPrint("Total [%d] in lua stack: %s\n", top, label != 0 ? label : "");
     for (int i = -1; i >= -top; i--)
     {
         int t = lua_type(L, i);
         switch (t)
         {
             case LUA_TSTRING:
-                Print("  [%02d] [string] %s\n", i, lua_tostring(L, i));
+                LogPrint("  [%02d] [string] %s\n", i, lua_tostring(L, i));
                 break;
             case LUA_TBOOLEAN:
-                Print("  [%02d] [boolean] %s\n", i, lua_toboolean(L, i) ? "true" : "false");
+                LogPrint("  [%02d] [boolean] %s\n", i, lua_toboolean(L, i) ? "true" : "false");
                 break;
             case LUA_TNUMBER:
-                Print("  [%02d] [number] %g\n", i, lua_tonumber(L, i));
+                LogPrint("  [%02d] [number] %g\n", i, lua_tonumber(L, i));
                 break;
             default:
-                Print("  [%02d] %s\n", i, lua_typename(L, t));
+                LogPrint("  [%02d] %s\n", i, lua_typename(L, t));
         }
     }
 }

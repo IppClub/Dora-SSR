@@ -366,22 +366,43 @@ int main(int argc, char *argv[])
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS
+
+#if DORA_DEBUG
+NS_DOROTHY_BEGIN
+
+class Console
+{
+public:
+	~Console()
+	{
+		system("pause");
+		FreeConsole();
+	}
+	inline void init()
+	{
+		AllocConsole();
+		freopen("CONIN$", "r", stdin);
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONOUT$", "w", stderr);
+	}
+	SINGLETON_REF(Console);
+	SINGLETON_REF(AsyncLogThread, Console);
+};
+#define SharedConsole \
+	Dorothy::Singleton<Dorothy::Console>::shared()
+
+NS_DOROTHY_END
+#endif // DORA_DEBUG
+
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine,
 	_In_ int nCmdShow)
 {
-#ifndef NDEBUG
-	AllocConsole();
-	freopen("CONIN$", "r", stdin);
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr);
+#if DORA_DEBUG
+	SharedConsole.init();
 #endif
-	int result = SharedApplication.run();
-#ifndef NDEBUG
-	FreeConsole();
-#endif
-	return result;
+	return SharedApplication.run();
 }
 #endif // BX_PLATFORM_WINDOWS

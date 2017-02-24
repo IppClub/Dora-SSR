@@ -34,7 +34,7 @@ private:
 	float _fieldOfView;
 	float _projection[16];
 	DORA_TYPE(View);
-	SINGLETON(View, "Director");
+	SINGLETON_REF(View, Director);
 };
 
 #define SharedView \

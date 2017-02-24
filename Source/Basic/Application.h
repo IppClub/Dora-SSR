@@ -62,7 +62,7 @@ private:
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
 	SDL_Window* _sdlWindow;
-	SINGLETON(Application, "LuaEngine");
+	SINGLETON_REF(Application, LuaEngine);
 };
 
 #define SharedApplication \
@@ -73,7 +73,7 @@ class BGFXDora
 public:
 	bool init();
 	virtual ~BGFXDora();
-	SINGLETON(BGFXDora, "Director");
+	SINGLETON_REF(BGFXDora, Director);
 };
 
 #define SharedBGFX \

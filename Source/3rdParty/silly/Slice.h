@@ -25,6 +25,7 @@
 #include <cassert>
 #include <cstring>
 #include <string>
+#include <list>
 
 namespace silly {
 
@@ -116,6 +117,7 @@ class Slice {
   std::string getFileExtension() const;
   std::string toLower() const;
   std::string toUpper() const;
+  std::list<Slice> split(const Slice& delimer) const;
 
   static const std::string Empty;
 

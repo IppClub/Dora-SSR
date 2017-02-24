@@ -14,16 +14,89 @@ NS_DOROTHY_BEGIN
 
 struct LifeCycler
 {
-	~LifeCycler()
+	void destroy(String itemName = Slice::Empty)
 	{
-		for (auto name : names)
+		unordered_set<string> entries;
+		if (itemName.empty())
 		{
-			Life::destroy(name);
+			for (const auto& life : lives)
+			{
+				entries.insert(life.first);
+			}
+			for (const auto& itemRef : itemRefs)
+			{
+				entries.insert(itemRef.first);
+			}
+			for (auto& ref : refs)
+			{
+				ref.visited = false;
+				auto entry = entries.find(ref.target);
+				if (entry != entries.end())
+				{
+					entries.erase(entry);
+				}
+			}
+		}
+		else
+		{
+			for (auto& ref : refs)
+			{
+				ref.visited = false;
+			}
+			entries.insert(itemName);
+		}
+		vector<string> items;
+		for (const auto& entry : entries)
+		{
+			queue<Slice> refList;
+			refList.push(entry);
+			while (!refList.empty())
+			{
+				Slice name = refList.front();
+				refList.pop();
+				items.push_back(name);
+				auto it = itemRefs.find(name);
+				if (it != itemRefs.end())
+				{
+					for (Reference* ref : *it->second)
+					{
+						if (!ref->visited)
+						{
+							ref->visited = true;
+							refList.push(ref->target);
+						}
+					}
+				}
+			}
+		}
+#if DORA_DEBUG
+		for (auto it = items.rbegin(); it != items.rend(); ++it)
+		{
+			if (lives.find(*it) != lives.end())
+			{
+				Log("destroy singleton \"%s\".", *it);
+			}
+		}
+#endif // DORA_DEBUG
+		for (auto it = items.rbegin(); it != items.rend(); ++it)
+		{
+			lives.erase(*it);
+			itemRefs.erase(*it);
 		}
 	}
+	~LifeCycler()
+	{
+		destroy();
+	}
+	struct Reference
+	{
+		bool visited;
+		string target;
+	};
+	list<Reference> refs;
 	unordered_set<string> names;
 	unordered_map<string, Own<Life>> lives;
-	unordered_map<string, Own<list<string>>> references;
+	unordered_map<string, Own<vector<Reference*>>> itemRefs;
 };
 
 Own<LifeCycler> g_cycler;
@@ -45,27 +118,32 @@ void Life::assertIf(bool disposed, String name)
 {
 	AssertIf(disposed, "accessing disposed singleton instance named \"%s\".", name);
 }
-#endif
+#endif // DORA_DEBUG
 
 void Life::addName(String name)
 {
 	LifeCycler* cycler = getCycler();
 	cycler->names.insert(name);
+	if (cycler->lives.find(name) == cycler->lives.end())
+	{
+		cycler->lives[name] = nullptr;
+	}
 }
 
 void Life::addDependency(String target, String dependency)
 {
 	LifeCycler* cycler = getCycler();
-	auto it = cycler->references.find(dependency);
-	if (it == cycler->references.end())
+	cycler->refs.push_back(LifeCycler::Reference{false, target});
+	auto it = cycler->itemRefs.find(dependency);
+	if (it == cycler->itemRefs.end())
 	{
-		auto refs = new list<string>();
-		refs->push_back(target);
-		cycler->references[dependency] = MakeOwn(refs);
+		auto refList = new vector<LifeCycler::Reference*>();
+		refList->push_back(&cycler->refs.back());
+		cycler->itemRefs[dependency] = MakeOwn(refList);
 	}
 	else
 	{
-		it->second->push_back(target);
+		it->second->push_back(&cycler->refs.back());
 	}
 }
 
@@ -78,23 +156,7 @@ void Life::addItem(String name, Life* life)
 void Life::destroy(String name)
 {
 	LifeCycler* cycler = getCycler();
-	auto it = cycler->references.find(name);
-	if (it != cycler->references.end())
-	{
-		auto items = std::move(it->second);
-		cycler->references.erase(it);
-		for (const auto& item : *items)
-		{
-			destroy(item);
-		}
-	}
-	AssertUnless(cycler->names.find(name) != cycler->names.end(), "no singleton class named \"%s\".", name);
-	auto itemIt = cycler->lives.find(name);
-	if (itemIt != cycler->lives.end())
-	{
-		Log("destroy singleton \"%s\".", name);
-		cycler->lives.erase(itemIt);
-	}
+	cycler->destroy(name);
 }
 
 NS_DOROTHY_END

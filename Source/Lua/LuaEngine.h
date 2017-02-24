@@ -66,7 +66,7 @@ protected:
 	LuaEngine();
 	static int _callFromLua;
 	lua_State* L;
-	SINGLETON(LuaEngine, "ObjectBase");
+	SINGLETON_REF(LuaEngine, ObjectBase);
 };
 
 #define SharedLueEngine \

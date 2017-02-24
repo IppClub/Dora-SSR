@@ -8,13 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#if BX_PLATFORM_ANDROID
-	#include <jni.h>
-	#include <android/log.h>
-#else
-	#include <cstdio>
-	#include <cassert>
-#endif
+#include <cassert>
+#include "fmt/printf.h"
 
 NS_DOROTHY_BEGIN
 
@@ -29,26 +24,24 @@ inline const char* Argument(const string& value)
 	return value.empty() ? "" : value.c_str();
 }
 
+void LogPrintInThread(const string& str);
+
 /** @brief The print function for debugging output. */
 template <typename ...Args>
-void Print(const char* format, const Args& ...args) noexcept
+void LogPrint(const char* format, const Args& ...args) noexcept
 {
-#if BX_PLATFORM_ANDROID
-	__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", format, Argument(args)...);
-#else
-	printf(format, Argument(args)...);
-#endif
+	LogPrintInThread(fmt::sprintf(format, Argument(args)...));
 }
-inline void Print(const char* str)
+inline void LogPrint(const char* str)
 {
-	Print("%s", str);
+	LogPrint("%s", str);
 }
 
-#if !defined(DORA_DEBUG) || DORA_DEBUG == 0
+#if !defined(DORA_DEBUG) || !DORA_DEBUG
 	#define Log(...) DORA_DUMMY
 #else
 	#define Log(format, ...) \
-		Print("[Dorothy Log] " \
+		LogPrint("[Dorothy Log] " \
 			format \
 			"\n",  ##__VA_ARGS__)
 #endif
@@ -71,10 +64,10 @@ inline void Print(const char* str)
 		{ \
 			if (cond) \
 			{ \
-				Print("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+				LogPrint("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
 					__FILE__, __FUNCTION__, __LINE__); \
-				Print(__VA_ARGS__); \
-				Print("\n"); \
+				LogPrint(__VA_ARGS__); \
+				LogPrint("\n"); \
 				DORA_ASSERT(!(cond)); \
 			} \
 		}
@@ -82,10 +75,10 @@ inline void Print(const char* str)
 		{ \
 			if (!(cond)) \
 			{ \
-				Print("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+				LogPrint("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
 					__FILE__, __FUNCTION__, __LINE__); \
-				Print(__VA_ARGS__); \
-				Print("\n"); \
+				LogPrint(__VA_ARGS__); \
+				LogPrint("\n"); \
 				DORA_ASSERT(cond); \
 			} \
 		}

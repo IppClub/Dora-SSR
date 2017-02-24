@@ -38,7 +38,7 @@ protected:
 	string getShaderPath() const;
 private:
 	unordered_map<string, Ref<Shader>> _shaders;
-	SINGLETON(ShaderCache, "BGFXDora");
+	SINGLETON_REF(ShaderCache, BGFXDora);
 };
 
 #define SharedShaderCache \

@@ -39,7 +39,7 @@ static int dora_print(lua_State* L)
 		}
 		if (i != nargs) t += "\t";
 	}
-	Print("%s\n", t);
+	LogPrint("%s\n", t);
 	return 0;
 }
 
@@ -50,7 +50,7 @@ static int dora_traceback(lua_State* L)
 	lua_getfield(L, -1, "traceback"); // err debug traceback
 	lua_pushvalue(L, -3); // err debug traceback err
 	lua_call(L, 1, 1); // traceback(err), err debug tace
-	Print(lua_tostring(L, -1));
+	LogPrint(lua_tostring(L, -1));
 	lua_pop(L, 3); // empty
 	return 0;
 }

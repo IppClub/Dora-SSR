@@ -46,7 +46,7 @@ protected:
 private:
 	unordered_map<string, Ref<Texture2D>> _textures;
 	DORA_TYPE(TextureCache);
-	SINGLETON(TextureCache, "BGFXDora");
+	SINGLETON_REF(TextureCache, BGFXDora);
 };
 
 #define SharedTextureCache \

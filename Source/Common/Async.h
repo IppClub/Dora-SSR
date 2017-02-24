@@ -56,16 +56,21 @@ class Async
 {
 	typedef std::pair<function<Ref<Values> ()>,function<void (Values*)>> Package;
 public:
-	~Async();
-	void run(function<Ref<Values> ()> worker, function<void(Values*)> finisher);
+	Async();
+	virtual ~Async();
+	void run(function<Ref<Values>()> worker, function<void(Values*)> finisher);
+	void run(function<void()> worker);
 	void pause();
 	void resume();
 	void cancel();
+	void stop();
 	static int work(void* userData);
 private:
+	bool _scheduled;
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	bx::Semaphore _pauseSemaphore;
+	vector<function<void()>> _workers;
 	vector<Package> _packages;
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
@@ -86,10 +91,33 @@ public:
 		_mm_free(p);
 	}
 #endif // BX_PLATFORM_WINDOWS
-	SINGLETON(AsyncThread, "ObjectBase");
+	SINGLETON_REF(AsyncThread, ObjectBase);
 };
 
 #define SharedAsyncThread \
 	Dorothy::Singleton<Dorothy::AsyncThread>::shared()
+
+class AsyncLogThread : public Async
+{
+public:
+	virtual ~AsyncLogThread()
+	{
+		Async::stop();
+	}
+#if BX_PLATFORM_WINDOWS
+	inline void* operator new(size_t i)
+	{
+		return _mm_malloc(i, 16);
+	}
+	inline void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
+#endif // BX_PLATFORM_WINDOWS
+	SINGLETON_REF(AsyncLogThread);
+};
+
+#define SharedAsyncLogThread \
+	Dorothy::Singleton<Dorothy::AsyncLogThread>::shared()
 
 NS_DOROTHY_END

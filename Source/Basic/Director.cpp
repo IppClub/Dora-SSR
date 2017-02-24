@@ -128,7 +128,7 @@ bool Director::init()
 	//label->setAnchor(Vec2(0,1));
 	//label->setScaleY(2.0f);
 	//label->setScaleX(2.0f);
-	Log("%f,%f", label->getWidth(), label->getHeight());
+	//Log("%f,%f", label->getWidth(), label->getHeight());
 	pushEntry(label);
 
 	if (!SharedImGUI.init())

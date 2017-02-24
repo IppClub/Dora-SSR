@@ -87,7 +87,7 @@ protected:
 private:
 	vector<TouchHandler*> _handlers;
 	list<SDL_Event> _events;
-	SINGLETON(TouchDispatcher, "Director");
+	SINGLETON_REF(TouchDispatcher, Director);
 };
 
 #define SharedTouchDispatcher \

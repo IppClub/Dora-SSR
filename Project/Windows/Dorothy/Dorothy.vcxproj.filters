@@ -67,6 +67,9 @@
     <Filter Include="3rdParty\font">
       <UniqueIdentifier>{ec689630-09a4-4fac-9508-7a5f2c8b6772}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\fmt">
+      <UniqueIdentifier>{f188fd82-326e-413e-9cd2-2efc7d44bd9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -207,9 +210,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\font\font_manager.cpp">
       <Filter>3rdParty\font</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\font\text_metrics.cpp">
-      <Filter>3rdParty\font</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Other\atlas.cpp">
       <Filter>3rdParty\Other</Filter>
     </ClCompile>
@@ -217,6 +217,18 @@
       <Filter>Node</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Common\Singleton.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\ostream.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\printf.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Debug.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -401,9 +413,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h">
       <Filter>3rdParty\font</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\font\text_metrics.h">
-      <Filter>3rdParty\font</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Other\atlas.h">
       <Filter>3rdParty\Other</Filter>
     </ClInclude>
@@ -412,6 +421,24 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Singleton.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\container.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\string.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h">
+      <Filter>3rdParty\fmt</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -52,7 +52,7 @@ private:
 	vector<string> _searchPaths;
 	unordered_map<string, string> _fullPathCache;
 	DORA_TYPE(Content);
-	SINGLETON(Content, "Application");
+	SINGLETON_REF(Content, Application);
 };
 
 #define SharedContent \

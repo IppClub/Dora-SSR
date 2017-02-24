@@ -14,14 +14,13 @@ class Life
 {
 public:
 	virtual ~Life() { }
-	virtual const string& getName() const = 0;
 	static void addDependency(String target, String dependency);
 	static void addItem(String name, Life* life);
 	static void addName(String name);
 	static void destroy(String name);
 #if DORA_DEBUG
 	static void assertIf(bool disposed, String name);
-#endif
+#endif // DORA_DEBUG
 };
 
 template <class T>
@@ -39,7 +38,7 @@ public:
 		static auto* _instance = new Singleton();
 #if DORA_DEBUG
 		Life::assertIf(_disposed, _name);
-#endif
+#endif // DORA_DEBUG
 		return *_instance;
 	}
 
@@ -48,7 +47,7 @@ public:
 		_disposed = true;
 	}
 
-	virtual const string& getName() const override
+	const string& getName() const
 	{
 		return _name;
 	}
@@ -68,12 +67,14 @@ public:
 		return _disposed;
 	}
 
-	static void setDependencyInfo(String name, const vector<const char*>& dependencies)
+	static void setDependencyInfo(String name, String dependencyStr)
 	{
 		_name = name;
 		Life::addName(name);
-		for (const auto& dependency : dependencies)
+		auto dependencies = dependencyStr.split(",");
+		for (auto& dependency : dependencies)
 		{
+			dependency.trimSpace();
 			Life::addDependency(name, dependency);
 		}
 	}
@@ -89,13 +90,14 @@ string Singleton<T>::_name;
 template <class T>
 bool Singleton<T>::_disposed = true;
 
-#define SINGLETON(type, ...) \
+#define SINGLETON_REF(type, ...) \
 private: \
-	struct type##_initializer \
+	struct type##_ref_initializer \
 	{ \
-		type##_initializer() \
+		type##_ref_initializer() \
 		{ \
-			Singleton<type>::setDependencyInfo(#type, {__VA_ARGS__}); \
+			const char* info[] = {nullptr, #__VA_ARGS__}; \
+			Singleton<type>::setDependencyInfo(#type, (sizeof(info)/sizeof(*info) == 1 ? "" : info[1])); \
 		} \
 	} __##type##_initializer__
 

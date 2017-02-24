@@ -27,7 +27,7 @@ public:
 	Uint32 luaRefCount;
 	stack<Uint32> availableLuaRefs;
 	stack<Uint32> availableIds;
-	SINGLETON(ObjectBase);
+	SINGLETON_REF(ObjectBase, AsyncLogThread);
 };
 
 #define SharedObjectBase \

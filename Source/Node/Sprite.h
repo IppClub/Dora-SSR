@@ -92,7 +92,7 @@ private:
 	Uint64 _lastState;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
-	SINGLETON(SpriteRenderer, "BGFXDora");
+	SINGLETON_REF(SpriteRenderer, BGFXDora);
 };
 
 #define SharedSpriteRenderer \

@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\ostream.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\printf.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\font\font_manager.cpp" />
-    <ClCompile Include="..\..\..\Source\3rdParty\font\text_metrics.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp" />
@@ -43,6 +45,7 @@
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\Debug.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Singleton.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Utils.cpp" />
     <ClCompile Include="..\..\..\Source\Effect\Effect.cpp" />
@@ -73,8 +76,13 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\container.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\string.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\font\text_metrics.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h" />

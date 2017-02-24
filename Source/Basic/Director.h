@@ -48,7 +48,7 @@ private:
 	Ref<Scheduler> _systemScheduler;
 	Ref<Camera> _camera;
 	float _viewProj[16];
-	SINGLETON(Director, "Application");
+	SINGLETON_REF(Director, Application);
 };
 
 #define SharedDirector \

@@ -13,11 +13,23 @@ NS_DOROTHY_BEGIN
 
 const Ref<Values> Values::None;
 
+Async::Async():
+_scheduled(false)
+{ }
+
 Async::~Async()
 {
 	if (_thread.isRunning())
 	{
 		Async::cancel();
+		Async::stop();
+	}
+}
+
+void Async::stop()
+{
+	if (_thread.isRunning())
+	{
 		_workerEvent.post("Stop"_slice);
 		_workerSemaphore.post();
 		_thread.shutdown();
@@ -29,6 +41,10 @@ void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finishe
 	if (!_thread.isRunning())
 	{
 		_thread.init(Async::work, this);
+	}
+	if (!_scheduled)
+	{
+		_scheduled = true;
 		SharedDirector.getSystemScheduler()->schedule([this](double deltaTime)
 		{
 			DORA_UNUSED_PARAM(deltaTime);
@@ -44,7 +60,17 @@ void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finishe
 		});
 	}
 	auto package = std::make_pair(worker, finisher);
-	_workerEvent.post("Work"_slice, package);
+	_workerEvent.post("WorkDone"_slice, package);
+	_workerSemaphore.post();
+}
+
+void Async::run(function<void()> worker)
+{
+	if (!_thread.isRunning())
+	{
+		_thread.init(Async::work, this);
+	}
+	_workerEvent.post("Work"_slice, worker);
 	_workerSemaphore.post();
 }
 
@@ -60,6 +86,13 @@ int Async::work(void* userData)
 			switch (Switch::hash(event->getName()))
 			{
 				case "Work"_hash:
+				{
+					function<void()> worker;
+					event->retrieve(worker);
+					worker();
+					break;
+				}
+				case "WorkDone"_hash:
 				{
 					Package package;
 					event->retrieve(package);
@@ -87,9 +120,23 @@ void Async::pause()
 			event != nullptr;
 			event = _workerEvent.poll())
 		{
-			Package package;
-			event->retrieve(package);
-			_packages.push_back(package);
+			switch (Switch::hash(event->getName()))
+			{
+				case "Work"_hash:
+				{
+					function<void()> worker;
+					event->retrieve(worker);
+					_workers.push_back(worker);
+					break;
+				}
+				case "WorkDone"_hash:
+				{
+					Package package;
+					event->retrieve(package);
+					_packages.push_back(package);
+					break;
+				}
+			}
 		}
 		_workerSemaphore.post();
 		_pauseSemaphore.wait(); // wait for worker to stop
@@ -102,9 +149,14 @@ void Async::resume()
 	{
 		for (const auto& package : _packages)
 		{
-			_workerEvent.post("Work"_slice, package);
+			_workerEvent.post("WorkDone"_slice, package);
+		}
+		for (const auto& worker : _workers)
+		{
+			_workerEvent.post("Work"_slice, worker);
 		}
 		_packages.clear();
+		_workers.clear();
 		_workerSemaphore.post(); // make worker work again
 	}
 }

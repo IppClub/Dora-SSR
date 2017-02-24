@@ -46,8 +46,7 @@ int Slice::compare(const Slice &rhs) const {
   return ret;
 }
 
-std::string Slice::getFilePath() const
-{
+std::string Slice::getFilePath() const {
   std::string filename = toString();
   size_t pos = filename.find_last_of("/\\");
   if (pos == std::string::npos)
@@ -57,48 +56,55 @@ std::string Slice::getFilePath() const
   return filename.substr(0, pos) + "/";
 }
 
-std::string Slice::getFileName() const
-{
-	std::string filename = toString();
-	size_t pos = filename.find_last_of("/\\");
-	if (pos == std::string::npos)
-	{
-		return Slice::Empty;
-	}
-	return filename.substr(pos+1);
+std::string Slice::getFileName() const {
+  std::string filename = toString();
+  size_t pos = filename.find_last_of("/\\");
+  if (pos == std::string::npos) {
+    return Slice::Empty;
+  }
+  return filename.substr(pos+1);
 }
 
-std::string Slice::toLower() const
-{
-	std::string tmp = toString();
-	for (size_t i = 0; i < tmp.length(); i++)
-	{
-		tmp[i] = (char)tolower(tmp[i]);
-	}
-	return tmp;
+std::string Slice::toLower() const {
+  std::string tmp = toString();
+  for (size_t i = 0; i < tmp.length(); i++) {
+    tmp[i] = (char)tolower(tmp[i]);
+  }
+  return tmp;
 }
 
-std::string Slice::toUpper() const
-{
-	std::string tmp = toString();
-	for (size_t i = 0; i < tmp.length(); i++)
-	{
-		tmp[i] = (char)toupper(tmp[i]);
-	}
-	return tmp;
+std::string Slice::toUpper() const {
+  std::string tmp = toString();
+  for (size_t i = 0; i < tmp.length(); i++) {
+    tmp[i] = (char)toupper(tmp[i]);
+  }
+  return tmp;
 }
 
-std::string Slice::getFileExtension() const
-{
-	std::string filename = toString();
-	size_t pos = filename.rfind('.');
-	if (pos == std::string::npos)
-	{
-		return Slice::Empty;
-	}
-	return Slice(filename.substr(pos + 1)).toLower();
+std::string Slice::getFileExtension() const {
+  std::string filename = toString();
+  size_t pos = filename.rfind('.');
+  if (pos == std::string::npos) {
+    return Slice::Empty;
+  }
+  return Slice(filename.substr(pos + 1)).toLower();
 }
 
-}  // namespace slice
+std::list<Slice> Slice::split(const Slice& delims) const {
+  std::string text = toString();
+  std::string delimers = delims.toString();
+  std::list<Slice> tokens;
+  std::size_t start = text.find_first_not_of(delimers), end = 0;
+  while ((end = text.find_first_of(delimers, start)) != std::string::npos) {
+    tokens.push_back(Slice(str_ + start, end - start));
+    start = text.find_first_not_of(delimers, end);
+  }
+  if (start != std::string::npos) {
+    tokens.push_back(Slice(str_ + start));
+  }
+  return tokens;
+}
 
-}  // namespace silly
+} // namespace slice
+
+} // namespace silly

@@ -48,7 +48,9 @@ private:
 	int _textLength;
 	int _cursor;
 	char _textEditing[SDL_TEXTINPUTEVENT_TEXT_SIZE];
-	SINGLETON(ImGUIDora, "BGFXDora");
+	SINGLETON_REF(ImGUIDora, BGFXDora);
+	// font building is calling in thread, so make thread depend on ImGUI
+	SINGLETON_REF(AsyncThread, ImGUIDora);
 };
 
 #define SharedImGUI \
