@@ -169,8 +169,8 @@ private:
 
 #define USE_MEMORY_POOL_SIZE(type, SIZE) \
 public:\
-	inline void* operator new(size_t size) { return _memory.alloc(); }\
-	inline void operator delete(void* ptr, size_t size) { _memory.free(ptr); }\
+	inline void* operator new(size_t) { return _memory.alloc(); }\
+	inline void operator delete(void* ptr, size_t) { _memory.free(ptr); }\
 	static int poolCollect()\
 	{\
 		int oldSize = _memory.capacity();\

@@ -82,6 +82,7 @@ public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	virtual ~SpriteRenderer();
 	void render(Sprite* sprite = nullptr);
+	void render(SpriteVertex* verts, Uint32 size, SpriteEffect* effect, Texture2D* texture, Uint64 state);
 protected:
 	SpriteRenderer();
 	void doRender();

@@ -107,28 +107,14 @@ bool Director::init()
 		0x303030ff, 1.0f, 0);
 	SharedLueEngine.executeScriptFile("Script/main.lua");
 
-	//const wchar_t* ch = L"瑾";
-	//bgfx::FontHandle fontHandle = SharedFontCache.load("NotoSansHans-Regular", 36);
-	//Sprite* sp = SharedFontCache.createCharacter(fontHandle, ch[0]);
-	//sp->setScaleX(0.5f);
-	//sp->setScaleY(0.5f);
-	//sp->setColor3(0x00ffff);
-	//pushEntry(sp);
+	Log("%d", sizeof(Object));
 
 	Label* label = Label::create("NotoSansHans-Regular", 18);
 	label->setTextWidth(600);
 	label->setLineGap(5);
 	label->setAlignment(TextAlignment::Left);
-	label->setText(u8"得");
 	label->setText(u8"tolua++中定义一个C++对象进入Lua系统后，便被转换为一个包含原C++对象指针的Lua Userdata，然后给这个Userdata设置上一个包含所有C++对象可以调用方法的metatable。\n\n使得该Userdata可以调用原C++对象的成员和方法。从而在Lua中提供操作一个C++对象的方法。 <br />&emsp;&emsp;此外tolua++中除了设置好和C++类型继承一致的metatable链，还提供了每个metatable对应的叫做tolua_super的表，里面会记录自己的父类链上的所有父类，用于查询一个Lua中的类型是否是另一个类型的子类。为什么需要这个东西呢？因为一个C++对象可能会被多次在Lua通过不同的接口获取，同一个对象从不同的接口中获取时，可能会显示为不同的类型，如获取Cocos2d-x中一个CCNode的子节点，用getChildByTag获取的是类型为CCNode的子节点，但是从getChildren接口获取的子节点类型为CCObject，而这个子节点在最初创建使用的时候可能其实是一个CCSprite的类型。就是说同一个对象在不同的地方可能会被识别为不同的类型。但是我们为了不重复创建对象而让同一个C++对象只会对应一个Lua Userdata，那么这个Userdata的metatable应该设置为上述的哪一个类型呢？实际上只能是继承链靠后的类型，在CCObject &lt;= CCNode &lt;= CCSprite的继承链中应为CCSprite，因为只有CCSprite类型能满足所有调用该C++对象的场景。所以每次C++对象被Lua获取的时候需要检查类型的继承关系，将Lua中的C++对象升级成更靠后的子类，所以设计了这个tolua_super表来完成这项功能。");
-	//label->setText(u8"得");
-	//label->getCharacter(0)->setTextureRect(Rect(0, 0, 1024, 200));
-	//label->getCharacter(0)->setSize(Size(800, 200));
-	//label->setSize(Size::zero);
-	//label->setAnchor(Vec2(0,1));
-	//label->setScaleY(2.0f);
-	//label->setScaleX(2.0f);
-	//Log("%f,%f", label->getWidth(), label->getHeight());
+
 	pushEntry(label);
 
 	if (!SharedImGUI.init())

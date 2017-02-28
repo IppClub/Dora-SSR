@@ -96,6 +96,22 @@ void SpriteRenderer::render(Sprite* sprite)
 	}
 }
 
+void SpriteRenderer::render(SpriteVertex* verts, Uint32 size, SpriteEffect* effect, Texture2D* texture, Uint64 state)
+{
+	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState)
+	{
+		doRender();
+	}
+	_lastEffect = effect;
+	_lastTexture = texture;
+	_lastState = state;
+	for (Uint32 i = 0; i < size; i++)
+	{
+		_vertices.push_back(verts[i]);
+	}
+}
+
 Sprite::Sprite():
 _effect(SharedSpriteRenderer.getDefaultEffect()),
 _positions{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
