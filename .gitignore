@@ -53,3 +53,6 @@ DerivedData/
 # Ignore lua binding generated codes
 LuaCode.cpp
 LuaBinding.cpp
+
+# Ignore imgui ini file
+imgui.ini

@@ -21,6 +21,7 @@
 
 #include "Other/utf8.h"
 #include <cctype>
+#include <cstring>
 
 static const uint8_t s_utf8d[364] =
 {

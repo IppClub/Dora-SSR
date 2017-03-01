@@ -3,6 +3,10 @@
 * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
 */
 
+#include "Const/Header.h"
+#include "Cache/TextureCache.h"
+using namespace Dorothy;
+
 #include "bx/timer.h"
 #include "bx/fpumath.h"
 #include "bgfx/bgfx.h"
@@ -10,9 +14,6 @@
 #include <limits.h> // INT_MAX
 #include <vector>
 
-#include "Const/Header.h"
-#include "Cache/TextureCache.h"
-using namespace Dorothy;
 #include "Other/atlas.h"
 
 namespace bgfx {

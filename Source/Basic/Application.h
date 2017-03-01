@@ -20,6 +20,7 @@ typedef Delegate<void(const SDL_Event&)> SDLEventHandler;
 class Application
 {
 public:
+	virtual ~Application() { }
 	PROPERTY_READONLY(int, Width);
 	PROPERTY_READONLY(int, Height);
 	PROPERTY_READONLY(double, LastTime);

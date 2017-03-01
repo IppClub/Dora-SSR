@@ -74,7 +74,7 @@ void Content::saveToFile(String filename, String content)
 void Content::saveToFile(String filename, Uint8* content, Sint64 size)
 {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
-	stream.write(r_cast<char*>(content), size);
+	stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size));
 }
 
 bool Content::removeFile(String filename)

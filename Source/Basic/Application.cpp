@@ -370,6 +370,9 @@ int main(int argc, char *argv[])
 #if BX_PLATFORM_WINDOWS
 
 #if DORA_DEBUG
+
+#include "Common/Async.h"
+
 NS_DOROTHY_BEGIN
 
 class Console
