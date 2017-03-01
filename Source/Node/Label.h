@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "font/font_manager.h"
+#include "Support/Geometry.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
@@ -47,6 +49,10 @@ protected:
 
 #define SharedFontManager \
 	Dorothy::Singleton<Dorothy::FontManager>::shared()
+
+class SpriteEffect;
+class Sprite;
+class Texture2D;
 
 class FontCache
 {

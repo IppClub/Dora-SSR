@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/Application.h"
+#include "Basic/AutoreleasePool.h"
+#include "Basic/Director.h"
 #include "bx/timer.h"
 
 #if BX_PLATFORM_ANDROID

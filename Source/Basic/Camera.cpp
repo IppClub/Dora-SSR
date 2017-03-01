@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/Camera.h"
+#include "Basic/View.h"
 
 NS_DOROTHY_BEGIN
 

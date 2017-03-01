@@ -8,8 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "GUI/ImGUIDora.h"
-#include "imgui.h"
+#include "Basic/Application.h"
+#include "Cache/ShaderCache.h"
+#include "Effect/Effect.h"
+#include "Basic/Content.h"
+#include "Basic/Director.h"
+#include "Basic/Scheduler.h"
+#include "Cache/TextureCache.h"
 #include "Other/utf8.h"
+#include "imgui.h"
 
 NS_DOROTHY_BEGIN
 
@@ -112,7 +119,7 @@ bool ImGUIDora::init()
 	_textureSampler = bgfx::createUniform("s_tex", bgfx::UniformType::Int1);
 
 	Sint64 size;
-	Uint8* fileData = SharedContent.loadFileUnsafe("Font/fangzhen14.TTF", size);
+	Uint8* fileData = SharedContent.loadFileUnsafe("Font/fangzhen14.ttf", size);
 	
 	ImFontConfig fontConfig;
 	fontConfig.FontDataOwnedByAtlas = false;

@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Lua/LuaHandler.h"
+#include "Event/Event.h"
 
 NS_DOROTHY_BEGIN
 

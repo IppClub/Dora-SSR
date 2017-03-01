@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Cache/TextureCache.h"
+#include "Basic/Content.h"
+#include "Common/Async.h"
 #include "bx/endian.h"
 #include "lodepng.h"
 

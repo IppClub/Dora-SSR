@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Basic/Object.h"
+
 NS_DOROTHY_BEGIN
 
 /** @brief Used with Aggregation Relationship. 
@@ -49,7 +51,7 @@ public:
 	}
 	inline T* operator->() const
 	{
-		return _item;
+		return s_cast<T*>(_item);
 	}
 	T* operator=(T* item)
 	{
@@ -108,11 +110,11 @@ public:
 	}
 	inline operator T*() const
 	{
-		return _item;
+		return r_cast<T*>(_item);
 	}
 	inline T* get() const
 	{
-		return _item;
+		return r_cast<T*>(_item);
 	}
 	template<class Type>
 	inline Type* to() const
@@ -120,7 +122,7 @@ public:
 		return s_cast<Type*>(_item);
 	}
 private:
-	T* _item;
+	Object* _item;
 };
 
 template <class T>

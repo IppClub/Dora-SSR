@@ -8,6 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/Director.h"
+#include "Basic/Camera.h"
+#include "Basic/Scheduler.h"
+#include "Node/Node.h"
+#include "Basic/Application.h"
+#include "Input/TouchDispather.h"
+#include "Basic/View.h"
+#include "Node/Label.h"
+#include "GUI/ImGUIDora.h"
+#include "Node/Sprite.h"
 #include "bx/timer.h"
 #include "imgui.h"
 

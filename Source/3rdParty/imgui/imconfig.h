@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Const/Header.h"
-using namespace Dorothy;
+#include "Support/Geometry.h"
 
 //---- Define assertion handler. Defaults to calling assert().
 //#define IM_ASSERT(_EXPR)  AssertUnless(_EXPR, "ImGui assert.")
@@ -38,8 +38,8 @@ using namespace Dorothy;
 //---- Define constructor and implicit cast operators to convert back<>forth from your math types and ImVec2/ImVec4.
 
 #define IM_VEC2_CLASS_EXTRA                                                 \
-        ImVec2(const Vec2& f) { x = f.x; y = f.y; }                       \
-        operator Vec2() const { return Vec2(x,y); }
+        ImVec2(const Dorothy::Vec2& f) { x = f.x; y = f.y; }                       \
+        operator Dorothy::Vec2() const { return Dorothy::Vec2(x,y); }
 /*
 #define IM_VEC4_CLASS_EXTRA                                                 \
         ImVec4(const MyVec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }     \

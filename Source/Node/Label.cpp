@@ -11,6 +11,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "font/font_manager.h"
 #include "Other/atlas.h"
 #include "Other/utf8.h"
+#include "Node/Sprite.h"
+#include "Effect/Effect.h"
+#include "Cache/ShaderCache.h"
+#include "Basic/Content.h"
 
 NS_DOROTHY_BEGIN
 

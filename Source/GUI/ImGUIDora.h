@@ -8,12 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Common/Async.h"
+#include "Input/TouchDispather.h"
+
 struct ImDrawData;
 
 NS_DOROTHY_BEGIN
 
 class Listener;
-class TouchHandler;
 class Texture2D;
 class Effect;
 

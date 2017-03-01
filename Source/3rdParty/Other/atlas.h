@@ -17,6 +17,10 @@
 
 #include "bgfx/bgfx.h"
 
+namespace Dorothy {
+class Texture2D;
+}
+
 namespace bgfx {
 
 struct AtlasRegion

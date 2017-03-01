@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "FileSystem/mkdir.h"
 #include "FileSystem/tinydir.h"
+#include "Common/Async.h"
+
 #include <fstream>
 using std::ofstream;
 

@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Node/Node.h"
+
 NS_DOROTHY_BEGIN
 
 struct SpriteVertex
@@ -33,6 +35,9 @@ struct SpriteVertex
 	static bgfx::VertexDecl ms_decl;
 	static Init init;
 };
+
+class SpriteEffect;
+class Texture2D;
 
 class Sprite : public Node
 {

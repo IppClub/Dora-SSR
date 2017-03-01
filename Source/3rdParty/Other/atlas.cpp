@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Const/Header.h"
+#include "Cache/TextureCache.h"
 using namespace Dorothy;
 #include "Other/atlas.h"
 

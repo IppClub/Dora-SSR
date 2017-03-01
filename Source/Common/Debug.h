@@ -11,6 +11,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cassert>
 #include "fmt/printf.h"
 
+#if !DORA_DISABLE_ASSERT_IN_LUA
+#include "Lua/LuaEngine.h"
+#endif // !DORA_DISABLE_ASSERT_IN_LUA
+
 NS_DOROTHY_BEGIN
 
 template <typename T>

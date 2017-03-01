@@ -8,9 +8,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Dorothy.h"
-#include "Lua/LuaManual.h"
-#include "Lua/ToLua/tolua++.h"
-
-int tolua_LuaBinding_open(lua_State* tolua_S);
-int tolua_LuaCode_open(lua_State* tolua_S);
+#include "Const/Header.h"
+#include "Basic/AutoreleasePool.h"
+#include "Basic/Content.h"
+#include "Support/Geometry.h"
+#include "Lua/LuaEngine.h"
+#include "Lua/LuaHandler.h"
+#include "Event/Event.h"
+#include "Event/Listener.h"
+#include "Event/EventQueue.h"
+#include "Basic/Application.h"
+#include "Basic/Director.h"
+#include "Basic/Scheduler.h"
+#include "Common/Async.h"
+#include "Support/Array.h"
+#include "Support/Common.h"
+#include "Input/TouchDispather.h"
+#include "Node/Node.h"
+#include "Cache/TextureCache.h"
+#include "Basic/View.h"
+#include "Basic/Camera.h"
+#include "Cache/ShaderCache.h"
+#include "Effect/Effect.h"
+#include "Node/Sprite.h"
+#include "Input/TouchDispather.h"
+#include "GUI/ImGUIDora.h"
+#include "Node/Label.h"

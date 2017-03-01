@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/View.h"
+#include "Basic/Application.h"
 
 NS_DOROTHY_BEGIN
 

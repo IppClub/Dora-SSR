@@ -112,6 +112,8 @@
 		3C38E6AB1E1513E5003E9189 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../../Source/Basic/Application.mm; sourceTree = "<group>"; };
 		3C3A6FAE1E27B50A0074C076 /* View.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = View.cpp; path = ../../../Source/Basic/View.cpp; sourceTree = "<group>"; };
 		3C3A6FAF1E27B50A0074C076 /* View.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = View.h; path = ../../../Source/Basic/View.h; sourceTree = "<group>"; };
+		3C50976A1E65A1E800896971 /* Dorothy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
+		3C50976C1E65B72500896971 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PrefixHeader.pch; path = ../../../Source/PrefixHeader.pch; sourceTree = "<group>"; };
 		3C57A39B1E0A05AD002141DF /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C57A39C1E0A05AD002141DF /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C57A39D1E0A05AD002141DF /* EventType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventType.cpp; path = ../../../Source/Event/EventType.cpp; sourceTree = "<group>"; };
@@ -527,6 +529,8 @@
 		3CC81FE81D966770008C8B77 /* Dorothy */ = {
 			isa = PBXGroup;
 			children = (
+				3C50976A1E65A1E800896971 /* Dorothy.h */,
+				3C50976C1E65B72500896971 /* PrefixHeader.pch */,
 				3C291D371E0264510098C860 /* 3rdParty */,
 				3C9ADE491E00EFB200D42018 /* Basic */,
 				3CC0986B1E2630D5006F4B76 /* Cache */,
@@ -854,7 +858,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/../../Source/PrefixHeader.pch";
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -884,7 +891,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/../../Source/PrefixHeader.pch";
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";

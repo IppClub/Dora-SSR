@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Common/Debug.h"
+#include "Common/Async.h"
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>

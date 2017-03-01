@@ -14,8 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define NS_DOROTHY_BEGIN namespace Dorothy {
 #define NS_DOROTHY_END }
 
-NS_DOROTHY_BEGIN
-
 /** @brief Debug flag, set with the compilar flag by default. */
 #ifndef DORA_DEBUG
 	#if NDEBUG
@@ -55,5 +53,3 @@ NS_DOROTHY_BEGIN
 #if !DORA_DEBUG
 	#define TOLUA_RELEASE
 #endif
-
-NS_DOROTHY_END

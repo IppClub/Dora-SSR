@@ -8,12 +8,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Geometry.h"
+#include "Support/Common.h"
+#include "Event/Event.h"
+#include "Support/Array.h"
+
 NS_DOROTHY_BEGIN
 
 class Event;
 class Listener;
 class Signal;
 class Slot;
+class Scheduler;
+class TouchHandler;
+class NodeTouchHandler;
 
 typedef Delegate<void (Event* event)> EventHandler;
 
