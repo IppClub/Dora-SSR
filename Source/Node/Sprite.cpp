@@ -23,12 +23,22 @@ _spriteIndices{0, 1, 2, 1, 3, 2},
 _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
-_defaultEffect(SpriteEffect::create(SharedShaderCache.load("vs_sprite.bin"_slice), SharedShaderCache.load("fs_sprite.bin"_slice)))
+_defaultEffect(
+	SpriteEffect::create(SharedShaderCache.load("vs_sprite.bin"_slice),
+	SharedShaderCache.load("fs_sprite.bin"_slice))),
+_defaultModelEffect(
+	SpriteEffect::create(SharedShaderCache.load("vs_spritemodel.bin"_slice),
+	SharedShaderCache.load("fs_sprite.bin"_slice)))
 { }
 
 SpriteEffect* SpriteRenderer::getDefaultEffect() const
 {
 	return _defaultEffect;
+}
+
+SpriteEffect* SpriteRenderer::getDefaultModelEffect() const
+{
+	return _defaultModelEffect;
 }
 
 SpriteRenderer::~SpriteRenderer()
@@ -93,17 +103,19 @@ void SpriteRenderer::render(Sprite* sprite)
 	_lastTexture = texture;
 	_lastState = state;
 
-	const SpriteVertex* verts = sprite->getVertices();
-	for (int i = 0; i < 4; i++)
+	const SpriteQuad& quad = sprite->getQuad();
+	for (Uint32 i = 0; i < 4; i++)
 	{
-		_vertices.push_back(verts[i]);
+		_vertices.push_back(quad[i]);
 	}
 }
 
-void SpriteRenderer::render(SpriteVertex* verts, Uint32 size, SpriteEffect* effect, Texture2D* texture, Uint64 state)
+void SpriteRenderer::render(SpriteVertex* verts, Uint32 size,
+	SpriteEffect* effect, Texture2D* texture, Uint64 state,
+	const float* modelWorld)
 {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
-	if (effect != _lastEffect || texture != _lastTexture || state != _lastState)
+	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState)
 	{
 		doRender();
 	}
@@ -114,11 +126,16 @@ void SpriteRenderer::render(SpriteVertex* verts, Uint32 size, SpriteEffect* effe
 	{
 		_vertices.push_back(verts[i]);
 	}
+	if (modelWorld)
+	{
+		bgfx::setTransform(modelWorld);
+		doRender();
+	}
 }
 
 Sprite::Sprite():
 _effect(SharedSpriteRenderer.getDefaultEffect()),
-_positions{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
+_quadPos{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
 _blendFunc(BlendFunc::Normal),
 _renderState(BGFX_STATE_NONE)
 { }
@@ -216,9 +233,9 @@ Uint64 Sprite::getRenderState() const
 	return _renderState;
 }
 
-const SpriteVertex* Sprite::getVertices() const
+const SpriteQuad& Sprite::getQuad() const
 {
-	return _vertices;
+	return _quad;
 }
 
 void Sprite::updateVertTexCoord()
@@ -230,14 +247,14 @@ void Sprite::updateVertTexCoord()
 		float top = _textureRect.getY() / info.height;
 		float right = (_textureRect.getX() + _textureRect.getWidth()) / info.width;
 		float bottom = (_textureRect.getY() + _textureRect.getHeight()) / info.height;
-		_vertices[0].u = left;
-		_vertices[0].v = top;
-		_vertices[1].u = right;
-		_vertices[1].v = top;
-		_vertices[2].u = left;
-		_vertices[2].v = bottom;
-		_vertices[3].u = right;
-		_vertices[3].v = bottom;
+		_quad.lt.u = left;
+		_quad.lt.v = top;
+		_quad.rt.u = right;
+		_quad.rt.v = top;
+		_quad.lb.u = left;
+		_quad.lb.v = bottom;
+		_quad.rb.u = right;
+		_quad.rb.v = bottom;
 	}
 }
 
@@ -248,14 +265,14 @@ void Sprite::updateVertPosition()
 		float width = _textureRect.getWidth();
 		float height = _textureRect.getHeight();
 		float left = 0, right = width, top = height, bottom = 0;
-		_positions[0].x = left;
-		_positions[0].y = top;
-		_positions[1].x = right;
-		_positions[1].y = top;
-		_positions[2].x = left;
-		_positions[2].y = bottom;
-		_positions[3].x = right;
-		_positions[3].y = bottom;
+		_quadPos.lt.x = left;
+		_quadPos.lt.y = top;
+		_quadPos.rt.x = right;
+		_quadPos.rt.y = top;
+		_quadPos.lb.x = left;
+		_quadPos.lb.y = bottom;
+		_quadPos.rb.x = right;
+		_quadPos.rb.y = bottom;
 		_flags.setOn(Sprite::VertexPosDirty);
 	}
 }
@@ -265,10 +282,10 @@ void Sprite::updateVertColor()
 	if (_texture)
 	{
 		Uint32 abgr = _realColor.toABGR();
-		_vertices[0].abgr = abgr;
-		_vertices[1].abgr = abgr;
-		_vertices[2].abgr = abgr;
-		_vertices[3].abgr = abgr;
+		_quad.lt.abgr = abgr;
+		_quad.rt.abgr = abgr;
+		_quad.lb.abgr = abgr;
+		_quad.rb.abgr = abgr;
 	}
 }
 
@@ -308,10 +325,10 @@ void Sprite::render()
 		_flags.setOff(Sprite::VertexPosDirty);
 		float transform[16];
 		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
-		for (int i = 0; i < 4; i++)
-		{
-			bx::vec4MulMtx(r_cast<float*>(_vertices + i), r_cast<float*>(_positions + i), transform);
-		}
+		bx::vec4MulMtx(&_quad.lt.x, _quadPos.lt, transform);
+		bx::vec4MulMtx(&_quad.rt.x, _quadPos.rt, transform);
+		bx::vec4MulMtx(&_quad.lb.x, _quadPos.lb, transform);
+		bx::vec4MulMtx(&_quad.rb.x, _quadPos.rb, transform);
 	}
 
 	_renderState = (

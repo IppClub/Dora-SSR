@@ -36,6 +36,29 @@ struct SpriteVertex
 	static Init init;
 };
 
+struct SpriteQuad
+{
+	SpriteVertex lt;
+	SpriteVertex rt;
+	SpriteVertex lb;
+	SpriteVertex rb;
+	inline operator SpriteVertex*()
+	{
+		return r_cast<SpriteVertex*>(this);
+	}
+	inline operator const SpriteVertex*() const
+	{
+		return r_cast<const SpriteVertex*>(this);
+	}
+	struct Position
+	{
+		Vec4 lt;
+		Vec4 rt;
+		Vec4 lb;
+		Vec4 rb;
+	};
+};
+
 class SpriteEffect;
 class Texture2D;
 
@@ -48,7 +71,7 @@ public:
 	PROPERTY_REF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
-	PROPERTY_READONLY(const SpriteVertex*, Vertices);
+	PROPERTY_READONLY_REF(SpriteQuad, Quad);
 	virtual ~Sprite();
 	virtual bool init() override;
 	virtual void render() override;
@@ -68,8 +91,8 @@ private:
 	Rect _textureRect;
 	Ref<SpriteEffect> _effect;
 	Ref<Texture2D> _texture;
-	Vec4 _positions[4];
-	SpriteVertex _vertices[4];
+	SpriteQuad::Position _quadPos;
+	SpriteQuad _quad;
 	BlendFunc _blendFunc;
 	Uint64 _renderState;
 	enum
@@ -85,14 +108,18 @@ class SpriteRenderer
 {
 public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
+	PROPERTY_READONLY(SpriteEffect*, DefaultModelEffect);
 	virtual ~SpriteRenderer();
 	void render(Sprite* sprite = nullptr);
-	void render(SpriteVertex* verts, Uint32 size, SpriteEffect* effect, Texture2D* texture, Uint64 state);
+	void render(SpriteVertex* verts, Uint32 size,
+		SpriteEffect* effect, Texture2D* texture, Uint64 state,
+		const float* modelWorld = nullptr);
 protected:
 	SpriteRenderer();
 	void doRender();
 private:
 	Ref<SpriteEffect> _defaultEffect;
+	Ref<SpriteEffect> _defaultModelEffect;
 	Texture2D* _lastTexture;
 	SpriteEffect* _lastEffect;
 	Uint64 _lastState;

@@ -387,9 +387,9 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		}
 
 		float yOffset = commonHeight - fontDef->offset_y;
-		Vec2 fontPos = Vec2(
+		Vec2 fontPos = Vec2{
 			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount,
-			nextFontPositionY + yOffset - fontDef->height * 0.5f);
+			nextFontPositionY + yOffset - fontDef->height * 0.5f};
 		fontChar->setPosition(fontPos);
 
 		// update kerning
@@ -661,7 +661,7 @@ void Label::updateLabel()
 						Sprite* characterSprite = _characters[index];
 						if (characterSprite)
 						{
-							characterSprite->setPosition(characterSprite->getPosition() + Vec2(shift, 0.0f));
+							characterSprite->setPosition(characterSprite->getPosition() + Vec2{shift, 0.0f});
 						}
 					}
 				}

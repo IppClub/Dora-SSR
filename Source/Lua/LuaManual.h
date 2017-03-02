@@ -38,4 +38,13 @@ int Node_gslot(lua_State* L);
 /* TextureCache */
 inline TextureCache* TextureCache_shared() { return &SharedTextureCache; }
 
+/* Vec2 */
+Vec2* Vec2_create(float x, float y);
+
+/* Size */
+Size* Size_create(float width, float height);
+
+/* BlendFunc */
+BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst);
+
 NS_DOROTHY_END

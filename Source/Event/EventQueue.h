@@ -22,7 +22,7 @@ public:
 	/** @brief Helper function to retrieve the passed event arguments.
 	 */
 	template<class... Args>
-	void retrieve(Args&... args);
+	void get(Args&... args);
 protected:
 	string _name;
 };
@@ -40,7 +40,7 @@ public:
 };
 
 template<class... Args>
-void QEvent::retrieve(Args&... args)
+void QEvent::get(Args&... args)
 {
 	auto targetEvent = d_cast<QEventArgs<Args...>*>(this);
 	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");

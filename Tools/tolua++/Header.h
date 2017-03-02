@@ -111,7 +111,6 @@ struct Vec2
 	tolua_readonly tolua_property__qt float length;
 	tolua_readonly tolua_property__qt float lengthSquared;
 	tolua_readonly tolua_property__qt float angle;
-	Vec2(float x, float y);
 	Vec2(Vec2 vec);
 	~Vec2();
 	void set(float x, float y);
@@ -126,6 +125,7 @@ struct Vec2
 	float distanceSquared(Vec2 vec);
 	void normalize();
 	void clamp(Vec2 from, Vec2 to);
+	static tolua_outside Vec2* Vec2_create @ create(float x = 0, float y = 0);
 	static tolua_readonly Vec2 zero;
 };
 
@@ -133,14 +133,13 @@ struct Size
 {
     float width;
     float height;
-    Size();
-    Size(float width, float height);
     Size(Size other);
     ~Size();
 	void set(float width, float height);
 	bool operator==(Size other);
 	Size operator*(Vec2 vec);
 	static tolua_readonly Size zero;
+	static tolua_outside Size* Size_create @ create(float width = 0, float height = 0);
 };
 
 struct Rect
@@ -186,7 +185,7 @@ class Array : public Object
 	Object* removeLast();
 	bool remove(Object* object);
 	void clear();
-	void fastRemove(Object* object);
+	bool fastRemove(Object* object);
 	void swap(Object* objectA, Object* objectB);
 	void swap(int indexA, int indexB);
 	void reverse();
@@ -195,8 +194,8 @@ class Array : public Object
 	void set(int index, Object* object);
 	Object* get(int index);
 	void insert(int index, Object* object);
-	void removeAt(int index);
-	void fastRemoveAt(int index);
+	bool removeAt(int index);
+	bool fastRemoveAt(int index);
 	bool each(tolua_function_bool func);
 
 	static Array* create();
@@ -302,7 +301,7 @@ struct BlendFunc
 {
 	Uint32 src;
 	Uint32 dst;
-	BlendFunc(Uint32 src, Uint32 dst);
+	BlendFunc(BlendFunc other);
 	~BlendFunc();
 	enum
 	{
@@ -317,6 +316,7 @@ struct BlendFunc
 		InvDstColor,
 		InvDstAlpha
 	};
+	static tolua_outside BlendFunc* BlendFunc_create @ create(Uint32 src, Uint32 dst);
 	static const BlendFunc Normal;
 };
 

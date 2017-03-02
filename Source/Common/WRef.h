@@ -168,7 +168,7 @@ public:
 		size_t index = std::distance(WRefV::begin(), WRefVector::index(item));
 		if (index < WRefV::size())
 		{
-			std::swap(WRefV::at(index), WRefV::back());
+			WRefV::at(index) = WRefV::back();
 			WRefV::pop_back();
 			return true;
 		}

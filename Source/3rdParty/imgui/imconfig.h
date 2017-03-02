@@ -39,7 +39,7 @@
 
 #define IM_VEC2_CLASS_EXTRA                                                 \
         ImVec2(const Dorothy::Vec2& f) { x = f.x; y = f.y; }                       \
-        operator Dorothy::Vec2() const { return Dorothy::Vec2(x,y); }
+        operator Dorothy::Vec2() const { return Dorothy::Vec2{x,y}; }
 /*
 #define IM_VEC4_CLASS_EXTRA                                                 \
         ImVec4(const MyVec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }     \

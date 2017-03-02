@@ -16,9 +16,6 @@ struct Vec2
 {
 	float x;
 	float y;
-	Vec2();
-	Vec2(float x, float y);
-	Vec2(const Vec2& vec);
 	//Vec2(const b2Vec2& v);
 	//inline operator b2Vec2() const { return *(b2Vec2*)this; }
 	void set(float x, float y);
@@ -51,9 +48,6 @@ struct Size
 {
     float width;
     float height;
-    Size();
-    Size(float width, float height);
-    Size(const Size& other);
 	void set(float width, float height);
 	bool operator==(const Size& other) const;
 	bool operator!=(const Size& other) const;
@@ -122,9 +116,9 @@ struct Vec3
 	{
 		return r_cast<const float*>(this);
 	}
-	inline operator const Vec2() const
+	inline Vec2 toVec2() const
 	{
-		return Vec2(x, y);
+		return Vec2{x, y};
 	}
 };
 
@@ -142,9 +136,9 @@ struct Vec4
 	{
 		return r_cast<const float*>(this);
 	}
-	inline operator const Vec2() const
+	inline Vec3 toVec3() const
 	{
-		return Vec2(x, y);
+		return Vec3{x, y, z};
 	}
 };
 

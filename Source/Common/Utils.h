@@ -257,11 +257,24 @@ namespace Switch {
 #ifdef max
 	#undef max
 #endif
-template <class T>
-inline T Clamp(T value, T minVal, T maxVal)
+namespace Math
 {
-	auto pair = std::minmax(minVal, maxVal);
-	return std::max(std::min(value, pair.second), pair.first);
+	template <class T>
+	inline T clamp(T value, T minVal, T maxVal)
+	{
+		auto pair = std::minmax(minVal, maxVal);
+		return std::max(std::min(value, pair.second), pair.first);
+	}
+
+	inline float rand1to1()
+	{
+		return 2.0f * (s_cast<float>(std::rand()) / RAND_MAX) - 1.0f;
+	}
+
+	inline float rand0to1()
+	{
+		return s_cast<float>(std::rand()) / RAND_MAX;
+	}
 }
 
 /** @brief Dorothy`s type system for lua and

@@ -31,8 +31,11 @@ class TextureCache
 {
 public:
 	void set(String name, Texture2D* texture);
+	Texture2D* get(String filename);
 	/** @brief support format .png .dds .pvr .ktx */
 	Texture2D* load(String filename);
+	Texture2D* add(String filename, const Uint8* data, Sint64 size);
+	Texture2D* add(String filename, Texture2D* texture);
 	void loadAsync(String filename, const function<void(Texture2D*)>& handler);
     void unload(Texture2D* texture);
     void unload(String filename);
@@ -40,7 +43,7 @@ public:
     void clearUnused();
 protected:
 	TextureCache();
-	static void loadPNG(const OwnArray<Uint8>& data, uint8_t*& out,
+	static void loadPNG(const Uint8* data, uint32_t size, uint8_t*& out,
 		uint32_t& width, uint32_t& height, uint32_t& bpp,
 		bgfx::TextureFormat::Enum& format);
 private:

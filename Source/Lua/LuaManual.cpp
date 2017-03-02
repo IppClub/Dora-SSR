@@ -199,4 +199,22 @@ tolua_lerror :
 	return 0;
 }
 
+/* Vec2 */
+Vec2* Vec2_create(float x, float y)
+{
+	return Mtolua_new((Vec2)({x, y}));
+}
+
+/* Size */
+Size* Size_create(float width, float height)
+{
+	return Mtolua_new((Size)({width, height}));
+}
+
+/* BlendFunc */
+BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst)
+{
+	return Mtolua_new((BlendFunc)({src, dst}));
+}
+
 NS_DOROTHY_END

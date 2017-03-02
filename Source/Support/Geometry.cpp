@@ -12,22 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 MEMORY_POOL(Vec2);
-const Vec2 Vec2::zero;
-
-Vec2::Vec2():
-x(0.0f),
-y(0.0f)
-{ }
-
-Vec2::Vec2(float x, float y):
-x(x),
-y(y)
-{ }
-
-Vec2::Vec2(const Vec2& vec):
-x(vec.x),
-y(vec.y)
-{ }
+const Vec2 Vec2::zero{0.0f, 0.0f};
 
 /*Vec2::Vec2(const b2Vec2& v):
 x(v.x),
@@ -42,7 +27,7 @@ void Vec2::set(float x, float y)
 
 Vec2 Vec2::operator+(const Vec2& vec) const
 {
-	return Vec2(x + vec.x, y + vec.y);
+	return Vec2{x + vec.x, y + vec.y};
 }
 
 Vec2& Vec2::operator+=(const Vec2& vec)
@@ -54,7 +39,7 @@ Vec2& Vec2::operator+=(const Vec2& vec)
 
 Vec2 Vec2::operator-(const Vec2& vec) const
 {
-	return Vec2(x - vec.x, y - vec.y);
+	return Vec2{x - vec.x, y - vec.y};
 }
 
 Vec2& Vec2::operator-=(const Vec2& vec)
@@ -66,7 +51,7 @@ Vec2& Vec2::operator-=(const Vec2& vec)
 
 Vec2 Vec2::operator*(float value) const
 {
-	return Vec2(x * value, y * value);
+	return Vec2{x * value, y * value};
 }
 
 Vec2& Vec2::operator*=(float value)
@@ -78,7 +63,7 @@ Vec2& Vec2::operator*=(float value)
 
 Vec2 Vec2::operator*(const Vec2& vec) const
 {
-	return Vec2(x * vec.x, y * vec.y);
+	return Vec2{x * vec.x, y * vec.y};
 }
 
 Vec2& Vec2::operator*=(const Vec2& vec)
@@ -90,7 +75,7 @@ Vec2& Vec2::operator*=(const Vec2& vec)
 
 Vec2 Vec2::operator/(float value) const
 {
-	return Vec2(x / value, y / value);
+	return Vec2{x / value, y / value};
 }
 
 Vec2& Vec2::operator/=(float value)
@@ -112,14 +97,14 @@ bool Vec2::operator!=(const Vec2& vec) const
 
 Vec2 Vec2::operator*(const Size& size) const
 {
-	return Vec2(x * size.width, y * size.height);
+	return Vec2{x * size.width, y * size.height};
 }
 
 float Vec2::distance(const Vec2& vec) const
 {
 	float dx = x - vec.x;
 	float dy = y - vec.y;
-	return sqrtf(dx * dx + dy * dy);
+	return std::sqrt(dx * dx + dy * dy);
 }
 
 float Vec2::distanceSquared(const Vec2& vec) const
@@ -131,7 +116,7 @@ float Vec2::distanceSquared(const Vec2& vec) const
 
 float Vec2::length() const
 {
-	return sqrtf(x * x + y * y);
+	return std::sqrt(x * x + y * y);
 }
 
 float Vec2::lengthSquared() const
@@ -141,7 +126,7 @@ float Vec2::lengthSquared() const
 
 float Vec2::angle() const
 {
-	return atan2f(y, x);
+	return std::atan2(y, x);
 }
 
 void Vec2::normalize()
@@ -153,27 +138,12 @@ void Vec2::normalize()
 
 void Vec2::clamp(const Vec2& from, const Vec2& to)
 {
-	x = Clamp(x, from.x, to.x);
-	y = Clamp(y, from.y, to.y);
+	x = Math::clamp(x, from.x, to.x);
+	y = Math::clamp(y, from.y, to.y);
 }
 
 // Size
-const Size Size::zero;
-
-Size::Size():
-width(0.0f),
-height(0.0f)
-{ }
-
-Size::Size(float width, float height):
-width(width),
-height(height)
-{ }
-
-Size::Size(const Size& other)
-: width(other.width)
-, height(other.height)
-{ }
+const Size Size::zero{0.0f, 0.0f};
 
 void Size::set(float width, float height)
 {
@@ -193,13 +163,15 @@ bool Size::operator!=(const Size& target) const
 
 Size Size::operator*(const Vec2& vec) const
 {
-	return Size(width * vec.x, height * vec.y);
+	return Size{width * vec.x, height * vec.y};
 }
 
 // Rect
 const Rect Rect::zero;
 
-Rect::Rect()
+Rect::Rect():
+origin{},
+size{}
 { }
 
 Rect::Rect(const Vec2& origin, const Size& size):
@@ -208,8 +180,8 @@ size(size)
 { }
 
 Rect::Rect(float x, float y, float width, float height):
-origin(x,y),
-size(width,height)
+origin{x, y},
+size{width, height}
 { }
 
 Rect::Rect(const Rect& other):
@@ -341,7 +313,7 @@ void Rect::setBottom(float bottom)
 
 Vec2 Rect::getLowerBound() const
 {
-	return Vec2(getLeft(), getBottom());
+	return Vec2{getLeft(), getBottom()};
 }
 
 void Rect::setLowerBound(const Vec2& point)
@@ -352,7 +324,7 @@ void Rect::setLowerBound(const Vec2& point)
 
 Vec2 Rect::getUpperBound() const
 {
-	return Vec2(getRight(), getTop());
+	return Vec2{getRight(), getTop()};
 }
 
 void Rect::setUpperBound(const Vec2& point)
@@ -380,16 +352,16 @@ AffineTransform AffineTransform::Indentity = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0};
 
 Vec2 AffineTransform::applyPoint(const AffineTransform& t, const Vec2& point)
 {
-	return Vec2(
+	return Vec2{
 		t.a * point.x + t.c * point.y + t.tx,
-		t.b * point.x + t.d * point.y + t.ty);
+		t.b * point.x + t.d * point.y + t.ty};
 }
 
 Size AffineTransform::applySize(const AffineTransform& t, const Size& size)
 {
-	return Size(
+	return Size{
 		t.a * size.width + t.c * size.height,
-		t.b * size.width + t.d * size.height);
+		t.b * size.width + t.d * size.height};
 }
 
 Rect AffineTransform::applyRect(const AffineTransform& t, const Rect& rect)
@@ -399,10 +371,10 @@ Rect AffineTransform::applyRect(const AffineTransform& t, const Rect& rect)
 	float right = rect.getRight();
 	float top = rect.getTop();
 
-	Vec2 topLeft = applyPoint(t, Vec2(left, top));
-	Vec2 topRight = applyPoint(t, Vec2(right, top));
-	Vec2 bottomLeft = applyPoint(t, Vec2(left, bottom));
-	Vec2 bottomRight = applyPoint(t, Vec2(right, bottom));
+	Vec2 topLeft = applyPoint(t, Vec2{left, top});
+	Vec2 topRight = applyPoint(t, Vec2{right, top});
+	Vec2 bottomLeft = applyPoint(t, Vec2{left, bottom});
+	Vec2 bottomRight = applyPoint(t, Vec2{right, bottom});
 
 	float minX = std::min({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
 	float maxX = std::max({topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});

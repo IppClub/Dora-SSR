@@ -26,7 +26,7 @@ public:
 	Ref<Object> removeLast();
 	bool remove(Object* object);
 	void clear();
-	void fastRemove(Object* object);
+	bool fastRemove(Object* object);
 	void swap(Object* objectA, Object* objectB);
 	void swap(int indexA, int indexB);
 	void reverse();
@@ -35,8 +35,8 @@ public:
 	void set(int index, Object* object);
 	const Ref<Object>& get(int index) const;
 	void insert(int index, Object* object);
-	void removeAt(int index);
-	void fastRemoveAt(int index);
+	bool removeAt(int index);
+	bool fastRemoveAt(int index);
 	RefVector<Object>& data();
 	CREATE_FUNC(Array);
 public:

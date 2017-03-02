@@ -102,9 +102,9 @@ void Array::clear()
 	_data.clear();
 }
 
-void Array::fastRemove(Object* object)
+bool Array::fastRemove(Object* object)
 {
-	_data.fast_remove(object);
+	return _data.fast_remove(object);
 }
 
 void Array::swap(Object* objectA, Object* objectB)
@@ -148,15 +148,25 @@ void Array::insert(int index, Object* object)
 	_data.insert(index, object);
 }
 
-void Array::removeAt(int index)
+bool Array::removeAt(int index)
 {
-	_data.erase(_data.begin() + index);
+	if (index < s_cast<int>(_data.size()))
+	{
+		_data.erase(_data.begin() + index);
+		return true;
+	}
+	return false;
 }
 
-void Array::fastRemoveAt(int index)
+bool Array::fastRemoveAt(int index)
 {
-
-	_data.erase(_data.begin() + index);
+	if (index < s_cast<int>(_data.size()))
+	{
+		_data[index] = _data.back();
+		_data.pop_back();
+		return true;
+	}
+	return false;
 }
 
 RefVector<Object>& Array::data()

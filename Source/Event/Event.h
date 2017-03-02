@@ -54,7 +54,7 @@ public:
 	/** @brief Helper function to retrieve the passed event arguments.
 	*/
 	template<class... Args>
-	void retrieve(Args&... args);
+	void get(Args&... args);
 protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
@@ -101,7 +101,7 @@ void Event::send(String name, const Args&... args)
 }
 
 template<class... Args>
-void Event::retrieve(Args&... args)
+void Event::get(Args&... args)
 {
 	LuaEventArgs* luaEvent = DoraCast<LuaEventArgs>(this);
 	if (luaEvent)

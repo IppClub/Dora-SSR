@@ -99,17 +99,17 @@ struct LifeCycler
 	unordered_map<string, Own<vector<Reference*>>> itemRefs;
 };
 
-Own<LifeCycler> g_cycler;
+Own<LifeCycler> globalCycler;
 
-std::once_flag g_initCycler;
+std::once_flag initCyclerOnce;
 
 LifeCycler* getCycler()
 {
-	std::call_once(g_initCycler, []()
+	std::call_once(initCyclerOnce, []()
 	{
-		g_cycler = New<LifeCycler>();
+		globalCycler = New<LifeCycler>();
 	});
-	static LifeCycler* cycler = g_cycler;
+	static LifeCycler* cycler = globalCycler;
 	return cycler;
 }
 

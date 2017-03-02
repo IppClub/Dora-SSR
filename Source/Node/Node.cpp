@@ -28,9 +28,10 @@ _scaleY(1.0f),
 _skewX(0.0f),
 _skewY(0.0f),
 _positionZ(0.0f),
-_position(),
-_anchor(0.5f, 0.5f),
-_size(),
+_position{},
+_anchor{0.5f, 0.5f},
+_anchorPoint{},
+_size{},
 _transform(AffineTransform::Indentity),
 _scheduler(SharedDirector.getScheduler()),
 _parent(nullptr),
@@ -603,52 +604,55 @@ TouchHandler* Node::getTouchHandler() const
 void Node::schedule(const function<bool(double)>& func)
 {
 	_scheduleFunc = func;
-	if (_flags.isOn(Node::Scheduling))
-	{
-		return;
-	}
-	if (_flags.isOn(Node::Updating))
+	if (_flags.isOff(Node::Scheduling))
 	{
 		_flags.setOn(Node::Scheduling);
-		return;
+		if (_flags.isOff(Node::Updating))
+		{
+			_scheduler->schedule(this);
+		}
 	}
-	_scheduler->schedule(this);
 }
 
 void Node::unschedule()
 {
-	_scheduleFunc = nullptr;
-	_flags.setOff(Node::Scheduling);
-	if (_flags.isOff(Node::Updating))
+	if (_flags.isOn(Node::Scheduling))
 	{
-		_scheduler->unschedule(this);
+		_flags.setOff(Node::Scheduling);
+		if (_flags.isOff(Node::Updating))
+		{
+			_scheduler->unschedule(this);
+		}
+		_scheduleFunc = nullptr;
 	}
 }
 
 bool Node::isUpdating() const
 {
-	return _flags.isOn(Node::Updating) || _flags.isOn(Node::Scheduling);
+	return _flags.isOn(Node::Updating);
 }
 
 void Node::scheduleUpdate()
 {
-	if (_flags.isOn(Node::Updating)) return;
-	if (_flags.isOn(Node::Scheduling))
+	if (_flags.isOff(Node::Updating))
 	{
 		_flags.setOn(Node::Updating);
-		return;
+		if (_flags.isOff(Node::Scheduling))
+		{
+			_scheduler->schedule(this);
+		}
 	}
-	_flags.setOn(Node::Updating);
-	_scheduler->schedule(this);
 }
 
 void Node::unscheduleUpdate()
 {
-	if (_flags.isOn(Node::Updating) || _flags.isOn(Node::Scheduling))
+	if (_flags.isOn(Node::Updating))
 	{
 		_flags.setOff(Node::Updating);
-		_flags.setOff(Node::Scheduling);
-		_scheduler->unschedule(this);
+		if (_flags.isOff(Node::Scheduling))
+		{
+			_scheduler->unschedule(this);
+		}
 	}
 }
 

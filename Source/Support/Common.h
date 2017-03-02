@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Geometry.h"
+
 NS_DOROTHY_BEGIN
 
 struct Color3
@@ -31,8 +33,10 @@ struct Color
 	Color(Color3 color);
 	Color(Uint32 argb);
 	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+	Color(const Vec4& vec);
 	Uint32 toABGR() const;
 	Color3 toColor3() const;
+	Vec4 toVec4() const;
 	PROPERTY(float, Opacity);
 	Color& operator=(const Color3& color);
 	Color& operator=(const Color& color);
@@ -42,7 +46,6 @@ struct BlendFunc
 {
 	Uint32 src;
 	Uint32 dst;
-	BlendFunc(Uint32 src, Uint32 dst);
 	enum
 	{
 		One = Uint32(BGFX_STATE_BLEND_ONE),

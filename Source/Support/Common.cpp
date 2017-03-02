@@ -61,6 +61,13 @@ b(b),
 a(a)
 { }
 
+Color::Color(const Vec4& vec):
+r(vec.x * 255.0f),
+g(vec.y * 255.0f),
+b(vec.z * 255.0f),
+a(vec.w * 255.0f)
+{ }
+
 Uint32 Color::toABGR() const
 {
 	return *r_cast<Uint32*>(c_cast<Color*>(this));
@@ -71,9 +78,14 @@ Color3 Color::toColor3() const
 	return Color3(r, g, b);
 }
 
+Vec4 Color::toVec4() const
+{
+	return Vec4{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
+}
+
 void Color::setOpacity(float var)
 {
-	a = s_cast<Uint8>(Clamp(var, 0.0f, 1.0f) * 255.0f);
+	a = s_cast<Uint8>(Math::clamp(var, 0.0f, 1.0f) * 255.0f);
 }
 
 float Color::getOpacity() const
@@ -98,10 +110,7 @@ Color& Color::operator=(const Color& color)
 	return *this;
 }
 
-BlendFunc::BlendFunc(Uint32 src, Uint32 dst):src(src), dst(dst)
-{ }
-
-const BlendFunc BlendFunc::Normal(BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha);
+const BlendFunc BlendFunc::Normal{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 
 Uint64 BlendFunc::toValue()
 {

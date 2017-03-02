@@ -55,7 +55,7 @@ void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finishe
 			{
 				Package package;
 				Ref<Values> result;
-				event->retrieve(package, result);
+				event->get(package, result);
 				package.second(result);
 			}
 			return false;
@@ -90,14 +90,14 @@ int Async::work(void* userData)
 				case "Work"_hash:
 				{
 					function<void()> worker;
-					event->retrieve(worker);
+					event->get(worker);
 					worker();
 					break;
 				}
 				case "WorkDone"_hash:
 				{
 					Package package;
-					event->retrieve(package);
+					event->get(package);
 					Ref<Values> result = package.first();
 					worker->_finisherEvent.post(Slice::Empty, package, result);
 					break;
@@ -127,14 +127,14 @@ void Async::pause()
 				case "Work"_hash:
 				{
 					function<void()> worker;
-					event->retrieve(worker);
+					event->get(worker);
 					_workers.push_back(worker);
 					break;
 				}
 				case "WorkDone"_hash:
 				{
 					Package package;
-					event->retrieve(package);
+					event->get(package);
 					_packages.push_back(package);
 					break;
 				}

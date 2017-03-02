@@ -78,6 +78,78 @@ void TextureCache::set(String name, Texture2D* texture)
 	_textures[name] = texture;
 }
 
+Texture2D* TextureCache::get(String filename)
+{
+	string fullPath = SharedContent.getFullPath(filename);
+	auto it = _textures.find(fullPath);
+	if (it != _textures.end())
+	{
+		return it->second;
+	}
+	return nullptr;
+}
+
+Texture2D* TextureCache::add(String filename, Texture2D* texture)
+{
+	_textures[filename] = texture;
+	return texture;
+}
+
+Texture2D* TextureCache::add(String filename, const Uint8* data, Sint64 size)
+{
+	AssertUnless(data && size > 0, "add invalid data to texture cache.");
+	string extension = filename.getFileExtension();
+	switch (Switch::hash(extension))
+	{
+		case "dds"_hash:
+		case "pvr"_hash:
+		case "ktx"_hash:
+		{
+			bgfx::TextureInfo info;
+			const bgfx::Memory* mem = bgfx::copy(data, s_cast<uint32_t>(size));
+			bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
+			Texture2D* texture = Texture2D::create(handle, info);
+			_textures[filename] = texture;
+			return texture;
+		}
+		case "png"_hash:
+		{
+			bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8;
+			uint32_t bpp = 32;
+			uint32_t width = 0;
+			uint32_t height = 0;
+			uint8_t* out = nullptr;
+			TextureCache::loadPNG(data, s_cast<uint32_t>(size), out, width, height, bpp, format);
+			if (out)
+			{
+				const bgfx::Memory* mem = bgfx::makeRef(
+					out, width * height * bpp / 8, lodepng_free);
+
+				bgfx::TextureHandle handle = bgfx::createTexture2D(
+					  uint16_t(width), uint16_t(height),
+					  false, 1, format, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP,
+					  mem);
+
+				bgfx::TextureInfo info;
+				bgfx::calcTextureSize(info,
+					uint16_t(width), uint16_t(height),
+					0, false, false, 1, format);
+
+				Texture2D* texture = Texture2D::create(handle, info);
+				_textures[filename] = texture;
+				return texture;
+			}
+			Log("failed to load texture \"%s\".", filename);
+			return nullptr;
+		}
+		default:
+		{
+			Log("texture format \"%s\" is not supported for \"%s\".", extension, filename);
+			return nullptr;
+		}
+	}
+}
+
 Texture2D* TextureCache::load(String filename)
 {
 	string fullPath = SharedContent.getFullPath(filename);
@@ -115,7 +187,7 @@ Texture2D* TextureCache::load(String filename)
 				uint32_t width = 0;
 				uint32_t height = 0;
 				uint8_t* out = nullptr;
-				TextureCache::loadPNG(data, out, width, height, bpp, format);
+				TextureCache::loadPNG(data, s_cast<uint32_t>(data.size()), out, width, height, bpp, format);
 				if (out)
 				{
 					const bgfx::Memory* mem = bgfx::makeRef(
@@ -205,7 +277,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 						uint8_t* out = nullptr;
 						uint32_t width = 0, height = 0, bpp = 32;
 						bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8;
-						TextureCache::loadPNG(localData, out, width, height, bpp, format);
+						TextureCache::loadPNG(localData, s_cast<uint32_t>(localData.size()), out, width, height, bpp, format);
 						return Values::create(out, width, height, bpp, format);
 					}, [this, file, fullPath, handler](Values* result)
 					{
@@ -260,7 +332,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 	}
 }
 
-void TextureCache::loadPNG(const OwnArray<Uint8>& data, uint8_t*& out, uint32_t& width, uint32_t& height, uint32_t& bpp, bgfx::TextureFormat::Enum& format)
+void TextureCache::loadPNG(const Uint8* data, uint32_t size, uint8_t*& out, uint32_t& width, uint32_t& height, uint32_t& bpp, bgfx::TextureFormat::Enum& format)
 {
 	static const uint8_t pngMagic[] = {0x89, 0x50, 0x4E, 0x47, 0x0d, 0x0a};
 	if (0 == memcmp(data, pngMagic, sizeof(pngMagic)))
@@ -269,7 +341,7 @@ void TextureCache::loadPNG(const OwnArray<Uint8>& data, uint8_t*& out, uint32_t&
 		LodePNGState state;
 		lodepng_state_init(&state);
 		state.decoder.color_convert = 0;
-		error = lodepng_decode(&out, &width, &height, &state, data, data.size());
+		error = lodepng_decode(&out, &width, &height, &state, data, size);
 		if (0 == error)
 		{
 			switch (state.info_raw.bitdepth)

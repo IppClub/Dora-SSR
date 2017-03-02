@@ -150,7 +150,7 @@ int Application::run()
 				case "Invoke"_hash:
 				{
 					function<void()> func;
-					event->retrieve(func);
+					event->get(func);
 					func();
 					break;
 				}
@@ -270,7 +270,7 @@ int Application::mainLogic(void* userData)
 				case "SDLEvent"_hash:
 				{
 					SDL_Event sdlEvent;
-					event->retrieve(sdlEvent);
+					event->get(sdlEvent);
 					switch (sdlEvent.type)
 					{
 						case SDL_QUIT:
@@ -286,7 +286,7 @@ int Application::mainLogic(void* userData)
 				case "Invoke"_hash:
 				{
 					function<void()> func;
-					event->retrieve(func);
+					event->get(func);
 					func();
 					break;
 				}

@@ -172,7 +172,7 @@ public:
 		size_t index = std::distance(RefV::begin(), RefVector::index(item));
 		if (index < RefV::size())
 		{
-			std::swap(RefV::at(index), RefV::back());
+			RefV::at(index) = RefV::back();
 			RefV::pop_back();
 			return true;
 		}

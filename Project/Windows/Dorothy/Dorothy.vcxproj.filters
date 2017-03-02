@@ -234,6 +234,9 @@
     <ClCompile Include="..\..\..\Source\Const\Header.cpp">
       <Filter>Const</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Particle.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -444,5 +447,8 @@
       <Filter>3rdParty\fmt</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Dorothy.h" />
+    <ClInclude Include="..\..\..\Source\Node\Particle.h">
+      <Filter>Node</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -179,7 +179,7 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 		case SDL_FINGERUP:
 		case SDL_FINGERDOWN:
 		case SDL_FINGERMOTION:
-			Vec2 ratio(event.tfinger.x, 1.0f - event.tfinger.y);
+			Vec2 ratio{event.tfinger.x, 1.0f - event.tfinger.y};
 			pos = {ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};
 			break;
 	}
@@ -214,10 +214,10 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 			bx::vec3Mul(offset, dirNorm, t);
 			Vec3 result;
 			bx::vec3Add(result, origin, offset);
-			return result;
+			return result.toVec2();
 		}
 	}
-	return Vec2(-1.0f, -1.0f);
+	return Vec2{-1.0f, -1.0f};
 }
 
 bool NodeTouchHandler::down(const SDL_Event& event)
@@ -238,7 +238,7 @@ bool NodeTouchHandler::down(const SDL_Event& event)
 	}
 	Vec2 pos = getPos(event);
 	Touch* touch = alloc(id);
-	if (Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
+	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
 	{
 		touch->_preLocation = touch->_location = pos;
 		touch->_flags.setOn(Touch::Selected);
@@ -268,16 +268,19 @@ bool NodeTouchHandler::up(const SDL_Event& event)
 		default:
 			return false;
 	}
-	Touch*  touch = get(id);
-	if (touch && touch->isEnabled())
+	Touch* touch = get(id);
+	if (touch)
 	{
-		Vec2 pos = getPos(event);
-		touch->_preLocation = touch->_location;
-		touch->_location = pos;
-		if (touch->_flags.isOn(Touch::Selected))
+		if (touch->isEnabled())
 		{
-			_target->emit("TapEnded"_slice, touch);
-			_target->emit("Tapped"_slice, touch);
+			Vec2 pos = getPos(event);
+			touch->_preLocation = touch->_location;
+			touch->_location = pos;
+			if (touch->_flags.isOn(Touch::Selected))
+			{
+				_target->emit("TapEnded"_slice, touch);
+				_target->emit("Tapped"_slice, touch);
+			}
 		}
 		collect(id);
 		return true;

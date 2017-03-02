@@ -21,7 +21,7 @@ _flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC)
 
 Size View::getSize() const
 {
-	return Size(s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight()));
+	return Size{s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight())};
 }
 
 void View::setVSync(bool var)
@@ -90,7 +90,7 @@ float View::getFieldOfView() const
 
 void View::updateProjection()
 {
-	bx::mtxProj(_projection, _fieldOfView, getAspectRatio(), _nearPlaneDistance, _farPlaneDistance);
+	bx::mtxProj(_projection, _fieldOfView, getAspectRatio(), _nearPlaneDistance, _farPlaneDistance, bgfx::getCaps()->homogeneousDepth);
 }
 
 const float* View::getProjection() const

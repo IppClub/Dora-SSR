@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3C0044EB1E6682A000369672 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0044E91E6682A000369672 /* Particle.cpp */; };
 		3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */; };
 		3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399B1E1BA603007FEFC3 /* Common.cpp */; };
 		3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */; };
@@ -86,6 +87,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3C0044E91E6682A000369672 /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Particle.cpp; path = ../../../Source/Node/Particle.cpp; sourceTree = "<group>"; };
+		3C0044EA1E6682A000369672 /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Particle.h; path = ../../../Source/Node/Particle.h; sourceTree = "<group>"; };
 		3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
 		3C05BCA31E3594C500CC6986 /* TouchDispather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchDispather.h; path = ../../Source/Input/TouchDispather.h; sourceTree = "<group>"; };
 		3C0D399B1E1BA603007FEFC3 /* Common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Common.cpp; path = ../../../Source/Support/Common.cpp; sourceTree = "<group>"; };
@@ -206,8 +209,6 @@
 		3CD328291E4B0A4E0036906C /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../../../Source/3rdParty/imgui/stb_textedit.h; sourceTree = "<group>"; };
 		3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGUIDora.cpp; path = ../../../Source/GUI/ImGUIDora.cpp; sourceTree = "<group>"; };
 		3CD328301E4B0B530036906C /* ImGUIDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGUIDora.h; path = ../../../Source/GUI/ImGUIDora.h; sourceTree = "<group>"; };
-		3CD328321E4BFFCF0036906C /* fs_ocornut_imgui.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fs_ocornut_imgui.bin.h; path = ../../../Source/GUI/fs_ocornut_imgui.bin.h; sourceTree = "<group>"; };
-		3CD328331E4BFFCF0036906C /* vs_ocornut_imgui.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vs_ocornut_imgui.bin.h; path = ../../../Source/GUI/vs_ocornut_imgui.bin.h; sourceTree = "<group>"; };
 		3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureCache.cpp; path = ../../../Source/Cache/TextureCache.cpp; sourceTree = "<group>"; };
 		3CD4634B1E27239B00BA9D30 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
 		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
@@ -552,6 +553,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C0044E91E6682A000369672 /* Particle.cpp */,
+				3C0044EA1E6682A000369672 /* Particle.h */,
 				3C9A7D711E5428A200205094 /* Label.cpp */,
 				3C9A7D721E5428A200205094 /* Label.h */,
 				3CC098681E262F85006F4B76 /* Sprite.cpp */,
@@ -581,8 +584,6 @@
 		3CD3282E1E4B0B3C0036906C /* GUI */ = {
 			isa = PBXGroup;
 			children = (
-				3CD328321E4BFFCF0036906C /* fs_ocornut_imgui.bin.h */,
-				3CD328331E4BFFCF0036906C /* vs_ocornut_imgui.bin.h */,
 				3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */,
 				3CD328301E4B0B530036906C /* ImGUIDora.h */,
 			);
@@ -753,6 +754,7 @@
 				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,
 				3CD3282B1E4B0A4E0036906C /* imgui_demo.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
+				3C0044EB1E6682A000369672 /* Particle.cpp in Sources */,
 				3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,

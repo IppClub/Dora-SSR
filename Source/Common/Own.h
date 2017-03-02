@@ -125,7 +125,7 @@ public:
 		size_t index = std::distance(OwnV::begin(), OwnVector::index(item));
 		if (index < OwnV::size())
 		{
-			std::swap(OwnV::at(index), OwnV::back());
+			OwnV::at(index) = OwnV::back();
 			OwnV::pop_back();
 			return true;
 		}
