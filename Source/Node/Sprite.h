@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Node/Node.h"
+#include "Basic/Renderer.h"
 
 NS_DOROTHY_BEGIN
 
@@ -104,19 +105,19 @@ private:
 	DORA_TYPE_OVERRIDE(Sprite);
 };
 
-class SpriteRenderer
+class SpriteRenderer : public Renderer
 {
 public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(SpriteEffect*, DefaultModelEffect);
 	virtual ~SpriteRenderer();
-	void render(Sprite* sprite = nullptr);
+	virtual void render() override;
+	void render(Sprite* sprite);
 	void render(SpriteVertex* verts, Uint32 size,
 		SpriteEffect* effect, Texture2D* texture, Uint64 state,
 		const float* modelWorld = nullptr);
 protected:
 	SpriteRenderer();
-	void doRender();
 private:
 	Ref<SpriteEffect> _defaultEffect;
 	Ref<SpriteEffect> _defaultModelEffect;
@@ -125,7 +126,7 @@ private:
 	Uint64 _lastState;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
-	SINGLETON_REF(SpriteRenderer, BGFXDora);
+	SINGLETON_REF(SpriteRenderer, BGFXDora, RendererManager);
 };
 
 #define SharedSpriteRenderer \

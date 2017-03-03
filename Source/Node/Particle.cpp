@@ -475,6 +475,7 @@ void ParticleNode::render()
 	}
 
 	SharedSpriteRenderer.render(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState, getWorld());
+	SharedRendererManager.setCurrent(&SharedSpriteRenderer);
 }
 
 NS_DOROTHY_END

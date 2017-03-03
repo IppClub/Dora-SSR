@@ -80,6 +80,8 @@
 		3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE355601E1B7A6300268A19 /* LuaHandler.cpp */; };
 		3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
 		3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A811E292E3F00645F2D /* Camera.cpp */; };
+		3CF16C8F1E68FCCD002587CD /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C8D1E68FCCD002587CD /* Renderer.cpp */; };
+		3CF16C921E68FCE1002587CD /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C901E68FCE1002587CD /* Particle.cpp */; };
 		3CF730E31E66544A0002DEED /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730DF1E66544A0002DEED /* Font */; };
 		3CF730E41E66544A0002DEED /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E01E66544A0002DEED /* Image */; };
 		3CF730E51E66544A0002DEED /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E11E66544A0002DEED /* Script */; };
@@ -229,6 +231,10 @@
 		3CE534751E5A9BD500F017AE /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
 		3CEA9A811E292E3F00645F2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
 		3CEA9A821E292E3F00645F2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
+		3CF16C8D1E68FCCD002587CD /* Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Renderer.cpp; path = ../../../Source/Basic/Renderer.cpp; sourceTree = "<group>"; };
+		3CF16C8E1E68FCCD002587CD /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Basic/Renderer.h; sourceTree = "<group>"; };
+		3CF16C901E68FCE1002587CD /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Particle.cpp; path = ../../../Source/Node/Particle.cpp; sourceTree = "<group>"; };
+		3CF16C911E68FCE1002587CD /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Particle.h; path = ../../../Source/Node/Particle.h; sourceTree = "<group>"; };
 		3CF730DF1E66544A0002DEED /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Font; path = ../../Assets/Font; sourceTree = "<group>"; };
 		3CF730E01E66544A0002DEED /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Image; path = ../../Assets/Image; sourceTree = "<group>"; };
 		3CF730E11E66544A0002DEED /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Script; path = ../../Assets/Script; sourceTree = "<group>"; };
@@ -266,6 +272,8 @@
 		3C1038511E15103600D37A60 /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CF16C901E68FCE1002587CD /* Particle.cpp */,
+				3CF16C911E68FCE1002587CD /* Particle.h */,
 				3C8805731E5ED1AE00B52D4B /* Label.cpp */,
 				3C8805741E5ED1AE00B52D4B /* Label.h */,
 				3C266DEC1E27D6F800F1C870 /* Sprite.cpp */,
@@ -291,6 +299,8 @@
 		3C1F87D71DF80334005F1B4D /* Basic */ = {
 			isa = PBXGroup;
 			children = (
+				3CF16C8D1E68FCCD002587CD /* Renderer.cpp */,
+				3CF16C8E1E68FCCD002587CD /* Renderer.h */,
 				3CEA9A811E292E3F00645F2D /* Camera.cpp */,
 				3CEA9A821E292E3F00645F2D /* Camera.h */,
 				3C266DE91E27D6DB00F1C870 /* View.cpp */,
@@ -703,6 +713,7 @@
 				3C266DEB1E27D6DB00F1C870 /* View.cpp in Sources */,
 				3C0AD7E81E0CE9D00033AD59 /* Content.mm in Sources */,
 				3C266DEE1E27D6F800F1C870 /* Sprite.cpp in Sources */,
+				3CF16C8F1E68FCCD002587CD /* Renderer.cpp in Sources */,
 				3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
 				3CB410421E05B19A00A8804D /* zip.cpp in Sources */,
@@ -744,6 +755,7 @@
 				3C0AD7CA1E0CE9990033AD59 /* LuaBinding.cpp in Sources */,
 				3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */,
 				3C0AD7CC1E0CE9990033AD59 /* LuaEngine.cpp in Sources */,
+				3CF16C921E68FCE1002587CD /* Particle.cpp in Sources */,
 				3C10706D1E13A30800EB8C7A /* Scheduler.cpp in Sources */,
 				3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */,
 				3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */,

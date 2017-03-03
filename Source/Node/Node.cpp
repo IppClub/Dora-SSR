@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Input/TouchDispather.h"
-#include "Node/Sprite.h"
+#include "Basic/Renderer.h"
 #include "Event/Listener.h"
 
 NS_DOROTHY_BEGIN
@@ -704,7 +704,7 @@ void Node::visit()
 
 void Node::render()
 {
-	SharedSpriteRenderer.render();
+	SharedRendererManager.setCurrent(nullptr);
 }
 
 const AffineTransform& Node::getLocalTransform()

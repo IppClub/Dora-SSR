@@ -44,7 +44,7 @@ SpriteEffect* SpriteRenderer::getDefaultModelEffect() const
 SpriteRenderer::~SpriteRenderer()
 { }
 
-void SpriteRenderer::doRender()
+void SpriteRenderer::render()
 {
 	if (!_vertices.empty())
 	{
@@ -87,7 +87,7 @@ void SpriteRenderer::render(Sprite* sprite)
 {
 	if (!sprite)
 	{
-		doRender();
+		render();
 		return;
 	}
 
@@ -96,7 +96,7 @@ void SpriteRenderer::render(Sprite* sprite)
 	Uint64 state = sprite->getRenderState();
 	if (effect != _lastEffect || texture != _lastTexture || state != _lastState)
 	{
-		doRender();
+		render();
 	}
 
 	_lastEffect = effect;
@@ -117,7 +117,7 @@ void SpriteRenderer::render(SpriteVertex* verts, Uint32 size,
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
 	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState)
 	{
-		doRender();
+		render();
 	}
 	_lastEffect = effect;
 	_lastTexture = texture;
@@ -129,7 +129,7 @@ void SpriteRenderer::render(SpriteVertex* verts, Uint32 size,
 	if (modelWorld)
 	{
 		bgfx::setTransform(modelWorld);
-		doRender();
+		render();
 	}
 }
 
@@ -340,6 +340,7 @@ void Sprite::render()
 	}
 
 	SharedSpriteRenderer.render(this);
+	SharedRendererManager.setCurrent(&SharedSpriteRenderer);
 }
 
 NS_DOROTHY_END

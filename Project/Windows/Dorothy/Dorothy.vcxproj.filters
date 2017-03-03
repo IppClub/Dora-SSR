@@ -237,6 +237,9 @@
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Renderer.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -449,6 +452,9 @@
     <ClInclude Include="..\..\..\Source\Dorothy.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Renderer.h">
+      <Filter>Basic</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

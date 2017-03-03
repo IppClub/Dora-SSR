@@ -77,6 +77,7 @@
     <ClCompile Include="..\..\..\Source\Basic\Content.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Director.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\Renderer.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="..\..\..\Source\Basic\Content.h" />
     <ClInclude Include="..\..\..\Source\Basic\Director.h" />
     <ClInclude Include="..\..\..\Source\Basic\Object.h" />
+    <ClInclude Include="..\..\..\Source\Basic\Renderer.h" />
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
     <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h" />

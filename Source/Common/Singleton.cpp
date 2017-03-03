@@ -70,10 +70,12 @@ struct LifeCycler
 			}
 		}
 #if DORA_DEBUG
+		unordered_set<string> names;
 		for (auto it = items.rbegin(); it != items.rend(); ++it)
 		{
-			if (lives.find(*it) != lives.end())
+			if (names.find(*it) == names.end() && lives.find(*it) != lives.end())
 			{
+				names.insert(*it);
 				Log("destroy singleton \"%s\".", *it);
 			}
 		}
@@ -109,8 +111,7 @@ LifeCycler* getCycler()
 	{
 		globalCycler = New<LifeCycler>();
 	});
-	static LifeCycler* cycler = globalCycler;
-	return cycler;
+	return globalCycler;
 }
 
 #if DORA_DEBUG

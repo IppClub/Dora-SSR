@@ -138,7 +138,7 @@ private:
 	enum
 	{
 		Active = Node::UserFlag,
-		DepthWrite = Node::UserFlag << 1
+		DepthWrite = Node::UserFlag<<1
 	};
 };
 
