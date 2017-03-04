@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Node/Node.h"
 #include "Basic/Renderer.h"
+#include "Cache/TextureCache.h"
 
 NS_DOROTHY_BEGIN
 
@@ -61,7 +62,6 @@ struct SpriteQuad
 };
 
 class SpriteEffect;
-class Texture2D;
 
 class Sprite : public Node
 {
@@ -73,6 +73,10 @@ public:
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
 	PROPERTY_READONLY_REF(SpriteQuad, Quad);
+	PROPERTY_READONLY(Uint32, TextureFlags);
+	PROPERTY(TextureFilter, Filter);
+	PROPERTY(TextureWrap, UWrap);
+	PROPERTY(TextureWrap, VWrap);
 	virtual ~Sprite();
 	virtual bool init() override;
 	virtual void render() override;
@@ -89,6 +93,9 @@ protected:
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
 private:
+	TextureFilter _filter;
+	TextureWrap _uwrap;
+	TextureWrap _vwrap;
 	Rect _textureRect;
 	Ref<SpriteEffect> _effect;
 	Ref<Texture2D> _texture;
@@ -100,7 +107,7 @@ private:
 	{
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag<<1,
-		DepthWrite = Node::UserFlag<<2
+		DepthWrite = Node::UserFlag<<2,
 	};
 	DORA_TYPE_OVERRIDE(Sprite);
 };
@@ -114,7 +121,7 @@ public:
 	virtual void render() override;
 	void render(Sprite* sprite);
 	void render(SpriteVertex* verts, Uint32 size,
-		SpriteEffect* effect, Texture2D* texture, Uint64 state,
+		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = INT32_MAX,
 		const float* modelWorld = nullptr);
 protected:
 	SpriteRenderer();
@@ -124,6 +131,7 @@ private:
 	Texture2D* _lastTexture;
 	SpriteEffect* _lastEffect;
 	Uint64 _lastState;
+	Uint32 _lastFlags;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
 	SINGLETON_REF(SpriteRenderer, BGFXDora, RendererManager);

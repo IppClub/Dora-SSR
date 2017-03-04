@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Support/Array.h"
+#include "Support/Geometry.h"
 
 NS_DOROTHY_BEGIN
 
@@ -31,6 +32,9 @@ public:
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
 
+	void pushViewProjection(const float* viewProj);
+	void popViewProjection();
+
 	void setEntry(Node* entry);
 	void pushEntry(Node* entry);
 	Ref<Node> popEntry();
@@ -47,7 +51,7 @@ private:
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
 	Ref<Camera> _camera;
-	float _viewProj[16];
+	stack<Own<Matrix>> _viewProjs;
 	SINGLETON_REF(Director, Application);
 };
 

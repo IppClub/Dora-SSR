@@ -85,6 +85,7 @@
 		3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A7E1E28A6FE00645F2D /* Camera.cpp */; };
 		3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF09EF51E581AAD009E8C6F /* Singleton.cpp */; };
 		3CF16C8C1E68F165002587CD /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C8A1E68F165002587CD /* Renderer.cpp */; };
+		3CF16C961E69078C002587CD /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C941E69078C002587CD /* RenderTarget.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -237,6 +238,8 @@
 		3CF09EF61E581AAD009E8C6F /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
 		3CF16C8A1E68F165002587CD /* Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Renderer.cpp; path = ../../../Source/Basic/Renderer.cpp; sourceTree = "<group>"; };
 		3CF16C8B1E68F165002587CD /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Basic/Renderer.h; sourceTree = "<group>"; };
+		3CF16C941E69078C002587CD /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Node/RenderTarget.cpp; sourceTree = "<group>"; };
+		3CF16C951E69078C002587CD /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Node/RenderTarget.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -558,6 +561,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CF16C941E69078C002587CD /* RenderTarget.cpp */,
+				3CF16C951E69078C002587CD /* RenderTarget.h */,
 				3C0044E91E6682A000369672 /* Particle.cpp */,
 				3C0044EA1E6682A000369672 /* Particle.h */,
 				3C9A7D711E5428A200205094 /* Label.cpp */,
@@ -710,6 +715,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CF16C961E69078C002587CD /* RenderTarget.cpp in Sources */,
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3C6C076F1E5E85AF00BAA745 /* printf.cpp in Sources */,

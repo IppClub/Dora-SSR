@@ -21,6 +21,7 @@ class Application
 {
 public:
 	virtual ~Application() { }
+	PROPERTY_READONLY(Uint32, Frame);
 	PROPERTY_READONLY(int, Width);
 	PROPERTY_READONLY(int, Height);
 	PROPERTY_READONLY(double, LastTime);
@@ -29,7 +30,7 @@ public:
 	PROPERTY_READONLY(double, CPUTime);
 	PROPERTY_READONLY(const Slice, Platform);
 	PROPERTY_READONLY(SDL_Window*, SDLWindow);
-	PROPERTY(unsigned int, Seed);
+	PROPERTY(Uint32, Seed);
 	SDLEventHandler eventHandler;
 	int run();
 	void shutdown();
@@ -57,6 +58,7 @@ private:
 	unsigned int _seed;
 	int _width;
 	int _height;
+	uint32_t _frame;
 	const double _frequency;
 	double _lastTime;
 	double _deltaTime;

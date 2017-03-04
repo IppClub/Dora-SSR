@@ -313,11 +313,6 @@ OutT* DoraCast(InT* obj)
 	return (obj && obj->getDoraType() == DoraType<OutT>()) ? s_cast<OutT*>(obj) : nullptr;
 }
 
-struct Matrix
-{
-	static const float Indentity[16];
-};
-
 class Flag
 {
 public:

@@ -14,12 +14,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Input/TouchDispather.h"
 #include "Basic/View.h"
-#include "Node/Label.h"
 #include "GUI/ImGUIDora.h"
-#include "Node/Sprite.h"
 #include "bx/timer.h"
 #include "imgui.h"
-#include "Node/Particle.h"
+#include "Dorothy.h"
 
 NS_DOROTHY_BEGIN
 
@@ -92,7 +90,7 @@ Node* Director::getCurrentEntry() const
 
 const float* Director::getViewProjection() const
 {
-	return _viewProj;
+	return *_viewProjs.top();
 }
 
 void registerTouchHandler(Node* target)
@@ -110,11 +108,6 @@ void registerTouchHandler(Node* target)
 bool Director::init()
 {
 	SharedView.reset();
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
-	bgfx::setViewSeq(0, true);
-	bgfx::setViewClear(0,
-		BGFX_CLEAR_COLOR|BGFX_CLEAR_DEPTH,
-		0x303030ff, 1.0f, 0);
 	SharedLueEngine.executeScriptFile("Script/main.lua");
 
 	Label* label = Label::create("NotoSansHans-Regular", 18);
@@ -122,19 +115,35 @@ bool Director::init()
 	label->setLineGap(5);
 	label->setAlignment(TextAlignment::Left);
 	label->setText(u8"tolua++中定义一个C++对象进入Lua系统后，便被转换为一个包含原C++对象指针的Lua Userdata，然后给这个Userdata设置上一个包含所有C++对象可以调用方法的metatable。\n\n使得该Userdata可以调用原C++对象的成员和方法。从而在Lua中提供操作一个C++对象的方法。 <br />&emsp;&emsp;此外tolua++中除了设置好和C++类型继承一致的metatable链，还提供了每个metatable对应的叫做tolua_super的表，里面会记录自己的父类链上的所有父类，用于查询一个Lua中的类型是否是另一个类型的子类。为什么需要这个东西呢？因为一个C++对象可能会被多次在Lua通过不同的接口获取，同一个对象从不同的接口中获取时，可能会显示为不同的类型，如获取Cocos2d-x中一个CCNode的子节点，用getChildByTag获取的是类型为CCNode的子节点，但是从getChildren接口获取的子节点类型为CCObject，而这个子节点在最初创建使用的时候可能其实是一个CCSprite的类型。就是说同一个对象在不同的地方可能会被识别为不同的类型。但是我们为了不重复创建对象而让同一个C++对象只会对应一个Lua Userdata，那么这个Userdata的metatable应该设置为上述的哪一个类型呢？实际上只能是继承链靠后的类型，在CCObject &lt;= CCNode &lt;= CCSprite的继承链中应为CCSprite，因为只有CCSprite类型能满足所有调用该C++对象的场景。所以每次C++对象被Lua获取的时候需要检查类型的继承关系，将Lua中的C++对象升级成更靠后的子类，所以设计了这个tolua_super表来完成这项功能。");
-
+/*
 	ParticleDef* def = ParticleDef::fire();
+	//def->duration = 2;
 	ParticleNode* node = ParticleNode::create(def);
 	label->setTouchEnabled(true);
-	label->slot("TapMoved", [node](Event* e)
+	label->slot("TapMoved"_slice, [node](Event* e)
 	{
 		Touch* touch;
 		e->get(touch);
 		node->setPosition(node->getPosition() + touch->getDelta());
 	});
+	label->slot("Tapped"_slice, [node](Event* e)
+	{
+		node->start();
+	});
+	node->slot("Finished"_slice, [](Event* e)
+	{
+		Log("Finished!");
+	});
 	node->start();
 	label->addChild(node);
-	pushEntry(label);
+*/
+	RenderTarget* target = RenderTarget::create(512, 512);
+	target->begin(0xff000000);
+	label->setPosition(Vec2{256,256});
+	target->render(label);
+	target->end();
+
+	pushEntry(target);
 
 	if (!SharedImGUI.init())
 	{
@@ -145,7 +154,68 @@ bool Director::init()
 
 void Director::mainLoop()
 {
+	/* push default view projection */
+	{
+		Matrix viewProj;
+		bx::mtxMul(viewProj, getCamera()->getView(), SharedView.getProjection());
+		pushViewProjection(viewProj);
+	}
+
+	/* update logic */
+	_systemScheduler->update(SharedApplication.getDeltaTime());
+
+	SharedImGUI.begin();
+	ImGui::ShowTestWindow();
+	_scheduler->update(SharedApplication.getDeltaTime());
+	SharedImGUI.end();
+
+	/* handle touches */
+	SharedTouchDispatcher.add(SharedImGUI.getTarget());
+	SharedTouchDispatcher.dispatch();
+	Matrix ortho;
+	bx::mtxOrtho(ortho, 0, s_cast<float>(SharedApplication.getWidth()),
+		0, s_cast<float>(SharedApplication.getHeight()), -1000.0f, 1000.0f);
+	if (_ui)
+	{
+		registerTouchHandler(_ui);
+		pushViewProjection(ortho);
+		SharedTouchDispatcher.dispatch();
+		popViewProjection();
+	}
+	Node* currentEntry = nullptr;
+	if (!_entryStack->isEmpty())
+	{
+		currentEntry = _entryStack->getLast().to<Node>();
+		registerTouchHandler(currentEntry);
+		SharedTouchDispatcher.dispatch();
+	}
+	SharedTouchDispatcher.clearEvents();
+
+	/* render scene tree */
+	Uint8 viewId = SharedView.push("Main");
+	bgfx::setViewClear(viewId,
+		BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+		0x303030ff, 1.0f, 0);
+	if (currentEntry)
+	{
+		bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+		currentEntry->visit();
+	}
+	if (_ui)
+	{
+		pushViewProjection(ortho);
+		bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+		_ui->visit();
+		popViewProjection();
+	}
+	SharedRendererManager.setCurrent(nullptr);
+
+	/* render imgui */
+	SharedImGUI.render();
+
+	/* print debug text */
 	bgfx::dbgTextClear();
+	bgfx::setDebug(BGFX_DEBUG_TEXT);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* renderer;
 	switch (bgfx::getCaps()->rendererType)
@@ -172,12 +242,14 @@ void Director::mainLoop()
 		renderer = "Other";
 		break;
 	}
-	bgfx::dbgTextPrintf(0, 1, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
+
+	Uint8 dbgViewId = SharedView.getId();
+	bgfx::dbgTextPrintf(dbgViewId, 1, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
 			, stats->width
 			, stats->height
 			, stats->textWidth
 			, stats->textHeight);
-	bgfx::dbgTextPrintf(0, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f, MultiThreaded %s, Renderer %s"
+	bgfx::dbgTextPrintf(dbgViewId, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f, MultiThreaded %s, Renderer %s"
 			, stats->numCompute
 			, stats->numDraw
 			, SharedApplication.getCPUTime()
@@ -186,54 +258,23 @@ void Director::mainLoop()
 			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false"
 			, renderer);
 
-	SharedImGUI.begin();
+	SharedView.pop();
+	AssertUnless(SharedView.empty(), "view id push, pop calls mismatch.");
+	SharedView.clear();
 
-	/* handle touches */
-	SharedTouchDispatcher.add(SharedImGUI.getTarget());
-	SharedTouchDispatcher.dispatch();
-	float ortho[16];
-	bx::mtxOrtho(ortho, 0, s_cast<float>(SharedApplication.getWidth()), 0, s_cast<float>(SharedApplication.getHeight()), -1000.0f, 1000.0f);
-	if (_ui)
-	{
-		registerTouchHandler(_ui);
-		memcpy(_viewProj, ortho, sizeof(float) * 16);
-		SharedTouchDispatcher.dispatch();
-	}
-	Node* currentEntry = nullptr;
-	if (!_entryStack->isEmpty())
-	{
-		currentEntry = _entryStack->getLast().to<Node>();
-		registerTouchHandler(currentEntry);
-		bx::mtxMul(_viewProj, getCamera()->getView(), SharedView.getProjection());
-		SharedTouchDispatcher.dispatch();
-	}
-	SharedTouchDispatcher.clearEvents();
+	popViewProjection();
+	AssertUnless(_viewProjs.empty(), "view projection push, pop calls mismatch.");
+}
 
-	/* update logic */
-	_systemScheduler->update(SharedApplication.getDeltaTime());
+void Director::pushViewProjection(const float* viewProj)
+{
+	Matrix* matrix = new Matrix(*r_cast<const Matrix*>(viewProj));
+	_viewProjs.push(MakeOwn(matrix));
+}
 
-	ImGui::ShowTestWindow();
-
-	_scheduler->update(SharedApplication.getDeltaTime());
-
-	SharedImGUI.end();
-
-	/* render scene tree */
-	bgfx::setViewRect(0, 0, 0, bgfx::BackbufferRatio::Equal);
-	bgfx::touch(0);
-
-	if (currentEntry)
-	{
-		bgfx::setViewTransform(0, nullptr, _viewProj);
-		currentEntry->visit();
-	}
-	if (_ui)
-	{
-		memcpy(_viewProj, ortho, sizeof(float) * 16);
-		bgfx::setViewTransform(0, nullptr, _viewProj);
-		_ui->visit();
-	}
-	SharedSpriteRenderer.render();
+void Director::popViewProjection()
+{
+	_viewProjs.pop();
 }
 
 void Director::setEntry(Node* entry)

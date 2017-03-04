@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ShaderCache.h"
 #include "Cache/TextureCache.h"
 #include "Basic/Director.h"
+#include "Basic/View.h"
 
 NS_DOROTHY_BEGIN
 
@@ -23,6 +24,7 @@ _spriteIndices{0, 1, 2, 1, 3, 2},
 _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
+_lastFlags(INT32_MAX),
 _defaultEffect(
 	SpriteEffect::create(SharedShaderCache.load("vs_sprite.bin"_slice),
 	SharedShaderCache.load("fs_sprite.bin"_slice))),
@@ -68,9 +70,10 @@ void SpriteRenderer::render()
 			}
 			bgfx::setVertexBuffer(&vertexBuffer);
 			bgfx::setIndexBuffer(&indexBuffer);
-			bgfx::setTexture(0, _lastEffect->getSampler(), _lastTexture->getHandle());
+			Uint8 viewId = SharedView.getId();
+			bgfx::setTexture(viewId, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
 			bgfx::setState(_lastState);
-			bgfx::submit(0, _lastEffect->getProgram());
+			bgfx::submit(viewId, _lastEffect->getProgram());
 		}
 		else
 		{
@@ -80,6 +83,7 @@ void SpriteRenderer::render()
 		_lastEffect = nullptr;
 		_lastTexture = nullptr;
 		_lastState = 0;
+		_lastFlags = INT32_MAX;
 	}
 }
 
@@ -94,7 +98,8 @@ void SpriteRenderer::render(Sprite* sprite)
 	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
 	Uint64 state = sprite->getRenderState();
-	if (effect != _lastEffect || texture != _lastTexture || state != _lastState)
+	Uint32 flags = sprite->getTextureFlags();
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();
 	}
@@ -102,6 +107,7 @@ void SpriteRenderer::render(Sprite* sprite)
 	_lastEffect = effect;
 	_lastTexture = texture;
 	_lastState = state;
+	_lastFlags = flags;
 
 	const SpriteQuad& quad = sprite->getQuad();
 	for (Uint32 i = 0; i < 4; i++)
@@ -111,17 +117,18 @@ void SpriteRenderer::render(Sprite* sprite)
 }
 
 void SpriteRenderer::render(SpriteVertex* verts, Uint32 size,
-	SpriteEffect* effect, Texture2D* texture, Uint64 state,
+	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags,
 	const float* modelWorld)
 {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
-	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState)
+	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();
 	}
 	_lastEffect = effect;
 	_lastTexture = texture;
 	_lastState = state;
+	_lastFlags = flags;
 	for (Uint32 i = 0; i < size; i++)
 	{
 		_vertices.push_back(verts[i]);
@@ -134,6 +141,9 @@ void SpriteRenderer::render(SpriteVertex* verts, Uint32 size,
 }
 
 Sprite::Sprite():
+_filter(TextureFilter::None),
+_uwrap(TextureWrap::None),
+_vwrap(TextureWrap::None),
 _effect(SharedSpriteRenderer.getDefaultEffect()),
 _quadPos{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
 _blendFunc(BlendFunc::Normal),
@@ -238,6 +248,96 @@ const SpriteQuad& Sprite::getQuad() const
 	return _quad;
 }
 
+Uint32 Sprite::getTextureFlags() const
+{
+	Uint32 textureFlags = _texture->getFlags();
+	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None)
+	{
+		return INT32_MAX;
+	}
+	const Uint32 mask = (
+		BGFX_TEXTURE_MIN_MASK | BGFX_TEXTURE_MAG_MASK |
+		BGFX_TEXTURE_U_MASK | BGFX_TEXTURE_V_MASK);
+	Uint32 flags = 0;
+	switch (_filter)
+	{
+		case TextureFilter::Point:
+			flags |= (BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT);
+			break;
+		case TextureFilter::Anisotropic:
+			flags |= (BGFX_TEXTURE_MIN_ANISOTROPIC | BGFX_TEXTURE_MAG_ANISOTROPIC);
+			break;
+		default:
+			break;
+	}
+	switch (_uwrap)
+	{
+		case TextureWrap::Mirror:
+			flags |= BGFX_TEXTURE_U_MIRROR;
+			break;
+		case TextureWrap::Clamp:
+			flags |= BGFX_TEXTURE_U_CLAMP;
+			break;
+		case TextureWrap::Border:
+			flags |= BGFX_TEXTURE_U_BORDER;
+			break;
+		default:
+			break;
+	}
+	switch (_vwrap)
+	{
+		case TextureWrap::Mirror:
+			flags |= BGFX_TEXTURE_V_MIRROR;
+			break;
+		case TextureWrap::Clamp:
+			flags |= BGFX_TEXTURE_V_CLAMP;
+			break;
+		case TextureWrap::Border:
+			flags |= BGFX_TEXTURE_V_BORDER;
+			break;
+		default:
+			break;
+	}
+	if (flags == (textureFlags & mask))
+	{
+		return INT32_MAX;
+	}
+	else
+	{
+		return (textureFlags & (~mask)) | flags;
+	}
+}
+
+void Sprite::setFilter(TextureFilter var)
+{
+	_filter = var;
+}
+
+TextureFilter Sprite::getFilter() const
+{
+	return _filter;
+}
+
+void Sprite::setUWrap(TextureWrap var)
+{
+	_uwrap = var;
+}
+
+TextureWrap Sprite::getUWrap() const
+{
+	return _uwrap;
+}
+
+void Sprite::setVWrap(TextureWrap var)
+{
+	_vwrap = var;
+}
+
+TextureWrap Sprite::getVWrap() const
+{
+	return _vwrap;
+}
+
 void Sprite::updateVertTexCoord()
 {
 	if (_texture)
@@ -340,7 +440,7 @@ void Sprite::render()
 	}
 
 	SharedSpriteRenderer.render(this);
-	SharedRendererManager.setCurrent(&SharedSpriteRenderer);
+	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 }
 
 NS_DOROTHY_END

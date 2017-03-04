@@ -86,6 +86,7 @@
 		3CF730E41E66544A0002DEED /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E01E66544A0002DEED /* Image */; };
 		3CF730E51E66544A0002DEED /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E11E66544A0002DEED /* Script */; };
 		3CF730E61E66544A0002DEED /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E21E66544A0002DEED /* Shader */; };
+		3CFA31AE1E6B07EA00493633 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */; };
 		3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F261E0136A0004E3CA6 /* Application.mm */; };
 /* End PBXBuildFile section */
 
@@ -239,6 +240,8 @@
 		3CF730E01E66544A0002DEED /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Image; path = ../../Assets/Image; sourceTree = "<group>"; };
 		3CF730E11E66544A0002DEED /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Script; path = ../../Assets/Script; sourceTree = "<group>"; };
 		3CF730E21E66544A0002DEED /* Shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shader; path = ../../Assets/Shader; sourceTree = "<group>"; };
+		3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Node/RenderTarget.cpp; sourceTree = "<group>"; };
+		3CFA31AD1E6B07EA00493633 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Node/RenderTarget.h; sourceTree = "<group>"; };
 		3CFF5F261E0136A0004E3CA6 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../../Source/Basic/Application.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -272,6 +275,8 @@
 		3C1038511E15103600D37A60 /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */,
+				3CFA31AD1E6B07EA00493633 /* RenderTarget.h */,
 				3CF16C901E68FCE1002587CD /* Particle.cpp */,
 				3CF16C911E68FCE1002587CD /* Particle.h */,
 				3C8805731E5ED1AE00B52D4B /* Label.cpp */,
@@ -709,6 +714,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CFA31AE1E6B07EA00493633 /* RenderTarget.cpp in Sources */,
 				3C8805751E5ED1AE00B52D4B /* Label.cpp in Sources */,
 				3C266DEB1E27D6DB00F1C870 /* View.cpp in Sources */,
 				3C0AD7E81E0CE9D00033AD59 /* Content.mm in Sources */,

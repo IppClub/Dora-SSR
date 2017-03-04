@@ -68,4 +68,15 @@ private:
 	DORA_TYPE_OVERRIDE(Camera2D);
 };
 
+class OthoCamera : public Camera
+{
+public:
+	virtual const float* getView() override;
+	CREATE_FUNC(OthoCamera);
+protected:
+	OthoCamera(String name);
+private:
+	DORA_TYPE_OVERRIDE(OthoCamera);
+};
+
 NS_DOROTHY_END

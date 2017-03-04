@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
+#include "Basic/View.h"
 #include "Cache/TextureCache.h"
 #include "Other/utf8.h"
 #include "imgui.h"
@@ -26,7 +27,6 @@ _editingDel(false),
 _textLength(0),
 _textEditing{},
 _textInputing(false),
-_viewId(255),
 _mousePressed{ false, false, false },
 _mouseWheel(0.0f)
 {
@@ -83,9 +83,6 @@ void ImGUIDora::setImePositionHint(int x, int y)
 
 bool ImGUIDora::init()
 {
-	bgfx::setViewName(_viewId, "ImGui");
-	bgfx::setViewSeq(_viewId, true);
-
 	ImGuiIO& io = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;
 	io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
@@ -107,7 +104,6 @@ bool ImGUIDora::init()
 	io.KeyMap[ImGuiKey_Y] = SDLK_y;
 	io.KeyMap[ImGuiKey_Z] = SDLK_z;
 
-	io.RenderDrawListsFn = ImGUIDora::renderDrawLists;
 	io.SetClipboardTextFn = ImGUIDora::setClipboardText;
 	io.GetClipboardTextFn = ImGUIDora::getClipboardText;
 	io.ImeSetInputScreenPosFn = ImGUIDora::setImePositionHint;
@@ -194,7 +190,6 @@ bool ImGUIDora::init()
 void ImGUIDora::begin()
 {
 	ImGuiIO& io = ImGui::GetIO();
-
 	io.DisplaySize.x = s_cast<float>(SharedApplication.getWidth());
 	io.DisplaySize.y = s_cast<float>(SharedApplication.getHeight());
 	io.DeltaTime = s_cast<float>(SharedApplication.getDeltaTime());
@@ -251,34 +246,37 @@ inline bool checkAvailTransientBuffers(uint32_t _numVertices, const bgfx::Vertex
 		&& _numIndices == bgfx::getAvailTransientIndexBuffer(_numIndices);
 }
 
-void ImGUIDora::renderDrawLists(ImDrawData* _drawData)
+void ImGUIDora::render()
 {
-	ImGUIDora* guiDora = SharedImGUI.getTarget();
-	uint8_t viewId = guiDora->_viewId;
-	bgfx::UniformHandle sampler = guiDora->_textureSampler;
-	bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
-	bgfx::ProgramHandle program = guiDora->_effect->getProgram();
+	ImDrawData* drawData = ImGui::GetDrawData();
+	if (drawData->CmdListsCount == 0)
+	{
+		return;
+	}
+
+	uint8_t viewId = SharedView.push("ImGui");
 
 	const ImGuiIO& io = ImGui::GetIO();
 	const float width = io.DisplaySize.x;
 	const float height = io.DisplaySize.y;
-
-	bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
-	bgfx::touch(viewId);
-
 	{
 		float ortho[16];
 		bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
 		bgfx::setViewTransform(viewId, nullptr, ortho);
 	}
 
+	ImGUIDora* guiDora = SharedImGUI.getTarget();
+	bgfx::UniformHandle sampler = guiDora->_textureSampler;
+	bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
+	bgfx::ProgramHandle program = guiDora->_effect->getProgram();
+
 	// Render command lists
-	for (int32_t ii = 0, num = _drawData->CmdListsCount; ii < num; ++ii)
+	for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)
 	{
 		bgfx::TransientVertexBuffer tvb;
 		bgfx::TransientIndexBuffer tib;
 
-		const ImDrawList* drawList = _drawData->CmdLists[ii];
+		const ImDrawList* drawList = drawData->CmdLists[ii];
 		uint32_t numVertices = (uint32_t)drawList->VtxBuffer.size();
 		uint32_t numIndices = (uint32_t)drawList->IdxBuffer.size();
 
@@ -327,6 +325,7 @@ void ImGUIDora::renderDrawLists(ImDrawData* _drawData)
 			offset += cmd->ElemCount;
 		}
 	}
+	SharedView.pop();
 }
 
 void ImGUIDora::sendKey(int key, int count)
@@ -344,9 +343,11 @@ void ImGUIDora::sendKey(int key, int count)
 
 void ImGUIDora::updateTexture(Uint8* data, int width, int height)
 {
+	const Uint32 textureFlags = BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT;
+
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
-		false, 1, bgfx::TextureFormat::A8, BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT,
+		false, 1, bgfx::TextureFormat::A8, textureFlags,
 		bgfx::copy(data, width*height * 1));
 
 	bgfx::TextureInfo info;
@@ -354,7 +355,7 @@ void ImGUIDora::updateTexture(Uint8* data, int width, int height)
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
 		0, false, false, 1, bgfx::TextureFormat::A8);
 
-	_fontTexture = Texture2D::create(textureHandle, info);
+	_fontTexture = Texture2D::create(textureHandle, info, textureFlags);
 }
 
 void ImGUIDora::handleEvent(const SDL_Event& event)

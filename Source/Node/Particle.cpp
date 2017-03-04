@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Particle.h"
 #include "Cache/TextureCache.h"
 #include "Effect/Effect.h"
+#include "Basic/Director.h"
 
 NS_DOROTHY_BEGIN
 
@@ -178,6 +179,11 @@ bool ParticleNode::init()
 	return true;
 }
 
+bool ParticleNode::isActive() const
+{
+	return _flags.isOn(ParticleNode::Active);
+}
+
 Texture2D* ParticleNode::getTexture() const
 {
 	return _texture;
@@ -284,9 +290,9 @@ void ParticleNode::addParticle()
 void ParticleNode::start()
 {
 	_flags.setOn(ParticleNode::Active);
+	_flags.setOn(ParticleNode::Emitting);
 	_elapsed = 0;
 	_particles.clear();
-	Node::scheduleUpdate();
 }
 
 void ParticleNode::stop()
@@ -354,26 +360,27 @@ void ParticleNode::addQuad(const Particle& particle, const Vec3& pos)
 	_quads.push_back(quad);
 }
 
-bool ParticleNode::update(double deltaTime)
+void ParticleNode::visit()
 {
-	float dt = s_cast<float>(deltaTime);
-	if (_flags.isOff(Node::Updating))
+	if (_flags.isOff(ParticleNode::Emitting))
 	{
-		return Node::update(deltaTime);
+		Node::visit();
+		return;
 	}
+	float deltaTime = s_cast<float>(SharedDirector.getDeltaTime());
 	if (_flags.isOn(ParticleNode::Active) && _particleDef->emissionRate)
 	{
 		float rate = 1.0f / _particleDef->emissionRate;
 		if (s_cast<Uint32>(_particles.size()) < _particleDef->maxParticles)
 		{
-			_emitCounter += dt;
+			_emitCounter += deltaTime;
 		}
 		while (s_cast<Uint32>(_particles.size()) < _particleDef->maxParticles && _emitCounter > rate)
 		{
 			addParticle();
 			_emitCounter -= rate;
 		}
-		_elapsed += dt;
+		_elapsed += deltaTime;
 		if (_particleDef->duration >= 0 && _particleDef->duration < _elapsed)
 		{
 			stop();
@@ -387,7 +394,7 @@ bool ParticleNode::update(double deltaTime)
 	while (index < s_cast<int>(_particles.size()))
 	{
 		Particle& p = _particles[index];
-		p.timeToLive -= dt;
+		p.timeToLive -= deltaTime;
 		if (p.timeToLive > 0)
 		{
 			switch (_particleDef->emitterType)
@@ -411,31 +418,31 @@ bool ParticleNode::update(double deltaTime)
 					tangential *= p.mode.gravity.tangentialAccel;
 
 					tmp = radial + tangential + _particleDef->mode.gravity.gravity;
-					tmp *= dt;
+					tmp *= deltaTime;
 					p.mode.gravity.dir += tmp;
-					tmp = p.mode.gravity.dir * dt;
+					tmp = p.mode.gravity.dir * deltaTime;
 					p.pos += tmp;
 					break;
 				}
 				case EmitterType::Radius:
 				{
-					p.mode.radius.angle += p.mode.radius.degreesPerSecond * dt;
-					p.mode.radius.radius += p.mode.radius.deltaRadius * dt;
+					p.mode.radius.angle += p.mode.radius.degreesPerSecond * deltaTime;
+					p.mode.radius.radius += p.mode.radius.deltaRadius * deltaTime;
 					p.pos.x = -std::cos(p.mode.radius.angle) * p.mode.radius.radius;
 					p.pos.y = -std::sin(p.mode.radius.angle) * p.mode.radius.radius;
 					break;
 				}
 			}
 
-			p.color.x += (p.deltaColor.x * dt);
-			p.color.y += (p.deltaColor.y * dt);
-			p.color.z += (p.deltaColor.z * dt);
-			p.color.w += (p.deltaColor.w * dt);
+			p.color.x += (p.deltaColor.x * deltaTime);
+			p.color.y += (p.deltaColor.y * deltaTime);
+			p.color.z += (p.deltaColor.z * deltaTime);
+			p.color.w += (p.deltaColor.w * deltaTime);
 
-			p.size += (p.deltaSize * dt);
+			p.size += (p.deltaSize * deltaTime);
 			p.size = std::max(0.0f, p.size);
 
-			p.rotation += (p.deltaRotation * dt);
+			p.rotation += (p.deltaRotation * deltaTime);
 
 			addQuad(p, pos);
 
@@ -450,12 +457,12 @@ bool ParticleNode::update(double deltaTime)
 			}
 			if (_particles.empty())
 			{
-				unscheduleUpdate();
-				return Node::update(deltaTime);
+				_flags.setOff(ParticleNode::Emitting);
+				emit("Finished"_slice);
 			}
 		}
 	} // while end
-	return Node::update(deltaTime);
+	Node::visit();
 }
 
 void ParticleNode::render()
@@ -474,8 +481,8 @@ void ParticleNode::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedSpriteRenderer.render(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState, getWorld());
-	SharedRendererManager.setCurrent(&SharedSpriteRenderer);
+	SharedSpriteRenderer.render(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState, INT32_MAX, getWorld());
+	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 }
 
 NS_DOROTHY_END

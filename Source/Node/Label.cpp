@@ -382,7 +382,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		else
 		{
 			fontChar = SharedFontCache.createCharacter(_font, ch);
-			addChild(fontChar, s_cast<int>(i));
+			addChild(fontChar);
 			_characters[i] = fontChar;
 		}
 

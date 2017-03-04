@@ -10,6 +10,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+ENUM_START(TextureWrap)
+{
+	None,
+	Mirror,
+	Clamp,
+	Border
+}
+ENUM_END(TextureWrap)
+
+ENUM_START(TextureFilter)
+{
+	None,
+	Point,
+	Anisotropic
+}
+ENUM_END(TextureFilter)
+
 class Texture2D : public Object
 {
 public:
@@ -17,11 +34,16 @@ public:
 	PROPERTY_READONLY(int, Width);
 	PROPERTY_READONLY(int, Height);
 	PROPERTY_READONLY_REF(bgfx::TextureInfo, Info);
+	PROPERTY_READONLY(TextureFilter, Filter);
+	PROPERTY_READONLY(TextureWrap, UWrap);
+	PROPERTY_READONLY(TextureWrap, VWrap);
+	PROPERTY_READONLY(Uint32, Flags);
 	virtual ~Texture2D();
 	CREATE_FUNC(Texture2D);
 protected:
-	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info);
+	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint32 flags);
 private:
+	Uint32 _flags;
 	bgfx::TextureHandle _handle;
 	bgfx::TextureInfo _info;
 	DORA_TYPE_OVERRIDE(Texture2D);

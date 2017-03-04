@@ -6,52 +6,37 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "Const/Header.h"
-#include "Common/Utils.h"
-#include "Lua/ToLua/tolua++.h"
+#pragma once
+
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
-int doraType = TOLUA_REG_INDEX_TYPE; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
+class Camera;
+class Sprite;
+class Texture2D;
 
-Flag::Flag(Uint32 flags):_flags(flags)
-{ }
-
-void Flag::setOn(Uint32 type)
+class RenderTarget : public Node
 {
-	_flags |= type;
-}
-
-void Flag::setOff(Uint32 type)
-{
-	_flags &= ~type;
-}
-
-void Flag::setFlag(Uint32 type, bool value)
-{
-	if (value)
-	{
-		_flags |= type;
-	}
-	else
-	{
-		_flags &= ~type;
-	}
-}
-
-void Flag::toggle(Uint32 type)
-{
-	setFlag(type, !isOn(type));
-}
-
-bool Flag::isOn(Uint32 type) const
-{
-	return (_flags & type) != 0;
-}
-
-bool Flag::isOff(Uint32 type) const
-{
-	return (_flags & type) == 0;
-}
+public:
+	virtual ~RenderTarget();
+	virtual bool init() override;
+	void begin(Color color = 0x0, float depth = 1.0f, Uint8 stencil = 0);
+	void render(Node* target);
+	void end();
+	CREATE_FUNC(RenderTarget);
+protected:
+	RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
+private:
+	Uint16 _textureWidth;
+	Uint16 _textureHeight;
+	bgfx::TextureFormat::Enum _format;
+	Ref<Texture2D> _texture;
+	Ref<Sprite> _sprite;
+	Ref<Camera> _camera;
+	Ref<Node> _dummyParent;
+	bgfx::FrameBufferHandle _frameBufferHandle;
+	DORA_TYPE_OVERRIDE(RenderTarget);
+};
 
 NS_DOROTHY_END

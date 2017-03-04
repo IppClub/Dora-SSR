@@ -26,7 +26,7 @@ typedef Delegate<void (Event* event)> EventHandler;
  Event::addListener("UserEvent", [](Event* event)
  {
  	Slice msg;
- 	event->retrieve(msg);
+ 	event->get(msg);
 	Log("Recieved Event with msg: %s", msg);
  });
 

@@ -13,11 +13,55 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 View::View():
+_id(-1),
 _nearPlaneDistance(0.1f),
 _farPlaneDistance(10000.0f),
 _fieldOfView(45.0f),
 _flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC)
 { }
+
+Uint8 View::getId() const
+{
+	AssertIf(_ids.empty(), "invalid view id.")
+	return _ids.top();
+}
+
+void View::clear()
+{
+	_id = -1;
+	if (!empty())
+	{
+		stack<Uint8> dummy;
+		_ids.swap(dummy);
+	}
+}
+
+Uint8 View::push(const char* viewName)
+{
+	AssertIf(_id == 255, "running views exceeded 256.");
+	Uint8 viewId = s_cast<Uint8>(++_id);
+	bgfx::resetView(viewId);
+	if (viewName)
+	{
+		bgfx::setViewName(viewId, viewName);
+	}
+	bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
+	bgfx::setViewSeq(viewId, true);
+	bgfx::touch(viewId);
+	_ids.push(viewId);
+	return viewId;
+}
+
+void View::pop()
+{
+	AssertIf(_ids.empty(), "already pop to the last view, no more views to pop.");
+	_ids.pop();
+}
+
+bool View::empty()
+{
+	return _ids.empty();
+}
 
 Size View::getSize() const
 {

@@ -271,12 +271,14 @@ Atlas::Atlas(uint16_t _textureSize, Type type, bool antiAlias, uint16_t _maxRegi
 
 	bgfx::TextureFormat::Enum format = m_type == Gray ? bgfx::TextureFormat::A8 : bgfx::TextureFormat::RGBA8;
 
+	const Uint32 textureFlags = antiAlias ? (BGFX_TEXTURE_NONE) : (BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT);
+
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureSize
 		, _textureSize
 		, false
 		, 1
 		, format
-		, antiAlias ? (BGFX_TEXTURE_NONE) : (BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT)
+		, textureFlags
 		);
 
 	bgfx::TextureInfo info;
@@ -289,7 +291,7 @@ Atlas::Atlas(uint16_t _textureSize, Type type, bool antiAlias, uint16_t _maxRegi
 		, 1
 		, format);
 
-	m_texture = Texture2D::create(textureHandle, info);
+	m_texture = Texture2D::create(textureHandle, info, textureFlags);
 }
 
 Atlas::~Atlas()

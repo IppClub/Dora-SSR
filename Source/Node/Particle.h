@@ -110,11 +110,12 @@ struct Particle
 class ParticleNode : public Node
 {
 public:
+	PROPERTY_READONLY_BOOL(Active);
+	PROPERTY_READONLY(Texture2D*, Texture);
 	virtual ~ParticleNode();
 	virtual bool init() override;
-	virtual bool update(double deltaTime) override;
+	virtual void visit() override;
 	virtual void render() override;
-	Texture2D* getTexture() const;
 	void start();
 	void stop();
 	CREATE_FUNC(ParticleNode);
@@ -138,7 +139,8 @@ private:
 	enum
 	{
 		Active = Node::UserFlag,
-		DepthWrite = Node::UserFlag<<1
+		Emitting = Node::UserFlag << 1,
+		DepthWrite = Node::UserFlag << 2
 	};
 };
 

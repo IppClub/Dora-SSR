@@ -142,4 +142,18 @@ struct Vec4
 	}
 };
 
+struct Matrix
+{
+	float m[16];
+	inline operator float*()
+	{
+		return r_cast<float*>(this);
+	}
+	inline operator const float*() const
+	{
+		return r_cast<const float*>(this);
+	}
+	static const Matrix Indentity;
+};
+
 NS_DOROTHY_END

@@ -114,6 +114,7 @@ private:
 	string _textUTF8;
 	vector<Uint32> _text;
 	vector<Sprite*> _characters;
+	DORA_TYPE_OVERRIDE(Label);
 };
 
 NS_DOROTHY_END

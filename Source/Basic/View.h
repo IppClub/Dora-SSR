@@ -23,11 +23,18 @@ public:
 	PROPERTY(float, FarPlaneDistance);
 	PROPERTY(float, FieldOfView);
 	PROPERTY_BOOL(VSync);
+	PROPERTY_READONLY(Uint8, Id);
+	Uint8 push(const char* viewName = nullptr);
+	void pop();
+	bool empty();
+	void clear();
 	void reset();
 protected:
 	View();
 	void updateProjection();
 private:
+	Sint16 _id;
+	stack<Uint8> _ids;
 	Uint32 _flag;
 	float _nearPlaneDistance;
 	float _farPlaneDistance;

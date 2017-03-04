@@ -30,6 +30,7 @@ BGFXDora::~BGFXDora()
 }
 
 Application::Application():
+_frame(0),
 _width(800),
 _height(600),
 _deltaTime(0),
@@ -50,15 +51,20 @@ int Application::getHeight() const
 	return _height;
 }
 
-void Application::setSeed(unsigned int var)
+void Application::setSeed(Uint32 var)
 {
 	_seed = var;
 	std::srand(var);
 }
 
-unsigned int Application::getSeed() const
+Uint32 Application::getSeed() const
 {
 	return _seed;
+}
+
+Uint32 Application::getFrame() const
+{
+	return _frame;
 }
 
 SDL_Window* Application::getSDLWindow() const
@@ -252,7 +258,7 @@ int Application::mainLogic(void* userData)
 
 	SharedPoolManager.pop();
 
-	bgfx::frame();
+	app->_frame = bgfx::frame();
 
 	// Update and invoke render apis
 	app->updateDeltaTime();
@@ -301,7 +307,7 @@ int Application::mainLogic(void* userData)
 
 		// Advance to next frame. Rendering thread will be kicked to
 		// process submitted rendering primitives.
-		bgfx::frame();
+		app->_frame = bgfx::frame();
 
 		// limit for 60 FPS
 		do {

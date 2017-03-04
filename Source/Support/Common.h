@@ -35,6 +35,7 @@ struct Color
 	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 	Color(const Vec4& vec);
 	Uint32 toABGR() const;
+	Uint32 toRGBA() const;
 	Color3 toColor3() const;
 	Vec4 toVec4() const;
 	PROPERTY(float, Opacity);

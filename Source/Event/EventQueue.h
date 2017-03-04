@@ -69,7 +69,7 @@ void QEvent::get(Args&... args)
 				{
 					int val1, val2;
 					Slice msg;
-					event->retrieve(val1, val2, msg);
+					event->get(val1, val2, msg);
 					Log("%d, %d, %s", val1, val2, msg);
 					break;
 				}

@@ -384,7 +384,7 @@ void Node::onEnter()
 	}
 	ARRAY_END
 	_flags.setOn(Node::Running);
-	if (isUpdating())
+	if (isUpdating() || isScheduled())
 	{
 		_scheduler->schedule(this);
 	}
@@ -399,7 +399,7 @@ void Node::onExit()
 	}
 	ARRAY_END
 	_flags.setOff(Node::Running);
-	if (isUpdating())
+	if (isUpdating() || isScheduled())
 	{
 		_scheduler->unschedule(this);
 	}
@@ -439,6 +439,7 @@ void Node::addChild(Node* child, int order, String name)
 	child->_parent = this;
 	child->updateRealColor3();
 	child->updateRealOpacity();
+	child->markDirty();
 	if (_flags.isOn(Node::Running))
 	{
 		child->onEnter();
@@ -607,7 +608,7 @@ void Node::schedule(const function<bool(double)>& func)
 	if (_flags.isOff(Node::Scheduling))
 	{
 		_flags.setOn(Node::Scheduling);
-		if (_flags.isOff(Node::Updating))
+		if (_flags.isOff(Node::Updating) && _flags.isOn(Node::Running))
 		{
 			_scheduler->schedule(this);
 		}
@@ -637,7 +638,7 @@ void Node::scheduleUpdate()
 	if (_flags.isOff(Node::Updating))
 	{
 		_flags.setOn(Node::Updating);
-		if (_flags.isOff(Node::Scheduling))
+		if (_flags.isOff(Node::Scheduling) && _flags.isOn(Node::Running))
 		{
 			_scheduler->schedule(this);
 		}

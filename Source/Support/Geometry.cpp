@@ -445,4 +445,11 @@ void AffineTransform::toMatrix(const AffineTransform& t, float* m)
     m[1] = t.b; m[5] = t.d; m[13] = t.ty;
 }
 
+const Matrix Matrix::Indentity = {
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+};
+
 NS_DOROTHY_END

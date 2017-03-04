@@ -62,15 +62,20 @@ a(a)
 { }
 
 Color::Color(const Vec4& vec):
-r(vec.x * 255.0f),
-g(vec.y * 255.0f),
-b(vec.z * 255.0f),
-a(vec.w * 255.0f)
+r(s_cast<Uint8>(vec.x * 255.0f)),
+g(s_cast<Uint8>(vec.y * 255.0f)),
+b(s_cast<Uint8>(vec.z * 255.0f)),
+a(s_cast<Uint8>(vec.w * 255.0f))
 { }
 
 Uint32 Color::toABGR() const
 {
 	return *r_cast<Uint32*>(c_cast<Color*>(this));
+}
+
+Uint32 Color::toRGBA() const
+{
+	return r << 24 | g << 16 | b << 8 | a;
 }
 
 Color3 Color::toColor3() const

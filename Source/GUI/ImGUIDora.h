@@ -26,6 +26,7 @@ public:
 	bool init();
 	void begin();
 	void end();
+	void render();
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(Uint8* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
@@ -35,7 +36,6 @@ protected:
 	static const char* getClipboardText(void*);
 	static void setClipboardText(void*, const char* text);
 	static void setImePositionHint(int x, int y);
-	static void renderDrawLists(ImDrawData* _drawData);
 private:
 	bool _textInputing;
 	bool _editingDel;
@@ -45,7 +45,6 @@ private:
 	Ref<Effect> _effect;
 	bgfx::UniformHandle _textureSampler;
 	bgfx::VertexDecl _vertexDecl;
-	uint8_t _viewId;
 	list<SDL_Event> _inputs;
 	int _textLength;
 	int _cursor;

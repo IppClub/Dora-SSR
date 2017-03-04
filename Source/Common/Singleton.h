@@ -54,12 +54,14 @@ public:
 
 	T* getTarget() const
 	{
-		return d_cast<T*>(c_cast<Singleton*>(this));
+		static T* target = d_cast<T*>(c_cast<Singleton*>(this));
+		return target;
 	}
 
 	Life* getLife() const
 	{
-		return d_cast<Life*>(c_cast<Singleton*>(this));
+		static Life* life = d_cast<Life*>(c_cast<Singleton*>(this));
+		return life;
 	}
 
 	static bool isDisposed()

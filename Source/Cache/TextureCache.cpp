@@ -36,9 +36,10 @@ static void lodepng_free(void* _ptr, void* _userData)
 
 NS_DOROTHY_BEGIN
 
-Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info):
+Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint32 flags):
 _handle(handle),
-_info(info)
+_info(info),
+_flags(flags)
 { }
 
 bgfx::TextureHandle Texture2D::getHandle() const
@@ -59,6 +60,49 @@ int Texture2D::getHeight() const
 const bgfx::TextureInfo& Texture2D::getInfo() const
 {
 	return _info;
+}
+
+TextureFilter Texture2D::getFilter() const
+{
+	TextureFilter filter = TextureFilter::Anisotropic;
+	if ((_flags & BGFX_TEXTURE_MIN_POINT) != 0)
+	{
+		filter = TextureFilter::Point;
+	}
+	return filter;
+}
+
+TextureWrap Texture2D::getUWrap() const
+{
+	TextureWrap wrap = TextureWrap::Mirror;
+	if ((_flags & BGFX_TEXTURE_U_CLAMP) != 0)
+	{
+		wrap = TextureWrap::Clamp;
+	}
+	else if ((_flags & BGFX_TEXTURE_U_BORDER) != 0)
+	{
+		wrap = TextureWrap::Border;
+	}
+	return wrap;
+}
+
+TextureWrap Texture2D::getVWrap() const
+{
+	TextureWrap wrap = TextureWrap::Mirror;
+	if ((_flags & BGFX_TEXTURE_V_CLAMP) != 0)
+	{
+		wrap = TextureWrap::Clamp;
+	}
+	else if ((_flags & BGFX_TEXTURE_V_BORDER) != 0)
+	{
+		wrap = TextureWrap::Border;
+	}
+	return wrap;
+}
+
+Uint32 Texture2D::getFlags() const
+{
+	return _flags;
 }
 
 Texture2D::~Texture2D()
@@ -107,8 +151,9 @@ Texture2D* TextureCache::add(String filename, const Uint8* data, Sint64 size)
 		{
 			bgfx::TextureInfo info;
 			const bgfx::Memory* mem = bgfx::copy(data, s_cast<uint32_t>(size));
-			bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
-			Texture2D* texture = Texture2D::create(handle, info);
+			uint32_t flags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
+			bgfx::TextureHandle handle = bgfx::createTexture(mem, flags, 0, &info);
+			Texture2D* texture = Texture2D::create(handle, info, flags);
 			_textures[filename] = texture;
 			return texture;
 		}
@@ -125,9 +170,10 @@ Texture2D* TextureCache::add(String filename, const Uint8* data, Sint64 size)
 				const bgfx::Memory* mem = bgfx::makeRef(
 					out, width * height * bpp / 8, lodepng_free);
 
+				const Uint32 textureFlags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
 				bgfx::TextureHandle handle = bgfx::createTexture2D(
 					  uint16_t(width), uint16_t(height),
-					  false, 1, format, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP,
+					  false, 1, format, textureFlags,
 					  mem);
 
 				bgfx::TextureInfo info;
@@ -135,7 +181,7 @@ Texture2D* TextureCache::add(String filename, const Uint8* data, Sint64 size)
 					uint16_t(width), uint16_t(height),
 					0, false, false, 1, format);
 
-				Texture2D* texture = Texture2D::create(handle, info);
+				Texture2D* texture = Texture2D::create(handle, info, textureFlags);
 				_textures[filename] = texture;
 				return texture;
 			}
@@ -169,8 +215,9 @@ Texture2D* TextureCache::load(String filename)
 			const bgfx::Memory* mem = SharedContent.loadFileBX(fullPath);
 			if (mem->data)
 			{
-				bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
-				Texture2D* texture = Texture2D::create(handle, info);
+				const Uint32 textureFlags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
+				bgfx::TextureHandle handle = bgfx::createTexture(mem, textureFlags, 0, &info);
+				Texture2D* texture = Texture2D::create(handle, info, textureFlags);
 				_textures[fullPath] = texture;
 				return texture;
 			}
@@ -193,9 +240,11 @@ Texture2D* TextureCache::load(String filename)
 					const bgfx::Memory* mem = bgfx::makeRef(
 						out, width * height * bpp / 8, lodepng_free);
 
+					const Uint32 textureFlags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
+
 					bgfx::TextureHandle handle = bgfx::createTexture2D(
 						  uint16_t(width), uint16_t(height),
-						  false, 1, format, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP,
+						  false, 1, format, textureFlags,
 						  mem);
 
 					bgfx::TextureInfo info;
@@ -203,7 +252,7 @@ Texture2D* TextureCache::load(String filename)
 						uint16_t(width), uint16_t(height),
 						0, false, false, 1, format);
 
-					Texture2D* texture = Texture2D::create(handle, info);
+					Texture2D* texture = Texture2D::create(handle, info, textureFlags);
 					_textures[fullPath] = texture;
 					return texture;
 				}
@@ -240,9 +289,10 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			{
 				if (mem->data)
 				{
+					const Uint32 textureFlags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
 					bgfx::TextureInfo info;
-					bgfx::TextureHandle handle = bgfx::createTexture(mem, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP, 0, &info);
-					Texture2D* texture = Texture2D::create(handle, info);
+					bgfx::TextureHandle handle = bgfx::createTexture(mem, textureFlags, 0, &info);
+					Texture2D* texture = Texture2D::create(handle, info, textureFlags);
 					auto it = _textures.find(fullPath);
 					if (it == _textures.end())
 					{
@@ -290,9 +340,10 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 							const bgfx::Memory* mem = bgfx::makeRef(
 								out, width * height * bpp / 8, lodepng_free);
 
+							const Uint32 textureFlags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
 							bgfx::TextureHandle handle = bgfx::createTexture2D(
 								  uint16_t(width), uint16_t(height),
-								  false, 1, format, BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP,
+								  false, 1, format, textureFlags,
 								  mem);
 
 							bgfx::TextureInfo info;
@@ -300,7 +351,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 								uint16_t(width), uint16_t(height),
 								0, false, false, 1, format);
 
-							Texture2D* texture = Texture2D::create(handle, info);
+							Texture2D* texture = Texture2D::create(handle, info, textureFlags);
 							auto it = _textures.find(fullPath);
 							if (it == _textures.end())
 							{

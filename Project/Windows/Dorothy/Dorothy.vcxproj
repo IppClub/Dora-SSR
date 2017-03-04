@@ -111,6 +111,7 @@
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Array.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Common.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
+    <ClInclude Include="..\..\..\Source\Node\RenderTarget.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
     <ClInclude Include="..\..\..\Source\Support\Array.h" />
     <ClInclude Include="..\..\..\Source\Support\Common.h" />
