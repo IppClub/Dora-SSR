@@ -142,6 +142,10 @@ bool Director::init()
 	label->setPosition(Vec2{256,256});
 	target->render(label);
 	target->end();
+	target->saveAsync(SharedContent.getWritablePath() + "image.png", []()
+	{
+		Log("Save done!");
+	});
 
 	pushEntry(target);
 

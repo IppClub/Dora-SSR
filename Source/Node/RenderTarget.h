@@ -19,11 +19,13 @@ class Texture2D;
 class RenderTarget : public Node
 {
 public:
+	PROPERTY(Camera*, Camera);
 	virtual ~RenderTarget();
 	virtual bool init() override;
 	void begin(Color color = 0x0, float depth = 1.0f, Uint8 stencil = 0);
 	void render(Node* target);
 	void end();
+	void saveAsync(String filename, const function<void()>& callback);
 	CREATE_FUNC(RenderTarget);
 protected:
 	RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
