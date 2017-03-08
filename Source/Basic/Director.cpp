@@ -142,12 +142,33 @@ bool Director::init()
 	label->setPosition(Vec2{256,256});
 	target->render(label);
 	target->end();
-	target->saveAsync(SharedContent.getWritablePath() + "image.png", []()
+	/*target->saveAsync(SharedContent.getWritablePath() + "image.png", []()
 	{
 		Log("Save done!");
 	});
+	*/
+	Sprite* sp = Sprite::create("Image/logo.png");
+	//sp->setAngle(60.0f);
+	ClipNode* cn = ClipNode::create(sp);
+	sp->setAngle(45.0f);
+	sp->schedule([sp](double)
+	{
+		sp->setAngle(sp->getAngle()+1);
+		return false;
+	});
+	//cn->setInverted(true);
+	cn->addChild(target);
+	
+	Sprite* sp1 = Sprite::create("Image/logo.png");
+	Sprite* sp2 = Sprite::create("Image/logo.png");
+	ClipNode* cn1 = ClipNode::create(sp1);
+	//sp1->setAngle(45.0f);
+	//cn->setInverted(true);
+	cn1->addChild(cn);
+	sp2->setPosition(Vec2{-20,-20});
+	cn1->addChild(sp2);
 
-	pushEntry(target);
+	pushEntry(cn1);
 
 	if (!SharedImGUI.init())
 	{
@@ -169,7 +190,7 @@ void Director::mainLoop()
 	_systemScheduler->update(SharedApplication.getDeltaTime());
 
 	SharedImGUI.begin();
-	ImGui::ShowTestWindow();
+	//ImGui::ShowTestWindow();
 	_scheduler->update(SharedApplication.getDeltaTime());
 	SharedImGUI.end();
 

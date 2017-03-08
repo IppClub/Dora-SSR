@@ -59,7 +59,7 @@ void SpriteRenderer::render()
 			&vertexBuffer, SpriteVertex::ms_decl, vertexCount,
 			&indexBuffer, indexCount))
 		{
-			memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(SpriteVertex));
+			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(SpriteVertex));
 			uint16_t* indices = r_cast<uint16_t*>(indexBuffer.data);
 			for (size_t i = 0; i < spriteCount; i++)
 			{
@@ -432,7 +432,7 @@ void Sprite::render()
 	}
 
 	_renderState = (
-		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+		BGFX_STATE_RGB_WRITE |
 		BGFX_STATE_MSAA | _blendFunc.toValue());
 	if (_flags.isOn(Sprite::DepthWrite))
 	{

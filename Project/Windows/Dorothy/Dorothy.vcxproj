@@ -108,6 +108,7 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
+    <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />

@@ -243,6 +243,9 @@
     <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -460,6 +463,9 @@
       <Filter>Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\RenderTarget.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\ClipNode.h">
       <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
