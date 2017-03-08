@@ -22,6 +22,7 @@ class RendererManager
 {
 public:
 	PROPERTY(Renderer*, Current);
+	void flush();
 protected:
 	RendererManager();
 private:

@@ -29,4 +29,13 @@ Renderer* RendererManager::getCurrent() const
 	return _currentRenderer;
 }
 
+void RendererManager::flush()
+{
+	if (_currentRenderer)
+	{
+		_currentRenderer->render();
+		_currentRenderer = nullptr;
+	}
+}
+
 NS_DOROTHY_END

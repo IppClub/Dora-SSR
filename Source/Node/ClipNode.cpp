@@ -170,10 +170,10 @@ void ClipNode::visit()
 	Uint32 maskLayer = 1 << _layer;
 	Uint32 maskLayerLess = maskLayer - 1;
 	Uint32 maskLayerLessEqual = maskLayer | maskLayerLess;
-	SharedRendererManager.setCurrent(nullptr);
+	SharedRendererManager.flush();
 	{
 		Uint32 func = BGFX_STENCIL_TEST_NEVER | BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
-		Uint32 fail = _flags.isOff(ClipNode::Inverted) ? BGFX_STENCIL_OP_FAIL_S_ZERO : BGFX_STENCIL_OP_FAIL_S_REPLACE;
+		Uint32 fail = isInverted() ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
 		Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
 		Uint32 stencil = func | op;
 		bgfx::setStencil(stencil);
@@ -181,13 +181,13 @@ void ClipNode::visit()
 	drawFullscreenQuad();
 	{
 		Uint32 func = BGFX_STENCIL_TEST_NEVER | BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
-		Uint32 fail = _flags.isOff(ClipNode::Inverted) ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
+		Uint32 fail = isInverted() ? BGFX_STENCIL_OP_FAIL_S_ZERO : BGFX_STENCIL_OP_FAIL_S_REPLACE;
 		Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
 		Uint32 stencil = func | op;
 		bgfx::setStencil(stencil);
 	}
 	_stencil->visit();
-	SharedRendererManager.setCurrent(nullptr);
+	SharedRendererManager.flush();
 	{
 		Uint32 func = BGFX_STENCIL_TEST_EQUAL | BGFX_STENCIL_FUNC_REF(maskLayerLessEqual) | BGFX_STENCIL_FUNC_RMASK(maskLayerLessEqual);
 		Uint32 op = BGFX_STENCIL_OP_FAIL_S_KEEP | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
@@ -196,7 +196,7 @@ void ClipNode::visit()
 		_stencilStates.push(stencil);
 	}
 	Node::visit();
-	SharedRendererManager.setCurrent(nullptr);
+	SharedRendererManager.flush();
 	_stencilStates.pop();
 	if (_stencilStates.empty())
 	{

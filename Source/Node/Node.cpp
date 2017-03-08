@@ -705,7 +705,7 @@ void Node::visit()
 
 void Node::render()
 {
-	SharedRendererManager.setCurrent(nullptr);
+	SharedRendererManager.flush();
 }
 
 const AffineTransform& Node::getLocalTransform()

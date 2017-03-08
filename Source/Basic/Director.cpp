@@ -233,7 +233,7 @@ void Director::mainLoop()
 		_ui->visit();
 		popViewProjection();
 	}
-	SharedRendererManager.setCurrent(nullptr);
+	SharedRendererManager.flush();
 
 	/* render imgui */
 	SharedImGUI.render();

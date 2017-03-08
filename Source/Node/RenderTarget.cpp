@@ -122,7 +122,7 @@ void RenderTarget::render(Node* target)
 	}
 	target->markDirty();
 	target->visit();
-	SharedRendererManager.setCurrent(nullptr);
+	SharedRendererManager.flush();
 	if (parent)
 	{
 		_dummyParent->removeChild(target);
