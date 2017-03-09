@@ -168,6 +168,7 @@ bool Director::init()
 	sp2->setPosition(Vec2{-20,-20});
 	cn1->addChild(sp2);
 
+	cn->setAlphaThreshold(0.0f);
 	pushEntry(cn1);
 
 	if (!SharedImGUI.init())

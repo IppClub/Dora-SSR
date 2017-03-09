@@ -9,48 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Event/EventQueue.h"
+#include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
-
-class Values : public Object
-{
-public:
-	virtual ~Values() { }
-	template<class... Args>
-	static Ref<Values> create(const Args&... args);
-	template<class... Args>
-	void get(Args&... args);
-	static const Ref<Values> None;
-protected:
-	Values() { }
-};
-
-template<class... Fields>
-class ValuesEx : public Values
-{
-public:
-	template<class... Args>
-	ValuesEx(const Args&... args):values(std::make_tuple(args...))
-	{ }
-	std::tuple<Fields...> values;
-};
-
-template<class... Args>
-Ref<Values> Values::create(const Args&... args)
-{
-	auto item = new ValuesEx<Args...>(args...);
-	Ref<Values> itemRef(item);
-	item->release();
-	return itemRef;
-}
-
-template<class... Args>
-void Values::get(Args&... args)
-{
-	auto values = d_cast<ValuesEx<Args...>*>(this);
-	AssertIf(values == nullptr, "no required value type can be retrieved.");
-	std::tie(args...) = values->values;
-}
 
 /** @brief get a worker runs in another thread and returns a result,
  get a finisher receives the result and runs in main thread. */

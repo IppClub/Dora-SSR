@@ -246,6 +246,12 @@
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Value.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -467,6 +473,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\DrawNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Value.h">
+      <Filter>Support</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

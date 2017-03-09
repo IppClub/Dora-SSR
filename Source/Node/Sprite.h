@@ -119,8 +119,8 @@ public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultModelEffect);
 	virtual ~SpriteRenderer();
 	virtual void render() override;
-	void render(Sprite* sprite);
-	void render(SpriteVertex* verts, Uint32 size,
+	void push(Sprite* sprite);
+	void push(SpriteVertex* verts, Uint32 size,
 		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = INT32_MAX,
 		const float* modelWorld = nullptr);
 protected:

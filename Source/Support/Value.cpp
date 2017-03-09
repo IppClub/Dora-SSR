@@ -6,57 +6,11 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
-
-#include "Node/Node.h"
-#include "Node/DrawNode.h"
+#include "Const/Header.h"
+#include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
 
-class ClipNode : public Node
-{
-public:
-	PROPERTY(Node*, Stencil);
-	PROPERTY(float, AlphaThreshold);
-	PROPERTY_BOOL(Inverted);
-	virtual ~ClipNode();
-	virtual bool init() override;
-	virtual void onEnter() override;
-	virtual void onExit() override;
-	virtual void cleanup() override;
-	virtual void visit() override;
-	CREATE_FUNC(ClipNode);
-protected:
-	ClipNode(Node* stencil);
-	void drawFullscreenQuad();
-	void setupAlphaTest();
-private:
-	float _alphaThreshold;
-	Ref<Node> _stencil;
-	static int _layer;
-	static stack<Uint32> _stencilStates;
-	enum
-	{
-		Inverted = Node::UserFlag
-	};
-	DORA_TYPE_OVERRIDE(ClipNode);
-};
-
-class SpriteEffect;
-
-class AlphaTestEffect
-{
-public:
-	virtual ~AlphaTestEffect() { }
-	PROPERTY_READONLY(SpriteEffect*, SpriteEffect);
-protected:
-	AlphaTestEffect();
-private:
-	SpriteEffect* _spriteEffect;
-	SINGLETON_REF(AlphaTestEffect, BGFXDora);
-};
-
-#define SharedAlphaTestEffect \
-	Dorothy::Singleton<Dorothy::AlphaTestEffect>::shared()
+const Ref<Values> Values::None;
 
 NS_DOROTHY_END

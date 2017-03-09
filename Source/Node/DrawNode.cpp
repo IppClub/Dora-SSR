@@ -6,57 +6,39 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
-
-#include "Node/Node.h"
+#include "Const/Header.h"
 #include "Node/DrawNode.h"
+#include "Basic/Application.h"
+#include "Cache/ShaderCache.h"
+#include "Effect/Effect.h"
 
 NS_DOROTHY_BEGIN
 
-class ClipNode : public Node
+/* DrawEffect */
+
+bgfx::VertexDecl PosColorVertex::ms_decl;
+PosColorVertex::Init PosColorVertex::init;
+
+bgfx::VertexDecl PosVertex::ms_decl;
+PosVertex::Init PosVertex::init;
+
+DrawEffect::DrawEffect():
+_posColor(Effect::create(
+	SharedShaderCache.load("vs_poscolor.bin"_slice),
+	SharedShaderCache.load("fs_poscolor.bin"_slice))),
+_posUColor(Effect::create(
+	SharedShaderCache.load("vs_posucolor.bin"_slice),
+	SharedShaderCache.load("fs_poscolor.bin"_slice)))
+{ }
+
+Effect* DrawEffect::getPosColor() const
 {
-public:
-	PROPERTY(Node*, Stencil);
-	PROPERTY(float, AlphaThreshold);
-	PROPERTY_BOOL(Inverted);
-	virtual ~ClipNode();
-	virtual bool init() override;
-	virtual void onEnter() override;
-	virtual void onExit() override;
-	virtual void cleanup() override;
-	virtual void visit() override;
-	CREATE_FUNC(ClipNode);
-protected:
-	ClipNode(Node* stencil);
-	void drawFullscreenQuad();
-	void setupAlphaTest();
-private:
-	float _alphaThreshold;
-	Ref<Node> _stencil;
-	static int _layer;
-	static stack<Uint32> _stencilStates;
-	enum
-	{
-		Inverted = Node::UserFlag
-	};
-	DORA_TYPE_OVERRIDE(ClipNode);
-};
+	return _posColor;
+}
 
-class SpriteEffect;
-
-class AlphaTestEffect
+Effect* DrawEffect::getPosUColor() const
 {
-public:
-	virtual ~AlphaTestEffect() { }
-	PROPERTY_READONLY(SpriteEffect*, SpriteEffect);
-protected:
-	AlphaTestEffect();
-private:
-	SpriteEffect* _spriteEffect;
-	SINGLETON_REF(AlphaTestEffect, BGFXDora);
-};
-
-#define SharedAlphaTestEffect \
-	Dorothy::Singleton<Dorothy::AlphaTestEffect>::shared()
+	return _posUColor;
+}
 
 NS_DOROTHY_END

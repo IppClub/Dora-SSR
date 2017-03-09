@@ -9,54 +9,68 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Node/Node.h"
-#include "Node/DrawNode.h"
+#include "Common/Singleton.h"
 
 NS_DOROTHY_BEGIN
 
-class ClipNode : public Node
+struct PosColorVertex
 {
-public:
-	PROPERTY(Node*, Stencil);
-	PROPERTY(float, AlphaThreshold);
-	PROPERTY_BOOL(Inverted);
-	virtual ~ClipNode();
-	virtual bool init() override;
-	virtual void onEnter() override;
-	virtual void onExit() override;
-	virtual void cleanup() override;
-	virtual void visit() override;
-	CREATE_FUNC(ClipNode);
-protected:
-	ClipNode(Node* stencil);
-	void drawFullscreenQuad();
-	void setupAlphaTest();
-private:
-	float _alphaThreshold;
-	Ref<Node> _stencil;
-	static int _layer;
-	static stack<Uint32> _stencilStates;
-	enum
+	float x;
+	float y;
+	float z;
+	float w;
+	uint32_t abgr;
+	struct Init
 	{
-		Inverted = Node::UserFlag
+		Init()
+		{
+			ms_decl.begin()
+				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+			.end();
+		}
 	};
-	DORA_TYPE_OVERRIDE(ClipNode);
+	static bgfx::VertexDecl ms_decl;
+	static Init init;
 };
 
-class SpriteEffect;
+struct PosVertex
+{
+	float x;
+	float y;
+	float z;
+	float w;
+	struct Init
+	{
+		Init()
+		{
+			ms_decl.begin()
+				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+			.end();
+		}
+	};
+	static bgfx::VertexDecl ms_decl;
+	static Init init;
+};
 
-class AlphaTestEffect
+class Effect;
+
+class DrawEffect
 {
 public:
-	virtual ~AlphaTestEffect() { }
-	PROPERTY_READONLY(SpriteEffect*, SpriteEffect);
+	virtual ~DrawEffect() { }
+	PROPERTY_READONLY(Effect*, PosColor);
+	PROPERTY_READONLY(Effect*, PosUColor);
 protected:
-	AlphaTestEffect();
+	DrawEffect();
 private:
-	SpriteEffect* _spriteEffect;
-	SINGLETON_REF(AlphaTestEffect, BGFXDora);
+	Ref<Effect> _posColor;
+	Ref<Effect> _posUColor;
+	SINGLETON_REF(DrawEffect, BGFXDora);
 };
 
-#define SharedAlphaTestEffect \
-	Dorothy::Singleton<Dorothy::AlphaTestEffect>::shared()
+#define SharedDrawEffect \
+	Dorothy::Singleton<Dorothy::DrawEffect>::shared()
+
 
 NS_DOROTHY_END

@@ -14,6 +14,29 @@ NS_DOROTHY_BEGIN
 
 /* Effect */
 
+Effect::Uniform::~Uniform()
+{
+	if (bgfx::isValid(_handle))
+	{
+		bgfx::destroyUniform(_handle);
+	}
+}
+
+Effect::Uniform::Uniform(bgfx::UniformHandle handle, Value* value):
+_handle(handle),
+_value(value)
+{ }
+
+bgfx::UniformHandle Effect::Uniform::getHandle() const
+{
+	return _handle;
+}
+
+Value* Effect::Uniform::getValue() const
+{
+	return _value;
+}
+
 Effect::Effect(Shader* vertShader, Shader* fragShader):
 _vertShader(vertShader),
 _fragShader(fragShader)
@@ -36,6 +59,67 @@ bool Effect::init()
 {
 	_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
 	return bgfx::isValid(_program);
+}
+
+void Effect::set(String name, float var)
+{
+	string uname(name);
+	auto it = _uniforms.find(uname);
+	if (it != _uniforms.end())
+	{
+		bgfx::setUniform(it->second->getHandle(), &var);
+		it->second->getValue()->as<float>()->set(var);
+	}
+	else
+	{
+		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
+		bgfx::setUniform(handle, &var);
+		_uniforms[uname] = Uniform::create(handle, Value::create(var));
+	}
+}
+
+void Effect::set(String name, const Vec4& var)
+{
+	string uname(name);
+	auto it = _uniforms.find(uname);
+	if (it != _uniforms.end())
+	{
+		bgfx::setUniform(it->second->getHandle(), &var);
+		it->second->getValue()->as<Vec4>()->set(var);
+	}
+	else
+	{
+		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
+		bgfx::setUniform(handle, &var);
+		_uniforms[uname] = Uniform::create(handle, Value::create(var));
+	}
+}
+
+void Effect::set(String name, const Matrix& var)
+{
+	string uname(name);
+	auto it = _uniforms.find(uname);
+	if (it != _uniforms.end())
+	{
+		bgfx::setUniform(it->second->getHandle(), &var);
+		it->second->getValue()->as<Matrix>()->set(var);
+	}
+	else
+	{
+		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Mat4);
+		bgfx::setUniform(handle, &var);
+		_uniforms[uname] = Uniform::create(handle, Value::create(var));
+	}
+}
+
+Value* Effect::get(String name) const
+{
+	auto it = _uniforms.find(name);
+	if (it != _uniforms.end())
+	{
+		return it->second->getValue();
+	}
+	return nullptr;
 }
 
 /* SpriteEffect */

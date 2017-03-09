@@ -12,35 +12,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Cache/ShaderCache.h"
 #include "Effect/Effect.h"
+#include "Node/Sprite.h"
 #include "Basic/View.h"
 
 NS_DOROTHY_BEGIN
-
-/* SimpleEffect */
-
-bgfx::VertexDecl SimpleVertex::ms_decl;
-SimpleVertex::Init SimpleVertex::init;
-
-SimpleEffect::SimpleEffect():
-_effect(Effect::create(
-	SharedShaderCache.load("vs_poscolor.bin"_slice),
-	SharedShaderCache.load("fs_poscolor.bin"_slice)))
-{ }
-
-SimpleEffect::~SimpleEffect()
-{ }
-
-Effect* SimpleEffect::get() const
-{
-	return _effect;
-}
-
-/* ClipNode */
 
 int ClipNode::_layer = -1;
 stack<Uint32> ClipNode::_stencilStates;
 
 ClipNode::ClipNode(Node* stencil):
+_alphaThreshold(1.0f),
 _stencil(stencil)
 { }
 
@@ -55,16 +36,31 @@ void ClipNode::setStencil(Node* var)
 		_stencil->onExit();
 	}
 	_stencil = var;
-	if (_stencil && isRunning())
+	if (_stencil)
 	{
-		_stencil->onEnter();
 		_stencil->setTransformTarget(this);
+		setupAlphaTest();
+		if (isRunning())
+		{
+			_stencil->onEnter();
+		}
 	}
 }
 
 Node* ClipNode::getStencil() const
 {
 	return _stencil;
+}
+
+void ClipNode::setAlphaThreshold(float var)
+{
+	_alphaThreshold = var;
+	setupAlphaTest();
+}
+
+float ClipNode::getAlphaThreshold() const
+{
+	return _alphaThreshold;
 }
 
 void ClipNode::setInverted(bool var)
@@ -117,7 +113,7 @@ void ClipNode::drawFullscreenQuad()
 {
 	bgfx::TransientVertexBuffer vertexBuffer;
 	bgfx::TransientIndexBuffer indexBuffer;
-	if (bgfx::allocTransientBuffers(&vertexBuffer, SimpleVertex::ms_decl, 4, &indexBuffer, 6))
+	if (bgfx::allocTransientBuffers(&vertexBuffer, PosVertex::ms_decl, 4, &indexBuffer, 6))
 	{
 		float width = s_cast<float>(SharedApplication.getWidth());
 		float height = s_cast<float>(SharedApplication.getHeight());
@@ -127,21 +123,38 @@ void ClipNode::drawFullscreenQuad()
 			{0, 0, 0, 1},
 			{width, 0, 0, 1}
 		};
-		SimpleVertex* vertices = r_cast<SimpleVertex*>(vertexBuffer.data);
+		PosVertex* vertices = r_cast<PosVertex*>(vertexBuffer.data);
 		Matrix ortho;
 		bx::mtxOrtho(ortho, 0, width, 0, height, 0, 1000.0f);
 		for (int i = 0; i < 4; i++)
 		{
 			bx::vec4MulMtx(&vertices[i].x, pos[i], ortho);
-			vertices[i].abgr = 0;
 		}
 		const uint16_t indices[] = {0, 1, 2, 1, 3, 2};
 		std::memcpy(indexBuffer.data, indices, sizeof(uint16_t) * 6);
 		bgfx::setVertexBuffer(&vertexBuffer);
 		bgfx::setIndexBuffer(&indexBuffer);
-		Uint8 viewId = SharedView.getId();
 		bgfx::setState(BGFX_STATE_NONE);
-		bgfx::submit(viewId, SharedSimpleEffect.get()->getProgram());
+		Uint8 viewId = SharedView.getId();
+		bgfx::submit(viewId, SharedDrawEffect.getPosUColor()->getProgram());
+	}
+}
+
+void ClipNode::setupAlphaTest()
+{
+	if (_stencil)
+	{
+		bool setup = _alphaThreshold < 1.0f;
+		SpriteEffect* effect = setup ? SharedAlphaTestEffect.getSpriteEffect() : SharedSpriteRenderer.getDefaultEffect();
+		_stencil->traverse([effect](Node* node)
+		{
+			Sprite* sprite = DoraCast<Sprite>(node);
+			if (sprite)
+			{
+				sprite->setEffect(effect);
+			}
+			return false;
+		});
 	}
 }
 
@@ -186,6 +199,10 @@ void ClipNode::visit()
 		Uint32 stencil = func | op;
 		bgfx::setStencil(stencil);
 	}
+	if (_alphaThreshold < 1.0f)
+	{
+		SharedAlphaTestEffect.getSpriteEffect()->set("u_alphaRef"_slice, _alphaThreshold);
+	}
 	_stencil->visit();
 	SharedRendererManager.flush();
 	{
@@ -207,6 +224,17 @@ void ClipNode::visit()
 		bgfx::setStencil(_stencilStates.top());
 	}
 	_layer--;
+}
+
+AlphaTestEffect::AlphaTestEffect():
+_spriteEffect(SpriteEffect::create(
+	SharedShaderCache.load("vs_sprite.bin"_slice),
+	SharedShaderCache.load("fs_spritealphatest.bin"_slice)))
+{ }
+
+SpriteEffect* AlphaTestEffect::getSpriteEffect() const
+{
+	return _spriteEffect;
 }
 
 NS_DOROTHY_END

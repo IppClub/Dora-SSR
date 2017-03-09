@@ -109,6 +109,7 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
@@ -117,6 +118,7 @@
     <ClCompile Include="..\..\..\Source\Support\Array.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Common.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp" />
+    <ClCompile Include="..\..\..\Source\Support\Value.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
@@ -185,6 +187,7 @@
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
+    <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
@@ -193,6 +196,7 @@
     <ClInclude Include="..\..\..\Source\Support\Array.h" />
     <ClInclude Include="..\..\..\Source\Support\Common.h" />
     <ClInclude Include="..\..\..\Source\Support\Geometry.h" />
+    <ClInclude Include="..\..\..\Source\Support\Value.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>

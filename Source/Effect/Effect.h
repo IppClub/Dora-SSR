@@ -8,6 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Geometry.h"
+#include "Support/Value.h"
+
 NS_DOROTHY_BEGIN
 
 class Shader;
@@ -18,13 +21,31 @@ public:
 	PROPERTY_READONLY(bgfx::ProgramHandle, Program);
 	virtual ~Effect();
 	virtual bool init() override;
+	void set(String name, float var);
+	void set(String name, const Vec4& var);
+	void set(String name, const Matrix& var);
+	Value* get(String name) const;
 	CREATE_FUNC(Effect);
 protected:
 	Effect(Shader* vertShader, Shader* fragShader);
 private:
+	class Uniform : public Object
+	{
+	public:
+		PROPERTY_READONLY(bgfx::UniformHandle, Handle);
+		PROPERTY_READONLY(Value*, Value);
+		virtual ~Uniform();
+		CREATE_FUNC(Uniform);
+	protected:
+		Uniform(bgfx::UniformHandle handle, Value* value);
+	private:
+		bgfx::UniformHandle _handle;
+		Ref<Value> _value;
+	};
 	Ref<Shader> _fragShader;
 	Ref<Shader> _vertShader;
 	bgfx::ProgramHandle _program;
+	unordered_map<string, Ref<Uniform>> _uniforms;
 	DORA_TYPE_OVERRIDE(Effect);
 };
 
@@ -40,5 +61,8 @@ private:
 	bgfx::UniformHandle _sampler;
 	DORA_TYPE_OVERRIDE(SpriteEffect);
 };
+
+#define SharedDefaultEffect \
+	Dorothy::Singleton<Dorothy::DefaultEffect>::shared()
 
 NS_DOROTHY_END

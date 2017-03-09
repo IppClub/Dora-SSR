@@ -25,11 +25,11 @@ _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
 _lastFlags(INT32_MAX),
-_defaultEffect(
-	SpriteEffect::create(SharedShaderCache.load("vs_sprite.bin"_slice),
+_defaultEffect(SpriteEffect::create(
+	SharedShaderCache.load("vs_sprite.bin"_slice),
 	SharedShaderCache.load("fs_sprite.bin"_slice))),
-_defaultModelEffect(
-	SpriteEffect::create(SharedShaderCache.load("vs_spritemodel.bin"_slice),
+_defaultModelEffect(SpriteEffect::create(
+	SharedShaderCache.load("vs_spritemodel.bin"_slice),
 	SharedShaderCache.load("fs_sprite.bin"_slice)))
 { }
 
@@ -87,7 +87,7 @@ void SpriteRenderer::render()
 	}
 }
 
-void SpriteRenderer::render(Sprite* sprite)
+void SpriteRenderer::push(Sprite* sprite)
 {
 	if (!sprite)
 	{
@@ -116,7 +116,7 @@ void SpriteRenderer::render(Sprite* sprite)
 	}
 }
 
-void SpriteRenderer::render(SpriteVertex* verts, Uint32 size,
+void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
 	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags,
 	const float* modelWorld)
 {
@@ -439,7 +439,7 @@ void Sprite::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedSpriteRenderer.render(this);
+	SharedSpriteRenderer.push(this);
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 }
 

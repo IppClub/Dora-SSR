@@ -50,6 +50,8 @@
 		3CB487171E16398700D51749 /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487101E16398700D51749 /* tolua_push.cpp */; };
 		3CB487181E16398700D51749 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487111E16398700D51749 /* tolua_to.cpp */; };
 		3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4871C1E16419800D51749 /* Geometry.cpp */; };
+		3CC05B641E71229A00F2BA1B /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B621E71229A00F2BA1B /* DrawNode.cpp */; };
+		3CC05B671E7131CB00F2BA1B /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B651E7131CB00F2BA1B /* Value.cpp */; };
 		3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC098681E262F85006F4B76 /* Sprite.cpp */; };
 		3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E911E03C09F00462FD7 /* ioapi.cpp */; };
 		3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E931E03C09F00462FD7 /* unzip.cpp */; };
@@ -175,6 +177,10 @@
 		3CB487121E16398700D51749 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/ToLua/tolua++.h"; sourceTree = "<group>"; };
 		3CB4871C1E16419800D51749 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Geometry.cpp; path = ../../../Source/Support/Geometry.cpp; sourceTree = "<group>"; };
 		3CB4871D1E16419800D51749 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
+		3CC05B621E71229A00F2BA1B /* DrawNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrawNode.cpp; path = ../../../Source/Node/DrawNode.cpp; sourceTree = "<group>"; };
+		3CC05B631E71229A00F2BA1B /* DrawNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrawNode.h; path = ../../../Source/Node/DrawNode.h; sourceTree = "<group>"; };
+		3CC05B651E7131CB00F2BA1B /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
+		3CC05B661E7131CB00F2BA1B /* Value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Value.h; path = ../../../Source/Support/Value.h; sourceTree = "<group>"; };
 		3CC098681E262F85006F4B76 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
 		3CC098691E262F85006F4B76 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
@@ -444,6 +450,8 @@
 		3CB4871A1E163E9400D51749 /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				3CC05B651E7131CB00F2BA1B /* Value.cpp */,
+				3CC05B661E7131CB00F2BA1B /* Value.h */,
 				3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */,
 				3C0D399F1E1BA8FB007FEFC3 /* Array.h */,
 				3C0D399B1E1BA603007FEFC3 /* Common.cpp */,
@@ -564,6 +572,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CC05B621E71229A00F2BA1B /* DrawNode.cpp */,
+				3CC05B631E71229A00F2BA1B /* DrawNode.h */,
 				3CCB0C771E6DB0590088C118 /* ClipNode.cpp */,
 				3CCB0C781E6DB0590088C118 /* ClipNode.h */,
 				3CF16C941E69078C002587CD /* RenderTarget.cpp */,
@@ -721,6 +731,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3CF16C961E69078C002587CD /* RenderTarget.cpp in Sources */,
+				3CC05B641E71229A00F2BA1B /* DrawNode.cpp in Sources */,
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3C6C076F1E5E85AF00BAA745 /* printf.cpp in Sources */,
@@ -775,6 +786,7 @@
 				3CF16C8C1E68F165002587CD /* Renderer.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
+				3CC05B671E7131CB00F2BA1B /* Value.cpp in Sources */,
 				3C6C076E1E5E85AF00BAA745 /* ostream.cpp in Sources */,
 				3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */,
 				3CCB0C791E6DB0590088C118 /* ClipNode.cpp in Sources */,

@@ -55,6 +55,8 @@
 		3CB410421E05B19A00A8804D /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103C1E05B19A00A8804D /* zip.cpp */; };
 		3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103E1E05B19A00A8804D /* ZipUtils.cpp */; };
 		3CB410481E05B28B00A8804D /* libz.1.2.8.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CB410471E05B28B00A8804D /* libz.1.2.8.tbd */; };
+		3CC05B6A1E716EB000F2BA1B /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B681E716EB000F2BA1B /* DrawNode.cpp */; };
+		3CC05B6D1E7171D600F2BA1B /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B6B1E7171D600F2BA1B /* Value.cpp */; };
 		3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC8201B1D96680C008C8B77 /* Assets.xcassets */; };
 		3CCB0C811E707A650088C118 /* ClipNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCB0C7F1E707A650088C118 /* ClipNode.cpp */; };
 		3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD481E1D589500F32295 /* Utils.cpp */; };
@@ -189,6 +191,10 @@
 		3CB4103E1E05B19A00A8804D /* ZipUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZipUtils.cpp; path = ../../../Source/3rdParty/Zip/Support/ZipUtils.cpp; sourceTree = "<group>"; };
 		3CB4103F1E05B19A00A8804D /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZipUtils.h; path = ../../../Source/3rdParty/Zip/Support/ZipUtils.h; sourceTree = "<group>"; };
 		3CB410471E05B28B00A8804D /* libz.1.2.8.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.8.tbd; path = usr/lib/libz.1.2.8.tbd; sourceTree = SDKROOT; };
+		3CC05B681E716EB000F2BA1B /* DrawNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrawNode.cpp; path = ../../../Source/Node/DrawNode.cpp; sourceTree = "<group>"; };
+		3CC05B691E716EB000F2BA1B /* DrawNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrawNode.h; path = ../../../Source/Node/DrawNode.h; sourceTree = "<group>"; };
+		3CC05B6B1E7171D600F2BA1B /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
+		3CC05B6C1E7171D600F2BA1B /* Value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Value.h; path = ../../../Source/Support/Value.h; sourceTree = "<group>"; };
 		3CC820091D96680C008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC8201B1D96680C008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CC820201D96680C008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -278,6 +284,8 @@
 		3C1038511E15103600D37A60 /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CC05B681E716EB000F2BA1B /* DrawNode.cpp */,
+				3CC05B691E716EB000F2BA1B /* DrawNode.h */,
 				3CCB0C7F1E707A650088C118 /* ClipNode.cpp */,
 				3CCB0C801E707A650088C118 /* ClipNode.h */,
 				3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */,
@@ -336,6 +344,8 @@
 		3C4BC6541E17F15C00292200 /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				3CC05B6B1E7171D600F2BA1B /* Value.cpp */,
+				3CC05B6C1E7171D600F2BA1B /* Value.h */,
 				3CD6C2A61E30C22300B36FFC /* Common.cpp */,
 				3CD6C2A71E30C22300B36FFC /* Common.h */,
 				3CCEDD4A1E1D58D500F32295 /* Array.cpp */,
@@ -720,6 +730,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3CFA31AE1E6B07EA00493633 /* RenderTarget.cpp in Sources */,
+				3CC05B6A1E716EB000F2BA1B /* DrawNode.cpp in Sources */,
 				3C8805751E5ED1AE00B52D4B /* Label.cpp in Sources */,
 				3C266DEB1E27D6DB00F1C870 /* View.cpp in Sources */,
 				3C0AD7E81E0CE9D00033AD59 /* Content.mm in Sources */,
@@ -774,6 +785,7 @@
 				3CD3283F1E4C42A60036906C /* imgui_draw.cpp in Sources */,
 				3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */,
 				3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */,
+				3CC05B6D1E7171D600F2BA1B /* Value.cpp in Sources */,
 				3C4BC6651E17F1B500292200 /* tolua_fix.cpp in Sources */,
 				3CCEDD4E1E1D58D500F32295 /* Array.cpp in Sources */,
 				3CCB0C811E707A650088C118 /* ClipNode.cpp in Sources */,
