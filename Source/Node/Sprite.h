@@ -68,6 +68,7 @@ class Sprite : public Node
 public:
 	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY(Texture2D*, Texture);
+	PROPERTY(float, AlphaRef);
 	PROPERTY_REF(Rect, TextureRect);
 	PROPERTY_REF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
@@ -93,6 +94,7 @@ protected:
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
 private:
+	Uint8 _alphaRef;
 	TextureFilter _filter;
 	TextureWrap _uwrap;
 	TextureWrap _vwrap;
@@ -117,7 +119,8 @@ class SpriteRenderer : public Renderer
 public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(SpriteEffect*, DefaultModelEffect);
-	virtual ~SpriteRenderer();
+	PROPERTY_READONLY(SpriteEffect*, AlphaTestEffect);
+	virtual ~SpriteRenderer() { }
 	virtual void render() override;
 	void push(Sprite* sprite);
 	void push(SpriteVertex* verts, Uint32 size,
@@ -128,6 +131,7 @@ protected:
 private:
 	Ref<SpriteEffect> _defaultEffect;
 	Ref<SpriteEffect> _defaultModelEffect;
+	Ref<SpriteEffect> _alphaTestEffect;
 	Texture2D* _lastTexture;
 	SpriteEffect* _lastEffect;
 	Uint64 _lastState;

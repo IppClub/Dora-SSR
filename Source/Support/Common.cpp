@@ -49,9 +49,9 @@ b(color.b)
 
 Color::Color(Uint32 argb):
 a(argb >> 24),
-r((argb & 0x00FF0000) >> 16),
-g((argb & 0x0000FF00) >> 8),
-b(argb & 0x000000FF)
+r((argb & 0x00ff0000) >> 16),
+g((argb & 0x0000ff00) >> 8),
+b(argb & 0x000000ff)
 { }
 
 Color::Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a):
@@ -115,7 +115,12 @@ Color& Color::operator=(const Color& color)
 	return *this;
 }
 
-const BlendFunc BlendFunc::Normal{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
+Color Color::convert(Uint32 abgr)
+{
+	return *r_cast<Color*>(&abgr);
+}
+
+const BlendFunc BlendFunc::Default{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 
 Uint64 BlendFunc::toValue()
 {

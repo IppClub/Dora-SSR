@@ -24,14 +24,22 @@ public:
 	PROPERTY(float, FieldOfView);
 	PROPERTY_BOOL(VSync);
 	PROPERTY_READONLY(Uint8, Id);
-	Uint8 push(const char* viewName = nullptr);
-	void pop();
-	bool empty();
 	void clear();
 	void reset();
+
+	template <typename Func>
+	void pushName(String viewName, const Func& workHere)
+	{
+		push(viewName);
+		workHere();
+		pop();
+	}
 protected:
 	View();
 	void updateProjection();
+	void push(String viewName);
+	void pop();
+	bool empty();
 private:
 	Sint16 _id;
 	stack<Uint8> _ids;

@@ -18,7 +18,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 int ClipNode::_layer = -1;
-stack<Uint32> ClipNode::_stencilStates;
 
 ClipNode::ClipNode(Node* stencil):
 _alphaThreshold(1.0f),
@@ -109,11 +108,12 @@ void ClipNode::cleanup()
 	}
 }
 
-void ClipNode::drawFullscreenQuad()
+void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 {
+	SharedRendererManager.flush();
 	bgfx::TransientVertexBuffer vertexBuffer;
 	bgfx::TransientIndexBuffer indexBuffer;
-	if (bgfx::allocTransientBuffers(&vertexBuffer, PosVertex::ms_decl, 4, &indexBuffer, 6))
+	if (bgfx::allocTransientBuffers(&vertexBuffer, PosColorVertex::ms_decl, 4, &indexBuffer, 6))
 	{
 		float width = s_cast<float>(SharedApplication.getWidth());
 		float height = s_cast<float>(SharedApplication.getHeight());
@@ -123,7 +123,7 @@ void ClipNode::drawFullscreenQuad()
 			{0, 0, 0, 1},
 			{width, 0, 0, 1}
 		};
-		PosVertex* vertices = r_cast<PosVertex*>(vertexBuffer.data);
+		PosColorVertex* vertices = r_cast<PosColorVertex*>(vertexBuffer.data);
 		Matrix ortho;
 		bx::mtxOrtho(ortho, 0, width, 0, height, 0, 1000.0f);
 		for (int i = 0; i < 4; i++)
@@ -132,12 +132,31 @@ void ClipNode::drawFullscreenQuad()
 		}
 		const uint16_t indices[] = {0, 1, 2, 1, 3, 2};
 		std::memcpy(indexBuffer.data, indices, sizeof(uint16_t) * 6);
+		Uint32 func = BGFX_STENCIL_TEST_NEVER |
+			BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
+		Uint32 fail = value ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
+		Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
+		Uint32 stencil = func | op;
+		bgfx::setStencil(stencil);
 		bgfx::setVertexBuffer(&vertexBuffer);
 		bgfx::setIndexBuffer(&indexBuffer);
 		bgfx::setState(BGFX_STATE_NONE);
 		Uint8 viewId = SharedView.getId();
-		bgfx::submit(viewId, SharedDrawEffect.getPosUColor()->getProgram());
+		bgfx::submit(viewId, SharedDrawRenderer.getPosColorEffect()->getProgram());
 	}
+}
+
+void ClipNode::drawStencil(Uint8 maskLayer, bool value)
+{
+	Uint32 func = BGFX_STENCIL_TEST_NEVER |
+		BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
+	Uint32 fail = value ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
+	Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
+	SharedRendererManager.pushStencilState(func | op, [&]()
+	{
+		_stencil->visit();
+		SharedRendererManager.flush();
+	});
 }
 
 void ClipNode::setupAlphaTest()
@@ -145,13 +164,14 @@ void ClipNode::setupAlphaTest()
 	if (_stencil)
 	{
 		bool setup = _alphaThreshold < 1.0f;
-		SpriteEffect* effect = setup ? SharedAlphaTestEffect.getSpriteEffect() : SharedSpriteRenderer.getDefaultEffect();
-		_stencil->traverse([effect](Node* node)
+		SpriteEffect* effect = setup ? SharedSpriteRenderer.getAlphaTestEffect() : SharedSpriteRenderer.getDefaultEffect();
+		_stencil->traverse([effect, this](Node* node)
 		{
 			Sprite* sprite = DoraCast<Sprite>(node);
 			if (sprite)
 			{
 				sprite->setEffect(effect);
+				sprite->setAlphaRef(_alphaThreshold);
 			}
 			return false;
 		});
@@ -183,58 +203,27 @@ void ClipNode::visit()
 	Uint32 maskLayer = 1 << _layer;
 	Uint32 maskLayerLess = maskLayer - 1;
 	Uint32 maskLayerLessEqual = maskLayer | maskLayerLess;
-	SharedRendererManager.flush();
+	if (isInverted())
 	{
-		Uint32 func = BGFX_STENCIL_TEST_NEVER | BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
-		Uint32 fail = isInverted() ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
-		Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
-		Uint32 stencil = func | op;
-		bgfx::setStencil(stencil);
+		drawFullScreenStencil(maskLayer, true);
 	}
-	drawFullscreenQuad();
+	drawStencil(maskLayer, !isInverted());
+	Uint32 func = BGFX_STENCIL_TEST_EQUAL | BGFX_STENCIL_FUNC_REF(maskLayerLessEqual) | BGFX_STENCIL_FUNC_RMASK(maskLayerLessEqual);
+	Uint32 op = BGFX_STENCIL_OP_FAIL_S_KEEP | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
+	SharedRendererManager.pushStencilState(func | op, [&]()
 	{
-		Uint32 func = BGFX_STENCIL_TEST_NEVER | BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
-		Uint32 fail = isInverted() ? BGFX_STENCIL_OP_FAIL_S_ZERO : BGFX_STENCIL_OP_FAIL_S_REPLACE;
-		Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
-		Uint32 stencil = func | op;
-		bgfx::setStencil(stencil);
-	}
-	if (_alphaThreshold < 1.0f)
+		Node::visit();
+		SharedRendererManager.flush();
+	});
+	if (isInverted())
 	{
-		SharedAlphaTestEffect.getSpriteEffect()->set("u_alphaRef"_slice, _alphaThreshold);
-	}
-	_stencil->visit();
-	SharedRendererManager.flush();
-	{
-		Uint32 func = BGFX_STENCIL_TEST_EQUAL | BGFX_STENCIL_FUNC_REF(maskLayerLessEqual) | BGFX_STENCIL_FUNC_RMASK(maskLayerLessEqual);
-		Uint32 op = BGFX_STENCIL_OP_FAIL_S_KEEP | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
-		Uint32 stencil = func | op;
-		bgfx::setStencil(stencil);
-		_stencilStates.push(stencil);
-	}
-	Node::visit();
-	SharedRendererManager.flush();
-	_stencilStates.pop();
-	if (_stencilStates.empty())
-	{
-		bgfx::setStencil(BGFX_STENCIL_DEFAULT);
+		drawFullScreenStencil(maskLayer, false);
 	}
 	else
 	{
-		bgfx::setStencil(_stencilStates.top());
+		drawStencil(maskLayer, false);
 	}
 	_layer--;
-}
-
-AlphaTestEffect::AlphaTestEffect():
-_spriteEffect(SpriteEffect::create(
-	SharedShaderCache.load("vs_sprite.bin"_slice),
-	SharedShaderCache.load("fs_spritealphatest.bin"_slice)))
-{ }
-
-SpriteEffect* AlphaTestEffect::getSpriteEffect() const
-{
-	return _spriteEffect;
 }
 
 NS_DOROTHY_END

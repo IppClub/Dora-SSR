@@ -1,17 +1,17 @@
 local progressInfo = [[
 --- y: Done n: Not Finished d: Deleted ---
 --- Cocos Class-----
-ccColor4	390	n
-	a	3	n
-	r	2	n
-	b	2	n
-	g	2	n
-ccColor3	249	n
-	r	2	n
-	b	2	n
-	g	2	n
+ccColor4	390	y
+	a	3	y
+	r	2	y
+	b	2	y
+	g	2	y
+ccColor3	249	y
+	r	2	y
+	b	2	y
+	g	2	y
 CCDirector	241	n
-	winSize	179	n
+	winSize	179	d
 	schedule	97	y
 	unschedule	65	y
 	scheduler	30	y
@@ -42,11 +42,11 @@ CCMenu	146	n
 	alignItemsVertically	6	n
 	alignItemsHorizontally	1	n
 	moveAndCullItems	1	n
-CCDrawNode	132	n
-	drawPolygon	84	n
-	drawDot	52	n
-	drawSegment	26	n
-	clear	4	n
+CCDrawNode	132	y
+	drawPolygon	84	y
+	drawDot	52	y
+	drawSegment	26	y
+	clear	4	y
 CCNode	129	n
 	addChild	1138	y
 	height	885	y
@@ -95,11 +95,11 @@ CCNode	129	n
 	addTo	3	y
 	removeChildByTag	2	y
 	running	2	y
-CCTouch	100	n
-	delta	52	n
-	location	46	n
-	preLocation	18	n
-	id	7	n
+CCTouch	100	y
+	delta	52	y
+	location	46	y
+	preLocation	18	y
+	id	7	y
 CCArray	100	y
 	insert	214	y
 	remove	52	y
@@ -137,37 +137,37 @@ CCRect	62	y
 	set	7	y
 	centerY	2	y
 	centerX	2	y
-CCLayer	37	n
-	addChild	1138	n
-	slot	571	n
-	touchEnabled	214	n
-	touchPriority	143	n
-	schedule	97	n
-	swallowTouches	73	n
-	unschedule	65	n
-	convertToNodeSpace	60	n
-	multiTouches	4	n
-	keypadEnabled	1	n
+CCLayer	37	y
+	addChild	1138	y
+	slot	571	y
+	touchEnabled	214	y
+	touchPriority	143	y
+	schedule	97	y
+	swallowTouches	73	y
+	unschedule	65	y
+	convertToNodeSpace	60	y
+	multiTouches	4	y
+	keypadEnabled	1	y
 CCSprite	29	y
 	texture	144	y
 	textureRect	14	y
 	blendFunc	3	y
-CCLayerColor	25	n
-	blendFunc	3	n
-	resetColor	3	n
-CCMenuItem	24	n
-	addChild	1138	n
-	slot	571	n
-	enabled	318	n
-CCClipNode	11	n
-	stencil	4	n
+CCLayerColor	25	d
+	blendFunc	3	d
+	resetColor	3	d
+CCMenuItem	24	y
+	addChild	1138	y
+	slot	571	y
+	enabled	318	y
+CCClipNode	11	y
+	stencil	4	y
 CCUserDefault	10	n
 	get	8	n
 	set	7	n
 	filePath	2	n
-ccBlendFunc	9	n
-	Zero	3	n
-	One	3	n
+ccBlendFunc	9	y
+	Zero	3	y
+	One	3	y
 CCDictionary	9	n
 	each	13	n
 	count	11	n
@@ -184,22 +184,22 @@ CCObject	9	y
 	maxCount	1	y
 	maxLuaRefCount	1	y
 	maxCallRefCount	1	y
-CCLabelBMFont	8	n
-	text	247	n
-	texture	144	n
-	colorText	19	n
-	getChar	3	n
-	AutomaticWidth	2	n
-	horizontalAlignment	1	n
-CCRenderTarget	8	n
-	save	13	n
-	endDraw	8	n
-	draw	8	n
-	beginDraw	8	n
-CCTextAlign	7	n
-	HLeft	5	n
-	HCenter	1	n
-	HRight	1	n
+CCLabelBMFont	8	y
+	text	247	y
+	texture	144	y
+	colorText	19	y
+	getChar	3	y
+	AutomaticWidth	2	y
+	horizontalAlignment	1	y
+CCRenderTarget	8	y
+	save	13	y
+	endDraw	8	y
+	draw	8	y
+	beginDraw	8	y
+CCTextAlign	7	y
+	HLeft	5	y
+	HCenter	1	y
+	HRight	1	y
 CCTargetPlatform	6	y
 	Iphone	2	y
 	Ipad	2	y
@@ -225,8 +225,8 @@ CCOrientation	3	n
 	Right	6	n
 	Left	6	n
 CCView	2	n
-	scaleX	212	n
-	scaleY	202	n
+	scaleX	212	d
+	scaleY	202	d
 	setDesignResolution	1	n
 	ExactFit	1	n
 CCEase	2	n
@@ -241,12 +241,12 @@ CCProgressTimer	1	n
 Pool	4	n
 	collect	1	n
 	size	4	n
-Texture	24	n
-	unload	12	n
-	removeUnused	7	n
-	loadAsync	5	n
-	add	4	n
-	load	2	n
+Texture	24	y
+	unload	12	y
+	removeUnused	7	y
+	loadAsync	5	y
+	add	4	y
+	load	2	y
 Particle	2	n
 	unload	12	n
 	removeUnused	7	n
@@ -299,8 +299,8 @@ oContent	259	y
 	copyAsync	4	y
 	removeSearchPath	2	y
 	loadFileAsync	1	y
-oLine	146	n
-	set	7	n
+oLine	146	y
+	set	7	y
 oCache	103	n
 	Texture	24	n
 	Model	23	n
@@ -336,11 +336,11 @@ oBodyDef	49	n
 	polygon	5	n
 	Kinematic	2	n
 	chain	1	n
-oRoutine	28	n
-	remove	53	n
-	start	13	n
-	clear	4	n
-	stop	1	n
+oRoutine	28	y
+	remove	53	y
+	start	13	y
+	clear	4	y
+	stop	1	y
 oJointDef	20	n
 	position	533	n
 	angle	109	n
@@ -531,17 +531,17 @@ debug	7	y
 	setfenv	3	d
 	setmetatable	1	d
 	traceback	1	y
-io	1	n
-	type	83	n
-	output	47	n
-	input	30	n
-	lines	3	n
-	close	2	n
-	read	1	n
-	open	1	n
+io	1	d
+	type	83	d
+	output	47	d
+	input	30	d
+	lines	3	d
+	close	2	d
+	read	1	d
+	open	1	d
 ----- Cocos Function-----
 CCSequence	181	n
-CCLabelTTF	98	n
+CCLabelTTF	98	y
 CCCall	77	n
 CCDelay	65	n
 CCHide	50	n

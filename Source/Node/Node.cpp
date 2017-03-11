@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Input/TouchDispather.h"
-#include "Basic/Renderer.h"
 #include "Event/Listener.h"
 
 NS_DOROTHY_BEGIN
@@ -388,6 +387,7 @@ void Node::onEnter()
 	{
 		_scheduler->schedule(this);
 	}
+	markDirty();
 	emit("Enter"_slice);
 }
 
@@ -439,7 +439,6 @@ void Node::addChild(Node* child, int order, String name)
 	child->_parent = this;
 	child->updateRealColor3();
 	child->updateRealOpacity();
-	child->markDirty();
 	if (_flags.isOn(Node::Running))
 	{
 		child->onEnter();
@@ -704,9 +703,7 @@ void Node::visit()
 }
 
 void Node::render()
-{
-	SharedRendererManager.flush();
-}
+{ }
 
 const AffineTransform& Node::getLocalTransform()
 {

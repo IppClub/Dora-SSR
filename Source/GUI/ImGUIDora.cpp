@@ -254,78 +254,79 @@ void ImGUIDora::render()
 		return;
 	}
 
-	uint8_t viewId = SharedView.push("ImGui");
-
-	const ImGuiIO& io = ImGui::GetIO();
-	const float width = io.DisplaySize.x;
-	const float height = io.DisplaySize.y;
+	SharedView.pushName("ImGui"_slice, [&]()
 	{
-		float ortho[16];
-		bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
-		bgfx::setViewTransform(viewId, nullptr, ortho);
-	}
-
-	ImGUIDora* guiDora = SharedImGUI.getTarget();
-	bgfx::UniformHandle sampler = guiDora->_textureSampler;
-	bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
-	bgfx::ProgramHandle program = guiDora->_effect->getProgram();
-
-	// Render command lists
-	for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)
-	{
-		bgfx::TransientVertexBuffer tvb;
-		bgfx::TransientIndexBuffer tib;
-
-		const ImDrawList* drawList = drawData->CmdLists[ii];
-		uint32_t numVertices = (uint32_t)drawList->VtxBuffer.size();
-		uint32_t numIndices = (uint32_t)drawList->IdxBuffer.size();
-
-		if (!checkAvailTransientBuffers(numVertices, guiDora->_vertexDecl, numIndices))
+		Uint8 viewId = SharedView.getId();
+		const ImGuiIO& io = ImGui::GetIO();
+		const float width = io.DisplaySize.x;
+		const float height = io.DisplaySize.y;
 		{
-			Log("not enough space in transient buffer just quit drawing the rest.");
-			break;
+			float ortho[16];
+			bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
+			bgfx::setViewTransform(viewId, nullptr, ortho);
 		}
 
-		bgfx::allocTransientVertexBuffer(&tvb, numVertices, guiDora->_vertexDecl);
-		bgfx::allocTransientIndexBuffer(&tib, numIndices);
+		ImGUIDora* guiDora = SharedImGUI.getTarget();
+		bgfx::UniformHandle sampler = guiDora->_textureSampler;
+		bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
+		bgfx::ProgramHandle program = guiDora->_effect->getProgram();
 
-		ImDrawVert* verts = (ImDrawVert*)tvb.data;
-		memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(ImDrawVert));
-
-		ImDrawIdx* indices = (ImDrawIdx*)tib.data;
-		memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(ImDrawIdx));
-
-		uint32_t offset = 0;
-		for (const ImDrawCmd* cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end(); cmd != cmdEnd; ++cmd)
+		// Render command lists
+		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)
 		{
-			if (cmd->UserCallback)
-			{
-				cmd->UserCallback(drawList, cmd);
-			}
-			else if (0 != cmd->ElemCount)
-			{
-				uint64_t state = 0
-					| BGFX_STATE_RGB_WRITE
-					| BGFX_STATE_ALPHA_WRITE
-					| BGFX_STATE_MSAA
-					| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+			bgfx::TransientVertexBuffer tvb;
+			bgfx::TransientIndexBuffer tib;
 
-				const uint16_t xx = uint16_t(bx::fmax(cmd->ClipRect.x, 0.0f));
-				const uint16_t yy = uint16_t(bx::fmax(cmd->ClipRect.y, 0.0f));
-				bgfx::setScissor(xx, yy,
-					uint16_t(bx::fmin(cmd->ClipRect.z, 65535.0f) - xx),
-					uint16_t(bx::fmin(cmd->ClipRect.w, 65535.0f) - yy));
-				bgfx::setState(state);
-				bgfx::setTexture(0, sampler, textureHandle);
-				bgfx::setVertexBuffer(&tvb, 0, numVertices);
-				bgfx::setIndexBuffer(&tib, offset, cmd->ElemCount);
-				bgfx::submit(viewId, program);
+			const ImDrawList* drawList = drawData->CmdLists[ii];
+			uint32_t numVertices = (uint32_t)drawList->VtxBuffer.size();
+			uint32_t numIndices = (uint32_t)drawList->IdxBuffer.size();
+
+			if (!checkAvailTransientBuffers(numVertices, guiDora->_vertexDecl, numIndices))
+			{
+				Log("not enough space in transient buffer just quit drawing the rest.");
+				break;
 			}
 
-			offset += cmd->ElemCount;
+			bgfx::allocTransientVertexBuffer(&tvb, numVertices, guiDora->_vertexDecl);
+			bgfx::allocTransientIndexBuffer(&tib, numIndices);
+
+			ImDrawVert* verts = (ImDrawVert*)tvb.data;
+			memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(ImDrawVert));
+
+			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
+			memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(ImDrawIdx));
+
+			uint32_t offset = 0;
+			for (const ImDrawCmd* cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end(); cmd != cmdEnd; ++cmd)
+			{
+				if (cmd->UserCallback)
+				{
+					cmd->UserCallback(drawList, cmd);
+				}
+				else if (0 != cmd->ElemCount)
+				{
+					uint64_t state = 0
+						| BGFX_STATE_RGB_WRITE
+						| BGFX_STATE_ALPHA_WRITE
+						| BGFX_STATE_MSAA
+						| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+
+					const uint16_t xx = uint16_t(bx::fmax(cmd->ClipRect.x, 0.0f));
+					const uint16_t yy = uint16_t(bx::fmax(cmd->ClipRect.y, 0.0f));
+					bgfx::setScissor(xx, yy,
+						uint16_t(bx::fmin(cmd->ClipRect.z, 65535.0f) - xx),
+						uint16_t(bx::fmin(cmd->ClipRect.w, 65535.0f) - yy));
+					bgfx::setState(state);
+					bgfx::setTexture(0, sampler, textureHandle);
+					bgfx::setVertexBuffer(&tvb, 0, numVertices);
+					bgfx::setIndexBuffer(&tib, offset, cmd->ElemCount);
+					bgfx::submit(viewId, program);
+				}
+
+				offset += cmd->ElemCount;
+			}
 		}
-	}
-	SharedView.pop();
+	});
 }
 
 void ImGUIDora::sendKey(int key, int count)

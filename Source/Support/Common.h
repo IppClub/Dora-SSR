@@ -41,6 +41,7 @@ struct Color
 	PROPERTY(float, Opacity);
 	Color& operator=(const Color3& color);
 	Color& operator=(const Color& color);
+	static Color convert(Uint32 abgr);
 };
 
 struct BlendFunc
@@ -61,7 +62,7 @@ struct BlendFunc
 		InvDstAlpha = Uint32(BGFX_STATE_BLEND_INV_DST_ALPHA)
 	};
 	Uint64 toValue();
-	static const BlendFunc Normal;
+	static const BlendFunc Default;
 };
 
 NS_DOROTHY_END

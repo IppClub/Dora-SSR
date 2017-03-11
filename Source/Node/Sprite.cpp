@@ -30,7 +30,10 @@ _defaultEffect(SpriteEffect::create(
 	SharedShaderCache.load("fs_sprite.bin"_slice))),
 _defaultModelEffect(SpriteEffect::create(
 	SharedShaderCache.load("vs_spritemodel.bin"_slice),
-	SharedShaderCache.load("fs_sprite.bin"_slice)))
+	SharedShaderCache.load("fs_sprite.bin"_slice))),
+_alphaTestEffect(SpriteEffect::create(
+	SharedShaderCache.load("vs_sprite.bin"_slice),
+	SharedShaderCache.load("fs_spritealphatest.bin"_slice)))
 { }
 
 SpriteEffect* SpriteRenderer::getDefaultEffect() const
@@ -43,8 +46,10 @@ SpriteEffect* SpriteRenderer::getDefaultModelEffect() const
 	return _defaultModelEffect;
 }
 
-SpriteRenderer::~SpriteRenderer()
-{ }
+SpriteEffect* SpriteRenderer::getAlphaTestEffect() const
+{
+	return _alphaTestEffect;
+}
 
 void SpriteRenderer::render()
 {
@@ -59,6 +64,7 @@ void SpriteRenderer::render()
 			&vertexBuffer, SpriteVertex::ms_decl, vertexCount,
 			&indexBuffer, indexCount))
 		{
+			Renderer::render();
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(SpriteVertex));
 			uint16_t* indices = r_cast<uint16_t*>(indexBuffer.data);
 			for (size_t i = 0; i < spriteCount; i++)
@@ -89,12 +95,6 @@ void SpriteRenderer::render()
 
 void SpriteRenderer::push(Sprite* sprite)
 {
-	if (!sprite)
-	{
-		render();
-		return;
-	}
-
 	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
 	Uint64 state = sprite->getRenderState();
@@ -146,7 +146,8 @@ _uwrap(TextureWrap::None),
 _vwrap(TextureWrap::None),
 _effect(SharedSpriteRenderer.getDefaultEffect()),
 _quadPos{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
-_blendFunc(BlendFunc::Normal),
+_blendFunc(BlendFunc::Default),
+_alphaRef(0),
 _renderState(BGFX_STATE_NONE)
 { }
 
@@ -216,6 +217,16 @@ void Sprite::setTexture(Texture2D* var)
 Texture2D* Sprite::getTexture() const
 {
 	return _texture;
+}
+
+void Sprite::setAlphaRef(float var)
+{
+	_alphaRef = s_cast<Uint8>(255.0f * Math::clamp(var, 0.0f, 1.0f));
+}
+
+float Sprite::getAlphaRef() const
+{
+	return _alphaRef / 255.0f;
 }
 
 void Sprite::setBlendFunc(const BlendFunc& var)
@@ -432,7 +443,8 @@ void Sprite::render()
 	}
 
 	_renderState = (
-		BGFX_STATE_RGB_WRITE |
+		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+		BGFX_STATE_ALPHA_REF(_alphaRef) |
 		BGFX_STATE_MSAA | _blendFunc.toValue());
 	if (_flags.isOn(Sprite::DepthWrite))
 	{

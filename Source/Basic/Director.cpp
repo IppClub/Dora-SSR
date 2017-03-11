@@ -25,7 +25,8 @@ Director::Director():
 _scheduler(Scheduler::create()),
 _systemScheduler(Scheduler::create()),
 _entryStack(Array::create()),
-_camera(Camera2D::create("Default"_slice))
+_camera(Camera2D::create("Default"_slice)),
+_clearColor(0xff303030)
 { }
 
 void Director::setScheduler(Scheduler* scheduler)
@@ -55,6 +56,16 @@ void Director::setUI(Node* var)
 Node* Director::getUI() const
 {
 	return _ui;
+}
+
+void Director::setClearColor(Color var)
+{
+	_clearColor = var;
+}
+
+Color Director::getClearColor() const
+{
+	return _clearColor;
 }
 
 Scheduler* Director::getSystemScheduler() const
@@ -110,6 +121,11 @@ bool Director::init()
 	SharedView.reset();
 	SharedLueEngine.executeScriptFile("Script/main.lua");
 
+	if (!SharedImGUI.init())
+	{
+		return false;
+	}
+
 	Label* label = Label::create("NotoSansHans-Regular", 18);
 	label->setTextWidth(600);
 	label->setLineGap(5);
@@ -138,22 +154,25 @@ bool Director::init()
 	label->addChild(node);
 */
 	RenderTarget* target = RenderTarget::create(512, 512);
-	target->begin(0xff000000);
 	label->setPosition(Vec2{256,256});
+	label->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+	target->renderWithClear(label, 0x0);
+	label->setBlendFunc(BlendFunc::Default);
+	label->setPosition(Vec2{0,0});
 	target->render(label);
-	target->end();
 	/*target->saveAsync(SharedContent.getWritablePath() + "image.png", []()
 	{
 		Log("Save done!");
 	});
 	*/
+
 	Sprite* sp = Sprite::create("Image/logo.png");
 	//sp->setAngle(60.0f);
 	ClipNode* cn = ClipNode::create(sp);
-	sp->setAngle(45.0f);
+	//sp->setAngle(45.0f);
 	sp->schedule([sp](double)
 	{
-		sp->setAngle(sp->getAngle()+1);
+		//sp->setAngle(sp->getAngle()+1);
 		return false;
 	});
 	//cn->setInverted(true);
@@ -168,107 +187,121 @@ bool Director::init()
 	sp2->setPosition(Vec2{-20,-20});
 	cn1->addChild(sp2);
 
-	cn->setAlphaThreshold(0.0f);
+	cn1->setAlphaThreshold(0.0f);
+	DrawNode* dn = DrawNode::create();
+	dn->drawPolygon({{0,0},{0,200},{200,200},{200,0}}, 0x6600ffff, 0.5f, 0xff00ffff);
+	dn->drawDot(Vec2::zero, 50, 0xff00ffff);
+	dn->drawSegment(Vec2::zero, {100,100}, 10, 0xffff0088);
+	dn->setSkewX(45.0f);
+	sp2->addChild(dn);
+	DrawNode* dn1 = DrawNode::create();
+	dn1->drawDot(Vec2::zero, 200, 0x88ffffff);
+	dn->addChild(dn1);
+
+	vector<Vec2> verts{{0,0}, {0, 200}, {50, 50}};
+	Line* line = Line::create(verts, 0xff00ffff);
+	line->add({{-50,-50},{-100,-200}}, 0xffff0080);
+	Line* l2 = Line::create(verts, 0xff80ff00);
+	l2->setAngle(45.0f);
+	line->addChild(l2);
+	sp2->addChild(line);
 	pushEntry(cn1);
 
-	if (!SharedImGUI.init())
-	{
-		return false;
-	}
 	return true;
 }
 
 void Director::mainLoop()
 {
 	/* push default view projection */
+	auto viewProj = New<Matrix>();
+	bx::mtxMul(*viewProj, getCamera()->getView(), SharedView.getProjection());
+	pushViewProjection(*viewProj, [&]()
 	{
-		Matrix viewProj;
-		bx::mtxMul(viewProj, getCamera()->getView(), SharedView.getProjection());
-		pushViewProjection(viewProj);
-	}
+		/* update logic */
+		_systemScheduler->update(SharedApplication.getDeltaTime());
 
-	/* update logic */
-	_systemScheduler->update(SharedApplication.getDeltaTime());
+		SharedImGUI.begin();
+		//ImGui::ShowTestWindow();
+		_scheduler->update(SharedApplication.getDeltaTime());
+		SharedImGUI.end();
 
-	SharedImGUI.begin();
-	//ImGui::ShowTestWindow();
-	_scheduler->update(SharedApplication.getDeltaTime());
-	SharedImGUI.end();
-
-	/* handle touches */
-	SharedTouchDispatcher.add(SharedImGUI.getTarget());
-	SharedTouchDispatcher.dispatch();
-	Matrix ortho;
-	bx::mtxOrtho(ortho, 0, s_cast<float>(SharedApplication.getWidth()),
-		0, s_cast<float>(SharedApplication.getHeight()), -1000.0f, 1000.0f);
-	if (_ui)
-	{
-		registerTouchHandler(_ui);
-		pushViewProjection(ortho);
+		/* handle touches */
+		SharedTouchDispatcher.add(SharedImGUI.getTarget());
 		SharedTouchDispatcher.dispatch();
-		popViewProjection();
-	}
-	Node* currentEntry = nullptr;
-	if (!_entryStack->isEmpty())
-	{
-		currentEntry = _entryStack->getLast().to<Node>();
-		registerTouchHandler(currentEntry);
-		SharedTouchDispatcher.dispatch();
-	}
-	SharedTouchDispatcher.clearEvents();
+		Matrix ortho;
+		bx::mtxOrtho(ortho, 0, s_cast<float>(SharedApplication.getWidth()),
+			0, s_cast<float>(SharedApplication.getHeight()), -1000.0f, 1000.0f);
+		if (_ui)
+		{
+			registerTouchHandler(_ui);
+			pushViewProjection(ortho, []()
+			{
+				SharedTouchDispatcher.dispatch();
+			});
+		}
+		Node* currentEntry = nullptr;
+		if (!_entryStack->isEmpty())
+		{
+			currentEntry = _entryStack->getLast().to<Node>();
+			registerTouchHandler(currentEntry);
+			SharedTouchDispatcher.dispatch();
+		}
+		SharedTouchDispatcher.clearEvents();
 
-	/* render scene tree */
-	Uint8 viewId = SharedView.push("Main");
-	bgfx::setViewClear(viewId,
-		BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
-		0x303030ff, 1.0f, 0);
-	if (currentEntry)
-	{
-		bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-		currentEntry->visit();
-	}
-	if (_ui)
-	{
-		pushViewProjection(ortho);
-		bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-		_ui->visit();
-		popViewProjection();
-	}
-	SharedRendererManager.flush();
+		/* render scene tree */
+		SharedView.pushName("Main"_slice, [&]()
+		{
+			Uint8 viewId = SharedView.getId();
+			bgfx::setViewClear(viewId,
+				BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+				_clearColor.toRGBA());
+			if (currentEntry)
+			{
+				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+				currentEntry->visit();
+				SharedRendererManager.flush();
+			}
+		});
+		
+		/* render ui nodes */
+		SharedView.pushName("UI"_slice, [&]()
+		{
+			Uint8 viewId = SharedView.getId();
+			pushViewProjection(ortho, [&]()
+			{
+				if (_ui)
+				{
+					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+					_ui->visit();
+					SharedRendererManager.flush();
+				}
+				displayStat();
+			});
+		});
 
-	/* render imgui */
-	SharedImGUI.render();
+		/* render imgui */
+		SharedImGUI.render();
+		SharedView.clear();
+	});
+}
 
+void Director::displayStat()
+{
 	/* print debug text */
 	bgfx::dbgTextClear();
 	bgfx::setDebug(BGFX_DEBUG_TEXT);
 	const bgfx::Stats* stats = bgfx::getStats();
-	const char* renderer;
-	switch (bgfx::getCaps()->rendererType)
-	{
-	case bgfx::RendererType::Direct3D9:
-		renderer = "Direct3D9";
-		break;
-	case bgfx::RendererType::Direct3D11:
-		renderer = "Direct3D11";
-		break;
-	case bgfx::RendererType::Direct3D12:
-		renderer = "Direct3D12";
-		break;
-	case bgfx::RendererType::Metal:
-		renderer = "Metal";
-		break;
-	case bgfx::RendererType::OpenGL:
-		renderer = "OpenGL";
-		break;
-	case bgfx::RendererType::OpenGLES:
-		renderer = "OpenGLES";
-		break;
-	default:
-		renderer = "Other";
-		break;
-	}
-
+	const char* rendererNames[] = {
+		"Noop",         //!< No rendering.
+		"Direct3D9",    //!< Direct3D 9.0
+		"Direct3D11",   //!< Direct3D 11.0
+		"Direct3D12",   //!< Direct3D 12.0
+		"Gnm",          //!< GNM
+		"Metal",        //!< Metal
+		"OpenGLES",     //!< OpenGL ES 2.0+
+		"OpenGL",       //!< OpenGL 2.1+
+		"Vulkan",       //!< Vulkan
+	};
 	Uint8 dbgViewId = SharedView.getId();
 	bgfx::dbgTextPrintf(dbgViewId, 1, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
 			, stats->width
@@ -282,14 +315,7 @@ void Director::mainLoop()
 			, SharedApplication.getDeltaTime()
 			, (std::max(stats->gpuTimeEnd, stats->gpuTimeBegin) - std::min(stats->gpuTimeEnd, stats->gpuTimeBegin)) / double(stats->gpuTimerFreq)
 			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false"
-			, renderer);
-
-	SharedView.pop();
-	AssertUnless(SharedView.empty(), "view id push, pop calls mismatch.");
-	SharedView.clear();
-
-	popViewProjection();
-	AssertUnless(_viewProjs.empty(), "view projection push, pop calls mismatch.");
+			, rendererNames[bgfx::getCaps()->rendererType]);
 }
 
 void Director::pushViewProjection(const float* viewProj)

@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Basic/View.h"
 #include "Basic/Application.h"
+#include "Basic/Director.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
@@ -36,20 +38,19 @@ void View::clear()
 	}
 }
 
-Uint8 View::push(const char* viewName)
+void View::push(String viewName)
 {
 	AssertIf(_id == 255, "running views exceeded 256.");
 	Uint8 viewId = s_cast<Uint8>(++_id);
 	bgfx::resetView(viewId);
-	if (viewName)
+	if (!viewName.empty())
 	{
-		bgfx::setViewName(viewId, viewName);
+		bgfx::setViewName(viewId, viewName.toString().c_str());
 	}
 	bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
 	bgfx::setViewSeq(viewId, true);
 	bgfx::touch(viewId);
 	_ids.push(viewId);
-	return viewId;
 }
 
 void View::pop()
@@ -135,6 +136,11 @@ float View::getFieldOfView() const
 void View::updateProjection()
 {
 	bx::mtxProj(_projection, _fieldOfView, getAspectRatio(), _nearPlaneDistance, _farPlaneDistance, bgfx::getCaps()->homogeneousDepth);
+	Node* entry = SharedDirector.getCurrentEntry();
+	if (entry)
+	{
+		entry->markDirty();
+	}
 }
 
 const float* View::getProjection() const

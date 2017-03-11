@@ -15,17 +15,29 @@ NS_DOROTHY_BEGIN
 class Renderer
 {
 public:
-	virtual void render() = 0;
+	virtual void render();
 };
 
 class RendererManager
 {
 public:
 	PROPERTY(Renderer*, Current);
+	PROPERTY_READONLY(Uint32, CurrentStencilState);
 	void flush();
+
+	template <typename Func>
+	void pushStencilState(Uint32 stencilState, const Func& workHere)
+	{
+		pushStencilState(stencilState);
+		workHere();
+		popStencilState();
+	}
 protected:
 	RendererManager();
+	void pushStencilState(Uint32 stencilState);
+	void popStencilState();
 private:
+	stack<Uint32> _stencilStates;
 	Renderer* _currentRenderer;
 	SINGLETON_REF(RendererManager, BGFXDora);
 };

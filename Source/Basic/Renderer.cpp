@@ -11,6 +11,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+void Renderer::render()
+{
+	Uint32 stencilState = SharedRendererManager.getCurrentStencilState();
+	if (stencilState != BGFX_STENCIL_NONE)
+	{
+		bgfx::setStencil(stencilState);
+	}
+}
+
 RendererManager::RendererManager():
 _currentRenderer(nullptr)
 { }
@@ -29,6 +38,11 @@ Renderer* RendererManager::getCurrent() const
 	return _currentRenderer;
 }
 
+Uint32 RendererManager::getCurrentStencilState() const
+{
+	return _stencilStates.empty() ? BGFX_STENCIL_NONE : _stencilStates.top();
+}
+
 void RendererManager::flush()
 {
 	if (_currentRenderer)
@@ -36,6 +50,16 @@ void RendererManager::flush()
 		_currentRenderer->render();
 		_currentRenderer = nullptr;
 	}
+}
+
+void RendererManager::pushStencilState(Uint32 stencilState)
+{
+	_stencilStates.push(stencilState);
+}
+
+void RendererManager::popStencilState()
+{
+	_stencilStates.pop();
 }
 
 NS_DOROTHY_END

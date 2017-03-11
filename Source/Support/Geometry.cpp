@@ -27,7 +27,7 @@ void Vec2::set(float x, float y)
 
 Vec2 Vec2::operator+(const Vec2& vec) const
 {
-	return Vec2{x + vec.x, y + vec.y};
+	return {x + vec.x, y + vec.y};
 }
 
 Vec2& Vec2::operator+=(const Vec2& vec)
@@ -39,7 +39,12 @@ Vec2& Vec2::operator+=(const Vec2& vec)
 
 Vec2 Vec2::operator-(const Vec2& vec) const
 {
-	return Vec2{x - vec.x, y - vec.y};
+	return {x - vec.x, y - vec.y};
+}
+
+Vec2 Vec2::operator-() const
+{
+	return {-x, -y};
 }
 
 Vec2& Vec2::operator-=(const Vec2& vec)
@@ -51,7 +56,7 @@ Vec2& Vec2::operator-=(const Vec2& vec)
 
 Vec2 Vec2::operator*(float value) const
 {
-	return Vec2{x * value, y * value};
+	return {x * value, y * value};
 }
 
 Vec2& Vec2::operator*=(float value)
@@ -63,7 +68,7 @@ Vec2& Vec2::operator*=(float value)
 
 Vec2 Vec2::operator*(const Vec2& vec) const
 {
-	return Vec2{x * vec.x, y * vec.y};
+	return {x * vec.x, y * vec.y};
 }
 
 Vec2& Vec2::operator*=(const Vec2& vec)
@@ -75,7 +80,7 @@ Vec2& Vec2::operator*=(const Vec2& vec)
 
 Vec2 Vec2::operator/(float value) const
 {
-	return Vec2{x / value, y / value};
+	return {x / value, y / value};
 }
 
 Vec2& Vec2::operator/=(float value)
@@ -97,7 +102,7 @@ bool Vec2::operator!=(const Vec2& vec) const
 
 Vec2 Vec2::operator*(const Size& size) const
 {
-	return Vec2{x * size.width, y * size.height};
+	return {x * size.width, y * size.height};
 }
 
 float Vec2::distance(const Vec2& vec) const
@@ -136,10 +141,31 @@ void Vec2::normalize()
 	y /= length;
 }
 
+void Vec2::perp()
+{
+	*this = {-y, x};
+}
+
 void Vec2::clamp(const Vec2& from, const Vec2& to)
 {
 	x = Math::clamp(x, from.x, to.x);
 	y = Math::clamp(y, from.y, to.y);
+}
+
+float Vec2::dot(const Vec2& vec) const
+{
+	return x * vec.x + y * vec.y;
+}
+
+Vec2 Vec2::normalize(const Vec2& vec)
+{
+	float length = vec.length();
+	return {vec.x / length, vec.y / length};
+}
+
+Vec2 Vec2::perp(const Vec2& vec)
+{
+	return {-vec.y, vec.x};
 }
 
 // Size

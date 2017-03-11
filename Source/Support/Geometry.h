@@ -22,6 +22,7 @@ struct Vec2
 	Vec2 operator+(const Vec2& vec) const;
 	Vec2& operator+=(const Vec2& vec);
 	Vec2 operator-(const Vec2& vec) const;
+	Vec2 operator-() const;
 	Vec2& operator-=(const Vec2& vec);
 	Vec2 operator*(float value) const;
 	Vec2& operator*=(float value);
@@ -38,8 +39,12 @@ struct Vec2
 	float lengthSquared() const;
 	float angle() const;
 	void normalize();
+	void perp();
 	void clamp(const Vec2& from, const Vec2& to);
+	float dot(const Vec2& vec) const;
 	static const Vec2 zero;
+	static Vec2 normalize(const Vec2& vec);
+	static Vec2 perp(const Vec2& vec);
 	USE_MEMORY_POOL(Vec2);
 	DORA_TYPE(Vec2);
 };
@@ -110,11 +115,11 @@ struct Vec3
 	float z;
 	inline operator float*()
 	{
-		return r_cast<float*>(this);
+		return &x;
 	}
 	inline operator const float*() const
 	{
-		return r_cast<const float*>(this);
+		return &x;
 	}
 	inline Vec2 toVec2() const
 	{
@@ -130,11 +135,11 @@ struct Vec4
 	float w;
 	inline operator float*()
 	{
-		return r_cast<float*>(this);
+		return &x;
 	}
 	inline operator const float*() const
 	{
-		return r_cast<const float*>(this);
+		return &x;
 	}
 	inline Vec3 toVec3() const
 	{

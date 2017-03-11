@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Array.h"
 #include "Support/Geometry.h"
+#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
 
@@ -23,6 +24,7 @@ public:
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(Node*, UI);
 	PROPERTY(Camera*, Camera);
+	PROPERTY(Color, ClearColor);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(Array*, Entries);
@@ -32,9 +34,6 @@ public:
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
 
-	void pushViewProjection(const float* viewProj);
-	void popViewProjection();
-
 	void setEntry(Node* entry);
 	void pushEntry(Node* entry);
 	Ref<Node> popEntry();
@@ -42,9 +41,21 @@ public:
 	void popToRootEntry();
 	void swapEntry(Node* entryA, Node* entryB);
 	void clearEntry();
+
+	template <typename Func>
+	void pushViewProjection(const float* viewProj, const Func& workHere)
+	{
+		pushViewProjection(viewProj);
+		workHere();
+		popViewProjection();
+	}
 protected:
 	Director();
+	void displayStat();
+	void pushViewProjection(const float* viewProj);
+	void popViewProjection();
 private:
+	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Array> _entryStack;
 	Ref<Node> _currentScene;

@@ -22,13 +22,15 @@ public:
 	PROPERTY(Camera*, Camera);
 	virtual ~RenderTarget();
 	virtual bool init() override;
-	void begin(Color color = 0x0, float depth = 1.0f, Uint8 stencil = 0);
 	void render(Node* target);
-	void end();
+	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void saveAsync(String filename, const function<void()>& callback);
 	CREATE_FUNC(RenderTarget);
 protected:
 	RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
+	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, Uint8 stencil = 0);
+	void renderOnly(Node* target);
+	void end();
 private:
 	Uint16 _textureWidth;
 	Uint16 _textureHeight;
@@ -36,8 +38,11 @@ private:
 	Ref<Texture2D> _texture;
 	Ref<Sprite> _sprite;
 	Ref<Camera> _camera;
-	Ref<Node> _dummyParent;
 	bgfx::FrameBufferHandle _frameBufferHandle;
+	enum
+	{
+		ViewCleared = Node::UserFlag,
+	};
 	DORA_TYPE_OVERRIDE(RenderTarget);
 };
 

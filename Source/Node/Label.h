@@ -96,6 +96,7 @@ public:
 	PROPERTY(float, TextWidth);
 	PROPERTY(float, LineGap);
 	PROPERTY(const char*, Text);
+	PROPERTY_REF(BlendFunc, BlendFunc);
 	Sprite* getCharacter(int index) const;
 	int getCharacterCount() const;
 	static const float AutomaticWidth;
@@ -110,6 +111,7 @@ private:
 	float _textWidth;
 	float _lineGap;
 	Ref<Font> _font;
+	BlendFunc _blendFunc;
 	TextAlignment _alignment;
 	string _textUTF8;
 	vector<Uint32> _text;

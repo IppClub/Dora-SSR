@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Node/Node.h"
 #include "Common/Singleton.h"
+#include "Basic/Renderer.h"
 
 NS_DOROTHY_BEGIN
 
@@ -34,18 +35,23 @@ struct PosColorVertex
 	static Init init;
 };
 
-struct PosVertex
+struct DrawVertex
 {
 	float x;
 	float y;
 	float z;
 	float w;
+	uint32_t abgr;
+	float u;
+	float v;
 	struct Init
 	{
 		Init()
 		{
 			ms_decl.begin()
 				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+				.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 			.end();
 		}
 	};
@@ -55,22 +61,108 @@ struct PosVertex
 
 class Effect;
 
-class DrawEffect
+class DrawNode : public Node
 {
 public:
-	virtual ~DrawEffect() { }
-	PROPERTY_READONLY(Effect*, PosColor);
-	PROPERTY_READONLY(Effect*, PosUColor);
+	PROPERTY_REF(BlendFunc, BlendFunc);
+	PROPERTY_BOOL(DepthWrite);
+	PROPERTY_READONLY(Uint64, RenderState);
+	PROPERTY_READONLY_REF(vector<DrawVertex>, Vertices);
+	PROPERTY_READONLY_REF(vector<Uint16>, Indices);
+	virtual void render() override;
+	virtual const float* getWorld() override;
+	void drawDot(const Vec2& pos, float radius, Color color);
+	void drawSegment(const Vec2& from, const Vec2& to, float radius, Color color);
+	void drawPolygon(const vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
+	void drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, float borderWidth, Color borderColor);
+	void clear();
+	CREATE_FUNC(DrawNode);
 protected:
-	DrawEffect();
+	DrawNode();
+	virtual void updateRealColor3() override;
+	virtual void updateRealOpacity() override;
+	void pushVertex(const Vec2& pos, const Vec4& color, const Vec2& coord);
 private:
-	Ref<Effect> _posColor;
-	Ref<Effect> _posUColor;
-	SINGLETON_REF(DrawEffect, BGFXDora);
+	struct PosColor
+	{
+		Vec4 pos;
+		Vec4 color;
+	};
+	Uint64 _renderState;
+	BlendFunc _blendFunc;
+	vector<DrawVertex> _vertices;
+	vector<PosColor> _posColors;
+	vector<Uint16> _indices;
+	enum
+	{
+		VertexColorDirty = Node::UserFlag,
+		VertexPosDirty = Node::UserFlag<<1,
+		DepthWrite = Node::UserFlag<<2,
+	};
+	DORA_TYPE_OVERRIDE(DrawNode);
 };
 
-#define SharedDrawEffect \
-	Dorothy::Singleton<Dorothy::DrawEffect>::shared()
+class Line : public Node
+{
+public:
+	PROPERTY(BlendFunc, BlendFunc);
+	PROPERTY_BOOL(DepthWrite);
+	PROPERTY_READONLY(Uint64, RenderState);
+	virtual void render() override;
+	virtual const float* getWorld() override;
+	void add(const vector<Vec2>& verts, Color color);
+	void add(const Vec2* verts, Uint32 size, Color color);
+	void set(const vector<Vec2>& verts, Color color);
+	void set(const Vec2* verts, Uint32 size, Color color);
+	void clear();
+	CREATE_FUNC(Line);
+protected:
+	Line();
+	Line(const vector<Vec2>& verts, Color color);
+	Line(const Vec2* verts, Uint32 size, Color color);
+	virtual void updateRealColor3() override;
+	virtual void updateRealOpacity() override;
+private:
+	struct PosColor
+	{
+		Vec4 pos;
+		Vec4 color;
+	};
+	Uint64 _renderState;
+	BlendFunc _blendFunc;
+	vector<PosColor> _posColors;
+	vector<PosColorVertex> _vertices;
+	enum
+	{
+		VertexColorDirty = Node::UserFlag,
+		VertexPosDirty = Node::UserFlag<<1,
+		DepthWrite = Node::UserFlag<<2,
+	};
+	DORA_TYPE_OVERRIDE(Line);
+};
 
+class DrawRenderer : public Renderer
+{
+public:
+	PROPERTY_READONLY(Effect*, PosColorEffect);
+	PROPERTY_READONLY(Effect*, DrawEffect);
+	virtual ~DrawRenderer() { }
+	virtual void render() override;
+	void push(DrawNode* node);
+	void push(const vector<PosColorVertex>& verts, Uint64 state);
+protected:
+	DrawRenderer();
+private:
+	Ref<Effect> _posColorEffect;
+	Ref<Effect> _drawEffect;
+	Uint64 _lastState;
+	vector<DrawVertex> _drawVertices;
+	vector<Uint16> _indices;
+	vector<PosColorVertex> _lineVertices;
+	SINGLETON_REF(DrawRenderer, BGFXDora, RendererManager);
+};
+
+#define SharedDrawRenderer \
+	Dorothy::Singleton<Dorothy::DrawRenderer>::shared()
 
 NS_DOROTHY_END

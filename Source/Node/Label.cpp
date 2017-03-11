@@ -212,7 +212,8 @@ Label::Label(String fontName, Uint32 fontSize):
 _lineGap(0),
 _textWidth(Label::AutomaticWidth),
 _alignment(TextAlignment::Center),
-_font(SharedFontCache.load(fontName, fontSize))
+_font(SharedFontCache.load(fontName, fontSize)),
+_blendFunc(BlendFunc::Default)
 {
 	_flags.setOff(Node::TraverseEnabled);
 }
@@ -276,6 +277,23 @@ void Label::setText(const char* var)
 const char* Label::getText() const
 {
 	return _textUTF8.c_str();
+}
+
+void Label::setBlendFunc(const BlendFunc& var)
+{
+	_blendFunc = var;
+	for (Sprite* fontChar : _characters)
+	{
+		if (fontChar)
+		{
+			fontChar->setBlendFunc(var);
+		}
+	}
+}
+
+const BlendFunc& Label::getBlendFunc() const
+{
+	return _blendFunc;
 }
 
 Sprite* Label::getCharacter(int index) const
@@ -382,6 +400,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		else
 		{
 			fontChar = SharedFontCache.createCharacter(_font, ch);
+			fontChar->setBlendFunc(_blendFunc);
 			addChild(fontChar);
 			_characters[i] = fontChar;
 		}

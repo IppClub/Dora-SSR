@@ -317,7 +317,7 @@ struct BlendFunc
 		InvDstAlpha
 	};
 	static tolua_outside BlendFunc* BlendFunc_create @ create(Uint32 src, Uint32 dst);
-	static const BlendFunc Normal;
+	static const BlendFunc Default;
 };
 
 class Sprite : public Node

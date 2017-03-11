@@ -24,8 +24,7 @@ NS_DOROTHY_BEGIN
 RenderTarget::RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format):
 _textureWidth(width),
 _textureHeight(height),
-_format(format),
-_dummyParent(Node::create())
+_format(format)
 { }
 
 RenderTarget::~RenderTarget()
@@ -80,60 +79,75 @@ bool RenderTarget::init()
 	return true;
 }
 
-void RenderTarget::begin(Color color, float depth, Uint8 stencil)
+void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float depth, Uint8 stencil)
 {
-	Uint8 viewId = SharedView.push("RenderTarget");
-	bgfx::setViewFrameBuffer(viewId, _frameBufferHandle);
-	bgfx::setViewRect(viewId, 0, 0, _textureWidth, _textureHeight);
-	bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL, color.toRGBA(), depth, stencil);
-	if (_camera)
+	SharedView.pushName("RenderTarget"_slice, [&]()
 	{
-		Matrix viewProj;
-		bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
-		SharedDirector.pushViewProjection(viewProj);
-		bgfx::setViewTransform(viewId, nullptr, viewProj);
-	}
-	else
-	{
-		Matrix ortho;
-		switch (bgfx::getCaps()->rendererType)
+		Uint8 viewId = SharedView.getId();
+		bgfx::setViewFrameBuffer(viewId, _frameBufferHandle);
+		bgfx::setViewRect(viewId, 0, 0, _textureWidth, _textureHeight);
+		if (clear)
 		{
-		case bgfx::RendererType::Direct3D9:
-		case bgfx::RendererType::Direct3D11:
-		case bgfx::RendererType::Direct3D12:
-			bx::mtxOrtho(ortho, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f);
-			break;
-		default:
-			bx::mtxOrtho(ortho, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f);
-			break;
+			bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+				color.toRGBA(), depth, stencil);
 		}
-		SharedDirector.pushViewProjection(ortho);
-		bgfx::setViewTransform(viewId, nullptr, ortho);
+		else
+		{
+			bgfx::setViewClear(viewId, BGFX_CLEAR_NONE);
+		}
+		Matrix viewProj;
+		if (_camera)
+		{
+			bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
+		}
+		else
+		{
+			switch (bgfx::getCaps()->rendererType)
+			{
+			case bgfx::RendererType::Direct3D9:
+			case bgfx::RendererType::Direct3D11:
+			case bgfx::RendererType::Direct3D12:
+				bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f);
+				break;
+			default:
+				bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f);
+				break;
+			}
+		}
+		bgfx::setViewTransform(viewId, nullptr, viewProj);
+		SharedDirector.pushViewProjection(viewProj, [&]()
+		{
+			renderOnly(target);
+		});
+	});
+}
+
+void RenderTarget::renderOnly(Node* target)
+{
+	if (!target) return;
+	Node* parent = target->getParent();
+	if (parent)
+	{
+		parent->removeChild(target);
+	}
+	target->markDirty();
+	target->visit();
+	SharedRendererManager.flush();
+	target->markDirty();
+	if (parent)
+	{
+		target->addTo(parent);
 	}
 }
 
 void RenderTarget::render(Node* target)
 {
-	Node* parent = target->getParent();
-	if (parent)
-	{
-		parent->removeChild(target);
-		target->addTo(_dummyParent);
-	}
-	target->markDirty();
-	target->visit();
-	SharedRendererManager.flush();
-	if (parent)
-	{
-		_dummyParent->removeChild(target);
-		target->addTo(parent);
-	}
+	renderAfterClear(target, false);
 }
 
-void RenderTarget::end()
+void RenderTarget::renderWithClear(Node* target, Color color, float depth, Uint8 stencil)
 {
-	SharedDirector.popViewProjection();
-	SharedView.pop();
+	renderAfterClear(target, true, color, depth, stencil);
 }
 
 void RenderTarget::saveAsync(String filename, const function<void()>& callback)
@@ -156,9 +170,10 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 	{
 		const Uint32 textureFlags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP | BGFX_TEXTURE_READ_BACK;
 		textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags | extraFlags);
-		Uint8 viewId = SharedView.push("SaveTarget");
-		bgfx::blit(viewId, textureHandle, 0, 0, _texture->getHandle());
-		SharedView.pop();
+		SharedView.pushName("SaveTarget"_slice, [&]()
+		{
+			bgfx::blit(SharedView.getId(), textureHandle, 0, 0, _texture->getHandle());
+		});
 	}
 	else
 	{

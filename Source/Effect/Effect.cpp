@@ -64,16 +64,17 @@ bool Effect::init()
 void Effect::set(String name, float var)
 {
 	string uname(name);
+	Vec4 var4 {var};
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		bgfx::setUniform(it->second->getHandle(), &var);
+		bgfx::setUniform(it->second->getHandle(), var4);
 		it->second->getValue()->as<float>()->set(var);
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
-		bgfx::setUniform(handle, &var);
+		bgfx::setUniform(handle, var4);
 		_uniforms[uname] = Uniform::create(handle, Value::create(var));
 	}
 }
@@ -84,13 +85,13 @@ void Effect::set(String name, const Vec4& var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		bgfx::setUniform(it->second->getHandle(), &var);
+		bgfx::setUniform(it->second->getHandle(), var);
 		it->second->getValue()->as<Vec4>()->set(var);
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
-		bgfx::setUniform(handle, &var);
+		bgfx::setUniform(handle, var);
 		_uniforms[uname] = Uniform::create(handle, Value::create(var));
 	}
 }

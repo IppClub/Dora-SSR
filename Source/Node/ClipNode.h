@@ -28,35 +28,18 @@ public:
 	CREATE_FUNC(ClipNode);
 protected:
 	ClipNode(Node* stencil);
-	void drawFullscreenQuad();
+	void drawFullScreenStencil(Uint8 maskLayer, bool value);
+	void drawStencil(Uint8 maskLayer, bool value);
 	void setupAlphaTest();
 private:
 	float _alphaThreshold;
 	Ref<Node> _stencil;
 	static int _layer;
-	static stack<Uint32> _stencilStates;
 	enum
 	{
 		Inverted = Node::UserFlag
 	};
 	DORA_TYPE_OVERRIDE(ClipNode);
 };
-
-class SpriteEffect;
-
-class AlphaTestEffect
-{
-public:
-	virtual ~AlphaTestEffect() { }
-	PROPERTY_READONLY(SpriteEffect*, SpriteEffect);
-protected:
-	AlphaTestEffect();
-private:
-	SpriteEffect* _spriteEffect;
-	SINGLETON_REF(AlphaTestEffect, BGFXDora);
-};
-
-#define SharedAlphaTestEffect \
-	Dorothy::Singleton<Dorothy::AlphaTestEffect>::shared()
 
 NS_DOROTHY_END
