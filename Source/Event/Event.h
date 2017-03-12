@@ -112,6 +112,7 @@ void Event::get(Args&... args)
 		for (bool result : results)
 		{
 			AssertUnless(result, "lua event arguments mismatch.");
+			if (!result) return;
 		}
 	}
 	else

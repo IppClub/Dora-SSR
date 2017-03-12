@@ -10,6 +10,48 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+/** Dorothy singleton helper.
+ @example
+
+ class Application
+ {
+public:
+	// virtual destructor is required
+	virtual ~Application();
+ 	// Application has no dependency
+ 	SINGLETON_REF(Application);
+ };
+ #define SharedApplication \
+ 	Dorothy::Singleton<Dorothy::Application>::shared()
+
+ class Log
+ {
+public:
+	virtual ~Log();
+ 	// Log has a dependency of Application
+ 	SINGLETON_REF(Log, Application);
+ };
+ #define SharedLog \
+ 	Dorothy::Singleton<Dorothy::Log>::shared()
+
+ class Console
+ {
+public:
+	virtual ~Console();
+ 	// Console has a dependency of Application
+ 	SINGLETON_REF(Console, Application);
+ 	// Add Console as additional dependency for Log
+ 	SINGLETON_REF(Log, Console);
+ };
+ #define SharedConsole \
+ 	Dorothy::Singleton<Dorothy::Console>::shared()
+
+ Singleton instances will be destroyed in orders of:
+ 	Log
+ 	Console
+ 	Application
+*/
+
 class Life
 {
 public:

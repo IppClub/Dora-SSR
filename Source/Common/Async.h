@@ -17,7 +17,7 @@ NS_DOROTHY_BEGIN
  get a finisher receives the result and runs in main thread. */
 class Async
 {
-	typedef std::pair<function<Ref<Values> ()>,function<void (Values*)>> Package;
+	typedef std::pair<function<Ref<Values>()>, function<void(Values*)>> Package;
 public:
 	Async();
 	virtual ~Async();

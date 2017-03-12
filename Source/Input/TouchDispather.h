@@ -31,7 +31,7 @@ public:
 	enum
 	{
 		FromMouse = 1,
-		FromTouch = 1<<1,
+		FromTouch = 1 << 1,
 		FromMouseAndTouch = FromMouse | FromTouch
 	};
 	PROPERTY_BOOL(Enabled);
@@ -51,7 +51,7 @@ private:
 	enum
 	{
 		Enabled = 1,
-		Selected = 1<<1
+		Selected = 1 << 1
 	};
 	friend class NodeTouchHandler;
 	DORA_TYPE_OVERRIDE(Touch);

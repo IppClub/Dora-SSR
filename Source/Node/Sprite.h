@@ -108,8 +108,8 @@ private:
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
-		VertexPosDirty = Node::UserFlag<<1,
-		DepthWrite = Node::UserFlag<<2,
+		VertexPosDirty = Node::UserFlag << 1,
+		DepthWrite = Node::UserFlag << 2,
 	};
 	DORA_TYPE_OVERRIDE(Sprite);
 };
@@ -138,7 +138,7 @@ private:
 	Uint32 _lastFlags;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
-	SINGLETON_REF(SpriteRenderer, BGFXDora, RendererManager);
+	SINGLETON_REF(SpriteRenderer, RendererManager);
 };
 
 #define SharedSpriteRenderer \

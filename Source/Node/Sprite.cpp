@@ -16,129 +16,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+/* Sprite */
+
 bgfx::VertexDecl SpriteVertex::ms_decl;
 SpriteVertex::Init SpriteVertex::init;
-
-SpriteRenderer::SpriteRenderer():
-_spriteIndices{0, 1, 2, 1, 3, 2},
-_lastEffect(nullptr),
-_lastTexture(nullptr),
-_lastState(0),
-_lastFlags(INT32_MAX),
-_defaultEffect(SpriteEffect::create(
-	SharedShaderCache.load("vs_sprite.bin"_slice),
-	SharedShaderCache.load("fs_sprite.bin"_slice))),
-_defaultModelEffect(SpriteEffect::create(
-	SharedShaderCache.load("vs_spritemodel.bin"_slice),
-	SharedShaderCache.load("fs_sprite.bin"_slice))),
-_alphaTestEffect(SpriteEffect::create(
-	SharedShaderCache.load("vs_sprite.bin"_slice),
-	SharedShaderCache.load("fs_spritealphatest.bin"_slice)))
-{ }
-
-SpriteEffect* SpriteRenderer::getDefaultEffect() const
-{
-	return _defaultEffect;
-}
-
-SpriteEffect* SpriteRenderer::getDefaultModelEffect() const
-{
-	return _defaultModelEffect;
-}
-
-SpriteEffect* SpriteRenderer::getAlphaTestEffect() const
-{
-	return _alphaTestEffect;
-}
-
-void SpriteRenderer::render()
-{
-	if (!_vertices.empty())
-	{
-		bgfx::TransientVertexBuffer vertexBuffer;
-		bgfx::TransientIndexBuffer indexBuffer;
-		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
-		Uint32 spriteCount = vertexCount >> 2;
-		Uint32 indexCount = spriteCount * 6;
-		if (bgfx::allocTransientBuffers(
-			&vertexBuffer, SpriteVertex::ms_decl, vertexCount,
-			&indexBuffer, indexCount))
-		{
-			Renderer::render();
-			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(SpriteVertex));
-			uint16_t* indices = r_cast<uint16_t*>(indexBuffer.data);
-			for (size_t i = 0; i < spriteCount; i++)
-			{
-				for (size_t j = 0; j < 6; j++)
-				{
-					indices[i * 6 + j] = s_cast<uint16_t>(_spriteIndices[j] + i * 4);
-				}
-			}
-			bgfx::setVertexBuffer(&vertexBuffer);
-			bgfx::setIndexBuffer(&indexBuffer);
-			Uint8 viewId = SharedView.getId();
-			bgfx::setTexture(viewId, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
-			bgfx::setState(_lastState);
-			bgfx::submit(viewId, _lastEffect->getProgram());
-		}
-		else
-		{
-			Log("not enough transient buffer for %d vertices, %d indices.", vertexCount, indexCount);
-		}
-		_vertices.clear();
-		_lastEffect = nullptr;
-		_lastTexture = nullptr;
-		_lastState = 0;
-		_lastFlags = INT32_MAX;
-	}
-}
-
-void SpriteRenderer::push(Sprite* sprite)
-{
-	SpriteEffect* effect = sprite->getEffect();
-	Texture2D* texture = sprite->getTexture();
-	Uint64 state = sprite->getRenderState();
-	Uint32 flags = sprite->getTextureFlags();
-	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
-	{
-		render();
-	}
-
-	_lastEffect = effect;
-	_lastTexture = texture;
-	_lastState = state;
-	_lastFlags = flags;
-
-	const SpriteQuad& quad = sprite->getQuad();
-	for (Uint32 i = 0; i < 4; i++)
-	{
-		_vertices.push_back(quad[i]);
-	}
-}
-
-void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
-	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags,
-	const float* modelWorld)
-{
-	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
-	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
-	{
-		render();
-	}
-	_lastEffect = effect;
-	_lastTexture = texture;
-	_lastState = state;
-	_lastFlags = flags;
-	for (Uint32 i = 0; i < size; i++)
-	{
-		_vertices.push_back(verts[i]);
-	}
-	if (modelWorld)
-	{
-		bgfx::setTransform(modelWorld);
-		render();
-	}
-}
 
 Sprite::Sprite():
 _filter(TextureFilter::None),
@@ -453,6 +334,129 @@ void Sprite::render()
 
 	SharedSpriteRenderer.push(this);
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
+}
+
+/* SpriteRenderer */
+
+SpriteRenderer::SpriteRenderer():
+_spriteIndices{0, 1, 2, 1, 3, 2},
+_lastEffect(nullptr),
+_lastTexture(nullptr),
+_lastState(0),
+_lastFlags(INT32_MAX),
+_defaultEffect(SpriteEffect::create(
+	SharedShaderCache.load("vs_sprite.bin"_slice),
+	SharedShaderCache.load("fs_sprite.bin"_slice))),
+_defaultModelEffect(SpriteEffect::create(
+	SharedShaderCache.load("vs_spritemodel.bin"_slice),
+	SharedShaderCache.load("fs_sprite.bin"_slice))),
+_alphaTestEffect(SpriteEffect::create(
+	SharedShaderCache.load("vs_sprite.bin"_slice),
+	SharedShaderCache.load("fs_spritealphatest.bin"_slice)))
+{ }
+
+SpriteEffect* SpriteRenderer::getDefaultEffect() const
+{
+	return _defaultEffect;
+}
+
+SpriteEffect* SpriteRenderer::getDefaultModelEffect() const
+{
+	return _defaultModelEffect;
+}
+
+SpriteEffect* SpriteRenderer::getAlphaTestEffect() const
+{
+	return _alphaTestEffect;
+}
+
+void SpriteRenderer::render()
+{
+	if (!_vertices.empty())
+	{
+		bgfx::TransientVertexBuffer vertexBuffer;
+		bgfx::TransientIndexBuffer indexBuffer;
+		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
+		Uint32 spriteCount = vertexCount >> 2;
+		Uint32 indexCount = spriteCount * 6;
+		if (bgfx::allocTransientBuffers(
+			&vertexBuffer, SpriteVertex::ms_decl, vertexCount,
+			&indexBuffer, indexCount))
+		{
+			Renderer::render();
+			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(SpriteVertex));
+			uint16_t* indices = r_cast<uint16_t*>(indexBuffer.data);
+			for (size_t i = 0; i < spriteCount; i++)
+			{
+				for (size_t j = 0; j < 6; j++)
+				{
+					indices[i * 6 + j] = s_cast<uint16_t>(_spriteIndices[j] + i * 4);
+				}
+			}
+			bgfx::setVertexBuffer(&vertexBuffer);
+			bgfx::setIndexBuffer(&indexBuffer);
+			Uint8 viewId = SharedView.getId();
+			bgfx::setTexture(viewId, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
+			bgfx::setState(_lastState);
+			bgfx::submit(viewId, _lastEffect->getProgram());
+		}
+		else
+		{
+			Log("not enough transient buffer for %d vertices, %d indices.", vertexCount, indexCount);
+		}
+		_vertices.clear();
+		_lastEffect = nullptr;
+		_lastTexture = nullptr;
+		_lastState = 0;
+		_lastFlags = INT32_MAX;
+	}
+}
+
+void SpriteRenderer::push(Sprite* sprite)
+{
+	SpriteEffect* effect = sprite->getEffect();
+	Texture2D* texture = sprite->getTexture();
+	Uint64 state = sprite->getRenderState();
+	Uint32 flags = sprite->getTextureFlags();
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	{
+		render();
+	}
+
+	_lastEffect = effect;
+	_lastTexture = texture;
+	_lastState = state;
+	_lastFlags = flags;
+
+	const SpriteQuad& quad = sprite->getQuad();
+	for (Uint32 i = 0; i < 4; i++)
+	{
+		_vertices.push_back(quad[i]);
+	}
+}
+
+void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
+	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags,
+	const float* modelWorld)
+{
+	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
+	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	{
+		render();
+	}
+	_lastEffect = effect;
+	_lastTexture = texture;
+	_lastState = state;
+	_lastFlags = flags;
+	for (Uint32 i = 0; i < size; i++)
+	{
+		_vertices.push_back(verts[i]);
+	}
+	if (modelWorld)
+	{
+		bgfx::setTransform(modelWorld);
+		render();
+	}
 }
 
 NS_DOROTHY_END

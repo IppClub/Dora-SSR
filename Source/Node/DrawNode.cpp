@@ -16,134 +16,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-/* DrawRenderer */
-
-bgfx::VertexDecl PosColorVertex::ms_decl;
-PosColorVertex::Init PosColorVertex::init;
+/* DrawNode */
 
 bgfx::VertexDecl DrawVertex::ms_decl;
 DrawVertex::Init DrawVertex::init;
-
-DrawRenderer::DrawRenderer():
-_posColorEffect(Effect::create(
-	SharedShaderCache.load("vs_poscolor.bin"_slice),
-	SharedShaderCache.load("fs_poscolor.bin"_slice))),
-_drawEffect(Effect::create(
-	SharedShaderCache.load("vs_draw.bin"_slice),
-	SharedShaderCache.load("fs_draw.bin"_slice))),
-_lastState(BGFX_STATE_NONE)
-{ }
-
-Effect* DrawRenderer::getPosColorEffect() const
-{
-	return _posColorEffect;
-}
-
-Effect* DrawRenderer::getDrawEffect() const
-{
-	return _drawEffect;
-}
-
-void DrawRenderer::push(const vector<PosColorVertex>& verts, Uint64 state)
-{
-	if (!_drawVertices.empty())
-	{
-		render();
-	}
-	if (state != _lastState)
-	{
-		render();
-	}
-	_lastState = state;
-	if (!_lineVertices.empty())
-	{
-		_lineVertices.push_back(_lineVertices.back());
-		_lineVertices.back().abgr = 0;
-		_lineVertices.push_back(verts.front());
-		_lineVertices.back().abgr = 0;
-	}
-	_lineVertices.insert(_lineVertices.end(), verts.begin(), verts.end());
-}
-
-void DrawRenderer::push(DrawNode* node)
-{
-	if (!_lineVertices.empty())
-	{
-		render();
-	}
-	Uint64 state = node->getRenderState();
-	if (state != _lastState)
-	{
-		render();
-	}
-	_lastState = state;
-
-	Uint16 start = s_cast<Uint16>(_drawVertices.size());
-	const auto& verts = node->getVertices();
-	_drawVertices.reserve(_drawVertices.size() + verts.size());
-	_drawVertices.insert(_drawVertices.end(), verts.begin(), verts.end());
-
-	const auto& indices = node->getIndices();
-	_indices.reserve(_indices.size() + indices.size());
-	for (const auto& index : indices)
-	{
-		_indices.push_back(start + index);
-	}
-}
-
-void DrawRenderer::render()
-{
-	if (!_drawVertices.empty())
-	{
-		bgfx::TransientVertexBuffer vertexBuffer;
-		bgfx::TransientIndexBuffer indexBuffer;
-		Uint32 vertexCount = s_cast<Uint32>(_drawVertices.size());
-		Uint32 indexCount = s_cast<Uint32>(_indices.size());
-		if (bgfx::allocTransientBuffers(
-			&vertexBuffer, DrawVertex::ms_decl, vertexCount,
-			&indexBuffer, indexCount))
-		{
-			Renderer::render();
-			std::memcpy(vertexBuffer.data, _drawVertices.data(), _drawVertices.size() * sizeof(DrawVertex));
-			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(Uint16));
-			bgfx::setVertexBuffer(&vertexBuffer);
-			bgfx::setIndexBuffer(&indexBuffer);
-			bgfx::setState(_lastState);
-			Uint8 viewId = SharedView.getId();
-			bgfx::submit(viewId, SharedDrawRenderer.getDrawEffect()->getProgram());
-		}
-		else
-		{
-			Log("not enough transient buffer for %d vertices, %d indices.", vertexCount, indexCount);
-		}
-		_drawVertices.clear();
-		_indices.clear();
-		_lastState = BGFX_STATE_NONE;
-	}
-	if (!_lineVertices.empty())
-	{
-		bgfx::TransientVertexBuffer vertexBuffer;
-		Uint32 vertexCount = s_cast<Uint32>(_lineVertices.size());
-		if (bgfx::getAvailTransientVertexBuffer(vertexCount, PosColorVertex::ms_decl) >= vertexCount)
-		{
-			bgfx::allocTransientVertexBuffer(&vertexBuffer, vertexCount, PosColorVertex::ms_decl);
-			Renderer::render();
-			std::memcpy(vertexBuffer.data, _lineVertices.data(), _lineVertices.size() * sizeof(PosColorVertex));
-			bgfx::setVertexBuffer(&vertexBuffer);
-			bgfx::setState(_lastState);
-			Uint8 viewId = SharedView.getId();
-			bgfx::submit(viewId, SharedDrawRenderer.getPosColorEffect()->getProgram());
-		}
-		else
-		{
-			Log("not enough transient buffer for %d vertices.", vertexCount);
-		}
-		_lineVertices.clear();
-		_lastState = BGFX_STATE_NONE;
-	}
-}
-
-/* DrawNode */
 
 DrawNode::DrawNode():
 _blendFunc(BlendFunc::Default)
@@ -444,7 +320,77 @@ void DrawNode::clear()
 	_indices.clear();
 }
 
+/* DrawRenderer */
+
+DrawRenderer::DrawRenderer():
+_defaultEffect(Effect::create(
+	SharedShaderCache.load("vs_draw.bin"_slice),
+	SharedShaderCache.load("fs_draw.bin"_slice))),
+_lastState(BGFX_STATE_NONE)
+{ }
+
+Effect* DrawRenderer::getDefaultEffect() const
+{
+	return _defaultEffect;
+}
+
+void DrawRenderer::push(DrawNode* node)
+{
+	Uint64 state = node->getRenderState();
+	if (state != _lastState)
+	{
+		render();
+	}
+	_lastState = state;
+
+	Uint16 start = s_cast<Uint16>(_vertices.size());
+	const auto& verts = node->getVertices();
+	_vertices.reserve(_vertices.size() + verts.size());
+	_vertices.insert(_vertices.end(), verts.begin(), verts.end());
+
+	const auto& indices = node->getIndices();
+	_indices.reserve(_indices.size() + indices.size());
+	for (const auto& index : indices)
+	{
+		_indices.push_back(start + index);
+	}
+}
+
+void DrawRenderer::render()
+{
+	if (!_vertices.empty())
+	{
+		bgfx::TransientVertexBuffer vertexBuffer;
+		bgfx::TransientIndexBuffer indexBuffer;
+		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
+		Uint32 indexCount = s_cast<Uint32>(_indices.size());
+		if (bgfx::allocTransientBuffers(
+			&vertexBuffer, DrawVertex::ms_decl, vertexCount,
+			&indexBuffer, indexCount))
+		{
+			Renderer::render();
+			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(DrawVertex));
+			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(Uint16));
+			bgfx::setVertexBuffer(&vertexBuffer);
+			bgfx::setIndexBuffer(&indexBuffer);
+			bgfx::setState(_lastState);
+			Uint8 viewId = SharedView.getId();
+			bgfx::submit(viewId, _defaultEffect->getProgram());
+		}
+		else
+		{
+			Log("not enough transient buffer for %d vertices, %d indices.", vertexCount, indexCount);
+		}
+		_vertices.clear();
+		_indices.clear();
+		_lastState = BGFX_STATE_NONE;
+	}
+}
+
 /* Line */
+
+bgfx::VertexDecl PosColorVertex::ms_decl;
+PosColorVertex::Init PosColorVertex::init;
 
 Line::Line():
 _blendFunc{BlendFunc::One, BlendFunc::InvSrcAlpha},
@@ -480,6 +426,36 @@ Line()
 	}
 	_flags.setOn(Line::VertexColorDirty);
 	_flags.setOn(Line::VertexPosDirty);
+}
+
+void Line::setBlendFunc(BlendFunc var)
+{
+	_blendFunc = var;
+}
+
+BlendFunc Line::getBlendFunc() const
+{
+	return _blendFunc;
+}
+
+void Line::setDepthWrite(bool var)
+{
+	_flags.setFlag(Line::DepthWrite, var);
+}
+
+bool Line::isDepthWrite() const
+{
+	return _flags.isOn(Line::DepthWrite);
+}
+
+Uint64 Line::getRenderState() const
+{
+	return _renderState;
+}
+
+const vector<PosColorVertex>& Line::getVertices() const
+{
+	return _vertices;
 }
 
 void Line::add(const vector<Vec2>& verts, Color color)
@@ -604,8 +580,67 @@ void Line::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedDrawRenderer.push(_vertices, _renderState);
-	SharedRendererManager.setCurrent(SharedDrawRenderer.getTarget());
+	SharedLineRenderer.push(this);
+	SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());
+}
+
+/* LineRenderer */
+
+LineRenderer::LineRenderer():
+_defaultEffect(Effect::create(
+	SharedShaderCache.load("vs_poscolor.bin"_slice),
+	SharedShaderCache.load("fs_poscolor.bin"_slice))),
+_lastState(BGFX_STATE_NONE)
+{ }
+
+Effect* LineRenderer::getDefaultEffect() const
+{
+	return _defaultEffect;
+}
+
+void LineRenderer::push(Line* line)
+{
+	Uint64 state = line->getRenderState();
+	if (state != _lastState)
+	{
+		render();
+	}
+	_lastState = state;
+	const auto& verts = line->getVertices();
+	_vertices.reserve(_vertices.size() + verts.size());
+	if (!_vertices.empty())
+	{
+		_vertices.push_back(_vertices.back());
+		_vertices.back().abgr = 0;
+		_vertices.push_back(verts.front());
+		_vertices.back().abgr = 0;
+	}
+	_vertices.insert(_vertices.end(), verts.begin(), verts.end());
+}
+
+void LineRenderer::render()
+{
+	if (!_vertices.empty())
+	{
+		bgfx::TransientVertexBuffer vertexBuffer;
+		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
+		if (bgfx::getAvailTransientVertexBuffer(vertexCount, PosColorVertex::ms_decl) >= vertexCount)
+		{
+			bgfx::allocTransientVertexBuffer(&vertexBuffer, vertexCount, PosColorVertex::ms_decl);
+			Renderer::render();
+			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(PosColorVertex));
+			bgfx::setVertexBuffer(&vertexBuffer);
+			bgfx::setState(_lastState);
+			Uint8 viewId = SharedView.getId();
+			bgfx::submit(viewId, _defaultEffect->getProgram());
+		}
+		else
+		{
+			Log("not enough transient buffer for %d vertices.", vertexCount);
+		}
+		_vertices.clear();
+		_lastState = BGFX_STATE_NONE;
+	}
 }
 
 NS_DOROTHY_END

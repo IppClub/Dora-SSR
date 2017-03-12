@@ -142,7 +142,7 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 		bgfx::setIndexBuffer(&indexBuffer);
 		bgfx::setState(BGFX_STATE_NONE);
 		Uint8 viewId = SharedView.getId();
-		bgfx::submit(viewId, SharedDrawRenderer.getPosColorEffect()->getProgram());
+		bgfx::submit(viewId, SharedLineRenderer.getDefaultEffect()->getProgram());
 	}
 }
 

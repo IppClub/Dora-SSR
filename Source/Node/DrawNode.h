@@ -14,27 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-struct PosColorVertex
-{
-	float x;
-	float y;
-	float z;
-	float w;
-	uint32_t abgr;
-	struct Init
-	{
-		Init()
-		{
-			ms_decl.begin()
-				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
-				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-			.end();
-		}
-	};
-	static bgfx::VertexDecl ms_decl;
-	static Init init;
-};
-
 struct DrawVertex
 {
 	float x;
@@ -96,10 +75,51 @@ private:
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
-		VertexPosDirty = Node::UserFlag<<1,
-		DepthWrite = Node::UserFlag<<2,
+		VertexPosDirty = Node::UserFlag << 1,
+		DepthWrite = Node::UserFlag << 2,
 	};
 	DORA_TYPE_OVERRIDE(DrawNode);
+};
+
+class DrawRenderer : public Renderer
+{
+public:
+	PROPERTY_READONLY(Effect*, DefaultEffect);
+	virtual ~DrawRenderer() { }
+	virtual void render() override;
+	void push(DrawNode* node);
+protected:
+	DrawRenderer();
+private:
+	Ref<Effect> _defaultEffect;
+	Uint64 _lastState;
+	vector<DrawVertex> _vertices;
+	vector<Uint16> _indices;
+	SINGLETON_REF(DrawRenderer, RendererManager);
+};
+
+#define SharedDrawRenderer \
+	Dorothy::Singleton<Dorothy::DrawRenderer>::shared()
+
+struct PosColorVertex
+{
+	float x;
+	float y;
+	float z;
+	float w;
+	uint32_t abgr;
+	struct Init
+	{
+		Init()
+		{
+			ms_decl.begin()
+				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+			.end();
+		}
+	};
+	static bgfx::VertexDecl ms_decl;
+	static Init init;
 };
 
 class Line : public Node
@@ -108,6 +128,7 @@ public:
 	PROPERTY(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
+	PROPERTY_READONLY_REF(vector<PosColorVertex>, Vertices);
 	virtual void render() override;
 	virtual const float* getWorld() override;
 	void add(const vector<Vec2>& verts, Color color);
@@ -135,34 +156,29 @@ private:
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
-		VertexPosDirty = Node::UserFlag<<1,
-		DepthWrite = Node::UserFlag<<2,
+		VertexPosDirty = Node::UserFlag << 1,
+		DepthWrite = Node::UserFlag << 2,
 	};
 	DORA_TYPE_OVERRIDE(Line);
 };
 
-class DrawRenderer : public Renderer
+class LineRenderer: public Renderer
 {
 public:
-	PROPERTY_READONLY(Effect*, PosColorEffect);
-	PROPERTY_READONLY(Effect*, DrawEffect);
-	virtual ~DrawRenderer() { }
+	PROPERTY_READONLY(Effect*, DefaultEffect);
+	virtual ~LineRenderer() { }
 	virtual void render() override;
-	void push(DrawNode* node);
-	void push(const vector<PosColorVertex>& verts, Uint64 state);
+	void push(Line* line);
 protected:
-	DrawRenderer();
+	LineRenderer();
 private:
-	Ref<Effect> _posColorEffect;
-	Ref<Effect> _drawEffect;
+	Ref<Effect> _defaultEffect;
 	Uint64 _lastState;
-	vector<DrawVertex> _drawVertices;
-	vector<Uint16> _indices;
-	vector<PosColorVertex> _lineVertices;
-	SINGLETON_REF(DrawRenderer, BGFXDora, RendererManager);
+	vector<PosColorVertex> _vertices;
+	SINGLETON_REF(LineRenderer, RendererManager);
 };
 
-#define SharedDrawRenderer \
-	Dorothy::Singleton<Dorothy::DrawRenderer>::shared()
+#define SharedLineRenderer \
+	Dorothy::Singleton<Dorothy::LineRenderer>::shared()
 
 NS_DOROTHY_END
