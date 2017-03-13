@@ -329,4 +329,17 @@ private:
 
 #define LuaType DoraType
 
+template<typename T>
+class RRefCapture
+{
+public:
+	RRefCapture(T&& x):_ptr(&x) { }
+	operator T&& () const
+	{
+		return std::move(*_ptr);
+	}
+private:
+	T* _ptr;
+};
+
 NS_DOROTHY_END

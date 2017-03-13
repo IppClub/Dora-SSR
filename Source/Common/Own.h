@@ -15,7 +15,7 @@ template<class Item, class Del = std::default_delete<Item>>
 class Own : public std::unique_ptr<Item, Del>
 {
 public:
-	Own(){}
+	Own() { }
 	Own(Own&& own):std::unique_ptr<Item>(std::move(own)) { }
 	explicit Own(Item* item):std::unique_ptr<Item>(item) { }
 	inline operator Item*() const

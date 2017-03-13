@@ -22,6 +22,7 @@ class Slot;
 class Scheduler;
 class TouchHandler;
 class NodeTouchHandler;
+class Action;
 
 typedef Delegate<void (Event* event)> EventHandler;
 
@@ -159,19 +160,25 @@ public:
 		}
 		return false;
 	}
-/*
+
 	PROPERTY_READONLY(int, ActionCount);
-	void runAction(CCAction* action);
+	void runAction(Action* action);
+	bool hasAction(Action* action);
 	void stopAllActions();
-	void perform(CCAction* action);
-	void stopAction(CCAction* action);
-*/
+	void perform(Action* action);
+	void removeAction(Action* action);
+	void stopAction(Action* action);
+
 protected:
 	Node();
 	virtual ~Node();
 	virtual void updateRealColor3();
 	virtual void updateRealOpacity();
 	void sortAllChildren();
+
+	void pauseActionInList(Action* action);
+	void resumeActionInList(Action* action);
+	void stopActionInList(Action* action);
 protected:
 	Flag _flags;
 	int _order;
@@ -196,6 +203,7 @@ protected:
 	Ref<Object> _userData;
 	Ref<Array> _children;
 	Ref<Scheduler> _scheduler;
+	Ref<Action> _action;
 	Own<Signal> _signal;
 	string _name;
 	Own<NodeTouchHandler> _touchHandler;

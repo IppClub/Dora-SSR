@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3C0044EB1E6682A000369672 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0044E91E6682A000369672 /* Particle.cpp */; };
+		3C020DCC1E75476600307E4F /* Action.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C020DCA1E75476600307E4F /* Action.cpp */; };
 		3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */; };
 		3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399B1E1BA603007FEFC3 /* Common.cpp */; };
 		3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */; };
@@ -94,6 +95,8 @@
 /* Begin PBXFileReference section */
 		3C0044E91E6682A000369672 /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Particle.cpp; path = ../../../Source/Node/Particle.cpp; sourceTree = "<group>"; };
 		3C0044EA1E6682A000369672 /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Particle.h; path = ../../../Source/Node/Particle.h; sourceTree = "<group>"; };
+		3C020DCA1E75476600307E4F /* Action.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Action.cpp; path = ../../../Source/Animation/Action.cpp; sourceTree = "<group>"; };
+		3C020DCB1E75476600307E4F /* Action.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Action.h; path = ../../../Source/Animation/Action.h; sourceTree = "<group>"; };
 		3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
 		3C05BCA31E3594C500CC6986 /* TouchDispather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchDispather.h; path = ../../Source/Input/TouchDispather.h; sourceTree = "<group>"; };
 		3C0D399B1E1BA603007FEFC3 /* Common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Common.cpp; path = ../../../Source/Support/Common.cpp; sourceTree = "<group>"; };
@@ -278,6 +281,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3C020DC91E75474C00307E4F /* Animation */ = {
+			isa = PBXGroup;
+			children = (
+				3C020DCA1E75476600307E4F /* Action.cpp */,
+				3C020DCB1E75476600307E4F /* Action.h */,
+			);
+			name = Animation;
+			sourceTree = "<group>";
+		};
 		3C05BCA11E35948200CC6986 /* Input */ = {
 			isa = PBXGroup;
 			children = (
@@ -552,6 +564,7 @@
 			children = (
 				3C50976A1E65A1E800896971 /* Dorothy.h */,
 				3C291D371E0264510098C860 /* 3rdParty */,
+				3C020DC91E75474C00307E4F /* Animation */,
 				3C9ADE491E00EFB200D42018 /* Basic */,
 				3CC0986B1E2630D5006F4B76 /* Cache */,
 				3C9ADE4F1E00F14E00D42018 /* Common */,
@@ -757,6 +770,7 @@
 				3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */,
 				3CCEDD471E1D55BF00F32295 /* Utils.cpp in Sources */,
 				3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */,
+				3C020DCC1E75476600307E4F /* Action.cpp in Sources */,
 				3C374C571E09241600527752 /* Director.cpp in Sources */,
 				3CB487131E16398700D51749 /* tolua_event.cpp in Sources */,
 				3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */,

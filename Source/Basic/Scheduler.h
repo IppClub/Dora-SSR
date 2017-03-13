@@ -10,6 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class Node;
+class Action;
+class Array;
+
 class Scheduler : public Object
 {
 	typedef list<Ref<Object>> UpdateList;
@@ -18,7 +22,9 @@ public:
 	PROPERTY(float, TimeScale);
 	void schedule(Object* object);
 	void schedule(const function<bool (double)>& handler);
+	void schedule(Action* action);
 	void unschedule(Object* object);
+	void unschedule(Action* action);
 	virtual bool update(double deltaTime) override;
 	CREATE_FUNC(Scheduler);
 protected:
@@ -30,6 +36,7 @@ private:
 	UpdateList::reverse_iterator _it;
 	UpdateList _updateList;
 	UpdateMap _updateMap;
+	Ref<Array> _actionList;
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 

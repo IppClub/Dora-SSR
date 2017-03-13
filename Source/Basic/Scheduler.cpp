@@ -8,6 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/Scheduler.h"
+#include "Animation/Action.h"
+#include "Support/Array.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
@@ -27,7 +30,8 @@ protected:
 };
 
 Scheduler::Scheduler():
-_timeScale(1.0f)
+_timeScale(1.0f),
+_actionList(Array::create())
 { }
 
 void Scheduler::setTimeScale(float value)
@@ -63,6 +67,33 @@ void Scheduler::unschedule(Object* object)
 	}
 }
 
+void Scheduler::schedule(Action* action)
+{
+	if (action && action->_target && !action->isRunning())
+	{
+		action->_order = _actionList->getCount();
+		_actionList->add(action);
+		if (action->update())
+		{
+			unschedule(action);
+		}
+	}
+}
+
+void Scheduler::unschedule(Action* action)
+{
+	Ref<> ref(action);
+	if (action && action->_target && action->isRunning()
+		&& _actionList->get(action->_order) == action)
+	{
+		_actionList->fastRemoveAt(action->_order);
+		if (action->_order < _actionList->getCount())
+		{
+			_actionList->get(action->_order).to<Action>()->_order = action->_order;
+		}
+	}
+}
+
 void Scheduler::doUpdate()
 {
 	if (_it != _updateList.rend())
@@ -90,6 +121,22 @@ bool Scheduler::update(double deltaTime)
 	// not save _it and _deltaTime on the stack memory
 	_deltaTime = deltaTime * _timeScale;
 	_it = _updateList.rbegin();
+
+	/* update actions */
+	RefVector<> actionList(_actionList->data());
+	for (size_t i = 0; i < actionList.size(); i++)
+	{
+		Action* action = actionList[i].to<Action>();
+		action->_eclapsed += s_cast<float>(_deltaTime) * action->_speed;
+		if (action->update())
+		{
+			Node* target = action->_target;
+			unschedule(action);
+			target->removeAction(action);
+			target->emit("ActionEnd"_slice, action);
+		}
+	}
+
 	doUpdate();
 	return false;
 }

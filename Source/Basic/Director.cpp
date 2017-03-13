@@ -205,6 +205,25 @@ bool Director::init()
 	l2->setAngle(45.0f);
 	line->addChild(l2);
 	sp2->addChild(line);
+
+	auto action = Sequence::create({
+		Show::alloc(),
+		Delay::alloc(1),
+		Hide::alloc(),
+		Delay::alloc(1),
+		Show::alloc(),
+		Delay::alloc(1),
+		Hide::alloc(),
+		Delay::alloc(1),
+		Show::alloc(),
+		PropertyAction::alloc(3, 0.0f, 200.0f, Property::X, Ease::OutBounce),
+		PropertyAction::alloc(3, 0.0f, 200.0f, Property::Y, Ease::OutBounce),
+		PropertyAction::alloc(4, 1.0f, 0.0f, Property::Opacity)
+	});
+	action->setSpeed(2.0f);
+	action->setReversed(true);
+	cn1->runAction(action);
+
 	pushEntry(cn1);
 
 	return true;
@@ -218,11 +237,11 @@ void Director::mainLoop()
 	pushViewProjection(*viewProj, [&]()
 	{
 		/* update logic */
-		_systemScheduler->update(SharedApplication.getDeltaTime());
+		_systemScheduler->update(getDeltaTime());
 
 		SharedImGUI.begin();
 		//ImGui::ShowTestWindow();
-		_scheduler->update(SharedApplication.getDeltaTime());
+		_scheduler->update(getDeltaTime());
 		SharedImGUI.end();
 
 		/* handle touches */

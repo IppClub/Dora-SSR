@@ -70,6 +70,9 @@
     <Filter Include="3rdParty\fmt">
       <UniqueIdentifier>{f188fd82-326e-413e-9cd2-2efc7d44bd9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Animation">
+      <UniqueIdentifier>{1dba13c2-e330-4933-a1af-6aebd198edda}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -251,6 +254,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Support\Value.cpp">
       <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Animation\Action.cpp">
+      <Filter>Animation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -479,6 +485,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Support\Value.h">
       <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Animation\Action.h">
+      <Filter>Animation</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

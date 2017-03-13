@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 #include "Input/TouchDispather.h"
 #include "Event/Listener.h"
+#include "Animation/Action.h"
 
 NS_DOROTHY_BEGIN
 
@@ -387,6 +388,7 @@ void Node::onEnter()
 	{
 		_scheduler->schedule(this);
 	}
+	resumeActionInList(_action);
 	markDirty();
 	emit("Enter"_slice);
 }
@@ -403,6 +405,7 @@ void Node::onExit()
 	{
 		_scheduler->unschedule(this);
 	}
+	pauseActionInList(_action);
 	emit("Exit"_slice);
 }
 
@@ -974,6 +977,132 @@ void Node::updateRealOpacity()
 	}
 }
 
+int Node::getActionCount() const
+{
+	int count = 0;
+	for (Action* action = _action; action; action = action->_next)
+	{
+		count++;
+	}
+	return count;
+}
+
+void Node::runAction(Action* action)
+{
+	if (!action) return;
+	if (action->isRunning())
+	{
+		_scheduler->unschedule(action);
+	}
+	action->_target = this;
+	action->_prev = nullptr;
+	if (_action)
+	{
+		action->_next = _action;
+		_action->_prev = action;
+		_action = action;
+	}
+	else
+	{
+		action->_next = nullptr;
+		_action = action;
+	}
+	_action->_eclapsed = 0.0f;
+	if (isRunning())
+	{
+		_scheduler->schedule(action);
+	}
+}
+
+void Node::stopAllActions()
+{
+	stopActionInList(_action);
+}
+
+void Node::perform(Action* action)
+{
+	stopAllActions();
+	runAction(action);
+}
+
+bool Node::hasAction(Action* action)
+{
+	bool found = false;
+	for (Action* ac = _action; ac; ac = ac->_next)
+	{
+		if (ac == action)
+		{
+			found = true;
+			break;
+		}
+	}
+	return found;
+}
+
+void Node::removeAction(Action* action)
+{
+	if (!hasAction(action)) return;
+	if (_action == action)
+	{
+		if (_action->_next)
+		{
+			_action = _action->_next;
+			_action->_prev = nullptr;
+		}
+		else
+		{
+			_action = nullptr;
+		}
+	}
+	else
+	{
+		if (action->_prev)
+		{
+			action->_prev->_next = action->_next;
+		}
+		action->_prev = nullptr;
+		action->_next = nullptr;
+	}
+}
+
+void Node::stopAction(Action* action)
+{
+	if (hasAction(action))
+	{
+		_scheduler->unschedule(action);
+	}
+}
+
+void Node::pauseActionInList(Action* action)
+{
+	if (action)
+	{
+		pauseActionInList(action->_next);
+		_scheduler->unschedule(action);
+	}
+}
+
+void Node::resumeActionInList(Action* action)
+{
+	if (action)
+	{
+		resumeActionInList(action->_next);
+		_scheduler->schedule(action);
+	}
+}
+
+void Node::stopActionInList(Action* action)
+{
+	if (action)
+	{
+		stopActionInList(action->_next);
+		_scheduler->unschedule(action);
+		removeAction(action);
+	}
+}
+
+/* Slot */
+
 Slot::Slot(const EventHandler& handler):
 _handler(handler)
 { }
@@ -1002,6 +1131,8 @@ void Slot::handle(Event* event)
 {
 	_handler(event);
 }
+
+/* Signal */
 
 const size_t Signal::MaxSlotArraySize = 5;
 

@@ -24,6 +24,7 @@
 		3C0EBE321E2DB9E10066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE311E2DB9E10066450A /* libbx.a */; };
 		3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1070681E13A2D800EB8C7A /* Async.cpp */; };
 		3C10706D1E13A30800EB8C7A /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C10706B1E13A30800EB8C7A /* Scheduler.cpp */; };
+		3C15202C1E762A59001BC057 /* Action.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C15202A1E762A59001BC057 /* Action.cpp */; };
 		3C1F87C91DF7B4C5005F1B4D /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
 		3C1F87CB1DF7B560005F1B4D /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C1F87CA1DF7B560005F1B4D /* Default-568h@2x.png */; };
 		3C1F87CF1DF7B6AB005F1B4D /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C1F87CE1DF7B6AB005F1B4D /* Launch Screen.storyboard */; };
@@ -132,6 +133,8 @@
 		3C1070691E13A2D800EB8C7A /* Async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Async.h; path = ../../../Source/Common/Async.h; sourceTree = "<group>"; };
 		3C10706B1E13A30800EB8C7A /* Scheduler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Scheduler.cpp; path = ../../../Source/Basic/Scheduler.cpp; sourceTree = "<group>"; };
 		3C10706C1E13A30800EB8C7A /* Scheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Scheduler.h; path = ../../../Source/Basic/Scheduler.h; sourceTree = "<group>"; };
+		3C15202A1E762A59001BC057 /* Action.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Action.cpp; path = ../../../Source/Animation/Action.cpp; sourceTree = "<group>"; };
+		3C15202B1E762A59001BC057 /* Action.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Action.h; path = ../../../Source/Animation/Action.h; sourceTree = "<group>"; };
 		3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3C1F87CA1DF7B560005F1B4D /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		3C1F87CE1DF7B6AB005F1B4D /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
@@ -300,6 +303,15 @@
 				3C4BC6591E17F18300292200 /* Node.h */,
 			);
 			name = Node;
+			sourceTree = "<group>";
+		};
+		3C1520291E762A3F001BC057 /* Animation */ = {
+			isa = PBXGroup;
+			children = (
+				3C15202A1E762A59001BC057 /* Action.cpp */,
+				3C15202B1E762A59001BC057 /* Action.h */,
+			);
+			name = Animation;
 			sourceTree = "<group>";
 		};
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
@@ -530,6 +542,7 @@
 			children = (
 				3C50976D1E65B92F00896971 /* Dorothy.h */,
 				3CB410221E05B08B00A8804D /* 3rdParty */,
+				3C1520291E762A3F001BC057 /* Animation */,
 				3C6D37221E27D9BE008C92E8 /* Cache */,
 				3C1F87D71DF80334005F1B4D /* Basic */,
 				3CFF5F281E0136A5004E3CA6 /* Common */,
@@ -756,6 +769,7 @@
 				3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */,
 				3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */,
 				3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */,
+				3C15202C1E762A59001BC057 /* Action.cpp in Sources */,
 				3CD3283E1E4C42A60036906C /* imgui_demo.cpp in Sources */,
 				3C4BC65A1E17F18300292200 /* Node.cpp in Sources */,
 				3C88056A1E5ED11800B52D4B /* ostream.cpp in Sources */,
