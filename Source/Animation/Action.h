@@ -191,6 +191,21 @@ private:
 	bool _ended;
 };
 
+class Call : public ActionDuration
+{
+public:
+	virtual float getDuration() const override;
+	virtual bool update(Node* target, float eclapsed) override;
+	static Own<ActionDuration> alloc(const function<void()>& callback);
+	static Action* create(const function<void()>& callback);
+	static bool available;
+protected:
+	Call() { }
+private:
+	bool _ended;
+	function<void()> _callback;
+};
+
 class Action : public Object
 {
 public:

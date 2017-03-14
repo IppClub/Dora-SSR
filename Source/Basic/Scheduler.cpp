@@ -91,6 +91,7 @@ void Scheduler::unschedule(Action* action)
 		{
 			_actionList->get(action->_order).to<Action>()->_order = action->_order;
 		}
+		action->_order = Action::InvalidOrder;
 	}
 }
 
@@ -133,7 +134,7 @@ bool Scheduler::update(double deltaTime)
 			Node* target = action->_target;
 			unschedule(action);
 			target->removeAction(action);
-			target->emit("ActionEnd"_slice, action);
+			target->emit("ActionEnd"_slice, action, target);
 		}
 	}
 

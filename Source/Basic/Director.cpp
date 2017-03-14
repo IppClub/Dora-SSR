@@ -216,16 +216,40 @@ bool Director::init()
 		Hide::alloc(),
 		Delay::alloc(1),
 		Show::alloc(),
+		Call::alloc([](){ Log("Blink"); }),
 		PropertyAction::alloc(3, 0.0f, 200.0f, Property::X, Ease::OutBounce),
 		PropertyAction::alloc(3, 0.0f, 200.0f, Property::Y, Ease::OutBounce),
-		PropertyAction::alloc(4, 1.0f, 0.0f, Property::Opacity)
+		PropertyAction::alloc(4, 1.0f, 0.0f, Property::Opacity),
+		Call::alloc([](){ Log("Ended"); }),
+		Call::alloc([](){ Log("Ended1"); }),
+		Call::alloc([](){ Log("Ended2"); }),
+		Show::alloc(),
+		Hide::alloc(),
 	});
 	action->setSpeed(2.0f);
-	action->setReversed(true);
+	//action->setReversed(true);
 	cn1->runAction(action);
-
+	cn1->slot("ActionEnd"_slice, [](Event* e)
+	{
+		Action* action;
+		Node* target;
+		e->get(action, target);
+		Log("action is running: %s", action->isRunning() ? "true" : "false");
+		Log("running action count: %d", target->getActionCount());
+		action->setReversed(!action->isReversed());
+		target->runAction(action);
+	});
 	pushEntry(cn1);
-
+/*
+	cn1/runAction Seq {
+		X 2,0,100
+		Y 2,0,100
+		Call -> print "callback"
+	}
+	cn1/slot "ActionEnd", (action, target)->
+		print action.running
+		print target.actionCount
+*/
 	return true;
 }
 

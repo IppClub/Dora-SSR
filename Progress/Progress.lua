@@ -16,7 +16,7 @@ CCDirector	241	n
 	unschedule	65	y
 	scheduler	30	y
 	currentScene	8	y
-	eclapsedInterval	8	n
+	eclapsedInterval	8	y
 	pause	6	n
 	notificationNode	6	n
 	sceneStackSize	4	y
@@ -64,7 +64,7 @@ CCNode	129	n
 	gslot	219	y
 	anchor	214	y
 	scaleX	212	y
-	runAction	206	n
+	runAction	206	y
 	scaleY	202	y
 	parent	170	y
 	angle	109	y
@@ -73,7 +73,7 @@ CCNode	129	n
 	unschedule	65	y
 	convertToNodeSpace	60	y
 	cascadeOpacity	59	y
-	stopAllActions	45	n
+	stopAllActions	45	y
 	transformTarget	40	y
 	cascadeColor	39	y
 	eachChild	32	y
@@ -86,12 +86,12 @@ CCNode	129	n
 	convertToWorldSpace	17	y
 	tag	15	y
 	zOrder	9	y
-	stopAction	8	n
+	stopAction	8	y
 	scheduled	7	y
-	numberOfRunningActions	6	n
+	numberOfRunningActions	6	y
 	boundingBox	5	y
 	getChildByTag	5	y
-	perform	3	n
+	perform	3	y
 	addTo	3	y
 	removeChildByTag	2	y
 	running	2	y
@@ -229,8 +229,8 @@ CCView	2	n
 	scaleY	202	d
 	setDesignResolution	1	n
 	ExactFit	1	n
-CCEase	2	n
-	sineInOut	2	n
+CCEase	2	y
+	sineInOut	2	y
 CCGrid	1	n
 	stop	1	n
 	twirl	1	n
@@ -276,17 +276,17 @@ oVec2	1861	y
 	normalize	17	y
 	distance	14	y
 	clamp	1	y
-oEase	394	n
-	OutQuad	177	n
-	OutBack	116	n
-	InBack	53	n
-	OutElastic	8	n
-	Linear	6	n
-	OutExpo	6	n
-	func	5	n
-	InQuad	2	n
-	InSine	1	n
-	OutSine	1	n
+oEase	394	y
+	OutQuad	177	y
+	OutBack	116	y
+	InBack	53	y
+	OutElastic	8	y
+	Linear	6	y
+	OutExpo	6	y
+	func	5	y
+	InQuad	2	y
+	InSine	1	y
+	OutSine	1	y
 oContent	259	y
 	exist	90	y
 	remove	53	y
@@ -302,7 +302,7 @@ oContent	259	y
 oLine	146	y
 	set	7	y
 oCache	103	n
-	Texture	24	n
+	Texture	24	y
 	Model	23	n
 	Clip	20	n
 	Effect	10	n
@@ -540,25 +540,25 @@ io	1	d
 	read	1	d
 	open	1	d
 ----- Cocos Function-----
-CCSequence	181	n
+CCSequence	181	y
 CCLabelTTF	98	y
-CCCall	77	n
-CCDelay	65	n
-CCHide	50	n
-CCSpawn	44	n
-CCShow	22	n
+CCCall	77	y
+CCDelay	65	y
+CCHide	50	y
+CCSpawn	44	y
+CCShow	22	y
 cclog	9	y
 CCRepeatForever	7	n
 CCProgress	2	n
 CCRepeat	2	n
 ----- Dorothy Function-----
-oOpacity	221	n
-oScale	194	n
-oPos	83	n
+oOpacity	221	y
+oScale	194	y
+oPos	83	y
 once	50	y
 oCon	9	n
 oAct	6	n
-oRotate	4	n
+oRotate	4	y
 ----- Other Function-----
 require	2168	y
 tostring	448	d

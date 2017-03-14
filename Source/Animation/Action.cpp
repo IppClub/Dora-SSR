@@ -200,14 +200,14 @@ float Sequence::getDuration() const
 bool Sequence::update(Node* target, float eclapsed)
 {
 	if (_ended && eclapsed > _duration) return true;
+	if (_ended && _second && _first && eclapsed < _first->getDuration())
+	{
+		_second->update(target, 0.0f);
+	}
 	if (!_first || _first->update(target, eclapsed))
 	{
 		_ended = !_second || _second->update(target, eclapsed - _first->getDuration());
 		return _ended;
-	}
-	else if (_ended && _second)
-	{
-		_second->update(target, 0.0f);
 	}
 	_ended = false;
 	return false;
@@ -282,7 +282,7 @@ Action* Delay::create(float duration)
 
 float Show::getDuration() const
 {
-	return 0;
+	return 0.0f;
 }
 
 bool Show::update(Node* target, float eclapsed)
@@ -309,7 +309,7 @@ Action* Show::create()
 
 float Hide::getDuration() const
 {
-	return 0;
+	return 0.0f;
 }
 
 bool Hide::update(Node* target, float eclapsed)
@@ -330,6 +330,36 @@ Own<ActionDuration> Hide::alloc()
 Action* Hide::create()
 {
 	return Action::create(Hide::alloc());
+}
+
+/* Call */
+
+bool Call::available = true;
+
+float Call::getDuration() const
+{
+	return 0.0f;
+}
+
+bool Call::update(Node* target, float eclapsed)
+{
+	if (_ended && eclapsed > 0.0f) return true;
+	if (Call::available && _callback) _callback();
+	_ended = eclapsed > 0.0f;
+	return true;
+}
+
+Own<ActionDuration> Call::alloc(const function<void()>& callback)
+{
+	Call* call = new Call();
+	call->_ended = false;
+	call->_callback = callback;
+	return Own<ActionDuration>(call);
+}
+
+Action* Call::create(const function<void()>& callback)
+{
+	return Action::create(Call::alloc(callback));
 }
 
 /* Action */
@@ -377,9 +407,22 @@ float Action::getSpeed() const
 
 bool Action::update()
 {
-	if (_reversed)
+	if (!_reversed)
 	{
-		_action->update(_target, _action->getDuration() - _eclapsed);
+		return _action->update(_target, _eclapsed);
+	}
+	else
+	{
+		if (_eclapsed == 0.0f)
+		{
+			Call::available = false;
+			_action->update(_target, _action->getDuration());
+			Call::available = true;
+		}
+		else
+		{
+			_action->update(_target, _action->getDuration() - _eclapsed);
+		}
 		if (_eclapsed >= _action->getDuration())
 		{
 			_action->update(_target, 0.0f);
@@ -387,7 +430,6 @@ bool Action::update()
 		}
 		return false;
 	}
-	return _action->update(_target, _eclapsed);
 }
 
 NS_DOROTHY_END
