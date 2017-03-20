@@ -312,64 +312,64 @@ oCache	103	n
 	clear	4	n
 	Pool	3	n
 	Particle	2	n
-oBodyDef	49	n
-	position	533	n
-	angle	109	n
-	face	85	n
-	type	83	n
-	angularDamping	15	n
-	fixedRotation	15	n
-	gravityScale	15	n
-	isBullet	15	n
-	linearDamping	15	n
-	loop	14	n
-	attachPolygon	14	n
-	Dynamic	12	n
-	facePos	12	n
-	attachPolygonSensor	10	n
-	attachCircle	8	n
-	circle	7	n
-	attachLoop	6	n
-	attachChain	5	n
-	attachCircleSensor	5	n
-	Static	5	n
-	polygon	5	n
-	Kinematic	2	n
-	chain	1	n
+oBodyDef	49	y
+	position	533	y
+	angle	109	y
+	face	85	y
+	type	83	y
+	angularDamping	15	y
+	fixedRotation	15	y
+	gravityScale	15	y
+	isBullet	15	y
+	linearDamping	15	y
+	loop	14	y
+	attachPolygon	14	y
+	Dynamic	12	y
+	facePos	12	y
+	attachPolygonSensor	10	y
+	attachCircle	8	y
+	circle	7	y
+	attachLoop	6	y
+	attachChain	5	y
+	attachCircleSensor	5	y
+	Static	5	y
+	polygon	5	y
+	Kinematic	2	y
+	chain	1	y
 oRoutine	28	y
 	remove	53	y
 	start	13	y
 	clear	4	y
 	stop	1	y
-oJointDef	20	n
-	position	533	n
-	angle	109	n
-	distance	14	n
-	rope	4	n
-	pulley	3	n
-	spring	3	n
-	revolute	3	n
-	weld	3	n
-	prismatic	3	n
-	gear	3	n
-	center	2	n
-	friction	2	n
-	wheel	1	n
-oBody	20	n
-	bodyDef	171	n
-	world	41	n
-	group	35	n
-	owner	17	n
-	angularDamping	15	n
-	linearDamping	15	n
-	attach	5	n
-	attachSensor	3	n
-	sensor	3	n
-	angularRate	2	n
-	receivingContact	1	n
-	getSensorByTag	1	n
-	destroy	1	n
-	mass	1	n
+oJointDef	20	y
+	position	533	y
+	angle	109	y
+	distance	14	y
+	rope	4	y
+	pulley	3	y
+	spring	3	y
+	revolute	3	y
+	weld	3	y
+	prismatic	3	y
+	gear	3	y
+	center	2	y
+	friction	2	y
+	wheel	1	y
+oBody	20	y
+	bodyDef	171	y
+	world	41	y
+	group	35	y
+	owner	17	y
+	angularDamping	15	y
+	linearDamping	15	y
+	attach	5	y
+	attachSensor	3	y
+	sensor	3	y
+	angularRate	2	y
+	receivingContact	1	y
+	getSensorByTag	1	y
+	destroy	1	y
+	mass	1	y
 oData	17	n
 	GroupTerrain	5	n
 	GroupDetect	3	n
@@ -377,20 +377,20 @@ oData	17	n
 	GroupDetectPlayer	3	n
 	apply	2	n
 	isTerrain	1	n
-oJoint	14	n
-	world	41	n
-	distance	14	n
-	move	8	n
-	rope	4	n
-	revolute	3	n
-	weld	3	n
-	gear	3	n
-	pulley	3	n
-	prismatic	3	n
-	spring	3	n
-	friction	2	n
-	destroy	1	n
-	wheel	1	n
+oJoint	14	y
+	world	41	y
+	distance	14	y
+	move	8	y
+	rope	4	y
+	revolute	3	y
+	weld	3	y
+	gear	3	y
+	pulley	3	y
+	prismatic	3	y
+	spring	3	y
+	friction	2	y
+	destroy	1	y
+	wheel	1	y
 oAI	11	n
 	self	7	n
 	clear	4	n
@@ -410,13 +410,13 @@ oModel	9	y
 	getChildByName	1	y
 	recovery	1	y
 	stop	1	y
-oWorld	6	n
-	gravity	14	n
-	setShouldContact	10	n
-	showDebug	9	n
-	setIterations	5	n
-	query	5	n
-	getShouldContact	1	n
+oWorld	6	y
+	gravity	14	y
+	setShouldContact	10	y
+	showDebug	9	y
+	setIterations	5	y
+	query	5	y
+	getShouldContact	1	y
 oPlatformWorld	5	n
 	camera	34	n
 	UILayer	14	n
