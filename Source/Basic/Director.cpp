@@ -48,7 +48,7 @@ _scheduler(Scheduler::create()),
 _systemScheduler(Scheduler::create()),
 _entryStack(Array::create()),
 _camera(Camera2D::create("Default"_slice)),
-_clearColor(0xff303030)
+_clearColor(0xff1a1a1a)
 { }
 
 void Director::setScheduler(Scheduler* scheduler)
@@ -281,11 +281,29 @@ bool Director::init()
 	model->play("die");
 	model->handlers["die"] += [](Model* model)
 	{
-		model->setRecovery(10.0f);
+		model->setRecovery(1.0f);
 		model->play("walk");
 	};
-	model->setOpacity(0.05f);
-	pushEntry(model);
+	//model->setOpacity(0.05f);
+	World* world = World::create();
+	world->setShowDebug(true);
+	world->setShouldContact(0, 0, true);
+
+	BodyDef* terrainDef = BodyDef::create();
+	terrainDef->attachPolygon(400.0f, 50.0f, 1.0f, 0.4f, 0.4f);
+	terrainDef->type = b2_staticBody;
+	Body* terrain = Body::create(terrainDef, world, Vec2{0,-150.0f});
+
+	BodyDef* bodyDef = BodyDef::create();
+	//bodyDef->angularVelocity = -bx::pi;
+	bodyDef->attachCircle(100.0f, 1.0f, 0.4f, 0.4f);
+	bodyDef->type = b2_dynamicBody;
+	Body* body = Body::create(bodyDef, world, Vec2{0,300.0f});
+	body->addChild(model);
+
+	world->addChild(body);
+	world->addChild(terrain);
+	pushEntry(world);
 /*
 	cn1/runAction Seq {
 		X 2,0,100

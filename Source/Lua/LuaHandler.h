@@ -48,7 +48,10 @@ public:
 	template<typename ...Args>
 	void operator()(Args ...args) const
 	{
-		SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
+		if (_handler->get() > 0)
+		{
+			SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
+		}
 	}
 	void operator()(Event* event) const;
 private:
@@ -66,7 +69,11 @@ public:
 	template<typename ...Args>
 	bool operator()(Args ...args) const
 	{
-		return SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())) != 0;
+		if (_handler->get() > 0)
+		{
+			return SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())) != 0;
+		}
+		return true;
 	}
 private:
 	Ref<LuaHandler> _handler;

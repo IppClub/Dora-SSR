@@ -16,8 +16,8 @@ struct Vec2
 {
 	float x;
 	float y;
-	//Vec2(const b2Vec2& v);
-	//inline operator b2Vec2() const { return *(b2Vec2*)this; }
+	inline operator b2Vec2() { return b2Vec2(x, y); }
+	inline operator const b2Vec2() const { return b2Vec2(x, y); }
 	void set(float x, float y);
 	Vec2 operator+(const Vec2& vec) const;
 	Vec2& operator+=(const Vec2& vec);
@@ -45,6 +45,7 @@ struct Vec2
 	static const Vec2 zero;
 	static Vec2 normalize(const Vec2& vec);
 	static Vec2 perp(const Vec2& vec);
+	static Vec2 from(const b2Vec2& vec);
 	USE_MEMORY_POOL(Vec2);
 	DORA_TYPE(Vec2);
 };

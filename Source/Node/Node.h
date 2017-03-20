@@ -30,7 +30,7 @@ class Node : public Object
 {
 public:
 	PROPERTY(int, Order);
-	PROPERTY(float, Angle);
+	PROPERTY_VIRTUAL(float, Angle);
 	PROPERTY(float, AngleX);
 	PROPERTY(float, AngleY);
 	PROPERTY(float, ScaleX);

@@ -42,6 +42,7 @@ using Acf::Delegate;
 #include "bx/thread.h"
 #include "bx/semaphore.h"
 #include "bx/fpumath.h"
+#include "Box2D/Box2D.h"
 #include "silly/Slice.h"
 using namespace silly::slice;
 #include "Const/Define.h"

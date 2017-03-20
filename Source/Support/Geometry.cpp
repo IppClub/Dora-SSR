@@ -168,6 +168,11 @@ Vec2 Vec2::perp(const Vec2& vec)
 	return {-vec.y, vec.x};
 }
 
+Vec2 Vec2::from(const b2Vec2& vec)
+{
+	return Vec2{vec.x, vec.y};
+}
+
 // Size
 const Size Size::zero{0.0f, 0.0f};
 

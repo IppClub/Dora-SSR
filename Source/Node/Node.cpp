@@ -661,11 +661,13 @@ void Node::unscheduleUpdate()
 
 bool Node::update(double deltaTime)
 {
-	if (_scheduleFunc)
+	bool result = true;
+	if (isScheduled() && _scheduleFunc)
 	{
-		return _scheduleFunc(deltaTime);
+		result = _scheduleFunc(deltaTime);
+		if (result) unschedule();
 	}
-	return Object::update(deltaTime);
+	return result;
 }
 
 void Node::visit()
