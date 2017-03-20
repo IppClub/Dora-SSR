@@ -8,40 +8,37 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Const/Header.h"
-#include "Basic/AutoreleasePool.h"
-#include "Basic/Content.h"
-#include "Support/Geometry.h"
-#include "Lua/LuaEngine.h"
-#include "Lua/LuaHandler.h"
-#include "Event/Event.h"
-#include "Event/Listener.h"
-#include "Event/EventQueue.h"
-#include "Basic/Application.h"
-#include "Basic/Director.h"
-#include "Basic/Scheduler.h"
-#include "Common/Async.h"
-#include "Support/Array.h"
-#include "Support/Common.h"
-#include "Input/TouchDispather.h"
-#include "Node/Node.h"
-#include "Cache/TextureCache.h"
-#include "Basic/View.h"
-#include "Basic/Camera.h"
-#include "Cache/ShaderCache.h"
-#include "Basic/Renderer.h"
-#include "Effect/Effect.h"
-#include "Node/Sprite.h"
-#include "Input/TouchDispather.h"
-#include "GUI/ImGUIDora.h"
-#include "Node/Label.h"
-#include "Node/Particle.h"
-#include "Node/RenderTarget.h"
-#include "Node/ClipNode.h"
-#include "Node/DrawNode.h"
-#include "Cache/ClipCache.h"
-#include "Cache/FrameCache.h"
-#include "Animation/Action.h"
-#include "Animation/ModelDef.h"
-#include "Animation/Model.h"
-#include "Cache/ModelCache.h"
+#include "Basic/Object.h"
+#include "Cache/XmlItemCache.h"
+#include "Common/Singleton.h"
+
+NS_DOROTHY_BEGIN
+
+class SpriteDef;
+class AnimationDef;
+class KeyAnimationDef;
+class ModelDef;
+class Model;
+
+class ModelCache : public XmlItemCache<ModelDef>
+{
+public:
+protected:
+	ModelCache() { }
+	virtual void beforeParse(String filename) override;
+	virtual void afterParse(String filename) override;
+	virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+    virtual void xmlSAX2EndElement(const char* name, size_t len) override;
+    virtual void xmlSAX2Text(const char* s, size_t len) override;
+private:
+	void getPosFromStr(String str, float& x, float& y);
+	KeyAnimationDef* getCurrentKeyAnimation();
+	stack<SpriteDef*> _nodeStack;
+	AnimationDef* _currentAnimationDef;
+	SINGLETON_REF(ModelCache, Director);
+};
+
+#define SharedModelCache \
+	Dorothy::Singleton<Dorothy::ModelCache>::shared()
+
+NS_DOROTHY_END

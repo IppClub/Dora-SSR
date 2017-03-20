@@ -47,7 +47,7 @@ CCDrawNode	132	y
 	drawDot	52	y
 	drawSegment	26	y
 	clear	4	y
-CCNode	129	n
+CCNode	129	y
 	addChild	1138	y
 	height	885	y
 	width	849	y
@@ -254,7 +254,7 @@ Particle	2	n
 	load	2	n
 Model	1	n
 	save	1	n
-	unload	1	n
+	unload	1	y
 	loadAsync	1	n
 	loadData	1	n
 	getClipFile	1	n
@@ -303,8 +303,8 @@ oLine	146	y
 	set	7	y
 oCache	103	n
 	Texture	24	y
-	Model	23	n
-	Clip	20	n
+	Model	23	y
+	Clip	20	y
 	Effect	10	n
 	removeUnused	7	n
 	Animation	5	n
@@ -395,21 +395,21 @@ oAI	11	n
 	self	7	n
 	clear	4	n
 	add	2	n
-oModel	9	n
-	look	31	n
-	duration	21	n
-	loop	14	n
-	reset	14	n
-	faceRight	7	n
-	time	6	n
-	pause	6	n
-	speed	6	n
-	play	4	n
-	playing	2	n
-	resume	1	n
-	getChildByName	1	n
-	recovery	1	n
-	stop	1	n
+oModel	9	y
+	look	31	y
+	duration	21	y
+	loop	14	y
+	reset	14	y
+	faceRight	7	y
+	time	6	y
+	pause	6	y
+	speed	6	y
+	play	4	y
+	playing	2	y
+	resume	1	y
+	getChildByName	1	y
+	recovery	1	y
+	stop	1	y
 oWorld	6	n
 	gravity	14	n
 	setShouldContact	10	n
@@ -479,8 +479,8 @@ oUnitDef	2	n
 	detectDistance	1	n
 	maxHp	1	n
 	sensity	1	n
-oNode3D	1	n
-	angleX	4	n
+oNode3D	1	y
+	angleX	4	y
 ----- Other Class-----
 math	430	d
 	floor	168	d

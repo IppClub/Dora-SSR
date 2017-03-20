@@ -45,6 +45,8 @@ class Slice {
 
   Slice(const char *s, size_t n) : str_(s), len_(n) {}
 
+  Slice(std::pair<const char*,size_t> sp) : str_(sp.first), len_(sp.second) {}
+
   constexpr Slice(std::nullptr_t p = nullptr) : str_(nullptr), len_(0) {}
 
   operator std::string() const {

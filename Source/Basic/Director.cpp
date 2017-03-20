@@ -18,6 +18,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 #include "imgui.h"
 #include "Dorothy.h"
+#include "Other/rapidxml_sax3.hpp"
+#include "Const/XmlTag.h"
+
+class xml_sax2_handler_impl : public rapidxml::xml_sax2_handler
+{
+    virtual void xmlSAX2StartElement(const char *name, size_t len, const vector<AttrSlice>& attrs)
+    {
+		Dorothy::LogPrint("start %s\n", Slice(name, len));
+		for (const auto& attr : attrs)
+		{
+			Dorothy::LogPrint("attr %s\n", Slice(attr.first, attr.second));
+		}
+    }
+    virtual void xmlSAX2EndElement(const char *name, size_t len)
+    {
+		Dorothy::LogPrint("end %s\n", Slice(name, len));
+    }
+    virtual void xmlSAX2Text(const char *s, size_t len)
+    {
+		Dorothy::LogPrint("text %s\n", Slice(s, len));
+    }
+};
 
 NS_DOROTHY_BEGIN
 
@@ -126,6 +148,21 @@ bool Director::init()
 		return false;
 	}
 
+	ModelDef* modelDef = SharedModelCache.load("Model/jixienv.model");
+	Model* model = Model::create(modelDef);
+
+	xml_sax2_handler_impl handler;
+	rapidxml::xml_sax3_parser<> parser(&handler);
+	char xml[] = "<Dorothy><Node X=\"0\" Y=\"998\"/></Dorothy>";
+	try
+	{
+		parser.parse<>(xml, s_cast<int>(sizeof(xml)));
+	}
+	catch (rapidxml::parse_error error)
+	{
+		Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - xml);
+	}
+
 	Label* label = Label::create("NotoSansHans-Regular", 18);
 	label->setTextWidth(600);
 	label->setLineGap(5);
@@ -206,16 +243,11 @@ bool Director::init()
 	line->addChild(l2);
 	sp2->addChild(line);
 
-	auto action = Sequence::create({
-		Show::alloc(),
+	Action* action;
+	action = Sequence::create({
+		PropertyAction::alloc(0, 1.0f, 1.0f, Property::Opacity),
+		//Hide::alloc(),
 		Delay::alloc(1),
-		Hide::alloc(),
-		Delay::alloc(1),
-		Show::alloc(),
-		Delay::alloc(1),
-		Hide::alloc(),
-		Delay::alloc(1),
-		Show::alloc(),
 		Call::alloc([](){ Log("Blink"); }),
 		PropertyAction::alloc(3, 0.0f, 200.0f, Property::X, Ease::OutBounce),
 		PropertyAction::alloc(3, 0.0f, 200.0f, Property::Y, Ease::OutBounce),
@@ -224,8 +256,13 @@ bool Director::init()
 		Call::alloc([](){ Log("Ended1"); }),
 		Call::alloc([](){ Log("Ended2"); }),
 		Show::alloc(),
-		Hide::alloc(),
+		//Hide::alloc(),
+		Call::alloc([cn1]()
+		{
+			cn1->runAction(s_cast<Action*>(cn1->getUserData()));
+		})
 	});
+	cn1->setUserData(action);
 	action->setSpeed(2.0f);
 	//action->setReversed(true);
 	cn1->runAction(action);
@@ -236,10 +273,19 @@ bool Director::init()
 		e->get(action, target);
 		Log("action is running: %s", action->isRunning() ? "true" : "false");
 		Log("running action count: %d", target->getActionCount());
-		action->setReversed(!action->isReversed());
-		target->runAction(action);
+		//action->setReversed(!action->isReversed());
+		//target->runAction(action);
 	});
-	pushEntry(cn1);
+	model->setLook("happy");
+	model->setLoop(true);
+	model->play("die");
+	model->handlers["die"] += [](Model* model)
+	{
+		model->setRecovery(10.0f);
+		model->play("walk");
+	};
+	model->setOpacity(0.05f);
+	pushEntry(model);
 /*
 	cn1/runAction Seq {
 		X 2,0,100

@@ -73,7 +73,7 @@ void Scheduler::schedule(Action* action)
 	{
 		action->_order = _actionList->getCount();
 		_actionList->add(action);
-		if (action->update())
+		if (action->updateProgress())
 		{
 			unschedule(action);
 		}
@@ -86,11 +86,7 @@ void Scheduler::unschedule(Action* action)
 	if (action && action->_target && action->isRunning()
 		&& _actionList->get(action->_order) == action)
 	{
-		_actionList->fastRemoveAt(action->_order);
-		if (action->_order < _actionList->getCount())
-		{
-			_actionList->get(action->_order).to<Action>()->_order = action->_order;
-		}
+		_actionList->set(action->_order, nullptr);
 		action->_order = Action::InvalidOrder;
 	}
 }
@@ -124,19 +120,51 @@ bool Scheduler::update(double deltaTime)
 	_it = _updateList.rbegin();
 
 	/* update actions */
-	RefVector<> actionList(_actionList->data());
-	for (size_t i = 0; i < actionList.size(); i++)
+	static vector<int> delPos;
+	int size = _actionList->getCount();
+	for (int i = 0; i < size; i++)
 	{
-		Action* action = actionList[i].to<Action>();
-		action->_eclapsed += s_cast<float>(_deltaTime) * action->_speed;
-		if (action->update())
+		Action* action = _actionList->get(i).to<Action>();
+		if (action)
 		{
-			Node* target = action->_target;
-			unschedule(action);
-			target->removeAction(action);
-			target->emit("ActionEnd"_slice, action, target);
+			if (!action->isPaused())
+			{
+				int lastIndex = action->_order;
+				action->_eclapsed += s_cast<float>(_deltaTime) * action->_speed;
+				if (action->updateProgress())
+				{
+					if (action->_order == lastIndex)
+					{
+						Node* target = action->_target;
+						unschedule(action);
+						target->removeAction(action);
+						target->emit("ActionEnd"_slice, action, target);
+					}
+					else
+					{
+						delPos.push_back(i);
+					}
+				}
+			}
+		}
+		else
+		{
+			delPos.push_back(i);
 		}
 	}
+	for (int pos : delPos)
+	{
+		_actionList->fastRemoveAt(pos);
+		if (pos < _actionList->getCount())
+		{
+			Action* action = _actionList->get(pos).to<Action>();
+			if (action)
+			{
+				action->_order = pos;
+			}
+		}
+	}
+	delPos.clear();
 
 	doUpdate();
 	return false;

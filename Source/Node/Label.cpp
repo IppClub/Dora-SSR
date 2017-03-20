@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Cache/ShaderCache.h"
 #include "Basic/Content.h"
+#include "fmt/format.h"
 
 NS_DOROTHY_BEGIN
 
@@ -83,9 +84,9 @@ void FontCache::unload()
 
 Font* FontCache::load(String fontName, Uint32 fontSize, Uint32 fontIndex)
 {
-	ostringstream stream;
-	stream << fontName.toString() << '_' << fontSize << '_' << fontIndex;
-	string fontFaceName = stream.str();
+	fmt::MemoryWriter writer;
+	writer << fontName.toString() << '_' << fontSize << '_' << fontIndex;
+	string fontFaceName = writer.str();
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
 	{
@@ -127,9 +128,9 @@ Font* FontCache::load(String fontName, Uint32 fontSize, Uint32 fontIndex)
 
 void FontCache::loadAync(String fontName, Uint32 fontSize, Uint32 fontIndex, const function<void(Font* fontHandle)>& callback)
 {
-	ostringstream stream;
-	stream << fontName.toString() << '_' << fontSize << '_' << fontIndex;
-	string fontFaceName = stream.str();
+	fmt::MemoryWriter writer;
+	writer << fontName.toString() << '_' << fontSize << '_' << fontIndex;
+	string fontFaceName = writer.str();
 	auto faceIt = _fonts.find(fontFaceName);
 	if (faceIt != _fonts.end())
 	{

@@ -1,0 +1,136 @@
+/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#pragma once
+
+#include "Animation/Action.h"
+
+NS_DOROTHY_BEGIN
+
+class Object;
+class Node;
+class ResetAction;
+
+class AnimationDef
+{
+public:
+	virtual ~AnimationDef() { }
+	virtual Action* toAction() = 0;
+	virtual string toXml() = 0;
+	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) = 0;
+};
+
+class KeyFrameDef
+{
+public:
+	enum
+	{
+		MaxKeyAttributes = 6
+	};
+	KeyFrameDef();
+	Ease::Enum easePos;
+	Ease::Enum easeScale;
+	Ease::Enum easeOpacity;
+	Ease::Enum easeRotation;
+	Ease::Enum easeSkew;
+	bool visible;/*1*/
+	float opacity;/*2*/
+	float duration;
+	float x;
+	float y;/*3*/
+	float scaleX;
+	float scaleY;/*4*/
+	float rotation;/*5*/
+	float skewX;
+	float skewY;/*6*/
+	string toXml(KeyFrameDef* lastDef);
+};
+
+class KeyReset : public ActionDuration
+{
+public:
+	virtual float getDuration() const override;
+	virtual bool update(Node* target, float eclapsed) override;
+	static Own<ActionDuration> alloc(KeyFrameDef* def);
+	static Action* create(KeyFrameDef* def);
+private:
+	bool _ended;
+	bool _visible;
+	float _opacity;
+	float _x;
+	float _y;
+	float _scaleX;
+	float _scaleY;
+	float _rotation;
+	float _skewX;
+	float _skewY;
+};
+
+class SpriteDef;
+
+class ResetAction : public ActionDuration
+{
+public:
+	virtual float getDuration() const override;
+	void prepareWith(Node* target);
+	void updateEndValues(KeyFrameDef* def);
+	void updateEndValues(SpriteDef* def);
+	virtual bool update(Node* target, float eclapsed) override;
+	static Own<ActionDuration> alloc(float duration, SpriteDef* def, Ease::Enum easing);
+	static Action* create(float duration, SpriteDef* def, Ease::Enum easing);
+private:
+	bool _ended;
+	float _opacityStart;
+	float _opacityDelta;
+	float _xStart;
+	float _xDelta;
+	float _yStart;
+	float _yDelta;
+	float _scaleXStart;
+	float _scaleXDelta;
+	float _scaleYStart;
+	float _scaleYDelta;
+	float _rotationStart;
+	float _rotationDelta;
+	float _skewXStart;
+	float _skewXDelta;
+	float _skewYStart;
+	float _skewYDelta;
+	float _duration;
+	bx::EaseFn _ease;
+	DORA_TYPE_OVERRIDE(ResetAction);
+};
+
+class KeyAnimationDef : public AnimationDef
+{
+public:
+	void add(KeyFrameDef* def);
+	KeyFrameDef* getLastFrameDef() const;
+	const OwnVector<KeyFrameDef>& getFrames() const;
+	virtual Action* toAction() override;
+	virtual string toXml() override;
+	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override;
+private:
+	OwnVector<KeyFrameDef> _keyFrameDefs;
+};
+
+class FrameAnimationDef : public AnimationDef
+{
+public:
+	PROPERTY_STRING(File);
+	FrameAnimationDef():delay(0) { }
+	float delay;
+	virtual Action* toAction() override;
+	virtual string toXml() override;
+	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override { }
+private:
+	Ref<FrameActionDef> _def;
+	string _file;
+};
+
+NS_DOROTHY_END

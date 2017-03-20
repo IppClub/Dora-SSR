@@ -51,8 +51,8 @@ struct Vec2
 
 struct Size
 {
-    float width;
-    float height;
+	float width;
+	float height;
 	void set(float width, float height);
 	bool operator==(const Size& other) const;
 	bool operator!=(const Size& other) const;
@@ -63,8 +63,8 @@ struct Size
 
 struct Rect
 {
-    Vec2 origin;
-    Size size;
+	Vec2 origin;
+	Size size;
 	PROPERTY(float, X);
 	PROPERTY(float, Y);
 	PROPERTY(float, Width);

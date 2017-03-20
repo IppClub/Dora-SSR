@@ -57,6 +57,10 @@ public: varType get##funName()
 public: bool is##funName() const; \
 public: void set##funName(bool var)
 
+#define PROPERTY_STRING(funName) \
+public: const string& get##funName() const; \
+public: void set##funName(String var)
+
 /** @brief Code block for condition check.
 	@example Use it as below.
 

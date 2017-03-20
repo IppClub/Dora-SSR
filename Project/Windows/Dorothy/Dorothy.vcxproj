@@ -72,6 +72,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Animation\Action.cpp" />
+    <ClCompile Include="..\..\..\Source\Animation\Animation.cpp" />
+    <ClCompile Include="..\..\..\Source\Animation\Model.cpp" />
+    <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Camera.cpp" />
@@ -81,6 +84,9 @@
     <ClCompile Include="..\..\..\Source\Basic\Renderer.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
@@ -145,6 +151,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\atlas.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
@@ -153,6 +160,9 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\zip.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.h" />
     <ClInclude Include="..\..\..\Source\Animation\Action.h" />
+    <ClInclude Include="..\..\..\Source\Animation\Animation.h" />
+    <ClInclude Include="..\..\..\Source\Animation\Model.h" />
+    <ClInclude Include="..\..\..\Source\Animation\ModelDef.h" />
     <ClInclude Include="..\..\..\Source\Basic\Application.h" />
     <ClInclude Include="..\..\..\Source\Basic\AutoreleasePool.h" />
     <ClInclude Include="..\..\..\Source\Basic\Camera.h" />
@@ -162,8 +172,12 @@
     <ClInclude Include="..\..\..\Source\Basic\Renderer.h" />
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
+    <ClInclude Include="..\..\..\Source\Cache\ClipCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\FrameCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\ModelCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\XmlItemCache.h" />
     <ClInclude Include="..\..\..\Source\Common\Async.h" />
     <ClInclude Include="..\..\..\Source\Common\Debug.h" />
     <ClInclude Include="..\..\..\Source\Common\MemoryPool.h" />

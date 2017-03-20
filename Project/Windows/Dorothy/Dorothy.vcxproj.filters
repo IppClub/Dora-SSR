@@ -258,6 +258,24 @@
     <ClCompile Include="..\..\..\Source\Animation\Action.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Animation\Animation.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Animation\Model.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -488,6 +506,30 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Animation\Action.h">
       <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Animation\Animation.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Animation\Model.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Animation\ModelDef.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ClipCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\FrameCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ModelCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\XmlItemCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp">
+      <Filter>3rdParty\Other</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

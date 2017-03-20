@@ -39,6 +39,13 @@
 		3C4BC6671E17F1B500292200 /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6601E17F1B500292200 /* tolua_map.cpp */; };
 		3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6611E17F1B500292200 /* tolua_push.cpp */; };
 		3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6621E17F1B500292200 /* tolua_to.cpp */; };
+		3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972F81E7F74CB00BFD00F /* Animation.cpp */; };
+		3C5972FF1E7F74CB00BFD00F /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972FA1E7F74CB00BFD00F /* Model.cpp */; };
+		3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */; };
+		3C5973091E7F74E900BFD00F /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973021E7F74E900BFD00F /* ClipCache.cpp */; };
+		3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973041E7F74E900BFD00F /* FrameCache.cpp */; };
+		3C59730B1E7F74E900BFD00F /* ModelCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973061E7F74E900BFD00F /* ModelCache.cpp */; };
+		3C59730D1E7F751A00BFD00F /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3C59730C1E7F751A00BFD00F /* Model */; };
 		3C6A1FB31E082B00006DD8C7 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C6A1FB21E082B00006DD8C7 /* libluajit.a */; };
 		3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */; };
 		3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37271E27DA09008C92E8 /* lodepng.cpp */; };
@@ -156,6 +163,21 @@
 		3C4BC6621E17F1B500292200 /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/ToLua/tolua_to.cpp; sourceTree = "<group>"; };
 		3C4BC6631E17F1B500292200 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/ToLua/tolua++.h"; sourceTree = "<group>"; };
 		3C50976D1E65B92F00896971 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
+		3C5972F81E7F74CB00BFD00F /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = ../../../Source/Animation/Animation.cpp; sourceTree = "<group>"; };
+		3C5972F91E7F74CB00BFD00F /* Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Animation.h; path = ../../../Source/Animation/Animation.h; sourceTree = "<group>"; };
+		3C5972FA1E7F74CB00BFD00F /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = ../../../Source/Animation/Model.cpp; sourceTree = "<group>"; };
+		3C5972FB1E7F74CB00BFD00F /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = ../../../Source/Animation/Model.h; sourceTree = "<group>"; };
+		3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelDef.cpp; path = ../../../Source/Animation/ModelDef.cpp; sourceTree = "<group>"; };
+		3C5972FD1E7F74CB00BFD00F /* ModelDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelDef.h; path = ../../../Source/Animation/ModelDef.h; sourceTree = "<group>"; };
+		3C5973011E7F74DC00BFD00F /* rapidxml_sax3.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = rapidxml_sax3.hpp; path = ../../../Source/3rdParty/Other/rapidxml_sax3.hpp; sourceTree = "<group>"; };
+		3C5973021E7F74E900BFD00F /* ClipCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ClipCache.cpp; path = ../../../Source/Cache/ClipCache.cpp; sourceTree = "<group>"; };
+		3C5973031E7F74E900BFD00F /* ClipCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClipCache.h; path = ../../../Source/Cache/ClipCache.h; sourceTree = "<group>"; };
+		3C5973041E7F74E900BFD00F /* FrameCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FrameCache.cpp; path = ../../../Source/Cache/FrameCache.cpp; sourceTree = "<group>"; };
+		3C5973051E7F74E900BFD00F /* FrameCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FrameCache.h; path = ../../../Source/Cache/FrameCache.h; sourceTree = "<group>"; };
+		3C5973061E7F74E900BFD00F /* ModelCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelCache.cpp; path = ../../../Source/Cache/ModelCache.cpp; sourceTree = "<group>"; };
+		3C5973071E7F74E900BFD00F /* ModelCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelCache.h; path = ../../../Source/Cache/ModelCache.h; sourceTree = "<group>"; };
+		3C5973081E7F74E900BFD00F /* XmlItemCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XmlItemCache.h; path = ../../../Source/Cache/XmlItemCache.h; sourceTree = "<group>"; };
+		3C59730C1E7F751A00BFD00F /* Model */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Model; path = ../../Assets/Model; sourceTree = "<group>"; };
 		3C64DF891E161A600030489C /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = ../../../Source/Common/Utils.h; sourceTree = "<group>"; };
 		3C6A1FB21E082B00006DD8C7 /* libluajit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libluajit.a; path = ../../Source/3rdParty/Lua/Lib/iOS/libluajit.a; sourceTree = "<group>"; };
 		3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureCache.cpp; path = ../../../Source/Cache/TextureCache.cpp; sourceTree = "<group>"; };
@@ -308,6 +330,12 @@
 		3C1520291E762A3F001BC057 /* Animation */ = {
 			isa = PBXGroup;
 			children = (
+				3C5972F81E7F74CB00BFD00F /* Animation.cpp */,
+				3C5972F91E7F74CB00BFD00F /* Animation.h */,
+				3C5972FA1E7F74CB00BFD00F /* Model.cpp */,
+				3C5972FB1E7F74CB00BFD00F /* Model.h */,
+				3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */,
+				3C5972FD1E7F74CB00BFD00F /* ModelDef.h */,
 				3C15202A1E762A59001BC057 /* Action.cpp */,
 				3C15202B1E762A59001BC057 /* Action.h */,
 			);
@@ -317,6 +345,7 @@
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3C59730C1E7F751A00BFD00F /* Model */,
 				3CF730DF1E66544A0002DEED /* Font */,
 				3CF730E01E66544A0002DEED /* Image */,
 				3CF730E11E66544A0002DEED /* Script */,
@@ -371,6 +400,13 @@
 		3C6D37221E27D9BE008C92E8 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C5973021E7F74E900BFD00F /* ClipCache.cpp */,
+				3C5973031E7F74E900BFD00F /* ClipCache.h */,
+				3C5973041E7F74E900BFD00F /* FrameCache.cpp */,
+				3C5973051E7F74E900BFD00F /* FrameCache.h */,
+				3C5973061E7F74E900BFD00F /* ModelCache.cpp */,
+				3C5973071E7F74E900BFD00F /* ModelCache.h */,
+				3C5973081E7F74E900BFD00F /* XmlItemCache.h */,
 				3CD6C29F1E30C14800B36FFC /* ShaderCache.cpp */,
 				3CD6C2A01E30C14800B36FFC /* ShaderCache.h */,
 				3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */,
@@ -606,6 +642,7 @@
 		3CDED0311E52A2D300B5E578 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				3C5973011E7F74DC00BFD00F /* rapidxml_sax3.hpp */,
 				3C8805701E5ED18F00B52D4B /* atlas.cpp */,
 				3C8805711E5ED18F00B52D4B /* atlas.h */,
 				3CDED0321E52A2E600B5E578 /* AcfDelegate.h */,
@@ -731,6 +768,7 @@
 				3C1F87CF1DF7B6AB005F1B4D /* Launch Screen.storyboard in Resources */,
 				3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */,
 				3C1F87CB1DF7B560005F1B4D /* Default-568h@2x.png in Resources */,
+				3C59730D1E7F751A00BFD00F /* Model in Resources */,
 				3CF730E31E66544A0002DEED /* Font in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -748,6 +786,7 @@
 				3C266DEB1E27D6DB00F1C870 /* View.cpp in Sources */,
 				3C0AD7E81E0CE9D00033AD59 /* Content.mm in Sources */,
 				3C266DEE1E27D6F800F1C870 /* Sprite.cpp in Sources */,
+				3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */,
 				3CF16C8F1E68FCCD002587CD /* Renderer.cpp in Sources */,
 				3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
@@ -757,11 +796,13 @@
 				3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */,
 				3CD3284A1E4C431B0036906C /* TouchDispather.cpp in Sources */,
 				3C0AD7BE1E0CE95F0033AD59 /* Listener.cpp in Sources */,
+				3C59730B1E7F74E900BFD00F /* ModelCache.cpp in Sources */,
 				3CB410291E05B0C500A8804D /* Slice.cpp in Sources */,
 				3C0AD7E61E0CE9D00033AD59 /* AutoreleasePool.cpp in Sources */,
 				3C4BC6661E17F1B500292200 /* tolua_is.cpp in Sources */,
 				3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */,
 				3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */,
+				3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */,
 				3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */,
 				3C0AD7EA1E0CE9D00033AD59 /* Object.cpp in Sources */,
 				3CD6C2A51E30C1F500B36FFC /* Effect.cpp in Sources */,
@@ -780,11 +821,14 @@
 				3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */,
 				3C88056B1E5ED11800B52D4B /* printf.cpp in Sources */,
 				3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */,
+				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
 				3C0AD7E71E0CE9D00033AD59 /* Content.cpp in Sources */,
 				3CD328461E4C42FF0036906C /* ImGUIDora.cpp in Sources */,
 				3C4BC6671E17F1B500292200 /* tolua_map.cpp in Sources */,
 				3CDED0351E52A2E600B5E578 /* utf8.cpp in Sources */,
+				3C5972FF1E7F74CB00BFD00F /* Model.cpp in Sources */,
 				3C0AD7E51E0CE9D00033AD59 /* Application.cpp in Sources */,
+				3C5973091E7F74E900BFD00F /* ClipCache.cpp in Sources */,
 				3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */,
 				3CB410411E05B19A00A8804D /* unzip.cpp in Sources */,
 				3C1FDB9A1E6041C800F38A26 /* Debug.cpp in Sources */,

@@ -992,7 +992,7 @@ void Node::runAction(Action* action)
 	if (!action) return;
 	if (action->isRunning())
 	{
-		_scheduler->unschedule(action);
+		stopAction(action);
 	}
 	action->_target = this;
 	action->_prev = nullptr;
@@ -1044,9 +1044,9 @@ void Node::removeAction(Action* action)
 	if (!hasAction(action)) return;
 	if (_action == action)
 	{
-		if (_action->_next)
+		if (action->_next)
 		{
-			_action = _action->_next;
+			_action = action->_next;
 			_action->_prev = nullptr;
 		}
 		else
@@ -1060,9 +1060,9 @@ void Node::removeAction(Action* action)
 		{
 			action->_prev->_next = action->_next;
 		}
-		action->_prev = nullptr;
-		action->_next = nullptr;
 	}
+	action->_prev = nullptr;
+	action->_next = nullptr;
 }
 
 void Node::stopAction(Action* action)
@@ -1070,6 +1070,7 @@ void Node::stopAction(Action* action)
 	if (hasAction(action))
 	{
 		_scheduler->unschedule(action);
+		removeAction(action);
 	}
 }
 
