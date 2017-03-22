@@ -225,7 +225,7 @@ void World::query(const Rect& rect, const function<bool(Body*)>& callback)
 	_queryCallback.resultsOfCommonShapes.clear();
 }
 
-void World::cast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
+void World::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
 {
 	_rayCastCallBack.closest = closest;
 	_world.RayCast(&_rayCastCallBack, World::b2Val(start), World::b2Val(end));

@@ -323,9 +323,7 @@ void DrawNode::clear()
 /* DrawRenderer */
 
 DrawRenderer::DrawRenderer():
-_defaultEffect(Effect::create(
-	SharedShaderCache.load("vs_draw.bin"_slice),
-	SharedShaderCache.load("fs_draw.bin"_slice))),
+_defaultEffect(Effect::create("built-in/vs_draw.bin"_slice, "built-in/fs_draw.bin"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 
@@ -375,7 +373,7 @@ void DrawRenderer::render()
 			bgfx::setIndexBuffer(&indexBuffer);
 			bgfx::setState(_lastState);
 			Uint8 viewId = SharedView.getId();
-			bgfx::submit(viewId, _defaultEffect->getProgram());
+			bgfx::submit(viewId, _defaultEffect->apply());
 		}
 		else
 		{
@@ -587,9 +585,7 @@ void Line::render()
 /* LineRenderer */
 
 LineRenderer::LineRenderer():
-_defaultEffect(Effect::create(
-	SharedShaderCache.load("vs_poscolor.bin"_slice),
-	SharedShaderCache.load("fs_poscolor.bin"_slice))),
+_defaultEffect(Effect::create("built-in/vs_poscolor.bin"_slice, "built-in/fs_poscolor.bin"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 
@@ -632,7 +628,7 @@ void LineRenderer::render()
 			bgfx::setVertexBuffer(&vertexBuffer);
 			bgfx::setState(_lastState);
 			Uint8 viewId = SharedView.getId();
-			bgfx::submit(viewId, _defaultEffect->getProgram());
+			bgfx::submit(viewId, _defaultEffect->apply());
 		}
 		else
 		{

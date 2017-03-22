@@ -103,6 +103,8 @@ public:
 	PROPERTY_BOOL(FaceRight);
 	PROPERTY_READONLY(float, Duration);
 	PROPERTY_STRING(Look);
+	PROPERTY_READONLY_BOOL(Playing);
+	PROPERTY_READONLY_BOOL(Paused);
 	void setLook(int index);
 	float play(Uint32 index);
 	float play(String name);
@@ -112,8 +114,6 @@ public:
 	void resume(String name);
 	void reset();
 	void stop();
-	bool isPlaying() const;
-	bool isPaused() const;
 	void updateTo(float eclapsed, bool reversed = false);
 	int getCurrentAnimationIndex() const;
 	string getCurrentAnimationName() const;
@@ -137,6 +137,7 @@ public:
 	CREATE_FUNC(Model);
 protected:
 	Model(ModelDef* def);
+	Model(String filename);
 private:
 	typedef unordered_map<string,Node*> NodeMap;
 	void visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef);

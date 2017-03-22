@@ -5,14 +5,31 @@ local objects = {
 "Scheduler",
 "Listener",
 "Array",
+"Dictionary",
 "Slot",
 "Node",
 "Texture2D",
+"Effect",
+"SpriteEffect",
 "Sprite",
 "Touch",
 "Action",
 "Camera",
 "Camera2D",
+"Label",
+"RenderTarget",
+"ClipNode",
+"DrawNode",
+"Line",
+"Model",
+"World",
+"Sensor",
+"BodyDef",
+"Body",
+"JointDef",
+"Joint",
+"MoveJoint",
+"MotorJoint",
 }
 
 -- register CCObject types
@@ -24,6 +41,7 @@ end
 -- Name -> push'name'
 _basic["Slice"] = "slice"
 _basic["Uint8"] = "number"
+_basic["Uint16"] = "number"
 _basic["Uint32"] = "number"
 _basic["size_t"] = "number"
 _basic['string'] = 'slice'

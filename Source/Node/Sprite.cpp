@@ -344,15 +344,9 @@ _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
 _lastFlags(INT32_MAX),
-_defaultEffect(SpriteEffect::create(
-	SharedShaderCache.load("vs_sprite.bin"_slice),
-	SharedShaderCache.load("fs_sprite.bin"_slice))),
-_defaultModelEffect(SpriteEffect::create(
-	SharedShaderCache.load("vs_spritemodel.bin"_slice),
-	SharedShaderCache.load("fs_sprite.bin"_slice))),
-_alphaTestEffect(SpriteEffect::create(
-	SharedShaderCache.load("vs_sprite.bin"_slice),
-	SharedShaderCache.load("fs_spritealphatest.bin"_slice)))
+_defaultEffect(SpriteEffect::create("built-in/vs_sprite.bin"_slice, "built-in/fs_sprite.bin"_slice)),
+_defaultModelEffect(SpriteEffect::create("built-in/vs_spritemodel.bin"_slice, "built-in/fs_sprite.bin"_slice)),
+_alphaTestEffect(SpriteEffect::create("built-in/vs_sprite.bin"_slice, "built-in/fs_spritealphatest.bin"_slice))
 { }
 
 SpriteEffect* SpriteRenderer::getDefaultEffect() const
@@ -398,7 +392,7 @@ void SpriteRenderer::render()
 			Uint8 viewId = SharedView.getId();
 			bgfx::setTexture(viewId, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
 			bgfx::setState(_lastState);
-			bgfx::submit(viewId, _lastEffect->getProgram());
+			bgfx::submit(viewId, _lastEffect->apply());
 		}
 		else
 		{

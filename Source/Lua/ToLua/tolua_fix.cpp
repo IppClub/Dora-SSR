@@ -195,16 +195,6 @@ Slice tolua_toslice(lua_State* L, int narg, const char* def)
 	return Slice(str, size);
 }
 
-int tolua_isslice(lua_State* L, int lo, int def, tolua_Error* err)
-{
-    if (def && lua_gettop(L) < abs(lo)) return 1;
-	if (lua_isstring(L, lo)) return 1;
-    err->index = lo;
-    err->array = 0;
-    err->type = "string";
-    return 0;
-}
-
 void tolua_pushslice(lua_State* L, String str)
 {
 	lua_pushlstring(L, str.rawData(), str.size());

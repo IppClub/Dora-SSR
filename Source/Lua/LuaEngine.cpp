@@ -257,10 +257,10 @@ LuaEngine::LuaEngine()
 	// add dorothy loader
 	LuaEngine::addLuaLoader(dora_loader);
 
-	// load binding codes
+	// load cpp binding
 	tolua_LuaBinding_open(L);
-	tolua_LuaCode_open(L);
 
+	// add manual binding
 	tolua_beginmodule(L, nullptr); // stack: package.loaded
 		tolua_beginmodule(L, "Node");
 			tolua_function(L, "gslot", Node_gslot);
@@ -271,24 +271,16 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "Action");
 			tolua_call(L, MT_CALL, Action_create);
 		tolua_endmodule(L);
-	tolua_endmodule(L);
-/*
-	tolua_beginmodule(L, "CCDictionary");//stack: package.loaded CCDictionary
-	tolua_variable(L, "randomObject", CCDictionary_randomObject, nullptr);
-	tolua_function(L, "set", CCDictionary_set);
-	tolua_function(L, "get", CCDictionary_get);
-	tolua_function(L, "each", CCDictionary_each);
-	tolua_endmodule(L);
-	tolua_beginmodule(L, "CCArray");
-	tolua_function(L, "each", CCArray_each);
-	tolua_endmodule(L);
-	tolua_beginmodule(L, "CCTextureCache");
-	tolua_function(L, "loadAsync", CCTextureCache_loadAsync);
-	tolua_endmodule(L);
+
+		tolua_beginmodule(L, "Dictionary");
+			tolua_function(L, "set", Dictionary_set);
+			tolua_function(L, "get", Dictionary_get);
+		tolua_endmodule(L);
 	tolua_endmodule(L);
 
+	// load binding codes
 	tolua_LuaCode_open(L);
-*/
+
 	lua_settop(L, 0); // clear stack
 }
 

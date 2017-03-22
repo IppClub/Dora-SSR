@@ -37,9 +37,42 @@ Value* Effect::Uniform::getValue() const
 	return _value;
 }
 
+void Effect::Uniform::apply()
+{
+	if (_value->as<float>())
+	{
+		float value = _value->as<float>()->get();
+		bgfx::setUniform(_handle, Vec4{value});
+	}
+	else if (_value->as<Vec4>())
+	{
+		const Vec4& value = _value->as<Vec4>()->get();
+		bgfx::setUniform(_handle, value);
+	}
+	else if (_value->as<Matrix>())
+	{
+		const Matrix& value = _value->as<Matrix>()->get();
+		bgfx::setUniform(_handle, value);
+	}
+}
+
+bgfx::ProgramHandle Effect::apply()
+{
+	for (const auto& pair : _uniforms)
+	{
+		pair.second->apply();
+	}
+	return _program;
+}
+
 Effect::Effect(Shader* vertShader, Shader* fragShader):
 _vertShader(vertShader),
 _fragShader(fragShader)
+{ }
+
+Effect::Effect(String vertShader, String fragShader):
+_vertShader(SharedShaderCache.load(vertShader)),
+_fragShader(SharedShaderCache.load(fragShader))
 { }
 
 Effect::~Effect()
@@ -48,11 +81,6 @@ Effect::~Effect()
 	{
 		bgfx::destroyProgram(_program);
 	}
-}
-
-bgfx::ProgramHandle Effect::getProgram() const
-{
-	return _program;
 }
 
 bool Effect::init()
@@ -64,19 +92,21 @@ bool Effect::init()
 void Effect::set(String name, float var)
 {
 	string uname(name);
-	Vec4 var4 {var};
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		bgfx::setUniform(it->second->getHandle(), var4);
 		it->second->getValue()->as<float>()->set(var);
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
-		bgfx::setUniform(handle, var4);
 		_uniforms[uname] = Uniform::create(handle, Value::create(var));
 	}
+}
+
+void Effect::set(String name, float var1, float var2, float var3, float var4)
+{
+	set(name, Vec4{var1, var2, var3, var4});
 }
 
 void Effect::set(String name, const Vec4& var)
@@ -85,13 +115,11 @@ void Effect::set(String name, const Vec4& var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		bgfx::setUniform(it->second->getHandle(), var);
 		it->second->getValue()->as<Vec4>()->set(var);
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
-		bgfx::setUniform(handle, var);
 		_uniforms[uname] = Uniform::create(handle, Value::create(var));
 	}
 }
@@ -102,13 +130,11 @@ void Effect::set(String name, const Matrix& var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		bgfx::setUniform(it->second->getHandle(), &var);
 		it->second->getValue()->as<Matrix>()->set(var);
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Mat4);
-		bgfx::setUniform(handle, &var);
 		_uniforms[uname] = Uniform::create(handle, Value::create(var));
 	}
 }
@@ -126,6 +152,11 @@ Value* Effect::get(String name) const
 /* SpriteEffect */
 
 SpriteEffect::SpriteEffect(Shader* vertShader, Shader* fragShader):
+Effect(vertShader, fragShader),
+_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Int1))
+{ }
+
+SpriteEffect::SpriteEffect(String vertShader, String fragShader):
 Effect(vertShader, fragShader),
 _sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Int1))
 { }

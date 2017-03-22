@@ -234,6 +234,52 @@ for _,actionName in ipairs{
 	end
 end
 
+local Array = builtin.Array
+local Array_index = Array.__index
+local Array_get = Array.get
+Array.__index = function(self,key)
+	if type(key) == "number" then
+		return Array_get(self,key)
+	end
+	return Array_index(self,key)
+end
+
+local Array_newindex = Array.__newindex
+local Array_set = Array.set
+Array.__newindex = function(self,key,value)
+	if type(key) == "number" then
+		Array_set(self,key,value)
+	else
+		Array_newindex(self,key,value)
+	end
+end
+Array.__len = function(self)
+	return self.count
+end
+
+local Dictionary = builtin.Dictionary
+local Dictionary_index = Dictionary.__index
+local Dictionary_get = Dictionary.get
+Dictionary.__index = function(self,key)
+	local item = Dictionary_get(self,key)
+	if item ~= nil then return item end
+	return Dictionary_index(self,key)
+end
+
+local Dictionary_newindex = Dictionary.__newindex
+local Dictionary_set = Dictionary.set
+Dictionary.__newindex = function(self,key,value)
+	local vtype = type(value)
+	if vtype == "function" or vtype == "table" then
+		Dictionary_newindex(self,key,value)
+	else
+		Dictionary_set(self,key,value)
+	end
+end
+Dictionary.__len = function(self)
+	return self.count
+end
+
 local function disallowAssignGlobal(_,name)
 	error("Disallow creating global value \""..name.."\".")
 end

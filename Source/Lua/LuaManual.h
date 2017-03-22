@@ -50,4 +50,35 @@ BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst);
 /* Action */
 int Action_create(lua_State* L);
 
+/* Model */
+Model* Model_create(String filename);
+Vec2 Model_getKey(Model* model, String key);
+
+/* Body */
+typedef b2FixtureDef FixtureDef;
+Body* Body_create(BodyDef* def, World* world, Vec2 pos, float rot);
+
+/* Dictionary */
+Array* __Dictionary_getKeys(Dictionary* self);
+#define Dictionary_getKeys() __Dictionary_getKeys(self)
+int Dictionary_get(lua_State* L);
+int Dictionary_set(lua_State* L);
+
+/* Array */
+void Array_swap(Array* self, int indexA, int indexB);
+int Array_index(Array* self, Object* object);
+void Array_set(Array* self, int index, Object* object);
+Object* Array_get(Array* self, int index);
+void Array_insert(Array* self, int index, Object* object);
+bool Array_removeAt(Array* self, int index);
+bool Array_fastRemoveAt(Array* self, int index);
+template <class Func>
+bool Array_each(Array* self, const Func& handler)
+{
+	return self->each([&handler](Object* item, int index)
+	{
+		return handler(item, index + 1);
+	});
+}
+
 NS_DOROTHY_END

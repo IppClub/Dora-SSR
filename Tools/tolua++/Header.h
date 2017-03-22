@@ -60,8 +60,6 @@ class Camera : public Object
 	tolua_readonly tolua_property__common string name;
 };
 
-class Node;
-
 class Director
 {
 	tolua_property__common Scheduler* scheduler;
@@ -107,8 +105,6 @@ struct Color
 	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 	Color3 toColor3();
 };
-
-struct Size;
 
 struct Vec2
 {
@@ -193,22 +189,32 @@ class Array : public Object
 	void clear();
 	bool fastRemove(Object* object);
 	void swap(Object* objectA, Object* objectB);
-	void swap(int indexA, int indexB);
 	void reverse();
 	void shrink();
-	int index(Object* object);
-	void set(int index, Object* object);
-	Object* get(int index);
-	void insert(int index, Object* object);
-	bool removeAt(int index);
-	bool fastRemoveAt(int index);
-	bool each(tolua_function_bool func);
+
+	tolua_outside void Array_swap @ swap(int indexA, int indexB);
+	tolua_outside int Array_index @ index(Object* object);
+	tolua_outside void Array_set @ set(int index, Object* object);
+	tolua_outside Object* Array_get @ get(int index);
+	tolua_outside void Array_insert @ insert(int index, Object* object);
+	tolua_outside bool Array_removeAt @ removeAt(int index);
+	tolua_outside bool Array_fastRemoveAt @ fastRemoveAt(int index);
+	tolua_outside bool Array_each @ each(tolua_function_bool func);
 
 	static Array* create();
 	static Array* create(Array* other);
 	static Array* create(int capacity);
 	static Array* create(Object* objects[tolua_len]);
 };
+
+class Dictionary : public Object
+{
+    tolua_readonly tolua_property__common int count;
+	tolua_outside tolua_readonly tolua_property__qt Array* Dictionary_getKeys @ keys;
+	bool each(tolua_function_bool func);
+    void clear();
+    static Dictionary* create();
+}
 
 class Slot : public Object
 {
@@ -218,7 +224,17 @@ class Slot : public Object
 	void clear();
 };
 
-class Action;
+class Action : public Object
+{
+	tolua_readonly tolua_property__common float duration;
+	tolua_readonly tolua_property__bool bool running;
+	tolua_readonly tolua_property__bool bool paused;
+	tolua_property__bool bool reversed;
+	tolua_property__common float speed;
+	void pause();
+	void resume();
+	void updateTo(float eclapsed, bool reversed = false);
+};
 
 class Node : public Object
 {
@@ -317,8 +333,7 @@ struct BlendFunc
 	Uint32 dst;
 	BlendFunc(BlendFunc other);
 	~BlendFunc();
-	enum
-	{
+	enum {
 		One,
 		Zero,
 		SrcColor,
@@ -334,11 +349,49 @@ struct BlendFunc
 	static const BlendFunc Default;
 };
 
+struct TextureWrap
+{
+	enum {
+		None,
+		Mirror,
+		Clamp,
+		Border
+	};
+};
+enum TextureWrap {};
+
+struct TextureFilter
+{
+	enum {
+		None,
+		Point,
+		Anisotropic
+	};
+};
+enum TextureFilter {};
+
+class Effect : public Object
+{
+	void set(String name, float var);
+	void set(String name, float var1, float var2, float var3, float var4);
+	static Effect* create(String vertShader, String fragShader);
+};
+
+class SpriteEffect : public Effect
+{
+	static SpriteEffect* create(String vertShader, String fragShader);
+};
+
 class Sprite : public Node
 {
 	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__common float alphaRef;
 	tolua_property__common Rect textureRect;
 	tolua_property__common BlendFunc blendFunc;
+	tolua_property__common TextureFilter filter;
+	tolua_property__common TextureWrap uWrap @ uwrap;
+	tolua_property__common TextureWrap vWrap @ vwrap;
+	tolua_property__common SpriteEffect* effect;
 	tolua_readonly tolua_property__common Texture2D* texture;
 	static Sprite* create();
 	static Sprite* create(Texture2D* texture, Rect textureRect);
@@ -352,18 +405,6 @@ class Touch : public Object
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;
-};
-
-class Action : public Object
-{
-	tolua_readonly tolua_property__common float duration;
-	tolua_readonly tolua_property__bool bool running;
-	tolua_readonly tolua_property__bool bool paused;
-	tolua_property__bool bool reversed;
-	tolua_property__common float speed;
-	void pause();
-	void resume();
-	void updateTo(float eclapsed, bool reversed = false);
 };
 
 struct Ease
@@ -421,4 +462,450 @@ class Camera2D : public Camera
 	tolua_property__common float zoom;
 	tolua_property__common Vec2 position;
 	Camera2D* create(String name);
+};
+
+struct TextAlignment
+{
+	enum {
+		Left,
+		Center,
+		Right
+	};
+};
+enum TextAlignment {};
+
+class Label : public Node
+{
+	tolua_property__common TextAlignment alignment;
+	tolua_property__common float textWidth;
+	tolua_property__common float lineGap;
+	tolua_property__common const char* text;
+	tolua_property__common BlendFunc blendFunc;
+	tolua_readonly tolua_property__common int characterCount;
+	Sprite* getCharacter(int index) const;
+	static const float AutomaticWidth;
+	static Label* create(String fontName, Uint32 fontSize);
+};
+
+class RenderTarget : public Node
+{
+	tolua_property__common Camera* camera;
+	void render(Node* target);
+	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
+	void saveAsync(String filename, tolua_function handler);
+	static RenderTarget* create(Uint16 width, Uint16 height);
+};
+
+class ClipNode : public Node
+{
+	tolua_property__common Node* stencil;
+	tolua_property__common float alphaThreshold;
+	tolua_property__bool bool inverted;
+	static ClipNode* create(Node* stencil);
+};
+
+class DrawNode : public Node
+{
+	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__common BlendFunc blendFunc;
+	void drawDot(Vec2 pos, float radius, Color color);
+	void drawSegment(Vec2 from, Vec2 to, float radius, Color color);
+	void drawPolygon(Vec2 verts[tolua_len], Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
+	void clear();
+	static DrawNode* create();
+};
+
+class Line : public Node
+{
+	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__common BlendFunc blendFunc;
+	void add(Vec2 verts[tolua_len], Color color);
+	void set(Vec2 verts[tolua_len], Color color);
+	void clear();
+	static Line* create();
+	static Line* create(Vec2 verts[tolua_len], Color color);
+};
+
+class Model: public Node
+{
+	tolua_property__common string look;
+	tolua_property__common float speed;
+	tolua_property__bool bool loop;
+	tolua_readonly tolua_property__common float duration;
+	tolua_property__common float recovery;
+	tolua_property__bool bool faceRight;
+	tolua_readonly tolua_property__bool bool playing;
+	tolua_readonly tolua_property__bool bool paused;
+	tolua_readonly tolua_property__common string currentAnimationName @ currentAnimation;
+	tolua_outside Vec2 Model_getKey @ getKey(String key);
+	float play(String name);
+	void pause();
+	void resume();
+	void resume(String name);
+	void stop();
+	void reset();
+	void updateTo(float eclapsed, bool reversed = false);
+	static tolua_outside Model* Model_create @ create(String filename);
+	static Model* none();
+};
+
+class World : public Node
+{
+	tolua_property__common Vec2 gravity;
+	tolua_property__bool bool showDebug;
+	void query(Rect rect, tolua_function_bool handler);
+	void raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);
+	void setIterations(int velocityIter, int positionIter);
+	void setShouldContact(int groupA, int groupB, bool contact);
+	bool getShouldContact(int groupA, int groupB);
+	static float b2Factor;
+	static World* create();
+};
+
+class FixtureDef {};
+enum b2BodyType {};
+
+class BodyDef : public Object
+{
+	#define b2_staticBody @ Static
+	#define b2_dynamicBody @ Dynamic
+	#define b2_kinematicBody @ Kinematic
+	b2BodyType type;
+	float linearDamping;
+	float angularDamping;
+	bool fixedRotation;
+	bool bullet @ isBullet;
+	float gravityScale;
+	Vec2 offset @ position;
+	float angleOffset @ angle;
+	string face;
+	Vec2 facePos;
+	static FixtureDef* polygon(
+		Vec2 center,
+		float width,
+		float height,
+		float angle = 0.0f,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	static FixtureDef* polygon(
+		float width,
+		float height,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	static FixtureDef* polygon(
+		Vec2 vertices[tolua_len],
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachPolygon(
+		Vec2 center,
+		float width,
+		float height,
+		float angle = 0.0f,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachPolygon(
+		float width,
+		float height,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachPolygon(
+		Vec2 vertices[tolua_len],
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	static FixtureDef* loop(
+		Vec2 vertices[tolua_len],
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachLoop(
+		Vec2 vertices[tolua_len],
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	static FixtureDef* circle(
+		Vec2 center,
+		float radius,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	static FixtureDef* circle(
+		float radius,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachCircle(
+		Vec2 center,
+		float radius,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachCircle(
+		float radius,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	static FixtureDef* chain(
+		Vec2 vertices[tolua_len],
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachChain(
+		Vec2 vertices[tolua_len],
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	void attachPolygonSensor(
+		int tag,
+		float width,
+		float height);
+	void attachPolygonSensor(
+		int tag,
+		float width,
+		float height,
+		Vec2 center,
+		float angle = 0.0f);
+	void attachPolygonSensor(
+		int tag,
+		Vec2 vertices[tolua_len]);
+	void attachCircleSensor(
+		int tag,
+		Vec2 center,
+		float radius);
+	void attachCircleSensor(
+		int tag,
+		float radius);
+	static BodyDef* create();
+};
+
+class Sensor : public Object
+{
+	tolua_property__bool bool enabled;
+	tolua_readonly tolua_property__common int tag;
+	tolua_readonly tolua_property__common Body* owner;
+	tolua_readonly tolua_property__bool bool sensed;
+	tolua_readonly tolua_property__common Array* sensedBodies;
+	bool contains(Body* body);
+};
+
+class Body : public Node
+{
+	tolua_readonly tolua_property__common World* world;
+	tolua_readonly tolua_property__common BodyDef* bodyDef;
+	tolua_readonly tolua_property__common float mass;
+	tolua_readonly tolua_property__bool bool sensor;
+	tolua_property__common float velocityX;
+	tolua_property__common float velocityY;
+	tolua_property__common Vec2 velocity;
+	tolua_property__common float angularRate;
+	tolua_property__common int group;
+	tolua_property__common float linearDamping;
+	tolua_property__common float angularDamping;
+	tolua_property__common Object* owner;
+	tolua_property__bool bool receivingContact;
+	void applyLinearImpulse(Vec2 impulse, Vec2 pos);
+	void applyAngularImpulse(float impulse);
+	Sensor* getSensorByTag(int tag);
+	bool removeSensorByTag(int tag);
+	bool removeSensor(Sensor* sensor);
+	void attach(FixtureDef* fixtureDef);
+	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
+	static tolua_outside Body* Body_create @ create(BodyDef* def, World* world, Vec2 pos = Vec2::zero, float rot = 0);
+};
+
+class JointDef : public Object
+{
+	Vec2 center;
+	Vec2 position;
+	float angle;
+	static JointDef* distance(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 anchorA,
+		Vec2 anchorB,
+		float frequency = 0.0f,
+		float damping = 0.0f);
+	static JointDef* friction(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 worldPos,
+		float maxForce,
+		float maxTorque);
+	static JointDef* gear(
+		bool collision,
+		String jointA,
+		String jointB,
+		float ratio = 1.0f);
+	static JointDef* spring(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 linearOffset,
+		float angularOffset,
+		float maxForce,
+		float maxTorque,
+		float correctionFactor = 1.0f);
+	static JointDef* prismatic(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 worldPos,
+		Vec2 axis,
+		float lowerTranslation = 0.0f,
+		float upperTranslation = 0.0f,
+		float maxMotorForce = 0.0f,
+		float motorSpeed = 0.0f);
+	static JointDef* pulley(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 anchorA,
+		Vec2 anchorB,
+		Vec2 groundAnchorA,
+		Vec2 groundAnchorB,
+		float ratio = 1.0f);
+	static JointDef* revolute(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 worldPos,
+		float lowerAngle = 0.0f,
+		float upperAngle = 0.0f,
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f);
+	static JointDef* rope(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 anchorA,
+		Vec2 anchorB,
+		float maxLength);
+	static JointDef* weld(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 worldPos,
+		float frequency = 0.0f,
+		float damping = 0.0f);
+	static JointDef* wheel(
+		bool collision,
+		String bodyA,
+		String bodyB,
+		Vec2 worldPos,
+		Vec2 axis,
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f,
+		float frequency = 2.0f,
+		float damping = 0.7f);
+};
+
+class Joint : public Object
+{
+	static Joint* distance(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 anchorA,
+		Vec2 anchorB,
+		float frequency = 0.0f,
+		float damping = 0.0f);
+	static Joint* friction(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 worldPos,
+		float maxForce,
+		float maxTorque);
+	static Joint* gear(
+		bool collision,
+		Joint* jointA,
+		Joint* jointB,
+		float ratio = 1.0f);
+	static Joint* spring(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 linearOffset,
+		float angularOffset,
+		float maxForce,
+		float maxTorque,
+		float correctionFactor = 1.0f);
+	static MoveJoint* move(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 targetPos,
+		float maxForce,
+		float frequency = 5.0f,
+		float damping = 0.7f);
+	static MotorJoint* prismatic(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 worldPos,
+		Vec2 axis,
+		float lowerTranslation = 0.0f,
+		float upperTranslation = 0.0f,
+		float maxMotorForce = 0.0f,
+		float motorSpeed = 0.0f);
+	static Joint* pulley(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 anchorA,
+		Vec2 anchorB,
+		Vec2 groundAnchorA,
+		Vec2 groundAnchorB,
+		float ratio = 1.0f);
+	static MotorJoint* revolute(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 worldPos,
+		float lowerAngle = 0.0f,
+		float upperAngle = 0.0f,
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f);
+	static Joint* rope(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 anchorA,
+		Vec2 anchorB,
+		float maxLength);
+	static Joint* weld(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 worldPos,
+		float frequency = 0.0f,
+		float damping = 0.0f);
+	static MotorJoint* wheel(
+		bool collision,
+		Body* bodyA,
+		Body* bodyB,
+		Vec2 worldPos,
+		Vec2 axis,
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f,
+		float frequency = 2.0f,
+		float damping = 0.7f);
+	tolua_readonly tolua_property__common World* world;
+	void destroy();
+	static Joint* create(JointDef* def, Dictionary* itemDict);
+};
+
+class MoveJoint : public Joint
+{
+	tolua_property__common Vec2 position;
+};
+
+class MotorJoint : public Joint
+{
+	tolua_property__bool bool enabled;
+	tolua_property__common float force;
+	tolua_property__common float speed;
 };

@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Animation/Animation.h"
 #include "Cache/ClipCache.h"
 #include "Node/Sprite.h"
+#include "Cache/ModelCache.h"
 
 NS_DOROTHY_BEGIN
 
@@ -48,6 +49,10 @@ _modelDef(def),
 _speed(1.0f),
 _recoveryTime(0.0f),
 _currentLookName(Slice::Empty)
+{ }
+
+Model::Model(String filename):
+Model(SharedModelCache.load(filename))
 { }
 
 bool Model::init()

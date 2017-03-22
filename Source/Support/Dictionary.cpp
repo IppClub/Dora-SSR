@@ -47,6 +47,17 @@ void Dictionary::set(String key, Object* value)
 	_dict[key] = value;
 }
 
+bool Dictionary::remove(String key)
+{
+	auto it = _dict.find(key);
+	if (it != _dict.end())
+	{
+		_dict.erase(it);
+		return true;
+	}
+	return false;
+}
+
 void Dictionary::clear()
 {
 	_dict.clear();

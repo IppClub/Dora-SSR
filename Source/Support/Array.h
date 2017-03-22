@@ -43,9 +43,9 @@ public:
 	template <class Func>
 	bool each(const Func& handler)
 	{
-		for (int i = 0; i < getCount(); i++)
+		for (int i = 0; i < s_cast<int>(_data.size()); i++)
 		{
-			if (handler(get(i), i)) return true;
+			if (handler(_data[i].get(), i)) return true;
 		}
 		return false;
 	}

@@ -17,7 +17,6 @@ class Sensor;
 class World;
 class BodyDef;
 class Contact;
-typedef b2FixtureDef oFixtureDef;
 
 typedef Delegate<void(Body* body,const Vec2& point,const Vec2& normal)> ContactHandler;
 typedef Delegate<void(Sensor* sensor,Body* body)> SensorHandler;

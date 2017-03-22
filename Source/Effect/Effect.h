@@ -18,16 +18,18 @@ class Shader;
 class Effect : public Object
 {
 public:
-	PROPERTY_READONLY(bgfx::ProgramHandle, Program);
 	virtual ~Effect();
 	virtual bool init() override;
 	void set(String name, float var);
+	void set(String name, float var1, float var2, float var3, float var4);
 	void set(String name, const Vec4& var);
 	void set(String name, const Matrix& var);
 	Value* get(String name) const;
+	bgfx::ProgramHandle apply();
 	CREATE_FUNC(Effect);
 protected:
 	Effect(Shader* vertShader, Shader* fragShader);
+	Effect(String vertShader, String fragShader);
 private:
 	class Uniform : public Object
 	{
@@ -35,6 +37,7 @@ private:
 		PROPERTY_READONLY(bgfx::UniformHandle, Handle);
 		PROPERTY_READONLY(Value*, Value);
 		virtual ~Uniform();
+		void apply();
 		CREATE_FUNC(Uniform);
 	protected:
 		Uniform(bgfx::UniformHandle handle, Value* value);
@@ -57,6 +60,7 @@ public:
 	CREATE_FUNC(SpriteEffect);
 protected:
 	SpriteEffect(Shader* vertShader, Shader* fragShader);
+	SpriteEffect(String vertShader, String fragShader);
 private:
 	bgfx::UniformHandle _sampler;
 	DORA_TYPE_OVERRIDE(SpriteEffect);

@@ -22,6 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 #include "Common/Async.h"
 #include "Support/Array.h"
+#include "Support/Dictionary.h"
 #include "Support/Common.h"
 #include "Input/TouchDispather.h"
 #include "Node/Node.h"

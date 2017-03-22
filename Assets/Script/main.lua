@@ -50,6 +50,21 @@ print(Director.camera.name, Director.camera)
 Director:pushEntry(node)
 --print(action,action.running,action.duration)
 
+local dict = Dictionary()
+dict.abc = "998"
+dict.efg = 998
+
+print(#dict, dict.abc, dict.efg)
+
+local arr = Array()
+for i = 1, 10 do
+	arr:add(Node())
+end
+
+for i = 1, #arr do
+	print(i, arr[i])
+end
+
 thread(function()
 	sleep(5)
 	Director:popEntry()

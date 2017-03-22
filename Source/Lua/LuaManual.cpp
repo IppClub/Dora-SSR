@@ -65,15 +65,15 @@ int Node_emit(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (
-		!tolua_isusertype(L, 1, "Node", 0, &tolua_err) ||
-		!tolua_isstring(L, 2, 0, &tolua_err)
-		)
+	if (!tolua_isusertype(L, 1, "Node", 0, &tolua_err) ||
+		!tolua_isstring(L, 2, 0, &tolua_err))
+	{
 		goto tolua_lerror;
+	}
 	else
 #endif
 	{
-		Node* self = (Node*)tolua_tousertype(L, 1, 0);
+		Node* self = r_cast<Node*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'CCNode_emit'", NULL);
 #endif
@@ -102,11 +102,13 @@ int Node_slot(lua_State* L)
 			tolua_isnoobj(L, 3, &tolua_err)) ||
 		!tolua_isnoobj(L, 4, &tolua_err)
 		)
+	{
 		goto tolua_lerror;
+	}
 	else
 #endif
 	{
-		Node* self = (Node*)tolua_tousertype(L, 1, 0);
+		Node* self = r_cast<Node*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'CCNode_slot'", NULL);
 #endif
@@ -136,20 +138,17 @@ int Node_gslot(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (
-		!tolua_isusertype(L, 1, "Node", 0, &tolua_err) ||
-		!(tolua_isstring(L, 2, 0, &tolua_err) ||
-			tolua_isusertype(L, 2, "GSlot", 0, &tolua_err)) ||
-		!(tolua_isfunction(L, 3, &tolua_err) ||
-			lua_isnil(L, 3) ||
-			tolua_isnoobj(L, 3, &tolua_err)) ||
-		!tolua_isnoobj(L, 4, &tolua_err)
-		)
+	if (!tolua_isusertype(L, 1, "Node", 0, &tolua_err) ||
+		!(tolua_isstring(L, 2, 0, &tolua_err) || tolua_isusertype(L, 2, "GSlot", 0, &tolua_err)) ||
+		!(tolua_isfunction(L, 3, &tolua_err) || lua_isnil(L, 3) || tolua_isnoobj(L, 3, &tolua_err)) ||
+		!tolua_isnoobj(L, 4, &tolua_err))
+	{
 		goto tolua_lerror;
+	}
 	else
 #endif
 	{
-		Node* self = (Node*)tolua_tousertype(L, 1, 0);
+		Node* self = r_cast<Node*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Node_gslot'", NULL);
 #endif
@@ -398,6 +397,207 @@ tolua_lerror:
 	tolua_error(L, "#ferror in function 'Action_create'.", &tolua_err);
 	return 0;
 #endif
+}
+
+/* Model */
+Model* Model_create(String filename)
+{
+	Model* model = Model::create(filename);
+	model->handlers.each([](String name, AnimationHandler& handler)
+	{
+		handler = [name](Model* model)
+		{
+			model->emit("AnimationEnd"_slice, name, model);
+		};
+	});
+	return model;
+}
+
+Vec2 Model_getKey(Model* model, String key)
+{
+	return model->getModelDef()->getKeyPoint(key);
+}
+
+/* Body */
+Body* Body_create(BodyDef* def, World* world, Vec2 pos, float rot)
+{
+	Body* body = Body::create(def, world, pos, rot);
+	auto sensorAddHandler = [](Sensor* sensor, Body* body)
+	{
+		sensor->bodyEnter = [body](Sensor* sensor, Body* other)
+		{
+			body->emit("BodyEnter"_slice, other, sensor);
+		};
+		sensor->bodyLeave = [body](Sensor* sensor, Body* other)
+		{
+			body->emit("BodyLeave"_slice, other, sensor);
+		};
+	};
+	body->eachSensor(sensorAddHandler);
+	body->sensorAdded = sensorAddHandler;
+	body->contactStart = [body](Body* other, const Vec2& point, const Vec2& normal)
+	{
+		body->emit("ContactStart"_slice, other, point, normal);
+	};
+	body->contactEnd = [body](Body* other, const Vec2& point, const Vec2& normal)
+	{
+		body->emit("ContactEnd"_slice, other, point, normal);
+	};
+	return body;
+}
+
+/* Dictionary */
+Array* __Dictionary_getKeys(Dictionary* self)
+{
+	vector<Slice> keys = self->getKeys();
+	Array* array = Array::create(s_cast<int>(keys.size()));
+	for (size_t i = 0; i < keys.size(); i++)
+	{
+		array->set(s_cast<int>(i), Value::create(keys[i].toString()));
+	}
+	return array;
+}
+
+int Dictionary_get(lua_State* L)
+{
+	/* 1 self, 2 key */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Dictionary", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Dictionary* self = r_cast<Dictionary*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Dictionary_get'", nullptr);
+#endif
+		Slice key = tolua_toslice(L, 2, nullptr);
+		Object* value = self->get(key);
+		if (value)
+		{
+			auto numberVal = DoraCast<ValueEx<lua_Number>>(value);
+			if (numberVal)
+			{
+				lua_pushnumber(L, numberVal->get());
+				return 1;
+			}
+			auto boolVal = DoraCast<ValueEx<bool>>(value);
+			if (boolVal)
+			{
+				lua_pushboolean(L, boolVal->get() ? 1 : 0);
+				return 1;
+			}
+			auto stringVal = DoraCast<ValueEx<string>>(value);
+			if (stringVal)
+			{
+				tolua_pushslice(L, stringVal->get());
+				return 1;
+			}
+			tolua_pushobject(L, value);
+			return 1;
+		}
+		else
+		{
+			lua_pushnil(L);
+			return 1;
+		}
+    }
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Dictionary_get'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Dictionary_set(lua_State* L)
+{
+	/* 1 self, 2 key, 3 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Dictionary", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Dictionary* self = r_cast<Dictionary*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Dictionary_set'", nullptr);
+#endif
+		Object* object = nullptr;
+		if (!lua_isnil(L, 3))
+		{
+			if (lua_isnumber(L, 3))
+			{
+				object = Value::create(lua_tonumber(L, 3));
+			}
+			else if (lua_isboolean(L, 3))
+			{
+				object = Value::create(lua_toboolean(L, 3) != 0);
+			}
+			else if (lua_isstring(L, 3))
+			{
+				object = Value::create(tolua_toslice(L, 3, nullptr).toString());
+			}
+			else if (tolua_isobject(L, 3))
+			{
+				object = s_cast<Object*>(tolua_tousertype(L, 3, 0));
+			}
+#ifndef TOLUA_RELEASE
+			else
+			{
+				tolua_error(L, "Dictionary can only store number, boolean, string and Object.", nullptr);
+			}
+#endif
+		}
+		Slice key = tolua_toslice(L, 2, nullptr);
+		if (object) self->set(key, object);
+		else self->remove(key);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Dictionary_set'.", &tolua_err);
+	return 0;
+#endif
+}
+
+/* Array */
+void Array_swap(Array* self, int indexA, int indexB)
+{
+	self->swap(indexA - 1, indexB - 1);
+}
+
+int Array_index(Array* self, Object* object)
+{
+	return self->index(object) + 1;
+}
+
+void Array_set(Array* self, int index, Object* object)
+{
+	self->set(index - 1, object);
+}
+
+Object* Array_get(Array* self, int index)
+{
+	return self->get(index - 1);
+}
+
+void Array_insert(Array* self, int index, Object* object)
+{
+	self->insert(index - 1, object);
+}
+
+bool Array_removeAt(Array* self, int index)
+{
+	return self->removeAt(index - 1);
+}
+
+bool Array_fastRemoveAt(Array* self, int index)
+{
+	return self->fastRemoveAt(index - 1);
 }
 
 NS_DOROTHY_END

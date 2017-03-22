@@ -68,7 +68,7 @@ const bgfx::FontInfo& Font::getInfo() const
 /* FontCache */
 
 FontCache::FontCache():
-_defaultEffect(SpriteEffect::create(SharedShaderCache.load("vs_sprite.bin"), SharedShaderCache.load("fs_spritewhite.bin")))
+_defaultEffect(SpriteEffect::create("built-in/vs_sprite.bin"_slice, "built-in/fs_spritewhite.bin"_slice))
 { }
 
 FontCache::~FontCache()

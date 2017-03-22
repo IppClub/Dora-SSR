@@ -199,7 +199,7 @@ int tolua_isnumber(lua_State* L, int lo, int def, tolua_Error* err)
 int tolua_isstring(lua_State* L, int lo, int def, tolua_Error* err)
 {
 	if (def && lua_gettop(L) < abs(lo)) return 1;
-	if (lua_isnil(L, lo) || lua_isstring(L, lo)) return 1;
+	if (lua_isstring(L, lo)) return 1;
 	err->index = lo;
 	err->array = 0;
 	err->type = "string";

@@ -95,7 +95,7 @@ public:
 	 Use this rect query at any time without worrying Box2D`s callback limits.
 	 */
 	void query(const Rect& rect, const function<bool(Body*)>& callback);
-	void cast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*, const Vec2&, const Vec2&)>& callback);
+	void raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*, const Vec2&, const Vec2&)>& callback);
 	void setShouldContact(int groupA, int groupB, bool contact);
 	bool getShouldContact(int groupA, int groupB) const;
 	const b2Filter& getFilter(int group) const;

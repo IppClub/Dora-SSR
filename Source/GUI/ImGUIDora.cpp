@@ -109,9 +109,7 @@ bool ImGUIDora::init()
 	io.ImeSetInputScreenPosFn = ImGUIDora::setImePositionHint;
 	io.ClipboardUserData = nullptr;
 
-	Shader* vertShader = SharedShaderCache.load("vs_ocornut_imgui.bin");
-	Shader* fragShader = SharedShaderCache.load("fs_ocornut_imgui.bin");
-	_effect = Effect::create(vertShader, fragShader);
+	_effect = Effect::create("built-in/vs_ocornut_imgui.bin"_slice, "built-in/fs_ocornut_imgui.bin"_slice);
 	_textureSampler = bgfx::createUniform("s_tex", bgfx::UniformType::Int1);
 
 	Sint64 size;
@@ -269,7 +267,7 @@ void ImGUIDora::render()
 		ImGUIDora* guiDora = SharedImGUI.getTarget();
 		bgfx::UniformHandle sampler = guiDora->_textureSampler;
 		bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
-		bgfx::ProgramHandle program = guiDora->_effect->getProgram();
+		bgfx::ProgramHandle program = guiDora->_effect->apply();
 
 		// Render command lists
 		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)

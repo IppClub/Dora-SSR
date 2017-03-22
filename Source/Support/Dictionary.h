@@ -11,15 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Object.h"
 
 NS_DOROTHY_BEGIN
-/*
-CCDictionary	9	n
-	each	13	n
-	count	11	n
-	get	8	n
-	set	7	n
-	clear	4	n
-	keys	3	n
-*/
 
 class Dictionary : public Object
 {
@@ -30,18 +21,20 @@ public:
 
 	Ref<Object> get(String key) const;
 	void set(String key, Object* value);
+	bool remove(String key);
 	void clear();
 
 	template <typename Func>
-	void each(const Func& func)
+	bool each(const Func& func)
 	{
 		for (const auto& item : _dict)
 		{
 			if (func(item.second, item.first))
 			{
-				return;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	CREATE_FUNC(Dictionary);
