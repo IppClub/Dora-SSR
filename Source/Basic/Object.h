@@ -45,7 +45,8 @@ public:
 	void removeLuaRef();
 	void release();
 	void retain();
-	Object* autorelease();
+	void autorelease();
+	void autoretain();
 protected:
 	Object();
 private:

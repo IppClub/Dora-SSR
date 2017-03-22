@@ -25,16 +25,19 @@ local action = Action(
 action.reversed = false
 --print(action,action.running,action.duration)
 
-node = Sprite("Image/logo.png")
+local node = Sprite("Image/logo.png")
 --node.opacity = 0.03
 --action = Action(Sequence(Call(function() print("start!") end), Delay(3), Call(function() print("stop!") end)))
 --action.reversed = true
 node:runAction(action)
 action:pause()
+Director.camera.zoom = 0
 thread(function()
-	cycle(3, function(eclapsed)
-		action:updateTo(eclapsed * action.duration, false)
+	cycle(2, function(time)
+		action:updateTo(time * action.duration, false)
+		Director.camera.zoom = Ease:func(Ease.OutQuad, time)
 	end)
+	action:resume()
 end)
 node:slot("ActionEnd", function(action, node)
 	action.reversed = not action.reversed
@@ -42,9 +45,15 @@ node:slot("ActionEnd", function(action, node)
 	node:runAction(action)
 end)
 
+print(Director.camera.name, Director.camera)
+
 Director:pushEntry(node)
 --print(action,action.running,action.duration)
 
+thread(function()
+	sleep(5)
+	Director:popEntry()
+end)
 --[[
 
 local sprite = Sprite("Image/logo.png")

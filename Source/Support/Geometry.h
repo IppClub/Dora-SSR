@@ -126,6 +126,10 @@ struct Vec3
 	{
 		return Vec2{x, y};
 	}
+	inline operator Vec2() const
+	{
+		return Vec2{x, y};
+	}
 };
 
 struct Vec4

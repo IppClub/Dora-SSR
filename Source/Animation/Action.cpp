@@ -106,6 +106,11 @@ bx::EaseFn Ease::getFunc(Ease::Enum easing)
 	return easeFuncs[easing];
 }
 
+float Ease::func(Ease::Enum easing, float time)
+{
+	return easeFuncs[easing](time);
+}
+
 /* ActionProperty */
 
 Own<ActionDuration> PropertyAction::alloc(float duration, float start, float stop, Property::Enum prop, Ease::Enum easing)

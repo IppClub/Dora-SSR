@@ -36,7 +36,7 @@ public:
 
 	void setEntry(Node* entry);
 	void pushEntry(Node* entry);
-	Ref<Node> popEntry();
+	Node* popEntry();
 	void popToEntry(Node* entry);
 	void popToRootEntry();
 	void swapEntry(Node* entryA, Node* entryB);

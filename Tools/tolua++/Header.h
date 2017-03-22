@@ -55,12 +55,18 @@ class Scheduler : public Object
 	static Scheduler* create();
 };
 
+class Camera : public Object
+{
+	tolua_readonly tolua_property__common string name;
+};
+
 class Node;
 
 class Director
 {
 	tolua_property__common Scheduler* scheduler;
 	tolua_property__common Node* uI @ ui;
+	tolua_property__common Camera* camera;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Array* entries;
 	tolua_readonly tolua_property__common double deltaTime;
@@ -357,7 +363,7 @@ class Action : public Object
 	tolua_property__common float speed;
 	void pause();
 	void resume();
-	void updateTo(float eclapsed, bool reversed);
+	void updateTo(float eclapsed, bool reversed = false);
 };
 
 struct Ease
@@ -406,4 +412,13 @@ struct Ease
 		InOutBounce,
 		OutInBounce
 	};
+	static float func(Ease::Enum easing, float time);
+};
+
+class Camera2D : public Camera
+{
+	tolua_property__common float rotation;
+	tolua_property__common float zoom;
+	tolua_property__common Vec2 position;
+	Camera2D* create(String name);
 };

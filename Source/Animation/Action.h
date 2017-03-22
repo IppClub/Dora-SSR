@@ -88,6 +88,7 @@ struct Ease
 		OutInBounce
 	};
 	static bx::EaseFn getFunc(Ease::Enum easing);
+	static float func(Ease::Enum easing, float time);
 };
 
 class ActionDuration

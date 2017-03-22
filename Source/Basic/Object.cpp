@@ -108,11 +108,19 @@ void Object::retain()
     ++_refCount;
 }
 
-Object* Object::autorelease()
+void Object::autorelease()
 {
 	AssertIf(_managed, "object is already managed.");
 	SharedPoolManager.addObject(this);
-	return this;
+}
+
+void Object::autoretain()
+{
+	if (!_managed)
+	{
+		retain();
+		autorelease();
+	}
 }
 
 bool Object::isSingleReferenced() const

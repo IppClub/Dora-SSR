@@ -247,7 +247,7 @@ void ParticleNode::addParticle()
 
 	Vec3 worldPos;
 	bx::vec3MulMtx(worldPos, Vec3{}, getWorld());
-	particle.startPos = worldPos.toVec2();
+	particle.startPos = worldPos;
 
 	float angle = bx::toRad(def.angle + def.angleVariance * Math::rand1to1());
 
@@ -304,7 +304,7 @@ void ParticleNode::stop()
 
 void ParticleNode::addQuad(const Particle& particle, const Vec3& pos)
 {
-	Vec2 newPos = particle.pos + particle.startPos - pos.toVec2();
+	Vec2 newPos = particle.pos + particle.startPos - pos;
 
 	SpriteQuad quad = {
 		{0, 0, pos.z, 1, _texLeft, _texTop},

@@ -11,6 +11,8 @@ local objects = {
 "Sprite",
 "Touch",
 "Action",
+"Camera",
+"Camera2D",
 }
 
 -- register CCObject types

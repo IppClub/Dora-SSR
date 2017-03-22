@@ -87,7 +87,8 @@ void Array::removeFrom(Array* other)
 
 Ref<Object> Array::removeLast()
 {
-	Ref<Object> item = _data.back();
+	Ref<Object> item(_data.back());
+	item->autoretain();
 	_data.pop_back();
 	return item;
 }

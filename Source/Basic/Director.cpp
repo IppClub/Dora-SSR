@@ -293,7 +293,7 @@ bool Director::init()
 	BodyDef* terrainDef = BodyDef::create();
 	terrainDef->attachPolygon(400.0f, 50.0f, 1.0f, 0.4f, 0.4f);
 	terrainDef->type = b2_staticBody;
-	Body* terrain = Body::create(terrainDef, world, Vec2{0,-150.0f});
+	Body* terrain = Body::create(terrainDef, world, Vec2{0,0});
 
 	BodyDef* bodyDef = BodyDef::create();
 	//bodyDef->angularVelocity = -bx::pi;
@@ -454,7 +454,7 @@ void Director::pushEntry(Node* entry)
 	entry->onEnter();
 }
 
-Ref<Node> Director::popEntry()
+Node* Director::popEntry()
 {
 	if (_entryStack->isEmpty())
 	{

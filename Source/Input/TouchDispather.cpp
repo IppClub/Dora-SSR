@@ -214,7 +214,7 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 			bx::vec3Mul(offset, dirNorm, t);
 			Vec3 result;
 			bx::vec3Add(result, origin, offset);
-			return result.toVec2();
+			return result;
 		}
 	}
 	return Vec2{-1.0f, -1.0f};

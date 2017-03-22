@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Basic/Camera.h"
 #include "Basic/View.h"
+#include "Basic/Director.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
@@ -110,6 +112,8 @@ void BasicCamera::updateView()
 			bx::vec3Norm(_up, _up);
 			bx::mtxLookAt(_view, _position, _target, _up);
 		}
+		Node* entry = SharedDirector.getCurrentEntry();
+		if (entry) entry->markDirty();
 	}
 }
 
@@ -184,6 +188,8 @@ void Camera2D::updateView()
 		bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, rotateZ);
 		bx::vec3Norm(_up, _up);
 		bx::mtxLookAt(_view, _position, _target, _up);
+		Node* entry = SharedDirector.getCurrentEntry();
+		if (entry) entry->markDirty();
 	}
 }
 

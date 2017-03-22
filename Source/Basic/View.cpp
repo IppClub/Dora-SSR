@@ -137,10 +137,7 @@ void View::updateProjection()
 {
 	bx::mtxProj(_projection, _fieldOfView, getAspectRatio(), _nearPlaneDistance, _farPlaneDistance, bgfx::getCaps()->homogeneousDepth);
 	Node* entry = SharedDirector.getCurrentEntry();
-	if (entry)
-	{
-		entry->markDirty();
-	}
+	if (entry) entry->markDirty();
 }
 
 const float* View::getProjection() const
