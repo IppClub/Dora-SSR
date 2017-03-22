@@ -43,15 +43,16 @@ public:
 	enum {None = -1};
 	PROPERTY(float, Speed);
 	PROPERTY(Action*, Action);
-	PROPERTY_READONLY(float, Time);
 	PROPERTY_READONLY(float, Duration);
+	PROPERTY_READONLY(float, Eclapsed);
+	PROPERTY_BOOL(Reversed);
 	PROPERTY_READONLY(Node*, Node);
 	Animation(Node* node, Action* action);
 	void run();
 	void pause();
 	void resume();
 	void stop();
-	void updateProgress(float time);
+	void updateTo(float eclapsed, bool reversed = false);
 private:
 	Node* _node;
 	Ref<Action> _action;
@@ -96,9 +97,9 @@ class Model : public Node
 {
 public:
 	PROPERTY(float, Speed);
-	PROPERTY(float, Time);
 	PROPERTY(float, Recovery);
 	PROPERTY_BOOL(Loop);
+	PROPERTY_BOOL(Reversed);
 	PROPERTY_BOOL(FaceRight);
 	PROPERTY_READONLY(float, Duration);
 	PROPERTY_STRING(Look);
@@ -113,6 +114,7 @@ public:
 	void stop();
 	bool isPlaying() const;
 	bool isPaused() const;
+	void updateTo(float eclapsed, bool reversed = false);
 	int getCurrentAnimationIndex() const;
 	string getCurrentAnimationName() const;
 	ModelDef* getModelDef() const;
@@ -147,6 +149,7 @@ private:
 	NodeMap& nodeMap();
 
 	bool _loop;
+	bool _reversed;
 	bool _faceRight;
 	bool _isPlaying;
 	bool _isPaused;

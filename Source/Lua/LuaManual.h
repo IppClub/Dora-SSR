@@ -47,4 +47,7 @@ Size* Size_create(float width, float height);
 /* BlendFunc */
 BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst);
 
+/* Action */
+int Action_create(lua_State* L);
+
 NS_DOROTHY_END

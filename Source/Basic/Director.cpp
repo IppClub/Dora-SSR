@@ -278,6 +278,7 @@ bool Director::init()
 	});
 	model->setLook("happy");
 	model->setLoop(true);
+	model->setReversed(true);
 	model->play("die");
 	model->handlers["die"] += [](Model* model)
 	{
@@ -303,17 +304,9 @@ bool Director::init()
 
 	world->addChild(body);
 	world->addChild(terrain);
+	//world->setOpacity(0.02f);
 	pushEntry(world);
-/*
-	cn1/runAction Seq {
-		X 2,0,100
-		Y 2,0,100
-		Call -> print "callback"
-	}
-	cn1/slot "ActionEnd", (action, target)->
-		print action.running
-		print target.actionCount
-*/
+
 	return true;
 }
 

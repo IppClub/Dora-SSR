@@ -212,6 +212,8 @@ class Slot : public Object
 	void clear();
 };
 
+class Action;
+
 class Node : public Object
 {
 	tolua_property__common int order;
@@ -246,6 +248,7 @@ class Node : public Object
 	tolua_readonly tolua_property__bool bool running;
 	tolua_readonly tolua_property__bool bool updating;
 	tolua_readonly tolua_property__bool bool scheduled;
+	tolua_readonly tolua_property__common int actionCount;
 	tolua_property__bool bool touchEnabled;
 
 	void addChild(Node* child, int order, String name);
@@ -272,9 +275,14 @@ class Node : public Object
 
 	void scheduleUpdate();
 	void unscheduleUpdate();
-	
+
 	bool eachChild(tolua_function_bool func);
 	bool traverse(tolua_function_bool func);
+
+	void runAction(Action* action);
+	void stopAllActions();
+	void perform(Action* action);
+	void stopAction(Action* action);
 
 	static Node* create();
 };
@@ -338,4 +346,64 @@ class Touch : public Object
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;
+};
+
+class Action : public Object
+{
+	tolua_readonly tolua_property__common float duration;
+	tolua_readonly tolua_property__bool bool running;
+	tolua_readonly tolua_property__bool bool paused;
+	tolua_property__bool bool reversed;
+	tolua_property__common float speed;
+	void pause();
+	void resume();
+	void updateTo(float eclapsed, bool reversed);
+};
+
+struct Ease
+{
+	enum Enum
+	{
+		Linear,
+		InQuad,
+		OutQuad,
+		InOutQuad,
+		OutInQuad,
+		InCubic,
+		OutCubic,
+		InOutCubic,
+		OutInCubic,
+		InQuart,
+		OutQuart,
+		InOutQuart,
+		OutInQuart,
+		InQuint,
+		OutQuint,
+		InOutQuint,
+		OutInQuint,
+		InSine,
+		OutSine,
+		InOutSine,
+		OutInSine,
+		InExpo,
+		OutExpo,
+		InOutExpo,
+		OutInExpo,
+		InCirc,
+		OutCirc,
+		InOutCirc,
+		OutInCirc,
+		InElastic,
+		OutElastic,
+		InOutElastic,
+		OutInElastic,
+		InBack,
+		OutBack,
+		InOutBack,
+		OutInBack,
+		InBounce,
+		OutBounce,
+		InOutBounce,
+		OutInBounce
+	};
 };

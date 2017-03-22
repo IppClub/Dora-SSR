@@ -35,7 +35,7 @@ int tolua_fast_isa(lua_State *L, int mt_indexa, int mt_indexb)
 }
 
 /* Push and returns the corresponding object typename */
-const char* tolua_typename(lua_State* L, int lo)
+Slice tolua_typename(lua_State* L, int lo)
 {
 	int tag = lua_type(L, lo);
 	if (tag == LUA_TNONE)
@@ -79,7 +79,7 @@ const char* tolua_typename(lua_State* L, int lo)
 			lua_concat(L, 2);// "class "..name
 		}
 	}
-	return lua_tostring(L, -1);
+	return tolua_toslice(L, -1, nullptr);
 }
 
 void tolua_error(lua_State* L, const char* msg, tolua_Error* err)
@@ -87,7 +87,7 @@ void tolua_error(lua_State* L, const char* msg, tolua_Error* err)
 	if (msg[0] == '#')
 	{
 		const char* expected = err->type;
-		const char* provided = tolua_typename(L, err->index);
+		const char* provided = tolua_typename(L, err->index).rawData();
 		if (msg[1] == 'f')
 		{
 			int narg = err->index;

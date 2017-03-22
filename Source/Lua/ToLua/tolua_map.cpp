@@ -407,7 +407,7 @@ void tolua_string(lua_State* L, const char* str)
 static int tolua_setReadonly(lua_State* L)
 {
 	// 1 self, 2 value
-	luaL_error(L, "assign to a readonly field of \"%s\".", tolua_typename(L, 1));
+	luaL_error(L, "assign to a readonly field of \"%s\".", tolua_typename(L, 1).rawData());
 	return 0;
 }
 #endif

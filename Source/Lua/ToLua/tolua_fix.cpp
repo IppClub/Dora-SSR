@@ -120,8 +120,9 @@ int tolua_ref_function(lua_State* L, int lo)
 	/* function at lo */
     if (!lua_isfunction(L, lo)) return 0;
 	int refid = tolua_alloc_callback_ref_id();
-	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
-    lua_pushvalue(L, lo); // funcMap fun
+	lua_pushvalue(L, lo); // fun
+	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // fun, funcMap
+	lua_insert(L, -2); // funcMap, fun
     lua_rawseti(L, -2, refid); // funcMap[refid] = fun, funcMap
 	lua_pop(L, 1); // empty
     return refid;

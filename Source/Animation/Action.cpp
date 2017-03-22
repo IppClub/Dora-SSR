@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+static void SetNone(Node*, float) { }
 static void SetX(Node* target, float value) { target->setX(value); }
 static void SetY(Node* target, float value) { target->setY(value); }
 static void SetZ(Node* target, float value) { target->setZ(value); }
@@ -33,6 +34,7 @@ static void SetAnchorY(Node* target, float value) { target->setAnchor(Vec2{targe
 static void SetOpacity(Node* target, float value) { target->setOpacity(value); }
 
 static SetFunc setFuncs[] = {
+	SetNone,
 	SetX,
 	SetY,
 	SetZ,
@@ -134,49 +136,6 @@ bool PropertyAction::update(Node* target, float eclapsed)
 	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
 	_setFunc(target, _start + _delta * (_ended ? 1.0f : _ease(time)));
-	return _ended;
-}
-
-/* Roll */
-
-Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::Enum easing)
-{
-	start = std::fmod(start, start > 0.0f ? 360.0f : -360.0f);
-	float delta = stop - start;
-	if (delta > 180)
-	{
-		delta -= 360;
-	}
-	if (delta < -180)
-	{
-		delta += 360;
-	}
-
-	Roll* action = new Roll();
-	action->_start = start;
-	action->_delta = delta;
-	action->_duration = std::max(FLT_EPSILON, duration);
-	action->_ease = Ease::getFunc(easing);
-	action->_ended = false;
-	return Own<ActionDuration>(action);
-}
-
-Action* Roll::create(float duration, float start, float stop, Ease::Enum easing)
-{
-	return Action::create(Roll::alloc(duration, start, stop, easing));
-}
-
-float Roll::getDuration() const
-{
-	return _duration;
-}
-
-bool Roll::update(Node* target, float eclapsed)
-{
-	if (_ended && eclapsed > _duration) return true;
-	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
-	_ended = time == 1.0f;
-	//_setFunc(target, _start + _delta * (_ended ? 1.0f : _ease(time)));
 	return _ended;
 }
 
@@ -436,7 +395,7 @@ float Call::getDuration() const
 bool Call::update(Node* target, float eclapsed)
 {
 	if (_ended && eclapsed > 0.0f) return true;
-	if (Call::available && _callback && eclapsed > 0.0f) _callback();
+	if (Call::available && _callback) _callback();
 	_ended = eclapsed > 0.0f;
 	return true;
 }
@@ -513,23 +472,28 @@ _reversed(false),
 _paused(false)
 { }
 
-float Action::getTime() const
+void Action::updateTo(float eclapsed, bool reversed)
 {
-	return Math::clamp(_eclapsed / std::max(_action->getDuration(), FLT_EPSILON), 0.0f, 1.0f);
-}
-
-void Action::setTime(float var)
-{
-	_eclapsed = Math::clamp(var, 0.0f, 1.0f) * _action->getDuration();
+	float oldEclapsed = _eclapsed;
+	bool oldReversed = _reversed;
+	_eclapsed = eclapsed;
+	_reversed = reversed;
 	if (_target)
 	{
 		updateProgress();
 	}
+	_eclapsed = oldEclapsed;
+	_reversed = oldReversed;
 }
 
 float Action::getDuration() const
 {
 	return _action->getDuration();
+}
+
+float Action::getEclapsed() const
+{
+	return _eclapsed;
 }
 
 bool Action::isPaused() const
@@ -580,27 +544,31 @@ void Action::resume()
 bool Action::updateProgress()
 {
 	if (!_action) return true;
-	if (!_reversed)
+	if (_eclapsed == 0.0f)
 	{
-		return _action->update(_target, _eclapsed);
+		float start = _reversed ? _action->getDuration() : 0.0f;
+		/* reset actions to initial state */
+		Call::available = false; // disable callbacks while reseting
+		_action->update(_target, start);
+		Call::available = true;
+		/* execute action right here */
+		if (0.0f == _action->getDuration())
+		{
+			_action->update(_target, start);
+			return true;
+		}
+		return false;
+	}
+	else if (_eclapsed >= _action->getDuration())
+	{
+		float stop = _reversed ? 0.0f : _action->getDuration();
+		_action->update(_target, stop);
+		return true;
 	}
 	else
 	{
-		if (_eclapsed == 0.0f)
-		{
-			Call::available = false;
-			_action->update(_target, _action->getDuration());
-			Call::available = true;
-		}
-		else
-		{
-			_action->update(_target, _action->getDuration() - _eclapsed);
-		}
-		if (_eclapsed >= _action->getDuration())
-		{
-			_action->update(_target, 0.0f);
-			return true;
-		}
+		float current = _reversed ? _action->getDuration() - _eclapsed : _eclapsed;
+		_action->update(_target, current);
 		return false;
 	}
 }

@@ -184,18 +184,21 @@ Vec2 World::getGravity() const
 
 bool World::update(double deltaTime)
 {
-	_world.Step(s_cast<float>(deltaTime), _velocityIterations, _positionIterations);
-	for (b2Body* b = _world.GetBodyList(); b; b = b->GetNext())
+	if (isUpdating())
 	{
-		if (b->IsActive())
+		_world.Step(s_cast<float>(deltaTime), _velocityIterations, _positionIterations);
+		for (b2Body* b = _world.GetBodyList(); b; b = b->GetNext())
 		{
-			Body* body = r_cast<Body*>(b->GetUserData());
-			body->updatePhysics();
+			if (b->IsActive())
+			{
+				Body* body = r_cast<Body*>(b->GetUserData());
+				body->updatePhysics();
+			}
 		}
+		_contactListner->SolveContacts();
 	}
-	_contactListner->SolveContacts();
-	Node::update(deltaTime);
-	return false;
+	bool result = Node::update(deltaTime);
+	return !isUpdating() && result;
 }
 
 void World::query(const Rect& rect, const function<bool(Body*)>& callback)

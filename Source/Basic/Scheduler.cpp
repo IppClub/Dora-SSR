@@ -75,7 +75,11 @@ void Scheduler::schedule(Action* action)
 		_actionList->add(action);
 		if (action->updateProgress())
 		{
-			unschedule(action);
+			Ref<Action> actionRef(action);
+			Ref<Node> targetRef(action->_target);
+			unschedule(actionRef);
+			targetRef->removeAction(actionRef);
+			targetRef->emit("ActionEnd"_slice, actionRef.get(), targetRef.get());
 		}
 	}
 }
@@ -124,7 +128,7 @@ bool Scheduler::update(double deltaTime)
 	int size = _actionList->getCount();
 	for (int i = 0; i < size; i++)
 	{
-		Action* action = _actionList->get(i).to<Action>();
+		Ref<Action> action(_actionList->get(i).to<Action>());
 		if (action)
 		{
 			if (!action->isPaused())
@@ -138,7 +142,7 @@ bool Scheduler::update(double deltaTime)
 						Node* target = action->_target;
 						unschedule(action);
 						target->removeAction(action);
-						target->emit("ActionEnd"_slice, action, target);
+						target->emit("ActionEnd"_slice, action.get(), target);
 					}
 					else
 					{

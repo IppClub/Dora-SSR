@@ -37,6 +37,7 @@ void Look::unApply()
 }
 
 Model::Model(ModelDef* def):
+_reversed(false),
 _isPlaying(false),
 _isPaused(false),
 _faceRight(def->isFaceRight()),
@@ -241,9 +242,20 @@ int Model::getCurrentAnimationIndex() const
 void Model::resume(Uint32 index)
 {
 	Model::resume();
-	if (!_isPlaying || _currentAnimation != index || Model::getTime() == 1.0f)
+	if (!_isPlaying || _currentAnimation != index)
 	{
 		Model::play(index);
+	}
+	else if (_isPlaying)
+	{
+		if (!_animationGroups[_currentAnimation]->animations.empty())
+		{
+			Animation* animation = _animationGroups[_currentAnimation]->animations[0];
+			if (animation->getEclapsed() >= animation->getDuration())
+			{
+				Model::play(index);
+			}
+		}
 	}
 }
 
@@ -310,35 +322,35 @@ float Model::getSpeed() const
 	return _speed;
 }
 
-void Model::setTime(float time)
+void Model::setReversed(bool var)
 {
-	if (_isPlaying)
+	if (_reversed != var)
 	{
-		if (time > 1.0f)
+		_reversed = var;
+		for (AnimationGroup* animationGroup : _animationGroups)
 		{
-			time = 1.0f;
-		}
-		else if (time < 0)
-		{
-			time = 0.0f;
-		}
-		for (Animation* animation : _animationGroups[_currentAnimation]->animations)
-		{
-			animation->updateProgress(time);
+			for (Animation* animation : animationGroup->animations)
+			{
+				animation->setReversed(var);
+			}
 		}
 	}
 }
 
-float Model::getTime() const
+bool Model::isReversed() const
+{
+	return _reversed;
+}
+
+void Model::updateTo(float eclapsed, bool reversed)
 {
 	if (_isPlaying)
 	{
-		if (!_animationGroups[_currentAnimation]->animations.empty())
+		for (Animation* animation : _animationGroups[_currentAnimation]->animations)
 		{
-			return _animationGroups[_currentAnimation]->animations[0]->getTime();
+			animation->updateTo(eclapsed, reversed);
 		}
 	}
-	return 0.0f;
 }
 
 void Model::setRecovery(float var)
@@ -548,19 +560,29 @@ float Animation::getSpeed() const
 	return _action->getSpeed();
 }
 
-void Animation::updateProgress(float time)
+void Animation::setReversed(bool var)
 {
-	_action->setTime(time);
+	_action->setReversed(var);
 }
 
-float Animation::getTime() const
+bool Animation::isReversed() const
 {
-	return _action->getTime();
+	return _action->isReversed();
+}
+
+void Animation::updateTo(float eclapsed, bool reversed)
+{
+	_action->updateTo(eclapsed, reversed);
 }
 
 float Animation::getDuration() const
 {
 	return _action->getDuration();
+}
+
+float Animation::getEclapsed() const
+{
+	return _action->getEclapsed();
 }
 
 void ResetAnimation::add(SpriteDef* spriteDef, Node* node, Action* action, ActionDuration* resetTarget)
@@ -664,19 +686,12 @@ void Model::setupCallback()
 		float d = action->getDuration();
 		if (d < duration)
 		{
-			action = Sequence::create({
-				std::move(action->getAction()),
-				Delay::alloc(duration - d),
-				Call::alloc([this]() { onActionEnd(); })
-			});
-		}
-		else
-		{
 			action = Sequence::create(
 				std::move(action->getAction()),
-				Call::alloc([this]() { onActionEnd(); })
-			);
+				Delay::alloc(duration - d));
 		}
+		Node* node = animationGroup->animations[0]->getNode();
+		node->slot("ActionEnd"_slice, [this](Event*) { onActionEnd(); });
 		animationGroup->duration = action->getDuration();
 		animationGroup->animations[0]->setAction(action);
 	}

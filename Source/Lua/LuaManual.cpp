@@ -217,4 +217,187 @@ BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst)
 	return Mtolua_new((BlendFunc)({src, dst}));
 }
 
+namespace LuaAction
+{
+	static float toNumber(lua_State* L, int location, int index, bool useDefault = false)
+	{
+		lua_rawgeti(L, location, index);
+		if (useDefault)
+		{
+			float number = tolua_tonumber(L, -1, 0);
+			lua_pop(L, 1);
+			return number;
+		}
+		else
+		{
+#ifndef TOLUA_RELEASE
+			tolua_Error tolua_err;
+			if (!tolua_isnumber(L, -1, 0, &tolua_err))
+			{
+				tolua_error(L, "#ferror when reading action definition params.", &tolua_err);
+				return 0.0f;
+			}
+#endif
+			float number = s_cast<float>(lua_tonumber(L, -1));
+			lua_pop(L, 1);
+			return number;
+		}
+	}
+
+	static Own<ActionDuration> create(lua_State* L, int location)
+	{
+#ifndef TOLUA_RELEASE
+		tolua_Error tolua_err;
+		if (!tolua_istable(L, location, 0, &tolua_err))
+		{
+			goto tolua_lerror;
+		}
+		else
+#endif
+		{
+			if (location == -1) location = lua_gettop(L);
+			int length = s_cast<int>(lua_objlen(L, location));
+			if (length > 0)
+			{
+				lua_rawgeti(L, location, 1);
+				tolua_Error tolua_err;
+				if (tolua_isslice(L, -1, 0, &tolua_err))
+				{
+					Slice name = tolua_toslice(L, -1, nullptr);
+					lua_pop(L, 1);
+					size_t nameHash = Switch::hash(name);
+					switch (nameHash)
+					{
+						case "X"_hash:
+						case "Y"_hash:
+						case "Z"_hash:
+						case "ScaleX"_hash:
+						case "ScaleY"_hash:
+						case "SkewX"_hash:
+						case "SkewY"_hash:
+						case "Angle"_hash:
+						case "AngleX"_hash:
+						case "AngleY"_hash:
+						case "Width"_hash:
+						case "Height"_hash:
+						case "AnchorX"_hash:
+						case "AnchorY"_hash:
+						case "Opacity"_hash:
+						{
+							float duration = toNumber(L, location, 2);
+							float start = toNumber(L, location, 3);
+							float stop = toNumber(L, location, 4);
+							Ease::Enum ease = s_cast<Ease::Enum>(toNumber(L, location, 5, true));
+							Property::Enum prop = Property::None;
+							switch (nameHash)
+							{
+								case "X"_hash: prop = Property::X; break;
+								case "Y"_hash: prop = Property::Y; break;
+								case "Z"_hash: prop = Property::Z; break;
+								case "ScaleX"_hash: prop = Property::ScaleX; break;
+								case "ScaleY"_hash: prop = Property::ScaleY; break;
+								case "SkewX"_hash: prop = Property::SkewX; break;
+								case "SkewY"_hash: prop = Property::SkewY; break;
+								case "Angle"_hash: prop = Property::Angle; break;
+								case "AngleX"_hash: prop = Property::AngleX; break;
+								case "AngleY"_hash: prop = Property::AngleY; break;
+								case "Width"_hash: prop = Property::Width; break;
+								case "Height"_hash: prop = Property::Height; break;
+								case "AnchorX"_hash: prop = Property::AnchorX; break;
+								case "AnchorY"_hash: prop = Property::AnchorY; break;
+								case "Opacity"_hash: prop = Property::Opacity; break;
+							}
+							return PropertyAction::alloc(duration, start, stop, prop, ease);
+						}
+						case "Hide"_hash: return Hide::alloc();
+						case "Show"_hash: return Show::alloc();
+						case "Delay"_hash:
+						{
+							float duration = toNumber(L, location, 2);
+							return Delay::alloc(duration);
+						}
+						case "Call"_hash:
+						{
+							lua_rawgeti(L, location, 2);
+							LuaFunction callback(tolua_ref_function(L, -1));
+							lua_pop(L, 1);
+							return Call::alloc(callback);
+						}
+						case "Spawn"_hash:
+						{
+							vector<Own<ActionDuration>> actions(length - 1);
+							for (int i = 2; i <= length; i++)
+							{
+								lua_rawgeti(L, location, i);
+								actions[i - 2] = create(L, -1);
+								lua_pop(L, 1);
+							}
+							return Spawn::alloc(actions);
+						}
+						case "Sequence"_hash:
+						{
+							vector<Own<ActionDuration>> actions(length - 1);
+							for (int i = 2; i <= length; i++)
+							{
+								lua_rawgeti(L, location, i);
+								actions[i - 2] = create(L, -1);
+								lua_pop(L, 1);
+							}
+							return Sequence::alloc(actions);
+						}
+						default:
+						{
+							luaL_error(L, "action named \"%s\" is not exist.", name.rawData());
+							return Own<ActionDuration>();
+						}
+					}
+				}
+				else
+				{
+					tolua_error(L, "#ferror in function 'Action_create', reading action name.", &tolua_err);
+					return Own<ActionDuration>();
+				}
+			}
+#ifndef TOLUA_RELEASE
+			else
+			{
+				luaL_error(L, "action definition is invalid with empty table.");
+			}
+#endif
+		}
+		return Own<ActionDuration>();
+
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+		tolua_error(L, "#ferror in function 'Action_create'.", &tolua_err);
+		return Own<ActionDuration>();
+#endif
+	}
+}
+
+/* Action */
+int Action_create(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertable(L, 1, "Action", 0, &tolua_err) ||
+		!tolua_istable(L, 2, 0, &tolua_err) ||
+		!tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		Action* action = Action::create(LuaAction::create(L, 2));
+		tolua_pushobject(L, action);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Action_create'.", &tolua_err);
+	return 0;
+#endif
+}
+
 NS_DOROTHY_END

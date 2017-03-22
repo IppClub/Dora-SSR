@@ -58,7 +58,7 @@ typedef struct tolua_Error tolua_Error;
 
 class Object;
 
-const char* tolua_typename(lua_State* L, int lo);
+Slice tolua_typename(lua_State* L, int lo);
 void tolua_error(lua_State* L, const char* msg, tolua_Error* err);
 int tolua_isnoobj(lua_State* L, int lo, tolua_Error* err);
 int tolua_isvalue(lua_State* L, int lo, int def, tolua_Error* err);

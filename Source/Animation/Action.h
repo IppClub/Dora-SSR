@@ -21,6 +21,7 @@ struct Property
 {
 	enum Enum
 	{
+		None,
 		X,
 		Y,
 		Z,
@@ -118,23 +119,6 @@ private:
 	float _duration;
 	bx::EaseFn _ease;
 	SetFunc _setFunc;
-};
-
-class Roll : public ActionDuration
-{
-public:
-	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
-	static Own<ActionDuration> alloc(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
-	static Action* create(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
-protected:
-	Roll() { }
-private:
-	bool _ended;
-	float _start;
-	float _delta;
-	float _duration;
-	bx::EaseFn _ease;
 };
 
 class Spawn : public ActionDuration
@@ -304,7 +288,7 @@ struct Skew
 class Action : public Object
 {
 public:
-	PROPERTY(float, Time);
+	PROPERTY_READONLY(float, Eclapsed);
 	PROPERTY_READONLY(float, Duration);
 	PROPERTY_READONLY_BOOL(Running);
 	PROPERTY_READONLY_BOOL(Paused);
@@ -313,6 +297,7 @@ public:
 	PROPERTY_READONLY_CALL(Own<ActionDuration>&, Action);
 	void pause();
 	void resume();
+	void updateTo(float eclapsed, bool reversed = false);
 	CREATE_FUNC(Action);
 protected:
 	Action(Own<ActionDuration>&& actionDuration);
@@ -330,6 +315,7 @@ private:
 	static const int InvalidOrder;
 	friend class Node;
 	friend class Scheduler;
+	DORA_TYPE_OVERRIDE(Action);
 };
 
 NS_DOROTHY_END

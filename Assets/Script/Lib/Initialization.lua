@@ -56,8 +56,12 @@ local function cycle(duration,work)
 			return false
 		end
 	end
-	while worker() do
+	work(0)
+	if time < duration then
 		yield(false)
+		while worker() do
+			yield(false)
+		end
 	end
 end
 
@@ -181,6 +185,53 @@ TextureCache.loadAsync = function(self,filename,handler)
 	end)
 	wait(function() return not isloaded end)
 	return loadedTexture
+end
+
+local Action = builtin.Action
+local Node = builtin.Node
+local Node_runAction = Node.runAction
+Node.runAction = function(self,action)
+	if type(action) == "table" then
+		Node_runAction(self,Action(action))
+	else
+		Node_runAction(self,action)
+	end
+end
+local Node_perform = Node.perform
+Node.perform = function(self,action)
+	if type(action) == "table" then
+		Node_perform(self,Action(action))
+	else
+		Node_perform(self,action)
+	end
+end
+
+for _,actionName in ipairs{
+	"X",
+	"Y",
+	"Z",
+	"ScaleX",
+	"ScaleY",
+	"SkewX",
+	"SkewY",
+	"Angle",
+	"AngleX",
+	"AngleY",
+	"Width",
+	"Height",
+	"AnchorX",
+	"AnchorY",
+	"Opacity",
+	"Hide",
+	"Show",
+	"Delay",
+	"Call",
+	"Spawn",
+	"Sequence",
+	} do
+	builtin[actionName] = function(...)
+		return {actionName, ...}
+	end
 end
 
 local function disallowAssignGlobal(_,name)

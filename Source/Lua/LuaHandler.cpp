@@ -41,7 +41,10 @@ int LuaHandler::get() const
 
 void LuaFunction::operator()(Event* event) const
 {
-	SharedLueEngine.executeFunction(_handler->get(), event->pushArgsToLua());
+	if (_handler->get() > 0)
+	{
+		SharedLueEngine.executeFunction(_handler->get(), event->pushArgsToLua());
+	}
 }
 
 NS_DOROTHY_END

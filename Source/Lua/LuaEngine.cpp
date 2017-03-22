@@ -33,12 +33,20 @@ static int dora_print(lua_State* L)
 		else if (lua_isthread(L, i)) t += "thread";
 		else
 		{
-			const char* str = lua_tostring(L, i);
-			if (str) t += lua_tostring(L, i);
-			else t += tolua_typename(L, i);
+			Slice str = tolua_toslice(L, i, nullptr);
+			if (str.empty())
+			{
+				t += tolua_typename(L, i);
+				lua_pop(L, 1);
+			}
+			else
+			{
+				t += str;
+			}
 		}
 		if (i != nargs) t += "\t";
 	}
+	lua_settop(L, nargs);
 	LogPrint("%s\n", t);
 	return 0;
 }
@@ -258,8 +266,10 @@ LuaEngine::LuaEngine()
 			tolua_function(L, "gslot", Node_gslot);
 			tolua_function(L, "slot", Node_slot);
 			tolua_function(L, "emit", Node_emit);
-			//tolua_function(L, "traverse", CCNode_traverse);
-			//tolua_function(L, "eachChild", CCNode_eachChild);
+		tolua_endmodule(L);
+
+		tolua_beginmodule(L, "Action");
+			tolua_call(L, MT_CALL, Action_create);
 		tolua_endmodule(L);
 	tolua_endmodule(L);
 /*
@@ -503,8 +513,9 @@ int LuaEngine::execute(lua_State* L, int handler, int numArgs)
 	tolua_get_function_by_refid(L, handler);// args... func
 	if (!lua_isfunction(L, -1))
 	{
-		Log("[Lua Error] function refid '%d' does not reference a Lua function", handler);
-		lua_pop(L, 1 + numArgs);
+		Slice name = tolua_typename(L, -1);
+		Log("[Lua Error] function refid '%d' referenced \"%s\" instead of lua function.", handler, name);
+		lua_pop(L, 2 + numArgs);
 		return 1;
 	}
 	if (numArgs > 0) lua_insert(L, -(numArgs + 1));// func args...
