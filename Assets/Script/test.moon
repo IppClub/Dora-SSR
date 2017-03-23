@@ -1,5 +1,7 @@
 Dorothy!
 
+print View.vsync, View.fieldOfView, View.standardDistance
+
 testFunc = ->
 	print 1+"sds"
 

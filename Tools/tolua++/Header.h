@@ -78,6 +78,18 @@ class Director
 	static tolua_outside Director* Director_shared @ create();
 };
 
+class View
+{
+	tolua_readonly tolua_property__common Size size;
+	tolua_readonly tolua_property__common float standardDistance;
+	tolua_readonly tolua_property__common float aspectRatio;
+	tolua_property__common float nearPlaneDistance;
+	tolua_property__common float farPlaneDistance;
+	tolua_property__common float fieldOfView;
+	tolua_property__bool bool vSync @ vsync;
+	static tolua_outside View* View_shared @ create();
+}
+
 void Dora_Log @ Log(String msg);
 
 struct Color3

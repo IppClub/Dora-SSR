@@ -1,6 +1,7 @@
 local Application = builtin.Application()
 local Content = builtin.Content()
 local Director = builtin.Director()
+local View = builtin.View()
 local TextureCache = builtin.TextureCache()
 
 local tolua = builtin.tolua
@@ -13,6 +14,7 @@ local type = type
 builtin.Application = Application
 builtin.Content = Content
 builtin.Director = Director
+builtin.View = View
 builtin.TextureCache = TextureCache
 
 local function wait(cond)

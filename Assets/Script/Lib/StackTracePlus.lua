@@ -346,7 +346,7 @@ function _M.stacktrace(thread, message, level)
 		original_error = dumper:concat_lines()
 	elseif type(message) == "string" then
 		original_error = message
-		local fname, line, msg = message:match('(.*):(%d+): (.*)$')
+		local fname, line, msg = message:match('(.+):(%d+): (.*)$')
 		fname = fname:gsub("%[string ", "")
 		fname = fname:gsub("\"%]", "")
 		fname = fname:match("[^%s]+$")

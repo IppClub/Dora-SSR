@@ -27,6 +27,9 @@ inline Content* Content_shared() { return &SharedContent; }
 /* Director */
 inline Director* Director_shared() { return &SharedDirector; }
 
+/* View */
+inline View* View_shared() { return &SharedView; }
+
 /* Log */
 inline void Dora_Log(String msg) { Log("%s", msg); }
 
