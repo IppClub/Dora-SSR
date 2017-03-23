@@ -355,6 +355,11 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, const fu
 	});
 }
 
+bool Content::isExist(String filename)
+{
+	return Content::isFileExist(Content::getFullPath(filename));
+}
+
 vector<string> Content::getDirEntries(String path, bool isFolder)
 {
 	string searchName = path.empty() ? _assetPath : path.toString();

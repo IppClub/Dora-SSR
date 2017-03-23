@@ -18,28 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 #include "imgui.h"
 #include "Dorothy.h"
-#include "Other/rapidxml_sax3.hpp"
 #include "Const/XmlTag.h"
-
-class xml_sax2_handler_impl : public rapidxml::xml_sax2_handler
-{
-    virtual void xmlSAX2StartElement(const char *name, size_t len, const vector<AttrSlice>& attrs)
-    {
-		Dorothy::LogPrint("start %s\n", Slice(name, len));
-		for (const auto& attr : attrs)
-		{
-			Dorothy::LogPrint("attr %s\n", Slice(attr.first, attr.second));
-		}
-    }
-    virtual void xmlSAX2EndElement(const char *name, size_t len)
-    {
-		Dorothy::LogPrint("end %s\n", Slice(name, len));
-    }
-    virtual void xmlSAX2Text(const char *s, size_t len)
-    {
-		Dorothy::LogPrint("text %s\n", Slice(s, len));
-    }
-};
 
 NS_DOROTHY_BEGIN
 
@@ -151,6 +130,7 @@ bool Director::init()
 	ModelDef* modelDef = SharedModelCache.load("Model/jixienv.model");
 	Model* model = Model::create(modelDef);
 
+	/*
 	xml_sax2_handler_impl handler;
 	rapidxml::xml_sax3_parser<> parser(&handler);
 	char xml[] = "<Dorothy><Node X=\"0\" Y=\"998\"/></Dorothy>";
@@ -162,6 +142,7 @@ bool Director::init()
 	{
 		Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - xml);
 	}
+	*/
 
 	Label* label = Label::create("NotoSansHans-Regular", 18);
 	label->setTextWidth(600);
@@ -305,7 +286,7 @@ bool Director::init()
 	world->addChild(body);
 	world->addChild(terrain);
 	//world->setOpacity(0.02f);
-	pushEntry(world);
+	//pushEntry(world);
 
 	return true;
 }

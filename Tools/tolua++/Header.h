@@ -25,7 +25,7 @@ class Content
 {
     tolua_readonly tolua_property__common string writablePath;
 	void saveToFile @ save(String filename, String content);
-	bool isFileExist @ exist(String path);
+	bool isExist @ exist(String filename);
 	bool createFolder @ mkdir(String path);
     bool isFolder @ isdir(String path);
 	bool removeFile @ remove(String path);

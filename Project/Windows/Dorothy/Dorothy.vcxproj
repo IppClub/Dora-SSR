@@ -232,6 +232,26 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcap.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcode.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpprint.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lptree.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpvm.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Other\atlas.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -382,6 +402,12 @@
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_textedit.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_truetype.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcap.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpprint.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptree.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptypes.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpvm.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lauxlib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp" />

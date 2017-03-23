@@ -100,6 +100,9 @@
     <Filter Include="Physics">
       <UniqueIdentifier>{a5a17125-74ff-474d-8c30-58f487461740}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\lpeg">
+      <UniqueIdentifier>{39517c25-9ae2-444e-a178-2174c1d955fa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -464,6 +467,21 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp">
       <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcap.cpp">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcode.cpp">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpprint.cpp">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lptree.cpp">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpvm.cpp">
+      <Filter>3rdParty\lpeg</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -881,6 +899,24 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Support\Dictionary.h">
       <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcap.h">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcode.h">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpprint.h">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptree.h">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptypes.h">
+      <Filter>3rdParty\lpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpvm.h">
+      <Filter>3rdParty\lpeg</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

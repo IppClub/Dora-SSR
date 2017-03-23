@@ -105,10 +105,10 @@ Font* FontCache::load(String fontName, Uint32 fontSize, Uint32 fontIndex)
 		else
 		{
 			string fontFile = "Font/" + fontName.toString() + ".ttf";
-			if (!SharedContent.isFileExist(fontFile))
+			if (!SharedContent.isExist(fontFile))
 			{
 				fontFile = "Font/" + fontName.toString() + ".otf";
-				if (!SharedContent.isFileExist(fontFile))
+				if (!SharedContent.isExist(fontFile))
 				{
 					Log("can not load font file named \"%s\".", fontName);
 					return nullptr;
@@ -149,10 +149,10 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, Uint32 fontIndex, con
 		else
 		{
 			string fontFile = "Font/" + fontName.toString() + ".ttf";
-			if (!SharedContent.isFileExist(fontFile))
+			if (!SharedContent.isExist(fontFile))
 			{
 				fontFile = "Font/" + fontName.toString() + ".otf";
-				if (!SharedContent.isFileExist(fontFile))
+				if (!SharedContent.isExist(fontFile))
 				{
 					callback(nullptr);
 				}

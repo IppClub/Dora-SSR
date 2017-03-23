@@ -11,6 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaBinding.h"
 #include "Lua/LuaManual.h"
 
+extern int luaopen_lpeg(lua_State* L);
+
 NS_DOROTHY_BEGIN
 
 int LuaEngine::_callFromLua = 0;
@@ -70,13 +72,14 @@ static int dora_loadfile(lua_State* L, String filename)
 	string targetFile = filename;
 	if (extension.empty() && targetFile.back() != '.')
 	{
-		if (SharedContent.isFileExist(targetFile + ".lua"))
+		if (SharedContent.isExist(targetFile + ".lua"))
 		{
 			targetFile.append(".lua");
+			extension = "lua";
 		}
 		else
 		{
-			if (SharedContent.isFileExist(targetFile + ".xml"))
+			if (SharedContent.isExist(targetFile + ".xml"))
 			{
 				targetFile.append(".xml");
 				extension = "xml";
@@ -210,8 +213,6 @@ static int dora_loadlibs(lua_State* L)
 		{ "", luaopen_base },
 		{ LUA_LOADLIBNAME, luaopen_package },
 		{ LUA_TABLIBNAME, luaopen_table },
-		{ LUA_IOLIBNAME, luaopen_io },
-		{ LUA_OSLIBNAME, luaopen_os },
 		{ LUA_STRLIBNAME, luaopen_string },
 		{ LUA_MATHLIBNAME, luaopen_math },
 		{ LUA_DBLIBNAME, luaopen_debug },
@@ -235,8 +236,8 @@ LuaEngine::LuaEngine()
 {
 	L = luaL_newstate();
 	dora_loadlibs(L);
+	luaopen_lpeg(L);
 	tolua_open(L);
-	//luaopen_lpeg(L);
 
 	// Register our version of the global "print" function
 	const luaL_reg global_functions[] =

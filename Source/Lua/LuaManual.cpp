@@ -223,7 +223,7 @@ namespace LuaAction
 		lua_rawgeti(L, location, index);
 		if (useDefault)
 		{
-			float number = tolua_tonumber(L, -1, 0);
+			float number = s_cast<float>(tolua_tonumber(L, -1, 0));
 			lua_pop(L, 1);
 			return number;
 		}
@@ -286,7 +286,7 @@ namespace LuaAction
 							float duration = toNumber(L, location, 2);
 							float start = toNumber(L, location, 3);
 							float stop = toNumber(L, location, 4);
-							Ease::Enum ease = s_cast<Ease::Enum>(toNumber(L, location, 5, true));
+							Ease::Enum ease = s_cast<Ease::Enum>(s_cast<int>(toNumber(L, location, 5, true)));
 							Property::Enum prop = Property::None;
 							switch (nameHash)
 							{

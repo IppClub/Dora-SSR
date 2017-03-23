@@ -145,6 +145,11 @@
 		3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE355601E1B7A6300268A19 /* LuaHandler.cpp */; };
 		3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
 		3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A811E292E3F00645F2D /* Camera.cpp */; };
+		3CEDF7771E835409008839A3 /* lpcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76C1E835409008839A3 /* lpcap.cpp */; };
+		3CEDF7781E835409008839A3 /* lpcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76E1E835409008839A3 /* lpcode.cpp */; };
+		3CEDF7791E835409008839A3 /* lpprint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF7701E835409008839A3 /* lpprint.cpp */; };
+		3CEDF77A1E835409008839A3 /* lptree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF7721E835409008839A3 /* lptree.cpp */; };
+		3CEDF77B1E835409008839A3 /* lpvm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF7751E835409008839A3 /* lpvm.cpp */; };
 		3CF16C8F1E68FCCD002587CD /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C8D1E68FCCD002587CD /* Renderer.cpp */; };
 		3CF16C921E68FCE1002587CD /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C901E68FCE1002587CD /* Particle.cpp */; };
 		3CF730E31E66544A0002DEED /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730DF1E66544A0002DEED /* Font */; };
@@ -429,6 +434,17 @@
 		3CE534751E5A9BD500F017AE /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
 		3CEA9A811E292E3F00645F2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
 		3CEA9A821E292E3F00645F2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
+		3CEDF76C1E835409008839A3 /* lpcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpcap.cpp; path = ../../../Source/3rdParty/lpeg/lpcap.cpp; sourceTree = "<group>"; };
+		3CEDF76D1E835409008839A3 /* lpcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lpcap.h; path = ../../../Source/3rdParty/lpeg/lpcap.h; sourceTree = "<group>"; };
+		3CEDF76E1E835409008839A3 /* lpcode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpcode.cpp; path = ../../../Source/3rdParty/lpeg/lpcode.cpp; sourceTree = "<group>"; };
+		3CEDF76F1E835409008839A3 /* lpcode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lpcode.h; path = ../../../Source/3rdParty/lpeg/lpcode.h; sourceTree = "<group>"; };
+		3CEDF7701E835409008839A3 /* lpprint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpprint.cpp; path = ../../../Source/3rdParty/lpeg/lpprint.cpp; sourceTree = "<group>"; };
+		3CEDF7711E835409008839A3 /* lpprint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lpprint.h; path = ../../../Source/3rdParty/lpeg/lpprint.h; sourceTree = "<group>"; };
+		3CEDF7721E835409008839A3 /* lptree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lptree.cpp; path = ../../../Source/3rdParty/lpeg/lptree.cpp; sourceTree = "<group>"; };
+		3CEDF7731E835409008839A3 /* lptree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lptree.h; path = ../../../Source/3rdParty/lpeg/lptree.h; sourceTree = "<group>"; };
+		3CEDF7741E835409008839A3 /* lptypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lptypes.h; path = ../../../Source/3rdParty/lpeg/lptypes.h; sourceTree = "<group>"; };
+		3CEDF7751E835409008839A3 /* lpvm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpvm.cpp; path = ../../../Source/3rdParty/lpeg/lpvm.cpp; sourceTree = "<group>"; };
+		3CEDF7761E835409008839A3 /* lpvm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lpvm.h; path = ../../../Source/3rdParty/lpeg/lpvm.h; sourceTree = "<group>"; };
 		3CF16C8D1E68FCCD002587CD /* Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Renderer.cpp; path = ../../../Source/Basic/Renderer.cpp; sourceTree = "<group>"; };
 		3CF16C8E1E68FCCD002587CD /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Basic/Renderer.h; sourceTree = "<group>"; };
 		3CF16C901E68FCE1002587CD /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Particle.cpp; path = ../../../Source/Node/Particle.cpp; sourceTree = "<group>"; };
@@ -655,6 +671,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CEDF76B1E8353ED008839A3 /* lpeg */,
 				3CB730691E803408006DFA18 /* Box2D */,
 				3C88056C1E5ED12600B52D4B /* font */,
 				3C88055F1E5ED0F900B52D4B /* fmt */,
@@ -996,6 +1013,24 @@
 			name = Other;
 			sourceTree = "<group>";
 		};
+		3CEDF76B1E8353ED008839A3 /* lpeg */ = {
+			isa = PBXGroup;
+			children = (
+				3CEDF76C1E835409008839A3 /* lpcap.cpp */,
+				3CEDF76D1E835409008839A3 /* lpcap.h */,
+				3CEDF76E1E835409008839A3 /* lpcode.cpp */,
+				3CEDF76F1E835409008839A3 /* lpcode.h */,
+				3CEDF7701E835409008839A3 /* lpprint.cpp */,
+				3CEDF7711E835409008839A3 /* lpprint.h */,
+				3CEDF7721E835409008839A3 /* lptree.cpp */,
+				3CEDF7731E835409008839A3 /* lptree.h */,
+				3CEDF7741E835409008839A3 /* lptypes.h */,
+				3CEDF7751E835409008839A3 /* lpvm.cpp */,
+				3CEDF7761E835409008839A3 /* lpvm.h */,
+			);
+			name = lpeg;
+			sourceTree = "<group>";
+		};
 		3CF2D9601E0BC1D1006B9903 /* Event */ = {
 			isa = PBXGroup;
 			children = (
@@ -1125,6 +1160,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3CB730D91E80356A006DFA18 /* b2PrismaticJoint.cpp in Sources */,
+				3CEDF7771E835409008839A3 /* lpcap.cpp in Sources */,
 				3CFA31AE1E6B07EA00493633 /* RenderTarget.cpp in Sources */,
 				3CC05B6A1E716EB000F2BA1B /* DrawNode.cpp in Sources */,
 				3C8805751E5ED1AE00B52D4B /* Label.cpp in Sources */,
@@ -1162,6 +1198,7 @@
 				3C0AD7E61E0CE9D00033AD59 /* AutoreleasePool.cpp in Sources */,
 				3CB730DB1E80356A006DFA18 /* b2RevoluteJoint.cpp in Sources */,
 				3C4BC6661E17F1B500292200 /* tolua_is.cpp in Sources */,
+				3CEDF77B1E835409008839A3 /* lpvm.cpp in Sources */,
 				3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */,
 				3CB7309A1E80353A006DFA18 /* b2Fixture.cpp in Sources */,
 				3CB7307C1E80343E006DFA18 /* Joint.cpp in Sources */,
@@ -1190,6 +1227,7 @@
 				3C8805691E5ED11800B52D4B /* format.cpp in Sources */,
 				3CB730EC1E80357D006DFA18 /* b2BlockAllocator.cpp in Sources */,
 				3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */,
+				3CEDF7791E835409008839A3 /* lpprint.cpp in Sources */,
 				3CB7307A1E80343E006DFA18 /* BodyDef.cpp in Sources */,
 				3CB731121E8035A5006DFA18 /* b2CircleShape.cpp in Sources */,
 				3CB730D61E80356A006DFA18 /* b2Joint.cpp in Sources */,
@@ -1201,6 +1239,7 @@
 				3C88056B1E5ED11800B52D4B /* printf.cpp in Sources */,
 				3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */,
 				3CB730D81E80356A006DFA18 /* b2MouseJoint.cpp in Sources */,
+				3CEDF7781E835409008839A3 /* lpcode.cpp in Sources */,
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
 				3C0AD7E71E0CE9D00033AD59 /* Content.cpp in Sources */,
 				3CB731111E8035A5006DFA18 /* b2ChainShape.cpp in Sources */,
@@ -1228,6 +1267,7 @@
 				3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */,
 				3CB730B91E803556006DFA18 /* b2PolygonContact.cpp in Sources */,
 				3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */,
+				3CEDF77A1E835409008839A3 /* lptree.cpp in Sources */,
 				3CB730D51E80356A006DFA18 /* b2GearJoint.cpp in Sources */,
 				3C0AD7E91E0CE9D00033AD59 /* Director.cpp in Sources */,
 				3CB730991E80353A006DFA18 /* b2ContactManager.cpp in Sources */,

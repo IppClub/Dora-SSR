@@ -16,7 +16,7 @@ public:
 	PROPERTY_READONLY_REF(string, AssetPath);
 	PROPERTY_READONLY_REF(string, WritablePath);
 	virtual ~Content();
-	bool isFileExist(String filePath);
+	bool isExist(String filename);
 	bool isFolder(String path);
     bool isAbsolutePath(String strPath);
 	string getFullPath(String filename);
@@ -46,6 +46,7 @@ protected:
 	void loadFileByChunks(String filename, const function<void(Uint8*,int)>& handler);
 	void saveToFileUnsafe(String filename, String content);
 	void saveToFileUnsafe(String filename, Uint8* content, Sint64 size);
+	bool isFileExist(String filePath);
 private:
 	string _assetPath;
 	string _writablePath;

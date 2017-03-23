@@ -47,7 +47,7 @@ end)
 
 print(Director.camera.name, Director.camera)
 
-Director:pushEntry(node)
+--Director:pushEntry(node)
 --print(action,action.running,action.duration)
 
 local dict = Dictionary()
@@ -67,7 +67,7 @@ end
 
 thread(function()
 	sleep(5)
-	Director:popEntry()
+	--Director:popEntry()
 end)
 --[[
 
@@ -75,3 +75,16 @@ local sprite = Sprite("Image/logo.png")
 
 Director:pushEntry(sprite)
 ]]
+
+Content:addSearchPath("Script")
+Content:addSearchPath("Script/Lib")
+require("moonscript")
+
+debug.traceback = function(err)
+	local STP = require("StackTracePlus")
+	STP.dump_locals = false
+	STP.simplified = true
+	return STP.stacktrace(err, 1)
+end
+
+require("test")
