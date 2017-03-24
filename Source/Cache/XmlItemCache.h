@@ -10,64 +10,145 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Content.h"
 #include "Other/rapidxml_sax3.hpp"
+#include "Common/Async.h"
 
 NS_DOROTHY_BEGIN
+
+template <class T>
+class XmlParser
+{
+public:
+	XmlParser(rapidxml::xml_sax2_handler* handler, T* item):
+	_parser(handler),
+	_item(item)
+	{ }
+	virtual ~XmlParser() { }
+	void parse(char* text, int length)
+	{
+		_parser.parse<>(text, length);
+	}
+	T* getItem() const
+	{
+		return _item;
+	}
+protected:
+	rapidxml::xml_sax3_parser<> _parser;
+	Ref<T> _item;
+};
 
 /** @brief Useful for reading xml files and cache them in memory.
  T is the class to store every parsed xml file.
 */
-template<class T>
-class XmlItemCache : public rapidxml::xml_sax2_handler
+template <class T>
+class XmlItemCache
 {
-	typedef unordered_map<string, Ref<T>> dict;
-	typedef typename dict::iterator dict_iter;
 public:
 	virtual ~XmlItemCache() { }
 	/** Load a new xml file or get its data for cache. */
 	T* load(String filename)
 	{
-		_path = filename.getFilePath();
-		dict_iter it = _dict.find(filename);
+		string file = SharedContent.getFullPath(filename);
+		auto it = _dict.find(file);
 		if (it != _dict.end())
 		{
 			return it->second;
 		}
 		else
 		{
-			this->beforeParse(filename);
-			auto data = SharedContent.loadFile(filename);
+			auto data = SharedContent.loadFile(file);
 			if (data)
 			{
-				_parser.parse<>(r_cast<char*>(data.get()), s_cast<int>(data.size()));
-				this->afterParse(filename);
-				_dict[filename] = _item;
-				T* item = _item;
-				_item = nullptr;
-				return item;
+				auto& parser = prepareParser(file)->get();
+				T* result = nullptr;
+				try
+				{
+					parser->parse(r_cast<char*>(data.get()), s_cast<int>(data.size()));
+					result = parser->getItem();
+					_dict[file] = parser->getItem();
+				}
+				catch (rapidxml::parse_error error)
+				{
+					Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+				}
+				return result;
 			}
 			return nullptr;
 		}
 	}
+	void loadAsync(String filename, const function<void(T* item)>& handler)
+	{
+		string fullPath = SharedContent.getFullPath(filename);
+		auto it = _dict.find(fullPath);
+		if (it != _dict.end())
+		{
+			handler(it->second);
+		}
+		else
+		{
+			string file(filename);
+			SharedContent.loadFileAsyncUnsafe(file, [this, file, handler](Uint8* data, Sint64 size)
+			{
+				if (data)
+				{
+					auto parser = MakeRef(prepareParser(file));
+					SharedAsyncThread.Loader.run([this, file, parser, data, size]()
+					{
+						OwnArray<Uint8> dataOwner(data, s_cast<size_t>(size));
+						Ref<T> result;
+						try
+						{
+							parser->get()->parse(r_cast<char*>(data), s_cast<int>(size));
+							result = parser->get()->getItem();
+						}
+						catch (rapidxml::parse_error error)
+						{
+							Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - r_cast<const char*>(data));
+						}
+						return Values::create(result);
+					}, [this, handler, file](Values* values)
+					{
+						Ref<T> item;
+						values->get(item);
+						_dict[file] = item;
+						handler(item);
+					});
+				}
+				else
+				{
+					handler(nullptr);
+				}
+			});
+		}
+	}
 	T* update(String name, String content)
 	{
-		_path = name.getFilePath();
-		this->beforeParse(name);
-		_parser.parse<>(content, content.size());
-		this->afterParse(name);
-		_dict[name] = _item;
-		T* item = _item;
-		_item = nullptr;
-		return item;
+		string file = SharedContent.getFullPath(name);
+		string data(content);
+		T* result = nullptr;
+		auto& parser = prepareParser(name)->get();
+		try
+		{
+			parser->parse(c_cast<char*>(data.c_str()), s_cast<int>(content.size()));
+			result = parser->getItem();
+			_dict[name] = parser->getItem();
+		}
+		catch (rapidxml::parse_error error)
+		{
+			Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - r_cast<const char*>(data.c_str()));
+		}
+		return result;
 	}
 	T* update(String name, T* item)
 	{
-		_dict[name] = item;
+		string file = SharedContent.getFullPath(name);
+		_dict[file] = item;
 		return item;
 	}
 	/** Purge the cached file. */
 	bool unload(String filename)
 	{
-		dict_iter it = _dict.find(filename);
+		string file = SharedContent.getFullPath(filename);
+		auto it = _dict.find(file);
 		if (it != _dict.end())
 		{
 			_dict.erase(it);
@@ -82,40 +163,26 @@ public:
 		{
 			return false;
 		}
-		else
-		{
-			_dict.clear();
-			return true;
-		}
+		_dict.clear();
+		return true;
 	}
 	void removeUnused()
 	{
-		if (!_dict.empty())
+		for (auto it = _dict.begin(); it != _dict.end();)
 		{
-			for (dict_iter it = _dict.begin(); it != _dict.end();)
+			if (it->second->isSingleReferenced())
 			{
-				if (it->second->isSingleReference())
-				{
-					it = _dict.erase(it);
-				}
-				else ++it;
+				it = _dict.erase(it);
 			}
+			else ++it;
 		}
 	}
 protected:
-	XmlItemCache():
-	_item(nullptr),
-	_parser(this)
-	{ }
-	string _path;
-	dict _dict;
-	Ref<T> _item; // Use reference in case that do the loading in another thread
+	XmlItemCache() { }
+	unordered_map<string,Ref<T>> _dict;
 private:
-	rapidxml::xml_sax3_parser<> _parser;
 	/** Implement it to get prepare for specific xml parse. */
-	virtual void beforeParse(String filename) = 0;
-	/** Implement it to do something after xml is parsed. */
-	virtual void afterParse(String filename) = 0;
+	virtual ValueEx<Own<XmlParser<T>>>* prepareParser(String filename) = 0;
 };
 
 NS_DOROTHY_END

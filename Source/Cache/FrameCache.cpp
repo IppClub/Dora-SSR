@@ -15,10 +15,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-void FrameCache::xmlSAX2Text(const char* s, size_t len)
+ValueEx<Own<XmlParser<FrameActionDef>>>* FrameCache::prepareParser(String filename)
+{
+	Own<XmlParser<FrameActionDef>> parser(new Parser(FrameActionDef::create(), filename.getFilePath()));
+	return ValueEx<Own<XmlParser<FrameActionDef>>>::create(std::move(parser));
+}
+
+void FrameCache::Parser::xmlSAX2Text(const char* s, size_t len)
 { }
 
-void FrameCache::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
 {
 	switch (name[0])
 	{
@@ -64,15 +70,7 @@ void FrameCache::xmlSAX2StartElement(const char* name, size_t len, const vector<
 	}
 }
 
-void FrameCache::xmlSAX2EndElement(const char* name, size_t len)
-{ }
-
-void FrameCache::beforeParse(String filename)
-{
-	_item = FrameActionDef::create();
-}
-
-void FrameCache::afterParse(String filename)
+void FrameCache::Parser::xmlSAX2EndElement(const char* name, size_t len)
 { }
 
 NS_DOROTHY_END

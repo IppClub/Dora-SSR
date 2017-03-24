@@ -15,7 +15,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-KeyAnimationDef* ModelCache::getCurrentKeyAnimation()
+ValueEx<Own<XmlParser<ModelDef>>>* ModelCache::prepareParser(String filename)
+{
+	Own<XmlParser<ModelDef>> parser(new Parser(ModelDef::create(), filename.getFilePath()));
+	return ValueEx<Own<XmlParser<ModelDef>>>::create(std::move(parser));
+}
+
+KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation()
 {
 	//lazy alloc
 	if (!_currentAnimationDef)
@@ -25,7 +31,7 @@ KeyAnimationDef* ModelCache::getCurrentKeyAnimation()
 	return (KeyAnimationDef*)_currentAnimationDef;
 }
 
-void ModelCache::getPosFromStr(String str, float& x, float& y)
+void ModelCache::Parser::getPosFromStr(String str, float& x, float& y)
 {
 	auto tokens = str.split(",");
 	AssertUnless(tokens.size() == 2, "invalid pos str for: \"%s\"", str);
@@ -34,7 +40,7 @@ void ModelCache::getPosFromStr(String str, float& x, float& y)
 	y = std::stof(*++it);
 }
 
-void ModelCache::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
 {
 	switch (name[0])
 	{
@@ -99,7 +105,7 @@ void ModelCache::xmlSAX2StartElement(const char* name, size_t len, const vector<
 		case Xml::Model::Element::KeyFrame:
 		{
 			KeyFrameDef* keyFrameDef = new KeyFrameDef();
-			KeyAnimationDef* animationDef = ModelCache::getCurrentKeyAnimation();
+			KeyAnimationDef* animationDef = getCurrentKeyAnimation();
 			Slice duration;
 			Slice position;
 			Slice rotation;
@@ -312,7 +318,7 @@ void ModelCache::xmlSAX2StartElement(const char* name, size_t len, const vector<
 	}
 }
 
-void ModelCache::xmlSAX2EndElement(const char* name, size_t len)
+void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len)
 {
 	switch (name[0])
 	{
@@ -341,17 +347,7 @@ void ModelCache::xmlSAX2EndElement(const char* name, size_t len)
 	}
 }
 
-void ModelCache::xmlSAX2Text(const char* s, size_t len)
-{ }
-
-void ModelCache::beforeParse(String filename)
-{
-	for (;!_nodeStack.empty();_nodeStack.pop());
-	_currentAnimationDef = nullptr;
-	_item = ModelDef::create();
-}
-
-void ModelCache::afterParse(String filename)
+void ModelCache::Parser::xmlSAX2Text(const char* s, size_t len)
 { }
 
 NS_DOROTHY_END

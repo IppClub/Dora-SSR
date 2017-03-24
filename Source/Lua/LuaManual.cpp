@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Dorothy.h"
 #include "Lua/ToLua/tolua++.h"
+#include "LuaManual.h"
 
 NS_DOROTHY_BEGIN
 
@@ -196,6 +197,216 @@ tolua_lerror :
 	tolua_error(L, "#ferror in function 'gslot'.", &tolua_err);
 #endif
 	return 0;
+}
+
+bool Cache::load(String filename)
+{
+	string ext = filename.getFileExtension();
+	if (!ext.empty())
+	{
+		switch (Switch::hash(ext))
+		{
+			case "clip"_hash:
+				return SharedClipCache.load(filename);
+			case "frame"_hash:
+				return SharedFrameCache.load(filename);
+			case "model"_hash:
+				return SharedModelCache.load(filename);
+			case "par"_hash:
+				return SharedParticleCache.load(filename);
+			case "png"_hash:
+			case "dds"_hash:
+			case "pvr"_hash:
+			case "ktx"_hash:
+				return SharedTextureCache.load(filename);
+			case "bin"_hash:
+				return SharedShaderCache.load(filename);
+		}
+	}
+	return false;
+}
+
+void Cache::loadAsync(String filename, const function<void()>& callback)
+{
+	string ext = filename.getFileExtension();
+	if (!ext.empty())
+	{
+		switch (Switch::hash(ext))
+		{
+			case "clip"_hash:
+				SharedClipCache.loadAsync(filename, [callback](ClipDef*) { callback(); });
+				break;
+			case "frame"_hash:
+				SharedFrameCache.loadAsync(filename, [callback](FrameActionDef*) { callback(); });
+				break;
+			case "model"_hash:
+				SharedModelCache.loadAsync(filename, [callback](ModelDef*) { callback(); });
+				break;
+			case "par"_hash:
+				SharedParticleCache.loadAsync(filename, [callback](ParticleDef*) { callback(); });
+				break;
+			case "png"_hash:
+			case "dds"_hash:
+			case "pvr"_hash:
+			case "ktx"_hash:
+				SharedTextureCache.loadAsync(filename, [callback](Texture2D*) { callback(); });
+				break;
+			case "bin"_hash:
+				SharedShaderCache.loadAsync(filename, [callback](Shader*) { callback(); });
+				break;
+		}
+	}
+}
+
+void Cache::update(String filename, String content)
+{
+	string ext = filename.getFileExtension();
+	if (!ext.empty())
+	{
+		switch (Switch::hash(ext))
+		{
+			case "clip"_hash:
+				SharedClipCache.update(filename, content);
+				break;
+			case "frame"_hash:
+				SharedFrameCache.update(filename, content);
+				break;
+			case "model"_hash:
+				SharedModelCache.update(filename, content);
+				break;
+			case "par"_hash:
+				SharedParticleCache.update(filename, content);
+				break;
+		}
+	}
+}
+
+void Cache::update(String filename, Texture2D* texture)
+{
+	SharedTextureCache.update(filename, texture);
+}
+
+bool Cache::unload(String name)
+{
+	string ext = name.getFileExtension();
+	if (!ext.empty())
+	{
+		switch (Switch::hash(ext))
+		{
+			case "clip"_hash:
+				return SharedClipCache.unload(name);
+			case "frame"_hash:
+				return SharedFrameCache.unload(name);
+			case "model"_hash:
+				return SharedModelCache.unload(name);
+			case "par"_hash:
+				return SharedParticleCache.unload(name);
+			case "png"_hash:
+			case "dds"_hash:
+			case "pvr"_hash:
+			case "ktx"_hash:
+				return SharedTextureCache.unload(name);
+			case "bin"_hash:
+				return SharedShaderCache.unload(name);
+		}
+	}
+	else
+	{
+		switch (Switch::hash(name))
+		{
+			case "Texture"_hash:
+				return SharedTextureCache.unload();
+			case "Clip"_hash:
+				return SharedClipCache.unload();
+			case "Frame"_hash:
+				return SharedFrameCache.unload();
+			case "Model"_hash:
+				return SharedModelCache.unload();
+			case "Particle"_hash:
+				return SharedParticleCache.unload();
+			case "Shader"_hash:
+				return SharedShaderCache.unload();
+			case "Font"_hash:
+				return SharedFontCache.unload();
+			default:
+			{
+				auto tokens = name.split(":");
+				if (tokens.size() == 2)
+				{
+					auto it = tokens.begin();
+					Slice fontName = *it;
+					int fontSize = std::stoi(*(++it));
+					return SharedFontCache.unload(fontName, fontSize);
+				}
+				break;
+			}
+		}
+	}
+	return false;
+}
+
+void Cache::unload()
+{
+	SharedShaderCache.unload();
+	SharedModelCache.unload();
+	SharedFrameCache.unload();
+	SharedParticleCache.unload();
+	SharedClipCache.unload();
+	SharedTextureCache.unload();
+	SharedFontCache.unload();
+}
+
+void Cache::removeUnused()
+{
+	SharedShaderCache.removeUnused();
+	SharedModelCache.removeUnused();
+	SharedFrameCache.removeUnused();
+	SharedParticleCache.removeUnused();
+	SharedClipCache.removeUnused();
+	SharedTextureCache.removeUnused();
+	SharedFontCache.removeUnused();
+}
+
+void Cache::removeUnused(String name)
+{
+	switch (Switch::hash(name))
+	{
+		case "Texture"_hash:
+			SharedTextureCache.removeUnused();
+			break;
+		case "Clip"_hash:
+			SharedClipCache.removeUnused();
+			break;
+		case "Frame"_hash:
+			SharedFrameCache.removeUnused();
+			break;
+		case "Model"_hash:
+			SharedModelCache.removeUnused();
+			break;
+		case "Particle"_hash:
+			SharedParticleCache.removeUnused();
+			break;
+		case "Shader"_hash:
+			SharedShaderCache.removeUnused();
+			break;
+		case "Font"_hash:
+			SharedFontCache.removeUnused();
+			break;
+	}
+}
+
+Sprite* Sprite_create(String clipStr)
+{
+	if (clipStr.toString().find('|') != string::npos)
+	{
+		return SharedClipCache.loadSprite(clipStr);
+	}
+	else if (clipStr.getFileExtension() == "clip"_slice)
+	{
+		ClipDef* def = SharedClipCache.load(clipStr);
+		return Sprite::create(def->textureFile);
+	}
+	return Sprite::create(clipStr);
 }
 
 /* Vec2 */

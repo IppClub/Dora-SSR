@@ -117,7 +117,7 @@ Texture2D::~Texture2D()
 TextureCache::TextureCache()
 { }
 
-void TextureCache::set(String name, Texture2D* texture)
+void TextureCache::update(String name, Texture2D* texture)
 {
 	_textures[name] = texture;
 }
@@ -321,7 +321,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			{
 				if (data)
 				{
-					SharedAsyncThread.Process.run([data, size]()
+					SharedAsyncThread.Loader.run([data, size]()
 					{
 						auto localData = MakeOwnArray(data, s_cast<size_t>(size));
 						uint8_t* out = nullptr;
@@ -469,34 +469,42 @@ void TextureCache::loadPNG(const Uint8* data, uint32_t size, uint8_t*& out, uint
 	}
 }
 
-void TextureCache::unload(Texture2D* texture)
+bool TextureCache::unload(Texture2D* texture)
 {
 	for (const auto& it : _textures)
 	{
 		if (it.second == texture)
 		{
 			_textures.erase(_textures.find(it.first));
-			return;
+			return true;
 		}
 	}
+	return false;
 }
 
-void TextureCache::unload(String filename)
+bool TextureCache::unload(String filename)
 {
 	string fullPath = SharedContent.getFullPath(filename);
 	auto it = _textures.find(fullPath);
 	if (it != _textures.end())
 	{
 		_textures.erase(it);
+		return true;
 	}
+	return false;
 }
 
-void TextureCache::clear()
+bool TextureCache::unload()
 {
+	if (_textures.empty())
+	{
+		return false;
+	}
 	_textures.clear();
+	return true;
 }
 
-void TextureCache::clearUnused()
+void TextureCache::removeUnused()
 {
 	vector<unordered_map<string,Ref<Texture2D>>::iterator> targets;
 	for (auto it = _textures.begin();it != _textures.end();++it)

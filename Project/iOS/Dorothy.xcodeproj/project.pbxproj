@@ -150,6 +150,7 @@
 		3CEDF7791E835409008839A3 /* lpprint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF7701E835409008839A3 /* lpprint.cpp */; };
 		3CEDF77A1E835409008839A3 /* lptree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF7721E835409008839A3 /* lptree.cpp */; };
 		3CEDF77B1E835409008839A3 /* lpvm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF7751E835409008839A3 /* lpvm.cpp */; };
+		3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */; };
 		3CF16C8F1E68FCCD002587CD /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C8D1E68FCCD002587CD /* Renderer.cpp */; };
 		3CF16C921E68FCE1002587CD /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C901E68FCE1002587CD /* Particle.cpp */; };
 		3CF730E31E66544A0002DEED /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730DF1E66544A0002DEED /* Font */; };
@@ -445,6 +446,8 @@
 		3CEDF7741E835409008839A3 /* lptypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lptypes.h; path = ../../../Source/3rdParty/lpeg/lptypes.h; sourceTree = "<group>"; };
 		3CEDF7751E835409008839A3 /* lpvm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpvm.cpp; path = ../../../Source/3rdParty/lpeg/lpvm.cpp; sourceTree = "<group>"; };
 		3CEDF7761E835409008839A3 /* lpvm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lpvm.h; path = ../../../Source/3rdParty/lpeg/lpvm.h; sourceTree = "<group>"; };
+		3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ParticleCache.cpp; path = ../../../Source/Cache/ParticleCache.cpp; sourceTree = "<group>"; };
+		3CEDF7801E83BADB008839A3 /* ParticleCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParticleCache.h; path = ../../../Source/Cache/ParticleCache.h; sourceTree = "<group>"; };
 		3CF16C8D1E68FCCD002587CD /* Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Renderer.cpp; path = ../../../Source/Basic/Renderer.cpp; sourceTree = "<group>"; };
 		3CF16C8E1E68FCCD002587CD /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Basic/Renderer.h; sourceTree = "<group>"; };
 		3CF16C901E68FCE1002587CD /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Particle.cpp; path = ../../../Source/Node/Particle.cpp; sourceTree = "<group>"; };
@@ -581,6 +584,8 @@
 		3C6D37221E27D9BE008C92E8 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */,
+				3CEDF7801E83BADB008839A3 /* ParticleCache.h */,
 				3C5973021E7F74E900BFD00F /* ClipCache.cpp */,
 				3C5973031E7F74E900BFD00F /* ClipCache.h */,
 				3C5973041E7F74E900BFD00F /* FrameCache.cpp */,
@@ -1169,6 +1174,7 @@
 				3C266DEE1E27D6F800F1C870 /* Sprite.cpp in Sources */,
 				3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */,
 				3CB730D31E80356A006DFA18 /* b2DistanceJoint.cpp in Sources */,
+				3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */,
 				3CF16C8F1E68FCCD002587CD /* Renderer.cpp in Sources */,
 				3CB730EE1E80357D006DFA18 /* b2Math.cpp in Sources */,
 				3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */,

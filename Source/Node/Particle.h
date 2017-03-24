@@ -72,6 +72,7 @@ public:
 	} mode;
 	string textureName;
 	Rect textureRect;
+	string toXml() const;
 	static ParticleDef* fire();
 	CREATE_FUNC(ParticleDef);
 protected:

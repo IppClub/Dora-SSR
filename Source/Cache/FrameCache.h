@@ -33,12 +33,19 @@ class FrameCache : public XmlItemCache<FrameActionDef>
 {
 protected:
 	FrameCache() { }
-	virtual void beforeParse(String filename) override;
-	virtual void afterParse(String filename) override;
-	virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
-    virtual void xmlSAX2EndElement(const char* name, size_t len) override;
-    virtual void xmlSAX2Text(const char* s, size_t len) override;
-	SINGLETON_REF(FrameCache, Director);
+	virtual ValueEx<Own<XmlParser<FrameActionDef>>>* prepareParser(String filename) override;
+private:
+	class Parser : public XmlParser<FrameActionDef>, public rapidxml::xml_sax2_handler
+	{
+	public:
+		Parser(FrameActionDef* def, String path):XmlParser<FrameActionDef>(this, def),_path(path) { }
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
+		virtual void xmlSAX2Text(const char* s, size_t len) override;
+	private:
+		string _path;
+	};
+	SINGLETON_REF(FrameCache, Director, AsyncThread);
 };
 
 #define SharedFrameCache \

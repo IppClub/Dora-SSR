@@ -327,18 +327,6 @@ class Texture2D : public Object
 	tolua_readonly tolua_property__common int height;
 };
 
-class TextureCache
-{
-	void set(String name, Texture2D* texture);
-	Texture2D* load(String filename);
-	void loadAsync(String filename, tolua_function handler);
-    void unload(Texture2D* texture);
-    void unload(String filename);
-    void clear();
-    void clearUnused();
-	static tolua_outside TextureCache* TextureCache_shared @ create();
-};
-
 struct BlendFunc
 {
 	Uint32 src;
@@ -408,7 +396,7 @@ class Sprite : public Node
 	static Sprite* create();
 	static Sprite* create(Texture2D* texture, Rect textureRect);
 	static Sprite* create(Texture2D* texture);
-	static Sprite* create(String filename);
+	static tolua_outside Sprite* Sprite_create @ create(String clipStr);
 };
 
 class Touch : public Object
@@ -921,3 +909,15 @@ class MotorJoint : public Joint
 	tolua_property__common float force;
 	tolua_property__common float speed;
 };
+
+struct Cache
+{
+	static bool load(String filename);
+	static void loadAsync(String filename, tolua_function callback);
+	static void update(String filename, String content);
+	static void update(String filename, Texture2D* texture);
+	static void unload();
+	static bool unload(String name);
+	static void removeUnused();
+	static void removeUnused(String type);
+}

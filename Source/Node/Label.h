@@ -31,6 +31,7 @@ class Font : public Object
 public:
 	PROPERTY_READONLY(bgfx::FontHandle, Handle);
 	PROPERTY_READONLY_REF(bgfx::FontInfo, Info);
+	PROPERTY_READONLY(TrueTypeFile*, File);
 	CREATE_FUNC(Font);
 	virtual ~Font();
 protected:
@@ -60,10 +61,12 @@ public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(bgfx::FontManager*, Manager);
 	virtual ~FontCache();
-	void loadAync(String fontName, Uint32 fontSize, Uint32 fontIndex,
+	void loadAync(String fontName, Uint32 fontSize,
 		const function<void(Font* font)>& callback);
-	Font* load(String fontName, Uint32 fontSize, Uint32 fontIndex = 0);
-	void unload();
+	Font* load(String fontName, Uint32 fontSize);
+	bool unload();
+	bool unload(String fontName, Uint32 fontSize);
+	void removeUnused();
 	Sprite* createCharacter(Font* font, bgfx::CodePoint character);
 	std::tuple<Texture2D*, Rect> getCharacterInfo(Font* font, bgfx::CodePoint character);
 	const bgfx::GlyphInfo* getGlyphInfo(Font* font, bgfx::CodePoint character);

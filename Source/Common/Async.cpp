@@ -48,8 +48,9 @@ void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finishe
 		SharedDirector.getSystemScheduler()->schedule([this](double deltaTime)
 		{
 			DORA_UNUSED_PARAM(deltaTime);
-			Own<QEvent> event = _finisherEvent.poll();
-			if (event)
+			for (Own<QEvent> event = _finisherEvent.poll();
+				event != nullptr;
+				event = _finisherEvent.poll())
 			{
 				Package package;
 				Ref<Values> result;

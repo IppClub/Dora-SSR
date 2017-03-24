@@ -2,7 +2,6 @@ local Application = builtin.Application()
 local Content = builtin.Content()
 local Director = builtin.Director()
 local View = builtin.View()
-local TextureCache = builtin.TextureCache()
 
 local tolua = builtin.tolua
 local yield = coroutine.yield
@@ -15,7 +14,6 @@ builtin.Application = Application
 builtin.Content = Content
 builtin.Director = Director
 builtin.View = View
-builtin.TextureCache = TextureCache
 
 local function wait(cond)
 	repeat
@@ -150,6 +148,8 @@ builtin.using = function(path)
 end
 _G.using = builtin.using
 
+-- Async functions
+
 local Content_loadAsync = Content.loadAsync
 Content.loadAsync = function(self,filename,handler)
 	local isloaded = false
@@ -174,19 +174,26 @@ Content.copyAsync = function(self,src,dst)
 	wait(function() return not loaded end)
 end
 
-local TextureCache_loadAsync = TextureCache.loadAsync
-TextureCache.loadAsync = function(self,filename,handler)
-	local isloaded = false
-	local loadedTexture
-	TextureCache_loadAsync(self,filename,function(texture)
-		if handler then
-			handler(texture)
-		end
-		loadedTexture = texture
-		isloaded = true
-	end)
-	wait(function() return not isloaded end)
-	return loadedTexture
+local Cache = builtin.Cache
+local Cache_loadAsync = Cache.loadAsync
+Cache.loadAsync = function(self,target,handler)
+	local files
+	if type(target) == "table" then
+		files = target
+	else
+		files = {target}
+	end
+	local count = 0
+	local total = #files
+	for i = 1,total do
+		Cache_loadAsync(self,files[i],function()
+			if handler then
+				handler(files[i])
+			end
+			count = count + 1
+		end)
+	end
+	wait(function() return count < total end)
 end
 
 local Action = builtin.Action

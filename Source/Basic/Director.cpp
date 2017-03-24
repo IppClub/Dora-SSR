@@ -143,7 +143,6 @@ bool Director::init()
 		Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - xml);
 	}
 	*/
-
 	Label* label = Label::create("NotoSansHans-Regular", 18);
 	label->setTextWidth(600);
 	label->setLineGap(5);

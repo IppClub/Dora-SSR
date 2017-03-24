@@ -36,9 +36,10 @@ bgfx::ShaderHandle Shader::getHandle() const
 ShaderCache::ShaderCache()
 { }
 
-void ShaderCache::set(String name, Shader* shader)
+void ShaderCache::update(String name, Shader* shader)
 {
-	_shaders[name] = shader;
+	string shaderFile = SharedContent.getFullPath(getShaderPath() + name);
+	_shaders[shaderFile] = shader;
 }
 
 string ShaderCache::getShaderPath() const
@@ -113,34 +114,42 @@ void ShaderCache::loadAsync(String filename, const function<void(Shader*)>& hand
 	});
 }
 
-void ShaderCache::unload(Shader* shader)
+bool ShaderCache::unload(Shader* shader)
 {
 	for (const auto& it : _shaders)
 	{
 		if (it.second == shader)
 		{
 			_shaders.erase(_shaders.find(it.first));
-			return;
+			return true;
 		}
 	}
+	return false;
 }
 
-void ShaderCache::unload(String filename)
+bool ShaderCache::unload(String filename)
 {
 	string fullName = SharedContent.getFullPath(getShaderPath() + filename);
 	auto it = _shaders.find(fullName);
 	if (it != _shaders.end())
 	{
 		_shaders.erase(it);
+		return true;
 	}
+	return false;
 }
 
-void ShaderCache::clear()
+bool ShaderCache::unload()
 {
+	if (_shaders.empty())
+	{
+		return false;
+	}
 	_shaders.clear();
+	return true;
 }
 
-void ShaderCache::clearUnused()
+void ShaderCache::removeUnused()
 {
 	vector<unordered_map<string,Ref<Shader>>::iterator> targets;
 	for (auto it = _shaders.begin(); it != _shaders.end(); ++it)

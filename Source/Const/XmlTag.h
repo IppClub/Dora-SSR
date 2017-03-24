@@ -38,6 +38,54 @@ namespace Clip
 	ENUM_END(Clip)
 }
 
+ENUM_START(Particle)
+{
+	Dorothy = 'A',
+	Angle = 'B', // float
+	AngleVariance = 'C', // float
+	BlendFuncDestination = 'D', // Uint32
+	BlendFuncSource = 'E', // Uint32
+	Duration = 'F', // float
+	EmissionRate = 'G', // float
+	FinishColor = 'H', // Vec4
+	FinishColorVariance = 'I', // Vec4
+	RotationStart = 'J', // float
+	RotationStartVariance = 'K', // float
+	RotationEnd = 'L', // float
+	RotationEndVariance = 'M', // float
+	FinishParticleSize = 'N', // float
+	FinishParticleSizeVariance = 'O', // float
+	MaxParticles = 'P', // Uint32
+	ParticleLifespan = 'Q', // float
+	ParticleLifespanVariance = 'R', // float
+	StartPosition = 'S', // Vec2
+	StartPositionVariance = 'T', // Vec2
+	StartColor = 'U', // Vec4
+	StartColorVariance = 'V', // Vec4
+	StartParticleSize = 'W', // float
+	StartParticleSizeVariance = 'X', // float
+	TextureName = 'Y', // string
+	TextureRect = 'Z', // Rect
+	EmitterType = 'a', // EmitterType
+	/* gravity */
+	RotationIsDir = 'b', // bool
+	Gravity = 'c', // Vec2
+	Speed = 'd', // float
+	SpeedVariance = 'e', // float
+	RadialAcceleration = 'f', // float
+	RadialAccelVariance = 'g', // float
+	TangentialAcceleration = 'h', // float
+	TangentialAccelVariance = 'i', // float
+	/* radius */
+	StartRadius = 'j', // float
+	StartRadiusVariance = 'k', // float
+	FinishRadius = 'l', // float
+	FinishRadiusVariance = 'm', // float
+	RotatePerSecond = 'n', // float
+	RotatePerSecondVariance = 'o', // float
+}
+ENUM_END(Particle)
+
 namespace Effect
 {
 	ENUM_START(Element)
@@ -53,7 +101,7 @@ namespace Effect
 		File = 'B',
 	}
 	ENUM_END(Effect)
-};
+}
 
 namespace Frame
 {

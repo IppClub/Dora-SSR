@@ -36,7 +36,7 @@ public:
 	{
 		_value = value;
 	}
-	inline const T& get() const
+	inline T& get()
 	{
 		return _value;
 	}
@@ -44,6 +44,9 @@ public:
 protected:
 	ValueEx(const T& value):
 	_value(value)
+	{ }
+	ValueEx(T&& value):
+	_value(std::move(value))
 	{ }
 private:
 	T _value;

@@ -48,10 +48,12 @@ string ClipDef::toXml()
 	return writer.str();
 }
 
+/* ClipCache */
+
 Sprite* ClipCache::loadSprite(String clipStr)
 {
 	auto tokens = clipStr.split("|");
-	AssertUnless(tokens.size() < 2, "invalid clip str for: \"%s\".", clipStr);
+	AssertUnless(tokens.size() == 2, "invalid clip str for: \"%s\".", clipStr);
 	ClipDef* clipDef = ClipCache::load(tokens.front());
 	auto it = clipDef->rects.find(*(++tokens.begin()));
 	if (it != clipDef->rects.end())
@@ -63,10 +65,16 @@ Sprite* ClipCache::loadSprite(String clipStr)
 	return nullptr;
 }
 
-void ClipCache::xmlSAX2Text(const char *s, size_t len)
+ValueEx<Own<XmlParser<ClipDef>>>* ClipCache::prepareParser(String filename)
+{
+	Own<XmlParser<ClipDef>> parser(new Parser(ClipDef::create(), filename.getFilePath()));
+	return ValueEx<Own<XmlParser<ClipDef>>>::create(std::move(parser));
+}
+
+void ClipCache::Parser::xmlSAX2Text(const char *s, size_t len)
 { }
 
-void ClipCache::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
 {
 	switch (Xml::Clip::Element(name[0]))
 	{
@@ -115,15 +123,7 @@ void ClipCache::xmlSAX2StartElement(const char* name, size_t len, const vector<A
 	}
 }
 
-void ClipCache::xmlSAX2EndElement(const char *name, size_t len)
-{ }
-
-void ClipCache::beforeParse(String filename )
-{
-	_item = ClipDef::create();
-}
-
-void ClipCache::afterParse(String filename )
+void ClipCache::Parser::xmlSAX2EndElement(const char *name, size_t len)
 { }
 
 NS_DOROTHY_END

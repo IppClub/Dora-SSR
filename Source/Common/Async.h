@@ -44,6 +44,7 @@ class AsyncThread
 public:
 	Async FileIO;
 	Async Process;
+	Async Loader;
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i)
 	{

@@ -65,6 +65,11 @@ const bgfx::FontInfo& Font::getInfo() const
 	return SharedFontManager.getFontInfo(_handle);
 }
 
+TrueTypeFile* Font::getFile() const
+{
+	return _file;
+}
+
 /* FontCache */
 
 FontCache::FontCache():
@@ -76,16 +81,64 @@ FontCache::~FontCache()
 	unload();
 }
 
-void FontCache::unload()
+bool FontCache::unload()
 {
+	if (_fonts.empty() && _fontFiles.empty())
+	{
+		return false;
+	}
 	_fonts.clear();
 	_fontFiles.clear();
+	return true;
 }
 
-Font* FontCache::load(String fontName, Uint32 fontSize, Uint32 fontIndex)
+bool FontCache::unload(String fontName, Uint32 fontSize)
 {
 	fmt::MemoryWriter writer;
-	writer << fontName.toString() << '_' << fontSize << '_' << fontIndex;
+	writer << fontName.toString() << ':' << fontSize;
+	string fontFaceName = writer.str();
+	auto fontIt = _fonts.find(fontFaceName);
+	if (fontIt != _fonts.end())
+	{
+		TrueTypeFile* fontFile = fontIt->second->getFile();
+		_fonts.erase(fontIt);
+		if (fontFile->isSingleReferenced())
+		{
+			auto fileIt = _fontFiles.find(fontName);
+			if (fileIt != _fontFiles.end())
+			{
+				_fontFiles.erase(fileIt);
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
+void FontCache::removeUnused()
+{
+	for (auto it = _fontFiles.begin(); it != _fontFiles.end();)
+	{
+		if (it->second->isSingleReferenced())
+		{
+			it = _fontFiles.erase(it);
+		}
+		else ++it;
+	}
+	for (auto it = _fonts.begin(); it != _fonts.end();)
+	{
+		if (it->second->isSingleReferenced())
+		{
+			it = _fonts.erase(it);
+		}
+		else ++it;
+	}
+}
+
+Font* FontCache::load(String fontName, Uint32 fontSize)
+{
+	fmt::MemoryWriter writer;
+	writer << fontName.toString() << ':' << fontSize;
 	string fontFaceName = writer.str();
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
@@ -97,7 +150,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize, Uint32 fontIndex)
 		auto fileIt = _fontFiles.find(fontName);
 		if (fileIt != _fontFiles.end())
 		{
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontIndex, fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), 0, fontSize);
 			Font* font = Font::create(fileIt->second, fontHandle);
 			_fonts[fontFaceName] = font;
 			return font;
@@ -118,7 +171,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize, Uint32 fontIndex)
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(data.size()));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontName] = file;
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontIndex, fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, 0, fontSize);
 			Font* font = Font::create(file, fontHandle);
 			_fonts[fontFaceName] = font;
 			return font;
@@ -126,10 +179,10 @@ Font* FontCache::load(String fontName, Uint32 fontSize, Uint32 fontIndex)
 	}
 }
 
-void FontCache::loadAync(String fontName, Uint32 fontSize, Uint32 fontIndex, const function<void(Font* fontHandle)>& callback)
+void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(Font* fontHandle)>& callback)
 {
 	fmt::MemoryWriter writer;
-	writer << fontName.toString() << '_' << fontSize << '_' << fontIndex;
+	writer << fontName.toString() << ':' << fontSize;
 	string fontFaceName = writer.str();
 	auto faceIt = _fonts.find(fontFaceName);
 	if (faceIt != _fonts.end())
@@ -141,7 +194,7 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, Uint32 fontIndex, con
 		auto fileIt = _fontFiles.find(fontName);
 		if (fileIt != _fontFiles.end())
 		{
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontIndex, fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), 0, fontSize);
 			Font* font = Font::create(fileIt->second, fontHandle);
 			_fonts[fontFaceName] = font;
 			callback(font);
@@ -157,12 +210,12 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, Uint32 fontIndex, con
 					callback(nullptr);
 				}
 			}
-			SharedContent.loadFileAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontIndex, fontSize, callback](Uint8* data, Sint64 size)
+			SharedContent.loadFileAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](Uint8* data, Sint64 size)
 			{
 				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(size));
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 				_fontFiles[fontName] = file;
-				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontIndex, fontSize);
+				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, 0, fontSize);
 				Font* font = Font::create(file, fontHandle);
 				_fonts[fontFaceName] = font;
 				callback(font);

@@ -35,7 +35,7 @@ protected:
 	ClipDef();
 };
 
-/** @brief Load frame animations from ".frame" files and cache them. */
+/** @brief Load texture clip from ".clip" files and cache them. */
 class ClipCache : public XmlItemCache<ClipDef>
 {
 public:
@@ -46,12 +46,19 @@ public:
 	Sprite* loadSprite(String clipStr);
 protected:
 	ClipCache() { }
-	virtual void beforeParse(String filename) override;
-	virtual void afterParse(String filename) override;
-	virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
-    virtual void xmlSAX2EndElement(const char* name, size_t len) override;
-    virtual void xmlSAX2Text(const char* s, size_t len) override;
-	SINGLETON_REF(ClipCache, Director);
+	virtual ValueEx<Own<XmlParser<ClipDef>>>* prepareParser(String filename) override;
+private:
+	class Parser : public XmlParser<ClipDef>, public rapidxml::xml_sax2_handler
+	{
+	public:
+		Parser(ClipDef* def, String path):XmlParser<ClipDef>(this, def),_path(path) { }
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
+		virtual void xmlSAX2Text(const char* s, size_t len) override;
+	private:
+		string _path;
+	};
+	SINGLETON_REF(ClipCache, Director, AsyncThread);
 };
 
 #define SharedClipCache \

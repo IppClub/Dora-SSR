@@ -11,6 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TextureCache.h"
 #include "Effect/Effect.h"
 #include "Basic/Director.h"
+#include "fmt/format.h"
+#include "Const/XmlTag.h"
 
 NS_DOROTHY_BEGIN
 
@@ -92,6 +94,63 @@ mode(),
 textureName(),
 textureRect()
 { }
+
+
+string ParticleDef::toXml() const
+{
+	fmt::MemoryWriter writer;
+	writer.write("<{}>", char(Xml::Particle::Dorothy));
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::Angle), angle);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::AngleVariance), angleVariance);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::BlendFuncDestination), blendFuncDestination);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::BlendFuncSource), blendFuncSource);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::Duration), duration);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::EmissionRate), emissionRate);
+	writer.write("<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::FinishColor), finishColor.x, finishColor.y, finishColor.z, finishColor.w);
+	writer.write("<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::FinishColorVariance), finishColorVariance.x, finishColorVariance.y, finishColorVariance.z, finishColorVariance.w);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RotationStart), rotationStart);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RotationStartVariance), rotationStartVariance);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RotationEnd), rotationEnd);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RotationEndVariance), rotationEndVariance);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::FinishParticleSize), finishParticleSize);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::FinishParticleSizeVariance), finishParticleSizeVariance);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::MaxParticles), maxParticles);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::ParticleLifespan), particleLifespan);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::ParticleLifespanVariance), particleLifespanVariance);
+	writer.write("<{} A=\"{},{}\"/>", char(Xml::Particle::StartPosition), startPosition.x, startPosition.y);
+	writer.write("<{} A=\"{},{}\"/>", char(Xml::Particle::StartPositionVariance), startPositionVariance.x, startPositionVariance.y);
+	writer.write("<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::StartColor), startColor.x, startColor.y, startColor.z, startColor.w);
+	writer.write("<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::StartColorVariance), startColorVariance.x, startColorVariance.y, startColorVariance.z, startColorVariance.w);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSize), startParticleSize);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSizeVariance), startParticleSizeVariance);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::EmitterType), s_cast<int>(emitterType));
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::Angle), angle);
+	writer.write("<{} A=\"{}\"/>", char(Xml::Particle::TextureName), textureName);
+	writer.write("<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::TextureRect), textureRect.getX(), textureRect.getY(), textureRect.getWidth(), textureRect.getHeight());
+	switch (emitterType)
+	{
+		case EmitterType::Gravity:
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RotationIsDir), mode.gravity.rotationIsDir ? 1 : 0);
+			writer.write("<{} A=\"{},{}\"/>", char(Xml::Particle::Gravity), mode.gravity.gravity.x, mode.gravity.gravity.y);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::Speed), mode.gravity.speed);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::SpeedVariance), mode.gravity.speedVariance);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RadialAcceleration), mode.gravity.radialAcceleration);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RadialAccelVariance), mode.gravity.radialAccelVariance);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::TangentialAcceleration), mode.gravity.tangentialAcceleration);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::TangentialAccelVariance), mode.gravity.tangentialAccelVariance);
+			break;
+		case EmitterType::Radius:
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::StartRadius), mode.radius.startRadius);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::StartRadiusVariance), mode.radius.startRadiusVariance);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::FinishRadius), mode.radius.finishRadius);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::FinishRadiusVariance), mode.radius.finishRadiusVariance);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RotatePerSecond), mode.radius.rotatePerSecond);
+			writer.write("<{} A=\"{}\"/>", char(Xml::Particle::RotatePerSecondVariance), mode.radius.rotatePerSecondVariance);
+			break;
+	}
+	writer.write("</{}>\n", char(Xml::Particle::Dorothy));
+	return writer.str();
+}
 
 ParticleDef* ParticleDef::fire()
 {

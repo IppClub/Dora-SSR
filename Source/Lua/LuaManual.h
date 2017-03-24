@@ -38,8 +38,21 @@ int Node_emit(lua_State* L);
 int Node_slot(lua_State* L);
 int Node_gslot(lua_State* L);
 
-/* TextureCache */
-inline TextureCache* TextureCache_shared() { return &SharedTextureCache; }
+/* Cache */
+struct Cache
+{
+	static bool load(String filename);
+	static void loadAsync(String filename, const function<void()>& callback);
+	static void update(String filename, String content);
+	static void update(String filename, Texture2D* texture);
+	static void unload();
+	static bool unload(String name);
+	static void removeUnused();
+	static void removeUnused(String type);
+};
+
+/* Sprite */
+Sprite* Sprite_create(String clipStr);
 
 /* Vec2 */
 Vec2* Vec2_create(float x, float y);

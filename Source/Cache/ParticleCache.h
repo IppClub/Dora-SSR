@@ -8,40 +8,39 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Basic/Object.h"
+#include "Cache/XmlItemCache.h"
+#include "Common/Singleton.h"
+#include "Support/Geometry.h"
+
 NS_DOROTHY_BEGIN
 
-class Shader : public Object
+class ParticleNode;
+class ParticleDef;
+
+class ParticleCache : public XmlItemCache<ParticleDef>
 {
-public:
-	PROPERTY_READONLY(bgfx::ShaderHandle, Handle);
-	virtual ~Shader();
-	CREATE_FUNC(Shader);
 protected:
-	Shader(bgfx::ShaderHandle handle);
+	ParticleCache() { }
+	virtual ValueEx<Own<XmlParser<ParticleDef>>>* prepareParser(String filename) override;
 private:
-	bgfx::ShaderHandle _handle;
+	class Parser : public XmlParser<ParticleDef>, public rapidxml::xml_sax2_handler
+	{
+	public:
+		Parser(ParticleDef* def):XmlParser<ParticleDef>(this, def) { }
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
+		virtual void xmlSAX2Text(const char* s, size_t len) override;
+	private:
+		void get(String value, Vec4& vec);
+		void get(String value, Vec2& vec);
+		void get(String value, Rect& rect);
+	};
+private:
+	SINGLETON_REF(ParticleCache, Director, AsyncThread);
 };
 
-class ShaderCache
-{
-public:
-	void update(String name, Shader* shader);
-	/** @brief fragment or vertex shader */
-	Shader* load(String filename);
-	void loadAsync(String filename, const function<void(Shader*)>& handler);
-    bool unload(Shader* shader);
-    bool unload(String filename);
-    bool unload();
-    void removeUnused();
-protected:
-	ShaderCache();
-	string getShaderPath() const;
-private:
-	unordered_map<string, Ref<Shader>> _shaders;
-	SINGLETON_REF(ShaderCache, BGFXDora);
-};
-
-#define SharedShaderCache \
-	Dorothy::Singleton<Dorothy::ShaderCache>::shared()
+#define SharedParticleCache \
+	Dorothy::Singleton<Dorothy::ParticleCache>::shared()
 
 NS_DOROTHY_END

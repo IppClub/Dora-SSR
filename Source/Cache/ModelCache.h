@@ -22,20 +22,25 @@ class Model;
 
 class ModelCache : public XmlItemCache<ModelDef>
 {
-public:
 protected:
 	ModelCache() { }
-	virtual void beforeParse(String filename) override;
-	virtual void afterParse(String filename) override;
-	virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
-    virtual void xmlSAX2EndElement(const char* name, size_t len) override;
-    virtual void xmlSAX2Text(const char* s, size_t len) override;
+	virtual ValueEx<Own<XmlParser<ModelDef>>>* prepareParser(String filename) override;
 private:
-	void getPosFromStr(String str, float& x, float& y);
-	KeyAnimationDef* getCurrentKeyAnimation();
-	stack<SpriteDef*> _nodeStack;
-	AnimationDef* _currentAnimationDef;
-	SINGLETON_REF(ModelCache, Director);
+	class Parser : public XmlParser<ModelDef>, public rapidxml::xml_sax2_handler
+	{
+	public:
+		Parser(ModelDef* def, String path):XmlParser<ModelDef>(this, def),_path(path) { }
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
+		virtual void xmlSAX2Text(const char* s, size_t len) override;
+	private:
+		string _path;
+		void getPosFromStr(String str, float& x, float& y);
+		KeyAnimationDef* getCurrentKeyAnimation();
+		stack<SpriteDef*> _nodeStack;
+		AnimationDef* _currentAnimationDef;
+	};
+	SINGLETON_REF(ModelCache, Director, AsyncThread);
 };
 
 #define SharedModelCache \
