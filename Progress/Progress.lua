@@ -238,25 +238,25 @@ CCProgressTimer	1	n
 	type	83	n
 	sprite	76	n
 	reverseDirection	2	n
-Pool	4	n
-	collect	1	n
-	size	4	n
+Pool	4	d
+	collect	1	d
+	size	4	d
 Texture	24	y
 	unload	12	y
 	removeUnused	7	y
 	loadAsync	5	y
 	add	4	y
 	load	2	y
-Particle	2	n
-	unload	12	n
-	removeUnused	7	n
-	loadAsync	5	n
-	load	2	n
-Model	1	n
+Particle	2	y
+	unload	12	y
+	removeUnused	7	y
+	loadAsync	5	y
+	load	2	y
+Model	1	y
 	save	1	n
 	unload	1	y
-	loadAsync	1	n
-	loadData	1	n
+	loadAsync	1	y
+	loadData	1	y
 	getClipFile	1	n
 	getLookNames	1	n
 	getClipNames	1	n
@@ -301,17 +301,17 @@ oContent	259	y
 	loadFileAsync	1	y
 oLine	146	y
 	set	7	y
-oCache	103	n
+oCache	103	y
 	Texture	24	y
 	Model	23	y
 	Clip	20	y
 	Effect	10	n
-	removeUnused	7	n
-	Animation	5	n
-	loadAsync	5	n
-	clear	4	n
-	Pool	3	n
-	Particle	2	n
+	removeUnused	7	y
+	Animation	5	y
+	loadAsync	5	y
+	clear	4	y
+	Pool	3	d
+	Particle	2	y
 oBodyDef	49	y
 	position	533	y
 	angle	109	y
