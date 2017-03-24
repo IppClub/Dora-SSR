@@ -20,8 +20,8 @@ class MemoryPool
 #define ITEM_SIZE sizeof(Item)
 public:
 	MemoryPool() :
-		_chunk(new Chunk()),
-		_freeList(nullptr)
+	_chunk(new Chunk()),
+	_freeList(nullptr)
 	{
 		static_assert(ITEM_SIZE >= sizeof(intptr_t),
 			"Size of pool item must be greater or equal to the size of a pointer.");
@@ -43,7 +43,7 @@ public:
 			if (_chunk->size + ITEM_SIZE > CHUNK_CAPACITY)
 			{
 				_chunk = new Chunk(_chunk);
-				int consumption = MemoryPool::capacity();
+				int consumption = MemoryPool::getCapacity();
 				if (consumption > WARNING_SIZE * 1024)
 				{
 					Log("[WARNING] MemoryPool consumes %d KB memory larger than %d KB for type %s",
@@ -72,7 +72,7 @@ public:
 		item->~Item();
 		MemoryPool::free(r_cast<void*>(item));
 	}
-	int capacity()
+	int getCapacity() const
 	{
 		int chunkCount = 0;
 		for (Chunk* chunk = _chunk; chunk; chunk = chunk->next)
@@ -81,8 +81,9 @@ public:
 		}
 		return chunkCount * CHUNK_CAPACITY;
 	}
-	void shrink()
+	int collect()
 	{
+		int oldSize = getCapacity();
 		Chunk* prevChunk = nullptr;
 		FreeList* sortedChunkList = nullptr; // 总空闲队列
 		FreeList* sortedChunkListTail = nullptr; // 总空闲队列尾
@@ -137,6 +138,8 @@ public:
 		}
 		if (prev) prev->next = sortedChunkList; // prev现在为原回收队列的队尾，往队尾接上总空闲队列
 		else _freeList = sortedChunkList; // 将回收队列设置为总空闲队列
+		int newSize = getCapacity();
+		return oldSize - newSize;
 	}
 private:
 	struct FreeList
@@ -168,21 +171,18 @@ private:
 };
 
 #define USE_MEMORY_POOL_SIZE(type, SIZE) \
-public:\
-	inline void* operator new(size_t) { return _memory.alloc(); }\
-	inline void operator delete(void* ptr, size_t) { _memory.free(ptr); }\
-	static int poolCollect()\
-	{\
-		int oldSize = _memory.capacity();\
-		_memory.shrink();\
-		int newSize = _memory.capacity();\
-		return oldSize - newSize;\
-	}\
-	static int poolSize()\
-	{\
-		return _memory.capacity();\
-	}\
-private:\
+public: \
+	inline void* operator new(size_t) { return _memory.alloc(); } \
+	inline void operator delete(void* ptr, size_t) { _memory.free(ptr); } \
+	static int poolCollect() \
+	{ \
+		return _memory.collect(); \
+	} \
+	static int getPoolSize() \
+	{ \
+		return _memory.getCapacity(); \
+	} \
+private: \
 	static MemoryPool<type, SIZE> _memory
 
 #define USE_MEMORY_POOL(type) USE_MEMORY_POOL_SIZE(type, 4096)

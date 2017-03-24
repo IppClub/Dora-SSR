@@ -21,9 +21,15 @@ ValueEx<Own<XmlParser<ModelDef>>>* ModelCache::prepareParser(String filename)
 	return ValueEx<Own<XmlParser<ModelDef>>>::create(std::move(parser));
 }
 
+ModelCache::Parser::Parser(ModelDef* def, String path):
+XmlParser<ModelDef>(this, def),
+_path(path),
+_currentAnimationDef(nullptr)
+{ }
+
 KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation()
 {
-	//lazy alloc
+	// lazy alloc
 	if (!_currentAnimationDef)
 	{
 		_currentAnimationDef = new KeyAnimationDef();

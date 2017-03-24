@@ -29,7 +29,7 @@ private:
 	class Parser : public XmlParser<ModelDef>, public rapidxml::xml_sax2_handler
 	{
 	public:
-		Parser(ModelDef* def, String path):XmlParser<ModelDef>(this, def),_path(path) { }
+		Parser(ModelDef* def, String path);
 		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
