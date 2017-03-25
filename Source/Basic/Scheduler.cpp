@@ -29,7 +29,6 @@ protected:
 	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
-vector<int> Scheduler::_removePositions;
 vector<Ref<Object>> Scheduler::_updateItems;
 
 Scheduler::Scheduler():
@@ -102,11 +101,10 @@ bool Scheduler::update(double deltaTime)
 {
 	// not save _it and _deltaTime on the stack memory
 	_deltaTime = deltaTime * _timeScale;
-	_it = _updateList.rbegin();
 
 	/* update actions */
-	int size = _actionList->getCount();
-	for (int i = 0; i < size; i++)
+	int i = 0, count = _actionList->getCount();
+	while (i < count)
 	{
 		Ref<Action> action(_actionList->get(i).to<Action>());
 		if (action)
@@ -124,31 +122,25 @@ bool Scheduler::update(double deltaTime)
 						target->removeAction(action);
 						target->emit("ActionEnd"_slice, action.get(), target);
 					}
-					else
-					{
-						_removePositions.push_back(i);
-					}
 				}
 			}
 		}
 		else
 		{
-			_removePositions.push_back(i);
-		}
-	}
-	for (int pos : _removePositions)
-	{
-		_actionList->fastRemoveAt(pos);
-		if (pos < _actionList->getCount())
-		{
-			Action* action = _actionList->get(pos).to<Action>();
-			if (action)
+			_actionList->fastRemoveAt(i);
+			if (i < _actionList->getCount())
 			{
-				action->_order = pos;
+				Action* action = _actionList->get(i).to<Action>();
+				if (action)
+				{
+					action->_order = i;
+				}
 			}
+			i--;
+			count--;
 		}
+		i++;
 	}
-	_removePositions.clear();
 
 	/* update scheduled items */
 	_updateItems.reserve(_updateList.size());

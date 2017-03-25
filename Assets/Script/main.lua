@@ -1,5 +1,15 @@
 Dorothy()
 
+Director.displayStats = true
+
+collectgarbage("collect")
+
+for k,v in pairs(ubox()) do
+	print(k,v)
+end
+
+if true then return end
+
 local function Move(duration, start, stop, ease)
 	return Spawn(
 		X(duration, start.x, stop.x, ease),
@@ -66,9 +76,20 @@ for i = 1, #arr do
 end
 
 thread(function()
+	print("here1")
 	sleep(5)
 	--Director:popEntry()
+	print("here2")
+	--[[local model = Director.currentEntry.children.first.children.first
+	print(model)
+	model.reversed = false
+	model.speed = 0.5
+	sleep(3)
+	model.speed = 2.5
+	sleep(3)
+	model.speed = 1]]
 end)
+
 --[[
 
 local sprite = Sprite("Image/logo.png")

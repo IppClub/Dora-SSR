@@ -65,8 +65,10 @@ class Director
 	tolua_property__common Scheduler* scheduler;
 	tolua_property__common Node* uI @ ui;
 	tolua_property__common Camera* camera;
+	tolua_property__bool bool displayStats;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Array* entries;
+	tolua_readonly tolua_property__common Node* currentEntry;
 	tolua_readonly tolua_property__common double deltaTime;
 	void setEntry(Node* entry);
 	void pushEntry(Node* entry);
@@ -534,6 +536,7 @@ class Model: public Node
 	tolua_readonly tolua_property__common float duration;
 	tolua_property__common float recovery;
 	tolua_property__bool bool faceRight;
+	tolua_property__bool bool reversed;
 	tolua_readonly tolua_property__bool bool playing;
 	tolua_readonly tolua_property__bool bool paused;
 	tolua_readonly tolua_property__common string currentAnimationName @ currentAnimation;

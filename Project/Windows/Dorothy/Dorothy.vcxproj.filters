@@ -483,6 +483,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpvm.cpp">
       <Filter>3rdParty\lpeg</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -917,6 +920,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpvm.h">
       <Filter>3rdParty\lpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h">
+      <Filter>Cache</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

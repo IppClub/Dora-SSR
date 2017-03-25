@@ -28,8 +28,11 @@ public:
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
 	PROPERTY_READONLY(double, CPUTime);
+	PROPERTY_READONLY(double, TotalTime);
 	PROPERTY_READONLY(const Slice, Platform);
 	PROPERTY_READONLY(SDL_Window*, SDLWindow);
+	PROPERTY(Uint32, MaxFPS);
+	PROPERTY(Uint32, MinFPS);
 	PROPERTY(Uint32, Seed);
 	SDLEventHandler eventHandler;
 	int run();
@@ -58,11 +61,14 @@ private:
 	unsigned int _seed;
 	int _width;
 	int _height;
+	Uint32 _maxFPS;
+	Uint32 _minFPS;
 	uint32_t _frame;
 	const double _frequency;
 	double _lastTime;
 	double _deltaTime;
 	double _cpuTime;
+	double _totalTime;
 	bx::Thread _logicThread;
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;

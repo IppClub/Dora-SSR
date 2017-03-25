@@ -290,7 +290,7 @@ Dictionary.__len = function(self)
 end
 
 local function disallowAssignGlobal(_,name)
-	error("Disallow creating global value \""..name.."\".")
+	error("Disallow creating global variable \""..name.."\".")
 end
 
 local dorothyEnvMeta = {

@@ -43,11 +43,6 @@ _mouseWheel(0.0f)
 ImGUIDora::~ImGUIDora()
 {
 	SharedApplication.eventHandler -= std::make_pair(this, &ImGUIDora::handleEvent);
-
-	if (bgfx::isValid(_textureSampler))
-	{
-		bgfx::destroyUniform(_textureSampler);
-	}
 	ImGui::Shutdown();
 }
 
@@ -109,8 +104,8 @@ bool ImGUIDora::init()
 	io.ImeSetInputScreenPosFn = ImGUIDora::setImePositionHint;
 	io.ClipboardUserData = nullptr;
 
-	_effect = Effect::create("built-in/vs_ocornut_imgui.bin"_slice, "built-in/fs_ocornut_imgui.bin"_slice);
-	_textureSampler = bgfx::createUniform("s_tex", bgfx::UniformType::Int1);
+	_effect = SpriteEffect::create("built-in/vs_ocornut_imgui.bin"_slice,
+		"built-in/fs_ocornut_imgui.bin"_slice);
 
 	Sint64 size;
 	Uint8* fileData = SharedContent.loadFileUnsafe("Font/fangzhen14.ttf", size);
@@ -265,8 +260,8 @@ void ImGUIDora::render()
 		}
 
 		ImGUIDora* guiDora = SharedImGUI.getTarget();
-		bgfx::UniformHandle sampler = guiDora->_textureSampler;
 		bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
+		bgfx::UniformHandle sampler = guiDora->_effect->getSampler();
 		bgfx::ProgramHandle program = guiDora->_effect->apply();
 
 		// Render command lists

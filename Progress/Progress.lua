@@ -17,17 +17,17 @@ CCDirector	241	n
 	scheduler	30	y
 	currentScene	8	y
 	eclapsedInterval	8	y
-	pause	6	n
+	pause	6	d
 	notificationNode	6	n
 	sceneStackSize	4	y
 	popScene	3	y
 	replaceScene	2	y
 	stop	1	n
-	resume	1	n
+	resume	1	d
 	updateInterval	1	n
 	drawInterval	1	n
 	run	1	y
-	displayStats	1	n
+	displayStats	1	y
 	numberOfDraws	1	n
 CCSize	214	y
 	height	885	y

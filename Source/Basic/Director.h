@@ -25,6 +25,7 @@ public:
 	PROPERTY(Node*, UI);
 	PROPERTY(Camera*, Camera);
 	PROPERTY(Color, ClearColor);
+	PROPERTY_BOOL(DisplayStats);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(Array*, Entries);
@@ -51,10 +52,11 @@ public:
 	}
 protected:
 	Director();
-	void displayStat();
+	void displayStats();
 	void pushViewProjection(const float* viewProj);
 	void popViewProjection();
 private:
+	bool _displayStats;
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Array> _entryStack;

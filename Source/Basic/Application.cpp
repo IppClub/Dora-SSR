@@ -33,8 +33,11 @@ Application::Application():
 _frame(0),
 _width(800),
 _height(600),
+_maxFPS(60),
+_minFPS(30),
 _deltaTime(0),
 _cpuTime(0),
+_totalTime(0),
 _frequency(double(bx::getHPFrequency())),
 _sdlWindow(nullptr)
 {
@@ -60,6 +63,26 @@ void Application::setSeed(Uint32 var)
 Uint32 Application::getSeed() const
 {
 	return _seed;
+}
+
+void Application::setMaxFPS(Uint32 var)
+{
+	_maxFPS = var;
+}
+
+Uint32 Application::getMaxFPS() const
+{
+	return _maxFPS;
+}
+
+void Application::setMinFPS(Uint32 var)
+{
+	_minFPS = var;
+}
+
+Uint32 Application::getMinFPS() const
+{
+	return _minFPS;
 }
 
 Uint32 Application::getFrame() const
@@ -219,8 +242,14 @@ double Application::getCPUTime() const
 	return _cpuTime;
 }
 
+double Application::getTotalTime() const
+{
+	return _totalTime;
+}
+
 void Application::makeTimeNow()
 {
+	_totalTime += _deltaTime;
 	_lastTime = bx::getHPCounter() / _frequency;
 }
 
@@ -309,10 +338,10 @@ int Application::mainLogic(void* userData)
 		// process submitted rendering primitives.
 		app->_frame = bgfx::frame();
 
-		// limit for 60 FPS
+		// limit for max FPS
 		do {
 			app->updateDeltaTime();
-		} while (app->getDeltaTime() < 1.0/60);
+		} while (app->getDeltaTime() < 1.0/app->_maxFPS);
 		app->makeTimeNow();
 	}
 

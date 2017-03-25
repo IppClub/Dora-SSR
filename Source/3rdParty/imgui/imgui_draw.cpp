@@ -86,8 +86,8 @@ namespace IMGUI_STB_NAMESPACE
 #endif
 #include "stb_rect_pack.h"
 
-#define STBTT_malloc(x,u)  ((void)(u), ImGui::MemAlloc(x))
-#define STBTT_free(x,u)    ((void)(u), ImGui::MemFree(x))
+#define STBTT_malloc(x,u)  ((void)(u), malloc(x))
+#define STBTT_free(x,u)    ((void)(u), free(x))
 #define STBTT_assert(x)    IM_ASSERT(x)
 #ifndef IMGUI_DISABLE_STB_TRUETYPE_IMPLEMENTATION
 #define STBTT_STATIC

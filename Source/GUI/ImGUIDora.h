@@ -17,7 +17,7 @@ NS_DOROTHY_BEGIN
 
 class Listener;
 class Texture2D;
-class Effect;
+class SpriteEffect;
 
 class ImGUIDora : public TouchHandler
 {
@@ -42,8 +42,7 @@ private:
 	bool _mousePressed[3];
 	float _mouseWheel;
 	Ref<Texture2D> _fontTexture;
-	Ref<Effect> _effect;
-	bgfx::UniformHandle _textureSampler;
+	Ref<SpriteEffect> _effect;
 	bgfx::VertexDecl _vertexDecl;
 	list<SDL_Event> _inputs;
 	int _textLength;

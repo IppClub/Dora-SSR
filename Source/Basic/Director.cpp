@@ -27,7 +27,8 @@ _scheduler(Scheduler::create()),
 _systemScheduler(Scheduler::create()),
 _entryStack(Array::create()),
 _camera(Camera2D::create("Default"_slice)),
-_clearColor(0xff1a1a1a)
+_clearColor(0xff1a1a1a),
+_displayStats(false)
 { }
 
 void Director::setScheduler(Scheduler* scheduler)
@@ -69,6 +70,16 @@ Color Director::getClearColor() const
 	return _clearColor;
 }
 
+void Director::setDisplayStats(bool var)
+{
+	_displayStats = var;
+}
+
+bool Director::isDisplayStats() const
+{
+	return _displayStats;
+}
+
 Scheduler* Director::getSystemScheduler() const
 {
 	return _systemScheduler;
@@ -76,8 +87,8 @@ Scheduler* Director::getSystemScheduler() const
 
 double Director::getDeltaTime() const
 {
-	// only accept frames drop to 30 FPS
-	return std::min(SharedApplication.getDeltaTime(), 1.0/30);
+	// only accept frames drop to min FPS
+	return std::min(SharedApplication.getDeltaTime(), 1.0/SharedApplication.getMinFPS());
 }
 
 void Director::setCamera(Camera* var)
@@ -120,173 +131,14 @@ void registerTouchHandler(Node* target)
 bool Director::init()
 {
 	SharedView.reset();
-	SharedLueEngine.executeScriptFile("Script/main.lua");
-
 	if (!SharedImGUI.init())
 	{
 		return false;
 	}
-
-	ModelDef* modelDef = SharedModelCache.load("Model/jixienv.model");
-	Model* model = Model::create(modelDef);
-
-	/*
-	xml_sax2_handler_impl handler;
-	rapidxml::xml_sax3_parser<> parser(&handler);
-	char xml[] = "<Dorothy><Node X=\"0\" Y=\"998\"/></Dorothy>";
-	try
+	if (SharedContent.isExist("Script/main.lua"_slice))
 	{
-		parser.parse<>(xml, s_cast<int>(sizeof(xml)));
+		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
 	}
-	catch (rapidxml::parse_error error)
-	{
-		Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - xml);
-	}
-	*/
-	Label* label = Label::create("NotoSansHans-Regular", 18);
-	label->setTextWidth(600);
-	label->setLineGap(5);
-	label->setAlignment(TextAlignment::Left);
-	label->setText(u8"tolua++中定义一个C++对象进入Lua系统后，便被转换为一个包含原C++对象指针的Lua Userdata，然后给这个Userdata设置上一个包含所有C++对象可以调用方法的metatable。\n\n使得该Userdata可以调用原C++对象的成员和方法。从而在Lua中提供操作一个C++对象的方法。 <br />&emsp;&emsp;此外tolua++中除了设置好和C++类型继承一致的metatable链，还提供了每个metatable对应的叫做tolua_super的表，里面会记录自己的父类链上的所有父类，用于查询一个Lua中的类型是否是另一个类型的子类。为什么需要这个东西呢？因为一个C++对象可能会被多次在Lua通过不同的接口获取，同一个对象从不同的接口中获取时，可能会显示为不同的类型，如获取Cocos2d-x中一个CCNode的子节点，用getChildByTag获取的是类型为CCNode的子节点，但是从getChildren接口获取的子节点类型为CCObject，而这个子节点在最初创建使用的时候可能其实是一个CCSprite的类型。就是说同一个对象在不同的地方可能会被识别为不同的类型。但是我们为了不重复创建对象而让同一个C++对象只会对应一个Lua Userdata，那么这个Userdata的metatable应该设置为上述的哪一个类型呢？实际上只能是继承链靠后的类型，在CCObject &lt;= CCNode &lt;= CCSprite的继承链中应为CCSprite，因为只有CCSprite类型能满足所有调用该C++对象的场景。所以每次C++对象被Lua获取的时候需要检查类型的继承关系，将Lua中的C++对象升级成更靠后的子类，所以设计了这个tolua_super表来完成这项功能。");
-/*
-	ParticleDef* def = ParticleDef::fire();
-	//def->duration = 2;
-	ParticleNode* node = ParticleNode::create(def);
-	label->setTouchEnabled(true);
-	label->slot("TapMoved"_slice, [node](Event* e)
-	{
-		Touch* touch;
-		e->get(touch);
-		node->setPosition(node->getPosition() + touch->getDelta());
-	});
-	label->slot("Tapped"_slice, [node](Event* e)
-	{
-		node->start();
-	});
-	node->slot("Finished"_slice, [](Event* e)
-	{
-		Log("Finished!");
-	});
-	node->start();
-	label->addChild(node);
-*/
-	RenderTarget* target = RenderTarget::create(512, 512);
-	label->setPosition(Vec2{256,256});
-	label->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
-	target->renderWithClear(label, 0x0);
-	label->setBlendFunc(BlendFunc::Default);
-	label->setPosition(Vec2{0,0});
-	target->render(label);
-	/*target->saveAsync(SharedContent.getWritablePath() + "image.png", []()
-	{
-		Log("Save done!");
-	});
-	*/
-
-	Sprite* sp = Sprite::create("Image/logo.png");
-	//sp->setAngle(60.0f);
-	ClipNode* cn = ClipNode::create(sp);
-	//sp->setAngle(45.0f);
-	sp->schedule([sp](double)
-	{
-		//sp->setAngle(sp->getAngle()+1);
-		return false;
-	});
-	//cn->setInverted(true);
-	cn->addChild(target);
-	
-	Sprite* sp1 = Sprite::create("Image/logo.png");
-	Sprite* sp2 = Sprite::create("Image/logo.png");
-	ClipNode* cn1 = ClipNode::create(sp1);
-	//sp1->setAngle(45.0f);
-	//cn->setInverted(true);
-	cn1->addChild(cn);
-	sp2->setPosition(Vec2{-20,-20});
-	cn1->addChild(sp2);
-
-	cn1->setAlphaThreshold(0.0f);
-	DrawNode* dn = DrawNode::create();
-	dn->drawPolygon({{0,0},{0,200},{200,200},{200,0}}, 0x6600ffff, 0.5f, 0xff00ffff);
-	dn->drawDot(Vec2::zero, 50, 0xff00ffff);
-	dn->drawSegment(Vec2::zero, {100,100}, 10, 0xffff0088);
-	dn->setSkewX(45.0f);
-	sp2->addChild(dn);
-	DrawNode* dn1 = DrawNode::create();
-	dn1->drawDot(Vec2::zero, 200, 0x88ffffff);
-	dn->addChild(dn1);
-
-	vector<Vec2> verts{{0,0}, {0, 200}, {50, 50}};
-	Line* line = Line::create(verts, 0xff00ffff);
-	line->add({{-50,-50},{-100,-200}}, 0xffff0080);
-	Line* l2 = Line::create(verts, 0xff80ff00);
-	l2->setAngle(45.0f);
-	line->addChild(l2);
-	sp2->addChild(line);
-
-	Action* action;
-	action = Sequence::create({
-		PropertyAction::alloc(0, 1.0f, 1.0f, Property::Opacity),
-		//Hide::alloc(),
-		Delay::alloc(1),
-		Call::alloc([](){ Log("Blink"); }),
-		PropertyAction::alloc(3, 0.0f, 200.0f, Property::X, Ease::OutBounce),
-		PropertyAction::alloc(3, 0.0f, 200.0f, Property::Y, Ease::OutBounce),
-		PropertyAction::alloc(4, 1.0f, 0.0f, Property::Opacity),
-		Call::alloc([](){ Log("Ended"); }),
-		Call::alloc([](){ Log("Ended1"); }),
-		Call::alloc([](){ Log("Ended2"); }),
-		Show::alloc(),
-		//Hide::alloc(),
-		Call::alloc([cn1]()
-		{
-			cn1->runAction(s_cast<Action*>(cn1->getUserData()));
-		})
-	});
-	cn1->setUserData(action);
-	action->setSpeed(2.0f);
-	//action->setReversed(true);
-	cn1->runAction(action);
-	cn1->slot("ActionEnd"_slice, [](Event* e)
-	{
-		Action* action;
-		Node* target;
-		e->get(action, target);
-		Log("action is running: %s", action->isRunning() ? "true" : "false");
-		Log("running action count: %d", target->getActionCount());
-		//action->setReversed(!action->isReversed());
-		//target->runAction(action);
-	});
-	model->setLook("happy");
-	model->setLoop(true);
-	model->setReversed(true);
-	model->play("die");
-	model->handlers["die"] += [](Model* model)
-	{
-		model->setRecovery(1.0f);
-		model->play("walk");
-	};
-	//model->setOpacity(0.05f);
-	World* world = World::create();
-	world->setShowDebug(true);
-	world->setShouldContact(0, 0, true);
-
-	BodyDef* terrainDef = BodyDef::create();
-	terrainDef->attachPolygon(400.0f, 50.0f, 1.0f, 0.4f, 0.4f);
-	terrainDef->type = b2_staticBody;
-	Body* terrain = Body::create(terrainDef, world, Vec2{0,0});
-
-	BodyDef* bodyDef = BodyDef::create();
-	//bodyDef->angularVelocity = -bx::pi;
-	bodyDef->attachCircle(100.0f, 1.0f, 0.4f, 0.4f);
-	bodyDef->type = b2_dynamicBody;
-	Body* body = Body::create(bodyDef, world, Vec2{0,300.0f});
-	body->addChild(model);
-
-	world->addChild(body);
-	world->addChild(terrain);
-	//world->setOpacity(0.02f);
-	pushEntry(world);
-
 	return true;
 }
 
@@ -301,7 +153,7 @@ void Director::mainLoop()
 		_systemScheduler->update(getDeltaTime());
 
 		SharedImGUI.begin();
-		//ImGui::ShowTestWindow();
+		ImGui::ShowTestWindow();
 		_scheduler->update(getDeltaTime());
 		SharedImGUI.end();
 
@@ -355,7 +207,10 @@ void Director::mainLoop()
 					_ui->visit();
 					SharedRendererManager.flush();
 				}
-				displayStat();
+				if (_displayStats)
+				{
+					displayStats();
+				}
 			});
 		});
 
@@ -365,7 +220,7 @@ void Director::mainLoop()
 	});
 }
 
-void Director::displayStat()
+void Director::displayStats()
 {
 	/* print debug text */
 	bgfx::dbgTextClear();
@@ -383,19 +238,31 @@ void Director::displayStat()
 		"Vulkan",       //!< Vulkan
 	};
 	Uint8 dbgViewId = SharedView.getId();
-	bgfx::dbgTextPrintf(dbgViewId, 1, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
-			, stats->width
-			, stats->height
-			, stats->textWidth
-			, stats->textHeight);
-	bgfx::dbgTextPrintf(dbgViewId, 3, 0x0f, "Compute %d, Draw %d, CPU Time %.3f/%.3f, GPU Time %.3f, MultiThreaded %s, Renderer %s"
-			, stats->numCompute
-			, stats->numDraw
-			, SharedApplication.getCPUTime()
-			, SharedApplication.getDeltaTime()
-			, (std::max(stats->gpuTimeEnd, stats->gpuTimeBegin) - std::min(stats->gpuTimeEnd, stats->gpuTimeBegin)) / double(stats->gpuTimerFreq)
-			, (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false"
-			, rendererNames[bgfx::getCaps()->rendererType]);
+	bgfx::dbgTextPrintf(dbgViewId, 1, 0x0f, "\x1b[14;mRenderer: \x1b[15;m%s", rendererNames[bgfx::getCaps()->rendererType]);
+	bgfx::dbgTextPrintf(dbgViewId, 2, 0x0f, "\x1b[14;mMultithreaded: \x1b[15;m%s", (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
+	bgfx::dbgTextPrintf(dbgViewId, 3, 0x0f, "\x1b[14;mBackbuffer: \x1b[15;m%d x %d", stats->width, stats->height);
+	bgfx::dbgTextPrintf(dbgViewId, 4, 0x0f, "\x1b[14;mDraw call: \x1b[15;m%d", stats->numDraw);
+	static int frames = 0;
+	static double cpuTime = 0, gpuTime = 0, deltaTime = 0;
+	cpuTime += SharedApplication.getCPUTime();
+	gpuTime += std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
+	deltaTime += SharedApplication.getDeltaTime();
+	frames++;
+	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getMaxFPS();
+	bgfx::dbgTextPrintf(dbgViewId, 5, 0x0f, "\x1b[14;mCPU time: \x1b[15;m%.1f ms", lastCpuTime);
+	bgfx::dbgTextPrintf(dbgViewId, 6, 0x0f, "\x1b[14;mGPU time: \x1b[15;m%.1f ms", lastGpuTime);
+	bgfx::dbgTextPrintf(dbgViewId, 7, 0x0f, "\x1b[14;mDelta time: \x1b[15;m%.1f ms", lastDeltaTime);
+	if (frames == SharedApplication.getMaxFPS())
+	{
+		lastCpuTime = 1000.0 * cpuTime / frames;
+		lastGpuTime = 1000.0 * gpuTime / frames;
+		lastDeltaTime = 1000.0 * deltaTime / frames;
+		frames = 0;
+		cpuTime = gpuTime = deltaTime = 0.0;
+	}
+	bgfx::dbgTextPrintf(dbgViewId, 8, 0x0f, "\x1b[14;mC++ Object: \x1b[15;m%d", Object::getObjectCount());
+	bgfx::dbgTextPrintf(dbgViewId, 9, 0x0f, "\x1b[14;mLua Object: \x1b[15;m%d", Object::getLuaRefCount());
+	bgfx::dbgTextPrintf(dbgViewId, 10, 0x0f, "\x1b[14;mCallback: \x1b[15;m%d", Object::getLuaCallbackCount());
 }
 
 void Director::pushViewProjection(const float* viewProj)
