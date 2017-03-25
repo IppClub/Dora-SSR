@@ -73,7 +73,7 @@ bool Model::init()
 
 void Model::addLook(int index, Node* node)
 {
-	for (int n = s_cast<int>(_looks.size()); n < index + 1; _looks.push_back(new Look()), n++);
+	for (int n = s_cast<int>(_looks.size()); n < index + 1; _looks.push_back(New<Look>()), n++);
 	_looks[index]->add(node);
 }
 
@@ -164,8 +164,8 @@ void Model::reset()
 
 void Model::addAnimation(int index, Node* node, Action* action)
 {
-	for (int n = (int)_animationGroups.size();n < index + 1;_animationGroups.push_back(new AnimationGroup()), n++);
-	_animationGroups[index]->animations.push_back(new Animation(node, action));
+	for (int n = (int)_animationGroups.size();n < index + 1;_animationGroups.push_back(New<AnimationGroup>()), n++);
+	_animationGroups[index]->animations.push_back(New<Animation>(node, action));
 }
 
 void Model::stop()
@@ -597,7 +597,7 @@ void ResetAnimation::add(SpriteDef* spriteDef, Node* node, Action* action, Actio
 	data->node = node;
 	data->action = action;
 	data->resetTarget = resetTarget;
-	_group.push_back(data);
+	_group.push_back(MakeOwn(data));
 	if (_group.size() == 1)
 	{
 		_group[0]->action = Sequence::create(

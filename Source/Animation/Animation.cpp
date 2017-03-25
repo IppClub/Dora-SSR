@@ -289,9 +289,9 @@ KeyFrameDef* KeyAnimationDef::getLastFrameDef() const
 	return nullptr;
 }
 
-void KeyAnimationDef::add(KeyFrameDef* def )
+void KeyAnimationDef::add(Own<KeyFrameDef>&& def)
 {
-	_keyFrameDefs.push_back(def);
+	_keyFrameDefs.push_back(std::move(def));
 }
 
 const OwnVector<KeyFrameDef>& KeyAnimationDef::getFrames() const

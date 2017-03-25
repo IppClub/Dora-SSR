@@ -101,14 +101,6 @@ public:
 	using OwnV::OwnV;
 	using OwnV::insert;
 
-	inline void push_back(T* item)
-	{
-		OwnV::push_back(MakeOwn(item));
-	}
-	typename OwnV::iterator insert(size_t where, T* item)
-	{
-		return OwnV::insert(OwnV::begin() + where, MakeOwn(item));
-	}
 	bool remove(T* item)
 	{
 		auto it = std::remove(OwnV::begin(), OwnV::end(), item);

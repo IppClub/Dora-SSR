@@ -285,7 +285,7 @@ bool Director::init()
 	world->addChild(body);
 	world->addChild(terrain);
 	//world->setOpacity(0.02f);
-	//pushEntry(world);
+	pushEntry(world);
 
 	return true;
 }

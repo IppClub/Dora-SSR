@@ -44,7 +44,7 @@ void BodyDef::attachPolygon(const Vec2& center, float width, float height, float
 	fixtureDef->density = density;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachPolygon(float width, float height, float density, float friction, float restitution)
@@ -56,7 +56,7 @@ void BodyDef::attachPolygon(float width, float height, float density, float fric
 	fixtureDef->density = density;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
@@ -74,7 +74,7 @@ void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float f
 	fixtureDef->density = density;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, float friction, float restitution)
@@ -92,7 +92,7 @@ void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, flo
 	fixtureDef->density = density;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachLoop(const vector<Vec2>& vertices, float friction, float restitution)
@@ -110,7 +110,7 @@ void BodyDef::attachLoop(const vector<Vec2>& vertices, float friction, float res
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachLoop(const Vec2 vertices[], int count, float friction, float restitution)
@@ -127,7 +127,7 @@ void BodyDef::attachLoop(const Vec2 vertices[], int count, float friction, float
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachCircle(const Vec2& center, float radius, float density, float friction, float restitution)
@@ -140,7 +140,7 @@ void BodyDef::attachCircle(const Vec2& center, float radius, float density, floa
 	fixtureDef->density = density;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachCircle(float radius, float density, float friction, float restitution)
@@ -163,7 +163,7 @@ void BodyDef::attachChain(const vector<Vec2>& vertices, float friction, float re
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, float restitution)
@@ -180,7 +180,7 @@ void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, floa
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
 	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachPolygonSensor(int tag, float width, float height)
@@ -199,7 +199,7 @@ void BodyDef::attachPolygonSensor(int tag, float width, float height, const Vec2
 	fixtureDef->shape = shape;
 	fixtureDef->isSensor = true;
 	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
@@ -216,7 +216,7 @@ void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
 	fixtureDef->shape = shape;
 	fixtureDef->isSensor = true;
 	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachPolygonSensor(int tag, const Vec2 vertices[], int count)
@@ -232,7 +232,7 @@ void BodyDef::attachPolygonSensor(int tag, const Vec2 vertices[], int count)
 	fixtureDef->shape = shape;
 	fixtureDef->isSensor = true;
 	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachCircleSensor(int tag, const Vec2& center, float radius)
@@ -244,7 +244,7 @@ void BodyDef::attachCircleSensor(int tag, const Vec2& center, float radius)
 	fixtureDef->shape = shape;
 	fixtureDef->isSensor = true;
 	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(fixtureDef);
+	_fixtureDefs.push_back(MakeOwn(fixtureDef));
 }
 
 void BodyDef::attachCircleSensor(int tag, float radius)

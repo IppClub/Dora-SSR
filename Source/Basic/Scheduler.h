@@ -29,7 +29,6 @@ public:
 	CREATE_FUNC(Scheduler);
 protected:
 	Scheduler();
-	void doUpdate();
 private:
 	float _timeScale;
 	double _deltaTime;
@@ -37,6 +36,9 @@ private:
 	UpdateList _updateList;
 	UpdateMap _updateMap;
 	Ref<Array> _actionList;
+private:
+	static vector<int> _removePositions;
+	static vector<Ref<Object>> _updateItems;
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 

@@ -9,6 +9,8 @@ thread ->
 	Cache\loadAsync "Image/test.pvr", (file)->
 		sp = Sprite file
 		Director\pushEntry sp
+	sleep 1
+	Director\popEntry!
 	Cache\loadAsync Content.writablePath.."test.par"
 	print "1.hello"
 	sleep 1

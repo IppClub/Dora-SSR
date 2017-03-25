@@ -383,7 +383,7 @@ void FontManager::init()
 	m_cachedFonts = NewArray<CachedFont>(MAX_OPENED_FONT);
 	m_buffer = NewArray<uint8_t>(MAX_FONT_BUFFER_SIZE);
 	m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray, false);
-	m_atlases.push_back(m_currentAtlas);
+	m_atlases.push_back(MakeOwn(m_currentAtlas));
 	
 	const uint32_t W = 3;
 	uint8_t buffer[W * W * 1];
@@ -537,7 +537,7 @@ bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint)
 		if (!addBitmap(glyphInfo, m_buffer))
 		{
 			m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray);
-			m_atlases.push_back(m_currentAtlas);
+			m_atlases.push_back(MakeOwn(m_currentAtlas));
 			if (!addBitmap(glyphInfo, m_buffer))
 			{
 				return false;

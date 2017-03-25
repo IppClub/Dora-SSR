@@ -109,7 +109,7 @@ private:
 class KeyAnimationDef : public AnimationDef
 {
 public:
-	void add(KeyFrameDef* def);
+	void add(Own<KeyFrameDef>&& def);
 	KeyFrameDef* getLastFrameDef() const;
 	const OwnVector<KeyFrameDef>& getFrames() const;
 	virtual Action* toAction() override;

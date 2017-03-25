@@ -29,6 +29,9 @@ protected:
 	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
+vector<int> Scheduler::_removePositions;
+vector<Ref<Object>> Scheduler::_updateItems;
+
 Scheduler::Scheduler():
 _timeScale(1.0f),
 _actionList(Array::create())
@@ -95,28 +98,6 @@ void Scheduler::unschedule(Action* action)
 	}
 }
 
-void Scheduler::doUpdate()
-{
-	if (_it != _updateList.rend())
-	{
-		/** save object ptrs on the stack memory and keep them referenced
-		 in case they are deleted during iteration
-		 */
-		Ref<Object> item(*_it);
-		++_it;
-		doUpdate();
-		if (item->update(_deltaTime))
-		{
-			FuncWrapper* func = DoraCast<FuncWrapper>(item.get());
-			if (func)
-			{
-				_updateList.erase(func->it);
-			}
-			else unschedule(item);
-		}
-	}
-}
-
 bool Scheduler::update(double deltaTime)
 {
 	// not save _it and _deltaTime on the stack memory
@@ -124,7 +105,6 @@ bool Scheduler::update(double deltaTime)
 	_it = _updateList.rbegin();
 
 	/* update actions */
-	static vector<int> delPos;
 	int size = _actionList->getCount();
 	for (int i = 0; i < size; i++)
 	{
@@ -146,17 +126,17 @@ bool Scheduler::update(double deltaTime)
 					}
 					else
 					{
-						delPos.push_back(i);
+						_removePositions.push_back(i);
 					}
 				}
 			}
 		}
 		else
 		{
-			delPos.push_back(i);
+			_removePositions.push_back(i);
 		}
 	}
-	for (int pos : delPos)
+	for (int pos : _removePositions)
 	{
 		_actionList->fastRemoveAt(pos);
 		if (pos < _actionList->getCount())
@@ -168,9 +148,24 @@ bool Scheduler::update(double deltaTime)
 			}
 		}
 	}
-	delPos.clear();
+	_removePositions.clear();
 
-	doUpdate();
+	/* update scheduled items */
+	_updateItems.reserve(_updateList.size());
+	_updateItems.insert(_updateItems.begin(), _updateList.begin(), _updateList.end());
+	for (const auto& item : _updateItems)
+	{
+		if (item->update(_deltaTime))
+		{
+			FuncWrapper* func = DoraCast<FuncWrapper>(item.get());
+			if (func)
+			{
+				_updateList.erase(func->it);
+			}
+			else unschedule(item);
+		}
+	}
+	_updateItems.clear();
 	return false;
 }
 

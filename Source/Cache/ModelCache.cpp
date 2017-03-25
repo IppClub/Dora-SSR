@@ -32,9 +32,9 @@ KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation()
 	// lazy alloc
 	if (!_currentAnimationDef)
 	{
-		_currentAnimationDef = new KeyAnimationDef();
+		_currentAnimationDef.reset(new KeyAnimationDef());
 	}
-	return (KeyAnimationDef*)_currentAnimationDef;
+	return s_cast<KeyAnimationDef*>(_currentAnimationDef.get());
 }
 
 void ModelCache::Parser::getPosFromStr(String str, float& x, float& y)
@@ -105,7 +105,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						break;
 				}
 			}
-			_nodeStack.push(spriteDef);
+			_nodeStack.push(MakeOwn(spriteDef));
 			break;
 		}
 		case Xml::Model::Element::KeyFrame:
@@ -221,7 +221,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			{
 				keyFrameDef->visible = lastDef->visible;
 			}
-			animationDef->add(keyFrameDef);
+			animationDef->add(MakeOwn(keyFrameDef));
 			break;
 		}
 		case Xml::Model::Element::FrameAnimation:
@@ -240,7 +240,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				}
 			}
 			SpriteDef* nodeDef = _nodeStack.top();
-			nodeDef->animationDefs.push_back(frameAnimationDef);
+			nodeDef->animationDefs.push_back(Own<AnimationDef>(frameAnimationDef));
 			break;
 		}
 		case Xml::Model::Element::Look:
@@ -330,24 +330,23 @@ void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len)
 	{
 		case Xml::Model::Element::Sprite:
 		{
-			SpriteDef* nodeDef = _nodeStack.top();
+			Own<SpriteDef> nodeDef = std::move(_nodeStack.top());
 			_nodeStack.pop();
 			if (_nodeStack.empty())
 			{
-				_item->setRoot(MakeOwn(nodeDef));
+				_item->setRoot(std::move(nodeDef));
 			}
 			else
 			{
 				SpriteDef* parentDef = _nodeStack.top();
-				parentDef->children.push_back(nodeDef);
+				parentDef->children.push_back(std::move(nodeDef));
 			}
 			break;
 		}
 		case Xml::Model::Element::KeyAnimation:
 		{
 			SpriteDef* nodeDef = _nodeStack.top();
-			nodeDef->animationDefs.push_back(_currentAnimationDef);
-			_currentAnimationDef = nullptr;
+			nodeDef->animationDefs.push_back(std::move(_currentAnimationDef));
 			break;
 		}
 	}

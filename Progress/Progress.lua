@@ -34,10 +34,10 @@ CCSize	214	y
 	width	849	y
 	zero	397	y
 CCMenu	146	n
-	addChild	1138	n
-	enabled	318	n
-	runAction	206	n
-	DefaultHandlerPriority	61	n
+	addChild	1138	y
+	enabled	318	y
+	runAction	206	y
+	DefaultHandlerPriority	61	d
 	alignItems	43	n
 	alignItemsVertically	6	n
 	alignItemsHorizontally	1	n
@@ -168,13 +168,13 @@ CCUserDefault	10	n
 ccBlendFunc	9	y
 	Zero	3	y
 	One	3	y
-CCDictionary	9	n
-	each	13	n
-	count	11	n
-	get	8	n
-	set	7	n
-	clear	4	n
-	keys	3	n
+CCDictionary	9	y
+	each	13	y
+	count	11	y
+	get	8	y
+	set	7	y
+	clear	4	y
+	keys	3	y
 CCObject	9	y
 	count	11	y
 	id	7	y
