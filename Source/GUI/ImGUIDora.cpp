@@ -26,6 +26,7 @@ _cursor(0),
 _editingDel(false),
 _textLength(0),
 _textEditing{},
+_isLoadingFont(false),
 _textInputing(false),
 _mousePressed{ false, false, false },
 _mouseWheel(0.0f)
@@ -76,6 +77,86 @@ void ImGUIDora::setImePositionHint(int x, int y)
 	});
 }
 
+void ImGUIDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)
+{
+	if (_isLoadingFont) return;
+	_isLoadingFont = true;
+
+	Sint64 size;
+	Uint8* fileData = SharedContent.loadFileUnsafe(ttfFontFile, size);
+
+	if (!fileData)
+	{
+		Log("load ttf file for imgui failed!");
+		return;
+	}
+	
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->ClearFonts();
+	ImFontConfig fontConfig;
+	fontConfig.FontDataOwnedByAtlas = false;
+	fontConfig.PixelSnapH = true;
+	fontConfig.OversampleH = 1;
+	fontConfig.OversampleV = 1;
+	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), fontSize, &fontConfig, io.Fonts->GetGlyphRangesDefault());
+	Uint8* texData;
+	int width;
+	int height;
+	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
+	updateTexture(texData, width, height);
+	io.Fonts->ClearTexData();
+	io.Fonts->ClearInputData();
+
+	const ImWchar* targetGlyphRanges = nullptr;
+	switch (Switch::hash(glyphRanges))
+	{
+		case "Chinese"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesChinese();
+			break;
+		case "Korean"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesKorean();
+			break;
+		case "Japanese"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesJapanese();
+			break;
+		case "Cyrillic"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesCyrillic();
+			break;
+		case "Thai"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesThai();
+			break;
+	}
+
+	if (targetGlyphRanges)
+	{
+		io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), fontSize, &fontConfig, targetGlyphRanges);
+		SharedAsyncThread.Process.run([]()
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			int texWidth, texHeight;
+			ImVec2 texUvWhitePixel;
+			unsigned char* texPixelsAlpha8;
+			io.Fonts->Build(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
+			return Values::create(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
+		}, [this, fileData, size](Values* result)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			result->get(io.Fonts->TexWidth, io.Fonts->TexHeight, io.Fonts->TexUvWhitePixel, io.Fonts->TexPixelsAlpha8);
+			io.Fonts->Fonts.erase(io.Fonts->Fonts.begin());
+			updateTexture(io.Fonts->TexPixelsAlpha8, io.Fonts->TexWidth, io.Fonts->TexHeight);
+			io.Fonts->ClearTexData();
+			io.Fonts->ClearInputData();
+			MakeOwnArray(fileData, s_cast<size_t>(size));
+			_isLoadingFont = false;
+		});
+	}
+	else
+	{
+		MakeOwnArray(fileData, s_cast<size_t>(size));
+		_isLoadingFont = false;
+	}
+}
+
 bool ImGUIDora::init()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -104,18 +185,10 @@ bool ImGUIDora::init()
 	io.ImeSetInputScreenPosFn = ImGUIDora::setImePositionHint;
 	io.ClipboardUserData = nullptr;
 
-	_effect = SpriteEffect::create("built-in/vs_ocornut_imgui.bin"_slice,
+	_effect = SpriteEffect::create(
+		"built-in/vs_ocornut_imgui.bin"_slice,
 		"built-in/fs_ocornut_imgui.bin"_slice);
 
-	Sint64 size;
-	Uint8* fileData = SharedContent.loadFileUnsafe("Font/fangzhen14.ttf", size);
-	
-	ImFontConfig fontConfig;
-	fontConfig.FontDataOwnedByAtlas = false;
-	fontConfig.PixelSnapH = true;
-	fontConfig.OversampleH = 1;
-	fontConfig.OversampleV = 1;
-	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), 14, &fontConfig, io.Fonts->GetGlyphRangesDefault());
 	Uint8* texData;
 	int width;
 	int height;
@@ -123,26 +196,6 @@ bool ImGUIDora::init()
 	updateTexture(texData, width, height);
 	io.Fonts->ClearTexData();
 	io.Fonts->ClearInputData();
-
-	fontConfig.FontDataOwnedByAtlas = true;
-	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), 14, &fontConfig, io.Fonts->GetGlyphRangesChinese());
-	SharedAsyncThread.Process.run([]()
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		int texWidth, texHeight;
-		ImVec2 texUvWhitePixel;
-		unsigned char* texPixelsAlpha8;
-		io.Fonts->Build(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
-		return Values::create(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
-	}, [this](Values* result)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		result->get(io.Fonts->TexWidth, io.Fonts->TexHeight, io.Fonts->TexUvWhitePixel, io.Fonts->TexPixelsAlpha8);
-		io.Fonts->Fonts.erase(io.Fonts->Fonts.begin());
-		updateTexture(io.Fonts->TexPixelsAlpha8, io.Fonts->TexWidth, io.Fonts->TexHeight);
-		io.Fonts->ClearTexData();
-		io.Fonts->ClearInputData();
-	});
 
 	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime)
 	{

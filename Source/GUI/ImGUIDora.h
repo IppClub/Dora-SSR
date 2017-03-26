@@ -27,6 +27,7 @@ public:
 	void begin();
 	void end();
 	void render();
+	void loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges = "Default");
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(Uint8* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
@@ -37,6 +38,7 @@ protected:
 	static void setClipboardText(void*, const char* text);
 	static void setImePositionHint(int x, int y);
 private:
+	bool _isLoadingFont;
 	bool _textInputing;
 	bool _editingDel;
 	bool _mousePressed[3];

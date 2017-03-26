@@ -1385,7 +1385,7 @@ bool    ImFontAtlas::Build(int& texWidth, int& texHeight, ImVec2& texUvWhitePixe
     {
         ImFontConfig& cfg = ConfigData[input_i];
         ImFontTempBuildData& tmp = tmp_array[input_i];
-        ImFont* dst_font = cfg.DstFont;
+        ImFont* dst_font = cfg.DstFont; // We can have multiple input fonts writing into a same destination font (when using MergeMode=true)
 
         float font_scale = stbtt_ScaleForPixelHeight(&tmp.FontInfo, cfg.SizePixels);
         int unscaled_ascent, unscaled_descent, unscaled_line_gap;
@@ -1402,6 +1402,7 @@ bool    ImFontAtlas::Build(int& texWidth, int& texHeight, ImVec2& texUvWhitePixe
             dst_font->Ascent = ascent;
             dst_font->Descent = descent;
             dst_font->Glyphs.resize(0);
+            dst_font->MetricsTotalSurface = 0;
         }
         dst_font->ConfigDataCount++;
         float off_y = (cfg.MergeMode && cfg.MergeGlyphCenterV) ? (ascent - dst_font->Ascent) * 0.5f : 0.0f;
@@ -1434,6 +1435,7 @@ bool    ImFontAtlas::Build(int& texWidth, int& texHeight, ImVec2& texUvWhitePixe
                 glyph.XAdvance = (pc.xadvance + cfg.GlyphExtraSpacing.x);  // Bake spacing into XAdvance
                 if (cfg.PixelSnapH)
                     glyph.XAdvance = (float)(int)(glyph.XAdvance + 0.5f);
+                dst_font->MetricsTotalSurface += (int)(glyph.X1 - glyph.X0 + 1.99f) * (int)(glyph.Y1 - glyph.Y0 + 1.99f); // +1 to account for average padding, +0.99 to round
             }
         }
         cfg.DstFont->BuildLookupTable();
@@ -1693,15 +1695,16 @@ void    ImFont::Clear()
 {
     FontSize = 0.0f;
     DisplayOffset = ImVec2(0.0f, 1.0f);
-    ConfigData = NULL;
-    ConfigDataCount = 0;
-    Ascent = Descent = 0.0f;
-    ContainerAtlas = NULL;
     Glyphs.clear();
-    FallbackGlyph = NULL;
-    FallbackXAdvance = 0.0f;
     IndexXAdvance.clear();
     IndexLookup.clear();
+    FallbackGlyph = NULL;
+    FallbackXAdvance = 0.0f;
+    ConfigDataCount = 0;
+    ConfigData = NULL;
+    ContainerAtlas = NULL;
+    Ascent = Descent = 0.0f;
+    MetricsTotalSurface = 0;
 }
 
 void ImFont::BuildLookupTable()

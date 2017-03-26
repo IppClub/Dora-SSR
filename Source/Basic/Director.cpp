@@ -135,6 +135,7 @@ bool Director::init()
 	{
 		return false;
 	}
+	SharedImGUI.loadFontTTF("Font/fangzhen14.ttf", 14, "Chinese");
 	if (SharedContent.isExist("Script/main.lua"_slice))
 	{
 		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
