@@ -49,6 +49,7 @@ private:
 	list<SDL_Event> _inputs;
 	int _textLength;
 	int _cursor;
+	string _iniFilePath;
 	char _textEditing[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 	SINGLETON_REF(ImGUIDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGUI

@@ -98,7 +98,7 @@ void ImGUIDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 	fontConfig.PixelSnapH = true;
 	fontConfig.OversampleH = 1;
 	fontConfig.OversampleV = 1;
-	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), fontSize, &fontConfig, io.Fonts->GetGlyphRangesDefault());
+	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, io.Fonts->GetGlyphRangesDefault());
 	Uint8* texData;
 	int width;
 	int height;
@@ -129,7 +129,7 @@ void ImGUIDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 
 	if (targetGlyphRanges)
 	{
-		io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), fontSize, &fontConfig, targetGlyphRanges);
+		io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
 		SharedAsyncThread.Process.run([]()
 		{
 			ImGuiIO& io = ImGui::GetIO();
@@ -184,6 +184,9 @@ bool ImGUIDora::init()
 	io.GetClipboardTextFn = ImGUIDora::getClipboardText;
 	io.ImeSetInputScreenPosFn = ImGUIDora::setImePositionHint;
 	io.ClipboardUserData = nullptr;
+
+	_iniFilePath = SharedContent.getWritablePath() + "imgui.ini";
+	io.IniFilename = _iniFilePath.c_str();
 
 	_effect = SpriteEffect::create(
 		"built-in/vs_ocornut_imgui.bin"_slice,
