@@ -38,7 +38,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <utility>
+#include <utility>  // for std::pair
 
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
 #define FMT_VERSION 30002
@@ -155,10 +155,6 @@ typedef __int64          intmax_t;
 # endif
 #endif
 
-#if FMT_USE_RVALUE_REFERENCES
-# include <utility>  // for std::move
-#endif
-
 // Check if exceptions are disabled.
 #if defined(__GNUC__) && !defined(__EXCEPTIONS)
 # define FMT_EXCEPTIONS 0
@@ -244,6 +240,20 @@ typedef __int64          intmax_t;
 # define FMT_DISALLOW_COPY_AND_ASSIGN(TypeName) \
     TypeName(const TypeName&); \
     TypeName& operator=(const TypeName&)
+#endif
+
+#ifndef FMT_USE_DEFAULTED_FUNCTIONS
+# define FMT_USE_DEFAULTED_FUNCTIONS 0
+#endif
+
+#ifndef FMT_DEFAULTED_COPY_CTOR
+# if FMT_USE_DEFAULTED_FUNCTIONS || FMT_HAS_FEATURE(cxx_defaulted_functions) || \
+   (FMT_GCC_VERSION >= 404 && FMT_HAS_GXX_CXX11) || FMT_MSC_VER >= 1800
+#  define FMT_DEFAULTED_COPY_CTOR(TypeName) \
+    TypeName(const TypeName&) = default;
+# else
+#  define FMT_DEFAULTED_COPY_CTOR(TypeName)
+# endif
 #endif
 
 #ifndef FMT_USE_USER_DEFINED_LITERALS
@@ -1206,7 +1216,7 @@ template <>
 struct Not<false> { enum { value = 1 }; };
 
 template <typename T>
-struct False { enum { value = 0 }; };
+struct FalseType { enum { value = 0 }; };
 
 template <typename T, T> struct LConvCheck {
   LConvCheck(int) {}
@@ -1246,7 +1256,7 @@ inline fmt::StringRef thousands_sep(...) { return ""; }
 
 template <typename Formatter, typename Char, typename T>
 void format_arg(Formatter &, const Char *, const T &) {
-  FMT_STATIC_ASSERT(False<T>::value,
+  FMT_STATIC_ASSERT(FalseType<T>::value,
                     "Cannot format argument. To enable the use of ostream "
                     "operator<< include fmt/ostream.h. Otherwise provide "
                     "an overload of format_arg.");
@@ -2405,6 +2415,7 @@ class SystemError : public internal::RuntimeError {
   SystemError(int error_code, CStringRef message) {
     init(error_code, message, ArgList());
   }
+  FMT_DEFAULTED_COPY_CTOR(SystemError)
   FMT_VARIADIC_CTOR(SystemError, init, int, CStringRef)
 
   FMT_API ~SystemError() FMT_DTOR_NOEXCEPT;

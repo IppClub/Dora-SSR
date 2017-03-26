@@ -493,7 +493,7 @@ void PrintfFormatter<Char, AF>::format(BasicCStringRef<Char> format_str) {
 
     if (spec.type_ == 's') {
       // set the format type to the default if 's' is specified
-      spec.type_ = (char)internal::DefaultType().visit(arg);
+      spec.type_ = internal::DefaultType().visit(arg);
     }
 
     if (arg.type <= Arg::LAST_INTEGER_TYPE) {
@@ -517,10 +517,15 @@ void PrintfFormatter<Char, AF>::format(BasicCStringRef<Char> format_str) {
   write(writer_, start, s);
 }
 
-template <typename Char>
-void printf(BasicWriter<Char> &w, BasicCStringRef<Char> format, ArgList args) {
-  PrintfFormatter<Char>(args, w).format(format);
+inline void printf(Writer &w, CStringRef format, ArgList args) {
+  PrintfFormatter<char>(args, w).format(format);
 }
+FMT_VARIADIC(void, printf, Writer &, CStringRef)
+
+inline void printf(WWriter &w, WCStringRef format, ArgList args) {
+  PrintfFormatter<wchar_t>(args, w).format(format);
+}
+FMT_VARIADIC(void, printf, WWriter &, WCStringRef)
 
 /**
   \rst
