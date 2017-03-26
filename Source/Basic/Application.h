@@ -34,6 +34,7 @@ public:
 	PROPERTY(Uint32, MaxFPS);
 	PROPERTY(Uint32, MinFPS);
 	PROPERTY(Uint32, Seed);
+	PROPERTY_BOOL(FPSLimited);
 	SDLEventHandler eventHandler;
 	int run();
 	void shutdown();
@@ -58,6 +59,7 @@ protected:
 	void setupSdlWindow();
 	bgfx::RenderFrame::Enum renderFrame();
 private:
+	bool _fpsLimited;
 	unsigned int _seed;
 	int _width;
 	int _height;

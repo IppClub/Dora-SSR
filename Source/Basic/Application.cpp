@@ -30,6 +30,7 @@ BGFXDora::~BGFXDora()
 }
 
 Application::Application():
+_fpsLimited(false),
 _frame(0),
 _width(800),
 _height(600),
@@ -83,6 +84,16 @@ void Application::setMinFPS(Uint32 var)
 Uint32 Application::getMinFPS() const
 {
 	return _minFPS;
+}
+
+void Application::setFPSLimited(bool var)
+{
+	_fpsLimited = var;
+}
+
+bool Application::isFPSLimited() const
+{
+	return _fpsLimited;
 }
 
 Uint32 Application::getFrame() const
@@ -339,9 +350,15 @@ int Application::mainLogic(void* userData)
 		app->_frame = bgfx::frame();
 
 		// limit for max FPS
-		do {
-			app->updateDeltaTime();
-		} while (app->getDeltaTime() < 1.0/app->_maxFPS);
+		if (app->_fpsLimited)
+		{
+			do
+			{
+				app->updateDeltaTime();
+			}
+			while (app->getDeltaTime() < 1.0/app->_maxFPS);
+		}
+		else app->updateDeltaTime();
 		app->makeTimeNow();
 	}
 
