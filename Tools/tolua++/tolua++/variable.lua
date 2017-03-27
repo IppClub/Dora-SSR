@@ -162,10 +162,10 @@ else
 	local new_t = string.gsub(t, "const%s+", "")
 	-- t = _userltype[t] -- convert to renamed type
 	if self.ptr == '' then
-		output('    void* tolua_obj = Mtolua_new((',new_t,')('..self:getvalue(class,static,prop_get)..'));')
 		if push_func == _push_object_func_name then
 			output(' ',push_func,"(tolua_S,tolua_obj);")
 		elseif push_func == "tolua_pushusertype" then
+			output('    void* tolua_obj = Mtolua_new((',new_t,')('..self:getvalue(class,static,prop_get)..'));')
 			output(' ',push_func,"(tolua_S,tolua_obj,LuaType<"..t..">());")
 		else
 			output(' ',push_func,'(tolua_S,tolua_obj,"',t,'");')

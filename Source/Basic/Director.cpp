@@ -135,7 +135,7 @@ bool Director::init()
 	{
 		return false;
 	}
-	SharedImGUI.loadFontTTF("Font/fangzhen14.ttf", 14, "Chinese");
+	SharedImGUI.loadFontTTF("Font/fangzhen16.ttf"_slice, 16, "Chinese"_slice);
 	if (SharedContent.isExist("Script/main.lua"_slice))
 	{
 		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
@@ -154,7 +154,10 @@ void Director::mainLoop()
 		_systemScheduler->update(getDeltaTime());
 
 		SharedImGUI.begin();
+		SharedImGUI.showStats();
 		ImGui::ShowTestWindow();
+		ImGui::ShowStyleEditor();
+		ImGui::ShowMetricsWindow();
 		_scheduler->update(getDeltaTime());
 		SharedImGUI.end();
 
@@ -228,15 +231,15 @@ void Director::displayStats()
 	bgfx::setDebug(BGFX_DEBUG_TEXT);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
-		"Noop",         //!< No rendering.
-		"Direct3D9",    //!< Direct3D 9.0
-		"Direct3D11",   //!< Direct3D 11.0
-		"Direct3D12",   //!< Direct3D 12.0
-		"Gnm",          //!< GNM
-		"Metal",        //!< Metal
-		"OpenGLES",     //!< OpenGL ES 2.0+
-		"OpenGL",       //!< OpenGL 2.1+
-		"Vulkan",       //!< Vulkan
+		"Noop", //!< No rendering.
+		"Direct3D9", //!< Direct3D 9.0
+		"Direct3D11", //!< Direct3D 11.0
+		"Direct3D12", //!< Direct3D 12.0
+		"Gnm", //!< GNM
+		"Metal", //!< Metal
+		"OpenGLES", //!< OpenGL ES 2.0+
+		"OpenGL", //!< OpenGL 2.1+
+		"Vulkan", //!< Vulkan
 	};
 	Uint8 dbgViewId = SharedView.getId();
 	bgfx::dbgTextPrintf(dbgViewId, 1, 0x0f, "\x1b[14;mRenderer: \x1b[15;m%s", rendererNames[bgfx::getCaps()->rendererType]);

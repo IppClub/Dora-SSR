@@ -426,10 +426,12 @@ function classDeclaration:retvalue ()
   else
    local push_func = get_push_function(self.type)
    -- t = _userltype[t] -- convert to renamed type
+   t = self.type
    if push_func == _push_object_func_name then
     output(' ',push_func,'(tolua_S,'..self.name..");")
    elseif push_func == "tolua_pushusertype" then
-    output(' ',push_func,'(tolua_S,(void*)'..self.name..",LuaType<"..t..">());")
+    output('    void* tolua_obj = Mtolua_new((',t,')(',self.name,'));')
+    output(' ',push_func,'(tolua_S,tolua_obj,LuaType<*'..t..'>());')
    else
     output('   ',push_func,'(tolua_S,(void*)'..self.name..',"',t,'");')
    end
@@ -592,4 +594,3 @@ function Declaration (s,kind,is_parameter)
  end
 
 end
-

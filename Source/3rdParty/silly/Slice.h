@@ -41,7 +41,7 @@ class Slice {
   // implicit conversion from std::string to Slice
   Slice(const std::string &s) : Slice(s.data(), s.size()) {}
 
-  Slice(const char *s) : Slice(s, strlen(s)) {}
+  Slice(const char *s) : Slice(s, s ? strlen(s) : 0) {}
 
   Slice(const char *s, size_t n) : str_(s), len_(n) {}
 

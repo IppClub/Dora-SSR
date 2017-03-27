@@ -20,7 +20,9 @@ struct Color3
 	Color3();
 	Color3(Uint32 rgb);
 	Color3(Uint8 r, Uint8 g, Uint8 b);
+	Color3(const Vec3& vec);
 	Uint32 toRGB() const;
+	Vec3 toVec3() const;
 };
 
 struct Color

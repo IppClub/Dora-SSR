@@ -3,5 +3,7 @@ $#include "Lua/LuaBinding.h"
 $using namespace Dorothy;
 $#define Size Dorothy::Size
 $#define Rect Dorothy::Rect
+$#define NewVec2(x,y) Vec2{x,y}
 
 $pfile "Header.h"
+$pfile "ImGui.h"

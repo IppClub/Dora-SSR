@@ -56,13 +56,13 @@ function classFunction:supcode(local_constructor)
  local class = self:inclass()
  local _,_,static = strfind(self.mod,'^%s*(static)')
  local out = string.find(self.mod, "tolua_outside")
- 
+
  if class then
  	if self.name == 'new' and self.parent.flags.pure_virtual then
  		-- no constructor for classes with pure virtual methods
  		return
  	end
-	
+
 	-- Only new_local accepted
 	if self.name == "new" then
 		local_constructor = true
@@ -70,7 +70,7 @@ function classFunction:supcode(local_constructor)
 	if self.name == "delete" then
 		return
 	end
-	
+
  	if local_constructor then
 		output("/* method: new_local of class ",class," */")
 	else
@@ -95,7 +95,7 @@ function classFunction:supcode(local_constructor)
 	end
 	output(' tolua_Error tolua_err;')
  output(' if (\n')
- 
+
  -- check self
  local narg
  if class or (static and out) then narg=2 else narg=1 end
@@ -280,10 +280,10 @@ function classFunction:supcode(local_constructor)
 	-- new_t = _userltype[new_t] -- convert to renamed type
     if self.ptr == '' then
      output('   {')
-     output('    void* tolua_obj = Mtolua_new((',new_t,')(tolua_ret));')
      if push_func == _push_object_func_name then
       output('    ',push_func,"(tolua_S,tolua_obj);")
      elseif push_func == "tolua_pushusertype" then
+      output('    void* tolua_obj = Mtolua_new((',new_t,')(tolua_ret));')
       output('    ',push_func,"(tolua_S,tolua_obj,LuaType<"..new_t..">());")
      else
       output('    ',push_func,'(tolua_S,tolua_obj,"',new_t,'");')
@@ -302,10 +302,10 @@ function classFunction:supcode(local_constructor)
    end
   end
   local i=1
-  --[[while self.args[i] do
+  while self.args[i] do
    nret = nret + self.args[i]:retvalue()
    i = i+1
-  end]]
+  end
   output('  }')
 
   -- set array element values
@@ -383,7 +383,7 @@ function classFunction:register (pre)
  		-- no constructor for classes with pure virtual methods
  		return
  	end
-  
+
   -- Only .call is needed
   if self.lname:sub(1,1) == '.' then
     output(pre..'tolua_call(tolua_S,'.._metaOps[self.lname]..','..self.cname..');')
@@ -612,5 +612,3 @@ function strip_defaults(s)
 
 	return "("..ret..")"
 end
-
-

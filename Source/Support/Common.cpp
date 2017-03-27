@@ -29,9 +29,20 @@ g(g),
 b(b)
 { }
 
+Color3::Color3(const Vec3& vec):
+r(s_cast<Uint8>(vec.x * 255.0f)),
+g(s_cast<Uint8>(vec.y * 255.0f)),
+b(s_cast<Uint8>(vec.z * 255.0f))
+{ }
+
 Uint32 Color3::toRGB() const
 {
 	return r << 16 | g << 8 | b;
+}
+
+Vec3 Color3::toVec3() const
+{
+	return Vec3{r / 255.0f, g / 255.0f, b / 255.0f};
 }
 
 Color::Color():

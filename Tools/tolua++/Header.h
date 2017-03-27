@@ -481,7 +481,7 @@ class Label : public Node
 	tolua_property__common TextAlignment alignment;
 	tolua_property__common float textWidth;
 	tolua_property__common float lineGap;
-	tolua_property__common const char* text;
+	tolua_property__common char* text;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_readonly tolua_property__common int characterCount;
 	Sprite* getCharacter(int index) const;

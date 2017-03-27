@@ -5359,6 +5359,14 @@ void ImGui::TextWrappedV(const char* fmt, va_list args)
     if (need_wrap) PopTextWrapPos();
 }
 
+void ImGui::TextWrappedUnformatted(const char* begin, const char* end)
+{
+    bool need_wrap = (GImGui->CurrentWindow->DC.TextWrapPos < 0.0f);    // Keep existing wrap position is one ia already set
+    if (need_wrap) PushTextWrapPos(0.0f);
+    TextUnformatted(begin, end);
+    if (need_wrap) PopTextWrapPos();
+}
+
 void ImGui::TextWrapped(const char* fmt, ...)
 {
     va_list args;

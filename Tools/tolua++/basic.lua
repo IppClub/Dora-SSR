@@ -30,6 +30,7 @@ local objects = {
 "Joint",
 "MoveJoint",
 "MotorJoint",
+"Buffer",
 }
 
 -- register CCObject types

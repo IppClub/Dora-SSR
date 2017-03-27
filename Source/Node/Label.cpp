@@ -749,4 +749,10 @@ void Label::updateLabel()
 	}
 }
 
+void Label::cleanup()
+{
+	_font = nullptr;
+	Node::cleanup();
+}
+
 NS_DOROTHY_END

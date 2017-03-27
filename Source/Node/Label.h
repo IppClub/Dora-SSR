@@ -102,6 +102,7 @@ public:
 	PROPERTY_REF(BlendFunc, BlendFunc);
 	Sprite* getCharacter(int index) const;
 	int getCharacterCount() const;
+	virtual void cleanup() override;
 	static const float AutomaticWidth;
 	CREATE_FUNC(Label);
 protected:

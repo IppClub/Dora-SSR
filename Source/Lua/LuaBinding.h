@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Dorothy.h"
 #include "Lua/LuaManual.h"
 #include "Lua/ToLua/tolua++.h"
+#include "imgui/imgui.h"
 
 int tolua_LuaBinding_open(lua_State* tolua_S);
 int tolua_LuaCode_open(lua_State* tolua_S);

@@ -811,4 +811,521 @@ bool Array_fastRemoveAt(Array* self, int index)
 	return self->fastRemoveAt(index - 1);
 }
 
+/* Buffer */
+Buffer::Buffer(Uint32 size):
+_data(size)
+{
+	zeroMemory();
+}
+
+void Buffer::resize(Uint32 size)
+{
+	_data.resize(s_cast<size_t>(size));
+}
+
+void Buffer::zeroMemory()
+{
+	std::memset(_data.data(), 0, _data.size());
+}
+
+char* Buffer::get()
+{
+	return _data.data();
+}
+
+Uint32 Buffer::size() const
+{
+	return s_cast<Uint32>(_data.size());
+}
+
+Slice Buffer::toString()
+{
+	return Slice(_data.data(), _data.size());
+}
+
 NS_DOROTHY_END
+
+using namespace Dorothy;
+
+/* ImGui */
+namespace ImGui { namespace Binding
+{
+	bool Begin(const char* name, String windowsFlags)
+	{
+		return ImGui::Begin(name, nullptr, getWindowCombinedFlags(windowsFlags));
+	}
+
+	bool Begin(const char* name, bool* p_open, String windowsFlags)
+	{
+		return ImGui::Begin(name, p_open, getWindowCombinedFlags(windowsFlags));
+	}
+
+	bool BeginChild(const char* str_id, const Vec2& size, bool border, String windowsFlags)
+	{
+		return ImGui::BeginChild(str_id, size, border, getWindowCombinedFlags(windowsFlags));
+	}
+
+	bool BeginChild(ImGuiID id, const Vec2& size, bool border, String windowsFlags)
+	{
+		return ImGui::BeginChild(id, size, border, getWindowCombinedFlags(windowsFlags));
+	}
+
+	void SetNextWindowPos(const Vec2& pos, String setCond)
+	{
+		ImGui::SetNextWindowPos(pos, getSetCond(setCond));
+	}
+
+	void SetNextWindowPosCenter(String setCond)
+	{
+		ImGui::SetNextWindowPosCenter(getSetCond(setCond));
+	}
+
+	void SetNextWindowSize(const Vec2& size, String setCond)
+	{
+		ImGui::SetNextWindowSize(size, getSetCond(setCond));
+	}
+
+	void SetNextWindowCollapsed(bool collapsed, String setCond)
+	{
+		ImGui::SetNextWindowCollapsed(collapsed, getSetCond(setCond));
+	}
+
+	void SetWindowPos(const char* name, const Vec2& pos, String setCond)
+	{
+		ImGui::SetWindowPos(name, pos, getSetCond(setCond));
+	}
+	
+	void SetWindowSize(const char* name, const Vec2& size, String setCond)
+	{
+		ImGui::SetWindowSize(name, size, getSetCond(setCond));
+	}
+
+	void SetWindowCollapsed(const char* name, bool collapsed, String setCond)
+	{
+		ImGui::SetWindowCollapsed(name, collapsed, getSetCond(setCond));
+	}
+
+	void ColorEditMode(String colorEditMode)
+	{
+		ImGui::ColorEditMode(getColorEditMode(colorEditMode));
+	}
+
+	bool InputText(const char* label, Buffer* buffer, String inputTextFlags)
+	{
+		if (!buffer) return false;
+		return ImGui::InputText(label, buffer->get(), buffer->size(), getInputTextFlags(inputTextFlags));
+	}
+
+	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size, String inputTextFlags)
+	{
+		if (!buffer) return false;
+		return ImGui::InputTextMultiline(label, buffer->get(), buffer->size(), size, getInputTextFlags(inputTextFlags));
+	}
+
+	bool InputFloat(const char* label, float* v, float step, float step_fast, int decimal_precision, String inputTextFlags)
+	{
+		return ImGui::InputFloat(label, v, step, step_fast, decimal_precision, getInputTextFlags(inputTextFlags));
+	}
+
+	bool InputInt(const char* label, int* v, int step, int step_fast, String inputTextFlags)
+	{
+		return ImGui::InputInt(label, v, step, step_fast, getInputTextFlags(inputTextFlags));
+	}
+
+	bool TreeNodeEx(const char* label, String treeNodeFlags)
+	{
+		return ImGui::TreeNodeEx(label, getTreeNodeFlags(treeNodeFlags));
+	}
+
+	void SetNextTreeNodeOpen(bool is_open, String setCond)
+	{
+		ImGui::SetNextTreeNodeOpen(is_open, getSetCond(setCond));
+	}
+
+	bool CollapsingHeader(const char* label, String treeNodeFlags)
+	{
+		return ImGui::CollapsingHeader(label, getTreeNodeFlags(treeNodeFlags));
+	}
+
+	bool CollapsingHeader(const char* label, bool* p_open, String treeNodeFlags)
+	{
+		return ImGui::CollapsingHeader(label, p_open, getTreeNodeFlags(treeNodeFlags));
+	}
+
+	bool Selectable(const char* label, bool selected, String selectableFlags, const Vec2& size)
+	{
+		return ImGui::Selectable(label, selected, getSelectableFlags(selectableFlags), size);
+	}
+
+	bool Selectable(const char* label, bool* p_selected, String selectableFlags, const Vec2& size)
+	{
+		return ImGui::Selectable(label, p_selected, getSelectableFlags(selectableFlags), size);
+	}
+
+	bool BeginPopupModal(const char* name, String windowsFlags)
+	{
+		return ImGui::BeginPopupModal(name, nullptr, getWindowFlags(windowsFlags));
+	}
+
+	bool BeginPopupModal(const char* name, bool* p_open, String windowsFlags)
+	{
+		return ImGui::BeginPopupModal(name, p_open, getWindowFlags(windowsFlags));
+	}
+
+	bool BeginChildFrame(ImGuiID id, const Vec2& size, String windowsFlags)
+	{
+		return ImGui::BeginChildFrame(id, size, getWindowFlags(windowsFlags));
+	}
+
+	void PushStyleColor(String name, Color color)
+	{
+		ImGui::PushStyleColor(getColorIndex(name), color.toVec4());
+	}
+
+	void PushStyleVar(String name, const Vec2& val)
+	{
+		ImGuiStyleVar_ styleVar = ImGuiStyleVar_WindowPadding;
+		switch (Switch::hash(name))
+		{
+			case "WindowPadding"_hash: styleVar = ImGuiStyleVar_WindowPadding; break;
+			case "WindowMinSize"_hash: styleVar = ImGuiStyleVar_WindowMinSize; break;
+			case "FramePadding"_hash: styleVar = ImGuiStyleVar_FramePadding; break;
+			case "ItemSpacing"_hash: styleVar = ImGuiStyleVar_ItemSpacing; break;
+			case "ItemInnerSpacing"_hash: styleVar = ImGuiStyleVar_ItemInnerSpacing; break;
+			case "ButtonTextAlign"_hash: styleVar = ImGuiStyleVar_ButtonTextAlign; break;
+		}
+		ImGui::PushStyleVar(styleVar, val);
+	}
+
+	void PushStyleVar(String name, float val)
+	{
+		ImGuiStyleVar_ styleVar = ImGuiStyleVar_Alpha;
+		switch (Switch::hash(name))
+		{
+			case "Alpha"_hash: styleVar = ImGuiStyleVar_Alpha; break;
+			case "WindowRounding"_hash: styleVar = ImGuiStyleVar_WindowRounding; break;
+			case "ChildWindowRounding"_hash: styleVar = ImGuiStyleVar_ChildWindowRounding; break;
+			case "FrameRounding"_hash: styleVar = ImGuiStyleVar_FrameRounding; break;
+			case "IndentSpacing"_hash: styleVar = ImGuiStyleVar_IndentSpacing; break;
+			case "GrabMinSize"_hash: styleVar = ImGuiStyleVar_GrabMinSize; break;
+		}
+		ImGui::PushStyleVar(styleVar, val);
+	}
+
+	bool TreeNodeEx(const char* str_id, String treeNodeFlags, const char* text)
+	{
+		return ImGui::TreeNodeEx(str_id, getTreeNodeFlags(treeNodeFlags), "%s", text);
+	}
+
+	void Text(String text)
+	{
+		ImGui::TextUnformatted(text.begin(), text.end());
+	}
+
+	void TextColored(Color color, String text)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, color.toVec4());
+		ImGui::TextUnformatted(text.begin(), text.end());
+		ImGui::PopStyleColor();
+	}
+
+	void TextDisabled(String text)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+		ImGui::TextUnformatted(text.begin(), text.end());
+		ImGui::PopStyleColor();
+	}
+
+	void TextWrapped(String text)
+	{
+		ImGui::TextWrappedUnformatted(text.begin(), text.end());
+	}
+
+	void LabelText(const char* label, const char* text)
+	{
+		ImGui::LabelText(label, "%s", text);
+	}
+
+	void BulletText(const char* text)
+	{
+		ImGui::BulletText("%s", text);
+	}
+
+	bool TreeNode(const char* str_id, const char* text)
+	{
+		return ImGui::TreeNode(str_id, "%s", text);
+	}
+
+	void SetTooltip(const char* text)
+	{
+		ImGui::SetTooltip("%s", text);
+	}
+
+	bool ColorEdit3(const char* label, Color3& color3)
+	{
+		Vec3 vec3 = color3.toVec3();
+		bool result = ImGui::ColorEdit3(label, vec3);
+		color3 = vec3;
+		return result;
+	}
+
+	bool ColorEdit4(const char* label, Color& color, bool show_alpha)
+	{
+		Vec4 vec4 = color.toVec4();
+		bool result = ImGui::ColorEdit4(label, vec4);
+		color = vec4;
+		return result;
+	}
+
+	void Image(Texture2D* user_texture, const Vec2& size, const Vec2& uv0, const Vec2& uv1, Color tint_col, Color border_col)
+	{
+		union
+		{
+			ImTextureID ptr;
+			struct { bgfx::TextureHandle handle; } s;
+		} texture;
+		texture.s.handle = user_texture->getHandle();
+		ImGui::Image(texture.ptr, size, uv0, uv1, tint_col.toVec4(), border_col.toVec4());
+	}
+
+	bool ImageButton(Texture2D* user_texture, const Vec2& size, const Vec2& uv0, const Vec2& uv1, int frame_padding, Color bg_col, Color tint_col)
+	{
+		union
+		{
+			ImTextureID ptr;
+			struct { bgfx::TextureHandle handle; } s;
+		} texture;
+		texture.s.handle = user_texture->getHandle();
+		return ImGui::ImageButton(texture.ptr, size, uv0, uv1, frame_padding, bg_col.toVec4(), tint_col.toVec4());
+	}
+
+	bool ColorButton(Color col, bool small_height, bool outline_border)
+	{
+		return ImGui::ColorButton(col.toVec4(), small_height, outline_border);
+	}
+
+	void ValueColor(const char* prefix, Color v)
+	{
+		return ImGui::ValueColor(prefix, v.toVec4());
+	}
+
+	void setStyleVar(String name, const Vec2& var)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		switch (Switch::hash(name))
+		{
+			case "WindowPadding"_hash: style.WindowPadding = var; break;
+			case "WindowMinSize"_hash: style.WindowMinSize = var; break;
+			case "WindowTitleAlign"_hash: style.WindowTitleAlign = var; break;
+			case "FramePadding"_hash: style.FramePadding = var; break;
+			case "ItemSpacing"_hash: style.ItemSpacing = var; break;
+			case "ItemInnerSpacing"_hash: style.ItemInnerSpacing = var; break;
+			case "TouchExtraPadding"_hash: style.TouchExtraPadding = var; break;
+			case "ButtonTextAlign"_hash: style.ButtonTextAlign = var; break;
+			case "DisplayWindowPadding"_hash: style.DisplayWindowPadding = var; break;
+			case "DisplaySafeAreaPadding"_hash: style.DisplaySafeAreaPadding = var; break;
+		}
+	}
+
+	void setStyleVar(String name, float var)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		switch (Switch::hash(name))
+		{
+			case "Alpha"_hash: style.Alpha = var; break;
+			case "WindowRounding"_hash: style.WindowRounding = var; break;
+			case "ChildWindowRounding"_hash: style.ChildWindowRounding = var; break;
+			case "FrameRounding"_hash: style.FrameRounding = var; break;
+			case "IndentSpacing"_hash: style.IndentSpacing = var; break;
+			case "ColumnsMinSpacing"_hash: style.ColumnsMinSpacing = var; break;
+			case "ScrollbarSize"_hash: style.ScrollbarSize = var; break;
+			case "ScrollbarRounding"_hash: style.ScrollbarRounding = var; break;
+			case "GrabMinSize"_hash: style.GrabMinSize = var; break;
+			case "GrabRounding"_hash: style.GrabRounding = var; break;
+			case "CurveTessellationTol"_hash: style.CurveTessellationTol = var; break;
+		}
+	}
+
+	void setStyleVar(String name, bool var)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		switch (Switch::hash(name))
+		{
+			case "AntiAliasedLines"_hash: style.AntiAliasedLines = var; break;
+			case "AntiAliasedShapes"_hash: style.AntiAliasedShapes = var; break;
+		}
+	}
+
+	void setStyleColor(String name, Color color)
+	{
+		ImGuiCol_ index = getColorIndex(name);
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.Colors[index] = color.toVec4();
+	}
+
+	ImGuiWindowFlags_ getWindowFlags(String style)
+	{
+		switch (Switch::hash(style))
+		{
+			case "NoTitleBar"_hash: return ImGuiWindowFlags_NoTitleBar;
+			case "NoResize"_hash: return ImGuiWindowFlags_NoResize;
+			case "NoMove"_hash: return ImGuiWindowFlags_NoMove;
+			case "NoScrollbar"_hash: return ImGuiWindowFlags_NoScrollbar;
+			case "NoScrollWithMouse"_hash: return ImGuiWindowFlags_NoScrollWithMouse;
+			case "NoCollapse"_hash: return ImGuiWindowFlags_NoCollapse;
+			case "AlwaysAutoResize"_hash: return ImGuiWindowFlags_AlwaysAutoResize;
+			case "ShowBorders"_hash: return ImGuiWindowFlags_ShowBorders;
+			case "NoSavedSettings"_hash: return ImGuiWindowFlags_NoSavedSettings;
+			case "NoInputs"_hash: return ImGuiWindowFlags_NoInputs;
+			case "MenuBar"_hash: return ImGuiWindowFlags_MenuBar;
+			case "HorizontalScrollbar"_hash: return ImGuiWindowFlags_HorizontalScrollbar;
+			case "NoFocusOnAppearing"_hash: return ImGuiWindowFlags_NoFocusOnAppearing;
+			case "NoBringToFrontOnFocus"_hash: return ImGuiWindowFlags_NoBringToFrontOnFocus;
+			case "AlwaysVerticalScrollbar"_hash: return ImGuiWindowFlags_AlwaysVerticalScrollbar;
+			case "AlwaysHorizontalScrollbar"_hash: return ImGuiWindowFlags_AlwaysHorizontalScrollbar;
+			case "AlwaysUseWindowPadding"_hash: return ImGuiWindowFlags_AlwaysUseWindowPadding;
+		}
+		return ImGuiWindowFlags_(0);
+	}
+
+	Uint32 getWindowCombinedFlags(String flags)
+	{
+		auto tokens = flags.split("|"_slice);
+		Uint32 result = 0;
+		for (const auto& token : tokens)
+		{
+			result |= getWindowFlags(token);
+		}
+		return result;
+	}
+
+	ImGuiInputTextFlags_ getInputTextFlags(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+			case "CharsDecimal"_hash: return ImGuiInputTextFlags_CharsDecimal;
+			case "CharsHexadecimal"_hash: return ImGuiInputTextFlags_CharsHexadecimal;
+			case "CharsUppercase"_hash: return ImGuiInputTextFlags_CharsUppercase;
+			case "CharsNoBlank"_hash: return ImGuiInputTextFlags_CharsNoBlank;
+			case "AutoSelectAll"_hash: return ImGuiInputTextFlags_AutoSelectAll;
+			case "EnterReturnsTrue"_hash: return ImGuiInputTextFlags_EnterReturnsTrue;
+			case "CallbackCompletion"_hash: return ImGuiInputTextFlags_CallbackCompletion;
+			case "CallbackHistory"_hash: return ImGuiInputTextFlags_CallbackHistory;
+			case "CallbackAlways"_hash: return ImGuiInputTextFlags_CallbackAlways;
+			case "CallbackCharFilter"_hash: return ImGuiInputTextFlags_CallbackCharFilter;
+			case "AllowTabInput"_hash: return ImGuiInputTextFlags_AllowTabInput;
+			case "CtrlEnterForNewLine"_hash: return ImGuiInputTextFlags_CtrlEnterForNewLine;
+			case "NoHorizontalScroll"_hash: return ImGuiInputTextFlags_NoHorizontalScroll;
+			case "AlwaysInsertMode"_hash: return ImGuiInputTextFlags_AlwaysInsertMode;
+			case "ReadOnly"_hash: return ImGuiInputTextFlags_ReadOnly;
+			case "Password"_hash: return ImGuiInputTextFlags_Password;
+		}
+		return ImGuiInputTextFlags_(0);
+	}
+
+	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+			case "Selected"_hash: return ImGuiTreeNodeFlags_Selected;
+			case "Framed"_hash: return ImGuiTreeNodeFlags_Framed;
+			case "AllowOverlapMode"_hash: return ImGuiTreeNodeFlags_AllowOverlapMode;
+			case "NoTreePushOnOpen"_hash: return ImGuiTreeNodeFlags_NoTreePushOnOpen;
+			case "NoAutoOpenOnLog"_hash: return ImGuiTreeNodeFlags_NoAutoOpenOnLog;
+			case "DefaultOpen"_hash: return ImGuiTreeNodeFlags_DefaultOpen;
+			case "OpenOnDoubleClick"_hash: return ImGuiTreeNodeFlags_OpenOnDoubleClick;
+			case "OpenOnArrow"_hash: return ImGuiTreeNodeFlags_OpenOnArrow;
+			case "Leaf"_hash: return ImGuiTreeNodeFlags_Leaf;
+			case "Bullet"_hash: return ImGuiTreeNodeFlags_Bullet;
+			case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
+		}
+		return ImGuiTreeNodeFlags_(0);
+	}
+
+	ImGuiSelectableFlags_ getSelectableFlags(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+			case "DontClosePopups"_hash: return ImGuiSelectableFlags_DontClosePopups;
+			case "SpanAllColumns"_hash: return ImGuiSelectableFlags_SpanAllColumns;
+			case "AllowDoubleClick"_hash: return ImGuiSelectableFlags_AllowDoubleClick;
+		}
+		return ImGuiSelectableFlags_(0);
+	}
+
+	ImGuiCol_ getColorIndex(String col)
+	{
+		switch (Switch::hash(col))
+		{
+			case "Text"_hash: return ImGuiCol_Text;
+			case "TextDisabled"_hash: return ImGuiCol_TextDisabled;
+			case "WindowBg"_hash: return ImGuiCol_WindowBg;
+			case "ChildWindowBg"_hash: return ImGuiCol_ChildWindowBg;
+			case "PopupBg"_hash: return ImGuiCol_PopupBg;
+			case "Border"_hash: return ImGuiCol_Border;
+			case "BorderShadow"_hash: return ImGuiCol_BorderShadow;
+			case "FrameBg"_hash: return ImGuiCol_FrameBg;
+			case "FrameBgHovered"_hash: return ImGuiCol_FrameBgHovered;
+			case "FrameBgActive"_hash: return ImGuiCol_FrameBgActive;
+			case "TitleBg"_hash: return ImGuiCol_TitleBg;
+			case "TitleBgCollapsed"_hash: return ImGuiCol_TitleBgCollapsed;
+			case "TitleBgActive"_hash: return ImGuiCol_TitleBgActive;
+			case "MenuBarBg"_hash: return ImGuiCol_MenuBarBg;
+			case "ScrollbarBg"_hash: return ImGuiCol_ScrollbarBg;
+			case "ScrollbarGrab"_hash: return ImGuiCol_ScrollbarGrab;
+			case "ScrollbarGrabHovered"_hash: return ImGuiCol_ScrollbarGrabHovered;
+			case "ScrollbarGrabActive"_hash: return ImGuiCol_ScrollbarGrabActive;
+			case "ComboBg"_hash: return ImGuiCol_ComboBg;
+			case "CheckMark"_hash: return ImGuiCol_CheckMark;
+			case "SliderGrab"_hash: return ImGuiCol_SliderGrab;
+			case "SliderGrabActive"_hash: return ImGuiCol_SliderGrabActive;
+			case "Button"_hash: return ImGuiCol_Button;
+			case "ButtonHovered"_hash: return ImGuiCol_ButtonHovered;
+			case "ButtonActive"_hash: return ImGuiCol_ButtonActive;
+			case "Header"_hash: return ImGuiCol_Header;
+			case "HeaderHovered"_hash: return ImGuiCol_HeaderHovered;
+			case "HeaderActive"_hash: return ImGuiCol_HeaderActive;
+			case "Column"_hash: return ImGuiCol_Column;
+			case "ColumnHovered"_hash: return ImGuiCol_ColumnHovered;
+			case "ColumnActive"_hash: return ImGuiCol_ColumnActive;
+			case "ResizeGrip"_hash: return ImGuiCol_ResizeGrip;
+			case "ResizeGripHovered"_hash: return ImGuiCol_ResizeGripHovered;
+			case "ResizeGripActive"_hash: return ImGuiCol_ResizeGripActive;
+			case "CloseButton"_hash: return ImGuiCol_CloseButton;
+			case "CloseButtonHovered"_hash: return ImGuiCol_CloseButtonHovered;
+			case "CloseButtonActive"_hash: return ImGuiCol_CloseButtonActive;
+			case "PlotLines"_hash: return ImGuiCol_PlotLines;
+			case "PlotLinesHovered"_hash: return ImGuiCol_PlotLinesHovered;
+			case "PlotHistogram"_hash: return ImGuiCol_PlotHistogram;
+			case "PlotHistogramHovered"_hash: return ImGuiCol_PlotHistogramHovered;
+			case "TextSelectedBg"_hash: return ImGuiCol_TextSelectedBg;
+			case "ModalWindowDarkening"_hash: return ImGuiCol_ModalWindowDarkening;
+		}
+		return ImGuiCol_(0);
+	}
+
+	ImGuiColorEditMode_ getColorEditMode(String mode)
+	{
+		switch (Switch::hash(mode))
+		{
+			case "UserSelect"_hash: return ImGuiColorEditMode_UserSelect;
+			case "UserSelectShowButton"_hash: return ImGuiColorEditMode_UserSelectShowButton;
+			case "RGB"_hash: return ImGuiColorEditMode_RGB;
+			case "HSV"_hash: return ImGuiColorEditMode_HSV;
+			case "HEX"_hash: return ImGuiColorEditMode_HEX;
+		}
+		return ImGuiColorEditMode_(0);
+	}
+
+	ImGuiSetCond_ getSetCond(String cond)
+	{
+		switch (Switch::hash(cond))
+		{
+			case "Always"_hash: return ImGuiSetCond_Always;
+			case "Once"_hash: return ImGuiSetCond_Once;
+			case "FirstUseEver"_hash: return ImGuiSetCond_FirstUseEver;
+			case "Appearing"_hash: return ImGuiSetCond_Appearing;
+		}
+		return ImGuiSetCond_(0);
+	}
+} }

@@ -28,6 +28,7 @@ public:
 	void end();
 	void render();
 	void loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges = "Default");
+	void showStats();
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(Uint8* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;

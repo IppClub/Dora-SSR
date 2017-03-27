@@ -40,11 +40,11 @@
 #define IM_VEC2_CLASS_EXTRA                                                 \
         ImVec2(const Dorothy::Vec2& f) { x = f.x; y = f.y; }                       \
         operator Dorothy::Vec2() const { return Dorothy::Vec2{x,y}; }
-/*
+
 #define IM_VEC4_CLASS_EXTRA                                                 \
-        ImVec4(const MyVec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }     \
-        operator MyVec4() const { return MyVec4(x,y,z,w); }
-*/
+        ImVec4(const Dorothy::Vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }     \
+        operator Dorothy::Vec4() const { return Dorothy::Vec4{x,y,z,w}; }
+
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
 //---- e.g. create variants of the ImGui::Value() helper for your low-level math types, or your own widgets/helpers.

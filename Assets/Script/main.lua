@@ -2,6 +2,26 @@ Dorothy()
 
 Director.displayStats = true
 
+local model = Model("Model/jixienv.model")
+model.loop = true
+model:play("walk")
+
+local label = Label("NotoSansHans-Regular", 18)
+model:addChild(label)
+
+local buffer = Buffer(4*100)
+
+model:schedule(function()
+	if ImGui.Begin("Test", "ShowBorders|MenuBar") then
+		if ImGui.InputText("", buffer) then
+			label.text = buffer:toString()
+		end
+	end
+	ImGui.End()
+end)
+
+Director:pushEntry(model)
+
 collectgarbage("collect")
 
 for k,v in pairs(ubox()) do

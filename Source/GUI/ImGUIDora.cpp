@@ -157,6 +157,71 @@ void ImGUIDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 	}
 }
 
+void ImGUIDora::showStats()
+{
+	/* print debug text */
+	ImGui::SetNextWindowPos(Vec2{10,10}, ImGuiSetCond_FirstUseEver);
+	ImGui::Begin("Dorothy Stats", nullptr, Vec2{190,240}, 0.8f, ImGuiWindowFlags_NoResize);
+	const bgfx::Stats* stats = bgfx::getStats();
+	const char* rendererNames[] = {
+		"Noop", //!< No rendering.
+		"Direct3D9", //!< Direct3D 9.0
+		"Direct3D11", //!< Direct3D 11.0
+		"Direct3D12", //!< Direct3D 12.0
+		"Gnm", //!< GNM
+		"Metal", //!< Metal
+		"OpenGLES", //!< OpenGL ES 2.0+
+		"OpenGL", //!< OpenGL 2.1+
+		"Vulkan", //!< Vulkan
+	};
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Renderer:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%s", rendererNames[bgfx::getCaps()->rendererType]);
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Multithreaded:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%s", (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Backbuffer:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%d x %d", stats->width, stats->height);
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Draw call:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%d", stats->numDraw);
+	static int frames = 0;
+	static double cpuTime = 0, gpuTime = 0, deltaTime = 0;
+	cpuTime += SharedApplication.getCPUTime();
+	gpuTime += std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
+	deltaTime += SharedApplication.getDeltaTime();
+	frames++;
+	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getMaxFPS();
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "CPU time:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%.1f ms", lastCpuTime);
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "GPU time:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%.1f ms", lastGpuTime);
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Delta time:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%.1f ms", lastDeltaTime);
+	if (frames == SharedApplication.getMaxFPS())
+	{
+		lastCpuTime = 1000.0 * cpuTime / frames;
+		lastGpuTime = 1000.0 * gpuTime / frames;
+		lastDeltaTime = 1000.0 * deltaTime / frames;
+		frames = 0;
+		cpuTime = gpuTime = deltaTime = 0.0;
+	}
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "C++ Object:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%d", Object::getObjectCount());
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Object:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%d", Object::getLuaRefCount());
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Callback:");
+	ImGui::SameLine();
+	ImGui::TextColored(Color(0xffffffff).toVec4(), "%d", Object::getLuaCallbackCount());
+	ImGui::End();
+}
+
 bool ImGUIDora::init()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -354,6 +419,16 @@ void ImGUIDora::render()
 				}
 				else if (0 != cmd->ElemCount)
 				{
+					if (nullptr != cmd->TextureId)
+					{
+						union
+						{
+							ImTextureID ptr;
+							struct { bgfx::TextureHandle handle; } s;
+						} texture = { cmd->TextureId };
+						textureHandle = texture.s.handle;
+					}
+
 					uint64_t state = 0
 						| BGFX_STATE_RGB_WRITE
 						| BGFX_STATE_ALPHA_WRITE
