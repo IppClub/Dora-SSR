@@ -5,6 +5,7 @@ Director.displayStats = true
 local model = Model("Model/jixienv.model")
 model.loop = true
 model:play("walk")
+model.visible = false
 
 local label = Label("NotoSansHans-Regular", 18)
 model:addChild(label)

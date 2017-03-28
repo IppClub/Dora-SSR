@@ -295,7 +295,6 @@ int Application::mainLogic(void* userData)
 		Log("Director fail to initialize!");
 		return 1;
 	}
-
 	SharedPoolManager.pop();
 
 	app->_frame = bgfx::frame();
@@ -345,7 +344,7 @@ int Application::mainLogic(void* userData)
 
 		app->_cpuTime = app->getEclapsedTime();
 
-		// Advance to next frame. Rendering thread will be kicked to
+		// advance to next frame. rendering thread will be kicked to
 		// process submitted rendering primitives.
 		app->_frame = bgfx::frame();
 
@@ -362,9 +361,7 @@ int Application::mainLogic(void* userData)
 		app->makeTimeNow();
 	}
 
-	SharedPoolManager.push();
-	Life::destroy("BGFXDora");
-	SharedPoolManager.pop();
+	Life::destroy("BGFXDora"_slice);
 	return 0;
 }
 

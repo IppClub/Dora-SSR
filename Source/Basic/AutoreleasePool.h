@@ -13,6 +13,7 @@ NS_DOROTHY_BEGIN
 class PoolManager
 {
 public:
+	virtual ~PoolManager();
 	void push();
 	void pop();
 	void clear();

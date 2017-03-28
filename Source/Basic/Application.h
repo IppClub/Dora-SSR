@@ -86,7 +86,7 @@ class BGFXDora
 public:
 	bool init();
 	virtual ~BGFXDora();
-	SINGLETON_REF(BGFXDora, Director);
+	SINGLETON_REF(BGFXDora);
 };
 
 #define SharedBGFX \

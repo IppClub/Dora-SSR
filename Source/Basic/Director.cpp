@@ -31,6 +31,11 @@ _clearColor(0xff1a1a1a),
 _displayStats(false)
 { }
 
+Director::~Director()
+{
+	clearEntry();
+}
+
 void Director::setScheduler(Scheduler* scheduler)
 {
 	_scheduler = scheduler ? scheduler : Scheduler::create();
@@ -219,7 +224,7 @@ void Director::mainLoop()
 		});
 
 		/* render imgui */
-		SharedImGUI.render();
+		//SharedImGUI.render();
 		SharedView.clear();
 	});
 }

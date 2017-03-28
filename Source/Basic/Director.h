@@ -21,6 +21,7 @@ class Camera;
 class Director
 {
 public:
+	virtual ~Director();
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(Node*, UI);
 	PROPERTY(Camera*, Camera);
@@ -65,7 +66,7 @@ private:
 	Ref<Scheduler> _systemScheduler;
 	Ref<Camera> _camera;
 	stack<Own<Matrix>> _viewProjs;
-	SINGLETON_REF(Director, Application);
+	SINGLETON_REF(Director, FontManager, BGFXDora, Application);
 };
 
 #define SharedDirector \

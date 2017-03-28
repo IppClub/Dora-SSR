@@ -45,7 +45,7 @@ class FontManager : public bgfx::FontManager
 {
 protected:
 	FontManager() { }
-	SINGLETON_REF(FontManager, FontCache);
+	SINGLETON_REF(FontManager, BGFXDora);
 };
 
 #define SharedFontManager \
@@ -77,7 +77,7 @@ private:
 	Ref<SpriteEffect> _defaultEffect;
 	unordered_map<string, Ref<TrueTypeFile>> _fontFiles;
 	unordered_map<string, Ref<Font>> _fonts;
-	SINGLETON_REF(FontCache, BGFXDora, FontManager);
+	SINGLETON_REF(FontCache, FontManager, BGFXDora);
 };
 
 #define SharedFontCache \

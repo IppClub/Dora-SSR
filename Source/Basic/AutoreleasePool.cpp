@@ -11,6 +11,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+PoolManager::~PoolManager()
+{
+	clear();
+}
+
 void PoolManager::clear()
 {
 	stack<Ref<AutoreleasePool>> emptyStack;

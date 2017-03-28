@@ -45,9 +45,9 @@ struct LifeCycler
 			}
 			entries.insert(itemName);
 		}
-		vector<string> items;
 		for (const auto& entry : entries)
 		{
+			vector<string> items;
 			queue<Slice> refList;
 			refList.push(entry);
 			while (!refList.empty())
@@ -68,22 +68,22 @@ struct LifeCycler
 					}
 				}
 			}
-		}
 #if DORA_DEBUG
-		unordered_set<string> names;
-		for (auto it = items.rbegin(); it != items.rend(); ++it)
-		{
-			if (names.find(*it) == names.end() && lives.find(*it) != lives.end())
+			unordered_set<string> names;
+			for (auto it = items.rbegin(); it != items.rend(); ++it)
 			{
-				names.insert(*it);
-				Log("destroy singleton \"%s\".", *it);
+				if (names.find(*it) == names.end() && lives.find(*it) != lives.end())
+				{
+					names.insert(*it);
+					Log("destroy singleton \"%s\".", *it);
+				}
 			}
-		}
 #endif // DORA_DEBUG
-		for (auto it = items.rbegin(); it != items.rend(); ++it)
-		{
-			lives.erase(*it);
-			itemRefs.erase(*it);
+			for (auto it = items.rbegin(); it != items.rend(); ++it)
+			{
+				lives.erase(*it);
+				itemRefs.erase(*it);
+			}
 		}
 	}
 	~LifeCycler()
