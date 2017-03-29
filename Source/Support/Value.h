@@ -26,6 +26,8 @@ public:
 
 	template <class T>
 	static Value* create(const T& value);
+protected:
+	Value() { }
 };
 
 template <class T>
@@ -94,6 +96,7 @@ public:
 	ValuesEx(const Args&... args):values(std::make_tuple(args...))
 	{ }
 	std::tuple<Fields...> values;
+	DORA_TYPE_OVERRIDE(ValuesEx<Fields...>);
 };
 
 template<class... Args>
@@ -108,7 +111,7 @@ Ref<Values> Values::create(const Args&... args)
 template<class... Args>
 void Values::get(Args&... args)
 {
-	auto values = d_cast<ValuesEx<Args...>*>(this);
+	auto values = DoraCast<ValuesEx<Args...>>(this);
 	AssertIf(values == nullptr, "no required value type can be retrieved.");
 	std::tie(args...) = values->values;
 }

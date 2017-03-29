@@ -79,6 +79,7 @@ public:
 		return Tuple::foreach(arguments, LuaArgsPusher());
 	}
 	std::tuple<Fields...> arguments;
+	DORA_TYPE_OVERRIDE(EventArgs<Fields...>);
 };
 
 class LuaEventArgs : public Event
@@ -117,7 +118,7 @@ void Event::get(Args&... args)
 	}
 	else
 	{
-		auto targetEvent = d_cast<EventArgs<Args...>*>(this);
+		auto targetEvent = DoraCast<EventArgs<Args...>>(this);
 		AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
 		std::tie(args...) = targetEvent->arguments;
 	}

@@ -25,6 +25,7 @@ public:
 	void get(Args&... args);
 protected:
 	string _name;
+	DORA_TYPE_BASE(QEvent);
 };
 
 template<class... Fields>
@@ -37,12 +38,13 @@ public:
 	arguments(std::make_tuple(args...))
 	{ }
 	std::tuple<Fields...> arguments;
+	DORA_TYPE_OVERRIDE(QEventArgs<Fields...>);
 };
 
 template<class... Args>
 void QEvent::get(Args&... args)
 {
-	auto targetEvent = d_cast<QEventArgs<Args...>*>(this);
+	auto targetEvent = DoraCast<QEventArgs<Args...>>(this);
 	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
 	std::tie(args...) = targetEvent->arguments;
 }
