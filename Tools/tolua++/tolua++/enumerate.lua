@@ -29,8 +29,8 @@ function classEnumerate:register (pre)
  local i=1
  while self[i] do
  	if self.lnames[i] and self.lnames[i] ~= "" then
-	
-		output(pre..'tolua_constant(tolua_S,"'..self.lnames[i]..'",'..nspace..self[i]..');')
+
+		output(pre..'tolua_constant(tolua_S,"'..self.lnames[i]..'",lua_Number('..nspace..self[i]..'));')
 	end
   i = i+1
  end
@@ -103,4 +103,3 @@ function Enumerate (n,b,varname)
 	end
  return _Enumerate(e, varname)
 end
-

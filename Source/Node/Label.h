@@ -83,13 +83,12 @@ private:
 #define SharedFontCache \
 	Dorothy::Singleton<Dorothy::FontCache>::shared()
 
-ENUM_START(TextAlignment)
+enum struct TextAlignment
 {
 	Left,
 	Center,
 	Right
-}
-ENUM_END(TextAlignment)
+};
 
 class Label : public Node
 {

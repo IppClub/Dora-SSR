@@ -224,7 +224,7 @@ void Director::mainLoop()
 		});
 
 		/* render imgui */
-		//SharedImGUI.render();
+		SharedImGUI.render();
 		SharedView.clear();
 	});
 }

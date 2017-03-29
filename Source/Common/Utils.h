@@ -77,40 +77,6 @@ public: void set##funName(String var)
 #define BREAK_UNLESS(cond) if (!cond) break;
 #define BLOCK_END } while (false);
 
-/** @brief A better Enum.
-	@example Use it as below.
-
-	ENUM_START(MyFlag)
-	{
-		FlagOne = 1,
-		FlagTwo,
-		FlagThree
-	}
-	ENUM_END(MyFlag)
-
-	MyFlag flag = MyFlag::FlagTwo;
-*/
-#define ENUM_START(x) struct x \
-{ \
-public: \
-	enum xEnum
-
-#define ENUM_END(x) ;\
-	inline x() { } \
-	inline x(const xEnum value):_value(value) { } \
-	explicit inline x(int value):_value((xEnum)value) { } \
-	inline void operator=(const xEnum inValue) \
-	{ \
-		_value = inValue; \
-	} \
-	inline operator xEnum() const \
-	{ \
-		return _value; \
-	} \
-private: \
-	xEnum _value; \
-};
-
 /** @brief Compiler compact macros */
 #ifdef __GNUC__
 	#define DORA_UNUSED __attribute__ ((unused))

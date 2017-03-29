@@ -121,6 +121,11 @@ bool Content::createFolder(String path)
 	return true;
 }
 
+const string& Content::getAssetPath() const
+{
+	return _assetPath;
+}
+
 const string& Content::getWritablePath() const
 {
 	return _writablePath;

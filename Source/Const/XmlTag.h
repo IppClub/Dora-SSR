@@ -17,28 +17,25 @@ namespace Xml
 
 namespace Clip
 {
-	ENUM_START(Element)
+	enum struct Element
 	{
 		Dorothy = 'A',
 		Clip = 'B',
-	}
-	ENUM_END(Element)
+	};
 
-	ENUM_START(Dorothy)
+	enum struct Dorothy
 	{
 		File = 'A',
-	}
-	ENUM_END(Dorothy)
+	};
 
-	ENUM_START(Clip)
+	enum struct Clip
 	{
 		Name = 'A',
 		Rect = 'B',
-	}
-	ENUM_END(Clip)
+	};
 }
 
-ENUM_START(Particle)
+enum struct Particle
 {
 	Dorothy = 'A',
 	Angle = 'B', // float
@@ -83,52 +80,46 @@ ENUM_START(Particle)
 	FinishRadiusVariance = 'm', // float
 	RotatePerSecond = 'n', // float
 	RotatePerSecondVariance = 'o', // float
-}
-ENUM_END(Particle)
+};
 
 namespace Effect
 {
-	ENUM_START(Element)
+	enum struct Element
 	{
 		Dorothy = 'A',
 		Effect = 'B',
-	}
-	ENUM_END(Element)
+	};
 
-	ENUM_START(Effect)
+	enum struct Effect
 	{
 		Name = 'A',
 		File = 'B',
-	}
-	ENUM_END(Effect)
+	};
 }
 
 namespace Frame
 {
-	ENUM_START(Element)
+	enum struct Element
 	{
 		Dorothy = 'A',
 		Clip = 'B',
-	}
-	ENUM_END(Element)
+	};
 
-	ENUM_START(Dorothy)
+	enum struct Dorothy
 	{
 		File = 'A',
 		Duration = 'B',
-	}
-	ENUM_END(Dorothy)
+	};
 
-	ENUM_START(Clip)
+	enum struct Clip
 	{
 		Rect = 'A',
-	}
-	ENUM_END(Clip)
+	};
 };
 
 namespace Model
 {
-	ENUM_START(Element)
+	enum struct Element
 	{
 		Dorothy = 'A',
 		Sprite = 'B',
@@ -141,21 +132,18 @@ namespace Model
 		LookName = 'I',
 		AnimationName = 'J',
 		KeyPoint = 'K',
-	}
-	ENUM_END(Element)
+	};
 
-	ENUM_START(Dorothy)
+	enum struct Dorothy
 	{
 		File = 'A',
 		FaceRight = 'B',
 		Size = 'D',
-	}
-	ENUM_END(Dorothy)
+	};
 
-	ENUM_START(Sprite)
+	enum struct Sprite
 	{
 		Key = 'A',
-		Visible = 'B',
 		Opacity = 'C',
 		Position = 'D',
 		Scale = 'E',
@@ -164,10 +152,9 @@ namespace Model
 		Name = 'H',
 		Clip = 'I',
 		Front = 'J',
-	}
-	ENUM_END(Sprite)
+	};
 
-	ENUM_START(KeyFrame)
+	enum struct KeyFrame
 	{
 		Duration = 'A',
 		Visible = 'B',
@@ -181,48 +168,42 @@ namespace Model
 		EaseScale = 'J',
 		EaseRotate = 'K',
 		EaseSkew = 'L',
-	}
-	ENUM_END(KeyFrame)
+	};
 
-	ENUM_START(FrameAnimation)
+	enum struct FrameAnimation
 	{
 		File = 'A',
 		Delay = 'B',
-	}
-	ENUM_END(FrameAnimation)
+	};
 
-	ENUM_START(Look)
+	enum struct Look
 	{
 		Name = 'H',
-	}
-	ENUM_END(Look)
+	};
 
-	ENUM_START(Track)
+	enum struct Track
 	{
 		File = 'A',
-	}
-	ENUM_END(Track)
+		Delay = 'B',
+	};
 
-	ENUM_START(LookName)
+	enum struct LookName
 	{
 		Index = 'C',
 		Name = 'H'
-	}
-	ENUM_END(LookName)
+	};
 
-	ENUM_START(AnimationName)
+	enum struct AnimationName
 	{
 		Index = 'C',
 		Name = 'H'
-	}
-	ENUM_END(AnimationName)
+	};
 
-	ENUM_START(KeyPoint)
+	enum struct KeyPoint
 	{
 		Key = 'A',
 		Position = 'B'
-	}
-	ENUM_END(KeyPoint)
+	};
 };
 
 } // namespace Xml

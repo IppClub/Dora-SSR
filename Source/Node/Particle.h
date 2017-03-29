@@ -13,12 +13,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-ENUM_START(EmitterType)
+enum struct EmitterType
 {
 	Gravity,
 	Radius
-}
-ENUM_END(EmitterType)
+};
 
 class ParticleDef : public Object
 {

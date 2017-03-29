@@ -1,3 +1,8 @@
+package.loaders = {package.loaders[1]}
+package.path = "?"
+package.cpath = nil
+package.preload = nil
+
 local Application = builtin.Application()
 local Content = builtin.Content()
 local Director = builtin.Director()

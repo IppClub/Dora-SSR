@@ -26,13 +26,13 @@ void FrameCache::Parser::xmlSAX2Text(const char* s, size_t len)
 
 void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
 {
-	switch (name[0])
+	switch (Xml::Frame::Element(name[0]))
 	{
 		case Xml::Frame::Element::Dorothy:
 		{
 			for (int i = 0; attrs[i].first != nullptr;i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Frame::Dorothy(attrs[i].first[0]))
 				{
 					case Xml::Frame::Dorothy::File:
 						_item->textureFile = _path + Slice(attrs[++i]);
@@ -48,7 +48,7 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		{
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Frame::Clip(attrs[i].first[0]))
 				{
 					case Xml::Frame::Clip::Rect:
 					{

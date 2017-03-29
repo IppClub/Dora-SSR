@@ -23,7 +23,8 @@ class Object
 
 class Content
 {
-    tolua_readonly tolua_property__common string writablePath;
+	tolua_readonly tolua_property__common string assetPath;
+	tolua_readonly tolua_property__common string writablePath;
 	void saveToFile @ save(String filename, String content);
 	bool isExist @ exist(String filename);
 	bool createFolder @ mkdir(String path);

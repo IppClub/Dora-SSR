@@ -10,22 +10,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-ENUM_START(TextureWrap)
+enum struct TextureWrap
 {
 	None,
 	Mirror,
 	Clamp,
 	Border
-}
-ENUM_END(TextureWrap)
+};
 
-ENUM_START(TextureFilter)
+enum struct TextureFilter
 {
 	None,
 	Point,
 	Anisotropic
-}
-ENUM_END(TextureFilter)
+};
 
 class Texture2D : public Object
 {

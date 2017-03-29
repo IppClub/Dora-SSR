@@ -48,13 +48,13 @@ void ModelCache::Parser::getPosFromStr(String str, float& x, float& y)
 
 void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
 {
-	switch (name[0])
+	switch (Xml::Model::Element(name[0]))
 	{
 		case Xml::Model::Element::Dorothy:
 		{
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::Dorothy(attrs[i].first[0]))
 				{
 					case Xml::Model::Dorothy::File:
 						_item->_clip = _path + Slice(attrs[++i]);
@@ -74,7 +74,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			SpriteDef* spriteDef = new SpriteDef();
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::Sprite(attrs[i].first[0]))
 				{
 					case Xml::Model::Sprite::Key:
 						getPosFromStr(attrs[++i], spriteDef->anchorX, spriteDef->anchorY);
@@ -121,7 +121,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			Slice visible;
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::KeyFrame(attrs[i].first[0]))
 				{
 					case Xml::Model::KeyFrame::Duration:
 						duration = attrs[++i];
@@ -229,7 +229,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			FrameAnimationDef* frameAnimationDef = new FrameAnimationDef();
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::FrameAnimation(attrs[i].first[0]))
 				{
 					case Xml::Model::FrameAnimation::File:
 						frameAnimationDef->setFile(attrs[++i]);
@@ -247,7 +247,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		{
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::Look(attrs[i].first[0]))
 				{
 					case Xml::Model::Look::Name:
 					{
@@ -270,7 +270,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			Slice name;
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::AnimationName(attrs[i].first[0]))
 				{
 					case Xml::Model::AnimationName::Index:
 						index = std::atoi(attrs[++i].first);
@@ -289,7 +289,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			Slice name;
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::LookName(attrs[i].first[0]))
 				{
 					case Xml::Model::LookName::Index:
 						index = std::atoi(attrs[++i].first);
@@ -308,7 +308,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			Vec2 keyPoint;
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
-				switch (attrs[i].first[0])
+				switch (Xml::Model::KeyPoint(attrs[i].first[0]))
 				{
 					case Xml::Model::KeyPoint::Key:
 						key = attrs[++i];
@@ -321,12 +321,18 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			_item->addKeyPoint(key, keyPoint);
 			break;
 		}
+		case Xml::Model::Element::KeyAnimation:
+			break;
+		case Xml::Model::Element::Sound:
+		case Xml::Model::Element::Track:
+			// TODO
+			break;
 	}
 }
 
 void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len)
 {
-	switch (name[0])
+	switch (Xml::Model::Element(name[0]))
 	{
 		case Xml::Model::Element::Sprite:
 		{
@@ -349,6 +355,8 @@ void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len)
 			nodeDef->animationDefs.push_back(std::move(_currentAnimationDef));
 			break;
 		}
+		default:
+			break;
 	}
 }
 
