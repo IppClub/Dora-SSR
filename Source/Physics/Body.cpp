@@ -218,12 +218,12 @@ int Body::getGroup() const
 
 void Body::applyLinearImpulse(const Vec2& impulse, const Vec2& pos)
 {
-	_bodyB2->ApplyLinearImpulse(impulse, pos);
+	_bodyB2->ApplyLinearImpulse(impulse, pos, true);
 }
 
 void Body::applyAngularImpulse(float impulse)
 {
-	_bodyB2->ApplyAngularImpulse(impulse);
+	_bodyB2->ApplyAngularImpulse(impulse, true);
 }
 
 b2Fixture* Body::attachFixture(b2FixtureDef* fixtureDef)

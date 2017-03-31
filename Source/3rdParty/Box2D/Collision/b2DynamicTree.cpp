@@ -652,7 +652,7 @@ void b2DynamicTree::ValidateMetrics(int32 index) const
 
 void b2DynamicTree::Validate() const
 {
-#if !defined(NDEBUG)
+#if defined(b2DEBUG)
 	ValidateStructure(m_root);
 	ValidateMetrics(m_root);
 

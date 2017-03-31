@@ -20,24 +20,13 @@
 #define B2_MATH_H
 
 #include "Box2D/Common/b2Settings.h"
+#include <math.h>
 
-#include <cmath>
-#include <cfloat>
-#include <cstddef>
-#include <limits>
-
-/// This function is used to ensure that a floating point number is
-/// not a NaN or infinity.
+/// This function is used to ensure that a floating point number is not a NaN or infinity.
 inline bool b2IsValid(float32 x)
 {
-	if (x != x)
-	{
-		// NaN.
-		return false;
-	}
-
-	float32 infinity = std::numeric_limits<float32>::infinity();
-	return -infinity < x && x < infinity;
+	int32 ix = *reinterpret_cast<int32*>(&x);
+	return (ix & 0x7f800000) != 0x7f800000;
 }
 
 /// This is a approximate yet fast inverse square-root.
@@ -57,8 +46,8 @@ inline float32 b2InvSqrt(float32 x)
 	return x;
 }
 
-#define	b2Sqrt(x)	std::sqrt(x)
-#define	b2Atan2(y, x)	std::atan2(y, x)
+#define	b2Sqrt(x)	sqrtf(x)
+#define	b2Atan2(y, x)	atan2f(y, x)
 
 /// A 2D column vector.
 struct b2Vec2
@@ -67,7 +56,7 @@ struct b2Vec2
 	b2Vec2() {}
 
 	/// Construct using coordinates.
-	b2Vec2(float32 x, float32 y) : x(x), y(y) {}
+	b2Vec2(float32 xIn, float32 yIn) : x(xIn), y(yIn) {}
 
 	/// Set this vector to all zeros.
 	void SetZero() { x = 0.0f; y = 0.0f; }
@@ -158,7 +147,7 @@ struct b2Vec3
 	b2Vec3() {}
 
 	/// Construct using coordinates.
-	b2Vec3(float32 x, float32 y, float32 z) : x(x), y(y), z(z) {}
+	b2Vec3(float32 xIn, float32 yIn, float32 zIn) : x(xIn), y(yIn), z(zIn) {}
 
 	/// Set this vector to all zeros.
 	void SetZero() { x = 0.0f; y = 0.0f; z = 0.0f; }
@@ -475,6 +464,11 @@ inline bool operator == (const b2Vec2& a, const b2Vec2& b)
 	return a.x == b.x && a.y == b.y;
 }
 
+inline bool operator != (const b2Vec2& a, const b2Vec2& b)
+{
+	return a.x != b.x || a.y != b.y;
+}
+
 inline float32 b2Distance(const b2Vec2& a, const b2Vec2& b)
 {
 	b2Vec2 c = a - b;
@@ -714,8 +708,8 @@ inline void b2Sweep::Advance(float32 alpha)
 {
 	b2Assert(alpha0 < 1.0f);
 	float32 beta = (alpha - alpha0) / (1.0f - alpha0);
-	c0 = (1.0f - beta) * c0 + beta * c;
-	a0 = (1.0f - beta) * a0 + beta * a;
+	c0 += beta * (c - c0);
+	a0 += beta * (a - a0);
 	alpha0 = alpha;
 }
 
