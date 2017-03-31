@@ -376,8 +376,6 @@ float Label::getLetterPosXRight(Sprite* sp)
 
 void Label::updateCharacters(const vector<Uint32>& chars)
 {
-	if (chars.empty()) return;
-
 	float nextFontPositionX = 0;
 	float nextFontPositionY = 0;
 	Uint32 prev = 0;
@@ -478,7 +476,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 	{
 		finalSize.width = _textWidth;
 	}
-	else
+	else if (fontDef)
 	{
 		// If the last character processed has an xAdvance which is less that the width of the characters image, then we need
 		// to adjust the width of the string to take this into account, or the character will overlap the end of the bounding
@@ -492,19 +490,20 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 			finalSize.width = longestLine;
 		}
 	}
+	else
+	{
+		finalSize.width = 0.0f;
+	}
 	finalSize.height = totalHeight;
 	setSize(finalSize);
 }
 
 void Label::updateLabel()
 {
-	if (_textUTF8.empty())
-	{
-		return;
-	}
-
 	// Step 0: Create characters
 	updateCharacters(_text);
+
+	if (_text.empty()) return;
 
 	// Step 1: Make multiline
 	if (_textWidth >= 0)

@@ -493,7 +493,7 @@ void PrintfFormatter<Char, AF>::format(BasicCStringRef<Char> format_str) {
 
     if (spec.type_ == 's') {
       // set the format type to the default if 's' is specified
-      spec.type_ = internal::DefaultType().visit(arg);
+      spec.type_ = static_cast<char>(internal::DefaultType().visit(arg));
     }
 
     if (arg.type <= Arg::LAST_INTEGER_TYPE) {

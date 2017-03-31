@@ -335,7 +335,7 @@ bool Cache::unload(String name)
 				{
 					auto it = tokens.begin();
 					Slice fontName = *it;
-					int fontSize = std::stoi(*(++it));
+					int fontSize = Slice::stoi(*(++it));
 					return SharedFontCache.unload(fontName, fontSize);
 				}
 				break;

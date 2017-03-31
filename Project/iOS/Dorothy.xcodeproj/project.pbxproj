@@ -119,6 +119,8 @@
 		3CB731141E8035A5006DFA18 /* b2PolygonShape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB7310E1E8035A5006DFA18 /* b2PolygonShape.cpp */; };
 		3CC05B6A1E716EB000F2BA1B /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B681E716EB000F2BA1B /* DrawNode.cpp */; };
 		3CC05B6D1E7171D600F2BA1B /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B6B1E7171D600F2BA1B /* Value.cpp */; };
+		3CC7A1441E8D657C003188D6 /* libsoloud.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC7A1431E8D657C003188D6 /* libsoloud.a */; };
+		3CC7A1581E8D69EB003188D6 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3CC7A1571E8D69EB003188D6 /* Audio */; };
 		3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC8201B1D96680C008C8B77 /* Assets.xcassets */; };
 		3CCB0C811E707A650088C118 /* ClipNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCB0C7F1E707A650088C118 /* ClipNode.cpp */; };
 		3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD481E1D589500F32295 /* Utils.cpp */; };
@@ -389,6 +391,8 @@
 		3CC05B691E716EB000F2BA1B /* DrawNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrawNode.h; path = ../../../Source/Node/DrawNode.h; sourceTree = "<group>"; };
 		3CC05B6B1E7171D600F2BA1B /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3CC05B6C1E7171D600F2BA1B /* Value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Value.h; path = ../../../Source/Support/Value.h; sourceTree = "<group>"; };
+		3CC7A1431E8D657C003188D6 /* libsoloud.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsoloud.a; path = ../../Source/3rdParty/soloud/Lib/iOS/libsoloud.a; sourceTree = "<group>"; };
+		3CC7A1571E8D69EB003188D6 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = ../../Assets/Audio; sourceTree = "<group>"; };
 		3CC820091D96680C008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC8201B1D96680C008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CC820201D96680C008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -471,6 +475,7 @@
 				3CB410481E05B28B00A8804D /* libz.1.2.8.tbd in Frameworks */,
 				3C9862741D9CA4830056A045 /* libSDL2.a in Frameworks */,
 				3C9862721D9CA4500056A045 /* libbgfx.a in Frameworks */,
+				3CC7A1441E8D657C003188D6 /* libsoloud.a in Frameworks */,
 				3CD210611E663F8B004676F1 /* Metal.framework in Frameworks */,
 				3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */,
 				3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */,
@@ -527,6 +532,7 @@
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3CC7A1571E8D69EB003188D6 /* Audio */,
 				3C59730C1E7F751A00BFD00F /* Model */,
 				3CF730DF1E66544A0002DEED /* Font */,
 				3CF730E01E66544A0002DEED /* Image */,
@@ -653,6 +659,7 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CC7A1431E8D657C003188D6 /* libsoloud.a */,
 				3CD210601E663F8B004676F1 /* Metal.framework */,
 				3C0EBE311E2DB9E10066450A /* libbx.a */,
 				3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */,
@@ -1146,6 +1153,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CC7A1581E8D69EB003188D6 /* Audio in Resources */,
 				3CF730E41E66544A0002DEED /* Image in Resources */,
 				3CF730E51E66544A0002DEED /* Script in Resources */,
 				3CF730E61E66544A0002DEED /* Shader in Resources */,
@@ -1404,10 +1412,11 @@
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/BGFX/Lib/iOS,
 					../../Source/3rdParty/Lua/Lib/iOS,
+					../../Source/3rdParty/soloud/Lib/iOS,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng";
 			};
 			name = Debug;
 		};
@@ -1429,10 +1438,11 @@
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/BGFX/Lib/iOS,
 					../../Source/3rdParty/Lua/Lib/iOS,
+					../../Source/3rdParty/soloud/Lib/iOS,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/BGFX/Header ../../Source/3rdParty/BGFX/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng";
 			};
 			name = Release;
 		};

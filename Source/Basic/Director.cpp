@@ -145,6 +145,7 @@ bool Director::init()
 	{
 		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
 	}
+
 	return true;
 }
 

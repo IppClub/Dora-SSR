@@ -41,7 +41,7 @@ class Content
 	static tolua_outside Content* Content_shared @ create();
 };
 
-class Listener @ GSlot : public Object
+class Listener @ GSlot : public 
 {
 	tolua_readonly tolua_property__common string name;
 	tolua_property__bool bool enabled;
