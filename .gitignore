@@ -56,3 +56,4 @@ LuaBinding.cpp
 
 # Ignore imgui ini file
 imgui.ini
+!tolua++.exe
