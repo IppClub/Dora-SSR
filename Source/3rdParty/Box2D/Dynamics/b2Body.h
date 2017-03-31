@@ -154,8 +154,8 @@ public:
 	void DestroyFixture(b2Fixture* fixture);
 
 	/// Set the position of the body's origin and rotation.
-	/// This breaks any contacts and wakes the other bodies.
 	/// Manipulating a body's transform may cause non-physical behavior.
+	/// Note: contacts are updated on the next call to b2World::Step.
 	/// @param position the world position of the body's local origin.
 	/// @param angle the world rotation in radians.
 	void SetTransform(const b2Vec2& position, float32 angle);
@@ -204,19 +204,18 @@ public:
 	/// @param force the world force vector, usually in Newtons (N).
 	/// @param point the world position of the point of application.
 	/// @param wake also wake up the body
-	void ApplyForce(const b2Vec2& force, const b2Vec2& point, bool wake = true);
+	void ApplyForce(const b2Vec2& force, const b2Vec2& point, bool wake);
 
 	/// Apply a force to the center of mass. This wakes up the body.
 	/// @param force the world force vector, usually in Newtons (N).
 	/// @param wake also wake up the body
-	void ApplyForceToCenter(const b2Vec2& force, bool wake = true);
+	void ApplyForceToCenter(const b2Vec2& force, bool wake);
 
 	/// Apply a torque. This affects the angular velocity
 	/// without affecting the linear velocity of the center of mass.
-	/// This wakes up the body.
 	/// @param torque about the z-axis (out of the screen), usually in N-m.
 	/// @param wake also wake up the body
-	void ApplyTorque(float32 torque, bool wake = true);
+	void ApplyTorque(float32 torque, bool wake);
 
 	/// Apply an impulse at a point. This immediately modifies the velocity.
 	/// It also modifies the angular velocity if the point of application
@@ -224,12 +223,17 @@ public:
 	/// @param impulse the world impulse vector, usually in N-seconds or kg-m/s.
 	/// @param point the world position of the point of application.
 	/// @param wake also wake up the body
-	void ApplyLinearImpulse(const b2Vec2& impulse, const b2Vec2& point, bool wake = true);
+	void ApplyLinearImpulse(const b2Vec2& impulse, const b2Vec2& point, bool wake);
+
+	/// Apply an impulse to the center of mass. This immediately modifies the velocity.
+	/// @param impulse the world impulse vector, usually in N-seconds or kg-m/s.
+	/// @param wake also wake up the body
+	void ApplyLinearImpulseToCenter(const b2Vec2& impulse, bool wake);
 
 	/// Apply an angular impulse.
 	/// @param impulse the angular impulse in units of kg*m*m/s
 	/// @param wake also wake up the body
-	void ApplyAngularImpulse(float32 impulse, bool wake = true);
+	void ApplyAngularImpulse(float32 impulse, bool wake);
 
 	/// Get the total mass of the body.
 	/// @return the mass, usually in kilograms (kg).
@@ -328,7 +332,7 @@ public:
 	void SetAwake(bool flag);
 
 	/// Get the sleeping state of this body.
-	/// @return true if the body is sleeping.
+	/// @return true if the body is awake.
 	bool IsAwake() const;
 
 	/// Set the active state of the body. An inactive body is not
@@ -522,19 +526,31 @@ inline const b2Vec2& b2Body::GetLinearVelocity() const
 
 inline void b2Body::SetLinearVelocityX(float vx)
 {
+	if (m_type == b2_staticBody)
+	{
+		return;
+	}
+
 	if (vx != 0)
 	{
 		SetAwake(true);
 	}
+
 	m_linearVelocity.x = vx;
 }
 
 inline void b2Body::SetLinearVelocityY(float vy)
 {
+	if (m_type == b2_staticBody)
+	{
+		return;
+	}
+
 	if (vy != 0)
 	{
 		SetAwake(true);
 	}
+
 	m_linearVelocity.y = vy;
 }
 
@@ -841,6 +857,25 @@ inline void b2Body::ApplyLinearImpulse(const b2Vec2& impulse, const b2Vec2& poin
 	{
 		m_linearVelocity += m_invMass * impulse;
 		m_angularVelocity += m_invI * b2Cross(point - m_sweep.c, impulse);
+	}
+}
+
+inline void b2Body::ApplyLinearImpulseToCenter(const b2Vec2& impulse, bool wake)
+{
+	if (m_type != b2_dynamicBody)
+	{
+		return;
+	}
+
+	if (wake && (m_flags & e_awakeFlag) == 0)
+	{
+		SetAwake(true);
+	}
+
+	// Don't accumulate velocity if the body is sleeping
+	if (m_flags & e_awakeFlag)
+	{
+		m_linearVelocity += m_invMass * impulse;
 	}
 }
 
