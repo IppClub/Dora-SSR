@@ -122,6 +122,8 @@ class Slice {
   std::list<Slice> split(const Slice& delimer) const;
 
   static const std::string Empty;
+  static float stof(const Slice& str);
+  static int stoi(const Slice& str);
 
   constexpr friend Slice operator"" _slice(const char* s, size_t n);
  private:

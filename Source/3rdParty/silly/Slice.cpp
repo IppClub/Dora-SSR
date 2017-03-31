@@ -21,6 +21,7 @@
  */
 
 #include "Slice.h"
+#include <cstdlib>
 
 namespace silly {
 
@@ -103,6 +104,14 @@ std::list<Slice> Slice::split(const Slice& delims) const {
     tokens.push_back(Slice(str_ + start));
   }
   return tokens;
+}
+
+float Slice::stof(const Slice& str) {
+  return static_cast<float>(std::atof(str.toString().c_str()));
+}
+
+int Slice::stoi(const Slice& str) {
+  return std::atoi(str.toString().c_str());
 }
 
 } // namespace slice
