@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 #include "soloud.h"
 #include "soloud_wav.h"
+#include "soloud_speech.h"
 #include "Basic/Content.h"
 
 #if BX_PLATFORM_ANDROID
@@ -125,7 +126,7 @@ int Application::run()
 	windowFlags |= SDL_WINDOW_FULLSCREEN;
 #endif
 
-	_sdlWindow = SDL_CreateWindow("Dorothy-SSR",
+	_sdlWindow = SDL_CreateWindow("Dorothy SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_width, _height, windowFlags);
 	if (!_sdlWindow)
@@ -137,15 +138,16 @@ int Application::run()
 	Application::setupSdlWindow();
 
 	SoLoud::Soloud soloud; // Engine core
-	SoLoud::Wav sample;    // One sample
+	SoLoud::Wav sample; // One sample
+	soloud.init(); // Initialize SoLoud (automatic back-end selection)
 
-						   // Initialize SoLoud (automatic back-end selection)
-	soloud.init();
-
-	Sint64 size;
-	Uint8* data = SharedContent.loadFileUnsafe("Audio/hero_win.wav", size);
-	SoLoud::result re = sample.loadMem(data, s_cast<Uint32>(size)); // Load a wave file
+	auto data = SharedContent.loadFile("Audio/hero_win.wav");
+	sample.loadMem(data, s_cast<Uint32>(data.size()), false, false); // Load a wave file
 	soloud.play(sample);
+
+	SoLoud::Speech speech;
+	speech.setText("1 2 3 4 5 6 7 8 9 10, Welcome to Dorothy SSR.");
+	soloud.play(speech);
 
 	// call this function here to disable default render threads creation of bgfx
 	Application::renderFrame();
