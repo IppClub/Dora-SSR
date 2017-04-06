@@ -7,6 +7,7 @@ local Application = builtin.Application()
 local Content = builtin.Content()
 local Director = builtin.Director()
 local View = builtin.View()
+local Audio = builtin.Audio()
 
 local tolua = builtin.tolua
 local yield = coroutine.yield
@@ -19,6 +20,7 @@ builtin.Application = Application
 builtin.Content = Content
 builtin.Director = Director
 builtin.View = View
+builtin.Audio = Audio
 
 local function wait(cond)
 	repeat

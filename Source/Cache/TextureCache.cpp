@@ -114,12 +114,11 @@ Texture2D::~Texture2D()
 	}
 }
 
-TextureCache::TextureCache()
-{ }
-
-void TextureCache::update(String name, Texture2D* texture)
+Texture2D* TextureCache::update(String name, Texture2D* texture)
 {
-	_textures[name] = texture;
+	string fullPath = SharedContent.getFullPath(name);
+	_textures[fullPath] = texture;
+	return texture;
 }
 
 Texture2D* TextureCache::get(String filename)
@@ -133,13 +132,7 @@ Texture2D* TextureCache::get(String filename)
 	return nullptr;
 }
 
-Texture2D* TextureCache::add(String filename, Texture2D* texture)
-{
-	_textures[filename] = texture;
-	return texture;
-}
-
-Texture2D* TextureCache::add(String filename, const Uint8* data, Sint64 size)
+Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
 {
 	AssertUnless(data && size > 0, "add invalid data to texture cache.");
 	string extension = filename.getFileExtension();
@@ -154,7 +147,8 @@ Texture2D* TextureCache::add(String filename, const Uint8* data, Sint64 size)
 			uint32_t flags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
 			bgfx::TextureHandle handle = bgfx::createTexture(mem, flags, 0, &info);
 			Texture2D* texture = Texture2D::create(handle, info, flags);
-			_textures[filename] = texture;
+			string fullPath = SharedContent.getFullPath(filename);
+			_textures[fullPath] = texture;
 			return texture;
 		}
 		case "png"_hash:
@@ -182,7 +176,8 @@ Texture2D* TextureCache::add(String filename, const Uint8* data, Sint64 size)
 					0, false, false, 1, format);
 
 				Texture2D* texture = Texture2D::create(handle, info, textureFlags);
-				_textures[filename] = texture;
+				string fullPath = SharedContent.getFullPath(filename);
+				_textures[fullPath] = texture;
 				return texture;
 			}
 			Log("failed to load texture \"%s\".", filename);

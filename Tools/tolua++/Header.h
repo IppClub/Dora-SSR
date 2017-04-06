@@ -925,3 +925,12 @@ struct Cache
 	static void removeUnused();
 	static void removeUnused(String type);
 }
+
+class Audio
+{
+	Uint32 play(String filename, bool loop = false);
+	void stop(Uint32 handle);
+	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
+	void stopStream(float fadeTime = 0.0f);
+	static tolua_outside Audio* Audio_shared @ create();
+};

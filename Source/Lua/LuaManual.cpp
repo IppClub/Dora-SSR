@@ -221,6 +221,9 @@ bool Cache::load(String filename)
 				return SharedTextureCache.load(filename);
 			case "bin"_hash:
 				return SharedShaderCache.load(filename);
+			case "wav"_hash:
+			case "ogg"_hash:
+				return SharedSoundCache.load(filename);
 		}
 	}
 	return false;
@@ -253,6 +256,10 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 				break;
 			case "bin"_hash:
 				SharedShaderCache.loadAsync(filename, [callback](Shader*) { callback(); });
+				break;
+			case "wav"_hash:
+			case "ogg"_hash:
+				SharedSoundCache.loadAsync(filename, [callback](SoundFile*) { callback(); });
 				break;
 		}
 	}
@@ -308,6 +315,9 @@ bool Cache::unload(String name)
 				return SharedTextureCache.unload(name);
 			case "bin"_hash:
 				return SharedShaderCache.unload(name);
+			case "wav"_hash:
+			case "ogg"_hash:
+				return SharedSoundCache.unload(name);
 		}
 	}
 	else
@@ -328,6 +338,8 @@ bool Cache::unload(String name)
 				return SharedShaderCache.unload();
 			case "Font"_hash:
 				return SharedFontCache.unload();
+			case "Sound"_hash:
+				return SharedSoundCache.unload();
 			default:
 			{
 				auto tokens = name.split(":");
@@ -354,6 +366,7 @@ void Cache::unload()
 	SharedClipCache.unload();
 	SharedTextureCache.unload();
 	SharedFontCache.unload();
+	SharedSoundCache.unload();
 }
 
 void Cache::removeUnused()
@@ -365,6 +378,7 @@ void Cache::removeUnused()
 	SharedClipCache.removeUnused();
 	SharedTextureCache.removeUnused();
 	SharedFontCache.removeUnused();
+	SharedSoundCache.removeUnused();
 }
 
 void Cache::removeUnused(String name)
@@ -391,6 +405,9 @@ void Cache::removeUnused(String name)
 			break;
 		case "Font"_hash:
 			SharedFontCache.removeUnused();
+			break;
+		case "Sound"_hash:
+			SharedSoundCache.removeUnused();
 			break;
 	}
 }
@@ -850,6 +867,16 @@ using namespace Dorothy;
 /* ImGui */
 namespace ImGui { namespace Binding
 {
+	void LoadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)
+	{
+		SharedImGUI.loadFontTTF(ttfFontFile, fontSize, glyphRanges);
+	}
+
+	void ShowStats()
+	{
+		SharedImGUI.showStats();
+	}
+
 	bool Begin(const char* name, String windowsFlags)
 	{
 		return ImGui::Begin(name, nullptr, getWindowCombinedFlags(windowsFlags));

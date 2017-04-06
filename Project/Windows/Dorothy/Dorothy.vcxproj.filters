@@ -103,6 +103,9 @@
     <Filter Include="3rdParty\lpeg">
       <UniqueIdentifier>{39517c25-9ae2-444e-a178-2174c1d955fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Audio">
+      <UniqueIdentifier>{770ca085-abd0-4bd9-82c8-9b9d24a2a975}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -484,6 +487,12 @@
       <Filter>3rdParty\lpeg</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Audio\Sound.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>
   </ItemGroup>
@@ -922,6 +931,12 @@
       <Filter>3rdParty\lpeg</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Audio\Sound.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\SoundCache.h">
       <Filter>Cache</Filter>
     </ClInclude>
   </ItemGroup>

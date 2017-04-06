@@ -11,9 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Director.h"
 #include "bx/timer.h"
-#include "soloud.h"
-#include "soloud_wav.h"
-#include "soloud_speech.h"
 #include "Basic/Content.h"
 
 #if BX_PLATFORM_ANDROID
@@ -136,18 +133,6 @@ int Application::run()
 	}
 
 	Application::setupSdlWindow();
-
-	SoLoud::Soloud soloud; // Engine core
-	SoLoud::Wav sample; // One sample
-	soloud.init(); // Initialize SoLoud (automatic back-end selection)
-
-	auto data = SharedContent.loadFile("Audio/hero_win.wav");
-	sample.loadMem(data, s_cast<Uint32>(data.size()), false, false); // Load a wave file
-	soloud.play(sample);
-
-	SoLoud::Speech speech;
-	speech.setText("1 2 3 4 5 6 7 8 9 10, Welcome to Dorothy SSR.");
-	soloud.play(speech);
 
 	// call this function here to disable default render threads creation of bgfx
 	Application::renderFrame();

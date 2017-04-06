@@ -12,13 +12,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 #include "Node/Node.h"
 #include "Basic/Application.h"
+#include "Basic/Content.h"
+#include "Basic/Renderer.h"
 #include "Input/TouchDispather.h"
 #include "Basic/View.h"
 #include "GUI/ImGUIDora.h"
+#include "Audio/Sound.h"
 #include "bx/timer.h"
 #include "imgui.h"
-#include "Dorothy.h"
-#include "Const/XmlTag.h"
 
 NS_DOROTHY_BEGIN
 
@@ -140,12 +141,14 @@ bool Director::init()
 	{
 		return false;
 	}
-	SharedImGUI.loadFontTTF("Font/fangzhen16.ttf"_slice, 16, "Chinese"_slice);
+	if (!SharedAudio.init())
+	{
+		return false;
+	}
 	if (SharedContent.isExist("Script/main.lua"_slice))
 	{
 		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
 	}
-
 	return true;
 }
 
@@ -160,10 +163,6 @@ void Director::mainLoop()
 		_systemScheduler->update(getDeltaTime());
 
 		SharedImGUI.begin();
-		SharedImGUI.showStats();
-		ImGui::ShowTestWindow();
-		ImGui::ShowStyleEditor();
-		ImGui::ShowMetricsWindow();
 		_scheduler->update(getDeltaTime());
 		SharedImGUI.end();
 
