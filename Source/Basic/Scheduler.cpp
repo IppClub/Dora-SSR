@@ -11,9 +11,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Animation/Action.h"
 #include "Support/Array.h"
 #include "Node/Node.h"
+#include "Basic/Director.h"
 
 NS_DOROTHY_BEGIN
 
+/* Scheduler */
 class FuncWrapper : public Object
 {
 public:
@@ -159,6 +161,46 @@ bool Scheduler::update(double deltaTime)
 	}
 	_updateItems.clear();
 	return false;
+}
+
+/* Timer */
+Timer::Timer():
+_time(0),
+_duration(0)
+{ }
+
+bool Timer::isRunning() const
+{
+	return _time < _duration;
+}
+
+bool Timer::update(double deltaTime)
+{
+	_time += s_cast<float>(deltaTime);
+	if (_time >= _duration)
+	{
+		if (_callback)
+		{
+			_callback();
+		}
+		stop();
+		return true;
+	}
+	return false;
+}
+
+void Timer::start(float duration, const function<void()>& callback)
+{
+	_time = 0.0f;
+	_duration = std::max(0.0f, duration);
+	_callback = callback;
+	SharedDirector.getSystemScheduler()->schedule(this);
+}
+
+void Timer::stop()
+{
+	_time = _duration = 0.0f;
+	_callback = nullptr;
 }
 
 NS_DOROTHY_END

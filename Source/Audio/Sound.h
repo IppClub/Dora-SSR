@@ -8,41 +8,63 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Basic/Object.h"
+#include "soloud_wav.h"
+#include "soloud_wavstream.h"
+
 NS_DOROTHY_BEGIN
 
-class Shader : public Object
+class Timer;
+
+class SoundFile : public Object
 {
 public:
-	PROPERTY_READONLY(bgfx::ShaderHandle, Handle);
-	virtual ~Shader();
-	CREATE_FUNC(Shader);
+	PROPERTY_READONLY_CALL(SoLoud::Wav&, Wav);
+	CREATE_FUNC(SoundFile);
 protected:
-	Shader(bgfx::ShaderHandle handle);
+	SoundFile(OwnArray<Uint8>&& data);
 private:
-	bgfx::ShaderHandle _handle;
+	SoLoud::Wav _wav;
+	DORA_TYPE_OVERRIDE(SoundFile);
 };
 
-class ShaderCache
+class SoundStream : public Object
 {
 public:
-	virtual ~ShaderCache() { }
-	void update(String name, Shader* shader);
-	/** @brief fragment or vertex shader */
-	Shader* load(String filename);
-	void loadAsync(String filename, const function<void(Shader*)>& handler);
-    bool unload(Shader* shader);
-    bool unload(String filename);
-    bool unload();
-    void removeUnused();
+	PROPERTY_READONLY_CALL(SoLoud::WavStream&, Stream);
+	virtual bool init() override;
+	CREATE_FUNC(SoundStream);
 protected:
-	ShaderCache();
-	string getShaderPath() const;
+	SoundStream(OwnArray<Uint8>&& data);
 private:
-	unordered_map<string, Ref<Shader>> _shaders;
-	SINGLETON_REF(ShaderCache, BGFXDora);
+	OwnArray<Uint8> _data;
+	SoLoud::WavStream _stream;
+	DORA_TYPE_OVERRIDE(SoundStream);
 };
 
-#define SharedShaderCache \
-	Dorothy::Singleton<Dorothy::ShaderCache>::shared()
+class Audio
+{
+public:
+	PROPERTY_READONLY_CALL(SoLoud::Soloud&, SoLoud);
+	virtual ~Audio();
+	bool init();
+	Uint32 play(String filename, bool loop = false);
+	void stop(Uint32 handle);
+	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
+	void stopStream(float fadeTime = 0.0f);
+protected:
+	Audio();
+private:
+	Ref<Timer> _timer;
+	Uint32 _currentVoice;
+	Ref<SoundStream> _lastStream;
+	Ref<SoundStream> _currentStream;
+	SoLoud::Soloud _soloud;
+	SINGLETON_REF(Audio, Application);
+	DORA_TYPE(Audio);
+};
+
+#define SharedAudio \
+	Dorothy::Singleton<Dorothy::Audio>::shared()
 
 NS_DOROTHY_END

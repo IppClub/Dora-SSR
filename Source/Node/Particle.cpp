@@ -216,7 +216,7 @@ bool ParticleNode::init()
 		_texture = SharedTextureCache.get("__defaultParticleTexture.png");
 		if (!_texture)
 		{
-			_texture = SharedTextureCache.add(
+			_texture = SharedTextureCache.update(
 				"__defaultParticleTexture.png",
 				__defaultParticleTexturePng,
 				sizeof(__defaultParticleTexturePng));

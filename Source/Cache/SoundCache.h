@@ -8,41 +8,34 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Common/Singleton.h"
+
 NS_DOROTHY_BEGIN
 
-class Shader : public Object
-{
-public:
-	PROPERTY_READONLY(bgfx::ShaderHandle, Handle);
-	virtual ~Shader();
-	CREATE_FUNC(Shader);
-protected:
-	Shader(bgfx::ShaderHandle handle);
-private:
-	bgfx::ShaderHandle _handle;
-};
+class SoundFile;
 
-class ShaderCache
+class SoundCache
 {
 public:
-	virtual ~ShaderCache() { }
-	void update(String name, Shader* shader);
-	/** @brief fragment or vertex shader */
-	Shader* load(String filename);
-	void loadAsync(String filename, const function<void(Shader*)>& handler);
-    bool unload(Shader* shader);
+	SoundFile* update(String name, SoundFile* soundFile);
+	SoundFile* update(String filename, const Uint8* data, Sint64 size);
+	SoundFile* get(String filename);
+	/** @brief support format .wav .ogg */
+	SoundFile* load(String filename);
+	void loadAsync(String filename, const function<void(SoundFile*)>& handler);
+    bool unload(SoundFile* soundFile);
     bool unload(String filename);
     bool unload();
     void removeUnused();
 protected:
-	ShaderCache();
-	string getShaderPath() const;
+	SoundCache() { }
 private:
-	unordered_map<string, Ref<Shader>> _shaders;
-	SINGLETON_REF(ShaderCache, BGFXDora);
+	unordered_map<string, Ref<SoundFile>> _soundFiles;
+	DORA_TYPE(SoundCache);
+	SINGLETON_REF(SoundCache, SoLoudPlayer);
 };
 
-#define SharedShaderCache \
-	Dorothy::Singleton<Dorothy::ShaderCache>::shared()
+#define SharedSoundCache \
+	Dorothy::Singleton<Dorothy::SoundCache>::shared()
 
 NS_DOROTHY_END

@@ -161,7 +161,7 @@ void ImGUIDora::showStats()
 {
 	/* print debug text */
 	ImGui::SetNextWindowPos(Vec2{10,10}, ImGuiSetCond_FirstUseEver);
-	ImGui::Begin("Dorothy Stats", nullptr, Vec2{190,240}, 0.8f, ImGuiWindowFlags_NoResize);
+	ImGui::Begin("Dorothy Stats", nullptr, Vec2{190,240}, 0.8f, ImGuiWindowFlags_AlwaysAutoResize);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.

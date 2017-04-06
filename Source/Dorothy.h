@@ -53,3 +53,5 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Sensor.h"
 #include "Physics/JointDef.h"
 #include "Physics/Joint.h"
+#include "Cache/SoundCache.h"
+#include "Audio/Sound.h"

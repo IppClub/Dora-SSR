@@ -19,6 +19,8 @@
 		3C291D331E025A980098C860 /* AutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D311E025A980098C860 /* AutoreleasePool.cpp */; };
 		3C291D4E1E0279990098C860 /* Content.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D4C1E0279990098C860 /* Content.cpp */; };
 		3C291D581E02932B0098C860 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C291D571E02932B0098C860 /* Content.mm */; };
+		3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2DFE121E95C4AF0077B67D /* SoundCache.cpp */; };
+		3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2DFE181E95C58A0077B67D /* Sound.cpp */; };
 		3C2F9C871E7AE8CA00B98D39 /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C851E7AE8CA00B98D39 /* Animation.cpp */; };
 		3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */; };
 		3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C8C1E7B132600B98D39 /* ClipCache.cpp */; };
@@ -182,6 +184,42 @@
 		3C291D4C1E0279990098C860 /* Content.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Content.cpp; path = ../../../Source/Basic/Content.cpp; sourceTree = "<group>"; };
 		3C291D4D1E0279990098C860 /* Content.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Content.h; path = ../../../Source/Basic/Content.h; sourceTree = "<group>"; };
 		3C291D571E02932B0098C860 /* Content.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Content.mm; path = ../../../Source/Basic/Content.mm; sourceTree = "<group>"; };
+		3C2DFE121E95C4AF0077B67D /* SoundCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoundCache.cpp; path = ../../../Source/Cache/SoundCache.cpp; sourceTree = "<group>"; };
+		3C2DFE131E95C4AF0077B67D /* SoundCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoundCache.h; path = ../../../Source/Cache/SoundCache.h; sourceTree = "<group>"; };
+		3C2DFE181E95C58A0077B67D /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
+		3C2DFE191E95C58A0077B67D /* Sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound.h; path = ../../../Source/Audio/Sound.h; sourceTree = "<group>"; };
+		3C2DFE1E1E95C6F40077B67D /* soloud_audiosource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_audiosource.h; path = ../../../Source/3rdParty/soloud/Header/soloud_audiosource.h; sourceTree = "<group>"; };
+		3C2DFE1F1E95C6F40077B67D /* soloud_bassboostfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_bassboostfilter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_bassboostfilter.h; sourceTree = "<group>"; };
+		3C2DFE201E95C6F40077B67D /* soloud_biquadresonantfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_biquadresonantfilter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_biquadresonantfilter.h; sourceTree = "<group>"; };
+		3C2DFE211E95C6F40077B67D /* soloud_bus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_bus.h; path = ../../../Source/3rdParty/soloud/Header/soloud_bus.h; sourceTree = "<group>"; };
+		3C2DFE221E95C6F40077B67D /* soloud_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_c.h; path = ../../../Source/3rdParty/soloud/Header/soloud_c.h; sourceTree = "<group>"; };
+		3C2DFE231E95C6F40077B67D /* soloud_dcremovalfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_dcremovalfilter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_dcremovalfilter.h; sourceTree = "<group>"; };
+		3C2DFE241E95C6F40077B67D /* soloud_echofilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_echofilter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_echofilter.h; sourceTree = "<group>"; };
+		3C2DFE251E95C6F40077B67D /* soloud_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_error.h; path = ../../../Source/3rdParty/soloud/Header/soloud_error.h; sourceTree = "<group>"; };
+		3C2DFE261E95C6F40077B67D /* soloud_fader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_fader.h; path = ../../../Source/3rdParty/soloud/Header/soloud_fader.h; sourceTree = "<group>"; };
+		3C2DFE271E95C6F40077B67D /* soloud_fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_fft.h; path = ../../../Source/3rdParty/soloud/Header/soloud_fft.h; sourceTree = "<group>"; };
+		3C2DFE281E95C6F40077B67D /* soloud_fftfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_fftfilter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_fftfilter.h; sourceTree = "<group>"; };
+		3C2DFE291E95C6F40077B67D /* soloud_file_hack_off.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_file_hack_off.h; path = ../../../Source/3rdParty/soloud/Header/soloud_file_hack_off.h; sourceTree = "<group>"; };
+		3C2DFE2A1E95C6F40077B67D /* soloud_file_hack_on.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_file_hack_on.h; path = ../../../Source/3rdParty/soloud/Header/soloud_file_hack_on.h; sourceTree = "<group>"; };
+		3C2DFE2B1E95C6F40077B67D /* soloud_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_file.h; path = ../../../Source/3rdParty/soloud/Header/soloud_file.h; sourceTree = "<group>"; };
+		3C2DFE2C1E95C6F40077B67D /* soloud_filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_filter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_filter.h; sourceTree = "<group>"; };
+		3C2DFE2D1E95C6F40077B67D /* soloud_flangerfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_flangerfilter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_flangerfilter.h; sourceTree = "<group>"; };
+		3C2DFE2E1E95C6F40077B67D /* soloud_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_internal.h; path = ../../../Source/3rdParty/soloud/Header/soloud_internal.h; sourceTree = "<group>"; };
+		3C2DFE2F1E95C6F40077B67D /* soloud_lofifilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_lofifilter.h; path = ../../../Source/3rdParty/soloud/Header/soloud_lofifilter.h; sourceTree = "<group>"; };
+		3C2DFE301E95C6F40077B67D /* soloud_monotone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_monotone.h; path = ../../../Source/3rdParty/soloud/Header/soloud_monotone.h; sourceTree = "<group>"; };
+		3C2DFE311E95C6F40077B67D /* soloud_openmpt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_openmpt.h; path = ../../../Source/3rdParty/soloud/Header/soloud_openmpt.h; sourceTree = "<group>"; };
+		3C2DFE321E95C6F40077B67D /* soloud_sfxr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_sfxr.h; path = ../../../Source/3rdParty/soloud/Header/soloud_sfxr.h; sourceTree = "<group>"; };
+		3C2DFE331E95C6F40077B67D /* soloud_speech.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_speech.h; path = ../../../Source/3rdParty/soloud/Header/soloud_speech.h; sourceTree = "<group>"; };
+		3C2DFE341E95C6F40077B67D /* soloud_tedsid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_tedsid.h; path = ../../../Source/3rdParty/soloud/Header/soloud_tedsid.h; sourceTree = "<group>"; };
+		3C2DFE351E95C6F40077B67D /* soloud_thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_thread.h; path = ../../../Source/3rdParty/soloud/Header/soloud_thread.h; sourceTree = "<group>"; };
+		3C2DFE361E95C6F40077B67D /* soloud_vic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_vic.h; path = ../../../Source/3rdParty/soloud/Header/soloud_vic.h; sourceTree = "<group>"; };
+		3C2DFE371E95C6F40077B67D /* soloud_wav.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_wav.h; path = ../../../Source/3rdParty/soloud/Header/soloud_wav.h; sourceTree = "<group>"; };
+		3C2DFE381E95C6F40077B67D /* soloud_wavstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_wavstream.h; path = ../../../Source/3rdParty/soloud/Header/soloud_wavstream.h; sourceTree = "<group>"; };
+		3C2DFE391E95C6F40077B67D /* soloud.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud.h; path = ../../../Source/3rdParty/soloud/Header/soloud.h; sourceTree = "<group>"; };
+		3C2DFE3B1E95C7130077B67D /* darray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = darray.h; path = ../../../Source/3rdParty/soloud/Header/speech/darray.h; sourceTree = "<group>"; };
+		3C2DFE3C1E95C7130077B67D /* klatt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = klatt.h; path = ../../../Source/3rdParty/soloud/Header/speech/klatt.h; sourceTree = "<group>"; };
+		3C2DFE3E1E95C7130077B67D /* resonator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = resonator.h; path = ../../../Source/3rdParty/soloud/Header/speech/resonator.h; sourceTree = "<group>"; };
+		3C2DFE3F1E95C7130077B67D /* tts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tts.h; path = ../../../Source/3rdParty/soloud/Header/speech/tts.h; sourceTree = "<group>"; };
 		3C2F9C851E7AE8CA00B98D39 /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = ../../../Source/Animation/Animation.cpp; sourceTree = "<group>"; };
 		3C2F9C861E7AE8CA00B98D39 /* Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Animation.h; path = ../../../Source/Animation/Animation.h; sourceTree = "<group>"; };
 		3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelDef.cpp; path = ../../../Source/Animation/ModelDef.cpp; sourceTree = "<group>"; };
@@ -552,6 +590,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C2DFE1D1E95C6DE0077B67D /* soloud */,
 				3C61768D1E82CDD700A19A54 /* lpeg */,
 				3CE9D7281E7FB766003AAECB /* Box2D */,
 				3C6C07631E5E857B00BAA745 /* fmt */,
@@ -565,6 +604,62 @@
 				3CC54E8E1E03C08200462FD7 /* Zip */,
 			);
 			name = 3rdParty;
+			sourceTree = "<group>";
+		};
+		3C2DFE151E95C5770077B67D /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				3C2DFE181E95C58A0077B67D /* Sound.cpp */,
+				3C2DFE191E95C58A0077B67D /* Sound.h */,
+			);
+			name = Audio;
+			sourceTree = "<group>";
+		};
+		3C2DFE1D1E95C6DE0077B67D /* soloud */ = {
+			isa = PBXGroup;
+			children = (
+				3C2DFE3A1E95C6FE0077B67D /* speech */,
+				3C2DFE1E1E95C6F40077B67D /* soloud_audiosource.h */,
+				3C2DFE1F1E95C6F40077B67D /* soloud_bassboostfilter.h */,
+				3C2DFE201E95C6F40077B67D /* soloud_biquadresonantfilter.h */,
+				3C2DFE211E95C6F40077B67D /* soloud_bus.h */,
+				3C2DFE221E95C6F40077B67D /* soloud_c.h */,
+				3C2DFE231E95C6F40077B67D /* soloud_dcremovalfilter.h */,
+				3C2DFE241E95C6F40077B67D /* soloud_echofilter.h */,
+				3C2DFE251E95C6F40077B67D /* soloud_error.h */,
+				3C2DFE261E95C6F40077B67D /* soloud_fader.h */,
+				3C2DFE271E95C6F40077B67D /* soloud_fft.h */,
+				3C2DFE281E95C6F40077B67D /* soloud_fftfilter.h */,
+				3C2DFE291E95C6F40077B67D /* soloud_file_hack_off.h */,
+				3C2DFE2A1E95C6F40077B67D /* soloud_file_hack_on.h */,
+				3C2DFE2B1E95C6F40077B67D /* soloud_file.h */,
+				3C2DFE2C1E95C6F40077B67D /* soloud_filter.h */,
+				3C2DFE2D1E95C6F40077B67D /* soloud_flangerfilter.h */,
+				3C2DFE2E1E95C6F40077B67D /* soloud_internal.h */,
+				3C2DFE2F1E95C6F40077B67D /* soloud_lofifilter.h */,
+				3C2DFE301E95C6F40077B67D /* soloud_monotone.h */,
+				3C2DFE311E95C6F40077B67D /* soloud_openmpt.h */,
+				3C2DFE321E95C6F40077B67D /* soloud_sfxr.h */,
+				3C2DFE331E95C6F40077B67D /* soloud_speech.h */,
+				3C2DFE341E95C6F40077B67D /* soloud_tedsid.h */,
+				3C2DFE351E95C6F40077B67D /* soloud_thread.h */,
+				3C2DFE361E95C6F40077B67D /* soloud_vic.h */,
+				3C2DFE371E95C6F40077B67D /* soloud_wav.h */,
+				3C2DFE381E95C6F40077B67D /* soloud_wavstream.h */,
+				3C2DFE391E95C6F40077B67D /* soloud.h */,
+			);
+			name = soloud;
+			sourceTree = "<group>";
+		};
+		3C2DFE3A1E95C6FE0077B67D /* speech */ = {
+			isa = PBXGroup;
+			children = (
+				3C2DFE3B1E95C7130077B67D /* darray.h */,
+				3C2DFE3C1E95C7130077B67D /* klatt.h */,
+				3C2DFE3E1E95C7130077B67D /* resonator.h */,
+				3C2DFE3F1E95C7130077B67D /* tts.h */,
+			);
+			name = speech;
 			sourceTree = "<group>";
 		};
 		3C57A39A1E0A059A002141DF /* Event */ = {
@@ -717,6 +812,8 @@
 		3CC0986B1E2630D5006F4B76 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C2DFE121E95C4AF0077B67D /* SoundCache.cpp */,
+				3C2DFE131E95C4AF0077B67D /* SoundCache.h */,
 				3CEDF77C1E839DE6008839A3 /* ParticleCache.cpp */,
 				3CEDF77D1E839DE6008839A3 /* ParticleCache.h */,
 				3CD497FC1E7EF3DF00C06CA2 /* FrameCache.cpp */,
@@ -817,6 +914,7 @@
 				3C50976A1E65A1E800896971 /* Dorothy.h */,
 				3C291D371E0264510098C860 /* 3rdParty */,
 				3C020DC91E75474C00307E4F /* Animation */,
+				3C2DFE151E95C5770077B67D /* Audio */,
 				3C9ADE491E00EFB200D42018 /* Basic */,
 				3CC0986B1E2630D5006F4B76 /* Cache */,
 				3C9ADE4F1E00F14E00D42018 /* Common */,
@@ -1287,6 +1385,8 @@
 				3C6176BD1E82D51F00A19A54 /* lptree.cpp in Sources */,
 				3CF16C8C1E68F165002587CD /* Renderer.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
+				3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */,
+				3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */,
 				3CE9D7451E7FB7EA003AAECB /* b2Collision.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
 				3CC05B671E7131CB00F2BA1B /* Value.cpp in Sources */,

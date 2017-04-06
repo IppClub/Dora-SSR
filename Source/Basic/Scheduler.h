@@ -40,4 +40,21 @@ private:
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 
+class Timer : public Object
+{
+public:
+	PROPERTY_BOOL(Running);
+	virtual bool update(double deltaTime) override;
+	void start(float duration, const function<void()>& callback);
+	void stop();
+	CREATE_FUNC(Timer);
+protected:
+	Timer();
+private:
+	float _time;
+	float _duration;
+	function<void()> _callback;
+	DORA_TYPE_OVERRIDE(Timer);
+};
+
 NS_DOROTHY_END

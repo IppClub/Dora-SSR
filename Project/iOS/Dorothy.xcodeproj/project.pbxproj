@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3C01B6C21E96433600A0CC1C /* SoundCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C01B6C01E96433500A0CC1C /* SoundCache.cpp */; };
+		3C01B6C61E96436D00A0CC1C /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C01B6C41E96436D00A0CC1C /* Sound.cpp */; };
 		3C0AD7BB1E0CE95F0033AD59 /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7B31E0CE95F0033AD59 /* Event.cpp */; };
 		3C0AD7BC1E0CE95F0033AD59 /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7B51E0CE95F0033AD59 /* EventQueue.cpp */; };
 		3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7B71E0CE95F0033AD59 /* EventType.cpp */; };
@@ -164,6 +166,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3C01B6C01E96433500A0CC1C /* SoundCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoundCache.cpp; path = ../../../Source/Cache/SoundCache.cpp; sourceTree = "<group>"; };
+		3C01B6C11E96433500A0CC1C /* SoundCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoundCache.h; path = ../../../Source/Cache/SoundCache.h; sourceTree = "<group>"; };
+		3C01B6C41E96436D00A0CC1C /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
+		3C01B6C51E96436D00A0CC1C /* Sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound.h; path = ../../../Source/Audio/Sound.h; sourceTree = "<group>"; };
 		3C0AD7B31E0CE95F0033AD59 /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C0AD7B41E0CE95F0033AD59 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C0AD7B51E0CE95F0033AD59 /* EventQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventQueue.cpp; path = ../../../Source/Event/EventQueue.cpp; sourceTree = "<group>"; };
@@ -493,6 +499,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3C01B6C31E96435A00A0CC1C /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				3C01B6C41E96436D00A0CC1C /* Sound.cpp */,
+				3C01B6C51E96436D00A0CC1C /* Sound.h */,
+			);
+			name = Audio;
+			sourceTree = "<group>";
+		};
 		3C1038511E15103600D37A60 /* Node */ = {
 			isa = PBXGroup;
 			children = (
@@ -590,6 +605,8 @@
 		3C6D37221E27D9BE008C92E8 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C01B6C01E96433500A0CC1C /* SoundCache.cpp */,
+				3C01B6C11E96433500A0CC1C /* SoundCache.h */,
 				3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */,
 				3CEDF7801E83BADB008839A3 /* ParticleCache.h */,
 				3C5973021E7F74E900BFD00F /* ClipCache.cpp */,
@@ -951,6 +968,7 @@
 				3C50976D1E65B92F00896971 /* Dorothy.h */,
 				3CB410221E05B08B00A8804D /* 3rdParty */,
 				3C1520291E762A3F001BC057 /* Animation */,
+				3C01B6C31E96435A00A0CC1C /* Audio */,
 				3C6D37221E27D9BE008C92E8 /* Cache */,
 				3C1F87D71DF80334005F1B4D /* Basic */,
 				3CFF5F281E0136A5004E3CA6 /* Common */,
@@ -1284,6 +1302,7 @@
 				3CEDF77A1E835409008839A3 /* lptree.cpp in Sources */,
 				3CB730D51E80356A006DFA18 /* b2GearJoint.cpp in Sources */,
 				3C0AD7E91E0CE9D00033AD59 /* Director.cpp in Sources */,
+				3C01B6C21E96433600A0CC1C /* SoundCache.cpp in Sources */,
 				3CB730991E80353A006DFA18 /* b2ContactManager.cpp in Sources */,
 				3CB731061E80358B006DFA18 /* b2TimeOfImpact.cpp in Sources */,
 				3CB730B41E803556006DFA18 /* b2Contact.cpp in Sources */,
@@ -1300,6 +1319,7 @@
 				3CB730821E80344C006DFA18 /* Dictionary.cpp in Sources */,
 				3CCB0C811E707A650088C118 /* ClipNode.cpp in Sources */,
 				3CD328401E4C42A60036906C /* imgui.cpp in Sources */,
+				3C01B6C61E96436D00A0CC1C /* Sound.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

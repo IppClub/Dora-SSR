@@ -279,6 +279,7 @@
     <ClCompile Include="..\..\..\Source\Animation\Animation.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\Model.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp" />
+    <ClCompile Include="..\..\..\Source\Audio\Sound.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Camera.cpp" />
@@ -293,6 +294,7 @@
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Debug.cpp" />
@@ -428,6 +430,7 @@
     <ClInclude Include="..\..\..\Source\Animation\Animation.h" />
     <ClInclude Include="..\..\..\Source\Animation\Model.h" />
     <ClInclude Include="..\..\..\Source\Animation\ModelDef.h" />
+    <ClInclude Include="..\..\..\Source\Audio\Sound.h" />
     <ClInclude Include="..\..\..\Source\Basic\Application.h" />
     <ClInclude Include="..\..\..\Source\Basic\AutoreleasePool.h" />
     <ClInclude Include="..\..\..\Source\Basic\Camera.h" />
@@ -442,6 +445,7 @@
     <ClInclude Include="..\..\..\Source\Cache\ModelCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\SoundCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\XmlItemCache.h" />
     <ClInclude Include="..\..\..\Source\Common\Async.h" />

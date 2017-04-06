@@ -54,10 +54,7 @@ class ZipFilePrivate
 {
 public:
     unzFile zipFile;
-
-    // std::unordered_map is faster if available on the platform
-    typedef std::unordered_map<std::string, struct ZipEntryInfo> FileListContainer;
-    FileListContainer fileList;
+    std::unordered_map<std::string, ZipEntryInfo> fileList;
 	std::unordered_set<std::string> folderList;
 };
 
@@ -227,7 +224,7 @@ unsigned char* ZipFile::getFileData(const std::string& fileName, unsigned long* 
 		
 		std::string file(fileName);
 
-        ZipFilePrivate::FileListContainer::const_iterator it = m_data->fileList.find(file);
+        auto it = m_data->fileList.find(file);
         BREAK_IF(it == m_data->fileList.end());
 
         ZipEntryInfo fileInfo = it->second;
@@ -262,7 +259,7 @@ void ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 		
 		std::string file(fileName);
 
-        ZipFilePrivate::FileListContainer::const_iterator it = m_data->fileList.find(file);
+        auto it = m_data->fileList.find(file);
         BREAK_IF(it == m_data->fileList.end());
 
         ZipEntryInfo fileInfo = it->second;
