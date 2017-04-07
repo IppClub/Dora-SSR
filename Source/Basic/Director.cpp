@@ -163,6 +163,7 @@ void Director::mainLoop()
 		_systemScheduler->update(getDeltaTime());
 
 		SharedImGUI.begin();
+		ImGui::ShowTestWindow();
 		_scheduler->update(getDeltaTime());
 		SharedImGUI.end();
 

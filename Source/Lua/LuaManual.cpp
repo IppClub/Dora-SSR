@@ -570,7 +570,7 @@ namespace LuaAction
 								actions[i - 2] = create(L, -1);
 								lua_pop(L, 1);
 							}
-							return Sequence::alloc(actions);
+							return Sequence::alloc(std::move(actions));
 						}
 						default:
 						{

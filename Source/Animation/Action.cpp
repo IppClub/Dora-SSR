@@ -258,14 +258,14 @@ Own<ActionDuration> Sequence::alloc(Own<ActionDuration>&& first, Own<ActionDurat
 	return Own<ActionDuration>(action);
 }
 
-Own<ActionDuration> Sequence::alloc(const vector<Own<ActionDuration>>& actions)
+Own<ActionDuration> Sequence::alloc(vector<Own<ActionDuration>>&& actions)
 {
 	if (actions.begin() == actions.end())
 	{
 		return Sequence::alloc(Own<ActionDuration>(), Own<ActionDuration>());
 	}
 	auto it = actions.begin();
-	Own<ActionDuration> first = std::move(c_cast<Own<ActionDuration>&>(*it));
+	Own<ActionDuration> first = std::move(*it);
 	Own<ActionDuration> second;
 	++it;
 	for (; it != actions.end(); ++it)
@@ -299,9 +299,9 @@ Action* Sequence::create(Own<ActionDuration>&& first, Own<ActionDuration>&& seco
 	return Action::create(Sequence::alloc(std::move(first), std::move(second)));
 }
 
-Action* Sequence::create(const vector<Own<ActionDuration>>& actions)
+Action* Sequence::create(vector<Own<ActionDuration>>&& actions)
 {
-	return Action::create(Sequence::alloc(actions));
+	return Action::create(Sequence::alloc(std::move(actions)));
 }
 
 Action* Sequence::create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions)
