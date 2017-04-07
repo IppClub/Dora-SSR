@@ -129,8 +129,11 @@ void Audio::stopStream(float fadeTime)
 			_lastStream = _currentStream;
 			_timer->start(fadeTime, [this]()
 			{
-				_lastStream->getStream().stop();
-				_lastStream = nullptr;
+				if (_lastStream)
+				{
+					_lastStream->getStream().stop();
+					_lastStream = nullptr;
+				}
 			});
 		}
 	}
