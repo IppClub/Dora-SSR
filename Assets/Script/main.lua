@@ -1,11 +1,12 @@
 Dorothy()
 
-Director.displayStats = true
+-- Director.displayStats = true
 
 local model = Model("Model/jixienv.model")
 model.loop = true
+model.look = "happy"
 model:play("walk")
-model.visible = false
+--model.visible = false
 
 local label = Label("NotoSansHans-Regular", 18)
 model:addChild(label)
@@ -14,17 +15,22 @@ local buffer = Buffer(4*100)
 
 ImGui.LoadFontTTF("Font/fangzhen16.ttf", 16, "Chinese")
 
-Audio:play("Audio/hero_win.wav")
-
-ImGui.setStyleVar("AntiAliasedLines", false)
-ImGui.setStyleVar("AntiAliasedShapes", false)
+--ImGui.setStyleVar("AntiAliasedLines", false)
+--ImGui.setStyleVar("AntiAliasedShapes", false)
 
 model:schedule(function()
 	ImGui.ShowStats()
+	ImGui.SetNextWindowSize(Vec2(100,100), "FirstUseEver")
 	if ImGui.Begin("Test", "ShowBorders|MenuBar") then
 		if ImGui.InputText("", buffer) then
 			label.text = buffer:toString()
 		end
+	end
+	if ImGui.Button("Hit me!") then
+		model.recovery = 0.2
+		model.look = "fight"
+		model:play(label.text)
+		Audio:play("Audio/hero_win.wav")
 	end
 	ImGui.End()
 end)

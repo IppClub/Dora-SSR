@@ -140,7 +140,7 @@ float Model::play(Uint32 index)
 	if (_recoveryTime > 0.0f)
 	{
 		_isRecovering = true;
-		_resetAnimation.run(_recoveryTime * _speed, _currentAnimation);
+		_resetAnimation.run(_recoveryTime / std::max(_speed, FLT_EPSILON), _currentAnimation);
 	}
 	else
 	{

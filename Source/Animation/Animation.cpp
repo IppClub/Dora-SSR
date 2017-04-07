@@ -319,17 +319,29 @@ Action* KeyAnimationDef::toAction()
 		/* Get current keyFrameDef */
 		KeyFrameDef* def = _keyFrameDefs[i];
 		/* Check for animated attributes of keyFrame */
-		if (lastDef->x != def->x || lastDef->y != def->y)
+		if (lastDef->x != def->x)
 		{
-			keyAttrs.push_back(Move::alloc(def->duration, Vec2{lastDef->x, lastDef->y}, Vec2{def->x, def->y}, def->easePos));
+			keyAttrs.push_back(PropertyAction::alloc(def->duration, lastDef->x, def->x, Property::X, def->easePos));
 		}
-		if (lastDef->scaleX != def->scaleX || lastDef->scaleY != def->scaleY)
+		if (lastDef->y != def->y)
 		{
-			keyAttrs.push_back(Scale::alloc(def->duration, def->scaleX, def->scaleY, def->easeScale));
+			keyAttrs.push_back(PropertyAction::alloc(def->duration, lastDef->y, def->y, Property::Y, def->easePos));
 		}
-		if (lastDef->skewX != def->skewX || lastDef->skewY != def->skewY)
+		if (lastDef->scaleX != def->scaleX)
 		{
-			keyAttrs.push_back(Skew::alloc(def->duration, Vec2{lastDef->skewX, lastDef->skewY}, Vec2{def->skewX, def->skewY}, def->easeSkew));
+			keyAttrs.push_back(PropertyAction::alloc(def->duration, lastDef->scaleX, def->scaleX, Property::ScaleX, def->easeScale));
+		}
+		if (lastDef->scaleY != def->scaleY)
+		{
+			keyAttrs.push_back(PropertyAction::alloc(def->duration, lastDef->scaleY, def->scaleY, Property::ScaleY, def->easeScale));
+		}
+		if (lastDef->skewX != def->skewX)
+		{
+			keyAttrs.push_back(PropertyAction::alloc(def->duration, lastDef->skewX, def->skewX, Property::SkewX, def->easeSkew));
+		}
+		if (lastDef->skewY != def->skewY)
+		{
+			keyAttrs.push_back(PropertyAction::alloc(def->duration, lastDef->skewY, def->skewY, Property::SkewY, def->easeSkew));
 		}
 		if (lastDef->rotation != def->rotation)
 		{
@@ -357,9 +369,10 @@ Action* KeyAnimationDef::toAction()
 		{
 			keyFrames.push_back(Delay::alloc(def->duration));
 		}
+		keyAttrs.clear();
 		lastDef = def;
 	}
-	return Sequence::create(keyFrames);
+	return Sequence::create(std::move(keyFrames));
 }
 
 string KeyAnimationDef::toXml()
@@ -389,6 +402,7 @@ void KeyAnimationDef::restoreResetAnimation(Node* target, ActionDuration* action
 	ResetAction* resetAction = DoraCast<ResetAction>(action);
 	if (resetAction)
 	{
+		target->setVisible(_keyFrameDefs[0]->visible);
 		resetAction->prepareWith(target);
 		resetAction->updateEndValues(_keyFrameDefs[0]);
 	}
