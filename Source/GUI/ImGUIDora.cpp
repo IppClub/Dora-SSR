@@ -161,7 +161,7 @@ void ImGUIDora::showStats()
 {
 	/* print debug text */
 	ImGui::SetNextWindowPos(Vec2{10,10}, ImGuiSetCond_FirstUseEver);
-	ImGui::Begin("Dorothy Stats", nullptr, Vec2{195,305}, 0.8f, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_ShowBorders);
+	ImGui::Begin("Dorothy Stats", nullptr, Vec2{195,305}, 0.8f, ImGuiWindowFlags_NoResize);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.
@@ -259,9 +259,9 @@ bool ImGUIDora::init()
 	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.00f, 0.80f, 0.80f, 0.30f);
 	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.00f, 0.80f, 0.80f, 0.40f);
 	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.00f, 0.65f, 0.65f, 0.45f);
-	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.83f);
+	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.70f);
 	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.0f, 0.0f, 0.0f, 0.20f);
-	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.70f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.20f, 0.20f, 0.70f);
 	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.00f, 0.55f, 0.55f, 0.80f);
 	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.00f, 0.30f, 0.30f, 0.60f);
 	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.00f, 0.40f, 0.40f, 0.30f);

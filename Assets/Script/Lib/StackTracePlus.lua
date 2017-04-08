@@ -143,7 +143,7 @@ local function GuessFunctionName(info)
 		end
 		local line
 		local count = 0
-		for lineText in (s.."\n"):gmatch("(.-)\n") do
+		for lineText in (text.."\n"):gmatch("(.-)\n") do
 			line = lineText
 			count = count + 1
 			if count == info.linedefined then
@@ -276,7 +276,7 @@ function Dumper:DumpLocals (level)
 			else
 				local source = info.short_src
 				if source:sub(2,7) == "string" then
-					source = source:sub(9)	-- uno m�s, por el espacio que viene (string "Baragent.Main", por ejemplo)
+					source = source:sub(9)
 				end
 				--for k,v in pairs(info) do print(k,v) end
 				fun_name = fun_name or GuessFunctionName(info)
