@@ -1,5 +1,5 @@
 package.loaders = {package.loaders[1]}
-package.path = "?"
+package.path = nil
 package.cpath = nil
 package.preload = nil
 
@@ -248,6 +248,24 @@ for _,actionName in ipairs{
 	builtin[actionName] = function(...)
 		return {actionName, ...}
 	end
+end
+
+local Spawn = builtin.Spawn
+local X = builtin.X
+local Y = builtin.Y
+local ScaleX = builtin.ScaleX
+local ScaleY = builtin.ScaleY
+
+builtin.Move = function(duration, start, stop, ease)
+	return Spawn(
+		X(duration, start.x, stop.x, ease),
+		Y(duration, start.y, stop.y, ease))
+end
+
+builtin.Scale = function(duration, start, stop, ease)
+	return Spawn(
+		ScaleX(duration, start, stop, ease),
+		ScaleY(duration, start, stop, ease))
 end
 
 local Array = builtin.Array

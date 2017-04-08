@@ -72,16 +72,18 @@ static int dora_loadfile(lua_State* L, String filename)
 	string targetFile = filename;
 	if (extension.empty() && targetFile.back() != '.')
 	{
-		if (SharedContent.isExist(targetFile + ".lua"))
+		string fullPath = SharedContent.getFullPath(targetFile + ".lua");
+		if (SharedContent.isExist(fullPath))
 		{
-			targetFile.append(".lua");
+			targetFile = fullPath;
 			extension = "lua";
 		}
 		else
 		{
-			if (SharedContent.isExist(targetFile + ".xml"))
+			fullPath = SharedContent.getFullPath(targetFile + ".xml");
+			if (SharedContent.isExist(fullPath))
 			{
-				targetFile.append(".xml");
+				targetFile = fullPath;
 				extension = "xml";
 			}
 			else

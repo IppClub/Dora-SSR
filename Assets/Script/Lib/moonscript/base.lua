@@ -69,6 +69,7 @@ moon_loader = function(name)
   local fileExist, file_path
   for path in package.moonpath:gmatch("[^;]+") do
     file_path = path:gsub("?", name_path)
+    file_path = Content:getFullPath(file_path)
     fileExist = Content:exist(file_path)
     if fileExist then
       break
@@ -108,7 +109,6 @@ loadfile = function(fname, ...)
   return loadstring(text, "@" .. tostring(fname), ...)
 end
 dofile = function(...)
-print("new dofile")
   local f = assert(loadfile(...))
   return f()
 end
@@ -117,7 +117,7 @@ insert_loader = function(pos)
     pos = 2
   end
   if not package.moonpath then
-    package.moonpath = create_moonpath(package.path)
+    package.moonpath = create_moonpath("?.lua")
   end
   local loaders = package.loaders or package.searchers
   for _index_0 = 1, #loaders do

@@ -272,20 +272,6 @@ struct Scale
 	}
 };
 
-struct Skew
-{
-	static inline Own<ActionDuration> alloc(float duration, const Vec2& startSkew, const Vec2& endSkew, Ease::Enum ease)
-	{
-		return Spawn::alloc(PropertyAction::alloc(duration, startSkew.x, endSkew.x, Property::SkewX, ease),
-			PropertyAction::alloc(duration, startSkew.y, endSkew.y, Property::SkewY, ease));
-	}
-	static inline Action* create(float duration, const Vec2& startSkew, const Vec2& endSkew, Ease::Enum ease)
-	{
-		return Spawn::create(PropertyAction::alloc(duration, startSkew.x, endSkew.x, Property::ScaleX, ease),
-			PropertyAction::alloc(duration, startSkew.y, endSkew.y, Property::ScaleY, ease));
-	}
-};
-
 class Action : public Object
 {
 public:

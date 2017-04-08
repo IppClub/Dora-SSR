@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Director.h"
 #include "bx/timer.h"
-#include "Basic/Content.h"
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
