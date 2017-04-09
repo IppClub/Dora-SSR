@@ -347,10 +347,10 @@ function _M.stacktrace(thread, message, level)
 	elseif type(message) == "string" then
 		original_error = message
 		local fname, line, msg = message:match('(.+):(%d+): (.*)$')
-		fname = fname:gsub("%[string ", "")
-		fname = fname:gsub("\"%]", "")
-		fname = fname:match("[^%s]+$")
 		if fname then
+			fname = fname:gsub("%[string \"", "")
+			fname = fname:gsub("\"%]", "")
+			fname = fname:match("[^%s]+$")
 			if _M.simplified then
 				message = table.concat({
 					"'", fname, "':",

@@ -10,7 +10,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <cassert>
 #include "fmt/printf.h"
-#include "fmt/format.h"
 
 #if !DORA_DISABLE_ASSERT_IN_LUA
 #include "Lua/LuaEngine.h"
@@ -29,24 +28,32 @@ inline const char* Argument(const string& value)
 	return value.empty() ? "" : value.c_str();
 }
 
+template <typename ...Args>
+string LogFormat(const char* format, const Args& ...args)
+{
+	return fmt::sprintf(format, Argument(args)...);
+}
+
+extern Delegate<void (const string&)> LogHandler;
+
 void LogPrintInThread(const string& str);
 
 /** @brief The print function for debugging output. */
 template <typename ...Args>
 void LogPrint(const char* format, const Args& ...args) noexcept
 {
-	LogPrintInThread(fmt::sprintf(format, Argument(args)...));
+	LogPrintInThread(LogFormat(format, args...));
 }
-inline void LogPrint(const char* str)
+inline void LogPrint(String str)
 {
-	LogPrint("%s", str);
+	LogPrintInThread(str);
 }
 
 #if !defined(DORA_DEBUG) || !DORA_DEBUG
 	#define Log(...) DORA_DUMMY
 #else
 	#define Log(format, ...) \
-		LogPrint("[Dorothy][Info] " \
+		LogPrint("[Dorothy Info] " \
 			format \
 			"\n",  ##__VA_ARGS__)
 #endif
@@ -69,10 +76,12 @@ inline void LogPrint(const char* str)
 		{ \
 			if (cond) \
 			{ \
-				Dorothy::LogPrint("[Dorothy][Error] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+				fmt::MemoryWriter writer; \
+				writer.write("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] ", \
 					__FILE__, __FUNCTION__, __LINE__); \
-				Dorothy::LogPrint(__VA_ARGS__); \
-				Dorothy::LogPrint("\n"); \
+				writer.write(Dorothy::LogFormat(__VA_ARGS__)); \
+				writer.write("\n"); \
+				Dorothy::LogPrint(writer.str()); \
 				DORA_ASSERT(!(cond)); \
 			} \
 		}
@@ -80,10 +89,12 @@ inline void LogPrint(const char* str)
 		{ \
 			if (!(cond)) \
 			{ \
-				Dorothy::LogPrint("[Dorothy][Error] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+				fmt::MemoryWriter writer; \
+				writer.write("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] ", \
 					__FILE__, __FUNCTION__, __LINE__); \
-				Dorothy::LogPrint(__VA_ARGS__); \
-				Dorothy::LogPrint("\n"); \
+				writer.write(Dorothy::LogFormat(__VA_ARGS__)); \
+				writer.write("\n"); \
+				Dorothy::LogPrint(writer.str()); \
 				DORA_ASSERT(cond); \
 			} \
 		}

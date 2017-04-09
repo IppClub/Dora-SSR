@@ -18,6 +18,7 @@ namespace ImGui
 {
 	void Binding::LoadFontTTF @ LoadFontTTF(String ttfFontFile, int fontSize, String glyphRanges = "Default");
 	void Binding::ShowStats @ ShowStats();
+	void Binding::ShowLog @ ShowLog();
 	bool Binding::Begin @ Begin(const char* name, String windowsFlags = nullptr);
 	bool Binding::Begin @ Begin(const char* name, bool* p_open, String windowsFlags = nullptr);
 	bool Binding::BeginChild @ BeginChild(const char* str_id, Vec2 size = Vec2::zero, bool border = false, String windowsFlags = nullptr);

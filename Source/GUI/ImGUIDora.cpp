@@ -21,6 +21,90 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+struct LogPanel
+{
+	ImGuiTextBuffer Buf;
+	ImGuiTextFilter Filter;
+	ImVector<int> LineOffsets;
+	bool ScrollToBottom;
+	bool AutoScroll = true;
+
+	LogPanel()
+	{
+		LogHandler += std::make_pair(this, &LogPanel::addLog);
+	}
+
+	~LogPanel()
+	{
+		LogHandler -= std::make_pair(this, &LogPanel::addLog);
+	}
+
+	void clear()
+	{
+		Buf.clear();
+		LineOffsets.clear();
+	}
+
+	void addLog(const string& text)
+	{
+		int old_size = Buf.size();
+		Buf.append("%s", text.c_str());
+		for (int new_size = Buf.size(); old_size < new_size; old_size++)
+		{
+			if (Buf[old_size] == '\n')
+			{
+				LineOffsets.push_back(old_size);
+			}
+		}
+		ScrollToBottom = true;
+    }
+
+    void Draw(const char* title, bool* p_open = nullptr)
+    {
+		ImGui::SetNextWindowPos(ImVec2(SharedApplication.getWidth() - 410, 10), ImGuiSetCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(400,300), ImGuiSetCond_FirstUseEver);
+		ImGui::Begin(title, p_open);
+		if (ImGui::Button("Clear")) clear();
+		ImGui::SameLine();
+		bool copy = ImGui::Button("Copy");
+		ImGui::SameLine();
+		if (ImGui::Checkbox("Scroll", &AutoScroll))
+		{
+			if (AutoScroll) ScrollToBottom = true;
+		}
+		ImGui::SameLine();
+		Filter.Draw("Filter", -55.0f);
+		ImGui::Separator();
+		ImGui::BeginChild("scrolling", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar);
+		if (copy) ImGui::LogToClipboard();
+		if (Filter.IsActive())
+		{
+			const char* buf_begin = Buf.begin();
+			const char* line = buf_begin;
+			for (int line_no = 0; line != nullptr; line_no++)
+			{
+				const char* line_end = (line_no < LineOffsets.Size) ? buf_begin + LineOffsets[line_no] : nullptr;
+				if (Filter.PassFilter(line, line_end))
+				{
+					ImGui::TextWrappedUnformatted(line, line_end);
+				}
+				line = line_end && line_end[1] ? line_end + 1 : nullptr;
+			}
+		}
+		else
+		{
+			ImGui::TextWrappedUnformatted(Buf.begin(), Buf.end());
+		}
+		if (ScrollToBottom && AutoScroll)
+		{
+			ImGui::SetScrollHere(1.0f);
+		}
+		ScrollToBottom = false;
+		ImGui::EndChild();
+		ImGui::End();
+	}
+};
+
 ImGUIDora::ImGUIDora():
 _cursor(0),
 _editingDel(false),
@@ -161,7 +245,7 @@ void ImGUIDora::showStats()
 {
 	/* print debug text */
 	ImGui::SetNextWindowPos(Vec2{10,10}, ImGuiSetCond_FirstUseEver);
-	ImGui::Begin("Dorothy Stats", nullptr, Vec2{195,305}, 0.8f, ImGuiWindowFlags_NoResize);
+	ImGui::Begin("Dorothy Stats", nullptr, Vec2{195,305}, 0.8f, ImGuiWindowFlags_AlwaysAutoResize);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.
@@ -220,6 +304,12 @@ void ImGUIDora::showStats()
 	ImGui::SameLine();
 	ImGui::Text("%d", Object::getLuaCallbackCount());
 	ImGui::End();
+}
+
+void ImGUIDora::showLog()
+{
+	static LogPanel log;
+	log.Draw("Dorothy Log");
 }
 
 bool ImGUIDora::init()

@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Event/EventQueue.h"
+#include <random>
 
 struct SDL_Window;
 union SDL_Event;
@@ -30,6 +31,9 @@ public:
 	PROPERTY_READONLY(double, CPUTime);
 	PROPERTY_READONLY(double, TotalTime);
 	PROPERTY_READONLY(const Slice, Platform);
+	PROPERTY_READONLY_CALL(Uint32, Rand);
+	PROPERTY_READONLY(Uint32, RandMin);
+	PROPERTY_READONLY(Uint32, RandMax);
 	PROPERTY_READONLY(SDL_Window*, SDLWindow);
 	PROPERTY(Uint32, MaxFPS);
 	PROPERTY(Uint32, MinFPS);
@@ -60,9 +64,9 @@ protected:
 	bgfx::RenderFrame::Enum renderFrame();
 private:
 	bool _fpsLimited;
-	unsigned int _seed;
 	int _width;
 	int _height;
+	Uint32 _seed;
 	Uint32 _maxFPS;
 	Uint32 _minFPS;
 	uint32_t _frame;
@@ -75,6 +79,7 @@ private:
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
 	SDL_Window* _sdlWindow;
+	std::mt19937 _randomEngine;
 	SINGLETON_REF(Application, LuaEngine);
 };
 

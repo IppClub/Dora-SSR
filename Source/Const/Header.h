@@ -30,8 +30,6 @@ using std::tuple;
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include <cstdlib>
-#include <ctime>
 #include "Other/AcfDelegate.h"
 using Acf::Delegate;
 #include "SDL_syswm.h"

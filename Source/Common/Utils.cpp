@@ -8,11 +8,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Common/Utils.h"
+#include "Basic/Application.h"
 #include "Lua/ToLua/tolua++.h"
 
 NS_DOROTHY_BEGIN
 
 int doraType = TOLUA_REG_INDEX_TYPE; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
+
+namespace Math
+{
+	float rand0to1()
+	{
+		auto& app = SharedApplication;
+		return s_cast<float>(s_cast<double>(app.getRand() - app.getRandMin()) / app.getRandMax());
+	}
+
+	float rand1to1()
+	{
+		return 2.0f * rand0to1() - 1.0f;
+	}
+}
+
 
 Flag::Flag(Uint32 flags):_flags(flags)
 { }

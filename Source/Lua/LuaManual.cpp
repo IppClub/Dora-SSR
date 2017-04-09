@@ -894,6 +894,11 @@ namespace ImGui { namespace Binding
 		SharedImGUI.showStats();
 	}
 
+	void ShowLog()
+	{
+		SharedImGUI.showLog();
+	}
+
 	bool Begin(const char* name, String windowsFlags)
 	{
 		return ImGui::Begin(name, nullptr, getWindowCombinedFlags(windowsFlags));
