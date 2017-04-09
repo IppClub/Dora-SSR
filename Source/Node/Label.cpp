@@ -699,7 +699,7 @@ void Label::updateLabel()
 			if (_text[ctr] == '\n' || _text[ctr] == '\0')
 			{
 				float lineWidth = 0.0f;
-				int line_length = (int)last_line.size();
+				int line_length = s_cast<int>(last_line.size());
 				// if last line is empty we must just increase lineNumber and work with next line
 				if (line_length == 0)
 				{

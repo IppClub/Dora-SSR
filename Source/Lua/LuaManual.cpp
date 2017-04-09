@@ -42,7 +42,7 @@ void __Content_loadFile(lua_State* L, Content* self, String filename)
 void __Content_getDirEntries(lua_State* L, Content* self, String path, bool isFolder)
 {
 	auto dirs = self->getDirEntries(path, isFolder);
-	lua_createtable(L, (int)dirs.size(), 0);
+	lua_createtable(L, s_cast<int>(dirs.size()), 0);
 	for (int i = 0; i < (int)dirs.size(); i++)
 	{
 		lua_pushstring(L, dirs[i].c_str());
@@ -855,9 +855,26 @@ Uint32 Buffer::size() const
 	return s_cast<Uint32>(_data.size());
 }
 
+void Buffer::setString(String str)
+{
+	if (_data.empty()) return;
+	size_t length = std::min(_data.size() - 1, str.size());
+	memcpy(_data.data(), str.begin(), length);
+	_data[length] = '\0';
+}
+
 Slice Buffer::toString()
 {
-	return Slice(_data.data(), _data.size());
+	size_t size = 0;
+	for (auto ch : _data)
+	{
+		if (ch == '\0')
+		{
+			break;
+		}
+		size++;
+	}
+	return Slice(_data.data(), size);
 }
 
 NS_DOROTHY_END

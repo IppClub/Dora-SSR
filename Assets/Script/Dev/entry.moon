@@ -9,7 +9,8 @@ model = with Model "Model/jixienv.model"
 label = Label "NotoSansHans-Regular", 18
 model\addChild label
 
-buffer = Buffer 4*100
+buffer = with Buffer 4*100
+	\setString "attack"
 
 LoadFontTTF "Font/fangzhen16.ttf", 16, "Chinese"
 
@@ -19,12 +20,12 @@ LoadFontTTF "Font/fangzhen16.ttf", 16, "Chinese"
 model\schedule ->
 	ShowStats!
 	SetNextWindowSize Vec2(100,100), "FirstUseEver"
-	if Begin "Test", "MenuBar"
+	if Begin "Test"
 		if InputText "", buffer
 			label.text = buffer\toString!
 		if Button "Hit me!"
-			model\play label.text
-			Audio\play "Audio/hero_win.wav"
+			model\play buffer\toString!
+			--Audio\play "Audio/hero_win.wav"
 	End!
 
 Director\pushEntry model

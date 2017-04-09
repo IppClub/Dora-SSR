@@ -297,7 +297,7 @@ void LuaEngine::addLuaLoader(lua_CFunction func)
 	lua_getfield(L, -1, "loaders"); // package, loaders
 	// insert loader into index 1
 	lua_pushcfunction(L, func); // package, loaders, func
-	for (int i = (int)lua_objlen(L, -2) + 1; i > 1; --i)
+	for (int i = s_cast<int>(lua_objlen(L, -2)) + 1; i > 1; --i)
 	{
 		lua_rawgeti(L, -2, i - 1); // package, loaders, func, function
 		// we call lua_rawgeti, so the loader table now is at -3
@@ -491,7 +491,7 @@ int LuaEngine::execute(lua_State* L, int numArgs)
 		// get return value
 		if (lua_isnumber(L, -1)) // traceback ret
 		{
-			ret = (int)(lua_tointeger(L, -1));
+			ret = s_cast<int>(lua_tointeger(L, -1));
 		}
 		else if (lua_isboolean(L, -1))
 		{

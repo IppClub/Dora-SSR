@@ -164,7 +164,7 @@ void Model::reset()
 
 void Model::addAnimation(int index, Node* node, Action* action)
 {
-	for (int n = (int)_animationGroups.size();n < index + 1;_animationGroups.push_back(New<AnimationGroup>()), n++);
+	for (int n = s_cast<int>(_animationGroups.size());n < index + 1;_animationGroups.push_back(New<AnimationGroup>()), n++);
 	_animationGroups[index]->animations.push_back(New<Animation>(node, action));
 }
 
@@ -663,7 +663,7 @@ AnimationHandler& Model::AnimationHandlerGroup::operator[](String name)
 
 void Model::AnimationHandlerGroup::each(const function<void(const string&,AnimationHandler&)>& func)
 {
-	for (int i = 0; i < (int)_owner->_animationGroups.size(); i++)
+	for (int i = 0; i < s_cast<int>(_owner->_animationGroups.size()); i++)
 	{
 		const string& name = _owner->_modelDef->getAnimationNameByIndex(i);
 		func(name, _owner->_animationGroups[i]->animationEnd);

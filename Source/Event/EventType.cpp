@@ -53,7 +53,7 @@ void EventType::handle(Event* event, int index)
 
 void EventType::handle(Event* event)
 {
-	EventType::handle(event, (int)_listeners.size() - 1);
+	EventType::handle(event, s_cast<int>(_listeners.size()) - 1);
 }
 
 bool EventType::isEmpty() const
