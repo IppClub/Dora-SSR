@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Director.h"
 #include "bx/timer.h"
+#include <ctime>
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -58,12 +59,27 @@ int Application::getHeight() const
 void Application::setSeed(Uint32 var)
 {
 	_seed = var;
-	std::srand(var);
+	_randomEngine.seed(var);
 }
 
 Uint32 Application::getSeed() const
 {
 	return _seed;
+}
+
+Uint32 Application::getRand()
+{
+	return _randomEngine();
+}
+
+Uint32 Application::getRandMin() const
+{
+	return std::mt19937::min();
+}
+
+Uint32 Application::getRandMax() const
+{
+	return std::mt19937::max();
 }
 
 void Application::setMaxFPS(Uint32 var)
@@ -109,7 +125,7 @@ SDL_Window* Application::getSDLWindow() const
 // This function runs in main thread, and do render work
 int Application::run()
 {
-	Application::setSeed((unsigned int)std::time(nullptr));
+	Application::setSeed(s_cast<Uint32>(std::time(nullptr)));
 
 	if (SDL_Init(SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER) != 0)
 	{

@@ -696,7 +696,16 @@ void Model::setupCallback()
 				Delay::alloc(duration - d));
 		}
 		Node* node = animationGroup->animations[0]->getNode();
-		node->slot("ActionEnd"_slice, [this](Event*) { onActionEnd(); });
+		node->slot("ActionEnd"_slice, [this, action](Event* event)
+		{
+			Action* eventAction;
+			Node* target;
+			event->get(eventAction, target);
+			if (action == eventAction)
+			{
+				onActionEnd();
+			}
+		});
 		animationGroup->duration = action->getDuration();
 		animationGroup->animations[0]->setAction(action);
 	}

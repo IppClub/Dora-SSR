@@ -8,8 +8,10 @@ model = with Model "Model/jixienv.model"
 
 label = Label "NotoSansHans-Regular", 18
 model\addChild label
+model\slot "AnimationEnd",(name)->
+	print name,"end!"
 
-buffer = with Buffer 4*100
+buffer = with Buffer 100
 	\setString "attack"
 
 LoadFontTTF "Font/fangzhen16.ttf", 16, "Chinese"
@@ -17,8 +19,9 @@ LoadFontTTF "Font/fangzhen16.ttf", 16, "Chinese"
 --SetStyleVar "AntiAliasedLines", false
 --SetStyleVar "AntiAliasedShapes", false
 
-model\schedule ->
+Director.scheduler\schedule ->
 	ShowStats!
+	ShowLog!
 	SetNextWindowSize Vec2(100,100), "FirstUseEver"
 	if Begin "Test"
 		if InputText "", buffer
@@ -26,6 +29,11 @@ model\schedule ->
 		if Button "Hit me!"
 			model\play buffer\toString!
 			--Audio\play "Audio/hero_win.wav"
+			emit "GlobalEvent", 123, "abc"
 	End!
 
 Director\pushEntry model
+
+thread ->
+	sleep 1
+	_G.x = 998

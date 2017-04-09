@@ -144,7 +144,8 @@ static type* create(Args&&... args) \
  // Em, start iteration
  Tuple::foreach(item, Handler());
  */
-namespace Tuple {
+namespace Tuple
+{
 	template<typename TupleT, size_t Size>
 	struct TupleHelper
 	{
@@ -198,7 +199,8 @@ namespace Tuple {
  		break;
  }
  */
-namespace Switch {
+namespace Switch
+{
 	inline constexpr std::size_t hash(char const* input)
 	{
 		return *input ? *input + 33ull * hash(input + 1) : 5381;
@@ -236,15 +238,8 @@ namespace Math
 		return std::max(std::min(value, pair.second), pair.first);
 	}
 
-	inline float rand1to1()
-	{
-		return 2.0f * (s_cast<float>(std::rand()) / RAND_MAX) - 1.0f;
-	}
-
-	inline float rand0to1()
-	{
-		return s_cast<float>(std::rand()) / RAND_MAX;
-	}
+	float rand0to1();
+	float rand1to1();
 }
 
 /** @brief Dorothy`s type system for lua and
