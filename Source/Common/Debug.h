@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <cassert>
 #include "fmt/printf.h"
+#include "fmt/format.h"
 
 #if !DORA_DISABLE_ASSERT_IN_LUA
 #include "Lua/LuaEngine.h"
@@ -45,7 +46,7 @@ inline void LogPrint(const char* str)
 	#define Log(...) DORA_DUMMY
 #else
 	#define Log(format, ...) \
-		LogPrint("[Dorothy Log] " \
+		LogPrint("[Dorothy][Info] " \
 			format \
 			"\n",  ##__VA_ARGS__)
 #endif
@@ -68,10 +69,10 @@ inline void LogPrint(const char* str)
 		{ \
 			if (cond) \
 			{ \
-				LogPrint("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+				Dorothy::LogPrint("[Dorothy][Error] [File] %s, [Func] %s, [Line] %d, [Error] ", \
 					__FILE__, __FUNCTION__, __LINE__); \
-				LogPrint(__VA_ARGS__); \
-				LogPrint("\n"); \
+				Dorothy::LogPrint(__VA_ARGS__); \
+				Dorothy::LogPrint("\n"); \
 				DORA_ASSERT(!(cond)); \
 			} \
 		}
@@ -79,10 +80,10 @@ inline void LogPrint(const char* str)
 		{ \
 			if (!(cond)) \
 			{ \
-				LogPrint("[Dorothy Assert] [File] %s, [Func] %s, [Line] %d, [Error] ", \
+				Dorothy::LogPrint("[Dorothy][Error] [File] %s, [Func] %s, [Line] %d, [Error] ", \
 					__FILE__, __FUNCTION__, __LINE__); \
-				LogPrint(__VA_ARGS__); \
-				LogPrint("\n"); \
+				Dorothy::LogPrint(__VA_ARGS__); \
+				Dorothy::LogPrint("\n"); \
 				DORA_ASSERT(cond); \
 			} \
 		}

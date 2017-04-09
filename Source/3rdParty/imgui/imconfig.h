@@ -10,7 +10,7 @@
 #include "Support/Geometry.h"
 
 //---- Define assertion handler. Defaults to calling assert().
-//#define IM_ASSERT(_EXPR)  AssertUnless(_EXPR, "ImGui assert.")
+#define IM_ASSERT(_EXPR)  AssertUnless(_EXPR, "ImGui assert.")
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows.
 //#define IMGUI_API __declspec( dllexport )
@@ -33,7 +33,7 @@
 //#define IMGUI_USE_BGRA_PACKED_COLOR
 
 //---- Implement STB libraries in a namespace to avoid conflicts
-//#define IMGUI_STB_NAMESPACE     ImGuiStb
+#define IMGUI_STB_NAMESPACE     ImGuiStb
 
 //---- Define constructor and implicit cast operators to convert back<>forth from your math types and ImVec2/ImVec4.
 

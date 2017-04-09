@@ -116,7 +116,7 @@ public:
 					list = list->next; // 遍历到下一个item
 				}
 			}
-			if (count == (int)(CHUNK_CAPACITY / ITEM_SIZE)) // 发现chunk中的所有item都是空闲的
+			if (count == int(CHUNK_CAPACITY / ITEM_SIZE)) // 发现chunk中的所有item都是空闲的
 			{
 				Chunk* temp = chunk;
 				if (prevChunk) prevChunk->next = chunk->next; // 从链表中间取出当前的chunk

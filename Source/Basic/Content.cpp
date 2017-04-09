@@ -474,7 +474,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 			int size = 0;
 			do
 			{
-				size = (int)fread(buffer, sizeof(Uint8), DORA_COPY_BUFFER_SIZE, file);
+				size = s_cast<int>(fread(buffer, sizeof(Uint8), DORA_COPY_BUFFER_SIZE, file));
 				if (size > 0)
 				{
 					handler(buffer, size);
@@ -616,7 +616,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 	}
 	Uint8 buffer[DORA_COPY_BUFFER_SIZE];
 	int size = 0;
-	while ((size = (int)SDL_RWread(io, buffer, sizeof(Uint8), DORA_COPY_BUFFER_SIZE)))
+	while ((size = s_cast<int>(SDL_RWread(io, buffer, sizeof(Uint8), DORA_COPY_BUFFER_SIZE))))
 	{
 		handler(buffer, size);
 	}

@@ -107,6 +107,7 @@ public:
 	void zeroMemory();
 	char* get();
 	Uint32 size() const;
+	void setString(String str);
 	Slice toString();
 	CREATE_FUNC(Buffer);
 protected:

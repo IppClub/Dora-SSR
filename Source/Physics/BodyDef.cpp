@@ -62,11 +62,11 @@ void BodyDef::attachPolygon(float width, float height, float density, float fric
 void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
 {
 	b2PolygonShape* shape = new b2PolygonShape();
-	int length = (int)vertices.size();
+	int length = s_cast<int>(vertices.size());
 	b2Vec2 vs[b2_maxPolygonVertices];
 	for (int i = 0; i < length; i++)
 	{
-	vs[i] = World::b2Val(vertices[i]);
+		vs[i] = World::b2Val(vertices[i]);
 	}
 	shape->Set(vs, length);
 	b2FixtureDef* fixtureDef = new b2FixtureDef();
@@ -99,13 +99,12 @@ void BodyDef::attachLoop(const vector<Vec2>& vertices, float friction, float res
 {
 	b2ChainShape* shape = new b2ChainShape();
 	int length = s_cast<int>(vertices.size());
-	b2Vec2* vs = new b2Vec2[length];
+	auto vs = NewArray<b2Vec2>(length);
 	for (int i = 0; i < length; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	shape->CreateLoop(vs, length);
-	delete [] vs;
 	b2FixtureDef* fixtureDef = new b2FixtureDef();
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
@@ -116,13 +115,12 @@ void BodyDef::attachLoop(const vector<Vec2>& vertices, float friction, float res
 void BodyDef::attachLoop(const Vec2 vertices[], int count, float friction, float restitution)
 {
 	b2ChainShape* shape = new b2ChainShape();
-	b2Vec2* vs = new b2Vec2[count];
+	auto vs = NewArray<b2Vec2>(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	shape->CreateLoop(vs, count);
-	delete[] vs;
 	b2FixtureDef* fixtureDef = new b2FixtureDef();
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
@@ -151,14 +149,13 @@ void BodyDef::attachCircle(float radius, float density, float friction, float re
 void BodyDef::attachChain(const vector<Vec2>& vertices, float friction, float restitution)
 {
 	b2ChainShape* shape = new b2ChainShape();
-	int length = (int)vertices.size();
-	b2Vec2* vs = new b2Vec2[length];
+	int length = s_cast<int>(vertices.size());
+	auto vs = NewArray<b2Vec2>(length);
 	for (int i = 0; i < length; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	shape->CreateChain(vs, length);
-	delete [] vs;
 	b2FixtureDef* fixtureDef = new b2FixtureDef();
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
@@ -169,13 +166,12 @@ void BodyDef::attachChain(const vector<Vec2>& vertices, float friction, float re
 void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, float restitution)
 {
 	b2ChainShape* shape = new b2ChainShape();
-	b2Vec2* vs = new b2Vec2[count];
+	auto vs = NewArray<b2Vec2>(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	shape->CreateChain(vs, count);
-	delete[] vs;
 	b2FixtureDef* fixtureDef = new b2FixtureDef();
 	fixtureDef->shape = shape;
 	fixtureDef->friction = friction;
@@ -205,7 +201,7 @@ void BodyDef::attachPolygonSensor(int tag, float width, float height, const Vec2
 void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
 {
 	b2PolygonShape* shape = new b2PolygonShape();
-	int length = (int)vertices.size();
+	int length = s_cast<int>(vertices.size());
 	b2Vec2 vs[b2_maxPolygonVertices];
 	for (int i = 0; i < length; i++)
 	{
@@ -274,7 +270,7 @@ b2FixtureDef* BodyDef::polygon(float width, float height, float density, float f
 
 b2FixtureDef* BodyDef::polygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
 {
-	int length = (int)vertices.size();
+	int length = s_cast<int>(vertices.size());
 	b2Vec2 vs[b2_maxPolygonVertices];
 	for (int i = 0; i < length; i++)
 	{
@@ -306,14 +302,13 @@ b2FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, 
 b2FixtureDef* BodyDef::loop(const vector<Vec2>& vertices, float friction, float restitution)
 {
 	_chainShape.ClearVertices();
-	int length = (int)vertices.size();
-	b2Vec2* vs = new b2Vec2[length];
+	int length = s_cast<int>(vertices.size());
+	auto vs = NewArray<b2Vec2>(length);
 	for (int i = 0; i < length; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	_chainShape.CreateLoop(vs, length);
-	delete [] vs;
 	_fixtureDef.shape = &_chainShape;
 	_fixtureDef.friction = friction;
 	_fixtureDef.restitution = restitution;
@@ -323,13 +318,12 @@ b2FixtureDef* BodyDef::loop(const vector<Vec2>& vertices, float friction, float 
 b2FixtureDef* BodyDef::loop(const Vec2 vertices[], int count, float friction, float restitution)
 {
 	_chainShape.ClearVertices();
-	b2Vec2* vs = new b2Vec2[count];
+	auto vs = NewArray<b2Vec2>(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	_chainShape.CreateLoop(vs, count);
-	delete[] vs;
 	_fixtureDef.shape = &_chainShape;
 	_fixtureDef.friction = friction;
 	_fixtureDef.restitution = restitution;
@@ -355,14 +349,13 @@ b2FixtureDef* BodyDef::circle(float radius, float density, float friction, float
 b2FixtureDef* BodyDef::chain(const vector<Vec2>& vertices, float friction, float restitution)
 {
 	_chainShape.ClearVertices();
-	int length = (int)vertices.size();
-	b2Vec2* vs = new b2Vec2[length];
+	int length = s_cast<int>(vertices.size());
+	auto vs = NewArray<b2Vec2>(length);
 	for (int i = 0; i < length; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	_chainShape.CreateChain(vs, length);
-	delete [] vs;
 	_fixtureDef.shape = &_chainShape;
 	_fixtureDef.friction = friction;
 	_fixtureDef.restitution = restitution;
@@ -372,13 +365,12 @@ b2FixtureDef* BodyDef::chain(const vector<Vec2>& vertices, float friction, float
 b2FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, float restitution)
 {
 	_chainShape.ClearVertices();
-	b2Vec2* vs = new b2Vec2[count];
+	auto vs = NewArray<b2Vec2>(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = World::b2Val(vertices[i]);
 	}
 	_chainShape.CreateChain(vs, count);
-	delete[] vs;
 	_fixtureDef.shape = &_chainShape;
 	_fixtureDef.friction = friction;
 	_fixtureDef.restitution = restitution;
