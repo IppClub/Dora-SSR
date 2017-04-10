@@ -20,9 +20,12 @@ LoadFontTTF "Font/fangzhen16.ttf", 16, "Chinese"
 --SetStyleVar "AntiAliasedShapes", false
 
 Director.scheduler\schedule ->
+	SetNextWindowPos Vec2(10,10), "FirstUseEver"
 	ShowStats!
+	SetNextWindowPos Vec2(Application.width-410,10), "FirstUseEver"
 	ShowLog!
-	SetNextWindowSize Vec2(100,100), "FirstUseEver"
+	SetNextWindowPos Vec2(10,Application.height-130), "FirstUseEver"
+	SetNextWindowSize Vec2(100,120), "FirstUseEver"
 	if Begin "Test"
 		if InputText "", buffer
 			label.text = buffer\toString!

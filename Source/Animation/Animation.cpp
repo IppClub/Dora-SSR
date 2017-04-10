@@ -313,7 +313,6 @@ Action* KeyAnimationDef::toAction()
 
 	KeyFrameDef* lastDef = _keyFrameDefs.front();
 	keyFrames.push_back(KeyReset::alloc(lastDef));
-	bool lastVisible = lastDef->visible;
 	for (size_t i = 1; i < _keyFrameDefs.size(); i++)
 	{
 		/* Get current keyFrameDef */
@@ -351,10 +350,9 @@ Action* KeyAnimationDef::toAction()
 		{
 			keyAttrs.push_back(PropertyAction::alloc(def->duration, lastDef->opacity, def->opacity, Property::Opacity, def->easeOpacity));
 		}
-		if (lastVisible != lastDef->visible)
+		if (lastDef->visible != def->visible)
 		{
-			keyAttrs.push_back(lastDef->visible ? Show::alloc() : Hide::alloc());
-			lastVisible = lastDef->visible;
+			keyAttrs.push_back(Sequence::alloc(Delay::alloc(def->duration), def->visible ? Show::alloc() : Hide::alloc()));
 		}
 		/* Add a new keyFrame */
 		if (keyAttrs.size() > 1) // Multiple attributes animated

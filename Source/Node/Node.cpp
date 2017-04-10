@@ -855,7 +855,6 @@ void Node::emit(Event* event)
 	}
 }
 
-
 Slot* Node::slot(String name)
 {
 	if (!_signal)
