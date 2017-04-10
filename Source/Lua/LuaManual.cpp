@@ -427,18 +427,21 @@ Sprite* Sprite_create(String clipStr)
 }
 
 /* Vec2 */
+
 Vec2* Vec2_create(float x, float y)
 {
 	return Mtolua_new((Vec2)({x, y}));
 }
 
 /* Size */
+
 Size* Size_create(float width, float height)
 {
 	return Mtolua_new((Size)({width, height}));
 }
 
 /* BlendFunc */
+
 BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst)
 {
 	return Mtolua_new((BlendFunc)({src, dst}));
@@ -603,6 +606,7 @@ tolua_lerror:
 }
 
 /* Action */
+
 int Action_create(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
@@ -628,6 +632,7 @@ tolua_lerror:
 }
 
 /* Model */
+
 Model* Model_create(String filename)
 {
 	Model* model = Model::create(filename);
@@ -647,6 +652,7 @@ Vec2 Model_getKey(Model* model, String key)
 }
 
 /* Body */
+
 Body* Body_create(BodyDef* def, World* world, Vec2 pos, float rot)
 {
 	Body* body = Body::create(def, world, pos, rot);
@@ -675,6 +681,7 @@ Body* Body_create(BodyDef* def, World* world, Vec2 pos, float rot)
 }
 
 /* Dictionary */
+
 Array* __Dictionary_getKeys(Dictionary* self)
 {
 	vector<Slice> keys = self->getKeys();
@@ -793,6 +800,7 @@ tolua_lerror :
 }
 
 /* Array */
+
 void Array_swap(Array* self, int indexA, int indexB)
 {
 	self->swap(indexA - 1, indexB - 1);
@@ -829,6 +837,7 @@ bool Array_fastRemoveAt(Array* self, int index)
 }
 
 /* Buffer */
+
 Buffer::Buffer(Uint32 size):
 _data(size)
 {
@@ -882,6 +891,7 @@ NS_DOROTHY_END
 using namespace Dorothy;
 
 /* ImGui */
+
 namespace ImGui { namespace Binding
 {
 	void LoadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)

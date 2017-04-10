@@ -61,7 +61,6 @@ struct LogPanel
 
     void Draw(const char* title, bool* p_open = nullptr)
     {
-		ImGui::SetNextWindowPos(ImVec2(SharedApplication.getWidth() - 410, 10), ImGuiSetCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(400,300), ImGuiSetCond_FirstUseEver);
 		ImGui::Begin(title, p_open);
 		if (ImGui::Button("Clear")) clear();
@@ -244,7 +243,6 @@ void ImGUIDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 void ImGUIDora::showStats()
 {
 	/* print debug text */
-	ImGui::SetNextWindowPos(Vec2{10,10}, ImGuiSetCond_FirstUseEver);
 	ImGui::Begin("Dorothy Stats", nullptr, Vec2{195,305}, 0.8f, ImGuiWindowFlags_AlwaysAutoResize);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
