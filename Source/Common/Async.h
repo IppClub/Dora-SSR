@@ -33,8 +33,8 @@ private:
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	bx::Semaphore _pauseSemaphore;
-	vector<function<void()>> _workers;
-	vector<Package> _packages;
+	vector<function<void()>*> _workers;
+	vector<Package*> _packages;
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
 };
