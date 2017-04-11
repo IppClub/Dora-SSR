@@ -159,17 +159,26 @@ _G.using = builtin.using
 
 local Content_loadAsync = Content.loadAsync
 Content.loadAsync = function(self,filename,handler)
-	local isloaded = false
+	local loaded = false
 	local loadedData
 	Content_loadAsync(self,filename,function(data)
 		if handler then
 			handler(filename, data)
 		end
 		loadedData = data
-		isloaded = true
+		loaded = true
 	end)
-	wait(function() return not isloaded end)
+	wait(function() return not loaded end)
 	return loadedData
+end
+
+local Content_saveAsync = Content.saveAsync
+Content.saveAsync = function(self,filename,content)
+	local saved = false
+	Content_saveAsync(self,filename,content,function()
+		saved = true
+	end)
+	wait(function() return not saved end)
 end
 
 local Content_copyAsync = Content.copyAsync

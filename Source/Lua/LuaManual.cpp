@@ -39,11 +39,22 @@ void __Content_loadFile(lua_State* L, Content* self, String filename)
 	else lua_pushnil(L);
 }
 
-void __Content_getDirEntries(lua_State* L, Content* self, String path, bool isFolder)
+void __Content_getDirs(lua_State* L, Content* self, String path)
 {
-	auto dirs = self->getDirEntries(path, isFolder);
+	auto dirs = self->getDirs(path);
 	lua_createtable(L, s_cast<int>(dirs.size()), 0);
-	for (int i = 0; i < (int)dirs.size(); i++)
+	for (int i = 0; i < s_cast<int>(dirs.size()); i++)
+	{
+		lua_pushstring(L, dirs[i].c_str());
+		lua_rawseti(L, -2, i+1);
+	}
+}
+
+void __Content_getFiles(lua_State* L, Content* self, String path)
+{
+	auto dirs = self->getFiles(path);
+	lua_createtable(L, s_cast<int>(dirs.size()), 0);
+	for (int i = 0; i < s_cast<int>(dirs.size()); i++)
 	{
 		lua_pushstring(L, dirs[i].c_str());
 		lua_rawseti(L, -2, i+1);
@@ -1166,6 +1177,16 @@ namespace ImGui { namespace Binding
 	void ValueColor(const char* prefix, Color v)
 	{
 		return ImGui::ValueColor(prefix, v.toVec4());
+	}
+
+	void Columns(int count, bool border)
+	{
+		ImGui::Columns(count, nullptr, border);
+	}
+
+	void Columns(int count, bool border, const char* id)
+	{
+		ImGui::Columns(count, id, border);
 	}
 
 	void setStyleVar(String name, const Vec2& var)

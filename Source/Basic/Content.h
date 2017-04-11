@@ -27,7 +27,9 @@ public:
 	void saveToFile(String filename, String content);
 	void saveToFile(String filename, Uint8* content, Sint64 size);
 	bool createFolder(String path);
-	vector<string> getDirEntries(String path, bool isFolder);
+	vector<string> getDirs(String path);
+	vector<string> getFiles(String path);
+	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
 	void setSearchPaths(const vector<string>& searchPaths);
@@ -47,6 +49,7 @@ protected:
 	void saveToFileUnsafe(String filename, String content);
 	void saveToFileUnsafe(String filename, Uint8* content, Sint64 size);
 	bool isFileExist(String filePath);
+	vector<string> getDirEntries(String path, bool isFolder);
 private:
 	string _assetPath;
 	string _writablePath;

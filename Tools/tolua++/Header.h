@@ -5,6 +5,7 @@ class Application
 	tolua_readonly tolua_property__common int width;
 	tolua_readonly tolua_property__common int height;
 	tolua_readonly tolua_property__common String platform;
+	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_property__common unsigned int seed;
 	static tolua_outside Application* Application_shared @ create();
 };
@@ -31,11 +32,14 @@ class Content
     bool isFolder @ isdir(String path);
 	bool removeFile @ remove(String path);
     string getFullPath(String filename);
+	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
 	void loadFileAsync @ loadAsync(String filename, tolua_function handler);
+	void saveToFileAsync @ saveAsync(String filename, String content, tolua_function handler);
 	void copyFileAsync @ copyAsync(String src, String dst, tolua_function handler);
-	tolua_outside void Content_getDirEntries @ getEntries(String path, bool isFolder);
+	tolua_outside void Content_getDirs @ getDirs(String path);
+	tolua_outside void Content_getFiles @ getFiles(String path);
 	tolua_outside void Content_loadFile @ load(String filename);
 	tolua_outside void Content_setSearchPaths @ setSearchPaths(String paths[tolua_len]);
 	static tolua_outside Content* Content_shared @ create();

@@ -23,11 +23,11 @@ bool Content::isFileExist(String filePath)
 		{
 			file = path.substr(pos+1);
 			path = path.substr(0, pos+1);
-			NSString* fullpath = [[NSBundle mainBundle] pathForResource:[NSString stringWithUTF8String:file.c_str()]
+			NSString* fullPath = [[NSBundle mainBundle] pathForResource:[NSString stringWithUTF8String:file.c_str()]
 				ofType:nil
 				inDirectory:[NSString stringWithUTF8String:path.c_str()]
 			];
-			if (fullpath != nil)
+			if (fullPath != nil)
 			{
 				return true;
 			}
@@ -49,13 +49,13 @@ string Content::getFullPathForDirectoryAndFilename(String directory, String file
 {
 	if (directory[0] != '/')
 	{
-		NSString* fullpath = [[NSBundle mainBundle] pathForResource:[NSString stringWithUTF8String:filename.toString().c_str()]
+		NSString* fullPath = [[NSBundle mainBundle] pathForResource:[NSString stringWithUTF8String:filename.toString().c_str()]
 			ofType:nil
 			inDirectory:[NSString stringWithUTF8String:directory.toString().c_str()]
 		];
-		if (fullpath != nil)
+		if (fullPath != nil)
 		{
-			return [fullpath UTF8String];
+			return [fullPath UTF8String];
 		}
 	}
 	else
@@ -68,7 +68,7 @@ string Content::getFullPathForDirectoryAndFilename(String directory, String file
 			return fullPath;
 		}
 	}
-	return "";
+	return Slice::Empty;
 }
 
 bool Content::isAbsolutePath(String strPath)

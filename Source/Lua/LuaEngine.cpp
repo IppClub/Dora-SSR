@@ -122,7 +122,7 @@ static int dora_loadfile(lua_State* L, String filename)
 
 	if (codeBuffer)
 	{
-		if (luaL_loadbuffer(L, codeBuffer, (size_t)codeBufferSize, filename.toString().c_str()) != 0)
+		if (luaL_loadbuffer(L, codeBuffer, s_cast<size_t>(codeBufferSize), filename.toString().c_str()) != 0)
 		{
 			luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
 				lua_tostring(L, 1), filename.toString().c_str(), lua_tostring(L, -1));

@@ -21,8 +21,10 @@ int dora_emit(lua_State* L);
 /* Content */
 void __Content_loadFile(lua_State* L, Content* self, String filename);
 #define Content_loadFile(self,filename) {__Content_loadFile(tolua_S,self,filename);return 1;}
-void __Content_getDirEntries(lua_State* L, Content* self, String path, bool isFolder);
-#define Content_getDirEntries(self,path,isFolder) {__Content_getDirEntries(tolua_S,self,path,isFolder);return 1;}
+void __Content_getDirs(lua_State* L, Content* self, String path);
+#define Content_getDirs(self,path) {__Content_getDirs(tolua_S,self,path);return 1;}
+void __Content_getFiles(lua_State* L, Content* self, String path);
+#define Content_getFiles(self,path) {__Content_getFiles(tolua_S,self,path);return 1;}
 void Content_setSearchPaths(Content* self, Slice paths[], int length);
 inline Content* Content_shared() { return &SharedContent; }
 
@@ -179,6 +181,9 @@ namespace ImGui { namespace Binding
 
 	bool ColorButton(Color col, bool small_height = false, bool outline_border = true);
 	void ValueColor(const char* prefix, Color v);
+
+	void Columns(int count = 1, bool border = true);
+	void Columns(int count, bool border, const char* id);
 
 	void setStyleVar(String name, bool var);
 	void setStyleVar(String name, float var);

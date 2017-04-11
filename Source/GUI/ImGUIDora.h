@@ -18,6 +18,7 @@ NS_DOROTHY_BEGIN
 class Listener;
 class Texture2D;
 class SpriteEffect;
+class LogPanel;
 
 class ImGUIDora : public TouchHandler
 {
@@ -52,6 +53,7 @@ private:
 	int _textLength;
 	int _cursor;
 	string _iniFilePath;
+	Own<LogPanel> _log;
 	char _textEditing[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 	SINGLETON_REF(ImGUIDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGUI

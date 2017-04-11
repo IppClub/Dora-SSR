@@ -1,42 +1,174 @@
 Dorothy builtin.ImGui
+import Set,Path from require "Utils"
+LintGlobal = require "LintGlobal"
+moonscript = require "moonscript"
 
-model = with Model "Model/jixienv.model"
-	.loop = true
-	.look = "happy"
-	.recovery = 0.2
-	\play "walk"
-
-label = Label "NotoSansHans-Regular", 18
-model\addChild label
-model\slot "AnimationEnd",(name)->
-	print name,"end!"
-
-buffer = with Buffer 100
-	\setString "attack"
+Content\setSearchPaths {
+	Content.writablePath.."Script"
+	Content.writablePath.."Script/Lib"
+	"Script"
+	"Script/Lib"
+}
 
 LoadFontTTF "Font/fangzhen16.ttf", 16, "Chinese"
 
---SetStyleVar "AntiAliasedLines", false
---SetStyleVar "AntiAliasedShapes", false
+moduleCache = {}
+oldRequire = _G.require
+newRequire = (path)->
+	loaded = package.loaded[path]
+	if not loaded
+		table.insert moduleCache,path
+		return oldRequire path
+	loaded
+_G.require = newRequire
+builtin.require = newRequire
 
-Director.scheduler\schedule ->
-	SetNextWindowPos Vec2(10,10), "FirstUseEver"
-	ShowStats!
-	SetNextWindowPos Vec2(Application.width-410,10), "FirstUseEver"
-	ShowLog!
-	SetNextWindowPos Vec2(10,Application.height-130), "FirstUseEver"
-	SetNextWindowSize Vec2(100,120), "FirstUseEver"
-	if Begin "Test"
-		if InputText "", buffer
-			label.text = buffer\toString!
-		if Button "Hit me!"
-			model\play buffer\toString!
-			--Audio\play "Audio/hero_win.wav"
-			emit "GlobalEvent", 123, "abc"
-	End!
+allowedUseOfGlobals = Set {
+}
 
-Director\pushEntry model
+LintMoonGlobals = (moonCodes,entry)->
+	globals,err = LintGlobal moonCodes
+	if not globals
+		error "Compile failed in #{entry}\n#{err}"
+	requireModules = {}
+	withImGui = false
+	for name,_ in pairs globals
+		if not allowedUseOfGlobals[name]
+			if builtin[name]
+				table.insert requireModules, "local #{name} = require(\"#{name}\")"
+			else if builtin.ImGui[name]
+				withImGui = true
+				table.insert requireModules, "local #{name} = ImGui.#{name}"
+			else
+				error "Used invalid global value \"#{name}\" in #{entry}."
+	table.insert requireModules,1,"local ImGui = require(\"ImGui\")" if withImGui
+	table.concat requireModules, "\n"
 
-thread ->
-	sleep 1
-	_G.x = 998
+totalFiles = 0
+totalMoonTime = 0
+compile = (dir,clean,minify)->
+	{:ParseLua} = require "luaminify.ParseLua"
+	FormatMini = require "luaminify.FormatMini"
+	files = Path.getAllFiles dir, "moon"
+	for file in *files
+		path = Path.getPath file
+		name = Path.getName file
+		if not clean
+			moonCodes = Content\loadAsync file
+			requires = LintMoonGlobals moonCodes,file
+			startTime = Application.eclapsedTime
+			codes,err = moonscript.to_lua moonCodes
+			totalMoonTime += Application.eclapsedTime - startTime
+			if not codes
+				print "Compile errors in #{file}."
+				print err
+				return false
+			else
+				codes = requires..codes\gsub "Dorothy%([^%)]*%)",""
+				if minify
+					st, ast = ParseLua codes
+					if not st
+						print ast
+						return false
+					codes = FormatMini ast
+				filePath = "#{Content.writablePath}Script/#{path}"
+				Content\mkdir filePath
+				filename = "#{filePath}#{name}.lua"
+				Content\saveAsync filename,codes
+				print "Moon compiled: #{path}#{name}.moon"
+				totalFiles += 1
+		else
+			filePath = "#{Content.writablePath}Script/#{path}"
+			Content\mkdir filePath
+			filename = "#{filePath}#{name}.lua"
+			if Content\exist filename
+				print "Moon cleaned: #{path}#{name}.lua"
+				Content\remove filename
+	return true
+
+building = false
+
+doCompile = (minify)->
+	return if building
+	building = true
+	totalFiles = 0
+	totalMoonTime = 0
+	thread ->
+		xpcall (-> compile "#{Content.assetPath}Script",false,minify),(msg)->
+			msg = debug.traceback(msg)
+			print msg
+		print string.format "Compile "..(minify and "and minify " or "").."done. %d files in total.\nCompile time, Moon %.3fs.",totalFiles,totalMoonTime
+		building = false
+
+doClean = ->
+	return if building
+	building = true
+	thread ->
+		compile "#{Content.assetPath}Script",true
+		print "Clean done."
+		building = false
+
+isInEntry = true
+
+Director.ui = with Node!
+	showStats = true
+	showLog = true
+	\schedule ->
+		{:width,:height} = Application
+		SetNextWindowSize Vec2(width,55)
+		SetNextWindowPos Vec2(0,height-55)
+		if Begin "", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus"
+			Separator!
+			_, showStats = Checkbox "Stats", showStats
+			SameLine!
+			_, showLog = Checkbox "Log", showLog
+			SameLine!
+			if Button "Build", Vec2(80,25)
+				OpenPopup "build"
+			if BeginPopup "build"
+				doCompile false if Selectable "Compile"
+				Separator!
+				doCompile true if Selectable "Minify"
+				Separator!
+				doClean! if Selectable "Clean"
+				EndPopup!
+			if not isInEntry
+				SameLine!
+				if Button "Back To Entry", Vec2(150,25)
+					Director\popToRootEntry!
+					isInEntry = true
+					for module in *moduleCache
+						package.loaded[module] = nil
+					moduleCache = {}
+			if showStats
+				SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
+				ShowStats!
+			if showLog
+				SetNextWindowPos Vec2(width-400,height-65-300), "FirstUseEver"
+				ShowLog!
+		End!
+
+Director\pushEntry with Node!
+	examples = [Path.getName item for item in *Content\getFiles Content.assetPath.."Script/Example"]
+	\schedule ->
+		SetNextWindowPos Vec2.zero
+		{:width,:height} = Application
+		SetNextWindowSize Vec2(width,height-55)
+		PushStyleColor "TitleBgActive", Color(0xcc000000)
+		if Begin "Dorothy SSR Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus"
+			Separator!
+			TextColored Color(0xffff0080), "Examples"
+			Columns 5, false
+			for example in *examples
+				if Button example, Vec2(-1,40)
+					isInEntry = false
+					xpcall (-> require "Example/#{example}"),(msg)->
+						msg = debug.traceback(msg)
+						print msg
+						isInEntry = true
+						for module in *moduleCache
+							package.loaded[module] = nil
+						moduleCache = {}
+				NextColumn!
+		End!
+		PopStyleColor!

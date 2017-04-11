@@ -21,15 +21,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-struct LogPanel
+class LogPanel
 {
-	ImGuiTextBuffer Buf;
-	ImGuiTextFilter Filter;
-	ImVector<int> LineOffsets;
-	bool ScrollToBottom;
-	bool AutoScroll = true;
-
-	LogPanel()
+public:
+	LogPanel():
+	_scrollToBottom(false),
+	_autoScroll(true)
 	{
 		LogHandler += std::make_pair(this, &LogPanel::addLog);
 	}
@@ -41,22 +38,22 @@ struct LogPanel
 
 	void clear()
 	{
-		Buf.clear();
-		LineOffsets.clear();
+		_buf.clear();
+		_lineOffsets.clear();
 	}
 
 	void addLog(const string& text)
 	{
-		int old_size = Buf.size();
-		Buf.append("%s", text.c_str());
-		for (int new_size = Buf.size(); old_size < new_size; old_size++)
+		int old_size = _buf.size();
+		_buf.append("%s", text.c_str());
+		for (int new_size = _buf.size(); old_size < new_size; old_size++)
 		{
-			if (Buf[old_size] == '\n')
+			if (_buf[old_size] == '\n')
 			{
-				LineOffsets.push_back(old_size);
+				_lineOffsets.push_back(old_size);
 			}
 		}
-		ScrollToBottom = true;
+		_scrollToBottom = true;
     }
 
     void Draw(const char* title, bool* p_open = nullptr)
@@ -67,23 +64,23 @@ struct LogPanel
 		ImGui::SameLine();
 		bool copy = ImGui::Button("Copy");
 		ImGui::SameLine();
-		if (ImGui::Checkbox("Scroll", &AutoScroll))
+		if (ImGui::Checkbox("Scroll", &_autoScroll))
 		{
-			if (AutoScroll) ScrollToBottom = true;
+			if (_autoScroll) _scrollToBottom = true;
 		}
 		ImGui::SameLine();
-		Filter.Draw("Filter", -55.0f);
+		_filter.Draw("Filter", -55.0f);
 		ImGui::Separator();
 		ImGui::BeginChild("scrolling", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar);
 		if (copy) ImGui::LogToClipboard();
-		if (Filter.IsActive())
+		if (_filter.IsActive())
 		{
-			const char* buf_begin = Buf.begin();
+			const char* buf_begin = _buf.begin();
 			const char* line = buf_begin;
 			for (int line_no = 0; line != nullptr; line_no++)
 			{
-				const char* line_end = (line_no < LineOffsets.Size) ? buf_begin + LineOffsets[line_no] : nullptr;
-				if (Filter.PassFilter(line, line_end))
+				const char* line_end = (line_no < _lineOffsets.Size) ? buf_begin + _lineOffsets[line_no] : nullptr;
+				if (_filter.PassFilter(line, line_end))
 				{
 					ImGui::TextWrappedUnformatted(line, line_end);
 				}
@@ -92,16 +89,23 @@ struct LogPanel
 		}
 		else
 		{
-			ImGui::TextWrappedUnformatted(Buf.begin(), Buf.end());
+			ImGui::TextWrappedUnformatted(_buf.begin(), _buf.end());
 		}
-		if (ScrollToBottom && AutoScroll)
+		if (_scrollToBottom && _autoScroll)
 		{
 			ImGui::SetScrollHere(1.0f);
 		}
-		ScrollToBottom = false;
+		_scrollToBottom = false;
 		ImGui::EndChild();
 		ImGui::End();
 	}
+	
+private:
+	ImGuiTextBuffer _buf;
+	ImGuiTextFilter _filter;
+	ImVector<int> _lineOffsets;
+	bool _scrollToBottom;
+	bool _autoScroll;
 };
 
 ImGUIDora::ImGUIDora():
@@ -112,7 +116,8 @@ _textEditing{},
 _isLoadingFont(false),
 _textInputing(false),
 _mousePressed{ false, false, false },
-_mouseWheel(0.0f)
+_mouseWheel(0.0f),
+_log(New<LogPanel>())
 {
 	_vertexDecl
 		.begin()
@@ -306,8 +311,7 @@ void ImGUIDora::showStats()
 
 void ImGUIDora::showLog()
 {
-	static LogPanel log;
-	log.Draw("Dorothy Log");
+	_log->Draw("Dorothy Log");
 }
 
 bool ImGUIDora::init()

@@ -292,6 +292,7 @@ end
 
 local moonCache = {}
 local function getMoonLineNumber(fname, line)
+	fname = Content:getFullPath(fname)
 	local line_tables = require("moonscript.line_tables")
 	local reverse_line_number = require("moonscript.errors").reverse_line_number
 	local tbl = line_tables["@"..tostring(fname)]
@@ -351,6 +352,20 @@ function _M.stacktrace(thread, message, level)
 			fname = fname:gsub("%[string \"", "")
 			fname = fname:gsub("\"%]", "")
 			fname = fname:match("[^%s]+$")
+			local extension = fname:match("%.([^%.\\/]*)$")
+			if not extension then
+				fname = Content:getFullPath(fname..".lua")
+			end
+			local index = 0
+			repeat
+				index = fname:find("[\\/]",index+1)
+				if not index then break end
+				local name = fname:sub(index+1,-1)
+				if Content:exist(name) then
+					fname = name
+					break
+				end
+			until index == nil
 			if _M.simplified then
 				message = table.concat({
 					"'", fname, "':",
@@ -379,7 +394,21 @@ Stack Traceback
 	local info = dumper.getinfo(level, "nSlf")
 	while info do
 		if info.source and info.source:sub(1,1) == "@" then
+			local fname = info.source:sub(2)
+			local index = 0
+			repeat
+				index = fname:find("[\\/]",index+1)
+				local name = fname:sub(index+1,-1)
+				if Content:exist(name) then
+					fname = name
+					break
+				end
+			until index == nil
+			info.source = "@"..fname
 			info.currentline = getMoonLineNumber(info.source:sub(2), info.currentline)
+		elseif info.what == "main" or info.what == "Lua" then
+			info.source = info.source..".lua"
+		else
 		end
 		if info.what == "main" then
 			if string_sub(info.source, 1, 1) == "@" then
@@ -407,7 +436,7 @@ Stack Traceback
 			dumper:add_f("(%d) tail call\r\n", level_to_show)
 			dumper:DumpLocals(level)
 		elseif info.what == "Lua" then
-			local source = info.short_src
+			local source = info.source
 			local function_name = m_user_known_functions[info.func] or m_known_functions[info.func] or info.name
 			if source:sub(2, 7) == "string" then
 				source = source:sub(10,-3)

@@ -68,6 +68,9 @@ namespace ImGui
 
 	bool Binding::ColorButton @ ColorButton(Color col, bool small_height = false, bool outline_border = true);
 	void Binding::ValueColor @ ValueColor(const char* prefix, Color v);
+	
+	void Binding::Columns @ Columns(int count = 1, bool border = true);
+	void Binding::Columns @ Columns(int count, bool border, const char* id);
 
 	void Binding::setStyleVar @ setStyleVar(String name, bool var);
 	void Binding::setStyleVar @ setStyleVar(String name, float var);
@@ -139,7 +142,6 @@ namespace ImGui
 	float GetTextLineHeightWithSpacing();
 	float GetItemsLineHeightWithSpacing();
 
-	void Columns(int count = 1, CString id = NULL, bool border = true);
 	void NextColumn();
 	int GetColumnIndex();
 	float GetColumnOffset(int column_index = -1);
