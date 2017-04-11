@@ -59,6 +59,7 @@ compile = (dir,clean,minify)->
 			startTime = Application.eclapsedTime
 			codes,err = moonscript.to_lua moonCodes
 			totalMoonTime += Application.eclapsedTime - startTime
+			startTime = Application.eclapsedTime
 			if not codes
 				print "Compile errors in #{file}."
 				print err
@@ -71,6 +72,7 @@ compile = (dir,clean,minify)->
 						print ast
 						return false
 					codes = FormatMini ast
+				totalMoonTime += Application.eclapsedTime - startTime
 				filePath = "#{Content.writablePath}Script/#{path}"
 				Content\mkdir filePath
 				filename = "#{filePath}#{name}.lua"
@@ -97,6 +99,7 @@ doCompile = (minify)->
 		xpcall (-> compile "#{Content.assetPath}Script",false,minify),(msg)->
 			msg = debug.traceback(msg)
 			print msg
+			building = false
 		print string.format "Compile "..(minify and "and minify " or "").."done. %d files in total.\nCompile time, Moon %.3fs.",totalFiles,totalMoonTime
 		building = false
 
@@ -141,6 +144,9 @@ Director.ui = with Node!
 				Separator!
 				doClean! if Selectable "Clean"
 				EndPopup!
+			SameLine!
+			if Button "GC", Vec2(80,25)
+				collectgarbage "collect"
 			if not isInEntry
 				SameLine!
 				if Button "Back To Entry", Vec2(150,25)
