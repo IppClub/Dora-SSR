@@ -335,7 +335,7 @@ bool ImGUIDora::init()
 	style.GrabMinSize = 20.0f;
 	style.GrabRounding = 0.0f;
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
-	style.DisplayWindowPadding = ImVec2(10, 10);
+	style.DisplayWindowPadding = ImVec2(50, 50);
 	style.DisplaySafeAreaPadding = ImVec2(5, 5);
 	style.AntiAliasedLines = true;
 	style.AntiAliasedShapes = true;

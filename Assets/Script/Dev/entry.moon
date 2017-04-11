@@ -113,11 +113,20 @@ isInEntry = true
 Director.ui = with Node!
 	showStats = true
 	showLog = true
+	showFooter = true
 	\schedule ->
 		{:width,:height} = Application
+		SetNextWindowSize Vec2(100,45)
+		SetNextWindowPos Vec2(width-100,height-45)
+		PushStyleColor "WindowBg", Color(0x0)
+		if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+			_, showFooter = Checkbox "Footer", showFooter
+		End!
+		PopStyleColor!
+		return unless showFooter
 		SetNextWindowSize Vec2(width,55)
 		SetNextWindowPos Vec2(0,height-55)
-		if Begin "", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus"
+		if Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 			Separator!
 			_, showStats = Checkbox "Stats", showStats
 			SameLine!
@@ -151,13 +160,19 @@ Director.ui = with Node!
 Director\pushEntry with Node!
 	examples = [Path.getName item for item in *Content\getFiles Content.assetPath.."Script/Example"]
 	\schedule ->
-		SetNextWindowPos Vec2.zero
 		{:width,:height} = Application
-		SetNextWindowSize Vec2(width,height-55)
+		SetNextWindowPos Vec2.zero
+		SetNextWindowSize Vec2(width,48)
 		PushStyleColor "TitleBgActive", Color(0xcc000000)
-		if Begin "Dorothy SSR Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus"
+		if Begin "Dorothy SSR", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 			Separator!
-			TextColored Color(0xffff0080), "Examples"
+		End!
+		PopStyleColor!
+		SetNextWindowPos Vec2(0,48)
+		SetNextWindowSize Vec2(width,height-107)
+		PushStyleColor "WindowBg",Color(0x0)
+		if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+			TextColored Color(0xff00ffff), "Examples"
 			Columns 5, false
 			for example in *examples
 				if Button example, Vec2(-1,40)
