@@ -163,7 +163,11 @@ std::vector<std::string> ZipFile::getDirEntries(const std::string& path, bool is
 				{
 					if (searchName.length() < folder.length())
 					{
-						results.push_back(folder.substr(searchName.length()+1));
+						string name = folder.substr(searchName.length()+1);
+						if (name != "." && name != "..")
+						{
+							results.push_back(name);
+						}
 					}
 				}
 			}

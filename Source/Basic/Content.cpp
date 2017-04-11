@@ -121,6 +121,16 @@ bool Content::createFolder(String path)
 	return true;
 }
 
+vector<string> Content::getDirs(String path)
+{
+	return Content::getDirEntries(path, true);
+}
+
+vector<string> Content::getFiles(String path)
+{
+	return Content::getDirEntries(path, false);
+}
+
 const string& Content::getAssetPath() const
 {
 	return _assetPath;
@@ -165,15 +175,7 @@ string Content::getFullPath(String filename)
 		return it->second;
 	}
 
-	string path, file;
-	std::tie(path, file) = splitDirectoryAndFilename(targetFile);
-	string fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
-	if (!fullPath.empty())
-	{
-		_fullPathCache[targetFile] = fullPath;
-		return fullPath;
-	}
-
+	string path, file, fullPath;
 	for (const string& searchPath : _searchPaths)
 	{
 		std::tie(path, file) = splitDirectoryAndFilename(searchPath + targetFile);
@@ -185,12 +187,31 @@ string Content::getFullPath(String filename)
 		}
 	}
 
+	std::tie(path, file) = splitDirectoryAndFilename(targetFile);
+	fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
+	if (!fullPath.empty())
+	{
+		_fullPathCache[targetFile] = fullPath;
+		return fullPath;
+	}
+
 	return targetFile;
+}
+
+void Content::insertSearchPath(int index, String path)
+{
+	string searchPath = (Content::isAbsolutePath(path) ? Slice::Empty : _assetPath) + path;
+	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
+	{
+		searchPath.append("/");
+	}
+	_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+	_fullPathCache.clear();
 }
 
 void Content::addSearchPath(String path)
 {
-	string searchPath = (Content::isAbsolutePath(path) ? "" : _assetPath) + path;
+	string searchPath = (Content::isAbsolutePath(path) ? Slice::Empty : _assetPath) + path;
 	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
 	{
 		searchPath.append("/");
@@ -200,7 +221,7 @@ void Content::addSearchPath(String path)
 
 void Content::removeSearchPath(String path)
 {
-	string realPath = (Content::isAbsolutePath(path) ? "" : _assetPath) + path;
+	string realPath = (Content::isAbsolutePath(path) ? Slice::Empty : _assetPath) + path;
 	if (realPath.length() > 0 && (realPath.back() != '/' && realPath.back() != '\\'))
 	{
 		realPath.append("/");
@@ -391,7 +412,10 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 			tinydir_readfile(&dir, &file);
 			if ((file.is_dir != 0) == isFolder)
 			{
-				files.push_back(file.name);
+				if (!isFolder || (std::strcmp(file.name, ".") != 0 && std::strcmp(file.name, "..") != 0))
+				{
+					files.push_back(file.name);
+				}
 			}
 			tinydir_next(&dir);
 		}
@@ -637,7 +661,7 @@ bool Content::isFolder(String path)
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
 {
-	string fullPath = (Content::isAbsolutePath(directory) ? "" : _assetPath);
+	string fullPath = (Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
 	fullPath.append(directory + filename);
 	if (!Content::isFileExist(fullPath))
 	{
