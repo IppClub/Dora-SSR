@@ -96,6 +96,7 @@ doCompile = (minify)->
 	totalFiles = 0
 	totalMoonTime = 0
 	thread ->
+		print "Output: #{Content.writablePath}Script"
 		xpcall (-> compile "#{Content.assetPath}Script",false,minify),(msg)->
 			msg = debug.traceback(msg)
 			print msg
@@ -107,6 +108,7 @@ doClean = ->
 	return if building
 	building = true
 	thread ->
+		print "Output: #{Content.writablePath}Script"
 		compile "#{Content.assetPath}Script",true
 		print "Clean done."
 		building = false
@@ -145,8 +147,6 @@ Director.ui = with Node!
 				doClean! if Selectable "Clean"
 				EndPopup!
 			SameLine!
-			if Button "GC", Vec2(80,25)
-				collectgarbage "collect"
 			if not isInEntry
 				SameLine!
 				if Button "Back To Entry", Vec2(150,25)
@@ -155,6 +155,7 @@ Director.ui = with Node!
 					for module in *moduleCache
 						package.loaded[module] = nil
 					moduleCache = {}
+					Cache\unload!
 			if showStats
 				SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
 				ShowStats!
