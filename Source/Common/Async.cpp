@@ -56,7 +56,7 @@ void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finishe
 				Ref<Values> result;
 				event->get(package, result);
 				package->second(result);
-				MakeOwn(package);
+				delete package;
 			}
 			return false;
 		});

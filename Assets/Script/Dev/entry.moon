@@ -171,7 +171,7 @@ Director\pushEntry with Node!
 		SetNextWindowPos Vec2.zero
 		SetNextWindowSize Vec2(width,48)
 		PushStyleColor "TitleBgActive", Color(0xcc000000)
-		if Begin "Dorothy SSR", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+		if Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 			Separator!
 		End!
 		PopStyleColor!
@@ -191,6 +191,7 @@ Director\pushEntry with Node!
 						for module in *moduleCache
 							package.loaded[module] = nil
 						moduleCache = {}
+						Cache\unload!
 				NextColumn!
 		End!
 		PopStyleColor!
