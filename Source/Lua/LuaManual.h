@@ -73,6 +73,12 @@ int Action_create(lua_State* L);
 /* Model */
 Model* Model_create(String filename);
 Vec2 Model_getKey(Model* model, String key);
+void __Model_getClipFile(lua_State* L, String filename);
+#define Model_getClipFile(filename) {__Model_getClipFile(tolua_S,filename);return 1;}
+void __Model_getLookNames(lua_State* L, String filename);
+#define Model_getLookNames(filename) {__Model_getLookNames(tolua_S,filename);return 1;}
+void __Model_getAnimationNames(lua_State* L, String filename);
+#define Model_getAnimationNames(filename) {__Model_getAnimationNames(tolua_S, filename);return 1;}
 
 /* Body */
 typedef b2FixtureDef FixtureDef;
@@ -173,6 +179,8 @@ namespace ImGui { namespace Binding
 	bool TreeNode(const char* str_id, const char* text);
 	void SetTooltip(const char* text);
 
+	bool Combo(const char* label, int* current_item, const char* const* items, int items_count, int height_in_items = -1);
+	
 	bool ColorEdit3(const char* label, Color3& color3);
 	bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
 

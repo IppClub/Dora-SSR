@@ -77,6 +77,8 @@ namespace ImGui
 	void Binding::setStyleVar @ setStyleVar(String name, Vec2 var);
 	void Binding::setStyleColor @ setStyleColor(String name, Color color);
 	
+	bool Binding::Combo @ Combo(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
+
 	void End();
 	void EndChild();
 	Vec2 GetContentRegionMax();
@@ -162,12 +164,10 @@ namespace ImGui
 	bool Checkbox(CString label, bool* v);
 	bool RadioButton(CString label, bool active);
 	bool RadioButton(CString label, int* v, int v_button);
-	bool Combo(CString label, int* current_item, CString items_separated_by_zeros, int height_in_items = -1);
 	void PlotLines(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
 	void PlotHistogram(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
 	void ProgressBar(float fraction, Vec2 size_arg = NewVec2(-1,0), CString overlay = NULL);
 
-	bool Combo(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 	bool ListBox(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 
 	bool DragFloat(CString label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString display_format = "%.3f", float power = 1.0f);
