@@ -662,6 +662,53 @@ Vec2 Model_getKey(Model* model, String key)
 	return model->getModelDef()->getKeyPoint(key);
 }
 
+void __Model_getClipFile(lua_State* L, String filename)
+{
+	ModelDef* modelDef = SharedModelCache.load(filename);
+	const string& clipFile = modelDef->getClipFile();
+	lua_pushlstring(L, clipFile.c_str(), clipFile.size());
+}
+
+void __Model_getLookNames(lua_State* L, String filename)
+{
+	ModelDef* modelDef = SharedModelCache.load(filename);
+	if (modelDef)
+	{
+		auto names = modelDef->getLookNames();
+		int size = s_cast<int>(names.size());
+		lua_createtable(L, size, 0);
+		for (int i = 0; i < size;i++)
+		{
+			lua_pushlstring(L, names[i].c_str(), names[i].size());
+			lua_rawseti(L, -2, i + 1);
+		}
+	}
+	else
+	{
+		lua_pushnil(L);
+	}
+}
+
+void __Model_getAnimationNames(lua_State* L, String filename)
+{
+	ModelDef* modelDef = SharedModelCache.load(filename);
+	if (modelDef)
+	{
+		auto names = modelDef->getAnimationNames();
+		int size = s_cast<int>(names.size());
+		lua_createtable(L, size, 0);
+		for (int i = 0; i < size; i++)
+		{
+			lua_pushlstring(L, names[i].c_str(), names[i].size());
+			lua_rawseti(L, -2, i + 1);
+		}
+	}
+	else
+	{
+		lua_pushnil(L);
+	}
+}
+
 /* Body */
 
 Body* Body_create(BodyDef* def, World* world, Vec2 pos, float rot)
@@ -1129,6 +1176,14 @@ namespace ImGui { namespace Binding
 	void SetTooltip(const char* text)
 	{
 		ImGui::SetTooltip("%s", text);
+	}
+
+	bool Combo(const char* label, int* current_item, const char* const* items, int items_count, int height_in_items)
+	{
+		--(*current_item); // for lua index start with 1
+		bool result = ImGui::Combo(label, current_item, items, items_count, height_in_items);
+		++(*current_item);
+		return result;
 	}
 
 	bool ColorEdit3(const char* label, Color3& color3)

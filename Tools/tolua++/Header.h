@@ -555,6 +555,10 @@ class Model: public Node
 	void updateTo(float eclapsed, bool reversed = false);
 	static tolua_outside Model* Model_create @ create(String filename);
 	static Model* none();
+	
+	static tolua_outside void Model_getClipFile @ getClipFile(String filename);
+	static tolua_outside void Model_getLookNames @ getLooks(String filename);
+	static tolua_outside void Model_getAnimationNames @ getAnimations(String filename);
 };
 
 class World : public Node
