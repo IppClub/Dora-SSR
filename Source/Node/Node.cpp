@@ -557,12 +557,18 @@ Node* Node::getChildByName(String name)
 
 Vec2 Node::convertToNodeSpace(const Vec2& worldPoint)
 {
-	return AffineTransform::applyPoint(AffineTransform::invert(getWorldTransform()), worldPoint);
+	Matrix invWorld;
+	bx::mtxInverse(invWorld, getWorld());
+	Vec3 point;
+	bx::vec3MulMtx(point, Vec3{worldPoint.x, worldPoint.y, 0.0f}, invWorld);
+	return point.toVec2();
 }
 
 Vec2 Node::convertToWorldSpace(const Vec2& nodePoint)
 {
-	return AffineTransform::applyPoint(getWorldTransform(), nodePoint);
+	Vec3 point;
+	bx::vec3MulMtx(point, Vec3{nodePoint.x, nodePoint.y, 0.0f}, getWorld());
+	return point.toVec2();
 }
 
 bool Node::isScheduled() const
