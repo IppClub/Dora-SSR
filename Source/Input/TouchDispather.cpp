@@ -45,7 +45,7 @@ int Touch::getId() const
 
 Vec2 Touch::getDelta() const
 {
-	return _location - _preLocation;
+	return _worldLocation - _worldPreLocation;
 }
 
 const Vec2& Touch::getLocation() const
@@ -56,6 +56,16 @@ const Vec2& Touch::getLocation() const
 const Vec2& Touch::getPreLocation() const
 {
 	return _preLocation;
+}
+
+const Vec2& Touch::getWorldLocation() const
+{
+	return _worldLocation;
+}
+
+const Vec2& Touch::getWorldPreLocation() const
+{
+	return _worldPreLocation;
 }
 
 /* TouchHandler */
@@ -241,6 +251,7 @@ bool NodeTouchHandler::down(const SDL_Event& event)
 	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
 	{
 		touch->_preLocation = touch->_location = pos;
+		touch->_worldPreLocation = touch->_worldLocation = _target->convertToWorldSpace(pos);
 		touch->_flags.setOn(Touch::Selected);
 		_target->emit("TapBegan"_slice, touch);
 		return true;
@@ -276,6 +287,8 @@ bool NodeTouchHandler::up(const SDL_Event& event)
 			Vec2 pos = getPos(event);
 			touch->_preLocation = touch->_location;
 			touch->_location = pos;
+			touch->_worldPreLocation = touch->_worldLocation;
+			touch->_worldLocation = _target->convertToWorldSpace(pos);
 			if (touch->_flags.isOn(Touch::Selected))
 			{
 				_target->emit("TapEnded"_slice, touch);
@@ -309,6 +322,8 @@ bool NodeTouchHandler::move(const SDL_Event& event)
 		Vec2 pos = getPos(event);
 		touch->_preLocation = touch->_location;
 		touch->_location = pos;
+		touch->_worldPreLocation = touch->_worldLocation;
+		touch->_worldLocation = _target->convertToWorldSpace(pos);
 		_target->emit("TapMoved", touch);
 		if (_target->getSize() != Size::zero)
 		{

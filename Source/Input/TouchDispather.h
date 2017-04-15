@@ -39,6 +39,8 @@ public:
 	PROPERTY_READONLY(Vec2, Delta);
 	PROPERTY_READONLY_REF(Vec2, Location);
 	PROPERTY_READONLY_REF(Vec2, PreLocation);
+	PROPERTY_READONLY_REF(Vec2, WorldLocation);
+	PROPERTY_READONLY_REF(Vec2, WorldPreLocation);
 	static Uint32 source;
 	CREATE_FUNC(Touch);
 protected:
@@ -48,6 +50,8 @@ private:
 	int _id;
 	Vec2 _location;
 	Vec2 _preLocation;
+	Vec2 _worldLocation;
+	Vec2 _worldPreLocation;
 	enum
 	{
 		Enabled = 1,

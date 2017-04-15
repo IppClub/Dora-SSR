@@ -10,7 +10,7 @@ model = with Model "Model/xiaoli.model"
 
 Director\pushEntry model
 
--- example ends here, just some test ui controls below --
+-- example ends here, just some test ui codes below --
 
 Dorothy builtin.ImGui
 
