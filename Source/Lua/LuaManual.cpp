@@ -1186,6 +1186,48 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
+	bool DragFloat2(const char* label, Vec2& v, float v_speed, float v_min, float v_max, const char* display_format, float power)
+	{
+		return ImGui::DragFloat2(label, &v.x, v_speed, v_min, v_max, display_format, power);
+	}
+
+	bool DragInt2(const char* label, Vec2& v, float v_speed, int v_min, int v_max, const char* display_format)
+	{
+		int ints[2] = {s_cast<int>(v.x), s_cast<int>(v.y)};
+		bool changed = ImGui::DragInt2(label, ints, v_speed, v_min, v_max, display_format);
+		v.x = s_cast<float>(ints[0]);
+		v.y = s_cast<float>(ints[1]);
+		return changed;
+	}
+
+	bool InputFloat2(const char* label, Vec2& v, int decimal_precision, String extra_flags)
+	{
+		return ImGui::InputFloat2(label, &v.x, decimal_precision, getInputTextFlags(extra_flags));
+	}
+
+	bool InputInt2(const char* label, Vec2& v, String extra_flags)
+	{
+		int ints[2] = {s_cast<int>(v.x), s_cast<int>(v.y)};
+		bool changed = ImGui::InputInt2(label, ints, getInputTextFlags(extra_flags));
+		v.x = s_cast<float>(ints[0]);
+		v.y = s_cast<float>(ints[1]);
+		return changed;
+	}
+
+	bool SliderFloat2(const char* label, Vec2& v, float v_min, float v_max, const char* display_format, float power)
+	{
+		return ImGui::SliderFloat2(label, &v.x, v_min, v_max, display_format, power);
+	}
+
+	bool SliderInt2(const char* label, Vec2& v, int v_min, int v_max, const char* display_format)
+	{
+		int ints[2] = {s_cast<int>(v.x), s_cast<int>(v.y)};
+		bool changed = ImGui::SliderInt2(label, ints, v_min, v_max, display_format);
+		v.x = s_cast<float>(ints[0]);
+		v.y = s_cast<float>(ints[1]);
+		return changed;
+	}
+
 	bool ColorEdit3(const char* label, Color3& color3)
 	{
 		Vec3 vec3 = color3.toVec3();

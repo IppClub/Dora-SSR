@@ -763,52 +763,46 @@ const AffineTransform& Node::getLocalTransform()
 	return _transform;
 }
 
-AffineTransform Node::getWorldTransform()
-{
-	AffineTransform transform = getLocalTransform();
-	for (Node* parent = this->getTargetParent();
-		parent != nullptr;
-		parent = parent->getTargetParent())
-	{
-		transform = AffineTransform::concat(transform, parent->getLocalTransform());
-	}
-	return transform;
-}
-
 void Node::getLocalWorld(float* localWorld)
 {
 	if (_angleX || _angleY)
 	{
-		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
 		AffineTransform transform = getLocalTransform();
+		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
 		if (_anchorPoint != Vec2::zero)
 		{
-			/* -translateAnchorXY */
-			float mtxBase[16];
+			float mtxRoted[16];
 			{
-				AffineTransform::toMatrix(transform, mtxBase);
+				/* -translateAnchorXY */
+				float mtxBase[16];
+				AffineTransform::toMatrix(AffineTransform::translate(transform, _anchorPoint.x, _anchorPoint.y), mtxBase);
+
 				/* translateZ */
 				mtxBase[14] = _positionZ;
+
+				/* rotateXY */
+				float mtxRot[16];
+				bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
+				bx::mtxMul(mtxRoted, mtxRot, mtxBase);
 			}
 
-			/* rotateXY */
-			float mtxRot[16];
-			bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
-			bx::mtxMul(localWorld, mtxBase, mtxRot);
+			/* translateAnchorXY */
+			float mtxAnchor[16];
+			bx::mtxTranslate(mtxAnchor, -_anchorPoint.x, -_anchorPoint.y, 0.0f);
+			bx::mtxMul(localWorld, mtxAnchor, mtxRoted);
 		}
 		else
 		{
 			float mtxBase[16];
-			{
-				AffineTransform::toMatrix(transform, mtxBase);
-				/* translateZ */
-				mtxBase[14] = _positionZ;
-			}
+			AffineTransform::toMatrix(transform, mtxBase);
+
+			/* translateZ */
+			mtxBase[14] = _positionZ;
 
 			/* rotateXY */
 			float mtxRot[16];
 			bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
-			bx::mtxMul(localWorld, mtxBase, mtxRot);
+			bx::mtxMul(localWorld, mtxRot, mtxBase);
 		}
 	}
 	else

@@ -38,6 +38,6 @@ model\schedule ->
 		PushItemWidth -70
 		changed, model.recovery = DragFloat "Recovery", model.recovery, 0.01, 0, 10, "%.2f"
 		PopItemWidth!
-		if Button "Play", Vec2 130,35
+		if Button "Play", Vec2 140,30
 			model\play animations[currentAnim]
 	End!
