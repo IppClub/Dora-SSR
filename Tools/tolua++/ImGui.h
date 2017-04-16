@@ -79,6 +79,13 @@ namespace ImGui
 	
 	bool Binding::Combo @ Combo(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 
+	bool Binding::DragFloat2 @ DragFloat2(const char* label, Vec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
+	bool Binding::DragInt2 @ DragInt2(const char* label, Vec2& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
+	bool Binding::InputFloat2 @ InputFloat2(const char* label, Vec2& v, int decimal_precision = -1, String extra_flags = nullptr);
+	bool Binding::InputInt2 @ InputInt2(const char* label, Vec2& v, String extra_flags = nullptr);
+	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, Vec2& v, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
+	bool Binding::SliderInt2 @ SliderInt2(const char* label, Vec2& v, int v_min, int v_max, const char* display_format = "%.0f");
+
 	void End();
 	void EndChild();
 	Vec2 GetContentRegionMax();

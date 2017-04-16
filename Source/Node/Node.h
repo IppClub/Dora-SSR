@@ -102,7 +102,6 @@ public:
 	virtual bool update(double deltaTime) override;
 
 	const AffineTransform& getLocalTransform();
-	AffineTransform getWorldTransform();
 
 	void getLocalWorld(float* localWorld);
 	virtual const float* getWorld();
