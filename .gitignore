@@ -29,6 +29,7 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 ipch/
+.vs/
 *.opensdf
 *.opendb
 
@@ -56,4 +57,6 @@ LuaBinding.cpp
 
 # Ignore imgui ini file
 imgui.ini
+
+# include tolua tool
 !tolua++.exe
