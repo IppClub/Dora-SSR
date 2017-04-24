@@ -412,6 +412,7 @@ class Touch : public Object
 	#define Touch::FromTouch @ FromTouch
 	#define Touch::FromMouseAndTouch @ FromMouseAndTouch
 	tolua_property__bool bool enabled;
+	tolua_readonly tolua_property__bool bool mouse @ fromMouse;
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;
