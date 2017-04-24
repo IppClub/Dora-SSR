@@ -573,7 +573,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxd.lib;bxd.lib;psapi.lib;zlib.lib;lua51.lib;soloud.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxd.lib;bimgd.lib;bimg_decoded.lib;bxd.lib;psapi.lib;zlib.lib;lua51.lib;soloud.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
@@ -617,7 +617,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;bx.lib;psapi.lib;msvcrt.lib;zlib.lib;lua51.lib;soloud.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;psapi.lib;msvcrt.lib;zlib.lib;lua51.lib;soloud.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

@@ -33,6 +33,18 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/BGFX/Lib/Android/${ANDROID_ABI}/libbx.a
 )
 
+add_library( BIMG-lib STATIC IMPORTED )
+set_target_properties(
+	BIMG-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/BGFX/Lib/Android/${ANDROID_ABI}/libbimg.a
+)
+
+add_library( BIMGDE-lib STATIC IMPORTED )
+set_target_properties(
+	BIMGDE-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/BGFX/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
+)
+
 add_library( luajit-lib STATIC IMPORTED )
 set_target_properties(
 	luajit-lib PROPERTIES IMPORTED_LOCATION
@@ -47,4 +59,4 @@ set_target_properties(
 
 add_library( main SHARED ${src-files} )
 
-target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BX-lib luajit-lib soloud-lib )
+target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib luajit-lib soloud-lib )

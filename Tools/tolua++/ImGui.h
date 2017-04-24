@@ -72,10 +72,10 @@ namespace ImGui
 	void Binding::Columns @ Columns(int count = 1, bool border = true);
 	void Binding::Columns @ Columns(int count, bool border, const char* id);
 
-	void Binding::setStyleVar @ setStyleVar(String name, bool var);
-	void Binding::setStyleVar @ setStyleVar(String name, float var);
-	void Binding::setStyleVar @ setStyleVar(String name, Vec2 var);
-	void Binding::setStyleColor @ setStyleColor(String name, Color color);
+	void Binding::SetStyleVar @ SetStyleVar(String name, bool var);
+	void Binding::SetStyleVar @ SetStyleVar(String name, float var);
+	void Binding::SetStyleVar @ SetStyleVar(String name, Vec2 var);
+	void Binding::SetStyleColor @ SetStyleColor(String name, Color color);
 	
 	bool Binding::Combo @ Combo(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 
