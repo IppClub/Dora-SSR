@@ -46,8 +46,9 @@ entry\schedule ->
 			_, sprite.opacity = DragFloat "Opacity", sprite.opacity, 0.01, 0, 1, "%.2f"
 			PopItemWidth!
 			color3 = sprite.color3
-			PushItemWidth -50
-			if ColorEdit3 "Color", color3
+			PushItemWidth -1
+			ColorEditMode "RGB"
+			if ColorEdit3 "", color3
 				sprite.color3 = color3
 			PopItemWidth!
 		EndChild!

@@ -102,6 +102,8 @@
 		3CE331571D96D30100F9C3F6 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331561D96D30100F9C3F6 /* Metal.framework */; };
 		3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */; };
 		3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE3555D1E1B3F7200268A19 /* LuaHandler.cpp */; };
+		3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3731EADF594008EADB3 /* libbimg_decode.a */; };
+		3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3741EADF594008EADB3 /* libbimg.a */; };
 		3CE9D7411E7FB7EA003AAECB /* b2BroadPhase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7341E7FB7EA003AAECB /* b2BroadPhase.cpp */; };
 		3CE9D7421E7FB7EA003AAECB /* b2CollideCircle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7361E7FB7EA003AAECB /* b2CollideCircle.cpp */; };
 		3CE9D7431E7FB7EA003AAECB /* b2CollideEdge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7371E7FB7EA003AAECB /* b2CollideEdge.cpp */; };
@@ -380,6 +382,8 @@
 		3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		3CE3555D1E1B3F7200268A19 /* LuaHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaHandler.cpp; path = ../../../Source/Lua/LuaHandler.cpp; sourceTree = "<group>"; };
 		3CE3555E1E1B3F7200268A19 /* LuaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaHandler.h; path = ../../../Source/Lua/LuaHandler.h; sourceTree = "<group>"; };
+		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
+		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg.a; sourceTree = "<group>"; };
 		3CE9D7291E7FB77A003AAECB /* Box2D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Box2D.h; path = ../../../Source/3rdParty/Box2D/Box2D.h; sourceTree = "<group>"; };
 		3CE9D7341E7FB7EA003AAECB /* b2BroadPhase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2BroadPhase.cpp; path = ../../../Source/3rdParty/Box2D/Collision/b2BroadPhase.cpp; sourceTree = "<group>"; };
 		3CE9D7351E7FB7EA003AAECB /* b2BroadPhase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = b2BroadPhase.h; path = ../../../Source/3rdParty/Box2D/Collision/b2BroadPhase.h; sourceTree = "<group>"; };
@@ -506,6 +510,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */,
+				3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */,
 				3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */,
 				3C6A1FB11E07F569006DD8C7 /* libluajit.a in Frameworks */,
 				3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */,
@@ -557,6 +563,8 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CE7D3731EADF594008EADB3 /* libbimg_decode.a */,
+				3CE7D3741EADF594008EADB3 /* libbimg.a */,
 				3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */,
 				3C0EBE2F1E2DB3FB0066450A /* libbx.a */,
 				3CD029171E07DEB10016E1EC /* libluajit.a */,

@@ -200,10 +200,10 @@ namespace ImGui { namespace Binding
 	void Columns(int count = 1, bool border = true);
 	void Columns(int count, bool border, const char* id);
 
-	void setStyleVar(String name, bool var);
-	void setStyleVar(String name, float var);
-	void setStyleVar(String name, const Vec2& var);
-	void setStyleColor(String name, Color color);
+	void SetStyleVar(String name, bool var);
+	void SetStyleVar(String name, float var);
+	void SetStyleVar(String name, const Vec2& var);
+	void SetStyleColor(String name, Color color);
 
 	ImGuiWindowFlags_ getWindowFlags(String flag);
 	Uint32 getWindowCombinedFlags(String flags);

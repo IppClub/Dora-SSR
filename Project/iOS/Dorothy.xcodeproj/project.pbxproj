@@ -148,6 +148,8 @@
 		3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331831D96E19100F9C3F6 /* OpenGLES.framework */; };
 		3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE355601E1B7A6300268A19 /* LuaHandler.cpp */; };
 		3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
+		3CE7D3791EADF642008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3771EADF642008EADB3 /* libbimg_decode.a */; };
+		3CE7D37A1EADF642008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3781EADF642008EADB3 /* libbimg.a */; };
 		3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A811E292E3F00645F2D /* Camera.cpp */; };
 		3CEDF7771E835409008839A3 /* lpcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76C1E835409008839A3 /* lpcap.cpp */; };
 		3CEDF7781E835409008839A3 /* lpcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76E1E835409008839A3 /* lpcode.cpp */; };
@@ -443,6 +445,8 @@
 		3CE355611E1B7A6300268A19 /* LuaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaHandler.h; path = ../../../Source/Lua/LuaHandler.h; sourceTree = "<group>"; };
 		3CE534741E5A9BD500F017AE /* Singleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Singleton.cpp; path = ../../../Source/Common/Singleton.cpp; sourceTree = "<group>"; };
 		3CE534751E5A9BD500F017AE /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
+		3CE7D3771EADF642008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbimg_decode.a; sourceTree = "<group>"; };
+		3CE7D3781EADF642008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbimg.a; sourceTree = "<group>"; };
 		3CEA9A811E292E3F00645F2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
 		3CEA9A821E292E3F00645F2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
 		3CEDF76C1E835409008839A3 /* lpcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpcap.cpp; path = ../../../Source/3rdParty/lpeg/lpcap.cpp; sourceTree = "<group>"; };
@@ -476,6 +480,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CE7D3791EADF642008EADB3 /* libbimg_decode.a in Frameworks */,
+				3CE7D37A1EADF642008EADB3 /* libbimg.a in Frameworks */,
 				3C0EBE321E2DB9E10066450A /* libbx.a in Frameworks */,
 				3C6A1FB31E082B00006DD8C7 /* libluajit.a in Frameworks */,
 				3CB410481E05B28B00A8804D /* libz.1.2.8.tbd in Frameworks */,
@@ -676,6 +682,8 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CE7D3771EADF642008EADB3 /* libbimg_decode.a */,
+				3CE7D3781EADF642008EADB3 /* libbimg.a */,
 				3CC7A1431E8D657C003188D6 /* libsoloud.a */,
 				3CD210601E663F8B004676F1 /* Metal.framework */,
 				3C0EBE311E2DB9E10066450A /* libbx.a */,

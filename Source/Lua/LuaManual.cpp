@@ -1286,7 +1286,7 @@ namespace ImGui { namespace Binding
 		ImGui::Columns(count, id, border);
 	}
 
-	void setStyleVar(String name, const Vec2& var)
+	void SetStyleVar(String name, const Vec2& var)
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
 		switch (Switch::hash(name))
@@ -1304,7 +1304,7 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	void setStyleVar(String name, float var)
+	void SetStyleVar(String name, float var)
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
 		switch (Switch::hash(name))
@@ -1323,7 +1323,7 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	void setStyleVar(String name, bool var)
+	void SetStyleVar(String name, bool var)
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
 		switch (Switch::hash(name))
@@ -1333,7 +1333,7 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	void setStyleColor(String name, Color color)
+	void SetStyleColor(String name, Color color)
 	{
 		ImGuiCol_ index = getColorIndex(name);
 		ImGuiStyle& style = ImGui::GetStyle();
