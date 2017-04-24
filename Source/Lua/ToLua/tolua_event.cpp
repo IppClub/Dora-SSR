@@ -111,7 +111,7 @@ static int class_index_event(lua_State* L)
 	int t = lua_type(L, 1);
 	if (t == LUA_TUSERDATA) // __index for ud
 	{
-		/* access peer table */
+		/* try peer table */
 		lua_getfenv(L, 1); // peer
 		if (!lua_rawequal(L, -1, TOLUA_NOPEER))
 		{
@@ -125,35 +125,20 @@ static int class_index_event(lua_State* L)
 		lua_settop(L, 2); // ud key
 		lua_getmetatable(L, 1); // ud key mt
 		/* 1 ud, 2 key, 3 mt */
-		/* try metatables */
 		lua_pushvalue(L, 1); // ud key mt ud
 		int loop = 0;
-		while (lua_getmetatable(L, -1))
+		while (lua_getmetatable(L, -1)) // ud key mt ud(supermt) basemt
 		{
-			/* ud key mt ud mt */
-			lua_remove(L, -2); // ud key mt mt
-			lua_pushvalue(L, 2); // ud key mt mt key
-			lua_rawget(L, -2); // mt[key], ud key mt mt value
-			if (!lua_isnil(L, -1))
-			{
-				if (loop)
-				{
-					lua_pushvalue(L, 2); // ud key mt mt value key
-					lua_pushvalue(L, -2); // ud key mt mt value key value
-					lua_rawset(L, 3); // mt[key] = value, ud key mt mt value
-				}
-				return 1;
-			}
-			else lua_pop(L, 1);
-			/* try C/C++ variable */
-			lua_rawgeti(L, -1, MT_GET);// ud key mt mt tget
+			lua_remove(L, -2); // ud key mt basemt
+			/* try class fields */
+			lua_rawgeti(L, -1, MT_GET); // ud key mt basemt tget
 			if (lua_istable(L, -1))
 			{
-				lua_pushvalue(L, 2);// ud key mt mt key
-				lua_rawget(L, -2);// mt[key], ud key mt mt cfunc
-				if (lua_isfunction(L, -1))// check cfunc
+				lua_pushvalue(L, 2); // ud key mt basemt key
+				lua_rawget(L, -2); // basemt[key], ud key mt basemt cfunc
+				if (lua_isfunction(L, -1)) // check cfunc
 				{
-					if (loop)// is accessing base class
+					if (loop) // is accessing base class
 					{
 						lua_rawgeti(L, 3, MT_GET); // cfunc tget
 						if (lua_isnil(L, -1)) // tget == nil
@@ -174,12 +159,26 @@ static int class_index_event(lua_State* L)
 				}
 			}
 			lua_settop(L, 4); // ud key mt basemt
+			/* try class methods */
+			lua_pushvalue(L, 2); // ud key mt basemt key
+			lua_rawget(L, -2); // mt[key], ud key mt basemt value
+			if (!lua_isnil(L, -1))
+			{
+				if (loop)
+				{
+					lua_pushvalue(L, 2); // ud key mt basemt value key
+					lua_pushvalue(L, -2); // ud key mt basemt value key value
+					lua_rawset(L, 3); // mt[key] = value, ud key mt basemt value
+				}
+				return 1;
+			}
+			else lua_pop(L, 1);
 			loop++;
 		}
 		lua_pushnil(L);
 		return 1;
 	}
-	else if (t == LUA_TTABLE)// __index for ud`s class
+	else if (t == LUA_TTABLE) // __index for ud`s class
 	{
 		module_index_event(L);
 		return 1;

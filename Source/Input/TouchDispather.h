@@ -35,6 +35,7 @@ public:
 		FromMouseAndTouch = FromMouse | FromTouch
 	};
 	PROPERTY_BOOL(Enabled);
+	PROPERTY_READONLY_BOOL(Mouse);
 	PROPERTY_READONLY(int, Id);
 	PROPERTY_READONLY(Vec2, Delta);
 	PROPERTY_READONLY_REF(Vec2, Location);
@@ -55,7 +56,8 @@ private:
 	enum
 	{
 		Enabled = 1,
-		Selected = 1 << 1
+		Selected = 1 << 1,
+		IsMouse = 1 << 2
 	};
 	friend class NodeTouchHandler;
 	DORA_TYPE_OVERRIDE(Touch);

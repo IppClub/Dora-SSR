@@ -38,6 +38,11 @@ bool Touch::isEnabled() const
 	return _flags.isOn(Touch::Enabled);
 }
 
+bool Touch::isMouse() const
+{
+	return _flags.isOn(Touch::IsMouse);
+}
+
 int Touch::getId() const
 {
 	return _id;
@@ -120,6 +125,10 @@ Touch* NodeTouchHandler::alloc(SDL_FingerID fingerId)
 	if (_availableTouchIds.empty())
 	{
 		Touch* touch = Touch::create(s_cast<int>(_touchMap.size()));
+		if (fingerId == INT64_MAX)
+		{
+			touch->_flags.setOn(Touch::IsMouse);
+		}
 		_touchMap[fingerId] = touch;
 		return touch;
 	}
