@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Basic/Director.h"
 #include "Node/Node.h"
+#include "Effect/Effect.h"
 
 NS_DOROTHY_BEGIN
 
@@ -109,7 +110,7 @@ bool View::isVSync() const
 
 bool View::isPostProcessNeeded() const
 {
-	return _scale != 1.0f;
+	return _scale != 1.0f || _effect != nullptr;
 }
 
 float View::getStandardDistance() const
@@ -165,6 +166,16 @@ void View::updateProjection()
 const Matrix& View::getProjection() const
 {
 	return _projection;
+}
+
+void View::setPostEffect(SpriteEffect* var)
+{
+	_effect = var;
+}
+
+SpriteEffect* View::getPostEffect() const
+{
+	return _effect;
 }
 
 void View::reset()

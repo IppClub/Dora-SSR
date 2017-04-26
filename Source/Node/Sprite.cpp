@@ -69,7 +69,7 @@ bool Sprite::init()
 
 void Sprite::setEffect(SpriteEffect* var)
 {
-	_effect = var;
+	_effect = var ? var : SharedSpriteRenderer.getDefaultEffect();
 }
 
 SpriteEffect* Sprite::getEffect() const
