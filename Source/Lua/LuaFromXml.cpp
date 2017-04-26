@@ -6,45 +6,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
-
-#include "Node/Node.h"
+#include "Const/Header.h"
+#include "Lua/LuaFromXml.h"
 
 NS_DOROTHY_BEGIN
-
-class Camera;
-class Sprite;
-class Texture2D;
-
-class RenderTarget : public Node
-{
-public:
-	PROPERTY(Camera*, Camera);
-	PROPERTY_READONLY(Sprite*, Surface);
-	virtual ~RenderTarget();
-	virtual bool init() override;
-	void render(Node* target);
-	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
-	void saveAsync(String filename, const function<void()>& callback);
-	CREATE_FUNC(RenderTarget);
-protected:
-	RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
-	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, Uint8 stencil = 0);
-	void renderOnly(Node* target);
-	void end();
-private:
-	Uint16 _textureWidth;
-	Uint16 _textureHeight;
-	bgfx::TextureFormat::Enum _format;
-	Ref<Texture2D> _texture;
-	Ref<Sprite> _surface;
-	Ref<Camera> _camera;
-	bgfx::FrameBufferHandle _frameBufferHandle;
-	enum
-	{
-		ViewCleared = Node::UserFlag,
-	};
-	DORA_TYPE_OVERRIDE(RenderTarget);
-};
 
 NS_DOROTHY_END

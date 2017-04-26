@@ -17,6 +17,7 @@ NS_DOROTHY_BEGIN
 class Scheduler;
 class Node;
 class Camera;
+class RenderTarget;
 
 class Director
 {
@@ -65,6 +66,7 @@ private:
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
 	Ref<Camera> _camera;
+	Ref<RenderTarget> _renderTarget;
 	stack<Own<Matrix>> _viewProjs;
 	SINGLETON_REF(Director, FontManager, BGFXDora, Application);
 };

@@ -73,23 +73,23 @@ public:
 		ImGui::Separator();
 		ImGui::BeginChild("scrolling", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar);
 		if (copy) ImGui::LogToClipboard();
-		if (_filter.IsActive())
+		const char* buf_begin = _buf.begin();
+		const char* line = buf_begin;
+		for (int line_no = 0; line != nullptr; line_no++)
 		{
-			const char* buf_begin = _buf.begin();
-			const char* line = buf_begin;
-			for (int line_no = 0; line != nullptr; line_no++)
+			const char* line_end = (line_no < _lineOffsets.Size) ? buf_begin + _lineOffsets[line_no] : nullptr;
+			if (!_filter.IsActive())
 			{
-				const char* line_end = (line_no < _lineOffsets.Size) ? buf_begin + _lineOffsets[line_no] : nullptr;
-				if (_filter.PassFilter(line, line_end))
-				{
-					ImGui::TextWrappedUnformatted(line, line_end);
-				}
-				line = line_end && line_end[1] ? line_end + 1 : nullptr;
+				ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0));
+				ImGui::TextWrappedUnformatted(line, line_end);
+				ImGui::PopStyleVar();
 			}
-		}
-		else
-		{
-			ImGui::TextWrappedUnformatted(_buf.begin(), _buf.end());
+			else if (_filter.PassFilter(line, line_end))
+			{
+				ImGui::TextWrappedUnformatted(line, line_end);
+			}
+			line = line_end && line_end[1] ? line_end + 1 : nullptr;
 		}
 		if (_scrollToBottom && _autoScroll)
 		{
@@ -536,7 +536,7 @@ void ImGUIDora::render()
 		const float width = io.DisplaySize.x;
 		const float height = io.DisplaySize.y;
 		{
-			float ortho[16];
+			Matrix ortho;
 			bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
 			bgfx::setViewTransform(viewId, nullptr, ortho);
 		}

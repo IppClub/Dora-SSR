@@ -294,9 +294,6 @@
     <ClCompile Include="..\..\..\Source\Animation\Animation.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Animation\Model.cpp">
-      <Filter>Animation</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
@@ -494,6 +491,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp">
       <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Model.cpp">
+      <Filter>Node</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -729,9 +729,6 @@
     <ClInclude Include="..\..\..\Source\Animation\Animation.h">
       <Filter>Animation</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Animation\Model.h">
-      <Filter>Animation</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Animation\ModelDef.h">
       <Filter>Animation</Filter>
     </ClInclude>
@@ -938,6 +935,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\SoundCache.h">
       <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Model.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

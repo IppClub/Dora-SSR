@@ -93,6 +93,7 @@ class View
 	tolua_property__common float nearPlaneDistance;
 	tolua_property__common float farPlaneDistance;
 	tolua_property__common float fieldOfView;
+	tolua_property__common float scale;
 	tolua_property__bool bool vSync @ vsync;
 	static tolua_outside View* View_shared @ create();
 }

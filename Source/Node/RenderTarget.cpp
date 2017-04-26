@@ -46,6 +46,11 @@ Camera* RenderTarget::getCamera() const
 	return _camera;
 }
 
+Sprite* RenderTarget::getSurface() const
+{
+	return _surface;
+}
+
 bool RenderTarget::init()
 {
 	const Uint32 textureFlags = (
@@ -72,9 +77,9 @@ bool RenderTarget::init()
 
 	setSize(Size{s_cast<float>(_textureWidth), s_cast<float>(_textureHeight)});
 
-	_sprite = Sprite::create(_texture);
-	_sprite->setPosition(Vec2{getWidth() / 2.0f, getHeight() / 2.0f});
-	addChild(_sprite);
+	_surface = Sprite::create(_texture);
+	_surface->setPosition(Vec2{getWidth() / 2.0f, getHeight() / 2.0f});
+	addChild(_surface);
 
 	return true;
 }

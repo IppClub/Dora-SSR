@@ -18,11 +18,13 @@ public:
 	PROPERTY_READONLY(Size, Size);
 	PROPERTY_READONLY(float, StandardDistance);
 	PROPERTY_READONLY(float, AspectRatio);
-	PROPERTY_READONLY(const float*, Projection);
+	PROPERTY_READONLY_REF(Matrix, Projection);
 	PROPERTY(float, NearPlaneDistance);
 	PROPERTY(float, FarPlaneDistance);
 	PROPERTY(float, FieldOfView);
+	PROPERTY(float, Scale);
 	PROPERTY_BOOL(VSync);
+	PROPERTY_READONLY_BOOL(PostProcessNeeded);
 	PROPERTY_READONLY(Uint8, Id);
 	void clear();
 	void reset();
@@ -47,7 +49,9 @@ private:
 	float _nearPlaneDistance;
 	float _farPlaneDistance;
 	float _fieldOfView;
-	float _projection[16];
+	float _scale;
+	Size _size;
+	Matrix _projection;
 	DORA_TYPE(View);
 	SINGLETON_REF(View, Director);
 };

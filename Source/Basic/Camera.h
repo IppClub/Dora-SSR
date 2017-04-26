@@ -27,7 +27,7 @@ protected:
 	Vec3 _position;
 	Vec3 _target;
 	Vec3 _up;
-	float _view[16];
+	Matrix _view;
 	DORA_TYPE_OVERRIDE(Camera);
 };
 

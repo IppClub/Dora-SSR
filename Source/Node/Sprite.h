@@ -81,7 +81,7 @@ public:
 	virtual ~Sprite();
 	virtual bool init() override;
 	virtual void render() override;
-	virtual const float* getWorld() override;
+	virtual const Matrix& getWorld() override;
 	CREATE_FUNC(Sprite);
 protected:
 	Sprite();

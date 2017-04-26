@@ -94,6 +94,9 @@ public:
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
 	Vec2 convertToWorldSpace(const Vec2& nodePoint);
 
+	Vec3 convertToNodeSpace3(const Vec3& worldPoint);
+	Vec3 convertToWorldSpace3(const Vec3& nodePoint);
+
 	void scheduleUpdate();
 	void unscheduleUpdate();
 
@@ -103,8 +106,8 @@ public:
 
 	const AffineTransform& getLocalTransform();
 
-	void getLocalWorld(float* localWorld);
-	virtual const float* getWorld();
+	void getLocalWorld(Matrix& localWorld);
+	virtual const Matrix& getWorld();
 
 	void markDirty();
 
@@ -174,7 +177,6 @@ protected:
 	virtual void updateRealColor3();
 	virtual void updateRealOpacity();
 	void sortAllChildren();
-
 	void pauseActionInList(Action* action);
 	void resumeActionInList(Action* action);
 	void stopActionInList(Action* action);
@@ -195,7 +197,7 @@ protected:
 	Vec2 _anchor;
 	Vec2 _anchorPoint;
 	Size _size;
-	float _world[16];
+	Matrix _world;
 	AffineTransform _transform;
 	WRef<Node> _transformTarget;
 	Node* _parent;

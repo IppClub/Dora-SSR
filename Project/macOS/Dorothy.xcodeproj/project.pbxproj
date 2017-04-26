@@ -42,6 +42,10 @@
 		3C6C076D1E5E85AF00BAA745 /* format.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6C07651E5E85AF00BAA745 /* format.cpp */; };
 		3C6C076E1E5E85AF00BAA745 /* ostream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6C07671E5E85AF00BAA745 /* ostream.cpp */; };
 		3C6C076F1E5E85AF00BAA745 /* printf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6C07691E5E85AF00BAA745 /* printf.cpp */; };
+		3C6DA2051EAEF19E006EEE32 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6DA2031EAEF19E006EEE32 /* Model.cpp */; };
+		3C6DA20C1EAEF8EC006EEE32 /* LuaFromXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6DA20A1EAEF8EC006EEE32 /* LuaFromXml.cpp */; };
+		3C6DA2121EAF0726006EEE32 /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6DA20E1EAF0726006EEE32 /* SAXParser.cpp */; };
+		3C6DA2131EAF0726006EEE32 /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6DA2101EAF0726006EEE32 /* tinyxml2.cpp */; };
 		3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C77082C1E08C72900B38C2A /* LuaManual.cpp */; };
 		3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708301E08CB4300B38C2A /* LuaBinding.cpp */; };
 		3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708311E08CB4300B38C2A /* LuaCode.cpp */; };
@@ -85,7 +89,6 @@
 		3CD328311E4B0B530036906C /* ImGUIDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */; };
 		3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */; };
 		3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634E1E27275D00BA9D30 /* lodepng.cpp */; };
-		3CD497F71E7E12F800C06CA2 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD497F51E7E12F800C06CA2 /* Model.cpp */; };
 		3CD497FB1E7EE52300C06CA2 /* ModelCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD497F91E7EE52300C06CA2 /* ModelCache.cpp */; };
 		3CD497FE1E7EF3DF00C06CA2 /* FrameCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD497FC1E7EF3DF00C06CA2 /* FrameCache.cpp */; };
 		3CD498001E7EFBE700C06CA2 /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3CD497FF1E7EFBE700C06CA2 /* Model */; };
@@ -268,6 +271,14 @@
 		3C6C076A1E5E85AF00BAA745 /* printf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = printf.h; path = ../../../Source/3rdParty/fmt/printf.h; sourceTree = "<group>"; };
 		3C6C076B1E5E85AF00BAA745 /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = string.h; path = ../../../Source/3rdParty/fmt/string.h; sourceTree = "<group>"; };
 		3C6C076C1E5E85AF00BAA745 /* time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = time.h; path = ../../../Source/3rdParty/fmt/time.h; sourceTree = "<group>"; };
+		3C6DA2031EAEF19E006EEE32 /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = ../../../Source/Node/Model.cpp; sourceTree = "<group>"; };
+		3C6DA2041EAEF19E006EEE32 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = ../../../Source/Node/Model.h; sourceTree = "<group>"; };
+		3C6DA20A1EAEF8EC006EEE32 /* LuaFromXml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaFromXml.cpp; path = ../../../Source/Lua/LuaFromXml.cpp; sourceTree = "<group>"; };
+		3C6DA20B1EAEF8EC006EEE32 /* LuaFromXml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaFromXml.h; path = ../../../Source/Lua/LuaFromXml.h; sourceTree = "<group>"; };
+		3C6DA20E1EAF0726006EEE32 /* SAXParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SAXParser.cpp; path = ../../../Source/3rdParty/tinyxml2/SAXParser.cpp; sourceTree = "<group>"; };
+		3C6DA20F1EAF0726006EEE32 /* SAXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SAXParser.h; path = ../../../Source/3rdParty/tinyxml2/SAXParser.h; sourceTree = "<group>"; };
+		3C6DA2101EAF0726006EEE32 /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml2.cpp; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.cpp; sourceTree = "<group>"; };
+		3C6DA2111EAF0726006EEE32 /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
 		3C77082C1E08C72900B38C2A /* LuaManual.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaManual.cpp; path = ../../../Source/Lua/LuaManual.cpp; sourceTree = "<group>"; };
 		3C77082D1E08C72900B38C2A /* LuaManual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaManual.h; path = ../../../Source/Lua/LuaManual.h; sourceTree = "<group>"; };
 		3C77082F1E08CA0900B38C2A /* LuaBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaBinding.h; path = ../../../Source/Lua/LuaBinding.h; sourceTree = "<group>"; };
@@ -358,8 +369,6 @@
 		3CD4634B1E27239B00BA9D30 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
 		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
 		3CD4634F1E27275D00BA9D30 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
-		3CD497F51E7E12F800C06CA2 /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = ../../../Source/Animation/Model.cpp; sourceTree = "<group>"; };
-		3CD497F61E7E12F800C06CA2 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = ../../../Source/Animation/Model.h; sourceTree = "<group>"; };
 		3CD497F91E7EE52300C06CA2 /* ModelCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelCache.cpp; path = ../../../Source/Cache/ModelCache.cpp; sourceTree = "<group>"; };
 		3CD497FA1E7EE52300C06CA2 /* ModelCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelCache.h; path = ../../../Source/Cache/ModelCache.h; sourceTree = "<group>"; };
 		3CD497FC1E7EF3DF00C06CA2 /* FrameCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FrameCache.cpp; path = ../../../Source/Cache/FrameCache.cpp; sourceTree = "<group>"; };
@@ -538,8 +547,6 @@
 		3C020DC91E75474C00307E4F /* Animation */ = {
 			isa = PBXGroup;
 			children = (
-				3CD497F51E7E12F800C06CA2 /* Model.cpp */,
-				3CD497F61E7E12F800C06CA2 /* Model.h */,
 				3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */,
 				3C2F9C891E7B114B00B98D39 /* ModelDef.h */,
 				3C2F9C851E7AE8CA00B98D39 /* Animation.cpp */,
@@ -598,6 +605,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C6DA20D1EAF070D006EEE32 /* tinyxml2 */,
 				3C2DFE1D1E95C6DE0077B67D /* soloud */,
 				3C61768D1E82CDD700A19A54 /* lpeg */,
 				3CE9D7281E7FB766003AAECB /* Box2D */,
@@ -726,6 +734,17 @@
 				3C6C076C1E5E85AF00BAA745 /* time.h */,
 			);
 			name = fmt;
+			sourceTree = "<group>";
+		};
+		3C6DA20D1EAF070D006EEE32 /* tinyxml2 */ = {
+			isa = PBXGroup;
+			children = (
+				3C6DA20E1EAF0726006EEE32 /* SAXParser.cpp */,
+				3C6DA20F1EAF0726006EEE32 /* SAXParser.h */,
+				3C6DA2101EAF0726006EEE32 /* tinyxml2.cpp */,
+				3C6DA2111EAF0726006EEE32 /* tinyxml2.h */,
+			);
+			name = tinyxml2;
 			sourceTree = "<group>";
 		};
 		3C7708341E08D98F00B38C2A /* ToLua */ = {
@@ -954,6 +973,8 @@
 				3C0044EA1E6682A000369672 /* Particle.h */,
 				3C9A7D711E5428A200205094 /* Label.cpp */,
 				3C9A7D721E5428A200205094 /* Label.h */,
+				3C6DA2031EAEF19E006EEE32 /* Model.cpp */,
+				3C6DA2041EAEF19E006EEE32 /* Model.h */,
 				3CC098681E262F85006F4B76 /* Sprite.cpp */,
 				3CC098691E262F85006F4B76 /* Sprite.h */,
 				3CB487041E1635A500D51749 /* Node.cpp */,
@@ -1201,6 +1222,8 @@
 				3C77082D1E08C72900B38C2A /* LuaManual.h */,
 				3CD028FE1E07D3C50016E1EC /* LuaEngine.cpp */,
 				3CD028FF1E07D3C50016E1EC /* LuaEngine.h */,
+				3C6DA20A1EAEF8EC006EEE32 /* LuaFromXml.cpp */,
+				3C6DA20B1EAEF8EC006EEE32 /* LuaFromXml.h */,
 				3CE3555D1E1B3F7200268A19 /* LuaHandler.cpp */,
 				3CE3555E1E1B3F7200268A19 /* LuaHandler.h */,
 			);
@@ -1284,6 +1307,7 @@
 				3CF16C961E69078C002587CD /* RenderTarget.cpp in Sources */,
 				3C6176BA1E82D51F00A19A54 /* lpcap.cpp in Sources */,
 				3CC05B641E71229A00F2BA1B /* DrawNode.cpp in Sources */,
+				3C6DA20C1EAEF8EC006EEE32 /* LuaFromXml.cpp in Sources */,
 				3CE9D7421E7FB7EA003AAECB /* b2CollideCircle.cpp in Sources */,
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
 				3CE9D7BD1E7FB879003AAECB /* b2WeldJoint.cpp in Sources */,
@@ -1308,6 +1332,7 @@
 				3CE9D7941E7FB869003AAECB /* b2CircleContact.cpp in Sources */,
 				3CE9D7F71E7FC2A6003AAECB /* JointDef.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
+				3C6DA2051EAEF19E006EEE32 /* Model.cpp in Sources */,
 				3CE9D7551E7FB7FE003AAECB /* b2PolygonShape.cpp in Sources */,
 				3CE9D7F91E7FC2A6003AAECB /* World.cpp in Sources */,
 				3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */,
@@ -1358,7 +1383,6 @@
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C291D581E02932B0098C860 /* Content.mm in Sources */,
-				3CD497F71E7E12F800C06CA2 /* Model.cpp in Sources */,
 				3C2F9C871E7AE8CA00B98D39 /* Animation.cpp in Sources */,
 				3CE9D7651E7FB825003AAECB /* b2Draw.cpp in Sources */,
 				3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */,
@@ -1391,6 +1415,7 @@
 				3CE9D7531E7FB7FE003AAECB /* b2CircleShape.cpp in Sources */,
 				3CE9D7931E7FB869003AAECB /* b2ChainAndPolygonContact.cpp in Sources */,
 				3C6176BD1E82D51F00A19A54 /* lptree.cpp in Sources */,
+				3C6DA2131EAF0726006EEE32 /* tinyxml2.cpp in Sources */,
 				3CF16C8C1E68F165002587CD /* Renderer.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
 				3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */,
@@ -1407,6 +1432,7 @@
 				3CCB0C791E6DB0590088C118 /* ClipNode.cpp in Sources */,
 				3CE9D7671E7FB825003AAECB /* b2Settings.cpp in Sources */,
 				3CE9D7B31E7FB879003AAECB /* b2DistanceJoint.cpp in Sources */,
+				3C6DA2121EAF0726006EEE32 /* SAXParser.cpp in Sources */,
 				3CE9D7481E7FB7EA003AAECB /* b2TimeOfImpact.cpp in Sources */,
 				3CB487061E1635A500D51749 /* Node.cpp in Sources */,
 				3CE9D7951E7FB869003AAECB /* b2Contact.cpp in Sources */,

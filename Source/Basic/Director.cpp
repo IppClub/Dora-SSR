@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/View.h"
 #include "GUI/ImGUIDora.h"
 #include "Audio/Sound.h"
+#include "Node/RenderTarget.h"
 #include "bx/timer.h"
 #include "imgui.h"
 
@@ -155,9 +156,9 @@ bool Director::init()
 void Director::mainLoop()
 {
 	/* push default view projection */
-	auto viewProj = New<Matrix>();
-	bx::mtxMul(*viewProj, getCamera()->getView(), SharedView.getProjection());
-	pushViewProjection(*viewProj, [&]()
+	Matrix viewProj;
+	bx::mtxMul(viewProj, getCamera()->getView(), SharedView.getProjection());
+	pushViewProjection(viewProj, [&]()
 	{
 		/* update logic */
 		_systemScheduler->update(getDeltaTime());
@@ -170,8 +171,8 @@ void Director::mainLoop()
 		SharedTouchDispatcher.add(SharedImGUI.getTarget());
 		SharedTouchDispatcher.dispatch();
 		Matrix ortho;
-		bx::mtxOrtho(ortho, 0, s_cast<float>(SharedApplication.getWidth()),
-			0, s_cast<float>(SharedApplication.getHeight()), -1000.0f, 1000.0f);
+		Size viewSize = SharedView.getSize();
+		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f);
 		if (_ui)
 		{
 			registerTouchHandler(_ui);
@@ -189,39 +190,83 @@ void Director::mainLoop()
 		}
 		SharedTouchDispatcher.clearEvents();
 
-		/* render scene tree */
-		SharedView.pushName("Main"_slice, [&]()
+		if (SharedView.isPostProcessNeeded())
 		{
-			Uint8 viewId = SharedView.getId();
-			bgfx::setViewClear(viewId,
-				BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
-				_clearColor.toRGBA());
+			/* initialize RT */
+			if (!_renderTarget ||
+				_renderTarget->getWidth() != viewSize.width ||
+				_renderTarget->getHeight() != viewSize.height)
+			{
+				_renderTarget = RenderTarget::create(
+					s_cast<uint16>(viewSize.width),
+					s_cast<uint16>(viewSize.height));
+				_renderTarget->setScaleY(-1.0f);
+			}
+
+			/* render scene tree */
 			if (currentEntry)
 			{
-				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-				currentEntry->visit();
-				SharedRendererManager.flush();
+				_renderTarget->setCamera(getCamera());
+				_renderTarget->renderWithClear(currentEntry, _clearColor);
 			}
-		});
-		
-		/* render ui nodes */
-		SharedView.pushName("UI"_slice, [&]()
-		{
-			Uint8 viewId = SharedView.getId();
-			pushViewProjection(ortho, [&]()
+
+			/* render RT and ui nodes */
+			SharedView.pushName("Main"_slice, [&]()
 			{
-				if (_ui)
+				Uint8 viewId = SharedView.getId();
+				pushViewProjection(ortho, [&]()
 				{
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					_ui->visit();
+					_renderTarget->setPosition({viewSize.width/2.0f, viewSize.height/2.0f});
+					_renderTarget->visit();
+					if (_ui) _ui->visit();
 					SharedRendererManager.flush();
-				}
+				});
 				if (_displayStats)
 				{
 					displayStats();
 				}
 			});
-		});
+		}
+		else
+		{
+			/* release unused RT */
+			if (_renderTarget) _renderTarget = nullptr;
+
+			/* render scene tree */
+			SharedView.pushName("Main"_slice, [&]()
+			{
+				Uint8 viewId = SharedView.getId();
+				bgfx::setViewClear(viewId,
+					BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+					_clearColor.toRGBA());
+				if (currentEntry)
+				{
+					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+					currentEntry->visit();
+					SharedRendererManager.flush();
+				}
+			});
+
+			/* render ui nodes */
+			SharedView.pushName("UI"_slice, [&]()
+			{
+				Uint8 viewId = SharedView.getId();
+				pushViewProjection(ortho, [&]()
+				{
+					if (_ui)
+					{
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						_ui->visit();
+ 						SharedRendererManager.flush();
+					}
+					if (_displayStats)
+					{
+						displayStats();
+					}
+				});
+			});
+		}
 
 		/* render imgui */
 		SharedImGUI.render();

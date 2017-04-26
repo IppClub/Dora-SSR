@@ -277,7 +277,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Animation\Action.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\Animation.cpp" />
-    <ClCompile Include="..\..\..\Source\Animation\Model.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp" />
     <ClCompile Include="..\..\..\Source\Audio\Sound.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
@@ -325,6 +324,7 @@
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Model.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
     <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp" />
@@ -428,7 +428,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.h" />
     <ClInclude Include="..\..\..\Source\Animation\Action.h" />
     <ClInclude Include="..\..\..\Source\Animation\Animation.h" />
-    <ClInclude Include="..\..\..\Source\Animation\Model.h" />
     <ClInclude Include="..\..\..\Source\Animation\ModelDef.h" />
     <ClInclude Include="..\..\..\Source\Audio\Sound.h" />
     <ClInclude Include="..\..\..\Source\Basic\Application.h" />
@@ -475,6 +474,7 @@
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
+    <ClInclude Include="..\..\..\Source\Node\Model.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
     <ClInclude Include="..\..\..\Source\Node\RenderTarget.h" />
