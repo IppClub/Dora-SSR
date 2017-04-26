@@ -115,8 +115,9 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 	bgfx::TransientIndexBuffer indexBuffer;
 	if (bgfx::allocTransientBuffers(&vertexBuffer, PosColorVertex::ms_decl, 4, &indexBuffer, 6))
 	{
-		float width = s_cast<float>(SharedApplication.getWidth());
-		float height = s_cast<float>(SharedApplication.getHeight());
+		Size viewSize = SharedView.getSize();
+		float width = viewSize.width;
+		float height = viewSize.height;
 		Vec4 pos[4] = {
 			{0, height, 0, 1},
 			{width, height, 0, 1},

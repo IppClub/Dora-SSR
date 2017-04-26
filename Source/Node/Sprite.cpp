@@ -293,7 +293,7 @@ void Sprite::updateRealOpacity()
 	_flags.setOn(Sprite::VertexColorDirty);
 }
 
-const float* Sprite::getWorld()
+const Matrix& Sprite::getWorld()
 {
 	if (_flags.isOn(Node::WorldDirty))
 	{
@@ -315,7 +315,7 @@ void Sprite::render()
 	if (_flags.isOn(Sprite::VertexPosDirty))
 	{
 		_flags.setOff(Sprite::VertexPosDirty);
-		float transform[16];
+		Matrix transform;
 		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
 		bx::vec4MulMtx(&_quad.lt.x, _quadPos.lt, transform);
 		bx::vec4MulMtx(&_quad.rt.x, _quadPos.rt, transform);

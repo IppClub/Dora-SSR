@@ -106,7 +106,7 @@ void BasicCamera::updateView()
 			{
 				rotateY = -std::atan(dest.z / dest.x);
 			}
-			float transform[16];
+			Matrix transform;
 			bx::mtxRotateZYX(transform, rotateX, rotateY, -bx::toRad(_rotation));
 			bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, transform);
 			bx::vec3Norm(_up, _up);
@@ -183,7 +183,7 @@ void Camera2D::updateView()
 	if (_transformDirty)
 	{
 		_transformDirty = false;
-		float rotateZ[16];
+		Matrix rotateZ;
 		bx::mtxRotateZ(rotateZ, -bx::toRad(_rotation));
 		bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, rotateZ);
 		bx::vec3Norm(_up, _up);

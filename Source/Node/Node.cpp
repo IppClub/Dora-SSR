@@ -571,6 +571,22 @@ Vec2 Node::convertToWorldSpace(const Vec2& nodePoint)
 	return point.toVec2();
 }
 
+Vec3 Node::convertToNodeSpace3(const Vec3& worldPoint)
+{
+	Matrix invWorld;
+	bx::mtxInverse(invWorld, getWorld());
+	Vec3 point;
+	bx::vec3MulMtx(point, worldPoint, invWorld);
+	return point;
+}
+
+Vec3 Node::convertToWorldSpace3(const Vec3& nodePoint)
+{
+	Vec3 point;
+	bx::vec3MulMtx(point, nodePoint, getWorld());
+	return point;
+}
+
 bool Node::isScheduled() const
 {
 	return _flags.isOn(Node::Scheduling);
@@ -763,7 +779,7 @@ const AffineTransform& Node::getLocalTransform()
 	return _transform;
 }
 
-void Node::getLocalWorld(float* localWorld)
+void Node::getLocalWorld(Matrix& localWorld)
 {
 	if (_angleX || _angleY)
 	{
@@ -771,36 +787,36 @@ void Node::getLocalWorld(float* localWorld)
 		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
 		if (_anchorPoint != Vec2::zero)
 		{
-			float mtxRoted[16];
+			Matrix mtxRoted;
 			{
 				/* -translateAnchorXY */
-				float mtxBase[16];
+				Matrix mtxBase;
 				AffineTransform::toMatrix(AffineTransform::translate(transform, _anchorPoint.x, _anchorPoint.y), mtxBase);
 
 				/* translateZ */
-				mtxBase[14] = _positionZ;
+				mtxBase.m[14] = _positionZ;
 
 				/* rotateXY */
-				float mtxRot[16];
+				Matrix mtxRot;
 				bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
 				bx::mtxMul(mtxRoted, mtxRot, mtxBase);
 			}
 
 			/* translateAnchorXY */
-			float mtxAnchor[16];
+			Matrix mtxAnchor;
 			bx::mtxTranslate(mtxAnchor, -_anchorPoint.x, -_anchorPoint.y, 0.0f);
 			bx::mtxMul(localWorld, mtxAnchor, mtxRoted);
 		}
 		else
 		{
-			float mtxBase[16];
+			Matrix mtxBase;
 			AffineTransform::toMatrix(transform, mtxBase);
 
 			/* translateZ */
-			mtxBase[14] = _positionZ;
+			mtxBase.m[14] = _positionZ;
 
 			/* rotateXY */
-			float mtxRot[16];
+			Matrix mtxRot;
 			bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
 			bx::mtxMul(localWorld, mtxRot, mtxBase);
 		}
@@ -812,32 +828,28 @@ void Node::getLocalWorld(float* localWorld)
 		AffineTransform::toMatrix(transform, localWorld);
 
 		/* translateZ */
-		localWorld[14] = _positionZ;
+		localWorld.m[14] = _positionZ;
 	}
 }
 
-const float* Node::getWorld()
+const Matrix& Node::getWorld()
 {
 	if (_flags.isOn(Node::WorldDirty))
 	{
 		_flags.setOff(WorldDirty);
-		float localWorld[16];
+		Matrix localWorld;
 		getLocalWorld(localWorld);
-		const float* parentWorld;
+		const Matrix* parentWorld = &Matrix::Indentity;
 		if (_transformTarget)
 		{
-			parentWorld = _transformTarget->getWorld();
+			parentWorld = &_transformTarget->getWorld();
 			_flags.setOn(Node::WorldDirty);
 		}
 		else if (_parent)
 		{
-			parentWorld = _parent->getWorld();
+			parentWorld = &_parent->getWorld();
 		}
-		else
-		{
-			parentWorld = Matrix::Indentity;
-		}
-		bx::mtxMul(_world, localWorld, parentWorld);
+		bx::mtxMul(_world, localWorld, *parentWorld);
 		ARRAY_START(Node, child, _children)
 		{
 			child->_flags.setOn(Node::WorldDirty);

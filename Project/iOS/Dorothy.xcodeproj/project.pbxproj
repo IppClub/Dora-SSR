@@ -42,7 +42,6 @@
 		3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6611E17F1B500292200 /* tolua_push.cpp */; };
 		3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6621E17F1B500292200 /* tolua_to.cpp */; };
 		3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972F81E7F74CB00BFD00F /* Animation.cpp */; };
-		3C5972FF1E7F74CB00BFD00F /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972FA1E7F74CB00BFD00F /* Model.cpp */; };
 		3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */; };
 		3C5973091E7F74E900BFD00F /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973021E7F74E900BFD00F /* ClipCache.cpp */; };
 		3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973041E7F74E900BFD00F /* FrameCache.cpp */; };
@@ -51,6 +50,7 @@
 		3C6A1FB31E082B00006DD8C7 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C6A1FB21E082B00006DD8C7 /* libluajit.a */; };
 		3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */; };
 		3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37271E27DA09008C92E8 /* lodepng.cpp */; };
+		3C6DA2081EAEF23D006EEE32 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6DA2061EAEF23D006EEE32 /* Model.cpp */; };
 		3C8805691E5ED11800B52D4B /* format.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805611E5ED11800B52D4B /* format.cpp */; };
 		3C88056A1E5ED11800B52D4B /* ostream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805631E5ED11800B52D4B /* ostream.cpp */; };
 		3C88056B1E5ED11800B52D4B /* printf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805651E5ED11800B52D4B /* printf.cpp */; };
@@ -235,8 +235,6 @@
 		3C50976D1E65B92F00896971 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
 		3C5972F81E7F74CB00BFD00F /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = ../../../Source/Animation/Animation.cpp; sourceTree = "<group>"; };
 		3C5972F91E7F74CB00BFD00F /* Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Animation.h; path = ../../../Source/Animation/Animation.h; sourceTree = "<group>"; };
-		3C5972FA1E7F74CB00BFD00F /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = ../../../Source/Animation/Model.cpp; sourceTree = "<group>"; };
-		3C5972FB1E7F74CB00BFD00F /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = ../../../Source/Animation/Model.h; sourceTree = "<group>"; };
 		3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelDef.cpp; path = ../../../Source/Animation/ModelDef.cpp; sourceTree = "<group>"; };
 		3C5972FD1E7F74CB00BFD00F /* ModelDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelDef.h; path = ../../../Source/Animation/ModelDef.h; sourceTree = "<group>"; };
 		3C5973011E7F74DC00BFD00F /* rapidxml_sax3.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = rapidxml_sax3.hpp; path = ../../../Source/3rdParty/Other/rapidxml_sax3.hpp; sourceTree = "<group>"; };
@@ -254,6 +252,8 @@
 		3C6D37241E27D9CE008C92E8 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
 		3C6D37271E27DA09008C92E8 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
 		3C6D37281E27DA09008C92E8 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
+		3C6DA2061EAEF23D006EEE32 /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Model.cpp; path = ../../../Source/Node/Model.cpp; sourceTree = "<group>"; };
+		3C6DA2071EAEF23D006EEE32 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = ../../../Source/Node/Model.h; sourceTree = "<group>"; };
 		3C8805601E5ED11800B52D4B /* container.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = container.h; path = ../../../Source/3rdParty/fmt/container.h; sourceTree = "<group>"; };
 		3C8805611E5ED11800B52D4B /* format.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = format.cpp; path = ../../../Source/3rdParty/fmt/format.cpp; sourceTree = "<group>"; };
 		3C8805621E5ED11800B52D4B /* format.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = format.h; path = ../../../Source/3rdParty/fmt/format.h; sourceTree = "<group>"; };
@@ -525,6 +525,8 @@
 				3CFA31AD1E6B07EA00493633 /* RenderTarget.h */,
 				3CF16C901E68FCE1002587CD /* Particle.cpp */,
 				3CF16C911E68FCE1002587CD /* Particle.h */,
+				3C6DA2061EAEF23D006EEE32 /* Model.cpp */,
+				3C6DA2071EAEF23D006EEE32 /* Model.h */,
 				3C8805731E5ED1AE00B52D4B /* Label.cpp */,
 				3C8805741E5ED1AE00B52D4B /* Label.h */,
 				3C266DEC1E27D6F800F1C870 /* Sprite.cpp */,
@@ -540,8 +542,6 @@
 			children = (
 				3C5972F81E7F74CB00BFD00F /* Animation.cpp */,
 				3C5972F91E7F74CB00BFD00F /* Animation.h */,
-				3C5972FA1E7F74CB00BFD00F /* Model.cpp */,
-				3C5972FB1E7F74CB00BFD00F /* Model.h */,
 				3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */,
 				3C5972FD1E7F74CB00BFD00F /* ModelDef.h */,
 				3C15202A1E762A59001BC057 /* Action.cpp */,
@@ -1225,6 +1225,7 @@
 				3CB7307E1E80343E006DFA18 /* Sensor.cpp in Sources */,
 				3CB730B51E803556006DFA18 /* b2ContactSolver.cpp in Sources */,
 				3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */,
+				3C6DA2081EAEF23D006EEE32 /* Model.cpp in Sources */,
 				3CB730791E80343E006DFA18 /* Body.cpp in Sources */,
 				3C4BC6641E17F1B500292200 /* tolua_event.cpp in Sources */,
 				3CB731051E80358B006DFA18 /* b2DynamicTree.cpp in Sources */,
@@ -1286,7 +1287,6 @@
 				3CD328461E4C42FF0036906C /* ImGUIDora.cpp in Sources */,
 				3C4BC6671E17F1B500292200 /* tolua_map.cpp in Sources */,
 				3CDED0351E52A2E600B5E578 /* utf8.cpp in Sources */,
-				3C5972FF1E7F74CB00BFD00F /* Model.cpp in Sources */,
 				3CB730B81E803556006DFA18 /* b2PolygonAndCircleContact.cpp in Sources */,
 				3C0AD7E51E0CE9D00033AD59 /* Application.cpp in Sources */,
 				3C5973091E7F74E900BFD00F /* ClipCache.cpp in Sources */,

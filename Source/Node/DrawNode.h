@@ -49,7 +49,7 @@ public:
 	PROPERTY_READONLY_REF(vector<DrawVertex>, Vertices);
 	PROPERTY_READONLY_REF(vector<Uint16>, Indices);
 	virtual void render() override;
-	virtual const float* getWorld() override;
+	virtual const Matrix& getWorld() override;
 	void drawDot(const Vec2& pos, float radius, Color color);
 	void drawSegment(const Vec2& from, const Vec2& to, float radius, Color color);
 	void drawPolygon(const vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
@@ -130,7 +130,7 @@ public:
 	PROPERTY_READONLY(Uint64, RenderState);
 	PROPERTY_READONLY_REF(vector<PosColorVertex>, Vertices);
 	virtual void render() override;
-	virtual const float* getWorld() override;
+	virtual const Matrix& getWorld() override;
 	void add(const vector<Vec2>& verts, Color color);
 	void add(const Vec2* verts, Uint32 size, Color color);
 	void set(const vector<Vec2>& verts, Color color);

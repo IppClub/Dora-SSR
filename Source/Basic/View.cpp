@@ -19,12 +19,14 @@ _id(-1),
 _nearPlaneDistance(0.1f),
 _farPlaneDistance(10000.0f),
 _fieldOfView(45.0f),
-_flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC)
+_flag(BGFX_RESET_NONE | BGFX_RESET_VSYNC),
+_size{s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight())},
+_scale(1.0f)
 { }
 
 Uint8 View::getId() const
 {
-	AssertIf(_ids.empty(), "invalid view id.")
+	AssertIf(_ids.empty(), "invalid view id.");
 	return _ids.top();
 }
 
@@ -66,7 +68,22 @@ bool View::empty()
 
 Size View::getSize() const
 {
-	return Size{s_cast<float>(SharedApplication.getWidth()), s_cast<float>(SharedApplication.getHeight())};
+	return _size;
+}
+
+void View::setScale(float var)
+{
+	_scale = var;
+	Size winSize = {
+		s_cast<float>(SharedApplication.getWidth()),
+		s_cast<float>(SharedApplication.getHeight())
+	};
+	_size = {winSize.width / _scale, winSize.height / _scale};
+}
+
+float View::getScale() const
+{
+	return _scale;
 }
 
 void View::setVSync(bool var)
@@ -90,14 +107,19 @@ bool View::isVSync() const
 	return (_flag & BGFX_RESET_VSYNC) != 0;
 }
 
+bool View::isPostProcessNeeded() const
+{
+	return _scale != 1.0f;
+}
+
 float View::getStandardDistance() const
 {
-	return SharedApplication.getHeight() * 0.5f / std::tan(bx::toRad(_fieldOfView) * 0.5f);
+	return _size.height * 0.5f / std::tan(bx::toRad(_fieldOfView) * 0.5f);
 }
 
 float View::getAspectRatio() const
 {
-	return s_cast<float>(SharedApplication.getWidth()) / s_cast<float>(SharedApplication.getHeight());
+	return _size.width / _size.height;
 }
 
 void View::setNearPlaneDistance(float var)
@@ -140,16 +162,21 @@ void View::updateProjection()
 	if (entry) entry->markDirty();
 }
 
-const float* View::getProjection() const
+const Matrix& View::getProjection() const
 {
 	return _projection;
 }
 
 void View::reset()
 {
+	Size winSize = {
+		s_cast<float>(SharedApplication.getWidth()),
+		s_cast<float>(SharedApplication.getHeight())
+	};
+	_size = {winSize.width / _scale, winSize.height / _scale};
 	bgfx::reset(
-		s_cast<uint32_t>(SharedApplication.getWidth()),
-		s_cast<uint32_t>(SharedApplication.getHeight()),
+		s_cast<uint32_t>(winSize.width),
+		s_cast<uint32_t>(winSize.height),
 		_flag);
 	updateProjection();
 }

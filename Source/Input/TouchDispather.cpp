@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Node/Node.h"
 #include "Basic/Director.h"
+#include "Basic/View.h"
 
 NS_DOROTHY_BEGIN
 
@@ -202,10 +203,13 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 			pos = {ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};
 			break;
 	}
+	pos.x *= SharedView.getScale();
+	pos.y *= SharedView.getScale();
+	Size viewSize = SharedView.getSize();
 	
-	float invMVP[16];
+	Matrix invMVP;
 	{
-		float MVP[16];
+		Matrix MVP;
 		bx::mtxMul(MVP, _target->getWorld(), SharedDirector.getViewProjection());
 		bx::mtxInverse(invMVP, MVP);
 	}
@@ -213,7 +217,7 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 	bx::calcPlane(plane, Vec3{0,0,0}, Vec3{1,0,0}, Vec3{0,1,0});
 
 	Vec3 posTarget{pos[0], pos[1], 1.0f};
-	int viewPort[4]{0, 0, SharedApplication.getWidth(), SharedApplication.getHeight()};
+	int viewPort[4]{0, 0, s_cast<int>(viewSize.width), s_cast<int>(viewSize.height)};
 
 	Vec3 origin, target;
 	unProject(pos[0], pos[1], pos[2], invMVP, viewPort, origin);

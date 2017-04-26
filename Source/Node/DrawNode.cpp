@@ -72,7 +72,7 @@ void DrawNode::updateRealOpacity()
 	_flags.setOn(DrawNode::VertexColorDirty);
 }
 
-const float* DrawNode::getWorld()
+const Matrix& DrawNode::getWorld()
 {
 	if (_flags.isOn(Node::WorldDirty))
 	{
@@ -102,7 +102,7 @@ void DrawNode::render()
 	if (_flags.isOn(DrawNode::VertexPosDirty))
 	{
 		_flags.setOff(DrawNode::VertexPosDirty);
-		float transform[16];
+		Matrix transform;
 		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
 		for (size_t i = 0; i < _vertices.size(); i++)
 		{
@@ -528,7 +528,7 @@ void Line::updateRealOpacity()
 	_flags.setOn(Line::VertexColorDirty);
 }
 
-const float* Line::getWorld()
+const Matrix& Line::getWorld()
 {
 	if (_flags.isOn(Node::WorldDirty))
 	{
@@ -563,7 +563,7 @@ void Line::render()
 	if (_flags.isOn(Line::VertexPosDirty))
 	{
 		_flags.setOff(Line::VertexPosDirty);
-		float transform[16];
+		Matrix transform;
 		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
 		for (size_t i = 0; i < _vertices.size(); i++)
 		{
