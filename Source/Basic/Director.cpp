@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Camera.h"
 #include "Basic/Scheduler.h"
 #include "Node/Node.h"
+#include "Node/Sprite.h"
 #include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Basic/Renderer.h"
@@ -201,6 +202,11 @@ void Director::mainLoop()
 					s_cast<uint16>(viewSize.width),
 					s_cast<uint16>(viewSize.height));
 				_renderTarget->setScaleY(-1.0f);
+			}
+			SpriteEffect* postEffect = SharedView.getPostEffect();
+			if (postEffect && postEffect != _renderTarget->getSurface()->getEffect())
+			{
+				_renderTarget->getSurface()->setEffect(postEffect);
 			}
 
 			/* render scene tree */

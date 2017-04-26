@@ -40,8 +40,6 @@
 #ifndef _zip12_H
 #define _zip12_H
 
-//#define HAVE_BZIP2
-
 #ifndef _ZLIB_H
 #include "zlib.h"
 #endif

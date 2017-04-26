@@ -12,6 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class SpriteEffect;
+
 class View
 {
 public:
@@ -23,6 +25,7 @@ public:
 	PROPERTY(float, FarPlaneDistance);
 	PROPERTY(float, FieldOfView);
 	PROPERTY(float, Scale);
+	PROPERTY(SpriteEffect*, PostEffect);
 	PROPERTY_BOOL(VSync);
 	PROPERTY_READONLY_BOOL(PostProcessNeeded);
 	PROPERTY_READONLY(Uint8, Id);
@@ -52,6 +55,7 @@ private:
 	float _scale;
 	Size _size;
 	Matrix _projection;
+	Ref<SpriteEffect> _effect;
 	DORA_TYPE(View);
 	SINGLETON_REF(View, Director);
 };
