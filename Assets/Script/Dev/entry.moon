@@ -46,46 +46,81 @@ LintMoonGlobals = (moonCodes,entry)->
 
 totalFiles = 0
 totalMoonTime = 0
+totalXmlTime = 0
+totalMinifyTime = 0
 compile = (dir,clean,minify)->
 	{:ParseLua} = require "luaminify.ParseLua"
 	FormatMini = require "luaminify.FormatMini"
-	files = Path.getAllFiles dir, "moon"
+	files = Path.getAllFiles dir, {"moon","xml"}
 	for file in *files
 		path = Path.getPath file
 		name = Path.getName file
+		isXml = "xml" == Path.getExtension file
+		compileFunc = isXml and xmltolua or moonscript.to_lua
+		requires = nil
 		if not clean
-			moonCodes = Content\loadAsync file
-			requires = LintMoonGlobals moonCodes,file
+			sourceCodes = Content\loadAsync file
+			requires = LintMoonGlobals sourceCodes, file unless isXml
 			startTime = Application.eclapsedTime
-			codes,err = moonscript.to_lua moonCodes
-			totalMoonTime += Application.eclapsedTime - startTime
+			codes,err = compileFunc sourceCodes
+			if isXml
+				totalXmlTime += Application.eclapsedTime - startTime
+			else
+				totalMoonTime += Application.eclapsedTime - startTime
 			startTime = Application.eclapsedTime
 			if not codes
 				print "Compile errors in #{file}."
 				print err
 				return false
 			else
-				codes = requires..codes\gsub "Dorothy%([^%)]*%)",""
+				codes = requires..codes\gsub "Dorothy%([^%)]*%)","" unless isXml
 				if minify
 					st, ast = ParseLua codes
 					if not st
 						print ast
 						return false
 					codes = FormatMini ast
-				totalMoonTime += Application.eclapsedTime - startTime
+				totalMinifyTime += Application.eclapsedTime - startTime
 				filePath = "#{Content.writablePath}Script/#{path}"
 				Content\mkdir filePath
 				filename = "#{filePath}#{name}.lua"
 				Content\saveAsync filename,codes
-				print "Moon compiled: #{path}#{name}.moon"
+				print "#{isXml and "Xml" or "Moon"} compiled: #{path}#{name}.#{isXml and "xml" or "moon"}"
 				totalFiles += 1
 		else
 			filePath = "#{Content.writablePath}Script/#{path}"
 			Content\mkdir filePath
 			filename = "#{filePath}#{name}.lua"
 			if Content\exist filename
-				print "Moon cleaned: #{path}#{name}.lua"
+				print "#{isXml and "Xml" or "Moon"} cleaned: #{path}#{name}.lua"
 				Content\remove filename
+	if clean or minify
+		files = Path.getAllFiles dir, "lua"
+		for file in *files
+			path = Path.getPath file
+			name = Path.getName file
+			if not clean
+				sourceCodes = Content\loadAsync file
+				startTime = Application.eclapsedTime
+				st, ast = ParseLua sourceCodes
+				if not st
+					print ast
+					return false
+				codes = FormatMini ast
+				totalMinifyTime += Application.eclapsedTime - startTime
+				filePath = "#{Content.writablePath}Script/#{path}"
+				Content\mkdir filePath
+				filename = "#{filePath}#{name}.lua"
+				Content\saveAsync filename,codes
+				print "Lua minified: #{path}#{name}.lua"
+				totalFiles += 1
+			else
+				filePath = "#{Content.writablePath}Script/#{path}"
+				Content\mkdir filePath
+				filename = "#{filePath}#{name}.lua"
+				if Content\exist filename
+					print "Lua cleaned: #{path}#{name}.lua"
+					Content\remove filename
 	return true
 
 building = false
@@ -95,22 +130,24 @@ doCompile = (minify)->
 	building = true
 	totalFiles = 0
 	totalMoonTime = 0
+	totalXmlTime = 0
+	totalMinifyTime = 0
 	thread ->
-		print "Output: #{Content.writablePath}Script"
+		print "Output path: #{Content.writablePath}Script"
 		xpcall (-> compile "#{Content.assetPath}Script",false,minify),(msg)->
 			msg = debug.traceback(msg)
 			print msg
 			building = false
-		print string.format "Compile "..(minify and "and minify " or "").."done. %d files in total.\nCompile time, Moon %.3fs.",totalFiles,totalMoonTime
+		print string.format "Compile #{minify and 'and minify ' or ''}done. %d files in total.\nCompile time, Moon %.3fs, Xml %.3fs#{minify and ', Minify %.3fs' or ''}.\n",totalFiles,totalMoonTime,totalXmlTime,totalMinifyTime
 		building = false
 
 doClean = ->
 	return if building
 	building = true
 	thread ->
-		print "Output: #{Content.writablePath}Script"
+		print "Clean path: #{Content.writablePath}Script"
 		compile "#{Content.assetPath}Script",true
-		print "Clean done."
+		print "Clean done.\n"
 		building = false
 
 isInEntry = true

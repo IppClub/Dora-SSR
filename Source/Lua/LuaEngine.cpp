@@ -195,7 +195,10 @@ static int dora_xmltolua(lua_State* L)
 	codes = SharedXmlLoader.loadXml(codes);
 	if (codes.empty())
 	{
-		luaL_error(L, "%s", SharedXmlLoader.getLastError().c_str());
+		const string& lastError = SharedXmlLoader.getLastError();
+		lua_pushnil(L);
+		lua_pushlstring(L, lastError.c_str(), lastError.size());
+		return 2;
 	}
 	lua_pushlstring(L, codes.c_str(), codes.size());
 	return 1;

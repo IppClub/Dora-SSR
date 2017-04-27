@@ -261,8 +261,17 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\unzip.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -274,6 +283,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Animation\Action.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\Animation.cpp" />
@@ -313,6 +323,7 @@
     <ClCompile Include="..\..\..\Source\Lua\LuaBinding.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaCode.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaEngine.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\LuaFromXml.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaHandler.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaManual.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_event.cpp" />
@@ -421,6 +432,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\unzip.h" />
@@ -467,6 +480,7 @@
     <ClInclude Include="..\..\..\Source\Input\TouchDispather.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaBinding.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaEngine.h" />
+    <ClInclude Include="..\..\..\Source\Lua\LuaFromXml.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaHandler.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />

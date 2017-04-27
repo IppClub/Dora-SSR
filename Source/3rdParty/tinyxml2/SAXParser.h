@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tinyxml2/tinyxml2.h"
+#include <string>
 
 typedef unsigned char XML_CHAR;
 
@@ -18,9 +19,9 @@ public:
     SAXParser();
     ~SAXParser();
 
-    bool parseXml(const string& xmlData);
-    bool parse(const string& filename);
-	const string& getLastError() const;
+    bool parseXml(const std::string& xmlData);
+    bool parse(const std::string& filename);
+	const std::string& getLastError() const;
 
     void setDelegator(SAXDelegator* delegator);
 
@@ -33,6 +34,6 @@ public:
 	int getLineNumber(const char* name);
 private:
 	SAXDelegator* _delegator;
-	string _lastError;
+	std::string _lastError;
 	tinyxml2::XMLDocument _tinyDoc;
 };
