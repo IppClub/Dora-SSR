@@ -184,7 +184,10 @@ Director\pushEntry with Node!
 			for example in *examples
 				if Button example, Vec2(-1,40)
 					isInEntry = false
-					xpcall (-> require "Example/#{example}"),(msg)->
+					xpcall (->
+						result = require "Example/#{example}"
+						result! if "function" == type result
+					),(msg)->
 						msg = debug.traceback(msg)
 						print msg
 						isInEntry = true

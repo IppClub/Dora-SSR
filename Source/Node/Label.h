@@ -83,7 +83,7 @@ private:
 #define SharedFontCache \
 	Dorothy::Singleton<Dorothy::FontCache>::shared()
 
-enum struct TextAlignment
+enum struct TextAlign
 {
 	Left,
 	Center,
@@ -94,7 +94,7 @@ class Label : public Node
 {
 public:
 	virtual ~Label();
-	PROPERTY(TextAlignment, Alignment);
+	PROPERTY(TextAlign, Alignment);
 	PROPERTY(float, TextWidth);
 	PROPERTY(float, LineGap);
 	PROPERTY(const char*, Text);
@@ -115,7 +115,7 @@ private:
 	float _lineGap;
 	Ref<Font> _font;
 	BlendFunc _blendFunc;
-	TextAlignment _alignment;
+	TextAlign _alignment;
 	string _textUTF8;
 	vector<Uint32> _text;
 	vector<Sprite*> _characters;

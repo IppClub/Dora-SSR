@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class XmlDelegate;
+class XmlDelegator;
 
 class XmlLoader
 {
@@ -24,8 +24,12 @@ public:
 protected:
 	XmlLoader();
 private:
-	Own<XmlDelegate> _delegate;
+	Own<XmlDelegator> _delegator;
 	SAXParser _parser;
+	SINGLETON_REF(XmlLoader, ObjectBase);
 };
+
+#define SharedXmlLoader \
+	Dorothy::Singleton<Dorothy::XmlLoader>::shared()
 
 NS_DOROTHY_END

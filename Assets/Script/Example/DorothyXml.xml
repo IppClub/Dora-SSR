@@ -1,0 +1,9 @@
+<Node Name="entry">
+	<Sprite File="Image/logo.png">
+		<Action>
+			<Angle Name="rotate" Time="5" Start="0" Stop="360" Ease="OutQuad"/>
+		</Action>
+	</Sprite>
+	<Slot Name="Enter" Perform="rotate"></Slot>
+	<Script>Director:pushEntry(entry)</Script>
+</Node>

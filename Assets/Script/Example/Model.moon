@@ -21,7 +21,7 @@ currentAnim = 3
 model\schedule ->
 	{:width,:height} = Application
 	SetNextWindowPos Vec2(width-220,10), "FirstUseEver"
-	SetNextWindowSize Vec2(220,265),"FirstUseEver"
+	SetNextWindowSize Vec2(220,265), "FirstUseEver"
 	if Begin "Model", "NoResize|NoSavedSettings"
 		changed,currentLook = Combo "Look",currentLook, looks
 		model.look = looks[currentLook] if changed

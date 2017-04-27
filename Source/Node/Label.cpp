@@ -265,7 +265,7 @@ const float Label::AutomaticWidth = -1.0f;
 Label::Label(String fontName, Uint32 fontSize):
 _lineGap(0),
 _textWidth(Label::AutomaticWidth),
-_alignment(TextAlignment::Center),
+_alignment(TextAlign::Center),
 _font(SharedFontCache.load(fontName, fontSize)),
 _blendFunc(BlendFunc::Default)
 {
@@ -307,7 +307,7 @@ float Label::getLineGap() const
 	return _lineGap;
 }
 
-void Label::setAlignment(TextAlignment var)
+void Label::setAlignment(TextAlign var)
 {
 	if (_alignment != var)
 	{
@@ -316,7 +316,7 @@ void Label::setAlignment(TextAlignment var)
 	}
 }
 
-TextAlignment Label::getAlignment() const
+TextAlign Label::getAlignment() const
 {
 	return _alignment;
 }
@@ -689,7 +689,7 @@ void Label::updateLabel()
 	}
 
 	// Step 2: Make alignment
-	if (_alignment != TextAlignment::Left)
+	if (_alignment != TextAlign::Left)
 	{
 		int i = 0;
 		int lineNumber = 0;
@@ -715,10 +715,10 @@ void Label::updateLabel()
 				float shift = 0;
 				switch (_alignment)
 				{
-				case TextAlignment::Center:
+				case TextAlign::Center:
 					shift = getWidth() / 2.0f - lineWidth / 2.0f;
 					break;
-				case TextAlignment::Right:
+				case TextAlign::Right:
 					shift = getWidth() - lineWidth;
 					break;
 				default:

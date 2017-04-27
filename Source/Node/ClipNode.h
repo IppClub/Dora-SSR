@@ -27,7 +27,7 @@ public:
 	virtual void visit() override;
 	CREATE_FUNC(ClipNode);
 protected:
-	ClipNode(Node* stencil);
+	ClipNode(Node* stencil = nullptr);
 	void drawFullScreenStencil(Uint8 maskLayer, bool value);
 	void drawStencil(Uint8 maskLayer, bool value);
 	void setupAlphaTest();
