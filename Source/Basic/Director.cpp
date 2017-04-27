@@ -21,7 +21,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Audio/Sound.h"
 #include "Node/RenderTarget.h"
 #include "bx/timer.h"
-#include "imgui.h"
 
 NS_DOROTHY_BEGIN
 
@@ -66,6 +65,25 @@ void Director::setUI(Node* var)
 Node* Director::getUI() const
 {
 	return _ui;
+}
+
+void Director::setPostNode(Node* var)
+{
+	if (_postNode)
+	{
+		_postNode->onExit();
+		_postNode->cleanup();
+	}
+	_postNode = var;
+	if (_postNode)
+	{
+		_postNode->onEnter();
+	}
+}
+
+Node* Director::getPostNode() const
+{
+	return _postNode;
 }
 
 void Director::setClearColor(Color var)
@@ -161,16 +179,18 @@ void Director::mainLoop()
 	bx::mtxMul(viewProj, getCamera()->getView(), SharedView.getProjection());
 	pushViewProjection(viewProj, [&]()
 	{
-		/* update logic */
+		/* update system logic */
 		_systemScheduler->update(getDeltaTime());
 
+		/* update game logic */
 		SharedImGUI.begin();
 		_scheduler->update(getDeltaTime());
 		SharedImGUI.end();
 
-		/* handle touches */
+		/* handle ImGui touch */
 		SharedTouchDispatcher.add(SharedImGUI.getTarget());
 		SharedTouchDispatcher.dispatch();
+		/* handle ui touch */
 		Matrix ortho;
 		Size viewSize = SharedView.getSize();
 		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f);
@@ -182,6 +202,13 @@ void Director::mainLoop()
 				SharedTouchDispatcher.dispatch();
 			});
 		}
+		/* handle post node touch */
+		if (_postNode)
+		{
+			registerTouchHandler(_postNode);
+			SharedTouchDispatcher.dispatch();
+		}
+		/* handle scene tree touch */
 		Node* currentEntry = nullptr;
 		if (!_entryStack->isEmpty())
 		{
@@ -191,6 +218,7 @@ void Director::mainLoop()
 		}
 		SharedTouchDispatcher.clearEvents();
 
+		/* do render */
 		if (SharedView.isPostProcessNeeded())
 		{
 			/* initialize RT */
@@ -209,25 +237,42 @@ void Director::mainLoop()
 				_renderTarget->getSurface()->setEffect(postEffect);
 			}
 
-			/* render scene tree */
+			/* render scene tree to RT */
 			if (currentEntry)
 			{
 				_renderTarget->setCamera(getCamera());
 				_renderTarget->renderWithClear(currentEntry, _clearColor);
 			}
 
-			/* render RT and ui nodes */
+			/* render RT, post node and ui node */
 			SharedView.pushName("Main"_slice, [&]()
 			{
 				Uint8 viewId = SharedView.getId();
+				/* RT */
 				pushViewProjection(ortho, [&]()
 				{
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 					_renderTarget->setPosition({viewSize.width/2.0f, viewSize.height/2.0f});
 					_renderTarget->visit();
-					if (_ui) _ui->visit();
+				});
+				/* post node */
+				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+				if (_postNode)
+				{
+					_postNode->visit();
+				}
+				SharedRendererManager.flush();
+				/* ui node */
+				pushViewProjection(ortho, [&]()
+				{
+					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+					if (_ui)
+					{
+						_ui->visit();
+					}
 					SharedRendererManager.flush();
 				});
+				/* profile info */
 				if (_displayStats)
 				{
 					displayStats();
@@ -237,40 +282,51 @@ void Director::mainLoop()
 		else
 		{
 			/* release unused RT */
-			if (_renderTarget) _renderTarget = nullptr;
+			if (_renderTarget)
+			{
+				_renderTarget = nullptr;
+			}
 
-			/* render scene tree */
+			/* render scene tree and post node */
 			SharedView.pushName("Main"_slice, [&]()
 			{
 				Uint8 viewId = SharedView.getId();
 				bgfx::setViewClear(viewId,
 					BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
 					_clearColor.toRGBA());
+				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+				/* scene tree */
 				if (currentEntry)
 				{
-					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 					currentEntry->visit();
-					SharedRendererManager.flush();
 				}
+				/* post node */
+				if (_postNode)
+				{
+					_postNode->visit();
+				}
+				SharedRendererManager.flush();
 			});
 
-			/* render ui nodes */
+			/* render ui node */
 			SharedView.pushName("UI"_slice, [&]()
 			{
 				Uint8 viewId = SharedView.getId();
+				/* ui node */
 				pushViewProjection(ortho, [&]()
 				{
+					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 					if (_ui)
 					{
-						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_ui->visit();
- 						SharedRendererManager.flush();
 					}
-					if (_displayStats)
-					{
-						displayStats();
-					}
+					SharedRendererManager.flush();
 				});
+				/* profile info */
+				if (_displayStats)
+				{
+					displayStats();
+				}
 			});
 		}
 
@@ -325,9 +381,9 @@ void Director::displayStats()
 	bgfx::dbgTextPrintf(dbgViewId, 10, 0x0f, "\x1b[14;mCallback: \x1b[15;m%d", Object::getLuaCallbackCount());
 }
 
-void Director::pushViewProjection(const float* viewProj)
+void Director::pushViewProjection(const Matrix& viewProj)
 {
-	Matrix* matrix = new Matrix(*r_cast<const Matrix*>(viewProj));
+	Matrix* matrix = new Matrix(viewProj);
 	_viewProjs.push(MakeOwn(matrix));
 }
 

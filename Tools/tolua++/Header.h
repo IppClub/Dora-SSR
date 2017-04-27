@@ -69,6 +69,7 @@ class Director
 {
 	tolua_property__common Scheduler* scheduler;
 	tolua_property__common Node* uI @ ui;
+	tolua_property__common Node* postNode;
 	tolua_property__common Camera* camera;
 	tolua_property__bool bool displayStats;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
