@@ -792,14 +792,12 @@ public:
 private:
 	string getUsableName(const char* baseName)
 	{
-		char number[7];// max number can only have 6 digits
 		int index = 1;
 		string base(baseName);
 		string name;
 		do
 		{
-			sprintf(number,"%d",index);
-			name = base + number;
+			name = fmt::format("{}{}", base, index);
 			auto it = names.find(name);
 			if (it == names.end()) break;
 			else index++;
@@ -842,8 +840,7 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 		if (def) return string(def);
 		else if (attr && element)
 		{
-			char num[10];
-			sprintf(num, "%d", parser->getLineNumber(element));
+			string num = fmt::format("%d", parser->getLineNumber(element));
 			lastError += string("Missing attribute ") + (char)toupper(attr[0]) + string(attr).substr(1) + " for " + element + ", at line " + num + "\n";
 		}
 		return string();
@@ -860,8 +857,7 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 		{
 			if (attr && element)
 			{
-				char num[10];
-				sprintf(num, "%d", parser->getLineNumber(element));
+				string num = fmt::format("%d", parser->getLineNumber(element));
 				lastError += string("Missing attribute ") + (char)toupper(attr[0]) + string(attr).substr(1) + " for " + element + ", at line " + num + "\n";
 			}
 			return string();
@@ -897,8 +893,7 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 					}
 					if (parent.empty() && element)
 					{
-						char num[10];
-						sprintf(num, "%d", parser->getLineNumber(element));
+						string num = fmt::format("%d", parser->getLineNumber(element));
 						lastError += string("The $ expression can`t be used in tag at line ") + num + "\n";
 					}
 					newStr += valStr.substr(start, i - start);
@@ -929,8 +924,7 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 					default:
 						if (element)
 						{
-							char num[10];
-							sprintf(num, "%d", parser->getLineNumber(element));
+							string num = fmt::format("%d", parser->getLineNumber(element));
 							lastError += string("Invalid expression $") + valStr[i] + " at line " + num + "\n";
 						}
 						break;
@@ -966,8 +960,7 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 					default:
 						if (element)
 						{
-							char num[10];
-							sprintf(num, "%d", parser->getLineNumber(element));
+							string num = fmt::format("%d", parser->getLineNumber(element));
 							lastError += string("Invalid expression @") + valStr[i] + " at line " + num + "\n";
 						}
 						break;
@@ -1158,7 +1151,7 @@ void XmlDelegator::endElement(const char *name)
 		CASE_STR(Sequence)
 		CASE_STR(Spawn)
 		{
-			string tempItem = string(name) + "({";
+			string tempItem = string(name) + "(";
 			stack<string> tempStack;
 			while (items.top() != name)
 			{
@@ -1172,7 +1165,7 @@ void XmlDelegator::endElement(const char *name)
 				tempStack.pop();
 				if (!tempStack.empty()) tempItem += ",";
 			}
-			tempItem += "})";
+			tempItem += ")";
 			if (parentIsAction)
 			{
 				stream << "local " << currentData.name << " = " << tempItem << '\n';
@@ -1233,8 +1226,7 @@ void XmlDelegator::endElement(const char *name)
 			auto it = imported.find(name);
 			if (it == imported.end())
 			{
-				char num[10];
-				sprintf(num, "%d", parser->getLineNumber(name));
+				string num = fmt::format("%d", parser->getLineNumber(name));
 				lastError += string("Tag <") + name + "> not imported, closed at line " + num + "\n";
 			}
 			break;

@@ -49,7 +49,9 @@ _modelDef(def),
 _speed(1.0f),
 _recoveryTime(0.0f),
 _currentLookName(Slice::Empty)
-{ }
+{
+	_flags.setOff(Node::TraverseEnabled);
+}
 
 Model::Model(String filename):
 Model(SharedModelCache.load(filename))
@@ -394,6 +396,8 @@ Rect Model::getBoundingBox()
 {
 	bool firstBox = true;
 	Vec2 lower, upper;
+	bool traverseEnabled = _flags.isOn(Node::TraverseEnabled);
+	_flags.setOn(Node::TraverseEnabled);
 	traverse([&](Node* child)
 	{
 		if (child != this && child->isVisible())
@@ -419,6 +423,7 @@ Rect Model::getBoundingBox()
 		}
 		return false;
 	});
+	_flags.setFlag(Node::TraverseEnabled, traverseEnabled);
 	Rect rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
 	return AffineTransform::applyRect(getLocalTransform(), rect);
 }
