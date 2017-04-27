@@ -24,6 +24,7 @@ class Director
 public:
 	virtual ~Director();
 	PROPERTY(Scheduler*, Scheduler);
+	PROPERTY(Node*, PostNode);
 	PROPERTY(Node*, UI);
 	PROPERTY(Camera*, Camera);
 	PROPERTY(Color, ClearColor);
@@ -46,7 +47,7 @@ public:
 	void clearEntry();
 
 	template <typename Func>
-	void pushViewProjection(const float* viewProj, const Func& workHere)
+	void pushViewProjection(const Matrix& viewProj, const Func& workHere)
 	{
 		pushViewProjection(viewProj);
 		workHere();
@@ -55,12 +56,13 @@ public:
 protected:
 	Director();
 	void displayStats();
-	void pushViewProjection(const float* viewProj);
+	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();
 private:
 	bool _displayStats;
 	Color _clearColor;
 	Ref<Node> _ui;
+	Ref<Node> _postNode;
 	Ref<Array> _entryStack;
 	Ref<Node> _currentScene;
 	Ref<Scheduler> _scheduler;
