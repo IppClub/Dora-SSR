@@ -47,7 +47,7 @@ public:
 	PROPERTY(float, Width);
 	PROPERTY(float, Height);
 	PROPERTY_REF(Size, Size);
-	PROPERTY_REF(string, Name);
+	PROPERTY_REF(string, Tag);
 	PROPERTY(float, Opacity);
 	PROPERTY_READONLY(float, RealOpacity);
 	PROPERTY(Color, Color);
@@ -68,16 +68,16 @@ public:
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_READONLY(TouchHandler*, TouchHandler);
 
-	virtual void addChild(Node* child, int order, String name);
+	virtual void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
 	void addChild(Node* child);
 
-	virtual Node* addTo(Node* parent, int order, String name);
+	virtual Node* addTo(Node* parent, int order, String tag);
 	Node* addTo(Node* parent, int order);
 	Node* addTo(Node* parent);
 
 	void removeChild(Node* child, bool cleanup = true);
-	void removeChildByName(String name, bool cleanup = true);
+	void removeChildByTag(String tag, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
 
 	virtual Rect getBoundingBox();
@@ -86,7 +86,7 @@ public:
 	virtual void onExit();
 	virtual void cleanup();
 
-	Node* getChildByName(String name);
+	Node* getChildByTag(String tag);
 
 	void schedule(const function<bool(double)>& func);
 	void unschedule();
@@ -206,7 +206,7 @@ protected:
 	Ref<Scheduler> _scheduler;
 	Ref<Action> _action;
 	Own<Signal> _signal;
-	string _name;
+	string _tag;
 	Own<NodeTouchHandler> _touchHandler;
 	function<bool(double)> _scheduleFunc;
 	enum

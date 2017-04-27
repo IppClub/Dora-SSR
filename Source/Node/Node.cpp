@@ -244,14 +244,14 @@ const Size& Node::getSize() const
 	return _size;
 }
 
-void Node::setName(const string& name)
+void Node::setTag(const string& tag)
 {
-	_name = name;
+	_tag = tag;
 }
 
-const string& Node::getName() const
+const string& Node::getTag() const
 {
-	return _name;
+	return _tag;
 }
 
 void Node::setOpacity(float var)
@@ -419,11 +419,11 @@ bool Node::isRunning() const
 	return _flags.isOn(Node::Running);
 }
 
-void Node::addChild(Node* child, int order, String name)
+void Node::addChild(Node* child, int order, String tag)
 {
 	AssertIf(child == nullptr, "add invalid child to node.");
 	AssertIf(child->_parent, "child already added. It can't be added again.");
-	child->setName(name);
+	child->setTag(tag);
 	child->setOrder(order);
 	if (!_children)
 	{
@@ -450,29 +450,29 @@ void Node::addChild(Node* child, int order, String name)
 
 void Node::addChild(Node* child, int order)
 {
-	addChild(child, order, child->getName());
+	addChild(child, order, child->getTag());
 }
 
 void Node::addChild(Node* child)
 {
-	addChild(child, child->getOrder(), child->getName());
+	addChild(child, child->getOrder(), child->getTag());
 }
 
-Node* Node::addTo(Node* parent, int order, String name)
+Node* Node::addTo(Node* parent, int order, String tag)
 {
 	AssertIf(parent == nullptr, "add node to invalid parent.");
-	parent->addChild(this, order, name);
+	parent->addChild(this, order, tag);
 	return this;
 }
 
 Node* Node::addTo(Node* parent, int zOrder)
 {
-	return addTo(parent, zOrder, getName());
+	return addTo(parent, zOrder, getTag());
 }
 
 Node* Node::addTo(Node* parent)
 {
-	return addTo(parent, getOrder(), getName());
+	return addTo(parent, getOrder(), getTag());
 }
 
 void Node::removeChild(Node* child, bool cleanup)
@@ -496,9 +496,9 @@ void Node::removeChild(Node* child, bool cleanup)
 	}
 }
 
-void Node::removeChildByName(String name, bool cleanup)
+void Node::removeChildByTag(String tag, bool cleanup)
 {
-	removeChild(getChildByName(name), cleanup);
+	removeChild(getChildByTag(tag), cleanup);
 }
 
 void Node::removeAllChildren(bool cleanup)
@@ -540,12 +540,12 @@ void Node::cleanup()
 	}
 }
 
-Node* Node::getChildByName(String name)
+Node* Node::getChildByTag(String tag)
 {
 	Node* targetNode = nullptr;
 	ARRAY_START(Node, child, _children)
 	{
-		if (name == child->getName())
+		if (tag == child->getTag())
 		{
 			targetNode = child;
 			break;

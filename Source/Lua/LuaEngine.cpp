@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaEngine.h"
 #include "Lua/LuaBinding.h"
 #include "Lua/LuaManual.h"
+#include "Lua/LuaFromXml.h"
 
 extern int luaopen_lpeg(lua_State* L);
 
@@ -102,10 +103,10 @@ static int dora_loadfile(lua_State* L, String filename)
 	switch (Switch::hash(extension))
 	{
 		case "xml"_hash:
-			//codes = oSharedXMLLoader.load(filename.c_str());
+			codes = SharedXmlLoader.load(targetFile);
 			if (codes.empty())
 			{
-				//luaL_error(L, "error parsing xml file: %s\n%s", filename.c_str(), oSharedXMLLoader.getLastError().c_str());
+				luaL_error(L, "error parsing xml file: %s\n%s", filename.toString().c_str(), SharedXmlLoader.getLastError().c_str());
 			}
 			else
 			{
@@ -168,39 +169,37 @@ static int dora_loader(lua_State* L)
 	return dora_loadfile(L, filename);
 }
 
-/*
-static int cclua_doXml(lua_State* L)
+static int dora_doxml(lua_State* L)
 {
 	string codes(luaL_checkstring(L, 1));
-	codes = oSharedXMLLoader.load(codes);
+	codes = SharedXmlLoader.load(codes);
 	if (codes.empty())
 	{
 		luaL_error(L, "error parsing local xml\n");
 	}
 	if (luaL_loadbuffer(L, codes.c_str(), codes.size(), "xml") != 0)
 	{
-		CCLOG("%s", codes.c_str());
+		Log("%s", codes);
 		luaL_error(L, "error loading module %s from file %s :\n\t%s",
 			lua_tostring(L, 1), "xml", lua_tostring(L, -1));
 	}
 	int top = lua_gettop(L) - 1;
-	CCLuaEngine::call(L, 0, LUA_MULTRET);
+	LuaEngine::call(L, 0, LUA_MULTRET);
 	int newTop = lua_gettop(L);
 	return newTop - top;
 }
 
-static int cclua_xmlToLua(lua_State* L)
+static int dora_xmltolua(lua_State* L)
 {
 	string codes(luaL_checkstring(L, 1));
-	codes = oSharedXMLLoader.load(codes);
+	codes = SharedXmlLoader.loadXml(codes);
 	if (codes.empty())
 	{
-		luaL_error(L, oSharedXMLLoader.getLastError().c_str());
+		luaL_error(L, "%s", SharedXmlLoader.getLastError().c_str());
 	}
 	lua_pushlstring(L, codes.c_str(), codes.size());
 	return 1;
 }
-*/
 
 static int dora_ubox(lua_State* L)
 {
@@ -247,10 +246,8 @@ LuaEngine::LuaEngine()
 		{ "print", dora_print },
 		{ "loadfile", dora_loadfile },
 		{ "dofile", dora_dofile },
-		/*
-		{ "doXml", olua_doXml },
-		{ "xmlToLua", olua_xmlToLua },
-		*/
+		{ "doxml", dora_doxml },
+		{ "xmltolua", dora_xmltolua },
 		{ "ubox", dora_ubox },
 		{ "emit", dora_emit },
 		{ NULL, NULL }

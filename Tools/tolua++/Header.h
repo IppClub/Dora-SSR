@@ -277,7 +277,7 @@ class Node : public Object
 	tolua_property__common float width;
 	tolua_property__common float height;
 	tolua_property__common Size size;
-	tolua_property__common string name;
+	tolua_property__common string tag;
 	tolua_property__common float opacity;
 	tolua_property__common Color color;
 	tolua_property__common Color3 color3;
@@ -295,21 +295,21 @@ class Node : public Object
 	tolua_readonly tolua_property__common int actionCount;
 	tolua_property__bool bool touchEnabled;
 
-	void addChild(Node* child, int order, String name);
+	void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
 	void addChild(Node* child);
 
-	Node* addTo(Node* parent, int order, String name);
+	Node* addTo(Node* parent, int order, String tag);
 	Node* addTo(Node* parent, int order);
 	Node* addTo(Node* parent);
 
 	void removeChild(Node* child, bool cleanup = true);
-	void removeChildByName(String name, bool cleanup = true);
+	void removeChildByTag(String tag, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
 
 	void cleanup();
 
-	Node* getChildByName(String name);
+	Node* getChildByTag(String tag);
 
 	void schedule(tolua_function_bool func);
 	void unschedule();
@@ -480,7 +480,7 @@ class Camera2D : public Camera
 	Camera2D* create(String name);
 };
 
-struct TextAlignment
+struct TextAlign
 {
 	enum {
 		Left,
@@ -488,11 +488,11 @@ struct TextAlignment
 		Right
 	};
 };
-enum TextAlignment {};
+enum TextAlign {};
 
 class Label : public Node
 {
-	tolua_property__common TextAlignment alignment;
+	tolua_property__common TextAlign alignment;
 	tolua_property__common float textWidth;
 	tolua_property__common float lineGap;
 	tolua_property__common char* text;
@@ -517,7 +517,7 @@ class ClipNode : public Node
 	tolua_property__common Node* stencil;
 	tolua_property__common float alphaThreshold;
 	tolua_property__bool bool inverted;
-	static ClipNode* create(Node* stencil);
+	static ClipNode* create(Node* stencil = nullptr);
 };
 
 class DrawNode : public Node
