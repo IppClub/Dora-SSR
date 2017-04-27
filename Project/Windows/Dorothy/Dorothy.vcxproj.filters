@@ -106,6 +106,9 @@
     <Filter Include="Audio">
       <UniqueIdentifier>{770ca085-abd0-4bd9-82c8-9b9d24a2a975}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\tinyxml2">
+      <UniqueIdentifier>{ef6899f5-5974-4507-a964-d9b6857bd509}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -494,6 +497,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\Model.cpp">
       <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaFromXml.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.cpp">
+      <Filter>3rdParty\tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.cpp">
+      <Filter>3rdParty\tinyxml2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -938,6 +950,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\Model.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\LuaFromXml.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h">
+      <Filter>3rdParty\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h">
+      <Filter>3rdParty\tinyxml2</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

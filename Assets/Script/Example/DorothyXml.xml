@@ -12,7 +12,7 @@
 	<Slot Name="Enter" Perform="rotate"/>
 	<Script>Director:pushEntry(entry)</Script>
 
-	<!-- print xml and compiled lua codes below -->
+	<!-- example ends here, print xml and compiled lua codes below -->
 	<Script>
 		local xmlCodes = Content:load("Example/DorothyXml.xml")
 		local luaCodes = xmltolua(xmlCodes)
