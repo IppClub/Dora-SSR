@@ -1,9 +1,22 @@
 <Node Name="entry">
-	<Sprite File="Image/logo.png">
+	<Sprite File="Image/logo.png" TouchEnabled="True">
 		<Action>
 			<Angle Name="rotate" Time="5" Start="0" Stop="360" Ease="OutQuad"/>
+			<Sequence Name="scale">
+				<Scale Time="0.2" Start="1" Stop="1.3" Ease="OutBack"/>
+				<Scale Time="0.2" Start="1.3" Stop="1" Ease="OutQuad"/>
+			</Sequence>
 		</Action>
+		<Slot Name="TapBegan" Perform="scale"/>
 	</Sprite>
-	<Slot Name="Enter" Perform="rotate"></Slot>
+	<Slot Name="Enter" Perform="rotate"/>
 	<Script>Director:pushEntry(entry)</Script>
+
+	<!-- print xml and compiled lua codes below -->
+	<Script>
+		local xmlCodes = Content:load("Example/DorothyXml.xml")
+		local luaCodes = xmltolua(xmlCodes)
+		print("Xml:\n\n"..xmlCodes)
+		print("Compile to Lua:\n\n"..luaCodes)
+	</Script>
 </Node>

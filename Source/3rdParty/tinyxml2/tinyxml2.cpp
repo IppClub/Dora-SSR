@@ -1462,6 +1462,9 @@ char* XMLElement::ParseDeep( char* p, StrPair* strPair )
 
     p = ParseAttributes( p );
     if ( !p || !*p || _closingType ) {
+		if (_closingType == CLOSED && g_cdataHeader) {
+			g_cdataHeader = nullptr;
+		}
         return p;
     }
 
