@@ -313,6 +313,34 @@ void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, flo
 	_flags.setOn(DrawNode::VertexPosDirty);
 }
 
+void DrawNode::drawPolygon(const VertexColor* verts, Uint32 count)
+{
+	const size_t triangleCount = 3 * count - 2;
+	const size_t vertexCount = 3 * triangleCount;
+	_posColors.reserve(vertexCount);
+	_vertices.reserve(vertexCount);
+
+	Uint16 start = s_cast<Uint16>(_vertices.size());
+
+	for (Uint32 i = 0; i < count - 2; i++)
+	{
+		pushVertex(verts[0].vertex, verts[0].color.toVec4(), Vec2::zero);
+		pushVertex(verts[i+1].vertex, verts[i+1].color.toVec4(), Vec2::zero);
+		pushVertex(verts[i+2].vertex, verts[i+2].color.toVec4(), Vec2::zero);
+	}
+
+	const size_t indexCount = _vertices.size() - start;
+	_indices.reserve(indexCount);
+
+	for (Uint16 i = 0; i < indexCount; i++)
+	{
+		_indices.push_back(start + i);
+	}
+
+	_flags.setOn(DrawNode::VertexColorDirty);
+	_flags.setOn(DrawNode::VertexPosDirty);
+}
+
 void DrawNode::clear()
 {
 	_posColors.clear();

@@ -520,6 +520,12 @@ class ClipNode : public Node
 	static ClipNode* create(Node* stencil = nullptr);
 };
 
+struct VertexColor
+{
+	VertexColor(Vec2 vertex, Color color);
+	~VertexColor();
+};
+
 class DrawNode : public Node
 {
 	tolua_property__bool bool depthWrite @ is3D;
@@ -527,6 +533,7 @@ class DrawNode : public Node
 	void drawDot(Vec2 pos, float radius, Color color);
 	void drawSegment(Vec2 from, Vec2 to, float radius, Color color);
 	void drawPolygon(Vec2 verts[tolua_len], Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
+	void drawPolygon(VertexColor verts[tolua_len]);
 	void clear();
 	static DrawNode* create();
 };
