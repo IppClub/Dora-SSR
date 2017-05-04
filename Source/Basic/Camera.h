@@ -20,6 +20,7 @@ public:
 	virtual const Vec3& getTarget();
 	virtual const Vec3& getUp();
 	virtual const float* getView();
+	Delegate<void()> Updated;
 protected:
 	Camera(String name);
 protected:

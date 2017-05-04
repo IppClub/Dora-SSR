@@ -18,13 +18,16 @@ Dorothy builtin.ImGui
 entry\schedule ->
 	{:width,:height} = Application
 	SetNextWindowPos Vec2(width-220,10), "FirstUseEver"
-	SetNextWindowSize Vec2(220,400),"FirstUseEver"
+	SetNextWindowSize Vec2(220,450),"FirstUseEver"
 	if Begin "Sprite", "NoResize|NoSavedSettings"
 		if BeginChild "scroll", Vec2 -1,-40
 			_,sprite.z = DragFloat "Z", sprite.z, 1, -1000, 1000, "%.2f"
 			anchor = sprite.anchor
 			DragFloat2 "Anchor", anchor, 0.01, 0, 1, "%.2f"
 			sprite.anchor = anchor
+			size = Vec2(1,1)*sprite.size
+			DragFloat2 "Size", size, 0.1, 0, 1000, "%.f"
+			sprite.size = Size(1,1)*size
 			scale = Vec2(sprite.scaleX, sprite.scaleY)
 			DragFloat2 "Scale", scale, 0.01, -2, 2, "%.2f"
 			sprite.scaleX = scale.x

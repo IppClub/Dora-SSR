@@ -112,8 +112,7 @@ void BasicCamera::updateView()
 			bx::vec3Norm(_up, _up);
 			bx::mtxLookAt(_view, _position, _target, _up);
 		}
-		Node* entry = SharedDirector.getCurrentEntry();
-		if (entry) entry->markDirty();
+		Updated();
 	}
 }
 
@@ -188,8 +187,7 @@ void Camera2D::updateView()
 		bx::vec3MulMtx(_up, Vec3{0, 1.0f, 0}, rotateZ);
 		bx::vec3Norm(_up, _up);
 		bx::mtxLookAt(_view, _position, _target, _up);
-		Node* entry = SharedDirector.getCurrentEntry();
-		if (entry) entry->markDirty();
+		Updated();
 	}
 }
 

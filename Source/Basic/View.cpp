@@ -159,8 +159,7 @@ float View::getFieldOfView() const
 void View::updateProjection()
 {
 	bx::mtxProj(_projection, _fieldOfView, getAspectRatio(), _nearPlaneDistance, _farPlaneDistance, bgfx::getCaps()->homogeneousDepth);
-	Node* entry = SharedDirector.getCurrentEntry();
-	if (entry) entry->markDirty();
+	SharedDirector.markDirty();
 }
 
 const Matrix& View::getProjection() const
