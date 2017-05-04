@@ -171,6 +171,11 @@ public:
 	void removeAction(Action* action);
 	void stopAction(Action* action);
 
+	Size alignItemsVertically(float padding = 10.0f);
+	Size alignItemsHorizontally(float padding = 10.0f);
+	Size alignItems(float padding = 10.0f);
+	void moveAndCullItems(const Vec2& delta);
+
 protected:
 	Node();
 	virtual ~Node();

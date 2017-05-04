@@ -1115,6 +1115,112 @@ void Node::stopActionInList(Action* action)
 	}
 }
 
+Size Node::alignItemsVertically(float padding)
+{
+	float width = getWidth();
+	float y = getHeight() - padding;
+	ARRAY_START(Node, child, _children)
+	{
+		float realWidth = child->getWidth() * child->getScaleX();
+		float realHeight = child->getHeight() * child->getScaleY();
+		if (realWidth == 0.0f || realHeight == 0.0f) continue;
+		float realPosY = (1.0f - child->getAnchor().y) * realHeight;
+		y -= realPosY;
+		child->setX(width * 0.5f - (0.5f - child->getAnchor().x) * realWidth);
+		child->setY(y);
+		y -= child->getAnchor().y * realHeight;
+		y -= padding;
+	}
+	ARRAY_END
+	return _children && !_children->isEmpty() ? Size{getWidth(), getHeight() - y} : Size::zero;
+}
+
+Size Node::alignItemsHorizontally(float padding)
+{
+	float height = getHeight();
+	float x = padding;
+	ARRAY_START(Node, child, _children)
+	{
+		float realWidth = child->getWidth() * child->getScaleX();
+		float realHeight = child->getHeight() * child->getScaleY();
+		if (realWidth == 0.0f || realHeight == 0.0f) continue;
+		float realPosX = child->getAnchor().x * realWidth;
+		x += realPosX;
+		child->setX(x);
+		child->setY(height * 0.5f - (0.5f - child->getAnchor().y) * realHeight);
+		x += (1.0f - child->getAnchor().x) * realWidth;
+		x += padding;
+	}
+	ARRAY_END
+	return _children && !_children->isEmpty() ? Size{x, getHeight()} : Size::zero;
+}
+
+Size Node::alignItems(float padding)
+{
+	float height = getHeight();
+	float width = getWidth();
+	float x = padding;
+	float y = getHeight() - padding;
+	int rows = 0;
+	float curY = y;
+	float maxX = 0;
+	ARRAY_START(Node, child, _children)
+	{
+		float realWidth = child->getWidth() * child->getScaleX();
+		float realHeight = child->getHeight() * child->getScaleY();
+
+		if (realWidth == 0.0f || realHeight == 0.0f) continue;
+
+		if (x + realWidth + padding > width)
+		{
+			x = padding;
+			rows++;
+			y = curY - padding;
+		}
+		float realPosX = child->getAnchor().x * realWidth;
+		x += realPosX;
+
+		float realPosY = (1.0f - child->getAnchor().y) * realHeight;
+
+		child->setX(x);
+		child->setY(y - realPosY);
+
+		x += (1.0f - child->getAnchor().x) * realWidth;
+		x += padding;
+		
+		maxX = std::max(maxX, x);
+
+		if (curY > y - realHeight)
+		{
+			curY = y - realHeight;
+		}
+	}
+	ARRAY_END
+	return _children && !_children->isEmpty() ? Size{maxX, height - curY + 10.0f} : Size::zero;
+}
+
+void Node::moveAndCullItems(const Vec2& delta)
+{
+	Rect contentRect(Vec2::zero, getSize());
+	ARRAY_START(Node, child, _children)
+	{
+		child->setPosition(child->getPosition() + delta);
+		const Vec2& pos = child->getPosition();
+		const Size& size = child->getSize();
+		const Vec2& anchor = child->getAnchor();
+		Rect childRect(
+			pos.x - size.width * anchor.x,
+			pos.y - size.height * anchor.y,
+			size.width,
+			size.height);
+		if (childRect.size != Size::zero)
+		{
+			child->setVisible(contentRect.intersectsRect(childRect));
+		}
+	}
+	ARRAY_END
+}
+
 /* Slot */
 
 Slot::Slot(const EventHandler& handler):

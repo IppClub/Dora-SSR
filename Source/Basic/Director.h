@@ -46,6 +46,8 @@ public:
 	void swapEntry(Node* entryA, Node* entryB);
 	void clearEntry();
 
+	void markDirty();
+
 	template <typename Func>
 	void pushViewProjection(const Matrix& viewProj, const Func& workHere)
 	{

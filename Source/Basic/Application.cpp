@@ -33,8 +33,8 @@ BGFXDora::~BGFXDora()
 Application::Application():
 _fpsLimited(false),
 _frame(0),
-_width(800),
-_height(600),
+_width(1024),
+_height(768),
 _maxFPS(60),
 _minFPS(30),
 _deltaTime(0),

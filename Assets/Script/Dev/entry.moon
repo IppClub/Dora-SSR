@@ -2,6 +2,7 @@ Dorothy builtin.ImGui
 import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
+AlignNode = require "UI.AlignNode"
 
 Content\setSearchPaths {
 	Content.writablePath.."Script"
@@ -152,7 +153,7 @@ doClean = ->
 
 isInEntry = true
 
-Director.ui = with Node!
+Director.ui = with AlignNode true
 	showStats = true
 	showLog = true
 	showFooter = true
@@ -232,6 +233,7 @@ Director\pushEntry with Node!
 							package.loaded[module] = nil
 						moduleCache = {}
 						Cache\unload!
+						Director.ui\removeAllChildren!
 				NextColumn!
 		End!
 		PopStyleColor!

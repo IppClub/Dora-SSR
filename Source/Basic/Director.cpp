@@ -31,7 +31,9 @@ _entryStack(Array::create()),
 _camera(Camera2D::create("Default"_slice)),
 _clearColor(0xff1a1a1a),
 _displayStats(false)
-{ }
+{
+	_camera->Updated += std::make_pair(this, &Director::markDirty);
+}
 
 Director::~Director()
 {
@@ -119,7 +121,12 @@ double Director::getDeltaTime() const
 
 void Director::setCamera(Camera* var)
 {
+	if (_camera)
+	{
+		_camera->Updated -= std::make_pair(this, &Director::markDirty);
+	}
 	_camera = var ? var : Camera2D::create("Default"_slice);
+	_camera->Updated += std::make_pair(this, &Director::markDirty);
 }
 
 Camera* Director::getCamera() const
@@ -495,6 +502,23 @@ void Director::clearEntry()
 	}
 }
 
+void Director::markDirty()
+{
+	Node* entry = getCurrentEntry();
+	if (entry)
+	{
+		entry->markDirty();
+	}
+	if (_ui)
+	{
+		_ui->markDirty();
+	}
+	if (_postNode)
+	{
+		_postNode->markDirty();
+	}
+}
+
 void Director::handleSDLEvent(const SDL_Event& event)
 {
 	switch (event.type)
@@ -534,11 +558,8 @@ void Director::handleSDLEvent(const SDL_Event& event)
 					case SDL_WINDOWEVENT_SIZE_CHANGED:
 					{
 						SharedView.reset();
-						Node* entry = getCurrentEntry();
-						if (entry)
-						{
-							entry->markDirty();
-						}
+						markDirty();
+						Event::send("AppSizeChanged"_slice);
 						break;
 					}
 				}
