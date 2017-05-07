@@ -1,0 +1,10 @@
+<!-- params: X=0, Y=0, Width, Height -->
+<Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }">
+	<Import Module="UI.View.Shape.SolidRect"/>
+
+	<ClipNode Name="view" AnchorX="0" AnchorY="0" Width="{ width }" Height="{ height }" Ref="True">
+		<Stencil>
+			<SolidRect Name="stencil" X="-1" Y="-1" Width="{ width+2 }" Height="{ height+2 }" Ref="True"/>
+		</Stencil>
+	</ClipNode>
+</Node>

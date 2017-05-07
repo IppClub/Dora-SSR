@@ -586,6 +586,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_KEYMAPCHANGED:
 			break;
 		case SDL_MOUSEWHEEL:
+			Event::send("AppMouseWheel"_slice, event.wheel.x, event.wheel.y);
 			break;
 		case SDL_JOYAXISMOTION:
 			break;

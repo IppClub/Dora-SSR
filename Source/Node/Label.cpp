@@ -409,9 +409,11 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		}
 	}
 
-	float commonHeight = _font->getInfo().commonHeight - _font->getInfo().lineGap + _lineGap;
-	totalHeight = commonHeight * quantityOfLines;
-	nextFontPositionY = 0 - (commonHeight - commonHeight * quantityOfLines);
+	const bgfx::FontInfo& fontInfo = _font->getInfo();
+	float lineHeight = fontInfo.commonHeight - fontInfo.lineGap + _lineGap;
+	totalHeight = lineHeight * quantityOfLines;
+	nextFontPositionY = lineHeight * quantityOfLines - lineHeight;
+	float maxY = 0.0f;
 
 	const bgfx::GlyphInfo* fontDef = nullptr;
 	for (size_t i = 0; i < chars.size(); i++)
@@ -422,7 +424,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		if (ch == '\n')
 		{
 			nextFontPositionX = 0;
-			nextFontPositionY -= commonHeight;
+			nextFontPositionY -= lineHeight;
 			if (fontChar)
 			{
 				fontChar->setVisible(false);
@@ -457,10 +459,11 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 			_characters[i] = fontChar;
 		}
 
-		float yOffset = commonHeight - fontDef->offset_y;
+		float yOffset = lineHeight - fontDef->offset_y;
 		Vec2 fontPos = Vec2{
 			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount,
 			nextFontPositionY + yOffset - fontDef->height * 0.5f};
+		maxY = std::max(maxY, fontPos.y + fontDef->height * 0.5f);
 		fontChar->setPosition(fontPos);
 
 		// update kerning
@@ -469,6 +472,18 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		if (longestLine < nextFontPositionX)
 		{
 			longestLine = nextFontPositionX;
+		}
+	}
+	float moveY = totalHeight - maxY;
+	if (moveY != 0.0f)
+	{
+		for (size_t i = 0; i < chars.size(); i++)
+		{
+			Sprite* fontChar = _characters[i];
+			if (fontChar)
+			{
+				fontChar->setY(fontChar->getY() + moveY);
+			}
 		}
 	}
 

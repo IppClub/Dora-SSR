@@ -15,8 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <android/log.h>
 #endif // BX_PLATFORM_ANDROID
 
-#include <iostream>
-
 NS_DOROTHY_BEGIN
 
 Delegate<void (const string&)> LogHandler;
@@ -29,7 +27,7 @@ void LogPrintInThread(const string& str)
 #if BX_PLATFORM_ANDROID
 		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
 #else
-		std::cout << str;
+		fmt::print("{}", str);
 #endif
 	});
 }

@@ -396,7 +396,7 @@ static const char* _toBoolean(const char* str)
 	if (z) stream << self << ".z = " << Val(z) << '\n';\
 	if (passColor) stream << self << ".passColor = " << toBoolean(passColor) << '\n';\
 	if (passOpacity) stream << self << ".passOpacity = " << toBoolean(passOpacity) << '\n';\
-	if (color) stream << self << ".color = Color3(" << Val(color) << ")\n";\
+	if (color) stream << self << ".color3 = Color3(" << Val(color) << ")\n";\
 	if (opacity) stream << self << ".opacity = " << Val(opacity) << '\n';\
 	if (angle) stream << self << ".angle = " << Val(angle) << '\n';\
 	if (angleX) stream << self << ".angleX = " << Val(angleX) << '\n';\
@@ -501,7 +501,7 @@ static const char* _toBoolean(const char* str)
 	Node_Handle
 #define Line_Finish \
 	Add_To_Parent\
-	oFunc func = {string(self)+":set({","})\n"};\
+	oFunc func = {string(self)+":set({","},Color(0xffffffff))\n"};\
 	funcs.push(func);\
 	items.push("Line");
 
@@ -541,11 +541,10 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(TextWidth) { textWidth = atts[++i]; break; }\
 	CASE_STR(LineGap) { lineGap = atts[++i]; break; }
 #define Label_Create \
-	stream << "local " << self << " = Label(";\
-	if (text && text[0]) stream << toText(text); else stream << "\"\"";\
-	stream << ',' << toText(fontName) << ',' << Val(fontSize) << ")\n";
+	stream << "local " << self << " = Label(" << toText(fontName) << ',' << Val(fontSize) << ")\n";
 #define Label_Handle \
 	Node_Handle\
+	if (text && text[0]) stream << self << ".text = " << toText(text) << '\n';\
 	if (alignment) stream << self << ".alignment = " << toTextAlign(alignment) << '\n';\
 	if (textWidth) stream << self << ".textWidth = " << (strcmp(textWidth,"Auto")==0 ? "Label.AutomaticWidth" : Val(textWidth)) << '\n';\
 	if (lineGap) stream << self << ".lineGap = " << Val(lineGap) << '\n';
@@ -692,13 +691,15 @@ static const char* _toBoolean(const char* str)
 #define Slot_Define \
 	const char* name = nullptr;\
 	const char* args = nullptr;\
-	const char* perform = nullptr;
+	const char* perform = nullptr;\
+	const char* target = nullptr;
 #define Slot_Check \
 	CASE_STR(Name) { name = atts[++i]; break; }\
 	CASE_STR(Args) { args = atts[++i]; break; }\
+	CASE_STR(Target) { target = atts[++i]; break; }\
 	CASE_STR(Perform) { perform = atts[++i]; break; }
 #define Slot_Create \
-	oFunc func = {elementStack.top().name+":slot("+toText(name)+",function("+(args ? args : "")+")"+(perform ? string("\n")+elementStack.top().name+":perform("+perform+")\n" : Slice::Empty), "end)"};\
+	oFunc func = {elementStack.top().name+":slot("+toText(name)+",function("+(args ? args : "")+")"+(perform ? string("\n")+(target ? string(target) : elementStack.top().name)+":perform("+perform+")\n" : Slice::Empty), "end)"};\
 	funcs.push(func);
 
 #define Item_Define(name) name##_Define
@@ -1068,7 +1069,11 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 			Item_Create(Slot)
 			break;
 		}
-		CASE_STR(Script) break;
+		CASE_STR(Script)
+		{
+			break;
+		}
+		default:
 		{
 			Item_Define(ModuleNode)
 			Item_Loop(ModuleNode)
@@ -1078,6 +1083,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 			ModuleNode_Finish;
 			oItem item = { element, self, ref };
 			elementStack.push(item);
+			break;
 		}
 	}
 	SWITCH_STR_END
