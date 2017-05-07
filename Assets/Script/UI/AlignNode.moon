@@ -32,14 +32,14 @@ Class Node,
 				if @alignHeight
 					heightFunc = loadstring "return #{@alignHeight}"
 					@height = run_with_scope heightFunc, env
-				switch @hAlign
-					when "Left" then @x = @width/2 + @alignOffset.x
-					when "Center" then @x = w/2 + @alignOffset.x
-					when "Right" then @x = w - @width/2 - @alignOffset.x
-				switch @vAlign
-					when "Bottom" then @y = @height/2 + @alignOffset.y
-					when "Center" then @y = h/2 + @alignOffset.y
-					when "Top" then @y = h - @height/2 - @alignOffset.y
+				@x = switch @hAlign
+					when "Left" then @width/2 + @alignOffset.x
+					when "Center" then w/2 + @alignOffset.x
+					when "Right" then w - @width/2 - @alignOffset.x
+				@y = switch @vAlign
+					when "Bottom" then @height/2 + @alignOffset.y
+					when "Center" then h/2 + @alignOffset.y
+					when "Top" then h - @height/2 - @alignOffset.y
 				newSize = @size
 				if oldSize ~= newSize
 					@eachChild (child)->

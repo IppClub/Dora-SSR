@@ -307,9 +307,10 @@ bool NodeTouchHandler::up(const SDL_Event& event)
 				_target->emit("TapEnded"_slice, touch);
 				_target->emit("Tapped"_slice, touch);
 			}
+			collect(id);
+			return true;
 		}
 		collect(id);
-		return true;
 	}
 	return false;
 }

@@ -1,0 +1,13 @@
+<!-- params: X=0, Y=0, Width, Height, FillColor, BorderColor -->
+<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }">
+	<Import Module="UI.View.Shape.SolidRect"/>
+	<Import Module="UI.View.Shape.LineRect"/>
+
+	<Script>if fillColor then</Script>
+		<SolidRect Width="{ width }" Height="{ height }" Color="{ fillColor }"/>
+	<Script>end</Script>
+
+	<Script>if borderColor then</Script>
+		<LineRect Width="{ width }" Height="{ height }" Color="{ borderColor }"/>
+	<Script>end</Script>
+</Node>

@@ -446,10 +446,11 @@ bool ImGUIDora::init()
 					io.KeysDown[key] = (event.type == SDL_KEYDOWN);
 					if (_textLength == 0)
 					{
-						io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-						io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-						io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-						io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+						SDL_Keymod mod = SDL_GetModState();
+						io.KeyShift = ((mod & KMOD_SHIFT) != 0);
+						io.KeyCtrl = ((mod & KMOD_CTRL) != 0);
+						io.KeyAlt = ((mod & KMOD_ALT) != 0);
+						io.KeySuper = ((mod & KMOD_GUI) != 0);
 					}
 					break;
 				}
