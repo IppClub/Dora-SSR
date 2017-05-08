@@ -151,7 +151,7 @@ const float* Director::getViewProjection() const
 
 void registerTouchHandler(Node* target)
 {
-	target->traverse([](Node* node)
+	target->traverseVisible([](Node* node)
 	{
 		if (node->isTouchEnabled())
 		{
@@ -586,7 +586,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_KEYMAPCHANGED:
 			break;
 		case SDL_MOUSEWHEEL:
-			Event::send("AppMouseWheel"_slice, event.wheel.x, event.wheel.y);
+			Event::send("AppMouseWheel"_slice, Vec2{s_cast<float>(event.wheel.x), s_cast<float>(event.wheel.y)});
 			break;
 		case SDL_JOYAXISMOTION:
 			break;

@@ -294,6 +294,7 @@ class Node : public Object
 	tolua_readonly tolua_property__bool bool scheduled;
 	tolua_readonly tolua_property__common int actionCount;
 	tolua_property__bool bool touchEnabled;
+	tolua_property__bool bool swallowTouches;
 
 	void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
@@ -327,6 +328,11 @@ class Node : public Object
 	void stopAllActions();
 	void perform(Action* action);
 	void stopAction(Action* action);
+
+	Size alignItemsVertically(float padding = 10.0f);
+	Size alignItemsHorizontally(float padding = 10.0f);
+	Size alignItems(float padding = 10.0f);
+	void moveAndCullItems(Vec2 delta);
 
 	static Node* create();
 };
@@ -957,4 +963,11 @@ class Audio
 	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
 	void stopStream(float fadeTime = 0.0f);
 	static tolua_outside Audio* Audio_shared @ create();
+};
+
+class Menu : public Node
+{
+	tolua_property__bool bool enabled;
+	static Menu* create(float width, float height);
+	static Menu* create();
 };

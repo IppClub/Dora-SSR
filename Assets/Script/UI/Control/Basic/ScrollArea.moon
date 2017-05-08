@@ -24,9 +24,11 @@ Class ScrollAreaView,
 		paddingY = args.paddingY or 200
 		posX,posY = 0,0
 		timePassed = 0
-		S = oVec2.zero
-		V = oVec2.zero
+		S = Vec2.zero
+		V = Vec2.zero
 		deltaMoveLength = 0
+		@contentSize = Size width,height
+		@setupMenuScroll @view
 
 		updateReset = (deltaTime)->
 			local x,y
@@ -35,7 +37,7 @@ Class ScrollAreaView,
 			with Ease
 				if posX < -moveX
 					tmp = deltaX
-					deltaX = posX + (moveX+posX) * \func .OutQuad,t
+					deltaX = posX - (moveX+posX) * \func .OutQuad,t
 					x = deltaX - tmp
 				elseif posX > 0
 					tmp = deltaX
@@ -51,10 +53,11 @@ Class ScrollAreaView,
 					y = deltaY - tmp
 			x or= 0
 			y or= 0
-			@emit "Scrolled",oVec2(x,y)
+			@emit "Scrolled",Vec2(x,y)
 			if t == 1
 				@unschedule!
 				@emit "ScrollEnd"
+			false
 
 		isReseting = ->
 			not @dragging and (deltaX > 0 or deltaX < -moveX or deltaY > moveY or deltaY < 0)
@@ -100,7 +103,7 @@ Class ScrollAreaView,
 			deltaX += dPosX
 			deltaY += dPosY
 
-			@emit "Scrolled",oVec2(dPosX,dPosY)
+			@emit "Scrolled",Vec2(dPosX,dPosY)
 
 			startReset! if not touching and
 			(newPosY < -paddingY*0.5 or
@@ -114,10 +117,11 @@ Class ScrollAreaView,
 			if V.length > accel
 				V\normalize!
 				V = V * accel
-			S = oVec2.zero
+			S = Vec2.zero
+			false
 
 		updatePos = (dt)->
-			dir = oVec2 V.x,V.y
+			dir = Vec2 V.x,V.y
 			dir\normalize!
 			A = dir * -accel
 			incX = V.x > 0
@@ -134,36 +138,29 @@ Class ScrollAreaView,
 			else
 				dS = V * dt
 				setOffset dS,false
+			false
 
-		@touchEnabled = true
-		@touchPriority = touchPriority
-		@slot "TouchBegan",(touch)->
-			return false unless touch.id == 0
-
-			pos = @convertToNodeSpace touch.location
-			rect = CCRect oVec2(-@width*0.5,-@height*0.5),CCSize(@width,@height)
-			return false unless rect\containsPoint pos
-
+		@slot "TapBegan",(touch)->
+			if touch.id ~= 0 or not Rect(-width/2,-height/2,width,height)\containsPoint touch.location
+				touch.enabled = false
+				return
 			deltaMoveLength = 0
-			S = oVec2.zero
-			V = oVec2.zero
+			S = Vec2.zero
+			V = Vec2.zero
 			@schedule updateSpeed
 			@emit "ScrollTouchBegan"
-			true
 
-		touchEnded = ->
+		@slot "TapEnded",->
 			@dragging = false
 			if isReseting!
 				startReset!
-			elseif V ~= oVec2.zero and deltaMoveLength > 10
+			elseif V ~= Vec2.zero and deltaMoveLength > 10
 				@schedule updatePos
 			else
 				@emit "ScrollEnd"
 			@emit "ScrollTouchEnded"
 
-		@slot "TouchEnded",touchEnded
-		@slot "TouchCancelled",touchEnded
-		@slot "TouchMoved",(touch)->
+		@slot "TapMoved",(touch)->
 			lastMoveLength = deltaMoveLength
 			S = touch.delta
 			deltaMoveLength += S.length
@@ -173,15 +170,18 @@ Class ScrollAreaView,
 					@dragging = true
 					@emit "ScrollStart"
 
+		--@gslot "AppMouseWheel",(delta)->
+		--	@scroll delta*10
+
 		@scroll = (delta)=>
 			if delta
 				deltaX += delta.x
 				deltaY += delta.y
-				@emit "Scrolled",oVec2(delta.x,delta.y)
+				@emit "Scrolled",Vec2(delta.x,delta.y)
 			startReset! if isReseting!
 
 		@scrollTo = (offset)=>
-			delta = offset - oVec2 deltaX,deltaY
+			delta = offset - Vec2 deltaX,deltaY
 			deltaX = offset.x
 			deltaY = offset.y
 			@emit "Scrolled",delta
@@ -192,7 +192,7 @@ Class ScrollAreaView,
 			viewHeight = math.max hView,height
 			moveY = viewHeight - height
 			moveX = viewWidth - width
-			@scroll oVec2.zero
+			@scroll Vec2.zero
 
 		@reset = (wView,hView,padX,padY)=>
 			@updateViewSize wView,hView
@@ -201,18 +201,18 @@ Class ScrollAreaView,
 			deltaX,deltaY = 0,0
 			posX,posY = 0,0
 			timePassed = 0
-			S = oVec2.zero
-			V = oVec2.zero
+			S = Vec2.zero
+			V = Vec2.zero
 			deltaMoveLength = 0
 
 		@updatePadding = (padX,padY)=>
 			paddingX = padX
 			paddingY = padY
-			@scroll oVec2.zero
+			@scroll Vec2.zero
 
-		@getPadding = -> oVec2 paddingX,paddingY
-		@getViewSize = -> CCSize viewWidth,viewHeight
-		@getTotalDelta = -> oVec2 deltaX,deltaY
+		@getPadding = -> Vec2 paddingX,paddingY
+		@getViewSize = -> Size viewWidth,viewHeight
+		@getTotalDelta = -> Vec2 deltaX,deltaY
 
 	offset:property => @getTotalDelta!,
 		(offset)=> @scroll offset-@getTotalDelta!
@@ -235,7 +235,7 @@ Class ScrollAreaView,
 
 	adjustScrollSize:(menu,padding=10,alignMode="auto")=> -- alignMode:auto,vertical,horizontal
 		offset = @offset
-		@scrollTo oVec2.zero
+		@scrollTo Vec2.zero
 		@viewSize = switch alignMode
 			when "auto"
 				menu\alignItems padding
@@ -247,7 +247,7 @@ Class ScrollAreaView,
 		@scroll!
 
 	scrollToPosY:(posY,time=0.3)=>
-		height = @height
+		{:height} = @contentSize
 		offset = @offset
 		viewHeight = @viewSize.height
 		deltaY = height/2-posY
@@ -258,10 +258,10 @@ Class ScrollAreaView,
 		else
 			endY = math.max endY,0
 			endY = math.min endY,viewHeight-height
-			@schedule once ->
-				changeY = endY-startY
-				cycle time,(progress)->
-					offset.y = oEase\func oEase.OutQuad,progress,startY,changeY
-					@scrollTo offset
-				offset.y = endY
+		@schedule once ->
+			changeY = endY-startY
+			cycle time,(progress)->
+				offset.y = startY + changeY * Ease\func Ease.OutQuad,progress
 				@scrollTo offset
+			offset.y = endY
+			@scrollTo offset

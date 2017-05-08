@@ -17,7 +17,6 @@ NS_DOROTHY_BEGIN
 
 int dora_emit(lua_State* L)
 {
-	int top = lua_gettop(L);
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
 	if (!tolua_isstring(L, 1, 0, &tolua_err))
@@ -26,7 +25,16 @@ int dora_emit(lua_State* L)
 	}
 #endif
 	Slice name = tolua_toslice(L, 1, nullptr);
-	LuaEventArgs::send(name, top - 1);
+	int top = lua_gettop(L);
+	int count = top - 1;
+	for (int i = 2; i <= top; i++)
+	{
+		lua_pushvalue(L, i);
+	}
+	lua_State* baseL = SharedLueEngine.getState();
+	lua_xmove(L, baseL, count);
+	LuaEventArgs::send(name, count);
+	lua_pop(baseL, count);
 	return 0;
 }
 
@@ -91,8 +99,16 @@ int Node_emit(lua_State* L)
 #endif
 		Slice name = tolua_toslice(L, 2, 0);
 		int top = lua_gettop(L);
-		LuaEventArgs luaEvent(name, top - 2);
+		int count = top - 2;
+		for (int i = 3; i <= top; i++)
+		{
+			lua_pushvalue(L, i);
+		}
+		lua_State* baseL = SharedLueEngine.getState();
+		lua_xmove(L, baseL, count);
+		LuaEventArgs luaEvent(name, count);
 		self->emit(&luaEvent);
+		lua_pop(baseL, count);
 	}
 	return 0;
 #ifndef TOLUA_RELEASE
