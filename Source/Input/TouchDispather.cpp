@@ -267,7 +267,7 @@ bool NodeTouchHandler::down(const SDL_Event& event)
 		touch->_worldPreLocation = touch->_worldLocation = _target->convertToWorldSpace(pos);
 		touch->_flags.setOn(Touch::Selected);
 		_target->emit("TapBegan"_slice, touch);
-		return true;
+		return touch->isEnabled();
 	}
 	else
 	{
@@ -338,7 +338,7 @@ bool NodeTouchHandler::move(const SDL_Event& event)
 		touch->_location = pos;
 		touch->_worldPreLocation = touch->_worldLocation;
 		touch->_worldLocation = _target->convertToWorldSpace(pos);
-		_target->emit("TapMoved", touch);
+		_target->emit("TapMoved"_slice, touch);
 		if (_target->getSize() != Size::zero)
 		{
 			bool inBound = Rect(Vec2::zero, _target->getSize()).containsPoint(pos);

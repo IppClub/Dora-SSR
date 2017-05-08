@@ -163,6 +163,24 @@ public:
 		return false;
 	}
 
+	/** @brief traverse node tree, return true to stop. */
+	template <class Func>
+	bool traverseVisible(const Func& func)
+	{
+		if (!isVisible() || func(this)) return true;
+		if (_children && _flags.isOn(Node::TraverseEnabled))
+		{
+			for (auto child : _children->data())
+			{
+				if (child.to<Node>()->traverse(func))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	PROPERTY_READONLY(int, ActionCount);
 	void runAction(Action* action);
 	bool hasAction(Action* action);

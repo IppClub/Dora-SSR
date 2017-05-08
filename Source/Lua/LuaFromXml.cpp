@@ -609,6 +609,21 @@ static const char* _toBoolean(const char* str)
 #define Model_Finish \
 	Add_To_Parent
 
+// Menu
+#define Menu_Define \
+	Node_Define\
+	const char* enabled = nullptr;
+#define Menu_Check \
+	Node_Check\
+	CASE_STR(Enabled) { enabled = atts[++i]; break; }
+#define Menu_Create \
+	stream << "local " << self << " = Menu()\n";
+#define Menu_Handle \
+	Node_Handle\
+	if (enabled) stream << self << ".enabled = " << toBoolean(enabled) << '\n';
+#define Menu_Finish \
+	Add_To_Parent
+
 // ModuleNode
 #define ModuleNode_Define \
 	Object_Define
@@ -992,6 +1007,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 		Item(Label, label)
 
 		Item(Model, model)
+		Item(Menu, menu)
 
 		Item(Delay, delay)
 		Item(Scale, scale)
@@ -1218,6 +1234,7 @@ void XmlDelegator::endElement(const char *name)
 		CaseBuiltin(ClipNode)
 		CaseBuiltin(Label)
 		CaseBuiltin(Model)
+		CaseBuiltin(Menu)
 		CaseBuiltin(Vec2)
 		CaseBuiltin(Dot)
 		CaseBuiltin(Segment)
