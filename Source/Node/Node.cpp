@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Node::Node():
-_flags(Node::Visible|Node::PassOpacity|Node::PassColor3|Node::SwallowTouches|Node::TraverseEnabled),
+_flags(Node::Visible|Node::PassOpacity|Node::PassColor3|Node::TraverseEnabled),
 _order(0),
 _color(),
 _angle(0.0f),

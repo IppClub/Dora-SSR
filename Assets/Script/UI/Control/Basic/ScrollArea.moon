@@ -198,8 +198,15 @@ Class ScrollAreaView,
 					@barY = barY
 					@barBgY = barBgY
 					barY
-				fadeBarX = Action Sequence Opacity(0,1,1), Delay(1), Opacity(0.4,1,0,Ease.OutQuad)
-				fadeBarY = Action Sequence Opacity(0,1,1), Delay(1), Opacity(0.4,1,0,Ease.OutQuad)
+				fadeSeq = Sequence(
+					Show!
+					Opacity 0,1,1
+					Delay 1
+					Opacity 0.4,1,0,Ease.OutQuad
+					Hide!
+				)
+				fadeBarX = Action fadeSeq
+				fadeBarY = Action fadeSeq
 				@slot "Scrolled",(delta)->
 					if delta.x ~= 0
 						barX = getScrollBarX!
