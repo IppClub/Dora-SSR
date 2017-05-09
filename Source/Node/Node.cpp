@@ -1117,8 +1117,13 @@ void Node::stopActionInList(Action* action)
 
 Size Node::alignItemsVertically(float padding)
 {
-	float width = getWidth();
-	float y = getHeight() - padding;
+	return alignItemsVertically(getSize(), padding);
+}
+
+Size Node::alignItemsVertically(const Size& size, float padding)
+{
+	float width = size.width;
+	float y = size.height - padding;
 	ARRAY_START(Node, child, _children)
 	{
 		float realWidth = child->getWidth() * child->getScaleX();
@@ -1132,12 +1137,17 @@ Size Node::alignItemsVertically(float padding)
 		y -= padding;
 	}
 	ARRAY_END
-	return _children && !_children->isEmpty() ? Size{getWidth(), getHeight() - y} : Size::zero;
+	return _children && !_children->isEmpty() ? Size{size.width, size.height - y} : Size::zero;
 }
 
 Size Node::alignItemsHorizontally(float padding)
 {
-	float height = getHeight();
+	return alignItemsHorizontally(getSize(), padding);
+}
+
+Size Node::alignItemsHorizontally(const Size& size, float padding)
+{
+	float height = size.height;
 	float x = padding;
 	ARRAY_START(Node, child, _children)
 	{
@@ -1152,15 +1162,20 @@ Size Node::alignItemsHorizontally(float padding)
 		x += padding;
 	}
 	ARRAY_END
-	return _children && !_children->isEmpty() ? Size{x, getHeight()} : Size::zero;
+	return _children && !_children->isEmpty() ? Size{x, size.height} : Size::zero;
 }
 
 Size Node::alignItems(float padding)
 {
-	float height = getHeight();
-	float width = getWidth();
+	return alignItems(getSize(), padding);
+}
+
+Size Node::alignItems(const Size& size, float padding)
+{
+	float height = size.height;
+	float width = size.width;
 	float x = padding;
-	float y = getHeight() - padding;
+	float y = height - padding;
 	int rows = 0;
 	float curY = y;
 	float maxX = 0;

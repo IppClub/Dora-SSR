@@ -59,6 +59,10 @@
 		3C8805751E5ED1AE00B52D4B /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805731E5ED1AE00B52D4B /* Label.cpp */; };
 		3C9862721D9CA4500056A045 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862701D9CA4500056A045 /* libbgfx.a */; };
 		3C9862741D9CA4830056A045 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862731D9CA4830056A045 /* libSDL2.a */; };
+		3CA1B7EC1EC16E3B00BC58FF /* Menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7EA1EC16E3B00BC58FF /* Menu.cpp */; };
+		3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */; };
+		3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */; };
+		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
 		3CB410291E05B0C500A8804D /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410261E05B0C500A8804D /* Slice.cpp */; };
 		3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410381E05B19A00A8804D /* ioapi.cpp */; };
 		3CB410411E05B19A00A8804D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103A1E05B19A00A8804D /* unzip.cpp */; };
@@ -272,6 +276,14 @@
 		3C8DC3321E666B9F00E59BEC /* Header.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Header.pch; path = ../../../Source/Const/Header.pch; sourceTree = "<group>"; };
 		3C9862701D9CA4500056A045 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbgfx.a; sourceTree = "<group>"; };
 		3C9862731D9CA4830056A045 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
+		3CA1B7EA1EC16E3B00BC58FF /* Menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Menu.cpp; path = ../../../Source/Node/Menu.cpp; sourceTree = "<group>"; };
+		3CA1B7EB1EC16E3B00BC58FF /* Menu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Menu.h; path = ../../../Source/Node/Menu.h; sourceTree = "<group>"; };
+		3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaFromXml.cpp; path = ../../../Source/Lua/LuaFromXml.cpp; sourceTree = "<group>"; };
+		3CA1B7EE1EC16E9F00BC58FF /* LuaFromXml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaFromXml.h; path = ../../../Source/Lua/LuaFromXml.h; sourceTree = "<group>"; };
+		3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SAXParser.cpp; path = ../../../Source/3rdParty/tinyxml2/SAXParser.cpp; sourceTree = "<group>"; };
+		3CA1B7F21EC16ED300BC58FF /* SAXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SAXParser.h; path = ../../../Source/3rdParty/tinyxml2/SAXParser.h; sourceTree = "<group>"; };
+		3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml2.cpp; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.cpp; sourceTree = "<group>"; };
+		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
 		3CB410261E05B0C500A8804D /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CB410271E05B0C500A8804D /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
 		3CB4102B1E05B0F800A8804D /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
@@ -517,6 +529,8 @@
 		3C1038511E15103600D37A60 /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CA1B7EA1EC16E3B00BC58FF /* Menu.cpp */,
+				3CA1B7EB1EC16E3B00BC58FF /* Menu.h */,
 				3CC05B681E716EB000F2BA1B /* DrawNode.cpp */,
 				3CC05B691E716EB000F2BA1B /* DrawNode.h */,
 				3CCB0C7F1E707A650088C118 /* ClipNode.cpp */,
@@ -705,9 +719,21 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		3CA1B7F01EC16EBD00BC58FF /* tinyxml2 */ = {
+			isa = PBXGroup;
+			children = (
+				3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */,
+				3CA1B7F21EC16ED300BC58FF /* SAXParser.h */,
+				3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */,
+				3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */,
+			);
+			name = tinyxml2;
+			sourceTree = "<group>";
+		};
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CA1B7F01EC16EBD00BC58FF /* tinyxml2 */,
 				3CEDF76B1E8353ED008839A3 /* lpeg */,
 				3CB730691E803408006DFA18 /* Box2D */,
 				3C88056C1E5ED12600B52D4B /* font */,
@@ -1107,6 +1133,8 @@
 			isa = PBXGroup;
 			children = (
 				3C77083D1E08D9F500B38C2A /* ToLua */,
+				3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */,
+				3CA1B7EE1EC16E9F00BC58FF /* LuaFromXml.h */,
 				3C0AD7C11E0CE9990033AD59 /* LuaBinding.cpp */,
 				3C0AD7C21E0CE9990033AD59 /* LuaBinding.h */,
 				3C0AD7C31E0CE9990033AD59 /* LuaCode.cpp */,
@@ -1215,6 +1243,7 @@
 				3CB730D41E80356A006DFA18 /* b2FrictionJoint.cpp in Sources */,
 				3CB7308A1E803529006DFA18 /* b2Rope.cpp in Sources */,
 				3CB7309C1E80353A006DFA18 /* b2World.cpp in Sources */,
+				3CA1B7EC1EC16E3B00BC58FF /* Menu.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
 				3CB410421E05B19A00A8804D /* zip.cpp in Sources */,
 				3CB730F11E80357D006DFA18 /* b2Timer.cpp in Sources */,
@@ -1249,6 +1278,7 @@
 				3CB7309D1E80353A006DFA18 /* b2WorldCallbacks.cpp in Sources */,
 				3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */,
 				3CB7307B1E80343E006DFA18 /* DebugDraw.cpp in Sources */,
+				3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */,
 				3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */,
 				3C0AD7EA1E0CE9D00033AD59 /* Object.cpp in Sources */,
 				3CD6C2A51E30C1F500B36FFC /* Effect.cpp in Sources */,
@@ -1260,6 +1290,7 @@
 				3CB7309B1E80353A006DFA18 /* b2Island.cpp in Sources */,
 				3CB730ED1E80357D006DFA18 /* b2Draw.cpp in Sources */,
 				3CD3283E1E4C42A60036906C /* imgui_demo.cpp in Sources */,
+				3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */,
 				3CB731141E8035A5006DFA18 /* b2PolygonShape.cpp in Sources */,
 				3C4BC65A1E17F18300292200 /* Node.cpp in Sources */,
 				3C88056A1E5ED11800B52D4B /* ostream.cpp in Sources */,
@@ -1267,6 +1298,7 @@
 				3CB731011E80358B006DFA18 /* b2CollideEdge.cpp in Sources */,
 				3C8805691E5ED11800B52D4B /* format.cpp in Sources */,
 				3CB730EC1E80357D006DFA18 /* b2BlockAllocator.cpp in Sources */,
+				3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */,
 				3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */,
 				3CEDF7791E835409008839A3 /* lpprint.cpp in Sources */,
 				3CB7307A1E80343E006DFA18 /* BodyDef.cpp in Sources */,

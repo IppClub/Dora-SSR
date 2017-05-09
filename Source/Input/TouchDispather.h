@@ -73,9 +73,11 @@ protected:
 	Touch* get(SDL_FingerID fingerId);
 	void collect(SDL_FingerID fingerId);
 	Vec2 getPos(const SDL_Event& event);
+	Vec2 getPos(const Vec3& winPos);
 	bool up(const SDL_Event& event);
 	bool down(const SDL_Event& event);
 	bool move(const SDL_Event& event);
+	bool wheel(const SDL_Event& event);
 private:
 	Node* _target;
 	stack<int> _availableTouchIds;

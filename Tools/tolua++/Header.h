@@ -330,8 +330,11 @@ class Node : public Object
 	void stopAction(Action* action);
 
 	Size alignItemsVertically(float padding = 10.0f);
+	Size alignItemsVertically(Size size, float padding = 10.0f);
 	Size alignItemsHorizontally(float padding = 10.0f);
+	Size alignItemsHorizontally(Size size, float padding = 10.0f);
 	Size alignItems(float padding = 10.0f);
+	Size alignItems(Size size, float padding = 10.0f);
 	void moveAndCullItems(Vec2 delta);
 
 	static Node* create();

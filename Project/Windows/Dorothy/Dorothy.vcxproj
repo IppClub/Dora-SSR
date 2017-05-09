@@ -335,6 +335,7 @@
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Menu.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Model.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
@@ -488,6 +489,7 @@
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
+    <ClInclude Include="..\..\..\Source\Node\Menu.h" />
     <ClInclude Include="..\..\..\Source\Node\Model.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
