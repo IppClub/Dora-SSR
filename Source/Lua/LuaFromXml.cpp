@@ -1160,7 +1160,7 @@ void XmlDelegator::endElement(const char *name)
 			funcs.pop();
 			if (parentIsAction)
 			{
-				stream << "local " << currentData.name << " = " << func.begin << '\n';
+				stream << "local " << currentData.name << " = Action(" << func.begin << ")\n";
 			}
 			else
 			{
@@ -1190,7 +1190,7 @@ void XmlDelegator::endElement(const char *name)
 			tempItem += ")";
 			if (parentIsAction)
 			{
-				stream << "local " << currentData.name << " = " << tempItem << '\n';
+				stream << "local " << currentData.name << " = Action(" << tempItem << ")\n";
 			}
 			else
 			{

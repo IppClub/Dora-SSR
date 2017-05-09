@@ -1,11 +1,11 @@
 <!-- params: X=0, Y=0, Width, Height -->
-<Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" TouchEnabled="True">
+<Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" TouchEnabled="True" SwallowTouches="True">
 	<Import Module="UI.View.Shape.SolidRect"/>
 
-	<ClipNode Name="area" Width="{ width }" Height="{ height }" TouchEnabled="True" SwallowTouches="False" Ref="True">
+	<ClipNode Name="area" Width="{ width }" Height="{ height }" TouchEnabled="True"  Ref="True">
 		<Stencil>
 			<SolidRect Name="stencil" X="0" Y="0" Width="{ width }" Height="{ height }" Ref="True"/>
 		</Stencil>
-		<Menu Name="view" AnchorX="0" AnchorY="0" Width="{ width }" Height="{ height }" SwallowTouches="False" Ref="True"/>
+		<Menu Name="view" AnchorX="0" AnchorY="0" Width="{ width }" Height="{ height }" Ref="True"/>
 	</ClipNode>
 </Node>
