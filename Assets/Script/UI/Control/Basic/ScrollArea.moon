@@ -1,5 +1,6 @@
 Dorothy!
 ScrollAreaView = require "UI.View.Control.Basic.ScrollArea"
+SolidRect = require "UI.View.Shape.SolidRect"
 
 -- [signals]
 -- "ScrollTouchBegan",->
@@ -170,8 +171,46 @@ Class ScrollAreaView,
 					@dragging = true
 					@emit "ScrollStart"
 
-		--@gslot "AppMouseWheel",(delta)->
-		--	@scroll delta*10
+		@area\slot "MouseWheel",(delta)->
+			px,py = paddingX,paddingY
+			paddingX,paddingY = 0,0
+			setOffset delta*20
+			paddingX,paddingY = px,py
+
+		switch Application.platform
+			when "macOS", "Windows"
+				getScrollBarX = ->
+					return @barX if @barX
+					barX = SolidRect width:50,height:10,color:0x6600ffff
+					barBgX = SolidRect width:@area.width,height:10,color:0x2200ffff
+					barBgX\addChild barX
+					@area\addChild barBgX
+					@barX = barX
+					@barBgX = barBgX
+					barX
+				getScrollBarY = ->
+					return @barY if @barY
+					barY = SolidRect width:10,height:50,color:0x6600ffff
+					barBgY = SolidRect width:10,height:@area.height,color:0x2200ffff
+					barBgY.x = @area.width-10
+					barBgY\addChild barY
+					@area\addChild barBgY
+					@barY = barY
+					@barBgY = barBgY
+					barY
+				fadeBarX = Action Sequence Opacity(0,1,1), Delay(1), Opacity(0.4,1,0,Ease.OutQuad)
+				fadeBarY = Action Sequence Opacity(0,1,1), Delay(1), Opacity(0.4,1,0,Ease.OutQuad)
+				@slot "Scrolled",(delta)->
+					if delta.x ~= 0
+						barX = getScrollBarX!
+						barX.x = (@area.width-50) * math.max(math.min((-@offset.x/(viewWidth-width)),1),0)
+						@barBgX\perform fadeBarX
+					if delta.y ~= 0
+						barY = getScrollBarY!
+						barY.y = (@area.height-50) * math.max(math.min((1-@offset.y/(viewHeight-height)),1),0)
+						@barBgY\perform fadeBarY
+
+		@slot "Enter",-> @emit "Scrolled", Vec2.zero
 
 		@scroll = (delta)=>
 			if delta

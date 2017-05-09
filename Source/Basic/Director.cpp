@@ -586,7 +586,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_KEYMAPCHANGED:
 			break;
 		case SDL_MOUSEWHEEL:
-			Event::send("AppMouseWheel"_slice, Vec2{s_cast<float>(event.wheel.x), s_cast<float>(event.wheel.y)});
+			SharedTouchDispatcher.add(event);
 			break;
 		case SDL_JOYAXISMOTION:
 			break;

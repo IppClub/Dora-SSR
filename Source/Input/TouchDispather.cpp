@@ -112,6 +112,8 @@ bool NodeTouchHandler::handle(const SDL_Event& event)
 	case SDL_MOUSEMOTION:
 	case SDL_FINGERMOTION:
 		return move(event);
+	case SDL_MOUSEWHEEL:
+		return wheel(event);
 	}
 	return false;
 }
@@ -184,25 +186,9 @@ int unProject(float winx, float winy, float winz, const float* invTransform, con
 	return 1;
 }
 
-Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
+Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 {
-	Vec3 pos{-1.0f, -1.0f, 0.0f};
-	switch (event.type)
-	{
-		case SDL_MOUSEBUTTONUP:
-		case SDL_MOUSEBUTTONDOWN:
-			pos = {s_cast<float>(event.button.x), s_cast<float>(SharedApplication.getHeight() - event.button.y), 0.0f};
-			break;
-		case SDL_MOUSEMOTION:
-			pos = {s_cast<float>(event.motion.x), s_cast<float>(SharedApplication.getHeight() - event.motion.y), 0.0f};
-			break;
-		case SDL_FINGERUP:
-		case SDL_FINGERDOWN:
-		case SDL_FINGERMOTION:
-			Vec2 ratio{event.tfinger.x, 1.0f - event.tfinger.y};
-			pos = {ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};
-			break;
-	}
+	Vec3 pos = winPos;
 	pos.x *= SharedView.getScale();
 	pos.y *= SharedView.getScale();
 	Size viewSize = SharedView.getSize();
@@ -241,6 +227,28 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 		}
 	}
 	return Vec2{-1.0f, -1.0f};
+}
+
+Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
+{
+	Vec3 pos{-1.0f, -1.0f, 0.0f};
+	switch (event.type)
+	{
+		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONDOWN:
+			pos = {s_cast<float>(event.button.x), s_cast<float>(SharedApplication.getHeight() - event.button.y), 0.0f};
+			break;
+		case SDL_MOUSEMOTION:
+			pos = {s_cast<float>(event.motion.x), s_cast<float>(SharedApplication.getHeight() - event.motion.y), 0.0f};
+			break;
+		case SDL_FINGERUP:
+		case SDL_FINGERDOWN:
+		case SDL_FINGERMOTION:
+			Vec2 ratio{event.tfinger.x, 1.0f - event.tfinger.y};
+			pos = {ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};
+			break;
+	}
+	return getPos(pos);
 }
 
 bool NodeTouchHandler::down(const SDL_Event& event)
@@ -355,6 +363,21 @@ bool NodeTouchHandler::move(const SDL_Event& event)
 				}
 			}
 		}
+		return true;
+	}
+	return false;
+}
+
+bool NodeTouchHandler::wheel(const SDL_Event& event)
+{
+	if (event.type != SDL_MOUSEWHEEL) return false;
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	Vec3 winPos = {s_cast<float>(x), s_cast<float>(SharedApplication.getHeight() - y), 0.0f};
+	Vec2 pos = getPos(winPos);
+	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
+	{
+		_target->emit("MouseWheel"_slice, Vec2{s_cast<float>(event.wheel.x), s_cast<float>(event.wheel.y)});
 		return true;
 	}
 	return false;

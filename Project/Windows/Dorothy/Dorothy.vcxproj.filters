@@ -507,6 +507,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.cpp">
       <Filter>3rdParty\tinyxml2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Menu.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -959,6 +962,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h">
       <Filter>3rdParty\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Menu.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

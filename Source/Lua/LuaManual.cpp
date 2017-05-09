@@ -27,14 +27,21 @@ int dora_emit(lua_State* L)
 	Slice name = tolua_toslice(L, 1, nullptr);
 	int top = lua_gettop(L);
 	int count = top - 1;
-	for (int i = 2; i <= top; i++)
+	if (count > 0)
 	{
-		lua_pushvalue(L, i);
+		for (int i = 2; i <= top; i++)
+		{
+			lua_pushvalue(L, i);
+		}
+		lua_State* baseL = SharedLueEngine.getState();
+		lua_xmove(L, baseL, count);
+		LuaEventArgs::send(name, count);
+		lua_pop(baseL, count);
 	}
-	lua_State* baseL = SharedLueEngine.getState();
-	lua_xmove(L, baseL, count);
-	LuaEventArgs::send(name, count);
-	lua_pop(baseL, count);
+	else
+	{
+		LuaEventArgs::send(name, 0);
+	}
 	return 0;
 }
 
@@ -100,15 +107,23 @@ int Node_emit(lua_State* L)
 		Slice name = tolua_toslice(L, 2, 0);
 		int top = lua_gettop(L);
 		int count = top - 2;
-		for (int i = 3; i <= top; i++)
+		if (count > 0)
 		{
-			lua_pushvalue(L, i);
+			for (int i = 3; i <= top; i++)
+			{
+				lua_pushvalue(L, i);
+			}
+			lua_State* baseL = SharedLueEngine.getState();
+			lua_xmove(L, baseL, count);
+			LuaEventArgs luaEvent(name, count);
+			self->emit(&luaEvent);
+			lua_pop(baseL, count);
 		}
-		lua_State* baseL = SharedLueEngine.getState();
-		lua_xmove(L, baseL, count);
-		LuaEventArgs luaEvent(name, count);
-		self->emit(&luaEvent);
-		lua_pop(baseL, count);
+		else
+		{
+			LuaEventArgs luaEvent(name, 0);
+			self->emit(&luaEvent);
+		}
 	}
 	return 0;
 #ifndef TOLUA_RELEASE
