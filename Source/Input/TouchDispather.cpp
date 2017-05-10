@@ -189,8 +189,8 @@ int unProject(float winx, float winy, float winz, const float* invTransform, con
 Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 {
 	Vec3 pos = winPos;
-	pos.x *= SharedView.getScale();
-	pos.y *= SharedView.getScale();
+	pos.x /= SharedView.getScale();
+	pos.y /= SharedView.getScale();
 	Size viewSize = SharedView.getSize();
 	
 	Matrix invMVP;

@@ -2,7 +2,7 @@ Dorothy builtin.ImGui
 import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
-AlignNode = require "UI.AlignNode"
+AlignNode = require "UI.Control.Basic.AlignNode"
 
 Content\setSearchPaths {
 	Content.writablePath.."Script"
