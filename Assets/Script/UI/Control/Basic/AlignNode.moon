@@ -2,19 +2,19 @@ Dorothy!
 import run_with_scope from require "moon"
 
 Class Node,
-	__init:(isRoot=false)=>
+	__init:(isRoot=false,inUI=true)=>
 		@_isRoot = isRoot
 		if isRoot
 			viewSize = View.size
 			@size = viewSize
 			@_viewSize = viewSize
-			@position = Vec2(0.5,0.5) * viewSize
+			@position = Vec2(0.5,0.5) * viewSize if inUI
 			@gslot "AppSizeChanged", ->
 				viewSize = View.size
 				if @_viewSize ~= viewSize
 					@_viewSize = viewSize
 					@size = viewSize
-					@position = Vec2(0.5,0.5) * viewSize
+					@position = Vec2(0.5,0.5) * viewSize if inUI
 					@eachChild (child)->
 						child\emit "AlignLayout", viewSize.width, viewSize.height
 		else

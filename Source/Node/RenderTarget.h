@@ -37,6 +37,7 @@ private:
 	Uint16 _textureHeight;
 	bgfx::TextureFormat::Enum _format;
 	Ref<Texture2D> _texture;
+	Ref<Texture2D> _depthTexture;
 	Ref<Sprite> _surface;
 	Ref<Camera> _camera;
 	bgfx::FrameBufferHandle _frameBufferHandle;
