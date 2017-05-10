@@ -67,8 +67,8 @@ bool RenderTarget::init()
 		extraFlags = BGFX_TEXTURE_READ_BACK;
 		break;
 	}
-	_frameBufferHandle = bgfx::createFrameBuffer(_textureWidth, _textureHeight, _format, textureFlags | extraFlags);
-	bgfx::TextureHandle textureHandle = bgfx::getTexture(_frameBufferHandle);
+
+	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags | extraFlags);
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
 		_textureWidth, _textureHeight,
@@ -80,6 +80,25 @@ bool RenderTarget::init()
 	_surface = Sprite::create(_texture);
 	_surface->setPosition(Vec2{getWidth() / 2.0f, getHeight() / 2.0f});
 	addChild(_surface);
+
+	switch (bgfx::getCaps()->rendererType)
+	{
+		case bgfx::RendererType::OpenGL:
+		case bgfx::RendererType::OpenGLES:
+		{
+			bgfx::TextureHandle depthTextureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, bgfx::TextureFormat::D24S8);
+			bgfx::calcTextureSize(info,
+				_textureWidth, _textureHeight,
+				0, false, false, 1, bgfx::TextureFormat::D24S8);
+			_depthTexture = Texture2D::create(depthTextureHandle, info, BGFX_TEXTURE_NONE);
+			bgfx::TextureHandle texHandles[] = {textureHandle, depthTextureHandle};
+			_frameBufferHandle = bgfx::createFrameBuffer(2, texHandles);
+			break;
+		}
+		default:
+			_frameBufferHandle = bgfx::createFrameBuffer(1, &textureHandle);
+			break;
+	}
 
 	return true;
 }

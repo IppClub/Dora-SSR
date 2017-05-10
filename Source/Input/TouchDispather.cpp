@@ -375,7 +375,7 @@ bool NodeTouchHandler::wheel(const SDL_Event& event)
 	SDL_GetMouseState(&x, &y);
 	Vec3 winPos = {s_cast<float>(x), s_cast<float>(SharedApplication.getHeight() - y), 0.0f};
 	Vec2 pos = getPos(winPos);
-	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
+	if (_target->getSize() != Size::zero && Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
 	{
 		_target->emit("MouseWheel"_slice, Vec2{s_cast<float>(event.wheel.x), s_cast<float>(event.wheel.y)});
 		return true;

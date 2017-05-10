@@ -174,7 +174,7 @@ Class ScrollAreaView,
 		@area\slot "MouseWheel",(delta)->
 			px,py = paddingX,paddingY
 			paddingX,paddingY = 0,0
-			setOffset delta*20
+			setOffset delta*-20
 			paddingX,paddingY = px,py
 
 		switch Application.platform
