@@ -236,7 +236,6 @@ void Director::mainLoop()
 				_renderTarget = RenderTarget::create(
 					s_cast<uint16>(viewSize.width),
 					s_cast<uint16>(viewSize.height));
-				_renderTarget->setScaleY(-1.0f);
 			}
 			SpriteEffect* postEffect = SharedView.getPostEffect();
 			if (postEffect && postEffect != _renderTarget->getSurface()->getEffect())
@@ -261,14 +260,15 @@ void Director::mainLoop()
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 					_renderTarget->setPosition({viewSize.width/2.0f, viewSize.height/2.0f});
 					_renderTarget->visit();
+					SharedRendererManager.flush();
 				});
 				/* post node */
 				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 				if (_postNode)
 				{
 					_postNode->visit();
+					SharedRendererManager.flush();
 				}
-				SharedRendererManager.flush();
 				/* ui node */
 				pushViewProjection(ortho, [&]()
 				{
@@ -276,8 +276,8 @@ void Director::mainLoop()
 					if (_ui)
 					{
 						_ui->visit();
+						SharedRendererManager.flush();
 					}
-					SharedRendererManager.flush();
 				});
 				/* profile info */
 				if (_displayStats)

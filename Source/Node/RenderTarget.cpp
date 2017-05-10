@@ -89,6 +89,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 	SharedView.pushName("RenderTarget"_slice, [&]()
 	{
 		Uint8 viewId = SharedView.getId();
+
 		bgfx::setViewFrameBuffer(viewId, _frameBufferHandle);
 		bgfx::setViewRect(viewId, 0, 0, _textureWidth, _textureHeight);
 		if (clear)
@@ -101,27 +102,42 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 			bgfx::setViewClear(viewId, BGFX_CLEAR_NONE);
 		}
 		Matrix viewProj;
-		if (_camera)
+		switch (bgfx::getCaps()->rendererType)
 		{
-			bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
-		}
-		else
-		{
-			switch (bgfx::getCaps()->rendererType)
-			{
 			case bgfx::RendererType::Direct3D9:
 			case bgfx::RendererType::Direct3D11:
 			case bgfx::RendererType::Direct3D12:
-				bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f);
+			{
+				if (_camera)
+				{
+					bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
+				}
+				else
+				{
+					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f);
+				}
 				break;
+			}
 			default:
-				bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f);
+			{
+				if (_camera)
+				{
+					Matrix tmpVP;
+					bx::mtxMul(tmpVP, _camera->getView(), SharedView.getProjection());
+					Matrix revertY;
+					bx::mtxScale(revertY, 1.0f, -1.0f, 1.0f);
+					bx::mtxMul(viewProj, revertY, tmpVP);
+				}
+				else
+				{
+					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f);
+				}
 				break;
 			}
 		}
-		bgfx::setViewTransform(viewId, nullptr, viewProj);
 		SharedDirector.pushViewProjection(viewProj, [&]()
 		{
+			bgfx::setViewTransform(viewId, nullptr, viewProj);
 			renderOnly(target);
 		});
 	});
@@ -138,7 +154,6 @@ void RenderTarget::renderOnly(Node* target)
 	target->markDirty();
 	target->visit();
 	SharedRendererManager.flush();
-	target->markDirty();
 	if (parent)
 	{
 		target->addTo(parent);

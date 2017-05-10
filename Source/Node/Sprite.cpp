@@ -390,8 +390,8 @@ void SpriteRenderer::render()
 			bgfx::setVertexBuffer(&vertexBuffer);
 			bgfx::setIndexBuffer(&indexBuffer);
 			Uint8 viewId = SharedView.getId();
-			bgfx::setTexture(viewId, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
 			bgfx::setState(_lastState);
+			bgfx::setTexture(0, _lastEffect->getSampler(), _lastTexture->getHandle());
 			bgfx::submit(viewId, _lastEffect->apply());
 		}
 		else

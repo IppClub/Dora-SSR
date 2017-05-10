@@ -9,7 +9,6 @@ local Director = builtin.Director()
 local View = builtin.View()
 local Audio = builtin.Audio()
 
-local tolua = builtin.tolua
 local yield = coroutine.yield
 local wrap = coroutine.wrap
 local table_insert = table.insert
