@@ -13,8 +13,9 @@ Panel = (width, height, viewWidth, viewHeight)->
 			viewWidth:viewWidth
 			viewHeight:viewHeight
 		}
-		.area\addChild LineRect width:width, height:height, color:0xffffffff
-		for i = 1,1
+		.border = LineRect width:width, height:height, color:0xffffffff
+		.area\addChild .border
+		for i = 1,50
 			.view\addChild with Button {
 					text:"点击\n按钮#{i}"
 					width:60
@@ -27,12 +28,23 @@ Panel = (width, height, viewWidth, viewHeight)->
 
 Director\pushEntry with AlignNode true,false
 	\addChild with AlignNode!
-		.size = Size 200,300
 		.hAlign = "Left"
 		.vAlign = "Top"
+		.alignWidth = "200"
+		.alignHeight = "h-20"
 		.alignOffset = Vec2 10,10
 		\addChild with Panel 200,300,430,640
 			.position = Vec2 100,150
+			\slot "AlignLayout",(w,h)->
+				offset = .offset
+				.offset = Vec2.zero
+				\resetSize w,h,430,640
+				.view\alignItems Size 430,h
+				.offset = offset
+				.position = Vec2 w/2,h/2
+				.area\removeChild .border
+				.border = LineRect width:w, height:h, color:0xffffffff
+				.area\addChild .border
 	\addChild with AlignNode!
 		.size = Size 300,300
 		.hAlign = "Center"

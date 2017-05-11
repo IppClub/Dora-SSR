@@ -350,6 +350,16 @@ const BlendFunc& Label::getBlendFunc() const
 	return _blendFunc;
 }
 
+void Label::setRenderOrder(int var)
+{
+	Node::setRenderOrder(var);
+	eachChild([var](Node* child, int)
+	{
+		child->setRenderOrder(var);
+		return false;
+	});
+}
+
 Sprite* Label::getCharacter(int index) const
 {
 	if (0 <= index && index < s_cast<int>(_text.size()))
@@ -455,6 +465,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		{
 			fontChar = SharedFontCache.createCharacter(_font, ch);
 			fontChar->setBlendFunc(_blendFunc);
+			fontChar->setRenderOrder(getRenderOrder());
 			addChild(fontChar);
 			_characters[i] = fontChar;
 		}

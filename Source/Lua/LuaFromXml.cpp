@@ -357,7 +357,9 @@ static const char* _toBoolean(const char* str)
 	const char* transformTarget = nullptr;\
 	const char* visible = nullptr;\
 	const char* touchEnabled = nullptr;\
-	const char* swallowTouches = nullptr;
+	const char* swallowTouches = nullptr;\
+	const char* renderGroup = nullptr;\
+	const char* renderOrder = nullptr;
 #define Node_Check \
 	Object_Check\
 	CASE_STR(Width) { width = atts[++i]; break; }\
@@ -384,7 +386,9 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(TransformTarget) { transformTarget = atts[++i]; break; }\
 	CASE_STR(Visible) { visible = atts[++i]; break; }\
 	CASE_STR(TouchEnabled) { touchEnabled = atts[++i]; break; }\
-	CASE_STR(SwallowTouches) { swallowTouches = atts[++i]; break; }
+	CASE_STR(SwallowTouches) { swallowTouches = atts[++i]; break; }\
+	CASE_STR(RenderGroup) { renderGroup = atts[++i]; break; }\
+	CASE_STR(RenderOrder) { renderOrder = atts[++i]; break; }
 #define Node_Create \
 	stream << "local " << self << " = Node()\n";
 #define Node_Handle \
@@ -414,7 +418,9 @@ static const char* _toBoolean(const char* str)
 	else if (width && !height) stream << self << ".width = " << Val(width) << '\n';\
 	else if (!width && height) stream << self << ".height = " << Val(height) << '\n';\
 	if (touchEnabled) stream << self << ".touchEnabled = " << toBoolean(touchEnabled) << '\n';\
-	if (swallowTouches) stream << self << ".swallowTouches = " << toBoolean(swallowTouches) << '\n';
+	if (swallowTouches) stream << self << ".swallowTouches = " << toBoolean(swallowTouches) << '\n';\
+	if (renderGroup) stream << self << ".renderGroup = " << toBoolean(renderGroup) << '\n';\
+	if (renderOrder) stream << self << ".renderOrder = " << Val(renderOrder) << '\n';
 #define Node_Finish \
 	Add_To_Parent
 
