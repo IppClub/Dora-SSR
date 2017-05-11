@@ -158,7 +158,7 @@ Director.ui = with AlignNode true
 	showLog = true
 	showFooter = true
 	\schedule ->
-		{:width,:height} = Application
+		{:width,:height} = Application.size
 		SetNextWindowSize Vec2(100,45)
 		SetNextWindowPos Vec2(width-100,height-45)
 		PushStyleColor "WindowBg", Color(0x0)
@@ -205,7 +205,7 @@ Director.ui = with AlignNode true
 Director\pushEntry with Node!
 	examples = [Path.getName item for item in *Content\getFiles Content.assetPath.."Script/Example"]
 	\schedule ->
-		{:width,:height} = Application
+		{:width,:height} = Application.size
 		SetNextWindowPos Vec2.zero
 		SetNextWindowSize Vec2(width,48)
 		PushStyleColor "TitleBgActive", Color(0xcc000000)

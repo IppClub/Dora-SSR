@@ -189,8 +189,6 @@ int unProject(float winx, float winy, float winz, const float* invTransform, con
 Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 {
 	Vec3 pos = winPos;
-	pos.x /= SharedView.getScale();
-	pos.y /= SharedView.getScale();
 	Size viewSize = SharedView.getSize();
 	
 	Matrix invMVP;
@@ -236,17 +234,30 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 	{
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
-			pos = {s_cast<float>(event.button.x), s_cast<float>(SharedApplication.getHeight() - event.button.y), 0.0f};
+		{
+			Size size = SharedApplication.getWinSize();
+			Vec2 ratio = {s_cast<float>(event.button.x) / size.width, 1.0f - s_cast<float>(event.button.y) / size.height};
+			Vec2 winPos = ratio * SharedView.getSize();
+			pos = {winPos.x, winPos.y, 0.0f};
 			break;
+		}
 		case SDL_MOUSEMOTION:
-			pos = {s_cast<float>(event.motion.x), s_cast<float>(SharedApplication.getHeight() - event.motion.y), 0.0f};
+		{
+			Size size = SharedApplication.getWinSize();
+			Vec2 ratio = {s_cast<float>(event.motion.x) / size.width, 1.0f - s_cast<float>(event.motion.y) / size.height};
+			Vec2 winPos = ratio * SharedView.getSize();
+			pos = {winPos.x, winPos.y, 0.0f};
 			break;
+		}
 		case SDL_FINGERUP:
 		case SDL_FINGERDOWN:
 		case SDL_FINGERMOTION:
+		{
+			Size size = SharedView.getSize();
 			Vec2 ratio{event.tfinger.x, 1.0f - event.tfinger.y};
-			pos = {ratio.x * SharedApplication.getWidth(), ratio.y * SharedApplication.getHeight(), 0.0f};
+			pos = {ratio.x * size.width, ratio.y * size.height, 0.0f};
 			break;
+		}
 	}
 	return getPos(pos);
 }
@@ -373,8 +384,10 @@ bool NodeTouchHandler::wheel(const SDL_Event& event)
 	if (event.type != SDL_MOUSEWHEEL) return false;
 	int x, y;
 	SDL_GetMouseState(&x, &y);
-	Vec3 winPos = {s_cast<float>(x), s_cast<float>(SharedApplication.getHeight() - y), 0.0f};
-	Vec2 pos = getPos(winPos);
+	Size size = SharedApplication.getWinSize();
+	Vec2 ratio = {s_cast<float>(x) / size.width, 1.0f - s_cast<float>(y) / size.height};
+	Vec2 winPos = ratio * SharedView.getSize();
+	Vec2 pos = getPos({winPos.x, winPos.y, 0.0f});
 	if (_target->getSize() != Size::zero && Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
 	{
 		_target->emit("MouseWheel"_slice, Vec2{s_cast<float>(event.wheel.x), s_cast<float>(event.wheel.y)});

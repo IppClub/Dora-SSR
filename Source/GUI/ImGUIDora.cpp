@@ -149,7 +149,7 @@ void ImGUIDora::setImePositionHint(int x, int y)
 {
 	int w;
 	SDL_GetWindowSize(SharedApplication.getSDLWindow(), &w, nullptr);
-	float scale = s_cast<float>(w) / SharedApplication.getWidth();
+	float scale = s_cast<float>(w) / SharedApplication.getWinSize().width;
 	int offset =
 #if BX_PLATFORM_IOS
 		45;
@@ -466,8 +466,9 @@ bool ImGUIDora::init()
 void ImGUIDora::begin()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	io.DisplaySize.x = s_cast<float>(SharedApplication.getWidth());
-	io.DisplaySize.y = s_cast<float>(SharedApplication.getHeight());
+	Size winSize = SharedApplication.getSize();
+	io.DisplaySize.x = winSize.width;
+	io.DisplaySize.y = winSize.height;
 	io.DeltaTime = s_cast<float>(SharedApplication.getDeltaTime());
 
 	if (_textInputing != io.WantTextInput)
@@ -533,14 +534,6 @@ void ImGUIDora::render()
 	SharedView.pushName("ImGui"_slice, [&]()
 	{
 		Uint8 viewId = SharedView.getId();
-		const ImGuiIO& io = ImGui::GetIO();
-		const float width = io.DisplaySize.x;
-		const float height = io.DisplaySize.y;
-		{
-			Matrix ortho;
-			bx::mtxOrtho(ortho, 0.0f, width, height, 0.0f, -1.0f, 1.0f);
-			bgfx::setViewTransform(viewId, nullptr, ortho);
-		}
 
 		ImGUIDora* guiDora = SharedImGUI.getTarget();
 		bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
