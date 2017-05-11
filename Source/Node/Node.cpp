@@ -13,12 +13,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/TouchDispather.h"
 #include "Event/Listener.h"
 #include "Animation/Action.h"
+#include "Basic/Renderer.h"
 
 NS_DOROTHY_BEGIN
 
 Node::Node():
 _flags(Node::Visible|Node::PassOpacity|Node::PassColor3|Node::TraverseEnabled),
 _order(0),
+_renderOrder(0),
 _color(),
 _angle(0.0f),
 _angleX(0.0f),
@@ -376,6 +378,26 @@ Rect Node::getBoundingBox()
 	return AffineTransform::applyRect(getLocalTransform(), rect);
 }
 
+void Node::setRenderOrder(int var)
+{
+	_renderOrder = var;
+}
+
+int Node::getRenderOrder() const
+{
+	return _renderOrder;
+}
+
+void Node::setRenderGroup(bool var)
+{
+	_flags.setFlag(Node::RenderGrouped, var);
+}
+
+bool Node::isRenderGroup() const
+{
+	return _flags.isOn(Node::RenderGrouped);
+}
+
 void Node::onEnter()
 {
 	ARRAY_START(Node, child, _children)
@@ -702,29 +724,47 @@ void Node::visit()
 	/* get world matrix */
 	getWorld();
 
+	auto& rendererManager = SharedRendererManager;
 	if (_children && !_children->isEmpty())
 	{
 		sortAllChildren();
 
-		/* visit and render child whose order is less than 0 */
-		size_t index = 0;
-		RefVector<Object>& data = _children->data();
-		for (index = 0; index < data.size(); index++)
+		auto visitChildren = [&]()
 		{
-			Node* node = data[index].to<Node>();
-			if (node->getOrder() >= 0) break;
-			node->visit();
-		}
+			/* visit and render child whose order is less than 0 */
+			size_t index = 0;
+			RefVector<Object>& data = _children->data();
+			for (index = 0; index < data.size(); index++)
+			{
+				Node* node = data[index].to<Node>();
+				if (node->getOrder() >= 0) break;
+				node->visit();
+			}
 
-		/* render self */
-		render();
+			/* render self */
+			if (rendererManager.isGrouping() && _renderOrder != 0)
+			{
+				rendererManager.pushGroupItem(this);
+			}
+			else render();
 
-		/* visit and render child whose order is greater equal than 0 */
-		for (; index < data.size(); index++)
+			/* visit and render child whose order is greater equal than 0 */
+			for (; index < data.size(); index++)
+			{
+				Node* node = data[index].to<Node>();
+				node->visit();
+			}
+		};
+
+		if (_flags.isOn(Node::RenderGrouped))
 		{
-			Node* node = data[index].to<Node>();
-			node->visit();
+			rendererManager.pushGroup(visitChildren);
 		}
+		else visitChildren();
+	}
+	else if (rendererManager.isGrouping() && _renderOrder != 0)
+	{
+		rendererManager.pushGroupItem(this);
 	}
 	else render();
 }

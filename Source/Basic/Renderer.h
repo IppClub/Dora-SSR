@@ -12,6 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class Node;
+
 class Renderer
 {
 public:
@@ -23,6 +25,7 @@ class RendererManager
 public:
 	PROPERTY(Renderer*, Current);
 	PROPERTY_READONLY(Uint32, CurrentStencilState);
+	PROPERTY_READONLY_BOOL(Grouping);
 	void flush();
 
 	template <typename Func>
@@ -32,13 +35,26 @@ public:
 		workHere();
 		popStencilState();
 	}
+
+	void pushGroupItem(Node* item);
+
+	template <typename Func>
+	void pushGroup(const Func& workHere)
+	{
+		pushGroup();
+		workHere();
+		popGroup();
+	}
 protected:
 	RendererManager();
 	void pushStencilState(Uint32 stencilState);
 	void popStencilState();
+	void pushGroup();
+	void popGroup();
 private:
 	stack<Uint32> _stencilStates;
 	Renderer* _currentRenderer;
+	stack<Own<vector<Node*>>> _renderGroups;
 	SINGLETON_REF(RendererManager, BGFXDora);
 };
 

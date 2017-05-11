@@ -99,6 +99,7 @@ public:
 	PROPERTY(float, LineGap);
 	PROPERTY(const char*, Text);
 	PROPERTY_REF(BlendFunc, BlendFunc);
+	virtual void setRenderOrder(int var) override;
 	Sprite* getCharacter(int index) const;
 	int getCharacterCount() const;
 	virtual void cleanup() override;

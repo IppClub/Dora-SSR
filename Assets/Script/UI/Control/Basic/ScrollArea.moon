@@ -232,25 +232,6 @@ Class ScrollAreaView,
 			deltaY = offset.y
 			@emit "Scrolled",delta
 
-		@updateViewSize = (wView,hView)=>
-			{:width,:height} = @
-			viewWidth = math.max wView,width
-			viewHeight = math.max hView,height
-			moveY = viewHeight - height
-			moveX = viewWidth - width
-			@scroll Vec2.zero
-
-		@reset = (wView,hView,padX,padY)=>
-			@updateViewSize wView,hView
-			paddingX = padX
-			paddingY = padY
-			deltaX,deltaY = 0,0
-			posX,posY = 0,0
-			timePassed = 0
-			S = Vec2.zero
-			V = Vec2.zero
-			deltaMoveLength = 0
-
 		@updatePadding = (padX,padY)=>
 			paddingX = padX
 			paddingY = padY
@@ -259,6 +240,28 @@ Class ScrollAreaView,
 		@getPadding = -> Vec2 paddingX,paddingY
 		@getViewSize = -> Size viewWidth,viewHeight
 		@getTotalDelta = -> Vec2 deltaX,deltaY
+		@resetSize = (w,h,viewW,viewH)=>
+			offset = @offset
+			@offset = Vec2.zero
+			width,height = w,h
+			viewWidth = math.max viewW or w,w
+			viewHeight = math.max viewH or h,h
+			moveY = viewHeight - height
+			moveX = viewWidth - width
+			size = Size w,h
+			@contentSize = size
+			@area.size = size
+			@view.size = size
+			@area.stencil = SolidRect width:w,height:h
+			@offset = offset
+			if @barBgX
+				@area\removeChild @barBgX
+				@barBgX = nil
+				@barX = nil
+			if @barBgY
+				@area\removeChild @barBgY
+				@barBgY = nil
+				@barY = nil
 
 	offset:property => @getTotalDelta!,
 		(offset)=> @scroll offset-@getTotalDelta!

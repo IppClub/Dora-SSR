@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/Renderer.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
@@ -60,6 +61,36 @@ void RendererManager::pushStencilState(Uint32 stencilState)
 void RendererManager::popStencilState()
 {
 	_stencilStates.pop();
+}
+
+bool RendererManager::isGrouping() const
+{
+	return !_renderGroups.empty();
+}
+
+void RendererManager::pushGroupItem(Node* item)
+{
+	vector<Node*>* renderGroup = _renderGroups.top().get();
+	renderGroup->push_back(item);
+}
+
+void RendererManager::pushGroup()
+{
+	_renderGroups.push(New<vector<Node*>>());
+}
+
+void RendererManager::popGroup()
+{
+	vector<Node*>* renderGroup = _renderGroups.top().get();
+	std::stable_sort(renderGroup->begin(), renderGroup->end(), [](Node* nodeA, Node* nodeB)
+	{
+		return nodeA->getRenderOrder() < nodeB->getRenderOrder();
+	});
+	for (Node* node : *renderGroup)
+	{
+		node->render();
+	}
+	_renderGroups.pop();
 }
 
 NS_DOROTHY_END

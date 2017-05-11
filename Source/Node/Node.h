@@ -67,6 +67,8 @@ public:
 	PROPERTY_BOOL(TouchEnabled);
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_READONLY(TouchHandler*, TouchHandler);
+	PROPERTY_VIRTUAL(int, RenderOrder);
+	PROPERTY_BOOL(RenderGroup);
 
 	virtual void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
@@ -140,7 +142,10 @@ public:
 	{
 		if (_children)
 		{
-			return _children->each(func);
+			return _children->each([func](Object* item, int index)
+			{
+				return func(s_cast<Node*>(item), index);
+			});
 		}
 		return false;
 	}
@@ -209,6 +214,7 @@ protected:
 protected:
 	Flag _flags;
 	int _order;
+	int _renderOrder;
 	Color _color;
 	Color _realColor;
 	float _angle;
@@ -252,7 +258,8 @@ protected:
 		KeypadEnabled = 1 << 12,
 		KeyboardEnabled = 1 << 13,
 		TraverseEnabled = 1 << 14,
-		UserFlag = 1 << 15
+		RenderGrouped = 1 << 15,
+		UserFlag = 1 << 16
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

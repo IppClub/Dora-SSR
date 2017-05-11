@@ -295,6 +295,8 @@ class Node : public Object
 	tolua_readonly tolua_property__common int actionCount;
 	tolua_property__bool bool touchEnabled;
 	tolua_property__bool bool swallowTouches;
+	tolua_property__bool bool renderGroup;
+	tolua_property__common int renderOrder;
 
 	void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
