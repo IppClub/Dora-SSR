@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Event/EventQueue.h"
+#include "Support/Geometry.h"
 #include <random>
 
 struct SDL_Window;
@@ -23,8 +24,8 @@ class Application
 public:
 	virtual ~Application() { }
 	PROPERTY_READONLY(Uint32, Frame);
-	PROPERTY_READONLY(int, Width);
-	PROPERTY_READONLY(int, Height);
+	PROPERTY_READONLY(Size, Size);
+	PROPERTY_READONLY(Size, WinSize);
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
@@ -64,6 +65,8 @@ protected:
 	bgfx::RenderFrame::Enum renderFrame();
 private:
 	bool _fpsLimited;
+	int _winWidth;
+	int _winHeight;
 	int _width;
 	int _height;
 	Uint32 _seed;

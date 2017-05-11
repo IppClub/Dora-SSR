@@ -33,8 +33,10 @@ BGFXDora::~BGFXDora()
 Application::Application():
 _fpsLimited(false),
 _frame(0),
-_width(1024),
-_height(768),
+_winWidth(1024),
+_winHeight(768),
+_width(0),
+_height(0),
 _maxFPS(60),
 _minFPS(30),
 _deltaTime(0),
@@ -46,14 +48,14 @@ _sdlWindow(nullptr)
 	_lastTime = bx::getHPCounter() / _frequency;
 }
 
-int Application::getWidth() const
+Size Application::getSize() const
 {
-	return _width;
+	return Size{s_cast<float>(_width), s_cast<float>(_height)};
 }
 
-int Application::getHeight() const
+Size Application::getWinSize() const
 {
-	return _height;
+	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
 void Application::setSeed(Uint32 var)
@@ -140,7 +142,7 @@ int Application::run()
 
 	_sdlWindow = SDL_CreateWindow("Dorothy SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		_width, _height, windowFlags);
+		_winWidth, _winHeight, windowFlags);
 	if (!_sdlWindow)
 	{
 		Log("SDL fail to create window!");
@@ -186,7 +188,7 @@ int Application::run()
 			default:
 				break;
 			}
-			_logicEvent.post("SDLEvent", event);
+			_logicEvent.post("SDLEvent"_slice, event);
 		}
 
 		// poll events from logic thread
@@ -245,6 +247,7 @@ void Application::updateDeltaTime()
 void Application::updateWindowSize()
 {
 	SDL_GL_GetDrawableSize(_sdlWindow, &_width, &_height);
+	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 }
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 

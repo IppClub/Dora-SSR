@@ -19,7 +19,7 @@ animations = Model\getAnimations "Model/xiaoli.model"
 currentLook = 1
 currentAnim = 3
 model\schedule ->
-	{:width,:height} = Application
+	{:width,:height} = Application.size
 	SetNextWindowPos Vec2(width-220,10), "FirstUseEver"
 	SetNextWindowSize Vec2(220,265), "FirstUseEver"
 	if Begin "Model", "NoResize|NoSavedSettings"
