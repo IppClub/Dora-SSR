@@ -398,6 +398,17 @@ bool Node::isRenderGroup() const
 	return _flags.isOn(Node::RenderGrouped);
 }
 
+Uint32 Node::getNodeCount() const
+{
+	Uint32 count = 1;
+	ARRAY_START(Node, child, _children)
+	{
+		count += child->getNodeCount();
+	}
+	ARRAY_END
+	return count;
+}
+
 void Node::onEnter()
 {
 	ARRAY_START(Node, child, _children)
@@ -643,6 +654,20 @@ bool Node::isSwallowTouches() const
 	return _flags.isOn(Node::SwallowTouches);
 }
 
+void Node::setSwallowMouseWheel(bool var)
+{
+	_flags.setFlag(Node::SwallowMouseWheel, var);
+	if (_touchHandler)
+	{
+		_touchHandler->setSwallowMouseWheel(var);
+	}
+}
+
+bool Node::isSwallowMouseWheel() const
+{
+	return _flags.isOn(Node::SwallowMouseWheel);
+}
+
 TouchHandler* Node::getTouchHandler() const
 {
 	return _touchHandler;
@@ -758,7 +783,7 @@ void Node::visit()
 
 		if (_flags.isOn(Node::RenderGrouped))
 		{
-			rendererManager.pushGroup(visitChildren);
+			rendererManager.pushGroup(getNodeCount(), visitChildren);
 		}
 		else visitChildren();
 	}

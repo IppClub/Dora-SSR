@@ -2,7 +2,7 @@
 <Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" TouchEnabled="True" SwallowTouches="True">
 	<Import Module="UI.View.Shape.SolidRect"/>
 
-	<ClipNode Name="area" Width="{ width }" Height="{ height }" TouchEnabled="True" Ref="True">
+	<ClipNode Name="area" Width="{ width }" Height="{ height }" TouchEnabled="True" SwallowMouseWheel="True" Ref="True">
 		<Stencil>
 			<SolidRect Width="{ width }" Height="{ height }" Ref="True"/>
 		</Stencil>
