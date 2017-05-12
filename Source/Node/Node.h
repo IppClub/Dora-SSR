@@ -66,9 +66,11 @@ public:
 	PROPERTY_READONLY_BOOL(Scheduled);
 	PROPERTY_BOOL(TouchEnabled);
 	PROPERTY_BOOL(SwallowTouches);
+	PROPERTY_BOOL(SwallowMouseWheel);
 	PROPERTY_READONLY(TouchHandler*, TouchHandler);
 	PROPERTY_VIRTUAL(int, RenderOrder);
 	PROPERTY_BOOL(RenderGroup);
+	PROPERTY_READONLY(Uint32, NodeCount);
 
 	virtual void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
@@ -255,11 +257,12 @@ protected:
 		Cleanup = 1 << 9,
 		TouchEnabled = 1 << 10,
 		SwallowTouches = 1 << 11,
-		KeypadEnabled = 1 << 12,
-		KeyboardEnabled = 1 << 13,
-		TraverseEnabled = 1 << 14,
-		RenderGrouped = 1 << 15,
-		UserFlag = 1 << 16
+		SwallowMouseWheel = 1 << 12,
+		KeypadEnabled = 1 << 13,
+		KeyboardEnabled = 1 << 14,
+		TraverseEnabled = 1 << 15,
+		RenderGrouped = 1 << 16,
+		UserFlag = 1 << 17
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

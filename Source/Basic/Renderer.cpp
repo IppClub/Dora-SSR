@@ -74,9 +74,10 @@ void RendererManager::pushGroupItem(Node* item)
 	renderGroup->push_back(item);
 }
 
-void RendererManager::pushGroup()
+void RendererManager::pushGroup(Uint32 capacity)
 {
 	_renderGroups.push(New<vector<Node*>>());
+	_renderGroups.top()->reserve(s_cast<size_t>(capacity));
 }
 
 void RendererManager::popGroup()

@@ -93,6 +93,16 @@ bool TouchHandler::isSwallowTouches() const
 	return _swallowTouches;
 }
 
+void TouchHandler::setSwallowMouseWheel(bool var)
+{
+	_swallowMouseWheel = var;
+}
+
+bool TouchHandler::isSwallowMouseWheel() const
+{
+	return _swallowMouseWheel;
+}
+
 /* NodeTouchHandler */
 
 NodeTouchHandler::NodeTouchHandler(Node* target):
@@ -105,15 +115,15 @@ bool NodeTouchHandler::handle(const SDL_Event& event)
 	{
 	case SDL_MOUSEBUTTONUP:
 	case SDL_FINGERUP:
-		return up(event);
+		return up(event) && isSwallowTouches();
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_FINGERDOWN:
-		return down(event);
+		return down(event) && isSwallowTouches();
 	case SDL_MOUSEMOTION:
 	case SDL_FINGERMOTION:
-		return move(event);
+		return move(event) && isSwallowTouches();
 	case SDL_MOUSEWHEEL:
-		return wheel(event);
+		return wheel(event) && isSwallowMouseWheel();
 	}
 	return false;
 }
@@ -415,8 +425,7 @@ void TouchDispatcher::dispatch()
 			TouchHandler* handler = *it;
 			for (auto eit = _events.begin(); eit != _events.end();)
 			{
-				bool result = handler->handle(*eit);
-				if (result && handler->isSwallowTouches())
+				if (handler->handle(*eit))
 				{
 					eit = _events.erase(eit);
 				}

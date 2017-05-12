@@ -39,9 +39,9 @@ public:
 	void pushGroupItem(Node* item);
 
 	template <typename Func>
-	void pushGroup(const Func& workHere)
+	void pushGroup(Uint32 capacity, const Func& workHere)
 	{
-		pushGroup();
+		pushGroup(capacity);
 		workHere();
 		popGroup();
 	}
@@ -49,7 +49,7 @@ protected:
 	RendererManager();
 	void pushStencilState(Uint32 stencilState);
 	void popStencilState();
-	void pushGroup();
+	void pushGroup(Uint32 capacity);
 	void popGroup();
 private:
 	stack<Uint32> _stencilStates;

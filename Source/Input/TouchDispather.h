@@ -16,11 +16,13 @@ class TouchHandler
 {
 public:
 	PROPERTY_BOOL(SwallowTouches);
+	PROPERTY_BOOL(SwallowMouseWheel);
 	TouchHandler();
 	virtual ~TouchHandler();
 	virtual bool handle(const SDL_Event& event) = 0;
 private:
 	bool _swallowTouches;
+	bool _swallowMouseWheel;
 };
 
 class Node;
