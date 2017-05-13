@@ -40,12 +40,12 @@ public:
 	RefVector<Object>& data();
 	CREATE_FUNC(Array);
 public:
-	template <class Func>
+	template <class Type = Object, class Func>
 	bool each(const Func& handler)
 	{
-		for (int i = 0; i < s_cast<int>(_data.size()); i++)
+		for (const auto& item : _data)
 		{
-			if (handler(_data[i].get(), i)) return true;
+			if (handler(item.to<Type>())) return true;
 		}
 		return false;
 	}
@@ -65,7 +65,7 @@ private:
 };
 
 #define ARRAY_START(type,varName,array) \
-	if (array) \
+	if (array && !array->isEmpty()) \
 	{ \
 		for (const auto& _item_ : array->data()) \
 		{ \

@@ -323,7 +323,7 @@ class Node : public Object
 	void scheduleUpdate();
 	void unscheduleUpdate();
 
-	bool eachChild(tolua_function_bool func);
+	tolua_outside bool Node_eachChild @ eachChild(tolua_function_bool func);
 	bool traverse(tolua_function_bool func);
 
 	void runAction(Action* action);
