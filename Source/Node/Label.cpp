@@ -353,7 +353,7 @@ const BlendFunc& Label::getBlendFunc() const
 void Label::setRenderOrder(int var)
 {
 	Node::setRenderOrder(var);
-	eachChild([var](Node* child, int)
+	eachChild([var](Node* child)
 	{
 		child->setRenderOrder(var);
 		return false;

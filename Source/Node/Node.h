@@ -142,12 +142,9 @@ public:
 	template <class Func>
 	bool eachChild(const Func& func)
 	{
-		if (_children)
+		if (_children && !_children->isEmpty())
 		{
-			return _children->each([func](Object* item, int index)
-			{
-				return func(s_cast<Node*>(item), index);
-			});
+			return _children->each<Node>(func);
 		}
 		return false;
 	}

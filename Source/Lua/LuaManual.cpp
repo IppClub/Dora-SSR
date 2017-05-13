@@ -241,6 +241,15 @@ tolua_lerror :
 	return 0;
 }
 
+bool Node_eachChild(Node* self, const LuaFunctionBool& func)
+{
+	int index = 0;
+	return self->eachChild([&](Node* child)
+	{
+		return func(child, ++index);
+	});
+}
+
 bool Cache::load(String filename)
 {
 	string ext = filename.getFileExtension();
@@ -923,6 +932,15 @@ bool Array_removeAt(Array* self, int index)
 bool Array_fastRemoveAt(Array* self, int index)
 {
 	return self->fastRemoveAt(index - 1);
+}
+
+bool Array_each(Array* self, const LuaFunctionBool& handler)
+{
+	int index = 0;
+	return self->each([&](Object* item)
+	{
+		return handler(item, ++index);
+	});
 }
 
 /* Buffer */
