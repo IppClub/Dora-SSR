@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Listener.h"
 #include "Animation/Action.h"
 #include "Basic/Renderer.h"
+#include "Input/TextInput.h"
 
 NS_DOROTHY_BEGIN
 
@@ -1299,6 +1300,40 @@ void Node::moveAndCullItems(const Vec2& delta)
 		}
 	}
 	ARRAY_END
+}
+
+void Node::handleKeyboard(Event* event)
+{
+	emit(event);
+}
+
+void Node::setKeyboardEnabled(bool var)
+{
+	if (var == _flags.isOn(Node::KeyboardEnabled)) return;
+	_flags.setFlag(Node::KeyboardEnabled, var);
+	if (var)
+	{
+		SharedTextInput.KeyboadHandler += std::make_pair(this, &Node::handleKeyboard);
+	}
+	else
+	{
+		SharedTextInput.KeyboadHandler -= std::make_pair(this, &Node::handleKeyboard);
+	}
+}
+
+bool Node::isKeyboardEnabled() const
+{
+	return _flags.isOn(Node::KeyboardEnabled);
+}
+
+void Node::attachIME()
+{
+	SharedTextInput.attachIME([this](Event* e) { emit(e); });
+}
+
+void Node::detachIME()
+{
+	SharedTextInput.detachIME();
 }
 
 /* Slot */

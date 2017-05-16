@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TextureCache.h"
 #include "Other/utf8.h"
 #include "imgui.h"
+#include "Input/TextInput.h"
 
 NS_DOROTHY_BEGIN
 
@@ -446,7 +447,7 @@ bool ImGUIDora::init()
 					io.KeysDown[key] = (event.type == SDL_KEYDOWN);
 					if (_textLength == 0)
 					{
-						SDL_Keymod mod = SDL_GetModState();
+						Uint16 mod = event.key.keysym.mod;
 						io.KeyShift = ((mod & KMOD_SHIFT) != 0);
 						io.KeyCtrl = ((mod & KMOD_CTRL) != 0);
 						io.KeyAlt = ((mod & KMOD_ALT) != 0);
@@ -480,12 +481,9 @@ void ImGUIDora::begin()
 			_cursor = 0;
 			_textLength = 0;
 			_editingDel = false;
+			SharedTextInput.detachIME();
 		}
-		SharedApplication.invokeInRender([this]()
-		{
-			if (_textInputing) SDL_StartTextInput();
-			else SDL_StopTextInput();
-		});
+		SharedApplication.invokeInRender(_textInputing ? SDL_StartTextInput : SDL_StopTextInput);
 	}
 
 	int mx, my;

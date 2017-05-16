@@ -154,6 +154,7 @@
 		3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
 		3CE7D3791EADF642008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3771EADF642008EADB3 /* libbimg_decode.a */; };
 		3CE7D37A1EADF642008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3781EADF642008EADB3 /* libbimg.a */; };
+		3CEA71B71ECBA5FD00EFFD63 /* TextInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA71B51ECBA5FD00EFFD63 /* TextInput.cpp */; };
 		3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A811E292E3F00645F2D /* Camera.cpp */; };
 		3CEDF7771E835409008839A3 /* lpcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76C1E835409008839A3 /* lpcap.cpp */; };
 		3CEDF7781E835409008839A3 /* lpcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76E1E835409008839A3 /* lpcode.cpp */; };
@@ -459,6 +460,8 @@
 		3CE534751E5A9BD500F017AE /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
 		3CE7D3771EADF642008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3781EADF642008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbimg.a; sourceTree = "<group>"; };
+		3CEA71B51ECBA5FD00EFFD63 /* TextInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextInput.cpp; path = ../../../Source/Input/TextInput.cpp; sourceTree = "<group>"; };
+		3CEA71B61ECBA5FD00EFFD63 /* TextInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextInput.h; path = ../../../Source/Input/TextInput.h; sourceTree = "<group>"; };
 		3CEA9A811E292E3F00645F2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
 		3CEA9A821E292E3F00645F2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
 		3CEDF76C1E835409008839A3 /* lpcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpcap.cpp; path = ../../../Source/3rdParty/lpeg/lpcap.cpp; sourceTree = "<group>"; };
@@ -1049,6 +1052,8 @@
 		3CD328471E4C43040036906C /* Input */ = {
 			isa = PBXGroup;
 			children = (
+				3CEA71B51ECBA5FD00EFFD63 /* TextInput.cpp */,
+				3CEA71B61ECBA5FD00EFFD63 /* TextInput.h */,
 				3CD328481E4C431B0036906C /* TouchDispather.cpp */,
 				3CD328491E4C431B0036906C /* TouchDispather.h */,
 			);
@@ -1311,6 +1316,7 @@
 				3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */,
 				3C88056B1E5ED11800B52D4B /* printf.cpp in Sources */,
 				3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */,
+				3CEA71B71ECBA5FD00EFFD63 /* TextInput.cpp in Sources */,
 				3CB730D81E80356A006DFA18 /* b2MouseJoint.cpp in Sources */,
 				3CEDF7781E835409008839A3 /* lpcode.cpp in Sources */,
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
