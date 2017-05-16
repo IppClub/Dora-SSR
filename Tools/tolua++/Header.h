@@ -295,6 +295,7 @@ class Node : public Object
 	tolua_property__bool bool touchEnabled;
 	tolua_property__bool bool swallowTouches;
 	tolua_property__bool bool swallowMouseWheel;
+	tolua_property__bool bool keyboardEnabled;
 	tolua_property__bool bool renderGroup;
 	tolua_property__common int renderOrder;
 
@@ -339,6 +340,8 @@ class Node : public Object
 	Size alignItems(Size size, float padding = 10.0f);
 	void moveAndCullItems(Vec2 delta);
 
+	void attachIME();
+	void detachIME();
 	static Node* create();
 };
 

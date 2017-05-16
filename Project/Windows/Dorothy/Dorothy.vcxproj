@@ -319,6 +319,7 @@
     <ClCompile Include="..\..\..\Source\Event\EventType.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Listener.cpp" />
     <ClCompile Include="..\..\..\Source\GUI\ImGUIDora.cpp" />
+    <ClCompile Include="..\..\..\Source\Input\TextInput.cpp" />
     <ClCompile Include="..\..\..\Source\Input\TouchDispather.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaBinding.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaCode.cpp" />
@@ -478,6 +479,7 @@
     <ClInclude Include="..\..\..\Source\Event\EventType.h" />
     <ClInclude Include="..\..\..\Source\Event\Listener.h" />
     <ClInclude Include="..\..\..\Source\GUI\ImGUIDora.h" />
+    <ClInclude Include="..\..\..\Source\Input\TextInput.h" />
     <ClInclude Include="..\..\..\Source\Input\TouchDispather.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaBinding.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaEngine.h" />

@@ -68,6 +68,7 @@ public:
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_BOOL(SwallowMouseWheel);
 	PROPERTY_READONLY(TouchHandler*, TouchHandler);
+	PROPERTY_BOOL(KeyboardEnabled);
 	PROPERTY_VIRTUAL(int, RenderOrder);
 	PROPERTY_BOOL(RenderGroup);
 	PROPERTY_READONLY(Uint32, NodeCount);
@@ -201,6 +202,8 @@ public:
 	Size alignItems(const Size& size, float padding = 10.0f);
 	void moveAndCullItems(const Vec2& delta);
 
+	void attachIME();
+	void detachIME();
 protected:
 	Node();
 	virtual ~Node();
@@ -210,6 +213,7 @@ protected:
 	void pauseActionInList(Action* action);
 	void resumeActionInList(Action* action);
 	void stopActionInList(Action* action);
+	void handleKeyboard(Event* event);
 protected:
 	Flag _flags;
 	int _order;
@@ -255,11 +259,10 @@ protected:
 		TouchEnabled = 1 << 10,
 		SwallowTouches = 1 << 11,
 		SwallowMouseWheel = 1 << 12,
-		KeypadEnabled = 1 << 13,
-		KeyboardEnabled = 1 << 14,
-		TraverseEnabled = 1 << 15,
-		RenderGrouped = 1 << 16,
-		UserFlag = 1 << 17
+		KeyboardEnabled = 1 << 13,
+		TraverseEnabled = 1 << 14,
+		RenderGrouped = 1 << 15,
+		UserFlag = 1 << 16
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };
