@@ -510,7 +510,7 @@
     <ClCompile Include="..\..\..\Source\Node\Menu.cpp">
       <Filter>Node</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Input\TextInput.cpp">
+    <ClCompile Include="..\..\..\Source\Input\Keyboard.cpp">
       <Filter>Input</Filter>
     </ClCompile>
   </ItemGroup>
@@ -969,7 +969,7 @@
     <ClInclude Include="..\..\..\Source\Node\Menu.h">
       <Filter>Node</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Input\TextInput.h">
+    <ClInclude Include="..\..\..\Source\Input\Keyboard.h">
       <Filter>Input</Filter>
     </ClInclude>
   </ItemGroup>

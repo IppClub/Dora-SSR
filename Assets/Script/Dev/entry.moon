@@ -2,7 +2,6 @@ Dorothy builtin.ImGui
 import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
-AlignNode = require "UI.Control.Basic.AlignNode"
 
 Content\setSearchPaths {
 	Content.writablePath.."Script"
@@ -153,57 +152,56 @@ doClean = ->
 
 isInEntry = true
 
-Director.ui = with AlignNode true
-	showStats = true
-	showLog = true
-	showFooter = true
-	\schedule ->
-		{:width,:height} = Application.size
-		SetNextWindowSize Vec2(100,45)
-		SetNextWindowPos Vec2(width-100,height-45)
-		PushStyleColor "WindowBg", Color(0x0)
-		if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
-			_, showFooter = Checkbox "Footer", showFooter
-		End!
-		PopStyleColor!
-		return unless showFooter
-		SetNextWindowSize Vec2(width,55)
-		SetNextWindowPos Vec2(0,height-55)
-		if Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+showStats = true
+showLog = true
+showFooter = true
+threadLoop ->
+	{:width,:height} = Application.size
+	SetNextWindowSize Vec2(100,45)
+	SetNextWindowPos Vec2(width-100,height-45)
+	PushStyleColor "WindowBg", Color(0x0)
+	if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+		_, showFooter = Checkbox "Footer", showFooter
+	End!
+	PopStyleColor!
+	return unless showFooter
+	SetNextWindowSize Vec2(width,55)
+	SetNextWindowPos Vec2(0,height-55)
+	if Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+		Separator!
+		_, showStats = Checkbox "Stats", showStats
+		SameLine!
+		_, showLog = Checkbox "Log", showLog
+		SameLine!
+		if Button "Build", Vec2(80,25)
+			OpenPopup "build"
+		if BeginPopup "build"
+			doCompile false if Selectable "Compile"
 			Separator!
-			_, showStats = Checkbox "Stats", showStats
+			doCompile true if Selectable "Minify"
+			Separator!
+			doClean! if Selectable "Clean"
+			EndPopup!
+		SameLine!
+		if not isInEntry
 			SameLine!
-			_, showLog = Checkbox "Log", showLog
-			SameLine!
-			if Button "Build", Vec2(80,25)
-				OpenPopup "build"
-			if BeginPopup "build"
-				doCompile false if Selectable "Compile"
-				Separator!
-				doCompile true if Selectable "Minify"
-				Separator!
-				doClean! if Selectable "Clean"
-				EndPopup!
-			SameLine!
-			if not isInEntry
-				SameLine!
-				if Button "Back To Entry", Vec2(150,25)
-					Director\popToRootEntry!
-					isInEntry = true
-					for module in *moduleCache
-						package.loaded[module] = nil
-					moduleCache = {}
-					Cache\unload!
-			if showStats
-				SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
-				ShowStats!
-			if showLog
-				SetNextWindowPos Vec2(width-400,height-65-300), "FirstUseEver"
-				ShowLog!
-		End!
+			if Button "Back To Entry", Vec2(150,25)
+				Director\popToRootEntry!
+				isInEntry = true
+				for module in *moduleCache
+					package.loaded[module] = nil
+				moduleCache = {}
+				Cache\unload!
+		if showStats
+			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
+			ShowStats!
+		if showLog
+			SetNextWindowPos Vec2(width-400,height-65-300), "FirstUseEver"
+			ShowLog!
+	End!
 
 Director\pushEntry with Node!
-	examples = [Path.getName item for item in *Content\getFiles Content.assetPath.."Script/Example"]
+	examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
 	\schedule ->
 		{:width,:height} = Application.size
 		SetNextWindowPos Vec2.zero

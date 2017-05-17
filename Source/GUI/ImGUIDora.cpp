@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TextureCache.h"
 #include "Other/utf8.h"
 #include "imgui.h"
-#include "Input/TextInput.h"
+#include "Input/Keyboard.h"
 
 NS_DOROTHY_BEGIN
 
@@ -481,7 +481,7 @@ void ImGUIDora::begin()
 			_cursor = 0;
 			_textLength = 0;
 			_editingDel = false;
-			SharedTextInput.detachIME();
+			SharedKeyboard.detachIME();
 		}
 		SharedApplication.invokeInRender(_textInputing ? SDL_StartTextInput : SDL_StopTextInput);
 	}

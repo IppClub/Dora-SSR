@@ -72,6 +72,7 @@ class Director
 	tolua_property__common Camera* camera;
 	tolua_property__bool bool displayStats;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
+	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Array* entries;
 	tolua_readonly tolua_property__common Node* currentEntry;
 	tolua_readonly tolua_property__common double deltaTime;
@@ -978,4 +979,12 @@ class Menu : public Node
 	tolua_property__bool bool enabled;
 	static Menu* create(float width, float height);
 	static Menu* create();
+};
+
+class Keyboard
+{
+	bool isKeyDown(String name);
+	bool isKeyUp(String name);
+	bool isKeyPressed(String name);
+	static tolua_outside Keyboard* Keyboard_shared @ create();
 };

@@ -20,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "GUI/ImGUIDora.h"
 #include "Audio/Sound.h"
 #include "Node/RenderTarget.h"
+#include "Input/Keyboard.h"
 #include "bx/timer.h"
 
 NS_DOROTHY_BEGIN
@@ -27,6 +28,7 @@ NS_DOROTHY_BEGIN
 Director::Director():
 _scheduler(Scheduler::create()),
 _systemScheduler(Scheduler::create()),
+_postScheduler(Scheduler::create()),
 _entryStack(Array::create()),
 _camera(Camera2D::create("Default"_slice)),
 _clearColor(0xff1a1a1a),
@@ -113,6 +115,11 @@ Scheduler* Director::getSystemScheduler() const
 	return _systemScheduler;
 }
 
+Scheduler* Director::getPostScheduler() const
+{
+	return _postScheduler;
+}
+
 double Director::getDeltaTime() const
 {
 	// only accept frames drop to min FPS
@@ -172,6 +179,10 @@ bool Director::init()
 	{
 		return false;
 	}
+	if (!SharedKeyboard.init())
+	{
+		return false;
+	}
 	if (SharedContent.isExist("Script/main.lua"_slice))
 	{
 		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
@@ -192,6 +203,7 @@ void Director::mainLoop()
 		/* update game logic */
 		SharedImGUI.begin();
 		_scheduler->update(getDeltaTime());
+		_postScheduler->update(getDeltaTime());
 		SharedImGUI.end();
 
 		/* handle ImGui touch */

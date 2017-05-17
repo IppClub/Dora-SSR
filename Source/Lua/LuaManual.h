@@ -122,6 +122,9 @@ private:
 /* Audio */
 inline Audio* Audio_shared() { return &SharedAudio; }
 
+/* Keyboard */
+inline Keyboard* Keyboard_shared() { return &SharedKeyboard; }
+
 NS_DOROTHY_END
 
 using namespace Dorothy;

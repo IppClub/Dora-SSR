@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Listener.h"
 #include "Animation/Action.h"
 #include "Basic/Renderer.h"
-#include "Input/TextInput.h"
+#include "Input/Keyboard.h"
 
 NS_DOROTHY_BEGIN
 
@@ -1313,11 +1313,11 @@ void Node::setKeyboardEnabled(bool var)
 	_flags.setFlag(Node::KeyboardEnabled, var);
 	if (var)
 	{
-		SharedTextInput.KeyboadHandler += std::make_pair(this, &Node::handleKeyboard);
+		SharedKeyboard.KeyHandler += std::make_pair(this, &Node::handleKeyboard);
 	}
 	else
 	{
-		SharedTextInput.KeyboadHandler -= std::make_pair(this, &Node::handleKeyboard);
+		SharedKeyboard.KeyHandler -= std::make_pair(this, &Node::handleKeyboard);
 	}
 }
 
@@ -1328,12 +1328,12 @@ bool Node::isKeyboardEnabled() const
 
 void Node::attachIME()
 {
-	SharedTextInput.attachIME([this](Event* e) { emit(e); });
+	SharedKeyboard.attachIME([this](Event* e) { emit(e); });
 }
 
 void Node::detachIME()
 {
-	SharedTextInput.detachIME();
+	SharedKeyboard.detachIME();
 }
 
 /* Slot */
