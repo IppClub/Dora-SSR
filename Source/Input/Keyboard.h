@@ -14,24 +14,36 @@ NS_DOROTHY_BEGIN
 
 class Event;
 
-typedef Delegate<void(Event*)> TextInputHandler;
+typedef Delegate<void(Event*)> KeyboardHandler;
 
-class TextInput
+class Keyboard
 {
 public:
-	virtual ~TextInput();
-	void attachIME(const TextInputHandler& handler);
+	virtual ~Keyboard();
+	bool init();
+	void attachIME(const KeyboardHandler& handler);
 	void detachIME();
-	TextInputHandler KeyboadHandler;
+	bool isKeyDown(String name) const;
+	bool isKeyUp(String name) const;
+	bool isKeyPressed(String name) const;
+	KeyboardHandler KeyHandler;
 protected:
-	TextInput();
+	Keyboard();
 	void handleEvent(const SDL_Event& event);
 private:
-	TextInputHandler _imeHandler;
-	SINGLETON_REF(TextInput, Director);
+	bool _oldKeyStates[SDL_NUM_SCANCODES];
+	bool _newKeyStates[SDL_NUM_SCANCODES];
+	bool _oldCodeStates[SDL_NUM_SCANCODES];
+	bool _newCodeStates[SDL_NUM_SCANCODES];
+	Slice _keyNames[SDL_NUM_SCANCODES];
+	Slice _codeNames[SDL_NUM_SCANCODES];
+	unordered_map<string,int> _keyMap;
+	unordered_map<string,int> _codeMap;
+	KeyboardHandler _imeHandler;
+	SINGLETON_REF(Keyboard, Director);
 };
 
-#define SharedTextInput \
-	Dorothy::Singleton<Dorothy::TextInput>::shared()
+#define SharedKeyboard \
+	Dorothy::Singleton<Dorothy::Keyboard>::shared()
 
 NS_DOROTHY_END

@@ -30,6 +30,7 @@ public:
 	PROPERTY(Color, ClearColor);
 	PROPERTY_BOOL(DisplayStats);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
+	PROPERTY_READONLY(Scheduler*, PostScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(Array*, Entries);
 	PROPERTY_READONLY(Node*, CurrentEntry);
@@ -69,6 +70,7 @@ private:
 	Ref<Node> _currentScene;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _systemScheduler;
+	Ref<Scheduler> _postScheduler;
 	Ref<Camera> _camera;
 	Ref<RenderTarget> _renderTarget;
 	stack<Own<Matrix>> _viewProjs;

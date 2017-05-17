@@ -8,6 +8,7 @@ local Content = builtin.Content()
 local Director = builtin.Director()
 local View = builtin.View()
 local Audio = builtin.Audio()
+local Keyboard = builtin.Keyboard()
 
 local yield = coroutine.yield
 local wrap = coroutine.wrap
@@ -20,6 +21,7 @@ builtin.Content = Content
 builtin.Director = Director
 builtin.View = View
 builtin.Audio = Audio
+builtin.Keyboard = Keyboard
 
 local function wait(cond)
 	repeat
@@ -98,7 +100,7 @@ setmetatable(Routine,
 	end,
 })
 
-Director.systemScheduler:schedule(function()
+Director.postScheduler:schedule(function()
 	local i,count = 1,#Routine
 	while i <= count do
 		if Routine[i]() then

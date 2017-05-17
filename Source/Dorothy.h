@@ -56,3 +56,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/SoundCache.h"
 #include "Audio/Sound.h"
 #include "Node/Menu.h"
+#include "Input/Keyboard.h"
