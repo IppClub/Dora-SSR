@@ -1455,7 +1455,7 @@ bool    ImFontAtlas::Build(int& texWidth, int& texHeight, ImVec2& texUvWhitePixe
                 glyph.XAdvance = (pc.xadvance + cfg.GlyphExtraSpacing.x);  // Bake spacing into XAdvance
                 if (cfg.PixelSnapH)
                     glyph.XAdvance = (float)(int)(glyph.XAdvance + 0.5f);
-                dst_font->MetricsTotalSurface += (int)(glyph.X1 - glyph.X0 + 1.99f) * (int)(glyph.Y1 - glyph.Y0 + 1.99f); // +1 to account for average padding, +0.99 to round
+                dst_font->MetricsTotalSurface += (int)((glyph.U1 - glyph.U0) * TexWidth + 1.99f) * (int)((glyph.V1 - glyph.V0) * TexHeight + 1.99f); // +1 to account for average padding, +0.99 to round
             }
         }
         cfg.DstFont->BuildLookupTable();
