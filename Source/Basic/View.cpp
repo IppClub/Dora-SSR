@@ -27,8 +27,14 @@ _scale(1.0f)
 
 Uint8 View::getId() const
 {
-	AssertIf(_ids.empty(), "invalid view id.");
-	return _ids.top();
+	AssertIf(_views.empty(), "invalid view id.");
+	return _views.top().first;
+}
+
+const string& View::getName() const
+{
+	AssertIf(_views.empty(), "invalid view id.");
+	return _views.top().second;
 }
 
 void View::clear()
@@ -36,8 +42,8 @@ void View::clear()
 	_id = -1;
 	if (!empty())
 	{
-		stack<Uint8> dummy;
-		_ids.swap(dummy);
+		decltype(_views) dummy;
+		_views.swap(dummy);
 	}
 }
 
@@ -45,26 +51,27 @@ void View::push(String viewName)
 {
 	AssertIf(_id == 255, "running views exceeded 256.");
 	Uint8 viewId = s_cast<Uint8>(++_id);
+	string name = viewName.toString();
 	bgfx::resetView(viewId);
 	if (!viewName.empty())
 	{
-		bgfx::setViewName(viewId, viewName.toString().c_str());
+		bgfx::setViewName(viewId, name.c_str());
 	}
 	bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
 	bgfx::setViewSeq(viewId, true);
 	bgfx::touch(viewId);
-	_ids.push(viewId);
+	_views.push(std::make_pair(viewId,name));
 }
 
 void View::pop()
 {
-	AssertIf(_ids.empty(), "already pop to the last view, no more views to pop.");
-	_ids.pop();
+	AssertIf(_views.empty(), "already pop to the last view, no more views to pop.");
+	_views.pop();
 }
 
 bool View::empty()
 {
-	return _ids.empty();
+	return _views.empty();
 }
 
 Size View::getSize() const

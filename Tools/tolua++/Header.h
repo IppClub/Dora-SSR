@@ -321,6 +321,7 @@ class Node : public Object
 
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
 	Vec2 convertToWorldSpace(Vec2 nodePoint);
+	void convertToWindowSpace(Vec2 nodePoint, tolua_function callback);
 
 	void scheduleUpdate();
 	void unscheduleUpdate();
@@ -513,7 +514,7 @@ class Label : public Node
 	tolua_property__common char* text;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_readonly tolua_property__common int characterCount;
-	Sprite* getCharacter(int index) const;
+	tolua_outside Sprite* Label_getCharacter @ getCharacter(int index);
 	static const float AutomaticWidth;
 	static Label* create(String fontName, Uint32 fontSize);
 };
@@ -986,5 +987,6 @@ class Keyboard
 	bool isKeyDown(String name);
 	bool isKeyUp(String name);
 	bool isKeyPressed(String name);
+	void updateIMEPosHint(Vec2 winPos);
 	static tolua_outside Keyboard* Keyboard_shared @ create();
 };

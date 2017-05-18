@@ -59,6 +59,9 @@ struct Cache
 /* Sprite */
 Sprite* Sprite_create(String clipStr);
 
+/* Label */
+Sprite* Label_getCharacter(Label* self, int index);
+
 /* Vec2 */
 Vec2* Vec2_create(float x, float y);
 

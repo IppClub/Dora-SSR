@@ -148,22 +148,8 @@ void ImGUIDora::setClipboardText(void*, const char* text)
 
 void ImGUIDora::setImePositionHint(int x, int y)
 {
-	int w;
-	SDL_GetWindowSize(SharedApplication.getSDLWindow(), &w, nullptr);
-	float scale = s_cast<float>(w) / SharedApplication.getWinSize().width;
-	int offset =
-#if BX_PLATFORM_IOS
-		45;
-#elif BX_PLATFORM_OSX
-		10;
-#else
-		0;
-#endif
-	SDL_Rect rc = { s_cast<int>(x * scale), s_cast<int>(y * scale), 0, offset };
-	SharedApplication.invokeInRender([rc]()
-	{
-		SDL_SetTextInputRect(c_cast<SDL_Rect*>(&rc));
-	});
+	float scale = SharedApplication.getSize().width / SharedApplication.getWinSize().width;
+	SharedKeyboard.updateIMEPosHint({x / scale, y / scale});
 }
 
 void ImGUIDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)

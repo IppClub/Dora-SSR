@@ -26,7 +26,7 @@ Panel = (width, height, viewWidth, viewHeight)->
 				\slot "Tapped",-> print "clicked #{i}"
 		.view\alignItems Size viewWidth,height
 
-Director\pushEntry with AlignNode true,false
+Director.ui = with AlignNode true
 	\addChild with AlignNode!
 		.hAlign = "Left"
 		.vAlign = "Top"
@@ -60,3 +60,5 @@ Director\pushEntry with AlignNode true,false
 		\addChild with Panel 150,200,430,640
 			.position = Vec2 75,100
 	\alignLayout!
+
+Director\pushEntry Node!

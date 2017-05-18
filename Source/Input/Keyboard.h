@@ -23,6 +23,7 @@ public:
 	bool init();
 	void attachIME(const KeyboardHandler& handler);
 	void detachIME();
+	void updateIMEPosHint(const Vec2& pos);
 	bool isKeyDown(String name) const;
 	bool isKeyUp(String name) const;
 	bool isKeyPressed(String name) const;
@@ -31,6 +32,7 @@ protected:
 	Keyboard();
 	void handleEvent(const SDL_Event& event);
 private:
+	vector<int> _changedKeys;
 	bool _oldKeyStates[SDL_NUM_SCANCODES];
 	bool _newKeyStates[SDL_NUM_SCANCODES];
 	bool _oldCodeStates[SDL_NUM_SCANCODES];
