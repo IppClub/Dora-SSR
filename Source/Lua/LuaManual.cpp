@@ -477,6 +477,13 @@ Sprite* Sprite_create(String clipStr)
 	return Sprite::create(clipStr);
 }
 
+/* Label */
+
+Sprite* Label_getCharacter(Label* self, int index)
+{
+	return self->getCharacter(index - 1);
+}
+
 /* Vec2 */
 
 Vec2* Vec2_create(float x, float y)

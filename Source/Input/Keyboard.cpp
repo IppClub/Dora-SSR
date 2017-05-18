@@ -15,7 +15,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Keyboard::Keyboard()
+Keyboard::Keyboard():
+_oldCodeStates{},
+_newCodeStates{},
+_oldKeyStates{},
+_newKeyStates{}
 {
 	SharedApplication.eventHandler += std::make_pair(this, &Keyboard::handleEvent);
 
@@ -178,8 +182,22 @@ bool Keyboard::init()
 	SharedDirector.getPostScheduler()->schedule([this](double deltaTime)
 	{
 		DORA_UNUSED_PARAM(deltaTime);
-		memcpy(_oldKeyStates, _newKeyStates, sizeof(bool) * SDL_NUM_SCANCODES);
-		memcpy(_oldCodeStates, _newCodeStates, sizeof(bool) * SDL_NUM_SCANCODES);
+		if (!_changedKeys.empty())
+		{
+			for (auto symKey : _changedKeys)
+			{
+				if ((symKey & SDLK_SCANCODE_MASK) != 0)
+				{
+					Uint32 code = s_cast<Uint32>(symKey) & ~SDLK_SCANCODE_MASK;
+					_oldCodeStates[code] = _newCodeStates[code];
+				}
+				else
+				{
+					_oldKeyStates[symKey] = _newKeyStates[symKey];
+				}
+			}
+			_changedKeys.clear();
+		}
 		return false;
 	});
 	return true;
@@ -212,6 +230,23 @@ void Keyboard::detachIME()
 	}
 }
 
+void Keyboard::updateIMEPosHint(const Vec2& winPos)
+{
+	int offset =
+#if BX_PLATFORM_IOS
+		45;
+#elif BX_PLATFORM_OSX
+		10;
+#else
+		0;
+#endif
+	SDL_Rect rc = { s_cast<int>(winPos.x), s_cast<int>(winPos.y), 0, offset };
+	SharedApplication.invokeInRender([rc]()
+	{
+		SDL_SetTextInputRect(c_cast<SDL_Rect*>(&rc));
+	});
+}
+
 void Keyboard::handleEvent(const SDL_Event& event)
 {
 	switch (event.type)
@@ -238,11 +273,12 @@ void Keyboard::handleEvent(const SDL_Event& event)
 			}
 			if (!oldDown)
 			{
+				_changedKeys.push_back(event.key.keysym.sym);
 				EventArgs<Slice> keyDown("KeyDown"_slice, name);
 				KeyHandler(&keyDown);
 			}
-			EventArgs<Slice> keyDown("KeyPressed"_slice, name);
-			KeyHandler(&keyDown);
+			EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
+			KeyHandler(&keyPressed);
 			break;
 		}
 		case SDL_KEYUP:
@@ -267,6 +303,7 @@ void Keyboard::handleEvent(const SDL_Event& event)
 			}
 			if (oldDown)
 			{
+				_changedKeys.push_back(event.key.keysym.sym);
 				EventArgs<Slice> keyUp("KeyUp"_slice, name);
 				KeyHandler(&keyUp);
 			}
@@ -282,7 +319,7 @@ void Keyboard::handleEvent(const SDL_Event& event)
 		case SDL_TEXTEDITING:
 		{
 			Slice text(event.edit.text);
-			EventArgs<Slice> textEditing("TextEditing"_slice, text);
+			EventArgs<Slice,int> textEditing("TextEditing"_slice, text, event.edit.start);
 			_imeHandler(&textEditing);
 			break;
 		}

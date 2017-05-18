@@ -175,12 +175,12 @@ void NodeTouchHandler::collect(SDL_FingerID fingerId)
 	}
 }
 
-int unProject(float winx, float winy, float winz, const float* invTransform, const int* viewport, float* objectCoordinate)
+static int unProject(float winx, float winy, float winz, const float* invTransform, const float* viewport, float* objectCoordinate)
 {
 	float in[4], out[4];
 	//Transformation of normalized coordinates between -1 and 1  
-	in[0] = (winx - (float)viewport[0]) / (float)viewport[2] * 2.0f - 1.0f;
-	in[1] = (winy - (float)viewport[1]) / (float)viewport[3] * 2.0f - 1.0f;
+	in[0] = (winx - viewport[0]) / viewport[2] * 2.0f - 1.0f;
+	in[1] = (winy - viewport[1]) / viewport[3] * 2.0f - 1.0f;
 	in[2] = 2.0f * winz - 1.0f;
 	in[3] = 1.0f;
 	//Objects coordinates
@@ -211,7 +211,7 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 	bx::calcPlane(plane, Vec3{0,0,0}, Vec3{1,0,0}, Vec3{0,1,0});
 
 	Vec3 posTarget{pos[0], pos[1], 1.0f};
-	int viewPort[4]{0, 0, s_cast<int>(viewSize.width), s_cast<int>(viewSize.height)};
+	float viewPort[4]{0, 0, viewSize.width, viewSize.height};
 
 	Vec3 origin, target;
 	unProject(pos[0], pos[1], pos[2], invMVP, viewPort, origin);

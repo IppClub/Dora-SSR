@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Animation/Action.h"
 #include "Basic/Renderer.h"
 #include "Input/Keyboard.h"
+#include "Basic/View.h"
+#include "Basic/Application.h"
 
 NS_DOROTHY_BEGIN
 
@@ -571,6 +573,10 @@ void Node::cleanup()
 		unscheduleUpdate();
 		_userData = nullptr;
 		_signal = nullptr;
+		if (_flags.isOn(Node::KeyboardEnabled))
+		{
+			setKeyboardEnabled(false);
+		}
 	}
 }
 
@@ -1328,12 +1334,97 @@ bool Node::isKeyboardEnabled() const
 
 void Node::attachIME()
 {
-	SharedKeyboard.attachIME([this](Event* e) { emit(e); });
+	WRef<Node> self(this);
+	SharedKeyboard.attachIME([self](Event* e)
+	{
+		if (self) self->emit(e);
+	});
 }
 
 void Node::detachIME()
 {
 	SharedKeyboard.detachIME();
+}
+
+
+static void transform_point(float out[4], const float m[16], const float in[4])
+{
+	#define M(row,col) m[col*4+row]
+	out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
+	out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
+	out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
+	out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
+	#undef M
+}
+
+static bool project(float objx, float objy, float objz,
+	const float model[16], const float proj[16],
+	const float viewport[4],
+	float* winx, float* winy, float* winz)
+{
+	/* matrice de transformation */
+	float in[4], out[4];
+	/* initilise la matrice et le vecteur a transformer */
+	in[0] = objx;
+	in[1] = objy;
+	in[2] = objz;
+	in[3] = 1.0;
+	transform_point(out, model, in);
+	transform_point(in, proj, out);
+	/* d’ou le resultat normalise entre -1 et 1 */
+	if (in[3] == 0.0) return false;
+	in[0] /= in[3];
+	in[1] /= in[3];
+	in[2] /= in[3];
+	/* en coordonnees ecran */
+	*winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
+	*winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
+	/* entre 0 et 1 suivant z */
+	*winz = (1 + in[2]) / 2;
+	return true;
+}
+
+class ProjectNode : public Node
+{
+public:
+	virtual void render() override
+	{
+		Size viewSize = SharedView.getSize();
+		float viewPort[4]{0, 0, viewSize.width, viewSize.height};
+		float winX, winY, winZ;
+		if (project(_nodePoint.x, _nodePoint.y, 0, getWorld(), SharedDirector.getViewProjection(), viewPort, &winX, &winY, &winZ))
+		{
+			Size winSize = SharedApplication.getWinSize();
+			if (SharedView.getName() != "UI"_slice)
+			{
+				winY = winSize.height - winY;
+			}
+			_convertHandler(Vec2{winX * winSize.width / viewSize.width, winY * winSize.height / viewSize.height});
+		}
+		schedule([this](double deltaTime)
+		{
+			Node* parent = getParent();
+			if (parent)
+			{
+				parent->removeChild(this);
+			}
+			return true;
+		});
+	}
+	CREATE_FUNC(ProjectNode);
+protected:
+	ProjectNode(const Vec2& nodePoint, const function<void(const Vec2&)>& convertHandler):
+	_nodePoint(nodePoint),
+	_convertHandler(convertHandler)
+	{ }
+private:
+	Vec2 _nodePoint;
+	function<void(const Vec2&)> _convertHandler;
+};
+
+void Node::convertToWindowSpace(const Vec2& nodePoint, const function<void(const Vec2&)>& callback)
+{
+	addChild(ProjectNode::create(nodePoint, callback));
 }
 
 /* Slot */

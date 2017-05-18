@@ -29,6 +29,7 @@ public:
 	PROPERTY_BOOL(VSync);
 	PROPERTY_READONLY_BOOL(PostProcessNeeded);
 	PROPERTY_READONLY(Uint8, Id);
+	PROPERTY_READONLY_REF(string, Name);
 	void clear();
 	void reset();
 
@@ -47,7 +48,7 @@ protected:
 	bool empty();
 private:
 	Sint16 _id;
-	stack<Uint8> _ids;
+	stack<std::pair<Uint8,string>> _views;
 	Uint32 _flag;
 	float _nearPlaneDistance;
 	float _farPlaneDistance;

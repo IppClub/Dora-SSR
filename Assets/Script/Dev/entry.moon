@@ -192,6 +192,7 @@ threadLoop ->
 					package.loaded[module] = nil
 				moduleCache = {}
 				Cache\unload!
+				Director.ui = nil
 		if showStats
 			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
 			ShowStats!
@@ -224,14 +225,14 @@ Director\pushEntry with Node!
 						result = require "Example/#{example}"
 						result! if "function" == type result
 					),(msg)->
-						msg = debug.traceback(msg)
+						msg = debug.traceback msg
 						print msg
 						isInEntry = true
 						for module in *moduleCache
 							package.loaded[module] = nil
 						moduleCache = {}
 						Cache\unload!
-						Director.ui\removeAllChildren!
+						Director.ui = nil
 				NextColumn!
 		End!
 		PopStyleColor!

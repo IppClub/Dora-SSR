@@ -102,6 +102,8 @@ public:
 	Vec3 convertToNodeSpace3(const Vec3& worldPoint);
 	Vec3 convertToWorldSpace3(const Vec3& nodePoint);
 
+	void convertToWindowSpace(const Vec2& nodePoint, const function<void(const Vec2&)>& callback);
+
 	void scheduleUpdate();
 	void unscheduleUpdate();
 
