@@ -1395,11 +1395,13 @@ public:
 		if (project(_nodePoint.x, _nodePoint.y, 0, getWorld(), SharedDirector.getViewProjection(), viewPort, &winX, &winY, &winZ))
 		{
 			Size winSize = SharedApplication.getWinSize();
+			winX = winX * winSize.width / viewSize.width;
+			winY = winY * winSize.height / viewSize.height;
 			if (SharedView.getName() != "UI"_slice)
 			{
 				winY = winSize.height - winY;
 			}
-			_convertHandler(Vec2{winX * winSize.width / viewSize.width, winY * winSize.height / viewSize.height});
+			_convertHandler(Vec2{winX, winY});
 		}
 		schedule([this](double deltaTime)
 		{
