@@ -204,6 +204,7 @@ void ClipNode::visit()
 	Uint32 maskLayer = 1 << _layer;
 	Uint32 maskLayerLess = maskLayer - 1;
 	Uint32 maskLayerLessEqual = maskLayer | maskLayerLess;
+	SharedRendererManager.flush();
 	if (isInverted())
 	{
 		drawFullScreenStencil(maskLayer, true);
