@@ -21,8 +21,8 @@ y(v.y)
 
 void Vec2::set(float x, float y)
 {
-	x = x;
-	y = y;
+	Vec2::x = x;
+	Vec2::y = y;
 }
 
 Vec2 Vec2::operator+(const Vec2& vec) const
