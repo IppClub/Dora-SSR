@@ -1,5 +1,5 @@
 <!-- params: X, Y, Width, Height -->
-<Node Name="ruler" X="{ x }" Y="{ y }" Visible="False" SwallowTouches="True" TouchEnabled="True">
+<Node Name="ruler" X="{ x }" Y="{ y }" Opacity="0" Visible="False" SwallowTouches="True" TouchEnabled="True">
 	<Import Module="UI.View.Shape.LineRect"/>
 	<Import Module="UI.View.Shape.SolidRect"/>
 
@@ -13,4 +13,9 @@
 	</ClipNode>
 
 	<LineRect Name="border" X="{ -width/2 }" Y="{ -height/2 }" Width="{ width }" Height="{ height }"/>
+
+	<Line Name="cursor" Color="0xff00ffff">
+		<Vec2 X="0" Y="{ -height/2 }"/>
+		<Vec2 X="0" Y="{ height/2 }"/>
+	</Line>
 </Node>

@@ -1,36 +1,34 @@
 Dorothy!
 RulerView = require "UI.View.Control.Basic.Ruler"
+import Round from require "Utils"
 
 Class RulerView,
-	__init: (args)=>
-		{:y,:width,:height,:fontName} = args
+	__init:(args)=>
+		{:y,:width,:height,:fontName,:fontSize,:fixed} = args
 		viewSize = View.size
 		halfW = width/2
 		halfH = height/2
 		interval = 10
-		top = math.ceil width/interval
-		up = 0
-		down = 1
-		bottom = math.ceil width/interval
-		vs = {}
 		indent = 100
+		fontSize or= 12
+		vsCache = {}
 		@endPosY = y
-		@isFixed = false
+		@isFixed = fixed or true
 
 		labels = {}
 		labelList = {}
 		len = nil
 		do
 			posX = @intervalNode.anchor.x*width
-			center = math.floor posX/100
-			len = math.floor (posX+width+50)/100 - center
-			len = math.max (center - math.floor (posX-width-50)/100),len
+			center = Round posX/100
+			len = Round (posX+halfW)/100-center
+			len = 1+math.max (center - Round (posX-halfW)/100),len
 			for i = center-len,center+len
 				pos = i*100
-				label = with Label fontName,10
+				label = with Label fontName,fontSize
 					.text = tostring(pos/100*indent)
 					.scaleX = 1/@intervalNode.scaleX
-					.position = Vec2 pos,halfH-28
+					.position = Vec2 pos,halfH-18-fontSize
 					.tag = tostring pos
 				@intervalNode\addChild label
 				labels[pos] = label
@@ -41,7 +39,7 @@ Class RulerView,
 			labels[pos] = with label
 				.text = tostring pos/100*indent
 				.scaleX = 1/@intervalNode.scaleX
-				.position = Vec2 pos,halfH-28
+				.position = Vec2 pos,halfH-18-fontSize
 				.tag = tostring pos
 
 		updateLabels = ->
@@ -69,67 +67,69 @@ Class RulerView,
 					table.insert labelList,insertPos,label
 					insertPos -= 1
 					moveLabel label,pos
-			if up < top or down < bottom
-				if up < top
-					target = top
-					for i = up,target
-						posX = i*interval
-						table.insert vs,1,Vec2(posX,halfH)
-						table.insert vs,1,Vec2(posX,halfH-(i%10 == 0 and 16 or 8))
-						table.insert vs,1,Vec2(posX,halfH)
-					up = target+1
-				if down < bottom
-					target = bottom
-					for i = down,target
-						posX = -i*interval
-						table.insert vs,Vec2(posX,halfH)
-						table.insert vs,Vec2(posX,halfH-(i%10 == 0 and 16 or 8))
-						table.insert vs,Vec2(posX,halfH)
-					down = target+1
-				@intervalNode\set vs,Color 0xffffffff
 
-		arrow = with Node!
-			.passOpacity = false
-			\addChild Line {
-				Vec2 0,-halfH
-				Vec2 0,halfH
-				},Color 0xff00ffff
-		@addChild arrow
+			scale = @intervalNode.scaleX
+			current = Round @intervalNode.anchor.x*width/interval
+			delta = 1+math.ceil halfW/scale/interval
+			max = current+delta
+			min = current-delta
+			count = 1
+			vs = {}
+			for i = min,max
+				posX = i*interval
+				v = vsCache[count]
+				if v then v\set posX,halfH
+				else
+					v = Vec2 posX,halfH
+					vsCache[count] = v
+				vs[count] = v
+				count += 1
+				v = vsCache[count]
+				if v then v\set posX,halfH-(i%10 == 0 and fontSize+6 or fontSize-2)
+				else
+					v = Vec2 posX,halfH-(i%10 == 0 and fontSize+6 or fontSize-2)
+					vsCache[count] = v
+				vs[count] = v
+				count += 1
+				v = vsCache[count]
+				if v then v\set posX,halfH
+				else
+					v = Vec2 posX,halfH
+					vsCache[count] = v
+				vs[count] = v
+				count += 1
+			@intervalNode\set vs,Color 0xffffffff
 
 		updateIntervalTextScale = (scale)->
 			@intervalNode\eachChild (child)->
 				child.scaleX = scale
 
-		@gslot "Scene.ViewArea.Scale",(scale)->
+		@makeScale = (scale)=>
 			scale = math.min scale,5
 			@intervalNode.scaleX= scale
 			-- unscale interval text --
 			updateIntervalTextScale 1/scale
-			posX = @intervalNode.anchor.x*width
-			if posX >= 0 then
-				newTop = math.ceil (posX+width/scale)/interval
-				top = math.max top,newTop
-			else
-				newBottom = math.ceil (-posX+width/scale)/interval
-				bottom = math.max bottom,newBottom
 			updateLabels!
 
-		@gslot "Scene.ViewArea.ScaleTo",(scale)->
-			@intervalNode\perform Scale 0.5,scale,1,Ease.OutQuad
+		@makeScaleTo = (scale)=>
+			@intervalNode\perform ScaleX 0.5,@intervalNode.scaleX,scale,Ease.OutQuad
 			-- manually update and unscale interval text --
-			time = 0
-			@intervalNode\schedule (deltaTime)->
-				updateIntervalTextScale 1/@intervalNode.scaleX
-				time = time + deltaTime
-				if math.min(time/0.5,1) == 1
-					@intervalNode\unschedule!
-
-			posX = @intervalNode.anchor.x*width
-			newTop = math.ceil (posX+width/scale)/interval
-			top = math.max top,newTop
-			newBottom = math.ceil (-posX+width/scale)/interval
-			bottom = math.max bottom,newBottom
+			@intervalNode\schedule once -> cycle 0.5,-> updateIntervalTextScale 1/@intervalNode.scaleX
 			updateLabels!
+
+		_value = 0
+		_max = 0
+		_min = 0
+
+		switch Application.platform
+			when "macOS", "Windows"
+				@addChild with Node!
+					.size = Size width,height
+					.touchEnabled = true
+					.swallowMouseWheel = true
+					\slot "MouseWheel",(delta)->
+						newVal = @getValue!+delta.y*indent/10
+						@setValue _min < _max and math.min(math.max(_min, newVal),_max) or newVal
 
 		@setIndent = (ind)=>
 			indent = ind
@@ -137,28 +137,17 @@ Class RulerView,
 				label.text = tostring ind*i/100
 		@getIndent = => indent
 
-		_value = 0
-		_max = 0
-		_min = 0
+		@lastValue = nil
 		@setValue = (v)=>
 			_value = v
-			if _min < _max
-				val = _value
-				val = math.max val,_min
-				val = math.min val,_max
-				@emit "Changed",@isFixed and math.floor(val/(indent/10)+0.5)*(indent/10) or val
-			else
-				@emit "Changed",@isFixed and math.floor(_value/(indent/10)+0.5)*(indent/10) or _value
-
+			val = _min < _max and math.min(math.max(_value,_min),_max) or _value
+			val = @isFixed and Round(val/(indent/10))*(indent/10) or val
+			val = 0 if val == -0
+			if @lastValue ~= val
+				@lastValue = val
+				@emit "Changed",val
 			posX = v*10*interval/indent
 			@intervalNode.anchor = Vec2 posX/width,0
-			scale = @intervalNode.scaleX
-			if posX >= 0
-				newTop = math.ceil (posX+width/scale)/interval
-				top = math.max top,newTop
-			else
-				newBottom = math.ceil (-posX+width/scale)/interval
-				bottom = math.max bottom,newBottom
 			updateLabels!
 
 		@getValue = => _value
@@ -211,11 +200,9 @@ Class RulerView,
 			ds = _v * deltaTime + a*(0.5*deltaTime*deltaTime)
 			newValue = _value-ds*indent/(interval*10)
 			@setValue (newValue-_value)/@intervalNode.scaleY+_value
-			if _v == 0 or (_min < _max and (_value < _min or _value > _max))
-				if isReseting!
-					startReset!
-				else
-					@unschedule!
+			if _v == 0 or isReseting!
+				if isReseting! then startReset!
+				else @unschedule!
 
 		@slot "TapBegan",->
 			_s = 0
@@ -245,13 +232,13 @@ Class RulerView,
 	show: (default,min,max,ind,callback)=>
 		@setLimit min,max
 		@setIndent ind
-		@setValue default
 		@slot("Changed")\set callback
+		@lastValue = nil
+		@setValue default
 		@visible = true
-		@opacity = 0
 		@perform Spawn(
 			Y 0.5,@endPosY+30,@endPosY,Ease.OutBack
-			Opacity 0.3,@opacity,0.8
+			Opacity 0.3,@opacity,1
 		)
 
 	hide: =>
@@ -261,7 +248,7 @@ Class RulerView,
 		@perform Sequence(
 			Spawn(
 				Y 0.5,@y,@endPosY+30,Ease.InBack
-				Opacity 0.5,0
-			)
+				Opacity 0.5,@opacity,0
+			),
 			Hide!
 		)

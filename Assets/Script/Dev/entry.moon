@@ -135,7 +135,7 @@ doCompile = (minify)->
 	thread ->
 		print "Output path: #{Content.writablePath}Script"
 		xpcall (-> compile "#{Content.assetPath}Script",false,minify),(msg)->
-			msg = debug.traceback(msg)
+			msg = debug.traceback msg
 			print msg
 			building = false
 		print string.format "Compile #{minify and 'and minify ' or ''}done. %d files in total.\nCompile time, Moon %.3fs, Xml %.3fs#{minify and ', Minify %.3fs' or ''}.\n",totalFiles,totalMoonTime,totalXmlTime,totalMinifyTime
