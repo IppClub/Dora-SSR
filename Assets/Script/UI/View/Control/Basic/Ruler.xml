@@ -1,5 +1,5 @@
 <!-- params: X, Y, Width, Height -->
-<Node Name="ruler" X="{ x }" Y="{ y }" Opacity="0" Visible="False" SwallowTouches="True" TouchEnabled="True">
+<Node Name="ruler" X="{ x or 0 }" Y="{ y or 0 }" Opacity="0" Visible="False" SwallowTouches="True" TouchEnabled="True">
 	<Import Module="UI.View.Shape.LineRect"/>
 	<Import Module="UI.View.Shape.SolidRect"/>
 

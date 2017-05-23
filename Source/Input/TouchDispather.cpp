@@ -124,6 +124,8 @@ bool NodeTouchHandler::handle(const SDL_Event& event)
 		return move(event) && isSwallowTouches();
 	case SDL_MOUSEWHEEL:
 		return wheel(event) && isSwallowMouseWheel();
+	case SDL_MULTIGESTURE:
+		return gesture(event) && isSwallowTouches();
 	}
 	return false;
 }
@@ -391,7 +393,6 @@ bool NodeTouchHandler::move(const SDL_Event& event)
 
 bool NodeTouchHandler::wheel(const SDL_Event& event)
 {
-	if (event.type != SDL_MOUSEWHEEL) return false;
 	int x, y;
 	SDL_GetMouseState(&x, &y);
 	Size size = SharedApplication.getWinSize();
@@ -401,6 +402,19 @@ bool NodeTouchHandler::wheel(const SDL_Event& event)
 	if (_target->getSize() != Size::zero && Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
 	{
 		_target->emit("MouseWheel"_slice, Vec2{s_cast<float>(event.wheel.x), s_cast<float>(event.wheel.y)});
+		return true;
+	}
+	return false;
+}
+
+bool NodeTouchHandler::gesture(const SDL_Event& event)
+{
+	Vec2 ratio{event.mgesture.x, 1.0f - event.mgesture.y};
+	Vec2 pos = ratio * SharedView.getSize();
+	pos = getPos({pos.x, pos.y, 0.0f});
+	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos))
+	{
+		_target->emit("Gesture"_slice, pos, event.mgesture.numFingers, event.mgesture.dDist, bx::toDeg(event.mgesture.dTheta));
 		return true;
 	}
 	return false;

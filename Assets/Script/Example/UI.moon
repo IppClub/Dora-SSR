@@ -36,11 +36,7 @@ Director.ui = with AlignNode true
 		\addChild with Panel 200,300,430,640
 			.position = Vec2 100,150
 			\slot "AlignLayout",(w,h)->
-				offset = .offset
-				.offset = Vec2.zero
-				\resetSize w,h,430,640
-				.view\alignItems Size 430,h
-				.offset = offset
+				\adjustSizeWithAlign "auto",10,Size(w,h),Size(400,h)
 				.position = Vec2 w/2,h/2
 				.area\removeChild .border
 				.border = LineRect width:w, height:h, color:0xffffffff

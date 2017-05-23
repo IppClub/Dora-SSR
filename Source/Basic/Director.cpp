@@ -631,6 +631,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_DOLLARRECORD:
 			break;
 		case SDL_MULTIGESTURE:
+			SharedTouchDispatcher.add(event);
 			break;
 		case SDL_CLIPBOARDUPDATE:
 			break;
