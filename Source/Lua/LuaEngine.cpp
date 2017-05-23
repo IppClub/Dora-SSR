@@ -346,6 +346,11 @@ int LuaEngine::executeScriptFile(String filename)
 	return result;
 }
 
+void LuaEngine::push(Uint16 value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
 void LuaEngine::push(int value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));

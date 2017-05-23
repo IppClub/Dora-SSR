@@ -203,6 +203,7 @@ threadLoop ->
 
 Director\pushEntry with Node!
 	examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
+	tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
 	\schedule ->
 		{:width,:height} = Application.size
 		SetNextWindowPos Vec2.zero
@@ -223,6 +224,25 @@ Director\pushEntry with Node!
 					isInEntry = false
 					xpcall (->
 						result = require "Example/#{example}"
+						result! if "function" == type result
+					),(msg)->
+						msg = debug.traceback msg
+						print msg
+						isInEntry = true
+						for module in *moduleCache
+							package.loaded[module] = nil
+						moduleCache = {}
+						Cache\unload!
+						Director.ui = nil
+				NextColumn!
+			Columns 1, false
+			TextColored Color(0xff00ffff), "Tests"
+			Columns 5, false
+			for test in *tests
+				if Button test, Vec2(-1,40)
+					isInEntry = false
+					xpcall (->
+						result = require "Test/#{test}"
 						result! if "function" == type result
 					),(msg)->
 						msg = debug.traceback msg

@@ -27,6 +27,7 @@ public:
 	int executeScriptFile(String filename);
 	int executeFunction(int handler, int paramCount = 0);
 
+	void push(Uint16 value);
 	void push(int value);
 	void push(float value);
 	void push(double value);

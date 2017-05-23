@@ -15,7 +15,7 @@ SolidRect = require "UI.View.Shape.SolidRect"
 Class ScrollAreaView,
 	__init: (args)=>
 		{:width,:height} = args
-		viewHeight = View.size.height
+		screenSize = (Vec2(1,1)*View.size).length
 		viewWidth = math.max args.viewWidth or width,width
 		viewHeight = math.max args.viewHeight or height,height
 		moveY = viewHeight - height
@@ -112,7 +112,7 @@ Class ScrollAreaView,
 			newPosX > paddingX*0.5 or
 			newPosX < -moveX-paddingX*0.5)
 
-		accel = viewHeight*2
+		accel = screenSize*2
 		updateSpeed = (dt)->
 			V = S / dt
 			if V.length > accel
@@ -267,7 +267,7 @@ Class ScrollAreaView,
 		(offset)=> @scroll offset-@getTotalDelta!
 
 	viewSize:property => @getViewSize!,
-		(size)=> @updateViewSize size.width,size.height
+		(size)=> @resetSize @contentSize.width,@contentSize.height,size.width,size.height
 
 	padding:property => @getPadding!,
 		(padding)=> @updatePadding padding.x,padding.y
@@ -282,18 +282,19 @@ Class ScrollAreaView,
 		@slot "ScrollTouchEnded",->
 			menu.enabled = menuEnabled if not menu.enabled
 
-	adjustScrollSize:(menu,padding=10,alignMode="auto")=> -- alignMode:auto,vertical,horizontal
+	adjustSizeWithAlign:(alignMode="auto",padding=10,size=@area.size,viewSize)=> -- alignMode:auto,vertical,horizontal
+		viewSize or= size
 		offset = @offset
-		@scrollTo Vec2.zero
-		@viewSize = switch alignMode
+		@offset = Vec2.zero
+		viewSize = switch alignMode
 			when "auto"
-				menu\alignItems padding
+				@view\alignItems Size(viewSize.width,size.height), padding
 			when "vertical"
-				menu\alignItemsVertically padding
+				@view\alignItemsVertically size, padding
 			when "horizontal"
-				menu\alignItemsHorizontally padding
-		@scrollTo offset
-		@scroll!
+				@view\alignItemsHorizontally size, padding
+		@resetSize size.width,size.height,viewSize.width,viewSize.height
+		@offset = offset
 
 	scrollToPosY:(posY,time=0.3)=>
 		{:height} = @contentSize

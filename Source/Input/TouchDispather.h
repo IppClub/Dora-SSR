@@ -80,6 +80,7 @@ protected:
 	bool down(const SDL_Event& event);
 	bool move(const SDL_Event& event);
 	bool wheel(const SDL_Event& event);
+	bool gesture(const SDL_Event& event);
 private:
 	Node* _target;
 	stack<int> _availableTouchIds;
