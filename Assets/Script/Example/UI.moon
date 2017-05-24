@@ -20,7 +20,7 @@ Panel = (width, height, viewWidth, viewHeight)->
 					text:"点击\n按钮#{i}"
 					width:60
 					height:60
-					fontName:"fangzhen16"
+					fontName:"NotoSansHans-Regular"
 					fontSize:16
 				}
 				\slot "Tapped",-> print "clicked #{i}"

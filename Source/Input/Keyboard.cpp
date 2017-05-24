@@ -22,7 +22,15 @@ _oldKeyStates{},
 _newKeyStates{}
 {
 	SharedApplication.eventHandler += std::make_pair(this, &Keyboard::handleEvent);
+}
 
+Keyboard::~Keyboard()
+{
+	SharedApplication.eventHandler -= std::make_pair(this, &Keyboard::handleEvent);
+}
+
+bool Keyboard::init()
+{
     _keyNames[SDLK_RETURN] = "Return"_slice;
     _keyNames[SDLK_ESCAPE] = "Escape"_slice;
     _keyNames[SDLK_BACKSPACE] = "BackSpace"_slice;
@@ -170,37 +178,27 @@ _newKeyStates{}
 			_codeMap[_codeNames[i]] = i;
 		}
 	}
-}
-
-Keyboard::~Keyboard()
-{
-	SharedApplication.eventHandler -= std::make_pair(this, &Keyboard::handleEvent);
-}
-
-bool Keyboard::init()
-{
-	SharedDirector.getPostScheduler()->schedule([this](double deltaTime)
-	{
-		DORA_UNUSED_PARAM(deltaTime);
-		if (!_changedKeys.empty())
-		{
-			for (auto symKey : _changedKeys)
-			{
-				if ((symKey & SDLK_SCANCODE_MASK) != 0)
-				{
-					Uint32 code = s_cast<Uint32>(symKey) & ~SDLK_SCANCODE_MASK;
-					_oldCodeStates[code] = _newCodeStates[code];
-				}
-				else
-				{
-					_oldKeyStates[symKey] = _newKeyStates[symKey];
-				}
-			}
-			_changedKeys.clear();
-		}
-		return false;
-	});
 	return true;
+}
+
+void Keyboard::update()
+{
+	if (!_changedKeys.empty())
+	{
+		for (auto symKey : _changedKeys)
+		{
+			if ((symKey & SDLK_SCANCODE_MASK) != 0)
+			{
+				Uint32 code = s_cast<Uint32>(symKey) & ~SDLK_SCANCODE_MASK;
+				_oldCodeStates[code] = _newCodeStates[code];
+			}
+			else
+			{
+				_oldKeyStates[symKey] = _newKeyStates[symKey];
+			}
+		}
+		_changedKeys.clear();
+	}
 }
 
 void Keyboard::attachIME(const KeyboardHandler& handler)

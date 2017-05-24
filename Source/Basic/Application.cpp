@@ -285,7 +285,17 @@ void Application::makeTimeNow()
 
 void Application::shutdown()
 {
-	_renderEvent.post("Quit"_slice);
+	switch (Switch::hash(getPlatform()))
+	{
+		case "Windows"_hash:
+		case "macOS"_hash:
+			#if DORA_DEBUG
+				_renderEvent.post("Quit"_slice);
+			#else
+				exit(0);
+			#endif
+			break;
+	}
 }
 
 void Application::invokeInRender(const function<void()>& func)

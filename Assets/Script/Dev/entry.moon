@@ -10,7 +10,7 @@ Content\setSearchPaths {
 	"Script/Lib"
 }
 
-LoadFontTTF "Font/fangzhen16.ttf", 16, "Chinese"
+LoadFontTTF "Font/DroidSansFallback.ttf", 22, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -156,9 +156,10 @@ showStats = true
 showLog = true
 showFooter = true
 threadLoop ->
+	Application\shutdown! if Keyboard\isKeyDown "Escape"
 	{:width,:height} = Application.size
-	SetNextWindowSize Vec2(100,45)
-	SetNextWindowPos Vec2(width-100,height-45)
+	SetNextWindowSize Vec2(110,45)
+	SetNextWindowPos Vec2(width-110,height-45)
 	PushStyleColor "WindowBg", Color(0x0)
 	if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 		_, showFooter = Checkbox "Footer", showFooter
@@ -173,7 +174,7 @@ threadLoop ->
 		SameLine!
 		_, showLog = Checkbox "Log", showLog
 		SameLine!
-		if Button "Build", Vec2(80,25)
+		if Button "Build", Vec2(80,30)
 			OpenPopup "build"
 		if BeginPopup "build"
 			doCompile false if Selectable "Compile"
@@ -185,7 +186,7 @@ threadLoop ->
 		SameLine!
 		if not isInEntry
 			SameLine!
-			if Button "Back To Entry", Vec2(150,25)
+			if Button "Back To Entry", Vec2(150,30)
 				Director\popToRootEntry!
 				isInEntry = true
 				for module in *moduleCache
@@ -223,8 +224,12 @@ Director\pushEntry with Node!
 				if Button example, Vec2(-1,40)
 					isInEntry = false
 					xpcall (->
+						lastEntry = Director.currentEntry
 						result = require "Example/#{example}"
-						result! if "function" == type result
+						if "function" == type result
+							result = result!
+							Director\pushEntry result if tolua.cast result, "Node"
+						Director\pushEntry Node! if lastEntry == Director.currentEntry
 					),(msg)->
 						msg = debug.traceback msg
 						print msg
@@ -242,8 +247,12 @@ Director\pushEntry with Node!
 				if Button test, Vec2(-1,40)
 					isInEntry = false
 					xpcall (->
+						lastEntry = Director.currentEntry
 						result = require "Test/#{test}"
-						result! if "function" == type result
+						if "function" == type result
+							result = result!
+							Director\pushEntry result if tolua.cast result, "Node"
+						Director\pushEntry Node! if lastEntry == Director.currentEntry
 					),(msg)->
 						msg = debug.traceback msg
 						print msg

@@ -6,6 +6,7 @@ class Application
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_property__common unsigned int seed;
+	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
 };
 

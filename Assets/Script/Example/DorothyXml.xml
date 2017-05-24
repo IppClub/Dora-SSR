@@ -10,7 +10,6 @@
 		<Slot Name="TapBegan" Perform="scale"/>
 	</Sprite>
 	<Slot Name="Enter" Perform="rotate"/>
-	<Script>Director:pushEntry(entry)</Script>
 
 	<!-- example ends here, print xml and compiled lua codes below -->
 	<Script>

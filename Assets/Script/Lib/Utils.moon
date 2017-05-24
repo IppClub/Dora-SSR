@@ -233,7 +233,10 @@ Struct = setmetatable {
 		StructLoad data
 		data
 	loadfile:(filename)=>
-		Struct\load Content\loadFile filename
+		Struct\load Content\load filename
+	clear:=>
+		StructDefs = {}
+		Struct.Array!
 },{
 	__index:(name)=>
 		def = StructDefs[name]

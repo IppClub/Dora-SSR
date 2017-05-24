@@ -204,6 +204,7 @@ void Director::mainLoop()
 		SharedImGUI.begin();
 		_scheduler->update(getDeltaTime());
 		_postScheduler->update(getDeltaTime());
+		SharedKeyboard.update();
 		SharedImGUI.end();
 
 		/* handle ImGui touch */
