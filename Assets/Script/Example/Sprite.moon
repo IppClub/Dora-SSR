@@ -17,8 +17,8 @@ Dorothy builtin.ImGui
 
 entry\schedule ->
 	{:width,:height} = Application.size
-	SetNextWindowPos Vec2(width-220,10), "FirstUseEver"
-	SetNextWindowSize Vec2(220,450),"FirstUseEver"
+	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+	SetNextWindowSize Vec2(240,520),"FirstUseEver"
 	if Begin "Sprite", "NoResize|NoSavedSettings"
 		if BeginChild "scroll", Vec2 -1,-40
 			_,sprite.z = DragFloat "Z", sprite.z, 1, -1000, 1000, "%.2f"
@@ -45,7 +45,7 @@ entry\schedule ->
 			DragInt2 "Skew", skew, 1, -360, 360
 			sprite.skewX = skew.x
 			sprite.skewY = skew.y
-			PushItemWidth -60
+			PushItemWidth -70
 			_, sprite.opacity = DragFloat "Opacity", sprite.opacity, 0.01, 0, 1, "%.2f"
 			PopItemWidth!
 			color3 = sprite.color3

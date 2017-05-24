@@ -110,12 +110,9 @@ private:
 };
 
 ImGUIDora::ImGUIDora():
-_cursor(0),
-_editingDel(false),
-_textLength(0),
-_textEditing{},
 _isLoadingFont(false),
 _textInputing(false),
+_lastCursor(0),
 _mousePressed{ false, false, false },
 _mouseWheel(0.0f),
 _log(New<LogPanel>())
@@ -431,7 +428,7 @@ bool ImGUIDora::init()
 				{
 					int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
 					io.KeysDown[key] = (event.type == SDL_KEYDOWN);
-					if (_textLength == 0)
+					if (_textEditing.empty())
 					{
 						Uint16 mod = event.key.keysym.mod;
 						io.KeyShift = ((mod & KMOD_SHIFT) != 0);
@@ -463,10 +460,8 @@ void ImGUIDora::begin()
 		_textInputing = io.WantTextInput;
 		if (_textInputing)
 		{
-			memset(_textEditing, 0, SDL_TEXTINPUTEVENT_TEXT_SIZE);
-			_cursor = 0;
-			_textLength = 0;
-			_editingDel = false;
+			_textEditing.clear();
+			_lastCursor = 0;
 			SharedKeyboard.detachIME();
 		}
 		SharedApplication.invokeInRender(_textInputing ? SDL_StartTextInput : SDL_StopTextInput);
@@ -596,7 +591,7 @@ void ImGUIDora::sendKey(int key, int count)
 {
 	for (int i = 0; i < count; i++)
 	{
-		SDL_Event e;
+		SDL_Event e = {};
 		e.type = SDL_KEYDOWN;
 		e.key.keysym.sym = key;
 		_inputs.push_back(e);
@@ -648,15 +643,7 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 		{
-			int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
-			if (event.type == SDL_KEYDOWN && key == SDLK_BACKSPACE)
-			{
-				if (!_editingDel)
-				{
-					_inputs.push_back(event);
-				}
-			}
-			else if (_textLength == 0)
+			if (_textEditing.empty())
 			{
 				_inputs.push_back(event);
 			}
@@ -664,76 +651,54 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 		}
 		case SDL_TEXTINPUT:
 		{
-			const char* newText = event.text.text;
-			if (strcmp(newText, _textEditing) != 0)
+			if (_lastCursor < _textEditing.size() - 1)
 			{
-				if (_textLength > 0)
-				{
-					if (_cursor < _textLength)
-					{
-						sendKey(SDLK_RIGHT, _textLength - _cursor);
-					}
-					sendKey(SDLK_BACKSPACE, _textLength);
-				}
-				_inputs.push_back(event);
+				sendKey(SDLK_RIGHT, s_cast<int>(_textEditing.size()) - _lastCursor);
 			}
-			memset(_textEditing, 0, SDL_TEXTINPUTEVENT_TEXT_SIZE);
-			_cursor = 0;
-			_textLength = 0;
-			_editingDel = false;
+			sendKey(SDLK_BACKSPACE, s_cast<int>(_textEditing.size()));
+			_textEditing.clear();
+			_lastCursor = 0;
+			_inputs.push_back(event);
 			break;
 		}
 		case SDL_TEXTEDITING:
 		{
-			Sint32 cursor = event.edit.start;
-			const char* newText = event.edit.text;
-			if (strcmp(newText, _textEditing) != 0)
+			string newText = event.edit.text;
+			if (newText.size() == _textEditing.size())
 			{
-				size_t lastLength = strlen(_textEditing);
-				size_t newLength = strlen(newText);
-				const char* oldChar = _textEditing;
-				const char* newChar = newText;
-				if (_cursor < _textLength)
+				Sint32 cursor = event.edit.start;
+				if (cursor > _lastCursor)
 				{
-					sendKey(SDLK_RIGHT, _textLength - _cursor);
-				}
-				while (*oldChar == *newChar && *oldChar != '\0' && *newChar != '\0')
-				{
-					oldChar++; newChar++;
-				}
-				size_t toDel = _textEditing + lastLength - oldChar;
-				size_t toAdd = newText + newLength - newChar;
-				if (toDel > 0)
-				{
-					int charCount = utf8_count_characters(oldChar);
-					_textLength -= charCount;
-					sendKey(SDLK_BACKSPACE, charCount);
-				}
-				_editingDel = (toDel > 0);
-				if (toAdd > 0)
-				{
-					SDL_Event e;
-					e.type = SDL_TEXTINPUT;
-					_textLength += utf8_count_characters(newChar);
-					memcpy(e.text.text, newChar, toAdd + 1);
-					_inputs.push_back(e);
-				}
-				memcpy(_textEditing, newText, SDL_TEXTINPUTEVENT_TEXT_SIZE);
-				_cursor = cursor;
-				sendKey(SDLK_LEFT, _textLength - _cursor);
-			}
-			else if (_cursor != cursor)
-			{
-				if (_cursor < cursor)
-				{
-					sendKey(SDLK_RIGHT, cursor - _cursor);
+					sendKey(SDLK_RIGHT, cursor - _lastCursor);
 				}
 				else
 				{
-					sendKey(SDLK_LEFT, _cursor - cursor);
+					sendKey(SDLK_LEFT, _lastCursor - cursor);
 				}
-				_cursor = cursor;
+				_lastCursor = cursor;
 			}
+			else if (newText.size() < _textEditing.size())
+			{
+				sendKey(SDLK_BACKSPACE, s_cast<int>(_textEditing.size() - newText.size()));
+			}
+			else
+			{
+				size_t start = newText.size();
+				for (size_t i = 0; i < newText.size(); i++)
+				{
+					if ((i < _textEditing.size() && newText[i] != _textEditing[i]) || i >= _textEditing.size())
+					{
+						start = i;
+						break;
+					}
+				}
+				SDL_Event e = {};
+				e.type = SDL_TEXTINPUT;
+				memcpy(e.text.text, event.edit.text + start, newText.size() - _textEditing.size());
+				_lastCursor = event.edit.start;
+				_inputs.push_back(e);
+			}
+			_textEditing = newText;
 			break;
 		}
 	}

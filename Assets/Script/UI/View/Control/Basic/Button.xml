@@ -8,11 +8,12 @@
 		<Node PassColor="False">
 			<SolidRect Width="{ width }" Height="{ height }" Color="{ backColor or 0x66000000 }" RenderOrder="1"/>
 		</Node>
-		<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>
 
 		<Script>if text then</Script>
 			<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" Ref="True"/>
 		<Script>end</Script>
+
+		<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>
 	</Item>
 
 </ButtonBase>

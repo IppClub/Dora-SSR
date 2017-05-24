@@ -28,6 +28,7 @@ public:
 	bool isKeyUp(String name) const;
 	bool isKeyPressed(String name) const;
 	KeyboardHandler KeyHandler;
+	void update();
 protected:
 	Keyboard();
 	void handleEvent(const SDL_Event& event);

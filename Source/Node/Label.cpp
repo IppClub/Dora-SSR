@@ -472,7 +472,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		float yOffset = -fontDef->offset_y;
 		Vec2 fontPos = Vec2{
 			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount,
-			nextFontPositionY + yOffset - fontDef->height * 0.5f};
+			nextFontPositionY + yOffset - fontDef->height * 0.5f - fontInfo.descender};
 		fontChar->setPosition(fontPos);
 
 		// update kerning

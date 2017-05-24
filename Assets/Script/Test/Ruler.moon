@@ -1,6 +1,6 @@
 Dorothy!
 Ruler = require "UI.Control.Basic.Ruler"
-Button = require "UI.Control.Basic.Button"
+CircleButton = require "UI.Control.Basic.CircleButton"
 
 ruler = Ruler {
 	x:0
@@ -13,18 +13,17 @@ ruler = Ruler {
 
 Director\pushEntry with Node!
 	\addChild ruler
-	\addChild with Button {
-			text:"Show"
+	\addChild with CircleButton {
+			text:"显示"
 			y:-100
-			width:60
-			height:60
+			radius:30
 			fontSize:18
 		}
 		\slot "Tapped",->
-			if .text == "Show"
-				.text = "Hide"
+			if .text == "显示"
+				.text = "隐藏"
 				ruler\show 0,0,100,10,(value)->
 					print value
 			else
-				.text = "Show"
+				.text = "显示"
 				ruler\hide!
