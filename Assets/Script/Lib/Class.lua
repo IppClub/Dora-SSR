@@ -179,7 +179,7 @@ local function class(arg1,arg2)
 			classDef = arg1
 		end
 	-- case 3
-	-- arg1:CCObject(C++ Inst), arg2:table(ClassDef)
+	-- arg1:Object(C++ Inst), arg2:table(ClassDef)
 	elseif argType ~= "nil" then
 		__partial = function(self)
 			return arg1()

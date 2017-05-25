@@ -81,6 +81,11 @@ FontCache::~FontCache()
 	unload();
 }
 
+SpriteEffect* FontCache::getDefaultEffect() const
+{
+	return _defaultEffect;
+}
+
 bool FontCache::unload()
 {
 	if (_fonts.empty() && _fontFiles.empty())
@@ -267,7 +272,8 @@ _lineGap(0),
 _textWidth(Label::AutomaticWidth),
 _alignment(TextAlign::Center),
 _font(SharedFontCache.load(fontName, fontSize)),
-_blendFunc(BlendFunc::Default)
+_blendFunc(BlendFunc::Default),
+_effect(SharedFontCache.getDefaultEffect())
 {
 	_flags.setOff(Node::TraverseEnabled);
 }
@@ -350,14 +356,43 @@ const BlendFunc& Label::getBlendFunc() const
 	return _blendFunc;
 }
 
+void Label::setEffect(SpriteEffect* var)
+{
+	_effect = var;
+	for (Sprite* fontChar : _characters)
+	{
+		if (fontChar)
+		{
+			fontChar->setEffect(var);
+		}
+	}
+}
+
+SpriteEffect* Label::getEffect() const
+{
+	return _effect;
+}
+
+void Label::setDepthWrite(bool var)
+{
+	_flags.setFlag(Label::DepthWrite, var);
+}
+
+bool Label::isDepthWrite() const
+{
+	return _flags.isOn(Label::DepthWrite);
+}
+
 void Label::setRenderOrder(int var)
 {
 	Node::setRenderOrder(var);
-	eachChild([var](Node* child)
+	for (Sprite* fontChar : _characters)
 	{
-		child->setRenderOrder(var);
-		return false;
-	});
+		if (fontChar)
+		{
+			fontChar->setRenderOrder(var);
+		}
+	}
 }
 
 Sprite* Label::getCharacter(int index) const
@@ -465,6 +500,8 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 			fontChar = SharedFontCache.createCharacter(_font, ch);
 			fontChar->setBlendFunc(_blendFunc);
 			fontChar->setRenderOrder(getRenderOrder());
+			fontChar->setDepthWrite(isDepthWrite());
+			fontChar->setEffect(_effect);
 			addChild(fontChar);
 			_characters[i] = fontChar;
 		}
