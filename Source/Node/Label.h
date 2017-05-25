@@ -98,7 +98,9 @@ public:
 	PROPERTY(float, TextWidth);
 	PROPERTY(float, LineGap);
 	PROPERTY(const char*, Text);
+	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY_REF(BlendFunc, BlendFunc);
+	PROPERTY_BOOL(DepthWrite);
 	virtual void setRenderOrder(int var) override;
 	Sprite* getCharacter(int index) const;
 	int getCharacterCount() const;
@@ -115,11 +117,16 @@ private:
 	float _textWidth;
 	float _lineGap;
 	Ref<Font> _font;
+	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;
 	TextAlign _alignment;
 	string _textUTF8;
 	vector<Uint32> _text;
 	vector<Sprite*> _characters;
+	enum
+	{
+		DepthWrite = Node::UserFlag
+	};
 	DORA_TYPE_OVERRIDE(Label);
 };
 
