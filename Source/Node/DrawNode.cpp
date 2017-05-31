@@ -117,8 +117,8 @@ void DrawNode::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedDrawRenderer.push(this);
 	SharedRendererManager.setCurrent(SharedDrawRenderer.getTarget());
+	SharedDrawRenderer.push(this);
 }
 
 void DrawNode::pushVertex(const Vec2& pos, const Vec4& color, const Vec2& coord)
@@ -606,8 +606,8 @@ void Line::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedLineRenderer.push(this);
 	SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());
+	SharedLineRenderer.push(this);
 }
 
 /* LineRenderer */

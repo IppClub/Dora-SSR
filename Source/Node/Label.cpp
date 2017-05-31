@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Cache/ShaderCache.h"
 #include "Basic/Content.h"
+#include "Basic/Director.h"
 #include "fmt/format.h"
 
 NS_DOROTHY_BEGIN
@@ -268,6 +269,7 @@ const bgfx::GlyphInfo* FontCache::updateCharacter(Sprite* sp, Font* font, bgfx::
 const float Label::AutomaticWidth = -1.0f;
 
 Label::Label(String fontName, Uint32 fontSize):
+_alphaRef(0),
 _lineGap(0),
 _textWidth(Label::AutomaticWidth),
 _alignment(TextAlign::Center),
@@ -276,6 +278,7 @@ _blendFunc(BlendFunc::Default),
 _effect(SharedFontCache.getDefaultEffect())
 {
 	_flags.setOff(Node::TraverseEnabled);
+	_flags.setOn(Label::TextBatched);
 }
 
 Label::~Label()
@@ -332,6 +335,10 @@ void Label::setText(const char* var)
 	_textUTF8 = var;
 	_text = utf8_get_characters(_textUTF8.c_str());
 	updateLabel();
+	if (_flags.isOn(Label::TextBatched))
+	{
+		_flags.setOn(Label::QuadDirty);
+	}
 }
 
 const char* Label::getText() const
@@ -342,11 +349,11 @@ const char* Label::getText() const
 void Label::setBlendFunc(const BlendFunc& var)
 {
 	_blendFunc = var;
-	for (Sprite* fontChar : _characters)
+	for (CharItem* fontChar : _characters)
 	{
-		if (fontChar)
+		if (fontChar && fontChar->sprite)
 		{
-			fontChar->setBlendFunc(var);
+			fontChar->sprite->setBlendFunc(var);
 		}
 	}
 }
@@ -359,11 +366,11 @@ const BlendFunc& Label::getBlendFunc() const
 void Label::setEffect(SpriteEffect* var)
 {
 	_effect = var;
-	for (Sprite* fontChar : _characters)
+	for (CharItem* fontChar : _characters)
 	{
-		if (fontChar)
+		if (fontChar && fontChar->sprite)
 		{
-			fontChar->setEffect(var);
+			fontChar->sprite->setEffect(var);
 		}
 	}
 }
@@ -383,23 +390,63 @@ bool Label::isDepthWrite() const
 	return _flags.isOn(Label::DepthWrite);
 }
 
+void Label::setAlphaRef(float var)
+{
+	_alphaRef = s_cast<Uint8>(255.0f * Math::clamp(var, 0.0f, 1.0f));
+}
+
+float Label::getAlphaRef() const
+{
+	return _alphaRef / 255.0f;
+}
+
 void Label::setRenderOrder(int var)
 {
 	Node::setRenderOrder(var);
-	for (Sprite* fontChar : _characters)
+	for (CharItem* fontChar : _characters)
 	{
-		if (fontChar)
+		if (fontChar && fontChar->sprite)
 		{
-			fontChar->setRenderOrder(var);
+			fontChar->sprite->setRenderOrder(var);
 		}
 	}
+}
+
+void Label::setBatched(bool var)
+{
+	if (_flags.isOn(Label::TextBatched) == var)
+	{
+		return;
+	}
+	_flags.setFlag(Label::TextBatched, var);
+	if (var)
+	{
+		for (CharItem* fontChar : _characters)
+		{
+			if (fontChar && fontChar->sprite)
+			{
+				removeChild(fontChar->sprite);
+				fontChar->sprite = nullptr;
+			}
+		}
+		_flags.setOn(Label::QuadDirty);
+	}
+	else
+	{
+		setText(_textUTF8.c_str());
+	}
+}
+
+bool Label::isBatched() const
+{
+	return _flags.isOn(Label::TextBatched);
 }
 
 Sprite* Label::getCharacter(int index) const
 {
 	if (0 <= index && index < s_cast<int>(_text.size()))
 	{
-		return _characters[index];
+		return _characters[index] ? _characters[index]->sprite : nullptr;
 	}
 	return nullptr;
 }
@@ -409,14 +456,14 @@ int Label::getCharacterCount() const
 	return s_cast<int>(_text.size());
 }
 
-float Label::getLetterPosXLeft(Sprite* sp)
+float Label::getLetterPosXLeft(CharItem* item)
 {
-	return sp->getX() - sp->getAnchorPoint().x;
+	return item->pos.x - item->rect.getWidth() * 0.5f;
 }
 
-float Label::getLetterPosXRight(Sprite* sp)
+float Label::getLetterPosXRight(CharItem* item)
 {
-	return sp->getX() + sp->getAnchorPoint().x;
+	return item->pos.x + item->rect.getWidth() * 0.5f;
 }
 
 void Label::updateCharacters(const vector<Uint32>& chars)
@@ -434,9 +481,9 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 	{
 		for (size_t i = chars.size(); i < _characters.size(); i++)
 		{
-			if (_characters[i])
+			if (_characters[i] && _characters[i]->sprite)
 			{
-				_characters[i]->setVisible(false);
+				_characters[i]->sprite->setVisible(false);
 			}
 		}
 	}
@@ -463,15 +510,15 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 	for (size_t i = 0; i < chars.size(); i++)
 	{
 		Uint32 ch = chars[i];
-		Sprite* fontChar = _characters[i];
+		CharItem* fontChar = _characters[i];
 
 		if (ch == '\n')
 		{
 			nextFontPositionX = 0;
 			nextFontPositionY -= lineHeight;
-			if (fontChar)
+			if (fontChar && fontChar->sprite)
 			{
-				fontChar->setVisible(false);
+				fontChar->sprite->setVisible(false);
 			}
 			continue;
 		}
@@ -492,25 +539,39 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 
 		if (fontChar)
 		{
-			SharedFontCache.updateCharacter(fontChar, _font, ch);
-			fontChar->setVisible(true);
+			if (fontChar->sprite)
+			{
+				SharedFontCache.updateCharacter(fontChar->sprite, _font, ch);
+				fontChar->sprite->setVisible(true);
+			}
 		}
 		else
 		{
-			fontChar = SharedFontCache.createCharacter(_font, ch);
-			fontChar->setBlendFunc(_blendFunc);
-			fontChar->setRenderOrder(getRenderOrder());
-			fontChar->setDepthWrite(isDepthWrite());
-			fontChar->setEffect(_effect);
-			addChild(fontChar);
-			_characters[i] = fontChar;
+			_characters[i] = New<CharItem>();
+			fontChar = _characters[i];
+			if (_flags.isOff(Label::TextBatched))
+			{
+				Sprite* sprite = SharedFontCache.createCharacter(_font, ch);
+				sprite->setBlendFunc(_blendFunc);
+				sprite->setRenderOrder(getRenderOrder());
+				sprite->setDepthWrite(isDepthWrite());
+				sprite->setEffect(_effect);
+				addChild(sprite);
+				fontChar->sprite = sprite;
+			}
 		}
+		fontChar->code = ch;
+		std::tie(fontChar->texture, fontChar->rect) = SharedFontCache.getCharacterInfo(_font, ch);
 
 		float yOffset = -fontDef->offset_y;
 		Vec2 fontPos = Vec2{
 			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount,
 			nextFontPositionY + yOffset - fontDef->height * 0.5f - fontInfo.descender};
-		fontChar->setPosition(fontPos);
+		fontChar->pos = fontPos;
+		if (fontChar->sprite)
+		{
+			fontChar->sprite->setPosition(fontPos);
+		}
 
 		// update kerning
 		nextFontPositionX += fontDef->advance_x + kerningAmount;
@@ -571,8 +632,8 @@ void Label::updateLabel()
 		for (int j = 0; j < stringLength; j++)
 		{
 			int justSkipped = 0;
-			Sprite* characterSprite;
-			while (!(characterSprite = _characters[j + justSkipped]) || !characterSprite->isVisible())
+			CharItem* characterItem;
+			while (!(characterItem = _characters[j + justSkipped]) || (characterItem->sprite && !characterItem->sprite->isVisible()))
 			{
 				justSkipped++;
 				if (j + justSkipped >= stringLength)
@@ -588,7 +649,7 @@ void Label::updateLabel()
 
 			if (!start_word)
 			{
-				startOfWord = getLetterPosXLeft(characterSprite);
+				startOfWord = getLetterPosXLeft(characterItem);
 				start_word = true;
 			}
 			if (!start_line)
@@ -621,7 +682,7 @@ void Label::updateLabel()
 				character = _text[i];
 				if (!startOfWord)
 				{
-					startOfWord = getLetterPosXLeft(characterSprite);
+					startOfWord = getLetterPosXLeft(characterItem);
 					start_word = true;
 				}
 				if (!startOfLine)
@@ -647,7 +708,7 @@ void Label::updateLabel()
 			}
 
 			// Out of bounds.
-			if (i > 0 && !skiped_one && getLetterPosXRight(characterSprite) - startOfLine > _textWidth)
+			if (i > 0 && !skiped_one && getLetterPosXRight(characterItem) - startOfLine > _textWidth)
 			{
 				if (character <= 255 && std::isalnum(character))
 				{
@@ -704,7 +765,7 @@ void Label::updateLabel()
 
 					if (!startOfWord)
 					{
-						startOfWord = getLetterPosXLeft(characterSprite);
+						startOfWord = getLetterPosXLeft(characterItem);
 						start_word = true;
 					}
 					if (!startOfLine)
@@ -757,15 +818,15 @@ void Label::updateLabel()
 				}
 				int index = i + line_length - 1 + lineNumber;
 				if (index < 0) continue;
-				Sprite* lastChar = _characters[index];
+				CharItem* lastChar = _characters[index];
 				if (lastChar == nullptr) continue;
-				lineWidth = lastChar->getX() + lastChar->getWidth() / 2.0f;
+				lineWidth = getLetterPosXRight(lastChar);
 
 				float shift = 0;
 				switch (_alignment)
 				{
 				case TextAlign::Center:
-					shift = getWidth() / 2.0f - lineWidth / 2.0f;
+					shift = getWidth() * 0.5f - lineWidth * 0.5f;
 					break;
 				case TextAlign::Right:
 					shift = getWidth() - lineWidth;
@@ -779,10 +840,14 @@ void Label::updateLabel()
 					{
 						index = i + j + lineNumber;
 						if (index < 0) continue;
-						Sprite* characterSprite = _characters[index];
-						if (characterSprite)
+						CharItem* characterItem = _characters[index];
+						if (characterItem)
 						{
-							characterSprite->setPosition(characterSprite->getPosition() + Vec2{shift, 0.0f});
+							characterItem->pos += Vec2{shift, 0.0f};
+							if (characterItem->sprite)
+							{
+								characterItem->sprite->setPosition(characterItem->pos);
+							}
 						}
 					}
 				}
@@ -801,6 +866,173 @@ void Label::cleanup()
 {
 	_font = nullptr;
 	Node::cleanup();
+}
+
+void Label::updateVertTexCoord()
+{
+	_quads.clear();
+	_quads.reserve(_characters.size());
+	Uint32 abgr = _realColor.toABGR();
+	for (CharItem* item : _characters)
+	{
+		if (item && item->code != '\n')
+		{
+			const bgfx::TextureInfo& info = item->texture->getInfo();
+			const Rect& rect = item->rect;
+			float left = rect.getX() / info.width;
+			float top = rect.getY() / info.height;
+			float right = (rect.getX() + rect.getWidth()) / info.width;
+			float bottom = (rect.getY() + rect.getHeight()) / info.height;
+			SpriteQuad quad;
+			quad.lt.u = left;
+			quad.lt.v = top;
+			quad.rt.u = right;
+			quad.rt.v = top;
+			quad.lb.u = left;
+			quad.lb.v = bottom;
+			quad.rb.u = right;
+			quad.rb.v = bottom;
+			quad.lt.abgr = abgr;
+			quad.rt.abgr = abgr;
+			quad.lb.abgr = abgr;
+			quad.rb.abgr = abgr;
+			_quads.push_back(quad);
+		}
+	}
+}
+
+void Label::updateVertPosition()
+{
+	_quadPos.clear();
+	_quadPos.reserve(_characters.size());
+	for (CharItem* item : _characters)
+	{
+		if (item && item->code != '\n')
+		{
+			const Vec2& pos = item->pos;
+			const Rect& rect = item->rect;
+			float halfW = rect.getWidth() * 0.5f;
+			float halfH = rect.getHeight() * 0.5f;
+			float left = pos.x - halfW, right = pos.x + halfW, top = pos.y + halfH, bottom = pos.y - halfH;
+			SpriteQuad::Position quadPos{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}};
+			quadPos.lt.x = left;
+			quadPos.lt.y = top;
+			quadPos.rt.x = right;
+			quadPos.rt.y = top;
+			quadPos.lb.x = left;
+			quadPos.lb.y = bottom;
+			quadPos.rb.x = right;
+			quadPos.rb.y = bottom;
+			_quadPos.push_back(quadPos);
+			_flags.setOn(Label::VertexPosDirty);
+		}
+	}
+}
+
+void Label::updateVertColor()
+{
+	for (auto& quad : _quads)
+	{
+		Uint32 abgr = _realColor.toABGR();
+		quad.lt.abgr = abgr;
+		quad.rt.abgr = abgr;
+		quad.lb.abgr = abgr;
+		quad.rb.abgr = abgr;
+	}
+}
+
+void Label::updateRealColor3()
+{
+	Node::updateRealColor3();
+	_flags.setOn(Label::VertexColorDirty);
+}
+
+void Label::updateRealOpacity()
+{
+	Node::updateRealOpacity();
+	_flags.setOn(Label::VertexColorDirty);
+}
+
+const Matrix& Label::getWorld()
+{
+	if (_flags.isOn(Node::WorldDirty))
+	{
+		_flags.setOn(Label::VertexPosDirty);
+	}
+	return Node::getWorld();
+}
+
+void Label::render()
+{
+	if (_flags.isOff(Label::TextBatched)) return;
+
+	if (_flags.isOn(Label::QuadDirty))
+	{
+		_flags.setOff(Label::QuadDirty);
+		updateVertTexCoord();
+		updateVertPosition();
+		_flags.setOff(Label::VertexColorDirty);
+		_flags.setOn(Label::VertexPosDirty);
+	}
+
+	if (_flags.isOn(Label::VertexColorDirty))
+	{
+		_flags.setOff(Label::VertexColorDirty);
+		updateVertColor();
+	}
+	
+	if (_flags.isOn(Label::VertexPosDirty))
+	{
+		_flags.setOff(Label::VertexPosDirty);
+		Matrix transform;
+		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		for (size_t i = 0; i < _quadPos.size(); i++)
+		{
+			SpriteQuad& quad = _quads[i];
+			SpriteQuad::Position& quadPos = _quadPos[i];
+			bx::vec4MulMtx(&quad.lt.x, quadPos.lt, transform);
+			bx::vec4MulMtx(&quad.rt.x, quadPos.rt, transform);
+			bx::vec4MulMtx(&quad.lb.x, quadPos.lb, transform);
+			bx::vec4MulMtx(&quad.rb.x, quadPos.rb, transform);
+		}
+	}
+
+	Uint64 renderState = (
+		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+		BGFX_STATE_ALPHA_REF(_alphaRef) |
+		BGFX_STATE_MSAA | _blendFunc.toValue());
+	if (_flags.isOn(Label::DepthWrite))
+	{
+		renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
+	}
+
+	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
+
+	Texture2D* lastTexture = nullptr;
+	int start = 0, index = 0;
+	for (CharItem* item : _characters)
+	{
+		if (item && item->code != '\n')
+		{
+			if (!lastTexture) lastTexture = item->texture;
+			if (lastTexture != item->texture)
+			{
+				lastTexture = item->texture;
+				int count = index - start;
+				if (count > 0)
+				{
+					SharedSpriteRenderer.push(*(_quads.data() + start), count * 4, _effect, lastTexture, renderState);
+				}
+				start = index;
+			}
+			index++;
+		}
+	}
+	int count = index - start;
+	if (count > 0)
+	{
+		SharedSpriteRenderer.push(*(_quads.data() + start), count * 4, _effect, lastTexture, renderState);
+	}
 }
 
 NS_DOROTHY_END

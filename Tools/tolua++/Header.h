@@ -510,10 +510,14 @@ enum TextAlign {};
 class Label : public Node
 {
 	tolua_property__common TextAlign alignment;
+	tolua_property__common float alphaRef;
 	tolua_property__common float textWidth;
 	tolua_property__common float lineGap;
 	tolua_property__common char* text;
 	tolua_property__common BlendFunc blendFunc;
+	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__bool bool batched;
+	tolua_property__common SpriteEffect* effect;
 	tolua_readonly tolua_property__common int characterCount;
 	tolua_outside Sprite* Label_getCharacter @ getCharacter(int index);
 	static const float AutomaticWidth;

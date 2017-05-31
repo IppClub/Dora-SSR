@@ -332,8 +332,8 @@ void Sprite::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedSpriteRenderer.push(this);
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
+	SharedSpriteRenderer.push(this);
 }
 
 /* SpriteRenderer */
