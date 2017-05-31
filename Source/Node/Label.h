@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "font/font_manager.h"
 #include "Support/Geometry.h"
 #include "Node/Node.h"
+#include "Node/Sprite.h"
 
 NS_DOROTHY_BEGIN
 
@@ -50,10 +51,6 @@ protected:
 
 #define SharedFontManager \
 	Dorothy::Singleton<Dorothy::FontManager>::shared()
-
-class SpriteEffect;
-class Sprite;
-class Texture2D;
 
 class FontCache
 {
@@ -101,19 +98,39 @@ public:
 	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY_REF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
+	PROPERTY(float, AlphaRef);
+	PROPERTY_BOOL(Batched);
 	virtual void setRenderOrder(int var) override;
 	Sprite* getCharacter(int index) const;
 	int getCharacterCount() const;
 	virtual void cleanup() override;
+	virtual void render() override;
+	virtual const Matrix& getWorld() override;
 	static const float AutomaticWidth;
 	CREATE_FUNC(Label);
 protected:
 	Label(String fontName, Uint32 fontSize);
 	void updateCharacters(const vector<Uint32>& chars);
 	void updateLabel();
-	float getLetterPosXLeft(Sprite* sp);
-	float getLetterPosXRight(Sprite* sp);
+	struct CharItem
+	{
+		CharItem():
+		code(0),texture(nullptr),rect{},pos{},sprite(nullptr) { }
+		Uint32 code;
+		Texture2D* texture;
+		Rect rect;
+		Vec2 pos;
+		Sprite* sprite;
+	};
+	float getLetterPosXLeft(CharItem* item);
+	float getLetterPosXRight(CharItem* item);
+	void updateVertTexCoord();
+	void updateVertPosition();
+	void updateVertColor();
+	virtual void updateRealColor3() override;
+	virtual void updateRealOpacity() override;
 private:
+	Uint8 _alphaRef;
 	float _textWidth;
 	float _lineGap;
 	Ref<Font> _font;
@@ -122,10 +139,16 @@ private:
 	TextAlign _alignment;
 	string _textUTF8;
 	vector<Uint32> _text;
-	vector<Sprite*> _characters;
+	OwnVector<CharItem> _characters;
+	vector<SpriteQuad::Position> _quadPos;
+	vector<SpriteQuad> _quads;
 	enum
 	{
-		DepthWrite = Node::UserFlag
+		DepthWrite = Node::UserFlag,
+		TextBatched = Node::UserFlag << 1,
+		QuadDirty = Node::UserFlag << 2,
+		VertexColorDirty = Node::UserFlag << 3,
+		VertexPosDirty = Node::UserFlag << 4,
 	};
 	DORA_TYPE_OVERRIDE(Label);
 };

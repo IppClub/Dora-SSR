@@ -540,8 +540,8 @@ void ParticleNode::render()
 		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
-	SharedSpriteRenderer.push(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState, INT32_MAX, getWorld());
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
+	SharedSpriteRenderer.push(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState, INT32_MAX, getWorld());
 }
 
 NS_DOROTHY_END

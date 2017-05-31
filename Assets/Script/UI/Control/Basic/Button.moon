@@ -8,6 +8,8 @@ ButtonView = require "UI.View.Control.Basic.Button"
 Class ButtonView,
 	__init:(args)=>
 		@_text = @label.text if @label
+		@slot "TapBegan", (touch)->
+			touch.enabled = false unless touch.id == 0
 
 	text:property => @_text,
 		(value)=>

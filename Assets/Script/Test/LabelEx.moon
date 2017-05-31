@@ -13,6 +13,7 @@ LabelEx = Class Node,
 
 		@size = Size width,height
 		label = with Label fontName,fontSize
+			.batched = false
 			.alignment = alignment
 			.renderOrder = renderOrder
 			switch alignment
