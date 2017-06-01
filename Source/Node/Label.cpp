@@ -609,26 +609,22 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 
 void Label::updateLabel()
 {
-	auto text = utf8_get_characters(_textUTF8.c_str());
+	_text = utf8_get_characters(_textUTF8.c_str());
 	if (_flags.isOn(Label::TextBatched))
 	{
 		_flags.setOn(Label::QuadDirty);
 	}
 
 	// Step 0: Create characters
-	updateCharacters(text);
+	updateCharacters(_text);
 
-	if (text.empty())
-	{
-		_text.clear();
-		return;
-	}
+	if (_text.empty()) return;
 
 	// Step 1: Make multiline
 	if (_textWidth >= 0)
 	{
 		// Step 1: Make multiline
-		int stringLength = s_cast<int>(text.size());
+		int stringLength = s_cast<int>(_text.size());
 		vector<Uint32> multiline_string;
 		multiline_string.reserve(stringLength);
 		vector<Uint32> last_word;
@@ -654,7 +650,7 @@ void Label::updateLabel()
 
 			if (i >= stringLength || !characterItem) break;
 
-			Uint32 character = text[i];
+			Uint32 character = _text[i];
 
 			if (!start_word)
 			{
@@ -688,7 +684,7 @@ void Label::updateLabel()
 
 				if (i >= stringLength) break;
 
-				character = text[i];
+				character = _text[i];
 				if (!startOfWord)
 				{
 					startOfWord = getLetterPosXLeft(characterItem);
@@ -813,7 +809,7 @@ void Label::updateLabel()
 		int i = 0;
 		int lineNumber = 0;
 		vector<Uint32> last_line;
-		for (size_t ctr = 0; ctr <= _text.size(); ++ctr)
+		for (size_t ctr = 0; ctr < _text.size(); ++ctr)
 		{
 			if (_text[ctr] == '\n' || _text[ctr] == '\0')
 			{
