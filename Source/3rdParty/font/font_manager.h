@@ -125,7 +125,7 @@ class FontManager
 public:
 	/// Create the font manager and create the texture cube as BGRA8 with
 	/// linear filtering.
-	FontManager(uint16_t _textureSideWidth = 1024);
+	FontManager(uint16_t _textureSideWidth);
 	~FontManager();
 
 	/// Load a TrueType font from a given buffer. The buffer is copied and
