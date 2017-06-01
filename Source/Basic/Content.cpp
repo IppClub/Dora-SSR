@@ -461,7 +461,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 			unsigned long dataSize = ftell(fp);
 			fseek(fp, 0, SEEK_SET);
 			data = new unsigned char[dataSize];
-			dataSize = fread(data, sizeof(unsigned char), dataSize,fp);
+			dataSize = fread(data, sizeof(data[0]), dataSize,fp);
 			fclose(fp);
 			if (dataSize)
 			{

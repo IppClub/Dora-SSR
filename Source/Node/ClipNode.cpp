@@ -132,7 +132,7 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 			bx::vec4MulMtx(&vertices[i].x, pos[i], ortho);
 		}
 		const uint16_t indices[] = {0, 1, 2, 1, 3, 2};
-		std::memcpy(indexBuffer.data, indices, sizeof(uint16_t) * 6);
+		std::memcpy(indexBuffer.data, indices, sizeof(indices[0]) * 6);
 		Uint32 func = BGFX_STENCIL_TEST_NEVER |
 			BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
 		Uint32 fail = value ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;

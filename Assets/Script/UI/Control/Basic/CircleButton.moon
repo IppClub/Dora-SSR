@@ -8,7 +8,7 @@ CircleButtonView = require "UI.View.Control.Basic.CircleButton"
 Class CircleButtonView,
 	__init:(args)=>
 		@_text = @label.text if @label
-		@slot "TapBegan", (touch)->
+		@slot "TapFilter", (touch)->
 			touch.enabled = false unless touch.id == 0
 
 	text:property => @_text,
