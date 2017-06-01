@@ -516,9 +516,13 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		{
 			nextFontPositionX = 0;
 			nextFontPositionY -= lineHeight;
-			if (fontChar && fontChar->sprite)
+			if (fontChar)
 			{
-				fontChar->sprite->setVisible(false);
+				fontChar->code = ch;
+				if (fontChar->sprite)
+				{
+					fontChar->sprite->setVisible(false);
+				}
 			}
 			continue;
 		}
@@ -633,7 +637,7 @@ void Label::updateLabel()
 		{
 			int justSkipped = 0;
 			CharItem* characterItem;
-			while (!(characterItem = _characters[j + justSkipped]) || (characterItem->sprite && !characterItem->sprite->isVisible()))
+			while (!(characterItem = _characters[j + justSkipped]) || characterItem->code == '\n')
 			{
 				justSkipped++;
 				if (j + justSkipped >= stringLength)
@@ -643,7 +647,7 @@ void Label::updateLabel()
 			}
 			j += justSkipped;
 
-			if (i >= stringLength) break;
+			if (i >= stringLength || !characterItem) break;
 
 			Uint32 character = _text[i];
 
@@ -862,6 +866,14 @@ void Label::updateLabel()
 	}
 }
 
+Label::CharItem::~CharItem()
+{
+	if (sprite)
+	{
+		sprite->getParent()->removeChild(sprite);
+	}
+}
+
 void Label::cleanup()
 {
 	_font = nullptr;
@@ -873,8 +885,9 @@ void Label::updateVertTexCoord()
 	_quads.clear();
 	_quads.reserve(_characters.size());
 	Uint32 abgr = _realColor.toABGR();
-	for (CharItem* item : _characters)
+	for (size_t i = 0; i < _text.size(); i++)
 	{
+		CharItem* item = _characters[i];
 		if (item && item->code != '\n')
 		{
 			const bgfx::TextureInfo& info = item->texture->getInfo();
@@ -905,8 +918,9 @@ void Label::updateVertPosition()
 {
 	_quadPos.clear();
 	_quadPos.reserve(_characters.size());
-	for (CharItem* item : _characters)
+	for (size_t i = 0; i < _text.size(); i++)
 	{
+		CharItem* item = _characters[i];
 		if (item && item->code != '\n')
 		{
 			const Vec2& pos = item->pos;
@@ -1010,20 +1024,21 @@ void Label::render()
 
 	Texture2D* lastTexture = nullptr;
 	int start = 0, index = 0;
-	for (CharItem* item : _characters)
+	for (size_t i = 0; i < _text.size(); i++)
 	{
+		CharItem* item = _characters[i];
 		if (item && item->code != '\n')
 		{
 			if (!lastTexture) lastTexture = item->texture;
 			if (lastTexture != item->texture)
 			{
-				lastTexture = item->texture;
 				int count = index - start;
 				if (count > 0)
 				{
 					SharedSpriteRenderer.push(*(_quads.data() + start), count * 4, _effect, lastTexture, renderState);
 				}
 				start = index;
+				lastTexture = item->texture;
 			}
 			index++;
 		}

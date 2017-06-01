@@ -45,7 +45,7 @@ private:
 class FontManager : public bgfx::FontManager
 {
 protected:
-	FontManager() { }
+	FontManager():bgfx::FontManager(2048) { }
 	SINGLETON_REF(FontManager, BGFXDora);
 };
 
@@ -116,6 +116,7 @@ protected:
 	{
 		CharItem():
 		code(0),texture(nullptr),rect{},pos{},sprite(nullptr) { }
+		~CharItem();
 		Uint32 code;
 		Texture2D* texture;
 		Rect rect;
