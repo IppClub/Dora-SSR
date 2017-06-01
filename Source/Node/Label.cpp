@@ -333,12 +333,7 @@ TextAlign Label::getAlignment() const
 void Label::setText(const char* var)
 {
 	_textUTF8 = var;
-	_text = utf8_get_characters(_textUTF8.c_str());
 	updateLabel();
-	if (_flags.isOn(Label::TextBatched))
-	{
-		_flags.setOn(Label::QuadDirty);
-	}
 }
 
 const char* Label::getText() const
@@ -614,16 +609,26 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 
 void Label::updateLabel()
 {
-	// Step 0: Create characters
-	updateCharacters(_text);
+	auto text = utf8_get_characters(_textUTF8.c_str());
+	if (_flags.isOn(Label::TextBatched))
+	{
+		_flags.setOn(Label::QuadDirty);
+	}
 
-	if (_text.empty()) return;
+	// Step 0: Create characters
+	updateCharacters(text);
+
+	if (text.empty())
+	{
+		_text.clear();
+		return;
+	}
 
 	// Step 1: Make multiline
 	if (_textWidth >= 0)
 	{
 		// Step 1: Make multiline
-		int stringLength = s_cast<int>(_text.size());
+		int stringLength = s_cast<int>(text.size());
 		vector<Uint32> multiline_string;
 		multiline_string.reserve(stringLength);
 		vector<Uint32> last_word;
@@ -649,7 +654,7 @@ void Label::updateLabel()
 
 			if (i >= stringLength || !characterItem) break;
 
-			Uint32 character = _text[i];
+			Uint32 character = text[i];
 
 			if (!start_word)
 			{
@@ -683,7 +688,7 @@ void Label::updateLabel()
 
 				if (i >= stringLength) break;
 
-				character = _text[i];
+				character = text[i];
 				if (!startOfWord)
 				{
 					startOfWord = getLetterPosXLeft(characterItem);
@@ -863,14 +868,6 @@ void Label::updateLabel()
 			}
 			last_line.push_back(_text[ctr]);
 		}
-	}
-}
-
-Label::CharItem::~CharItem()
-{
-	if (sprite)
-	{
-		sprite->getParent()->removeChild(sprite);
 	}
 }
 

@@ -1,25 +1,38 @@
 Dorothy!
 LineRect = require "UI.View.Shape.LineRect"
 ScrollArea = require "UI.Control.Basic.ScrollArea"
+AlignNode = require "UI.Control.Basic.AlignNode"
 
 {width:viewWidth,height:viewHeight} = View.size
 
 width,height = viewWidth-200,viewHeight-20
 
-Director\pushEntry with ScrollArea {
-		width:width
-		height:height
-		paddingX:0
-		paddingY:50
-		viewWidth:height
-		viewHeight:height
-	}
-	.border = LineRect width:width, height:height, color:0xffffffff
-	.area\addChild .border
-	.view\addChild with Label "NotoSansHans-Regular",18
-		.alignment = TextAlign.Left
-		.textWidth = width-30
-		.text = [[# Dorothy SSR
+Director\pushEntry with AlignNode true,false
+	\addChild with ScrollArea {
+			x:viewWidth/2
+			y:viewHeight/2
+			width:width
+			height:height
+			paddingX:0
+			paddingY:50
+			viewWidth:height
+			viewHeight:height
+		}
+		.border = LineRect width:width, height:height, color:0xffffffff
+		.area\addChild .border
+		\slot "AlignLayout",(w,h)->
+			.position = Vec2 w/2,h/2
+			w -= 200
+			h -= 20
+			.view.children.first.textWidth = w-30
+			\adjustSizeWithAlign "auto",10,Size(w,h)
+			.area\removeChild .border
+			.border = LineRect width:w, height:h, color:0xffffffff
+			.area\addChild .border
+		.view\addChild with Label "NotoSansHans-Regular",18
+			.alignment = TextAlign.Left
+			.textWidth = width-30
+			.text = [[# Dorothy SSR
 ## 项目目标
 &emsp;&emsp;Dorothy SSR项目的最终目标是制作一款跨平台的，专门用于制作2D游戏的“魔兽争霸3世界编辑器”。这个目标由三个子目标组成：
 * **Step 1**  
@@ -99,4 +112,4 @@ Total: [ ###########     ] 74.06%
 ## License
 MIT
 ]]
-	\adjustSizeWithAlign!
+		\adjustSizeWithAlign!

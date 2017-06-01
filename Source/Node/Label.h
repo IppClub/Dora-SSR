@@ -116,7 +116,6 @@ protected:
 	{
 		CharItem():
 		code(0),texture(nullptr),rect{},pos{},sprite(nullptr) { }
-		~CharItem();
 		Uint32 code;
 		Texture2D* texture;
 		Rect rect;
