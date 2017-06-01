@@ -204,6 +204,9 @@ Class RulerView,
 				if isReseting! then startReset!
 				else @unschedule!
 
+		@slot "TapFilter", (touch)->
+			touch.enabled = false unless touch.id == 0
+
 		@slot "TapBegan",->
 			_s = 0
 			_v = 0

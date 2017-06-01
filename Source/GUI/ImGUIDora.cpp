@@ -539,10 +539,10 @@ void ImGUIDora::render()
 			bgfx::allocTransientIndexBuffer(&tib, numIndices);
 
 			ImDrawVert* verts = (ImDrawVert*)tvb.data;
-			memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(ImDrawVert));
+			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
 
 			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
-			memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(ImDrawIdx));
+			std::memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(drawList->IdxBuffer[0]));
 
 			uint32_t offset = 0;
 			for (const ImDrawCmd* cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end(); cmd != cmdEnd; ++cmd)
@@ -651,11 +651,12 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 		}
 		case SDL_TEXTINPUT:
 		{
-			if (_lastCursor < _textEditing.size() - 1)
+			int size = s_cast<int>(_textEditing.size());
+			if (_lastCursor < size - 1)
 			{
-				sendKey(SDLK_RIGHT, s_cast<int>(_textEditing.size()) - _lastCursor);
+				sendKey(SDLK_RIGHT, size - _lastCursor);
 			}
-			sendKey(SDLK_BACKSPACE, s_cast<int>(_textEditing.size()));
+			sendKey(SDLK_BACKSPACE, size);
 			_textEditing.clear();
 			_lastCursor = 0;
 			_inputs.push_back(event);

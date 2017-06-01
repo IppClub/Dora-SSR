@@ -297,7 +297,11 @@ bool NodeTouchHandler::down(const SDL_Event& event)
 		touch->_preLocation = touch->_location = pos;
 		touch->_worldPreLocation = touch->_worldLocation = _target->convertToWorldSpace(pos);
 		touch->_flags.setOn(Touch::Selected);
-		_target->emit("TapBegan"_slice, touch);
+		_target->emit("TapFilter"_slice, touch);
+		if (touch->isEnabled())
+		{
+			_target->emit("TapBegan"_slice, touch);
+		}
 		return touch->isEnabled();
 	}
 	else
@@ -378,7 +382,11 @@ bool NodeTouchHandler::move(const SDL_Event& event)
 				touch->_flags.toggle(Touch::Selected);
 				if (touch->_flags.isOn(Touch::Selected))
 				{
-					_target->emit("TapBegan"_slice, touch);
+					_target->emit("TapFilter"_slice, touch);
+					if (touch->isEnabled())
+					{
+						_target->emit("TapBegan"_slice, touch);
+					}
 				}
 				else
 				{

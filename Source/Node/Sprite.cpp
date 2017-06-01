@@ -378,7 +378,7 @@ void SpriteRenderer::render()
 			&indexBuffer, indexCount))
 		{
 			Renderer::render();
-			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(SpriteVertex));
+			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
 			uint16_t* indices = r_cast<uint16_t*>(indexBuffer.data);
 			for (size_t i = 0; i < spriteCount; i++)
 			{
@@ -422,11 +422,10 @@ void SpriteRenderer::push(Sprite* sprite)
 	_lastState = state;
 	_lastFlags = flags;
 
-	const SpriteQuad& quad = sprite->getQuad();
-	for (Uint32 i = 0; i < 4; i++)
-	{
-		_vertices.push_back(quad[i]);
-	}
+	const SpriteVertex* verts = sprite->getQuad();
+	size_t oldSize = _vertices.size();
+	_vertices.resize(oldSize + 4);
+	std::memcpy(_vertices.data() + oldSize, verts, sizeof(verts[0]) * 4);
 }
 
 void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
@@ -442,10 +441,11 @@ void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
 	_lastTexture = texture;
 	_lastState = state;
 	_lastFlags = flags;
-	for (Uint32 i = 0; i < size; i++)
-	{
-		_vertices.push_back(verts[i]);
-	}
+
+	size_t oldSize = _vertices.size();
+	_vertices.resize(oldSize + size);
+	std::memcpy(_vertices.data() + oldSize, verts, sizeof(verts[0]) * size);
+
 	if (modelWorld)
 	{
 		bgfx::setTransform(modelWorld);

@@ -141,10 +141,11 @@ Class ScrollAreaView,
 				setOffset dS,false
 			false
 
-		@slot "TapBegan",(touch)->
+		@slot "TapFilter",(touch)->
 			if touch.id ~= 0 or not Rect(-width/2,-height/2,width,height)\containsPoint touch.location
 				touch.enabled = false
-				return
+
+		@slot "TapBegan",(touch)->
 			deltaMoveLength = 0
 			S = Vec2.zero
 			V = Vec2.zero
