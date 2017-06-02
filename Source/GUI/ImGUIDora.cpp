@@ -418,6 +418,14 @@ bool ImGUIDora::init()
 			ImGuiIO& io = ImGui::GetIO();
 			switch (event.type)
 			{
+				case SDL_MOUSEBUTTONUP:
+				{
+					if ((Touch::source & Touch::FromMouse) == 0) break;
+					if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = false;
+					if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = false;
+					if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = false;
+					break;
+				}
 				case SDL_TEXTINPUT:
 				{
 					io.AddInputCharactersUTF8(event.text.text);
@@ -631,12 +639,22 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 			if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = true;
 			break;
 		}
+		case SDL_FINGERDOWN:
+		{
+			if ((Touch::source & Touch::FromTouch) == 0) break;
+			Size size = SharedApplication.getSize();
+			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
+			_mousePressed[0] = true;
+			break;
+		}
 		case SDL_MOUSEBUTTONUP:
 		{
-			if ((Touch::source & Touch::FromMouse) == 0) break;
-			if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = false;
-			if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = false;
-			if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = false;
+			SharedDirector.getSystemScheduler()->schedule([this,event](double deltaTime)
+			{
+				DORA_UNUSED_PARAM(deltaTime);
+				_inputs.push_back(event);
+				return true;
+			});
 			break;
 		}
 		case SDL_MOUSEMOTION:
@@ -646,14 +664,6 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 			Size winSize = SharedApplication.getWinSize();
 			Size size = SharedApplication.getSize();
 			ImGui::GetIO().MousePos = Vec2{mx / winSize.width, my / winSize.height} * size;
-			break;
-		}
-		case SDL_FINGERDOWN:
-		{
-			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getSize();
-			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
-			_mousePressed[0] = true;
 			break;
 		}
 		case SDL_FINGERMOTION:
