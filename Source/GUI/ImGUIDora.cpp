@@ -470,7 +470,6 @@ void ImGUIDora::begin()
 	io.MouseDown[0] = _mousePressed[0];
 	io.MouseDown[1] = _mousePressed[1];
 	io.MouseDown[2] = _mousePressed[2];
-	_mousePressed[0] = _mousePressed[1] = _mousePressed[2] = false;
 
 	io.MouseWheel = _mouseWheel;
 	_mouseWheel = 0.0f;
@@ -630,6 +629,14 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 			if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = true;
 			if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = true;
 			if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = true;
+			break;
+		}
+		case SDL_MOUSEBUTTONUP:
+		{
+			if ((Touch::source & Touch::FromMouse) == 0) break;
+			if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = false;
+			if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = false;
+			if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = false;
 			break;
 		}
 		case SDL_MOUSEMOTION:
