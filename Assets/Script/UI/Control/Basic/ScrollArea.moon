@@ -30,7 +30,7 @@ Class ScrollAreaView,
 		deltaMoveLength = 0
 		@contentSize = Size width,height
 		@setupMenuScroll @view
-		
+
 		@view\slot "Tapped",->
 			enabled = @view.touchEnabled
 			@view.touchEnabled = false
@@ -179,12 +179,6 @@ Class ScrollAreaView,
 					@dragging = true
 					@emit "ScrollStart"
 
-		@area\slot "MouseWheel",(delta)->
-			px,py = paddingX,paddingY
-			paddingX,paddingY = 0,0
-			setOffset delta*-20
-			paddingX,paddingY = px,py
-
 		switch Application.platform
 			when "macOS", "Windows"
 				getScrollBarX = ->
@@ -224,6 +218,12 @@ Class ScrollAreaView,
 						barY = getScrollBarY!
 						barY.y = (@area.height-50) * math.max(math.min((1-@offset.y/(viewHeight-height)),1),0)
 						@barBgY\perform fadeBarY
+
+				@area\slot "MouseWheel",(delta)->
+					px,py = paddingX,paddingY
+					paddingX,paddingY = 0,0
+					setOffset delta*-20
+					paddingX,paddingY = px,py
 
 		@slot "Enter",-> @emit "Scrolled", Vec2.zero
 

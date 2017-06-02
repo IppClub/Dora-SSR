@@ -139,7 +139,7 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 		Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
 		Uint32 stencil = func | op;
 		bgfx::setStencil(stencil);
-		bgfx::setVertexBuffer(&vertexBuffer);
+		bgfx::setVertexBuffer(0, &vertexBuffer);
 		bgfx::setIndexBuffer(&indexBuffer);
 		bgfx::setState(BGFX_STATE_NONE);
 		Uint8 viewId = SharedView.getId();
