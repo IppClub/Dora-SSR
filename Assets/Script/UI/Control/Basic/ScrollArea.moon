@@ -30,6 +30,13 @@ Class ScrollAreaView,
 		deltaMoveLength = 0
 		@contentSize = Size width,height
 		@setupMenuScroll @view
+		
+		@view\slot "Tapped",->
+			enabled = @view.touchEnabled
+			@view.touchEnabled = false
+			@view\schedule once ->
+				sleep!
+				@view.touchEnabled = enabled
 
 		updateReset = (deltaTime)->
 			local x,y

@@ -1181,6 +1181,7 @@ void Node::stopActionInList(Action* action)
 {
 	if (action)
 	{
+		Ref<> ref(action);
 		stopActionInList(action->_next);
 		_scheduler->unschedule(action);
 		removeAction(action);
