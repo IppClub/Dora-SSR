@@ -77,7 +77,8 @@ const Vec2& Touch::getWorldPreLocation() const
 /* TouchHandler */
 
 TouchHandler::TouchHandler():
-_swallowTouches(true)
+_swallowTouches(true),
+_swallowMouseWheel(false)
 { }
 
 TouchHandler::~TouchHandler()

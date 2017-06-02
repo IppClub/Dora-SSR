@@ -387,7 +387,7 @@ void SpriteRenderer::render()
 					indices[i * 6 + j] = s_cast<uint16_t>(_spriteIndices[j] + i * 4);
 				}
 			}
-			bgfx::setVertexBuffer(&vertexBuffer);
+			bgfx::setVertexBuffer(0, &vertexBuffer);
 			bgfx::setIndexBuffer(&indexBuffer);
 			Uint8 viewId = SharedView.getId();
 			bgfx::setState(_lastState);

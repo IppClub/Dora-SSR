@@ -397,7 +397,7 @@ void DrawRenderer::render()
 			Renderer::render();
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
 			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(_indices[0]));
-			bgfx::setVertexBuffer(&vertexBuffer);
+			bgfx::setVertexBuffer(0, &vertexBuffer);
 			bgfx::setIndexBuffer(&indexBuffer);
 			bgfx::setState(_lastState);
 			Uint8 viewId = SharedView.getId();
@@ -653,7 +653,7 @@ void LineRenderer::render()
 			bgfx::allocTransientVertexBuffer(&vertexBuffer, vertexCount, PosColorVertex::ms_decl);
 			Renderer::render();
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
-			bgfx::setVertexBuffer(&vertexBuffer);
+			bgfx::setVertexBuffer(0, &vertexBuffer);
 			bgfx::setState(_lastState);
 			Uint8 viewId = SharedView.getId();
 			bgfx::submit(viewId, _defaultEffect->apply());

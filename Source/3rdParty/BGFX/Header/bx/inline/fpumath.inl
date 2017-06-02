@@ -138,7 +138,7 @@ namespace bx
 
 	inline float flog2(float _a)
 	{
-		return flog(_a) * 1.442695041f;
+		return flog(_a) * invLogNat2;
 	}
 
 	inline float frsqrt(float _a)

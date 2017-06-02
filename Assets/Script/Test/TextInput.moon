@@ -8,6 +8,7 @@ TextInput = Class ((args)->
 	hint or= ""
 	text or= hint
 	label = with Label fontName,fontSize
+		.batched = false
 		.text = text
 		.y = height/2 - fontSize/2
 		.anchor = Vec2.zero

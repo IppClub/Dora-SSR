@@ -467,18 +467,9 @@ void ImGUIDora::begin()
 		SharedApplication.invokeInRender(_textInputing ? SDL_StartTextInput : SDL_StopTextInput);
 	}
 
-	int mx, my;
-	Uint32 mouseMask = SDL_GetMouseState(&mx, &my);
-	int w, h;
-	SDL_Window* window = SharedApplication.getSDLWindow();
-	SDL_GetWindowSize(window, &w, &h);
-	mx = s_cast<int>(io.DisplaySize.x * (s_cast<float>(mx) / w));
-	my = s_cast<int>(io.DisplaySize.y * (s_cast<float>(my) / h));
-	bool hasMousePos = (SDL_GetWindowFlags(window) & SDL_WINDOW_MOUSE_FOCUS) != 0;
-	io.MousePos = hasMousePos ? ImVec2((float)mx, (float)my) : ImVec2(-1, -1);
-	io.MouseDown[0] = _mousePressed[0] || (mouseMask & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
-	io.MouseDown[1] = _mousePressed[1] || (mouseMask & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-	io.MouseDown[2] = _mousePressed[2] || (mouseMask & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
+	io.MouseDown[0] = _mousePressed[0];
+	io.MouseDown[1] = _mousePressed[1];
+	io.MouseDown[2] = _mousePressed[2];
 	_mousePressed[0] = _mousePressed[1] = _mousePressed[2] = false;
 
 	io.MouseWheel = _mouseWheel;
@@ -576,7 +567,7 @@ void ImGUIDora::render()
 						uint16_t(bx::fmin(cmd->ClipRect.w, 65535.0f) - yy));
 					bgfx::setState(state);
 					bgfx::setTexture(0, sampler, textureHandle);
-					bgfx::setVertexBuffer(&tvb, 0, numVertices);
+					bgfx::setVertexBuffer(0, &tvb, 0, numVertices);
 					bgfx::setIndexBuffer(&tib, offset, cmd->ElemCount);
 					bgfx::submit(viewId, program);
 				}
@@ -635,9 +626,34 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 		}
 		case SDL_MOUSEBUTTONDOWN:
 		{
+			if ((Touch::source & Touch::FromMouse) == 0) break;
 			if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = true;
 			if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = true;
 			if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = true;
+			break;
+		}
+		case SDL_MOUSEMOTION:
+		{
+			if ((Touch::source & Touch::FromMouse) == 0) break;
+			int mx = event.motion.x, my = event.motion.y;
+			Size winSize = SharedApplication.getWinSize();
+			Size size = SharedApplication.getSize();
+			ImGui::GetIO().MousePos = Vec2{mx / winSize.width, my / winSize.height} * size;
+			break;
+		}
+		case SDL_FINGERDOWN:
+		{
+			if ((Touch::source & Touch::FromTouch) == 0) break;
+			Size size = SharedApplication.getSize();
+			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
+			_mousePressed[0] = true;
+			break;
+		}
+		case SDL_FINGERMOTION:
+		{
+			if ((Touch::source & Touch::FromTouch) == 0) break;
+			Size size = SharedApplication.getSize();
+			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
 			break;
 		}
 		case SDL_KEYDOWN:
