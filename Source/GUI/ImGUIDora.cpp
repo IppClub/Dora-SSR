@@ -707,7 +707,13 @@ void ImGUIDora::handleEvent(const SDL_Event& event)
 
 bool ImGUIDora::handle(const SDL_Event& event)
 {
-	return ImGui::IsAnyItemActive();
+	switch (event.type)
+	{
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_FINGERDOWN:
+		return ImGui::IsAnyItemActive();
+	}
+	return false;
 }
 
 NS_DOROTHY_END

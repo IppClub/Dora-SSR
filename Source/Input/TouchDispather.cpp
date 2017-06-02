@@ -276,6 +276,7 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 
 bool NodeTouchHandler::down(const SDL_Event& event)
 {
+	if (!_target->isTouchEnabled()) return false;
 	Sint64 id = 0;
 	switch (event.type)
 	{
