@@ -15,7 +15,6 @@ Class CircleButtonView,
 			@touchEnabled = false
 			@schedule once ->
 				sleep!
-				sleep!
 				@touchEnabled = enabled
 
 	text:property => @_text,

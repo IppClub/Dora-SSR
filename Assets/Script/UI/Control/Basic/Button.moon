@@ -10,6 +10,12 @@ Class ButtonView,
 		@_text = @label.text if @label
 		@slot "TapFilter", (touch)->
 			touch.enabled = false unless touch.id == 0
+		@slot "Tapped",->
+			enabled = @touchEnabled
+			@touchEnabled = false
+			@schedule once ->
+				sleep!
+				@touchEnabled = enabled
 
 	text:property => @_text,
 		(value)=>
