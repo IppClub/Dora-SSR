@@ -314,6 +314,7 @@ bool NodeTouchHandler::down(const SDL_Event& event)
 
 bool NodeTouchHandler::up(const SDL_Event& event)
 {
+	if (!_target->isTouchEnabled()) return false;
 	Sint64 id = 0;
 	switch (event.type)
 	{
@@ -353,6 +354,7 @@ bool NodeTouchHandler::up(const SDL_Event& event)
 
 bool NodeTouchHandler::move(const SDL_Event& event)
 {
+	if (!_target->isTouchEnabled()) return false;
 	Touch* touch = nullptr;
 	switch (event.type)
 	{
