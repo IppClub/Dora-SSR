@@ -96,6 +96,24 @@ std::vector<uint32_t> utf8_get_characters(const char* utf8str)
 	return characters;
 }
 
+void utf8_each_character(const char* utf8str, const std::function<bool(int, uint32_t)>& callback)
+{
+	uint32_t codepoint = 0;
+	uint32_t state = UTF8_ACCEPT;
+	const char* str = utf8str;
+	const char* end = str + strlen(str);
+	for (; *str && str < end; ++str)
+	{
+		if (utf8_decode(&state, &codepoint, *str) == UTF8_ACCEPT)
+		{
+			if (callback((int)(str - utf8str), codepoint))
+			{
+				return;
+			}
+		}
+	}
+}
+
 bool utf8_isspace(uint32_t ch)
 {
 	return  (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 || ch == 0x1680

@@ -29,6 +29,7 @@ public:
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
+	PROPERTY_READONLY(double, CurrentTime);
 	PROPERTY_READONLY(double, CPUTime);
 	PROPERTY_READONLY(double, TotalTime);
 	PROPERTY_READONLY(const Slice, Platform);

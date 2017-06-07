@@ -29,7 +29,7 @@ Director\pushEntry with AlignNode true,false
 			.area\removeChild .border
 			.border = LineRect width:w, height:h, color:0xffffffff
 			.area\addChild .border
-		.view\addChild with Label "NotoSansHans-Regular",18
+		.view\addChild with Label "NotoSansHans-Regular",20
 			.alignment = TextAlign.Left
 			.textWidth = width-30
 			.text = [[# Dorothy SSR

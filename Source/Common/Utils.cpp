@@ -29,19 +29,8 @@ namespace Math
 	}
 }
 
-
 Flag::Flag(Uint32 flags):_flags(flags)
 { }
-
-void Flag::setOn(Uint32 type)
-{
-	_flags |= type;
-}
-
-void Flag::setOff(Uint32 type)
-{
-	_flags &= ~type;
-}
 
 void Flag::setFlag(Uint32 type, bool value)
 {
@@ -60,14 +49,23 @@ void Flag::toggle(Uint32 type)
 	setFlag(type, !isOn(type));
 }
 
-bool Flag::isOn(Uint32 type) const
+SimpleProfiler::SimpleProfiler():
+_lastTime(SharedApplication.getCurrentTime())
+{ }
+
+void SimpleProfiler::start()
 {
-	return (_flags & type) != 0;
+	_lastTime = SharedApplication.getCurrentTime();
 }
 
-bool Flag::isOff(Uint32 type) const
+double SimpleProfiler::stop(String logName)
 {
-	return (_flags & type) == 0;
+	double deltaTime = SharedApplication.getCurrentTime() - _lastTime;
+	if (!logName.empty())
+	{
+		Log("%s cost %.3fs.", logName, deltaTime);
+	}
+	return deltaTime;
 }
 
 NS_DOROTHY_END

@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "bx/timer.h"
 #include <ctime>
+#include "Other/utf8.h"
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -129,6 +130,8 @@ int Application::run()
 {
 	Application::setSeed(s_cast<Uint32>(std::time(nullptr)));
 
+	DORA_PROFILE_START(SDL);
+
 	if (SDL_Init(SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER) != 0)
 	{
 		Log("SDL fail to initialize! %s", SDL_GetError());
@@ -150,6 +153,8 @@ int Application::run()
 	}
 
 	Application::setupSdlWindow();
+
+	DORA_PROFILE_END(SDL);
 
 	// call this function here to disable default render threads creation of bgfx
 	Application::renderFrame();
@@ -185,6 +190,13 @@ int Application::run()
 				}
 				break;
 			}
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+			case SDL_TEXTEDITING:
+			{
+				event.edit.start = utf8_count_characters(event.edit.text);
+				break;
+			}
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 			default:
 				break;
 			}
@@ -257,6 +269,11 @@ double Application::getEclapsedTime() const
 	return std::max(currentTime - _lastTime, 0.0);
 }
 
+double Application::getCurrentTime() const
+{
+	return bx::getHPCounter() / _frequency;
+}
+
 double Application::getLastTime() const
 {
 	return _lastTime;
@@ -311,12 +328,14 @@ void Application::invokeInLogic(const function<void()>& func)
 int Application::mainLogic(void* userData)
 {
 	Application* app = r_cast<Application*>(userData);
-	
+
+	DORA_PROFILE_START(BGFX);
 	if (!SharedBGFX.init())
 	{
 		Log("bgfx fail to initialize!");
 		return 1;
 	}
+	DORA_PROFILE_END(BGFX);
 
 	SharedPoolManager.push();
 	if (!SharedDirector.init())

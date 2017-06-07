@@ -36,10 +36,11 @@ public:
 	virtual bool handle(const SDL_Event& event) override;
 protected:
 	ImGUIDora();
-	void sendKey(int key, int count = 1);
+	void sendKey(int key, int count);
 	static const char* getClipboardText(void*);
 	static void setClipboardText(void*, const char* text);
 	static void setImePositionHint(int x, int y);
+	static int _lastIMEPosX, _lastIMEPosY;
 private:
 	bool _isLoadingFont;
 	bool _textInputing;
@@ -50,7 +51,7 @@ private:
 	Ref<SpriteEffect> _effect;
 	bgfx::VertexDecl _vertexDecl;
 	list<SDL_Event> _inputs;
-	string _textEditing;
+	vector<Uint32> _textEditing;
 	string _iniFilePath;
 	Own<LogPanel> _log;
 	SINGLETON_REF(ImGUIDora, BGFXDora);

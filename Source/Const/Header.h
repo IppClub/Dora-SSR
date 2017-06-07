@@ -43,7 +43,7 @@ using Acf::Delegate;
 #include "Box2D/Box2D.h"
 #include "silly/Slice.h"
 using namespace silly::slice;
-#include "Const/Define.h"
+#include "Const/Config.h"
 #include "Common/Utils.h"
 using namespace Dorothy::Switch::Literals;
 #include "Common/Singleton.h"

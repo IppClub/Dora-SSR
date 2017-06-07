@@ -14,13 +14,7 @@ namespace bgfx {
 class Atlas;
 
 #define MAX_OPENED_FILES 64
-#define MAX_OPENED_FONT  64
-
-#define FONT_TYPE_ALPHA             UINT32_C(0x00000100) // L8
-// #define FONT_TYPE_LCD               UINT32_C(0x00000200) // BGRA8
-// #define FONT_TYPE_RGBA              UINT32_C(0x00000300) // BGRA8
-#define FONT_TYPE_DISTANCE          UINT32_C(0x00000400) // L8
-#define FONT_TYPE_DISTANCE_SUBPIXEL UINT32_C(0x00000500) // L8
+#define MAX_OPENED_FONT 64
 
 struct FontInfo
 {
@@ -138,10 +132,7 @@ public:
 	void destroyTtf(TrueTypeHandle _handle);
 
 	/// Return a font whose height is a fixed pixel size.
-	FontHandle createFontByPixelSize(TrueTypeHandle _handle, uint32_t _typefaceIndex, uint32_t _pixelSize);
-
-	/// Return a scaled child font whose height is a fixed pixel size.
-	FontHandle createScaledFontToPixelSize(FontHandle _baseFontHandle, uint32_t _pixelSize);
+	FontHandle createFontByPixelSize(TrueTypeHandle _handle, uint32_t _pixelSize, uint32_t _typefaceIndex = 0);
 
 	/// destroy a font (truetype or baked)
 	void destroyFont(FontHandle _handle);

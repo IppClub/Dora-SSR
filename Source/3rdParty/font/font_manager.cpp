@@ -422,7 +422,7 @@ void FontManager::destroyTtf(TrueTypeHandle _handle)
 	m_filesHandles.free(_handle.idx);
 }
 
-FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_t _typefaceIndex, uint32_t _pixelSize)
+FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_t _pixelSize, uint32_t _typefaceIndex)
 {
 	AssertUnless(bgfx::isValid(_ttfHandle), "Invalid handle used");
 
@@ -443,35 +443,6 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 	font.fontInfo.pixelSize = uint16_t(_pixelSize);
 	font.cachedGlyphs.clear();
 	font.masterFontHandle.idx = bx::HandleAlloc::invalid;
-
-	FontHandle handle = { fontIdx };
-	return handle;
-}
-
-FontHandle FontManager::createScaledFontToPixelSize(FontHandle _baseFontHandle, uint32_t _pixelSize)
-{
-	AssertUnless(bgfx::isValid(_baseFontHandle), "Invalid handle used");
-	CachedFont& baseFont = m_cachedFonts[_baseFontHandle.idx];
-	FontInfo& fontInfo = baseFont.fontInfo;
-
-	FontInfo newFontInfo  = fontInfo;
-	newFontInfo.pixelSize = uint16_t(_pixelSize);
-	newFontInfo.scale = (float)_pixelSize / (float) fontInfo.pixelSize;
-	newFontInfo.ascender  = (newFontInfo.ascender * newFontInfo.scale);
-	newFontInfo.descender = (newFontInfo.descender * newFontInfo.scale);
-	newFontInfo.lineGap = (newFontInfo.lineGap * newFontInfo.scale);
-	newFontInfo.maxAdvanceWidth = (newFontInfo.maxAdvanceWidth * newFontInfo.scale);
-	newFontInfo.underlineThickness = (newFontInfo.underlineThickness * newFontInfo.scale);
-	newFontInfo.underlinePosition  = (newFontInfo.underlinePosition * newFontInfo.scale);
-
-	uint16_t fontIdx = m_fontHandles.alloc();
-	AssertUnless(fontIdx != bx::HandleAlloc::invalid, "Invalid handle used");
-
-	CachedFont& font = m_cachedFonts[fontIdx];
-	font.cachedGlyphs.clear();
-	font.fontInfo = newFontInfo;
-	font.trueTypeFont = NULL;
-	font.masterFontHandle = _baseFontHandle;
 
 	FontHandle handle = { fontIdx };
 	return handle;
