@@ -470,8 +470,9 @@
     <ClInclude Include="..\..\..\Source\Common\Singleton.h" />
     <ClInclude Include="..\..\..\Source\Common\Utils.h" />
     <ClInclude Include="..\..\..\Source\Common\WRef.h" />
-    <ClInclude Include="..\..\..\Source\Const\Define.h" />
+    <ClInclude Include="..\..\..\Source\Const\Config.h" />
     <ClInclude Include="..\..\..\Source\Const\Header.h" />
+    <ClInclude Include="..\..\..\Source\Const\XmlTag.h" />
     <ClInclude Include="..\..\..\Source\Dorothy.h" />
     <ClInclude Include="..\..\..\Source\Effect\Effect.h" />
     <ClInclude Include="..\..\..\Source\Event\Event.h" />

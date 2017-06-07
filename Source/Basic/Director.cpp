@@ -171,22 +171,29 @@ void registerTouchHandler(Node* target)
 bool Director::init()
 {
 	SharedView.reset();
+	
+	DORA_PROFILE_START(ImGui);
 	if (!SharedImGUI.init())
 	{
 		return false;
 	}
+	DORA_PROFILE_END(ImGui);
+	DORA_PROFILE_START(Soloud);
 	if (!SharedAudio.init())
 	{
 		return false;
 	}
+	DORA_PROFILE_END(Soloud);
 	if (!SharedKeyboard.init())
 	{
 		return false;
 	}
+	DORA_PROFILE_START(ScriptEntry);
 	if (SharedContent.isExist("Script/main.lua"_slice))
 	{
 		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
 	}
+	DORA_PROFILE_END(ScriptEntry);
 	return true;
 }
 

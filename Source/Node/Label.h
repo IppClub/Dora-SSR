@@ -45,7 +45,7 @@ private:
 class FontManager : public bgfx::FontManager
 {
 protected:
-	FontManager():bgfx::FontManager(2048) { }
+	FontManager():bgfx::FontManager(DORA_FONT_TEXTURE_SIZE) { }
 	SINGLETON_REF(FontManager, BGFXDora);
 };
 

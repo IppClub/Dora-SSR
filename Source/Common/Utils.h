@@ -282,12 +282,12 @@ class Flag
 {
 public:
 	Flag(Uint32 value);
-	void setOn(Uint32 type);
-	void setOff(Uint32 type);
 	void setFlag(Uint32 type, bool value);
 	void toggle(Uint32 type);
-	bool isOn(Uint32 type) const;
-	bool isOff(Uint32 type) const;
+	inline void setOn(Uint32 type) { _flags |= type; }
+	inline void setOff(Uint32 type) { _flags &= ~type; }
+	inline bool isOn(Uint32 type) const { return (_flags & type) != 0; }
+	inline bool isOff(Uint32 type) const { return (_flags & type) == 0; }
 private:
 	Uint32 _flags;
 };
@@ -306,5 +306,18 @@ public:
 private:
 	T* _ptr;
 };
+
+class SimpleProfiler
+{
+public:
+	SimpleProfiler();
+	void start();
+	double stop(String logName = Slice::Empty);
+private:
+	double _lastTime;
+};
+
+#define DORA_PROFILE_START(name) SimpleProfiler name;
+#define DORA_PROFILE_END(name) name.stop(#name);
 
 NS_DOROTHY_END

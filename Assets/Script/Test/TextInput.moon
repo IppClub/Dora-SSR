@@ -54,21 +54,30 @@ TextInput = Class ((args)->
 		.imeAttached = false
 		\slot "AttachIME",->
 			.imeAttached = true
+			.keyboardEnabled = true
 			updateText textDisplay
 
 		\slot "DetachIME",->
 			.imeAttached = false
+			.keyboardEnabled = false
 			cursor.visible = false
 			cursor\unschedule!
+			textEditing = ""
 			label.x = 0
 			label.text = .hint if textDisplay == ""
 
 		.touchEnabled = true
-		\slot "Tapped",-> startEditing! unless .imeAttached
+		\slot "Tapped",(touch)-> startEditing! if touch.id == 0
 
-		.keyboardEnabled = true
 		\slot "KeyPressed",(key)->
-			return if textEditing ~= ""
+			switch Application.platform
+				when "Android"
+					if utf8.len(textEditing) == 1
+						textEditing = "" if key == "BackSpace"
+					else
+						return if textEditing ~= ""
+				else
+					return if textEditing ~= ""
 			switch key
 				when "BackSpace"
 					if #textDisplay > 0
@@ -93,6 +102,8 @@ TextInput = Class ((args)->
 			if charSprite
 				cursor.x = charSprite.x+charSprite.width/2-offsetX+1
 				cursor\schedule blink!
+			else
+				updateText textDisplay
 			updateIMEPos!
 
 	with Node!

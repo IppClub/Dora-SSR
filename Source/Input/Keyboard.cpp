@@ -228,6 +228,11 @@ void Keyboard::detachIME()
 	}
 }
 
+bool Keyboard::isIMEAttached() const
+{
+	return !_imeHandler.IsEmpty();
+}
+
 void Keyboard::updateIMEPosHint(const Vec2& winPos)
 {
 	int offset =
@@ -249,6 +254,12 @@ void Keyboard::handleEvent(const SDL_Event& event)
 {
 	switch (event.type)
 	{
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_FINGERDOWN:
+		{
+			detachIME();
+			break;
+		}
 		case SDL_KEYDOWN:
 		{
 			Slice name;

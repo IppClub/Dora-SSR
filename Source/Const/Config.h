@@ -53,3 +53,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #if !DORA_DEBUG
 	#define TOLUA_RELEASE
 #endif
+
+/** @brief The single squared texture size for baking fonts.
+*/
+#ifndef DORA_FONT_TEXTURE_SIZE
+	#define DORA_FONT_TEXTURE_SIZE 2048
+#endif

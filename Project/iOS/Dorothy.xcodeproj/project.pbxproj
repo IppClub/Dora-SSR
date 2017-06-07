@@ -185,7 +185,6 @@
 		3C0AD7B81E0CE95F0033AD59 /* EventType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventType.h; path = ../../../Source/Event/EventType.h; sourceTree = "<group>"; };
 		3C0AD7B91E0CE95F0033AD59 /* Listener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Listener.cpp; path = ../../../Source/Event/Listener.cpp; sourceTree = "<group>"; };
 		3C0AD7BA1E0CE95F0033AD59 /* Listener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Listener.h; path = ../../../Source/Event/Listener.h; sourceTree = "<group>"; };
-		3C0AD7BF1E0CE9700033AD59 /* Define.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Define.h; path = ../../../Source/Const/Define.h; sourceTree = "<group>"; };
 		3C0AD7C01E0CE9700033AD59 /* Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Header.h; path = ../../../Source/Const/Header.h; sourceTree = "<group>"; };
 		3C0AD7C11E0CE9990033AD59 /* LuaBinding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaBinding.cpp; path = ../../../Source/Lua/LuaBinding.cpp; sourceTree = "<group>"; };
 		3C0AD7C21E0CE9990033AD59 /* LuaBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaBinding.h; path = ../../../Source/Lua/LuaBinding.h; sourceTree = "<group>"; };
@@ -215,6 +214,7 @@
 		3C1070691E13A2D800EB8C7A /* Async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Async.h; path = ../../../Source/Common/Async.h; sourceTree = "<group>"; };
 		3C10706B1E13A30800EB8C7A /* Scheduler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Scheduler.cpp; path = ../../../Source/Basic/Scheduler.cpp; sourceTree = "<group>"; };
 		3C10706C1E13A30800EB8C7A /* Scheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Scheduler.h; path = ../../../Source/Basic/Scheduler.h; sourceTree = "<group>"; };
+		3C127B2A1EE63BFE0078EA22 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Config.h; path = ../../../Source/Const/Config.h; sourceTree = "<group>"; };
 		3C15202A1E762A59001BC057 /* Action.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Action.cpp; path = ../../../Source/Animation/Action.cpp; sourceTree = "<group>"; };
 		3C15202B1E762A59001BC057 /* Action.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Action.h; path = ../../../Source/Animation/Action.h; sourceTree = "<group>"; };
 		3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
@@ -796,7 +796,7 @@
 		3CB410441E05B1F300A8804D /* Const */ = {
 			isa = PBXGroup;
 			children = (
-				3C0AD7BF1E0CE9700033AD59 /* Define.h */,
+				3C127B2A1EE63BFE0078EA22 /* Config.h */,
 				3C8DC3321E666B9F00E59BEC /* Header.pch */,
 				3C0AD7C01E0CE9700033AD59 /* Header.h */,
 			);

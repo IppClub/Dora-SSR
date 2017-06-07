@@ -156,7 +156,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 		auto fileIt = _fontFiles.find(fontName);
 		if (fileIt != _fontFiles.end())
 		{
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), 0, fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
 			Font* font = Font::create(fileIt->second, fontHandle);
 			_fonts[fontFaceName] = font;
 			return font;
@@ -177,7 +177,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(data.size()));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontName] = file;
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, 0, fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
 			Font* font = Font::create(file, fontHandle);
 			_fonts[fontFaceName] = font;
 			return font;
@@ -200,7 +200,7 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(F
 		auto fileIt = _fontFiles.find(fontName);
 		if (fileIt != _fontFiles.end())
 		{
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), 0, fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
 			Font* font = Font::create(fileIt->second, fontHandle);
 			_fonts[fontFaceName] = font;
 			callback(font);
@@ -221,7 +221,7 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(F
 				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(size));
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 				_fontFiles[fontName] = file;
-				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, 0, fontSize);
+				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
 				Font* font = Font::create(file, fontHandle);
 				_fonts[fontFaceName] = font;
 				callback(font);

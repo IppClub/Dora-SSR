@@ -23,6 +23,7 @@ public:
 	bool init();
 	void attachIME(const KeyboardHandler& handler);
 	void detachIME();
+	bool isIMEAttached() const;
 	void updateIMEPosHint(const Vec2& pos);
 	bool isKeyDown(String name) const;
 	bool isKeyUp(String name) const;
