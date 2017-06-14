@@ -130,8 +130,6 @@ int Application::run()
 {
 	Application::setSeed(s_cast<Uint32>(std::time(nullptr)));
 
-	DORA_PROFILE_START(SDL);
-
 	if (SDL_Init(SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER) != 0)
 	{
 		Log("SDL fail to initialize! %s", SDL_GetError());
@@ -153,8 +151,6 @@ int Application::run()
 	}
 
 	Application::setupSdlWindow();
-
-	DORA_PROFILE_END(SDL);
 
 	// call this function here to disable default render threads creation of bgfx
 	Application::renderFrame();
@@ -329,13 +325,11 @@ int Application::mainLogic(void* userData)
 {
 	Application* app = r_cast<Application*>(userData);
 
-	DORA_PROFILE_START(BGFX);
 	if (!SharedBGFX.init())
 	{
 		Log("bgfx fail to initialize!");
 		return 1;
 	}
-	DORA_PROFILE_END(BGFX);
 
 	SharedPoolManager.push();
 	if (!SharedDirector.init())
@@ -478,7 +472,7 @@ public:
 	~Console()
 	{
 		system("pause");
-		FreeConsole();
+		exit(0); // or FreeConsole();
 	}
 	inline void init()
 	{

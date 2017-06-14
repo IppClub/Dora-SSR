@@ -20,10 +20,10 @@ class Texture2D;
 class SpriteEffect;
 class LogPanel;
 
-class ImGUIDora : public TouchHandler
+class ImGuiDora : public TouchHandler
 {
 public:
-	virtual ~ImGUIDora();
+	virtual ~ImGuiDora();
 	bool init();
 	void begin();
 	void end();
@@ -35,7 +35,7 @@ public:
 	void updateTexture(Uint8* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
 protected:
-	ImGUIDora();
+	ImGuiDora();
 	void sendKey(int key, int count);
 	static const char* getClipboardText(void*);
 	static void setClipboardText(void*, const char* text);
@@ -44,6 +44,8 @@ protected:
 private:
 	bool _isLoadingFont;
 	bool _textInputing;
+	bool _backSpaceIgnore;
+	bool _mouseVisible;
 	bool _mousePressed[3];
 	float _mouseWheel;
 	int _lastCursor;
@@ -54,12 +56,12 @@ private:
 	vector<Uint32> _textEditing;
 	string _iniFilePath;
 	Own<LogPanel> _log;
-	SINGLETON_REF(ImGUIDora, BGFXDora);
-	// font building is calling in thread, so make thread depend on ImGUI
-	SINGLETON_REF(AsyncThread, ImGUIDora);
+	SINGLETON_REF(ImGuiDora, BGFXDora);
+	// font building is calling in thread, so make thread depend on ImGui
+	SINGLETON_REF(AsyncThread, ImGuiDora);
 };
 
-#define SharedImGUI \
-	Dorothy::Singleton<Dorothy::ImGUIDora>::shared()
+#define SharedImGui \
+	Dorothy::Singleton<Dorothy::ImGuiDora>::shared()
 
 NS_DOROTHY_END

@@ -240,9 +240,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp">
       <Filter>3rdParty\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\GUI\ImGUIDora.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp">
       <Filter>3rdParty\Other</Filter>
     </ClCompile>
@@ -513,6 +510,9 @@
     <ClCompile Include="..\..\..\Source\Input\Keyboard.cpp">
       <Filter>Input</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\GUI\ImGuiDora.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -679,9 +679,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_truetype.h">
       <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\GUI\ImGUIDora.h">
-      <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h">
       <Filter>3rdParty\Other</Filter>
@@ -974,6 +971,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Const\XmlTag.h">
       <Filter>Const</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\GUI\ImGuiDora.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -34,7 +34,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
 #include "Input/TouchDispather.h"
-#include "GUI/ImGUIDora.h"
+#include "GUI/ImGuiDora.h"
 #include "Node/Label.h"
 #include "Node/Particle.h"
 #include "Cache/ParticleCache.h"
