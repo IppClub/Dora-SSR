@@ -446,13 +446,14 @@ bool ImGuiDora::init()
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
 				{
-					int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
+					SDL_Keycode code = event.key.keysym.sym;
+					int key = code & ~SDLK_SCANCODE_MASK;
 					Uint16 mod = event.key.keysym.mod;
 					io.KeyShift = ((mod & KMOD_SHIFT) != 0);
 					io.KeyCtrl = ((mod & KMOD_CTRL) != 0);
 					io.KeyAlt = ((mod & KMOD_ALT) != 0);
 					io.KeySuper = ((mod & KMOD_GUI) != 0);
-					if (_textEditing.empty() || key == SDLK_BACKSPACE || key == SDLK_LEFT || key == SDLK_RIGHT)
+					if (_textEditing.empty() || code == SDLK_BACKSPACE || code == SDLK_LEFT || code == SDLK_RIGHT)
 					{
 						io.KeysDown[key] = (event.type == SDL_KEYDOWN);
 					}
@@ -806,11 +807,13 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 				sendKey(SDLK_RIGHT, s_cast<int>(_textEditing.size()) - _lastCursor);
 				_lastCursor += (_textEditing.size() - _lastCursor);
 				int count = 0;
+				bool different = false;
 				for (size_t i = 0; i < _textEditing.size(); i++)
 				{
-					if (i >= newText.size() || newText[i] != _textEditing[i])
+					if (different || (i >= newText.size() || newText[i] != _textEditing[i]))
 					{
 						count++;
+						different = true;
 					}
 				}
 				sendKey(SDLK_BACKSPACE, count);
@@ -835,7 +838,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			e.type = SDL_TEXTINPUT;
 			memcpy(e.text.text, event.edit.text + start, length - start + 1);
 			_inputs.push_back(e);
-			int addCount = utf8_count_characters(e.text.text + start);
+			int addCount = utf8_count_characters(e.text.text);
 			_lastCursor += addCount;
 			Sint32 cursor = event.edit.start;
 			if (cursor > _lastCursor)
