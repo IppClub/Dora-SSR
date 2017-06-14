@@ -14,11 +14,6 @@ NS_DOROTHY_BEGIN
 MEMORY_POOL(Vec2);
 const Vec2 Vec2::zero{0.0f, 0.0f};
 
-/*Vec2::Vec2(const b2Vec2& v):
-x(v.x),
-y(v.y)
-{ }*/
-
 void Vec2::set(float x, float y)
 {
 	Vec2::x = x;

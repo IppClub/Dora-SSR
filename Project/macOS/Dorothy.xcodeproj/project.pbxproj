@@ -87,7 +87,7 @@
 		3CD3282B1E4B0A4E0036906C /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328231E4B0A4E0036906C /* imgui_demo.cpp */; };
 		3CD3282C1E4B0A4E0036906C /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328241E4B0A4E0036906C /* imgui_draw.cpp */; };
 		3CD3282D1E4B0A4E0036906C /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328261E4B0A4E0036906C /* imgui.cpp */; };
-		3CD328311E4B0B530036906C /* ImGUIDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */; };
+		3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD3282F1E4B0B530036906C /* ImGuiDora.cpp */; };
 		3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */; };
 		3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634E1E27275D00BA9D30 /* lodepng.cpp */; };
 		3CD497FB1E7EE52300C06CA2 /* ModelCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD497F91E7EE52300C06CA2 /* ModelCache.cpp */; };
@@ -367,8 +367,8 @@
 		3CD328271E4B0A4E0036906C /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../Source/3rdParty/imgui/imgui.h; sourceTree = "<group>"; };
 		3CD328281E4B0A4E0036906C /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/imgui/stb_rect_pack.h; sourceTree = "<group>"; };
 		3CD328291E4B0A4E0036906C /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../../../Source/3rdParty/imgui/stb_textedit.h; sourceTree = "<group>"; };
-		3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGUIDora.cpp; path = ../../../Source/GUI/ImGUIDora.cpp; sourceTree = "<group>"; };
-		3CD328301E4B0B530036906C /* ImGUIDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGUIDora.h; path = ../../../Source/GUI/ImGUIDora.h; sourceTree = "<group>"; };
+		3CD3282F1E4B0B530036906C /* ImGuiDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGuiDora.cpp; path = ../../../Source/GUI/ImGuiDora.cpp; sourceTree = "<group>"; };
+		3CD328301E4B0B530036906C /* ImGuiDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGuiDora.h; path = ../../../Source/GUI/ImGuiDora.h; sourceTree = "<group>"; };
 		3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureCache.cpp; path = ../../../Source/Cache/TextureCache.cpp; sourceTree = "<group>"; };
 		3CD4634B1E27239B00BA9D30 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
 		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
@@ -1012,8 +1012,8 @@
 		3CD3282E1E4B0B3C0036906C /* GUI */ = {
 			isa = PBXGroup;
 			children = (
-				3CD3282F1E4B0B530036906C /* ImGUIDora.cpp */,
-				3CD328301E4B0B530036906C /* ImGUIDora.h */,
+				3CD3282F1E4B0B530036906C /* ImGuiDora.cpp */,
+				3CD328301E4B0B530036906C /* ImGuiDora.h */,
 			);
 			name = GUI;
 			sourceTree = "<group>";
@@ -1398,7 +1398,7 @@
 				3CE9D7651E7FB825003AAECB /* b2Draw.cpp in Sources */,
 				3CEA9A801E28A6FE00645F2D /* Camera.cpp in Sources */,
 				3C6176BB1E82D51F00A19A54 /* lpcode.cpp in Sources */,
-				3CD328311E4B0B530036906C /* ImGUIDora.cpp in Sources */,
+				3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */,
 				3CEA71B41ECB8ECA00EFFD63 /* Keyboard.cpp in Sources */,
 				3CE9D77B1E7FB842003AAECB /* b2Island.cpp in Sources */,
 				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,

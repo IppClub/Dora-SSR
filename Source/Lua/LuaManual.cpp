@@ -1010,17 +1010,17 @@ namespace ImGui { namespace Binding
 {
 	void LoadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)
 	{
-		SharedImGUI.loadFontTTF(ttfFontFile, fontSize, glyphRanges);
+		SharedImGui.loadFontTTF(ttfFontFile, fontSize, glyphRanges);
 	}
 
 	void ShowStats()
 	{
-		SharedImGUI.showStats();
+		SharedImGui.showStats();
 	}
 
 	void ShowLog()
 	{
-		SharedImGUI.showLog();
+		SharedImGui.showLog();
 	}
 
 	bool Begin(const char* name, String windowsFlags)

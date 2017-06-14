@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Renderer.h"
 #include "Input/TouchDispather.h"
 #include "Basic/View.h"
-#include "GUI/ImGUIDora.h"
+#include "GUI/ImGuiDora.h"
 #include "Audio/Sound.h"
 #include "Node/RenderTarget.h"
 #include "Input/Keyboard.h"
@@ -171,29 +171,22 @@ void registerTouchHandler(Node* target)
 bool Director::init()
 {
 	SharedView.reset();
-	
-	DORA_PROFILE_START(ImGui);
-	if (!SharedImGUI.init())
+	if (!SharedImGui.init())
 	{
 		return false;
 	}
-	DORA_PROFILE_END(ImGui);
-	DORA_PROFILE_START(Soloud);
 	if (!SharedAudio.init())
 	{
 		return false;
 	}
-	DORA_PROFILE_END(Soloud);
 	if (!SharedKeyboard.init())
 	{
 		return false;
 	}
-	DORA_PROFILE_START(ScriptEntry);
 	if (SharedContent.isExist("Script/main.lua"_slice))
 	{
 		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
 	}
-	DORA_PROFILE_END(ScriptEntry);
 	return true;
 }
 
@@ -208,14 +201,14 @@ void Director::mainLoop()
 		_systemScheduler->update(getDeltaTime());
 
 		/* update game logic */
-		SharedImGUI.begin();
+		SharedImGui.begin();
 		_scheduler->update(getDeltaTime());
 		_postScheduler->update(getDeltaTime());
 		SharedKeyboard.update();
-		SharedImGUI.end();
+		SharedImGui.end();
 
 		/* handle ImGui touch */
-		SharedTouchDispatcher.add(SharedImGUI.getTarget());
+		SharedTouchDispatcher.add(SharedImGui.getTarget());
 		SharedTouchDispatcher.dispatch();
 		/* handle ui touch */
 		Matrix ortho;
@@ -358,7 +351,7 @@ void Director::mainLoop()
 		}
 
 		/* render imgui */
-		SharedImGUI.render();
+		SharedImGui.render();
 		SharedView.clear();
 	});
 }

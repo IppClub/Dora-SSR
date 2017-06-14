@@ -71,8 +71,8 @@ public:
 	PROPERTY_BOOL(ShowDebug);
 	/**
 	 Iterations affect Box2D`s CPU cost greatly.
-	 Lower values to get better speed, high value to get better simulation.
-	 Default are the minimum value 1,1.
+	 Lower these values to get better performance, higher values to get better simulation.
+	 Default with the minimum value 1,1.
 	 */
 	void setIterations(int velocityIter, int positionIter);
 	/**
@@ -106,11 +106,11 @@ public:
 	static inline Vec2 b2Val(const b2Vec2& value) { return Vec2{value.x / b2Factor, value.y / b2Factor}; }
 	static inline Vec2 b2Val(const Vec2& value) { return value / b2Factor; }
 	/**
-	 b2Factor is to convert Box2D meters value to pixel value.
+	 b2Factor is used for converting Box2D meters value to pixel value.
 	 Default 100.0f is a good value since Box2D can well simulate real life objects
-	 between 0.1 to 10 meters. Use value 100.0f we can well simulate game objects
-	 between 10 to 1000 pixels that suite most games.
-	 Better change this value before any body creation.
+	 between 0.1 to 10 meters. Use value 100.0f we can simulate game objects
+	 between 10 to 1000 pixels that suites most games.
+	 Better change this value before any physics body creation.
 	 */
 	static float b2Factor;
 	CREATE_FUNC(World);
