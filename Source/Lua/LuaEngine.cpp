@@ -21,36 +21,21 @@ int LuaEngine::_callFromLua = 0;
 static int dora_print(lua_State* L)
 {
 	int nargs = lua_gettop(L);
+	lua_getglobal(L, "tostring");
+	int funcIndex = lua_gettop(L);
 	string t;
 	for (int i = 1; i <= nargs; i++)
 	{
-		if (lua_isnone(L, i)) t += "none";
-		else if (lua_isnil(L, i)) t += "nil";
-		else if (lua_isboolean(L, i))
-		{
-			if (lua_toboolean(L, i) != 0) t += "true";
-			else t += "false";
-		}
-		else if (lua_isfunction(L, i)) t += "function";
-		else if (lua_islightuserdata(L, i)) t += "lightuserdata";
-		else if (lua_isthread(L, i)) t += "thread";
-		else
-		{
-			Slice str = tolua_toslice(L, i, nullptr);
-			if (str.empty())
-			{
-				t += tolua_typename(L, i);
-				lua_pop(L, 1);
-			}
-			else
-			{
-				t += str;
-			}
-		}
-		if (i != nargs) t += "\t";
+		lua_pushvalue(L, funcIndex);
+		lua_pushvalue(L, i);
+		lua_call(L, 1, 1);
+		t += tolua_toslice(L, -1, nullptr);
+		lua_pop(L, 1);
+		if (i != nargs) t += '\t';
 	}
+	t += '\n';
 	lua_settop(L, nargs);
-	LogPrint("%s\n", t);
+	LogPrint(t);
 	return 0;
 }
 

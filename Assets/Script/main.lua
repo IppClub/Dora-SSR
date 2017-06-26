@@ -3,7 +3,11 @@
 
 local Content = require("Content")
 
-Content:setSearchPaths{"Script","Script/Lib"}
+Content:setSearchPaths{
+	Content.writablePath.."Script",
+	Content.writablePath.."Script/Lib",
+	"Script",
+	"Script/Lib"}
 
 require("moonscript")
 

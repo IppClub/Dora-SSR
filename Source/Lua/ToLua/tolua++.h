@@ -125,8 +125,6 @@ int tolua_getfieldboolean(lua_State* L, int lo, int index, int def);
 
 void tolua_dobuffer(lua_State* L, char* B, unsigned int size, const char* name);
 
-int class_gc_event(lua_State* L);
-
 int tolua_collect_object(lua_State* tolua_S);
 
 inline const char* tolua_tocppstring(lua_State* L, int narg, const char* def)

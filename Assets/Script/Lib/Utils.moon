@@ -236,7 +236,6 @@ Struct = setmetatable {
 		Struct\load Content\load filename
 	clear:=>
 		StructDefs = {}
-		Struct.Array!
 },{
 	__index:(name)=>
 		def = StructDefs[name]
@@ -246,9 +245,8 @@ Struct = setmetatable {
 			def = StructHelper
 		def
 	__tostring:=>
-		concat [tostring v for _,v in pairs StructDefs],"\n"
+		concat [tostring v for _,v in pairs StructDefs], "\n"
 }
-Struct.Array!
 
 Set = (list)-> {item,true for item in *list}
 
