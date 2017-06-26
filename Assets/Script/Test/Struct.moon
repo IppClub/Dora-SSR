@@ -3,7 +3,7 @@ import Struct from require "Utils"
 -- 定义Struct
 Unit = Struct.Unit "name", "group", "tag", "actions"
 Action = Struct.Action "name", "id"
-Array = Struct.Array
+Array = Struct.Array!
 
 -- 创建实例
 unit = Unit {
@@ -21,7 +21,7 @@ unit = Unit {
 unit.__notify = (event, key, value)->
 	switch event
 		when "Modified"
-			print "Value of name #{key} changed to #{value}."
+			print "Value of name \"#{key}\" changed to #{value}."
 		when "Updated"
 			print "Values updated."
 
@@ -41,5 +41,7 @@ unit.name = "pig"
 unit.actions\insert Action name:"idle", id:"a4"
 unit.actions\remove 1
 
--- 清除当前所有Struct的定义
+print Struct
+
+-- 清除当前所有的Struct定义
 Struct\clear!

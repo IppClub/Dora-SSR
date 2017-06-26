@@ -49,16 +49,16 @@ void Flag::toggle(Uint32 type)
 	setFlag(type, !isOn(type));
 }
 
-SimpleProfiler::SimpleProfiler():
+Profiler::Profiler():
 _lastTime(SharedApplication.getCurrentTime())
 { }
 
-void SimpleProfiler::start()
+void Profiler::start()
 {
 	_lastTime = SharedApplication.getCurrentTime();
 }
 
-double SimpleProfiler::stop(String logName)
+double Profiler::stop(String logName)
 {
 	double deltaTime = SharedApplication.getCurrentTime() - _lastTime;
 	if (!logName.empty())

@@ -3,13 +3,6 @@ import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
 
-Content\setSearchPaths {
-	Content.writablePath.."Script"
-	Content.writablePath.."Script/Lib"
-	"Script"
-	"Script/Lib"
-}
-
 LoadFontTTF "Font/DroidSansFallback.ttf", 22, "Chinese"
 
 moduleCache = {}

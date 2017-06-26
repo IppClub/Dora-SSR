@@ -276,7 +276,8 @@ static int do_operator(lua_State* L, int op)
 		/* Try metatables */
 		lua_pushvalue(L, 1); /* stack: op1 op2 */
 		while (lua_getmetatable(L, -1))
-		{   /* stack: op1 op2 op1 mt */
+		{
+			/* stack: op1 op2 op1 mt */
 			lua_remove(L, -2); /* stack: op1 op2 mt */
 			lua_rawgeti(L, -1, op); /* stack: obj key mt func */
 			if (lua_isfunction(L, -1))
@@ -349,7 +350,7 @@ static int class_eq_event(lua_State* L)
 	return 1;
 }
 
-int class_gc_event(lua_State* L)
+static int class_gc_event(lua_State* L)
 {
 	lua_getmetatable(L, 1);
 	lua_rawgeti(L, -1, MT_DEL); // stack: mt collector
@@ -358,18 +359,14 @@ int class_gc_event(lua_State* L)
 		lua_pushvalue(L, 1); // stack: mt collector u
 		lua_call(L, 1, 0);
 	}
-#ifdef __SHOW_NO_GC_COLLECTOR_MSG__
-	else
-	{
-		char* typeName;
-		lua_pop(L, 1);
-		lua_rawget(L, LUA_REGISTRYINDEX);  /* get registry[mt] */
-		typeName = lua_tostring(L, -1);
-		luaL_error(L, "No gc collector founded in %s", typeName);
-	}
-#endif
 	lua_pop(L, 1);
 	return 0;
+}
+
+static int class_tostring_event(lua_State* L)
+{
+	tolua_typename(L, 1);
+	return 1;
 }
 
 /* Register module events
@@ -394,7 +391,7 @@ int tolua_ismodulemetatable(lua_State* L)
 	{
 		lua_pushstring(L, "__index");
 		lua_rawget(L, -2);
-		r = (lua_tocfunction(L, -1) == module_index_event);
+		r = lua_tocfunction(L, -1) == module_index_event ? 1 : 0;
 		lua_pop(L, 2);
 	}
 	return r;
@@ -447,6 +444,10 @@ void tolua_classevents(lua_State* L)
 
 	lua_pushstring(L, "__gc");
 	lua_pushcfunction(L, class_gc_event);
+	lua_rawset(L, -3);
+
+	lua_pushstring(L, "__tostring");
+	lua_pushcfunction(L, class_tostring_event);
 	lua_rawset(L, -3);
 }
 

@@ -307,17 +307,30 @@ private:
 	T* _ptr;
 };
 
-class SimpleProfiler
+class Profiler
 {
 public:
-	SimpleProfiler();
+	Profiler();
 	void start();
 	double stop(String logName = Slice::Empty);
+
+	template <typename Func>
+	static double run(const Func& func)
+	{
+		Profiler profiler;
+		func();
+		return profiler.stop();
+	}
+
+	template <typename Func>
+	static double run(String logName, const Func& func)
+	{
+		Profiler profiler;
+		func();
+		return profiler.stop(logName);
+	}
 private:
 	double _lastTime;
 };
-
-#define DORA_PROFILE_START(name) SimpleProfiler name;
-#define DORA_PROFILE_END(name) name.stop(#name);
 
 NS_DOROTHY_END
