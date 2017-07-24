@@ -109,7 +109,7 @@ Texture2D::~Texture2D()
 {
 	if (bgfx::isValid(_handle))
 	{
-		bgfx::destroyTexture(_handle);
+		bgfx::destroy(_handle);
 		_handle = BGFX_INVALID_HANDLE;
 	}
 }

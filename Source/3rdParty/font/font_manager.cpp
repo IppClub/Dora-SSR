@@ -352,7 +352,7 @@ struct FontManager::CachedFont
 	CachedFont()
 		: trueTypeFont(NULL)
 	{
-		masterFontHandle.idx = bx::HandleAlloc::invalid;
+		masterFontHandle = BGFX_INVALID_HANDLE;
 	}
 
 	FontInfo fontInfo;
@@ -404,7 +404,7 @@ FontManager::~FontManager()
 TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size)
 {
 	uint16_t id = m_filesHandles.alloc();
-	AssertUnless(id != bx::HandleAlloc::invalid, "Invalid handle used");
+	AssertUnless(id != bx::kInvalidHandle, "Invalid handle used");
 	m_cachedFiles[id].buffer = new uint8_t[_size];
 	m_cachedFiles[id].bufferSize = _size;
 	memcpy(m_cachedFiles[id].buffer, _buffer, _size);
@@ -430,19 +430,19 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 	if (!ttf->init(m_cachedFiles[_ttfHandle.idx].buffer, m_cachedFiles[_ttfHandle.idx].bufferSize, _typefaceIndex, _pixelSize) )
 	{
 		delete ttf;
-		FontHandle invalid = { bx::HandleAlloc::invalid };
+		FontHandle invalid = BGFX_INVALID_HANDLE;
 		return invalid;
 	}
 
 	uint16_t fontIdx = m_fontHandles.alloc();
-	AssertUnless(fontIdx != bx::HandleAlloc::invalid, "Invalid handle used");
+	AssertUnless(fontIdx != bx::kInvalidHandle, "Invalid handle used");
 
 	CachedFont& font = m_cachedFonts[fontIdx];
 	font.trueTypeFont = ttf;
 	font.fontInfo = ttf->getFontInfo();
 	font.fontInfo.pixelSize = uint16_t(_pixelSize);
 	font.cachedGlyphs.clear();
-	font.masterFontHandle.idx = bx::HandleAlloc::invalid;
+	font.masterFontHandle = BGFX_INVALID_HANDLE;
 
 	FontHandle handle = { fontIdx };
 	return handle;

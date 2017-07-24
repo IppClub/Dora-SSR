@@ -39,7 +39,7 @@ using Acf::Delegate;
 #include "bgfx/embedded_shader.h"
 #include "bx/thread.h"
 #include "bx/semaphore.h"
-#include "bx/fpumath.h"
+#include "bx/math.h"
 #include "Box2D/Box2D.h"
 #include "silly/Slice.h"
 using namespace silly::slice;

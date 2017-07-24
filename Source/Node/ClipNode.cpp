@@ -126,7 +126,7 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 		};
 		PosColorVertex* vertices = r_cast<PosColorVertex*>(vertexBuffer.data);
 		Matrix ortho;
-		bx::mtxOrtho(ortho, 0, width, 0, height, 0, 1000.0f);
+		bx::mtxOrtho(ortho, 0, width, 0, height, 0, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 		for (int i = 0; i < 4; i++)
 		{
 			bx::vec4MulMtx(&vertices[i].x, pos[i], ortho);

@@ -22,7 +22,7 @@ Shader::~Shader()
 {
 	if (bgfx::isValid(_handle))
 	{
-		bgfx::destroyShader(_handle);
+		bgfx::destroy(_handle);
 	}
 }
 

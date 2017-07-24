@@ -18,7 +18,7 @@ Effect::Uniform::~Uniform()
 {
 	if (bgfx::isValid(_handle))
 	{
-		bgfx::destroyUniform(_handle);
+		bgfx::destroy(_handle);
 	}
 }
 
@@ -79,7 +79,7 @@ Effect::~Effect()
 {
 	if (bgfx::isValid(_program))
 	{
-		bgfx::destroyProgram(_program);
+		bgfx::destroy(_program);
 	}
 }
 
@@ -165,7 +165,7 @@ SpriteEffect::~SpriteEffect()
 {
 	if (bgfx::isValid(_sampler))
 	{
-		bgfx::destroyUniform(_sampler);
+		bgfx::destroy(_sampler);
 	}
 }
 
