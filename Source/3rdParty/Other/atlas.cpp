@@ -8,7 +8,7 @@
 using namespace Dorothy;
 
 #include "bx/timer.h"
-#include "bx/fpumath.h"
+#include "bx/math.h"
 #include "bgfx/bgfx.h"
 
 #include <limits.h> // INT_MAX

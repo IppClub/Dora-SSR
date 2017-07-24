@@ -31,7 +31,7 @@ RenderTarget::~RenderTarget()
 {
 	if (bgfx::isValid(_frameBufferHandle))
 	{
-		bgfx::destroyFrameBuffer(_frameBufferHandle);
+		bgfx::destroy(_frameBufferHandle);
 		_frameBufferHandle = BGFX_INVALID_HANDLE;
 	}
 }
@@ -133,7 +133,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 				}
 				else
 				{
-					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f);
+					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 				}
 				break;
 			}
@@ -149,7 +149,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 				}
 				else
 				{
-					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f);
+					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 				}
 				break;
 			}
@@ -230,7 +230,7 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 		{
 			if (extraFlags)
 			{
-				bgfx::destroyTexture(textureHandle);
+				bgfx::destroy(textureHandle);
 			}
 			SharedAsyncThread.Process.run([data, width, height]()
 			{

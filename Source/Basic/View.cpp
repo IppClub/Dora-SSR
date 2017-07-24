@@ -58,7 +58,7 @@ void View::push(String viewName)
 		bgfx::setViewName(viewId, name.c_str());
 	}
 	bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
-	bgfx::setViewSeq(viewId, true);
+	bgfx::setViewMode(viewId, bgfx::ViewMode::Sequential);
 	bgfx::touch(viewId);
 	_views.push(std::make_pair(viewId,name));
 }

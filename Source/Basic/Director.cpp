@@ -213,7 +213,7 @@ void Director::mainLoop()
 		/* handle ui touch */
 		Matrix ortho;
 		Size viewSize = SharedView.getSize();
-		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f);
+		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 		if (_ui)
 		{
 			registerTouchHandler(_ui);
