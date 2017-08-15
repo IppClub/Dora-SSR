@@ -723,32 +723,44 @@ namespace bgfx
 		uint8_t  flags;        //!< Status flags.
 	};
 
+	///
+	struct ViewStats
+	{
+		char     name[256];      //!<
+		uint8_t  view;           //!<
+		uint64_t cpuTimeElapsed; //!<
+		uint64_t gpuTimeElapsed; //!<
+	};
+
 	/// Renderer statistics data.
 	///
 	/// @attention C99 equivalent is `bgfx_stats_t`.
 	///
 	struct Stats
 	{
-		uint64_t cpuTimeBegin;  //!< CPU frame begin time.
-		uint64_t cpuTimeEnd;    //!< CPU frame end time.
-		uint64_t cpuTimerFreq;  //!< CPU timer frequency.
+		uint64_t cpuTimeBegin;    //!< CPU frame begin time.
+		uint64_t cpuTimeEnd;      //!< CPU frame end time.
+		uint64_t cpuTimerFreq;    //!< CPU timer frequency.
 
-		uint64_t gpuTimeBegin;  //!< GPU frame begin time.
-		uint64_t gpuTimeEnd;    //!< GPU frame end time.
-		uint64_t gpuTimerFreq;  //!< GPU timer frequency.
+		uint64_t gpuTimeBegin;    //!< GPU frame begin time.
+		uint64_t gpuTimeEnd;      //!< GPU frame end time.
+		uint64_t gpuTimerFreq;    //!< GPU timer frequency.
 
-		int64_t waitRender;     //!< Time spent waiting for render backend thread to finish issuing
-		                        //!  draw commands to underlying graphics API.
-		int64_t waitSubmit;     //!< Time spent waiting for submit thread to advance to next frame.
+		int64_t waitRender;       //!< Time spent waiting for render backend thread to finish issuing
+		                          //!  draw commands to underlying graphics API.
+		int64_t waitSubmit;       //!< Time spent waiting for submit thread to advance to next frame.
 
-		uint32_t numDraw;       //!< Number of draw calls submitted.
-		uint32_t numCompute;    //!< Number of compute calls submitted.
-		uint32_t maxGpuLatency; //!< GPU driver latency.
+		uint32_t numDraw;         //!< Number of draw calls submitted.
+		uint32_t numCompute;      //!< Number of compute calls submitted.
+		uint32_t maxGpuLatency;   //!< GPU driver latency.
 
-		uint16_t width;         //!< Backbuffer width in pixels.
-		uint16_t height;        //!< Backbuffer height in pixels.
-		uint16_t textWidth;     //!< Debug text width in characters.
-		uint16_t textHeight;    //!< Debug text height in characters.
+		uint16_t width;           //!< Backbuffer width in pixels.
+		uint16_t height;          //!< Backbuffer height in pixels.
+		uint16_t textWidth;       //!< Debug text width in characters.
+		uint16_t textHeight;      //!< Debug text height in characters.
+
+		uint16_t  numViews;       //!<
+		ViewStats viewStats[256]; //!<
 	};
 
 	/// Vertex declaration.
@@ -1539,6 +1551,8 @@ namespace bgfx
 	/// Destroy shader. Once program is created with shader it is safe to
 	/// destroy shader.
 	///
+	/// @param[in] _handle Shader handle.
+	///
 	/// @attention C99 equivalent is `bgfx_destroy_shader`.
 	///
 	void destroy(ShaderHandle _handle);
@@ -1575,6 +1589,8 @@ namespace bgfx
 		);
 
 	/// Destroy program.
+	///
+	/// @param[in] _handle Program handle.
 	///
 	/// @attention C99 equivalent is `bgfx_destroy_program`.
 	///
@@ -1997,6 +2013,8 @@ namespace bgfx
 	TextureHandle getTexture(FrameBufferHandle _handle, uint8_t _attachment = 0);
 
 	/// Destroy frame buffer.
+	///
+	/// @param[in] _handle Frame buffer handle.
 	///
 	/// @attention C99 equivalent is `bgfx_destroy_frame_buffer`.
 	///
@@ -2754,9 +2772,9 @@ namespace bgfx
 	uint32_t dispatch(
 		  uint8_t _id
 		, ProgramHandle _handle
-		, uint16_t _numX = 1
-		, uint16_t _numY = 1
-		, uint16_t _numZ = 1
+		, uint32_t _numX = 1
+		, uint32_t _numY = 1
+		, uint32_t _numZ = 1
 		, uint8_t _flags = BGFX_SUBMIT_EYE_FIRST
 		);
 

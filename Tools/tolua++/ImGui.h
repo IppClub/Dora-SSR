@@ -30,7 +30,7 @@ namespace ImGui
 	void Binding::SetWindowPos @ SetWindowPos(const char* name, Vec2 pos, String setCond = nullptr);
 	void Binding::SetWindowSize @ SetWindowSize(const char* name, Vec2 size, String setCond = nullptr);
 	void Binding::SetWindowCollapsed @ SetWindowCollapsed(const char* name, bool collapsed, String setCond = nullptr);
-	void Binding::ColorEditMode @ ColorEditMode(String colorEditMode);
+	void Binding::SetColorEditOptions @ SetColorEditOptions(String colorEditMode);
 	bool Binding::InputText @ InputText(const char* label, Buffer* buffer, String inputTextFlags = nullptr);
 	bool Binding::InputTextMultiline @ InputTextMultiline(const char* label, Buffer* buffer, Vec2 size = Vec2::zero, String inputTextFlags = nullptr);
 	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, int decimal_precision = -1, String inputTextFlags = nullptr);
@@ -66,8 +66,7 @@ namespace ImGui
 	void Binding::Image @ Image(Texture2D* user_texture, Vec2 size, Vec2 uv0 = Vec2::zero, Vec2 uv1 = NewVec2(1,1), Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
 	bool Binding::ImageButton @ ImageButton(Texture2D* user_texture, Vec2 size, Vec2 uv0 = Vec2::zero, Vec2 uv1 = NewVec2(1,1), int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
-	bool Binding::ColorButton @ ColorButton(Color col, bool small_height = false, bool outline_border = true);
-	void Binding::ValueColor @ ValueColor(const char* prefix, Color v);
+	bool Binding::ColorButton @ ColorButton(const char* desc_id, Color col, String flags = nullptr, Vec2 size = Vec2::zero);
 	
 	void Binding::Columns @ Columns(int count = 1, bool border = true);
 	void Binding::Columns @ Columns(int count, bool border, const char* id);
@@ -242,7 +241,6 @@ namespace ImGui
 	bool IsRootWindowOrAnyChildHovered();
 	bool IsRectVisible(Vec2 size);
 	bool IsRectVisible(Vec2 rect_min, Vec2 rect_max);
-	bool IsPosHoveringAnyWindow(Vec2 pos);
 	Vec2 CalcItemRectClosestPoint(Vec2 pos, bool on_edge = false, float outward = 0.0f);
 	Vec2 CalcTextSize(CString text, CString text_end = NULL, bool hide_text_after_double_hash = false, float wrap_width = -1.0f);
 	void CalcListClipping(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end);

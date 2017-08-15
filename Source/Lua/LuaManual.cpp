@@ -1078,9 +1078,9 @@ namespace ImGui { namespace Binding
 		ImGui::SetWindowCollapsed(name, collapsed, getSetCond(setCond));
 	}
 
-	void ColorEditMode(String colorEditMode)
+	void SetColorEditOptions(String colorEditMode)
 	{
-		ImGui::ColorEditMode(getColorEditMode(colorEditMode));
+		ImGui::SetColorEditOptions(getColorEditFlags(colorEditMode));
 	}
 
 	bool InputText(const char* label, Buffer* buffer, String inputTextFlags)
@@ -1322,14 +1322,9 @@ namespace ImGui { namespace Binding
 		return ImGui::ImageButton(texture.ptr, size, uv0, uv1, frame_padding, bg_col.toVec4(), tint_col.toVec4());
 	}
 
-	bool ColorButton(Color col, bool small_height, bool outline_border)
+	bool ColorButton(const char* desc_id, Color col, String flags, const Vec2& size)
 	{
-		return ImGui::ColorButton(col.toVec4(), small_height, outline_border);
-	}
-
-	void ValueColor(const char* prefix, Color v)
-	{
-		return ImGui::ValueColor(prefix, v.toVec4());
+		return ImGui::ColorButton(desc_id, col.toVec4(), getColorEditFlags(flags), size);
 	}
 
 	void Columns(int count, bool border)
@@ -1518,9 +1513,9 @@ namespace ImGui { namespace Binding
 			case "Header"_hash: return ImGuiCol_Header;
 			case "HeaderHovered"_hash: return ImGuiCol_HeaderHovered;
 			case "HeaderActive"_hash: return ImGuiCol_HeaderActive;
-			case "Column"_hash: return ImGuiCol_Column;
-			case "ColumnHovered"_hash: return ImGuiCol_ColumnHovered;
-			case "ColumnActive"_hash: return ImGuiCol_ColumnActive;
+			case "Separator"_hash: return ImGuiCol_Separator;
+			case "SeparatorHovered"_hash: return ImGuiCol_SeparatorHovered;
+			case "SeparatorActive"_hash: return ImGuiCol_SeparatorActive;
 			case "ResizeGrip"_hash: return ImGuiCol_ResizeGrip;
 			case "ResizeGripHovered"_hash: return ImGuiCol_ResizeGripHovered;
 			case "ResizeGripActive"_hash: return ImGuiCol_ResizeGripActive;
@@ -1537,28 +1532,26 @@ namespace ImGui { namespace Binding
 		return ImGuiCol_(0);
 	}
 
-	ImGuiColorEditMode_ getColorEditMode(String mode)
+	ImGuiColorEditFlags_ getColorEditFlags(String mode)
 	{
 		switch (Switch::hash(mode))
 		{
-			case "UserSelect"_hash: return ImGuiColorEditMode_UserSelect;
-			case "UserSelectShowButton"_hash: return ImGuiColorEditMode_UserSelectShowButton;
-			case "RGB"_hash: return ImGuiColorEditMode_RGB;
-			case "HSV"_hash: return ImGuiColorEditMode_HSV;
-			case "HEX"_hash: return ImGuiColorEditMode_HEX;
+			case "RGB"_hash: return ImGuiColorEditFlags_RGB;
+			case "HSV"_hash: return ImGuiColorEditFlags_HSV;
+			case "HEX"_hash: return ImGuiColorEditFlags_HEX;
 		}
-		return ImGuiColorEditMode_(0);
+		return ImGuiColorEditFlags_(0);
 	}
 
-	ImGuiSetCond_ getSetCond(String cond)
+	ImGuiCond_ getSetCond(String cond)
 	{
 		switch (Switch::hash(cond))
 		{
-			case "Always"_hash: return ImGuiSetCond_Always;
-			case "Once"_hash: return ImGuiSetCond_Once;
-			case "FirstUseEver"_hash: return ImGuiSetCond_FirstUseEver;
-			case "Appearing"_hash: return ImGuiSetCond_Appearing;
+			case "Always"_hash: return ImGuiCond_Always;
+			case "Once"_hash: return ImGuiCond_Once;
+			case "FirstUseEver"_hash: return ImGuiCond_FirstUseEver;
+			case "Appearing"_hash: return ImGuiCond_Appearing;
 		}
-		return ImGuiSetCond_(0);
+		return ImGuiCond_(0);
 	}
 } }

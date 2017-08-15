@@ -149,7 +149,7 @@ namespace ImGui { namespace Binding
 	void SetWindowPos(const char* name, const Vec2& pos, String setCond = nullptr);
 	void SetWindowSize(const char* name, const Vec2& size, String setCond = nullptr);
 	void SetWindowCollapsed(const char* name, bool collapsed, String setCond = nullptr);
-	void ColorEditMode(String colorEditMode);
+	void SetColorEditOptions(String colorEditMode);
 	bool InputText(const char* label, Buffer* buffer, String inputTextFlags = nullptr);
 	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size = Vec2::zero, String inputTextFlags = nullptr);
 	bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, int decimal_precision = -1, String inputTextFlags = nullptr);
@@ -194,8 +194,7 @@ namespace ImGui { namespace Binding
 	void Image(Texture2D* user_texture, const Vec2& size, const Vec2& uv0 = Vec2::zero, const Vec2& uv1 = Vec2{1,1}, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
 	bool ImageButton(Texture2D* user_texture, const Vec2& size, const Vec2& uv0 = Vec2::zero, const Vec2& uv1 = Vec2{1,1}, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
-	bool ColorButton(Color col, bool small_height = false, bool outline_border = true);
-	void ValueColor(const char* prefix, Color v);
+	bool ColorButton(const char* desc_id, Color col, String flags = nullptr, const Vec2& size = Vec2::zero);
 
 	void Columns(int count = 1, bool border = true);
 	void Columns(int count, bool border, const char* id);
@@ -211,6 +210,6 @@ namespace ImGui { namespace Binding
 	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag);
 	ImGuiSelectableFlags_ getSelectableFlags(String flag);
 	ImGuiCol_ getColorIndex(String col);
-	ImGuiColorEditMode_ getColorEditMode(String mode);
-	ImGuiSetCond_ getSetCond(String cond);
+	ImGuiColorEditFlags_ getColorEditFlags(String mode);
+	ImGuiCond_ getSetCond(String cond);
 } }
