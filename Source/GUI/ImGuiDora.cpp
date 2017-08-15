@@ -59,7 +59,7 @@ public:
 
 	void Draw(const char* title, bool* p_open = nullptr)
 	{
-		ImGui::SetNextWindowSize(ImVec2(400,300), ImGuiSetCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(400,300), ImGuiCond_FirstUseEver);
 		ImGui::Begin(title, p_open);
 		if (ImGui::Button("Clear")) clear();
 		ImGui::SameLine();
@@ -361,9 +361,9 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_Header] = ImVec4(0.00f, 0.40f, 0.40f, 0.45f);
 	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.00f, 0.55f, 0.55f, 0.80f);
 	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.00f, 0.53f, 0.53f, 0.80f);
-	style.Colors[ImGuiCol_Column] = ImVec4(0.00f, 0.50f, 0.50f, 1.00f);
-	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.00f, 0.60f, 0.60f, 1.00f);
-	style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.00f, 0.70f, 0.70f, 1.00f);
+	style.Colors[ImGuiCol_Separator] = ImVec4(0.00f, 0.50f, 0.50f, 1.00f);
+	style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.00f, 0.60f, 0.60f, 1.00f);
+	style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.00f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 1.00f, 1.00f, 0.30f);
 	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.00f, 1.00f, 1.00f, 0.60f);
 	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.00f, 1.00f, 1.00f, 0.90f);
