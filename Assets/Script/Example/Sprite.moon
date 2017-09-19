@@ -50,7 +50,7 @@ entry\schedule ->
 			PopItemWidth!
 			color3 = sprite.color3
 			PushItemWidth -1
-			ColorEditMode "RGB"
+			SetColorEditOptions "RGB"
 			if ColorEdit3 "", color3
 				sprite.color3 = color3
 			PopItemWidth!

@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/TouchDispather.h"
 
 struct ImDrawData;
+class ImFontAtlas;
 
 NS_DOROTHY_BEGIN
 
@@ -56,6 +57,7 @@ private:
 	vector<Uint32> _textEditing;
 	string _iniFilePath;
 	Own<LogPanel> _log;
+	Own<ImFontAtlas> _fonts;
 	SINGLETON_REF(ImGuiDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGui
 	SINGLETON_REF(AsyncThread, ImGuiDora);
