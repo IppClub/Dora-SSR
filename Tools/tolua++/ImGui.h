@@ -215,7 +215,7 @@ namespace ImGui
 	void OpenPopup(CString str_id);
 	bool BeginPopup(CString str_id);
 	bool BeginPopupContextItem(CString str_id, int mouse_button = 1);
-	bool BeginPopupContextWindow(bool also_over_items = true, CString str_id = NULL, int mouse_button = 1);
+	bool BeginPopupContextWindow(CString str_id = NULL, int mouse_button = 1, bool also_over_items = true);
 	bool BeginPopupContextVoid(CString str_id = NULL, int mouse_button = 1);
 	void EndPopup();
 	void CloseCurrentPopup();
@@ -224,7 +224,7 @@ namespace ImGui
 	void PopClipRect();
 
 	bool IsItemHovered();
-	bool IsItemHoveredRect();
+	bool IsItemRectHovered();
 	bool IsItemActive();
 	bool IsItemClicked(int mouse_button = 0);
 	bool IsItemVisible();
@@ -236,6 +236,8 @@ namespace ImGui
 	void SetItemAllowOverlap();
 	bool IsWindowHovered();
 	bool IsWindowFocused();
+	bool IsWindowRectHovered();
+	bool IsAnyWindowHovered();
 	bool IsRootWindowFocused();
 	bool IsRootWindowOrAnyChildFocused();
 	bool IsRootWindowOrAnyChildHovered();
@@ -249,8 +251,6 @@ namespace ImGui
 	bool IsMouseClicked(int button, bool repeat = false);
 	bool IsMouseDoubleClicked(int button);
 	bool IsMouseReleased(int button);
-	bool IsMouseHoveringWindow();
-	bool IsMouseHoveringAnyWindow();
 	bool IsMouseHoveringRect(Vec2 r_min, Vec2 r_max, bool clip = true);
 	bool IsMouseDragging(int button = 0, float lock_threshold = -1.0f);
 	Vec2 GetMousePos();

@@ -120,7 +120,8 @@ _lastCursor(0),
 _backSpaceIgnore(false),
 _mousePressed{ false, false, false },
 _mouseWheel(0.0f),
-_log(New<LogPanel>())
+_log(New<LogPanel>()),
+_fonts(New<ImFontAtlas>())
 {
 	_vertexDecl
 		.begin()
@@ -209,23 +210,17 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 
 	if (targetGlyphRanges)
 	{
-		io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
-		SharedAsyncThread.Process.run([]()
+		_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
+		SharedAsyncThread.Process.run([this]()
 		{
-			ImGuiIO& io = ImGui::GetIO();
-			int texWidth, texHeight;
-			ImVec2 texUvWhitePixel;
-			unsigned char* texPixelsAlpha8;
-			io.Fonts->Build(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
-			return Values::create(texWidth, texHeight, texUvWhitePixel, texPixelsAlpha8);
+			_fonts->Build();
+			return Values::None;
 		}, [this, fileData, size](Values* result)
 		{
 			ImGuiIO& io = ImGui::GetIO();
-			result->get(io.Fonts->TexWidth, io.Fonts->TexHeight, io.Fonts->TexUvWhitePixel, io.Fonts->TexPixelsAlpha8);
-			io.Fonts->Fonts.erase(io.Fonts->Fonts.begin());
-			updateTexture(io.Fonts->TexPixelsAlpha8, io.Fonts->TexWidth, io.Fonts->TexHeight);
-			io.Fonts->ClearTexData();
-			io.Fonts->ClearInputData();
+			io.Fonts->Clear();
+			io.Fonts = _fonts;
+			updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
 			MakeOwnArray(fileData, s_cast<size_t>(size));
 			_isLoadingFont = false;
 		});
