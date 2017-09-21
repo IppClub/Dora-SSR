@@ -43,7 +43,6 @@ protected:
 	static void setImePositionHint(int x, int y);
 	static int _lastIMEPosX, _lastIMEPosY;
 private:
-	bool _isLoadingFont;
 	bool _textInputing;
 	bool _backSpaceIgnore;
 	bool _mouseVisible;

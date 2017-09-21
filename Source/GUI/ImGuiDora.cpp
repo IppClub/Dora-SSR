@@ -113,7 +113,6 @@ int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
 ImGuiDora::ImGuiDora():
-_isLoadingFont(false),
 _textInputing(false),
 _mouseVisible(true),
 _lastCursor(0),
@@ -160,8 +159,9 @@ void ImGuiDora::setImePositionHint(int x, int y)
 
 void ImGuiDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)
 {
-	if (_isLoadingFont) return;
-	_isLoadingFont = true;
+	static bool isLoadingFont = false;
+	AssertIf(isLoadingFont, "font is loading.");
+	isLoadingFont = true;
 
 	Sint64 size;
 	Uint8* fileData = SharedContent.loadFileUnsafe(ttfFontFile, size);
@@ -222,13 +222,13 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 			io.Fonts = _fonts;
 			updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
 			MakeOwnArray(fileData, s_cast<size_t>(size));
-			_isLoadingFont = false;
+			isLoadingFont = false;
 		});
 	}
 	else
 	{
 		MakeOwnArray(fileData, s_cast<size_t>(size));
-		_isLoadingFont = false;
+		isLoadingFont = false;
 	}
 }
 

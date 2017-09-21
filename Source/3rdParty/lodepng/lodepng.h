@@ -1,7 +1,7 @@
 /*
-LodePNG version 20161127
+LodePNG version 20170917
 
-Copyright (c) 2005-2016 Lode Vandevenne
+Copyright (c) 2005-2017 Lode Vandevenne
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -27,12 +27,6 @@ freely, subject to the following restrictions:
 #define LODEPNG_H
 
 #include <string.h> /*for size_t*/
-
-#define LODEPNG_NO_COMPILE_DISK
-#define LODEPNG_NO_COMPILE_ALLOCATORS
-#define LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
-#define LODEPNG_NO_COMPILE_ERROR_TEXT
-#define LODEPNG_NO_COMPILE_CPP
 
 extern const char* LODEPNG_VERSION_STRING;
 
@@ -1614,6 +1608,7 @@ yyyymmdd.
 Some changes aren't backwards compatible. Those are indicated with a (!)
 symbol.
 
+*) 17 sep 2017: fix memory leak for some encoder input error cases
 *) 27 nov 2016: grey+alpha auto color model detection bugfix
 *) 18 apr 2016: Changed qsort to custom stable sort (for platforms w/o qsort).
 *) 09 apr 2016: Fixed colorkey usage detection, and better file loading (within
@@ -1763,5 +1758,5 @@ Domain: gmail dot com.
 Account: lode dot vandevenne.
 
 
-Copyright (c) 2005-2016 Lode Vandevenne
+Copyright (c) 2005-2017 Lode Vandevenne
 */
