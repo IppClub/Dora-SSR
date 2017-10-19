@@ -239,7 +239,7 @@ void Keyboard::updateIMEPosHint(const Vec2& winPos)
 #if BX_PLATFORM_IOS
 		45;
 #elif BX_PLATFORM_OSX
-		10;
+		10 * SharedApplication.getSize().width / SharedApplication.getWinSize().width;
 #else
 		0;
 #endif

@@ -34,7 +34,7 @@ public:
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(Array*, Entries);
 	PROPERTY_READONLY(Node*, CurrentEntry);
-	PROPERTY_READONLY(const float*, ViewProjection);
+	PROPERTY_READONLY(const Matrix&, ViewProjection);
 	bool init();
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);

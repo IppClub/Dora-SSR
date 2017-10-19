@@ -16,7 +16,7 @@ Director\pushEntry entry
 Dorothy builtin.ImGui
 
 entry\schedule ->
-	{:width,:height} = Application.size
+	{:width,:height} = Application.winSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,520),"FirstUseEver"
 	if Begin "Sprite", "NoResize|NoSavedSettings"

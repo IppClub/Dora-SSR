@@ -3,7 +3,7 @@ import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
 
-LoadFontTTF "Font/DroidSansFallback.ttf", 22, "Chinese"
+LoadFontTTF "Font/DroidSansFallback.ttf", 20, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -150,7 +150,7 @@ showLog = true
 showFooter = true
 threadLoop ->
 	Application\shutdown! if Keyboard\isKeyDown "Escape"
-	{:width,:height} = Application.size
+	{:width,:height} = Application.winSize
 	SetNextWindowSize Vec2(110,45)
 	SetNextWindowPos Vec2(width-110,height-45)
 	PushStyleColor "WindowBg", Color(0x0)
@@ -199,7 +199,7 @@ Director\pushEntry with Node!
 	examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
 	tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
 	\schedule ->
-		{:width,:height} = Application.size
+		{:width,:height} = Application.winSize
 		SetNextWindowPos Vec2.zero
 		SetNextWindowSize Vec2(width,48)
 		PushStyleColor "TitleBgActive", Color(0xcc000000)

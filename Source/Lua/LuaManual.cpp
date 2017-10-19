@@ -1008,7 +1008,7 @@ using namespace Dorothy;
 
 namespace ImGui { namespace Binding
 {
-	void LoadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)
+	void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges)
 	{
 		SharedImGui.loadFontTTF(ttfFontFile, fontSize, glyphRanges);
 	}
@@ -1050,7 +1050,7 @@ namespace ImGui { namespace Binding
 
 	void SetNextWindowPosCenter(String setCond)
 	{
-		ImGui::SetNextWindowPosCenter(getSetCond(setCond));
+		ImGui::SetNextWindowPos(Vec2(ImGui::GetIO().DisplaySize) * 0.5f, getSetCond(setCond));
 	}
 
 	void SetNextWindowSize(const Vec2& size, String setCond)

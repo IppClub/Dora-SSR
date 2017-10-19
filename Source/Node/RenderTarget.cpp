@@ -62,6 +62,7 @@ bool RenderTarget::init()
 	case bgfx::RendererType::Direct3D9:
 	case bgfx::RendererType::Direct3D11:
 	case bgfx::RendererType::Direct3D12:
+	case bgfx::RendererType::OpenGLES:
 		break;
 	default:
 		extraFlags = BGFX_TEXTURE_READ_BACK;
@@ -81,24 +82,13 @@ bool RenderTarget::init()
 	_surface->setPosition(Vec2{getWidth() / 2.0f, getHeight() / 2.0f});
 	addChild(_surface);
 
-	switch (bgfx::getCaps()->rendererType)
-	{
-		case bgfx::RendererType::OpenGL:
-		case bgfx::RendererType::OpenGLES:
-		{
-			bgfx::TextureHandle depthTextureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, bgfx::TextureFormat::D24S8);
-			bgfx::calcTextureSize(info,
-				_textureWidth, _textureHeight,
-				0, false, false, 1, bgfx::TextureFormat::D24S8);
-			_depthTexture = Texture2D::create(depthTextureHandle, info, BGFX_TEXTURE_NONE);
-			bgfx::TextureHandle texHandles[] = {textureHandle, depthTextureHandle};
-			_frameBufferHandle = bgfx::createFrameBuffer(2, texHandles);
-			break;
-		}
-		default:
-			_frameBufferHandle = bgfx::createFrameBuffer(1, &textureHandle);
-			break;
-	}
+	bgfx::TextureHandle depthTextureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, bgfx::TextureFormat::D24S8, BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY);
+	bgfx::calcTextureSize(info,
+		_textureWidth, _textureHeight,
+		0, false, false, 1, bgfx::TextureFormat::D24S8);
+	_depthTexture = Texture2D::create(depthTextureHandle, info, BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY);
+	bgfx::TextureHandle texHandles[] = { textureHandle, depthTextureHandle };
+	_frameBufferHandle = bgfx::createFrameBuffer(2, texHandles);
 
 	return true;
 }
@@ -126,6 +116,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 			case bgfx::RendererType::Direct3D9:
 			case bgfx::RendererType::Direct3D11:
 			case bgfx::RendererType::Direct3D12:
+			case bgfx::RendererType::Metal:
 			{
 				if (_camera)
 				{
@@ -199,6 +190,7 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 	case bgfx::RendererType::Direct3D9:
 	case bgfx::RendererType::Direct3D11:
 	case bgfx::RendererType::Direct3D12:
+	case bgfx::RendererType::OpenGLES:
 		extraFlags = BGFX_TEXTURE_BLIT_DST;
 		break;
 	default:
