@@ -330,6 +330,7 @@ int Application::mainLogic(void* userData)
 		Log("bgfx fail to initialize!");
 		return 1;
 	}
+	app->_fpsLimited = bgfx::getCaps()->rendererType == bgfx::RendererType::Metal;
 
 	SharedPoolManager.push();
 	if (!SharedDirector.init())

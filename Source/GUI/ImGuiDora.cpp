@@ -153,15 +153,17 @@ void ImGuiDora::setImePositionHint(int x, int y)
 	if (x == 1 && y == 1) return;
 	_lastIMEPosX = x;
 	_lastIMEPosY = y;
-	float scale = SharedApplication.getSize().width / SharedApplication.getWinSize().width;
-	SharedKeyboard.updateIMEPosHint({x / scale, y / scale});
+	SharedKeyboard.updateIMEPosHint({s_cast<float>(x), s_cast<float>(y)});
 }
 
-void ImGuiDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges)
+void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges)
 {
 	static bool isLoadingFont = false;
 	AssertIf(isLoadingFont, "font is loading.");
 	isLoadingFont = true;
+
+	float scale = SharedApplication.getSize().width / SharedApplication.getWinSize().width;
+	fontSize *= scale;
 
 	Sint64 size;
 	Uint8* fileData = SharedContent.loadFileUnsafe(ttfFontFile, size);
@@ -173,13 +175,14 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 	}
 	
 	ImGuiIO& io = ImGui::GetIO();
+	io.FontGlobalScale = 1.0f / scale;
 	io.Fonts->ClearFonts();
 	ImFontConfig fontConfig;
 	fontConfig.FontDataOwnedByAtlas = false;
 	fontConfig.PixelSnapH = true;
 	fontConfig.OversampleH = 1;
 	fontConfig.OversampleV = 1;
-	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, io.Fonts->GetGlyphRangesDefault());
+	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), fontSize, &fontConfig, io.Fonts->GetGlyphRangesDefault());
 	Uint8* texData;
 	int width;
 	int height;
@@ -235,7 +238,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges
 void ImGuiDora::showStats()
 {
 	/* print debug text */
-	ImGui::Begin("Dorothy Stats", nullptr, Vec2{195,305}, 0.8f, ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.
@@ -466,7 +469,7 @@ bool ImGuiDora::init()
 void ImGuiDora::begin()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	Size winSize = SharedApplication.getSize();
+	Size winSize = SharedApplication.getWinSize();
 	io.DisplaySize.x = winSize.width;
 	io.DisplaySize.y = winSize.height;
 	io.DeltaTime = s_cast<float>(SharedApplication.getDeltaTime());
@@ -561,6 +564,16 @@ void ImGuiDora::render()
 			ImDrawVert* verts = (ImDrawVert*)tvb.data;
 			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
 
+			float scale = SharedApplication.getSize().width / SharedApplication.getWinSize().width;
+			if (scale != 1.0f)
+			{
+				for (uint32_t i = 0; i < numVertices; i++)
+				{
+					verts[i].pos.x *= scale;
+					verts[i].pos.y *= scale;
+				}
+			}
+
 			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
 			std::memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(drawList->IdxBuffer[0]));
 
@@ -589,11 +602,11 @@ void ImGuiDora::render()
 						| BGFX_STATE_MSAA
 						| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 
-					const uint16_t xx = uint16_t(bx::fmax(cmd->ClipRect.x, 0.0f));
-					const uint16_t yy = uint16_t(bx::fmax(cmd->ClipRect.y, 0.0f));
+					const uint16_t xx = uint16_t(bx::fmax(cmd->ClipRect.x*scale, 0.0f));
+					const uint16_t yy = uint16_t(bx::fmax(cmd->ClipRect.y*scale, 0.0f));
 					bgfx::setScissor(xx, yy,
-						uint16_t(bx::fmin(cmd->ClipRect.z, 65535.0f) - xx),
-						uint16_t(bx::fmin(cmd->ClipRect.w, 65535.0f) - yy));
+						uint16_t(bx::fmin(cmd->ClipRect.z*scale, 65535.0f) - xx),
+						uint16_t(bx::fmin(cmd->ClipRect.w*scale, 65535.0f) - yy));
 					bgfx::setState(state);
 					bgfx::setTexture(0, sampler, textureHandle);
 					bgfx::setVertexBuffer(0, &tvb, 0, numVertices);
@@ -664,7 +677,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		case SDL_FINGERDOWN:
 		{
 			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getSize();
+			Size size = SharedApplication.getWinSize();
 			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
 			_mousePressed[0] = true;
 			break;
@@ -682,16 +695,13 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		case SDL_MOUSEMOTION:
 		{
 			if ((Touch::source & Touch::FromMouse) == 0) break;
-			int mx = event.motion.x, my = event.motion.y;
-			Size winSize = SharedApplication.getWinSize();
-			Size size = SharedApplication.getSize();
-			ImGui::GetIO().MousePos = Vec2{mx / winSize.width, my / winSize.height} * size;
+			ImGui::GetIO().MousePos = Vec2{s_cast<float>(event.motion.x), s_cast<float>(event.motion.y)};
 			break;
 		}
 		case SDL_FINGERMOTION:
 		{
 			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getSize();
+			Size size = SharedApplication.getWinSize();
 			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
 			break;
 		}

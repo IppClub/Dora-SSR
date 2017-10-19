@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/TouchDispather.h"
 
 struct ImDrawData;
-class ImFontAtlas;
+struct ImFontAtlas;
 
 NS_DOROTHY_BEGIN
 
@@ -29,7 +29,7 @@ public:
 	void begin();
 	void end();
 	void render();
-	void loadFontTTF(String ttfFontFile, int fontSize, String glyphRanges = "Default");
+	void loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default");
 	void showStats();
 	void showLog();
 	void handleEvent(const SDL_Event& event);

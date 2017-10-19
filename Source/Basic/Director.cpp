@@ -151,7 +151,7 @@ Node* Director::getCurrentEntry() const
 	return _entryStack->isEmpty() ? nullptr : _entryStack->getLast().to<Node>();
 }
 
-const float* Director::getViewProjection() const
+const Matrix& Director::getViewProjection() const
 {
 	return *_viewProjs.top();
 }
