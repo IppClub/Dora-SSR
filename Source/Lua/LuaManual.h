@@ -135,7 +135,7 @@ using namespace Dorothy;
 /* ImGui */
 namespace ImGui { namespace Binding
 {
-	void LoadFontTTF(String ttfFontFile, int fontSize, String glyphRanges = "Default");
+	void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default");
 	void ShowStats();
 	void ShowLog();
 	bool Begin(const char* name, String windowsFlags = nullptr);
