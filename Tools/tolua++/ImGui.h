@@ -224,7 +224,6 @@ namespace ImGui
 	void PopClipRect();
 
 	bool IsItemHovered();
-	bool IsItemRectHovered();
 	bool IsItemActive();
 	bool IsItemClicked(int mouse_button = 0);
 	bool IsItemVisible();
@@ -236,11 +235,9 @@ namespace ImGui
 	void SetItemAllowOverlap();
 	bool IsWindowHovered();
 	bool IsWindowFocused();
-	bool IsWindowRectHovered();
 	bool IsAnyWindowHovered();
 	bool IsRootWindowFocused();
 	bool IsRootWindowOrAnyChildFocused();
-	bool IsRootWindowOrAnyChildHovered();
 	bool IsRectVisible(Vec2 size);
 	bool IsRectVisible(Vec2 rect_min, Vec2 rect_max);
 	Vec2 CalcItemRectClosestPoint(Vec2 pos, bool on_edge = false, float outward = 0.0f);

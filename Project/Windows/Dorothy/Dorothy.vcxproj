@@ -602,6 +602,9 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Zip\Lib\Windows\zlib1.dll" "$(O
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -646,6 +649,9 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Zip\Lib\Windows\zlib1.dll" "$(O
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

@@ -34,8 +34,10 @@ BGFXDora::~BGFXDora()
 Application::Application():
 _fpsLimited(false),
 _frame(0),
-_winWidth(1024),
-_winHeight(768),
+_designWidth(1024),
+_designHeight(768),
+_winWidth(_designWidth),
+_winHeight(_designHeight),
 _width(0),
 _height(0),
 _maxFPS(60),
@@ -52,6 +54,11 @@ _sdlWindow(nullptr)
 Size Application::getSize() const
 {
 	return Size{s_cast<float>(_width), s_cast<float>(_height)};
+}
+
+Size Application::getDesignSize() const
+{
+	return Size{ s_cast<float>(_designWidth), s_cast<float>(_designHeight) };
 }
 
 Size Application::getWinSize() const
@@ -256,6 +263,15 @@ void Application::updateWindowSize()
 {
 	SDL_GL_GetDrawableSize(_sdlWindow, &_width, &_height);
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
+#if BX_PLATFORM_WINDOWS
+	float hdpi = 96, vdpi = 96;
+	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
+	_designWidth = MulDiv(_winWidth, 96, s_cast<int>(hdpi));
+	_designHeight = MulDiv(_winHeight, 96, s_cast<int>(vdpi));
+#else
+	_designWidth = _winWidth;
+	_designHeight = _winHeight;
+#endif // BX_PLATFORM_WINDOWS
 }
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 
@@ -321,8 +337,9 @@ void Application::invokeInLogic(const function<void()>& func)
 	_logicEvent.post("Invoke"_slice, func);
 }
 
-int Application::mainLogic(void* userData)
+int Application::mainLogic(bx::Thread* thread, void* userData)
 {
+	DORA_UNUSED_PARAM(thread);
 	Application* app = r_cast<Application*>(userData);
 
 	if (!SharedBGFX.init())
@@ -443,7 +460,18 @@ void Application::setupSdlWindow()
 	pd.nwh = wmi.info.win.window;
 #elif BX_PLATFORM_ANDROID
 	pd.nwh = wmi.info.android.window;
-#endif
+#endif // BX_PLATFORM
+#if BX_PLATFORM_WINDOWS
+	float hdpi = 96, vdpi = 96;
+	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
+	if (hdpi != 96 || vdpi != 96)
+	{
+		_winWidth = MulDiv(_designWidth, s_cast<int>(hdpi), 96);
+		_winHeight = MulDiv(_designHeight, s_cast<int>(vdpi), 96);
+		SDL_SetWindowSize(_sdlWindow, _winWidth, _winHeight);
+		SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	}
+#endif // BX_PLATFORM_WINDOWS
 	bgfx::setPlatformData(pd);
 	updateWindowSize();
 }

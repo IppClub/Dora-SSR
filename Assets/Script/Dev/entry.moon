@@ -150,7 +150,7 @@ showLog = true
 showFooter = true
 threadLoop ->
 	Application\shutdown! if Keyboard\isKeyDown "Escape"
-	{:width,:height} = Application.winSize
+	{:width,:height} = Application.designSize
 	SetNextWindowSize Vec2(110,45)
 	SetNextWindowPos Vec2(width-110,height-45)
 	PushStyleColor "WindowBg", Color(0x0)
@@ -199,7 +199,7 @@ Director\pushEntry with Node!
 	examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
 	tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
 	\schedule ->
-		{:width,:height} = Application.winSize
+		{:width,:height} = Application.designSize
 		SetNextWindowPos Vec2.zero
 		SetNextWindowSize Vec2(width,48)
 		PushStyleColor "TitleBgActive", Color(0xcc000000)

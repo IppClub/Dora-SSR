@@ -26,6 +26,7 @@ public:
 	PROPERTY_READONLY(Uint32, Frame);
 	PROPERTY_READONLY(Size, Size);
 	PROPERTY_READONLY(Size, WinSize);
+	PROPERTY_READONLY(Size, DesignSize);
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
@@ -46,7 +47,7 @@ public:
 	void shutdown();
 	void invokeInRender(const function<void()>& func);
 	void invokeInLogic(const function<void()>& func);
-	static int mainLogic(void* userData);
+	static int mainLogic(bx::Thread* thread, void* userData);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i)
 	{
@@ -66,6 +67,8 @@ protected:
 	bgfx::RenderFrame::Enum renderFrame();
 private:
 	bool _fpsLimited;
+	int _designWidth;
+	int _designHeight;
 	int _winWidth;
 	int _winHeight;
 	int _width;

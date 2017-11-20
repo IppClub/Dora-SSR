@@ -30,17 +30,17 @@ using std::tuple;
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include "Other/AcfDelegate.h"
-using Acf::Delegate;
-#include "SDL_syswm.h"
-#include "SDL.h"
 #include "bgfx/platform.h"
 #include "bgfx/bgfx.h"
 #include "bgfx/embedded_shader.h"
 #include "bx/thread.h"
 #include "bx/semaphore.h"
 #include "bx/math.h"
+#include "SDL_syswm.h"
+#include "SDL.h"
 #include "Box2D/Box2D.h"
+#include "Other/AcfDelegate.h"
+using Acf::Delegate;
 #include "silly/Slice.h"
 using namespace silly::slice;
 #include "Const/Config.h"

@@ -77,8 +77,9 @@ void Async::run(function<void()> worker)
 	_workerSemaphore.post();
 }
 
-int Async::work(void* userData)
+int Async::work(bx::Thread* thread, void* userData)
 {
+	DORA_UNUSED_PARAM(thread);
 	Async* worker = r_cast<Async*>(userData);
 	while (true)
 	{

@@ -27,7 +27,7 @@ public:
 	void resume();
 	void cancel();
 	void stop();
-	static int work(void* userData);
+	static int work(bx::Thread* thread, void* userData);
 private:
 	bool _scheduled;
 	bx::Thread _thread;

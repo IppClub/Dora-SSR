@@ -96,6 +96,7 @@ void QEvent::get(Args&... args)
 class EventQueue
 {
 public:
+	EventQueue();
 	~EventQueue();
 
 	/** @brief Post a new event,
@@ -120,6 +121,7 @@ public:
 	 */
 	QEvent* peek();
 private:
+	bx::DefaultAllocator _allocator;
 	bx::SpScUnboundedQueueT<QEvent> _queue;
 };
 

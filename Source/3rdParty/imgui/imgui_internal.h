@@ -1,11 +1,10 @@
-// dear imgui, v1.52 WIP
+// dear imgui, v1.53 WIP
 // (internals)
 
 // You may use this file to debug, understand or extend ImGui features but we don't provide any guarantee of forward compatibility!
-// Implement maths operators for ImVec2 (disabled by default to not collide with using IM_VEC2_CLASS_EXTRA along with your own math types+operators)
+// Set:
 //   #define IMGUI_DEFINE_MATH_OPERATORS
-// Define IM_PLACEMENT_NEW() macro helper.
-//   #define IMGUI_DEFINE_PLACEMENT_NEW
+// To implement maths operators for ImVec2 (disabled by default to not collide with using IM_VEC2_CLASS_EXTRA along with your own math types+operators)
 
 #pragma once
 
@@ -44,12 +43,11 @@ struct ImGuiMouseCursorData;
 struct ImGuiPopupRef;
 struct ImGuiWindow;
 
-typedef int ImGuiLayoutType;      // enum ImGuiLayoutType_
-typedef int ImGuiButtonFlags;     // enum ImGuiButtonFlags_
-typedef int ImGuiTreeNodeFlags;   // enum ImGuiTreeNodeFlags_
-typedef int ImGuiSliderFlags;     // enum ImGuiSliderFlags_
-typedef int ImGuiSeparatorFlags;  // enum ImGuiSeparatorFlags_
-typedef int ImGuiItemFlags;       // enum ImGuiItemFlags_
+typedef int ImGuiLayoutType;        // enum: horizontal or vertical             // enum ImGuiLayoutType_
+typedef int ImGuiButtonFlags;       // flags: for ButtonEx(), ButtonBehavior()  // enum ImGuiButtonFlags_
+typedef int ImGuiItemFlags;         // flags: for PushItemFlag()                // enum ImGuiItemFlags_
+typedef int ImGuiSeparatorFlags;    // flags: for Separator() - internal        // enum ImGuiSeparatorFlags_
+typedef int ImGuiSliderFlags;       // flags: for SliderBehavior()              // enum ImGuiSliderFlags_
 
 //-------------------------------------------------------------------------
 // STB libraries
@@ -79,9 +77,8 @@ extern IMGUI_API ImGuiContext* GImGui;  // Current implicit ImGui context pointe
 // Helpers
 //-----------------------------------------------------------------------------
 
-#define IM_ARRAYSIZE(_ARR)      ((int)(sizeof(_ARR)/sizeof(*_ARR)))
-#define IM_PI                   3.14159265358979323846f
-#define IM_OFFSETOF(_TYPE,_ELM) ((size_t)&(((_TYPE*)0)->_ELM))
+#define IM_PI                       3.14159265358979323846f
+#define IM_OFFSETOF(_TYPE,_ELM)     ((size_t)&(((_TYPE*)0)->_ELM))
 
 // Helpers: UTF-8 <> wchar
 IMGUI_API int           ImTextStrToUtf8(char* buf, int buf_size, const ImWchar* in_text, const ImWchar* in_text_end);      // return output UTF-8 bytes count
@@ -107,6 +104,7 @@ IMGUI_API void          ImTriangleBarycentricCoords(const ImVec2& a, const ImVec
 // Helpers: String
 IMGUI_API int           ImStricmp(const char* str1, const char* str2);
 IMGUI_API int           ImStrnicmp(const char* str1, const char* str2, int count);
+IMGUI_API void          ImStrncpy(char* dst, const char* src, int count);
 IMGUI_API char*         ImStrdup(const char* str);
 IMGUI_API int           ImStrlenW(const ImWchar* str);
 IMGUI_API const ImWchar*ImStrbolW(const ImWchar* buf_mid_line, const ImWchar* buf_begin); // Find beginning-of-line
@@ -127,7 +125,9 @@ static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)                
 static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)                { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
 static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)                  { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
 static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)                  { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
+static inline ImVec4 operator+(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x+rhs.x, lhs.y+rhs.y, lhs.z+rhs.z, lhs.w+rhs.w); }
 static inline ImVec4 operator-(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x-rhs.x, lhs.y-rhs.y, lhs.z-rhs.z, lhs.w-rhs.w); }
+static inline ImVec4 operator*(const ImVec4& lhs, const ImVec4& rhs)            { return ImVec4(lhs.x*rhs.x, lhs.y*rhs.y, lhs.z*rhs.z, lhs.w*rhs.w); }
 #endif
 
 static inline int    ImMin(int lhs, int rhs)                                    { return lhs < rhs ? lhs : rhs; }
@@ -140,11 +140,13 @@ static inline int    ImClamp(int v, int mn, int mx)                             
 static inline float  ImClamp(float v, float mn, float mx)                       { return (v < mn) ? mn : (v > mx) ? mx : v; }
 static inline ImVec2 ImClamp(const ImVec2& f, const ImVec2& mn, ImVec2 mx)      { return ImVec2(ImClamp(f.x,mn.x,mx.x), ImClamp(f.y,mn.y,mx.y)); }
 static inline float  ImSaturate(float f)                                        { return (f < 0.0f) ? 0.0f : (f > 1.0f) ? 1.0f : f; }
+static inline void   ImSwap(int& a, int& b)                                     { int tmp = a; a = b; b = tmp; }
 static inline void   ImSwap(float& a, float& b)                                 { float tmp = a; a = b; b = tmp; }
 static inline int    ImLerp(int a, int b, float t)                              { return (int)(a + (b - a) * t); }
 static inline float  ImLerp(float a, float b, float t)                          { return a + (b - a) * t; }
 static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, float t)          { return ImVec2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t); }
 static inline ImVec2 ImLerp(const ImVec2& a, const ImVec2& b, const ImVec2& t)  { return ImVec2(a.x + (b.x - a.x) * t.x, a.y + (b.y - a.y) * t.y); }
+static inline ImVec4 ImLerp(const ImVec4& a, const ImVec4& b, float t)          { return ImVec4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t); }
 static inline float  ImLengthSqr(const ImVec2& lhs)                             { return lhs.x*lhs.x + lhs.y*lhs.y; }
 static inline float  ImLengthSqr(const ImVec4& lhs)                             { return lhs.x*lhs.x + lhs.y*lhs.y + lhs.z*lhs.z + lhs.w*lhs.w; }
 static inline float  ImInvLength(const ImVec2& lhs, float fail_value)           { float d = lhs.x*lhs.x + lhs.y*lhs.y; if (d > 0.0f) return 1.0f / sqrtf(d); return fail_value; }
@@ -152,15 +154,14 @@ static inline float  ImFloor(float f)                                           
 static inline ImVec2 ImFloor(const ImVec2& v)                                   { return ImVec2((float)(int)v.x, (float)(int)v.y); }
 static inline float  ImDot(const ImVec2& a, const ImVec2& b)                    { return a.x * b.x + a.y * b.y; }
 static inline ImVec2 ImRotate(const ImVec2& v, float cos_a, float sin_a)        { return ImVec2(v.x * cos_a - v.y * sin_a, v.x * sin_a + v.y * cos_a); }
+static inline float  ImLinearSweep(float current, float target, float speed)    { if (current < target) return ImMin(current + speed, target); if (current > target) return ImMax(current - speed, target); return current; }
 
 // We call C++ constructor on own allocated memory via the placement "new(ptr) Type()" syntax.
 // Defining a custom placement new() with a dummy parameter allows us to bypass including <new> which on some platforms complains when user has disabled exceptions.
-#ifdef IMGUI_DEFINE_PLACEMENT_NEW
 struct ImPlacementNewDummy {};
 inline void* operator new(size_t, ImPlacementNewDummy, void* ptr) { return ptr; }
 inline void operator delete(void*, ImPlacementNewDummy, void*) {}
 #define IM_PLACEMENT_NEW(_PTR)  new(ImPlacementNewDummy(), _PTR)
-#endif
 
 //-----------------------------------------------------------------------------
 // Types
@@ -176,9 +177,10 @@ enum ImGuiButtonFlags_
     ImGuiButtonFlags_FlattenChilds          = 1 << 5,   // allow interactions even if a child window is overlapping
     ImGuiButtonFlags_DontClosePopups        = 1 << 6,   // disable automatically closing parent popup on press // [UNUSED]
     ImGuiButtonFlags_Disabled               = 1 << 7,   // disable interactions
-    ImGuiButtonFlags_AlignTextBaseLine      = 1 << 8,   // vertically align button to match text baseline - ButtonEx() only
+    ImGuiButtonFlags_AlignTextBaseLine      = 1 << 8,   // vertically align button to match text baseline (ButtonEx() only)
     ImGuiButtonFlags_NoKeyModifiers         = 1 << 9,   // disable interaction if a key modifier is held
-    ImGuiButtonFlags_AllowOverlapMode       = 1 << 10   // require previous frame HoveredId to either match id or be null before being usable
+    ImGuiButtonFlags_AllowOverlapMode       = 1 << 10,  // require previous frame HoveredId to either match id or be null before being usable
+    ImGuiButtonFlags_NoHoldingActiveID      = 1 << 11   // don't set ActiveId while holding the mouse (ImGuiButtonFlags_PressedOnClick only)
 };
 
 enum ImGuiSliderFlags_
@@ -192,7 +194,8 @@ enum ImGuiColumnsFlags_
     ImGuiColumnsFlags_NoBorder              = 1 << 0,   // Disable column dividers
     ImGuiColumnsFlags_NoResize              = 1 << 1,   // Disable resizing columns when clicking on the dividers
     ImGuiColumnsFlags_NoPreserveWidths      = 1 << 2,   // Disable column width preservation when adjusting columns
-    ImGuiColumnsFlags_NoForceWithinWindow   = 1 << 3    // Disable forcing columns to fit within window
+    ImGuiColumnsFlags_NoForceWithinWindow   = 1 << 3,   // Disable forcing columns to fit within window
+    ImGuiColumnsFlags_GrowParentContentsSize= 1 << 4,   // (WIP) Restore pre-1.51 behavior of extending the parent window contents size but _without affecting the columns width at all_. Will eventually remove.
 };
 
 enum ImGuiSelectableFlagsPrivate_
@@ -417,6 +420,7 @@ struct ImGuiContext
     ImVector<ImGuiWindow*>  Windows;
     ImVector<ImGuiWindow*>  WindowsSortBuffer;
     ImVector<ImGuiWindow*>  CurrentWindowStack;
+    ImGuiStorage            WindowsById;
     ImGuiWindow*            CurrentWindow;                      // Being drawn into
     ImGuiWindow*            NavWindow;                          // Nav/focused window for navigation
     ImGuiWindow*            HoveredWindow;                      // Will catch mouse inputs
@@ -424,16 +428,17 @@ struct ImGuiContext
     ImGuiID                 HoveredId;                          // Hovered widget
     bool                    HoveredIdAllowOverlap;
     ImGuiID                 HoveredIdPreviousFrame;
+    float                   HoveredIdTimer;
     ImGuiID                 ActiveId;                           // Active widget
     ImGuiID                 ActiveIdPreviousFrame;
+    float                   ActiveIdTimer;
     bool                    ActiveIdIsAlive;                    // Active widget has been seen this frame
     bool                    ActiveIdIsJustActivated;            // Set at the time of activation for one frame
     bool                    ActiveIdAllowOverlap;               // Active widget allows another widget to steal active id (generally for overlapping widgets, but not always)
-
     ImVec2                  ActiveIdClickOffset;                // Clicked offset from upper-left corner, if applicable (currently only set by ButtonBehavior)
     ImGuiWindow*            ActiveIdWindow;
-    ImGuiWindow*            MovedWindow;                        // Track the child window we clicked on to move a window.
-    ImGuiID                 MovedWindowMoveId;                  // == MovedWindow->RootWindow->MoveId
+    ImGuiWindow*            MovingWindow;                       // Track the child window we clicked on to move a window.
+    ImGuiID                 MovingWindowMoveId;                 // == MovingWindow->MoveId
     ImVector<ImGuiIniData>  Settings;                           // .ini Settings
     float                   SettingsDirtyTimer;                 // Save .ini Settings on disk when time reaches zero
     ImVector<ImGuiColMod>   ColorModifiers;                     // Stack for PushStyleColor()/PopStyleColor()
@@ -517,15 +522,17 @@ struct ImGuiContext
         HoveredId = 0;
         HoveredIdAllowOverlap = false;
         HoveredIdPreviousFrame = 0;
+        HoveredIdTimer = 0.0f;
         ActiveId = 0;
         ActiveIdPreviousFrame = 0;
+        ActiveIdTimer = 0.0f;
         ActiveIdIsAlive = false;
         ActiveIdIsJustActivated = false;
         ActiveIdAllowOverlap = false;
         ActiveIdClickOffset = ImVec2(-1,-1);
         ActiveIdWindow = NULL;
-        MovedWindow = NULL;
-        MovedWindowMoveId = 0;
+        MovingWindow = NULL;
+        MovingWindowMoveId = 0;
         SettingsDirtyTimer = 0.0f;
 
         SetNextWindowPosVal = ImVec2(0.0f, 0.0f);
@@ -578,9 +585,10 @@ enum ImGuiItemFlags_
 {
     ImGuiItemFlags_AllowKeyboardFocus           = 1 << 0,  // true
     ImGuiItemFlags_ButtonRepeat                 = 1 << 1,  // false    // Button() will return true multiple times based on io.KeyRepeatDelay and io.KeyRepeatRate settings.
-    //ImGuiItemFlags_Disabled                   = 1 << 2,  // false    // All widgets appears are disabled
-    //ImGuiItemFlags_AllowNavDefaultFocus       = 1 << 3,  // true
-    ImGuiItemFlags_SelectableDontClosePopup     = 1 << 4,  // false    // MenuItem/Selectable() automatically closes current Popup window
+    ImGuiItemFlags_Disabled                     = 1 << 2,  // false    // FIXME-WIP: Disable interactions but doesn't affect visuals. Should be: grey out and disable interactions with widgets that affect data + view widgets (WIP) 
+    //ImGuiItemFlags_NoNav                      = 1 << 3,  // false
+    //ImGuiItemFlags_NoNavDefaultFocus          = 1 << 4,  // false
+    ImGuiItemFlags_SelectableDontClosePopup     = 1 << 5,  // false    // MenuItem/Selectable() automatically closes current Popup window
     ImGuiItemFlags_Default_                     = ImGuiItemFlags_AllowKeyboardFocus
 };
 
@@ -679,20 +687,22 @@ struct IMGUI_API ImGuiWindow
     ImVec2                  SizeContents;                       // Size of contents (== extents reach of the drawing cursor) from previous frame
     ImVec2                  SizeContentsExplicit;               // Size of contents explicitly set by the user via SetNextWindowContentSize()
     ImRect                  ContentsRegionRect;                 // Maximum visible content position in window coordinates. ~~ (SizeContentsExplicit ? SizeContentsExplicit : Size - ScrollbarSizes) - CursorStartPos, per axis
-    ImVec2                  WindowPadding;                      // Window padding at the time of begin. We need to lock it, in particular manipulation of the ShowBorder would have an effect
+    ImVec2                  WindowPadding;                      // Window padding at the time of begin.
+    float                   WindowRounding;                     // Window rounding at the time of begin.
+    float                   WindowBorderSize;                   // Window border size at the time of begin.
     ImGuiID                 MoveId;                             // == window->GetID("#MOVE")
     ImVec2                  Scroll;
     ImVec2                  ScrollTarget;                       // target scroll position. stored as cursor position with scrolling canceled out, so the highest point is always 0.0f. (FLT_MAX for no change)
     ImVec2                  ScrollTargetCenterRatio;            // 0.0f = scroll so that target position is at top, 0.5f = scroll so that target position is centered
     bool                    ScrollbarX, ScrollbarY;
     ImVec2                  ScrollbarSizes;
-    float                   BorderSize;
     bool                    Active;                             // Set to true on Begin()
     bool                    WasActive;
-    bool                    Accessed;                           // Set to true when any widget access the current window
+    bool                    WriteAccessed;                      // Set to true when any widget access the current window
     bool                    Collapsed;                          // Set when collapsing window to become only title-bar
     bool                    SkipItems;                          // Set when items can safely be all clipped (e.g. window not visible or collapsed)
     bool                    Appearing;                          // Set during the frame where the window is appearing (or re-appearing)
+    bool                    CloseButton;                        // Set when the window has a close button (p_open != NULL)
     int                     BeginCount;                         // Number of Begin() during the current frame (generally 0 or 1, 1+ if appending via multiple Begin/End pairs)
     ImGuiID                 PopupId;                            // ID in the popup stack when this window is used as a popup/menu (because we use generic Name/ID for recycling)
     int                     AutoFitFramesX, AutoFitFramesY;
@@ -710,6 +720,7 @@ struct IMGUI_API ImGuiWindow
     ImVector<ImGuiID>       IDStack;                            // ID stack. ID are hashes seeded with the value at the top of the stack
     ImRect                  ClipRect;                           // = DrawList->clip_rect_stack.back(). Scissoring / clipping rectangle. x1, y1, x2, y2.
     ImRect                  WindowRectClipped;                  // = WindowRect just after setup in Begin(). == window->Rect() for root window.
+    ImRect                  InnerRect;
     int                     LastFrameActive;
     float                   ItemWidthDefault;
     ImGuiSimpleColumns      MenuColumns;                        // Simplified columns storage for menu items
@@ -744,6 +755,17 @@ public:
     ImRect      MenuBarRect() const                     { float y1 = Pos.y + TitleBarHeight(); return ImRect(Pos.x, y1, Pos.x + SizeFull.x, y1 + MenuBarHeight()); }
 };
 
+// Backup and restore just enough data to be able to use IsItemHovered() on item A after another B in the same window has overwritten the data.  
+struct ImGuiItemHoveredDataBackup
+{
+    ImGuiID     LastItemId;
+    ImRect      LastItemRect;
+    bool        LastItemRectHoveredRect;
+
+    void Backup()  { ImGuiWindow* window = GImGui->CurrentWindow; LastItemId = window->DC.LastItemId; LastItemRect = window->DC.LastItemRect; LastItemRectHoveredRect = window->DC.LastItemRectHoveredRect; }
+    void Restore() { ImGuiWindow* window = GImGui->CurrentWindow; window->DC.LastItemId = LastItemId; window->DC.LastItemRect = LastItemRect; window->DC.LastItemRectHoveredRect = LastItemRectHoveredRect; }
+};
+
 //-----------------------------------------------------------------------------
 // Internal API
 // No guarantee of forward compatibility here.
@@ -756,13 +778,14 @@ namespace ImGui
     // - ImGui::NewFrame() has never been called, which is illegal.
     // - You are calling ImGui functions after ImGui::Render() and before the next ImGui::NewFrame(), which is also illegal.
     inline    ImGuiWindow*  GetCurrentWindowRead()      { ImGuiContext& g = *GImGui; return g.CurrentWindow; }
-    inline    ImGuiWindow*  GetCurrentWindow()          { ImGuiContext& g = *GImGui; g.CurrentWindow->Accessed = true; return g.CurrentWindow; }
+    inline    ImGuiWindow*  GetCurrentWindow()          { ImGuiContext& g = *GImGui; g.CurrentWindow->WriteAccessed = true; return g.CurrentWindow; }
     IMGUI_API ImGuiWindow*  GetParentWindow();
     IMGUI_API ImGuiWindow*  FindWindowByName(const char* name);
     IMGUI_API void          FocusWindow(ImGuiWindow* window);
+    IMGUI_API void          BringWindowToFront(ImGuiWindow* window);
+    IMGUI_API void          BringWindowToBack(ImGuiWindow* window);
 
     IMGUI_API void          Initialize();
-    IMGUI_API void          EndFrame();                 // Ends the ImGui frame. Automatically called by Render()! you most likely don't need to ever call that yourself directly. If you don't need to render you can call EndFrame() but you'll have wasted CPU already. If you don't need to render, don't create any windows instead!
 
     IMGUI_API void          SetActiveID(ImGuiID id, ImGuiWindow* window);
     IMGUI_API void          ClearActiveID();
@@ -786,6 +809,7 @@ namespace ImGui
     IMGUI_API void          ClosePopup(ImGuiID id);
     IMGUI_API bool          IsPopupOpen(ImGuiID id);
     IMGUI_API bool          BeginPopupEx(ImGuiID id, ImGuiWindowFlags extra_flags);
+    IMGUI_API void          BeginTooltipEx(ImGuiWindowFlags extra_flags, bool override_previous_tooltip = true);
 
     IMGUI_API int           CalcTypematicPressedRepeatAmount(float t, float t_prev, float repeat_delay, float repeat_rate);
 
@@ -809,15 +833,16 @@ namespace ImGui
     IMGUI_API void          RenderFrame(ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border = true, float rounding = 0.0f);
     IMGUI_API void          RenderFrameBorder(ImVec2 p_min, ImVec2 p_max, float rounding = 0.0f);
     IMGUI_API void          RenderColorRectWithAlphaCheckerboard(ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, float grid_step, ImVec2 grid_off, float rounding = 0.0f, int rounding_corners_flags = ~0);
-    IMGUI_API void          RenderCollapseTriangle(ImVec2 pos, bool is_open, float scale = 1.0f);
+    IMGUI_API void          RenderTriangle(ImVec2 pos, ImGuiDir dir, float scale = 1.0f);
     IMGUI_API void          RenderBullet(ImVec2 pos);
-    IMGUI_API void          RenderCheckMark(ImVec2 pos, ImU32 col);
+    IMGUI_API void          RenderCheckMark(ImVec2 pos, ImU32 col, float sz);
     IMGUI_API void          RenderRectFilledRangeH(ImDrawList* draw_list, const ImRect& rect, ImU32 col, float x_start_norm, float x_end_norm, float rounding);
     IMGUI_API const char*   FindRenderedTextEnd(const char* text, const char* text_end = NULL); // Find the optional ## from which we stop displaying text.
 
     IMGUI_API bool          ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags = 0);
     IMGUI_API bool          ButtonEx(const char* label, const ImVec2& size_arg = ImVec2(0,0), ImGuiButtonFlags flags = 0);
     IMGUI_API bool          CloseButton(ImGuiID id, const ImVec2& pos, float radius);
+    IMGUI_API bool          ArrowButton(ImGuiID id, ImGuiDir dir, ImVec2 padding, ImGuiButtonFlags flags = 0);
 
     IMGUI_API bool          SliderBehavior(const ImRect& frame_bb, ImGuiID id, float* v, float v_min, float v_max, float power, int decimal_precision, ImGuiSliderFlags flags = 0);
     IMGUI_API bool          SliderFloatN(const char* label, float* v, int components, float v_min, float v_max, const char* display_format, float power);
@@ -844,6 +869,10 @@ namespace ImGui
 
     IMGUI_API int           ParseFormatPrecision(const char* fmt, int default_value);
     IMGUI_API float         RoundScalar(float value, int decimal_precision);
+
+    // Shade functions
+    IMGUI_API void          ShadeVertsLinearColorGradientKeepAlpha(ImDrawVert* vert_start, ImDrawVert* vert_end, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1);
+    IMGUI_API void          ShadeVertsLinearAlphaGradientForLeftToRightText(ImDrawVert* vert_start, ImDrawVert* vert_end, float gradient_p0_x, float gradient_p1_x);
 
 } // namespace ImGui
 
