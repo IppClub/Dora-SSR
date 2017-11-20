@@ -3,7 +3,7 @@ typedef Slice String;
 class Application
 {
 	tolua_readonly tolua_property__common Size size;
-	tolua_readonly tolua_property__common Size winSize;
+	tolua_readonly tolua_property__common Size designSize;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_property__common unsigned int seed;

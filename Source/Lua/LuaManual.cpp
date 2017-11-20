@@ -1177,8 +1177,8 @@ namespace ImGui { namespace Binding
 		{
 			case "Alpha"_hash: styleVar = ImGuiStyleVar_Alpha; break;
 			case "WindowRounding"_hash: styleVar = ImGuiStyleVar_WindowRounding; break;
-			case "ChildWindowRounding"_hash: styleVar = ImGuiStyleVar_ChildWindowRounding; break;
 			case "FrameRounding"_hash: styleVar = ImGuiStyleVar_FrameRounding; break;
+			case "FrameBorderSize"_hash: styleVar = ImGuiStyleVar_FrameBorderSize; break;
 			case "IndentSpacing"_hash: styleVar = ImGuiStyleVar_IndentSpacing; break;
 			case "GrabMinSize"_hash: styleVar = ImGuiStyleVar_GrabMinSize; break;
 		}
@@ -1362,8 +1362,8 @@ namespace ImGui { namespace Binding
 		{
 			case "Alpha"_hash: style.Alpha = var; break;
 			case "WindowRounding"_hash: style.WindowRounding = var; break;
-			case "ChildWindowRounding"_hash: style.ChildWindowRounding = var; break;
 			case "FrameRounding"_hash: style.FrameRounding = var; break;
+			case "FrameBorderSize"_hash: style.FrameBorderSize = var; break;
 			case "IndentSpacing"_hash: style.IndentSpacing = var; break;
 			case "ColumnsMinSpacing"_hash: style.ColumnsMinSpacing = var; break;
 			case "ScrollbarSize"_hash: style.ScrollbarSize = var; break;
@@ -1402,7 +1402,6 @@ namespace ImGui { namespace Binding
 			case "NoScrollWithMouse"_hash: return ImGuiWindowFlags_NoScrollWithMouse;
 			case "NoCollapse"_hash: return ImGuiWindowFlags_NoCollapse;
 			case "AlwaysAutoResize"_hash: return ImGuiWindowFlags_AlwaysAutoResize;
-			case "ShowBorders"_hash: return ImGuiWindowFlags_ShowBorders;
 			case "NoSavedSettings"_hash: return ImGuiWindowFlags_NoSavedSettings;
 			case "NoInputs"_hash: return ImGuiWindowFlags_NoInputs;
 			case "MenuBar"_hash: return ImGuiWindowFlags_MenuBar;
@@ -1488,7 +1487,6 @@ namespace ImGui { namespace Binding
 			case "Text"_hash: return ImGuiCol_Text;
 			case "TextDisabled"_hash: return ImGuiCol_TextDisabled;
 			case "WindowBg"_hash: return ImGuiCol_WindowBg;
-			case "ChildWindowBg"_hash: return ImGuiCol_ChildWindowBg;
 			case "PopupBg"_hash: return ImGuiCol_PopupBg;
 			case "Border"_hash: return ImGuiCol_Border;
 			case "BorderShadow"_hash: return ImGuiCol_BorderShadow;
@@ -1503,9 +1501,7 @@ namespace ImGui { namespace Binding
 			case "ScrollbarGrab"_hash: return ImGuiCol_ScrollbarGrab;
 			case "ScrollbarGrabHovered"_hash: return ImGuiCol_ScrollbarGrabHovered;
 			case "ScrollbarGrabActive"_hash: return ImGuiCol_ScrollbarGrabActive;
-			case "ComboBg"_hash: return ImGuiCol_ComboBg;
 			case "CheckMark"_hash: return ImGuiCol_CheckMark;
-			case "SliderGrab"_hash: return ImGuiCol_SliderGrab;
 			case "SliderGrabActive"_hash: return ImGuiCol_SliderGrabActive;
 			case "Button"_hash: return ImGuiCol_Button;
 			case "ButtonHovered"_hash: return ImGuiCol_ButtonHovered;

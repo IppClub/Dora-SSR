@@ -18,6 +18,10 @@ _name(name)
 QEvent::~QEvent()
 { }
 
+EventQueue::EventQueue():
+_queue(&_allocator)
+{ }
+
 EventQueue::~EventQueue()
 {
 	for (QEvent* e = poll(); e; e = poll());

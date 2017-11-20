@@ -150,7 +150,7 @@ void ImGuiDora::setClipboardText(void*, const char* text)
 
 void ImGuiDora::setImePositionHint(int x, int y)
 {
-	if (x == 1 && y == 1) return;
+	if (x <= 1 && y <= 1) return;
 	_lastIMEPosX = x;
 	_lastIMEPosY = y;
 	SharedKeyboard.updateIMEPosHint({s_cast<float>(x), s_cast<float>(y)});
@@ -162,7 +162,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	AssertIf(isLoadingFont, "font is loading.");
 	isLoadingFont = true;
 
-	float scale = SharedApplication.getSize().width / SharedApplication.getWinSize().width;
+	float scale = SharedApplication.getSize().width / SharedApplication.getDesignSize().width;
 	fontSize *= scale;
 
 	Sint64 size;
@@ -312,9 +312,9 @@ bool ImGuiDora::init()
 	style.WindowMinSize = ImVec2(100, 32);
 	style.WindowRounding = 0.0f;
 	style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
-	style.ChildWindowRounding = 0.0f;
 	style.FramePadding = ImVec2(5, 5);
 	style.FrameRounding = 0.0f;
+	style.FrameBorderSize = 0.0f;
 	style.ItemSpacing = ImVec2(10, 10);
 	style.ItemInnerSpacing = ImVec2(5, 5);
 	style.TouchExtraPadding = ImVec2(5, 5);
@@ -334,7 +334,6 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.80f);
-	style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.0f, 0.05f, 0.10f, 0.90f);
 	style.Colors[ImGuiCol_Border] = ImVec4(0.00f, 0.70f, 0.70f, 0.65f);
 	style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -349,7 +348,6 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.00f, 0.40f, 0.40f, 0.30f);
 	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.00f, 0.40f, 0.40f, 0.40f);
 	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.00f, 0.50f, 0.50f, 0.40f);
-	style.Colors[ImGuiCol_ComboBg] = ImVec4(0.00f, 0.20f, 0.20f, 0.99f);
 	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.00f, 0.90f, 0.90f, 0.50f);
 	style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.00f, 1.00f, 1.00f, 0.30f);
 	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.00f, 0.50f, 0.50f, 1.00f);
@@ -469,9 +467,9 @@ bool ImGuiDora::init()
 void ImGuiDora::begin()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	Size winSize = SharedApplication.getWinSize();
-	io.DisplaySize.x = winSize.width;
-	io.DisplaySize.y = winSize.height;
+	Size designSize = SharedApplication.getDesignSize();
+	io.DisplaySize.x = designSize.width;
+	io.DisplaySize.y = designSize.height;
 	io.DeltaTime = s_cast<float>(SharedApplication.getDeltaTime());
 
 	if (_textInputing != io.WantTextInput)
@@ -564,7 +562,7 @@ void ImGuiDora::render()
 			ImDrawVert* verts = (ImDrawVert*)tvb.data;
 			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
 
-			float scale = SharedApplication.getSize().width / SharedApplication.getWinSize().width;
+			float scale = SharedApplication.getSize().width / SharedApplication.getDesignSize().width;
 			if (scale != 1.0f)
 			{
 				for (uint32_t i = 0; i < numVertices; i++)
@@ -677,7 +675,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		case SDL_FINGERDOWN:
 		{
 			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getWinSize();
+			Size size = SharedApplication.getDesignSize();
 			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
 			_mousePressed[0] = true;
 			break;
@@ -695,13 +693,18 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		case SDL_MOUSEMOTION:
 		{
 			if ((Touch::source & Touch::FromMouse) == 0) break;
-			ImGui::GetIO().MousePos = Vec2{s_cast<float>(event.motion.x), s_cast<float>(event.motion.y)};
+			Size designSize = SharedApplication.getDesignSize();
+			Size winSize = SharedApplication.getWinSize();
+			ImGui::GetIO().MousePos = Vec2{
+				s_cast<float>(event.motion.x) * designSize.width / winSize.width,
+				s_cast<float>(event.motion.y) * designSize.height / winSize.height
+			};
 			break;
 		}
 		case SDL_FINGERMOTION:
 		{
 			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getWinSize();
+			Size size = SharedApplication.getDesignSize();
 			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
 			break;
 		}
