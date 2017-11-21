@@ -19,6 +19,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 #endif // BX_PLATFORM_ANDROID
 
+#if BX_PLATFORM_WINDOWS
+#define DEFAULT_WIN_DPI 96
+#endif // BX_PLATFORM_WINDOWS
+
 NS_DOROTHY_BEGIN
 
 bool BGFXDora::init()
@@ -264,10 +268,10 @@ void Application::updateWindowSize()
 	SDL_GL_GetDrawableSize(_sdlWindow, &_width, &_height);
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 #if BX_PLATFORM_WINDOWS
-	float hdpi = 96, vdpi = 96;
+	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
 	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
-	_designWidth = MulDiv(_winWidth, 96, s_cast<int>(hdpi));
-	_designHeight = MulDiv(_winHeight, 96, s_cast<int>(vdpi));
+	_designWidth = MulDiv(_winWidth, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
+	_designHeight = MulDiv(_winHeight, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
 #else
 	_designWidth = _winWidth;
 	_designHeight = _winHeight;
@@ -462,12 +466,12 @@ void Application::setupSdlWindow()
 	pd.nwh = wmi.info.android.window;
 #endif // BX_PLATFORM
 #if BX_PLATFORM_WINDOWS
-	float hdpi = 96, vdpi = 96;
+	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
 	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
-	if (hdpi != 96 || vdpi != 96)
+	if (hdpi != DEFAULT_WIN_DPI || vdpi != DEFAULT_WIN_DPI)
 	{
-		_winWidth = MulDiv(_designWidth, s_cast<int>(hdpi), 96);
-		_winHeight = MulDiv(_designHeight, s_cast<int>(vdpi), 96);
+		_winWidth = MulDiv(_designWidth, s_cast<int>(hdpi), DEFAULT_WIN_DPI);
+		_winHeight = MulDiv(_designHeight, s_cast<int>(vdpi), DEFAULT_WIN_DPI);
 		SDL_SetWindowSize(_sdlWindow, _winWidth, _winHeight);
 		SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	}
