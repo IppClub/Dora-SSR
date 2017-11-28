@@ -54,7 +54,7 @@ public:
 	Texture2D* update(String name, Texture2D* texture);
 	Texture2D* update(String filename, const Uint8* data, Sint64 size);
 	Texture2D* get(String filename);
-	/** @brief support format .png .dds .pvr .ktx */
+	/** @brief support format .jpg .png .dds .pvr .ktx */
 	Texture2D* load(String filename);
 	void loadAsync(String filename, const function<void(Texture2D*)>& handler);
     bool unload(Texture2D* texture);
@@ -63,10 +63,8 @@ public:
     void removeUnused();
 protected:
 	TextureCache() { }
-	static void loadPNG(const Uint8* data, uint32_t size, uint8_t*& out,
-		uint32_t& width, uint32_t& height, uint32_t& bpp,
-		bgfx::TextureFormat::Enum& format);
 private:
+	bx::DefaultAllocator _allocator;
 	unordered_map<string, Ref<Texture2D>> _textures;
 	DORA_TYPE(TextureCache);
 	SINGLETON_REF(TextureCache, BGFXDora);

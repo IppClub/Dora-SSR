@@ -26,6 +26,8 @@ void Application::updateWindowSize()
 	_width = bounds.size.width * scale;
 	_height = bounds.size.height * scale;
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
+	_designWidth = _winWidth;
+	_designHeight = _winHeight;
 }
 
 void Application::setupSdlWindow()

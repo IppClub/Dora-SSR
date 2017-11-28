@@ -18,7 +18,7 @@ Dorothy builtin.ImGui
 entry\schedule ->
 	{:width,:height} = Application.designSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,520),"FirstUseEver"
+	SetNextWindowSize Vec2(240,520), "FirstUseEver"
 	if Begin "Sprite", "NoResize|NoSavedSettings"
 		if BeginChild "scroll", Vec2 -1,-40
 			_,sprite.z = DragFloat "Z", sprite.z, 1, -1000, 1000, "%.2f"

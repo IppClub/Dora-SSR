@@ -3,7 +3,7 @@ import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
 
-LoadFontTTF "Font/DroidSansFallback.ttf", 20, "Chinese"
+LoadFontTTF "Font/DroidSansFallback.ttf", 20--, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
