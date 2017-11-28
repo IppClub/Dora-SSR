@@ -15,9 +15,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Basic/Application.h"
-#include "lodepng.h"
 #include "Common/Async.h"
 #include "Basic/Content.h"
+#include "lodepng.h"
+using namespace lodepnglib;
 
 NS_DOROTHY_BEGIN
 

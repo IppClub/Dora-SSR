@@ -28,11 +28,13 @@ freely, subject to the following restrictions:
 
 #include <string.h> /*for size_t*/
 
+#define LODEPNG_NO_COMPILE_DECODER
 #define LODEPNG_NO_COMPILE_DISK
-#define LODEPNG_NO_COMPILE_ALLOCATORS
 #define LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
 #define LODEPNG_NO_COMPILE_ERROR_TEXT
 #define LODEPNG_NO_COMPILE_CPP
+
+namespace lodepnglib {
 
 extern const char* LODEPNG_VERSION_STRING;
 
@@ -907,6 +909,8 @@ TODO:
 [ ] allow user to provide custom color conversion functions, e.g. for premultiplied alpha, padding bits or not, ...
 [ ] allow user to give data (void*) to custom allocator
 */
+
+} /* namespace lodepnglib */
 
 #endif /*LODEPNG_H inclusion guard*/
 

@@ -57,6 +57,7 @@
 		3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D781E55957500205094 /* atlas.cpp */; };
 		3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* Application.cpp */; };
 		3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* Object.cpp */; };
+		3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA718A61FCCF11000B6AC80 /* lodepng.cpp */; };
 		3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2487D1E4DB41500B6BF26 /* utf8.cpp */; };
 		3CB487061E1635A500D51749 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487041E1635A500D51749 /* Node.cpp */; };
 		3CB487131E16398700D51749 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870A1E16398700D51749 /* tolua_event.cpp */; };
@@ -89,7 +90,6 @@
 		3CD3282D1E4B0A4E0036906C /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328261E4B0A4E0036906C /* imgui.cpp */; };
 		3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD3282F1E4B0B530036906C /* ImGuiDora.cpp */; };
 		3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */; };
-		3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD4634E1E27275D00BA9D30 /* lodepng.cpp */; };
 		3CD497FB1E7EE52300C06CA2 /* ModelCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD497F91E7EE52300C06CA2 /* ModelCache.cpp */; };
 		3CD497FE1E7EF3DF00C06CA2 /* FrameCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD497FC1E7EF3DF00C06CA2 /* FrameCache.cpp */; };
 		3CD498001E7EFBE700C06CA2 /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3CD497FF1E7EFBE700C06CA2 /* Model */; };
@@ -308,6 +308,8 @@
 		3C9ADE561E00F16100D42018 /* WRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRef.h; path = ../../../Source/Common/WRef.h; sourceTree = "<group>"; };
 		3C9ADE581E00F24200D42018 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../Source/Basic/Object.cpp; sourceTree = "<group>"; };
 		3C9ADE591E00F24200D42018 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = ../../../Source/Basic/Object.h; sourceTree = "<group>"; };
+		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
+		3CA718A61FCCF11000B6AC80 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
 		3CB2487D1E4DB41500B6BF26 /* utf8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utf8.cpp; path = ../../../Source/3rdParty/Other/utf8.cpp; sourceTree = "<group>"; };
 		3CB2487E1E4DB41500B6BF26 /* utf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utf8.h; path = ../../../Source/3rdParty/Other/utf8.h; sourceTree = "<group>"; };
 		3CB487041E1635A500D51749 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = ../../../Source/Node/Node.cpp; sourceTree = "<group>"; };
@@ -371,8 +373,6 @@
 		3CD328301E4B0B530036906C /* ImGuiDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGuiDora.h; path = ../../../Source/GUI/ImGuiDora.h; sourceTree = "<group>"; };
 		3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureCache.cpp; path = ../../../Source/Cache/TextureCache.cpp; sourceTree = "<group>"; };
 		3CD4634B1E27239B00BA9D30 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
-		3CD4634E1E27275D00BA9D30 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
-		3CD4634F1E27275D00BA9D30 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
 		3CD497F91E7EE52300C06CA2 /* ModelCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelCache.cpp; path = ../../../Source/Cache/ModelCache.cpp; sourceTree = "<group>"; };
 		3CD497FA1E7EE52300C06CA2 /* ModelCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelCache.h; path = ../../../Source/Cache/ModelCache.h; sourceTree = "<group>"; };
 		3CD497FC1E7EF3DF00C06CA2 /* FrameCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FrameCache.cpp; path = ../../../Source/Cache/FrameCache.cpp; sourceTree = "<group>"; };
@@ -613,6 +613,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CA718A41FCCF0FA00B6AC80 /* lodepng */,
 				3C6DA20D1EAF070D006EEE32 /* tinyxml2 */,
 				3C2DFE1D1E95C6DE0077B67D /* soloud */,
 				3C61768D1E82CDD700A19A54 /* lpeg */,
@@ -622,7 +623,6 @@
 				3CDED0361E52DFCC00B5E578 /* freetype */,
 				3CD328211E4B0A370036906C /* imgui */,
 				3CC54E621E03AA6800462FD7 /* FileSystem */,
-				3CD4634D1E27273300BA9D30 /* lodepng */,
 				3CC54E5E1E039E1300462FD7 /* Other */,
 				3C291D341E0264380098C860 /* silly */,
 				3CC54E8E1E03C08200462FD7 /* Zip */,
@@ -827,6 +827,15 @@
 			name = Common;
 			sourceTree = "<group>";
 		};
+		3CA718A41FCCF0FA00B6AC80 /* lodepng */ = {
+			isa = PBXGroup;
+			children = (
+				3CA718A61FCCF11000B6AC80 /* lodepng.cpp */,
+				3CA718A51FCCF11000B6AC80 /* lodepng.h */,
+			);
+			name = lodepng;
+			sourceTree = "<group>";
+		};
 		3CB4871A1E163E9400D51749 /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -1016,15 +1025,6 @@
 				3CD328301E4B0B530036906C /* ImGuiDora.h */,
 			);
 			name = GUI;
-			sourceTree = "<group>";
-		};
-		3CD4634D1E27273300BA9D30 /* lodepng */ = {
-			isa = PBXGroup;
-			children = (
-				3CD4634E1E27275D00BA9D30 /* lodepng.cpp */,
-				3CD4634F1E27275D00BA9D30 /* lodepng.h */,
-			);
-			name = lodepng;
 			sourceTree = "<group>";
 		};
 		3CDED0361E52DFCC00B5E578 /* freetype */ = {
@@ -1401,6 +1401,7 @@
 				3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */,
 				3CEA71B41ECB8ECA00EFFD63 /* Keyboard.cpp in Sources */,
 				3CE9D77B1E7FB842003AAECB /* b2Island.cpp in Sources */,
+				3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */,
 				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,
 				3CE9D7791E7FB842003AAECB /* b2ContactManager.cpp in Sources */,
 				3CE9D8001E7FF7A7003AAECB /* DebugDraw.cpp in Sources */,
@@ -1415,7 +1416,6 @@
 				3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */,
 				3CE9D7411E7FB7EA003AAECB /* b2BroadPhase.cpp in Sources */,
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
-				3CD463501E27275D00BA9D30 /* lodepng.cpp in Sources */,
 				3CE9D7B71E7FB879003AAECB /* b2MotorJoint.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,
 				3CE9D7971E7FB869003AAECB /* b2EdgeAndCircleContact.cpp in Sources */,
@@ -1583,7 +1583,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/lpeg";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/lpeg";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
@@ -1617,7 +1617,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/lodepng $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/lpeg";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/lpeg";
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;
