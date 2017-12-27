@@ -151,16 +151,16 @@ showFooter = true
 threadLoop ->
 	Application\shutdown! if Keyboard\isKeyDown "Escape"
 	{:width,:height} = Application.designSize
-	SetNextWindowSize Vec2(110,45)
-	SetNextWindowPos Vec2(width-110,height-45)
+	SetNextWindowSize Vec2(110,50)
+	SetNextWindowPos Vec2(width-110,height-50)
 	PushStyleColor "WindowBg", Color(0x0)
 	if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 		_, showFooter = Checkbox "Footer", showFooter
 	End!
 	PopStyleColor!
 	return unless showFooter
-	SetNextWindowSize Vec2(width,55)
-	SetNextWindowPos Vec2(0,height-55)
+	SetNextWindowSize Vec2(width,60)
+	SetNextWindowPos Vec2(0,height-60)
 	if Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 		Separator!
 		_, showStats = Checkbox "Stats", showStats
@@ -201,13 +201,13 @@ Director\pushEntry with Node!
 	\schedule ->
 		{:width,:height} = Application.designSize
 		SetNextWindowPos Vec2.zero
-		SetNextWindowSize Vec2(width,48)
+		SetNextWindowSize Vec2(width,53)
 		PushStyleColor "TitleBgActive", Color(0xcc000000)
 		if Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 			Separator!
 		End!
 		PopStyleColor!
-		SetNextWindowPos Vec2(0,48)
+		SetNextWindowPos Vec2(0,53)
 		SetNextWindowSize Vec2(width,height-107)
 		PushStyleColor "WindowBg",Color(0x0)
 		if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"

@@ -362,18 +362,18 @@ namespace bgfx
 
 	static const uint16_t kInvalidHandle = UINT16_MAX;
 
-	BGFX_HANDLE(DynamicIndexBufferHandle);
-	BGFX_HANDLE(DynamicVertexBufferHandle);
-	BGFX_HANDLE(FrameBufferHandle);
-	BGFX_HANDLE(IndexBufferHandle);
-	BGFX_HANDLE(IndirectBufferHandle);
-	BGFX_HANDLE(OcclusionQueryHandle);
-	BGFX_HANDLE(ProgramHandle);
-	BGFX_HANDLE(ShaderHandle);
-	BGFX_HANDLE(TextureHandle);
-	BGFX_HANDLE(UniformHandle);
-	BGFX_HANDLE(VertexBufferHandle);
-	BGFX_HANDLE(VertexDeclHandle);
+	BGFX_HANDLE(DynamicIndexBufferHandle)
+	BGFX_HANDLE(DynamicVertexBufferHandle)
+	BGFX_HANDLE(FrameBufferHandle)
+	BGFX_HANDLE(IndexBufferHandle)
+	BGFX_HANDLE(IndirectBufferHandle)
+	BGFX_HANDLE(OcclusionQueryHandle)
+	BGFX_HANDLE(ProgramHandle)
+	BGFX_HANDLE(ShaderHandle)
+	BGFX_HANDLE(TextureHandle)
+	BGFX_HANDLE(UniformHandle)
+	BGFX_HANDLE(VertexBufferHandle)
+	BGFX_HANDLE(VertexDeclHandle)
 
 	/// Callback interface to implement application specific behavior.
 	/// Cached items are currently used for OpenGL and Direct3D 12 binary
@@ -610,12 +610,12 @@ namespace bgfx
 
 		struct Limits
 		{
-			uint32_t maxDrawCalls;            //!< Maximum draw calls.
+			uint32_t maxDrawCalls;            //!< Maximum number of draw calls.
 			uint32_t maxBlits;                //!< Maximum number of blit calls.
 			uint32_t maxTextureSize;          //!< Maximum texture size.
-			uint32_t maxViews;                //!< Maximum views.
+			uint32_t maxViews;                //!< Maximum number of views.
 			uint32_t maxFrameBuffers;         //!< Maximum number of frame buffer handles.
-			uint32_t maxFBAttachments;        //!< Maximum frame buffer attachments.
+			uint32_t maxFBAttachments;        //!< Maximum number of frame buffer attachments.
 			uint32_t maxPrograms;             //!< Maximum number of program handles.
 			uint32_t maxShaders;              //!< Maximum number of shader handles.
 			uint32_t maxTextures;             //!< Maximum number of texture handles.
@@ -774,6 +774,9 @@ namespace bgfx
 		uint8_t  flags;        //!< Status flags.
 	};
 
+	///
+	typedef uint16_t ViewId;
+
 	/// View stats.
 	///
 	/// @attention C99 equivalent is `bgfx_view_stats_t`.
@@ -781,7 +784,7 @@ namespace bgfx
 	struct ViewStats
 	{
 		char    name[256];      //!< View name.
-		uint8_t view;           //!< View id.
+		ViewId  view;           //!< View id.
 		int64_t cpuTimeElapsed; //!< CPU (submit) time elapsed.
 		int64_t gpuTimeElapsed; //!< GPU time elapsed.
 	};
@@ -802,36 +805,48 @@ namespace bgfx
 	///
 	struct Stats
 	{
-		int64_t cpuTimeFrame;       //!< CPU time between two `bgfx::frame` calls.
-		int64_t cpuTimeBegin;       //!< Render thread CPU submit begin time.
-		int64_t cpuTimeEnd;         //!< Render thread CPU submit end time.
-		int64_t cpuTimerFreq;       //!< CPU timer frequency.
+		int64_t cpuTimeFrame;             //!< CPU time between two `bgfx::frame` calls.
+		int64_t cpuTimeBegin;             //!< Render thread CPU submit begin time.
+		int64_t cpuTimeEnd;               //!< Render thread CPU submit end time.
+		int64_t cpuTimerFreq;             //!< CPU timer frequency.
 
-		int64_t gpuTimeBegin;       //!< GPU frame begin time.
-		int64_t gpuTimeEnd;         //!< GPU frame end time.
-		int64_t gpuTimerFreq;       //!< GPU timer frequency.
+		int64_t gpuTimeBegin;             //!< GPU frame begin time.
+		int64_t gpuTimeEnd;               //!< GPU frame end time.
+		int64_t gpuTimerFreq;             //!< GPU timer frequency.
 
-		int64_t waitRender;         //!< Time spent waiting for render backend thread to finish issuing
-		                            //!  draw commands to underlying graphics API.
-		int64_t waitSubmit;         //!< Time spent waiting for submit thread to advance to next frame.
+		int64_t waitRender;               //!< Time spent waiting for render backend thread to finish issuing
+		                                  //!  draw commands to underlying graphics API.
+		int64_t waitSubmit;               //!< Time spent waiting for submit thread to advance to next frame.
 
-		uint32_t numDraw;           //!< Number of draw calls submitted.
-		uint32_t numCompute;        //!< Number of compute calls submitted.
-		uint32_t maxGpuLatency;     //!< GPU driver latency.
+		uint32_t numDraw;                 //!< Number of draw calls submitted.
+		uint32_t numCompute;              //!< Number of compute calls submitted.
+		uint32_t maxGpuLatency;           //!< GPU driver latency.
 
-		int64_t gpuMemoryMax;       //!< Maximum available GPU memory for application.
-		int64_t gpuMemoryUsed;      //!< Amount of GPU memory used.
+		uint16_t numDynamicIndexBuffers;  //!< Number of used dynamic index buffers.
+		uint16_t numDynamicVertexBuffers; //!< Number of used dynamic vertex buffers.
+		uint16_t numFrameBuffers;         //!< Number of used frame buffers.
+		uint16_t numIndexBuffers;         //!< Number of used index buffers.
+		uint16_t numOcclusionQueries;     //!< Number of used occlusion queries.
+		uint16_t numPrograms;             //!< Number of used programs.
+		uint16_t numShaders;              //!< Number of used shaders.
+		uint16_t numTextures;             //!< Number of used textures.
+		uint16_t numUniforms;             //!< Number of used uniforms.
+		uint16_t numVertexBuffers;        //!< Number of used vertex buffers.
+		uint16_t numVertexDecls;          //!< Number of used vertex declarations.
 
-		uint16_t width;             //!< Backbuffer width in pixels.
-		uint16_t height;            //!< Backbuffer height in pixels.
-		uint16_t textWidth;         //!< Debug text width in characters.
-		uint16_t textHeight;        //!< Debug text height in characters.
+		int64_t gpuMemoryMax;             //!< Maximum available GPU memory for application.
+		int64_t gpuMemoryUsed;            //!< Amount of GPU memory used.
 
-		uint16_t   numViews;        //!< Number of view stats.
-		ViewStats* viewStats;       //!< View stats.
+		uint16_t width;                   //!< Backbuffer width in pixels.
+		uint16_t height;                  //!< Backbuffer height in pixels.
+		uint16_t textWidth;               //!< Debug text width in characters.
+		uint16_t textHeight;              //!< Debug text height in characters.
 
-		uint8_t       numEncoders;  //!< Number of encoders used during frame.
-		EncoderStats* encoderStats; //!< Encoder stats.
+		uint16_t   numViews;              //!< Number of view stats.
+		ViewStats* viewStats;             //!< View stats.
+
+		uint8_t       numEncoders;        //!< Number of encoders used during frame.
+		EncoderStats* encoderStats;       //!< Encoder stats.
 	};
 
 	/// Encoder for submitting draw calls from multiple threads. Use `bgfx::begin()`
@@ -1223,7 +1238,7 @@ namespace bgfx
 		///
 		/// @param[in] _id View id.
 		///
-		void touch(uint8_t _id);
+		void touch(ViewId _id);
 
 		/// Submit primitive for rendering.
 		///
@@ -1236,7 +1251,7 @@ namespace bgfx
 		/// @attention C99 equivalent is `bgfx_submit`.
 		///
 		void submit(
-			  uint8_t _id
+			  ViewId _id
 			, ProgramHandle _program
 			, int32_t _depth = 0
 			, bool _preserveState = false
@@ -1254,7 +1269,7 @@ namespace bgfx
 		/// @attention C99 equivalent is `bgfx_submit_occlusion_query`.
 		///
 		void submit(
-			  uint8_t _id
+			  ViewId _id
 			, ProgramHandle _program
 			, OcclusionQueryHandle _occlusionQuery
 			, int32_t _depth = 0
@@ -1276,7 +1291,7 @@ namespace bgfx
 		/// @attention C99 equivalent is `bgfx_submit_indirect`.
 		///
 		void submit(
-			  uint8_t _id
+			  ViewId _id
 			, ProgramHandle _program
 			, IndirectBufferHandle _indirectHandle
 			, uint16_t _start = 0
@@ -1390,7 +1405,7 @@ namespace bgfx
 		/// @attention C99 equivalent is `bgfx_dispatch`.
 		///
 		void dispatch(
-			  uint8_t _id
+			  ViewId _id
 			, ProgramHandle _handle
 			, uint32_t _numX = 1
 			, uint32_t _numY = 1
@@ -1413,7 +1428,7 @@ namespace bgfx
 		/// @attention C99 equivalent is `bgfx_dispatch_indirect`.
 		///
 		void dispatch(
-			  uint8_t _id
+			  ViewId _id
 			, ProgramHandle _handle
 			, IndirectBufferHandle _indirectHandle
 			, uint16_t _start = 0
@@ -1444,7 +1459,7 @@ namespace bgfx
 		/// @attention C99 equivalent is `bgfx_blit`.
 		///
 		void blit(
-			  uint8_t _id
+			  ViewId _id
 			, TextureHandle _dst
 			, uint16_t _dstX
 			, uint16_t _dstY
@@ -1482,7 +1497,7 @@ namespace bgfx
 		/// @attention C99 equivalent is `bgfx_blit`.
 		///
 		void blit(
-			  uint8_t _id
+			  ViewId _id
 			, TextureHandle _dst
 			, uint8_t _dstMip
 			, uint16_t _dstX
@@ -2695,6 +2710,22 @@ namespace bgfx
 		, const char* _name
 		);
 
+	/// Returns texture direct access pointer.
+	///
+	/// @param[in] _handle Texture handle.
+	///
+	/// @returns Pointer to texture memory. If returned pointer is `NULL` direct access
+	///   is not available for this texture. If pointer is `UINTPTR_MAX` sentinel value
+	///   it means texture is pending creation. Pointer returned can be cached and it
+	///   will be valid until texture is destroyed.
+	///
+	/// @attention Availability depends on: `BGFX_CAPS_TEXTURE_DIRECT_ACCESS`. This feature
+	///   is available on GPUs that have unified memory architecture (UMA) support.
+	///
+	/// @attention C99 equivalent is `bgfx_get_direct_access_ptr`.
+	///
+	void* getDirectAccessPtr(TextureHandle _handle);
+
 	/// Destroy texture.
 	///
 	/// @param[in] _handle Texture handle.
@@ -2974,7 +3005,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_name`.
 	///
 	void setViewName(
-		  uint8_t _id
+		  ViewId _id
 		, const char* _name
 		);
 
@@ -2989,7 +3020,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_rect`.
 	///
 	void setViewRect(
-		  uint8_t _id
+		  ViewId _id
 		, uint16_t _x
 		, uint16_t _y
 		, uint16_t _width
@@ -3007,7 +3038,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_rect_auto`.
 	///
 	void setViewRect(
-		  uint8_t _id
+		  ViewId _id
 		, uint16_t _x
 		, uint16_t _y
 		, BackbufferRatio::Enum _ratio
@@ -3025,7 +3056,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_scissor`.
 	///
 	void setViewScissor(
-		  uint8_t _id
+		  ViewId _id
 		, uint16_t _x = 0
 		, uint16_t _y = 0
 		, uint16_t _width = 0
@@ -3044,7 +3075,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_clear`.
 	///
 	void setViewClear(
-		  uint8_t _id
+		  ViewId _id
 		, uint16_t _flags
 		, uint32_t _rgba = 0x000000ff
 		, float _depth = 1.0f
@@ -3072,7 +3103,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_clear_mrt`.
 	///
 	void setViewClear(
-		  uint8_t _id
+		  ViewId _id
 		, uint16_t _flags
 		, float _depth
 		, uint8_t _stencil
@@ -3097,7 +3128,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_mode`.
 	///
 	void setViewMode(
-		  uint8_t _id
+		  ViewId _id
 		, ViewMode::Enum _mode = ViewMode::Default
 		);
 
@@ -3114,7 +3145,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_frame_buffer`.
 	///
 	void setViewFrameBuffer(
-		  uint8_t _id
+		  ViewId _id
 		, FrameBufferHandle _handle
 		);
 
@@ -3134,7 +3165,7 @@ namespace bgfx
 	/// @attention C99 equivalent are `bgfx_set_view_transform`, `bgfx_set_view_transform_stereo`.
 	///
 	void setViewTransform(
-		  uint8_t _id
+		  ViewId _id
 		, const void* _view
 		, const void* _projL
 		, uint8_t _flags = BGFX_VIEW_STEREO
@@ -3151,9 +3182,9 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_set_view_order`.
 	///
 	void setViewOrder(
-		  uint8_t _id = 0
-		, uint8_t _num = UINT8_MAX
-		, const uint8_t* _remap = NULL
+		  ViewId _id = 0
+		, uint16_t _num = UINT16_MAX
+		, const ViewId* _remap = NULL
 		);
 
 	/// Reset all view settings to default.
@@ -3162,7 +3193,7 @@ namespace bgfx
 	///
 	/// @attention C99 equivalent is `bgfx_reset_view`.
 	///
-	void resetView(uint8_t _id);
+	void resetView(ViewId _id);
 
 	/// Sets debug marker.
 	///
@@ -3546,7 +3577,7 @@ namespace bgfx
 	///
 	/// @param[in] _id View id.
 	///
-	void touch(uint8_t _id);
+	void touch(ViewId _id);
 
 	/// Submit primitive for rendering.
 	///
@@ -3559,7 +3590,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_submit`.
 	///
 	void submit(
-		  uint8_t _id
+		  ViewId _id
 		, ProgramHandle _program
 		, int32_t _depth = 0
 		, bool _preserveState = false
@@ -3577,7 +3608,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_submit_occlusion_query`.
 	///
 	void submit(
-		  uint8_t _id
+		  ViewId _id
 		, ProgramHandle _program
 		, OcclusionQueryHandle _occlusionQuery
 		, int32_t _depth = 0
@@ -3599,7 +3630,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_submit_indirect`.
 	///
 	void submit(
-		  uint8_t _id
+		  ViewId _id
 		, ProgramHandle _program
 		, IndirectBufferHandle _indirectHandle
 		, uint16_t _start = 0
@@ -3713,7 +3744,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_dispatch`.
 	///
 	void dispatch(
-		  uint8_t _id
+		  ViewId _id
 		, ProgramHandle _handle
 		, uint32_t _numX = 1
 		, uint32_t _numY = 1
@@ -3736,7 +3767,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_dispatch_indirect`.
 	///
 	void dispatch(
-		  uint8_t _id
+		  ViewId _id
 		, ProgramHandle _handle
 		, IndirectBufferHandle _indirectHandle
 		, uint16_t _start = 0
@@ -3767,7 +3798,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_blit`.
 	///
 	void blit(
-		  uint8_t _id
+		  ViewId _id
 		, TextureHandle _dst
 		, uint16_t _dstX
 		, uint16_t _dstY
@@ -3805,7 +3836,7 @@ namespace bgfx
 	/// @attention C99 equivalent is `bgfx_blit`.
 	///
 	void blit(
-		  uint8_t _id
+		  ViewId _id
 		, TextureHandle _dst
 		, uint8_t _dstMip
 		, uint16_t _dstX
