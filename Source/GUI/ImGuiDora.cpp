@@ -46,7 +46,7 @@ public:
 	void addLog(const string& text)
 	{
 		int old_size = _buf.size();
-		_buf.append("%s", text.c_str());
+		_buf.appendf("%s", text.c_str());
 		for (int new_size = _buf.size(); old_size < new_size; old_size++)
 		{
 			if (_buf[old_size] == '\n')
@@ -83,7 +83,7 @@ public:
 			{
 				ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0));
-				ImGui::TextWrappedUnformatted(line, line_end);
+				ImGui::TextUnformatted(line, line_end);
 				ImGui::PopStyleVar();
 			}
 			else if (_filter.PassFilter(line, line_end))
@@ -328,7 +328,7 @@ bool ImGuiDora::init()
 	style.DisplayWindowPadding = ImVec2(50, 50);
 	style.DisplaySafeAreaPadding = ImVec2(5, 5);
 	style.AntiAliasedLines = true;
-	style.AntiAliasedShapes = false;
+	style.AntiAliasedFill = false;
 	style.CurveTessellationTol = 1.0f;
 
 	style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -593,11 +593,11 @@ void ImGuiDora::render()
 						| BGFX_STATE_MSAA
 						| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 
-					const uint16_t xx = uint16_t(bx::fmax(cmd->ClipRect.x*scale, 0.0f));
-					const uint16_t yy = uint16_t(bx::fmax(cmd->ClipRect.y*scale, 0.0f));
+					const uint16_t xx = uint16_t(bx::max(cmd->ClipRect.x*scale, 0.0f));
+					const uint16_t yy = uint16_t(bx::max(cmd->ClipRect.y*scale, 0.0f));
 					bgfx::setScissor(xx, yy,
-						uint16_t(bx::fmin(cmd->ClipRect.z*scale, 65535.0f) - xx),
-						uint16_t(bx::fmin(cmd->ClipRect.w*scale, 65535.0f) - yy));
+						uint16_t(bx::min(cmd->ClipRect.z*scale, 65535.0f) - xx),
+						uint16_t(bx::min(cmd->ClipRect.w*scale, 65535.0f) - yy));
 					bgfx::setState(state);
 					bgfx::setTexture(0, sampler, textureHandle);
 					bgfx::setVertexBuffer(0, &tvb, 0, numVertices);

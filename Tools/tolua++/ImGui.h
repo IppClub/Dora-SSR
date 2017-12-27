@@ -101,7 +101,6 @@ namespace ImGui
 	void SetWindowFontScale(float scale);
 	void SetNextWindowSizeConstraints(Vec2 size_min, Vec2 size_max);
 	void SetNextWindowContentSize(Vec2 size);
-	void SetNextWindowContentWidth(float width);
 	void SetNextWindowFocus();
 	void SetWindowFocus(CString name);
 	float GetScrollX();
@@ -148,7 +147,6 @@ namespace ImGui
 	void AlignTextToFramePadding();
 	float GetTextLineHeight();
 	float GetTextLineHeightWithSpacing();
-	float GetItemsLineHeightWithSpacing();
 
 	void NextColumn();
 	int GetColumnIndex();
@@ -236,8 +234,6 @@ namespace ImGui
 	bool IsWindowHovered();
 	bool IsWindowFocused();
 	bool IsAnyWindowHovered();
-	bool IsRootWindowFocused();
-	bool IsRootWindowOrAnyChildFocused();
 	bool IsRectVisible(Vec2 size);
 	bool IsRectVisible(Vec2 rect_min, Vec2 rect_max);
 	Vec2 CalcItemRectClosestPoint(Vec2 pos, bool on_edge = false, float outward = 0.0f);

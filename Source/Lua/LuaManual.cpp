@@ -1380,7 +1380,7 @@ namespace ImGui { namespace Binding
 		switch (Switch::hash(name))
 		{
 			case "AntiAliasedLines"_hash: style.AntiAliasedLines = var; break;
-			case "AntiAliasedShapes"_hash: style.AntiAliasedShapes = var; break;
+			case "AntiAliasedFill"_hash: style.AntiAliasedFill = var; break;
 		}
 	}
 
@@ -1456,7 +1456,7 @@ namespace ImGui { namespace Binding
 		{
 			case "Selected"_hash: return ImGuiTreeNodeFlags_Selected;
 			case "Framed"_hash: return ImGuiTreeNodeFlags_Framed;
-			case "AllowOverlapMode"_hash: return ImGuiTreeNodeFlags_AllowOverlapMode;
+			case "AllowItemOverlap"_hash: return ImGuiTreeNodeFlags_AllowItemOverlap;
 			case "NoTreePushOnOpen"_hash: return ImGuiTreeNodeFlags_NoTreePushOnOpen;
 			case "NoAutoOpenOnLog"_hash: return ImGuiTreeNodeFlags_NoAutoOpenOnLog;
 			case "DefaultOpen"_hash: return ImGuiTreeNodeFlags_DefaultOpen;
