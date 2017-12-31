@@ -83,7 +83,7 @@ public:
 			{
 				ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0));
-				ImGui::TextUnformatted(line, line_end);
+				ImGui::TextWrappedUnformatted(line, line_end);
 				ImGui::PopStyleVar();
 			}
 			else if (_filter.PassFilter(line, line_end))
