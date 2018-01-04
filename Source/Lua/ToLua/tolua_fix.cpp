@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -109,7 +109,7 @@ void tolua_dobuffer(lua_State* L, char* codes, unsigned int size, const char* na
 {
 	if (luaL_loadbuffer(L, codes, size, name) != 0)
 	{
-		Log("error loading module %s from %s :\n\t%s",
+		Log("error loading module {} from {} :\n\t{}",
 			lua_tostring(L, 1), name, lua_tostring(L, -1));
 	}
 	else LuaEngine::call(L, 0, 0);
@@ -163,23 +163,23 @@ void tolua_stack_dump(lua_State* L, int offset, const char* label)
 	{
 		return;
 	}
-    LogPrint("Total [%d] in lua stack: %s\n", top, label != 0 ? label : "");
+    LogPrint("Total [{}] in lua stack: {}\n", top, label != 0 ? label : "");
     for (int i = -1; i >= -top; i--)
     {
         int t = lua_type(L, i);
         switch (t)
         {
             case LUA_TSTRING:
-                LogPrint("  [%02d] [string] %s\n", i, lua_tostring(L, i));
+                LogPrint("  [{}] [string] {}\n", i, lua_tostring(L, i));
                 break;
             case LUA_TBOOLEAN:
-                LogPrint("  [%02d] [boolean] %s\n", i, lua_toboolean(L, i) ? "true" : "false");
+                LogPrint("  [{}] [boolean] {}\n", i, lua_toboolean(L, i) ? "true" : "false");
                 break;
             case LUA_TNUMBER:
-                LogPrint("  [%02d] [number] %g\n", i, lua_tonumber(L, i));
+                LogPrint("  [{}] [number] {}\n", i, lua_tonumber(L, i));
                 break;
             default:
-                LogPrint("  [%02d] %s\n", i, lua_typename(L, t));
+                LogPrint("  [{}] {}\n", i, lua_typename(L, t));
         }
     }
 }

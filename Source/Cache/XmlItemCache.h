@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -68,7 +68,7 @@ public:
 				}
 				catch (rapidxml::parse_error error)
 				{
-					Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+					Log("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
 				}
 				return result;
 			}
@@ -102,7 +102,7 @@ public:
 						}
 						catch (rapidxml::parse_error error)
 						{
-							Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - r_cast<const char*>(data));
+							Log("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
 						}
 						return Values::create(result);
 					}, [this, handler, file](Values* values)
@@ -134,7 +134,7 @@ public:
 		}
 		catch (rapidxml::parse_error error)
 		{
-			Log("xml parse error: %s, at: %d", error.what(), error.where<char>() - r_cast<const char*>(data.c_str()));
+			Log("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data.c_str()));
 		}
 		return result;
 	}

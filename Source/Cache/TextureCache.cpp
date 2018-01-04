@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -149,7 +149,7 @@ Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
 		_textures[fullPath] = texture;
 		return texture;
 	}
-	Log("texture format \"%s\" is not supported for \"%s\".", filename.getFileExtension(), filename);
+	Log("texture format \"{}\" is not supported for \"{}\".", filename.getFileExtension(), filename);
 	return nullptr;
 }
 
@@ -216,7 +216,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			}
 			else
 			{
-				Log("texture format \"%s\" is not supported for \"%s\".", Slice(file).getFileExtension(), file);
+				Log("texture format \"{}\" is not supported for \"{}\".", Slice(file).getFileExtension(), file);
 				handler(nullptr);
 			}
 		});

@@ -31,9 +31,12 @@ local objects = {
 "MoveJoint",
 "MotorJoint",
 "Buffer",
+"Entity",
+"EntityGroup",
+"EntityObserver",
 }
 
--- register CCObject types
+-- register Object types
 for i = 1, #objects do
     _push_functions[objects[i]] = "tolua_pushobject"
 	_collect_functions[objects[i]] = "tolua_collect_object"

@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -53,7 +53,7 @@ string ClipDef::toXml()
 Sprite* ClipCache::loadSprite(String clipStr)
 {
 	auto tokens = clipStr.split("|");
-	AssertUnless(tokens.size() == 2, "invalid clip str for: \"%s\".", clipStr);
+	AssertUnless(tokens.size() == 2, "invalid clip str for: \"{}\".", clipStr);
 	ClipDef* clipDef = ClipCache::load(tokens.front());
 	auto it = clipDef->rects.find(*(++tokens.begin()));
 	if (it != clipDef->rects.end())
@@ -107,7 +107,7 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 					{
 						Slice attr(attrs[++i]);
 						auto tokens = attr.split(",");
-						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"%s\"", attr);
+						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr);
 						auto it = tokens.begin();
 						float x = Slice::stof(*it);
 						float y = Slice::stof(*++it);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -353,8 +353,8 @@ void Body::updatePhysics()
 	if (_bodyB2->IsAwake())
 	{
 		const b2Vec2& pos = _bodyB2->GetPosition();
-		/* Here only CCNode::setPosition(const CCPoint& var) work for modify CCNode`s position.
-		 Other positioning functions have been overriden by CCBody`s.
+		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
+		 Other positioning functions have been overriden by Body`s.
 		*/
 		Node::setPosition(Vec2{World::oVal(pos.x), World::oVal(pos.y)});
 		float angle = _bodyB2->GetAngle();

@@ -109,6 +109,9 @@
     <Filter Include="3rdParty\tinyxml2">
       <UniqueIdentifier>{ef6899f5-5974-4507-a964-d9b6857bd509}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Entity">
+      <UniqueIdentifier>{3339519c-7d32-4a52-a6be-f331261d6beb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -512,6 +515,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\GUI\ImGuiDora.cpp">
       <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Entity\Entity.cpp">
+      <Filter>Entity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -974,6 +980,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\GUI\ImGuiDora.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Entity\Entity.h">
+      <Filter>Entity</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

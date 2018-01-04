@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -70,13 +70,28 @@ struct LifeCycler
 			}
 #if DORA_DEBUG
 			unordered_set<string> names;
+			vector<string> nameList;
 			for (auto it = items.rbegin(); it != items.rend(); ++it)
 			{
 				if (names.find(*it) == names.end() && lives.find(*it) != lives.end())
 				{
 					names.insert(*it);
-					Log("destroy singleton \"%s\".", *it);
+					nameList.push_back(*it);
 				}
+			}
+			if (!nameList.empty())
+			{
+				fmt::MemoryWriter writer;
+				writer.write("singleton destroyed:");
+				for (auto& name : nameList)
+				{
+					writer.write(" {}", name);
+					if (name != nameList.back())
+					{
+						writer.write(",");
+					}
+				}
+				Log("{}.", writer.str());
 			}
 #endif // DORA_DEBUG
 			for (auto it = items.rbegin(); it != items.rend(); ++it)
@@ -117,7 +132,7 @@ LifeCycler* getCycler()
 #if DORA_DEBUG
 void Life::assertIf(bool disposed, String name)
 {
-	AssertIf(disposed, "accessing disposed singleton instance named \"%s\".", name);
+	AssertIf(disposed, "accessing disposed singleton instance named \"{}\".", name);
 }
 #endif // DORA_DEBUG
 

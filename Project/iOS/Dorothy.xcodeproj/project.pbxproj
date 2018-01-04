@@ -58,6 +58,7 @@
 		3C88056F1E5ED13800B52D4B /* font_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C88056D1E5ED13800B52D4B /* font_manager.cpp */; };
 		3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805701E5ED18F00B52D4B /* atlas.cpp */; };
 		3C8805751E5ED1AE00B52D4B /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805731E5ED1AE00B52D4B /* Label.cpp */; };
+		3C92DEC41FFE1CFA003AF655 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C92DEC21FFE1CFA003AF655 /* Entity.cpp */; };
 		3C9862721D9CA4500056A045 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862701D9CA4500056A045 /* libbgfx.a */; };
 		3C9862741D9CA4830056A045 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9862731D9CA4830056A045 /* libSDL2.a */; };
 		3CA1B7EC1EC16E3B00BC58FF /* Menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7EA1EC16E3B00BC58FF /* Menu.cpp */; };
@@ -277,6 +278,8 @@
 		3C8805731E5ED1AE00B52D4B /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Label.cpp; path = ../../../Source/Node/Label.cpp; sourceTree = "<group>"; };
 		3C8805741E5ED1AE00B52D4B /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Label.h; path = ../../../Source/Node/Label.h; sourceTree = "<group>"; };
 		3C8DC3321E666B9F00E59BEC /* Header.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Header.pch; path = ../../../Source/Const/Header.pch; sourceTree = "<group>"; };
+		3C92DEC21FFE1CFA003AF655 /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = ../../../Source/Entity/Entity.cpp; sourceTree = "<group>"; };
+		3C92DEC31FFE1CFA003AF655 /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = ../../../Source/Entity/Entity.h; sourceTree = "<group>"; };
 		3C9862701D9CA4500056A045 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbgfx.a; sourceTree = "<group>"; };
 		3C9862731D9CA4830056A045 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
 		3CA1B7EA1EC16E3B00BC58FF /* Menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Menu.cpp; path = ../../../Source/Node/Menu.cpp; sourceTree = "<group>"; };
@@ -696,6 +699,15 @@
 			name = font;
 			sourceTree = "<group>";
 		};
+		3C92DEC11FFE1CDC003AF655 /* Entity */ = {
+			isa = PBXGroup;
+			children = (
+				3C92DEC21FFE1CFA003AF655 /* Entity.cpp */,
+				3C92DEC31FFE1CFA003AF655 /* Entity.h */,
+			);
+			name = Entity;
+			sourceTree = "<group>";
+		};
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -1011,6 +1023,7 @@
 				3CFF5F281E0136A5004E3CA6 /* Common */,
 				3CB410441E05B1F300A8804D /* Const */,
 				3CD6C2A21E30C1E500B36FFC /* Effect */,
+				3C92DEC11FFE1CDC003AF655 /* Entity */,
 				3CF2D9601E0BC1D1006B9903 /* Event */,
 				3CD328411E4C42E80036906C /* GUI */,
 				3CD328471E4C43040036906C /* Input */,
@@ -1279,6 +1292,7 @@
 				3CB7309A1E80353A006DFA18 /* b2Fixture.cpp in Sources */,
 				3CB7307C1E80343E006DFA18 /* Joint.cpp in Sources */,
 				3CB731031E80358B006DFA18 /* b2Collision.cpp in Sources */,
+				3C92DEC41FFE1CFA003AF655 /* Entity.cpp in Sources */,
 				3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */,
 				3CB730DC1E80356A006DFA18 /* b2RopeJoint.cpp in Sources */,
 				3CB7309D1E80353A006DFA18 /* b2WorldCallbacks.cpp in Sources */,

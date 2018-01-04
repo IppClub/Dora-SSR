@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -35,7 +35,7 @@ inline Director* Director_shared() { return &SharedDirector; }
 inline View* View_shared() { return &SharedView; }
 
 /* Log */
-inline void Dora_Log(String msg) { Log("%s", msg); }
+inline void Dora_Log(String msg) { Log("{}", msg); }
 
 /* Node */
 int Node_emit(lua_State* L);
@@ -69,7 +69,7 @@ Vec2* Vec2_create(float x, float y);
 Size* Size_create(float width, float height);
 
 /* BlendFunc */
-BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst);
+BlendFunc* BlendFunc_create(String src, String dst);
 
 /* Action */
 int Action_create(lua_State* L);
@@ -127,6 +127,13 @@ inline Audio* Audio_shared() { return &SharedAudio; }
 
 /* Keyboard */
 inline Keyboard* Keyboard_shared() { return &SharedKeyboard; }
+
+/* Entity */
+int Entity_get(lua_State* L);
+int Entity_set(lua_State* L);
+
+/* EntityObserver */
+EntityObserver* EntityObserver_create(String option, Slice components[], int count);
 
 NS_DOROTHY_END
 

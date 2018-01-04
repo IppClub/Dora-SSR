@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -163,7 +163,7 @@ void ParticleCache::Parser::xmlSAX2EndElement(const char *name, size_t len)
 void ParticleCache::Parser::get(String value, Vec4& vec)
 {
 	auto tokens = value.split(",");
-	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"%s\"", value);
+	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value);
 	auto it = tokens.begin();
 	vec.x = Slice::stof(*it);
 	vec.y = Slice::stof(*++it);
@@ -174,7 +174,7 @@ void ParticleCache::Parser::get(String value, Vec4& vec)
 void ParticleCache::Parser::get(String value, Vec2& vec)
 {
 	auto tokens = value.split(",");
-	AssertUnless(tokens.size() == 2, "invalid vec2 str for: \"%s\"", value);
+	AssertUnless(tokens.size() == 2, "invalid vec2 str for: \"{}\"", value);
 	auto it = tokens.begin();
 	vec.x = Slice::stof(*it);
 	vec.y = Slice::stof(*++it);
@@ -183,7 +183,7 @@ void ParticleCache::Parser::get(String value, Vec2& vec)
 void ParticleCache::Parser::get(String value, Rect& rect)
 {
 	auto tokens = value.split(",");
-	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"%s\"", value);
+	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value);
 	auto it = tokens.begin();
 	rect.origin.x = Slice::stof(*it);
 	rect.origin.y = Slice::stof(*++it);

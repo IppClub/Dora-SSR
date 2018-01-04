@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -46,7 +46,7 @@ static int dora_traceback(lua_State* L)
 	lua_getfield(L, -1, "traceback"); // err debug traceback
 	lua_pushvalue(L, -3); // err debug traceback err
 	lua_call(L, 1, 1); // traceback(err), err debug tace
-	LogPrint(lua_tostring(L, -1));
+	LogPrint(tolua_toslice(L, -1, nullptr).toString());
 	lua_pop(L, 3); // empty
 	return 0;
 }
@@ -164,7 +164,7 @@ static int dora_doxml(lua_State* L)
 	}
 	if (luaL_loadbuffer(L, codes.c_str(), codes.size(), "xml") != 0)
 	{
-		Log("%s", codes);
+		Log("{}", codes);
 		luaL_error(L, "error loading module %s from file %s :\n\t%s",
 			lua_tostring(L, 1), "xml", lua_tostring(L, -1));
 	}
@@ -263,6 +263,11 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "Dictionary");
 			tolua_function(L, "set", Dictionary_set);
 			tolua_function(L, "get", Dictionary_get);
+		tolua_endmodule(L);
+
+		tolua_beginmodule(L, "Entity");
+			tolua_function(L, "set", Entity_set);
+			tolua_function(L, "get", Entity_get);
 		tolua_endmodule(L);
 	tolua_endmodule(L);
 
@@ -448,7 +453,7 @@ int LuaEngine::call(lua_State* L, int paramCount, int returnCount)
 	int traceIndex = std::max(functionIndex + top, 1);
 	if (!lua_isfunction(L, functionIndex))
 	{
-		Log("[Lua Error] value at stack [%d] is not function in LuaEngine::call", functionIndex);
+		Log("[Lua Error] value at stack [{}] is not function in LuaEngine::call", functionIndex);
 		lua_pop(L, paramCount + 1); // remove function and arguments
 		return 0;
 	}
@@ -499,7 +504,7 @@ int LuaEngine::execute(lua_State* L, int handler, int numArgs)
 	if (!lua_isfunction(L, -1))
 	{
 		Slice name = tolua_typename(L, -1);
-		Log("[Lua Error] function refid '%d' referenced \"%s\" instead of lua function.", handler, name);
+		Log("[Lua Error] function refid '{}' referenced \"{}\" instead of lua function.", handler, name);
 		lua_pop(L, 2 + numArgs);
 		return 1;
 	}
@@ -513,7 +518,7 @@ int LuaEngine::invoke(lua_State* L, int nHandler, int numArgs, int numRets)
 	tolua_get_function_by_refid(L, nHandler);// args... func
 	if (!lua_isfunction(L, -1))
 	{
-		Log("[Lua Error] function refid '%d' does not reference a Lua function", nHandler);
+		Log("[Lua Error] function refid '{}' does not reference a Lua function", nHandler);
 		lua_pop(L, 1 + numArgs);
 		return 0;
 	}

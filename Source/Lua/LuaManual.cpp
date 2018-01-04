@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -102,7 +102,7 @@ int Node_emit(lua_State* L)
 	{
 		Node* self = r_cast<Node*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
-		if (!self) tolua_error(L, "invalid 'self' in function 'CCNode_emit'", NULL);
+		if (!self) tolua_error(L, "invalid 'self' in function 'Node_emit'", NULL);
 #endif
 		Slice name = tolua_toslice(L, 2, 0);
 		int top = lua_gettop(L);
@@ -153,7 +153,7 @@ int Node_slot(lua_State* L)
 	{
 		Node* self = r_cast<Node*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
-		if (!self) tolua_error(L, "invalid 'self' in function 'CCNode_slot'", NULL);
+		if (!self) tolua_error(L, "invalid 'self' in function 'Node_slot'", NULL);
 #endif
 		Slice name = tolua_toslice(L, 2, 0);
 		if (lua_isfunction(L, 3))
@@ -266,6 +266,7 @@ bool Cache::load(String filename)
 			case "par"_hash:
 				return SharedParticleCache.load(filename);
 			case "png"_hash:
+			case "jpg"_hash:
 			case "dds"_hash:
 			case "pvr"_hash:
 			case "ktx"_hash:
@@ -275,6 +276,9 @@ bool Cache::load(String filename)
 			case "wav"_hash:
 			case "ogg"_hash:
 				return SharedSoundCache.load(filename);
+			default:
+				Log("fail to load unsupported resource: {}", filename);
+				break;
 		}
 	}
 	return false;
@@ -312,6 +316,9 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 			case "ogg"_hash:
 				SharedSoundCache.loadAsync(filename, [callback](SoundFile*) { callback(); });
 				break;
+			default:
+				Log("fail to load unsupported resource: {}", filename);
+				break;
 		}
 	}
 }
@@ -334,6 +341,9 @@ void Cache::update(String filename, String content)
 				break;
 			case "par"_hash:
 				SharedParticleCache.update(filename, content);
+				break;
+			default:
+				Log("fail to update unsupported resource: {}", filename);
 				break;
 		}
 	}
@@ -369,6 +379,9 @@ bool Cache::unload(String name)
 			case "wav"_hash:
 			case "ogg"_hash:
 				return SharedSoundCache.unload(name);
+			default:
+				Log("fail to load unsupported resource: {}", name);
+				break;
 		}
 	}
 	else
@@ -460,6 +473,9 @@ void Cache::removeUnused(String name)
 		case "Sound"_hash:
 			SharedSoundCache.removeUnused();
 			break;
+		default:
+			Log("fail to remove unused cache type: {}", name);
+			break;
 	}
 }
 
@@ -500,9 +516,30 @@ Size* Size_create(float width, float height)
 
 /* BlendFunc */
 
-BlendFunc* BlendFunc_create(Uint32 src, Uint32 dst)
+Uint32 getBlendFuncVal(String name)
 {
-	return Mtolua_new((BlendFunc)({src, dst}));
+	switch (Switch::hash(name))
+	{
+		case "One"_hash: return BlendFunc::One;
+		case "Zero"_hash: return BlendFunc::Zero;
+		case "SrcColor"_hash: return BlendFunc::SrcColor;
+		case "SrcAlpha"_hash: return BlendFunc::SrcAlpha;
+		case "DstColor"_hash: return BlendFunc::DstColor;
+		case "DstAlpha"_hash: return BlendFunc::DstAlpha;
+		case "InvSrcColor"_hash: return BlendFunc::InvSrcColor;
+		case "InvSrcAlpha"_hash: return BlendFunc::InvSrcAlpha;
+		case "InvDstColor"_hash: return BlendFunc::InvDstColor;
+		case "InvDstAlpha"_hash: return BlendFunc::InvDstAlpha;
+		default:
+			AssertIf(true, "blendfunc name \"{}\" is invalid.", name);
+			break;
+	}
+	return BlendFunc::Zero;
+}
+
+BlendFunc* BlendFunc_create(String src, String dst)
+{
+	return Mtolua_new((BlendFunc)({getBlendFuncVal(src), getBlendFuncVal(dst)}));
 }
 
 namespace LuaAction
@@ -1000,6 +1037,164 @@ Slice Buffer::toString()
 	return Slice(_data.data(), size);
 }
 
+int Entity_get(lua_State* L)
+{
+	/* 1 self, 2 name */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_get'", nullptr);
+#endif
+		Slice name = tolua_toslice(L, 2, nullptr);
+		Value* value = self->getComponent(name);
+		if (value->as<double>())
+		{
+			lua_pushnumber(L, value->to<double>());
+		}
+		else if (value->as<bool>())
+		{
+			lua_pushboolean(L, value->to<bool>() ? 1 : 0);
+		}
+		else if (value->as<string>())
+		{
+			const string& str = value->to<string>();
+			lua_pushlstring(L, str.c_str(), str.size());
+		}
+		else if (value->as<Ref<>>())
+		{
+			tolua_pushobject(L, value->to<Ref<>>());
+		}
+		else if (value->as<float>())
+		{
+			lua_pushnumber(L, value->to<float>());
+		}
+		else if (value->as<int>())
+		{
+			lua_pushinteger(L, value->to<int>());
+		}
+		else if (value->as<Uint32>())
+		{
+			lua_pushinteger(L, value->to<Uint32>());
+		}
+		else if (value->as<Vec2>())
+		{
+			void* obj = Mtolua_new((Vec2)(value->to<Vec2>()));
+			tolua_pushusertype(L, obj, LuaType<Vec2>());
+		}
+		else if (value->as<Size>())
+		{
+			void* obj = Mtolua_new((Size)(value->to<Size>()));
+			tolua_pushusertype(L, obj, LuaType<Size>());
+		}
+		else if (value->as<Rect>())
+		{
+			void* obj = Mtolua_new((Rect)(value->to<Rect>()));
+			tolua_pushusertype(L, obj, LuaType<Rect>());
+		}
+		else
+		{
+			lua_pushnil(L);
+		}
+		return 1;
+    }
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Entity_get'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Entity_set(lua_State* L)
+{
+	/* 1 self, 2 name, 3 value, 4 raw_flag */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_set'", nullptr);
+#endif
+		bool raw_flag = lua_toboolean(L, 4) != 0;
+		Slice key = tolua_toslice(L, 2, nullptr);
+		if (lua_isnil(L, 3))
+		{
+			self->remove(key);
+		}
+		else
+		{
+			if (lua_isnumber(L, 3))
+			{
+				self->set(key, lua_tonumber(L, 3), raw_flag);
+			}
+			else if (lua_isboolean(L, 3))
+			{
+				self->set(key, lua_toboolean(L, 3) != 0, raw_flag);
+			}
+			else if (lua_isstring(L, 3))
+			{
+				self->set(key, tolua_toslice(L, 3, nullptr).toString(), raw_flag);
+			}
+			else if (tolua_isobject(L, 3))
+			{
+				self->set(key, s_cast<Object*>(tolua_tousertype(L, 3, 0)), raw_flag);
+			}
+			else if (tolua_istype(L, 3, "Vec2"))
+			{
+				self->set(key, *s_cast<Vec2*>(tolua_tousertype(L, 3, 0)), raw_flag);
+			}
+			else if (tolua_istype(L, 3, "Size"))
+			{
+				self->set(key, *s_cast<Size*>(tolua_tousertype(L, 3, 0)), raw_flag);
+			}
+			else if (tolua_istype(L, 3, "Rect"))
+			{
+				self->set(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)), raw_flag);
+			}
+#ifndef TOLUA_RELEASE
+			else
+			{
+				tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size and Rect.", nullptr);
+			}
+#endif
+		}
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Entity_set'.", &tolua_err);
+	return 0;
+#endif
+}
+
+/* EntityObserver */
+
+EntityObserver* EntityObserver_create(String option, Slice components[], int count)
+{
+	Uint32 optionVal = -1;
+	switch (Switch::hash(option))
+	{
+		case "Add"_hash: optionVal = Entity::Add; break;
+		case "Change"_hash: optionVal = Entity::Change; break;
+		case "Remove"_hash: optionVal = Entity::Remove; break;
+		default:
+			AssertIf(true, "EntityObserver option name \"{}\" is invalid.", option);
+			break;
+	}
+	return EntityObserver::create(optionVal, components, count);
+}
+
 NS_DOROTHY_END
 
 using namespace Dorothy;
@@ -1166,6 +1361,9 @@ namespace ImGui { namespace Binding
 			case "ItemSpacing"_hash: styleVar = ImGuiStyleVar_ItemSpacing; break;
 			case "ItemInnerSpacing"_hash: styleVar = ImGuiStyleVar_ItemInnerSpacing; break;
 			case "ButtonTextAlign"_hash: styleVar = ImGuiStyleVar_ButtonTextAlign; break;
+			default:
+				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				break;
 		}
 		ImGui::PushStyleVar(styleVar, val);
 	}
@@ -1181,6 +1379,9 @@ namespace ImGui { namespace Binding
 			case "FrameBorderSize"_hash: styleVar = ImGuiStyleVar_FrameBorderSize; break;
 			case "IndentSpacing"_hash: styleVar = ImGuiStyleVar_IndentSpacing; break;
 			case "GrabMinSize"_hash: styleVar = ImGuiStyleVar_GrabMinSize; break;
+			default:
+				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				break;
 		}
 		ImGui::PushStyleVar(styleVar, val);
 	}
@@ -1352,6 +1553,9 @@ namespace ImGui { namespace Binding
 			case "ButtonTextAlign"_hash: style.ButtonTextAlign = var; break;
 			case "DisplayWindowPadding"_hash: style.DisplayWindowPadding = var; break;
 			case "DisplaySafeAreaPadding"_hash: style.DisplaySafeAreaPadding = var; break;
+			default:
+				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				break;
 		}
 	}
 
@@ -1371,6 +1575,9 @@ namespace ImGui { namespace Binding
 			case "GrabMinSize"_hash: style.GrabMinSize = var; break;
 			case "GrabRounding"_hash: style.GrabRounding = var; break;
 			case "CurveTessellationTol"_hash: style.CurveTessellationTol = var; break;
+			default:
+				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				break;
 		}
 	}
 
@@ -1381,6 +1588,9 @@ namespace ImGui { namespace Binding
 		{
 			case "AntiAliasedLines"_hash: style.AntiAliasedLines = var; break;
 			case "AntiAliasedFill"_hash: style.AntiAliasedFill = var; break;
+			default:
+				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				break;
 		}
 	}
 
@@ -1411,6 +1621,10 @@ namespace ImGui { namespace Binding
 			case "AlwaysVerticalScrollbar"_hash: return ImGuiWindowFlags_AlwaysVerticalScrollbar;
 			case "AlwaysHorizontalScrollbar"_hash: return ImGuiWindowFlags_AlwaysHorizontalScrollbar;
 			case "AlwaysUseWindowPadding"_hash: return ImGuiWindowFlags_AlwaysUseWindowPadding;
+			case ""_hash: return ImGuiWindowFlags_(0);
+			default:
+				AssertIf(true, "ImGui window flag name \"{}\" is invalid.", style);
+				break;
 		}
 		return ImGuiWindowFlags_(0);
 	}
@@ -1446,6 +1660,10 @@ namespace ImGui { namespace Binding
 			case "AlwaysInsertMode"_hash: return ImGuiInputTextFlags_AlwaysInsertMode;
 			case "ReadOnly"_hash: return ImGuiInputTextFlags_ReadOnly;
 			case "Password"_hash: return ImGuiInputTextFlags_Password;
+			case ""_hash: return ImGuiInputTextFlags_(0);
+			default:
+				AssertIf(true, "ImGui input text flag name \"{}\" is invalid.", flag);
+				break;
 		}
 		return ImGuiInputTextFlags_(0);
 	}
@@ -1465,6 +1683,10 @@ namespace ImGui { namespace Binding
 			case "Leaf"_hash: return ImGuiTreeNodeFlags_Leaf;
 			case "Bullet"_hash: return ImGuiTreeNodeFlags_Bullet;
 			case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
+			case ""_hash: return ImGuiTreeNodeFlags_(0);
+			default:
+				AssertIf(true, "ImGui tree node flag name \"{}\" is invalid.", flag);
+				break;
 		}
 		return ImGuiTreeNodeFlags_(0);
 	}
@@ -1476,6 +1698,10 @@ namespace ImGui { namespace Binding
 			case "DontClosePopups"_hash: return ImGuiSelectableFlags_DontClosePopups;
 			case "SpanAllColumns"_hash: return ImGuiSelectableFlags_SpanAllColumns;
 			case "AllowDoubleClick"_hash: return ImGuiSelectableFlags_AllowDoubleClick;
+			case ""_hash: return ImGuiSelectableFlags_(0);
+			default:
+				AssertIf(true, "ImGui selectable flag name \"{}\" is invalid.", flag);
+				break;
 		}
 		return ImGuiSelectableFlags_(0);
 	}
@@ -1524,6 +1750,9 @@ namespace ImGui { namespace Binding
 			case "PlotHistogramHovered"_hash: return ImGuiCol_PlotHistogramHovered;
 			case "TextSelectedBg"_hash: return ImGuiCol_TextSelectedBg;
 			case "ModalWindowDarkening"_hash: return ImGuiCol_ModalWindowDarkening;
+			default:
+				AssertIf(true, "ImGui color index name \"{}\" is invalid.", col);
+				break;
 		}
 		return ImGuiCol_(0);
 	}
@@ -1535,6 +1764,10 @@ namespace ImGui { namespace Binding
 			case "RGB"_hash: return ImGuiColorEditFlags_RGB;
 			case "HSV"_hash: return ImGuiColorEditFlags_HSV;
 			case "HEX"_hash: return ImGuiColorEditFlags_HEX;
+			case ""_hash: return ImGuiColorEditFlags_(0);
+			default:
+				AssertIf(true, "ImGui color edit flag name \"{}\" is invalid.", mode);
+				break;
 		}
 		return ImGuiColorEditFlags_(0);
 	}
@@ -1547,6 +1780,10 @@ namespace ImGui { namespace Binding
 			case "Once"_hash: return ImGuiCond_Once;
 			case "FirstUseEver"_hash: return ImGuiCond_FirstUseEver;
 			case "Appearing"_hash: return ImGuiCond_Appearing;
+			case ""_hash: return ImGuiCond_(0);
+			default:
+				AssertIf(true, "ImGui set cond name \"{}\" is invalid.", cond);
+				break;
 		}
 		return ImGuiCond_(0);
 	}

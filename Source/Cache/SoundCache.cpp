@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -52,7 +52,7 @@ SoundFile* SoundCache::load(String filename)
 		}
 		default:
 		{
-			Log("file named \"%s\" is not soundFile file.", filename);
+			Log("file named \"{}\" is not soundFile file.", filename);
 			return nullptr;
 		}
 	}
@@ -85,7 +85,7 @@ void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& ha
 		}
 		default:
 		{
-			Log("file named \"%s\" is not soundFile file.", filename);
+			Log("file named \"{}\" is not soundFile file.", filename);
 			handler(nullptr);
 			break;
 		}

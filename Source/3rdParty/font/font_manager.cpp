@@ -319,7 +319,7 @@ bool TrueTypeFont::bakeGlyphDistance(CodePoint _codePoint, GlyphInfo& _glyphInfo
 
 		uint32_t nw = ww + dw * 2;
 		uint32_t nh = hh + dh * 2;
-		AssertUnless(nw * nh < 128 * 128, "Buffer overflow (size %d)", nw * nh);
+		AssertUnless(nw * nh < 128 * 128, "Buffer overflow (size {})", nw * nh);
 
 		uint32_t buffSize = nw * nh * sizeof(uint8_t);
 
