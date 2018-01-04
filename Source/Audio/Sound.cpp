@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -25,7 +25,7 @@ SoundFile::SoundFile(OwnArray<Uint8>&& data)
 	SoLoud::result result = _wav.loadMem(data, s_cast<Uint32>(data.size()), false, false);
 	if (result)
 	{
-		Log("fail to load sound file due to reason: %s.", SharedAudio.getSoLoud().getErrorString(result));
+		Log("fail to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
 		return;
 	}
 }
@@ -41,7 +41,7 @@ bool SoundStream::init()
 	SoLoud::result result = _stream.loadMem(_data, s_cast<Uint32>(_data.size()), false, false);
 	if (result)
 	{
-		Log("fail to load sound file due to reason: %s.", SharedAudio.getSoLoud().getErrorString(result));
+		Log("fail to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
 		return false;
 	}
 	return true;
@@ -72,7 +72,7 @@ bool Audio::init()
 	SoLoud::result result = _soloud.init();
 	if (result)
 	{
-		Log("fail to init soloud engine deal to reason: %s.", _soloud.getErrorString(result));
+		Log("fail to init soloud engine deal to reason: {}.", _soloud.getErrorString(result));
 		return false;
 	}
 	return true;

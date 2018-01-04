@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -195,7 +195,7 @@ void ClipNode::visit()
 		if (once)
 		{
 			once = false;
-			Log("Nesting more than %d stencils is not supported. Everything will be drawn without stencil for this node and its childs.", 8);
+			Log("Nesting more than {} stencils is not supported. Everything will be drawn without stencil for this node and its childs.", 8);
 		}
 		Node::visit();
 		return;

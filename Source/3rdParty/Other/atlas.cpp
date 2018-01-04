@@ -256,8 +256,8 @@ Atlas::Atlas(uint16_t _textureSize, Type type, bool antiAlias, uint16_t _maxRegi
 	, m_maxRegionCount(_maxRegionsCount)
 	, m_type(type)
 {
-	AssertUnless(_textureSize >= 64 && _textureSize <= 4096, "Invalid _textureSize %d.", _textureSize);
-	AssertUnless(_maxRegionsCount >= 64 && _maxRegionsCount <= 32000, "Invalid _maxRegionsCount %d.", _maxRegionsCount);
+	AssertUnless(_textureSize >= 64 && _textureSize <= 4096, "Invalid _textureSize {}.", _textureSize);
+	AssertUnless(_maxRegionsCount >= 64 && _maxRegionsCount <= 32000, "Invalid _maxRegionsCount {}.", _maxRegionsCount);
 
 	init();
 

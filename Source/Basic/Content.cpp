@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -250,8 +250,8 @@ void Content::setSearchPaths(const vector<string>& searchPaths)
 void Content::copyFileUnsafe(String src, String dst)
 {
 	string srcPath = Content::getFullPath(src);
-	// Log("copy file from %s", srcPath);
-	// Log("copy file to %s", dst);
+	// Log("copy file from {}", srcPath);
+	// Log("copy file to {}", dst);
 	if (Content::isFolder(srcPath))
 	{
 		string dstPath = dst;
@@ -260,13 +260,13 @@ void Content::copyFileUnsafe(String src, String dst)
 		{
 			if (folder != "." && folder != "..")
 			{
-				// Log("now copy folder %s", folder);
+				// Log("now copy folder {}", folder);
 				string dstFolder = dstPath+'/'+folder;
 				if (!Content::isFileExist(dstFolder))
 				{
 					if (!Content::createFolder(dstFolder))
 					{
-						Log("Create folder failed! %s", dstFolder);
+						Log("Create folder failed! {}", dstFolder);
 					}
 				}
 				Content::copyFileUnsafe((srcPath+'/'+folder), dstFolder);
@@ -275,13 +275,13 @@ void Content::copyFileUnsafe(String src, String dst)
 		auto files = Content::getDirEntries(src, false);
 		for (const string& file : files)
 		{
-			// Log("now copy file %s",file);
+			// Log("now copy file {}",file);
 			ofstream stream((dstPath + '/' + file), std::ios::out | std::ios::trunc | std::ios::binary);
 			Content::loadFileByChunks((srcPath + '/' + file), [&](Uint8* buffer, int size)
 			{
 				if (!stream.write(r_cast<char*>(buffer), size))
 				{
-					Log("write file failed! %s", dstPath + '/' + file);
+					Log("write file failed! {}", dstPath + '/' + file);
 				}
 			});
 		}
@@ -293,7 +293,7 @@ void Content::copyFileUnsafe(String src, String dst)
 		{
 			if (!stream.write(r_cast<char*>(buffer), size))
 			{
-				Log("write file failed! %s", dst);
+				Log("write file failed! {}", dst);
 			}
 		});
 	}
@@ -423,7 +423,7 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 	}
 	else
 	{
-		Log("Content get entry error, %s, %s", strerror(errno), fullPath);
+		Log("Content get entry error, {}, {}", strerror(errno), fullPath);
 	}
 	return files;
 }
@@ -472,7 +472,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 	}
 	if (!data)
 	{
-		Log("fail to load file: %s", fullPath);
+		Log("fail to load file: {}", fullPath);
 	}
 	return data;
 }
@@ -618,7 +618,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Log("fail to load file: %s", filename);
+		Log("fail to load file: {}", filename);
 		return nullptr;
 	}
 	size = SDL_RWsize(io);
@@ -635,7 +635,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Log("fail to load file: %s", filename);
+		Log("fail to load file: {}", filename);
 		return;
 	}
 	Uint8 buffer[DORA_COPY_BUFFER_SIZE];

@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -27,7 +27,7 @@ typedef Delegate<void (Event* event)> EventHandler;
  {
  	Slice msg;
  	event->get(msg);
-	Log("Recieved Event with msg: %s", msg);
+	Log("Recieved Event with msg: {}", msg);
  });
 
  // Send event with all types of arguments, then the callback function will be invoked.

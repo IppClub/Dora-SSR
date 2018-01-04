@@ -324,6 +324,30 @@ Dictionary.__len = function(self)
 	return self.count
 end
 
+local Entity = builtin.Entity
+local Entity_index = Entity.__index
+local Entity_get = Entity.get
+Entity.__index = function(self,key)
+	local item = Entity_get(self,key)
+	if item ~= nil then return item end
+	return Entity_index(self,key)
+end
+
+local Entity_newindex = Entity.__newindex
+local Entity_set = Entity.set
+Entity.__newindex = function(self,key,value)
+	local vtype = type(value)
+	if vtype == "function" or vtype == "table" then
+		Entity_newindex(self,key,value)
+	else
+		Entity_set(self,key,value)
+	end
+end
+
+Entity.rawset = function(self,key,value)
+	Entity_set(self,key,value,true)
+end
+
 local function disallowAssignGlobal(_,name)
 	error("Disallow creating global variable \""..name.."\".")
 end

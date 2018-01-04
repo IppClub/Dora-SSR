@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -40,7 +40,7 @@ KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation()
 void ModelCache::Parser::getPosFromStr(String str, float& x, float& y)
 {
 	auto tokens = str.split(",");
-	AssertUnless(tokens.size() == 2, "invalid pos str for: \"%s\"", str);
+	AssertUnless(tokens.size() == 2, "invalid pos str for: \"{}\"", str);
 	auto it = tokens.begin();
 	x = Slice::stof(*it);
 	y = Slice::stof(*++it);

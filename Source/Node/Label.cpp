@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -169,7 +169,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 				fontFile = "Font/" + fontName.toString() + ".otf";
 				if (!SharedContent.isExist(fontFile))
 				{
-					Log("can not load font file named \"%s\".", fontName);
+					Log("can not load font file named \"{}\".", fontName);
 					return nullptr;
 				}
 			}
@@ -531,7 +531,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 			fontDef = SharedFontCache.getGlyphInfo(_font, '?');
 			if (!fontDef)
 			{
-				Log("attempted to use character not defined in this font: %d", ch);
+				Log("attempted to use character not defined in this font: {}", ch);
 				continue;
 			}
 		}

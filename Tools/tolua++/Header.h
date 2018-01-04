@@ -23,6 +23,26 @@ class Object
 	static tolua_readonly tolua_property__common Uint32 maxLuaCallbackCount @ maxCallRefCount;
 };
 
+class Entity : public Object
+{
+	tolua_readonly tolua_property__common int index;
+	void destroy();
+	static Entity* create();
+};
+
+class EntityGroup : public Object
+{
+	void each(tolua_function_bool func);
+	static Entity* create(String components[tolua_len]);	
+};
+
+class EntityObserver : public Object
+{
+	void clear();
+	void each(tolua_function_bool func);
+	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
+};
+
 class Content
 {
 	tolua_readonly tolua_property__common string assetPath;
@@ -361,19 +381,7 @@ struct BlendFunc
 	Uint32 dst;
 	BlendFunc(BlendFunc other);
 	~BlendFunc();
-	enum {
-		One,
-		Zero,
-		SrcColor,
-		SrcAlpha,
-		DstColor,
-		DstAlpha,
-		InvSrcColor,
-		InvSrcAlpha,
-		InvDstColor,
-		InvDstAlpha
-	};
-	static tolua_outside BlendFunc* BlendFunc_create @ create(Uint32 src, Uint32 dst);
+	static tolua_outside BlendFunc* BlendFunc_create @ create(String src, String dst);
 	static const BlendFunc Default;
 };
 
@@ -613,13 +621,17 @@ class World : public Node
 };
 
 class FixtureDef {};
-enum b2BodyType {};
 
-class BodyDef : public Object
+struct b2BodyType @ BodyType
 {
 	#define b2_staticBody @ Static
 	#define b2_dynamicBody @ Dynamic
 	#define b2_kinematicBody @ Kinematic
+};
+enum b2BodyType @ BodyType {};
+
+class BodyDef : public Object
+{
 	b2BodyType type;
 	float linearDamping;
 	float angularDamping;

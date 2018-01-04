@@ -28,17 +28,17 @@ local type = type
 	-- Inherit a C++ instance class
 	local MyClass = class({
 		__partial = function(self, args)
-			return CCNode()
+			return Node()
 		end,
 	})
 
 	-- or
 	local MyClass = class(function(args)
-		return CCNode()
+		return Node()
 	end,{ ... })
 
 	-- or
-	local MyClass = class(CCNode,{ ... })
+	local MyClass = class(Node,{ ... })
 
 4.To add class member function
 

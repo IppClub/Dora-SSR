@@ -32,6 +32,7 @@
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
+		3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5AE08A1FFC737100CB95EB /* Entity.cpp */; };
 		3C6176BA1E82D51F00A19A54 /* lpcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6176AF1E82D51F00A19A54 /* lpcap.cpp */; };
 		3C6176BB1E82D51F00A19A54 /* lpcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6176B11E82D51F00A19A54 /* lpcode.cpp */; };
 		3C6176BC1E82D51F00A19A54 /* lpprint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6176B31E82D51F00A19A54 /* lpprint.cpp */; };
@@ -251,6 +252,8 @@
 		3C57A39E1E0A05AD002141DF /* EventType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventType.h; path = ../../../Source/Event/EventType.h; sourceTree = "<group>"; };
 		3C57A39F1E0A05AD002141DF /* Listener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Listener.cpp; path = ../../../Source/Event/Listener.cpp; sourceTree = "<group>"; };
 		3C57A3A01E0A05AD002141DF /* Listener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Listener.h; path = ../../../Source/Event/Listener.h; sourceTree = "<group>"; };
+		3C5AE0871FFC737100CB95EB /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = ../../../Source/Entity/Entity.h; sourceTree = "<group>"; };
+		3C5AE08A1FFC737100CB95EB /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = ../../../Source/Entity/Entity.cpp; sourceTree = "<group>"; };
 		3C6176AF1E82D51F00A19A54 /* lpcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpcap.cpp; path = ../../../Source/3rdParty/lpeg/lpcap.cpp; sourceTree = "<group>"; };
 		3C6176B01E82D51F00A19A54 /* lpcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lpcap.h; path = ../../../Source/3rdParty/lpeg/lpcap.h; sourceTree = "<group>"; };
 		3C6176B11E82D51F00A19A54 /* lpcode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpcode.cpp; path = ../../../Source/3rdParty/lpeg/lpcode.cpp; sourceTree = "<group>"; };
@@ -701,6 +704,15 @@
 			name = Event;
 			sourceTree = "<group>";
 		};
+		3C5AE0851FFC735600CB95EB /* Entity */ = {
+			isa = PBXGroup;
+			children = (
+				3C5AE08A1FFC737100CB95EB /* Entity.cpp */,
+				3C5AE0871FFC737100CB95EB /* Entity.h */,
+			);
+			name = Entity;
+			sourceTree = "<group>";
+		};
 		3C61768D1E82CDD700A19A54 /* lpeg */ = {
 			isa = PBXGroup;
 			children = (
@@ -964,6 +976,7 @@
 				3C9ADE4F1E00F14E00D42018 /* Common */,
 				3C9ADE4D1E00F13500D42018 /* Const */,
 				3C69296F1E2C60890097AC49 /* Effect */,
+				3C5AE0851FFC735600CB95EB /* Entity */,
 				3C57A39A1E0A059A002141DF /* Event */,
 				3CD3282E1E4B0B3C0036906C /* GUI */,
 				3C05BCA11E35948200CC6986 /* Input */,
@@ -1400,6 +1413,7 @@
 				3C6176BB1E82D51F00A19A54 /* lpcode.cpp in Sources */,
 				3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */,
 				3CEA71B41ECB8ECA00EFFD63 /* Keyboard.cpp in Sources */,
+				3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */,
 				3CE9D77B1E7FB842003AAECB /* b2Island.cpp in Sources */,
 				3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */,
 				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,
