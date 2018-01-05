@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Dorothy.h"
 #include "Lua/ToLua/tolua++.h"
 #include "LuaManual.h"
+#include "Lua/LuaEngine.h"
 
 NS_DOROTHY_BEGIN
 
@@ -852,35 +853,11 @@ int Dictionary_get(lua_State* L)
 #endif
 		Slice key = tolua_toslice(L, 2, nullptr);
 		Object* value = self->get(key);
-		if (value)
-		{
-			auto numberVal = DoraCast<ValueEx<lua_Number>>(value);
-			if (numberVal)
-			{
-				lua_pushnumber(L, numberVal->get());
-				return 1;
-			}
-			auto boolVal = DoraCast<ValueEx<bool>>(value);
-			if (boolVal)
-			{
-				lua_pushboolean(L, boolVal->get() ? 1 : 0);
-				return 1;
-			}
-			auto stringVal = DoraCast<ValueEx<string>>(value);
-			if (stringVal)
-			{
-				tolua_pushslice(L, stringVal->get());
-				return 1;
-			}
-			tolua_pushobject(L, value);
-			return 1;
-		}
-		else
-		{
-			lua_pushnil(L);
-			return 1;
-		}
-    }
+		Value* valueItem = dynamic_cast<Value*>(value);
+		if (valueItem) valueItem->pushToLua();
+		else tolua_pushobject(L, value);
+		return 1;
+	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'Dictionary_get'.", &tolua_err);
@@ -920,7 +897,19 @@ int Dictionary_set(lua_State* L)
 			}
 			else if (tolua_isobject(L, 3))
 			{
-				object = s_cast<Object*>(tolua_tousertype(L, 3, 0));
+				object = r_cast<Object*>(tolua_tousertype(L, 3, 0));
+			}
+			else if (tolua_istype(L, 3, "Vec2"))
+			{
+				object = Value::create(*r_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
+			}
+			else if (tolua_istype(L, 3, "Size"))
+			{
+				object = Value::create(*r_cast<Size*>(tolua_tousertype(L, 3, 0)));
+			}
+			else if (tolua_istype(L, 3, "Rect"))
+			{
+				object = Value::create(*r_cast<Rect*>(tolua_tousertype(L, 3, 0)));
 			}
 #ifndef TOLUA_RELEASE
 			else
@@ -1054,54 +1043,8 @@ int Entity_get(lua_State* L)
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
 		Value* value = self->getComponent(name);
-		if (value->as<double>())
-		{
-			lua_pushnumber(L, value->to<double>());
-		}
-		else if (value->as<bool>())
-		{
-			lua_pushboolean(L, value->to<bool>() ? 1 : 0);
-		}
-		else if (value->as<string>())
-		{
-			const string& str = value->to<string>();
-			lua_pushlstring(L, str.c_str(), str.size());
-		}
-		else if (value->as<Ref<>>())
-		{
-			tolua_pushobject(L, value->to<Ref<>>());
-		}
-		else if (value->as<float>())
-		{
-			lua_pushnumber(L, value->to<float>());
-		}
-		else if (value->as<int>())
-		{
-			lua_pushinteger(L, value->to<int>());
-		}
-		else if (value->as<Uint32>())
-		{
-			lua_pushinteger(L, value->to<Uint32>());
-		}
-		else if (value->as<Vec2>())
-		{
-			void* obj = Mtolua_new((Vec2)(value->to<Vec2>()));
-			tolua_pushusertype(L, obj, LuaType<Vec2>());
-		}
-		else if (value->as<Size>())
-		{
-			void* obj = Mtolua_new((Size)(value->to<Size>()));
-			tolua_pushusertype(L, obj, LuaType<Size>());
-		}
-		else if (value->as<Rect>())
-		{
-			void* obj = Mtolua_new((Rect)(value->to<Rect>()));
-			tolua_pushusertype(L, obj, LuaType<Rect>());
-		}
-		else
-		{
-			lua_pushnil(L);
-		}
+		if (value) value->pushToLua();
+		else lua_pushnil(L);
 		return 1;
     }
 #ifndef TOLUA_RELEASE
@@ -1188,6 +1131,7 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 		case "Add"_hash: optionVal = Entity::Add; break;
 		case "Change"_hash: optionVal = Entity::Change; break;
 		case "Remove"_hash: optionVal = Entity::Remove; break;
+		case "AddOrChange"_hash: optionVal = Entity::AddOrChange; break;
 		default:
 			AssertIf(true, "EntityObserver option name \"{}\" is invalid.", option);
 			break;

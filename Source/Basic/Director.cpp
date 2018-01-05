@@ -26,9 +26,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Director::Director():
-_scheduler(Scheduler::create()),
 _systemScheduler(Scheduler::create()),
+_scheduler(Scheduler::create()),
 _postScheduler(Scheduler::create()),
+_postSystemScheduler(Scheduler::create()),
 _entryStack(Array::create()),
 _camera(Camera2D::create("Default"_slice)),
 _clearColor(0xff1a1a1a),
@@ -120,6 +121,11 @@ Scheduler* Director::getPostScheduler() const
 	return _postScheduler;
 }
 
+Scheduler* Director::getPostSystemScheduler() const
+{
+	return _postSystemScheduler;
+}
+
 double Director::getDeltaTime() const
 {
 	// only accept frames drop to min FPS
@@ -206,6 +212,8 @@ void Director::mainLoop()
 		_postScheduler->update(getDeltaTime());
 		SharedKeyboard.update();
 		SharedImGui.end();
+
+		_postSystemScheduler->update(getDeltaTime());
 
 		/* handle ImGui touch */
 		SharedTouchDispatcher.add(SharedImGui.getTarget());

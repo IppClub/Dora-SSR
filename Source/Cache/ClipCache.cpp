@@ -65,10 +65,9 @@ Sprite* ClipCache::loadSprite(String clipStr)
 	return nullptr;
 }
 
-ValueEx<Own<XmlParser<ClipDef>>>* ClipCache::prepareParser(String filename)
+std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename)
 {
-	Own<XmlParser<ClipDef>> parser(new Parser(ClipDef::create(), filename.getFilePath()));
-	return ValueEx<Own<XmlParser<ClipDef>>>::create(std::move(parser));
+	return std::shared_ptr<XmlParser<ClipDef>>(new Parser(ClipDef::create(), filename.getFilePath()));
 }
 
 void ClipCache::Parser::xmlSAX2Text(const char *s, size_t len)

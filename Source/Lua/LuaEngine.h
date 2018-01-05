@@ -9,8 +9,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Lua/ToLua/tolua++.h"
+#include "Common/Ref.h"
 
 NS_DOROTHY_BEGIN
+
+class Value;
 
 class LuaEngine
 {
@@ -31,7 +34,9 @@ public:
 	void push(int value);
 	void push(float value);
 	void push(double value);
+	void push(Value* value);
 	void push(Object* value);
+	void push(Ref<> value);
 	void push(String value);
 	void push(std::nullptr_t);
 
@@ -54,7 +59,11 @@ public:
 	bool to(Slice& value, int index);
 
 	template<typename T>
-	bool to(T&, int) { return false; }
+	typename std::enable_if<std::is_base_of<Object, T>::value, bool>::type to(T*& t, int index)
+	{
+		t = dynamic_cast<T*>(r_cast<Object*>(tolua_tousertype(L, index, nullptr)));
+		return false;
+	}
 
 	bool executeAssert(bool cond, String condStr);
 	bool scriptHandlerEqual(int handlerA, int handlerB);

@@ -46,7 +46,7 @@ public:
 	Sprite* loadSprite(String clipStr);
 protected:
 	ClipCache() { }
-	virtual ValueEx<Own<XmlParser<ClipDef>>>* prepareParser(String filename) override;
+	virtual std::shared_ptr<XmlParser<ClipDef>> prepareParser(String filename) override;
 private:
 	class Parser : public XmlParser<ClipDef>, public rapidxml::xml_sax2_handler
 	{

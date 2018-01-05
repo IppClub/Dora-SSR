@@ -22,7 +22,7 @@ class ParticleCache : public XmlItemCache<ParticleDef>
 {
 protected:
 	ParticleCache() { }
-	virtual ValueEx<Own<XmlParser<ParticleDef>>>* prepareParser(String filename) override;
+	virtual std::shared_ptr<XmlParser<ParticleDef>> prepareParser(String filename) override;
 private:
 	class Parser : public XmlParser<ParticleDef>, public rapidxml::xml_sax2_handler
 	{

@@ -38,7 +38,9 @@ end
 
 local function loop(work)
 	return wrap(function()
-		repeat yield(false) until work() == true
+		while work() ~= true do
+			yield(false)
+		end
 		return true
 	end)
 end

@@ -33,7 +33,7 @@ class FrameCache : public XmlItemCache<FrameActionDef>
 {
 protected:
 	FrameCache() { }
-	virtual ValueEx<Own<XmlParser<FrameActionDef>>>* prepareParser(String filename) override;
+	virtual std::shared_ptr<XmlParser<FrameActionDef>> prepareParser(String filename) override;
 private:
 	class Parser : public XmlParser<FrameActionDef>, public rapidxml::xml_sax2_handler
 	{

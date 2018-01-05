@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaBinding.h"
 #include "Lua/LuaManual.h"
 #include "Lua/LuaFromXml.h"
+#include "Support/Value.h"
 
 extern int luaopen_lpeg(lua_State* L);
 
@@ -356,7 +357,24 @@ void LuaEngine::push(double value)
 	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
 
+void LuaEngine::push(Value* value)
+{
+	if (value)
+	{
+		value->pushToLua();
+	}
+	else
+	{
+		lua_pushnil(L);
+	}
+}
+
 void LuaEngine::push(Object* value)
+{
+	tolua_pushobject(L, value);
+}
+
+void LuaEngine::push(Ref<> value)
 {
 	tolua_pushobject(L, value);
 }

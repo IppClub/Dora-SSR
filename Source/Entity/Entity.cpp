@@ -8,6 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Entity/Entity.h"
+#include "Basic/Director.h"
+#include "Basic/Scheduler.h"
+#include "Support/Dictionary.h"
 
 NS_DOROTHY_BEGIN
 
@@ -28,10 +31,26 @@ struct HandlerItem
 class EntityPool
 {
 public:
+	EntityPool()
+	{
+		SharedDirector.getPostSystemScheduler()->schedule([this](double deltaTime)
+		{
+			DORA_UNUSED_PARAM(deltaTime);
+			for (Entity* entity : updatedEntities)
+			{
+				if (entity)
+				{
+					entity->clearValueCache();
+				}
+			}
+			return false;
+		});
+	}
 	virtual ~EntityPool() { }
 	stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
 	unordered_set<int> usedIndices;
+	unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
 	unordered_map<string, HandlerItem> addHandlers;
 	unordered_map<string, HandlerItem> changeHandlers;
 	unordered_map<string, HandlerItem> removeHandlers;
@@ -65,13 +84,15 @@ public:
 		}
 		return *it->second.handler;
 	}
-	SINGLETON_REF(EntityPool, ObjectBase);
+	SINGLETON_REF(EntityPool, Director);
 };
 
 #define SharedEntityPool \
 	Singleton<EntityPool>::shared()
 
-Entity::Entity(int index):_index(index)
+Entity::Entity(int index):
+_index(index),
+_valueCache(Dictionary::create())
 { }
 
 Entity::~Entity()
@@ -85,6 +106,11 @@ bool Entity::init()
 int Entity::getIndex() const
 {
 	return _index;
+}
+
+Dictionary* Entity::getValueCache() const
+{
+	return _valueCache;
 }
 
 void Entity::destroy()
@@ -110,11 +136,15 @@ bool Entity::has(String name) const
 
 void Entity::remove(String name)
 {
+	auto it = _components.find(name);
+	AssertIf(it == _components.end(), "removing non-exist component \"{}\"", name);
 	auto& removeHandlers = SharedEntityPool.removeHandlers;
-	auto it = removeHandlers.find(name);
-	if (it != removeHandlers.end())
+	auto handlerIt = removeHandlers.find(name);
+	if (handlerIt != removeHandlers.end())
 	{
-		(*it->second.handler)(this);
+		_valueCache->set(name, it->second->clone());
+		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		(*handlerIt->second.handler)(this);
 	}
 	_components.erase(name);
 }
@@ -152,10 +182,10 @@ void Entity::clear()
 	SharedEntityPool.usedIndices.clear();
 }
 
-void Entity::addComponent(String name, Value* value)
+void Entity::updateComponent(String name, Value* value, bool add)
 {
 	unordered_map<string, HandlerItem>* handlers;
-	if (value)
+	if (add)
 	{
 		_components[name] = value;
 		handlers = &SharedEntityPool.addHandlers;
@@ -167,6 +197,18 @@ void Entity::addComponent(String name, Value* value)
 	auto it = handlers->find(name);
 	if (it != handlers->end())
 	{
+		if (add)
+		{
+			_valueCache->set(name, nullptr);
+		}
+		else
+		{
+			if (!_valueCache->get(name))
+			{
+				_valueCache->set(name, value->clone());
+			}
+		}
+		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		(*it->second.handler)(this);
 	}
 }
@@ -179,6 +221,11 @@ Value* Entity::getComponent(String name) const
 		return it->second;
 	}
 	return nullptr;
+}
+
+void Entity::clearValueCache()
+{
+	_valueCache->clear();
 }
 
 Entity* Entity::create()
@@ -216,11 +263,11 @@ void Entity::set(String name, Object* value, bool rawFlag)
 		auto content = valueItem->as<Ref<>>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
 		content->set(MakeRef(value));
-		addComponent(name, nullptr);
+		updateComponent(name, content, false);
 	}
 	else
 	{
-		addComponent(name, Value::create(value));
+		updateComponent(name, Value::create(value), true);
 	}
 }
 
@@ -332,6 +379,10 @@ EntityObserver::~EntityObserver()
 			case Entity::Change:
 				SharedEntityPool.getChangeHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
 				break;
+			case Entity::AddOrChange:
+				SharedEntityPool.getAddHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getChangeHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
+				break;
 			case Entity::Remove:
 				SharedEntityPool.getRemoveHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
 				break;
@@ -351,17 +402,27 @@ bool EntityObserver::init()
 			case Entity::Change:
 				SharedEntityPool.getChangeHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
 				break;
+			case Entity::AddOrChange:
+				SharedEntityPool.getAddHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getChangeHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
+				break;
 			case Entity::Remove:
 				SharedEntityPool.getRemoveHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
 				break;
 		}
 	}
+	WRef<EntityObserver> self(this);
+	SharedDirector.getPostSystemScheduler()->schedule([self](double deltaTime)
+	{
+		DORA_UNUSED_PARAM(deltaTime);
+		if (self)
+		{
+			self->_entities.clear();
+			return false;
+		}
+		return true;
+	});
 	return true;
-}
-
-void EntityObserver::clear()
-{
-	_entities.clear();
 }
 
 void EntityObserver::onEvent(Entity* entity)
@@ -377,7 +438,7 @@ void EntityObserver::onEvent(Entity* entity)
 	}
 	if (match)
 	{
-		_entities.push_back(MakeWRef(entity));
+		_entities.insert(MakeWRef(entity));
 	}
 }
 
