@@ -15,10 +15,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-ValueEx<Own<XmlParser<FrameActionDef>>>* FrameCache::prepareParser(String filename)
+std::shared_ptr<XmlParser<FrameActionDef>> FrameCache::prepareParser(String filename)
 {
-	Own<XmlParser<FrameActionDef>> parser(new Parser(FrameActionDef::create(), filename.getFilePath()));
-	return ValueEx<Own<XmlParser<FrameActionDef>>>::create(std::move(parser));
+	return std::shared_ptr<XmlParser<FrameActionDef>>(new Parser(FrameActionDef::create(), filename.getFilePath()));
 }
 
 void FrameCache::Parser::xmlSAX2Text(const char* s, size_t len)

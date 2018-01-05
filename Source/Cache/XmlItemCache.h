@@ -58,7 +58,7 @@ public:
 			auto data = SharedContent.loadFile(file);
 			if (data)
 			{
-				auto& parser = prepareParser(file)->get();
+				auto parser = prepareParser(file);
 				T* result = nullptr;
 				try
 				{
@@ -90,15 +90,15 @@ public:
 			{
 				if (data)
 				{
-					auto parser = MakeRef(prepareParser(file));
+					auto parser = prepareParser(file);
 					SharedAsyncThread.Loader.run([this, file, parser, data, size]()
 					{
 						OwnArray<Uint8> dataOwner(data, s_cast<size_t>(size));
 						Ref<T> result;
 						try
 						{
-							parser->get()->parse(r_cast<char*>(data), s_cast<int>(size));
-							result = parser->get()->getItem();
+							parser->parse(r_cast<char*>(data), s_cast<int>(size));
+							result = parser->getItem();
 						}
 						catch (rapidxml::parse_error error)
 						{
@@ -125,7 +125,7 @@ public:
 		string file = SharedContent.getFullPath(name);
 		string data(content);
 		T* result = nullptr;
-		auto& parser = prepareParser(name)->get();
+		auto parser = prepareParser(name);
 		try
 		{
 			parser->parse(c_cast<char*>(data.c_str()), s_cast<int>(content.size()));
@@ -182,7 +182,7 @@ protected:
 	unordered_map<string,Ref<T>> _dict;
 private:
 	/** Implement it to get prepare for specific xml parse. */
-	virtual ValueEx<Own<XmlParser<T>>>* prepareParser(String filename) = 0;
+	virtual std::shared_ptr<XmlParser<T>> prepareParser(String filename) = 0;
 };
 
 NS_DOROTHY_END

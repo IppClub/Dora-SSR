@@ -26,8 +26,10 @@ class Object
 class Entity : public Object
 {
 	tolua_readonly tolua_property__common int index;
+	tolua_readonly tolua_property__common Dictionary* valueCache;
 	void destroy();
 	static void clear();
+	static void each(tolua_function_bool func);
 	static Entity* create();
 };
 
@@ -39,7 +41,6 @@ class EntityGroup : public Object
 
 class EntityObserver : public Object
 {
-	void clear();
 	void each(tolua_function_bool func);
 	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
 };

@@ -4,6 +4,8 @@
 
 NS_DOROTHY_BEGIN
 
+class Dictionary;
+
 class Entity : public Object
 {
 public:
@@ -11,12 +13,14 @@ public:
 	{
 		Add,
 		Change,
+		AddOrChange,
 		Remove
 	};
 	Entity(int index);
 	virtual ~Entity();
 	virtual bool init() override;
 	PROPERTY_READONLY(int, Index);
+	PROPERTY_READONLY(Dictionary*, ValueCache);
 	void destroy();
 	bool has(String name) const;
 	void remove(String name);
@@ -24,6 +28,7 @@ public:
 	static bool each(const function<bool(Entity*)>& func);
 	static void clear();
 	Value* getComponent(String name) const;
+	void clearValueCache();
 public:
 	template<typename T>
 	void set(String name, const T& value, bool rawFlag = false);
@@ -35,11 +40,21 @@ public:
 	template<typename T>
 	typename std::enable_if<std::is_same<Object, T>::value>::type* get(String name) const;
 protected:
-	void addComponent(String name, Value* value);
+	void updateComponent(String name, Value* value, bool add);
 private:
 	int _index;
 	unordered_map<string, Ref<Value>> _components;
+	Ref<Dictionary> _valueCache;
 	DORA_TYPE_OVERRIDE(Entity);
+};
+
+struct WRefEntityHasher
+{
+	std::hash<Entity*> hash;
+	inline size_t operator () (const WRef<Entity>& entity) const
+	{
+		return hash(entity.get());
+	}
 };
 
 class EntityGroup : public Object
@@ -57,14 +72,6 @@ public:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
 private:
-	struct WRefEntityHasher
-	{
-		std::hash<Entity*> hash;
-		inline size_t operator () (const WRef<Entity>& entity) const
-		{
-			return hash(entity.get());
-		}
-	};
 	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	vector<string> _components;
 	DORA_TYPE_OVERRIDE(EntityGroup);
@@ -77,7 +84,6 @@ public:
 	EntityObserver(int option, Slice components[], int count);
 	virtual ~EntityObserver();
 	virtual bool init() override;
-	void clear();
 	CREATE_FUNC(EntityObserver);
 public:
 	template<typename Func>
@@ -86,7 +92,7 @@ public:
 	void onEvent(Entity* entity);
 private:
 	int _option;
-	vector<WRef<Entity>> _entities;
+	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	vector<string> _components;
 	DORA_TYPE_OVERRIDE(EntityObserver);
 };
@@ -109,11 +115,11 @@ void Entity::set(String name, const T& value, bool rawFlag)
 		auto content = valueItem->as<T>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
 		content->set(value);
-		addComponent(name, nullptr);
+		updateComponent(name, content, false);
 	}
 	else
 	{
-		addComponent(name, Value::create(value));
+		updateComponent(name, Value::create(value), true);
 	}
 }
 
@@ -136,7 +142,8 @@ typename std::enable_if<std::is_same<Object, T>::value>::type* Entity::get(Strin
 template<typename Func>
 bool EntityGroup::each(const Func& func)
 {
-	for (Entity* entity : _entities)
+	decltype(_entities) entities = _entities;
+	for (Entity* entity : entities)
 	{
 		if (entity && func(entity)) return true;
 	}
@@ -146,7 +153,8 @@ bool EntityGroup::each(const Func& func)
 template<typename Func>
 bool EntityObserver::each(const Func& func)
 {
-	for (Entity* entity : _entities)
+	decltype(_entities) entities = _entities;
+	for (Entity* entity : entities)
 	{
 		if (entity && func(entity)) return true;
 	}

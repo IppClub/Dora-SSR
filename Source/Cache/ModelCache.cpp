@@ -15,10 +15,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-ValueEx<Own<XmlParser<ModelDef>>>* ModelCache::prepareParser(String filename)
+std::shared_ptr<XmlParser<ModelDef>> ModelCache::prepareParser(String filename)
 {
-	Own<XmlParser<ModelDef>> parser(new Parser(ModelDef::create(), filename.getFilePath()));
-	return ValueEx<Own<XmlParser<ModelDef>>>::create(std::move(parser));
+	return std::shared_ptr<XmlParser<ModelDef>>(new Parser(ModelDef::create(), filename.getFilePath()));
 }
 
 ModelCache::Parser::Parser(ModelDef* def, String path):

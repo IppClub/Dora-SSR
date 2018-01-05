@@ -15,10 +15,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-ValueEx<Own<XmlParser<ParticleDef>>>* ParticleCache::prepareParser(String filename)
+std::shared_ptr<XmlParser<ParticleDef>> ParticleCache::prepareParser(String filename)
 {
-	Own<XmlParser<ParticleDef>> parser(new Parser(ParticleDef::create()));
-	return ValueEx<Own<XmlParser<ParticleDef>>>::create(std::move(parser));
+	return std::shared_ptr<XmlParser<ParticleDef>>(new Parser(ParticleDef::create()));
 }
 
 void ParticleCache::Parser::xmlSAX2Text(const char *s, size_t len)

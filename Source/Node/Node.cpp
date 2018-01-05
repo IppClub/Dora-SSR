@@ -513,6 +513,7 @@ Node* Node::addTo(Node* parent)
 
 void Node::removeChild(Node* child, bool cleanup)
 {
+	AssertIf(child == nullptr, "remove invalid child from node.");
 	if (!_children)
 	{
 		return;

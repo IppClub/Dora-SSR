@@ -24,7 +24,7 @@ class ModelCache : public XmlItemCache<ModelDef>
 {
 protected:
 	ModelCache() { }
-	virtual ValueEx<Own<XmlParser<ModelDef>>>* prepareParser(String filename) override;
+	virtual std::shared_ptr<XmlParser<ModelDef>> prepareParser(String filename) override;
 private:
 	class Parser : public XmlParser<ModelDef>, public rapidxml::xml_sax2_handler
 	{

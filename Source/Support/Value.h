@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Support/Geometry.h"
+#include "Lua/LuaEngine.h"
 
 NS_DOROTHY_BEGIN
 
@@ -23,6 +24,9 @@ public:
 
 	template <class T>
 	ValueEx<T>* as();
+
+	virtual Value* clone() const = 0;
+	virtual void pushToLua() const = 0;
 
 	static Value* create(Object* value);
 
@@ -40,10 +44,22 @@ public:
 	{
 		_value = value;
 	}
+
 	inline T& get()
 	{
 		return _value;
 	}
+
+	virtual Value* clone() const override
+	{
+		return ValueEx<T>::create(_value);
+	}
+
+	virtual void pushToLua() const override
+	{
+		SharedLueEngine.push(_value);
+	}
+
 	CREATE_FUNC(ValueEx<T>);
 protected:
 	ValueEx(const T& value):
