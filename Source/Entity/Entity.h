@@ -22,6 +22,7 @@ public:
 	void remove(String name);
 	static Entity* create();
 	static bool each(const function<bool(Entity*)>& func);
+	static void clear();
 	Value* getComponent(String name) const;
 public:
 	template<typename T>
@@ -56,7 +57,15 @@ public:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
 private:
-	unordered_set<Entity*> _entities;
+	struct WRefEntityHasher
+	{
+		std::hash<Entity*> hash;
+		inline size_t operator () (const WRef<Entity>& entity) const
+		{
+			return hash(entity.get());
+		}
+	};
+	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	vector<string> _components;
 	DORA_TYPE_OVERRIDE(EntityGroup);
 };
@@ -77,7 +86,7 @@ public:
 	void onEvent(Entity* entity);
 private:
 	int _option;
-	vector<Entity*> _entities;
+	vector<WRef<Entity>> _entities;
 	vector<string> _components;
 	DORA_TYPE_OVERRIDE(EntityObserver);
 };
@@ -129,7 +138,7 @@ bool EntityGroup::each(const Func& func)
 {
 	for (Entity* entity : _entities)
 	{
-		if (func(entity)) return true;
+		if (entity && func(entity)) return true;
 	}
 	return false;
 }
@@ -139,7 +148,7 @@ bool EntityObserver::each(const Func& func)
 {
 	for (Entity* entity : _entities)
 	{
-		if (func(entity)) return true;
+		if (entity && func(entity)) return true;
 	}
 	return false;
 }

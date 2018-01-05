@@ -40,7 +40,7 @@ public:
 		auto it = addHandlers.find(name);
 		if (it == addHandlers.end())
 		{
-			auto result = addHandlers.emplace(name, std::move(HandlerItem()));
+			auto result = addHandlers.emplace(name, HandlerItem());
 			it = result.first;
 		}
 		return *it->second.handler;
@@ -50,7 +50,7 @@ public:
 		auto it = changeHandlers.find(name);
 		if (it == changeHandlers.end())
 		{
-			auto result = changeHandlers.emplace(name, std::move(HandlerItem()));
+			auto result = changeHandlers.emplace(name, HandlerItem());
 			it = result.first;
 		}
 		return *it->second.handler;
@@ -60,7 +60,7 @@ public:
 		auto it = removeHandlers.find(name);
 		if (it == removeHandlers.end())
 		{
-			auto result = removeHandlers.emplace(name, std::move(HandlerItem()));
+			auto result = removeHandlers.emplace(name, HandlerItem());
 			it = result.first;
 		}
 		return *it->second.handler;
@@ -122,15 +122,34 @@ void Entity::remove(String name)
 bool Entity::each(const function<bool(Entity*)>& func)
 {
 	auto& usedIndices = SharedEntityPool.usedIndices;
-	auto& entities = SharedEntityPool.entities;
+	auto& allEntities = SharedEntityPool.entities;
+	WRefVector<Entity> entities;
+	entities.reserve(usedIndices.size());
 	for (auto index : usedIndices)
 	{
-		if (func(entities[index]))
+		entities.push_back(allEntities[index]);
+	}
+	for (Entity* entity : entities)
+	{
+		if (entity && func(entity))
 		{
 			return true;
 		}
 	}
 	return false;
+}
+
+void Entity::clear()
+{
+	each([](Entity* entity)
+	{
+		entity->destroy();
+		return false;
+	});
+	stack<Ref<Entity>> empty;
+	SharedEntityPool.availableEntities.swap(empty);
+	SharedEntityPool.entities.clear();
+	SharedEntityPool.usedIndices.clear();
 }
 
 void Entity::addComponent(String name, Value* value)
@@ -175,6 +194,7 @@ Entity* Entity::create()
 		return entity;
 	}
 	Entity* entity = new Entity(s_cast<int>(entities.size()));
+	entity->autorelease();
 	entities.push_back(entity);
 	usedIndices.insert(entity->getIndex());
 	return entity;
@@ -246,7 +266,7 @@ bool EntityGroup::init()
 		}
 		if (match)
 		{
-			_entities.insert(entity);
+			_entities.insert(MakeWRef(entity));
 		}
 		return false;
 	});
@@ -271,13 +291,13 @@ void EntityGroup::onAdd(Entity* entity)
 	}
 	if (match)
 	{
-		_entities.insert(entity);
+		_entities.insert(MakeWRef(entity));
 	}
 }
 
 void EntityGroup::onRemove(Entity* entity)
 {
-	_entities.erase(entity);
+	_entities.erase(MakeWRef(entity));
 }
 
 EntityObserver::EntityObserver(int option, const vector<string>& components):
@@ -357,7 +377,7 @@ void EntityObserver::onEvent(Entity* entity)
 	}
 	if (match)
 	{
-		_entities.push_back(entity);
+		_entities.push_back(MakeWRef(entity));
 	}
 }
 
