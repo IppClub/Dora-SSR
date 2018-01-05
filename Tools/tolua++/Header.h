@@ -27,6 +27,7 @@ class Entity : public Object
 {
 	tolua_readonly tolua_property__common int index;
 	void destroy();
+	static void clear();
 	static Entity* create();
 };
 

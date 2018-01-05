@@ -145,6 +145,14 @@ doClean = ->
 
 isInEntry = true
 
+clearCache = ->
+	for module in *moduleCache
+		package.loaded[module] = nil
+	moduleCache = {}
+	Cache\unload!
+	Entity\clear!
+	Director.ui = nil
+
 showStats = true
 showLog = true
 showFooter = true
@@ -182,11 +190,7 @@ threadLoop ->
 			if Button "Back To Entry", Vec2(150,30)
 				Director\popToRootEntry!
 				isInEntry = true
-				for module in *moduleCache
-					package.loaded[module] = nil
-				moduleCache = {}
-				Cache\unload!
-				Director.ui = nil
+				clearCache!
 		if showStats
 			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
 			ShowStats!
@@ -227,11 +231,7 @@ Director\pushEntry with Node!
 						msg = debug.traceback msg
 						print msg
 						isInEntry = true
-						for module in *moduleCache
-							package.loaded[module] = nil
-						moduleCache = {}
-						Cache\unload!
-						Director.ui = nil
+						clearCache!
 				NextColumn!
 			Columns 1, false
 			TextColored Color(0xff00ffff), "Tests"
@@ -250,11 +250,7 @@ Director\pushEntry with Node!
 						msg = debug.traceback msg
 						print msg
 						isInEntry = true
-						for module in *moduleCache
-							package.loaded[module] = nil
-						moduleCache = {}
-						Cache\unload!
-						Director.ui = nil
+						clearCache!
 				NextColumn!
 		End!
 		PopStyleColor!
