@@ -42,7 +42,9 @@ threadLoop ->
 	renderSystem\each (entity)->
 		{:position, :direction, :sprite} = entity
 		sprite.position = position
-		sprite.angle = direction
+		lastDirection = entity.valueCache.direction or sprite.angle
+		if math.abs(direction - lastDirection) > 1
+			sprite\runAction Roll 0.3, lastDirection, direction
 
 	isStoped
 
@@ -79,8 +81,9 @@ addSceneSystem\each (entity)-> entity.scene\schedule ->
 					.direction = math.random 0,360
 					.speed = math.random 1,20
 			if Button "Destroy An Entity"
-				positionGroup\each (entity)->
-					entity\destroy!
+				EntityGroup({"sprite","position"})\each (entity)->
+					entity.position = nil
+					entity.sprite\runAction Sequence Scale(0.5, 1, 0, Ease.InBack), Call -> entity\destroy!
 					true
 		EndChild!
 	End!

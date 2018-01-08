@@ -635,6 +635,14 @@ namespace LuaAction
 							}
 							return PropertyAction::alloc(duration, start, stop, prop, ease);
 						}
+						case "Roll"_hash:
+						{
+							float duration = toNumber(L, location, 2);
+							float start = toNumber(L, location, 3);
+							float stop = toNumber(L, location, 4);
+							Ease::Enum ease = s_cast<Ease::Enum>(s_cast<int>(toNumber(L, location, 5, true)));
+							return Roll::alloc(duration, start, stop, ease);
+						}
 						case "Hide"_hash: return Hide::alloc();
 						case "Show"_hash: return Show::alloc();
 						case "Delay"_hash:

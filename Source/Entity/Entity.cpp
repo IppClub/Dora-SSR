@@ -197,17 +197,7 @@ void Entity::updateComponent(String name, Value* value, bool add)
 	auto it = handlers->find(name);
 	if (it != handlers->end())
 	{
-		if (add)
-		{
-			_valueCache->set(name, nullptr);
-		}
-		else
-		{
-			if (!_valueCache->get(name))
-			{
-				_valueCache->set(name, value->clone());
-			}
-		}
+		_valueCache->set(name, add ? nullptr : value->clone());
 		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		(*it->second.handler)(this);
 	}
@@ -238,6 +228,7 @@ Entity* Entity::create()
 		Ref<Entity> entity = availableEntities.top();
 		availableEntities.pop();
 		entities[entity->getIndex()] = entity;
+		usedIndices.insert(entity->getIndex());
 		return entity;
 	}
 	Entity* entity = new Entity(s_cast<int>(entities.size()));

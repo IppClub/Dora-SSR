@@ -114,8 +114,8 @@ void Entity::set(String name, const T& value, bool rawFlag)
 	{
 		auto content = valueItem->as<T>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
-		content->set(value);
 		updateComponent(name, content, false);
+		content->set(value);
 	}
 	else
 	{
