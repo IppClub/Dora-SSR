@@ -45,7 +45,7 @@ public:
 		_value = value;
 	}
 
-	inline T& get()
+	inline const T& get()
 	{
 		return _value;
 	}

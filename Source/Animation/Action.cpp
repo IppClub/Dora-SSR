@@ -144,6 +144,43 @@ bool PropertyAction::update(Node* target, float eclapsed)
 	return _ended;
 }
 
+/* Roll */
+
+Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::Enum easing)
+{
+	Roll* action = new Roll();
+	if (start > 0) start = std::fmodf(start, 360.0f);
+	else start = std::fmodf(start, -360.0f);
+	float delta = stop - start;
+	if (delta > 180) delta -= 360;
+	else if (delta < -180) delta += 360;
+	action->_start = start;
+	action->_delta = delta;
+	action->_duration = std::max(FLT_EPSILON, duration);
+	action->_ease = Ease::getFunc(easing);
+	action->_ended = false;
+	return Own<ActionDuration>(action);
+}
+
+Action* Roll::create(float duration, float start, float stop, Ease::Enum easing)
+{
+	return Action::create(Roll::alloc(duration, start, stop, easing));
+}
+
+float Roll::getDuration() const
+{
+	return _duration;
+}
+
+bool Roll::update(Node* target, float eclapsed)
+{
+	if (_ended && eclapsed > _duration) return true;
+	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
+	_ended = time == 1.0f;
+	target->setAngle(_start + _delta * (_ended ? 1.0f : _ease(time)));
+	return _ended;
+}
+
 /* Spawn */
 
 float Spawn::getDuration() const

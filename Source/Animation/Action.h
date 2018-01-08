@@ -122,6 +122,23 @@ private:
 	SetFunc _setFunc;
 };
 
+class Roll : public ActionDuration
+{
+public:
+	virtual float getDuration() const override;
+	virtual bool update(Node* target, float eclapsed) override;
+	static Own<ActionDuration> alloc(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
+	static Action* create(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
+protected:
+	Roll() { }
+private:
+	bool _ended;
+	float _start;
+	float _delta;
+	float _duration;
+	bx::EaseFn _ease;
+};
+
 class Spawn : public ActionDuration
 {
 public:
