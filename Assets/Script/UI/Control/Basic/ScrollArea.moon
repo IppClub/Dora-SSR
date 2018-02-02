@@ -15,7 +15,7 @@ SolidRect = require "UI.View.Shape.SolidRect"
 Class ScrollAreaView,
 	__init: (args)=>
 		{:width,:height} = args
-		screenSize = (Vec2(1,1)*View.size).length
+		screenSize = (Vec2 View.size).length
 		viewWidth = math.max args.viewWidth or width,width
 		viewHeight = math.max args.viewHeight or height,height
 		moveY = viewHeight - height

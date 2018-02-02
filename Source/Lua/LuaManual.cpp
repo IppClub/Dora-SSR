@@ -508,11 +508,21 @@ Vec2* Vec2_create(float x, float y)
 	return Mtolua_new((Vec2)({x, y}));
 }
 
+Vec2* Vec2_create(const Size& size)
+{
+	return Mtolua_new((Vec2)({size.width, size.height}));
+}
+
 /* Size */
 
 Size* Size_create(float width, float height)
 {
 	return Mtolua_new((Size)({width, height}));
+}
+
+Size* Size_create(const Vec2& vec)
+{
+	return Mtolua_new((Size)({vec.x, vec.y}));
 }
 
 /* BlendFunc */

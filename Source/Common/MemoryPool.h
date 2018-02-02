@@ -14,7 +14,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-template<class Item, int CHUNK_CAPACITY = 4096, int WARNING_SIZE = 1024>// 4KB 1MB
+#ifndef DEFAULT_CHUNK_CAPACITY
+	#define DEFAULT_CHUNK_CAPACITY 4096 // 4KB
+#endif // DEFAULT_CHUNK_CAPACITY
+
+#ifndef DEFAULT_WARNING_SIZE
+	#define DEFAULT_WARNING_SIZE 1024 // 1MB
+#endif // DEFAULT_WARNING_SIZE
+
+template<class Item, int CHUNK_CAPACITY = DEFAULT_CHUNK_CAPACITY, int WARNING_SIZE = DEFAULT_WARNING_SIZE>
 class MemoryPool
 {
 #define ITEM_SIZE sizeof(Item)
@@ -170,7 +178,7 @@ private:
 	}
 };
 
-#define USE_MEMORY_POOL_SIZE(type, SIZE) \
+#define USE_MEMORY_POOL_SIZE(type, CAPSIZE, WARNSIZE) \
 public: \
 	inline void* operator new(size_t) { return _memory.alloc(); } \
 	inline void operator delete(void* ptr, size_t) { _memory.free(ptr); } \
@@ -183,13 +191,15 @@ public: \
 		return _memory.getCapacity(); \
 	} \
 private: \
-	static MemoryPool<type, SIZE> _memory
+	static MemoryPool<type, CAPSIZE, WARNSIZE> _memory
 
-#define USE_MEMORY_POOL(type) USE_MEMORY_POOL_SIZE(type, 4096)
+#define USE_MEMORY_POOL(type) \
+	USE_MEMORY_POOL_SIZE(type, DEFAULT_CHUNK_CAPACITY, DEFAULT_WARNING_SIZE)
 
-#define MEMORY_POOL_SIZE(type, SIZE) \
-MemoryPool<type, SIZE> type::_memory
+#define MEMORY_POOL_SIZE(type, CAPSIZE, WARNSIZE) \
+	MemoryPool<type, CAPSIZE, WARNSIZE> type::_memory
 
-#define MEMORY_POOL(type) MEMORY_POOL_SIZE(type, 4096)
+#define MEMORY_POOL(type) \
+	MEMORY_POOL_SIZE(type, DEFAULT_CHUNK_CAPACITY, DEFAULT_WARNING_SIZE)
 
 NS_DOROTHY_END

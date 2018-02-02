@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2018 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
@@ -57,6 +57,9 @@ namespace bx
 		FilePath& operator=(const StringView& _rhs);
 
 		///
+		void clear();
+
+		///
 		void set(Dir::Enum _dir);
 
 		///
@@ -86,6 +89,9 @@ namespace bx
 
 		///
 		bool isAbsolute() const;
+
+		///
+		bool isEmpty() const;
 
 	private:
 		char m_filePath[kMaxFilePath];

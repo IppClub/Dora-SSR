@@ -147,7 +147,7 @@ StructDefMeta = {
 		if #content > 1
 			concat {"Struct.",@__name,"{\"",concat(content,"\",\""),"\"}"}
 		else
-			"Struct."..@__name.."()"
+			"Struct.#{ @__name }()"
 }
 StructDefs = {}
 local StructHelper

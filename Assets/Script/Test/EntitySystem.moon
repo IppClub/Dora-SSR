@@ -1,9 +1,9 @@
 Dorothy!
 
-hpGroup = EntityGroup {"hp"}
-spGroup = EntityGroup {"sp"}
+hpGroup = Group {"hp"}
+spGroup = Group {"sp"}
 
-observer = EntityObserver "Change", {"hp","mp"}
+observer = Observer "Change", {"hp","mp"}
 
 entity0 = with Entity!
 	.hp = 100
@@ -23,7 +23,6 @@ print "-- {hp mp} observer"
 entity0.hp = 1
 entity1.hp = 999
 observer\each (e)-> print "hp or mp change: entity", e.index
-observer\clear!
 
 print "remove hp from entity", entity1.index
 entity1.hp = nil

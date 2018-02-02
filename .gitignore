@@ -58,5 +58,8 @@ LuaBinding.cpp
 # Ignore imgui ini file
 imgui.ini
 
+# Ignore vscode file
+.vscode/
+
 # include tolua tool
 !tolua++.exe

@@ -1,19 +1,20 @@
 <!-- params: X, Y, Width, Height, FontName, FontSize, Text, Tag, BackColor -->
-<ButtonBase X="{ x }" Y="{ y }" Width="{ width }" Height="{ height }" Tag="{ tag }">
+<Dorothy>
 	<Import Module="UI.View.Control.Basic.ButtonBase"/>
 	<Import Module="UI.View.Shape.SolidRect"/>
 	<Import Module="UI.View.Shape.LineRect"/>
 
-	<Item Name="face">
-		<Node PassColor="False">
-			<SolidRect Width="{ width }" Height="{ height }" Color="{ backColor or 0x66000000 }" RenderOrder="1"/>
-		</Node>
+	<ButtonBase X="{ x }" Y="{ y }" Width="{ width }" Height="{ height }" Tag="{ tag }">
+		<Item Name="face">
+			<Node PassColor="False">
+				<SolidRect Width="{ width }" Height="{ height }" Color="{ backColor or 0x66000000 }" RenderOrder="1"/>
+			</Node>
 
-		<Script>if text then</Script>
-			<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" Ref="True"/>
-		<Script>end</Script>
+			<Script>if text then</Script>
+				<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" Ref="True"/>
+			<Script>end</Script>
 
-		<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>
-	</Item>
-
-</ButtonBase>
+			<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>
+		</Item>
+	</ButtonBase>
+</Dorothy>

@@ -6,7 +6,7 @@ Director\pushEntry with Node!
 	\addChild sprite
 	.touchEnabled = true
 	{:width,:height} = sprite
-	length = (Vec2(1,1)*View.size).length
+	length = (Vec2 View.size).length
 	size = Vec2(width,height).length
 	scaleSize = size
 	\slot "Gesture",(pos,touches,dist,theta)->

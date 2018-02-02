@@ -64,9 +64,11 @@ Sprite* Label_getCharacter(Label* self, int index);
 
 /* Vec2 */
 Vec2* Vec2_create(float x, float y);
+Vec2* Vec2_create(const Size& size);
 
 /* Size */
 Size* Size_create(float width, float height);
+Size* Size_create(const Vec2& vec);
 
 /* BlendFunc */
 BlendFunc* BlendFunc_create(String src, String dst);

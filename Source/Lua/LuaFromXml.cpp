@@ -1008,6 +1008,11 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 {
 	SWITCH_STR_START(element)
 	{
+		CASE_STR(Dorothy)
+		{
+			break;
+		}
+
 		Item(Node, node)
 		Item(DrawNode, drawNode)
 		Item(Line, line)

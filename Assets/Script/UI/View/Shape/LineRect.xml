@@ -1,8 +1,10 @@
 <!-- params: X=0, Y=0, Width, Height, Color -->
-<Line X="{ x or 0 }" Y="{ y or 0 }" Color="{ color or 0xffffffff }" RenderOrder="{ renderOrder or 0 }">
-	<Vec2 X="0" Y="0"/>
-	<Vec2 X="{ width }" Y="0"/>
-	<Vec2 X="{ width }" Y="{ height }"/>
-	<Vec2 X="0" Y="{ height }"/>
-	<Vec2 X="0" Y="0"/>
-</Line>
+<Dorothy>
+	<Line X="{ x or 0 }" Y="{ y or 0 }" Color="{ color or 0xffffffff }" RenderOrder="{ renderOrder or 0 }">
+		<Vec2 X="0" Y="0"/>
+		<Vec2 X="{ width }" Y="0"/>
+		<Vec2 X="{ width }" Y="{ height }"/>
+		<Vec2 X="0" Y="{ height }"/>
+		<Vec2 X="0" Y="0"/>
+	</Line>
+</Dorothy>
