@@ -1,13 +1,13 @@
 Dorothy!
 
-sceneGroup = EntityGroup {"scene"}
-positionGroup = EntityGroup {"position"}
-moveGroup = EntityGroup {"position","direction","speed","target"}
+sceneGroup = Group {"scene"}
+positionGroup = Group {"position"}
+moveGroup = Group {"position","direction","speed","target"}
 
-addSceneSystem = EntityObserver "Add", {"scene"}
-addSpriteSystem = EntityObserver "Add", {"sprite"}
-removeSpriteSystem = EntityObserver "Remove", {"sprite"}
-renderSystem = EntityObserver "AddOrChange", {"position","direction","sprite"}
+addSceneSystem = Observer "Add", {"scene"}
+addSpriteSystem = Observer "Add", {"sprite"}
+removeSpriteSystem = Observer "Remove", {"sprite"}
+renderSystem = Observer "AddOrChange", {"position","direction","sprite"}
 
 isStoped = false
 threadLoop ->
@@ -81,7 +81,7 @@ addSceneSystem\each (entity)-> entity.scene\schedule ->
 					.direction = math.random 0,360
 					.speed = math.random 1,20
 			if Button "Destroy An Entity"
-				EntityGroup({"sprite","position"})\each (entity)->
+				Group({"sprite","position"})\each (entity)->
 					entity.position = nil
 					entity.sprite\runAction Sequence Scale(0.5, 1, 0, Ease.InBack), Call -> entity\destroy!
 					true

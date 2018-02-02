@@ -25,9 +25,9 @@ entry\schedule ->
 			anchor = sprite.anchor
 			DragFloat2 "Anchor", anchor, 0.01, 0, 1, "%.2f"
 			sprite.anchor = anchor
-			size = Vec2(1,1)*sprite.size
-			DragFloat2 "Size", size, 0.1, 0, 1000, "%.f"
-			sprite.size = Size(1,1)*size
+			sizeVec = Vec2 sprite.size
+			DragFloat2 "Size", sizeVec, 0.1, 0, 1000, "%.f"
+			sprite.size = Size sizeVec
 			scale = Vec2(sprite.scaleX, sprite.scaleY)
 			DragFloat2 "Scale", scale, 0.01, -2, 2, "%.2f"
 			sprite.scaleX = scale.x

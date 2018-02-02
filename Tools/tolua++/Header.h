@@ -33,13 +33,13 @@ class Entity : public Object
 	static Entity* create();
 };
 
-class EntityGroup : public Object
+class EntityGroup @ Group : public Object
 {
 	void each(tolua_function_bool func);
-	static Entity* create(String components[tolua_len]);	
+	static EntityGroup* create(String components[tolua_len]);
 };
 
-class EntityObserver : public Object
+class EntityObserver @ Observer : public Object
 {
 	void each(tolua_function_bool func);
 	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
@@ -166,14 +166,15 @@ struct Vec2
 	Vec2 operator-(Vec2 vec);
 	Vec2 operator*(float value);
 	Vec2 operator*(Vec2 vec);
+	Vec2 operator*(Size size);
 	Vec2 operator/(float value);
 	bool operator==(Vec2 vec);
-	Vec2 operator*(Size size);
 	float distance(Vec2 vec);
 	float distanceSquared(Vec2 vec);
 	void normalize();
 	void clamp(Vec2 from, Vec2 to);
 	static tolua_outside Vec2* Vec2_create @ create(float x = 0, float y = 0);
+	static tolua_outside Vec2* Vec2_create @ create(Size size);
 	static tolua_readonly Vec2 zero;
 };
 
@@ -188,6 +189,7 @@ struct Size
 	Size operator*(Vec2 vec);
 	static tolua_readonly Size zero;
 	static tolua_outside Size* Size_create @ create(float width = 0, float height = 0);
+	static tolua_outside Size* Size_create @ create(Vec2 vec);
 };
 
 struct Rect

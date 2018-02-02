@@ -1,7 +1,7 @@
 /*
-LodePNG version 20170917
+LodePNG version 20180114
 
-Copyright (c) 2005-2017 Lode Vandevenne
+Copyright (c) 2005-2018 Lode Vandevenne
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -40,8 +40,7 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 #endif /*_MSC_VER */
 
 namespace lodepnglib {
-
-const char* LODEPNG_VERSION_STRING = "20170917";
+const char* LODEPNG_VERSION_STRING = "20180114";
 
 /*
 This source file is built up in the following large parts. The code sections
@@ -1173,7 +1172,7 @@ static unsigned inflateHuffmanBlock(ucvector* out, const unsigned char* in, size
       code_d = huffmanDecodeSymbol(in, bp, &tree_d, inbitlength);
       if(code_d > 29)
       {
-        if(code_ll == (unsigned)(-1)) /*huffmanDecodeSymbol returns (unsigned)(-1) in case of error*/
+        if(code_d == (unsigned)(-1)) /*huffmanDecodeSymbol returns (unsigned)(-1) in case of error*/
         {
           /*return error code 10 or 11 depending on the situation that happened in huffmanDecodeSymbol
           (10=no endcode, 11=wrong jump outside of tree)*/
@@ -4567,12 +4566,20 @@ static void decodeGeneric(unsigned char** out, unsigned* w, unsigned* h,
     const unsigned char* data; /*the data in the chunk*/
 
     /*error: size of the in buffer too small to contain next chunk*/
-    if((size_t)((chunk - in) + 12) > insize || chunk < in) CERROR_BREAK(state->error, 30);
+    if((size_t)((chunk - in) + 12) > insize || chunk < in)
+    {
+      if(state->decoder.ignore_end) break; /*other errors may still happen though*/
+      CERROR_BREAK(state->error, 30);
+    }
 
     /*length of the data of the chunk, excluding the length bytes, chunk type and CRC bytes*/
     chunkLength = lodepng_chunk_length(chunk);
     /*error: chunk length larger than the max PNG chunk size*/
-    if(chunkLength > 2147483647) CERROR_BREAK(state->error, 63);
+    if(chunkLength > 2147483647)
+    {
+      if(state->decoder.ignore_end) break; /*other errors may still happen though*/
+      CERROR_BREAK(state->error, 63);
+    }
 
     if((size_t)((chunk - in) + chunkLength + 12) > insize || (chunk + chunkLength + 12) < in)
     {
@@ -4659,7 +4666,10 @@ static void decodeGeneric(unsigned char** out, unsigned* w, unsigned* h,
     else /*it's not an implemented chunk type, so ignore it: skip over the data*/
     {
       /*error: unknown critical chunk (5th bit of first byte of chunk type is 0)*/
-      if(!lodepng_chunk_ancillary(chunk)) CERROR_BREAK(state->error, 69);
+      if(!state->decoder.ignore_critical && !lodepng_chunk_ancillary(chunk))
+      {
+        CERROR_BREAK(state->error, 69);
+      }
 
       unknown = 1;
 #ifdef LODEPNG_COMPILE_ANCILLARY_CHUNKS
@@ -4824,6 +4834,8 @@ void lodepng_decoder_settings_init(LodePNGDecoderSettings* settings)
   settings->remember_unknown_chunks = 0;
 #endif /*LODEPNG_COMPILE_ANCILLARY_CHUNKS*/
   settings->ignore_crc = 0;
+  settings->ignore_critical = 0;
+  settings->ignore_end = 0;
   lodepng_decompress_settings_init(&settings->zlibsettings);
 }
 

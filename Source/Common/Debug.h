@@ -53,7 +53,7 @@ inline void LogPrint(String str)
 	#define Log(...) DORA_DUMMY
 #else
 	#define Log(format, ...) \
-		LogPrint("[Dorothy Info] " \
+		Dorothy::LogPrint("[Dorothy Info] " \
 			format \
 			"\n",  ##__VA_ARGS__)
 #endif

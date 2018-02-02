@@ -1,19 +1,20 @@
 <!-- params: X, Y, Radius, FontSize, Text -->
-<ButtonBase X="{ x }" Y="{ y }" Width="{ radius*2 }" Height="{ radius*2 }">
+<Dorothy>
 	<Import Module="UI.View.Control.Basic.ButtonBase"/>
 	<Import Module="UI.View.Shape.SolidCircle"/>
 	<Import Module="UI.View.Shape.LineCircle"/>
 
-	<Item Name="face">
-		<Node PassColor="False">
-			<SolidCircle Radius="{ radius }" Color="{ backColor or 0x88000000 }" RenderOrder="1"/>
-		</Node>
+	<ButtonBase X="{ x }" Y="{ y }" Width="{ radius*2 }" Height="{ radius*2 }">
+		<Item Name="face">
+			<Node PassColor="False">
+				<SolidCircle Radius="{ radius }" Color="{ backColor or 0x88000000 }" RenderOrder="1"/>
+			</Node>
 
-		<Script>if text then</Script>
-			<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" Ref="True"/>
-		<Script>end</Script>
+			<Script>if text then</Script>
+				<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" Ref="True"/>
+			<Script>end</Script>
 
-		<LineCircle Radius="{ radius }" Color="0xffffffff" RenderOrder="3"/>
-	</Item>
-
-</ButtonBase>
+			<LineCircle Radius="{ radius }" Color="0xffffffff" RenderOrder="3"/>
+		</Item>
+	</ButtonBase>
+</Dorothy>

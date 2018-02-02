@@ -233,12 +233,8 @@ namespace ImGui
 	void SetItemAllowOverlap();
 	bool IsWindowHovered();
 	bool IsWindowFocused();
-	bool IsAnyWindowHovered();
 	bool IsRectVisible(Vec2 size);
 	bool IsRectVisible(Vec2 rect_min, Vec2 rect_max);
-	Vec2 CalcItemRectClosestPoint(Vec2 pos, bool on_edge = false, float outward = 0.0f);
-	Vec2 CalcTextSize(CString text, CString text_end = NULL, bool hide_text_after_double_hash = false, float wrap_width = -1.0f);
-	void CalcListClipping(int items_count, float items_height, int* out_items_display_start, int* out_items_display_end);
 	void EndChildFrame();
 	bool IsMouseDown(int button);
 	bool IsMouseClicked(int button, bool repeat = false);

@@ -26,8 +26,7 @@ class LogPanel
 {
 public:
 	LogPanel():
-	_scrollToBottom(false),
-	_autoScroll(true)
+	_scrollToBottom(false)
 	{
 		LogHandler += std::make_pair(this, &LogPanel::addLog);
 	}
@@ -65,14 +64,13 @@ public:
 		ImGui::SameLine();
 		bool copy = ImGui::Button("Copy");
 		ImGui::SameLine();
-		if (ImGui::Checkbox("Scroll", &_autoScroll))
-		{
-			if (_autoScroll) _scrollToBottom = true;
-		}
-		ImGui::SameLine();
 		_filter.Draw("Filter", -55.0f);
 		ImGui::Separator();
 		ImGui::BeginChild("scrolling", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar);
+		if (ImGui::GetScrollY() < ImGui::GetScrollMaxY())
+		{
+			_scrollToBottom = false;
+		}
 		if (copy) ImGui::LogToClipboard();
 		const char* buf_begin = _buf.begin();
 		const char* line = buf_begin;
@@ -92,7 +90,7 @@ public:
 			}
 			line = line_end && line_end[1] ? line_end + 1 : nullptr;
 		}
-		if (_scrollToBottom && _autoScroll)
+		if (_scrollToBottom)
 		{
 			ImGui::SetScrollHere(1.0f);
 		}
@@ -106,7 +104,6 @@ private:
 	ImGuiTextFilter _filter;
 	ImVector<int> _lineOffsets;
 	bool _scrollToBottom;
-	bool _autoScroll;
 };
 
 int ImGuiDora::_lastIMEPosX;
@@ -311,6 +308,7 @@ bool ImGuiDora::init()
 	style.WindowPadding = ImVec2(10, 10);
 	style.WindowMinSize = ImVec2(100, 32);
 	style.WindowRounding = 0.0f;
+	style.WindowBorderSize = 0.0f;
 	style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
 	style.FramePadding = ImVec2(5, 5);
 	style.FrameRounding = 0.0f;
