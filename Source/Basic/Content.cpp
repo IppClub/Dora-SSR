@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/Content.h"
+#include "Basic/Application.h"
 #include "FileSystem/mkdir.h"
 #include "FileSystem/tinydir.h"
 #include "Common/Async.h"
@@ -21,7 +22,6 @@ using std::ofstream;
 
 #if BX_PLATFORM_ANDROID
 #include "Zip/Support/ZipUtils.h"
-#include "Basic/AndroidMain.h"
 static Dorothy::Own<ZipFile> g_apkFile;
 #endif // BX_PLATFORM_ANDROID
 
@@ -432,7 +432,7 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 Content::Content()
 {
 	_assetPath = "assets/";
-	g_apkFile = New<ZipFile>(getAndroidAPKPath(), _assetPath);
+	g_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _assetPath);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;

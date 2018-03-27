@@ -110,11 +110,11 @@ void DrawNode::render()
 		}
 	}
 
-	_renderState = BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+	_renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
 		_blendFunc.toValue();
 	if (_flags.isOn(DrawNode::DepthWrite))
 	{
-		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
+		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
 	}
 
 	SharedRendererManager.setCurrent(SharedDrawRenderer.getTarget());
@@ -599,11 +599,11 @@ void Line::render()
 		}
 	}
 
-	_renderState = BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+	_renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
 		BGFX_STATE_PT_LINESTRIP | _blendFunc.toValue();
 	if (_flags.isOn(Line::DepthWrite))
 	{
-		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
+		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
 	}
 
 	SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());

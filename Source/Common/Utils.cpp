@@ -65,7 +65,20 @@ double Profiler::stop(String logName)
 	{
 		Log("{} cost {:.3f}s.", logName, deltaTime);
 	}
+	_lastTime = SharedApplication.getCurrentTime();
 	return deltaTime;
 }
 
 NS_DOROTHY_END
+
+// fix issue caused by Android NDK r16
+#if BX_PLATFORM_ANDROID
+#include <stdio.h>
+
+#undef stdin
+#undef stdout
+#undef stderr
+FILE* stdin = &__sF[0];
+FILE* stdout = &__sF[1];
+FILE* stderr = &__sF[2];
+#endif // BX_PLATFORM_ANDROID

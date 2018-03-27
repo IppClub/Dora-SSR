@@ -67,7 +67,7 @@ public:
 		_filter.Draw("Filter", -55.0f);
 		ImGui::Separator();
 		ImGui::BeginChild("scrolling", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar);
-		if (ImGui::GetScrollY() < ImGui::GetScrollMaxY())
+		if (ImGui::GetScrollY()+15 < ImGui::GetScrollMaxY())
 		{
 			_scrollToBottom = false;
 		}
@@ -92,7 +92,7 @@ public:
 		}
 		if (_scrollToBottom)
 		{
-			ImGui::SetScrollHere(1.0f);
+			ImGui::SetScrollHere();
 		}
 		_scrollToBottom = false;
 		ImGui::EndChild();
@@ -132,7 +132,7 @@ _fonts(New<ImFontAtlas>())
 ImGuiDora::~ImGuiDora()
 {
 	SharedApplication.eventHandler -= std::make_pair(this, &ImGuiDora::handleEvent);
-	ImGui::Shutdown();
+	ImGui::DestroyContext();
 }
 
 const char* ImGuiDora::getClipboardText(void*)
@@ -270,9 +270,12 @@ void ImGuiDora::showStats()
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "CPU time:");
 	ImGui::SameLine();
 	ImGui::Text("%.1f ms", lastCpuTime);
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "GPU time:");
-	ImGui::SameLine();
-	ImGui::Text("%.1f ms", lastGpuTime);
+	if (lastGpuTime > 0.0)
+	{
+		ImGui::TextColored(Color(0xff00ffff).toVec4(), "GPU time:");
+		ImGui::SameLine();
+		ImGui::Text("%.1f ms", lastGpuTime);
+	}
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Delta time:");
 	ImGui::SameLine();
 	ImGui::Text("%.1f ms", lastDeltaTime);
@@ -303,6 +306,7 @@ void ImGuiDora::showLog()
 
 bool ImGuiDora::init()
 {
+	ImGui::CreateContext();
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.Alpha = 1.0f;
 	style.WindowPadding = ImVec2(10, 10);
@@ -361,9 +365,6 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 1.00f, 1.00f, 0.30f);
 	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.00f, 1.00f, 1.00f, 0.60f);
 	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.00f, 1.00f, 1.00f, 0.90f);
-	style.Colors[ImGuiCol_CloseButton] = ImVec4(0.00f, 0.50f, 0.50f, 0.50f);
-	style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.00f, 0.70f, 0.70f, 0.60f);
-	style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.00f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_PlotLines] = ImVec4(0.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.00f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.00f, 0.70f, 0.70f, 1.00f);
@@ -586,8 +587,8 @@ void ImGuiDora::render()
 					}
 
 					uint64_t state = 0
-						| BGFX_STATE_RGB_WRITE
-						| BGFX_STATE_ALPHA_WRITE
+						| BGFX_STATE_WRITE_RGB
+						| BGFX_STATE_WRITE_A
 						| BGFX_STATE_MSAA
 						| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 

@@ -1703,9 +1703,6 @@ namespace ImGui { namespace Binding
 			case "ResizeGrip"_hash: return ImGuiCol_ResizeGrip;
 			case "ResizeGripHovered"_hash: return ImGuiCol_ResizeGripHovered;
 			case "ResizeGripActive"_hash: return ImGuiCol_ResizeGripActive;
-			case "CloseButton"_hash: return ImGuiCol_CloseButton;
-			case "CloseButtonHovered"_hash: return ImGuiCol_CloseButtonHovered;
-			case "CloseButtonActive"_hash: return ImGuiCol_CloseButtonActive;
 			case "PlotLines"_hash: return ImGuiCol_PlotLines;
 			case "PlotLinesHovered"_hash: return ImGuiCol_PlotLinesHovered;
 			case "PlotHistogram"_hash: return ImGuiCol_PlotHistogram;

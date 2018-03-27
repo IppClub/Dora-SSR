@@ -23,6 +23,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "bx/timer.h"
 
+#include "imgui.h"
+
 NS_DOROTHY_BEGIN
 
 Director::Director():
@@ -210,6 +212,7 @@ void Director::mainLoop()
 		SharedImGui.begin();
 		_scheduler->update(getDeltaTime());
 		_postScheduler->update(getDeltaTime());
+		ImGui::ShowDemoWindow();
 		SharedKeyboard.update();
 		SharedImGui.end();
 
@@ -367,8 +370,8 @@ void Director::mainLoop()
 void Director::displayStats()
 {
 	/* print debug text */
-	bgfx::dbgTextClear();
 	bgfx::setDebug(BGFX_DEBUG_TEXT);
+	bgfx::dbgTextClear();
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.
@@ -382,10 +385,11 @@ void Director::displayStats()
 		"Vulkan", //!< Vulkan
 	};
 	Uint8 dbgViewId = SharedView.getId();
-	bgfx::dbgTextPrintf(dbgViewId, 1, 0x0f, "\x1b[14;mRenderer: \x1b[15;m%s", rendererNames[bgfx::getCaps()->rendererType]);
-	bgfx::dbgTextPrintf(dbgViewId, 2, 0x0f, "\x1b[14;mMultithreaded: \x1b[15;m%s", (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-	bgfx::dbgTextPrintf(dbgViewId, 3, 0x0f, "\x1b[14;mBackbuffer: \x1b[15;m%d x %d", stats->width, stats->height);
-	bgfx::dbgTextPrintf(dbgViewId, 4, 0x0f, "\x1b[14;mDraw call: \x1b[15;m%d", stats->numDraw);
+	int row = 0;
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mRenderer: \x1b[15;m%s", rendererNames[bgfx::getCaps()->rendererType]);
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMultithreaded: \x1b[15;m%s", (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mBackbuffer: \x1b[15;m%d x %d", stats->width, stats->height);
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mDraw call: \x1b[15;m%d", stats->numDraw);
 	static int frames = 0;
 	static double cpuTime = 0, gpuTime = 0, deltaTime = 0;
 	cpuTime += SharedApplication.getCPUTime();
@@ -393,9 +397,12 @@ void Director::displayStats()
 	deltaTime += SharedApplication.getDeltaTime();
 	frames++;
 	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getMaxFPS();
-	bgfx::dbgTextPrintf(dbgViewId, 5, 0x0f, "\x1b[14;mCPU time: \x1b[15;m%.1f ms", lastCpuTime);
-	bgfx::dbgTextPrintf(dbgViewId, 6, 0x0f, "\x1b[14;mGPU time: \x1b[15;m%.1f ms", lastGpuTime);
-	bgfx::dbgTextPrintf(dbgViewId, 7, 0x0f, "\x1b[14;mDelta time: \x1b[15;m%.1f ms", lastDeltaTime);
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mCPU time: \x1b[15;m%.1f ms", lastCpuTime);
+	if (lastGpuTime > 0.0)
+	{
+		bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mGPU time: \x1b[15;m%.1f ms", lastGpuTime);
+	}
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mDelta time: \x1b[15;m%.1f ms", lastDeltaTime);
 	if (frames == SharedApplication.getMaxFPS())
 	{
 		lastCpuTime = 1000.0 * cpuTime / frames;
@@ -404,9 +411,9 @@ void Director::displayStats()
 		frames = 0;
 		cpuTime = gpuTime = deltaTime = 0.0;
 	}
-	bgfx::dbgTextPrintf(dbgViewId, 8, 0x0f, "\x1b[14;mC++ Object: \x1b[15;m%d", Object::getObjectCount());
-	bgfx::dbgTextPrintf(dbgViewId, 9, 0x0f, "\x1b[14;mLua Object: \x1b[15;m%d", Object::getLuaRefCount());
-	bgfx::dbgTextPrintf(dbgViewId, 10, 0x0f, "\x1b[14;mCallback: \x1b[15;m%d", Object::getLuaCallbackCount());
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mC++ Object: \x1b[15;m%d", Object::getObjectCount());
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mLua Object: \x1b[15;m%d", Object::getLuaRefCount());
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mCallback: \x1b[15;m%d", Object::getLuaCallbackCount());
 }
 
 void Director::pushViewProjection(const Matrix& viewProj)

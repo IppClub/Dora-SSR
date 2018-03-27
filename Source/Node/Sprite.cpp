@@ -324,12 +324,12 @@ void Sprite::render()
 	}
 
 	_renderState = (
-		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+		BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
 		BGFX_STATE_ALPHA_REF(_alphaRef) |
 		BGFX_STATE_MSAA | _blendFunc.toValue());
 	if (_flags.isOn(Sprite::DepthWrite))
 	{
-		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
+		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
 	}
 
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());

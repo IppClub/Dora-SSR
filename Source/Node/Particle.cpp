@@ -533,11 +533,11 @@ void ParticleNode::render()
 
 	BlendFunc blendFunc{ _particleDef->blendFuncSource, _particleDef->blendFuncDestination };
 	_renderState = (
-		BGFX_STATE_RGB_WRITE | BGFX_STATE_ALPHA_WRITE |
+		BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
 		BGFX_STATE_MSAA | blendFunc.toValue());
 	if (_flags.isOn(ParticleNode::DepthWrite))
 	{
-		_renderState |= (BGFX_STATE_DEPTH_WRITE | BGFX_STATE_DEPTH_TEST_LESS);
+		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
 	}
 
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());

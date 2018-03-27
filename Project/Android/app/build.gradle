@@ -1,18 +1,19 @@
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion 25
+	compileSdkVersion 22
 	defaultConfig {
 		applicationId "com.luvfight.dorothy"
 		minSdkVersion 14
-		targetSdkVersion 25
+		targetSdkVersion 22
 		versionCode 1
 		versionName "1.0"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 		externalNativeBuild {
 			cmake {
+				arguments "-DANDROID_STL=c++_shared","-DANDROID_ARM_NEON=TRUE"
 				abiFilters "armeabi-v7a","x86"
-				cppFlags "-std=c++11 -frtti -fexceptions"
+				cppFlags "-std=c++11","-frtti","-fexceptions"
 			}
 		}
 		javaCompileOptions
@@ -40,6 +41,6 @@ dependencies {
 	androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
-	compile 'com.android.support:appcompat-v7:25.1.0'
+	compile 'com.android.support:appcompat-v7:22.1.0'
 	testCompile 'junit:junit:4.12'
 }

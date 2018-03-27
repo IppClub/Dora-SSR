@@ -16,6 +16,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
+static string g_androidAPKPath;
+extern "C" {
+	JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath)
+	{
+		const char* pathString = env->GetStringUTFChars(apkPath, NULL);
+		g_androidAPKPath = pathString;
+		env->ReleaseStringUTFChars(apkPath, pathString);
+	}
+}
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 #endif // BX_PLATFORM_ANDROID
 
@@ -62,7 +71,7 @@ Size Application::getSize() const
 
 Size Application::getDesignSize() const
 {
-	return Size{ s_cast<float>(_designWidth), s_cast<float>(_designHeight) };
+	return Size{s_cast<float>(_designWidth), s_cast<float>(_designHeight)};
 }
 
 Size Application::getWinSize() const
@@ -160,7 +169,6 @@ int Application::run()
 		Log("SDL fail to create window!");
 		return 1;
 	}
-
 	Application::setupSdlWindow();
 
 	// call this function here to disable default render threads creation of bgfx
@@ -278,6 +286,13 @@ void Application::updateWindowSize()
 #endif // BX_PLATFORM_WINDOWS
 }
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+
+#if BX_PLATFORM_ANDROID
+const string& Application::getAPKPath() const
+{
+	return g_androidAPKPath;
+}
+#endif // BX_PLATFORM_ANDROID
 
 double Application::getEclapsedTime() const
 {

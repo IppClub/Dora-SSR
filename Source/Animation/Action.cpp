@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Common/Utils.h"
 #include "Node/Sprite.h"
-#include "Cache/TextureCache.h"
 #include "Cache/FrameCache.h"
 
 NS_DOROTHY_BEGIN
