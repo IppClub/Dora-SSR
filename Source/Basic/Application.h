@@ -57,7 +57,9 @@ public:
 	{
 		_mm_free(p);
 	}
-#endif // BX_PLATFORM_WINDOWS
+#elif BX_PLATFORM_ANDROID
+	PROPERTY_READONLY_REF(string, APKPath);
+#endif // BX_PLATFORM
 protected:
 	Application();
 	void updateDeltaTime();

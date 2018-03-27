@@ -1,5 +1,5 @@
 /*
-LodePNG version 20180114
+LodePNG version 20180326
 
 Copyright (c) 2005-2018 Lode Vandevenne
 
@@ -40,7 +40,7 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 #endif /*_MSC_VER */
 
 namespace lodepnglib {
-const char* LODEPNG_VERSION_STRING = "20180114";
+const char* LODEPNG_VERSION_STRING = "20180326";
 
 /*
 This source file is built up in the following large parts. The code sections
@@ -796,7 +796,7 @@ unsigned lodepng_huffman_code_lengths(unsigned* lengths, const unsigned* frequen
   BPMNode* leaves; /*the symbols, only those with > 0 frequency*/
 
   if(numcodes == 0) return 80; /*error: a tree of 0 symbols is not supposed to be made*/
-  if((1u << maxbitlen) < numcodes) return 80; /*error: represent all symbols*/
+  if((1u << maxbitlen) < (unsigned)numcodes) return 80; /*error: represent all symbols*/
 
   leaves = (BPMNode*)lodepng_malloc(numcodes * sizeof(*leaves));
   if(!leaves) return 83; /*alloc fail*/
@@ -1456,11 +1456,11 @@ static void updateHashChain(Hash* hash, size_t wpos, unsigned hashval, unsigned 
 {
   hash->val[wpos] = (int)hashval;
   if(hash->head[hashval] != -1) hash->chain[wpos] = hash->head[hashval];
-  hash->head[hashval] = (int)wpos;
+  hash->head[hashval] = (unsigned)wpos;
 
   hash->zeros[wpos] = numzeros;
   if(hash->headz[numzeros] != -1) hash->chainz[wpos] = hash->headz[numzeros];
-  hash->headz[numzeros] = (int)wpos;
+  hash->headz[numzeros] = (unsigned)wpos;
 }
 
 /*
@@ -2622,15 +2622,10 @@ static int lodepng_color_mode_equal(const LodePNGColorMode* a, const LodePNGColo
     if(a->key_g != b->key_g) return 0;
     if(a->key_b != b->key_b) return 0;
   }
-  /*if one of the palette sizes is 0, then we consider it to be the same as the
-  other: it means that e.g. the palette was not given by the user and should be
-  considered the same as the palette inside the PNG.*/
-  if(1/*a->palettesize != 0 && b->palettesize != 0*/) {
-    if(a->palettesize != b->palettesize) return 0;
-    for(i = 0; i != a->palettesize * 4; ++i)
-    {
-      if(a->palette[i] != b->palette[i]) return 0;
-    }
+  if(a->palettesize != b->palettesize) return 0;
+  for(i = 0; i != a->palettesize * 4; ++i)
+  {
+    if(a->palette[i] != b->palette[i]) return 0;
   }
   return 1;
 }
@@ -3477,7 +3472,7 @@ unsigned lodepng_convert(unsigned char* out, const unsigned char* in,
   {
     size_t palettesize = mode_out->palettesize;
     const unsigned char* palette = mode_out->palette;
-    size_t palsize = 1u << mode_out->bitdepth;
+    size_t palsize = (size_t)1u << mode_out->bitdepth;
     /*if the user specified output palette but did not give the values, assume
     they want the values of the input color type (assuming that one is palette).
     Note that we never create a new palette ourselves.*/
@@ -3485,6 +3480,15 @@ unsigned lodepng_convert(unsigned char* out, const unsigned char* in,
     {
       palettesize = mode_in->palettesize;
       palette = mode_in->palette;
+      /*if the input was also palette with same bitdepth, then the color types are also
+      equal, so copy literally. This to preserve the exact indices that were in the PNG
+      even in case there are duplicate colors in the palette.*/
+      if (mode_in->colortype == LCT_PALETTE && mode_in->bitdepth == mode_out->bitdepth)
+      {
+        size_t numbytes = lodepng_get_raw_size(w, h, mode_in);
+        for(i = 0; i != numbytes; ++i) out[i] = in[i];
+        return 0;
+      }
     }
     if(palettesize < palsize) palsize = palettesize;
     color_tree_init(&tree);
@@ -4380,7 +4384,7 @@ static unsigned readChunk_zTXt(LodePNGInfo* info, const LodePNGDecompressSetting
     string2_begin = length + 2;
     if(string2_begin > chunkLength) CERROR_BREAK(error, 75); /*no null termination, corrupt?*/
 
-    length = (unsigned)(chunkLength - string2_begin);
+    length = (unsigned)chunkLength - string2_begin;
     /*will fail if zlib error, e.g. if length is too small*/
     error = zlib_decompress(&decoded.data, &decoded.size,
                             (unsigned char*)(&data[string2_begin]),
@@ -4460,7 +4464,7 @@ static unsigned readChunk_iTXt(LodePNGInfo* info, const LodePNGDecompressSetting
     /*read the actual text*/
     begin += length + 1;
 
-    length = (unsigned)(chunkLength < begin ? 0 : chunkLength - begin);
+    length = (unsigned)chunkLength < begin ? 0 : (unsigned)chunkLength - begin;
 
     if(compressed)
     {

@@ -334,3 +334,4 @@ private:
 };
 
 NS_DOROTHY_END
+
