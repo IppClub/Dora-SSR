@@ -52,7 +52,7 @@ compile = (dir,clean,minify)->
 		compileFunc = isXml and xmltolua or moonscript.to_lua
 		requires = nil
 		if not clean
-			sourceCodes = Content\loadAsync file
+			sourceCodes = Content\loadAsync "#{dir}/#{file}"
 			requires = LintMoonGlobals sourceCodes, file unless isXml
 			startTime = Application.eclapsedTime
 			codes,err = compileFunc sourceCodes
@@ -93,7 +93,7 @@ compile = (dir,clean,minify)->
 			path = Path.getPath file
 			name = Path.getName file
 			if not clean
-				sourceCodes = Content\loadAsync file
+				sourceCodes = Content\loadAsync "#{dir}/#{file}"
 				startTime = Application.eclapsedTime
 				st, ast = ParseLua sourceCodes
 				if not st
