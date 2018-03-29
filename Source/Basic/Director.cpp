@@ -23,8 +23,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "bx/timer.h"
 
-#include "imgui.h"
-
 NS_DOROTHY_BEGIN
 
 Director::Director():
@@ -212,7 +210,6 @@ void Director::mainLoop()
 		SharedImGui.begin();
 		_scheduler->update(getDeltaTime());
 		_postScheduler->update(getDeltaTime());
-		ImGui::ShowDemoWindow();
 		SharedKeyboard.update();
 		SharedImGui.end();
 

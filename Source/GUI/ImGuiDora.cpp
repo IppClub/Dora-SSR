@@ -26,6 +26,8 @@ class LogPanel
 {
 public:
 	LogPanel():
+	_forceScroll(0),
+	_fullScreen(false),
 	_scrollToBottom(false)
 	{
 		LogHandler += std::make_pair(this, &LogPanel::addLog);
@@ -38,72 +40,114 @@ public:
 
 	void clear()
 	{
-		_buf.clear();
-		_lineOffsets.clear();
+		_logs.clear();
 	}
 
 	void addLog(const string& text)
 	{
-		int old_size = _buf.size();
-		_buf.appendf("%s", text.c_str());
-		for (int new_size = _buf.size(); old_size < new_size; old_size++)
+		for (auto line : Slice(text).split("\n"_slice))
 		{
-			if (_buf[old_size] == '\n')
-			{
-				_lineOffsets.push_back(old_size);
-			}
+			_logs.push_back(line);
 		}
 		_scrollToBottom = true;
 	}
 
 	void Draw(const char* title, bool* p_open = nullptr)
 	{
-		ImGui::SetNextWindowSize(ImVec2(400,300), ImGuiCond_FirstUseEver);
-		ImGui::Begin(title, p_open);
+		if (_fullScreen)
+		{
+			ImGui::SetNextWindowPos(Vec2::zero);
+			ImGui::SetNextWindowSize(Vec2{1,1}*SharedApplication.getDesignSize(), ImGuiCond_Always);
+			ImGui::Begin((string(title)+"_full").c_str(), nullptr, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
+		}
+		else
+		{
+			ImGui::SetNextWindowSize(ImVec2(400,300), ImGuiCond_FirstUseEver);
+			ImGui::Begin(title, p_open);
+		}
 		if (ImGui::Button("Clear")) clear();
 		ImGui::SameLine();
-		bool copy = ImGui::Button("Copy");
+		if (ImGui::Button("Copy") && !_logs.empty())
+		{
+			string logText;
+			for (const auto& line : _logs)
+			{
+				logText.append(line);
+				if (line != _logs.back())
+				{
+					logText.append("\n");
+				}
+			}
+			SDL_SetClipboardText(logText.c_str());
+		}
+		ImGui::SameLine();
+		if (ImGui::Button(_fullScreen ? "]  [" : "[  ]"))
+		{
+			_forceScroll = 2;
+			_scrollToBottom = true;
+			_fullScreen = !_fullScreen;
+		}
 		ImGui::SameLine();
 		_filter.Draw("Filter", -55.0f);
 		ImGui::Separator();
-		ImGui::BeginChild("scrolling", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar);
-		if (ImGui::GetScrollY()+15 < ImGui::GetScrollMaxY())
+		ImGui::BeginChild(_fullScreen ? "scrolling_full" : "scrolling", ImVec2(0,0), false);
+		if (_forceScroll == 0 && _scrollToBottom && ImGui::GetScrollY()+20.0f < ImGui::GetScrollMaxY())
 		{
 			_scrollToBottom = false;
 		}
-		if (copy) ImGui::LogToClipboard();
-		const char* buf_begin = _buf.begin();
-		const char* line = buf_begin;
-		for (int line_no = 0; line != nullptr; line_no++)
+		if (!_filter.IsActive())
 		{
-			const char* line_end = (line_no < _lineOffsets.Size) ? buf_begin + _lineOffsets[line_no] : nullptr;
-			if (!_filter.IsActive())
-			{
-				ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0));
-				ImGui::TextWrappedUnformatted(line, line_end);
-				ImGui::PopStyleVar();
+			ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0));
+            ImGuiListClipper clipper(s_cast<int>(_logs.size()));
+            while (clipper.Step())
+            {
+            	for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+				{
+					ImGui::TextUnformatted(&_logs.at(i).front(), &_logs.at(i).back()+1);
+				}
 			}
-			else if (_filter.PassFilter(line, line_end))
+			ImGui::PopStyleVar();
+		}
+		else
+		{
+			_filteredLogs.clear();
+			for (const auto& line : _logs)
 			{
-				ImGui::TextWrappedUnformatted(line, line_end);
+				if (_filter.PassFilter(line.c_str()))
+				{
+					_filteredLogs.push_back(line);
+				}
 			}
-			line = line_end && line_end[1] ? line_end + 1 : nullptr;
+			ImGuiListClipper clipper(s_cast<int>(_filteredLogs.size()));
+            while (clipper.Step())
+            {
+            	for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+				{
+					ImGui::TextUnformatted(_filteredLogs.at(i).begin(), _filteredLogs.at(i).end());
+				}
+			}
 		}
 		if (_scrollToBottom)
 		{
+			_scrollToBottom = false;
 			ImGui::SetScrollHere();
 		}
-		_scrollToBottom = false;
+		if (_forceScroll > 0)
+		{
+			_forceScroll--;
+			ImGui::SetScrollHere();
+		}
 		ImGui::EndChild();
 		ImGui::End();
 	}
-	
 private:
-	ImGuiTextBuffer _buf;
-	ImGuiTextFilter _filter;
-	ImVector<int> _lineOffsets;
+	bool _fullScreen;
+	int _forceScroll;
 	bool _scrollToBottom;
+	std::deque<string> _logs;
+	std::deque<Slice> _filteredLogs;
+	ImGuiTextFilter _filter;
 };
 
 int ImGuiDora::_lastIMEPosX;
@@ -117,6 +161,7 @@ _backSpaceIgnore(false),
 _mousePressed{ false, false, false },
 _mouseWheel(0.0f),
 _log(New<LogPanel>()),
+_defaultFonts(New<ImFontAtlas>()),
 _fonts(New<ImFontAtlas>())
 {
 	_vertexDecl
@@ -306,7 +351,7 @@ void ImGuiDora::showLog()
 
 bool ImGuiDora::init()
 {
-	ImGui::CreateContext();
+	ImGui::CreateContext(_defaultFonts);
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.Alpha = 1.0f;
 	style.WindowPadding = ImVec2(10, 10);
@@ -336,7 +381,7 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.80f);
-	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.0f, 0.05f, 0.10f, 0.90f);
+	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.0f, 0.05f, 0.05f, 0.80f);
 	style.Colors[ImGuiCol_Border] = ImVec4(0.00f, 0.70f, 0.70f, 0.65f);
 	style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.00f, 0.80f, 0.80f, 0.30f);

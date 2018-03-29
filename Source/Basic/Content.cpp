@@ -618,7 +618,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Log("fail to load file: {}", filename);
+		Log("fail to load file: {}", fullPath);
 		return nullptr;
 	}
 	size = SDL_RWsize(io);
@@ -635,7 +635,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Log("fail to load file: {}", filename);
+		Log("fail to load file: {}", fullPath);
 		return;
 	}
 	Uint8 buffer[DORA_COPY_BUFFER_SIZE];

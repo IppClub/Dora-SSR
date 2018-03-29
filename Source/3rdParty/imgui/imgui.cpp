@@ -7428,7 +7428,7 @@ void ImGui::TextUnformatted(const char* text, const char* text_end)
 
 void ImGui::TextWrappedUnformatted(const char* begin, const char* end)
 {
-    bool need_wrap = (GImGui->CurrentWindow->DC.TextWrapPos < 0.0f);    // Keep existing wrap position is one ia already set
+    bool need_wrap = (GImGui->CurrentWindow->DC.TextWrapPos < 0.0f);
     if (need_wrap) PushTextWrapPos(0.0f);
     TextUnformatted(begin, end);
     if (need_wrap) PopTextWrapPos();

@@ -56,6 +56,7 @@ private:
 	vector<Uint32> _textEditing;
 	string _iniFilePath;
 	Own<LogPanel> _log;
+	Own<ImFontAtlas> _defaultFonts;
 	Own<ImFontAtlas> _fonts;
 	SINGLETON_REF(ImGuiDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGui
