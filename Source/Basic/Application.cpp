@@ -367,6 +367,11 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		return 1;
 	}
 
+	// pass one frame
+	app->_frame = bgfx::frame();
+	app->updateDeltaTime();
+	app->makeTimeNow();
+
 	SharedPoolManager.push();
 	if (!SharedDirector.init())
 	{
@@ -375,10 +380,6 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 	}
 	SharedPoolManager.pop();
 
-	app->_frame = bgfx::frame();
-
-	// Update and invoke render apis
-	app->updateDeltaTime();
 	bool running = true;
 	while (running)
 	{
@@ -398,6 +399,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 					{
 						case SDL_QUIT:
 							running = false;
+							app->quitHandler();
 							break;
 						default:
 							break;

@@ -1,6 +1,6 @@
 /*
 SoLoud audio engine
-Copyright (c) 2013-2015 Jari Komppa
+Copyright (c) 2013-2018 Jari Komppa
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -28,6 +28,21 @@ freely, subject to the following restrictions:
 #include <stdlib.h> // rand
 #include <math.h> // sin
 
+#ifdef SOLOUD_NO_ASSERTS
+#define SOLOUD_ASSERT(x)
+#else
+#ifdef _MSC_VER
+#include <stdio.h> // for sprintf in asserts
+#define VC_EXTRALEAN
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h> // only needed for OutputDebugStringA, should be solved somehow.
+#define SOLOUD_ASSERT(x) if (!(x)) { char temp[200]; sprintf(temp, "%s(%d): assert(%s) failed.\n", __FILE__, __LINE__, #x); OutputDebugStringA(temp); __debugbreak(); }
+#else
+#include <assert.h> // assert
+#define SOLOUD_ASSERT(x) assert(x)
+#endif
+#endif
+
 #ifndef M_PI
 #define M_PI 3.14159265359
 #endif
@@ -42,7 +57,7 @@ freely, subject to the following restrictions:
 #endif
 #endif
 
-#define SOLOUD_VERSION 111
+#define SOLOUD_VERSION 201800
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
@@ -95,12 +110,24 @@ namespace SoLoud
 		// dtor
 		~AlignedFloatBuffer();
 	};
+
+	// Lightweight class that handles small aligned buffer to support vectorized operations
+	class TinyAlignedFloatBuffer
+	{
+	public:
+		float *mData; // aligned pointer
+		unsigned char mActualData[sizeof(float) * 16 + 16];
+
+		// ctor
+		TinyAlignedFloatBuffer();
+	};
 };
 
 #include "soloud_filter.h"
 #include "soloud_fader.h"
 #include "soloud_audiosource.h"
 #include "soloud_bus.h"
+#include "soloud_queue.h"
 #include "soloud_error.h"
 
 namespace SoLoud
@@ -114,6 +141,8 @@ namespace SoLoud
 		void * mBackendData;
 		// Pointer for the audio thread mutex.
 		void * mAudioThreadMutex;
+		// Flag for when we're inside the mutex, used for debugging.
+		bool mInsideAudioThreadMutex;
 		// Called by SoLoud to shut down the back-end. If NULL, not called. Should be set by back-end.
 		soloudCallFunction mBackendCleanupFunc;
 
@@ -136,6 +165,7 @@ namespace SoLoud
 			OPENAL,
 			COREAUDIO,
 			OPENSLES,
+			VITA_HOMEBREW,
 			NULLDRIVER,
 			BACKEND_MAX,
 		};
@@ -186,7 +216,7 @@ namespace SoLoud
 		handle playBackground(AudioSource &aSound, float aVolume = -1.0f, bool aPaused = 0, unsigned int aBus = 0);
 
 		// Seek the audio stream to certain point in time. Some streams can't seek backwards. Relative play speed affects time.
-		void seek(handle aVoiceHandle, time aSeconds);
+		result seek(handle aVoiceHandle, time aSeconds);
 		// Stop the sound.
 		void stop(handle aVoiceHandle);
 		// Stop all voices.
@@ -205,6 +235,8 @@ namespace SoLoud
 
 		// Get current play time, in seconds.
 		time getStreamTime(handle aVoiceHandle);
+		// Get current sample position, in seconds.
+		time getStreamPosition(handle aVoiceHandle);
 		// Get current pause state.
 		bool getPause(handle aVoiceHandle);
 		// Get current volume.
@@ -233,7 +265,11 @@ namespace SoLoud
 		unsigned int getMaxActiveVoiceCount() const;
 		// Query whether a voice is set to loop.
 		bool getLooping(handle aVoiceHandle);
+		// Get voice loop point value
+		time getLoopPoint(handle aVoiceHandle);
 
+		// Set voice loop point value
+		void setLoopPoint(handle aVoiceHandle, time aLoopPoint);
 		// Set voice's loop state
 		void setLooping(handle aVoiceHandle, bool aLooping);
 		// Set current maximum active voice setting
@@ -361,7 +397,7 @@ namespace SoLoud
 		// Update list of active voices
 		void calcActiveVoices();
 		// Perform mixing for a specific bus
-		void mixBus(float *aBuffer, unsigned int aSamples, float *aScratch, unsigned int aBus, float aSamplerate, unsigned int aChannels);
+		void mixBus(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize, float *aScratch, unsigned int aBus, float aSamplerate, unsigned int aChannels);
 		// Max. number of active voices. Busses and tickable inaudibles also count against this.
 		unsigned int mMaxActiveVoices;
 		// Highest voice in use so far

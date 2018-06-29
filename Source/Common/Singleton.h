@@ -69,9 +69,15 @@ template <class T>
 class Singleton : public T, public Life
 {
 public:
+	enum class Status
+	{
+		Uninitialized,
+		Available,
+		Disposed,
+	};
 	Singleton()
 	{
-		_disposed = false;
+		_status = Status::Available;
 		Life::addItem(_name, getLife());
 	}
 
@@ -79,14 +85,14 @@ public:
 	{
 		static auto* _instance = new Singleton();
 #if DORA_DEBUG
-		Life::assertIf(_disposed, _name);
+		Life::assertIf(_status != Status::Available, _name);
 #endif // DORA_DEBUG
 		return *_instance;
 	}
 
 	virtual ~Singleton()
 	{
-		_disposed = true;
+		_status = Status::Disposed;
 	}
 
 	const string& getName() const
@@ -106,7 +112,12 @@ public:
 
 	static bool isDisposed()
 	{
-		return _disposed;
+		return _status == Status::Disposed;
+	}
+
+	static bool isInitialized()
+	{
+		return _status == Status::Available;
 	}
 
 	static void setDependencyInfo(String name, String dependencyStr)
@@ -123,14 +134,14 @@ public:
 
 private:
 	static string _name;
-	static bool _disposed;
+	static Status _status;
 };
 
 template <class T>
 string Singleton<T>::_name;
 
 template <class T>
-bool Singleton<T>::_disposed = true;
+typename Singleton<T>::Status Singleton<T>::_status = Singleton<T>::Status::Uninitialized;
 
 #define SINGLETON_REF(type, ...) \
 private: \

@@ -237,7 +237,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	switch (Switch::hash(glyphRanges))
 	{
 		case "Chinese"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesChinese();
+			targetGlyphRanges = io.Fonts->GetGlyphRangesChineseSimplifiedCommon();
 			break;
 		case "Korean"_hash:
 			targetGlyphRanges = io.Fonts->GetGlyphRangesKorean();

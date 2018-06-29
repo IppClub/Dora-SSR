@@ -179,6 +179,11 @@ namespace bx
 		return log(_a) * kInvLogNat2;
 	}
 
+	inline BX_CONST_FUNC float rsqrtRef(float _a)
+	{
+		return pow(_a, -0.5f);
+	}
+
 	inline BX_CONST_FUNC float sqrtRef(float _a)
 	{
 		if (_a < kNearZero)
@@ -186,7 +191,7 @@ namespace bx
 			return 0.0f;
 		}
 
-		return 1.0f/rsqrt(_a);
+		return 1.0f/rsqrtRef(_a);
 	}
 
 	inline BX_CONST_FUNC float sqrtSimd(float _a)
@@ -206,11 +211,6 @@ namespace bx
 #else
 		return sqrtRef(_a);
 #endif // BX_CONFIG_SUPPORTS_SIMD
-	}
-
-	inline BX_CONST_FUNC float rsqrtRef(float _a)
-	{
-		return pow(_a, -0.5f);
 	}
 
 	inline BX_CONST_FUNC float rsqrtSimd(float _a)
@@ -940,6 +940,22 @@ namespace bx
 		_result[1] = normal[1];
 		_result[2] = normal[2];
 		_result[3] = -vec3Dot(normal, _va);
+	}
+
+	inline BX_CONST_FUNC float toLinear(float _a)
+	{
+		const float lo     = _a / 12.92f;
+		const float hi     = pow( (_a + 0.055f) / 1.055f, 2.4f);
+		const float result = lerp(hi, lo, _a <= 0.04045f);
+		return result;
+	}
+
+	inline BX_CONST_FUNC float toGamma(float _a)
+	{
+		const float lo     = _a * 12.92f;
+		const float hi     = pow(abs(_a), 1.0f/2.4f) * 1.055f - 0.055f;
+		const float result = lerp(hi, lo, _a <= 0.0031308f);
+		return result;
 	}
 
 } // namespace bx

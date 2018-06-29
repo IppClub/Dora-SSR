@@ -204,14 +204,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\ostream.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\printf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\posix.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -405,11 +401,13 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Rope\b2Rope.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\container.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\core.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format-inl.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\string.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />

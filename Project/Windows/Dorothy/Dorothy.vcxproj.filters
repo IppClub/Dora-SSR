@@ -258,15 +258,6 @@
     <ClCompile Include="..\..\..\Source\Common\Singleton.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
-      <Filter>3rdParty\fmt</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\ostream.cpp">
-      <Filter>3rdParty\fmt</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\printf.cpp">
-      <Filter>3rdParty\fmt</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Common\Debug.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -519,6 +510,12 @@
     <ClCompile Include="..\..\..\Source\Entity\Entity.cpp">
       <Filter>Entity</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\posix.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -703,24 +700,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Singleton.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\container.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\string.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h">
-      <Filter>3rdParty\fmt</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Dorothy.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h">
@@ -983,6 +962,30 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Entity\Entity.h">
       <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\core.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format-inl.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h">
+      <Filter>3rdParty\fmt</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

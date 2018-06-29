@@ -32,20 +32,19 @@ Sprite* ClipDef::toSprite(String name)
 
 string ClipDef::toXml()
 {
-	fmt::MemoryWriter writer;
-	writer << '<' << char(Xml::Clip::Element::Dorothy) << ' ' << char(Xml::Clip::Dorothy::File) << "=\""
-		<< Slice(textureFile).getFileName() << "\">";
+	fmt::memory_buffer out;
+	fmt::format_to(out, "<{} =\"{}\">", char(Xml::Clip::Element::Dorothy), char(Xml::Clip::Dorothy::File));
 	for (const auto& rect : rects)
 	{
-		writer << '<' << char(Xml::Clip::Element::Clip) << ' '
-			<< char(Xml::Clip::Clip::Name) << "=\"" << rect.first << "\" "
-			<< char(Xml::Clip::Clip::Rect) << "=\""
-			<< rect.second->origin.x << ',' << rect.second->origin.y << ','
-			<< rect.second->size.width << ',' << rect.second->size.height
-			<< "\"/>";
+		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{},{},{},{}\"/>",
+			char(Xml::Clip::Element::Clip),
+			char(Xml::Clip::Clip::Name), rect.first,
+			char(Xml::Clip::Clip::Rect),
+			rect.second->origin.x, rect.second->origin.y,
+			rect.second->size.width, rect.second->size.height);
 	}
-	writer << "</" << char(Xml::Clip::Element::Dorothy) << '>';
-	return writer.str();
+	fmt::format_to(out, "</{}>", char(Xml::Clip::Element::Dorothy));
+	return fmt::to_string(out);
 }
 
 /* ClipCache */
