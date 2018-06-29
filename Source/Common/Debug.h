@@ -76,12 +76,10 @@ inline void LogPrint(String str)
 		{ \
 			if (cond) \
 			{ \
-				fmt::MemoryWriter writer; \
-				writer.write("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] ", \
-					__FILE__, __FUNCTION__, __LINE__); \
-				writer.write(Dorothy::LogFormat(__VA_ARGS__)); \
-				writer.write("\n"); \
-				Dorothy::LogPrint(writer.str()); \
+				Dorothy::LogPrint( \
+					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] {}\n", \
+						__FILE__, __FUNCTION__, __LINE__, Dorothy::LogFormat(__VA_ARGS__)) \
+				); \
 				DORA_ASSERT(!(cond)); \
 			} \
 		}
@@ -89,12 +87,10 @@ inline void LogPrint(String str)
 		{ \
 			if (!(cond)) \
 			{ \
-				fmt::MemoryWriter writer; \
-				writer.write("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] ", \
-					__FILE__, __FUNCTION__, __LINE__); \
-				writer.write(Dorothy::LogFormat(__VA_ARGS__)); \
-				writer.write("\n"); \
-				Dorothy::LogPrint(writer.str()); \
+				Dorothy::LogPrint( \
+					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] {}\n", \
+						__FILE__, __FUNCTION__, __LINE__, Dorothy::LogFormat(__VA_ARGS__)) \
+				); \
 				DORA_ASSERT(cond); \
 			} \
 		}

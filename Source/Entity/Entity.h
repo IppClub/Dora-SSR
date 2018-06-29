@@ -61,10 +61,10 @@ class EntityGroup : public Object
 {
 public:
 	EntityGroup(const vector<string>& components);
-	EntityGroup(Slice components[], int count);
 	virtual ~EntityGroup();
 	virtual bool init() override;
-	CREATE_FUNC(EntityGroup);
+	static EntityGroup* create(const vector<string>& components);
+	static EntityGroup* create(Slice components[], int count);
 public:
 	template<typename Func>
 	bool each(const Func& func);
@@ -81,10 +81,10 @@ class EntityObserver : public Object
 {
 public:
 	EntityObserver(int option, const vector<string>& components);
-	EntityObserver(int option, Slice components[], int count);
 	virtual ~EntityObserver();
 	virtual bool init() override;
-	CREATE_FUNC(EntityObserver);
+	static EntityObserver* create(int option, const vector<string>& components);
+	static EntityObserver* create(int option, Slice components[], int count);
 public:
 	template<typename Func>
 	bool each(const Func& func);

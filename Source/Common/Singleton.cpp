@@ -81,17 +81,16 @@ struct LifeCycler
 			}
 			if (!nameList.empty())
 			{
-				fmt::MemoryWriter writer;
-				writer.write("singleton destroyed:");
+				string msg = "singleton destroyed:";
 				for (auto& name : nameList)
 				{
-					writer.write(" {}", name);
+					msg += " " + name;
 					if (name != nameList.back())
 					{
-						writer.write(",");
+						msg += ",";
 					}
 				}
-				Log("{}.", writer.str());
+				Log("{}.", msg);
 			}
 #endif // DORA_DEBUG
 			for (auto it = items.rbegin(); it != items.rend(); ++it)

@@ -173,6 +173,15 @@ namespace bgfx
 			PTC14A,       //!< PVRTC1 RGBA 4BPP
 			PTC22,        //!< PVRTC2 RGBA 2BPP
 			PTC24,        //!< PVRTC2 RGBA 4BPP
+			ATC,          //!< ATC RGB 4BPP
+			ATCE,         //!< ATCE RGBA 8 BPP explicit alpha
+			ATCI,         //!< ATCI RGBA 8 BPP interpolated alpha
+			ASTC4x4,      //!< ASTC 4x4 8.0 BPP
+			ASTC5x5,      //!< ASTC 5x5 5.12 BPP
+			ASTC6x6,      //!< ASTC 6x6 3.56 BPP
+			ASTC8x5,      //!< ASTC 8x5 3.20 BPP
+			ASTC8x6,      //!< ASTC 8x6 2.67 BPP
+			ASTC10x5,     //!< ASTC 10x5 2.56 BPP
 
 			Unknown,      // Compressed formats above.
 
@@ -298,6 +307,25 @@ namespace bgfx
 		};
 	};
 
+	/// Primitive topology.
+	///
+	/// @attention C99 equivalent is `bgfx_topology_t`.
+	///
+	struct Topology
+	{
+		/// Primitive topology:
+		enum Enum
+		{
+			TriList,   //!< Triangle list.
+			TriStrip,  //!< Triangle strip.
+			LineList,  //!< Line list.
+			LineStrip, //!< Line strip.
+			PointList, //!< Point list.
+
+			Count
+		};
+	};
+
 	/// Topology conversion function.
 	///
 	/// @attention C99 equivalent is `bgfx_topology_convert_t`.
@@ -308,6 +336,7 @@ namespace bgfx
 		enum Enum
 		{
 			TriListFlipWinding,  //!< Flip winding order of triangle list.
+			TriStripFlipWinding, //!< Flip winding order of trinagle strip.
 			TriListToLineList,   //!< Convert triangle list to line list.
 			TriStripToTriList,   //!< Convert triangle strip to triangle list.
 			LineStripToLineList, //!< Convert line strip to line list.
@@ -557,6 +586,69 @@ namespace bgfx
 	{
 	}
 
+	/// Backbuffer resolution and reset parameters.
+	///
+	/// @attention C99 equivalent is `bgfx_resolution_t`.
+	///
+	struct Resolution
+	{
+		Resolution();
+
+		uint32_t width;  //!< Backbuffer width.
+		uint32_t height; //!< Backbuffer height.
+		uint32_t reset;	 //!< Reset parameters.
+	};
+
+	/// Initialization parameters used by `bgfx::init`.
+	///
+	/// @attention C99 equivalent is `bgfx_init_t`.
+	///
+	struct Init
+	{
+		Init();
+
+		/// Select rendering backend. When set to RendererType::Count
+		/// a default rendering backend will be selected appropriate to the platform.
+		/// See: `bgfx::RendererType`
+		RendererType::Enum type;
+
+		/// Vendor PCI id. If set to `BGFX_PCI_ID_NONE` it will select the first
+		/// device.
+		///   - `BGFX_PCI_ID_NONE` - Autoselect adapter.
+		///   - `BGFX_PCI_ID_SOFTWARE_RASTERIZER` - Software rasterizer.
+		///   - `BGFX_PCI_ID_AMD` - AMD adapter.
+		///   - `BGFX_PCI_ID_INTEL` - Intel adapter.
+		///   - `BGFX_PCI_ID_NVIDIA` - nVidia adapter.
+		uint16_t vendorId;
+
+		/// Device id. If set to 0 it will select first device, or device with
+		/// matching id.
+		uint16_t deviceId;
+
+		bool debug;   //!< Enable device for debuging.
+		bool profile; //!< Enable device for profiling.
+
+		Resolution resolution; //!< Backbuffer resolution and reset parameters.
+
+		struct Limits
+		{
+			uint16_t maxEncoders;     //!< Maximum number of encoder threads.
+			uint32_t transientVbSize; //!< Maximum transient vertex buffer size.
+			uint32_t transientIbSize; //!< Maximum transient index buffer size.
+		};
+
+		Limits limits;
+
+		/// Provide application specific callback interface.
+		/// See: `bgfx::CallbackI`
+		CallbackI* callback;
+
+		/// Custom allocator. When a custom allocator is not
+		/// specified, bgfx uses the CRT allocator. Bgfx assumes
+		/// custom allocator is thread safe.
+		bx::AllocatorI* allocator;
+	};
+
 	/// Memory release callback.
 	///
 	/// param[in] _ptr Pointer to allocated data.
@@ -631,6 +723,8 @@ namespace bgfx
 			uint32_t maxUniforms;             //!< Maximum number of uniform handles.
 			uint32_t maxOcclusionQueries;     //!< Maximum number of occlusion query handles.
 			uint32_t maxEncoders;             //!< Maximum number of encoder threads.
+			uint32_t transientVbSize;         //!<
+			uint32_t transientIbSize;         //!<
 		};
 
 		Limits limits;
@@ -809,52 +903,59 @@ namespace bgfx
 	///   time frequencies define timestamps-per-second for that hardware.
 	struct Stats
 	{
-		int64_t cpuTimeFrame;             //!< CPU time between two `bgfx::frame` calls.
-		int64_t cpuTimeBegin;             //!< Render thread CPU submit begin time.
-		int64_t cpuTimeEnd;               //!< Render thread CPU submit end time.
-		int64_t cpuTimerFreq;             //!< CPU timer frequency. Timestamps-per-second
+		int64_t cpuTimeFrame;               //!< CPU time between two `bgfx::frame` calls.
+		int64_t cpuTimeBegin;               //!< Render thread CPU submit begin time.
+		int64_t cpuTimeEnd;                 //!< Render thread CPU submit end time.
+		int64_t cpuTimerFreq;               //!< CPU timer frequency. Timestamps-per-second
 
-		int64_t gpuTimeBegin;             //!< GPU frame begin time.
-		int64_t gpuTimeEnd;               //!< GPU frame end time.
-		int64_t gpuTimerFreq;             //!< GPU timer frequency.
+		int64_t gpuTimeBegin;               //!< GPU frame begin time.
+		int64_t gpuTimeEnd;                 //!< GPU frame end time.
+		int64_t gpuTimerFreq;               //!< GPU timer frequency.
 
-		int64_t waitRender;               //!< Time spent waiting for render backend thread to finish issuing
-		                                  //!  draw commands to underlying graphics API.
-		int64_t waitSubmit;               //!< Time spent waiting for submit thread to advance to next frame.
+		int64_t waitRender;                 //!< Time spent waiting for render backend thread to finish issuing
+		                                    //!  draw commands to underlying graphics API.
+		int64_t waitSubmit;                 //!< Time spent waiting for submit thread to advance to next frame.
 
-		uint32_t numDraw;                 //!< Number of draw calls submitted.
-		uint32_t numCompute;              //!< Number of compute calls submitted.
-		uint32_t maxGpuLatency;           //!< GPU driver latency.
+		uint32_t numDraw;                   //!< Number of draw calls submitted.
+		uint32_t numCompute;                //!< Number of compute calls submitted.
+		uint32_t maxGpuLatency;             //!< GPU driver latency.
 
-		uint16_t numDynamicIndexBuffers;  //!< Number of used dynamic index buffers.
-		uint16_t numDynamicVertexBuffers; //!< Number of used dynamic vertex buffers.
-		uint16_t numFrameBuffers;         //!< Number of used frame buffers.
-		uint16_t numIndexBuffers;         //!< Number of used index buffers.
-		uint16_t numOcclusionQueries;     //!< Number of used occlusion queries.
-		uint16_t numPrograms;             //!< Number of used programs.
-		uint16_t numShaders;              //!< Number of used shaders.
-		uint16_t numTextures;             //!< Number of used textures.
-		uint16_t numUniforms;             //!< Number of used uniforms.
-		uint16_t numVertexBuffers;        //!< Number of used vertex buffers.
-		uint16_t numVertexDecls;          //!< Number of used vertex declarations.
+		uint16_t numDynamicIndexBuffers;    //!< Number of used dynamic index buffers.
+		uint16_t numDynamicVertexBuffers;   //!< Number of used dynamic vertex buffers.
+		uint16_t numFrameBuffers;           //!< Number of used frame buffers.
+		uint16_t numIndexBuffers;           //!< Number of used index buffers.
+		uint16_t numOcclusionQueries;       //!< Number of used occlusion queries.
+		uint16_t numPrograms;               //!< Number of used programs.
+		uint16_t numShaders;                //!< Number of used shaders.
+		uint16_t numTextures;               //!< Number of used textures.
+		uint16_t numUniforms;               //!< Number of used uniforms.
+		uint16_t numVertexBuffers;          //!< Number of used vertex buffers.
+		uint16_t numVertexDecls;            //!< Number of used vertex declarations.
 
-		int64_t gpuMemoryMax;             //!< Maximum available GPU memory for application.
-		int64_t gpuMemoryUsed;            //!< Amount of GPU memory used by the application.
+		int64_t textureMemoryUsed;          //!< Estimate of texture memory used.
+		int64_t rtMemoryUsed;               //!< Estimate of render target memory used.
+		int32_t transientVbUsed;            //!< Amount of transient vertex buffer used.
+		int32_t transientIbUsed;            //!< Amount of transient index buffer used.
 
-		uint16_t width;                   //!< Backbuffer width in pixels.
-		uint16_t height;                  //!< Backbuffer height in pixels.
-		uint16_t textWidth;               //!< Debug text width in characters.
-		uint16_t textHeight;              //!< Debug text height in characters.
+		uint32_t numPrims[Topology::Count]; //!< Number of primitives rendered.
 
-		uint16_t   numViews;              //!< Number of view stats.
-		ViewStats* viewStats;             //!< Array of View stats.
+		int64_t gpuMemoryMax;               //!< Maximum available GPU memory for application.
+		int64_t gpuMemoryUsed;              //!< Amount of GPU memory used by the application.
 
-		uint8_t       numEncoders;        //!< Number of encoders used during frame.
-		EncoderStats* encoderStats;       //!< Array of encoder stats.
+		uint16_t width;                     //!< Backbuffer width in pixels.
+		uint16_t height;                    //!< Backbuffer height in pixels.
+		uint16_t textWidth;                 //!< Debug text width in characters.
+		uint16_t textHeight;                //!< Debug text height in characters.
+
+		uint16_t   numViews;                //!< Number of view stats.
+		ViewStats* viewStats;               //!< Array of View stats.
+
+		uint8_t       numEncoders;          //!< Number of encoders used during frame.
+		EncoderStats* encoderStats;         //!< Array of encoder stats.
 	};
 
-	/// Encoders are used for submitting draw calls from multiple threads, so one encoder per thread.
-	/// Use `bgfx::begin()` to obtain an encoder for a thread.
+	/// Encoders are used for submitting draw calls from multiple threads. Only one encoder
+	/// per thread should be used. Use `bgfx::begin()` to obtain an encoder for a thread.
 	///
 	/// @attention C99 equivalent is `bgfx_encoder`.
 	///
@@ -1158,6 +1259,16 @@ namespace bgfx
 			, uint32_t _startVertex
 			, uint32_t _numVertices
 			);
+
+		/// Set number of vertices for auto generated vertices use in conjuction
+		/// with gl_VertexID.
+		///
+		/// @param[in] _numVertices Number of vertices.
+		///
+		/// @attention Availability depends on: `BGFX_CAPS_VERTEX_ID`.
+		/// @attention C99 equivalent is `bgfx_set_vertex_count`.
+		///
+		void setVertexCount(uint32_t _numVertices);
 
 		/// Set instance data buffer for draw primitive.
 		///
@@ -1564,6 +1675,9 @@ namespace bgfx
 		VertexDecl& skip(uint8_t _num);
 
 		/// Decode attribute.
+		///
+		/// @attention C99 equivalent is `bgfx_vertex_decl_decode`.
+		///
 		void decode(
 			  Attrib::Enum _attrib
 			, uint8_t& _num
@@ -1573,6 +1687,9 @@ namespace bgfx
 			) const;
 
 		/// Returns true if VertexDecl contains attribute.
+		///
+		/// @attention C99 equivalent is `bgfx_vertex_decl_has`.
+		///
 		bool has(Attrib::Enum _attrib) const { return UINT16_MAX != m_attributes[_attrib]; }
 
 		/// Returns relative attribute offset from the vertex.
@@ -1745,39 +1862,13 @@ namespace bgfx
 
 	/// Initialize bgfx library.
 	///
-	/// @param[in] _type Select rendering backend. When set to RendererType::Count
-	///   a default rendering backend will be selected appropriate to the platform.
-	///   See: `bgfx::RendererType`
-	///
-	/// @param[in] _vendorId Vendor PCI id. If set to `BGFX_PCI_ID_NONE` it will select the first
-	///   device.
-	///   - `BGFX_PCI_ID_NONE` - Autoselect adapter.
-	///   - `BGFX_PCI_ID_SOFTWARE_RASTERIZER` - Software rasterizer.
-	///   - `BGFX_PCI_ID_AMD` - AMD adapter.
-	///   - `BGFX_PCI_ID_INTEL` - Intel adapter.
-	///   - `BGFX_PCI_ID_NVIDIA` - nVidia adapter.
-	///
-	/// @param[in] _deviceId Device id. If set to 0 it will select first device, or device with
-	///   matching id.
-	///
-	/// @param[in] _callback Provide application specific callback interface.
-	///   See: `bgfx::CallbackI`
-	///
-	/// @param[in] _allocator Custom allocator. When a custom allocator is not
-	///   specified, bgfx uses the CRT allocator. Bgfx assumes
-	///   custom allocator is thread safe.
+	/// @param[in] _init Initialization parameters. See: `bgfx::Init` for more info.
 	///
 	/// @returns `true` if initialization was successful.
 	///
 	/// @attention C99 equivalent is `bgfx_init`.
 	///
-	bool init(
-		  RendererType::Enum _type = RendererType::Count
-		, uint16_t _vendorId = BGFX_PCI_ID_NONE
-		, uint16_t _deviceId = 0
-		, CallbackI* _callback = NULL
-		, bx::AllocatorI* _allocator = NULL
-		);
+	bool init(const Init& _init = {});
 
 	/// Shutdown bgfx library.
 	///
@@ -2105,7 +2196,7 @@ namespace bgfx
 	///
 	/// @attention C99 equivalent is `bgfx_update_dynamic_index_buffer`.
 	///
-	void updateDynamicIndexBuffer(
+	void update(
 		  DynamicIndexBufferHandle _handle
 		, uint32_t _startIndex
 		, const Memory* _mem
@@ -2179,7 +2270,7 @@ namespace bgfx
 	///
 	/// @attention C99 equivalent is `bgfx_update_dynamic_vertex_buffer`.
 	///
-	void updateDynamicVertexBuffer(
+	void update(
 		  DynamicVertexBufferHandle _handle
 		, uint32_t _startVertex
 		, const Memory* _mem
@@ -2336,12 +2427,15 @@ namespace bgfx
 	///
 	/// @param[in] _handle Shader handle.
 	/// @param[in] _name Shader name.
+	/// @param[in] _len Shader name length (if length is INT32_MAX, it's expected
+	///   that _name is zero terminated string.
 	///
 	/// @attention C99 equivalent is `bgfx_set_shader_name`.
 	///
 	void setName(
 		  ShaderHandle _handle
-		, const char* _name
+		, const char* _ptr
+		, int32_t _len = INT32_MAX
 		);
 
 	/// Destroy shader. Once a shader program is created with _handle,
@@ -2696,12 +2790,15 @@ namespace bgfx
 	///
 	/// @param[in] _handle Texture handle.
 	/// @param[in] _name Texture name.
+	/// @param[in] _len Texture name length (if length is INT32_MAX, it's expected
+	///   that _name is zero terminated string.
 	///
 	/// @attention C99 equivalent is `bgfx_set_texture_name`.
 	///
 	void setName(
 		  TextureHandle _handle
-		, const char* _name
+		, const char* _ptr
+		, int32_t _len = INT32_MAX
 		);
 
 	/// Returns texture direct access pointer.
@@ -3487,6 +3584,16 @@ namespace bgfx
 		, uint32_t _startVertex
 		, uint32_t _numVertices
 		);
+
+	/// Set number of vertices for auto generated vertices use in conjuction
+	/// with gl_VertexID.
+	///
+	/// @param[in] _numVertices Number of vertices.
+	///
+	/// @attention Availability depends on: `BGFX_CAPS_VERTEX_ID`.
+	/// @attention C99 equivalent is `bgfx_set_vertex_count`.
+	///
+	void setVertexCount(uint32_t _numVertices);
 
 	/// Set instance data buffer for draw primitive.
 	///

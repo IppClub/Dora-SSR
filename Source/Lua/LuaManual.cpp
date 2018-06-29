@@ -1252,9 +1252,9 @@ namespace ImGui { namespace Binding
 		return ImGui::InputTextMultiline(label, buffer->get(), buffer->size(), size, getInputTextFlags(inputTextFlags));
 	}
 
-	bool InputFloat(const char* label, float* v, float step, float step_fast, int decimal_precision, String inputTextFlags)
+	bool InputFloat(const char* label, float* v, float step, float step_fast, String format, String inputTextFlags)
 	{
-		return ImGui::InputFloat(label, v, step, step_fast, decimal_precision, getInputTextFlags(inputTextFlags));
+		return ImGui::InputFloat(label, v, step, step_fast, format.toString().c_str(), getInputTextFlags(inputTextFlags));
 	}
 
 	bool InputInt(const char* label, int* v, int step, int step_fast, String inputTextFlags)
@@ -1419,9 +1419,9 @@ namespace ImGui { namespace Binding
 		return changed;
 	}
 
-	bool InputFloat2(const char* label, Vec2& v, int decimal_precision, String extra_flags)
+	bool InputFloat2(const char* label, Vec2& v, String format, String extra_flags)
 	{
-		return ImGui::InputFloat2(label, &v.x, decimal_precision, getInputTextFlags(extra_flags));
+		return ImGui::InputFloat2(label, &v.x, format.toString().c_str(), getInputTextFlags(extra_flags));
 	}
 
 	bool InputInt2(const char* label, Vec2& v, String extra_flags)

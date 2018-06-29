@@ -56,79 +56,73 @@ opacity(1.0f)
 
 string SpriteDef::toXml()
 {
-	fmt::MemoryWriter writer;
-	writer << '<' << char(Xml::Model::Element::Sprite);
+	fmt::memory_buffer out;
+	fmt::format_to(out, "<{}", char(Xml::Model::Element::Sprite));
 	if (x != 0.0f || y != 0.0f)
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Position) << '=';
-		writer.write("\"%.2f,%.2f\"", x, y);
+		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Position), x, y);
 	}
 	if (rotation != 0.0f)
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Rotation) << '=';
-		writer.write("\"%.2f\"", rotation);
+		fmt::format_to(out, " {}=\"{:.2f}\"", char(Xml::Model::Sprite::Rotation), rotation);
 	}
 	if (anchorX != 0.5f || anchorY != 0.5f)
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Key) << '=';
-		writer.write("\"%.2f,%.2f\"", anchorX, anchorY);
+		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Key), anchorX, anchorY);
 	}
 	if (scaleX != 1.0f || scaleY != 1.0f)
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Scale) << '=';
-		writer.write("\"%.2f,%.2f\"", scaleX, scaleY);
+		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Scale), scaleX, scaleY);
 	}
 	if (skewX != 0.0f || skewY != 0.0f)
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Skew) << '=';
-		writer.write("\"%.2f,%.2f\"", skewX, skewY);
+		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Skew), skewX, skewY);
 	}
 	if (!name.empty())
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Name) << "=\"" << name << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Name), name);
 	}
 	if (!clip.empty())
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Clip) << "=\"" << clip << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Clip), clip);
 	}
 	if (!front)
 	{
-		writer << ' ' << char(Xml::Model::Sprite::Front) << "=\"0\"";
+		fmt::format_to(out, " {}=\"0\"", char(Xml::Model::Sprite::Front));
 	}
-	writer << '>';
+	fmt::format_to(out, ">");
 	for (AnimationDef* actionDef : animationDefs)
 	{
 		if (actionDef)
 		{
-			writer << actionDef->toXml();
+			fmt::format_to(out, "{}", actionDef->toXml());
 		}
 		else
 		{
-			writer << '<' << char(Xml::Model::Element::KeyAnimation) << "/>";
+			fmt::format_to(out, "<{}/>", char(Xml::Model::Element::KeyAnimation));
 		}
 	}
 	if (!looks.empty())
 	{
-		writer << '<' << char(Xml::Model::Element::Look) << ' '
-			<< char(Xml::Model::Look::Name) << "=\"";
+		fmt::format_to(out, "<{} {}=\"", char(Xml::Model::Element::Look), char(Xml::Model::Look::Name));
 		int lookSize = s_cast<int>(looks.size());
 		int last = lookSize - 1;
 		for (int i = 0; i < lookSize; i++)
 		{
-			writer << looks[i];
+			fmt::format_to(out, "{}", looks[i]);
 			if (i != last)
 			{
-				writer << ',';
+				fmt::format_to(out, ",");
 			}
 		}
-		writer << "\"/>";
+		fmt::format_to(out, "\"/>");
 	}
 	for (SpriteDef* spriteDef : children)
 	{
-		writer << spriteDef->toXml();
+		fmt::format_to(out, "{}", spriteDef->toXml());
 	}
-	writer << "</" << char(Xml::Model::Element::Sprite) << '>';
-	return writer.str();
+	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Sprite));
+	return fmt::to_string(out);
 }
 
 std::tuple<Action*, ResetAction*> SpriteDef::toResetAction()
@@ -188,41 +182,34 @@ SpriteDef* ModelDef::getRoot()
 
 string ModelDef::toXml()
 {
-	fmt::MemoryWriter writer;
-	writer << '<' << char(Xml::Model::Element::Dorothy) << ' '
-		<< char(Xml::Model::Dorothy::File) << "=\"" << Slice(_clip).getFileName() << "\" ";
+	fmt::memory_buffer out;
+	fmt::format_to(out, "<{} {}=\"{}\" ", char(Xml::Model::Element::Dorothy), char(Xml::Model::Dorothy::File), Slice(_clip).getFileName());
 	if (_isFaceRight)
 	{
-		writer << char(Xml::Model::Dorothy::FaceRight) << "=\"1\" ";
+		fmt::format_to(out, "{}=\"1\" ", char(Xml::Model::Dorothy::FaceRight));
 	}
 	if (_size != Size::zero)
 	{
-		writer << char(Xml::Model::Dorothy::Size) << '=';
-		writer.write("\"%d,%d\"", s_cast<int>(_size.width), s_cast<int>(_size.height));
+		fmt::format_to(out, "{}=\"{:d},{:d}\"", char(Xml::Model::Dorothy::Size), s_cast<int>(_size.width), s_cast<int>(_size.height));
 	}
-	writer << '>' << _root->toXml();
+	fmt::format_to(out, ">{}", _root->toXml());
 	for (const auto& item: _animationIndex)
 	{
-		writer << '<' << char(Xml::Model::Element::AnimationName) << ' '
-			<< char(Xml::Model::AnimationName::Index) << "=\"" << item.second << "\" "
-			<< char(Xml::Model::AnimationName::Name) << "=\"" << item.first << "\"/>";
+		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{}\"/>", char(Xml::Model::Element::AnimationName), char(Xml::Model::AnimationName::Index), item.second, char(Xml::Model::AnimationName::Name), item.first);
 	}
 	for (const auto& item: _lookIndex)
 	{
-		writer << '<' << char(Xml::Model::Element::LookName) << ' '
-			<< char(Xml::Model::LookName::Index) << "=\"" << item.second << "\" "
-			<< char(Xml::Model::LookName::Name) << "=\"" << item.first << "\"/>";
+		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{}\"/>", char(Xml::Model::Element::LookName), char(Xml::Model::LookName::Index), item.second, char(Xml::Model::LookName::Name), item.first);
 	}
 	for (const auto& it : _keys)
 	{
 		const Vec2& point = it.second;
-		writer << '<' << char(Xml::Model::Element::KeyPoint) << ' '
-			<< char(Xml::Model::KeyPoint::Key) << "=\"" << it.first << "\" "
-			<< char(Xml::Model::KeyPoint::Position) << '=';
-		writer.write("\"%.2f,%.2f\"/>", point.x, point.y);
+		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{:.2f},{:.2f}\"/>",
+			char(Xml::Model::Element::KeyPoint), char(Xml::Model::KeyPoint::Key), it.first,
+			char(Xml::Model::KeyPoint::Position), point.x, point.y);
 	}
-	writer << "</" << char(Xml::Model::Element::Dorothy) << '>';
-	return writer.str();
+	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Dorothy));
+	return fmt::to_string(out);
 }
 
 bool ModelDef::isFaceRight() const

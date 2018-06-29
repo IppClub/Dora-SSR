@@ -18,6 +18,7 @@ union SDL_Event;
 NS_DOROTHY_BEGIN
 
 typedef Delegate<void(const SDL_Event&)> SDLEventHandler;
+typedef Delegate<void()> QuitHandler;
 
 class Application
 {
@@ -43,6 +44,7 @@ public:
 	PROPERTY(Uint32, Seed);
 	PROPERTY_BOOL(FPSLimited);
 	SDLEventHandler eventHandler;
+	QuitHandler quitHandler;
 	int run();
 	void shutdown();
 	void invokeInRender(const function<void()>& func);

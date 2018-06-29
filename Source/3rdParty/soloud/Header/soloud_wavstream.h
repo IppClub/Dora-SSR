@@ -1,6 +1,6 @@
 /*
 SoLoud audio engine
-Copyright (c) 2013-2015 Jari Komppa
+Copyright (c) 2013-2018 Jari Komppa
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -28,7 +28,6 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include "soloud.h"
 
-
 struct stb_vorbis;
 
 namespace SoLoud
@@ -47,7 +46,7 @@ namespace SoLoud
 		float **mOggOutputs;
 	public:
 		WavStreamInstance(WavStream *aParent);
-		virtual void getAudio(float *aBuffer, unsigned int aSamples);
+		virtual unsigned int getAudio(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize);
 		virtual result rewind();
 		virtual bool hasEnded();
 		virtual ~WavStreamInstance();
@@ -75,6 +74,7 @@ namespace SoLoud
 		result loadFileToMem(File *aFile);		
 		virtual AudioSourceInstance *createInstance();
 		time getLength();
+
 	public:
 		result parse(File *aFile);
 	};

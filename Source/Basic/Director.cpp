@@ -22,6 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/RenderTarget.h"
 #include "Input/Keyboard.h"
 #include "bx/timer.h"
+#include "Common/Utils.h"
 
 NS_DOROTHY_BEGIN
 
@@ -181,11 +182,11 @@ bool Director::init()
 	{
 		return false;
 	}
-	if (!SharedAudio.init())
+	if (!SharedKeyboard.init())
 	{
 		return false;
 	}
-	if (!SharedKeyboard.init())
+	if (!SharedAudio.init())
 	{
 		return false;
 	}

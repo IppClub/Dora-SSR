@@ -38,63 +38,58 @@ skewY(0.0f)
 
 string KeyFrameDef::toXml(KeyFrameDef* lastDef)
 {
-	fmt::MemoryWriter writer;
-	writer << '<' << char(Xml::Model::Element::KeyFrame);
+	fmt::memory_buffer out;
+	fmt::format_to(out, "<{}", char(Xml::Model::Element::KeyFrame));
 	if ((lastDef && lastDef->duration != duration) || (!lastDef && duration != 0.0f))
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::Duration) << "=\"" << s_cast<int>(duration * 60.0f + 0.5f) << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Duration), s_cast<int>(duration * 60.0f + 0.5f));
 	}
 	if ((lastDef && lastDef->visible != visible) || (!lastDef && !visible))
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::Visible) << "=\"" << (visible ? "1" : "0") << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Visible), (visible ? "1" : "0"));
 	}
 	if ((lastDef && (lastDef->x != x || lastDef->y != y)) || (!lastDef && (x != 0.0f || y != 0.0f)))
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::Position) << '=';
-		writer.write("\"%.2f,%.2f\"", x, y);
+		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::KeyFrame::Position), x, y);
 	}
 	if ((lastDef && lastDef->rotation != rotation) || (!lastDef && rotation != 0.0f))
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::Rotation) << '=';
-		writer.write("\".2f\"", rotation);
+		fmt::format_to(out, " {}=\"{:.2f}\"", char(Xml::Model::KeyFrame::Rotation), rotation);
 	}
 	if ((lastDef && (lastDef->scaleX != scaleX || lastDef->scaleY != scaleY)) || (!lastDef && (scaleX != 1.0f || scaleY != 1.0f)))
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::Scale) << '=';
-		writer.write("\"%.2f,%.2f\"", scaleX, scaleY);
+		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::KeyFrame::Scale), scaleX, scaleY);
 	}
 	if ((lastDef && lastDef->opacity != opacity) || (!lastDef && opacity != 1.0f))
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::Opacity) << '=';
-		writer.write("\"%.2f\"", opacity);
+		fmt::format_to(out, " {}=\"{:.2f}\"", char(Xml::Model::KeyFrame::Opacity), opacity);
 	}
 	if ((lastDef && (lastDef->skewX != skewX || lastDef->skewY != skewY)) || (!lastDef && (skewX != 0.0f || skewY != 0.0f)))
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::Skew) << '=';
-		writer.write("\"%.2f,%.2f\"", skewX, skewY);
+		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::KeyFrame::Skew), skewX, skewY);
 	}
 	if (easePos != Ease::Linear)
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::EasePos) << "=\"" << s_cast<int>(easePos) << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EasePos), s_cast<int>(easePos));
 	}
 	if (easeScale != Ease::Linear)
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::EaseScale) << "=\"" << s_cast<int>(easeScale) << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseScale), s_cast<int>(easeScale));
 	}
 	if (easeRotation != Ease::Linear)
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::EaseRotate) << "=\"" << s_cast<int>(easeRotation) << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseRotate), s_cast<int>(easeRotation));
 	}
 	if (easeSkew != Ease::Linear)
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::EaseSkew) << "=\"" << s_cast<int>(easeSkew) << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseSkew), s_cast<int>(easeSkew));
 	}
 	if (easeOpacity != Ease::Linear)
 	{
-		writer << ' ' << char(Xml::Model::KeyFrame::EaseOpacity) << "=\"" << s_cast<int>(easeOpacity) << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseOpacity), s_cast<int>(easeOpacity));
 	}
-	writer << "/>";
-	return writer.str();
+	fmt::format_to(out, "/>");
+	return fmt::to_string(out);
 }
 
 /* KeyReset */
@@ -375,24 +370,24 @@ Action* KeyAnimationDef::toAction()
 
 string KeyAnimationDef::toXml()
 {
-	fmt::MemoryWriter writer;
-	writer << '<' << char(Xml::Model::Element::KeyAnimation);
+	fmt::memory_buffer out;
+	fmt::format_to(out, "<{}", char(Xml::Model::Element::KeyAnimation));
 	if (_keyFrameDefs.empty())
 	{
-		writer << "/>";
+		fmt::format_to(out, "/>");
 	}
 	else
 	{
-		writer << '>';
+		fmt::format_to(out, ">");
 		KeyFrameDef* lastDef = nullptr;
 		for (KeyFrameDef* keyFrameDef : _keyFrameDefs)
 		{
-			writer << keyFrameDef->toXml(lastDef);
+			fmt::format_to(out, "{}", keyFrameDef->toXml(lastDef));
 			lastDef = keyFrameDef;
 		}
-		writer << "</" << char(Xml::Model::Element::KeyAnimation) << '>';
+		fmt::format_to(out, "</{}>", char(Xml::Model::Element::KeyAnimation));
 	}
-	return writer.str();
+	return fmt::to_string(out);
 }
 
 void KeyAnimationDef::restoreResetAnimation(Node* target, ActionDuration* action)
@@ -429,15 +424,14 @@ const string& FrameAnimationDef::getFile() const
 
 string FrameAnimationDef::toXml()
 {
-	fmt::MemoryWriter writer;
-	writer << '<' << char(Xml::Model::Element::FrameAnimation) << ' '
-		<< char(Xml::Model::FrameAnimation::File) << "=\"" << _file << '\"';
+	fmt::memory_buffer out;
+	fmt::format_to(out, "<{} {}=\"{}\"", char(Xml::Model::Element::FrameAnimation), char(Xml::Model::FrameAnimation::File), _file);
 	if (delay != 0.0f)
 	{
-		writer << ' ' << char(Xml::Model::FrameAnimation::Delay) << "=\"" << delay << '\"';
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::FrameAnimation::Delay), delay);
 	}
-	writer << "/>";
-	return writer.str();
+	fmt::format_to(out, "/>");
+	return fmt::to_string(out);
 }
 
 NS_DOROTHY_END

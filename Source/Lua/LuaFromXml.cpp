@@ -311,12 +311,12 @@ static const char* _toBoolean(const char* str)
 		const oItem& parent = elementStack.top();\
 		if (!parent.name.empty())\
 		{\
-			stream << parent.name << ":addChild(" << self << ")\n";\
+			fmt::format_to(stream, "{}:addChild({})\n", parent.name, self);\
 			if (hasSelf && ref)\
 			{\
-				stream << firstItem << "." << self << " = " << self << "\n";\
+				fmt::format_to(stream, "{}.{} = {}\n", firstItem, self, self);\
 			}\
-			stream << "\n";\
+			fmt::format_to(stream, "\n");\
 		}\
 		else if (strcmp(parent.type,"Stencil") == 0)\
 		{\
@@ -324,11 +324,11 @@ static const char* _toBoolean(const char* str)
 			if (!elementStack.empty())\
 			{\
 				const oItem& newParent = elementStack.top();\
-				stream << newParent.name << ".stencil = " << self << "\n\n";\
+				fmt::format_to(stream, "{}.stencil = {}\n\n", newParent.name, self);\
 			}\
 		}\
 	}\
-	else stream << "\n";
+	else fmt::format_to(stream, "\n");
 
 // Node
 #define Node_Define \
@@ -392,38 +392,38 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(RenderGroup) { renderGroup = atts[++i]; break; }\
 	CASE_STR(RenderOrder) { renderOrder = atts[++i]; break; }
 #define Node_Create \
-	stream << "local " << self << " = Node()\n";
+	fmt::format_to(stream, "local {} = Node()\n", self);
 #define Node_Handle \
-	if (anchorX && anchorY) stream << self << ".anchor = Vec2(" << Val(anchorX) << ',' << Val(anchorY) << ")\n";\
-	else if (anchorX && !anchorY) stream << self << ".anchor = Vec2(" << Val(anchorX) << ',' << self << ".anchor.y)\n";\
-	else if (!anchorX && anchorY) stream << self << ".anchor = Vec2(" << self << ".anchor.x," << Val(anchorY) << ")\n";\
-	if (x) stream << self << ".x = " << Val(x) << '\n';\
-	if (y) stream << self << ".y = " << Val(y) << '\n';\
-	if (z) stream << self << ".z = " << Val(z) << '\n';\
-	if (passColor) stream << self << ".passColor = " << toBoolean(passColor) << '\n';\
-	if (passOpacity) stream << self << ".passOpacity = " << toBoolean(passOpacity) << '\n';\
-	if (color) stream << self << ".color3 = Color3(" << Val(color) << ")\n";\
-	if (opacity) stream << self << ".opacity = " << Val(opacity) << '\n';\
-	if (angle) stream << self << ".angle = " << Val(angle) << '\n';\
-	if (angleX) stream << self << ".angleX = " << Val(angleX) << '\n';\
-	if (angleY) stream << self << ".angleY = " << Val(angleY) << '\n';\
-	if (scaleX) stream << self << ".scaleX = " << Val(scaleX) << '\n';\
-	if (scaleY) stream << self << ".scaleY = " << Val(scaleY) << '\n';\
-	if (scheduler) stream << self << ".scheduler = " << Val(scheduler) << '\n';\
-	if (skewX) stream << self << ".skewX = " << Val(skewX) << '\n';\
-	if (skewY) stream << self << ".skewY = " << Val(skewY) << '\n';\
-	if (transformTarget) stream << self << ".transformTarget = " << Val(transformTarget) << '\n';\
-	if (visible) stream << self << ".visible = " << toBoolean(visible) << '\n';\
-	if (order) stream << self << ".order = " << Val(order) << '\n';\
-	if (tag) stream << self << ".tag = " << toText(tag) << '\n';\
-	if (width && height) stream << self << ".size = Size(" << Val(width) << ',' << Val(height) << ")\n";\
-	else if (width && !height) stream << self << ".width = " << Val(width) << '\n';\
-	else if (!width && height) stream << self << ".height = " << Val(height) << '\n';\
-	if (touchEnabled) stream << self << ".touchEnabled = " << toBoolean(touchEnabled) << '\n';\
-	if (swallowTouches) stream << self << ".swallowTouches = " << toBoolean(swallowTouches) << '\n';\
-	if (swallowMouseWheel) stream << self << ".swallowMouseWheel = " << toBoolean(swallowMouseWheel) << '\n';\
-	if (renderGroup) stream << self << ".renderGroup = " << toBoolean(renderGroup) << '\n';\
-	if (renderOrder) stream << self << ".renderOrder = " << Val(renderOrder) << '\n';
+	if (anchorX && anchorY) fmt::format_to(stream, "{}.anchor = Vec2({},{})\n", self, Val(anchorX), Val(anchorY));\
+	else if (anchorX && !anchorY) fmt::format_to(stream, "{}.anchor = Vec2({},{}.anchor.y)\n", self, Val(anchorX), self);\
+	else if (!anchorX && anchorY) fmt::format_to(stream, "{}.anchor = Vec2({}.anchor.x,{})\n", self, Val(anchorY), self);\
+	if (x) fmt::format_to(stream, "{}.x = {}\n", self, Val(x));\
+	if (y) fmt::format_to(stream, "{}.y = {}\n", self, Val(y));\
+	if (z) fmt::format_to(stream, "{}.z = {}\n", self, Val(z));\
+	if (passColor) fmt::format_to(stream, "{}.passColor = {}\n", self, toBoolean(passColor));\
+	if (passOpacity) fmt::format_to(stream, "{}.passOpacity = {}\n", self, toBoolean(passOpacity));\
+	if (color) fmt::format_to(stream, "{}.color3 = Color3({})\n", self, Val(color));\
+	if (opacity) fmt::format_to(stream, "{}.opacity = {}\n", self, Val(opacity));\
+	if (angle) fmt::format_to(stream, "{}.angle = {}\n", self, Val(angle));\
+	if (angleX) fmt::format_to(stream, "{}.angleX = {}\n", self, Val(angleX));\
+	if (angleY) fmt::format_to(stream, "{}.angleY = {}\n", self, Val(angleY));\
+	if (scaleX) fmt::format_to(stream, "{}.scaleX = {}\n", self, Val(scaleX));\
+	if (scaleY) fmt::format_to(stream, "{}.scaleY = {}\n", self, Val(scaleY));\
+	if (scheduler) fmt::format_to(stream, "{}.scheduler = {}\n", self, Val(scheduler));\
+	if (skewX) fmt::format_to(stream, "{}.skewX = {}\n", self, Val(skewX));\
+	if (skewY) fmt::format_to(stream, "{}.skewY = {}\n", self, Val(skewY));\
+	if (transformTarget) fmt::format_to(stream, "{}.transformTarget = {}\n", self, Val(transformTarget));\
+	if (visible) fmt::format_to(stream, "{}.visible = {}\n", self, toBoolean(visible));\
+	if (order) fmt::format_to(stream, "{}.order = {}\n", self, Val(order));\
+	if (tag) fmt::format_to(stream, "{}.tag = {}\n", self, toText(tag));\
+	if (width && height) fmt::format_to(stream, "{}.size = Size({},{})\n", self, Val(width), Val(height));\
+	else if (width && !height) fmt::format_to(stream, "{}.width = {}\n", self, Val(width));\
+	else if (!width && height) fmt::format_to(stream, "{}.height = {}\n", self, Val(height));\
+	if (touchEnabled) fmt::format_to(stream, "{}.touchEnabled = {}\n", self, toBoolean(touchEnabled));\
+	if (swallowTouches) fmt::format_to(stream, "{}.swallowTouches = {}\n", self, toBoolean(swallowTouches));\
+	if (swallowMouseWheel) fmt::format_to(stream, "{}.swallowMouseWheel = {}\n", self, toBoolean(swallowMouseWheel));\
+	if (renderGroup) fmt::format_to(stream, "{}.renderGroup = {}\n", self, toBoolean(renderGroup));\
+	if (renderOrder) fmt::format_to(stream, "{}.renderOrder = {}\n", self, Val(renderOrder));
 #define Node_Finish \
 	Add_To_Parent
 
@@ -433,7 +433,7 @@ static const char* _toBoolean(const char* str)
 #define DrawNode_Check \
 	Node_Check
 #define DrawNode_Create \
-	stream << "local " << self << " = DrawNode()\n";
+	fmt::format_to(stream, "local {} = DrawNode()\n", self);
 #define DrawNode_Handle \
 	Node_Handle
 #define DrawNode_Finish \
@@ -453,9 +453,10 @@ static const char* _toBoolean(const char* str)
 #define Dot_Finish \
 	if (!elementStack.empty())\
 	{\
-		stream << elementStack.top().name <<\
-		":drawDot(Vec2(" << toVal(x,"0") << ',' << toVal(y,"0") << ")," <<\
-		toVal(radius,"0.5") << ",Color(" << Val(color) << "))\n\n";\
+		fmt::format_to(stream,\
+			"{}:drawDot(Vec2({},{}),{},Color({}))\n\n",\
+			elementStack.top().name, toVal(x,"0"), toVal(y,"0"), toVal(radius,"0.5"), Val(color)\
+		);\
 	}
 
 // DrawNode.Polygon
@@ -494,9 +495,11 @@ static const char* _toBoolean(const char* str)
 #define Segment_Finish \
 	if (!elementStack.empty())\
 	{\
-		stream << elementStack.top().name <<\
-		":drawSegment(Vec2(" << toVal(beginX,"0") << ',' << toVal(beginY,"0") << "),Vec2(" <<\
-		toVal(endX,"0") << ',' << toVal(endY,"0") << ")," << toVal(radius,"0.5") << ",Color(" << toVal(color,"") << "))\n\n";\
+		fmt::format_to(stream,\
+			"{}:drawSegment(Vec2({},{}),Vec2({},{}),{},Color({}))\n\n",\
+			elementStack.top().name, toVal(beginX,"0"), toVal(beginY,"0"),\
+			toVal(endX,"0"), toVal(endY,"0"), toVal(radius,"0.5"), toVal(color,"")\
+		);\
 	}
 
 // Line
@@ -505,7 +508,7 @@ static const char* _toBoolean(const char* str)
 #define Line_Check \
 	Node_Check
 #define Line_Create \
-	stream << "local " << self << " = Line()\n";
+	fmt::format_to(stream, "local {} = Line()\n", self);
 #define Line_Handle \
 	Node_Handle
 #define Line_Finish \
@@ -524,11 +527,11 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(AlphaThreshold) { alphaThreshold = atts[++i]; break; }\
 	CASE_STR(Inverted) { inverted = atts[++i]; break; }
 #define ClipNode_Create \
-	stream << "local " << self << " = ClipNode()\n";
+	fmt::format_to(stream, "local {} = ClipNode()\n", self);
 #define ClipNode_Handle \
 	Node_Handle\
-	if (alphaThreshold) stream << self << ".alphaThreshold = " << Val(alphaThreshold) << '\n';\
-	if (inverted) stream << self << ".inverted = " << toBoolean(inverted) << '\n';
+	if (alphaThreshold) fmt::format_to(stream, "{}.alphaThreshold = {}\n", self, Val(alphaThreshold));\
+	if (inverted) fmt::format_to(stream, "{}.inverted = {}\n", toBoolean(inverted));
 #define ClipNode_Finish \
 	Add_To_Parent
 
@@ -550,13 +553,13 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(TextWidth) { textWidth = atts[++i]; break; }\
 	CASE_STR(LineGap) { lineGap = atts[++i]; break; }
 #define Label_Create \
-	stream << "local " << self << " = Label(" << toText(fontName) << ',' << Val(fontSize) << ")\n";
+	fmt::format_to(stream, "local {} = Label({},{})\n", self, toText(fontName), Val(fontSize));
 #define Label_Handle \
 	Node_Handle\
-	if (text && text[0]) stream << self << ".text = " << toText(text) << '\n';\
-	if (alignment) stream << self << ".alignment = " << toTextAlign(alignment) << '\n';\
-	if (textWidth) stream << self << ".textWidth = " << (strcmp(textWidth,"Auto")==0 ? "Label.AutomaticWidth" : Val(textWidth)) << '\n';\
-	if (lineGap) stream << self << ".lineGap = " << Val(lineGap) << '\n';
+	if (text && text[0]) fmt::format_to(stream, "{}.text = {}\n", self, toText(text));\
+	if (alignment) fmt::format_to(stream, "{}.alignment = {}\n", self, toTextAlign(alignment));\
+	if (textWidth) fmt::format_to(stream, "{}.textWidth = {}\n",self, strcmp(textWidth,"Auto") == 0 ? string("Label.AutomaticWidth") : Val(textWidth));\
+	if (lineGap) fmt::format_to(stream, "{}.lineGap = {}\n", self, Val(lineGap));
 #define Label_Finish \
 	Add_To_Parent
 
@@ -572,17 +575,12 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(BlendSrc) { blendSrc = atts[++i]; break; }\
 	CASE_STR(BlendDst) { blendDst = atts[++i]; break; }
 #define Sprite_Create \
-	stream << "local " << self << " = Sprite(";\
-	if (file) stream << toText(file) << ")\n";\
-	else stream << ")\n";
+	fmt::format_to(stream, "local {} = Sprite({})\n", self, file ? toText(file) : string());
 #define Sprite_Handle \
 	Node_Handle\
-	if (blendSrc && blendDst) stream << self << ".blendFunc = BlendFunc("\
-									<< toBlendFunc(blendSrc) << "," << toBlendFunc(blendDst) << ")\n";\
-	else if (blendSrc && !blendDst) stream << self << ".blendFunc = BlendFunc("\
-									<< toBlendFunc(blendSrc) << ',' << self << ".blendFunc.dst)\n";\
-	else if (!blendSrc && blendDst) stream << self << ".blendFunc = BlendFunc(" << self\
-									<< ".blendFunc.src," << toBlendFunc(blendDst) << ")\n";
+	if (blendSrc && blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc({},{})\n", self, toBlendFunc(blendSrc), toBlendFunc(blendDst));\
+	else if (blendSrc && !blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc({},{}.blendFunc.dst)\n", self, toBlendFunc(blendSrc), self);\
+	else if (!blendSrc && blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc({}.blendFunc.src,{})\n", self, self, toBlendFunc(blendDst));
 #define Sprite_Finish \
 	Add_To_Parent
 
@@ -606,15 +604,15 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(FaceRight) { faceRight = atts[++i]; break; }\
 	CASE_STR(Speed) { speed = atts[++i]; break; }
 #define Model_Create \
-	stream << "local " << self << " = Model(" << toText(filename) << ")\n";
+	fmt::format_to(stream, "local {} = Model({})\n", self, toText(filename));
 #define Model_Handle \
 	Node_Handle\
-	if (look) stream << self << ".look = \"" << Val(look) << "\"\n";\
-	if (loop) stream << self << ".loop = " << toBoolean(loop) << '\n';\
-	if (reversed) stream << self << ".reversed = " << toBoolean(reversed) << '\n';\
-	if (faceRight) stream << self << ".faceRight = " << toBoolean(faceRight) << '\n';\
-	if (speed) stream << self << ".speed = " << Val(speed) << '\n';\
-	if (play) stream << self << ":play(\"" << Val(play) << "\")\n";
+	if (look) fmt::format_to(stream, "{}.look = \"{}\"\n", self, Val(look));\
+	if (loop) fmt::format_to(stream, "{}.loop = {}\n", self, toBoolean(loop));\
+	if (reversed) fmt::format_to(stream, "{}.reversed = {}\n", self, toBoolean(reversed));\
+	if (faceRight) fmt::format_to(stream, "{}.faceRight = {}\n", self, toBoolean(faceRight));\
+	if (speed) fmt::format_to(stream, "{}.speed = {}\n", self, Val(speed));\
+	if (play) fmt::format_to(stream, "{}:play(\"{}\")\n", self, Val(play));
 #define Model_Finish \
 	Add_To_Parent
 
@@ -626,10 +624,10 @@ static const char* _toBoolean(const char* str)
 	Node_Check\
 	CASE_STR(Enabled) { enabled = atts[++i]; break; }
 #define Menu_Create \
-	stream << "local " << self << " = Menu()\n";
+	fmt::format_to(stream, "local {} = Menu()\n", self);
 #define Menu_Handle \
 	Node_Handle\
-	if (enabled) stream << self << ".enabled = " << toBoolean(enabled) << '\n';
+	if (enabled) fmt::format_to(stream, "{}.enabled = {}\n", self, toBoolean(enabled));
 #define Menu_Finish \
 	Add_To_Parent
 
@@ -640,36 +638,37 @@ static const char* _toBoolean(const char* str)
 	Object_Check\
 	default: { int index = i;attributes[atts[index]] = atts[++i]; break; }
 #define ModuleNode_Create \
-	stream << "local " << self << " = " << element << "{";
+	fmt::format_to(stream, "local {} = {}{{", self, element);
 #define ModuleNode_Handle \
 	auto it = attributes.begin();\
 	while (it != attributes.end())\
 	{\
-		stream << (char)tolower(it->first[0]) << it->first.substr(1) << " = ";\
+		string str = string() + (char)tolower(it->first[0]) + it->first.substr(1) + " = ";\
 		char* p;\
 		strtod(it->second.c_str(), &p);\
-		if (*p == 0) stream << it->second;\
-		else stream << toText(it->second.c_str());\
+		if (*p == 0) str += it->second;\
+		else str += toText(it->second.c_str());\
 		++it;\
 		if (it != attributes.end())\
 		{\
-			stream << ", ";\
+			str += ", ";\
 		}\
+		fmt::format_to(stream, "{}", str);\
 	}\
 	attributes.clear();\
-	stream << "}\n";
+	fmt::format_to(stream, "}}\n");
 #define ModuleNode_Finish \
 	if (!elementStack.empty())\
 	{\
 		const oItem& parent = elementStack.top();\
 		if (!parent.name.empty())\
 		{\
-			stream << parent.name << ":addChild(" << self << ")\n";\
+			fmt::format_to(stream, "{}:addChild({})\n", parent.name, self);\
 			if (hasSelf && ref)\
 			{\
-				stream << firstItem << "." << self << " = " << self << "\n";\
+				fmt::format_to(stream, "{}.{} = {}\n", firstItem, self, self);\
 			}\
-			stream << "\n";\
+			fmt::format_to(stream, "\n");\
 		}\
 		else if (strcmp(parent.type,"Stencil") == 0)\
 		{\
@@ -677,11 +676,11 @@ static const char* _toBoolean(const char* str)
 			if (!elementStack.empty())\
 			{\
 				const oItem& newParent = elementStack.top();\
-				stream << newParent.name << ".stencil = " << self << "\n\n";\
+				fmt::format_to(stream, "{}.stencil = {}\n\n", newParent.name, self);\
 			}\
 		}\
 	}\
-	else stream << "\n";
+	else fmt::format_to(stream, "\n");
 
 // Import
 #define Import_Define \
@@ -696,7 +695,8 @@ static const char* _toBoolean(const char* str)
 		size_t pos = mod.rfind('.');\
 		string modStr = (name ? name : (pos == string::npos ? string(module) : mod.substr(pos+1)));\
 		imported.insert(modStr);\
-		requires << "local " << modStr << " = require(\"" << module << "\")\n";}
+		fmt::format_to(requires, "local {} = require(\"{}\")\n", modStr, module);\
+	}
 
 // Item
 #define NodeItem_Define \
@@ -704,7 +704,7 @@ static const char* _toBoolean(const char* str)
 #define NodeItem_Check \
 	CASE_STR(Name) { name = atts[++i]; break; }
 #define NodeItem_Create \
-	stream << "local " << Val(name) << " = " << elementStack.top().name << '.' << Val(name) << "\n\n";\
+	fmt::format_to(stream, "local {} = {}.{}\n\n", Val(name), elementStack.top().name, Val(name));\
 	if (name && name[0])\
 	{\
 		oItem item = { "Item", name };\
@@ -783,8 +783,8 @@ public:
 		for (; !elementStack.empty(); elementStack.pop());
 		for (; !funcs.empty(); funcs.pop());
 		for (; !items.empty(); items.pop());
-		stream.clear();
-		requires.clear();
+		stream = fmt::memory_buffer();
+		requires = fmt::memory_buffer();
 		names.clear();
 		imported.clear();
 		firstItem.clear();
@@ -793,20 +793,20 @@ public:
 	void begin()
 	{
 		XmlDelegator::clear();
-		stream <<
-		"return function(args)\n"
-		"Dorothy(args)\n\n";
+		fmt::format_to(stream,
+			"return function(args)\n"
+			"Dorothy(args)\n\n");
 	}
 	void end()
 	{
-		stream << "return " << firstItem << "\nend";
+		fmt::format_to(stream, "return {}\nend", firstItem);
 	}
 	string getResult()
 	{
 		if (lastError.empty())
 		{
-			string requireStr = requires.str();
-			return requireStr + (requireStr.empty() ? "" : "\n") + stream.str();
+			string requireStr = fmt::to_string(requires);
+			return requireStr + (requireStr.empty() ? "" : "\n") + fmt::to_string(stream);
 		}
 		return string();
 	}
@@ -854,8 +854,8 @@ private:
 	unordered_set<string> names;
 	unordered_set<string> imported;
 	unordered_map<string, string> attributes;
-	fmt::MemoryWriter stream;
-	fmt::MemoryWriter requires;
+	fmt::memory_buffer stream;
+	fmt::memory_buffer requires;
 };
 
 string XmlDelegator::oVal(const char* value, const char* def, const char* element, const char* attr)
@@ -1130,7 +1130,7 @@ void XmlDelegator::endElement(const char *name)
 	{
 		CASE_STR(Script)
 		{
-			stream << (codes ? codes : "") << '\n';
+			fmt::format_to(stream, "{}\n", codes ? codes : "");
 			codes = nullptr;
 			break;
 		}
@@ -1141,7 +1141,7 @@ void XmlDelegator::endElement(const char *name)
 			string tempItem = func.begin + "function()\n" + (codes ? codes : "") + "\nend" + func.end;
 			if (parentIsAction)
 			{
-				stream << "local " << currentData.name << " = " << tempItem << '\n';
+				fmt::format_to(stream, "local {} = {}\n", currentData.name, tempItem);
 			}
 			else
 			{
@@ -1155,7 +1155,7 @@ void XmlDelegator::endElement(const char *name)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			stream << func.begin << (codes ? codes : "") << func.end << '\n';
+			fmt::format_to(stream, "{}{}{}\n", func.begin, codes ? codes : "", func.end);
 			break;
 		}
 		#define CaseAction(x) CASE_STR(x)
@@ -1174,7 +1174,7 @@ void XmlDelegator::endElement(const char *name)
 			funcs.pop();
 			if (parentIsAction)
 			{
-				stream << "local " << currentData.name << " = Action(" << func.begin << ")\n";
+				fmt::format_to(stream, "local {} = Action({})\n", currentData.name, func.begin);
 			}
 			else
 			{
@@ -1204,7 +1204,7 @@ void XmlDelegator::endElement(const char *name)
 			tempItem += ")";
 			if (parentIsAction)
 			{
-				stream << "local " << currentData.name << " = Action(" << tempItem << ")\n";
+				fmt::format_to(stream, "local {} = Action({})\n", currentData.name, tempItem);
 			}
 			else
 			{
@@ -1219,7 +1219,7 @@ void XmlDelegator::endElement(const char *name)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			stream << func.begin;
+			fmt::format_to(stream, "{}", func.begin);
 			stack<string> tempStack;
 			while (items.top() != name)
 			{
@@ -1229,16 +1229,16 @@ void XmlDelegator::endElement(const char *name)
 			items.pop();
 			while (!tempStack.empty())
 			{
-				stream << tempStack.top();
+				fmt::format_to(stream, "{}", tempStack.top());
 				tempStack.pop();
-				if (!tempStack.empty()) stream << ',';
+				if (!tempStack.empty()) fmt::format_to(stream, ",");
 			}
-			stream << func.end;
+			fmt::format_to(stream, "{}", func.end);
 			break;
 		}
 		CASE_STR(Action)
 		{
-			stream << "\n";
+			fmt::format_to(stream, "\n");
 			break;
 		}
 		#define CaseBuiltin(x) CASE_STR(x)
@@ -1273,7 +1273,7 @@ void XmlDelegator::endElement(const char *name)
 
 	if (parentIsAction && currentData.ref)
 	{
-		stream << firstItem << '.' << currentData.name << " = " << currentData.name << "\n";
+		fmt::format_to(stream, "{}.{} = {}\n", firstItem, currentData.name, currentData.name);
 	}
 }
 

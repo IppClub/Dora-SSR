@@ -100,9 +100,7 @@ bool FontCache::unload()
 
 bool FontCache::unload(String fontName, Uint32 fontSize)
 {
-	fmt::MemoryWriter writer;
-	writer << fontName.toString() << ':' << fontSize;
-	string fontFaceName = writer.str();
+	string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
 	{
@@ -143,9 +141,7 @@ void FontCache::removeUnused()
 
 Font* FontCache::load(String fontName, Uint32 fontSize)
 {
-	fmt::MemoryWriter writer;
-	writer << fontName.toString() << ':' << fontSize;
-	string fontFaceName = writer.str();
+	string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
 	{
@@ -187,9 +183,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 
 void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(Font* fontHandle)>& callback)
 {
-	fmt::MemoryWriter writer;
-	writer << fontName.toString() << ':' << fontSize;
-	string fontFaceName = writer.str();
+	string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto faceIt = _fonts.find(fontFaceName);
 	if (faceIt != _fonts.end())
 	{

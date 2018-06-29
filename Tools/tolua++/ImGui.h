@@ -33,7 +33,7 @@ namespace ImGui
 	void Binding::SetColorEditOptions @ SetColorEditOptions(String colorEditMode);
 	bool Binding::InputText @ InputText(const char* label, Buffer* buffer, String inputTextFlags = nullptr);
 	bool Binding::InputTextMultiline @ InputTextMultiline(const char* label, Buffer* buffer, Vec2 size = Vec2::zero, String inputTextFlags = nullptr);
-	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, int decimal_precision = -1, String inputTextFlags = nullptr);
+	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, String format = "%.1f", String inputTextFlags = nullptr);
 	bool Binding::InputInt @ InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String inputTextFlags = nullptr);
 	bool Binding::TreeNodeEx @ TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
 	void Binding::SetNextTreeNodeOpen @ SetNextTreeNodeOpen(bool is_open, String setCond = nullptr);
@@ -80,7 +80,7 @@ namespace ImGui
 
 	bool Binding::DragFloat2 @ DragFloat2(const char* label, Vec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
 	bool Binding::DragInt2 @ DragInt2(const char* label, Vec2& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
-	bool Binding::InputFloat2 @ InputFloat2(const char* label, Vec2& v, int decimal_precision = -1, String extra_flags = nullptr);
+	bool Binding::InputFloat2 @ InputFloat2(const char* label, Vec2& v, String format = "%.1f", String extra_flags = nullptr);
 	bool Binding::InputInt2 @ InputInt2(const char* label, Vec2& v, String extra_flags = nullptr);
 	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, Vec2& v, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
 	bool Binding::SliderInt2 @ SliderInt2(const char* label, Vec2& v, int v_min, int v_max, const char* display_format = "%.0f");
