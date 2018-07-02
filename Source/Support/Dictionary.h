@@ -19,6 +19,7 @@ public:
 	PROPERTY_READONLY(vector<Slice>, Keys);
 	const unordered_map<string,Ref<Object>>& data() const;
 
+	bool has(String key) const;
 	Ref<Object> get(String key) const;
 	void set(String key, Object* value);
 	bool remove(String key);

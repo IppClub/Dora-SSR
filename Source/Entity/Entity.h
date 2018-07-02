@@ -5,6 +5,9 @@
 NS_DOROTHY_BEGIN
 
 class Dictionary;
+class Entity;
+
+typedef Delegate<void(Entity*)> EntityHandler;
 
 class Entity : public Object
 {
@@ -68,6 +71,7 @@ public:
 public:
 	template<typename Func>
 	bool each(const Func& func);
+	EntityGroup* every(const EntityHandler& handler);
 public:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
@@ -88,8 +92,10 @@ public:
 public:
 	template<typename Func>
 	bool each(const Func& func);
+	EntityObserver* every(const EntityHandler& handler);
 public:
 	void onEvent(Entity* entity);
+	void clear();
 private:
 	int _option;
 	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
