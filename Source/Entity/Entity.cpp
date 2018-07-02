@@ -126,6 +126,7 @@ public:
 		usedIndices.clear();
 		groups.clear();
 		observers.clear();
+		triggers.clear();
 	}
 	SINGLETON_REF(EntityPool, Director);
 };
