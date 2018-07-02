@@ -140,7 +140,7 @@ bool ZipFile::setFilter(const std::string& filterStr)
 
 std::vector<std::string> ZipFile::getDirEntries(const std::string& path, bool isFolder)
 {
-	std::string searchName(path);
+	std::string searchName(path == "." ? "" : path);
 	char last = searchName[searchName.length() - 1];
 	if (last == '/' || last == '\\')
 	{

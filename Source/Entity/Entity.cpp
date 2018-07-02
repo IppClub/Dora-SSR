@@ -15,8 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-typedef Delegate<void(Entity*)> EntityHandler;
-
 // add class below to make visual C++ compiler happy
 struct HandlerItem
 {
@@ -37,6 +35,14 @@ public:
 		SharedDirector.getPostSystemScheduler()->schedule([this](double deltaTime)
 		{
 			DORA_UNUSED_PARAM(deltaTime);
+			for (const auto& trigger : triggers)
+			{
+				trigger();
+			}
+			for (auto& it : observers)
+			{
+				it.second->clear();
+			}
 			for (Entity* entity : updatedEntities)
 			{
 				if (entity)
@@ -44,6 +50,7 @@ public:
 					entity->clearValueCache();
 				}
 			}
+			updatedEntities.clear();
 			return false;
 		});
 		SharedApplication.quitHandler += [this]() { clear(); };
@@ -51,6 +58,7 @@ public:
 	virtual ~EntityPool() { }
 	stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
+	vector<Delegate<void()>> triggers;
 	unordered_set<int> usedIndices;
 	unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
 	unordered_map<string, HandlerItem> addHandlers;
@@ -177,8 +185,11 @@ void Entity::remove(String name)
 	auto handlerIt = removeHandlers.find(name);
 	if (handlerIt != removeHandlers.end())
 	{
-		_valueCache->set(name, it->second->clone());
-		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		if (!_valueCache->has(name))
+		{
+			_valueCache->set(name, it->second->clone());
+			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		}
 		(*handlerIt->second.handler)(this);
 	}
 	_components.erase(name);
@@ -209,8 +220,11 @@ void Entity::updateComponent(String name, Value* value, bool add)
 	auto it = handlers->find(name);
 	if (it != handlers->end())
 	{
-		_valueCache->set(name, add ? nullptr : value->clone());
-		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		if (!_valueCache->has(name))
+		{
+			_valueCache->set(name, add ? nullptr : value->clone());
+			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		}
 		(*it->second.handler)(this);
 	}
 }
@@ -347,6 +361,21 @@ void EntityGroup::onRemove(Entity* entity)
 	_entities.erase(MakeWRef(entity));
 }
 
+EntityGroup* EntityGroup::every(const EntityHandler& handler)
+{
+	WRef<EntityGroup> self(this);
+	SharedEntityPool.triggers.push_back([self,handler]()
+	{
+		if (!self) return;
+		self->each([&handler](Entity* entity)
+		{
+			handler(entity);
+			return false;
+		});
+	});
+	return this;
+}
+
 EntityGroup* EntityGroup::create(const vector<string>& components)
 {
 	vector<string> coms = components;
@@ -439,17 +468,6 @@ bool EntityObserver::init()
 				break;
 		}
 	}
-	WRef<EntityObserver> self(this);
-	SharedDirector.getPostSystemScheduler()->schedule([self](double deltaTime)
-	{
-		DORA_UNUSED_PARAM(deltaTime);
-		if (self)
-		{
-			self->_entities.clear();
-			return false;
-		}
-		return true;
-	});
 	return true;
 }
 
@@ -468,6 +486,26 @@ void EntityObserver::onEvent(Entity* entity)
 	{
 		_entities.insert(MakeWRef(entity));
 	}
+}
+
+EntityObserver* EntityObserver::every(const EntityHandler& handler)
+{
+	WRef<EntityObserver> self(this);
+	SharedEntityPool.triggers.push_back([self,handler]()
+	{
+		if (!self) return;
+		self->each([&handler](Entity* entity)
+		{
+			handler(entity);
+			return false;
+		});
+	});
+	return this;
+}
+
+void EntityObserver::clear()
+{
+	_entities.clear();
 }
 
 EntityObserver* EntityObserver::create(int option, const vector<string>& components)

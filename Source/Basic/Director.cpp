@@ -190,10 +190,15 @@ bool Director::init()
 	{
 		return false;
 	}
-	if (SharedContent.isExist("Script/main.lua"_slice))
+	SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 	{
-		SharedLueEngine.executeScriptFile("Script/main.lua"_slice);
-	}
+		if (file.toLower() == "main.lua"_slice)
+		{
+			SharedLueEngine.executeScriptFile(path + file);
+			return true;
+		}
+		return false;
+	});
 	return true;
 }
 

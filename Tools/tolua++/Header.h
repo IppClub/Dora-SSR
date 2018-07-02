@@ -36,12 +36,14 @@ class Entity : public Object
 class EntityGroup @ Group : public Object
 {
 	void each(tolua_function_bool func);
+	EntityGroup* every(tolua_function func);
 	static EntityGroup* create(String components[tolua_len]);
 };
 
 class EntityObserver @ Observer : public Object
 {
 	void each(tolua_function_bool func);
+	EntityObserver* every(tolua_function func);
 	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
 };
 

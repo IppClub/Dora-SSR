@@ -32,6 +32,11 @@ const unordered_map<string,Ref<Object>>& Dictionary::data() const
 	return _dict;
 }
 
+bool Dictionary::has(String key) const
+{
+	return _dict.find(key) != _dict.end();
+}
+
 Ref<Object> Dictionary::get(String key) const
 {
 	auto it = _dict.find(key);

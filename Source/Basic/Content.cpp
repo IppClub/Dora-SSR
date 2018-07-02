@@ -131,6 +131,31 @@ vector<string> Content::getFiles(String path)
 	return Content::getDirEntries(path, false);
 }
 
+bool Content::visitDir(String path, const function<bool(String,String)>& func)
+{
+	char last = *(path.end() - 1);
+	string rootPath = path + (last == '\\' || last == '/' ? "" : "/");
+	function<bool(String)> visit;
+	visit = [&visit,&func,this](String path)
+	{
+		auto files = getFiles(path);
+		for (const auto& file : files)
+		{
+			if (func(file,path)) return true;
+		}
+		auto dirs = getDirs(path);
+		for (const auto& dir : dirs)
+		{
+			if (dir != "." && dir != "..")
+			{
+				if (visit(path + dir + "/")) return true;
+			}
+		}
+		return false;
+	};
+	return visit(rootPath);
+}
+
 const string& Content::getAssetPath() const
 {
 	return _assetPath;

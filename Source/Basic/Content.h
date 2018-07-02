@@ -29,6 +29,7 @@ public:
 	bool createFolder(String path);
 	vector<string> getDirs(String path);
 	vector<string> getFiles(String path);
+	bool visitDir(String path, const function<bool(String,String)>& func);
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
