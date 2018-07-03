@@ -74,14 +74,14 @@ compile = (dir,clean,minify)->
 						return false
 					codes = FormatMini ast
 				totalMinifyTime += Application.eclapsedTime - startTime
-				filePath = "#{Content.writablePath}Script/#{path}"
+				filePath = Content.writablePath..path
 				Content\mkdir filePath
 				filename = "#{filePath}#{name}.lua"
 				Content\saveAsync filename,codes
 				print "#{isXml and "Xml" or "Moon"} compiled: #{path}#{name}.#{isXml and "xml" or "moon"}"
 				totalFiles += 1
 		else
-			filePath = "#{Content.writablePath}Script/#{path}"
+			filePath = Content.writablePath..path
 			Content\mkdir filePath
 			filename = "#{filePath}#{name}.lua"
 			if Content\exist filename
@@ -101,14 +101,14 @@ compile = (dir,clean,minify)->
 					return false
 				codes = FormatMini ast
 				totalMinifyTime += Application.eclapsedTime - startTime
-				filePath = "#{Content.writablePath}Script/#{path}"
+				filePath = Content.writablePath..path
 				Content\mkdir filePath
 				filename = "#{filePath}#{name}.lua"
 				Content\saveAsync filename,codes
 				print "Lua minified: #{path}#{name}.lua"
 				totalFiles += 1
 			else
-				filePath = "#{Content.writablePath}Script/#{path}"
+				filePath = Content.writablePath..path
 				Content\mkdir filePath
 				filename = "#{filePath}#{name}.lua"
 				if Content\exist filename
@@ -126,8 +126,8 @@ doCompile = (minify)->
 	totalXmlTime = 0
 	totalMinifyTime = 0
 	thread ->
-		print "Output path: #{Content.writablePath}Script"
-		xpcall (-> compile "#{Content.assetPath}Script",false,minify),(msg)->
+		print "Output path: #{Content.writablePath}"
+		xpcall (-> compile Content.assetPath,false,minify),(msg)->
 			msg = debug.traceback msg
 			print msg
 			building = false
@@ -138,8 +138,8 @@ doClean = ->
 	return if building
 	building = true
 	thread ->
-		print "Clean path: #{Content.writablePath}Script"
-		compile "#{Content.assetPath}Script",true
+		print "Clean path: #{Content.writablePath}"
+		compile Content.assetPath,true
 		print "Clean done.\n"
 		building = false
 
