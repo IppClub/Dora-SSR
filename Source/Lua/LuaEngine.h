@@ -21,7 +21,7 @@ public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
 
-	void addLuaLoader(lua_CFunction func);
+	void insertLuaLoader(lua_CFunction func);
 
 	void removeScriptHandler(int handler);
 	void removePeer(Object* object);

@@ -244,7 +244,7 @@ LuaEngine::LuaEngine()
 	luaL_register(L, "_G", global_functions);
 
 	// add dorothy loader
-	LuaEngine::addLuaLoader(dora_loader);
+	LuaEngine::insertLuaLoader(dora_loader);
 
 	// load cpp binding
 	tolua_LuaBinding_open(L);
@@ -281,23 +281,21 @@ LuaEngine::LuaEngine()
 LuaEngine::~LuaEngine()
 { }
 
-void LuaEngine::addLuaLoader(lua_CFunction func)
+void LuaEngine::insertLuaLoader(lua_CFunction func)
 {
 	if (!func) return;
 	lua_getglobal(L, "package"); // package
-	lua_getfield(L, -1, "loaders"); // package, loaders
+	lua_getfield(L, -1, "loaders"); // package loaders
 	// insert loader into index 1
-	lua_pushcfunction(L, func); // package, loaders, func
+	lua_pushcfunction(L, func); // package loaders func
 	for (int i = s_cast<int>(lua_objlen(L, -2)) + 1; i > 1; --i)
 	{
-		lua_rawgeti(L, -2, i - 1); // package, loaders, func, function
+		lua_rawgeti(L, -2, i - 1); // package loaders func function
 		// we call lua_rawgeti, so the loader table now is at -3
-		lua_rawseti(L, -3, i); // package, loaders, func
+		lua_rawseti(L, -3, i); // package loaders func
 	}
-	lua_rawseti(L, -2, 1); // package, loaders
-	// set loaders into package
-	lua_setfield(L, -2, "loaders"); // package
-	lua_pop(L, 1); // stack empty
+	lua_rawseti(L, -2, 1); // loaders[1] = func, package loaders
+	lua_pop(L, 2); // stack empty
 }
 
 void LuaEngine::removeScriptHandler(int handler)
