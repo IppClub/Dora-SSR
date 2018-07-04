@@ -16,6 +16,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+inline string s(float var)
+{
+	return Slice(fmt::format("{:.2f}", var)).trimZero();
+}
+
 /* KeyFrameDef */
 
 KeyFrameDef::KeyFrameDef():
@@ -50,23 +55,23 @@ string KeyFrameDef::toXml(KeyFrameDef* lastDef)
 	}
 	if ((lastDef && (lastDef->x != x || lastDef->y != y)) || (!lastDef && (x != 0.0f || y != 0.0f)))
 	{
-		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::KeyFrame::Position), x, y);
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::KeyFrame::Position), s(x), s(y));
 	}
 	if ((lastDef && lastDef->rotation != rotation) || (!lastDef && rotation != 0.0f))
 	{
-		fmt::format_to(out, " {}=\"{:.2f}\"", char(Xml::Model::KeyFrame::Rotation), rotation);
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Rotation), s(rotation));
 	}
 	if ((lastDef && (lastDef->scaleX != scaleX || lastDef->scaleY != scaleY)) || (!lastDef && (scaleX != 1.0f || scaleY != 1.0f)))
 	{
-		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::KeyFrame::Scale), scaleX, scaleY);
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::KeyFrame::Scale), s(scaleX), s(scaleY));
 	}
 	if ((lastDef && lastDef->opacity != opacity) || (!lastDef && opacity != 1.0f))
 	{
-		fmt::format_to(out, " {}=\"{:.2f}\"", char(Xml::Model::KeyFrame::Opacity), opacity);
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Opacity), s(opacity));
 	}
 	if ((lastDef && (lastDef->skewX != skewX || lastDef->skewY != skewY)) || (!lastDef && (skewX != 0.0f || skewY != 0.0f)))
 	{
-		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::KeyFrame::Skew), skewX, skewY);
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::KeyFrame::Skew), s(skewX), s(skewY));
 	}
 	if (easePos != Ease::Linear)
 	{

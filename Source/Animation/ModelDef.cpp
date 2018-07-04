@@ -18,6 +18,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+inline string s(float var)
+{
+	return Slice(fmt::format("{:.2f}", var)).trimZero();
+}
+
 /* SpriteDef */
 
 Sprite* SpriteDef::toSprite(ClipDef* clipDef)
@@ -60,23 +65,23 @@ string SpriteDef::toXml()
 	fmt::format_to(out, "<{}", char(Xml::Model::Element::Sprite));
 	if (x != 0.0f || y != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Position), x, y);
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Position), s(x), s(y));
 	}
 	if (rotation != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{:.2f}\"", char(Xml::Model::Sprite::Rotation), rotation);
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Rotation), s(rotation));
 	}
 	if (anchorX != 0.5f || anchorY != 0.5f)
 	{
-		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Key), anchorX, anchorY);
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Key), s(anchorX), s(anchorY));
 	}
 	if (scaleX != 1.0f || scaleY != 1.0f)
 	{
-		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Scale), scaleX, scaleY);
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Scale), s(scaleX), s(scaleY));
 	}
 	if (skewX != 0.0f || skewY != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{:.2f},{:.2f}\"", char(Xml::Model::Sprite::Skew), skewX, skewY);
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Skew), s(skewX), s(skewY));
 	}
 	if (!name.empty())
 	{
@@ -204,9 +209,9 @@ string ModelDef::toXml()
 	for (const auto& it : _keys)
 	{
 		const Vec2& point = it.second;
-		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{:.2f},{:.2f}\"/>",
+		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{},{}\"/>",
 			char(Xml::Model::Element::KeyPoint), char(Xml::Model::KeyPoint::Key), it.first,
-			char(Xml::Model::KeyPoint::Position), point.x, point.y);
+			char(Xml::Model::KeyPoint::Position), s(point.x), s(point.y));
 	}
 	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Dorothy));
 	return fmt::to_string(out);
