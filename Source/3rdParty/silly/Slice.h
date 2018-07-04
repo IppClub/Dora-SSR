@@ -104,6 +104,16 @@ class Slice {
     return *this;
   }
 
+  Slice &trimZero() {
+    assert(len_ > 0);
+    size_t end = len_ - 1;
+    while (0 < end && (str_[end] == '0' || str_[end] == '.')) {
+      if (str_[end--] == '.') break;
+    }
+    len_ = end + 1;
+    return *this;
+  }
+
   typedef const char *const_iterator;
 
   const_iterator begin() const {
