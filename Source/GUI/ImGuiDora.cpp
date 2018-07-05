@@ -314,13 +314,12 @@ void ImGuiDora::showStats()
 	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getMaxFPS();
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "CPU time:");
 	ImGui::SameLine();
-	ImGui::Text("%.1f ms", lastCpuTime);
-	if (lastGpuTime > 0.0)
-	{
-		ImGui::TextColored(Color(0xff00ffff).toVec4(), "GPU time:");
-		ImGui::SameLine();
-		ImGui::Text("%.1f ms", lastGpuTime);
-	}
+	if (lastCpuTime == 0) ImGui::Text("-");
+	else ImGui::Text("%.1f ms", lastCpuTime);
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "GPU time:");
+	ImGui::SameLine();
+	if (lastGpuTime == 0) ImGui::Text("-");
+	else ImGui::Text("%.1f ms", lastGpuTime);
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Delta time:");
 	ImGui::SameLine();
 	ImGui::Text("%.1f ms", lastDeltaTime);

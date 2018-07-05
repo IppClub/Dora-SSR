@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Director.h"
+#include "Basic/View.h"
+#include "Basic/Scheduler.h"
 #include "bx/timer.h"
 #include <ctime>
 #include "Other/utf8.h"
@@ -156,11 +158,12 @@ int Application::run()
 		return 1;
 	}
 
-	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
-#if BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
+	Uint32 windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
+#if BX_PLATFORM_WINDOWS
+	windowFlags |= SDL_WINDOW_HIDDEN;
+#elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN;
 #endif
-
 	_sdlWindow = SDL_CreateWindow("Dorothy SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_winWidth, _winHeight, windowFlags);
@@ -170,6 +173,9 @@ int Application::run()
 		return 1;
 	}
 	Application::setupSdlWindow();
+#if BX_PLATFORM_OSX
+	SDL_HideWindow(_sdlWindow);
+#endif
 
 	// call this function here to disable default render threads creation of bgfx
 	Application::renderFrame();
@@ -367,6 +373,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		return 1;
 	}
 
+	SharedView.pushName("Main"_slice, [](){});
 	// pass one frame
 	app->_frame = bgfx::frame();
 	app->updateDeltaTime();
@@ -378,6 +385,13 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		Log("Director fail to initialize!");
 		return 1;
 	}
+	Timer::create()->start(0, [app]()
+	{
+		app->invokeInRender([app]()
+		{
+			SDL_ShowWindow(app->_sdlWindow);
+		});
+	});
 	SharedPoolManager.pop();
 
 	bool running = true;
