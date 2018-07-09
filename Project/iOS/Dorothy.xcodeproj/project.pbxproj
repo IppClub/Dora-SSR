@@ -155,6 +155,8 @@
 		3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
 		3CE7D3791EADF642008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3771EADF642008EADB3 /* libbimg_decode.a */; };
 		3CE7D37A1EADF642008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3781EADF642008EADB3 /* libbimg.a */; };
+		3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509B20F33DA9002FFC18 /* stb.cpp */; };
+		3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509F20F33DD5002FFC18 /* Builtin.cpp */; };
 		3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA9A811E292E3F00645F2D /* Camera.cpp */; };
 		3CEDF7771E835409008839A3 /* lpcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76C1E835409008839A3 /* lpcap.cpp */; };
 		3CEDF7781E835409008839A3 /* lpcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF76E1E835409008839A3 /* lpcode.cpp */; };
@@ -167,7 +169,6 @@
 		3CF730E31E66544A0002DEED /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730DF1E66544A0002DEED /* Font */; };
 		3CF730E41E66544A0002DEED /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E01E66544A0002DEED /* Image */; };
 		3CF730E51E66544A0002DEED /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E11E66544A0002DEED /* Script */; };
-		3CF730E61E66544A0002DEED /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E21E66544A0002DEED /* Shader */; };
 		3CFA31AE1E6B07EA00493633 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */; };
 		3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3CFF5F261E0136A0004E3CA6 /* Application.mm */; };
 /* End PBXBuildFile section */
@@ -434,9 +435,7 @@
 		3CD328381E4C42A60036906C /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../../Source/3rdParty/imgui/imgui_internal.h; sourceTree = "<group>"; };
 		3CD328391E4C42A60036906C /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
 		3CD3283A1E4C42A60036906C /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../Source/3rdParty/imgui/imgui.h; sourceTree = "<group>"; };
-		3CD3283B1E4C42A60036906C /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/imgui/stb_rect_pack.h; sourceTree = "<group>"; };
 		3CD3283C1E4C42A60036906C /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../../../Source/3rdParty/imgui/stb_textedit.h; sourceTree = "<group>"; };
-		3CD3283D1E4C42A60036906C /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/imgui/stb_truetype.h; sourceTree = "<group>"; };
 		3CD328431E4C42FF0036906C /* ImGuiDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGuiDora.cpp; path = ../../../Source/GUI/ImGuiDora.cpp; sourceTree = "<group>"; };
 		3CD328441E4C42FF0036906C /* ImGuiDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGuiDora.h; path = ../../../Source/GUI/ImGuiDora.h; sourceTree = "<group>"; };
 		3CD328481E4C431B0036906C /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
@@ -465,6 +464,11 @@
 		3CE534751E5A9BD500F017AE /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
 		3CE7D3771EADF642008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3781EADF642008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbimg.a; sourceTree = "<group>"; };
+		3CE9509A20F33DA8002FFC18 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/stb/stb_truetype.h; sourceTree = "<group>"; };
+		3CE9509B20F33DA9002FFC18 /* stb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = stb.cpp; path = ../../../Source/3rdParty/stb/stb.cpp; sourceTree = "<group>"; };
+		3CE9509C20F33DA9002FFC18 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/stb/stb_rect_pack.h; sourceTree = "<group>"; };
+		3CE9509F20F33DD5002FFC18 /* Builtin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Builtin.cpp; path = ../../../Source/Shader/Builtin.cpp; sourceTree = "<group>"; };
+		3CE950A020F33DD5002FFC18 /* Builtin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Builtin.h; path = ../../../Source/Shader/Builtin.h; sourceTree = "<group>"; };
 		3CEA9A811E292E3F00645F2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
 		3CEA9A821E292E3F00645F2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
 		3CEDF76C1E835409008839A3 /* lpcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lpcap.cpp; path = ../../../Source/3rdParty/lpeg/lpcap.cpp; sourceTree = "<group>"; };
@@ -487,7 +491,6 @@
 		3CF730DF1E66544A0002DEED /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Font; path = ../../Assets/Font; sourceTree = "<group>"; };
 		3CF730E01E66544A0002DEED /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Image; path = ../../Assets/Image; sourceTree = "<group>"; };
 		3CF730E11E66544A0002DEED /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Script; path = ../../Assets/Script; sourceTree = "<group>"; };
-		3CF730E21E66544A0002DEED /* Shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shader; path = ../../Assets/Shader; sourceTree = "<group>"; };
 		3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Node/RenderTarget.cpp; sourceTree = "<group>"; };
 		3CFA31AD1E6B07EA00493633 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Node/RenderTarget.h; sourceTree = "<group>"; };
 		3CFF5F261E0136A0004E3CA6 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../../Source/Basic/Application.mm; sourceTree = "<group>"; };
@@ -578,7 +581,6 @@
 				3CF730DF1E66544A0002DEED /* Font */,
 				3CF730E01E66544A0002DEED /* Image */,
 				3CF730E11E66544A0002DEED /* Script */,
-				3CF730E21E66544A0002DEED /* Shader */,
 				3C1F87CA1DF7B560005F1B4D /* Default-568h@2x.png */,
 			);
 			name = Resources;
@@ -749,6 +751,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CE9509920F33D97002FFC18 /* stb */,
 				3CA1B7F01EC16EBD00BC58FF /* tinyxml2 */,
 				3CEDF76B1E8353ED008839A3 /* lpeg */,
 				3CB730691E803408006DFA18 /* Box2D */,
@@ -1031,6 +1034,7 @@
 				3CFF5F351E013708004E3CA6 /* Lua */,
 				3C1038511E15103600D37A60 /* Node */,
 				3CB7306A1E803417006DFA18 /* Physics */,
+				3CE9509E20F33DB6002FFC18 /* Shader */,
 				3C4BC6541E17F15C00292200 /* Support */,
 				3CC8201B1D96680C008C8B77 /* Assets.xcassets */,
 				3CC820201D96680C008C8B77 /* Info.plist */,
@@ -1047,9 +1051,7 @@
 				3CD328381E4C42A60036906C /* imgui_internal.h */,
 				3CD328391E4C42A60036906C /* imgui.cpp */,
 				3CD3283A1E4C42A60036906C /* imgui.h */,
-				3CD3283B1E4C42A60036906C /* stb_rect_pack.h */,
 				3CD3283C1E4C42A60036906C /* stb_textedit.h */,
-				3CD3283D1E4C42A60036906C /* stb_truetype.h */,
 			);
 			name = imgui;
 			sourceTree = "<group>";
@@ -1094,6 +1096,25 @@
 				3CDED0341E52A2E600B5E578 /* utf8.h */,
 			);
 			name = Other;
+			sourceTree = "<group>";
+		};
+		3CE9509920F33D97002FFC18 /* stb */ = {
+			isa = PBXGroup;
+			children = (
+				3CE9509C20F33DA9002FFC18 /* stb_rect_pack.h */,
+				3CE9509A20F33DA8002FFC18 /* stb_truetype.h */,
+				3CE9509B20F33DA9002FFC18 /* stb.cpp */,
+			);
+			name = stb;
+			sourceTree = "<group>";
+		};
+		3CE9509E20F33DB6002FFC18 /* Shader */ = {
+			isa = PBXGroup;
+			children = (
+				3CE9509F20F33DD5002FFC18 /* Builtin.cpp */,
+				3CE950A020F33DD5002FFC18 /* Builtin.h */,
+			);
+			name = Shader;
 			sourceTree = "<group>";
 		};
 		3CEDF76B1E8353ED008839A3 /* lpeg */ = {
@@ -1229,7 +1250,6 @@
 				3CC7A1581E8D69EB003188D6 /* Audio in Resources */,
 				3CF730E41E66544A0002DEED /* Image in Resources */,
 				3CF730E51E66544A0002DEED /* Script in Resources */,
-				3CF730E61E66544A0002DEED /* Shader in Resources */,
 				3C1F87CF1DF7B6AB005F1B4D /* Launch Screen.storyboard in Resources */,
 				3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */,
 				3C1F87CB1DF7B560005F1B4D /* Default-568h@2x.png in Resources */,
@@ -1270,6 +1290,7 @@
 				3CB7307F1E80343E006DFA18 /* World.cpp in Sources */,
 				3CB731131E8035A5006DFA18 /* b2EdgeShape.cpp in Sources */,
 				3CB730DA1E80356A006DFA18 /* b2PulleyJoint.cpp in Sources */,
+				3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */,
 				3CB730B61E803556006DFA18 /* b2EdgeAndCircleContact.cpp in Sources */,
 				3CB7307E1E80343E006DFA18 /* Sensor.cpp in Sources */,
 				3CB730B51E803556006DFA18 /* b2ContactSolver.cpp in Sources */,
@@ -1329,6 +1350,7 @@
 				3CB7307D1E80343E006DFA18 /* JointDef.cpp in Sources */,
 				3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */,
 				3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */,
+				3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */,
 				3CB730D81E80356A006DFA18 /* b2MouseJoint.cpp in Sources */,
 				3CEDF7781E835409008839A3 /* lpcode.cpp in Sources */,
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,

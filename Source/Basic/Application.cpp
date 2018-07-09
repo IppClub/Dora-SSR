@@ -373,8 +373,8 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		return 1;
 	}
 
-	SharedView.pushName("Main"_slice, [](){});
 	// pass one frame
+	SharedView.pushName("Main"_slice, [](){});
 	app->_frame = bgfx::frame();
 	app->updateDeltaTime();
 	app->makeTimeNow();

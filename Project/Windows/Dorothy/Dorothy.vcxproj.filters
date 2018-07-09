@@ -112,6 +112,12 @@
     <Filter Include="Entity">
       <UniqueIdentifier>{3339519c-7d32-4a52-a6be-f331261d6beb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\stb">
+      <UniqueIdentifier>{3df686e8-d734-4651-bf64-d476c784c6b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{f8799809-de75-4622-bdcb-2387ebc5ee83}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -515,6 +521,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\posix.cpp">
       <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\stb\stb.cpp">
+      <Filter>3rdParty\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Shader\Builtin.cpp">
+      <Filter>Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -986,6 +998,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h">
       <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_rect_pack.h">
+      <Filter>3rdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_truetype.h">
+      <Filter>3rdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Shader\Builtin.h">
+      <Filter>Shader</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

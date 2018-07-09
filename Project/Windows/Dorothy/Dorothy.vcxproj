@@ -257,6 +257,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\stb\stb.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -346,6 +350,7 @@
     <ClCompile Include="..\..\..\Source\Physics\JointDef.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Sensor.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\World.cpp" />
+    <ClCompile Include="..\..\..\Source\Shader\Builtin.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Array.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Common.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp" />
@@ -433,6 +438,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_rect_pack.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_truetype.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
@@ -505,6 +512,7 @@
     <ClInclude Include="..\..\..\Source\Physics\JointDef.h" />
     <ClInclude Include="..\..\..\Source\Physics\Sensor.h" />
     <ClInclude Include="..\..\..\Source\Physics\World.h" />
+    <ClInclude Include="..\..\..\Source\Shader\Builtin.h" />
     <ClInclude Include="..\..\..\Source\Support\Array.h" />
     <ClInclude Include="..\..\..\Source\Support\Common.h" />
     <ClInclude Include="..\..\..\Source\Support\Dictionary.h" />
