@@ -17,7 +17,7 @@
 #include "Support/Geometry.h"
 
 //---- Define assertion handler. Defaults to calling assert().
-#define IM_ASSERT(_EXPR)  AssertUnless(_EXPR, "ImGui assert: "#_EXPR)
+#define IM_ASSERT(_EXPR)  AssertUnless(_EXPR, "Imgui assert: "#_EXPR)
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows.
@@ -29,7 +29,9 @@
 
 //---- Don't implement demo windows functionality (ShowDemoWindow()/ShowStyleEditor()/ShowUserGuide() methods will be empty)
 //---- It is very strongly recommended to NOT disable the demo windows during development. Please read the comments in imgui_demo.cpp.
-//#define IMGUI_DISABLE_DEMO_WINDOWS
+#if !DORA_DEBUG
+	#define IMGUI_DISABLE_DEMO_WINDOWS
+#endif // DORA_DEBUG
 
 //---- Don't implement some functions to reduce linkage requirements.
 //#define IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS   // [Win32] Don't implement default clipboard handler. Won't use and link with OpenClipboard/GetClipboardData/CloseClipboard etc.
@@ -46,10 +48,10 @@
 
 //---- Avoid multiple STB libraries implementations, or redefine path/filenames to prioritize another version
 // By default the embedded implementations are declared static and not available outside of imgui cpp files.
-//#define IMGUI_STB_TRUETYPE_FILENAME   "my_folder/stb_truetype.h"
-//#define IMGUI_STB_RECT_PACK_FILENAME  "my_folder/stb_rect_pack.h"
-//#define IMGUI_DISABLE_STB_TRUETYPE_IMPLEMENTATION
-//#define IMGUI_DISABLE_STB_RECT_PACK_IMPLEMENTATION
+#define IMGUI_STB_TRUETYPE_FILENAME   "stb/stb_truetype.h"
+#define IMGUI_STB_RECT_PACK_FILENAME  "stb/stb_rect_pack.h"
+#define IMGUI_DISABLE_STB_TRUETYPE_IMPLEMENTATION
+#define IMGUI_DISABLE_STB_RECT_PACK_IMPLEMENTATION
 
 //---- Define constructor and implicit cast operators to convert back<>forth from your math types and ImVec2/ImVec4.
 // This will be inlined as part of ImVec2 and ImVec4 class declarations.

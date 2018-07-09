@@ -344,9 +344,9 @@ _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
 _lastFlags(INT32_MAX),
-_defaultEffect(SpriteEffect::create("built-in/vs_sprite.bin"_slice, "built-in/fs_sprite.bin"_slice)),
-_defaultModelEffect(SpriteEffect::create("built-in/vs_spritemodel.bin"_slice, "built-in/fs_sprite.bin"_slice)),
-_alphaTestEffect(SpriteEffect::create("built-in/vs_sprite.bin"_slice, "built-in/fs_spritealphatest.bin"_slice))
+_defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_sprite"_slice)),
+_defaultModelEffect(SpriteEffect::create("builtin:vs_spritemodel"_slice, "builtin:fs_sprite"_slice)),
+_alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice))
 { }
 
 SpriteEffect* SpriteRenderer::getDefaultEffect() const

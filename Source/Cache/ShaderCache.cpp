@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Cache/ShaderCache.h"
 #include "Basic/Content.h"
+#include "Shader/Builtin.h"
 
 NS_DOROTHY_BEGIN
 
@@ -47,28 +48,27 @@ string ShaderCache::getShaderPath() const
 	string shaderPath;
 	switch (bgfx::getRendererType())
 	{
-		case bgfx::RendererType::Noop:
 		case bgfx::RendererType::Direct3D9:
-			shaderPath = "Shader/dx9/";
+			shaderPath = "dx9/";
 			break;
 		case bgfx::RendererType::Direct3D11:
 		case bgfx::RendererType::Direct3D12:
-			shaderPath = "Shader/dx11/";
+			shaderPath = "dx11/";
 			break;
 		case bgfx::RendererType::Gnm:
-			shaderPath = "Shader/pssl/";
+			shaderPath = "pssl/";
 			break;
 		case bgfx::RendererType::Metal:
-			shaderPath = "Shader/metal/";
+			shaderPath = "metal/";
 			break;
 		case bgfx::RendererType::OpenGL:
-			shaderPath = "Shader/glsl/";
+			shaderPath = "glsl/";
 			break;
 		case bgfx::RendererType::OpenGLES:
-			shaderPath = "Shader/essl/";
+			shaderPath = "essl/";
 			break;
 		case bgfx::RendererType::Vulkan:
-			shaderPath = "Shader/spirv/";
+			shaderPath = "spirv/";
 			break;
 		default:
 			break;
@@ -78,20 +78,33 @@ string ShaderCache::getShaderPath() const
 
 Shader* ShaderCache::load(String filename)
 {
-	string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
-	const bgfx::Memory* mem = SharedContent.loadFileBX(shaderFile);
-	bgfx::ShaderHandle handle = bgfx::createShader(mem);
-	if (bgfx::isValid(handle))
+	auto items = filename.split(":");
+	if (!items.empty() && items.front() == "builtin"_slice)
 	{
+		auto it = _shaders.find(filename);
+		if (it != _shaders.end())
+		{
+			return it->second;
+		}
+		bgfx::RendererType::Enum type = bgfx::getRendererType();
+		bgfx::ShaderHandle handle = bgfx::createEmbeddedShader(DoraShaders, type, items.back().toString().c_str());
+		AssertUnless(bgfx::isValid(handle), "fail to load builtin shader named: \"{}\".", items.back());
 		Shader* shader = Shader::create(handle);
-		_shaders[shaderFile] = shader;
+		_shaders[filename] = shader;
 		return shader;
 	}
-	else
+	string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
+	auto it = _shaders.find(shaderFile);
+	if (it != _shaders.end())
 	{
-		Log("fail to load shader \"{}\".", shaderFile);
-		return nullptr;
+		return it->second;
 	}
+	const bgfx::Memory* mem = SharedContent.loadFileBX(shaderFile);
+	bgfx::ShaderHandle handle = bgfx::createShader(mem);
+	AssertUnless(bgfx::isValid(handle), "fail to load shader \"{}\".", shaderFile);
+	Shader* shader = Shader::create(handle);
+	_shaders[shaderFile] = shader;
+	return shader;
 }
 
 void ShaderCache::loadAsync(String filename, const function<void(Shader*)>& handler)

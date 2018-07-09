@@ -74,7 +74,7 @@ TrueTypeFile* Font::getFile() const
 /* FontCache */
 
 FontCache::FontCache():
-_defaultEffect(SpriteEffect::create("built-in/vs_sprite.bin"_slice, "built-in/fs_spritewhite.bin"_slice))
+_defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritewhite"_slice))
 { }
 
 FontCache::~FontCache()
