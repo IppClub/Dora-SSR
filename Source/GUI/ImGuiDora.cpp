@@ -606,7 +606,7 @@ void ImGuiDora::render()
 			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
 
 			float scale = SharedApplication.getSize().width / SharedApplication.getDesignSize().width;
-			_effect->set("u_scale",  scale);
+			_effect->set("u_scale"_slice,  scale);
 
 			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
 			std::memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(drawList->IdxBuffer[0]));
