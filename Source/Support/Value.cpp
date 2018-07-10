@@ -15,9 +15,4 @@ NS_DOROTHY_BEGIN
 
 const Ref<Values> Values::None;
 
-Value* Value::create(Object* value)
-{
-	return ValueEx<Ref<>>::create(MakeRef(value));
-}
-
 NS_DOROTHY_END

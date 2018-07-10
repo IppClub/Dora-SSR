@@ -276,14 +276,14 @@ void Entity::set(String name, Object* value, bool rawFlag)
 	if (rawFlag)
 	{
 		AssertIf(valueItem == nullptr, "raw set non-exist component \"{}\"", name);
-		auto content = valueItem->as<Ref<>>();
+		auto content = valueItem->as<Object*>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
 		content->set(MakeRef(value));
 		return;
 	}
 	if (valueItem)
 	{
-		auto content = valueItem->as<Ref<>>();
+		auto content = valueItem->as<Object*>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
 		content->set(MakeRef(value));
 		updateComponent(name, content, false);
