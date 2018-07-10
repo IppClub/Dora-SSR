@@ -127,7 +127,7 @@ doCompile = (minify)->
 	totalMinifyTime = 0
 	thread ->
 		print "Output path: #{Content.writablePath}"
-		xpcall (-> compile Content.assetPath,false,minify),(msg)->
+		xpcall (-> compile Content.assetPath\sub(1,-2),false,minify),(msg)->
 			msg = debug.traceback msg
 			print msg
 			building = false
@@ -139,7 +139,7 @@ doClean = ->
 	building = true
 	thread ->
 		print "Clean path: #{Content.writablePath}"
-		compile Content.assetPath,true
+		compile Content.assetPath\sub(1,-2),true
 		print "Clean done.\n"
 		building = false
 
