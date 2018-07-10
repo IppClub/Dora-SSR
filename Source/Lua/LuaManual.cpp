@@ -1060,14 +1060,42 @@ int Entity_get(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_get'", nullptr);
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
-		Value* value = self->getComponent(name);
-		if (value) value->pushToLua();
+		Com* com = self->getComponent(name);
+		if (com) com->pushToLua();
 		else lua_pushnil(L);
 		return 1;
     }
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'Entity_get'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Entity_getCache(lua_State* L)
+{
+	/* 1 self, 2 name */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_getCache'", nullptr);
+#endif
+		Slice name = tolua_toslice(L, 2, nullptr);
+		Com* com = self->getCachedCom(name);
+		if (com) com->pushToLua();
+		else lua_pushnil(L);
+		return 1;
+    }
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Entity_getCache'.", &tolua_err);
 	return 0;
 #endif
 }

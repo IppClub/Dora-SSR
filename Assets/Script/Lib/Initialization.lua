@@ -328,9 +328,24 @@ Dictionary.__len = function(self)
 end
 
 local Entity = builtin.Entity
+local Entity_getCache = Entity.getCache
+local Entity_cacheTarget
+local Entity_valueCache = setmetatable({},{
+	__index = function(_,key)
+		return Entity_getCache(Entity_cacheTarget,key)
+	end,
+	__newindex = function(_,_)
+		error("Can not assign value cache.")
+	end
+})
+
 local Entity_index = Entity.__index
 local Entity_get = Entity.get
 Entity.__index = function(self,key)
+	if key == "valueCache" then
+		Entity_cacheTarget = self
+		return Entity_valueCache
+	end
 	local item = Entity_get(self,key)
 	if item ~= nil then return item end
 	return Entity_index(self,key)

@@ -1008,5 +1008,8 @@
     <ClInclude Include="..\..\..\Source\Shader\Builtin.h">
       <Filter>Shader</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\Entity\Component.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 #pragma once
 #include "Basic/Object.h"
-#include "Support/Value.h"
+#include "Entity/Component.h"
 
 NS_DOROTHY_BEGIN
 
@@ -23,31 +23,26 @@ public:
 	virtual ~Entity();
 	virtual bool init() override;
 	PROPERTY_READONLY(int, Index);
-	PROPERTY_READONLY(Dictionary*, ValueCache);
 	void destroy();
 	bool has(String name) const;
 	void remove(String name);
 	static Entity* create();
 	static bool each(const function<bool(Entity*)>& func);
 	static void clear();
-	Value* getComponent(String name) const;
-	void clearValueCache();
+	Com* getComponent(String name) const;
+	Com* getCachedCom(String name) const;
+	void clearComCache();
 public:
 	template<typename T>
 	void set(String name, const T& value, bool rawFlag = false);
-	void set(String name, Object* value, bool rawFlag = false);
-
 	template<typename T>
 	const T& get(String name) const;
-
-	template<typename T>
-	typename std::enable_if<std::is_same<Object, T>::value>::type* get(String name) const;
 protected:
-	void updateComponent(String name, Value* value, bool add);
+	void updateComponent(String name, Own<Com>&& com, bool add);
 private:
 	int _index;
-	unordered_map<string, Ref<Value>> _components;
-	Ref<Dictionary> _valueCache;
+	unordered_map<string, Own<Com>> _components;
+	unordered_map<string, Own<Com>> _comCache;
 	DORA_TYPE_OVERRIDE(Entity);
 };
 
@@ -106,43 +101,34 @@ private:
 template<typename T>
 void Entity::set(String name, const T& value, bool rawFlag)
 {
-	Value* valueItem = getComponent(name);
+	Com* com = getComponent(name);
 	if (rawFlag)
 	{
-		Value* valueItem = getComponent(name);
-		AssertIf(valueItem == nullptr, "raw set non-exist component \"{}\"", name);
-		auto content = valueItem->as<T>();
+		AssertIf(com == nullptr, "raw set non-exist component \"{}\"", name);
+		auto content = com->as<T>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
 		content->set(value);
 		return;
 	}
-	if (valueItem)
+	if (com)
 	{
-		auto content = valueItem->as<T>();
+		auto content = com->as<T>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
-		updateComponent(name, content, false);
+		updateComponent(name, com->clone(), false);
 		content->set(value);
 	}
 	else
 	{
-		updateComponent(name, Value::create(value), true);
+		updateComponent(name, Com::create(value), true);
 	}
 }
 
 template<typename T>
 const T& Entity::get(String name) const
 {
-	Value* value = getComponent(name);
-	AssertIf(value == nullptr, "access non-exist component \"{}\".", name);
-	return value->to<T>();
-}
-
-template<typename T>
-typename std::enable_if<std::is_same<Object, T>::value>::type* Entity::get(String name) const
-{
-	Value* value = getComponent(name);
-	AssertIf(value == nullptr, "access non-exist component \"{}\".", name);
-	return value->to<Ref<>>();
+	Com* com = getComponent(name);
+	AssertIf(com == nullptr, "access non-exist component \"{}\".", name);
+	return com->to<T>();
 }
 
 template<typename Func>

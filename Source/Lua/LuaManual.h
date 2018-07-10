@@ -132,6 +132,7 @@ inline Keyboard* Keyboard_shared() { return &SharedKeyboard; }
 
 /* Entity */
 int Entity_get(lua_State* L);
+int Entity_getCache(lua_State* L);
 int Entity_set(lua_State* L);
 
 /* EntityObserver */
