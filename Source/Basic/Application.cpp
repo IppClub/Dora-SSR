@@ -27,6 +27,13 @@ extern "C" {
 		env->ReleaseStringUTFChars(apkPath, pathString);
 	}
 }
+static float g_androidScreenDensity;
+extern "C" {
+	JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity)
+	{
+		g_androidScreenDensity = s_cast<float>(screenDensity);
+	}
+}
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 #endif // BX_PLATFORM_ANDROID
 
@@ -286,12 +293,15 @@ void Application::updateWindowSize()
 	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
 	_designWidth = MulDiv(_winWidth, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
 	_designHeight = MulDiv(_winHeight, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
+#elif BX_PLATFORM_ANDROID
+	_designWidth = s_cast<int>(_winWidth / g_androidScreenDensity);
+	_designHeight = s_cast<int>(_winHeight / g_androidScreenDensity);
 #else
 	_designWidth = _winWidth;
 	_designHeight = _winHeight;
 #endif // BX_PLATFORM_WINDOWS
 }
-#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 
 #if BX_PLATFORM_ANDROID
 const string& Application::getAPKPath() const
