@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+MEMORY_POOL(ComEx<Object*>);
+
 // add class below to make visual C++ compiler happy
 struct HandlerItem
 {
@@ -47,7 +49,7 @@ public:
 			{
 				if (entity)
 				{
-					entity->clearValueCache();
+					entity->clearComCache();
 				}
 			}
 			updatedEntities.clear();
@@ -135,8 +137,7 @@ public:
 	Singleton<EntityPool>::shared()
 
 Entity::Entity(int index):
-_index(index),
-_valueCache(Dictionary::create())
+_index(index)
 { }
 
 Entity::~Entity()
@@ -150,11 +151,6 @@ bool Entity::init()
 int Entity::getIndex() const
 {
 	return _index;
-}
-
-Dictionary* Entity::getValueCache() const
-{
-	return _valueCache;
 }
 
 void Entity::destroy()
@@ -186,9 +182,9 @@ void Entity::remove(String name)
 	auto handlerIt = removeHandlers.find(name);
 	if (handlerIt != removeHandlers.end())
 	{
-		if (!_valueCache->has(name))
+		if (_comCache.find(name) == _comCache.end())
 		{
-			_valueCache->set(name, it->second->clone());
+			_comCache[name] = it->second->clone();
 			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		}
 		(*handlerIt->second.handler)(this);
@@ -206,12 +202,12 @@ void Entity::clear()
 	SharedEntityPool.clear();
 }
 
-void Entity::updateComponent(String name, Value* value, bool add)
+void Entity::updateComponent(String name, Own<Com>&& com, bool add)
 {
 	unordered_map<string, HandlerItem>* handlers;
 	if (add)
 	{
-		_components[name] = value;
+		_components[name] = std::move(com);
 		handlers = &SharedEntityPool.addHandlers;
 	}
 	else
@@ -221,28 +217,38 @@ void Entity::updateComponent(String name, Value* value, bool add)
 	auto it = handlers->find(name);
 	if (it != handlers->end())
 	{
-		if (!_valueCache->has(name))
+		if (_comCache.find(name) == _comCache.end())
 		{
-			_valueCache->set(name, add ? nullptr : value->clone());
+			_comCache[name] = add ? Own<Com>() : std::move(com);
 			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		}
 		(*it->second.handler)(this);
 	}
 }
 
-Value* Entity::getComponent(String name) const
+Com* Entity::getComponent(String name) const
 {
 	auto it = _components.find(name);
 	if (it != _components.end())
 	{
-		return it->second;
+		return it->second.get();
 	}
 	return nullptr;
 }
 
-void Entity::clearValueCache()
+Com* Entity::getCachedCom(String name) const
 {
-	_valueCache->clear();
+	auto it = _comCache.find(name);
+	if (it != _comCache.end())
+	{
+		return it->second.get();
+	}
+	return nullptr;
+}
+
+void Entity::clearComCache()
+{
+	_comCache.clear();
 }
 
 Entity* Entity::create()
@@ -268,30 +274,6 @@ Entity* Entity::create()
 	entities.push_back(entity);
 	usedIndices.insert(entity->getIndex());
 	return entity;
-}
-
-void Entity::set(String name, Object* value, bool rawFlag)
-{
-	Value* valueItem = getComponent(name);
-	if (rawFlag)
-	{
-		AssertIf(valueItem == nullptr, "raw set non-exist component \"{}\"", name);
-		auto content = valueItem->as<Object*>();
-		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
-		content->set(MakeRef(value));
-		return;
-	}
-	if (valueItem)
-	{
-		auto content = valueItem->as<Object*>();
-		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
-		content->set(MakeRef(value));
-		updateComponent(name, content, false);
-	}
-	else
-	{
-		updateComponent(name, Value::create(value), true);
-	}
 }
 
 EntityGroup::EntityGroup(const vector<string>& components)

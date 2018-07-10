@@ -481,6 +481,7 @@
     <ClInclude Include="..\..\..\Source\Const\XmlTag.h" />
     <ClInclude Include="..\..\..\Source\Dorothy.h" />
     <ClInclude Include="..\..\..\Source\Effect\Effect.h" />
+    <ClInclude Include="..\..\..\Source\Entity\Component.h" />
     <ClInclude Include="..\..\..\Source\Entity\Entity.h" />
     <ClInclude Include="..\..\..\Source\Event\Event.h" />
     <ClInclude Include="..\..\..\Source\Event\EventQueue.h" />

@@ -269,6 +269,7 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "Entity");
 			tolua_function(L, "set", Entity_set);
 			tolua_function(L, "get", Entity_get);
+			tolua_function(L, "getCache", Entity_getCache);
 		tolua_endmodule(L);
 	tolua_endmodule(L);
 

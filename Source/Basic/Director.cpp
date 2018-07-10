@@ -23,6 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "bx/timer.h"
 #include "Common/Utils.h"
+#include "Entity/Entity.h"
 
 NS_DOROTHY_BEGIN
 
@@ -199,6 +200,7 @@ bool Director::init()
 		}
 		return false;
 	});
+	Log("{} {} {}", sizeof(ValueEx<double>), sizeof(ComEx<double>), sizeof(double));
 	return true;
 }
 
