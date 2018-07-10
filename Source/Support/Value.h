@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-template <class T>
+template <class T, class Enable = void>
 class ValueEx;
 
 class Value : public Object
@@ -28,8 +28,6 @@ public:
 	virtual Value* clone() const = 0;
 	virtual void pushToLua() const = 0;
 
-	static Value* create(Object* value);
-
 	template <class T>
 	static Value* create(const T& value);
 protected:
@@ -37,29 +35,25 @@ protected:
 };
 
 template <class T>
-class ValueEx : public Value
+class ValueEx<T, typename std::enable_if<!std::is_base_of<Object, T>::value>::type> : public Value
 {
 public:
 	inline void set(const T& value)
 	{
 		_value = value;
 	}
-
 	inline const T& get()
 	{
 		return _value;
 	}
-
 	virtual Value* clone() const override
 	{
 		return ValueEx<T>::create(_value);
 	}
-
 	virtual void pushToLua() const override
 	{
 		SharedLueEngine.push(_value);
 	}
-
 	CREATE_FUNC(ValueEx<T>);
 protected:
 	ValueEx(const T& value):
@@ -71,6 +65,36 @@ protected:
 private:
 	T _value;
 	DORA_TYPE_OVERRIDE(ValueEx<T>);
+};
+
+template<>
+class ValueEx<Object*> : public Value
+{
+public:
+	inline void set(Object* value)
+	{
+		_value = value;
+	}
+	inline Object* get()
+	{
+		return _value.get();
+	}
+	virtual Value* clone() const override
+	{
+		return ValueEx<Object*>::create(_value);
+	}
+	virtual void pushToLua() const override
+	{
+		SharedLueEngine.push(_value.get());
+	}
+	CREATE_FUNC(ValueEx<Object*>);
+protected:
+	ValueEx(Object* value):
+	_value(value)
+	{ }
+private:
+	Ref<> _value;
+	DORA_TYPE_OVERRIDE(ValueEx<Object*>);
 };
 
 template <class T>
