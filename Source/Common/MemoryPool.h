@@ -8,35 +8,51 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Const/Config.h"
 #include <utility>
 #include <new>
 
 NS_DOROTHY_BEGIN
 
 #ifndef DEFAULT_CHUNK_CAPACITY
-	#define DEFAULT_CHUNK_CAPACITY 4096 // 4KB
+#define DEFAULT_CHUNK_CAPACITY 4096 // 4KB
 #endif // DEFAULT_CHUNK_CAPACITY
 
 #ifndef DEFAULT_WARNING_SIZE
-	#define DEFAULT_WARNING_SIZE 1024 // 1MB
+#define DEFAULT_WARNING_SIZE 1024 // 1MB
 #endif // DEFAULT_WARNING_SIZE
 
-template<class Item, int CHUNK_CAPACITY = DEFAULT_CHUNK_CAPACITY, int WARNING_SIZE = DEFAULT_WARNING_SIZE>
+class IMemoryPool
+{
+public:
+	virtual ~IMemoryPool() { }
+	virtual int getCapacity() const = 0;
+	virtual int collect() = 0;
+};
+
 class MemoryPool
+{
+public:
+	static void push(IMemoryPool* pool);
+	static int getCapacity();
+	static int collect();
+};
+
+template<class Item, int CHUNK_CAPACITY = DEFAULT_CHUNK_CAPACITY, int WARNING_SIZE = DEFAULT_WARNING_SIZE>
+class MemoryPoolImpl : public IMemoryPool
 {
 #define ITEM_SIZE sizeof(Item)
 public:
-	MemoryPool() :
-	_chunk(new Chunk()),
-	_freeList(nullptr)
+	MemoryPoolImpl() :
+		_chunk(new Chunk()),
+		_freeList(nullptr)
 	{
 		static_assert(ITEM_SIZE >= sizeof(intptr_t),
 			"Size of pool item must be greater or equal to the size of a pointer.");
+		MemoryPool::push(this);
 	}
-	~MemoryPool()
+	virtual ~MemoryPoolImpl()
 	{
-		MemoryPool::deleteChunk(_chunk);
+		MemoryPoolImpl::deleteChunk(_chunk);
 	}
 	void* alloc()
 	{
@@ -51,7 +67,7 @@ public:
 			if (_chunk->size + ITEM_SIZE > CHUNK_CAPACITY)
 			{
 				_chunk = new Chunk(_chunk);
-				int consumption = MemoryPool::getCapacity();
+				int consumption = MemoryPoolImpl::getCapacity();
 				if (consumption > WARNING_SIZE * 1024)
 				{
 					Log("[WARNING] MemoryPool consumes %d KB memory larger than {} KB for type {}",
@@ -72,15 +88,15 @@ public:
 	template<class... Args>
 	Item* newItem(Args&&... args)
 	{
-		Item* mem = r_cast<Item*>(MemoryPool::alloc());
+		Item* mem = r_cast<Item*>(MemoryPoolImpl::alloc());
 		return new (mem) Item(std::forward<Args>(args)...);
 	}
 	void deleteItem(Item* item)
 	{
 		item->~Item();
-		MemoryPool::free(r_cast<void*>(item));
+		MemoryPoolImpl::free(r_cast<void*>(item));
 	}
-	int getCapacity() const
+	virtual int getCapacity() const override
 	{
 		int chunkCount = 0;
 		for (Chunk* chunk = _chunk; chunk; chunk = chunk->next)
@@ -89,7 +105,7 @@ public:
 		}
 		return chunkCount * CHUNK_CAPACITY;
 	}
-	int collect()
+	virtual int collect() override
 	{
 		int oldSize = getCapacity();
 		Chunk* prevChunk = nullptr;
@@ -161,7 +177,7 @@ private:
 			size(0),
 			next(next)
 		{ }
-		~Chunk() { delete [] buffer; }
+		~Chunk() { delete[] buffer; }
 		int size;
 		char* buffer;
 		Chunk* next;
@@ -172,7 +188,7 @@ private:
 	{
 		if (chunk)
 		{
-			MemoryPool::deleteChunk(chunk->next);
+			MemoryPoolImpl::deleteChunk(chunk->next);
 			delete chunk;
 		}
 	}
@@ -191,13 +207,13 @@ public: \
 		return _memory.getCapacity(); \
 	} \
 private: \
-	static MemoryPool<type, CAPSIZE, WARNSIZE> _memory
+	static MemoryPoolImpl<type, CAPSIZE, WARNSIZE> _memory
 
 #define USE_MEMORY_POOL(type) \
 	USE_MEMORY_POOL_SIZE(type, DEFAULT_CHUNK_CAPACITY, DEFAULT_WARNING_SIZE)
 
 #define MEMORY_POOL_SIZE(type, CAPSIZE, WARNSIZE) \
-	MemoryPool<type, CAPSIZE, WARNSIZE> type::_memory
+	MemoryPoolImpl<type, CAPSIZE, WARNSIZE> type::_memory
 
 #define MEMORY_POOL(type) \
 	MEMORY_POOL_SIZE(type, DEFAULT_CHUNK_CAPACITY, DEFAULT_WARNING_SIZE)

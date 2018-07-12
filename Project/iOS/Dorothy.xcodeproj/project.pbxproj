@@ -35,6 +35,7 @@
 		3C1FDB9A1E6041C800F38A26 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FDB991E6041C800F38A26 /* Debug.cpp */; };
 		3C266DEB1E27D6DB00F1C870 /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C266DE91E27D6DB00F1C870 /* View.cpp */; };
 		3C266DEE1E27D6F800F1C870 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C266DEC1E27D6F800F1C870 /* Sprite.cpp */; };
+		3C4A542F20F5F9BE007ED601 /* Component.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4A542E20F5F9BE007ED601 /* Component.cpp */; };
 		3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6551E17F17100292200 /* Geometry.cpp */; };
 		3C4BC65A1E17F18300292200 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6581E17F18300292200 /* Node.cpp */; };
 		3C4BC6641E17F1B500292200 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC65B1E17F1B500292200 /* tolua_event.cpp */; };
@@ -151,6 +152,7 @@
 		3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331791D96D98700F9C3F6 /* Foundation.framework */; };
 		3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */; };
 		3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331831D96E19100F9C3F6 /* OpenGLES.framework */; };
+		3CE3456C20F73AB700D7F60C /* MemoryPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE3456B20F73AB700D7F60C /* MemoryPool.cpp */; };
 		3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE355601E1B7A6300268A19 /* LuaHandler.cpp */; };
 		3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
 		3CE7D3791EADF642008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3771EADF642008EADB3 /* libbimg_decode.a */; };
@@ -236,6 +238,7 @@
 		3C266DEA1E27D6DB00F1C870 /* View.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = View.h; path = ../../../Source/Basic/View.h; sourceTree = "<group>"; };
 		3C266DEC1E27D6F800F1C870 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
 		3C266DED1E27D6F800F1C870 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
+		3C4A542E20F5F9BE007ED601 /* Component.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Component.cpp; path = ../../../Source/Entity/Component.cpp; sourceTree = "<group>"; };
 		3C4BC6551E17F17100292200 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Geometry.cpp; path = ../../../Source/Support/Geometry.cpp; sourceTree = "<group>"; };
 		3C4BC6561E17F17100292200 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
 		3C4BC6581E17F18300292200 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = ../../../Source/Node/Node.cpp; sourceTree = "<group>"; };
@@ -459,6 +462,7 @@
 		3CE331791D96D98700F9C3F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		3CE331831D96E19100F9C3F6 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		3CE3456B20F73AB700D7F60C /* MemoryPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MemoryPool.cpp; path = ../../../Source/Common/MemoryPool.cpp; sourceTree = "<group>"; };
 		3CE355601E1B7A6300268A19 /* LuaHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaHandler.cpp; path = ../../../Source/Lua/LuaHandler.cpp; sourceTree = "<group>"; };
 		3CE355611E1B7A6300268A19 /* LuaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaHandler.h; path = ../../../Source/Lua/LuaHandler.h; sourceTree = "<group>"; };
 		3CE534741E5A9BD500F017AE /* Singleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Singleton.cpp; path = ../../../Source/Common/Singleton.cpp; sourceTree = "<group>"; };
@@ -706,6 +710,7 @@
 		3C92DEC11FFE1CDC003AF655 /* Entity */ = {
 			isa = PBXGroup;
 			children = (
+				3C4A542E20F5F9BE007ED601 /* Component.cpp */,
 				3CA022A220F4C0D500FD28B8 /* Component.h */,
 				3C92DEC21FFE1CFA003AF655 /* Entity.cpp */,
 				3C92DEC31FFE1CFA003AF655 /* Entity.h */,
@@ -1155,13 +1160,14 @@
 		3CFF5F281E0136A5004E3CA6 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				3CE3456B20F73AB700D7F60C /* MemoryPool.cpp */,
+				3C0AD7D21E0CE9B10033AD59 /* MemoryPool.h */,
 				3CE534741E5A9BD500F017AE /* Singleton.cpp */,
 				3CE534751E5A9BD500F017AE /* Singleton.h */,
 				3C1070681E13A2D800EB8C7A /* Async.cpp */,
 				3C1070691E13A2D800EB8C7A /* Async.h */,
 				3C1FDB991E6041C800F38A26 /* Debug.cpp */,
 				3C0AD7D01E0CE9B10033AD59 /* Debug.h */,
-				3C0AD7D21E0CE9B10033AD59 /* MemoryPool.h */,
 				3C0AD7D31E0CE9B10033AD59 /* Own.h */,
 				3C0AD7D51E0CE9B10033AD59 /* Ref.h */,
 				3C0AD7D71E0CE9B10033AD59 /* WRef.h */,
@@ -1316,6 +1322,7 @@
 				3CB7309A1E80353A006DFA18 /* b2Fixture.cpp in Sources */,
 				3CB7307C1E80343E006DFA18 /* Joint.cpp in Sources */,
 				3CB731031E80358B006DFA18 /* b2Collision.cpp in Sources */,
+				3C4A542F20F5F9BE007ED601 /* Component.cpp in Sources */,
 				3C92DEC41FFE1CFA003AF655 /* Entity.cpp in Sources */,
 				3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */,
 				3CB730DC1E80356A006DFA18 /* b2RopeJoint.cpp in Sources */,
@@ -1371,6 +1378,7 @@
 				3CB730DE1E80356A006DFA18 /* b2WheelJoint.cpp in Sources */,
 				3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */,
 				3C0AD7CC1E0CE9990033AD59 /* LuaEngine.cpp in Sources */,
+				3CE3456C20F73AB700D7F60C /* MemoryPool.cpp in Sources */,
 				3CB731001E80358B006DFA18 /* b2CollideCircle.cpp in Sources */,
 				3C15682920E4B7D7004F8785 /* format.cpp in Sources */,
 				3CB730B31E803556006DFA18 /* b2CircleContact.cpp in Sources */,

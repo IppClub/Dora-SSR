@@ -1,6 +1,4 @@
 #pragma once
-#include "Basic/Object.h"
-#include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
 
@@ -18,7 +16,7 @@ public:
 	virtual Own<Com> clone() const = 0;
 	virtual void pushToLua() const = 0;
 	template <class T>
-	static Own<Com> create(const T& value);
+	static Own<Com> alloc(const T& value);
 protected:
 	Com() { }
 	DORA_TYPE_BASE(Com);
@@ -41,7 +39,7 @@ public:
 	}
 	virtual Own<Com> clone() const override
 	{
-		return Com::create(_value);
+		return Com::alloc(_value);
 	}
 	virtual void pushToLua() const override
 	{
@@ -54,7 +52,7 @@ private:
 };
 
 template<class T>
-MemoryPool<ComEx<T>> ComEx<T, typename std::enable_if<!std::is_base_of<Object, T>::value>::type>::_memory;
+MemoryPoolImpl<ComEx<T>> ComEx<T, typename std::enable_if<!std::is_base_of<Object, T>::value>::type>::_memory;
 
 template<>
 class ComEx<Object*> : public Com
@@ -74,7 +72,7 @@ public:
 	}
 	virtual Own<Com> clone() const override
 	{
-		return Com::create(_value.get());
+		return Com::alloc(_value.get());
 	}
 	virtual void pushToLua() const override
 	{
@@ -101,7 +99,7 @@ ComEx<T>* Com::as()
 }
 
 template <class T>
-Own<Com> Com::create(const T& value)
+Own<Com> Com::alloc(const T& value)
 {
 	return Own<Com>(new ComEx<T>(value));
 }

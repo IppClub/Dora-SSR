@@ -11,23 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Basic/Application.h"
-#include "Support/Dictionary.h"
 
 NS_DOROTHY_BEGIN
-
-MEMORY_POOL(ComEx<Object*>);
-
-// add class below to make visual C++ compiler happy
-struct HandlerItem
-{
-	HandlerItem():handler(New<EntityHandler>()) { }
-	HandlerItem(HandlerItem&& other):handler(std::move(other.handler)) { }
-	Own<EntityHandler> handler;
-	bool operator==(const HandlerItem& right) const
-	{
-		return handler.get() == right.handler.get();
-	}
-};
 
 class EntityPool
 {
@@ -58,45 +43,47 @@ public:
 		SharedApplication.quitHandler += [this]() { clear(); };
 	}
 	virtual ~EntityPool() { }
+	int tryGetIndex(String name) const
+	{
+		auto it = comIndices.find(name);
+		return it == comIndices.end() ? -1 : it->second;
+	}
+	int getIndex(String name)
+	{
+		auto it = comIndices.find(name);
+		if (it == comIndices.end())
+		{
+			int index = s_cast<int>(comIndices.size());
+			comIndices[name] = index;
+			return index;
+		}
+		return it->second;
+	}
 	stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
 	vector<Delegate<void()>> triggers;
 	unordered_set<int> usedIndices;
+	unordered_map<string, int> comIndices;
 	unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
-	unordered_map<string, HandlerItem> addHandlers;
-	unordered_map<string, HandlerItem> changeHandlers;
-	unordered_map<string, HandlerItem> removeHandlers;
+	vector<EntityHandler> addHandlers;
+	vector<EntityHandler> changeHandlers;
+	vector<EntityHandler> removeHandlers;
 	unordered_map<string, Ref<EntityGroup>> groups;
 	unordered_map<string, Ref<EntityObserver>> observers;
-	EntityHandler& getAddHandler(String name)
+	EntityHandler& getAddHandler(int index)
 	{
-		auto it = addHandlers.find(name);
-		if (it == addHandlers.end())
-		{
-			auto result = addHandlers.emplace(name, HandlerItem());
-			it = result.first;
-		}
-		return *it->second.handler;
+		while (s_cast<int>(addHandlers.size()) <= index) addHandlers.emplace_back();
+		return addHandlers[index];
 	}
-	EntityHandler& getChangeHandler(String name)
+	EntityHandler& getChangeHandler(int index)
 	{
-		auto it = changeHandlers.find(name);
-		if (it == changeHandlers.end())
-		{
-			auto result = changeHandlers.emplace(name, HandlerItem());
-			it = result.first;
-		}
-		return *it->second.handler;
+		while (s_cast<int>(changeHandlers.size()) <= index) changeHandlers.emplace_back();
+		return changeHandlers[index];
 	}
-	EntityHandler& getRemoveHandler(String name)
+	EntityHandler& getRemoveHandler(int index)
 	{
-		auto it = removeHandlers.find(name);
-		if (it == removeHandlers.end())
-		{
-			auto result = removeHandlers.emplace(name, HandlerItem());
-			it = result.first;
-		}
-		return *it->second.handler;
+		while (s_cast<int>(removeHandlers.size()) <= index) removeHandlers.emplace_back();
+		return removeHandlers[index];
 	}
 	bool eachEntity(const function<bool(Entity*)>& func)
 	{
@@ -123,6 +110,7 @@ public:
 			return false;
 		});
 		stack<Ref<Entity>> empty;
+		comIndices.clear();
 		availableEntities.swap(empty);
 		entities.clear();
 		usedIndices.clear();
@@ -155,41 +143,64 @@ int Entity::getIndex() const
 
 void Entity::destroy()
 {
-	list<string> names;
-	for (auto& pair : _components)
+	for (int i = 0;i < s_cast<int>(_components.size());i++)
 	{
-		names.push_back(pair.first);
-	}
-	for (auto& name : names)
-	{
-		remove(name);
+		if (_components[i] != nullptr)
+		{
+			remove(i);
+		}
 	}
 	SharedEntityPool.availableEntities.push(MakeRef(this));
 	SharedEntityPool.entities[_index] = nullptr;
 	SharedEntityPool.usedIndices.erase(_index);
 }
 
+int Entity::getIndex(String name)
+{
+	return SharedEntityPool.getIndex(name);
+}
+
 bool Entity::has(String name) const
 {
-	return _components.find(name) != _components.end();
+	auto& comIndices = SharedEntityPool.comIndices;
+	auto it = comIndices.find(name);
+	if (it != comIndices.end())
+	{
+		return has(it->second);
+	}
+	return false;
+}
+
+bool Entity::has(int index) const
+{
+	return 0 <= index && index < s_cast<int>(_components.size()) && _components[index] != nullptr;
+}
+
+bool Entity::hasCache(int index) const
+{
+	return 0 <= index && index < s_cast<int>(_comCache.size()) && _comCache[index] != nullptr;
 }
 
 void Entity::remove(String name)
 {
-	auto it = _components.find(name);
-	AssertIf(it == _components.end(), "removing non-exist component \"{}\"", name);
-	auto& removeHandlers = SharedEntityPool.removeHandlers;
-	auto handlerIt = removeHandlers.find(name);
-	if (handlerIt != removeHandlers.end())
+	int index = SharedEntityPool.tryGetIndex(name);
+	AssertIf(!has(index), "removing non-exist component \"{}\"", name);
+	remove(index);
+}
+
+void Entity::remove(int index)
+{
+	auto& removeHandler = SharedEntityPool.getRemoveHandler(index);
+	if (!removeHandler.IsEmpty())
 	{
-		if (_comCache.find(name) == _comCache.end())
+		if (!_comCache[index])
 		{
-			_comCache[name] = it->second->clone();
+			_comCache[index] = _components[index]->clone();
 			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		}
-		(*handlerIt->second.handler)(this);
+		removeHandler(this);
 	}
-	_components.erase(name);
+	_components[index] = nullptr;
 }
 
 bool Entity::each(const function<bool(Entity*)>& func)
@@ -202,53 +213,62 @@ void Entity::clear()
 	SharedEntityPool.clear();
 }
 
-void Entity::updateComponent(String name, Own<Com>&& com, bool add)
+Uint32 Entity::getCount()
 {
-	unordered_map<string, HandlerItem>* handlers;
+	return s_cast<Uint32>(SharedEntityPool.usedIndices.size());
+}
+
+void Entity::updateComponent(int index, Own<Com>&& com, bool add)
+{
+	EntityHandler* handler;
 	if (add)
 	{
-		_components[name] = std::move(com);
-		handlers = &SharedEntityPool.addHandlers;
+		while (s_cast<int>(_components.size()) <= index) _components.emplace_back();
+		while (s_cast<int>(_comCache.size()) <= index) _comCache.emplace_back();
+		_components[index] = std::move(com);
+		handler = &SharedEntityPool.getAddHandler(index);
 	}
 	else
 	{
-		handlers = &SharedEntityPool.changeHandlers;
+		handler = &SharedEntityPool.getChangeHandler(index);
 	}
-	auto it = handlers->find(name);
-	if (it != handlers->end())
+	if (!handler->IsEmpty())
 	{
-		if (_comCache.find(name) == _comCache.end())
+		if (!_comCache[index])
 		{
-			_comCache[name] = add ? Own<Com>() : std::move(com);
+			_comCache[index] = add ? Own<Com>() : std::move(com);
 			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		}
-		(*it->second.handler)(this);
+		(*handler)(this);
 	}
 }
 
 Com* Entity::getComponent(String name) const
 {
-	auto it = _components.find(name);
-	if (it != _components.end())
-	{
-		return it->second.get();
-	}
-	return nullptr;
+	int index = SharedEntityPool.tryGetIndex(name);
+	return has(index) ? _components[index].get() : nullptr;
+}
+
+Com* Entity::getComponent(int index) const
+{
+	return has(index) ? _components[index].get() : nullptr;
 }
 
 Com* Entity::getCachedCom(String name) const
 {
-	auto it = _comCache.find(name);
-	if (it != _comCache.end())
-	{
-		return it->second.get();
-	}
-	return nullptr;
+	int index = SharedEntityPool.tryGetIndex(name);
+	return hasCache(index) ? _comCache[index].get() : nullptr;
+}
+
+Com* Entity::getCachedCom(int index) const
+{
+	return has(index) ? _comCache[index].get() : nullptr;
 }
 
 void Entity::clearComCache()
 {
 	_comCache.clear();
+	_comCache.resize(_components.size());
 }
 
 Entity* Entity::create()
@@ -281,17 +301,17 @@ EntityGroup::EntityGroup(const vector<string>& components)
 	_components.resize(components.size());
 	for (int i = 0; i < s_cast<int>(components.size()); i++)
 	{
-		_components[i] = components[i];
+		_components[i] = SharedEntityPool.getIndex(components[i]);
 	}
 }
 
 EntityGroup::~EntityGroup()
 {
 	if (Singleton<EntityPool>::isDisposed()) return;
-	for (const auto& name : _components)
+	for (const auto& index : _components)
 	{
-		SharedEntityPool.getAddHandler(name) -= std::make_pair(this, &EntityGroup::onAdd);
-		SharedEntityPool.getRemoveHandler(name) -= std::make_pair(this, &EntityGroup::onRemove);
+		SharedEntityPool.getAddHandler(index) -= std::make_pair(this, &EntityGroup::onAdd);
+		SharedEntityPool.getRemoveHandler(index) -= std::make_pair(this, &EntityGroup::onRemove);
 	}
 }
 
@@ -300,9 +320,9 @@ bool EntityGroup::init()
 	Entity::each([this](Entity* entity)
 	{
 		bool match = true;
-		for (const auto& name : _components)
+		for (int index : _components)
 		{
-			if (!entity->has(name))
+			if (!entity->has(index))
 			{
 				match = false;
 				break;
@@ -314,10 +334,10 @@ bool EntityGroup::init()
 		}
 		return false;
 	});
-	for (const auto& name : _components)
+	for (int index : _components)
 	{
-		SharedEntityPool.getAddHandler(name) += std::make_pair(this, &EntityGroup::onAdd);
-		SharedEntityPool.getRemoveHandler(name) += std::make_pair(this, &EntityGroup::onRemove);
+		SharedEntityPool.getAddHandler(index) += std::make_pair(this, &EntityGroup::onAdd);
+		SharedEntityPool.getRemoveHandler(index) += std::make_pair(this, &EntityGroup::onRemove);
 	}
 	return true;
 }
@@ -402,29 +422,29 @@ _option(option)
 	_components.resize(components.size());
 	for (int i = 0; i < s_cast<int>(components.size()); i++)
 	{
-		_components[i] = components[i];
+		_components[i] = SharedEntityPool.getIndex(components[i]);
 	}
 }
 
 EntityObserver::~EntityObserver()
 {
 	if (Singleton<EntityPool>::isDisposed()) return;
-	for (const auto& name : _components)
+	for (int index : _components)
 	{
 		switch (_option)
 		{
 			case Entity::Add:
-				SharedEntityPool.getAddHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getAddHandler(index) -= std::make_pair(this, &EntityObserver::onEvent);
 				break;
 			case Entity::Change:
-				SharedEntityPool.getChangeHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getChangeHandler(index) -= std::make_pair(this, &EntityObserver::onEvent);
 				break;
 			case Entity::AddOrChange:
-				SharedEntityPool.getAddHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
-				SharedEntityPool.getChangeHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getAddHandler(index) -= std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getChangeHandler(index) -= std::make_pair(this, &EntityObserver::onEvent);
 				break;
 			case Entity::Remove:
-				SharedEntityPool.getRemoveHandler(name) -= std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getRemoveHandler(index) -= std::make_pair(this, &EntityObserver::onEvent);
 				break;
 		}
 	}
@@ -432,22 +452,22 @@ EntityObserver::~EntityObserver()
 
 bool EntityObserver::init()
 {
-	for (const auto& name : _components)
+	for (int index : _components)
 	{
 		switch (_option)
 		{
 			case Entity::Add:
-				SharedEntityPool.getAddHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getAddHandler(index) += std::make_pair(this, &EntityObserver::onEvent);
 				break;
 			case Entity::Change:
-				SharedEntityPool.getChangeHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getChangeHandler(index) += std::make_pair(this, &EntityObserver::onEvent);
 				break;
 			case Entity::AddOrChange:
-				SharedEntityPool.getAddHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
-				SharedEntityPool.getChangeHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getAddHandler(index) += std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getChangeHandler(index) += std::make_pair(this, &EntityObserver::onEvent);
 				break;
 			case Entity::Remove:
-				SharedEntityPool.getRemoveHandler(name) += std::make_pair(this, &EntityObserver::onEvent);
+				SharedEntityPool.getRemoveHandler(index) += std::make_pair(this, &EntityObserver::onEvent);
 				break;
 		}
 	}
