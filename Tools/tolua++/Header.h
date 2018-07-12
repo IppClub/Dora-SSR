@@ -15,8 +15,8 @@ class Object
 {
 	tolua_readonly tolua_property__common Uint32 id;
 	tolua_readonly tolua_property__common Uint32 luaRef @ ref;
-	static tolua_readonly tolua_property__common Uint32 objectCount @ count;
-	static tolua_readonly tolua_property__common Uint32 maxObjectCount @ maxCount;
+	static tolua_readonly tolua_property__common Uint32 count;
+	static tolua_readonly tolua_property__common Uint32 maxCount;
 	static tolua_readonly tolua_property__common Uint32 luaRefCount;
 	static tolua_readonly tolua_property__common Uint32 maxLuaRefCount;
 	static tolua_readonly tolua_property__common Uint32 luaCallbackCount @ callRefCount;
@@ -26,6 +26,7 @@ class Object
 class Entity : public Object
 {
 	tolua_readonly tolua_property__common int index;
+	static tolua_readonly tolua_property__common Uint32 count;
 	void destroy();
 	static void clear();
 	static void each(tolua_function_bool func);

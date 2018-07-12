@@ -23,7 +23,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "bx/timer.h"
 #include "Common/Utils.h"
-#include "Entity/Entity.h"
 
 NS_DOROTHY_BEGIN
 
@@ -200,7 +199,6 @@ bool Director::init()
 		}
 		return false;
 	});
-	Log("{} {} {}", sizeof(ValueEx<double>), sizeof(ComEx<double>), sizeof(double));
 	return true;
 }
 
@@ -416,9 +414,10 @@ void Director::displayStats()
 		frames = 0;
 		cpuTime = gpuTime = deltaTime = 0.0;
 	}
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mC++ Object: \x1b[15;m%d", Object::getObjectCount());
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mC++ Object: \x1b[15;m%d", Object::getCount());
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mLua Object: \x1b[15;m%d", Object::getLuaRefCount());
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mCallback: \x1b[15;m%d", Object::getLuaCallbackCount());
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mLua Callback: \x1b[15;m%d", Object::getLuaCallbackCount());
+	//bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMemory Pool: \x1b[15;m%d kb", MemoryPool::getCapacity()/1024);
 }
 
 void Director::pushViewProjection(const Matrix& viewProj)

@@ -307,6 +307,7 @@
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Debug.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\MemoryPool.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Singleton.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Utils.cpp" />
     <ClCompile Include="..\..\..\Source\Const\Header.cpp">
@@ -314,6 +315,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Effect\Effect.cpp" />
+    <ClCompile Include="..\..\..\Source\Entity\Component.cpp" />
     <ClCompile Include="..\..\..\Source\Entity\Entity.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp" />

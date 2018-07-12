@@ -144,13 +144,13 @@ Uint32 Object::getId() const
 	return _id;
 }
 
-Uint32 Object::getObjectCount()
+Uint32 Object::getCount()
 {
 	auto& info = SharedObjectBase;
 	return info.maxIdCount - s_cast<Uint32>(info.availableIds.size());
 }
 
-Uint32 Object::getMaxObjectCount()
+Uint32 Object::getMaxCount()
 {
 	return SharedObjectBase.maxIdCount;
 }

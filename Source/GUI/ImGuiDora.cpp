@@ -333,13 +333,16 @@ void ImGuiDora::showStats()
 	}
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "C++ Object:");
 	ImGui::SameLine();
-	ImGui::Text("%d", Object::getObjectCount());
+	ImGui::Text("%d", Object::getCount());
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Object:");
 	ImGui::SameLine();
 	ImGui::Text("%d", Object::getLuaRefCount());
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Callback:");
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Callback:");
 	ImGui::SameLine();
 	ImGui::Text("%d", Object::getLuaCallbackCount());
+	//ImGui::TextColored(Color(0xff00ffff).toVec4(), "Memory Pool:");
+	//ImGui::SameLine();
+	//ImGui::Text("%d kb", MemoryPool::getCapacity()/1024);
 	ImGui::End();
 }
 
