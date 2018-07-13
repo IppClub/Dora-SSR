@@ -205,7 +205,7 @@ void tolua_open(lua_State* L)
 	}
 
 	// Setup ubox table and callback table in registry.
-	lua_newtable(L);
+	lua_createtable(L, TOLUA_UBOX_START_SIZE, 0);
 	lua_newtable(L);
 	lua_pushliteral(L, "__mode");
 	lua_pushliteral(L, "v");
@@ -404,7 +404,7 @@ void tolua_string(lua_State* L, const char* str)
 }
 
 #ifndef TOLUA_RELEASE
-static int tolua_setReadonly(lua_State* L)
+static int tolua_set_readonly(lua_State* L)
 {
 	// 1 self, 2 value
 	luaL_error(L, "assign to a readonly field of \"%s\".", tolua_typename(L, 1).rawData());
@@ -418,7 +418,7 @@ static int tolua_setReadonly(lua_State* L)
 void tolua_variable(lua_State* L, const char* name, lua_CFunction get, lua_CFunction set)
 {
 #ifndef TOLUA_RELEASE
-	if (!set) set = tolua_setReadonly;
+	if (!set) set = tolua_set_readonly;
 #endif
 	/* get func */
 	lua_rawgeti(L, -1, MT_GET);

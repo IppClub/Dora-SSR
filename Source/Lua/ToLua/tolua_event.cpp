@@ -81,7 +81,7 @@ static int module_index_event(lua_State* L)
 static int module_newindex_event(lua_State* L)
 {
 	// 1 tb, 2 key, 3 value
-	lua_rawgeti(L, 1, MT_SET);// tb key value set
+	lua_rawgeti(L, 1, MT_SET); // tb key value set
 	if (lua_istable(L, -1)) // set is table
 	{
 		lua_pushvalue(L, 2); // tb key value set key
