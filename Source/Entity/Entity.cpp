@@ -117,6 +117,9 @@ public:
 		groups.clear();
 		observers.clear();
 		triggers.clear();
+		addHandlers.clear();
+		changeHandlers.clear();
+		removeHandlers.clear();
 	}
 	SINGLETON_REF(EntityPool, Director);
 };
@@ -143,7 +146,7 @@ int Entity::getIndex() const
 
 void Entity::destroy()
 {
-	for (int i = 0;i < s_cast<int>(_components.size());i++)
+	for (int i = 0; i < s_cast<int>(_components.size()); i++)
 	{
 		if (_components[i] != nullptr)
 		{
@@ -267,8 +270,7 @@ Com* Entity::getCachedCom(int index) const
 
 void Entity::clearComCache()
 {
-	_comCache.clear();
-	_comCache.resize(_components.size());
+	std::fill(_comCache.begin(), _comCache.end(), nullptr);
 }
 
 Entity* Entity::create()
@@ -408,10 +410,10 @@ EntityGroup* EntityGroup::create(const vector<string>& components)
 EntityGroup* EntityGroup::create(Slice components[], int count)
 {
 	vector<string> coms;
-	coms.reserve(count);
+	coms.resize(count);
 	for (int i = 0; i < count; i++)
 	{
-		coms.push_back(components[i]);
+		coms[i] = components[i];
 	}
 	return EntityGroup::create(coms);
 }
@@ -477,9 +479,9 @@ bool EntityObserver::init()
 void EntityObserver::onEvent(Entity* entity)
 {
 	bool match = true;
-	for (const auto& name : _components)
+	for (int index : _components)
 	{
-		if (!entity->has(name))
+		if (!entity->has(index))
 		{
 			match = false;
 			break;
@@ -542,10 +544,10 @@ EntityObserver* EntityObserver::create(int option, const vector<string>& compone
 EntityObserver* EntityObserver::create(int option, Slice components[], int count)
 {
 	vector<string> coms;
-	coms.reserve(count);
+	coms.resize(count);
 	for (int i = 0; i < count; i++)
 	{
-		coms.push_back(components[i]);
+		coms[i] = components[i];
 	}
 	return EntityObserver::create(option, coms);
 }

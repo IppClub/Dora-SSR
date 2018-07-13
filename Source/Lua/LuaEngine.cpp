@@ -311,7 +311,7 @@ void LuaEngine::removePeer(Object* object)
 		int refid = object->getLuaRef();
 		lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
 		lua_rawgeti(L, -1, refid); // ubox ud
-		if (!lua_isnil(L, -1))
+		if (!lua_toboolean(L, -1))
 		{
 			lua_pushvalue(L, TOLUA_NOPEER); // ubox ud nopeer
 			lua_setfenv(L, -2); // ud<nopeer>, ubox ud

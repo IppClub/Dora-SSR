@@ -64,7 +64,7 @@ void tolua_pushobject(lua_State* L, Object* object)
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
 	lua_rawgeti(L, -1, refid); // ubox ud
 
-	if (lua_isnil(L, -1)) // ud == nil
+	if (!lua_toboolean(L, -1)) // !ud
 	{
 		lua_pop(L, 1); // ubox
 		*r_cast<void**>(lua_newuserdata(L, sizeof(void*))) = object; // ubox newud
@@ -138,8 +138,8 @@ void tolua_get_function_by_refid(lua_State* L, int refid)
 void tolua_remove_function_by_refid(lua_State* L, int refid)
 {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
-	lua_pushnil(L); // funcMap nil
-	lua_rawseti(L, -2, refid); // funcMap[refid] = nil, funcMap
+	lua_pushboolean(L, 0); // funcMap false
+	lua_rawseti(L, -2, refid); // funcMap[refid] = false, funcMap
 	lua_pop(L, 1); // empty
 	tolua_collect_callback_ref_id(refid);
 }
@@ -180,6 +180,7 @@ void tolua_stack_dump(lua_State* L, int offset, const char* label)
                 break;
             default:
                 LogPrint("  [{}] {}\n", i, lua_typename(L, t));
+                break;
         }
     }
 }
