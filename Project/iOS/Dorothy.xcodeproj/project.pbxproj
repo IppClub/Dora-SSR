@@ -65,6 +65,7 @@
 		3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */; };
 		3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */; };
 		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
+		3CA87C4B20FB6F6300260F9E /* Particle in Resources */ = {isa = PBXBuildFile; fileRef = 3CA87C4A20FB6F6300260F9E /* Particle */; };
 		3CB410291E05B0C500A8804D /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410261E05B0C500A8804D /* Slice.cpp */; };
 		3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410381E05B19A00A8804D /* ioapi.cpp */; };
 		3CB410411E05B19A00A8804D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103A1E05B19A00A8804D /* unzip.cpp */; };
@@ -295,6 +296,7 @@
 		3CA1B7F21EC16ED300BC58FF /* SAXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SAXParser.h; path = ../../../Source/3rdParty/tinyxml2/SAXParser.h; sourceTree = "<group>"; };
 		3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml2.cpp; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.cpp; sourceTree = "<group>"; };
 		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
+		3CA87C4A20FB6F6300260F9E /* Particle */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Particle; path = ../../Assets/Particle; sourceTree = "<group>"; };
 		3CB410261E05B0C500A8804D /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CB410271E05B0C500A8804D /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
 		3CB4102B1E05B0F800A8804D /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
@@ -583,6 +585,7 @@
 			children = (
 				3CC7A1571E8D69EB003188D6 /* Audio */,
 				3C59730C1E7F751A00BFD00F /* Model */,
+				3CA87C4A20FB6F6300260F9E /* Particle */,
 				3CF730DF1E66544A0002DEED /* Font */,
 				3CF730E01E66544A0002DEED /* Image */,
 				3CF730E11E66544A0002DEED /* Script */,
@@ -1255,6 +1258,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CA87C4B20FB6F6300260F9E /* Particle in Resources */,
 				3CC7A1581E8D69EB003188D6 /* Audio in Resources */,
 				3CF730E41E66544A0002DEED /* Image in Resources */,
 				3CF730E51E66544A0002DEED /* Script in Resources */,

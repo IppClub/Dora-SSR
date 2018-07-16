@@ -585,6 +585,14 @@ class Line : public Node
 	static Line* create(Vec2 verts[tolua_len], Color color);
 };
 
+class ParticleNode @ Particle : public Node
+{
+	tolua_readonly tolua_property__bool bool active;
+	void start();
+	void stop();
+	static ParticleNode* create(String filename);
+};
+
 class Model: public Node
 {
 	tolua_property__common string look;
@@ -634,7 +642,7 @@ struct b2BodyType @ BodyType
 	#define b2_dynamicBody @ Dynamic
 	#define b2_kinematicBody @ Kinematic
 };
-enum b2BodyType @ BodyType {};
+enum b2BodyType {};
 
 class BodyDef : public Object
 {

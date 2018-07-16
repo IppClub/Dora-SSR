@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-enum struct EmitterType
+enum struct EmitterMode
 {
 	Gravity,
 	Radius
@@ -45,7 +45,7 @@ public:
 	Vec4 startColorVariance;
 	float startParticleSize;
 	float startParticleSizeVariance;
-	EmitterType emitterType;
+	EmitterMode emitterMode;
 	union
 	{
 		struct
@@ -116,11 +116,13 @@ public:
 	virtual bool init() override;
 	virtual void visit() override;
 	virtual void render() override;
+	virtual const Matrix& getWorld() override;
 	void start();
 	void stop();
 	CREATE_FUNC(ParticleNode);
 protected:
 	ParticleNode(ParticleDef* def);
+	ParticleNode(String filename);
 	void addParticle();
 	void addQuad(const Particle& particle, const Vec3& pos);
 private:

@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Node/Particle.h"
 #include "Cache/TextureCache.h"
+#include "Cache/ParticleCache.h"
 #include "Effect/Effect.h"
 #include "Basic/Director.h"
 #include "fmt/format.h"
@@ -89,7 +90,7 @@ startColor(),
 startColorVariance(),
 startParticleSize(),
 startParticleSizeVariance(),
-emitterType(),
+emitterMode(),
 mode(),
 textureName(),
 textureRect()
@@ -123,13 +124,13 @@ string ParticleDef::toXml() const
 	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::StartColorVariance), startColorVariance.x, startColorVariance.y, startColorVariance.z, startColorVariance.w);
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSize), startParticleSize);
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSizeVariance), startParticleSizeVariance);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::EmitterType), s_cast<int>(emitterType));
+	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::EmitterMode), s_cast<int>(emitterMode));
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::Angle), angle);
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::TextureName), textureName);
 	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::TextureRect), textureRect.getX(), textureRect.getY(), textureRect.getWidth(), textureRect.getHeight());
-	switch (emitterType)
+	switch (emitterMode)
 	{
-		case EmitterType::Gravity:
+		case EmitterMode::Gravity:
 			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotationIsDir), mode.gravity.rotationIsDir ? 1 : 0);
 			fmt::format_to(out, "<{} A=\"{},{}\"/>", char(Xml::Particle::Gravity), mode.gravity.gravity.x, mode.gravity.gravity.y);
 			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::Speed), mode.gravity.speed);
@@ -139,7 +140,7 @@ string ParticleDef::toXml() const
 			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::TangentialAcceleration), mode.gravity.tangentialAcceleration);
 			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::TangentialAccelVariance), mode.gravity.tangentialAccelVariance);
 			break;
-		case EmitterType::Radius:
+		case EmitterMode::Radius:
 			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartRadius), mode.radius.startRadius);
 			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartRadiusVariance), mode.radius.startRadiusVariance);
 			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::FinishRadius), mode.radius.finishRadius);
@@ -157,7 +158,7 @@ ParticleDef* ParticleDef::fire()
 	ParticleDef* def = ParticleDef::create();
 	def->duration = -1;
 
-	def->emitterType = EmitterType::Gravity;
+	def->emitterMode = EmitterMode::Gravity;
 	def->mode.gravity.gravity = Vec2::zero;
 	def->mode.gravity.radialAcceleration = 0;
 	def->mode.gravity.radialAccelVariance = 0;
@@ -198,6 +199,10 @@ _texTop(0),
 _texRight(0),
 _texBottom(0),
 _effect(SharedSpriteRenderer.getDefaultModelEffect())
+{ }
+
+ParticleNode::ParticleNode(String filename) :
+ParticleNode(SharedParticleCache.load(filename))
 { }
 
 ParticleNode::~ParticleNode()
@@ -310,9 +315,9 @@ void ParticleNode::addParticle()
 
 	float angle = bx::toRad(def.angle + def.angleVariance * Math::rand1to1());
 
-	switch (def.emitterType)
+	switch (def.emitterMode)
 	{
-		case EmitterType::Gravity:
+		case EmitterMode::Gravity:
 		{
 			Vec2 dir{ std::cos(angle), std::sin(angle) };
 			float speed = def.mode.gravity.speed + def.mode.gravity.speedVariance * Math::rand1to1();
@@ -325,7 +330,7 @@ void ParticleNode::addParticle()
 			}
 			break;
 		}
-		case EmitterType::Radius:
+		case EmitterMode::Radius:
 		{
 			float startRadius = def.mode.radius.startRadius + def.mode.radius.startRadiusVariance * Math::rand1to1();
 			particle.mode.radius.radius = startRadius;
@@ -456,9 +461,9 @@ void ParticleNode::visit()
 		p.timeToLive -= deltaTime;
 		if (p.timeToLive > 0)
 		{
-			switch (_particleDef->emitterType)
+			switch (_particleDef->emitterMode)
 			{
-				case EmitterType::Gravity:
+				case EmitterMode::Gravity:
 				{
 					Vec2 tmp, radial, tangential;
 					radial = Vec2::zero;
@@ -483,7 +488,7 @@ void ParticleNode::visit()
 					p.pos += tmp;
 					break;
 				}
-				case EmitterType::Radius:
+				case EmitterMode::Radius:
 				{
 					p.mode.radius.angle += p.mode.radius.degreesPerSecond * deltaTime;
 					p.mode.radius.radius += p.mode.radius.deltaRadius * deltaTime;
@@ -542,6 +547,30 @@ void ParticleNode::render()
 
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	SharedSpriteRenderer.push(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState, INT32_MAX, getWorld());
+}
+
+const Matrix& ParticleNode::getWorld()
+{
+	float lastAngle = Node::getAngle();
+	float lastScaleX = Node::getScaleX();
+	float lastScaleY = Node::getScaleY();
+	float angle = 0.0f;
+	float scaleX = lastScaleX;
+	float scaleY = lastScaleY;
+	for (Node* parent = Node::getParent();parent;parent = parent->getParent())
+	{
+		angle += parent->getAngle();
+		scaleX *= parent->getScaleX();
+		scaleY *= parent->getScaleY();
+	}
+	Node::setAngle(-angle);
+	Node::setScaleX(scaleX > 0.0f ? lastScaleX : -lastScaleX);
+	Node::setScaleY(scaleY > 0.0f ? lastScaleY : -lastScaleY);
+	Node::getWorld();
+	Node::setAngle(lastAngle);
+	Node::setScaleX(lastScaleX);
+	Node::setScaleY(lastScaleY);
+	return _world;
 }
 
 NS_DOROTHY_END

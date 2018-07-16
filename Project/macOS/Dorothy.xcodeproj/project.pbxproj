@@ -61,6 +61,7 @@
 		3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* Application.cpp */; };
 		3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* Object.cpp */; };
 		3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA718A61FCCF11000B6AC80 /* lodepng.cpp */; };
+		3CA87C4920FB60F800260F9E /* Particle in Resources */ = {isa = PBXBuildFile; fileRef = 3CA87C4820FB60F800260F9E /* Particle */; };
 		3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2487D1E4DB41500B6BF26 /* utf8.cpp */; };
 		3CB487061E1635A500D51749 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487041E1635A500D51749 /* Node.cpp */; };
 		3CB487131E16398700D51749 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870A1E16398700D51749 /* tolua_event.cpp */; };
@@ -328,6 +329,7 @@
 		3CA022A120F4C05600FD28B8 /* Component.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component.h; path = ../../../Source/Entity/Component.h; sourceTree = "<group>"; };
 		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
 		3CA718A61FCCF11000B6AC80 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
+		3CA87C4820FB60F800260F9E /* Particle */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Particle; path = ../../Assets/Particle; sourceTree = "<group>"; };
 		3CB2487D1E4DB41500B6BF26 /* utf8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utf8.cpp; path = ../../../Source/3rdParty/Other/utf8.cpp; sourceTree = "<group>"; };
 		3CB2487E1E4DB41500B6BF26 /* utf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utf8.h; path = ../../../Source/3rdParty/Other/utf8.h; sourceTree = "<group>"; };
 		3CB487041E1635A500D51749 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = ../../../Source/Node/Node.cpp; sourceTree = "<group>"; };
@@ -970,6 +972,7 @@
 			children = (
 				3CC7A0F01E8D5720003188D6 /* Audio */,
 				3CD497FF1E7EFBE700C06CA2 /* Model */,
+				3CA87C4820FB60F800260F9E /* Particle */,
 				3C9A7D6F1E53F9EF00205094 /* Font */,
 				3C0EBE3B1E2F69400066450A /* Image */,
 				3CC54E9E1E03C71100462FD7 /* Script */,
@@ -1366,6 +1369,7 @@
 			files = (
 				3CD498001E7EFBE700C06CA2 /* Model in Resources */,
 				3C9A7D701E53F9EF00205094 /* Font in Resources */,
+				3CA87C4920FB60F800260F9E /* Particle in Resources */,
 				3C0EBE3C1E2F69410066450A /* Image in Resources */,
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CC7A0F11E8D5720003188D6 /* Audio in Resources */,

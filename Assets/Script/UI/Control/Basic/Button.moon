@@ -21,3 +21,4 @@ Class ButtonView,
 		(value)=>
 			@_text = value
 			@label.text = value if @label
+
