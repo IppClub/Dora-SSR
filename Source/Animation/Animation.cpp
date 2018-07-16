@@ -439,4 +439,34 @@ string FrameAnimationDef::toXml()
 	return fmt::to_string(out);
 }
 
+/* PlayTrackDef */
+
+void PlayTrackDef::addSound(float delay, String filename)
+{
+	_sounds.push_back(std::make_pair(delay, filename));
+}
+
+Action* PlayTrackDef::toAction()
+{
+	vector<Own<ActionDuration>> sounds;
+	for (const auto& sound : _sounds) {
+		sounds.push_back(Delay::alloc(sound.first));
+		sounds.push_back(PlaySound::alloc(sound.second));
+	}
+	return Sequence::create(std::move(sounds));
+}
+
+string PlayTrackDef::toXml()
+{
+	fmt::memory_buffer out;
+	fmt::format_to(out, "<{}>", char(Xml::Model::Element::Track));
+	for (const auto& sound : _sounds) {
+		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{}\">", char(Xml::Model::Element::Sound),
+			char(Xml::Model::Sound::Delay), sound.first,
+			char(Xml::Model::Sound::File), sound.second);
+	}
+	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Track));
+	return fmt::to_string(out);
+}
+
 NS_DOROTHY_END

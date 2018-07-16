@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 #include "Node/Sprite.h"
 #include "Cache/FrameCache.h"
+#include "Audio/Sound.h"
 
 NS_DOROTHY_BEGIN
 
@@ -452,6 +453,36 @@ Own<ActionDuration> Call::alloc(const function<void()>& callback)
 Action* Call::create(const function<void()>& callback)
 {
 	return Action::create(Call::alloc(callback));
+}
+
+/* PlaySound */
+
+bool PlaySound::available = true;
+
+float PlaySound::getDuration() const
+{
+	return 0.0f;
+}
+
+bool PlaySound::update(Node* target, float eclapsed)
+{
+	if (_ended && eclapsed > 0.0f) return true;
+	if (PlaySound::available && !_filename.empty()) SharedAudio.play(_filename);
+	_ended = eclapsed > 0.0f;
+	return true;
+}
+
+Own<ActionDuration> PlaySound::alloc(String filename)
+{
+	PlaySound* play = new PlaySound();
+	play->_ended = false;
+	play->_filename = filename;
+	return Own<ActionDuration>(play);
+}
+
+Action* PlaySound::create(String filename)
+{
+	return Action::create(PlaySound::alloc(filename));
 }
 
 /* FrameAction */
