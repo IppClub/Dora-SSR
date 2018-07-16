@@ -233,6 +233,21 @@ private:
 	function<void()> _callback;
 };
 
+class PlaySound : public ActionDuration
+{
+public:
+	virtual float getDuration() const override;
+	virtual bool update(Node* target, float eclapsed) override;
+	static Own<ActionDuration> alloc(String filename);
+	static Action* create(String filename);
+	static bool available;
+protected:
+	PlaySound() { }
+private:
+	bool _ended;
+	string _filename;
+};
+
 class Texture2D;
 class FrameActionDef;
 

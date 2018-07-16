@@ -181,7 +181,7 @@ namespace Model
 		Name = 'H',
 	};
 
-	enum struct Track
+	enum struct Sound
 	{
 		File = 'A',
 		Delay = 'B',

@@ -133,4 +133,16 @@ private:
 	string _file;
 };
 
+class PlayTrackDef : public AnimationDef
+{
+public:
+	PlayTrackDef() { }
+	void addSound(float delay, String filename);
+	virtual Action* toAction() override;
+	virtual string toXml() override;
+	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override { }
+private:
+	vector<std::pair<float,string>> _sounds;
+};
+
 NS_DOROTHY_END
