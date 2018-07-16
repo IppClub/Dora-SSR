@@ -63,7 +63,7 @@ enum struct Particle
 	StartParticleSizeVariance = 'X', // float
 	TextureName = 'Y', // string
 	TextureRect = 'Z', // Rect
-	EmitterType = 'a', // EmitterType
+	EmitterMode = 'a', // EmitterType
 	/* gravity */
 	RotationIsDir = 'b', // bool
 	Gravity = 'c', // Vec2

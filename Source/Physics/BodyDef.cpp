@@ -32,6 +32,8 @@ BodyDef::~BodyDef()
 	BodyDef::clearFixtures();
 }
 
+
+
 void BodyDef::attachPolygon(const Vec2& center, float width, float height, float angle, float density, float friction, float restitution)
 {
 	b2PolygonShape* shape = new b2PolygonShape();

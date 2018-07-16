@@ -108,8 +108,8 @@ void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, co
 		case Xml::Particle::TextureRect:
 			get(attrs[1], _item->textureRect);
 			break;
-		case Xml::Particle::EmitterType:
-			_item->emitterType = EmitterType(s_cast<int>(std::atoi(attrs[1].first)));
+		case Xml::Particle::EmitterMode:
+			_item->emitterMode = EmitterMode(s_cast<int>(std::atoi(attrs[1].first)));
 			break;
 		case Xml::Particle::RotationIsDir:
 			_item->mode.gravity.rotationIsDir = s_cast<int>(std::atoi(attrs[1].first)) != 0;
