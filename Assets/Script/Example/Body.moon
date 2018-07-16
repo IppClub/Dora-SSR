@@ -37,3 +37,4 @@ Director\pushEntry with world
 	\addChild with Body circleDef,world,Vec2(50,800)
 		.group = groupZero
 		.angularRate = 90
+
