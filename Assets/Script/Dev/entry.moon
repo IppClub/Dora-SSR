@@ -127,10 +127,13 @@ doCompile = (minify)->
 	totalMinifyTime = 0
 	thread ->
 		print "Output path: #{Content.writablePath}"
-		xpcall (-> compile Content.assetPath\sub(1,-2),false,minify),(msg)->
-			msg = debug.traceback msg
-			print msg
-			building = false
+		if Application.platform == "iOS"
+			compile Content.assetPath\sub(1,-2),false,minify
+		else
+			xpcall (-> compile Content.assetPath\sub(1,-2),false,minify),(msg)->
+				msg = debug.traceback msg
+				print msg
+				building = false
 		print string.format "Compile #{minify and 'and minify ' or ''}done. %d files in total.\nCompile time, Moon %.3fs, Xml %.3fs#{minify and ', Minify %.3fs' or ''}.\n",totalFiles,totalMoonTime,totalXmlTime,totalMinifyTime
 		building = false
 
