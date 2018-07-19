@@ -82,15 +82,15 @@ enum struct Particle
 	RotatePerSecondVariance = 'o', // float
 };
 
-namespace Effect
+namespace Visual
 {
 	enum struct Element
 	{
 		Dorothy = 'A',
-		Effect = 'B',
+		Visual = 'B',
 	};
 
-	enum struct Effect
+	enum struct Visual
 	{
 		Name = 'A',
 		File = 'B',

@@ -57,7 +57,6 @@ private:
 	Size _size;
 	Matrix _projection;
 	Ref<SpriteEffect> _effect;
-	DORA_TYPE(View);
 	SINGLETON_REF(View, Director);
 };
 

@@ -47,7 +47,6 @@ struct Vec2
 	static Vec2 perp(const Vec2& vec);
 	static Vec2 from(const b2Vec2& vec);
 	USE_MEMORY_POOL(Vec2);
-	DORA_TYPE(Vec2);
 };
 
 struct Size
@@ -59,7 +58,6 @@ struct Size
 	bool operator!=(const Size& other) const;
 	Size operator*(const Vec2& vec) const;
 	static const Size zero;
-	DORA_TYPE(Size);
 };
 
 struct Rect
@@ -90,7 +88,6 @@ struct Rect
     bool containsPoint(const Vec2& point) const;
 	bool intersectsRect(const Rect& rect) const;
 	static const Rect zero;
-	DORA_TYPE(Rect);
 };
 
 struct AffineTransform

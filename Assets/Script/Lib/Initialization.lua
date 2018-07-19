@@ -9,12 +9,7 @@ local Director = builtin.Director()
 local View = builtin.View()
 local Audio = builtin.Audio()
 local Keyboard = builtin.Keyboard()
-
-local yield = coroutine.yield
-local wrap = coroutine.wrap
-local table_insert = table.insert
-local table_remove = table.remove
-local type = type
+local AI = builtin.Platformer.AI()
 
 builtin.Application = Application
 builtin.Content = Content
@@ -22,6 +17,13 @@ builtin.Director = Director
 builtin.View = View
 builtin.Audio = Audio
 builtin.Keyboard = Keyboard
+builtin.Platformer.AI = AI
+
+local yield = coroutine.yield
+local wrap = coroutine.wrap
+local table_insert = table.insert
+local table_remove = table.remove
+local type = type
 
 local function wait(cond)
 	repeat
@@ -370,17 +372,25 @@ local function disallowAssignGlobal(_,name)
 	error("Disallow creating global variable \""..name.."\".")
 end
 
-local dorothyEnvMeta = {
-	__index = builtin,
-	__newindex = disallowAssignGlobal
-}
-
--- env must be a data only table without metatable
-local function Dorothy(env)
-	if env then
-		setfenv(2,setmetatable(env,dorothyEnvMeta))
-	else
+local function Dorothy(...)
+	if select("#", ...) == 0 then
 		setfenv(2,builtin)
+	else
+		local envs
+		envs = {
+			__index = function(_,key)
+				for _,env in ipairs(envs) do
+					local item = env[key]
+					if item then
+						return item
+					end
+				end
+				return nil
+			end,
+			__newindex = disallowAssignGlobal,
+			builtin,...
+		}
+		setfenv(2,setmetatable(envs,envs))
 	end
 end
 _G.Dorothy = Dorothy

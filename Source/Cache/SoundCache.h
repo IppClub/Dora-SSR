@@ -31,7 +31,6 @@ protected:
 	SoundCache() { }
 private:
 	unordered_map<string, Ref<SoundFile>> _soundFiles;
-	DORA_TYPE(SoundCache);
 	SINGLETON_REF(SoundCache, SoLoudPlayer);
 };
 

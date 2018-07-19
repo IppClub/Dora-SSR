@@ -19,7 +19,8 @@ public:
 	virtual const Vec3& getPosition();
 	virtual const Vec3& getTarget();
 	virtual const Vec3& getUp();
-	virtual const float* getView();
+	virtual const Matrix& getView();
+	virtual bool isOtho() const;
 	Delegate<void()> Updated;
 protected:
 	Camera(String name);
@@ -39,7 +40,7 @@ public:
 	void setPosition(const Vec3& position);
 	void setTarget(const Vec3& position);
 	virtual const Vec3& getUp() override;
-	virtual const float* getView() override;
+	virtual const Matrix& getView() override;
 	CREATE_FUNC(BasicCamera);
 protected:
 	BasicCamera(String name);
@@ -57,7 +58,7 @@ public:
 	PROPERTY(float, Zoom);
 	void setPosition(const Vec2& position);
 	virtual const Vec3& getUp() override;
-	virtual const float* getView() override;
+	virtual const Matrix& getView() override;
 	CREATE_FUNC(Camera2D);
 protected:
 	Camera2D(String name);
@@ -72,11 +73,16 @@ private:
 class OthoCamera : public Camera
 {
 public:
-	virtual const float* getView() override;
+	void setPosition(const Vec2& position);
+	virtual const Matrix& getView() override;
+	virtual bool isOtho() const override;
 	CREATE_FUNC(OthoCamera);
 protected:
 	OthoCamera(String name);
 private:
+	float _rotation;
+	float _zoom;
+	bool _transformDirty;
 	DORA_TYPE_OVERRIDE(OthoCamera);
 };
 

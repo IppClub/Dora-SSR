@@ -45,7 +45,7 @@ with Observer "AddOrChange", {"position","direction","sprite"}
 
 with Entity!
 	.sprite = Sprite "Image/logo.png"
-	.position = Vec2 100,200
+	.position = Vec2 0,0
 	.direction = 45
 	.speed = 4
 

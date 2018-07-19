@@ -140,6 +140,17 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 
 NS_DOROTHY_END
 
+NS_DOROTHY_PLATFORMER_BEGIN
+
+/* AI */
+inline AI* AI_shared() { return &SharedAI; }
+
+/* UnitDef */
+void UnitDef_setActions(UnitDef* self, Slice names[], int count);
+void UnitDef_setInstincts(UnitDef* self, Slice names[], int count);
+
+NS_DOROTHY_PLATFORMER_END
+
 using namespace Dorothy;
 
 /* ImGui */

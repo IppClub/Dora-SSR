@@ -66,7 +66,6 @@ protected:
 private:
 	bx::DefaultAllocator _allocator;
 	unordered_map<string, Ref<Texture2D>> _textures;
-	DORA_TYPE(TextureCache);
 	SINGLETON_REF(TextureCache, BGFXDora);
 };
 

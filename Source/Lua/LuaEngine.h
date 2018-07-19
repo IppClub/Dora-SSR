@@ -26,9 +26,10 @@ public:
 	void removeScriptHandler(int handler);
 	void removePeer(Object* object);
 
-	int executeString(String codes);
-	int executeScriptFile(String filename);
-	int executeFunction(int handler, int paramCount = 0);
+	bool executeString(String codes);
+	bool executeScriptFile(String filename);
+	bool executeFunction(int handler, int paramCount = 0);
+	int executeReturnFunction(int handler, int paramCount = 0);
 
 	void push(Uint16 value);
 	void push(int value);
@@ -68,10 +69,10 @@ public:
 	bool executeAssert(bool cond, String condStr);
 	bool scriptHandlerEqual(int handlerA, int handlerB);
 
-	static int call(lua_State* L, int paramCount, int returnCount);
-	static int execute(lua_State* L, int handler, int numArgs);
-	static int execute(lua_State* L, int numArgs);
-	static int invoke(lua_State* L, int handler, int numArgs, int numRets);
+	static bool call(lua_State* L, int paramCount, int returnCount); // returns success or failure
+	static bool execute(lua_State* L, int handler, int numArgs); // returns function result
+	static bool execute(lua_State* L, int numArgs); // returns function result
+	static bool invoke(lua_State* L, int handler, int numArgs, int numRets); // returns success or failure
 protected:
 	LuaEngine();
 	static int _callFromLua;

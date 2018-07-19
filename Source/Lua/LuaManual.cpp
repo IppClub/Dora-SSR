@@ -1187,6 +1187,28 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 
 NS_DOROTHY_END
 
+NS_DOROTHY_PLATFORMER_BEGIN
+
+/* UnitDef */
+
+void UnitDef_setActions(UnitDef* self, Slice names[], int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		self->actions.push_back(names[i]);
+	}
+}
+
+void UnitDef_setInstincts(UnitDef* self, Slice names[], int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		self->instincts.push_back(names[i]);
+	}
+}
+
+NS_DOROTHY_PLATFORMER_END
+
 using namespace Dorothy;
 
 /* ImGui */

@@ -32,11 +32,13 @@ _scheduler(Scheduler::create()),
 _postScheduler(Scheduler::create()),
 _postSystemScheduler(Scheduler::create()),
 _entryStack(Array::create()),
-_camera(Camera2D::create("Default"_slice)),
+_camStack(Array::create()),
 _clearColor(0xff1a1a1a),
 _displayStats(false)
 {
-	_camera->Updated += std::make_pair(this, &Director::markDirty);
+	Camera* defaultCamera = Camera2D::create("Default"_slice);
+	defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
+	_camStack->add(defaultCamera);
 }
 
 Director::~Director()
@@ -133,19 +135,56 @@ double Director::getDeltaTime() const
 	return std::min(SharedApplication.getDeltaTime(), 1.0/SharedApplication.getMinFPS());
 }
 
-void Director::setCamera(Camera* var)
+void Director::pushCamera(Camera* var)
 {
-	if (_camera)
-	{
-		_camera->Updated -= std::make_pair(this, &Director::markDirty);
-	}
-	_camera = var ? var : Camera2D::create("Default"_slice);
-	_camera->Updated += std::make_pair(this, &Director::markDirty);
+	Camera* lastCamera = getCurrentCamera();
+	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
+	var->Updated += std::make_pair(this, &Director::markDirty);
+	_camStack->add(var);
+	markDirty();
 }
 
-Camera* Director::getCamera() const
+void Director::popCamera()
 {
-	return _camera;
+	Camera* lastCamera = getCurrentCamera();
+	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
+	_camStack->removeLast();
+	if (_camStack->isEmpty())
+	{
+		_camStack->add(Camera2D::create("Default"_slice));
+	}
+	getCurrentCamera()->Updated += std::make_pair(this, &Director::markDirty);
+	markDirty();
+}
+
+bool Director::removeCamera(Camera* camera)
+{
+	Camera* lastCamera = getCurrentCamera();
+	if (camera == lastCamera)
+	{
+		popCamera();
+		return true;
+	}
+	else
+	{
+		return _camStack->remove(camera);
+	}
+}
+
+void Director::clearCamera()
+{
+	Camera* lastCamera = getCurrentCamera();
+	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
+	_camStack->clear();
+	Camera2D* defaultCamera = Camera2D::create("Default"_slice);
+	defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
+	_camStack->add(defaultCamera);
+	markDirty();
+}
+
+Camera* Director::getCurrentCamera() const
+{
+	return _camStack->getLast().to<Camera>();
 }
 
 Array* Director::getEntries() const
@@ -163,7 +202,7 @@ const Matrix& Director::getViewProjection() const
 	return *_viewProjs.top();
 }
 
-void registerTouchHandler(Node* target)
+static void registerTouchHandler(Node* target)
 {
 	target->traverseVisible([](Node* node)
 	{
@@ -206,7 +245,15 @@ void Director::mainLoop()
 {
 	/* push default view projection */
 	Matrix viewProj;
-	bx::mtxMul(viewProj, getCamera()->getView(), SharedView.getProjection());
+	Camera* camera = getCurrentCamera();
+	if (camera->isOtho())
+	{
+		viewProj = camera->getView();
+	}
+	else
+	{
+		bx::mtxMul(viewProj, camera->getView(), SharedView.getProjection());
+	}
 	pushViewProjection(viewProj, [&]()
 	{
 		/* update system logic */
@@ -273,7 +320,7 @@ void Director::mainLoop()
 			/* render scene tree to RT */
 			if (currentEntry)
 			{
-				_renderTarget->setCamera(getCamera());
+				_renderTarget->setCamera(getCurrentCamera());
 				_renderTarget->renderWithClear(currentEntry, _clearColor);
 			}
 
@@ -431,7 +478,7 @@ void Director::popViewProjection()
 	_viewProjs.pop();
 }
 
-void Director::setEntry(Node* entry)
+void Director::setAsOnlyEntry(Node* entry)
 {
 	_entryStack->removeIf([entry](const Ref<>& item)
 	{
