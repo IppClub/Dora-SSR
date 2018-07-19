@@ -21,7 +21,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Node::Node():
-_flags(Node::Visible|Node::PassOpacity|Node::PassColor3|Node::TraverseEnabled),
+_flags(
+	Node::Visible|
+	Node::SelfVisible|Node::ChildrenVisible|
+	Node::PassOpacity|Node::PassColor3|
+	Node::TraverseEnabled),
 _order(0),
 _renderOrder(0),
 _color(),
@@ -53,10 +57,7 @@ void Node::setOrder(int var)
 	if (_order != var)
 	{
 		_order = var;
-		if (_parent)
-		{
-			_parent->_flags.setOn(Node::Reorder);
-		}
+		markParentReorder();
 	}
 }
 
@@ -196,6 +197,26 @@ bool Node::isVisible() const
 	return _flags.isOn(Node::Visible);
 }
 
+void Node::setSelfVisible(bool var)
+{
+	_flags.setFlag(Node::SelfVisible, var);
+}
+
+bool Node::isSelfVisible() const
+{
+	return _flags.isOn(Node::SelfVisible);
+}
+
+void Node::setChildrenVisible(bool var)
+{
+	_flags.setFlag(Node::ChildrenVisible, var);
+}
+
+bool Node::isChildrenVisible() const
+{
+	return _flags.isOn(Node::ChildrenVisible);
+}
+
 void Node::setAnchor(const Vec2& var)
 {
 	_anchor = var;
@@ -249,7 +270,7 @@ const Size& Node::getSize() const
 	return _size;
 }
 
-void Node::setTag(const string& tag)
+void Node::setTag(String tag)
 {
 	_tag = tag;
 }
@@ -513,7 +534,8 @@ Node* Node::addTo(Node* parent)
 
 void Node::removeChild(Node* child, bool cleanup)
 {
-	AssertIf(child == nullptr, "remove invalid child from node.");
+	AssertIf(child == nullptr, "remove invalid child (nullptr) from node.");
+	AssertIf(child->_parent != this, "can`t remove child node from different parent.");
 	if (!_children)
 	{
 		return;
@@ -559,6 +581,11 @@ void Node::removeAllChildren(bool cleanup)
 	}
 }
 
+void Node::removeFromParent(bool cleanup)
+{
+	if (_parent) _parent->removeChild(this, cleanup);
+}
+
 void Node::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
@@ -584,15 +611,15 @@ void Node::cleanup()
 Node* Node::getChildByTag(String tag)
 {
 	Node* targetNode = nullptr;
-	ARRAY_START(Node, child, _children)
+	traverse([&](Node* child)
 	{
-		if (tag == child->getTag())
+		if (child->getTag() == tag)
 		{
 			targetNode = child;
-			break;
+			return true;
 		}
-	}
-	ARRAY_END
+		return false;
+	});
 	return targetNode;
 }
 
@@ -758,7 +785,7 @@ void Node::visit()
 	getWorld();
 
 	auto& rendererManager = SharedRendererManager;
-	if (_children && !_children->isEmpty())
+	if (_children && !_children->isEmpty() && _flags.isOn(Node::ChildrenVisible))
 	{
 		sortAllChildren();
 
@@ -775,11 +802,14 @@ void Node::visit()
 			}
 
 			/* render self */
-			if (rendererManager.isGrouping() && _renderOrder != 0)
+			if (_flags.isOn(Node::SelfVisible))
 			{
-				rendererManager.pushGroupItem(this);
+				if (rendererManager.isGrouping() && _renderOrder != 0)
+				{
+					rendererManager.pushGroupItem(this);
+				}
+				else render();
 			}
-			else render();
 
 			/* visit and render child whose order is greater equal than 0 */
 			for (; index < data.size(); index++)
@@ -795,11 +825,14 @@ void Node::visit()
 		}
 		else visitChildren();
 	}
-	else if (rendererManager.isGrouping() && _renderOrder != 0)
+	else if (_flags.isOn(Node::SelfVisible))
 	{
-		rendererManager.pushGroupItem(this);
+		if (rendererManager.isGrouping() && _renderOrder != 0)
+		{
+			rendererManager.pushGroupItem(this);
+		}
+		else render();
 	}
-	else render();
 }
 
 void Node::render()
@@ -1017,6 +1050,11 @@ void Node::sortAllChildren()
 		});
 		_flags.setOff(Node::Reorder);
 	}
+}
+
+void Node::markParentReorder()
+{
+	if (_parent) _parent->_flags.setOn(Node::Reorder);
 }
 
 void Node::updateRealColor3()

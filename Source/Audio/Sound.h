@@ -61,7 +61,6 @@ private:
 	Ref<SoundStream> _currentStream;
 	SoLoud::Soloud _soloud;
 	SINGLETON_REF(Audio, Application);
-	DORA_TYPE(Audio);
 };
 
 #define SharedAudio \

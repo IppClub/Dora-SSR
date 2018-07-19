@@ -216,7 +216,7 @@ end
 function classDeclaration:outchecktype (narg)
  if self.type == "tolua_table" then
   return '!tolua_istable(tolua_S,'..narg..',0,&tolua_err)'
- elseif self.type == "tolua_function" or self.type == "tolua_function_bool" or self.type == "tolua_handler" then
+ elseif self.type:match("^tolua_function.*$") or self.type == "tolua_handler" then
    return '!tolua_isfunction(tolua_S,'..narg..',&tolua_err)'
  end
  local def
@@ -251,6 +251,8 @@ function classDeclaration:builddeclaration (narg, cplusplus)
   return "  LuaFunction "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
  elseif self.type == "tolua_function_bool" then
   return "  LuaFunctionBool "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
+ elseif self.type == "tolua_function_func_bool" then
+  return "  LuaFunctionFuncBool "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
  elseif self.type == "tolua_handler" then
   return "  LuaHandler* "..self.name.." = LuaHandler::create(tolua_ref_function(tolua_S,"..tostring(narg).."));"
  end
@@ -401,7 +403,7 @@ end
 
 -- Pass parameter
 function classDeclaration:passpar ()
- if self.type == "tolua_table" or self.type == "tolua_function" or self.type == "tolua_function_bool" or self.type == "tolua_handler" then
+ if self.type == "tolua_table" or self.type:match("^tolua_function.*$") ~= nil or self.type == "tolua_handler" then
   output(self.name)
   return
  end

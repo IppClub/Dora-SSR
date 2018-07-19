@@ -3,6 +3,9 @@ import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
 
+threadLoop ->
+	Director.currentCamera.position += Vec2 1,0
+
 LoadFontTTF "Font/DroidSansFallback.ttf", 20--, "Chinese"
 
 moduleCache = {}
@@ -25,16 +28,23 @@ LintMoonGlobals = (moonCodes,entry)->
 		error "Compile failed in #{entry}\n#{err}"
 	requireModules = {}
 	withImGui = false
+	withPlatformer = false
 	for name,_ in pairs globals
 		if not allowedUseOfGlobals[name]
 			if builtin[name]
 				table.insert requireModules, "local #{name} = require(\"#{name}\")"
+			else if builtin.Platformer[name]
+				if not withPlatformer
+					withPlatformer = true
+					table.insert requireModules, "local Platformer = require(\"Platformer\")" if withPlatformer
+				table.insert requireModules, "local #{name} = Platformer.#{name}"
 			else if builtin.ImGui[name]
-				withImGui = true
+				if not withImGui
+					withImGui = true
+					table.insert requireModules, "local ImGui = require(\"ImGui\")" if withImGui
 				table.insert requireModules, "local #{name} = ImGui.#{name}"
 			else
 				error "Used invalid global value \"#{name}\" in #{entry}."
-	table.insert requireModules,1,"local ImGui = require(\"ImGui\")" if withImGui
 	table.concat requireModules, "\n"
 
 totalFiles = 0

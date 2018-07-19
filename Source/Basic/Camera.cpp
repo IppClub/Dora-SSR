@@ -44,9 +44,14 @@ const Vec3& Camera::getUp()
 	return _up;
 }
 
-const float* Camera::getView()
+const Matrix& Camera::getView()
 {
 	return _view;
+}
+
+bool Camera::isOtho() const
+{
+	return false;
 }
 
 /* BasicCamera */
@@ -116,7 +121,7 @@ void BasicCamera::updateView()
 	}
 }
 
-const float* BasicCamera::getView()
+const Matrix& BasicCamera::getView()
 {
 	updateView();
 	return Camera::getView();
@@ -165,7 +170,7 @@ const Vec3& Camera2D::getUp()
 	return _up;
 }
 
-const float* Camera2D::getView()
+const Matrix& Camera2D::getView()
 {
 	updateView();
 	return Camera::getView();
@@ -189,6 +194,52 @@ void Camera2D::updateView()
 		bx::mtxLookAt(_view, _position, _target, _up);
 		Updated();
 	}
+}
+
+/* OthoCamera */
+
+OthoCamera::OthoCamera(String name):
+Camera(name),
+_transformDirty(true)
+{ }
+
+void OthoCamera::setPosition(const Vec2& position)
+{
+	_position.x = _target.x = position.x;
+	_position.y = _target.y = position.y;
+	_transformDirty = true;
+}
+
+const Matrix& OthoCamera::getView()
+{
+	float z = SharedView.getStandardDistance();
+	if (_position.z != z)
+	{
+		_position.z = z;
+		_transformDirty = true;
+	}
+	if (_transformDirty)
+	{
+		_transformDirty = false;
+		Size viewSize = SharedView.getSize();
+		Matrix view;
+		bx::mtxOrtho(view, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+		if (_position.toVec2() != Vec2::zero)
+		{
+			Matrix move;
+			Matrix temp = view;
+			bx::mtxTranslate(move, -_position.x*2/viewSize.width, -_position.y*2/viewSize.height, 0);
+			bx::mtxMul(view, temp, move);
+		}
+		_view = view;
+		Updated();
+	}
+	return Camera::getView();
+}
+
+bool OthoCamera::isOtho() const
+{
+	return true;
 }
 
 NS_DOROTHY_END

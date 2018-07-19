@@ -71,7 +71,28 @@ public:
 	{
 		if (_handler->get() > 0)
 		{
-			return SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())) != 0;
+			return SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
+		}
+		return true;
+	}
+private:
+	Ref<LuaHandler> _handler;
+};
+
+class LuaFunctionFuncBool
+{
+public:
+	LuaFunctionFuncBool(int handler):_handler(LuaHandler::create(handler)) { }
+	inline bool operator==(const LuaFunctionFuncBool& other) const
+	{
+		return _handler->equals(other._handler);
+	}
+	template<typename ...Args>
+	LuaFunctionBool operator()(Args ...args) const
+	{
+		if (_handler->get() > 0)
+		{
+			return LuaFunctionBool(SharedLueEngine.executeReturnFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())));
 		}
 		return true;
 	}

@@ -26,7 +26,8 @@ public:
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(Node*, PostNode);
 	PROPERTY(Node*, UI);
-	PROPERTY(Camera*, Camera);
+	PROPERTY_READONLY(Camera*, CurrentCamera);
+	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY(Color, ClearColor);
 	PROPERTY_BOOL(DisplayStats);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
@@ -40,7 +41,12 @@ public:
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
 
-	void setEntry(Node* entry);
+	void pushCamera(Camera* camera);
+	void popCamera();
+	bool removeCamera(Camera* camera);
+	void clearCamera();
+
+	void setAsOnlyEntry(Node* entry);
 	void pushEntry(Node* entry);
 	Node* popEntry();
 	void popToEntry(Node* entry);
@@ -68,12 +74,11 @@ private:
 	Ref<Node> _ui;
 	Ref<Node> _postNode;
 	Ref<Array> _entryStack;
-	Ref<Node> _currentScene;
+	Ref<Array> _camStack;
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
 	Ref<Scheduler> _postSystemScheduler;
-	Ref<Camera> _camera;
 	Ref<RenderTarget> _renderTarget;
 	stack<Own<Matrix>> _viewProjs;
 	SINGLETON_REF(Director, FontManager, BGFXDora, Application);

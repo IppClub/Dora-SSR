@@ -56,7 +56,6 @@ private:
 	string _writablePath;
 	vector<string> _searchPaths;
 	unordered_map<string, string> _fullPathCache;
-	DORA_TYPE(Content);
 	SINGLETON_REF(Content, Application);
 };
 

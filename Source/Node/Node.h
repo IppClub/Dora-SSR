@@ -42,12 +42,14 @@ public:
 	PROPERTY(float, SkewX);
 	PROPERTY(float, SkewY);
 	PROPERTY_BOOL(Visible);
+	PROPERTY_BOOL(SelfVisible);
+	PROPERTY_BOOL(ChildrenVisible);
 	PROPERTY_REF(Vec2, Anchor);
 	PROPERTY_READONLY_REF(Vec2, AnchorPoint);
 	PROPERTY(float, Width);
 	PROPERTY(float, Height);
 	PROPERTY_REF(Size, Size);
-	PROPERTY_REF(string, Tag);
+	PROPERTY_STRING(Tag);
 	PROPERTY(float, Opacity);
 	PROPERTY_READONLY(float, RealOpacity);
 	PROPERTY(Color, Color);
@@ -81,9 +83,10 @@ public:
 	Node* addTo(Node* parent, int order);
 	Node* addTo(Node* parent);
 
-	void removeChild(Node* child, bool cleanup = true);
+	virtual void removeChild(Node* child, bool cleanup = true);
 	void removeChildByTag(String tag, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
+	void removeFromParent(bool cleanup = true);
 
 	virtual Rect getBoundingBox();
 
@@ -211,7 +214,8 @@ protected:
 	virtual ~Node();
 	virtual void updateRealColor3();
 	virtual void updateRealOpacity();
-	void sortAllChildren();
+	virtual void sortAllChildren();
+	void markParentReorder();
 	void pauseActionInList(Action* action);
 	void resumeActionInList(Action* action);
 	void stopActionInList(Action* action);
@@ -249,22 +253,24 @@ protected:
 	enum
 	{
 		Visible = 1,
-		TransformDirty = 1 << 1,
-		WorldDirty = 1 << 2,
-		Running = 1 << 3,
-		Updating = 1 << 4,
-		Scheduling = 1 << 5,
-		PassOpacity = 1 << 6,
-		PassColor3 = 1 << 7,
-		Reorder = 1 << 8,
-		Cleanup = 1 << 9,
-		TouchEnabled = 1 << 10,
-		SwallowTouches = 1 << 11,
-		SwallowMouseWheel = 1 << 12,
-		KeyboardEnabled = 1 << 13,
-		TraverseEnabled = 1 << 14,
-		RenderGrouped = 1 << 15,
-		UserFlag = 1 << 16
+		SelfVisible = 1 << 1,
+		ChildrenVisible = 1 << 2,
+		TransformDirty = 1 << 3,
+		WorldDirty = 1 << 4,
+		Running = 1 << 5,
+		Updating = 1 << 6,
+		Scheduling = 1 << 7,
+		PassOpacity = 1 << 8,
+		PassColor3 = 1 << 9,
+		Reorder = 1 << 10,
+		Cleanup = 1 << 11,
+		TouchEnabled = 1 << 12,
+		SwallowTouches = 1 << 13,
+		SwallowMouseWheel = 1 << 14,
+		KeyboardEnabled = 1 << 15,
+		TraverseEnabled = 1 << 16,
+		RenderGrouped = 1 << 17,
+		UserFlag = 1 << 18
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

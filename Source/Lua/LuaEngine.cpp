@@ -320,13 +320,13 @@ void LuaEngine::removePeer(Object* object)
 	}
 }
 
-int LuaEngine::executeString(String codes)
+bool LuaEngine::executeString(String codes)
 {
 	luaL_loadstring(L, codes.toString().c_str());
 	return LuaEngine::execute(L, 0);
 }
 
-int LuaEngine::executeScriptFile(String filename)
+bool LuaEngine::executeScriptFile(String filename)
 {
 	int top = lua_gettop(L);
 	lua_getglobal(L, "dofile"); // file, dofile
@@ -438,9 +438,17 @@ bool LuaEngine::to(Slice& value, int index)
 	return false;
 }
 
-int LuaEngine::executeFunction(int handler, int paramCount)
+bool LuaEngine::executeFunction(int handler, int paramCount)
 {
 	return LuaEngine::execute(L, handler, paramCount);
+}
+
+int LuaEngine::executeReturnFunction(int handler, int paramCount)
+{
+	LuaEngine::invoke(L, handler, paramCount, 1);
+	int funcHandler = tolua_ref_function(L, -1);
+	lua_pop(L, 1);
+	return funcHandler;
 }
 
 bool LuaEngine::executeAssert(bool cond, String msg)
@@ -462,7 +470,7 @@ bool LuaEngine::scriptHandlerEqual(int handlerA, int handlerB)
 	return result != 0;
 }
 
-int LuaEngine::call(lua_State* L, int paramCount, int returnCount)
+bool LuaEngine::call(lua_State* L, int paramCount, int returnCount)
 {
 #ifndef TOLUA_RELEASE
 	int functionIndex = -(paramCount + 1);
@@ -472,52 +480,52 @@ int LuaEngine::call(lua_State* L, int paramCount, int returnCount)
 	{
 		Log("[Lua Error] value at stack [{}] is not function in LuaEngine::call", functionIndex);
 		lua_pop(L, paramCount + 1); // remove function and arguments
-		return 0;
+		return false;
 	}
 
-	lua_pushcfunction(L, dora_traceback);// func args... traceback
-	lua_insert(L, traceIndex);// traceback func args...
+	lua_pushcfunction(L, dora_traceback); // func args... traceback
+	lua_insert(L, traceIndex); // traceback func args...
 
 	++_callFromLua;
-	int error = lua_pcall(L, paramCount, returnCount, traceIndex);// traceback error ret
+	int error = lua_pcall(L, paramCount, returnCount, traceIndex); // traceback error ret
 	--_callFromLua;
 
 	lua_remove(L, traceIndex);
 
-	if (error)// traceback error
+	if (error) // traceback error
 	{
-		return 0;
+		return false;
 	}
 #else
 	lua_call(L, paramCount, returnCount);
 #endif
-	return 1;
+	return true;
 }
 
-int LuaEngine::execute(lua_State* L, int numArgs)
+bool LuaEngine::execute(lua_State* L, int numArgs)
 {
-	int ret = 0;
+	bool result = false;
 	int top = lua_gettop(L) - numArgs - 1;
 	if (LuaEngine::call(L, numArgs, 1))
 	{
-		// get return value
-		if (lua_isnumber(L, -1)) // traceback ret
+		switch (lua_type(L, -1))
 		{
-			ret = s_cast<int>(lua_tointeger(L, -1));
-		}
-		else if (lua_isboolean(L, -1))
-		{
-			ret = lua_toboolean(L, -1);
+			case LUA_TBOOLEAN:
+				result = lua_toboolean(L, -1) != 0;
+				break;
+			case LUA_TNUMBER:
+				result = lua_tonumber(L, -1) != 0;
+				break;
 		}
 	}
-	else ret = 1;
+	else result = true; // if function call fails, return true to stop schedule related functions
 	lua_settop(L, top); // stack clear
-	return ret;
+	return result;
 }
 
-int LuaEngine::execute(lua_State* L, int handler, int numArgs)
+bool LuaEngine::execute(lua_State* L, int handler, int numArgs)
 {
-	tolua_get_function_by_refid(L, handler);// args... func
+	tolua_get_function_by_refid(L, handler); // args... func
 	if (!lua_isfunction(L, -1))
 	{
 		Slice name = tolua_typename(L, -1);
@@ -525,22 +533,21 @@ int LuaEngine::execute(lua_State* L, int handler, int numArgs)
 		lua_pop(L, 2 + numArgs);
 		return 1;
 	}
-	if (numArgs > 0) lua_insert(L, -(numArgs + 1));// func args...
-
+	if (numArgs > 0) lua_insert(L, -(numArgs + 1)); // func args...
 	return LuaEngine::execute(L, numArgs);
 }
 
-int LuaEngine::invoke(lua_State* L, int nHandler, int numArgs, int numRets)
+bool LuaEngine::invoke(lua_State* L, int handler, int numArgs, int numRets)
 {
-	tolua_get_function_by_refid(L, nHandler);// args... func
+	tolua_get_function_by_refid(L, handler); // args... func
 	if (!lua_isfunction(L, -1))
 	{
-		Log("[Lua Error] function refid '{}' does not reference a Lua function", nHandler);
-		lua_pop(L, 1 + numArgs);
-		return 0;
+		Slice name = tolua_typename(L, -1);
+		Log("[Lua Error] function refid '{}' referenced \"{}\" instead of lua function.", handler, name);
+		lua_pop(L, 2 + numArgs);
+		return 1;
 	}
-	if (numArgs > 0) lua_insert(L, -(numArgs + 1));// func args...
-
+	if (numArgs > 0) lua_insert(L, -(numArgs + 1)); // func args...
 	return LuaEngine::call(L, numArgs, numRets);
 }
 

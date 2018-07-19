@@ -10,7 +10,7 @@ ccColor3	249	y
 	r	2	y
 	b	2	y
 	g	2	y
-CCDirector	241	n
+CCDirector	241	y
 	winSize	179	d
 	schedule	97	y
 	unschedule	65	y
@@ -18,30 +18,30 @@ CCDirector	241	n
 	currentScene	8	y
 	eclapsedInterval	8	y
 	pause	6	d
-	notificationNode	6	n
+	notificationNode	6	d
 	sceneStackSize	4	y
 	popScene	3	y
 	replaceScene	2	y
-	stop	1	n
+	stop	1	d
 	resume	1	d
-	updateInterval	1	n
-	drawInterval	1	n
+	updateInterval	1	y
+	drawInterval	1	y
 	run	1	y
 	displayStats	1	y
-	numberOfDraws	1	n
+	numberOfDraws	1	d
 CCSize	214	y
 	height	885	y
 	width	849	y
 	zero	397	y
-CCMenu	146	n
+CCMenu	146	y
 	addChild	1138	y
 	enabled	318	y
 	runAction	206	y
 	DefaultHandlerPriority	61	d
-	alignItems	43	n
-	alignItemsVertically	6	n
-	alignItemsHorizontally	1	n
-	moveAndCullItems	1	n
+	alignItems	43	y
+	alignItemsVertically	6	y
+	alignItemsHorizontally	1	y
+	moveAndCullItems	1	y
 CCDrawNode	132	y
 	drawPolygon	84	y
 	drawDot	52	y
@@ -207,18 +207,18 @@ CCTargetPlatform	6	y
 	Windows	1	y
 CCApplication	6	y
 	targetPlatform	6	y
-CCKeyboard	6	n
-	isKeyPressed	6	n
+CCKeyboard	6	y
+	isKeyPressed	6	y
 CCScheduler	5	y
 	schedule	97	y
 	unschedule	65	y
 	timeScale	4	y
-CCTextFieldTTF	4	n
-	text	247	n
-	attachWithIME	12	n
-	detachWithIME	12	n
-	placeHolder	8	n
-	colorPlaceHolder	1	n
+CCTextFieldTTF	4	y
+	text	247	y
+	attachWithIME	12	y
+	detachWithIME	12	y
+	placeHolder	8	y
+	colorPlaceHolder	1	y
 CCOrientation	3	n
 	Up	9	n
 	Down	8	n
@@ -227,7 +227,7 @@ CCOrientation	3	n
 CCView	2	n
 	scaleX	212	d
 	scaleY	202	d
-	setDesignResolution	1	n
+	setDesignResolution	1	y
 	ExactFit	1	n
 CCEase	2	y
 	sineInOut	2	y
@@ -253,19 +253,19 @@ Particle	2	y
 	loadAsync	5	y
 	load	2	y
 Model	1	y
-	save	1	n
+	save	1	d
 	unload	1	y
 	loadAsync	1	y
 	loadData	1	y
-	getClipFile	1	n
-	getLookNames	1	n
-	getClipNames	1	n
-	getAnimationNames	1	n
+	getClipFile	1	d
+	getLookNames	1	y
+	getClipNames	1	y
+	getAnimationNames	1	y
 Body	1	n
 	load	1	n
 	unload	1	n
-Effect	1	n
-	load	1	n
+Effect	1	y
+	load	1	y
 ----- Dorothy Class-----
 oVec2	1861	y
 	y	482	y
@@ -370,13 +370,13 @@ oBody	20	y
 	getSensorByTag	1	y
 	destroy	1	y
 	mass	1	y
-oData	17	n
-	GroupTerrain	5	n
-	GroupDetect	3	n
-	GroupHide	3	n
-	GroupDetectPlayer	3	n
-	apply	2	n
-	isTerrain	1	n
+oData	17	y
+	GroupTerrain	5	y
+	GroupDetect	3	y
+	GroupHide	3	y
+	GroupDetectPlayer	3	y
+	apply	2	y
+	isTerrain	1	y
 oJoint	14	y
 	world	41	y
 	distance	14	y
@@ -391,10 +391,10 @@ oJoint	14	y
 	friction	2	y
 	destroy	1	y
 	wheel	1	y
-oAI	11	n
-	self	7	n
-	clear	4	n
-	add	2	n
+oAI	11	y
+	self	7	y
+	clear	4	y
+	add	2	y
 oModel	9	y
 	look	31	y
 	duration	21	y
@@ -417,68 +417,68 @@ oWorld	6	y
 	setIterations	5	y
 	query	5	y
 	getShouldContact	1	y
-oPlatformWorld	5	n
-	camera	34	n
-	UILayer	14	n
-	swapLayer	6	n
-	setLayerOffset	6	n
-	getLayer	6	n
-	setLayerRatio	2	n
-	removeLayer	1	n
-oUnit	4	n
-	height	885	n
-	width	849	n
-	remove	53	n
-	unitDef	20	n
-	model	19	n
-	start	13	n
-	get	8	n
-	move	8	n
-	faceRight	7	n
-	set	7	n
-	jump	7	n
-	clear	4	n
-	reflexArc	4	n
-	isDoing	3	n
-	detectDistance	1	n
-	stop	1	n
-	moveSpeed	1	n
-	maxHp	1	n
-	currentAction	1	n
-	sensity	1	n
-oEffect	4	n
-	start	13	n
-	autoRemove	3	n
-	playing	2	n
-	update	2	n
-	stop	1	n
-oAction	3	n
-	name	134	n
-	owner	17	n
-	clear	4	n
-	add	2	n
-	doing	2	n
-	recovery	1	n
-	priority	1	n
-	reaction	1	n
-oUnitDef	2	n
-	bodyDef	171	n
-	name	134	n
-	scale	71	n
-	size	22	n
-	model	19	n
-	tag	15	n
-	move	8	n
-	jump	7	n
-	reflexArc	4	n
-	static	2	n
-	setActions	2	n
-	restitution	2	n
-	friction	2	n
-	density	2	n
-	detectDistance	1	n
-	maxHp	1	n
-	sensity	1	n
+oPlatformWorld	5	y
+	camera	34	y
+	UILayer	14	y
+	swapLayer	6	y
+	setLayerOffset	6	y
+	getLayer	6	y
+	setLayerRatio	2	y
+	removeLayer	1	y
+oUnit	4	y
+	height	885	y
+	width	849	y
+	remove	53	y
+	unitDef	20	y
+	model	19	y
+	start	13	y
+	get	8	y
+	move	8	y
+	faceRight	7	y
+	set	7	y
+	jump	7	y
+	clear	4	y
+	reflexArc	4	y
+	isDoing	3	y
+	detectDistance	1	y
+	stop	1	y
+	moveSpeed	1	y
+	maxHp	1	y
+	currentAction	1	y
+	sensity	1	y
+oEffect	4	y
+	start	13	y
+	autoRemove	3	y
+	playing	2	y
+	update	2	y
+	stop	1	y
+oAction	3	y
+	name	134	y
+	owner	17	y
+	clear	4	y
+	add	2	y
+	doing	2	y
+	recovery	1	y
+	priority	1	y
+	reaction	1	y
+oUnitDef	2	y
+	bodyDef	171	y
+	name	134	y
+	scale	71	y
+	size	22	y
+	model	19	y
+	tag	15	y
+	move	8	y
+	jump	7	y
+	reflexArc	4	y
+	static	2	y
+	setActions	2	y
+	restitution	2	y
+	friction	2	y
+	density	2	y
+	detectDistance	1	y
+	maxHp	1	y
+	sensity	1	y
 oNode3D	1	y
 	angleX	4	y
 ----- Other Class-----
@@ -556,8 +556,8 @@ oOpacity	221	y
 oScale	194	y
 oPos	83	y
 once	50	y
-oCon	9	n
-oAct	6	n
+oCon	9	y
+oAct	6	y
 oRotate	4	y
 ----- Other Function-----
 require	2168	y
@@ -592,7 +592,7 @@ loop	2	y
 ubox	2	y
 assert	2	d
 next	1	d
-xmlToLua	1	n
+xmlToLua	1	y
 ]]
 
 local cocosTotal = 0

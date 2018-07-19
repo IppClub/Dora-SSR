@@ -145,7 +145,7 @@ function classVariable:supcode ()
 		output('#endif\n')
  end
 
-local is_function = self.type == "tolua_function" or self.type == "tolua_function_bool" or self.type == "tolua_handler"
+local is_function = self.type:match("^tolua_function.*$") ~= nil or self.type == "tolua_handler"
  -- return value
 local t,ct = isbasic(self.type)
 if is_function then
@@ -235,6 +235,8 @@ end
 			  output('  self->'..name..'(LuaFunction(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
 			elseif self.type == 'tolua_function_bool' then
 			  output('  self->'..name..'(LuaFunctionBool(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
+			elseif self.type == 'tolua_function_func_bool' then
+			  output('  self->'..name..'(LuaFunctionFuncBool(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
 			elseif self.type == 'tolua_handler' then
 			  output('  self->'..name..'(LuaHandler::create(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
 			end

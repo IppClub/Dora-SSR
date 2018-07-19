@@ -1,5 +1,99 @@
 typedef Slice String;
 
+struct Color3
+{
+	Uint8 r;
+	Uint8 g;
+	Uint8 b;
+	Color3();
+	Color3(Uint32 rgb);
+	Color3(Uint8 r, Uint8 g, Uint8 b);
+	~Color3();
+};
+
+struct Color
+{
+	Uint8 r;
+	Uint8 g;
+	Uint8 b;
+	Uint8 a;
+	tolua_property__common float opacity;
+	Color();
+	Color(Color3 color);
+	Color(Uint32 argb);
+	~Color();
+	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+	Color3 toColor3();
+};
+
+struct Vec2
+{
+	float x;
+	float y;
+	tolua_readonly tolua_property__qt float length;
+	tolua_readonly tolua_property__qt float lengthSquared;
+	tolua_readonly tolua_property__qt float angle;
+	Vec2(Vec2 vec);
+	~Vec2();
+	void set(float x, float y);
+	Vec2 operator+(Vec2 vec);
+	Vec2 operator-(Vec2 vec);
+	Vec2 operator*(float value);
+	Vec2 operator*(Vec2 vec);
+	Vec2 operator*(Size size);
+	Vec2 operator/(float value);
+	bool operator==(Vec2 vec);
+	float distance(Vec2 vec);
+	float distanceSquared(Vec2 vec);
+	void normalize();
+	void clamp(Vec2 from, Vec2 to);
+	static tolua_outside Vec2* Vec2_create @ create(float x = 0, float y = 0);
+	static tolua_outside Vec2* Vec2_create @ create(Size size);
+	static tolua_readonly Vec2 zero;
+};
+
+struct Size
+{
+	float width;
+	float height;
+	Size(Size other);
+	~Size();
+	void set(float width, float height);
+	bool operator==(Size other);
+	Size operator*(Vec2 vec);
+	static tolua_readonly Size zero;
+	static tolua_outside Size* Size_create @ create(float width = 0, float height = 0);
+	static tolua_outside Size* Size_create @ create(Vec2 vec);
+};
+
+struct Rect
+{
+	Vec2 origin;
+	Size size;
+	tolua_property__common float x;
+	tolua_property__common float y;
+	tolua_property__common float width;
+	tolua_property__common float height;
+	tolua_property__common float left;
+	tolua_property__common float right;
+	tolua_property__common float centerX;
+	tolua_property__common float centerY;
+	tolua_property__common float bottom;
+	tolua_property__common float top;
+	tolua_property__common Vec2 lowerBound;
+	tolua_property__common Vec2 upperBound;
+	Rect();
+	Rect(Vec2 origin, Size size);
+	Rect(float x, float y, float width, float height);
+	Rect(Rect other);
+	~Rect();
+	bool operator==(Rect other);
+	void set(float x, float y, float width, float height);
+	bool containsPoint(Vec2 point);
+	bool intersectsRect(Rect rect);
+	static tolua_readonly Rect zero;
+};
+
 class Application
 {
 	tolua_readonly tolua_property__common Size size;
@@ -21,6 +115,50 @@ class Object
 	static tolua_readonly tolua_property__common Uint32 maxLuaRefCount;
 	static tolua_readonly tolua_property__common Uint32 luaCallbackCount @ callRefCount;
 	static tolua_readonly tolua_property__common Uint32 maxLuaCallbackCount @ maxCallRefCount;
+};
+
+class Array : public Object
+{
+	tolua_readonly tolua_property__common int count;
+	tolua_readonly tolua_property__common int capacity;
+	tolua_readonly tolua_property__common Object* last;
+	tolua_readonly tolua_property__common Object* first;
+	tolua_readonly tolua_property__common Object* randomObject;
+	tolua_readonly tolua_property__bool bool empty;
+	bool contains(Object* object);
+	void add(Object* object);
+	void addRange(Array* other);
+	void removeFrom(Array* other);
+	Object* removeLast();
+	bool remove(Object* object);
+	void clear();
+	bool fastRemove(Object* object);
+	void swap(Object* objectA, Object* objectB);
+	void reverse();
+	void shrink();
+
+	tolua_outside void Array_swap @ swap(int indexA, int indexB);
+	tolua_outside int Array_index @ index(Object* object);
+	tolua_outside void Array_set @ set(int index, Object* object);
+	tolua_outside Object* Array_get @ get(int index);
+	tolua_outside void Array_insert @ insert(int index, Object* object);
+	tolua_outside bool Array_removeAt @ removeAt(int index);
+	tolua_outside bool Array_fastRemoveAt @ fastRemoveAt(int index);
+	tolua_outside bool Array_each @ each(tolua_function_bool func);
+
+	static Array* create();
+	static Array* create(Array* other);
+	static Array* create(int capacity);
+	static Array* create(Object* objects[tolua_len]);
+};
+
+class Dictionary : public Object
+{
+	tolua_readonly tolua_property__common int count;
+	tolua_outside tolua_readonly tolua_property__qt Array* Dictionary_getKeys @ keys;
+	bool each(tolua_function_bool func);
+	void clear();
+	static Dictionary* create();
 };
 
 class Entity : public Object
@@ -90,19 +228,37 @@ class Camera : public Object
 	tolua_readonly tolua_property__common string name;
 };
 
+class Camera2D : public Camera
+{
+	tolua_property__common float rotation;
+	tolua_property__common float zoom;
+	tolua_property__common Vec2 position;
+	Camera2D* create(String name);
+};
+
+class OthoCamera : public Camera
+{
+	tolua_property__common Vec2 position;
+	OthoCamera* create(String name);
+};
+
 class Director
 {
 	tolua_property__common Scheduler* scheduler;
 	tolua_property__common Node* uI @ ui;
 	tolua_property__common Node* postNode;
-	tolua_property__common Camera* camera;
 	tolua_property__bool bool displayStats;
+	tolua_readonly tolua_property__common Camera* currentCamera;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Array* entries;
 	tolua_readonly tolua_property__common Node* currentEntry;
 	tolua_readonly tolua_property__common double deltaTime;
-	void setEntry(Node* entry);
+	void pushCamera(Camera* camera);
+	void popCamera();
+	bool removeCamera(Camera* camera);
+	void clearCamera();
+	void setAsOnlyEntry(Node* entry);
 	void pushEntry(Node* entry);
 	Node* popEntry();
 	void popToEntry(Node* entry);
@@ -127,144 +283,6 @@ class View
 }
 
 void Dora_Log @ Log(String msg);
-
-struct Color3
-{
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
-	~Color3();
-};
-
-struct Color
-{
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
-	tolua_property__common float opacity;
-	Color();
-	Color(Color3 color);
-	Color(Uint32 argb);
-	~Color();
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
-	Color3 toColor3();
-};
-
-struct Vec2
-{
-	float x;
-	float y;
-	tolua_readonly tolua_property__qt float length;
-	tolua_readonly tolua_property__qt float lengthSquared;
-	tolua_readonly tolua_property__qt float angle;
-	Vec2(Vec2 vec);
-	~Vec2();
-	void set(float x, float y);
-	Vec2 operator+(Vec2 vec);
-	Vec2 operator-(Vec2 vec);
-	Vec2 operator*(float value);
-	Vec2 operator*(Vec2 vec);
-	Vec2 operator*(Size size);
-	Vec2 operator/(float value);
-	bool operator==(Vec2 vec);
-	float distance(Vec2 vec);
-	float distanceSquared(Vec2 vec);
-	void normalize();
-	void clamp(Vec2 from, Vec2 to);
-	static tolua_outside Vec2* Vec2_create @ create(float x = 0, float y = 0);
-	static tolua_outside Vec2* Vec2_create @ create(Size size);
-	static tolua_readonly Vec2 zero;
-};
-
-struct Size
-{
-    float width;
-    float height;
-    Size(Size other);
-    ~Size();
-	void set(float width, float height);
-	bool operator==(Size other);
-	Size operator*(Vec2 vec);
-	static tolua_readonly Size zero;
-	static tolua_outside Size* Size_create @ create(float width = 0, float height = 0);
-	static tolua_outside Size* Size_create @ create(Vec2 vec);
-};
-
-struct Rect
-{
-    Vec2 origin;
-    Size size;
-	tolua_property__common float x;
-	tolua_property__common float y;
-	tolua_property__common float width;
-	tolua_property__common float height;
-	tolua_property__common float left;
-	tolua_property__common float right;
-	tolua_property__common float centerX;
-	tolua_property__common float centerY;
-	tolua_property__common float bottom;
-	tolua_property__common float top;
-	tolua_property__common Vec2 lowerBound;
-	tolua_property__common Vec2 upperBound;
-	Rect();
-	Rect(Vec2 origin, Size size);
-	Rect(float x, float y, float width, float height);
-	Rect(Rect other);
-	~Rect();
-	bool operator==(Rect other);
-	void set(float x, float y, float width, float height);
-    bool containsPoint(Vec2 point);
-	bool intersectsRect(Rect rect);
-	static tolua_readonly Rect zero;
-};
-
-class Array : public Object
-{
-	tolua_readonly tolua_property__common int count;
-	tolua_readonly tolua_property__common int capacity;
-	tolua_readonly tolua_property__common Object* last;
-	tolua_readonly tolua_property__common Object* first;
-	tolua_readonly tolua_property__common Object* randomObject;
-	tolua_readonly tolua_property__bool bool empty;
-	bool contains(Object* object);
-	void add(Object* object);
-	void addRange(Array* other);
-	void removeFrom(Array* other);
-	Object* removeLast();
-	bool remove(Object* object);
-	void clear();
-	bool fastRemove(Object* object);
-	void swap(Object* objectA, Object* objectB);
-	void reverse();
-	void shrink();
-
-	tolua_outside void Array_swap @ swap(int indexA, int indexB);
-	tolua_outside int Array_index @ index(Object* object);
-	tolua_outside void Array_set @ set(int index, Object* object);
-	tolua_outside Object* Array_get @ get(int index);
-	tolua_outside void Array_insert @ insert(int index, Object* object);
-	tolua_outside bool Array_removeAt @ removeAt(int index);
-	tolua_outside bool Array_fastRemoveAt @ fastRemoveAt(int index);
-	tolua_outside bool Array_each @ each(tolua_function_bool func);
-
-	static Array* create();
-	static Array* create(Array* other);
-	static Array* create(int capacity);
-	static Array* create(Object* objects[tolua_len]);
-};
-
-class Dictionary : public Object
-{
-    tolua_readonly tolua_property__common int count;
-	tolua_outside tolua_readonly tolua_property__qt Array* Dictionary_getKeys @ keys;
-	bool each(tolua_function_bool func);
-    void clear();
-    static Dictionary* create();
-}
 
 class Slot : public Object
 {
@@ -502,14 +520,6 @@ struct Ease
 		OutInBounce
 	};
 	static float func(Ease::Enum easing, float time);
-};
-
-class Camera2D : public Camera
-{
-	tolua_property__common float rotation;
-	tolua_property__common float zoom;
-	tolua_property__common Vec2 position;
-	Camera2D* create(String name);
 };
 
 struct TextAlign
@@ -787,7 +797,7 @@ class Body : public Node
 	bool removeSensor(Sensor* sensor);
 	void attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
-	static tolua_outside Body* Body_create @ create(BodyDef* def, World* world, Vec2 pos = Vec2::zero, float rot = 0);
+	static tolua_outside Body* Body_create @ create(BodyDef* def, World* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
 };
 
 class JointDef : public Object
@@ -1022,3 +1032,248 @@ class Keyboard
 	void updateIMEPosHint(Vec2 winPos);
 	static tolua_outside Keyboard* Keyboard_shared @ create();
 };
+
+namespace Platformer {
+
+struct AttackType
+{
+	enum {
+		Melee,
+		Range
+	};
+};
+enum AttackType {};
+
+struct AttackTarget
+{
+	enum {
+		Single,
+		Multi
+	};
+};
+enum AttackTarget {};
+
+struct Relation
+{
+	enum {
+		Unkown,
+		Friend,
+		Neutral,
+		Enemy,
+		Any
+	};
+};
+enum Relation {};
+
+class TargetAllow
+{
+	tolua_property__bool bool terrainAllowed;
+	void allow(Relation flag, bool allow);
+	bool isAllow(Relation flag);
+};
+
+class Face : public Object
+{
+	void addChild(Face* face);
+	Node* toNode();
+	static Face* create(String faceStr, Vec2 point = Vec2::zero, float angle = 0.0f);
+};
+
+class BulletDef : public Object
+{
+	string tag;
+	string endEffect;
+	float lifeTime;
+	float damageRadius;
+	tolua_property__bool bool highSpeedFix;
+	tolua_property__common float gravityScale;
+	tolua_property__common Face* face;
+	tolua_readonly tolua_property__common BodyDef* bodyDef;
+	tolua_readonly tolua_property__common Vec2 velocity;
+	void setAsCircle(float radius);
+	void setVelocity(float angle, float speed);
+	static tolua_readonly const int SensorTag;
+	static BulletDef* create();
+};
+
+class Unit;
+
+class Bullet : public Body
+{
+	TargetAllow targetAllow;
+	tolua_readonly tolua_property__bool bool faceRight;
+	tolua_readonly tolua_property__common Unit* owner;
+	tolua_readonly tolua_property__common Sensor* detectSensor;
+	tolua_readonly tolua_property__common BulletDef* bulletDef;
+	tolua_property__common Node* face;
+	void destroy();
+	static Bullet* create(BulletDef* def, Unit* owner);
+};
+
+class Visual : public Node
+{
+	tolua_readonly tolua_property__bool bool playing;
+	void start();
+	void stop();
+	Visual* autoRemove();
+	static Visual* create(String name);
+};
+
+class AILeaf : public Object
+{};
+
+class Instinct
+{
+	static void add(String id, String propName, AILeaf* node);
+	static void clear();
+};
+
+AILeaf* Sel(AILeaf* nodes[tolua_len]);
+AILeaf* Seq(AILeaf* nodes[tolua_len]);
+AILeaf* ParSel(AILeaf* nodes[tolua_len]);
+AILeaf* ParSeq(AILeaf* nodes[tolua_len]);
+AILeaf* Con(tolua_function_bool handler);
+AILeaf* Act(String action);
+
+class AI
+{
+	tolua_readonly tolua_property__common Unit* self;
+	tolua_readonly tolua_property__common float oldInstinctValue @ oldValue;
+	tolua_readonly tolua_property__common float newInstinctValue @ newValue;
+	Array* getUnitsByRelation(Relation relation);
+	Array* getDetectedUnits();
+	Unit* getNearestUnit(Relation relation);
+	float getNearestUnitDistance(Relation relation);
+	void add(String name, AILeaf* leaf);
+	void clear();
+	static tolua_outside AI* AI_shared @ create();
+};
+
+class UnitAction
+{
+	float reaction;
+	float recovery;
+	tolua_readonly tolua_property__common string name;
+	tolua_readonly tolua_property__common int priority;
+	tolua_readonly tolua_property__bool bool doing;
+	tolua_readonly tolua_property__common Unit* owner;
+	static void add(
+		String name,
+		int priority,
+		float reaction,
+		float recovery,
+		tolua_function_bool available,
+		tolua_function_func_bool create,
+		tolua_function stop);
+	static void clear();
+};
+
+class UnitDef : public Object
+{
+	enum
+	{
+		GroundSensorTag,
+		DetectSensorTag,
+		AttackSensorTag
+	};
+	tolua_readonly static const Slice BulletKey;
+	tolua_readonly static const Slice AttackKey;
+	tolua_readonly static const Slice HitKey;
+	tolua_readonly tolua_property__common BodyDef* bodyDef;
+	tolua_property__bool bool static;
+	tolua_property__common float scale;
+	tolua_property__common float density;
+	tolua_property__common float friction;
+	tolua_property__common float restitution;
+	tolua_property__common string model;
+	tolua_property__common Size size;
+	string tag;
+	float sensity;
+	float move;
+	float jump;
+	float detectDistance;
+	float maxHp;
+	float attackBase;
+	float attackDelay;
+	float attackEffectDelay;
+	Size attackRange;
+	Vec2 attackPower;
+	AttackType attackType;
+	AttackTarget attackTarget;
+	TargetAllow targetAllow;
+	Uint16 damageType;
+	Uint16 defenceType;
+	string bulletType;
+	string attackEffect;
+	string hitEffect;
+	string name;
+	string desc;
+	string sndAttack;
+	string sndDeath;
+	string reflexArc;
+	tolua_outside void UnitDef_setActions @ setActions(Slice actions[tolua_len]);
+	tolua_outside void UnitDef_setInstincts @ setInstincts(Slice instincts[tolua_len]);
+	static bool usePreciseHit;
+	static UnitDef* create();
+};
+
+class Unit : public Body
+{
+	float sensity;
+	float move;
+	float moveSpeed;
+	float jump;
+	float maxHp;
+	float attackBase;
+	float attackBonus;
+	float attackFactor;
+	float attackSpeed;
+	Vec2 attackPower;
+	AttackType attackType;
+	AttackTarget attackTarget;
+	TargetAllow targetAllow;
+	Uint16 damageType;
+	Uint16 defenceType;
+	tolua_property__common Model* model;
+	tolua_property__common float detectDistance;
+	tolua_property__common Size attackRange;
+	tolua_property__bool bool faceRight;
+	tolua_property__common BulletDef* bulletDef;
+	tolua_property__common string reflexArc;
+	tolua_readonly tolua_property__bool bool onSurface;
+	tolua_readonly tolua_property__common Sensor* groundSensor;
+	tolua_readonly tolua_property__common Sensor* detectSensor;
+	tolua_readonly tolua_property__common Sensor* attackSensor;
+	tolua_readonly tolua_property__common UnitDef* unitDef;
+	tolua_readonly tolua_property__common UnitAction* currentAction;
+	tolua_readonly tolua_property__common float width;
+	tolua_readonly tolua_property__common float height;
+	UnitAction* attachAction(String name);
+	void removeAction(String name);
+	void removeAllActions();
+	UnitAction* getAction(String name);
+	bool start(String name);
+	void stop();
+	bool isDoing(String name);
+	void attachInstinct(String id);
+	void removeInstinct(String id);
+	void removeAllInstincts();
+	void set(String name, float value);
+	float get(String name);
+	void remove(String name);
+	void clear();
+	static Unit* create(UnitDef* unitDef, World* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
+};
+
+class PlatformCamera : public Camera
+{
+	tolua_property__common Vec2 position;
+	tolua_property__common float rotation;
+	tolua_property__common float zoom;
+	tolua_property__common Rect boundary;
+	tolua_property__common Vec2 followRatio;
+	tolua_property__common Node* followTarget;
+	static PlatformCamera* create(String name);
+};
+
+} // namespace Platformer

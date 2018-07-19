@@ -146,7 +146,7 @@ function classPackage:preamble ()
  output('static void tolua_reg_types(lua_State* tolua_S)')
  output('{')
 	foreach(_usertype,function(n,v)
-		if ((not _global_classes[v]) or _global_classes[v]:check_public_access()) and v ~= "tolua_table" and v ~= "tolua_function" and v ~= "tolua_function_bool" and v ~= "tolua_handler" then
+		if ((not _global_classes[v]) or _global_classes[v]:check_public_access()) and v ~= "tolua_table" and not v:match("^tolua_function.*$") and v ~= "tolua_handler" then
 			local t = _userltype[v]
 			output(' tolua_usertype(tolua_S,"',t,'");')
 			output(' Mtolua_typeid(tolua_S,',v,',"',t,'");')

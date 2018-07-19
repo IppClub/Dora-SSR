@@ -66,9 +66,9 @@ protected:
 	virtual void updatePhysics();
 	b2Body* _bodyB2; // weak reference
 	World* _world;
+	int _group;
 private:
 	bool _receivingContact;
-	int _group;
 	Ref<BodyDef> _bodyDef;
 	Ref<Array> _sensors;
 	WRef<Object> _owner;

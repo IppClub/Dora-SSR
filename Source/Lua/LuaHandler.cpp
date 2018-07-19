@@ -26,7 +26,7 @@ LuaHandler::~LuaHandler()
 bool LuaHandler::update(double deltaTime)
 {
 	SharedLueEngine.push(deltaTime);
-	return SharedLueEngine.executeFunction(_handler, 1) != 0;
+	return SharedLueEngine.executeFunction(_handler, 1);
 }
 
 bool LuaHandler::equals(LuaHandler* other) const
