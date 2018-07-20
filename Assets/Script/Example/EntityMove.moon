@@ -58,7 +58,7 @@ with Entity!
 with Entity!
 	.scene = Node!
 
--- example ends here, just some test ui codes below --
+-- example ends here, test ui codes below --
 
 Dorothy builtin.ImGui
 

@@ -726,6 +726,14 @@ static const char* _toBoolean(const char* str)
 	oFunc func = {elementStack.top().name+":slot("+toText(name)+",function("+(args ? args : "")+")"+(perform ? string("\n")+(target ? string(target) : elementStack.top().name)+":perform("+perform+")\n" : Slice::Empty), "end)"};\
 	funcs.push(func);
 
+// Script
+#define Script_Define \
+	const char* type = nullptr;
+#define Script_Check \
+	CASE_STR(Type) { type = atts[++i]; break; }
+#define Script_Create \
+	isMoon = type && string(type) == "Moon";
+
 #define Item_Define(name) name##_Define
 #define Item_Loop(name) \
 	for (int i = 0; atts[i] != nullptr; i++)\
@@ -769,6 +777,7 @@ class XmlDelegator : public SAXDelegator
 {
 public:
 	XmlDelegator(SAXParser* parser):
+	isMoon(false),
 	codes(nullptr),
 	parser(parser)
 	{ }
@@ -844,6 +853,7 @@ private:
 	};
 	SAXParser* parser;
 	// Script
+	bool isMoon;
 	const char* codes;
 	// Loader
 	string firstItem;
@@ -1101,6 +1111,9 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 		}
 		CASE_STR(Script)
 		{
+			Item_Define(Script)
+			Item_Loop(Script)
+			Item_Create(Script)
 			break;
 		}
 		default:
@@ -1130,8 +1143,32 @@ void XmlDelegator::endElement(const char *name)
 	{
 		CASE_STR(Script)
 		{
-			fmt::format_to(stream, "{}\n", codes ? codes : "");
+			if (codes)
+			{
+				if (isMoon)
+				{
+					lua_State* L = SharedLueEngine.getState();
+					int top = lua_gettop(L);
+					string moonCodes = fmt::format("return require(\"moonscript\").to_lua([[\n(->\n{}\n)!]],{{implicitly_return_root=false}})", codes);
+					if (luaL_loadstring(L, moonCodes.c_str()) == 0)
+					{
+						LuaEngine::call(L, 0, 1);
+						Slice luaCodes = tolua_toslice(L, -1, "");
+						fmt::format_to(stream, "do {} end\n", luaCodes.toString());
+					}
+					else
+					{
+						lastError += fmt::format("Fail to compile moon codes started at line {}\n", parser->getLineNumber(codes));
+					}
+					lua_settop(L, top);
+				}
+				else
+				{
+					fmt::format_to(stream, "{}\n", codes);
+				}
+			}
 			codes = nullptr;
+			isMoon = false;
 			break;
 		}
 		CASE_STR(Call)
@@ -1263,8 +1300,7 @@ void XmlDelegator::endElement(const char *name)
 			auto it = imported.find(name);
 			if (it == imported.end())
 			{
-				string num = fmt::format("%d", parser->getLineNumber(name));
-				lastError += string("Tag <") + name + "> not imported, closed at line " + num + "\n";
+				lastError += fmt::format("Tag <{}> not imported, closed at line {}.\n", name, parser->getLineNumber(name));
 			}
 			break;
 		}

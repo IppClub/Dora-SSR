@@ -83,6 +83,11 @@ class Slice {
     len_ -= n;
   }
 
+  void skipRight(size_t n) {
+    assert(n <= len_);
+    len_ -= n;
+  }
+
   void copyTo(char *dest, bool appendEndingNull = true) const {
     memcpy(dest, str_, len_);
     if (appendEndingNull) {

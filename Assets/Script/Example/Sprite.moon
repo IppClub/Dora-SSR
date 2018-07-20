@@ -11,7 +11,7 @@ entry = with Node!
 
 Director\pushEntry entry
 
--- example ends here, just some test ui codes below --
+-- example ends here, test ui codes below --
 
 Dorothy builtin.ImGui
 
