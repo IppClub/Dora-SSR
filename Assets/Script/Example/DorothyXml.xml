@@ -1,6 +1,13 @@
 <Node Name="entry">
 	<Action>
-		<Angle Name="rotate" Time="5" Start="0" Stop="360" Ease="OutQuad"/>
+		<Spawn Name="rotate">
+			<Sequence>
+				<Move Time="1" StartX="0" StartY="0" StopX="200" StopY="0" Ease="InSine"/>
+				<Move Time="2" StartX="200" StartY="0" StopX="0" StopY="200" Ease="OutSine"/>
+				<Move Time="2" StartX="0" StartY="200" StopX="0" StopY="0" Ease="InSine"/>
+			</Sequence>
+			<Angle Time="6" Start="0" Stop="360" Ease="OutQuad"/>
+		</Spawn>
 		<Sequence Name="scale">
 			<Scale Time="0.2" Start="1" Stop="1.3" Ease="OutBack"/>
 			<Scale Time="0.2" Start="1.3" Stop="1" Ease="OutQuad"/>
@@ -12,10 +19,17 @@
 	<Slot Name="Enter" Perform="rotate"/>
 
 	<!-- example ends here, print xml and compiled lua codes below -->
-	<Script>
-		local xmlCodes = Content:load("Example/DorothyXml.xml")
-		local luaCodes = xmltolua(xmlCodes)
-		print("Xml:\n\n"..xmlCodes)
-		print("Compile to Lua:\n\n"..luaCodes)
+	<Script Type="Moon">
+		Dorothy builtin.ImGui
+		xmlCodes = Content\load "Example/DorothyXml.xml"
+		luaCodes = xmltolua xmlCodes
+		print "Xml codes:\n\n#{xmlCodes}\nCompiled Lua codes:\n\n#{luaCodes}"
+		entry\schedule ->
+			{:width} = Application.designSize
+			SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+			SetNextWindowSize Vec2(240,120),"FirstUseEver"
+			if Begin "Hello World", "NoResize|NoSavedSettings"
+				Text "View outputs in log window !"
+			End!
 	</Script>
 </Node>

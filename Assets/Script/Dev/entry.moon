@@ -3,9 +3,6 @@ import Set,Path from require "Utils"
 LintGlobal = require "LintGlobal"
 moonscript = require "moonscript"
 
-threadLoop ->
-	Director.currentCamera.position += Vec2 1,0
-
 LoadFontTTF "Font/DroidSansFallback.ttf", 20--, "Chinese"
 
 moduleCache = {}
@@ -229,7 +226,7 @@ Director\pushEntry with Node!
 		PushStyleColor "WindowBg",Color(0x0)
 		if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
 			TextColored Color(0xff00ffff), "Examples"
-			Columns 5, false
+			Columns math.floor(width/200), false
 			for example in *examples
 				if Button example, Vec2(-1,40)
 					isInEntry = false
@@ -248,7 +245,7 @@ Director\pushEntry with Node!
 				NextColumn!
 			Columns 1, false
 			TextColored Color(0xff00ffff), "Tests"
-			Columns 5, false
+			Columns math.floor(width/200), false
 			for test in *tests
 				if Button test, Vec2(-1,40)
 					isInEntry = false

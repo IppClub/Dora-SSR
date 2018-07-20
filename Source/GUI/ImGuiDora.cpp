@@ -45,7 +45,15 @@ public:
 
 	void addLog(const string& text)
 	{
-		for (auto line : Slice(text).split("\n"_slice))
+		size_t start = 0, end = 0;
+		std::list<Slice> lines;
+		const char* str = text.c_str();
+		while ((end = text.find_first_of("\n", start)) != std::string::npos)
+		{
+			lines.push_back(Slice(str + start, end - start));
+			start = end+1;
+		}
+		for (auto line : lines)
 		{
 			_logs.push_back(line);
 		}

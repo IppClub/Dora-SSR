@@ -74,11 +74,7 @@ bool SAXParser::parseXml(const string& xmlData)
 	}
 	if (error != tinyxml2::XML_NO_ERROR)
 	{
-		char num[10];
-		sprintf(num, "%d", _tinyDoc.GetErrorLine());
-		_lastError = "Xml document error at line ";
-		_lastError += num;
-		_lastError += ", ";
+		_lastError = fmt::format("Xml document error at line {}, ", _tinyDoc.GetErrorLine());
 		switch (error)
 		{
 			case tinyxml2::XML_NO_ATTRIBUTE: _lastError += "no attribute."; break;
