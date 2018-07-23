@@ -275,8 +275,8 @@ void Content::setSearchPaths(const vector<string>& searchPaths)
 void Content::copyFileUnsafe(String src, String dst)
 {
 	string srcPath = Content::getFullPath(src);
-	// Log("copy file from {}", srcPath);
-	// Log("copy file to {}", dst);
+	// Info("copy file from {}", srcPath);
+	// Info("copy file to {}", dst);
 	if (Content::isFolder(srcPath))
 	{
 		string dstPath = dst;
@@ -285,7 +285,7 @@ void Content::copyFileUnsafe(String src, String dst)
 		{
 			if (folder != "." && folder != "..")
 			{
-				// Log("now copy folder {}", folder);
+				// Info("now copy folder {}", folder);
 				string dstFolder = dstPath+'/'+folder;
 				if (!Content::isFileExist(dstFolder))
 				{
@@ -300,7 +300,7 @@ void Content::copyFileUnsafe(String src, String dst)
 		auto files = Content::getDirEntries(src, false);
 		for (const string& file : files)
 		{
-			// Log("now copy file {}",file);
+			// Info("now copy file {}",file);
 			ofstream stream((dstPath + '/' + file), std::ios::out | std::ios::trunc | std::ios::binary);
 			Content::loadFileByChunks((srcPath + '/' + file), [&](Uint8* buffer, int size)
 			{
@@ -497,7 +497,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 	}
 	if (!data)
 	{
-		Log("fail to load file: {}", fullPath);
+		Error("fail to load file: {}", fullPath);
 	}
 	return data;
 }
