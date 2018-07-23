@@ -220,7 +220,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 
 	if (!fileData)
 	{
-		Error("load ttf file for imgui failed!");
+		Warn("fail to load ttf file for ImGui!");
 		return;
 	}
 	

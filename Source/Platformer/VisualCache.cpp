@@ -82,7 +82,7 @@ bool VisualCache::load(String filename)
 	}
 	catch (rapidxml::parse_error error)
 	{
-		Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+		Warn("xml parse error: {}, at: {}, ", error.what(), error.where<char>() - r_cast<char*>(data.get()));
 		return false;
 	}
 }
@@ -102,7 +102,7 @@ bool VisualCache::update(String content)
 	}
 	catch (rapidxml::parse_error error)
 	{
-		Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+		Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
 		return false;
 	}
 }

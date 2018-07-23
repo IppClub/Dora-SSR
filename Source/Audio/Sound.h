@@ -20,10 +20,12 @@ class SoundFile : public Object
 {
 public:
 	PROPERTY_READONLY_CALL(SoLoud::Wav&, Wav);
+	virtual bool init() override;
 	CREATE_FUNC(SoundFile);
 protected:
 	SoundFile(OwnArray<Uint8>&& data);
 private:
+	OwnArray<Uint8> _data;
 	SoLoud::Wav _wav;
 	DORA_TYPE_OVERRIDE(SoundFile);
 };

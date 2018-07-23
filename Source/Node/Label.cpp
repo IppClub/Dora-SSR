@@ -172,7 +172,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 			BLOCK_END
 			if (fontFile.empty())
 			{
-				Error("can not load font file named \"{}\".", fontName);
+				Warn("can not load font file named \"{}\".", fontName);
 				return nullptr;
 			}
 			auto data = SharedContent.loadFile(fontFile);
@@ -220,7 +220,7 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(F
 			BLOCK_END
 			if (fontFile.empty())
 			{
-				Error("can not load font file named \"{}\".", fontName);
+				Warn("can not load font file named \"{}\".", fontName);
 				callback(nullptr);
 			}
 			SharedContent.loadFileAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](Uint8* data, Sint64 size)
