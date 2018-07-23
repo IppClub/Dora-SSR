@@ -47,12 +47,20 @@ SoundFile* SoundCache::load(String filename)
 		{
 			auto data = SharedContent.loadFile(fullPath);
 			SoundFile* soundFile = SoundFile::create(std::move(data));
-			_soundFiles[fullPath] = soundFile;
-			return soundFile;
+			if (soundFile)
+			{
+				_soundFiles[fullPath] = soundFile;
+				return soundFile;
+			}
+			else
+			{
+				Warn("fail to load sound file \"{}\".", filename);
+				return nullptr;
+			}
 		}
 		default:
 		{
-			Error("file named \"{}\" is not soundFile file.", filename);
+			Warn("file named \"{}\" is not soundFile file.", filename);
 			return nullptr;
 		}
 	}
@@ -78,8 +86,16 @@ void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& ha
 			SharedContent.loadFileAsyncUnsafe(fullPath, [this, fullPath, handler](Uint8* data, Sint64 size)
 			{
 				SoundFile* soundFile = SoundFile::create(MakeOwnArray(data, s_cast<size_t>(size)));
-				_soundFiles[fullPath] = soundFile;
-				handler(soundFile);
+				if (soundFile)
+				{
+					_soundFiles[fullPath] = soundFile;
+					handler(soundFile);
+				}
+				else
+				{
+					Warn("fail to load sound file \"{}\".", fullPath);
+					handler(nullptr);
+				}
 			});
 			break;
 		}

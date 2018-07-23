@@ -109,7 +109,7 @@ void tolua_dobuffer(lua_State* L, char* codes, unsigned int size, const char* na
 {
 	if (luaL_loadbuffer(L, codes, size, name) != 0)
 	{
-		Error("error loading module \"{}\" from \"{}\" :\n\t{}",
+		Error("[Lua] error loading module \"{}\" from \"{}\" :\n\t{}",
 			Slice(lua_tostring(L, 1)), name, Slice(lua_tostring(L, -1)));
 	}
 	else LuaEngine::call(L, 0, 0);

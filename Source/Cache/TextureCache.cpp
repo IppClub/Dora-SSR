@@ -149,7 +149,7 @@ Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
 		_textures[fullPath] = texture;
 		return texture;
 	}
-	Error("texture format \"{}\" is not supported for \"{}\".", filename.getFileExtension(), filename);
+	Warn("texture format \"{}\" is not supported for \"{}\".", filename.getFileExtension(), filename);
 	return nullptr;
 }
 
@@ -216,7 +216,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			}
 			else
 			{
-				Error("texture format \"{}\" is not supported for \"{}\".", Slice(file).getFileExtension(), file);
+				Warn("texture format \"{}\" is not supported for \"{}\".", Slice(file).getFileExtension(), file);
 				handler(nullptr);
 			}
 		});

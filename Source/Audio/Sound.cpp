@@ -20,14 +20,20 @@ SoLoud::Wav& SoundFile::getWav()
 	return _wav;
 }
 
-SoundFile::SoundFile(OwnArray<Uint8>&& data)
+SoundFile::SoundFile(OwnArray<Uint8>&& data):
+_data(std::move(data))
+{ }
+
+bool SoundFile::init()
 {
-	SoLoud::result result = _wav.loadMem(data, s_cast<Uint32>(data.size()), false, false);
+	SoLoud::result result = _wav.loadMem(_data, s_cast<Uint32>(_data.size()), false, false);
+	_data.reset();
 	if (result)
 	{
-		Error("fail to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
-		return;
+		Warn("fail to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
+		return false;
 	}
+	return true;
 }
 
 /* SoundStream */
