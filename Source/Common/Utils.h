@@ -87,6 +87,12 @@ public: void set##funName(String var)
 #define DORA_UNUSED_PARAM(unusedparam) (void)unusedparam
 #define DORA_DUMMY do {} while (0)
 
+/* Short names for C++ casts */
+#define s_cast static_cast
+#define r_cast reinterpret_cast
+#define c_cast const_cast
+#define d_cast dynamic_cast
+
 /** @brief Short name for Slice used for argument type */
 typedef const Slice& String;
 
@@ -167,15 +173,9 @@ namespace Tuple
 	inline int foreach(const TupleT& item, Func&& func)
 	{
 		TupleHelper<TupleT, std::tuple_size<TupleT>::value>::foreach(item, func);
-		return (int)std::tuple_size<TupleT>::value;
+		return s_cast<int>(std::tuple_size<TupleT>::value);
 	}
 } // namespace Tuple
-
-/* Short names for C++ casts */
-#define s_cast static_cast
-#define r_cast reinterpret_cast
-#define c_cast const_cast
-#define d_cast dynamic_cast
 
 #ifndef FLT_EPSILON
 	#define FLT_EPSILON std::numeric_limits<float>::epsilon()
