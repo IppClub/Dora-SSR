@@ -56,5 +56,3 @@ Director.ui = with AlignNode true
 		\addChild with Panel 150,200,430,640
 			.position = Vec2 75,100
 	\alignLayout!
-
-Director\pushEntry Node!

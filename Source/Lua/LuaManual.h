@@ -35,7 +35,7 @@ inline Director* Director_shared() { return &SharedDirector; }
 inline View* View_shared() { return &SharedView; }
 
 /* Log */
-inline void Dora_Log(String msg) { Log("{}", msg); }
+inline void Dora_Log(String msg) { Info("{}", msg); }
 
 /* Node */
 int Node_emit(lua_State* L);

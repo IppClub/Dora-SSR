@@ -405,7 +405,7 @@ void DrawRenderer::render()
 		}
 		else
 		{
-			Log("not enough transient buffer for {} vertices, {} indices.", vertexCount, indexCount);
+			Warn("not enough transient buffer for {} vertices, {} indices.", vertexCount, indexCount);
 		}
 		_vertices.clear();
 		_indices.clear();
@@ -660,7 +660,7 @@ void LineRenderer::render()
 		}
 		else
 		{
-			Log("not enough transient buffer for {} vertices.", vertexCount);
+			Warn("not enough transient buffer for {} vertices.", vertexCount);
 		}
 		_vertices.clear();
 		_lastState = BGFX_STATE_NONE;

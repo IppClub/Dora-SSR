@@ -121,7 +121,7 @@ void ShaderCache::loadAsync(String filename, const function<void(Shader*)>& hand
 		}
 		else
 		{
-			Log("fail to load shader \"{}\".", shaderFile);
+			Error("fail to load shader \"{}\".", shaderFile);
 			handler(nullptr);
 		}
 	});

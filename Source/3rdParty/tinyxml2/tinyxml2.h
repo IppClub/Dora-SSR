@@ -1499,7 +1499,7 @@ public:
     void SetError( const char* p, XMLError error, const char* str1, const char* str2 );
 
     /// Return true if there was an error parsing the document.
-    bool Error() const {
+    bool HasError() const {
         return _errorID != XML_NO_ERROR;
     }
     /// Return the errorID.

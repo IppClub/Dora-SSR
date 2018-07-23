@@ -49,13 +49,17 @@ inline void LogPrint(String str)
 	LogPrintInThread(str);
 }
 
-#if !defined(DORA_DEBUG) || !DORA_DEBUG
-	#define Log(...) DORA_DUMMY
+#if !DORA_DEBUG
+	#define Info(...) DORA_DUMMY
+	#define Warn(...) DORA_DUMMY
+	#define Error(...) DORA_DUMMY
 #else
-	#define Log(format, ...) \
-		Dorothy::LogPrint("[Dorothy Info] " \
-			format \
-			"\n",  ##__VA_ARGS__)
+	#define Info(format, ...)  \
+		Dorothy::LogPrint("[Dorothy Info] " format "\n",  ##__VA_ARGS__)
+	#define Warn(format, ...) \
+		Dorothy::LogPrint("[Dorothy Warning] " format "\n",  ##__VA_ARGS__)
+	#define Error(format, ...) \
+		Dorothy::LogPrint("[Dorothy Error] " format "\n",  ##__VA_ARGS__)
 #endif
 
 #if DORA_DISABLE_ASSERT_IN_LUA

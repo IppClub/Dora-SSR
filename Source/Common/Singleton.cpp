@@ -90,7 +90,7 @@ struct LifeCycler
 						msg += ",";
 					}
 				}
-				Log("{}.", msg);
+				Info("{}.", msg);
 			}
 #endif // DORA_DEBUG
 			for (auto it = items.rbegin(); it != items.rend(); ++it)

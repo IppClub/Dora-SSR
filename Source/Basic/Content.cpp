@@ -291,7 +291,7 @@ void Content::copyFileUnsafe(String src, String dst)
 				{
 					if (!Content::createFolder(dstFolder))
 					{
-						Log("Create folder failed! {}", dstFolder);
+						Error("Create folder failed! {}", dstFolder);
 					}
 				}
 				Content::copyFileUnsafe((srcPath+'/'+folder), dstFolder);
@@ -306,7 +306,7 @@ void Content::copyFileUnsafe(String src, String dst)
 			{
 				if (!stream.write(r_cast<char*>(buffer), size))
 				{
-					Log("write file failed! {}", dstPath + '/' + file);
+					Error("write file failed! {}", dstPath + '/' + file);
 				}
 			});
 		}
@@ -318,7 +318,7 @@ void Content::copyFileUnsafe(String src, String dst)
 		{
 			if (!stream.write(r_cast<char*>(buffer), size))
 			{
-				Log("write file failed! {}", dst);
+				Error("write file failed! {}", dst);
 			}
 		});
 	}
@@ -448,7 +448,7 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 	}
 	else
 	{
-		Log("Content get entry error, {}, {}", strerror(errno), fullPath);
+		Error("Content fail to get entry, {}, {}", strerror(errno), fullPath);
 	}
 	return files;
 }
@@ -643,7 +643,7 @@ Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Log("fail to load file: {}", fullPath);
+		Error("fail to load file: {}", fullPath);
 		return nullptr;
 	}
 	size = SDL_RWsize(io);
@@ -660,7 +660,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Log("fail to load file: {}", fullPath);
+		Error("fail to load file: {}", fullPath);
 		return;
 	}
 	Uint8 buffer[DORA_COPY_BUFFER_SIZE];

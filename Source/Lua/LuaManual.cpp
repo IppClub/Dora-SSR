@@ -278,7 +278,7 @@ bool Cache::load(String filename)
 			case "ogg"_hash:
 				return SharedSoundCache.load(filename);
 			default:
-				Log("fail to load unsupported resource: {}", filename);
+				Error("fail to load unsupported resource: {}", filename);
 				break;
 		}
 	}
@@ -318,7 +318,7 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 				SharedSoundCache.loadAsync(filename, [callback](SoundFile*) { callback(); });
 				break;
 			default:
-				Log("fail to load unsupported resource: {}", filename);
+				Error("fail to load unsupported resource: {}", filename);
 				break;
 		}
 	}
@@ -344,7 +344,7 @@ void Cache::update(String filename, String content)
 				SharedParticleCache.update(filename, content);
 				break;
 			default:
-				Log("fail to update unsupported resource: {}", filename);
+				Error("fail to update unsupported resource: {}", filename);
 				break;
 		}
 	}
@@ -381,7 +381,7 @@ bool Cache::unload(String name)
 			case "ogg"_hash:
 				return SharedSoundCache.unload(name);
 			default:
-				Log("fail to load unsupported resource: {}", name);
+				Error("fail to load unsupported resource: {}", name);
 				break;
 		}
 	}
@@ -475,7 +475,7 @@ void Cache::removeUnused(String name)
 			SharedSoundCache.removeUnused();
 			break;
 		default:
-			Log("fail to remove unused cache type: {}", name);
+			Error("fail to remove unused cache type: {}", name);
 			break;
 	}
 }

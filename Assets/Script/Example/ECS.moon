@@ -58,7 +58,7 @@ with Entity!
 with Entity!
 	.scene = Node!
 
--- example ends here, test ui codes below --
+-- example codes ends here, some test ui below --
 
 Dorothy builtin.ImGui
 
@@ -68,18 +68,16 @@ with Observer "Add", {"scene"}
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,160), "FirstUseEver"
 		if Begin "ECS System", "NoResize|NoSavedSettings"
-			if BeginChild "scroll"
-				Text "Tap any place to move entity."
-				if Button "Create Random Entity"
-					with Entity!
-						.sprite = Sprite "Image/logo.png"
-						.position = Vec2 6*math.random(1,100),6*math.random(1,100)
-						.direction = math.random 0,360
-						.speed = math.random 1,20
-				if Button "Destroy An Entity"
-					Group({"sprite","position"})\each (entity)->
-						entity.position = nil
-						entity.sprite\runAction Sequence Scale(0.5, 1, 0, Ease.InBack), Call -> entity\destroy!
-						true
-			EndChild!
+			TextWrapped "Tap any place to move entities."
+			if Button "Create Random Entity"
+				with Entity!
+					.sprite = Sprite "Image/logo.png"
+					.position = Vec2 6*math.random(1,100),6*math.random(1,100)
+					.direction = math.random 0,360
+					.speed = math.random 1,20
+			if Button "Destroy An Entity"
+				Group({"sprite","position"})\each (entity)->
+					entity.position = nil
+					entity.sprite\runAction Sequence Scale(0.5, 1, 0, Ease.InBack), Call -> entity\destroy!
+					true
 		End!

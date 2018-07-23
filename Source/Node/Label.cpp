@@ -159,15 +159,21 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 		}
 		else
 		{
-			string fontFile = "Font/" + fontName.toString() + ".ttf";
-			if (!SharedContent.isExist(fontFile))
+			string fontFile;
+			BLOCK_START
 			{
+				fontFile = "Font/" + fontName.toString() + ".ttf";
+				BREAK_IF(SharedContent.isExist(fontFile));
 				fontFile = "Font/" + fontName.toString() + ".otf";
-				if (!SharedContent.isExist(fontFile))
-				{
-					Log("can not load font file named \"{}\".", fontName);
-					return nullptr;
-				}
+				BREAK_IF(SharedContent.isExist(fontFile));
+				fontFile = fontName.toString();
+				BREAK_IF(SharedContent.isExist(fontFile));
+			}
+			BLOCK_END
+			if (fontFile.empty())
+			{
+				Error("can not load font file named \"{}\".", fontName);
+				return nullptr;
 			}
 			auto data = SharedContent.loadFile(fontFile);
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(data.size()));
@@ -201,14 +207,21 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(F
 		}
 		else
 		{
-			string fontFile = "Font/" + fontName.toString() + ".ttf";
-			if (!SharedContent.isExist(fontFile))
+			string fontFile;
+			BLOCK_START
 			{
+				fontFile = "Font/" + fontName.toString() + ".ttf";
+				BREAK_IF(SharedContent.isExist(fontFile));
 				fontFile = "Font/" + fontName.toString() + ".otf";
-				if (!SharedContent.isExist(fontFile))
-				{
-					callback(nullptr);
-				}
+				BREAK_IF(SharedContent.isExist(fontFile));
+				fontFile = fontName.toString();
+				BREAK_IF(SharedContent.isExist(fontFile));
+			}
+			BLOCK_END
+			if (fontFile.empty())
+			{
+				Error("can not load font file named \"{}\".", fontName);
+				callback(nullptr);
 			}
 			SharedContent.loadFileAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](Uint8* data, Sint64 size)
 			{
@@ -525,7 +538,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 			fontDef = SharedFontCache.getGlyphInfo(_font, '?');
 			if (!fontDef)
 			{
-				Log("attempted to use character not defined in this font: {}", ch);
+				Warn("attempted to use character not defined in this font: {}", ch);
 				continue;
 			}
 		}
@@ -679,12 +692,12 @@ void Label::updateLabel()
 				if (i >= stringLength) break;
 
 				character = _text[i];
-				if (!startOfWord)
+				if (!start_word)
 				{
 					startOfWord = getLetterPosXLeft(characterItem);
 					start_word = true;
 				}
-				if (!startOfLine)
+				if (!start_line)
 				{
 					startOfLine = startOfWord;
 					start_line = true;
@@ -717,8 +730,7 @@ void Label::updateLabel()
 					{
 						auto begin = last_word.begin();
 						auto end = last_word.begin() + found + 1;
-						multiline_string.insert(multiline_string.end(),
-							begin, end);
+						multiline_string.insert(multiline_string.end(), begin, end);
 						multiline_string.push_back('\n');
 						last_word.erase(begin, end);
 						startOfWord = getLetterPosXLeft(_characters[i - last_word.size()]);
@@ -729,7 +741,15 @@ void Label::updateLabel()
 					}
 					else
 					{
-						found = utf8_find_last_not_char(multiline_string, ' ');
+						found = -1;
+						for (auto it  = multiline_string.rbegin(); it != multiline_string.rend(); ++it)
+						{
+							if (!utf8_isspace(*it))
+							{
+								found = s_cast<int>(std::distance(multiline_string.rend(), it));
+								break;
+							}
+						}
 						if (found != -1)
 						{
 							utf8_trim_ws(multiline_string);
@@ -752,8 +772,10 @@ void Label::updateLabel()
 					utf8_trim_ws(last_word);
 
 					last_word.push_back('\n');
-					multiline_string.insert(multiline_string.end(),
-						last_word.begin(), last_word.end());
+					multiline_string.insert(
+						multiline_string.end(),
+						last_word.begin(),
+						last_word.end());
 					last_word.clear();
 					start_word = false;
 					start_line = false;
@@ -785,7 +807,10 @@ void Label::updateLabel()
 			}
 		}
 
-		multiline_string.insert(multiline_string.end(), last_word.begin(), last_word.end());
+		multiline_string.insert(
+			multiline_string.end(),
+			last_word.begin(),
+			last_word.end());
 
 		size_t size = multiline_string.size();
 		vector<Uint32> str_new(size);
@@ -818,7 +843,7 @@ void Label::updateLabel()
 				int index = i + line_length - 1 + lineNumber;
 				if (index < 0) continue;
 				CharItem* lastChar = _characters[index];
-				if (lastChar == nullptr) continue;
+				if (!lastChar) continue;
 				lineWidth = getLetterPosXRight(lastChar);
 
 				float shift = 0;

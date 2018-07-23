@@ -7,6 +7,8 @@ AlignNode = require "UI.Control.Basic.AlignNode"
 
 width,height = viewWidth-200,viewHeight-20
 
+fontSize = 20
+
 Director\pushEntry with AlignNode true,false
 	\addChild with ScrollArea {
 			x:viewWidth/2
@@ -24,19 +26,19 @@ Director\pushEntry with AlignNode true,false
 			.position = Vec2 w/2,h/2
 			w -= 200
 			h -= 20
-			.view.children.first.textWidth = w-30
+			.view.children.first.textWidth = w-fontSize
 			\adjustSizeWithAlign "auto",10,Size(w,h)
 			.area\removeChild .border
 			.border = LineRect width:w, height:h, color:0xffffffff
 			.area\addChild .border
-		.view\addChild with Label "NotoSansHans-Regular",20
+		.view\addChild with Label "NotoSansHans-Regular",fontSize
 			.alignment = TextAlign.Left
-			.textWidth = width-30
+			.textWidth = width-fontSize
 			.text = [[# Dorothy SSR
 ## 项目目标
 &emsp;&emsp;Dorothy SSR项目的最终目标是制作一款跨平台的，专门用于制作2D游戏的“魔兽争霸3世界编辑器”。这个目标由三个子目标组成：
 * **Step 1**
-&emsp;&emsp;开发一个跨平台的底层游戏框架。功能包括或是整合图形渲染、物理引擎、资源管理、音频处理和脚本绑定等等。（Finished 70%+）
+&emsp;&emsp;开发一个跨平台的底层游戏框架。功能包括或是整合图形渲染、物理引擎、资源管理、音频处理、脚本绑定以及部分2D平台游戏的功能等等。（Finished 95%）
 
 * **Step 2**
 &emsp;&emsp;使用该游戏框架开发游戏编辑器。功能包括：图元编辑器、2D骨骼动画编辑器、物理对象编辑器、游戏对象编辑器、游戏对象动作编辑器、触发器编辑器、AI编辑器、音频管理编辑器、游戏地形编辑器和游戏场景编辑器等等。
@@ -97,16 +99,19 @@ Director\pushEntry with AlignNode true,false
 * **2017-3-25**
 &emsp;&emsp;今天把项目进度更新到74%，其实核心功能都已经基本完成了，剩下的功能比如PlatformWorld、Unit、Bullet几个横版游戏所用的类，类似Component模式的UnitAction类，还有那些简陋的Behavior Tree的节点类，可能需要扔掉这些老接口重新设计一下，现在计划暂时先不忙着推进这些功能。Lua binding已经补上了，Moonscript脚本语言也加回来了，要准备补Sample和Test，还有开始补各式文档，并对一些项目设计上的点写一点Review的文章。
 
+* **2018-7-20**
+&emsp;&emsp;把Dorothy的Platformer Game的框架又移植回来，同时也增加了ECS的功能。因为发现ECS对减少游戏逻辑实现的工作量并无太大帮助，所以发现过去编写的功能框架并非完全不可取。
+
 ## 当前进度
 &emsp;**Step 1**
 ```
-Redo: 209/263 79.47%
+Redo: 232/256 90.62%
 ```
 ```
-Ship: 165/242 68.18%
+Ship: 241/242 99.59%
 ```
 ```
-Total: [ ###########     ] 74.06%
+Total: [ ##############  ] 94.98%
 ```
 
 ## License

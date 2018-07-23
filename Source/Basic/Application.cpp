@@ -161,7 +161,7 @@ int Application::run()
 
 	if (SDL_Init(SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER) != 0)
 	{
-		Log("SDL fail to initialize! {}", SDL_GetError());
+		Error("SDL fail to initialize! {}", SDL_GetError());
 		return 1;
 	}
 
@@ -176,7 +176,7 @@ int Application::run()
 		_winWidth, _winHeight, windowFlags);
 	if (!_sdlWindow)
 	{
-		Log("SDL fail to create window!");
+		Error("SDL fail to create window!");
 		return 1;
 	}
 	Application::setupSdlWindow();
@@ -379,7 +379,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 
 	if (!SharedBGFX.init())
 	{
-		Log("bgfx fail to initialize!");
+		Error("bgfx fail to initialize!");
 		return 1;
 	}
 
@@ -392,7 +392,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 	SharedPoolManager.push();
 	if (!SharedDirector.init())
 	{
-		Log("Director fail to initialize!");
+		Error("Director fail to initialize!");
 		return 1;
 	}
 	Timer::create()->start(0, [app]()

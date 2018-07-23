@@ -63,7 +63,7 @@ double Profiler::stop(String logName)
 	double deltaTime = SharedApplication.getCurrentTime() - _lastTime;
 	if (!logName.empty())
 	{
-		Log("{} cost {:.3f}s.", logName, deltaTime);
+		Info("{} cost {:.3f}s.", logName, deltaTime);
 	}
 	_lastTime = SharedApplication.getCurrentTime();
 	return deltaTime;

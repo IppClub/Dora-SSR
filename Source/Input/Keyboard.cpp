@@ -349,7 +349,7 @@ bool Keyboard::isKeyDown(String name) const
 	{
 		return !_oldCodeStates[it->second] && _newCodeStates[it->second];
 	}
-	Log("invalid keyboard button name for \"{}\"", name);
+	Warn("invalid keyboard button name for \"{}\"", name);
 	return false;
 }
 
@@ -365,7 +365,7 @@ bool Keyboard::isKeyUp(String name)  const
 	{
 		return _oldCodeStates[it->second] && !_newCodeStates[it->second];
 	}
-	Log("invalid keyboard button name for \"{}\"", name);
+	Warn("invalid keyboard button name for \"{}\"", name);
 	return false;
 }
 
@@ -381,7 +381,7 @@ bool Keyboard::isKeyPressed(String name) const
 	{
 		return _newCodeStates[it->second];
 	}
-	Log("invalid keyboard button name for \"{}\"", name);
+	Warn("invalid keyboard button name for \"{}\"", name);
 	return false;
 }
 
