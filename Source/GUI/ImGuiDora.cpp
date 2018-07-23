@@ -220,7 +220,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 
 	if (!fileData)
 	{
-		Log("load ttf file for imgui failed!");
+		Error("load ttf file for imgui failed!");
 		return;
 	}
 	
@@ -309,7 +309,8 @@ void ImGuiDora::showStats()
 	ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Backbuffer:");
 	ImGui::SameLine();
-	ImGui::Text("%d x %d", stats->width, stats->height);
+	Size size = SharedView.getSize();
+	ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Draw call:");
 	ImGui::SameLine();
 	ImGui::Text("%d", stats->numDraw);
@@ -606,7 +607,7 @@ void ImGuiDora::render()
 
 			if (!checkAvailTransientBuffers(numVertices, guiDora->_vertexDecl, numIndices))
 			{
-				Log("not enough space in transient buffer just quit drawing the rest.");
+				Warn("not enough space in transient buffer just quit drawing the rest.");
 				break;
 			}
 

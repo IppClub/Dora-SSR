@@ -52,7 +52,7 @@ SoundFile* SoundCache::load(String filename)
 		}
 		default:
 		{
-			Log("file named \"{}\" is not soundFile file.", filename);
+			Error("file named \"{}\" is not soundFile file.", filename);
 			return nullptr;
 		}
 	}
@@ -85,7 +85,7 @@ void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& ha
 		}
 		default:
 		{
-			Log("file named \"{}\" is not soundFile file.", filename);
+			Error("file named \"{}\" is not soundFile file.", filename);
 			handler(nullptr);
 			break;
 		}

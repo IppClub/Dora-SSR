@@ -438,7 +438,8 @@ void Director::displayStats()
 	int row = 0;
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mRenderer: \x1b[15;m%s", rendererNames[bgfx::getCaps()->rendererType]);
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMultithreaded: \x1b[15;m%s", (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mBackbuffer: \x1b[15;m%d x %d", stats->width, stats->height);
+	Size size = SharedView.getSize();
+	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mBackbuffer: \x1b[15;m%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mDraw call: \x1b[15;m%d", stats->numDraw);
 	static int frames = 0;
 	static double cpuTime = 0, gpuTime = 0, deltaTime = 0;
@@ -493,7 +494,7 @@ void Director::pushEntry(Node* entry)
 	{
 		if (entry == _entryStack->getLast())
 		{
-			Log("target entry pushed is already running!");
+			Warn("target entry pushed is already running!");
 			return;
 		}
 		Node* last = _entryStack->getLast().to<Node>();
@@ -507,7 +508,7 @@ Node* Director::popEntry()
 {
 	if (_entryStack->isEmpty())
 	{
-		Log("pop from an empty entry stack.");
+		Warn("pop from an empty entry stack.");
 		return Ref<Node>();
 	}
 	Ref<Node> last(_entryStack->removeLast().to<Node>());
@@ -528,7 +529,7 @@ void Director::popToEntry(Node* entry)
 {
 	if (_entryStack->isEmpty())
 	{
-		Log("pop from an empty entry stack.");
+		Warn("pop from an empty entry stack.");
 		return;
 	}
 	if (_entryStack->contains(entry))
@@ -539,14 +540,14 @@ void Director::popToEntry(Node* entry)
 		}
 		return;
 	}
-	Log("entry to pop is not in entry stack.");
+	Warn("entry to pop is not in entry stack.");
 }
 
 void Director::popToRootEntry()
 {
 	if (_entryStack->isEmpty())
 	{
-		Log("pop from an empty entry stack.");
+		Warn("pop from an empty entry stack.");
 		return;
 	}
 	popToEntry(_entryStack->getFirst().to<Node>());

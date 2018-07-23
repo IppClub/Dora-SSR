@@ -68,7 +68,7 @@ public:
 				}
 				catch (rapidxml::parse_error error)
 				{
-					Log("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+					Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
 				}
 				return result;
 			}
@@ -102,7 +102,7 @@ public:
 						}
 						catch (rapidxml::parse_error error)
 						{
-							Log("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
+							Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
 						}
 						return Values::create(result);
 					}, [this, handler, file](Values* values)
@@ -134,7 +134,7 @@ public:
 		}
 		catch (rapidxml::parse_error error)
 		{
-			Log("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data.c_str()));
+			Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data.c_str()));
 		}
 		return result;
 	}

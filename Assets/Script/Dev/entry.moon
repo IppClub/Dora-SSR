@@ -162,17 +162,52 @@ clearCache = ->
 	Cache\unload!
 	Entity\clear!
 	Director.ui = nil
+	currentEntryName = nil
+
+examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
+tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
+currentEntryName = nil
+allNames = for example in *examples do "Example/#{example}"
+for test in *tests do table.insert allNames,"Test/#{test}"
+
+enterDemoEntry = (name)->
+	isInEntry = false
+	xpcall (->
+		lastEntry = Director.currentEntry
+		result = require name
+		if "function" == type result
+			result = result!
+			Director\pushEntry result if tolua.cast result, "Node"
+		Director\pushEntry Node! if lastEntry == Director.currentEntry
+		currentEntryName = name
+	),(msg)->
+		msg = debug.traceback msg
+		print msg
+		isInEntry = true
+		clearCache!
 
 showStats = true
 showLog = true
 showFooter = true
+scaleContent = false
+screenScale = Application.size.width/Application.designSize.width
 threadLoop ->
 	Application\shutdown! if Keyboard\isKeyDown "Escape"
 	{:width,:height} = Application.designSize
-	SetNextWindowSize Vec2(110,50)
-	SetNextWindowPos Vec2(width-110,height-50)
+	SetNextWindowSize Vec2(190,50)
+	SetNextWindowPos Vec2(width-190,height-50)
 	PushStyleColor "WindowBg", Color(0x0)
 	if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+		Columns 2,false
+		Dummy Vec2 10,30
+		SameLine!
+		if showFooter
+			_, scaleContent = Checkbox string.format("%.1fx",screenScale), scaleContent
+			if scaleContent
+				View.scale = screenScale if View.scale ~= screenScale
+			else
+				View.scale = 1 if View.scale ~= 1
+		NextColumn!
 		_, showFooter = Checkbox "Footer", showFooter
 	End!
 	PopStyleColor!
@@ -185,22 +220,39 @@ threadLoop ->
 		SameLine!
 		_, showLog = Checkbox "Log", showLog
 		SameLine!
-		if Button "Build", Vec2(80,30)
+		if isInEntry and Button "Build", Vec2(70,30)
 			OpenPopup "build"
-		if BeginPopup "build"
+		if isInEntry and BeginPopup "build"
 			doCompile false if Selectable "Compile"
 			Separator!
 			doCompile true if Selectable "Minify"
 			Separator!
 			doClean! if Selectable "Clean"
 			EndPopup!
-		SameLine!
 		if not isInEntry
 			SameLine!
-			if Button "Back To Entry", Vec2(150,30)
+			if Button "Home", Vec2(70,30)
 				Director\popToRootEntry!
 				isInEntry = true
 				clearCache!
+			currentIndex = 1
+			for i,name in ipairs allNames
+				if currentEntryName == name
+					currentIndex = i
+			SameLine!
+			if currentIndex > 1
+				if Button "Prev", Vec2(70,30)
+					Director\popToRootEntry!
+					clearCache!
+					enterDemoEntry allNames[currentIndex-1]
+			else Dummy Vec2 70,30
+			SameLine!
+			if currentIndex < #allNames
+				if Button "Next", Vec2(70,30)
+					Director\popToRootEntry!
+					clearCache!
+					enterDemoEntry allNames[currentIndex+1]
+			else Dummy Vec2 70,30
 		if showStats
 			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
 			ShowStats!
@@ -210,8 +262,6 @@ threadLoop ->
 	End!
 
 Director\pushEntry with Node!
-	examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
-	tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
 	\schedule ->
 		{:width,:height} = Application.designSize
 		SetNextWindowPos Vec2.zero
@@ -229,38 +279,14 @@ Director\pushEntry with Node!
 			Columns math.floor(width/200), false
 			for example in *examples
 				if Button example, Vec2(-1,40)
-					isInEntry = false
-					xpcall (->
-						lastEntry = Director.currentEntry
-						result = require "Example/#{example}"
-						if "function" == type result
-							result = result!
-							Director\pushEntry result if tolua.cast result, "Node"
-						Director\pushEntry Node! if lastEntry == Director.currentEntry
-					),(msg)->
-						msg = debug.traceback msg
-						print msg
-						isInEntry = true
-						clearCache!
+					enterDemoEntry "Example/#{example}"
 				NextColumn!
 			Columns 1, false
 			TextColored Color(0xff00ffff), "Tests"
 			Columns math.floor(width/200), false
 			for test in *tests
 				if Button test, Vec2(-1,40)
-					isInEntry = false
-					xpcall (->
-						lastEntry = Director.currentEntry
-						result = require "Test/#{test}"
-						if "function" == type result
-							result = result!
-							Director\pushEntry result if tolua.cast result, "Node"
-						Director\pushEntry Node! if lastEntry == Director.currentEntry
-					),(msg)->
-						msg = debug.traceback msg
-						print msg
-						isInEntry = true
-						clearCache!
+					enterDemoEntry "Test/#{test}"
 				NextColumn!
 		End!
 		PopStyleColor!

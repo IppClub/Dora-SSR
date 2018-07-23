@@ -331,10 +331,11 @@ end
 
 local Entity = builtin.Entity
 local Entity_getCache = Entity.getCache
-local Entity_cacheTarget
-local Entity_valueCache = setmetatable({},{
+local Entity_valueCache
+Entity_valueCache = setmetatable({false},{
+	__mode = "v",
 	__index = function(_,key)
-		return Entity_getCache(Entity_cacheTarget,key)
+		return Entity_getCache(Entity_valueCache[1],key)
 	end,
 	__newindex = function(_,_)
 		error("Can not assign value cache.")
@@ -343,9 +344,10 @@ local Entity_valueCache = setmetatable({},{
 
 local Entity_index = Entity.__index
 local Entity_get = Entity.get
+local rawset = rawset
 Entity.__index = function(self,key)
 	if key == "valueCache" then
-		Entity_cacheTarget = self
+		rawset(Entity_valueCache, 1, self)
 		return Entity_valueCache
 	end
 	local item = Entity_get(self,key)

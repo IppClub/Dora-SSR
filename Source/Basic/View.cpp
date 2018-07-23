@@ -84,6 +84,7 @@ void View::setScale(float var)
 	_scale = var;
 	Size winSize = SharedApplication.getSize();
 	_size = {winSize.width / _scale, winSize.height / _scale};
+	Event::send("AppSizeChanged"_slice);
 }
 
 float View::getScale() const

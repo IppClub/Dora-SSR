@@ -85,6 +85,7 @@ namespace ImGui
 	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, Vec2& v, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
 	bool Binding::SliderInt2 @ SliderInt2(const char* label, Vec2& v, int v_min, int v_max, const char* display_format = "%.0f");
 
+	void ShowDemoWindow();
 	void End();
 	void EndChild();
 	Vec2 GetContentRegionMax();

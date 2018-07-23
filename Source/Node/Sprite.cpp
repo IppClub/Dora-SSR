@@ -396,7 +396,7 @@ void SpriteRenderer::render()
 		}
 		else
 		{
-			Log("not enough transient buffer for {} vertices, {} indices.", vertexCount, indexCount);
+			Warn("not enough transient buffer for {} vertices, {} indices.", vertexCount, indexCount);
 		}
 		_vertices.clear();
 		_lastEffect = nullptr;

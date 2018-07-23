@@ -823,7 +823,7 @@ char* XMLNode::ParseDeep( char* p, StrPair* parentEnd )
         if ( !p ) {
             DELETE_NODE( node );
             node = 0;
-            if ( !_document->Error() ) {
+            if ( !_document->HasError() ) {
                 _document->SetError(tmp, XML_ERROR_PARSING, 0, 0 );
             }
             break;
@@ -1554,7 +1554,7 @@ XMLDocument::~XMLDocument()
 #endif
 
 #ifdef DEBUG
-	if ( Error() == false ) {
+	if ( HasError() == false ) {
 		TIXMLASSERT( _elementPool.CurrentAllocs()   == _elementPool.Untracked() );
 		TIXMLASSERT( _attributePool.CurrentAllocs() == _attributePool.Untracked() );
 		TIXMLASSERT( _textPool.CurrentAllocs()      == _textPool.Untracked() );

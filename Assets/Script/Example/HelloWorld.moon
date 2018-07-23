@@ -10,7 +10,7 @@ Director\pushEntry with Node!
 			sleep 1
 		print "Hello World!"
 
--- example ends here, test ui codes below --
+-- example codes ends here, some test ui below --
 
 Dorothy builtin.ImGui
 
@@ -21,7 +21,7 @@ threadLoop ->
 	SetNextWindowSize Vec2(240,120), "FirstUseEver"
 	if Begin "Hello World", "NoResize|NoSavedSettings"
 		if BeginChild "scroll", Vec2 -1,-40
-			Text "View outputs in log window !"
+			Text "View outputs in log window!"
 		EndChild!
 	End!
 	Director.currentEntry != currentEntry
