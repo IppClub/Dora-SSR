@@ -23,13 +23,13 @@
 		Dorothy builtin.ImGui
 		xmlCodes = Content\load "Example/DorothyXml.xml"
 		luaCodes = xmltolua xmlCodes
-		print "Xml codes:\n\n#{xmlCodes}\nCompiled Lua codes:\n\n#{luaCodes}"
+		print "[Xml Codes]\n\n#{xmlCodes}\n[Compiled Lua Codes]\n\n#{luaCodes}"
 		entry\schedule ->
 			{:width} = Application.designSize
 			SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 			SetNextWindowSize Vec2(240,120),"FirstUseEver"
-			if Begin "Hello World", "NoResize|NoSavedSettings"
-				Text "View outputs in log window !"
+			if Begin "Dorothy Xml", "NoResize|NoSavedSettings"
+				TextWrapped "View related codes in log window !"
 			End!
 	</Script>
 </Node>
