@@ -1,13 +1,13 @@
 Dorothy!
 
 sprite = Sprite "Image/logo.png"
+length = (Vec2 View.size).length
+{:width,:height} = sprite
+size = Vec2(width,height).length
+scaledSize = size
 
 Director\pushEntry with Node!
 	\addChild sprite
-	length = (Vec2 View.size).length
-	{:width,:height} = sprite
-	size = Vec2(width,height).length
-	scaledSize = size
 	.touchEnabled = true
 	\slot "Gesture",(center,touches,delta,theta)->
 		-- center: center from all touches` position

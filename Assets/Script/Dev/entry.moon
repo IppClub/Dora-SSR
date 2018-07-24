@@ -162,6 +162,7 @@ clearCache = ->
 	Cache\unload!
 	Entity\clear!
 	Director.ui = nil
+	Director\popCamera!
 	currentEntryName = nil
 
 examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
@@ -242,16 +243,18 @@ threadLoop ->
 			SameLine!
 			if currentIndex > 1
 				if Button "Prev", Vec2(70,30)
-					Director\popToRootEntry!
 					clearCache!
-					enterDemoEntry allNames[currentIndex-1]
+					thread ->
+						Director\popToRootEntry!
+						enterDemoEntry allNames[currentIndex-1]
 			else Dummy Vec2 70,30
 			SameLine!
 			if currentIndex < #allNames
 				if Button "Next", Vec2(70,30)
-					Director\popToRootEntry!
 					clearCache!
-					enterDemoEntry allNames[currentIndex+1]
+					thread ->
+						Director\popToRootEntry!
+						enterDemoEntry allNames[currentIndex+1]
 			else Dummy Vec2 70,30
 		if showStats
 			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"

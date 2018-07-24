@@ -25,7 +25,8 @@ NS_DOROTHY_BEGIN
 RenderTarget::RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format):
 _textureWidth(width),
 _textureHeight(height),
-_format(format)
+_format(format),
+_dummy(Node::create())
 { }
 
 RenderTarget::~RenderTarget()
@@ -121,7 +122,8 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 			{
 				if (_camera)
 				{
-					bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
+					if (_camera->isOtho()) viewProj = _camera->getView();
+					else bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
 				}
 				else
 				{
@@ -134,9 +136,10 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 				if (_camera)
 				{
 					Matrix tmpVP;
-					bx::mtxMul(tmpVP, _camera->getView(), SharedView.getProjection());
 					Matrix revertY;
 					bx::mtxScale(revertY, 1.0f, -1.0f, 1.0f);
+					if (_camera->isOtho()) tmpVP = _camera->getView();
+					else bx::mtxMul(tmpVP, _camera->getView(), SharedView.getProjection());
 					bx::mtxMul(viewProj, revertY, tmpVP);
 				}
 				else
@@ -157,18 +160,12 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 void RenderTarget::renderOnly(Node* target)
 {
 	if (!target) return;
-	Node* parent = target->getParent();
-	if (parent)
-	{
-		parent->removeChild(target);
-	}
+	Node* transformTarget = target->getTransformTarget();
+	target->setTransformTarget(_dummy);
 	target->markDirty();
 	target->visit();
 	SharedRendererManager.flush();
-	if (parent)
-	{
-		target->addTo(parent);
-	}
+	target->setTransformTarget(transformTarget);
 }
 
 void RenderTarget::render(Node* target)
