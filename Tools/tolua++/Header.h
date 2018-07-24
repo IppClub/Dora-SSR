@@ -233,13 +233,13 @@ class Camera2D : public Camera
 	tolua_property__common float rotation;
 	tolua_property__common float zoom;
 	tolua_property__common Vec2 position;
-	Camera2D* create(String name);
+	Camera2D* create(String name = nullptr);
 };
 
 class OthoCamera : public Camera
 {
 	tolua_property__common Vec2 position;
-	OthoCamera* create(String name);
+	OthoCamera* create(String name = nullptr);
 };
 
 class Director
@@ -551,7 +551,6 @@ class Label : public Node
 
 class RenderTarget : public Node
 {
-	tolua_property__common Camera* camera;
 	void render(Node* target);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void saveAsync(String filename, tolua_function handler);
@@ -1273,7 +1272,7 @@ class PlatformCamera : public Camera
 	tolua_property__common Rect boundary;
 	tolua_property__common Vec2 followRatio;
 	tolua_property__common Node* followTarget;
-	static PlatformCamera* create(String name);
+	static PlatformCamera* create(String name = nullptr);
 };
 
 } // namespace Platformer

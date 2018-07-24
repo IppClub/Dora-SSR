@@ -40,6 +40,7 @@ private:
 	Ref<Texture2D> _depthTexture;
 	Ref<Sprite> _surface;
 	Ref<Camera> _camera;
+	Ref<Node> _dummy;
 	bgfx::FrameBufferHandle _frameBufferHandle;
 	enum
 	{
