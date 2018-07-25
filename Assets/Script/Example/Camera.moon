@@ -1,6 +1,6 @@
 Dorothy!
 
-Director\pushEntry with Node!
+Director.entry\addChild with Node!
 	\addChild with Model "Model/xiaoli.model"
 		.look = "happy"
 		.loop = true
@@ -23,12 +23,11 @@ Director\pushEntry with Node!
 
 Dorothy builtin.ImGui
 
-currentEntry = Director.currentEntry
-threadLoop ->
-	{:width,:height} = Application.designSize
-	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,120), "FirstUseEver"
-	if Begin "Camera", "NoResize|NoSavedSettings"
-		TextWrapped "View camera motions, use 3D camera as default!"
-	End!
-	Director.currentEntry != currentEntry
+Director.entry\addChild with Node!
+	\schedule ->
+		{:width,:height} = Application.designSize
+		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+		SetNextWindowSize Vec2(240,120), "FirstUseEver"
+		if Begin "Camera", "NoResize|NoSavedSettings"
+			TextWrapped "View camera motions, use 3D camera as default!"
+		End!

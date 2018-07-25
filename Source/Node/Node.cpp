@@ -599,6 +599,7 @@ void Node::cleanup()
 		ARRAY_END
 		unschedule();
 		unscheduleUpdate();
+		stopActionInList(_action);
 		_userData = nullptr;
 		_signal = nullptr;
 		if (_flags.isOn(Node::KeyboardEnabled))

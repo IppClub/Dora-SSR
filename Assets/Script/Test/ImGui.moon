@@ -1,5 +1,5 @@
 Dorothy!
 
-Director\pushEntry with Node!
+Director.entry\addChild with Node!
 	\schedule -> ImGui.ShowDemoWindow!
 

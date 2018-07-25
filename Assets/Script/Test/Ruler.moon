@@ -11,7 +11,7 @@ ruler = Ruler {
 	fontSize:12
 }
 
-Director\pushEntry with Node!
+Director.entry\addChild with Node!
 	\addChild ruler
 	\addChild with CircleButton {
 			text:"显示"

@@ -155,15 +155,18 @@ doClean = ->
 
 isInEntry = true
 
-clearCache = ->
+allClear = ->
 	for module in *moduleCache
 		package.loaded[module] = nil
 	moduleCache = {}
+	Director.ui\removeAllChildren true
+	Director.entry\removeAllChildren true
+	Director.postNode\removeAllChildren true
+	Director\popCamera!
 	Cache\unload!
 	Entity\clear!
-	Director.ui = nil
-	Director\popCamera!
 	currentEntryName = nil
+	isInEntry = true
 
 examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
 table.sort examples
@@ -176,12 +179,15 @@ for test in *tests do table.insert allNames,"Test/#{test}"
 enterDemoEntry = (name)->
 	isInEntry = false
 	xpcall (->
-		lastEntry = Director.currentEntry
 		result = require name
 		if "function" == type result
 			result = result!
-			Director\pushEntry result if tolua.cast result, "Node"
-		Director\pushEntry Node! if lastEntry == Director.currentEntry
+			Director.entry\addChild if tolua.cast result, "Node"
+				result
+			else
+				Node!
+		else
+			Director.entry\addChild Node!
 		currentEntryName = name
 	),(msg)->
 		msg = debug.traceback msg
@@ -231,10 +237,7 @@ threadLoop ->
 			EndPopup!
 		if not isInEntry
 			SameLine!
-			if Button "Home", Vec2(70,30)
-				Director\popToRootEntry!
-				isInEntry = true
-				clearCache!
+			allClear! if Button "Home", Vec2(70,30)
 			currentIndex = 1
 			for i,name in ipairs allNames
 				if currentEntryName == name
@@ -242,18 +245,16 @@ threadLoop ->
 			SameLine!
 			if currentIndex > 1
 				if Button "Prev", Vec2(70,30)
-					clearCache!
-					thread ->
-						Director\popToRootEntry!
-						enterDemoEntry allNames[currentIndex-1]
+					allClear!
+					isInEntry = false
+					thread -> enterDemoEntry allNames[currentIndex-1]
 			else Dummy Vec2 70,30
 			SameLine!
 			if currentIndex < #allNames
 				if Button "Next", Vec2(70,30)
-					clearCache!
-					thread ->
-						Director\popToRootEntry!
-						enterDemoEntry allNames[currentIndex+1]
+					allClear!
+					isInEntry = false
+					thread -> enterDemoEntry allNames[currentIndex+1]
 			else Dummy Vec2 70,30
 		if showStats
 			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
@@ -263,32 +264,32 @@ threadLoop ->
 			ShowLog!
 	End!
 
-Director\pushEntry with Node!
-	\schedule ->
-		{:width,:height} = Application.designSize
-		SetNextWindowPos Vec2.zero
-		SetNextWindowSize Vec2(width,53)
-		PushStyleColor "TitleBgActive", Color(0xcc000000)
-		if Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
-			Separator!
-		End!
-		PopStyleColor!
-		SetNextWindowPos Vec2(0,53)
-		SetNextWindowSize Vec2(width,height-107)
-		PushStyleColor "WindowBg",Color(0x0)
-		if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
-			TextColored Color(0xff00ffff), "Examples"
-			Columns math.floor(width/200), false
-			for example in *examples
-				if Button example, Vec2(-1,40)
-					enterDemoEntry "Example/#{example}"
-				NextColumn!
-			Columns 1, false
-			TextColored Color(0xff00ffff), "Tests"
-			Columns math.floor(width/200), false
-			for test in *tests
-				if Button test, Vec2(-1,40)
-					enterDemoEntry "Test/#{test}"
-				NextColumn!
-		End!
-		PopStyleColor!
+threadLoop ->
+	return unless isInEntry
+	{:width,:height} = Application.designSize
+	SetNextWindowPos Vec2.zero
+	SetNextWindowSize Vec2(width,53)
+	PushStyleColor "TitleBgActive", Color(0xcc000000)
+	if Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+		Separator!
+	End!
+	PopStyleColor!
+	SetNextWindowPos Vec2(0,53)
+	SetNextWindowSize Vec2(width,height-107)
+	PushStyleColor "WindowBg",Color(0x0)
+	if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+		TextColored Color(0xff00ffff), "Examples"
+		Columns math.floor(width/200), false
+		for example in *examples
+			if Button example, Vec2(-1,40)
+				enterDemoEntry "Example/#{example}"
+			NextColumn!
+		Columns 1, false
+		TextColored Color(0xff00ffff), "Tests"
+		Columns math.floor(width/200), false
+		for test in *tests
+			if Button test, Vec2(-1,40)
+				enterDemoEntry "Test/#{test}"
+			NextColumn!
+	End!
+	PopStyleColor!

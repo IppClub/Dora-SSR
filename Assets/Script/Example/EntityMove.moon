@@ -5,7 +5,7 @@ positionGroup = Group {"position"}
 
 with Observer "Add", {"scene"}
 	\every (entity)->
-		Director\pushEntry with entity.scene
+		Director.entry\addChild with entity.scene
 			.touchEnabled = true
 			\slot "TapEnded", (touch)->
 				positionGroup\each (entity)->

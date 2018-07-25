@@ -245,26 +245,18 @@ class OthoCamera : public Camera
 class Director
 {
 	tolua_property__common Scheduler* scheduler;
-	tolua_property__common Node* uI @ ui;
-	tolua_property__common Node* postNode;
 	tolua_property__bool bool displayStats;
-	tolua_readonly tolua_property__common Camera* currentCamera;
+	tolua_readonly tolua_property__common Node* uI @ ui;
+	tolua_readonly tolua_property__common Node* entry;
+	tolua_readonly tolua_property__common Node* postNode;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
-	tolua_readonly tolua_property__common Array* entries;
-	tolua_readonly tolua_property__common Node* currentEntry;
+	tolua_readonly tolua_property__common Camera* currentCamera;
 	tolua_readonly tolua_property__common double deltaTime;
 	void pushCamera(Camera* camera);
 	void popCamera();
 	bool removeCamera(Camera* camera);
 	void clearCamera();
-	void setAsOnlyEntry(Node* entry);
-	void pushEntry(Node* entry);
-	Node* popEntry();
-	void popToEntry(Node* entry);
-	void popToRootEntry();
-	void swapEntry(Node* entryA, Node* entryB);
-	void clearEntry();
 	static tolua_outside Director* Director_shared @ create();
 };
 
@@ -339,6 +331,7 @@ class Node : public Object
 	tolua_readonly tolua_property__bool bool updating;
 	tolua_readonly tolua_property__bool bool scheduled;
 	tolua_readonly tolua_property__common int actionCount;
+	tolua_readonly tolua_property__common Uint32 nodeCount;
 	tolua_property__bool bool touchEnabled;
 	tolua_property__bool bool swallowTouches;
 	tolua_property__bool bool swallowMouseWheel;

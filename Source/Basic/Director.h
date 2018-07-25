@@ -24,8 +24,9 @@ class Director
 public:
 	virtual ~Director();
 	PROPERTY(Scheduler*, Scheduler);
-	PROPERTY(Node*, PostNode);
-	PROPERTY(Node*, UI);
+	PROPERTY_READONLY(Node*, UI);
+	PROPERTY_READONLY(Node*, Entry);
+	PROPERTY_READONLY(Node*, PostNode);
 	PROPERTY_READONLY(Camera*, CurrentCamera);
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY(Color, ClearColor);
@@ -34,8 +35,6 @@ public:
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
 	PROPERTY_READONLY(Scheduler*, PostSystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
-	PROPERTY_READONLY(Array*, Entries);
-	PROPERTY_READONLY(Node*, CurrentEntry);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
 	bool init();
 	void mainLoop();
@@ -45,14 +44,6 @@ public:
 	void popCamera();
 	bool removeCamera(Camera* camera);
 	void clearCamera();
-
-	void setAsOnlyEntry(Node* entry);
-	void pushEntry(Node* entry);
-	Node* popEntry();
-	void popToEntry(Node* entry);
-	void popToRootEntry();
-	void swapEntry(Node* entryA, Node* entryB);
-	void clearEntry();
 
 	void markDirty();
 
@@ -65,6 +56,7 @@ public:
 	}
 protected:
 	Director();
+	void clear();
 	void displayStats();
 	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();
@@ -73,7 +65,7 @@ private:
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Node> _postNode;
-	Ref<Array> _entryStack;
+	Ref<Node> _entry;
 	Ref<Array> _camStack;
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;

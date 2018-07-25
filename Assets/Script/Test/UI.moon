@@ -26,7 +26,7 @@ Panel = (width, height, viewWidth, viewHeight)->
 				\slot "Tapped",-> print "clicked #{i}"
 		.view\alignItems Size viewWidth,height
 
-Director.ui = with AlignNode true
+Director.ui\addChild with AlignNode true
 	\addChild with AlignNode!
 		.hAlign = "Left"
 		.vAlign = "Top"

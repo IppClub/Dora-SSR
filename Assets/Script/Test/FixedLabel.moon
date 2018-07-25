@@ -61,7 +61,7 @@ createLabel = (alignment)->
 				.text = utf8.sub text,1,i
 				sleep 0.3
 
-Director\pushEntry with Node!
+Director.entry\addChild with Node!
 	\addChild createLabel TextAlign.Center
 	\addChild with createLabel TextAlign.Left
 		.y = 40
