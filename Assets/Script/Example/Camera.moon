@@ -5,10 +5,12 @@ Director\pushEntry with Node!
 		.look = "happy"
 		.loop = true
 		\play "idle"
+
 	\addChild with Sprite "Image/logo.png"
 		.position = Vec2 200,-100
 		.angleY = 45
-		.z = 300
+		.z = -300
+
 	\schedule once -> with Director.currentCamera
 		cycle 1.5,(dt)-> .position = Vec2 200*Ease\func(Ease.InOutQuad,dt),0
 		cycle 0.1,(dt)-> .rotation = 25*Ease\func Ease.OutSine,dt

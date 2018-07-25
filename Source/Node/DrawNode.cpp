@@ -313,7 +313,7 @@ void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, flo
 	_flags.setOn(DrawNode::VertexPosDirty);
 }
 
-void DrawNode::drawPolygon(const VertexColor* verts, Uint32 count)
+void DrawNode::drawVertices(const VertexColor* verts, Uint32 count)
 {
 	const size_t triangleCount = 3 * count - 2;
 	const size_t vertexCount = 3 * triangleCount;

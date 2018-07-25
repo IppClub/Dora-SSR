@@ -7,6 +7,7 @@ Director\pushEntry with Node!
 		for i = 1,.characterCount
 			char = \getCharacter i
 			char\runAction Sequence Delay(i/5),Scale(0.2,1,2),Scale(0.2,2,1) if char
+
 	\addChild with Label "DroidSansFallback",30
 		.text = "-- from Jin."
 		.color = Color 0x0000ffff

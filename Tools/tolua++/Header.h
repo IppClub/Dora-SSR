@@ -551,6 +551,7 @@ class Label : public Node
 
 class RenderTarget : public Node
 {
+	tolua_property__common Camera* camera;
 	void render(Node* target);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void saveAsync(String filename, tolua_function handler);
@@ -575,10 +576,10 @@ class DrawNode : public Node
 {
 	tolua_property__bool bool depthWrite @ is3D;
 	tolua_property__common BlendFunc blendFunc;
-	void drawDot(Vec2 pos, float radius, Color color);
-	void drawSegment(Vec2 from, Vec2 to, float radius, Color color);
-	void drawPolygon(Vec2 verts[tolua_len], Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
-	void drawPolygon(VertexColor verts[tolua_len]);
+	void drawDot(Vec2 pos, float radius, Color color = Color::White);
+	void drawSegment(Vec2 from, Vec2 to, float radius, Color color = Color::White);
+	void drawPolygon(Vec2 verts[tolua_len], Color fillColor = Color::White, float borderWidth = 0.0f, Color borderColor = Color::White);
+	void drawVertices(VertexColor verts[tolua_len]);
 	void clear();
 	static DrawNode* create();
 };
@@ -587,11 +588,11 @@ class Line : public Node
 {
 	tolua_property__bool bool depthWrite @ is3D;
 	tolua_property__common BlendFunc blendFunc;
-	void add(Vec2 verts[tolua_len], Color color);
-	void set(Vec2 verts[tolua_len], Color color);
+	void add(Vec2 verts[tolua_len], Color color = Color::White);
+	void set(Vec2 verts[tolua_len], Color color = Color::White);
 	void clear();
 	static Line* create();
-	static Line* create(Vec2 verts[tolua_len], Color color);
+	static Line* create(Vec2 verts[tolua_len], Color color = Color::White);
 };
 
 class ParticleNode @ Particle : public Node

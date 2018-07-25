@@ -20,8 +20,6 @@ threadLoop ->
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,120), "FirstUseEver"
 	if Begin "Hello World", "NoResize|NoSavedSettings"
-		if BeginChild "scroll", Vec2 -1,-40
-			Text "View outputs in log window!"
-		EndChild!
+		TextWrapped "Basic Dorothy schedule and signal function usage. View outputs in log window!"
 	End!
 	Director.currentEntry != currentEntry

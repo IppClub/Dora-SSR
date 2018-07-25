@@ -63,7 +63,7 @@ public:
 	void drawSegment(const Vec2& from, const Vec2& to, float radius, Color color);
 	void drawPolygon(const vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
 	void drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
-	void drawPolygon(const VertexColor* verts, Uint32 count);
+	void drawVertices(const VertexColor* verts, Uint32 count);
 	void clear();
 	CREATE_FUNC(DrawNode);
 protected:

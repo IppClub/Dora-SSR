@@ -1,4 +1,3 @@
-local builtin = _G.builtin
 local tolua = builtin.tolua
 local setmetatable = setmetatable
 local getmetatable = getmetatable
