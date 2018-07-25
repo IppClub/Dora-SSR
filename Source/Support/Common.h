@@ -44,6 +44,8 @@ struct Color
 	Color& operator=(const Color3& color);
 	Color& operator=(const Color& color);
 	static Color convert(Uint32 abgr);
+	static Color White;
+	static Color Black;
 };
 
 struct BlendFunc

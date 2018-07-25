@@ -166,7 +166,9 @@ clearCache = ->
 	currentEntryName = nil
 
 examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
+table.sort examples
 tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
+table.sort tests
 currentEntryName = nil
 allNames = for example in *examples do "Example/#{example}"
 for test in *tests do table.insert allNames,"Test/#{test}"
@@ -203,11 +205,8 @@ threadLoop ->
 		Dummy Vec2 10,30
 		SameLine!
 		if showFooter
-			_, scaleContent = Checkbox string.format("%.1fx",screenScale), scaleContent
-			if scaleContent
-				View.scale = screenScale if View.scale ~= screenScale
-			else
-				View.scale = 1 if View.scale ~= 1
+			changed, scaleContent = Checkbox string.format("%.1fx",screenScale), scaleContent
+			View.scale = scaleContent and screenScale or 1 if changed
 		NextColumn!
 		_, showFooter = Checkbox "Footer", showFooter
 	End!

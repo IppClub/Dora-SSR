@@ -131,6 +131,9 @@ Color Color::convert(Uint32 abgr)
 	return *r_cast<Color*>(&abgr);
 }
 
+Color Color::White;
+Color Color::Black(0,0,0,0);
+
 const BlendFunc BlendFunc::Default{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 
 Uint64 BlendFunc::toValue()

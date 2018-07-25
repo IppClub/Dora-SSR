@@ -32,9 +32,23 @@ world = with World!
 Director\pushEntry with world
 	\addChild with Body terrainDef,world,Vec2.zero
 		.group = groupTwo
+
 	\addChild with Body polygonDef,world,Vec2(0,500),15
 		.group = groupOne
+
 	\addChild with Body circleDef,world,Vec2(50,800)
 		.group = groupZero
 		.angularRate = 90
 
+-- example codes ends here, some test ui below --
+
+Dorothy builtin.ImGui
+
+threadLoop ->
+	{:width,:height} = Application.designSize
+	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+	SetNextWindowSize Vec2(240,120), "FirstUseEver"
+	if Begin "Body", "NoResize|NoSavedSettings"
+		TextWrapped "Basic usage to create physics bodies!"
+	End!
+	Director.currentEntry != world
