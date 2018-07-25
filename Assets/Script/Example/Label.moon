@@ -1,6 +1,6 @@
 Dorothy!
 
-Director\pushEntry with Node!
+Director.entry\addChild with Node!
 	\addChild with Label "NotoSansHans-Regular",40
 		.batched = false
 		.text = "你好，Dorothy！"
@@ -18,12 +18,11 @@ Director\pushEntry with Node!
 
 Dorothy builtin.ImGui
 
-currentEntry = Director.currentEntry
-threadLoop ->
-	{:width,:height} = Application.designSize
-	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,120), "FirstUseEver"
-	if Begin "Label", "NoResize|NoSavedSettings"
-		TextWrapped "Interact with multi-touches!"
-	End!
-	Director.currentEntry != currentEntry
+Director.entry\addChild with Node!
+	\schedule ->
+		{:width,:height} = Application.designSize
+		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+		SetNextWindowSize Vec2(240,120), "FirstUseEver"
+		if Begin "Label", "NoResize|NoSavedSettings"
+			TextWrapped "Interact with multi-touches!"
+		End!

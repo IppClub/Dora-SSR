@@ -5,10 +5,9 @@ model = with Model "Model/xiaoli.model"
 	.recovery = 0.2
 	.look = "happy"
 	\play "walk"
-	\slot "AnimationEnd",(name)->
-		print name, "end"
+	\slot "AnimationEnd",(name)-> print name, "end"
 
-Director\pushEntry model
+Director.entry\addChild model
 
 -- example codes ends here, some test ui below --
 

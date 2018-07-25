@@ -31,7 +31,6 @@ _systemScheduler(Scheduler::create()),
 _scheduler(Scheduler::create()),
 _postScheduler(Scheduler::create()),
 _postSystemScheduler(Scheduler::create()),
-_entryStack(Array::create()),
 _camStack(Array::create()),
 _clearColor(0xff1a1a1a),
 _displayStats(false)
@@ -43,7 +42,7 @@ _displayStats(false)
 
 Director::~Director()
 {
-	clearEntry();
+	clear();
 }
 
 void Director::setScheduler(Scheduler* scheduler)
@@ -56,37 +55,14 @@ Scheduler* Director::getScheduler() const
 	return _scheduler;
 }
 
-void Director::setUI(Node* var)
-{
-	if (_ui)
-	{
-		_ui->onExit();
-		_ui->cleanup();
-	}
-	_ui = var;
-	if (_ui)
-	{
-		_ui->onEnter();
-	}
-}
-
 Node* Director::getUI() const
 {
 	return _ui;
 }
 
-void Director::setPostNode(Node* var)
+Node* Director::getEntry() const
 {
-	if (_postNode)
-	{
-		_postNode->onExit();
-		_postNode->cleanup();
-	}
-	_postNode = var;
-	if (_postNode)
-	{
-		_postNode->onEnter();
-	}
+	return _entry;
 }
 
 Node* Director::getPostNode() const
@@ -187,16 +163,6 @@ Camera* Director::getCurrentCamera() const
 	return _camStack->getLast().to<Camera>();
 }
 
-Array* Director::getEntries() const
-{
-	return _entryStack;
-}
-
-Node* Director::getCurrentEntry() const
-{
-	return _entryStack->isEmpty() ? nullptr : _entryStack->getLast().to<Node>();
-}
-
 const Matrix& Director::getViewProjection() const
 {
 	return *_viewProjs.top();
@@ -216,6 +182,13 @@ static void registerTouchHandler(Node* target)
 
 bool Director::init()
 {
+	_ui = Node::create();
+	_ui->onEnter();
+	_entry = Node::create();
+	_entry->onEnter();
+	_postNode = Node::create();
+	_postNode->onEnter();
+
 	SharedView.reset();
 	if (!SharedImGui.init())
 	{
@@ -243,6 +216,8 @@ bool Director::init()
 
 void Director::mainLoop()
 {
+	if (!_entry) return;
+
 	/* push default view projection */
 	Matrix viewProj;
 	Camera* camera = getCurrentCamera();
@@ -275,28 +250,17 @@ void Director::mainLoop()
 		Matrix ortho;
 		Size viewSize = SharedView.getSize();
 		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
-		if (_ui)
+		registerTouchHandler(_ui);
+		pushViewProjection(ortho, []()
 		{
-			registerTouchHandler(_ui);
-			pushViewProjection(ortho, []()
-			{
-				SharedTouchDispatcher.dispatch();
-			});
-		}
+			SharedTouchDispatcher.dispatch();
+		});
 		/* handle post node touch */
-		if (_postNode)
-		{
-			registerTouchHandler(_postNode);
-			SharedTouchDispatcher.dispatch();
-		}
+		registerTouchHandler(_postNode);
+		SharedTouchDispatcher.dispatch();
 		/* handle scene tree touch */
-		Node* currentEntry = nullptr;
-		if (!_entryStack->isEmpty())
-		{
-			currentEntry = _entryStack->getLast().to<Node>();
-			registerTouchHandler(currentEntry);
-			SharedTouchDispatcher.dispatch();
-		}
+		registerTouchHandler(_entry);
+		SharedTouchDispatcher.dispatch();
 		SharedTouchDispatcher.clearEvents();
 
 		/* do render */
@@ -318,11 +282,8 @@ void Director::mainLoop()
 			}
 
 			/* render scene tree to RT */
-			if (currentEntry)
-			{
-				_renderTarget->setCamera(getCurrentCamera());
-				_renderTarget->renderWithClear(currentEntry, _clearColor);
-			}
+			_renderTarget->setCamera(getCurrentCamera());
+			_renderTarget->renderWithClear(_entry, _clearColor);
 
 			/* render RT, post node and ui node */
 			SharedView.pushName("Main"_slice, [&]()
@@ -338,20 +299,14 @@ void Director::mainLoop()
 				});
 				/* post node */
 				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-				if (_postNode)
-				{
-					_postNode->visit();
-					SharedRendererManager.flush();
-				}
+				_postNode->visit();
+				SharedRendererManager.flush();
 				/* ui node */
 				pushViewProjection(ortho, [&]()
 				{
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					if (_ui)
-					{
-						_ui->visit();
-						SharedRendererManager.flush();
-					}
+					_ui->visit();
+					SharedRendererManager.flush();
 				});
 				/* profile info */
 				if (_displayStats)
@@ -377,15 +332,9 @@ void Director::mainLoop()
 					_clearColor.toRGBA());
 				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 				/* scene tree */
-				if (currentEntry)
-				{
-					currentEntry->visit();
-				}
+				_entry->visit();
 				/* post node */
-				if (_postNode)
-				{
-					_postNode->visit();
-				}
+				_postNode->visit();
 				SharedRendererManager.flush();
 			});
 
@@ -397,10 +346,7 @@ void Director::mainLoop()
 				pushViewProjection(ortho, [&]()
 				{
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					if (_ui)
-					{
-						_ui->visit();
-					}
+					_ui->visit();
 					SharedRendererManager.flush();
 				});
 				/* profile info */
@@ -479,124 +425,33 @@ void Director::popViewProjection()
 	_viewProjs.pop();
 }
 
-void Director::setAsOnlyEntry(Node* entry)
+void Director::clear()
 {
-	_entryStack->removeIf([entry](const Ref<>& item)
+	if (_ui)
 	{
-		return item == entry;
-	});
-	pushEntry(entry);
-}
-
-void Director::pushEntry(Node* entry)
-{
-	if (!_entryStack->isEmpty())
-	{
-		if (entry == _entryStack->getLast())
-		{
-			Warn("target entry pushed is already running!");
-			return;
-		}
-		Node* last = _entryStack->getLast().to<Node>();
-		last->onExit();
+		_ui->onExit();
+		_ui->cleanup();
+		_ui = nullptr;
 	}
-	_entryStack->add(entry);
-	entry->onEnter();
-}
-
-Node* Director::popEntry()
-{
-	if (_entryStack->isEmpty())
+	if (_entry)
 	{
-		Warn("pop from an empty entry stack.");
-		return Ref<Node>();
+		_entry->onExit();
+		_entry->cleanup();
+		_entry = nullptr;
 	}
-	Ref<Node> last(_entryStack->removeLast().to<Node>());
-	last->onExit();
-	if (!_entryStack->contains(last))
+	if (_postNode)
 	{
-		last->cleanup();
-	}
-	if (!_entryStack->isEmpty())
-	{
-		Node* current = _entryStack->getLast().to<Node>();
-		current->onEnter();
-	}
-	return last;
-}
-
-void Director::popToEntry(Node* entry)
-{
-	if (_entryStack->isEmpty())
-	{
-		Warn("pop from an empty entry stack.");
-		return;
-	}
-	if (_entryStack->contains(entry))
-	{
-		while (_entryStack->getLast() != entry)
-		{
-			popEntry();
-		}
-		return;
-	}
-	Warn("entry to pop is not in entry stack.");
-}
-
-void Director::popToRootEntry()
-{
-	if (_entryStack->isEmpty())
-	{
-		Warn("pop from an empty entry stack.");
-		return;
-	}
-	popToEntry(_entryStack->getFirst().to<Node>());
-}
-
-void Director::swapEntry(Node* entryA, Node* entryB)
-{
-	AssertUnless(_entryStack->contains(entryA) && _entryStack->contains(entryB), "entry to swap is not in entry stack.");
-	Node* currentEntry = getCurrentEntry();
-	Node* entryToEnter = nullptr;
-	Node* entryToExit = nullptr;
-	if (entryA == currentEntry)
-	{
-		entryToEnter = entryB;
-		entryToExit = entryA;
-	}
-	if (entryB == currentEntry)
-	{
-		entryToEnter = entryA;
-		entryToExit = entryB;
-	}
-	_entryStack->swap(entryA, entryB);
-	if (entryToExit) entryToExit->onExit();
-	if (entryToEnter) entryToEnter->onEnter();
-}
-
-void Director::clearEntry()
-{
-	while (!_entryStack->isEmpty())
-	{
-		popEntry();
+		_postNode->onExit();
+		_postNode->cleanup();
+		_postNode = nullptr;
 	}
 }
 
 void Director::markDirty()
 {
-	Node* entry = getCurrentEntry();
-	if (entry)
-	{
-		entry->markDirty();
-	}
-	if (_ui)
-	{
-		_ui->markDirty();
-	}
-	if (_postNode)
-	{
-		_postNode->markDirty();
-	}
+	_ui->markDirty();
+	_entry->markDirty();
+	_postNode->markDirty();
 }
 
 void Director::handleSDLEvent(const SDL_Event& event)
@@ -606,8 +461,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		// User-requested quit
 		case SDL_QUIT:
 			Event::send("AppQuit"_slice);
-			clearEntry();
-			setUI(nullptr);
+			clear();
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:

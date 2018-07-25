@@ -115,7 +115,7 @@ TextInput = Class ((args)->
 				@content\updateDisplayText value
 	}
 
-Director\pushEntry with TextInput hint:"点这里进行输入",width:200,height:34,fontName:"NotoSansHans-Regular",fontSize:20
+Director.entry\addChild with TextInput hint:"点这里进行输入",width:200,height:34,fontName:"NotoSansHans-Regular",fontSize:20
 	--.text = "默认的文本 Default Text"
 	--.cursor.color = Color 0xff00ffff
 	.label.color = Color 0xffff0080

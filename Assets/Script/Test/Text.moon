@@ -9,7 +9,7 @@ width,height = viewWidth-200,viewHeight-20
 
 fontSize = 20
 
-Director\pushEntry with AlignNode true,false
+Director.entry\addChild with AlignNode true,false
 	\addChild with ScrollArea {
 			x:viewWidth/2
 			y:viewHeight/2

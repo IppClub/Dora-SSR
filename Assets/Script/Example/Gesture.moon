@@ -6,7 +6,7 @@ length = (Vec2 View.size).length
 size = Vec2(width,height).length
 scaledSize = size
 
-Director\pushEntry with Node!
+Director.entry\addChild with Node!
 	\addChild sprite
 	.touchEnabled = true
 	\slot "Gesture",(center,touches,delta,theta)->
@@ -23,12 +23,11 @@ Director\pushEntry with Node!
 
 Dorothy builtin.ImGui
 
-currentEntry = Director.currentEntry
-threadLoop ->
-	{:width,:height} = Application.designSize
-	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,120), "FirstUseEver"
-	if Begin "Gesture", "NoResize|NoSavedSettings"
-		TextWrapped "Interact with multi-touches!"
-	End!
-	Director.currentEntry != currentEntry
+Director.entry\addChild with Node!
+	\schedule ->
+		{:width,:height} = Application.designSize
+		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+		SetNextWindowSize Vec2(240,120), "FirstUseEver"
+		if Begin "Gesture", "NoResize|NoSavedSettings"
+			TextWrapped "Interact with multi-touches!"
+		End!

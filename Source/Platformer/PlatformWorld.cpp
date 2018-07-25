@@ -126,16 +126,15 @@ bool PlatformWorld::init()
 	{
 		return false;
 	}
-	_camera = PlatformCamera::create(""_slice);
+	_camera = PlatformCamera::create("Platformer"_slice);
 	_camera->moved += std::make_pair(this, &PlatformWorld::onCameraMoved);
-	SharedDirector.pushCamera(_camera);
-	SharedData.apply(this);
 	return true;
 }
 
 void PlatformWorld::onEnter()
 {
 	SharedDirector.pushCamera(_camera);
+	SharedData.apply(this);
 	Node::onEnter();
 }
 

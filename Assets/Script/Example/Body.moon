@@ -24,12 +24,13 @@ circleDef = with BodyDef!
 	\attachCircle 60,1,0.4,0.4
 
 world = with World!
+	.y = -200
 	\setShouldContact groupZero,groupOne,false
 	\setShouldContact groupZero,groupTwo,true
 	\setShouldContact groupOne,groupTwo,true
 	.showDebug = true
 
-Director\pushEntry with world
+Director.entry\addChild with world
 	\addChild with Body terrainDef,world,Vec2.zero
 		.group = groupTwo
 
@@ -44,11 +45,11 @@ Director\pushEntry with world
 
 Dorothy builtin.ImGui
 
-threadLoop ->
-	{:width,:height} = Application.designSize
-	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,120), "FirstUseEver"
-	if Begin "Body", "NoResize|NoSavedSettings"
-		TextWrapped "Basic usage to create physics bodies!"
-	End!
-	Director.currentEntry != world
+Director.entry\addChild with Node!
+	\schedule ->
+		{:width,:height} = Application.designSize
+		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+		SetNextWindowSize Vec2(240,120), "FirstUseEver"
+		if Begin "Body", "NoResize|NoSavedSettings"
+			TextWrapped "Basic usage to create physics bodies!"
+		End!
