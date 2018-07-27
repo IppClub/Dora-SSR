@@ -159,9 +159,9 @@ allClear = ->
 	for module in *moduleCache
 		package.loaded[module] = nil
 	moduleCache = {}
-	Director.ui\removeAllChildren true
-	Director.entry\removeAllChildren true
-	Director.postNode\removeAllChildren true
+	Director.ui\removeAllChildren!
+	Director.entry\removeAllChildren!
+	Director.postNode\removeAllChildren!
 	Director\popCamera!
 	Cache\unload!
 	Entity\clear!
@@ -192,8 +192,7 @@ enterDemoEntry = (name)->
 	),(msg)->
 		msg = debug.traceback msg
 		print msg
-		isInEntry = true
-		clearCache!
+		allClear!
 
 showStats = true
 showLog = true

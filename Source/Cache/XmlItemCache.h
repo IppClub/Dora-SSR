@@ -131,7 +131,7 @@ public:
 		{
 			parser->parse(c_cast<char*>(data.c_str()), s_cast<int>(content.size()));
 			result = parser->getItem();
-			_dict[name] = parser->getItem();
+			_dict[file] = parser->getItem();
 			return result;
 		}
 		catch (rapidxml::parse_error error)

@@ -3,9 +3,9 @@ Dorothy!
 node = with Node!
 	\addChild with Model "Model/xiaoli.model"
 		.y = -80
-		.look = "happy"
 		.loop = true
 		.faceRight = true
+		.look = "happy"
 		\play "walk"
 		turn = Call -> .faceRight = not .faceRight
 		\runAction Sequence X(2,-150,250),turn,X(2,250,-150),turn

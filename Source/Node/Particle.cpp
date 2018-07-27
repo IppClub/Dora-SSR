@@ -125,7 +125,6 @@ string ParticleDef::toXml() const
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSize), startParticleSize);
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSizeVariance), startParticleSizeVariance);
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::EmitterMode), s_cast<int>(emitterMode));
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::Angle), angle);
 	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::TextureName), textureName);
 	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::TextureRect), textureRect.getX(), textureRect.getY(), textureRect.getWidth(), textureRect.getHeight());
 	switch (emitterMode)
@@ -198,7 +197,7 @@ _texLeft(0),
 _texTop(0),
 _texRight(0),
 _texBottom(0),
-_effect(SharedSpriteRenderer.getDefaultModelEffect())
+_effect(SharedSpriteRenderer.getDefaultEffect())
 { }
 
 ParticleNode::ParticleNode(String filename) :
@@ -266,8 +265,10 @@ void ParticleNode::addParticle()
 	particle.timeToLive = def.particleLifespan + def.particleLifespanVariance * Math::rand1to1();
 	particle.timeToLive = std::max(FLT_EPSILON, particle.timeToLive);
 
-	particle.pos.x = def.startPosition.x + def.startPositionVariance.x * Math::rand1to1();
-	particle.pos.y = def.startPosition.y + def.startPositionVariance.y * Math::rand1to1();
+	Vec3 worldPos = convertToWorldSpace3(Vec3{});
+	Vec2 pos = worldPos.toVec2() + def.startPosition +
+		def.startPositionVariance * Vec2{Math::rand1to1(),Math::rand1to1()};
+	particle.pos = {pos.x,pos.y,worldPos.z};
 
 	Vec4 start{
 		Math::clamp(def.startColor.x + def.startColorVariance.x * Math::rand1to1(), 0.0f, 1.0f),
@@ -308,10 +309,6 @@ void ParticleNode::addParticle()
 	float endAngle = def.rotationEnd + def.rotationEndVariance * Math::rand1to1();
 	particle.rotation = startAngle;
 	particle.deltaRotation = (endAngle - startAngle) / particle.timeToLive;
-
-	Vec3 worldPos;
-	bx::vec3MulMtx(worldPos, Vec3{}, getWorld());
-	particle.startPos = worldPos;
 
 	float angle = bx::toRad(def.angle + def.angleVariance * Math::rand1to1());
 
@@ -366,60 +363,81 @@ void ParticleNode::stop()
 	_emitCounter = 0;
 }
 
-void ParticleNode::addQuad(const Particle& particle, const Vec3& pos)
+void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, float angleY)
 {
-	Vec2 newPos = particle.pos + particle.startPos - pos;
-
+	const Vec3& pos = particle.pos;
 	SpriteQuad quad = {
-		{0, 0, pos.z, 1, _texLeft, _texTop},
-		{0, 0, pos.z, 1, _texRight, _texTop},
-		{0, 0, pos.z, 1, _texLeft, _texBottom},
-		{0, 0, pos.z, 1, _texRight, _texBottom}
+		{0, 0, 0, 0, _texLeft, _texTop},
+		{0, 0, 0, 0, _texRight, _texTop},
+		{0, 0, 0, 0, _texLeft, _texBottom},
+		{0, 0, 0, 0, _texRight, _texBottom}
 	};
 	quad.lt.abgr = Color(particle.color).toABGR();
 	quad.rt.abgr = Color(particle.color).toABGR();
 	quad.lb.abgr = Color(particle.color).toABGR();
 	quad.rb.abgr = Color(particle.color).toABGR();
-
-	float halfSize = particle.size * 0.5f;
+	SpriteQuad::Position quadPos = {
+		{0, 0, 0, 1},
+		{0, 0, 0, 1},
+		{0, 0, 0, 1},
+		{0, 0, 0, 1}
+	};
+	float halfSize = particle.size * 0.5f * scale;
 	if (particle.rotation)
 	{
 		float x1 = -halfSize;
 		float y1 = -halfSize;
 		float x2 = halfSize;
 		float y2 = halfSize;
-		float x = newPos.x;
-		float y = newPos.y;
 		float r = -bx::toRad(particle.rotation);
 		float cr = std::cos(r);
 		float sr = std::sin(r);
-		float ax = x1 * cr - y1 * sr + x;
-		float ay = x1 * sr + y1 * cr + y;
-		float bx = x2 * cr - y1 * sr + x;
-		float by = x2 * sr + y1 * cr + y;
-		float cx = x2 * cr - y2 * sr + x;
-		float cy = x2 * sr + y2 * cr + y;
-		float dx = x1 * cr - y2 * sr + x;
-		float dy = x1 * sr + y2 * cr + y;
-		quad.lt.x = dx;
-		quad.lt.y = dy;
-		quad.rt.x = cx;
-		quad.rt.y = cy;
-		quad.lb.x = ax;
-		quad.lb.y = ay;
-		quad.rb.x = bx;
-		quad.rb.y = by;
+		float ax = x1 * cr - y1 * sr;
+		float ay = x1 * sr + y1 * cr;
+		float bx = x2 * cr - y1 * sr;
+		float by = x2 * sr + y1 * cr;
+		float cx = x2 * cr - y2 * sr;
+		float cy = x2 * sr + y2 * cr;
+		float dx = x1 * cr - y2 * sr;
+		float dy = x1 * sr + y2 * cr;
+		quadPos.lt.x = pos.x + dx;
+		quadPos.lt.y = pos.y + dy;
+		quadPos.rt.x = pos.x + cx;
+		quadPos.rt.y = pos.y + cy;
+		quadPos.lb.x = pos.x + ax;
+		quadPos.lb.y = pos.y + ay;
+		quadPos.rb.x = pos.x + bx;
+		quadPos.rb.y = pos.y + by;
 	}
 	else
 	{
-		quad.lt.x = newPos.x - halfSize;
-		quad.lt.y = newPos.y + halfSize;
-		quad.rt.x = newPos.x + halfSize;
-		quad.rt.y = newPos.y + halfSize;
-		quad.lb.x = newPos.x - halfSize;
-		quad.lb.y = newPos.y - halfSize;
-		quad.rb.x = newPos.x + halfSize;
-		quad.rb.y = newPos.y - halfSize;
+		quadPos.lt.x = pos.x - halfSize;
+		quadPos.lt.y = pos.y + halfSize;
+		quadPos.rt.x = pos.x + halfSize;
+		quadPos.rt.y = pos.y + halfSize;
+		quadPos.lb.x = pos.x - halfSize;
+		quadPos.lb.y = pos.y - halfSize;
+		quadPos.rb.x = pos.x + halfSize;
+		quadPos.rb.y = pos.y - halfSize;
+	}
+	if (angleX || angleY)
+	{
+		Matrix rotate;
+		bx::mtxRotateXY(rotate, -bx::toRad(angleX), -bx::toRad(angleY));
+		Matrix transform;
+		bx::mtxMul(transform, rotate, SharedDirector.getViewProjection());
+		bx::vec4MulMtx(&quad.lt.x, &quadPos.lt.x, transform);
+		bx::vec4MulMtx(&quad.rt.x, &quadPos.rt.x, transform);
+		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
+		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
+	}
+	else
+	{
+		const Matrix& transform = SharedDirector.getViewProjection();
+		bx::vec4MulMtx(&quad.lt.x, &quadPos.lt.x, transform);
+		bx::vec4MulMtx(&quad.rt.x, &quadPos.rt.x, transform);
+		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
+		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
 	}
 	_quads.push_back(quad);
 }
@@ -451,8 +469,18 @@ void ParticleNode::visit()
 		}
 	}
 
-	Vec3 pos;
-	bx::vec3MulMtx(pos, Vec3{}, getWorld());
+	float scaleX = getScaleX(), scaleY = getScaleY(), angleX = getAngleX(), angleY = getAngleY();
+	for (Node* parent = Node::getParent();parent;parent = parent->getParent())
+	{
+		scaleX *= parent->getScaleX();
+		scaleY *= parent->getScaleY();
+		angleX += parent->getAngleX();
+		angleY += parent->getAngleY();
+	}
+	scaleX = std::abs(scaleX);
+	scaleY = std::abs(scaleY);
+	float scale = Vec2{scaleX,scaleY}.length()/std::sqrt(2.0f);
+
 	_quads.clear();
 	int index = 0;
 	while (index < s_cast<int>(_particles.size()))
@@ -485,13 +513,14 @@ void ParticleNode::visit()
 					tmp *= deltaTime;
 					p.mode.gravity.dir += tmp;
 					tmp = p.mode.gravity.dir * deltaTime;
-					p.pos += tmp;
+					Vec2 pos = p.pos.toVec2() + tmp * scale;
+					p.pos = {pos.x, pos.y, p.pos.z};
 					break;
 				}
 				case EmitterMode::Radius:
 				{
 					p.mode.radius.angle += p.mode.radius.degreesPerSecond * deltaTime;
-					p.mode.radius.radius += p.mode.radius.deltaRadius * deltaTime;
+					p.mode.radius.radius += p.mode.radius.deltaRadius * deltaTime * scale;
 					p.pos.x = -std::cos(p.mode.radius.angle) * p.mode.radius.radius;
 					p.pos.y = -std::sin(p.mode.radius.angle) * p.mode.radius.radius;
 					break;
@@ -503,12 +532,12 @@ void ParticleNode::visit()
 			p.color.z += (p.deltaColor.z * deltaTime);
 			p.color.w += (p.deltaColor.w * deltaTime);
 
-			p.size += (p.deltaSize * deltaTime);
+			p.size += (p.deltaSize * deltaTime * scale);
 			p.size = std::max(0.0f, p.size);
 
 			p.rotation += (p.deltaRotation * deltaTime);
 
-			addQuad(p, pos);
+			addQuad(p, scale, angleX, angleY);
 
 			++index;
 		}
@@ -544,33 +573,8 @@ void ParticleNode::render()
 	{
 		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
 	}
-
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
-	SharedSpriteRenderer.push(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState, INT32_MAX, getWorld());
-}
-
-const Matrix& ParticleNode::getWorld()
-{
-	float lastAngle = Node::getAngle();
-	float lastScaleX = Node::getScaleX();
-	float lastScaleY = Node::getScaleY();
-	float angle = 0.0f;
-	float scaleX = lastScaleX;
-	float scaleY = lastScaleY;
-	for (Node* parent = Node::getParent();parent;parent = parent->getParent())
-	{
-		angle += parent->getAngle();
-		scaleX *= parent->getScaleX();
-		scaleY *= parent->getScaleY();
-	}
-	Node::setAngle(-angle);
-	Node::setScaleX(scaleX > 0.0f ? lastScaleX : -lastScaleX);
-	Node::setScaleY(scaleY > 0.0f ? lastScaleY : -lastScaleY);
-	Node::getWorld();
-	Node::setAngle(lastAngle);
-	Node::setScaleX(lastScaleX);
-	Node::setScaleY(lastScaleY);
-	return _world;
+	SharedSpriteRenderer.push(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState);
 }
 
 NS_DOROTHY_END

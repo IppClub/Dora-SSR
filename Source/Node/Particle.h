@@ -80,8 +80,7 @@ protected:
 
 struct Particle
 {
-	Vec2 pos;
-	Vec2 startPos;
+	Vec3 pos;
 	Vec4 color;
 	Vec4 deltaColor;
 	float size;
@@ -116,7 +115,6 @@ public:
 	virtual bool init() override;
 	virtual void visit() override;
 	virtual void render() override;
-	virtual const Matrix& getWorld() override;
 	void start();
 	void stop();
 	CREATE_FUNC(ParticleNode);
@@ -124,7 +122,7 @@ protected:
 	ParticleNode(ParticleDef* def);
 	ParticleNode(String filename);
 	void addParticle();
-	void addQuad(const Particle& particle, const Vec3& pos);
+	void addQuad(const Particle& particle, float scale, float angleX, float angleY);
 private:
 	double _elapsed;
 	float _emitCounter;

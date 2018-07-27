@@ -542,7 +542,9 @@ Uint32 getBlendFuncVal(String name)
 		case "InvDstColor"_hash: return BlendFunc::InvDstColor;
 		case "InvDstAlpha"_hash: return BlendFunc::InvDstAlpha;
 		default:
-			AssertIf(true, "blendfunc name \"{}\" is invalid.", name);
+			AssertIf(true, "blendfunc name \"{}\" is invalid. use one of [One, Zero,\n"
+			"SrcColor, SrcAlpha, DstColor, DstAlpha,\n"
+			"InvSrcColor, InvSrcAlpha, InvDstColor, InvDstAlpha]", name);
 			break;
 	}
 	return BlendFunc::Zero;
@@ -551,6 +553,11 @@ Uint32 getBlendFuncVal(String name)
 BlendFunc* BlendFunc_create(String src, String dst)
 {
 	return Mtolua_new((BlendFunc)({getBlendFuncVal(src), getBlendFuncVal(dst)}));
+}
+
+Uint32 BlendFunc_get(String func)
+{
+	return getBlendFuncVal(func);
 }
 
 namespace LuaAction

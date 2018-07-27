@@ -125,7 +125,7 @@ public:
 	void push(Sprite* sprite);
 	void push(SpriteVertex* verts, Uint32 size,
 		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = INT32_MAX,
-		const float* modelWorld = nullptr);
+		const Matrix* modelWorld = nullptr);
 protected:
 	SpriteRenderer();
 private:

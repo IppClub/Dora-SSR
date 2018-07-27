@@ -350,6 +350,7 @@ class Node : public Object
 	void removeChild(Node* child, bool cleanup = true);
 	void removeChildByTag(String tag, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
+	void removeFromParent(bool cleanup = true);
 
 	void cleanup();
 
@@ -394,11 +395,10 @@ class Texture2D : public Object
 
 struct BlendFunc
 {
-	Uint32 src;
-	Uint32 dst;
 	BlendFunc(BlendFunc other);
 	~BlendFunc();
 	static tolua_outside BlendFunc* BlendFunc_create @ create(String src, String dst);
+	static tolua_outside Uint32 BlendFunc_get @ get(String func);
 	static const BlendFunc Default;
 };
 
