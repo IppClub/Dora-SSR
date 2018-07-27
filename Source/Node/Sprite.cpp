@@ -430,7 +430,7 @@ void SpriteRenderer::push(Sprite* sprite)
 
 void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
 	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags,
-	const float* modelWorld)
+	const Matrix* modelWorld)
 {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
 	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)

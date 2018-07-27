@@ -72,6 +72,7 @@ Size* Size_create(const Vec2& vec);
 
 /* BlendFunc */
 BlendFunc* BlendFunc_create(String src, String dst);
+Uint32 BlendFunc_get(String func);
 
 /* Action */
 int Action_create(lua_State* L);

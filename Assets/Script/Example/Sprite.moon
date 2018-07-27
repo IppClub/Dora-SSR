@@ -56,6 +56,6 @@ Director.entry\addChild with Node!
 			EndChild!
 			if Button "Reset", Vec2 140,30
 				sprite = Sprite "Image/logo.png"
-				entry\removeAllChildren!
-				entry\addChild sprite
+				Director.entry\removeAllChildren!
+				Director.entry\addChild sprite
 		End!
