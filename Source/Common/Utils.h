@@ -47,6 +47,9 @@ public: const varType& get##funName() const
 #define PROPERTY_READONLY_BOOL(funName) \
 public: bool is##funName() const
 
+#define PROPERTY_READONLY_HAS(funName) \
+public: bool has##funName() const
+
 #define PROPERTY_READONLY_CLASS(varType, funName) \
 public: static varType get##funName()
 

@@ -249,7 +249,8 @@ void Director::mainLoop()
 		/* handle ui touch */
 		Matrix ortho;
 		Size viewSize = SharedView.getSize();
-		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0,
+			bgfx::getCaps()->homogeneousDepth);
 		registerTouchHandler(_ui);
 		pushViewProjection(ortho, []()
 		{
@@ -339,22 +340,25 @@ void Director::mainLoop()
 			});
 
 			/* render ui node */
-			SharedView.pushName("UI"_slice, [&]()
+			if (_ui->hasChildren() || _displayStats)
 			{
-				Uint8 viewId = SharedView.getId();
-				/* ui node */
-				pushViewProjection(ortho, [&]()
+				SharedView.pushName("UI"_slice, [&]()
 				{
-					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					_ui->visit();
-					SharedRendererManager.flush();
+					Uint8 viewId = SharedView.getId();
+					/* ui node */
+					pushViewProjection(ortho, [&]()
+					{
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						_ui->visit();
+						SharedRendererManager.flush();
+					});
+					/* profile info */
+					if (_displayStats)
+					{
+						displayStats();
+					}
 				});
-				/* profile info */
-				if (_displayStats)
-				{
-					displayStats();
-				}
-			});
+			}
 		}
 
 		/* render imgui */
@@ -416,8 +420,7 @@ void Director::displayStats()
 
 void Director::pushViewProjection(const Matrix& viewProj)
 {
-	Matrix* matrix = new Matrix(viewProj);
-	_viewProjs.push(MakeOwn(matrix));
+	_viewProjs.push(New<Matrix>(viewProj));
 }
 
 void Director::popViewProjection()

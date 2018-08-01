@@ -471,6 +471,11 @@ Array* Node::getChildren() const
 	return _children;
 }
 
+bool Node::hasChildren() const
+{
+	return _children && !_children->isEmpty();
+}
+
 bool Node::isRunning() const
 {
 	return _flags.isOn(Node::Running);

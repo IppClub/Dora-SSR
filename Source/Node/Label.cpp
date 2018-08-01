@@ -277,13 +277,13 @@ const float Label::AutomaticWidth = -1.0f;
 
 Label::Label(String fontName, Uint32 fontSize):
 _alphaRef(0),
-_lineGap(0),
 _textWidth(Label::AutomaticWidth),
 _alignment(TextAlign::Center),
 _font(SharedFontCache.load(fontName, fontSize)),
 _blendFunc(BlendFunc::Default),
 _effect(SharedFontCache.getDefaultEffect())
 {
+	_lineGap = _font->getInfo().lineGap;
 	_flags.setOff(Node::TraverseEnabled);
 	_flags.setOn(Label::TextBatched);
 }
@@ -504,8 +504,8 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 	}
 
 	const bgfx::FontInfo& fontInfo = _font->getInfo();
-	float lineHeight = fontInfo.commonHeight - fontInfo.lineGap + _lineGap;
-	totalHeight = lineHeight * quantityOfLines;
+	float lineHeight = fontInfo.ascender - fontInfo.descender + _lineGap;
+	totalHeight = lineHeight * quantityOfLines - (quantityOfLines > 0 ? _lineGap : 0);
 	nextFontPositionY = lineHeight * quantityOfLines - lineHeight;
 
 	const bgfx::GlyphInfo* fontDef = nullptr;

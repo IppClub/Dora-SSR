@@ -1,93 +1,48 @@
 Dorothy!
 
-Attrs = {
-	Angle: {"B","float"}
-	AngleVariance: {"C","float"}
-	BlendFuncDestination: {"D","BlendFunc"}
-	BlendFuncSource: {"E"," BlendFunc"}
-	Duration: {"F","floatN"}
-	EmissionRate: {"G","float"}
-	FinishColor: {"H","Color"}
-	FinishColorVariance: {"I","Color"}
-	RotationStart: {"J","float"}
-	RotationStartVariance: {"K","float"}
-	RotationEnd: {"L","float"}
-	RotationEndVariance: {"M","float"}
-	FinishParticleSize: {"N","floatN"}
-	FinishParticleSizeVariance: {"O","float"}
-	MaxParticles: {"P","Uint32"}
-	ParticleLifespan: {"Q","float"}
-	ParticleLifespanVariance: {"R","float"}
-	StartPosition: {"S","Vec2"}
-	StartPositionVariance: {"T","Vec2"}
-	StartColor: {"U","Color"}
-	StartColorVariance: {"V","Color"}
-	StartParticleSize: {"W","float"}
-	StartParticleSizeVariance: {"X","float"}
-	TextureName: {"Y","string"}
-	TextureRect: {"Z","Rect"}
-	EmitterMode: {"a","EmitterType"}
-	-- gravity
-	RotationIsDir: {"b","bool"}
-	Gravity: {"c","Vec2"}
-	Speed: {"d","float"}
-	SpeedVariance: {"e","float"}
-	RadialAcceleration: {"f","float"}
-	RadialAccelVariance: {"g","float"}
-	TangentialAcceleration: {"h","float"}
-	TangentialAccelVariance: {"i","float"}
-	-- radius
-	StartRadius: {"j","float"}
-	StartRadiusVariance: {"k","float"}
-	FinishRadius: {"l","floatN"}
-	FinishRadiusVariance: {"m","float"}
-	RotatePerSecond: {"n","float"}
-	RotatePerSecondVariance: {"o","float"}
-}
-
 Data = {
-	Angle:90
-	AngleVariance:360
-	BlendFuncDestination:BlendFunc\get "One"
-	BlendFuncSource:BlendFunc\get "SrcAlpha"
-	Duration:-1
-	EmissionRate:350
-	FinishColor:Color 0xff000000
-	FinishColorVariance:Color 0x0
-	RotationStart:0
-	RotationStartVariance:0
-	RotationEnd:0
-	RotationEndVariance:0
-	FinishParticleSize:-1
-	FinishParticleSizeVariance:0
-	MaxParticles:100
-	ParticleLifespan:1
-	ParticleLifespanVariance:0.5
-	StartPosition:Vec2 0,0
-	StartPositionVariance:Vec2 0,0
-	StartColor:Color 194,64,31,255
-	StartColorVariance:Color 0x0
-	StartParticleSize:30
-	StartParticleSizeVariance:10
-	TextureName:""
-	TextureRect:Rect 0,0,0,0
-	EmitterMode:0
-	RotationIsDir:false
-	Gravity:Vec2 0,100
-	Speed:20
-	SpeedVariance:5
-	RadialAcceleration:0
-	RadialAccelVariance:0
-	TangentialAcceleration:0
-	TangentialAccelVariance:0
-
-	-- radius emitter available
-	--StartRadius:0
-	--StartRadiusVariance:0
-	--FinishRadius:-1
-	--FinishRadiusVariance:0
-	--RotatePerSecond:0
-	--RotatePerSecondVariance:0
+	Angle: {"B","float",90}
+	AngleVariance: {"C","float",360}
+	BlendFuncDestination: {"D","BlendFunc",BlendFunc\get "One"}
+	BlendFuncSource: {"E"," BlendFunc",BlendFunc\get "SrcAlpha"}
+	Duration: {"F","floatN",-1}
+	EmissionRate: {"G","float",350}
+	FinishColor: {"H","Color",Color 0xff000000}
+	FinishColorVariance: {"I","Color",Color 0x0}
+	RotationStart: {"J","float",0}
+	RotationStartVariance: {"K","float",0}
+	RotationEnd: {"L","float",0}
+	RotationEndVariance: {"M","float",0}
+	FinishParticleSize: {"N","floatN",-1}
+	FinishParticleSizeVariance: {"O","float",0}
+	MaxParticles: {"P","Uint32",100}
+	ParticleLifespan: {"Q","float",1}
+	ParticleLifespanVariance: {"R","float",0.5}
+	StartPosition: {"S","Vec2",Vec2 0,0}
+	StartPositionVariance: {"T","Vec2",Vec2 0,0}
+	StartColor: {"U","Color",Color 194,64,31,255}
+	StartColorVariance: {"V","Color",Color 0x0}
+	StartParticleSize: {"W","float",30}
+	StartParticleSizeVariance: {"X","float",10}
+	TextureName: {"Y","string",""}
+	TextureRect: {"Z","Rect",Rect 0,0,0,0}
+	EmitterType: {"a","EmitterType",0}
+	-- gravity
+	RotationIsDir: {"b","bool",false}
+	Gravity: {"c","Vec2",Vec2 0,100}
+	Speed: {"d","float",20}
+	SpeedVariance: {"e","float",5}
+	RadialAcceleration: {"f","float",0}
+	RadialAccelVariance: {"g","float",0}
+	TangentialAcceleration: {"h","float",0}
+	TangentialAccelVariance: {"i","float",0}
+	-- radius
+	-- StartRadius: {"j","float",0}
+	-- StartRadiusVariance: {"k","float",0}
+	-- FinishRadius: {"l","floatN"-1}
+	-- FinishRadiusVariance: {"m","float",0}
+	-- RotatePerSecond: {"n","float",0}
+	-- RotatePerSecondVariance: {"o","float",0}
 }
 
 toString = (value)->
@@ -105,7 +60,7 @@ toString = (value)->
 		when "Color"
 			string.format "%.2f,%.2f,%.2f,%.2f",value.r/255,value.g/255,value.b/255,value.a/255
 
-Cache\update "__test__.par", "<A>"..table.concat(["<#{Attrs[k][1]} A=\"#{toString v}\"/>" for k,v in pairs Data]).."</A>"
+Cache\update "__test__.par", "<A>"..table.concat(["<#{v[1]} A=\"#{toString v[3]}\"/>" for k,v in pairs Data]).."</A>"
 
 particle = with Particle "__test__.par"
 	\start!
@@ -125,33 +80,33 @@ Dorothy builtin.ImGui
 
 DataDirty = false
 
-Item = (name,value)->
+Item = (name)->
 	PushItemWidth -180
-	switch Attrs[name][2]
+	switch Data[name][2]
 		when "float"
-			changed, Data[name] = DragFloat name, Data[name], 0.1, 0, 1000
+			changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, 0, 1000, "%.1f"
 			DataDirty = true if changed
 		when "floatN"
-			changed, Data[name] = DragFloat name, Data[name], 0.1, -1, 1000
+			changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1, 1000, "%.1f"
 			DataDirty = true if changed
 		when "Uint32"
-			changed, Data[name] = DragInt name, Data[name], 1, 0, 1000
+			changed, Data[name][3] = DragInt name, Data[name][3], 1, 0, 1000
 			DataDirty = true if changed
 		when "EmitterType"
 			LabelText "EmitterType","Gravity"
 		when "BlendFunc"
 			LabelText "BlendFunc","Additive"
 		when "Vec2"
-			changed = DragInt2 name, Data[name], 1, -1000, 1000
+			changed = DragInt2 name, Data[name][3], 1, -1000, 1000
 			DataDirty = true if changed
 		when "Color"
 			PushItemWidth -150
 			SetColorEditOptions "RGB"
-			changed = ColorEdit4 name, Data[name]
+			changed = ColorEdit4 name, Data[name][3]
 			DataDirty = true if changed
 			PopItemWidth!
 		when "bool"
-			changed, Data[name] = Checkbox name, Data[name]
+			changed, Data[name][3] = Checkbox name, Data[name][3]
 			DataDirty = true if changed
 		else
 			nil
@@ -161,7 +116,7 @@ work = loop ->
 	sleep 1
 	if DataDirty
 		DataDirty = false
-		Cache\update "__test__.par", "<A>"..table.concat(["<#{Attrs[k][1]} A=\"#{toString v}\"/>" for k,v in pairs Data]).."</A>"
+		Cache\update "__test__.par", "<A>"..table.concat(["<#{v[1]} A=\"#{toString v[3]}\"/>" for k,v in pairs Data]).."</A>"
 		particle\removeFromParent!
 		particle = with Particle "__test__.par"
 			\start!
@@ -173,7 +128,7 @@ Director.entry\addChild with Node!
 		SetNextWindowPos Vec2(width-400,10), "FirstUseEver"
 		SetNextWindowSize Vec2(390,height-80), "FirstUseEver"
 		if Begin "Particle", "NoResize|NoSavedSettings"
-			for k,v in pairs Data
-				Item k,v
+			for k,_ in pairs Data
+				Item k
 		End!
 		work!

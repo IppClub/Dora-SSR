@@ -324,14 +324,14 @@ class Node : public Object
 	tolua_property__common Node* transformTarget;
 	tolua_property__common Scheduler* scheduler;
 	tolua_property__common Object* userData;
-	tolua_readonly tolua_property__common Node* parent;
+	tolua_readonly tolua_property__qt bool hasChildren;
 	tolua_readonly tolua_property__common Array* children;
+	tolua_readonly tolua_property__common Node* parent;
 	tolua_readonly tolua_property__common Rect boundingBox;
 	tolua_readonly tolua_property__bool bool running;
 	tolua_readonly tolua_property__bool bool updating;
 	tolua_readonly tolua_property__bool bool scheduled;
 	tolua_readonly tolua_property__common int actionCount;
-	tolua_readonly tolua_property__common Uint32 nodeCount;
 	tolua_property__bool bool touchEnabled;
 	tolua_property__bool bool swallowTouches;
 	tolua_property__bool bool swallowMouseWheel;

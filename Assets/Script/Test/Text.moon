@@ -7,7 +7,7 @@ AlignNode = require "UI.Control.Basic.AlignNode"
 
 width,height = viewWidth-200,viewHeight-20
 
-fontSize = 20
+fontSize = 20 * Application.size.width / Application.designSize.width
 
 Director.entry\addChild with AlignNode true,false
 	\addChild with ScrollArea {
