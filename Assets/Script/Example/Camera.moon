@@ -17,7 +17,8 @@ Director.entry\addChild with Node!
 		cycle 0.2,(dt)-> .rotation = 25-50*Ease\func Ease.InOutQuad,dt
 		cycle 0.1,(dt)-> .rotation = -25+25*Ease\func Ease.OutSine,dt
 		cycle 1.5,(dt)-> .position = Vec2 200*Ease\func(Ease.InOutQuad,1-dt),0
-		cycle 2.5,(dt)-> .zoom = 1+Ease\func Ease.InOutQuad,dt
+		zoom = .zoom
+		cycle 2.5,(dt)-> .zoom = zoom+Ease\func Ease.InOutQuad,dt
 
 -- example codes ends here, some test ui below --
 

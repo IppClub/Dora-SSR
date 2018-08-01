@@ -42,7 +42,7 @@ void Joint::destroy()
 
 Joint* Joint::create(JointDef* def, Dictionary* itemDict)
 {
-	return nullptr;//def->toJoint(itemDict);
+	return def->toJoint(itemDict);
 }
 
 Joint* Joint::distance(
@@ -443,6 +443,7 @@ void MotorJoint::setForce(float var)
         break;
 	}
 }
+
 float MotorJoint::getForce() const
 {
 	if (!_joint) return 0.0f;
@@ -478,6 +479,7 @@ void MotorJoint::setSpeed(float var)
         break;
 	}
 }
+
 float MotorJoint::getSpeed() const
 {
 	if (!_joint) return 0.0f;

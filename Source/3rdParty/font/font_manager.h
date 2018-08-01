@@ -15,6 +15,7 @@ class Atlas;
 
 #define MAX_OPENED_FILES 64
 #define MAX_OPENED_FONT 64
+#define MAX_FONT_BUFFER_SIZE 128
 
 struct FontInfo
 {
@@ -27,13 +28,6 @@ struct FontInfo
 	float descender;
 	/// The spacing in pixels between one row's descent and the next row's ascent.
 	float lineGap;
-	/// This field gives the maximum horizontal cursor advance for all glyphs in the font.
-	float maxAdvanceWidth;
-	/// The thickness of the under/hover/strike-trough line in pixels.
-	float underlineThickness;
-	/// The position of the underline relatively to the baseline.
-	float underlinePosition;
-	float commonHeight;
 
 	/// Scale to apply to glyph data.
 	float scale;
@@ -99,11 +93,6 @@ struct GlyphInfo
 	/// glyph is drawn as part of a string of text.
 	float advance_x;
 
-	/// For vertical text layouts, this is the unscaled vertical distance
-	/// in pixels used to increment the pen position when the glyph is
-	/// drawn as part of a string of text.
-	float advance_y;
-
 	/// Region index in the atlas storing textures.
 	uint16_t regionIndex;
 
@@ -132,16 +121,10 @@ public:
 	void destroyTtf(TrueTypeHandle _handle);
 
 	/// Return a font whose height is a fixed pixel size.
-	FontHandle createFontByPixelSize(TrueTypeHandle _handle, uint32_t _pixelSize, uint32_t _typefaceIndex = 0);
+	FontHandle createFontByPixelSize(TrueTypeHandle _handle, uint32_t _pixelSize);
 
 	/// destroy a font (truetype or baked)
 	void destroyFont(FontHandle _handle);
-
-	/// Preload a set of glyphs from a TrueType file.
-	///
-	/// @return True if every glyph could be preloaded, false otherwise if
-	///   the Font is a baked font, this only do validation on the characters.
-	bool preloadGlyph(FontHandle _handle, const wchar_t* _string);
 
 	/// Preload a single glyph, return true on success.
 	bool preloadGlyph(FontHandle _handle, CodePoint _character);
@@ -157,7 +140,7 @@ public:
 	const GlyphInfo* getGlyphInfo(FontHandle _handle, CodePoint _codePoint);
 
 	bool hasKerning(FontHandle _handle);
-	uint32_t getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
+	int getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
 private:
 	struct CachedFont;
 	struct CachedFile
