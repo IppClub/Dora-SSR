@@ -52,7 +52,7 @@ struct tolua_Error
 {
     int index;
     int array;
-    const char* type;
+    Slice type;
 };
 typedef struct tolua_Error tolua_Error;
 
@@ -69,17 +69,17 @@ int tolua_isboolean(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_isnumber(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_isstring(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_istable(lua_State* L, int lo, int def, tolua_Error* err);
-int tolua_isusertable(lua_State* L, int lo, const char* type, int def, tolua_Error* err);
+int tolua_isusertable(lua_State* L, int lo, String type, int def, tolua_Error* err);
 int tolua_isuserdata(lua_State* L, int lo, int def, tolua_Error* err);
-int tolua_istype(lua_State* L, int lo, const char* type);
-int tolua_isusertype(lua_State* L, int lo, const char* type, int def, tolua_Error* err);
+int tolua_istype(lua_State* L, int lo, String type);
+int tolua_isusertype(lua_State* L, int lo, String type, int def, tolua_Error* err);
 int tolua_isvaluearray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isbooleanarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isnumberarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isstringarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_istablearray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isuserdataarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
-int tolua_isusertypearray(lua_State* L, int lo, const char* type, int dim, int def, tolua_Error* err);
+int tolua_isusertypearray(lua_State* L, int lo, String type, int dim, int def, tolua_Error* err);
 
 void tolua_open(lua_State* L);
 

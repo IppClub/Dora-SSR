@@ -337,15 +337,15 @@ TextAlign Label::getAlignment() const
 	return _alignment;
 }
 
-void Label::setText(const char* var)
+void Label::setText(String var)
 {
 	_textUTF8 = var;
 	updateLabel();
 }
 
-const char* Label::getText() const
+const string& Label::getText() const
 {
-	return _textUTF8.c_str();
+	return _textUTF8;
 }
 
 void Label::setBlendFunc(const BlendFunc& var)

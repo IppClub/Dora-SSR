@@ -48,15 +48,16 @@ public:
 	template<typename T>
 	const T& get(String name) const;
 public:
+	int getIndex(String name);
 	bool has(int index) const;
 	bool hasCache(int index) const;
 	void remove(int index);
+	void removeNext(int index);
 	void set(int index, Own<Com>&& value);
-	void setNext(String name, Own<Com>&& value);
-protected:
-	int getIndex(String name);
+	void setNext(int index, Own<Com>&& value);
 	Com* getComponent(int index) const;
 	Com* getCachedCom(int index) const;
+protected:
 	void updateComponent(int index, Own<Com>&& com, bool add);
 private:
 	int _index;
@@ -146,7 +147,8 @@ void Entity::set(String name, const T& value, bool rawFlag)
 template<typename T>
 void Entity::setNext(String name, const T& value)
 {
-	setNext(name, Com::alloc(value));
+	int index = getIndex(name);
+	setNext(index, Com::alloc(value));
 }
 
 template<typename T>

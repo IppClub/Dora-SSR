@@ -40,7 +40,7 @@ Slice tolua_typename(lua_State* L, int lo)
 	int tag = lua_type(L, lo);
 	if (tag == LUA_TNONE)
 	{
-		lua_pushstring(L, "[no object]");
+		tolua_pushslice(L, "[no object]"_slice);
 	}
 	else if (tag != LUA_TUSERDATA && tag != LUA_TTABLE)
 	{
@@ -59,7 +59,7 @@ Slice tolua_typename(lua_State* L, int lo)
 			if (!lua_isstring(L, -1))
 			{
 				lua_pop(L, 1);// empty
-				lua_pushstring(L, "[undefined]");// result
+				tolua_pushslice(L, "[undefined]"_slice);// result
 			}
 		}
 	}
@@ -70,11 +70,11 @@ Slice tolua_typename(lua_State* L, int lo)
 		if (!lua_isstring(L, -1))// name is string
 		{
 			lua_pop(L, 1);// empty
-			lua_pushstring(L, "table");// result
+			tolua_pushslice(L, "table"_slice);// result
 		}
 		else
 		{
-			lua_pushstring(L, "class ");// name "class "
+			tolua_pushslice(L, "class "_slice);// name "class "
 			lua_insert(L, -2);// "class " name
 			lua_concat(L, 2);// "class "..name
 		}
@@ -86,20 +86,20 @@ void tolua_error(lua_State* L, const char* msg, tolua_Error* err)
 {
 	if (msg[0] == '#')
 	{
-		const char* expected = err->type;
-		const char* provided = tolua_typename(L, err->index).rawData();
+		string expected = err->type.toString();
+		string provided = tolua_typename(L, err->index);
 		if (msg[1] == 'f')
 		{
 			int narg = err->index;
 			if (err->array)
 			{
 				luaL_error(L, "%s\nargument #%d is array of '%s', array of '%s' expected",
-				msg + 2, narg, provided, expected);
+				msg + 2, narg, provided.c_str(), expected.c_str());
 			}
 			else
 			{
 				luaL_error(L, "%s\nargument #%d is '%s', '%s' expected",
-				msg + 2, narg, provided, expected);
+				msg + 2, narg, provided.c_str(), expected.c_str());
 			}
 		}
 		else if (msg[1] == 'v')
@@ -107,12 +107,12 @@ void tolua_error(lua_State* L, const char* msg, tolua_Error* err)
 			if (err->array)
 			{
 				luaL_error(L, "%s\nvalue is array of '%s', array of '%s' expected",
-				msg + 2, provided, expected);
+				msg + 2, provided.c_str(), expected.c_str());
 			}
 			else
 			{
 				luaL_error(L, "%s\nvalue is '%s', '%s' expected",
-				msg + 2, provided, expected);
+				msg + 2, provided.c_str(), expected.c_str());
 			}
 		}
 	}
@@ -120,32 +120,30 @@ void tolua_error(lua_State* L, const char* msg, tolua_Error* err)
 }
 
 /* the equivalent of lua_is* for usertable */
-static int lua_isusertable(lua_State* L, int lo, const char* type)
+static bool _tolua_isusertable(lua_State* L, int lo, String type)
 {
-	int r = 0;
+	bool r = false;
 	if (lo < 0) lo = lua_gettop(L) + lo + 1;
 	lua_pushvalue(L, lo);
 	lua_rawget(L, LUA_REGISTRYINDEX);  /* get registry[t] */
 	if (lua_isstring(L, -1))
 	{
-		r = strcmp(lua_tostring(L, -1), type) == 0;
+		r = (tolua_toslice(L, -1, nullptr) == type);
 	}
 	lua_pop(L, 1);
 	return r;
 }
 
 /* the equivalent of lua_is* for usertype */
-int tolua_istype(lua_State* L, int lo, const char* type)
+int tolua_istype(lua_State* L, int lo, String type)
 {
 	if (!lua_isuserdata(L, lo)) return 0;
 	/* check if it is of the same type */
-	int r;
-	const char* tn;
 	if (lua_getmetatable(L, lo))/* if metatable? */
 	{
 		lua_rawget(L, LUA_REGISTRYINDEX);/* get registry[mt] */
-		tn = lua_tostring(L, -1);
-		r = tn && (strcmp(tn, type) == 0);
+		Slice tn = tolua_toslice(L, -1, nullptr);
+		bool r = (tn == type);
 		lua_pop(L, 1);
 		if (r) return 1;
 		else
@@ -155,10 +153,9 @@ int tolua_istype(lua_State* L, int lo, const char* type)
 			lua_rawgeti(L, -1, MT_SUPER);// mt tb
 			if (lua_istable(L, -1))
 			{
-				int b;
-				lua_pushstring(L, type);// mt tb type
+				tolua_pushslice(L, type);// mt tb type
 				lua_rawget(L, -2);// tb[type], mt tb flag
-				b = lua_toboolean(L, -1);
+				bool b = lua_toboolean(L, -1) != 0;
 				lua_pop(L, 3);
 				if (b) return 1;
 			}
@@ -172,7 +169,7 @@ int tolua_isnoobj(lua_State* L, int lo, tolua_Error* err)
 	if (lua_gettop(L) < abs(lo)) return 1;
 	err->index = lo;
 	err->array = 0;
-	err->type = "[no object]";
+	err->type = "[no object]"_slice;
 	return 0;
 }
 
@@ -182,7 +179,7 @@ int tolua_isboolean(lua_State* L, int lo, int def, tolua_Error* err)
 	if (lua_isnil(L, lo) || lua_isboolean(L, lo)) return 1;
 	err->index = lo;
 	err->array = 0;
-	err->type = "boolean";
+	err->type = "boolean"_slice;
 	return 0;
 }
 
@@ -192,7 +189,7 @@ int tolua_isnumber(lua_State* L, int lo, int def, tolua_Error* err)
 	if (lua_isnumber(L, lo)) return 1;
 	err->index = lo;
 	err->array = 0;
-	err->type = "number";
+	err->type = "number"_slice;
 	return 0;
 }
 
@@ -202,7 +199,7 @@ int tolua_isstring(lua_State* L, int lo, int def, tolua_Error* err)
 	if (lua_isstring(L, lo)) return 1;
 	err->index = lo;
 	err->array = 0;
-	err->type = "string";
+	err->type = "string"_slice;
 	return 0;
 }
 
@@ -212,14 +209,14 @@ int tolua_istable(lua_State* L, int lo, int def, tolua_Error* err)
 	if (lua_istable(L, lo)) return 1;
 	err->index = lo;
 	err->array = 0;
-	err->type = "table";
+	err->type = "table"_slice;
 	return 0;
 }
 
-int tolua_isusertable(lua_State* L, int lo, const char* type, int def, tolua_Error* err)
+int tolua_isusertable(lua_State* L, int lo, String type, int def, tolua_Error* err)
 {
 	if (def && lua_gettop(L) < abs(lo)) return 1;
-	if (lua_isusertable(L, lo, type)) return 1;
+	if (_tolua_isusertable(L, lo, type)) return 1;
 	err->index = lo;
 	err->array = 0;
 	err->type = type;
@@ -233,7 +230,7 @@ int tolua_isuserdata(lua_State* L, int lo, int def, tolua_Error* err)
 	if (lua_isnil(L, lo) || lua_isuserdata(L, lo)) return 1;
 	err->index = lo;
 	err->array = 0;
-	err->type = "userdata";
+	err->type = "userdata"_slice;
 	return 0;
 }
 
@@ -243,7 +240,7 @@ int tolua_isvaluenil(lua_State* L, int lo, tolua_Error* err)
 	if (!lua_isnil(L, lo)) return 0;
 	err->index = lo;
 	err->array = 0;
-	err->type = "value";
+	err->type = "value"_slice;
 	return 1;
 };
 
@@ -252,11 +249,11 @@ int tolua_isvalue(lua_State* L, int lo, int def, tolua_Error* err)
 	if (def || abs(lo) <= lua_gettop(L)) return 1; // any valid index
 	err->index = lo;
 	err->array = 0;
-	err->type = "value";
+	err->type = "value"_slice;
 	return 0;
 }
 
-int tolua_isusertype(lua_State* L, int lo, const char* type, int def, tolua_Error* err)
+int tolua_isusertype(lua_State* L, int lo, String type, int def, tolua_Error* err)
 {
 	if (def && lua_gettop(L) < abs(lo)) return 1;
 	if (lua_isnil(L, lo) || tolua_istype(L, lo, type)) return 1;
@@ -290,7 +287,7 @@ int tolua_isbooleanarray(lua_State* L, int lo, int dim, int def, tolua_Error* er
 			{
 				err->index = lo;
 				err->array = 1;
-				err->type = "boolean";
+				err->type = "boolean"_slice;
 				return 0;
 			}
 			lua_pop(L, 1);
@@ -317,7 +314,7 @@ int tolua_isnumberarray(lua_State* L, int lo, int dim, int def, tolua_Error* err
 			{
 				err->index = lo;
 				err->array = 1;
-				err->type = "number";
+				err->type = "number"_slice;
 				return 0;
 			}
 			lua_pop(L, 1);
@@ -344,7 +341,7 @@ int tolua_isstringarray(lua_State* L, int lo, int dim, int def, tolua_Error* err
 			{
 				err->index = lo;
 				err->array = 1;
-				err->type = "string";
+				err->type = "string"_slice;
 				return 0;
 			}
 			lua_pop(L, 1);
@@ -371,7 +368,7 @@ int tolua_istablearray(lua_State* L, int lo, int dim, int def, tolua_Error* err)
 			{
 				err->index = lo;
 				err->array = 1;
-				err->type = "table";
+				err->type = "table"_slice;
 				return 0;
 			}
 			lua_pop(L, 1);
@@ -398,7 +395,7 @@ int tolua_isuserdataarray(lua_State* L, int lo, int dim, int def, tolua_Error* e
 			{
 				err->index = lo;
 				err->array = 1;
-				err->type = "userdata";
+				err->type = "userdata"_slice;
 				return 0;
 			}
 			lua_pop(L, 1);
@@ -407,7 +404,7 @@ int tolua_isuserdataarray(lua_State* L, int lo, int dim, int def, tolua_Error* e
 	return 1;
 }
 
-int tolua_isusertypearray(lua_State* L, int lo, const char* type, int dim, int def, tolua_Error* err)
+int tolua_isusertypearray(lua_State* L, int lo, String type, int dim, int def, tolua_Error* err)
 {
 	if (!tolua_istable(L, lo, def, err))
 	{
@@ -420,7 +417,7 @@ int tolua_isusertypearray(lua_State* L, int lo, const char* type, int dim, int d
 		{
 			lua_pushnumber(L, i);
 			lua_gettable(L, lo);
-			if (!(lua_isnil(L, -1) || lua_isuserdata(L, -1)) &&
+			if (!(lua_isnil(L, -1) || tolua_istype(L, -1, type)) &&
 				!(def && lua_isnil(L, -1)))
 			{
 				err->index = lo;
