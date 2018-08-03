@@ -1174,6 +1174,72 @@ tolua_lerror :
 #endif
 }
 
+int Entity_setNext(lua_State* L)
+{
+	/* 1 self, 2 name, 3 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_setNext'", nullptr);
+#endif
+		Slice key = tolua_toslice(L, 2, nullptr);
+		if (lua_isnil(L, 3))
+		{
+			self->setNext(key, Com::none());
+		}
+		else
+		{
+			if (lua_isnumber(L, 3))
+			{
+				self->setNext(key, lua_tonumber(L, 3));
+			}
+			else if (lua_isboolean(L, 3))
+			{
+				self->setNext(key, lua_toboolean(L, 3) != 0);
+			}
+			else if (lua_isstring(L, 3))
+			{
+				self->setNext(key, tolua_toslice(L, 3, nullptr).toString());
+			}
+			else if (tolua_isobject(L, 3))
+			{
+				self->setNext(key, s_cast<Object*>(tolua_tousertype(L, 3, 0)));
+			}
+			else if (tolua_istype(L, 3, "Vec2"))
+			{
+				self->setNext(key, *s_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
+			}
+			else if (tolua_istype(L, 3, "Size"))
+			{
+				self->setNext(key, *s_cast<Size*>(tolua_tousertype(L, 3, 0)));
+			}
+			else if (tolua_istype(L, 3, "Rect"))
+			{
+				self->setNext(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)));
+			}
+#ifndef TOLUA_RELEASE
+			else
+			{
+				tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size and Rect.", nullptr);
+			}
+#endif
+		}
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Entity_setNext'.", &tolua_err);
+	return 0;
+#endif
+}
+
 /* EntityObserver */
 
 EntityObserver* EntityObserver_create(String option, Slice components[], int count)

@@ -17,9 +17,17 @@ public:
 	virtual void pushToLua() const = 0;
 	template <class T>
 	static Own<Com> alloc(const T& value);
+	static Own<Com> none();
 protected:
 	Com() { }
 	DORA_TYPE_BASE(Com);
+};
+
+class ComNone : public Com
+{
+	virtual Own<Com> clone() const override;
+	virtual void pushToLua() const override;
+	DORA_TYPE_OVERRIDE(ComNone);
 };
 
 template <class T>

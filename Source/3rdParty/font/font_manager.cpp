@@ -55,10 +55,9 @@ TrueTypeFont::~TrueTypeFont()
 bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight)
 {
 	AssertUnless(m_fontInfo.data == nullptr, "TrueTypeFont already initialized");
-	AssertUnless( (_bufferSize > 256 && _bufferSize < 100000000), "TrueType buffer size is suspicious");
-	AssertUnless( (_pixelHeight > 4 && _pixelHeight < 128), "TrueType pixel height is suspicious");
+	_pixelHeight = Math::clamp(_pixelHeight, 5U, 127U);
 
-    if (!stbtt_InitFont(&m_fontInfo, _buffer, 0))
+    if (!stbtt_InitFont(&m_fontInfo, _buffer, stbtt_GetFontOffsetForIndex(_buffer, 0)))
 	{
 		Error("stbtt_InitFont failed.");
 		return false;
@@ -89,7 +88,6 @@ const FontInfo& TrueTypeFont::getFontInfo() const
 bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, uint8_t* _outBuffer)
 {
 	AssertUnless(m_fontInfo.data, "TrueTypeFont not initialized");
-
 	int left, top, right, bottom;
 	stbtt_GetCodepointBitmapBox(&m_fontInfo, _codePoint, m_info.scale, m_info.scale, &left, &top, &right, &bottom);
 	int advanceWidth;
@@ -130,9 +128,9 @@ void FontManager::init()
 	m_cachedFiles = NewArray<CachedFile>(MAX_OPENED_FILES);
 	m_cachedFonts = NewArray<CachedFont>(MAX_OPENED_FONT);
 	m_buffer = NewArray<uint8_t>(MAX_FONT_BUFFER_SIZE * MAX_FONT_BUFFER_SIZE * 1);
-	m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray, false);
+	m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray, true);
 	m_atlases.push_back(MakeOwn(m_currentAtlas));
-	
+
 	const uint32_t W = 3;
 	uint8_t buffer[W * W * 1];
 	bx::memSet(buffer, 255, W * W * 1);
@@ -175,7 +173,7 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 	AssertUnless(bgfx::isValid(_ttfHandle), "Invalid handle used");
 
 	TrueTypeFont* ttf = new TrueTypeFont();
-	if (!ttf->init(m_cachedFiles[_ttfHandle.idx].buffer, m_cachedFiles[_ttfHandle.idx].bufferSize, _pixelSize) )
+	if (!ttf->init(m_cachedFiles[_ttfHandle.idx].buffer, m_cachedFiles[_ttfHandle.idx].bufferSize, _pixelSize))
 	{
 		delete ttf;
 		FontHandle invalid = BGFX_INVALID_HANDLE;
@@ -230,7 +228,7 @@ bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint)
 		}
 		if (!addBitmap(glyphInfo, m_buffer))
 		{
-			m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray, false);
+			m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray, true);
 			m_atlases.push_back(MakeOwn(m_currentAtlas));
 			if (!addBitmap(glyphInfo, m_buffer))
 			{
@@ -254,9 +252,9 @@ const GlyphInfo* FontManager::getGlyphInfo(FontHandle _handle, CodePoint _codePo
 	const GlyphHashMap& cachedGlyphs = m_cachedFonts[_handle.idx].cachedGlyphs;
 	GlyphHashMap::const_iterator it = cachedGlyphs.find(_codePoint);
 
-	if (it == cachedGlyphs.end() )
+	if (it == cachedGlyphs.end())
 	{
-		if (!preloadGlyph(_handle, _codePoint) )
+		if (!preloadGlyph(_handle, _codePoint))
 		{
 			return &m_fallbackGlyph;
 		}
