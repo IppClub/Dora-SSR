@@ -866,7 +866,7 @@ int Dictionary_get(lua_State* L)
 	/* 1 self, 2 key */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Dictionary", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Dictionary"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -895,7 +895,7 @@ int Dictionary_set(lua_State* L)
 	/* 1 self, 2 key, 3 value */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Dictionary", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Dictionary"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -924,15 +924,15 @@ int Dictionary_set(lua_State* L)
 			{
 				object = r_cast<Object*>(tolua_tousertype(L, 3, 0));
 			}
-			else if (tolua_istype(L, 3, "Vec2"))
+			else if (tolua_istype(L, 3, "Vec2"_slice))
 			{
 				object = Value::create(*r_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
 			}
-			else if (tolua_istype(L, 3, "Size"))
+			else if (tolua_istype(L, 3, "Size"_slice))
 			{
 				object = Value::create(*r_cast<Size*>(tolua_tousertype(L, 3, 0)));
 			}
-			else if (tolua_istype(L, 3, "Rect"))
+			else if (tolua_istype(L, 3, "Rect"_slice))
 			{
 				object = Value::create(*r_cast<Rect*>(tolua_tousertype(L, 3, 0)));
 			}
@@ -1056,7 +1056,7 @@ int Entity_get(lua_State* L)
 	/* 1 self, 2 name */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -1084,7 +1084,7 @@ int Entity_getCache(lua_State* L)
 	/* 1 self, 2 name */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -1112,7 +1112,7 @@ int Entity_set(lua_State* L)
 	/* 1 self, 2 name, 3 value, 4 raw_flag */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -1146,15 +1146,15 @@ int Entity_set(lua_State* L)
 			{
 				self->set(key, s_cast<Object*>(tolua_tousertype(L, 3, 0)), raw_flag);
 			}
-			else if (tolua_istype(L, 3, "Vec2"))
+			else if (tolua_istype(L, 3, "Vec2"_slice))
 			{
 				self->set(key, *s_cast<Vec2*>(tolua_tousertype(L, 3, 0)), raw_flag);
 			}
-			else if (tolua_istype(L, 3, "Size"))
+			else if (tolua_istype(L, 3, "Size"_slice))
 			{
 				self->set(key, *s_cast<Size*>(tolua_tousertype(L, 3, 0)), raw_flag);
 			}
-			else if (tolua_istype(L, 3, "Rect"))
+			else if (tolua_istype(L, 3, "Rect"_slice))
 			{
 				self->set(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)), raw_flag);
 			}
@@ -1179,7 +1179,7 @@ int Entity_setNext(lua_State* L)
 	/* 1 self, 2 name, 3 value */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -1192,7 +1192,7 @@ int Entity_setNext(lua_State* L)
 		Slice key = tolua_toslice(L, 2, nullptr);
 		if (lua_isnil(L, 3))
 		{
-			self->setNext(key, Com::none());
+			self->removeNext(self->getIndex(key));
 		}
 		else
 		{
@@ -1212,15 +1212,15 @@ int Entity_setNext(lua_State* L)
 			{
 				self->setNext(key, s_cast<Object*>(tolua_tousertype(L, 3, 0)));
 			}
-			else if (tolua_istype(L, 3, "Vec2"))
+			else if (tolua_istype(L, 3, "Vec2"_slice))
 			{
 				self->setNext(key, *s_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
 			}
-			else if (tolua_istype(L, 3, "Size"))
+			else if (tolua_istype(L, 3, "Size"_slice))
 			{
 				self->setNext(key, *s_cast<Size*>(tolua_tousertype(L, 3, 0)));
 			}
-			else if (tolua_istype(L, 3, "Rect"))
+			else if (tolua_istype(L, 3, "Rect"_slice))
 			{
 				self->setNext(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)));
 			}

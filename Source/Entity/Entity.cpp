@@ -231,6 +231,12 @@ void Entity::remove(int index)
 	_components[index] = nullptr;
 }
 
+void Entity::removeNext(int index)
+{
+	if (!has(index)) return;
+	setNext(index, Com::none());
+}
+
 bool Entity::each(const function<bool(Entity*)>& func)
 {
 	return SharedEntityPool.eachEntity(func);
@@ -260,10 +266,9 @@ void Entity::set(int index, Own<Com>&& value)
 	}
 }
 
-void Entity::setNext(String name, Own<Com>&& value)
+void Entity::setNext(int index, Own<Com>&& value)
 {
 	int id = getIndex();
-	int index = SharedEntityPool.getIndex(name);
 	SharedEntityPool.nextValues.push_back({id,index,std::move(value)});
 }
 

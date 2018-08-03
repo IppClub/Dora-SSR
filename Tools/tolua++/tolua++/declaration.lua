@@ -237,9 +237,9 @@ function classDeclaration:outchecktype (narg)
  else
   local is_func = get_is_function(self.type)
   if self.ptr == '&' or self.ptr == '' then
-  	return '(tolua_isvaluenil(tolua_S,'..narg..',&tolua_err) || !'..is_func..'(tolua_S,'..narg..',"'.._userltype[self.type]..'",'..def..',&tolua_err))'
+  	return '(tolua_isvaluenil(tolua_S,'..narg..',&tolua_err) || !'..is_func..'(tolua_S,'..narg..',"'.._userltype[self.type]..'"_slice,'..def..',&tolua_err))'
   else
-	return '!'..is_func..'(tolua_S,'..narg..',"'.._userltype[self.type]..'",'..def..',&tolua_err)'
+	return '!'..is_func..'(tolua_S,'..narg..',"'.._userltype[self.type]..'"_slice,'..def..',&tolua_err)'
   end
  end
 end
@@ -341,7 +341,7 @@ function classDeclaration:getarray (narg)
   if (t) then
     output('   if (!tolua_is'..t..'array(tolua_S,',narg,',',self.dim,',',def,',&tolua_err))')
   else
-    output('   if (!tolua_isusertypearray(tolua_S,',narg,',"',type,'",',self.dim,',',def,',&tolua_err))')
+    output('   if (!tolua_isusertypearray(tolua_S,',narg,',"',type,'"_slice,',self.dim,',',def,',&tolua_err))')
   end
   output('    goto tolua_lerror;')
   output('   else\n')

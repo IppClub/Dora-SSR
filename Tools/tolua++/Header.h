@@ -531,7 +531,7 @@ class Label : public Node
 	tolua_property__common float alphaRef;
 	tolua_property__common float textWidth;
 	tolua_property__common float lineGap;
-	tolua_property__common char* text;
+	tolua_property__common string text;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_property__bool bool depthWrite @ is3D;
 	tolua_property__bool bool batched;

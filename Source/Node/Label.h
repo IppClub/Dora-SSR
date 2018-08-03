@@ -94,7 +94,7 @@ public:
 	PROPERTY(TextAlign, Alignment);
 	PROPERTY(float, TextWidth);
 	PROPERTY(float, LineGap);
-	PROPERTY(const char*, Text);
+	PROPERTY_STRING(Text);
 	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY_REF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
