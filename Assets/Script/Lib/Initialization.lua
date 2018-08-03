@@ -366,7 +366,7 @@ Entity.__newindex = function(self,key,value)
 	end
 end
 
-Entity.rawset = function(self,key,value)
+Entity.rawSet = function(self,key,value)
 	Entity_set(self,key,value,true)
 end
 

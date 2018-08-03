@@ -33,7 +33,6 @@ public:
 	PROPERTY_READONLY_CLASS(Uint32, Count);
 	void destroy();
 	bool has(String name) const;
-	bool has(int index) const;
 	void remove(String name);
 	static Entity* create();
 	static bool each(const function<bool(Entity*)>& func);
@@ -45,11 +44,17 @@ public:
 	template<typename T>
 	void set(String name, const T& value, bool rawFlag = false);
 	template<typename T>
+	void setNext(String name, const T& value);
+	template<typename T>
 	const T& get(String name) const;
-protected:
+public:
+	bool has(int index) const;
 	bool hasCache(int index) const;
-	int getIndex(String name);
 	void remove(int index);
+	void set(int index, Own<Com>&& value);
+	void setNext(String name, Own<Com>&& value);
+protected:
+	int getIndex(String name);
 	Com* getComponent(int index) const;
 	Com* getCachedCom(int index) const;
 	void updateComponent(int index, Own<Com>&& com, bool add);
@@ -119,7 +124,7 @@ void Entity::set(String name, const T& value, bool rawFlag)
 	Com* com = getComponent(index);
 	if (rawFlag)
 	{
-		AssertIf(com == nullptr, "raw set non-exist component \"{}\"", name);
+		AssertIf(com == nullptr, "raw set non-exist component \"{}\".", name);
 		auto content = com->as<T>();
 		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
 		content->set(value);
@@ -136,6 +141,12 @@ void Entity::set(String name, const T& value, bool rawFlag)
 	{
 		updateComponent(index, Com::alloc(value), true);
 	}
+}
+
+template<typename T>
+void Entity::setNext(String name, const T& value)
+{
+	setNext(name, Com::alloc(value));
 }
 
 template<typename T>

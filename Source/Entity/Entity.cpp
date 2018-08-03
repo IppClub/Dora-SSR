@@ -22,6 +22,22 @@ public:
 		SharedDirector.getPostSystemScheduler()->schedule([this](double deltaTime)
 		{
 			DORA_UNUSED_PARAM(deltaTime);
+			for (auto& nextValue : nextValues)
+			{
+				Entity* entity = entities[nextValue.entity];
+				if (entity)
+				{
+					if (DoraCast<ComNone>(nextValue.value.get()))
+					{
+						entity->remove(nextValue.component);
+					}
+					else
+					{
+						entity->set(nextValue.component, std::move(nextValue.value));
+					}
+				}
+			}
+			nextValues.clear();
 			for (const auto& trigger : triggers)
 			{
 				trigger();
@@ -59,6 +75,12 @@ public:
 		}
 		return it->second;
 	}
+	struct NextValue
+	{
+		int entity;
+		int component;
+		Own<Com> value;
+	};
 	stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
 	vector<Delegate<void()>> triggers;
@@ -68,6 +90,7 @@ public:
 	vector<EntityHandler> addHandlers;
 	vector<EntityHandler> changeHandlers;
 	vector<EntityHandler> removeHandlers;
+	vector<NextValue> nextValues;
 	unordered_map<string, Ref<EntityGroup>> groups;
 	unordered_map<string, Ref<EntityObserver>> observers;
 	EntityHandler& getAddHandler(int index)
@@ -117,6 +140,7 @@ public:
 		groups.clear();
 		observers.clear();
 		triggers.clear();
+		nextValues.clear();
 		addHandlers.clear();
 		changeHandlers.clear();
 		removeHandlers.clear();
@@ -193,6 +217,7 @@ void Entity::remove(String name)
 
 void Entity::remove(int index)
 {
+	if (!has(index)) return;
 	auto& removeHandler = SharedEntityPool.getRemoveHandler(index);
 	if (!removeHandler.IsEmpty())
 	{
@@ -219,6 +244,27 @@ void Entity::clear()
 Uint32 Entity::getCount()
 {
 	return s_cast<Uint32>(SharedEntityPool.usedIndices.size());
+}
+
+void Entity::set(int index, Own<Com>&& value)
+{
+	Com* com = getComponent(index);
+	if (com)
+	{
+		updateComponent(index, com->clone(), false);
+		_components[index] = std::move(value);
+	}
+	else
+	{
+		updateComponent(index, std::move(value), true);
+	}
+}
+
+void Entity::setNext(String name, Own<Com>&& value)
+{
+	int id = getIndex();
+	int index = SharedEntityPool.getIndex(name);
+	SharedEntityPool.nextValues.push_back({id,index,std::move(value)});
 }
 
 void Entity::updateComponent(int index, Own<Com>&& com, bool add)

@@ -22,6 +22,10 @@ with Observer "Remove", {"sprite"}
 		sceneGroup\each (e)->
 			e.scene\removeChild entity.valueCache.sprite
 
+with Observer "Remove", {"target"}
+	\every (entity)->
+		print "remove target from #{entity.index}"
+
 with Group {"position","direction","speed","target"}
 	\every (entity)->
 		{:position, :target, :speed} = entity
@@ -33,7 +37,8 @@ with Group {"position","direction","speed","target"}
 		newPos\clamp position, target
 		entity.position = newPos
 		entity.direction = angle
-		entity.target = nil if newPos == target
+		if newPos == target
+			entity\nextSet "target",nil -- remove target in next frame
 
 with Observer "AddOrChange", {"position","direction","sprite"}
 	\every (entity)->

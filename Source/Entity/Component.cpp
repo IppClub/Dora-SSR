@@ -11,6 +11,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+Own<Com> Com::none()
+{
+	return Own<Com>(new ComNone());
+}
+
+Own<Com> ComNone::clone() const
+{
+	return Own<Com>(new ComNone());
+}
+
+void ComNone::pushToLua() const
+{ }
+
 MEMORY_POOL(ComEx<Object*>);
 
 NS_DOROTHY_END
