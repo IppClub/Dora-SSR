@@ -9,19 +9,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Physics/Body.h"
 #include "Physics/BodyDef.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Physics/Sensor.h"
 
 NS_DOROTHY_BEGIN
 
-Body::Body(BodyDef* bodyDef, World* world, const Vec2& pos, float rot):
+Body::Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos, float rot):
 _bodyB2(nullptr),
 _bodyDef(bodyDef),
 _world(world),
 _group(0),
 _receivingContact(false)
 {
-	bodyDef->position = World::b2Val(pos + bodyDef->offset);
+	bodyDef->position = PhysicsWorld::b2Val(pos + bodyDef->offset);
 	bodyDef->angle = -bx::toRad(rot + bodyDef->angleOffset);
 }
 
@@ -47,7 +47,7 @@ bool Body::init()
 	if (!Node::init()) return false;
 	_bodyB2 = _world->getB2World()->CreateBody(_bodyDef);
 	_bodyB2->SetUserData(r_cast<void*>(this));
-	Node::setPosition(World::oVal(_bodyDef->position));
+	Node::setPosition(PhysicsWorld::oVal(_bodyDef->position));
 	for (b2FixtureDef* fixtureDef : _bodyDef->getFixtureDefs())
 	{
 		if (fixtureDef->isSensor)
@@ -102,7 +102,7 @@ BodyDef* Body::getBodyDef() const
 	return _bodyDef;
 }
 
-World* Body::getWorld() const
+PhysicsWorld* Body::getWorld() const
 {
 	return _world;
 }
@@ -144,17 +144,17 @@ bool Body::removeSensor(Sensor* sensor)
 
 void Body::setVelocity(float x, float y)
 {
-	_bodyB2->SetLinearVelocity(b2Vec2(World::b2Val(x), World::b2Val(y)));
+	_bodyB2->SetLinearVelocity(b2Vec2(PhysicsWorld::b2Val(x), PhysicsWorld::b2Val(y)));
 }
 
 void Body::setVelocity(const Vec2& velocity)
 {
-	_bodyB2->SetLinearVelocity(World::b2Val(velocity));
+	_bodyB2->SetLinearVelocity(PhysicsWorld::b2Val(velocity));
 }
 
 Vec2 Body::getVelocity() const
 {
-	return World::oVal(_bodyB2->GetLinearVelocity());
+	return PhysicsWorld::oVal(_bodyB2->GetLinearVelocity());
 }
 
 void Body::setAngularRate(float var)
@@ -275,22 +275,22 @@ void Body::eachSensor(const SensorHandler& func)
 
 void Body::setVelocityX( float x )
 {
-	_bodyB2->SetLinearVelocityX(World::b2Val(x));
+	_bodyB2->SetLinearVelocityX(PhysicsWorld::b2Val(x));
 }
 
 float Body::getVelocityX() const
 {
-	return World::oVal(_bodyB2->GetLinearVelocityX());
+	return PhysicsWorld::oVal(_bodyB2->GetLinearVelocityX());
 }
 
 void Body::setVelocityY( float y )
 {
-	_bodyB2->SetLinearVelocityY(World::b2Val(y));
+	_bodyB2->SetLinearVelocityY(PhysicsWorld::b2Val(y));
 }
 
 float Body::getVelocityY() const
 {
-	return World::oVal(_bodyB2->GetLinearVelocityY());
+	return PhysicsWorld::oVal(_bodyB2->GetLinearVelocityY());
 }
 
 void Body::setPosition(const Vec2& var)
@@ -298,7 +298,7 @@ void Body::setPosition(const Vec2& var)
 	if (var != Node::getPosition())
 	{
 		Node::setPosition(var);
-		_bodyB2->SetTransform(World::b2Val(var), _bodyB2->GetAngle());
+		_bodyB2->SetTransform(PhysicsWorld::b2Val(var), _bodyB2->GetAngle());
 	}
 }
 
@@ -333,8 +333,8 @@ Rect Body::getBoundingBox()
 			aabb.upperBound.y = std::max(aabb.upperBound.y, ab.upperBound.y);
 		}
 	}
-	Vec2 lower = World::oVal(aabb.lowerBound);
-	Vec2 upper = World::oVal(aabb.upperBound);
+	Vec2 lower = PhysicsWorld::oVal(aabb.lowerBound);
+	Vec2 upper = PhysicsWorld::oVal(aabb.upperBound);
 	return Rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
 }
 
@@ -356,7 +356,7 @@ void Body::updatePhysics()
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overriden by Body`s.
 		*/
-		Node::setPosition(Vec2{World::oVal(pos.x), World::oVal(pos.y)});
+		Node::setPosition(Vec2{PhysicsWorld::oVal(pos.x), PhysicsWorld::oVal(pos.y)});
 		float angle = _bodyB2->GetAngle();
 		Node::setAngle(-bx::toDeg(angle));
 	}

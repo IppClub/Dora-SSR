@@ -179,7 +179,7 @@
 		3CE9D7F61E7FC2A6003AAECB /* Joint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7EC1E7FC2A6003AAECB /* Joint.cpp */; };
 		3CE9D7F71E7FC2A6003AAECB /* JointDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7EE1E7FC2A6003AAECB /* JointDef.cpp */; };
 		3CE9D7F81E7FC2A6003AAECB /* Sensor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7F01E7FC2A6003AAECB /* Sensor.cpp */; };
-		3CE9D7F91E7FC2A6003AAECB /* World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7F21E7FC2A6003AAECB /* World.cpp */; };
+		3CE9D7F91E7FC2A6003AAECB /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7F21E7FC2A6003AAECB /* PhysicsWorld.cpp */; };
 		3CE9D7FC1E7FE99D003AAECB /* Dictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7FA1E7FE99D003AAECB /* Dictionary.cpp */; };
 		3CE9D8001E7FF7A7003AAECB /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7FE1E7FF7A7003AAECB /* DebugDraw.cpp */; };
 		3CEA71B41ECB8ECA00EFFD63 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA71B21ECB8ECA00EFFD63 /* Keyboard.cpp */; };
@@ -563,8 +563,8 @@
 		3CE9D7EF1E7FC2A6003AAECB /* JointDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JointDef.h; path = ../../../Source/Physics/JointDef.h; sourceTree = "<group>"; };
 		3CE9D7F01E7FC2A6003AAECB /* Sensor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sensor.cpp; path = ../../../Source/Physics/Sensor.cpp; sourceTree = "<group>"; };
 		3CE9D7F11E7FC2A6003AAECB /* Sensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sensor.h; path = ../../../Source/Physics/Sensor.h; sourceTree = "<group>"; };
-		3CE9D7F21E7FC2A6003AAECB /* World.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = World.cpp; path = ../../../Source/Physics/World.cpp; sourceTree = "<group>"; };
-		3CE9D7F31E7FC2A6003AAECB /* World.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = World.h; path = ../../../Source/Physics/World.h; sourceTree = "<group>"; };
+		3CE9D7F21E7FC2A6003AAECB /* PhysicsWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PhysicsWorld.cpp; path = ../../../Source/Physics/PhysicsWorld.cpp; sourceTree = "<group>"; };
+		3CE9D7F31E7FC2A6003AAECB /* PhysicsWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicsWorld.h; path = ../../../Source/Physics/PhysicsWorld.h; sourceTree = "<group>"; };
 		3CE9D7FA1E7FE99D003AAECB /* Dictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Dictionary.cpp; path = ../../../Source/Support/Dictionary.cpp; sourceTree = "<group>"; };
 		3CE9D7FB1E7FE99D003AAECB /* Dictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dictionary.h; path = ../../../Source/Support/Dictionary.h; sourceTree = "<group>"; };
 		3CE9D7FE1E7FF7A7003AAECB /* DebugDraw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DebugDraw.cpp; path = ../../../Source/Physics/DebugDraw.cpp; sourceTree = "<group>"; };
@@ -1353,8 +1353,8 @@
 				3CE9D7EF1E7FC2A6003AAECB /* JointDef.h */,
 				3CE9D7F01E7FC2A6003AAECB /* Sensor.cpp */,
 				3CE9D7F11E7FC2A6003AAECB /* Sensor.h */,
-				3CE9D7F21E7FC2A6003AAECB /* World.cpp */,
-				3CE9D7F31E7FC2A6003AAECB /* World.h */,
+				3CE9D7F21E7FC2A6003AAECB /* PhysicsWorld.cpp */,
+				3CE9D7F31E7FC2A6003AAECB /* PhysicsWorld.h */,
 			);
 			name = Physics;
 			sourceTree = "<group>";
@@ -1484,7 +1484,7 @@
 				3C1984792100656800B6F370 /* PlatformCamera.cpp in Sources */,
 				3C6DA2051EAEF19E006EEE32 /* Model.cpp in Sources */,
 				3CE9D7551E7FB7FE003AAECB /* b2PolygonShape.cpp in Sources */,
-				3CE9D7F91E7FC2A6003AAECB /* World.cpp in Sources */,
+				3CE9D7F91E7FC2A6003AAECB /* PhysicsWorld.cpp in Sources */,
 				3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */,
 				3CB487151E16398700D51749 /* tolua_is.cpp in Sources */,
 				3C291D331E025A980098C860 /* AutoreleasePool.cpp in Sources */,

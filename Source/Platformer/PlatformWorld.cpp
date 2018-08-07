@@ -122,7 +122,7 @@ void PlatformWorld::swapLayer(int orderA, int orderB)
 
 bool PlatformWorld::init()
 {
-	if (!World::init())
+	if (!PhysicsWorld::init())
 	{
 		return false;
 	}

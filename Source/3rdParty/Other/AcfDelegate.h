@@ -109,10 +109,14 @@ public:
         this->_last = nullptr;
     }
 
+    Delegate(std::nullptr_t)
+    {
+        this->_last = nullptr;
+	}
+
     template <class TFunctor>
     Delegate(const TFunctor& f)
     {
-		static_assert(!std::is_same<TFunctor, std::nullptr_t>::value,"construct delegate with nullptr.");
         this->_last = nullptr;
         *this = f;
     }

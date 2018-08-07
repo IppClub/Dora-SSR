@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 NS_DOROTHY_BEGIN
-class World;
+class PhysicsWorld;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -19,7 +19,7 @@ class Unit;
 class Data
 {
 public:
-	void apply(World* world);
+	void apply(PhysicsWorld* world);
 	void setRelation(int groupA, int groupB, Relation relation);
 	Relation getRelation(int groupA, int groupB) const;
 	Relation getRelation(Unit* unitA, Unit* unitB) const;

@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/DebugDraw.h"
 #include "Node/DrawNode.h"
 #include "Physics/Body.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 
 NS_DOROTHY_BEGIN
 
@@ -50,7 +50,7 @@ void DebugDraw::DrawPolygon(const b2Vec2* oldVertices, int vertexCount, const b2
 	Vec2 vertices[b2_maxPolygonVertices + 1];
 	for (int i = 0; i < vertexCount; i++)
 	{
-		vertices[i] = World::oVal(oldVertices[i]);
+		vertices[i] = PhysicsWorld::oVal(oldVertices[i]);
 	}
 	vertices[vertexCount] = vertices[0];
 	_line->add(vertices, vertexCount + 1, Color(Vec4{color.r, color.g, color.b, 1.0f}));
@@ -61,7 +61,7 @@ void DebugDraw::DrawSolidPolygon(const b2Vec2* oldVertices, int vertexCount, con
 	Vec2 vertices[b2_maxPolygonVertices + 1];
 	for (int i = 0; i < vertexCount; i++)
 	{
-		vertices[i] = World::oVal(oldVertices[i]);
+		vertices[i] = PhysicsWorld::oVal(oldVertices[i]);
 	}
 	vertices[vertexCount] = vertices[0];
 	_drawNode->drawPolygon(vertices, vertexCount, Color(Vec4{color.r * 0.5f, color.g * 0.5f, color.b * 0.5f, 0.5f}));
@@ -79,7 +79,7 @@ void DebugDraw::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& 
 	for (int i = 0; i < k_segments; ++i)
 	{
 		b2Vec2 v = center + radius * b2Vec2(std::cos(theta), std::sin(theta));
-		vertices[i] = World::oVal(Vec2{v.x, v.y});
+		vertices[i] = PhysicsWorld::oVal(Vec2{v.x, v.y});
 		theta += k_increment;
 	}
 	_line->add(vertices, vertexCount, Color(Vec4{color.r, color.g, color.b, 1.0f}));
@@ -96,20 +96,20 @@ void DebugDraw::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Ve
 	for (int i = 0; i < k_segments; ++i)
 	{
 		b2Vec2 v = center + radius * b2Vec2(std::cos(theta), std::sin(theta));
-		vertices[i] = World::oVal(Vec2{v.x, v.y});
+		vertices[i] = PhysicsWorld::oVal(Vec2{v.x, v.y});
 		theta += k_increment;
 	}
 	vertices[vertexCount] = vertices[0];
 	_drawNode->drawPolygon(vertices, vertexCount, Color(Vec4{color.r * 0.5f, color.g * 0.5f, color.b * 0.5f, 0.5f}));
 	_line->add(vertices, vertexCount + 1, Color(Vec4{color.r, color.g, color.b, 1.0f}));
-	vertices[0] = World::oVal(center);
-	vertices[1] = World::oVal(center + radius * axis);
+	vertices[0] = PhysicsWorld::oVal(center);
+	vertices[1] = PhysicsWorld::oVal(center + radius * axis);
 	_line->add(vertices, 2, Color(Vec4{color.r, color.g, color.b, 1.0f}));
 }
 
 void DebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color)
 {
-	Vec2 vertices[] = {World::oVal(p1), World::oVal(p2)};
+	Vec2 vertices[] = {PhysicsWorld::oVal(p1), PhysicsWorld::oVal(p2)};
 	_line->add(vertices, 2, Color(Vec4{color.r, color.g, color.b, 1.0f}));
 }
 

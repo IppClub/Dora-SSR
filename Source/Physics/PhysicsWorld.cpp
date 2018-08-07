@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Physics/Body.h"
 #include "Physics/Sensor.h"
 #include "Physics/Joint.h"
@@ -42,12 +42,12 @@ void ContactListener::ContactPair::release()
 	bodyB->release();
 }
 
-void World::QueryAABB::setInfo(const Rect& rc)
+void PhysicsWorld::QueryAABB::setInfo(const Rect& rc)
 {
 	transform.Set(b2Vec2(b2Val(rc.getCenterX()), b2Val(rc.getCenterY())), 0);
 	testShape.SetAsBox(b2Val(rc.size.width), b2Val(rc.size.height));
 }
-bool World::QueryAABB::ReportFixture(b2Fixture* fixture)
+bool PhysicsWorld::QueryAABB::ReportFixture(b2Fixture* fixture)
 {
 	BLOCK_START
 	{
@@ -66,7 +66,7 @@ bool World::QueryAABB::ReportFixture(b2Fixture* fixture)
 	return true;
 }
 
-float32 World::RayCast::ReportFixture(b2Fixture* fixture, const b2Vec2& point,
+float32 PhysicsWorld::RayCast::ReportFixture(b2Fixture* fixture, const b2Vec2& point,
 	const b2Vec2& normal, float32 fraction)
 {
 	result.body = r_cast<Body*>(fixture->GetBody()->GetUserData());
@@ -83,9 +83,9 @@ float32 World::RayCast::ReportFixture(b2Fixture* fixture, const b2Vec2& point,
 	}
 }
 
-float World::b2Factor = 100.0f;
+float PhysicsWorld::b2Factor = 100.0f;
 
-World::World():
+PhysicsWorld::PhysicsWorld():
 _world(b2Vec2(0,-10)),
 _velocityIterations(1),
 _positionIterations(1),
@@ -94,7 +94,7 @@ _contactFilter(new ContactFilter()),
 _destructionListener(new DestructionListener())
 { }
 
-World::~World()
+PhysicsWorld::~PhysicsWorld()
 {
 	b2Body* b = nullptr;
 	if (_world.GetBodyList())
@@ -112,7 +112,7 @@ World::~World()
 	}
 }
 
-bool World::init()
+bool PhysicsWorld::init()
 {
 	if (!Node::init()) return false;
 	_world.SetContactFilter(_contactFilter);
@@ -128,7 +128,7 @@ bool World::init()
 	return true;
 }
 
-void World::render()
+void PhysicsWorld::render()
 {
 	if (_debugDraw)
 	{
@@ -137,12 +137,12 @@ void World::render()
 	}
 }
 
-b2World* World::getB2World() const
+b2World* PhysicsWorld::getB2World() const
 {
 	return c_cast<b2World*>(&_world);
 }
 
-void World::setShowDebug(bool var)
+void PhysicsWorld::setShowDebug(bool var)
 {
 	if (var)
 	{
@@ -161,28 +161,28 @@ void World::setShowDebug(bool var)
 	}
 }
 
-bool World::isShowDebug() const
+bool PhysicsWorld::isShowDebug() const
 {
 	return _world.GetDebugDraw() != nullptr;
 }
 
-void World::setIterations(int velocityIter, int positionIter)
+void PhysicsWorld::setIterations(int velocityIter, int positionIter)
 {
 	_velocityIterations = velocityIter;
 	_positionIterations = positionIter;
 }
 
-void World::setGravity(const Vec2& gravity)
+void PhysicsWorld::setGravity(const Vec2& gravity)
 {
 	_world.SetGravity(gravity);
 }
 
-Vec2 World::getGravity() const
+Vec2 PhysicsWorld::getGravity() const
 {
 	return Vec2::from(_world.GetGravity());
 }
 
-bool World::update(double deltaTime)
+bool PhysicsWorld::update(double deltaTime)
 {
 	if (isUpdating())
 	{
@@ -201,7 +201,7 @@ bool World::update(double deltaTime)
 	return !isUpdating() && result;
 }
 
-void World::query(const Rect& rect, const function<bool(Body*)>& callback)
+void PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback)
 {
 	b2AABB b2aabb;
 	b2aabb.lowerBound.Set(b2Val(rect.getLeft()), b2Val(rect.getBottom()));
@@ -225,10 +225,10 @@ void World::query(const Rect& rect, const function<bool(Body*)>& callback)
 	_queryCallback.resultsOfCommonShapes.clear();
 }
 
-void World::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
+void PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
 {
 	_rayCastCallBack.closest = closest;
-	_world.RayCast(&_rayCastCallBack, World::b2Val(start), World::b2Val(end));
+	_world.RayCast(&_rayCastCallBack, PhysicsWorld::b2Val(start), PhysicsWorld::b2Val(end));
 	if (_rayCastCallBack.closest)
 	{
 		RayCast::RayCastData& data = _rayCastCallBack.result;
@@ -244,7 +244,7 @@ void World::raycast(const Vec2& start, const Vec2& end, bool closest, const func
 	_rayCastCallBack.results.clear();
 }
 
-void World::setShouldContact(int groupA, int groupB, bool contact)
+void PhysicsWorld::setShouldContact(int groupA, int groupB, bool contact)
 {
 	b2Filter& filterA = _filters[groupA];
 	b2Filter& filterB = _filters[groupB];
@@ -289,24 +289,24 @@ void World::setShouldContact(int groupA, int groupB, bool contact)
 	}
 }
 
-bool World::getShouldContact(int groupA, int groupB) const
+bool PhysicsWorld::getShouldContact(int groupA, int groupB) const
 {
 	const b2Filter& filterA = _filters[groupA];
 	const b2Filter& filterB = _filters[groupB];
 	return (filterA.maskBits & filterB.categoryBits) && (filterA.categoryBits & filterB.maskBits);
 }
 
-const b2Filter& World::getFilter(int group) const
+const b2Filter& PhysicsWorld::getFilter(int group) const
 {
 	return _filters[group];
 }
 
-void World::setContactListener(Own<ContactListener>&& listener )
+void PhysicsWorld::setContactListener(Own<ContactListener>&& listener )
 {
 	_contactListner = std::move(listener);
 }
 
-void World::setContactFilter(Own<ContactFilter>&& filter )
+void PhysicsWorld::setContactFilter(Own<ContactFilter>&& filter )
 {
 	_contactFilter = std::move(filter);
 }
@@ -345,7 +345,7 @@ void ContactListener::BeginContact(b2Contact* contact)
 	{
 		b2WorldManifold worldManifold;
 		contact->GetWorldManifold(&worldManifold);
-		Vec2 point = World::oVal(worldManifold.points[0]);
+		Vec2 point = PhysicsWorld::oVal(worldManifold.points[0]);
 		if (bodyA->isReceivingContact())
 		{
 			ContactPair pair = { bodyA, bodyB, point, Vec2::from(worldManifold.normal) };
@@ -391,7 +391,7 @@ void ContactListener::EndContact(b2Contact* contact)
 	{
 		b2WorldManifold worldManifold;
 		contact->GetWorldManifold(&worldManifold);
-		Vec2 point = World::oVal(worldManifold.points[0]);
+		Vec2 point = PhysicsWorld::oVal(worldManifold.points[0]);
 		if (bodyA->isReceivingContact())
 		{
 			ContactPair pair = { bodyA, bodyB, point, Vec2::from(worldManifold.normal) };

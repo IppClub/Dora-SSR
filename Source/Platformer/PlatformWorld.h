@@ -8,14 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Node/Node.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
 class PlatformCamera;
 
-class PlatformWorld : public World
+class PlatformWorld : public PhysicsWorld
 {
 public:
 	PROPERTY_READONLY(PlatformCamera*, Camera);

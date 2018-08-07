@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Define.h"
 #include "Platformer/Unit.h"
 #include "Platformer/Data.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Physics/Body.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -27,7 +27,7 @@ NS_DOROTHY_PLATFORMER_BEGIN
 #define Terrain 14
 #define SenseAll 15
 
-void Data::apply(World* world)
+void Data::apply(PhysicsWorld* world)
 {
 	for (int p = P1;p <= P12;p++)
 	{

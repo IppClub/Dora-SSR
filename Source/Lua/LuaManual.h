@@ -89,7 +89,7 @@ void __Model_getAnimationNames(lua_State* L, String filename);
 
 /* Body */
 typedef b2FixtureDef FixtureDef;
-Body* Body_create(BodyDef* def, World* world, Vec2 pos, float rot);
+Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
 
 /* Dictionary */
 Array* __Dictionary_getKeys(Dictionary* self);
@@ -137,8 +137,8 @@ int Entity_getCache(lua_State* L);
 int Entity_set(lua_State* L);
 int Entity_setNext(lua_State* L);
 
-/* EntityObserver */
-EntityObserver* EntityObserver_create(String option, Slice components[], int count);
+/* EntityWorld */
+EntityObserver* EntityWorld_observe(EntityWorld* world, String option, Slice components[], int count, const EntityHandler& handler = nullptr);
 
 NS_DOROTHY_END
 

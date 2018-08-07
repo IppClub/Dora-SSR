@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 class Sensor;
 class Model;
+class PhysicsWorld;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -108,9 +109,9 @@ public:
 	const string& getReflexArc() const;
 	AILeaf* getReflexArcNode();
 
-	static Unit* create(UnitDef* unitDef, World* world, const Vec2& pos = Vec2::zero, float rot = 0.0f);
+	static Unit* create(UnitDef* unitDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0.0f);
 protected:
-	Unit(UnitDef* unitDef, World* world);
+	Unit(UnitDef* unitDef, PhysicsWorld* world);
 	//Instinct
 	class InstinctSet
 	{
