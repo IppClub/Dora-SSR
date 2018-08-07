@@ -63,10 +63,10 @@ public:
 	virtual void SayGoodbye(b2Fixture* fixture);
 };
 
-class World : public Node
+class PhysicsWorld : public Node
 {
 public:
-	virtual ~World();
+	virtual ~PhysicsWorld();
 	PROPERTY_READONLY(b2World*, B2World);
 	PROPERTY_BOOL(ShowDebug);
 	/**
@@ -113,9 +113,9 @@ public:
 	 Better change this value before any physics body creation.
 	 */
 	static float b2Factor;
-	CREATE_FUNC(World);
+	CREATE_FUNC(PhysicsWorld);
 protected:
-	World();
+	PhysicsWorld();
 private:
 	class QueryAABB : public b2QueryCallback
 	{
@@ -152,7 +152,7 @@ private:
 	Own<DestructionListener> _destructionListener;
 	int _velocityIterations;
 	int _positionIterations;
-	DORA_TYPE_OVERRIDE(World);
+	DORA_TYPE_OVERRIDE(PhysicsWorld);
 };
 
 NS_DOROTHY_END

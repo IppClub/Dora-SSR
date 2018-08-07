@@ -8,15 +8,44 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 #include "Entity/Component.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
 class Dictionary;
 class Entity;
+class EntityPool;
+class EntityGroup;
+class EntityObserver;
 
 typedef Delegate<void(Entity*)> EntityHandler;
 
-class Entity : public Object
+class EntityWorld : public Object
+{
+public:
+	PROPERTY_READONLY(Uint32, Count);
+	PROPERTY_READONLY(EntityPool*, Pool);
+	virtual bool init() override;
+	virtual bool update(double deltaTime) override;
+	Entity* entity();
+	EntityGroup* group(const vector<string>& components, const EntityHandler& handler = nullptr);
+	EntityGroup* group(Slice components[], int count, const EntityHandler& handler = nullptr);
+	EntityObserver* observe(int option, const vector<string>& components, const EntityHandler& handler = nullptr);
+	EntityObserver* observe(int option, Slice components[], int count, const EntityHandler& handler = nullptr);
+	bool each(const function<bool(Entity*)>& func);
+	void clear();
+	static void removeAll();
+	static void remove(String name);
+	static EntityWorld* create(String name = Slice::Empty);
+protected:
+	EntityWorld();
+	void destroy();
+private:
+	Own<EntityPool> _pool;
+	DORA_TYPE_OVERRIDE(EntityWorld);
+};
+
+class Entity
 {
 public:
 	enum
@@ -26,17 +55,12 @@ public:
 		AddOrChange,
 		Remove
 	};
-	Entity(int index);
+	Entity(EntityWorld* world, int id);
 	virtual ~Entity();
-	virtual bool init() override;
-	PROPERTY_READONLY(int, Index);
-	PROPERTY_READONLY_CLASS(Uint32, Count);
+	PROPERTY_READONLY(int, Id);
 	void destroy();
 	bool has(String name) const;
 	void remove(String name);
-	static Entity* create();
-	static bool each(const function<bool(Entity*)>& func);
-	static void clear();
 	Com* getComponent(String name) const;
 	Com* getCachedCom(String name) const;
 	void clearComCache();
@@ -60,29 +84,19 @@ public:
 protected:
 	void updateComponent(int index, Own<Com>&& com, bool add);
 private:
-	int _index;
+	int _id;
 	vector<Own<Com>> _components;
 	vector<Own<Com>> _comCache;
-	DORA_TYPE_OVERRIDE(Entity);
+	EntityWorld* _world;
 };
 
-struct WRefEntityHasher
-{
-	std::hash<Entity*> hash;
-	inline size_t operator () (const WRef<Entity>& entity) const
-	{
-		return hash(entity.get());
-	}
-};
-
-class EntityGroup : public Object
+class EntityGroup
 {
 public:
-	EntityGroup(const vector<string>& components);
+	EntityGroup(EntityWorld* world, const vector<string>& components);
 	virtual ~EntityGroup();
-	virtual bool init() override;
-	static EntityGroup* create(const vector<string>& components);
-	static EntityGroup* create(Slice components[], int count);
+	static EntityGroup* create(EntityWorld* world, const vector<string>& components);
+	static EntityGroup* create(EntityWorld* world, Slice components[], int count);
 public:
 	template<typename Func>
 	bool each(const Func& func);
@@ -91,19 +105,18 @@ public:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
 private:
-	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
+	unordered_set<Entity*> _entities;
 	vector<int> _components;
-	DORA_TYPE_OVERRIDE(EntityGroup);
+	EntityWorld* _world;
 };
 
-class EntityObserver : public Object
+class EntityObserver
 {
 public:
-	EntityObserver(int option, const vector<string>& components);
+	EntityObserver(EntityWorld* world, int option, const vector<string>& components);
 	virtual ~EntityObserver();
-	virtual bool init() override;
-	static EntityObserver* create(int option, const vector<string>& components);
-	static EntityObserver* create(int option, Slice components[], int count);
+	static EntityObserver* create(EntityWorld* world, int option, const vector<string>& components);
+	static EntityObserver* create(EntityWorld* world, int option, Slice components[], int count);
 public:
 	template<typename Func>
 	bool each(const Func& func);
@@ -113,9 +126,9 @@ public:
 	void clear();
 private:
 	int _option;
-	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
+	unordered_set<Entity*> _entities;
 	vector<int> _components;
-	DORA_TYPE_OVERRIDE(EntityObserver);
+	EntityWorld* _world;
 };
 
 template<typename T>

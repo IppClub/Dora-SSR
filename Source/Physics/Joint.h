@@ -15,7 +15,7 @@ class b2Joint;
 NS_DOROTHY_BEGIN
 
 class Body;
-class World;
+class PhysicsWorld;
 class JointDef;
 class MoveJoint;
 class MotorJoint;
@@ -115,12 +115,12 @@ public:
 		float frequency = 2.0f,
 		float damping = 0.7f);
 	b2Joint* getB2Joint();
-	World* getWorld();
+	PhysicsWorld* getWorld();
 	void destroy();
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 	CREATE_FUNC(Joint);
 protected:
-	WRef<World> _world;
+	WRef<PhysicsWorld> _world;
 	b2Joint* _joint;
 	friend class DestructionListener;
 	DORA_TYPE_OVERRIDE(Joint);

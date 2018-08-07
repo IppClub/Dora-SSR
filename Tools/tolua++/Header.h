@@ -161,28 +161,37 @@ class Dictionary : public Object
 	static Dictionary* create();
 };
 
-class Entity : public Object
+class Entity
 {
-	tolua_readonly tolua_property__common int index;
-	static tolua_readonly tolua_property__common Uint32 count;
+	tolua_readonly tolua_property__common int id;
 	void destroy();
-	static void clear();
-	static void each(tolua_function_bool func);
-	static Entity* create();
 };
 
-class EntityGroup @ Group : public Object
+class EntityGroup @ Group
 {
 	void each(tolua_function_bool func);
 	EntityGroup* every(tolua_function func);
-	static EntityGroup* create(String components[tolua_len]);
 };
 
-class EntityObserver @ Observer : public Object
+class EntityObserver @ Observer
 {
 	void each(tolua_function_bool func);
 	EntityObserver* every(tolua_function func);
-	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
+};
+
+class EntityWorld : public Object
+{
+	tolua_readonly tolua_property__common Uint32 count;
+	Entity* entity();
+	EntityGroup* group(String components[tolua_len], tolua_function handler);
+	EntityGroup* group(String components[tolua_len]);
+	tolua_outside EntityObserver* EntityWorld_observe @ observe(String option, String components[tolua_len], tolua_function handler);
+	tolua_outside EntityObserver* EntityWorld_observe @ observe(String option, String components[tolua_len]);
+	bool each(tolua_function_bool func);
+	void clear();
+	static EntityWorld* create(String name = nullptr);
+	static void remove(String name);
+	static void removeAll();
 };
 
 class Content
@@ -624,7 +633,7 @@ class Model: public Node
 	static tolua_outside void Model_getAnimationNames @ getAnimations(String filename);
 };
 
-class World : public Node
+class PhysicsWorld : public Node
 {
 	tolua_property__common Vec2 gravity;
 	tolua_property__bool bool showDebug;
@@ -634,7 +643,7 @@ class World : public Node
 	void setShouldContact(int groupA, int groupB, bool contact);
 	bool getShouldContact(int groupA, int groupB);
 	static float b2Factor;
-	static World* create();
+	static PhysicsWorld* create();
 };
 
 class FixtureDef {};
@@ -770,7 +779,7 @@ class Sensor : public Object
 
 class Body : public Node
 {
-	tolua_readonly tolua_property__common World* world;
+	tolua_readonly tolua_property__common PhysicsWorld* world;
 	tolua_readonly tolua_property__common BodyDef* bodyDef;
 	tolua_readonly tolua_property__common float mass;
 	tolua_readonly tolua_property__bool bool sensor;
@@ -790,7 +799,7 @@ class Body : public Node
 	bool removeSensor(Sensor* sensor);
 	void attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
-	static tolua_outside Body* Body_create @ create(BodyDef* def, World* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
+	static tolua_outside Body* Body_create @ create(BodyDef* def, PhysicsWorld* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
 };
 
 class JointDef : public Object
@@ -972,7 +981,7 @@ class Joint : public Object
 		float motorSpeed = 0.0f,
 		float frequency = 2.0f,
 		float damping = 0.7f);
-	tolua_readonly tolua_property__common World* world;
+	tolua_readonly tolua_property__common PhysicsWorld* world;
 	void destroy();
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 };
@@ -1210,6 +1219,8 @@ class UnitDef : public Object
 	static UnitDef* create();
 };
 
+class PlatformWorld;
+
 class Unit : public Body
 {
 	float sensity;
@@ -1255,7 +1266,7 @@ class Unit : public Body
 	float get(String name);
 	void remove(String name);
 	void clear();
-	static Unit* create(UnitDef* unitDef, World* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
+	static Unit* create(UnitDef* unitDef, PhysicsWorld* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
 };
 
 class PlatformCamera : public Camera
@@ -1267,6 +1278,21 @@ class PlatformCamera : public Camera
 	tolua_property__common Vec2 followRatio;
 	tolua_property__common Node* followTarget;
 	static PlatformCamera* create(String name = nullptr);
+};
+
+class PlatformWorld : public PhysicsWorld
+{
+	tolua_readonly tolua_property__common PlatformCamera* camera;
+	void moveChild(Node* child, int newOrder);
+	Node* getLayer(int order);
+	void setLayerRatio(int order, Vec2 ratio);
+	const Vec2& getLayerRatio(int order);
+	void setLayerOffset(int order, Vec2 offset);
+	const Vec2& getLayerOffset(int order);
+	void swapLayer(int orderA, int orderB);
+	void removeLayer(int order);
+	void removeAllLayers();
+	static PlatformWorld* create();
 };
 
 } // namespace Platformer

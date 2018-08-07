@@ -47,7 +47,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Animation/ModelDef.h"
 #include "Node/Model.h"
 #include "Cache/ModelCache.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Physics/BodyDef.h"
 #include "Physics/Body.h"
 #include "Physics/Sensor.h"

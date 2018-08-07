@@ -1,6 +1,6 @@
 Dorothy!
 
-world = with World!
+world = with PhysicsWorld!
 	\setShouldContact 0,0,true
 	.showDebug = true
 

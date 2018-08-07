@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Joint.h"
 #include "Physics/JointDef.h"
 #include "Physics/Body.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Physics/Sensor.h"
 
 NS_DOROTHY_BEGIN
@@ -25,7 +25,7 @@ b2Joint* Joint::getB2Joint()
 	return _joint;
 }
 
-World* Joint::getWorld()
+PhysicsWorld* Joint::getWorld()
 {
 	return _world;
 }
@@ -57,8 +57,8 @@ Joint* Joint::distance(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 aA = World::b2Val(anchorA);
-	b2Vec2 aB = World::b2Val(anchorB);
+	b2Vec2 aA = PhysicsWorld::b2Val(anchorA);
+	b2Vec2 aB = PhysicsWorld::b2Val(anchorB);
 	b2DistanceJointDef jointDef;
 	jointDef.Initialize(bA, bB,
 		bA->GetWorldPoint(aA),
@@ -87,7 +87,7 @@ Joint* Joint::friction(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 a = World::b2Val(worldAnchor);
+	b2Vec2 a = PhysicsWorld::b2Val(worldAnchor);
 	b2FrictionJointDef jointDef;
 	jointDef.Initialize(bA, bB, a);
 	jointDef.maxForce = maxForce;
@@ -142,7 +142,7 @@ Joint* Joint::spring(
 	b2Body* bB = bodyB->getB2Body();
 	b2MotorJointDef jointDef;
 	jointDef.Initialize(bA, bB);
-	jointDef.linearOffset = World::b2Val(linearOffset);
+	jointDef.linearOffset = PhysicsWorld::b2Val(linearOffset);
 	jointDef.angularOffset = -bx::toRad(angularOffset);
 	jointDef.maxForce = maxForce;
 	jointDef.maxTorque = maxTorque;
@@ -173,7 +173,7 @@ MoveJoint* Joint::move(
 	b2MouseJointDef jointDef;
 	jointDef.bodyA = bA;
 	jointDef.bodyB = bB;
-	jointDef.target = World::b2Val(target);
+	jointDef.target = PhysicsWorld::b2Val(target);
 	jointDef.maxForce = maxForce;
 	jointDef.frequencyHz = frequency;
 	jointDef.dampingRatio = damping;
@@ -202,11 +202,11 @@ MotorJoint* Joint::prismatic(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 a = World::b2Val(worldAnchor);
+	b2Vec2 a = PhysicsWorld::b2Val(worldAnchor);
 	b2PrismaticJointDef jointDef;
 	jointDef.Initialize(bA, bB, a, axis);
-	jointDef.lowerTranslation = World::b2Val(lowerTranslation);
-	jointDef.upperTranslation = World::b2Val(upperTranslation);
+	jointDef.lowerTranslation = PhysicsWorld::b2Val(lowerTranslation);
+	jointDef.upperTranslation = PhysicsWorld::b2Val(upperTranslation);
 	jointDef.enableLimit = (lowerTranslation || upperTranslation) && (lowerTranslation <= upperTranslation);
 	jointDef.maxMotorForce = maxMotorForce;
 	jointDef.motorSpeed = motorSpeed;
@@ -234,12 +234,12 @@ Joint* Joint::pulley(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 aA = World::b2Val(anchorA);
-	b2Vec2 aB = World::b2Val(anchorB);
+	b2Vec2 aA = PhysicsWorld::b2Val(anchorA);
+	b2Vec2 aB = PhysicsWorld::b2Val(anchorB);
 	aA = bA->GetWorldPoint(aA);
 	aB = bB->GetWorldPoint(aB);
-	b2Vec2 gA = World::b2Val(groundAnchorA);
-	b2Vec2 gB = World::b2Val(groundAnchorB);
+	b2Vec2 gA = PhysicsWorld::b2Val(groundAnchorA);
+	b2Vec2 gB = PhysicsWorld::b2Val(groundAnchorB);
 	b2PulleyJointDef jointDef;
 	jointDef.Initialize(bA, bB, gA, gB, aA, aB, ratio);
 	jointDef.collideConnected = collideConnected;
@@ -266,7 +266,7 @@ MotorJoint* Joint::revolute(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 a = World::b2Val(worldPos);
+	b2Vec2 a = PhysicsWorld::b2Val(worldPos);
 	lowerAngle = -bx::toRad(lowerAngle);
 	upperAngle = -bx::toRad(upperAngle);
 	motorSpeed = -bx::toRad(motorSpeed);
@@ -299,14 +299,14 @@ Joint* Joint::rope(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 aA = World::b2Val(anchorA);
-	b2Vec2 aB = World::b2Val(anchorB);
+	b2Vec2 aA = PhysicsWorld::b2Val(anchorA);
+	b2Vec2 aB = PhysicsWorld::b2Val(anchorB);
 	b2RopeJointDef jointDef;
 	jointDef.bodyA = bA;
 	jointDef.bodyB = bB;
 	jointDef.localAnchorA = aA;
 	jointDef.localAnchorB = aB;
-	jointDef.maxLength = World::b2Val(maxLength);
+	jointDef.maxLength = PhysicsWorld::b2Val(maxLength);
 	jointDef.collideConnected = collideConnected;
 	Joint* joint = Joint::create();
 	joint->_world = bodyA->getWorld();
@@ -329,7 +329,7 @@ Joint* Joint::weld(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 a = World::b2Val(worldPos);
+	b2Vec2 a = PhysicsWorld::b2Val(worldPos);
 	b2WeldJointDef jointDef;
 	jointDef.Initialize(bA, bB, a);
 	jointDef.frequencyHz = frequency;
@@ -359,11 +359,11 @@ MotorJoint* Joint::wheel(
 	}
 	b2Body* bA = bodyA->getB2Body();
 	b2Body* bB = bodyB->getB2Body();
-	b2Vec2 a = World::b2Val(worldPos);
+	b2Vec2 a = PhysicsWorld::b2Val(worldPos);
 	b2WheelJointDef jointDef;
 	jointDef.Initialize(bA, bB, a, axis);
 	jointDef.maxMotorTorque = maxMotorTorque;
-	jointDef.motorSpeed = World::b2Val(motorSpeed);
+	jointDef.motorSpeed = PhysicsWorld::b2Val(motorSpeed);
 	jointDef.frequencyHz = frequency;
 	jointDef.dampingRatio = damping;
 	jointDef.collideConnected = collideConnected;
@@ -379,7 +379,7 @@ void MoveJoint::setPosition(const Vec2& targetPos)
 	if (!_joint) return;
 	_position = targetPos;
 	b2MouseJoint* joint = (b2MouseJoint*)_joint;
-	joint->SetTarget(World::b2Val(targetPos));
+	joint->SetTarget(PhysicsWorld::b2Val(targetPos));
 }
 
 const Vec2& MoveJoint::getPosition() const

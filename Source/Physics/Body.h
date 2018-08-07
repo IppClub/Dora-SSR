@@ -14,7 +14,7 @@ NS_DOROTHY_BEGIN
 
 class Body;
 class Sensor;
-class World;
+class PhysicsWorld;
 class BodyDef;
 class Contact;
 
@@ -33,7 +33,7 @@ public:
 	PROPERTY(float, AngularDamping);
 	PROPERTY(float, AngularRate);
 	PROPERTY(Object*, Owner);
-	PROPERTY_READONLY(World*, World);
+	PROPERTY_READONLY(PhysicsWorld*, World);
 	PROPERTY_READONLY(BodyDef*, BodyDef);
 	PROPERTY_READONLY(b2Body*, B2Body);
 	PROPERTY_READONLY(Vec2, Velocity);
@@ -61,18 +61,18 @@ public:
 	bool isSensor() const;
 	CREATE_FUNC(Body);
 protected:
-	Body(BodyDef* bodyDef, World* world, const Vec2& pos = Vec2::zero, float rot = 0);
+	Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0);
 	b2Fixture* attachFixture(b2FixtureDef* fixtureDef);
 	virtual void updatePhysics();
 	b2Body* _bodyB2; // weak reference
-	World* _world;
+	PhysicsWorld* _world;
 	int _group;
 private:
 	bool _receivingContact;
 	Ref<BodyDef> _bodyDef;
 	Ref<Array> _sensors;
 	WRef<Object> _owner;
-	friend class World;
+	friend class PhysicsWorld;
 	DORA_TYPE_OVERRIDE(Body);
 };
 

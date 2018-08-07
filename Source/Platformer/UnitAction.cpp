@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Animation/ModelDef.h"
 #include "Node/Model.h"
 #include "Physics/Sensor.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Platformer/VisualCache.h"
 #include "Lua/LuaHandler.h"
 #include "Audio/Sound.h"
@@ -507,7 +507,7 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, b2Shape* selfShape)
 			if (distance == -1 || distance > output.distance)
 			{
 				distance = output.distance;
-				hitPoint = World::oVal(output.pointB);
+				hitPoint = PhysicsWorld::oVal(output.pointB);
 			}
 		}
 	}
@@ -519,7 +519,7 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, b2Shape* selfShape)
 MeleeAttack::MeleeAttack(Unit* unit):
 Attack(ActionSetting::UnitActionMeleeAttack, unit)
 {
-	_polygon.SetAsBox(World::b2Val(_owner->getWidth()*0.5f), 0.0005f);
+	_polygon.SetAsBox(PhysicsWorld::b2Val(_owner->getWidth()*0.5f), 0.0005f);
 }
 
 void MeleeAttack::onAttack()

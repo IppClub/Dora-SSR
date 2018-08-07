@@ -23,7 +23,7 @@ circleDef = with BodyDef!
 	.type = BodyType.Dynamic
 	\attachCircle 60,1,0.4,0.4
 
-world = with World!
+world = with PhysicsWorld!
 	.y = -200
 	\setShouldContact groupZero,groupOne,false
 	\setShouldContact groupZero,groupTwo,true

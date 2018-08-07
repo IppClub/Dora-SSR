@@ -821,7 +821,7 @@ void __Model_getAnimationNames(lua_State* L, String filename)
 
 /* Body */
 
-Body* Body_create(BodyDef* def, World* world, Vec2 pos, float rot)
+Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot)
 {
 	Body* body = Body::create(def, world, pos, rot);
 	auto sensorAddHandler = [](Sensor* sensor, Body* body)
@@ -1240,9 +1240,9 @@ tolua_lerror :
 #endif
 }
 
-/* EntityObserver */
+/* EntityWorld */
 
-EntityObserver* EntityObserver_create(String option, Slice components[], int count)
+EntityObserver* EntityWorld_observe(EntityWorld* world, String option, Slice components[], int count, const EntityHandler& handler)
 {
 	Uint32 optionVal = -1;
 	switch (Switch::hash(option))
@@ -1255,7 +1255,7 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 			AssertIf(true, "EntityObserver option name \"{}\" is invalid.", option);
 			break;
 	}
-	return EntityObserver::create(optionVal, components, count);
+	return world->observe(optionVal, components, count, handler);
 }
 
 NS_DOROTHY_END

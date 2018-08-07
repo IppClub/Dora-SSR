@@ -159,12 +159,18 @@ allClear = ->
 	for module in *moduleCache
 		package.loaded[module] = nil
 	moduleCache = {}
-	Director.ui\removeAllChildren!
-	Director.entry\removeAllChildren!
-	Director.postNode\removeAllChildren!
+	with Director.ui
+		\removeAllChildren!
+		.userData = nil
+	with Director.entry
+		\removeAllChildren!
+		.userData = nil
+	with Director.postNode
+		\removeAllChildren!
+		.userData = nil
 	Director\popCamera!
 	Cache\unload!
-	Entity\clear!
+	EntityWorld\removeAll!
 	currentEntryName = nil
 	isInEntry = true
 

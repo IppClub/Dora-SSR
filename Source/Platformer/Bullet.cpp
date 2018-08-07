@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/VisualCache.h"
 #include "Platformer/Face.h"
 #include "Physics/Sensor.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Physics/BodyDef.h"
 #include "Node/Model.h"
 #include "Animation/ModelDef.h"
@@ -70,7 +70,7 @@ void Bullet::updatePhysics()
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overridden by Body`s.
 		*/
-		Node::setPosition(Vec2{World::oVal(pos.x), World::oVal(pos.y)});
+		Node::setPosition(Vec2{PhysicsWorld::oVal(pos.x), PhysicsWorld::oVal(pos.y)});
 		if (_bodyB2->GetGravityScale() != 0.0f)
 		{
 			b2Vec2 velocity = _bodyB2->GetLinearVelocity();

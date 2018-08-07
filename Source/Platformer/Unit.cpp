@@ -21,12 +21,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Sensor.h"
 #include "Physics/Body.h"
 #include "Physics/BodyDef.h"
-#include "Physics/World.h"
+#include "Physics/PhysicsWorld.h"
 #include "Platformer/Property.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-Unit::Unit(UnitDef* unitDef, World* world) :
+Unit::Unit(UnitDef* unitDef, PhysicsWorld* world) :
 Body(unitDef->getBodyDef(), world),
 _model(nullptr),
 _detectSensor(nullptr),
@@ -125,9 +125,9 @@ Model* Unit::getModel() const
 	return _model;
 }
 
-Unit* Unit::create(UnitDef* unitDef, World* world, const Vec2& pos, float rot)
+Unit* Unit::create(UnitDef* unitDef, PhysicsWorld* world, const Vec2& pos, float rot)
 {
-	unitDef->getBodyDef()->position = World::b2Val(pos);
+	unitDef->getBodyDef()->position = PhysicsWorld::b2Val(pos);
 	unitDef->getBodyDef()->angle = -bx::toRad(rot);
     Unit* unit = new Unit(unitDef, world);
     if (unit && unit->init())
