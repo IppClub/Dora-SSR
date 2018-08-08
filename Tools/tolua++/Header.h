@@ -1124,12 +1124,6 @@ class Visual : public Node
 class AILeaf : public Object
 {};
 
-class Instinct
-{
-	static void add(String id, String propName, AILeaf* node);
-	static void clear();
-};
-
 AILeaf* Sel(AILeaf* nodes[tolua_len]);
 AILeaf* Seq(AILeaf* nodes[tolua_len]);
 AILeaf* ParSel(AILeaf* nodes[tolua_len]);
@@ -1140,8 +1134,6 @@ AILeaf* Act(String action);
 class AI
 {
 	tolua_readonly tolua_property__common Unit* self;
-	tolua_readonly tolua_property__common float oldInstinctValue @ oldValue;
-	tolua_readonly tolua_property__common float newInstinctValue @ newValue;
 	Array* getUnitsByRelation(Relation relation);
 	Array* getDetectedUnits();
 	Unit* getNearestUnit(Relation relation);
@@ -1211,11 +1203,10 @@ class UnitDef : public Object
 	string name;
 	string desc;
 	string sndAttack;
-	string sndDeath;
-	string reflexArc;
+	string sndFallen;
+	string decisionTree;
+	bool usePreciseHit;
 	tolua_outside void UnitDef_setActions @ setActions(Slice actions[tolua_len]);
-	tolua_outside void UnitDef_setInstincts @ setInstincts(Slice instincts[tolua_len]);
-	static bool usePreciseHit;
 	static UnitDef* create();
 };
 
@@ -1243,7 +1234,7 @@ class Unit : public Body
 	tolua_property__common Size attackRange;
 	tolua_property__bool bool faceRight;
 	tolua_property__common BulletDef* bulletDef;
-	tolua_property__common string reflexArc;
+	tolua_property__common string decisionTreeName;
 	tolua_readonly tolua_property__bool bool onSurface;
 	tolua_readonly tolua_property__common Sensor* groundSensor;
 	tolua_readonly tolua_property__common Sensor* detectSensor;
@@ -1252,6 +1243,7 @@ class Unit : public Body
 	tolua_readonly tolua_property__common UnitAction* currentAction;
 	tolua_readonly tolua_property__common float width;
 	tolua_readonly tolua_property__common float height;
+	tolua_readonly tolua_property__common Entity* entity;
 	UnitAction* attachAction(String name);
 	void removeAction(String name);
 	void removeAllActions();
@@ -1259,14 +1251,7 @@ class Unit : public Body
 	bool start(String name);
 	void stop();
 	bool isDoing(String name);
-	void attachInstinct(String id);
-	void removeInstinct(String id);
-	void removeAllInstincts();
-	void set(String name, float value);
-	float get(String name);
-	void remove(String name);
-	void clear();
-	static Unit* create(UnitDef* unitDef, PhysicsWorld* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
+	static Unit* create(UnitDef* unitDef, PhysicsWorld* physicsworld, Entity* entity, Vec2 pos = Vec2::zero, float rot = 0.0f);
 };
 
 class PlatformCamera : public Camera

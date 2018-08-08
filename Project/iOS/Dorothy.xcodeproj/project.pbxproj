@@ -28,7 +28,6 @@
 		3C10706D1E13A30800EB8C7A /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C10706B1E13A30800EB8C7A /* Scheduler.cpp */; };
 		3C131FF821011BB60087154A /* UnitDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FDD21011BB40087154A /* UnitDef.cpp */; };
 		3C131FF921011BB60087154A /* PlatformWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FDE21011BB40087154A /* PlatformWorld.cpp */; };
-		3C131FFA21011BB60087154A /* Property.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FE121011BB40087154A /* Property.cpp */; };
 		3C131FFB21011BB60087154A /* Bullet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FE221011BB40087154A /* Bullet.cpp */; };
 		3C131FFC21011BB60087154A /* BulletDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FE821011BB40087154A /* BulletDef.cpp */; };
 		3C131FFD21011BB60087154A /* UnitAction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FE921011BB50087154A /* UnitAction.cpp */; };
@@ -80,6 +79,7 @@
 		3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */; };
 		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
 		3CA87C4B20FB6F6300260F9E /* Particle in Resources */ = {isa = PBXBuildFile; fileRef = 3CA87C4A20FB6F6300260F9E /* Particle */; };
+		3CABB25A21199C0000737278 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CABB25821199C0000737278 /* PhysicsWorld.cpp */; };
 		3CB410291E05B0C500A8804D /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410261E05B0C500A8804D /* Slice.cpp */; };
 		3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410381E05B19A00A8804D /* ioapi.cpp */; };
 		3CB410411E05B19A00A8804D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103A1E05B19A00A8804D /* unzip.cpp */; };
@@ -92,7 +92,6 @@
 		3CB7307C1E80343E006DFA18 /* Joint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730711E80343E006DFA18 /* Joint.cpp */; };
 		3CB7307D1E80343E006DFA18 /* JointDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730731E80343E006DFA18 /* JointDef.cpp */; };
 		3CB7307E1E80343E006DFA18 /* Sensor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730751E80343E006DFA18 /* Sensor.cpp */; };
-		3CB7307F1E80343E006DFA18 /* World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730771E80343E006DFA18 /* World.cpp */; };
 		3CB730821E80344C006DFA18 /* Dictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730801E80344C006DFA18 /* Dictionary.cpp */; };
 		3CB7308A1E803529006DFA18 /* b2Rope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730881E803529006DFA18 /* b2Rope.cpp */; };
 		3CB730981E80353A006DFA18 /* b2Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB7308B1E80353A006DFA18 /* b2Body.cpp */; };
@@ -237,8 +236,6 @@
 		3C131FDD21011BB40087154A /* UnitDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UnitDef.cpp; path = ../../../Source/Platformer/UnitDef.cpp; sourceTree = "<group>"; };
 		3C131FDE21011BB40087154A /* PlatformWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlatformWorld.cpp; path = ../../../Source/Platformer/PlatformWorld.cpp; sourceTree = "<group>"; };
 		3C131FDF21011BB40087154A /* PlatformWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlatformWorld.h; path = ../../../Source/Platformer/PlatformWorld.h; sourceTree = "<group>"; };
-		3C131FE021011BB40087154A /* Property.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Property.h; path = ../../../Source/Platformer/Property.h; sourceTree = "<group>"; };
-		3C131FE121011BB40087154A /* Property.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Property.cpp; path = ../../../Source/Platformer/Property.cpp; sourceTree = "<group>"; };
 		3C131FE221011BB40087154A /* Bullet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bullet.cpp; path = ../../../Source/Platformer/Bullet.cpp; sourceTree = "<group>"; };
 		3C131FE321011BB40087154A /* UnitDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UnitDef.h; path = ../../../Source/Platformer/UnitDef.h; sourceTree = "<group>"; };
 		3C131FE421011BB40087154A /* PlatformCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlatformCamera.h; path = ../../../Source/Platformer/PlatformCamera.h; sourceTree = "<group>"; };
@@ -339,6 +336,8 @@
 		3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml2.cpp; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.cpp; sourceTree = "<group>"; };
 		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
 		3CA87C4A20FB6F6300260F9E /* Particle */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Particle; path = ../../Assets/Particle; sourceTree = "<group>"; };
+		3CABB25821199C0000737278 /* PhysicsWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PhysicsWorld.cpp; path = ../../../Source/Physics/PhysicsWorld.cpp; sourceTree = "<group>"; };
+		3CABB25921199C0000737278 /* PhysicsWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicsWorld.h; path = ../../../Source/Physics/PhysicsWorld.h; sourceTree = "<group>"; };
 		3CB410261E05B0C500A8804D /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CB410271E05B0C500A8804D /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
 		3CB4102B1E05B0F800A8804D /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
@@ -365,8 +364,6 @@
 		3CB730741E80343E006DFA18 /* JointDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JointDef.h; path = ../../../Source/Physics/JointDef.h; sourceTree = "<group>"; };
 		3CB730751E80343E006DFA18 /* Sensor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sensor.cpp; path = ../../../Source/Physics/Sensor.cpp; sourceTree = "<group>"; };
 		3CB730761E80343E006DFA18 /* Sensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sensor.h; path = ../../../Source/Physics/Sensor.h; sourceTree = "<group>"; };
-		3CB730771E80343E006DFA18 /* World.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = World.cpp; path = ../../../Source/Physics/World.cpp; sourceTree = "<group>"; };
-		3CB730781E80343E006DFA18 /* World.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = World.h; path = ../../../Source/Physics/World.h; sourceTree = "<group>"; };
 		3CB730801E80344C006DFA18 /* Dictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Dictionary.cpp; path = ../../../Source/Support/Dictionary.cpp; sourceTree = "<group>"; };
 		3CB730811E80344C006DFA18 /* Dictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dictionary.h; path = ../../../Source/Support/Dictionary.h; sourceTree = "<group>"; };
 		3CB730871E80351C006DFA18 /* Box2D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Box2D.h; path = ../../../Source/3rdParty/Box2D/Box2D.h; sourceTree = "<group>"; };
@@ -630,8 +627,6 @@
 				3C131FE421011BB40087154A /* PlatformCamera.h */,
 				3C131FDE21011BB40087154A /* PlatformWorld.cpp */,
 				3C131FDF21011BB40087154A /* PlatformWorld.h */,
-				3C131FE121011BB40087154A /* Property.cpp */,
-				3C131FE021011BB40087154A /* Property.h */,
 				3C131FF121011BB50087154A /* Unit.cpp */,
 				3C131FED21011BB50087154A /* Unit.h */,
 				3C131FE921011BB50087154A /* UnitAction.cpp */,
@@ -940,8 +935,8 @@
 				3CB730741E80343E006DFA18 /* JointDef.h */,
 				3CB730751E80343E006DFA18 /* Sensor.cpp */,
 				3CB730761E80343E006DFA18 /* Sensor.h */,
-				3CB730771E80343E006DFA18 /* World.cpp */,
-				3CB730781E80343E006DFA18 /* World.h */,
+				3CABB25821199C0000737278 /* PhysicsWorld.cpp */,
+				3CABB25921199C0000737278 /* PhysicsWorld.h */,
 			);
 			name = Physics;
 			sourceTree = "<group>";
@@ -1388,7 +1383,6 @@
 				3CB410421E05B19A00A8804D /* zip.cpp in Sources */,
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,
 				3CB730F11E80357D006DFA18 /* b2Timer.cpp in Sources */,
-				3CB7307F1E80343E006DFA18 /* World.cpp in Sources */,
 				3CB731131E8035A5006DFA18 /* b2EdgeShape.cpp in Sources */,
 				3CB730DA1E80356A006DFA18 /* b2PulleyJoint.cpp in Sources */,
 				3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */,
@@ -1410,7 +1404,6 @@
 				3C0AD7E61E0CE9D00033AD59 /* AutoreleasePool.cpp in Sources */,
 				3CB730DB1E80356A006DFA18 /* b2RevoluteJoint.cpp in Sources */,
 				3C4BC6661E17F1B500292200 /* tolua_is.cpp in Sources */,
-				3C131FFA21011BB60087154A /* Property.cpp in Sources */,
 				3CEDF77B1E835409008839A3 /* lpvm.cpp in Sources */,
 				3CEA9A831E292E3F00645F2D /* Camera.cpp in Sources */,
 				3CB7309A1E80353A006DFA18 /* b2Fixture.cpp in Sources */,
@@ -1505,6 +1498,7 @@
 				3CB730F01E80357D006DFA18 /* b2StackAllocator.cpp in Sources */,
 				3CB730DD1E80356A006DFA18 /* b2WeldJoint.cpp in Sources */,
 				3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */,
+				3CABB25A21199C0000737278 /* PhysicsWorld.cpp in Sources */,
 				3CB730B21E803556006DFA18 /* b2ChainAndPolygonContact.cpp in Sources */,
 				3CC05B6D1E7171D600F2BA1B /* Value.cpp in Sources */,
 				3C131FFF21011BB60087154A /* AINode.cpp in Sources */,

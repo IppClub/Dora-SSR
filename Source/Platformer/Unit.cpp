@@ -22,12 +22,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Body.h"
 #include "Physics/BodyDef.h"
 #include "Physics/PhysicsWorld.h"
-#include "Platformer/Property.h"
+#include "Entity/Entity.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-Unit::Unit(UnitDef* unitDef, PhysicsWorld* world) :
-Body(unitDef->getBodyDef(), world),
+Unit::Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity) :
+Body(unitDef->getBodyDef(), physicsWorld),
 _model(nullptr),
 _detectSensor(nullptr),
 _attackSensor(nullptr),
@@ -48,14 +48,13 @@ targetAllow(unitDef->targetAllow),
 damageType(unitDef->damageType),
 defenceType(unitDef->defenceType),
 sensity(unitDef->sensity),
-_unitDef(unitDef)
+_unitDef(unitDef),
+_entity(entity)
 { }
 
 bool Unit::init()
 {
 	if (!Body::init()) return false;
-	properties(this);
-	_instincts(this);
 	Unit::setDetectDistance(_unitDef->detectDistance);
 	Unit::setAttackRange(_unitDef->attackRange);
 	Unit::setTag(_unitDef->tag);
@@ -72,11 +71,9 @@ bool Unit::init()
 	{
 		Unit::attachAction(name);
 	}
-	for (const string& id : _unitDef->instincts)
-	{
-		Unit::attachInstinct(id);
-	}
-	Unit::setReflexArc(_unitDef->reflexArc);
+	Unit::setDecisionTreeName(_unitDef->decisionTree);
+	_entity->set("hp"_slice, s_cast<double>(_unitDef->maxHp));
+	_entity->set("unit"_slice, s_cast<Object*>(this));
 	this->scheduleUpdate();
 	return true;
 }
@@ -125,11 +122,11 @@ Model* Unit::getModel() const
 	return _model;
 }
 
-Unit* Unit::create(UnitDef* unitDef, PhysicsWorld* world, const Vec2& pos, float rot)
+Unit* Unit::create(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot)
 {
 	unitDef->getBodyDef()->position = PhysicsWorld::b2Val(pos);
 	unitDef->getBodyDef()->angle = -bx::toRad(rot);
-    Unit* unit = new Unit(unitDef, world);
+    Unit* unit = new Unit(unitDef, physicsWorld, entity);
     if (unit && unit->init())
 	{
 		unit->autorelease();
@@ -155,9 +152,19 @@ bool Unit::update(double deltaTime)
 	}
 	else
 	{
-		SharedAI.conditionedReflex(this);
+		SharedAI.runDecisionTree(this);
 	}
 	return Body::update(deltaTime);
+}
+
+void Unit::cleanup()
+{
+	if (_entity)
+	{
+		_entity->destroy();
+		_entity = nullptr;
+	}
+	Body::cleanup();
 }
 
 void Unit::setGroup(int group)
@@ -185,6 +192,11 @@ float Unit::getWidth() const
 float Unit::getHeight() const
 {
 	return _size.height;
+}
+
+Entity* Unit::getEntity() const
+{
+	return _entity;
 }
 
 UnitAction* Unit::attachAction(String name)
@@ -351,170 +363,25 @@ UnitAction* Unit::getCurrentAction() const
 	return _currentAction;
 }
 
-// PropertySet
-Unit::PropertySet::~PropertySet()
+void Unit::setDecisionTreeName(String name)
 {
-	for (auto it : _items) delete it.second;
-}
-
-void Unit::PropertySet::operator()(Unit* owner)
-{
-	_owner = owner;
-	_items["hp"] = new Property(_owner, _owner->maxHp); // Add the default property "hp"
-}
-
-Property& Unit::PropertySet::operator[](String name)
-{
-	return *(PropertySet::add(name));
-}
-
-const Property& Unit::PropertySet::operator[](String name) const
-{
-	return *(_items.find(name)->second);
-}
-
-void Unit::PropertySet::remove(String name)
-{
-	if (name != "hp")
-	{
-		auto it = _items.find(name);
-		if (it != _items.end())
-		{
-			_items.erase(it);
-		}
-	}
-}
-
-void Unit::PropertySet::clear()
-{
-	float temp = *_items["hp"];
-	_items.clear();
-	for (auto it : _items) delete it.second;
-	_items["hp"] = new Property(_owner, temp); // Add the default property "hp"
-}
-
-Property* Unit::PropertySet::add(String name)
-{
-	auto it = _items.find(name);
-	if (it != _items.end())
-	{
-		return it->second;
-	}
-	else
-	{
-		Property* prop = new Property(_owner);
-		_items[name] = prop;
-		_owner->_instincts.reinstall();
-		return prop;
-	}
-}
-
-Property* Unit::PropertySet::get(String name) const
-{
-	auto it = _items.find(name);
-	return it == _items.end() ? nullptr : it->second;
-}
-
-// InstinctSet
-void Unit::InstinctSet::add(Instinct* instinct)
-{
-	_instincts.push_back(instinct);
-	instinct->install(_owner);
-}
-
-void Unit::InstinctSet::remove(Instinct* instinct)
-{
-	Ref<Instinct> temp(instinct);
-	if (_instincts.remove(instinct))
-	{
-		instinct->uninstall(_owner);
-	}
-}
-
-void Unit::InstinctSet::clear()
-{
-	for (Instinct* instinct : _instincts)
-	{
-		instinct->uninstall(_owner);
-	}
-	_instincts.clear();
-}
-
-void Unit::InstinctSet::operator()(Unit* owner)
-{
-	_owner = owner;
-}
-
-void Unit::InstinctSet::reinstall()
-{
-	for (Instinct* instinct : _instincts)
-	{
-		instinct->install(_owner);
-	}
-}
-
-void Unit::setReflexArc(String name)
-{
-	_reflexArcName = name;
+	_decisionTreeName = name;
 	AILeaf* leaf = SharedAI.get(name);
 	if (leaf)
 	{
-		_reflexArc = leaf;
-		SharedAI.conditionedReflex(this);
+		_decisionTree = leaf;
+		SharedAI.runDecisionTree(this);
 	}
 }
 
-const string& Unit::getReflexArc() const
+const string& Unit::getDecisionTreeName() const
 {
-	return _reflexArcName;
+	return _decisionTreeName;
 }
 
-AILeaf* Unit::getReflexArcNode()
+AILeaf* Unit::getDecisionTree()
 {
-	return _reflexArc;
-}
-
-void Unit::set(String name, float value)
-{
-	properties[name] = value;
-}
-
-float Unit::get(String name)
-{
-	return *(properties.add(name));
-}
-
-void Unit::remove(String name)
-{
-	properties.remove(name);
-}
-
-void Unit::clear()
-{
-	properties.clear();
-}
-
-void Unit::attachInstinct(String id)
-{
-	Instinct* instinct = Instinct::get(id);
-	if (instinct)
-	{
-		_instincts.add(instinct);
-	}
-}
-
-void Unit::removeInstinct(String id)
-{
-	Instinct* instinct = Instinct::get(id);
-	if (instinct)
-	{
-		_instincts.remove(instinct);
-	}
-}
-
-void Unit::removeAllInstincts()
-{
-	_instincts.clear();
+	return _decisionTree;
 }
 
 NS_DOROTHY_PLATFORMER_END

@@ -10,26 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-class Unit;
 class AILeaf;
-
-class Instinct : public Object
-{
-public:
-	void install(Unit* unit);
-	void uninstall(Unit* unit);
-	void onInstinctPropertyChanged(Unit* unit, float oldValue, float newValue);
-	static void add(String id, String propName, AILeaf* node);
-	static void clear();
-	static Instinct* get(String id);
-	CREATE_FUNC(Instinct);
-protected:
-	Instinct(String propName, AILeaf* node);
-private:
-	string _propName;
-	Ref<AILeaf> _actionNode;
-	static unordered_map<string, Ref<Instinct>> _instincts;
-};
 
 /** @brief Behavior Tree base node */
 class AILeaf : public Object

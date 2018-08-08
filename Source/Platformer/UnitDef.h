@@ -44,7 +44,7 @@ public:
 	float attackBase;
 	float attackDelay;
 	float attackEffectDelay;
-	string reflexArc;
+	string decisionTree;
 	Size attackRange;
 	Vec2 attackPower;
 	AttackType attackType;
@@ -58,10 +58,9 @@ public:
 	string name;
 	string desc;
 	string sndAttack;
-	string sndDeath;
+	string sndFallen;
 	vector<string> actions;
-	vector<string> instincts;
-	static bool usePreciseHit;
+	bool usePreciseHit;
 	CREATE_FUNC(UnitDef);
 protected:
 	UnitDef();

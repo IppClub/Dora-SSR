@@ -1272,14 +1272,6 @@ void UnitDef_setActions(UnitDef* self, Slice names[], int count)
 	}
 }
 
-void UnitDef_setInstincts(UnitDef* self, Slice names[], int count)
-{
-	for (int i = 0; i < count; i++)
-	{
-		self->instincts.push_back(names[i]);
-	}
-}
-
 NS_DOROTHY_PLATFORMER_END
 
 using namespace Dorothy;

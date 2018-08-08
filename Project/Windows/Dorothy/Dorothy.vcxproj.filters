@@ -465,9 +465,6 @@
     <ClCompile Include="..\..\..\Source\Physics\Sensor.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Physics\World.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp">
       <Filter>Support</Filter>
     </ClCompile>
@@ -564,9 +561,6 @@
     <ClCompile Include="..\..\..\Source\Platformer\PlatformWorld.cpp">
       <Filter>Platformer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Platformer\Property.cpp">
-      <Filter>Platformer</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Platformer\Unit.cpp">
       <Filter>Platformer</Filter>
     </ClCompile>
@@ -578,6 +572,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Platformer\VisualCache.cpp">
       <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\PhysicsWorld.cpp">
+      <Filter>Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -963,9 +960,6 @@
     <ClInclude Include="..\..\..\Source\Physics\Sensor.h">
       <Filter>Physics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Physics\World.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Support\Dictionary.h">
       <Filter>Support</Filter>
     </ClInclude>
@@ -1089,9 +1083,6 @@
     <ClInclude Include="..\..\..\Source\Platformer\PlatformWorld.h">
       <Filter>Platformer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Platformer\Property.h">
-      <Filter>Platformer</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Platformer\Unit.h">
       <Filter>Platformer</Filter>
     </ClInclude>
@@ -1103,6 +1094,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Platformer\VisualCache.h">
       <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\PhysicsWorld.h">
+      <Filter>Physics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

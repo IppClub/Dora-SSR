@@ -14,6 +14,8 @@ NS_DOROTHY_BEGIN
 class Sensor;
 class Model;
 class PhysicsWorld;
+class Entity;
+class EntityWorld;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -29,14 +31,14 @@ typedef Delegate<void (UnitAction* action)> UnitActionHandler;
 class Unit : public Body
 {
 	typedef unordered_map<string, Own<UnitAction>> ActionMap;
-	typedef unordered_map<string, Property*> PropertyMap;
 public:
-	//Class properties
+	// Class properties
 	PROPERTY(Model*, Model);
 	PROPERTY(BulletDef*, BulletDef);
 	PROPERTY(float, DetectDistance);
 	PROPERTY_REF(Size, AttackRange);
 	PROPERTY_BOOL(FaceRight);
+	PROPERTY_READONLY(Entity*, Entity);
 	PROPERTY_READONLY(Sensor*, GroundSensor);
 	PROPERTY_READONLY(Sensor*, DetectSensor);
 	PROPERTY_READONLY(Sensor*, AttackSensor);
@@ -44,10 +46,10 @@ public:
 	PROPERTY_READONLY(UnitAction*, CurrentAction);
 	PROPERTY_READONLY(float, Width);
 	PROPERTY_READONLY(float, Height);
-	//
 	virtual bool init() override;
 	virtual void setGroup(int group) override;
 	virtual bool update(double deltaTime) override;
+	virtual void cleanup() override;
 	// Actions
 	UnitAction* attachAction(String name);
 	void removeAction(String name);
@@ -55,36 +57,13 @@ public:
 	UnitAction* getAction(String name) const;
 	void eachAction(const UnitActionHandler& func);
 	UnitActionHandler actionAdded;
-
+	// Run actions
 	bool start(String name);
 	void stop();
 	bool isDoing(String name);
-	//
+	// Physics state
 	bool isOnSurface() const;
-
-	//Named properties
-	class PropertySet
-	{
-	public:
-		~PropertySet();
-		Property& operator[](String name);
-		const Property& operator[](String name) const;
-		Property* add(String name);
-		Property* get(String name) const;
-		void remove(String name);
-		void clear();
-	private:
-		void operator()(Unit* owner);
-		Unit* _owner;
-		PropertyMap _items;
-		friend class Unit;
-	} properties;
-	//Methods for script to use properties
-	void set(String name, float value);
-	float get(String name);
-	void remove(String name);
-	void clear();
-	//Dynamic properties
+	// Dynamic properties
 	float sensity;
 	float move;
 	float moveSpeed;
@@ -100,39 +79,22 @@ public:
 	TargetAllow targetAllow;
 	Uint16 damageType;
 	Uint16 defenceType;
-	//Instinct for script
-	void attachInstinct(String id);
-	void removeInstinct(String id);
-	void removeAllInstincts();
-	//Conditioned Reflex
-	void setReflexArc(String name);
-	const string& getReflexArc() const;
-	AILeaf* getReflexArcNode();
+	// Decision tree AI nodes
+	void setDecisionTreeName(String name);
+	const string& getDecisionTreeName() const;
+	AILeaf* getDecisionTree();
 
-	static Unit* create(UnitDef* unitDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0.0f);
+	static Unit* create(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos = Vec2::zero, float rot = 0.0f);
 protected:
-	Unit(UnitDef* unitDef, PhysicsWorld* world);
-	//Instinct
-	class InstinctSet
-	{
-	public:
-		void add(Instinct* instinct);
-		void remove(Instinct* instinct);
-		void reinstall();
-		void clear();
-	private:
-		void operator()(Unit* owner);
-		Unit* _owner;
-		RefVector<Instinct> _instincts;
-		friend class Unit;
-	} _instincts;
+	Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity);
 private:
 	bool _isFaceRight;
+	Entity* _entity;
 	float _detectDistance;
 	Size _attackRange;
-	string _reflexArcName;
+	string _decisionTreeName;
+	Ref<AILeaf> _decisionTree;
 	Ref<UnitDef> _unitDef;
-	Ref<AILeaf> _reflexArc;
 	Ref<BulletDef> _bulletDef;
 	Ref<Model> _model;
 	Size _size;

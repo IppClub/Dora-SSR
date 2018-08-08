@@ -27,8 +27,6 @@ _nearestUnitDistance(0),
 _nearestFriendDistance(0),
 _nearestEnemyDistance(0),
 _nearestNeutralDistance(0),
-_oldInstinctValue(0),
-_newInstinctValue(0),
 _friends(Array::create()),
 _enemies(Array::create()),
 _neutrals(Array::create()),
@@ -40,10 +38,10 @@ Unit* AI::getSelf()
 	return _self;
 }
 
-bool AI::conditionedReflex(Unit* unit)
+bool AI::runDecisionTree(Unit* unit)
 {	
-	AILeaf* reflexArc = unit->getReflexArcNode();
-	if (!reflexArc)
+	AILeaf* decisionTree = unit->getDecisionTree();
+	if (!decisionTree)
 	{
 		return false;
 	}
@@ -115,7 +113,7 @@ bool AI::conditionedReflex(Unit* unit)
 		_nearestNeutralDistance = std::sqrt(minNeutralDistance);
 	}
 	//Do the Conditioned Reflex
-	bool result = reflexArc->doAction();
+	bool result = decisionTree->doAction();
 
 	_friends->clear();
 	_enemies->clear();
@@ -181,35 +179,25 @@ float AI::getNearestUnitDistance(Relation relation)
 	}
 }
 
-float AI::getOldInstinctValue()
-{
-	return _oldInstinctValue;
-}
-
-float AI::getNewInstinctValue()
-{
-	return _newInstinctValue;
-}
-
 void AI::add(String name, AILeaf* leaf)
 {
 	if (!name.empty())
 	{
-		_reflexArcs[name] = leaf;
+		_decisionTrees[name] = leaf;
 	}
 }
 
 void AI::clear()
 {
-	_reflexArcs.clear();
+	_decisionTrees.clear();
 }
 
 AILeaf* AI::get(String id)
 {
 	if (!id.empty())
 	{
-		auto it = _reflexArcs.find(id);
-		if (it != _reflexArcs.end())
+		auto it = _decisionTrees.find(id);
+		if (it != _decisionTrees.end())
 		{
 			return it->second;
 		}
