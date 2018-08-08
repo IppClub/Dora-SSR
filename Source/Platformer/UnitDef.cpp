@@ -25,14 +25,13 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
 const float UnitDef::BOTTOM_OFFSET(4.0f);
 const float UnitDef::GROUND_SENSOR_HEIGHT(4.0f);
-bool UnitDef::usePreciseHit = true;
 const Slice UnitDef::BulletKey = "bullet"_slice;
 const Slice UnitDef::AttackKey = "attack"_slice;
 const Slice UnitDef::HitKey = "hit"_slice;
 
 UnitDef::UnitDef() :
 tag(),
-reflexArc(),
+decisionTree(),
 _scale(1.0f),
 sensity(0),
 move(0),
@@ -54,7 +53,8 @@ bulletType(),
 _bodyDef(BodyDef::create()),
 _density(1.0f),
 _friction(0.4f),
-_restitution(0.4f)
+_restitution(0.4f),
+usePreciseHit(true)
 { }
 
 BodyDef* UnitDef::getBodyDef() const

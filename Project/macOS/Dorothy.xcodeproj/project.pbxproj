@@ -36,7 +36,6 @@
 		3C40555320FD93AA0057B0E4 /* Define.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40555220FD93A90057B0E4 /* Define.cpp */; };
 		3C40555920FD95710057B0E4 /* BulletDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40555520FD95710057B0E4 /* BulletDef.cpp */; };
 		3C40555C20FDC0B00057B0E4 /* VisualCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40555A20FDC0B00057B0E4 /* VisualCache.cpp */; };
-		3C42B09120FEC2D700186F9C /* Property.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09020FEC2D700186F9C /* Property.cpp */; };
 		3C42B09420FEC56C00186F9C /* Data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09320FEC56C00186F9C /* Data.cpp */; };
 		3C42B09720FEC57C00186F9C /* AINode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09620FEC57C00186F9C /* AINode.cpp */; };
 		3C42B0A020FECB0A00186F9C /* Bullet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09820FECB0900186F9C /* Bullet.cpp */; };
@@ -285,8 +284,6 @@
 		3C40555620FD95710057B0E4 /* BulletDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BulletDef.h; path = ../../../Source/Platformer/BulletDef.h; sourceTree = "<group>"; };
 		3C40555A20FDC0B00057B0E4 /* VisualCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VisualCache.cpp; path = ../../../Source/Platformer/VisualCache.cpp; sourceTree = "<group>"; };
 		3C40555B20FDC0B00057B0E4 /* VisualCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VisualCache.h; path = ../../../Source/Platformer/VisualCache.h; sourceTree = "<group>"; };
-		3C42B08F20FEC2D700186F9C /* Property.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Property.h; path = ../../../Source/Platformer/Property.h; sourceTree = "<group>"; };
-		3C42B09020FEC2D700186F9C /* Property.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Property.cpp; path = ../../../Source/Platformer/Property.cpp; sourceTree = "<group>"; };
 		3C42B09220FEC56B00186F9C /* Data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Data.h; path = ../../../Source/Platformer/Data.h; sourceTree = "<group>"; };
 		3C42B09320FEC56C00186F9C /* Data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Data.cpp; path = ../../../Source/Platformer/Data.cpp; sourceTree = "<group>"; };
 		3C42B09520FEC57C00186F9C /* AINode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AINode.h; path = ../../../Source/Platformer/AINode.h; sourceTree = "<group>"; };
@@ -773,8 +770,6 @@
 				3C1984772100656800B6F370 /* PlatformCamera.h */,
 				3C1984742100656700B6F370 /* PlatformWorld.cpp */,
 				3C1984762100656800B6F370 /* PlatformWorld.h */,
-				3C42B09020FEC2D700186F9C /* Property.cpp */,
-				3C42B08F20FEC2D700186F9C /* Property.h */,
 				3C42B09A20FECB0A00186F9C /* Unit.cpp */,
 				3C42B09920FECB0A00186F9C /* Unit.h */,
 				3C42B09C20FECB0A00186F9C /* UnitDef.cpp */,
@@ -1534,7 +1529,6 @@
 				3C6176BC1E82D51F00A19A54 /* lpprint.cpp in Sources */,
 				3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */,
 				3CE9D7BE1E7FB879003AAECB /* b2WheelJoint.cpp in Sources */,
-				3C42B09120FEC2D700186F9C /* Property.cpp in Sources */,
 				3C40555C20FDC0B00057B0E4 /* VisualCache.cpp in Sources */,
 				3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */,
 				3CE9D7BC1E7FB879003AAECB /* b2RopeJoint.cpp in Sources */,

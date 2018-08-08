@@ -350,8 +350,8 @@
     <ClCompile Include="..\..\..\Source\Physics\DebugDraw.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Joint.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\JointDef.cpp" />
+    <ClCompile Include="..\..\..\Source\Physics\PhysicsWorld.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Sensor.cpp" />
-    <ClCompile Include="..\..\..\Source\Physics\World.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\AI.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\AINode.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\Bullet.cpp" />
@@ -361,7 +361,6 @@
     <ClCompile Include="..\..\..\Source\Platformer\Face.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\PlatformCamera.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\PlatformWorld.cpp" />
-    <ClCompile Include="..\..\..\Source\Platformer\Property.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\Unit.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\UnitAction.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\UnitDef.cpp" />
@@ -527,8 +526,8 @@
     <ClInclude Include="..\..\..\Source\Physics\DebugDraw.h" />
     <ClInclude Include="..\..\..\Source\Physics\Joint.h" />
     <ClInclude Include="..\..\..\Source\Physics\JointDef.h" />
+    <ClInclude Include="..\..\..\Source\Physics\PhysicsWorld.h" />
     <ClInclude Include="..\..\..\Source\Physics\Sensor.h" />
-    <ClInclude Include="..\..\..\Source\Physics\World.h" />
     <ClInclude Include="..\..\..\Source\Platformer\AI.h" />
     <ClInclude Include="..\..\..\Source\Platformer\AINode.h" />
     <ClInclude Include="..\..\..\Source\Platformer\Bullet.h" />
@@ -538,7 +537,6 @@
     <ClInclude Include="..\..\..\Source\Platformer\Face.h" />
     <ClInclude Include="..\..\..\Source\Platformer\PlatformCamera.h" />
     <ClInclude Include="..\..\..\Source\Platformer\PlatformWorld.h" />
-    <ClInclude Include="..\..\..\Source\Platformer\Property.h" />
     <ClInclude Include="..\..\..\Source\Platformer\Unit.h" />
     <ClInclude Include="..\..\..\Source\Platformer\UnitAction.h" />
     <ClInclude Include="..\..\..\Source\Platformer\UnitDef.h" />

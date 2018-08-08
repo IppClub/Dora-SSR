@@ -73,7 +73,7 @@ private:
 	bool _isDoing;
 	string _name;
 	int _priority;
-	float _reflexDelta;
+	float _decisionDelay;
 	static unordered_map<string, Own<UnitActionDef>> _actionDefs;
 };
 

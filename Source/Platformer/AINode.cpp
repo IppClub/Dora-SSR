@@ -10,64 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Define.h"
 #include "Platformer/AINode.h"
 #include "Platformer/AI.h"
-#include "Platformer/Property.h"
 #include "Platformer/Unit.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
-
-unordered_map<string, Ref<Instinct>> Instinct::_instincts;
-
-Instinct::Instinct(String propName, AILeaf* node):
-_actionNode(node),
-_propName(propName)
-{ }
-
-void Instinct::install(Unit* unit)
-{
-	Property* prop = unit->properties.get(_propName);
-	if (prop)
-	{
-		prop->changed += std::make_pair(this, &Instinct::onInstinctPropertyChanged);
-	}
-}
-
-void Instinct::uninstall(Unit* unit)
-{
-	Property* prop = unit->properties.get(_propName);
-	if (prop)
-	{
-		prop->changed -= std::make_pair(this, &Instinct::onInstinctPropertyChanged);
-	}
-}
-
-void Instinct::onInstinctPropertyChanged(Unit* unit, float oldValue, float newValue)
-{
-	AI* ai = SharedAI.getTarget();
-	ai->_self = unit;
-	ai->_oldInstinctValue = oldValue;
-	ai->_newInstinctValue = newValue;
-	_actionNode->doAction();
-}
-
-void Instinct::add(String id, String propName, AILeaf* node)
-{
-	_instincts[id] = Instinct::create(propName, node);
-}
-
-void Instinct::clear()
-{
-	_instincts.clear();
-}
-
-Instinct* Instinct::get(String id)
-{
-	auto it = _instincts.find(id);
-	if (it != _instincts.end())
-	{
-		return it->second;
-	}
-	return nullptr;
-}
 
 AINode* AINode::add(AILeaf* node)
 {

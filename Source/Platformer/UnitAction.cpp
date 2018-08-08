@@ -16,7 +16,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/BulletDef.h"
 #include "Platformer/Bullet.h"
 #include "Platformer/AI.h"
-#include "Platformer/Property.h"
 #include "Animation/ModelDef.h"
 #include "Node/Model.h"
 #include "Physics/Sensor.h"
@@ -24,6 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/VisualCache.h"
 #include "Lua/LuaHandler.h"
 #include "Audio/Sound.h"
+#include "Entity/Entity.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
@@ -92,7 +92,7 @@ bool UnitAction::isAvailable()
 void UnitAction::run()
 {
 	_isDoing = true;
-	_reflexDelta = 0.0f;
+	_decisionDelay = 0.0f;
 	if (actionStart)
 	{
 		actionStart(this);
@@ -104,12 +104,12 @@ void UnitAction::update(float dt)
 	float reactionTime = _owner->sensity * UnitAction::reaction;
 	if (reactionTime >= 0)
 	{
-		_reflexDelta += dt;
-		if (_reflexDelta >= reactionTime)
+		_decisionDelay += dt;
+		if (_decisionDelay >= reactionTime)
 		{
-			_reflexDelta = 0.0f;
+			_decisionDelay = 0.0f;
 			// Check AI here
-			SharedAI.conditionedReflex(_owner);
+			SharedAI.runDecisionTree(_owner);
 		}
 	}
 }
@@ -542,12 +542,13 @@ void MeleeAttack::onAttack()
 				Hit* hitUnitAction = s_cast<Hit*>(target->getAction(ActionSetting::UnitActionHit));
 				if (hitUnitAction)
 				{
-					Vec2 hitPoint = UnitDef::usePreciseHit ? Attack::getHitPoint(_owner, target, &_polygon) : Vec2(target->getPosition());
+					Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, &_polygon) : Vec2(target->getPosition());
 					hitUnitAction->setHitInfo(hitPoint, _owner->attackPower, !attackRight);
 				}
 				/* Make damage */
 				float damage = Attack::getDamage(target);
-				target->properties["hp"] -= damage;
+				Entity* entity = target->getEntity();
+				entity->set("hp"_slice, entity->get<double>("hp"_slice) - damage);
 				if (damaged)
 				{
 					damaged(_owner, target, damage);
@@ -596,13 +597,14 @@ bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target)
 	if (hitUnitAction)
 	{
 		b2Shape* shape = bullet->getDetectSensor()->getFixture()->GetShape();
-		Vec2 hitPoint = UnitDef::usePreciseHit ? Attack::getHitPoint(_owner, target, shape) : Vec2(target->getPosition());
+		Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, shape) : Vec2(target->getPosition());
 		bool attackRight = bullet->getVelocityX() > 0.0f;
 		hitUnitAction->setHitInfo(hitPoint, _owner->attackPower, !attackRight);
 	}
 	/* Make damage */
 	float damage = Attack::getDamage(target);
-	target->properties["hp"] -= damage;
+	Entity* entity = target->getEntity();
+	entity->set("hp"_slice, entity->get<double>("hp"_slice) - damage);
 	if (damaged)
 	{
 		damaged(_owner, target, damage);
@@ -714,9 +716,9 @@ void Fall::run()
 		effect->autoRemove();
 		effect->start();
 	}
-	if (!_owner->getUnitDef()->sndDeath.empty())
+	if (!_owner->getUnitDef()->sndFallen.empty())
 	{
-		SharedAudio.play(_owner->getUnitDef()->sndDeath);
+		SharedAudio.play(_owner->getUnitDef()->sndFallen);
 	}
 	UnitAction::run();
 }

@@ -22,10 +22,8 @@ class AI
 {
 public:
 	enum {None = -1};
-	bool conditionedReflex(Unit* unit);
+	bool runDecisionTree(Unit* unit);
 	Unit* getSelf();
-	float getOldInstinctValue();
-	float getNewInstinctValue();
 	Array* getUnitsByRelation(Relation relation);
 	Array* getDetectedUnits();
 	Unit* getNearestUnit(Relation relation);
@@ -50,9 +48,7 @@ private:
 	float _nearestFriendDistance;
 	float _nearestEnemyDistance;
 	float _nearestNeutralDistance;
-	float _oldInstinctValue;
-	float _newInstinctValue;
-	unordered_map<string, Ref<AILeaf>> _reflexArcs;
+	unordered_map<string, Ref<AILeaf>> _decisionTrees;
 	friend class Instinct;
 };
 
