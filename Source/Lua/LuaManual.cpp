@@ -1242,7 +1242,7 @@ tolua_lerror :
 
 /* EntityWorld */
 
-EntityObserver* EntityWorld_observe(EntityWorld* world, String option, Slice components[], int count, const EntityHandler& handler)
+EntityObserver* EntityObserver_create(String option, Slice components[], int count)
 {
 	Uint32 optionVal = -1;
 	switch (Switch::hash(option))
@@ -1255,7 +1255,7 @@ EntityObserver* EntityWorld_observe(EntityWorld* world, String option, Slice com
 			AssertIf(true, "EntityObserver option name \"{}\" is invalid.", option);
 			break;
 	}
-	return world->observe(optionVal, components, count, handler);
+	return EntityObserver::create(optionVal, components, count);
 }
 
 NS_DOROTHY_END

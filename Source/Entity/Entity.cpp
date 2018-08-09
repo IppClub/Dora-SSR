@@ -17,40 +17,46 @@ NS_DOROTHY_BEGIN
 class EntityPool
 {
 public:
-	void update()
+	EntityPool()
 	{
-		for (auto& nextValue : nextValues)
+		SharedApplication.quitHandler += [this]() { clear(); };
+		SharedDirector.getSystemScheduler()->schedule([this](double deltaTime)
 		{
-			Entity* entity = entities[nextValue.entity];
-			if (entity)
+			DORA_UNUSED_PARAM(deltaTime);
+			for (auto& nextValue : nextValues)
 			{
-				if (DoraCast<ComNone>(nextValue.value.get()))
+				Entity* entity = entities[nextValue.entity];
+				if (entity)
 				{
-					entity->remove(nextValue.component);
-				}
-				else
-				{
-					entity->set(nextValue.component, std::move(nextValue.value));
+					if (DoraCast<ComNone>(nextValue.value.get()))
+					{
+						entity->remove(nextValue.component);
+					}
+					else
+					{
+						entity->set(nextValue.component, std::move(nextValue.value));
+					}
 				}
 			}
-		}
-		nextValues.clear();
-		for (const auto& trigger : triggers)
-		{
-			trigger();
-		}
-		for (auto& it : observers)
-		{
-			it.second->clear();
-		}
-		for (Entity* entity : updatedEntities)
-		{
-			if (entity)
+			nextValues.clear();
+			for (const auto& trigger : triggers)
 			{
-				entity->clearComCache();
+				trigger();
 			}
-		}
-		updatedEntities.clear();
+			for (auto& it : observers)
+			{
+				it.second->clear();
+			}
+			for (Entity* entity : updatedEntities)
+			{
+				if (entity)
+				{
+					entity->clearComCache();
+				}
+			}
+			updatedEntities.clear();
+			return false;
+		});
 	}
 	int tryGetIndex(String name) const
 	{
@@ -138,205 +144,14 @@ public:
 		changeHandlers.clear();
 		removeHandlers.clear();
 	}
+	SINGLETON_REF(EntityPool, AsyncThread);
 };
 
-class EntityWorldCache
-{
-public:
-	EntityWorldCache()
-	{
-		SharedApplication.quitHandler += []() { EntityWorld::removeAll(); };
-	}
-	unordered_map<string, Ref<EntityWorld>> worlds;
-	SINGLETON_REF(EntityWorldCache, Director);
-};
+#define Pool \
+	Dorothy::Singleton<EntityPool>::shared()
 
-#define SharedEntityWorldCache \
-	Dorothy::Singleton<EntityWorldCache>::shared()
-
-EntityWorld* EntityWorld::create(String name)
-{
-	auto& worlds = SharedEntityWorldCache.worlds;
-	auto it = worlds.find(name);
-	if (it != worlds.end())
-	{
-		return it->second;
-	}
-	EntityWorld* world = new EntityWorld();
-	if (!world->init())
-	{
-		delete world;
-		return nullptr;
-	}
-	world->autorelease();
-	worlds[name] = world;
-	return world;
-}
-
-void EntityWorld::removeAll()
-{
-	auto& worlds = SharedEntityWorldCache.worlds;
-	for (auto& it : worlds)
-	{
-		it.second->destroy();
-	}
-	worlds.clear();
-}
-
-void EntityWorld::remove(String name)
-{
-	auto& worlds = SharedEntityWorldCache.worlds;
-	auto it = worlds.find(name);
-	if (it != worlds.end())
-	{
-		it->second->destroy();
-		worlds.erase(it);
-	}
-}
-
-EntityWorld::EntityWorld():
-_pool(new EntityPool())
-{ }
-
-bool EntityWorld::init()
-{
-	if (Object::init())
-	{
-		SharedDirector.getSystemScheduler()->schedule(this);
-		return true;
-	}
-	return false;
-}
-
-bool EntityWorld::update(double deltaTime)
-{
-	_pool->update();
-	return false;
-}
-
-EntityPool* EntityWorld::getPool() const
-{
-	return _pool;
-}
-
-Entity* EntityWorld::entity()
-{
-	auto& entities = _pool->entities;
-	auto& usedIndices = _pool->usedIndices;
-	auto& availableEntities = _pool->availableEntities;
-	if (!availableEntities.empty())
-	{
-		Entity* entity = availableEntities.top();
-		int id = entity->getId();
-		entities[id] = std::move(availableEntities.top());
-		availableEntities.pop();
-		usedIndices.insert(id);
-		return entity;
-	}
-	Entity* entity = new Entity(this, s_cast<int>(entities.size()));
-	entities.push_back(MakeOwn(entity));
-	usedIndices.insert(entity->getId());
-	return entity;
-}
-
-EntityGroup* EntityWorld::group(const vector<string>& components, const EntityHandler& handler)
-{
-	vector<string> coms = components;
-	std::sort(coms.begin(), coms.end());
-	string name;
-	for (const auto& com : coms)
-	{
-		name += com;
-	}
-	auto& groups = _pool->groups;
-	EntityGroup* entityGroup = nullptr;
-	auto it = groups.find(name);
-	if (it != groups.end())
-	{
-		entityGroup = it->second;
-	}
-	else
-	{
-		entityGroup = new EntityGroup(this, coms);
-		groups[name] = MakeOwn(entityGroup);
-	}
-	if (handler.IsEmpty()) return entityGroup;
-	return entityGroup->every(handler);
-}
-
-EntityGroup* EntityWorld::group(Slice components[], int count, const EntityHandler& handler)
-{
-	vector<string> coms;
-	coms.resize(count);
-	for (int i = 0; i < count; i++)
-	{
-		coms[i] = components[i];
-	}
-	return group(coms, handler);
-}
-
-EntityObserver* EntityWorld::observe(int option, const vector<string>& components, const EntityHandler& handler)
-{
-	vector<string> coms = components;
-	std::sort(coms.begin(), coms.end());
-	fmt::memory_buffer out;
-	fmt::format_to(out, "{}", option);
-	for (const auto& com : coms)
-	{
-		fmt::format_to(out, "{}", com);
-	}
-	string name = fmt::to_string(out);
-	auto& observers = _pool->observers;
-	EntityObserver* entityObserver = nullptr;
-	auto it = observers.find(name);
-	if (it != observers.end())
-	{
-		entityObserver = it->second;
-	}
-	else
-	{
-		entityObserver = new EntityObserver(this, option, coms);
-		observers[name] = MakeOwn(entityObserver);
-	}
-	if (handler.IsEmpty()) return entityObserver;
-	return entityObserver->every(handler);
-}
-
-EntityObserver* EntityWorld::observe(int option, Slice components[], int count, const EntityHandler& handler)
-{
-	vector<string> coms;
-	coms.resize(count);
-	for (int i = 0; i < count; i++)
-	{
-		coms[i] = components[i];
-	}
-	return observe(option, coms, handler);
-}
-
-Uint32 EntityWorld::getCount() const
-{
-	return s_cast<Uint32>(_pool->usedIndices.size());
-}
-
-bool EntityWorld::each(const function<bool(Entity*)>& func)
-{
-	return _pool->eachEntity(func);
-}
-
-void EntityWorld::clear()
-{
-	_pool->clear();
-}
-
-void EntityWorld::destroy()
-{
-	SharedDirector.getSystemScheduler()->unschedule(this);
-	clear();
-}
-
-Entity::Entity(EntityWorld* world, int id):
-_id(id),
-_world(world)
+Entity::Entity(int id):
+_id(id)
 { }
 
 Entity::~Entity()
@@ -356,19 +171,18 @@ void Entity::destroy()
 			remove(i);
 		}
 	}
-	EntityPool* pool = _world->getPool();
-	pool->availableEntities.push(std::move(pool->entities[_id]));
-	pool->usedIndices.erase(_id);
+	Pool.availableEntities.push(std::move(Pool.entities[_id]));
+	Pool.usedIndices.erase(_id);
 }
 
 int Entity::getIndex(String name)
 {
-	return _world->getPool()->getIndex(name);
+	return Pool.getIndex(name);
 }
 
 bool Entity::has(String name) const
 {
-	auto& comIndices = _world->getPool()->comIndices;
+	auto& comIndices = Pool.comIndices;
 	auto it = comIndices.find(name);
 	if (it != comIndices.end())
 	{
@@ -389,7 +203,7 @@ bool Entity::hasCache(int index) const
 
 void Entity::remove(String name)
 {
-	int index = _world->getPool()->tryGetIndex(name);
+	int index = Pool.tryGetIndex(name);
 	AssertIf(!has(index), "removing non-exist component \"{}\"", name);
 	remove(index);
 }
@@ -397,13 +211,13 @@ void Entity::remove(String name)
 void Entity::remove(int index)
 {
 	if (!has(index)) return;
-	auto& removeHandler = _world->getPool()->getRemoveHandler(index);
+	auto& removeHandler = Pool.getRemoveHandler(index);
 	if (!removeHandler.IsEmpty())
 	{
 		if (!_comCache[index])
 		{
 			_comCache[index] = _components[index]->clone();
-			_world->getPool()->updatedEntities.insert(this);
+			Pool.updatedEntities.insert(this);
 		}
 		removeHandler(this);
 	}
@@ -433,7 +247,7 @@ void Entity::set(int index, Own<Com>&& value)
 void Entity::setNext(int index, Own<Com>&& value)
 {
 	int id = getId();
-	_world->getPool()->nextValues.push_back({id,index,std::move(value)});
+	Pool.nextValues.push_back({id,index,std::move(value)});
 }
 
 void Entity::updateComponent(int index, Own<Com>&& com, bool add)
@@ -444,18 +258,18 @@ void Entity::updateComponent(int index, Own<Com>&& com, bool add)
 		while (s_cast<int>(_components.size()) <= index) _components.emplace_back();
 		while (s_cast<int>(_comCache.size()) <= index) _comCache.emplace_back();
 		_components[index] = std::move(com);
-		handler = &_world->getPool()->getAddHandler(index);
+		handler = &Pool.getAddHandler(index);
 	}
 	else
 	{
-		handler = &_world->getPool()->getChangeHandler(index);
+		handler = &Pool.getChangeHandler(index);
 	}
 	if (!handler->IsEmpty())
 	{
 		if (!_comCache[index])
 		{
 			_comCache[index] = add ? Own<Com>() : std::move(com);
-			_world->getPool()->updatedEntities.insert(this);
+			Pool.updatedEntities.insert(this);
 		}
 		(*handler)(this);
 	}
@@ -463,7 +277,7 @@ void Entity::updateComponent(int index, Own<Com>&& com, bool add)
 
 Com* Entity::getComponent(String name) const
 {
-	int index = _world->getPool()->tryGetIndex(name);
+	int index = Pool.tryGetIndex(name);
 	return has(index) ? _components[index].get() : nullptr;
 }
 
@@ -474,7 +288,7 @@ Com* Entity::getComponent(int index) const
 
 Com* Entity::getCachedCom(String name) const
 {
-	int index = _world->getPool()->tryGetIndex(name);
+	int index = Pool.tryGetIndex(name);
 	return hasCache(index) ? _comCache[index].get() : nullptr;
 }
 
@@ -488,16 +302,50 @@ void Entity::clearComCache()
 	std::fill(_comCache.begin(), _comCache.end(), nullptr);
 }
 
-EntityGroup::EntityGroup(EntityWorld* world, const vector<string>& components):
-_world(world)
+void Entity::clear()
+{
+	Pool.clear();
+}
+
+Uint32 Entity::getCount()
+{
+	return s_cast<Uint32>(Pool.usedIndices.size());
+}
+
+bool Entity::each(const function<bool(Entity*)>& func)
+{
+	return Pool.eachEntity(func);
+}
+
+Entity* Entity::create()
+{
+	auto& entities = Pool.entities;
+	auto& usedIndices = Pool.usedIndices;
+	auto& availableEntities = Pool.availableEntities;
+	if (!availableEntities.empty())
+	{
+		Entity* entity = availableEntities.top();
+		int id = entity->getId();
+		entities[id] = std::move(availableEntities.top());
+		availableEntities.pop();
+		usedIndices.insert(id);
+		return entity;
+	}
+	Entity* entity = new Entity(s_cast<int>(entities.size()));
+	entities.push_back(MakeOwn(entity));
+	usedIndices.insert(entity->getId());
+	return entity;
+}
+
+EntityGroup::EntityGroup(const vector<string>& components)
 {
 	_components.resize(components.size());
-	EntityPool* pool = world->getPool();
+	EntityPool* pool = &Pool;
 	for (int i = 0; i < s_cast<int>(components.size()); i++)
 	{
 		_components[i] = pool->getIndex(components[i]);
 	}
-	world->each([this](Entity* entity)
+	Entity::each([this](Entity* entity)
 	{
 		bool match = true;
 		for (int index : _components)
@@ -524,7 +372,7 @@ _world(world)
 EntityGroup::~EntityGroup()
 {
 	if (Singleton<EntityPool>::isDisposed()) return;
-	EntityPool* pool = _world->getPool();
+	EntityPool* pool = &Pool;
 	for (const auto& index : _components)
 	{
 		pool->getAddHandler(index) -= std::make_pair(this, &EntityGroup::onAdd);
@@ -556,7 +404,7 @@ void EntityGroup::onRemove(Entity* entity)
 
 EntityGroup* EntityGroup::every(const EntityHandler& handler)
 {
-	_world->getPool()->triggers.push_back([this,handler]()
+	Pool.triggers.push_back([this,handler]()
 	{
 		each([&handler](Entity* entity)
 		{
@@ -567,12 +415,46 @@ EntityGroup* EntityGroup::every(const EntityHandler& handler)
 	return this;
 }
 
-EntityObserver::EntityObserver(EntityWorld* world, int option, const vector<string>& components):
-_option(option),
-_world(world)
+EntityGroup* EntityGroup::create(const vector<string>& components)
+{
+	vector<string> coms = components;
+	std::sort(coms.begin(), coms.end());
+	string name;
+	for (const auto& com : coms)
+	{
+		name += com;
+	}
+	auto& groups = Pool.groups;
+	EntityGroup* entityGroup = nullptr;
+	auto it = groups.find(name);
+	if (it != groups.end())
+	{
+		entityGroup = it->second;
+	}
+	else
+	{
+		entityGroup = new EntityGroup(coms);
+		groups[name] = MakeOwn(entityGroup);
+	}
+	return entityGroup;
+}
+
+EntityGroup* EntityGroup::create(Slice components[], int count)
+{
+	vector<string> coms;
+	coms.resize(count);
+	for (int i = 0; i < count; i++)
+	{
+		coms[i] = components[i];
+	}
+	return create(coms);
+}
+
+EntityObserver::EntityObserver(int option, const vector<string>& components):
+_option(option)
 {
 	_components.resize(components.size());
-	EntityPool* pool = _world->getPool();
+	EntityPool* pool = &Pool;
 	for (int i = 0; i < s_cast<int>(components.size()); i++)
 	{
 		int index = pool->getIndex(components[i]);
@@ -599,7 +481,7 @@ _world(world)
 EntityObserver::~EntityObserver()
 {
 	if (Singleton<EntityPool>::isDisposed()) return;
-	EntityPool* pool = _world->getPool();
+	EntityPool* pool = &Pool;
 	for (int index : _components)
 	{
 		switch (_option)
@@ -640,8 +522,7 @@ void EntityObserver::onEvent(Entity* entity)
 
 EntityObserver* EntityObserver::every(const EntityHandler& handler)
 {
-	EntityPool* pool = _world->getPool();
-	pool->triggers.push_back([this,handler]()
+	Pool.triggers.push_back([this,handler]()
 	{
 		each([&handler](Entity* entity)
 		{
@@ -655,6 +536,43 @@ EntityObserver* EntityObserver::every(const EntityHandler& handler)
 void EntityObserver::clear()
 {
 	_entities.clear();
+}
+
+EntityObserver* EntityObserver::create(int option, const vector<string>& components)
+{
+	vector<string> coms = components;
+	std::sort(coms.begin(), coms.end());
+	fmt::memory_buffer out;
+	fmt::format_to(out, "{}", option);
+	for (const auto& com : coms)
+	{
+		fmt::format_to(out, "{}", com);
+	}
+	string name = fmt::to_string(out);
+	auto& observers = Pool.observers;
+	EntityObserver* entityObserver = nullptr;
+	auto it = observers.find(name);
+	if (it != observers.end())
+	{
+		entityObserver = it->second;
+	}
+	else
+	{
+		entityObserver = new EntityObserver(option, coms);
+		observers[name] = MakeOwn(entityObserver);
+	}
+	return entityObserver;
+}
+
+EntityObserver* EntityObserver::create(int option, Slice components[], int count)
+{
+	vector<string> coms;
+	coms.resize(count);
+	for (int i = 0; i < count; i++)
+	{
+		coms[i] = components[i];
+	}
+	return create(option, coms);
 }
 
 NS_DOROTHY_END

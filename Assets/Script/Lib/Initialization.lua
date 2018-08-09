@@ -330,6 +330,21 @@ Dictionary.__len = function(self)
 end
 
 local Entity = builtin.Entity
+
+local Entity_create = Entity[2]
+local Entity_cache = {}
+Entity[2] = function(cls)
+	local entity = Entity_create(cls)
+	Entity_cache[entity.id] = entity
+	return entity
+end
+
+local Entity_clear = Entity.clear
+Entity.clear = function(cls)
+	Entity_cache = {}
+	Entity_clear(cls)
+end
+
 local Entity_getCache = Entity.getCache
 local Entity_valueCache
 Entity_valueCache = setmetatable({false},{
