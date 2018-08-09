@@ -163,35 +163,25 @@ class Dictionary : public Object
 
 class Entity
 {
+	static tolua_readonly tolua_property__common Uint32 count;
 	tolua_readonly tolua_property__common int id;
+	static void clear();
 	void destroy();
+	static Entity* create();
 };
 
 class EntityGroup @ Group
 {
 	void each(tolua_function_bool func);
 	EntityGroup* every(tolua_function func);
+	static EntityGroup* create(String components[tolua_len]);
 };
 
 class EntityObserver @ Observer
 {
 	void each(tolua_function_bool func);
 	EntityObserver* every(tolua_function func);
-};
-
-class EntityWorld : public Object
-{
-	tolua_readonly tolua_property__common Uint32 count;
-	Entity* entity();
-	EntityGroup* group(String components[tolua_len], tolua_function handler);
-	EntityGroup* group(String components[tolua_len]);
-	tolua_outside EntityObserver* EntityWorld_observe @ observe(String option, String components[tolua_len], tolua_function handler);
-	tolua_outside EntityObserver* EntityWorld_observe @ observe(String option, String components[tolua_len]);
-	bool each(tolua_function_bool func);
-	void clear();
-	static EntityWorld* create(String name = nullptr);
-	static void remove(String name);
-	static void removeAll();
+	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
 };
 
 class Content

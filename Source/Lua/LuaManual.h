@@ -138,7 +138,7 @@ int Entity_set(lua_State* L);
 int Entity_setNext(lua_State* L);
 
 /* EntityWorld */
-EntityObserver* EntityWorld_observe(EntityWorld* world, String option, Slice components[], int count, const EntityHandler& handler = nullptr);
+EntityObserver* EntityObserver_create(String option, Slice components[], int count);
 
 NS_DOROTHY_END
 

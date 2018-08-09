@@ -170,7 +170,7 @@ allClear = ->
 		.userData = nil
 	Director\popCamera!
 	Cache\unload!
-	EntityWorld\removeAll!
+	Entity\clear!
 	currentEntryName = nil
 	isInEntry = true
 

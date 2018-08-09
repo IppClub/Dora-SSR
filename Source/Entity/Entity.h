@@ -12,38 +12,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Dictionary;
 class Entity;
-class EntityPool;
-class EntityGroup;
-class EntityObserver;
 
 typedef Delegate<void(Entity*)> EntityHandler;
-
-class EntityWorld : public Object
-{
-public:
-	PROPERTY_READONLY(Uint32, Count);
-	PROPERTY_READONLY(EntityPool*, Pool);
-	virtual bool init() override;
-	virtual bool update(double deltaTime) override;
-	Entity* entity();
-	EntityGroup* group(const vector<string>& components, const EntityHandler& handler = nullptr);
-	EntityGroup* group(Slice components[], int count, const EntityHandler& handler = nullptr);
-	EntityObserver* observe(int option, const vector<string>& components, const EntityHandler& handler = nullptr);
-	EntityObserver* observe(int option, Slice components[], int count, const EntityHandler& handler = nullptr);
-	bool each(const function<bool(Entity*)>& func);
-	void clear();
-	static void removeAll();
-	static void remove(String name);
-	static EntityWorld* create(String name = Slice::Empty);
-protected:
-	EntityWorld();
-	void destroy();
-private:
-	Own<EntityPool> _pool;
-	DORA_TYPE_OVERRIDE(EntityWorld);
-};
 
 class Entity
 {
@@ -55,15 +26,19 @@ public:
 		AddOrChange,
 		Remove
 	};
-	Entity(EntityWorld* world, int id);
+	Entity(int id);
 	virtual ~Entity();
 	PROPERTY_READONLY(int, Id);
+	PROPERTY_READONLY_CLASS(Uint32, Count);
 	void destroy();
 	bool has(String name) const;
 	void remove(String name);
 	Com* getComponent(String name) const;
 	Com* getCachedCom(String name) const;
 	void clearComCache();
+	static bool each(const function<bool(Entity*)>& func);
+	static void clear();
+	static Entity* create();
 public:
 	template<typename T>
 	void set(String name, const T& value, bool rawFlag = false);
@@ -87,16 +62,15 @@ private:
 	int _id;
 	vector<Own<Com>> _components;
 	vector<Own<Com>> _comCache;
-	EntityWorld* _world;
 };
 
 class EntityGroup
 {
 public:
-	EntityGroup(EntityWorld* world, const vector<string>& components);
+	EntityGroup(const vector<string>& components);
 	virtual ~EntityGroup();
-	static EntityGroup* create(EntityWorld* world, const vector<string>& components);
-	static EntityGroup* create(EntityWorld* world, Slice components[], int count);
+	static EntityGroup* create(const vector<string>& components);
+	static EntityGroup* create(Slice components[], int count);
 public:
 	template<typename Func>
 	bool each(const Func& func);
@@ -107,16 +81,15 @@ public:
 private:
 	unordered_set<Entity*> _entities;
 	vector<int> _components;
-	EntityWorld* _world;
 };
 
 class EntityObserver
 {
 public:
-	EntityObserver(EntityWorld* world, int option, const vector<string>& components);
+	EntityObserver(int option, const vector<string>& components);
 	virtual ~EntityObserver();
-	static EntityObserver* create(EntityWorld* world, int option, const vector<string>& components);
-	static EntityObserver* create(EntityWorld* world, int option, Slice components[], int count);
+	static EntityObserver* create(int option, const vector<string>& components);
+	static EntityObserver* create(int option, Slice components[], int count);
 public:
 	template<typename Func>
 	bool each(const Func& func);
@@ -128,7 +101,6 @@ private:
 	int _option;
 	unordered_set<Entity*> _entities;
 	vector<int> _components;
-	EntityWorld* _world;
 };
 
 template<typename T>

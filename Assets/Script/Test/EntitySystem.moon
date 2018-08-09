@@ -1,17 +1,15 @@
 Dorothy!
 
-world = EntityWorld!
+hpGroup = Group {"hp"}
+spGroup = Group {"sp"}
 
-hpGroup = world\group {"hp"}
-spGroup = world\group {"sp"}
+observer = Observer "Change", {"hp","mp"}
 
-observer = world\observe "Change", {"hp","mp"}
-
-entity0 = with world\entity!
+entity0 = with Entity!
 	.hp = 100
 	.mp = 998
 
-entity1 = with world\entity!
+entity1 = with Entity!
 	.hp = 119
 	.sp = 233
 
