@@ -139,8 +139,7 @@ public:
 	///
 	const GlyphInfo* getGlyphInfo(FontHandle _handle, CodePoint _codePoint);
 
-	bool hasKerning(FontHandle _handle);
-	int getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
+	float getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
 private:
 	struct CachedFont;
 	struct CachedFile

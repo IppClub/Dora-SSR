@@ -20,18 +20,23 @@ _handler(handler)
 
 LuaHandler::~LuaHandler()
 {
-	SharedLueEngine.removeScriptHandler(_handler);
+	if (!Dorothy::Singleton<LuaEngine>::isDisposed())
+	{
+		SharedLuaEngine.removeScriptHandler(_handler);
+		return;
+	}
+	Warn("lua handler leaks with id {}", _handler);
 }
 
 bool LuaHandler::update(double deltaTime)
 {
-	SharedLueEngine.push(deltaTime);
-	return SharedLueEngine.executeFunction(_handler, 1);
+	SharedLuaEngine.push(deltaTime);
+	return SharedLuaEngine.executeFunction(_handler, 1);
 }
 
 bool LuaHandler::equals(LuaHandler* other) const
 {
-	return SharedLueEngine.scriptHandlerEqual(_handler, other->_handler);
+	return SharedLuaEngine.scriptHandlerEqual(_handler, other->_handler);
 }
 
 int LuaHandler::get() const
@@ -43,7 +48,7 @@ void LuaFunction::operator()(Event* event) const
 {
 	if (_handler->get() > 0)
 	{
-		SharedLueEngine.executeFunction(_handler->get(), event->pushArgsToLua());
+		SharedLuaEngine.executeFunction(_handler->get(), event->pushArgsToLua());
 	}
 }
 

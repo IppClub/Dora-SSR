@@ -8,12 +8,70 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Common/Singleton.h"
+#include <numeric>
 #include <mutex>
 
 NS_DOROTHY_BEGIN
 
 struct LifeCycler
 {
+	string getRefTree()
+	{
+		fmt::memory_buffer out;
+		unordered_set<string> entries;
+		for (const auto& life : lives)
+		{
+			entries.insert(life.first);
+		}
+		for (const auto& itemRef : itemRefs)
+		{
+			entries.insert(itemRef.first);
+		}
+		for (auto& ref : refs)
+		{
+			ref.visited = false;
+			auto entry = entries.find(ref.target);
+			if (entry != entries.end())
+			{
+				entries.erase(entry);
+			}
+		}
+		for (const auto& entry : entries)
+		{
+			queue<std::pair<string,int>> refList;
+			refList.push(std::make_pair(entry,-1));
+			while (!refList.empty())
+			{
+				auto name = refList.front();
+				string msg;
+				for (int i = 0; i < name.second; i++)
+				{
+					msg += " ";
+				}
+				if (name.second > 0)
+				{
+					msg += "|-";
+				}
+				fmt::format_to(out, "{}{}\n", msg, name.first);
+				refList.pop();
+				auto it = itemRefs.find(name.first);
+				if (it != itemRefs.end())
+				{
+					for (Reference* ref : *it->second)
+					{
+						if (!ref->visited)
+						{
+							ref->visited = true;
+							refList.push(std::make_pair(ref->target, name.second+2));
+						}
+					}
+				}
+			}
+			fmt::format_to(out, "\n");
+		}
+		return fmt::to_string(out);
+	}
+
 	void destroy(String itemName = Slice::Empty)
 	{
 		unordered_set<string> entries;
@@ -48,11 +106,11 @@ struct LifeCycler
 		for (const auto& entry : entries)
 		{
 			vector<string> items;
-			queue<Slice> refList;
+			queue<string> refList;
 			refList.push(entry);
 			while (!refList.empty())
 			{
-				Slice name = refList.front();
+				string name = refList.front();
 				refList.pop();
 				items.push_back(name);
 				auto it = itemRefs.find(name);
@@ -81,16 +139,8 @@ struct LifeCycler
 			}
 			if (!nameList.empty())
 			{
-				string msg = "singleton destroyed:";
-				for (auto& name : nameList)
-				{
-					msg += " " + name;
-					if (name != nameList.back())
-					{
-						msg += ",";
-					}
-				}
-				Info("{}.", msg);
+				Info("singleton destroyed: {}.", std::accumulate(nameList.begin()+1, nameList.end(), nameList.front(),
+				[](const string& a, const string& b) { return a + ", " + b; }));
 			}
 #endif // DORA_DEBUG
 			for (auto it = items.rbegin(); it != items.rend(); ++it)
@@ -139,10 +189,6 @@ void Life::addName(String name)
 {
 	LifeCycler* cycler = getCycler();
 	cycler->names.insert(name);
-	if (cycler->lives.find(name) == cycler->lives.end())
-	{
-		cycler->lives[name] = nullptr;
-	}
 }
 
 void Life::addDependency(String target, String dependency)
@@ -165,6 +211,7 @@ void Life::addDependency(String target, String dependency)
 void Life::addItem(String name, Life* life)
 {
 	LifeCycler* cycler = getCycler();
+	AssertIf(cycler->lives.find(name) != cycler->lives.end(), "Singleton name duplicated: \"{}\".", name);
 	cycler->lives[name] = MakeOwn(life);
 }
 
@@ -172,6 +219,12 @@ void Life::destroy(String name)
 {
 	LifeCycler* cycler = getCycler();
 	cycler->destroy(name);
+}
+
+string Life::getRefTree()
+{
+	LifeCycler* cycler = getCycler();
+	return cycler->getRefTree();
 }
 
 NS_DOROTHY_END

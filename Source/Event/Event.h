@@ -107,9 +107,9 @@ void Event::get(Args&... args)
 	LuaEventArgs* luaEvent = DoraCast<LuaEventArgs>(this);
 	if (luaEvent)
 	{
-		lua_State* L = SharedLueEngine.getState();
+		lua_State* L = SharedLuaEngine.getState();
 		int i = lua_gettop(L) - luaEvent->getParamCount();
-		bool results[] = {SharedLueEngine.to(args, ++i)...};
+		bool results[] = {SharedLuaEngine.to(args, ++i)...};
 		for (bool result : results)
 		{
 			AssertUnless(result, "lua event arguments mismatch.");

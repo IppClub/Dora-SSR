@@ -60,6 +60,7 @@ public:
 	static void addItem(String name, Life* life);
 	static void addName(String name);
 	static void destroy(String name);
+	static string getRefTree();
 #if DORA_DEBUG
 	static void assertIf(bool disposed, String name);
 #endif // DORA_DEBUG

@@ -8,15 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 #include "Entity/Component.h"
-#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
+class Dictionary;
 class Entity;
 
 typedef Delegate<void(Entity*)> EntityHandler;
 
-class Entity
+class Entity : public Object
 {
 public:
 	enum
@@ -26,19 +26,20 @@ public:
 		AddOrChange,
 		Remove
 	};
-	Entity(int id);
+	Entity(int index);
 	virtual ~Entity();
-	PROPERTY_READONLY(int, Id);
+	virtual bool init() override;
+	PROPERTY_READONLY(int, Index);
 	PROPERTY_READONLY_CLASS(Uint32, Count);
 	void destroy();
 	bool has(String name) const;
 	void remove(String name);
+	static Entity* create();
+	static bool each(const function<bool(Entity*)>& func);
+	static void clear();
 	Com* getComponent(String name) const;
 	Com* getCachedCom(String name) const;
 	void clearComCache();
-	static bool each(const function<bool(Entity*)>& func);
-	static void clear();
-	static Entity* create();
 public:
 	template<typename T>
 	void set(String name, const T& value, bool rawFlag = false);
@@ -59,16 +60,27 @@ public:
 protected:
 	void updateComponent(int index, Own<Com>&& com, bool add);
 private:
-	int _id;
+	int _index;
 	vector<Own<Com>> _components;
 	vector<Own<Com>> _comCache;
+	DORA_TYPE_OVERRIDE(Entity);
 };
 
-class EntityGroup
+struct WRefEntityHasher
+{
+	std::hash<Entity*> hash;
+	inline size_t operator () (const WRef<Entity>& entity) const
+	{
+		return hash(entity.get());
+	}
+};
+
+class EntityGroup : public Object
 {
 public:
 	EntityGroup(const vector<string>& components);
 	virtual ~EntityGroup();
+	virtual bool init() override;
 	static EntityGroup* create(const vector<string>& components);
 	static EntityGroup* create(Slice components[], int count);
 public:
@@ -79,15 +91,17 @@ public:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
 private:
-	unordered_set<Entity*> _entities;
+	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	vector<int> _components;
+	DORA_TYPE_OVERRIDE(EntityGroup);
 };
 
-class EntityObserver
+class EntityObserver : public Object
 {
 public:
 	EntityObserver(int option, const vector<string>& components);
 	virtual ~EntityObserver();
+	virtual bool init() override;
 	static EntityObserver* create(int option, const vector<string>& components);
 	static EntityObserver* create(int option, Slice components[], int count);
 public:
@@ -99,8 +113,9 @@ public:
 	void clear();
 private:
 	int _option;
-	unordered_set<Entity*> _entities;
+	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	vector<int> _components;
+	DORA_TYPE_OVERRIDE(EntityObserver);
 };
 
 template<typename T>

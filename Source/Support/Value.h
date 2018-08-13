@@ -52,7 +52,7 @@ public:
 	}
 	virtual void pushToLua() const override
 	{
-		SharedLueEngine.push(_value);
+		SharedLuaEngine.push(_value);
 	}
 	CREATE_FUNC(ValueEx<T>);
 protected:
@@ -85,7 +85,7 @@ public:
 	}
 	virtual void pushToLua() const override
 	{
-		SharedLueEngine.push(_value.get());
+		SharedLuaEngine.push(_value.get());
 	}
 	CREATE_FUNC(ValueEx<Object*>);
 protected:

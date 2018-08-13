@@ -281,7 +281,9 @@ LuaEngine::LuaEngine()
 }
 
 LuaEngine::~LuaEngine()
-{ }
+{
+	lua_close(L);
+}
 
 void LuaEngine::insertLuaLoader(lua_CFunction func)
 {

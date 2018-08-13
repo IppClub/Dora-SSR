@@ -1147,7 +1147,7 @@ void XmlDelegator::endElement(const char *name)
 			{
 				if (isMoon)
 				{
-					lua_State* L = SharedLueEngine.getState();
+					lua_State* L = SharedLuaEngine.getState();
 					int top = lua_gettop(L);
 					string moonCodes = fmt::format("return require(\"moonscript\").to_lua([[\n(->\n{}\n)!]],{{implicitly_return_root=false}})", codes);
 					if (luaL_loadstring(L, moonCodes.c_str()) == 0)

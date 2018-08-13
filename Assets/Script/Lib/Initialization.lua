@@ -335,7 +335,7 @@ local Entity_create = Entity[2]
 local Entity_cache = {}
 Entity[2] = function(cls)
 	local entity = Entity_create(cls)
-	Entity_cache[entity.id] = entity
+	Entity_cache[entity.index+1] = entity
 	return entity
 end
 

@@ -34,7 +34,7 @@ int dora_emit(lua_State* L)
 		{
 			lua_pushvalue(L, i);
 		}
-		lua_State* baseL = SharedLueEngine.getState();
+		lua_State* baseL = SharedLuaEngine.getState();
 		lua_xmove(L, baseL, count);
 		LuaEventArgs::send(name, count);
 		lua_pop(baseL, count);
@@ -114,7 +114,7 @@ int Node_emit(lua_State* L)
 			{
 				lua_pushvalue(L, i);
 			}
-			lua_State* baseL = SharedLueEngine.getState();
+			lua_State* baseL = SharedLuaEngine.getState();
 			lua_xmove(L, baseL, count);
 			LuaEventArgs luaEvent(name, count);
 			self->emit(&luaEvent);
