@@ -164,7 +164,7 @@ class Dictionary : public Object
 class Entity
 {
 	static tolua_readonly tolua_property__common Uint32 count;
-	tolua_readonly tolua_property__common int id;
+	tolua_readonly tolua_property__common int index;
 	static void clear();
 	void destroy();
 	static Entity* create();
@@ -191,9 +191,9 @@ class Content
 	void saveToFile @ save(String filename, String content);
 	bool isExist @ exist(String filename);
 	bool createFolder @ mkdir(String path);
-    bool isFolder @ isdir(String path);
+	bool isFolder @ isdir(String path);
 	bool removeFile @ remove(String path);
-    string getFullPath(String filename);
+	string getFullPath(String filename);
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);

@@ -57,13 +57,13 @@ bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _
 	AssertUnless(m_fontInfo.data == nullptr, "TrueTypeFont already initialized");
 	_pixelHeight = Math::clamp(_pixelHeight, 5U, 127U);
 
-    if (!stbtt_InitFont(&m_fontInfo, _buffer, stbtt_GetFontOffsetForIndex(_buffer, 0)))
+	if (!stbtt_InitFont(&m_fontInfo, _buffer, stbtt_GetFontOffsetForIndex(_buffer, 0)))
 	{
 		Error("stbtt_InitFont failed.");
 		return false;
 	}
 
-    float scale = stbtt_ScaleForPixelHeight(&m_fontInfo, _pixelHeight);
+	float scale = stbtt_ScaleForPixelHeight(&m_fontInfo, s_cast<float>(_pixelHeight));
 	int ascent, descent, lineGap;
 	stbtt_GetFontVMetrics(&m_fontInfo, &ascent, &descent, &lineGap);
 	m_info.scale = scale;
@@ -278,7 +278,7 @@ bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data)
 	return true;
 }
 
-int FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight)
+float FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight)
 {
 	const CachedFont& font = m_cachedFonts[_handle.idx];
 	TrueTypeFont* trueTypeFont = font.trueTypeFont;
@@ -291,7 +291,7 @@ int FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _
 		int32_t rightIndex= right->second.glyphIndex;
 		return stbtt_GetGlyphKernAdvance(&trueTypeFont->getSTBInfo(), leftIndex, rightIndex) * trueTypeFont->getFontInfo().scale;
 	}
-	return 0;
+	return 0.0f;
 }
 
 } // namespace bgfx

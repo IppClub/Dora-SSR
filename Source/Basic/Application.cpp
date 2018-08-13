@@ -422,9 +422,12 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 					switch (sdlEvent.type)
 					{
 						case SDL_QUIT:
+						{
 							running = false;
 							app->quitHandler();
+							// Info("singleton reference tree:\n{}", Life::getRefTree());
 							break;
+						}
 						default:
 							break;
 					}

@@ -32,7 +32,7 @@ struct LuaArgsPusher
 	template<typename T>
 	void operator()(T&& element)
 	{
-		SharedLueEngine.push(element);
+		SharedLuaEngine.push(element);
 	}
 };
 
@@ -50,7 +50,7 @@ public:
 	{
 		if (_handler->get() > 0)
 		{
-			SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
+			SharedLuaEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
 		}
 	}
 	void operator()(Event* event) const;
@@ -71,7 +71,7 @@ public:
 	{
 		if (_handler->get() > 0)
 		{
-			return SharedLueEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
+			return SharedLuaEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
 		}
 		return true;
 	}
@@ -92,7 +92,7 @@ public:
 	{
 		if (_handler->get() > 0)
 		{
-			return LuaFunctionBool(SharedLueEngine.executeReturnFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())));
+			return LuaFunctionBool(SharedLuaEngine.executeReturnFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())));
 		}
 		return true;
 	}

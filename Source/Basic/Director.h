@@ -73,7 +73,7 @@ private:
 	Ref<Scheduler> _postSystemScheduler;
 	Ref<RenderTarget> _renderTarget;
 	stack<Own<Matrix>> _viewProjs;
-	SINGLETON_REF(Director, FontManager, BGFXDora, Application);
+	SINGLETON_REF(Director, FontManager, LuaEngine, BGFXDora, Application);
 };
 
 #define SharedDirector \

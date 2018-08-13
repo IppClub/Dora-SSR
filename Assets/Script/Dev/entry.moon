@@ -206,6 +206,8 @@ showFooter = true
 scaleContent = false
 screenScale = Application.size.width/Application.designSize.width
 threadLoop ->
+	left = Keyboard\isKeyDown "Left"
+	right = Keyboard\isKeyDown "Right"
 	Application\shutdown! if Keyboard\isKeyDown "Escape"
 	{:width,:height} = Application.designSize
 	SetNextWindowSize Vec2(190,50)
@@ -249,14 +251,14 @@ threadLoop ->
 					currentIndex = i
 			SameLine!
 			if currentIndex > 1
-				if Button "Prev", Vec2(70,30)
+				if Button("Prev", Vec2(70,30)) or left
 					allClear!
 					isInEntry = false
 					thread -> enterDemoEntry allNames[currentIndex-1]
 			else Dummy Vec2 70,30
 			SameLine!
 			if currentIndex < #allNames
-				if Button "Next", Vec2(70,30)
+				if Button("Next", Vec2(70,30)) or right
 					allClear!
 					isInEntry = false
 					thread -> enterDemoEntry allNames[currentIndex+1]

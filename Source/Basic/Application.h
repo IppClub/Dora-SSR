@@ -91,7 +91,7 @@ private:
 	EventQueue _renderEvent;
 	SDL_Window* _sdlWindow;
 	std::mt19937 _randomEngine;
-	SINGLETON_REF(Application, LuaEngine);
+	SINGLETON_REF(Application, AsyncLogThread);
 };
 
 #define SharedApplication \
@@ -102,7 +102,7 @@ class BGFXDora
 public:
 	bool init();
 	virtual ~BGFXDora();
-	SINGLETON_REF(BGFXDora);
+	SINGLETON_REF(BGFXDora, Application);
 };
 
 #define SharedBGFX \

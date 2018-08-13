@@ -21,7 +21,14 @@ public:
 	maxLuaRefCount(0),
 	luaRefCount(0)
 	{ }
-	virtual ~ObjectBase() { }
+	virtual ~ObjectBase()
+	{
+		Uint32 count = maxIdCount - s_cast<Uint32>(availableIds.size());
+		if (count > 0)
+		{
+			Warn("Objects remain: {}, possible leaks of memory.", count);
+		}
+	}
 	Uint32 maxIdCount;
 	Uint32 maxLuaRefCount;
 	Uint32 luaRefCount;
@@ -89,7 +96,7 @@ bool Object::init()
 
 void Object::release()
 {
-	AssertUnless(_refCount > 0, "reference count should greater than 0.");
+	AssertUnless(_refCount > 0, "reference count should be greater than 0.");
     --_refCount;
     if (_refCount == 0)
     {
@@ -104,7 +111,7 @@ void Object::release()
 
 void Object::retain()
 {
-	AssertUnless(_refCount > 0, "reference count should greater than 0.");
+	AssertUnless(_refCount > 0, "reference count should be greater than 0.");
     ++_refCount;
 }
 

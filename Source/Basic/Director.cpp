@@ -206,7 +206,7 @@ bool Director::init()
 	{
 		if (file.toLower() == "main.lua"_slice)
 		{
-			SharedLueEngine.executeScriptFile(path + file);
+			SharedLuaEngine.executeScriptFile(path + file);
 			return true;
 		}
 		return false;

@@ -84,7 +84,7 @@ void LuaEventArgs::send(String name, int paramCount)
 
 int LuaEventArgs::pushArgsToLua()
 {
-	lua_State* L = SharedLueEngine.getState();
+	lua_State* L = SharedLuaEngine.getState();
 	int top = lua_gettop(L);
 	for (int index = top-_paramCount+1; index <= top; index++)
 	{

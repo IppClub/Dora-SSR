@@ -77,10 +77,10 @@ protected:
 	LuaEngine();
 	static int _callFromLua;
 	lua_State* L;
-	SINGLETON_REF(LuaEngine, ObjectBase);
+	SINGLETON_REF(LuaEngine, AsyncThread);
 };
 
-#define SharedLueEngine \
+#define SharedLuaEngine \
 	Dorothy::Singleton<Dorothy::LuaEngine>::shared()
 
 NS_DOROTHY_END

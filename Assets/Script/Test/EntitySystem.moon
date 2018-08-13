@@ -14,21 +14,21 @@ entity1 = with Entity!
 	.sp = 233
 
 print "-- {hp} group"
-hpGroup\each (e)-> print "entity", e.id
+hpGroup\each (e)-> print "entity", e.index
 
 print "-- {sp} group"
-spGroup\each (e)-> print "entity", e.id
+spGroup\each (e)-> print "entity", e.index
 
 print "-- {hp mp} observer"
 entity0.hp = 1
 entity1.hp = 999
-observer\each (e)-> print "hp or mp change: entity", e.id
+observer\each (e)-> print "hp or mp change: entity", e.index
 
-print "remove hp from entity", entity1.id
+print "remove hp from entity", entity1.index
 entity1.hp = nil
 
 print "-- {hp} group"
-hpGroup\each (e)-> print "entity", e.id
+hpGroup\each (e)-> print "entity", e.index
 
 print "-- {sp} group"
-spGroup\each (e)-> print "entity", e.id
+spGroup\each (e)-> print "entity", e.index

@@ -31,7 +31,7 @@ protected:
 	SoundCache() { }
 private:
 	unordered_map<string, Ref<SoundFile>> _soundFiles;
-	SINGLETON_REF(SoundCache, SoLoudPlayer);
+	SINGLETON_REF(SoundCache, Audio);
 };
 
 #define SharedSoundCache \

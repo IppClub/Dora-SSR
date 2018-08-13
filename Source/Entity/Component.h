@@ -51,7 +51,7 @@ public:
 	}
 	virtual void pushToLua() const override
 	{
-		SharedLueEngine.push(_value);
+		SharedLuaEngine.push(_value);
 	}
 private:
 	T _value;
@@ -84,7 +84,7 @@ public:
 	}
 	virtual void pushToLua() const override
 	{
-		SharedLueEngine.push(_value.get());
+		SharedLuaEngine.push(_value.get());
 	}
 private:
 	Ref<> _value;

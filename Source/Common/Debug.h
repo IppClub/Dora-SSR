@@ -66,9 +66,15 @@ inline void LogPrint(String str)
 	#define DORA_ASSERT(cond) assert(cond)
 #else
 	#define DORA_ASSERT(cond) \
-		if (!SharedLueEngine.executeAssert(cond, #cond)) \
 		{ \
-			assert(cond); \
+			if (Dorothy::Singleton<Dorothy::LuaEngine>::isDisposed()) \
+			{ \
+				assert(cond); \
+			} \
+			else if (!SharedLuaEngine.executeAssert(cond, #cond)) \
+			{ \
+				assert(cond); \
+			} \
 		}
 #endif
 
