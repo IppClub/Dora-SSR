@@ -74,6 +74,7 @@ bool ClipNode::isInverted() const
 
 bool ClipNode::init()
 {
+	if (!Object::init()) return false;
 	if (_stencil)
 	{
 		_stencil->setTransformTarget(this);

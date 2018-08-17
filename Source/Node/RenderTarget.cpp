@@ -55,6 +55,7 @@ Sprite* RenderTarget::getSurface() const
 
 bool RenderTarget::init()
 {
+	if (!Node::init()) return false;
 	const Uint32 textureFlags = (
 		BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP |
 		BGFX_TEXTURE_RT);

@@ -90,7 +90,7 @@ Object::~Object()
 
 bool Object::init()
 {
-	// Log("{}", typeid(*this).name());
+	// Info("{}", typeid(*this).name());
 	return true;
 }
 

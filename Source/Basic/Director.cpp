@@ -23,6 +23,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "bx/timer.h"
 #include "Common/Utils.h"
+#include "nanovg/nanovg.h"
+#include "nanovg/nanovg_bgfx.h"
 
 NS_DOROTHY_BEGIN
 
@@ -33,7 +35,8 @@ _postScheduler(Scheduler::create()),
 _postSystemScheduler(Scheduler::create()),
 _camStack(Array::create()),
 _clearColor(0xff1a1a1a),
-_displayStats(false)
+_displayStats(false),
+_nvgContext(nullptr)
 {
 	Camera* defaultCamera = Camera2D::create("Default"_slice);
 	defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
@@ -211,6 +214,12 @@ bool Director::init()
 		}
 		return false;
 	});
+	_nvgContext = nvgCreate(1, 0);
+	if (!_nvgContext)
+	{
+		Error("fail to init NanoVG context!");
+		return false;
+	}
 	return true;
 }
 
@@ -233,6 +242,15 @@ void Director::mainLoop()
 	{
 		/* update system logic */
 		_systemScheduler->update(getDeltaTime());
+
+		/* begin NanoVG */
+		Size designSize = SharedApplication.getDesignSize();
+		float deviceRatio = SharedApplication.getDeviceRatio();
+		nvgBeginFrame(_nvgContext, designSize.width, designSize.height, deviceRatio);
+		nvgBeginPath(_nvgContext);
+		nvgRect(_nvgContext, 0, 0, 100, 100);
+		nvgFillColor(_nvgContext, {0,1,1,1});
+		nvgFill(_nvgContext);
 
 		/* update game logic */
 		SharedImGui.begin();
@@ -315,6 +333,12 @@ void Director::mainLoop()
 					displayStats();
 				}
 			});
+
+			SharedView.pushName("NanoVG", [&]()
+			{
+				nvgSetViewId(_nvgContext, SharedView.getId());
+				nvgEndFrame(_nvgContext);
+			});
 		}
 		else
 		{
@@ -359,6 +383,12 @@ void Director::mainLoop()
 					}
 				});
 			}
+
+			SharedView.pushName("NanoVG", [&]()
+			{
+				nvgSetViewId(_nvgContext, SharedView.getId());
+				nvgEndFrame(_nvgContext);
+			});
 		}
 
 		/* render imgui */
@@ -447,6 +477,11 @@ void Director::clear()
 		_postNode->onExit();
 		_postNode->cleanup();
 		_postNode = nullptr;
+	}
+	if (_nvgContext)
+	{
+		nvgDelete(_nvgContext);
+		_nvgContext = nullptr;
 	}
 }
 

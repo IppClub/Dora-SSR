@@ -24,5 +24,5 @@ Director.entry\addChild with Node!
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		if Begin "Label", "NoResize|NoSavedSettings"
-			TextWrapped "Interact with multi-touches!"
+			TextWrapped "Render labels with unbatched and batched methods!"
 		End!

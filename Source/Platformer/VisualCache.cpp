@@ -205,6 +205,7 @@ _particle(ParticleNode::create(filename))
 
 bool ParticleVisual::init()
 {
+	if (!Visual::init()) return false;
 	addChild(_particle);
 	return true;
 }
@@ -274,6 +275,7 @@ _isAutoRemoved(false)
 
 bool SpriteVisual::init()
 {
+	if (!Visual::init()) return false;
 	addChild(_sprite);
 	return true;
 }

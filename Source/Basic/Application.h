@@ -28,6 +28,7 @@ public:
 	PROPERTY_READONLY(Size, Size);
 	PROPERTY_READONLY(Size, WinSize);
 	PROPERTY_READONLY(Size, DesignSize);
+	PROPERTY_READONLY(float, DeviceRatio);
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
