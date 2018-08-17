@@ -14,6 +14,7 @@ NS_DOROTHY_BEGIN
 
 bool Listener::init()
 {
+	if (!Object::init()) return false;
 	Listener::setEnabled(true);
 	return true;
 }

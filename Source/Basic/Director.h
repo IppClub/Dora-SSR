@@ -12,6 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Geometry.h"
 #include "Support/Common.h"
 
+struct NVGcontext;
+
 NS_DOROTHY_BEGIN
 
 class Scheduler;
@@ -73,6 +75,7 @@ private:
 	Ref<Scheduler> _postSystemScheduler;
 	Ref<RenderTarget> _renderTarget;
 	stack<Own<Matrix>> _viewProjs;
+	NVGcontext* _nvgContext;
 	SINGLETON_REF(Director, FontManager, LuaEngine, BGFXDora, Application);
 };
 

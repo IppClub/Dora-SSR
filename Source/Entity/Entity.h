@@ -27,8 +27,6 @@ public:
 		Remove
 	};
 	Entity(int index);
-	virtual ~Entity();
-	virtual bool init() override;
 	PROPERTY_READONLY(int, Index);
 	PROPERTY_READONLY_CLASS(Uint32, Count);
 	void destroy();

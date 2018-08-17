@@ -155,14 +155,6 @@ Entity::Entity(int index):
 _index(index)
 { }
 
-Entity::~Entity()
-{ }
-
-bool Entity::init()
-{
-	return true;
-}
-
 int Entity::getIndex() const
 {
 	return _index;
@@ -370,6 +362,7 @@ EntityGroup::~EntityGroup()
 
 bool EntityGroup::init()
 {
+	Object::init();
 	Entity::each([this](Entity* entity)
 	{
 		bool match = true;
@@ -505,6 +498,7 @@ EntityObserver::~EntityObserver()
 
 bool EntityObserver::init()
 {
+	if (!Object::init()) return false;
 	for (int index : _components)
 	{
 		switch (_option)

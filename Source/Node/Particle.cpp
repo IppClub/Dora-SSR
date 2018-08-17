@@ -209,6 +209,7 @@ ParticleNode::~ParticleNode()
 
 bool ParticleNode::init()
 {
+	if (!Node::init()) return false;
 	_particles.reserve(_particleDef->maxParticles);
 	_quads.reserve(_particleDef->maxParticles);
 	if (!_particleDef->textureName.empty())

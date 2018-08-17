@@ -59,6 +59,7 @@ Sprite::~Sprite()
 
 bool Sprite::init()
 {
+	if (!Node::init()) return false;
 	setDepthWrite(false);
 	setSize(_textureRect.size);
 	updateVertPosition();

@@ -85,6 +85,7 @@ Effect::~Effect()
 
 bool Effect::init()
 {
+	if (!Object::init()) return false;
 	_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
 	return bgfx::isValid(_program);
 }

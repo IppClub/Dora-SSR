@@ -88,6 +88,11 @@ Size Application::getWinSize() const
 	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
+float Application::getDeviceRatio() const
+{
+	return _width / _designWidth;
+}
+
 void Application::setSeed(Uint32 var)
 {
 	_seed = var;
