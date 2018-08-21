@@ -26,18 +26,19 @@ class Director
 public:
 	virtual ~Director();
 	PROPERTY(Scheduler*, Scheduler);
+	PROPERTY(Color, ClearColor);
+	PROPERTY_BOOL(DisplayStats);
 	PROPERTY_READONLY(Node*, UI);
 	PROPERTY_READONLY(Node*, Entry);
 	PROPERTY_READONLY(Node*, PostNode);
 	PROPERTY_READONLY(Camera*, CurrentCamera);
 	PROPERTY_READONLY(Camera*, PrevCamera);
-	PROPERTY(Color, ClearColor);
-	PROPERTY_BOOL(DisplayStats);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
 	PROPERTY_READONLY(Scheduler*, PostSystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
+	PROPERTY_READONLY(NVGcontext*, NVG);
 	bool init();
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);

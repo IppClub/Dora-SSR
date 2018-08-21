@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/ToLua/tolua++.h"
 #include "LuaManual.h"
 #include "Lua/LuaEngine.h"
+#include "bimg/decode.h"
 
 NS_DOROTHY_BEGIN
 
@@ -1862,3 +1863,64 @@ namespace ImGui { namespace Binding
 		return ImGuiCond_(0);
 	}
 } }
+
+int nvgCreateImageRGBA(NVGcontext* ctx, int w, int h, int imageFlags, String filename)
+{
+	auto data = SharedContent.loadFile(filename);
+	bx::DefaultAllocator allocator;
+	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.get(), s_cast<uint32_t>(data.size()), bimg::TextureFormat::RGBA8);
+	int result = nvgCreateImageRGBA(NVG, w, h, imageFlags, r_cast<Uint8*>(imageContainer->m_data));
+	bimg::imageFree(imageContainer);
+	return result;
+}
+
+int nvgCreateFont(NVGcontext* ctx, String name)
+{
+	string fontFile;
+	BLOCK_START
+	{
+		fontFile = "Font/" + name.toString() + ".ttf";
+		BREAK_IF(SharedContent.isExist(fontFile));
+		fontFile = "Font/" + name.toString() + ".otf";
+		BREAK_IF(SharedContent.isExist(fontFile));
+		fontFile = name.toString();
+		BREAK_IF(SharedContent.isExist(fontFile));
+	}
+	BLOCK_END
+	if (fontFile.empty()) return -1;
+	auto data = SharedContent.loadFile(fontFile);
+	Uint8* fontData = r_cast<Uint8*>(malloc(data.size()));
+	bx::memCopy(fontData, data.get(), data.size());
+	return nvgCreateFontMem(NVG, name.toString().c_str(), fontData, s_cast<int>(data.size()), 1);
+}
+
+float nvgTextBounds(NVGcontext* ctx, float x, float y, String text, Rect& bounds)
+{
+	float bds[4]{};
+	float result = nvgTextBounds(ctx, x, y, text.begin(), text.end(), bds);
+	bounds.setLeft(bds[0]);
+	bounds.setTop(bds[1]);
+	bounds.setRight(bds[2]);
+	bounds.setBottom(bds[3]);
+	return result;
+}
+
+void nvgTextBoxBounds(NVGcontext* ctx, float x, float y, float breakRowWidth, String text, Rect& bounds)
+{
+	float bds[4]{};
+	nvgTextBoxBounds(ctx, x, y, breakRowWidth, text.begin(), text.end(), bds);
+	bounds.setLeft(bds[0]);
+	bounds.setTop(bds[1]);
+	bounds.setRight(bds[2]);
+	bounds.setBottom(bds[3]);
+}
+
+float nvgText(NVGcontext* ctx, float x, float y, String text)
+{
+	return nvgText(ctx, x, y, text.begin(), text.end());
+}
+
+void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, String text)
+{
+	nvgTextBox(ctx, x, y, breakRowWidth, text.begin(), text.end());
+}
