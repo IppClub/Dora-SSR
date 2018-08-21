@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "imgui/imgui.h"
+#include "nanovg/nanovg.h"
 
 NS_DOROTHY_BEGIN
 
@@ -235,3 +236,87 @@ namespace ImGui { namespace Binding
 	ImGuiColorEditFlags_ getColorEditFlags(String mode);
 	ImGuiCond_ getSetCond(String cond);
 } }
+
+// NanoVG
+
+inline NVGcolor nvgColor(Color color)
+{
+	return nvgRGBA(color.r, color.g, color.b, color.a);
+}
+
+inline NVGcontext* SharedNVG()
+{
+	static NVGcontext* nvg = SharedDirector.getNVG();
+	return nvg;
+}
+#define NVG SharedNVG()
+
+int nvgCreateImageRGBA(NVGcontext* ctx, int w, int h, int imageFlags, String filename);
+int nvgCreateFont(NVGcontext* ctx, String name);
+float nvgTextBounds(NVGcontext* ctx, float x, float y, String text, Rect& bounds);
+void nvgTextBoxBounds(NVGcontext* ctx, float x, float y, float breakRowWidth, String text, Rect& bounds);
+float nvgText(NVGcontext* ctx, float x, float y, String text);
+void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, String text);
+
+struct nvg
+{
+	static void Save() { nvgSave(NVG); }
+	static void Restore() { nvgRestore(NVG); }
+	static void Reset() { nvgReset(NVG); }
+	static int CreateImageRGBA(int w, int h, int imageFlags, String filename) { return nvgCreateImageRGBA(NVG, w, h, imageFlags, filename); }
+	static int CreateFont(String name) { return nvgCreateFont(NVG, name); }
+	static float TextBounds(float x, float y, String text, Rect& bounds) { return nvgTextBounds(NVG, x, y, text, bounds); }
+	static void TextBoxBounds(float x, float y, float breakRowWidth, String text, Rect& bounds) { nvgTextBoxBounds(NVG, x, y, breakRowWidth, text, bounds); }
+	static float Text(float x, float y, String text) { return nvgText(NVG, x, y, text); }
+	static void TextBox(float x, float y, float breakRowWidth, String text) { nvgTextBox(NVG, x, y, breakRowWidth, text); }
+	static void StrokeColor(Color color) { nvgStrokeColor(NVG, nvgColor(color)); }
+	static void StrokePaint(NVGpaint paint) { nvgStrokePaint(NVG, paint); }
+	static void FillColor(Color color) { nvgFillColor(NVG, nvgColor(color)); }
+	static void FillPaint(NVGpaint paint) { nvgFillPaint(NVG, paint); }
+	static void MiterLimit(float limit) { nvgMiterLimit(NVG, limit); }
+	static void StrokeWidth(float size) { nvgStrokeWidth(NVG, size); }
+	static void LineCap(int cap) { nvgLineCap(NVG, cap); }
+	static void LineJoin(int join) { nvgLineJoin(NVG, join); }
+	static void GlobalAlpha(float alpha) { nvgGlobalAlpha(NVG, alpha); }
+	static void ResetTransform() { nvgResetTransform(NVG); }
+	static void Translate(float x, float y) { nvgTranslate(NVG, x, y); }
+	static void Rotate(float angle) { nvgRotate(NVG, angle); }
+	static void SkewX(float angle) { nvgSkewX(NVG, angle); }
+	static void SkewY(float angle) { nvgSkewY(NVG, angle); }
+	static void Scale(float x, float y) { nvgScale(NVG, x, y); }
+	static void ImageSize(int image, int* w, int* h) { nvgImageSize(NVG, image, w, h); }
+	static void DeleteImage(int image) { nvgDeleteImage(NVG, image); }
+	static NVGpaint LinearGradient(float sx, float sy, float ex, float ey, Color icol, Color ocol) { return nvgLinearGradient(NVG, sx, sy, ex, ey, nvgColor(icol), nvgColor(ocol)); }
+	static NVGpaint BoxGradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol) { return nvgBoxGradient(NVG, x, y, w, h, r, f, nvgColor(icol), nvgColor(ocol)); }
+	static NVGpaint RadialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol) { return nvgRadialGradient(NVG, cx, cy, inr, outr, nvgColor(icol), nvgColor(ocol)); }
+	static NVGpaint ImagePattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha) { return nvgImagePattern(NVG, ox, oy, ex, ey, angle, image, alpha); }
+	static void Scissor(float x, float y, float w, float h) { nvgScissor(NVG, x, y, w, h); }
+	static void IntersectScissor(float x, float y, float w, float h) { nvgIntersectScissor(NVG, x, y, w, h); }
+	static void ResetScissor() { nvgResetScissor(NVG); }
+	static void BeginPath() { nvgBeginPath(NVG); }
+	static void MoveTo(float x, float y) { nvgMoveTo(NVG, x, y); }
+	static void LineTo(float x, float y) { nvgLineTo(NVG, x, y); }
+	static void BezierTo(float c1x, float c1y, float c2x, float c2y, float x, float y) { nvgBezierTo(NVG, c1x, c1y, c2x, c2y, x, y); }
+	static void QuadTo(float cx, float cy, float x, float y) { nvgQuadTo(NVG, cx, cy, x, y); }
+	static void ArcTo(float x1, float y1, float x2, float y2, float radius) { nvgArcTo(NVG, x1, y1, x2, y2, radius); }
+	static void ClosePath() { nvgClosePath(NVG); }
+	static void PathWinding(int dir) { nvgPathWinding(NVG, dir); }
+	static void Arc(float cx, float cy, float r, float a0, float a1, int dir) { nvgArc(NVG, cx, cy, r, a0, a1, dir); }
+	static void Rect(float x, float y, float w, float h) { nvgRect(NVG, x, y, w, h); }
+	static void RoundedRect(float x, float y, float w, float h, float r) { nvgRoundedRect(NVG, x, y, w, h, r); }
+	static void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft) { nvgRoundedRectVarying(NVG, x, y, w, h, radTopLeft, radTopRight, radBottomRight, radBottomLeft); }
+	static void Ellipse(float cx, float cy, float rx, float ry) { nvgEllipse(NVG, cx, cy, rx, ry); }
+	static void Circle(float cx, float cy, float r) { nvgCircle(NVG, cx, cy, r); }
+	static void Fill() { nvgFill(NVG); }
+	static void Stroke() { nvgStroke(NVG); }
+	static int FindFont(const char* name) { return nvgFindFont(NVG, name); }
+	static int AddFallbackFontId(int baseFont, int fallbackFont) { return nvgAddFallbackFontId(NVG, baseFont, fallbackFont); }
+	static int AddFallbackFont(const char* baseFont, const char* fallbackFont) { return nvgAddFallbackFont(NVG, baseFont, fallbackFont); }
+	static void FontSize(float size) { nvgFontSize(NVG, size); }
+	static void FontBlur(float blur) { nvgFontBlur(NVG, blur); }
+	static void TextLetterSpacing(float spacing) { nvgTextLetterSpacing(NVG, spacing); }
+	static void TextLineHeight(float lineHeight) { nvgTextLineHeight(NVG, lineHeight); }
+	static void TextAlign(int align) { nvgTextAlign(NVG, align); }
+	static void FontFaceId(int font) { nvgFontFaceId(NVG, font); }
+	static void FontFace(const char* font) { nvgFontFace(NVG, font); }
+};

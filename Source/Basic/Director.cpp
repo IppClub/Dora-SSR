@@ -114,6 +114,11 @@ double Director::getDeltaTime() const
 	return std::min(SharedApplication.getDeltaTime(), 1.0/SharedApplication.getMinFPS());
 }
 
+NVGcontext* Director::getNVG() const
+{
+	return _nvgContext;
+}
+
 void Director::pushCamera(Camera* var)
 {
 	Camera* lastCamera = getCurrentCamera();
@@ -247,10 +252,6 @@ void Director::mainLoop()
 		Size designSize = SharedApplication.getDesignSize();
 		float deviceRatio = SharedApplication.getDeviceRatio();
 		nvgBeginFrame(_nvgContext, designSize.width, designSize.height, deviceRatio);
-		nvgBeginPath(_nvgContext);
-		nvgRect(_nvgContext, 0, 0, 100, 100);
-		nvgFillColor(_nvgContext, {0,1,1,1});
-		nvgFill(_nvgContext);
 
 		/* update game logic */
 		SharedImGui.begin();

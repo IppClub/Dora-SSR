@@ -453,7 +453,7 @@ class Sprite : public Node
 
 class Touch : public Object
 {
-	#define Touch::FromMouse @ FromMouse 
+	#define Touch::FromMouse @ FromMouse
 	#define Touch::FromTouch @ FromTouch
 	#define Touch::FromMouseAndTouch @ FromMouseAndTouch
 	tolua_property__bool bool enabled;

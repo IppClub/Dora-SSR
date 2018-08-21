@@ -2,9 +2,9 @@ $#include "Const/Header.h"
 $#include "Lua/LuaBinding.h"
 $using namespace Dorothy;
 $using namespace Dorothy::Platformer;
-$#define Size Dorothy::Size
-$#define Rect Dorothy::Rect
 $#define NewVec2(x,y) Vec2{x,y}
 
 $pfile "Header.h"
 $pfile "ImGui.h"
+$pfile "NanoVG.h"
+
