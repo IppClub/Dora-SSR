@@ -260,13 +260,34 @@ void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, String t
 
 struct nvg
 {
+	struct Transform
+	{
+		float t[6];
+		operator float*()
+		{
+			return t;
+		}
+		operator const float*() const
+		{
+			return t;
+		}
+		inline void indentity() { nvgTransformIdentity(t); }
+		inline void translate(float tx, float ty) { nvgTransformTranslate(t, tx, ty); }
+		inline void scale(float sx, float sy) { nvgTransformScale(t, sx, sy); }
+		inline void rotate(float a) { nvgTransformRotate(t, a); }
+		inline void skewX(float a) { nvgTransformSkewX(t, a); }
+		inline void skewY(float a) { nvgTransformSkewY(t, a); }
+		inline void multiply(const Transform& src) { nvgTransformMultiply(t, src); }
+		inline bool inverseFrom(const Transform& src) { return nvgTransformInverse(t, src) != 0; }
+		inline Vec2 point(Vec2 src) { Vec2 p; nvgTransformPoint(&p.x, &p.y, t, src.x, src.y); return p; }
+	};
 	static void Save() { nvgSave(NVG); }
 	static void Restore() { nvgRestore(NVG); }
 	static void Reset() { nvgReset(NVG); }
 	static int CreateImageRGBA(int w, int h, int imageFlags, String filename) { return nvgCreateImageRGBA(NVG, w, h, imageFlags, filename); }
 	static int CreateFont(String name) { return nvgCreateFont(NVG, name); }
 	static float TextBounds(float x, float y, String text, Rect& bounds) { return nvgTextBounds(NVG, x, y, text, bounds); }
-	static void TextBoxBounds(float x, float y, float breakRowWidth, String text, Rect& bounds) { nvgTextBoxBounds(NVG, x, y, breakRowWidth, text, bounds); }
+	static Rect TextBoxBounds(float x, float y, float breakRowWidth, String text) { Dorothy::Rect bounds; nvgTextBoxBounds(NVG, x, y, breakRowWidth, text, bounds); return bounds; }
 	static float Text(float x, float y, String text) { return nvgText(NVG, x, y, text); }
 	static void TextBox(float x, float y, float breakRowWidth, String text) { nvgTextBox(NVG, x, y, breakRowWidth, text); }
 	static void StrokeColor(Color color) { nvgStrokeColor(NVG, nvgColor(color)); }
@@ -279,12 +300,14 @@ struct nvg
 	static void LineJoin(int join) { nvgLineJoin(NVG, join); }
 	static void GlobalAlpha(float alpha) { nvgGlobalAlpha(NVG, alpha); }
 	static void ResetTransform() { nvgResetTransform(NVG); }
+	static void CurrentTransform(Transform& t) { nvgCurrentTransform(NVG, t); }
+	static void ApplyTransform(const Transform& t) { nvgTransform(NVG, t.t[0], t.t[1], t.t[2], t.t[3], t.t[4], t.t[5]); }
 	static void Translate(float x, float y) { nvgTranslate(NVG, x, y); }
 	static void Rotate(float angle) { nvgRotate(NVG, angle); }
 	static void SkewX(float angle) { nvgSkewX(NVG, angle); }
 	static void SkewY(float angle) { nvgSkewY(NVG, angle); }
 	static void Scale(float x, float y) { nvgScale(NVG, x, y); }
-	static void ImageSize(int image, int* w, int* h) { nvgImageSize(NVG, image, w, h); }
+	static Size ImageSize(int image) { int w, h; nvgImageSize(NVG, image, &w, &h); return Size{s_cast<float>(w), s_cast<float>(h)}; }
 	static void DeleteImage(int image) { nvgDeleteImage(NVG, image); }
 	static NVGpaint LinearGradient(float sx, float sy, float ex, float ey, Color icol, Color ocol) { return nvgLinearGradient(NVG, sx, sy, ex, ey, nvgColor(icol), nvgColor(ocol)); }
 	static NVGpaint BoxGradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol) { return nvgBoxGradient(NVG, x, y, w, h, r, f, nvgColor(icol), nvgColor(ocol)); }

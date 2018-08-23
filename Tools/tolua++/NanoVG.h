@@ -3,6 +3,7 @@ struct NVGpaint
 	~NVGpaint();
 }
 
+
 struct nvg
 {
 	#define NVG_CCW @ CCW
@@ -25,13 +26,27 @@ struct nvg
 
 namespace nvg
 {
+	struct Transform
+	{
+		Transform();
+		~Transform();
+		void indentity();
+		void translate(float tx, float ty);
+		void scale(float sx, float sy);
+		void rotate(float a);
+		void skewX(float a);
+		void skewY(float a);
+		void multiply(Transform src);
+		bool inverseFrom(Transform src);
+		Vec2 point(Vec2 src);
+	};
 	void Save();
 	void Restore();
 	void Reset();
 	int CreateImageRGBA(int w, int h, int imageFlags, String filename);
 	int CreateFont(String name);
 	float TextBounds(float x, float y, String text, Rect& bounds);
-	void TextBoxBounds(float x, float y, float breakRowWidth, String text, Rect& bounds);
+	Rect TextBoxBounds(float x, float y, float breakRowWidth, String text);
 	float Text(float x, float y, String text);
 	void TextBox(float x, float y, float breakRowWidth, String text);
 	void StrokeColor(Color color);
@@ -44,12 +59,14 @@ namespace nvg
 	void LineJoin(int join);
 	void GlobalAlpha(float alpha);
 	void ResetTransform();
+	void ApplyTransform(Transform t);
+	void CurrentTransform(Transform& t);
 	void Translate(float x, float y);
 	void Rotate(float angle);
 	void SkewX(float angle);
 	void SkewY(float angle);
 	void Scale(float x, float y);
-	void ImageSize(int image, int* w, int* h);
+	Size ImageSize(int image);
 	void DeleteImage(int image);
 	NVGpaint LinearGradient(float sx, float sy, float ex, float ey, Color icol, Color ocol);
 	NVGpaint BoxGradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol);
