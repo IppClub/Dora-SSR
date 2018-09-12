@@ -21,6 +21,7 @@ renderTarget = with RenderTarget 300,400
 		Vec2 0,400
 		Vec2.zero
 	},Color 0xff00ffff
+	\renderWithClear Color 0xff8a8a8a
 	\schedule ->
 		node.y = 200
 		\renderWithClear node,Color 0xff8a8a8a

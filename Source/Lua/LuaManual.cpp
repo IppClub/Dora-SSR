@@ -1824,7 +1824,7 @@ namespace ImGui { namespace Binding
 			case "PlotHistogram"_hash: return ImGuiCol_PlotHistogram;
 			case "PlotHistogramHovered"_hash: return ImGuiCol_PlotHistogramHovered;
 			case "TextSelectedBg"_hash: return ImGuiCol_TextSelectedBg;
-			case "ModalWindowDarkening"_hash: return ImGuiCol_ModalWindowDarkening;
+			case "ModalWindowDimBg"_hash: return ImGuiCol_ModalWindowDimBg;
 			default:
 				AssertIf(true, "ImGui color index name \"{}\" is invalid.", col);
 				break;

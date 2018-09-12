@@ -121,6 +121,9 @@
     <Filter Include="Platformer">
       <UniqueIdentifier>{45f95e66-5643-4ac5-92c1-8660357c90ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\nanovg">
+      <UniqueIdentifier>{38bba46f-dca1-4617-920b-0cda88bafb73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -242,15 +245,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Input\TouchDispather.cpp">
       <Filter>Input</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp">
-      <Filter>3rdParty\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_demo.cpp">
-      <Filter>3rdParty\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp">
-      <Filter>3rdParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp">
       <Filter>3rdParty\Other</Filter>
@@ -576,6 +570,24 @@
     <ClCompile Include="..\..\..\Source\Physics\PhysicsWorld.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\nanovg\nanovg.cpp">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\nanovg\nanovg_bgfx.cpp">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_demo.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_widgets.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -724,24 +736,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Input\TouchDispather.h">
       <Filter>Input</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h">
-      <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h">
-      <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h">
-      <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_rect_pack.h">
-      <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_textedit.h">
-      <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\imgui\stb_truetype.h">
-      <Filter>3rdParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h">
       <Filter>3rdParty\Other</Filter>
@@ -1097,6 +1091,33 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Physics\PhysicsWorld.h">
       <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fontstash.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fs_nanovg_fill.bin.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg_bgfx.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\vs_nanovg_fill.bin.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imstb_textedit.h">
+      <Filter>3rdParty\imgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

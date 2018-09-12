@@ -4,7 +4,7 @@ $using namespace Dorothy;
 $using namespace Dorothy::Platformer;
 $#define NewVec2(x,y) Vec2{x,y}
 
-$pfile "Header.h"
+$pfile "Dorothy.h"
 $pfile "ImGui.h"
 $pfile "NanoVG.h"
 

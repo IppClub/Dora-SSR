@@ -36,6 +36,8 @@ _postSystemScheduler(Scheduler::create()),
 _camStack(Array::create()),
 _clearColor(0xff1a1a1a),
 _displayStats(false),
+_nvgDirty(false),
+_stoped(false),
 _nvgContext(nullptr)
 {
 	Camera* defaultCamera = Camera2D::create("Default"_slice);
@@ -58,18 +60,33 @@ Scheduler* Director::getScheduler() const
 	return _scheduler;
 }
 
-Node* Director::getUI() const
+Node* Director::getUI()
 {
+	if (!_ui)
+	{
+		_ui = Node::create();
+		_ui->onEnter();
+	}
 	return _ui;
 }
 
-Node* Director::getEntry() const
+Node* Director::getEntry()
 {
+	if (!_entry)
+	{
+		_entry = Node::create();
+		_entry->onEnter();
+	}
 	return _entry;
 }
 
-Node* Director::getPostNode() const
+Node* Director::getPostNode()
 {
+	if (!_postNode)
+	{
+		_postNode = Node::create();
+		_postNode->onEnter();
+	}
 	return _postNode;
 }
 
@@ -112,11 +129,6 @@ double Director::getDeltaTime() const
 {
 	// only accept frames drop to min FPS
 	return std::min(SharedApplication.getDeltaTime(), 1.0/SharedApplication.getMinFPS());
-}
-
-NVGcontext* Director::getNVG() const
-{
-	return _nvgContext;
 }
 
 void Director::pushCamera(Camera* var)
@@ -190,13 +202,6 @@ static void registerTouchHandler(Node* target)
 
 bool Director::init()
 {
-	_ui = Node::create();
-	_ui->onEnter();
-	_entry = Node::create();
-	_entry->onEnter();
-	_postNode = Node::create();
-	_postNode->onEnter();
-
 	SharedView.reset();
 	if (!SharedImGui.init())
 	{
@@ -230,7 +235,7 @@ bool Director::init()
 
 void Director::mainLoop()
 {
-	if (!_entry) return;
+	if (_stoped) return;
 
 	/* push default view projection */
 	Matrix viewProj;
@@ -247,12 +252,6 @@ void Director::mainLoop()
 	{
 		/* update system logic */
 		_systemScheduler->update(getDeltaTime());
-
-		/* begin NanoVG */
-		Size designSize = SharedApplication.getDesignSize();
-		float deviceRatio = SharedApplication.getDeviceRatio();
-		nvgBeginFrame(_nvgContext, designSize.width, designSize.height, deviceRatio);
-
 		/* update game logic */
 		SharedImGui.begin();
 		_scheduler->update(getDeltaTime());
@@ -265,23 +264,32 @@ void Director::mainLoop()
 		/* handle ImGui touch */
 		SharedTouchDispatcher.add(SharedImGui.getTarget());
 		SharedTouchDispatcher.dispatch();
-		/* handle ui touch */
-		Matrix ortho;
+
 		Size viewSize = SharedView.getSize();
+		Matrix ortho;
 		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0,
 			bgfx::getCaps()->homogeneousDepth);
-		registerTouchHandler(_ui);
-		pushViewProjection(ortho, []()
+
+		/* handle ui touch */
+		if (_ui)
 		{
-			SharedTouchDispatcher.dispatch();
-		});
+			registerTouchHandler(_ui);
+			pushViewProjection(ortho, []()
+			{
+				SharedTouchDispatcher.dispatch();
+			});
+		}
+
 		/* handle post node touch */
-		registerTouchHandler(_postNode);
-		SharedTouchDispatcher.dispatch();
-		/* handle scene tree touch */
-		registerTouchHandler(_entry);
-		SharedTouchDispatcher.dispatch();
-		SharedTouchDispatcher.clearEvents();
+		if (_postNode)
+		{
+			registerTouchHandler(_postNode);
+			SharedTouchDispatcher.dispatch();
+			/* handle scene tree touch */
+			registerTouchHandler(_entry);
+			SharedTouchDispatcher.dispatch();
+			SharedTouchDispatcher.clearEvents();
+		}
 
 		/* do render */
 		if (SharedView.isPostProcessNeeded())
@@ -318,27 +326,27 @@ void Director::mainLoop()
 					SharedRendererManager.flush();
 				});
 				/* post node */
-				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-				_postNode->visit();
-				SharedRendererManager.flush();
-				/* ui node */
-				pushViewProjection(ortho, [&]()
+				if (_postNode)
 				{
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					_ui->visit();
+					_postNode->visit();
 					SharedRendererManager.flush();
-				});
+				}
+				/* ui node */
+				if (_ui)
+				{
+					pushViewProjection(ortho, [&]()
+					{
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						_ui->visit();
+						SharedRendererManager.flush();
+					});
+				}
 				/* profile info */
 				if (_displayStats)
 				{
 					displayStats();
 				}
-			});
-
-			SharedView.pushName("NanoVG", [&]()
-			{
-				nvgSetViewId(_nvgContext, SharedView.getId());
-				nvgEndFrame(_nvgContext);
 			});
 		}
 		else
@@ -358,25 +366,28 @@ void Director::mainLoop()
 					_clearColor.toRGBA());
 				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 				/* scene tree */
-				_entry->visit();
+				if (_entry) _entry->visit();
 				/* post node */
-				_postNode->visit();
+				if (_postNode) _postNode->visit();
 				SharedRendererManager.flush();
 			});
 
 			/* render ui node */
-			if (_ui->hasChildren() || _displayStats)
+			if (_ui || _displayStats)
 			{
 				SharedView.pushName("UI"_slice, [&]()
 				{
 					Uint8 viewId = SharedView.getId();
 					/* ui node */
-					pushViewProjection(ortho, [&]()
+					if (_ui)
 					{
-						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-						_ui->visit();
-						SharedRendererManager.flush();
-					});
+						pushViewProjection(ortho, [&]()
+						{
+							bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+							_ui->visit();
+							SharedRendererManager.flush();
+						});
+					}
 					/* profile info */
 					if (_displayStats)
 					{
@@ -384,7 +395,12 @@ void Director::mainLoop()
 					}
 				});
 			}
+		}
 
+		/* render NanoVG */
+		if (_nvgContext && _nvgDirty)
+		{
+			_nvgDirty = false;
 			SharedView.pushName("NanoVG", [&]()
 			{
 				nvgSetViewId(_nvgContext, SharedView.getId());
@@ -488,9 +504,21 @@ void Director::clear()
 
 void Director::markDirty()
 {
-	_ui->markDirty();
-	_entry->markDirty();
-	_postNode->markDirty();
+	if (_ui) _ui->markDirty();
+	if (_entry) _entry->markDirty();
+	if (_postNode) _postNode->markDirty();
+}
+
+NVGcontext* Director::markNVGDirty()
+{
+	if (!_nvgDirty && _nvgContext)
+	{
+		_nvgDirty = true;
+		Size designSize = SharedApplication.getDesignSize();
+		float deviceRatio = SharedApplication.getDeviceRatio();
+		nvgBeginFrame(_nvgContext, designSize.width, designSize.height, deviceRatio);
+	}
+	return _nvgContext;
 }
 
 void Director::handleSDLEvent(const SDL_Event& event)
@@ -500,6 +528,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		// User-requested quit
 		case SDL_QUIT:
 			Event::send("AppQuit"_slice);
+			_stoped = true;
 			clear();
 			break;
 		// The application is being terminated by the OS.

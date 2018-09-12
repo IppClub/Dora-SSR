@@ -35,13 +35,13 @@ public:
 	PROPERTY_READONLY(TextureFilter, Filter);
 	PROPERTY_READONLY(TextureWrap, UWrap);
 	PROPERTY_READONLY(TextureWrap, VWrap);
-	PROPERTY_READONLY(Uint32, Flags);
+	PROPERTY_READONLY(Uint64, Flags);
 	virtual ~Texture2D();
 	CREATE_FUNC(Texture2D);
 protected:
-	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint32 flags);
+	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint64 flags);
 private:
-	Uint32 _flags;
+	Uint64 _flags;
 	bgfx::TextureHandle _handle;
 	bgfx::TextureInfo _info;
 	DORA_TYPE_OVERRIDE(Texture2D);

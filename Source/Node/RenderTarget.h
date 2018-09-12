@@ -24,6 +24,7 @@ public:
 	virtual ~RenderTarget();
 	virtual bool init() override;
 	void render(Node* target);
+	void renderWithClear(Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void saveAsync(String filename, const function<void()>& callback);
 	CREATE_FUNC(RenderTarget);

@@ -142,8 +142,6 @@ class char_converter: public function<void> {
  private:
   basic_format_arg<Context> &arg_;
 
-  FMT_DISALLOW_COPY_AND_ASSIGN(char_converter);
-
  public:
   explicit char_converter(basic_format_arg<Context> &arg) : arg_(arg) {}
 
@@ -168,8 +166,6 @@ class printf_width_handler: public function<unsigned> {
   typedef basic_format_specs<Char> format_specs;
 
   format_specs &spec_;
-
-  FMT_DISALLOW_COPY_AND_ASSIGN(printf_width_handler);
 
  public:
   explicit printf_width_handler(format_specs &spec) : spec_(spec) {}
@@ -250,25 +246,33 @@ class printf_arg_formatter:
     : base(back_insert_range<internal::basic_buffer<char_type>>(buffer), spec),
       context_(ctx) {}
 
-  using base::operator();
-
-  /** Formats an argument of type ``bool``. */
-  iterator operator()(bool value) {
-    format_specs &fmt_spec = this->spec();
-    if (fmt_spec.type_ != 's')
-      return (*this)(value ? 1 : 0);
-    fmt_spec.type_ = 0;
-    this->write(value);
+  template <typename T>
+  typename std::enable_if<std::is_integral<T>::value, iterator>::type
+      operator()(T value) {
+    // MSVC2013 fails to compile separate overloads for bool and char_type so
+    // use std::is_same instead.
+    if (std::is_same<T, bool>::value) {
+      format_specs &fmt_spec = this->spec();
+      if (fmt_spec.type_ != 's')
+        return base::operator()(value ? 1 : 0);
+      fmt_spec.type_ = 0;
+      this->write(value != 0);
+    } else if (std::is_same<T, char_type>::value) {
+      format_specs &fmt_spec = this->spec();
+      if (fmt_spec.type_ && fmt_spec.type_ != 'c')
+        return (*this)(static_cast<int>(value));
+      fmt_spec.flags_ = 0;
+      fmt_spec.align_ = ALIGN_RIGHT;
+      return base::operator()(value);
+    } else {
+      return base::operator()(value);
+    }
     return this->out();
   }
 
-  /** Formats a character. */
-  iterator operator()(char_type value) {
-    format_specs &fmt_spec = this->spec();
-    if (fmt_spec.type_ && fmt_spec.type_ != 'c')
-      return (*this)(static_cast<int>(value));
-    fmt_spec.flags_ = 0;
-    fmt_spec.align_ = ALIGN_RIGHT;
+  template <typename T>
+  typename std::enable_if<std::is_floating_point<T>::value, iterator>::type
+      operator()(T value) {
     return base::operator()(value);
   }
 
@@ -292,6 +296,14 @@ class printf_arg_formatter:
     else
       this->write(L"(null)");
     return this->out();
+  }
+
+  iterator operator()(basic_string_view<char_type> value) {
+    return base::operator()(value);
+  }
+
+  iterator operator()(monostate value) {
+    return base::operator()(value);
   }
 
   /** Formats a pointer. */
@@ -325,7 +337,9 @@ struct printf_formatter {
 /** This template formats data and writes the output to a writer. */
 template <typename OutputIt, typename Char, typename ArgFormatter>
 class basic_printf_context :
-  private internal::context_base<
+  // Inherit publicly as a workaround for the icc bug
+  // https://software.intel.com/en-us/forums/intel-c-compiler/topic/783476.
+  public internal::context_base<
     OutputIt, basic_printf_context<OutputIt, Char, ArgFormatter>, Char> {
  public:
   /** The character type for the output. */

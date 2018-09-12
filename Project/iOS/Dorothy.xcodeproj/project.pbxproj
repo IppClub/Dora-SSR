@@ -48,6 +48,12 @@
 		3C1FDB9A1E6041C800F38A26 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FDB991E6041C800F38A26 /* Debug.cpp */; };
 		3C266DEB1E27D6DB00F1C870 /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C266DE91E27D6DB00F1C870 /* View.cpp */; };
 		3C266DEE1E27D6F800F1C870 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C266DEC1E27D6F800F1C870 /* Sprite.cpp */; };
+		3C41D60321490BE6003FDDFE /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FB21490BE5003FDDFE /* imgui.cpp */; };
+		3C41D60421490BE6003FDDFE /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */; };
+		3C41D60521490BE6003FDDFE /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */; };
+		3C41D60621490BE6003FDDFE /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60221490BE5003FDDFE /* imgui_demo.cpp */; };
+		3C41D60F21490CFB003FDDFE /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60821490CFB003FDDFE /* nanovg.cpp */; };
+		3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60E21490CFB003FDDFE /* nanovg_bgfx.cpp */; };
 		3C4A542F20F5F9BE007ED601 /* Component.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4A542E20F5F9BE007ED601 /* Component.cpp */; };
 		3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6551E17F17100292200 /* Geometry.cpp */; };
 		3C4BC65A1E17F18300292200 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6581E17F18300292200 /* Node.cpp */; };
@@ -148,9 +154,6 @@
 		3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD481E1D589500F32295 /* Utils.cpp */; };
 		3CCEDD4E1E1D58D500F32295 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD4A1E1D58D500F32295 /* Array.cpp */; };
 		3CD210611E663F8B004676F1 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD210601E663F8B004676F1 /* Metal.framework */; };
-		3CD3283E1E4C42A60036906C /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328361E4C42A60036906C /* imgui_demo.cpp */; };
-		3CD3283F1E4C42A60036906C /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328371E4C42A60036906C /* imgui_draw.cpp */; };
-		3CD328401E4C42A60036906C /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328391E4C42A60036906C /* imgui.cpp */; };
 		3CD328461E4C42FF0036906C /* ImGuiDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328431E4C42FF0036906C /* ImGuiDora.cpp */; };
 		3CD3284A1E4C431B0036906C /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD328481E4C431B0036906C /* TouchDispather.cpp */; };
 		3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD6C29F1E30C14800B36FFC /* ShaderCache.cpp */; };
@@ -278,6 +281,21 @@
 		3C266DEA1E27D6DB00F1C870 /* View.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = View.h; path = ../../../Source/Basic/View.h; sourceTree = "<group>"; };
 		3C266DEC1E27D6F800F1C870 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
 		3C266DED1E27D6F800F1C870 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
+		3C41D5FB21490BE5003FDDFE /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
+		3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../../../Source/3rdParty/imgui/imgui_draw.cpp; sourceTree = "<group>"; };
+		3C41D5FD21490BE5003FDDFE /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../../../Source/3rdParty/imgui/imconfig.h; sourceTree = "<group>"; };
+		3C41D5FE21490BE5003FDDFE /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../../Source/3rdParty/imgui/imgui_internal.h; sourceTree = "<group>"; };
+		3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_widgets.cpp; path = ../../../Source/3rdParty/imgui/imgui_widgets.cpp; sourceTree = "<group>"; };
+		3C41D60021490BE5003FDDFE /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../Source/3rdParty/imgui/imgui.h; sourceTree = "<group>"; };
+		3C41D60121490BE5003FDDFE /* imstb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imstb_textedit.h; path = ../../../Source/3rdParty/imgui/imstb_textedit.h; sourceTree = "<group>"; };
+		3C41D60221490BE5003FDDFE /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = ../../../Source/3rdParty/imgui/imgui_demo.cpp; sourceTree = "<group>"; };
+		3C41D60821490CFB003FDDFE /* nanovg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = nanovg.cpp; path = ../../../Source/3rdParty/nanovg/nanovg.cpp; sourceTree = "<group>"; };
+		3C41D60921490CFB003FDDFE /* vs_nanovg_fill.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vs_nanovg_fill.bin.h; path = ../../../Source/3rdParty/nanovg/vs_nanovg_fill.bin.h; sourceTree = "<group>"; };
+		3C41D60A21490CFB003FDDFE /* fontstash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fontstash.h; path = ../../../Source/3rdParty/nanovg/fontstash.h; sourceTree = "<group>"; };
+		3C41D60B21490CFB003FDDFE /* fs_nanovg_fill.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fs_nanovg_fill.bin.h; path = ../../../Source/3rdParty/nanovg/fs_nanovg_fill.bin.h; sourceTree = "<group>"; };
+		3C41D60C21490CFB003FDDFE /* nanovg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanovg.h; path = ../../../Source/3rdParty/nanovg/nanovg.h; sourceTree = "<group>"; };
+		3C41D60D21490CFB003FDDFE /* nanovg_bgfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanovg_bgfx.h; path = ../../../Source/3rdParty/nanovg/nanovg_bgfx.h; sourceTree = "<group>"; };
+		3C41D60E21490CFB003FDDFE /* nanovg_bgfx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = nanovg_bgfx.cpp; path = ../../../Source/3rdParty/nanovg/nanovg_bgfx.cpp; sourceTree = "<group>"; };
 		3C4A542E20F5F9BE007ED601 /* Component.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Component.cpp; path = ../../../Source/Entity/Component.cpp; sourceTree = "<group>"; };
 		3C4BC6551E17F17100292200 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Geometry.cpp; path = ../../../Source/Support/Geometry.cpp; sourceTree = "<group>"; };
 		3C4BC6561E17F17100292200 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
@@ -474,13 +492,6 @@
 		3CCEDD4A1E1D58D500F32295 /* Array.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Array.cpp; path = ../../../Source/Support/Array.cpp; sourceTree = "<group>"; };
 		3CCEDD4B1E1D58D500F32295 /* Array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Array.h; path = ../../../Source/Support/Array.h; sourceTree = "<group>"; };
 		3CD210601E663F8B004676F1 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		3CD328351E4C42A60036906C /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../../../Source/3rdParty/imgui/imconfig.h; sourceTree = "<group>"; };
-		3CD328361E4C42A60036906C /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = ../../../Source/3rdParty/imgui/imgui_demo.cpp; sourceTree = "<group>"; };
-		3CD328371E4C42A60036906C /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../../../Source/3rdParty/imgui/imgui_draw.cpp; sourceTree = "<group>"; };
-		3CD328381E4C42A60036906C /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../../Source/3rdParty/imgui/imgui_internal.h; sourceTree = "<group>"; };
-		3CD328391E4C42A60036906C /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
-		3CD3283A1E4C42A60036906C /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../Source/3rdParty/imgui/imgui.h; sourceTree = "<group>"; };
-		3CD3283C1E4C42A60036906C /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_textedit.h; path = ../../../Source/3rdParty/imgui/stb_textedit.h; sourceTree = "<group>"; };
 		3CD328431E4C42FF0036906C /* ImGuiDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGuiDora.cpp; path = ../../../Source/GUI/ImGuiDora.cpp; sourceTree = "<group>"; };
 		3CD328441E4C42FF0036906C /* ImGuiDora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGuiDora.h; path = ../../../Source/GUI/ImGuiDora.h; sourceTree = "<group>"; };
 		3CD328481E4C431B0036906C /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
@@ -700,6 +711,20 @@
 			name = Basic;
 			sourceTree = "<group>";
 		};
+		3C41D60721490CCD003FDDFE /* nanovg */ = {
+			isa = PBXGroup;
+			children = (
+				3C41D60A21490CFB003FDDFE /* fontstash.h */,
+				3C41D60B21490CFB003FDDFE /* fs_nanovg_fill.bin.h */,
+				3C41D60E21490CFB003FDDFE /* nanovg_bgfx.cpp */,
+				3C41D60D21490CFB003FDDFE /* nanovg_bgfx.h */,
+				3C41D60821490CFB003FDDFE /* nanovg.cpp */,
+				3C41D60C21490CFB003FDDFE /* nanovg.h */,
+				3C41D60921490CFB003FDDFE /* vs_nanovg_fill.bin.h */,
+			);
+			name = nanovg;
+			sourceTree = "<group>";
+		};
 		3C4BC6541E17F15C00292200 /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -849,6 +874,7 @@
 				3CDED0311E52A2D300B5E578 /* Other */,
 				3CD328341E4C428E0036906C /* imgui */,
 				3C6D37261E27D9F6008C92E8 /* lodepng */,
+				3C41D60721490CCD003FDDFE /* nanovg */,
 				3CB410351E05B17F00A8804D /* Zip */,
 				3CB4102A1E05B0E200A8804D /* FileSystem */,
 				3CB410231E05B0A200A8804D /* silly */,
@@ -1136,13 +1162,14 @@
 		3CD328341E4C428E0036906C /* imgui */ = {
 			isa = PBXGroup;
 			children = (
-				3CD328351E4C42A60036906C /* imconfig.h */,
-				3CD328361E4C42A60036906C /* imgui_demo.cpp */,
-				3CD328371E4C42A60036906C /* imgui_draw.cpp */,
-				3CD328381E4C42A60036906C /* imgui_internal.h */,
-				3CD328391E4C42A60036906C /* imgui.cpp */,
-				3CD3283A1E4C42A60036906C /* imgui.h */,
-				3CD3283C1E4C42A60036906C /* stb_textedit.h */,
+				3C41D5FD21490BE5003FDDFE /* imconfig.h */,
+				3C41D60221490BE5003FDDFE /* imgui_demo.cpp */,
+				3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */,
+				3C41D5FE21490BE5003FDDFE /* imgui_internal.h */,
+				3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */,
+				3C41D5FB21490BE5003FDDFE /* imgui.cpp */,
+				3C41D60021490BE5003FDDFE /* imgui.h */,
+				3C41D60121490BE5003FDDFE /* imstb_textedit.h */,
 			);
 			name = imgui;
 			sourceTree = "<group>";
@@ -1411,16 +1438,19 @@
 				3CB731031E80358B006DFA18 /* b2Collision.cpp in Sources */,
 				3C4A542F20F5F9BE007ED601 /* Component.cpp in Sources */,
 				3C131FFB21011BB60087154A /* Bullet.cpp in Sources */,
+				3C41D60621490BE6003FDDFE /* imgui_demo.cpp in Sources */,
 				3C92DEC41FFE1CFA003AF655 /* Entity.cpp in Sources */,
 				3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */,
 				3CB730DC1E80356A006DFA18 /* b2RopeJoint.cpp in Sources */,
 				3CB7309D1E80353A006DFA18 /* b2WorldCallbacks.cpp in Sources */,
 				3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */,
 				3CB7307B1E80343E006DFA18 /* DebugDraw.cpp in Sources */,
+				3C41D60521490BE6003FDDFE /* imgui_widgets.cpp in Sources */,
 				3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */,
 				3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */,
 				3C0AD7EA1E0CE9D00033AD59 /* Object.cpp in Sources */,
 				3CD6C2A51E30C1F500B36FFC /* Effect.cpp in Sources */,
+				3C41D60421490BE6003FDDFE /* imgui_draw.cpp in Sources */,
 				3C88056F1E5ED13800B52D4B /* font_manager.cpp in Sources */,
 				3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */,
 				3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */,
@@ -1430,7 +1460,6 @@
 				3C13200521011BB60087154A /* AI.cpp in Sources */,
 				3CB7309B1E80353A006DFA18 /* b2Island.cpp in Sources */,
 				3CB730ED1E80357D006DFA18 /* b2Draw.cpp in Sources */,
-				3CD3283E1E4C42A60036906C /* imgui_demo.cpp in Sources */,
 				3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */,
 				3CB731141E8035A5006DFA18 /* b2PolygonShape.cpp in Sources */,
 				3C4BC65A1E17F18300292200 /* Node.cpp in Sources */,
@@ -1448,6 +1477,7 @@
 				3C0AD7BB1E0CE95F0033AD59 /* Event.cpp in Sources */,
 				3CB730B71E803556006DFA18 /* b2EdgeAndPolygonContact.cpp in Sources */,
 				3CB7307D1E80343E006DFA18 /* JointDef.cpp in Sources */,
+				3C41D60321490BE6003FDDFE /* imgui.cpp in Sources */,
 				3CFF5F271E0136A0004E3CA6 /* Application.mm in Sources */,
 				3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */,
 				3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */,
@@ -1467,6 +1497,7 @@
 				3C1FDB9A1E6041C800F38A26 /* Debug.cpp in Sources */,
 				3C131FF921011BB60087154A /* PlatformWorld.cpp in Sources */,
 				3C0AD7CA1E0CE9990033AD59 /* LuaBinding.cpp in Sources */,
+				3C41D60F21490CFB003FDDFE /* nanovg.cpp in Sources */,
 				3CB730DE1E80356A006DFA18 /* b2WheelJoint.cpp in Sources */,
 				3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */,
 				3C0AD7CC1E0CE9990033AD59 /* LuaEngine.cpp in Sources */,
@@ -1491,9 +1522,9 @@
 				3C01B6C21E96433600A0CC1C /* SoundCache.cpp in Sources */,
 				3CB730991E80353A006DFA18 /* b2ContactManager.cpp in Sources */,
 				3C131FF821011BB60087154A /* UnitDef.cpp in Sources */,
+				3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */,
 				3CB731061E80358B006DFA18 /* b2TimeOfImpact.cpp in Sources */,
 				3CB730B41E803556006DFA18 /* b2Contact.cpp in Sources */,
-				3CD3283F1E4C42A60036906C /* imgui_draw.cpp in Sources */,
 				3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */,
 				3CB730F01E80357D006DFA18 /* b2StackAllocator.cpp in Sources */,
 				3CB730DD1E80356A006DFA18 /* b2WeldJoint.cpp in Sources */,
@@ -1508,7 +1539,6 @@
 				3CB730821E80344C006DFA18 /* Dictionary.cpp in Sources */,
 				3CCB0C811E707A650088C118 /* ClipNode.cpp in Sources */,
 				3C13200021011BB60087154A /* PlatformCamera.cpp in Sources */,
-				3CD328401E4C42A60036906C /* imgui.cpp in Sources */,
 				3C01B6C61E96436D00A0CC1C /* Sound.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
