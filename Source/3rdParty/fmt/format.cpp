@@ -8,7 +8,6 @@
 #include "fmt/format-inl.h"
 
 FMT_BEGIN_NAMESPACE
-
 template struct internal::basic_data<void>;
 
 // Explicit instantiations for char.

@@ -288,7 +288,8 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 void ImGuiDora::showStats()
 {
 	/* print debug text */
-	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::SetNextWindowSize(Vec2{192,345}, ImGuiCond_FirstUseEver);
+	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_NoResize);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.
@@ -426,7 +427,7 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.00f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.00f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 1.00f, 1.00f, 0.35f);
-	style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.00f, 0.20f, 0.20f, 0.35f);
+	style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.00f, 0.20f, 0.20f, 0.35f);
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;
@@ -681,7 +682,7 @@ void ImGuiDora::sendKey(int key, int count)
 
 void ImGuiDora::updateTexture(Uint8* data, int width, int height)
 {
-	const Uint32 textureFlags = BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT;
+	const Uint64 textureFlags = BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),

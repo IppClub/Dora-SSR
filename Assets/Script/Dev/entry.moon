@@ -26,22 +26,36 @@ LintMoonGlobals = (moonCodes,entry)->
 	requireModules = {}
 	withImGui = false
 	withPlatformer = false
+	importCodes = table.concat (
+		for importLine in moonCodes\gmatch "Dorothy%s*%(?([^%)!\r\n]*)%s*[%)!]?"
+			continue if importLine == ""
+			importLine
+		), ","
+	importItems = if importCodes
+		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
+			getImport = loadstring "return #{item}"
+			importItem = if getImport then getImport! else nil
+			continue if not importItem or "table" ~= type importItem
+			{importItem, item}
+	else {}
+	importSet = {}
 	for name,_ in pairs globals
 		if not allowedUseOfGlobals[name]
 			if builtin[name]
 				table.insert requireModules, "local #{name} = require(\"#{name}\")"
-			else if builtin.Platformer[name]
-				if not withPlatformer
-					withPlatformer = true
-					table.insert requireModules, "local Platformer = require(\"Platformer\")" if withPlatformer
-				table.insert requireModules, "local #{name} = Platformer.#{name}"
-			else if builtin.ImGui[name]
-				if not withImGui
-					withImGui = true
-					table.insert requireModules, "local ImGui = require(\"ImGui\")" if withImGui
-				table.insert requireModules, "local #{name} = ImGui.#{name}"
 			else
-				error "Used invalid global value \"#{name}\" in #{entry}."
+				findModule = false
+				for i,importItem in ipairs importItems
+					if importItem[1][name] ~= nil
+						moduleName = "_module_#{i-1}"
+						if not importSet[importItem[1]]
+							importSet[importItem[1]] = true
+							table.insert requireModules, "local #{moduleName} = #{importItem[2]}"
+						table.insert requireModules, "local #{name} = #{moduleName}.#{name}"
+						findModule = true
+						break
+				if not findModule
+					error "Used invalid global value \"#{name}\" in #{entry}."
 	table.concat requireModules, "\n"
 
 totalFiles = 0

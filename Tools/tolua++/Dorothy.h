@@ -545,6 +545,7 @@ class RenderTarget : public Node
 {
 	tolua_property__common Camera* camera;
 	void render(Node* target);
+	void renderWithClear(Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void saveAsync(String filename, tolua_function handler);
 	static RenderTarget* create(Uint16 width, Uint16 height);

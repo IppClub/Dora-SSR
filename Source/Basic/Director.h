@@ -28,9 +28,9 @@ public:
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(Color, ClearColor);
 	PROPERTY_BOOL(DisplayStats);
-	PROPERTY_READONLY(Node*, UI);
-	PROPERTY_READONLY(Node*, Entry);
-	PROPERTY_READONLY(Node*, PostNode);
+	PROPERTY_READONLY_CALL(Node*, UI);
+	PROPERTY_READONLY_CALL(Node*, Entry);
+	PROPERTY_READONLY_CALL(Node*, PostNode);
 	PROPERTY_READONLY(Camera*, CurrentCamera);
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
@@ -38,7 +38,6 @@ public:
 	PROPERTY_READONLY(Scheduler*, PostSystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
-	PROPERTY_READONLY(NVGcontext*, NVG);
 	bool init();
 	void mainLoop();
 	void handleSDLEvent(const SDL_Event& event);
@@ -49,6 +48,7 @@ public:
 	void clearCamera();
 
 	void markDirty();
+	NVGcontext* markNVGDirty();
 
 	template <typename Func>
 	void pushViewProjection(const Matrix& viewProj, const Func& workHere)
@@ -65,6 +65,8 @@ protected:
 	void popViewProjection();
 private:
 	bool _displayStats;
+	bool _nvgDirty;
+	bool _stoped;
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Node> _postNode;

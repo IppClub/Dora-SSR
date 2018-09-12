@@ -56,10 +56,10 @@ Sprite* RenderTarget::getSurface() const
 bool RenderTarget::init()
 {
 	if (!Node::init()) return false;
-	const Uint32 textureFlags = (
-		BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP |
+	const Uint64 textureFlags = (
+		BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
 		BGFX_TEXTURE_RT);
-	Uint32 extraFlags = 0;
+	Uint64 extraFlags = 0;
 	switch (bgfx::getCaps()->rendererType)
 	{
 	case bgfx::RendererType::Direct3D9:
@@ -174,6 +174,11 @@ void RenderTarget::render(Node* target)
 	renderAfterClear(target, false);
 }
 
+void RenderTarget::renderWithClear(Color color, float depth, Uint8 stencil)
+{
+	renderAfterClear(nullptr, true, color, depth, stencil);
+}
+
 void RenderTarget::renderWithClear(Node* target, Color color, float depth, Uint8 stencil)
 {
 	renderAfterClear(target, true, color, depth, stencil);
@@ -183,7 +188,7 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 {
 	AssertIf((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0, "texture read back not supported.");
 
-	Uint32 extraFlags = 0;
+	Uint64 extraFlags = 0;
 	switch (bgfx::getCaps()->rendererType)
 	{
 	case bgfx::RendererType::Direct3D9:
@@ -198,7 +203,7 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 	bgfx::TextureHandle textureHandle;
 	if (extraFlags)
 	{
-		const Uint32 textureFlags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP | BGFX_TEXTURE_READ_BACK;
+		const Uint64 textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_READ_BACK;
 		textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags | extraFlags);
 		SharedView.pushName("SaveTarget"_slice, [&]()
 		{

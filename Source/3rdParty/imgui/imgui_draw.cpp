@@ -1,41 +1,56 @@
-// dear imgui, v1.63 WIP
+// dear imgui, v1.66 WIP
 // (drawing and font code)
 
-// Contains implementation for
-// - Default styles
-// - ImDrawList
-// - ImDrawData
-// - ImFontAtlas
-// - ImFont
-// - Default font data
+/*
+
+Index of this file:
+
+// [SECTION] STB libraries implementation
+// [SECTION] Style functions
+// [SECTION] ImDrawList
+// [SECTION] ImDrawData
+// [SECTION] Helpers ShadeVertsXXX functions
+// [SECTION] ImFontConfig
+// [SECTION] ImFontAtlas
+// [SECTION] ImFontAtlas glyph ranges helpers + GlyphRangesBuilder
+// [SECTION] ImFont
+// [SECTION] Internal Render Helpers
+// [SECTION] Decompression code
+// [SECTION] Default font data (ProggyClean.ttf)
+
+*/
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 #include "imgui_internal.h"
 
 #include <stdio.h>      // vsnprintf, sscanf, printf
 #if !defined(alloca)
-#ifdef _WIN32
+#if defined(__GLIBC__) || defined(__sun) || defined(__CYGWIN__)
+#include <alloca.h>     // alloca (glibc uses <alloca.h>. Note that Cygwin may have _WIN32 defined, so the order matters here)
+#elif defined(_WIN32)
 #include <malloc.h>     // alloca
 #if !defined(alloca)
 #define alloca _alloca  // for clang with MS Codegen
 #endif
-#elif defined(__GLIBC__) || defined(__sun)
-#include <alloca.h>     // alloca
 #else
 #include <stdlib.h>     // alloca
 #endif
 #endif
 
+// Visual Studio warnings
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed (stb stuff)
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
 #endif
 
+// Clang/GCC warnings with -Weverything
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wold-style-cast"         // warning : use of old-style cast                              // yes, they are more terse.
 #pragma clang diagnostic ignored "-Wfloat-equal"            // warning : comparing floating point with == or != is unsafe   // storing and comparing against same constants ok.
@@ -60,7 +75,7 @@
 #endif
 
 //-------------------------------------------------------------------------
-// STB libraries implementation
+// [SECTION] STB libraries implementation
 //-------------------------------------------------------------------------
 
 // Compile time options:
@@ -97,13 +112,14 @@ namespace IMGUI_STB_NAMESPACE
 #ifndef STB_RECT_PACK_IMPLEMENTATION                        // in case the user already have an implementation in the _same_ compilation unit (e.g. unity builds)
 #ifndef IMGUI_DISABLE_STB_RECT_PACK_IMPLEMENTATION
 #define STBRP_STATIC
-#define STBRP_ASSERT(x)    IM_ASSERT(x)
+#define STBRP_ASSERT(x)     IM_ASSERT(x)
+#define STBRP_SORT          ImQsort
 #define STB_RECT_PACK_IMPLEMENTATION
 #endif
 #ifdef IMGUI_STB_RECT_PACK_FILENAME
 #include IMGUI_STB_RECT_PACK_FILENAME
 #else
-#include "stb_rect_pack.h"
+#include "imstb_rectpack.h"
 #endif
 #endif
 
@@ -126,7 +142,7 @@ namespace IMGUI_STB_NAMESPACE
 #ifdef IMGUI_STB_TRUETYPE_FILENAME
 #include IMGUI_STB_TRUETYPE_FILENAME
 #else
-#include "stb_truetype.h"
+#include "imstb_truetype.h"
 #endif
 #endif
 
@@ -148,7 +164,7 @@ using namespace IMGUI_STB_NAMESPACE;
 #endif
 
 //-----------------------------------------------------------------------------
-// Style functions
+// [SECTION] Style functions
 //-----------------------------------------------------------------------------
 
 void ImGui::StyleColorsDark(ImGuiStyle* dst)
@@ -194,10 +210,11 @@ void ImGui::StyleColorsDark(ImGuiStyle* dst)
     colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
     colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
     colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-    colors[ImGuiCol_ModalWindowDarkening]   = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
     colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
     colors[ImGuiCol_NavHighlight]           = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
     colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+    colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 }
 
 void ImGui::StyleColorsClassic(ImGuiStyle* dst)
@@ -243,10 +260,11 @@ void ImGui::StyleColorsClassic(ImGuiStyle* dst)
     colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
     colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
     colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
-    colors[ImGuiCol_ModalWindowDarkening]   = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
     colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
     colors[ImGuiCol_NavHighlight]           = colors[ImGuiCol_HeaderHovered];
     colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+    colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
 
 // Those light colors are better suited with a thicker font than the default one + FrameBorder
@@ -293,14 +311,15 @@ void ImGui::StyleColorsLight(ImGuiStyle* dst)
     colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
     colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.45f, 0.00f, 1.00f);
     colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-    colors[ImGuiCol_ModalWindowDarkening]   = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
     colors[ImGuiCol_DragDropTarget]         = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
     colors[ImGuiCol_NavHighlight]           = colors[ImGuiCol_HeaderHovered];
     colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(0.70f, 0.70f, 0.70f, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.20f, 0.20f, 0.20f, 0.20f);
+    colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
 
 //-----------------------------------------------------------------------------
-// ImDrawListData
+// ImDrawList
 //-----------------------------------------------------------------------------
 
 ImDrawListSharedData::ImDrawListSharedData()
@@ -317,10 +336,6 @@ ImDrawListSharedData::ImDrawListSharedData()
         CircleVtx12[i] = ImVec2(ImCos(a), ImSin(a));
     }
 }
-
-//-----------------------------------------------------------------------------
-// ImDrawList
-//-----------------------------------------------------------------------------
 
 void ImDrawList::Clear()
 {
@@ -1204,14 +1219,14 @@ void ImDrawList::AddImageRounded(ImTextureID user_texture_id, const ImVec2& a, c
     PathRect(a, b, rounding, rounding_corners);
     PathFillConvex(col);
     int vert_end_idx = VtxBuffer.Size;
-    ImGui::ShadeVertsLinearUV(VtxBuffer.Data + vert_start_idx, VtxBuffer.Data + vert_end_idx, a, b, uv_a, uv_b, true);
+    ImGui::ShadeVertsLinearUV(this, vert_start_idx, vert_end_idx, a, b, uv_a, uv_b, true);
 
     if (push_texture_id)
         PopTextureID();
 }
 
 //-----------------------------------------------------------------------------
-// ImDrawData
+// [SECTION] ImDrawData
 //-----------------------------------------------------------------------------
 
 // For backward compatibility: convert all buffers from indexed to de-indexed, in case you cannot render indexed. Note: this is slow and most likely a waste of resources. Always prefer indexed rendering!
@@ -1248,14 +1263,16 @@ void ImDrawData::ScaleClipRects(const ImVec2& scale)
 }
 
 //-----------------------------------------------------------------------------
-// Shade functions
+// [SECTION] Helpers ShadeVertsXXX functions
 //-----------------------------------------------------------------------------
 
 // Generic linear color gradient, write to RGB fields, leave A untouched.
-void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawVert* vert_start, ImDrawVert* vert_end, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1)
+void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1)
 {
     ImVec2 gradient_extent = gradient_p1 - gradient_p0;
     float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
+    ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
+    ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
     for (ImDrawVert* vert = vert_start; vert < vert_end; vert++)
     {
         float d = ImDot(vert->pos - gradient_p0, gradient_extent);
@@ -1267,25 +1284,8 @@ void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawVert* vert_start, ImDra
     }
 }
 
-// Scan and shade backward from the end of given vertices. Assume vertices are text only (= vert_start..vert_end going left to right) so we can break as soon as we are out the gradient bounds.
-void ImGui::ShadeVertsLinearAlphaGradientForLeftToRightText(ImDrawVert* vert_start, ImDrawVert* vert_end, float gradient_p0_x, float gradient_p1_x)
-{
-    float gradient_extent_x = gradient_p1_x - gradient_p0_x;
-    float gradient_inv_length2 = 1.0f / (gradient_extent_x * gradient_extent_x);
-    int full_alpha_count = 0;
-    for (ImDrawVert* vert = vert_end - 1; vert >= vert_start; vert--)
-    {
-        float d = (vert->pos.x - gradient_p0_x) * (gradient_extent_x);
-        float alpha_mul = 1.0f - ImClamp(d * gradient_inv_length2, 0.0f, 1.0f);
-        if (alpha_mul >= 1.0f && ++full_alpha_count > 2)
-            return; // Early out
-        int a = (int)(((vert->col >> IM_COL32_A_SHIFT) & 0xFF) * alpha_mul);
-        vert->col = (vert->col & ~IM_COL32_A_MASK) | (a << IM_COL32_A_SHIFT);
-    }
-}
-
 // Distribute UV over (a, b) rectangle
-void ImGui::ShadeVertsLinearUV(ImDrawVert* vert_start, ImDrawVert* vert_end, const ImVec2& a, const ImVec2& b, const ImVec2& uv_a, const ImVec2& uv_b, bool clamp)
+void ImGui::ShadeVertsLinearUV(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, const ImVec2& a, const ImVec2& b, const ImVec2& uv_a, const ImVec2& uv_b, bool clamp)
 {
     const ImVec2 size = b - a;
     const ImVec2 uv_size = uv_b - uv_a;
@@ -1293,11 +1293,12 @@ void ImGui::ShadeVertsLinearUV(ImDrawVert* vert_start, ImDrawVert* vert_end, con
         size.x != 0.0f ? (uv_size.x / size.x) : 0.0f,
         size.y != 0.0f ? (uv_size.y / size.y) : 0.0f);
 
+    ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
+    ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
     if (clamp)
     {
         const ImVec2 min = ImMin(uv_a, uv_b);
         const ImVec2 max = ImMax(uv_a, uv_b);
-
         for (ImDrawVert* vertex = vert_start; vertex < vert_end; ++vertex)
             vertex->uv = ImClamp(uv_a + ImMul(ImVec2(vertex->pos.x, vertex->pos.y) - a, scale), min, max);
     }
@@ -1309,7 +1310,7 @@ void ImGui::ShadeVertsLinearUV(ImDrawVert* vert_start, ImDrawVert* vert_end, con
 }
 
 //-----------------------------------------------------------------------------
-// ImFontConfig
+// [SECTION] ImFontConfig
 //-----------------------------------------------------------------------------
 
 ImFontConfig::ImFontConfig()
@@ -1335,60 +1336,62 @@ ImFontConfig::ImFontConfig()
 }
 
 //-----------------------------------------------------------------------------
-// ImFontAtlas
+// [SECTION] ImFontAtlas
 //-----------------------------------------------------------------------------
 
 // A work of art lies ahead! (. = white layer, X = black layer, others are blank)
 // The white texels on the top left are the ones we'll use everywhere in ImGui to render filled shapes.
-const int FONT_ATLAS_DEFAULT_TEX_DATA_W_HALF = 90;
+const int FONT_ATLAS_DEFAULT_TEX_DATA_W_HALF = 108;
 const int FONT_ATLAS_DEFAULT_TEX_DATA_H      = 27;
 const unsigned int FONT_ATLAS_DEFAULT_TEX_DATA_ID = 0x80000000;
 static const char FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS[FONT_ATLAS_DEFAULT_TEX_DATA_W_HALF * FONT_ATLAS_DEFAULT_TEX_DATA_H + 1] =
 {
-    "..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX"
-    "..-         -X.....X-   X.X   -          X.X          -X.....X          -          X.....X"
-    "---         -XXX.XXX-  X...X  -         X...X         -X....X           -           X....X"
-    "X           -  X.X  - X.....X -        X.....X        -X...X            -            X...X"
-    "XX          -  X.X  -X.......X-       X.......X       -X..X.X           -           X.X..X"
-    "X.X         -  X.X  -XXXX.XXXX-       XXXX.XXXX       -X.X X.X          -          X.X X.X"
-    "X..X        -  X.X  -   X.X   -          X.X          -XX   X.X         -         X.X   XX"
-    "X...X       -  X.X  -   X.X   -    XX    X.X    XX    -      X.X        -        X.X      "
-    "X....X      -  X.X  -   X.X   -   X.X    X.X    X.X   -       X.X       -       X.X       "
-    "X.....X     -  X.X  -   X.X   -  X..X    X.X    X..X  -        X.X      -      X.X        "
-    "X......X    -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -         X.X   XX-XX   X.X         "
-    "X.......X   -  X.X  -   X.X   -X.....................X-          X.X X.X-X.X X.X          "
-    "X........X  -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -           X.X..X-X..X.X           "
-    "X.........X -XXX.XXX-   X.X   -  X..X    X.X    X..X  -            X...X-X...X            "
-    "X..........X-X.....X-   X.X   -   X.X    X.X    X.X   -           X....X-X....X           "
-    "X......XXXXX-XXXXXXX-   X.X   -    XX    X.X    XX    -          X.....X-X.....X          "
-    "X...X..X    ---------   X.X   -          X.X          -          XXXXXXX-XXXXXXX          "
-    "X..X X..X   -       -XXXX.XXXX-       XXXX.XXXX       ------------------------------------"
-    "X.X  X..X   -       -X.......X-       X.......X       -    XX           XX    -           "
-    "XX    X..X  -       - X.....X -        X.....X        -   X.X           X.X   -           "
-    "      X..X          -  X...X  -         X...X         -  X..X           X..X  -           "
-    "       XX           -   X.X   -          X.X          - X...XXXXXXXXXXXXX...X -           "
-    "------------        -    X    -           X           -X.....................X-           "
-    "                    ----------------------------------- X...XXXXXXXXXXXXX...X -           "
-    "                                                      -  X..X           X..X  -           "
-    "                                                      -   X.X           X.X   -           "
-    "                                                      -    XX           XX    -           "
+    "..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX-     XX          "
+    "..-         -X.....X-   X.X   -          X.X          -X.....X          -          X.....X-    X..X         "
+    "---         -XXX.XXX-  X...X  -         X...X         -X....X           -           X....X-    X..X         "
+    "X           -  X.X  - X.....X -        X.....X        -X...X            -            X...X-    X..X         "
+    "XX          -  X.X  -X.......X-       X.......X       -X..X.X           -           X.X..X-    X..X         "
+    "X.X         -  X.X  -XXXX.XXXX-       XXXX.XXXX       -X.X X.X          -          X.X X.X-    X..XXX       "
+    "X..X        -  X.X  -   X.X   -          X.X          -XX   X.X         -         X.X   XX-    X..X..XXX    "
+    "X...X       -  X.X  -   X.X   -    XX    X.X    XX    -      X.X        -        X.X      -    X..X..X..XX  "
+    "X....X      -  X.X  -   X.X   -   X.X    X.X    X.X   -       X.X       -       X.X       -    X..X..X..X.X "
+    "X.....X     -  X.X  -   X.X   -  X..X    X.X    X..X  -        X.X      -      X.X        -XXX X..X..X..X..X"
+    "X......X    -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -         X.X   XX-XX   X.X         -X..XX........X..X"
+    "X.......X   -  X.X  -   X.X   -X.....................X-          X.X X.X-X.X X.X          -X...X...........X"
+    "X........X  -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -           X.X..X-X..X.X           - X..............X"
+    "X.........X -XXX.XXX-   X.X   -  X..X    X.X    X..X  -            X...X-X...X            -  X.............X"
+    "X..........X-X.....X-   X.X   -   X.X    X.X    X.X   -           X....X-X....X           -  X.............X"
+    "X......XXXXX-XXXXXXX-   X.X   -    XX    X.X    XX    -          X.....X-X.....X          -   X............X"
+    "X...X..X    ---------   X.X   -          X.X          -          XXXXXXX-XXXXXXX          -   X...........X "
+    "X..X X..X   -       -XXXX.XXXX-       XXXX.XXXX       -------------------------------------    X..........X "
+    "X.X  X..X   -       -X.......X-       X.......X       -    XX           XX    -           -    X..........X "
+    "XX    X..X  -       - X.....X -        X.....X        -   X.X           X.X   -           -     X........X  "
+    "      X..X          -  X...X  -         X...X         -  X..X           X..X  -           -     X........X  "
+    "       XX           -   X.X   -          X.X          - X...XXXXXXXXXXXXX...X -           -     XXXXXXXXXX  "
+    "------------        -    X    -           X           -X.....................X-           ------------------"
+    "                    ----------------------------------- X...XXXXXXXXXXXXX...X -                             "
+    "                                                      -  X..X           X..X  -                             "
+    "                                                      -   X.X           X.X   -                             "
+    "                                                      -    XX           XX    -                             "
 };
 
 static const ImVec2 FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ImGuiMouseCursor_COUNT][3] =
 {
     // Pos ........ Size ......... Offset ......
-    { ImVec2(0,3),  ImVec2(12,19), ImVec2( 0, 0) }, // ImGuiMouseCursor_Arrow
-    { ImVec2(13,0), ImVec2(7,16),  ImVec2( 4, 8) }, // ImGuiMouseCursor_TextInput
+    { ImVec2( 0,3), ImVec2(12,19), ImVec2( 0, 0) }, // ImGuiMouseCursor_Arrow
+    { ImVec2(13,0), ImVec2( 7,16), ImVec2( 1, 8) }, // ImGuiMouseCursor_TextInput
     { ImVec2(31,0), ImVec2(23,23), ImVec2(11,11) }, // ImGuiMouseCursor_ResizeAll
-    { ImVec2(21,0), ImVec2( 9,23), ImVec2( 5,11) }, // ImGuiMouseCursor_ResizeNS
-    { ImVec2(55,18),ImVec2(23, 9), ImVec2(11, 5) }, // ImGuiMouseCursor_ResizeEW
-    { ImVec2(73,0), ImVec2(17,17), ImVec2( 9, 9) }, // ImGuiMouseCursor_ResizeNESW
-    { ImVec2(55,0), ImVec2(17,17), ImVec2( 9, 9) }, // ImGuiMouseCursor_ResizeNWSE
+    { ImVec2(21,0), ImVec2( 9,23), ImVec2( 4,11) }, // ImGuiMouseCursor_ResizeNS
+    { ImVec2(55,18),ImVec2(23, 9), ImVec2(11, 4) }, // ImGuiMouseCursor_ResizeEW
+    { ImVec2(73,0), ImVec2(17,17), ImVec2( 8, 8) }, // ImGuiMouseCursor_ResizeNESW
+    { ImVec2(55,0), ImVec2(17,17), ImVec2( 8, 8) }, // ImGuiMouseCursor_ResizeNWSE
+    { ImVec2(91,0), ImVec2(17,22), ImVec2( 5, 0) }, // ImGuiMouseCursor_Hand
 };
 
 ImFontAtlas::ImFontAtlas()
 {
-    Flags = 0x00;
+    Locked = false;
+    Flags = ImFontAtlasFlags_None;
     TexID = NULL;
     TexDesiredWidth = 0;
     TexGlyphPadding = 1;
@@ -1404,11 +1407,13 @@ ImFontAtlas::ImFontAtlas()
 
 ImFontAtlas::~ImFontAtlas()
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     Clear();
 }
 
 void    ImFontAtlas::ClearInputData()
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     for (int i = 0; i < ConfigData.Size; i++)
         if (ConfigData[i].FontData && ConfigData[i].FontDataOwnedByAtlas)
         {
@@ -1431,6 +1436,7 @@ void    ImFontAtlas::ClearInputData()
 
 void    ImFontAtlas::ClearTexData()
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     if (TexPixelsAlpha8)
         ImGui::MemFree(TexPixelsAlpha8);
     if (TexPixelsRGBA32)
@@ -1441,6 +1447,7 @@ void    ImFontAtlas::ClearTexData()
 
 void    ImFontAtlas::ClearFonts()
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     for (int i = 0; i < Fonts.Size; i++)
         IM_DELETE(Fonts[i]);
     Fonts.clear();
@@ -1495,6 +1502,7 @@ void    ImFontAtlas::GetTexDataAsRGBA32(unsigned char** out_pixels, int* out_wid
 
 ImFont* ImFontAtlas::AddFont(const ImFontConfig* font_cfg)
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     IM_ASSERT(font_cfg->FontData != NULL && font_cfg->FontDataSize > 0);
     IM_ASSERT(font_cfg->SizePixels > 0.0f);
 
@@ -1549,13 +1557,15 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
     if (font_cfg.SizePixels <= 0.0f) font_cfg.SizePixels = 13.0f;
 
     const char* ttf_compressed_base85 = GetDefaultCompressedFontDataTTFBase85();
-    ImFont* font = AddFontFromMemoryCompressedBase85TTF(ttf_compressed_base85, font_cfg.SizePixels, &font_cfg, GetGlyphRangesDefault());
+    const ImWchar* glyph_ranges = font_cfg.GlyphRanges != NULL ? font_cfg.GlyphRanges : GetGlyphRangesDefault();
+    ImFont* font = AddFontFromMemoryCompressedBase85TTF(ttf_compressed_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges);
     font->DisplayOffset.y = 1.0f;
     return font;
 }
 
 ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     size_t data_size = 0;
     void* data = ImFileLoadToMemory(filename, "rb", &data_size, 0);
     if (!data)
@@ -1577,6 +1587,7 @@ ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, float size_pixels,
 // NB: Transfer ownership of 'ttf_data' to ImFontAtlas, unless font_cfg_template->FontDataOwnedByAtlas == false. Owned TTF buffer will be deleted after Build().
 ImFont* ImFontAtlas::AddFontFromMemoryTTF(void* ttf_data, int ttf_size, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
     IM_ASSERT(font_cfg.FontData == NULL);
     font_cfg.FontData = ttf_data;
@@ -1670,6 +1681,7 @@ bool ImFontAtlas::GetMouseCursorTexData(ImGuiMouseCursor cursor_type, ImVec2* ou
 
 bool    ImFontAtlas::Build()
 {
+    IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     return ImFontAtlasBuildWithStbTruetype(this);
 }
 
@@ -1882,7 +1894,7 @@ bool    ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
                     continue;
 
                 const int codepoint = range.first_unicode_codepoint_in_range + char_idx;
-                if (cfg.MergeMode && dst_font->FindGlyphNoFallback((unsigned short)codepoint))
+                if (cfg.MergeMode && dst_font->FindGlyphNoFallback((ImWchar)codepoint))
                     continue;
 
                 float char_advance_x_org = pc.xadvance;
@@ -2061,6 +2073,10 @@ static void UnpackAccumulativeOffsetsIntoRanges(int base_codepoint, const short*
     out_ranges[0] = 0;
 }
 
+//-------------------------------------------------------------------------
+// [SECTION] ImFontAtlas glyph ranges helpers + GlyphRangesBuilder
+//-------------------------------------------------------------------------
+
 const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon()
 {
     // Store 2500 regularly used characters for Simplified Chinese.
@@ -2210,10 +2226,6 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesThai()
     return &ranges[0];
 }
 
-//-----------------------------------------------------------------------------
-// ImFontAtlas::GlyphRangesBuilder
-//-----------------------------------------------------------------------------
-
 void ImFontAtlas::GlyphRangesBuilder::AddText(const char* text, const char* text_end)
 {
     while (text_end ? (text < text_end) : *text)
@@ -2249,7 +2261,7 @@ void ImFontAtlas::GlyphRangesBuilder::BuildRanges(ImVector<ImWchar>* out_ranges)
 }
 
 //-----------------------------------------------------------------------------
-// ImFont
+// [SECTION] ImFont
 //-----------------------------------------------------------------------------
 
 ImFont::ImFont()
@@ -2304,21 +2316,21 @@ void ImFont::BuildLookupTable()
     {
         int codepoint = (int)Glyphs[i].Codepoint;
         IndexAdvanceX[codepoint] = Glyphs[i].AdvanceX;
-        IndexLookup[codepoint] = (unsigned short)i;
+        IndexLookup[codepoint] = (ImWchar)i;
     }
 
     // Create a glyph to handle TAB
     // FIXME: Needs proper TAB handling but it needs to be contextualized (or we could arbitrary say that each string starts at "column 0" ?)
-    if (FindGlyph((unsigned short)' '))
+    if (FindGlyph((ImWchar)' '))
     {
         if (Glyphs.back().Codepoint != '\t')   // So we can call this function multiple times
             Glyphs.resize(Glyphs.Size + 1);
         ImFontGlyph& tab_glyph = Glyphs.back();
-        tab_glyph = *FindGlyph((unsigned short)' ');
+        tab_glyph = *FindGlyph((ImWchar)' ');
         tab_glyph.Codepoint = '\t';
         tab_glyph.AdvanceX *= 4;
         IndexAdvanceX[(int)tab_glyph.Codepoint] = (float)tab_glyph.AdvanceX;
-        IndexLookup[(int)tab_glyph.Codepoint] = (unsigned short)(Glyphs.Size-1);
+        IndexLookup[(int)tab_glyph.Codepoint] = (ImWchar)(Glyphs.Size-1);
     }
 
     FallbackGlyph = FindGlyphNoFallback(FallbackChar);
@@ -2340,9 +2352,11 @@ void ImFont::GrowIndex(int new_size)
     if (new_size <= IndexLookup.Size)
         return;
     IndexAdvanceX.resize(new_size, -1.0f);
-    IndexLookup.resize(new_size, (unsigned short)-1);
+    IndexLookup.resize(new_size, (ImWchar)-1);
 }
 
+// x0/y0/x1/y1 are offset from the character upper-left layout position, in pixels. Therefore x0/y0 are often fairly close to zero.
+// Not to be mistaken with texture coordinates, which are held by u0/v0/u1/v1 in normalized format (0.0..1.0 on each texture axis).
 void ImFont::AddGlyph(ImWchar codepoint, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advance_x)
 {
     Glyphs.resize(Glyphs.Size + 1);
@@ -2371,13 +2385,13 @@ void ImFont::AddRemapChar(ImWchar dst, ImWchar src, bool overwrite_dst)
     IM_ASSERT(IndexLookup.Size > 0);    // Currently this can only be called AFTER the font has been built, aka after calling ImFontAtlas::GetTexDataAs*() function.
     int index_size = IndexLookup.Size;
 
-    if (dst < index_size && IndexLookup.Data[dst] == (unsigned short)-1 && !overwrite_dst) // 'dst' already exists
+    if (dst < index_size && IndexLookup.Data[dst] == (ImWchar)-1 && !overwrite_dst) // 'dst' already exists
         return;
     if (src >= index_size && dst >= index_size) // both 'dst' and 'src' don't exist -> no-op
         return;
 
     GrowIndex(dst + 1);
-    IndexLookup[dst] = (src < index_size) ? IndexLookup.Data[src] : (unsigned short)-1;
+    IndexLookup[dst] = (src < index_size) ? IndexLookup.Data[src] : (ImWchar)-1;
     IndexAdvanceX[dst] = (src < index_size) ? IndexAdvanceX.Data[src] : 1.0f;
 }
 
@@ -2385,8 +2399,8 @@ const ImFontGlyph* ImFont::FindGlyph(ImWchar c) const
 {
     if (c >= IndexLookup.Size)
         return FallbackGlyph;
-    const unsigned short i = IndexLookup[c];
-    if (i == (unsigned short)-1)
+    const ImWchar i = IndexLookup[c];
+    if (i == (ImWchar)-1)
         return FallbackGlyph;
     return &Glyphs.Data[i];
 }
@@ -2395,8 +2409,8 @@ const ImFontGlyph* ImFont::FindGlyphNoFallback(ImWchar c) const
 {
     if (c >= IndexLookup.Size)
         return NULL;
-    const unsigned short i = IndexLookup[c];
-    if (i == (unsigned short)-1)
+    const ImWchar i = IndexLookup[c];
+    if (i == (ImWchar)-1)
         return NULL;
     return &Glyphs.Data[i];
 }
@@ -2594,7 +2608,7 @@ ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, cons
     return text_size;
 }
 
-void ImFont::RenderChar(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, unsigned short c) const
+void ImFont::RenderChar(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col, ImWchar c) const
 {
     if (c == ' ' || c == '\t' || c == '\n' || c == '\r') // Match behavior of RenderText(), those 4 codepoints are hard-coded.
         return;
@@ -2626,11 +2640,32 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
     const bool word_wrap_enabled = (wrap_width > 0.0f);
     const char* word_wrap_eol = NULL;
 
-    // Skip non-visible lines
+    // Fast-forward to first visible line
     const char* s = text_begin;
-    if (!word_wrap_enabled && y + line_height < clip_rect.y)
-        while (s < text_end && *s != '\n')  // Fast-forward to next line
-            s++;
+    if (y + line_height < clip_rect.y && !word_wrap_enabled)
+        while (y + line_height < clip_rect.y)
+        {
+            while (s < text_end)
+                if (*s++ == '\n')
+                    break;
+            y += line_height;
+        }
+
+    // For large text, scan for the last visible line in order to avoid over-reserving in the call to PrimReserve()
+    // Note that very large horizontal line will still be affected by the issue (e.g. a one megabyte string buffer without a newline will likely crash atm)
+    if (text_end - s > 10000 && !word_wrap_enabled)
+    {
+        const char* s_end = s;
+        float y_end = y;
+        while (y_end < clip_rect.w)
+        {
+            while (s_end < text_end)
+                if (*s_end++ == '\n')
+                    break;
+            y_end += line_height;
+        }
+        text_end = s_end;
+    }
 
     // Reserve vertices for remaining worse case (over-reserving is useful and easily amortized)
     const int vtx_count_max = (int)(text_end - s) * 4;
@@ -2689,12 +2724,8 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
             {
                 x = pos.x;
                 y += line_height;
-
                 if (y > clip_rect.w)
-                    break;
-                if (!word_wrap_enabled && y + line_height < clip_rect.y)
-                    while (s < text_end && *s != '\n')  // Fast-forward to next line
-                        s++;
+                    break; // break out of main loop
                 continue;
             }
             if (c == '\r')
@@ -2702,7 +2733,7 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
         }
 
         float char_width = 0.0f;
-        if (const ImFontGlyph* glyph = FindGlyph((unsigned short)c))
+        if (const ImFontGlyph* glyph = FindGlyph((ImWchar)c))
         {
             char_width = glyph->AdvanceX * scale;
 
@@ -2781,8 +2812,51 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
 }
 
 //-----------------------------------------------------------------------------
-// Internals Drawing Helpers
+// [SECTION] Internal Render Helpers
+// (progressively moved from imgui.cpp to here when they are redesigned to stop accessing ImGui global state)
 //-----------------------------------------------------------------------------
+// - RenderMouseCursor()
+// - RenderArrowPointingAt()
+// - RenderRectFilledRangeH()
+//-----------------------------------------------------------------------------
+
+void ImGui::RenderMouseCursor(ImDrawList* draw_list, ImVec2 pos, float scale, ImGuiMouseCursor mouse_cursor)
+{
+    if (mouse_cursor == ImGuiMouseCursor_None)
+        return;
+    IM_ASSERT(mouse_cursor > ImGuiMouseCursor_None && mouse_cursor < ImGuiMouseCursor_COUNT);
+
+    const ImU32 col_shadow = IM_COL32(0, 0, 0, 48);
+    const ImU32 col_border = IM_COL32(0, 0, 0, 255);          // Black
+    const ImU32 col_fill   = IM_COL32(255, 255, 255, 255);    // White
+
+    ImFontAtlas* font_atlas = draw_list->_Data->Font->ContainerAtlas;
+    ImVec2 offset, size, uv[4];
+    if (font_atlas->GetMouseCursorTexData(mouse_cursor, &offset, &size, &uv[0], &uv[2]))
+    {
+        pos -= offset;
+        const ImTextureID tex_id = font_atlas->TexID;
+        draw_list->PushTextureID(tex_id);
+        draw_list->AddImage(tex_id, pos + ImVec2(1,0)*scale, pos + ImVec2(1,0)*scale + size*scale, uv[2], uv[3], col_shadow);
+        draw_list->AddImage(tex_id, pos + ImVec2(2,0)*scale, pos + ImVec2(2,0)*scale + size*scale, uv[2], uv[3], col_shadow);
+        draw_list->AddImage(tex_id, pos,                     pos + size*scale,                     uv[2], uv[3], col_border);
+        draw_list->AddImage(tex_id, pos,                     pos + size*scale,                     uv[0], uv[1], col_fill);
+        draw_list->PopTextureID();
+    }
+}
+
+// Render an arrow. 'pos' is position of the arrow tip. half_sz.x is length from base to tip. half_sz.y is length on each side.
+void ImGui::RenderArrowPointingAt(ImDrawList* draw_list, ImVec2 pos, ImVec2 half_sz, ImGuiDir direction, ImU32 col)
+{
+    switch (direction)
+    {
+    case ImGuiDir_Left:  draw_list->AddTriangleFilled(ImVec2(pos.x + half_sz.x, pos.y - half_sz.y), ImVec2(pos.x + half_sz.x, pos.y + half_sz.y), pos, col); return;
+    case ImGuiDir_Right: draw_list->AddTriangleFilled(ImVec2(pos.x - half_sz.x, pos.y + half_sz.y), ImVec2(pos.x - half_sz.x, pos.y - half_sz.y), pos, col); return;
+    case ImGuiDir_Up:    draw_list->AddTriangleFilled(ImVec2(pos.x + half_sz.x, pos.y + half_sz.y), ImVec2(pos.x - half_sz.x, pos.y + half_sz.y), pos, col); return;
+    case ImGuiDir_Down:  draw_list->AddTriangleFilled(ImVec2(pos.x - half_sz.x, pos.y - half_sz.y), ImVec2(pos.x + half_sz.x, pos.y - half_sz.y), pos, col); return;
+    case ImGuiDir_None: case ImGuiDir_COUNT: break; // Fix warnings
+    }
+}
 
 static inline float ImAcos01(float x)
 {
@@ -2852,8 +2926,9 @@ void ImGui::RenderRectFilledRangeH(ImDrawList* draw_list, const ImRect& rect, Im
     draw_list->PathFillConvex(col);
 }
 
+
 //-----------------------------------------------------------------------------
-// DEFAULT FONT DATA
+// [SECTION] Decompression code
 //-----------------------------------------------------------------------------
 // Compressed with stb_compress() then converted to a C array and encoded as base85.
 // Use the program in misc/fonts/binary_to_compressed_c.cpp to create the array from a TTF file.
@@ -2972,6 +3047,8 @@ static unsigned int stb_decompress(unsigned char *output, const unsigned char *i
     }
 }
 
+//-----------------------------------------------------------------------------
+// [SECTION] Default font data (ProggyClean.ttf)
 //-----------------------------------------------------------------------------
 // ProggyClean.ttf
 // Copyright (c) 2004, 2005 Tristan Grimmer

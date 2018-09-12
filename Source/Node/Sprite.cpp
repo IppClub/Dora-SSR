@@ -141,24 +141,24 @@ const SpriteQuad& Sprite::getQuad() const
 	return _quad;
 }
 
-Uint32 Sprite::getTextureFlags() const
+Uint64 Sprite::getTextureFlags() const
 {
-	Uint32 textureFlags = _texture->getFlags();
+	Uint64 textureFlags = _texture->getFlags();
 	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None)
 	{
 		return INT32_MAX;
 	}
-	const Uint32 mask = (
-		BGFX_TEXTURE_MIN_MASK | BGFX_TEXTURE_MAG_MASK |
-		BGFX_TEXTURE_U_MASK | BGFX_TEXTURE_V_MASK);
-	Uint32 flags = 0;
+	const Uint64 mask = (
+		BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK |
+		BGFX_SAMPLER_U_MASK | BGFX_SAMPLER_V_MASK);
+	Uint64 flags = 0;
 	switch (_filter)
 	{
 		case TextureFilter::Point:
-			flags |= (BGFX_TEXTURE_MIN_POINT | BGFX_TEXTURE_MAG_POINT);
+			flags |= (BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
 			break;
 		case TextureFilter::Anisotropic:
-			flags |= (BGFX_TEXTURE_MIN_ANISOTROPIC | BGFX_TEXTURE_MAG_ANISOTROPIC);
+			flags |= (BGFX_SAMPLER_MIN_ANISOTROPIC | BGFX_SAMPLER_MAG_ANISOTROPIC);
 			break;
 		default:
 			break;
@@ -166,13 +166,13 @@ Uint32 Sprite::getTextureFlags() const
 	switch (_uwrap)
 	{
 		case TextureWrap::Mirror:
-			flags |= BGFX_TEXTURE_U_MIRROR;
+			flags |= BGFX_SAMPLER_U_MIRROR;
 			break;
 		case TextureWrap::Clamp:
-			flags |= BGFX_TEXTURE_U_CLAMP;
+			flags |= BGFX_SAMPLER_U_CLAMP;
 			break;
 		case TextureWrap::Border:
-			flags |= BGFX_TEXTURE_U_BORDER;
+			flags |= BGFX_SAMPLER_U_BORDER;
 			break;
 		default:
 			break;
@@ -180,13 +180,13 @@ Uint32 Sprite::getTextureFlags() const
 	switch (_vwrap)
 	{
 		case TextureWrap::Mirror:
-			flags |= BGFX_TEXTURE_V_MIRROR;
+			flags |= BGFX_SAMPLER_V_MIRROR;
 			break;
 		case TextureWrap::Clamp:
-			flags |= BGFX_TEXTURE_V_CLAMP;
+			flags |= BGFX_SAMPLER_V_CLAMP;
 			break;
 		case TextureWrap::Border:
-			flags |= BGFX_TEXTURE_V_BORDER;
+			flags |= BGFX_SAMPLER_V_BORDER;
 			break;
 		default:
 			break;
@@ -412,7 +412,7 @@ void SpriteRenderer::push(Sprite* sprite)
 	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
 	Uint64 state = sprite->getRenderState();
-	Uint32 flags = sprite->getTextureFlags();
+	Uint64 flags = sprite->getTextureFlags();
 	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();

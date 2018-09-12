@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint32 flags):
+Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint64 flags):
 _handle(handle),
 _info(info),
 _flags(flags)
@@ -43,7 +43,7 @@ const bgfx::TextureInfo& Texture2D::getInfo() const
 TextureFilter Texture2D::getFilter() const
 {
 	TextureFilter filter = TextureFilter::Anisotropic;
-	if ((_flags & BGFX_TEXTURE_MIN_POINT) != 0)
+	if ((_flags & BGFX_SAMPLER_MIN_POINT) != 0)
 	{
 		filter = TextureFilter::Point;
 	}
@@ -53,11 +53,11 @@ TextureFilter Texture2D::getFilter() const
 TextureWrap Texture2D::getUWrap() const
 {
 	TextureWrap wrap = TextureWrap::Mirror;
-	if ((_flags & BGFX_TEXTURE_U_CLAMP) != 0)
+	if ((_flags & BGFX_SAMPLER_U_CLAMP) != 0)
 	{
 		wrap = TextureWrap::Clamp;
 	}
-	else if ((_flags & BGFX_TEXTURE_U_BORDER) != 0)
+	else if ((_flags & BGFX_SAMPLER_U_BORDER) != 0)
 	{
 		wrap = TextureWrap::Border;
 	}
@@ -67,18 +67,18 @@ TextureWrap Texture2D::getUWrap() const
 TextureWrap Texture2D::getVWrap() const
 {
 	TextureWrap wrap = TextureWrap::Mirror;
-	if ((_flags & BGFX_TEXTURE_V_CLAMP) != 0)
+	if ((_flags & BGFX_SAMPLER_V_CLAMP) != 0)
 	{
 		wrap = TextureWrap::Clamp;
 	}
-	else if ((_flags & BGFX_TEXTURE_V_BORDER) != 0)
+	else if ((_flags & BGFX_SAMPLER_V_BORDER) != 0)
 	{
 		wrap = TextureWrap::Border;
 	}
 	return wrap;
 }
 
-Uint32 Texture2D::getFlags() const
+Uint64 Texture2D::getFlags() const
 {
 	return _flags;
 }
@@ -123,7 +123,7 @@ Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
 	bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
 	if (imageContainer)
 	{
-		uint32_t flags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
+		Uint64 flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		const bgfx::Memory* mem = bgfx::makeRef(
 			imageContainer->m_data, imageContainer->m_size,
 			releaseImage, imageContainer);
@@ -188,7 +188,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			result->get(imageContainer);
 			if (imageContainer)
 			{
-				uint32_t flags = BGFX_TEXTURE_U_CLAMP | BGFX_TEXTURE_V_CLAMP;
+				Uint64 flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 				const bgfx::Memory* mem = bgfx::makeRef(
 					imageContainer->m_data, imageContainer->m_size,
 					releaseImage, imageContainer);

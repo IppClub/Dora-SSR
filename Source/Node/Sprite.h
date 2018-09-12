@@ -74,7 +74,7 @@ public:
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
 	PROPERTY_READONLY_REF(SpriteQuad, Quad);
-	PROPERTY_READONLY(Uint32, TextureFlags);
+	PROPERTY_READONLY(Uint64, TextureFlags);
 	PROPERTY(TextureFilter, Filter);
 	PROPERTY(TextureWrap, UWrap);
 	PROPERTY(TextureWrap, VWrap);
@@ -135,7 +135,7 @@ private:
 	Texture2D* _lastTexture;
 	SpriteEffect* _lastEffect;
 	Uint64 _lastState;
-	Uint32 _lastFlags;
+	Uint64 _lastFlags;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
 	SINGLETON_REF(SpriteRenderer, RendererManager);

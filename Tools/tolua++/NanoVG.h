@@ -43,7 +43,7 @@ namespace nvg
 	void Save();
 	void Restore();
 	void Reset();
-	int CreateImageRGBA(int w, int h, int imageFlags, String filename);
+	int CreateImage(int w, int h, int imageFlags, String filename);
 	int CreateFont(String name);
 	float TextBounds(float x, float y, String text, Rect& bounds);
 	Rect TextBoxBounds(float x, float y, float breakRowWidth, String text);
