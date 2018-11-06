@@ -49,6 +49,7 @@ private:
 	bool _mousePressed[3];
 	float _mouseWheel;
 	int _lastCursor;
+	UITouchHandler* _touchHandler;
 	Ref<Texture2D> _fontTexture;
 	Ref<SpriteEffect> _effect;
 	bgfx::VertexDecl _vertexDecl;

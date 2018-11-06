@@ -87,6 +87,31 @@ private:
 	unordered_map<SDL_FingerID, Ref<Touch>> _touchMap;
 };
 
+class UITouchHandler : public TouchHandler
+{
+public:
+	PROPERTY_BOOL(TouchSwallowed);
+	PROPERTY_BOOL(WheelSwallowed);
+	PROPERTY_READONLY(float, MouseWheel);
+	PROPERTY_READONLY_REF(Vec2, MousePos);
+	PROPERTY_READONLY_BOOL(LeftButtonPressed);
+	PROPERTY_READONLY_BOOL(RightButtonPressed);
+	PROPERTY_READONLY_BOOL(MiddleButtonPressed);
+	UITouchHandler();
+	virtual ~UITouchHandler();
+	void clear();
+	virtual bool handle(const SDL_Event& event) override;
+	void handleEvent(const SDL_Event& event);
+private:
+	bool _touchSwallowed;
+	bool _wheelSwallowed;
+	bool _leftButtonPressed;
+	bool _middleButtonPressed;
+	bool _rightButtonPressed;
+	float _mouseWheel;
+	Vec2 _mousePos;
+};
+
 class TouchDispatcher
 {
 public:

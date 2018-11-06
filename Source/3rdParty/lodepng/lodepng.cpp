@@ -399,7 +399,7 @@ unsigned lodepng_save_file(const unsigned char* buffer, size_t buffersize, const
   FILE* file;
   file = fopen(filename, "wb" );
   if(!file) return 79;
-  fwrite((char*)buffer , 1 , buffersize, file);
+  fwrite(buffer, 1, buffersize, file);
   fclose(file);
   return 0;
 }
@@ -2638,6 +2638,15 @@ unsigned lodepng_color_mode_copy(LodePNGColorMode* dest, const LodePNGColorMode*
   return 0;
 }
 
+LodePNGColorMode lodepng_color_mode_make(LodePNGColorType colortype, unsigned bitdepth)
+{
+  LodePNGColorMode result;
+  lodepng_color_mode_init(&result);
+  result.colortype = colortype;
+  result.bitdepth = bitdepth;
+  return result;
+}
+
 static int lodepng_color_mode_equal(const LodePNGColorMode* a, const LodePNGColorMode* b)
 {
   size_t i;
@@ -2657,20 +2666,6 @@ static int lodepng_color_mode_equal(const LodePNGColorMode* a, const LodePNGColo
   }
   return 1;
 }
-
-#ifdef LODEPNG_COMPILE_ENCODER
-#ifdef LODEPNG_COMPILE_ANCILLARY_CHUNKS
-/* Makes a temporary LodePNGColorMode that does not need cleanup (no palette) */
-static LodePNGColorMode lodepng_color_mode_make(LodePNGColorType colortype, unsigned bitdepth)
-{
-  LodePNGColorMode result;
-  lodepng_color_mode_init(&result);
-  result.colortype = colortype;
-  result.bitdepth = bitdepth;
-  return result;
-}
-#endif /*LODEPNG_COMPILE_ANCILLARY_CHUNKS*/
-#endif /*LODEPNG_COMPILE_ENCODER*/
 
 void lodepng_palette_clear(LodePNGColorMode* info)
 {
@@ -3658,7 +3653,7 @@ unsigned lodepng_convert_rgb(
     const LodePNGColorMode* mode_out, const LodePNGColorMode* mode_in)
 {
   unsigned r = 0, g = 0, b = 0;
-  unsigned mul = 65535 / ((1 << mode_in->bitdepth) - 1); /*65535, 21845, 4369, 257, 1*/
+  unsigned mul = 65535 / ((1u << mode_in->bitdepth) - 1u); /*65535, 21845, 4369, 257, 1*/
   unsigned shift = 16 - mode_out->bitdepth;
 
   if(mode_in->colortype == LCT_GREY || mode_in->colortype == LCT_GREY_ALPHA)
@@ -3674,9 +3669,9 @@ unsigned lodepng_convert_rgb(
   else if(mode_in->colortype == LCT_PALETTE)
   {
     if(r_in >= mode_in->palettesize) return 82;
-    r = mode_in->palette[r_in * 4 + 0] * 257;
-    g = mode_in->palette[r_in * 4 + 1] * 257;
-    b = mode_in->palette[r_in * 4 + 2] * 257;
+    r = mode_in->palette[r_in * 4 + 0] * 257u;
+    g = mode_in->palette[r_in * 4 + 1] * 257u;
+    b = mode_in->palette[r_in * 4 + 2] * 257u;
   }
   else
   {
@@ -3772,7 +3767,7 @@ unsigned lodepng_get_color_profile(LodePNGColorProfile* profile,
   unsigned bits_done = (profile->bits == 1 && bpp == 1) ? 1 : 0;
   unsigned sixteen = 0; /* whether the input image is 16 bit */
   unsigned maxnumcolors = 257;
-  if(bpp <= 8) maxnumcolors = LODEPNG_MIN(257, profile->numcolors + (1 << bpp));
+  if(bpp <= 8) maxnumcolors = LODEPNG_MIN(257, profile->numcolors + (1u << bpp));
 
   profile->numpixels += numpixels;
 
@@ -3791,7 +3786,7 @@ unsigned lodepng_get_color_profile(LodePNGColorProfile* profile,
     for(i = 0; i < profile->numcolors; i++)
     {
       const unsigned char* color = &profile->palette[i * 4];
-      color_tree_add(&tree, color[0], color[1], color[2], color[3], (unsigned int)i);
+      color_tree_add(&tree, color[0], color[1], color[2], color[3], i);
     }
   }
 

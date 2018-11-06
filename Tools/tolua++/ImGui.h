@@ -110,7 +110,7 @@ namespace ImGui
 	float GetScrollMaxY();
 	void SetScrollX(float scroll_x);
 	void SetScrollY(float scroll_y);
-	void SetScrollHere(float center_y_ratio = 0.5f);
+	void SetScrollHereY(float center_y_ratio = 0.5f);
 	void SetScrollFromPosY(float pos_y, float center_y_ratio = 0.5f);
 	void SetKeyboardFocusHere(int offset = 0);
 

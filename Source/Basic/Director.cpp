@@ -90,6 +90,15 @@ Node* Director::getPostNode()
 	return _postNode;
 }
 
+UITouchHandler* Director::getUITouchHandler()
+{
+	if (!_uiTouchHandler)
+	{
+		_uiTouchHandler = New<UITouchHandler>();
+	}
+	return _uiTouchHandler;
+}
+
 void Director::setClearColor(Color var)
 {
 	_clearColor = var;
@@ -285,7 +294,11 @@ void Director::mainLoop()
 		{
 			registerTouchHandler(_postNode);
 			SharedTouchDispatcher.dispatch();
-			/* handle scene tree touch */
+		}
+
+		/* handle scene tree touch */
+		if (_entry)
+		{
 			registerTouchHandler(_entry);
 			SharedTouchDispatcher.dispatch();
 			SharedTouchDispatcher.clearEvents();
@@ -411,6 +424,10 @@ void Director::mainLoop()
 		/* render imgui */
 		SharedImGui.render();
 		SharedView.clear();
+		if (_uiTouchHandler)
+		{
+			_uiTouchHandler->clear();
+		}
 	});
 }
 
@@ -462,7 +479,7 @@ void Director::displayStats()
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mC++ Object: \x1b[15;m%d", Object::getCount());
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mLua Object: \x1b[15;m%d", Object::getLuaRefCount());
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mLua Callback: \x1b[15;m%d", Object::getLuaCallbackCount());
-	//bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMemory Pool: \x1b[15;m%d kb", MemoryPool::getCapacity()/1024);
+	// bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMemory Pool: \x1b[15;m%d kb", MemoryPool::getCapacity()/1024);
 }
 
 void Director::pushViewProjection(const Matrix& viewProj)
@@ -516,7 +533,7 @@ NVGcontext* Director::markNVGDirty()
 		_nvgDirty = true;
 		Size designSize = SharedApplication.getDesignSize();
 		float deviceRatio = SharedApplication.getDeviceRatio();
-		nvgBeginFrame(_nvgContext, designSize.width, designSize.height, deviceRatio);
+		nvgBeginFrame(_nvgContext, s_cast<int>(designSize.width), s_cast<int>(designSize.height), deviceRatio);
 	}
 	return _nvgContext;
 }
