@@ -40,6 +40,11 @@ namespace nvg
 		bool inverseFrom(Transform src);
 		Vec2 point(Vec2 src);
 	};
+	Vec2 TouchPos();
+	bool LeftButtonPressed();
+	bool RightButtonPressed();
+	bool MiddleButtonPressed();
+	float MouseWheel();
 	void Save();
 	void Restore();
 	void Reset();

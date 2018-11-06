@@ -109,59 +109,59 @@ public:
 	{
 		int oldSize = getCapacity();
 		Chunk* prevChunk = nullptr;
-		FreeList* sortedChunkList = nullptr; // 总空闲队列
-		FreeList* sortedChunkListTail = nullptr; // 总空闲队列尾
-		FreeList* prev = nullptr; // 前一个遍历到的原回收队列的item
-		for (Chunk* chunk = _chunk->next; chunk;) // 从_chunk的next开始检测，保留根部的chunk不被释放
+		FreeList* sortedChunkList = nullptr;
+		FreeList* sortedChunkListTail = nullptr;
+		FreeList* prev = nullptr;
+		for (Chunk* chunk = _chunk->next; chunk;)
 		{
 			size_t begin = (size_t)chunk->buffer;
 			size_t end = begin + CHUNK_CAPACITY;
 			int count = 0;
-			FreeList* chunkList = nullptr; // 找到的属于当前的chunk的item队列
-			FreeList* chunkListTail = nullptr; // 当前的chunk的item队列尾
-			prev = nullptr; // 遍历的前一个item
-			for (FreeList* list = _freeList; list;) // 遍历整个回收来的item队列
+			FreeList* chunkList = nullptr;
+			FreeList* chunkListTail = nullptr;
+			prev = nullptr;
+			for (FreeList* list = _freeList; list;)
 			{
 				size_t loc = (size_t)list;
-				if (begin <= loc && loc < end) // 检查当前item是否属于当前的chunk
+				if (begin <= loc && loc < end)
 				{
-					++count; // 记录找到属于chunk的空闲item的数量
+					++count;
 					FreeList* temp = list;
-					if (prev) prev->next = list->next; // 从链表中间取出当前的item
-					else _freeList = list->next; // 从链表头部取出当前的item
-					list = list->next; // 遍历到下一个item
+					if (prev) prev->next = list->next;
+					else _freeList = list->next;
+					list = list->next;
 					temp->next = chunkList;
-					chunkList = temp; // 将找到的item添加到当前chunk的item队列头部
-					if (!chunkListTail) chunkListTail = chunkList; // 记录尾节点
+					chunkList = temp;
+					if (!chunkListTail) chunkListTail = chunkList;
 				}
 				else
 				{
-					prev = list; // 记录上一个item
-					list = list->next; // 遍历到下一个item
+					prev = list;
+					list = list->next;
 				}
 			}
-			if (count == int(CHUNK_CAPACITY / ITEM_SIZE)) // 发现chunk中的所有item都是空闲的
+			if (count == int(CHUNK_CAPACITY / ITEM_SIZE))
 			{
 				Chunk* temp = chunk;
-				if (prevChunk) prevChunk->next = chunk->next; // 从链表中间取出当前的chunk
-				else _chunk->next = chunk->next; // 从链表头部取出当前的chunk
-				chunk = chunk->next; // 遍历到下一个chunk
-				delete temp; // 删除当前chunk
+				if (prevChunk) prevChunk->next = chunk->next;
+				else _chunk->next = chunk->next;
+				chunk = chunk->next;
+				delete temp;
 			}
 			else
 			{
 				if (sortedChunkListTail)
 				{
-					sortedChunkListTail->next = chunkList; // 往总空闲队列的尾部添加当前chunk的空闲队列
+					sortedChunkListTail->next = chunkList;
 				}
-				else sortedChunkList = chunkList; // 记录总空闲队列的头部
-				sortedChunkListTail = chunkListTail; // 总空闲队列的尾部设置为当前chunk空闲队列的尾部
-				prevChunk = chunk; // 记录上一个chunk
-				chunk = chunk->next; // 遍历到下一个chunk
+				else sortedChunkList = chunkList;
+				sortedChunkListTail = chunkListTail;
+				prevChunk = chunk;
+				chunk = chunk->next;
 			}
 		}
-		if (prev) prev->next = sortedChunkList; // prev现在为原回收队列的队尾，往队尾接上总空闲队列
-		else _freeList = sortedChunkList; // 将回收队列设置为总空闲队列
+		if (prev) prev->next = sortedChunkList;
+		else _freeList = sortedChunkList;
 		int newSize = getCapacity();
 		return oldSize - newSize;
 	}

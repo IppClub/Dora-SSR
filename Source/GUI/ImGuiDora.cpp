@@ -139,12 +139,12 @@ public:
 		if (_scrollToBottom)
 		{
 			_scrollToBottom = false;
-			ImGui::SetScrollHere();
+			ImGui::SetScrollHereY();
 		}
 		if (_forceScroll > 0)
 		{
 			_forceScroll--;
-			ImGui::SetScrollHere();
+			ImGui::SetScrollHereY();
 		}
 		ImGui::EndChild();
 		ImGui::End();
@@ -921,7 +921,9 @@ bool ImGuiDora::handle(const SDL_Event& event)
 	{
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_FINGERDOWN:
-		return ImGui::IsAnyItemActive();
+	case SDL_MOUSEWHEEL:
+	case SDL_MULTIGESTURE:
+		return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive();
 	}
 	return false;
 }

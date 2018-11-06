@@ -275,6 +275,11 @@ struct nvg
 		inline Vec2 point(Vec2 src) { Vec2 p; nvgTransformPoint(&p.x, &p.y, t, src.x, src.y); return p; }
 	};
 	#define NVG SharedDirector.markNVGDirty()
+	static Vec2 TouchPos() { return SharedDirector.getUITouchHandler()->getMousePos(); }
+	static bool LeftButtonPressed() { return SharedDirector.getUITouchHandler()->isLeftButtonPressed(); }
+	static bool RightButtonPressed() { return SharedDirector.getUITouchHandler()->isRightButtonPressed(); }
+	static bool MiddleButtonPressed() { return SharedDirector.getUITouchHandler()->isMiddleButtonPressed(); }
+	static float MouseWheel() { return SharedDirector.getUITouchHandler()->getMouseWheel(); }
 	static inline void Save() { nvgSave(NVG); }
 	static inline void Restore() { nvgRestore(NVG); }
 	static inline void Reset() { nvgReset(NVG); }

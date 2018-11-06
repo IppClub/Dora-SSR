@@ -432,6 +432,148 @@ bool NodeTouchHandler::gesture(const SDL_Event& event)
 	return false;
 }
 
+/* UITouchHandler */
+
+UITouchHandler::UITouchHandler():
+_mousePos{-1.0f,-1.0f},
+_mouseWheel(0.0f),
+_touchSwallowed(false),
+_wheelSwallowed(false),
+_leftButtonPressed(false),
+_middleButtonPressed(false),
+_rightButtonPressed(false)
+{
+	setSwallowMouseWheel(true);
+	SharedApplication.eventHandler += std::make_pair(this, &UITouchHandler::handleEvent);
+}
+
+UITouchHandler::~UITouchHandler()
+{
+	SharedApplication.eventHandler -= std::make_pair(this, &UITouchHandler::handleEvent);
+}
+
+bool UITouchHandler::isTouchSwallowed() const
+{
+	return _touchSwallowed;
+}
+
+void UITouchHandler::setTouchSwallowed(bool value)
+{
+	_touchSwallowed = value;
+}
+
+bool UITouchHandler::isWheelSwallowed() const
+{
+	return _wheelSwallowed;
+}
+
+void UITouchHandler::setWheelSwallowed(bool value)
+{
+	_wheelSwallowed = value;
+}
+
+const Vec2& UITouchHandler::getMousePos() const
+{
+	return _mousePos;
+}
+
+float UITouchHandler::getMouseWheel() const
+{
+	return _mouseWheel;
+}
+
+bool UITouchHandler::isLeftButtonPressed() const
+{
+	return _leftButtonPressed;
+}
+
+bool UITouchHandler::isRightButtonPressed() const
+{
+	return _rightButtonPressed;
+}
+
+bool UITouchHandler::isMiddleButtonPressed() const
+{
+	return _middleButtonPressed;
+}
+
+void UITouchHandler::clear()
+{
+	_mouseWheel = 0.0f;
+	_touchSwallowed = false;
+	_wheelSwallowed = false;
+}
+
+bool UITouchHandler::handle(const SDL_Event& event)
+{
+	switch (event.type)
+	{
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_FINGERDOWN:
+		return _touchSwallowed;
+	case SDL_MOUSEWHEEL:
+		return _wheelSwallowed;
+	}
+	return false;
+}
+
+void UITouchHandler::handleEvent(const SDL_Event& event)
+{
+	switch (event.type)
+	{
+		case SDL_MOUSEWHEEL:
+		{
+			if (event.wheel.y > 0) _mouseWheel = 1.0f;
+			else if (event.wheel.y < 0) _mouseWheel = -1.0f;
+			break;
+		}
+		case SDL_MOUSEBUTTONDOWN:
+		{
+			if ((Touch::source & Touch::FromMouse) == 0) break;
+			if (event.button.button == SDL_BUTTON_LEFT) _leftButtonPressed = true;
+			if (event.button.button == SDL_BUTTON_RIGHT) _rightButtonPressed = true;
+			if (event.button.button == SDL_BUTTON_MIDDLE) _middleButtonPressed = true;
+			break;
+		}
+		case SDL_MOUSEBUTTONUP:
+		{
+			if ((Touch::source & Touch::FromMouse) == 0) break;
+			if (event.button.button == SDL_BUTTON_LEFT) _leftButtonPressed = false;
+			if (event.button.button == SDL_BUTTON_RIGHT) _rightButtonPressed = false;
+			if (event.button.button == SDL_BUTTON_MIDDLE) _middleButtonPressed = false;
+			break;
+		}
+		case SDL_FINGERDOWN:
+		{
+			if ((Touch::source & Touch::FromTouch) == 0) break;
+			Size size = SharedApplication.getDesignSize();
+			_mousePos = {event.tfinger.x * size.width, event.tfinger.y * size.height};
+			_leftButtonPressed = true;
+			break;
+		}
+		case SDL_MOUSEMOTION:
+		{
+			if ((Touch::source & Touch::FromMouse) == 0) break;
+			Size designSize = SharedApplication.getDesignSize();
+			Size winSize = SharedApplication.getWinSize();
+			_mousePos = {
+				s_cast<float>(event.motion.x) * designSize.width / winSize.width,
+				s_cast<float>(event.motion.y) * designSize.height / winSize.height
+			};
+			break;
+		}
+		case SDL_FINGERMOTION:
+		{
+			if ((Touch::source & Touch::FromTouch) == 0) break;
+			Size size = SharedApplication.getDesignSize();
+			_mousePos = {event.tfinger.x * size.width, event.tfinger.y * size.height};
+			break;
+		}
+	}
+}
+
+/* TouchDispatcher */
+
 void TouchDispatcher::add(const SDL_Event& event)
 {
 	_events.push_back(event);

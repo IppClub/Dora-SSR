@@ -90,7 +90,7 @@ Size Application::getWinSize() const
 
 float Application::getDeviceRatio() const
 {
-	return _width / _designWidth;
+	return s_cast<float>(_width) / _designWidth;
 }
 
 void Application::setSeed(Uint32 var)

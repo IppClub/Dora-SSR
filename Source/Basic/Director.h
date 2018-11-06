@@ -20,6 +20,7 @@ class Scheduler;
 class Node;
 class Camera;
 class RenderTarget;
+class UITouchHandler;
 
 class Director
 {
@@ -31,6 +32,7 @@ public:
 	PROPERTY_READONLY_CALL(Node*, UI);
 	PROPERTY_READONLY_CALL(Node*, Entry);
 	PROPERTY_READONLY_CALL(Node*, PostNode);
+	PROPERTY_READONLY_CALL(UITouchHandler*, UITouchHandler);
 	PROPERTY_READONLY(Camera*, CurrentCamera);
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
@@ -77,6 +79,7 @@ private:
 	Ref<Scheduler> _postScheduler;
 	Ref<Scheduler> _postSystemScheduler;
 	Ref<RenderTarget> _renderTarget;
+	Own<UITouchHandler> _uiTouchHandler;
 	stack<Own<Matrix>> _viewProjs;
 	NVGcontext* _nvgContext;
 	SINGLETON_REF(Director, FontManager, LuaEngine, BGFXDora, Application);
