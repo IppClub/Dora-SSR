@@ -43,11 +43,13 @@ using std::tuple;
 using Acf::Delegate;
 #include "silly/Slice.h"
 using namespace silly::slice;
+#include "fmt/format.h"
+
 #include "Const/Config.h"
+#include "Common/Debug.h"
 #include "Common/Utils.h"
 using namespace Dorothy::Switch::Literals;
 #include "Common/Singleton.h"
-#include "Common/Debug.h"
 #include "Common/MemoryPool.h"
 #include "Common/Own.h"
 #include "Basic/Object.h"

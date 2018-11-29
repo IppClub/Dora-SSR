@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Lua/LuaFromXml.h"
 #include "tinyxml2/SAXParser.h"
-#include "fmt/format.h"
+#include "Lua/LuaEngine.h"
 
 NS_DOROTHY_BEGIN
 

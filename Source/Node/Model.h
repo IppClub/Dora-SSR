@@ -119,15 +119,16 @@ public:
 	string getCurrentAnimationName() const;
 	ModelDef* getModelDef() const;
 	Node* getNodeByName(String name);
+	bool eachNode(function<bool(Node* node)>) const;
 	class AnimationHandlerGroup
 	{
 	public:
 		void operator()(Model* owner);
 		AnimationHandler& operator[](int index);
 		AnimationHandler& operator[](String name);
-		void each(const function<void(const string&,AnimationHandler&)>& func);
 	private:
 		Model* _owner;
+		AnimationHandler _unavailableHandler;
 		friend class Model;
 	} handlers;
 	virtual bool init() override;

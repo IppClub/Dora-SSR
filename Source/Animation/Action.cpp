@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 #include "Node/Sprite.h"
 #include "Cache/FrameCache.h"
+#include "Cache/ClipCache.h"
 #include "Audio/Sound.h"
 
 NS_DOROTHY_BEGIN
@@ -522,6 +523,7 @@ Own<ActionDuration> FrameAction::alloc(FrameActionDef* def)
 	FrameAction* action = new FrameAction();
 	action->_def = def;
 	action->_ended = false;
+	action->_texture = SharedClipCache.loadTexture(def->clipStr);
 	return Own<ActionDuration>(action);
 }
 

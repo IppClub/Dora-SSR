@@ -61,9 +61,6 @@ public:
 	static void addName(String name);
 	static void destroy(String name);
 	static string getRefTree();
-#if DORA_DEBUG
-	static void assertIf(bool disposed, String name);
-#endif // DORA_DEBUG
 };
 
 template <class T>
@@ -85,9 +82,7 @@ public:
 	static Singleton& shared()
 	{
 		static auto* _instance = new Singleton();
-#if DORA_DEBUG
-		Life::assertIf(_status != Status::Available, _name);
-#endif // DORA_DEBUG
+		AssertIf(_status != Status::Available, "accessing disposed singleton instance named \"{}\".", _name);
 		return *_instance;
 	}
 

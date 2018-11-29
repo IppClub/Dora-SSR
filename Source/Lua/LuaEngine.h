@@ -31,24 +31,44 @@ public:
 	bool executeFunction(int handler, int paramCount = 0);
 	int executeReturnFunction(int handler, int paramCount = 0);
 
+	void push(bool value);
 	void push(Uint16 value);
 	void push(int value);
 	void push(float value);
 	void push(double value);
 	void push(Value* value);
 	void push(Object* value);
-	void push(Ref<> value);
 	void push(String value);
+	void push(const string& value);
 	void push(std::nullptr_t);
-
 	template<typename T>
 	typename std::enable_if<!std::is_pointer<T>::value>::type push(const T& t)
 	{
 		tolua_pushusertype(L, new T(t), LuaType<T>());
 	}
-
 	template<typename T>
 	typename std::enable_if<!std::is_base_of<Object, T>::value>::type push(T* t)
+	{
+		tolua_pushusertype(L, t, LuaType<T>());
+	}
+
+	static void push(lua_State* L, bool value);
+	static void push(lua_State* L, Uint16 value);
+	static void push(lua_State* L, int value);
+	static void push(lua_State* L, float value);
+	static void push(lua_State* L, double value);
+	static void push(lua_State* L, Value* value);
+	static void push(lua_State* L, Object* value);
+	static void push(lua_State* L, String value);
+	static void push(lua_State* L, const string& value);
+	static void push(lua_State* L, std::nullptr_t);
+	template<typename T>
+	static typename std::enable_if<!std::is_pointer<T>::value>::type push(lua_State* L, const T& t)
+	{
+		tolua_pushusertype(L, new T(t), LuaType<T>());
+	}
+	template<typename T>
+	static typename std::enable_if<!std::is_base_of<Object, T>::value>::type push(lua_State* L, T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());
 	}

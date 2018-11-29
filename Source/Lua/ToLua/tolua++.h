@@ -90,7 +90,7 @@ void tolua_usertype(lua_State* L, const char* type);
 void tolua_beginmodule(lua_State* L, const char* name);
 void tolua_endmodule(lua_State* L);
 void tolua_module(lua_State* L, const char* name, int hasvar);
-void tolua_cclass(lua_State* L, const char* name, const char* base, lua_CFunction col);
+void tolua_cclass(lua_State* L, const char* name, const char* lname, const char* base, lua_CFunction col);
 void tolua_function(lua_State* L, const char* name, lua_CFunction func);
 void tolua_call(lua_State* L, int index, lua_CFunction func);
 void tolua_constant(lua_State* L, const char* name, lua_Number value);

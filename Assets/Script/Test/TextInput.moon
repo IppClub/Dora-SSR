@@ -70,7 +70,7 @@ TextInput = Class ((args)->
 		\slot "Tapped",(touch)-> startEditing! if touch.id == 0
 
 		\slot "KeyPressed",(key)->
-			if Application.platform == "Android" and utf8.len(textEditing) == 1
+			if App.platform == "Android" and utf8.len(textEditing) == 1
 				textEditing = "" if key == "BackSpace"
 			else
 				return if textEditing ~= ""

@@ -110,11 +110,15 @@ void Event::get(Args&... args)
 		lua_State* L = SharedLuaEngine.getState();
 		int i = lua_gettop(L) - luaEvent->getParamCount();
 		bool results[] = {SharedLuaEngine.to(args, ++i)...};
+#if DORA_DEBUG
 		for (bool result : results)
 		{
 			AssertUnless(result, "lua event arguments mismatch.");
 			if (!result) return;
 		}
+#else
+		DORA_UNUSED_PARAM(results);
+#endif // DORA_DEBUG
 	}
 	else
 	{

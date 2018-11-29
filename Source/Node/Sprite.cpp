@@ -141,12 +141,17 @@ const SpriteQuad& Sprite::getQuad() const
 	return _quad;
 }
 
+Uint32 Sprite::getSamplerFlags() const
+{
+	return getTextureFlags() & UINT32_MAX;
+}
+
 Uint64 Sprite::getTextureFlags() const
 {
 	Uint64 textureFlags = _texture->getFlags();
 	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None)
 	{
-		return INT32_MAX;
+		return UINT32_MAX;
 	}
 	const Uint64 mask = (
 		BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK |
@@ -193,7 +198,7 @@ Uint64 Sprite::getTextureFlags() const
 	}
 	if (flags == (textureFlags & mask))
 	{
-		return INT32_MAX;
+		return UINT32_MAX;
 	}
 	else
 	{
@@ -344,10 +349,10 @@ _spriteIndices{0, 1, 2, 1, 3, 2},
 _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
-_lastFlags(INT32_MAX),
-_defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_sprite"_slice)),
-_defaultModelEffect(SpriteEffect::create("builtin:vs_spritemodel"_slice, "builtin:fs_sprite"_slice)),
-_alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice))
+_lastFlags(UINT32_MAX),
+_defaultEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_sprite"_slice)),
+_defaultModelEffect(SpriteEffect::create("builtin::vs_spritemodel"_slice, "builtin::fs_sprite"_slice)),
+_alphaTestEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_spritealphatest"_slice))
 { }
 
 SpriteEffect* SpriteRenderer::getDefaultEffect() const
@@ -392,7 +397,7 @@ void SpriteRenderer::render()
 			bgfx::setIndexBuffer(&indexBuffer);
 			Uint8 viewId = SharedView.getId();
 			bgfx::setState(_lastState);
-			bgfx::setTexture(0, _lastEffect->getSampler(), _lastTexture->getHandle());
+			bgfx::setTexture(0, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
 			bgfx::submit(viewId, _lastEffect->apply());
 		}
 		else
@@ -403,7 +408,7 @@ void SpriteRenderer::render()
 		_lastEffect = nullptr;
 		_lastTexture = nullptr;
 		_lastState = 0;
-		_lastFlags = INT32_MAX;
+		_lastFlags = UINT32_MAX;
 	}
 }
 
@@ -412,7 +417,7 @@ void SpriteRenderer::push(Sprite* sprite)
 	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
 	Uint64 state = sprite->getRenderState();
-	Uint64 flags = sprite->getTextureFlags();
+	Uint32 flags = sprite->getSamplerFlags();
 	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();

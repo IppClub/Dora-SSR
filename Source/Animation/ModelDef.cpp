@@ -14,7 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Animation/Animation.h"
 #include "Node/Model.h"
-#include "fmt/format.h"
 
 NS_DOROTHY_BEGIN
 
@@ -150,7 +149,8 @@ void SpriteDef::restoreResetAnimation(Node* target, ActionDuration* action)
 /* ModelDef */
 
 ModelDef::ModelDef():
-_isFaceRight(false)
+_isFaceRight(false),
+_size{}
 { }
 
 ModelDef::ModelDef(
@@ -320,11 +320,6 @@ vector<string> ModelDef::getAnimationNames() const
 		names[it.second] = it.first;
 	}
 	return names;
-}
-
-string ModelDef::getTextureFile() const
-{
-	return SharedClipCache.load(_clip)->textureFile;
 }
 
 NS_DOROTHY_END

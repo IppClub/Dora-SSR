@@ -351,7 +351,7 @@ void DrawNode::clear()
 /* DrawRenderer */
 
 DrawRenderer::DrawRenderer():
-_defaultEffect(Effect::create("builtin:vs_draw"_slice, "builtin:fs_draw"_slice)),
+_defaultEffect(Effect::create("builtin::vs_draw"_slice, "builtin::fs_draw"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 
@@ -613,7 +613,7 @@ void Line::render()
 /* LineRenderer */
 
 LineRenderer::LineRenderer():
-_defaultEffect(Effect::create("builtin:vs_poscolor"_slice, "builtin:fs_poscolor"_slice)),
+_defaultEffect(Effect::create("builtin::vs_poscolor"_slice, "builtin::fs_poscolor"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 

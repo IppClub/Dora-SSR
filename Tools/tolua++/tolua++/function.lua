@@ -109,7 +109,7 @@ function classFunction:supcode(local_constructor)
 		if self.const ~= '' then
 			type = "const "..type
 		end
-		output('     !'..func..'(tolua_S,1,"'.._userltype[self.parent.type]..'"_slice,0,&tolua_err) ||\n')
+		output('     !'..func..'(tolua_S,1,"'.._usertype[self.parent.type]..'"_slice,0,&tolua_err) ||\n')
  elseif (static and out) then
 		output('     !tolua_istable(tolua_S,1,0,&tolua_err) ||\n')
  end

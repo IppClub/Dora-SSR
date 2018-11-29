@@ -10,7 +10,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Animation/Animation.h"
 #include "Node/Node.h"
 #include "Const/XmlTag.h"
-#include "fmt/format.h"
 #include "Animation/ModelDef.h"
 #include "Cache/FrameCache.h"
 
@@ -419,7 +418,7 @@ Action* FrameAnimationDef::toAction()
 void FrameAnimationDef::setFile(String filename)
 {
 	_file = filename;
-	_def = SharedFrameCache.load(filename);
+	_def = SharedFrameCache.loadFrame(filename);
 }
 
 const string& FrameAnimationDef::getFile() const

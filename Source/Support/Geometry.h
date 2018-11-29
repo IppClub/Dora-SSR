@@ -111,6 +111,14 @@ struct Vec3
 	float x;
 	float y;
 	float z;
+	inline operator const bx::Vec3() const
+	{
+		return *r_cast<const bx::Vec3*>(&x);
+	}
+	inline operator bx::Vec3()
+	{
+		return *r_cast<bx::Vec3*>(&x);
+	}
 	inline operator float*()
 	{
 		return &x;

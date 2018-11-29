@@ -23,12 +23,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/BodyDef.h"
 #include "Physics/PhysicsWorld.h"
 #include "Entity/Entity.h"
+#include "Support/Dictionary.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-Unit::Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity) :
-Body(unitDef->getBodyDef(), physicsWorld),
+Unit::Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot) :
+Body(unitDef->getBodyDef(), physicsWorld, pos, rot),
 _model(nullptr),
+_groundSensor(nullptr),
 _detectSensor(nullptr),
 _attackSensor(nullptr),
 _currentAction(nullptr),
@@ -52,6 +54,13 @@ _unitDef(unitDef),
 _entity(entity)
 { }
 
+Unit::Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot):
+Unit(
+	SharedData.getCache()->get(defName).to<UnitDef>(),
+	SharedData.getCache()->get(worldName).to<PhysicsWorld>(),
+	entity, pos, rot)
+{ }
+
 bool Unit::init()
 {
 	if (!Body::init()) return false;
@@ -59,23 +68,28 @@ bool Unit::init()
 	Unit::setAttackRange(_unitDef->attackRange);
 	Unit::setTag(_unitDef->tag);
 	_groundSensor = Body::getSensorByTag(UnitDef::GroundSensorTag);
-	Unit::setAngle(-bx::toDeg(Body::getBodyDef()->angle));
 	ModelDef* modelDef = _unitDef->getModelDef();
 	Model* model = modelDef ? Model::create(modelDef) : Model::none();
 	_isFaceRight = !modelDef || modelDef->isFaceRight();
 	model->setScaleX(_unitDef->getScale());
 	model->setScaleY(_unitDef->getScale());
 	Unit::setModel(model);
+	_bulletDef = SharedData.getCache()->get(_unitDef->bulletType).to<BulletDef>();
 	Body::setOwner(this);
 	for (const string& name : _unitDef->actions)
 	{
 		Unit::attachAction(name);
 	}
-	Unit::setDecisionTreeName(_unitDef->decisionTree);
-	_entity->set("hp"_slice, s_cast<double>(_unitDef->maxHp));
 	_entity->set("unit"_slice, s_cast<Object*>(this));
+	_entity->set("hp"_slice, s_cast<double>(_unitDef->maxHp));
 	this->scheduleUpdate();
 	return true;
+}
+
+void Unit::onEnter()
+{
+	Unit::setDecisionTreeName(_unitDef->decisionTree);
+	Body::onEnter();
 }
 
 UnitDef* Unit::getUnitDef() const
@@ -122,26 +136,8 @@ Model* Unit::getModel() const
 	return _model;
 }
 
-Unit* Unit::create(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot)
-{
-	unitDef->getBodyDef()->position = PhysicsWorld::b2Val(pos);
-	unitDef->getBodyDef()->angle = -bx::toRad(rot);
-    Unit* unit = new Unit(unitDef, physicsWorld, entity);
-    if (unit && unit->init())
-	{
-		unit->autorelease();
-	}
-	else
-	{
-		delete unit;
-		unit = nullptr;
-	}
-	return unit;
-}
-
 bool Unit::update(double deltaTime)
 {
-	if (!_bodyB2->IsActive()) return false;
 	if (_currentAction != nullptr)
 	{
 		_currentAction->update(s_cast<float>(deltaTime));
@@ -154,7 +150,7 @@ bool Unit::update(double deltaTime)
 	{
 		SharedAI.runDecisionTree(this);
 	}
-	return Body::update(deltaTime);
+	return false;
 }
 
 void Unit::cleanup()
@@ -164,6 +160,10 @@ void Unit::cleanup()
 		_entity->destroy();
 		_entity = nullptr;
 	}
+	_decisionTree = nullptr;
+	_unitDef = nullptr;
+	_bulletDef = nullptr;
+	_actions.clear();
 	Body::cleanup();
 }
 
@@ -366,7 +366,7 @@ UnitAction* Unit::getCurrentAction() const
 void Unit::setDecisionTreeName(String name)
 {
 	_decisionTreeName = name;
-	AILeaf* leaf = SharedAI.get(name);
+	AILeaf* leaf = SharedData.getCache()->get(name).to<AILeaf>();
 	if (leaf)
 	{
 		_decisionTree = leaf;

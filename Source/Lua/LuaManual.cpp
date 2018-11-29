@@ -47,6 +47,42 @@ int dora_emit(lua_State* L)
 	return 0;
 }
 
+static vector<string> getVectorString(lua_State* L, int loc)
+{
+	int length = s_cast<int>(lua_objlen(L, loc));
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isslicearray(L, loc, length, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		vector<string> array(length);
+		for (int i = 0; i < length; i++)
+		{
+			array[i] = tolua_tofieldslice(L, loc, i + 1, 0);
+		}
+		return array;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'getVectorString'.", &tolua_err);
+	return vector<string>();
+#endif
+}
+
+static void pushVectorString(lua_State* L, const vector<string>& array)
+{
+	lua_createtable(L, s_cast<int>(array.size()), 0);
+	for (int i = 0; i < s_cast<int>(array.size()); i++)
+	{
+		lua_pushlstring(L, array[i].c_str(), array[i].size());
+		lua_rawseti(L, -2, i + 1);
+	}
+}
+
 /* Content */
 
 void __Content_loadFile(lua_State* L, Content* self, String filename)
@@ -59,33 +95,27 @@ void __Content_loadFile(lua_State* L, Content* self, String filename)
 void __Content_getDirs(lua_State* L, Content* self, String path)
 {
 	auto dirs = self->getDirs(path);
-	lua_createtable(L, s_cast<int>(dirs.size()), 0);
-	for (int i = 0; i < s_cast<int>(dirs.size()); i++)
-	{
-		lua_pushstring(L, dirs[i].c_str());
-		lua_rawseti(L, -2, i+1);
-	}
+	pushVectorString(L, dirs);
 }
 
 void __Content_getFiles(lua_State* L, Content* self, String path)
 {
-	auto dirs = self->getFiles(path);
-	lua_createtable(L, s_cast<int>(dirs.size()), 0);
-	for (int i = 0; i < s_cast<int>(dirs.size()); i++)
-	{
-		lua_pushstring(L, dirs[i].c_str());
-		lua_rawseti(L, -2, i+1);
-	}
+	auto files = self->getFiles(path);
+	pushVectorString(L, files);
 }
 
-void Content_setSearchPaths(Content* self, Slice paths[], int length)
+int Content_GetSearchPaths(lua_State* L)
 {
-	vector<string> searchPaths(length);
-	for (int i = 0; i < length; i++)
-	{
-		searchPaths[i] = paths[i];
-	}
-	self->setSearchPaths(searchPaths);
+	Content* self = r_cast<Content*>(tolua_tousertype(L, 1, 0));
+	pushVectorString(L, self->getSearchPaths());
+	return 1;
+}
+
+int Content_SetSearchPaths(lua_State* L)
+{
+	Content* self = r_cast<Content*>(tolua_tousertype(L, 1, 0));
+	self->setSearchPaths(getVectorString(L, 2));
+	return 0;
 }
 
 /* Node */
@@ -408,7 +438,7 @@ bool Cache::unload(String name)
 				return SharedSoundCache.unload();
 			default:
 			{
-				auto tokens = name.split(":");
+				auto tokens = name.split("::"_slice);
 				if (tokens.size() == 2)
 				{
 					auto it = tokens.begin();
@@ -483,16 +513,7 @@ void Cache::removeUnused(String name)
 
 Sprite* Sprite_create(String clipStr)
 {
-	if (clipStr.toString().find('|') != string::npos)
-	{
-		return SharedClipCache.loadSprite(clipStr);
-	}
-	else if (clipStr.getFileExtension() == "clip"_slice)
-	{
-		ClipDef* def = SharedClipCache.load(clipStr);
-		return Sprite::create(def->textureFile);
-	}
-	return Sprite::create(clipStr);
+	return SharedClipCache.loadSprite(clipStr);
 }
 
 /* Label */
@@ -755,19 +776,6 @@ tolua_lerror:
 
 /* Model */
 
-Model* Model_create(String filename)
-{
-	Model* model = Model::create(filename);
-	model->handlers.each([](String name, AnimationHandler& handler)
-	{
-		handler = [name](Model* model)
-		{
-			model->emit("AnimationEnd"_slice, name, model);
-		};
-	});
-	return model;
-}
-
 Vec2 Model_getKey(Model* model, String key)
 {
 	return model->getModelDef()->getKeyPoint(key);
@@ -867,7 +875,7 @@ int Dictionary_get(lua_State* L)
 	/* 1 self, 2 key */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Dictionary"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Dictionary"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -880,7 +888,7 @@ int Dictionary_get(lua_State* L)
 		Slice key = tolua_toslice(L, 2, nullptr);
 		Object* value = self->get(key);
 		Value* valueItem = dynamic_cast<Value*>(value);
-		if (valueItem) valueItem->pushToLua();
+		if (valueItem) valueItem->pushToLua(L);
 		else tolua_pushobject(L, value);
 		return 1;
 	}
@@ -891,12 +899,54 @@ tolua_lerror:
 #endif
 }
 
+Object* Dora_getObject(lua_State* L, int loc)
+{
+	if (!lua_isnil(L, loc))
+	{
+		if (lua_isnumber(L, loc))
+		{
+			return Value::create(lua_tonumber(L, loc));
+		}
+		else if (lua_isboolean(L, loc))
+		{
+			return Value::create(lua_toboolean(L, loc) != 0);
+		}
+		else if (lua_isstring(L, loc))
+		{
+			return Value::create(tolua_toslice(L, loc, nullptr).toString());
+		}
+		else if (tolua_isobject(L, loc))
+		{
+			return r_cast<Object*>(tolua_tousertype(L, loc, 0));
+		}
+		else if (tolua_istype(L, loc, "Vec2"_slice))
+		{
+			return Value::create(*r_cast<Vec2*>(tolua_tousertype(L, loc, 0)));
+		}
+		else if (tolua_istype(L, loc, "Size"_slice))
+		{
+			return Value::create(*r_cast<Size*>(tolua_tousertype(L, loc, 0)));
+		}
+		else if (tolua_istype(L, loc, "Rect"_slice))
+		{
+			return Value::create(*r_cast<Rect*>(tolua_tousertype(L, loc, 0)));
+		}
+#ifndef TOLUA_RELEASE
+		else
+		{
+			tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size and Rect in containers.", nullptr);
+		}
+#endif
+	}
+	return nullptr;
+}
+
 int Dictionary_set(lua_State* L)
 {
 	/* 1 self, 2 key, 3 value */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Dictionary"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Dictionary"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 4, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -906,44 +956,7 @@ int Dictionary_set(lua_State* L)
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Dictionary_set'", nullptr);
 #endif
-		Object* object = nullptr;
-		if (!lua_isnil(L, 3))
-		{
-			if (lua_isnumber(L, 3))
-			{
-				object = Value::create(lua_tonumber(L, 3));
-			}
-			else if (lua_isboolean(L, 3))
-			{
-				object = Value::create(lua_toboolean(L, 3) != 0);
-			}
-			else if (lua_isstring(L, 3))
-			{
-				object = Value::create(tolua_toslice(L, 3, nullptr).toString());
-			}
-			else if (tolua_isobject(L, 3))
-			{
-				object = r_cast<Object*>(tolua_tousertype(L, 3, 0));
-			}
-			else if (tolua_istype(L, 3, "Vec2"_slice))
-			{
-				object = Value::create(*r_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
-			}
-			else if (tolua_istype(L, 3, "Size"_slice))
-			{
-				object = Value::create(*r_cast<Size*>(tolua_tousertype(L, 3, 0)));
-			}
-			else if (tolua_istype(L, 3, "Rect"_slice))
-			{
-				object = Value::create(*r_cast<Rect*>(tolua_tousertype(L, 3, 0)));
-			}
-#ifndef TOLUA_RELEASE
-			else
-			{
-				tolua_error(L, "Dictionary can only store number, boolean, string and Object.", nullptr);
-			}
-#endif
-		}
+		Object* object = Dora_getObject(L, 3);
 		Slice key = tolua_toslice(L, 2, nullptr);
 		if (object) self->set(key, object);
 		else self->remove(key);
@@ -958,29 +971,225 @@ tolua_lerror :
 
 /* Array */
 
+int Array_index(lua_State* L)
+{
+	/* 1 self, 2 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_index'", nullptr);
+#endif
+		Object* object = Dora_getObject(L, 2);
+		int index = self->index(object) + 1;
+		lua_pushnumber(L, index);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Array_index'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Array_set(lua_State* L)
+{
+	/* 1 self, 2 index, 3 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnumber(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 4, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_set'", nullptr);
+#endif
+		Object* object = Dora_getObject(L, 3);
+		self->set(index - 1, object);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Array_set'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Array_get(lua_State* L)
+{
+	/* 1 self, 2 index */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnumber(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_get'", nullptr);
+#endif
+		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
+		Object* value = self->get(index - 1);
+		Value* valueItem = dynamic_cast<Value*>(value);
+		if (valueItem) valueItem->pushToLua(L);
+		else tolua_pushobject(L, value);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Array_get'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Array_insert(lua_State* L)
+{
+	/* 1 self, 2 index, 3 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnumber(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 4, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_insert'", nullptr);
+#endif
+		Object* object = Dora_getObject(L, 3);
+		self->insert(index - 1, object);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Array_insert'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Array_fastRemove(lua_State* L)
+{
+	/* 1 self, 2 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_fastRemove'", nullptr);
+#endif
+		Object* object = Dora_getObject(L, 2);
+		self->fastRemove(object);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Array_fastRemove'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Array_add(lua_State* L)
+{
+	/* 1 self, 2 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_add'", nullptr);
+#endif
+		Object* object = Dora_getObject(L, 2);
+		self->add(object);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Array_add'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Array_contains(lua_State* L)
+{
+	/* 1 self, 2 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_contains'", nullptr);
+#endif
+		Object* object = Dora_getObject(L, 2);
+		lua_pushboolean(L, self->contains(object) ? 1 : 0);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Array_fastRemove'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Array_removeLast(lua_State* L)
+{
+	/* 1 self, 2 index */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Array"_slice, 0, &tolua_err) || !tolua_isnoobj(L, 2, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+    {
+		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Array_removeLast'", nullptr);
+#endif
+		Ref<> value = self->removeLast();
+		Value* valueItem = dynamic_cast<Value*>(value.get());
+		if (valueItem) valueItem->pushToLua(L);
+		else tolua_pushobject(L, value);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Array_removeLast'.", &tolua_err);
+	return 0;
+#endif
+}
+
 void Array_swap(Array* self, int indexA, int indexB)
 {
 	self->swap(indexA - 1, indexB - 1);
-}
-
-int Array_index(Array* self, Object* object)
-{
-	return self->index(object) + 1;
-}
-
-void Array_set(Array* self, int index, Object* object)
-{
-	self->set(index - 1, object);
-}
-
-Object* Array_get(Array* self, int index)
-{
-	return self->get(index - 1);
-}
-
-void Array_insert(Array* self, int index, Object* object)
-{
-	self->insert(index - 1, object);
 }
 
 bool Array_removeAt(Array* self, int index)
@@ -1000,6 +1209,60 @@ bool Array_each(Array* self, const LuaFunctionBool& handler)
 	{
 		return handler(item, ++index);
 	});
+}
+
+int Array_create(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertable(L, 1, "Array"_slice, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+ 	{
+ 		if (tolua_isusertype(L, 2, "Array"_slice, 0, &tolua_err) &&
+			tolua_isnoobj(L, 3, &tolua_err))
+		{
+			Array* other = r_cast<Array*>(tolua_tousertype(L, 2, 0));
+			Array* tolua_ret = Array::create(other);
+			tolua_pushobject(L, tolua_ret);
+			return 1;
+		}
+		else if (tolua_istable(L, 2, 0, &tolua_err) &&
+			tolua_isnoobj(L, 3, &tolua_err))
+		{
+			int tolua_len = s_cast<int>(lua_objlen(L, 2));
+			Array* tolua_ret = Array::create(tolua_len);
+			for (int i=0; i< tolua_len; i++)
+			{
+				lua_pushnumber(L, i + 1);
+				lua_gettable(L, 2);
+				tolua_ret->set(i, Dora_getObject(L, -1));
+				lua_pop(L, 1);
+			}
+			tolua_pushobject(L, tolua_ret);
+			return 1;
+		}
+		else if (tolua_isnoobj(L, 3, &tolua_err))
+ 		{
+			Array* tolua_ret = Array::create();
+			tolua_pushobject(L, tolua_ret);
+			return 1;
+ 		}
+#ifndef TOLUA_RELEASE
+ 		else
+ 		{
+			goto tolua_lerror;
+		}
+#endif
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'new'.", &tolua_err);
+	return 0;
+#endif
 }
 
 /* Buffer */
@@ -1069,7 +1332,7 @@ int Entity_get(lua_State* L)
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
 		Com* com = self->getComponent(name);
-		if (com) com->pushToLua();
+		if (com) com->pushToLua(L);
 		else lua_pushnil(L);
 		return 1;
     }
@@ -1097,7 +1360,7 @@ int Entity_getCache(lua_State* L)
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
 		Com* com = self->getCachedCom(name);
-		if (com) com->pushToLua();
+		if (com) com->pushToLua(L);
 		else lua_pushnil(L);
 		return 1;
     }
@@ -1265,12 +1528,18 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
 /* UnitDef */
 
-void UnitDef_setActions(UnitDef* self, Slice names[], int count)
+int UnitDef_GetActions(lua_State* L)
 {
-	for (int i = 0; i < count; i++)
-	{
-		self->actions.push_back(names[i]);
-	}
+	UnitDef* self = r_cast<UnitDef*>(tolua_tousertype(L, 1, 0));
+	pushVectorString(L, self->actions);
+	return 1;
+}
+
+int UnitDef_SetActions(lua_State* L)
+{
+	UnitDef* self = r_cast<UnitDef*>(tolua_tousertype(L, 1, 0));
+	self->actions = getVectorString(L, 2);
+	return 0;
 }
 
 NS_DOROTHY_PLATFORMER_END

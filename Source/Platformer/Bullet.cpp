@@ -41,7 +41,7 @@ bool Bullet::init()
 	_detectSensor->bodyEnter += std::make_pair(this, &Bullet::onBodyEnter);
 	Vec2 v = _bulletDef->getVelocity();
 	Body::setVelocity((_isFaceRight ? v.x : -v.x), v.y);
-	Body::setGroup(SharedData.getGroupDetect());
+	Body::setGroup(SharedData.getGroupDetection());
 	Face* face = _bulletDef->getFace();
 	if (face)
 	{

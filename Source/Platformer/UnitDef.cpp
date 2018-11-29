@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Platformer/Define.h"
 #include "Support/Geometry.h"
+#include "Support/Array.h"
+#include "Support/Value.h"
 #include "Platformer/UnitDef.h"
 #include "Platformer/Unit.h"
 #include "Platformer/BulletDef.h"
@@ -54,7 +56,8 @@ _bodyDef(BodyDef::create()),
 _density(1.0f),
 _friction(0.4f),
 _restitution(0.4f),
-usePreciseHit(true)
+usePreciseHit(true),
+_size{}
 { }
 
 BodyDef* UnitDef::getBodyDef() const
@@ -124,6 +127,7 @@ float UnitDef::getScale() const
 
 void UnitDef::updateBodyDef()
 {
+	if (_size == Size::zero) return;
 	_bodyDef->clearFixtures();
 	_bodyDef->fixedRotation = false;
 	Size size = _size;

@@ -75,6 +75,7 @@ public:
 	PROPERTY_READONLY(Uint64, RenderState);
 	PROPERTY_READONLY_REF(SpriteQuad, Quad);
 	PROPERTY_READONLY(Uint64, TextureFlags);
+	PROPERTY_READONLY(Uint32, SamplerFlags);
 	PROPERTY(TextureFilter, Filter);
 	PROPERTY(TextureWrap, UWrap);
 	PROPERTY(TextureWrap, VWrap);
@@ -124,7 +125,7 @@ public:
 	virtual void render() override;
 	void push(Sprite* sprite);
 	void push(SpriteVertex* verts, Uint32 size,
-		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = INT32_MAX,
+		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = UINT32_MAX,
 		const Matrix* modelWorld = nullptr);
 protected:
 	SpriteRenderer();
@@ -135,7 +136,7 @@ private:
 	Texture2D* _lastTexture;
 	SpriteEffect* _lastEffect;
 	Uint64 _lastState;
-	Uint64 _lastFlags;
+	Uint32 _lastFlags;
 	vector<SpriteVertex> _vertices;
 	const uint16_t _spriteIndices[6];
 	SINGLETON_REF(SpriteRenderer, RendererManager);

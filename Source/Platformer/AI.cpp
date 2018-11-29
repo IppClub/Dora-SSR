@@ -179,30 +179,4 @@ float AI::getNearestUnitDistance(Relation relation)
 	}
 }
 
-void AI::add(String name, AILeaf* leaf)
-{
-	if (!name.empty())
-	{
-		_decisionTrees[name] = leaf;
-	}
-}
-
-void AI::clear()
-{
-	_decisionTrees.clear();
-}
-
-AILeaf* AI::get(String id)
-{
-	if (!id.empty())
-	{
-		auto it = _decisionTrees.find(id);
-		if (it != _decisionTrees.end())
-		{
-			return it->second;
-		}
-	}
-	return nullptr;
-}
-
 NS_DOROTHY_PLATFORMER_END

@@ -121,7 +121,7 @@ Class RulerView,
 		_max = 0
 		_min = 0
 
-		switch Application.platform
+		switch App.platform
 			when "macOS", "Windows"
 				@addChild with Node!
 					.size = Size width,height

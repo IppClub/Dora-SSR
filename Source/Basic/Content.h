@@ -15,6 +15,7 @@ class Content
 public:
 	PROPERTY_READONLY_REF(string, AssetPath);
 	PROPERTY_READONLY_REF(string, WritablePath);
+	PROPERTY_REF(vector<string>, SearchPaths);
 	virtual ~Content();
 	bool isExist(String filename);
 	bool isFolder(String path);
@@ -33,7 +34,6 @@ public:
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
-	void setSearchPaths(const vector<string>& searchPaths);
 	void loadFileAsync(String filename, const function<void(String)>& callback);
 	void loadFileAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback);
 	void copyFileAsync(String src, String dst, const function<void()>& callback);

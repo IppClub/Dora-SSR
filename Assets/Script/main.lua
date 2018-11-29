@@ -1,6 +1,6 @@
 local Content = require("Content")
 
-Content:setSearchPaths {
+Content.searchPaths = {
 	Content.writablePath.."Script",
 	Content.writablePath.."Script/Lib",
 	"Script",

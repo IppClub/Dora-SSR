@@ -21,7 +21,7 @@ Own<Com> ComNone::clone() const
 	return Own<Com>(new ComNone());
 }
 
-void ComNone::pushToLua() const
+void ComNone::pushToLua(lua_State* L) const
 { }
 
 MEMORY_POOL(ComEx<Object*>);

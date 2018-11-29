@@ -459,8 +459,8 @@ bool ImGuiDora::init()
 	io.IniFilename = _iniFilePath.c_str();
 
 	_effect = SpriteEffect::create(
-		"builtin:vs_ocornut_imgui"_slice,
-		"builtin:fs_ocornut_imgui"_slice);
+		"builtin::vs_ocornut_imgui"_slice,
+		"builtin::fs_ocornut_imgui"_slice);
 
 	Uint8* texData;
 	int width;

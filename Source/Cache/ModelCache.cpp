@@ -10,8 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ModelCache.h"
 #include "Animation/ModelDef.h"
 #include "Animation/Animation.h"
+#include "Cache/ClipCache.h"
 #include "Const/XmlTag.h"
-#include "fmt/format.h"
 
 NS_DOROTHY_BEGIN
 
@@ -67,8 +67,12 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				switch (Xml::Model::Dorothy(attrs[i].first[0]))
 				{
 					case Xml::Model::Dorothy::File:
-						_item->_clip = _path + Slice(attrs[++i]);
+					{
+						string file = Slice(attrs[++i]);
+						string localFile = _path + file;
+						_item->_clip = SharedContent.isExist(localFile) ? localFile : file;
 						break;
+					}
 					case Xml::Model::Dorothy::FaceRight:
 						_item->_isFaceRight = (std::atoi(attrs[++i].first) != 0);
 						break;
@@ -242,8 +246,12 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				switch (Xml::Model::FrameAnimation(attrs[i].first[0]))
 				{
 					case Xml::Model::FrameAnimation::File:
-						frameAnimationDef->setFile(attrs[++i]);
+					{
+						string file = Slice(attrs[++i]);
+						string localFile = _path + file;
+						frameAnimationDef->setFile(SharedClipCache.isFileExist(localFile) ? localFile : file);
 						break;
+					}
 					case Xml::Model::FrameAnimation::Delay:
 						frameAnimationDef->delay = s_cast<float>(std::atof(attrs[++i].first));
 						break;

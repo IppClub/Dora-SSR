@@ -23,7 +23,9 @@ lifeTime(0),
 damageRadius(0),
 endEffect(),
 _bodyDef(BodyDef::create())
-{ }
+{
+	_bodyDef->type = b2_dynamicBody;
+}
 
 BodyDef* BulletDef::getBodyDef() const
 {

@@ -272,6 +272,11 @@ void Content::setSearchPaths(const vector<string>& searchPaths)
 	}
 }
 
+const vector<string>& Content::getSearchPaths() const
+{
+	return _searchPaths;
+}
+
 void Content::copyFileUnsafe(String src, String dst)
 {
 	string srcPath = Content::getFullPath(src);

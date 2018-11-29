@@ -179,7 +179,7 @@ Class ScrollAreaView,
 					@dragging = true
 					@emit "ScrollStart"
 
-		switch Application.platform
+		switch App.platform
 			when "macOS", "Windows"
 				getScrollBarX = ->
 					return @barX if @barX

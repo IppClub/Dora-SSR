@@ -12,6 +12,7 @@ NS_DOROTHY_BEGIN
 class BodyDef;
 class ModelDef;
 class World;
+class Array;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN

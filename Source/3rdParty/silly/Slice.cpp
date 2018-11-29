@@ -95,13 +95,13 @@ std::list<Slice> Slice::split(const Slice& delims) const {
   std::string text = toString();
   std::string delimers = delims.toString();
   std::list<Slice> tokens;
-  std::size_t start = text.find_first_not_of(delimers), end = 0;
-  while ((end = text.find_first_of(delimers, start)) != std::string::npos) {
+  std::size_t start = 0, end = 0;
+  while ((end = text.find(delimers, start)) < text.size()) {
     tokens.push_back(Slice(str_ + start, end - start));
-    start = text.find_first_not_of(delimers, end);
+	start = end + delimers.size();
   }
-  if (start != std::string::npos) {
-    tokens.push_back(Slice(str_ + start));
+  if (start < text.size()) {
+    tokens.push_back(Slice(str_ + start, len_ - start));
   }
   return tokens;
 }

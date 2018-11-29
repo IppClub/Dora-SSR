@@ -58,7 +58,6 @@ protected:
 	Array();
 	Array(Array* other);
 	Array(int capacity);
-	Array(Object* objects[], int size);
 private:
 	RefVector<Object> _data;
 	DORA_TYPE_OVERRIDE(Array);

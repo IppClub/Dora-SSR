@@ -69,6 +69,10 @@
 // Disable the warning about implicit conversions that may change the sign of
 // an integer; silencing it otherwise would require many explicit casts.
 # pragma GCC diagnostic ignored "-Wsign-conversion"
+
+// Disable the warning about nonliteral format strings because we construct
+// them dynamically when falling back to snprintf for FP formatting.
+# pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
 
 # if FMT_CLANG_VERSION
@@ -309,7 +313,7 @@ class numeric_limits<fmt::internal::dummy_int> :
     using namespace fmt::internal;
     // The resolution "priority" is:
     // isinf macro > std::isinf > ::isinf > fmt::internal::isinf
-    if (const_check(sizeof(isinf(x)) != sizeof(dummy_int)))
+    if (const_check(sizeof(isinf(x)) != sizeof(fmt::internal::dummy_int)))
       return isinf(x) != 0;
     return !_finite(static_cast<double>(x));
   }
@@ -400,8 +404,12 @@ void basic_buffer<T>::append(const U *begin, const U *end) {
 }
 }  // namespace internal
 
+// C++20 feature test, since r346892 Clang considers char8_t a fundamental
+// type in this mode. If this is the case __cpp_char8_t will be defined.
+#if !defined(__cpp_char8_t)
 // A UTF-8 code unit type.
 enum char8_t: unsigned char {};
+#endif
 
 // A UTF-8 string view.
 class u8string_view : public basic_string_view<char8_t> {
@@ -421,16 +429,6 @@ inline u8string_view operator"" _u(const char *s, std::size_t n) {
 }
 }
 #endif
-
-// A wrapper around std::locale used to reduce compile times since <locale>
-// is very heavy.
-class locale;
-
-class locale_provider {
- public:
-  virtual ~locale_provider() {}
-  virtual fmt::locale locale();
-};
 
 // The number of characters to store in the basic_memory_buffer object itself
 // to avoid dynamic memory allocation.
@@ -1034,16 +1032,16 @@ class add_thousands_sep {
 };
 
 template <typename Char>
-FMT_API Char thousands_sep_impl(locale_provider *lp);
+FMT_API Char thousands_sep_impl(locale_ref loc);
 
 template <typename Char>
-inline Char thousands_sep(locale_provider *lp) {
-  return Char(thousands_sep_impl<char>(lp));
+inline Char thousands_sep(locale_ref loc) {
+  return Char(thousands_sep_impl<char>(loc));
 }
 
 template <>
-inline wchar_t thousands_sep(locale_provider *lp) {
-  return thousands_sep_impl<wchar_t>(lp);
+inline wchar_t thousands_sep(locale_ref loc) {
+  return thousands_sep_impl<wchar_t>(loc);
 }
 
 // Formats a decimal unsigned integer value writing into buffer.
@@ -1449,7 +1447,8 @@ class arg_formatter_base {
   }
 
  public:
-  arg_formatter_base(Range r, format_specs *s): writer_(r), specs_(s) {}
+  arg_formatter_base(Range r, format_specs *s, locale_ref loc)
+    : writer_(r, loc), specs_(s) {}
 
   iterator operator()(monostate) {
     FMT_ASSERT(false, "invalid argument type");
@@ -1547,6 +1546,10 @@ FMT_CONSTEXPR bool is_name_start(Char c) {
 template <typename Iterator, typename ErrorHandler>
 FMT_CONSTEXPR unsigned parse_nonnegative_int(Iterator &it, ErrorHandler &&eh) {
   assert('0' <= *it && *it <= '9');
+  if (*it == '0') {
+    ++it;
+    return 0;
+  }
   unsigned value = 0;
   // Convert to unsigned to prevent a warning.
   unsigned max_int = (std::numeric_limits<int>::max)();
@@ -1574,6 +1577,10 @@ template <typename Char, typename ErrorHandler>
 FMT_CONSTEXPR unsigned parse_nonnegative_int(
     const Char *&begin, const Char *end, ErrorHandler &&eh) {
   assert(begin != end && '0' <= *begin && *begin <= '9');
+  if (*begin == '0') {
+    ++begin;
+    return 0;
+  }
   unsigned value = 0;
   // Convert to unsigned to prevent a warning.
   unsigned max_int = (std::numeric_limits<int>::max)();
@@ -2312,7 +2319,7 @@ class arg_formatter:
     \endrst
    */
   explicit arg_formatter(context_type &ctx, format_specs *spec = FMT_NULL)
-  : base(Range(ctx.out()), spec), ctx_(ctx) {}
+  : base(Range(ctx.out()), spec, ctx.locale()), ctx_(ctx) {}
 
   // Deprecated.
   arg_formatter(context_type &ctx, format_specs &spec)
@@ -2400,7 +2407,7 @@ class basic_writer {
 
  private:
   iterator out_;  // Output iterator.
-  std::unique_ptr<locale_provider> locale_;
+  internal::locale_ref locale_;
 
   iterator out() const { return out_; }
 
@@ -2600,7 +2607,7 @@ class basic_writer {
 
     void on_num() {
       unsigned num_digits = internal::count_digits(abs_value);
-      char_type sep = internal::thousands_sep<char_type>(writer.locale_.get());
+      char_type sep = internal::thousands_sep<char_type>(writer.locale_);
       unsigned size = num_digits + SEP_SIZE * ((num_digits - 1) / 3);
       writer.write_int(size, get_prefix(), spec,
                        num_writer{abs_value, size, sep});
@@ -2690,7 +2697,9 @@ class basic_writer {
 
  public:
   /** Constructs a ``basic_writer`` object. */
-  explicit basic_writer(Range out): out_(out.begin()) {}
+  explicit basic_writer(
+      Range out, internal::locale_ref loc = internal::locale_ref())
+    : out_(out.begin()), locale_(loc) {}
 
   void write(int value) { write_decimal(value); }
   void write(long value) { write_decimal(value); }
@@ -3218,8 +3227,9 @@ struct format_handler : internal::error_handler {
   typedef typename ArgFormatter::range range;
 
   format_handler(range r, basic_string_view<Char> str,
-                 basic_format_args<Context> format_args)
-    : context(r.begin(), str, format_args) {}
+                 basic_format_args<Context> format_args,
+                 internal::locale_ref loc)
+    : context(r.begin(), str, format_args, loc) {}
 
   void on_text(const Char *begin, const Char *end) {
     auto size = internal::to_unsigned(end - begin);
@@ -3269,10 +3279,12 @@ struct format_handler : internal::error_handler {
 
 /** Formats arguments and writes the output to the range. */
 template <typename ArgFormatter, typename Char, typename Context>
-typename Context::iterator vformat_to(typename ArgFormatter::range out,
-                                      basic_string_view<Char> format_str,
-                                      basic_format_args<Context> args) {
-  format_handler<ArgFormatter, Char, Context> h(out, format_str, args);
+typename Context::iterator vformat_to(
+    typename ArgFormatter::range out,
+    basic_string_view<Char> format_str,
+    basic_format_args<Context> args,
+    internal::locale_ref loc = internal::locale_ref()) {
+  format_handler<ArgFormatter, Char, Context> h(out, format_str, args, loc);
   internal::parse_format_string<false>(format_str, h);
   return h.context.out();
 }
@@ -3464,7 +3476,7 @@ template <typename String, typename OutputIt, typename... Args>
 inline typename std::enable_if<internal::is_output_iterator<OutputIt>::value,
                                OutputIt>::type
     vformat_to(OutputIt out, const String &format_str,
-    typename format_args_t<OutputIt, FMT_CHAR(String)>::type args) {
+               typename format_args_t<OutputIt, FMT_CHAR(String)>::type args) {
   typedef output_range<OutputIt, FMT_CHAR(String)> range;
   return vformat_to<arg_formatter<range>>(range(out),
                                           to_string_view(format_str), args);

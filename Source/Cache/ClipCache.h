@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 class Sprite;
+class Texture2D;
 struct Rect;
 
 /** @brief Clips are different rectangle areas on textures.
@@ -44,6 +45,10 @@ public:
 	 then create a new sprite instance with certain clip.
 	*/
 	Sprite* loadSprite(String clipStr);
+	std::pair<ClipDef*,Slice> loadClip(String clipStr);
+	Texture2D* loadTexture(String clipStr);
+	bool isFileExist(String clipStr) const;
+	bool isClip(String clipStr) const;
 protected:
 	ClipCache() { }
 	virtual std::shared_ptr<XmlParser<ClipDef>> prepareParser(String filename) override;

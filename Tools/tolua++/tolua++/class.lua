@@ -39,11 +39,11 @@ function classClass:register (pre)
  push(self)
 	local btype = self.btype == "" and "" or _userltype[self.btype]
     if _collect_functions[self.type] then
-  output(pre..'tolua_cclass(tolua_S,"'..self.lname..'","'..btype..'",'.._collect_functions[self.type]..');')	
+  output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",'.._collect_functions[self.type]..');')	
 	elseif _collect[self.type] then
-  output(pre..'tolua_cclass(tolua_S,"'..self.lname..'","'..btype..'",'.._collect[self.type]..');')
+  output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",'.._collect[self.type]..');')
 	else
-  output(pre..'tolua_cclass(tolua_S,"'..self.lname..'","'..btype..'",NULL);')
+  output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",NULL);')
 	end
 	if self.extra_bases then
 		for k,base in ipairs(self.extra_bases) do

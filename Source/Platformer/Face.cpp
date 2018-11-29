@@ -22,23 +22,21 @@ _file(file),
 _pos(point),
 _angle(0.0f)
 {
-	if (_file.find('|') != string::npos)
+	if (SharedClipCache.isClip(_file))
 	{
 		_type = Face::Clip;
 	}
+	else if (SharedFrameCache.isFrame(_file))
+	{
+		_type = Face::Frame;
+	}
+	else if (file.getFileExtension() == "par"_slice)
+	{
+		_type = Face::Particle;
+	}
 	else
 	{
-		switch (Switch::hash(Slice(file.toLower()).getFileExtension()))
-		{
-			case ".frame"_hash:
-				_type = Face::Frame;
-				break;
-			case ".par"_hash:
-				_type = Face::Particle;
-			default:
-				_type = Face::Image;
-				break;
-		}
+		_type = Face::Image;
 	}
 }
 
@@ -78,7 +76,7 @@ Node* Face::toNode()
 		case Face::Frame:
 		{
 			FrameActionDef* def = SharedFrameCache.load(_file);
-			Sprite* sprite = Sprite::create(def->textureFile);
+			Sprite* sprite = SharedClipCache.loadSprite(def->clipStr);
 			sprite->setTextureRect(*def->rects[0]);
 			sprite->runAction(FrameAction::create(def));
 			node = sprite;
@@ -122,6 +120,7 @@ Node* Face::toNode()
 						else self->emit("__Stoped"_slice);
 					}
 				});
+				self->start();
 				break;
 			}
 		}
@@ -151,10 +150,6 @@ Node* Face::toNode()
 						child->emit("Stop"_slice);
 					}
 					ARRAY_END
-				}
-				else
-				{
-					self->emit("Stoped"_slice);
 				}
 			}
 		});

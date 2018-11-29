@@ -12,8 +12,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Data.h"
 #include "Physics/PhysicsWorld.h"
 #include "Physics/Body.h"
+#include "Support/Dictionary.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
+
+Data::Data():
+_cache(Dictionary::create())
+{ }
 
 //Group [0] for hide
 //Group [1,2,3,4,5,6,7,8,9,10,11,12] for player
@@ -34,7 +39,11 @@ void Data::apply(PhysicsWorld* world)
 		world->setShouldContact(PSensor, p, true);
 		world->setShouldContact(Terrain, p, true);
 		world->setShouldContact(SenseAll, p, true);
+		world->setShouldContact(Hide, p, false);
 	}
+	world->setShouldContact(Hide, PSensor, false);
+	world->setShouldContact(Hide, SenseAll, false);
+	world->setShouldContact(Hide, Terrain, true);
 	world->setShouldContact(SenseAll, Terrain, true);
 }
 
@@ -69,7 +78,7 @@ int Data::getGroupTerrain() const
 	return Terrain;
 }
 
-int Data::getGroupDetect() const
+int Data::getGroupDetection() const
 {
 	return SenseAll;
 }
@@ -79,13 +88,13 @@ int Data::getGroupHide() const
 	return Hide;
 }
 
-void Data::setDamageFactor(uint16 damageType, uint16 defenceType, float bounus)
+void Data::setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus)
 {
 	uint32 key = damageType | defenceType<<16;
 	_damageBounusMap[key] = bounus;
 }
 
-float Data::getDamageFactor(uint16 damageType, uint16 defenceType) const
+float Data::getDamageFactor(Uint16 damageType, Uint16 defenceType) const
 {
 	uint32 key = damageType | defenceType<<16;
 	unordered_map<uint32, float>::const_iterator it = _damageBounusMap.find(key);
@@ -105,6 +114,11 @@ bool Data::isPlayer(Body* body)
 bool Data::isTerrain(Body* body)
 {
 	return body->getGroup() == Data::getGroupTerrain();
+}
+
+Dictionary* Data::getCache() const
+{
+	return _cache;
 }
 
 NS_DOROTHY_PLATFORMER_END

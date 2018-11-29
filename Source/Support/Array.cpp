@@ -22,15 +22,6 @@ Array::Array(int capacity):
 _data(capacity)
 { }
 
-Array::Array(Object* objects[], int size):
-_data(size)
-{
-	for (int i = 0; i < size; i++)
-	{
-		_data[i] = objects[i];
-	}
-}
-
 int Array::getCount() const
 {
 	return s_cast<int>(_data.size());
@@ -64,7 +55,7 @@ bool Array::isEmpty() const
 
 bool Array::contains(Object* object) const
 {
-	return std::find(_data.begin(), _data.end(), object) != _data.end();
+	return std::find(_data.begin(), _data.end(), MakeRef(object)) != _data.end();
 }
 
 void Array::add(Object* object)

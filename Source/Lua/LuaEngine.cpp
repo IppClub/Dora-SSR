@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaManual.h"
 #include "Lua/LuaFromXml.h"
 #include "Support/Value.h"
+using namespace Dorothy::Platformer;
 
 extern int luaopen_lpeg(lua_State* L);
 
@@ -251,6 +252,11 @@ LuaEngine::LuaEngine()
 
 	// add manual binding
 	tolua_beginmodule(L, nullptr); // stack: package.loaded
+
+		tolua_beginmodule(L, "Content");
+			tolua_variable(L, "searchPaths", Content_GetSearchPaths, Content_SetSearchPaths);
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Node");
 			tolua_function(L, "gslot", Node_gslot);
 			tolua_function(L, "slot", Node_slot);
@@ -266,12 +272,31 @@ LuaEngine::LuaEngine()
 			tolua_function(L, "get", Dictionary_get);
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "Array");
+			tolua_function(L, "set", Array_set);
+			tolua_function(L, "get", Array_get);
+			tolua_function(L, "add", Array_add);
+			tolua_function(L, "insert", Array_insert);
+			tolua_function(L, "contains", Array_contains);
+			tolua_function(L, "index", Array_index);
+			tolua_function(L, "removeLast", Array_removeLast);
+			tolua_function(L, "fastRemove", Array_fastRemove);
+			tolua_call(L, MT_CALL, Array_create);
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Entity");
 			tolua_function(L, "set", Entity_set);
 			tolua_function(L, "nextSet", Entity_setNext);
 			tolua_function(L, "get", Entity_get);
 			tolua_function(L, "getCache", Entity_getCache);
 		tolua_endmodule(L);
+
+		tolua_beginmodule(L, "Platformer");
+			tolua_beginmodule(L, "UnitDef");
+				tolua_variable(L, "actions", UnitDef_GetActions, UnitDef_SetActions);
+			tolua_endmodule(L);
+		tolua_endmodule(L);
+
 	tolua_endmodule(L);
 
 	// load binding codes
@@ -339,6 +364,11 @@ bool LuaEngine::executeScriptFile(String filename)
 	return result;
 }
 
+void LuaEngine::push(bool value)
+{
+	lua_pushboolean(L, value ? 1 : 0);
+}
+
 void LuaEngine::push(Uint16 value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
@@ -363,7 +393,7 @@ void LuaEngine::push(Value* value)
 {
 	if (value)
 	{
-		value->pushToLua();
+		value->pushToLua(L);
 	}
 	else
 	{
@@ -376,17 +406,74 @@ void LuaEngine::push(Object* value)
 	tolua_pushobject(L, value);
 }
 
-void LuaEngine::push(Ref<> value)
+void LuaEngine::push(String value)
+{
+	lua_pushlstring(L, value.begin(), value.size());
+}
+
+void LuaEngine::push(const string& value)
+{
+	lua_pushlstring(L, value.c_str(), value.size());
+}
+
+void LuaEngine::push(std::nullptr_t)
+{
+	lua_pushnil(L);
+}
+
+void LuaEngine::push(lua_State* L, bool value)
+{
+	lua_pushboolean(L, value ? 1 : 0);
+}
+
+void LuaEngine::push(lua_State* L, Uint16 value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
+void LuaEngine::push(lua_State* L, int value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
+void LuaEngine::push(lua_State* L, float value)
+{
+	lua_pushnumber(L, s_cast<lua_Number>(value));
+}
+
+void LuaEngine::push(lua_State* L, double value)
+{
+	lua_pushnumber(L, s_cast<lua_Number>(value));
+}
+
+void LuaEngine::push(lua_State* L, Value* value)
+{
+	if (value)
+	{
+		value->pushToLua(L);
+	}
+	else
+	{
+		lua_pushnil(L);
+	}
+}
+
+void LuaEngine::push(lua_State* L, Object* value)
 {
 	tolua_pushobject(L, value);
 }
 
-void LuaEngine::push(String value)
+void LuaEngine::push(lua_State* L, String value)
 {
-	lua_pushlstring(L, value.rawData(), value.size());
+	lua_pushlstring(L, value.begin(), value.size());
 }
 
-void LuaEngine::push(std::nullptr_t)
+void LuaEngine::push(lua_State* L, const string& value)
+{
+	lua_pushlstring(L, value.c_str(), value.size());
+}
+
+void LuaEngine::push(lua_State* L, std::nullptr_t)
 {
 	lua_pushnil(L);
 }
