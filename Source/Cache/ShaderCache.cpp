@@ -78,7 +78,7 @@ string ShaderCache::getShaderPath() const
 
 Shader* ShaderCache::load(String filename)
 {
-	auto items = filename.split(":");
+	auto items = filename.split("::"_slice);
 	if (!items.empty() && items.front() == "builtin"_slice)
 	{
 		auto it = _shaders.find(filename);

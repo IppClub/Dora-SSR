@@ -20,7 +20,7 @@ Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = Application.designSize
+		{:width,:height} = App.designSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		if Begin "Label", "NoResize|NoSavedSettings"

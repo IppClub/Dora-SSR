@@ -28,9 +28,6 @@ public:
 	Array* getDetectedUnits();
 	Unit* getNearestUnit(Relation relation);
 	float getNearestUnitDistance(Relation relation);
-	void add(String name, AILeaf* leaf);
-	void clear();
-	AILeaf* get(String name);
 	SINGLETON_REF(AI, Data, Director);
 protected:
 	AI();

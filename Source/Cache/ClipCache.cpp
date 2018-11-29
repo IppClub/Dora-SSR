@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Cache/TextureCache.h"
 #include "Node/Sprite.h"
-#include "fmt/format.h"
 
 NS_DOROTHY_BEGIN
 
@@ -49,19 +48,93 @@ string ClipDef::toXml()
 
 /* ClipCache */
 
+Texture2D* ClipCache::loadTexture(String clipStr)
+{
+	if (clipStr.toString().find('|') != string::npos)
+	{
+		auto tokens = clipStr.split("|");
+		AssertUnless(tokens.size() == 2, "invalid clip str for: \"{}\".", clipStr);
+		ClipDef* clipDef = ClipCache::load(tokens.front());
+		return SharedTextureCache.load(clipDef->textureFile);
+	}
+	else if (clipStr.getFileExtension() == "clip"_slice)
+	{
+		ClipDef* clipDef = SharedClipCache.load(clipStr);
+		return SharedTextureCache.load(clipDef->textureFile);
+	}
+	else
+	{
+		return SharedTextureCache.load(clipStr);
+	}
+}
+
+std::pair<ClipDef*,Slice> ClipCache::loadClip(String clipStr)
+{
+	if (clipStr.toString().find('|') != string::npos)
+	{
+		auto tokens = clipStr.split("|");
+		AssertUnless(tokens.size() == 2 && tokens.front().getFileExtension() == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
+		ClipDef* clipDef = ClipCache::load(tokens.front());
+		Slice name = tokens.back();
+		return std::make_pair(clipDef, name);
+	}
+	else if (clipStr.getFileExtension() == "clip"_slice)
+	{
+		ClipDef* clipDef = SharedClipCache.load(clipStr);
+		return std::make_pair(clipDef, Slice());
+	}
+	return std::make_pair(s_cast<ClipDef*>(nullptr), Slice());
+}
+
 Sprite* ClipCache::loadSprite(String clipStr)
 {
-	auto tokens = clipStr.split("|");
-	AssertUnless(tokens.size() == 2, "invalid clip str for: \"{}\".", clipStr);
-	ClipDef* clipDef = ClipCache::load(tokens.front());
-	auto it = clipDef->rects.find(*(++tokens.begin()));
-	if (it != clipDef->rects.end())
+	if (clipStr.toString().find('|') != string::npos)
 	{
-		Texture2D* texture = SharedTextureCache.load(clipDef->textureFile);
-		Sprite* sprite = Sprite::create(texture, *it->second);
-		return sprite;
+		auto tokens = clipStr.split("|");
+		AssertUnless(tokens.size() == 2 && tokens.front().getFileExtension() == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
+		ClipDef* clipDef = ClipCache::load(tokens.front());
+		Slice name = tokens.back();
+		auto it = clipDef->rects.find(name);
+		if (it != clipDef->rects.end())
+		{
+			Texture2D* texture = SharedTextureCache.load(clipDef->textureFile);
+			return Sprite::create(texture, *it->second);
+		}
+		else
+		{
+			Warn("no clip named \"{}\" in {}", name, tokens.front());
+			return Sprite::create(clipDef->textureFile);
+		}
 	}
-	return nullptr;
+	else if (clipStr.getFileExtension() == "clip"_slice)
+	{
+		ClipDef* clipDef = SharedClipCache.load(clipStr);
+		return Sprite::create(clipDef->textureFile);
+	}
+	else
+	{
+		return Sprite::create(clipStr);
+	}
+}
+
+bool ClipCache::isFileExist(String clipStr) const
+{
+	auto tokens = clipStr.split("|");
+	return SharedContent.isExist(tokens.front());
+}
+
+bool ClipCache::isClip(String clipStr) const
+{
+	if (clipStr.toString().find('|') != string::npos)
+	{
+		auto tokens = clipStr.split("|");
+		return tokens.size() == 2 && tokens.front().getFileExtension() == "clip"_slice;
+	}
+	else if (clipStr.getFileExtension() == "clip"_slice)
+	{
+		return true;
+	}
+	return false;
 }
 
 std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename)

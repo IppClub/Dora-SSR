@@ -75,13 +75,13 @@ compile = (dir,clean,minify)->
 		if not clean
 			sourceCodes = Content\loadAsync "#{dir}/#{file}"
 			requires = LintMoonGlobals sourceCodes, file unless isXml
-			startTime = Application.eclapsedTime
+			startTime = App.eclapsedTime
 			codes,err = compileFunc sourceCodes
 			if isXml
-				totalXmlTime += Application.eclapsedTime - startTime
+				totalXmlTime += App.eclapsedTime - startTime
 			else
-				totalMoonTime += Application.eclapsedTime - startTime
-			startTime = Application.eclapsedTime
+				totalMoonTime += App.eclapsedTime - startTime
+			startTime = App.eclapsedTime
 			if not codes
 				print "Compile errors in #{file}."
 				print err
@@ -94,7 +94,7 @@ compile = (dir,clean,minify)->
 						print ast
 						return false
 					codes = FormatMini ast
-				totalMinifyTime += Application.eclapsedTime - startTime
+				totalMinifyTime += App.eclapsedTime - startTime
 				filePath = Content.writablePath..path
 				Content\mkdir filePath
 				filename = "#{filePath}#{name}.lua"
@@ -115,13 +115,13 @@ compile = (dir,clean,minify)->
 			name = Path.getName file
 			if not clean
 				sourceCodes = Content\loadAsync "#{dir}/#{file}"
-				startTime = Application.eclapsedTime
+				startTime = App.eclapsedTime
 				st, ast = ParseLua sourceCodes
 				if not st
 					print ast
 					return false
 				codes = FormatMini ast
-				totalMinifyTime += Application.eclapsedTime - startTime
+				totalMinifyTime += App.eclapsedTime - startTime
 				filePath = Content.writablePath..path
 				Content\mkdir filePath
 				filename = "#{filePath}#{name}.lua"
@@ -148,7 +148,7 @@ doCompile = (minify)->
 	totalMinifyTime = 0
 	thread ->
 		print "Output path: #{Content.writablePath}"
-		if Application.platform == "iOS"
+		if App.platform == "iOS"
 			compile Content.assetPath\sub(1,-2),false,minify
 		else
 			xpcall (-> compile Content.assetPath\sub(1,-2),false,minify),(msg)->
@@ -185,6 +185,8 @@ allClear = ->
 	Director\popCamera!
 	Cache\unload!
 	Entity\clear!
+	Platformer.Data.cache\clear!
+	Platformer.UnitAction\clear!
 	currentEntryName = nil
 	isInEntry = true
 
@@ -218,12 +220,12 @@ showStats = true
 showLog = true
 showFooter = true
 scaleContent = false
-screenScale = Application.size.width/Application.designSize.width
+screenScale = App.size.width/App.designSize.width
 threadLoop ->
 	left = Keyboard\isKeyDown "Left"
 	right = Keyboard\isKeyDown "Right"
-	Application\shutdown! if Keyboard\isKeyDown "Escape"
-	{:width,:height} = Application.designSize
+	App\shutdown! if Keyboard\isKeyDown "Escape"
+	{:width,:height} = App.designSize
 	SetNextWindowSize Vec2(190,50)
 	SetNextWindowPos Vec2(width-190,height-50)
 	PushStyleColor "WindowBg", Color(0x0)
@@ -287,7 +289,7 @@ threadLoop ->
 
 threadLoop ->
 	return unless isInEntry
-	{:width,:height} = Application.designSize
+	{:width,:height} = App.designSize
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2(width,53)
 	PushStyleColor "TitleBgActive", Color(0xcc000000)

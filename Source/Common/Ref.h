@@ -102,11 +102,11 @@ public:
 	}
 	bool operator==(const Ref& ref) const
 	{
-		return _item == ref._item;
+		return _item->equals(ref._item);
 	}
 	bool operator!=(const Ref& ref) const
 	{
-		return _item != ref._item;
+		return !_item->equals(ref._item);
 	}
 	inline operator T*() const
 	{
@@ -117,9 +117,19 @@ public:
 		return r_cast<T*>(_item);
 	}
 	template<class Type>
+	inline Type* as() const
+	{
+		return DoraCast<Type>(_item);
+	}
+	template<class Type>
 	inline Type* to() const
 	{
-		return s_cast<Type*>(_item);
+		return DoraTo<Type>(_item);
+	}
+	template<class Type>
+	inline bool is() const
+	{
+		return DoraIs<Type>(_item);
 	}
 private:
 	Object* _item;
@@ -158,14 +168,14 @@ public:
 	}
 	bool remove(T* item)
 	{
-		auto it = std::remove(RefV::begin(), RefV::end(), item);
+		auto it = std::remove(RefV::begin(), RefV::end(), MakeRef(item));
 		if (it == RefV::end()) return false;
 		RefV::erase(it);
 		return true;
 	}
 	typename RefV::iterator index(T* item)
 	{
-		return std::find(RefV::begin(), RefV::end(), item);
+		return std::find(RefV::begin(), RefV::end(), MakeRef(item));
 	}
 	bool fast_remove(T* item)
 	{

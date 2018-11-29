@@ -178,13 +178,6 @@ LifeCycler* getCycler()
 	return globalCycler;
 }
 
-#if DORA_DEBUG
-void Life::assertIf(bool disposed, String name)
-{
-	AssertIf(disposed, "accessing disposed singleton instance named \"{}\".", name);
-}
-#endif // DORA_DEBUG
-
 void Life::addName(String name)
 {
 	LifeCycler* cycler = getCycler();

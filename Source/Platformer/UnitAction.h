@@ -69,6 +69,7 @@ public:
 	static void clear();
 protected:
 	Unit* _owner;
+	float _elapsedTime;
 private:
 	bool _isDoing;
 	string _name;
@@ -86,10 +87,10 @@ public:
 	virtual void update(float dt) override;
 	virtual void stop() override;
 private:
-	LuaFunctionBool _available;
-	LuaFunctionFuncBool _create;
-	LuaFunctionBool _update;
-	LuaFunction _stop;
+	function<bool(Unit*,UnitAction*)> _available;
+	function<LuaFunctionBool(Unit*,UnitAction*)> _create;
+	function<bool(Unit*,float,UnitAction*)> _update;
+	function<void(Unit*,UnitAction*)> _stop;
 	friend class UnitActionDef;
 };
 
@@ -174,7 +175,6 @@ public:
 	static Vec2 getHitPoint(Body* self, Body* target, b2Shape* selfShape);
 protected:
 	Attack(String name, Unit* unit);
-	float _current;
 	float _attackDelay;
 	float _attackEffectDelay;
 };
@@ -202,6 +202,7 @@ protected:
 class Idle : public UnitAction
 {
 public:
+	virtual bool isAvailable() override;
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
@@ -217,10 +218,10 @@ public:
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
+	void onAnimationEnd(Model* model);
 	static Own<UnitAction> alloc(Unit* unit);
 private:
 	Jump(Unit* unit);
-	float _current;
 };
 
 class Cancel : public UnitAction

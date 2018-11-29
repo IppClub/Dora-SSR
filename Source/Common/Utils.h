@@ -281,6 +281,19 @@ OutT* DoraCast(InT* obj)
 	return (obj && obj->getDoraType() == DoraType<OutT>()) ? s_cast<OutT*>(obj) : nullptr;
 }
 
+template <class TargetT, class SelfT>
+bool DoraIs(SelfT* obj)
+{
+	return obj->getDoraType() == DoraType<TargetT>();
+}
+
+template <class OutT, class InT>
+OutT* DoraTo(InT* obj)
+{
+	AssertIf(obj && d_cast<OutT*>(obj) == nullptr, "failed to do Dora type convertion.");
+	return s_cast<OutT*>(obj);
+}
+
 class Flag
 {
 public:

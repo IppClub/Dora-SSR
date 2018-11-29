@@ -153,7 +153,7 @@ void PhysicsWorld::setShowDebug(bool var)
 			addChild(_debugDraw->getRenderer(), 1, "DebugDraw"_slice);
 		}
 	}
-	else
+	else if (_debugDraw)
 	{
 		_world.SetDebugDraw(nullptr);
 		removeChild(_debugDraw->getRenderer());

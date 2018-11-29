@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 class PhysicsWorld;
+class Dictionary;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -26,15 +27,19 @@ public:
 	PROPERTY_READONLY(int, GroupHide);
 	PROPERTY_READONLY(int, GroupDetectPlayer);
 	PROPERTY_READONLY(int, GroupTerrain);
-	PROPERTY_READONLY(int, GroupDetect);
-	void setDamageFactor(uint16 damageType, uint16 defenceType, float bounus);
-	float getDamageFactor(uint16 damageType, uint16 defenceType) const;
+	PROPERTY_READONLY(int, GroupDetection);
+	PROPERTY_READONLY(Dictionary*, Cache);
+	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
+	float getDamageFactor(Uint16 damageType, Uint16 defenceType) const;
 	bool isPlayer(Body* body);
 	bool isTerrain(Body* body);
 	SINGLETON_REF(Data, Director);
+protected:
+	Data();
 private:
 	unordered_map<int, Relation> _relationMap;
 	unordered_map<uint32, float> _damageBounusMap;
+	Ref<Dictionary> _cache;
 };
 
 #define SharedData \

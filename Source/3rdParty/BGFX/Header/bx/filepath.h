@@ -14,7 +14,7 @@ BX_ERROR_RESULT(BX_ERROR_NOT_DIRECTORY, BX_MAKEFOURCC('b', 'x', 0, 1) );
 
 namespace bx
 {
-	const int32_t kMaxFilePath = 1024;
+	constexpr int32_t kMaxFilePath = 1024;
 
 	/// Special predefined OS directories.
 	///
@@ -112,15 +112,19 @@ namespace bx
 	};
 
 	/// Creates a directory named `_filePath`.
+	///
 	bool make(const FilePath& _filePath, Error* _err = NULL);
 
 	/// Creates a directory named `_filePath` along with all necessary parents.
+	///
 	bool makeAll(const FilePath& _filePath, Error* _err = NULL);
 
 	/// Removes file or directory.
+	///
 	bool remove(const FilePath& _filePath, Error* _err = NULL);
 
 	/// Removes file or directory recursivelly.
+	///
 	bool removeAll(const FilePath& _filePath, Error* _err = NULL);
 
 } // namespace bx

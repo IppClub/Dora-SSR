@@ -10,10 +10,57 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/FrameCache.h"
 #include "Const/XmlTag.h"
 #include "Cache/TextureCache.h"
+#include "Cache/ClipCache.h"
 #include "Node/Sprite.h"
-#include "fmt/format.h"
 
 NS_DOROTHY_BEGIN
+
+FrameActionDef* FrameCache::loadFrame(String frameStr)
+{
+	if (frameStr.getFileExtension() == "frame"_slice) return load(frameStr);
+	BLOCK_START
+	{
+		auto parts = frameStr.split("::"_slice);
+		BREAK_IF(parts.size() != 2);
+		FrameActionDef* def = FrameActionDef::create();
+		def->clipStr = parts.front();
+		Vec2 origin{};
+		if (SharedClipCache.isClip(parts.front()))
+		{
+			ClipDef* def;
+			Slice clip;
+			std::tie(def, clip) = SharedClipCache.loadClip(parts.front());
+			auto it = def->rects.find(clip);
+			if (it != def->rects.end())
+			{
+				origin = (*it->second).origin;
+			}
+		}
+		auto tokens = parts.back().split(","_slice);
+		BREAK_IF(tokens.size() != 4);
+		auto it = tokens.begin();
+		float width = Slice::stof(*it);
+		float height = Slice::stof(*++it);
+		int count = Slice::stoi(*++it);
+		def->duration = Slice::stof(*++it);
+		for (int i = 0; i < count; i++)
+		{
+			def->rects.push_back(New<Rect>(origin.x + i * width, origin.y, width, height));
+		}
+		return def;
+	}
+	BLOCK_END
+	Warn("invalid frame str not load: \"{}\".", frameStr);
+	return nullptr;
+}
+
+bool FrameCache::isFrame(String frameStr) const
+{
+	auto parts = frameStr.split("::"_slice);
+	if (parts.size() == 1) return parts.front().getFileExtension() == "frame"_slice;
+	else if (parts.size() == 2) return parts.back().split(","_slice).size() == 4;
+	else return false;
+}
 
 std::shared_ptr<XmlParser<FrameActionDef>> FrameCache::prepareParser(String filename)
 {
@@ -34,8 +81,12 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				switch (Xml::Frame::Dorothy(attrs[i].first[0]))
 				{
 					case Xml::Frame::Dorothy::File:
-						_item->textureFile = _path + Slice(attrs[++i]);
+					{
+						string file = Slice(attrs[++i]);
+						string localFile = _path + file;
+						_item->clipStr = SharedContent.isExist(localFile) ? localFile : file;
 						break;
+					}
 					case Xml::Frame::Dorothy::Duration:
 						_item->duration = s_cast<float>(std::atof(attrs[++i].first));
 						break;

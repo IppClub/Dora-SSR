@@ -346,16 +346,15 @@ static void mapself(lua_State* L, const char* name)
 /* Map C class
 	* It maps a C class, setting the appropriate inheritance and super classes.
 	*/
-void tolua_cclass(lua_State* L, const char* name, const char* base, lua_CFunction col)
+void tolua_cclass(lua_State* L, const char* name, const char* lname, const char* base, lua_CFunction col)
 {
-	mapinheritance(L, name, base);
-	mapsuper(L, name, base);
-	mapself(L, name);// mt
-	push_collector(L, col);// mt
-	lua_pushstring(L, name);// mt name
-	lua_insert(L, -2);// name mt
-	/* assign class metatable to module */
-	lua_rawset(L, -3);// empty
+	mapinheritance(L, name, base); // parentModule
+	mapsuper(L, name, base); // parentModule mt
+	mapself(L, name); // parentModule mt
+	push_collector(L, col); // parentModule mt
+	lua_pushstring(L, lname); // parentModule mt lname
+	lua_insert(L, -2); // parentModule lname mt
+	lua_rawset(L, -3); // parentModule[lname] = mt, parentModule
 }
 
 /* Add base

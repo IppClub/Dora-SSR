@@ -100,19 +100,19 @@ public:
 	}
 	bool operator==(const WRef& ref) const
 	{
-		return get() == ref.get();
+		return get()->equals(ref.get());
 	}
 	bool operator!=(const WRef& ref) const
 	{
-		return get() != ref.get();
+		return !get()->equals(ref.get());
 	}
 	bool operator==(const Ref<T>& ref) const
 	{
-		return get() == ref;
+		return get()->equals(ref.get());
 	}
 	bool operator!=(const Ref<T>& ref) const
 	{
-		return get() != ref;
+		return !get()->equals(ref.get());
 	}
 	inline operator T*() const
 	{
@@ -154,14 +154,14 @@ public:
 	}
 	bool remove(T* item)
 	{
-		auto it = std::remove(WRefV::begin(), WRefV::end(), item);
+		auto it = std::remove(WRefV::begin(), WRefV::end(), MakeWRef(item));
 		if (it == WRefV::end()) return false;
 		WRefV::erase(it);
 		return true;
 	}
 	typename WRefV::iterator index(T* item)
 	{
-		return std::find(WRefV::begin(), WRefV::end(), item);
+		return std::find(WRefV::begin(), WRefV::end(), MakeWRef(item));
 	}
 	bool fast_remove(T* item)
 	{

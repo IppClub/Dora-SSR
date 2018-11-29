@@ -26,7 +26,7 @@ public:
 	ValueEx<T>* as();
 
 	virtual Value* clone() const = 0;
-	virtual void pushToLua() const = 0;
+	virtual void pushToLua(lua_State* L) const = 0;
 
 	template <class T>
 	static Value* create(const T& value);
@@ -50,9 +50,18 @@ public:
 	{
 		return ValueEx<T>::create(_value);
 	}
-	virtual void pushToLua() const override
+	virtual bool equals(Object* other) const override
 	{
-		SharedLuaEngine.push(_value);
+		if (this != other)
+		{
+			return getDoraType() == other->getDoraType()
+			&& s_cast<decltype(this)>(other)->_value == _value;
+		}
+		return true;
+	}
+	virtual void pushToLua(lua_State* L) const override
+	{
+		LuaEngine::push(L, _value);
 	}
 	CREATE_FUNC(ValueEx<T>);
 protected:
@@ -83,9 +92,9 @@ public:
 	{
 		return ValueEx<Object*>::create(_value);
 	}
-	virtual void pushToLua() const override
+	virtual void pushToLua(lua_State* L) const override
 	{
-		SharedLuaEngine.push(_value.get());
+		LuaEngine::push(L, _value.get());
 	}
 	CREATE_FUNC(ValueEx<Object*>);
 protected:

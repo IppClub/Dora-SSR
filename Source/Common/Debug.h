@@ -9,11 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <cassert>
-#include "fmt/printf.h"
-
-#if !DORA_DISABLE_ASSERT_IN_LUA
-#include "Lua/LuaEngine.h"
-#endif // !DORA_DISABLE_ASSERT_IN_LUA
 
 NS_DOROTHY_BEGIN
 
@@ -44,7 +39,7 @@ void LogPrint(const char* format, const Args& ...args) noexcept
 {
 	LogPrintInThread(LogFormat(format, args...));
 }
-inline void LogPrint(String str)
+inline void LogPrint(const Slice& str)
 {
 	LogPrintInThread(str);
 }
@@ -65,17 +60,9 @@ inline void LogPrint(String str)
 #if DORA_DISABLE_ASSERT_IN_LUA
 	#define DORA_ASSERT(cond) assert(cond)
 #else
+	void DoraAssert(bool cond, const Slice& msg);
 	#define DORA_ASSERT(cond) \
-		{ \
-			if (Dorothy::Singleton<Dorothy::LuaEngine>::isDisposed()) \
-			{ \
-				assert(cond); \
-			} \
-			else if (!SharedLuaEngine.executeAssert(cond, #cond)) \
-			{ \
-				assert(cond); \
-			} \
-		}
+		Dorothy::DoraAssert(cond, #cond)
 #endif
 
 #if DORA_DISABLE_ASSERT
@@ -87,7 +74,7 @@ inline void LogPrint(String str)
 			if (cond) \
 			{ \
 				Dorothy::LogPrint( \
-					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] {}\n", \
+					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Message] {}\n", \
 						__FILE__, __FUNCTION__, __LINE__, Dorothy::LogFormat(__VA_ARGS__)) \
 				); \
 				DORA_ASSERT(!(cond)); \
@@ -98,7 +85,7 @@ inline void LogPrint(String str)
 			if (!(cond)) \
 			{ \
 				Dorothy::LogPrint( \
-					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Error] {}\n", \
+					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Message] {}\n", \
 						__FILE__, __FUNCTION__, __LINE__, Dorothy::LogFormat(__VA_ARGS__)) \
 				); \
 				DORA_ASSERT(cond); \

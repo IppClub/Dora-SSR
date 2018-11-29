@@ -12,7 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ParticleCache.h"
 #include "Effect/Effect.h"
 #include "Basic/Director.h"
-#include "fmt/format.h"
 #include "Const/XmlTag.h"
 
 NS_DOROTHY_BEGIN

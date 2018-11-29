@@ -100,6 +100,7 @@ class Application
 	tolua_readonly tolua_property__common Size designSize;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common double eclapsedTime;
+	tolua_readonly tolua_property__common Uint32 rand;
 	tolua_property__common unsigned int seed;
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
@@ -125,31 +126,17 @@ class Array : public Object
 	tolua_readonly tolua_property__common Object* first;
 	tolua_readonly tolua_property__common Object* randomObject;
 	tolua_readonly tolua_property__bool bool empty;
-	bool contains(Object* object);
-	void add(Object* object);
 	void addRange(Array* other);
 	void removeFrom(Array* other);
 	Object* removeLast();
-	bool remove(Object* object);
 	void clear();
-	bool fastRemove(Object* object);
-	void swap(Object* objectA, Object* objectB);
 	void reverse();
 	void shrink();
 
 	tolua_outside void Array_swap @ swap(int indexA, int indexB);
-	tolua_outside int Array_index @ index(Object* object);
-	tolua_outside void Array_set @ set(int index, Object* object);
-	tolua_outside Object* Array_get @ get(int index);
-	tolua_outside void Array_insert @ insert(int index, Object* object);
 	tolua_outside bool Array_removeAt @ removeAt(int index);
 	tolua_outside bool Array_fastRemoveAt @ fastRemoveAt(int index);
 	tolua_outside bool Array_each @ each(tolua_function_bool func);
-
-	static Array* create();
-	static Array* create(Array* other);
-	static Array* create(int capacity);
-	static Array* create(Object* objects[tolua_len]);
 };
 
 class Dictionary : public Object
@@ -203,7 +190,6 @@ class Content
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
 	tolua_outside void Content_loadFile @ load(String filename);
-	tolua_outside void Content_setSearchPaths @ setSearchPaths(String paths[tolua_len]);
 	static tolua_outside Content* Content_shared @ create();
 };
 
@@ -544,6 +530,7 @@ class Label : public Node
 class RenderTarget : public Node
 {
 	tolua_property__common Camera* camera;
+	tolua_readonly tolua_property__common Sprite* surface;
 	void render(Node* target);
 	void renderWithClear(Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
@@ -616,7 +603,8 @@ class Model: public Node
 	void stop();
 	void reset();
 	void updateTo(float eclapsed, bool reversed = false);
-	static tolua_outside Model* Model_create @ create(String filename);
+	bool eachNode(tolua_function_bool func);
+	static Model* create(String filename);
 	static Model* none();
 	
 	static tolua_outside void Model_getClipFile @ getClipFile(String filename);
@@ -1060,6 +1048,8 @@ enum Relation {};
 
 class TargetAllow
 {
+	TargetAllow();
+	~TargetAllow();
 	tolua_property__bool bool terrainAllowed;
 	void allow(Relation flag, bool allow);
 	bool isAllow(Relation flag);
@@ -1129,8 +1119,6 @@ class AI
 	Array* getDetectedUnits();
 	Unit* getNearestUnit(Relation relation);
 	float getNearestUnitDistance(Relation relation);
-	void add(String name, AILeaf* leaf);
-	void clear();
 	static tolua_outside AI* AI_shared @ create();
 };
 
@@ -1197,7 +1185,6 @@ class UnitDef : public Object
 	string sndFallen;
 	string decisionTree;
 	bool usePreciseHit;
-	tolua_outside void UnitDef_setActions @ setActions(Slice actions[tolua_len]);
 	static UnitDef* create();
 };
 
@@ -1239,10 +1226,12 @@ class Unit : public Body
 	void removeAction(String name);
 	void removeAllActions();
 	UnitAction* getAction(String name);
+	void eachAction(tolua_function func);
 	bool start(String name);
 	void stop();
 	bool isDoing(String name);
-	static Unit* create(UnitDef* unitDef, PhysicsWorld* physicsworld, Entity* entity, Vec2 pos = Vec2::zero, float rot = 0.0f);
+	static Unit* create(UnitDef* unitDef, PhysicsWorld* physicsworld, Entity* entity, Vec2 pos, float rot = 0.0f);
+	static Unit* create(String defName, String worldName, Entity* entity, Vec2 pos, float rot = 0.0f);
 };
 
 class PlatformCamera : public Camera
@@ -1269,6 +1258,23 @@ class PlatformWorld : public PhysicsWorld
 	void removeLayer(int order);
 	void removeAllLayers();
 	static PlatformWorld* create();
+};
+
+class Data
+{
+	tolua_readonly tolua_property__common int groupHide;
+	tolua_readonly tolua_property__common int groupDetectPlayer;
+	tolua_readonly tolua_property__common int groupTerrain;
+	tolua_readonly tolua_property__common int groupDetection;
+	tolua_readonly tolua_property__common Dictionary* cache;
+	void setRelation(int groupA, int groupB, Relation relation);
+	Relation getRelation(int groupA, int groupB);
+	Relation getRelation(Unit* unitA, Unit* unitB);
+	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
+	float getDamageFactor(Uint16 damageType, Uint16 defenceType);
+	bool isPlayer(Body* body);
+	bool isTerrain(Body* body);
+	static tolua_outside Data* Data_shared @ create();
 };
 
 } // namespace Platformer

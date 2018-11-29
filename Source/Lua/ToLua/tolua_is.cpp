@@ -223,7 +223,6 @@ int tolua_isusertable(lua_State* L, int lo, String type, int def, tolua_Error* e
 	return 0;
 }
 
-
 int tolua_isuserdata(lua_State* L, int lo, int def, tolua_Error* err)
 {
 	if (def && lua_gettop(L) < abs(lo)) return 1;

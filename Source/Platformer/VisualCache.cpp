@@ -21,17 +21,18 @@ NS_DOROTHY_PLATFORMER_BEGIN
 // VisualType
 
 VisualType::VisualType(String filename):
-_file(filename)
+_file(filename),
+_type(VisualType::Unkown)
 {
-	switch (Switch::hash(Slice(filename.toLower()).getFileExtension()))
+	if (SharedFrameCache.isFrame(filename))
 	{
-		case ".frame"_hash:
-			_type = VisualType::Frame;
-			break;
-		case ".par"_hash:
-			_type = VisualType::Particle;
-			break;
+		_type = VisualType::Frame;
 	}
+	else if (filename.getFileExtension() == "par"_slice)
+	{
+		_type = VisualType::Particle;
+	}
+	else Warn("got invalid visual file str: \"{}\".", filename);
 }
 
 Visual* VisualType::toVisual()
@@ -256,9 +257,9 @@ SpriteVisual::SpriteVisual(String filename):
 _isAutoRemoved(false)
 {
 	WRef<SpriteVisual> self(this);
-	FrameActionDef* frameActionDef = SharedFrameCache.load(filename);
+	FrameActionDef* frameActionDef = SharedFrameCache.loadFrame(filename);
 	_sprite = Sprite::create(
-		SharedTextureCache.load(frameActionDef->textureFile),
+		SharedTextureCache.load(frameActionDef->clipStr),
 		*frameActionDef->rects[0]);
 	_action = Action::create(Sequence::alloc(FrameAction::alloc(frameActionDef), Call::alloc([self]()
 	{

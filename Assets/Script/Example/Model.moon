@@ -1,11 +1,17 @@
 Dorothy!
 
-model = with Model "Model/xiaoli.model"
+modelFile = "Model/KidW.model"
+
+model = with Model modelFile
 	.loop = true
 	.recovery = 0.2
 	.look = "happy"
 	\play "walk"
 	\slot "AnimationEnd",(name)-> print name, "end"
+	.scaleX = 5
+	.scaleY = 5
+	\eachNode (sp)->
+		sp.filter = TextureFilter.Point
 
 Director.entry\addChild model
 
@@ -13,12 +19,12 @@ Director.entry\addChild model
 
 Dorothy builtin.ImGui
 
-looks = Model\getLooks "Model/xiaoli.model"
-animations = Model\getAnimations "Model/xiaoli.model"
+looks = Model\getLooks modelFile
+animations = Model\getAnimations modelFile
 currentLook = 1
 currentAnim = 3
 model\schedule ->
-	{:width,:height} = Application.designSize
+	{:width,:height} = App.designSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,325), "FirstUseEver"
 	if Begin "Model", "NoResize|NoSavedSettings"

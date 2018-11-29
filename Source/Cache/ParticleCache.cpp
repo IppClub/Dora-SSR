@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Cache/TextureCache.h"
 #include "Node/Particle.h"
-#include "fmt/format.h"
 
 NS_DOROTHY_BEGIN
 

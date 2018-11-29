@@ -49,6 +49,7 @@ public:
 	virtual bool init() override;
 	virtual void setGroup(int group) override;
 	virtual bool update(double deltaTime) override;
+	virtual void onEnter() override;
 	virtual void cleanup() override;
 	// Actions
 	UnitAction* attachAction(String name);
@@ -83,20 +84,20 @@ public:
 	void setDecisionTreeName(String name);
 	const string& getDecisionTreeName() const;
 	AILeaf* getDecisionTree();
-
-	static Unit* create(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos = Vec2::zero, float rot = 0.0f);
+	CREATE_FUNC(Unit);
 protected:
-	Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity);
+	Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot);
+	Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot);
 private:
 	bool _isFaceRight;
-	Entity* _entity;
+	WRef<Entity> _entity;
 	float _detectDistance;
 	Size _attackRange;
 	string _decisionTreeName;
 	Ref<AILeaf> _decisionTree;
 	Ref<UnitDef> _unitDef;
 	Ref<BulletDef> _bulletDef;
-	Ref<Model> _model;
+	WRef<Model> _model;
 	Size _size;
 	Sensor* _groundSensor;
 	Sensor* _detectSensor;

@@ -8,12 +8,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Common/Debug.h"
+#include "Common/Singleton.h"
 #include "Common/Async.h"
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
 #include <android/log.h>
 #endif // BX_PLATFORM_ANDROID
+
+#if !DORA_DISABLE_ASSERT_IN_LUA
+#include "Lua/LuaEngine.h"
+#endif // !DORA_DISABLE_ASSERT_IN_LUA
 
 NS_DOROTHY_BEGIN
 
@@ -31,5 +36,19 @@ void LogPrintInThread(const string& str)
 #endif
 	});
 }
+
+#if !DORA_DISABLE_ASSERT_IN_LUA
+void DoraAssert(bool cond, const Slice& msg)
+{
+	if (Dorothy::Singleton<Dorothy::LuaEngine>::isDisposed())
+	{
+		assert(cond);
+	}
+	else if (!SharedLuaEngine.executeAssert(cond, msg))
+	{
+		assert(cond);
+	}
+}
+#endif // !DORA_DISABLE_ASSERT_IN_LUA
 
 NS_DOROTHY_END

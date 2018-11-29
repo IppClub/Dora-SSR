@@ -69,7 +69,7 @@ Dorothy builtin.ImGui
 
 with Observer "Add", {"scene"}
 	\every (entity)-> entity.scene\schedule ->
-		{:width,:height} = Application.designSize
+		{:width,:height} = App.designSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,160), "FirstUseEver"
 		if Begin "ECS System", "NoResize|NoSavedSettings"

@@ -3,21 +3,23 @@ package.path = nil
 package.cpath = nil
 package.preload = nil
 
-local Application = builtin.Application()
+local App = builtin.Application()
 local Content = builtin.Content()
 local Director = builtin.Director()
 local View = builtin.View()
 local Audio = builtin.Audio()
 local Keyboard = builtin.Keyboard()
 local AI = builtin.Platformer.AI()
+local Data = builtin.Platformer.Data()
 
-builtin.Application = Application
+builtin.App = App
 builtin.Content = Content
 builtin.Director = Director
 builtin.View = View
 builtin.Audio = Audio
 builtin.Keyboard = Keyboard
 builtin.Platformer.AI = AI
+builtin.Platformer.Data = Data
 
 local yield = coroutine.yield
 local wrap = coroutine.wrap
@@ -215,6 +217,22 @@ Cache.loadAsync = function(self,target,handler)
 		end)
 	end
 	wait(function() return count < total end)
+end
+
+local RenderTarget = builtin.RenderTarget
+local RenderTarget_saveAsync = RenderTarget.saveAsync
+RenderTarget.saveAsync = function(self,filename,handler)
+	local loaded = false
+	local loadedData
+	RenderTarget_saveAsync(self,filename,function()
+		if handler then
+			handler()
+		end
+		loadedData = data
+		loaded = true
+	end)
+	wait(function() return not loaded end)
+	return loadedData
 end
 
 local Action = builtin.Action
@@ -426,3 +444,4 @@ setmetatable(builtin,builtinEnvMeta)
 
 collectgarbage("setpause", 100)
 collectgarbage("setstepmul", 5000)
+

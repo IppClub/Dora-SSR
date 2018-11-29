@@ -26,7 +26,8 @@ void __Content_getDirs(lua_State* L, Content* self, String path);
 #define Content_getDirs(self,path) {__Content_getDirs(tolua_S,self,path);return 1;}
 void __Content_getFiles(lua_State* L, Content* self, String path);
 #define Content_getFiles(self,path) {__Content_getFiles(tolua_S,self,path);return 1;}
-void Content_setSearchPaths(Content* self, Slice paths[], int length);
+int Content_GetSearchPaths(lua_State* L);
+int Content_SetSearchPaths(lua_State* L);
 inline Content* Content_shared() { return &SharedContent; }
 
 /* Director */
@@ -79,7 +80,6 @@ Uint32 BlendFunc_get(String func);
 int Action_create(lua_State* L);
 
 /* Model */
-Model* Model_create(String filename);
 Vec2 Model_getKey(Model* model, String key);
 void __Model_getClipFile(lua_State* L, String filename);
 #define Model_getClipFile(filename) {__Model_getClipFile(tolua_S,filename);return 1;}
@@ -99,11 +99,16 @@ int Dictionary_get(lua_State* L);
 int Dictionary_set(lua_State* L);
 
 /* Array */
+int Array_index(lua_State* L);
+int Array_set(lua_State* L);
+int Array_get(lua_State* L);
+int Array_insert(lua_State* L);
+int Array_add(lua_State* L);
+int Array_contains(lua_State* L);
+int Array_fastRemove(lua_State* L);
+int Array_removeLast(lua_State* L);
+int Array_create(lua_State* L);
 void Array_swap(Array* self, int indexA, int indexB);
-int Array_index(Array* self, Object* object);
-void Array_set(Array* self, int index, Object* object);
-Object* Array_get(Array* self, int index);
-void Array_insert(Array* self, int index, Object* object);
 bool Array_removeAt(Array* self, int index);
 bool Array_fastRemoveAt(Array* self, int index);
 bool Array_each(Array* self, const LuaFunctionBool& handler);
@@ -149,7 +154,11 @@ NS_DOROTHY_PLATFORMER_BEGIN
 inline AI* AI_shared() { return &SharedAI; }
 
 /* UnitDef */
-void UnitDef_setActions(UnitDef* self, Slice names[], int count);
+int UnitDef_GetActions(lua_State* L);
+int UnitDef_SetActions(lua_State* L);
+
+/* Data */
+inline Data* Data_shared() { return &SharedData; }
 
 NS_DOROTHY_PLATFORMER_END
 

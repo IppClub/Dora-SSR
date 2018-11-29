@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Lua/LuaEngine.h"
+
 NS_DOROTHY_BEGIN
 
 template <class T, class Enable = void>
@@ -14,7 +16,7 @@ public:
 	template <class T>
 	ComEx<T>* as();
 	virtual Own<Com> clone() const = 0;
-	virtual void pushToLua() const = 0;
+	virtual void pushToLua(lua_State* L) const = 0;
 	template <class T>
 	static Own<Com> alloc(const T& value);
 	static Own<Com> none();
@@ -26,7 +28,7 @@ protected:
 class ComNone : public Com
 {
 	virtual Own<Com> clone() const override;
-	virtual void pushToLua() const override;
+	virtual void pushToLua(lua_State* L) const override;
 	DORA_TYPE_OVERRIDE(ComNone);
 };
 
@@ -49,9 +51,9 @@ public:
 	{
 		return Com::alloc(_value);
 	}
-	virtual void pushToLua() const override
+	virtual void pushToLua(lua_State* L) const override
 	{
-		SharedLuaEngine.push(_value);
+		LuaEngine::push(L, _value);
 	}
 private:
 	T _value;
@@ -82,9 +84,9 @@ public:
 	{
 		return Com::alloc(_value.get());
 	}
-	virtual void pushToLua() const override
+	virtual void pushToLua(lua_State* L) const override
 	{
-		SharedLuaEngine.push(_value.get());
+		LuaEngine::push(L, _value.get());
 	}
 private:
 	Ref<> _value;

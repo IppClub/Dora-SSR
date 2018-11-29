@@ -56,7 +56,8 @@ _name(name),
 _priority(priority),
 _isDoing(false),
 _owner(owner),
-reaction(-1.0f)
+reaction(-1.0f),
+_elapsedTime(0.0f)
 { }
 
 UnitAction::~UnitAction()
@@ -101,6 +102,7 @@ void UnitAction::run()
 
 void UnitAction::update(float dt)
 {
+	_elapsedTime += dt;
 	float reactionTime = _owner->sensity * UnitAction::reaction;
 	if (reactionTime >= 0)
 	{
@@ -117,6 +119,7 @@ void UnitAction::update(float dt)
 void UnitAction::stop()
 {
 	_isDoing = false;
+	_elapsedTime = 0.0f;
 	if (actionEnd)
 	{
 		actionEnd(this);
@@ -143,23 +146,19 @@ void UnitAction::clear()
 }
 
 ScriptUnitAction::ScriptUnitAction(String name, int priority, Unit* owner):
-UnitAction(name, priority, owner),
-_available(0),
-_create(0),
-_update(0),
-_stop(0)
+UnitAction(name, priority, owner)
 { }
 
 bool ScriptUnitAction::isAvailable()
 {
-	return _available(this);
+	return _available(_owner, s_cast<UnitAction*>(this));
 }
 
 void ScriptUnitAction::run()
 {
 	UnitAction::run();
-	_update = _create();
-	if (_update(this, 0.0f))
+	_update = _create(_owner, s_cast<UnitAction*>(this));
+	if (_update(_owner, 0.0f, s_cast<UnitAction*>(this)))
 	{
 		ScriptUnitAction::stop();
 	}
@@ -167,7 +166,7 @@ void ScriptUnitAction::run()
 
 void ScriptUnitAction::update(float dt)
 {
-	if (_update(this, dt))
+	if (_update && _update(_owner, dt, s_cast<UnitAction*>(this)))
 	{
 		ScriptUnitAction::stop();
 	}
@@ -176,8 +175,8 @@ void ScriptUnitAction::update(float dt)
 
 void ScriptUnitAction::stop()
 {
-	_update = LuaFunctionBool(0);
-	_stop(this);
+	_update = nullptr;
+	_stop(_owner, s_cast<UnitAction*>(this));
 	UnitAction::stop();
 }
 
@@ -270,35 +269,42 @@ UnitAction(ActionSetting::UnitActionIdle, ActionSetting::PriorityIdle, unit)
 	UnitAction::recovery = ActionSetting::RecoveryIdle;
 }
 
+bool Idle::isAvailable()
+{
+	return _owner->isOnSurface();
+}
+
 void Idle::run()
 {
-	Model* model = _owner->getModel();
-	model->setSpeed(1.0f);
-	model->setLoop(true);
-	model->setLook(ActionSetting::LookNormal);
-	model->setRecovery(UnitAction::recovery);
-	if (!_owner->isOnSurface())
+	UnitAction::run();
+	if (_owner->isOnSurface())
 	{
 		Model* model = _owner->getModel();
-		model->resume(ActionSetting::AnimationJump);
+		model->setSpeed(1.0f);
+		model->setLoop(true);
+		model->setLook(ActionSetting::LookNormal);
+		model->setRecovery(UnitAction::recovery);
+		model->resume(ActionSetting::AnimationIdle);
 	}
 	else
 	{
-		model->resume(ActionSetting::AnimationIdle);
+		Idle::stop();
 	}
-	UnitAction::run();
 }
 
 void Idle::update(float dt)
 {
 	Model* model = _owner->getModel();
-	if (!_owner->isOnSurface())
+	if (_owner->isOnSurface())
 	{
-		model->resume(ActionSetting::AnimationJump);
+		if (_owner->getModel()->getCurrentAnimationName() != ActionSetting::AnimationIdle)
+		{
+			model->resume(ActionSetting::AnimationIdle);
+		}
 	}
-	else if (_owner->getModel()->getCurrentAnimationName() != ActionSetting::AnimationIdle)
+	else
 	{
-		model->resume(ActionSetting::AnimationIdle);
+		Idle::stop();
 	}
 	UnitAction::update(dt);
 }
@@ -331,11 +337,11 @@ void Jump::run()
 {
 	Model* model = _owner->getModel();
 	model->setSpeed(1.0f);
-	model->setLoop(true);
+	model->setLoop(false);
 	model->setLook(ActionSetting::LookNormal);
 	model->setRecovery(UnitAction::recovery);
 	model->resume(ActionSetting::AnimationJump);
-	_current = 0.0f;
+	model->handlers[ActionSetting::AnimationJump] += std::make_pair(this, &Jump::onAnimationEnd);
 	_owner->setVelocityY(_owner->jump);
 	Sensor* sensor = _owner->getGroundSensor();
 	b2Body* self = _owner->getB2Body();
@@ -358,31 +364,22 @@ void Jump::run()
 
 void Jump::update(float dt)
 {
-	if (_current < 0.2f) // don`t check for ground for a while, for actor won`t lift immediately.
+	if (_elapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
 	{
-		_current += dt;
-	}
-	else
-	{
-		if (_owner->isOnSurface())
-		{
-			Model* model = _owner->getModel();
-			model->setRecovery(UnitAction::recovery * 0.5f);
-			model->resume(ActionSetting::AnimationIdle);
-			if (_current < 0.2f + UnitAction::recovery * 0.5f)
-			{
-				_current += dt;
-			}
-			else Jump::stop();
-		}
 		UnitAction::update(dt);
 	}
+	else _elapsedTime += dt;
 }
 
 void Jump::stop()
 {
 	UnitAction::stop();
 	_owner->getModel()->pause();
+}
+
+void Jump::onAnimationEnd(Model* model)
+{
+	Jump::stop();
 }
 
 Own<UnitAction> Jump::alloc(Unit* unit)
@@ -410,22 +407,17 @@ Attack::Attack(String name, Unit* unit ):
 UnitAction(name, ActionSetting::PriorityAttack, unit)
 {
 	UnitAction::recovery = ActionSetting::RecoveryAttack;
-	Model* model = unit->getModel();
-	model->handlers[ActionSetting::AnimationAttack] += std::make_pair(this, &Attack::onAnimationEnd);
 }
 
 Attack::~Attack()
-{
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationAttack] -= std::make_pair(this, &Attack::onAnimationEnd);
-}
+{ }
 
 void Attack::run()
 {
-	_current = 0;
 	_attackDelay = _owner->getUnitDef()->attackDelay / _owner->attackSpeed;
 	_attackEffectDelay = _owner->getUnitDef()->attackEffectDelay / _owner->attackSpeed;
 	Model* model = _owner->getModel();
+	model->handlers[ActionSetting::AnimationAttack] += std::make_pair(this, &Attack::onAnimationEnd);
 	model->setLoop(false);
 	model->setLook(ActionSetting::LookFight);
 	model->setRecovery(UnitAction::recovery);
@@ -436,8 +428,8 @@ void Attack::run()
 
 void Attack::update(float dt)
 {
-	_current += dt;
-	if (_attackDelay >= 0 && _current >= _attackDelay)
+	_elapsedTime += dt;
+	if (_attackDelay >= 0 && _elapsedTime >= _attackDelay)
 	{
 		_attackDelay = -1;
 		if (!_owner->getUnitDef()->sndAttack.empty())
@@ -446,7 +438,7 @@ void Attack::update(float dt)
 		}
 		this->onAttack();
 	}
-	if (_attackEffectDelay >= 0 && _current >= _attackEffectDelay)
+	if (_attackEffectDelay >= 0 && _elapsedTime >= _attackEffectDelay)
 	{
 		_attackEffectDelay = -1;
 		const string& attackEffect = _owner->getUnitDef()->attackEffect;
@@ -468,8 +460,10 @@ void Attack::update(float dt)
 
 void Attack::stop()
 {
+	Model* model = _owner->getModel();
+	model->handlers[ActionSetting::AnimationAttack] -= std::make_pair(this, &Attack::onAnimationEnd);
+	model->stop();
 	UnitAction::stop();
-	_owner->getModel()->stop();
 }
 
 void Attack::onAnimationEnd(Model* model)
@@ -626,19 +620,15 @@ _hitPoint{}
 		_effect = Visual::create(hitEffect);
 		_effect->addTo(_owner);
 	}
-	Model* model = unit->getModel();
-	model->handlers[ActionSetting::AnimationHit] += std::make_pair(this, &Hit::onAnimationEnd);
 }
 
 Hit::~Hit()
-{
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationHit] -= std::make_pair(this, &Hit::onAnimationEnd);
-}
+{ }
 
 void Hit::run()
 {
 	Model* model = _owner->getModel();
+	model->handlers[ActionSetting::AnimationHit] += std::make_pair(this, &Hit::onAnimationEnd);
 	model->setLook(ActionSetting::LookSad);
 	model->setLoop(false);
 	model->setRecovery(UnitAction::recovery);
@@ -676,8 +666,10 @@ void Hit::onAnimationEnd(Model* model)
 
 void Hit::stop()
 {
+	Model* model = _owner->getModel();
+	model->handlers[ActionSetting::AnimationHit] -= std::make_pair(this, &Hit::onAnimationEnd);
+	model->stop();
 	UnitAction::stop();
-	_owner->getModel()->stop();
 }
 
 Own<UnitAction> Hit::alloc(Unit* unit )
@@ -690,19 +682,15 @@ Fall::Fall(Unit* unit):
 UnitAction(ActionSetting::UnitActionFall, ActionSetting::PriorityFall, unit)
 {
 	UnitAction::recovery = ActionSetting::RecoveryFall;
-	Model* model = unit->getModel();
-	model->handlers[ActionSetting::AnimationFall] += std::make_pair(this, &Fall::onAnimationEnd);
 }
 
 Fall::~Fall()
-{
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationFall] -= std::make_pair(this, &Fall::onAnimationEnd);
-}
+{ }
 
 void Fall::run()
 {
 	Model* model = _owner->getModel();
+	model->handlers[ActionSetting::AnimationFall] += std::make_pair(this, &Fall::onAnimationEnd);
 	model->setLook(ActionSetting::LookFallen);
 	model->setLoop(false);
 	model->setRecovery(UnitAction::recovery);
@@ -728,8 +716,10 @@ void Fall::update(float dt)
 
 void Fall::stop()
 {
+	Model* model = _owner->getModel();
+	model->handlers[ActionSetting::AnimationFall] -= std::make_pair(this, &Fall::onAnimationEnd);
+	model->stop();
 	UnitAction::stop();
-	_owner->getModel()->stop();
 }
 
 void Fall::onAnimationEnd(Model* model)

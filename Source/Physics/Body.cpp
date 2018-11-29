@@ -89,6 +89,7 @@ void Body::cleanup()
 			sensor->bodyEnter.Clear();
 			sensor->bodyLeave.Clear();
 			sensor->setEnabled(false);
+			sensor->getSensedBodies()->clear();
 		}
 		ARRAY_END
 		_sensors->clear();

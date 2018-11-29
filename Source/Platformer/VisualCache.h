@@ -69,7 +69,7 @@ private:
 class VisualType : public Object
 {
 public:
-	enum {Particle = 0, Frame = 1};
+	enum {Unkown = 0, Particle = 1, Frame = 2};
 	VisualType(String filename);
 	/** Get a running effect instance of this effect type. */
 	Visual* toVisual();

@@ -20,7 +20,7 @@ struct Rect;
 class FrameActionDef : public Object
 {
 public:
-	string textureFile;
+	string clipStr;
 	float duration;
 	OwnVector<Rect> rects;
 	CREATE_FUNC(FrameActionDef);
@@ -31,6 +31,9 @@ protected:
 /** @brief Load frame animations from ".frame" files and cache them. */
 class FrameCache : public XmlItemCache<FrameActionDef>
 {
+public:
+	FrameActionDef* loadFrame(String frameStr);
+	bool isFrame(String frameStr) const;
 protected:
 	FrameCache() { }
 	virtual std::shared_ptr<XmlParser<FrameActionDef>> prepareParser(String filename) override;

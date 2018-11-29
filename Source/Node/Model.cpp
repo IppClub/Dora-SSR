@@ -60,7 +60,6 @@ Model(SharedModelCache.load(filename))
 bool Model::init()
 {
 	if (!Node::init()) return false;
-	handlers(this);
 	_resetAnimation.end = std::make_pair(this, &Model::onResetAnimationEnd);
 	_root = Node::create();
 	ClipDef* clipDef = SharedClipCache.load(_modelDef->getClipFile());
@@ -70,6 +69,15 @@ bool Model::init()
 	Model::setSize(size);
 	_root->setPosition(Vec2{size.width * 0.5f, size.height * 0.5f});
 	addChild(_root);
+	handlers(this);
+	for (int i = 0; i < s_cast<int>(_animationGroups.size()); i++)
+	{
+		const string& name = _modelDef->getAnimationNameByIndex(i);
+		_animationGroups[i]->animationEnd = [this, name](Model* model)
+		{
+			emit("AnimationEnd"_slice, name, model);
+		};
+	}
 	return true;
 }
 
@@ -515,6 +523,22 @@ Node* Model::getNodeByName(String name)
 	}
 }
 
+bool Model::eachNode(function<bool(Node* node)> handler) const
+{
+	if (!_nodeMap)
+	{
+		return false;
+	}
+	else
+	{
+		for (const auto& it : *_nodeMap)
+		{
+			if (handler(it.second)) return true;
+		}
+		return false;
+	}
+}
+
 string Model::getCurrentAnimationName() const
 {
 	return _modelDef->getAnimationNameByIndex(_currentAnimation);
@@ -663,16 +687,13 @@ AnimationHandler& Model::AnimationHandlerGroup::operator[](int index)
 
 AnimationHandler& Model::AnimationHandlerGroup::operator[](String name)
 {
-	return _owner->_animationGroups[_owner->_modelDef->getAnimationIndexByName(name)]->animationEnd;
-}
-
-void Model::AnimationHandlerGroup::each(const function<void(const string&,AnimationHandler&)>& func)
-{
-	for (int i = 0; i < s_cast<int>(_owner->_animationGroups.size()); i++)
+	int index = _owner->_modelDef->getAnimationIndexByName(name);
+	if (index == Animation::None)
 	{
-		const string& name = _owner->_modelDef->getAnimationNameByIndex(i);
-		func(name, _owner->_animationGroups[i]->animationEnd);
+		Warn("try register callback for non-exist animation named: \"{}\".", name);
+		return _unavailableHandler;
 	}
+	return _owner->_animationGroups[index]->animationEnd;
 }
 
 void Model::setupCallback()

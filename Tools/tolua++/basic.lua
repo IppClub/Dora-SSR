@@ -40,14 +40,15 @@ local objects = {
 "Touch",
 "Label",
 "Slot",
-"Unit",
-"Face",
-"PlatformCamera",
-"Visual",
-"UnitDef",
-"BulletDef",
-"AILeaf",
-"Bullet",
+"Platformer::Unit",
+"Platformer::Face",
+"Platformer::PlatformCamera",
+"Platformer::Visual",
+"Platformer::UnitDef",
+"Platformer::BulletDef",
+"Platformer::AILeaf",
+"Platformer::Bullet",
+"Platformer::PlatformWorld",
 }
 
 -- register Object types

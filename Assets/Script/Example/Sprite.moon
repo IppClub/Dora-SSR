@@ -15,7 +15,7 @@ Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = Application.designSize
+		{:width,:height} = App.designSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,520), "FirstUseEver"
 		if Begin "Sprite", "NoResize|NoSavedSettings"
@@ -55,7 +55,8 @@ Director.entry\addChild with Node!
 				PopItemWidth!
 			EndChild!
 			if Button "Reset", Vec2 140,30
+				parentNode = sprite.parent
+				sprite\removeFromParent!
 				sprite = Sprite "Image/logo.png"
-				Director.entry\removeAllChildren!
-				Director.entry\addChild sprite
+				parentNode\addChild sprite
 		End!
