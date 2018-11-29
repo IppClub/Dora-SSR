@@ -1,6 +1,10 @@
 Dorothy builtin.Platformer
 import Path from require "Utils"
 
+thread ->
+	Cache\loadAsync "Audio/hero_win.wav"
+	Audio\play "Audio/hero_win.wav"
+
 groundEntranceEnd = (name,model)->
 	return unless name == "groundEntrance"
 	model.parent\stop!

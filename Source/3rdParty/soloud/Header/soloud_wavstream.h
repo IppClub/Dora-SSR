@@ -29,6 +29,15 @@ freely, subject to the following restrictions:
 #include "soloud.h"
 
 struct stb_vorbis;
+#ifndef dr_flac_h
+struct drflac;
+#endif
+#ifndef dr_mp3_h
+struct drmp3;
+#endif
+#ifndef dr_wav_h
+struct drwav;
+#endif
 
 namespace SoLoud
 {
@@ -40,7 +49,13 @@ namespace SoLoud
 		WavStream *mParent;
 		unsigned int mOffset;
 		File *mFile;
-		stb_vorbis *mOgg;
+		union codec
+		{
+			stb_vorbis *mOgg;
+			drflac *mFlac;
+			drmp3 *mMp3;
+			drwav *mWav;
+		} mCodec;
 		unsigned int mOggFrameSize;
 		unsigned int mOggFrameOffset;
 		float **mOggOutputs;
@@ -52,17 +67,25 @@ namespace SoLoud
 		virtual ~WavStreamInstance();
 	};
 
+	enum WAVSTREAM_FILETYPE
+	{
+		WAVSTREAM_WAV = 0,
+		WAVSTREAM_OGG = 1,
+		WAVSTREAM_FLAC = 2,
+		WAVSTREAM_MP3 = 3
+	};
+
 	class WavStream : public AudioSource
 	{
-		result loadwav(File * fp);
-		result loadogg(File * fp);
+		result loadwav(File *fp);
+		result loadogg(File *fp);
+		result loadflac(File *fp);
+		result loadmp3(File *fp);
 	public:
-		int mOgg;
+		int mFiletype;
 		char *mFilename;
 		File *mMemFile;
 		File *mStreamFile;
-		unsigned int mDataOffset;
-		unsigned int mBits;
 		unsigned int mSampleCount;
 
 		WavStream();
