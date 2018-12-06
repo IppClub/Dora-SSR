@@ -71,8 +71,8 @@ bool Unit::init()
 	ModelDef* modelDef = _unitDef->getModelDef();
 	Model* model = modelDef ? Model::create(modelDef) : Model::none();
 	_isFaceRight = !modelDef || modelDef->isFaceRight();
-	model->setScaleX(_unitDef->getScale());
-	model->setScaleY(_unitDef->getScale());
+	Unit::setScaleX(_unitDef->getScale());
+	Unit::setScaleY(_unitDef->getScale());
 	Unit::setModel(model);
 	_bulletDef = SharedData.getCache()->get(_unitDef->bulletType).to<BulletDef>();
 	Body::setOwner(this);
@@ -150,7 +150,7 @@ bool Unit::update(double deltaTime)
 	{
 		SharedAI.runDecisionTree(this);
 	}
-	return false;
+	return Body::update(deltaTime);
 }
 
 void Unit::cleanup()
@@ -205,12 +205,12 @@ UnitAction* Unit::attachAction(String name)
 	if (it == _actions.end())
 	{
 		Own<UnitAction> action = UnitAction::alloc(name, this);
+		UnitAction* temp = action;
 		if (action)
 		{
 			_actions[name] = std::move(action);
 		}
-		actionAdded(action);
-		return action;
+		return temp;
 	}
 	return it->second;
 }

@@ -49,10 +49,10 @@ bool Bullet::init()
 		Bullet::setFace(node);
 	}
 	Model* model = _owner->getModel();
-	Vec2 offset = (model ? model->getModelDef()->getKeyPoint(UnitDef::BulletKey) : Vec2::zero);
+	Vec2 offset = (model ? model->getModelDef()->getKeyPoint(UnitDef::BulletKey) : Vec2::zero) * Vec2{model->getScaleX(), model->getScaleY()};
 	Bullet::setPosition(
 		_owner->getPosition() +
-		(_owner->isFaceRight() ? Vec2{-offset.x, offset.y} : offset)
+		(_owner->isFaceRight() ? offset : Vec2{-offset.x, offset.y})
 	);
 	if (Body::getBodyDef()->gravityScale != 0.0f)
 	{
@@ -81,13 +81,13 @@ void Bullet::updatePhysics()
 
 bool Bullet::update(double deltaTime)
 {
+	if (!_detectSensor) return true;
 	_current += s_cast<float>(deltaTime);
 	if (_current >= _lifeTime)
 	{
 		Bullet::destroy();
-		return true;
 	}
-	return false;
+	return Body::update(deltaTime);
 }
 
 Unit* Bullet::getOwner() const
@@ -170,7 +170,7 @@ void Bullet::setFace(Node* var)
 	_face->slot("Stoped"_slice, [this](Event*)
 	{
 		_face = nullptr;
-		removeFromParent(true);
+		removeFromParent();
 	});
 }
 

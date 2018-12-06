@@ -191,7 +191,7 @@ int Node_slot(lua_State* L)
 		if (lua_isfunction(L, 3))
 		{
 			int handler = tolua_ref_function(L, 3);
-			self->slot(name, LuaFunction(handler));
+			self->slot(name, LuaFunction<void>(handler));
 			return 0;
 		}
 		else if (lua_isnil(L, 3))
@@ -233,7 +233,7 @@ int Node_gslot(lua_State* L)
 			if (lua_isfunction(L, 3)) // set
 			{
 				int handler = tolua_ref_function(L, 3);
-				Listener* listener =self->gslot(name, LuaFunction(handler));
+				Listener* listener =self->gslot(name, LuaFunction<void>(handler));
 				tolua_pushobject(L, listener);
 				return 1;
 			}
@@ -273,7 +273,7 @@ tolua_lerror :
 	return 0;
 }
 
-bool Node_eachChild(Node* self, const LuaFunctionBool& func)
+bool Node_eachChild(Node* self, const LuaFunction<bool>& func)
 {
 	int index = 0;
 	return self->eachChild([&](Node* child)
@@ -297,8 +297,8 @@ bool Cache::load(String filename)
 				return SharedModelCache.load(filename);
 			case "par"_hash:
 				return SharedParticleCache.load(filename);
-			case "png"_hash:
 			case "jpg"_hash:
+			case "png"_hash:
 			case "dds"_hash:
 			case "pvr"_hash:
 			case "ktx"_hash:
@@ -335,6 +335,7 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 			case "par"_hash:
 				SharedParticleCache.loadAsync(filename, [callback](ParticleDef*) { callback(); });
 				break;
+			case "jpg"_hash:
 			case "png"_hash:
 			case "dds"_hash:
 			case "pvr"_hash:
@@ -349,7 +350,7 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 				SharedSoundCache.loadAsync(filename, [callback](SoundFile*) { callback(); });
 				break;
 			default:
-				Error("fail to load unsupported resource \"{}\".", filename);
+				Error("resource is not supported by name: \"{}\".", filename);
 				break;
 		}
 	}
@@ -401,6 +402,7 @@ bool Cache::unload(String name)
 				return SharedModelCache.unload(name);
 			case "par"_hash:
 				return SharedParticleCache.unload(name);
+			case "jpg"_hash:
 			case "png"_hash:
 			case "dds"_hash:
 			case "pvr"_hash:
@@ -692,7 +694,7 @@ namespace LuaAction
 						case "Call"_hash:
 						{
 							lua_rawgeti(L, location, 2);
-							LuaFunction callback(tolua_ref_function(L, -1));
+							LuaFunction<void> callback(tolua_ref_function(L, -1));
 							lua_pop(L, 1);
 							return Call::alloc(callback);
 						}
@@ -1202,7 +1204,7 @@ bool Array_fastRemoveAt(Array* self, int index)
 	return self->fastRemoveAt(index - 1);
 }
 
-bool Array_each(Array* self, const LuaFunctionBool& handler)
+bool Array_each(Array* self, const LuaFunction<bool>& handler)
 {
 	int index = 0;
 	return self->each([&](Object* item)

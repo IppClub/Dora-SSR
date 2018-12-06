@@ -52,7 +52,8 @@ b(255),
 a(255)
 { }
 
-Color::Color(Color3 color):
+Color::Color(Color3 color, Uint8 a):
+a(a),
 r(color.r),
 g(color.g),
 b(color.b)
@@ -87,6 +88,11 @@ Uint32 Color::toABGR() const
 Uint32 Color::toRGBA() const
 {
 	return r << 24 | g << 16 | b << 8 | a;
+}
+
+Uint32 Color::toARGB() const
+{
+	return a << 24 | r << 16 | g << 8 | b;
 }
 
 Color3 Color::toColor3() const

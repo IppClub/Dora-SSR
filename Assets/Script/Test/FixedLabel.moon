@@ -44,6 +44,7 @@ LabelEx = Class Node,
 				right = left
 				for i = 2,charCount
 					char = @_label\getCharacter i
+					continue unless char
 					right = math.max char.x+char.width/2,right
 					if right-left > requiredWidth
 						displayText = utf8.sub value,1,i-1

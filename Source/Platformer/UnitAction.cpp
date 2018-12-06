@@ -28,9 +28,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_PLATFORMER_BEGIN
 
 UnitActionDef::UnitActionDef(
-	LuaFunctionBool available,
-	LuaFunctionFuncBool create,
-	LuaFunction stop):
+	LuaFunction<bool> available,
+	LuaFunction<LuaFunction<bool>> create,
+	LuaFunction<void> stop):
 available(available),
 create(create),
 stop(stop)
@@ -57,7 +57,7 @@ _priority(priority),
 _isDoing(false),
 _owner(owner),
 reaction(-1.0f),
-_elapsedTime(0.0f)
+_eclapsedTime(0.0f)
 { }
 
 UnitAction::~UnitAction()
@@ -90,19 +90,21 @@ bool UnitAction::isAvailable()
 	return true;
 }
 
+float UnitAction::getEclapsedTime() const
+{
+	return _eclapsedTime;
+}
+
 void UnitAction::run()
 {
 	_isDoing = true;
 	_decisionDelay = 0.0f;
-	if (actionStart)
-	{
-		actionStart(this);
-	}
+	_eclapsedTime = 0.0f;
 }
 
 void UnitAction::update(float dt)
 {
-	_elapsedTime += dt;
+	_eclapsedTime += dt;
 	float reactionTime = _owner->sensity * UnitAction::reaction;
 	if (reactionTime >= 0)
 	{
@@ -119,18 +121,15 @@ void UnitAction::update(float dt)
 void UnitAction::stop()
 {
 	_isDoing = false;
-	_elapsedTime = 0.0f;
-	if (actionEnd)
-	{
-		actionEnd(this);
-	}
+	_eclapsedTime = 0.0f;
+	_decisionDelay = 0.0f;
 }
 
 void UnitAction::add(
 	String name, int priority, float reaction, float recovery,
-	LuaFunctionBool available,
-	LuaFunctionFuncBool create,
-	LuaFunction stop)
+	LuaFunction<bool> available,
+	LuaFunction<LuaFunction<bool>> create,
+	LuaFunction<void> stop)
 {
 	UnitActionDef* actionDef = new UnitActionDef(available, create, stop);
 	actionDef->name = name;
@@ -202,7 +201,6 @@ void Walk::run()
 	model->setLook(ActionSetting::LookNormal);
 	model->setRecovery(UnitAction::recovery);
 	model->resume(ActionSetting::AnimationWalk);
-	_eclapsed = 0.0f;
 	UnitAction::run();
 }
 
@@ -211,10 +209,9 @@ void Walk::update(float dt)
 	if (_owner->isOnSurface())
 	{
 		float move = _owner->move * _owner->moveSpeed;
-		if (_eclapsed < UnitAction::recovery)
+		if (_eclapsedTime < UnitAction::recovery)
 		{
-			_eclapsed += dt;
-			move *= std::min(_eclapsed / UnitAction::recovery, 1.0f);
+			move *= std::min(_eclapsedTime / UnitAction::recovery, 1.0f);
 		}
 		_owner->setVelocityX(_owner->isFaceRight() ? move : -move);
 	}
@@ -246,14 +243,6 @@ UnitAction(ActionSetting::UnitActionTurn, ActionSetting::PriorityTurn, unit)
 void Turn::run()
 {
 	_owner->setFaceRight(!_owner->isFaceRight());
-	if (actionStart)
-	{
-		actionStart(this);
-	}
-	if (actionEnd)
-	{
-		actionEnd(this);
-	}
 }
 
 Own<UnitAction> Turn::alloc(Unit* unit)
@@ -364,11 +353,11 @@ void Jump::run()
 
 void Jump::update(float dt)
 {
-	if (_elapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
+	if (_eclapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
 	{
 		UnitAction::update(dt);
 	}
-	else _elapsedTime += dt;
+	else _eclapsedTime += dt;
 }
 
 void Jump::stop()
@@ -428,8 +417,8 @@ void Attack::run()
 
 void Attack::update(float dt)
 {
-	_elapsedTime += dt;
-	if (_attackDelay >= 0 && _elapsedTime >= _attackDelay)
+	_eclapsedTime += dt;
+	if (_attackDelay >= 0 && _eclapsedTime >= _attackDelay)
 	{
 		_attackDelay = -1;
 		if (!_owner->getUnitDef()->sndAttack.empty())
@@ -438,7 +427,7 @@ void Attack::update(float dt)
 		}
 		this->onAttack();
 	}
-	if (_attackEffectDelay >= 0 && _elapsedTime >= _attackEffectDelay)
+	if (_attackEffectDelay >= 0 && _eclapsedTime >= _attackEffectDelay)
 	{
 		_attackEffectDelay = -1;
 		const string& attackEffect = _owner->getUnitDef()->attackEffect;
@@ -627,23 +616,29 @@ Hit::~Hit()
 
 void Hit::run()
 {
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationHit] += std::make_pair(this, &Hit::onAnimationEnd);
-	model->setLook(ActionSetting::LookSad);
-	model->setLoop(false);
-	model->setRecovery(UnitAction::recovery);
-	model->setSpeed(1.0f);
-	model->play(ActionSetting::AnimationHit);
 	Vec2 key = _owner->convertToNodeSpace(_hitPoint);
 	if (_effect)
 	{
 		_effect->setPosition(key);
 		_effect->start();
 	}
-	_owner->setVelocityX(_hitFromRight ? -_attackPower.x : _attackPower.x);
-	_owner->setVelocityY(_attackPower.y);
+	_owner->applyLinearImpulse({_hitFromRight ? -_attackPower.x : _attackPower.x, _attackPower.y}, Vec2::zero);
 	_owner->setFaceRight(_hitFromRight);
 	UnitAction::run();
+	Model* model = _owner->getModel();
+	if (model->hasAnimation(ActionSetting::AnimationHit))
+	{
+		model->handlers[ActionSetting::AnimationHit] += std::make_pair(this, &Hit::onAnimationEnd);
+		model->setLook(ActionSetting::LookSad);
+		model->setLoop(false);
+		model->setRecovery(UnitAction::recovery);
+		model->setSpeed(1.0f);
+		model->play(ActionSetting::AnimationHit);
+	}
+	else
+	{
+		UnitAction::stop();
+	}
 }
 
 void Hit::update(float dt)
@@ -667,12 +662,15 @@ void Hit::onAnimationEnd(Model* model)
 void Hit::stop()
 {
 	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationHit] -= std::make_pair(this, &Hit::onAnimationEnd);
-	model->stop();
+	if (model->hasAnimation(ActionSetting::AnimationHit))
+	{
+		model->handlers[ActionSetting::AnimationHit] -= std::make_pair(this, &Hit::onAnimationEnd);
+		model->stop();
+	}
 	UnitAction::stop();
 }
 
-Own<UnitAction> Hit::alloc(Unit* unit )
+Own<UnitAction> Hit::alloc(Unit* unit)
 {
 	UnitAction* action = new Hit(unit);
 	return MakeOwn(action);

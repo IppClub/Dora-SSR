@@ -5,11 +5,11 @@
 
 	<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }">
 		<Script>if fillColor then</Script>
-			<SolidRect Width="{ width }" Height="{ height }" Color="{ fillColor }"/>
+			<SolidRect Width="{ width }" Height="{ height }" Color="{ fillColor }" RenderOrder="{ fillOrder or 0 }"/>
 		<Script>end</Script>
 
 		<Script>if borderColor then</Script>
-			<LineRect Width="{ width }" Height="{ height }" Color="{ borderColor }"/>
+			<LineRect Width="{ width }" Height="{ height }" Color="{ borderColor }" RenderOrder="{ lineGroup or 0 }"/>
 		<Script>end</Script>
 	</Node>
 </Dorothy>

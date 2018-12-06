@@ -27,6 +27,7 @@ public:
 	Array* getUnitsByRelation(Relation relation);
 	Array* getDetectedUnits();
 	Unit* getNearestUnit(Relation relation);
+	Array* getUnitsInAttackRange() const;
 	float getNearestUnitDistance(Relation relation);
 	SINGLETON_REF(AI, Data, Director);
 protected:

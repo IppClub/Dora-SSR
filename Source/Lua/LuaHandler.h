@@ -37,7 +37,33 @@ struct LuaArgsPusher
 };
 
 class Event;
+
+template<class T>
 class LuaFunction
+{
+public:
+	LuaFunction(int handler):_handler(LuaHandler::create(handler)) { }
+	inline bool operator==(const LuaFunction& other) const
+	{
+		return _handler->equals(other._handler);
+	}
+	template<typename ...Args>
+	T operator()(Args ...args) const
+	{
+		T value{};
+		if (_handler->get() > 0)
+		{
+			SharedLuaEngine.executeReturn(value, _handler->get(),
+				Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
+		}
+		return value;
+	}
+private:
+	Ref<LuaHandler> _handler;
+};
+
+template<>
+class LuaFunction<void>
 {
 public:
 	LuaFunction(int handler):_handler(LuaHandler::create(handler)) { }
@@ -58,11 +84,13 @@ private:
 	Ref<LuaHandler> _handler;
 };
 
-class LuaFunctionBool
+template<>
+class LuaFunction<bool>
 {
 public:
-	LuaFunctionBool(int handler):_handler(LuaHandler::create(handler)) { }
-	inline bool operator==(const LuaFunctionBool& other) const
+	LuaFunction(int handler):_handler(LuaHandler::create(handler)) { }
+	LuaFunction(LuaHandler* handler):_handler(handler) { }
+	inline bool operator==(const LuaFunction& other) const
 	{
 		return _handler->equals(other._handler);
 	}
@@ -79,22 +107,25 @@ private:
 	Ref<LuaHandler> _handler;
 };
 
-class LuaFunctionFuncBool
+template<>
+class LuaFunction<LuaFunction<bool>>
 {
 public:
-	LuaFunctionFuncBool(int handler):_handler(LuaHandler::create(handler)) { }
-	inline bool operator==(const LuaFunctionFuncBool& other) const
+	LuaFunction(int handler):_handler(LuaHandler::create(handler)) { }
+	inline bool operator==(const LuaFunction& other) const
 	{
 		return _handler->equals(other._handler);
 	}
 	template<typename ...Args>
-	LuaFunctionBool operator()(Args ...args) const
+	LuaFunction<bool> operator()(Args ...args) const
 	{
+		LuaHandler* luaHandler = nullptr;
 		if (_handler->get() > 0)
 		{
-			return LuaFunctionBool(SharedLuaEngine.executeReturnFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher())));
+			SharedLuaEngine.executeReturn(luaHandler, _handler->get(),
+				Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
 		}
-		return true;
+		return LuaFunction<bool>(luaHandler);
 	}
 private:
 	Ref<LuaHandler> _handler;

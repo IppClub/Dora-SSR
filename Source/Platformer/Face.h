@@ -20,38 +20,43 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
  Faces can attach to each other just as nodes.
 
- Faces can only be 4 types:
-	Face::Clip         0
-	Face::Image     1
-	Face::Frame     2
-	Face::Particle   3
+ Faces can be 1 of 6 types:
+	Face::Unkown  0
+	Face::Clip         1
+	Face::Image     2
+	Face::Frame     3
+	Face::Particle   4
+	Face::Custom   5
 
  Face is just data define, use toNode() method to get visible instance.
 */
 class Face : public Object
 {
 public:
-	enum {Clip = 0, Image = 1, Frame = 2, Particle = 3};
+	enum {Unknown = 0, Clip = 1, Image = 2, Frame = 3, Particle = 4, Custom = 5};
 	void addChild(Face* face);
 	bool removeChild(Face* face);
 	/** Get a new instance of the face. */
 	Node* toNode();
-	/** Type of face, Clip, Image, Frame, Particle. */
+	/** Type of face, Unknown, Clip, Image, Frame, Particle, User. */
 	uint32 getType() const;
 	/** Different type has different faceStr:
 	     enum      type             faceStr
-          0             Clip           "loli.clip|0"
-          1             Image       "loli.png"
-          2             Frame       "loli.frame"
-          3             Particle     "loli.par"
+          1             Clip            "loli.clip|0"
+          2             Image        "loli.png"
+          3             Frame        "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
+          4             Particle      "loli.par"
 	*/
 	CREATE_FUNC(Face);
 private:
-	Face(String file, const Vec2& point, float angle);
+	Face(String file, const Vec2& point, float scale, float angle);
+	Face(const function<Node*()>& func, const Vec2& point, float scale, float angle);
 	string _file;
-	uint32 _type;
+	Uint32 _type;
+	float _scale;
 	Vec2 _pos;
 	float _angle;
+	function<Node*()> _userCreateFunc;
 	RefVector<Face> _children;
 	DORA_TYPE_OVERRIDE(Face);
 };

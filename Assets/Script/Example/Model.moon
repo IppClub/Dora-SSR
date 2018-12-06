@@ -1,6 +1,6 @@
 Dorothy!
 
-modelFile = "Model/KidW.model"
+modelFile = "Model/xiaoli.model"
 
 model = with Model modelFile
 	.loop = true
@@ -8,8 +8,6 @@ model = with Model modelFile
 	.look = "happy"
 	\play "walk"
 	\slot "AnimationEnd",(name)-> print name, "end"
-	.scaleX = 5
-	.scaleY = 5
 	\eachNode (sp)->
 		sp.filter = TextureFilter.Point
 

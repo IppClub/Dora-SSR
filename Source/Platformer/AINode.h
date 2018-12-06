@@ -11,12 +11,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_PLATFORMER_BEGIN
 
 class AILeaf;
+class Unit;
 
 /** @brief Behavior Tree base node */
 class AILeaf : public Object
 {
 public:
-	virtual bool doAction() = 0;
+	virtual bool doAction(Unit* self) = 0;
 	DORA_TYPE_OVERRIDE(AILeaf);
 };
 
@@ -35,7 +36,7 @@ protected:
 class SelNode : public AINode
 {
 public:
-	virtual bool doAction();
+	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(SelNode);
 protected:
 	SelNode() { }
@@ -45,7 +46,7 @@ protected:
 class SeqNode : public AINode
 {
 public:
-	virtual bool doAction();
+	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(SeqNode);
 protected:
 	SeqNode() { }
@@ -55,7 +56,7 @@ protected:
 class ParSelNode : public AINode
 {
 public:
-	virtual bool doAction();
+	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ParSelNode);
 protected:
 	ParSelNode() { }
@@ -65,7 +66,7 @@ protected:
 class ParSeqNode : public AINode
 {
 public:
-	virtual bool doAction();
+	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ParSeqNode);
 protected:
 	ParSeqNode() { }
@@ -74,18 +75,18 @@ protected:
 class ConNode : public AILeaf
 {
 public:
-	virtual bool doAction();
+	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ConNode);
 protected:
-	ConNode(const function<bool()>& handler);
+	ConNode(const function<bool(Unit*)>& handler);
 private:
-	function<bool()> _handler;
+	function<bool(Unit*)> _handler;
 };
 
 class ActNode : public AILeaf
 {
 public:
-	virtual bool doAction();
+	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ActNode);
 protected:
 	ActNode(String actionName);
@@ -93,11 +94,31 @@ private:
 	string _actionName;
 };
 
+class TrueNode : public AILeaf
+{
+public:
+	virtual bool doAction(Unit* self) override;
+	CREATE_FUNC(TrueNode);
+protected:
+	TrueNode() { }
+};
+
+class FalseNode : public AILeaf
+{
+public:
+	virtual bool doAction(Unit* self) override;
+	CREATE_FUNC(FalseNode);
+protected:
+	FalseNode() { }
+};
+
 AILeaf* Sel(AILeaf* nodes[], int count);
 AILeaf* Seq(AILeaf* nodes[], int count);
 AILeaf* ParSel(AILeaf* nodes[], int count);
 AILeaf* ParSeq(AILeaf* nodes[], int count);
-AILeaf* Con(const function<bool()>& handler);
+AILeaf* Con(const function<bool(Unit*)>& handler);
 AILeaf* Act(String actionName);
+AILeaf* True();
+AILeaf* False();
 
 NS_DOROTHY_PLATFORMER_END

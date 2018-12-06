@@ -247,12 +247,8 @@ end
 function classDeclaration:builddeclaration (narg, cplusplus)
  if self.type == "tolua_table" then
   return "  int "..self.name.." = "..tostring(narg)..";"
- elseif self.type == "tolua_function" then
-  return "  LuaFunction "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
- elseif self.type == "tolua_function_bool" then
-  return "  LuaFunctionBool "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
- elseif self.type == "tolua_function_func_bool" then
-  return "  LuaFunctionFuncBool "..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
+ elseif self.type:match("^tolua_function_") then
+  return "  LuaFunction<"..self.type:match("^tolua_function_([^ ]+)")..(self.ptr == '*' and '*> ' or '> ')..self.name.."(tolua_ref_function(tolua_S,"..tostring(narg).."));"
  elseif self.type == "tolua_handler" then
   return "  LuaHandler* "..self.name.." = LuaHandler::create(tolua_ref_function(tolua_S,"..tostring(narg).."));"
  end

@@ -11,7 +11,7 @@
 			</Node>
 
 			<Script>if text then</Script>
-				<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" Ref="True"/>
+				<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" TextAlign="Center" Ref="True"/>
 			<Script>end</Script>
 
 			<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>

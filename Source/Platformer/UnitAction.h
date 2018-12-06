@@ -20,39 +20,36 @@ class Unit;
 class UnitAction;
 class Bullet;
 class Visual;
-typedef Delegate<void (UnitAction* action)> UnitActionHandler;
 typedef Delegate<void (Unit* source, Unit* target, float damage)> DamageHandler;
 
 class UnitActionDef
 {
 public:
 	UnitActionDef(
-		LuaFunctionBool available,
-		LuaFunctionFuncBool create,
-		LuaFunction stop);
+		LuaFunction<bool> available,
+		LuaFunction<LuaFunction<bool>> create,
+		LuaFunction<void> stop);
 	string name;
 	int priority;
 	float reaction;
 	float recovery;
-	LuaFunctionBool available;
-	LuaFunctionFuncBool create;
-	LuaFunction stop;
+	LuaFunction<bool> available;
+	LuaFunction<LuaFunction<bool>> create;
+	LuaFunction<void> stop;
 	Own<UnitAction> toAction(Unit* unit);
 };
 
 class UnitAction
 {
 public:
-	UnitAction(String name, int priority, Unit* owner);
+	PROPERTY_READONLY_REF(string, Name);
+	PROPERTY_READONLY(int, Priority);
+	PROPERTY_READONLY(Unit*, Owner);
+	PROPERTY_READONLY(float, EclapsedTime);
+	PROPERTY_READONLY_BOOL(Doing);
 	virtual ~UnitAction();
 	float reaction;
 	float recovery;
-	const string& getName() const;
-	int getPriority() const;
-	bool isDoing() const;
-	Unit* getOwner() const;
-	UnitActionHandler actionStart;
-	UnitActionHandler actionEnd;
 	virtual bool isAvailable();
 	virtual void run();
 	virtual void update(float dt);
@@ -63,13 +60,14 @@ public:
 		int priority,
 		float reaction,
 		float recovery,
-		LuaFunctionBool available,
-		LuaFunctionFuncBool create,
-		LuaFunction stop);
+		LuaFunction<bool> available,
+		LuaFunction<LuaFunction<bool>> create,
+		LuaFunction<void> stop);
 	static void clear();
 protected:
+	UnitAction(String name, int priority, Unit* owner);
 	Unit* _owner;
-	float _elapsedTime;
+	float _eclapsedTime;
 private:
 	bool _isDoing;
 	string _name;
@@ -88,7 +86,7 @@ public:
 	virtual void stop() override;
 private:
 	function<bool(Unit*,UnitAction*)> _available;
-	function<LuaFunctionBool(Unit*,UnitAction*)> _create;
+	function<LuaFunction<bool>(Unit*,UnitAction*)> _create;
 	function<bool(Unit*,float,UnitAction*)> _update;
 	function<void(Unit*,UnitAction*)> _stop;
 	friend class UnitActionDef;
@@ -149,8 +147,6 @@ public:
 	static Own<UnitAction> alloc(Unit* unit);
 protected:
 	Walk(Unit* unit);
-private:
-	float _eclapsed;
 };
 
 class Turn : public UnitAction

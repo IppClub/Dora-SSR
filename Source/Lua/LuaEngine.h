@@ -14,6 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 class Value;
+class Node;
+class LuaHandler;
 
 class LuaEngine
 {
@@ -30,6 +32,9 @@ public:
 	bool executeScriptFile(String filename);
 	bool executeFunction(int handler, int paramCount = 0);
 	int executeReturnFunction(int handler, int paramCount = 0);
+	Node* executeReturnNode(int handler);
+
+	void pop(int count = 1);
 
 	void push(bool value);
 	void push(Uint16 value);
@@ -84,6 +89,26 @@ public:
 	{
 		t = dynamic_cast<T*>(r_cast<Object*>(tolua_tousertype(L, index, nullptr)));
 		return false;
+	}
+
+	void executeReturn(LuaHandler*& luaHandler, int handler, int paramCount);
+
+	template<typename T>
+	typename std::enable_if<!std::is_base_of<Object, T>::value>::type executeReturn(T& value, int handler, int paramCount)
+	{
+		LuaEngine::invoke(L, handler, paramCount, 1);
+		to(value, -1);
+		LuaEngine::pop();
+	}
+
+	template<typename T>
+	typename std::enable_if<std::is_base_of<Object, T>::value>::type executeReturn(T*& value, int handler, int paramCount)
+	{
+		LuaEngine::invoke(L, handler, paramCount, 1);
+		Object* obj = nullptr;
+		LuaEngine::to(obj, -1);
+		value =  dynamic_cast<T*>(obj);
+		LuaEngine::pop();
 	}
 
 	bool executeAssert(bool cond, String condStr);

@@ -34,15 +34,16 @@ local function wait(cond)
 end
 
 local function once(work)
-	return wrap(function()
-		work()
+	return wrap(function(...)
+		work(...)
+		yield(false)
 		return true
 	end)
 end
 
 local function loop(work)
-	return wrap(function()
-		while work() ~= true do
+	return wrap(function(...)
+		while work(...) ~= true do
 			yield(false)
 		end
 		return true
@@ -235,6 +236,8 @@ RenderTarget.saveAsync = function(self,filename,handler)
 	return loadedData
 end
 
+-- Action
+
 local Action = builtin.Action
 local Node = builtin.Node
 local Node_runAction = Node.runAction
@@ -301,6 +304,8 @@ builtin.Scale = function(duration, start, stop, ease)
 		ScaleY(duration, start, stop, ease))
 end
 
+-- Array
+
 local Array = builtin.Array
 local Array_index = Array.__index
 local Array_get = Array.get
@@ -324,6 +329,8 @@ Array.__len = function(self)
 	return self.count
 end
 
+-- Dictionary
+
 local Dictionary = builtin.Dictionary
 local Dictionary_index = Dictionary.__index
 local Dictionary_get = Dictionary.get
@@ -346,6 +353,8 @@ end
 Dictionary.__len = function(self)
 	return self.count
 end
+
+-- Entity
 
 local Entity = builtin.Entity
 
@@ -403,6 +412,22 @@ Entity.rawSet = function(self,key,value)
 	Entity_set(self,key,value,true)
 end
 
+-- UnitAction
+
+local UnitAction = builtin.Platformer.UnitAction
+local UnitAction_add = UnitAction.add
+UnitAction.add = function(self, name, params)
+	UnitAction_add(self, name,
+		params.priority,
+		params.reaction,
+		params.recovery,
+		params.available,
+		params.create,
+		params.stop)
+end
+
+-- Helpers
+
 local function disallowAssignGlobal(_,name)
 	error("Disallow creating global variable \""..name.."\".")
 end
@@ -444,4 +469,3 @@ setmetatable(builtin,builtinEnvMeta)
 
 collectgarbage("setpause", 100)
 collectgarbage("setstepmul", 5000)
-

@@ -105,6 +105,7 @@ public:
 	PROPERTY_STRING(Look);
 	PROPERTY_READONLY_BOOL(Playing);
 	PROPERTY_READONLY_BOOL(Paused);
+	bool hasAnimation(String name) const;
 	void setLook(int index);
 	float play(Uint32 index);
 	float play(String name);
@@ -149,7 +150,7 @@ private:
 	void setupCallback();
 	void onActionEnd();
 	NodeMap& nodeMap();
-
+private:
 	bool _loop;
 	bool _reversed;
 	bool _faceRight;

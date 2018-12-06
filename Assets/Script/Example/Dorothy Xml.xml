@@ -21,7 +21,7 @@
 	<!-- example ends here, print xml and compiled lua codes below -->
 	<Script Type="Moon">
 		Dorothy builtin.ImGui
-		xmlCodes = Content\load "Example/DorothyXml.xml"
+		xmlCodes = Content\load "Example/Dorothy Xml.xml"
 		luaCodes = xmltolua xmlCodes
 		print "[Xml Codes]\n\n#{xmlCodes}\n[Compiled Lua Codes]\n\n#{luaCodes}"
 		entry\schedule ->

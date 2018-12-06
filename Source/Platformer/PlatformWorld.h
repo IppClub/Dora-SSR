@@ -45,13 +45,12 @@ protected:
 		PROPERTY(int, Index);
 		CREATE_FUNC(Layer);
 	protected:
-		Layer():_offset{} { }
+		Layer():_offset{},ratio{} { }
 		virtual void sortAllChildren() override;
 	private:
 		int _index;
 		Vec2 _offset;
 		friend class PlatformWorld;
-		DORA_TYPE_OVERRIDE(Layer);
 	};
 private:
 	Ref<PlatformCamera> _camera;

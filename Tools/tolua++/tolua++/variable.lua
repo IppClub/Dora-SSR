@@ -231,12 +231,8 @@ end
 		if self.def ~= '' then def = self.def end
 		if is_function then
 			local name = prop_set or self.name
-			if self.type == 'tolua_function' then
-			  output('  self->'..name..'(LuaFunction(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
-			elseif self.type == 'tolua_function_bool' then
-			  output('  self->'..name..'(LuaFunctionBool(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
-			elseif self.type == 'tolua_function_func_bool' then
-			  output('  self->'..name..'(LuaFunctionFuncBool(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
+			if self.type:match("^tolua_function_") then
+				output("  LuaFunction<"..self.type:match("^tolua_function_([^ ]+)").."> "..name.."(tolua_ref_function(tolua_S,"..tostring(var_index).."));")
 			elseif self.type == 'tolua_handler' then
 			  output('  self->'..name..'(LuaHandler::create(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
 			end

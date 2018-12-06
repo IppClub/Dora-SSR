@@ -43,7 +43,7 @@ inline void Dora_Log(String msg) { Info("{}", msg); }
 int Node_emit(lua_State* L);
 int Node_slot(lua_State* L);
 int Node_gslot(lua_State* L);
-bool Node_eachChild(Node* self, const LuaFunctionBool& func);
+bool Node_eachChild(Node* self, const LuaFunction<bool>& func);
 
 /* Cache */
 struct Cache
@@ -111,7 +111,7 @@ int Array_create(lua_State* L);
 void Array_swap(Array* self, int indexA, int indexB);
 bool Array_removeAt(Array* self, int index);
 bool Array_fastRemoveAt(Array* self, int index);
-bool Array_each(Array* self, const LuaFunctionBool& handler);
+bool Array_each(Array* self, const LuaFunction<bool>& handler);
 
 /* Buffer */
 class Buffer : public Object
