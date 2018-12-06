@@ -203,7 +203,6 @@ bool Entity::hasCache(int index) const
 void Entity::remove(String name)
 {
 	int index = SharedEntityPool.tryGetIndex(name);
-	AssertIf(!has(index), "removing non-exist component \"{}\"", name);
 	remove(index);
 }
 
@@ -358,6 +357,11 @@ EntityGroup::~EntityGroup()
 		SharedEntityPool.getAddHandler(index) -= std::make_pair(this, &EntityGroup::onAdd);
 		SharedEntityPool.getRemoveHandler(index) -= std::make_pair(this, &EntityGroup::onRemove);
 	}
+}
+
+int EntityGroup::getCount() const
+{
+	return s_cast<int>(_entities.size());
 }
 
 bool EntityGroup::init()

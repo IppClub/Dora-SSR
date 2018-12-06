@@ -19,11 +19,12 @@ struct Color
 	Uint8 a;
 	tolua_property__common float opacity;
 	Color();
-	Color(Color3 color);
+	Color(Color3 color, Uint8 a = 0);
 	Color(Uint32 argb);
 	~Color();
 	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 	Color3 toColor3();
+	Uint32 toARGB();
 };
 
 struct Vec2
@@ -159,15 +160,16 @@ class Entity
 
 class EntityGroup @ Group
 {
-	void each(tolua_function_bool func);
-	EntityGroup* every(tolua_function func);
+	tolua_readonly tolua_property__common int count;
+	bool each(tolua_function_bool func);
+	EntityGroup* every(tolua_function_void func);
 	static EntityGroup* create(String components[tolua_len]);
 };
 
 class EntityObserver @ Observer
 {
-	void each(tolua_function_bool func);
-	EntityObserver* every(tolua_function func);
+	bool each(tolua_function_bool func);
+	EntityObserver* every(tolua_function_void func);
 	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
 };
 
@@ -184,9 +186,9 @@ class Content
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
-	void loadFileAsync @ loadAsync(String filename, tolua_function handler);
-	void saveToFileAsync @ saveAsync(String filename, String content, tolua_function handler);
-	void copyFileAsync @ copyAsync(String src, String dst, tolua_function handler);
+	void loadFileAsync @ loadAsync(String filename, tolua_function_void handler);
+	void saveToFileAsync @ saveAsync(String filename, String content, tolua_function_void handler);
+	void copyFileAsync @ copyAsync(String src, String dst, tolua_function_void handler);
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
 	tolua_outside void Content_loadFile @ load(String filename);
@@ -263,9 +265,9 @@ void Dora_Log @ Log(String msg);
 
 class Slot : public Object
 {
-	void add(tolua_function handler);
-	void set(tolua_function handler);
-	void remove(tolua_function handler);
+	void add(tolua_function_void handler);
+	void set(tolua_function_void handler);
+	void remove(tolua_function_void handler);
 	void clear();
 };
 
@@ -346,7 +348,7 @@ class Node : public Object
 
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
 	Vec2 convertToWorldSpace(Vec2 nodePoint);
-	void convertToWindowSpace(Vec2 nodePoint, tolua_function callback);
+	void convertToWindowSpace(Vec2 nodePoint, tolua_function_void callback);
 
 	void scheduleUpdate();
 	void unscheduleUpdate();
@@ -534,7 +536,7 @@ class RenderTarget : public Node
 	void render(Node* target);
 	void renderWithClear(Color color, float depth = 1.0f, Uint8 stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
-	void saveAsync(String filename, tolua_function handler);
+	void saveAsync(String filename, tolua_function_void handler);
 	static RenderTarget* create(Uint16 width, Uint16 height);
 };
 
@@ -583,7 +585,7 @@ class ParticleNode @ Particle : public Node
 	static ParticleNode* create(String filename);
 };
 
-class Model: public Node
+class Model : public Node
 {
 	tolua_property__common string look;
 	tolua_property__common float speed;
@@ -596,6 +598,7 @@ class Model: public Node
 	tolua_readonly tolua_property__bool bool paused;
 	tolua_readonly tolua_property__common string currentAnimationName @ currentAnimation;
 	tolua_outside Vec2 Model_getKey @ getKey(String key);
+	bool hasAnimation(String name);
 	float play(String name);
 	void pause();
 	void resume();
@@ -616,8 +619,8 @@ class PhysicsWorld : public Node
 {
 	tolua_property__common Vec2 gravity;
 	tolua_property__bool bool showDebug;
-	void query(Rect rect, tolua_function_bool handler);
-	void raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);
+	bool query(Rect rect, tolua_function_bool handler);
+	bool raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);
 	void setIterations(int velocityIter, int positionIter);
 	void setShouldContact(int groupA, int groupB, bool contact);
 	bool getShouldContact(int groupA, int groupB);
@@ -980,7 +983,7 @@ class MotorJoint : public Joint
 struct Cache
 {
 	static bool load(String filename);
-	static void loadAsync(String filename, tolua_function callback);
+	static void loadAsync(String filename, tolua_function_void callback);
 	static void update(String filename, String content);
 	static void update(String filename, Texture2D* texture);
 	static void unload();
@@ -1059,7 +1062,8 @@ class Face : public Object
 {
 	void addChild(Face* face);
 	Node* toNode();
-	static Face* create(String faceStr, Vec2 point = Vec2::zero, float angle = 0.0f);
+	static Face* create(String faceStr, Vec2 point = Vec2::zero, float scale = 1.0f, float angle = 0.0f);
+	static Face* create(tolua_function_Node* createFunc, Vec2 point = Vec2::zero, float scale = 1.0f, float angle = 0.0f);
 };
 
 class BulletDef : public Object
@@ -1111,6 +1115,8 @@ AILeaf* ParSel(AILeaf* nodes[tolua_len]);
 AILeaf* ParSeq(AILeaf* nodes[tolua_len]);
 AILeaf* Con(tolua_function_bool handler);
 AILeaf* Act(String action);
+AILeaf* True();
+AILeaf* False();
 
 class AI
 {
@@ -1119,6 +1125,7 @@ class AI
 	Array* getDetectedUnits();
 	Unit* getNearestUnit(Relation relation);
 	float getNearestUnitDistance(Relation relation);
+	Array* getUnitsInAttackRange();
 	static tolua_outside AI* AI_shared @ create();
 };
 
@@ -1130,14 +1137,15 @@ class UnitAction
 	tolua_readonly tolua_property__common int priority;
 	tolua_readonly tolua_property__bool bool doing;
 	tolua_readonly tolua_property__common Unit* owner;
+	tolua_readonly tolua_property__common float eclapsedTime;
 	static void add(
 		String name,
 		int priority,
 		float reaction,
 		float recovery,
 		tolua_function_bool available,
-		tolua_function_func_bool create,
-		tolua_function stop);
+		tolua_function_LuaFunction<bool> create,
+		tolua_function_void stop);
 	static void clear();
 };
 
@@ -1212,7 +1220,7 @@ class Unit : public Body
 	tolua_property__common Size attackRange;
 	tolua_property__bool bool faceRight;
 	tolua_property__common BulletDef* bulletDef;
-	tolua_property__common string decisionTreeName;
+	tolua_property__common string decisionTreeName @ decisionTree;
 	tolua_readonly tolua_property__bool bool onSurface;
 	tolua_readonly tolua_property__common Sensor* groundSensor;
 	tolua_readonly tolua_property__common Sensor* detectSensor;
@@ -1226,7 +1234,7 @@ class Unit : public Body
 	void removeAction(String name);
 	void removeAllActions();
 	UnitAction* getAction(String name);
-	void eachAction(tolua_function func);
+	void eachAction(tolua_function_void func);
 	bool start(String name);
 	void stop();
 	bool isDoing(String name);

@@ -117,7 +117,6 @@ float UnitDef::getRestitution() const
 void UnitDef::setScale(float var)
 {
 	_scale = var;
-	UnitDef::updateBodyDef();
 }
 
 float UnitDef::getScale() const
@@ -130,14 +129,11 @@ void UnitDef::updateBodyDef()
 	if (_size == Size::zero) return;
 	_bodyDef->clearFixtures();
 	_bodyDef->fixedRotation = false;
-	Size size = _size;
-	size.width *= _scale;
-	size.height *= _scale;
-	if (size.width != 0.0f && size.height != 0.0f)
+	if (_size.width != 0.0f && _size.height != 0.0f)
 	{
 		_bodyDef->fixedRotation = true;
-		float hw = size.width * 0.5f;
-		float hh = size.height * 0.5f;
+		float hw = _size.width * 0.5f;
+		float hh = _size.height * 0.5f;
 		Vec2 vertices[] =
 		{
 			Vec2{-hw, hh},
@@ -148,7 +144,7 @@ void UnitDef::updateBodyDef()
 		_bodyDef->attachPolygon(vertices, 4, _density, _friction, _restitution);
 		_bodyDef->attachPolygonSensor(
 			UnitDef::GroundSensorTag,
-			size.width - BOTTOM_OFFSET * 2,
+			_size.width - BOTTOM_OFFSET * 2,
 			GROUND_SENSOR_HEIGHT,
 			Vec2{0, -hh - GROUND_SENSOR_HEIGHT * 0.5f},
 			0);

@@ -616,6 +616,8 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 void Label::updateLabel()
 {
 	_text = utf8_get_characters(_textUTF8.c_str());
+	_text.push_back('\0');
+
 	if (_flags.isOn(Label::TextBatched))
 	{
 		_flags.setOn(Label::QuadDirty);
@@ -812,11 +814,12 @@ void Label::updateLabel()
 			last_word.end());
 
 		size_t size = multiline_string.size();
-		vector<Uint32> str_new(size);
+		vector<Uint32> str_new(size+1);
 		for (size_t i = 0; i < size; ++i)
 		{
 			str_new[i] = multiline_string[i];
 		}
+		str_new[str_new.size()-1] = '\0';
 		updateCharacters(str_new);
 		_text = std::move(str_new);
 	}

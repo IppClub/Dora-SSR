@@ -113,7 +113,7 @@ bool AI::runDecisionTree(Unit* unit)
 		_nearestNeutralDistance = std::sqrt(minNeutralDistance);
 	}
 	//Do the Conditioned Reflex
-	bool result = decisionTree->doAction();
+	bool result = decisionTree->doAction(_self);
 
 	_friends->clear();
 	_enemies->clear();
@@ -177,6 +177,12 @@ float AI::getNearestUnitDistance(Relation relation)
 	default:
 		return _nearestUnitDistance;
 	}
+}
+
+Array* AI::getUnitsInAttackRange() const
+{
+	Sensor* sensor = _self->getAttackSensor();
+	return sensor ? sensor->getSensedBodies() : nullptr;
 }
 
 NS_DOROTHY_PLATFORMER_END

@@ -44,7 +44,7 @@ int LuaHandler::get() const
 	return _handler;
 }
 
-void LuaFunction::operator()(Event* event) const
+void LuaFunction<void>::operator()(Event* event) const
 {
 	if (_handler->get() > 0)
 	{

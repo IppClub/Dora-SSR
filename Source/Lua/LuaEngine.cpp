@@ -10,8 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaEngine.h"
 #include "Lua/LuaBinding.h"
 #include "Lua/LuaManual.h"
+#include "Lua/LuaHandler.h"
 #include "Lua/LuaFromXml.h"
 #include "Support/Value.h"
+#include "Node/Node.h"
 using namespace Dorothy::Platformer;
 
 extern int luaopen_lpeg(lua_State* L);
@@ -364,6 +366,11 @@ bool LuaEngine::executeScriptFile(String filename)
 	return result;
 }
 
+void LuaEngine::pop(int count)
+{
+	lua_pop(L, count);
+}
+
 void LuaEngine::push(bool value)
 {
 	lua_pushboolean(L, value ? 1 : 0);
@@ -533,12 +540,11 @@ bool LuaEngine::executeFunction(int handler, int paramCount)
 	return LuaEngine::execute(L, handler, paramCount);
 }
 
-int LuaEngine::executeReturnFunction(int handler, int paramCount)
+void LuaEngine::executeReturn(LuaHandler*& luaHandler, int handler, int paramCount)
 {
 	LuaEngine::invoke(L, handler, paramCount, 1);
-	int funcHandler = tolua_ref_function(L, -1);
+	luaHandler = LuaHandler::create(tolua_ref_function(L, -1));
 	lua_pop(L, 1);
-	return funcHandler;
 }
 
 bool LuaEngine::executeAssert(bool cond, String msg)

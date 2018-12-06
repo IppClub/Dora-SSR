@@ -44,6 +44,8 @@ void Data::apply(PhysicsWorld* world)
 	world->setShouldContact(Hide, PSensor, false);
 	world->setShouldContact(Hide, SenseAll, false);
 	world->setShouldContact(Hide, Terrain, true);
+	world->setShouldContact(PSensor, Terrain, true);
+	world->setShouldContact(Terrain, Terrain, true);
 	world->setShouldContact(SenseAll, Terrain, true);
 }
 
@@ -51,7 +53,7 @@ void Data::setRelation(int groupA, int groupB, Relation relation)
 {
 	int key = groupA<<16 | groupB;
 	_relationMap[key] = relation;
-	key = groupB | groupA<<16;
+	key = groupA | groupB<<16;
 	_relationMap[key] = relation;
 }
 

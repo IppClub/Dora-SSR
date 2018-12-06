@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Platformer/Define.h"
 #include "Platformer/AINode.h"
-#include "Platformer/AI.h"
 #include "Platformer/Unit.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -35,11 +34,11 @@ const RefVector<AILeaf>& AINode::getChildren() const
 	return _children;
 }
 
-bool SelNode::doAction()
+bool SelNode::doAction(Unit* self)
 {
 	for (AILeaf* node : _children)
 	{
-		if (node->doAction())
+		if (node->doAction(self))
 		{
 			return true;
 		}
@@ -47,11 +46,11 @@ bool SelNode::doAction()
 	return false;
 }
 
-bool SeqNode::doAction()
+bool SeqNode::doAction(Unit* self)
 {
 	for (AILeaf* node : _children)
 	{
-		if (!node->doAction())
+		if (!node->doAction(self))
 		{
 			return false;
 		}
@@ -59,12 +58,12 @@ bool SeqNode::doAction()
 	return true;
 }
 
-bool ParSelNode::doAction()
+bool ParSelNode::doAction(Unit* self)
 {
 	bool result = true;
 	for (AILeaf* node : _children)
 	{
-		if (!node->doAction())
+		if (!node->doAction(self))
 		{
 			result = false;
 		}
@@ -72,12 +71,12 @@ bool ParSelNode::doAction()
 	return result;
 }
 
-bool ParSeqNode::doAction()
+bool ParSeqNode::doAction(Unit* self)
 {
 	bool result = false;
 	for (AILeaf* node : _children)
 	{
-		if (node->doAction())
+		if (node->doAction(self))
 		{
 			result = true;
 		}
@@ -85,24 +84,36 @@ bool ParSeqNode::doAction()
 	return result;
 }
 
-bool ConNode::doAction()
+bool ConNode::doAction(Unit* self)
 {
-	if (_handler) return _handler();
+	if (_handler) return _handler(self);
 	return false;
 }
 
-ConNode::ConNode(const function<bool()>& handler):
+ConNode::ConNode(const function<bool(Unit*)>& handler):
 _handler(handler)
 { }
 
-bool ActNode::doAction()
+bool ActNode::doAction(Unit* self)
 {
-	return SharedAI.getSelf()->start(_actionName);
+	return self->start(_actionName);
 }
 
 ActNode::ActNode(String actionName):
 _actionName(actionName)
 { }
+
+bool TrueNode::doAction(Unit* self)
+{
+	DORA_UNUSED_PARAM(self);
+	return true;
+}
+
+bool FalseNode::doAction(Unit* self)
+{
+	DORA_UNUSED_PARAM(self);
+	return false;
+}
 
 AILeaf* Sel(AILeaf* nodes[], int count)
 {
@@ -144,7 +155,7 @@ AILeaf* ParSeq(AILeaf* nodes[], int count)
 	return parSeq;
 }
 
-AILeaf* Con(const function<bool()>& handler)
+AILeaf* Con(const function<bool(Unit*)>& handler)
 {
 	return ConNode::create(handler);
 }
@@ -152,6 +163,16 @@ AILeaf* Con(const function<bool()>& handler)
 AILeaf* Act(String actionName)
 {
 	return ActNode::create(actionName);
+}
+
+AILeaf* True()
+{
+	return TrueNode::create();
+}
+
+AILeaf* False()
+{
+	return FalseNode::create();
 }
 
 NS_DOROTHY_PLATFORMER_END

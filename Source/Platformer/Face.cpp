@@ -17,10 +17,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-Face::Face(String file, const Vec2& point, float angle):
+Face::Face(String file, const Vec2& point, float scale, float angle):
 _file(file),
 _pos(point),
-_angle(0.0f)
+_scale(scale),
+_angle(angle)
 {
 	if (SharedClipCache.isClip(_file))
 	{
@@ -36,9 +37,31 @@ _angle(0.0f)
 	}
 	else
 	{
-		_type = Face::Image;
+		switch (Switch::hash(file.getFileExtension()))
+		{
+			case "jpg"_hash:
+			case "png"_hash:
+			case "dds"_hash:
+			case "pvr"_hash:
+			case "ktx"_hash:
+				_type = Face::Image;
+				break;
+			default:
+				_type = Face::Unknown;
+				Warn("load invalid face str: \"{}\"", file);
+				break;
+		}
 	}
 }
+
+Face::Face(const function<Node*()>& func, const Vec2& point, float scale, float angle):
+_file(),
+_userCreateFunc(func),
+_pos(point),
+_scale(scale),
+_angle(angle),
+_type(Face::Custom)
+{ }
 
 void Face::addChild(Face* face)
 {
@@ -82,77 +105,91 @@ Node* Face::toNode()
 			node = sprite;
 			break;
 		}
+		case Face::Custom:
+			node = _userCreateFunc();
+			break;
+		default:
+			node = Node::create();
+			break;
 	}
-	if (node)
+	node->setTag("_F"_slice);
+	node->setPosition(_pos);
+	node->setAngle(_angle);
+	node->setScaleX(_scale);
+	node->setScaleY(_scale);
+	WRef<Node> self(node);
+	Uint32 total = 1 + s_cast<Uint32>(_children.size());
+	for (Face* child : _children)
 	{
-		switch (_type)
+		node->addChild(child->toNode());
+	}
+	node->slot("Stop"_slice, [self,total](Event* e)
+	{
+		if (self)
 		{
-			case Face::Clip:
-			case Face::Image:
-			case Face::Frame:
+			Ref<ValueEx<Uint32>> count(ValueEx<Uint32>::create(0));
+			auto callback = [self,total,count](Event*)
 			{
-				WRef<Node> self(node);
-				node->slot("Stop"_slice, [self](Event*)
+				count->set(count->get() + 1);
+				if (count->get() == total)
 				{
-					if (self)
-					{
-						self->setSelfVisible(false);
-						self->emit("__Stoped"_slice);
-					}
-				});
-				break;
-			}
-			case Face::Particle:
+					self->emit("Stoped"_slice);
+				}
+			};
+			self->slot("__Stoped"_slice, callback);
+			if (self->getChildren() && !self->getChildren()->isEmpty())
 			{
-				WRef<ParticleNode> self(s_cast<ParticleNode*>(node));
-				node->slot("Stop"_slice, [self](Event*)
+				ARRAY_START(Node, child, self->getChildren())
 				{
-					if (self)
-					{
-						if (self->isActive())
-						{
-							self->stop();
-							self->slot("Finish"_slice, [self](Event*)
-							{
-								self->emit("__Stoped"_slice);
-							});
-						}
-						else self->emit("__Stoped"_slice);
-					}
-				});
-				self->start();
-				break;
-			}
-		}
-		node->setPosition(_pos);
-		node->setAngle(_angle);
-		WRef<Node> self(node);
-		node->slot("Stop"_slice, [self](Event* e)
-		{
-			if (self)
-			{
-				Uint32 total = self->getNodeCount();
-				Ref<ValueEx<Uint32>> count(ValueEx<Uint32>::create(0));
-				auto callback = [self,total,count](Event*)
-				{
-					count->set(count->get() + 1);
-					if (count->get() == total)
-					{
-						self->emit("Stoped"_slice);
-					}
-				};
-				self->slot("__Stoped"_slice, callback);
-				if (self->getChildren() && !self->getChildren()->isEmpty())
-				{
-					ARRAY_START(Node, child, self->getChildren())
+					if (child->getTag() == "_F"_slice)
 					{
 						child->slot("Stoped"_slice, callback);
 						child->emit("Stop"_slice);
 					}
-					ARRAY_END
 				}
+				ARRAY_END
 			}
-		});
+		}
+	});
+	switch (_type)
+	{
+		case Face::Clip:
+		case Face::Image:
+		case Face::Frame:
+		case Face::Custom:
+		{
+			WRef<Node> self(node);
+			node->slot("Stop"_slice, [self](Event*)
+			{
+				if (self)
+				{
+					self->setSelfVisible(false);
+					self->emit("__Stoped"_slice);
+				}
+			});
+			break;
+		}
+		case Face::Particle:
+		{
+			WRef<ParticleNode> self(s_cast<ParticleNode*>(node));
+			node->slot("Stop"_slice, [self](Event*)
+			{
+				if (self)
+				{
+					if (self->isActive())
+					{
+						self->stop();
+						self->slot("Finish"_slice, [self](Event*)
+						{
+							self->emit("__Stoped"_slice);
+						});
+					}
+					else self->emit("__Stoped"_slice);
+				}
+			});
+			self->start();
+			break;
+		}
 	}
 	return node;
 }

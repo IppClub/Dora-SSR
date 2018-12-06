@@ -150,7 +150,7 @@ void PhysicsWorld::setShowDebug(bool var)
 		{
 			_debugDraw = New<DebugDraw>();
 			_world.SetDebugDraw(_debugDraw);
-			addChild(_debugDraw->getRenderer(), 1, "DebugDraw"_slice);
+			addChild(_debugDraw->getRenderer(), INT_MAX, "DebugDraw"_slice);
 		}
 	}
 	else if (_debugDraw)
@@ -201,47 +201,59 @@ bool PhysicsWorld::update(double deltaTime)
 	return !isUpdating() && result;
 }
 
-void PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback)
+bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback)
 {
-	b2AABB b2aabb;
-	b2aabb.lowerBound.Set(b2Val(rect.getLeft()), b2Val(rect.getBottom()));
-	b2aabb.upperBound.Set(b2Val(rect.getRight()), b2Val(rect.getTop()));
+	b2AABB aabb;
+	aabb.lowerBound.Set(b2Val(rect.getLeft()), b2Val(rect.getBottom()));
+	aabb.upperBound.Set(b2Val(rect.getRight()), b2Val(rect.getTop()));
 	_queryCallback.setInfo(rect);
-	_world.QueryAABB(&_queryCallback, b2aabb);
+	_world.QueryAABB(&_queryCallback, aabb);
+	bool result = false;
 	for (Body* item : _queryCallback.resultsOfCommonShapes)
 	{
 		if (callback(item))
 		{
-			_queryCallback.resultsOfChainsAndEdges.clear();
-			_queryCallback.resultsOfCommonShapes.clear();
-			return;
+			result = true;
+			break;
 		}
 	}
 	for (Body* item : _queryCallback.resultsOfChainsAndEdges)
 	{
-		if (callback(item)) break;
+		if (callback(item))
+		{
+			result = true;
+			break;
+		}
 	}
 	_queryCallback.resultsOfChainsAndEdges.clear();
 	_queryCallback.resultsOfCommonShapes.clear();
+	return result;
 }
 
-void PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
+bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
 {
 	_rayCastCallBack.closest = closest;
 	_world.RayCast(&_rayCastCallBack, PhysicsWorld::b2Val(start), PhysicsWorld::b2Val(end));
-	if (_rayCastCallBack.closest)
+	bool result = false;
+	if (closest)
 	{
 		RayCast::RayCastData& data = _rayCastCallBack.result;
-		callback(data.body, Vec2::from(data.point), Vec2::from(data.normal));
+		result = data.body ? callback(data.body, Vec2::from(oVal(data.point)), Vec2::from(data.normal)) : false;
+		_rayCastCallBack.result.body = nullptr;
 	}
 	else
 	{
 		for (auto& item : _rayCastCallBack.results)
 		{
-			if (callback(item.body, Vec2::from(item.point), Vec2::from(item.normal))) break;
+			if (callback(item.body, Vec2::from(oVal(item.point)), Vec2::from(item.normal)))
+			{
+				result = true;
+				break;
+			}
 		}
+		_rayCastCallBack.results.clear();
 	}
-	_rayCastCallBack.results.clear();
+	return result;
 }
 
 void PhysicsWorld::setShouldContact(int groupA, int groupB, bool contact)

@@ -81,6 +81,11 @@ bool Model::init()
 	return true;
 }
 
+bool Model::hasAnimation(String name) const
+{
+	return _modelDef->getAnimationIndexByName(name) != Animation::None;
+}
+
 void Model::addLook(int index, Node* node)
 {
 	for (int n = s_cast<int>(_looks.size()); n < index + 1; _looks.push_back(New<Look>()), n++);

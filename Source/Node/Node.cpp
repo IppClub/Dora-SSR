@@ -483,7 +483,7 @@ bool Node::isRunning() const
 
 void Node::addChild(Node* child, int order, String tag)
 {
-	AssertIf(child == nullptr, "add invalid child to node.");
+	AssertIf(child == nullptr, "add invalid child(nullptr) to node.");
 	AssertIf(child->_parent, "child already added. It can't be added again.");
 	child->setTag(tag);
 	child->setOrder(order);
@@ -512,11 +512,13 @@ void Node::addChild(Node* child, int order, String tag)
 
 void Node::addChild(Node* child, int order)
 {
+	AssertIf(child == nullptr, "add invalid child(nullptr) to node.");
 	addChild(child, order, child->getTag());
 }
 
 void Node::addChild(Node* child)
 {
+	AssertIf(child == nullptr, "add invalid child(nullptr) to node.");
 	addChild(child, child->getOrder(), child->getTag());
 }
 
@@ -777,7 +779,7 @@ bool Node::update(double deltaTime)
 		result = _scheduleFunc(deltaTime);
 		if (result) unschedule();
 	}
-	return result;
+	return result && !isUpdating();
 }
 
 void Node::visit()

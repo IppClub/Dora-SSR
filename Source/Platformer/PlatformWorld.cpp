@@ -179,10 +179,11 @@ void PlatformWorld::onCameraMoved(float deltaX, float deltaY)
 	for (auto it : _layers)
 	{
 		Layer* layer = it.second;
-		layer->setPosition(Vec2{
-			deltaX * layer->ratio.x + layer->getPosition().x,
-			deltaY * layer->ratio.y + layer->getPosition().y
-		});
+		Vec2 pos = {
+			deltaX * layer->ratio.x + layer->getX(),
+			deltaY * layer->ratio.y + layer->getY()
+		};
+		layer->setPosition(pos);
 	}
 }
 

@@ -76,6 +76,7 @@ struct WRefEntityHasher
 class EntityGroup : public Object
 {
 public:
+	PROPERTY_READONLY(int, Count);
 	EntityGroup(const vector<string>& components);
 	virtual ~EntityGroup();
 	virtual bool init() override;

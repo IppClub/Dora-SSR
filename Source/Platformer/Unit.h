@@ -57,7 +57,6 @@ public:
 	void removeAllActions();
 	UnitAction* getAction(String name) const;
 	void eachAction(const UnitActionHandler& func);
-	UnitActionHandler actionAdded;
 	// Run actions
 	bool start(String name);
 	void stop();
