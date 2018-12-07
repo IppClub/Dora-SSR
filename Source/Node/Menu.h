@@ -27,11 +27,6 @@ private:
 	Node* itemForTouch(Touch* touch);
 	bool _enabled;
 	Node* _selectedItem;
-	enum struct State
-	{
-		Waiting,
-		TrackingTouch
-	} _state;
 	DORA_TYPE_OVERRIDE(Menu);
 };
 

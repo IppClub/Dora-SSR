@@ -137,11 +137,13 @@ void UnitDef::updateBodyDef()
 		Vec2 vertices[] =
 		{
 			Vec2{-hw, hh},
+			Vec2{-hw, BOTTOM_OFFSET*2 - hh},
 			Vec2{-hw + BOTTOM_OFFSET, -hh},
 			Vec2{hw - BOTTOM_OFFSET, -hh},
+			Vec2{hw, BOTTOM_OFFSET*2 - hh},
 			Vec2{hw, hh}
 		};
-		_bodyDef->attachPolygon(vertices, 4, _density, _friction, _restitution);
+		_bodyDef->attachPolygon(vertices, 6, _density, _friction, _restitution);
 		_bodyDef->attachPolygonSensor(
 			UnitDef::GroundSensorTag,
 			_size.width - BOTTOM_OFFSET * 2,

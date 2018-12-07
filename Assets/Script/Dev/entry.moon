@@ -230,19 +230,20 @@ threadLoop ->
 	SetNextWindowSize Vec2(190,50)
 	SetNextWindowPos Vec2(width-190,height-50)
 	PushStyleColor "WindowBg", Color(0x0)
-	if width >= 550
+	if width >= 600
 		if not footerFocus
 			footerFocus = true
 			SetNextWindowFocus!
 		if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoSavedSettings"
 			Columns 2,false
-			Dummy Vec2 10,30
-			SameLine!
 			if showFooter
 				changed, scaleContent = Checkbox string.format("%.1fx",screenScale), scaleContent
 				View.scale = scaleContent and screenScale or 1 if changed
-				NextColumn!
-				_, showFooter = Checkbox "Footer", showFooter
+			else
+				Dummy Vec2 10,30
+			SameLine!
+			NextColumn!
+			_, showFooter = Checkbox "Footer", showFooter
 		End!
 	elseif footerFocus
 		footerFocus = false

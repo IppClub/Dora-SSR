@@ -87,7 +87,7 @@ public:
 private:
 	function<bool(Unit*,UnitAction*)> _available;
 	function<LuaFunction<bool>(Unit*,UnitAction*)> _create;
-	function<bool(Unit*,float,UnitAction*)> _update;
+	function<bool(Unit*,UnitAction*,float)> _update;
 	function<void(Unit*,UnitAction*)> _stop;
 	friend class UnitActionDef;
 };

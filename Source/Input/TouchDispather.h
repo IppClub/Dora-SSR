@@ -34,7 +34,7 @@ public:
 	{
 		FromMouse = 1,
 		FromTouch = 1 << 1,
-		FromMouseAndTouch = FromMouse | FromTouch
+		FromMouseAndTouch = FromMouse | FromTouch,
 	};
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_READONLY_BOOL(Mouse);
@@ -44,7 +44,7 @@ public:
 	PROPERTY_READONLY_REF(Vec2, PreLocation);
 	PROPERTY_READONLY_REF(Vec2, WorldLocation);
 	PROPERTY_READONLY_REF(Vec2, WorldPreLocation);
-	static Uint32 source;
+	PROPERTY_READONLY_CLASS(Uint32, Source);
 	CREATE_FUNC(Touch);
 protected:
 	Touch(int id);
@@ -61,6 +61,7 @@ private:
 		Selected = 1 << 1,
 		IsMouse = 1 << 2
 	};
+	static Uint32 _source;
 	friend class NodeTouchHandler;
 	DORA_TYPE_OVERRIDE(Touch);
 };

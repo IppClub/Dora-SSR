@@ -17,10 +17,12 @@ NS_DOROTHY_BEGIN
 
 /* Touch */
 
-Uint32 Touch::source =
+Uint32 Touch::_source =
 #if BX_PLATFORM_OSX
 	Touch::FromMouse;
-#else
+#elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
+	Touch::FromTouch;
+#elif BX_PLATFORM_WINDOWS
 	Touch::FromMouseAndTouch;
 #endif
 
@@ -72,6 +74,11 @@ const Vec2& Touch::getWorldLocation() const
 const Vec2& Touch::getWorldPreLocation() const
 {
 	return _worldPreLocation;
+}
+
+Uint32 Touch::getSource()
+{
+	return _source;
 }
 
 /* TouchHandler */
@@ -282,11 +289,12 @@ bool NodeTouchHandler::down(const SDL_Event& event)
 	switch (event.type)
 	{
 		case SDL_MOUSEBUTTONDOWN:
-			if ((Touch::source & Touch::FromMouse) == 0) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.button.which == SDL_TOUCH_MOUSEID) return false;
+			if ((Touch::getSource() & Touch::FromMouse) == 0) return false;
 			id = INT64_MAX;
 			break;
 		case SDL_FINGERDOWN:
-			if ((Touch::source & Touch::FromTouch) == 0) return false;
+			if ((Touch::getSource() & Touch::FromTouch) == 0) return false;
 			id = event.tfinger.fingerId;
 			break;
 		default:
@@ -320,11 +328,12 @@ bool NodeTouchHandler::up(const SDL_Event& event)
 	switch (event.type)
 	{
 		case SDL_MOUSEBUTTONUP:
-			if ((Touch::source & Touch::FromMouse) == 0) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.button.which == SDL_TOUCH_MOUSEID) return false;
+			if ((Touch::getSource() & Touch::FromMouse) == 0) return false;
 			id = INT64_MAX;
 			break;
 		case SDL_FINGERUP:
-			if ((Touch::source & Touch::FromTouch) == 0) return false;
+			if ((Touch::getSource() & Touch::FromTouch) == 0) return false;
 			id = event.tfinger.fingerId;
 			break;
 		default:
@@ -360,11 +369,12 @@ bool NodeTouchHandler::move(const SDL_Event& event)
 	switch (event.type)
 	{
 		case SDL_MOUSEMOTION:
-			if ((Touch::source & Touch::FromMouse) == 0) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.button.which == SDL_TOUCH_MOUSEID) return false;
+			if ((Touch::getSource() & Touch::FromMouse) == 0) return false;
 			touch = get(INT64_MAX);
 			break;
 		case SDL_FINGERMOTION:
-			if ((Touch::source & Touch::FromTouch) == 0) return false;
+			if ((Touch::getSource() & Touch::FromTouch) == 0) return false;
 			touch = get(event.tfinger.fingerId);
 			break;
 		default:
@@ -529,7 +539,6 @@ void UITouchHandler::handleEvent(const SDL_Event& event)
 		}
 		case SDL_MOUSEBUTTONDOWN:
 		{
-			if ((Touch::source & Touch::FromMouse) == 0) break;
 			if (event.button.button == SDL_BUTTON_LEFT) _leftButtonPressed = true;
 			if (event.button.button == SDL_BUTTON_RIGHT) _rightButtonPressed = true;
 			if (event.button.button == SDL_BUTTON_MIDDLE) _middleButtonPressed = true;
@@ -537,36 +546,19 @@ void UITouchHandler::handleEvent(const SDL_Event& event)
 		}
 		case SDL_MOUSEBUTTONUP:
 		{
-			if ((Touch::source & Touch::FromMouse) == 0) break;
 			if (event.button.button == SDL_BUTTON_LEFT) _leftButtonPressed = false;
 			if (event.button.button == SDL_BUTTON_RIGHT) _rightButtonPressed = false;
 			if (event.button.button == SDL_BUTTON_MIDDLE) _middleButtonPressed = false;
 			break;
 		}
-		case SDL_FINGERDOWN:
-		{
-			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getDesignSize();
-			_mousePos = {event.tfinger.x * size.width, event.tfinger.y * size.height};
-			_leftButtonPressed = true;
-			break;
-		}
 		case SDL_MOUSEMOTION:
 		{
-			if ((Touch::source & Touch::FromMouse) == 0) break;
 			Size designSize = SharedApplication.getDesignSize();
 			Size winSize = SharedApplication.getWinSize();
 			_mousePos = {
 				s_cast<float>(event.motion.x) * designSize.width / winSize.width,
 				s_cast<float>(event.motion.y) * designSize.height / winSize.height
 			};
-			break;
-		}
-		case SDL_FINGERMOTION:
-		{
-			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getDesignSize();
-			_mousePos = {event.tfinger.x * size.width, event.tfinger.y * size.height};
 			break;
 		}
 	}

@@ -9,7 +9,7 @@ Class Node,
 			@size = viewSize
 			@_viewSize = viewSize
 			@position = Vec2(0.5,0.5) * viewSize if inUI
-			@gslot "AppSizeChanged", ->
+			@gslot "AppSizeChanged",->
 				viewSize = View.size
 				if @_viewSize ~= viewSize
 					@_viewSize = viewSize
@@ -17,6 +17,9 @@ Class Node,
 					@position = Vec2(0.5,0.5) * viewSize if inUI
 					@eachChild (child)->
 						child\emit "AlignLayout", viewSize.width, viewSize.height
+			@slot "Enter", ->
+				@eachChild (child)->
+					child\emit "AlignLayout", viewSize.width, viewSize.height
 		else
 			@hAlign = "Center"
 			@vAlign = "Center"

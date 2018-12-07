@@ -1,5 +1,5 @@
 Dorothy builtin.Platformer
-import Path from require "Utils"
+AlignNode = require "UI.Control.Basic.AlignNode"
 Rectangle = require "UI.View.Shape.Rectangle"
 Circle = require "UI.View.Shape.Circle"
 Star = require "UI.View.Shape.Star"
@@ -161,24 +161,7 @@ attackDecision = Seq {
 	}
 }
 
-Data.cache["AI_Zombie1"] = Sel {
-	Seq {
-		Con => @entity.hp <= 0
-		True!
-	}
-	Seq {
-		Con => not @entity.entered
-		Act "groundEntrance"
-	}
-	attackDecision
-	Seq {
-		Con => not @isDoing "idle"
-		Act "cancel"
-		Act "idle"
-	}
-}
-
-Data.cache["AI_Zombie2"] = Sel {
+Data.cache["AI_Zombie"] = Sel {
 	Seq {
 		Con => @entity.hp <= 0
 		True!
@@ -246,14 +229,24 @@ Data.cache["AI_KidSearch"] = Sel {
 	walk
 }
 
-Data.cache["AI_KidControl"] = Sel {
+Data.cache["AI_PlayerControl"] = Sel {
 	Seq {
 		Con => @entity.hp <= 0
 		True!
 	}
 	Seq {
 		Con => @entity.keyShoot
-		Act "rangeAttack"
+		Sel {
+			Act "meleeAttack"
+			Act "rangeAttack"
+		}
+	}
+	Seq {
+		Seq {
+			Con => not (@entity.keyLeft and @entity.keyRight) and ((@entity.keyLeft and @faceRight) or (@entity.keyRight and not @faceRight))
+			Act "turn"
+		}
+		False!
 	}
 	Sel {
 		Seq {
@@ -264,13 +257,6 @@ Data.cache["AI_KidControl"] = Sel {
 			Con => @entity.keyUp
 			Act "jump"
 		}
-	}
-	Seq {
-		Seq {
-			Con => (@entity.keyLeft and @faceRight) or (@entity.keyRight and not @faceRight)
-			Act "turn"
-		}
-		False!
 	}
 	Seq {
 		Con => @entity.keyLeft or @entity.keyRight
@@ -349,7 +335,7 @@ Data.cache["Unit_Zombie1"] = with UnitDef!
 	.desc = ""
 	.sndAttack = ""
 	.sndFallen = ""
-	.decisionTree = "AI_Zombie1"
+	.decisionTree = "AI_Zombie"
 	.usePreciseHit = false
 	.actions = {
 		"walk",
@@ -397,7 +383,7 @@ Data.cache["Unit_Zombie2"] = with UnitDef!
 	.desc = ""
 	.sndAttack = ""
 	.sndFallen = ""
-	.decisionTree = "AI_Zombie2"
+	.decisionTree = "AI_Zombie"
 	.usePreciseHit = false
 	.actions = {
 		"walk",
@@ -419,7 +405,7 @@ Data.cache["Unit_KidW"] = with UnitDef!
 	.friction = 1.0
 	.restitution = 0.0
 	.model = "Model/KidW.model"
-	.size = Size 50,110
+	.size = Size 30,110
 	.tag = "KidW"
 	.sensity = 0.1
 	.move = 250
@@ -467,7 +453,7 @@ Data.cache["Unit_KidM"] = with UnitDef!
 	.friction = 1.0
 	.restitution = 0.0
 	.model = "Model/KidM.model"
-	.size = Size 50,110
+	.size = Size 30,110
 	.tag = "KidM"
 	.sensity = 0.1
 	.move = 250
@@ -533,13 +519,10 @@ PlayerLayer = 2
 ZombieLayer = 1
 TerrainLayer = 0
 
-PlayerOne = 1
-PlayerTwo = 2
-Zombie = 3
+PlayerGroup = 1
+ZombieGroup = 2
 
-Data\setRelation PlayerOne,Zombie,Relation.Enemy
-Data\setRelation PlayerTwo,Zombie,Relation.Enemy
-Data\setRelation PlayerOne,PlayerTwo,Relation.Friend
+Data\setRelation PlayerGroup,ZombieGroup,Relation.Enemy
 
 with Observer "Add", {"obstacleDef","size","position","color"}
 	\every =>
@@ -604,7 +587,7 @@ spawnZombies = loop ->
 				.unitDef = "Unit_Zombie#{App.rand%2 + 1}"
 				.order = ZombieLayer
 				.position = pos
-				.group = Zombie
+				.group = ZombieGroup
 				.isPlayer = false
 				.faceRight = App.rand%2 == 0
 				.zombie = true
@@ -617,6 +600,7 @@ with Observer "Change", {"hp","zombie"}
 
 world = with PlatformWorld!
 	\getLayer(PlayerLayer).renderGroup = true
+	\getLayer(ZombieLayer).renderGroup = true
 	\getLayer(TerrainLayer).renderGroup = true
 	.camera.followRatio = Vec2 0.01,0.01
 
@@ -625,15 +609,16 @@ Data.cache["world"] = world
 terrainDef = with BodyDef!
 	.type = BodyType.Static
 	\attachPolygon Vec2(0,-500),2500,10
-	\attachPolygon Vec2(1250,-250),10,500
-	\attachPolygon Vec2(-1250,-250),10,500
+	\attachPolygon Vec2(0,500),2500,10
+	\attachPolygon Vec2(1250,0),10,1000
+	\attachPolygon Vec2(-1250,0),10,1000
 
 with Body terrainDef,world,Vec2.zero
 	.order = TerrainLayer
 	.group = Data.groupTerrain
 	\addChild Rectangle y:-500,width:2500,height:10,fillColor:0x6600ffff,borderColor:0xff00ffff,fillOrder:1,lineOrder:2
-	\addChild Rectangle x:1250,y:-250,width:10,height:500,fillColor:0x6600ffff,borderColor:0xff00ffff,fillOrder:1,lineOrder:2
-	\addChild Rectangle x:-1250,y:-250,width:10,height:500,fillColor:0x6600ffff,borderColor:0xff00ffff,fillOrder:1,lineOrder:2
+	\addChild Rectangle x:1250,y:0,width:10,height:1000,fillColor:0x6600ffff,borderColor:0xff00ffff,fillOrder:1,lineOrder:2
+	\addChild Rectangle x:-1250,y:0,width:10,height:1000,fillColor:0x6600ffff,borderColor:0xff00ffff,fillOrder:1,lineOrder:2
 	\addTo world
 
 with Entity!
@@ -664,7 +649,7 @@ with Entity!
 	.unitDef = "Unit_KidM"
 	.order = PlayerLayer
 	.position = Vec2 -50,-430
-	.group = PlayerOne
+	.group = PlayerGroup
 	.isPlayer = true
 	.faceRight = false
 	.player = true
@@ -673,7 +658,7 @@ with Entity!
 	.unitDef = "Unit_KidW"
 	.order = PlayerLayer
 	.position = Vec2 0,-430
-	.group = PlayerOne
+	.group = PlayerGroup
 	.isPlayer = true
 	.faceRight = true
 	.player = true
@@ -690,52 +675,59 @@ updatePlayerControl = (key,flag)->
 	playerGroup\each => player = @ if @unit.tag == controlPlayer
 	player[key] = flag if player
 uiScale = App.size.width/App.designSize.width
-with Director.ui
-	.renderGroup = true
-	\addChild with Menu!
-		.visible = false
-		\addChild with CircleButton {
-				text:"Left"
-				x:20*uiScale
-				y:60*uiScale
-				radius:30*uiScale
-				fontSize:18*uiScale
-			}
-			.anchor = Vec2.zero
-			\slot "TapBegan",-> updatePlayerControl "keyLeft",true
-			\slot "TapEnded",-> updatePlayerControl "keyLeft",false
-		\addChild with CircleButton {
-				text:"Right"
-				x:90*uiScale
-				y:60*uiScale
-				radius:30*uiScale
-				fontSize:18*uiScale
-			}
-			.anchor = Vec2.zero
-			\slot "TapBegan",-> updatePlayerControl "keyRight",true
-			\slot "TapEnded",-> updatePlayerControl "keyRight",false
-	\addChild with Menu!
-		.visible = false
-		\addChild with CircleButton {
-				text:"Jump"
-				x:App.size.width-80*uiScale
-				y:60*uiScale
-				radius:30*uiScale
-				fontSize:18*uiScale
-			}
-			.anchor = Vec2.zero
-			\slot "TapBegan",-> updatePlayerControl "keyUp",true
-			\slot "TapEnded",-> updatePlayerControl "keyUp",false
-		\addChild with CircleButton {
-				text:"Shoot"
-				x:App.size.width-150*uiScale
-				y:60*uiScale
-				radius:30*uiScale
-				fontSize:18*uiScale
-			}
-			.anchor = Vec2.zero
-			\slot "TapBegan",-> updatePlayerControl "keyShoot",true
-			\slot "TapEnded",-> updatePlayerControl "keyShoot",false
+
+with AlignNode true
+	.visible = false
+	\addChild with AlignNode!
+		.hAlign = "Left"
+		.vAlign = "Bottom"
+		\addChild with Menu!
+			\addChild with CircleButton {
+					text:"Left"
+					x:20*uiScale
+					y:60*uiScale
+					radius:30*uiScale
+					fontSize:18*uiScale
+				}
+				.anchor = Vec2.zero
+				\slot "TapBegan",-> updatePlayerControl "keyLeft",true
+				\slot "TapEnded",-> updatePlayerControl "keyLeft",false
+			\addChild with CircleButton {
+					text:"Right"
+					x:90*uiScale
+					y:60*uiScale
+					radius:30*uiScale
+					fontSize:18*uiScale
+				}
+				.anchor = Vec2.zero
+				\slot "TapBegan",-> updatePlayerControl "keyRight",true
+				\slot "TapEnded",-> updatePlayerControl "keyRight",false
+	\addChild with AlignNode!
+		.hAlign = "Right"
+		.vAlign = "Bottom"
+		\addChild with Menu!
+			\addChild with CircleButton {
+					text:"Jump"
+					x:-80*uiScale
+					y:60*uiScale
+					radius:30*uiScale
+					fontSize:18*uiScale
+				}
+				.anchor = Vec2.zero
+				\slot "TapBegan",-> updatePlayerControl "keyUp",true
+				\slot "TapEnded",-> updatePlayerControl "keyUp",false
+			\addChild with CircleButton {
+					text:"Shoot"
+					x:-150*uiScale
+					y:60*uiScale
+					radius:30*uiScale
+					fontSize:18*uiScale
+				}
+				.anchor = Vec2.zero
+				\slot "TapBegan",-> updatePlayerControl "keyShoot",true
+				\slot "TapEnded",-> updatePlayerControl "keyShoot",false
+	\addTo with Director.ui
+		.renderGroup = true
 
 keyboardControl = loop ->
 	return unless keyboardEnabled
@@ -749,7 +741,7 @@ threadLoop ->
 	keyboardControl!
 	world.parent == nil
 
-Dorothy builtin.ImGui
+Dorothy builtin.ImGui,builtin.Platformer
 
 userControl = false
 playerChoice = 1
@@ -762,27 +754,72 @@ world\schedule ->
 	SetNextWindowSize Vec2(240,userControl and 450 or 220)
 	if Begin "Platformer Game Demo", "NoResize|NoSavedSettings"
 		TextWrapped "Zombie Killed: #{zombieKilled}"
+		SameLine!
+		if Button "Army"
+			for i = 0,10
+				available = false
+				pos = Vec2.zero
+				while not available
+					pos = Vec2 App.rand%2400-1200,-430
+					available = not world\query Rect(pos,Size(5,5)),=> @group == Data.groupTerrain
+				with Entity!
+					.unitDef = "Unit_Zombie#{App.rand%2 + 1}"
+					.order = ZombieLayer
+					.position = pos
+					.group = PlayerGroup
+					.isPlayer = false
+					.faceRight = App.rand%2 == 0
+					.stared = true
 		playerGroup\each => TextWrapped "#{@unit.tag} HP: #{@hp}"
 		changed,result = Checkbox "Physics Debug",world.showDebug
 		world.showDebug = result if changed
+		
 		changed,userControl = Checkbox "Take Control",userControl
 		if userControl
+			if controlPlayer == "Zombie" and
+				not playerGroup\each => @unit.tag == "Zombie"
+				zombieGroup\each =>
+					@player = true
+					@zombie = nil
+					world.camera.followTarget = with @unit
+						.tag = "Zombie"
+						.group = PlayerGroup
+						.decisionTree = "AI_PlayerControl"
+						.sensity = 0
+						\addChild Star y:20,size:3,borderColor:0xffff8800,fillColor:0x66ff8800,fillOrder:1,lineOrder:2
+					true
 			Separator!
 			pressedA,choice = RadioButton "Male",playerChoice,0
-			if pressedA
-				playerChoice = choice
+			playerChoice = choice if pressedA
 			pressedB,choice = RadioButton "Female",playerChoice,1
-			if pressedB
-				playerChoice = choice
-			if pressedA or pressedB or changed
-				controlPlayer = playerChoice == 0 and "KidM" or "KidW"
+			playerChoice = choice if pressedB
+			pressedC,choice = RadioButton "Zombie",playerChoice,2
+			playerChoice = choice if pressedC
+			if pressedA or pressedB or pressedC or changed
+				controlPlayer = switch playerChoice
+					when 0 then "KidM"
+					when 1 then "KidW"
+					when 2 then "Zombie"
+				if controlPlayer == "Zombie" and
+					not playerGroup\each => @unit.tag == "Zombie"
+					zombieGroup\each =>
+						@player = true
+						@zombie = nil
+						with @unit
+							.tag = "Zombie"
+							.group = PlayerGroup
+							\addChild Star y:20,size:3,borderColor:0xffff8800,fillColor:0x66ff8800,fillOrder:1,lineOrder:2
+						true
 				playerGroup\each =>
 					if @unit.tag == controlPlayer
-						@unit.decisionTree = "AI_KidControl"
+						@unit.decisionTree = "AI_PlayerControl"
 						@unit.sensity = 0
 						world.camera.followTarget = @unit
 					else
-						@unit.decisionTree = (@unit.tag == "KidM" and "AI_KidFollow" or "AI_KidSearch")
+						@unit.decisionTree = switch @unit.tag
+							when "KidM" then "AI_KidFollow"
+							when "KidW" then "AI_KidSearch"
+							when "Zombie" then "AI_Zombie"
 						@unit.sensity = 0.1
 			if changed
 				keyboardEnabled = controlChoice == 1
@@ -809,4 +846,9 @@ world\schedule ->
 			keyboardEnabled = false
 			Director.ui\eachChild => @visible = false
 	End!
+
+with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight","stared"}
+	\every =>
+		{:group,:unit} = @
+		unit\addChild Star y:20,size:3,borderColor:0xff66ccff,fillColor:0x6666ccff,fillOrder:1,lineOrder:2
 
