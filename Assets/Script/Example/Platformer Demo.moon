@@ -496,23 +496,14 @@ Data.cache["Unit_KidM"] = with UnitDef!
 
 Data.cache["obstacleS"] = with BodyDef!
 	.type = BodyType.Static
-	.density = 40
-	.friction = 1.0
-	.restitution = 0.0
 	\attachPolygon 100,60
 
 Data.cache["obstacleM"] = with BodyDef!
 	.type = BodyType.Static
-	.density = 40
-	.friction = 1.0
-	.restitution = 0.0
 	\attachPolygon 260,60
 
 Data.cache["obstacleC"] = with BodyDef!
 	.type = BodyType.Dynamic
-	.density = 1.0
-	.friction = 1.0
-	.restitution = 0.4
 	\attachCircle 40,1,1,0.4
 
 PlayerLayer = 2
@@ -603,6 +594,7 @@ world = with PlatformWorld!
 	\getLayer(ZombieLayer).renderGroup = true
 	\getLayer(TerrainLayer).renderGroup = true
 	.camera.followRatio = Vec2 0.01,0.01
+	.gravity = Vec2 0,-12
 
 Data.cache["world"] = world
 
