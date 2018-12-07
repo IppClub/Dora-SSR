@@ -351,7 +351,8 @@ function _M.stacktrace(thread, message, level)
 		if fname then
 			fname = fname:gsub("%[string \"", "")
 			fname = fname:gsub("\"%]", "")
-			fname = fname:match("[^%s]+$")
+			fname = fname:gsub("^[%s]+","")
+			fname = fname:gsub("[%s]+$","")
 			local extension = fname:match("%.([^%.\\/]*)$")
 			if not extension then
 				fname = Content:getFullPath(fname..".lua")

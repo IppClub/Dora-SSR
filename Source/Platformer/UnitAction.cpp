@@ -157,7 +157,7 @@ void ScriptUnitAction::run()
 {
 	UnitAction::run();
 	_update = _create(_owner, s_cast<UnitAction*>(this));
-	if (_update(_owner, 0.0f, s_cast<UnitAction*>(this)))
+	if (_update(_owner, s_cast<UnitAction*>(this), 0.0f))
 	{
 		ScriptUnitAction::stop();
 	}
@@ -165,7 +165,7 @@ void ScriptUnitAction::run()
 
 void ScriptUnitAction::update(float dt)
 {
-	if (_update && _update(_owner, dt, s_cast<UnitAction*>(this)))
+	if (_update && _update(_owner, s_cast<UnitAction*>(this), dt))
 	{
 		ScriptUnitAction::stop();
 	}
@@ -536,6 +536,7 @@ void MeleeAttack::onAttack()
 				{
 					damaged(_owner, target, damage);
 				}
+				if (_owner->attackTarget == AttackTarget::Single) return;
 			}
 			BLOCK_END
 		}

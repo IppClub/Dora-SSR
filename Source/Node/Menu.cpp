@@ -14,7 +14,7 @@ NS_DOROTHY_BEGIN
 
 Menu::Menu():
 _enabled(true),
-_state(State::Waiting)
+_selectedItem(nullptr)
 {
 	setTouchEnabled(true);
 	_flags.setOff(Node::TraverseEnabled);
@@ -38,33 +38,27 @@ bool Menu::isEnabled() const
 bool Menu::init()
 {
 	if (!Node::init()) return false;
-	slot("TapBegan"_slice, [&](Event* e)
+	slot("TapFilter"_slice, [&](Event* e)
 	{
 		Touch* touch; e->get(touch);
-		if (_state != State::Waiting || !_enabled)
-		{
-			touch->setEnabled(false);
-			return;
-		}
-		_selectedItem = itemForTouch(touch);
-		if (_selectedItem)
-		{
-			_state = State::TrackingTouch;
-			_selectedItem->emit("TapBegan"_slice, touch);
-		}
-		else if (isSwallowTouches())
-		{
-			_state = State::TrackingTouch;
-		}
-		else
+		if (_selectedItem || !_enabled)
 		{
 			touch->setEnabled(false);
 		}
 	});
+	slot("TapBegan"_slice, [&](Event* e)
+	{
+		Touch* touch; e->get(touch);
+		_selectedItem = itemForTouch(touch);
+		if (_selectedItem)
+		{
+			_selectedItem->emit("TapBegan"_slice, touch);
+		}
+		else touch->setEnabled(false);
+	});
 	slot("TapMoved"_slice, [&](Event* e)
 	{
 		Touch* touch; e->get(touch);
-		if (_state != State::TrackingTouch) return;
 		Node* currentItem = itemForTouch(touch);
 		if (!_enabled)
 		{
@@ -91,18 +85,14 @@ bool Menu::init()
 	slot("TapEnded"_slice, [&](Event* e)
 	{
 		Touch* touch; e->get(touch);
-		if (_state != State::TrackingTouch) return;
-		_state = State::Waiting;
-		if (!_selectedItem) return;
-		if (_enabled)
-		{
-			Node* selectedItem = _selectedItem;
-			selectedItem->emit("TapEnded"_slice, touch);
-			selectedItem->emit("Tapped"_slice, touch);
-		}
-		else
+		if (_selectedItem)
 		{
 			_selectedItem->emit("TapEnded"_slice, touch);
+			if (_enabled)
+			{
+				_selectedItem->emit("Tapped"_slice, touch);
+			}
+			_selectedItem = nullptr;
 		}
 	});
 	return true;

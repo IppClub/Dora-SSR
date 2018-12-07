@@ -481,7 +481,6 @@ bool ImGuiDora::init()
 			{
 				case SDL_MOUSEBUTTONUP:
 				{
-					if ((Touch::source & Touch::FromMouse) == 0) break;
 					if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = false;
 					if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = false;
 					if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = false;
@@ -715,18 +714,9 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		}
 		case SDL_MOUSEBUTTONDOWN:
 		{
-			if ((Touch::source & Touch::FromMouse) == 0) break;
 			if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = true;
 			if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = true;
 			if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = true;
-			break;
-		}
-		case SDL_FINGERDOWN:
-		{
-			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getDesignSize();
-			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
-			_mousePressed[0] = true;
 			break;
 		}
 		case SDL_MOUSEBUTTONUP:
@@ -741,20 +731,12 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		}
 		case SDL_MOUSEMOTION:
 		{
-			if ((Touch::source & Touch::FromMouse) == 0) break;
 			Size designSize = SharedApplication.getDesignSize();
 			Size winSize = SharedApplication.getWinSize();
 			ImGui::GetIO().MousePos = Vec2{
 				s_cast<float>(event.motion.x) * designSize.width / winSize.width,
 				s_cast<float>(event.motion.y) * designSize.height / winSize.height
 			};
-			break;
-		}
-		case SDL_FINGERMOTION:
-		{
-			if ((Touch::source & Touch::FromTouch) == 0) break;
-			Size size = SharedApplication.getDesignSize();
-			ImGui::GetIO().MousePos = ImVec2(event.tfinger.x * size.width, event.tfinger.y * size.height);
 			break;
 		}
 		case SDL_KEYDOWN:
