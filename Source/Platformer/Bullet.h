@@ -20,18 +20,17 @@ class Unit;
 class BulletDef;
 class Bullet;
 
-typedef Delegate<bool (Bullet* bullet, Unit* target)> BulletHandler;
+typedef Delegate<bool (Bullet* bullet, Unit* target, Vec2 point)> BulletHandler;
 
 class Bullet : public Body
 {
 public:
 	PROPERTY_READONLY(Unit*, Owner);
-	PROPERTY_READONLY(Sensor*, DetectSensor);
 	PROPERTY_BOOL(FaceRight);
 	PROPERTY(Node*, Face);
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;
-	void onBodyEnter(Sensor* sensor, Body* body);
+	void onBodyContact(Body* body, Vec2 point, Vec2 normal);
 	BulletDef* getBulletDef();
 	TargetAllow targetAllow;
 	BulletHandler hitTarget;
@@ -45,7 +44,6 @@ private:
 	Node* _face;
 	Ref<BulletDef> _bulletDef;
 	Ref<Unit> _owner;
-	Sensor* _detectSensor;
 	float _lifeTime;
 	float _current;
 	DORA_TYPE_OVERRIDE(Bullet)

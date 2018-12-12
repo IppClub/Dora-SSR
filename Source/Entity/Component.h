@@ -33,7 +33,12 @@ class ComNone : public Com
 };
 
 template <class T>
-class ComEx<T, typename std::enable_if<!std::is_base_of<Object, T>::value>::type> : public Com
+class ComEx<T,
+	typename std::enable_if<
+		!std::is_base_of<Object, T>::value &&
+		!std::is_same<char*, T>::value &&
+		!std::is_same<Slice, T>::value
+	>::type> : public Com
 {
 public:
 	ComEx(const T& value):
@@ -62,7 +67,12 @@ private:
 };
 
 template<class T>
-MemoryPoolImpl<ComEx<T>> ComEx<T, typename std::enable_if<!std::is_base_of<Object, T>::value>::type>::_memory;
+MemoryPoolImpl<ComEx<T>> ComEx<T,
+	typename std::enable_if<
+		!std::is_base_of<Object, T>::value &&
+		!std::is_same<char*, T>::value &&
+		!std::is_same<Slice, T>::value
+	>::type>::_memory;
 
 template<>
 class ComEx<Object*> : public Com

@@ -31,7 +31,6 @@ public:
 	string endEffect;
 	void setAsCircle(float radius);
 	BodyDef* getBodyDef() const;
-	static const int SensorTag;
 	CREATE_FUNC(BulletDef);
 protected:
 	BulletDef();

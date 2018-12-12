@@ -1075,7 +1075,6 @@ class BulletDef : public Object
 	tolua_readonly tolua_property__common Vec2 velocity;
 	void setAsCircle(float radius);
 	void setVelocity(float angle, float speed);
-	static tolua_readonly const int SensorTag;
 	static BulletDef* create();
 };
 
@@ -1086,7 +1085,6 @@ class Bullet : public Body
 	TargetAllow targetAllow;
 	tolua_readonly tolua_property__bool bool faceRight;
 	tolua_readonly tolua_property__common Unit* owner;
-	tolua_readonly tolua_property__common Sensor* detectSensor;
 	tolua_readonly tolua_property__common BulletDef* bulletDef;
 	tolua_property__common Node* face;
 	void destroy();
@@ -1109,14 +1107,13 @@ AILeaf* Sel(AILeaf* nodes[tolua_len]);
 AILeaf* Seq(AILeaf* nodes[tolua_len]);
 AILeaf* ParSel(AILeaf* nodes[tolua_len]);
 AILeaf* ParSeq(AILeaf* nodes[tolua_len]);
-AILeaf* Con(tolua_function_bool handler);
+AILeaf* Con(String name, tolua_function_bool handler);
 AILeaf* Act(String action);
 AILeaf* True();
 AILeaf* False();
 
 class AI
 {
-	tolua_readonly tolua_property__common Unit* self;
 	Array* getUnitsByRelation(Relation relation);
 	Array* getDetectedUnits();
 	Unit* getNearestUnit(Relation relation);
@@ -1215,6 +1212,7 @@ class Unit : public Body
 	tolua_property__common float detectDistance;
 	tolua_property__common Size attackRange;
 	tolua_property__bool bool faceRight;
+	tolua_property__bool bool receivingDecisionTrace;
 	tolua_property__common BulletDef* bulletDef;
 	tolua_property__common string decisionTreeName @ decisionTree;
 	tolua_readonly tolua_property__bool bool onSurface;

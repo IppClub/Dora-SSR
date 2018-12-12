@@ -37,8 +37,9 @@ bool Bullet::init()
 	if (!Body::init()) return false;
 	Bullet::setFaceRight(_owner->isFaceRight());
 	Bullet::setTag(_bulletDef->tag);
-	_detectSensor = Body::getSensorByTag(BulletDef::SensorTag);
-	_detectSensor->bodyEnter += std::make_pair(this, &Bullet::onBodyEnter);
+	Body::setReceivingContact(true);
+	filterContact = [](Body*) { return false; };
+	contactStart += std::make_pair(this, &Bullet::onBodyContact);
 	Vec2 v = _bulletDef->getVelocity();
 	Body::setVelocity((_isFaceRight ? v.x : -v.x), v.y);
 	Body::setGroup(SharedData.getGroupDetection());
@@ -49,7 +50,7 @@ bool Bullet::init()
 		Bullet::setFace(node);
 	}
 	Model* model = _owner->getModel();
-	Vec2 offset = (model ? model->getModelDef()->getKeyPoint(UnitDef::BulletKey) : Vec2::zero) * Vec2{model->getScaleX(), model->getScaleY()};
+	Vec2 offset = (model ? model->getModelDef()->getKeyPoint(UnitDef::BulletKey) : Vec2::zero) * Vec2{_owner->getScaleX(), _owner->getScaleY()};
 	Bullet::setPosition(
 		_owner->getPosition() +
 		(_owner->isFaceRight() ? offset : Vec2{-offset.x, offset.y})
@@ -81,7 +82,7 @@ void Bullet::updatePhysics()
 
 bool Bullet::update(double deltaTime)
 {
-	if (!_detectSensor) return true;
+	if (getGroup() == SharedData.getGroupHide()) return true;
 	_current += s_cast<float>(deltaTime);
 	if (_current >= _lifeTime)
 	{
@@ -95,11 +96,6 @@ Unit* Bullet::getOwner() const
 	return _owner;
 }
 
-Sensor* Bullet::getDetectSensor() const
-{
-	return _detectSensor;
-}
-
 void Bullet::setFaceRight(bool var)
 {
 	_isFaceRight = var;
@@ -110,7 +106,7 @@ bool Bullet::isFaceRight() const
 	return _isFaceRight;
 }
 
-void Bullet::onBodyEnter(Sensor* sensor, Body* body)
+void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal)
 {
 	if (body == _owner)
 	{
@@ -136,7 +132,7 @@ void Bullet::onBodyEnter(Sensor* sensor, Body* body)
 				Unit* unit = DoraCast<Unit>(body->getOwner());
 				if (unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit)))
 				{
-					hitTarget(this, unit);
+					hitTarget(this, unit, unit->getPosition());
 				}
 				return false;
 			});
@@ -144,7 +140,7 @@ void Bullet::onBodyEnter(Sensor* sensor, Body* body)
 		else if (isHitUnit)
 		{
 			/* hitTarget function may cancel this hit by returning false */
-			isHit = hitTarget(this, unit);
+			isHit = hitTarget(this, unit, point);
 		}
 	}
 	if (isHit)
@@ -181,9 +177,8 @@ Node* Bullet::getFace() const
 
 void Bullet::destroy()
 {
-	AssertIf(_detectSensor == nullptr, "Invoke it once only!");
-	_detectSensor->setEnabled(false);
-	_detectSensor = nullptr;
+	AssertIf(getGroup() == SharedData.getGroupHide(), "can destroy bullet only once!");
+	setGroup(SharedData.getGroupHide());
 	Node::unscheduleUpdate();
 	if (!_bulletDef->endEffect.empty())
 	{

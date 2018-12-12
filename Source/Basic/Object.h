@@ -42,6 +42,7 @@ public:
 	/** @brief return true to stop updating, false to continue. */
 	virtual bool update(double deltaTime);
 	virtual bool equals(Object* other) const;
+	virtual void cleanup();
 	void addLuaRef();
 	void removeLuaRef();
 	void release();

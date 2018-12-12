@@ -38,6 +38,7 @@ public:
 	PROPERTY(float, DetectDistance);
 	PROPERTY_REF(Size, AttackRange);
 	PROPERTY_BOOL(FaceRight);
+	PROPERTY_BOOL(ReceivingDecisionTrace);
 	PROPERTY_READONLY(Entity*, Entity);
 	PROPERTY_READONLY(Sensor*, GroundSensor);
 	PROPERTY_READONLY(Sensor*, DetectSensor);
@@ -88,7 +89,6 @@ protected:
 	Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot);
 	Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot);
 private:
-	bool _isFaceRight;
 	WRef<Entity> _entity;
 	float _detectDistance;
 	Size _attackRange;
@@ -103,6 +103,11 @@ private:
 	Sensor* _attackSensor;
 	UnitAction* _currentAction;
 	ActionMap _actions;
+	enum
+	{
+		FaceRight = UserFlag,
+		ReceivingDecisionTrace = UserFlag << 1
+	};
 	DORA_TYPE_OVERRIDE(Unit);
 };
 

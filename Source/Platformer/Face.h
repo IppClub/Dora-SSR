@@ -21,31 +21,31 @@ NS_DOROTHY_PLATFORMER_BEGIN
  Faces can attach to each other just as nodes.
 
  Faces can be 1 of 6 types:
-	Face::Unkown  0
-	Face::Clip         1
-	Face::Image     2
-	Face::Frame     3
-	Face::Particle   4
-	Face::Custom   5
+	Face::Unkown
+	Face::Clip
+	Face::Image
+	Face::Frame
+	Face::Particle
+	Face::Custom
 
  Face is just data define, use toNode() method to get visible instance.
 */
 class Face : public Object
 {
 public:
-	enum {Unknown = 0, Clip = 1, Image = 2, Frame = 3, Particle = 4, Custom = 5};
+	enum {Unknown, Clip, Image, Frame, Particle, Custom};
 	void addChild(Face* face);
 	bool removeChild(Face* face);
 	/** Get a new instance of the face. */
-	Node* toNode();
+	Node* toNode() const;
 	/** Type of face, Unknown, Clip, Image, Frame, Particle, User. */
 	uint32 getType() const;
 	/** Different type has different faceStr:
-	     enum      type             faceStr
-          1             Clip            "loli.clip|0"
-          2             Image        "loli.png"
-          3             Frame        "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
-          4             Particle      "loli.par"
+	     type             faceStr
+          Clip            "loli.clip|0"
+          Image        "loli.png"
+          Frame        "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
+          Particle      "loli.par"
 	*/
 	CREATE_FUNC(Face);
 private:

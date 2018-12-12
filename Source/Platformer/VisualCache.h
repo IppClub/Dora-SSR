@@ -38,7 +38,6 @@ public:
 	virtual void stop() override;
 	virtual Visual* autoRemove() override;
 	virtual bool init() override;
-	static ParticleVisual* create(String filename);
 	ParticleNode* getParticle() const;
 	CREATE_FUNC(ParticleVisual);
 protected:
@@ -72,7 +71,7 @@ public:
 	enum {Unkown = 0, Particle = 1, Frame = 2};
 	VisualType(String filename);
 	/** Get a running effect instance of this effect type. */
-	Visual* toVisual();
+	Visual* toVisual() const;
 	const string& getFilename() const;
 private:
 	string _file;

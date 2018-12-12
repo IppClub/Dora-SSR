@@ -17,6 +17,7 @@ class Unit;
 class AILeaf : public Object
 {
 public:
+	virtual const string& getName() const;
 	virtual bool doAction(Unit* self) = 0;
 	DORA_TYPE_OVERRIDE(AILeaf);
 };
@@ -75,17 +76,20 @@ protected:
 class ConNode : public AILeaf
 {
 public:
+	virtual const string& getName() const override;
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ConNode);
 protected:
-	ConNode(const function<bool(Unit*)>& handler);
+	ConNode(String name, const function<bool(Unit*)>& handler);
 private:
+	string _name;
 	function<bool(Unit*)> _handler;
 };
 
 class ActNode : public AILeaf
 {
 public:
+	virtual const string& getName() const override;
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ActNode);
 protected:
@@ -116,7 +120,7 @@ AILeaf* Sel(AILeaf* nodes[], int count);
 AILeaf* Seq(AILeaf* nodes[], int count);
 AILeaf* ParSel(AILeaf* nodes[], int count);
 AILeaf* ParSeq(AILeaf* nodes[], int count);
-AILeaf* Con(const function<bool(Unit*)>& handler);
+AILeaf* Con(String name, const function<bool(Unit*)>& handler);
 AILeaf* Act(String actionName);
 AILeaf* True();
 AILeaf* False();

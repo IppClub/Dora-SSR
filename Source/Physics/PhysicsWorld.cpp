@@ -323,6 +323,43 @@ void PhysicsWorld::setContactFilter(Own<ContactFilter>&& filter )
 	_contactFilter = std::move(filter);
 }
 
+void ContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
+{
+	b2Fixture* fixtureA = contact->GetFixtureA();
+	b2Fixture* fixtureB = contact->GetFixtureB();
+	Body* bodyA = s_cast<Body*>(fixtureA->GetBody()->GetUserData());
+	Body* bodyB = s_cast<Body*>(fixtureB->GetBody()->GetUserData());
+	if (!bodyA || !bodyB) return;
+	if (!bodyA->isReceivingContact() && !bodyB->isReceivingContact()) return;
+
+	if (bodyA->isReceivingContact() && bodyA->filterContact && !bodyA->filterContact(bodyB))
+	{
+		contact->SetEnabled(false);
+	}
+	if (bodyB->isReceivingContact() && bodyB->filterContact && !bodyB->filterContact(bodyA))
+	{
+		contact->SetEnabled(false);
+	}
+	if (!contact->IsEnabled())
+	{
+		b2WorldManifold worldManifold;
+		contact->GetWorldManifold(&worldManifold);
+		Vec2 point = PhysicsWorld::oVal(worldManifold.points[0]);
+		if (bodyA->isReceivingContact())
+		{
+			ContactPair pair = { bodyA, bodyB, point, Vec2::from(worldManifold.normal) };
+			pair.retain();
+			_contactStarts.push_back(pair);
+		}
+		if (bodyB->isReceivingContact())
+		{
+			ContactPair pair = { bodyB, bodyA, point, Vec2::from(worldManifold.normal) };
+			pair.retain();
+			_contactStarts.push_back(pair);
+		}
+	}
+}
+
 void ContactListener::BeginContact(b2Contact* contact)
 {
 	b2Fixture* fixtureA = contact->GetFixtureA();

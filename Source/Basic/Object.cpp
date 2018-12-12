@@ -151,6 +151,11 @@ bool Object::equals(Object* other) const
 	return this == other;
 }
 
+void Object::cleanup()
+{
+	if (_weak) _weak->target = nullptr;
+}
+
 Uint32 Object::getId() const
 {
 	return _id;

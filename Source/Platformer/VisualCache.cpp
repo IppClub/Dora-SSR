@@ -35,7 +35,7 @@ _type(VisualType::Unkown)
 	else Warn("got invalid visual file str: \"{}\".", filename);
 }
 
-Visual* VisualType::toVisual()
+Visual* VisualType::toVisual() const
 {
 	switch (_type)
 	{
@@ -87,6 +87,7 @@ bool VisualCache::load(String filename)
 		return false;
 	}
 }
+
 bool VisualCache::update(String content)
 {
 	if (!_visuals.empty())
@@ -127,6 +128,14 @@ Visual* VisualCache::create(String name)
 	if (it != _visuals.end())
 	{
 		return it->second->toVisual();
+	}
+	if (SharedFrameCache.isFrame(name))
+	{
+		return SpriteVisual::create(name);
+	}
+	else if (name.getFileExtension() == "par"_slice)
+	{
+		return ParticleVisual::create(name);
 	}
 	return nullptr;
 }

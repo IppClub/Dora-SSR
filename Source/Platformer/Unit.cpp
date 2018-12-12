@@ -70,7 +70,7 @@ bool Unit::init()
 	_groundSensor = Body::getSensorByTag(UnitDef::GroundSensorTag);
 	ModelDef* modelDef = _unitDef->getModelDef();
 	Model* model = modelDef ? Model::create(modelDef) : Model::none();
-	_isFaceRight = !modelDef || modelDef->isFaceRight();
+	_flags.setFlag(Unit::FaceRight, !modelDef || modelDef->isFaceRight());
 	Unit::setScaleX(_unitDef->getScale());
 	Unit::setScaleY(_unitDef->getScale());
 	Unit::setModel(model);
@@ -99,9 +99,9 @@ UnitDef* Unit::getUnitDef() const
 
 void Unit::setFaceRight(bool var)
 {
-	if (_isFaceRight != var)
+	if (_flags.isOn(Unit::FaceRight) != var)
 	{
-		_isFaceRight = var;
+		_flags.setFlag(Unit::FaceRight, var);
 		if (_model)
 		{
 			_model->setFaceRight(var);
@@ -111,7 +111,17 @@ void Unit::setFaceRight(bool var)
 
 bool Unit::isFaceRight() const
 {
-	return _isFaceRight;
+	return _flags.isOn(Unit::FaceRight);
+}
+
+void Unit::setReceivingDecisionTrace(bool var)
+{
+	_flags.setFlag(Unit::ReceivingDecisionTrace, var);
+}
+
+bool Unit::isReceivingDecisionTrace() const
+{
+	return _flags.isOn(Unit::ReceivingDecisionTrace);
 }
 
 void Unit::setModel(Model* model)
@@ -125,7 +135,7 @@ void Unit::setModel(Model* model)
 		if (model)
 		{
 			this->addChild(model);
-			model->setFaceRight(_isFaceRight);
+			model->setFaceRight(_flags.isOn(Unit::FaceRight));
 		}
 		_model = model;
 	}
