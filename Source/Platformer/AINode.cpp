@@ -9,9 +9,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Platformer/Define.h"
 #include "Platformer/AINode.h"
+#include "Platformer/AI.h"
 #include "Platformer/Unit.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
+
+const string& AILeaf::getName() const
+{
+	return Slice::Empty;
+}
 
 AINode* AINode::add(AILeaf* node)
 {
@@ -34,6 +40,8 @@ const RefVector<AILeaf>& AINode::getChildren() const
 	return _children;
 }
 
+/* SelNode */
+
 bool SelNode::doAction(Unit* self)
 {
 	for (AILeaf* node : _children)
@@ -46,6 +54,8 @@ bool SelNode::doAction(Unit* self)
 	return false;
 }
 
+/* SeqNode */
+
 bool SeqNode::doAction(Unit* self)
 {
 	for (AILeaf* node : _children)
@@ -57,6 +67,8 @@ bool SeqNode::doAction(Unit* self)
 	}
 	return true;
 }
+
+/* ParSelNode */
 
 bool ParSelNode::doAction(Unit* self)
 {
@@ -84,19 +96,49 @@ bool ParSeqNode::doAction(Unit* self)
 	return result;
 }
 
+/* ConNode */
+
+const string& ConNode::getName() const
+{
+	return _name;
+}
+
 bool ConNode::doAction(Unit* self)
 {
-	if (_handler) return _handler(self);
+	if (_handler && _handler(self))
+	{
+		if (self->isReceivingDecisionTrace())
+		{
+			SharedAI.getDecisionNodes().push_back(_name);
+		}
+		return true;
+	}
 	return false;
 }
 
-ConNode::ConNode(const function<bool(Unit*)>& handler):
+ConNode::ConNode(String name, const function<bool(Unit*)>& handler):
+_name(name),
 _handler(handler)
 { }
 
+/* ActNode */
+
+const string& ActNode::getName() const
+{
+	return _actionName;
+}
+
 bool ActNode::doAction(Unit* self)
 {
-	return self->start(_actionName);
+	if (self->start(_actionName))
+	{
+		if (self->isReceivingDecisionTrace())
+		{
+			SharedAI.getDecisionNodes().push_back(_actionName);
+		}
+		return true;
+	}
+	return false;
 }
 
 ActNode::ActNode(String actionName):
@@ -155,9 +197,9 @@ AILeaf* ParSeq(AILeaf* nodes[], int count)
 	return parSeq;
 }
 
-AILeaf* Con(const function<bool(Unit*)>& handler)
+AILeaf* Con(String name, const function<bool(Unit*)>& handler)
 {
-	return ConNode::create(handler);
+	return ConNode::create(name, handler);
 }
 
 AILeaf* Act(String actionName)

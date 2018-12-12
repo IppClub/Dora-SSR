@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Unit.h"
 #include "Platformer/Data.h"
 #include "Physics/Sensor.h"
+#include "Entity/Entity.h"
+#include <numeric>
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
@@ -32,6 +34,11 @@ _enemies(Array::create()),
 _neutrals(Array::create()),
 _detectedUnits(Array::create())
 { }
+
+vector<Slice>& AI::getDecisionNodes()
+{
+	return _decisionNodes;
+}
 
 Unit* AI::getSelf()
 {
@@ -112,8 +119,24 @@ bool AI::runDecisionTree(Unit* unit)
 		_nearestEnemyDistance = std::sqrt(minEnemyDistance);
 		_nearestNeutralDistance = std::sqrt(minNeutralDistance);
 	}
-	//Do the Conditioned Reflex
-	bool result = decisionTree->doAction(_self);
+
+	bool result = false;
+	if (_self->isReceivingDecisionTrace())
+	{
+		result = decisionTree->doAction(_self);
+		if (_decisionNodes.empty())
+		{
+			_self->getEntity()->set("decisionTrace"_slice, "do nothing"_slice.toString());
+		}
+		else
+		{
+			_self->getEntity()->set("decisionTrace"_slice,
+				std::accumulate(_decisionNodes.begin()+1, _decisionNodes.end(), _decisionNodes.front().toString(),
+				[](const string& a, String b) { return a + " -> " + b; }));
+		}
+		_decisionNodes.clear();
+	}
+	else result = decisionTree->doAction(_self);
 
 	_friends->clear();
 	_enemies->clear();

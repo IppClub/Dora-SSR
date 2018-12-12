@@ -574,16 +574,22 @@ void RangeAttack::onAttack()
 	}
 }
 
-bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target)
+bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint)
 {
 	/* Get hit point */
 	Hit* hitUnitAction = s_cast<Hit*>(target->getAction(ActionSetting::UnitActionHit));
 	if (hitUnitAction)
 	{
-		b2Shape* shape = bullet->getDetectSensor()->getFixture()->GetShape();
-		Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, shape) : Vec2(target->getPosition());
-		bool attackRight = bullet->getVelocityX() > 0.0f;
-		hitUnitAction->setHitInfo(hitPoint, _owner->attackPower, !attackRight);
+		bool attackFromRight = false;
+		if (bullet->getBulletDef()->damageRadius > 0.0f)
+		{
+			attackFromRight = bullet->getX() < hitPoint.x;
+		}
+		else
+		{
+			attackFromRight = bullet->getVelocityX() < 0.0f;
+		}
+		hitUnitAction->setHitInfo(hitPoint, _owner->attackPower, attackFromRight);
 	}
 	/* Make damage */
 	float damage = Attack::getDamage(target);

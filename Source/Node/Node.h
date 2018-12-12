@@ -93,7 +93,7 @@ public:
 
 	virtual void onEnter();
 	virtual void onExit();
-	virtual void cleanup();
+	virtual void cleanup() override;
 
 	Node* getChildByTag(String tag);
 

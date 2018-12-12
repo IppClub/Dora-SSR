@@ -18,6 +18,7 @@ class PhysicsWorld;
 class BodyDef;
 class Contact;
 
+typedef Delegate<bool(Body* body)> ContactFilterHandler;
 typedef Delegate<void(Body* body,const Vec2& point,const Vec2& normal)> ContactHandler;
 typedef Delegate<void(Sensor* sensor,Body* body)> SensorHandler;
 
@@ -44,6 +45,7 @@ public:
 	PROPERTY_BOOL(ReceivingContact);
 	ContactHandler contactStart;
 	ContactHandler contactEnd;
+	ContactFilterHandler filterContact;
 	SensorHandler sensorAdded;
 	void applyLinearImpulse(const Vec2& impulse, const Vec2& pos);
 	void applyAngularImpulse(float impulse);

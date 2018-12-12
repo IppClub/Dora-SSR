@@ -613,6 +613,7 @@ void Node::cleanup()
 		{
 			setKeyboardEnabled(false);
 		}
+		Object::cleanup();
 	}
 }
 

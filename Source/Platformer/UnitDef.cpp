@@ -25,8 +25,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-const float UnitDef::BOTTOM_OFFSET(4.0f);
-const float UnitDef::GROUND_SENSOR_HEIGHT(4.0f);
+const float UnitDef::BOTTOM_OFFSET(1.0f);
+const float UnitDef::GROUND_SENSOR_HEIGHT(1.0f);
 const Slice UnitDef::BulletKey = "bullet"_slice;
 const Slice UnitDef::AttackKey = "attack"_slice;
 const Slice UnitDef::HitKey = "hit"_slice;
@@ -137,10 +137,10 @@ void UnitDef::updateBodyDef()
 		Vec2 vertices[] =
 		{
 			Vec2{-hw, hh},
-			Vec2{-hw, BOTTOM_OFFSET*2 - hh},
+			Vec2{-hw, BOTTOM_OFFSET - hh},
 			Vec2{-hw + BOTTOM_OFFSET, -hh},
 			Vec2{hw - BOTTOM_OFFSET, -hh},
-			Vec2{hw, BOTTOM_OFFSET*2 - hh},
+			Vec2{hw, BOTTOM_OFFSET - hh},
 			Vec2{hw, hh}
 		};
 		_bodyDef->attachPolygon(vertices, 6, _density, _friction, _restitution);
@@ -148,7 +148,7 @@ void UnitDef::updateBodyDef()
 			UnitDef::GroundSensorTag,
 			_size.width - BOTTOM_OFFSET * 2,
 			GROUND_SENSOR_HEIGHT,
-			Vec2{0, -hh - GROUND_SENSOR_HEIGHT * 0.5f},
+			Vec2{0, -hh},
 			0);
 	}
 }

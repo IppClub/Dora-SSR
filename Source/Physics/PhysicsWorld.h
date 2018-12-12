@@ -22,11 +22,12 @@ public:
 	virtual ~ContactListener();
 	/**
 	 In subclass functions first call these functions from the base class,
-	 then do your extra works. 
+	 then do some extra works.
 	 */
-	virtual void BeginContact(b2Contact* contact);
-	virtual void EndContact(b2Contact* contact);
-	void SolveContacts();
+	 virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
+	 virtual void BeginContact(b2Contact* contact) override;
+	 virtual void EndContact(b2Contact* contact) override;
+	 void SolveContacts();
 
 	struct SensorPair
 	{

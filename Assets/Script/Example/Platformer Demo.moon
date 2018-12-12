@@ -87,7 +87,7 @@ UnitAction\add "backJump",
 
 rangeAttack = Sel {
 	Seq {
-		Con =>
+		Con "attack path blocked", =>
 			sensor = @getSensorByTag UnitDef.AttackSensorTag
 			sensor.sensedBodies\each (body)->
 				body.group == Data.groupTerrain and
@@ -101,7 +101,7 @@ rangeAttack = Sel {
 
 walk = Sel {
 	Seq {
-		Con =>
+		Con "obstacles ahead",=>
 			{:world} = Data.cache
 			sensor = @getSensorByTag UnitDef.AttackSensorTag
 			sensor.sensedBodies\each (body)->
@@ -122,11 +122,11 @@ walk = Sel {
 						return false
 		Sel {
 			Seq {
-				Con => @entity.obstacleDistance <= 80
+				Con "obstacle distance <= 80",=> @entity.obstacleDistance <= 80
 				Act "backJump"
 			}
 			Seq {
-				Con => math.abs(@velocityX) > 0
+				Con "has forward speed",=> math.abs(@velocityX) > 0
 				Act "jump"
 			}
 		}
@@ -135,16 +135,17 @@ walk = Sel {
 }
 
 attackDecision = Seq {
-	Con => if AI\getNearestUnit(Relation.Enemy) then true else false
+	Con "see enemy",=>
+		if AI\getNearestUnit(Relation.Enemy) then true else false
 	Sel {
 		Seq {
-			Con =>
+			Con "not facing nearest enemy",=>
 				enemy = AI\getNearestUnit Relation.Enemy
 				(@x > enemy.x) == @faceRight
 			Act "turn"
 		}
 		Seq {
-			Con => 
+			Con "enemy in attack range",=>
 				enemy = AI\getNearestUnit Relation.Enemy
 				attackUnits = AI\getUnitsInAttackRange!
 				attackUnits and attackUnits\contains(enemy) or false
@@ -154,7 +155,7 @@ attackDecision = Seq {
 			}
 		}
 		Seq {
-			Con => App.rand % 5 == 0
+			Con "wanna jump", => App.rand % 5 == 0
 			Act "jump"
 		}
 		walk
@@ -163,16 +164,16 @@ attackDecision = Seq {
 
 Data.cache["AI_Zombie"] = Sel {
 	Seq {
-		Con => @entity.hp <= 0
+		Con "is dead",=> @entity.hp <= 0
 		True!
 	}
 	Seq {
-		Con => not @entity.entered
+		Con "not entered",=> not @entity.entered
 		Act "groundEntrance"
 	}
 	attackDecision
 	Seq {
-		Con => not @isDoing "idle"
+		Con "need stop",=> not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
 	}
@@ -182,23 +183,23 @@ playerGroup = Group {"player"}
 
 Data.cache["AI_KidFollow"] = Sel {
 	Seq {
-		Con => @entity.hp <= 0
+		Con "is dead",=> @entity.hp <= 0
 		True!
 	}
 	attackDecision
 	Seq {
-		Con => not @onSurface
+		Con "is falling",=> not @onSurface
 		Act "fallOff"
 	}
 	Seq {
-		Con =>
+		Con "follow target is away",=>
 			target = nil
 			playerGroup\each (e)-> target = e.unit if e.unit ~= @
 			@entity.followTarget = target
 			target ~= nil and math.abs(@x-target.x) > 50
 		Sel {
 			Seq {
-				Con => (@x > @entity.followTarget.x) == @faceRight
+				Con "not facing target",=> (@x > @entity.followTarget.x) == @faceRight
 				Act "turn"
 			}
 			True!
@@ -206,7 +207,7 @@ Data.cache["AI_KidFollow"] = Sel {
 		walk
 	}
 	Seq {
-		Con => not @isDoing "idle"
+		Con "need stop",=> not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
 	}
@@ -214,28 +215,31 @@ Data.cache["AI_KidFollow"] = Sel {
 
 Data.cache["AI_KidSearch"] = Sel {
 	Seq {
-		Con => @entity.hp <= 0
+		Con "is dead",=> @entity.hp <= 0
 		True!
 	}
 	attackDecision
 	Seq {
-		Con => not @onSurface
+		Con "is falling",=> not @onSurface
 		Act "fallOff"
 	}
 	Seq {
-		Con => math.abs(@x) > 1150 and (@x > 0 == @faceRight)
+		Con "reach search limit",=> math.abs(@x) > 1150 and (@x > 0 == @faceRight)
 		Act "turn"
 	}
-	walk
+	Seq {
+		Con "continue search",-> true
+		walk
+	}
 }
 
 Data.cache["AI_PlayerControl"] = Sel {
 	Seq {
-		Con => @entity.hp <= 0
+		Con "is dead",=> @entity.hp <= 0
 		True!
 	}
 	Seq {
-		Con => @entity.keyShoot
+		Con "attack key down",=> @entity.keyShoot
 		Sel {
 			Act "meleeAttack"
 			Act "rangeAttack"
@@ -243,59 +247,48 @@ Data.cache["AI_PlayerControl"] = Sel {
 	}
 	Seq {
 		Seq {
-			Con => not (@entity.keyLeft and @entity.keyRight) and ((@entity.keyLeft and @faceRight) or (@entity.keyRight and not @faceRight))
+			Con "move key down",=> not (@entity.keyLeft and @entity.keyRight) and ((@entity.keyLeft and @faceRight) or (@entity.keyRight and not @faceRight))
 			Act "turn"
 		}
 		False!
 	}
 	Sel {
 		Seq {
-			Con => not @onSurface
+			Con "is falling",=> not @onSurface
 			Act "fallOff"
 		}
 		Seq {
-			Con => @entity.keyUp
+			Con "jump key down",=> @entity.keyUp
 			Act "jump"
 		}
 	}
 	Seq {
-		Con => @entity.keyLeft or @entity.keyRight
+		Con "move key down",=> @entity.keyLeft or @entity.keyRight
 		Act "walk"
 	}
 	Seq {
-		Con => not @isDoing "idle"
+		Con "need stop",=> not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
 	}
 }
 
-Data.cache["Bullet_Zombie"] = with BulletDef!
-	.tag = ""
-	.endEffect = ""
-	.lifeTime = 5
-	.damageRadius = 5
-	.highSpeedFix = false
-	.gravityScale = 1
-	.face = Face "Particle/fire.par"
-	\setAsCircle 10
-	\setVelocity 60,600
-
 Data.cache["Bullet_KidM"] = with BulletDef!
 	.tag = ""
 	.endEffect = ""
 	.lifeTime = 1
-	.damageRadius = 3
+	.damageRadius = 0
 	.highSpeedFix = false
 	.gravityScale = 0
 	.face = Face -> Rectangle width:6,height:6,borderColor:0xffff0088,fillColor:0x66ff0088,fillOrder:1,lineOrder:2
-	\setAsCircle 10
+	\setAsCircle 5
 	\setVelocity 0,600
 
 Data.cache["Bullet_KidW"] = with BulletDef!
 	.tag = ""
 	.endEffect = ""
 	.lifeTime = 5
-	.damageRadius = 3
+	.damageRadius = 0
 	.highSpeedFix = false
 	.gravityScale = 1
 	.face = Face -> Star size:15,borderColor:0xffff0088,fillColor:0x66ff0088,fillOrder:1,lineOrder:2
@@ -320,7 +313,7 @@ Data.cache["Unit_Zombie1"] = with UnitDef!
 	.attackDelay = 0.4
 	.attackEffectDelay = 0.1
 	.attackRange = Size 80,50
-	.attackPower = Vec2 200,200
+	.attackPower = Vec2 100,100
 	.attackType = AttackType.Melee
 	.attackTarget = AttackTarget.Single
 	.targetAllow = (with TargetAllow!
@@ -361,14 +354,14 @@ Data.cache["Unit_Zombie2"] = with UnitDef!
 	.tag = "Zombie2"
 	.sensity = 0.2
 	.move = 60
-	.jump = 400
+	.jump = 500
 	.detectDistance = 600
 	.maxHp = 5
 	.attackBase = 1
 	.attackDelay = 0.4
 	.attackEffectDelay = 0.1
 	.attackRange = Size 150,80
-	.attackPower = Vec2 200,200
+	.attackPower = Vec2 100,100
 	.attackType = AttackType.Melee
 	.attackTarget = AttackTarget.Multi
 	.targetAllow = (with TargetAllow!
@@ -496,15 +489,15 @@ Data.cache["Unit_KidM"] = with UnitDef!
 
 Data.cache["obstacleS"] = with BodyDef!
 	.type = BodyType.Static
-	\attachPolygon 100,60
+	\attachPolygon 100,60,1,1,0
 
 Data.cache["obstacleM"] = with BodyDef!
 	.type = BodyType.Static
-	\attachPolygon 260,60
+	\attachPolygon 260,60,1,1,0
 
 Data.cache["obstacleC"] = with BodyDef!
 	.type = BodyType.Dynamic
-	\attachCircle 40,1,1,0.4
+	\attachCircle 40,1,0.6,0.4
 
 PlayerLayer = 2
 ZombieLayer = 1
@@ -541,7 +534,7 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 			.order = order
 			.faceRight = faceRight
 			\addTo world
-			\eachAction (action)-> action.recovery = 0
+			\eachAction => @recovery = 0
 			.model\eachNode (sp)-> sp.filter = TextureFilter.Point
 		world.camera.followTarget = unit if isPlayer and unit.decisionTree == "AI_KidSearch"
 		@faceRight = nil
@@ -594,16 +587,15 @@ world = with PlatformWorld!
 	\getLayer(ZombieLayer).renderGroup = true
 	\getLayer(TerrainLayer).renderGroup = true
 	.camera.followRatio = Vec2 0.01,0.01
-	.gravity = Vec2 0,-12
 
 Data.cache["world"] = world
 
 terrainDef = with BodyDef!
 	.type = BodyType.Static
-	\attachPolygon Vec2(0,-500),2500,10
-	\attachPolygon Vec2(0,500),2500,10
-	\attachPolygon Vec2(1250,0),10,1000
-	\attachPolygon Vec2(-1250,0),10,1000
+	\attachPolygon Vec2(0,-500),2500,10,0,1,1,0
+	\attachPolygon Vec2(0,500),2500,10,0,1,1,0
+	\attachPolygon Vec2(1250,0),10,1000,0,1,1,0
+	\attachPolygon Vec2(-1250,0),10,1000,0,1,1,0
 
 with Body terrainDef,world,Vec2.zero
 	.order = TerrainLayer
@@ -661,7 +653,7 @@ with Director.entry
 	\addChild world
 
 keyboardEnabled = false
-controlPlayer = "KidM"
+controlPlayer = "KidW"
 updatePlayerControl = (key,flag)->
 	player = nil
 	playerGroup\each => player = @ if @unit.tag == controlPlayer
@@ -740,10 +732,14 @@ playerChoice = 1
 controlChoice = switch App.platform
 	when "iOS","Android" then 0
 	else 1
+camZoom = 1
+decisions = {}
+showDecisionTrace = false
+lastDecisionTree = ""
 world\schedule ->
 	{:width,:height} = App.designSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,userControl and 450 or 220)
+	SetNextWindowSize Vec2(240,userControl and 500 or 300)
 	if Begin "Platformer Game Demo", "NoResize|NoSavedSettings"
 		TextWrapped "Zombie Killed: #{zombieKilled}"
 		SameLine!
@@ -762,10 +758,16 @@ world\schedule ->
 					.isPlayer = false
 					.faceRight = App.rand%2 == 0
 					.stared = true
+		changed,camZoom = DragFloat "Zoom", camZoom, 0.01, 0.5, 2, "%.2f"
+		world.camera.zoom = camZoom if changed
 		playerGroup\each => TextWrapped "#{@unit.tag} HP: #{@hp}"
 		changed,result = Checkbox "Physics Debug",world.showDebug
 		world.showDebug = result if changed
-		
+		changed,showDecisionTrace = Checkbox "AI Debug",showDecisionTrace
+		if changed
+			with Group {"player"}
+				\each => @unit.receivingDecisionTrace = showDecisionTrace
+
 		changed,userControl = Checkbox "Take Control",userControl
 		if userControl
 			if controlPlayer == "Zombie" and
@@ -815,7 +817,7 @@ world\schedule ->
 						@unit.sensity = 0.1
 			if changed
 				keyboardEnabled = controlChoice == 1
-				Director.ui\eachChild => @visible = controlChoice == 0
+				Director.ui.children.first.visible = controlChoice == 0
 			Separator!
 			TextWrapped if controlChoice == 1
 				"Keyboard: Left(A), Right(D), Shoot(J), Jump(K)"
@@ -830,17 +832,36 @@ world\schedule ->
 			if pressedB
 				controlChoice = choice
 				keyboardEnabled = true
-				Director.ui\eachChild => @visible = false
+				Director.ui.children.first.visible = false
 		elseif changed
 			playerGroup\each =>
 				@unit.decisionTree = (@unit.tag == "KidM" and "AI_KidFollow" or "AI_KidSearch")
 				@unit.sensity = 0.1
 			keyboardEnabled = false
-			Director.ui\eachChild => @visible = false
+			Director.ui.children.first.visible = false
 	End!
+
+	target = world.camera.followTarget
+	if target
+		player = target.entity
+		decisionTrace = player.decisionTrace
+		lastDecision = decisions[#decisions]
+		if lastDecision ~= decisionTrace
+			table.insert decisions,decisionTrace
+		table.remove decisions,1 if #decisions > 5
+		lastDecisionTree = target.decisionTree
+
+	if showDecisionTrace
+		SetNextWindowPos Vec2(width/2-200,10), "FirstUseEver"
+		SetNextWindowSize Vec2(400,160), "FirstUseEver"
+		if Begin "Decision Trace (#{lastDecisionTree})", "NoSavedSettings"
+			Text table.concat decisions,"\n"
+		End!
 
 with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight","stared"}
 	\every =>
 		{:group,:unit} = @
 		unit\addChild Star y:20,size:3,borderColor:0xff66ccff,fillColor:0x6666ccff,fillOrder:1,lineOrder:2
 
+with Observer "Add", {"player"}
+	\every => @unit.receivingDecisionTrace = true

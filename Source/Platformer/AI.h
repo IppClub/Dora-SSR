@@ -21,7 +21,7 @@ class Unit;
 class AI
 {
 public:
-	enum {None = -1};
+	PROPERTY_READONLY_CALL(vector<Slice>&, DecisionNodes);
 	bool runDecisionTree(Unit* unit);
 	Unit* getSelf();
 	Array* getUnitsByRelation(Relation relation);
@@ -47,6 +47,7 @@ private:
 	float _nearestEnemyDistance;
 	float _nearestNeutralDistance;
 	unordered_map<string, Ref<AILeaf>> _decisionTrees;
+	vector<Slice> _decisionNodes;
 	friend class Instinct;
 };
 

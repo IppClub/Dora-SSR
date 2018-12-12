@@ -15,8 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-const int BulletDef::SensorTag = 0;
-
 BulletDef::BulletDef():
 tag(),
 lifeTime(0),
@@ -72,7 +70,7 @@ float BulletDef::getGravityScale() const
 void BulletDef::setAsCircle(float radius)
 {
 	_bodyDef->clearFixtures();
-	_bodyDef->attachCircleSensor(BulletDef::SensorTag, radius);
+	_bodyDef->attachCircle(radius);
 }
 
 void BulletDef::setFace(Face* var)

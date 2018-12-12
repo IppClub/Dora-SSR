@@ -82,7 +82,7 @@ bool Face::removeChild(Face* face)
 	return false;
 }
 
-Node* Face::toNode()
+Node* Face::toNode() const
 {
 	Node* node = nullptr;
 	switch (_type)
