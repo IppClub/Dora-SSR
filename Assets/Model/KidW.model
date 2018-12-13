@@ -8,14 +8,14 @@
 		<C/>
 		<C/>
 		<B D="-15,0" A="0,0.5" H="body" I="KidW">
-			<E A="Units.clip|KidW_Idle::30,30,3,0.6" B="0"/>
+			<E A="Units.clip|KidW_Idle::30,30,3,0.4" B="0"/>
 			<E A="Units.clip|KidW_Jump::30,30,3,0.3" B="0"/>
-			<E A="Units.clip|KidW_Run::30,30,6,0.6" B="0"/>
-			<E A="Units.clip|KidW_Shoot::30,30,2,0.3" B="0"/>
-			<E A="Units.clip|KidW_Death::30,30,6,0.8" B="0"/>
-			<E A="Units.clip|KidW_ShootRun::30,30,6,0.6" B="0"/>
-			<E A="Units.clip|KidW_ShootJump::30,30,2,0.4" B="0"/>
-			<E A="Units.clip|KidW_Fall::30,30,3,0.5" B="0"/>
+			<E A="Units.clip|KidW_Run::30,30,6,0.4" B="0"/>
+			<E A="Units.clip|KidW_Shoot::30,30,2,0.2" B="0"/>
+			<E A="Units.clip|KidW_Death::30,30,6,0.6" B="0"/>
+			<E A="Units.clip|KidW_ShootRun::30,30,6,0.4" B="0"/>
+			<E A="Units.clip|KidW_ShootJump::30,30,2,0.3" B="0"/>
+			<E A="Units.clip|KidW_Fall::30,30,3,0.4" B="0"/>
 			<E A="Units.clip|KidW_ShootFall::30,30,2,0.4" B="0"/>
 		</B>
 	</B>

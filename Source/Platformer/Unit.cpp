@@ -377,11 +377,8 @@ void Unit::setDecisionTreeName(String name)
 {
 	_decisionTreeName = name;
 	AILeaf* leaf = SharedData.getCache()->get(name).to<AILeaf>();
-	if (leaf)
-	{
-		_decisionTree = leaf;
-		SharedAI.runDecisionTree(this);
-	}
+	_decisionTree = leaf;
+	SharedAI.runDecisionTree(this);
 }
 
 const string& Unit::getDecisionTreeName() const

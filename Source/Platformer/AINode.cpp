@@ -145,13 +145,13 @@ ActNode::ActNode(String actionName):
 _actionName(actionName)
 { }
 
-bool TrueNode::doAction(Unit* self)
+bool PassNode::doAction(Unit* self)
 {
 	DORA_UNUSED_PARAM(self);
 	return true;
 }
 
-bool FalseNode::doAction(Unit* self)
+bool RejectNode::doAction(Unit* self)
 {
 	DORA_UNUSED_PARAM(self);
 	return false;
@@ -207,14 +207,14 @@ AILeaf* Act(String actionName)
 	return ActNode::create(actionName);
 }
 
-AILeaf* True()
+AILeaf* Pass()
 {
-	return TrueNode::create();
+	return PassNode::create();
 }
 
-AILeaf* False()
+AILeaf* Reject()
 {
-	return FalseNode::create();
+	return RejectNode::create();
 }
 
 NS_DOROTHY_PLATFORMER_END

@@ -69,7 +69,7 @@ UnitAction\add "backJump",
 			\play "walk"
 		@velocityX = (@faceRight and 1 or -1)*@move*@moveSpeed
 		loop =>
-			cycle 0.25,->
+			cycle 0.3,->
 				@velocityX = (@faceRight and 1 or -1)*@move*@moveSpeed
 			@faceRight = not @faceRight
 			cycle 0.1,->
@@ -94,7 +94,7 @@ rangeAttack = Sel {
 				body.tag == "Obstacle" and
 				(@x > body.x) ~= @faceRight
 		Act "jump"
-		False!
+		Reject!
 	}
 	Act "rangeAttack"
 }
@@ -165,7 +165,7 @@ attackDecision = Seq {
 Data.cache["AI_Zombie"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		True!
+		Pass!
 	}
 	Seq {
 		Con "not entered",=> not @entity.entered
@@ -184,7 +184,7 @@ playerGroup = Group {"player"}
 Data.cache["AI_KidFollow"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		True!
+		Pass!
 	}
 	attackDecision
 	Seq {
@@ -202,7 +202,7 @@ Data.cache["AI_KidFollow"] = Sel {
 				Con "not facing target",=> (@x > @entity.followTarget.x) == @faceRight
 				Act "turn"
 			}
-			True!
+			Pass!
 		}
 		walk
 	}
@@ -216,7 +216,7 @@ Data.cache["AI_KidFollow"] = Sel {
 Data.cache["AI_KidSearch"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		True!
+		Pass!
 	}
 	attackDecision
 	Seq {
@@ -236,7 +236,7 @@ Data.cache["AI_KidSearch"] = Sel {
 Data.cache["AI_PlayerControl"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		True!
+		Pass!
 	}
 	Seq {
 		Con "attack key down",=> @entity.keyShoot
@@ -250,7 +250,7 @@ Data.cache["AI_PlayerControl"] = Sel {
 			Con "move key down",=> not (@entity.keyLeft and @entity.keyRight) and ((@entity.keyLeft and @faceRight) or (@entity.keyRight and not @faceRight))
 			Act "turn"
 		}
-		False!
+		Reject!
 	}
 	Sel {
 		Seq {
@@ -310,10 +310,10 @@ Data.cache["Unit_Zombie1"] = with UnitDef!
 	.detectDistance = 600
 	.maxHp = 5
 	.attackBase = 1
-	.attackDelay = 0.4
+	.attackDelay = 0.25
 	.attackEffectDelay = 0.1
 	.attackRange = Size 80,50
-	.attackPower = Vec2 100,100
+	.attackPower = Vec2 150,100
 	.attackType = AttackType.Melee
 	.attackTarget = AttackTarget.Single
 	.targetAllow = (with TargetAllow!
@@ -341,6 +341,7 @@ Data.cache["Unit_Zombie1"] = with UnitDef!
 		"hit",
 		"fall",
 		"groundEntrance",
+		"fallOff"
 	}
 
 Data.cache["Unit_Zombie2"] = with UnitDef!
@@ -361,7 +362,7 @@ Data.cache["Unit_Zombie2"] = with UnitDef!
 	.attackDelay = 0.4
 	.attackEffectDelay = 0.1
 	.attackRange = Size 150,80
-	.attackPower = Vec2 100,100
+	.attackPower = Vec2 150,100
 	.attackType = AttackType.Melee
 	.attackTarget = AttackTarget.Multi
 	.targetAllow = (with TargetAllow!
@@ -389,6 +390,7 @@ Data.cache["Unit_Zombie2"] = with UnitDef!
 		"hit",
 		"fall",
 		"groundEntrance",
+		"fallOff"
 	}
 
 Data.cache["Unit_KidW"] = with UnitDef!
@@ -771,8 +773,18 @@ world\schedule ->
 		changed,userControl = Checkbox "Take Control",userControl
 		if userControl
 			if controlPlayer == "Zombie" and
-				not playerGroup\each => @unit.tag == "Zombie"
+				not playerGroup\each =>
+					if @unit.tag == "Zombie"
+						if @hp <= 0
+							@player = nil
+							@unit.children.last\removeFromParent!
+							@unit.decisionTree = ""
+							@unit.tag = "ZombieDead"
+							return false
+						else return true
+					return false
 				zombieGroup\each =>
+					return false if @hp <= 0
 					@player = true
 					@zombie = nil
 					world.camera.followTarget = with @unit
@@ -835,7 +847,10 @@ world\schedule ->
 				Director.ui.children.first.visible = false
 		elseif changed
 			playerGroup\each =>
-				@unit.decisionTree = (@unit.tag == "KidM" and "AI_KidFollow" or "AI_KidSearch")
+				@unit.decisionTree = switch @unit.tag
+					when "KidM" then "AI_KidFollow"
+					when "KidW" then "AI_KidSearch"
+					when "Zombie" then "AI_Zombie"
 				@unit.sensity = 0.1
 			keyboardEnabled = false
 			Director.ui.children.first.visible = false

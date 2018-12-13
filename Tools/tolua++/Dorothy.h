@@ -1109,8 +1109,8 @@ AILeaf* ParSel(AILeaf* nodes[tolua_len]);
 AILeaf* ParSeq(AILeaf* nodes[tolua_len]);
 AILeaf* Con(String name, tolua_function_bool handler);
 AILeaf* Act(String action);
-AILeaf* True();
-AILeaf* False();
+AILeaf* Pass();
+AILeaf* Reject();
 
 class AI
 {
