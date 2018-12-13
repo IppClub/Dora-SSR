@@ -98,22 +98,22 @@ private:
 	string _actionName;
 };
 
-class TrueNode : public AILeaf
+class PassNode : public AILeaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(TrueNode);
+	CREATE_FUNC(PassNode);
 protected:
-	TrueNode() { }
+	PassNode() { }
 };
 
-class FalseNode : public AILeaf
+class RejectNode : public AILeaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(FalseNode);
+	CREATE_FUNC(RejectNode);
 protected:
-	FalseNode() { }
+	RejectNode() { }
 };
 
 AILeaf* Sel(AILeaf* nodes[], int count);
@@ -122,7 +122,7 @@ AILeaf* ParSel(AILeaf* nodes[], int count);
 AILeaf* ParSeq(AILeaf* nodes[], int count);
 AILeaf* Con(String name, const function<bool(Unit*)>& handler);
 AILeaf* Act(String actionName);
-AILeaf* True();
-AILeaf* False();
+AILeaf* Pass();
+AILeaf* Reject();
 
 NS_DOROTHY_PLATFORMER_END
