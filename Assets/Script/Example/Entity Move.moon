@@ -20,11 +20,11 @@ with Observer "Add", {"sprite"}
 with Observer "Remove", {"sprite"}
 	\every (entity)->
 		sceneGroup\each (e)->
-			e.scene\removeChild entity.valueCache.sprite
+			e.scene\removeChild entity.oldValues.sprite
 
 with Observer "Remove", {"target"}
 	\every (entity)->
-		print "remove target from #{entity.index}"
+		print "remove target from entity #{entity.index}"
 
 with Group {"position","direction","speed","target"}
 	\every (entity)->
@@ -37,14 +37,13 @@ with Group {"position","direction","speed","target"}
 		newPos\clamp position, target
 		entity.position = newPos
 		entity.direction = angle
-		if newPos == target
-			entity\nextSet "target",nil -- remove target in next frame
+		entity\setNext "target",nil if newPos == target
 
 with Observer "AddOrChange", {"position","direction","sprite"}
 	\every (entity)->
 		{:position, :direction, :sprite} = entity
 		sprite.position = position
-		lastDirection = entity.valueCache.direction or sprite.angle
+		lastDirection = entity.oldValues.direction or sprite.angle
 		if math.abs(direction - lastDirection) > 1
 			sprite\runAction Roll 0.3, lastDirection, direction
 

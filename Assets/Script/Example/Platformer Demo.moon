@@ -89,10 +89,19 @@ rangeAttack = Sel {
 	Seq {
 		Con "attack path blocked", =>
 			sensor = @getSensorByTag UnitDef.AttackSensorTag
-			sensor.sensedBodies\each (body)->
-				body.group == Data.groupTerrain and
-				body.tag == "Obstacle" and
-				(@x > body.x) ~= @faceRight
+			if sensor.sensedBodies\each (body)->
+					body.group == Data.groupTerrain and
+					(@x > body.x) ~= @faceRight and
+					body.tag == "Obstacle"
+				faceObstacle = true
+				start = @position
+				stop = Vec2 start.x+(@faceRight and 1 or -1)*@unitDef.attackRange.width,start.y
+				Data.cache.world\raycast start,stop,true,(b)->
+					return false if b.group == Data.groupDetection
+					faceObstacle = false if Relation.Enemy == Data\getRelation @,b
+					true
+				faceObstacle
+			else false
 		Act "jump"
 		Reject!
 	}
@@ -115,11 +124,9 @@ walk = Sel {
 							if b == body and obstacleDistance <= 140
 								@entity.obstacleDistance = obstacleDistance
 								true
-							else
-								false
-						return true
-					else
-						return false
+							else false
+						true
+					else false
 		Sel {
 			Seq {
 				Con "obstacle distance <= 80",=> @entity.obstacleDistance <= 80
@@ -138,6 +145,35 @@ attackDecision = Seq {
 	Con "see enemy",=>
 		if AI\getNearestUnit(Relation.Enemy) then true else false
 	Sel {
+		Seq {
+			Con "need evade",=>
+				return false if not @getAction "rangeAttack" or not @onSurface
+				evadeLeftEnemy = false
+				evadeRightEnemy = false
+				sensor = @getSensorByTag UnitDef.AttackSensorTag
+				sensor.sensedBodies\each (body)->
+					if Relation.Enemy == Data\getRelation @,body
+						distance = math.abs @x - body.x
+						if distance < 60
+							evadeRightEnemy = false
+							evadeLeftEnemy = false
+							return true
+						elseif distance < 200
+							evadeRightEnemy = true if body.x > @x
+							evadeLeftEnemy = true if body.x <= @x
+				needEvade = not (evadeLeftEnemy == evadeRightEnemy) and math.abs(@x) < 1000
+				@entity.evadeRight = evadeRightEnemy if needEvade
+				needEvade
+			Sel {
+				Seq {
+					Con "face enemy",=>
+						not @isDoing("backJump") and @entity.evadeRight == @faceRight
+					Act "turn"
+					walk
+				}
+				walk
+			}
+		}
 		Seq {
 			Con "not facing nearest enemy",=>
 				enemy = AI\getNearestUnit Relation.Enemy
@@ -239,18 +275,18 @@ Data.cache["AI_PlayerControl"] = Sel {
 		Pass!
 	}
 	Seq {
-		Con "attack key down",=> @entity.keyShoot
-		Sel {
-			Act "meleeAttack"
-			Act "rangeAttack"
-		}
-	}
-	Seq {
 		Seq {
 			Con "move key down",=> not (@entity.keyLeft and @entity.keyRight) and ((@entity.keyLeft and @faceRight) or (@entity.keyRight and not @faceRight))
 			Act "turn"
 		}
 		Reject!
+	}
+	Seq {
+		Con "attack key down",=> @entity.keyShoot
+		Sel {
+			Act "meleeAttack"
+			Act "rangeAttack"
+		}
 	}
 	Sel {
 		Seq {
@@ -281,7 +317,7 @@ Data.cache["Bullet_KidM"] = with BulletDef!
 	.highSpeedFix = false
 	.gravityScale = 0
 	.face = Face -> Rectangle width:6,height:6,borderColor:0xffff0088,fillColor:0x66ff0088,fillOrder:1,lineOrder:2
-	\setAsCircle 5
+	\setAsCircle 6
 	\setVelocity 0,600
 
 Data.cache["Bullet_KidW"] = with BulletDef!
@@ -410,7 +446,7 @@ Data.cache["Unit_KidW"] = with UnitDef!
 	.attackBase = 2.5
 	.attackDelay = 0.1
 	.attackEffectDelay = 0.1
-	.attackRange = Size 350,50
+	.attackRange = Size 350,150
 	.attackPower = Vec2 100,100
 	.attackType = AttackType.Range
 	.attackTarget = AttackTarget.Single
@@ -455,10 +491,10 @@ Data.cache["Unit_KidM"] = with UnitDef!
 	.jump = 500
 	.detectDistance = 500
 	.maxHp = 5
-	.attackBase = 0.5
+	.attackBase = 1.0
 	.attackDelay = 0.1
 	.attackEffectDelay = 0.1
-	.attackRange = Size 400,50
+	.attackRange = Size 400,100
 	.attackPower = Vec2 100,0
 	.attackType = AttackType.Range
 	.attackTarget = AttackTarget.Single
@@ -544,7 +580,7 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 with Observer "Change", {"hp","unit"}
 	\every =>
 		{:hp,:unit} = @
-		{hp:lastHp} = @valueCache
+		{hp:lastHp} = @oldValues
 		if hp < lastHp
 			if hp > 0
 				unit\start "hit"
@@ -734,7 +770,7 @@ playerChoice = 1
 controlChoice = switch App.platform
 	when "iOS","Android" then 0
 	else 1
-camZoom = 1
+camZoom = world.camera.zoom
 decisions = {}
 showDecisionTrace = false
 lastDecisionTree = ""

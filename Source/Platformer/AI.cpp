@@ -128,13 +128,13 @@ bool AI::runDecisionTree(Unit* unit)
 		{
 			_self->getEntity()->set("decisionTrace"_slice, "do nothing"_slice.toString());
 		}
-		else
+		else if (!_decisionNodes.empty())
 		{
 			_self->getEntity()->set("decisionTrace"_slice,
 				std::accumulate(_decisionNodes.begin()+1, _decisionNodes.end(), _decisionNodes.front().toString(),
 				[](const string& a, String b) { return a + " -> " + b; }));
+			_decisionNodes.clear();
 		}
-		_decisionNodes.clear();
 	}
 	else result = decisionTree->doAction(_self);
 

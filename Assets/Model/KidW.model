@@ -17,6 +17,7 @@
 			<E A="Units.clip|KidW_ShootJump::30,30,2,0.3" B="0"/>
 			<E A="Units.clip|KidW_Fall::30,30,3,0.4" B="0"/>
 			<E A="Units.clip|KidW_ShootFall::30,30,2,0.4" B="0"/>
+			<E A="Units.clip|KidW_Idle::30,30,1,0.1" B="0"/>
 		</B>
 	</B>
 	<J C="0" H="idle"/>
@@ -28,5 +29,6 @@
 	<J C="6" H="attackJump"/>
 	<J C="7" H="fallOff"/>
 	<J C="8" H="shootFallOff"/>
+	<J C="9" H="hit"/>
 	<K A="bullet" B="6,0"/>
 </A>

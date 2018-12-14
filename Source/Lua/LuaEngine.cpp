@@ -288,9 +288,9 @@ LuaEngine::LuaEngine()
 
 		tolua_beginmodule(L, "Entity");
 			tolua_function(L, "set", Entity_set);
-			tolua_function(L, "nextSet", Entity_setNext);
+			tolua_function(L, "setNext", Entity_setNext);
 			tolua_function(L, "get", Entity_get);
-			tolua_function(L, "getCache", Entity_getCache);
+			tolua_function(L, "getOld", Entity_getOld);
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "Platformer");

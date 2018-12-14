@@ -1271,7 +1271,7 @@ class Data
 	tolua_readonly tolua_property__common Dictionary* cache;
 	void setRelation(int groupA, int groupB, Relation relation);
 	Relation getRelation(int groupA, int groupB);
-	Relation getRelation(Unit* unitA, Unit* unitB);
+	Relation getRelation(Body* bodyA, Body* bodyB);
 	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
 	float getDamageFactor(Uint16 damageType, Uint16 defenceType);
 	bool isPlayer(Body* body);
