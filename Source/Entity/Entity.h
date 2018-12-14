@@ -36,8 +36,8 @@ public:
 	static bool each(const function<bool(Entity*)>& func);
 	static void clear();
 	Com* getComponent(String name) const;
-	Com* getCachedCom(String name) const;
-	void clearComCache();
+	Com* getOldCom(String name) const;
+	void clearOldComs();
 public:
 	template<typename T>
 	void set(String name, const T& value, bool rawFlag = false);
@@ -48,19 +48,19 @@ public:
 public:
 	int getIndex(String name);
 	bool has(int index) const;
-	bool hasCache(int index) const;
+	bool hasOld(int index) const;
 	void remove(int index);
 	void removeNext(int index);
 	void set(int index, Own<Com>&& value);
 	void setNext(int index, Own<Com>&& value);
 	Com* getComponent(int index) const;
-	Com* getCachedCom(int index) const;
+	Com* getOldCom(int index) const;
 protected:
 	void updateComponent(int index, Own<Com>&& com, bool add);
 private:
 	int _index;
 	vector<Own<Com>> _components;
-	vector<Own<Com>> _comCache;
+	vector<Own<Com>> _oldComs;
 	DORA_TYPE_OVERRIDE(Entity);
 };
 

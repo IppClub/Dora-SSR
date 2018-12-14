@@ -23,7 +23,7 @@ public:
 	void apply(PhysicsWorld* world);
 	void setRelation(int groupA, int groupB, Relation relation);
 	Relation getRelation(int groupA, int groupB) const;
-	Relation getRelation(Unit* unitA, Unit* unitB) const;
+	Relation getRelation(Body* bodyA, Body* bodyB) const;
 	PROPERTY_READONLY(int, GroupHide);
 	PROPERTY_READONLY(int, GroupDetectPlayer);
 	PROPERTY_READONLY(int, GroupTerrain);

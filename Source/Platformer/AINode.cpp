@@ -44,28 +44,90 @@ const RefVector<AILeaf>& AINode::getChildren() const
 
 bool SelNode::doAction(Unit* self)
 {
-	for (AILeaf* node : _children)
+	if (self->isReceivingDecisionTrace())
 	{
-		if (node->doAction(self))
+		auto& decisionNodes = SharedAI.getDecisionNodes();
+		size_t oldSize = decisionNodes.size();
+		bool result = false;
+		for (AILeaf* node : _children)
 		{
-			return true;
+			if (node->doAction(self))
+			{
+				result = true;
+				break;
+			}
 		}
+		if (!result)
+		{
+			if (oldSize == 0) decisionNodes.clear();
+			else
+			{
+				size_t newSize = decisionNodes.size();
+				while (newSize > oldSize)
+				{
+					decisionNodes.pop_back();
+					newSize--;
+				}
+			}
+		}
+		return result;
 	}
-	return false;
+	else
+	{
+		for (AILeaf* node : _children)
+		{
+			if (node->doAction(self))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }
 
 /* SeqNode */
 
 bool SeqNode::doAction(Unit* self)
 {
-	for (AILeaf* node : _children)
+	if (self->isReceivingDecisionTrace())
 	{
-		if (!node->doAction(self))
+		auto& decisionNodes = SharedAI.getDecisionNodes();
+		size_t oldSize = decisionNodes.size();
+		bool result = true;
+		for (AILeaf* node : _children)
 		{
-			return false;
+			if (!node->doAction(self))
+			{
+				result = false;
+				break;
+			}
 		}
+		if (!result)
+		{
+			if (oldSize == 0) decisionNodes.clear();
+			else
+			{
+				size_t newSize = decisionNodes.size();
+				while (newSize > oldSize)
+				{
+					decisionNodes.pop_back();
+					newSize--;
+				}
+			}
+		}
+		return result;
 	}
-	return true;
+	else
+	{
+		for (AILeaf* node : _children)
+		{
+			if (!node->doAction(self))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 }
 
 /* ParSelNode */
@@ -107,7 +169,7 @@ bool ConNode::doAction(Unit* self)
 {
 	if (_handler && _handler(self))
 	{
-		if (self->isReceivingDecisionTrace())
+		if (self->isReceivingDecisionTrace() && !_name.empty())
 		{
 			SharedAI.getDecisionNodes().push_back(_name);
 		}
@@ -132,7 +194,7 @@ bool ActNode::doAction(Unit* self)
 {
 	if (self->start(_actionName))
 	{
-		if (self->isReceivingDecisionTrace())
+		if (self->isReceivingDecisionTrace() && !_actionName.empty())
 		{
 			SharedAI.getDecisionNodes().push_back(_actionName);
 		}

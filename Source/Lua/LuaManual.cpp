@@ -1345,7 +1345,7 @@ tolua_lerror:
 #endif
 }
 
-int Entity_getCache(lua_State* L)
+int Entity_getOld(lua_State* L)
 {
 	/* 1 self, 2 name */
 #ifndef TOLUA_RELEASE
@@ -1361,7 +1361,7 @@ int Entity_getCache(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_getCache'", nullptr);
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
-		Com* com = self->getCachedCom(name);
+		Com* com = self->getOldCom(name);
 		if (com) com->pushToLua(L);
 		else lua_pushnil(L);
 		return 1;

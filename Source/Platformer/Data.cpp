@@ -65,9 +65,9 @@ Relation Data::getRelation(int groupA, int groupB) const
 	return it != _relationMap.end() ? it->second : Relation::Unkown;
 }
 
-Relation Data::getRelation(Unit* unitA, Unit* unitB) const
+Relation Data::getRelation(Body* bodyA, Body* bodyB) const
 {
-	return Data::getRelation(unitA->getGroup(), unitB->getGroup());
+	return Data::getRelation(bodyA->getGroup(), bodyB->getGroup());
 }
 
 int Data::getGroupDetectPlayer() const

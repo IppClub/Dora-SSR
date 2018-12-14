@@ -50,7 +50,7 @@ public:
 			{
 				if (entity)
 				{
-					entity->clearComCache();
+					entity->clearOldComs();
 				}
 			}
 			updatedEntities.clear();
@@ -195,9 +195,9 @@ bool Entity::has(int index) const
 	return 0 <= index && index < s_cast<int>(_components.size()) && _components[index] != nullptr;
 }
 
-bool Entity::hasCache(int index) const
+bool Entity::hasOld(int index) const
 {
-	return 0 <= index && index < s_cast<int>(_comCache.size()) && _comCache[index] != nullptr;
+	return 0 <= index && index < s_cast<int>(_oldComs.size()) && _oldComs[index] != nullptr;
 }
 
 void Entity::remove(String name)
@@ -212,9 +212,9 @@ void Entity::remove(int index)
 	auto& removeHandler = SharedEntityPool.getRemoveHandler(index);
 	if (!removeHandler.IsEmpty())
 	{
-		if (!_comCache[index])
+		if (!_oldComs[index])
 		{
-			_comCache[index] = _components[index]->clone();
+			_oldComs[index] = _components[index]->clone();
 			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		}
 		removeHandler(this);
@@ -269,7 +269,7 @@ void Entity::updateComponent(int index, Own<Com>&& com, bool add)
 	if (add)
 	{
 		while (s_cast<int>(_components.size()) <= index) _components.emplace_back();
-		while (s_cast<int>(_comCache.size()) <= index) _comCache.emplace_back();
+		while (s_cast<int>(_oldComs.size()) <= index) _oldComs.emplace_back();
 		_components[index] = std::move(com);
 		handler = &SharedEntityPool.getAddHandler(index);
 	}
@@ -279,9 +279,9 @@ void Entity::updateComponent(int index, Own<Com>&& com, bool add)
 	}
 	if (!handler->IsEmpty())
 	{
-		if (!_comCache[index])
+		if (!_oldComs[index])
 		{
-			_comCache[index] = add ? Own<Com>() : std::move(com);
+			_oldComs[index] = add ? Own<Com>() : std::move(com);
 			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		}
 		(*handler)(this);
@@ -299,20 +299,20 @@ Com* Entity::getComponent(int index) const
 	return has(index) ? _components[index].get() : nullptr;
 }
 
-Com* Entity::getCachedCom(String name) const
+Com* Entity::getOldCom(String name) const
 {
 	int index = SharedEntityPool.tryGetIndex(name);
-	return hasCache(index) ? _comCache[index].get() : nullptr;
+	return hasOld(index) ? _oldComs[index].get() : nullptr;
 }
 
-Com* Entity::getCachedCom(int index) const
+Com* Entity::getOldCom(int index) const
 {
-	return has(index) ? _comCache[index].get() : nullptr;
+	return has(index) ? _oldComs[index].get() : nullptr;
 }
 
-void Entity::clearComCache()
+void Entity::clearOldComs()
 {
-	std::fill(_comCache.begin(), _comCache.end(), nullptr);
+	std::fill(_oldComs.begin(), _oldComs.end(), nullptr);
 }
 
 Entity* Entity::create()
