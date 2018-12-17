@@ -115,8 +115,8 @@ walk = Sel {
 			sensor = @getSensorByTag UnitDef.AttackSensorTag
 			sensor.sensedBodies\each (body)->
 				if body.group == Data.groupTerrain and
-					body.tag == "Obstacle" and
-					(@x > body.x) ~= @faceRight
+					(@x > body.x) ~= @faceRight and
+					body.tag == "Obstacle"
 					start = @position
 					stop = Vec2 start.x+(@faceRight and 140 or -140),start.y
 					if world\raycast start,stop,true,(b,p)->
@@ -141,7 +141,7 @@ walk = Sel {
 	Act "walk"
 }
 
-attackDecision = Seq {
+fightDecision = Seq {
 	Con "see enemy",=>
 		if AI\getNearestUnit(Relation.Enemy) then true else false
 	Sel {
@@ -207,7 +207,7 @@ Data.cache["AI_Zombie"] = Sel {
 		Con "not entered",=> not @entity.entered
 		Act "groundEntrance"
 	}
-	attackDecision
+	fightDecision
 	Seq {
 		Con "need stop",=> not @isDoing "idle"
 		Act "cancel"
@@ -222,7 +222,7 @@ Data.cache["AI_KidFollow"] = Sel {
 		Con "is dead",=> @entity.hp <= 0
 		Pass!
 	}
-	attackDecision
+	fightDecision
 	Seq {
 		Con "is falling",=> not @onSurface
 		Act "fallOff"
@@ -254,7 +254,7 @@ Data.cache["AI_KidSearch"] = Sel {
 		Con "is dead",=> @entity.hp <= 0
 		Pass!
 	}
-	attackDecision
+	fightDecision
 	Seq {
 		Con "is falling",=> not @onSurface
 		Act "fallOff"
@@ -696,7 +696,7 @@ updatePlayerControl = (key,flag)->
 	player = nil
 	playerGroup\each => player = @ if @unit.tag == controlPlayer
 	player[key] = flag if player
-uiScale = App.size.width/App.designSize.width
+uiScale = App.designScale
 
 with AlignNode true
 	.visible = false

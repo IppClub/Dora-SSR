@@ -101,7 +101,6 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 	SharedView.pushName("RenderTarget"_slice, [&]()
 	{
 		Uint8 viewId = SharedView.getId();
-
 		bgfx::setViewFrameBuffer(viewId, _frameBufferHandle);
 		bgfx::setViewRect(viewId, 0, 0, _textureWidth, _textureHeight);
 		if (clear)

@@ -21,7 +21,7 @@ _nearPlaneDistance(0.1f),
 _farPlaneDistance(10000.0f),
 _fieldOfView(45.0f),
 _flag(BGFX_RESET_VSYNC|BGFX_RESET_HIDPI),
-_size(SharedApplication.getSize()),
+_size(SharedApplication.getBufferSize()),
 _scale(1.0f)
 { }
 
@@ -82,8 +82,8 @@ Size View::getSize() const
 void View::setScale(float var)
 {
 	_scale = var;
-	Size winSize = SharedApplication.getSize();
-	_size = {winSize.width / _scale, winSize.height / _scale};
+	Size bufferSize = SharedApplication.getBufferSize();
+	_size = {bufferSize.width / _scale, bufferSize.height / _scale};
 	Event::send("AppSizeChanged"_slice);
 }
 
@@ -104,8 +104,8 @@ void View::setVSync(bool var)
 		{
 			_flag &= ~BGFX_RESET_VSYNC;
 		}
-		Size size = SharedApplication.getSize();
-		bgfx::reset(s_cast<Uint32>(size.width), s_cast<Uint32>(size.height), _flag);
+		Size bufferSize = SharedApplication.getBufferSize();
+		bgfx::reset(s_cast<Uint32>(bufferSize.width), s_cast<Uint32>(bufferSize.height), _flag);
 	}
 }
 
@@ -185,11 +185,11 @@ SpriteEffect* View::getPostEffect() const
 
 void View::reset()
 {
-	Size size = SharedApplication.getSize();
-	_size = {size.width / _scale, size.height / _scale};
+	Size bufferSize = SharedApplication.getBufferSize();
+	_size = {bufferSize.width / _scale, bufferSize.height / _scale};
 	bgfx::reset(
-		s_cast<uint32_t>(size.width),
-		s_cast<uint32_t>(size.height),
+		s_cast<uint32_t>(bufferSize.width),
+		s_cast<uint32_t>(bufferSize.height),
 		_flag);
 	updateProjection();
 }

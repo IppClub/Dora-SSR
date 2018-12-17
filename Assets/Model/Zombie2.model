@@ -8,6 +8,26 @@
 		<C/>
 		<C/>
 		<C/>
+		<B D="-15,2" A="0,0.5" H="body" I="Zombie2">
+			<E A="Units.clip|Zombie2_GroundEntrance::30,30,11,1.1" B="0"/>
+			<E A="Units.clip|Zombie2_Walk::30,30,6,0.5" B="0"/>
+			<E A="Units.clip|Zombie2_Attack::30,30,6,0.5" B="0"/>
+			<E A="Units.clip|Zombie2_Idle::30,30,3,0.4" B="0"/>
+			<E A="Units.clip|Zombie2_Jump::30,30,2,0.3" B="0"/>
+			<E A="Units.clip|Zombie2_Death::30,30,7,0.6" B="0"/>
+			<E A="Units.clip|Goo_Zombie2::30,30,1,0" B="0"/>
+			<E A="Units.clip|Zombie2_Idle::30,30,1,0.1" B="0"/>
+		</B>
+		<B D="-15,1" A="0,0.5" H="deadBody" I="Goo_Zombie2">
+			<C/>
+			<C/>
+			<C/>
+			<C/>
+			<C/>
+			<C/>
+			<E A="Units.clip|Zombie2_Death_Headshot::30,30,8,0.7" B="0"/>
+			<C/>
+		</B>
 		<B D="-15,2" A="0,0.5" H="goo" I="Goo_Zombie2">
 			<E A="Units.clip|Goo_Zombie2_GroundEntrance::30,30,11,1.1" B="0"/>
 			<E A="Units.clip|Goo_Zombie2_Walk::30,30,6,0.5" B="0"/>
@@ -17,16 +37,6 @@
 			<E A="Units.clip|Goo_Zombie2_Death::30,30,7,0.6" B="0"/>
 			<E A="Units.clip|Goo_Zombie2_Death_Headshot::30,30,8,0.7" B="0"/>
 			<C/>
-		</B>
-		<B D="-15,2" A="0,0.5" H="body" I="Zombie2">
-			<E A="Units.clip|Zombie2_GroundEntrance::30,30,11,1.1" B="0"/>
-			<E A="Units.clip|Zombie2_Walk::30,30,6,0.5" B="0"/>
-			<E A="Units.clip|Zombie2_Attack::30,30,6,0.5" B="0"/>
-			<E A="Units.clip|Zombie2_Idle::30,30,3,0.4" B="0"/>
-			<E A="Units.clip|Zombie2_Jump::30,30,2,0.3" B="0"/>
-			<E A="Units.clip|Zombie2_Death::30,30,7,0.6" B="0"/>
-			<E A="Units.clip|Zombie2_Death_Headshot::30,30,8,0.7" B="0"/>
-			<E A="Units.clip|Zombie2_Idle::30,30,1,0.1" B="0"/>
 		</B>
 	</B>
 	<J C="0" H="groundEntrance"/>

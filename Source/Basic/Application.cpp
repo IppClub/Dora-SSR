@@ -60,8 +60,8 @@ _designWidth(1024),
 _designHeight(768),
 _winWidth(_designWidth),
 _winHeight(_designHeight),
-_width(0),
-_height(0),
+_bufferWidth(0),
+_bufferHeight(0),
 _maxFPS(60),
 _minFPS(30),
 _deltaTime(0),
@@ -73,9 +73,9 @@ _sdlWindow(nullptr)
 	_lastTime = bx::getHPCounter() / _frequency;
 }
 
-Size Application::getSize() const
+Size Application::getBufferSize() const
 {
-	return Size{s_cast<float>(_width), s_cast<float>(_height)};
+	return Size{s_cast<float>(_bufferWidth), s_cast<float>(_bufferHeight)};
 }
 
 Size Application::getDesignSize() const
@@ -88,9 +88,9 @@ Size Application::getWinSize() const
 	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
-float Application::getDeviceRatio() const
+float Application::getDesignScale() const
 {
-	return s_cast<float>(_width) / _designWidth;
+	return s_cast<float>(_bufferWidth) / _designWidth;
 }
 
 void Application::setSeed(Uint32 var)
@@ -291,7 +291,7 @@ void Application::updateDeltaTime()
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 void Application::updateWindowSize()
 {
-	SDL_GL_GetDrawableSize(_sdlWindow, &_width, &_height);
+	SDL_GL_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 #if BX_PLATFORM_WINDOWS
 	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
@@ -516,6 +516,12 @@ void Application::setupSdlWindow()
 #if BX_PLATFORM_WINDOWS
 	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
 	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
+	SDL_DisplayMode displayMode{};
+	SDL_GetCurrentDisplayMode(0, &displayMode);
+	int screenWidth = MulDiv(displayMode.w, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
+	int screenHeight = MulDiv(displayMode.h, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
+	_designWidth = Math::clamp(_designWidth, 0, screenWidth);
+	_designHeight = Math::clamp(_designHeight, 0, screenHeight);
 	if (hdpi != DEFAULT_WIN_DPI || vdpi != DEFAULT_WIN_DPI)
 	{
 		_winWidth = MulDiv(_designWidth, s_cast<int>(hdpi), DEFAULT_WIN_DPI);
