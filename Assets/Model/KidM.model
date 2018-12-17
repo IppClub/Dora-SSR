@@ -7,6 +7,7 @@
 		<C/>
 		<C/>
 		<C/>
+		<C/>
 		<B D="-15,0" A="0,0.5" H="body" I="KidM">
 			<E A="Units.clip|KidM_Idle::30,30,2,0.3" B="0"/>
 			<E A="Units.clip|KidM_Jump::30,30,3,0.3" B="0"/>
@@ -16,6 +17,7 @@
 			<E A="Units.clip|KidM_ShootRun::30,30,6,0.4" B="0"/>
 			<E A="Units.clip|KidM_ShootJump::30,30,3,0.3" B="0"/>
 			<E A="Units.clip|KidM_Idle::30,30,1,0.1" B="0"/>
+			<E A="Units.clip|KidM_Fall::30,30,1,0.1" B="0"/>
 		</B>
 	</B>
 	<J C="0" H="idle"/>
@@ -26,5 +28,6 @@
 	<J C="5" H="attackRun"/>
 	<J C="6" H="attackJump"/>
 	<J C="7" H="hit"/>
+	<J C="8" H="fallOff"/>
 	<K A="bullet" B="6,0"/>
 </A>

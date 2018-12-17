@@ -25,10 +25,10 @@ class Application
 public:
 	virtual ~Application() { }
 	PROPERTY_READONLY(Uint32, Frame);
-	PROPERTY_READONLY(Size, Size);
 	PROPERTY_READONLY(Size, WinSize);
+	PROPERTY_READONLY(Size, BufferSize);
 	PROPERTY_READONLY(Size, DesignSize);
-	PROPERTY_READONLY(float, DeviceRatio);
+	PROPERTY_READONLY(float, DesignScale);
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
@@ -76,8 +76,8 @@ private:
 	int _designHeight;
 	int _winWidth;
 	int _winHeight;
-	int _width;
-	int _height;
+	int _bufferWidth;
+	int _bufferHeight;
 	Uint32 _seed;
 	Uint32 _maxFPS;
 	Uint32 _minFPS;

@@ -221,7 +221,7 @@ showLog = false
 showFooter = true
 scaleContent = false
 footerFocus = false
-screenScale = App.size.width/App.designSize.width
+screenScale = App.designScale
 threadLoop ->
 	left = Keyboard\isKeyDown "Left"
 	right = Keyboard\isKeyDown "Right"

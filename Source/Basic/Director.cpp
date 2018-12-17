@@ -315,6 +315,7 @@ void Director::mainLoop()
 				_renderTarget = RenderTarget::create(
 					s_cast<uint16>(viewSize.width),
 					s_cast<uint16>(viewSize.height));
+				_renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
 			}
 			SpriteEffect* postEffect = SharedView.getPostEffect();
 			if (postEffect && postEffect != _renderTarget->getSurface()->getEffect())
@@ -532,8 +533,8 @@ NVGcontext* Director::markNVGDirty()
 	{
 		_nvgDirty = true;
 		Size designSize = SharedApplication.getDesignSize();
-		float deviceRatio = SharedApplication.getDeviceRatio();
-		nvgBeginFrame(_nvgContext, s_cast<int>(designSize.width), s_cast<int>(designSize.height), deviceRatio);
+		float designScale = SharedApplication.getDesignScale();
+		nvgBeginFrame(_nvgContext, s_cast<int>(designSize.width), s_cast<int>(designSize.height), designScale);
 	}
 	return _nvgContext;
 }

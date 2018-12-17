@@ -97,8 +97,9 @@ struct Rect
 
 class Application
 {
-	tolua_readonly tolua_property__common Size size;
+	tolua_readonly tolua_property__common Size bufferSize;
 	tolua_readonly tolua_property__common Size designSize;
+	tolua_readonly tolua_property__common float designScale;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_readonly tolua_property__common Uint32 rand;

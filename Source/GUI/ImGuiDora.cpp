@@ -212,7 +212,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	AssertIf(isLoadingFont, "font is loading.");
 	isLoadingFont = true;
 
-	float scale = SharedApplication.getSize().width / SharedApplication.getDesignSize().width;
+	float scale = SharedApplication.getDesignScale();
 	fontSize *= scale;
 
 	Sint64 size;
@@ -617,7 +617,7 @@ void ImGuiDora::render()
 			ImDrawVert* verts = (ImDrawVert*)tvb.data;
 			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
 
-			float scale = SharedApplication.getSize().width / SharedApplication.getDesignSize().width;
+			float scale = SharedApplication.getDesignScale();
 			_effect->set("u_scale"_slice,  scale);
 
 			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
