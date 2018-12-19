@@ -148,12 +148,12 @@ builtin.sleep = function(duration)
 	end
 end
 
-builtin.using = function(path)
+builtin.namespace = function(path)
 	if path then
 		return function(name)
-			local result = package.loaded[name]
+			local result = require(path.."."..name)
 			if not result then
-				result = require(path.."."..name)
+				result = package.loaded[name]
 			end
 			return result
 		end

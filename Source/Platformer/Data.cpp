@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_PLATFORMER_BEGIN
 
 Data::Data():
-_cache(Dictionary::create())
+_store(Dictionary::create())
 { }
 
 //Group [0] for hide
@@ -118,9 +118,9 @@ bool Data::isTerrain(Body* body)
 	return body->getGroup() == Data::getGroupTerrain();
 }
 
-Dictionary* Data::getCache() const
+Dictionary* Data::getStore() const
 {
-	return _cache;
+	return _store;
 }
 
 NS_DOROTHY_PLATFORMER_END

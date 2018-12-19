@@ -1269,7 +1269,7 @@ class Data
 	tolua_readonly tolua_property__common int groupDetectPlayer;
 	tolua_readonly tolua_property__common int groupTerrain;
 	tolua_readonly tolua_property__common int groupDetection;
-	tolua_readonly tolua_property__common Dictionary* cache;
+	tolua_readonly tolua_property__common Dictionary* store;
 	void setRelation(int groupA, int groupB, Relation relation);
 	Relation getRelation(int groupA, int groupB);
 	Relation getRelation(Body* bodyA, Body* bodyB);
