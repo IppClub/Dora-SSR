@@ -318,6 +318,9 @@
 		3C49FFED20EF63D000E775D7 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/stb/stb_rect_pack.h; sourceTree = "<group>"; };
 		3C49FFEE20EF644900E775D7 /* stb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = stb.cpp; path = ../../../Source/3rdParty/stb/stb.cpp; sourceTree = "<group>"; };
 		3C4A542C20F5F8B6007ED601 /* Component.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Component.cpp; path = ../../../Source/Entity/Component.cpp; sourceTree = "<group>"; };
+		3C53C13E21C9DCBE00343D85 /* chrono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = chrono.h; path = ../../../Source/3rdParty/fmt/chrono.h; sourceTree = "<group>"; };
+		3C53C13F21C9DCBE00343D85 /* color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = color.h; path = ../../../Source/3rdParty/fmt/color.h; sourceTree = "<group>"; };
+		3C53C14021C9DCBE00343D85 /* locale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = locale.h; path = ../../../Source/3rdParty/fmt/locale.h; sourceTree = "<group>"; };
 		3C57A39B1E0A05AD002141DF /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C57A39C1E0A05AD002141DF /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C57A39D1E0A05AD002141DF /* EventType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventType.cpp; path = ../../../Source/Event/EventType.cpp; sourceTree = "<group>"; };
@@ -861,6 +864,9 @@
 		3C6C07631E5E857B00BAA745 /* fmt */ = {
 			isa = PBXGroup;
 			children = (
+				3C53C13E21C9DCBE00343D85 /* chrono.h */,
+				3C53C13F21C9DCBE00343D85 /* color.h */,
+				3C53C14021C9DCBE00343D85 /* locale.h */,
 				3C37F48320D1242F002D2BF0 /* core.h */,
 				3C37F48D20D12430002D2BF0 /* format-inl.h */,
 				3C37F48720D1242F002D2BF0 /* format.cpp */,

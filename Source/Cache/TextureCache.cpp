@@ -42,40 +42,37 @@ const bgfx::TextureInfo& Texture2D::getInfo() const
 
 TextureFilter Texture2D::getFilter() const
 {
-	TextureFilter filter = TextureFilter::Anisotropic;
-	if ((_flags & BGFX_SAMPLER_MIN_POINT) != 0)
+	if ((_flags & (BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT)) != 0)
 	{
-		filter = TextureFilter::Point;
+		return TextureFilter::Point;
 	}
-	return filter;
+	return TextureFilter::Anisotropic;
 }
 
 TextureWrap Texture2D::getUWrap() const
 {
-	TextureWrap wrap = TextureWrap::Mirror;
 	if ((_flags & BGFX_SAMPLER_U_CLAMP) != 0)
 	{
-		wrap = TextureWrap::Clamp;
+		return TextureWrap::Clamp;
 	}
 	else if ((_flags & BGFX_SAMPLER_U_BORDER) != 0)
 	{
-		wrap = TextureWrap::Border;
+		return TextureWrap::Border;
 	}
-	return wrap;
+	return TextureWrap::Mirror;
 }
 
 TextureWrap Texture2D::getVWrap() const
 {
-	TextureWrap wrap = TextureWrap::Mirror;
 	if ((_flags & BGFX_SAMPLER_V_CLAMP) != 0)
 	{
-		wrap = TextureWrap::Clamp;
+		return TextureWrap::Clamp;
 	}
 	else if ((_flags & BGFX_SAMPLER_V_BORDER) != 0)
 	{
-		wrap = TextureWrap::Border;
+		return TextureWrap::Border;
 	}
-	return wrap;
+	return TextureWrap::Mirror;
 }
 
 Uint64 Texture2D::getFlags() const

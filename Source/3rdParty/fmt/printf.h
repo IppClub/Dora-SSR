@@ -16,6 +16,130 @@
 FMT_BEGIN_NAMESPACE
 namespace internal {
 
+// An iterator that produces a null terminator on *end. This simplifies parsing
+// and allows comparing the performance of processing a null-terminated string
+// vs string_view.
+template <typename Char>
+class null_terminating_iterator {
+ public:
+  typedef std::ptrdiff_t difference_type;
+  typedef Char value_type;
+  typedef const Char* pointer;
+  typedef const Char& reference;
+  typedef std::random_access_iterator_tag iterator_category;
+
+  null_terminating_iterator() : ptr_(0), end_(0) {}
+
+  FMT_CONSTEXPR null_terminating_iterator(const Char *ptr, const Char *end)
+    : ptr_(ptr), end_(end) {}
+
+  template <typename Range>
+  FMT_CONSTEXPR explicit null_terminating_iterator(const Range &r)
+    : ptr_(r.begin()), end_(r.end()) {}
+
+  FMT_CONSTEXPR null_terminating_iterator &operator=(const Char *ptr) {
+    assert(ptr <= end_);
+    ptr_ = ptr;
+    return *this;
+  }
+
+  FMT_CONSTEXPR Char operator*() const {
+    return ptr_ != end_ ? *ptr_ : Char();
+  }
+
+  FMT_CONSTEXPR null_terminating_iterator operator++() {
+    ++ptr_;
+    return *this;
+  }
+
+  FMT_CONSTEXPR null_terminating_iterator operator++(int) {
+    null_terminating_iterator result(*this);
+    ++ptr_;
+    return result;
+  }
+
+  FMT_CONSTEXPR null_terminating_iterator operator--() {
+    --ptr_;
+    return *this;
+  }
+
+  FMT_CONSTEXPR null_terminating_iterator operator+(difference_type n) {
+    return null_terminating_iterator(ptr_ + n, end_);
+  }
+
+  FMT_CONSTEXPR null_terminating_iterator operator-(difference_type n) {
+    return null_terminating_iterator(ptr_ - n, end_);
+  }
+
+  FMT_CONSTEXPR null_terminating_iterator operator+=(difference_type n) {
+    ptr_ += n;
+    return *this;
+  }
+
+  FMT_CONSTEXPR difference_type operator-(
+      null_terminating_iterator other) const {
+    return ptr_ - other.ptr_;
+  }
+
+  FMT_CONSTEXPR bool operator!=(null_terminating_iterator other) const {
+    return ptr_ != other.ptr_;
+  }
+
+  bool operator>=(null_terminating_iterator other) const {
+    return ptr_ >= other.ptr_;
+  }
+
+  // This should be a friend specialization pointer_from<Char> but the latter
+  // doesn't compile by gcc 5.1 due to a compiler bug.
+  template <typename CharT>
+  friend FMT_CONSTEXPR_DECL const CharT *pointer_from(
+      null_terminating_iterator<CharT> it);
+
+ private:
+  const Char *ptr_;
+  const Char *end_;
+};
+
+template <typename T>
+FMT_CONSTEXPR const T *pointer_from(const T *p) { return p; }
+
+template <typename Char>
+FMT_CONSTEXPR const Char *pointer_from(null_terminating_iterator<Char> it) {
+  return it.ptr_;
+}
+
+// DEPRECATED: Parses the input as an unsigned integer. This function assumes
+// that the first character is a digit and presence of a non-digit character at
+// the end.
+// it: an iterator pointing to the beginning of the input range.
+template <typename Iterator, typename ErrorHandler>
+FMT_CONSTEXPR unsigned parse_nonnegative_int(Iterator &it, ErrorHandler &&eh) {
+  assert('0' <= *it && *it <= '9');
+  if (*it == '0') {
+    ++it;
+    return 0;
+  }
+  unsigned value = 0;
+  // Convert to unsigned to prevent a warning.
+  unsigned max_int = (std::numeric_limits<int>::max)();
+  unsigned big = max_int / 10;
+  do {
+    // Check for overflow.
+    if (value > big) {
+      value = max_int + 1;
+      break;
+    }
+    value = value * 10 + unsigned(*it - '0');
+    // Workaround for MSVC "setup_exception stack overflow" error:
+    auto next = it;
+    ++next;
+    it = next;
+  } while ('0' <= *it && *it <= '9');
+  if (value > max_int)
+    eh.on_error("number is too big");
+  return value;
+}
+
 // Checks if a value fits in int - used to avoid warnings about comparing
 // signed and unsigned integers.
 template <bool IsSigned>
@@ -192,7 +316,15 @@ class printf_width_handler: public function<unsigned> {
     return 0;
   }
 };
+
+template <typename Char, typename Context>
+void printf(basic_buffer<Char> &buf, basic_string_view<Char> format,
+            basic_format_args<Context> args) {
+  Context(std::back_inserter(buf), format, args).format();
+}
 }  // namespace internal
+
+using internal::printf;  // For printing into memory_buffer.
 
 template <typename Range>
 class printf_arg_formatter;
@@ -566,12 +698,6 @@ void basic_printf_context<OutputIt, Char, AF>::format() {
   buffer.append(pointer_from(start), pointer_from(it));
 }
 
-template <typename Char, typename Context>
-void printf(internal::basic_buffer<Char> &buf, basic_string_view<Char> format,
-            basic_format_args<Context> args) {
-  Context(std::back_inserter(buf), format, args).format();
-}
-
 template <typename Buffer>
 struct basic_printf_context_t {
   typedef basic_printf_context<
@@ -624,7 +750,8 @@ vsprintf(const S &format,
   \endrst
 */
 template <typename S, typename... Args>
-inline FMT_ENABLE_IF_STRING(S, std::basic_string<FMT_CHAR(S)>)
+inline FMT_ENABLE_IF_T(
+    internal::is_string<S>::value, std::basic_string<FMT_CHAR(S)>)
     sprintf(const S &format, const Args & ... args) {
   internal::check_format_string<Args...>(format);
   typedef internal::basic_buffer<FMT_CHAR(S)> buffer;
@@ -655,7 +782,7 @@ inline int vfprintf(std::FILE *f, const S &format,
   \endrst
  */
 template <typename S, typename... Args>
-inline FMT_ENABLE_IF_STRING(S, int)
+inline FMT_ENABLE_IF_T(internal::is_string<S>::value, int)
     fprintf(std::FILE *f, const S &format, const Args & ... args) {
   internal::check_format_string<Args...>(format);
   typedef internal::basic_buffer<FMT_CHAR(S)> buffer;
@@ -682,7 +809,7 @@ inline int vprintf(const S &format,
   \endrst
  */
 template <typename S, typename... Args>
-inline FMT_ENABLE_IF_STRING(S, int)
+inline FMT_ENABLE_IF_T(internal::is_string<S>::value, int)
     printf(const S &format_str, const Args & ... args) {
   internal::check_format_string<Args...>(format_str);
   typedef internal::basic_buffer<FMT_CHAR(S)> buffer;
@@ -713,7 +840,7 @@ inline int vfprintf(std::basic_ostream<Char> &os,
   \endrst
  */
 template <typename S, typename... Args>
-inline FMT_ENABLE_IF_STRING(S, int)
+inline FMT_ENABLE_IF_T(internal::is_string<S>::value, int)
     fprintf(std::basic_ostream<FMT_CHAR(S)> &os,
             const S &format_str, const Args & ... args) {
   internal::check_format_string<Args...>(format_str);

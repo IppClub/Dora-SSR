@@ -135,6 +135,10 @@ struct Vec3
 	{
 		return Vec2{x, y};
 	}
+	static inline Vec3 from(const bx::Vec3& vec3)
+	{
+		return {vec3.x, vec3.y, vec3.z};
+	}
 };
 
 struct Vec4

@@ -190,7 +190,7 @@ int Application::run()
 #endif
 
 	// call this function here to disable default render threads creation of bgfx
-	Application::renderFrame();
+	bgfx::renderFrame();
 
 	// start running logic thread
 	_logicThread.init(Application::mainLogic, this);
@@ -263,11 +263,11 @@ int Application::run()
 		}
 
 		// do render staff and swap buffers
-		Application::renderFrame();
+		bgfx::renderFrame();
 	}
 
 	// wait for render process to stop
-	while (bgfx::RenderFrame::NoContext != Application::renderFrame());
+	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
 	_logicThread.shutdown();
 
 	SDL_DestroyWindow(_sdlWindow);
@@ -476,13 +476,6 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 	Life::destroy("BGFXDora"_slice);
 	return 0;
 }
-
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
-bgfx::RenderFrame::Enum Application::renderFrame()
-{
-	return bgfx::renderFrame();
-}
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 
 const Slice Application::getPlatform() const
 {

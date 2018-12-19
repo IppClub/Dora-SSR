@@ -69,7 +69,6 @@ protected:
 	void updateWindowSize();
 	void makeTimeNow();
 	void setupSdlWindow();
-	bgfx::RenderFrame::Enum renderFrame();
 private:
 	bool _fpsLimited;
 	int _designWidth;

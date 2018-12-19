@@ -1119,5 +1119,14 @@
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imstb_textedit.h">
       <Filter>3rdParty\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -308,6 +308,9 @@
 		3C4BC6621E17F1B500292200 /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/ToLua/tolua_to.cpp; sourceTree = "<group>"; };
 		3C4BC6631E17F1B500292200 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/ToLua/tolua++.h"; sourceTree = "<group>"; };
 		3C50976D1E65B92F00896971 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
+		3C53C14121C9DCDB00343D85 /* chrono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = chrono.h; path = ../../../Source/3rdParty/fmt/chrono.h; sourceTree = "<group>"; };
+		3C53C14221C9DCDB00343D85 /* color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = color.h; path = ../../../Source/3rdParty/fmt/color.h; sourceTree = "<group>"; };
+		3C53C14321C9DCDB00343D85 /* locale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = locale.h; path = ../../../Source/3rdParty/fmt/locale.h; sourceTree = "<group>"; };
 		3C5972F81E7F74CB00BFD00F /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = ../../../Source/Animation/Animation.cpp; sourceTree = "<group>"; };
 		3C5972F91E7F74CB00BFD00F /* Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Animation.h; path = ../../../Source/Animation/Animation.h; sourceTree = "<group>"; };
 		3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelDef.cpp; path = ../../../Source/Animation/ModelDef.cpp; sourceTree = "<group>"; };
@@ -791,6 +794,9 @@
 		3C88055F1E5ED0F900B52D4B /* fmt */ = {
 			isa = PBXGroup;
 			children = (
+				3C53C14121C9DCDB00343D85 /* chrono.h */,
+				3C53C14221C9DCDB00343D85 /* color.h */,
+				3C53C14321C9DCDB00343D85 /* locale.h */,
 				3C15681E20E4B7D5004F8785 /* core.h */,
 				3C15682720E4B7D6004F8785 /* format-inl.h */,
 				3C15682220E4B7D6004F8785 /* format.cpp */,

@@ -1,20 +1,6 @@
 #include "Const/Header.h"
 #include "Basic/Application.h"
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_IOS
-NS_DOROTHY_BEGIN
-bgfx::RenderFrame::Enum Application::renderFrame()
-{
-	bgfx::RenderFrame::Enum result;
-	@autoreleasepool
-	{
-		result = bgfx::renderFrame();
-	}
-	return result;
-}
-NS_DOROTHY_END
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
-
 #if BX_PLATFORM_IOS
 #import <QuartzCore/CAEAGLLayer.h>
 
@@ -23,8 +9,8 @@ void Application::updateWindowSize()
 {
 	CGRect bounds = [UIScreen mainScreen].bounds;
 	CGFloat scale = [UIScreen mainScreen].scale;
-	_width = bounds.size.width * scale;
-	_height = bounds.size.height * scale;
+	_bufferWidth = bounds.size.width * scale;
+	_bufferHeight = bounds.size.height * scale;
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 	_designWidth = _winWidth;
 	_designHeight = _winHeight;
