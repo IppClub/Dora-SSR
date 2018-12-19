@@ -6,12 +6,11 @@ Circle = require "UI.View.Shape.Circle"
 Star = require "UI.View.Shape.Star"
 CircleButton = require "UI.Control.Basic.CircleButton"
 
-keyboardEnabled = false
-controlPlayer = "KidW"
+Store.controlPlayer = "KidW"
 playerGroup = Group {"player"}
 updatePlayerControl = (key,flag)->
 	player = nil
-	playerGroup\each => player = @ if @unit.tag == controlPlayer
+	playerGroup\each => player = @ if @unit.tag == Store.controlPlayer
 	player[key] = flag if player
 uiScale = App.designScale
 
@@ -68,8 +67,9 @@ with AlignNode true
 	\addTo with Director.ui
 		.renderGroup = true
 
+Store.keyboardEnabled = false
 keyboardControl = loop ->
-	return unless keyboardEnabled
+	return unless Store.keyboardEnabled
 	updatePlayerControl "keyLeft", Keyboard\isKeyPressed "A"
 	updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"
 	updatePlayerControl "keyUp", Keyboard\isKeyPressed "K"
