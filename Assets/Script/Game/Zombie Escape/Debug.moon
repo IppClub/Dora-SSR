@@ -50,7 +50,7 @@ world\schedule ->
 			playerGroup\each => @unit.receivingDecisionTrace = showDecisionTrace
 		changed,userControl = Checkbox "Take Control",userControl
 		if userControl
-			if controlPlayer == "Zombie" and
+			if Store.controlPlayer == "Zombie" and
 				not playerGroup\each =>
 					if @unit.tag == "Zombie"
 						if @hp <= 0
@@ -87,11 +87,11 @@ world\schedule ->
 			pressedC,choice = RadioButton "Zombie",playerChoice,2
 			playerChoice = choice if pressedC
 			if pressedA or pressedB or pressedC or changed
-				controlPlayer = switch playerChoice
+				Store.controlPlayer = switch playerChoice
 					when 0 then "KidM"
 					when 1 then "KidW"
 					when 2 then "Zombie"
-				if controlPlayer == "Zombie" and
+				if Store.controlPlayer == "Zombie" and
 					not playerGroup\each => @unit.tag == "Zombie"
 					zombieGroup\each =>
 						@player = true
@@ -109,7 +109,7 @@ world\schedule ->
 							}
 						true
 				playerGroup\each =>
-					if @unit.tag == controlPlayer
+					if @unit.tag == Store.controlPlayer
 						@unit.decisionTree = "AI_PlayerControl"
 						@unit.sensity = 0
 						world.camera.followTarget = @unit
@@ -120,7 +120,7 @@ world\schedule ->
 							when "Zombie" then "AI_Zombie"
 						@unit.sensity = 0.1
 			if changed
-				keyboardEnabled = controlChoice == 1
+				Store.keyboardEnabled = controlChoice == 1
 				Director.ui.children.first.visible = controlChoice == 0
 			Separator!
 			TextWrapped if controlChoice == 1
@@ -130,12 +130,12 @@ world\schedule ->
 			pressedA,choice = RadioButton "TouchPad",controlChoice,0
 			if pressedA
 				controlChoice = choice
-				keyboardEnabled = false
+				Store.keyboardEnabled = false
 				Director.ui\eachChild => @visible = true
 			pressedB,choice = RadioButton "Keyboard",controlChoice,1
 			if pressedB
 				controlChoice = choice
-				keyboardEnabled = true
+				Store.keyboardEnabled = true
 				Director.ui.children.first.visible = false
 		elseif changed
 			playerGroup\each =>
@@ -144,7 +144,7 @@ world\schedule ->
 					when "KidW" then "AI_KidSearch"
 					when "Zombie" then "AI_Zombie"
 				@unit.sensity = 0.1
-			keyboardEnabled = false
+			Store.keyboardEnabled = false
 			Director.ui.children.first.visible = false
 	End!
 
