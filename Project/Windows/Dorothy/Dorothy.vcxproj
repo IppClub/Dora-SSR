@@ -433,9 +433,12 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Rope\b2Rope.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\core.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\format-inl.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h" />
