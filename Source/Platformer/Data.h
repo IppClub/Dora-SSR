@@ -28,7 +28,7 @@ public:
 	PROPERTY_READONLY(int, GroupDetectPlayer);
 	PROPERTY_READONLY(int, GroupTerrain);
 	PROPERTY_READONLY(int, GroupDetection);
-	PROPERTY_READONLY(Dictionary*, Cache);
+	PROPERTY_READONLY(Dictionary*, Store);
 	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
 	float getDamageFactor(Uint16 damageType, Uint16 defenceType) const;
 	bool isPlayer(Body* body);
@@ -39,7 +39,7 @@ protected:
 private:
 	unordered_map<int, Relation> _relationMap;
 	unordered_map<uint32, float> _damageBounusMap;
-	Ref<Dictionary> _cache;
+	Ref<Dictionary> _store;
 };
 
 #define SharedData \

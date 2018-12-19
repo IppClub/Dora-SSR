@@ -21,6 +21,7 @@ _world(world),
 _group(0),
 _receivingContact(false)
 {
+	AssertIf(world == nullptr, "init Body with invalid PhysicsWorld.");
 	bodyDef->position = PhysicsWorld::b2Val(pos + bodyDef->offset);
 	bodyDef->angle = -bx::toRad(rot + bodyDef->angleOffset);
 }

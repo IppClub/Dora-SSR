@@ -56,8 +56,8 @@ _entity(entity)
 
 Unit::Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot):
 Unit(
-	SharedData.getCache()->get(defName).to<UnitDef>(),
-	SharedData.getCache()->get(worldName).to<PhysicsWorld>(),
+	SharedData.getStore()->get(defName).to<UnitDef>(),
+	SharedData.getStore()->get(worldName).to<PhysicsWorld>(),
 	entity, pos, rot)
 { }
 
@@ -74,7 +74,7 @@ bool Unit::init()
 	Unit::setScaleX(_unitDef->getScale());
 	Unit::setScaleY(_unitDef->getScale());
 	Unit::setModel(model);
-	_bulletDef = SharedData.getCache()->get(_unitDef->bulletType).to<BulletDef>();
+	_bulletDef = SharedData.getStore()->get(_unitDef->bulletType).to<BulletDef>();
 	Body::setOwner(this);
 	for (const string& name : _unitDef->actions)
 	{
@@ -376,7 +376,7 @@ UnitAction* Unit::getCurrentAction() const
 void Unit::setDecisionTreeName(String name)
 {
 	_decisionTreeName = name;
-	AILeaf* leaf = SharedData.getCache()->get(name).to<AILeaf>();
+	AILeaf* leaf = SharedData.getStore()->get(name).to<AILeaf>();
 	_decisionTree = leaf;
 	SharedAI.runDecisionTree(this);
 }

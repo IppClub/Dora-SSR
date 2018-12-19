@@ -1,0 +1,12 @@
+Dorothy!
+require = namespace "Game.Zombie Escape"
+require "Constant"
+require "Unit"
+require "Body"
+require "Bullet"
+require "Action"
+require "AI"
+require "Logic"
+require "Control"
+require "Scene"
+require "Debug"

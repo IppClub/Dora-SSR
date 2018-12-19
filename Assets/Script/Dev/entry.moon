@@ -185,17 +185,20 @@ allClear = ->
 	Director\popCamera!
 	Cache\unload!
 	Entity\clear!
-	Platformer.Data.cache\clear!
+	Platformer.Data.store\clear!
 	Platformer.UnitAction\clear!
 	currentEntryName = nil
 	isInEntry = true
 
+games = [Path.getName item for item in *Path.getFolders Content.assetPath.."Script/Game", {"xml","lua","moon"}]
+table.sort games
 examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
 table.sort examples
 tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
 table.sort tests
 currentEntryName = nil
-allNames = for example in *examples do "Example/#{example}"
+allNames = for game in *games do "Game/#{game}"
+for example in *examples do table.insert allNames,"Example/#{example}"
 for test in *tests do table.insert allNames,"Test/#{test}"
 
 enterDemoEntry = (name)->
@@ -309,6 +312,13 @@ threadLoop ->
 	SetNextWindowSize Vec2(width,height-107)
 	PushStyleColor "WindowBg",Color(0x0)
 	if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+		TextColored Color(0xff00ffff), "Game demos"
+		Columns math.max(math.floor(width/200),1), false
+		for game in *games
+			if Button game, Vec2(-1,40)
+				enterDemoEntry "Game/#{game}/init"
+			NextColumn!
+		Columns 1, false
 		TextColored Color(0xff00ffff), "Examples"
 		Columns math.max(math.floor(width/200),1), false
 		for example in *examples
