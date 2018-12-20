@@ -68,15 +68,12 @@ with AlignNode true
 		.renderGroup = true
 
 Store.keyboardEnabled = false
-keyboardControl = loop ->
+keyboardControl = ->
 	return unless Store.keyboardEnabled
 	updatePlayerControl "keyLeft", Keyboard\isKeyPressed "A"
 	updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"
 	updatePlayerControl "keyUp", Keyboard\isKeyPressed "K"
 	updatePlayerControl "keyShoot", Keyboard\isKeyPressed "J"
 
-gameEnded = false
-thread -> Store.world\slot "Cleanup",-> gameEnded = true
-threadLoop ->
-	keyboardControl!
-	gameEnded
+Director.entry\addChild with Node!
+	\schedule loop keyboardControl

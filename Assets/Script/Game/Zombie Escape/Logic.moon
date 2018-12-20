@@ -53,7 +53,6 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 			\eachAction => @recovery = 0
 			.model\eachNode (sp)-> sp.filter = TextureFilter.Point
 		world.camera.followTarget = unit if isPlayer and unit.decisionTree == "AI_KidSearch"
-		@faceRight = nil
 
 with Observer "Change", {"hp","unit"}
 	\every =>
@@ -74,7 +73,7 @@ with Observer "Change", {"hp","unit"}
 					)
 
 zombieGroup = Group {"zombie"}
-spawnZombies = loop ->
+spawnZombies = ->
 	{
 		:ZombieLayer,
 		:ZombieGroup,
@@ -104,8 +103,5 @@ Store.zombieKilled = 0
 with Observer "Change", {"hp","zombie"}
 	\every => Store.zombieKilled += 1 if @hp <= 0
 
-gameEnded = false
-thread -> Store.world\slot "Cleanup",-> gameEnded = true
-threadLoop ->
-	spawnZombies!
-	gameEnded
+Director.entry\addChild with Node!
+	\schedule loop spawnZombies
