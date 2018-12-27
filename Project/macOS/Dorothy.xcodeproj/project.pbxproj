@@ -1389,6 +1389,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3CC81FFD1D966770008C8B77 /* Build configuration list for PBXNativeTarget "Dorothy" */;
 			buildPhases = (
+				3C6411FD21D4CFF3000D3968 /* ShellScript */,
 				3CC81FE21D966770008C8B77 /* Sources */,
 				3CC81FE31D966770008C8B77 /* Frameworks */,
 				3CC81FE41D966770008C8B77 /* Resources */,
@@ -1450,6 +1451,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3C6411FD21D4CFF3000D3968 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../../Tools/tolua++/build.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3CC81FE21D966770008C8B77 /* Sources */ = {
@@ -1669,6 +1690,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -1717,6 +1739,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};

@@ -54,6 +54,7 @@ BGFXDora::~BGFXDora()
 }
 
 Application::Application():
+_seed(0),
 _fpsLimited(false),
 _frame(0),
 _designWidth(1024),

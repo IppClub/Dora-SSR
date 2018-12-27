@@ -1320,6 +1320,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3CC820231D96680C008C8B77 /* Build configuration list for PBXNativeTarget "Dorothy" */;
 			buildPhases = (
+				3C6411FF21D4D337000D3968 /* ShellScript */,
 				3CC820051D96680C008C8B77 /* Sources */,
 				3CC820061D96680C008C8B77 /* Frameworks */,
 				3CC820071D96680C008C8B77 /* Resources */,
@@ -1385,6 +1386,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3C6411FF21D4D337000D3968 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../../Tools/tolua++/build.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		3CC820051D96680C008C8B77 /* Sources */ = {

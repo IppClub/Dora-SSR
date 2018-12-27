@@ -162,6 +162,7 @@ int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
 ImGuiDora::ImGuiDora():
+_touchHandler(nullptr),
 _textInputing(false),
 _mouseVisible(true),
 _lastCursor(0),

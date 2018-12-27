@@ -35,6 +35,7 @@ protected:
 vector<Ref<Object>> Scheduler::_updateItems;
 
 Scheduler::Scheduler():
+_deltaTime(0.0),
 _timeScale(1.0f),
 _actionList(Array::create())
 { }

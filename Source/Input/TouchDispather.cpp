@@ -27,6 +27,7 @@ Uint32 Touch::_source =
 #endif
 
 Touch::Touch(int id):
+_worldLocation(Vec2::zero),
 _flags(Touch::Enabled),
 _id(id)
 { }

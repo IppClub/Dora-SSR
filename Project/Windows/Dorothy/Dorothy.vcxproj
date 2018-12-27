@@ -623,6 +623,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\soloud\Lib\Windows;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)..\..\Build\$(Configuration).Win32\</OutDir>
+    <CustomBuildBeforeTargets>InitializeBuildStatus</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -630,6 +631,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\soloud\Lib\Windows;$(LibraryPath)</LibraryPath>
+    <CustomBuildBeforeTargets>InitializeBuildStatus</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -660,6 +662,15 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>..\..\..\Tools\tolua++\build.bat</Command>
+      <Outputs>non-exist-binding-check-file</Outputs>
+      <Message>Performing Binding Code Check</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -708,6 +719,11 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <CustomBuildStep>
+      <Outputs>non-exist-binding-check-file</Outputs>
+      <Message>Performing Binding Code Check</Message>
+      <Command>..\..\..\Tools\tolua++\build.bat</Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

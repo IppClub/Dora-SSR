@@ -22,6 +22,7 @@ bgfx::VertexDecl DrawVertex::ms_decl;
 DrawVertex::Init DrawVertex::init;
 
 DrawNode::DrawNode():
+_renderState(BGFX_STATE_NONE),
 _blendFunc(BlendFunc::Default)
 { }
 

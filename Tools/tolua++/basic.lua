@@ -1,3 +1,32 @@
+local output_change = lfs.attributes(flags.o,"change")
+local rebuild = output_change == nil
+
+if not rebuild then
+	local input_changes = {
+		lfs.attributes(flags.f,"change"),
+		lfs.attributes("basic.lua","change"),
+	}
+	local inputFile = io.open(flags.f,"r")
+	local content = inputFile:read("*a")
+	inputFile:close()
+	for file in content:gmatch("file%s*\"([^\"]+)") do
+		input_changes[#input_changes + 1] = lfs.attributes(file, "change")
+	end
+	for _,change in ipairs(input_changes) do
+		if output_change < change then
+			rebuild = true
+			break
+		end
+	end
+end
+
+if not rebuild then
+	print(string.format("C++ codes for \"%s\" are updated.", flags.f))
+	os.exit(0)
+else
+	print(string.format("Generating C++ codes for \"%s\"...", flags.f))
+end
+
 _push_functions = _push_functions or {}
 _collect_functions = _collect_functions or {}
 local objects = {
@@ -129,3 +158,4 @@ function get_property_methods_hook(ptype, name)
 	end
 	-- etc
 end
+

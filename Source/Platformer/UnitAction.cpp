@@ -472,7 +472,7 @@ float Attack::getDamage(Unit* target)
 
 Vec2 Attack::getHitPoint(Body* self, Body* target, b2Shape* selfShape)
 {
-	Vec2 hitPoint;
+	Vec2 hitPoint{};
 	float distance = -1;
 	for (b2Fixture* f = target->getB2Body()->GetFixtureList();f;f = f->GetNext())
 	{

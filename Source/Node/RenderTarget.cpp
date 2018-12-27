@@ -26,6 +26,7 @@ RenderTarget::RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enu
 _textureWidth(width),
 _textureHeight(height),
 _format(format),
+_frameBufferHandle(BGFX_INVALID_HANDLE),
 _dummy(Node::create())
 { }
 

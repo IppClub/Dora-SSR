@@ -44,7 +44,7 @@ public:
 			_weak->retain();
 		}
 	}
-	WRef(WRef&& ref): _weak(ref._weak)
+	WRef(WRef&& ref) noexcept: _weak(ref._weak)
 	{
 		ref._weak = nullptr;
 	}
