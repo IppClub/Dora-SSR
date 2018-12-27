@@ -38,6 +38,7 @@ void Look::unApply()
 }
 
 Model::Model(ModelDef* def):
+_isRecovering(false),
 _reversed(false),
 _isPlaying(false),
 _isPaused(false),

@@ -66,11 +66,13 @@ bgfx::ProgramHandle Effect::apply()
 }
 
 Effect::Effect(Shader* vertShader, Shader* fragShader):
+_program(BGFX_INVALID_HANDLE),
 _vertShader(vertShader),
 _fragShader(fragShader)
 { }
 
 Effect::Effect(String vertShader, String fragShader):
+_program(BGFX_INVALID_HANDLE),
 _vertShader(SharedShaderCache.load(vertShader)),
 _fragShader(SharedShaderCache.load(fragShader))
 { }

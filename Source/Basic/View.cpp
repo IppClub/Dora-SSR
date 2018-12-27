@@ -22,7 +22,8 @@ _farPlaneDistance(10000.0f),
 _fieldOfView(45.0f),
 _flag(BGFX_RESET_VSYNC|BGFX_RESET_HIDPI),
 _size(SharedApplication.getBufferSize()),
-_scale(1.0f)
+_scale(1.0f),
+_projection(Matrix::Indentity)
 { }
 
 Uint8 View::getId() const

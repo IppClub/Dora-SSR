@@ -36,7 +36,7 @@ public:
 		}
 		_item = ref._item;
 	}
-	Ref(Ref&& ref)
+	Ref(Ref&& ref) noexcept
 	{
 		_item = ref._item;
 		ref._item = nullptr;
@@ -86,7 +86,7 @@ public:
 		_item = ref._item;
 		return *this;
 	}
-	const Ref& operator=(Ref&& ref)
+	const Ref& operator=(Ref&& ref) noexcept
 	{
 		if (this == &ref) // handle self assign
 		{

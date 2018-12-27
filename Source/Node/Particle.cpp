@@ -196,6 +196,7 @@ _texLeft(0),
 _texTop(0),
 _texRight(0),
 _texBottom(0),
+_renderState(BGFX_STATE_NONE),
 _effect(SharedSpriteRenderer.getDefaultEffect())
 { }
 

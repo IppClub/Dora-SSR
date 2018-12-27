@@ -120,6 +120,8 @@ public:
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 	CREATE_FUNC(Joint);
 protected:
+	Joint():_joint(nullptr) {}
+protected:
 	WRef<PhysicsWorld> _world;
 	b2Joint* _joint;
 	friend class DestructionListener;

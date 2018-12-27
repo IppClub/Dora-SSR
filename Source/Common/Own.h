@@ -27,7 +27,7 @@ public:
 		std::unique_ptr<Item, Del>::reset();
 		return (*this);
 	}
-	inline const Own& operator=(Own&& own)
+	inline const Own& operator=(Own&& own) noexcept
 	{
 		std::unique_ptr<Item, Del>::operator=(std::move(own));
 		return *this;
@@ -43,7 +43,7 @@ class OwnArray : public std::unique_ptr<Item, std::default_delete<Item[]>>
 	typedef std::unique_ptr<Item, std::default_delete<Item[]>> UPtr;
 public:
 	OwnArray():_size(0){}
-	OwnArray(OwnArray&& own):UPtr(std::move(own)),_size(own._size) { }
+	OwnArray(OwnArray&& own) noexcept:UPtr(std::move(own)),_size(own._size) { }
 	OwnArray(Item* item, size_t size):UPtr(item), _size(size) { }
 	inline operator Item*() const
 	{

@@ -80,7 +80,6 @@ public:
 protected:
 	OthoCamera(String name);
 private:
-	float _rotation;
 	float _zoom;
 	bool _transformDirty;
 	DORA_TYPE_OVERRIDE(OthoCamera);
