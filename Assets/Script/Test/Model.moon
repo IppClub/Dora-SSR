@@ -8,8 +8,6 @@ model = with Model modelFile
 	.look = "happy"
 	\play "walk"
 	\slot "AnimationEnd",(name)-> print name, "end"
-	\eachNode (sp)->
-		sp.filter = TextureFilter.Point
 
 Director.entry\addChild model
 

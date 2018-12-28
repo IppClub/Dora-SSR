@@ -156,7 +156,7 @@ public:
 		return false;
 	}
 
-	/** @brief traverse node tree, return true to stop. */
+	/** @brief traverse available node tree, return true to stop. */
 	template <class Func>
 	bool traverse(const Func& func)
 	{
@@ -166,6 +166,24 @@ public:
 			for (auto child : _children->data())
 			{
 				if (child.to<Node>()->traverse(func))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/** @brief traverse all node tree, return true to stop. */
+	template <class Func>
+	bool traverseAll(const Func& func)
+	{
+		if (func(this)) return true;
+		if (_children)
+		{
+			for (auto child : _children->data())
+			{
+				if (child.to<Node>()->traverseAll(func))
 				{
 					return true;
 				}
