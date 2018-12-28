@@ -72,6 +72,10 @@ with Observer "Change", {"hp","unit"}
 						Call -> unit\removeFromParent!
 					)
 
+Store.zombieKilled = 0
+with Observer "Change", {"hp","zombie"}
+	\every => Store.zombieKilled += 1 if @hp <= 0
+
 zombieGroup = Group {"zombie"}
 spawnZombies = ->
 	{
@@ -98,10 +102,6 @@ spawnZombies = ->
 				.zombie = true
 			sleep 0.1*App.rand%5
 	sleep ZombieWaveDelay
-
-Store.zombieKilled = 0
-with Observer "Change", {"hp","zombie"}
-	\every => Store.zombieKilled += 1 if @hp <= 0
 
 Director.entry\addChild with Node!
 	\schedule loop spawnZombies

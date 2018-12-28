@@ -11,4 +11,3 @@ with Data.store
 	Data\setRelation .PlayerGroup,.ZombieGroup,Relation.Enemy
 
 	.MaxZombies = 50
-

@@ -356,6 +356,7 @@ class Node : public Object
 
 	tolua_outside bool Node_eachChild @ eachChild(tolua_function_bool func);
 	bool traverse(tolua_function_bool func);
+	bool traverseAll(tolua_function_bool func);
 
 	void runAction(Action* action);
 	void stopAllActions();

@@ -10,7 +10,7 @@ Director.entry\addChild with Node!
 	\addChild sprite
 	.touchEnabled = true
 	\slot "Gesture",(center,touches,delta,theta)->
-		-- center: center from all touches` position
+		-- center: center of all touch positions
 		-- delta: changed motion ratio (compare to screen size) along the x-axes and y-axes
 		-- theta:  rotated angle along the touches` center
 		sprite.position = center

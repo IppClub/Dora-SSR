@@ -8,8 +8,6 @@ model = with Model modelFile
 	.look = "happy"
 	\play "walk"
 	\slot "AnimationEnd",(name)-> print name, "end"
-	\eachNode (sp)->
-		sp.filter = TextureFilter.Point
 
 Director.entry\addChild model
 
@@ -20,7 +18,7 @@ Dorothy builtin.ImGui
 looks = Model\getLooks modelFile
 animations = Model\getAnimations modelFile
 currentLook = 1
-currentAnim = 3
+currentAnim = 4
 model\schedule ->
 	{:width,:height} = App.designSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"

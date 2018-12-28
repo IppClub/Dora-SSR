@@ -79,4 +79,3 @@ UnitAction\add "backJump",
 			true
 	stop: =>
 		@model\stop!
-

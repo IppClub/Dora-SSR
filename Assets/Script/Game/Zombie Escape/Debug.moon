@@ -179,4 +179,3 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 
 with Observer "Add", {"player"}
 	\every => @unit.receivingDecisionTrace = true
-
