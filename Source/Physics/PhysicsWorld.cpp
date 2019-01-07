@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -118,7 +118,7 @@ bool PhysicsWorld::init()
 	_world.SetContactFilter(_contactFilter);
 	_world.SetContactListener(_contactListner);
 	_world.SetDestructionListener(_destructionListener);
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < TotalGroups; i++)
 	{
 		_filters[i].groupIndex = i;
 		_filters[i].categoryBits = 1<<i;
@@ -256,8 +256,9 @@ bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, con
 	return result;
 }
 
-void PhysicsWorld::setShouldContact(int groupA, int groupB, bool contact)
+void PhysicsWorld::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
 {
+	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
 	b2Filter& filterA = _filters[groupA];
 	b2Filter& filterB = _filters[groupB];
 	if (contact)
@@ -301,24 +302,26 @@ void PhysicsWorld::setShouldContact(int groupA, int groupB, bool contact)
 	}
 }
 
-bool PhysicsWorld::getShouldContact(int groupA, int groupB) const
+bool PhysicsWorld::getShouldContact(Uint8 groupA, Uint8 groupB) const
 {
+	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
 	const b2Filter& filterA = _filters[groupA];
 	const b2Filter& filterB = _filters[groupB];
 	return (filterA.maskBits & filterB.categoryBits) && (filterA.categoryBits & filterB.maskBits);
 }
 
-const b2Filter& PhysicsWorld::getFilter(int group) const
+const b2Filter& PhysicsWorld::getFilter(Uint8 group) const
 {
+	AssertIf(group >= TotalGroups, "Body group should be less than {}.", TotalGroups);
 	return _filters[group];
 }
 
-void PhysicsWorld::setContactListener(Own<ContactListener>&& listener )
+void PhysicsWorld::setContactListener(Own<ContactListener>&& listener)
 {
 	_contactListner = std::move(listener);
 }
 
-void PhysicsWorld::setContactFilter(Own<ContactFilter>&& filter )
+void PhysicsWorld::setContactFilter(Own<ContactFilter>&& filter)
 {
 	_contactFilter = std::move(filter);
 }

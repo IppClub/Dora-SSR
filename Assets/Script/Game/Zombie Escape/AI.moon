@@ -12,7 +12,7 @@ rangeAttack = Sel {
 				faceObstacle = true
 				start = @position
 				stop = Vec2 start.x+(@faceRight and 1 or -1)*@unitDef.attackRange.width,start.y
-				Data.store.world\raycast start,stop,true,(b)->
+				Store.world\raycast start,stop,true,(b)->
 					return false if b.group == Data.groupDetection
 					faceObstacle = false if Relation.Enemy == Data\getRelation @,b
 					true
@@ -27,22 +27,15 @@ rangeAttack = Sel {
 walk = Sel {
 	Seq {
 		Con "obstacles ahead",=>
-			{:world} = Data.store
-			sensor = @getSensorByTag UnitDef.AttackSensorTag
-			sensor.sensedBodies\each (body)->
-				if body.group == Data.groupTerrain and
-					(@x > body.x) ~= @faceRight and
-					body.tag == "Obstacle"
-					start = @position
-					stop = Vec2 start.x+(@faceRight and 140 or -140),start.y
-					if world\raycast start,stop,true,(b,p)->
-							obstacleDistance = math.abs p.x-start.x
-							if b == body and obstacleDistance <= 140
-								@entity.obstacleDistance = obstacleDistance
-								true
-							else false
+			start = @position
+			stop = Vec2 start.x+(@faceRight and 140 or -140),start.y
+			if Store.world\raycast start,stop,true,(b,p)->
+					if b.group == Data.groupTerrain and b.tag == "Obstacle"
+						@entity.obstacleDistance = math.abs p.x-start.x
 						true
 					else false
+				true
+			else false
 		Sel {
 			Seq {
 				Con "obstacle distance <= 80",=> @entity.obstacleDistance <= 80
@@ -70,7 +63,7 @@ fightDecision = Seq {
 				sensor.sensedBodies\each (body)->
 					if Relation.Enemy == Data\getRelation @,body
 						distance = math.abs @x - body.x
-						if distance < 60
+						if distance < 80
 							evadeRightEnemy = false
 							evadeLeftEnemy = false
 							return true
@@ -192,7 +185,12 @@ Store["AI_PlayerControl"] = Sel {
 	}
 	Seq {
 		Seq {
-			Con "move key down",=> not (@entity.keyLeft and @entity.keyRight) and ((@entity.keyLeft and @faceRight) or (@entity.keyRight and not @faceRight))
+			Con "move key down",=>
+				not (@entity.keyLeft and @entity.keyRight) and
+				(
+					(@entity.keyLeft and @faceRight) or
+					(@entity.keyRight and not @faceRight)
+				)
 			Act "turn"
 		}
 		Reject!

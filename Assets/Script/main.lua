@@ -4,7 +4,8 @@ Content.searchPaths = {
 	Content.writablePath.."Script",
 	Content.writablePath.."Script/Lib",
 	"Script",
-	"Script/Lib"
+	"Script/Lib",
+	"Image"
 }
 
 require("moonscript")

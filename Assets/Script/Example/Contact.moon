@@ -4,8 +4,8 @@ world = with PhysicsWorld!
 	\setShouldContact 0,0,true
 	.showDebug = true
 
-label = Label "NotoSansHans-Regular",30
-world\addChild label
+label = with Label "NotoSansHans-Regular",30
+	\addTo world
 
 terrainDef = with BodyDef!
 	count = 50
@@ -17,24 +17,23 @@ terrainDef = with BodyDef!
 	\attachCircle Vec2(0,-270),30,1,0,1.0
 	\attachPolygon Vec2(0,80),120,30,0,1,0,1.0
 
+terrain = with Body terrainDef,world
+	\addTo world
+
+drawNode = with Line {Vec2(-20,0),Vec2(20,0),Vec2.zero,Vec2(0,-20),Vec2(0,20)},Color(0xff00ffff)
+	\addTo world
+
 circleDef = with BodyDef!
 	.type = BodyType.Dynamic
 	\attachCircle 20,5,0.8,1
 
-terrain = Body terrainDef,world
-world\addChild terrain
-
 circle = with Body circleDef,world,Vec2(100,200)
+	\addTo world
 	.angularRate = -1800
-world\addChild circle
-
-drawNode = Line {Vec2(-20,0),Vec2(20,0),Vec2.zero,Vec2(0,-20),Vec2(0,20)},Color(0xff00ffff)
-world\addChild drawNode
-
-circle.receivingContact = true
-circle\slot "ContactStart",(body,point)->
-	drawNode.position = point
-	label.text = "Contact: "..string.format("[%d,%d]",point.x,point.y)
+	.receivingContact = true
+	\slot "ContactStart",(body,point)->
+		drawNode.position = point
+		label.text = "Contact: "..string.format("[%d,%d]",point.x,point.y)
 
 Director.entry\addChild world
 
@@ -44,7 +43,7 @@ Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.designSize
+		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,140), "FirstUseEver"
 		if Begin "Contact", "NoResize|NoSavedSettings"

@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -57,7 +57,7 @@ static const char* _toBoolean(const char* str)
 
 #define toBoolean(x) (_toBoolean(toVal(x,"False")))
 #define toEase(x) (isVal(x) ? string("Ease.")+Val(x) : Val(x))
-#define toBlendFunc(x) (isVal(x) ? string("BlendFunc.")+toVal(x,"Zero") : Val(x))
+#define toBlendFunc(x) (isVal(x) ? toVal(x,"Zero") : Val(x))
 #define toTextAlign(x) (isVal(x) ? string("TextAlign.")+toVal(x,"Center") : Val(x))
 #define toText(x) (isVal(x) ? string("\"")+Val(x)+"\"" : Val(x))
 
@@ -277,10 +277,13 @@ static const char* _toBoolean(const char* str)
 
 // Call
 #define Call_Define \
-	Object_Define
+	Object_Define\
+	const char* type = nullptr;
 #define Call_Check \
-	Object_Check
-#define Call_Create
+	Object_Check\
+	CASE_STR(Type) { type = atts[++i]; break; }
+#define Call_Create \
+	isMoon = type && string(type) == "Moon";
 #define Call_Handle \
 	oFunc func = {"Call(",")"};\
 	funcs.push(func);
@@ -349,7 +352,6 @@ static const char* _toBoolean(const char* str)
 	const char* angleY = nullptr;\
 	const char* scaleX = nullptr;\
 	const char* scaleY = nullptr;\
-	const char* scheduler = nullptr;\
 	const char* skewX = nullptr;\
 	const char* skewY = nullptr;\
 	const char* order = nullptr;\
@@ -379,7 +381,6 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(AngleY) { angleY = atts[++i]; break; }\
 	CASE_STR(ScaleX) { scaleX = atts[++i]; break; }\
 	CASE_STR(ScaleY) { scaleY = atts[++i]; break; }\
-	CASE_STR(Scheduler) { scheduler = atts[++i]; break; }\
 	CASE_STR(SkewX) { skewX = atts[++i]; break; }\
 	CASE_STR(SkewY) { skewY = atts[++i]; break; }\
 	CASE_STR(Order) { order = atts[++i]; break; }\
@@ -409,7 +410,6 @@ static const char* _toBoolean(const char* str)
 	if (angleY) fmt::format_to(stream, "{}.angleY = {}\n", self, Val(angleY));\
 	if (scaleX) fmt::format_to(stream, "{}.scaleX = {}\n", self, Val(scaleX));\
 	if (scaleY) fmt::format_to(stream, "{}.scaleY = {}\n", self, Val(scaleY));\
-	if (scheduler) fmt::format_to(stream, "{}.scheduler = {}\n", self, Val(scheduler));\
 	if (skewX) fmt::format_to(stream, "{}.skewX = {}\n", self, Val(skewX));\
 	if (skewY) fmt::format_to(stream, "{}.skewY = {}\n", self, Val(skewY));\
 	if (transformTarget) fmt::format_to(stream, "{}.transformTarget = {}\n", self, Val(transformTarget));\
@@ -578,9 +578,9 @@ static const char* _toBoolean(const char* str)
 	fmt::format_to(stream, "local {} = Sprite({})\n", self, file ? toText(file) : string());
 #define Sprite_Handle \
 	Node_Handle\
-	if (blendSrc && blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc({},{})\n", self, toBlendFunc(blendSrc), toBlendFunc(blendDst));\
-	else if (blendSrc && !blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc({},{}.blendFunc.dst)\n", self, toBlendFunc(blendSrc), self);\
-	else if (!blendSrc && blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc({}.blendFunc.src,{})\n", self, self, toBlendFunc(blendDst));
+	if (blendSrc && blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc(\"{}\",\"{}\")\n", self, toBlendFunc(blendSrc), toBlendFunc(blendDst));\
+	else if (blendSrc && !blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc(\"{}\",\"Zero\")\n", self, toBlendFunc(blendSrc));\
+	else if (!blendSrc && blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc(\"Zero\",\"{}\")\n", self, toBlendFunc(blendDst));
 #define Sprite_Finish \
 	Add_To_Parent
 
@@ -716,13 +716,16 @@ static const char* _toBoolean(const char* str)
 	const char* name = nullptr;\
 	const char* args = nullptr;\
 	const char* perform = nullptr;\
-	const char* target = nullptr;
+	const char* target = nullptr;\
+	const char* type = nullptr;
 #define Slot_Check \
 	CASE_STR(Name) { name = atts[++i]; break; }\
 	CASE_STR(Args) { args = atts[++i]; break; }\
 	CASE_STR(Target) { target = atts[++i]; break; }\
-	CASE_STR(Perform) { perform = atts[++i]; break; }
+	CASE_STR(Perform) { perform = atts[++i]; break; }\
+	CASE_STR(Type) { type = atts[++i]; break; }
 #define Slot_Create \
+	isMoon = type && string(type) == "Moon";\
 	oFunc func = {elementStack.top().name+":slot("+toText(name)+",function("+(args ? args : "")+")"+(perform ? string("\n")+(target ? string(target) : elementStack.top().name)+":perform("+perform+")\n" : Slice::Empty), "end)"};\
 	funcs.push(func);
 
@@ -785,6 +788,7 @@ public:
 	virtual void endElement(const char* name);
 	virtual void textHandler(const char* s, int len);
 	string oVal(const char* value, const char* def = nullptr, const char* element = nullptr, const char* attr = nullptr);
+	string compileMoonCodes(const char* codes);
 public:
 	void clear()
 	{
@@ -1132,6 +1136,26 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 	SWITCH_STR_END
 }
 
+string XmlDelegator::compileMoonCodes(const char* codes)
+{
+	lua_State* L = SharedLuaEngine.getState();
+	int top = lua_gettop(L);
+	string moonCodes = fmt::format("return require(\"moonscript\").to_lua([[\n(->\n{}\n)!]],{{implicitly_return_root=false}})", codes);
+	string compiledCodes;
+	if (luaL_loadstring(L, moonCodes.c_str()) == 0)
+	{
+		LuaEngine::call(L, 0, 1);
+		Slice luaCodes = tolua_toslice(L, -1, "");
+		compiledCodes = "do " + luaCodes.toString() + " end\n";
+	}
+	else
+	{
+		lastError += fmt::format("Fail to compile moon codes started at line {}\n", parser->getLineNumber(codes));
+	}
+	lua_settop(L, top);
+	return compiledCodes;
+}
+
 void XmlDelegator::endElement(const char *name)
 {
 	if (elementStack.empty()) return;
@@ -1145,27 +1169,8 @@ void XmlDelegator::endElement(const char *name)
 		{
 			if (codes)
 			{
-				if (isMoon)
-				{
-					lua_State* L = SharedLuaEngine.getState();
-					int top = lua_gettop(L);
-					string moonCodes = fmt::format("return require(\"moonscript\").to_lua([[\n(->\n{}\n)!]],{{implicitly_return_root=false}})", codes);
-					if (luaL_loadstring(L, moonCodes.c_str()) == 0)
-					{
-						LuaEngine::call(L, 0, 1);
-						Slice luaCodes = tolua_toslice(L, -1, "");
-						fmt::format_to(stream, "do {} end\n", luaCodes.toString());
-					}
-					else
-					{
-						lastError += fmt::format("Fail to compile moon codes started at line {}\n", parser->getLineNumber(codes));
-					}
-					lua_settop(L, top);
-				}
-				else
-				{
-					fmt::format_to(stream, "{}\n", codes);
-				}
+				if (isMoon) fmt::format_to(stream, "{}\n", compileMoonCodes(codes));
+				else fmt::format_to(stream, "{}\n", codes);
 			}
 			codes = nullptr;
 			isMoon = false;
@@ -1175,7 +1180,11 @@ void XmlDelegator::endElement(const char *name)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			string tempItem = func.begin + "function()\n" + (codes ? codes : "") + "\nend" + func.end;
+			string tempItem = func.begin + "function()\n" +
+				(codes ? (isMoon ? compileMoonCodes(codes) : string(codes)) : Slice::Empty)
+				+ "\nend" + func.end;
+			codes = nullptr;
+			isMoon = false;
 			if (parentIsAction)
 			{
 				fmt::format_to(stream, "local {} = {}\n", currentData.name, tempItem);
@@ -1192,7 +1201,9 @@ void XmlDelegator::endElement(const char *name)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			fmt::format_to(stream, "{}{}{}\n", func.begin, codes ? codes : "", func.end);
+			fmt::format_to(stream, "{}{}{}\n", func.begin, (codes ? (isMoon ? compileMoonCodes(codes) : string(codes)) : Slice::Empty), func.end);
+			codes = nullptr;
+			isMoon = false;
 			break;
 		}
 		#define CaseAction(x) CASE_STR(x)

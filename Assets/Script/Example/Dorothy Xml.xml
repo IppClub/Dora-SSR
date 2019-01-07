@@ -25,9 +25,9 @@
 		luaCodes = xmltolua xmlCodes
 		print "[Xml Codes]\n\n#{xmlCodes}\n[Compiled Lua Codes]\n\n#{luaCodes}"
 		entry\schedule ->
-			{:width} = App.designSize
+			{:width} = App.visualSize
 			SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-			SetNextWindowSize Vec2(240,120),"FirstUseEver"
+			SetNextWindowSize Vec2(240,120), "FirstUseEver"
 			if Begin "Dorothy Xml", "NoResize|NoSavedSettings"
 				TextWrapped "View related codes in log window!"
 			End!

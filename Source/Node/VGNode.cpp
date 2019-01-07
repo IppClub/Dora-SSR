@@ -1,0 +1,85 @@
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#include "Const/Header.h"
+#include "Node/VGNode.h"
+#include "Node/Sprite.h"
+#include "Basic/VGRender.h"
+#include "Basic/View.h"
+#include "nanovg/nanovg_bgfx.h"
+
+NS_DOROTHY_BEGIN
+
+VGNode::VGNode(float width, float height, float scale, int edgeAA):
+_frameWidth(width),
+_frameHeight(height),
+_frameScale(scale),
+_edgeAA(edgeAA)
+{ }
+
+Sprite* VGNode::getSurface() const
+{
+	return _surface;
+}
+
+bool VGNode::init()
+{
+	if (!Node::init()) return false;
+	NVGcontext* context = nvgCreate(_edgeAA, 0);
+	NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
+		_frameWidth * _frameScale,
+		_frameHeight * _frameScale, 0);
+	bgfx::TextureInfo info;
+	bgfx::calcTextureSize(info,
+		_frameWidth * _frameScale, _frameHeight * _frameScale,
+		0, false, false, 1, bgfx::TextureFormat::RGBA8);
+	Uint64 flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	_surface = Sprite::create(NVGTexture::create(context, framebuffer, info, flags));
+	_surface->addTo(this);
+	return true;
+}
+
+void VGNode::cleanup()
+{
+	_surface = nullptr;
+	Node::cleanup();
+}
+
+void VGNode::render(const function<void()>& func)
+{
+	NVGTexture* texture = s_cast<NVGTexture*>(_surface->getTexture());
+	NVGLUframebuffer* framebuffer = texture->getFramebuffer();
+	NVGcontext* context = texture->getContext();
+	SharedView.pushName(Slice::Empty, [&]()
+	{
+		bgfx::ViewId viewId = SharedView.getId();
+		bgfx::setViewClear(viewId,
+			BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+			0x0);
+		nvgluSetViewFramebuffer(viewId, framebuffer);
+		nvgluBindFramebuffer(framebuffer);
+		nvgBeginFrame(context, _frameWidth, _frameHeight, _frameScale);
+		nvg::BindContext(context);
+		switch (bgfx::getCaps()->rendererType)
+		{
+			case bgfx::RendererType::OpenGL:
+			case bgfx::RendererType::OpenGLES:
+				nvgScale(context, 1.0f, -1.0f);
+				nvgTranslate(context, 0.0f, -_frameHeight);
+				break;
+			default:
+				break;
+		}
+		func();
+		nvg::BindContext(nullptr);
+		nvgEndFrame(context);
+		nvgluBindFramebuffer(nullptr);
+	});
+}
+
+NS_DOROTHY_END

@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -25,6 +25,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 #include "nanovg/nanovg.h"
 #include "nanovg/nanovg_bgfx.h"
+#include "Entity/Entity.h"
+#include "Basic/VGRender.h"
 
 NS_DOROTHY_BEGIN
 
@@ -34,7 +36,7 @@ _scheduler(Scheduler::create()),
 _postScheduler(Scheduler::create()),
 _postSystemScheduler(Scheduler::create()),
 _camStack(Array::create()),
-_clearColor(0xff1a1a1a),
+_clearColor(0xff000000),
 _displayStats(false),
 _nvgDirty(false),
 _stoped(false),
@@ -330,7 +332,7 @@ void Director::mainLoop()
 			/* render RT, post node and ui node */
 			SharedView.pushName("Main"_slice, [&]()
 			{
-				Uint8 viewId = SharedView.getId();
+				bgfx::ViewId viewId = SharedView.getId();
 				/* RT */
 				pushViewProjection(ortho, [&]()
 				{
@@ -374,7 +376,7 @@ void Director::mainLoop()
 			/* render scene tree and post node */
 			SharedView.pushName("Main"_slice, [&]()
 			{
-				Uint8 viewId = SharedView.getId();
+				bgfx::ViewId viewId = SharedView.getId();
 				bgfx::setViewClear(viewId,
 					BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
 					_clearColor.toRGBA());
@@ -391,7 +393,7 @@ void Director::mainLoop()
 			{
 				SharedView.pushName("UI"_slice, [&]()
 				{
-					Uint8 viewId = SharedView.getId();
+					bgfx::ViewId viewId = SharedView.getId();
 					/* ui node */
 					if (_ui)
 					{
@@ -449,7 +451,7 @@ void Director::displayStats()
 		"OpenGL", //!< OpenGL 2.1+
 		"Vulkan", //!< Vulkan
 	};
-	Uint8 dbgViewId = SharedView.getId();
+	bgfx::ViewId dbgViewId = SharedView.getId();
 	int row = 0;
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mRenderer: \x1b[15;m%s", rendererNames[bgfx::getCaps()->rendererType]);
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMultithreaded: \x1b[15;m%s", (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
@@ -532,9 +534,9 @@ NVGcontext* Director::markNVGDirty()
 	if (!_nvgDirty && _nvgContext)
 	{
 		_nvgDirty = true;
-		Size designSize = SharedApplication.getDesignSize();
-		float designScale = SharedApplication.getDesignScale();
-		nvgBeginFrame(_nvgContext, s_cast<int>(designSize.width), s_cast<int>(designSize.height), designScale);
+		Size visualSize = SharedApplication.getVisualSize();
+		float deviceRatio = SharedApplication.getDeviceRatio();
+		nvgBeginFrame(_nvgContext, s_cast<int>(visualSize.width), s_cast<int>(visualSize.height), deviceRatio);
 	}
 	return _nvgContext;
 }

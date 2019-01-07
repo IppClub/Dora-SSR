@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -41,7 +41,7 @@ public:
 	PROPERTY_READONLY(float, Mass);
 	PROPERTY(float, VelocityX);
 	PROPERTY(float, VelocityY);
-	PROPERTY_VIRTUAL(int, Group);
+	PROPERTY_VIRTUAL(Uint8, Group);
 	PROPERTY_BOOL(ReceivingContact);
 	ContactHandler contactStart;
 	ContactHandler contactEnd;
@@ -68,7 +68,7 @@ protected:
 	virtual void updatePhysics();
 	b2Body* _bodyB2; // weak reference
 	PhysicsWorld* _world;
-	int _group;
+	Uint8 _group;
 private:
 	bool _receivingContact;
 	Ref<BodyDef> _bodyDef;

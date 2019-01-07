@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -20,25 +20,29 @@ class Unit;
 class Data
 {
 public:
-	void apply(PhysicsWorld* world);
-	void setRelation(int groupA, int groupB, Relation relation);
-	Relation getRelation(int groupA, int groupB) const;
-	Relation getRelation(Body* bodyA, Body* bodyB) const;
-	PROPERTY_READONLY(int, GroupHide);
-	PROPERTY_READONLY(int, GroupDetectPlayer);
-	PROPERTY_READONLY(int, GroupTerrain);
-	PROPERTY_READONLY(int, GroupDetection);
+	PROPERTY_READONLY(Uint8, GroupHide);
+	PROPERTY_READONLY(Uint8, GroupDetectPlayer);
+	PROPERTY_READONLY(Uint8, GroupTerrain);
+	PROPERTY_READONLY(Uint8, GroupDetection);
 	PROPERTY_READONLY(Dictionary*, Store);
+	void apply(PhysicsWorld* world);
+	void setRelation(Uint8 groupA, Uint8 groupB, Relation relation);
+	Relation getRelation(Uint8 groupA, Uint8 groupB) const;
+	Relation getRelation(Body* bodyA, Body* bodyB) const;
+	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
+	bool getShouldContact(Uint8 groupA, Uint8 groupB) const;
 	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
 	float getDamageFactor(Uint16 damageType, Uint16 defenceType) const;
 	bool isPlayer(Body* body);
 	bool isTerrain(Body* body);
+	void clear();
 	SINGLETON_REF(Data, Director);
 protected:
 	Data();
 private:
-	unordered_map<int, Relation> _relationMap;
-	unordered_map<uint32, float> _damageBounusMap;
+	unordered_map<Uint16, bool> _contactMap;
+	unordered_map<Uint16, Relation> _relationMap;
+	unordered_map<Uint32, float> _damageBounusMap;
 	Ref<Dictionary> _store;
 };
 

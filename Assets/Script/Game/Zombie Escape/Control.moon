@@ -12,7 +12,7 @@ updatePlayerControl = (key,flag)->
 	player = nil
 	playerGroup\each => player = @ if @unit.tag == Store.controlPlayer
 	player[key] = flag if player
-uiScale = App.designScale
+uiScale = App.deviceRatio
 
 with AlignNode true
 	.visible = false

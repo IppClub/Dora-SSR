@@ -24,7 +24,7 @@ Data = {
 	StartColorVariance: {"V","Color",Color 0x0}
 	StartParticleSize: {"W","float",30}
 	StartParticleSizeVariance: {"X","float",10}
-	TextureName: {"Y","string",""}
+	TextureName: {"Y","string","",Buffer(256)}
 	TextureRect: {"Z","Rect",Rect 0,0,0,0}
 	EmitterType: {"a","EmitterType",0}
 	-- gravity
@@ -84,7 +84,7 @@ Item = (name)->
 	PushItemWidth -180
 	switch Data[name][2]
 		when "float"
-			changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, 0, 1000, "%.1f"
+			changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1000, 1000, "%.1f"
 			DataDirty = true if changed
 		when "floatN"
 			changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1, 1000, "%.1f"
@@ -108,6 +108,12 @@ Item = (name)->
 		when "bool"
 			changed, Data[name][3] = Checkbox name, Data[name][3]
 			DataDirty = true if changed
+		when "string"
+			buffer = Data[name][4]
+			changed = InputText name, buffer
+			if changed
+				DataDirty = true
+				Data[name][3] = buffer\toString!
 		else
 			nil
 	PopItemWidth!
@@ -124,11 +130,13 @@ work = loop ->
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.designSize
+		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-400,10), "FirstUseEver"
 		SetNextWindowSize Vec2(390,height-80), "FirstUseEver"
 		if Begin "Particle", "NoResize|NoSavedSettings"
 			for k,_ in pairs Data
 				Item k
+			if Button "Export"
+				print "<A>"..table.concat(["<#{v[1]} A=\"#{toString v[3]}\"/>" for k,v in pairs Data]).."</A>"
 		End!
 		work!

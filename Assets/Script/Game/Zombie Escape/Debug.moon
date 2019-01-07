@@ -19,7 +19,7 @@ decisions = {}
 showDecisionTrace = false
 lastDecisionTree = ""
 world\schedule ->
-	{:width,:height} = App.designSize
+	{:width,:height} = App.visualSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,userControl and 500 or 300)
 	if Begin "Zombie Game Demo", "NoResize|NoSavedSettings"
@@ -100,8 +100,8 @@ world\schedule ->
 							.tag = "Zombie"
 							.group = PlayerGroup
 							\addChild Star {
-								y: 20
-								size: 3
+								y: 100
+								size: 18
 								borderColor: 0xffff8800
 								fillColor: 0x66ff8800
 								fillOrder: 1
@@ -169,8 +169,8 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 	\every =>
 		{:group,:unit} = @
 		unit\addChild Star {
-			y: 20
-			size: 3
+			y: 100
+			size: 18
 			borderColor: 0xff66ccff
 			fillColor: 0x6666ccff
 			fillOrder: 1

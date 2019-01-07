@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "imgui/imgui.h"
-#include "nanovg/nanovg.h"
 
 NS_DOROTHY_BEGIN
 
@@ -245,109 +244,3 @@ namespace ImGui { namespace Binding
 	ImGuiColorEditFlags_ getColorEditFlags(String mode);
 	ImGuiCond_ getSetCond(String cond);
 } }
-
-// NanoVG
-
-inline NVGcolor nvgColor(Color color)
-{
-	return nvgRGBA(color.r, color.g, color.b, color.a);
-}
-
-int nvgCreateImageRGBA(NVGcontext* ctx, int w, int h, int imageFlags, String filename);
-int nvgCreateFont(NVGcontext* ctx, String name);
-float nvgTextBounds(NVGcontext* ctx, float x, float y, String text, Rect& bounds);
-void nvgTextBoxBounds(NVGcontext* ctx, float x, float y, float breakRowWidth, String text, Rect& bounds);
-float nvgText(NVGcontext* ctx, float x, float y, String text);
-void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, String text);
-
-struct nvg
-{
-	struct Transform
-	{
-		float t[6];
-		operator float*()
-		{
-			return t;
-		}
-		operator const float*() const
-		{
-			return t;
-		}
-		inline void indentity() { nvgTransformIdentity(t); }
-		inline void translate(float tx, float ty) { nvgTransformTranslate(t, tx, ty); }
-		inline void scale(float sx, float sy) { nvgTransformScale(t, sx, sy); }
-		inline void rotate(float a) { nvgTransformRotate(t, bx::toRad(a)); }
-		inline void skewX(float a) { nvgTransformSkewX(t, bx::toRad(a)); }
-		inline void skewY(float a) { nvgTransformSkewY(t, bx::toRad(a)); }
-		inline void multiply(const Transform& src) { nvgTransformMultiply(t, src); }
-		inline bool inverseFrom(const Transform& src) { return nvgTransformInverse(t, src) != 0; }
-		inline Vec2 point(Vec2 src) { Vec2 p; nvgTransformPoint(&p.x, &p.y, t, src.x, src.y); return p; }
-	};
-	#define NVG SharedDirector.markNVGDirty()
-	static Vec2 TouchPos() { return SharedDirector.getUITouchHandler()->getMousePos(); }
-	static bool LeftButtonPressed() { return SharedDirector.getUITouchHandler()->isLeftButtonPressed(); }
-	static bool RightButtonPressed() { return SharedDirector.getUITouchHandler()->isRightButtonPressed(); }
-	static bool MiddleButtonPressed() { return SharedDirector.getUITouchHandler()->isMiddleButtonPressed(); }
-	static float MouseWheel() { return SharedDirector.getUITouchHandler()->getMouseWheel(); }
-	static inline void Save() { nvgSave(NVG); }
-	static inline void Restore() { nvgRestore(NVG); }
-	static inline void Reset() { nvgReset(NVG); }
-	static inline int CreateImage(int w, int h, int imageFlags, String filename) { return nvgCreateImageRGBA(NVG, w, h, imageFlags, filename); }
-	static inline int CreateFont(String name) { return nvgCreateFont(NVG, name); }
-	static inline float TextBounds(float x, float y, String text, Rect& bounds) { return nvgTextBounds(NVG, x, y, text, bounds); }
-	static inline Rect TextBoxBounds(float x, float y, float breakRowWidth, String text) { Dorothy::Rect bounds; nvgTextBoxBounds(NVG, x, y, breakRowWidth, text, bounds); return bounds; }
-	static inline float Text(float x, float y, String text) { return nvgText(NVG, x, y, text); }
-	static inline void TextBox(float x, float y, float breakRowWidth, String text) { nvgTextBox(NVG, x, y, breakRowWidth, text); }
-	static inline void StrokeColor(Color color) { nvgStrokeColor(NVG, nvgColor(color)); }
-	static inline void StrokePaint(NVGpaint paint) { nvgStrokePaint(NVG, paint); }
-	static inline void FillColor(Color color) { nvgFillColor(NVG, nvgColor(color)); }
-	static inline void FillPaint(NVGpaint paint) { nvgFillPaint(NVG, paint); }
-	static inline void MiterLimit(float limit) { nvgMiterLimit(NVG, limit); }
-	static inline void StrokeWidth(float size) { nvgStrokeWidth(NVG, size); }
-	static inline void LineCap(int cap) { nvgLineCap(NVG, cap); }
-	static inline void LineJoin(int join) { nvgLineJoin(NVG, join); }
-	static inline void GlobalAlpha(float alpha) { nvgGlobalAlpha(NVG, alpha); }
-	static inline void ResetTransform() { nvgResetTransform(NVG); }
-	static inline void CurrentTransform(Transform& t) { nvgCurrentTransform(NVG, t); }
-	static inline void ApplyTransform(const Transform& t) { nvgTransform(NVG, t.t[0], t.t[1], t.t[2], t.t[3], t.t[4], t.t[5]); }
-	static inline void Translate(float x, float y) { nvgTranslate(NVG, x, y); }
-	static inline void Rotate(float angle) { nvgRotate(NVG, bx::toRad(angle)); }
-	static inline void SkewX(float angle) { nvgSkewX(NVG, bx::toRad(angle)); }
-	static inline void SkewY(float angle) { nvgSkewY(NVG, bx::toRad(angle)); }
-	static inline void Scale(float x, float y) { nvgScale(NVG, x, y); }
-	static inline Size ImageSize(int image) { int w, h; nvgImageSize(NVG, image, &w, &h); return Size{s_cast<float>(w), s_cast<float>(h)}; }
-	static inline void DeleteImage(int image) { nvgDeleteImage(NVG, image); }
-	static inline NVGpaint LinearGradient(float sx, float sy, float ex, float ey, Color icol, Color ocol) { return nvgLinearGradient(NVG, sx, sy, ex, ey, nvgColor(icol), nvgColor(ocol)); }
-	static inline NVGpaint BoxGradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol) { return nvgBoxGradient(NVG, x, y, w, h, r, f, nvgColor(icol), nvgColor(ocol)); }
-	static inline NVGpaint RadialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol) { return nvgRadialGradient(NVG, cx, cy, inr, outr, nvgColor(icol), nvgColor(ocol)); }
-	static inline NVGpaint ImagePattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha) { return nvgImagePattern(NVG, ox, oy, ex, ey, angle, image, alpha); }
-	static inline void Scissor(float x, float y, float w, float h) { nvgScissor(NVG, x, y, w, h); }
-	static inline void IntersectScissor(float x, float y, float w, float h) { nvgIntersectScissor(NVG, x, y, w, h); }
-	static inline void ResetScissor() { nvgResetScissor(NVG); }
-	static inline void BeginPath() { nvgBeginPath(NVG); }
-	static inline void MoveTo(float x, float y) { nvgMoveTo(NVG, x, y); }
-	static inline void LineTo(float x, float y) { nvgLineTo(NVG, x, y); }
-	static inline void BezierTo(float c1x, float c1y, float c2x, float c2y, float x, float y) { nvgBezierTo(NVG, c1x, c1y, c2x, c2y, x, y); }
-	static inline void QuadTo(float cx, float cy, float x, float y) { nvgQuadTo(NVG, cx, cy, x, y); }
-	static inline void ArcTo(float x1, float y1, float x2, float y2, float radius) { nvgArcTo(NVG, x1, y1, x2, y2, radius); }
-	static inline void ClosePath() { nvgClosePath(NVG); }
-	static inline void PathWinding(int dir) { nvgPathWinding(NVG, dir); }
-	static inline void Arc(float cx, float cy, float r, float a0, float a1, int dir) { nvgArc(NVG, cx, cy, r, a0, a1, dir); }
-	static inline void Rect(float x, float y, float w, float h) { nvgRect(NVG, x, y, w, h); }
-	static inline void RoundedRect(float x, float y, float w, float h, float r) { nvgRoundedRect(NVG, x, y, w, h, r); }
-	static inline void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft) { nvgRoundedRectVarying(NVG, x, y, w, h, radTopLeft, radTopRight, radBottomRight, radBottomLeft); }
-	static inline void Ellipse(float cx, float cy, float rx, float ry) { nvgEllipse(NVG, cx, cy, rx, ry); }
-	static inline void Circle(float cx, float cy, float r) { nvgCircle(NVG, cx, cy, r); }
-	static inline void Fill() { nvgFill(NVG); }
-	static inline void Stroke() { nvgStroke(NVG); }
-	static inline int FindFont(const char* name) { return nvgFindFont(NVG, name); }
-	static inline int AddFallbackFontId(int baseFont, int fallbackFont) { return nvgAddFallbackFontId(NVG, baseFont, fallbackFont); }
-	static inline int AddFallbackFont(const char* baseFont, const char* fallbackFont) { return nvgAddFallbackFont(NVG, baseFont, fallbackFont); }
-	static inline void FontSize(float size) { nvgFontSize(NVG, size); }
-	static inline void FontBlur(float blur) { nvgFontBlur(NVG, blur); }
-	static inline void TextLetterSpacing(float spacing) { nvgTextLetterSpacing(NVG, spacing); }
-	static inline void TextLineHeight(float lineHeight) { nvgTextLineHeight(NVG, lineHeight); }
-	static inline void TextAlign(int align) { nvgTextAlign(NVG, align); }
-	static inline void FontFaceId(int font) { nvgFontFaceId(NVG, font); }
-	static inline void FontFace(const char* font) { nvgFontFace(NVG, font); }
-};

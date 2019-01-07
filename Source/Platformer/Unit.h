@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -48,7 +48,7 @@ public:
 	PROPERTY_READONLY(float, Width);
 	PROPERTY_READONLY(float, Height);
 	virtual bool init() override;
-	virtual void setGroup(int group) override;
+	virtual void setGroup(Uint8 group) override;
 	virtual bool update(double deltaTime) override;
 	virtual void onEnter() override;
 	virtual void cleanup() override;

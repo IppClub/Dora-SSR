@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -31,6 +31,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Camera.h"
 #include "Cache/ShaderCache.h"
 #include "Basic/Renderer.h"
+#include "Basic/VGRender.h"
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
 #include "Input/TouchDispather.h"
@@ -41,6 +42,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/RenderTarget.h"
 #include "Node/ClipNode.h"
 #include "Node/DrawNode.h"
+#include "Node/VGNode.h"
 #include "Cache/ClipCache.h"
 #include "Cache/FrameCache.h"
 #include "Animation/Action.h"

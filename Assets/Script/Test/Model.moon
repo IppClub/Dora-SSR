@@ -20,7 +20,7 @@ animations = Model\getAnimations modelFile
 currentLook = 1
 currentAnim = 3
 model\schedule ->
-	{:width,:height} = App.designSize
+	{:width,:height} = App.visualSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,325), "FirstUseEver"
 	if Begin "Model", "NoResize|NoSavedSettings"

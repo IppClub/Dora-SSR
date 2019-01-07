@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -26,7 +26,7 @@ _scale(1.0f),
 _projection(Matrix::Indentity)
 { }
 
-Uint8 View::getId() const
+bgfx::ViewId View::getId() const
 {
 	AssertIf(_views.empty(), "invalid view id.");
 	return _views.top().first;
@@ -50,18 +50,18 @@ void View::clear()
 
 void View::push(String viewName)
 {
-	AssertIf(_id == 255, "running views exceeded 256.");
-	Uint8 viewId = s_cast<Uint8>(++_id);
-	string name = viewName.toString();
+	AssertIf(_id > 255, "running views exceeded 256.");
+	bgfx::ViewId viewId = s_cast<bgfx::ViewId>(++_id);
 	bgfx::resetView(viewId);
-	if (!viewName.empty())
+	string name = viewName.toString();
+	if (!name.empty())
 	{
 		bgfx::setViewName(viewId, name.c_str());
 	}
 	bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
 	bgfx::setViewMode(viewId, bgfx::ViewMode::Sequential);
 	bgfx::touch(viewId);
-	_views.push(std::make_pair(viewId,name));
+	_views.push(std::make_pair(viewId, name));
 }
 
 void View::pop()
