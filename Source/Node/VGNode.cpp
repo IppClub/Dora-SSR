@@ -32,11 +32,12 @@ bool VGNode::init()
 	if (!Node::init()) return false;
 	NVGcontext* context = nvgCreate(_edgeAA, 0);
 	NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
-		_frameWidth * _frameScale,
-		_frameHeight * _frameScale, 0);
+		s_cast<int>(_frameWidth * _frameScale),
+		s_cast<int>(_frameHeight * _frameScale), 0);
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
-		_frameWidth * _frameScale, _frameHeight * _frameScale,
+		s_cast<uint16_t>(_frameWidth * _frameScale),
+		s_cast<uint16_t>(_frameHeight * _frameScale),
 		0, false, false, 1, bgfx::TextureFormat::RGBA8);
 	Uint64 flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 	_surface = Sprite::create(NVGTexture::create(context, framebuffer, info, flags));
@@ -63,7 +64,7 @@ void VGNode::render(const function<void()>& func)
 			0x0);
 		nvgluSetViewFramebuffer(viewId, framebuffer);
 		nvgluBindFramebuffer(framebuffer);
-		nvgBeginFrame(context, _frameWidth, _frameHeight, _frameScale);
+		nvgBeginFrame(context, s_cast<int>(_frameWidth), s_cast<int>(_frameHeight), _frameScale);
 		nvg::BindContext(context);
 		switch (bgfx::getCaps()->rendererType)
 		{

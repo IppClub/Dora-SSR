@@ -5056,7 +5056,9 @@ static NVGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int
 	{
 		bgfx::ViewId viewId = SharedView.getId();
 		NVGcontext* context = nvgCreate(2, viewId);
-		NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context, width * scale, height * scale, 0);
+		NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
+			s_cast<int>(width * scale),
+			s_cast<int>(height * scale), 0);
 		nvgluSetViewFramebuffer(viewId, framebuffer);
 		nvgluBindFramebuffer(framebuffer);
 		nvgBeginFrame(context, width, height, scale);
@@ -5065,7 +5067,7 @@ static NVGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int
 			case bgfx::RendererType::OpenGL:
 			case bgfx::RendererType::OpenGLES:
 				nvgScale(context, 1.0f, -1.0f);
-				nvgTranslate(context, 0.0f, -height);
+				nvgTranslate(context, 0.0f, -s_cast<float>(height));
 				break;
 			default:
 				break;
@@ -5076,7 +5078,8 @@ static NVGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int
 		nvgluBindFramebuffer(nullptr);
 		bgfx::TextureInfo info;
 		bgfx::calcTextureSize(info,
-			width * scale, height * scale,
+			s_cast<uint16_t>(width * scale),
+			s_cast<uint16_t>(height * scale),
 			0, false, false, 1, bgfx::TextureFormat::RGBA8);
 		Uint64 flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		texture = NVGTexture::create(context, framebuffer, info, flags);

@@ -588,6 +588,12 @@
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_widgets.cpp">
       <Filter>3rdParty\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\VGRender.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\VGNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -1127,6 +1133,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h">
       <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\VGRender.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\VGNode.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
