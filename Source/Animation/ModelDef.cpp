@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -17,9 +17,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-inline string s(float var)
+inline string s2(float var)
 {
 	return Slice(fmt::format("{:.2f}", var)).trimZero();
+}
+
+inline string s3(float var)
+{
+	return Slice(fmt::format("{:.3f}", var)).trimZero();
+}
+
+inline string s4(float var)
+{
+	return Slice(fmt::format("{:.4f}", var)).trimZero();
 }
 
 /* SpriteDef */
@@ -64,23 +74,23 @@ string SpriteDef::toXml()
 	fmt::format_to(out, "<{}", char(Xml::Model::Element::Sprite));
 	if (x != 0.0f || y != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Position), s(x), s(y));
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Position), s2(x), s2(y));
 	}
 	if (rotation != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Rotation), s(rotation));
+		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Rotation), s2(rotation));
 	}
 	if (anchorX != 0.5f || anchorY != 0.5f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Key), s(anchorX), s(anchorY));
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Key), s4(anchorX), s4(anchorY));
 	}
 	if (scaleX != 1.0f || scaleY != 1.0f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Scale), s(scaleX), s(scaleY));
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Scale), s3(scaleX), s3(scaleY));
 	}
 	if (skewX != 0.0f || skewY != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Skew), s(skewX), s(skewY));
+		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Skew), s3(skewX), s3(skewY));
 	}
 	if (!name.empty())
 	{
@@ -211,7 +221,7 @@ string ModelDef::toXml()
 		const Vec2& point = it.second;
 		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{},{}\"/>",
 			char(Xml::Model::Element::KeyPoint), char(Xml::Model::KeyPoint::Key), it.first,
-			char(Xml::Model::KeyPoint::Position), s(point.x), s(point.y));
+			char(Xml::Model::KeyPoint::Position), s2(point.x), s2(point.y));
 	}
 	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Dorothy));
 	return fmt::to_string(out);

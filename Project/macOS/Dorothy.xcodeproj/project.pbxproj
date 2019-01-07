@@ -72,6 +72,8 @@
 		3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708311E08CB4300B38C2A /* LuaCode.cpp */; };
 		3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */; };
 		3C8805771E5EDCE100B52D4B /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805761E5EDCE100B52D4B /* Debug.cpp */; };
+		3C883AF621DF4A4A00BFD758 /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883AF421DF4A4A00BFD758 /* VGRender.cpp */; };
+		3C883AF921E0896A00BFD758 /* VGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883AF721E0896A00BFD758 /* VGNode.cpp */; };
 		3C9A7D701E53F9EF00205094 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C9A7D6F1E53F9EF00205094 /* Font */; };
 		3C9A7D731E5428A200205094 /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D711E5428A200205094 /* Label.cpp */; };
 		3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D781E55957500205094 /* atlas.cpp */; };
@@ -360,6 +362,10 @@
 		3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventQueue.cpp; path = ../../../Source/Event/EventQueue.cpp; sourceTree = "<group>"; };
 		3C78C93F1E0CB1A2004D0A3C /* EventQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventQueue.h; path = ../../../Source/Event/EventQueue.h; sourceTree = "<group>"; };
 		3C8805761E5EDCE100B52D4B /* Debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Debug.cpp; path = ../../../Source/Common/Debug.cpp; sourceTree = "<group>"; };
+		3C883AF421DF4A4A00BFD758 /* VGRender.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = VGRender.cpp; path = ../../../Source/Basic/VGRender.cpp; sourceTree = "<group>"; };
+		3C883AF521DF4A4A00BFD758 /* VGRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = VGRender.h; path = ../../../Source/Basic/VGRender.h; sourceTree = "<group>"; };
+		3C883AF721E0896A00BFD758 /* VGNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VGNode.cpp; path = ../../../Source/Node/VGNode.cpp; sourceTree = "<group>"; };
+		3C883AF821E0896A00BFD758 /* VGNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VGNode.h; path = ../../../Source/Node/VGNode.h; sourceTree = "<group>"; };
 		3C8934B320F3094A00124463 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
 		3C8DC32F1E666B2B00E59BEC /* Header.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Header.pch; path = ../../../Source/Const/Header.pch; sourceTree = "<group>"; };
 		3C9A7D6F1E53F9EF00205094 /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Font; path = ../../Assets/Font; sourceTree = "<group>"; };
@@ -621,6 +627,7 @@
 				3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */,
 				3C2F9C891E7B114B00B98D39 /* ModelDef.h */,
 				3C2F9C851E7AE8CA00B98D39 /* Animation.cpp */,
+				3C2F9C861E7AE8CA00B98D39 /* Animation.h */,
 				3C020DCA1E75476600307E4F /* Action.cpp */,
 				3C020DCB1E75476600307E4F /* Action.h */,
 			);
@@ -910,7 +917,6 @@
 		3C9ADE491E00EFB200D42018 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
-				3C2F9C861E7AE8CA00B98D39 /* Animation.h */,
 				3CF16C8A1E68F165002587CD /* Renderer.cpp */,
 				3CF16C8B1E68F165002587CD /* Renderer.h */,
 				3CEA9A7E1E28A6FE00645F2D /* Camera.cpp */,
@@ -931,6 +937,8 @@
 				3C38E6AB1E1513E5003E9189 /* Application.mm */,
 				3C9ADE4A1E00EFD000D42018 /* Application.cpp */,
 				3C9ADE4B1E00EFD000D42018 /* Application.h */,
+				3C883AF421DF4A4A00BFD758 /* VGRender.cpp */,
+				3C883AF521DF4A4A00BFD758 /* VGRender.h */,
 			);
 			name = Basic;
 			sourceTree = "<group>";
@@ -1149,6 +1157,8 @@
 				3CC098691E262F85006F4B76 /* Sprite.h */,
 				3CB487041E1635A500D51749 /* Node.cpp */,
 				3CB487051E1635A500D51749 /* Node.h */,
+				3C883AF721E0896A00BFD758 /* VGNode.cpp */,
+				3C883AF821E0896A00BFD758 /* VGNode.h */,
 			);
 			name = Node;
 			sourceTree = "<group>";
@@ -1552,6 +1562,7 @@
 				3C35982D1E12060D00E62C16 /* Scheduler.cpp in Sources */,
 				3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */,
 				3CE9D7C21E7FB89B003AAECB /* b2Rope.cpp in Sources */,
+				3C883AF921E0896A00BFD758 /* VGNode.cpp in Sources */,
 				3C40555920FD95710057B0E4 /* BulletDef.cpp in Sources */,
 				3CE9509820F30A65002FFC18 /* Builtin.cpp in Sources */,
 				3C40555020FD92CC0057B0E4 /* Face.cpp in Sources */,
@@ -1579,6 +1590,7 @@
 				3C42B0A320FECB0A00186F9C /* AI.cpp in Sources */,
 				3C42B0A020FECB0A00186F9C /* Bullet.cpp in Sources */,
 				3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */,
+				3C883AF621DF4A4A00BFD758 /* VGRender.cpp in Sources */,
 				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,
 				3CE9D7791E7FB842003AAECB /* b2ContactManager.cpp in Sources */,
 				3CE9D8001E7FF7A7003AAECB /* DebugDraw.cpp in Sources */,

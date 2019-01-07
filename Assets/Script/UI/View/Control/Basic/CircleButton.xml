@@ -6,6 +6,18 @@
 
 	<ButtonBase X="{ x }" Y="{ y }" Width="{ radius*2 }" Height="{ radius*2 }">
 		<Item Name="face">
+			<Action>
+				<Spawn Name="show" Ref="True">
+					<Show/>
+					<Opacity Time="0" Start="0" Stop="0.6"/>
+				</Spawn>
+				<Sequence Name="hide" Ref="True">
+					<Show/>
+					<Opacity Time="0.8" Start="0.6" Stop="0"/>
+					<Hide/>
+				</Sequence>
+			</Action>
+
 			<Node PassColor="False">
 				<SolidCircle Radius="{ radius }" Color="{ backColor or 0x88000000 }" RenderOrder="1"/>
 			</Node>
@@ -15,6 +27,11 @@
 			<Script>end</Script>
 
 			<LineCircle Radius="{ radius }" Color="0xffffffff" RenderOrder="3"/>
+			<SolidCircle Name="light" Radius="{ radius }" Color="0xff00ffff" RenderOrder="4"/>
+			<Script>light.visible = false</Script>
 		</Item>
+
+		<Slot Name="TapBegan" Target="light" Perform="show"/>
+		<Slot Name="TapEnded" Target="light" Perform="hide"/>
 	</ButtonBase>
 </Dorothy>

@@ -45,7 +45,7 @@ Dorothy builtin.ImGui
 currentEntry = Director.entry.children.first
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.designSize
+		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,260), "FirstUseEver"
 		if Begin "Render Group", "NoResize|NoSavedSettings"

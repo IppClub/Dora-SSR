@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -401,7 +401,7 @@ void DrawRenderer::render()
 			bgfx::setVertexBuffer(0, &vertexBuffer);
 			bgfx::setIndexBuffer(&indexBuffer);
 			bgfx::setState(_lastState);
-			Uint8 viewId = SharedView.getId();
+			bgfx::ViewId viewId = SharedView.getId();
 			bgfx::submit(viewId, _defaultEffect->apply());
 		}
 		else
@@ -656,7 +656,7 @@ void LineRenderer::render()
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
 			bgfx::setVertexBuffer(0, &vertexBuffer);
 			bgfx::setState(_lastState);
-			Uint8 viewId = SharedView.getId();
+			bgfx::ViewId viewId = SharedView.getId();
 			bgfx::submit(viewId, _defaultEffect->apply());
 		}
 		else

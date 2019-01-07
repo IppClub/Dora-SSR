@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -65,7 +65,7 @@ public:
 		if (_fullScreen)
 		{
 			ImGui::SetNextWindowPos(Vec2::zero);
-			ImGui::SetNextWindowSize(Vec2{1,1}*SharedApplication.getDesignSize(), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(Vec2{1,1}*SharedApplication.getVisualSize(), ImGuiCond_Always);
 			ImGui::Begin((string(title)+"_full").c_str(), nullptr, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 		}
 		else
@@ -213,7 +213,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	AssertIf(isLoadingFont, "font is loading.");
 	isLoadingFont = true;
 
-	float scale = SharedApplication.getDesignScale();
+	float scale = SharedApplication.getDeviceRatio();
 	fontSize *= scale;
 
 	Sint64 size;
@@ -523,9 +523,9 @@ bool ImGuiDora::init()
 void ImGuiDora::begin()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	Size designSize = SharedApplication.getDesignSize();
-	io.DisplaySize.x = designSize.width;
-	io.DisplaySize.y = designSize.height;
+	Size visualSize = SharedApplication.getVisualSize();
+	io.DisplaySize.x = visualSize.width;
+	io.DisplaySize.y = visualSize.height;
 	io.DeltaTime = s_cast<float>(SharedApplication.getDeltaTime());
 
 	if (_textInputing != io.WantTextInput)
@@ -589,7 +589,7 @@ void ImGuiDora::render()
 
 	SharedView.pushName("ImGui"_slice, [&]()
 	{
-		Uint8 viewId = SharedView.getId();
+		bgfx::ViewId viewId = SharedView.getId();
 
 		ImGuiDora* guiDora = SharedImGui.getTarget();
 		bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
@@ -618,7 +618,7 @@ void ImGuiDora::render()
 			ImDrawVert* verts = (ImDrawVert*)tvb.data;
 			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
 
-			float scale = SharedApplication.getDesignScale();
+			float scale = SharedApplication.getDeviceRatio();
 			_effect->set("u_scale"_slice,  scale);
 
 			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
@@ -732,11 +732,11 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		}
 		case SDL_MOUSEMOTION:
 		{
-			Size designSize = SharedApplication.getDesignSize();
+			Size visualSize = SharedApplication.getVisualSize();
 			Size winSize = SharedApplication.getWinSize();
 			ImGui::GetIO().MousePos = Vec2{
-				s_cast<float>(event.motion.x) * designSize.width / winSize.width,
-				s_cast<float>(event.motion.y) * designSize.height / winSize.height
+				s_cast<float>(event.motion.x) * visualSize.width / winSize.width,
+				s_cast<float>(event.motion.y) * visualSize.height / winSize.height
 			};
 			break;
 		}

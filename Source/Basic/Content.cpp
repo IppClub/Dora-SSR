@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -282,7 +282,7 @@ void Content::copyFileUnsafe(String src, String dst)
 	string srcPath = Content::getFullPath(src);
 	// Info("copy file from {}", srcPath);
 	// Info("copy file to {}", dst);
-	if (Content::isFolder(srcPath))
+	if (Content::isPathFolder(srcPath))
 	{
 		string dstPath = dst;
 		auto folders = Content::getDirEntries(src, true);
@@ -414,6 +414,11 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, const fu
 bool Content::isExist(String filename)
 {
 	return Content::isFileExist(Content::getFullPath(filename));
+}
+
+bool Content::isFolder(String path)
+{
+	return Content::isPathFolder(Content::getFullPath(path));
 }
 
 vector<string> Content::getDirEntries(String path, bool isFolder)
@@ -574,7 +579,7 @@ bool Content::isFileExist(String strFilePath)
 	return found;
 }
 
-bool Content::isFolder(String path)
+bool Content::isPathFolder(String path)
 {
 	return g_apkFile->isFolder(path);
 }
@@ -677,7 +682,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 	SDL_RWclose(io);
 }
 
-bool Content::isFolder(String path)
+bool Content::isPathFolder(String path)
 {
 	struct stat buf;
 	if (::stat(path.toString().c_str(), &buf) == 0)

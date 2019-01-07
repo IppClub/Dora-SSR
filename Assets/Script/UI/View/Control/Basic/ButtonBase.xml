@@ -4,7 +4,7 @@
 		<!-- Animations -->
 		<Action>
 			<Sequence Name="scaleAction" Ref="True">
-				<Scale Start="0.3" Stop="0.3"/>
+				<Scale Time="0.08" Start="1.0" Stop="0.3"/>
 				<Scale Time="0.3" Start="0.3" Stop="1" Ease="OutBack"/>
 			</Sequence>
 		</Action>
@@ -13,6 +13,6 @@
 		<Node Name="face" X="{ $X }" Y="{ $Y }" Width="{ width }" Height="{ height }" Ref="True"/>
 
 		<!-- Tap Event -->
-		<Slot Name="TapBegan" Target="face" Perform="scaleAction"/>
+		<Slot Name="Tapped" Target="face" Perform="scaleAction"/>
 	</Node>
 </Dorothy>

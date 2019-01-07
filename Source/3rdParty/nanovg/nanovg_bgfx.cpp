@@ -1183,7 +1183,6 @@ NVGLUframebuffer* nvgluCreateFramebuffer(NVGcontext* ctx, int32_t width, int32_t
 
 NVGLUframebuffer* nvgluCreateFramebuffer(NVGcontext* _ctx, int32_t _width, int32_t _height, int32_t _imageFlags)
 {
-	BX_UNUSED(_imageFlags);
 	bgfx::TextureHandle textures[] =
 	{
 		bgfx::createTexture2D(_width, _height, false, 1, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_RT),

@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -57,10 +57,10 @@ Application::Application():
 _seed(0),
 _fpsLimited(false),
 _frame(0),
-_designWidth(1024),
-_designHeight(768),
-_winWidth(_designWidth),
-_winHeight(_designHeight),
+_visualWidth(1024),
+_visualHeight(768),
+_winWidth(_visualWidth),
+_winHeight(_visualHeight),
 _bufferWidth(0),
 _bufferHeight(0),
 _maxFPS(60),
@@ -79,9 +79,9 @@ Size Application::getBufferSize() const
 	return Size{s_cast<float>(_bufferWidth), s_cast<float>(_bufferHeight)};
 }
 
-Size Application::getDesignSize() const
+Size Application::getVisualSize() const
 {
-	return Size{s_cast<float>(_designWidth), s_cast<float>(_designHeight)};
+	return Size{s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
 }
 
 Size Application::getWinSize() const
@@ -89,9 +89,9 @@ Size Application::getWinSize() const
 	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
-float Application::getDesignScale() const
+float Application::getDeviceRatio() const
 {
-	return s_cast<float>(_bufferWidth) / _designWidth;
+	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
 
 void Application::setSeed(Uint32 var)
@@ -297,14 +297,14 @@ void Application::updateWindowSize()
 #if BX_PLATFORM_WINDOWS
 	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
 	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
-	_designWidth = MulDiv(_winWidth, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
-	_designHeight = MulDiv(_winHeight, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
+	_visualWidth = MulDiv(_winWidth, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
+	_visualHeight = MulDiv(_winHeight, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
 #elif BX_PLATFORM_ANDROID
-	_designWidth = s_cast<int>(_winWidth / g_androidScreenDensity);
-	_designHeight = s_cast<int>(_winHeight / g_androidScreenDensity);
+	_visualWidth = s_cast<int>(_winWidth / g_androidScreenDensity);
+	_visualHeight = s_cast<int>(_winHeight / g_androidScreenDensity);
 #else
-	_designWidth = _winWidth;
-	_designHeight = _winHeight;
+	_visualWidth = _winWidth;
+	_visualHeight = _winHeight;
 #endif // BX_PLATFORM_WINDOWS
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
@@ -514,12 +514,12 @@ void Application::setupSdlWindow()
 	SDL_GetCurrentDisplayMode(0, &displayMode);
 	int screenWidth = MulDiv(displayMode.w, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
 	int screenHeight = MulDiv(displayMode.h, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
-	_designWidth = Math::clamp(_designWidth, 0, screenWidth);
-	_designHeight = Math::clamp(_designHeight, 0, screenHeight);
+	_visualWidth = Math::clamp(_visualWidth, 0, screenWidth);
+	_visualHeight = Math::clamp(_visualHeight, 0, screenHeight);
 	if (hdpi != DEFAULT_WIN_DPI || vdpi != DEFAULT_WIN_DPI)
 	{
-		_winWidth = MulDiv(_designWidth, s_cast<int>(hdpi), DEFAULT_WIN_DPI);
-		_winHeight = MulDiv(_designHeight, s_cast<int>(vdpi), DEFAULT_WIN_DPI);
+		_winWidth = MulDiv(_visualWidth, s_cast<int>(hdpi), DEFAULT_WIN_DPI);
+		_winHeight = MulDiv(_visualHeight, s_cast<int>(vdpi), DEFAULT_WIN_DPI);
 		SDL_SetWindowSize(_sdlWindow, _winWidth, _winHeight);
 		SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	}

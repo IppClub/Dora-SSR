@@ -37,6 +37,7 @@ local objects = {
 "Dictionary",
 "PhysicsWorld",
 "DrawNode",
+"VGNode",
 "Effect",
 "Particle",
 "Camera",

@@ -3,27 +3,6 @@ struct NVGpaint
 	~NVGpaint();
 }
 
-
-struct nvg
-{
-	#define NVG_CCW @ CCW
-	#define NVG_CW @ CW
-	#define NVG_SOLID @ SOLID
-	#define NVG_HOLE @ HOLE
-	#define NVG_BUTT @ BUTT
-	#define NVG_ROUND @ ROUND
-	#define NVG_SQUARE @ SQUARE
-	#define NVG_BEVEL @ BEVEL
-	#define NVG_MITER @ MITER
-	#define NVG_ALIGN_LEFT @ ALIGN_LEFT
-	#define NVG_ALIGN_CENTER @ ALIGN_CENTER
-	#define NVG_ALIGN_RIGHT @ ALIGN_RIGHT
-	#define NVG_ALIGN_TOP @ ALIGN_TOP
-	#define NVG_ALIGN_MIDDLE @ ALIGN_MIDDLE
-	#define NVG_ALIGN_BOTTOM @ ALIGN_BOTTOM
-	#define NVG_ALIGN_BASELINE @ ALIGN_BASELINE
-};
-
 namespace nvg
 {
 	struct Transform
@@ -60,8 +39,8 @@ namespace nvg
 	void FillPaint(NVGpaint paint);
 	void MiterLimit(float limit);
 	void StrokeWidth(float size);
-	void LineCap(int cap);
-	void LineJoin(int join);
+	void LineCap(String cap);
+	void LineJoin(String join);
 	void GlobalAlpha(float alpha);
 	void ResetTransform();
 	void ApplyTransform(Transform t);
@@ -87,8 +66,8 @@ namespace nvg
 	void QuadTo(float cx, float cy, float x, float y);
 	void ArcTo(float x1, float y1, float x2, float y2, float radius);
 	void ClosePath();
-	void PathWinding(int dir);
-	void Arc(float cx, float cy, float r, float a0, float a1, int dir);
+	void PathWinding(String dir);
+	void Arc(float cx, float cy, float r, float a0, float a1, String dir);
 	void Rect(float x, float y, float w, float h);
 	void RoundedRect(float x, float y, float w, float h, float r);
 	void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
@@ -96,15 +75,26 @@ namespace nvg
 	void Circle(float cx, float cy, float r);
 	void Fill();
 	void Stroke();
-	int FindFont(const char* name);
+	int FindFont(String name);
 	int AddFallbackFontId(int baseFont, int fallbackFont);
-	int AddFallbackFont(const char* baseFont, const char* fallbackFont);
+	int AddFallbackFont(String baseFont, String fallbackFont);
 	void FontSize(float size);
 	void FontBlur(float blur);
 	void TextLetterSpacing(float spacing);
 	void TextLineHeight(float lineHeight);
-	void TextAlign(int align);
+	void TextAlign(String align);
 	void FontFaceId(int font);
-	void FontFace(const char* font);
+	void FontFace(String font);
+	void DorothySSR();
+	void DorothySSRWhite();
+	void DorothySSRHappy();
+	void DorothySSRHappyWhite();
+};
+
+class VGNode : public Node
+{
+	tolua_readonly tolua_property__common Sprite* surface;
+	void render(tolua_function_void func);
+	static VGNode* create(float width, float height, float scale = 1.0f, int edgeAA = 1);
 };
 

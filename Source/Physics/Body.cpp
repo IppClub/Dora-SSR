@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -204,8 +204,9 @@ float Body::getMass() const
 	return _bodyB2->GetMass();
 }
 
-void Body::setGroup(int group)
+void Body::setGroup(Uint8 group)
 {
+	AssertIf(group >= PhysicsWorld::TotalGroups, "Body group should be less than {}.", PhysicsWorld::TotalGroups);
 	_group = group;
 	for (b2Fixture* f = _bodyB2->GetFixtureList();f;f = f->GetNext())
 	{
@@ -213,7 +214,7 @@ void Body::setGroup(int group)
 	}
 }
 
-int Body::getGroup() const
+Uint8 Body::getGroup() const
 {
 	return _group;
 }

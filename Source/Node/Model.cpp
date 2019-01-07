@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -223,12 +223,13 @@ void Model::onActionEnd()
 	{
 		return;
 	}
-	_animationGroups[_currentAnimation]->animationEnd(this);
-	if (_loop)
+	AnimationGroup* group = _animationGroups[_currentAnimation];
+	group->animationEnd(this);
+	if (_loop && group->duration > 0.0f)
 	{
 		if (!_isRecovering)
 		{
-			for (Animation* animation : _animationGroups[_currentAnimation]->animations)
+			for (Animation* animation : group->animations)
 			{
 				animation->stop();
 				animation->run();

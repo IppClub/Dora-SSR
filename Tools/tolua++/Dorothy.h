@@ -98,8 +98,8 @@ struct Rect
 class Application
 {
 	tolua_readonly tolua_property__common Size bufferSize;
-	tolua_readonly tolua_property__common Size designSize;
-	tolua_readonly tolua_property__common float designScale;
+	tolua_readonly tolua_property__common Size visualSize;
+	tolua_readonly tolua_property__common float deviceRatio;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_readonly tolua_property__common Uint32 rand;
@@ -232,8 +232,9 @@ class OthoCamera : public Camera
 
 class Director
 {
-	tolua_property__common Scheduler* scheduler;
 	tolua_property__bool bool displayStats;
+	tolua_property__common Color clearColor;
+	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common Node* uI @ ui;
 	tolua_readonly tolua_property__common Node* entry;
 	tolua_readonly tolua_property__common Node* postNode;
@@ -620,8 +621,8 @@ class PhysicsWorld : public Node
 	bool query(Rect rect, tolua_function_bool handler);
 	bool raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);
 	void setIterations(int velocityIter, int positionIter);
-	void setShouldContact(int groupA, int groupB, bool contact);
-	bool getShouldContact(int groupA, int groupB);
+	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
+	bool getShouldContact(Uint8 groupA, Uint8 groupB);
 	static float b2Factor;
 	static PhysicsWorld* create();
 };
@@ -767,7 +768,7 @@ class Body : public Node
 	tolua_property__common float velocityY;
 	tolua_property__common Vec2 velocity;
 	tolua_property__common float angularRate;
-	tolua_property__common int group;
+	tolua_property__common Uint8 group;
 	tolua_property__common float linearDamping;
 	tolua_property__common float angularDamping;
 	tolua_property__common Object* owner;
@@ -1014,6 +1015,11 @@ class Keyboard
 	void updateIMEPosHint(Vec2 winPos);
 	static tolua_outside Keyboard* Keyboard_shared @ create();
 };
+
+Texture2D* GetDorothySSR(float scale = 1.0f);
+Texture2D* GetDorothySSRWhite(float scale = 1.0f);
+Texture2D* GetDorothySSRHappy(float scale = 1.0f);
+Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
 
 namespace Platformer {
 
@@ -1266,19 +1272,23 @@ class PlatformWorld : public PhysicsWorld
 
 class Data
 {
-	tolua_readonly tolua_property__common int groupHide;
-	tolua_readonly tolua_property__common int groupDetectPlayer;
-	tolua_readonly tolua_property__common int groupTerrain;
-	tolua_readonly tolua_property__common int groupDetection;
+	tolua_readonly tolua_property__common Uint8 groupHide;
+	tolua_readonly tolua_property__common Uint8 groupDetectPlayer;
+	tolua_readonly tolua_property__common Uint8 groupTerrain;
+	tolua_readonly tolua_property__common Uint8 groupDetection;
 	tolua_readonly tolua_property__common Dictionary* store;
-	void setRelation(int groupA, int groupB, Relation relation);
-	Relation getRelation(int groupA, int groupB);
+	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
+	bool getShouldContact(Uint8 groupA, Uint8 groupB);
+	void setRelation(Uint8 groupA, Uint8 groupB, Relation relation);
+	Relation getRelation(Uint8 groupA, Uint8 groupB);
 	Relation getRelation(Body* bodyA, Body* bodyB);
 	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
 	float getDamageFactor(Uint16 damageType, Uint16 defenceType);
 	bool isPlayer(Body* body);
 	bool isTerrain(Body* body);
+	void clear();
 	static tolua_outside Data* Data_shared @ create();
 };
 
 } // namespace Platformer
+

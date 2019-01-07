@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -97,9 +97,9 @@ public:
 	 */
 	bool query(const Rect& rect, const function<bool(Body*)>& callback);
 	bool raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*, const Vec2&, const Vec2&)>& callback);
-	void setShouldContact(int groupA, int groupB, bool contact);
-	bool getShouldContact(int groupA, int groupB) const;
-	const b2Filter& getFilter(int group) const;
+	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
+	bool getShouldContact(Uint8 groupA, Uint8 groupB) const;
+	const b2Filter& getFilter(Uint8 group) const;
 	static inline float oVal(float value) { return value * b2Factor; }
 	static inline Vec2 oVal(const b2Vec2& value) { return Vec2{value.x * b2Factor, value.y * b2Factor}; }
 	static inline Vec2 oVal(const Vec2& value) { return value * b2Factor; }
@@ -114,6 +114,7 @@ public:
 	 Better change this value before any physics body creation.
 	 */
 	static float b2Factor;
+	enum { TotalGroups = 32 };
 	CREATE_FUNC(PhysicsWorld);
 protected:
 	PhysicsWorld();
@@ -147,7 +148,7 @@ private:
 protected:
 	Own<DebugDraw> _debugDraw;
 private:
-	b2Filter _filters[16];
+	b2Filter _filters[TotalGroups];
 	b2World _world;
 	Own<ContactListener> _contactListner;
 	Own<ContactFilter> _contactFilter;

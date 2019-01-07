@@ -6,6 +6,18 @@
 
 	<ButtonBase X="{ x }" Y="{ y }" Width="{ width }" Height="{ height }" Tag="{ tag }">
 		<Item Name="face">
+			<Action>
+				<Spawn Name="show" Ref="True">
+					<Show/>
+					<Opacity Time="0" Start="0" Stop="0.6"/>
+				</Spawn>
+				<Sequence Name="hide" Ref="True">
+					<Show/>
+					<Opacity Time="0.8" Start="0.6" Stop="0"/>
+					<Hide/>
+				</Sequence>
+			</Action>
+
 			<Node PassColor="False">
 				<SolidRect Width="{ width }" Height="{ height }" Color="{ backColor or 0x66000000 }" RenderOrder="1"/>
 			</Node>
@@ -15,6 +27,13 @@
 			<Script>end</Script>
 
 			<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>
+			<SolidRect Name="light" Width="{ width }" Height="{ height }" Color="0xff00ffff" RenderOrder="4"/>
+			<Script>light.visible = false</Script>
 		</Item>
+
+		<Slot Name="TapBegan" Target="light" Perform="show" Type="Moon">
+			print "began"
+		</Slot>
+		<Slot Name="TapEnded" Target="light" Perform="hide"/>
 	</ButtonBase>
 </Dorothy>

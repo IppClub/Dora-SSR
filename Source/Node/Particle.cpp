@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Node/Particle.h"
 #include "Cache/TextureCache.h"
+#include "Cache/ClipCache.h"
 #include "Cache/ParticleCache.h"
 #include "Effect/Effect.h"
 #include "Basic/Director.h"
@@ -212,12 +213,34 @@ bool ParticleNode::init()
 	if (!Node::init()) return false;
 	_particles.reserve(_particleDef->maxParticles);
 	_quads.reserve(_particleDef->maxParticles);
+	Rect textureRect = _particleDef->textureRect;
 	if (!_particleDef->textureName.empty())
 	{
-		_texture = SharedTextureCache.load(_particleDef->textureName);
+		if (SharedClipCache.isClip(_particleDef->textureName) &&
+			SharedClipCache.isFileExist(_particleDef->textureName))
+		{
+			_texture = SharedClipCache.loadTexture(_particleDef->textureName);
+			ClipDef* def = nullptr;
+			Slice name;
+			std::tie(def, name) = SharedClipCache.loadClip(_particleDef->textureName);
+			if (def && !name.empty())
+			{
+				auto it = def->rects.find(name);
+				if (it != def->rects.end())
+				{
+					textureRect = *(it->second);
+				}
+			}
+		}
+		else if (SharedContent.isExist(_particleDef->textureName) &&
+				!SharedContent.isFolder(_particleDef->textureName))
+		{
+			_texture = SharedTextureCache.load(_particleDef->textureName);
+		}
 	}
 	if (!_texture)
 	{
+		textureRect = Rect::zero;
 		_texture = SharedTextureCache.get("__defaultParticleTexture.png");
 		if (!_texture)
 		{
@@ -227,13 +250,13 @@ bool ParticleNode::init()
 				sizeof(__defaultParticleTexturePng));
 		}
 	}
-	if (_particleDef->textureRect != Rect::zero)
+	if (textureRect != Rect::zero)
 	{
 		const bgfx::TextureInfo& info = _texture->getInfo();
-		_texLeft = _particleDef->textureRect.getX() / info.width;
-		_texTop = _particleDef->textureRect.getY() / info.height;
-		_texRight = (_particleDef->textureRect.getX() + _particleDef->textureRect.getWidth()) / info.width;
-		_texBottom = (_particleDef->textureRect.getY() + _particleDef->textureRect.getHeight()) / info.height;
+		_texLeft = textureRect.getX() / info.width;
+		_texTop = textureRect.getY() / info.height;
+		_texRight = (textureRect.getX() + textureRect.getWidth()) / info.width;
+		_texBottom = (textureRect.getY() + textureRect.getHeight()) / info.height;
 	}
 	else
 	{

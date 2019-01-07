@@ -148,13 +148,10 @@ doCompile = (minify)->
 	totalMinifyTime = 0
 	thread ->
 		print "Output path: #{Content.writablePath}"
-		if App.platform == "iOS"
-			compile Content.assetPath\sub(1,-2),false,minify
-		else
-			xpcall (-> compile Content.assetPath\sub(1,-2),false,minify),(msg)->
-				msg = debug.traceback msg
-				print msg
-				building = false
+		xpcall (-> compile Content.assetPath\sub(1,-2),false,minify),(msg)->
+			msg = debug.traceback msg
+			print msg
+			building = false
 		print string.format "Compile #{minify and 'and minify ' or ''}done. %d files in total.\nCompile time, Moon %.3fs, Xml %.3fs#{minify and ', Minify %.3fs' or ''}.\n",totalFiles,totalMoonTime,totalXmlTime,totalMinifyTime
 		building = false
 
@@ -185,7 +182,7 @@ allClear = ->
 	Director\popCamera!
 	Cache\unload!
 	Entity\clear!
-	Platformer.Data.store\clear!
+	Platformer.Data\clear!
 	Platformer.UnitAction\clear!
 	currentEntryName = nil
 	isInEntry = true
@@ -197,7 +194,7 @@ table.sort examples
 tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
 table.sort tests
 currentEntryName = nil
-allNames = for game in *games do "Game/#{game}"
+allNames = for game in *games do "Game/#{game}/init"
 for example in *examples do table.insert allNames,"Example/#{example}"
 for test in *tests do table.insert allNames,"Test/#{test}"
 
@@ -219,17 +216,30 @@ enterDemoEntry = (name)->
 		print msg
 		allClear!
 
+showEntry = false
+
+thread ->
+	{:width,:height} = App.visualSize
+	scale = App.deviceRatio*0.7*math.min(width,height)/760
+	with Sprite GetDorothySSRHappyWhite scale
+		\addTo Director.entry
+		sleep 1.0
+		\removeFromParent!
+	showEntry = true
+	Director.clearColor = Color 0xff1a1a1a
+
 showStats = false
 showLog = false
 showFooter = true
 scaleContent = false
 footerFocus = false
-screenScale = App.designScale
+screenScale = App.deviceRatio
 threadLoop ->
+	return unless showEntry
 	left = Keyboard\isKeyDown "Left"
 	right = Keyboard\isKeyDown "Right"
 	App\shutdown! if Keyboard\isKeyDown "Escape"
-	{:width,:height} = App.designSize
+	{:width,:height} = App.visualSize
 	SetNextWindowSize Vec2(190,50)
 	SetNextWindowPos Vec2(width-190,height-50)
 	PushStyleColor "WindowBg", Color(0x0)
@@ -299,8 +309,9 @@ threadLoop ->
 	End!
 
 threadLoop ->
+	return unless showEntry
 	return unless isInEntry
-	{:width,:height} = App.designSize
+	{:width,:height} = App.visualSize
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2(width,53)
 	PushStyleColor "TitleBgActive", Color(0xcc000000)
@@ -312,7 +323,7 @@ threadLoop ->
 	SetNextWindowSize Vec2(width,height-107)
 	PushStyleColor "WindowBg",Color(0x0)
 	if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
-		TextColored Color(0xff00ffff), "Game demos"
+		TextColored Color(0xff00ffff), "Game Demos"
 		Columns math.max(math.floor(width/200),1), false
 		for game in *games
 			if Button game, Vec2(-1,40)
