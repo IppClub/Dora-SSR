@@ -309,6 +309,7 @@
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Renderer.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\VGRender.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
@@ -357,6 +358,7 @@
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
     <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\BodyDef.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\DebugDraw.cpp" />
@@ -492,6 +494,7 @@
     <ClInclude Include="..\..\..\Source\Basic\Object.h" />
     <ClInclude Include="..\..\..\Source\Basic\Renderer.h" />
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
+    <ClInclude Include="..\..\..\Source\Basic\VGRender.h" />
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
     <ClInclude Include="..\..\..\Source\Cache\ClipCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\FrameCache.h" />
@@ -539,6 +542,7 @@
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
     <ClInclude Include="..\..\..\Source\Node\RenderTarget.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
+    <ClInclude Include="..\..\..\Source\Node\VGNode.h" />
     <ClInclude Include="..\..\..\Source\Physics\Body.h" />
     <ClInclude Include="..\..\..\Source\Physics\BodyDef.h" />
     <ClInclude Include="..\..\..\Source\Physics\DebugDraw.h" />
