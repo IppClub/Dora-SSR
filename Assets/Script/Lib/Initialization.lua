@@ -151,11 +151,7 @@ end
 builtin.namespace = function(path)
 	if path then
 		return function(name)
-			local result = require(path.."."..name)
-			if not result then
-				result = package.loaded[name]
-			end
-			return result
+			return require(path.."."..name)
 		end
 	else
 		return require

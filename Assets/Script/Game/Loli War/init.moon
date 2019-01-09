@@ -46,3 +46,25 @@ with Data.store
 	Data\setRelation .GroupPlayer, .GroupEnemyPoke, Relation.Enemy
 	Data\setRelation .GroupEnemy, .GroupPlayerBlock, Relation.Enemy
 	Data\setRelation .GroupEnemy, .GroupPlayerPoke, Relation.Enemy
+
+Content\insertSearchPath 1,"Script/Game/Loli War"
+HPWheel = require "UI.Control.HPWheel"
+AlignNode = require "UI.Control.Basic.AlignNode"
+LeftTouchPad = require "UI.View.LeftTouchPad"
+RightTouchPad = require "UI.View.RightTouchPad"
+StartPanel = require "UI.Control.StartPanel"
+
+Director.ui\addChild with AlignNode isRoot:true
+	\addChild HPWheel!
+	switch App.platform
+		when "iOS","Android"
+			\addChild LeftTouchPad!
+			\addChild RightTouchPad!
+	\addChild StartPanel!
+	\slot "Cleanup",-> Content\removeSearchPath "Script/Game/Loli War"
+
+thread ->
+	sleep 1
+	emit "EPChange",Data.store.GroupPlayer,-2
+	sleep 2
+	emit "HPChange",Data.store.GroupPlayer,-1

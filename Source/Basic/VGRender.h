@@ -114,22 +114,22 @@ void RenderDorothySSRWhite(NVGcontext* context);
 void RenderDorothySSRHappy(NVGcontext* context);
 void RenderDorothySSRHappyWhite(NVGcontext* context);
 
-class NVGTexture : public Texture2D
+class VGTexture : public Texture2D
 {
 public:
 	PROPERTY_READONLY(NVGcontext*, Context);
 	PROPERTY_READONLY(NVGLUframebuffer*, Framebuffer);
-	virtual ~NVGTexture();
-	CREATE_FUNC(NVGTexture);
+	virtual ~VGTexture();
+	CREATE_FUNC(VGTexture);
 protected:
-	NVGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, Uint64 flags);
+	VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, Uint64 flags);
 	NVGLUframebuffer* _framebuffer;
 	NVGcontext* _context;
 };
 
-NVGTexture* GetDorothySSR(float scale = 1.0f);
-NVGTexture* GetDorothySSRWhite(float scale = 1.0f);
-NVGTexture* GetDorothySSRHappy(float scale = 1.0f);
-NVGTexture* GetDorothySSRHappyWhite(float scale = 1.0f);
+VGTexture* GetDorothySSR(float scale = 1.0f);
+VGTexture* GetDorothySSRWhite(float scale = 1.0f);
+VGTexture* GetDorothySSRHappy(float scale = 1.0f);
+VGTexture* GetDorothySSRHappyWhite(float scale = 1.0f);
 
 NS_DOROTHY_END

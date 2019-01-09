@@ -40,7 +40,7 @@ bool VGNode::init()
 		s_cast<uint16_t>(_frameHeight * _frameScale),
 		0, false, false, 1, bgfx::TextureFormat::RGBA8);
 	Uint64 flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-	_surface = Sprite::create(NVGTexture::create(context, framebuffer, info, flags));
+	_surface = Sprite::create(VGTexture::create(context, framebuffer, info, flags));
 	_surface->addTo(this);
 	return true;
 }
@@ -53,7 +53,7 @@ void VGNode::cleanup()
 
 void VGNode::render(const function<void()>& func)
 {
-	NVGTexture* texture = s_cast<NVGTexture*>(_surface->getTexture());
+	VGTexture* texture = s_cast<VGTexture*>(_surface->getTexture());
 	NVGLUframebuffer* framebuffer = texture->getFramebuffer();
 	NVGcontext* context = texture->getContext();
 	SharedView.pushName(Slice::Empty, [&]()

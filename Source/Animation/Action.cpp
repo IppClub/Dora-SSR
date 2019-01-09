@@ -635,7 +635,7 @@ bool Action::updateProgress()
 	}
 	else if (_eclapsed >= _action->getDuration())
 	{
-		float stop = _reversed ? 0.0f : _action->getDuration();
+		float stop = _reversed ? 0.0f : _eclapsed;
 		_action->update(_target, stop);
 		return true;
 	}

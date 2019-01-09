@@ -1,0 +1,18 @@
+<Dorothy>
+	<Import Module="UI.Control.Basic.AlignNode"/>
+	<Import Module="UI.View.Button"/>
+
+	<AlignNode HAlign="Right" VAlign="Bottom" AlignOffset="{ Vec2(10,10) }">
+		<Menu AnchorX="1" AnchorY="0" Width="114" Height="52" ScaleX="2" ScaleY="2">
+			<Button ImageUp="{ 'keyf_up' }" ImageDown="{ 'keyf_down' }" Width="52" Height="52">
+				<Slot Name="TapBegan">emit("KeyFDown")</Slot>
+				<Slot Name="TapEnded">emit("KeyFUp")</Slot>
+			</Button>
+			<Button ImageUp="{ 'keyup_up' }" ImageDown="{ 'keyup_down' }" X="62" Width="52" Height="52">
+				<Slot Name="TapBegan">emit("KeyUpDown")</Slot>
+				<Slot Name="TapEnded">emit("KeyUpUp")</Slot>
+			</Button>
+		</Menu>
+	</AlignNode>
+</Dorothy>
+

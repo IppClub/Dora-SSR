@@ -2,30 +2,37 @@ Dorothy!
 import run_with_scope from require "moon"
 
 Class Node,
-	__init:(isRoot=false,inUI=true)=>
-		@_isRoot = isRoot
-		if isRoot
+	__init:(args)=>
+		{
+			:isRoot, :inUI,
+			:hAlign, :vAlign,
+			:alignOffset,
+			:alignWidth, :alignHeight
+		} = args or {}
+		@inUI = inUI or true
+		@_isRoot = isRoot or false
+		@hAlign = hAlign or "Center"
+		@vAlign = vAlign or "Center"
+		@alignOffset = alignOffset or Vec2.zero
+		@alignWidth = alignWidth
+		@alignHeight = alignHeight
+		if @_isRoot
 			viewSize = View.size
 			@size = viewSize
 			@_viewSize = viewSize
-			@position = Vec2(0.5,0.5) * viewSize if inUI
+			@position = Vec2(0.5,0.5) * viewSize if @inUI
 			@gslot "AppSizeChanged",->
 				viewSize = View.size
 				if @_viewSize ~= viewSize
 					@_viewSize = viewSize
 					@size = viewSize
-					@position = Vec2(0.5,0.5) * viewSize if inUI
+					@position = Vec2(0.5,0.5) * viewSize if @inUI
 					@eachChild (child)->
 						child\emit "AlignLayout", viewSize.width, viewSize.height
 			@slot "Enter", ->
 				@eachChild (child)->
 					child\emit "AlignLayout", viewSize.width, viewSize.height
 		else
-			@hAlign = "Center"
-			@vAlign = "Center"
-			@alignOffset = Vec2.zero
-			@alignWidth = nil
-			@alignHeight = nil
 			@slot "AlignLayout", (w, h)->
 				env = :w,:h
 				oldSize = @size

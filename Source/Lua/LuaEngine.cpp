@@ -124,18 +124,21 @@ static int dora_loadfile(lua_State* L, String filename)
 		return 2;
 	}
 	return 1;
-
 }
 
 static int dora_loadfile(lua_State* L)
 {
-	string filename(luaL_checkstring(L, 1));
+	size_t size = 0;
+	const char* str = luaL_checklstring(L, 1, &size);
+	Slice filename(str, size);
 	return dora_loadfile(L, filename);
 }
 
 static int dora_dofile(lua_State* L)
 {
-	string filename(luaL_checkstring(L, 1));
+	size_t size = 0;
+	const char* str = luaL_checklstring(L, 1, &size);
+	Slice filename(str, size);
 	dora_loadfile(L, filename);
 	if (lua_isnil(L, -2) && lua_isstring(L, -1))
 	{
@@ -149,7 +152,9 @@ static int dora_dofile(lua_State* L)
 
 static int dora_loader(lua_State* L)
 {
-	string filename(luaL_checkstring(L, 1));
+	size_t size = 0;
+	const char* str = luaL_checklstring(L, 1, &size);
+	string filename(str, size);
 	size_t pos = 0;
 	while ((pos = filename.find('.', pos)) != string::npos)
 	{

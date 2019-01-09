@@ -27,6 +27,7 @@ void __Content_getFiles(lua_State* L, Content* self, String path);
 #define Content_getFiles(self,path) {__Content_getFiles(tolua_S,self,path);return 1;}
 int Content_GetSearchPaths(lua_State* L);
 int Content_SetSearchPaths(lua_State* L);
+void Content_insertSearchPath(Content* self, int index, String path);
 inline Content* Content_shared() { return &SharedContent; }
 
 /* Director */

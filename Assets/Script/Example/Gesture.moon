@@ -1,6 +1,7 @@
 Dorothy!
 
-sprite = Sprite "Image/logo.png"
+texture = GetDorothySSRWhite!
+sprite = Sprite texture
 length = (Vec2 View.size).length
 {:width,:height} = sprite
 size = Vec2(width,height).length

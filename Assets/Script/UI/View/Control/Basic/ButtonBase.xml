@@ -1,6 +1,6 @@
 <!-- params: X, Y, Width, Height, Tag -->
 <Dorothy>
-	<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }" Color="0x00ffff" Tag="{ tag or '' }" TouchEnabled="True">
+	<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }" Color3="0x00ffff" Tag="{ tag or '' }" TouchEnabled="True">
 		<!-- Animations -->
 		<Action>
 			<Sequence Name="scaleAction" Ref="True">

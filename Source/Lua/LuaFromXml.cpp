@@ -84,41 +84,49 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Name) { hasSelf = true; self = atts[++i]; break; }\
 	CASE_STR(Ref) { ref = strcmp(atts[++i],"True") == 0; break; }
 
+// ActionBase
+#define ActionBase_Define \
+	Object_Define\
+	bool def = false;
+#define ActionBase_Check \
+	Object_Check\
+	CASE_STR(Def) { def = strcmp(atts[++i],"True") == 0; break; }
+
 // Delay
 #define Delay_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;
 #define Delay_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }
 #define Delay_Create
 #define Delay_Handle \
-	oFunc func = {string("Delay(")+toVal(time,"0")+")",""};\
+	oFunc func = {string("Delay(")+toVal(time,"0")+")","",def};\
 	funcs.push(func);
 #define Delay_Finish
 
 // Scale
 #define Scale_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* start = nullptr;\
 	const char* stop = nullptr;\
 	const char* ease = nullptr;
 #define Scale_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(Start) { start = atts[++i]; break; }\
 	CASE_STR(Stop) { stop = atts[++i]; break; }\
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Scale_Create
 #define Scale_Handle \
-	oFunc func = {string("Scale(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("Scale(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Scale_Finish
 
 // Move
 #define Move_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* startX = nullptr;\
 	const char* startY = nullptr;\
@@ -126,7 +134,7 @@ static const char* _toBoolean(const char* str)
 	const char* stopY = nullptr;\
 	const char* ease = nullptr;
 #define Move_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(StartX) { startX = atts[++i]; break; }\
 	CASE_STR(StartY) { startY = atts[++i]; break; }\
@@ -135,178 +143,180 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Move_Create
 #define Move_Handle \
-	oFunc func = {string("Move(")+toVal(time,"0")+",Vec2("+Val(startX)+","+Val(startY)+"),Vec2("+Val(stopX)+","+Val(stopY)+")"+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("Move(")+toVal(time,"0")+",Vec2("+Val(startX)+","+Val(startY)+"),Vec2("+Val(stopX)+","+Val(stopY)+")"+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Move_Finish
 
 // Angle
 #define Angle_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* start = nullptr;\
 	const char* stop = nullptr;\
 	const char* ease = nullptr;
 #define Angle_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(Start) { start = atts[++i]; break; }\
 	CASE_STR(Stop) { stop = atts[++i]; break; }\
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Angle_Create
 #define Angle_Handle \
-	oFunc func = {string("Angle(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("Angle(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Angle_Finish
 
 // AngleX
 #define AngleX_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* start = nullptr;\
 	const char* stop = nullptr;\
 	const char* ease = nullptr;
 #define AngleX_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(Start) { start = atts[++i]; break; }\
 	CASE_STR(Stop) { stop = atts[++i]; break; }\
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleX_Create
 #define AngleX_Handle \
-	oFunc func = {string("AngleX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("AngleX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define AngleX_Finish
 
 // AngleY
 #define AngleY_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* start = nullptr;\
 	const char* stop = nullptr;\
 	const char* ease = nullptr;
 #define AngleY_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(Start) { start = atts[++i]; break; }\
 	CASE_STR(Stop) { stop = atts[++i]; break; }\
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleY_Create
 #define AngleY_Handle \
-	oFunc func = {string("AngleY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("AngleY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define AngleY_Finish
 
 // Opacity
 #define Opacity_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* start = nullptr;\
 	const char* stop = nullptr;\
 	const char* ease = nullptr;
 #define Opacity_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(Start) { start = atts[++i]; break; }\
 	CASE_STR(Stop) { stop = atts[++i]; break; }\
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Opacity_Create
 #define Opacity_Handle \
-	oFunc func = {string("Opacity(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("Opacity(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Opacity_Finish
 
 // SkewX
 #define SkewX_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* start = nullptr;\
 	const char* stop = nullptr;\
 	const char* ease = nullptr;
 #define SkewX_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(Start) { start = atts[++i]; break; }\
 	CASE_STR(Stop) { stop = atts[++i]; break; }\
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewX_Create
 #define SkewX_Handle \
-	oFunc func = {string("SkewX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("SkewX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define SkewX_Finish
 
 // SkewY
 #define SkewY_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* time = nullptr;\
 	const char* start = nullptr;\
 	const char* stop = nullptr;\
 	const char* ease = nullptr;
 #define SkewY_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Time) { time = atts[++i]; break; }\
 	CASE_STR(Start) { start = atts[++i]; break; }\
 	CASE_STR(Stop) { stop = atts[++i]; break; }\
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewY_Create
 #define SkewY_Handle \
-	oFunc func = {string("SkewY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")",""};\
+	oFunc func = {string("SkewY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define SkewY_Finish
 
 // Show
 #define Show_Define \
-	Object_Define
+	ActionBase_Define
 #define Show_Check \
-	Object_Check
+	ActionBase_Check
 #define Show_Create
 #define Show_Handle \
-	oFunc func = {"Show()",""};\
+	oFunc func = {"Show()","",def};\
 	funcs.push(func);
 #define Show_Finish
 
 // Hide
 #define Hide_Define \
-	Object_Define
+	ActionBase_Define
 #define Hide_Check \
-	Object_Check
+	ActionBase_Check
 #define Hide_Create
 #define Hide_Handle \
-	oFunc func = {"Hide()",""};\
+	oFunc func = {"Hide()","",def};\
 	funcs.push(func);
 #define Hide_Finish
 
 // Call
 #define Call_Define \
-	Object_Define\
+	ActionBase_Define\
 	const char* type = nullptr;
 #define Call_Check \
-	Object_Check\
+	ActionBase_Check\
 	CASE_STR(Type) { type = atts[++i]; break; }
 #define Call_Create \
 	isMoon = type && string(type) == "Moon";
 #define Call_Handle \
-	oFunc func = {"Call(",")"};\
+	oFunc func = {"Call(",")",def};\
 	funcs.push(func);
 #define Call_Finish
 
 // Sequence
 #define Sequence_Define \
-	Object_Define
+	ActionBase_Define
 #define Sequence_Check \
-	Object_Check
+	ActionBase_Check
 #define Sequence_Create
 #define Sequence_Handle \
-	items.push("Sequence");
+	items.push("Sequence");\
+	funcs.push({"","",def})
 #define Sequence_Finish
 
 // Spawn
 #define Spawn_Define \
-	Object_Define
+	ActionBase_Define
 #define Spawn_Check \
-	Object_Check
+	ActionBase_Check
 #define Spawn_Create
 #define Spawn_Handle \
-	items.push("Spawn");
+	items.push("Spawn");\
+	funcs.push({"","",def})
 #define Spawn_Finish
 
 #define Add_To_Parent \
@@ -345,7 +355,7 @@ static const char* _toBoolean(const char* str)
 	const char* anchorY = nullptr;\
 	const char* passColor = nullptr;\
 	const char* passOpacity = nullptr;\
-	const char* color = nullptr;\
+	const char* color3 = nullptr;\
 	const char* opacity = nullptr;\
 	const char* angle = nullptr;\
 	const char* angleX = nullptr;\
@@ -374,7 +384,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(AnchorY) { anchorY = atts[++i]; break; }\
 	CASE_STR(PassColor) { passColor = atts[++i]; break; }\
 	CASE_STR(PassOpacity) { passOpacity = atts[++i]; break; }\
-	CASE_STR(Color) { color = atts[++i]; break; }\
+	CASE_STR(Color3) { color3 = atts[++i]; break; }\
 	CASE_STR(Opacity) { opacity = atts[++i]; break; }\
 	CASE_STR(Angle) { angle = atts[++i]; break; }\
 	CASE_STR(AngleX) { angleX = atts[++i]; break; }\
@@ -403,7 +413,7 @@ static const char* _toBoolean(const char* str)
 	if (z) fmt::format_to(stream, "{}.z = {}\n", self, Val(z));\
 	if (passColor) fmt::format_to(stream, "{}.passColor = {}\n", self, toBoolean(passColor));\
 	if (passOpacity) fmt::format_to(stream, "{}.passOpacity = {}\n", self, toBoolean(passOpacity));\
-	if (color) fmt::format_to(stream, "{}.color3 = Color3({})\n", self, Val(color));\
+	if (color3) fmt::format_to(stream, "{}.color3 = Color3({})\n", self, Val(color3));\
 	if (opacity) fmt::format_to(stream, "{}.opacity = {}\n", self, Val(opacity));\
 	if (angle) fmt::format_to(stream, "{}.angle = {}\n", self, Val(angle));\
 	if (angleX) fmt::format_to(stream, "{}.angleX = {}\n", self, Val(angleX));\
@@ -854,6 +864,7 @@ private:
 	{
 		string begin;
 		string end;
+		bool flag;
 	};
 	SAXParser* parser;
 	// Script
@@ -1222,7 +1233,7 @@ void XmlDelegator::endElement(const char *name)
 			funcs.pop();
 			if (parentIsAction)
 			{
-				fmt::format_to(stream, "local {} = Action({})\n", currentData.name, func.begin);
+				fmt::format_to(stream, func.flag ? "local {} = {}\n" : "local {} = Action({})\n", currentData.name, func.begin);
 			}
 			else
 			{
@@ -1235,6 +1246,8 @@ void XmlDelegator::endElement(const char *name)
 		CASE_STR(Sequence)
 		CASE_STR(Spawn)
 		{
+			oFunc func = funcs.top();
+			funcs.pop();
 			string tempItem = string(name) + "(";
 			stack<string> tempStack;
 			while (items.top() != name)
@@ -1252,7 +1265,7 @@ void XmlDelegator::endElement(const char *name)
 			tempItem += ")";
 			if (parentIsAction)
 			{
-				fmt::format_to(stream, "local {} = Action({})\n", currentData.name, tempItem);
+				fmt::format_to(stream, func.flag ? "local {} = {}\n" : "local {} = Action({})\n", currentData.name, tempItem);
 			}
 			else
 			{

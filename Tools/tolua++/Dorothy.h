@@ -184,7 +184,7 @@ class Content
 	bool isFolder @ isdir(String path);
 	bool removeFile @ remove(String path);
 	string getFullPath(String filename);
-	void insertSearchPath(int index, String path);
+	tolua_outside void Content_insertSearchPath @ insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
 	void loadFileAsync @ loadAsync(String filename, tolua_function_void handler);

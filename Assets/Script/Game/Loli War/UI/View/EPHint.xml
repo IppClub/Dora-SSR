@@ -1,0 +1,20 @@
+<Node Name="hint" X="{ 55+(index-1)*25 }" Visible="False">
+	<Sprite File="{ 'Image/misc.clip|'..clip }" AnchorX="0"/>
+	<Action>
+		<Sequence Name="show">
+			<Show/>
+			<Spawn>
+				<Opacity Time="0.5" Start="0" Stop="1"/>
+				<Sequence>
+					<Scale Time="0.3" Start="0" Stop="1.5" Ease="OutQuad"/>
+					<Scale Time="0.2" Start="1.5" Stop="1" Ease="InQuad"/>
+				</Sequence>
+			</Spawn>
+			<Delay Time="0.8"/>
+			<Opacity Time="0.3" Start="1" Stop="0"/>
+			<Hide/>
+			<Call>hint:emit("DisplayEnd",hint)</Call>
+		</Sequence>
+	</Action>
+	<Slot Name="Enter" Perform="show"/>
+</Node>
