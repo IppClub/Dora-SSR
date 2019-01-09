@@ -1,0 +1,5 @@
+<Node X="{ x }" Y="{ y }">
+	<Sprite File="Image/misc.clip|9" X="0" AnchorX="0"/>
+	<Sprite File="Image/misc.clip|9" X="6" AnchorX="0"/>
+</Node>
+

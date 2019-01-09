@@ -117,6 +117,11 @@ int Content_SetSearchPaths(lua_State* L)
 	return 0;
 }
 
+void Content_insertSearchPath(Content* self, int index, String path)
+{
+	self->insertSearchPath(index-1, path);
+}
+
 /* Node */
 
 int Node_emit(lua_State* L)

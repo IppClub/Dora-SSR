@@ -14,7 +14,7 @@ updatePlayerControl = (key,flag)->
 	player[key] = flag if player
 uiScale = App.deviceRatio
 
-with AlignNode true
+with AlignNode isRoot:true
 	.visible = false
 	\addChild with AlignNode!
 		.hAlign = "Left"

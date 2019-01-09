@@ -1,0 +1,5 @@
+<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }" TouchEnabled="True">
+	<Sprite Name="up" X="{ $X }" Y="{ $Y }" File="{ 'Image/misc.clip|'..normal }" Ref="True"/>
+	<Sprite Name="down" X="{ $X }" Y="{ $Y }" File="{ 'Image/misc.clip|'..glow }" Visible="False" Ref="True"/>
+</Node>
+

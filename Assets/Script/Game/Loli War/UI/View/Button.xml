@@ -1,0 +1,13 @@
+<Node AnchorX="0" AnchorY="0" X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }" TouchEnabled="True">
+	<Sprite Name="up" X="{ $X }" Y="{ $Y }" File="{ 'Image/items.clip|'..imageUp }"/>
+	<Sprite Name="down" X="{ $X }" Y="{ $Y }" File="{ 'Image/items.clip|'..imageDown }" Visible="False"/>
+	<Action>
+		<Hide Name="hide"/>
+		<Show Name="show"/>
+	</Action>
+	<Slot Name="TapBegan" Target="up" Perform="hide"/>
+	<Slot Name="TapBegan" Target="down" Perform="show"/>
+	<Slot Name="TapEnded" Target="up" Perform="show"/>
+	<Slot Name="TapEnded" Target="down" Perform="hide"/>
+</Node>
+
