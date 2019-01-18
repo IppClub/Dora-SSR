@@ -85,6 +85,7 @@ void View::setScale(float var)
 	_scale = var;
 	Size bufferSize = SharedApplication.getBufferSize();
 	_size = {bufferSize.width / _scale, bufferSize.height / _scale};
+	View::updateProjection();
 	Event::send("AppSizeChanged"_slice);
 }
 

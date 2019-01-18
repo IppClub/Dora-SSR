@@ -153,6 +153,9 @@ NS_DOROTHY_PLATFORMER_BEGIN
 /* AI */
 inline AI* AI_shared() { return &SharedAI; }
 
+/* Bullet */
+Bullet* Bullet_create(BulletDef* def, Unit* unit);
+
 /* UnitDef */
 int UnitDef_GetActions(lua_State* L);
 int UnitDef_SetActions(lua_State* L);
@@ -167,7 +170,7 @@ using namespace Dorothy;
 /* ImGui */
 namespace ImGui { namespace Binding
 {
-	void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default");
+	void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default"_slice);
 	void ShowStats();
 	void ShowLog();
 	bool Begin(const char* name, String windowsFlags = nullptr);

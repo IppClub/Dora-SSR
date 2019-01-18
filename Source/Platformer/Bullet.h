@@ -27,6 +27,7 @@ class Bullet : public Body
 public:
 	PROPERTY_READONLY(Unit*, Owner);
 	PROPERTY_BOOL(FaceRight);
+	PROPERTY_BOOL(HitStop);
 	PROPERTY(Node*, Face);
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;
@@ -40,7 +41,11 @@ protected:
 	Bullet(BulletDef* def, Unit* unit);
 	virtual void updatePhysics() override;
 private:
-	bool _isFaceRight;
+	enum
+	{
+		FaceRight = BodyUserFlag,
+		HitStop = BodyUserFlag << 1,
+	};
 	Node* _face;
 	Ref<BulletDef> _bulletDef;
 	Ref<Unit> _owner;

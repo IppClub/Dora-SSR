@@ -201,7 +201,7 @@ Visual* ParticleVisual::autoRemove()
 	{
 		WRef<ParticleNode> par(_particle);
 		WRef<Node> self(this);
-		_particle->slot("Finish"_slice, [par, self](Event*)
+		_particle->slot("Finished"_slice, [par, self](Event*)
 		{
 			if (self) self->removeFromParent(true);
 		});

@@ -2,13 +2,30 @@
 	<Import Module="UI.Control.Basic.AlignNode"/>
 	<Import Module="UI.Control.ButtonGlow"/>
 
-	<AlignNode VAlign="{ 'Center' }" HAlign="{ 'Center' }">
-		<Node Name="node" TouchEnabled="True" Ref="True">
-			<Sprite File="Image/misc.clip|startboard" ScaleX="2" ScaleY="2">
-				<ButtonGlow Name="fButton" Normal="{ 'weaponf' }" Glow="{ 'weaponfl' }" X="{ $W/3-30 }" Y="{ $Y }" Width="118" Height="167" Ref="True"/>
-				<ButtonGlow Name="vButton" Normal="{ 'weaponv' }" Glow="{ 'weaponvl' }" X="{ $X }" Y="{ $Y }" Width="82" Height="68" Ref="True"/>
-				<ButtonGlow Name="dButton" Normal="{ 'weapond' }" Glow="{ 'weapondl' }" X="{ $R-$W/3+30 }" Y="{ $Y }" Width="57" Height="97" Ref="True"/>
-			</Sprite>
+	<AlignNode Name="panel" VAlign="{ 'Center' }" HAlign="{ 'Center' }">
+		<Node ScaleX="2" ScaleY="2">
+			<Node Name="node" TouchEnabled="True" SwallowTouches="True" Ref="True">
+				<Sprite File="Image/misc.clip|startboard">
+					<Action>
+						<Sequence Name="scaleOut">
+							<Spawn>
+								<Scale Time="1" Start="1" Stop="0.3" Ease="InBack"/>
+								<Opacity Time="1" Start="1" Stop="0"/>
+							</Spawn>
+							<Call>panel:removeFromParent()</Call>
+						</Sequence>
+					</Action>
+					<ButtonGlow Name="fButton" Normal="{ 'weaponf' }" Glow="{ 'weaponfl' }" X="{ $W/3-30 }" Y="{ $Y }" Width="118" Height="167" Ref="True">
+						<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
+					</ButtonGlow>
+					<ButtonGlow Name="vButton" Normal="{ 'weaponv' }" Glow="{ 'weaponvl' }" X="{ $X }" Y="{ $Y }" Width="82" Height="68" Ref="True">
+						<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
+					</ButtonGlow>
+					<ButtonGlow Name="dButton" Normal="{ 'weapond' }" Glow="{ 'weapondl' }" X="{ $R-$W/3+30 }" Y="{ $Y }" Width="57" Height="97" Ref="True">
+						<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
+					</ButtonGlow>
+				</Sprite>
+			</Node>
 		</Node>
 		<Action>
 			<Scale Name="scaleIn" Time="1" Start="0" Stop="1" Ease="OutBack"/>

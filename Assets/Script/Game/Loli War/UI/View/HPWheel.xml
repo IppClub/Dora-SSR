@@ -3,13 +3,15 @@
 	<Import Module="UI.Control.Digit"/>
 
 	<AlignNode HAlign="Left" VAlign="Top" AlignOffset="{ Vec2(75,75) }">
-		<Model Name="hpShow" File="Model/hpshow.model" Look="8" Play="idle" Loop="True" ScaleX="2" ScaleY="2" Ref="True"/>
-		<Node Name="energy" X="75" Y="20" ScaleX="2" ScaleY="2" Ref="True">
-			<Sprite File="Image/misc.clip|enegyframe" AnchorX="0"/>
-			<Sprite Name="fill" File="Image/misc.clip|enegyfill" X="1" AnchorX="0" Ref="True"/>
-			<Sprite File="Image/misc.clip|vs" Y="-20" AnchorX="0" Ref="True"/>
-			<Digit Name="playerBlocks" X="19" Y="-20" Ref="True"/>
-			<Digit Name="enemyBlocks" X="36" Y="-20" Ref="True"/>
+		<Node ScaleX="1" ScaleY="1">
+			<Model Name="hpShow" File="Model/hpshow.model" Look="8" Play="idle" Loop="True" ScaleX="2" ScaleY="2" Ref="True"/>
+			<Node Name="energy" X="75" Y="20" ScaleX="2" ScaleY="2" Ref="True">
+				<Sprite File="Image/misc.clip|enegyframe" AnchorX="0"/>
+				<Sprite Name="fill" File="Image/misc.clip|enegyfill" X="1" AnchorX="0" Ref="True"/>
+				<Sprite File="Image/misc.clip|vs" Y="-20" AnchorX="0" Ref="True"/>
+				<Digit Name="playerBlocks" X="20" Y="-20" Ref="True"/>
+				<Digit Name="enemyBlocks" X="37" Y="-20" Ref="True"/>
+			</Node>
 		</Node>
 	</AlignNode>
 </Dorothy>

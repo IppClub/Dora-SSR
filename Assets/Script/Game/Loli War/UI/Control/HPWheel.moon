@@ -1,14 +1,19 @@
 Dorothy builtin.Platformer
 HPWheelView = require "UI.View.HPWheel"
 EPHint = require "UI.View.EPHint"
-{:GroupPlayer,:GroupEnemy} = Data.store
+{
+	:GroupPlayer
+	:GroupEnemy
+	:GroupPlayerBlock
+	:GroupEnemyBlock
+	:MaxEP
+	:MaxHP
+} = Data.store
 
 Class HPWheelView,
 	__init:=>
-		@ep = 8
-		@maxEP = 8
-		@hp = 8
-		@maxHP = 8
+		@ep = MaxEP
+		@hp = MaxHP
 		@hints = {}
 
 		@hpShow\slot "AnimationEnd",(name)->
@@ -16,7 +21,8 @@ Class HPWheelView,
 
 		@gslot "HPChange",(group,value)->
 			if group == GroupPlayer
-				@hp = math.floor(math.max(math.min(@maxHP,@hp+value),0)+0.5)
+				newHP = math.max @hp+value,0
+				@hp = math.floor(math.max(math.min(MaxHP,newHP),0)+0.5)
 				@hpShow.look = tostring @hp
 				@hpShow\play "hit" if value < 0
 
@@ -24,8 +30,8 @@ Class HPWheelView,
 			if group == GroupPlayer
 				switch value
 					when 1,-1,-2,6
-						@ep = math.floor(math.max(math.min(@maxEP,@ep+value),0)+0.5)
-						@fill\perform ScaleX 0.2,@fill.scaleX,@ep/@maxEP
+						@ep = math.floor(math.max(math.min(MaxEP,@ep+value),0)+0.5)
+						@fill\perform ScaleX 0.2,@fill.scaleX,@ep/MaxEP
 						hint = with EPHint index:#@hints+1,clip:string.format("%+d",value)
 							.index = #@hints+1
 							\slot "DisplayEnd",(endHint)->
@@ -38,10 +44,16 @@ Class HPWheelView,
 						table.insert @hints,hint
 						@energy\addChild hint
 
-		@gslot "BlockChange",(group,value)->
+		@gslot "BlockValue",(group,value)->
 			switch group
 				when GroupPlayer
 					@playerBlocks.value = value
 				when GroupEnemy
 					@enemyBlocks.value = value
 
+		@gslot "BlockChange",(group,value)->
+			switch group
+				when GroupPlayer
+					@playerBlocks.value = math.max @playerBlocks.value+value,0
+				when GroupEnemy
+					@enemyBlocks.value = math.max @enemyBlocks.value+value,0

@@ -41,7 +41,7 @@ bool Bullet::init()
 	filterContact = [](Body*) { return false; };
 	contactStart += std::make_pair(this, &Bullet::onBodyContact);
 	Vec2 v = _bulletDef->getVelocity();
-	Body::setVelocity((_isFaceRight ? v.x : -v.x), v.y);
+	Body::setVelocity((isFaceRight() ? v.x : -v.x), v.y);
 	Body::setGroup(SharedData.getGroupDetection());
 	Face* face = _bulletDef->getFace();
 	if (face)
@@ -98,12 +98,22 @@ Unit* Bullet::getOwner() const
 
 void Bullet::setFaceRight(bool var)
 {
-	_isFaceRight = var;
+	_flags.set(Bullet::FaceRight, var);
 }
 
 bool Bullet::isFaceRight() const
 {
-	return _isFaceRight;
+	return _flags.isOn(Bullet::FaceRight);
+}
+
+void Bullet::setHitStop(bool var)
+{
+	_flags.set(Bullet::HitStop, var);
+}
+
+bool Bullet::isHitStop() const
+{
+	return _flags.isOn(Bullet::HitStop);
 }
 
 void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal)

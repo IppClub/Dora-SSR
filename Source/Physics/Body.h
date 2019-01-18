@@ -43,6 +43,7 @@ public:
 	PROPERTY(float, VelocityY);
 	PROPERTY_VIRTUAL(Uint8, Group);
 	PROPERTY_BOOL(ReceivingContact);
+	PROPERTY_BOOL(EmittingEvent);
 	ContactHandler contactStart;
 	ContactHandler contactEnd;
 	ContactFilterHandler filterContact;
@@ -69,8 +70,18 @@ protected:
 	b2Body* _bodyB2; // weak reference
 	PhysicsWorld* _world;
 	Uint8 _group;
+	enum
+	{
+		ReceivingContact = UserFlag,
+		EmittingEvent = UserFlag << 1,
+		BodyUserFlag = UserFlag << 2
+	};
+	void onSensorAdded(Sensor* sensor, Body* body);
+	void onBodyEnter(Sensor* sensor, Body* other);
+	void onBodyLeave(Sensor* sensor, Body* other);
+	void onContactStart(Body* other, const Vec2& point, const Vec2& normal);
+	void onContactEnd(Body* other, const Vec2& point, const Vec2& normal);
 private:
-	bool _receivingContact;
 	Ref<BodyDef> _bodyDef;
 	Ref<Array> _sensors;
 	WRef<Object> _owner;

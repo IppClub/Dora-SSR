@@ -325,7 +325,7 @@ bool Jump::isAvailable()
 void Jump::run()
 {
 	Model* model = _owner->getModel();
-	model->setSpeed(1.0f);
+	model->setSpeed(_owner->moveSpeed);
 	model->setLoop(false);
 	model->setLook(ActionSetting::LookNormal);
 	model->setRecovery(UnitAction::recovery);
@@ -353,11 +353,16 @@ void Jump::run()
 
 void Jump::update(float dt)
 {
-	if (_eclapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
+	Model* model = _owner->getModel();
+	if (model->getDuration() == 0.0f)
 	{
-		UnitAction::update(dt);
+		if (_eclapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
+		{
+			Jump::stop();
+		}
+		else UnitAction::update(dt);
 	}
-	else _eclapsedTime += dt;
+	else UnitAction::update(dt);
 }
 
 void Jump::stop()
@@ -522,20 +527,14 @@ void MeleeAttack::onAttack()
 				Relation relation = SharedData.getRelation(_owner, target);
 				BREAK_IF(!_owner->targetAllow.isAllow(relation));
 				/* Get hit point */
-				Hit* hitUnitAction = s_cast<Hit*>(target->getAction(ActionSetting::UnitActionHit));
-				if (hitUnitAction)
-				{
-					Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, &_polygon) : Vec2(target->getPosition());
-					hitUnitAction->setHitInfo(hitPoint, _owner->attackPower, !attackRight);
-				}
+				Entity* entity = target->getEntity();
+				Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, &_polygon) : Vec2(target->getPosition());
+				entity->set("hitPoint"_slice, hitPoint);
+				entity->set("hitPower"_slice, _owner->attackPower);
+				entity->set("hitFromRight"_slice, !attackRight);
 				/* Make damage */
 				float damage = Attack::getDamage(target);
-				Entity* entity = target->getEntity();
 				entity->set("hp"_slice, entity->get<double>("hp"_slice) - damage);
-				if (damaged)
-				{
-					damaged(_owner, target, damage);
-				}
 				if (_owner->attackTarget == AttackTarget::Single) return;
 			}
 			BLOCK_END
@@ -577,37 +576,28 @@ void RangeAttack::onAttack()
 bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint)
 {
 	/* Get hit point */
-	Hit* hitUnitAction = s_cast<Hit*>(target->getAction(ActionSetting::UnitActionHit));
-	if (hitUnitAction)
+	bool attackFromRight = false;
+	if (bullet->getBulletDef()->damageRadius > 0.0f)
 	{
-		bool attackFromRight = false;
-		if (bullet->getBulletDef()->damageRadius > 0.0f)
-		{
-			attackFromRight = bullet->getX() < hitPoint.x;
-		}
-		else
-		{
-			attackFromRight = bullet->getVelocityX() < 0.0f;
-		}
-		hitUnitAction->setHitInfo(hitPoint, _owner->attackPower, attackFromRight);
+		attackFromRight = bullet->getX() < hitPoint.x;
 	}
+	else
+	{
+		attackFromRight = bullet->getVelocityX() < 0.0f;
+	}
+	Entity* entity = target->getEntity();
+	entity->set("hitPoint"_slice, hitPoint);
+	entity->set("hitPower"_slice, _owner->attackPower);
+	entity->set("hitFromRight"_slice, attackFromRight);
 	/* Make damage */
 	float damage = Attack::getDamage(target);
-	Entity* entity = target->getEntity();
 	entity->set("hp"_slice, entity->get<double>("hp"_slice) - damage);
-	if (damaged)
-	{
-		damaged(_owner, target, damage);
-	}
 	return true;
 }
 
 Hit::Hit(Unit* unit):
 UnitAction(ActionSetting::UnitActionHit, ActionSetting::PriorityHit, unit),
-_effect(nullptr),
-_hitFromRight(true),
-_attackPower{},
-_hitPoint{}
+_effect(nullptr)
 {
 	UnitAction::recovery = ActionSetting::RecoveryHit;
 	const string& hitEffect = _owner->getUnitDef()->hitEffect;
@@ -623,15 +613,19 @@ Hit::~Hit()
 
 void Hit::run()
 {
-	Vec2 key = _owner->convertToNodeSpace(_hitPoint);
+	Entity* entity = _owner->getEntity();
+	Vec2 hitPoint = entity->tryGet<Vec2>("hitPoint"_slice, Vec2::zero);
+	Vec2 key = _owner->convertToNodeSpace(hitPoint);
 	if (_effect)
 	{
 		_effect->setPosition(key);
 		_effect->start();
 	}
 	float mass = _owner->getMass();
-	_owner->setVelocity(Vec2{_hitFromRight ? -_attackPower.x : _attackPower.x, _attackPower.y} / mass);
-	_owner->setFaceRight(_hitFromRight);
+	bool hitFromRight = entity->tryGet<bool>("hitFromRight"_slice, false);
+	Vec2 hitPower = entity->tryGet<Vec2>("hitPower"_slice, Vec2::zero);
+	_owner->setVelocity(Vec2{hitFromRight ? -hitPower.x : hitPower.x, hitPower.y} / mass);
+	_owner->setFaceRight(hitFromRight);
 	UnitAction::run();
 	Model* model = _owner->getModel();
 	if (model->hasAnimation(ActionSetting::AnimationHit))
@@ -651,13 +645,6 @@ void Hit::run()
 
 void Hit::update(float dt)
 { }
-
-void Hit::setHitInfo(const Vec2& hitPoint, const Vec2& attackPower, bool hitFromRight)
-{
-	_hitPoint = hitPoint;
-	_hitFromRight = hitFromRight;
-	_attackPower = attackPower;
-}
 
 void Hit::onAnimationEnd(Model* model)
 {

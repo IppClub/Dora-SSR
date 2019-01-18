@@ -186,6 +186,7 @@ allClear = ->
 	Platformer.UnitAction\clear!
 	currentEntryName = nil
 	isInEntry = true
+	Audio\stopStream 0.2
 
 games = [Path.getName item for item in *Path.getFolders Content.assetPath.."Script/Game", {"xml","lua","moon"}]
 table.sort games
@@ -233,7 +234,7 @@ showLog = false
 showFooter = true
 scaleContent = false
 footerFocus = false
-screenScale = App.deviceRatio
+screenScale = 2 -- App.deviceRatio
 threadLoop ->
 	return unless showEntry
 	left = Keyboard\isKeyDown "Left"

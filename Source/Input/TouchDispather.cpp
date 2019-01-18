@@ -34,7 +34,7 @@ _id(id)
 
 void Touch::setEnabled(bool var)
 {
-	_flags.setFlag(Touch::Enabled, var);
+	_flags.set(Touch::Enabled, var);
 }
 
 bool Touch::isEnabled() const
@@ -397,7 +397,6 @@ bool NodeTouchHandler::move(const SDL_Event& event)
 				touch->_flags.toggle(Touch::Selected);
 				if (touch->_flags.isOn(Touch::Selected))
 				{
-					_target->emit("TapFilter"_slice, touch);
 					if (touch->isEnabled())
 					{
 						_target->emit("TapBegan"_slice, touch);

@@ -60,7 +60,7 @@ void PlatformWorld::addChild(Node* child, int order, String tag)
 void PlatformWorld::removeChild(Node* child, bool cleanup)
 {
 	Node* layer = PlatformWorld::getLayer(child->getOrder());
-	layer->removeChild(child, cleanup);
+	if (layer == child) PhysicsWorld::removeChild(child, cleanup);
 }
 
 Node* PlatformWorld::getLayer(int order)

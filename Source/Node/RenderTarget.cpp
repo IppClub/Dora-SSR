@@ -141,7 +141,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 					bx::mtxScale(revertY, 1.0f, -1.0f, 1.0f);
 					if (_camera->isOtho()) tmpVP = _camera->getView();
 					else bx::mtxMul(tmpVP, _camera->getView(), SharedView.getProjection());
-					bx::mtxMul(viewProj, revertY, tmpVP);
+					bx::mtxMul(viewProj, tmpVP, revertY);
 				}
 				else
 				{

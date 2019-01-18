@@ -2,15 +2,15 @@
 	<Import Module="UI.Control.Basic.AlignNode"/>
 	<Import Module="UI.View.Button"/>
 
-	<AlignNode HAlign="Left" VAlign="Bottom" AlignOffset="{ Vec2(10,10) }">
+	<AlignNode Name="pad" HAlign="Left" VAlign="Bottom" AlignOffset="{ Vec2(20,60) }">
 		<Menu AnchorX="0" AnchorY="0" Width="114" Height="52" ScaleX="2" ScaleY="2">
 			<Button ImageUp="{ 'keyleft_up' }" ImageDown="{ 'keyleft_down' }" Width="52" Height="52">
-				<Slot Name="TapBegan">emit("KeyLeftDown")</Slot>
-				<Slot Name="TapEnded">emit("KeyLeftUp")</Slot>
+				<Slot Name="TapBegan">pad:emit("KeyLeftDown")</Slot>
+				<Slot Name="TapEnded">pad:emit("KeyLeftUp")</Slot>
 			</Button>
 			<Button ImageUp="{ 'keyright_up' }" ImageDown="{ 'keyright_down' }" X="62" Width="52" Height="52">
-				<Slot Name="TapBegan">emit("KeyRightDown")</Slot>
-				<Slot Name="TapEnded">emit("KeyRightUp")</Slot>
+				<Slot Name="TapBegan">pad:emit("KeyRightDown")</Slot>
+				<Slot Name="TapEnded">pad:emit("KeyRightUp")</Slot>
 			</Button>
 		</Menu>
 	</AlignNode>

@@ -189,7 +189,7 @@ float Node::getSkewY() const
 
 void Node::setVisible(bool var)
 {
-	_flags.setFlag(Node::Visible, var);
+	_flags.set(Node::Visible, var);
 }
 
 bool Node::isVisible() const
@@ -199,7 +199,7 @@ bool Node::isVisible() const
 
 void Node::setSelfVisible(bool var)
 {
-	_flags.setFlag(Node::SelfVisible, var);
+	_flags.set(Node::SelfVisible, var);
 }
 
 bool Node::isSelfVisible() const
@@ -209,7 +209,7 @@ bool Node::isSelfVisible() const
 
 void Node::setChildrenVisible(bool var)
 {
-	_flags.setFlag(Node::ChildrenVisible, var);
+	_flags.set(Node::ChildrenVisible, var);
 }
 
 bool Node::isChildrenVisible() const
@@ -326,7 +326,7 @@ Color Node::getRealColor() const
 
 void Node::setPassOpacity(bool var)
 {
-	_flags.setFlag(Node::PassOpacity, var);
+	_flags.set(Node::PassOpacity, var);
 	setOpacity(_color.getOpacity());
 }
 
@@ -337,7 +337,7 @@ bool Node::isPassOpacity() const
 
 void Node::setPassColor3(bool var)
 {
-	_flags.setFlag(Node::PassColor3, var);
+	_flags.set(Node::PassColor3, var);
 	setColor3(_color.toColor3());
 }
 
@@ -414,7 +414,7 @@ int Node::getRenderOrder() const
 
 void Node::setRenderGroup(bool var)
 {
-	_flags.setFlag(Node::RenderGrouped, var);
+	_flags.set(Node::RenderGrouped, var);
 }
 
 bool Node::isRenderGroup() const
@@ -676,7 +676,7 @@ void Node::setTouchEnabled(bool var)
 		_touchHandler = New<NodeTouchHandler>(this);
 		_touchHandler->setSwallowTouches(_flags.isOn(Node::SwallowTouches));
 	}
-	_flags.setFlag(Node::TouchEnabled, var);
+	_flags.set(Node::TouchEnabled, var);
 }
 
 bool Node::isTouchEnabled() const
@@ -686,7 +686,7 @@ bool Node::isTouchEnabled() const
 
 void Node::setSwallowTouches(bool var)
 {
-	_flags.setFlag(Node::SwallowTouches, var);
+	_flags.set(Node::SwallowTouches, var);
 	if (_touchHandler)
 	{
 		_touchHandler->setSwallowTouches(var);
@@ -700,7 +700,7 @@ bool Node::isSwallowTouches() const
 
 void Node::setSwallowMouseWheel(bool var)
 {
-	_flags.setFlag(Node::SwallowMouseWheel, var);
+	_flags.set(Node::SwallowMouseWheel, var);
 	if (_touchHandler)
 	{
 		_touchHandler->setSwallowMouseWheel(var);
@@ -1141,6 +1141,7 @@ void Node::runAction(Action* action)
 		_action = action;
 	}
 	_action->_eclapsed = 0.0f;
+	_action->resume();
 	if (isRunning())
 	{
 		_scheduler->schedule(action);
@@ -1365,7 +1366,7 @@ void Node::handleKeyboard(Event* event)
 void Node::setKeyboardEnabled(bool var)
 {
 	if (var == _flags.isOn(Node::KeyboardEnabled)) return;
-	_flags.setFlag(Node::KeyboardEnabled, var);
+	_flags.set(Node::KeyboardEnabled, var);
 	if (var)
 	{
 		SharedKeyboard.KeyHandler += std::make_pair(this, &Node::handleKeyboard);

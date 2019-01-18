@@ -298,7 +298,7 @@ class Flag
 {
 public:
 	Flag(Uint32 value);
-	void setFlag(Uint32 type, bool value);
+	void set(Uint32 type, bool value);
 	void toggle(Uint32 type);
 	inline void setOn(Uint32 type) { _flags |= type; }
 	inline void setOff(Uint32 type) { _flags &= ~type; }

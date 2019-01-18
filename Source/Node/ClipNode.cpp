@@ -64,7 +64,7 @@ float ClipNode::getAlphaThreshold() const
 
 void ClipNode::setInverted(bool var)
 {
-	_flags.setFlag(ClipNode::Inverted, var);
+	_flags.set(ClipNode::Inverted, var);
 }
 
 bool ClipNode::isInverted() const

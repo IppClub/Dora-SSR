@@ -18,8 +18,7 @@ Body::Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos, float rot):
 _bodyB2(nullptr),
 _bodyDef(bodyDef),
 _world(world),
-_group(0),
-_receivingContact(false)
+_group(0)
 {
 	AssertIf(world == nullptr, "init Body with invalid PhysicsWorld.");
 	bodyDef->position = PhysicsWorld::b2Val(pos + bodyDef->offset);
@@ -343,12 +342,73 @@ Rect Body::getBoundingBox()
 
 void Body::setReceivingContact(bool var)
 {
-	_receivingContact = var;
+	_flags.set(Body::ReceivingContact, var);
 }
 
 bool Body::isReceivingContact() const
 {
-	return _receivingContact;
+	return _flags.isOn(Body::ReceivingContact);
+}
+
+bool Body::isEmittingEvent() const
+{
+	return _flags.isOn(Body::EmittingEvent);
+}
+
+void Body::onSensorAdded(Sensor* sensor, Body* body)
+{
+	sensor->bodyEnter += std::make_pair(this, &Body::onBodyEnter);
+	sensor->bodyLeave += std::make_pair(this, &Body::onBodyLeave);
+}
+
+void Body::onBodyEnter(Sensor* sensor, Body* other)
+{
+	emit("BodyEnter"_slice, other, sensor);
+}
+
+void Body::onBodyLeave(Sensor* sensor, Body* other)
+{
+	emit("BodyLeave"_slice, other, sensor);
+}
+
+void Body::onContactStart(Body* other, const Vec2& point, const Vec2& normal)
+{
+	emit("ContactStart"_slice, other, point, normal);
+}
+
+void Body::onContactEnd(Body* other, const Vec2& point, const Vec2& normal)
+{
+	emit("ContactEnd"_slice, other, point, normal);
+}
+
+void Body::setEmittingEvent(bool var)
+{
+	if (isEmittingEvent() == var) return;
+	_flags.set(Body::EmittingEvent, var);
+	if (var)
+	{
+		ARRAY_START(Sensor, sensor, _sensors)
+		{
+			sensor->bodyEnter += std::make_pair(this, &Body::onBodyEnter);
+			sensor->bodyLeave += std::make_pair(this, &Body::onBodyLeave);
+		}
+		ARRAY_END
+		sensorAdded += std::make_pair(this, &Body::onSensorAdded);
+		contactStart += std::make_pair(this, &Body::onContactStart);
+		contactEnd += std::make_pair(this, &Body::onContactEnd);
+	}
+	else
+	{
+		ARRAY_START(Sensor, sensor, _sensors)
+		{
+			sensor->bodyEnter -= std::make_pair(this, &Body::onBodyEnter);
+			sensor->bodyLeave -= std::make_pair(this, &Body::onBodyLeave);
+		}
+		ARRAY_END
+		sensorAdded -= std::make_pair(this, &Body::onSensorAdded);
+		contactStart -= std::make_pair(this, &Body::onContactStart);
+		contactEnd -= std::make_pair(this, &Body::onContactEnd);
+	}
 }
 
 void Body::updatePhysics()

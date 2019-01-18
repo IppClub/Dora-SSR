@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include <atomic>
 #include "Event/EventQueue.h"
 #include "Support/Value.h"
 
@@ -30,6 +31,7 @@ public:
 	static int work(bx::Thread* thread, void* userData);
 private:
 	bool _scheduled;
+	std::atomic_bool _paused;
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	bx::Semaphore _pauseSemaphore;

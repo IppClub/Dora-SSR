@@ -19,7 +19,8 @@ Camera(name),
 _transformDirty(true),
 _rotation(0.0f),
 _zoom(1.0f),
-_ratio{1.0f, 1.0f}
+_ratio{1.0f, 1.0f},
+_viewSize(SharedView.getSize())
 { }
 
 void PlatformCamera::setPosition(const Vec2& position)
@@ -27,8 +28,8 @@ void PlatformCamera::setPosition(const Vec2& position)
 	Vec2 newPos = position;
 	if (_boundary != Rect::zero)
 	{
-		Size viewSize = SharedView.getSize();
-		viewSize = Size{viewSize.width/_zoom, viewSize.height/_zoom};
+		_viewSize = SharedView.getSize();
+		Size viewSize = Size{_viewSize.width/_zoom, _viewSize.height/_zoom};
 		float xOffset = viewSize.width/2.0f;
 		float yOffset = viewSize.height/2.0f;
 		newPos = {
@@ -87,6 +88,12 @@ void PlatformCamera::updateView()
 		setPosition(pos + delta * _ratio);
 		_transformDirty = true;
 	}
+	if (SharedView.getSize() != _viewSize)
+	{
+		_viewSize = SharedView.getSize();
+		setPosition(_position);
+		_transformDirty = true;
+	}
 	float z = -SharedView.getStandardDistance() / _zoom;
 	if (_position.z != z)
 	{
@@ -114,6 +121,7 @@ bool PlatformCamera::init()
 void PlatformCamera::setBoundary(const Rect& var)
 {
 	_boundary = var;
+	PlatformCamera::setPosition(_position);
 }
 
 const Rect& PlatformCamera::getBoundary() const

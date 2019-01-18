@@ -1,19 +1,19 @@
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion 22
+	compileSdkVersion 26
 	defaultConfig {
 		applicationId "com.luvfight.dorothy"
 		minSdkVersion 14
-		targetSdkVersion 22
+		targetSdkVersion 26
 		versionCode 1
 		versionName "1.0"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 		externalNativeBuild {
 			cmake {
-				arguments "-DANDROID_STL=c++_static","-DANDROID_ARM_NEON=TRUE"
-				abiFilters "armeabi-v7a","x86"
-				cppFlags "-std=c++14","-frtti","-fexceptions"
+				arguments "-DANDROID_STL=c++_static", "-DANDROID_ARM_NEON=TRUE"
+				abiFilters "armeabi-v7a", "x86"
+				cppFlags "-std=c++14", "-frtti", "-fexceptions"
 			}
 		}
 		javaCompileOptions
@@ -31,16 +31,16 @@ android {
 	}
 	sourceSets {
 		main {
-			jniLibs.srcDirs = ['src/main/cpp/3rdParty/SDL2/Lib/Android','src/main/cpp/3rdParty/BGFX/Lib/Android']
+			jniLibs.srcDirs = ['src/main/cpp/3rdParty/SDL2/Lib/Android', 'src/main/cpp/3rdParty/BGFX/Lib/Android']
 		}
 	}
 }
 
 dependencies {
-	implementation fileTree(dir: 'libs', include: ['*.jar'])
+	implementation fileTree(include: ['*.jar'], dir: 'libs')
 	androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
-	implementation 'com.android.support:appcompat-v7:22.1.0'
+	implementation 'com.android.support:appcompat-v7:26.1.0'
 	testImplementation 'junit:junit:4.12'
 }

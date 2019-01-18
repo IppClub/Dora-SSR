@@ -114,6 +114,7 @@ public:
 	virtual ~ParticleNode();
 	virtual bool init() override;
 	virtual void visit() override;
+	virtual bool update(double deltaTime) override;
 	virtual void render() override;
 	void start();
 	void stop();
@@ -140,7 +141,8 @@ private:
 	{
 		Active = Node::UserFlag,
 		Emitting = Node::UserFlag << 1,
-		DepthWrite = Node::UserFlag << 2
+		DepthWrite = Node::UserFlag << 2,
+		Finished = Node::UserFlag << 3
 	};
 };
 

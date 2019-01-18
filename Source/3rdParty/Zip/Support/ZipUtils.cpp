@@ -31,92 +31,79 @@ using namespace Dorothy;
 #include <stdlib.h>
 #include <ctype.h>
 
-/// when define returns true it means that our architecture uses big endian
-#define CC_HOST_IS_BIG_ENDIAN (bool)(*(unsigned short *)"\0\xff" < 0x100) 
-#define CC_SWAP32(i)  ((i & 0x000000ff) << 24 | (i & 0x0000ff00) << 8 | (i & 0x00ff0000) >> 8 | (i & 0xff000000) >> 24)
-#define CC_SWAP16(i)  ((i & 0x00ff) << 8 | (i &0xff00) >> 8)   
-#define CC_SWAP_INT32_LITTLE_TO_HOST(i) ((CC_HOST_IS_BIG_ENDIAN == true)? CC_SWAP32(i) : (i) )
-#define CC_SWAP_INT16_LITTLE_TO_HOST(i) ((CC_HOST_IS_BIG_ENDIAN == true)? CC_SWAP16(i) : (i) )
-#define CC_SWAP_INT32_BIG_TO_HOST(i)    ((CC_HOST_IS_BIG_ENDIAN == true)? (i) : CC_SWAP32(i) )
-#define CC_SWAP_INT16_BIG_TO_HOST(i)    ((CC_HOST_IS_BIG_ENDIAN == true)? (i):  CC_SWAP16(i) )
-
 // --------------------- ZipFile ---------------------
 // from unzip.cpp
 #define UNZ_MAXFILENAMEINZIP 256
 
 struct ZipEntryInfo
 {
-    unz_file_pos pos;
-    uLong uncompressed_size;
+	unz_file_pos pos;
+	uLong uncompressed_size;
 };
 
 class ZipFilePrivate
 {
 public:
-    unzFile zipFile;
-    std::unordered_map<std::string, ZipEntryInfo> fileList;
+	unzFile zipFile;
+	std::unordered_map<std::string, ZipEntryInfo> fileList;
 	std::unordered_set<std::string> folderList;
 };
 
-ZipFile::ZipFile(const std::string& zipFile, const std::string& filter)
-    : m_data(new ZipFilePrivate)
+ZipFile::ZipFile(const std::string& zipFile, const std::string& filter):
+m_data(new ZipFilePrivate)
 {
-    m_data->zipFile = unzOpen(zipFile.c_str());
-    if (m_data->zipFile)
-    {
-        setFilter(filter);
-    }
+	m_data->zipFile = unzOpen(zipFile.c_str());
+	if (m_data->zipFile)
+	{
+		setFilter(filter);
+	}
 }
 
 ZipFile::~ZipFile()
 {
-    if (m_data && m_data->zipFile)
-    {
-        unzClose(m_data->zipFile);
-    }
-    delete m_data;
+	if (m_data && m_data->zipFile)
+	{
+		unzClose(m_data->zipFile);
+	}
+	delete m_data;
 	m_data = nullptr;
 }
 
 bool ZipFile::setFilter(const std::string& filterStr)
 {
-    bool ret = false;
-    BLOCK_START
-    {
-        BREAK_IF(!m_data);
-        BREAK_IF(!m_data->zipFile);
+	bool ret = false;
+	BLOCK_START
+	{
+		BREAK_IF(!m_data);
+		BREAK_IF(!m_data->zipFile);
 
 		std::string filter(filterStr);
-		//str_tolower(filter);
 
-        // clear existing file list
-        m_data->fileList.clear();
+		// clear existing file list
+		m_data->fileList.clear();
 		m_data->folderList.clear();
 
-        // UNZ_MAXFILENAMEINZIP + 1 - it is done so in unzLocateFile
-        char szCurrentFileName[UNZ_MAXFILENAMEINZIP + 1];
-        unz_file_info64 fileInfo;
+		// UNZ_MAXFILENAMEINZIP + 1 - it is done so in unzLocateFile
+		char szCurrentFileName[UNZ_MAXFILENAMEINZIP + 1];
+		unz_file_info64 fileInfo;
 
-        // go through all files and store position information about the required files
-        int err = unzGoToFirstFile64(m_data->zipFile, &fileInfo,
-                szCurrentFileName, sizeof(szCurrentFileName) - 1);
-        while (err == UNZ_OK)
-        {
-            unz_file_pos posInfo;
-            int posErr = unzGetFilePos(m_data->zipFile, &posInfo);
-            if (posErr == UNZ_OK)
-            {
-                std::string currentFileName(szCurrentFileName);
-
+		// go through all files and store position information about the required files
+		int err = unzGoToFirstFile64(m_data->zipFile, &fileInfo,
+			szCurrentFileName, sizeof(szCurrentFileName) - 1);
+		while (err == UNZ_OK)
+		{
+			unz_file_pos posInfo;
+			int posErr = unzGetFilePos(m_data->zipFile, &posInfo);
+			if (posErr == UNZ_OK)
+			{
+				std::string currentFileName(szCurrentFileName);
 				// cache info about filtered files only (like 'assets/')
-                if (filter.empty()
-                    || currentFileName.substr(0, filter.length()) == filter)
-                {
-                    ZipEntryInfo entry;
-                    entry.pos = posInfo;
-                    entry.uncompressed_size = (uLong)fileInfo.uncompressed_size;
-
-                    m_data->fileList[currentFileName] = entry;
+				if (filter.empty() || currentFileName.substr(0, filter.length()) == filter)
+				{
+					ZipEntryInfo entry;
+					entry.pos = posInfo;
+					entry.uncompressed_size = (uLong)fileInfo.uncompressed_size;
+					m_data->fileList[currentFileName] = entry;
 					size_t pos = currentFileName.rfind('/');
 					while (pos != std::string::npos)
 					{
@@ -125,22 +112,21 @@ bool ZipFile::setFilter(const std::string& filterStr)
 						pos = currentFileName.rfind('/');
 					}
 				}
-            }
-            // next file - also get the information about it
-            err = unzGoToNextFile64(m_data->zipFile, &fileInfo,
-                    szCurrentFileName, sizeof(szCurrentFileName) - 1);
-        }
-        ret = true;
-
-    }
+			}
+			// next file - also get the information about it
+			err = unzGoToNextFile64(m_data->zipFile, &fileInfo,
+				szCurrentFileName, sizeof(szCurrentFileName) - 1);
+		}
+		ret = true;
+	}
 	BLOCK_END
 
-    return ret;
+	return ret;
 }
 
 std::vector<std::string> ZipFile::getDirEntries(const std::string& path, bool isFolder)
 {
-	std::string searchName(path == "." ? "" : path);
+	std::string searchName(path == "." ? string() : path);
 	char last = searchName[searchName.length() - 1];
 	if (last == '/' || last == '\\')
 	{
@@ -215,66 +201,65 @@ bool ZipFile::isFolder(const std::string& pathStr) const
 
 unsigned char* ZipFile::getFileData(const std::string& fileName, unsigned long* pSize)
 {
-    unsigned char* pBuffer = NULL;
-    if (pSize)
-    {
-        *pSize = 0;
-    }
+	unsigned char* pBuffer = NULL;
+	if (pSize)
+	{
+		*pSize = 0;
+	}
 
-    BLOCK_START
-    {
-        BREAK_IF(!m_data->zipFile);
-        BREAK_IF(fileName.empty());
-		
+	BLOCK_START
+	{
+		BREAK_IF(!m_data->zipFile);
+		BREAK_IF(fileName.empty());
+
 		std::string file(fileName);
 
-        auto it = m_data->fileList.find(file);
-        BREAK_IF(it == m_data->fileList.end());
+		auto it = m_data->fileList.find(file);
+		BREAK_IF(it == m_data->fileList.end());
 
-        ZipEntryInfo fileInfo = it->second;
+		ZipEntryInfo fileInfo = it->second;
 
-        int nRet = unzGoToFilePos(m_data->zipFile, &fileInfo.pos);
-        BREAK_IF(UNZ_OK != nRet);
+		int nRet = unzGoToFilePos(m_data->zipFile, &fileInfo.pos);
+		BREAK_IF(UNZ_OK != nRet);
+		nRet = unzOpenCurrentFile(m_data->zipFile);
+		BREAK_IF(UNZ_OK != nRet);
 
-        nRet = unzOpenCurrentFile(m_data->zipFile);
-        BREAK_IF(UNZ_OK != nRet);
+		pBuffer = new unsigned char[fileInfo.uncompressed_size];
+		int nSize = unzReadCurrentFile(m_data->zipFile, pBuffer, (unsigned int)fileInfo.uncompressed_size);
+		AssertUnless(nSize == 0 || nSize == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
 
-        pBuffer = new unsigned char[fileInfo.uncompressed_size];
-        int nSize = unzReadCurrentFile(m_data->zipFile, pBuffer, (unsigned int)fileInfo.uncompressed_size);
-        AssertUnless(nSize == 0 || nSize == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
-
-        if (pSize)
-        {
-            *pSize = fileInfo.uncompressed_size;
-        }
-        unzCloseCurrentFile(m_data->zipFile);
-    }
+		if (pSize)
+		{
+			*pSize = fileInfo.uncompressed_size;
+		}
+		unzCloseCurrentFile(m_data->zipFile);
+	}
 	BLOCK_END
 
-    return pBuffer;
+	return pBuffer;
 }
 
 void ZipFile::getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*, int)>& handler)
 {
-    BLOCK_START
-    {
-        BREAK_IF(!m_data->zipFile);
-        BREAK_IF(fileName.empty());
-		
+	BLOCK_START
+	{
+		BREAK_IF(!m_data->zipFile);
+		BREAK_IF(fileName.empty());
+
 		std::string file(fileName);
 
-        auto it = m_data->fileList.find(file);
-        BREAK_IF(it == m_data->fileList.end());
+		auto it = m_data->fileList.find(file);
+		BREAK_IF(it == m_data->fileList.end());
 
-        ZipEntryInfo fileInfo = it->second;
+		ZipEntryInfo fileInfo = it->second;
 
-        int nRet = unzGoToFilePos(m_data->zipFile, &fileInfo.pos);
-        BREAK_IF(UNZ_OK != nRet);
+		int nRet = unzGoToFilePos(m_data->zipFile, &fileInfo.pos);
+		BREAK_IF(UNZ_OK != nRet);
 
-        nRet = unzOpenCurrentFile(m_data->zipFile);
-        BREAK_IF(UNZ_OK != nRet);
+		nRet = unzOpenCurrentFile(m_data->zipFile);
+		BREAK_IF(UNZ_OK != nRet);
 
-        Uint8 buf[DORA_COPY_BUFFER_SIZE];
+		Uint8 buf[DORA_COPY_BUFFER_SIZE];
 		int nSize = 0, total = 0;
 		do
 		{
@@ -287,8 +272,8 @@ void ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 			total += nSize;
 		}
 		while (nSize != 0);
-        AssertUnless(total == 0 || total == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
-        unzCloseCurrentFile(m_data->zipFile);
-    }
+		AssertUnless(total == 0 || total == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
+		unzCloseCurrentFile(m_data->zipFile);
+	}
 	BLOCK_END
 }
