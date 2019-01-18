@@ -417,7 +417,7 @@ void Director::mainLoop()
 		if (_nvgContext && _nvgDirty)
 		{
 			_nvgDirty = false;
-			SharedView.pushName("NanoVG", [&]()
+			SharedView.pushName("NanoVG"_slice, [&]()
 			{
 				nvgSetViewId(_nvgContext, SharedView.getId());
 				nvgEndFrame(_nvgContext);

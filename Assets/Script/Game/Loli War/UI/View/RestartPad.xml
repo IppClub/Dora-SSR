@@ -1,0 +1,16 @@
+<Dorothy>
+	<Import Module="UI.Control.Basic.AlignNode"/>
+	<Import Module="UI.View.Button"/>
+
+	<AlignNode Name="pad" HAlign="Right" VAlign="Top" AlignOffset="{ Vec2(20,20) }">
+		<Menu Name="menu" AnchorX="1" AnchorY="1" Width="52" Height="52" ScaleX="2" ScaleY="2">
+			<Button ImageUp="{ 'esc_up' }" ImageDown="{ 'esc_down' }" Width="52" Height="52">
+				<Slot Name="Tapped">
+					pad:emit("Tapped")
+					Audio:play("Audio/choose.wav")
+				</Slot>
+			</Button>
+		</Menu>
+	</AlignNode>
+</Dorothy>
+

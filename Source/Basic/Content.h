@@ -53,6 +53,7 @@ protected:
 	bool isPathFolder(String filePath);
 	vector<string> getDirEntries(String path, bool isFolder);
 private:
+	Uint8* _loadFileUnsafe(String filename, Sint64& size);
 	string _assetPath;
 	string _writablePath;
 	vector<string> _searchPaths;

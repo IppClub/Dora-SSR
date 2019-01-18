@@ -123,7 +123,7 @@ const BlendFunc& Sprite::getBlendFunc() const
 
 void Sprite::setDepthWrite(bool var)
 {
-	_flags.setFlag(Sprite::DepthWrite, var);
+	_flags.set(Sprite::DepthWrite, var);
 }
 
 bool Sprite::isDepthWrite() const

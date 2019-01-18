@@ -70,7 +70,7 @@ bool Unit::init()
 	_groundSensor = Body::getSensorByTag(UnitDef::GroundSensorTag);
 	ModelDef* modelDef = _unitDef->getModelDef();
 	Model* model = modelDef ? Model::create(modelDef) : Model::none();
-	_flags.setFlag(Unit::FaceRight, !modelDef || modelDef->isFaceRight());
+	_flags.set(Unit::FaceRight, !modelDef || modelDef->isFaceRight());
 	model->setScaleX(_unitDef->getScale());
 	model->setScaleY(_unitDef->getScale());
 	Unit::setModel(model);
@@ -81,15 +81,21 @@ bool Unit::init()
 		Unit::attachAction(name);
 	}
 	_entity->set("unit"_slice, s_cast<Object*>(this));
-	_entity->set("hp"_slice, s_cast<double>(_unitDef->maxHp));
+	if (!_entity->has("hp"_slice))
+	{
+		_entity->set("hp"_slice, s_cast<double>(_unitDef->maxHp));
+	}
 	this->scheduleUpdate();
 	return true;
 }
 
 void Unit::onEnter()
 {
-	Unit::setDecisionTreeName(_unitDef->decisionTree);
 	Body::onEnter();
+	if (_decisionTree == nullptr)
+	{
+		Unit::setDecisionTreeName(_unitDef->decisionTree);
+	}
 }
 
 UnitDef* Unit::getUnitDef() const
@@ -101,7 +107,7 @@ void Unit::setFaceRight(bool var)
 {
 	if (_flags.isOn(Unit::FaceRight) != var)
 	{
-		_flags.setFlag(Unit::FaceRight, var);
+		_flags.set(Unit::FaceRight, var);
 		if (_model)
 		{
 			_model->setFaceRight(var);
@@ -116,7 +122,7 @@ bool Unit::isFaceRight() const
 
 void Unit::setReceivingDecisionTrace(bool var)
 {
-	_flags.setFlag(Unit::ReceivingDecisionTrace, var);
+	_flags.set(Unit::ReceivingDecisionTrace, var);
 }
 
 bool Unit::isReceivingDecisionTrace() const
@@ -148,7 +154,7 @@ Model* Unit::getModel() const
 
 bool Unit::update(double deltaTime)
 {
-	if (_currentAction != nullptr)
+	if (_currentAction != nullptr && _currentAction->isDoing())
 	{
 		_currentAction->update(s_cast<float>(deltaTime));
 		if (_currentAction && !_currentAction->isDoing())

@@ -38,7 +38,7 @@ const BlendFunc& DrawNode::getBlendFunc() const
 
 void DrawNode::setDepthWrite(bool var)
 {
-	_flags.setFlag(DrawNode::DepthWrite, var);
+	_flags.set(DrawNode::DepthWrite, var);
 }
 
 bool DrawNode::isDepthWrite() const
@@ -467,7 +467,7 @@ BlendFunc Line::getBlendFunc() const
 
 void Line::setDepthWrite(bool var)
 {
-	_flags.setFlag(Line::DepthWrite, var);
+	_flags.set(Line::DepthWrite, var);
 }
 
 bool Line::isDepthWrite() const

@@ -14,7 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Async::Async():
-_scheduled(false)
+_scheduled(false),
+_paused(false)
 { }
 
 Async::~Async()
@@ -111,7 +112,11 @@ int Async::work(bx::Thread* thread, void* userData)
 				}
 			}
 		}
-		worker->_pauseSemaphore.post();
+		if (worker->_paused)
+		{
+			worker->_paused = false;
+			worker->_pauseSemaphore.post();
+		}
 		worker->_workerSemaphore.wait();
 	}
 	return 0;
@@ -143,6 +148,7 @@ void Async::pause()
 				}
 			}
 		}
+		_paused = true;
 		_workerSemaphore.post();
 		_pauseSemaphore.wait(); // wait for worker to stop
 	}

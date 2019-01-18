@@ -12,6 +12,7 @@ Class ButtonGlowView,
 
 	glow:=>
 		if not @scheduled
+			Audio\play "Audio/select.wav"
 			@schedule loop ->
 				@up.visible = false
 				@down.visible = true

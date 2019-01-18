@@ -438,7 +438,7 @@ Rect Model::getBoundingBox()
 		}
 		return false;
 	});
-	_flags.setFlag(Node::TraverseEnabled, traverseEnabled);
+	_flags.set(Node::TraverseEnabled, traverseEnabled);
 	Rect rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
 	return AffineTransform::applyRect(getLocalTransform(), rect);
 }

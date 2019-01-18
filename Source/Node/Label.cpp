@@ -383,7 +383,7 @@ SpriteEffect* Label::getEffect() const
 
 void Label::setDepthWrite(bool var)
 {
-	_flags.setFlag(Label::DepthWrite, var);
+	_flags.set(Label::DepthWrite, var);
 }
 
 bool Label::isDepthWrite() const
@@ -419,7 +419,7 @@ void Label::setBatched(bool var)
 	{
 		return;
 	}
-	_flags.setFlag(Label::TextBatched, var);
+	_flags.set(Label::TextBatched, var);
 	if (var)
 	{
 		for (CharItem* fontChar : _characters)

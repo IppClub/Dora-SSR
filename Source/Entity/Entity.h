@@ -45,6 +45,8 @@ public:
 	void setNext(String name, const T& value);
 	template<typename T>
 	const T& get(String name) const;
+	template<typename T>
+	const T& tryGet(String name, const T& def) const;
 public:
 	int getIndex(String name);
 	bool has(int index) const;
@@ -156,6 +158,14 @@ const T& Entity::get(String name) const
 	Com* com = getComponent(name);
 	AssertIf(com == nullptr, "access non-exist component \"{}\".", name);
 	return com->to<T>();
+}
+
+template<typename T>
+const T& Entity::tryGet(String name, const T& def) const
+{
+	Com* com = getComponent(name);
+	if (com) return com->to<T>();
+	else return def;
 }
 
 template<typename Func>

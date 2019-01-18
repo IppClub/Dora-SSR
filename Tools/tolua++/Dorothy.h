@@ -773,6 +773,7 @@ class Body : public Node
 	tolua_property__common float angularDamping;
 	tolua_property__common Object* owner;
 	tolua_property__bool bool receivingContact;
+	tolua_property__bool bool emittingEvent;
 	void applyLinearImpulse(Vec2 impulse, Vec2 pos);
 	void applyAngularImpulse(float impulse);
 	Sensor* getSensorByTag(int tag);
@@ -1092,11 +1093,12 @@ class Bullet : public Body
 {
 	TargetAllow targetAllow;
 	tolua_readonly tolua_property__bool bool faceRight;
+	tolua_property__bool bool hitStop;
 	tolua_readonly tolua_property__common Unit* owner;
 	tolua_readonly tolua_property__common BulletDef* bulletDef;
 	tolua_property__common Node* face;
 	void destroy();
-	static Bullet* create(BulletDef* def, Unit* owner);
+	static tolua_outside Bullet* Bullet_create @ create(BulletDef* def, Unit* owner);
 };
 
 class Visual : public Node

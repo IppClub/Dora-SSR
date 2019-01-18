@@ -839,27 +839,7 @@ void __Model_getAnimationNames(lua_State* L, String filename)
 Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot)
 {
 	Body* body = Body::create(def, world, pos, rot);
-	auto sensorAddHandler = [](Sensor* sensor, Body* body)
-	{
-		sensor->bodyEnter = [body](Sensor* sensor, Body* other)
-		{
-			body->emit("BodyEnter"_slice, other, sensor);
-		};
-		sensor->bodyLeave = [body](Sensor* sensor, Body* other)
-		{
-			body->emit("BodyLeave"_slice, other, sensor);
-		};
-	};
-	body->eachSensor(sensorAddHandler);
-	body->sensorAdded = sensorAddHandler;
-	body->contactStart = [body](Body* other, const Vec2& point, const Vec2& normal)
-	{
-		body->emit("ContactStart"_slice, other, point, normal);
-	};
-	body->contactEnd = [body](Body* other, const Vec2& point, const Vec2& normal)
-	{
-		body->emit("ContactEnd"_slice, other, point, normal);
-	};
+	body->setEmittingEvent(true);
 	return body;
 }
 
@@ -1219,8 +1199,8 @@ bool Array_each(Array* self, const LuaFunction<bool>& handler)
 
 int Array_create(lua_State* L)
 {
-#ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
+#ifndef TOLUA_RELEASE
 	if (!tolua_isusertable(L, 1, "Array"_slice, 0, &tolua_err))
 	{
 		goto tolua_lerror;
@@ -1267,8 +1247,8 @@ int Array_create(lua_State* L)
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'new'.", &tolua_err);
-	return 0;
 #endif
+	return 0;
 }
 
 /* Buffer */
@@ -1546,6 +1526,19 @@ int UnitDef_SetActions(lua_State* L)
 	UnitDef* self = r_cast<UnitDef*>(tolua_tousertype(L, 1, 0));
 	self->actions = getVectorString(L, 2);
 	return 0;
+}
+
+/* Bullet */
+
+Bullet* Bullet_create(BulletDef* def, Unit* unit)
+{
+	Bullet* bullet = Bullet::create(def, unit);
+	bullet->hitTarget += [](Bullet* bullet, Unit* target, Vec2 point)
+	{
+		bullet->emit("HitTarget"_slice, bullet, target, point);
+		return bullet->isHitStop();
+	};
+	return bullet;
 }
 
 NS_DOROTHY_PLATFORMER_END

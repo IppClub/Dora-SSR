@@ -44,7 +44,7 @@ OwnArray<Uint8> Content::loadFile(String filename)
 {
 	SharedAsyncThread.FileIO.pause();
 	Sint64 size = 0;
-	Uint8* data = Content::loadFileUnsafe(filename, size);
+	Uint8* data = Content::_loadFileUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return OwnArray<Uint8>(data, s_cast<size_t>(size));
 }
@@ -53,7 +53,7 @@ const bgfx::Memory* Content::loadFileBX(String filename)
 {
 	SharedAsyncThread.FileIO.pause();
 	Sint64 size = 0;
-	Uint8* data = Content::loadFileUnsafe(filename, size);
+	Uint8* data = Content::_loadFileUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
@@ -335,7 +335,7 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 	SharedAsyncThread.FileIO.run([fileStr, this]()
 	{
 		Sint64 size = 0;
-		Uint8* buffer = this->loadFileUnsafe(fileStr, size);
+		Uint8* buffer = this->_loadFileUnsafe(fileStr, size);
 		return Values::create(buffer, size);
 	},
 	[callback](Values* result)
@@ -463,6 +463,14 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 	return files;
 }
 
+Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
+{
+	SharedAsyncThread.FileIO.pause();
+	Uint8* data = Content::_loadFileUnsafe(filename, size);
+	SharedAsyncThread.FileIO.resume();
+	return data;
+}
+
 #if BX_PLATFORM_ANDROID
 Content::Content()
 {
@@ -474,7 +482,7 @@ Content::Content()
 	SDL_free(prefPath);
 }
 
-Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
+Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 {
 	Uint8* data = nullptr;
 	if (filename.empty())
@@ -646,7 +654,7 @@ Content::Content()
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS
-Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
+Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 {
 	if (filename.empty()) return nullptr;
 	string fullPath = Content::getFullPath(filename);

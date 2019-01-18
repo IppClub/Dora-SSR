@@ -105,8 +105,8 @@ private:
 	ActionMap _actions;
 	enum
 	{
-		FaceRight = UserFlag,
-		ReceivingDecisionTrace = UserFlag << 1
+		FaceRight = BodyUserFlag,
+		ReceivingDecisionTrace = BodyUserFlag << 1
 	};
 	DORA_TYPE_OVERRIDE(Unit);
 };

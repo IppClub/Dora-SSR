@@ -167,7 +167,6 @@ public:
 	void onAnimationEnd(Model* model);
 	float getDamage(Unit* target);
 	virtual void onAttack() = 0;
-	DamageHandler damaged;
 	static Vec2 getHitPoint(Body* self, Body* target, b2Shape* selfShape);
 protected:
 	Attack(String name, Unit* unit);
@@ -236,15 +235,11 @@ public:
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
-	void setHitInfo(const Vec2& hitPoint, const Vec2& attackPower, bool hitFromRight);
 	void onAnimationEnd(Model* model);
 	static Own<UnitAction> alloc(Unit* unit);
 protected:
 	Hit(Unit* unit);
-	bool _hitFromRight;
 	Ref<Visual> _effect;
-	Vec2 _hitPoint;
-	Vec2 _attackPower;
 };
 
 class Fall : public UnitAction

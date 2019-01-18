@@ -56,6 +56,11 @@ public:
 	void stopStream(float fadeTime = 0.0f);
 protected:
 	Audio();
+	bool _init();
+	Uint32 _play(String filename, bool);
+	void _stop(Uint32 handle);
+	void _playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
+	void _stopStream(float fadeTime = 0.0f);
 private:
 	Ref<Timer> _timer;
 	Uint32 _currentVoice;

@@ -99,22 +99,22 @@ bool Object::init()
 void Object::release()
 {
 	AssertUnless(_refCount > 0, "reference count should be greater than 0.");
-    --_refCount;
-    if (_refCount == 0)
-    {
+	--_refCount;
+	if (_refCount == 0)
+	{
 		if (_weak)
 		{
 			_weak->target = nullptr;
 			_weak->release();
 		}
-        delete this;
-    }
+		delete this;
+	}
 }
 
 void Object::retain()
 {
 	AssertUnless(_refCount > 0, "reference count should be greater than 0.");
-    ++_refCount;
+	++_refCount;
 }
 
 void Object::autorelease()
@@ -134,12 +134,12 @@ void Object::autoretain()
 
 bool Object::isSingleReferenced() const
 {
-    return _refCount == 1;
+	return _refCount == 1;
 }
 
 Uint32 Object::getRefCount() const
 {
-    return _refCount;
+	return _refCount;
 }
 
 bool Object::update(double deltaTime)

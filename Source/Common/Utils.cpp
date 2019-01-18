@@ -32,7 +32,7 @@ namespace Math
 Flag::Flag(Uint32 flags):_flags(flags)
 { }
 
-void Flag::setFlag(Uint32 type, bool value)
+void Flag::set(Uint32 type, bool value)
 {
 	if (value)
 	{
@@ -46,7 +46,7 @@ void Flag::setFlag(Uint32 type, bool value)
 
 void Flag::toggle(Uint32 type)
 {
-	setFlag(type, !isOn(type));
+	set(type, !isOn(type));
 }
 
 Profiler::Profiler():

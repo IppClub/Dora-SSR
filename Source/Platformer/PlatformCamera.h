@@ -39,6 +39,7 @@ protected:
 private:
 	Vec2 _camPos;
 	Rect _boundary;
+	Size _viewSize;
 	Vec2 _ratio;
 	WRef<Node> _followTarget;
 	bool _transformDirty;

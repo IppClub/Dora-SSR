@@ -575,11 +575,23 @@ void ParticleNode::visit()
 			if (_particles.empty())
 			{
 				_flags.setOff(ParticleNode::Emitting);
-				emit("Finished"_slice);
+				_flags.setOn(ParticleNode::Finished);
+				scheduleUpdate();
 			}
 		}
 	} // while end
 	Node::visit();
+}
+
+bool ParticleNode::update(double deltaTime)
+{
+	if (_flags.isOn(ParticleNode::Finished))
+	{
+		_flags.setOff(ParticleNode::Finished);
+		unscheduleUpdate();
+		emit("Finished"_slice);
+	}
+	return Node::update(deltaTime);
 }
 
 void ParticleNode::render()
