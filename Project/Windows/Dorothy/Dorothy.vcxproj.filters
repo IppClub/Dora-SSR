@@ -124,6 +124,9 @@
     <Filter Include="3rdParty\nanovg">
       <UniqueIdentifier>{38bba46f-dca1-4617-920b-0cda88bafb73}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{6d34a666-c22c-4090-a10e-821d941bfb1d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -1140,5 +1143,18 @@
     <ClInclude Include="..\..\..\Source\Node\VGNode.h">
       <Filter>Node</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\..\Downloads\Dorothy SSR.ico">
+      <Filter>Resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

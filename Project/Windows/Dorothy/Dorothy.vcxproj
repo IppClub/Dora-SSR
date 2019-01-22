@@ -569,6 +569,13 @@
     <ClInclude Include="..\..\..\Source\Support\Dictionary.h" />
     <ClInclude Include="..\..\..\Source\Support\Geometry.h" />
     <ClInclude Include="..\..\..\Source\Support\Value.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\..\Downloads\Dorothy SSR.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>
