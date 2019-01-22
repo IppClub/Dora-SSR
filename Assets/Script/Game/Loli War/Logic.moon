@@ -301,7 +301,15 @@ with Observer "Change", {"hp","hero"}
 					unit.entity.tip = nil
 				emit "EPChange",lastGroup,6
 				switch lastGroup
-					when GroupPlayer then Audio\play "Audio/hero_fall.wav"
+					when GroupPlayer
+						Audio\play "Audio/hero_fall.wav"
+						thread ->
+							saturation = with SpriteEffect "builtin::vs_sprite","builtin::fs_spritesaturation"
+								\set "u_adjustment",0
+							View.postEffect = saturation
+							sleep 3
+							cycle 5,(dt)-> saturation\set "u_adjustment",dt
+							View.postEffect = nil
 					when GroupEnemy then Audio\play "Audio/hero_kill.wav"
 				unit\schedule once ->
 					sleep 3
