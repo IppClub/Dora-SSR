@@ -23,6 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Shader/Sprite/fs_sprite.bin.h"
 #include "Shader/Sprite/fs_spritewhite.bin.h"
 #include "Shader/Sprite/fs_spritealphatest.bin.h"
+#include "Shader/Sprite/fs_spritesaturation.bin.h"
 
 NS_DOROTHY_BEGIN
 
@@ -39,6 +40,7 @@ static const bgfx::EmbeddedShader _DoraShaders[] =
 	BGFX_EMBEDDED_SHADER(fs_sprite),
 	BGFX_EMBEDDED_SHADER(fs_spritewhite),
 	BGFX_EMBEDDED_SHADER(fs_spritealphatest),
+	BGFX_EMBEDDED_SHADER(fs_spritesaturation),
 	BGFX_EMBEDDED_SHADER_END()
 };
 
