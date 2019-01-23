@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ParticleCache.h"
 #include "Effect/Effect.h"
 #include "Basic/Director.h"
+#include "Basic/Scheduler.h"
 #include "Const/XmlTag.h"
 
 NS_DOROTHY_BEGIN
@@ -473,7 +474,7 @@ void ParticleNode::visit()
 		Node::visit();
 		return;
 	}
-	float deltaTime = s_cast<float>(SharedDirector.getDeltaTime());
+	float deltaTime = s_cast<float>(getScheduler()->getDeltaTime());
 	if (_flags.isOn(ParticleNode::Active) && _particleDef->emissionRate)
 	{
 		float rate = 1.0f / _particleDef->emissionRate;

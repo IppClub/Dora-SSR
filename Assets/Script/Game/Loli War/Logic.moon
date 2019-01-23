@@ -27,7 +27,7 @@ with Observer "Add",{"world"}
 		{:world} = @
 		Store.world = with world
 			with .camera
-				.followRatio = Vec2 0.05,0.05
+				.followRatio = Vec2 0.03,0.03
 				.boundary = Rect 0,-110,4096,1004
 				.position = Vec2 1024,274
 			\addTo Director.entry
@@ -312,7 +312,10 @@ with Observer "Change", {"hp","hero"}
 							View.postEffect = nil
 					when GroupEnemy then Audio\play "Audio/hero_kill.wav"
 				unit\schedule once ->
+					Director.scheduler.timeScale = 0.25
 					sleep 3
+					Director.scheduler.timeScale = 1
+					sleep 2
 					world\addBunnySwither lastGroup
 					unit.visible = false
 					start = unit.position
