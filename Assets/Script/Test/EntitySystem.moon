@@ -21,14 +21,18 @@ spGroup\each (e)-> print "entity", e.index
 
 print "-- {hp mp} observer"
 entity0.hp = 1
-entity1.hp = 999
+entity1.hp -= 1
+entity1.hp -= 99
 observer\each (e)-> print "hp or mp change: entity", e.index
+
+print "-- {hp} group"
+hpGroup\each (e)-> print "entity", e.index,e.oldValues.hp,e.hp
 
 print "remove hp from entity", entity1.index
 entity1.hp = nil
 
 print "-- {hp} group"
-hpGroup\each (e)-> print "entity", e.index
+hpGroup\each (e)-> print "entity", e.index,e.oldValues.hp,e.hp
 
 print "-- {sp} group"
-spGroup\each (e)-> print "entity", e.index
+spGroup\each (e)-> print "entity", e.index,e.oldValues.sp,e.sp

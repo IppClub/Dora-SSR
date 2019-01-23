@@ -273,7 +273,7 @@ for _,actionName in ipairs{
 	"Hide",
 	"Show",
 	"Delay",
-	"Call",
+	"Emit",
 	"Spawn",
 	"Sequence",
 	} do

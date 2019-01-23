@@ -270,17 +270,25 @@ _isAutoRemoved(false)
 	_sprite = Sprite::create(
 		SharedTextureCache.load(frameActionDef->clipStr),
 		*frameActionDef->rects[0]);
-	_action = Action::create(Sequence::alloc(FrameAction::alloc(frameActionDef), Call::alloc([self]()
+	Action* action = Action::create(FrameAction::alloc(frameActionDef));
+	_sprite->slot("ActionEnd"_slice, [self, action](Event* event)
 	{
-		if (self)
+		Action* eventAction;
+		Node* target;
+		event->get(eventAction, target);
+		if (action == eventAction)
 		{
-			self->_sprite->setVisible(false);
-			if (self->_isAutoRemoved)
+			if (self)
 			{
-				self->removeFromParent(true);
+				self->_sprite->setVisible(false);
+				if (self->_isAutoRemoved)
+				{
+					self->removeFromParent(true);
+				}
 			}
 		}
-	})));
+	});
+	_action = action;
 }
 
 bool SpriteVisual::init()

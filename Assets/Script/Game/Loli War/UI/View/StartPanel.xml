@@ -2,7 +2,7 @@
 	<Import Module="UI.Control.Basic.AlignNode"/>
 	<Import Module="UI.Control.ButtonGlow"/>
 
-	<AlignNode Name="panel" VAlign="{ 'Center' }" HAlign="{ 'Center' }">
+	<AlignNode VAlign="{ 'Center' }" HAlign="{ 'Center' }">
 		<Node ScaleX="2" ScaleY="2">
 			<Node Name="node" TouchEnabled="True" SwallowTouches="True" Ref="True">
 				<Sprite File="Image/misc.clip|startboard">
@@ -12,7 +12,7 @@
 								<Scale Time="1" Start="1" Stop="0.3" Ease="InBack"/>
 								<Opacity Time="1" Start="1" Stop="0"/>
 							</Spawn>
-							<Call>panel:removeFromParent()</Call>
+							<Emit Event="PanelHide"/>
 						</Sequence>
 					</Action>
 					<ButtonGlow Name="fButton" Normal="{ 'weaponf' }" Glow="{ 'weaponfl' }" X="{ $W/3-30 }" Y="{ $Y }" Width="118" Height="167" Ref="True">

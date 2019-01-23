@@ -636,10 +636,17 @@ void ResetAnimation::add(SpriteDef* spriteDef, Node* node, Action* action, Actio
 	_group.push_back(MakeOwn(data));
 	if (_group.size() == 1)
 	{
-		_group[0]->action = Sequence::create(
-			std::move(_group[0]->action->getAction()),
-			Call::alloc([this]() { onActionEnd(); })
-		);
+		Action* action = _group[0]->action;
+		_group[0]->node->slot("ActionEnd"_slice, [this, action](Event* event)
+		{
+			Action* eventAction;
+			Node* target;
+			event->get(eventAction, target);
+			if (action == eventAction)
+			{
+				onActionEnd();
+			}
+		});
 	}
 }
 

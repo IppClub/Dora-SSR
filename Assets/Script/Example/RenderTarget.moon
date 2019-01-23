@@ -7,9 +7,14 @@ node = with Node!
 		.faceRight = true
 		.look = "happy"
 		\play "walk"
-		turn = Call -> .faceRight = not .faceRight
-		\runAction Sequence X(2,-150,250),turn,X(2,250,-150),turn
+		\runAction Sequence(
+			X 2,-150,250
+			Emit "Turn"
+			X 2,250,-150
+			Emit "Turn"
+		)
 		\slot "ActionEnd",(action)-> \runAction action
+		\slot "Turn",-> .faceRight = not .faceRight
 
 renderTarget = with RenderTarget 300,400
 	.z = 300

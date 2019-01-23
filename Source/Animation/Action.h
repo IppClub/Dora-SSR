@@ -218,19 +218,19 @@ private:
 	bool _ended;
 };
 
-class Call : public ActionDuration
+class Emit : public ActionDuration
 {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
-	static Own<ActionDuration> alloc(const function<void()>& callback);
-	static Action* create(const function<void()>& callback);
+	static Own<ActionDuration> alloc(String event);
+	static Action* create(String event);
 	static bool available;
 protected:
-	Call() { }
+	Emit() { }
 private:
 	bool _ended;
-	function<void()> _callback;
+	string _event;
 };
 
 class PlaySound : public ActionDuration

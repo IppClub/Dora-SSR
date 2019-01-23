@@ -22,4 +22,4 @@ Class StartPanelView,
 					button\glow!
 				else
 					button\stopGlow!
-
+		@node\slot "PanelHide", -> @removeFromParent!

@@ -695,12 +695,12 @@ namespace LuaAction
 							float duration = toNumber(L, location, 2);
 							return Delay::alloc(duration);
 						}
-						case "Call"_hash:
+						case "Emit"_hash:
 						{
 							lua_rawgeti(L, location, 2);
-							LuaFunction<void> callback(tolua_ref_function(L, -1));
+							Slice name = tolua_toslice(L, -1, nullptr);
 							lua_pop(L, 1);
-							return Call::alloc(callback);
+							return Emit::alloc(name);
 						}
 						case "Spawn"_hash:
 						{
