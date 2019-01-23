@@ -50,6 +50,11 @@ float Scheduler::getTimeScale() const
 	return _timeScale;
 }
 
+double Scheduler::getDeltaTime() const
+{
+	return _deltaTime;
+}
+
 void Scheduler::schedule(Object* object)
 {
 	// O(1) insert operation

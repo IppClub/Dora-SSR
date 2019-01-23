@@ -20,6 +20,7 @@ class Scheduler : public Object
 	typedef unordered_map<Object*, UpdateList::iterator> UpdateMap;
 public:
 	PROPERTY(float, TimeScale);
+	PROPERTY_READONLY(double, DeltaTime);
 	void schedule(Object* object);
 	void schedule(const function<bool (double)>& handler);
 	void schedule(Action* action);
