@@ -137,14 +137,12 @@ with Observer "Add",{"switch_","group","layer","look","position"}
 						)
 						@entity.tip = with Sprite "Image/items.clip|keyf_down"
 							.y = 140
-							\runAction Sequence(
-								Spawn(
-									Opacity 0.3,0,1
-									Scale 0.3,0,1,Ease.OutQuad
-								)
-								Call -> \runAction floating
+							scaleOut = Action Spawn(
+								Opacity 0.3,0,1
+								Scale 0.3,0,1,Ease.OutQuad
 							)
-							\slot "ActionEnd",=> \runAction @ if @ == floating
+							\runAction scaleOut
+							\slot "ActionEnd",=> \runAction floating
 							\addTo @
 					@entity.atSwitch = unit
 			\slot "BodyLeave",(sensor)=>
@@ -152,13 +150,11 @@ with Observer "Add",{"switch_","group","layer","look","position"}
 					@entity.atSwitch = nil
 					if @entity.tip
 						with @entity.tip
-							\perform Sequence(
-								Spawn(
-									Scale 0.3,.scaleX,0
-									Opacity 0.3,1,0
-								)
-								Call -> \removeFromParent!
+							\perform Spawn(
+								Scale 0.3,.scaleX,0
+								Opacity 0.3,1,0
 							)
+							\slot("ActionEnd")\set -> \removeFromParent!
 						@entity.tip = nil
 
 with Observer "Add",{"block","group","layer","look","position"}

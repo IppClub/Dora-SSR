@@ -34,9 +34,9 @@ Class HPWheelView,
 						@fill\perform ScaleX 0.2,@fill.scaleX,@ep/MaxEP
 						hint = with EPHint index:#@hints+1,clip:string.format("%+d",value)
 							.index = #@hints+1
-							\slot "DisplayEnd",(endHint)->
-								index = endHint.index
-								endHint\removeFromParent!
+							\slot "DisplayEnd",->
+								index = hint.index
+								hint\removeFromParent!
 								table.remove @hints,index
 								for i,v in ipairs @hints
 									v\runAction X 0.2, v.x, 55+25*(i-1)

@@ -21,9 +21,14 @@ targetA = with Model "Model/xiaoli.model"
 	.loop = true
 	.faceRight = true
 	\play "walk"
-	turn = Call -> .faceRight = not .faceRight
-	\runAction Sequence X(1.5,-200,200),turn,X(1.5,200,-200),turn
+	\runAction Sequence(
+		X 1.5,-200,200
+		Emit "Turn"
+		X 1.5,200,-200
+		Emit "Turn"
+	)
 	\slot "ActionEnd",(action)-> \runAction action
+	\slot "Turn",-> .faceRight = not .faceRight
 
 exampleA = with Node!
 	\addChild with ClipNode maskA

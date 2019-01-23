@@ -283,19 +283,18 @@ static const char* _toBoolean(const char* str)
 	funcs.push(func);
 #define Hide_Finish
 
-// Call
-#define Call_Define \
+// Emit
+#define Emit_Define \
 	ActionBase_Define\
-	const char* type = nullptr;
-#define Call_Check \
+	const char* event = nullptr;
+#define Emit_Check \
 	ActionBase_Check\
-	CASE_STR(Type) { type = atts[++i]; break; }
-#define Call_Create \
-	isMoon = type && string(type) == "Moon";
-#define Call_Handle \
-	oFunc func = {"Call(",")",def};\
+	CASE_STR(Event) { event = atts[++i]; break; }
+#define Emit_Create
+#define Emit_Handle \
+	oFunc func = {"Emit(\""+(event ? string(event) : Slice::Empty)+"\")",")",def};\
 	funcs.push(func);
-#define Call_Finish
+#define Emit_Finish
 
 // Sequence
 #define Sequence_Define \
@@ -1058,7 +1057,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 
 		Item(Show, show)
 		Item(Hide, hide)
-		Item(Call, call)
+		Item(Emit, emit)
 
 		Item(Sequence, sequence)
 		Item(Spawn, spawn)
@@ -1187,27 +1186,6 @@ void XmlDelegator::endElement(const char *name)
 			isMoon = false;
 			break;
 		}
-		CASE_STR(Call)
-		{
-			oFunc func = funcs.top();
-			funcs.pop();
-			string tempItem = func.begin + "function()\n" +
-				(codes ? (isMoon ? compileMoonCodes(codes) : string(codes)) : Slice::Empty)
-				+ "\nend" + func.end;
-			codes = nullptr;
-			isMoon = false;
-			if (parentIsAction)
-			{
-				fmt::format_to(stream, "local {} = {}\n", currentData.name, tempItem);
-			}
-			else
-			{
-				items.push(tempItem);
-				auto it = names.find(currentData.name);
-				if (it != names.end()) names.erase(it);
-			}
-			break;
-		}
 		CASE_STR(Slot)
 		{
 			oFunc func = funcs.top();
@@ -1228,6 +1206,7 @@ void XmlDelegator::endElement(const char *name)
 		CaseAction(SkewY)
 		CaseAction(Show)
 		CaseAction(Hide)
+		CaseAction(Emit)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();

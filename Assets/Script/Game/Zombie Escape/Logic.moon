@@ -67,10 +67,9 @@ with Observer "Change", {"hp","unit"}
 				unit.group = Data.groupHide
 				unit\schedule once ->
 					sleep 5
-					unit\runAction Sequence(
-						Opacity 0.5,1,0,Ease.OutQuad
-						Call -> unit\removeFromParent!
-					)
+					unit\runAction Opacity 0.5,1,0,Ease.OutQuad
+					sleep 0.5
+					unit\removeFromParent!
 
 Store.zombieKilled = 0
 with Observer "Change", {"hp","zombie"}

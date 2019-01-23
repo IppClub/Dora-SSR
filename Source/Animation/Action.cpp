@@ -426,34 +426,34 @@ Action* Hide::create()
 	return Action::create(Hide::alloc());
 }
 
-/* Call */
+/* Emit */
 
-bool Call::available = true;
+bool Emit::available = true;
 
-float Call::getDuration() const
+float Emit::getDuration() const
 {
 	return 0.0f;
 }
 
-bool Call::update(Node* target, float eclapsed)
+bool Emit::update(Node* target, float eclapsed)
 {
 	if (_ended && eclapsed > 0.0f) return true;
-	if (Call::available && _callback) _callback();
+	if (Emit::available) target->emit(_event);
 	_ended = eclapsed > 0.0f;
 	return true;
 }
 
-Own<ActionDuration> Call::alloc(const function<void()>& callback)
+Own<ActionDuration> Emit::alloc(String event)
 {
-	Call* call = new Call();
-	call->_ended = false;
-	call->_callback = callback;
-	return Own<ActionDuration>(call);
+	Emit* emit = new Emit();
+	emit->_ended = false;
+	emit->_event = event;
+	return Own<ActionDuration>(emit);
 }
 
-Action* Call::create(const function<void()>& callback)
+Action* Emit::create(String event)
 {
-	return Action::create(Call::alloc(callback));
+	return Action::create(Emit::alloc(event));
 }
 
 /* PlaySound */
@@ -622,9 +622,9 @@ bool Action::updateProgress()
 	{
 		float start = _reversed ? _action->getDuration() : 0.0f;
 		/* reset actions to initial state */
-		Call::available = false; // disable callbacks while reseting
+		Emit::available = false; // disable event callbacks while reseting
 		_action->update(_target, start);
-		Call::available = true;
+		Emit::available = true;
 		/* execute action right here */
 		if (0.0f == _action->getDuration())
 		{
