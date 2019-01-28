@@ -61,6 +61,7 @@ void PlatformWorld::removeChild(Node* child, bool cleanup)
 {
 	Node* layer = PlatformWorld::getLayer(child->getOrder());
 	if (layer == child) PhysicsWorld::removeChild(child, cleanup);
+	else layer->removeChild(child);
 }
 
 Node* PlatformWorld::getLayer(int order)
