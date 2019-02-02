@@ -29,7 +29,7 @@ walk = Sel {
 		Con "obstacles ahead",=>
 			start = @position
 			stop = Vec2 start.x+(@faceRight and 140 or -140),start.y
-			if Store.world\raycast start,stop,true,(b,p)->
+			if Store.world\raycast start,stop,false,(b,p)->
 					if b.group == Data.groupTerrain and b.tag == "Obstacle"
 						@entity.obstacleDistance = math.abs p.x-start.x
 						true

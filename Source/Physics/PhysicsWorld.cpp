@@ -320,7 +320,7 @@ void ContactListener::PreSolve(pd::Contact& contact, const pd::Manifold& oldMani
 	{
 		contact.UnsetEnabled();
 	}
-	if (bodyB->isReceivingContact() && bodyB->filterContact && !bodyB->filterContact(bodyA))
+	else if (bodyB->isReceivingContact() && bodyB->filterContact && !bodyB->filterContact(bodyA))
 	{
 		contact.UnsetEnabled();
 	}
