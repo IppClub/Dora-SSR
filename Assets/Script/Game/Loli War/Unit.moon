@@ -2,6 +2,7 @@ Dorothy builtin.Platformer
 {store:Store} = Data
 
 Store["Flandre"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.density = 1.0
@@ -52,6 +53,7 @@ Store["Flandre"] = with UnitDef!
 	}
 
 Store["Dorothy"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.density = 1.0
@@ -102,6 +104,7 @@ Store["Dorothy"] = with UnitDef!
 	}
 
 Store["Villy"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.density = 1.0
@@ -152,6 +155,7 @@ Store["Villy"] = with UnitDef!
 	}
 
 Store["BunnyP"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.density = 1.0
@@ -202,6 +206,7 @@ Store["BunnyP"] = with UnitDef!
 	}
 
 Store["BunnyG"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.density = 1.0
@@ -252,6 +257,7 @@ Store["BunnyG"] = with UnitDef!
 	}
 
 Store["BlockA"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.model = "Model/block1.model"
@@ -265,6 +271,7 @@ Store["BlockA"] = with UnitDef!
 	}
 
 Store["BlockB"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.model = "Model/block2.model"
@@ -278,6 +285,7 @@ Store["BlockB"] = with UnitDef!
 	}
 
 Store["BlockC"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 2
 	.model = "Model/block3.model"

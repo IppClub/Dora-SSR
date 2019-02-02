@@ -34,23 +34,23 @@ namespace playrho {
     {
         /// @brief Bits type definition.
         ///
-        using bits_type = std::uint16_t;
+        using bits_type = std::uint32_t;
 
         /// @brief Index type definition.
         ///
-        using index_type = std::int16_t;
+        using index_type = std::uint32_t;
         
         /// @brief The collision category bits.
         ///
         /// @note Normally you would just set one bit.
         ///
-        bits_type categoryBits = 0x0001;
+        bits_type categoryBits = 0x00000001;
         
         /// @brief The collision mask bits.
         ///
         /// @details This states the categories that this shape would accept for collision.
         ///
-        bits_type maskBits = 0xFFFF;
+        bits_type maskBits = 0xFFFFFFFF;
         
         /// @brief Group index.
         ///
@@ -81,10 +81,6 @@ namespace playrho {
     /// @relatedalso Filter
     inline bool ShouldCollide(const Filter filterA, const Filter filterB) noexcept
     {
-        if ((filterA.groupIndex == filterB.groupIndex) && (filterA.groupIndex != 0))
-        {
-            return filterA.groupIndex > 0;
-        }
         return ((filterA.maskBits & filterB.categoryBits) != 0) &&
                ((filterB.maskBits & filterA.categoryBits) != 0);
     }

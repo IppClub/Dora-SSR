@@ -172,9 +172,10 @@ with Observer "Add",{"poke","group","layer","position"}
 		{:poke,:group,:layer,:position} = @
 		{:world} = Store
 		pokeDef = with BodyDef!
+			.linearAcceleration = Vec2 0,-10
 			.type = BodyType.Dynamic
-			\attachCircle 192,10.0,0.1,0.4
-			\attachCircleSensor 0,194
+			\attachDisk 192,10.0,0.1,0.4
+			\attachDiskSensor 0,194
 		with Body pokeDef,world,position
 			.group = group
 			.velocityX = switch group
@@ -206,7 +207,7 @@ with Observer "Add",{"poke","group","layer","position"}
 					normal.visible = not normal.visible
 					glow.visible = not glow.visible
 					sleep 0.5
-				sensor = \attachSensor 1,BodyDef\circle 500
+				sensor = \attachSensor 1,BodyDef\disk 500
 				sleep!
 				for body in *sensor.sensedBodies
 					if Relation.Enemy == Data\getRelation body.group,.group

@@ -2111,6 +2111,7 @@ ContactCounter World::FindNewContacts()
     // to eliminate any node pairs that have the same body here before the key pairs are
     // sorted.
     for_each(cbegin(m_proxies), cend(m_proxies), [&](ProxyId pid) {
+    	if (pid == DynamicTree::GetInvalidSize()) return;
         const auto body0 = m_tree.GetLeafData(pid).body;
         const auto aabb = m_tree.GetAABB(pid);
         Query(m_tree, aabb, [&](DynamicTree::Size nodeId) {
