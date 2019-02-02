@@ -9,7 +9,7 @@ Store["Bullet_KidM"] = with BulletDef!
 	.lifeTime = 1
 	.damageRadius = 0
 	.highSpeedFix = false
-	.gravityScale = 0
+	.gravity = Vec2.zero
 	.face = Face -> Rectangle {
 		width: 6
 		height: 6
@@ -27,7 +27,7 @@ Store["Bullet_KidW"] = with BulletDef!
 	.lifeTime = 5
 	.damageRadius = 0
 	.highSpeedFix = false
-	.gravityScale = 1
+	.gravity = Vec2 0,-10
 	.face = Face -> Star {
 		size: 15
 		borderColor: 0xffff0088

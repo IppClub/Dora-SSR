@@ -186,7 +186,7 @@ void Unit::cleanup()
 void Unit::setGroup(Uint8 group)
 {
 	_group = group;
-	for (b2Fixture* f = _bodyB2->GetFixtureList();f;f = f->GetNext())
+	for (pd::Fixture* f : _prBody->GetFixtures())
 	{
 		if (f->IsSensor())
 		{
@@ -319,7 +319,7 @@ void Unit::setDetectDistance(float var)
 	}
 	if (var > 0)
 	{
-		_detectSensor = Body::attachSensor(UnitDef::DetectSensorTag, BodyDef::circle(var));
+		_detectSensor = Body::attachSensor(UnitDef::DetectSensorTag, BodyDef::disk(var));
 		_detectSensor->setGroup(SharedData.getGroupDetectPlayer());
 	}
 }

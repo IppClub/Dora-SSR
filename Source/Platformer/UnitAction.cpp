@@ -333,21 +333,21 @@ void Jump::run()
 	model->handlers[ActionSetting::AnimationJump] += std::make_pair(this, &Jump::onAnimationEnd);
 	_owner->setVelocityY(_owner->jump);
 	Sensor* sensor = _owner->getGroundSensor();
-	b2Body* self = _owner->getB2Body();
-	b2Body* target = sensor->getSensedBodies()->get(0).to<Body>()->getB2Body();
-	b2DistanceInput input =
-	{
-		b2DistanceProxy(self->GetFixtureList()->GetShape(), 0),
-		b2DistanceProxy(target->GetFixtureList()->GetShape(), 0),
-		self->GetTransform(),
-		target->GetTransform()
-	};
-	b2DistanceOutput output;
-	b2Distance(&output, &input);
-	target->ApplyLinearImpulse(
-		b2Vec2(-self->GetMass() * self->GetLinearVelocityX(),
-			-self->GetMass() * self->GetLinearVelocityY()),
-			output.pointB, true);
+	pd::Body* self = _owner->getPrBody();
+	pd::Body* target = sensor->getSensedBodies()->get(0).to<Body>()->getPrBody();
+	const auto shapeA = pr::GetPtr(*pr::begin(self->GetFixtures()))->GetShape();
+	const auto shapeB = pr::GetPtr(*pr::begin(target->GetFixtures()))->GetShape();
+	const auto proxyA = pd::GetChild(shapeA, 0);
+	const auto proxyB = pd::GetChild(shapeB, 0);
+	const auto transformA = self->GetTransformation();
+	const auto transformB = target->GetTransformation();
+	pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
+	const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
+	const auto velocity = self->GetVelocity().linear;
+	pd::ApplyLinearImpulse(pr::GetRef(target),
+		pr::Vec2{-velocity[0] / self->GetInvMass(),
+		-velocity[1] / self->GetInvMass()},
+		std::get<1>(witnessPoints));
 	UnitAction::run();
 }
 
@@ -475,27 +475,25 @@ float Attack::getDamage(Unit* target)
 	return damage;
 }
 
-Vec2 Attack::getHitPoint(Body* self, Body* target, b2Shape* selfShape)
+Vec2 Attack::getHitPoint(Body* self, Body* target, pd::Shape* selfShape)
 {
 	Vec2 hitPoint{};
 	float distance = -1;
-	for (b2Fixture* f = target->getB2Body()->GetFixtureList();f;f = f->GetNext())
+	for (pd::Fixture* f : target->getPrBody()->GetFixtures())
 	{
 		if (!f->IsSensor())
 		{
-			b2DistanceInput input =
+			const auto proxyA = pd::GetChild(pr::GetRef(selfShape), 0);
+			const auto proxyB = pd::GetChild(f->GetShape(), 0);
+			const auto transformA = self->getPrBody()->GetTransformation();
+			const auto transformB = target->getPrBody()->GetTransformation();
+			pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
+			const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
+			const auto outputDistance = pr::GetMagnitude(std::get<0>(witnessPoints) - std::get<1>(witnessPoints));
+			if (distance == -1 || distance > outputDistance)
 			{
-				b2DistanceProxy(selfShape, 0),
-				b2DistanceProxy(f->GetShape(), 0),
-				self->getB2Body()->GetTransform(),
-				target->getB2Body()->GetTransform()
-			};
-			b2DistanceOutput output;
-			b2Distance(&output, &input);
-			if (distance == -1 || distance > output.distance)
-			{
-				distance = output.distance;
-				hitPoint = PhysicsWorld::oVal(output.pointB);
+				distance = outputDistance;
+				hitPoint = PhysicsWorld::oVal(std::get<1>(witnessPoints));
 			}
 		}
 	}
@@ -507,7 +505,8 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, b2Shape* selfShape)
 MeleeAttack::MeleeAttack(Unit* unit):
 Attack(ActionSetting::UnitActionMeleeAttack, unit)
 {
-	_polygon.SetAsBox(PhysicsWorld::b2Val(_owner->getWidth()*0.5f), 0.0005f);
+	pd::PolygonShapeConf conf{PhysicsWorld::b2Val(_owner->getWidth()*0.5f), 0.0005f};
+	_polygon = pd::Shape{conf};
 }
 
 void MeleeAttack::onAttack()

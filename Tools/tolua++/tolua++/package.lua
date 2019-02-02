@@ -145,12 +145,18 @@ function classPackage:preamble ()
  output('/* function to register type */')
  output('static void tolua_reg_types(lua_State* tolua_S)')
  output('{')
-	foreach(_usertype,function(n,v)
-		if ((not _global_classes[v]) or _global_classes[v]:check_public_access()) and v ~= "tolua_table" and not v:match("^tolua_function_[^ ]+$") and v ~= "tolua_handler" then
+ foreach(_usertype,function(n,v)
+	if _global_classes[v] and _global_classes[v]:check_public_access() and v ~= "tolua_table" and not v:match("^tolua_function_[^ ]+$") and v ~= "tolua_handler" then
+		local hasField = next(_global_classes[v].lnames) ~= nil
+		local hasEnum = #(_global_classes[v].enums) ~= 0 or (_global_classes[v].n > 0 and not _global_classes[v][1].kind)
+		if hasEnum and not hasField then
+			_global_classes[v].enum_only = true
+		else
 			output(' tolua_usertype(tolua_S,"',v,'");')
 			output(' Mtolua_typeid(tolua_S,',v,',"',v,'");')
 		end
-	 end)
+	end
+ end)
  output('}')
  output('\n')
 end

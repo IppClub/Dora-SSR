@@ -9,24 +9,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Node/Node.h"
+#include "PlayRho/Collision/RayCastOutput.hpp"
 
 NS_DOROTHY_BEGIN
+
+namespace pr = playrho;
+namespace pd = playrho::d2;
 
 class Body;
 class Sensor;
 class DebugDraw;
 
-class ContactListener : public b2ContactListener
+class ContactListener : public pd::ContactListener
 {
 public:
 	virtual ~ContactListener();
+	 virtual void BeginContact(pd::Contact& contact) override;
+	 virtual void EndContact(pd::Contact& contact) override;
 	/**
 	 In subclass functions first call these functions from the base class,
 	 then do some extra works.
 	 */
-	 virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override;
-	 virtual void BeginContact(b2Contact* contact) override;
-	 virtual void EndContact(b2Contact* contact) override;
+	 virtual void PreSolve(pd::Contact& contact, const pd::Manifold& oldManifold) override;
+	 virtual void PostSolve(pd::Contact& contact, const pd::ContactImpulsesList& impulses,
+	 	iteration_type solved) override;
 	 void SolveContacts();
 
 	struct SensorPair
@@ -52,26 +58,21 @@ protected:
 	vector<ContactPair> _contactEnds;
 };
 
-class ContactFilter : public b2ContactFilter
-{
-	virtual bool ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB);
-};
-
-class DestructionListener : public b2DestructionListener
+class DestructionListener : public pd::DestructionListener
 {
 public:
-	virtual void SayGoodbye(b2Joint* joint);
-	virtual void SayGoodbye(b2Fixture* fixture);
+	virtual void SayGoodbye(const pd::Joint& joint) noexcept override;
+	virtual void SayGoodbye(const pd::Fixture& fixture) noexcept override;
 };
 
 class PhysicsWorld : public Node
 {
 public:
 	virtual ~PhysicsWorld();
-	PROPERTY_READONLY(b2World*, B2World);
+	PROPERTY_READONLY(pd::World*, PrWorld);
 	PROPERTY_BOOL(ShowDebug);
 	/**
-	 Iterations affect Box2D`s CPU cost greatly.
+	 Iterations affect PlayRho`s CPU cost greatly.
 	 Lower these values to get better performance, higher values to get better simulation.
 	 Default with the minimum value 1,1.
 	 */
@@ -81,11 +82,6 @@ public:
 	 world->setContactListener(New<MyContactListener>());
 	 */
 	void setContactListener(Own<ContactListener>&& listener);
-	/**
-	 You can change the contact filter with a subclass of ContactFilter with
-	 world->setContactFilter(New<MyContactFilter>());
-	 */
-	void setContactFilter(Own<ContactFilter>&& filter);
 	void setGravity(const Vec2& gravity);
 	Vec2 getGravity() const;
 
@@ -99,16 +95,16 @@ public:
 	bool raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*, const Vec2&, const Vec2&)>& callback);
 	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
 	bool getShouldContact(Uint8 groupA, Uint8 groupB) const;
-	const b2Filter& getFilter(Uint8 group) const;
-	static inline float oVal(float value) { return value * b2Factor; }
-	static inline Vec2 oVal(const b2Vec2& value) { return Vec2{value.x * b2Factor, value.y * b2Factor}; }
+	const pr::Filter& getFilter(Uint8 group) const;
+	static inline float oVal(pr::Real value) { return float(value) * b2Factor; }
+	static inline Vec2 oVal(const pr::Vec2& value) { return Vec2{value[0] * b2Factor, value[1] * b2Factor}; }
 	static inline Vec2 oVal(const Vec2& value) { return value * b2Factor; }
-	static inline float b2Val(float value) { return value / b2Factor; }
-	static inline Vec2 b2Val(const b2Vec2& value) { return Vec2{value.x / b2Factor, value.y / b2Factor}; }
+	static inline pr::Real b2Val(float value) { return pr::Real(value / b2Factor); }
+	static inline Vec2 b2Val(const pr::Vec2& value) { return Vec2{value[0] / b2Factor, value[1] / b2Factor}; }
 	static inline Vec2 b2Val(const Vec2& value) { return value / b2Factor; }
 	/**
-	 b2Factor is used for converting Box2D meters value to pixel value.
-	 Default 100.0f is a good value since Box2D can well simulate real life objects
+	 b2Factor is used for converting PlayRho meters value to pixel value.
+	 Default 100.0f is a good value since PlayRho can well simulate real life objects
 	 between 0.1 to 10 meters. Use value 100.0f we can simulate game objects
 	 between 10 to 1000 pixels that suites most games.
 	 Better change this value before any physics body creation.
@@ -119,42 +115,25 @@ public:
 protected:
 	PhysicsWorld();
 private:
-	class QueryAABB : public b2QueryCallback
+	vector<Body*> _queryResultsOfCommonShapes;
+	vector<Body*> _queryResultsOfChainsAndEdges;
+private:
+	struct RayCastData
 	{
-	public:
-		void setInfo(const Rect& rc);
-		vector<Body*> resultsOfCommonShapes;
-		vector<Body*> resultsOfChainsAndEdges;
-		virtual bool ReportFixture(b2Fixture* fixture);
-	private:
-		b2PolygonShape testShape;
-		b2Transform transform;
-	} _queryCallback;
-	class RayCast : public b2RayCastCallback
-	{
-	public:
-		struct RayCastData
-		{
-			RayCastData():body(nullptr),point{},normal{} {}
-			Body* body;
-			b2Vec2 point;
-			b2Vec2 normal;
-		} result;
-		vector<RayCastData> results;
-		bool closest;
-		virtual float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point,
-			const b2Vec2& normal, float32 fraction);
-	} _rayCastCallBack;
+		RayCastData():body(nullptr),point{},normal{} {}
+		Body* body;
+		Vec2 point;
+		Vec2 normal;
+	} _rayCastResult;
+	vector<RayCastData> _rayCastResults;
 protected:
 	Own<DebugDraw> _debugDraw;
 private:
-	b2Filter _filters[TotalGroups];
-	b2World _world;
+	pr::Filter _filters[TotalGroups];
+	pd::World _world;
+	pr::StepConf _stepConf;
 	Own<ContactListener> _contactListner;
-	Own<ContactFilter> _contactFilter;
 	Own<DestructionListener> _destructionListener;
-	int _velocityIterations;
-	int _positionIterations;
 	DORA_TYPE_OVERRIDE(PhysicsWorld);
 };
 

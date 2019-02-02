@@ -75,7 +75,7 @@ public:
 	const string& getFilename() const;
 private:
 	string _file;
-	uint32 _type;
+	Uint32 _type;
 };
 
 /** @brief The visual interface class for loading and creating visual item instance.

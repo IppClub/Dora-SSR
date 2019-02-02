@@ -10,14 +10,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+namespace pr = playrho;
+
 struct Size;
 
 struct Vec2
 {
 	float x;
 	float y;
-	inline operator b2Vec2() { return b2Vec2(x, y); }
-	inline operator const b2Vec2() const { return b2Vec2(x, y); }
+	inline operator pr::Vec2() { return pr::Vec2{x, y}; }
+	inline operator const pr::Vec2() const { return pr::Vec2{x, y}; }
 	void set(float x, float y);
 	Vec2 operator+(const Vec2& vec) const;
 	Vec2& operator+=(const Vec2& vec);
@@ -45,7 +47,7 @@ struct Vec2
 	static const Vec2 zero;
 	static Vec2 normalize(const Vec2& vec);
 	static Vec2 perp(const Vec2& vec);
-	static Vec2 from(const b2Vec2& vec);
+	static Vec2 from(const pr::Vec2& vec);
 	USE_MEMORY_POOL(Vec2);
 };
 

@@ -59,7 +59,7 @@ public:
 		String bodyA,
 		String bodyB,
 		const Vec2& worldPos,
-		const Vec2& axis,
+		float axisAngle,
 		float lowerTranslation = 0.0f,
 		float upperTranslation = 0.0f,
 		float maxMotorForce = 0.0f,
@@ -101,7 +101,7 @@ public:
 		String bodyA,
 		String bodyB,
 		const Vec2& worldPos,
-		const Vec2& axis,
+		float axisAngle,
 		float maxMotorTorque = 0.0f,
 		float motorSpeed = 0.0f,
 		float frequency = 2.0f,
@@ -169,7 +169,7 @@ public:
 	string bodyA;
 	string bodyB;
 	Vec2 worldPos;
-	Vec2 axis;
+	float axisAngle;
 	float lowerTranslation;
 	float upperTranslation;
 	float maxMotorForce;
@@ -236,7 +236,7 @@ public:
 	string bodyA;
 	string bodyB;
 	Vec2 worldPos;
-	Vec2 axis;
+	float axisAngle;
 	float maxMotorTorque;
 	float motorSpeed;
 	float frequency;

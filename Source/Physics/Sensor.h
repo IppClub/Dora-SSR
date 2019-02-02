@@ -12,6 +12,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+namespace pr = playrho;
+namespace pd = playrho::d2;
+
 class Body;
 class Sensor;
 class Array;
@@ -28,7 +31,7 @@ public:
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_READONLY(int, Tag);
 	PROPERTY_READONLY(Body*, Owner);
-	PROPERTY_READONLY(b2Fixture*, Fixture);
+	PROPERTY_READONLY(pd::Fixture*, Fixture);
 	PROPERTY_READONLY(Array*, SensedBodies);
 	PROPERTY(int, Group);
 	bool isSensed() const;
@@ -46,10 +49,10 @@ public:
 
 	CREATE_FUNC(Sensor);
 protected:
-	Sensor(Body* owner, int tag, b2Fixture* fixture);
+	Sensor(Body* owner, int tag, pd::Fixture* fixture);
 	int _tag;
 	Body* _owner;
-	b2Fixture* _fixture;
+	pd::Fixture* _fixture;
 private:
 	void executeEnterHandler();
 	void executeLeaveHandler();

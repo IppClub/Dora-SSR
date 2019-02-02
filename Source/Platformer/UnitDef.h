@@ -35,7 +35,7 @@ public:
 	PROPERTY(float, Scale);
 	PROPERTY_BOOL(Static);
 	PROPERTY_READONLY(ModelDef*, ModelDef);
-	PROPERTY_READONLY(BodyDef*, BodyDef);
+	PROPERTY_READONLY_CALL(BodyDef*, BodyDef);
 	string tag;
 	float sensity;
 	float move;
@@ -66,6 +66,7 @@ public:
 protected:
 	UnitDef();
 	void updateBodyDef();
+	bool _physicsDirty;
 	float _scale;
 	Size _size;
 	string _model;

@@ -22,7 +22,7 @@ damageRadius(0),
 endEffect(),
 _bodyDef(BodyDef::create())
 {
-	_bodyDef->type = b2_dynamicBody;
+	_bodyDef->setType(BodyDef::Dynamic);
 }
 
 BodyDef* BulletDef::getBodyDef() const
@@ -49,28 +49,28 @@ const Vec2& BulletDef::getVelocity() const
 
 void BulletDef::setHighSpeedFix(bool var)
 {
-	_bodyDef->bullet = var;
+	_bodyDef->setBullet(var);
 }
 
 bool BulletDef::isHighSpeedFix() const
 {
-	return _bodyDef->bullet;
+	return _bodyDef->isBullet();
 }
 
-void BulletDef::setGravityScale(float var)
+void BulletDef::setGravity(Vec2 var)
 {
-	_bodyDef->gravityScale = var;
+	_bodyDef->setLinearAcceleration(var);
 }
 
-float BulletDef::getGravityScale() const
+Vec2 BulletDef::getGravity() const
 {
-	return _bodyDef->gravityScale;
+	return _bodyDef->getLinearAcceleration();
 }
 
 void BulletDef::setAsCircle(float radius)
 {
 	_bodyDef->clearFixtures();
-	_bodyDef->attachCircle(radius);
+	_bodyDef->attachDisk(radius);
 }
 
 void BulletDef::setFace(Face* var)

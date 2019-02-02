@@ -13,27 +13,39 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+namespace pr = playrho;
+namespace pd = playrho::d2;
+
 class Body;
 class World;
 
-class BodyDef : public b2BodyDef, public Object
+struct FixtureDef
+{
+	pd::Shape shape;
+	pd::FixtureConf conf;
+};
+
+class BodyDef : public Object
 {
 public:
 	enum
 	{
-		Static = b2_staticBody,
-		Dynamic = b2_dynamicBody,
-		Kinematic = b2_kinematicBody
+		Static = s_cast<int>(pr::BodyType::Static),
+		Dynamic = s_cast<int>(pr::BodyType::Dynamic),
+		Kinematic = s_cast<int>(pr::BodyType::Kinematic)
 	};
+	Vec2 offset;
+	float angleOffset;
+	string face;
+	Vec2 facePos;
+	PROPERTY(int, Type);
+	PROPERTY(float, LinearDamping);
+	PROPERTY(float, AngularDamping);
+	PROPERTY(Vec2, LinearAcceleration);
+	PROPERTY_BOOL(FixedRotation);
+	PROPERTY_BOOL(Bullet);
+	PROPERTY_READONLY_CALL(pd::BodyConf*, Conf);
 	virtual ~BodyDef();
-	static b2FixtureDef* polygon(
-		const Vec2& center,
-		float width,
-		float height,
-		float angle = 0.0f,
-		float density = 0.0f,
-		float friction = 0.2f,
-		float restitution = 0.0f);
 	void attachPolygon(
 		const Vec2& center,
 		float width,
@@ -42,31 +54,14 @@ public:
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
-	static b2FixtureDef* polygon(
-		float width,
-		float height,
-		float density = 0.0f,
-		float friction = 0.2f,
-		float restitution = 0.0f);
 	void attachPolygon(
 		float width,
 		float height,
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
-	static b2FixtureDef* polygon(
-		const vector<Vec2>& vertices,
-		float density = 0.0f,
-		float friction = 0.2f,
-		float restitution = 0.0f);
 	void attachPolygon(
 		const vector<Vec2>& vertices,
-		float density = 0.0f,
-		float friction = 0.2f,
-		float restitution = 0.0f);
-	static b2FixtureDef* polygon(
-		const Vec2 vertices[],
-		int count,
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
@@ -76,53 +71,26 @@ public:
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
-	static b2FixtureDef* loop(
+	void attachMulti(
 		const vector<Vec2>& vertices,
+		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
-	static b2FixtureDef* loop(
+	void attachMulti(
 		const Vec2 vertices[],
 		int count,
+		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
-	void attachLoop(
-		const vector<Vec2>& vertices,
-		float friction = 0.2f,
-		float restitution = 0.0f);
-	void attachLoop(
-		const Vec2 vertices[],
-		int count,
-		float friction = 0.2f,
-		float restitution = 0.0f);
-	static b2FixtureDef* circle(
+	void attachDisk(
 		const Vec2& center,
 		float radius,
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
-	void attachCircle(
-		const Vec2& center,
+	void attachDisk(
 		float radius,
 		float density = 0.0f,
-		float friction = 0.2f,
-		float restitution = 0.0f);
-	static b2FixtureDef* circle(
-		float radius,
-		float density = 0.0f,
-		float friction = 0.2f,
-		float restitution = 0.0f);
-	void attachCircle(
-		float radius,
-		float density = 0.0f,
-		float friction = 0.2f,
-		float restitution = 0.0f);
-	static b2FixtureDef* chain(
-		const vector<Vec2>& vertices,
-		float friction = 0.2f,
-		float restitution = 0.0f);
-	static b2FixtureDef* chain(
-		const Vec2 vertices[],
-		int count,
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	void attachChain(
@@ -151,31 +119,78 @@ public:
 		int tag,
 		const Vec2 vertices[],
 		int count);
-	void attachCircleSensor(
+	void attachDiskSensor(
 		int tag,
 		const Vec2& center,
 		float radius);
-	void attachCircleSensor(
+	void attachDiskSensor(
 		int tag,
 		float radius);
-	Vec2 offset;
-	float angleOffset;
-	string face;
-	Vec2 facePos;
-	PROPERTY_READONLY_REF(OwnVector<b2FixtureDef>, FixtureDefs);
+	static FixtureDef* disk(
+		float radius,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* disk(
+		const Vec2& center,
+		float radius,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* polygon(
+		const Vec2& center,
+		float width,
+		float height,
+		float angle = 0.0f,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* polygon(
+		float width,
+		float height,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* polygon(
+		const vector<Vec2>& vertices,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* polygon(
+		const Vec2 vertices[],
+		int count,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* multi(
+		const vector<Vec2>& vertices,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* multi(
+		const Vec2 vertices[],
+		int count,
+		float density = 0.0f,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* chain(
+		const vector<Vec2>& vertices,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	static FixtureDef* chain(
+		const Vec2 vertices[],
+		int count,
+		float friction = 0.2f,
+		float restitution = 0.0f);
+	std::list<FixtureDef>& getFixtureConfs();
 	void clearFixtures();
-	void setDensity(float var);
-	void setFriction(float var);
-	void setRestitution(float var);
 	CREATE_FUNC(BodyDef);
 protected:
 	BodyDef();
-	static b2FixtureDef _fixtureDef;
-	static b2PolygonShape _polygenShape;
-	static b2CircleShape _circleShape;
-	static b2ChainShape _chainShape;
+	pd::BodyConf _conf;
+	static FixtureDef _tempConf;
 private:
-	OwnVector<b2FixtureDef> _fixtureDefs;
+	std::list<FixtureDef> _fixtureConfs;
 	DORA_TYPE_OVERRIDE(BodyDef);
 };
 
