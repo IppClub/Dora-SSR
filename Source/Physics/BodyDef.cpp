@@ -13,18 +13,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-b2ChainShape BodyDef::_chainShape;
-b2CircleShape BodyDef::_circleShape;
-b2PolygonShape BodyDef::_polygenShape;
-b2FixtureDef BodyDef::_fixtureDef;
+FixtureDef BodyDef::_tempConf;
 
 BodyDef::BodyDef():
-b2BodyDef(),
 angleOffset(0),
 offset(Vec2::zero),
 facePos(Vec2::zero)
 {
-	active = false;
+	_conf.enabled = false;
 }
 
 BodyDef::~BodyDef()
@@ -34,149 +30,176 @@ BodyDef::~BodyDef()
 
 void BodyDef::attachPolygon(const Vec2& center, float width, float height, float angle, float density, float friction, float restitution)
 {
-	b2PolygonShape* shape = new b2PolygonShape();
-	shape->SetAsBox(PhysicsWorld::b2Val(width * 0.5f),
+	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
+	.SetAsBox(
+		PhysicsWorld::b2Val(width * 0.5f),
 		PhysicsWorld::b2Val(height * 0.5f),
 		PhysicsWorld::b2Val(center),
-		-bx::toRad(angle));
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->density = density;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+		-bx::toRad(angle)
+	)
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
 void BodyDef::attachPolygon(float width, float height, float density, float friction, float restitution)
 {
-	b2PolygonShape* shape = new b2PolygonShape();
-	shape->SetAsBox(PhysicsWorld::b2Val(width * 0.5f), PhysicsWorld::b2Val(height * 0.5f));
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->density = density;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
+	.SetAsBox(
+		PhysicsWorld::b2Val(width * 0.5f),
+		PhysicsWorld::b2Val(height * 0.5f)
+	)
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
 void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
 {
-	b2PolygonShape* shape = new b2PolygonShape();
-	int length = s_cast<int>(vertices.size());
-	b2Vec2 vs[b2_maxPolygonVertices];
-	for (int i = 0; i < length; i++)
+	vector<pr::Length2> vs(vertices.size());
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	shape->Set(vs, length);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->density = density;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
+	.Set(vs)
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
 void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, float friction, float restitution)
 {
-	count = std::min(count, b2_maxPolygonVertices);
-	b2PolygonShape* shape = new b2PolygonShape();
-	b2Vec2 vs[b2_maxPolygonVertices];
+	vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	shape->Set(vs, count);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->density = density;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
+	.Set(vs)
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
-void BodyDef::attachLoop(const vector<Vec2>& vertices, float friction, float restitution)
+void BodyDef::attachMulti(const vector<Vec2>& vertices, float density, float friction, float restitution)
 {
-	b2ChainShape* shape = new b2ChainShape();
-	int length = s_cast<int>(vertices.size());
-	auto vs = NewArray<b2Vec2>(length);
-	for (int i = 0; i < length; i++)
+	pd::MultiShapeConf conf = pd::MultiShapeConf{};
+	pd::VertexSet vs;
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		if (vertices[i] == Vec2::zero)
+		{
+			if (vs.size() > 0)
+			{
+				conf.AddConvexHull(vs);
+				vs.clear();
+			}
+		}
+		else vs.add(pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		});
 	}
-	shape->CreateLoop(vs, length);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	if (vs.size() > 0)
+	{
+		conf.AddConvexHull(vs);
+	}
+	conf
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
-void BodyDef::attachLoop(const Vec2 vertices[], int count, float friction, float restitution)
+void BodyDef::attachMulti(const Vec2 vertices[], int count, float density, float friction, float restitution)
 {
-	b2ChainShape* shape = new b2ChainShape();
-	auto vs = NewArray<b2Vec2>(count);
+	pd::MultiShapeConf conf = pd::MultiShapeConf{};
+	pd::VertexSet vs;
 	for (int i = 0; i < count; i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		if (vertices[i] == Vec2::zero)
+		{
+			if (vs.size() > 0)
+			{
+				conf.AddConvexHull(vs);
+				vs.clear();
+			}
+		}
+		else vs.add(pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		});
 	}
-	shape->CreateLoop(vs, count);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	if (vs.size() > 0)
+	{
+		conf.AddConvexHull(vs);
+	}
+	conf
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
-void BodyDef::attachCircle(const Vec2& center, float radius, float density, float friction, float restitution)
+void BodyDef::attachDisk(const Vec2& center, float radius, float density, float friction, float restitution)
 {
-	b2CircleShape* shape = new b2CircleShape();
-	shape->m_p = PhysicsWorld::b2Val(center);
-	shape->m_radius = PhysicsWorld::b2Val(radius);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->density = density;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	pd::DiskShapeConf conf = pd::DiskShapeConf{}
+	.UseLocation(PhysicsWorld::b2Val(center))
+	.UseRadius(PhysicsWorld::b2Val(radius))
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
-void BodyDef::attachCircle(float radius, float density, float friction, float restitution)
+void BodyDef::attachDisk(float radius, float density, float friction, float restitution)
 {
-	BodyDef::attachCircle(Vec2::zero, radius, density, friction, restitution);
+	BodyDef::attachDisk(Vec2::zero, radius, density, friction, restitution);
 }
 
 void BodyDef::attachChain(const vector<Vec2>& vertices, float friction, float restitution)
 {
-	b2ChainShape* shape = new b2ChainShape();
-	int length = s_cast<int>(vertices.size());
-	auto vs = NewArray<b2Vec2>(length);
-	for (int i = 0; i < length; i++)
+	vector<pr::Length2> vs(vertices.size());
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	shape->CreateChain(vs, length);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	pd::ChainShapeConf conf = pd::ChainShapeConf{}
+	.Set(vs)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
 void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, float restitution)
 {
-	b2ChainShape* shape = new b2ChainShape();
-	auto vs = NewArray<b2Vec2>(count);
+	vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	shape->CreateChain(vs, count);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->friction = friction;
-	fixtureDef->restitution = restitution;
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	pd::ChainShapeConf conf = pd::ChainShapeConf{}
+	.Set(vs)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
 }
 
 void BodyDef::attachPolygonSensor(int tag, float width, float height)
@@ -186,241 +209,359 @@ void BodyDef::attachPolygonSensor(int tag, float width, float height)
 
 void BodyDef::attachPolygonSensor(int tag, float width, float height, const Vec2& center, float angle)
 {
-	b2PolygonShape* shape = new b2PolygonShape();
-	shape->SetAsBox(PhysicsWorld::b2Val(width * 0.5f),
-		PhysicsWorld::b2Val(height * 0.5f),
-		PhysicsWorld::b2Val(center),
-		-bx::toRad(angle));
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->isSensor = true;
-	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	_fixtureConfs.push_back(
+	{
+		pd::Shape{
+			pd::PolygonShapeConf{}
+			.SetAsBox(
+				PhysicsWorld::b2Val(width * 0.5f),
+				PhysicsWorld::b2Val(height * 0.5f),
+				PhysicsWorld::b2Val(center),
+				-bx::toRad(angle)
+			)
+		},
+		pd::FixtureConf{}
+			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
+			.UseIsSensor(true)
+	});
 }
 
 void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
 {
-	b2PolygonShape* shape = new b2PolygonShape();
-	int length = s_cast<int>(vertices.size());
-	b2Vec2 vs[b2_maxPolygonVertices];
-	for (int i = 0; i < length; i++)
+	vector<pr::Length2> vs(vertices.size());
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	shape->Set(vs, length);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->isSensor = true;
-	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
+	_fixtureConfs.push_back(
+	{
+		pd::Shape{
+			pd::PolygonShapeConf{}
+				.Set(vs)
+		},
+		pd::FixtureConf{}
+			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
+			.UseIsSensor(true)
+	});
 }
 
 void BodyDef::attachPolygonSensor(int tag, const Vec2 vertices[], int count)
 {
-	b2PolygonShape* shape = new b2PolygonShape();
-	b2Vec2 vs[b2_maxPolygonVertices];
+	vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	shape->Set(vs, count);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->isSensor = true;
-	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
-}
-
-void BodyDef::attachCircleSensor(int tag, const Vec2& center, float radius)
-{
-	b2CircleShape* shape = new b2CircleShape();
-	shape->m_p = PhysicsWorld::b2Val(center);
-	shape->m_radius = PhysicsWorld::b2Val(radius);
-	b2FixtureDef* fixtureDef = new b2FixtureDef();
-	fixtureDef->shape = shape;
-	fixtureDef->isSensor = true;
-	fixtureDef->userData = r_cast<void*>(s_cast<intptr_t>(tag));
-	_fixtureDefs.push_back(MakeOwn(fixtureDef));
-}
-
-void BodyDef::attachCircleSensor(int tag, float radius)
-{
-	BodyDef::attachCircleSensor(tag, Vec2::zero, radius);
-}
-
-b2FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, float angle, float density, float friction, float restitution)
-{
-	_polygenShape.SetAsBox(PhysicsWorld::b2Val(width * 0.5f), PhysicsWorld::b2Val(height * 0.5f), PhysicsWorld::b2Val(center), -bx::toRad(angle));
-	_fixtureDef.shape = &_polygenShape;
-	_fixtureDef.density = density;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
-}
-
-b2FixtureDef* BodyDef::polygon(float width, float height, float density, float friction, float restitution)
-{
-	_polygenShape.SetAsBox(PhysicsWorld::b2Val(width * 0.5f), PhysicsWorld::b2Val(height * 0.5f));
-	_fixtureDef.shape = &_polygenShape;
-	_fixtureDef.density = density;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
-}
-
-b2FixtureDef* BodyDef::polygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
-{
-	int length = s_cast<int>(vertices.size());
-	b2Vec2 vs[b2_maxPolygonVertices];
-	for (int i = 0; i < length; i++)
+	_fixtureConfs.push_back(
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
-	}
-	_polygenShape.Set(vs, length);
-	_fixtureDef.shape = &_polygenShape;
-	_fixtureDef.density = density;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
+		pd::Shape{
+			pd::PolygonShapeConf{}
+				.Set(vs)
+		},
+		pd::FixtureConf{}
+			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
+			.UseIsSensor(true)
+	});
 }
 
-b2FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, float friction, float restitution)
+void BodyDef::attachDiskSensor(int tag, const Vec2& center, float radius)
 {
-	b2Vec2 vs[b2_maxPolygonVertices];
+	_fixtureConfs.push_back(
+	{
+		pd::Shape{
+			pd::DiskShapeConf{}
+				.UseLocation(PhysicsWorld::b2Val(center))
+				.UseRadius(PhysicsWorld::b2Val(radius))
+		},
+		pd::FixtureConf{}
+			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
+			.UseIsSensor(true)
+	});
+}
+
+void BodyDef::attachDiskSensor(int tag, float radius)
+{
+	BodyDef::attachDiskSensor(tag, Vec2::zero, radius);
+}
+
+FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, float angle, float density, float friction, float restitution)
+{
+	_tempConf = {
+		pd::Shape{
+			pd::PolygonShapeConf{}
+				.SetAsBox(
+					PhysicsWorld::b2Val(width * 0.5f),
+					PhysicsWorld::b2Val(height * 0.5f),
+					PhysicsWorld::b2Val(center),
+					-bx::toRad(angle)
+				)
+				.UseDensity(density)
+				.UseFriction(friction)
+				.UseRestitution(restitution)
+		},
+		pd::FixtureConf{}
+	};
+	return &_tempConf;
+}
+
+FixtureDef* BodyDef::polygon(float width, float height, float density, float friction, float restitution)
+{
+	_tempConf = {
+		pd::Shape{
+			pd::PolygonShapeConf{}
+				.SetAsBox(
+					PhysicsWorld::b2Val(width * 0.5f),
+					PhysicsWorld::b2Val(height * 0.5f)
+				)
+				.UseDensity(density)
+				.UseFriction(friction)
+				.UseRestitution(restitution)
+		},
+		pd::FixtureConf{}
+	};
+	return &_tempConf;
+}
+
+FixtureDef* BodyDef::polygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
+{
+	vector<pr::Length2> vs(vertices.size());
+	for (size_t i = 0; i < vertices.size(); i++)
+	{
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
+	}
+	_tempConf = {
+		pd::Shape{
+			pd::PolygonShapeConf{}
+				.Set(vs)
+				.UseDensity(density)
+				.UseFriction(friction)
+				.UseRestitution(restitution)
+		},
+		pd::FixtureConf{}
+	};
+	return &_tempConf;
+}
+
+FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, float friction, float restitution)
+{
+	vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	_polygenShape.Set(vs, count);
-	_fixtureDef.shape = &_polygenShape;
-	_fixtureDef.density = density;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
+	_tempConf = {
+		pd::Shape{
+			pd::PolygonShapeConf{}
+				.Set(vs)
+				.UseDensity(density)
+				.UseFriction(friction)
+				.UseRestitution(restitution)
+		},
+		pd::FixtureConf{}
+	};
+	return &_tempConf;
 }
 
-b2FixtureDef* BodyDef::loop(const vector<Vec2>& vertices, float friction, float restitution)
+FixtureDef* BodyDef::multi(const vector<Vec2>& vertices, float density, float friction, float restitution)
 {
-	_chainShape.ClearVertices();
-	int length = s_cast<int>(vertices.size());
-	auto vs = NewArray<b2Vec2>(length);
-	for (int i = 0; i < length; i++)
+	pd::MultiShapeConf conf = pd::MultiShapeConf{};
+	pd::VertexSet vs;
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		if (vertices[i] == Vec2::zero)
+		{
+			if (vs.size() > 0)
+			{
+				conf.AddConvexHull(vs);
+				vs.clear();
+			}
+		}
+		else vs.add(pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		});
 	}
-	_chainShape.CreateLoop(vs, length);
-	_fixtureDef.shape = &_chainShape;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
+	if (vs.size() > 0)
+	{
+		conf.AddConvexHull(vs);
+	}
+	conf
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	return &_tempConf;
 }
 
-b2FixtureDef* BodyDef::loop(const Vec2 vertices[], int count, float friction, float restitution)
+FixtureDef* BodyDef::multi(const Vec2 vertices[], int count, float density, float friction, float restitution)
 {
-	_chainShape.ClearVertices();
-	auto vs = NewArray<b2Vec2>(count);
+	pd::MultiShapeConf conf = pd::MultiShapeConf{};
+	pd::VertexSet vs;
 	for (int i = 0; i < count; i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		if (vertices[i] == Vec2::zero)
+		{
+			if (vs.size() > 0)
+			{
+				conf.AddConvexHull(vs);
+				vs.clear();
+			}
+		}
+		else vs.add(pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		});
 	}
-	_chainShape.CreateLoop(vs, count);
-	_fixtureDef.shape = &_chainShape;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
-}
-
-b2FixtureDef* BodyDef::circle(const Vec2& center, float radius, float density, float friction, float restitution)
-{
-	_circleShape.m_p = PhysicsWorld::b2Val(center);
-	_circleShape.m_radius = PhysicsWorld::b2Val(radius);
-	_fixtureDef.shape = &_circleShape;
-	_fixtureDef.density = density;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
-}
-
-b2FixtureDef* BodyDef::circle(float radius, float density, float friction, float restitution)
-{
-	return BodyDef::circle(Vec2::zero, radius, density, friction, restitution);
-}
-
-b2FixtureDef* BodyDef::chain(const vector<Vec2>& vertices, float friction, float restitution)
-{
-	_chainShape.ClearVertices();
-	int length = s_cast<int>(vertices.size());
-	auto vs = NewArray<b2Vec2>(length);
-	for (int i = 0; i < length; i++)
+	if (vs.size() > 0)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		conf.AddConvexHull(vs);
 	}
-	_chainShape.CreateChain(vs, length);
-	_fixtureDef.shape = &_chainShape;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
+	conf
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	return &_tempConf;
 }
 
-b2FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, float restitution)
+FixtureDef* BodyDef::disk(const Vec2& center, float radius, float density, float friction, float restitution)
 {
-	_chainShape.ClearVertices();
-	auto vs = NewArray<b2Vec2>(count);
+	pd::DiskShapeConf conf = pd::DiskShapeConf{}
+	.UseLocation(PhysicsWorld::b2Val(center))
+	.UseRadius(PhysicsWorld::b2Val(radius))
+	.UseDensity(density)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	return &_tempConf;
+}
+
+FixtureDef* BodyDef::disk(float radius, float density, float friction, float restitution)
+{
+	return BodyDef::disk(Vec2::zero, radius, density, friction, restitution);
+}
+
+FixtureDef* BodyDef::chain(const vector<Vec2>& vertices, float friction, float restitution)
+{
+	vector<pr::Length2> vs(vertices.size());
+	for (size_t i = 0; i < vertices.size(); i++)
+	{
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
+	}
+	pd::ChainShapeConf conf = pd::ChainShapeConf{}
+	.Set(vs)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	return &_tempConf;
+}
+
+FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, float restitution)
+{
+	vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
-		vs[i] = PhysicsWorld::b2Val(vertices[i]);
+		vs[i] = pr::Length2{
+			PhysicsWorld::b2Val(vertices[i].x),
+			PhysicsWorld::b2Val(vertices[i].y)
+		};
 	}
-	_chainShape.CreateChain(vs, count);
-	_fixtureDef.shape = &_chainShape;
-	_fixtureDef.friction = friction;
-	_fixtureDef.restitution = restitution;
-	return &_fixtureDef;
+	pd::ChainShapeConf conf = pd::ChainShapeConf{}
+	.Set(vs)
+	.UseFriction(friction)
+	.UseRestitution(restitution);
+	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	return &_tempConf;
 }
 
-const OwnVector<b2FixtureDef>& BodyDef::getFixtureDefs() const
+std::list<FixtureDef>& BodyDef::getFixtureConfs()
 {
-	return _fixtureDefs;
+	return _fixtureConfs;
 }
 
 void BodyDef::clearFixtures()
 {
-	for (b2FixtureDef* fixtureDef : _fixtureDefs)
-	{
-		delete fixtureDef->shape;
-		fixtureDef->shape = nullptr;
-	}
-	_fixtureDefs.clear();
+	_fixtureConfs.clear();
 }
 
-void BodyDef::setDensity(float var)
+void BodyDef::setLinearDamping(float var)
 {
-	for (b2FixtureDef* fixtureDef : _fixtureDefs)
-	{
-		if (!fixtureDef->isSensor)
-		{
-			fixtureDef->density = var;
-		}
-	}
+	_conf.UseLinearDamping(var);
 }
-void BodyDef::setFriction(float var)
+
+float BodyDef::getLinearDamping() const
 {
-	for (b2FixtureDef* fixtureDef : _fixtureDefs)
-	{
-		if (!fixtureDef->isSensor)
-		{
-			fixtureDef->friction = var;
-		}
-	}
+	return _conf.linearDamping;
 }
-void BodyDef::setRestitution(float var)
+
+void BodyDef::setAngularDamping(float var)
 {
-	for (b2FixtureDef* fixtureDef : _fixtureDefs)
-	{
-		if (!fixtureDef->isSensor)
-		{
-			fixtureDef->restitution = var;
-		}
-	}
+	_conf.UseAngularDamping(var);
+}
+
+float BodyDef::getAngularDamping() const
+{
+	return _conf.angularDamping;
+}
+
+void BodyDef::setLinearAcceleration(Vec2 var)
+{
+	_conf.UseLinearAcceleration(pr::LinearAcceleration2{var.x, var.y});
+}
+
+Vec2 BodyDef::getLinearAcceleration() const
+{
+	return {_conf.linearAcceleration[0],_conf.linearAcceleration[1]};
+}
+
+void BodyDef::setFixedRotation(bool var)
+{
+	_conf.UseFixedRotation(var);
+}
+
+bool BodyDef::isFixedRotation() const
+{
+	return _conf.fixedRotation;
+}
+
+void BodyDef::setBullet(bool var)
+{
+	_conf.UseBullet(var);
+}
+
+bool BodyDef::isBullet() const
+{
+	return _conf.bullet;
+}
+
+void BodyDef::setType(int var)
+{
+	_conf.UseType(s_cast<pr::BodyType>(var));
+}
+
+int BodyDef::getType() const
+{
+	return s_cast<int>(_conf.type);
+}
+
+pd::BodyConf* BodyDef::getConf()
+{
+	return &_conf;
 }
 
 NS_DOROTHY_END

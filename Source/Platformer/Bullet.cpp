@@ -55,7 +55,7 @@ bool Bullet::init()
 		_owner->getPosition() +
 		(_owner->isFaceRight() ? offset : Vec2{-offset.x, offset.y})
 	);
-	if (Body::getBodyDef()->gravityScale != 0.0f)
+	if (Body::getBodyDef()->getLinearAcceleration() != Vec2::zero)
 	{
 		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _owner->isFaceRight() ? v.x : -v.x)));
 	}
@@ -65,17 +65,17 @@ bool Bullet::init()
 
 void Bullet::updatePhysics()
 {
-	if (_bodyB2->IsAwake())
+	if (_prBody->IsAwake())
 	{
-		const b2Vec2& pos = _bodyB2->GetPosition();
+		const pr::Vec2& pos = _prBody->GetLocation();
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overridden by Body`s.
 		*/
-		Node::setPosition(Vec2{PhysicsWorld::oVal(pos.x), PhysicsWorld::oVal(pos.y)});
-		if (_bodyB2->GetGravityScale() != 0.0f)
+		Node::setPosition(Vec2{PhysicsWorld::oVal(pos[0]), PhysicsWorld::oVal(pos[1])});
+		if (_prBody->GetLinearAcceleration() != pr::LinearAcceleration2{})
 		{
-			b2Vec2 velocity = _bodyB2->GetLinearVelocity();
-			Node::setAngle(-bx::toDeg(std::atan2(velocity.y, velocity.x)));
+			pd::Velocity velocity = _prBody->GetVelocity();
+			Node::setAngle(-bx::toDeg(std::atan2(velocity.linear[1], velocity.linear[0])));
 		}
 	}
 }

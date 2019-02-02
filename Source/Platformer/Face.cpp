@@ -194,7 +194,7 @@ Node* Face::toNode() const
 	return node;
 }
 
-uint32 Face::getType() const
+Uint32 Face::getType() const
 {
 	return _type;
 }

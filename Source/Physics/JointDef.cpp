@@ -99,7 +99,7 @@ JointDef* JointDef::prismatic(
 	String bodyA,
 	String bodyB,
 	const Vec2& worldPos,
-	const Vec2& axis,
+	float axisAngle,
 	float lowerTranslation,
 	float upperTranslation,
 	float maxMotorForce,
@@ -110,7 +110,7 @@ JointDef* JointDef::prismatic(
 	def->bodyA = bodyA;
 	def->bodyB = bodyB;
 	def->worldPos = worldPos;
-	def->axis = axis;
+	def->axisAngle = axisAngle;
 	def->lowerTranslation = lowerTranslation;
 	def->upperTranslation = upperTranslation;
 	def->maxMotorForce = maxMotorForce;
@@ -208,7 +208,7 @@ JointDef* JointDef::wheel(
 	String bodyA,
 	String bodyB,
 	const Vec2& worldPos,
-	const Vec2& axis,
+	float axisAngle,
 	float maxMotorTorque,
 	float motorSpeed,
 	float frequency,
@@ -219,7 +219,7 @@ JointDef* JointDef::wheel(
 	def->bodyA = bodyA;
 	def->bodyB = bodyB;
 	def->worldPos = worldPos;
-	def->axis = axis;
+	def->axisAngle = axisAngle;
 	def->maxMotorTorque = maxMotorTorque;
 	def->motorSpeed = motorSpeed;
 	def->frequency = frequency;
@@ -295,7 +295,7 @@ Joint* PrismaticDef::toJoint(Dictionary* itemDict)
 	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
 	if (targetA && targetB)
 	{
-		return Joint::prismatic(collision, targetA, targetB, t(worldPos), r(axis), lowerTranslation, upperTranslation, maxMotorForce, motorSpeed);
+		return Joint::prismatic(collision, targetA, targetB, t(worldPos), axisAngle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed);
 	}
 	return nullptr;
 }
@@ -350,7 +350,7 @@ Joint* WheelDef::toJoint(Dictionary* itemDict)
 	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
 	if (targetA && targetB)
 	{
-		return Joint::wheel(collision, targetA, targetB, t(worldPos), r(axis), maxMotorTorque, motorSpeed, frequency, damping);
+		return Joint::wheel(collision, targetA, targetB, t(worldPos), axisAngle, maxMotorTorque, motorSpeed, frequency, damping);
 	}
 	return nullptr;
 }

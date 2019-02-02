@@ -315,8 +315,8 @@ void Director::mainLoop()
 				_renderTarget->getHeight() != viewSize.height)
 			{
 				_renderTarget = RenderTarget::create(
-					s_cast<uint16>(viewSize.width),
-					s_cast<uint16>(viewSize.height));
+					s_cast<Uint16>(viewSize.width),
+					s_cast<Uint16>(viewSize.height));
 				_renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
 			}
 			SpriteEffect* postEffect = SharedView.getPostEffect();

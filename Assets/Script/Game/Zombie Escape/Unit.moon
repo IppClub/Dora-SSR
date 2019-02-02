@@ -2,6 +2,7 @@ Dorothy builtin.Platformer
 {store:Store} = Data
 
 Store["Unit_KidW"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 5
 	.density = 1.0
@@ -50,6 +51,7 @@ Store["Unit_KidW"] = with UnitDef!
 	}
 
 Store["Unit_KidM"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 5
 	.density = 1.0
@@ -98,6 +100,7 @@ Store["Unit_KidM"] = with UnitDef!
 	}
 
 Store["Unit_Zombie1"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 5
 	.density = 1.0
@@ -147,6 +150,7 @@ Store["Unit_Zombie1"] = with UnitDef!
 	}
 
 Store["Unit_Zombie2"] = with UnitDef!
+	.bodyDef.linearAcceleration = Vec2 0,-10
 	.static = false
 	.scale = 5
 	.density = 1.0

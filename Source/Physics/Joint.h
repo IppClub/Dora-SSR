@@ -10,9 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 
-class b2Joint;
-
 NS_DOROTHY_BEGIN
+
+namespace pr = playrho;
+namespace pd = playrho::d2;
 
 class Body;
 class PhysicsWorld;
@@ -56,8 +57,7 @@ public:
 		float correctionFactor = 1.0f);
 	static MoveJoint* move(
 		bool collideConnected,
-		Body* bodyA,
-		Body* bodyB,
+		Body* body,
 		const Vec2& targetPos,
 		float maxForce,
 		float frequency = 5.0f,
@@ -67,7 +67,7 @@ public:
 		Body* bodyA,
 		Body* bodyB,
 		const Vec2& worldPos,
-		const Vec2& axis,
+		float axisAngle,
 		float lowerTranslation = 0.0f,
 		float upperTranslation = 0.0f,
 		float maxMotorForce = 0.0f,
@@ -109,12 +109,12 @@ public:
 		Body* bodyA,
 		Body* bodyB,
 		const Vec2& worldPos,
-		const Vec2& axis,
+		float axisAngle,
 		float maxMotorTorque = 0.0f,
 		float motorSpeed = 0.0f,
 		float frequency = 2.0f,
 		float damping = 0.7f);
-	b2Joint* getB2Joint();
+	pd::Joint* getPrJoint();
 	PhysicsWorld* getWorld();
 	void destroy();
 	static Joint* create(JointDef* def, Dictionary* itemDict);
@@ -123,7 +123,7 @@ protected:
 	Joint():_joint(nullptr) {}
 protected:
 	WRef<PhysicsWorld> _world;
-	b2Joint* _joint;
+	pd::Joint* _joint;
 	friend class DestructionListener;
 	DORA_TYPE_OVERRIDE(Joint);
 };

@@ -1,15 +1,18 @@
 Dorothy!
 
+gravity = Vec2 0,-10
+
 groupZero = 0
 groupOne = 1
 groupTwo = 2
 
 terrainDef = with BodyDef!
 	.type = BodyType.Static
-	\attachPolygon 800,10
+	\attachPolygon 800,10,1,0.8,0.2
 
 polygonDef = with BodyDef!
 	.type = BodyType.Dynamic
+	.linearAcceleration = gravity
 	\attachPolygon {
 		Vec2 60,0
 		Vec2 30,-30
@@ -19,9 +22,10 @@ polygonDef = with BodyDef!
 		Vec2 30,30
 	},1,0.4,0.4
 
-circleDef = with BodyDef!
+diskDef = with BodyDef!
 	.type = BodyType.Dynamic
-	\attachCircle 60,1,0.4,0.4
+	.linearAcceleration = gravity
+	\attachDisk 60,1,0.4,0.4
 
 world = with PhysicsWorld!
 	.y = -200
@@ -37,7 +41,7 @@ Director.entry\addChild with world
 	\addChild with Body polygonDef,world,Vec2(0,500),15
 		.group = groupOne
 
-	\addChild with Body circleDef,world,Vec2(50,800)
+	\addChild with Body diskDef,world,Vec2(50,800)
 		.group = groupZero
 		.angularRate = 90
 

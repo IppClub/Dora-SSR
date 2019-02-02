@@ -629,26 +629,26 @@ class PhysicsWorld : public Node
 
 class FixtureDef {};
 
-struct b2BodyType @ BodyType
+struct BodyType
 {
-	#define b2_staticBody @ Static
-	#define b2_dynamicBody @ Dynamic
-	#define b2_kinematicBody @ Kinematic
+	#define BodyDef::Static @ Static
+	#define BodyDef::Dynamic @ Dynamic
+	#define BodyDef::Kinematic @ Kinematic
 };
-enum b2BodyType {};
+enum BodyType {};
 
 class BodyDef : public Object
 {
-	b2BodyType type;
-	float linearDamping;
-	float angularDamping;
-	bool fixedRotation;
-	bool bullet @ isBullet;
-	float gravityScale;
 	Vec2 offset @ position;
 	float angleOffset @ angle;
 	string face;
 	Vec2 facePos;
+	tolua_property__common Uint32 type;
+	tolua_property__common float linearDamping;
+	tolua_property__common float angularDamping;
+	tolua_property__common Vec2 linearAcceleration;
+	tolua_property__bool bool fixedRotation;
+	tolua_property__bool bool bullet;
 	static FixtureDef* polygon(
 		Vec2 center,
 		float width,
@@ -687,32 +687,34 @@ class BodyDef : public Object
 		float density = 0.0f,
 		float friction = 0.4f,
 		float restitution = 0.0f);
-	static FixtureDef* loop(
+	static FixtureDef* multi(
 		Vec2 vertices[tolua_len],
+		float density = 0.0f,
 		float friction = 0.4f,
 		float restitution = 0.0f);
-	void attachLoop(
+	void attachMulti(
 		Vec2 vertices[tolua_len],
+		float density = 0.0f,
 		float friction = 0.4f,
 		float restitution = 0.0f);
-	static FixtureDef* circle(
+	static FixtureDef* disk(
 		Vec2 center,
 		float radius,
 		float density = 0.0f,
 		float friction = 0.4f,
 		float restitution = 0.0f);
-	static FixtureDef* circle(
+	static FixtureDef* disk(
 		float radius,
 		float density = 0.0f,
 		float friction = 0.4f,
 		float restitution = 0.0f);
-	void attachCircle(
+	void attachDisk(
 		Vec2 center,
 		float radius,
 		float density = 0.0f,
 		float friction = 0.4f,
 		float restitution = 0.0f);
-	void attachCircle(
+	void attachDisk(
 		float radius,
 		float density = 0.0f,
 		float friction = 0.4f,
@@ -738,11 +740,11 @@ class BodyDef : public Object
 	void attachPolygonSensor(
 		int tag,
 		Vec2 vertices[tolua_len]);
-	void attachCircleSensor(
+	void attachDiskSensor(
 		int tag,
 		Vec2 center,
 		float radius);
-	void attachCircleSensor(
+	void attachDiskSensor(
 		int tag,
 		float radius);
 	static BodyDef* create();
@@ -823,7 +825,7 @@ class JointDef : public Object
 		String bodyA,
 		String bodyB,
 		Vec2 worldPos,
-		Vec2 axis,
+		float axisAngle,
 		float lowerTranslation = 0.0f,
 		float upperTranslation = 0.0f,
 		float maxMotorForce = 0.0f,
@@ -865,7 +867,7 @@ class JointDef : public Object
 		String bodyA,
 		String bodyB,
 		Vec2 worldPos,
-		Vec2 axis,
+		float axisAngle,
 		float maxMotorTorque = 0.0f,
 		float motorSpeed = 0.0f,
 		float frequency = 2.0f,
@@ -905,8 +907,7 @@ class Joint : public Object
 		float correctionFactor = 1.0f);
 	static MoveJoint* move(
 		bool collision,
-		Body* bodyA,
-		Body* bodyB,
+		Body* body,
 		Vec2 targetPos,
 		float maxForce,
 		float frequency = 5.0f,
@@ -916,7 +917,7 @@ class Joint : public Object
 		Body* bodyA,
 		Body* bodyB,
 		Vec2 worldPos,
-		Vec2 axis,
+		float axisAngle,
 		float lowerTranslation = 0.0f,
 		float upperTranslation = 0.0f,
 		float maxMotorForce = 0.0f,
@@ -958,7 +959,7 @@ class Joint : public Object
 		Body* bodyA,
 		Body* bodyB,
 		Vec2 worldPos,
-		Vec2 axis,
+		float axisAngle,
 		float maxMotorTorque = 0.0f,
 		float motorSpeed = 0.0f,
 		float frequency = 2.0f,
@@ -1078,7 +1079,7 @@ class BulletDef : public Object
 	float lifeTime;
 	float damageRadius;
 	tolua_property__bool bool highSpeedFix;
-	tolua_property__common float gravityScale;
+	tolua_property__common Vec2 gravity;
 	tolua_property__common Face* face;
 	tolua_readonly tolua_property__common BodyDef* bodyDef;
 	tolua_readonly tolua_property__common Vec2 velocity;

@@ -35,15 +35,17 @@ function classClass:register (pre)
 		return
 	end
 
- pre = pre or ''
- push(self)
+	pre = pre or ''
+	push(self)
 	local btype = self.btype == "" and "" or _userltype[self.btype]
-    if _collect_functions[self.type] then
-  output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",'.._collect_functions[self.type]..');')	
+	if _collect_functions[self.type] then
+		output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",'.._collect_functions[self.type]..');')
 	elseif _collect[self.type] then
-  output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",'.._collect[self.type]..');')
-	else
-  output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",NULL);')
+		output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",'.._collect[self.type]..');')
+	elseif self.enum_only then
+		output(pre..'tolua_module(tolua_S,"'..self.lname..'",0);')
+	else 
+		output(pre..'tolua_cclass(tolua_S,"'..self.type..'","'..self.lname..'","'..btype..'",NULL);')
 	end
 	if self.extra_bases then
 		for k,base in ipairs(self.extra_bases) do

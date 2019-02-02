@@ -121,14 +121,14 @@ Uint8 Data::getGroupHide() const
 
 void Data::setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus)
 {
-	uint32 key = damageType | defenceType<<16;
+	Uint32 key = damageType | defenceType<<16;
 	_damageBounusMap[key] = bounus;
 }
 
 float Data::getDamageFactor(Uint16 damageType, Uint16 defenceType) const
 {
-	uint32 key = damageType | defenceType<<16;
-	unordered_map<uint32, float>::const_iterator it = _damageBounusMap.find(key);
+	Uint32 key = damageType | defenceType<<16;
+	unordered_map<Uint32, float>::const_iterator it = _damageBounusMap.find(key);
 	if (it != _damageBounusMap.end())
 	{
 		return it->second;
@@ -138,7 +138,7 @@ float Data::getDamageFactor(Uint16 damageType, Uint16 defenceType) const
 
 bool Data::isPlayer(Body* body)
 {
-	int16 index = body->getGroup();
+	Sint16 index = body->getGroup();
 	return P1 <= index && index <= P28;
 }
 

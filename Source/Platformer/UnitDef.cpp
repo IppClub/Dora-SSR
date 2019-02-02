@@ -35,6 +35,7 @@ UnitDef::UnitDef() :
 tag(),
 decisionTree(),
 _scale(1.0f),
+_physicsDirty(true),
 sensity(0),
 move(0),
 jump(0),
@@ -60,8 +61,9 @@ usePreciseHit(true),
 _size{}
 { }
 
-BodyDef* UnitDef::getBodyDef() const
+BodyDef* UnitDef::getBodyDef()
 {
+	UnitDef::updateBodyDef();
 	return _bodyDef;
 }
 
@@ -78,13 +80,13 @@ const Size& UnitDef::getSize() const
 void UnitDef::setSize(const Size& size)
 {
 	_size = size;
-	UnitDef::updateBodyDef();
+	_physicsDirty = true;
 }
 
 void UnitDef::setDensity(float density)
 {
 	_density = density;
-	_bodyDef->setDensity(density);
+	_physicsDirty = true;
 }
 
 float UnitDef::getDensity() const
@@ -95,7 +97,7 @@ float UnitDef::getDensity() const
 void UnitDef::setFriction(float friction)
 {
 	_friction = friction;
-	_bodyDef->setFriction(friction);
+	_physicsDirty = true;
 }
 
 float UnitDef::getFriction() const
@@ -106,7 +108,7 @@ float UnitDef::getFriction() const
 void UnitDef::setRestitution(float restitution)
 {
 	_restitution = restitution;
-	_bodyDef->setRestitution(restitution);
+	_physicsDirty = true;
 }
 
 float UnitDef::getRestitution() const
@@ -128,10 +130,10 @@ void UnitDef::updateBodyDef()
 {
 	if (_size == Size::zero) return;
 	_bodyDef->clearFixtures();
-	_bodyDef->fixedRotation = false;
+	_bodyDef->setFixedRotation(false);
 	if (_size.width != 0.0f && _size.height != 0.0f)
 	{
-		_bodyDef->fixedRotation = true;
+		_bodyDef->setFixedRotation(true);
 		float hw = _size.width * 0.5f;
 		float hh = _size.height * 0.5f;
 		Vec2 vertices[] =
@@ -173,12 +175,12 @@ const string& UnitDef::getModel() const
 
 void UnitDef::setStatic(bool var)
 {
-	_bodyDef->type = var ? b2_staticBody : b2_dynamicBody;
+	_bodyDef->setType(var ? BodyDef::Static : BodyDef::Dynamic);
 }
 
 bool UnitDef::isStatic() const
 {
-	return _bodyDef->type == b2_staticBody;
+	return _bodyDef->getType() == BodyDef::Static;
 }
 
 NS_DOROTHY_PLATFORMER_END

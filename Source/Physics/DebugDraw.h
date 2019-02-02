@@ -9,26 +9,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Basic/Object.h"
+#include "Support/Geometry.h"
+#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
+
+namespace pr = playrho;
+namespace pd = playrho::d2;
 
 class DrawNode;
 class Line;
 
-class DebugDraw : public b2Draw
+class DebugDraw
 {
 public:
 	PROPERTY_READONLY(DrawNode*, Renderer);
 	DebugDraw();
-	void prepare();
-	virtual bool IsVisible(b2Fixture* fixture) override;
-	virtual bool IsVisible(b2Body* body) override;
-	virtual void DrawPolygon(const b2Vec2* vertices, int vertexCount, const b2Color& color) override;
-	virtual void DrawSolidPolygon(const b2Vec2* vertices, int vertexCount, const b2Color& color) override;
-	virtual void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) override;
-	virtual void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) override;
-	virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color) override;
-	virtual void DrawTransform(const b2Transform& xf) override;
+	virtual ~DebugDraw();
+	void DrawWorld(pd::World* world);
+public:
+	bool IsVisible(pd::Fixture* fixture);
+	bool IsVisible(pd::Body* body);
+	void DrawPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
+	void DrawSolidPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
+	void DrawCircle(const pr::Length2& center, float radius, const Color& color);
+	void DrawSolidCircle(const pr::Length2& center, float radius, const Color& color);
+	void DrawSegment(const pr::Length2& p1, const pr::Length2& p2, const Color& color);
 private:
 	Ref<DrawNode> _drawNode;
 	Ref<Line> _line;

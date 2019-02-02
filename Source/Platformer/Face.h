@@ -39,7 +39,7 @@ public:
 	/** Get a new instance of the face. */
 	Node* toNode() const;
 	/** Type of face, Unknown, Clip, Image, Frame, Particle, User. */
-	uint32 getType() const;
+	Uint32 getType() const;
 	/** Different type has different faceStr:
 	     type             faceStr
           Clip            "loli.clip|0"

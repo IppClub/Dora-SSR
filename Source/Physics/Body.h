@@ -12,11 +12,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+namespace pr = playrho;
+namespace pd = playrho::d2;
+
 class Body;
 class Sensor;
 class PhysicsWorld;
 class BodyDef;
 class Contact;
+
+struct FixtureDef;
 
 typedef Delegate<bool(Body* body)> ContactFilterHandler;
 typedef Delegate<void(Body* body,const Vec2& point,const Vec2& normal)> ContactHandler;
@@ -36,7 +41,7 @@ public:
 	PROPERTY(Object*, Owner);
 	PROPERTY_READONLY(PhysicsWorld*, World);
 	PROPERTY_READONLY(BodyDef*, BodyDef);
-	PROPERTY_READONLY(b2Body*, B2Body);
+	PROPERTY_READONLY(pd::Body*, PrBody);
 	PROPERTY_READONLY(Vec2, Velocity);
 	PROPERTY_READONLY(float, Mass);
 	PROPERTY(float, VelocityX);
@@ -59,15 +64,15 @@ public:
 	void eachSensor(const SensorHandler& func);
 	bool removeSensorByTag(int tag);
 	bool removeSensor(Sensor* sensor);
-	b2Fixture* attach(b2FixtureDef* fixtureDef);
-	Sensor* attachSensor(int tag, b2FixtureDef* fixtureDef);
+	pd::Fixture* attach(FixtureDef* fixtureDef);
+	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
 	bool isSensor() const;
 	CREATE_FUNC(Body);
 protected:
 	Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0);
-	b2Fixture* attachFixture(b2FixtureDef* fixtureDef);
+	pd::Fixture* attachFixture(FixtureDef* fixtureDef);
 	virtual void updatePhysics();
-	b2Body* _bodyB2; // weak reference
+	pd::Body* _prBody; // weak reference
 	PhysicsWorld* _world;
 	Uint8 _group;
 	enum

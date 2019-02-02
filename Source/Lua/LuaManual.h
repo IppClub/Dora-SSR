@@ -89,7 +89,6 @@ void __Model_getAnimationNames(lua_State* L, String filename);
 #define Model_getAnimationNames(filename) {__Model_getAnimationNames(tolua_S, filename);return 1;}
 
 /* Body */
-typedef b2FixtureDef FixtureDef;
 Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
 
 /* Dictionary */

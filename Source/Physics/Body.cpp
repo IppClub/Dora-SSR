@@ -15,22 +15,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Body::Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos, float rot):
-_bodyB2(nullptr),
+_prBody(nullptr),
 _bodyDef(bodyDef),
 _world(world),
 _group(0)
 {
 	AssertIf(world == nullptr, "init Body with invalid PhysicsWorld.");
-	bodyDef->position = PhysicsWorld::b2Val(pos + bodyDef->offset);
-	bodyDef->angle = -bx::toRad(rot + bodyDef->angleOffset);
+	bodyDef->getConf()->UseLocation(PhysicsWorld::b2Val(pos + bodyDef->offset));
+	bodyDef->getConf()->UseAngle(-bx::toRad(rot + bodyDef->angleOffset));
 }
 
 Body::~Body()
 {
-	if (_bodyB2)
+	if (_prBody)
 	{
-		_world->getB2World()->DestroyBody(_bodyB2);
-		_bodyB2 = nullptr;
+		_world->getPrWorld()->Destroy(_prBody);
+		_prBody = nullptr;
 	}
 	ARRAY_START(Sensor, sensor, _sensors)
 	{
@@ -45,18 +45,18 @@ Body::~Body()
 bool Body::init()
 {
 	if (!Node::init()) return false;
-	_bodyB2 = _world->getB2World()->CreateBody(_bodyDef);
-	_bodyB2->SetUserData(r_cast<void*>(this));
-	Node::setPosition(PhysicsWorld::oVal(_bodyDef->position));
-	for (b2FixtureDef* fixtureDef : _bodyDef->getFixtureDefs())
+	_prBody = _world->getPrWorld()->CreateBody(*_bodyDef->getConf());
+	_prBody->SetUserData(r_cast<void*>(this));
+	Node::setPosition(PhysicsWorld::oVal(_bodyDef->getConf()->location));
+	for (FixtureDef& fixtureDef : _bodyDef->getFixtureConfs())
 	{
-		if (fixtureDef->isSensor)
+		if (fixtureDef.conf.isSensor)
 		{
-			Body::attachSensor(s_cast<int>(r_cast<intptr_t>(fixtureDef->userData)), fixtureDef);
+			Body::attachSensor(s_cast<int>(r_cast<intptr_t>(fixtureDef.conf.userData)), &fixtureDef);
 		}
 		else
 		{
-			Body::attachFixture(fixtureDef);
+			Body::attachFixture(&fixtureDef);
 		}
 	}
 	return true;
@@ -65,22 +65,22 @@ bool Body::init()
 void Body::onEnter()
 {
 	Node::onEnter();
-	_bodyB2->SetActive(true);
+	_prBody->SetEnabled(true);
 }
 
 void Body::onExit()
 {
 	Node::onExit();
-	_bodyB2->SetActive(false); // Set active false to trigger sensor`s body leave event.
+	_prBody->SetEnabled(false); // Set enable false to trigger sensor`s body leave event.
 }
 
 void Body::cleanup()
 {
 	Node::cleanup();
-	if (_bodyB2)
+	if (_prBody)
 	{
-		_world->getB2World()->DestroyBody(_bodyB2);
-		_bodyB2 = nullptr;
+		_world->getPrWorld()->Destroy(_prBody);
+		_prBody = nullptr;
 	}
 	if (_sensors)
 	{
@@ -108,9 +108,9 @@ PhysicsWorld* Body::getWorld() const
 	return _world;
 }
 
-b2Body* Body::getB2Body() const
+pd::Body* Body::getPrBody() const
 {
-	return _bodyB2;
+	return _prBody;
 }
 
 Sensor* Body::getSensorByTag(int tag)
@@ -134,9 +134,9 @@ bool Body::removeSensorByTag(int tag)
 
 bool Body::removeSensor(Sensor* sensor)
 {
-	if (_sensors && sensor && sensor->getFixture()->GetBody() == _bodyB2)
+	if (_sensors && sensor && sensor->getFixture()->GetBody() == _prBody)
 	{
-		_bodyB2->DestroyFixture(sensor->getFixture());
+		_prBody->Destroy(sensor->getFixture());
 		_sensors->remove(sensor);
 		return true;
 	}
@@ -145,47 +145,47 @@ bool Body::removeSensor(Sensor* sensor)
 
 void Body::setVelocity(float x, float y)
 {
-	_bodyB2->SetLinearVelocity(b2Vec2(PhysicsWorld::b2Val(x), PhysicsWorld::b2Val(y)));
+	pd::SetLinearVelocity(*_prBody, pr::LinearVelocity2{PhysicsWorld::b2Val(x), PhysicsWorld::b2Val(y)});
 }
 
 void Body::setVelocity(const Vec2& velocity)
 {
-	_bodyB2->SetLinearVelocity(PhysicsWorld::b2Val(velocity));
+	Body::setVelocity(velocity.x, velocity.y);
 }
 
 Vec2 Body::getVelocity() const
 {
-	return PhysicsWorld::oVal(_bodyB2->GetLinearVelocity());
+	return PhysicsWorld::oVal(_prBody->GetVelocity().linear);
 }
 
 void Body::setAngularRate(float var)
 {
-	_bodyB2->SetAngularVelocity(-bx::toRad(var));
+	pd::SetAngularVelocity(*_prBody, -bx::toRad(var));
 }
 
 float Body::getAngularRate() const
 {
-	return -bx::toDeg(_bodyB2->GetAngularVelocity());
+	return -bx::toDeg(_prBody->GetVelocity().angular);
 }
 
 void Body::setLinearDamping(float var)
 {
-	_bodyB2->SetLinearDamping(var);
+	_prBody->SetLinearDamping(var);
 }
 
 float Body::getLinearDamping() const
 {
-	return _bodyB2->GetLinearDamping();
+	return _prBody->GetLinearDamping();
 }
 
 void Body::setAngularDamping(float var)
 {
-	_bodyB2->SetAngularDamping(var);
+	_prBody->SetAngularDamping(var);
 }
 
 float Body::getAngularDamping() const
 {
-	return _bodyB2->GetAngularDamping();
+	return _prBody->GetAngularDamping();
 }
 
 void Body::setOwner(Object* owner)
@@ -200,14 +200,14 @@ Object* Body::getOwner() const
 
 float Body::getMass() const
 {
-	return _bodyB2->GetMass();
+	return 1.0f / _prBody->GetInvMass();
 }
 
 void Body::setGroup(Uint8 group)
 {
 	AssertIf(group >= PhysicsWorld::TotalGroups, "Body group should be less than {}.", PhysicsWorld::TotalGroups);
 	_group = group;
-	for (b2Fixture* f = _bodyB2->GetFixtureList();f;f = f->GetNext())
+	for (pd::Fixture* f : _prBody->GetFixtures())
 	{
 		f->SetFilterData(_world->getFilter(group));
 	}
@@ -220,39 +220,43 @@ Uint8 Body::getGroup() const
 
 void Body::applyLinearImpulse(const Vec2& impulse, const Vec2& pos)
 {
-	_bodyB2->ApplyLinearImpulse(PhysicsWorld::b2Val(impulse), PhysicsWorld::b2Val(pos), true);
+	pd::ApplyLinearImpulse(*_prBody, PhysicsWorld::b2Val(impulse), PhysicsWorld::b2Val(pos));
 }
 
 void Body::applyAngularImpulse(float impulse)
 {
-	_bodyB2->ApplyAngularImpulse(PhysicsWorld::b2Val(impulse), true);
+	pd::ApplyAngularImpulse(*_prBody, PhysicsWorld::b2Val(impulse));
 }
 
-b2Fixture* Body::attachFixture(b2FixtureDef* fixtureDef)
+pd::Fixture* Body::attachFixture(FixtureDef* fixtureDef)
 {
-	fixtureDef->filter = _world->getFilter(_group);
-	fixtureDef->isSensor = false;
-	b2Fixture* fixture = _bodyB2->CreateFixture(fixtureDef);
+	pd::Fixture* fixture = _prBody->CreateFixture(
+		fixtureDef->shape,
+		fixtureDef->conf.UseFilter(_world->getFilter(_group))
+			.UseIsSensor(false)
+			.UseUserData(nullptr)
+	);
 	return fixture;
 }
 
-b2Fixture* Body::attach( b2FixtureDef* fixtureDef )
+pd::Fixture* Body::attach(FixtureDef* fixtureDef)
 {
-	b2Fixture* fixture = Body::attachFixture(fixtureDef);
+	pd::Fixture* fixture = Body::attachFixture(fixtureDef);
 	/* cleanup temp vertices */
-	if (fixtureDef->shape->m_type == b2Shape::e_chain)
+	if (pd::GetUseTypeInfo(fixtureDef->shape) == pd::ShapeType<pd::ChainShapeConf>())
 	{
-		b2ChainShape* chain = (b2ChainShape*)fixtureDef->shape;
-		chain->ClearVertices();
+		fixtureDef->shape = pd::Shape{};
 	}
 	return fixture;
 }
 
-Sensor* Body::attachSensor( int tag, b2FixtureDef* fixtureDef )
+Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef)
 {
-	fixtureDef->filter = _world->getFilter(_group);
-	fixtureDef->isSensor = true;
-	b2Fixture* fixture = _bodyB2->CreateFixture(fixtureDef);
+	pd::Shape shape = fixtureDef->shape;
+	pd::FixtureConf conf = fixtureDef->conf
+		.UseFilter(_world->getFilter(_group))
+		.UseIsSensor(true);
+	pd::Fixture* fixture = _prBody->CreateFixture(shape, conf);
 	Sensor* sensor = Sensor::create(this, tag, fixture);
 	fixture->SetUserData(r_cast<void*>(sensor));
 	if (!_sensors) _sensors = Array::create();
@@ -275,24 +279,26 @@ void Body::eachSensor(const SensorHandler& func)
 	ARRAY_END
 }
 
-void Body::setVelocityX( float x )
+void Body::setVelocityX(float x)
 {
-	_bodyB2->SetLinearVelocityX(PhysicsWorld::b2Val(x));
+	auto v = _prBody->GetVelocity().linear;
+	pd::SetLinearVelocity(*_prBody, pr::LinearVelocity2{PhysicsWorld::b2Val(x), v[1]});
 }
 
 float Body::getVelocityX() const
 {
-	return PhysicsWorld::oVal(_bodyB2->GetLinearVelocityX());
+	return PhysicsWorld::oVal(_prBody->GetVelocity().linear[0]);
 }
 
-void Body::setVelocityY( float y )
+void Body::setVelocityY(float y)
 {
-	_bodyB2->SetLinearVelocityY(PhysicsWorld::b2Val(y));
+	auto v = _prBody->GetVelocity().linear;
+	pd::SetLinearVelocity(*_prBody, pr::LinearVelocity2{v[0], PhysicsWorld::b2Val(y)});
 }
 
 float Body::getVelocityY() const
 {
-	return PhysicsWorld::oVal(_bodyB2->GetLinearVelocityY());
+	return PhysicsWorld::oVal(_prBody->GetVelocity().linear[1]);
 }
 
 void Body::setPosition(const Vec2& var)
@@ -300,7 +306,7 @@ void Body::setPosition(const Vec2& var)
 	if (var != Node::getPosition())
 	{
 		Node::setPosition(var);
-		_bodyB2->SetTransform(PhysicsWorld::b2Val(var), _bodyB2->GetAngle());
+		_prBody->SetTransform(PhysicsWorld::b2Val(var), _prBody->GetAngle());
 	}
 }
 
@@ -309,34 +315,15 @@ void Body::setAngle(float var)
 	if (var != Node::getAngle())
 	{
 		Node::setAngle(var);
-		_bodyB2->SetTransform(_bodyB2->GetPosition(), -bx::toRad(var));
+		_prBody->SetTransform(_prBody->GetLocation(), -bx::toRad(var));
 	}
 }
 
 Rect Body::getBoundingBox()
 {
-	b2AABB aabb = {
-		b2Vec2_zero,
-		b2Vec2_zero
-	};
-	b2Fixture* f = _bodyB2->GetFixtureList();
-	if (f && f->GetChildCount() > 0)
-	{
-		aabb = f->GetAABB(0);
-	}
-	for (b2Fixture* f = _bodyB2->GetFixtureList(); f; f = f->GetNext())
-	{
-		for (int32 i = 0; i < f->GetChildCount(); ++i)
-		{
-			const b2AABB& ab = f->GetAABB(i);
-			aabb.lowerBound.x = std::min(aabb.lowerBound.x, ab.lowerBound.x);
-			aabb.lowerBound.y = std::min(aabb.lowerBound.y, ab.lowerBound.y);
-			aabb.upperBound.x = std::max(aabb.upperBound.x, ab.upperBound.x);
-			aabb.upperBound.y = std::max(aabb.upperBound.y, ab.upperBound.y);
-		}
-	}
-	Vec2 lower = PhysicsWorld::oVal(aabb.lowerBound);
-	Vec2 upper = PhysicsWorld::oVal(aabb.upperBound);
+	pd::AABB aabb = pd::ComputeAABB(*_prBody);
+	Vec2 lower = PhysicsWorld::oVal(pr::detail::GetLowerBound(aabb));
+	Vec2 upper = PhysicsWorld::oVal(pr::detail::GetUpperBound(aabb));
 	return Rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
 }
 
@@ -413,14 +400,14 @@ void Body::setEmittingEvent(bool var)
 
 void Body::updatePhysics()
 {
-	if (_bodyB2->IsAwake())
+	if (_prBody->IsAwake())
 	{
-		const b2Vec2& pos = _bodyB2->GetPosition();
+		Vec2 pos = PhysicsWorld::oVal(_prBody->GetLocation());
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overriden by Body`s.
 		*/
-		Node::setPosition(Vec2{PhysicsWorld::oVal(pos.x), PhysicsWorld::oVal(pos.y)});
-		float angle = _bodyB2->GetAngle();
+		Node::setPosition(pos);
+		float angle = _prBody->GetAngle();
 		Node::setAngle(-bx::toDeg(angle));
 	}
 }

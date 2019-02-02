@@ -42,80 +42,34 @@ void ContactListener::ContactPair::release()
 	bodyB->release();
 }
 
-void PhysicsWorld::QueryAABB::setInfo(const Rect& rc)
-{
-	transform.Set(b2Vec2(b2Val(rc.getCenterX()), b2Val(rc.getCenterY())), 0);
-	testShape.SetAsBox(b2Val(rc.size.width), b2Val(rc.size.height));
-}
-bool PhysicsWorld::QueryAABB::ReportFixture(b2Fixture* fixture)
-{
-	BLOCK_START
-	{
-		BREAK_IF(fixture->IsSensor());
-		b2Shape* shape = fixture->GetShape();
-		bool isCommonShape = shape->GetType() != b2Shape::e_chain && shape->GetType() != b2Shape::e_edge;
-		BREAK_IF(isCommonShape && !b2TestOverlap(&testShape, 0, shape, 0, transform, fixture->GetBody()->GetTransform()));
-		Body* body = r_cast<Body*>(fixture->GetBody()->GetUserData());
-		vector<Body*>& results = isCommonShape ? resultsOfCommonShapes : resultsOfChainsAndEdges;
-		if (results.empty() || results.back() != body)
-		{
-			results.push_back(body);
-		}
-	}
-	BLOCK_END
-	return true;
-}
-
-float32 PhysicsWorld::RayCast::ReportFixture(b2Fixture* fixture, const b2Vec2& point,
-	const b2Vec2& normal, float32 fraction)
-{
-	result.body = r_cast<Body*>(fixture->GetBody()->GetUserData());
-	result.point = point;
-	result.normal = normal;
-	if (closest)
-	{
-		return fraction;
-	}
-	else
-	{
-		results.push_back(result);
-		return 1;
-	}
-}
-
 float PhysicsWorld::b2Factor = 100.0f;
 
 PhysicsWorld::PhysicsWorld():
-_world(b2Vec2(0,-10)),
-_velocityIterations(1),
-_positionIterations(1),
+_world{},
 _contactListner(new ContactListener()),
-_contactFilter(new ContactFilter()),
 _destructionListener(new DestructionListener())
-{ }
+{
+	_stepConf.regVelocityIterations = 1;
+	_stepConf.regPositionIterations = 1;
+}
 
 PhysicsWorld::~PhysicsWorld()
 {
-	b2Body* b = nullptr;
-	if (_world.GetBodyList())
+	RefVector<Body> bodies;
+	for (pd::Body* b : _world.GetBodies())
 	{
-		RefVector<Body> bodies;
-		while ((b = _world.GetBodyList()) != nullptr)
-		{
 			Body* body = r_cast<Body*>(b->GetUserData());
-			if (body)
-			{
-				bodies.push_back(body);
-				body->cleanup();
-			}
-		}
+			if (body) bodies.push_back(body);
+	}
+	for (Body* b : bodies)
+	{
+		b->cleanup();
 	}
 }
 
 bool PhysicsWorld::init()
 {
 	if (!Node::init()) return false;
-	_world.SetContactFilter(_contactFilter);
 	_world.SetContactListener(_contactListner);
 	_world.SetDestructionListener(_destructionListener);
 	for (int i = 0; i < TotalGroups; i++)
@@ -132,30 +86,27 @@ void PhysicsWorld::render()
 {
 	if (_debugDraw)
 	{
-		_debugDraw->prepare();
-		_world.DrawDebugData();
+		_debugDraw->DrawWorld(&_world);
 	}
 }
 
-b2World* PhysicsWorld::getB2World() const
+pd::World* PhysicsWorld::getPrWorld() const
 {
-	return c_cast<b2World*>(&_world);
+	return c_cast<pd::World*>(&_world);
 }
 
 void PhysicsWorld::setShowDebug(bool var)
 {
 	if (var)
 	{
-		if (!_world.GetDebugDraw())
+		if (!_debugDraw)
 		{
 			_debugDraw = New<DebugDraw>();
-			_world.SetDebugDraw(_debugDraw);
 			addChild(_debugDraw->getRenderer(), INT_MAX, "DebugDraw"_slice);
 		}
 	}
 	else if (_debugDraw)
 	{
-		_world.SetDebugDraw(nullptr);
 		removeChild(_debugDraw->getRenderer());
 		_debugDraw = nullptr;
 	}
@@ -163,33 +114,34 @@ void PhysicsWorld::setShowDebug(bool var)
 
 bool PhysicsWorld::isShowDebug() const
 {
-	return _world.GetDebugDraw() != nullptr;
+	return _debugDraw != nullptr;
 }
 
 void PhysicsWorld::setIterations(int velocityIter, int positionIter)
 {
-	_velocityIterations = velocityIter;
-	_positionIterations = positionIter;
+	_stepConf.regVelocityIterations = velocityIter;
+	_stepConf.regPositionIterations = positionIter;
 }
 
 void PhysicsWorld::setGravity(const Vec2& gravity)
 {
-	_world.SetGravity(gravity);
+	//_world.SetGravity(gravity);
 }
 
 Vec2 PhysicsWorld::getGravity() const
 {
-	return Vec2::from(_world.GetGravity());
+	return Vec2::zero;//Vec2::from(_world.GetGravity());
 }
 
 bool PhysicsWorld::update(double deltaTime)
 {
 	if (isUpdating())
 	{
-		_world.Step(s_cast<float>(deltaTime), _velocityIterations, _positionIterations);
-		for (b2Body* b = _world.GetBodyList(); b; b = b->GetNext())
+		_stepConf.SetTime(deltaTime);
+		_world.Step(_stepConf);
+		for (pd::Body* b : _world.GetBodies())
 		{
-			if (b->IsActive())
+			if (b->IsEnabled())
 			{
 				Body* body = r_cast<Body*>(b->GetUserData());
 				body->updatePhysics();
@@ -203,13 +155,49 @@ bool PhysicsWorld::update(double deltaTime)
 
 bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback)
 {
-	b2AABB aabb;
-	aabb.lowerBound.Set(b2Val(rect.getLeft()), b2Val(rect.getBottom()));
-	aabb.upperBound.Set(b2Val(rect.getRight()), b2Val(rect.getTop()));
-	_queryCallback.setInfo(rect);
-	_world.QueryAABB(&_queryCallback, aabb);
+	pd::AABB aabb{
+		pd::AABB::Location{
+			b2Val(rect.getLeft()),
+			b2Val(rect.getBottom())
+		},
+		pd::AABB::Location{
+			b2Val(rect.getRight()),
+			b2Val(rect.getTop())
+		}
+	};
+	pd::Transformation transform{
+		pr::Length2{
+			b2Val(rect.getCenterX()),
+			b2Val(rect.getCenterY())
+		}
+	};
+	pd::Shape testShape = pd::Shape{
+		pd::PolygonShapeConf{
+			b2Val(rect.size.width),
+			b2Val(rect.size.height)
+		}
+	};
+	pd::Query(_world.GetTree(), aabb, [&](pd::Fixture* fixture, const pr::ChildCounter)
+	{
+		BLOCK_START
+		{
+			BREAK_IF(fixture->IsSensor());
+			const pd::Shape shape = fixture->GetShape();
+			int shapeType = pd::GetUseTypeInfo(shape);
+			bool isCommonShape = shapeType != pd::ShapeType<pd::ChainShapeConf>() && shapeType != pd::ShapeType<pd::EdgeShapeConf>();
+			BREAK_IF(isCommonShape && !pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(shape, 0), fixture->GetBody()->GetTransformation()));
+			Body* body = r_cast<Body*>(fixture->GetBody()->GetUserData());
+			vector<Body*>& results = isCommonShape ? _queryResultsOfCommonShapes : _queryResultsOfChainsAndEdges;
+			if (results.empty() || results.back() != body)
+			{
+				results.push_back(body);
+			}
+		}
+		BLOCK_END
+		return true;
+	});
 	bool result = false;
-	for (Body* item : _queryCallback.resultsOfCommonShapes)
+	for (Body* item : _queryResultsOfCommonShapes)
 	{
 		if (callback(item))
 		{
@@ -217,7 +205,7 @@ bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback
 			break;
 		}
 	}
-	for (Body* item : _queryCallback.resultsOfChainsAndEdges)
+	for (Body* item : _queryResultsOfChainsAndEdges)
 	{
 		if (callback(item))
 		{
@@ -225,33 +213,46 @@ bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback
 			break;
 		}
 	}
-	_queryCallback.resultsOfChainsAndEdges.clear();
-	_queryCallback.resultsOfCommonShapes.clear();
+	_queryResultsOfCommonShapes.clear();
+	_queryResultsOfChainsAndEdges.clear();
 	return result;
 }
 
 bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
 {
-	_rayCastCallBack.closest = closest;
-	_world.RayCast(&_rayCastCallBack, PhysicsWorld::b2Val(start), PhysicsWorld::b2Val(end));
+	pd::RayCastInput input{b2Val(start),b2Val(end),pr::Real{1}};
 	bool result = false;
+	pd::RayCast(_world.GetTree(), input, [&](pd::Fixture* fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal)
+	{
+		_rayCastResult.body = r_cast<Body*>(fixture->GetBody()->GetUserData());
+		_rayCastResult.point = oVal({point[0], point[1]});
+		_rayCastResult.normal = oVal({normal[0], normal[1]});
+		if (closest)
+		{
+			return pr::RayCastOpcode::Terminate;
+		}
+		else
+		{
+			_rayCastResults.push_back(_rayCastResult);
+			return pr::RayCastOpcode::ResetRay;
+		}
+	});
 	if (closest)
 	{
-		RayCast::RayCastData& data = _rayCastCallBack.result;
-		result = data.body ? callback(data.body, Vec2::from(oVal(data.point)), Vec2::from(data.normal)) : false;
-		_rayCastCallBack.result.body = nullptr;
+		result = _rayCastResult.body ? callback(_rayCastResult.body, _rayCastResult.point, _rayCastResult.normal) : false;
+		_rayCastResult.body = nullptr;
 	}
 	else
 	{
-		for (auto& item : _rayCastCallBack.results)
+		for (auto& item : _rayCastResults)
 		{
-			if (callback(item.body, Vec2::from(oVal(item.point)), Vec2::from(item.normal)))
+			if (callback(item.body, item.point, item.normal))
 			{
 				result = true;
 				break;
 			}
 		}
-		_rayCastCallBack.results.clear();
+		_rayCastResults.clear();
 	}
 	return result;
 }
@@ -259,8 +260,8 @@ bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, con
 void PhysicsWorld::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
 {
 	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
-	b2Filter& filterA = _filters[groupA];
-	b2Filter& filterB = _filters[groupB];
+	pr::Filter& filterA = _filters[groupA];
+	pr::Filter& filterB = _filters[groupB];
 	if (contact)
 	{
 		filterA.maskBits |= filterB.categoryBits;
@@ -271,32 +272,18 @@ void PhysicsWorld::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
 		filterA.maskBits &= (~filterB.categoryBits);
 		filterB.maskBits &= (~filterA.categoryBits);
 	}
-	for (b2Body* b = _world.GetBodyList(); b; b = b->GetNext())
+	for (pd::Body* body : _world.GetBodies())
 	{
-		b2Fixture* first = b->GetFixtureList();
-		if (first)
+		for (pd::Fixture* fixture : body->GetFixtures())
 		{
-			int groupIndex = first->GetFilterData().groupIndex;
+			int groupIndex = fixture->GetFilterData().groupIndex;
 			if (groupIndex == groupA)
 			{
-				first->SetFilterData(_filters[groupA]);
+				fixture->SetFilterData(_filters[groupA]);
 			}
 			else if (groupIndex == groupB)
 			{
-				first->SetFilterData(_filters[groupB]);
-			}
-			// Some shapes make the fixture list a circular list
-			for (b2Fixture* f = first->GetNext();f && f != first;f = f->GetNext())
-			{
-				int groupIndex = f->GetFilterData().groupIndex;
-				if (groupIndex == groupA)
-				{
-					f->SetFilterData(_filters[groupA]);
-				}
-				else if (groupIndex == groupB)
-				{
-					f->SetFilterData(_filters[groupB]);
-				}
+				fixture->SetFilterData(_filters[groupB]);
 			}
 		}
 	}
@@ -305,12 +292,12 @@ void PhysicsWorld::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
 bool PhysicsWorld::getShouldContact(Uint8 groupA, Uint8 groupB) const
 {
 	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
-	const b2Filter& filterA = _filters[groupA];
-	const b2Filter& filterB = _filters[groupB];
+	const pr::Filter& filterA = _filters[groupA];
+	const pr::Filter& filterB = _filters[groupB];
 	return (filterA.maskBits & filterB.categoryBits) && (filterA.categoryBits & filterB.maskBits);
 }
 
-const b2Filter& PhysicsWorld::getFilter(Uint8 group) const
+const pr::Filter& PhysicsWorld::getFilter(Uint8 group) const
 {
 	AssertIf(group >= TotalGroups, "Body group should be less than {}.", TotalGroups);
 	return _filters[group];
@@ -321,61 +308,60 @@ void PhysicsWorld::setContactListener(Own<ContactListener>&& listener)
 	_contactListner = std::move(listener);
 }
 
-void PhysicsWorld::setContactFilter(Own<ContactFilter>&& filter)
+void ContactListener::PreSolve(pd::Contact& contact, const pd::Manifold& oldManifold)
 {
-	_contactFilter = std::move(filter);
-}
-
-void ContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
-{
-	b2Fixture* fixtureA = contact->GetFixtureA();
-	b2Fixture* fixtureB = contact->GetFixtureB();
+	pd::Fixture* fixtureA = contact.GetFixtureA();
+	pd::Fixture* fixtureB = contact.GetFixtureB();
 	Body* bodyA = s_cast<Body*>(fixtureA->GetBody()->GetUserData());
 	Body* bodyB = s_cast<Body*>(fixtureB->GetBody()->GetUserData());
 	if (!bodyA || !bodyB) return;
 	if (!bodyA->isReceivingContact() && !bodyB->isReceivingContact()) return;
-
 	if (bodyA->isReceivingContact() && bodyA->filterContact && !bodyA->filterContact(bodyB))
 	{
-		contact->SetEnabled(false);
+		contact.UnsetEnabled();
 	}
 	if (bodyB->isReceivingContact() && bodyB->filterContact && !bodyB->filterContact(bodyA))
 	{
-		contact->SetEnabled(false);
+		contact.UnsetEnabled();
 	}
-	if (!contact->IsEnabled())
+	if (!contact.IsEnabled())
 	{
-		b2WorldManifold worldManifold;
-		contact->GetWorldManifold(&worldManifold);
-		Vec2 point = PhysicsWorld::oVal(worldManifold.points[0]);
+		pd::WorldManifold worldManifold = pd::GetWorldManifold(contact);
+		Vec2 point = PhysicsWorld::oVal(worldManifold.GetPoint(0));
 		if (bodyA->isReceivingContact())
 		{
-			ContactPair pair = { bodyA, bodyB, point, Vec2::from(worldManifold.normal) };
+			pd::UnitVec normal = worldManifold.GetNormal();
+			ContactPair pair = { bodyA, bodyB, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
 		if (bodyB->isReceivingContact())
 		{
-			ContactPair pair = { bodyB, bodyA, point, Vec2::from(worldManifold.normal) };
+			pd::UnitVec normal = worldManifold.GetNormal();
+			ContactPair pair = { bodyB, bodyA, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
 	}
 }
 
-void ContactListener::BeginContact(b2Contact* contact)
+void ContactListener::PostSolve(pd::Contact& contact, const pd::ContactImpulsesList& impulses,
+	 	iteration_type solved)
+{ }
+
+void ContactListener::BeginContact(pd::Contact& contact)
 {
-	b2Fixture* fixtureA = contact->GetFixtureA();
-	b2Fixture* fixtureB = contact->GetFixtureB();
-	Body* bodyA = (Body*)fixtureA->GetBody()->GetUserData();
-	Body* bodyB = (Body*)fixtureB->GetBody()->GetUserData();
+	pd::Fixture* fixtureA = contact.GetFixtureA();
+	pd::Fixture* fixtureB = contact.GetFixtureB();
+	Body* bodyA = r_cast<Body*>(fixtureA->GetBody()->GetUserData());
+	Body* bodyB = r_cast<Body*>(fixtureB->GetBody()->GetUserData());
 	if (!bodyA || !bodyB)
 	{
 		return;
 	}
 	if (fixtureA->IsSensor())
 	{
-		Sensor* sensor = (Sensor*)fixtureA->GetUserData();
+		Sensor* sensor = r_cast<Sensor*>(fixtureA->GetUserData());
 		if (sensor && sensor->isEnabled() && !fixtureB->IsSensor())
 		{
 			SensorPair pair = {sensor, bodyB};
@@ -395,28 +381,29 @@ void ContactListener::BeginContact(b2Contact* contact)
 	}
 	else if (bodyA->isReceivingContact() || bodyB->isReceivingContact())
 	{
-		b2WorldManifold worldManifold;
-		contact->GetWorldManifold(&worldManifold);
-		Vec2 point = PhysicsWorld::oVal(worldManifold.points[0]);
+		pd::WorldManifold worldManifold = pd::GetWorldManifold(contact);
+		Vec2 point = PhysicsWorld::oVal(worldManifold.GetPoint(0));
 		if (bodyA->isReceivingContact())
 		{
-			ContactPair pair = { bodyA, bodyB, point, Vec2::from(worldManifold.normal) };
+			pd::UnitVec normal = worldManifold.GetNormal();
+			ContactPair pair = { bodyA, bodyB, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
 		if (bodyB->isReceivingContact())
 		{
-			ContactPair pair = { bodyB, bodyA, point, Vec2::from(worldManifold.normal) };
+			pd::UnitVec normal = worldManifold.GetNormal();
+			ContactPair pair = { bodyB, bodyA, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
 	}
 }
 
-void ContactListener::EndContact(b2Contact* contact)
+void ContactListener::EndContact(pd::Contact& contact)
 {
-	b2Fixture* fixtureA = contact->GetFixtureA();
-	b2Fixture* fixtureB = contact->GetFixtureB();
+	pd::Fixture* fixtureA = contact.GetFixtureA();
+	pd::Fixture* fixtureB = contact.GetFixtureB();
 	Body* bodyA = r_cast<Body*>(fixtureA->GetBody()->GetUserData());
 	Body* bodyB = r_cast<Body*>(fixtureB->GetBody()->GetUserData());
 	if (fixtureA->IsSensor())
@@ -431,7 +418,7 @@ void ContactListener::EndContact(b2Contact* contact)
 	}
 	else if (fixtureB->IsSensor())
 	{
-		Sensor* sensor = (Sensor*)fixtureB->GetUserData();
+		Sensor* sensor = r_cast<Sensor*>(fixtureB->GetUserData());
 		if (sensor && bodyA && sensor->isEnabled())
 		{
 			SensorPair pair = {sensor, bodyA};
@@ -441,18 +428,19 @@ void ContactListener::EndContact(b2Contact* contact)
 	}
 	else if (bodyA->isReceivingContact() || bodyB->isReceivingContact())
 	{
-		b2WorldManifold worldManifold;
-		contact->GetWorldManifold(&worldManifold);
-		Vec2 point = PhysicsWorld::oVal(worldManifold.points[0]);
+		pd::WorldManifold worldManifold = pd::GetWorldManifold(contact);
+		Vec2 point = PhysicsWorld::oVal(worldManifold.GetPoint(0));
 		if (bodyA->isReceivingContact())
 		{
-			ContactPair pair = { bodyA, bodyB, point, Vec2::from(worldManifold.normal) };
+			pd::UnitVec normal = worldManifold.GetNormal();
+			ContactPair pair = { bodyA, bodyB, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactEnds.push_back(pair);
 		}
 		if (bodyB->isReceivingContact())
 		{
-			ContactPair pair = { bodyB, bodyA, point, Vec2::from(worldManifold.normal) };
+			pd::UnitVec normal = worldManifold.GetNormal();
+			ContactPair pair = { bodyB, bodyA, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactEnds.push_back(pair);
 		}
@@ -517,24 +505,10 @@ ContactListener::~ContactListener()
 	}
 }
 
-bool ContactFilter::ShouldCollide(b2Fixture* fixtureA, b2Fixture* fixtureB)
-{
-	const b2Filter& filterA = fixtureA->GetFilterData();
-	const b2Filter& filterB = fixtureB->GetFilterData();
-	return (filterA.maskBits & filterB.categoryBits) && (filterA.categoryBits & filterB.maskBits);
-}
+void DestructionListener::SayGoodbye(const pd::Joint& joint) noexcept
+{ }
 
-void DestructionListener::SayGoodbye(b2Joint* joint)
-{
-	Joint* jointItem = r_cast<Joint*>(joint->GetUserData());
-	if (jointItem)
-	{
-		joint->SetUserData(nullptr);
-		jointItem->_joint = nullptr;
-	}
-}
-
-void DestructionListener::SayGoodbye(b2Fixture* fixture)
+void DestructionListener::SayGoodbye(const pd::Fixture& fixture) noexcept
 { }
 
 NS_DOROTHY_END

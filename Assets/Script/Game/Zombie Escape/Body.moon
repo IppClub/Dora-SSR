@@ -11,4 +11,5 @@ Store["Body_ObstacleM"] = with BodyDef!
 
 Store["Body_ObstacleC"] = with BodyDef!
 	.type = BodyType.Dynamic
-	\attachCircle 40,1,0.6,0.4
+	.linearAcceleration = Vec2 0,-10
+	\attachDisk 40,1,0.6,0.4

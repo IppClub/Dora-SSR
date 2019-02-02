@@ -16,6 +16,9 @@ class Body;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
+
+namespace pd = playrho::d2;
+
 class Unit;
 class UnitAction;
 class Bullet;
@@ -167,7 +170,7 @@ public:
 	void onAnimationEnd(Model* model);
 	float getDamage(Unit* target);
 	virtual void onAttack() = 0;
-	static Vec2 getHitPoint(Body* self, Body* target, b2Shape* selfShape);
+	static Vec2 getHitPoint(Body* self, Body* target, pd::Shape* selfShape);
 protected:
 	Attack(String name, Unit* unit);
 	float _attackDelay;
@@ -181,7 +184,7 @@ public:
 protected:
 	MeleeAttack(Unit* unit);
 	virtual void onAttack();
-	b2PolygonShape _polygon;
+	pd::Shape _polygon;
 };
 
 class RangeAttack : public Attack
