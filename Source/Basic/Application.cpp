@@ -359,11 +359,7 @@ void Application::shutdown()
 	{
 		case "Windows"_hash:
 		case "macOS"_hash:
-			#if DORA_DEBUG
-				_renderEvent.post("Quit"_slice);
-			#else
-				exit(0);
-			#endif
+			_renderEvent.post("Quit"_slice);
 			break;
 	}
 }
