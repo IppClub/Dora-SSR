@@ -392,9 +392,6 @@ PLAYRHO_CONSTEXPR inline auto Dot(const T1 a, const T2 b) noexcept
 ///
 /// @sa https://en.wikipedia.org/wiki/Cross_product
 ///
-/// @param a Value A of a 2-element type.
-/// @param b Value B of a 2-element type.
-///
 /// @return Cross product of the two values.
 ///
 template <class T1, class T2, std::enable_if_t<

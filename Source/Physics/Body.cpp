@@ -243,7 +243,7 @@ pd::Fixture* Body::attach(FixtureDef* fixtureDef)
 {
 	pd::Fixture* fixture = Body::attachFixture(fixtureDef);
 	/* cleanup temp vertices */
-	if (pd::GetUseTypeInfo(fixtureDef->shape) == pd::ShapeType<pd::ChainShapeConf>())
+	if (pd::GetUseType(fixtureDef->shape) == pd::ShapeType<pd::ChainShapeConf>())
 	{
 		fixtureDef->shape = pd::Shape{};
 	}

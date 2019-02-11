@@ -123,21 +123,11 @@ void PhysicsWorld::setIterations(int velocityIter, int positionIter)
 	_stepConf.regPositionIterations = positionIter;
 }
 
-void PhysicsWorld::setGravity(const Vec2& gravity)
-{
-	//_world.SetGravity(gravity);
-}
-
-Vec2 PhysicsWorld::getGravity() const
-{
-	return Vec2::zero;//Vec2::from(_world.GetGravity());
-}
-
 bool PhysicsWorld::update(double deltaTime)
 {
 	if (isUpdating())
 	{
-		_stepConf.SetTime(deltaTime);
+		_stepConf.SetTime(s_cast<pr::Time>(deltaTime));
 		_world.Step(_stepConf);
 		for (pd::Body* b : _world.GetBodies())
 		{
@@ -183,7 +173,7 @@ bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback
 		{
 			BREAK_IF(fixture->IsSensor());
 			const pd::Shape shape = fixture->GetShape();
-			int shapeType = pd::GetUseTypeInfo(shape);
+			int shapeType = pd::GetUseType(shape);
 			bool isCommonShape = shapeType != pd::ShapeType<pd::ChainShapeConf>() && shapeType != pd::ShapeType<pd::EdgeShapeConf>();
 			BREAK_IF(isCommonShape && !pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(shape, 0), fixture->GetBody()->GetTransformation()));
 			Body* body = r_cast<Body*>(fixture->GetBody()->GetUserData());
@@ -225,8 +215,8 @@ bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, con
 	pd::RayCast(_world.GetTree(), input, [&](pd::Fixture* fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal)
 	{
 		_rayCastResult.body = r_cast<Body*>(fixture->GetBody()->GetUserData());
-		_rayCastResult.point = oVal({point[0], point[1]});
-		_rayCastResult.normal = oVal({normal[0], normal[1]});
+		_rayCastResult.point = oVal(pr::Vec2{point[0], point[1]});
+		_rayCastResult.normal = oVal(pr::Vec2{normal[0], normal[1]});
 		if (closest)
 		{
 			return pr::RayCastOpcode::Terminate;

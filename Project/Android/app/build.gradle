@@ -13,7 +13,7 @@ android {
 			cmake {
 				arguments "-DANDROID_STL=c++_static", "-DANDROID_ARM_NEON=TRUE"
 				abiFilters "armeabi-v7a", "x86"
-				cppFlags "-std=c++14", "-frtti", "-fexceptions"
+				cppFlags "-std=c++17", "-frtti", "-fexceptions"
 			}
 		}
 		javaCompileOptions

@@ -11,6 +11,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "PlayRho/Collision/RayCastOutput.hpp"
 
+namespace playrho {
+
+template <>
+bool Visit(const d2::DiskShapeConf& shape, void* userData);
+
+template <>
+bool Visit(const d2::EdgeShapeConf& shape, void* userData);
+
+template <>
+bool Visit(const d2::PolygonShapeConf& shape, void* userData);
+
+template <>
+bool Visit(const d2::ChainShapeConf& shape, void* userData);
+
+template <>
+bool Visit(const d2::MultiShapeConf& shape, void* userData);
+
+} // namespace playrho
+
 NS_DOROTHY_BEGIN
 
 namespace pr = playrho;
@@ -82,8 +101,6 @@ public:
 	 world->setContactListener(New<MyContactListener>());
 	 */
 	void setContactListener(Own<ContactListener>&& listener);
-	void setGravity(const Vec2& gravity);
-	Vec2 getGravity() const;
 
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;

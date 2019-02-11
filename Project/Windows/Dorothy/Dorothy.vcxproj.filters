@@ -73,30 +73,6 @@
     <Filter Include="Animation">
       <UniqueIdentifier>{1dba13c2-e330-4933-a1af-6aebd198edda}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\Box2D">
-      <UniqueIdentifier>{f97dfc77-a757-4740-b402-2be8ff2bd1fb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\Box2D\Common">
-      <UniqueIdentifier>{9d70b8fb-9265-417f-82f7-aacb5c9d4060}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\Box2D\Collision">
-      <UniqueIdentifier>{e4e713c1-e07d-4c27-975a-253f34babd6d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\Box2D\Rope">
-      <UniqueIdentifier>{4eb0aba4-a92b-41d7-aa13-5afea1b1c067}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\Box2D\Dynamics">
-      <UniqueIdentifier>{0500a0bd-4970-48b4-9d92-0be4a78d3f6a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\Box2D\Dynamics\Contacts">
-      <UniqueIdentifier>{0de2814d-15ba-4809-9120-c2b19a6e32e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\Box2D\Dynamics\Joints">
-      <UniqueIdentifier>{824788c8-a7a5-4994-b975-277d5a6c8f7d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\Box2D\Collision\Shapes">
-      <UniqueIdentifier>{d37185b3-456c-4c98-8326-d722698a96bc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Physics">
       <UniqueIdentifier>{a5a17125-74ff-474d-8c30-58f487461740}</UniqueIdentifier>
     </Filter>
@@ -126,6 +102,27 @@
     </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{6d34a666-c22c-4090-a10e-821d941bfb1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\PlayRho">
+      <UniqueIdentifier>{d0108809-939f-4a42-b9fe-e13370bf4917}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\PlayRho\Common">
+      <UniqueIdentifier>{5e3597bd-fb5c-4c01-b25e-831a4592d36c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\PlayRho\Collision">
+      <UniqueIdentifier>{ce210869-ed42-44b5-8ef8-ed20df75a729}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\PlayRho\Dynamics">
+      <UniqueIdentifier>{3d14d0c9-5a48-4dfc-9204-064ce15ce765}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\PlayRho\Dynamics\Contacts">
+      <UniqueIdentifier>{fb0e1cef-c7e3-4172-b823-f0a4ca9b82bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\PlayRho\Dynamics\Joints">
+      <UniqueIdentifier>{d9400a69-371d-4510-a9ed-8976132e8733}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\PlayRho\Collision\Shapes">
+      <UniqueIdentifier>{49b83829-6370-4f2c-8e36-9333b8ffd875}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -306,144 +303,6 @@
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2Body.cpp">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2ContactManager.cpp">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2Fixture.cpp">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2Island.cpp">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2World.cpp">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2WorldCallbacks.cpp">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2ChainAndCircleContact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2ChainAndPolygonContact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2CircleContact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2Contact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2ContactSolver.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2EdgeAndCircleContact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2EdgeAndPolygonContact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2PolygonAndCircleContact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2PolygonContact.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2DistanceJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2FrictionJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2GearJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2Joint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2MotorJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2MouseJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2PrismaticJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2PulleyJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2RevoluteJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2RopeJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2WeldJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2WheelJoint.cpp">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2BroadPhase.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2CollideCircle.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2CollideEdge.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2CollidePolygon.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2Collision.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2Distance.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2DynamicTree.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\b2TimeOfImpact.cpp">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2ChainShape.cpp">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2CircleShape.cpp">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2EdgeShape.cpp">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2PolygonShape.cpp">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Common\b2BlockAllocator.cpp">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Common\b2Draw.cpp">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Common\b2Math.cpp">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Common\b2Settings.cpp">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Common\b2StackAllocator.cpp">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Common\b2Timer.cpp">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Box2D\Rope\b2Rope.cpp">
-      <Filter>3rdParty\Box2D\Rope</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
@@ -596,6 +455,210 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp">
       <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\BlockAllocator.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\CodeDumper.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\DynamicMemory.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Math.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\StackAllocator.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\UnitVec.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Velocity.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Version.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Body.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\ContactImpulsesList.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Fixture.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\FixtureConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Island.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\MovementConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\StepConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\World.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldCallbacks.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\Contact.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactKey.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactSolver.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\PositionSolverManifold.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\VelocityConstraint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\DistanceJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\DistanceJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\FrictionJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\FrictionJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\GearJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\GearJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\Joint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointKey.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointType.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\MotorJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\MotorJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PrismaticJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PrismaticJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PulleyJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PulleyJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RevoluteJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RevoluteJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RopeJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RopeJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\TargetJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\TargetJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WeldJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WeldJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJoint.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJointConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Collision.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Distance.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\DistanceProxy.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\DynamicTree.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Manifold.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\MassData.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastOutput.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\SeparationScenario.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\ShapeSeparation.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Simplex.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\TimeOfImpact.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\WorldManifold.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -807,144 +870,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp">
       <Filter>3rdParty\Other</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2Body.h">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2ContactManager.h">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2Fixture.h">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2Island.h">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2TimeStep.h">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2World.h">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\b2WorldCallbacks.h">
-      <Filter>3rdParty\Box2D\Dynamics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2ChainAndCircleContact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2ChainAndPolygonContact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2CircleContact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2Contact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2ContactSolver.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2EdgeAndCircleContact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2EdgeAndPolygonContact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2PolygonAndCircleContact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Contacts\b2PolygonContact.h">
-      <Filter>3rdParty\Box2D\Dynamics\Contacts</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2DistanceJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2FrictionJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2GearJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2Joint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2MotorJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2MouseJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2PrismaticJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2PulleyJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2RevoluteJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2RopeJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2WeldJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Dynamics\Joints\b2WheelJoint.h">
-      <Filter>3rdParty\Box2D\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\b2TimeOfImpact.h">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\b2BroadPhase.h">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\b2Collision.h">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\b2Distance.h">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\b2DynamicTree.h">
-      <Filter>3rdParty\Box2D\Collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2ChainShape.h">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2CircleShape.h">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2EdgeShape.h">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2PolygonShape.h">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Collision\Shapes\b2Shape.h">
-      <Filter>3rdParty\Box2D\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Common\b2BlockAllocator.h">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Common\b2Draw.h">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Common\b2GrowableStack.h">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Common\b2Math.h">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Common\b2Settings.h">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Common\b2StackAllocator.h">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Common\b2Timer.h">
-      <Filter>3rdParty\Box2D\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Box2D\Rope\b2Rope.h">
-      <Filter>3rdParty\Box2D\Rope</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Physics\Body.h">
       <Filter>Physics</Filter>
     </ClInclude>
@@ -1146,15 +1071,386 @@
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\..\Downloads\Dorothy SSR.ico">
-      <Filter>Resources</Filter>
-    </Image>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Defines.hpp">
+      <Filter>3rdParty\PlayRho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\PlayRho.hpp">
+      <Filter>3rdParty\PlayRho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Acceleration.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\AllocatedArray.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ArrayList.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\BlockAllocator.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\BoundedValue.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\CodeDumper.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\DynamicMemory.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Fixed.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\FixedLimits.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\FixedMath.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\FlagGuard.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\GrowableStack.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Interval.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Intervals.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\InvalidArgument.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\LengthError.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Math.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Matrix.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\OptionalValue.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Position.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Range.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Real.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\RealConstants.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Settings.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Span.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StackAllocator.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Sweep.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Templates.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Transformation.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Units.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\UnitVec.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Vector.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Vector2.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Vector3.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Velocity.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Version.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\VertexSet.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Wider.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\WrongState.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Body.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyAtty.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyType.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\ContactAtty.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\ContactImpulsesList.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Filter.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Fixture.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\FixtureAtty.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\FixtureConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\FixtureProxy.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Island.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\IslandStats.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\JointAtty.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\MovementConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\StepConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\StepStats.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\World.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldAtty.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldCallbacks.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\BodyConstraint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\Contact.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactKey.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactSolver.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\PositionConstraint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\PositionSolverManifold.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\VelocityConstraint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\DistanceJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\DistanceJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\FrictionJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\FrictionJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\FunctionalJointVisitor.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\GearJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\GearJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\Joint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointKey.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointType.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointVisitor.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\MotorJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\MotorJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PrismaticJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PrismaticJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PulleyJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PulleyJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RevoluteJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RevoluteJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RopeJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RopeJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\TargetJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\TargetJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\TypeJointVisitor.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WeldJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WeldJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJoint.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJointConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Collision.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ContactFeature.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Distance.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\DistanceProxy.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\DynamicTree.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\IndexPair.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Manifold.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\MassData.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastInput.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastOutput.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\SeparationScenario.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ShapeSeparation.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Simplex.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\SimplexEdge.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\TimeOfImpact.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\WorldManifold.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
       <Filter>Resources</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Source\3rdParty\PlayRho\Common\Real.hpp.in">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Dorothy SSR.ico">
+      <Filter>Resources</Filter>
+    </Image>
   </ItemGroup>
 </Project>

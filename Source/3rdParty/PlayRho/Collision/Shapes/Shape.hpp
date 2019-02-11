@@ -29,7 +29,6 @@
 #include <memory>
 #include <functional>
 #include <utility>
-#include <typeinfo>
 
 namespace playrho {
 namespace d2 {
@@ -110,12 +109,11 @@ bool Visit(const Shape& shape, void* userData);
 const void* GetData(const Shape& shape) noexcept;
 
 /// @brief Gets the type id of the use of the given shape.
-/// @note This is not the same as calling <code>typeid(Shape)</code>.
 /// @return Type id of the underlying value's type.
-int GetUseTypeInfo(const Shape& shape);
+int GetUseType(const Shape& shape);
 
 /// @brief Visitor type alias for underlying shape configuration.
-using TypeInfoVisitor = std::function<void(int ti, const void* data)>;
+using TypeInfoVisitor = std::function<void(int tid, const void* data)>;
 
 /// @brief Accepts a visitor.
 /// @details This is the "accept" method definition of a "visitor design pattern"
@@ -128,6 +126,9 @@ bool operator== (const Shape& lhs, const Shape& rhs) noexcept;
 
 /// @brief Inequality operator for shape to shape comparisons.
 bool operator!= (const Shape& lhs, const Shape& rhs) noexcept;
+
+template<class Type>
+int ShapeType() noexcept;
 
 // Now define the shape class...
     
@@ -248,15 +249,15 @@ public:
         return shape.m_self->GetData_();
     }
     
-    friend int GetUseTypeInfo(const Shape& shape)
+    friend int GetUseType(const Shape& shape)
     {
-        return shape.m_self->GetUseTypeInfo_();
+        return shape.m_self->GetUseType_();
     }
 
     friend void Accept(const Shape& shape, const TypeInfoVisitor& visitor)
     {
         const auto self = shape.m_self;
-        visitor(self->GetUseTypeInfo_(), self->GetData_());
+        visitor(self->GetUseType_(), self->GetData_());
     }
     
     friend bool operator== (const Shape& lhs, const Shape& rhs) noexcept
@@ -269,7 +270,12 @@ public:
         return !(lhs == rhs);
     }
 
+	template<class Type>
+	friend int ShapeType() noexcept;
+
 private:
+
+    static int m_shapeTypeIndex;
 
     /// @brief Internal shape configuration concept.
     /// @note Provides an interface for runtime polymorphism for shape configuration.
@@ -316,8 +322,8 @@ private:
         virtual bool IsEqual_(const Concept& other) const noexcept = 0;
         
         /// @brief Gets the use type information.
-        /// @return Type info of the underlying value's type.
-        virtual int GetUseTypeInfo_() const = 0;
+        /// @return Type id of the underlying value's type.
+        virtual int GetUseType_() const = 0;
         
         /// @brief Gets the data for the underlying configuration.
         virtual const void* GetData_() const noexcept = 0;
@@ -398,15 +404,13 @@ private:
         
         bool IsEqual_(const Concept& other) const noexcept override
         {
-            // Would be preferable to do this without using any kind of RTTI system.
-            // But how would that be done?
-            return (GetUseTypeInfo_() == other.GetUseTypeInfo_()) &&
+            return (GetUseType_() == other.GetUseType_()) &&
                 (data == *static_cast<const T*>(other.GetData_()));
         }
         
-        int GetUseTypeInfo_() const override
+        int GetUseType_() const override
         {
-            return ShapeType<data_type>();
+            return ::playrho::d2::ShapeType<data_type>();
         }
         
         const void* GetData_() const noexcept override
@@ -432,6 +436,13 @@ private:
 /// @relatedalso Shape
 /// @ingroup TestPointGroup
 bool TestPoint(const Shape& shape, Length2 point) noexcept;
+
+template<class Type>
+int ShapeType() noexcept
+{
+	static int type = ++Shape::m_shapeTypeIndex;
+	return type;
+}
 
 } // namespace d2
 

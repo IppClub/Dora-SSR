@@ -80,9 +80,21 @@ PLAYRHO_CONSTEXPR const auto Deci = Real(1e-1);
 /// @sa https://en.wikipedia.org/wiki/Kilo-
 PLAYRHO_CONSTEXPR const auto Kilo = Real(1e3);
 
+/// @brief Mega- (1 x 10^6).
+/// @sa https://en.wikipedia.org/wiki/Mega-
+PLAYRHO_CONSTEXPR const auto Mega = Real(1e6);
+
 /// @brief Giga- (1 x 10^9).
 /// @sa https://en.wikipedia.org/wiki/Giga-
 PLAYRHO_CONSTEXPR const auto Giga = Real(1e9);
+
+/// @brief Tera- (1 x 10^12).
+/// @sa https://en.wikipedia.org/wiki/Tera-
+PLAYRHO_CONSTEXPR const auto Tera = Real(1e12);
+
+/// @brief Peta- (1 x 10^15).
+/// @sa https://en.wikipedia.org/wiki/Peta-
+PLAYRHO_CONSTEXPR const auto Peta = Real(1e15);
 
 /// @brief Yotta- (1 x 10^24).
 /// @sa https://en.wikipedia.org/wiki/Yotta-

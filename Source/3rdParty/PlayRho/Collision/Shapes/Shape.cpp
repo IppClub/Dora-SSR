@@ -20,11 +20,12 @@
  */
 
 #include "PlayRho/Collision/Shapes/Shape.hpp"
+#include "PlayRho/Collision/Shapes/ShapeConf.hpp"
 
 namespace playrho {
 namespace d2 {
 
-int BaseShapeConf::_shapeTypeIndex = 0;
+int Shape::m_shapeTypeIndex = 0;
 
 namespace {
 

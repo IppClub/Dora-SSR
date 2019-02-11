@@ -47,7 +47,7 @@ namespace playrho {
 template <typename BT, unsigned int FB, int N = 5>
 constexpr inline Fixed<BT, FB> abs(Fixed<BT, FB> arg)
 {
-    return arg >= 0? arg: -arg;
+    return arg >= 0 ? arg: -arg;
 }
 
 /// @brief Computes the value of the given number raised to the given power.
@@ -115,7 +115,7 @@ constexpr const auto FixedPi = Fixed<BT, FB>{3.141592653589793238462643383279502
 /// @brief Computes the factorial.
 constexpr inline auto factorial(std::int64_t n)
 {
-    // n! = n·(n – 1)·(n – 2) · · · 3·2·1
+    // n! = n * (n - 1) * (n - 2) * * * 3 * 2 * 1
     auto res = n;
     for (--n; n > 1; --n)
     {
