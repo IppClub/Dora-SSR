@@ -1,0 +1,6 @@
+language: c++
+osx_image: xcode10.1
+os: osx
+before_install: Tools/tolua++/build.sh
+script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
+
