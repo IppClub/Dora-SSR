@@ -616,7 +616,6 @@ class Model : public Node
 
 class PhysicsWorld : public Node
 {
-	tolua_property__common Vec2 gravity;
 	tolua_property__bool bool showDebug;
 	bool query(Rect rect, tolua_function_bool handler);
 	bool raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);

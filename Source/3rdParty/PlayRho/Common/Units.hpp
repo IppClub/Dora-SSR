@@ -426,6 +426,20 @@ namespace playrho
         return static_cast<Real>(v) * Kilogram;
     }
     
+    /// @brief SI unit symbol for a petagram unit of Mass.
+    /// @sa https://en.wikipedia.org/wiki/Orders_of_magnitude_(mass)
+    PLAYRHO_CONSTEXPR inline Mass operator"" _Pg(unsigned long long int v) noexcept
+    {
+        return static_cast<Real>(v) * Peta * (Kilogram / Kilo);
+    }
+
+    /// @brief SI unit symbol for a petagram unit of Mass.
+    /// @sa https://en.wikipedia.org/wiki/Orders_of_magnitude_(mass)
+    PLAYRHO_CONSTEXPR inline Mass operator"" _Pg(long double v) noexcept
+    {
+        return static_cast<Real>(v) * Peta * (Kilogram / Kilo);
+    }
+
     /// @brief SI unit symbol for a yottagram unit of Mass.
     /// @sa https://en.wikipedia.org/wiki/Orders_of_magnitude_(mass)
     PLAYRHO_CONSTEXPR inline Mass operator"" _Yg(unsigned long long int v) noexcept
@@ -498,6 +512,20 @@ namespace playrho
         return static_cast<Real>(v) * Giga * Meter;
     }
     
+    /// @brief SI unit symbol for a megameter unit of Length.
+    /// @sa https://en.wikipedia.org/wiki/Megametre
+    PLAYRHO_CONSTEXPR inline Length operator"" _Mm (unsigned long long int v) noexcept
+    {
+        return static_cast<Real>(v) * Mega * Meter;
+    }
+
+    /// @brief SI unit symbol for a megameter unit of Length.
+    /// @sa https://en.wikipedia.org/wiki/Megametre
+    PLAYRHO_CONSTEXPR inline Length operator"" _Mm (long double v) noexcept
+    {
+        return static_cast<Real>(v) * Mega * Meter;
+    }
+
     /// @brief SI symbol for a kilometer unit of Length.
     /// @sa https://en.wikipedia.org/wiki/Kilometre
     PLAYRHO_CONSTEXPR inline Length operator"" _km (unsigned long long int v) noexcept

@@ -138,7 +138,7 @@ Color Color::convert(Uint32 abgr)
 }
 
 Color Color::White;
-Color Color::Black(0,0,0,0);
+Color Color::Black(0x0);
 
 const BlendFunc BlendFunc::Default{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 

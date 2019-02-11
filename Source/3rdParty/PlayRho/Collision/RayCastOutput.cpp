@@ -98,7 +98,7 @@ RayCastOutput RayCast(const AABB& aabb, const RayCastInput& input) noexcept
             auto s = -1; // Sign of the normal vector.
             if (t1 > t2)
             {
-                swap(t1, t2);
+                std::swap(t1, t2);
                 s = 1;
             }
             if (tmin < t1)

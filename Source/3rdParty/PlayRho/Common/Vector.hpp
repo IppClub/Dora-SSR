@@ -87,8 +87,8 @@ struct Vector
     
     /// @brief Initializing constructor.
     template<typename... Tail>
-    PLAYRHO_CONSTEXPR inline explicit Vector(std::enable_if_t<sizeof...(Tail)+1 == N, T> head,
-                                             Tail... tail) noexcept: elements{head, T(tail)...}
+    PLAYRHO_CONSTEXPR inline Vector(std::enable_if_t<sizeof...(Tail)+1 == N, T> head,
+                                    Tail... tail) noexcept: elements{head, T(tail)...}
     {
         // Intentionally empty.
     }

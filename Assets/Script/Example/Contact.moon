@@ -12,7 +12,7 @@ label = with Label "NotoSansHans-Regular",30
 terrainDef = with BodyDef!
 	count = 50
 	radius = 300
-	vertices = for i = 1,count
+	vertices = for i = 1,count+1
 		angle = 2*math.pi*i/count
 		Vec2 radius*math.cos(angle),radius*math.sin(angle)
 	\attachChain vertices,0.4,0

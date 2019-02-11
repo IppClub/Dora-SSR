@@ -28,8 +28,8 @@ public:
 	virtual ~DebugDraw();
 	void DrawWorld(pd::World* world);
 public:
-	bool IsVisible(pd::Fixture* fixture);
-	bool IsVisible(pd::Body* body);
+	static bool IsVisible(pd::Fixture* fixture);
+	static bool IsVisible(pd::Body* body);
 	void DrawPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
 	void DrawSolidPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
 	void DrawCircle(const pr::Length2& center, float radius, const Color& color);

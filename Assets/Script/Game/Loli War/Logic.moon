@@ -353,6 +353,7 @@ with Observer "Change", {"blocks","group"}
 				.scaleY = 2
 				.filter = TextureFilter.Point
 			rectDef = with BodyDef!
+				.linearAcceleration = Vec2 0,-10
 				.type = BodyType.Dynamic
 				\attachPolygon sp.width*2,sp.height*2,1,0,1
 			with Body rectDef,world,Vec2(@unit.x,512)

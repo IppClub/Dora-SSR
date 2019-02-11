@@ -56,20 +56,7 @@ struct BaseShapeConf
     /// @note Use 0 to indicate that the shape's associated mass should be 0.
     ///
     NonNegative<AreaDensity> density = NonNegative<AreaDensity>{0_kgpm2};
-
-	template<class Type>
-    friend int ShapeType() noexcept;
-
-private:
-    static int _shapeTypeIndex;
 };
-
-template<class Type>
-int ShapeType() noexcept
-{
-	static int type = ++BaseShapeConf::_shapeTypeIndex;
-	return type;
-}
 
 /// @brief Builder configuration structure.
 /// @details This is a builder structure of chainable methods for building a shape
