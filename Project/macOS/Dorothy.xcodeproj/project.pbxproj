@@ -188,7 +188,6 @@
 		3CFDA9382200358900C9DFD0 /* BlockAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDA8BC2200358900C9DFD0 /* BlockAllocator.cpp */; };
 		3CFDA9392200358900C9DFD0 /* Version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDA8BD2200358900C9DFD0 /* Version.cpp */; };
 		3CFDA93A2200358900C9DFD0 /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDA8BE2200358900C9DFD0 /* Math.cpp */; };
-		3CFDA93B2200358900C9DFD0 /* Real.hpp.in in Resources */ = {isa = PBXBuildFile; fileRef = 3CFDA8C32200358900C9DFD0 /* Real.hpp.in */; };
 		3CFDA93C2200358900C9DFD0 /* UnitVec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDA8C42200358900C9DFD0 /* UnitVec.cpp */; };
 		3CFDA93D2200358900C9DFD0 /* DynamicMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDA8C62200358900C9DFD0 /* DynamicMemory.cpp */; };
 		3CFDA93E2200358900C9DFD0 /* Velocity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDA8D42200358900C9DFD0 /* Velocity.cpp */; };
@@ -1611,7 +1610,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3CC81FFD1D966770008C8B77 /* Build configuration list for PBXNativeTarget "Dorothy" */;
 			buildPhases = (
-				3C6411FD21D4CFF3000D3968 /* ShellScript */,
+				3C1676B322115A3F00892CD4 /* ShellScript */,
 				3CC81FE21D966770008C8B77 /* Sources */,
 				3CC81FE31D966770008C8B77 /* Frameworks */,
 				3CC81FE41D966770008C8B77 /* Resources */,
@@ -1664,7 +1663,6 @@
 			files = (
 				3CD498001E7EFBE700C06CA2 /* Model in Resources */,
 				3C9A7D701E53F9EF00205094 /* Font in Resources */,
-				3CFDA93B2200358900C9DFD0 /* Real.hpp.in in Resources */,
 				3CA87C4920FB60F800260F9E /* Particle in Resources */,
 				3C0EBE3C1E2F69410066450A /* Image in Resources */,
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
@@ -1676,7 +1674,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		3C6411FD21D4CFF3000D3968 /* ShellScript */ = {
+		3C1676B322115A3F00892CD4 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2021,7 +2019,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/lpeg";
-				VALID_ARCHS = "i386 x86_64";
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -2056,7 +2054,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/BGFX/Header $(SRCROOT)/../../Source/3rdParty/BGFX/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/lpeg";
-				VALID_ARCHS = "i386 x86_64";
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
