@@ -20,7 +20,7 @@ matrix:
       - sudo apt-get install ant
       - sudo apt-get install lua5.1
       - sudo apt-get install -y luarocks
-      - luarocks install luafilesystem
+      - sudo luarocks install luafilesystem
       - cd ./Tools/tolua++
       - lua tolua++.lua
     install:
