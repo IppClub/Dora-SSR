@@ -22,7 +22,9 @@ end
 
 if not rebuild then
 	print(string.format("C++ codes for \"%s\" are updated.", flags.f))
-	os.exit(0)
+	if not flags.lua_entry then
+		os.exit(0)
+	end
 else
 	print(string.format("Generating C++ codes for \"%s\"...", flags.f))
 end

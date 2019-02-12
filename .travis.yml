@@ -18,6 +18,11 @@ matrix:
         - pandoc
     before_install:
       - sudo apt-get install ant
+      - apt-get install lua
+      - apt-get install -y luarocks
+      - luarocks install luafilesystem
+      - cd ./Tools/tolua++
+      - lua tolua++.lua
     install:
       - echo y | sdkmanager "ndk-bundle"
       - echo y | sdkmanager "cmake;3.6.4111459"
