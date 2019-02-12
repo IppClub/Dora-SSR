@@ -4,16 +4,12 @@ matrix:
     os: osx
     osx_image: xcode10.1
     before_install: Tools/tolua++/build.sh
-    xcode_project: Project/macOS/Dorothy.xcodeproj
-    xcode_scheme: Dorothy
-    xcode_destination: platform=macOS
+    script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
   - language: cpp
     os: osx
     osx_image: xcode10.1
     before_install: Tools/tolua++/build.sh
-    xcode_project: Project/iOS/Dorothy.xcodeproj
-    xcode_scheme: Dorothy
-    xcode_destination: platform=iOS Simulator,OS=11.3,name=iPhone X
+    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator12.1
   - language: android
     sudo: true
     android:
