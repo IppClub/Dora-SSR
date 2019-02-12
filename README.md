@@ -1,4 +1,8 @@
 # Dorothy SSR
+|iOS|macOS|Android|Windows|
+|---|-----|-------|-------|
+|[![Build Status](https://api.travis-ci.com/IppClub/Dorothy-SSR.svg?branch=master)](https://api.travis-ci.com/IppClub/Dorothy-SSR)|[![Build Status](https://api.travis-ci.com/IppClub/Dorothy-SSR.svg?branch=master)](https://api.travis-ci.com/IppClub/Dorothy-SSR)|[![Build Status](https://api.travis-ci.com/IppClub/Dorothy-SSR.svg?branch=master)](https://api.travis-ci.com/IppClub/Dorothy-SSR)|[![Build status](https://ci.appveyor.com/api/projects/status/cypfm1makpfu4e7i?svg=true)](https://ci.appveyor.com/project/pigpigyyy/dorothy-ssr)|
+
 ## 功能展示  
 ![Dorothy First Power](http://www.luvfight.me/content/images/2018/12/DorothyFirstPower.png)
 ## 项目目标
