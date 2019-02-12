@@ -1,10 +1,15 @@
 matrix:
   include:
-  - language: c++
+  - language: cpp
     os: osx
     osx_image: xcode10.1
     before_install: Tools/tolua++/build.sh
     script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
+  - language: cpp
+    os: osx
+    osx_image: xcode10.1
+    before_install: Tools/tolua++/build.sh
+    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -target Dorothy
   - language: android
     sudo: true
     android:
@@ -30,6 +35,6 @@ matrix:
     before_script:
       - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
     script:
-      - cd ./Project/Android
+      - cd ../../Project/Android
       - ./gradlew assemble
 

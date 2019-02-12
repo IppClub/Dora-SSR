@@ -1,0 +1,14 @@
+version: 1.0.{build}
+branches:
+  only:
+  - master
+image: Visual Studio 2017
+configuration:
+- Debug
+- Release
+platform: x86
+build:
+  project: Project\Windows\Dorothy.sln
+  parallel: true
+  verbosity: normal
+test: off
