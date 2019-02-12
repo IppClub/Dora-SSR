@@ -18,6 +18,11 @@ matrix:
         - extra-google-google_play_services
         - add-on
         - extra
+      addons:
+        apt_packages:
+          - pandoc
+      before_install:
+        - sudo apt-get install ant
       install:
         - echo y | sdkmanager "ndk-bundle"
         - echo y | sdkmanager "cmake;3.6.4111459"
@@ -31,4 +36,5 @@ matrix:
         - export PATH=$PATH:${ANDROID_NDK_HOME}
         - env
       script:
-        - ./gradlew build
+        - ./Project/Android/gradlew build
+
