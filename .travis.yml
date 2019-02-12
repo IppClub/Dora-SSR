@@ -5,19 +5,13 @@ matrix:
     before_install: Tools/tolua++/build.sh
     script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
   - language: android
-    android:
+      sudo: true
+      android:
       components:
         - tools
         - platform-tools
-        - tools
-        - build-tools-26.1.1
-        - android-26
-        - extra-android-m2repository
         - extra-google-m2repository
-        - extra-android-support
-        - extra-google-google_play_services
-        - add-on
-        - extra
+        - extra-android-m2repository
       addons:
         apt_packages:
           - pandoc
@@ -30,11 +24,11 @@ matrix:
       before_script:
         - wget https://dl.google.com/android/repository/android-ndk-r19-linux-x86_64.zip
         - unzip -qq android-ndk-r19-linux-x86_64.zip
-        - export ANDROID_NDK_HOME=`pwd`/android-ndk-r16b
+        - export ANDROID_NDK_HOME=`pwd`/android-ndk-r19
         - export LOCAL_ANDROID_NDK_HOME="$ANDROID_NDK_HOME"
         - export LOCAL_ANDROID_NDK_HOST_PLATFORM="linux-x86_64"
         - export PATH=$PATH:${ANDROID_NDK_HOME}
         - env
       script:
-        - ./Project/Android/gradlew build
+        - ./Project/Android/gradlew -q clean assembleDebug
 
