@@ -6,7 +6,7 @@ matrix:
     before_install: Tools/tolua++/build.sh
     script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
   - language: android
-    sudo: true
+    os: osx
     android:
     components:
       - tools
@@ -17,7 +17,8 @@ matrix:
       apt_packages:
         - pandoc
     before_install:
-      - sudo apt-get install ant
+      - brew install ant
+      - Tools/tolua++/build.sh
     install:
       - echo y | sdkmanager "ndk-bundle"
       - echo y | sdkmanager "cmake;3.6.4111459"
@@ -25,5 +26,5 @@ matrix:
     before_script:
       - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
     script:
-      - ./Project/Android/gradlew -q clean assembleDebug
+      - ./Project/Android/gradlew -q assembleDebug
 
