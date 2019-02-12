@@ -25,5 +25,5 @@ matrix:
     before_script:
       - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
     script:
-      - ./Project/Android/gradlew -q assembleDebug
+      - ./Project/Android/gradlew assemble
 
