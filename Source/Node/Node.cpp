@@ -637,14 +637,13 @@ Vec2 Node::convertToNodeSpace(const Vec2& worldPoint)
 	Matrix invWorld;
 	bx::mtxInverse(invWorld, getWorld());
 	Vec3 point;
-	bx::vec3MulMtx(point, Vec3{worldPoint.x, worldPoint.y, 0.0f}, invWorld);
+	point = Vec3::from(bx::mul(bx::Vec3{worldPoint.x, worldPoint.y, 0.0f}, invWorld));
 	return point.toVec2();
 }
 
 Vec2 Node::convertToWorldSpace(const Vec2& nodePoint)
 {
-	Vec3 point;
-	bx::vec3MulMtx(point, Vec3{nodePoint.x, nodePoint.y, 0.0f}, getWorld());
+	Vec3 point = Vec3::from(bx::mul(bx::Vec3{nodePoint.x, nodePoint.y, 0.0f}, getWorld()));
 	return point.toVec2();
 }
 
@@ -652,15 +651,12 @@ Vec3 Node::convertToNodeSpace3(const Vec3& worldPoint)
 {
 	Matrix invWorld;
 	bx::mtxInverse(invWorld, getWorld());
-	Vec3 point;
-	bx::vec3MulMtx(point, worldPoint, invWorld);
-	return point;
+	return Vec3::from(bx::mul(worldPoint, invWorld));
 }
 
 Vec3 Node::convertToWorldSpace3(const Vec3& nodePoint)
 {
-	Vec3 point;
-	bx::vec3MulMtx(point, nodePoint, getWorld());
+	Vec3 point = Vec3::from(bx::mul(nodePoint, getWorld()));
 	return point;
 }
 

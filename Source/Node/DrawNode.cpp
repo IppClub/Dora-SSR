@@ -93,9 +93,12 @@ void DrawNode::render()
 		for (size_t i = 0; i < _posColors.size(); i++)
 		{
 			const Vec4& acolor = _posColors[i].color;
-			float alpha = acolor.w * ucolor.w;
-			Vec4 color {0, 0, 0, alpha};
-			bx::vec3Mul(color, acolor, ucolor);
+			Vec4 color{
+				acolor.x * ucolor.x,
+				acolor.y * ucolor.y,
+				acolor.z * ucolor.z,
+				acolor.w * ucolor.w
+			};
 			_vertices[i].abgr = Color(color).toABGR();
 		}
 	}
@@ -582,9 +585,12 @@ void Line::render()
 		for (size_t i = 0; i < _posColors.size(); i++)
 		{
 			const Vec4& acolor = _posColors[i].color;
-			float alpha = acolor.w * ucolor.w;
-			Vec4 color {0, 0, 0, alpha};
-			bx::vec3Mul(color, acolor, ucolor);
+			Vec4 color{
+				acolor.x * ucolor.x,
+				acolor.y * ucolor.y,
+				acolor.z * ucolor.z,
+				acolor.w * ucolor.w
+			};
 			_vertices[i].abgr = Color(color).toABGR();
 		}
 	}

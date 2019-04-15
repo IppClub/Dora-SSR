@@ -161,6 +161,10 @@ struct Vec4
 	{
 		return Vec3{x, y, z};
 	}
+	static Vec4 from(const Vec3& vec3, float w)
+	{
+		return {vec3.x, vec3.y, vec3.z, w};
+	}
 };
 
 struct Matrix

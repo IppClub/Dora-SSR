@@ -156,12 +156,12 @@ Value* Effect::get(String name) const
 
 SpriteEffect::SpriteEffect(Shader* vertShader, Shader* fragShader):
 Effect(vertShader, fragShader),
-_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Int1))
+_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler))
 { }
 
 SpriteEffect::SpriteEffect(String vertShader, String fragShader):
 Effect(vertShader, fragShader),
-_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Int1))
+_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler))
 { }
 
 SpriteEffect::~SpriteEffect()
