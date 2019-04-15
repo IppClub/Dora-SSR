@@ -885,7 +885,7 @@ tolua_lerror:
 #endif
 }
 
-Object* Dora_getObject(lua_State* L, int loc)
+static Object* Dora_getObject(lua_State* L, int loc)
 {
 	if (!lua_isnil(L, loc))
 	{
@@ -2104,15 +2104,15 @@ namespace ImGui { namespace Binding
 	{
 		switch (Switch::hash(mode))
 		{
-			case "RGB"_hash: return ImGuiColorEditFlags_RGB;
-			case "HSV"_hash: return ImGuiColorEditFlags_HSV;
-			case "HEX"_hash: return ImGuiColorEditFlags_HEX;
-			case ""_hash: return ImGuiColorEditFlags_(0);
+			case "RGB"_hash: return ImGuiColorEditFlags_DisplayRGB;
+			case "HSV"_hash: return ImGuiColorEditFlags_DisplayHSV;
+			case "HEX"_hash: return ImGuiColorEditFlags_DisplayHex;
+			case ""_hash: return ImGuiColorEditFlags_None;
 			default:
 				AssertIf(true, "ImGui color edit flag name \"{}\" is invalid.", mode);
 				break;
 		}
-		return ImGuiColorEditFlags_(0);
+		return ImGuiColorEditFlags_None;
 	}
 
 	ImGuiCond_ getSetCond(String cond)

@@ -218,8 +218,8 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 		bx::mtxMul(MVP, _target->getWorld(), SharedDirector.getViewProjection());
 		bx::mtxInverse(invMVP, MVP);
 	}
-	float plane[4];
-	bx::calcPlane(plane, Vec3{0,0,0}, Vec3{1,0,0}, Vec3{0,1,0});
+	bx::Plane plane;
+	bx::calcPlane(plane, bx::Vec3{0,0,0}, bx::Vec3{1,0,0}, bx::Vec3{0,1,0});
 
 	Vec3 posTarget{pos[0], pos[1], 1.0f};
 	float viewPort[4]{0, 0, viewSize.width, viewSize.height};
@@ -228,21 +228,18 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 	unProject(pos[0], pos[1], pos[2], invMVP, viewPort, origin);
 	unProject(posTarget[0], posTarget[1], posTarget[2], invMVP, viewPort, target);
 
-	Vec3 dir, dirNorm;
-	bx::vec3Sub(dir, target, origin);
-	bx::vec3Norm(dirNorm, dir);
-	float denom = bx::vec3Dot(dirNorm, plane);
+	bx::Vec3 dir = bx::sub(target, origin);
+	bx::Vec3 dirNorm = bx::normalize(dir);
+	float denom = bx::dot(dirNorm, plane.normal);
 	if (std::abs(denom) >= FLT_EPSILON)
 	{
-		float nom = bx::vec3Dot(origin, plane) + plane[3];
+		float nom = bx::dot(origin, plane.normal) + plane.dist;
 		float t = -(nom/denom);
 		if (t >= 0)
 		{
-			Vec3 offset;
-			bx::vec3Mul(offset, dirNorm, t);
-			Vec3 result;
-			bx::vec3Add(result, origin, offset);
-			return result;
+			bx::Vec3 offset = bx::mul(dirNorm, t);
+			bx::Vec3 result = bx::add(origin, offset);
+			return Vec2{result.x, result.y};
 		}
 	}
 	return Vec2{-1.0f, -1.0f};

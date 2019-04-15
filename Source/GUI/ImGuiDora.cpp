@@ -366,14 +366,15 @@ bool ImGuiDora::init()
 {
 	ImGui::CreateContext(_defaultFonts);
 	ImGuiStyle& style = ImGui::GetStyle();
+	float rounding = 5.0f;
 	style.Alpha = 1.0f;
 	style.WindowPadding = ImVec2(10, 10);
 	style.WindowMinSize = ImVec2(100, 32);
-	style.WindowRounding = 0.0f;
+	style.WindowRounding = rounding;
 	style.WindowBorderSize = 0.0f;
 	style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
 	style.FramePadding = ImVec2(5, 5);
-	style.FrameRounding = 0.0f;
+	style.FrameRounding = rounding;
 	style.FrameBorderSize = 0.0f;
 	style.ItemSpacing = ImVec2(10, 10);
 	style.ItemInnerSpacing = ImVec2(5, 5);
@@ -381,9 +382,9 @@ bool ImGuiDora::init()
 	style.IndentSpacing = 10.0f;
 	style.ColumnsMinSpacing = 5.0f;
 	style.ScrollbarSize = 25.0f;
-	style.ScrollbarRounding = 0.0f;
+	style.ScrollbarRounding = 5.0f;
 	style.GrabMinSize = 20.0f;
-	style.GrabRounding = 0.0f;
+	style.GrabRounding = rounding;
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 	style.DisplayWindowPadding = ImVec2(50, 50);
 	style.DisplaySafeAreaPadding = ImVec2(5, 5);
@@ -429,6 +430,11 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.00f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 1.00f, 1.00f, 0.35f);
 	style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.00f, 0.20f, 0.20f, 0.35f);
+	style.Colors[ImGuiCol_Tab] = style.Colors[ImGuiCol_Header];
+    style.Colors[ImGuiCol_TabHovered] = style.Colors[ImGuiCol_HeaderHovered];
+    style.Colors[ImGuiCol_TabActive] = style.Colors[ImGuiCol_HeaderActive];
+    style.Colors[ImGuiCol_TabUnfocused] = style.Colors[ImGuiCol_Tab];
+    style.Colors[ImGuiCol_TabUnfocusedActive] = style.Colors[ImGuiCol_TabActive];
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;
