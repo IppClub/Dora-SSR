@@ -55,7 +55,7 @@ LintMoonGlobals = (moonCodes,entry)->
 						findModule = true
 						break
 				if not findModule
-					error "Used invalid global value \"#{name}\" in #{entry}."
+					error "Used invalid global value \"#{name}\" in \"#{entry}\"."
 	table.concat requireModules, "\n"
 
 totalFiles = 0
