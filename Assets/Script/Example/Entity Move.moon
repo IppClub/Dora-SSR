@@ -82,6 +82,8 @@ with Observer "Add", {"scene"}
 			if Button "Destroy An Entity"
 				Group({"sprite","position"})\each (entity)->
 					entity.position = nil
-					entity.sprite\runAction Sequence Scale(0.5, 1, 0, Ease.InBack), Call -> entity\destroy!
+					with entity.sprite
+						\runAction Sequence Scale(0.5,1,0,Ease.InBack), Emit("Destroy")
+						\slot "Destroy", -> entity\destroy!
 					true
 		End!
