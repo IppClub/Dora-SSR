@@ -517,6 +517,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\prepare.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h" />

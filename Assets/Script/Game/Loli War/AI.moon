@@ -8,7 +8,7 @@ gameEndWait = Seq {
 	Con "game end",=> Store.winner ~= nil
 	Sel {
 		Seq {
-			 Con "need wait",=> @onSurface and not @isDoing "wait"
+			Con "need wait",=> @onSurface and not @isDoing "wait"
 			Act "cancel"
 			Act "wait"
 		}

@@ -1651,9 +1651,9 @@ namespace ImGui { namespace Binding
 		return ImGui::TreeNodeEx(label, getTreeNodeFlags(treeNodeFlags));
 	}
 
-	void SetNextTreeNodeOpen(bool is_open, String setCond)
+	void SetNextItemOpen(bool is_open, String setCond)
 	{
-		ImGui::SetNextTreeNodeOpen(is_open, getSetCond(setCond));
+		ImGui::SetNextItemOpen(is_open, getSetCond(setCond));
 	}
 
 	bool CollapsingHeader(const char* label, String treeNodeFlags)
