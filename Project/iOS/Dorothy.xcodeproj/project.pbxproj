@@ -242,6 +242,7 @@
 		3C0AD7D51E0CE9B10033AD59 /* Ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ref.h; path = ../../../Source/Common/Ref.h; sourceTree = "<group>"; };
 		3C0AD7D71E0CE9B10033AD59 /* WRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRef.h; path = ../../../Source/Common/WRef.h; sourceTree = "<group>"; };
 		3C0EBE311E2DB9E10066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbx.a; sourceTree = "<group>"; };
+		3C0F6238229FAD8F0074A2E2 /* prepare.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = prepare.h; path = ../../../Source/3rdParty/fmt/prepare.h; sourceTree = "<group>"; };
 		3C1070681E13A2D800EB8C7A /* Async.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Async.cpp; path = ../../../Source/Common/Async.cpp; sourceTree = "<group>"; };
 		3C1070691E13A2D800EB8C7A /* Async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Async.h; path = ../../../Source/Common/Async.h; sourceTree = "<group>"; };
 		3C127B2A1EE63BFE0078EA22 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Config.h; path = ../../../Source/Const/Config.h; sourceTree = "<group>"; };
@@ -1172,6 +1173,7 @@
 		3C88055F1E5ED0F900B52D4B /* fmt */ = {
 			isa = PBXGroup;
 			children = (
+				3C0F6238229FAD8F0074A2E2 /* prepare.h */,
 				3C53C14121C9DCDB00343D85 /* chrono.h */,
 				3C53C14221C9DCDB00343D85 /* color.h */,
 				3C53C14321C9DCDB00343D85 /* locale.h */,
@@ -1574,7 +1576,7 @@
 			};
 			buildConfigurationList = 3CC820041D96680C008C8B77 /* Build configuration list for PBXProject "Dorothy" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,

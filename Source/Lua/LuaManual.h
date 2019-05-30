@@ -189,7 +189,7 @@ namespace ImGui { namespace Binding
 	bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, String format = "%.1f", String inputTextFlags = nullptr);
 	bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String inputTextFlags = nullptr);
 	bool TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
-	void SetNextTreeNodeOpen(bool is_open, String setCond = nullptr);
+	void SetNextItemOpen(bool is_open, String setCond = nullptr);
 	bool CollapsingHeader(const char* label, String treeNodeFlags = nullptr);
 	bool CollapsingHeader(const char* label, bool* p_open, String treeNodeFlags = nullptr);
 	bool Selectable(const char* label, bool selected = false, String selectableFlags = nullptr, const Vec2& size = Vec2::zero);

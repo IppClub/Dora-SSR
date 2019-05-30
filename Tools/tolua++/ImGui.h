@@ -36,7 +36,7 @@ namespace ImGui
 	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, String format = "%.1f", String inputTextFlags = nullptr);
 	bool Binding::InputInt @ InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String inputTextFlags = nullptr);
 	bool Binding::TreeNodeEx @ TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
-	void Binding::SetNextTreeNodeOpen @ SetNextTreeNodeOpen(bool is_open, String setCond = nullptr);
+	void Binding::SetNextItemOpen @ SetNextItemOpen(bool is_open, String setCond = nullptr);
 	bool Binding::CollapsingHeader @ CollapsingHeader(const char* label, String treeNodeFlags = nullptr);
 	bool Binding::CollapsingHeader @ CollapsingHeader(const char* label, bool* p_open, String treeNodeFlags = nullptr);
 	bool Binding::Selectable @ Selectable(const char* label, bool selected = false, String selectableFlags = nullptr, Vec2 size = Vec2::zero);
@@ -90,7 +90,6 @@ namespace ImGui
 	void EndChild();
 	Vec2 GetContentRegionMax();
 	Vec2 GetContentRegionAvail();
-	float GetContentRegionAvailWidth();
 	Vec2 GetWindowContentRegionMin();
 	Vec2 GetWindowContentRegionMax();
 	float GetWindowContentRegionWidth();

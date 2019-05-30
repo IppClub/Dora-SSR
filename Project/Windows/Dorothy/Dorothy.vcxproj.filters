@@ -1437,6 +1437,9 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ShapeConf.hpp">
       <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\prepare.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
