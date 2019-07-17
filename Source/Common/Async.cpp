@@ -13,6 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+// Async
+
 Async::Async():
 _scheduled(false),
 _paused(false)
@@ -206,6 +208,25 @@ void Async::cancel()
 		delete worker;
 	}
 	_workers.clear();
+}
+
+// AsyncThread
+
+AsyncThread::AsyncThread():
+_nextProcess(0),
+_process(std::max(std::thread::hardware_concurrency(), 4u) - 2)
+{
+	for (int i = 0; i < s_cast<int>(_process.size()); i++)
+	{
+		_process[i] = New<Async>();
+	}
+}
+
+void AsyncThread::run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher)
+{
+	Async* async = _process[_nextProcess];
+	async->run(worker, finisher);
+	_nextProcess = (_nextProcess + 1) % _process.size();
 }
 
 NS_DOROTHY_END

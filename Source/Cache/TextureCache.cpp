@@ -174,7 +174,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 	string file(filename);
 	SharedContent.loadFileAsyncUnsafe(fullPath, [this, file, handler](Uint8* data, Sint64 size)
 	{
-		SharedAsyncThread.Loader.run([this, data, size]()
+		SharedAsyncThread.run([this, data, size]()
 		{
 			bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
 			delete [] data;

@@ -448,7 +448,8 @@ void PlayTrackDef::addSound(float delay, String filename)
 Action* PlayTrackDef::toAction()
 {
 	vector<Own<ActionDuration>> sounds;
-	for (const auto& sound : _sounds) {
+	for (const auto& sound : _sounds)
+	{
 		sounds.push_back(Delay::alloc(sound.first));
 		sounds.push_back(PlaySound::alloc(sound.second));
 	}

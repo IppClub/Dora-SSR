@@ -228,7 +228,7 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 			{
 				bgfx::destroy(textureHandle);
 			}
-			SharedAsyncThread.Process.run([data, width, height]()
+			SharedAsyncThread.run([data, width, height]()
 			{
 				unsigned error;
 				LodePNGState state;

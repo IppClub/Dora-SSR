@@ -265,7 +265,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	if (targetGlyphRanges)
 	{
 		_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
-		SharedAsyncThread.Process.run([this]()
+		SharedAsyncThread.run([this]()
 		{
 			_fonts->Build();
 			return Values::None;
@@ -366,7 +366,7 @@ bool ImGuiDora::init()
 {
 	ImGui::CreateContext(_defaultFonts);
 	ImGuiStyle& style = ImGui::GetStyle();
-	float rounding = 5.0f;
+	float rounding = 0.0f;
 	style.Alpha = 1.0f;
 	style.WindowPadding = ImVec2(10, 10);
 	style.WindowMinSize = ImVec2(100, 32);

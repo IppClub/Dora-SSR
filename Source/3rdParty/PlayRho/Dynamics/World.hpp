@@ -446,6 +446,9 @@ private:
         /// Locked.
         e_locked        = 0x0002,
 
+        /// Proxie dirty.
+        e_proxyDirty      = 0x0004,
+
         /// Sub-stepping.
         e_substepping   = 0x0020,
         
@@ -741,6 +744,15 @@ private:
     /// @brief Unregisters the given dynamic tree ID from processing.
     void UnregisterForProcessing(ProxyId pid) noexcept;
 
+    /// @brief Determines whether there is dirty proxy ID in this world.
+	bool IsProxyDirty() const noexcept;
+
+    /// @brief Sets proxy dirty flag.
+	void SetProxyDirty() noexcept;
+
+    /// @brief Unsets proxy dirty flag.
+	void UnsetProxyDirty() noexcept;
+
     /// @brief Destroys the given contact.
     void InternalDestroy(Contact* contact, Body* from = nullptr);
 
@@ -945,6 +957,21 @@ inline void World::SetNewFixtures() noexcept
 inline void World::UnsetNewFixtures() noexcept
 {
     m_flags &= ~e_newFixture;
+}
+
+inline bool World::IsProxyDirty() const noexcept
+{
+    return (m_flags & e_proxyDirty) != 0u;
+}
+
+inline void World::SetProxyDirty() noexcept
+{
+    m_flags |= e_proxyDirty;
+}
+
+inline void World::UnsetProxyDirty() noexcept
+{
+    m_flags &= ~e_proxyDirty;
 }
 
 inline Length World::GetMinVertexRadius() const noexcept
