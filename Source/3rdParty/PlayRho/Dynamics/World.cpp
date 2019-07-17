@@ -1826,6 +1826,14 @@ StepStats World::Step(const StepConf& conf)
             stepStats.pre.destroyed = destroyStats.erased;
         }
 
+        if (IsProxyDirty())
+        {
+        	UnsetProxyDirty();
+        	m_proxies.erase(std::remove_if(m_proxies.begin(), m_proxies.end(), [](ProxyId pid) {
+        		return pid == DynamicTree::GetInvalidSize();
+			}), m_proxies.end());
+		}
+
         if (HasNewFixtures())
         {
             UnsetNewFixtures();
@@ -2111,7 +2119,6 @@ ContactCounter World::FindNewContacts()
     // to eliminate any node pairs that have the same body here before the key pairs are
     // sorted.
     for_each(cbegin(m_proxies), cend(m_proxies), [&](ProxyId pid) {
-    	if (pid == DynamicTree::GetInvalidSize()) return;
         const auto body0 = m_tree.GetLeafData(pid).body;
         const auto aabb = m_tree.GetAABB(pid);
         Query(m_tree, aabb, [&](DynamicTree::Size nodeId) {
@@ -2520,6 +2527,7 @@ void World::DestroyProxies(Fixture& fixture) noexcept
             UnregisterForProcessing(treeId);
             m_tree.DestroyLeaf(treeId);
         }
+    	SetProxyDirty();
     }
     FixtureAtty::ResetProxies(fixture);
 }

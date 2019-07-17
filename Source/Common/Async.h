@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <atomic>
+#include <thread>
 #include "Event/EventQueue.h"
 #include "Support/Value.h"
 
@@ -45,8 +46,8 @@ class AsyncThread
 {
 public:
 	Async FileIO;
-	Async Process;
-	Async Loader;
+	AsyncThread();
+	void run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i)
 	{
@@ -57,6 +58,9 @@ public:
 		_mm_free(p);
 	}
 #endif // BX_PLATFORM_WINDOWS
+private:
+	int _nextProcess;
+	OwnVector<Async> _process;
 	SINGLETON_REF(AsyncThread, ObjectBase);
 };
 

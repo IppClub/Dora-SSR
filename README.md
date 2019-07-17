@@ -1,11 +1,21 @@
+
+
+![DorothyDemo](Assets/Image/Dorothy.svg)
+
 # Dorothy SSR
+
 |iOS|macOS|Android|Windows|
 |---|-----|-------|-------|
 |[![Build Status](https://travis-ci.com/IppClub/Dorothy-SSR.svg?branch=master)](https://travis-ci.com/IppClub/Dorothy-SSR)|[![Build Status](https://travis-ci.com/IppClub/Dorothy-SSR.svg?branch=master)](https://travis-ci.com/IppClub/Dorothy-SSR)|[![Build Status](https://travis-ci.com/IppClub/Dorothy-SSR.svg?branch=master)](https://travis-ci.com/IppClub/Dorothy-SSR)|[![Build status](https://ci.appveyor.com/api/projects/status/cypfm1makpfu4e7i?svg=true)](https://ci.appveyor.com/project/pigpigyyy/dorothy-ssr)|
 
 ## 功能展示  
-![Dorothy First Power](http://www.luvfight.me/content/images/2018/12/DorothyFirstPower.png)
+
+![Dorothy Game Demo](Assets/Image/DorothyDemoI.png)
+
+![Dorothy Game Demo II](Assets/Image/DorothyDemoII.gif)
+
 ## 项目目标
+
 &emsp;&emsp;Dorothy SSR项目的最终目标是制作一款跨平台的，专门用于制作2D游戏的“魔兽争霸3世界编辑器”。这个目标由三个子目标组成：
 * **Step 1**  
 &emsp;&emsp;开发一个跨平台的底层游戏框架。功能包括或是整合图形渲染、物理引擎、资源管理、音频处理、脚本绑定以及部分2D平台游戏的功能等等。（Finished 95%）  
@@ -31,7 +41,7 @@
 
 * **更多的异步加载**  
 &emsp;&emsp;游戏卡顿的来源除了大量的图形或是逻辑处理运算以外，最大的来源就是各式的资源加载和预处理。SSR项目的一个小目标就是给所有涉及IO的接口都提供异步执行的版本。把有大量运算的逻辑处理都扔到额外的工作线程中。  
-&emsp;&emsp;目前提供了简单的线程池用于对几类工作做异步处理，例如文件读写（FileIO），资源加载（Loader），大量运算（Process）和打日志（Log），这些异步处理功能都由Async模块提供。  
+&emsp;&emsp;目前提供了简单的线程池用于对几类工作做异步处理，例如文件读写，资源加载，耗时运算和打日志等，这些异步处理功能都由Async功能提供。  
 
 * **升级的Lua绑定**  
 &emsp;&emsp;Lua绑定使用修改后的tolua\+\+库进行，tolua\+\+的runtime部分也做了很多修改。C\+\+对象在Lua中的管理被分为了三种类型，引用类型、值类型、单例类型。对这三种类型对象tolua\+\+会做不同的内存管理处理。最终Lua的用户只用把绑定导入的对象当作普通Lua对象管理就行，不用做额外的处理。提供内置的Lua面向对象机制，支持继承C\+\+对象。  

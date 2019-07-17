@@ -92,7 +92,7 @@ public:
 				if (data)
 				{
 					auto parser = prepareParser(file);
-					SharedAsyncThread.Loader.run([this, file, parser, data, size]()
+					SharedAsyncThread.run([this, file, parser, data, size]()
 					{
 						OwnArray<Uint8> dataOwner(data, s_cast<size_t>(size));
 						Ref<T> result;
