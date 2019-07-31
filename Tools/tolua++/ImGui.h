@@ -188,7 +188,6 @@ namespace ImGui
 	bool TreeNode(CString label);
 	void TreePush(CString str_id = NULL);
 	void TreePop();
-	void TreeAdvanceToLabelPos();
 	float GetTreeNodeToLabelSpacing();
 	bool ListBoxHeader(CString label, Vec2 size = Vec2::zero);
 	bool ListBoxHeader(CString label, int items_count, int height_in_items = -1);
