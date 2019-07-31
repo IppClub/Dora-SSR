@@ -23,6 +23,6 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
-		if Begin "Label", "NoResize|NoSavedSettings"
+		Begin "Label", "NoResize|NoSavedSettings", ->
 			TextWrapped "Render labels with unbatched and batched methods!"
-		End!
+

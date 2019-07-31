@@ -45,6 +45,6 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
-		if Begin "Render Target", "NoResize|NoSavedSettings"
+		Begin "Render Target", "NoResize|NoSavedSettings",->
 			TextWrapped "Use render target node as a mirror!"
-		End!
+

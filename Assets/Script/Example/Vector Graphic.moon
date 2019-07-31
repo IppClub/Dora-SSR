@@ -49,6 +49,6 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
-		if Begin "Vector Graphic Rendering", "NoResize|NoSavedSettings"
+		Begin "Vector Graphic Rendering", "NoResize|NoSavedSettings", ->
 			TextWrapped "Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!"
-		End!
+

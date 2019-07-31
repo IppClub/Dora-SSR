@@ -243,44 +243,41 @@ threadLoop ->
 	{:width,:height} = App.visualSize
 	SetNextWindowSize Vec2(190,50)
 	SetNextWindowPos Vec2(width-190,height-50)
-	PushStyleColor "WindowBg", Color(0x0)
 	if width >= 600
 		if not footerFocus
 			footerFocus = true
 			SetNextWindowFocus!
-		if Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoSavedSettings"
-			Columns 2,false
-			if showFooter
-				changed, scaleContent = Checkbox string.format("%.1fx",screenScale), scaleContent
-				View.scale = scaleContent and screenScale or 1 if changed
-			else
-				Dummy Vec2 10,30
-			SameLine!
-			NextColumn!
-			_, showFooter = Checkbox "Footer", showFooter
-		End!
+		PushStyleColor "WindowBg", Color(0x0), ->
+			Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoSavedSettings", ->
+				Columns 2,false
+				if showFooter
+					changed, scaleContent = Checkbox string.format("%.1fx",screenScale), scaleContent
+					View.scale = scaleContent and screenScale or 1 if changed
+				else
+					Dummy Vec2 10,30
+				SameLine!
+				NextColumn!
+				_, showFooter = Checkbox "Footer", showFooter
 	elseif footerFocus
 		footerFocus = false
-	PopStyleColor!
 	return unless showFooter
 	SetNextWindowSize Vec2(width,60)
 	SetNextWindowPos Vec2(0,height-60)
-	if Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
+	Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
 		Separator!
 		_, showStats = Checkbox "Stats", showStats
 		SameLine!
 		_, showLog = Checkbox "Log", showLog
 		SameLine!
-		if isInEntry and Button "Build", Vec2(70,30)
-			OpenPopup "build"
-		if isInEntry and BeginPopup "build"
-			doCompile false if Selectable "Compile"
-			Separator!
-			doCompile true if Selectable "Minify"
-			Separator!
-			doClean! if Selectable "Clean"
-			EndPopup!
-		if not isInEntry
+		if isInEntry
+			OpenPopup "build" if Button "Build", Vec2(70,30)
+			BeginPopup "build", ->
+				doCompile false if Selectable "Compile"
+				Separator!
+				doCompile true if Selectable "Minify"
+				Separator!
+				doClean! if Selectable "Clean"
+		else
 			SameLine!
 			allClear! if Button "Home", Vec2(70,30)
 			currentIndex = 1
@@ -307,7 +304,6 @@ threadLoop ->
 		if showLog
 			SetNextWindowPos Vec2(width-400,height-65-300), "FirstUseEver"
 			ShowLog!
-	End!
 
 threadLoop ->
 	return unless showEntry
@@ -315,34 +311,30 @@ threadLoop ->
 	{:width,:height} = App.visualSize
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2(width,53)
-	PushStyleColor "TitleBgActive", Color(0xcc000000)
-	if Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
-		Separator!
-	End!
-	PopStyleColor!
+	PushStyleColor "TitleBgActive", Color(0xcc000000), ->
+		Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
+			Separator!
 	SetNextWindowPos Vec2(0,53)
 	SetNextWindowSize Vec2(width,height-107)
-	PushStyleColor "WindowBg",Color(0x0)
-	if Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings"
-		TextColored Color(0xff00ffff), "Game Demos"
-		Columns math.max(math.floor(width/200),1), false
-		for game in *games
-			if Button game, Vec2(-1,40)
-				enterDemoEntry "Game/#{game}/init"
-			NextColumn!
-		Columns 1, false
-		TextColored Color(0xff00ffff), "Examples"
-		Columns math.max(math.floor(width/200),1), false
-		for example in *examples
-			if Button example, Vec2(-1,40)
-				enterDemoEntry "Example/#{example}"
-			NextColumn!
-		Columns 1, false
-		TextColored Color(0xff00ffff), "Tests"
-		Columns math.max(math.floor(width/200),1), false
-		for test in *tests
-			if Button test, Vec2(-1,40)
-				enterDemoEntry "Test/#{test}"
-			NextColumn!
-	End!
-	PopStyleColor!
+	PushStyleColor "WindowBg",Color(0x0), ->
+		Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
+			TextColored Color(0xff00ffff), "Game Demos"
+			Columns math.max(math.floor(width/200),1), false
+			for game in *games
+				if Button game, Vec2(-1,40)
+					enterDemoEntry "Game/#{game}/init"
+				NextColumn!
+			Columns 1, false
+			TextColored Color(0xff00ffff), "Examples"
+			Columns math.max(math.floor(width/200),1), false
+			for example in *examples
+				if Button example, Vec2(-1,40)
+					enterDemoEntry "Example/#{example}"
+				NextColumn!
+			Columns 1, false
+			TextColored Color(0xff00ffff), "Tests"
+			Columns math.max(math.floor(width/200),1), false
+			for test in *tests
+				if Button test, Vec2(-1,40)
+					enterDemoEntry "Test/#{test}"
+				NextColumn!

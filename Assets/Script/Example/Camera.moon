@@ -29,6 +29,6 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
-		if Begin "Camera", "NoResize|NoSavedSettings"
+		Begin "Camera", "NoResize|NoSavedSettings", ->
 			TextWrapped "View camera motions, use 3D camera as default!"
-		End!
+
