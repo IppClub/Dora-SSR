@@ -22,7 +22,7 @@ world\schedule ->
 	{:width,:height} = App.visualSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,userControl and 500 or 300)
-	if Begin "Zombie Game Demo", "NoResize|NoSavedSettings"
+	Begin "Zombie Game Demo", "NoResize|NoSavedSettings", ->
 		TextWrapped "Zombie Killed: #{Store.zombieKilled}"
 		SameLine!
 		if Button "Army"
@@ -146,7 +146,6 @@ world\schedule ->
 				@unit.sensity = 0.1
 			Store.keyboardEnabled = false
 			Director.ui.children.first.visible = false
-	End!
 
 	target = world.camera.followTarget
 	if target
@@ -161,9 +160,8 @@ world\schedule ->
 	if showDecisionTrace
 		SetNextWindowPos Vec2(width/2-200,10), "FirstUseEver"
 		SetNextWindowSize Vec2(400,160), "FirstUseEver"
-		if Begin "Decision Trace (#{lastDecisionTree})", "NoSavedSettings"
+		Begin "Decision Trace (#{lastDecisionTree})", "NoSavedSettings", ->
 			Text table.concat decisions,"\n"
-		End!
 
 with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight","stared"}
 	\every =>

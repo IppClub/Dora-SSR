@@ -19,6 +19,6 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
-		if Begin "Hello World", "NoResize|NoSavedSettings"
+		Begin "Hello World", "NoResize|NoSavedSettings",->
 			TextWrapped "Basic Dorothy schedule and signal function usage. View outputs in log window!"
-		End!
+

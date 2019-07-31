@@ -27,8 +27,8 @@ targetA = with Model "Model/xiaoli.model"
 		X 1.5,200,-200
 		Emit "Turn"
 	)
-	\slot "ActionEnd",(action)-> \runAction action
-	\slot "Turn",-> .faceRight = not .faceRight
+	\slot "ActionEnd", (action)-> \runAction action
+	\slot "Turn", -> .faceRight = not .faceRight
 
 exampleA = with Node!
 	\addChild with ClipNode maskA
@@ -70,7 +70,7 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,180), "FirstUseEver"
-		if Begin "Clip Node", "NoResize|NoSavedSettings"
+		Begin "Clip Node", "NoResize|NoSavedSettings", ->
 			TextWrapped "Render children nodes with mask!"
 			changed, inverted = Checkbox "Inverted", inverted
 			if changed
@@ -81,4 +81,4 @@ Director.entry\addChild with Node!
 			if changed
 				exampleB.visible = withAlphaThreshold
 				exampleA.visible = not withAlphaThreshold
-		End!
+

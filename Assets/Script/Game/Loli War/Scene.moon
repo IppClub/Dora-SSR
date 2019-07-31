@@ -193,15 +193,15 @@ GameWorld = Class PlatformWorld,
 		Switch "SwitchG",GroupEnemy,"gold",3977,1004-923
 
 	addBunnySwither: (group)=>
-		switchG = false
-		switchN = false
+		switchGExist = false
+		switchNExist = false
 		bunnySwitchers = Group {"bunny","targetSwitch"}
 		bunnySwitchers\each (switcher)->
 			if switcher.group == group
 				switch switcher.targetSwitch
-					when "SwitchG" then switchG = true
-					when "Switch" then switchN = true
-		if not switchG
+					when "SwitchG" then switchGExist = true
+					when "Switch" then switchNExist = true
+		if not switchGExist
 			with Entity!
 				.group = group
 				.bunny,.faceRight,.position = switch group
@@ -210,7 +210,7 @@ GameWorld = Class PlatformWorld,
 				.AI = "BunnySwitcherAI"
 				.layer = LayerBunny
 				.targetSwitch = "SwitchG"
-		if not switchN
+		if not switchNExist
 			with Entity!
 				.group = group
 				.bunny,.faceRight,.position = switch group

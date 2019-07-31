@@ -29,6 +29,6 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
-		if Begin "Gesture", "NoResize|NoSavedSettings"
+		Begin "Gesture", "NoResize|NoSavedSettings", ->
 			TextWrapped "Interact with multi-touches!"
-		End!
+

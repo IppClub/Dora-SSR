@@ -83,7 +83,7 @@ public:
 	// Decision tree AI nodes
 	void setDecisionTreeName(String name);
 	const string& getDecisionTreeName() const;
-	AILeaf* getDecisionTree();
+	AILeaf* getDecisionTree() const;
 	CREATE_FUNC(Unit);
 protected:
 	Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot);

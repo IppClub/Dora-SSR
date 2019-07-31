@@ -73,6 +73,6 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
-		if Begin "Draw Node", "NoResize|NoSavedSettings"
+		Begin "Draw Node", "NoResize|NoSavedSettings", ->
 			TextWrapped "Draw shapes and lines!"
-		End!
+

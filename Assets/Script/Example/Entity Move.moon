@@ -71,7 +71,7 @@ with Observer "Add", {"scene"}
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,160), "FirstUseEver"
-		if Begin "ECS System", "NoResize|NoSavedSettings"
+		Begin "ECS System", "NoResize|NoSavedSettings", ->
 			TextWrapped "Tap any place to move entities."
 			if Button "Create Random Entity"
 				with Entity!
@@ -86,4 +86,4 @@ with Observer "Add", {"scene"}
 						\runAction Sequence Scale(0.5,1,0,Ease.InBack), Emit("Destroy")
 						\slot "Destroy", -> entity\destroy!
 					true
-		End!
+

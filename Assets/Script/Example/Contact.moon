@@ -49,8 +49,8 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,140), "FirstUseEver"
-		if Begin "Contact", "NoResize|NoSavedSettings"
+		Begin "Contact", "NoResize|NoSavedSettings", ->
 			TextWrapped "Recieve events when physics bodies contact."
 			changed, disk.receivingContact = Checkbox "Receiving Contact", disk.receivingContact
 			label.text = "" if changed
-		End!
+

@@ -28,8 +28,7 @@
 			{:width} = App.visualSize
 			SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 			SetNextWindowSize Vec2(240,120), "FirstUseEver"
-			if Begin "Dorothy Xml", "NoResize|NoSavedSettings"
+			Begin "Dorothy Xml", "NoResize|NoSavedSettings", ->
 				TextWrapped "View related codes in log window!"
-			End!
 	</Script>
 </Node>

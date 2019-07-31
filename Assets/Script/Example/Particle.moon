@@ -81,42 +81,38 @@ Dorothy builtin.ImGui
 DataDirty = false
 
 Item = (name)->
-	PushItemWidth -180
-	switch Data[name][2]
-		when "float"
-			changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1000, 1000, "%.1f"
-			DataDirty = true if changed
-		when "floatN"
-			changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1, 1000, "%.1f"
-			DataDirty = true if changed
-		when "Uint32"
-			changed, Data[name][3] = DragInt name, Data[name][3], 1, 0, 1000
-			DataDirty = true if changed
-		when "EmitterType"
-			LabelText "EmitterType","Gravity"
-		when "BlendFunc"
-			LabelText "BlendFunc","Additive"
-		when "Vec2"
-			changed = DragInt2 name, Data[name][3], 1, -1000, 1000
-			DataDirty = true if changed
-		when "Color"
-			PushItemWidth -150
-			SetColorEditOptions "RGB"
-			changed = ColorEdit4 name, Data[name][3]
-			DataDirty = true if changed
-			PopItemWidth!
-		when "bool"
-			changed, Data[name][3] = Checkbox name, Data[name][3]
-			DataDirty = true if changed
-		when "string"
-			buffer = Data[name][4]
-			changed = InputText name, buffer
-			if changed
-				DataDirty = true
-				Data[name][3] = buffer\toString!
-		else
-			nil
-	PopItemWidth!
+	PushItemWidth -180, ->
+		switch Data[name][2]
+			when "float"
+				changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1000, 1000, "%.1f"
+				DataDirty = true if changed
+			when "floatN"
+				changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1, 1000, "%.1f"
+				DataDirty = true if changed
+			when "Uint32"
+				changed, Data[name][3] = DragInt name, Data[name][3], 1, 0, 1000
+				DataDirty = true if changed
+			when "EmitterType"
+				LabelText "EmitterType","Gravity"
+			when "BlendFunc"
+				LabelText "BlendFunc","Additive"
+			when "Vec2"
+				changed = DragInt2 name, Data[name][3], 1, -1000, 1000
+				DataDirty = true if changed
+			when "Color"
+				PushItemWidth -150, ->
+					SetColorEditOptions "RGB"
+					changed = ColorEdit4 name, Data[name][3]
+					DataDirty = true if changed
+			when "bool"
+				changed, Data[name][3] = Checkbox name, Data[name][3]
+				DataDirty = true if changed
+			when "string"
+				buffer = Data[name][4]
+				changed = InputText name, buffer
+				if changed
+					DataDirty = true
+					Data[name][3] = buffer\toString!
 
 work = loop ->
 	sleep 1
@@ -133,10 +129,9 @@ Director.entry\addChild with Node!
 		{:width,:height} = App.visualSize
 		SetNextWindowPos Vec2(width-400,10), "FirstUseEver"
 		SetNextWindowSize Vec2(390,height-80), "FirstUseEver"
-		if Begin "Particle", "NoResize|NoSavedSettings"
+		Begin "Particle", "NoResize|NoSavedSettings", ->
 			for k,_ in pairs Data
 				Item k
 			if Button "Export"
 				print "<A>"..table.concat(["<#{v[1]} A=\"#{toString v[3]}\"/>" for k,v in pairs Data]).."</A>"
-		End!
 		work!

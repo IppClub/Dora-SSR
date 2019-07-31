@@ -26,6 +26,7 @@ local wrap = coroutine.wrap
 local table_insert = table.insert
 local table_remove = table.remove
 local type = type
+local unpack = unpack
 
 local function wait(cond)
 	repeat
@@ -421,6 +422,91 @@ UnitAction.add = function(self, name, params)
 		params.create,
 		params.stop)
 end
+
+-- ImGui
+local ImGui = builtin.ImGui
+
+local function pairCallA(beginFunc, endFunc)
+	return function(...)
+		local args = {...}
+		local callFunc = table_remove(args)
+		if type(callFunc) ~= "function" then
+			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
+		end
+		if beginFunc(unpack(args)) then
+			callFunc()
+		end
+		endFunc()
+	end
+end
+
+local function pairCallB(beginFunc, endFunc)
+	return function(...)
+		local args = {...}
+		local callFunc = table_remove(args)
+		if type(callFunc) ~= "function" then
+			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
+		end
+		if beginFunc(unpack(args)) then
+			callFunc()
+			endFunc()
+		end
+	end
+end
+
+local function pairCallC(beginFunc, endFunc)
+	return function(...)
+		local args = {...}
+		local callFunc = table_remove(args)
+		if type(callFunc) ~= "function" then
+			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
+		end
+		beginFunc(unpack(args))
+		callFunc()
+		endFunc()
+	end
+end
+
+ImGui.Begin = pairCallA(ImGui.Begin,ImGui.End)
+ImGui.End = nil
+ImGui.BeginChild = pairCallA(ImGui.BeginChild,ImGui.EndChild)
+ImGui.EndChild = nil
+ImGui.BeginChildFrame = pairCallA(ImGui.BeginChildFrame,ImGui.EndChildFrame)
+ImGui.EndChildFrame = nil
+ImGui.BeginPopup = pairCallB(ImGui.BeginPopup,ImGui.EndPopup)
+ImGui.BeginPopupModal = pairCallB(ImGui.BeginPopupModal,ImGui.EndPopup)
+ImGui.BeginPopupContextItem = pairCallB(ImGui.BeginPopupContextItem,ImGui.EndPopup)
+ImGui.BeginPopupContextWindow = pairCallB(ImGui.BeginPopupContextWindow,ImGui.EndPopup)
+ImGui.BeginPopupContextVoid = pairCallB(ImGui.BeginPopupContextVoid,ImGui.EndPopup)
+ImGui.EndPopup = nil
+ImGui.BeginGroup = pairCallC(ImGui.BeginGroup,ImGui.EndGroup)
+ImGui.EndGroup = nil
+ImGui.BeginTooltip = pairCallC(ImGui.BeginTooltip,ImGui.EndTooltip)
+ImGui.EndTooltip = nil
+ImGui.BeginMainMenuBar = pairCallC(ImGui.BeginMainMenuBar,ImGui.EndMainMenuBar)
+ImGui.EndMainMenuBar = nil
+ImGui.BeginMenuBar = pairCallC(ImGui.BeginMenuBar,ImGui.EndMenuBar)
+ImGui.EndMenuBar = nil
+ImGui.BeginMenu = pairCallC(ImGui.BeginMenu,ImGui.EndMenu)
+ImGui.EndMenu = nil
+ImGui.PushStyleColor = pairCallC(ImGui.PushStyleColor,ImGui.PopStyleColor)
+ImGui.PopStyleColor = nil
+ImGui.PushStyleVar = pairCallC(ImGui.PushStyleVar,ImGui.EndMenu)
+ImGui.PopStyleVar = nil
+ImGui.PushItemWidth = pairCallC(ImGui.PushItemWidth,ImGui.PopItemWidth)
+ImGui.PopItemWidth = nil
+ImGui.PushTextWrapPos = pairCallC(ImGui.PushTextWrapPos,ImGui.PopTextWrapPos)
+ImGui.PopTextWrapPos = nil
+ImGui.PushAllowKeyboardFocus = pairCallC(ImGui.PushAllowKeyboardFocus,ImGui.PopAllowKeyboardFocus)
+ImGui.PopAllowKeyboardFocus = nil
+ImGui.PushButtonRepeat = pairCallC(ImGui.PushButtonRepeat,ImGui.PopButtonRepeat)
+ImGui.PopButtonRepeat = nil
+ImGui.PushID = pairCallC(ImGui.PushID,ImGui.PopID)
+ImGui.PopID = nil
+ImGui.TreePush = pairCallC(ImGui.TreePush,ImGui.TreePop)
+ImGui.TreePop = nil
+ImGui.PushClipRect = pairCallC(ImGui.PushClipRect,ImGui.PopClipRect)
+ImGui.PopClipRect = nil
 
 -- Helpers
 

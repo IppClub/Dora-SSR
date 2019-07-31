@@ -47,6 +47,8 @@ build/
 ._.*
 xcuserdata/
 DerivedData/
+*.icns
+*.car
 
 # Ignore vim swaps
 *.swp

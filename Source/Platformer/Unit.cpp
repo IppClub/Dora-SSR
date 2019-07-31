@@ -392,7 +392,7 @@ const string& Unit::getDecisionTreeName() const
 	return _decisionTreeName;
 }
 
-AILeaf* Unit::getDecisionTree()
+AILeaf* Unit::getDecisionTree() const
 {
 	return _decisionTree;
 }
