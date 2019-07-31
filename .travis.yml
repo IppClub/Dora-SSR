@@ -23,6 +23,9 @@ matrix:
     addons:
       apt_packages:
         - pandoc
+    licenses:
+      - 'android-sdk-license-.+'
+      - '.+'
     before_install:
       - sudo apt-get install ant
       - sudo apt-get install lua5.1
@@ -30,11 +33,11 @@ matrix:
       - sudo luarocks install luafilesystem
       - cd ./Tools/tolua++
       - lua tolua++.lua
-      - yes | sdkmanager "platforms;android-26"
-      - yes | sdkmanager "build-tools;29.0.1"
-      - yes | sdkmanager "ndk-bundle"
-      - yes | sdkmanager "cmake;3.6.4111459"
-      - yes | sdkmanager "lldb;3.1"
+      - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "platforms;android-26"
+      - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "build-tools;29.0.1"
+      - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "ndk-bundle"
+      - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "cmake;3.6.4111459"
+      - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "lldb;3.1"
     before_script:
       - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
     script:
