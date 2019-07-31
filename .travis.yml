@@ -16,6 +16,8 @@ matrix:
     components:
       - tools
       - platform-tools
+      - build-tools-29.0.1
+      - android-26
       - extra-google-m2repository
       - extra-android-m2repository
     addons:
@@ -28,7 +30,6 @@ matrix:
       - sudo luarocks install luafilesystem
       - cd ./Tools/tolua++
       - lua tolua++.lua
-    install:
       - yes | sdkmanager "platforms;android-26"
       - yes | sdkmanager "build-tools;29.0.1"
       - yes | sdkmanager "ndk-bundle"
