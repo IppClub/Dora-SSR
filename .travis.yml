@@ -11,6 +11,7 @@ matrix:
     before_install: Tools/tolua++/build.sh
     script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator12.1
   - language: android
+    dist: trusty
     sudo: true
     android:
     components:
@@ -33,8 +34,7 @@ matrix:
       - sudo luarocks install luafilesystem
       - cd ./Tools/tolua++
       - lua tolua++.lua
-      - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "platforms;android-26"
-      - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "build-tools;29.0.1"
+    install:
       - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "ndk-bundle"
       - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "cmake;3.6.4111459"
       - yes | ${ANDROID_HOME}/tools/bin/sdkmanager "lldb;3.1"
