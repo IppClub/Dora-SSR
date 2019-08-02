@@ -172,11 +172,12 @@ int Application::run()
 	}
 
 	Uint32 windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
-#if BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 	windowFlags |= SDL_WINDOW_HIDDEN;
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN;
-#endif
+#endif // BX_PLATFORM
+
 	_sdlWindow = SDL_CreateWindow("Dorothy SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_winWidth, _winHeight, windowFlags);
@@ -186,9 +187,6 @@ int Application::run()
 		return 1;
 	}
 	Application::setupSdlWindow();
-#if BX_PLATFORM_OSX
-	SDL_HideWindow(_sdlWindow);
-#endif
 
 	// call this function here to disable default render threads creation of bgfx
 	bgfx::renderFrame();
@@ -397,6 +395,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		Error("Director failed to initialize!");
 		return 1;
 	}
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	Timer::create()->start(0, [app]()
 	{
 		app->invokeInRender([app]()
@@ -404,6 +403,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 			SDL_ShowWindow(app->_sdlWindow);
 		});
 	});
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	SharedPoolManager.pop();
 
 	bool running = true;
@@ -487,6 +487,15 @@ const Slice Application::getPlatform() const
 #else
 	return "Unknown"_slice;
 #endif
+}
+
+const Slice Application::getVersion() const
+{
+	static string version = fmt::format("{}.{}.{}",
+		DORA_MAJOR_VERSION,
+		DORA_MINOR_VERSION,
+		DORA_PATCHLEVEL);
+	return version;
 }
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID

@@ -36,6 +36,7 @@ public:
 	PROPERTY_READONLY(double, CPUTime);
 	PROPERTY_READONLY(double, TotalTime);
 	PROPERTY_READONLY(const Slice, Platform);
+	PROPERTY_READONLY(const Slice, Version);
 	PROPERTY_READONLY_CALL(Uint32, Rand);
 	PROPERTY_READONLY(Uint32, RandMin);
 	PROPERTY_READONLY(Uint32, RandMax);
