@@ -16,6 +16,15 @@
 #include <locale>
 #include <sstream>
 
+// enable safe chrono durations, unless explicitly disabled
+#ifndef FMT_SAFE_DURATION_CAST
+#  define FMT_SAFE_DURATION_CAST 1
+#endif
+
+#if FMT_SAFE_DURATION_CAST
+#  include "safe-duration-cast.h"
+#endif
+
 FMT_BEGIN_NAMESPACE
 
 // Prevents expansion of a preceding token as a function-style macro.
@@ -42,7 +51,7 @@ inline std::tm localtime(std::time_t time) {
       return handle(localtime_r(&time_, &tm_));
     }
 
-    bool handle(std::tm* tm) { return tm != FMT_NULL; }
+    bool handle(std::tm* tm) { return tm != nullptr; }
 
     bool handle(internal::null<>) {
       using namespace fmt::internal;
@@ -56,7 +65,7 @@ inline std::tm localtime(std::time_t time) {
       using namespace fmt::internal;
       std::tm* tm = std::localtime(&time_);
       if (tm) tm_ = *tm;
-      return tm != FMT_NULL;
+      return tm != nullptr;
     }
 #endif
   };
@@ -79,7 +88,7 @@ inline std::tm gmtime(std::time_t time) {
       return handle(gmtime_r(&time_, &tm_));
     }
 
-    bool handle(std::tm* tm) { return tm != FMT_NULL; }
+    bool handle(std::tm* tm) { return tm != nullptr; }
 
     bool handle(internal::null<>) {
       using namespace fmt::internal;
@@ -92,7 +101,7 @@ inline std::tm gmtime(std::time_t time) {
     bool fallback(internal::null<>) {
       std::tm* tm = std::gmtime(&time_);
       if (tm) tm_ = *tm;
-      return tm != FMT_NULL;
+      return tm != nullptr;
     }
 #endif
   };
@@ -157,7 +166,7 @@ template <typename Char> struct formatter<std::tm, Char> {
 
 namespace internal {
 template <typename Period> FMT_CONSTEXPR const char* get_units() {
-  return FMT_NULL;
+  return nullptr;
 }
 template <> FMT_CONSTEXPR const char* get_units<std::atto>() { return "as"; }
 template <> FMT_CONSTEXPR const char* get_units<std::femto>() { return "fs"; }
@@ -385,10 +394,28 @@ inline bool isnan(T value) {
   return std::isnan(value);
 }
 
-template <typename T> inline int to_int(T value) {
-  FMT_ASSERT(isnan(value) || (value >= (std::numeric_limits<int>::min)() &&
-                              value <= (std::numeric_limits<int>::max)()),
-             "invalid value");
+template <typename T, FMT_ENABLE_IF(std::is_integral<T>::value)>
+inline bool isfinite(T) {
+  return true;
+}
+template <typename T, FMT_ENABLE_IF(std::is_floating_point<T>::value)>
+inline bool isfinite(T value) {
+  return std::isfinite(value);
+}
+
+// Convers value to int and checks that it's in the range [0, upper).
+template <typename T, FMT_ENABLE_IF(std::is_integral<T>::value)>
+inline int to_nonnegative_int(T value, int upper) {
+  FMT_ASSERT(value >= 0 && value <= upper, "invalid value");
+  (void)upper;
+  return static_cast<int>(value);
+}
+template <typename T, FMT_ENABLE_IF(!std::is_integral<T>::value)>
+inline int to_nonnegative_int(T value, int upper) {
+  FMT_ASSERT(
+      std::isnan(value) || (value >= 0 && value <= static_cast<T>(upper)),
+      "invalid value");
+  (void)upper;
   return static_cast<int>(value);
 }
 
@@ -398,24 +425,63 @@ inline T mod(T x, int y) {
 }
 template <typename T, FMT_ENABLE_IF(std::is_floating_point<T>::value)>
 inline T mod(T x, int y) {
-  return std::fmod(x, y);
+  return std::fmod(x, static_cast<T>(y));
+}
+
+// If T is an integral type, maps T to its unsigned counterpart, otherwise
+// leaves it unchanged (unlike std::make_unsigned).
+template <typename T, bool INTEGRAL = std::is_integral<T>::value>
+struct make_unsigned_or_unchanged {
+  using type = T;
+};
+
+template <typename T> struct make_unsigned_or_unchanged<T, true> {
+  using type = typename std::make_unsigned<T>::type;
+};
+
+#if FMT_SAFE_DURATION_CAST
+// throwing version of safe_duration_cast
+template <typename To, typename FromRep, typename FromPeriod>
+To fmt_safe_duration_cast(std::chrono::duration<FromRep, FromPeriod> from) {
+  int ec;
+  To to = safe_duration_cast::safe_duration_cast<To>(from, ec);
+  if (ec) FMT_THROW(format_error("cannot format duration"));
+  return to;
+}
+#endif
+
+template <typename Rep, typename Period,
+          FMT_ENABLE_IF(std::is_integral<Rep>::value)>
+inline std::chrono::duration<Rep, std::milli> get_milliseconds(
+    std::chrono::duration<Rep, Period> d) {
+  // this may overflow and/or the result may not fit in the
+  // target type.
+#if FMT_SAFE_DURATION_CAST
+  using CommonSecondsType =
+      typename std::common_type<decltype(d), std::chrono::seconds>::type;
+  const auto d_as_common = fmt_safe_duration_cast<CommonSecondsType>(d);
+  const auto d_as_whole_seconds =
+      fmt_safe_duration_cast<std::chrono::seconds>(d_as_common);
+  // this conversion should be nonproblematic
+  const auto diff = d_as_common - d_as_whole_seconds;
+  const auto ms =
+      fmt_safe_duration_cast<std::chrono::duration<Rep, std::milli>>(diff);
+  return ms;
+#else
+  auto s = std::chrono::duration_cast<std::chrono::seconds>(d);
+  return std::chrono::duration_cast<std::chrono::milliseconds>(d - s);
+#endif
 }
 
 template <typename Rep, typename Period,
-          typename std::enable_if<std::is_integral<Rep>::value, int>::type = 0>
+          FMT_ENABLE_IF(std::is_floating_point<Rep>::value)>
 inline std::chrono::duration<Rep, std::milli> get_milliseconds(
     std::chrono::duration<Rep, Period> d) {
-  auto s = std::chrono::duration_cast<std::chrono::seconds>(d);
-  return std::chrono::duration_cast<std::chrono::milliseconds>(d - s);
-}
-
-template <
-    typename Rep, typename Period,
-    typename std::enable_if<std::is_floating_point<Rep>::value, int>::type = 0>
-inline std::chrono::duration<Rep, std::milli> get_milliseconds(
-    std::chrono::duration<Rep, Period> d) {
-  return std::chrono::duration<Rep, std::milli>(
-      mod(d.count() * Period::num / Period::den * 1000, 1000));
+  using common_type = typename std::common_type<Rep, std::intmax_t>::type;
+  auto ms = mod(d.count() * static_cast<common_type>(Period::num) /
+                    static_cast<common_type>(Period::den) * 1000,
+                1000);
+  return std::chrono::duration<Rep, std::milli>(static_cast<Rep>(ms));
 }
 
 template <typename Rep, typename OutputIt>
@@ -438,59 +504,94 @@ struct chrono_formatter {
   FormatContext& context;
   OutputIt out;
   int precision;
-  typedef typename std::conditional<std::is_integral<Rep>::value &&
-                                        sizeof(Rep) < sizeof(int),
-                                    int, Rep>::type rep;
+  // rep is unsigned to avoid overflow.
+  using rep =
+      conditional_t<std::is_integral<Rep>::value && sizeof(Rep) < sizeof(int),
+                    unsigned, typename make_unsigned_or_unchanged<Rep>::type>;
   rep val;
-  typedef std::chrono::duration<rep> seconds;
+  using seconds = std::chrono::duration<rep>;
   seconds s;
-  typedef std::chrono::duration<rep, std::milli> milliseconds;
+  using milliseconds = std::chrono::duration<rep, std::milli>;
+  bool negative;
 
-  typedef typename FormatContext::char_type char_type;
+  using char_type = typename FormatContext::char_type;
 
   explicit chrono_formatter(FormatContext& ctx, OutputIt o,
                             std::chrono::duration<Rep, Period> d)
-      : context(ctx), out(o), val(d.count()) {
-    if (d.count() < 0) d = -d;
-    s = std::chrono::duration_cast<seconds>(d);
+      : context(ctx), out(o), val(d.count()), negative(false) {
+    if (d.count() < 0) {
+      val = -val;
+      negative = true;
+    }
+
+    // this may overflow and/or the result may not fit in the
+    // target type.
+#if FMT_SAFE_DURATION_CAST
+    // might need checked conversion (rep!=Rep)
+    auto tmpval = std::chrono::duration<rep, Period>(val);
+    s = fmt_safe_duration_cast<seconds>(tmpval);
+#else
+    s = std::chrono::duration_cast<seconds>(
+        std::chrono::duration<rep, Period>(val));
+#endif
   }
 
-  Rep hour() const { return mod((s.count() / 3600), 24); }
+  // returns true if nan or inf, writes to out.
+  bool handle_nan_inf() {
+    if (isfinite(val)) {
+      return false;
+    }
+    if (isnan(val)) {
+      write_nan();
+      return true;
+    }
+    // must be +-inf
+    if (val > 0) {
+      write_pinf();
+    } else {
+      write_ninf();
+    }
+    return true;
+  }
+
+  Rep hour() const { return static_cast<Rep>(mod((s.count() / 3600), 24)); }
 
   Rep hour12() const {
-    Rep hour = mod((s.count() / 3600), 12);
+    Rep hour = static_cast<Rep>(mod((s.count() / 3600), 12));
     return hour <= 0 ? 12 : hour;
   }
 
-  Rep minute() const { return mod((s.count() / 60), 60); }
-  Rep second() const { return mod(s.count(), 60); }
+  Rep minute() const { return static_cast<Rep>(mod((s.count() / 60), 60)); }
+  Rep second() const { return static_cast<Rep>(mod(s.count(), 60)); }
 
   std::tm time() const {
     auto time = std::tm();
-    time.tm_hour = to_int(hour());
-    time.tm_min = to_int(minute());
-    time.tm_sec = to_int(second());
+    time.tm_hour = to_nonnegative_int(hour(), 24);
+    time.tm_min = to_nonnegative_int(minute(), 60);
+    time.tm_sec = to_nonnegative_int(second(), 60);
     return time;
   }
 
   void write_sign() {
-    if (val < 0) {
+    if (negative) {
       *out++ = '-';
-      val = -val;
+      negative = false;
     }
   }
 
   void write(Rep value, int width) {
     write_sign();
     if (isnan(value)) return write_nan();
-    typedef typename int_traits<int>::main_type main_type;
-    main_type n = to_unsigned(to_int(value));
+    uint32_or_64_t<int> n = to_unsigned(
+        to_nonnegative_int(value, (std::numeric_limits<int>::max)()));
     int num_digits = internal::count_digits(n);
     if (width > num_digits) out = std::fill_n(out, width - num_digits, '0');
     out = format_decimal<char_type>(out, n, num_digits);
   }
 
   void write_nan() { std::copy_n("nan", 3, out); }
+  void write_pinf() { std::copy_n("inf", 3, out); }
+  void write_ninf() { std::copy_n("-inf", 4, out); }
 
   void format_localized(const tm& time, const char* format) {
     if (isnan(val)) return write_nan();
@@ -523,30 +624,46 @@ struct chrono_formatter {
   void on_tz_name() {}
 
   void on_24_hour(numeric_system ns) {
+    if (handle_nan_inf()) return;
+
     if (ns == numeric_system::standard) return write(hour(), 2);
     auto time = tm();
-    time.tm_hour = to_int(hour());
+    time.tm_hour = to_nonnegative_int(hour(), 24);
     format_localized(time, "%OH");
   }
 
   void on_12_hour(numeric_system ns) {
+    if (handle_nan_inf()) return;
+
     if (ns == numeric_system::standard) return write(hour12(), 2);
     auto time = tm();
-    time.tm_hour = hour12();
+    time.tm_hour = to_nonnegative_int(hour12(), 12);
     format_localized(time, "%OI");
   }
 
   void on_minute(numeric_system ns) {
+    if (handle_nan_inf()) return;
+
     if (ns == numeric_system::standard) return write(minute(), 2);
     auto time = tm();
-    time.tm_min = minute();
+    time.tm_min = to_nonnegative_int(minute(), 60);
     format_localized(time, "%OM");
   }
 
   void on_second(numeric_system ns) {
+    if (handle_nan_inf()) return;
+
     if (ns == numeric_system::standard) {
       write(second(), 2);
-      auto ms = get_milliseconds(std::chrono::duration<Rep, Period>(val));
+#if FMT_SAFE_DURATION_CAST
+      // convert rep->Rep
+      using duration_rep = std::chrono::duration<rep, Period>;
+      using duration_Rep = std::chrono::duration<Rep, Period>;
+      auto tmpval = fmt_safe_duration_cast<duration_Rep>(duration_rep{val});
+#else
+      auto tmpval = std::chrono::duration<Rep, Period>(val);
+#endif
+      auto ms = get_milliseconds(tmpval);
       if (ms != std::chrono::milliseconds(0)) {
         *out++ = '.';
         write(ms.count(), 3);
@@ -554,13 +671,23 @@ struct chrono_formatter {
       return;
     }
     auto time = tm();
-    time.tm_sec = second();
+    time.tm_sec = to_nonnegative_int(second(), 60);
     format_localized(time, "%OS");
   }
 
-  void on_12_hour_time() { format_localized(time(), "%r"); }
+  void on_12_hour_time() {
+    if (handle_nan_inf()) return;
+
+    format_localized(time(), "%r");
+  }
 
   void on_24_hour_time() {
+    if (handle_nan_inf()) {
+      *out++ = ':';
+      handle_nan_inf();
+      return;
+    }
+
     write(hour(), 2);
     *out++ = ':';
     write(minute(), 2);
@@ -569,12 +696,17 @@ struct chrono_formatter {
   void on_iso_time() {
     on_24_hour_time();
     *out++ = ':';
+    if (handle_nan_inf()) return;
     write(second(), 2);
   }
 
-  void on_am_pm() { format_localized(time(), "%p"); }
+  void on_am_pm() {
+    if (handle_nan_inf()) return;
+    format_localized(time(), "%p");
+  }
 
   void on_duration_value() {
+    if (handle_nan_inf()) return;
     write_sign();
     out = format_chrono_duration_value(out, val, precision);
   }
@@ -586,13 +718,13 @@ struct chrono_formatter {
 template <typename Rep, typename Period, typename Char>
 struct formatter<std::chrono::duration<Rep, Period>, Char> {
  private:
-  align_spec spec;
+  basic_format_specs<Char> specs;
   int precision;
-  typedef internal::arg_ref<Char> arg_ref_type;
+  using arg_ref_type = internal::arg_ref<Char>;
   arg_ref_type width_ref;
   arg_ref_type precision_ref;
   mutable basic_string_view<Char> format_str;
-  typedef std::chrono::duration<Rep, Period> duration;
+  using duration = std::chrono::duration<Rep, Period>;
 
   struct spec_handler {
     formatter& f;
@@ -615,9 +747,9 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
     }
 
     void on_error(const char* msg) { FMT_THROW(format_error(msg)); }
-    void on_fill(Char fill) { f.spec.fill_ = fill; }
-    void on_align(alignment align) { f.spec.align_ = align; }
-    void on_width(unsigned width) { f.spec.width_ = width; }
+    void on_fill(Char fill) { f.specs.fill[0] = fill; }
+    void on_align(align_t align) { f.specs.align = align; }
+    void on_width(unsigned width) { f.specs.width = width; }
     void on_precision(unsigned precision) { f.precision = precision; }
     void end_precision() {}
 
@@ -630,7 +762,7 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
     }
   };
 
-  typedef typename basic_parse_context<Char>::iterator iterator;
+  using iterator = typename basic_parse_context<Char>::iterator;
   struct parse_range {
     iterator begin;
     iterator end;
@@ -655,7 +787,7 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
   }
 
  public:
-  formatter() : spec(), precision(-1) {}
+  formatter() : precision(-1) {}
 
   FMT_CONSTEXPR auto parse(basic_parse_context<Char>& ctx)
       -> decltype(ctx.begin()) {
@@ -672,10 +804,10 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
     // is not specified.
     basic_memory_buffer<Char> buf;
     auto out = std::back_inserter(buf);
-    typedef output_range<decltype(ctx.out()), Char> range;
-    basic_writer<range> w(range(ctx.out()));
+    using range = internal::output_range<decltype(ctx.out()), Char>;
+    internal::basic_writer<range> w(range(ctx.out()));
     internal::handle_dynamic_spec<internal::width_checker>(
-        spec.width_, width_ref, ctx, format_str.begin());
+        specs.width, width_ref, ctx, format_str.begin());
     internal::handle_dynamic_spec<internal::precision_checker>(
         precision, precision_ref, ctx, format_str.begin());
     if (begin == end || *begin == '}') {
@@ -687,7 +819,7 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
       f.precision = precision;
       parse_chrono_format(begin, end, f);
     }
-    w.write(buf.data(), buf.size(), spec);
+    w.write(buf.data(), buf.size(), specs);
     return w.out();
   }
 };

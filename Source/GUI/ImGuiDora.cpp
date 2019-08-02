@@ -289,8 +289,11 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 void ImGuiDora::showStats()
 {
 	/* print debug text */
-	ImGui::SetNextWindowSize(Vec2{192,345}, ImGuiCond_FirstUseEver);
-	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_NoResize);
+	ImGui::SetNextWindowSize(Vec2{192,385}, ImGuiCond_FirstUseEver);
+	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
+	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Version:");
+	ImGui::SameLine();
+	ImGui::TextUnformatted(SharedApplication.getVersion().begin());
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.

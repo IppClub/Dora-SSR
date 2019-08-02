@@ -51,4 +51,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Vector Graphic Rendering", "NoResize|NoSavedSettings", ->
 			TextWrapped "Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!"
-

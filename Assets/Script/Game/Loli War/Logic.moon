@@ -303,8 +303,8 @@ with Observer "Change", {"hp","hero"}
 						thread ->
 							View.postEffect = with SpriteEffect "builtin::vs_sprite","builtin::fs_spritesaturation"
 								\set "u_adjustment",0
-								sleep 3
-								cycle 5,(dt)-> \set "u_adjustment",dt
+							sleep 3
+							cycle 5,(dt)-> View.postEffect\set "u_adjustment",dt
 							View.postEffect = nil
 					when GroupEnemy then Audio\play "Audio/hero_kill.wav"
 				unit\schedule once ->

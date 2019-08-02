@@ -224,6 +224,12 @@ bool Director::init()
 	{
 		return false;
 	}
+	_nvgContext = nvgCreate(1, 0);
+	if (!_nvgContext)
+	{
+		Error("fail to init NanoVG context!");
+		return false;
+	}
 	SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 	{
 		if (file.toLower() == "main.lua"_slice)
@@ -233,12 +239,6 @@ bool Director::init()
 		}
 		return false;
 	});
-	_nvgContext = nvgCreate(1, 0);
-	if (!_nvgContext)
-	{
-		Error("fail to init NanoVG context!");
-		return false;
-	}
 	return true;
 }
 
