@@ -21,4 +21,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Hello World", "NoResize|NoSavedSettings",->
 			TextWrapped "Basic Dorothy schedule and signal function usage. View outputs in log window!"
-

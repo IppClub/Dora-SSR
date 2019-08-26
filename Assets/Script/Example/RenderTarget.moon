@@ -47,4 +47,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Render Target", "NoResize|NoSavedSettings",->
 			TextWrapped "Use render target node as a mirror!"
-

@@ -18,7 +18,7 @@ NS_DOROTHY_BEGIN
 
 /* DrawNode */
 
-bgfx::VertexDecl DrawVertex::ms_decl;
+bgfx::VertexLayout DrawVertex::ms_layout;
 DrawVertex::Init DrawVertex::init;
 
 DrawNode::DrawNode():
@@ -395,7 +395,7 @@ void DrawRenderer::render()
 		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
 		Uint32 indexCount = s_cast<Uint32>(_indices.size());
 		if (bgfx::allocTransientBuffers(
-			&vertexBuffer, DrawVertex::ms_decl, vertexCount,
+			&vertexBuffer, DrawVertex::ms_layout, vertexCount,
 			&indexBuffer, indexCount))
 		{
 			Renderer::render();
@@ -419,7 +419,7 @@ void DrawRenderer::render()
 
 /* Line */
 
-bgfx::VertexDecl PosColorVertex::ms_decl;
+bgfx::VertexLayout PosColorVertex::ms_layout;
 PosColorVertex::Init PosColorVertex::init;
 
 Line::Line():
@@ -655,9 +655,9 @@ void LineRenderer::render()
 	{
 		bgfx::TransientVertexBuffer vertexBuffer;
 		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
-		if (bgfx::getAvailTransientVertexBuffer(vertexCount, PosColorVertex::ms_decl) >= vertexCount)
+		if (bgfx::getAvailTransientVertexBuffer(vertexCount, PosColorVertex::ms_layout) >= vertexCount)
 		{
-			bgfx::allocTransientVertexBuffer(&vertexBuffer, vertexCount, PosColorVertex::ms_decl);
+			bgfx::allocTransientVertexBuffer(&vertexBuffer, vertexCount, PosColorVertex::ms_layout);
 			Renderer::render();
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
 			bgfx::setVertexBuffer(0, &vertexBuffer);

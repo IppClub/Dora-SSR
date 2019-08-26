@@ -31,4 +31,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Gesture", "NoResize|NoSavedSettings", ->
 			TextWrapped "Interact with multi-touches!"
-

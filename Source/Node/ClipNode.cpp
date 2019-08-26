@@ -114,7 +114,7 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 	SharedRendererManager.flush();
 	bgfx::TransientVertexBuffer vertexBuffer;
 	bgfx::TransientIndexBuffer indexBuffer;
-	if (bgfx::allocTransientBuffers(&vertexBuffer, PosColorVertex::ms_decl, 4, &indexBuffer, 6))
+	if (bgfx::allocTransientBuffers(&vertexBuffer, PosColorVertex::ms_layout, 4, &indexBuffer, 6))
 	{
 		Size viewSize = SharedView.getSize();
 		float width = viewSize.width;

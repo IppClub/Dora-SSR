@@ -18,7 +18,7 @@ NS_DOROTHY_BEGIN
 
 /* Sprite */
 
-bgfx::VertexDecl SpriteVertex::ms_decl;
+bgfx::VertexLayout SpriteVertex::ms_layout;
 SpriteVertex::Init SpriteVertex::init;
 
 Sprite::Sprite():
@@ -380,7 +380,7 @@ void SpriteRenderer::render()
 		Uint32 spriteCount = vertexCount >> 2;
 		Uint32 indexCount = spriteCount * 6;
 		if (bgfx::allocTransientBuffers(
-			&vertexBuffer, SpriteVertex::ms_decl, vertexCount,
+			&vertexBuffer, SpriteVertex::ms_layout, vertexCount,
 			&indexBuffer, indexCount))
 		{
 			Renderer::render();

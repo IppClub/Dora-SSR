@@ -52,7 +52,7 @@ private:
 	UITouchHandler* _touchHandler;
 	Ref<Texture2D> _fontTexture;
 	Ref<SpriteEffect> _effect;
-	bgfx::VertexDecl _vertexDecl;
+	bgfx::VertexLayout _vertexLayout;
 	list<SDL_Event> _inputs;
 	vector<Uint32> _textEditing;
 	string _iniFilePath;

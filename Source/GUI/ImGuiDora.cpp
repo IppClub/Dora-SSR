@@ -173,7 +173,7 @@ _log(New<LogPanel>()),
 _defaultFonts(New<ImFontAtlas>()),
 _fonts(New<ImFontAtlas>())
 {
-	_vertexDecl
+	_vertexLayout
 		.begin()
 			.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
 			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
@@ -289,11 +289,8 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 void ImGuiDora::showStats()
 {
 	/* print debug text */
-	ImGui::SetNextWindowSize(Vec2{192,385}, ImGuiCond_FirstUseEver);
-	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Version:");
-	ImGui::SameLine();
-	ImGui::TextUnformatted(SharedApplication.getVersion().begin());
+	ImGui::SetNextWindowSize(Vec2{192,345}, ImGuiCond_FirstUseEver);
+	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_NoResize);
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.
@@ -582,7 +579,7 @@ void ImGuiDora::end()
 	ImGui::Render();
 }
 
-inline bool checkAvailTransientBuffers(uint32_t _numVertices, const bgfx::VertexDecl& _decl, uint32_t _numIndices)
+inline bool checkAvailTransientBuffers(uint32_t _numVertices, const bgfx::VertexLayout& _decl, uint32_t _numIndices)
 {
 	return _numVertices == bgfx::getAvailTransientVertexBuffer(_numVertices, _decl)
 		&& _numIndices == bgfx::getAvailTransientIndexBuffer(_numIndices);
@@ -615,13 +612,13 @@ void ImGuiDora::render()
 			uint32_t numVertices = (uint32_t)drawList->VtxBuffer.size();
 			uint32_t numIndices = (uint32_t)drawList->IdxBuffer.size();
 
-			if (!checkAvailTransientBuffers(numVertices, guiDora->_vertexDecl, numIndices))
+			if (!checkAvailTransientBuffers(numVertices, guiDora->_vertexLayout, numIndices))
 			{
 				Warn("not enough space in transient buffer just quit drawing the rest.");
 				break;
 			}
 
-			bgfx::allocTransientVertexBuffer(&tvb, numVertices, guiDora->_vertexDecl);
+			bgfx::allocTransientVertexBuffer(&tvb, numVertices, guiDora->_vertexLayout);
 			bgfx::allocTransientIndexBuffer(&tib, numIndices);
 
 			ImDrawVert* verts = (ImDrawVert*)tvb.data;
