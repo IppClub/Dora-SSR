@@ -51,4 +51,3 @@ Director.entry\addChild with Node!
 		Begin "Render Group", "NoResize|NoSavedSettings", ->
 			TextWrapped "When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window."
 			_, currentEntry.renderGroup = Checkbox "Grouped", currentEntry.renderGroup
-

@@ -43,4 +43,3 @@ model\schedule ->
 		model.scaleY = scale
 		if Button "Play", Vec2 140,30
 			model\play animations[currentAnim]
-

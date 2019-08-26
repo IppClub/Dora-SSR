@@ -53,4 +53,3 @@ Director.entry\addChild with Node!
 				sprite\removeFromParent!
 				sprite = Sprite "Image/logo.png"
 				parentNode\addChild sprite
-

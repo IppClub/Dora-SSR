@@ -27,14 +27,14 @@ struct DrawVertex
 	{
 		Init()
 		{
-			ms_decl.begin()
+			ms_layout.begin()
 				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 				.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 			.end();
 		}
 	};
-	static bgfx::VertexDecl ms_decl;
+	static bgfx::VertexLayout ms_layout;
 	static Init init;
 };
 
@@ -122,13 +122,13 @@ struct PosColorVertex
 	{
 		Init()
 		{
-			ms_decl.begin()
+			ms_layout.begin()
 				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 			.end();
 		}
 	};
-	static bgfx::VertexDecl ms_decl;
+	static bgfx::VertexLayout ms_layout;
 	static Init init;
 };
 
