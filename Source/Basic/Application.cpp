@@ -170,6 +170,7 @@ int Application::run()
 		Error("SDL failed to initialize! {}", SDL_GetError());
 		return 1;
 	}
+	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 
 	Uint32 windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX

@@ -1043,13 +1043,6 @@
 			path = Shapes;
 			sourceTree = "<group>";
 		};
-		3C19847A21011B6D00B6F370 /* Platformer */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Platformer;
-			sourceTree = "<group>";
-		};
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -1364,7 +1357,6 @@
 			isa = PBXGroup;
 			children = (
 				3C50976D1E65B92F00896971 /* Dorothy.h */,
-				3C19847A21011B6D00B6F370 /* Platformer */,
 				3CB410221E05B08B00A8804D /* 3rdParty */,
 				3C1520291E762A3F001BC057 /* Animation */,
 				3C01B6C31E96435A00A0CC1C /* Audio */,
