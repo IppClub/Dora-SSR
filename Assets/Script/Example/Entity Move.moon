@@ -86,4 +86,3 @@ with Observer "Add", {"scene"}
 						\runAction Sequence Scale(0.5,1,0,Ease.InBack), Emit("Destroy")
 						\slot "Destroy", -> entity\destroy!
 					true
-

@@ -31,4 +31,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Camera", "NoResize|NoSavedSettings", ->
 			TextWrapped "View camera motions, use 3D camera as default!"
-

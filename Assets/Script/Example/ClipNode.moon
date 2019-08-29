@@ -81,4 +81,3 @@ Director.entry\addChild with Node!
 			if changed
 				exampleB.visible = withAlphaThreshold
 				exampleA.visible = not withAlphaThreshold
-
