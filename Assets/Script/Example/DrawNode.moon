@@ -75,4 +75,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Draw Node", "NoResize|NoSavedSettings", ->
 			TextWrapped "Draw shapes and lines!"
-

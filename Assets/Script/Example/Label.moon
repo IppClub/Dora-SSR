@@ -25,4 +25,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Label", "NoResize|NoSavedSettings", ->
 			TextWrapped "Render labels with unbatched and batched methods!"
-

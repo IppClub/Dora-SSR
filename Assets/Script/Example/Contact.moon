@@ -53,4 +53,3 @@ Director.entry\addChild with Node!
 			TextWrapped "Recieve events when physics bodies contact."
 			changed, disk.receivingContact = Checkbox "Receiving Contact", disk.receivingContact
 			label.text = "" if changed
-

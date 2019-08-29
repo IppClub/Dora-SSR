@@ -56,4 +56,3 @@ Director.entry\addChild with Node!
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Body", "NoResize|NoSavedSettings", ->
 			TextWrapped "Basic usage to create physics bodies!"
-
