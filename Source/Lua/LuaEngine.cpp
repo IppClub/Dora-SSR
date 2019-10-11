@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaFromXml.h"
 #include "Support/Value.h"
 #include "Node/Node.h"
+#include "MoonP/moon_compiler.h"
 using namespace Dorothy::Platformer;
 
 extern int luaopen_lpeg(lua_State* L);
@@ -198,6 +199,50 @@ static int dora_xmltolua(lua_State* L)
 	return 1;
 }
 
+static int dora_moontolua(lua_State* L)
+{
+	string codes(luaL_checkstring(L, 1));
+	bool checkGlobal = tolua_toboolean(L, 2, 0);
+	if (checkGlobal) {
+		std::list<std::string> globals;
+		auto result = MoonP::moonCompile(codes, globals);
+		if (result.first.empty())
+		{
+			lua_pushnil(L);
+			lua_pushlstring(L, result.second.c_str(), result.second.size());
+		}
+		else
+		{
+			lua_pushlstring(L, result.first.c_str(), result.first.size());
+			lua_pushnil(L);
+		}
+		lua_createtable(L, s_cast<int>(globals.size()), 0);
+		int i = 1;
+		for (const auto& var : globals)
+		{
+			lua_pushlstring(L, var.c_str(), var.size());
+			lua_rawseti(L, -2, i);
+			i++;
+		}
+		return 3;
+	}
+	else
+	{
+		auto result = MoonP::moonCompile(codes);
+		if (result.first.empty())
+		{
+			lua_pushnil(L);
+			lua_pushlstring(L, result.second.c_str(), result.second.size());
+		}
+		else
+		{
+			lua_pushlstring(L, result.first.c_str(), result.first.size());
+			lua_pushnil(L);
+		}
+		return 2;
+	}
+}
+
 static int dora_ubox(lua_State* L)
 {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
@@ -245,6 +290,7 @@ LuaEngine::LuaEngine()
 		{ "dofile", dora_dofile },
 		{ "doxml", dora_doxml },
 		{ "xmltolua", dora_xmltolua },
+		{ "moontolua", dora_moontolua },
 		{ "ubox", dora_ubox },
 		{ "emit", dora_emit },
 		{ NULL, NULL }
