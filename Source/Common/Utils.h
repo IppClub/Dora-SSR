@@ -76,8 +76,8 @@ public: void set##funName(String var)
 	BLOCK_END
 */
 #define BLOCK_START do {
-#define BREAK_IF(cond) if (cond) break;
-#define BREAK_UNLESS(cond) if (!cond) break;
+#define BREAK_IF(cond) if (cond) break
+#define BREAK_UNLESS(cond) if (!(cond)) break
 #define BLOCK_END } while (false);
 
 /** @brief Compiler compact macros */

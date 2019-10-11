@@ -17,12 +17,51 @@ _G.require = newRequire
 builtin.require = newRequire
 
 allowedUseOfGlobals = Set {
+	'_G'
+	'_VERSION'
+	'assert'
+	'collectgarbage'
+	'coroutine'
+	'debug'
+	'dofile'
+	'error'
+	'getfenv'
+	'getmetatable'
+	'ipairs'
+	'load'
+	'loadfile'
+	'loadstring'
+	'module'
+	'next'
+	'package'
+	'pairs'
+	'pcall'
+	'print'
+	'rawequal'
+	'rawget'
+	'rawlen'
+	'rawset'
+	'require'
+	'select'
+	'setfenv'
+	'setmetatable'
+	'string'
+	'table'
+	'tonumber'
+	'tostring'
+	'type'
+	'unpack'
+	'xpcall'
+	"nil"
+	"true"
+	"false"
+	'math'
+
+	"Dorothy"
+	"builtin"
 }
 
-LintMoonGlobals = (moonCodes,entry)->
-	globals,err = LintGlobal moonCodes
-	if not globals
-		error "Compile failed in #{entry}\n#{err}"
+LintMoonGlobals = (moonCodes,globals,entry)->
 	requireModules = {}
 	withImGui = false
 	withPlatformer = false
@@ -39,7 +78,7 @@ LintMoonGlobals = (moonCodes,entry)->
 			{importItem, item}
 	else {}
 	importSet = {}
-	for name,_ in pairs globals
+	for name in *globals
 		if not allowedUseOfGlobals[name]
 			if builtin[name]
 				table.insert requireModules, "local #{name} = require(\"#{name}\")"
@@ -70,13 +109,13 @@ compile = (dir,clean,minify)->
 		path = Path.getPath file
 		name = Path.getName file
 		isXml = "xml" == Path.getExtension file
-		compileFunc = isXml and xmltolua or moonscript.to_lua
+		compileFunc = isXml and xmltolua or moontolua
 		requires = nil
 		if not clean
 			sourceCodes = Content\loadAsync "#{dir}/#{file}"
-			requires = LintMoonGlobals sourceCodes, file unless isXml
 			startTime = App.eclapsedTime
-			codes,err = compileFunc sourceCodes
+			codes,err,globals = compileFunc sourceCodes, true
+			requires = LintMoonGlobals(sourceCodes,globals,file) unless isXml
 			if isXml
 				totalXmlTime += App.eclapsedTime - startTime
 			else
@@ -165,6 +204,7 @@ doClean = ->
 		building = false
 
 isInEntry = true
+currentEntryName = nil
 
 allClear = ->
 	for module in *moduleCache
@@ -194,7 +234,6 @@ examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."
 table.sort examples
 tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
 table.sort tests
-currentEntryName = nil
 allNames = for game in *games do "Game/#{game}/init"
 for example in *examples do table.insert allNames,"Example/#{example}"
 for test in *tests do table.insert allNames,"Test/#{test}"
@@ -222,10 +261,11 @@ showEntry = false
 thread ->
 	{:width,:height} = App.visualSize
 	scale = App.deviceRatio*0.7*math.min(width,height)/760
-	with Sprite GetDorothySSRHappyWhite scale
-		\addTo Director.entry
-		sleep 1.0
-		\removeFromParent!
+	if false
+		with Sprite GetDorothySSRHappyWhite scale
+			\addTo Director.entry
+			sleep 1.0
+			\removeFromParent!
 	showEntry = true
 	Director.clearColor = Color 0xff1a1a1a
 
@@ -338,3 +378,4 @@ threadLoop ->
 				if Button test, Vec2(-1,40)
 					enterDemoEntry "Test/#{test}"
 				NextColumn!
+
