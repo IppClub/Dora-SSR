@@ -439,10 +439,10 @@ AST_NODE(unary_exp, "unary_exp"_id)
 	ast_ptr<Exp_t> item;
 AST_END(unary_exp)
 
-AST_NODE(Assignment, "Assignment"_id)
-	ast_ptr<ExpList_t> assignable;
-	ast_ptr<ast_node> target; // Update_t | Assign_t
-AST_END(Assignment)
+AST_NODE(ExpListAssign, "ExpListAssign"_id)
+	ast_ptr<ExpList_t> expList;
+	ast_sel_opt<Update_t, Assign_t> action;
+AST_END(ExpListAssign)
 
 AST_NODE(if_else_line, "if_else_line"_id)
 	ast_ptr<Exp_t> condition;
@@ -463,7 +463,7 @@ AST_END(BreakLoop)
 AST_NODE(Statement, "Statement"_id)
 	ast_sel<Import_t, While_t, For_t, ForEach_t,
 		Return_t, Local_t, Export_t, BreakLoop_t,
-		Assignment_t, ExpList_t> content;
+		ExpListAssign_t> content;
 	ast_ptr<statement_appendix_t, true> appendix;
 AST_END(Statement)
 
