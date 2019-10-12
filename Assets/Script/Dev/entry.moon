@@ -115,7 +115,10 @@ compile = (dir,clean,minify)->
 			sourceCodes = Content\loadAsync "#{dir}/#{file}"
 			startTime = App.eclapsedTime
 			codes,err,globals = compileFunc sourceCodes, true
-			requires = LintMoonGlobals(sourceCodes,globals,file) unless isXml
+			if file\match "moon_spec"
+				requires = ""
+			else
+				requires = LintMoonGlobals(sourceCodes,globals,file) unless isXml
 			if isXml
 				totalXmlTime += App.eclapsedTime - startTime
 			else

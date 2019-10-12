@@ -16,8 +16,8 @@ std::unordered_set<std::string> State::keywords = {
 	"in", "local", "nil", "not", "or",
 	"repeat", "return", "then", "true", "until",
 	"while", // Lua keywords
-	"class", "continue", "export", "extends",
-	"import", "switch", "when", "unless", "using",
+	"class", "continue", "export", "extends", "from",
+	"import", "switch", "unless", "using", "when",
 	"with" // Moon keywords
 };
 
@@ -490,7 +490,7 @@ rule SimpleValue =
 	TblComprehension | TableLit | Comprehension | FunLit |
 	(Space >> Num);
 
-rule Assignment = ExpList >> (Update | Assign);
+rule ExpListAssign = ExpList >> -(Update | Assign);
 
 rule if_else_line = key("if") >> Exp >> (key("else") >> Exp | default_value);
 rule unless_line = key("unless") >> Exp;
@@ -500,7 +500,7 @@ rule Statement =
 (
 	Import | While | For | ForEach |
 	Return | Local | Export | Space >> BreakLoop |
-	Assignment | ExpList
+	ExpListAssign
 ) >> Space >>
 -statement_appendix;
 

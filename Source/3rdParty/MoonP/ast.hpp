@@ -218,13 +218,13 @@ public:
 
 	template <class T>
 	T* to() const {
-		assert(m_ptr->get_type() == ast_type<T>());
+		assert(m_ptr && m_ptr->get_type() == ast_type<T>());
 		return static_cast<T*>(m_ptr);
 	}
 
 	template <class T>
 	bool is() const {
-		return m_ptr->get_type() == ast_type<T>();
+		return m_ptr && m_ptr->get_type() == ast_type<T>();
 	}
 
 	void set(ast_node* node) {
@@ -358,6 +358,47 @@ public:
 private:
     virtual bool accept(ast_node* node) override {
     	if (!node) return false;
+		using swallow = bool[];
+		bool result = false;
+		(void)swallow{result || (result = ast_type<Args>() == node->get_type())...};
+		return result;
+	}
+};
+
+template <class ...Args> class ast_sel_opt : public _ast_ptr {
+public:
+	ast_sel_opt() : _ast_ptr(nullptr, true) {}
+
+	ast_sel_opt(const ast_sel_opt<Args...>& other) : _ast_ptr(other.get(), true) {}
+
+	ast_sel_opt<Args...>& operator=(const ast_sel_opt<Args...>& other) {
+		set(other.get());
+		return *this;
+	}
+
+	operator ast_node*() const {
+		return m_ptr;
+	}
+
+	ast_node* operator->() const {
+		assert(m_ptr);
+		return m_ptr;
+	}
+
+	virtual void construct(ast_stack& st) override {
+		if (st.empty()) return;
+		ast_node* node = st.back();
+
+		if (!ast_sel_opt::accept(node)) return;
+
+		st.pop_back();
+
+		m_ptr = node;
+		node->retain();
+	}
+private:
+	virtual bool accept(ast_node* node) override {
+		if (!node) return false;
 		using swallow = bool[];
 		bool result = false;
 		(void)swallow{result || (result = ast_type<Args>() == node->get_type())...};

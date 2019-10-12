@@ -145,7 +145,7 @@ private:
 		_scopes.pop_back();
 	}
 
-	bool isDefined(const std::string& name, bool checkShadowScopeOnly = false) {
+	bool isDefined(const std::string& name) {
 		bool isDefined = false;
 		int mode = int(std::isupper(name[0]) ? ExportMode::Capital : ExportMode::Any);
 		const auto& current = _scopes.back();
@@ -159,6 +159,14 @@ private:
 				isDefined = true;
 				current.vars->insert(name);
 			}
+		}
+		decltype(_scopes.back().allows.get()) allows = nullptr;
+		for (auto it  = _scopes.rbegin(); it != _scopes.rend(); ++it) {
+			if (it->allows) allows = it->allows.get();
+		}
+		bool checkShadowScopeOnly = false;
+		if (allows) {
+			checkShadowScopeOnly = allows->find(name) == allows->end();
 		}
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
@@ -216,19 +224,11 @@ private:
 	}
 
 	bool addToScope(const std::string& name) {
-		bool defined = false;
-		auto& scope = _scopes.back();
-		decltype(scope.allows.get()) allows = nullptr;
-		for (auto it  = _scopes.rbegin(); it != _scopes.rend(); ++it) {
-			if (it->allows) allows = it->allows.get();
+		bool defined = isDefined(name);
+		if (!defined) {
+			auto& scope = currentScope();
+			scope.vars->insert(name);
 		}
-		if (allows) {
-			bool shadowed = allows->find(name) == allows->end();
-			defined = isDefined(name, shadowed);
-		} else {
-			defined = isDefined(name);
-		}
-		if (!defined) scope.vars->insert(name);
 		return !defined;
 	}
 
@@ -422,8 +422,8 @@ private:
 	void transformStatement(Statement_t* statement, str_list& out) {
 		auto x = statement;
 		if (statement->appendix) {
-			if (auto assignment = statement->content.as<Assignment_t>()) {
-				auto preDefine = getPredefine(transformAssignDefs(assignment->assignable));
+			if (auto assignment = assignmentFrom(statement)) {
+				auto preDefine = getPredefine(transformAssignDefs(assignment->expList));
 				if (!preDefine.empty()) out.push_back(preDefine + nll(statement));
 			}
 			auto appendix = statement->appendix.get();
@@ -443,10 +443,12 @@ private:
 					ifNode->nodes.push_back(body);
 
 					if (!ast_is<default_value_t>(if_else_line->elseExpr)) {
-						auto exprList = x->new_ptr<ExpList_t>();
-						exprList->exprs.push_back(if_else_line->elseExpr);
+						auto expList = x->new_ptr<ExpList_t>();
+						expList->exprs.push_back(if_else_line->elseExpr);
+						auto expListAssign = x->new_ptr<ExpListAssign_t>();
+						expListAssign->expList.set(expList);
 						auto stmt = x->new_ptr<Statement_t>();
-						stmt->content.set(exprList);
+						stmt->content.set(expListAssign);
 						auto body = x->new_ptr<Body_t>();
 						body->content.set(stmt);
 						ifNode->nodes.push_back(body);
@@ -459,9 +461,11 @@ private:
 					value->item.set(simpleValue);
 					auto exp = x->new_ptr<Exp_t>();
 					exp->value.set(value);
-					auto exprList = x->new_ptr<ExpList_t>();
-					exprList->exprs.push_back(exp);
-					statement->content.set(exprList);
+					auto expList = x->new_ptr<ExpList_t>();
+					expList->exprs.push_back(exp);
+					auto expListAssign = x->new_ptr<ExpListAssign_t>();
+					expListAssign->expList.set(expList);
+					statement->content.set(expListAssign);
 					break;
 				}
 				case "unless_line"_id: {
@@ -487,7 +491,9 @@ private:
 					exp->value.set(value);
 					auto exprList = x->new_ptr<ExpList_t>();
 					exprList->exprs.push_back(exp);
-					statement->content.set(exprList);
+					auto expListAssign = x->new_ptr<ExpListAssign_t>();
+					expListAssign->expList.set(exprList);
+					statement->content.set(expListAssign);
 					break;
 				}
 				case "CompInner"_id: {
@@ -505,7 +511,9 @@ private:
 					exp->value.set(value);
 					auto expList = x->new_ptr<ExpList_t>();
 					expList->exprs.push_back(exp);
-					statement->content.set(expList);
+					auto expListAssign = x->new_ptr<ExpListAssign_t>();
+					expListAssign->expList.set(expList);
+					statement->content.set(expListAssign);
 					statement->appendix.set(nullptr);
 					break;
 				}
@@ -526,58 +534,61 @@ private:
 			case "Local"_id: transformLocal(static_cast<Local_t*>(content), out); break;
 			case "Export"_id: transformExport(static_cast<Export_t*>(content), out); break;
 			case "BreakLoop"_id: transformBreakLoop(static_cast<BreakLoop_t*>(content), out); break;
-			case "Assignment"_id: transformAssignment(static_cast<Assignment_t*>(content), out); break;
-			case "ExpList"_id: {
-				auto expList = static_cast<ExpList_t*>(content);
-				if (expList->exprs.objects().empty()) {
-					out.push_back(Empty);
-					break;
-				}
-				if (auto singleValue = singleValueFrom(expList)) {
-					if (auto simpleValue = singleValue->item.as<SimpleValue_t>()) {
-						auto value = simpleValue->value.get();
-						bool specialSingleValue = true;
-						switch (value->getId()) {
-							case "If"_id: transformIf(static_cast<If_t*>(value), out); break;
-							case "ClassDecl"_id: transformClassDecl(static_cast<ClassDecl_t*>(value), out); break;
-							case "Unless"_id: transformUnless(static_cast<Unless_t*>(value), out); break;
-							case "Switch"_id: transformSwitch(static_cast<Switch_t*>(value), out); break;
-							case "With"_id: transformWith(static_cast<With_t*>(value), out); break;
-							case "ForEach"_id: transformForEach(static_cast<ForEach_t*>(value), out); break;
-							case "For"_id: transformFor(static_cast<For_t*>(value), out); break;
-							case "While"_id: transformWhile(static_cast<While_t*>(value), out); break;
-							case "Do"_id: transformDo(static_cast<Do_t*>(value), out); break;
-							case "Comprehension"_id: transformCompCommon(static_cast<Comprehension_t*>(value), out); break;
-							default: specialSingleValue = false; break;
+			case "ExpListAssign"_id: {
+				auto expListAssign = static_cast<ExpListAssign_t*>(content);
+				if (expListAssign->action) {
+					transformAssignment(expListAssign, out);
+				} else {
+					auto expList = expListAssign->expList.get();
+					if (expList->exprs.objects().empty()) {
+						out.push_back(Empty);
+						break;
+					}
+					if (auto singleValue = singleValueFrom(expList)) {
+						if (auto simpleValue = singleValue->item.as<SimpleValue_t>()) {
+							auto value = simpleValue->value.get();
+							bool specialSingleValue = true;
+							switch (value->getId()) {
+								case "If"_id: transformIf(static_cast<If_t*>(value), out); break;
+								case "ClassDecl"_id: transformClassDecl(static_cast<ClassDecl_t*>(value), out); break;
+								case "Unless"_id: transformUnless(static_cast<Unless_t*>(value), out); break;
+								case "Switch"_id: transformSwitch(static_cast<Switch_t*>(value), out); break;
+								case "With"_id: transformWith(static_cast<With_t*>(value), out); break;
+								case "ForEach"_id: transformForEach(static_cast<ForEach_t*>(value), out); break;
+								case "For"_id: transformFor(static_cast<For_t*>(value), out); break;
+								case "While"_id: transformWhile(static_cast<While_t*>(value), out); break;
+								case "Do"_id: transformDo(static_cast<Do_t*>(value), out); break;
+								case "Comprehension"_id: transformCompCommon(static_cast<Comprehension_t*>(value), out); break;
+								default: specialSingleValue = false; break;
+							}
+							if (specialSingleValue) {
+								break;
+							}
 						}
-						if (specialSingleValue) {
-							break;
+						if (auto chainValue = singleValue->item.as<ChainValue_t>()) {
+							if (isChainValueCall(chainValue)) {
+								transformChainValue(chainValue, out, ExpUsage::Common);
+								break;
+							}
 						}
 					}
-					if (auto chainValue = singleValue->item.as<ChainValue_t>()) {
-						if (isChainValueCall(chainValue)) {
-							transformChainValue(chainValue, out, ExpUsage::Common);
-							break;
-						}
-					}
+					auto assign = x->new_ptr<Assign_t>();
+					assign->values.dup(expList->exprs);
+					auto assignment = x->new_ptr<ExpListAssign_t>();
+					assignment->expList.set(toAst<ExpList_t>("_", ExpList, x));
+					assignment->action.set(assign);
+					transformAssignment(assignment, out);
 				}
-				auto assign = x->new_ptr<Assign_t>();
-				assign->values.dup(expList->exprs);
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(toAst<ExpList_t>("_", ExpList, x));
-				assignment->target.set(assign);
-				assignment->m_begin.m_line = statement->m_begin.m_line;
-				transformAssignment(assignment, out);
 				break;
 			}
 			default: break;
 		}
 	}
 
-	str_list getAssignVars(Assignment_t* assignment) {
+	str_list getAssignVars(ExpListAssign_t* assignment) {
 		str_list vars;
-		if (!assignment->target.is<Assign_t>()) return vars;
-		for (auto exp : assignment->assignable->exprs.objects()) {
+		if (!assignment->action.is<Assign_t>()) return vars;
+		for (auto exp : assignment->expList->exprs.objects()) {
 			auto var = singleVariableFrom(exp);
 			vars.push_back(var.empty() ? Empty : var);
 		}
@@ -591,6 +602,31 @@ private:
 			vars.push_back(var.empty() ? Empty : var);
 		}
 		return vars;
+	}
+
+	str_list getAssignDefs(ExpList_t* expList) {
+		str_list preDefs;
+		for (auto exp_ : expList->exprs.objects()) {
+			auto exp = static_cast<Exp_t*>(exp_);
+			if (auto value = singleValueFrom(exp)) {
+				if (auto chain = value->item.as<ChainValue_t>()) {
+					BLOCK_START
+					BREAK_IF(chain->items.size() != 1);
+					auto callable = ast_cast<Callable_t>(chain->items.front());
+					BREAK_IF(!callable);
+					auto var = callable->item.as<Variable_t>();
+					BREAK_IF(!var);
+					auto name = toString(var);
+					if (!isDefined(name)) {
+						preDefs.push_back(name);
+					}
+					BLOCK_END
+				}
+			} else {
+				throw std::logic_error("left hand expression is not assignable");
+			}
+		}
+		return preDefs;
 	}
 
 	str_list transformAssignDefs(ExpList_t* expList) {
@@ -623,7 +659,7 @@ private:
 		return indent() + s("local "sv) + join(defs, ", "sv);
 	}
 
-	std::string getDestrucureDefine(Assignment_t* assignment) {
+	std::string getDestrucureDefine(ExpListAssign_t* assignment) {
 		auto info = extractDestructureInfo(assignment);
 		if (!info.first.empty()) {
 			for (const auto& destruct : info.first) {
@@ -639,24 +675,42 @@ private:
 		return clearBuf();
 	}
 
-	std::string getPredefine(Assignment_t* assignment) {
+	std::string getPredefine(ExpListAssign_t* assignment) {
 		auto preDefine = getDestrucureDefine(assignment);
 		if (preDefine.empty()) {
-			preDefine = getPredefine(transformAssignDefs(assignment->assignable));
+			preDefine = getPredefine(transformAssignDefs(assignment->expList));
 		}
 		return preDefine.empty() ? preDefine : preDefine + nll(assignment);
 	}
 
+	ExpList_t* expListFrom(Statement_t* statement) {
+		if (auto expListAssign = statement->content.as<ExpListAssign_t>()) {
+			if (!expListAssign->action) {
+				return expListAssign->expList.get();
+			}
+		}
+		return nullptr;
+	}
+
+	ExpListAssign_t* assignmentFrom(Statement_t* statement) {
+		if (auto expListAssign = statement->content.as<ExpListAssign_t>()) {
+			if (expListAssign->action) {
+				return expListAssign;
+			}
+		}
+		return nullptr;
+	}
+
 	void assignLastExplist(ExpList_t* expList, Body_t* body) {
 		auto last = lastStatementFrom(body);
-		bool lastAssignable = last && ast_is<ExpList_t, For_t, ForEach_t, While_t>(last->content);
+		bool lastAssignable = last && (expListFrom(last) || ast_is<For_t, ForEach_t, While_t>(last->content));
 		if (lastAssignable) {
 			auto x = last;
-			auto newAssignment = x->new_ptr<Assignment_t>();
-			newAssignment->assignable.set(expList);
+			auto newAssignment = x->new_ptr<ExpListAssign_t>();
+			newAssignment->expList.set(expList);
 			auto assign = x->new_ptr<Assign_t>();
-			if (auto valueList = last->content.as<ExpList_t>()) {
-				assign->values.dup(valueList->exprs);
+			if (auto valueList = last->content.as<ExpListAssign_t>()) {
+				assign->values.dup(valueList->expList->exprs);
 			} else {
 				auto simpleValue = x->new_ptr<SimpleValue_t>();
 				simpleValue->value.set(last->content);
@@ -666,141 +720,138 @@ private:
 				exp->value.set(value);
 				assign->values.push_back(exp);
 			}
-			newAssignment->target.set(assign);
+			newAssignment->action.set(assign);
 			last->content.set(newAssignment);
 		}
 	}
 
-	void transformAssignment(Assignment_t* assignment, str_list& out) {
-		auto assign = ast_cast<Assign_t>(assignment->target);
+	void transformAssignment(ExpListAssign_t* assignment, str_list& out) {
 		BLOCK_START
+		auto assign = ast_cast<Assign_t>(assignment->action);
 		BREAK_IF(!assign || assign->values.objects().size() != 1);
 		auto value = assign->values.objects().front();
-		ast_node* item = nullptr;
-		if (ast_is<If_t>(value)) {
-			item = value;
-		} else if (auto val = simpleSingleValueFrom(value)) {
-			if (ast_is<If_t, Unless_t>(val->value)) {
-				item = val->value;
+		if (ast_is<Exp_t>(value)) {
+			if (auto val = simpleSingleValueFrom(value)) {
+				value = val->value.get();
 			}
 		}
-		if (item) {
-			auto expList = assignment->assignable.get();
-			str_list temp;
-			auto defs = transformAssignDefs(expList);
-			if (!defs.empty()) temp.push_back(getPredefine(defs) + nll(expList));
-			item->traverse([&](ast_node* node) {
-				switch (node->getId()) {
-					case "IfCond"_id: return traversal::Return;
-					case "Body"_id: {
-						auto body = static_cast<Body_t*>(node);
-						assignLastExplist(expList, body);
-						return traversal::Return;
+		switch (value->getId()) {
+			case "If"_id:
+			case "Unless"_id: {
+				auto expList = assignment->expList.get();
+				str_list temp;
+				auto defs = transformAssignDefs(expList);
+				if (!defs.empty()) temp.push_back(getPredefine(defs) + nll(expList));
+				value->traverse([&](ast_node* node) {
+					switch (node->getId()) {
+						case "IfCond"_id: return traversal::Return;
+						case "Body"_id: {
+							auto body = static_cast<Body_t*>(node);
+							assignLastExplist(expList, body);
+							return traversal::Return;
+						}
+						default: return traversal::Continue;
 					}
-					default: return traversal::Continue;
+				});
+				switch (value->getId()) {
+					case "If"_id: transformIf(static_cast<If_t*>(value), temp); break;
+					case "Unless"_id: transformUnless(static_cast<Unless_t*>(value), temp); break;
 				}
-			});
-			switch (item->getId()) {
-				case "If"_id: transformIf(static_cast<If_t*>(item), temp); break;
-				case "Unless"_id: transformUnless(static_cast<Unless_t*>(item), temp); break;
+				out.push_back(join(temp));
+				return;
 			}
-			out.push_back(join(temp));
-			return;
-		}
-		if (auto switchNode = ast_cast<Switch_t>(value)) {
-			auto expList = assignment->assignable.get();
-			for (auto branch_ : switchNode->branches.objects()) {
-				auto branch = static_cast<SwitchCase_t*>(branch_);
-				assignLastExplist(expList, branch->body);
+			case "Switch"_id: {
+				auto switchNode = static_cast<Switch_t*>(value);
+				auto expList = assignment->expList.get();
+				for (auto branch_ : switchNode->branches.objects()) {
+					auto branch = static_cast<SwitchCase_t*>(branch_);
+					assignLastExplist(expList, branch->body);
+				}
+				if (switchNode->lastBranch) {
+					assignLastExplist(expList, switchNode->lastBranch);
+				}
+				std::string preDefine = getPredefine(assignment);
+				transformSwitch(switchNode, out);
+				out.back() = preDefine + out.back();
+				return;
 			}
-			if (switchNode->lastBranch) {
-				assignLastExplist(expList, switchNode->lastBranch);
+			case "With"_id: {
+				auto withNode = static_cast<With_t*>(value);
+				str_list temp;
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPredefine(assignment);
+				transformWith(withNode, temp, expList);
+				out.push_back(preDefine + temp.back());
+				return;
 			}
-			std::string preDefine = getPredefine(assignment);
-			transformSwitch(switchNode, out);
-			out.back() = preDefine + out.back();
-			return;
-		}
-		if (auto withNode = ast_cast<With_t>(value)) {
-			str_list temp;
-			auto expList = assignment->assignable.get();
-			std::string preDefine = getPredefine(assignment);
-			transformWith(withNode, temp, expList);
-			out.push_back(preDefine + temp.back());
-			return;
+			case "Do"_id: {
+				auto doNode = static_cast<Do_t*>(value);
+				auto expList = assignment->expList.get();
+				assignLastExplist(expList, doNode->body);
+				std::string preDefine = getPredefine(assignment);
+				transformDo(doNode, out);
+				out.back() = preDefine + out.back();
+				return;
+			}
+			case "Comprehension"_id: {
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPredefine(assignment);
+				transformCompInPlace(static_cast<Comprehension_t*>(value), expList, out);
+				out.back() = preDefine + out.back();
+				return;
+			}
+			case "TblComprehension"_id: {
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPredefine(assignment);
+				transformTblCompInPlace(static_cast<TblComprehension_t*>(value), expList, out);
+				out.back() = preDefine + out.back();
+				return;
+			}
+			case "For"_id: {
+				str_list temp;
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPredefine(assignment);
+				transformForInPlace(static_cast<For_t*>(value), temp, expList);
+				out.push_back(preDefine + temp.back());
+				return;
+			}
+			case "ForEach"_id: {
+				str_list temp;
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPredefine(assignment);
+				transformForEachInPlace(static_cast<ForEach_t*>(value), temp, expList);
+				out.push_back(preDefine + temp.back());
+				return;
+			}
+			case "ClassDecl"_id: {
+				str_list temp;
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPredefine(assignment);
+				transformClassDecl(static_cast<ClassDecl_t*>(value), temp, ExpUsage::Assignment, expList);
+				out.push_back(preDefine + temp.back());
+				return;
+			}
+			case "While"_id: {
+				str_list temp;
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPredefine(assignment);
+				transformWhileClosure(static_cast<While_t*>(value), temp, expList);
+				out.push_back(preDefine + temp.back());
+				return;
+			}
 		}
 		auto exp = ast_cast<Exp_t>(value);
 		BREAK_IF(!exp);
-		if (auto simpleVal = exp->value->item.as<SimpleValue_t>()) {
-			auto valueItem = simpleVal->value.get();
-			switch (valueItem->getId()) {
-				case "Do"_id: {
-					auto doNode = static_cast<Do_t*>(valueItem);
-					auto expList = assignment->assignable.get();
-					assignLastExplist(expList, doNode->body);
-					std::string preDefine = getPredefine(assignment);
-					transformDo(doNode, out);
-					out.back() = preDefine + out.back();
-					return;
-				}
-				case "Comprehension"_id: {
-					auto expList = assignment->assignable.get();
-					std::string preDefine = getPredefine(assignment);
-					transformCompInPlace(static_cast<Comprehension_t*>(valueItem), expList, out);
-					out.back() = preDefine + out.back();
-					return;
-				}
-				case "TblComprehension"_id: {
-					auto expList = assignment->assignable.get();
-					std::string preDefine = getPredefine(assignment);
-					transformTblCompInPlace(static_cast<TblComprehension_t*>(valueItem), expList, out);
-					out.back() = preDefine + out.back();
-					return;
-				}
-				case "For"_id: {
-					str_list temp;
-					auto expList = assignment->assignable.get();
-					std::string preDefine = getPredefine(assignment);
-					transformForInPlace(static_cast<For_t*>(valueItem), temp, expList);
-					out.push_back(preDefine + temp.back());
-					return;
-				}
-				case "ForEach"_id: {
-					str_list temp;
-					auto expList = assignment->assignable.get();
-					std::string preDefine = getPredefine(assignment);
-					transformForEachInPlace(static_cast<ForEach_t*>(valueItem), temp, expList);
-					out.push_back(preDefine + temp.back());
-					return;
-				}
-				case "ClassDecl"_id: {
-					str_list temp;
-					auto expList = assignment->assignable.get();
-					std::string preDefine = getPredefine(assignment);
-					transformClassDecl(static_cast<ClassDecl_t*>(valueItem), temp, ExpUsage::Assignment, expList);
-					out.push_back(preDefine + temp.back());
-					return;
-				}
-				case "While"_id: {
-					str_list temp;
-					auto expList = assignment->assignable.get();
-					std::string preDefine = getPredefine(assignment);
-					transformWhileClosure(static_cast<While_t*>(valueItem), temp, expList);
-					out.push_back(preDefine + temp.back());
-					return;
-				}
-			}
-		}
 		if (auto chainValue = exp->value->item.as<ChainValue_t>()) {
 			if (isColonChain(chainValue)) {
-				auto assignable = assignment->assignable.get();
+				auto assignable = assignment->expList.get();
 				std::string preDefine = getPredefine(transformAssignDefs(assignable));
 				transformColonChain(chainValue, out, ExpUsage::Assignment, assignable);
 				auto nl = preDefine.empty() ? Empty : nll(chainValue);
 				if (!preDefine.empty()) out.back() = preDefine + nl + out.back();
 				return;
 			} else if (hasKeywordColonChainItem(chainValue)) {
-				transformChainValue(chainValue, out, ExpUsage::Assignment, assignment->assignable);
+				transformChainValue(chainValue, out, ExpUsage::Assignment, assignment->expList);
 				return;
 			}
 		}
@@ -814,10 +865,11 @@ private:
 				if (destruct.items.size() == 1) {
 					auto& pair = destruct.items.front();
 					_buf << indent();
-					if (pair.isVariable && addToScope(pair.name)) {
+					if (pair.isVariable && !isDefined(pair.name)) {
 						_buf << s("local "sv);
 					}
 					_buf << pair.name << " = "sv << info.first.front().value << pair.structure << nll(assignment);
+					addToScope(pair.name);
 					temp.push_back(clearBuf());
 				} else if (matchAst(Name, destruct.value)) {
 					str_list defs, names, values;
@@ -967,13 +1019,13 @@ private:
 		return pairs;
 	}
 
-	std::pair<std::list<Destructure>, ast_ptr<Assignment_t, false, false>>
-		extractDestructureInfo(Assignment_t* assignment) {
+	std::pair<std::list<Destructure>, ast_ptr<ExpListAssign_t, false, false>>
+		extractDestructureInfo(ExpListAssign_t* assignment) {
 		auto x = assignment;
 		std::list<Destructure> destructs;
-		if (!assignment->target.is<Assign_t>()) return { destructs, nullptr };
-		auto exprs = assignment->assignable->exprs.objects();
-		auto values = assignment->target.to<Assign_t>()->values.objects();
+		if (!assignment->action.is<Assign_t>()) return { destructs, nullptr };
+		auto exprs = assignment->expList->exprs.objects();
+		auto values = assignment->action.to<Assign_t>()->values.objects();
 		size_t size = std::max(exprs.size(),values.size());
 		ast_ptr<Exp_t, false, false> var;
 		if (exprs.size() < size) {
@@ -1007,26 +1059,26 @@ private:
 			exprs.erase(p.first);
 			values.erase(p.second);
 		}
-		ast_ptr<Assignment_t, false, false> newAssignment;
+		ast_ptr<ExpListAssign_t, false, false> newAssignment;
 		if (!destructPairs.empty() && !exprs.empty()) {
 			auto x = assignment;
 			auto expList = x->new_ptr<ExpList_t>();
-			auto newAssign = x->new_ptr<Assignment_t>();
-			newAssign->assignable.set(expList);
+			auto newAssign = x->new_ptr<ExpListAssign_t>();
+			newAssign->expList.set(expList);
 			for (auto expr : exprs) expList->exprs.push_back(expr);
 			auto assign = x->new_ptr<Assign_t>();
 			for (auto value : values) assign->values.push_back(value);
-			newAssign->target.set(assign);
+			newAssign->action.set(assign);
 			newAssignment = newAssign;
 		}
 		return {std::move(destructs), newAssignment};
 	}
 
-	void transformAssignmentCommon(Assignment_t* assignment, str_list& out) {
+	void transformAssignmentCommon(ExpListAssign_t* assignment, str_list& out) {
 		auto x = assignment;
 		str_list temp;
-		auto expList = assignment->assignable.get();
-		auto action = assignment->target.get();
+		auto expList = assignment->expList.get();
+		auto action = assignment->action.get();
 		switch (action->getId()) {
 			case "Update"_id: {
 				auto update = static_cast<Update_t*>(action);
@@ -1043,11 +1095,11 @@ private:
 						auto var = singleVariableFrom(exp);
 						BREAK_IF(!var.empty());
 						auto upVar = getUnusedName("_update_");
-						auto assignment = x->new_ptr<Assignment_t>();
-						assignment->assignable.set(toAst<ExpList_t>(upVar, ExpList, x));
+						auto assignment = x->new_ptr<ExpListAssign_t>();
+						assignment->expList.set(toAst<ExpList_t>(upVar, ExpList, x));
 						auto assign = x->new_ptr<Assign_t>();
 						assign->values.push_back(exp);
-						assignment->target.set(assign);
+						assignment->action.set(assign);
 						transformAssignment(assignment, temp);
 						tmpChain->items.push_back(toAst<Exp_t>(upVar, Exp, x));
 						itemAdded = true;
@@ -1072,8 +1124,7 @@ private:
 				break;
 			}
 			case "Assign"_id: {
-				auto defs = transformAssignDefs(expList);
-				std::string preDefine = getPredefine(defs);
+				auto defs = getAssignDefs(expList);
 				bool oneLined = defs.size() == expList->exprs.objects().size() &&
 					traversal::Stop != action->traverse([&](ast_node* n) {
 					if (n->getId() == "Callable"_id) {
@@ -1087,17 +1138,32 @@ private:
 					}
 					return traversal::Continue;
 				});
-				transformExpList(expList, temp);
-				std::string left = temp.back();
-				temp.pop_back();
-				auto assign = static_cast<Assign_t*>(action);
-				for (auto value : assign->values.objects()) {
-					transformAssignItem(value, temp);
-				}
 				if (oneLined) {
+					auto assign = static_cast<Assign_t*>(action);
+					for (auto value : assign->values.objects()) {
+						transformAssignItem(value, temp);
+					}
+					std::string preDefine = getPredefine(defs);
+					for (const auto& def : defs) {
+						addToScope(def);
+					}
+					transformExpList(expList, temp);
+					std::string left = temp.back();
+					temp.pop_back();
 					out.push_back((preDefine.empty() ? indent() + left : preDefine) + s(" = "sv) + join(temp, ", "sv) + nll(assignment));
 				}
 				else {
+					std::string preDefine = getPredefine(defs);
+					for (const auto& def : defs) {
+						addToScope(def);
+					}
+					transformExpList(expList, temp);
+					std::string left = temp.back();
+					temp.pop_back();
+					auto assign = static_cast<Assign_t*>(action);
+					for (auto value : assign->values.objects()) {
+						transformAssignItem(value, temp);
+					}
 					out.push_back((preDefine.empty() ? Empty : preDefine + nll(assignment)) + indent() + left + s(" = "sv) + join(temp, ", "sv) + nll(assignment));
 				}
 				break;
@@ -1126,8 +1192,10 @@ private:
 					exp->value.set(value);
 					auto expList = x->new_ptr<ExpList_t>();
 					expList->exprs.push_back(exp);
+					auto expListAssign = x->new_ptr<ExpListAssign_t>();
+					expListAssign->expList.set(expList);
 					auto stmt = x->new_ptr<Statement_t>();
-					stmt->content.set(expList);
+					stmt->content.set(expListAssign);
 					auto body = x->new_ptr<Body_t>();
 					body->content.set(stmt);
 					ns.push_back(body.get());
@@ -1163,16 +1231,15 @@ private:
 			}
 		}
 		auto assign = ifCondPairs.front().first->assign.get();
+		bool storingValue = false;
+		ast_ptr<ExpListAssign_t, false, false> extraAssignment;
 		if (assign) {
-			if (usage != IfUsage::Closure) {
-				temp.push_back(indent() + s("do"sv) + nll(assign));
-				pushScope();
-			}
 			auto exp = ifCondPairs.front().first->condition.get();
 			auto x = exp;
-			if (auto table = exp->getByPath<Value_t, SimpleValue_t, TableLit_t>()) {
+			auto var = singleVariableFrom(exp);
+			if (var.empty()) {
+				storingValue = true;
 				std::string desVar = getUnusedName("_des_");
-				bool storingValue = true;
 				if (assign->values.objects().size() == 1) {
 					auto var = singleVariableFrom(assign->values.objects().front());
 					if (!var.empty()) {
@@ -1181,10 +1248,14 @@ private:
 					}
 				}
 				if (storingValue) {
+					if (usage != IfUsage::Closure) {
+						temp.push_back(indent() + s("do"sv) + nll(assign));
+						pushScope();
+					}
 					auto expList = toAst<ExpList_t>(desVar, ExpList, x);
-					auto assignment = x->new_ptr<Assignment_t>();
-					assignment->assignable.set(expList);
-					assignment->target.set(assign);
+					auto assignment = x->new_ptr<ExpListAssign_t>();
+					assignment->expList.set(expList);
+					assignment->action.set(assign);
 					transformAssignment(assignment, temp);
 				}
 				{
@@ -1193,20 +1264,25 @@ private:
 					auto assignOne = x->new_ptr<Assign_t>();
 					auto valExp = toAst<Exp_t>(desVar, Exp, x);
 					assignOne->values.push_back(valExp);
-					auto assignment = x->new_ptr<Assignment_t>();
-					assignment->assignable.set(expList);
-					assignment->target.set(assignOne);
-					transformAssignment(assignment, temp);
-					auto pair = destructFromExp(exp);
-					auto cond = toAst<Exp_t>(pair.front().name, Exp, x);
-					ifCondPairs.front().first->condition.set(cond);
+					auto assignment = x->new_ptr<ExpListAssign_t>();
+					assignment->expList.set(expList);
+					assignment->action.set(assignOne);
+					extraAssignment.set(assignment);
+					ifCondPairs.front().first->condition.set(valExp);
 				}
 			} else {
+				if (!isDefined(var)) {
+					storingValue = true;
+					if (usage != IfUsage::Closure) {
+						temp.push_back(indent() + s("do"sv) + nll(assign));
+						pushScope();
+					}
+				}
 				auto expList = x->new_ptr<ExpList_t>();
 				expList->exprs.push_back(exp);
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(expList);
-				assignment->target.set(assign);
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(expList);
+				assignment->action.set(assign);
 				transformAssignment(assignment, temp);
 			}
 		}
@@ -1222,11 +1298,15 @@ private:
 						tmp.back() = s("("sv) + tmp.back() + s(")"sv);
 					}
 					tmp.back().insert(0, s("not "sv));
+					unless = false;
 				} else {
 					transformExp(condition, tmp);
 				}
-				_buf << indent() << (pair == ifCondPairs.front() ? ""sv : "else"sv) <<
-					"if "sv << tmp.back() << " then"sv << nll(condition);
+				_buf << indent();
+				if (pair != ifCondPairs.front()) {
+					_buf << "else"sv;
+				}
+				_buf << "if "sv << tmp.back() << " then"sv << nll(condition);
 				temp.push_back(clearBuf());
 			}
 			if (pair.second) {
@@ -1234,6 +1314,9 @@ private:
 					temp.push_back(indent() + s("else"sv) + nll(pair.second));
 				}
 				pushScope();
+				if (pair == ifCondPairs.front() && extraAssignment) {
+					transformAssignment(extraAssignment, temp);
+				}
 				transformBody(pair.second, temp, usage != IfUsage::Common);
 				popScope();
 			}
@@ -1242,7 +1325,7 @@ private:
 				break;
 			}
 		}
-		if (assign && usage != IfUsage::Closure) {
+		if (storingValue && usage != IfUsage::Closure) {
 			popScope();
 			temp.push_back(indent() + s("end"sv) + nlr(nodes.front()));
 		}
@@ -1358,7 +1441,7 @@ private:
 		bool isFatArrow = toString(funLit->arrow) == "=>"sv;
 		pushScope();
 		if (isFatArrow) {
-			addToScope(s("self"sv));
+			forceAddToScope(s("self"sv));
 		}
 		if (auto argsDef = funLit->argsDef.get()) {
 			transformFnArgsDef(argsDef, temp);
@@ -1429,7 +1512,7 @@ private:
 				}
 			} else if (mode != LocalMode::None) {
 				ClassDecl_t* classDecl = nullptr;
-				if (auto assignment = stmt->content.as<Assignment_t>()) {
+				if (auto assignment = assignmentFrom(stmt)) {
 					auto vars = getAssignVars(assignment);
 					for (const auto& var : vars) {
 						if (var.empty()) continue;
@@ -1451,7 +1534,7 @@ private:
 								}
 					}
 					BLOCK_START
-					auto assign = assignment->target.as<Assign_t>();
+					auto assign = assignment->action.as<Assign_t>();
 					BREAK_IF(!assign);
 					BREAK_IF(assign->values.objects().size() != 1);
 					auto exp = ast_cast<Exp_t>(assign->values.objects().front());
@@ -1459,7 +1542,7 @@ private:
 					auto value = singleValueFrom(exp);
 					classDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
 					BLOCK_END
-				} else if (auto expList = stmt->content.as<ExpList_t>()) {
+				} else if (auto expList = expListFrom(stmt)) {
 					auto value = singleValueFrom(expList);
 					classDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
 				}
@@ -1480,15 +1563,17 @@ private:
 		if (implicitReturn) {
 			auto last = static_cast<Statement_t*>(nodes.back());
 			auto x = last;
-			if (ast_is<ExpList_t>(last->content) && (!last->appendix ||
-				!last->appendix->item.is<CompInner_t>())) {
-				auto expList = static_cast<ExpList_t*>(last->content.get());
-				auto expListLow = x->new_ptr<ExpListLow_t>();
-				expListLow->exprs = expList->exprs;
-				auto returnNode = x->new_ptr<Return_t>();
-				returnNode->valueList.set(expListLow);
-				last->content.set(returnNode);
-			}
+			BLOCK_START
+			auto expList = expListFrom(last);
+			BREAK_IF(!expList ||
+				(last->appendix &&
+					last->appendix->item.is<CompInner_t>()));
+			auto expListLow = x->new_ptr<ExpListLow_t>();
+			expListLow->exprs.dup(expList->exprs);
+			auto returnNode = x->new_ptr<Return_t>();
+			returnNode->valueList.set(expListLow);
+			last->content.set(returnNode);
+			BLOCK_END
 		}
 		str_list temp;
 		for (auto node : nodes) {
@@ -1632,9 +1717,9 @@ private:
 				auto expList = toAst<ExpList_t>(arg.name, ExpList, x);
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.push_back(def->defaultValue.get());
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(expList);
-				assignment->target.set(assign);
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(expList);
+				assignment->action.set(assign);
 				transformAssignment(assignment, temp);
 				popScope();
 				_buf << indent() << "if "sv << arg.name << " == nil then"sv << nll(def);
@@ -1723,17 +1808,17 @@ private:
 			exp->value.set(value);
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(exp);
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(toAst<ExpList_t>(baseVar, ExpList, x));
-			assignment->target.set(assign);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(toAst<ExpList_t>(baseVar, ExpList, x));
+			assignment->action.set(assign);
 			transformAssignment(assignment, temp);
 		}
 		{
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(toAst<Exp_t>(baseVar + "." + funcName, Exp, x));
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(toAst<ExpList_t>(fnVar, ExpList, x));
-			assignment->target.set(assign);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(toAst<ExpList_t>(fnVar, ExpList, x));
+			assignment->action.set(assign);
 			transformAssignment(assignment, temp);
 		}
 		auto funLit = toAst<Exp_t>(s("(...)-> "sv) + fnVar + s(" "sv) + baseVar + s(", ..."sv), Exp, x);
@@ -1747,9 +1832,9 @@ private:
 			case ExpUsage::Assignment: {
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.push_back(funLit);
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(expList);
-				assignment->target.set(assign);
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(expList);
+				assignment->action.set(assign);
 				transformAssignment(assignment, temp);
 				_buf << indent(-1) << "do"sv << nll(chainValue);
 				_buf << temp.front();
@@ -1762,9 +1847,9 @@ private:
 			case ExpUsage::Common: {
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.push_back(funLit);
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(toAst<ExpList_t>("_"sv, ExpList, x));
-				assignment->target.set(assign);
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(toAst<ExpList_t>("_"sv, ExpList, x));
+				assignment->action.set(assign);
 				transformAssignment(assignment, temp);
 				_buf << indent(-1) << "do"sv << nll(chainValue);
 				_buf << temp.front();
@@ -1826,11 +1911,11 @@ private:
 							value->item.set(chainValue);
 							auto exp = x->new_ptr<Exp_t>();
 							exp->value.set(value);
-							auto assignment = x->new_ptr<Assignment_t>();
-							assignment->assignable.set(toAst<ExpList_t>(callVar, ExpList, x));
+							auto assignment = x->new_ptr<ExpListAssign_t>();
+							assignment->expList.set(toAst<ExpList_t>(callVar, ExpList, x));
 							auto assign = x->new_ptr<Assign_t>();
 							assign->values.push_back(exp);
-							assignment->target.set(assign);
+							assignment->action.set(assign);
 							auto stmt = x->new_ptr<Statement_t>();
 							stmt->content.set(assignment);
 							block->statements.push_back(stmt);
@@ -1856,8 +1941,10 @@ private:
 							exp->value.set(value);
 							auto expList = x->new_ptr<ExpList_t>();
 							expList->exprs.push_back(exp);
+							auto expListAssign = x->new_ptr<ExpListAssign_t>();
+							expListAssign->expList.set(expList);
 							auto stmt = x->new_ptr<Statement_t>();
-							stmt->content.set(expList);
+							stmt->content.set(expListAssign);
 							block->statements.push_back(stmt);
 						}
 						switch (usage) {
@@ -2019,8 +2106,10 @@ private:
 		} else if (auto exp = comp->value.as<Exp_t>()) {
 			auto expList = x->new_ptr<ExpList_t>();
 			expList->exprs.push_back(exp);
+			auto expListAssign = x->new_ptr<ExpListAssign_t>();
+			expListAssign->expList.set(expList);
 			auto statement = x->new_ptr<Statement_t>();
-			statement->content.set(expList);
+			statement->content.set(expListAssign);
 			transformStatement(statement, temp);
 		}
 		auto value = temp.back();
@@ -2080,11 +2169,9 @@ private:
 		transformComprehension(comp, temp);
 		auto assign = x->new_ptr<Assign_t>();
 		assign->values.push_back(toAst<Exp_t>(temp.front(), Exp, x));
-		auto assignment = x->new_ptr<Assignment_t>();
-		assignment->assignable.set(expList);
-		assignment->target.set(assign);
-		assignment->m_begin.m_line = comp->m_end.m_line;
-		assignment->m_end.m_line = comp->m_end.m_line;
+		auto assignment = x->new_ptr<ExpListAssign_t>();
+		assignment->expList.set(expList);
+		assignment->action.set(assign);
 		transformAssignment(assignment, temp);
 		out.push_back(
 			s("do"sv) + nll(comp) +
@@ -2246,9 +2333,9 @@ private:
 				expList->exprs.push_back(exp);
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.push_back(pair.second);
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(expList);
-				assignment->target.set(assign);
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(expList);
+				assignment->action.set(assign);
 				transformAssignment(assignment, temp);
 			}
 			out.back().append(join(temp));
@@ -2356,16 +2443,16 @@ private:
 		temp.push_back(clearBuf());
 		transformForHead(forNode, temp);
 		auto last = lastStatementFrom(forNode->body);
-		bool hasTableItem = ast_is<ExpList_t>(last->content);
-		if (hasTableItem) {
+		auto stmtExpList = expListFrom(last);
+		if (stmtExpList) {
 			_buf << accum << "["sv << len << "]"sv;
 			std::string assignLeft = clearBuf();
 			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(expList);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
 			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(ast_cast<ExpList_t>(last->content)->exprs);
-			assignment->target.set(assign);
+			assign->values.dup(stmtExpList->exprs);
+			assignment->action.set(assign);
 			last->content.set(assignment);
 		}
 		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forNode->body);
@@ -2391,30 +2478,27 @@ private:
 		temp.push_back(clearBuf());
 		transformForHead(forNode, temp);
 		auto last = lastStatementFrom(forNode->body);
-		bool hasTableItem = ast_is<ExpList_t>(last->content);
-		if (hasTableItem) {
+		auto stmtExpList = expListFrom(last);
+		if (stmtExpList) {
 			_buf << accum << "["sv << len << "]"sv;
 			std::string assignLeft = clearBuf();
 			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(expList);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
 			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(ast_cast<ExpList_t>(last->content)->exprs);
-			assignment->target.set(assign);
+			assign->values.dup(stmtExpList->exprs);
+			assignment->action.set(assign);
 			last->content.set(assignment);
 		}
-		pushScope();
 		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forNode->body);
 		transformLoopBody(forNode->body, temp, lenLine);
 		popScope();
 		temp.push_back(indent() + s("end"sv) + nlr(forNode));
 		auto assign = x->new_ptr<Assign_t>();
 		assign->values.push_back(toAst<Exp_t>(accum, Exp, x));
-		auto assignment = x->new_ptr<Assignment_t>();
-		assignment->assignable.set(assignExpList);
-		assignment->target.set(assign);
-		assignment->m_begin.m_line = forNode->m_end.m_line;
-		assignment->m_end.m_line = forNode->m_end.m_line;
+		auto assignment = x->new_ptr<ExpListAssign_t>();
+		assignment->expList.set(assignExpList);
+		assignment->action.set(assign);
 		transformAssignment(assignment, temp);
 		popScope();
 		temp.push_back(indent() + s("end"sv) + nlr(forNode));
@@ -2448,16 +2532,16 @@ private:
 		temp.push_back(clearBuf());
 		transformForEachHead(forEach->nameList, forEach->loopValue, temp);
 		auto last = lastStatementFrom(forEach->body);
-		bool hasTableItem = ast_is<ExpList_t>(last->content);
-		if (hasTableItem) {
+		auto stmtExpList = expListFrom(last);
+		if (stmtExpList) {
 			_buf << accum << "["sv << len << "]"sv;
 			std::string assignLeft = clearBuf();
 			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(expList);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
 			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(ast_cast<ExpList_t>(last->content)->exprs);
-			assignment->target.set(assign);
+			assign->values.dup(stmtExpList->exprs);
+			assignment->action.set(assign);
 			last->content.set(assignment);
 		}
 		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forEach->body);
@@ -2483,16 +2567,16 @@ private:
 		temp.push_back(clearBuf());
 		transformForEachHead(forEach->nameList, forEach->loopValue, temp);
 		auto last = lastStatementFrom(forEach->body);
-		bool hasTableItem = ast_is<ExpList_t>(last->content);
-		if (hasTableItem) {
+		auto stmtExpList = expListFrom(last);
+		if (stmtExpList) {
 			_buf << accum << "["sv << len << "]"sv;
 			std::string assignLeft = clearBuf();
 			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(expList);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
 			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(ast_cast<ExpList_t>(last->content)->exprs);
-			assignment->target.set(assign);
+			assign->values.dup(stmtExpList->exprs);
+			assignment->action.set(assign);
 			last->content.set(assignment);
 		}
 		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forEach->body);
@@ -2501,11 +2585,9 @@ private:
 		temp.push_back(indent() + s("end"sv) + nlr(forEach));
 		auto assign = x->new_ptr<Assign_t>();
 		assign->values.push_back(toAst<Exp_t>(accum, Exp, x));
-		auto assignment = x->new_ptr<Assignment_t>();
-		assignment->assignable.set(assignExpList);
-		assignment->target.set(assign);
-		assignment->m_begin.m_line = forEach->m_end.m_line;
-		assignment->m_end.m_line = forEach->m_end.m_line;
+		auto assignment = x->new_ptr<ExpListAssign_t>();
+		assignment->expList.set(assignExpList);
+		assignment->action.set(assign);
 		transformAssignment(assignment, temp);
 		popScope();
 		temp.push_back(indent() + s("end"sv) + nlr(forEach));
@@ -2615,8 +2697,7 @@ private:
 	}
 
 	std::pair<std::string,bool> defineClassVariable(Assignable_t* assignable) {
-		if (assignable->item->getId() == "Variable"_id) {
-			auto variable = static_cast<Variable_t*>(assignable->item.get());
+		if (auto variable = assignable->item.as<Variable_t>()) {
 			auto name = toString(variable);
 			if (addToScope(name)) {
 				return {name, true};
@@ -2684,11 +2765,11 @@ private:
 		temp.push_back(indent() + s("local "sv) + classVar + nll(classDecl));
 		if (body) {
 			str_list varDefs;
-			body->traverse([&](ast_node* node) {
-				if (node->getId() == "Statement"_id) {
+			for (auto item : body->contents.objects()) {
+				if (auto statement = ast_cast<Statement_t>(item)) {
 					ClassDecl_t* clsDecl = nullptr;
-					if (auto assignment = node->getByPath<Assignment_t>()) {
-						auto names = transformAssignDefs(assignment->assignable.get());
+					if (auto assignment = assignmentFrom(statement)) {
+						auto names = transformAssignDefs(assignment->expList.get());
 						varDefs.insert(varDefs.end(), names.begin(), names.end());
 						auto info = extractDestructureInfo(assignment);
 						if (!info.first.empty()) {
@@ -2698,7 +2779,7 @@ private:
 										varDefs.push_back(item.name);
 						}
 						BLOCK_START
-						auto assign = assignment->target.as<Assign_t>();
+						auto assign = assignment->action.as<Assign_t>();
 						BREAK_IF(!assign);
 						BREAK_IF(assign->values.objects().size() != 1);
 						auto exp = ast_cast<Exp_t>(assign->values.objects().front());
@@ -2706,7 +2787,7 @@ private:
 						auto value = singleValueFrom(exp);
 						clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
 						BLOCK_END
-					} else if (auto expList = node->getByPath<ExpList_t>()) {
+					} else if (auto expList = expListFrom(statement)) {
 						auto value = singleValueFrom(expList);
 						clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
 					}
@@ -2716,10 +2797,8 @@ private:
 						std::tie(clsName,newDefined) = defineClassVariable(clsDecl->name);
 						if (newDefined) varDefs.push_back(clsName);
 					}
-					return traversal::Return;
 				}
-				return traversal::Continue;
-			});
+			}
 			if (!varDefs.empty()) {
 				temp.push_back(indent() + s("local ") + join(varDefs, ", "sv) + nll(body));
 			}
@@ -2789,9 +2868,9 @@ private:
 		if (usage == ExpUsage::Assignment) {
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(toAst<Exp_t>(classVar, Exp, x));
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(expList);
-			assignment->target.set(assign);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
+			assignment->action.set(assign);
 			transformAssignment(assignment, tmp);
 		}
 		if (extend) {
@@ -3011,18 +3090,18 @@ private:
 				}
 				if (withVar.empty()) {
 					withVar = getUnusedName("_with_");
-					auto assignment = x->new_ptr<Assignment_t>();
-					assignment->assignable.set(toAst<ExpList_t>(withVar, ExpList, x));
+					auto assignment = x->new_ptr<ExpListAssign_t>();
+					assignment->expList.set(toAst<ExpList_t>(withVar, ExpList, x));
 					auto assign = x->new_ptr<Assign_t>();
 					assign->values.push_back(with->assigns->values.objects().front());
-					assignment->target.set(assign);
+					assignment->action.set(assign);
 					scoped = true;
 					temp.push_back(indent() + s("do"sv) + nll(with));
 					pushScope();
 					transformAssignment(assignment, temp);
 				}
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(with->valueList);
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(with->valueList);
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.push_back(toAst<Exp_t>(withVar, Exp, x));
 				bool skipFirst = true;
@@ -3033,13 +3112,13 @@ private:
 					}
 					assign->values.push_back(value);
 				}
-				assignment->target.set(assign);
+				assignment->action.set(assign);
 				transformAssignment(assignment, temp);
 			} else {
 				withVar = vars.front();
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(with->valueList);
-				assignment->target.set(with->assigns);
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(with->valueList);
+				assignment->action.set(with->assigns);
 				scoped = true;
 				temp.push_back(indent() + s("do"sv) + nll(with));
 				pushScope();
@@ -3049,31 +3128,71 @@ private:
 			withVar = singleVariableFrom(with->valueList);
 			if (withVar.empty()) {
 				withVar = getUnusedName("_with_");
-				auto assignment = x->new_ptr<Assignment_t>();
-				assignment->assignable.set(toAst<ExpList_t>(withVar, ExpList, x));
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(toAst<ExpList_t>(withVar, ExpList, x));
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.dup(with->valueList->exprs);
-				assignment->target.set(assign);
+				assignment->action.set(assign);
 				scoped = true;
 				temp.push_back(indent() + s("do"sv) + nll(with));
 				pushScope();
 				transformAssignment(assignment, temp);
 			}
 		}
-		auto exp = with->valueList->exprs.objects().front();
-		if (exp->getByPath<Value_t, SimpleValue_t, TableLit_t>()) {
-			auto pair = destructFromExp(exp);
-			withVar = pair.front().name;
+		if (!scoped) {
+			pushScope();
+			scoped = traversal::Stop == with->body->traverse([&](ast_node* node) {
+				if (auto statement = ast_cast<Statement_t>(node)) {
+					ClassDecl_t* clsDecl = nullptr;
+					if (auto assignment = assignmentFrom(statement)) {
+						auto names = getAssignDefs(assignment->expList.get());
+						if (!names.empty()) {
+							return traversal::Stop;
+						}
+						auto info = extractDestructureInfo(assignment);
+						if (!info.first.empty()) {
+							for (const auto& destruct : info.first)
+								for (const auto& item : destruct.items)
+									if (item.isVariable && !isDefined(item.name))
+										return traversal::Stop;
+						}
+						BLOCK_START
+						auto assign = assignment->action.as<Assign_t>();
+						BREAK_IF(!assign);
+						BREAK_IF(assign->values.objects().size() != 1);
+						auto exp = ast_cast<Exp_t>(assign->values.objects().front());
+						BREAK_IF(!exp);
+						if (auto value = singleValueFrom(exp)) {
+							clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+						}
+						BLOCK_END
+					} else if (auto expList = expListFrom(statement)) {
+						auto value = singleValueFrom(expList);
+						clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+					}
+					if (clsDecl) {
+						auto variable = clsDecl->name.as<Variable_t>();
+						if (!isDefined(toString(variable))) return traversal::Stop;
+					}
+					return traversal::Return;
+				}
+				return traversal::Continue;
+			});
+			popScope();
+			if (scoped) {
+				temp.push_back(indent() + s("do"sv) + nll(with));
+				pushScope();
+			}
 		}
 		_withVars.push(withVar);
 		transformBody(with->body, temp);
 		_withVars.pop();
 		if (assignList) {
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(assignList);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(assignList);
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(toAst<Exp_t>(withVar, Exp, x));
-			assignment->target.set(assign);
+			assignment->action.set(assign);
 			transformAssignment(assignment, temp);
 		}
 		if (returnValue) {
@@ -3130,11 +3249,11 @@ private:
 						exp->value.set(value);
 						expList->exprs.push_back(exp);
 					}
-					auto assignment = x->new_ptr<Assignment_t>();
-					assignment->assignable.set(expList);
+					auto assignment = x->new_ptr<ExpListAssign_t>();
+					assignment->expList.set(expList);
 					auto assign = x->new_ptr<Assign_t>();
 					assign->values.dup(values->valueList->exprs);
-					assignment->target.set(assign);
+					assignment->action.set(assign);
 					transformAssignment(assignment, out);
 				} else {
 					for (auto name : values->nameList->names.objects()) {
@@ -3227,11 +3346,9 @@ private:
 		transformTblComprehension(comp, temp);
 		auto assign = x->new_ptr<Assign_t>();
 		assign->values.push_back(toAst<Exp_t>(temp.front(), Exp, x));
-		auto assignment = x->new_ptr<Assignment_t>();
-		assignment->assignable.set(expList);
-		assignment->target.set(assign);
-		assignment->m_begin.m_line = comp->m_end.m_line;
-		assignment->m_end.m_line = comp->m_end.m_line;
+		auto assignment = x->new_ptr<ExpListAssign_t>();
+		assignment->expList.set(expList);
+		assignment->action.set(assign);
 		transformAssignment(assignment, temp);
 		out.push_back(
 			s("do"sv) + nll(comp) +
@@ -3310,15 +3427,15 @@ private:
 		str_list temp;
 		auto x = import;
 		auto objVar = singleVariableFrom(import->exp);
-		ast_ptr<Assignment_t, false, false> objAssign;
+		ast_ptr<ExpListAssign_t, false, false> objAssign;
 		if (objVar.empty()) {
 			objVar = getUnusedName("_obj_"sv);
 			auto expList = toAst<ExpList_t>(objVar, ExpList, x);
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(import->exp);
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(expList);
-			assignment->target.set(assign);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
+			assignment->action.set(assign);
 			objAssign.set(assignment);
 		}
 		auto expList = x->new_ptr<ExpList_t>();
@@ -3389,9 +3506,9 @@ private:
 			pushScope();
 			transformAssignment(objAssign, temp);
 		}
-		auto assignment = x->new_ptr<Assignment_t>();
-		assignment->assignable.set(expList);
-		assignment->target.set(assign);
+		auto assignment = x->new_ptr<ExpListAssign_t>();
+		assignment->expList.set(expList);
+		assignment->action.set(assign);
 		transformAssignment(assignment, temp);
 		if (objAssign) {
 			popScope();
@@ -3419,13 +3536,13 @@ private:
 		temp.back() = indent() + s("while "sv) + temp.back() + s(" do"sv) + nll(whileNode);
 		pushScope();
 		auto last = lastStatementFrom(whileNode->body);
-		auto valueList = last ? last->content.as<ExpList_t>() : nullptr;
-		if (last && valueList) {
-			auto newAssignment = x->new_ptr<Assignment_t>();
-			newAssignment->assignable.set(toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), ExpList, x));
+		auto valueList = last ? expListFrom(last) : nullptr;
+		if (valueList) {
+			auto newAssignment = x->new_ptr<ExpListAssign_t>();
+			newAssignment->expList.set(toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), ExpList, x));
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.dup(valueList->exprs);
-			newAssignment->target.set(assign);
+			newAssignment->action.set(assign);
 			last->content.set(newAssignment);
 		}
 		auto lenLine = lenVar + s(" = "sv) + lenVar + s(" + 1"sv) + nlr(whileNode);
@@ -3435,9 +3552,9 @@ private:
 		if (expList) {
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(toAst<Exp_t>(accumVar, Exp, x));
-			auto assignment = x->new_ptr<Assignment_t>();
-			assignment->assignable.set(expList);
-			assignment->target.set(assign);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
+			assignment->action.set(assign);
 			transformAssignment(assignment, temp);
 		} else {
 			temp.push_back(indent() + s("return "sv) + accumVar + nlr(whileNode));
