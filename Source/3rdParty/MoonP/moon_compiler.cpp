@@ -2226,7 +2226,6 @@ private:
 		switch (loopTarget->getId()) {
 			case "star_exp"_id: {
 				auto star_exp = static_cast<star_exp_t*>(loopTarget);
-				bool newListVal = false;
 				auto listVar = singleVariableFrom(star_exp->value);
 				auto indexVar = getUnusedName("_index_");
 				varAfter.push_back(indexVar);
@@ -2267,7 +2266,9 @@ private:
 					stepValue = temp.back();
 					temp.pop_back();
 				}
-				if (newListVal) {
+				if (listVar.empty()) {
+					listVar = getUnusedName("_list_");
+					varBefore.push_back(listVar);
 					transformChainValue(chain, temp);
 					_buf << indent() << "local "sv << listVar << " = "sv << temp.back() << nll(nameList);
 				}
@@ -2291,6 +2292,7 @@ private:
 				_buf << indent(1) << "local "sv << join(vars, ", "sv) << " = "sv << listVar << "["sv << indexVar << "]"sv << nll(nameList);
 				out.push_back(clearBuf());
 				BLOCK_END
+				bool newListVal = false;
 				if (listVar.empty()) {
 					newListVal = true;
 					listVar = getUnusedName("_list_");
