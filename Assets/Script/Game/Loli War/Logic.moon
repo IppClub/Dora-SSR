@@ -101,6 +101,7 @@ with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
 				\start!
 		if group == GroupPlayer
 			world.camera.followTarget = unit
+		emit "HPChange",@group,@hp
 
 with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
 	\every =>
@@ -300,13 +301,19 @@ with Observer "Change", {"hp","hero"}
 				switch lastGroup
 					when GroupPlayer
 						Audio\play "Audio/hero_fall.wav"
-						thread ->
+					when GroupEnemy
+						Audio\play "Audio/hero_kill.wav"
+				if lastGroup == GroupPlayer
+					world\addChild with Node!
+						\schedule once ->
 							View.postEffect = with SpriteEffect "builtin::vs_sprite","builtin::fs_spritesaturation"
 								\set "u_adjustment",0
 							sleep 3
 							cycle 5,(dt)-> View.postEffect\set "u_adjustment",dt
 							View.postEffect = nil
-					when GroupEnemy then Audio\play "Audio/hero_kill.wav"
+						\slot "Cleanup",->
+							View.postEffect = nil
+							Director.scheduler.timeScale = 1
 				unit\schedule once ->
 					Director.scheduler.timeScale = 0.25
 					sleep 3

@@ -225,7 +225,7 @@ string Content::getFullPath(String filename)
 
 void Content::insertSearchPath(int index, String path)
 {
-	string searchPath = (Content::isAbsolutePath(path) ? Slice::Empty : _assetPath) + path;
+	string searchPath = Content::getFullPath(path);
 	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
 	{
 		searchPath.append("/");
@@ -236,7 +236,7 @@ void Content::insertSearchPath(int index, String path)
 
 void Content::addSearchPath(String path)
 {
-	string searchPath = (Content::isAbsolutePath(path) ? Slice::Empty : _assetPath) + path;
+	string searchPath = Content::getFullPath(path);
 	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
 	{
 		searchPath.append("/");
@@ -246,7 +246,7 @@ void Content::addSearchPath(String path)
 
 void Content::removeSearchPath(String path)
 {
-	string realPath = (Content::isAbsolutePath(path) ? Slice::Empty : _assetPath) + path;
+	string realPath = Content::getFullPath(path);
 	if (realPath.length() > 0 && (realPath.back() != '/' && realPath.back() != '\\'))
 	{
 		realPath.append("/");
