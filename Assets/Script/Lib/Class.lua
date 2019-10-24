@@ -15,40 +15,40 @@ local type = type
 
 2.Field Level
 
-	0 - class
-	1 - instance
+	1 - class
+	2 - instance
 
 3.To inherit a class
 
 	-- Inherit a lua table class
-	local Base = class({ ... })
-	local MyClass = class(Base,{ ... })
+	local Base = Class({ ... })
+	local MyClass = Class(Base,{ ... })
 
 	-- Inherit a C++ instance class
-	local MyClass = class({
+	local MyClass = Class({
 		__partial = function(self, args)
 			return Node()
 		end,
 	})
 
 	-- or
-	local MyClass = class(function(args)
+	local MyClass = Class(function(args)
 		return Node()
 	end,{ ... })
 
 	-- or
-	local MyClass = class(Node,{ ... })
+	local MyClass = Class(Node,{ ... })
 
 4.To add class member function
 
-	local MyClass = class({
+	local MyClass = Class({
 		foo = function(self)
 			print("bar")
 		end
 	})
 
 	-- or
-	local MyClass = class()
+	local MyClass = Class()
 
 	function MyClass:foo()
 		print("bar")
@@ -57,21 +57,28 @@ local type = type
 5.Use number index to add field to a class
 	is deprecated. Example below may cause error.
 
-	MyClass = class({
-		[0] = 123
-		[1] = 998
-		[2] = 233
+	MyClass = Class({
+		[1] = 123
+		[2] = 998
+		[3] = 233
 	})
 
 6.Instance created by class has some special field
 
-	local BaseClass = class()
-	local MyClass = class(BaseClass)
+	local BaseClass = Class()
+	local MyClass = Class(BaseClass)
 
 	local inst = MyClass()
 	print(inst.__class == MyClass) -- true
 	print(inst.__base == BaseClass) -- true
 ]]
+
+local CppInst = 0
+local Getter = 1
+local Setter = 2
+
+local ClassField = 1
+local ObjectField = 2
 
 local function __call(cls,...)
 	local inst = {}
@@ -91,7 +98,7 @@ local function __call(cls,...)
 				end
 			end
 			tolua.setpeer(c_inst,inst)
-			inst[0] = c_inst
+			inst[CppInst] = c_inst
 		end
 		inst = c_inst or inst
 	end
@@ -103,9 +110,9 @@ end
 
 local function __index(self,name)
 	local cls = getmetatable(self)
-	local item = cls[1][name] -- access properties
+	local item = cls[Getter][name] -- access properties
 	if item then
-		return item(rawget(self,0) or self)
+		return item(rawget(self,CppInst) or self)
 	else
 		item = rawget(cls,name) -- access member functions
 		if item then
@@ -113,10 +120,10 @@ local function __index(self,name)
 		else
 			local c = getmetatable(cls)
 			while c do -- recursive to access super classes
-				item = c[1][name]
+				item = c[Getter][name]
 				if item then
-					cls[1][name] = item -- cache super properties to class
-					return item(rawget(self,0) or self)
+					cls[Getter][name] = item -- cache super properties to class
+					return item(rawget(self,CppInst) or self)
 				else
 					item = rawget(c,name)
 					if item then
@@ -133,16 +140,16 @@ end
 
 local function __newindex(self,name,value)
 	local cls = getmetatable(self)
-	local item = cls[2][name] -- access properties
+	local item = cls[Setter][name] -- access properties
 	if item then
-		item(rawget(self,0) or self,value)
+		item(rawget(self,CppInst) or self,value)
 	else
 		local c = getmetatable(cls)
 		while c do -- recursive to access super properties
-			item = c[2][name]
+			item = c[Setter][name]
 			if item then
-				cls[2][name] = item -- cache super property to class
-				item(rawget(self,0) or self,value)
+				cls[Setter][name] = item -- cache super property to class
+				item(rawget(self,CppInst) or self,value)
 				return
 			end
 			c = getmetatable(c)
@@ -155,7 +162,7 @@ local function assignReadOnly()
 	error("Try to assign to a readonly property!")
 end
 
-local function class(arg1,arg2)
+local function Class(arg1,arg2)
 	-- check params
 	local __partial,classDef,base
 	local argType = tolua.type(arg1)
@@ -224,12 +231,12 @@ local function class(arg1,arg2)
 	if classDef then
 		for k,v in pairs(classDef) do
 			if type(v) == "table" then
-				if v.__fieldlevel == 0 then
-					base[1][k] = v[1]
-					base[2][k] = v[2]
-				elseif v.__fieldlevel == 1 then
-					cls[1][k] = v[1]
-					cls[2][k] = v[2]
+				if v.__fieldlevel == ClassField then
+					base[Getter][k] = v[1]
+					base[Setter][k] = v[2]
+				elseif v.__fieldlevel == ObjectField then
+					cls[Getter][k] = v[1]
+					cls[Setter][k] = v[2]
 				else
 					cls[k] = v
 				end
@@ -252,18 +259,18 @@ local function class(arg1,arg2)
 end
 
 local function property(getter,setter)
-	return {getter,setter or assignReadOnly,__fieldlevel=1}
+	return {getter,setter or assignReadOnly,__fieldlevel=ObjectField}
 end
 
 local function classfield(getter,setter)
-	return {getter,setter or assignReadOnly,__fieldlevel=0}
+	return {getter,setter or assignReadOnly,__fieldlevel=ClassField}
 end
 
 local function classmethod(method)
 	return method
 end
 
-builtin.Class = class
+builtin.Class = Class
 builtin.property = property
 builtin.classfield = classfield
 builtin.classmethod = classmethod

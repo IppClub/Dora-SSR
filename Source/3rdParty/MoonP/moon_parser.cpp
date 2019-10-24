@@ -37,10 +37,7 @@ rule Name = (range('a', 'z') | range('A', 'Z') | '_') >> *AlphaNum;
 rule Num =
 	(
 		"0x" >>
-		+(range('0', '9') | range('a', 'f') | range('A', 'F')) >>
-		-(-set("uU") >> set("lL") >> set("lL"))
-	) | (
-		+range('0', '9') >> -set("uU") >> set("lL") >> set("lL")
+		+(range('0', '9') | range('a', 'f') | range('A', 'F'))
 	) | (
 		(
 			(+range('0', '9') >> -('.' >> +range('0', '9'))) |

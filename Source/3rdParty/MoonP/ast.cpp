@@ -4,10 +4,6 @@
 
 namespace parserlib {
 
-
-//current AST container.
-static ast_container* _current = 0;
-
 int ast_type_id = 0;
 
 traversal ast_node::traverse(const std::function<traversal (ast_node*)>& func) {
@@ -40,12 +36,6 @@ ast_node* ast_node::getByTypeIds(int* begin, int* end) {
 
 bool ast_node::visitChild(const std::function<bool (ast_node*)>&) {
 	return false;
-}
-
-/** sets the container under construction to be this.
- */
-ast_container::ast_container() {
-    _current = this;
 }
 
     
@@ -104,12 +94,6 @@ bool ast_container::visitChild(const std::function<bool (ast_node*)>& func) {
 		}
 	}
 	return false;
-}
-
-//register the AST member to the current container.
-void ast_member::add_to_owner() {
-	assert(_current);
-	_current->m_members.push_back(this);
 }
 
 

@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaFromXml.h"
 #include "tinyxml2/SAXParser.h"
 #include "Lua/LuaEngine.h"
+#include "MoonP/moon_compiler.h"
 
 NS_DOROTHY_BEGIN
 
@@ -1148,21 +1149,12 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 
 string XmlDelegator::compileMoonCodes(const char* codes)
 {
-	lua_State* L = SharedLuaEngine.getState();
-	int top = lua_gettop(L);
-	string moonCodes = fmt::format("return require(\"moonscript\").to_lua([[\n(->\n{}\n)!]],{{implicitly_return_root=false}})", codes);
-	string compiledCodes;
-	if (luaL_loadstring(L, moonCodes.c_str()) == 0)
+	string compiledCodes, err;
+	std::tie(compiledCodes, err) = MoonP::moonCompile(fmt::format("do\n{}", codes), false, false);
+	if (compiledCodes.empty())
 	{
-		LuaEngine::call(L, 0, 1);
-		Slice luaCodes = tolua_toslice(L, -1, "");
-		compiledCodes = "do " + luaCodes.toString() + " end\n";
+		lastError += fmt::format("Fail to compile moon codes started at line {}\n{}", parser->getLineNumber(codes), err);
 	}
-	else
-	{
-		lastError += fmt::format("Fail to compile moon codes started at line {}\n", parser->getLineNumber(codes));
-	}
-	lua_settop(L, top);
 	return compiledCodes;
 }
 

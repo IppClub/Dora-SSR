@@ -17,8 +17,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "MoonP/moon_compiler.h"
 using namespace Dorothy::Platformer;
 
-extern int luaopen_lpeg(lua_State* L);
-
 NS_DOROTHY_BEGIN
 
 int LuaEngine::_callFromLua = 0;
@@ -201,46 +199,103 @@ static int dora_xmltolua(lua_State* L)
 
 static int dora_moontolua(lua_State* L)
 {
-	string codes(luaL_checkstring(L, 1));
-	bool checkGlobal = tolua_toboolean(L, 2, 0);
-	if (checkGlobal) {
-		std::list<std::string> globals;
-		auto result = MoonP::moonCompile(codes, globals);
-		if (result.first.empty())
-		{
-			lua_pushnil(L);
-			lua_pushlstring(L, result.second.c_str(), result.second.size());
-		}
-		else
-		{
-			lua_pushlstring(L, result.first.c_str(), result.first.size());
-			lua_pushnil(L);
-		}
-		lua_createtable(L, s_cast<int>(globals.size()), 0);
-		int i = 1;
-		for (const auto& var : globals)
-		{
-			lua_pushlstring(L, var.c_str(), var.size());
-			lua_rawseti(L, -2, i);
-			i++;
-		}
-		return 3;
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isstring(L, 1, 0, &tolua_err) ||
+		(!tolua_istable(L, 2, 0, &tolua_err) &&
+			!tolua_isnoobj(L, 2, &tolua_err)) ||
+				!tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
 	}
 	else
+#endif
 	{
-		auto result = MoonP::moonCompile(codes);
-		if (result.first.empty())
-		{
-			lua_pushnil(L);
-			lua_pushlstring(L, result.second.c_str(), result.second.size());
+		string codes(tolua_toslice(L, 1, 0));
+		bool lintGlobal = false;
+		bool implicitReturnRoot = true;
+		bool lineNumber = true;
+		if (lua_gettop(L) == 2) {
+			tolua_pushslice(L, "lint_global"_slice);
+			lua_gettable(L, -2);
+			if (!lua_isnil(L, -1)) {
+				lintGlobal = lua_toboolean(L, -1);
+			}
+			lua_pop(L, 1);
+			tolua_pushslice(L, "implicit_return_root"_slice);
+			lua_gettable(L, -2);
+			if (!lua_isnil(L, -1)) {
+				implicitReturnRoot = lua_toboolean(L, -1);
+			}
+			lua_pop(L, 1);
+			tolua_pushslice(L, "implicit_return_root"_slice);
+			lua_gettable(L, -2);
+			if (!lua_isnil(L, -1)) {
+				implicitReturnRoot = lua_toboolean(L, -1);
+			}
+			lua_pop(L, 1);
+			tolua_pushslice(L, "line_number"_slice);
+			lua_gettable(L, -2);
+			if (!lua_isnil(L, -1)) {
+				lineNumber = lua_toboolean(L, -1);
+			}
+			lua_pop(L, 1);
+		}
+		if (lintGlobal) {
+			std::list<MoonP::GlobalVar> globals;
+			auto result = MoonP::moonCompile(codes, globals, implicitReturnRoot, lineNumber);
+			if (result.first.empty())
+			{
+				lua_pushnil(L);
+				lua_pushlstring(L, result.second.c_str(), result.second.size());
+			}
+			else
+			{
+				lua_pushlstring(L, result.first.c_str(), result.first.size());
+				lua_pushnil(L);
+			}
+			lua_createtable(L, s_cast<int>(globals.size()), 0);
+			int i = 1;
+			for (const auto& var : globals)
+			{
+				lua_createtable(L, 3, 0);
+				lua_pushlstring(L, var.name.c_str(), var.name.size());
+				lua_rawseti(L, -2, 1);
+				lua_pushinteger(L, var.line);
+				lua_rawseti(L, -2, 2);
+				lua_pushinteger(L, var.col);
+				lua_rawseti(L, -2, 3);
+				lua_rawseti(L, -2, i);
+				i++;
+			}
+			return 3;
 		}
 		else
 		{
-			lua_pushlstring(L, result.first.c_str(), result.first.size());
-			lua_pushnil(L);
+			try {
+				auto result = MoonP::moonCompile(codes, implicitReturnRoot, lineNumber);
+				if (result.first.empty())
+				{
+					lua_pushnil(L);
+					lua_pushlstring(L, result.second.c_str(), result.second.size());
+				}
+				else
+				{
+					lua_pushlstring(L, result.first.c_str(), result.first.size());
+					lua_pushnil(L);
+				}
+			} catch (const std::exception& ex) {
+				int i = 0;
+				i++;
+			}
+			return 2;
 		}
-		return 2;
 	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'moontolua'.", &tolua_err);
+	return 0;
+#endif
 }
 
 static int dora_ubox(lua_State* L)
@@ -279,7 +334,6 @@ LuaEngine::LuaEngine()
 {
 	L = luaL_newstate();
 	dora_loadlibs(L);
-	luaopen_lpeg(L);
 	tolua_open(L);
 
 	// Register our version of the global "print" function

@@ -1,9 +1,13 @@
 Dorothy builtin.ImGui
 import Set,Path from require "Utils"
-LintGlobal = require "LintGlobal"
-moonscript = require "moonscript"
 
-LoadFontTTF "Font/DroidSansFallback.ttf", 20, "Chinese"
+debug.traceback = (err)->
+	STP = require "StackTracePlus"
+	STP.dump_locals = false
+	STP.simplified = true
+	STP.stacktrace err, 1
+
+LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -78,10 +82,11 @@ LintMoonGlobals = (moonCodes,globals,entry)->
 			{importItem, item}
 	else {}
 	importSet = {}
-	for name in *globals
+	for var in *globals
+		{name,line,col} = var
 		if not allowedUseOfGlobals[name]
 			if builtin[name]
-				table.insert requireModules, "local #{name} = require(\"#{name}\")"
+				table.insert requireModules, "local #{name} = require(\"#{name}\") -- 1"
 			else
 				findModule = false
 				for i,importItem in ipairs importItems
@@ -89,94 +94,86 @@ LintMoonGlobals = (moonCodes,globals,entry)->
 						moduleName = "_module_#{i-1}"
 						if not importSet[importItem[1]]
 							importSet[importItem[1]] = true
-							table.insert requireModules, "local #{moduleName} = #{importItem[2]}"
-						table.insert requireModules, "local #{name} = #{moduleName}.#{name}"
+							table.insert requireModules, "local #{moduleName} = #{importItem[2]} -- 1"
+						table.insert requireModules, "local #{name} = #{moduleName}.#{name} -- 1"
 						findModule = true
 						break
 				if not findModule
-					error "Used invalid global value \"#{name}\" in \"#{entry}\"."
+					countLine = 1
+					code = nil
+					for lineCode in moonCodes\gmatch "[^\n]*\n"
+						if countLine == line
+							code = lineCode
+							break
+						countLine += 1
+					error "Used invalid global value \"#{name}\"\nin \"#{entry}\", at line #{line}, col #{col}.\n#{code\gsub("\t"," ")..string.rep(" ",col-1).."^"}"
 	table.concat requireModules, "\n"
 
 totalFiles = 0
 totalMoonTime = 0
 totalXmlTime = 0
 totalMinifyTime = 0
-compile = (dir,clean,minify)->
+compile = (dir,minify)->
 	{:ParseLua} = require "luaminify.ParseLua"
 	FormatMini = require "luaminify.FormatMini"
+	pathLen = #Content.assetPath
 	files = Path.getAllFiles dir, {"moon","xml"}
 	for file in *files
 		path = Path.getPath file
 		name = Path.getName file
 		isXml = "xml" == Path.getExtension file
-		compileFunc = isXml and xmltolua or moontolua
-		requires = nil
-		if not clean
-			sourceCodes = Content\loadAsync "#{dir}/#{file}"
-			startTime = App.eclapsedTime
-			codes,err,globals = compileFunc sourceCodes, true
-			if file\match "moon_spec"
-				requires = ""
-			else
-				requires = LintMoonGlobals(sourceCodes,globals,file) unless isXml
-			if isXml
-				totalXmlTime += App.eclapsedTime - startTime
-			else
-				totalMoonTime += App.eclapsedTime - startTime
-			startTime = App.eclapsedTime
-			if not codes
-				print "Compile errors in #{file}."
-				print err
-				return false
-			else
-				codes = requires..codes\gsub "Dorothy%([^%)]*%)","" unless isXml
-				if minify
-					st, ast = ParseLua codes
-					if not st
-						print ast
-						return false
-					codes = FormatMini ast
-				totalMinifyTime += App.eclapsedTime - startTime
-				filePath = Content.writablePath..path
-				Content\mkdir filePath
-				filename = "#{filePath}#{name}.lua"
-				Content\saveAsync filename,codes
-				print "#{isXml and "Xml" or "Moon"} compiled: #{path}#{name}.#{isXml and "xml" or "moon"}"
-				totalFiles += 1
+		sourceCodes = Content\loadAsync "#{dir}/#{file}"
+		startTime = App.eclapsedTime
+		codes,err = nil,nil
+		requires = ""
+		if isXml
+			codes,err = xmltolua sourceCodes
+			totalXmlTime += App.eclapsedTime - startTime
 		else
+			codes,err,globals = moontolua sourceCodes, lint_global:true
+			requires = if not file\match "moon_spec"
+				LintMoonGlobals(sourceCodes,globals,file).."\n" unless isXml
+			totalMoonTime += App.eclapsedTime - startTime
+		startTime = App.eclapsedTime
+		if not codes
+			print "Compile errors in #{file}."
+			print err
+			return false
+		else
+			codes = "-- [moon]: #{file}\n"..requires..codes\gsub "Dorothy%([^%)]*%)[^\r\n]*[\r\n]*","" unless isXml
+			if minify
+				st, ast = ParseLua codes
+				if not st
+					print "Compile errors in #{file}."
+					print ast
+					return false
+				codes = FormatMini ast
+			totalMinifyTime += App.eclapsedTime - startTime
 			filePath = Content.writablePath..path
 			Content\mkdir filePath
 			filename = "#{filePath}#{name}.lua"
-			if Content\exist filename
-				print "#{isXml and "Xml" or "Moon"} cleaned: #{path}#{name}.lua"
-				Content\remove filename
-	if clean or minify
+			Content\saveAsync filename,codes
+			print "#{isXml and "Xml" or "Moon"} compiled: #{path}#{name}.#{isXml and "xml" or "moon"}"
+			totalFiles += 1
+	if minify
 		files = Path.getAllFiles dir, "lua"
 		for file in *files
 			path = Path.getPath file
 			name = Path.getName file
-			if not clean
-				sourceCodes = Content\loadAsync "#{dir}/#{file}"
-				startTime = App.eclapsedTime
-				st, ast = ParseLua sourceCodes
-				if not st
-					print ast
-					return false
-				codes = FormatMini ast
-				totalMinifyTime += App.eclapsedTime - startTime
-				filePath = Content.writablePath..path
-				Content\mkdir filePath
-				filename = "#{filePath}#{name}.lua"
-				Content\saveAsync filename,codes
-				print "Lua minified: #{path}#{name}.lua"
-				totalFiles += 1
-			else
-				filePath = Content.writablePath..path
-				Content\mkdir filePath
-				filename = "#{filePath}#{name}.lua"
-				if Content\exist filename
-					print "Lua cleaned: #{path}#{name}.lua"
-					Content\remove filename
+			sourceCodes = Content\loadAsync "#{dir}/#{file}"
+			startTime = App.eclapsedTime
+			st, ast = ParseLua sourceCodes
+			if not st
+				print ast
+				return false
+			codes = FormatMini ast
+			totalMinifyTime += App.eclapsedTime - startTime
+			filePath = Content.writablePath..path
+			Content\mkdir filePath
+			filename = "#{filePath}#{name}.lua"
+			Content\saveAsync filename,codes
+			print "Lua minified: #{path}#{name}.lua"
+			totalFiles += 1
 	return true
 
 building = false
@@ -190,7 +187,7 @@ doCompile = (minify)->
 	totalMinifyTime = 0
 	thread ->
 		print "Output path: #{Content.writablePath}"
-		xpcall (-> compile Content.assetPath\sub(1,-2),false,minify),(msg)->
+		xpcall (-> compile Content.assetPath\sub(1,-2),minify),(msg)->
 			msg = debug.traceback msg
 			print msg
 			building = false
@@ -199,12 +196,12 @@ doCompile = (minify)->
 
 doClean = ->
 	return if building
-	building = true
-	thread ->
-		print "Clean path: #{Content.writablePath}"
-		compile Content.assetPath\sub(1,-2),true
-		print "Clean done.\n"
-		building = false
+	targetDir = "#{Content.writablePath}Script/"
+	if Content\exist targetDir
+		Path.removeFolder targetDir
+		print "Cleaned: #{targetDir}"
+	else
+		print "Nothing to clean."
 
 isInEntry = true
 currentEntryName = nil
@@ -273,7 +270,7 @@ thread ->
 	Director.clearColor = Color 0xff1a1a1a
 
 showStats = false
-showLog = false
+showLog = true
 showFooter = true
 scaleContent = false
 footerFocus = false
@@ -381,4 +378,3 @@ threadLoop ->
 				if Button test, Vec2(-1,40)
 					enterDemoEntry "Test/#{test}"
 				NextColumn!
-
