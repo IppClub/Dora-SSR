@@ -10,6 +10,7 @@
 using namespace std::string_view_literals;
 #include "MoonP/parser.hpp"
 #include "MoonP/moon_ast.h"
+#include "MoonP/moon_compiler.h"
 
 namespace MoonP {
 
@@ -25,17 +26,24 @@ inline std::string s(std::string_view sv) {
 
 class MoonCompliler {
 public:
-	std::pair<std::string,std::string> complile(const std::string& codes, bool checkGlobalVar) {
-		_checkGlobalVar = checkGlobalVar;
-		input input = _converter.from_bytes(codes);
+	std::pair<std::string,std::string> complile(const std::string& codes, bool lintGlobalVar, bool implicitReturnRoot, bool lineNumber) {
+		_lintGlobalVar = lintGlobalVar;
+		_lineNumber = lineNumber;
+		_input = _converter.from_bytes(codes);
 		error_list el;
 		State st;
-		auto root = parse<File_t>(input, File, el, &st);
+		ast_ptr<false, File_t> root;
+		try {
+			root = parse<File_t>(_input, File, el, &st);
+		} catch (const std::logic_error& error) {
+			clear();
+			return {Empty, error.what()};
+		}
 		if (root) {
 			try {
 				str_list out;
 				pushScope();
-				transformBlock(root->block, out);
+				transformBlock(root->block, out, implicitReturnRoot);
 				popScope();
 				return {std::move(out.back()), Empty};
 			} catch (const std::logic_error& error) {
@@ -43,16 +51,18 @@ public:
 				return {Empty, error.what()};
 			}
 		} else {
-			clear();
 			for (error_list::iterator it = el.begin(); it != el.end(); ++it) {
 				const error& err = *it;
-				_buf << "line " << err.m_begin.m_line << ", col " << err.m_begin.m_col << ": syntax error\n";
+				_buf << "\nline " << err.m_begin.m_line << ", col " << err.m_begin.m_col << ": syntax error\n";
+				_buf << debugInfo(err);
 			}
-			return {Empty, clearBuf()};
+			std::pair<std::string,std::string> result{Empty, clearBuf()};
+			clear();
+			return result;
 		}
 	}
 
-	const std::unordered_set<std::string>& getGlobals() const {
+	const std::unordered_map<std::string,std::pair<int,int>>& getGlobals() const {
 		return _globals;
 	}
 
@@ -69,15 +79,18 @@ public:
 		_joinBuf.str("");
 		_joinBuf.clear();
 		_globals.clear();
+		_input.clear();
 	}
 private:
-	bool _checkGlobalVar = false;
+	bool _lintGlobalVar = false;
+	bool _lineNumber = false;
 	int _indentOffset = 0;
 	Converter _converter;
+	input _input;
 	std::list<input> _codeCache;
 	std::stack<std::string> _withVars;
 	std::stack<std::string> _continueVars;
-	std::unordered_set<std::string> _globals;
+	std::unordered_map<std::string,std::pair<int,int>> _globals;
 	std::ostringstream _buf;
 	std::ostringstream _joinBuf;
 	std::string _newLine = "\n";
@@ -243,13 +256,19 @@ private:
 	}
 
 	const std::string nll(ast_node* node) {
-		//return s(" -- "sv) + std::to_string(node->m_begin.m_line) + _newLine;
-		return _newLine;
+		if (_lineNumber) {
+			return s(" -- "sv) + std::to_string(node->m_begin.m_line) + _newLine;
+		} else {
+			return _newLine;
+		}
 	}
 
 	const std::string nlr(ast_node* node) {
-		//return s(" -- "sv) + std::to_string(node->m_end.m_line) + _newLine;
-		return _newLine;
+		if (_lineNumber) {
+			return s(" -- "sv) + std::to_string(node->m_end.m_line) + _newLine;
+		} else {
+			return _newLine;
+		}
 	}
 
 	void incIndentOffset() {
@@ -310,21 +329,32 @@ private:
 		return _converter.to_bytes(std::wstring(begin, end));
 	}
 
-	Value_t* singleValueFrom(ast_node* expList) {
-		ast_node* singleValue = nullptr;
-		expList->traverse([&](ast_node* n) {
-			if (n->getId() == "Value"_id) {
-				if (!singleValue) {
-					singleValue = n;
-					return traversal::Return;
-				} else {
-					singleValue = nullptr;
-					return traversal::Stop;
+	Value_t* singleValueFrom(ast_node* item) {
+		Exp_t* exp = nullptr;
+		switch (item->getId()) {
+			case "Exp"_id:
+				exp = static_cast<Exp_t*>(item);
+				break;
+			case "ExpList"_id: {
+				auto expList = static_cast<ExpList_t*>(item);
+				if (expList->exprs.size() == 1) {
+					exp = static_cast<Exp_t*>(expList->exprs.front());
 				}
+				break;
 			}
-			return traversal::Continue;
-		});
-		return static_cast<Value_t*>(singleValue);
+			case "ExpListLow"_id: {
+				auto expList = static_cast<ExpListLow_t*>(item);
+				if (expList->exprs.size() == 1) {
+					exp = static_cast<Exp_t*>(expList->exprs.front());
+				}
+				break;
+			}
+		}
+		if (!exp) return nullptr;
+		if (exp->opValues.empty()) {
+			return exp->value.get();
+		}
+		return nullptr;
 	}
 
 	SimpleValue_t* simpleSingleValueFrom(ast_node* expList) {
@@ -335,16 +365,16 @@ private:
 		return nullptr;
 	}
 
-	Value_t* firstValueFrom(ast_node* expList) {
-		Value_t* firstValue = nullptr;
-		expList->traverse([&](ast_node* n) {
-			if (n->getId() == "Value"_id) {
-				firstValue = static_cast<Value_t*>(n);
-				return traversal::Stop;
+	Value_t* firstValueFrom(ast_node* item) {
+		Exp_t* exp = nullptr;
+		if (auto expList = ast_cast<ExpList_t>(item)) {
+			if (!expList->exprs.empty()) {
+				exp = static_cast<Exp_t*>(expList->exprs.front());
 			}
-			return traversal::Continue;
-		});
-		return firstValue;
+		} else {
+			exp = ast_cast<Exp_t>(item);
+		}
+		return exp->value.get();
 	}
 
 	Statement_t* lastStatementFrom(Body_t* body) {
@@ -362,7 +392,7 @@ private:
 	}
 
 	template <class T>
-	ast_ptr<T, false, false> toAst(std::string_view codes, rule& r, ast_node* parent) {
+	ast_ptr<false, T> toAst(std::string_view codes, rule& r, ast_node* parent) {
 		_codeCache.push_back(_converter.from_bytes(s(codes)));
 		error_list el;
 		State st;
@@ -380,7 +410,7 @@ private:
 		State st;
 		input i = _converter.from_bytes(s(codes));
 		auto rEnd = rule(r >> eof());
-		ast_ptr<ast_node, false, false> result(_parse(i, rEnd, el, &st));
+		ast_ptr<false, ast_node> result(_parse(i, rEnd, el, &st));
 		return result;
 	}
 
@@ -398,7 +428,9 @@ private:
 		BREAK_IF(chainValue->items.size() != 1);
 		auto callable = ast_cast<Callable_t>(chainValue->items.front());
 		BREAK_IF(!callable || !callable->item.is<Variable_t>());
-		return toString(callable->item);
+		str_list tmp;
+		transformCallable(callable, tmp, false);
+		return tmp.back();
 		BLOCK_END
 		return Empty;
 	}
@@ -417,6 +449,96 @@ private:
 			}
 		}
 		return false;
+	}
+
+	bool isAssignable(const node_container& chainItems) {
+		if (chainItems.size() == 1) {
+			 auto firstItem = chainItems.back();
+			 if (auto callable = ast_cast<Callable_t>(firstItem)) {
+				 switch (callable->item->getId()) {
+					 case "Variable"_id:
+					 case "SelfName"_id:
+						 return true;
+				 }
+			 } else if (firstItem->getId() == "DotChainItem"_id) {
+				 return true;
+			 }
+		 } else {
+			auto lastItem = chainItems.back();
+			switch (lastItem->getId()) {
+				case "DotChainItem"_id:
+				case "Exp"_id:
+					return true;
+			}
+		}
+		return false;
+	}
+
+	bool isAssignable(Exp_t* exp) {
+		if (auto value = singleValueFrom(exp)) {
+			auto item = value->item.get();
+			switch (item->getId()) {
+				case "simple_table"_id:
+					return true;
+				case "SimpleValue"_id: {
+					auto simpleValue = static_cast<SimpleValue_t*>(item);
+					if (simpleValue->value.is<TableLit_t>()) {
+						return true;
+					}
+				}
+				case "ChainValue"_id: {
+					auto chainValue = static_cast<ChainValue_t*>(item);
+					return isAssignable(chainValue->items.objects());
+				}
+			}
+		}
+		return false;
+	}
+
+	bool isAssignable(Assignable_t* assignable) {
+		if (auto assignableChain = ast_cast<AssignableChain_t>(assignable->item)) {
+			return isAssignable(assignableChain->items.objects());
+		}
+		return true;
+	}
+
+	void checkAssignable(ExpList_t* expList) {
+		for (auto exp_ : expList->exprs.objects()) {
+			if (!isAssignable(static_cast<Exp_t*>(exp_))) {
+				throw std::logic_error("left hand expression is not assignable");
+			}
+		}
+	}
+
+	std::string debugInfo(input_range loc) {
+		const int ASCII = 255;
+		int length = loc.m_begin.m_line;
+		auto begin = _input.begin();
+		auto end = _input.end();
+		int count = 0;
+		for (auto it = _input.begin(); it != _input.end(); ++it) {
+			if (*it == '\n') {
+				if (count + 1 == length) {
+					end = it;
+					break;
+				} else {
+					begin = ++it;
+				}
+				count++;
+			}
+		}
+		auto line = _converter.to_bytes(std::wstring(begin, end));
+		int oldCol = loc.m_begin.m_col;
+		int col = loc.m_begin.m_col - 1;
+		auto it = begin;
+		for (int i = 0; i < oldCol; ++i) {
+			if (*it > ASCII) {
+				++col;
+			}
+			++it;
+		}
+		replace(line, "\t"sv, " "sv);
+		return line + "\n" + std::string(col, ' ') + "^\n";
 	}
 
 	void transformStatement(Statement_t* statement, str_list& out) {
@@ -703,7 +825,8 @@ private:
 
 	void assignLastExplist(ExpList_t* expList, Body_t* body) {
 		auto last = lastStatementFrom(body);
-		bool lastAssignable = last && (expListFrom(last) || ast_is<For_t, ForEach_t, While_t>(last->content));
+		if (!last) return;
+		bool lastAssignable = expListFrom(last) || ast_is<For_t, ForEach_t, While_t>(last->content);
 		if (lastAssignable) {
 			auto x = last;
 			auto newAssignment = x->new_ptr<ExpListAssign_t>();
@@ -726,6 +849,7 @@ private:
 	}
 
 	void transformAssignment(ExpListAssign_t* assignment, str_list& out) {
+		checkAssignable(assignment->expList);
 		BLOCK_START
 		auto assign = ast_cast<Assign_t>(assignment->action);
 		BREAK_IF(!assign || assign->values.objects().size() != 1);
@@ -835,7 +959,7 @@ private:
 				str_list temp;
 				auto expList = assignment->expList.get();
 				std::string preDefine = getPredefine(assignment);
-				transformWhileClosure(static_cast<While_t*>(value), temp, expList);
+				transformWhileInPlace(static_cast<While_t*>(value), temp, expList);
 				out.push_back(preDefine + temp.back());
 				return;
 			}
@@ -951,9 +1075,11 @@ private:
 			switch (pair->getId()) {
 				case "Exp"_id: {
 					++index;
-					auto item = singleValueFrom(pair)->item.get();
-					if (!item) throw std::logic_error("Invalid destructure value");
-					if (item->getId() == "Parens"_id)  throw std::logic_error("Can't destructure value of type: parens");
+					if (!isAssignable(static_cast<Exp_t*>(pair)))  {
+						throw std::logic_error("Can't destructure value");
+					}
+					auto value = singleValueFrom(pair);
+					auto item = value->item.get();
 					if (ast_cast<simple_table_t>(item) ||
 						item->getByPath<TableLit_t>()) {
 						auto subPairs = destructFromExp(pair);
@@ -962,11 +1088,20 @@ private:
 								s("["sv) + std::to_string(index) + s("]"sv) + p.structure});
 						}
 					} else {
-						str_list temp;
-						transformExp(static_cast<Exp_t*>(pair), temp);
+						bool checkGlobal = _lintGlobalVar;
+						_lintGlobalVar = false;
+						auto exp = static_cast<Exp_t*>(pair);
+						auto varName = singleVariableFrom(exp);
+						bool isVariable = !varName.empty();
+						if (!isVariable) {
+							str_list temp;
+							transformExp(exp, temp);
+							varName = std::move(temp.back());
+						}
+						_lintGlobalVar = checkGlobal;
 						pairs.push_back({
-							item->getByPath<Callable_t, Variable_t>() != nullptr,
-							temp.back(),
+							isVariable,
+							varName,
 							s("["sv) + std::to_string(index) + s("]"sv)
 						});
 					}
@@ -983,8 +1118,8 @@ private:
 					auto key = np->key->getByPath<Name_t>();
 					if (!key) throw std::logic_error("Invalid key for destructure");
 					if (auto exp = np->value.as<Exp_t>()) {
+						if (!isAssignable(exp)) throw std::logic_error("Can't destructure value");
 						auto item = singleValueFrom(exp)->item.get();
-						if (!item) throw std::logic_error("Invalid destructure value");
 						if (ast_cast<simple_table_t>(item) ||
 							item->getByPath<TableLit_t>()) {
 							auto subPairs = destructFromExp(exp);
@@ -993,14 +1128,20 @@ private:
 									s("."sv) + toString(key) + p.structure});
 							}
 						} else {
-							str_list temp;
-							bool checkGlobal = _checkGlobalVar;
-							_checkGlobalVar = false;
-							transformExp(exp, temp);
-							_checkGlobalVar = checkGlobal;
+							bool checkGlobal = _lintGlobalVar;
+							_lintGlobalVar = false;
+							auto varName = singleVariableFrom(exp);
+							bool isVariable = !varName.empty();
+							if (!isVariable) {
+								str_list temp;
+								transformExp(exp, temp);
+								varName = std::move(temp.back());
+							}
+							_lintGlobalVar = checkGlobal;
 							pairs.push_back({
-								item->getByPath<Callable_t, Variable_t>() != nullptr,
-								temp.back(), s("."sv) + toString(key)
+								isVariable,
+								varName,
+								s("."sv) + toString(key)
 							});
 						}
 						break;
@@ -1019,7 +1160,7 @@ private:
 		return pairs;
 	}
 
-	std::pair<std::list<Destructure>, ast_ptr<ExpListAssign_t, false, false>>
+	std::pair<std::list<Destructure>, ast_ptr<false, ExpListAssign_t>>
 		extractDestructureInfo(ExpListAssign_t* assignment) {
 		auto x = assignment;
 		std::list<Destructure> destructs;
@@ -1027,12 +1168,12 @@ private:
 		auto exprs = assignment->expList->exprs.objects();
 		auto values = assignment->action.to<Assign_t>()->values.objects();
 		size_t size = std::max(exprs.size(),values.size());
-		ast_ptr<Exp_t, false, false> var;
+		ast_ptr<false, Exp_t> var;
 		if (exprs.size() < size) {
 			var = toAst<Exp_t>("_"sv, Exp, x);
 			while (exprs.size() < size) exprs.emplace_back(var);
 		}
-		ast_ptr<Exp_t, false, false> nullNode;
+		ast_ptr<false, Exp_t> nullNode;
 		if (values.size() < size) {
 			nullNode = toAst<Exp_t>("nil"sv, Exp, x);
 			while (values.size() < size) values.emplace_back(nullNode);
@@ -1059,7 +1200,7 @@ private:
 			exprs.erase(p.first);
 			values.erase(p.second);
 		}
-		ast_ptr<ExpListAssign_t, false, false> newAssignment;
+		ast_ptr<false, ExpListAssign_t> newAssignment;
 		if (!destructPairs.empty() && !exprs.empty()) {
 			auto x = assignment;
 			auto expList = x->new_ptr<ExpList_t>();
@@ -1147,10 +1288,14 @@ private:
 					for (const auto& def : defs) {
 						addToScope(def);
 					}
-					transformExpList(expList, temp);
-					std::string left = temp.back();
-					temp.pop_back();
-					out.push_back((preDefine.empty() ? indent() + left : preDefine) + s(" = "sv) + join(temp, ", "sv) + nll(assignment));
+					if (preDefine.empty()) {
+						transformExpList(expList, temp);
+						std::string left = std::move(temp.back());
+						temp.pop_back();
+						out.push_back(indent() + left + s(" = "sv) + join(temp, ", "sv) + nll(assignment));
+					} else {
+						out.push_back(preDefine + s(" = "sv) + join(temp, ", "sv) + nll(assignment));
+					}
 				}
 				else {
 					std::string preDefine = getPredefine(defs);
@@ -1173,7 +1318,7 @@ private:
 	}
 
 	void transformCond(const node_container& nodes, str_list& out, IfUsage usage = IfUsage::Common, bool unless = false) {
-		std::vector<ast_ptr<ast_node, false, false>> ns;
+		std::vector<ast_ptr<false, ast_node>> ns(false);
 		for (auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
 			ns.push_back(*it);
 			if (auto cond = ast_cast<IfCond_t>(*it)) {
@@ -1232,7 +1377,7 @@ private:
 		}
 		auto assign = ifCondPairs.front().first->assign.get();
 		bool storingValue = false;
-		ast_ptr<ExpListAssign_t, false, false> extraAssignment;
+		ast_ptr<false, ExpListAssign_t> extraAssignment;
 		if (assign) {
 			auto exp = ifCondPairs.front().first->condition.get();
 			auto x = exp;
@@ -1395,8 +1540,10 @@ private:
 		switch (item->getId()) {
 			case "Variable"_id: {
 				transformVariable(static_cast<Variable_t*>(item), out);
-				if (_checkGlobalVar && !isDefined(out.back())) {
-					_globals.insert(out.back());
+				if (_lintGlobalVar && !isDefined(out.back())) {
+					if (_globals.find(out.back()) == _globals.end()) {
+						_globals[out.back()] = {item->m_begin.m_line, item->m_begin.m_col};
+					}
 				}
 				break;
 			}
@@ -1618,6 +1765,15 @@ private:
 						case "Switch"_id:
 							transformSwitch(static_cast<Switch_t*>(value), out, true);
 							return;
+						case "While"_id:
+							transformWhileInPlace(static_cast<While_t*>(value), out);
+							return;
+						case "For"_id:
+							transformForInPlace(static_cast<For_t*>(value), out);
+							return;
+						case "ForEach"_id:
+							transformForEachInPlace(static_cast<ForEach_t*>(value), out);
+							return;
 						case "If"_id:
 							transformIf(static_cast<If_t*>(value), out, IfUsage::Return);
 							return;
@@ -1790,8 +1946,18 @@ private:
 	void transformColonChain(ChainValue_t* chainValue, str_list& out, ExpUsage usage = ExpUsage::Common, ExpList_t* expList = nullptr) {
 		auto x = chainValue;
 		const auto& chainList = chainValue->items.objects();
-		auto end = --chainList.end();
 		auto baseChain = x->new_ptr<ChainValue_t>();
+		switch (chainList.front()->getId()) {
+			case "DotChainItem"_id:
+			case "ColonChainItem"_id:
+				if (_withVars.empty()) {
+					throw std::logic_error("Short-colon syntax must be called within a with block.");
+				} else {
+				baseChain->items.push_back(toAst<Callable_t>(_withVars.top(), Callable, x));
+				}
+				break;
+		}
+		auto end = --chainList.end();
 		for (auto it = chainList.begin(); it != end; ++it) {
 			baseChain->items.push_back(*it);
 		}
@@ -2165,6 +2331,7 @@ private:
 	void transformCompInPlace(Comprehension_t* comp, ExpList_t* expList, str_list& out) {
 		auto x = comp;
 		str_list temp;
+		auto ind = indent();
 		pushScope();
 		transformComprehension(comp, temp);
 		auto assign = x->new_ptr<Assign_t>();
@@ -2174,7 +2341,7 @@ private:
 		assignment->action.set(assign);
 		transformAssignment(assignment, temp);
 		out.push_back(
-			s("do"sv) + nll(comp) +
+			ind + s("do"sv) + nll(comp) +
 			*(++temp.begin()) +
 			temp.back());
 		popScope();
@@ -2205,7 +2372,7 @@ private:
 		str_list temp;
 		str_list vars;
 		str_list varBefore, varAfter;
-		std::list<std::pair<ast_node*, ast_ptr<ast_node,false,false>>> destructPairs;
+		std::list<std::pair<ast_node*, ast_ptr<false, ast_node>>> destructPairs;
 		for (auto _item : nameList->items.objects()) {
 			auto item = static_cast<NameOrDestructure_t*>(_item)->item.get();
 			switch (item->getId()) {
@@ -2431,79 +2598,58 @@ private:
 		out.push_back(join(temp) + indent() + s("end"sv) + nlr(forNode));
 	}
 
-	void transformForClosure(For_t* forNode, str_list& out) {
+	std::string transformForInner(For_t* forNode, str_list& out) {
 		auto x = forNode;
-		str_list temp;
 		std::string accum = getUnusedName("_accum_");
-		std::string len = getUnusedName("_len_");
 		addToScope(accum);
+		std::string len = getUnusedName("_len_");
 		addToScope(len);
-		_buf << "(function()"sv << nll(forNode);
-		pushScope();
 		_buf << indent() << "local "sv << accum << " = { }"sv << nll(forNode);
 		_buf << indent() << "local "sv << len << " = 1"sv << nll(forNode);
-		temp.push_back(clearBuf());
-		transformForHead(forNode, temp);
-		auto last = lastStatementFrom(forNode->body);
-		auto stmtExpList = expListFrom(last);
-		if (stmtExpList) {
-			_buf << accum << "["sv << len << "]"sv;
-			std::string assignLeft = clearBuf();
-			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(expList);
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(stmtExpList->exprs);
-			assignment->action.set(assign);
-			last->content.set(assignment);
-		}
+		out.push_back(clearBuf());
+		transformForHead(forNode, out);
+		auto expList = toAst<ExpList_t>(accum + s("["sv) + len + s("]"sv), ExpList, x);
+		assignLastExplist(expList, forNode->body);
 		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forNode->body);
-		transformLoopBody(forNode->body, temp, lenLine);
+		transformLoopBody(forNode->body, out, lenLine);
 		popScope();
-		temp.push_back(indent() + s("end"sv) + nlr(forNode) + indent() + s("return "sv) + accum + nlr(forNode));
+		out.push_back(indent() + s("end"sv) + nlr(forNode));
+		return accum;
+	}
+
+	void transformForClosure(For_t* forNode, str_list& out) {
+		str_list temp;
+		_buf << "(function()"sv << nll(forNode);
+		pushScope();
+		auto accum = transformForInner(forNode, temp);
+		temp.push_back(indent() + s("return "sv) + accum + nlr(forNode));
 		popScope();
 		temp.push_back(indent() + s("end)()"sv));
 		out.push_back(join(temp));
 	}
 
-	void transformForInPlace(For_t* forNode,  str_list& out, ExpList_t* assignExpList) {
+	void transformForInPlace(For_t* forNode,  str_list& out, ExpList_t* assignExpList = nullptr) {
 		auto x = forNode;
 		str_list temp;
-		std::string accum = getUnusedName("_accum_");
-		std::string len = getUnusedName("_len_");
-		_buf << indent() << "do"sv << nll(forNode);
-		pushScope();
-		addToScope(accum);
-		addToScope(len);
-		_buf << indent() << "local "sv << accum << " = { }"sv << nll(forNode);
-		_buf << indent() << "local "sv << len << " = 1"sv << nll(forNode);
-		temp.push_back(clearBuf());
-		transformForHead(forNode, temp);
-		auto last = lastStatementFrom(forNode->body);
-		auto stmtExpList = expListFrom(last);
-		if (stmtExpList) {
-			_buf << accum << "["sv << len << "]"sv;
-			std::string assignLeft = clearBuf();
-			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(expList);
+		if (assignExpList) {
+			_buf << indent() << "do"sv << nll(forNode);
+			pushScope();
+			auto accum = transformForInner(forNode, temp);
 			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(stmtExpList->exprs);
+			assign->values.push_back(toAst<Exp_t>(accum, Exp, x));
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(assignExpList);
 			assignment->action.set(assign);
-			last->content.set(assignment);
+			transformAssignment(assignment, temp);
+			popScope();
+			temp.push_back(indent() + s("end"sv) + nlr(forNode));
+		} else {
+			auto accum = transformForInner(forNode, temp);
+			auto returnNode = x->new_ptr<Return_t>();
+			auto expListLow = toAst<ExpListLow_t>(accum, ExpListLow, x);
+			returnNode->valueList.set(expListLow);
+			transformReturn(returnNode, temp);
 		}
-		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forNode->body);
-		transformLoopBody(forNode->body, temp, lenLine);
-		popScope();
-		temp.push_back(indent() + s("end"sv) + nlr(forNode));
-		auto assign = x->new_ptr<Assign_t>();
-		assign->values.push_back(toAst<Exp_t>(accum, Exp, x));
-		auto assignment = x->new_ptr<ExpListAssign_t>();
-		assignment->expList.set(assignExpList);
-		assignment->action.set(assign);
-		transformAssignment(assignment, temp);
-		popScope();
-		temp.push_back(indent() + s("end"sv) + nlr(forNode));
 		out.push_back(join(temp));
 	}
 
@@ -2520,79 +2666,58 @@ private:
 		out.push_back(temp.front() + temp.back() + indent() + s("end"sv) + nlr(forEach));
 	}
 
-	void transformForEachClosure(ForEach_t* forEach, str_list& out) {
+	std::string transformForEachInner(ForEach_t* forEach, str_list& out) {
 		auto x = forEach;
-		str_list temp;
 		std::string accum = getUnusedName("_accum_");
-		std::string len = getUnusedName("_len_");
-		_buf << "(function()"sv << nll(forEach);
-		pushScope();
 		addToScope(accum);
+		std::string len = getUnusedName("_len_");
 		addToScope(len);
 		_buf << indent() << "local "sv << accum << " = { }"sv << nll(forEach);
 		_buf << indent() << "local "sv << len << " = 1"sv << nll(forEach);
-		temp.push_back(clearBuf());
-		transformForEachHead(forEach->nameList, forEach->loopValue, temp);
-		auto last = lastStatementFrom(forEach->body);
-		auto stmtExpList = expListFrom(last);
-		if (stmtExpList) {
-			_buf << accum << "["sv << len << "]"sv;
-			std::string assignLeft = clearBuf();
-			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(expList);
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(stmtExpList->exprs);
-			assignment->action.set(assign);
-			last->content.set(assignment);
-		}
+		out.push_back(clearBuf());
+		transformForEachHead(forEach->nameList, forEach->loopValue, out);
+		auto expList = toAst<ExpList_t>(accum + s("["sv) + len + s("]"sv), ExpList, x);
+		assignLastExplist(expList, forEach->body);
 		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forEach->body);
-		transformLoopBody(forEach->body, temp, lenLine);
+		transformLoopBody(forEach->body, out, lenLine);
 		popScope();
-		temp.push_back(indent() + s("end"sv) + nlr(forEach) + indent() + s("return "sv) + accum + nlr(forEach));
+		out.push_back(indent() + s("end"sv) + nlr(forEach));
+		return accum;
+	}
+
+	void transformForEachClosure(ForEach_t* forEach, str_list& out) {
+		str_list temp;
+		_buf << "(function()"sv << nll(forEach);
+		pushScope();
+		auto accum = transformForEachInner(forEach, temp);
+		temp.push_back(indent() + s("return "sv) + accum + nlr(forEach));
 		popScope();
 		temp.push_back(indent() + s("end)()"sv));
 		out.push_back(join(temp));
 	}
 
-	void transformForEachInPlace(ForEach_t* forEach,  str_list& out, ExpList_t* assignExpList) {
+	void transformForEachInPlace(ForEach_t* forEach,  str_list& out, ExpList_t* assignExpList = nullptr) {
 		auto x = forEach;
 		str_list temp;
-		std::string accum = getUnusedName("_accum_");
-		std::string len = getUnusedName("_len_");
-		_buf << indent() << "do"sv << nll(forEach);
-		pushScope();
-		addToScope(accum);
-		addToScope(len);
-		_buf << indent() << "local "sv << accum << " = { }"sv << nll(forEach);
-		_buf << indent() << "local "sv << len << " = 1"sv << nll(forEach);
-		temp.push_back(clearBuf());
-		transformForEachHead(forEach->nameList, forEach->loopValue, temp);
-		auto last = lastStatementFrom(forEach->body);
-		auto stmtExpList = expListFrom(last);
-		if (stmtExpList) {
-			_buf << accum << "["sv << len << "]"sv;
-			std::string assignLeft = clearBuf();
-			auto expList = toAst<ExpList_t>(assignLeft, ExpList, x);
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(expList);
+		if (assignExpList) {
+			_buf << indent() << "do"sv << nll(forEach);
+			pushScope();
+			auto accum = transformForEachInner(forEach, temp);
 			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(stmtExpList->exprs);
+			assign->values.push_back(toAst<Exp_t>(accum, Exp, x));
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(assignExpList);
 			assignment->action.set(assign);
-			last->content.set(assignment);
+			transformAssignment(assignment, temp);
+			popScope();
+			temp.push_back(indent() + s("end"sv) + nlr(forEach));
+		} else {
+			auto accum = transformForEachInner(forEach, temp);
+			auto returnNode = x->new_ptr<Return_t>();
+			auto expListLow = toAst<ExpListLow_t>(accum, ExpListLow, x);
+			returnNode->valueList.set(expListLow);
+			transformReturn(returnNode, temp);
 		}
-		auto lenLine = len + s(" = "sv) + len + s(" + 1"sv) + nlr(forEach->body);
-		transformLoopBody(forEach->body, temp, lenLine);
-		popScope();
-		temp.push_back(indent() + s("end"sv) + nlr(forEach));
-		auto assign = x->new_ptr<Assign_t>();
-		assign->values.push_back(toAst<Exp_t>(accum, Exp, x));
-		auto assignment = x->new_ptr<ExpListAssign_t>();
-		assignment->expList.set(assignExpList);
-		assignment->action.set(assign);
-		transformAssignment(assignment, temp);
-		popScope();
-		temp.push_back(indent() + s("end"sv) + nlr(forEach));
 		out.push_back(join(temp));
 	}
 
@@ -2729,6 +2854,9 @@ private:
 		std::string className;
 		std::string assignItem;
 		if (assignable) {
+			if (!isAssignable(assignable)) {
+				throw std::logic_error("left hand expression is not assignable");
+			}
 			bool newDefined = false;
 			std::tie(className, newDefined) = defineClassVariable(assignable);
 			if (newDefined) {
@@ -3082,6 +3210,7 @@ private:
 		std::string withVar;
 		bool scoped = false;
 		if (with->assigns) {
+			checkAssignable(with->valueList);
 			auto vars = getAssignVars(with);
 			if (vars.front().empty()) {
 				if (with->assigns->values.objects().size() == 1) {
@@ -3097,9 +3226,11 @@ private:
 					auto assign = x->new_ptr<Assign_t>();
 					assign->values.push_back(with->assigns->values.objects().front());
 					assignment->action.set(assign);
-					scoped = true;
-					temp.push_back(indent() + s("do"sv) + nll(with));
-					pushScope();
+					if (!returnValue) {
+						scoped = true;
+						temp.push_back(indent() + s("do"sv) + nll(with));
+						pushScope();
+					}
 					transformAssignment(assignment, temp);
 				}
 				auto assignment = x->new_ptr<ExpListAssign_t>();
@@ -3121,9 +3252,11 @@ private:
 				auto assignment = x->new_ptr<ExpListAssign_t>();
 				assignment->expList.set(with->valueList);
 				assignment->action.set(with->assigns);
-				scoped = true;
-				temp.push_back(indent() + s("do"sv) + nll(with));
-				pushScope();
+				if (!returnValue) {
+					scoped = true;
+					temp.push_back(indent() + s("do"sv) + nll(with));
+					pushScope();
+				}
 				transformAssignment(assignment, temp);
 			}
 		} else {
@@ -3135,13 +3268,15 @@ private:
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.dup(with->valueList->exprs);
 				assignment->action.set(assign);
-				scoped = true;
-				temp.push_back(indent() + s("do"sv) + nll(with));
-				pushScope();
+				if (!returnValue) {
+					scoped = true;
+					temp.push_back(indent() + s("do"sv) + nll(with));
+					pushScope();
+				}
 				transformAssignment(assignment, temp);
 			}
 		}
-		if (!scoped) {
+		if (!scoped && !returnValue) {
 			pushScope();
 			scoped = traversal::Stop == with->body->traverse([&](ast_node* node) {
 				if (auto statement = ast_cast<Statement_t>(node)) {
@@ -3344,6 +3479,7 @@ private:
 	void transformTblCompInPlace(TblComprehension_t* comp, ExpList_t* expList, str_list& out) {
 		auto x = comp;
 		str_list temp;
+		auto ind = indent();
 		pushScope();
 		transformTblComprehension(comp, temp);
 		auto assign = x->new_ptr<Assign_t>();
@@ -3353,7 +3489,7 @@ private:
 		assignment->action.set(assign);
 		transformAssignment(assignment, temp);
 		out.push_back(
-			s("do"sv) + nll(comp) +
+			ind + s("do"sv) + nll(comp) +
 			*(++temp.begin()) +
 			temp.back());
 		popScope();
@@ -3429,7 +3565,7 @@ private:
 		str_list temp;
 		auto x = import;
 		auto objVar = singleVariableFrom(import->exp);
-		ast_ptr<ExpListAssign_t, false, false> objAssign;
+		ast_ptr<false, ExpListAssign_t> objAssign;
 		if (objVar.empty()) {
 			objVar = getUnusedName("_obj_"sv);
 			auto expList = toAst<ExpList_t>(objVar, ExpList, x);
@@ -3519,13 +3655,11 @@ private:
 		out.push_back(join(temp));
 	}
 
-	void transformWhileClosure(While_t* whileNode, str_list& out, ExpList_t* expList = nullptr) {
+	void transformWhileInPlace(While_t* whileNode, str_list& out, ExpList_t* expList = nullptr) {
 		auto x = whileNode;
 		str_list temp;
 		if (expList) {
 			temp.push_back(indent() + s("do"sv) + nll(whileNode));
-		} else {
-			temp.push_back(s("(function() "sv) + nll(whileNode));
 		}
 		pushScope();
 		auto accumVar = getUnusedName("_accum_"sv);
@@ -3537,16 +3671,8 @@ private:
 		transformExp(whileNode->condition, temp);
 		temp.back() = indent() + s("while "sv) + temp.back() + s(" do"sv) + nll(whileNode);
 		pushScope();
-		auto last = lastStatementFrom(whileNode->body);
-		auto valueList = last ? expListFrom(last) : nullptr;
-		if (valueList) {
-			auto newAssignment = x->new_ptr<ExpListAssign_t>();
-			newAssignment->expList.set(toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), ExpList, x));
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.dup(valueList->exprs);
-			newAssignment->action.set(assign);
-			last->content.set(newAssignment);
-		}
+		auto assignLeft = toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), ExpList, x);
+		assignLastExplist(assignLeft, whileNode->body);
 		auto lenLine = lenVar + s(" = "sv) + lenVar + s(" + 1"sv) + nlr(whileNode);
 		transformLoopBody(whileNode->body, temp, lenLine);
 		popScope();
@@ -3564,9 +3690,33 @@ private:
 		popScope();
 		if (expList) {
 			temp.push_back(indent() + s("end"sv) + nlr(whileNode));
-		} else {
-			temp.push_back(indent() + s("end)()"sv));
 		}
+		out.push_back(join(temp));
+	}
+
+	void transformWhileClosure(While_t* whileNode, str_list& out) {
+		auto x = whileNode;
+		str_list temp;
+		temp.push_back(s("(function() "sv) + nll(whileNode));
+		pushScope();
+		auto accumVar = getUnusedName("_accum_"sv);
+		addToScope(accumVar);
+		auto lenVar = getUnusedName("_len_"sv);
+		addToScope(lenVar);
+		temp.push_back(indent() + s("local "sv) + accumVar + s(" = { }"sv) + nll(whileNode));
+		temp.push_back(indent() + s("local "sv) + lenVar + s(" = 1"sv) + nll(whileNode));
+		transformExp(whileNode->condition, temp);
+		temp.back() = indent() + s("while "sv) + temp.back() + s(" do"sv) + nll(whileNode);
+		pushScope();
+		auto assignLeft = toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), ExpList, x);
+		assignLastExplist(assignLeft, whileNode->body);
+		auto lenLine = lenVar + s(" = "sv) + lenVar + s(" + 1"sv) + nlr(whileNode);
+		transformLoopBody(whileNode->body, temp, lenLine);
+		popScope();
+		temp.push_back(indent() + s("end"sv) + nlr(whileNode));
+		temp.push_back(indent() + s("return "sv) + accumVar + nlr(whileNode));
+		popScope();
+		temp.push_back(indent() + s("end)()"sv));
 		out.push_back(join(temp));
 	}
 
@@ -3666,15 +3816,17 @@ private:
 
 const std::string MoonCompliler::Empty;
 
-std::pair<std::string,std::string> moonCompile(const std::string& codes) {
-	return MoonCompliler{}.complile(codes, false);
+std::pair<std::string,std::string> moonCompile(const std::string& codes, bool implicitReturnRoot, bool lineNumber) {
+	return MoonCompliler{}.complile(codes, false, implicitReturnRoot, lineNumber);
 }
 
-std::pair<std::string,std::string> moonCompile(const std::string& codes, std::list<std::string>& globals) {
+std::pair<std::string,std::string> moonCompile(const std::string& codes, std::list<GlobalVar>& globals, bool implicitReturnRoot, bool lineNumber) {
 	auto compiler = MoonCompliler{};
-	auto result = compiler.complile(codes, true);
+	auto result = compiler.complile(codes, true, implicitReturnRoot, lineNumber);
 	for (const auto& var : compiler.getGlobals()) {
-		globals.push_back(var);
+		int line,col;
+		std::tie(line,col) = var.second;
+		globals.push_back({var.first, line, col});
 	}
 	return result;
 }

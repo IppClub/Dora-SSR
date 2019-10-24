@@ -31,9 +31,6 @@
 			<Script>light.visible = false</Script>
 		</Item>
 
-		<Slot Name="TapBegan" Target="light" Perform="show" Type="Moon">
-			print "began"
-		</Slot>
 		<Slot Name="TapEnded" Target="light" Perform="hide"/>
 	</ButtonBase>
 </Dorothy>

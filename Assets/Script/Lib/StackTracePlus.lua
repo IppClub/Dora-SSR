@@ -290,16 +290,31 @@ function Dumper:DumpLocals (level)
 	end
 end
 
-local moonCache = {}
 local function getMoonLineNumber(fname, line)
-	fname = Content:getFullPath(fname)
-	local line_tables = require("moonscript.line_tables")
-	local reverse_line_number = require("moonscript.errors").reverse_line_number
-	local tbl = line_tables["@"..tostring(fname)]
-	if fname and tbl then
-		return reverse_line_number(fname, tbl, line, moonCache)
+	local moonCompiled = require("moon_compiled")
+	local source = moonCompiled[fname]
+	if not source and Content:exist(fname) then
+		local codes = Content:load(fname)
+		local moonFile = codes:match("^%s*--%s*%[moon%]:%s*([^\n]*)")
+		if moonFile then
+			fname = moonFile:gsub("^%s*(.-)%s*$", "%1")
+			source = codes
+		end
 	end
-	return line
+	if source then
+		local i, target = 1, tonumber(line)
+		for lineCode in source:gmatch("([^\n]*)\n") do
+			if i == target then
+				local num = lineCode:match("--%s*(%d*)%s*$")
+				if num then
+					return fname, num
+				end
+				break
+			end
+			i = i + 1
+		end
+	end
+	return fname, line
 end
 
 ---
@@ -318,8 +333,6 @@ function _M.stacktrace(thread, message, level)
 		-- shift parameters left
 		thread, message, level = nil, thread, message
 	end
-
-	moonCache = {}
 
 	thread = thread or coroutine.running()
 
@@ -351,31 +364,27 @@ function _M.stacktrace(thread, message, level)
 		if fname then
 			fname = fname:gsub("%[string \"", "")
 			fname = fname:gsub("\"%]", "")
-			fname = fname:gsub("^[%s]+","")
-			fname = fname:gsub("[%s]+$","")
+			fname = fname:gsub("^%s*(.-)%s*$", "%1")
 			local extension = fname:match("%.([^%.\\/]*)$")
 			if not extension then
-				fname = Content:getFullPath(fname..".lua")
-			end
-			local index = 0
-			repeat
-				index = fname:find("[\\/]",index+1)
-				if not index then break end
-				local name = fname:sub(index+1,-1)
-				if Content:exist(name) then
-					fname = name
-					break
+				local fext = fname .. ".moon"
+				if Content:exist(fext) then
+					fname = fext
+				else
+					fext = fname .. ".lua"
+					if Content:exist(fext) then
+						fname = fext
+					end
 				end
-			until index == nil
+			end
+			fname, line = getMoonLineNumber(fname, line)
 			if _M.simplified then
 				message = table.concat({
-					"'", fname, "':",
-					getMoonLineNumber(fname, line),
+					"'", fname, "':", line,
 					": ", msg})
 			else
 				message = table.concat({
-					"[string \"", fname, "\"]:",
-					getMoonLineNumber(fname, line),
+					"[string \"", fname, "\"]:", line,
 					": ", msg})
 			end
 		end
@@ -399,18 +408,28 @@ Stack Traceback
 			local index = 0
 			repeat
 				index = fname:find("[\\/]",index+1)
+				if index == nil then
+					break
+				end
 				local name = fname:sub(index+1,-1)
 				if Content:exist(name) then
 					fname = name
 					break
 				end
 			until index == nil
-			info.source = "@"..fname
-			info.currentline = getMoonLineNumber(info.source:sub(2), info.currentline)
+			info.source = fname
 		elseif info.what == "main" or info.what == "Lua" then
-			info.source = info.source..".lua"
-		else
+			local fext = info.source .. ".moon"
+			if Content:exist(fext) then
+				info.source = fext
+			else
+				fext = info.source .. ".lua"
+				if Content:exist(fext) then
+					info.source = fext
+				end
+			end
 		end
+		info.source, info.currentline = getMoonLineNumber(info.source, info.currentline)
 		if info.what == "main" then
 			if string_sub(info.source, 1, 1) == "@" then
 				if _M.simplified then
