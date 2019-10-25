@@ -317,6 +317,22 @@ local function getMoonLineNumber(fname, line)
 	return fname, line
 end
 
+local function getShortName(fname)
+	local index = 0
+	repeat
+		index = fname:find("[\\/]",index+1)
+		if index == nil then
+			break
+		end
+		local name = fname:sub(index+1,-1)
+		if Content:exist(name) then
+			fname = name
+			break
+		end
+	until index == nil
+	return fname
+end
+
 ---
 -- Public:
 -- Collects a detailed stack trace, dumping locals, resolving function names when they're not available, etc.
@@ -361,6 +377,10 @@ function _M.stacktrace(thread, message, level)
 	elseif type(message) == "string" then
 		original_error = message
 		local fname, line, msg = message:match('(.+):(%d+): (.*)$')
+		local nfname, nline, nmsg = fname:match('(.+):(%d+): (.*)$')
+		if nfname then
+			fname = nmsg
+		end
 		if fname then
 			fname = fname:gsub("%[string \"", "")
 			fname = fname:gsub("\"%]", "")
@@ -380,12 +400,12 @@ function _M.stacktrace(thread, message, level)
 			fname, line = getMoonLineNumber(fname, line)
 			if _M.simplified then
 				message = table.concat({
-					"'", fname, "':", line,
-					": ", msg})
+					"'", getShortName(fname), "':",
+					line, ": ", msg})
 			else
 				message = table.concat({
-					"[string \"", fname, "\"]:", line,
-					": ", msg})
+					"[string \"", getShortName(fname), "\"]:",
+					line, ": ", msg})
 			end
 		end
 		dumper:add(message)
@@ -404,20 +424,7 @@ Stack Traceback
 	local info = dumper.getinfo(level, "nSlf")
 	while info do
 		if info.source and info.source:sub(1,1) == "@" then
-			local fname = info.source:sub(2)
-			local index = 0
-			repeat
-				index = fname:find("[\\/]",index+1)
-				if index == nil then
-					break
-				end
-				local name = fname:sub(index+1,-1)
-				if Content:exist(name) then
-					fname = name
-					break
-				end
-			until index == nil
-			info.source = fname
+			info.source = getShortName(info.source:sub(2))
 		elseif info.what == "main" or info.what == "Lua" then
 			local fext = info.source .. ".moon"
 			if Content:exist(fext) then
@@ -428,21 +435,14 @@ Stack Traceback
 					info.source = fext
 				end
 			end
+			info.source = getShortName(info.source)
 		end
 		info.source, info.currentline = getMoonLineNumber(info.source, info.currentline)
 		if info.what == "main" then
-			if string_sub(info.source, 1, 1) == "@" then
-				if _M.simplified then
-					dumper:add_f("(%d) '%s':%d\r\n", level_to_show, string_sub(info.source, 2), info.currentline)
-				else
-					dumper:add_f("(%d) main chunk of file '%s' at line %d\r\n", level_to_show, string_sub(info.source, 2), info.currentline)
-				end
+			if _M.simplified then
+				dumper:add_f("(%d) '%s':%d\r\n", level_to_show, info.source, info.currentline)
 			else
-				if _M.simplified then
-					dumper:add_f("(%d) '%s':%d\r\n", level_to_show, info.source, info.currentline)
-				else
-					dumper:add_f("(%d) main chunk of file '%s' at line %d\r\n", level_to_show, info.source, info.currentline)
-				end
+				dumper:add_f("(%d) main chunk of file '%s' at line %d\r\n", level_to_show, info.source, info.currentline)
 			end
 		elseif info.what == "C" then
 			--print(info.namewhat, info.name)

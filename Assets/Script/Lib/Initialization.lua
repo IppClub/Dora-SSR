@@ -557,15 +557,15 @@ local function moonLoader(name)
 	if fileExist then
 		local text = Content:load(fullPath)
 		assert(text, "file "..filename.." load failed!")
-		local res, err = moontolua(text)
-		if not res then
-			error(filename .. ": " .. err)
+		local code, err = moontolua(text)
+		if not code then
+			error(filename .. ":" .. err)
 		end
 		local moon_compiled = package.loaded["moon_compiled"]
-		moon_compiled[filename] = res
-		res, err = loadstring(res, "@" .. filename)
+		moon_compiled[filename] = code
+		local res, err = loadstring(code, "@" .. filename)
 		if not res then
-			error(filename .. ": " .. err)
+			error(err)
 		end
 		return res
 	end

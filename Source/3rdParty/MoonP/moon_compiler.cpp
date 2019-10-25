@@ -51,10 +51,10 @@ public:
 				return {Empty, error.what()};
 			}
 		} else {
+			clearBuf();
 			for (error_list::iterator it = el.begin(); it != el.end(); ++it) {
 				const error& err = *it;
-				_buf << "\nline " << err.m_begin.m_line << ", col " << err.m_begin.m_col << ": syntax error\n";
-				_buf << debugInfo(err);
+				_buf << debugInfo("Syntax error."sv, &err);
 			}
 			std::pair<std::string,std::string> result{Empty, clearBuf()};
 			clear();
@@ -485,6 +485,7 @@ private:
 					if (simpleValue->value.is<TableLit_t>()) {
 						return true;
 					}
+					return false;
 				}
 				case "ChainValue"_id: {
 					auto chainValue = static_cast<ChainValue_t*>(item);
@@ -504,15 +505,16 @@ private:
 
 	void checkAssignable(ExpList_t* expList) {
 		for (auto exp_ : expList->exprs.objects()) {
-			if (!isAssignable(static_cast<Exp_t*>(exp_))) {
-				throw std::logic_error("left hand expression is not assignable");
+			Exp_t* exp = static_cast<Exp_t*>(exp_);
+			if (!isAssignable(exp)) {
+				throw std::logic_error(debugInfo("Left hand expression is not assignable."sv, exp));
 			}
 		}
 	}
 
-	std::string debugInfo(input_range loc) {
+	std::string debugInfo(std::string_view msg, const input_range* loc) {
 		const int ASCII = 255;
-		int length = loc.m_begin.m_line;
+		int length = loc->m_begin.m_line;
 		auto begin = _input.begin();
 		auto end = _input.end();
 		int count = 0;
@@ -522,14 +524,14 @@ private:
 					end = it;
 					break;
 				} else {
-					begin = ++it;
+					begin = it + 1;
 				}
 				count++;
 			}
 		}
 		auto line = _converter.to_bytes(std::wstring(begin, end));
-		int oldCol = loc.m_begin.m_col;
-		int col = loc.m_begin.m_col - 1;
+		int oldCol = loc->m_begin.m_col;
+		int col = loc->m_begin.m_col - 1;
 		auto it = begin;
 		for (int i = 0; i < oldCol; ++i) {
 			if (*it > ASCII) {
@@ -538,7 +540,10 @@ private:
 			++it;
 		}
 		replace(line, "\t"sv, " "sv);
-		return line + "\n" + std::string(col, ' ') + "^\n";
+		std::ostringstream buf;
+		buf << loc->m_begin.m_line << ": "sv << msg <<
+			'\n' << line << '\n' << std::string(col, ' ') << "^"sv;
+		return buf.str();
 	}
 
 	void transformStatement(Statement_t* statement, str_list& out) {
@@ -745,7 +750,7 @@ private:
 					BLOCK_END
 				}
 			} else {
-				throw std::logic_error("left hand expression is not assignable");
+				throw std::logic_error(debugInfo("Left hand expression is not assignable."sv, exp));
 			}
 		}
 		return preDefs;
@@ -770,7 +775,7 @@ private:
 					BLOCK_END
 				}
 			} else {
-				throw std::logic_error("left hand expression is not assignable");
+				throw std::logic_error(debugInfo("Left hand expression is not assignable."sv, exp));
 			}
 		}
 		return preDefs;
@@ -1058,7 +1063,7 @@ private:
 		const node_container* tableItems = nullptr;
 		if (ast_cast<Exp_t>(node)) {
 			auto item = singleValueFrom(node)->item.get();
-			if (!item) throw std::logic_error("Invalid destructure value");
+			if (!item) throw std::logic_error(debugInfo("Invalid destructure value."sv, node));
 			auto tbA = item->getByPath<TableLit_t>();
 			if (tbA) {
 				tableItems = &tbA->values.objects();
@@ -1076,7 +1081,7 @@ private:
 				case "Exp"_id: {
 					++index;
 					if (!isAssignable(static_cast<Exp_t*>(pair)))  {
-						throw std::logic_error("Can't destructure value");
+						throw std::logic_error(debugInfo("Can't destructure value."sv, pair));
 					}
 					auto value = singleValueFrom(pair);
 					auto item = value->item.get();
@@ -1116,9 +1121,9 @@ private:
 				case "normal_pair"_id: {
 					auto np = static_cast<normal_pair_t*>(pair);
 					auto key = np->key->getByPath<Name_t>();
-					if (!key) throw std::logic_error("Invalid key for destructure");
+					if (!key) throw std::logic_error(debugInfo("Invalid key for destructure."sv, np));
 					if (auto exp = np->value.as<Exp_t>()) {
-						if (!isAssignable(exp)) throw std::logic_error("Can't destructure value");
+						if (!isAssignable(exp)) throw std::logic_error(debugInfo("Can't destructure value."sv, exp));
 						auto item = singleValueFrom(exp)->item.get();
 						if (ast_cast<simple_table_t>(item) ||
 							item->getByPath<TableLit_t>()) {
@@ -1225,7 +1230,7 @@ private:
 				auto update = static_cast<Update_t*>(action);
 				auto leftExp = static_cast<Exp_t*>(expList->exprs.objects().front());
 				auto leftValue = singleValueFrom(leftExp);
-				if (!leftValue) throw std::logic_error("left hand expression is not assignable");
+				if (!leftValue) throw std::logic_error(debugInfo("Left hand expression is not assignable."sv, leftExp));
 				if (auto chain = leftValue->getByPath<ChainValue_t>()) {
 					auto tmpChain = x->new_ptr<ChainValue_t>();
 					for (auto item : chain->items.objects()) {
@@ -1951,9 +1956,9 @@ private:
 			case "DotChainItem"_id:
 			case "ColonChainItem"_id:
 				if (_withVars.empty()) {
-					throw std::logic_error("Short-colon syntax must be called within a with block.");
+					throw std::logic_error(debugInfo("Short dot/colon syntax must be called within a with block."sv, chainList.front()));
 				} else {
-				baseChain->items.push_back(toAst<Callable_t>(_withVars.top(), Callable, x));
+					baseChain->items.push_back(toAst<Callable_t>(_withVars.top(), Callable, x));
 				}
 				break;
 		}
@@ -2037,7 +2042,7 @@ private:
 			case "DotChainItem"_id:
 			case "ColonChainItem"_id:
 				if (_withVars.empty()) {
-					throw std::logic_error("Short-dot syntax must be called within a with block.");
+					throw std::logic_error(debugInfo("Short dot/colon syntax must be called within a with block."sv, chainList.front()));
 				} else {
 					temp.push_back(_withVars.top());
 				}
@@ -2057,7 +2062,7 @@ private:
 					auto next = it; ++next;
 					auto followItem = next != chainList.end() ? *next : nullptr;
 					if (!ast_is<Invoke_t, InvokeArgs_t>(followItem)) {
-						throw std::logic_error("Colon chain item must be followed by invoke arguments");
+						throw std::logic_error(debugInfo("Colon chain item must be followed by invoke arguments."sv, colonItem));
 					}
 					if (colonItem->name.is<LuaKeyword_t>()) {
 						auto callVar = getUnusedName(s("_call_"sv));
@@ -2212,7 +2217,7 @@ private:
 	}
 
 	void transformSlice(Slice_t* slice, str_list& out) {
-		throw std::logic_error("Slice syntax not supported here");
+		throw std::logic_error(debugInfo("Slice syntax not supported here."sv, slice));
 	}
 
 	void transformInvoke(Invoke_t* invoke, str_list& out) {
@@ -2397,7 +2402,7 @@ private:
 				auto indexVar = getUnusedName("_index_");
 				varAfter.push_back(indexVar);
 				auto value = singleValueFrom(star_exp->value);
-				if (!value) throw std::logic_error("Invalid star syntax");
+				if (!value) throw std::logic_error(debugInfo("Invalid star syntax."sv, star_exp));
 				bool endWithSlice = false;
 				BLOCK_START
 				auto chainValue = value->item.as<ChainValue_t>();
@@ -2855,7 +2860,7 @@ private:
 		std::string assignItem;
 		if (assignable) {
 			if (!isAssignable(assignable)) {
-				throw std::logic_error("left hand expression is not assignable");
+				throw std::logic_error(debugInfo("Left hand expression is not assignable."sv, assignable));
 			}
 			bool newDefined = false;
 			std::tie(className, newDefined) = defineClassVariable(assignable);
@@ -3096,7 +3101,7 @@ private:
 			if (selfName) {
 				type = MemType::Property;
 				auto name = ast_cast<self_name_t>(selfName->name);
-				if (!name) throw std::logic_error("Invalid class poperty name");
+				if (!name) throw std::logic_error(debugInfo("Invalid class poperty name."sv, selfName->name));
 				newSuperCall = classVar + s(".__parent."sv) + toString(name->name);
 			} else {
 				auto x = keyName;
@@ -3462,11 +3467,11 @@ private:
 		if (!comp->value) {
 			auto keyVar = getUnusedName("_key_");
 			auto valVar = getUnusedName("_val_");
-			_buf << indent(int(temp.size())-1) << "local "sv << keyVar << ", "sv << valVar << " = "sv << kv.front() << nll(comp);
+			_buf << indent(int(temp.size()) - 1) << "local "sv << keyVar << ", "sv << valVar << " = "sv << kv.front() << nll(comp);
 			kv.front() = keyVar;
 			kv.push_back(valVar);
 		}
-		_buf << indent(int(temp.size())-1) << tbl << "["sv << kv.front() << "] = "sv << kv.back() << nll(comp);
+		_buf << indent(int(temp.size()) - 1) << tbl << "["sv << kv.front() << "] = "sv << kv.back() << nll(comp);
 		for (int ind = int(temp.size()) - 2; ind > -1 ; --ind) {
 			_buf << indent(ind) << "end"sv << nll(comp);
 		}
@@ -3807,7 +3812,7 @@ private:
 			out.push_back(indent() + keyword + nll(breakLoop));
 			return;
 		}
-		if (_continueVars.empty()) throw std::logic_error("continue must be inside of a loop");
+		if (_continueVars.empty()) throw std::logic_error(debugInfo("Continue is not inside a loop."sv, breakLoop));
 		_buf << indent() << _continueVars.top() << " = true"sv << nll(breakLoop);
 		_buf << indent() << "break"sv << nll(breakLoop);
 		out.push_back(clearBuf());
