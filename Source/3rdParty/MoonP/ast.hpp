@@ -285,14 +285,14 @@ public:
         // check the stack node
         if (st.empty()) {
 			if (!Required) return;
-			throw std::logic_error("invalid AST stack");
+			throw std::logic_error("Invalid AST stack");
 		}
         ast_node* node = st.back();
 		if (!ast_ptr::accept(node)) {
 			// if the object is not required, simply return
 			if (!Required) return;
 			// else if the object is mandatory, throw an exception
-			throw std::logic_error("invalid AST node");
+			throw std::logic_error("Invalid AST node");
 		}
         st.pop_back();
         m_ptr = node;
@@ -327,12 +327,12 @@ public:
     virtual void construct(ast_stack& st) override {
         if (st.empty()) {
         	if (!Required) return;
-			throw std::logic_error("invalid AST stack");
+			throw std::logic_error("Invalid AST stack");
 		}
         ast_node* node = st.back();
         if (!ast_sel::accept(node)) {
         	if (!Required) return;
-        	throw std::logic_error("invalid AST node");
+        	throw std::logic_error("Invalid AST node");
 		}
         st.pop_back();
         m_ptr = node;
@@ -455,7 +455,7 @@ public:
             // end the list parsing
             if (!ast_list::accept(node)) {
             	if (Required && m_objects.empty()) {
-            		throw std::logic_error("invalid AST node");
+            		throw std::logic_error("Invalid AST node");
 				}
             	return;
             }
@@ -465,7 +465,7 @@ public:
             node->retain();
         }
 		if (Required && m_objects.empty()) {
-			throw std::logic_error("invalid AST node");
+			throw std::logic_error("Invalid AST stack");
 		}
     }
 private:
@@ -493,7 +493,7 @@ public:
             ast_node* node = st.back();
             if (!ast_sel_list::accept(node)) {
             	if (Required && m_objects.empty()) {
-            		throw std::logic_error("invalid AST node");
+            		throw std::logic_error("Invalid AST node");
 				}
             	return;
             }
@@ -502,7 +502,7 @@ public:
             node->retain();
         }
 		if (Required && m_objects.empty()) {
-			throw std::logic_error("invalid AST node");
+			throw std::logic_error("Invalid AST stack");
 		}
     }
 private:
