@@ -387,11 +387,11 @@ function _M.stacktrace(thread, message, level)
 			fname = fname:gsub("^%s*(.-)%s*$", "%1")
 			local extension = fname:match("%.([^%.\\/]*)$")
 			if not extension then
-				local fext = fname .. ".moon"
+				local fext = fname .. ".lua"
 				if Content:exist(fext) then
 					fname = fext
 				else
-					fext = fname .. ".lua"
+					fext = fname .. ".moon"
 					if Content:exist(fext) then
 						fname = fext
 					end
@@ -426,11 +426,11 @@ Stack Traceback
 		if info.source and info.source:sub(1,1) == "@" then
 			info.source = getShortName(info.source:sub(2))
 		elseif info.what == "main" or info.what == "Lua" then
-			local fext = info.source .. ".moon"
+			local fext = info.source .. ".lua"
 			if Content:exist(fext) then
 				info.source = fext
 			else
-				fext = info.source .. ".lua"
+				fext = info.source .. ".moon"
 				if Content:exist(fext) then
 					info.source = fext
 				end

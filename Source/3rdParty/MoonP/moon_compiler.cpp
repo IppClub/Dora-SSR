@@ -1552,7 +1552,17 @@ private:
 				}
 				break;
 			}
-			case "SelfName"_id: transformSelfName(static_cast<SelfName_t*>(item), out, invoke); break;
+			case "SelfName"_id: { transformSelfName(static_cast<SelfName_t*>(item), out, invoke);
+				if (_lintGlobalVar) {
+					std::string self("self"sv);
+					if (!isDefined(self)) {
+						if (_globals.find(self) == _globals.end()) {
+							_globals[self] = {item->m_begin.m_line, item->m_begin.m_col};
+						}
+					}
+				}
+				break;
+			}
 			case "VarArg"_id: out.push_back(s("..."sv)); break;
 			case "Parens"_id: transformParens(static_cast<Parens_t*>(item), out); break;
 			default: break;
@@ -2413,7 +2423,9 @@ private:
 				endWithSlice = true;
 				if (listVar.empty() && chainList.size() == 2 &&
 					ast_is<Callable_t>(chainList.front())) {
-					listVar = toString(ast_to<Callable_t>(chainList.front())->item);
+					transformCallable(static_cast<Callable_t*>(chainList.front()), temp, false);
+					listVar = temp.back();
+					temp.pop_back();
 				}
 				chainList.pop_back();
 				auto chain = x->new_ptr<ChainValue_t>();

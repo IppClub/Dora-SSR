@@ -131,8 +131,7 @@ compile = (dir,minify)->
 			totalXmlTime += App.eclapsedTime - startTime
 		else
 			codes,err,globals = moontolua sourceCodes, lint_global:true
-			requires = if not file\match "moon_spec"
-				LintMoonGlobals(sourceCodes,globals,file).."\n" unless isXml
+			requires = LintMoonGlobals(sourceCodes,globals,file).."\n" unless isXml
 			totalMoonTime += App.eclapsedTime - startTime
 		startTime = App.eclapsedTime
 		if not codes
