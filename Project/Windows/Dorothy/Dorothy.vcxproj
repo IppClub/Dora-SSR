@@ -839,7 +839,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\soloud\Lib\Windows;$(LibraryPath)</LibraryPath>
-    <CustomBuildBeforeTargets>InitializeBuildStatus</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
