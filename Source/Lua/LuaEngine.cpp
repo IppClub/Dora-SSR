@@ -272,21 +272,16 @@ static int dora_moontolua(lua_State* L)
 		}
 		else
 		{
-			try {
-				auto result = MoonP::moonCompile(codes, implicitReturnRoot, lineNumber);
-				if (result.first.empty())
-				{
-					lua_pushnil(L);
-					lua_pushlstring(L, result.second.c_str(), result.second.size());
-				}
-				else
-				{
-					lua_pushlstring(L, result.first.c_str(), result.first.size());
-					lua_pushnil(L);
-				}
-			} catch (const std::exception& ex) {
-				int i = 0;
-				i++;
+			auto result = MoonP::moonCompile(codes, implicitReturnRoot, lineNumber);
+			if (result.first.empty())
+			{
+				lua_pushnil(L);
+				lua_pushlstring(L, result.second.c_str(), result.second.size());
+			}
+			else
+			{
+				lua_pushlstring(L, result.first.c_str(), result.first.size());
+				lua_pushnil(L);
 			}
 			return 2;
 		}
@@ -337,7 +332,7 @@ LuaEngine::LuaEngine()
 	tolua_open(L);
 
 	// Register our version of the global "print" function
-	const luaL_reg global_functions[] =
+	const luaL_Reg global_functions[] =
 	{
 		{ "print", dora_print },
 		{ "loadfile", dora_loadfile },
