@@ -2,14 +2,14 @@ matrix:
   include:
   - language: cpp
     os: osx
-    osx_image: xcode10.1
+    osx_image: xcode11.3
     before_install: Tools/tolua++/build.sh
     script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
   - language: cpp
     os: osx
-    osx_image: xcode10.1
+    osx_image: xcode11.3
     before_install: Tools/tolua++/build.sh
-    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator12.1
+    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator13.2
   - language: android
     dist: trusty
     sudo: true
