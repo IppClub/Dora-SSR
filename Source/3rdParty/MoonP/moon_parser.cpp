@@ -1,3 +1,11 @@
+/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 #include "MoonP/moon_parser.h"
 
 namespace MoonP {
@@ -52,7 +60,7 @@ rule Seperator = true_();
 #define ensure(patt, finally) (((patt) >> (finally)) | ((finally) >> (Cut)))
 #define key(str) (Space >> str >> not_(AlphaNum))
 
-rule Variable = user(Name, [](const item_t& item) {
+rule Variable = parserlib::user(Name, [](const item_t& item) {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	for (auto it = item.begin; it != item.end; ++it) st->buffer += static_cast<char>(*it);
 	auto it = State::keywords.find(st->buffer);
@@ -60,7 +68,7 @@ rule Variable = user(Name, [](const item_t& item) {
 	return it == State::keywords.end();
 });
 
-rule LuaKeyword = user(Name, [](const item_t& item) {
+rule LuaKeyword = parserlib::user(Name, [](const item_t& item) {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	for (auto it = item.begin; it != item.end; ++it) st->buffer += static_cast<char>(*it);
 	auto it = State::luaKeywords.find(st->buffer);
@@ -77,7 +85,7 @@ rule SelfName = Space >> (self_class_name | self_class | self_name | self);
 rule KeyName = SelfName | Space >> Name;
 rule VarArg = Space >> "...";
 
-rule check_indent = user(Indent, [](const item_t& item) {
+rule check_indent = parserlib::user(Indent, [](const item_t& item) {
 	int indent = 0;
 	for (input_it i = item.begin; i != item.end; ++i) {
 		switch (*i) {
@@ -90,7 +98,7 @@ rule check_indent = user(Indent, [](const item_t& item) {
 });
 rule CheckIndent = and_(check_indent);
 
-rule advance = user(Indent, [](const item_t& item) {
+rule advance = parserlib::user(Indent, [](const item_t& item) {
 	int indent = 0;
 	for (input_it i = item.begin; i != item.end; ++i) {
 		switch (*i) {
@@ -108,7 +116,7 @@ rule advance = user(Indent, [](const item_t& item) {
 });
 rule Advance = and_(advance);
 
-rule push_indent = user(Indent, [](const item_t& item) {
+rule push_indent = parserlib::user(Indent, [](const item_t& item) {
 	int indent = 0;
 	for (input_it i = item.begin; i != item.end; ++i) {
 		switch (*i) {
@@ -122,13 +130,13 @@ rule push_indent = user(Indent, [](const item_t& item) {
 });
 rule PushIndent = and_(push_indent);
 
-rule PreventIndent = user(true_(), [](const item_t& item) {
+rule PreventIndent = parserlib::user(true_(), [](const item_t& item) {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	st->indents.push(-1);
 	return true;
 });
 
-rule PopIndent = user(true_(), [](const item_t& item) {
+rule PopIndent = parserlib::user(true_(), [](const item_t& item) {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	st->indents.pop();
 	return true;
@@ -199,20 +207,20 @@ rule ForEach = key("for") >> AssignableNameList >> key("in") >>
 	DisableDo >> ensure(for_in, PopDo) >>
 	-key("do") >> Body;
 
-rule Do = user(key("do") >> Body, [](const item_t& item)
+rule Do = parserlib::user(key("do") >> Body, [](const item_t& item)
 {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	return st->doStack.empty() || st->doStack.top();
 });
 
-rule DisableDo = user(true_(), [](const item_t& item)
+rule DisableDo = parserlib::user(true_(), [](const item_t& item)
 {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	st->doStack.push(false);
 	return true;
 });
 
-rule PopDo = user(true_(), [](const item_t& item)
+rule PopDo = parserlib::user(true_(), [](const item_t& item)
 {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	st->doStack.pop();
@@ -299,7 +307,7 @@ rule String = Space >> (DoubleString | SingleString | LuaString);
 rule lua_string_open = '[' >> *expr('=') >> '[';
 rule lua_string_close = ']' >> *expr('=') >> ']';
 
-rule LuaStringOpen = user(lua_string_open, [](const item_t& item)
+rule LuaStringOpen = parserlib::user(lua_string_open, [](const item_t& item)
 {
 	size_t count = std::distance(item.begin, item.end);
 	State* st = reinterpret_cast<State*>(item.user_data);
@@ -307,7 +315,7 @@ rule LuaStringOpen = user(lua_string_open, [](const item_t& item)
 	return true;
 });
 
-rule LuaStringClose = user(lua_string_close, [](const item_t& item)
+rule LuaStringClose = parserlib::user(lua_string_close, [](const item_t& item)
 {
 	size_t count = std::distance(item.begin, item.end);
 	State* st = reinterpret_cast<State*>(item.user_data);
@@ -316,7 +324,7 @@ rule LuaStringClose = user(lua_string_close, [](const item_t& item)
 
 rule LuaStringContent = *(not_(LuaStringClose) >> (Break | Any));
 
-rule LuaString = user(LuaStringOpen >> -Break >> LuaStringContent >> LuaStringClose, [](const item_t& item)
+rule LuaString = parserlib::user(LuaStringOpen >> -Break >> LuaStringContent >> LuaStringClose, [](const item_t& item)
 {
 	State* st = reinterpret_cast<State*>(item.user_data);
 	st->stringOpen = -1;

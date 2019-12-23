@@ -2,10 +2,10 @@ Dorothy builtin.ImGui
 import Set,Path from require "Utils"
 
 debug.traceback = (err)->
-	STP = require "StackTracePlus"
-	STP.dump_locals = false
-	STP.simplified = true
-	STP.stacktrace err, 1
+	with require "StackTracePlus"
+		.dump_locals = false
+		.simplified = true
+		return .stacktrace err, 1
 
 LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
@@ -131,7 +131,8 @@ compile = (dir,minify)->
 			totalXmlTime += App.eclapsedTime - startTime
 		else
 			codes,err,globals = moontolua sourceCodes, lint_global:true
-			requires = LintMoonGlobals(sourceCodes,globals,file).."\n" unless isXml
+			requires = LintMoonGlobals(sourceCodes,globals,file) unless isXml
+			requires ..= "\n" unless requires == ""
 			totalMoonTime += App.eclapsedTime - startTime
 		startTime = App.eclapsedTime
 		if not codes

@@ -20,8 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\posix.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -48,23 +48,23 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcap.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\ast.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcode.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_ast.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpprint.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lptree.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_parser.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpvm.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\parser.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -511,33 +511,31 @@
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\compile.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\core.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\format-inl.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\prepare.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcap.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcode.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpprint.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptree.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptypes.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpvm.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lauxlib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\ast.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_ast.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_parser.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\parser.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fontstash.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fs_nanovg_fill.bin.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg.h" />
@@ -833,7 +831,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\soloud\Lib\Windows;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
-    <CustomBuildBeforeTargets>InitializeBuildStatus</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -852,7 +850,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/soloud/Header;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>

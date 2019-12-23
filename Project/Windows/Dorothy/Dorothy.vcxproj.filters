@@ -76,9 +76,6 @@
     <Filter Include="Physics">
       <UniqueIdentifier>{a5a17125-74ff-474d-8c30-58f487461740}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\lpeg">
-      <UniqueIdentifier>{39517c25-9ae2-444e-a178-2174c1d955fa}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Audio">
       <UniqueIdentifier>{770ca085-abd0-4bd9-82c8-9b9d24a2a975}</UniqueIdentifier>
     </Filter>
@@ -123,6 +120,9 @@
     </Filter>
     <Filter Include="3rdParty\PlayRho\Collision\Shapes">
       <UniqueIdentifier>{49b83829-6370-4f2c-8e36-9333b8ffd875}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\MoonP">
+      <UniqueIdentifier>{e891c088-58db-4a80-9bf4-cc982aca15a1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -324,21 +324,6 @@
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp">
       <Filter>Support</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcap.cpp">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpcode.cpp">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpprint.cpp">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lptree.cpp">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\lpeg\lpvm.cpp">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>
@@ -371,12 +356,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Entity\Entity.cpp">
       <Filter>Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
-      <Filter>3rdParty\fmt</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\posix.cpp">
-      <Filter>3rdParty\fmt</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\stb\stb.cpp">
       <Filter>3rdParty\stb</Filter>
@@ -660,6 +639,27 @@
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.cpp">
       <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\posix.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\ast.cpp">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_ast.cpp">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.cpp">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_parser.cpp">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\parser.cpp">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
@@ -891,24 +891,6 @@
     <ClInclude Include="..\..\..\Source\Support\Dictionary.h">
       <Filter>Support</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcap.h">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpcode.h">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpprint.h">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptree.h">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lptypes.h">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\lpeg\lpvm.h">
-      <Filter>3rdParty\lpeg</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h">
       <Filter>Cache</Filter>
     </ClInclude>
@@ -947,30 +929,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Entity\Entity.h">
       <Filter>Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\core.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format-inl.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\time.h">
-      <Filter>3rdParty\fmt</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_rect_pack.h">
       <Filter>3rdParty\stb</Filter>
@@ -1052,15 +1010,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imstb_textedit.h">
       <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h">
-      <Filter>3rdParty\fmt</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Basic\VGRender.h">
       <Filter>Basic</Filter>
@@ -1437,8 +1386,53 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ShapeConf.hpp">
       <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\prepare.h">
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h">
       <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\compile.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\core.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format-inl.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\ast.hpp">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_ast.h">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.h">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_parser.h">
+      <Filter>3rdParty\MoonP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\parser.hpp">
+      <Filter>3rdParty\MoonP</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
