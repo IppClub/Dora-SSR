@@ -21,25 +21,9 @@
 #  include <locale>
 #endif
 
-#if FMT_USE_WINDOWS_H
-#  if !defined(FMT_HEADER_ONLY) && !defined(WIN32_LEAN_AND_MEAN)
-#    define WIN32_LEAN_AND_MEAN
-#  endif
-#  if defined(NOMINMAX) || defined(FMT_WIN_MINMAX)
-#    include <windows.h>
-#  else
-#    define NOMINMAX
-#    include <windows.h>
-#    undef NOMINMAX
-#  endif
-#endif
-
-#if FMT_EXCEPTIONS
-#  define FMT_TRY try
-#  define FMT_CATCH(x) catch (x)
-#else
-#  define FMT_TRY if (true)
-#  define FMT_CATCH(x) if (false)
+#ifdef _WIN32
+#  include <io.h>
+#  include <windows.h>
 #endif
 
 #ifdef _MSC_VER
@@ -72,8 +56,6 @@ inline int fmt_snprintf(char* buffer, size_t size, const char* format, ...) {
 }
 #  define FMT_SNPRINTF fmt_snprintf
 #endif  // _MSC_VER
-
-using format_func = void (*)(internal::buffer<char>&, int, string_view);
 
 // A portable thread-safe version of strerror.
 // Sets buffer to point to a string describing the error code.
@@ -168,15 +150,6 @@ FMT_FUNC void format_error_code(internal::buffer<char>& out, int error_code,
   assert(out.size() <= inline_buffer_size);
 }
 
-// A wrapper around fwrite that throws on error.
-FMT_FUNC void fwrite_fully(const void* ptr, size_t size, size_t count,
-                           FILE* stream) {
-  size_t written = std::fwrite(ptr, size, count, stream);
-  if (written < count) {
-    FMT_THROW(system_error(errno, "cannot write to file"));
-  }
-}
-
 FMT_FUNC void report_error(format_func func, int error_code,
                            string_view message) FMT_NOEXCEPT {
   memory_buffer full_message;
@@ -184,6 +157,13 @@ FMT_FUNC void report_error(format_func func, int error_code,
   // Don't use fwrite_fully because the latter may throw.
   (void)std::fwrite(full_message.data(), full_message.size(), 1, stderr);
   std::fputc('\n', stderr);
+}
+
+// A wrapper around fwrite that throws on error.
+FMT_FUNC void fwrite_fully(const void* ptr, size_t size, size_t count,
+                           FILE* stream) {
+  size_t written = std::fwrite(ptr, size, count, stream);
+  if (written < count) FMT_THROW(system_error(errno, "cannot write to file"));
 }
 }  // namespace internal
 
@@ -747,7 +727,7 @@ class bigint {
   }
 };
 
-enum round_direction { unknown, up, down };
+enum class round_direction { unknown, up, down };
 
 // Given the divisor (normally a power of 10), the remainder = v % divisor for
 // some number v and the error, returns whether v should be rounded up, down, or
@@ -760,13 +740,13 @@ inline round_direction get_round_direction(uint64_t divisor, uint64_t remainder,
   FMT_ASSERT(error < divisor - error, "");  // error * 2 won't overflow.
   // Round down if (remainder + error) * 2 <= divisor.
   if (remainder <= divisor - remainder && error * 2 <= divisor - remainder * 2)
-    return down;
+    return round_direction::down;
   // Round up if (remainder - error) * 2 >= divisor.
   if (remainder >= error &&
       remainder - error >= divisor - (remainder - error)) {
-    return up;
+    return round_direction::up;
   }
-  return unknown;
+  return round_direction::unknown;
 }
 
 namespace digits {
@@ -882,8 +862,8 @@ struct fixed_handler {
     if (precision > 0) return digits::more;
     if (precision < 0) return digits::done;
     auto dir = get_round_direction(divisor, remainder, error);
-    if (dir == unknown) return digits::error;
-    buf[size++] = dir == up ? '1' : '0';
+    if (dir == round_direction::unknown) return digits::error;
+    buf[size++] = dir == round_direction::up ? '1' : '0';
     return digits::done;
   }
 
@@ -901,7 +881,8 @@ struct fixed_handler {
       FMT_ASSERT(error == 1 && divisor > 2, "");
     }
     auto dir = get_round_direction(divisor, remainder, error);
-    if (dir != up) return dir == down ? digits::done : digits::error;
+    if (dir != round_direction::up)
+      return dir == round_direction::down ? digits::done : digits::error;
     ++buf[size - 1];
     for (int i = size - 1; i > 0 && buf[i] > '9'; --i) {
       buf[i] = '0';
@@ -1131,7 +1112,7 @@ int snprintf_float(T value, int precision, float_specs specs,
   char format[max_format_size];
   char* format_ptr = format;
   *format_ptr++ = '%';
-  if (specs.trailing_zeros) *format_ptr++ = '#';
+  if (specs.showpoint && specs.format == float_format::hex) *format_ptr++ = '#';
   if (precision >= 0) {
     *format_ptr++ = '.';
     *format_ptr++ = '*';
@@ -1214,6 +1195,61 @@ int snprintf_float(T value, int precision, float_specs specs,
     return exp - fraction_size;
   }
 }
+
+// A public domain branchless UTF-8 decoder by Christopher Wellons:
+// https://github.com/skeeto/branchless-utf8
+/* Decode the next character, c, from buf, reporting errors in e.
+ *
+ * Since this is a branchless decoder, four bytes will be read from the
+ * buffer regardless of the actual length of the next character. This
+ * means the buffer _must_ have at least three bytes of zero padding
+ * following the end of the data stream.
+ *
+ * Errors are reported in e, which will be non-zero if the parsed
+ * character was somehow invalid: invalid byte sequence, non-canonical
+ * encoding, or a surrogate half.
+ *
+ * The function returns a pointer to the next character. When an error
+ * occurs, this pointer will be a guess that depends on the particular
+ * error, but it will always advance at least one byte.
+ */
+FMT_FUNC const char* utf8_decode(const char* buf, uint32_t* c, int* e) {
+  static const char lengths[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 2, 2, 2, 2, 3, 3, 4, 0};
+  static const int masks[] = {0x00, 0x7f, 0x1f, 0x0f, 0x07};
+  static const uint32_t mins[] = {4194304, 0, 128, 2048, 65536};
+  static const int shiftc[] = {0, 18, 12, 6, 0};
+  static const int shifte[] = {0, 6, 4, 2, 0};
+
+  auto s = reinterpret_cast<const unsigned char*>(buf);
+  int len = lengths[s[0] >> 3];
+
+  // Compute the pointer to the next character early so that the next
+  // iteration can start working on the next character. Neither Clang
+  // nor GCC figure out this reordering on their own.
+  const char* next = buf + len + !len;
+
+  // Assume a four-byte character and load four bytes. Unused bits are
+  // shifted out.
+  *c = uint32_t(s[0] & masks[len]) << 18;
+  *c |= uint32_t(s[1] & 0x3f) << 12;
+  *c |= uint32_t(s[2] & 0x3f) << 6;
+  *c |= uint32_t(s[3] & 0x3f) << 0;
+  *c >>= shiftc[len];
+
+  // Accumulate the various error conditions.
+  *e = (*c < mins[len]) << 6;       // non-canonical encoding
+  *e |= ((*c >> 11) == 0x1b) << 7;  // surrogate half?
+  *e |= (*c > 0x10FFFF) << 8;       // out of range?
+  *e |= (s[1] & 0xc0) >> 2;
+  *e |= (s[2] & 0xc0) >> 4;
+  *e |= (s[3]) >> 6;
+  *e ^= 0x2a;  // top two bits of each tail byte correct?
+  *e >>= shifte[len];
+
+  return next;
+}
 }  // namespace internal
 
 template <> struct formatter<internal::bigint> {
@@ -1240,100 +1276,36 @@ template <> struct formatter<internal::bigint> {
   }
 };
 
-#if FMT_USE_WINDOWS_H
-
 FMT_FUNC internal::utf8_to_utf16::utf8_to_utf16(string_view s) {
-  static const char ERROR_MSG[] = "cannot convert string from UTF-8 to UTF-16";
-  if (s.size() > INT_MAX)
-    FMT_THROW(windows_error(ERROR_INVALID_PARAMETER, ERROR_MSG));
-  int s_size = static_cast<int>(s.size());
-  if (s_size == 0) {
-    // MultiByteToWideChar does not support zero length, handle separately.
-    buffer_.resize(1);
-    buffer_[0] = 0;
-    return;
-  }
-
-  int length = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, s.data(),
-                                   s_size, nullptr, 0);
-  if (length == 0) FMT_THROW(windows_error(GetLastError(), ERROR_MSG));
-  buffer_.resize(length + 1);
-  length = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), s_size,
-                               &buffer_[0], length);
-  if (length == 0) FMT_THROW(windows_error(GetLastError(), ERROR_MSG));
-  buffer_[length] = 0;
-}
-
-FMT_FUNC internal::utf16_to_utf8::utf16_to_utf8(wstring_view s) {
-  if (int error_code = convert(s)) {
-    FMT_THROW(windows_error(error_code,
-                            "cannot convert string from UTF-16 to UTF-8"));
-  }
-}
-
-FMT_FUNC int internal::utf16_to_utf8::convert(wstring_view s) {
-  if (s.size() > INT_MAX) return ERROR_INVALID_PARAMETER;
-  int s_size = static_cast<int>(s.size());
-  if (s_size == 0) {
-    // WideCharToMultiByte does not support zero length, handle separately.
-    buffer_.resize(1);
-    buffer_[0] = 0;
-    return 0;
-  }
-
-  int length = WideCharToMultiByte(CP_UTF8, 0, s.data(), s_size, nullptr, 0,
-                                   nullptr, nullptr);
-  if (length == 0) return GetLastError();
-  buffer_.resize(length + 1);
-  length = WideCharToMultiByte(CP_UTF8, 0, s.data(), s_size, &buffer_[0],
-                               length, nullptr, nullptr);
-  if (length == 0) return GetLastError();
-  buffer_[length] = 0;
-  return 0;
-}
-
-FMT_FUNC void windows_error::init(int err_code, string_view format_str,
-                                  format_args args) {
-  error_code_ = err_code;
-  memory_buffer buffer;
-  internal::format_windows_error(buffer, err_code, vformat(format_str, args));
-  std::runtime_error& base = *this;
-  base = std::runtime_error(to_string(buffer));
-}
-
-FMT_FUNC void internal::format_windows_error(internal::buffer<char>& out,
-                                             int error_code,
-                                             string_view message) FMT_NOEXCEPT {
-  FMT_TRY {
-    wmemory_buffer buf;
-    buf.resize(inline_buffer_size);
-    for (;;) {
-      wchar_t* system_message = &buf[0];
-      int result = FormatMessageW(
-          FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
-          error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), system_message,
-          static_cast<uint32_t>(buf.size()), nullptr);
-      if (result != 0) {
-        utf16_to_utf8 utf8_message;
-        if (utf8_message.convert(system_message) == ERROR_SUCCESS) {
-          internal::writer w(out);
-          w.write(message);
-          w.write(": ");
-          w.write(utf8_message);
-          return;
-        }
-        break;
-      }
-      if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-        break;  // Can't get error message, report error code instead.
-      buf.resize(buf.size() * 2);
+  auto transcode = [this](const char* p) {
+    auto cp = uint32_t();
+    auto error = 0;
+    p = utf8_decode(p, &cp, &error);
+    if (error != 0) FMT_THROW(std::runtime_error("invalid utf8"));
+    if (cp <= 0xFFFF) {
+      buffer_.push_back(static_cast<wchar_t>(cp));
+    } else {
+      cp -= 0x10000;
+      buffer_.push_back(static_cast<wchar_t>(0xD800 + (cp >> 10)));
+      buffer_.push_back(static_cast<wchar_t>(0xDC00 + (cp & 0x3FF)));
     }
+    return p;
+  };
+  auto p = s.data();
+  const size_t block_size = 4;  // utf8_decode always reads blocks of 4 chars.
+  if (s.size() >= block_size) {
+    for (auto end = p + s.size() - block_size + 1; p < end;) p = transcode(p);
   }
-  FMT_CATCH(...) {}
-  format_error_code(out, error_code, message);
+  if (auto num_chars_left = s.data() + s.size() - p) {
+    char buf[2 * block_size - 1] = {};
+    memcpy(buf, p, num_chars_left);
+    p = buf;
+    do {
+      p = transcode(p);
+    } while (p - buf < num_chars_left);
+  }
+  buffer_.push_back(0);
 }
-
-#endif  // FMT_USE_WINDOWS_H
 
 FMT_FUNC void format_system_error(internal::buffer<char>& out, int error_code,
                                   string_view message) FMT_NOEXCEPT {
@@ -1369,19 +1341,36 @@ FMT_FUNC void report_system_error(int error_code,
   report_error(format_system_error, error_code, message);
 }
 
-#if FMT_USE_WINDOWS_H
-FMT_FUNC void report_windows_error(int error_code,
-                                   fmt::string_view message) FMT_NOEXCEPT {
-  report_error(internal::format_windows_error, error_code, message);
-}
-#endif
-
 FMT_FUNC void vprint(std::FILE* f, string_view format_str, format_args args) {
+  memory_buffer buffer;
+  internal::vformat_to(buffer, format_str,
+                       basic_format_args<buffer_context<char>>(args));
+#ifdef _WIN32
+  auto fd = _fileno(f);
+  if (_isatty(fd)) {
+    internal::utf8_to_utf16 u16(string_view(buffer.data(), buffer.size()));
+    auto written = DWORD();
+    if (!WriteConsoleW(reinterpret_cast<HANDLE>(_get_osfhandle(fd)),
+                       u16.c_str(), static_cast<DWORD>(u16.size()), &written,
+                       nullptr)) {
+      throw format_error("failed to write to console");
+    }
+    return;
+  }
+#endif
+  internal::fwrite_fully(buffer.data(), 1, buffer.size(), f);
+}
+
+#ifdef _WIN32
+// Print assuming legacy (non-Unicode) encoding.
+FMT_FUNC void vprint_mojibake(std::FILE* f, string_view format_str,
+                              format_args args) {
   memory_buffer buffer;
   internal::vformat_to(buffer, format_str,
                        basic_format_args<buffer_context<char>>(args));
   internal::fwrite_fully(buffer.data(), 1, buffer.size(), f);
 }
+#endif
 
 FMT_FUNC void vprint(string_view format_str, format_args args) {
   vprint(stdout, format_str, args);

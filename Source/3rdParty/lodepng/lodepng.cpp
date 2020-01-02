@@ -1,5 +1,5 @@
 /*
-LodePNG version 20191109
+LodePNG version 20191219
 
 Copyright (c) 2005-2019 Lode Vandevenne
 
@@ -45,7 +45,7 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 #endif /*_MSC_VER */
 
 namespace lodepnglib {
-const char* LODEPNG_VERSION_STRING = "20191109";
+const char* LODEPNG_VERSION_STRING = "20191219";
 
 /*
 This source file is built up in the following large parts. The code sections
@@ -126,8 +126,6 @@ static void lodepng_memcpy(void* LODEPNG_RESTRICT dst,
 /* does not check memory out of bounds, do not use on untrusted data */
 static size_t lodepng_strlen(const char* a) {
   const char* orig = a;
-  /* avoid warning about unused function in case of disabled COMPILE... macros */
-  (void)lodepng_strlen;
   while(*a) a++;
   return (size_t)(a - orig);
 }
@@ -536,7 +534,7 @@ static unsigned ensureBits9(LodePNGBitReader* reader, size_t nbits) {
     reader->buffer = 0;
     if(start + 0u < size) reader->buffer |= reader->data[start + 0];
     reader->buffer >>= (reader->bp & 7u);
-    return reader->bp + nbits < reader->bitsize;
+    return reader->bp + nbits <= reader->bitsize;
   }
 }
 
@@ -554,7 +552,7 @@ static unsigned ensureBits17(LodePNGBitReader* reader, size_t nbits) {
     if(start + 0u < size) reader->buffer |= reader->data[start + 0];
     if(start + 1u < size) reader->buffer |= ((unsigned)reader->data[start + 1] << 8u);
     reader->buffer >>= (reader->bp & 7u);
-    return reader->bp + nbits < reader->bitsize;
+    return reader->bp + nbits <= reader->bitsize;
   }
 }
 
@@ -573,7 +571,7 @@ static LODEPNG_INLINE unsigned ensureBits25(LodePNGBitReader* reader, size_t nbi
     if(start + 1u < size) reader->buffer |= ((unsigned)reader->data[start + 1] << 8u);
     if(start + 2u < size) reader->buffer |= ((unsigned)reader->data[start + 2] << 16u);
     reader->buffer >>= (reader->bp & 7u);
-    return reader->bp + nbits < reader->bitsize;
+    return reader->bp + nbits <= reader->bitsize;
   }
 }
 
@@ -585,7 +583,7 @@ static LODEPNG_INLINE unsigned ensureBits32(LodePNGBitReader* reader, size_t nbi
     reader->buffer = (unsigned)reader->data[start + 0] | ((unsigned)reader->data[start + 1] << 8u) |
                      ((unsigned)reader->data[start + 2] << 16u) | ((unsigned)reader->data[start + 3] << 24u);
     reader->buffer >>= (reader->bp & 7u);
-    reader->buffer |= (((unsigned)reader->data[start + 4] << 24u) << (7u - (reader->bp & 7u)));
+    reader->buffer |= (((unsigned)reader->data[start + 4] << 24u) << (8u - (reader->bp & 7u)));
     return 1;
   } else {
     reader->buffer = 0;
@@ -594,12 +592,13 @@ static LODEPNG_INLINE unsigned ensureBits32(LodePNGBitReader* reader, size_t nbi
     if(start + 2u < size) reader->buffer |= ((unsigned)reader->data[start + 2] << 16u);
     if(start + 3u < size) reader->buffer |= ((unsigned)reader->data[start + 3] << 24u);
     reader->buffer >>= (reader->bp & 7u);
-    return reader->bp + nbits < reader->bitsize;
+    return reader->bp + nbits <= reader->bitsize;
   }
 }
 
-/* Get bits without advancing the bit pointer. Must have enough bits available with ensureBits */
+/* Get bits without advancing the bit pointer. Must have enough bits available with ensureBits. Max nbits is 31. */
 static unsigned peekBits(LodePNGBitReader* reader, size_t nbits) {
+  /* The shift allows nbits to be only up to 31. */
   return reader->buffer & ((1u << nbits) - 1u);
 }
 
@@ -614,6 +613,25 @@ static unsigned readBits(LodePNGBitReader* reader, size_t nbits) {
   unsigned result = peekBits(reader, nbits);
   advanceBits(reader, nbits);
   return result;
+}
+
+/* Public for testing only. steps and result must have numsteps values. */
+unsigned lode_png_test_bitreader(const unsigned char* data, size_t size,
+                                 size_t numsteps, const size_t* steps, unsigned* result) {
+  size_t i;
+  LodePNGBitReader reader;
+  LodePNGBitReader_init(&reader, data, size);
+  for(i = 0; i < numsteps; i++) {
+    size_t step = steps[i];
+    unsigned ok;
+    if(step > 25) ok = ensureBits32(&reader, step);
+    else if(step > 17) ok = ensureBits25(&reader, step);
+    else if(step > 9) ok = ensureBits17(&reader, step);
+    else ok = ensureBits9(&reader, step);
+    if(!ok) return 0;
+    result[i] = readBits(&reader, step);
+  }
+  return 1;
 }
 #endif /*LODEPNG_COMPILE_DECODER*/
 
@@ -740,7 +758,7 @@ static unsigned HuffmanTree_makeTable(HuffmanTree* tree) {
     unsigned l = maxlens[i];
     if(l <= FIRSTBITS) continue;
     tree->table_len[i] = l;
-    tree->table_value[i] = pointer;
+    tree->table_value[i] = (unsigned short)pointer;
     pointer += (1u << (l - FIRSTBITS));
   }
   lodepng_free(maxlens);
@@ -764,7 +782,7 @@ static unsigned HuffmanTree_makeTable(HuffmanTree* tree) {
         unsigned index = reverse | (j << l);
         if(tree->table_len[index] != 16) return 55; /*invalid tree: long symbol shares prefix with short symbol*/
         tree->table_len[index] = l;
-        tree->table_value[index] = i;
+        tree->table_value[index] = (unsigned short)i;
       }
     } else {
       /*long symbol, shares prefix with other long symbols in first lookup table, needs second lookup*/
@@ -781,7 +799,7 @@ static unsigned HuffmanTree_makeTable(HuffmanTree* tree) {
         unsigned reverse2 = reverse >> FIRSTBITS; /* l - FIRSTBITS bits */
         unsigned index2 = start + (reverse2 | (j << (l - FIRSTBITS)));
         tree->table_len[index2] = l;
-        tree->table_value[index2] = i;
+        tree->table_value[index2] = (unsigned short)i;
       }
     }
   }

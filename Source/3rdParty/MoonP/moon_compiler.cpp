@@ -330,11 +330,11 @@ private:
 	}
 
 	std::string toString(ast_node* node) {
-		return _converter.to_bytes(std::wstring(node->m_begin.m_it, node->m_end.m_it));
+		return _converter.to_bytes(input(node->m_begin.m_it, node->m_end.m_it));
 	}
 
 	std::string toString(input::iterator begin, input::iterator end) {
-		return _converter.to_bytes(std::wstring(begin, end));
+		return _converter.to_bytes(input(begin, end));
 	}
 
 	Value_t* singleValueFrom(ast_node* item) {
@@ -537,7 +537,7 @@ private:
 				count++;
 			}
 		}
-		auto line = _converter.to_bytes(std::wstring(begin, end));
+		auto line = _converter.to_bytes(input(begin, end));
 		int oldCol = loc->m_begin.m_col;
 		int col = loc->m_begin.m_col - 1;
 		auto it = begin;
