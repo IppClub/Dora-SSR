@@ -32,7 +32,6 @@
 		3C13200421011BB60087154A /* Data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FF421011BB60087154A /* Data.cpp */; };
 		3C13200521011BB60087154A /* AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FF721011BB60087154A /* AI.cpp */; };
 		3C15202C1E762A59001BC057 /* Action.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C15202A1E762A59001BC057 /* Action.cpp */; };
-		3C15682820E4B7D7004F8785 /* posix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C15682020E4B7D6004F8785 /* posix.cpp */; };
 		3C15682920E4B7D7004F8785 /* format.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C15682220E4B7D6004F8785 /* format.cpp */; };
 		3C16777A2212C0FD00892CD4 /* MovementConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1676BA2212C0FD00892CD4 /* MovementConf.cpp */; };
 		3C16777B2212C0FD00892CD4 /* ContactSolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1676C42212C0FD00892CD4 /* ContactSolver.cpp */; };
@@ -274,8 +273,6 @@
 		3C15202A1E762A59001BC057 /* Action.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Action.cpp; path = ../../../Source/Animation/Action.cpp; sourceTree = "<group>"; };
 		3C15202B1E762A59001BC057 /* Action.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Action.h; path = ../../../Source/Animation/Action.h; sourceTree = "<group>"; };
 		3C15681E20E4B7D5004F8785 /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = ../../../Source/3rdParty/fmt/core.h; sourceTree = "<group>"; };
-		3C15681F20E4B7D6004F8785 /* posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = posix.h; path = ../../../Source/3rdParty/fmt/posix.h; sourceTree = "<group>"; };
-		3C15682020E4B7D6004F8785 /* posix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = posix.cpp; path = ../../../Source/3rdParty/fmt/posix.cpp; sourceTree = "<group>"; };
 		3C15682120E4B7D6004F8785 /* ranges.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ranges.h; path = ../../../Source/3rdParty/fmt/ranges.h; sourceTree = "<group>"; };
 		3C15682220E4B7D6004F8785 /* format.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = format.cpp; path = ../../../Source/3rdParty/fmt/format.cpp; sourceTree = "<group>"; };
 		3C15682320E4B7D6004F8785 /* format.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = format.h; path = ../../../Source/3rdParty/fmt/format.h; sourceTree = "<group>"; };
@@ -1118,16 +1115,16 @@
 		3C6A2BE6238E039700AD8C80 /* MoonP */ = {
 			isa = PBXGroup;
 			children = (
-				3C6A2BE7238E039700AD8C80 /* parser.hpp */,
-				3C6A2BE8238E039700AD8C80 /* moon_compiler.h */,
-				3C6A2BE9238E039700AD8C80 /* ast.cpp */,
-				3C6A2BEA238E039700AD8C80 /* moon_ast.cpp */,
-				3C6A2BEB238E039700AD8C80 /* moon_ast.h */,
-				3C6A2BEC238E039700AD8C80 /* moon_parser.h */,
-				3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */,
-				3C6A2BEE238E039700AD8C80 /* parser.cpp */,
-				3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */,
 				3C6A2BF0238E039700AD8C80 /* ast.hpp */,
+				3C6A2BE9238E039700AD8C80 /* ast.cpp */,
+				3C6A2BE7238E039700AD8C80 /* parser.hpp */,
+				3C6A2BEE238E039700AD8C80 /* parser.cpp */,
+				3C6A2BEB238E039700AD8C80 /* moon_ast.h */,
+				3C6A2BEA238E039700AD8C80 /* moon_ast.cpp */,
+				3C6A2BEC238E039700AD8C80 /* moon_parser.h */,
+				3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */,
+				3C6A2BE8238E039700AD8C80 /* moon_compiler.h */,
+				3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */,
 			);
 			name = MoonP;
 			path = ../../../Source/3rdParty/MoonP;
@@ -1191,8 +1188,6 @@
 				3C15682220E4B7D6004F8785 /* format.cpp */,
 				3C15682320E4B7D6004F8785 /* format.h */,
 				3C15682620E4B7D6004F8785 /* ostream.h */,
-				3C15682020E4B7D6004F8785 /* posix.cpp */,
-				3C15681F20E4B7D6004F8785 /* posix.h */,
 				3C15682420E4B7D6004F8785 /* printf.h */,
 				3C15682120E4B7D6004F8785 /* ranges.h */,
 			);
@@ -1773,7 +1768,6 @@
 				3C131FFE21011BB60087154A /* Define.cpp in Sources */,
 				3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */,
 				3C1677B82212C0FD00892CD4 /* ChainShapeConf.cpp in Sources */,
-				3C15682820E4B7D7004F8785 /* posix.cpp in Sources */,
 				3C13200321011BB60087154A /* VisualCache.cpp in Sources */,
 				3C73E45B21B02625004E5731 /* Sound.cpp in Sources */,
 				3C1677802212C0FD00892CD4 /* FixtureConf.cpp in Sources */,

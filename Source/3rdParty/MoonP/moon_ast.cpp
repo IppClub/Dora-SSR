@@ -64,9 +64,9 @@ AST_IMPL(ChainValue)
 AST_IMPL(simple_table)
 AST_IMPL(SimpleValue)
 AST_IMPL(Value)
-AST_IMPL(LuaStringOpen);
-AST_IMPL(LuaStringContent);
-AST_IMPL(LuaStringClose);
+AST_IMPL(LuaStringOpen)
+AST_IMPL(LuaStringContent)
+AST_IMPL(LuaStringClose)
 AST_IMPL(LuaString)
 AST_IMPL(SingleString)
 AST_IMPL(double_string_inner)

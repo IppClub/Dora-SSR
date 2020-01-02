@@ -642,9 +642,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
       <Filter>3rdParty\fmt</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\fmt\posix.cpp">
-      <Filter>3rdParty\fmt</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\MoonP\ast.cpp">
       <Filter>3rdParty\MoonP</Filter>
     </ClCompile>
@@ -659,6 +656,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\MoonP\parser.cpp">
       <Filter>3rdParty\MoonP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\os.cpp">
+      <Filter>3rdParty\fmt</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1410,9 +1410,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h">
       <Filter>3rdParty\fmt</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\fmt\posix.h">
-      <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h">
       <Filter>3rdParty\fmt</Filter>
     </ClInclude>
@@ -1433,6 +1430,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\parser.hpp">
       <Filter>3rdParty\MoonP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\os.h">
+      <Filter>3rdParty\fmt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

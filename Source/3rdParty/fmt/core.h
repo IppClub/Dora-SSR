@@ -15,7 +15,7 @@
 #include <type_traits>
 
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
-#define FMT_VERSION 60101
+#define FMT_VERSION 60102
 
 #ifdef __has_feature
 #  define FMT_HAS_FEATURE(x) __has_feature(x)
@@ -117,8 +117,10 @@
 #  endif
 #endif
 
-// [[noreturn]] is disabled on MSVC because of bogus unreachable code warnings.
-#if FMT_EXCEPTIONS && FMT_HAS_CPP_ATTRIBUTE(noreturn) && !FMT_MSC_VER
+// [[noreturn]] is disabled on MSVC and NVCC because of bogus unreachable code
+// warnings.
+#if FMT_EXCEPTIONS && FMT_HAS_CPP_ATTRIBUTE(noreturn) && !FMT_MSC_VER && \
+    !FMT_NVCC
 #  define FMT_NORETURN [[noreturn]]
 #else
 #  define FMT_NORETURN
@@ -166,12 +168,21 @@
 #endif
 
 #if !defined(FMT_HEADER_ONLY) && defined(_WIN32)
+#  if FMT_MSC_VER
+#    define FMT_NO_W4275 __pragma(warning(suppress : 4275))
+#  else
+#    define FMT_NO_W4275
+#  endif
+#  define FMT_CLASS_API FMT_NO_W4275
 #  ifdef FMT_EXPORT
 #    define FMT_API __declspec(dllexport)
 #  elif defined(FMT_SHARED)
 #    define FMT_API __declspec(dllimport)
 #    define FMT_EXTERN_TEMPLATE_API FMT_API
 #  endif
+#endif
+#ifndef FMT_CLASS_API
+#  define FMT_CLASS_API
 #endif
 #ifndef FMT_API
 #  define FMT_API
@@ -197,9 +208,16 @@
 #  define FMT_USE_EXPERIMENTAL_STRING_VIEW
 #endif
 
+#ifndef FMT_UNICODE
+#  define FMT_UNICODE 0
+#endif
+#if FMT_UNICODE
+#  pragma execution_character_set("utf-8")
+#endif
+
 FMT_BEGIN_NAMESPACE
 
-// Implementations of enable_if_t and other types for pre-C++14 systems.
+// Implementations of enable_if_t and other metafunctions for pre-C++14 systems.
 template <bool B, class T = void>
 using enable_if_t = typename std::enable_if<B, T>::type;
 template <bool B, class T, class F>
@@ -684,7 +702,7 @@ using has_fallback_formatter =
 template <typename Char> struct named_arg_base;
 template <typename T, typename Char> struct named_arg;
 
-enum type {
+enum class type {
   none_type,
   named_arg_type,
   // Integer types should go first,
@@ -710,11 +728,12 @@ enum type {
 
 // Maps core type T to the corresponding type enum constant.
 template <typename T, typename Char>
-struct type_constant : std::integral_constant<type, custom_type> {};
+struct type_constant : std::integral_constant<type, type::custom_type> {};
 
 #define FMT_TYPE_CONSTANT(Type, constant) \
   template <typename Char>                \
-  struct type_constant<Type, Char> : std::integral_constant<type, constant> {}
+  struct type_constant<Type, Char>        \
+      : std::integral_constant<type, type::constant> {}
 
 FMT_TYPE_CONSTANT(const named_arg_base<Char>&, named_arg_type);
 FMT_TYPE_CONSTANT(int, int_type);
@@ -733,13 +752,13 @@ FMT_TYPE_CONSTANT(basic_string_view<Char>, string_type);
 FMT_TYPE_CONSTANT(const void*, pointer_type);
 
 FMT_CONSTEXPR bool is_integral_type(type t) {
-  FMT_ASSERT(t != named_arg_type, "invalid argument type");
-  return t > none_type && t <= last_integer_type;
+  FMT_ASSERT(t != type::named_arg_type, "invalid argument type");
+  return t > type::none_type && t <= type::last_integer_type;
 }
 
 FMT_CONSTEXPR bool is_arithmetic_type(type t) {
-  FMT_ASSERT(t != named_arg_type, "invalid argument type");
-  return t > none_type && t <= last_numeric_type;
+  FMT_ASSERT(t != type::named_arg_type, "invalid argument type");
+  return t > type::none_type && t <= type::last_numeric_type;
 }
 
 template <typename Char> struct string_value {
@@ -930,6 +949,16 @@ template <typename Context> struct arg_mapper {
     std::memcpy(val.data, &arg, sizeof(arg));
     return val;
   }
+
+  int map(...) {
+    constexpr bool formattable = sizeof(Context) == 0;
+    static_assert(
+        formattable,
+        "Cannot format argument. To make type T formattable provide a "
+        "formatter<T> specialization: "
+        "https://fmt.dev/latest/api.html#formatting-user-defined-types");
+    return 0;
+  }
 };
 
 // A type constant after applying arg_mapper<Context>.
@@ -981,10 +1010,10 @@ template <typename Context> class basic_format_arg {
     internal::custom_value<Context> custom_;
   };
 
-  FMT_CONSTEXPR basic_format_arg() : type_(internal::none_type) {}
+  FMT_CONSTEXPR basic_format_arg() : type_(internal::type::none_type) {}
 
   FMT_CONSTEXPR explicit operator bool() const FMT_NOEXCEPT {
-    return type_ != internal::none_type;
+    return type_ != internal::type::none_type;
   }
 
   internal::type type() const { return type_; }
@@ -1006,47 +1035,47 @@ FMT_CONSTEXPR auto visit_format_arg(Visitor&& vis,
     -> decltype(vis(0)) {
   using char_type = typename Context::char_type;
   switch (arg.type_) {
-  case internal::none_type:
+  case internal::type::none_type:
     break;
-  case internal::named_arg_type:
+  case internal::type::named_arg_type:
     FMT_ASSERT(false, "invalid argument type");
     break;
-  case internal::int_type:
+  case internal::type::int_type:
     return vis(arg.value_.int_value);
-  case internal::uint_type:
+  case internal::type::uint_type:
     return vis(arg.value_.uint_value);
-  case internal::long_long_type:
+  case internal::type::long_long_type:
     return vis(arg.value_.long_long_value);
-  case internal::ulong_long_type:
+  case internal::type::ulong_long_type:
     return vis(arg.value_.ulong_long_value);
 #if FMT_USE_INT128
-  case internal::int128_type:
+  case internal::type::int128_type:
     return vis(arg.value_.int128_value);
-  case internal::uint128_type:
+  case internal::type::uint128_type:
     return vis(arg.value_.uint128_value);
 #else
-  case internal::int128_type:
-  case internal::uint128_type:
+  case internal::type::int128_type:
+  case internal::type::uint128_type:
     break;
 #endif
-  case internal::bool_type:
+  case internal::type::bool_type:
     return vis(arg.value_.bool_value);
-  case internal::char_type:
+  case internal::type::char_type:
     return vis(arg.value_.char_value);
-  case internal::float_type:
+  case internal::type::float_type:
     return vis(arg.value_.float_value);
-  case internal::double_type:
+  case internal::type::double_type:
     return vis(arg.value_.double_value);
-  case internal::long_double_type:
+  case internal::type::long_double_type:
     return vis(arg.value_.long_double_value);
-  case internal::cstring_type:
+  case internal::type::cstring_type:
     return vis(arg.value_.string.data);
-  case internal::string_type:
+  case internal::type::string_type:
     return vis(basic_string_view<char_type>(arg.value_.string.data,
                                             arg.value_.string.size));
-  case internal::pointer_type:
+  case internal::type::pointer_type:
     return vis(arg.value_.pointer);
-  case internal::custom_type:
+  case internal::type::custom_type:
     return vis(typename basic_format_arg<Context>::handle(arg.value_.custom));
   }
   return vis(monostate());
@@ -1106,7 +1135,7 @@ template <typename> constexpr unsigned long long encode_types() { return 0; }
 
 template <typename Context, typename Arg, typename... Args>
 constexpr unsigned long long encode_types() {
-  return mapped_type_constant<Arg, Context>::value |
+  return static_cast<unsigned>(mapped_type_constant<Arg, Context>::value) |
          (encode_types<Context, Args...>() << packed_arg_bits);
 }
 
@@ -1227,7 +1256,16 @@ inline format_arg_store<Context, Args...> make_format_args(
   return {args...};
 }
 
-/** Formatting arguments. */
+/**
+  \rst
+  A view of a collection of formatting arguments. To avoid lifetime issues it
+  should only be used as a parameter type in type-erased functions such as
+  ``vformat``::
+
+    void vlog(fmt::string_view format_str, fmt::format_args args);  // OK
+    fmt::format_args args = fmt::make_format_args(42);  // Error: dangling reference
+  \endrst
+ */
 template <typename Context> class basic_format_args {
  public:
   using size_type = int;
@@ -1269,7 +1307,7 @@ template <typename Context> class basic_format_args {
     }
     if (index > internal::max_packed_args) return arg;
     arg.type_ = type(index);
-    if (arg.type_ == internal::none_type) return arg;
+    if (arg.type_ == internal::type::none_type) return arg;
     internal::value<Context>& val = arg.value_;
     val = values_[index];
     return arg;
@@ -1302,7 +1340,7 @@ template <typename Context> class basic_format_args {
   /** Returns the argument at specified index. */
   format_arg get(int index) const {
     format_arg arg = do_get(index);
-    if (arg.type_ == internal::named_arg_type)
+    if (arg.type_ == internal::type::named_arg_type)
       arg = arg.value_.named_arg->template deserialize<Context>();
     return arg;
   }
@@ -1319,12 +1357,12 @@ template <typename Context> class basic_format_args {
 struct format_args : basic_format_args<format_context> {
   template <typename... Args>
   format_args(Args&&... args)
-      : basic_format_args<format_context>(std::forward<Args>(args)...) {}
+      : basic_format_args<format_context>(static_cast<Args&&>(args)...) {}
 };
 struct wformat_args : basic_format_args<wformat_context> {
   template <typename... Args>
   wformat_args(Args&&... args)
-      : basic_format_args<wformat_context>(std::forward<Args>(args)...) {}
+      : basic_format_args<wformat_context>(static_cast<Args&&>(args)...) {}
 };
 
 template <typename Container> struct is_contiguous : std::false_type {};
@@ -1478,14 +1516,15 @@ inline std::basic_string<Char> format(const S& format_str, Args&&... args) {
       {internal::make_args_checked<Args...>(format_str, args...)});
 }
 
-FMT_API void vprint(std::FILE* f, string_view format_str, format_args args);
-FMT_API void vprint(string_view format_str, format_args args);
+FMT_API void vprint(string_view, format_args);
+FMT_API void vprint(std::FILE*, string_view, format_args);
+FMT_API void vprint_mojibake(std::FILE*, string_view, format_args);
 
 /**
   \rst
-  Prints formatted data to the file *f*. For wide format strings,
-  *f* should be in wide-oriented mode set via ``fwide(f, 1)`` or
-  ``_setmode(_fileno(f), _O_U8TEXT)`` on Windows.
+  Formats ``args`` according to specifications in ``format_str`` and writes the
+  output to the file ``f``. Strings are assumed to be Unicode-encoded unless the
+  ``FMT_UNICODE`` macro is set to 0.
 
   **Example**::
 
@@ -1495,13 +1534,20 @@ FMT_API void vprint(string_view format_str, format_args args);
 template <typename S, typename... Args,
           FMT_ENABLE_IF(internal::is_string<S>::value)>
 inline void print(std::FILE* f, const S& format_str, Args&&... args) {
+#if !defined(_WIN32) || FMT_UNICODE
   vprint(f, to_string_view(format_str),
          internal::make_args_checked<Args...>(format_str, args...));
+#else
+  vprint_mojibake(f, to_string_view(format_str),
+                  internal::make_args_checked<Args...>(format_str, args...));
+#endif
 }
 
 /**
   \rst
-  Prints formatted data to ``stdout``.
+  Formats ``args`` according to specifications in ``format_str`` and writes
+  the output to ``stdout``. Strings are assumed to be Unicode-encoded unless
+  the ``FMT_UNICODE`` macro is set to 0.
 
   **Example**::
 
@@ -1511,8 +1557,13 @@ inline void print(std::FILE* f, const S& format_str, Args&&... args) {
 template <typename S, typename... Args,
           FMT_ENABLE_IF(internal::is_string<S>::value)>
 inline void print(const S& format_str, Args&&... args) {
+#if !defined(_WIN32) || FMT_UNICODE
   vprint(to_string_view(format_str),
          internal::make_args_checked<Args...>(format_str, args...));
+#else
+  vprint_mojibake(stdout, to_string_view(format_str),
+                  internal::make_args_checked<Args...>(format_str, args...));
+#endif
 }
 FMT_END_NAMESPACE
 
