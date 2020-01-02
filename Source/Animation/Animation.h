@@ -1,4 +1,4 @@
-/* Copyright (c) 2019 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2020 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -38,16 +38,16 @@ public:
 	Ease::Enum easeOpacity;
 	Ease::Enum easeRotation;
 	Ease::Enum easeSkew;
-	bool visible;/*1*/
-	float opacity;/*2*/
+	bool visible;
+	float opacity;
 	float duration;
 	float x;
-	float y;/*3*/
+	float y;
 	float scaleX;
-	float scaleY;/*4*/
-	float rotation;/*5*/
+	float scaleY;
+	float rotation;
 	float skewX;
-	float skewY;/*6*/
+	float skewY;
 	string toXml(KeyFrameDef* lastDef);
 };
 
