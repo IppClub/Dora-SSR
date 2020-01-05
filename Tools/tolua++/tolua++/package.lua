@@ -319,7 +319,7 @@ function prep(file)
       table.insert(chunk, string.sub(line, 3) .. "\n")
      else
       local last = 1
-      for text, expr, index in string.gfind(line, "(.-)$(%b())()") do 
+      for text, expr, index in string.gmatch(line, "(.-)$(%b())()") do 
         last = index
         if text ~= "" then
           table.insert(chunk, string.format('table.insert(__ret, %q )', text))
