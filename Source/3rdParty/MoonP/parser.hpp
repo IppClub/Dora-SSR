@@ -42,7 +42,7 @@ inline size_t constexpr operator"" _id(const char* s, size_t)
 }
 
 ///type of the parser's input.
-typedef std::wstring input;
+typedef std::basic_string<wchar_t> input;
 typedef input::iterator input_it;
 typedef std::wstring_convert<std::codecvt_utf8<input::value_type>> Converter;
 

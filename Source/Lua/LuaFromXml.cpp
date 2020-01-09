@@ -1150,7 +1150,10 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 string XmlDelegator::compileMoonCodes(const char* codes)
 {
 	string compiledCodes, err;
-	std::tie(compiledCodes, err) = MoonP::moonCompile(fmt::format("do\n{}", codes), false, false);
+	MoonP::GlobalVars _;
+	MoonP::MoonConfig config;
+	config.reserveLineNumber = true;
+	std::tie(compiledCodes, err, _) = MoonP::moonCompile(fmt::format("do\n{}", codes), config);
 	if (compiledCodes.empty())
 	{
 		lastError += fmt::format("Fail to compile moon codes started at line {}\n{}", parser->getLineNumber(codes), err);

@@ -32,12 +32,19 @@ inline std::string s(std::string_view sv) {
 	return std::string(sv);
 }
 
+const char* moonScriptVersion() {
+	return "0.5.0";
+}
+
 class MoonCompliler {
 public:
-	std::pair<std::string,std::string> complile(const std::string& codes, bool lintGlobalVar, bool implicitReturnRoot, bool lineNumber) {
-		_lintGlobalVar = lintGlobalVar;
-		_lineNumber = lineNumber;
-		_input = _converter.from_bytes(codes);
+	std::pair<std::string,std::string> complile(const std::string& codes, const MoonConfig& config) {
+		_config = config;
+		try {
+			_input = _converter.from_bytes(codes);
+		} catch (const std::range_error&) {
+			return {Empty, "Invalid text encoding."};
+		}
 		error_list el;
 		State st;
 		ast_ptr<false, File_t> root;
@@ -51,7 +58,7 @@ public:
 			try {
 				str_list out;
 				pushScope();
-				transformBlock(root->block, out, implicitReturnRoot);
+				transformBlock(root->block, out, config.implicitReturnRoot);
 				popScope();
 				return {std::move(out.back()), Empty};
 			} catch (const std::logic_error& error) {
@@ -90,8 +97,7 @@ public:
 		_input.clear();
 	}
 private:
-	bool _lintGlobalVar = false;
-	bool _lineNumber = false;
+	MoonConfig _config;
 	int _indentOffset = 0;
 	Converter _converter;
 	input _input;
@@ -149,12 +155,6 @@ private:
 		Assignment,
 		Common,
 		Closure
-	};
-
-	enum class IfUsage {
-		Return,
-		Closure,
-		Common
 	};
 
 	void pushScope() {
@@ -264,7 +264,7 @@ private:
 	}
 
 	const std::string nll(ast_node* node) {
-		if (_lineNumber) {
+		if (_config.reserveLineNumber) {
 			return s(" -- "sv) + std::to_string(node->m_begin.m_line) + _newLine;
 		} else {
 			return _newLine;
@@ -272,7 +272,7 @@ private:
 	}
 
 	const std::string nlr(ast_node* node) {
-		if (_lineNumber) {
+		if (_config.reserveLineNumber) {
 			return s(" -- "sv) + std::to_string(node->m_end.m_line) + _newLine;
 		} else {
 			return _newLine;
@@ -288,11 +288,11 @@ private:
 	}
 
 	std::string indent() {
-		return std::string((_scopes.size() - 1 + _indentOffset) * 2, ' ');
+		return std::string(_scopes.size() - 1 + _indentOffset, '\t');
 	}
 
 	std::string indent(int offset) {
-		return std::string((_scopes.size() - 1 + _indentOffset + offset) * 2, ' ');
+		return std::string(_scopes.size() - 1 + _indentOffset + offset, '\t');
 	}
 
 	std::string clearBuf() {
@@ -330,11 +330,11 @@ private:
 	}
 
 	std::string toString(ast_node* node) {
-		return _converter.to_bytes(input(node->m_begin.m_it, node->m_end.m_it));
+		return _converter.to_bytes(std::wstring(node->m_begin.m_it, node->m_end.m_it));
 	}
 
 	std::string toString(input::iterator begin, input::iterator end) {
-		return _converter.to_bytes(input(begin, end));
+		return _converter.to_bytes(std::wstring(begin, end));
 	}
 
 	Value_t* singleValueFrom(ast_node* item) {
@@ -537,7 +537,7 @@ private:
 				count++;
 			}
 		}
-		auto line = _converter.to_bytes(input(begin, end));
+		auto line = _converter.to_bytes(std::wstring(begin, end));
 		int oldCol = loc->m_begin.m_col;
 		int col = loc->m_begin.m_col - 1;
 		auto it = begin;
@@ -707,12 +707,7 @@ private:
 							}
 						}
 					}
-					auto assign = x->new_ptr<Assign_t>();
-					assign->values.dup(expList->exprs);
-					auto assignment = x->new_ptr<ExpListAssign_t>();
-					assignment->expList.set(toAst<ExpList_t>("_", ExpList, x));
-					assignment->action.set(assign);
-					transformAssignment(assignment, out);
+					throw std::logic_error(debugInfo("Expression list must appear at the end of body block."sv, expList));
 				}
 				break;
 			}
@@ -1059,7 +1054,7 @@ private:
 	void transformAssignItem(ast_node* value, str_list& out) {
 		switch (value->getId()) {
 			case "With"_id: transformWithClosure(static_cast<With_t*>(value), out); break;
-			case "If"_id: transformIf(static_cast<If_t*>(value), out, IfUsage::Closure); break;
+			case "If"_id: transformIf(static_cast<If_t*>(value), out, ExpUsage::Closure); break;
 			case "Switch"_id: transformSwitchClosure(static_cast<Switch_t*>(value), out); break;
 			case "TableBlock"_id: transformTableBlock(static_cast<TableBlock_t*>(value), out); break;
 			case "Exp"_id: transformExp(static_cast<Exp_t*>(value), out); break;
@@ -1101,8 +1096,8 @@ private:
 								s("["sv) + std::to_string(index) + s("]"sv) + p.structure});
 						}
 					} else {
-						bool checkGlobal = _lintGlobalVar;
-						_lintGlobalVar = false;
+						bool lintGlobal = _config.lintGlobalVariable;
+						_config.lintGlobalVariable = false;
 						auto exp = static_cast<Exp_t*>(pair);
 						auto varName = singleVariableFrom(exp);
 						bool isVariable = !varName.empty();
@@ -1111,7 +1106,7 @@ private:
 							transformExp(exp, temp);
 							varName = std::move(temp.back());
 						}
-						_lintGlobalVar = checkGlobal;
+						_config.lintGlobalVariable = lintGlobal;
 						pairs.push_back({
 							isVariable,
 							varName,
@@ -1141,8 +1136,8 @@ private:
 									s("."sv) + toString(key) + p.structure});
 							}
 						} else {
-							bool checkGlobal = _lintGlobalVar;
-							_lintGlobalVar = false;
+							bool lintGlobal = _config.lintGlobalVariable;
+							_config.lintGlobalVariable = false;
 							auto varName = singleVariableFrom(exp);
 							bool isVariable = !varName.empty();
 							if (!isVariable) {
@@ -1150,7 +1145,7 @@ private:
 								transformExp(exp, temp);
 								varName = std::move(temp.back());
 							}
-							_lintGlobalVar = checkGlobal;
+							_config.lintGlobalVariable = lintGlobal;
 							pairs.push_back({
 								isVariable,
 								varName,
@@ -1330,7 +1325,7 @@ private:
 		}
 	}
 
-	void transformCond(const node_container& nodes, str_list& out, IfUsage usage = IfUsage::Common, bool unless = false) {
+	void transformCond(const node_container& nodes, str_list& out, ExpUsage usage = ExpUsage::Common, bool unless = false) {
 		std::vector<ast_ptr<false, ast_node>> ns(false);
 		for (auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
 			ns.push_back(*it);
@@ -1370,7 +1365,7 @@ private:
 			return;
 		}
 		str_list temp;
-		if (usage == IfUsage::Closure) {
+		if (usage == ExpUsage::Closure) {
 			temp.push_back(s("(function()"sv) + nll(nodes.front()));
 			pushScope();
 		}
@@ -1406,7 +1401,7 @@ private:
 					}
 				}
 				if (storingValue) {
-					if (usage != IfUsage::Closure) {
+					if (usage != ExpUsage::Closure) {
 						temp.push_back(indent() + s("do"sv) + nll(assign));
 						pushScope();
 					}
@@ -1431,7 +1426,7 @@ private:
 			} else {
 				if (!isDefined(var)) {
 					storingValue = true;
-					if (usage != IfUsage::Closure) {
+					if (usage != ExpUsage::Closure) {
 						temp.push_back(indent() + s("do"sv) + nll(assign));
 						pushScope();
 					}
@@ -1475,7 +1470,7 @@ private:
 				if (pair == ifCondPairs.front() && extraAssignment) {
 					transformAssignment(extraAssignment, temp);
 				}
-				transformBody(pair.second, temp, usage != IfUsage::Common);
+				transformBody(pair.second, temp, usage != ExpUsage::Common);
 				popScope();
 			}
 			if (!pair.first) {
@@ -1483,22 +1478,22 @@ private:
 				break;
 			}
 		}
-		if (storingValue && usage != IfUsage::Closure) {
+		if (storingValue && usage != ExpUsage::Closure) {
 			popScope();
 			temp.push_back(indent() + s("end"sv) + nlr(nodes.front()));
 		}
-		if (usage == IfUsage::Closure) {
+		if (usage == ExpUsage::Closure) {
 			popScope();
 			temp.push_back(indent() + s("end)()"sv));
 		}
 		out.push_back(join(temp));
 	}
 
-	void transformIf(If_t* ifNode, str_list& out, IfUsage usage = IfUsage::Common) {
+	void transformIf(If_t* ifNode, str_list& out, ExpUsage usage = ExpUsage::Common) {
 		transformCond(ifNode->nodes.objects(), out, usage);
 	}
 
-	void transformUnless(Unless_t* unless, str_list& out, IfUsage usage = IfUsage::Common) {
+	void transformUnless(Unless_t* unless, str_list& out, ExpUsage usage = ExpUsage::Common) {
 		transformCond(unless->nodes.objects(), out, usage, true);
 	}
 
@@ -1553,7 +1548,7 @@ private:
 		switch (item->getId()) {
 			case "Variable"_id: {
 				transformVariable(static_cast<Variable_t*>(item), out);
-				if (_lintGlobalVar && !isDefined(out.back())) {
+				if (_config.lintGlobalVariable && !isDefined(out.back())) {
 					if (_globals.find(out.back()) == _globals.end()) {
 						_globals[out.back()] = {item->m_begin.m_line, item->m_begin.m_col};
 					}
@@ -1561,7 +1556,7 @@ private:
 				break;
 			}
 			case "SelfName"_id: { transformSelfName(static_cast<SelfName_t*>(item), out, invoke);
-				if (_lintGlobalVar) {
+				if (_config.lintGlobalVariable) {
 					std::string self("self"sv);
 					if (!isDefined(self)) {
 						if (_globals.find(self) == _globals.end()) {
@@ -1587,8 +1582,8 @@ private:
 		auto value = simpleValue->value.get();
 		switch (value->getId()) {
 			case "const_value"_id: transform_const_value(static_cast<const_value_t*>(value), out); break;
-			case "If"_id: transformIf(static_cast<If_t*>(value), out, IfUsage::Closure); break;
-			case "Unless"_id: transformUnless(static_cast<Unless_t*>(value), out, IfUsage::Closure); break;
+			case "If"_id: transformIf(static_cast<If_t*>(value), out, ExpUsage::Closure); break;
+			case "Unless"_id: transformUnless(static_cast<Unless_t*>(value), out, ExpUsage::Closure); break;
 			case "Switch"_id: transformSwitchClosure(static_cast<Switch_t*>(value), out); break;
 			case "With"_id: transformWithClosure(static_cast<With_t*>(value), out); break;
 			case "ClassDecl"_id: transformClassDeclClosure(static_cast<ClassDecl_t*>(value), out); break;
@@ -1798,10 +1793,10 @@ private:
 							transformForEachInPlace(static_cast<ForEach_t*>(value), out);
 							return;
 						case "If"_id:
-							transformIf(static_cast<If_t*>(value), out, IfUsage::Return);
+							transformIf(static_cast<If_t*>(value), out, ExpUsage::Return);
 							return;
 						case "Unless"_id:
-							transformUnless(static_cast<Unless_t*>(value), out, IfUsage::Return);
+							transformUnless(static_cast<Unless_t*>(value), out, ExpUsage::Return);
 							return;
 					}
 				}
@@ -2234,7 +2229,7 @@ private:
 		out.push_back(s(colonChainItem->switchToDot ? "."sv : ":"sv) + name);
 	}
 
-	void transformSlice(Slice_t* slice, str_list& out) {
+	void transformSlice(Slice_t* slice, str_list&) {
 		throw std::logic_error(debugInfo("Slice syntax not supported here."sv, slice));
 	}
 
@@ -3841,19 +3836,16 @@ private:
 
 const std::string MoonCompliler::Empty;
 
-std::pair<std::string,std::string> moonCompile(const std::string& codes, bool implicitReturnRoot, bool lineNumber) {
-	return MoonCompliler{}.complile(codes, false, implicitReturnRoot, lineNumber);
-}
-
-std::pair<std::string,std::string> moonCompile(const std::string& codes, std::list<GlobalVar>& globals, bool implicitReturnRoot, bool lineNumber) {
+std::tuple<std::string,std::string,std::unique_ptr<std::list<GlobalVar>>> moonCompile(const std::string& codes,  const MoonConfig& config) {
 	auto compiler = MoonCompliler{};
-	auto result = compiler.complile(codes, true, implicitReturnRoot, lineNumber);
+	auto result = compiler.complile(codes, config);
+	auto globals = std::make_unique<std::list<GlobalVar>>();
 	for (const auto& var : compiler.getGlobals()) {
 		int line,col;
 		std::tie(line,col) = var.second;
-		globals.push_back({var.first, line, col});
+		globals->push_back({var.first, line, col});
 	}
-	return result;
+	return std::make_tuple(std::move(result.first),std::move(result.second),std::move(globals));
 }
 
 } // namespace MoonP

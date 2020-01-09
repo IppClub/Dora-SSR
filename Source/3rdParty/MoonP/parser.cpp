@@ -778,12 +778,12 @@ public:
 class _true : public _expr {
 public:
 	//parse with whitespace
-	virtual bool parse_non_term(_context &con) const {
+	virtual bool parse_non_term(_context &) const {
 		return true;
 	}
 
 	//parse terminal
-	virtual bool parse_term(_context &con) const {
+	virtual bool parse_term(_context &) const {
 		return true;
 	}
 };
@@ -793,12 +793,12 @@ public:
 class _false: public _expr {
 public:
 	//parse with whitespace
-	virtual bool parse_non_term(_context &con) const {
+	virtual bool parse_non_term(_context &) const {
 		return false;
 	}
 
 	//parse terminal
-	virtual bool parse_term(_context &con) const {
+	virtual bool parse_term(_context &) const {
 		return false;
 	}
 };
@@ -1218,10 +1218,9 @@ rule::rule(rule &r) :
 
 
 /** invalid constructor from rule (required by gcc).
-    @param r rule.
     @exception std::logic_error always thrown.
  */
-rule::rule(const rule &r) {
+rule::rule(const rule &) {
     throw std::logic_error("invalid operation");
 }
 

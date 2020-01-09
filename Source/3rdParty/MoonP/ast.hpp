@@ -67,7 +67,7 @@ public:
         from a node stack.
         @param st stack.
      */
-    virtual void construct(ast_stack& st) {}
+    virtual void construct(ast_stack&) {}
 
     /** interface for visiting AST tree use.
      */
@@ -88,11 +88,9 @@ public:
 
 	virtual bool visitChild(const std::function<bool (ast_node*)>& func);
 
-	virtual size_t getId() const { return "ast_node"_id; }
+	virtual size_t getId() const = 0;
 
-	virtual const char* getName() const { return "ast_node"; }
-
-	virtual int get_type() { return ast_type<ast_node>(); }
+	virtual int get_type() = 0;
 
 	template<class T>
 	inline ast_ptr<false, T> new_ptr() {
@@ -161,10 +159,6 @@ public:
 	virtual traversal traverse(const std::function<traversal (ast_node*)>& func) override;
 
 	virtual bool visitChild(const std::function<bool (ast_node*)>& func) override;
-
-	virtual size_t getId() const override { return "ast_container"_id; }
-
-	virtual const char* getName() const override { return "ast_container"; }
 private:
     ast_member_vector m_members;
 
@@ -295,14 +289,14 @@ public:
         // check the stack node
         if (st.empty()) {
 			if (!Required) return;
-			throw std::logic_error("Invalid AST stack");
+			throw std::logic_error("Invalid AST stack.");
 		}
         ast_node* node = st.back();
 		if (!ast_ptr::accept(node)) {
 			// if the object is not required, simply return
 			if (!Required) return;
 			// else if the object is mandatory, throw an exception
-			throw std::logic_error("Invalid AST node");
+			throw std::logic_error("Invalid AST node.");
 		}
         st.pop_back();
         m_ptr = node;
@@ -337,12 +331,12 @@ public:
     virtual void construct(ast_stack& st) override {
         if (st.empty()) {
         	if (!Required) return;
-			throw std::logic_error("Invalid AST stack");
+			throw std::logic_error("Invalid AST stack.");
 		}
         ast_node* node = st.back();
         if (!ast_sel::accept(node)) {
         	if (!Required) return;
-        	throw std::logic_error("Invalid AST node");
+        	throw std::logic_error("Invalid AST node.");
 		}
         st.pop_back();
         m_ptr = node;
@@ -398,20 +392,6 @@ public:
 		node->release();
 	}
 
-    void set_front(ast_node* node) {
-    	assert(node && accept(node));
-		m_objects.front()->release();
-		m_objects.front() = node;
-		node->retain();
-	}
-
-    void set_back(ast_node* node) {
-    	assert(node && accept(node));
-		m_objects.back()->release();
-		m_objects.back() = node;
-		node->retain();
-	}
-
 	 const node_container& objects() const {
         return m_objects;
     }
@@ -465,7 +445,7 @@ public:
             // end the list parsing
             if (!ast_list::accept(node)) {
             	if (Required && m_objects.empty()) {
-            		throw std::logic_error("Invalid AST node");
+            		throw std::logic_error("Invalid AST node.");
 				}
             	return;
             }
@@ -475,7 +455,7 @@ public:
             node->retain();
         }
 		if (Required && m_objects.empty()) {
-			throw std::logic_error("Invalid AST stack");
+			throw std::logic_error("Invalid AST stack.");
 		}
     }
 private:
@@ -503,7 +483,7 @@ public:
             ast_node* node = st.back();
             if (!ast_sel_list::accept(node)) {
             	if (Required && m_objects.empty()) {
-            		throw std::logic_error("Invalid AST node");
+            		throw std::logic_error("Invalid AST node.");
 				}
             	return;
             }
@@ -512,7 +492,7 @@ public:
             node->retain();
         }
 		if (Required && m_objects.empty()) {
-			throw std::logic_error("Invalid AST stack");
+			throw std::logic_error("Invalid AST stack.");
 		}
     }
 private:
@@ -558,7 +538,7 @@ private:
     @return pointer to ast node created, or null if there was an error.
         The return object must be deleted by the caller.
  */
-ast_node* _parse(input &i, rule &g, error_list &el, void* ud);
+ast_node* _parse(input& i, rule& g, error_list& el, void* ud);
 
 
 /** parses the given input.
@@ -568,7 +548,7 @@ ast_node* _parse(input &i, rule &g, error_list &el, void* ud);
     @param ud user data, passed to the parse procedures.
     @return ast nodes.
  */
-template <class T> ast_ptr<false, T> parse(input &i, rule &g, error_list &el, void* ud = nullptr) {
+template <class T> ast_ptr<false, T> parse(input& i, rule& g, error_list& el, void* ud = nullptr) {
     ast_node* node = _parse(i, g, el, ud);
     T* ast = ast_cast<T>(node);
     ast_ptr<false, T> ptr;
