@@ -19,7 +19,6 @@ class type##_t : public ast_node \
 public: \
 	virtual int get_type() override { return ast_type<type##_t>(); } \
 	virtual size_t getId() const override { return id; } \
-	virtual const char* getName() const override { return #type; }
 
 #define AST_NODE(type, id) \
 extern rule type; \
@@ -28,7 +27,6 @@ class type##_t : public ast_container \
 public: \
 	virtual int get_type() override { return ast_type<type##_t>(); } \
 	virtual size_t getId() const override { return id; } \
-	virtual const char* getName() const override { return #type; }
 
 #define AST_MEMBER(type, ...) \
 	type##_t() { \

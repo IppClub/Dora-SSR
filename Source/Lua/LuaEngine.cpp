@@ -212,51 +212,50 @@ static int dora_moontolua(lua_State* L)
 #endif
 	{
 		string codes(tolua_toslice(L, 1, 0));
-		bool lintGlobal = false;
-		bool implicitReturnRoot = true;
-		bool lineNumber = true;
+		MoonP::MoonConfig config;
 		if (lua_gettop(L) == 2) {
 			tolua_pushslice(L, "lint_global"_slice);
 			lua_gettable(L, -2);
 			if (!lua_isnil(L, -1)) {
-				lintGlobal = lua_toboolean(L, -1);
+				config.lintGlobalVariable = lua_toboolean(L, -1);
 			}
 			lua_pop(L, 1);
 			tolua_pushslice(L, "implicit_return_root"_slice);
 			lua_gettable(L, -2);
 			if (!lua_isnil(L, -1)) {
-				implicitReturnRoot = lua_toboolean(L, -1);
+				config.implicitReturnRoot = lua_toboolean(L, -1);
 			}
 			lua_pop(L, 1);
 			tolua_pushslice(L, "implicit_return_root"_slice);
 			lua_gettable(L, -2);
 			if (!lua_isnil(L, -1)) {
-				implicitReturnRoot = lua_toboolean(L, -1);
+				config.implicitReturnRoot = lua_toboolean(L, -1);
 			}
 			lua_pop(L, 1);
-			tolua_pushslice(L, "line_number"_slice);
+			tolua_pushslice(L, "reserve_line_number"_slice);
 			lua_gettable(L, -2);
 			if (!lua_isnil(L, -1)) {
-				lineNumber = lua_toboolean(L, -1);
+				config.reserveLineNumber = lua_toboolean(L, -1);
 			}
 			lua_pop(L, 1);
 		}
-		if (lintGlobal) {
-			std::list<MoonP::GlobalVar> globals;
-			auto result = MoonP::moonCompile(codes, globals, implicitReturnRoot, lineNumber);
-			if (result.first.empty())
+		if (config.lintGlobalVariable) {
+			string compiledCodes, err;
+			MoonP::GlobalVars globals;
+			std::tie(compiledCodes, err, globals) = MoonP::moonCompile(codes, config);
+			if (compiledCodes.empty())
 			{
 				lua_pushnil(L);
-				lua_pushlstring(L, result.second.c_str(), result.second.size());
+				lua_pushlstring(L, err.c_str(), err.size());
 			}
 			else
 			{
-				lua_pushlstring(L, result.first.c_str(), result.first.size());
+				lua_pushlstring(L, compiledCodes.c_str(), compiledCodes.size());
 				lua_pushnil(L);
 			}
-			lua_createtable(L, s_cast<int>(globals.size()), 0);
+			lua_createtable(L, s_cast<int>(globals->size()), 0);
 			int i = 1;
-			for (const auto& var : globals)
+			for (const auto& var : *globals)
 			{
 				lua_createtable(L, 3, 0);
 				lua_pushlstring(L, var.name.c_str(), var.name.size());
@@ -272,15 +271,17 @@ static int dora_moontolua(lua_State* L)
 		}
 		else
 		{
-			auto result = MoonP::moonCompile(codes, implicitReturnRoot, lineNumber);
-			if (result.first.empty())
+			string compiledCodes, err;
+			MoonP::GlobalVars globals;
+			std::tie(compiledCodes, err, globals) = MoonP::moonCompile(codes, config);
+			if (compiledCodes.empty())
 			{
 				lua_pushnil(L);
-				lua_pushlstring(L, result.second.c_str(), result.second.size());
+				lua_pushlstring(L, err.c_str(), err.size());
 			}
 			else
 			{
-				lua_pushlstring(L, result.first.c_str(), result.first.size());
+				lua_pushlstring(L, compiledCodes.c_str(), compiledCodes.size());
 				lua_pushnil(L);
 			}
 			return 2;

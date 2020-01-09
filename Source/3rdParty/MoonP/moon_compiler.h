@@ -11,16 +11,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <string>
 #include <tuple>
 #include <list>
+#include <memory>
 
 namespace MoonP {
 
-std::pair<std::string,std::string> moonCompile(const std::string& codes, bool implicitReturnRoot = true, bool lineNumber = true);
+const char* moonScriptVersion();
+
+struct MoonConfig {
+	bool lintGlobalVariable = false;
+	bool implicitReturnRoot = true;
+	bool reserveLineNumber = true;
+};
 
 struct GlobalVar {
 	std::string name;
 	int line;
 	int col;
 };
-std::pair<std::string,std::string> moonCompile(const std::string& codes, std::list<GlobalVar>& globals, bool implicitReturnRoot = true, bool lineNumber = true);
+
+using GlobalVars = std::unique_ptr<std::list<GlobalVar>>;
+
+std::tuple<std::string,std::string,GlobalVars> moonCompile(const std::string& codes, const MoonConfig& config = {});
 
 } // namespace MoonP
