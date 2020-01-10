@@ -1392,7 +1392,7 @@ private:
 			auto var = singleVariableFrom(exp);
 			if (var.empty()) {
 				storingValue = true;
-				std::string desVar = getUnusedName("_des_");
+				auto desVar = getUnusedName("_des_");
 				if (assign->values.objects().size() == 1) {
 					auto var = singleVariableFrom(assign->values.objects().front());
 					if (!var.empty()) {
@@ -2078,7 +2078,7 @@ private:
 						throw std::logic_error(debugInfo("Colon chain item must be followed by invoke arguments."sv, colonItem));
 					}
 					if (colonItem->name.is<LuaKeyword_t>()) {
-						auto callVar = getUnusedName(s("_call_"sv));
+						std::string callVar;
 						auto block = x->new_ptr<Block_t>();
 						{
 							auto chainValue = x->new_ptr<ChainValue_t>();
@@ -2095,14 +2095,18 @@ private:
 							value->item.set(chainValue);
 							auto exp = x->new_ptr<Exp_t>();
 							exp->value.set(value);
-							auto assignment = x->new_ptr<ExpListAssign_t>();
-							assignment->expList.set(toAst<ExpList_t>(callVar, ExpList, x));
-							auto assign = x->new_ptr<Assign_t>();
-							assign->values.push_back(exp);
-							assignment->action.set(assign);
-							auto stmt = x->new_ptr<Statement_t>();
-							stmt->content.set(assignment);
-							block->statements.push_back(stmt);
+							callVar = singleVariableFrom(exp);
+							if (callVar.empty()) {
+								callVar = getUnusedName(s("_call_"sv));
+								auto assignment = x->new_ptr<ExpListAssign_t>();
+								assignment->expList.set(toAst<ExpList_t>(callVar, ExpList, x));
+								auto assign = x->new_ptr<Assign_t>();
+								assign->values.push_back(exp);
+								assignment->action.set(assign);
+								auto stmt = x->new_ptr<Statement_t>();
+								stmt->content.set(assignment);
+								block->statements.push_back(stmt);
+							}
 						}
 						{
 							auto name = toString(colonItem->name);
@@ -3836,7 +3840,7 @@ private:
 
 const std::string MoonCompliler::Empty;
 
-std::tuple<std::string,std::string,std::unique_ptr<std::list<GlobalVar>>> moonCompile(const std::string& codes,  const MoonConfig& config) {
+std::tuple<std::string,std::string,GlobalVars> moonCompile(const std::string& codes, const MoonConfig& config) {
 	auto compiler = MoonCompliler{};
 	auto result = compiler.complile(codes, config);
 	auto globals = std::make_unique<std::list<GlobalVar>>();
