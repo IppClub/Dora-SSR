@@ -148,13 +148,18 @@ builtin.sleep = function(duration)
 	end
 end
 
-builtin.namespace = function(path)
+builtin.namespace = function(path,func)
 	if path then
-		return function(name)
+		local function req(name)
 			return require(path.."."..name)
 		end
-	else
-		return require
+		if func then
+			Content:insertSearchPath(1, path)
+			func(req)
+			Content:removeSearchPath(path)
+		else
+			return req
+		end
 	end
 end
 _G.using = builtin.using

@@ -1,6 +1,6 @@
 Dorothy builtin.Platformer
+import "UI.View.Shape.Rectangle"
 {store:Store} = Data
-Rectangle = require "UI.View.Shape.Rectangle"
 
 {
 	:PlayerLayer,

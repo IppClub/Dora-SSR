@@ -1,11 +1,11 @@
 Dorothy!
-ButtonView = require "UI.View.Control.Basic.Button"
+import "UI.View.Control.Basic.Button"
 
 -- [signals]
 -- "Tapped",(button)->
 -- [params]
 -- text, x, y, width, height, fontName=18, fontSize=NotoSansHans-Regular
-Class ButtonView,
+Class Button,
 	__init:(args)=>
 		@_text = @label.text if @label
 		@slot "TapFilter", (touch)->

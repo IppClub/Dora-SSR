@@ -1,6 +1,6 @@
 Dorothy!
-ScrollAreaView = require "UI.View.Control.Basic.ScrollArea"
-SolidRect = require "UI.View.Shape.SolidRect"
+import "UI.View.Control.Basic.ScrollArea"
+import "UI.View.Shape.SolidRect"
 
 -- [signals]
 -- "ScrollTouchBegan",->
@@ -12,7 +12,7 @@ SolidRect = require "UI.View.Shape.SolidRect"
 -- x,y,width,height,
 -- paddingX,paddingY,
 -- viewWidth,viewHeight
-Class ScrollAreaView,
+Class ScrollArea,
 	__init: (args)=>
 		{:width,:height} = args
 		screenSize = (Vec2 View.size).length

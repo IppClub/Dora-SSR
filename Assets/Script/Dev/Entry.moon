@@ -1,5 +1,5 @@
 Dorothy builtin.ImGui
-import Set,Path from require "Utils"
+import "Utils" as {:Set,:Path}
 
 debug.traceback = (err)->
 	with require "StackTracePlus"
@@ -7,7 +7,7 @@ debug.traceback = (err)->
 		.simplified = true
 		return .stacktrace err, 1
 
-LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
+LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20--, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -77,7 +77,7 @@ LintMoonGlobals = (moonCodes,globals,entry)->
 	importItems = if importCodes
 		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
 			getImport = loadstring "return #{item}"
-			importItem = if getImport then getImport! else nil
+			importItem = getImport?!
 			continue if not importItem or "table" ~= type importItem
 			{importItem, item}
 	else {}

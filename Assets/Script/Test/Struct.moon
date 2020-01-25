@@ -1,4 +1,4 @@
-import Struct from require "Utils"
+import "Utils" as {:Struct}
 
 -- 定义Struct
 Unit = Struct.Unit "name", "group", "tag", "actions"

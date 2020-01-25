@@ -1,8 +1,8 @@
 Dorothy builtin.Platformer
+import "UI.View.Shape.Rectangle"
+import "UI.View.Shape.Circle"
+import "UI.View.Shape.Star"
 {store:Store} = Data
-Rectangle = require "UI.View.Shape.Rectangle"
-Circle = require "UI.View.Shape.Circle"
-Star = require "UI.View.Shape.Star"
 
 with Observer "Add", {"obstacleDef","size","position","color"}
 	\every =>

@@ -1,7 +1,7 @@
 Dorothy builtin.Platformer
-ButtonGlowView = require "UI.View.ButtonGlow"
+import "UI.View.ButtonGlow"
 
-Class ButtonGlowView,
+Class ButtonGlow,
 	__init:=>
 		@slot "Tapped",(touch)->
 			with Visual "Particle/select.par"
@@ -23,6 +23,6 @@ Class ButtonGlowView,
 
 	stopGlow:=>
 		if @scheduled
-			@unschedule()
+			@unschedule!
 			@up.visible = true
 			@down.visible = false

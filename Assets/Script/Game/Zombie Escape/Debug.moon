@@ -1,6 +1,6 @@
 Dorothy builtin.ImGui,builtin.Platformer
+import "UI.View.Shape.Star"
 {store:Store} = Data
-Star = require "UI.View.Shape.Star"
 
 {
 	:world

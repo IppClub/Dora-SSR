@@ -1,10 +1,10 @@
 Dorothy builtin.Platformer
+import "UI.Control.Basic.AlignNode"
+import "UI.View.Shape.Rectangle"
+import "UI.View.Shape.Circle"
+import "UI.View.Shape.Star"
+import "UI.Control.Basic.CircleButton"
 {store:Store} = Data
-AlignNode = require "UI.Control.Basic.AlignNode"
-Rectangle = require "UI.View.Shape.Rectangle"
-Circle = require "UI.View.Shape.Circle"
-Star = require "UI.View.Shape.Star"
-CircleButton = require "UI.Control.Basic.CircleButton"
 
 Store.controlPlayer = "KidW"
 playerGroup = Group {"player"}
