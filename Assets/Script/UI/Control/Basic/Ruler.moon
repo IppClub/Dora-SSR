@@ -1,8 +1,8 @@
 Dorothy!
-RulerView = require "UI.View.Control.Basic.Ruler"
-import Round from require "Utils"
+import "UI.View.Control.Basic.Ruler"
+import "Utils" as {:Round}
 
-Class RulerView,
+Class Ruler,
 	__init:(args)=>
 		{:y,:width,:height,:fontName,:fontSize,:fixed} = args
 		viewSize = View.size

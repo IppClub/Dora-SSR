@@ -1,5 +1,5 @@
 Dorothy!
-import run_with_scope from require "moon"
+import "moon" as {:run_with_scope}
 
 Class Node,
 	__init:(args)=>

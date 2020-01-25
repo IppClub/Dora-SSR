@@ -1,7 +1,7 @@
 Dorothy builtin.Platformer
-DigitView = require "UI.View.Digit"
+import "UI.View.Digit"
 
-Class DigitView,
+Class Digit,
 	__init:=>
 		@_value = 99
 		@maxValue = 99

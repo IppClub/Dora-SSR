@@ -1,8 +1,8 @@
 Dorothy!
-Button = require "UI.Control.Basic.Button"
-LineRect = require "UI.View.Shape.LineRect"
-ScrollArea = require "UI.Control.Basic.ScrollArea"
-AlignNode = require "UI.Control.Basic.AlignNode"
+import "UI.Control.Basic.Button"
+import "UI.View.Shape.LineRect"
+import "UI.Control.Basic.ScrollArea"
+import "UI.Control.Basic.AlignNode"
 
 Panel = (width, height, viewWidth, viewHeight)->
 	with ScrollArea {

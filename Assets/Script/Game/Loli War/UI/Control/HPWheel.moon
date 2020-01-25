@@ -1,6 +1,6 @@
 Dorothy builtin.Platformer
-HPWheelView = require "UI.View.HPWheel"
-EPHint = require "UI.View.EPHint"
+import "UI.View.HPWheel"
+import "UI.View.EPHint"
 {
 	:GroupPlayer
 	:GroupEnemy
@@ -10,7 +10,7 @@ EPHint = require "UI.View.EPHint"
 	:MaxHP
 } = Data.store
 
-Class HPWheelView,
+Class HPWheel,
 	__init:=>
 		@ep = MaxEP
 		@hp = MaxHP

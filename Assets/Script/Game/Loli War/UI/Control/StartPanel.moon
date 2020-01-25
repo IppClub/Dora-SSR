@@ -1,7 +1,7 @@
 Dorothy builtin.Platformer
-StartPanelView = require "UI.View.StartPanel"
+import "UI.View.StartPanel"
 
-Class StartPanelView,
+Class StartPanel,
 	__init:=>
 		buttons = {@fButton,@vButton,@dButton}
 		for button in *buttons

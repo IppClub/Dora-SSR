@@ -1,12 +1,11 @@
 Dorothy builtin.Platformer
 
-HPWheel = require "UI.Control.HPWheel"
-AlignNode = require "UI.Control.Basic.AlignNode"
-LeftTouchPad = require "UI.View.LeftTouchPad"
-RightTouchPad = require "UI.View.RightTouchPad"
-RestartPad = require "UI.View.RestartPad"
-StartPanel = require "UI.Control.StartPanel"
-
+import "UI.Control.HPWheel"
+import "UI.Control.Basic.AlignNode"
+import "UI.View.LeftTouchPad"
+import "UI.View.RightTouchPad"
+import "UI.View.RestartPad"
+import "UI.Control.StartPanel"
 {store:Store} = Data
 {:GroupPlayer} = Store
 

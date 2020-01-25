@@ -52,7 +52,7 @@ walk = Sel {
 
 fightDecision = Seq {
 	Con "see enemy",=>
-		if AI\getNearestUnit(Relation.Enemy) then true else false
+		AI\getNearestUnit(Relation.Enemy)?
 	Sel {
 		Seq {
 			Con "need evade",=>
@@ -141,7 +141,7 @@ Store["AI_KidFollow"] = Sel {
 			target = nil
 			playerGroup\each (e)-> target = e.unit if e.unit ~= @
 			@entity.followTarget = target
-			target ~= nil and math.abs(@x-target.x) > 50
+			target? and math.abs(@x-target.x) > 50
 		Sel {
 			Seq {
 				Con "not facing target",=> (@x > @entity.followTarget.x) == @faceRight

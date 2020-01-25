@@ -1,7 +1,7 @@
 Dorothy!
-LineRect = require "UI.View.Shape.LineRect"
-ScrollArea = require "UI.Control.Basic.ScrollArea"
-AlignNode = require "UI.Control.Basic.AlignNode"
+import "UI.View.Shape.LineRect"
+import "UI.Control.Basic.ScrollArea"
+import "UI.Control.Basic.AlignNode"
 
 {width:viewWidth,height:viewHeight} = View.size
 

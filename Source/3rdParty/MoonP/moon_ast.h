@@ -106,12 +106,33 @@ AST_NODE(colon_import_name, "colon_import_name"_id)
 AST_END(colon_import_name)
 
 class Exp_t;
+class TableLit_t;
 
-AST_NODE(Import, "Import"_id)
+AST_LEAF(import_literal_inner, "import_literal_inner"_id)
+AST_END(import_literal_inner)
+
+AST_NODE(ImportLiteral, "ImportLiteral"_id)
+	ast_ptr<true, Seperator_t> sep;
+	ast_sel_list<true, import_literal_inner_t> inners;
+	AST_MEMBER(ImportLiteral, &sep, &inners)
+AST_END(ImportLiteral)
+
+AST_NODE(ImportAs, "ImportAs"_id)
+	ast_ptr<true, ImportLiteral_t> literal;
+	ast_sel<false, Variable_t, TableLit_t> target;
+	AST_MEMBER(ImportAs, &literal, &target)
+AST_END(ImportAs)
+
+AST_NODE(ImportFrom, "ImportFrom"_id)
 	ast_ptr<true, Seperator_t> sep;
 	ast_sel_list<true, colon_import_name_t, Variable_t> names;
 	ast_ptr<true, Exp_t> exp;
-	AST_MEMBER(Import, &sep, &names, &exp)
+	AST_MEMBER(ImportFrom, &sep, &names, &exp)
+AST_END(ImportFrom)
+
+AST_NODE(Import, "Import"_id)
+	ast_sel<true, ImportAs_t, ImportFrom_t> content;
+	AST_MEMBER(Import, &content)
 AST_END(Import)
 
 AST_NODE(ExpListLow, "ExpListLow"_id)
@@ -407,11 +428,14 @@ AST_NODE(Invoke, "Invoke"_id)
 	AST_MEMBER(Invoke, &sep, &args)
 AST_END(Invoke)
 
+AST_LEAF(existential_op, "existential_op"_id)
+AST_END(existential_op)
+
 class InvokeArgs_t;
 
 AST_NODE(ChainValue, "ChainValue"_id)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t> items;
+	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t, existential_op_t> items;
 	AST_MEMBER(ChainValue, &sep, &items)
 AST_END(ChainValue)
 

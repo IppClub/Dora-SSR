@@ -1,7 +1,7 @@
 Dorothy!
-{:type,:tostring,:setmetatable,:table,:rawset,:rawget} = _G
 import insert,remove,concat,sort from table
 import floor,ceil from math
+import type,tostring,setmetatable,table,rawset,rawget from _G
 
 StructUpdated = =>
 	update = rawget @,"__update"

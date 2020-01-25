@@ -43,7 +43,7 @@ Store["PlayerControlAI"] = Sel {
 			Seq {
 				Con "at switch",=>
 					theSwitch = @entity.atSwitch
-					theSwitch ~= nil and not theSwitch.entity.pushed and
+					theSwitch? and not theSwitch.entity.pushed and
 					(@x < theSwitch.x == @faceRight)
 				Act "pushSwitch"
 			}
@@ -193,7 +193,7 @@ Store["BunnySwitcherAI"] = Sel {
 	}
 	Seq {
 		Con "at switch",=> with @entity
-			return .atSwitch ~= nil and .atSwitch.entity.switch_ == .targetSwitch
+			return .atSwitch? and .atSwitch.entity.switch_ == .targetSwitch
 		Sel {
 			Seq {
 				Con "switch available",=> heroes\each (hero)->

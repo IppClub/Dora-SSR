@@ -1,6 +1,6 @@
 Dorothy builtin.Platformer
-Rectangle = require "UI.View.Shape.Rectangle"
-Star = require "UI.View.Shape.Star"
+import "UI.View.Shape.Rectangle"
+import "UI.View.Shape.Star"
 {store:Store} = Data
 
 Store["Bullet_KidM"] = with BulletDef!

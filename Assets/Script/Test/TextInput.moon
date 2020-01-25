@@ -1,7 +1,7 @@
 Dorothy!
-LineRect = require "UI.View.Shape.LineRect"
-SolidRect = require "UI.View.Shape.SolidRect"
-utf8 = require "utf8"
+import "UI.View.Shape.LineRect"
+import "UI.View.Shape.SolidRect"
+import "utf8"
 
 TextInput = Class ((args)->
 	{:fontName,:fontSize,:width,:height,:hint,:text} = args

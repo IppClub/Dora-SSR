@@ -6,7 +6,7 @@ Director.entry\addChild with Node!
 		.text = "你好，Dorothy！"
 		for i = 1,.characterCount
 			char = \getCharacter i
-			char\runAction Sequence Delay(i/5),Scale(0.2,1,2),Scale(0.2,2,1) if char
+			char?\runAction Sequence Delay(i/5),Scale(0.2,1,2),Scale(0.2,2,1)
 
 	\addChild with Label "DroidSansFallback",30
 		.text = "-- from Jin."

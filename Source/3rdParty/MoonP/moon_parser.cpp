@@ -26,9 +26,9 @@ std::unordered_set<std::string> State::keywords = {
 	"in", "local", "nil", "not", "or",
 	"repeat", "return", "then", "true", "until",
 	"while", // Lua keywords
-	"class", "continue", "export", "extends", "from",
-	"import", "switch", "unless", "using", "when",
-	"with" // Moon keywords
+	"as", "class", "continue", "export", "extends",
+	"from", "import", "switch", "unless", "using",
+	"when", "with" // Moon keywords
 };
 
 rule plain_space = *set(" \t");
@@ -160,9 +160,16 @@ rule colon_import_name = sym('\\') >> Space >> Variable;
 rule ImportName = colon_import_name | Space >> Variable;
 rule ImportNameList = Seperator >> *SpaceBreak >> ImportName >> *((+SpaceBreak | sym(',') >> *SpaceBreak) >> ImportName);
 
-extern rule Exp;
+extern rule Exp, TableLit;
 
-rule Import = key("import") >> ImportNameList >> *SpaceBreak >> key("from") >> Exp;
+rule import_literal_inner = (range('a', 'z') | range('A', 'Z') | set("_-")) >> *(AlphaNum | '-');
+rule import_literal_chain = Seperator >> import_literal_inner >> *(expr('.') >> import_literal_inner);
+rule ImportLiteral = sym('\'') >> import_literal_chain >> symx('\'') | sym('"') >> import_literal_chain >> symx('"');
+
+rule ImportFrom = ImportNameList >> *SpaceBreak >> key("from") >> Exp;
+rule ImportAs = ImportLiteral >> -(key("as") >> (Space >> Variable | TableLit));
+
+rule Import = key("import") >> (ImportAs | ImportFrom);
 rule BreakLoop = (expr("break") | expr("continue")) >> not_(AlphaNum);
 
 extern rule ExpListLow, ExpList, Assign;
@@ -289,9 +296,9 @@ extern rule Value;
 rule exp_op_value = Space >> BinaryOperator >> *SpaceBreak >> Value;
 rule Exp = Value >> *exp_op_value;
 
-extern rule Chain, Callable, InvokeArgs;
+extern rule Chain, Callable, InvokeArgs, existential_op;
 
-rule ChainValue = Seperator >> (Chain | Callable) >> -InvokeArgs;
+rule ChainValue = Seperator >> (Chain | Callable) >> -existential_op >> -InvokeArgs;
 
 extern rule KeyValue, String, SimpleValue;
 
@@ -301,12 +308,12 @@ rule Value = SimpleValue | simple_table | ChainValue | String;
 extern rule LuaString;
 
 rule single_string_inner = expr("\\'") | "\\\\" | not_(expr('\'')) >> Any;
-rule SingleString = symx('\'') >> *single_string_inner >> sym('\'');
+rule SingleString = symx('\'') >> *single_string_inner >> symx('\'');
 rule interp = symx("#{") >> Exp >> sym('}');
 rule double_string_plain = expr("\\\"") | "\\\\" | not_(expr('"')) >> Any;
 rule double_string_inner = +(not_(interp) >> double_string_plain);
 rule double_string_content = double_string_inner | interp;
-rule DoubleString = symx('"') >> Seperator >> *double_string_content >> sym('"');
+rule DoubleString = symx('"') >> Seperator >> *double_string_content >> symx('"');
 rule String = Space >> (DoubleString | SingleString | LuaString);
 
 rule lua_string_open = '[' >> *expr('=') >> '[';
@@ -345,9 +352,10 @@ rule FnArgs = (symx('(') >> *SpaceBreak >> -FnArgsExpList >> *SpaceBreak >> sym(
 
 extern rule ChainItems, DotChainItem, ColonChain;
 
-rule chain_call = (Callable | String) >> ChainItems;
+rule existential_op = expr('?');
+rule chain_call = (Callable | String) >> -existential_op >> ChainItems;
 rule chain_item = and_(set(".\\")) >> ChainItems;
-rule chain_dot_chain = DotChainItem >> -ChainItems;
+rule chain_dot_chain = DotChainItem >> -existential_op >> -ChainItems;
 
 rule Chain = chain_call | chain_item |
 	Space >> (chain_dot_chain | ColonChain);
@@ -362,11 +370,11 @@ rule ChainItems = chain_with_colon | ColonChain;
 extern rule Invoke, Slice;
 
 rule Index = symx('[') >> Exp >> sym(']');
-rule ChainItem = Invoke | DotChainItem | Slice | Index;
+rule ChainItem = Invoke >> -existential_op | DotChainItem >> -existential_op | Slice | Index >> -existential_op;
 rule DotChainItem = symx('.') >> Name;
 rule ColonChainItem = symx('\\') >> (LuaKeyword | Name);
-rule invoke_chain = Invoke >> -ChainItems;
-rule ColonChain = ColonChainItem >> -invoke_chain;
+rule invoke_chain = Invoke >> -existential_op >> -ChainItems;
+rule ColonChain = ColonChainItem >> -existential_op >> -invoke_chain;
 
 rule default_value = true_();
 rule Slice =

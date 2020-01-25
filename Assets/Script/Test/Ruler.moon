@@ -1,6 +1,6 @@
 Dorothy!
-Ruler = require "UI.Control.Basic.Ruler"
-CircleButton = require "UI.Control.Basic.CircleButton"
+import "UI.Control.Basic.Ruler"
+import "UI.Control.Basic.CircleButton"
 
 ruler = Ruler {
 	x:0
