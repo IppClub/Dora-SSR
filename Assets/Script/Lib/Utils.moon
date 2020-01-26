@@ -150,7 +150,6 @@ StructDefMeta = {
 			"Struct.#{ @__name }()"
 }
 StructDefs = {}
-local StructHelper
 StructHelper = {
 	__call:(...)=>
 		structName = @path..@name
