@@ -33,12 +33,12 @@ inline std::string s(std::string_view sv) {
 }
 
 const char* moonScriptVersion() {
-	return "0.5.0";
+	return "0.5.0-r0.1.0";
 }
 
-class MoonCompliler {
+class MoonCompiler {
 public:
-	std::pair<std::string,std::string> complile(const std::string& codes, const MoonConfig& config) {
+	std::pair<std::string,std::string> compile(const std::string& codes, const MoonConfig& config) {
 		_config = config;
 		try {
 			_input = _converter.from_bytes(codes);
@@ -107,7 +107,7 @@ private:
 	std::unordered_map<std::string,std::pair<int,int>> _globals;
 	std::ostringstream _buf;
 	std::ostringstream _joinBuf;
-	std::string _newLine = "\n";
+	const std::string _newLine = "\n";
 	enum class LocalMode {
 		None = 0,
 		Capital = 1,
@@ -166,7 +166,7 @@ private:
 		_scopes.pop_back();
 	}
 
-	bool isDefined(const std::string& name) {
+	bool isDefined(const std::string& name) const {
 		bool isDefined = false;
 		int mode = int(std::isupper(name[0]) ? ExportMode::Capital : ExportMode::Any);
 		const auto& current = _scopes.back();
@@ -200,7 +200,7 @@ private:
 		return isDefined;
 	}
 
-	bool isSolidDefined(const std::string& name) {
+	bool isSolidDefined(const std::string& name) const {
 		bool isDefined = false;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
@@ -253,7 +253,7 @@ private:
 		return !defined;
 	}
 
-	std::string getUnusedName(std::string_view name) {
+	std::string getUnusedName(std::string_view name) const {
 		int index = 0;
 		std::string newName;
 		do {
@@ -263,7 +263,7 @@ private:
 		return newName;
 	}
 
-	const std::string nll(ast_node* node) {
+	const std::string nll(ast_node* node) const {
 		if (_config.reserveLineNumber) {
 			return s(" -- "sv) + std::to_string(node->m_begin.m_line) + _newLine;
 		} else {
@@ -271,7 +271,7 @@ private:
 		}
 	}
 
-	const std::string nlr(ast_node* node) {
+	const std::string nlr(ast_node* node) const {
 		if (_config.reserveLineNumber) {
 			return s(" -- "sv) + std::to_string(node->m_end.m_line) + _newLine;
 		} else {
@@ -287,11 +287,11 @@ private:
 		_indentOffset--;
 	}
 
-	std::string indent() {
+	std::string indent() const {
 		return std::string(_scopes.size() - 1 + _indentOffset, '\t');
 	}
 
-	std::string indent(int offset) {
+	std::string indent(int offset) const {
 		return std::string(_scopes.size() - 1 + _indentOffset + offset, '\t');
 	}
 
@@ -337,7 +337,7 @@ private:
 		return _converter.to_bytes(std::wstring(begin, end));
 	}
 
-	Value_t* singleValueFrom(ast_node* item) {
+	Value_t* singleValueFrom(ast_node* item) const {
 		Exp_t* exp = nullptr;
 		switch (item->getId()) {
 			case "Exp"_id:
@@ -365,7 +365,7 @@ private:
 		return nullptr;
 	}
 
-	SimpleValue_t* simpleSingleValueFrom(ast_node* expList) {
+	SimpleValue_t* simpleSingleValueFrom(ast_node* expList) const {
 		auto value = singleValueFrom(expList);
 		if (value && value->item.is<SimpleValue_t>()) {
 			return static_cast<SimpleValue_t*>(value->item.get());
@@ -373,7 +373,7 @@ private:
 		return nullptr;
 	}
 
-	Value_t* firstValueFrom(ast_node* item) {
+	Value_t* firstValueFrom(ast_node* item) const {
 		Exp_t* exp = nullptr;
 		if (auto expList = ast_cast<ExpList_t>(item)) {
 			if (!expList->exprs.empty()) {
@@ -385,18 +385,18 @@ private:
 		return exp->value.get();
 	}
 
-	Statement_t* lastStatementFrom(Body_t* body) {
+	Statement_t* lastStatementFrom(Body_t* body) const {
 		if (auto stmt = body->content.as<Statement_t>()) {
 			return stmt;
 		} else {
-			auto node = body->content.to<Block_t>()->statements.objects().back();
-			return static_cast<Statement_t*>(node);
+			const auto& stmts = body->content.to<Block_t>()->statements.objects();
+			return stmts.empty() ? nullptr : static_cast<Statement_t*>(stmts.back());
 		}
 	}
 
-	Statement_t* lastStatementFrom(Block_t* block) {
-		auto node = block->statements.objects().back();
-		return static_cast<Statement_t*>(node);
+	Statement_t* lastStatementFrom(Block_t* block) const {
+		const auto& stmts = block->statements.objects();
+		return stmts.empty() ? nullptr : static_cast<Statement_t*>(stmts.back());
 	}
 
 	template <class T>
@@ -422,7 +422,7 @@ private:
 		return result;
 	}
 
-	bool isChainValueCall(ChainValue_t* chainValue) {
+	bool isChainValueCall(ChainValue_t* chainValue) const {
 		return ast_is<InvokeArgs_t, Invoke_t>(chainValue->items.back());
 	}
 
@@ -434,7 +434,7 @@ private:
 		HasKeyword
 	};
 
-	ChainType specialChainValue(ChainValue_t* chainValue) {
+	ChainType specialChainValue(ChainValue_t* chainValue) const {
 		if (ast_is<ColonChainItem_t>(chainValue->items.back())) {
 			return ChainType::EndWithColon;
 		}
@@ -491,7 +491,7 @@ private:
 		return Empty;
 	}
 
-	bool isAssignable(const node_container& chainItems) {
+	bool isAssignable(const node_container& chainItems) const {
 		if (chainItems.size() == 1) {
 			 auto firstItem = chainItems.back();
 			 if (auto callable = ast_cast<Callable_t>(firstItem)) {
@@ -514,7 +514,7 @@ private:
 		return false;
 	}
 
-	bool isAssignable(Exp_t* exp) {
+	bool isAssignable(Exp_t* exp) const {
 		if (auto value = singleValueFrom(exp)) {
 			auto item = value->item.get();
 			switch (item->getId()) {
@@ -522,7 +522,7 @@ private:
 					return true;
 				case "SimpleValue"_id: {
 					auto simpleValue = static_cast<SimpleValue_t*>(item);
-					if (simpleValue->value.is<TableLit_t>()) {
+					if (simpleValue->value. is<TableLit_t>()) {
 						return true;
 					}
 					return false;
@@ -536,14 +536,14 @@ private:
 		return false;
 	}
 
-	bool isAssignable(Assignable_t* assignable) {
+	bool isAssignable(Assignable_t* assignable) const {
 		if (auto assignableChain = ast_cast<AssignableChain_t>(assignable->item)) {
 			return isAssignable(assignableChain->items.objects());
 		}
 		return true;
 	}
 
-	void checkAssignable(ExpList_t* expList) {
+	void checkAssignable(ExpList_t* expList) const {
 		for (auto exp_ : expList->exprs.objects()) {
 			Exp_t* exp = static_cast<Exp_t*>(exp_);
 			if (!isAssignable(exp)) {
@@ -552,7 +552,22 @@ private:
 		}
 	}
 
-	std::string debugInfo(std::string_view msg, const input_range* loc) {
+	bool isPureBackcall(Exp_t* exp) const {
+		if (exp->opValues.empty()) {
+			return false;
+		}
+		bool backcall = true;
+		for (auto _opValue : exp->opValues.objects()) {
+			auto opValue = static_cast<exp_op_value_t*>(_opValue);
+			if (!opValue->op.is<BackcallOperator_t>()) {
+				backcall = false;
+				break;
+			}
+		}
+		return backcall;
+	}
+
+	std::string debugInfo(std::string_view msg, const input_range* loc) const {
 		const int ASCII = 255;
 		int length = loc->m_begin.m_line;
 		auto begin = _input.begin();
@@ -569,7 +584,7 @@ private:
 				count++;
 			}
 		}
-		auto line = _converter.to_bytes(std::wstring(begin, end));
+		auto line = Converter{}.to_bytes(std::wstring(begin, end));
 		int oldCol = loc->m_begin.m_col;
 		int col = std::max(0, oldCol - 1);
 		auto it = begin;
@@ -738,6 +753,12 @@ private:
 								transformChainValue(chainValue, out, ExpUsage::Common);
 								break;
 							}
+						}
+					} else if (expList->exprs.size() == 1){
+						auto exp = static_cast<Exp_t*>(expList->exprs.back());
+						if (isPureBackcall(exp)) {
+							transformExp(exp, out, ExpUsage::Common);
+							break;
 						}
 					}
 					throw std::logic_error(debugInfo("Expression list must appear at the end of body block."sv, expList));
@@ -1029,6 +1050,11 @@ private:
 					break;
 			}
 		}
+		if (isPureBackcall(exp)) {
+			auto expList = assignment->expList.get();
+			transformExp(exp, out, ExpUsage::Assignment, expList);
+			return;
+		}
 		BLOCK_END
 		auto info = extractDestructureInfo(assignment);
 		if (info.first.empty()) {
@@ -1099,7 +1125,7 @@ private:
 			case "If"_id: transformIf(static_cast<If_t*>(value), out, ExpUsage::Closure); break;
 			case "Switch"_id: transformSwitchClosure(static_cast<Switch_t*>(value), out); break;
 			case "TableBlock"_id: transformTableBlock(static_cast<TableBlock_t*>(value), out); break;
-			case "Exp"_id: transformExp(static_cast<Exp_t*>(value), out); break;
+			case "Exp"_id: transformExp(static_cast<Exp_t*>(value), out, ExpUsage::Closure); break;
 			default: break;
 		}
 	}
@@ -1145,7 +1171,7 @@ private:
 						bool isVariable = !varName.empty();
 						if (!isVariable) {
 							str_list temp;
-							transformExp(exp, temp);
+							transformExp(exp, temp, ExpUsage::Closure);
 							varName = std::move(temp.back());
 						}
 						_config.lintGlobalVariable = lintGlobal;
@@ -1194,7 +1220,7 @@ private:
 							bool isVariable = !varName.empty();
 							if (!isVariable) {
 								str_list temp;
-								transformExp(exp, temp);
+								transformExp(exp, temp, ExpUsage::Closure);
 								varName = std::move(temp.back());
 							}
 							_config.lintGlobalVariable = lintGlobal;
@@ -1325,7 +1351,7 @@ private:
 				transformValue(leftValue, temp);
 				auto left = std::move(temp.back());
 				temp.pop_back();
-				transformExp(update->value, temp);
+				transformExp(update->value, temp, ExpUsage::Closure);
 				auto right = std::move(temp.back());
 				temp.pop_back();
 				if (!singleValueFrom(update->value)) {
@@ -1526,13 +1552,13 @@ private:
 					if (auto value = singleValueFrom(condition)) {
 						transformValue(value, tmp);
 					} else {
-						transformExp(condition, tmp);
+						transformExp(condition, tmp, ExpUsage::Closure);
 						tmp.back() = s("("sv) + tmp.back() + s(")"sv);
 					}
 					tmp.back().insert(0, s("not "sv));
 					unless = false;
 				} else {
-					transformExp(condition, tmp);
+					transformExp(condition, tmp, ExpUsage::Closure);
 				}
 				_buf << indent();
 				if (pair != ifCondPairs.front()) {
@@ -1579,7 +1605,7 @@ private:
 	void transformExpList(ExpList_t* expList, str_list& out) {
 		str_list temp;
 		for (auto exp : expList->exprs.objects()) {
-			transformExp(static_cast<Exp_t*>(exp), temp);
+			transformExp(static_cast<Exp_t*>(exp), temp, ExpUsage::Closure);
 		}
 		out.push_back(join(temp, ", "sv));
 	}
@@ -1587,17 +1613,74 @@ private:
 	void transformExpListLow(ExpListLow_t* expListLow, str_list& out) {
 		str_list temp;
 		for (auto exp : expListLow->exprs.objects()) {
-			transformExp(static_cast<Exp_t*>(exp), temp);
+			transformExp(static_cast<Exp_t*>(exp), temp, ExpUsage::Closure);
 		}
 		out.push_back(join(temp, ", "sv));
 	}
 
-	void transformExp(Exp_t* exp, str_list& out) {
+	void transformExp(Exp_t* exp, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
+		auto x = exp;
+		const auto& opValues = exp->opValues.objects();
+		for (auto it = opValues.begin(); it != opValues.end(); ++it) {
+			auto opValue = static_cast<exp_op_value_t*>(*it);
+			if (opValue->op.is<BackcallOperator_t>()) {
+				if (auto chainValue = opValue->value->item.as<ChainValue_t>()) {
+					auto newExp = x->new_ptr<Exp_t>();
+					{
+						auto arg = x->new_ptr<Exp_t>();
+						arg->value.set(exp->value);
+						for (auto i = opValues.begin(); i != it; ++i) {
+							arg->opValues.push_back(*i);
+						}
+						auto next = it; ++next;
+						for (auto i = next; i != opValues.end(); ++i) {
+							newExp->opValues.push_back(*i);
+						}
+						if (isChainValueCall(chainValue)) {
+							auto last = chainValue->items.back();
+							if (auto invoke = ast_cast<InvokeArgs_t>(last)) {
+								invoke->args.push_front(arg);
+							} else {
+								ast_to<Invoke_t>(last)->args.push_front(arg);
+							}
+						} else {
+							auto invoke = x->new_ptr<Invoke_t>();
+							invoke->args.push_front(arg);
+							chainValue->items.push_back(invoke);
+						}
+						auto value = x->new_ptr<Value_t>();
+						value->item.set(chainValue);
+						newExp->value.set(value);
+					}
+					if (newExp->opValues.size() == 0) {
+						if (usage == ExpUsage::Assignment) {
+							auto assign = x->new_ptr<Assign_t>();
+							assign->values.push_back(newExp);
+							auto assignment = x->new_ptr<ExpListAssign_t>();
+							assignment->expList.set(assignList);
+							assignment->action.set(assign);
+							transformAssignment(assignment, out);
+						} else {
+							transformChainValue(chainValue, out, usage);
+						}
+					} else {
+						transformExp(newExp, out, usage, assignList);
+					}
+					return;
+				} else {
+					throw std::logic_error(debugInfo("Backcall operator must be followed by chain value."sv, opValue->value));
+				}
+			}
+		}
 		str_list temp;
 		transformValue(exp->value, temp);
 		for (auto _opValue : exp->opValues.objects()) {
 			auto opValue = static_cast<exp_op_value_t*>(_opValue);
-			transformBinaryOperator(opValue->op, temp);
+			if (auto op = opValue->op.as<BinaryOperator_t>()) {
+				transformBinaryOperator(op, temp);
+			} else {
+				temp.push_back(s("|>"sv));
+			}
 			transformValue(opValue->value, temp);
 		}
 		out.push_back(join(temp, " "sv));
@@ -1650,7 +1733,7 @@ private:
 
 	void transformParens(Parens_t* parans, str_list& out) {
 		str_list temp;
-		transformExp(parans->expr, temp);
+		transformExp(parans->expr, temp, ExpUsage::Closure);
 		out.push_back(s("("sv) + temp.front() + s(")"sv));
 	}
 
@@ -1731,8 +1814,68 @@ private:
 	void transformCodes(const node_container& nodes, str_list& out, bool implicitReturn) {
 		LocalMode mode = LocalMode::None;
 		Local_t* any = nullptr, *capital = nullptr;
-		for (auto node : nodes) {
+		for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+			auto node = *it;
 			auto stmt = static_cast<Statement_t*>(node);
+			if (auto backcall = stmt->content.as<Backcall_t>()) {
+				auto x = *nodes.begin();
+				auto newBlock = x->new_ptr<Block_t>();
+				if (it != nodes.begin()) {
+					for (auto i = nodes.begin(); i != it; ++i) {
+						newBlock->statements.push_back(*i);
+					}
+				}
+				x = backcall;
+				auto arg = x->new_ptr<Exp_t>();
+				{
+					auto block = x->new_ptr<Block_t>();
+					auto next = it; ++next;
+					if (next != nodes.end()) {
+						for (auto i = next; i != nodes.end(); ++i) {
+							block->statements.push_back(*i);
+						}
+					}
+					auto body = x->new_ptr<Body_t>();
+					body->content.set(block);
+					auto funLit = x->new_ptr<FunLit_t>();
+					funLit->argsDef.set(backcall->argsDef);
+					funLit->arrow.set(toAst<fn_arrow_t>("->"sv, fn_arrow, x));
+					funLit->body.set(body);
+					auto simpleValue = x->new_ptr<SimpleValue_t>();
+					simpleValue->value.set(funLit);
+					auto value = x->new_ptr<Value_t>();
+					value->item.set(simpleValue);
+					arg->value.set(value);
+				}
+				if (isChainValueCall(backcall->value)) {
+					auto last = backcall->value->items.back();
+					if (auto invoke = ast_cast<Invoke_t>(last)) {
+						invoke->args.push_back(arg);
+					} else {
+						ast_to<InvokeArgs_t>(last)->args.push_back(arg);
+					}
+				} else {
+					auto invoke = x->new_ptr<Invoke_t>();
+					invoke->args.push_back(arg);
+					backcall->value->items.push_back(invoke);
+				}
+				auto newStmt = x->new_ptr<Statement_t>();
+				{
+					auto chainValue = backcall->value.get();
+					auto value = x->new_ptr<Value_t>();
+					value->item.set(chainValue);
+					auto exp = x->new_ptr<Exp_t>();
+					exp->value.set(value);
+					auto expList = x->new_ptr<ExpList_t>();
+					expList->exprs.push_back(exp);
+					auto expListAssign = x->new_ptr<ExpListAssign_t>();
+					expListAssign->expList.set(expList);
+					newStmt->content.set(expListAssign);
+					newBlock->statements.push_back(newStmt);
+				}
+				transformBlock(newBlock, out, implicitReturn);
+				return;
+			}
 			if (auto local = stmt->content.as<Local_t>()) {
 				if (auto flag = local->name.as<local_flag_t>()) {
 					LocalMode newMode = toString(flag) == "*"sv ? LocalMode::Any : LocalMode::Capital;
@@ -1802,9 +1945,10 @@ private:
 			}
 		}
 		if (implicitReturn) {
+			BLOCK_START
+			BREAK_IF(nodes.empty());
 			auto last = static_cast<Statement_t*>(nodes.back());
 			auto x = last;
-			BLOCK_START
 			auto expList = expListFrom(last);
 			BREAK_IF(!expList ||
 				(last->appendix &&
@@ -1816,11 +1960,15 @@ private:
 			last->content.set(returnNode);
 			BLOCK_END
 		}
-		str_list temp;
-		for (auto node : nodes) {
-			transformStatement(static_cast<Statement_t*>(node), temp);
+		if (!nodes.empty()) {
+			str_list temp;
+			for (auto node : nodes) {
+				transformStatement(static_cast<Statement_t*>(node), temp);
+			}
+			out.push_back(join(temp));
+		} else {
+			out.push_back(Empty);
 		}
-		out.push_back(join(temp));
 	}
 
 	void transformBody(Body_t* body, str_list& out, bool implicitReturn = false) {
@@ -1837,6 +1985,13 @@ private:
 
 	void transformReturn(Return_t* returnNode, str_list& out) {
 		if (auto valueList = returnNode->valueList.get()) {
+			if (valueList->exprs.size() == 1) {
+				auto exp = static_cast<Exp_t*>(valueList->exprs.back());
+				if (isPureBackcall(exp)) {
+					transformExp(exp, out, ExpUsage::Return);
+					return;
+				}
+			}
 			if (auto singleValue = singleValueFrom(valueList)) {
 				if (auto simpleValue = singleValue->item.as<SimpleValue_t>()) {
 					auto value = simpleValue->value.get();
@@ -2514,7 +2669,7 @@ private:
 					temp.back() = s("("sv) + temp.back() + s(")"sv);
 					break;
 				case "Exp"_id:
-					transformExp(static_cast<Exp_t*>(item), temp);
+					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
 					temp.back() = s("["sv) + temp.back() + s("]"sv);
 					break;
 				case "InvokeArgs"_id: transformInvokeArgs(static_cast<InvokeArgs_t*>(item), temp); break;
@@ -2574,7 +2729,7 @@ private:
 		str_list temp;
 		for (auto arg : invoke->args.objects()) {
 			switch (arg->getId()) {
-				case "Exp"_id: transformExp(static_cast<Exp_t*>(arg), temp); break;
+				case "Exp"_id: transformExp(static_cast<Exp_t*>(arg), temp, ExpUsage::Closure); break;
 				case "SingleString"_id: transformSingleString(static_cast<SingleString_t*>(arg), temp); break;
 				case "DoubleString"_id: transformDoubleString(static_cast<DoubleString_t*>(arg), temp); break;
 				case "LuaString"_id: transformLuaString(static_cast<LuaString_t*>(arg), temp); break;
@@ -2587,7 +2742,7 @@ private:
 	void transform_unary_exp(unary_exp_t* unary_exp, str_list& out) {
 		std::string op = toString(unary_exp->m_begin.m_it, unary_exp->item->m_begin.m_it);
 		str_list temp{op + (op == "not"sv ? s(" "sv) : Empty)};
-		transformExp(unary_exp->item, temp);
+		transformExp(unary_exp->item, temp, ExpUsage::Closure);
 		out.push_back(join(temp));
 	}
 
@@ -2616,7 +2771,7 @@ private:
 					transformCompFor(static_cast<CompFor_t*>(item), temp);
 					break;
 				case "Exp"_id:
-					transformExp(static_cast<Exp_t*>(item), temp);
+					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
 					temp.back() = indent() + s("if "sv) + temp.back() + s(" then"sv) + nll(item);
 					pushScope();
 					break;
@@ -2668,7 +2823,7 @@ private:
 					transformCompFor(static_cast<CompFor_t*>(item), temp);
 					break;
 				case "Exp"_id:
-					transformExp(static_cast<Exp_t*>(item), temp);
+					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
 					temp.back() = indent() + s("if "sv) + temp.back() + s(" then"sv) + nll(item);
 					pushScope();
 					break;
@@ -2782,19 +2937,19 @@ private:
 				}
 				std::string startValue("1"sv);
 				if (auto exp = slice->startValue.as<Exp_t>()) {
-					transformExp(exp, temp);
+					transformExp(exp, temp, ExpUsage::Closure);
 					startValue = temp.back();
 					temp.pop_back();
 				}
 				std::string stopValue;
 				if (auto exp = slice->stopValue.as<Exp_t>()) {
-					transformExp(exp, temp);
+					transformExp(exp, temp, ExpUsage::Closure);
 					stopValue = temp.back();
 					temp.pop_back();
 				}
 				std::string stepValue;
 				if (auto exp = slice->stepValue.as<Exp_t>()) {
-					transformExp(exp, temp);
+					transformExp(exp, temp, ExpUsage::Closure);
 					stepValue = temp.back();
 					temp.pop_back();
 				}
@@ -2831,7 +2986,7 @@ private:
 					varBefore.push_back(listVar);
 				}
 				if (!endWithSlice) {
-					transformExp(star_exp->value, temp);
+					transformExp(star_exp->value, temp, ExpUsage::Closure);
 					if (newListVal) _buf << indent() << "local "sv << listVar << " = "sv << temp.back() << nll(nameList);
 					_buf << indent() << "for "sv << indexVar << " = 1, #"sv << listVar << " do"sv << nlr(loopTarget);
 					_buf << indent(1) << "local "sv << join(vars) << " = "sv << listVar << "["sv << indexVar << "]"sv << nll(nameList);
@@ -2840,7 +2995,7 @@ private:
 				break;
 			}
 			case "Exp"_id:
-				transformExp(static_cast<Exp_t*>(loopTarget), temp);
+				transformExp(static_cast<Exp_t*>(loopTarget), temp, ExpUsage::Closure);
 				_buf << indent() << "for "sv << join(vars, ", "sv) << " in "sv << temp.back() << " do"sv << nlr(loopTarget);
 				out.push_back(clearBuf());
 				break;
@@ -2884,7 +3039,7 @@ private:
 		str_list temp;
 		for (auto arg : invokeArgs->args.objects()) {
 			switch (arg->getId()) {
-				case "Exp"_id: transformExp(static_cast<Exp_t*>(arg), temp); break;
+				case "Exp"_id: transformExp(static_cast<Exp_t*>(arg), temp, ExpUsage::Closure); break;
 				case "TableBlock"_id: transformTableBlock(static_cast<TableBlock_t*>(arg), temp); break;
 				default: break;
 			}
@@ -2895,10 +3050,10 @@ private:
 	void transformForHead(For_t* forNode, str_list& out) {
 		str_list temp;
 		std::string varName = toString(forNode->varName);
-		transformExp(forNode->startValue, temp);
-		transformExp(forNode->stopValue, temp);
+		transformExp(forNode->startValue, temp, ExpUsage::Closure);
+		transformExp(forNode->stopValue, temp, ExpUsage::Closure);
 		if (forNode->stepValue) {
-			transformExp(forNode->stepValue->value, temp);
+			transformExp(forNode->stepValue->value, temp, ExpUsage::Closure);
 		} else {
 			temp.emplace_back();
 		}
@@ -3103,7 +3258,7 @@ private:
 				break;
 			}
 			case "Exp"_id:
-				transformExp(static_cast<Exp_t*>(key), temp);
+				transformExp(static_cast<Exp_t*>(key), temp, ExpUsage::Closure);
 				temp.back() = s("["sv) + temp.back() + s("]"sv);
 				break;
 			case "DoubleString"_id:
@@ -3117,7 +3272,7 @@ private:
 		}
 		auto value = pair->value.get();
 		switch (value->getId()) {
-			case "Exp"_id: transformExp(static_cast<Exp_t*>(value), temp); break;
+			case "Exp"_id: transformExp(static_cast<Exp_t*>(value), temp, ExpUsage::Closure); break;
 			case "TableBlock"_id: transformTableBlock(static_cast<TableBlock_t*>(value), temp); break;
 			default: break;
 		}
@@ -3133,7 +3288,7 @@ private:
 		}
 	}
 
-	void replace(std::string& str, std::string_view from, std::string_view to) {
+	void replace(std::string& str, std::string_view from, std::string_view to) const {
 		size_t start_pos = 0;
 		while((start_pos = str.find(from, start_pos)) != std::string::npos) {
 			str.replace(start_pos, from.size(), to);
@@ -3169,7 +3324,7 @@ private:
 					break;
 				}
 				case "Exp"_id:
-					transformExp(static_cast<Exp_t*>(content), temp);
+					transformExp(static_cast<Exp_t*>(content), temp, ExpUsage::Closure);
 					temp.back() = s("tostring("sv) + temp.back() + s(")"sv);
 					break;
 				default: break;
@@ -3302,7 +3457,7 @@ private:
 		if (extend) {
 			parentVar = getUnusedName("_parent_"sv);
 			addToScope(parentVar);
-			transformExp(extend, temp);
+			transformExp(extend, temp, ExpUsage::Closure);
 			parent = temp.back();
 			temp.pop_back();
 			temp.push_back(indent() + s("local "sv) + parentVar + s(" = "sv) + parent + nll(classDecl));
@@ -3698,8 +3853,8 @@ private:
 			transformAssignment(assignment, temp);
 		}
 		if (returnValue) {
-			auto stmt = lastStatementFrom(with->body);
-			if (!stmt->content.is<Return_t>()) {
+			auto last = lastStatementFrom(with->body);
+			if (last && !last->content.is<Return_t>()) {
 				temp.push_back(indent() + s("return "sv) + withVar + nll(with));
 			}
 		}
@@ -3778,7 +3933,7 @@ private:
 		pushScope();
 		for (auto pair : pairs) {
 			switch (pair->getId()) {
-				case "Exp"_id: transformExp(static_cast<Exp_t*>(pair), temp); break;
+				case "Exp"_id: transformExp(static_cast<Exp_t*>(pair), temp, ExpUsage::Closure); break;
 				case "variable_pair"_id: transform_variable_pair(static_cast<variable_pair_t*>(pair), temp); break;
 				case "normal_pair"_id: transform_normal_pair(static_cast<normal_pair_t*>(pair), temp); break;
 			}
@@ -3817,15 +3972,15 @@ private:
 					transformCompFor(static_cast<CompFor_t*>(item), temp);
 					break;
 				case "Exp"_id:
-					transformExp(static_cast<Exp_t*>(item), temp);
+					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
 					temp.back() = indent() + s("if "sv) + temp.back() + s(" then"sv) + nll(item);
 					pushScope();
 					break;
 			}
 		}
-		transformExp(comp->key, kv);
+		transformExp(comp->key, kv, ExpUsage::Closure);
 		if (comp->value) {
-			transformExp(comp->value->value, kv);
+			transformExp(comp->value->value, kv, ExpUsage::Closure);
 		}
 		for (size_t i = 0; i < compInner->items.objects().size(); ++i) {
 			popScope();
@@ -3878,10 +4033,10 @@ private:
 	void transformCompFor(CompFor_t* comp, str_list& out) {
 		str_list temp;
 		std::string varName = toString(comp->varName);
-		transformExp(comp->startValue, temp);
-		transformExp(comp->stopValue, temp);
+		transformExp(comp->startValue, temp, ExpUsage::Closure);
+		transformExp(comp->stopValue, temp, ExpUsage::Closure);
 		if (comp->stepValue) {
-			transformExp(comp->stepValue->value, temp);
+			transformExp(comp->stepValue->value, temp, ExpUsage::Closure);
 		} else {
 			temp.emplace_back();
 		}
@@ -4074,7 +4229,7 @@ private:
 		addToScope(lenVar);
 		temp.push_back(indent() + s("local "sv) + accumVar + s(" = { }"sv) + nll(whileNode));
 		temp.push_back(indent() + s("local "sv) + lenVar + s(" = 1"sv) + nll(whileNode));
-		transformExp(whileNode->condition, temp);
+		transformExp(whileNode->condition, temp, ExpUsage::Closure);
 		temp.back() = indent() + s("while "sv) + temp.back() + s(" do"sv) + nll(whileNode);
 		pushScope();
 		auto assignLeft = toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), ExpList, x);
@@ -4111,7 +4266,7 @@ private:
 		addToScope(lenVar);
 		temp.push_back(indent() + s("local "sv) + accumVar + s(" = { }"sv) + nll(whileNode));
 		temp.push_back(indent() + s("local "sv) + lenVar + s(" = 1"sv) + nll(whileNode));
-		transformExp(whileNode->condition, temp);
+		transformExp(whileNode->condition, temp, ExpUsage::Closure);
 		temp.back() = indent() + s("while "sv) + temp.back() + s(" do"sv) + nll(whileNode);
 		pushScope();
 		auto assignLeft = toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), ExpList, x);
@@ -4129,7 +4284,7 @@ private:
 	void transformWhile(While_t* whileNode, str_list& out) {
 		str_list temp;
 		pushScope();
-		transformExp(whileNode->condition, temp);
+		transformExp(whileNode->condition, temp, ExpUsage::Closure);
 		transformLoopBody(whileNode->body, temp, Empty);
 		popScope();
 		_buf << indent() << "while "sv << temp.front() << " do"sv << nll(whileNode);
@@ -4154,7 +4309,7 @@ private:
 		if (objVar.empty()) {
 			objVar = getUnusedName("_exp_"sv);
 			addToScope(objVar);
-			transformExp(switchNode->target, temp);
+			transformExp(switchNode->target, temp, ExpUsage::Closure);
 			_buf << indent() << "local "sv << objVar << " = "sv << temp.back() << nll(switchNode);
 			temp.back() = clearBuf();
 		}
@@ -4166,7 +4321,7 @@ private:
 			const auto& exprs = branch->valueList->exprs.objects();
 			for (auto exp_ : exprs) {
 				auto exp = static_cast<Exp_t*>(exp_);
-				transformExp(exp, tmp);
+				transformExp(exp, tmp, ExpUsage::Closure);
 				if (!singleValueFrom(exp)) {
 					tmp.back() = s("("sv) + tmp.back() + s(")"sv);
 				}
@@ -4220,11 +4375,11 @@ private:
 	}
 };
 
-const std::string MoonCompliler::Empty;
+const std::string MoonCompiler::Empty;
 
 std::tuple<std::string,std::string,GlobalVars> moonCompile(const std::string& codes, const MoonConfig& config) {
-	auto compiler = MoonCompliler{};
-	auto result = compiler.complile(codes, config);
+	auto compiler = MoonCompiler{};
+	auto result = compiler.compile(codes, config);
 	auto globals = std::make_unique<std::list<GlobalVar>>();
 	for (const auto& var : compiler.getGlobals()) {
 		int line,col;
