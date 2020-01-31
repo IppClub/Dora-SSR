@@ -131,7 +131,6 @@
 		3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */; };
 		3C6A1FB31E082B00006DD8C7 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C6A1FB21E082B00006DD8C7 /* libluajit.a */; };
 		3C6A2BF1238E039700AD8C80 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BE9238E039700AD8C80 /* ast.cpp */; };
-		3C6A2BF2238E039700AD8C80 /* moon_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BEA238E039700AD8C80 /* moon_ast.cpp */; };
 		3C6A2BF3238E039700AD8C80 /* moon_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */; };
 		3C6A2BF4238E039700AD8C80 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BEE238E039700AD8C80 /* parser.cpp */; };
 		3C6A2BF5238E039700AD8C80 /* moon_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */; };
@@ -529,7 +528,6 @@
 		3C6A2BE7238E039700AD8C80 /* parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = parser.hpp; sourceTree = "<group>"; };
 		3C6A2BE8238E039700AD8C80 /* moon_compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_compiler.h; sourceTree = "<group>"; };
 		3C6A2BE9238E039700AD8C80 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast.cpp; sourceTree = "<group>"; };
-		3C6A2BEA238E039700AD8C80 /* moon_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_ast.cpp; sourceTree = "<group>"; };
 		3C6A2BEB238E039700AD8C80 /* moon_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_ast.h; sourceTree = "<group>"; };
 		3C6A2BEC238E039700AD8C80 /* moon_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_parser.h; sourceTree = "<group>"; };
 		3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_compiler.cpp; sourceTree = "<group>"; };
@@ -1120,7 +1118,6 @@
 				3C6A2BE7238E039700AD8C80 /* parser.hpp */,
 				3C6A2BEE238E039700AD8C80 /* parser.cpp */,
 				3C6A2BEB238E039700AD8C80 /* moon_ast.h */,
-				3C6A2BEA238E039700AD8C80 /* moon_ast.cpp */,
 				3C6A2BEC238E039700AD8C80 /* moon_parser.h */,
 				3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */,
 				3C6A2BE8238E039700AD8C80 /* moon_compiler.h */,
@@ -1667,7 +1664,6 @@
 				3C1677A92212C0FD00892CD4 /* Velocity.cpp in Sources */,
 				3C1677B52212C0FD00892CD4 /* DiskShapeConf.cpp in Sources */,
 				3C59730B1E7F74E900BFD00F /* ModelCache.cpp in Sources */,
-				3C6A2BF2238E039700AD8C80 /* moon_ast.cpp in Sources */,
 				3C16777F2212C0FD00892CD4 /* VelocityConstraint.cpp in Sources */,
 				3C6A2BF4238E039700AD8C80 /* parser.cpp in Sources */,
 				3CB410291E05B0C500A8804D /* Slice.cpp in Sources */,

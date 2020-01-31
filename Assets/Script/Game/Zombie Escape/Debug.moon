@@ -71,8 +71,8 @@ world\schedule ->
 						.decisionTree = "AI_PlayerControl"
 						.sensity = 0
 						\addChild Star {
-							y: 20
-							size: 3
+							y: 100
+							size: 18
 							borderColor: 0xffff8800
 							fillColor: 0x66ff8800
 							fillOrder: 1

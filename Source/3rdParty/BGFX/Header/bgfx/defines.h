@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 Branimir Karadzic. All rights reserved.
+ * Copyright 2011-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
@@ -15,7 +15,7 @@
 #ifndef BGFX_DEFINES_H_HEADER_GUARD
 #define BGFX_DEFINES_H_HEADER_GUARD
 
-#define BGFX_API_VERSION UINT32_C(102)
+#define BGFX_API_VERSION UINT32_C(103)
 
 /**
  * Color RGB/alpha/depth write. When it's not specified write will be disabled.
@@ -250,6 +250,26 @@
 	| BGFX_CLEAR_DISCARD_COLOR_MASK \
 	| BGFX_CLEAR_DISCARD_DEPTH \
 	| BGFX_CLEAR_DISCARD_STENCIL \
+	)
+
+
+/**
+ * Rendering state discard. When state is preserved in submit, rendering states can be discarded
+ * on a finer grain.
+ *
+ */
+#define BGFX_DISCARD_INDEX_BUFFER           UINT8_C(0x01) //!< Discard only Index Buffer
+#define BGFX_DISCARD_VERTEX_STREAMS         UINT8_C(0x02) //!< Discard only Vertex Streams
+#define BGFX_DISCARD_TEXTURE_SAMPLERS       UINT8_C(0x04) //!< Discard only texture samplers
+#define BGFX_DISCARD_COMPUTE                UINT8_C(0x08) //!< Discard only Compute shader related state
+#define BGFX_DISCARD_STATE                  UINT8_C(0x10) //!< Discard only state
+/// Discard every rendering states
+#define BGFX_DISCARD_ALL (0 \
+	| BGFX_DISCARD_INDEX_BUFFER \
+	| BGFX_DISCARD_VERTEX_STREAMS \
+	| BGFX_DISCARD_TEXTURE_SAMPLERS \
+	| BGFX_DISCARD_COMPUTE \
+	| BGFX_DISCARD_STATE \
 	)
 
 

@@ -253,19 +253,23 @@ static int dora_moontolua(lua_State* L)
 				lua_pushlstring(L, compiledCodes.c_str(), compiledCodes.size());
 				lua_pushnil(L);
 			}
-			lua_createtable(L, s_cast<int>(globals->size()), 0);
-			int i = 1;
-			for (const auto& var : *globals)
-			{
-				lua_createtable(L, 3, 0);
-				lua_pushlstring(L, var.name.c_str(), var.name.size());
-				lua_rawseti(L, -2, 1);
-				lua_pushinteger(L, var.line);
-				lua_rawseti(L, -2, 2);
-				lua_pushinteger(L, var.col);
-				lua_rawseti(L, -2, 3);
-				lua_rawseti(L, -2, i);
-				i++;
+			if (globals) {
+				lua_createtable(L, s_cast<int>(globals->size()), 0);
+				int i = 1;
+				for (const auto& var : *globals)
+				{
+					lua_createtable(L, 3, 0);
+					lua_pushlstring(L, var.name.c_str(), var.name.size());
+					lua_rawseti(L, -2, 1);
+					lua_pushinteger(L, var.line);
+					lua_rawseti(L, -2, 2);
+					lua_pushinteger(L, var.col);
+					lua_rawseti(L, -2, 3);
+					lua_rawseti(L, -2, i);
+					i++;
+				}
+			} else {
+				lua_createtable(L, 0, 0);
 			}
 			return 3;
 		}
