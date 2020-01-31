@@ -645,9 +645,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\MoonP\ast.cpp">
       <Filter>3rdParty\MoonP</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_ast.cpp">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.cpp">
       <Filter>3rdParty\MoonP</Filter>
     </ClCompile>

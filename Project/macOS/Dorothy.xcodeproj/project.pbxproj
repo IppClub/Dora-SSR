@@ -51,7 +51,6 @@
 		3C4A542D20F5F8B6007ED601 /* Component.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4A542C20F5F8B6007ED601 /* Component.cpp */; };
 		3C4DEBCC234E3D5300ACA60F /* moon_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4DEBCB234E3D5300ACA60F /* moon_compiler.cpp */; };
 		3C54E28B234E390400202423 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54E282234E390400202423 /* ast.cpp */; };
-		3C54E28D234E390400202423 /* moon_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54E284234E390400202423 /* moon_ast.cpp */; };
 		3C54E28F234E390400202423 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54E288234E390400202423 /* parser.cpp */; };
 		3C54E290234E390400202423 /* moon_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54E289234E390400202423 /* moon_parser.cpp */; };
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
@@ -336,7 +335,6 @@
 		3C4DEBCB234E3D5300ACA60F /* moon_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_compiler.cpp; sourceTree = "<group>"; };
 		3C54E280234E390400202423 /* parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = parser.hpp; sourceTree = "<group>"; };
 		3C54E282234E390400202423 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast.cpp; sourceTree = "<group>"; };
-		3C54E284234E390400202423 /* moon_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_ast.cpp; sourceTree = "<group>"; };
 		3C54E285234E390400202423 /* moon_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_ast.h; sourceTree = "<group>"; };
 		3C54E287234E390400202423 /* moon_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_parser.h; sourceTree = "<group>"; };
 		3C54E288234E390400202423 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
@@ -941,7 +939,6 @@
 				3C54E28A234E390400202423 /* ast.hpp */,
 				3C54E288234E390400202423 /* parser.cpp */,
 				3C54E280234E390400202423 /* parser.hpp */,
-				3C54E284234E390400202423 /* moon_ast.cpp */,
 				3C54E285234E390400202423 /* moon_ast.h */,
 				3C54E289234E390400202423 /* moon_parser.cpp */,
 				3C54E287234E390400202423 /* moon_parser.h */,
@@ -1849,7 +1846,6 @@
 				3CFDA9152200358900C9DFD0 /* FixtureConf.cpp in Sources */,
 				3CFDA9402200358900C9DFD0 /* CodeDumper.cpp in Sources */,
 				3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */,
-				3C54E28D234E390400202423 /* moon_ast.cpp in Sources */,
 				3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */,
 				3CFDA9502200358900C9DFD0 /* Distance.cpp in Sources */,
 				3C54E28B234E390400202423 /* ast.cpp in Sources */,
