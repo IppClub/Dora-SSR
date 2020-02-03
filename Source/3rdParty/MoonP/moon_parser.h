@@ -79,7 +79,6 @@ protected:
 		std::stack<bool> doStack;
 	};
 
-
 	template <class T>
 	inline rule& getRule() {
 		return getRule(identity<T>());
@@ -107,7 +106,6 @@ private:
 	rule Indent;
 	rule EscapeNewLine;
 	rule Space;
-	rule SomeSpace;
 	rule SpaceBreak;
 	rule EmptyLine;
 	rule AlphaNum;

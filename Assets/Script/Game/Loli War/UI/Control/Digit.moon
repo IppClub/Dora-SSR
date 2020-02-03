@@ -6,7 +6,7 @@ Class Digit,
 		@_value = 99
 		@maxValue = 99
 
-	value: property => @_value,
+	value: property (=> @_value),
 		(value)=>
 			@_value = math.max math.min(@maxValue,value),0
 			@removeAllChildren!

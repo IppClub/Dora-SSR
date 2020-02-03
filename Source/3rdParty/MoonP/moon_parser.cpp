@@ -37,15 +37,14 @@ MoonParser::MoonParser() {
 	Any = Break | any();
 	White = *(set(" \t") | Break);
 	Stop = Break | eof();
+	Indent = plain_space;
 	Comment = "--" >> *(not_(set("\r\n")) >> Any) >> and_(Stop);
 	multi_line_open = expr("--[[");
 	multi_line_close = expr("]]");
 	multi_line_content = *(not_(multi_line_close) >> Any);
 	MultiLineComment = multi_line_open >> multi_line_content >> multi_line_close;
-	Indent = plain_space;
-	EscapeNewLine = expr('\\') >> plain_space >> -Comment >> Break;
+	EscapeNewLine = expr('\\') >> *(set(" \t") | MultiLineComment) >> -Comment >> Break;
 	Space = *(set(" \t") | MultiLineComment | EscapeNewLine) >> -Comment;
-	SomeSpace = +set(" \t") >> -Comment;
 	SpaceBreak = Space >> Break;
 	EmptyLine = SpaceBreak;
 	AlphaNum = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
@@ -396,7 +395,7 @@ MoonParser::MoonParser() {
 	export_op = expr('*') | expr('^');
 	Export = key("export") >> (ClassDecl | (Space >> export_op) | export_values);
 
-	variable_pair = sym(':') >> not_(SomeSpace) >> Space >> Variable;
+	variable_pair = sym(':') >> Variable;
 
 	normal_pair = (
 		KeyName |
@@ -436,8 +435,8 @@ MoonParser::MoonParser() {
 
 	Backcall = -FnArgsDef >> Space >> symx("<-") >> Space >> ChainValue;
 
-	ExpList = Seperator >> Exp >> *(sym(',') >> Exp);
-	ExpListLow = Seperator >> Exp >> *((sym(',') | sym(';')) >> Exp);
+	ExpList = Seperator >> Exp >> *(sym(',') >> White >> Exp);
+	ExpListLow = Seperator >> Exp >> *((sym(',') | sym(';')) >> White >> Exp);
 
 	ArgLine = CheckIndent >> Exp >> *(sym(',') >> Exp);
 	ArgBlock = ArgLine >> *(sym(',') >> SpaceBreak >> ArgLine) >> PopIndent;
@@ -457,7 +456,7 @@ MoonParser::MoonParser() {
 		);
 
 	const_value = (expr("nil") | expr("true") | expr("false")) >> not_(AlphaNum);
-	minus_exp = expr('-') >> not_(SomeSpace) >> Exp;
+	minus_exp = expr('-') >> not_(set(" \t")) >> Exp;
 	sharp_exp = expr('#') >> Exp;
 	tilde_exp = expr('~') >> Exp;
 	not_exp = expr("not") >> not_(AlphaNum) >> Exp;

@@ -44,7 +44,7 @@ void DoraAssert(bool cond, const Slice& msg)
 	{
 		assert(cond);
 	}
-	else if (!SharedLuaEngine.executeAssert(cond, msg))
+	else if (!cond && !SharedLuaEngine.executeAssert(cond, msg))
 	{
 		assert(cond);
 	}

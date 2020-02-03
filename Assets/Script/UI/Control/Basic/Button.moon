@@ -17,7 +17,7 @@ Class Button,
 				sleep!
 				@touchEnabled = enabled
 
-	text:property => @_text,
+	text:property (=> @_text),
 		(value)=>
 			@_text = value
 			@label.text = value if @label

@@ -17,7 +17,7 @@ UnitAction\add "groundEntrance",
 			.loop = false
 			\slot "AnimationEnd",groundEntranceEnd
 			\play "groundEntrance"
-		-> false,
+		-> false
 	stop: =>
 		@model\slot("AnimationEnd")\remove groundEntranceEnd
 		@group = @entity.lastGroup
@@ -47,7 +47,7 @@ UnitAction\add "fallOff",
 					.speed = 1
 					.loop = false
 					\play "fallOff"
-			false,
+			false
 	stop: =>
 		@model\stop!
 

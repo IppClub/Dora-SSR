@@ -319,6 +319,7 @@ end
 
 local function getShortName(fname)
 	local index = 0
+	local shortName = fname
 	repeat
 		index = fname:find("[\\/]",index+1)
 		if index == nil then
@@ -327,10 +328,10 @@ local function getShortName(fname)
 		local name = fname:sub(index+1,-1)
 		if Content:exist(name) then
 			fname = name
-			break
+			shortName = name
 		end
 	until index == nil
-	return fname
+	return shortName
 end
 
 ---
@@ -424,20 +425,25 @@ Stack Traceback
 	local info = dumper.getinfo(level, "nSlf")
 	while info do
 		if info.source and info.source:sub(1,1) == "@" then
-			info.source = getShortName(info.source:sub(2))
+			info.source = info.source:sub(2)
 		elseif info.what == "main" or info.what == "Lua" then
-			local fext = info.source .. ".lua"
+			info.source = info.source
+		end
+		local fname = info.source
+		local extension = fname:match("%.([^%.\\/]*)$")
+		if not extension then
+			local fext = fname .. ".lua"
 			if Content:exist(fext) then
-				info.source = fext
+				fname = fext
 			else
-				fext = info.source .. ".moon"
+				fext = fname .. ".moon"
 				if Content:exist(fext) then
-					info.source = fext
+					fname = fext
 				end
 			end
-			info.source = getShortName(info.source)
 		end
-		info.source, info.currentline = getMoonLineNumber(info.source, info.currentline)
+		info.source, info.currentline = getMoonLineNumber(fname, info.currentline)
+		info.source = getShortName(info.source)
 		if info.what == "main" then
 			if _M.simplified then
 				dumper:add_f("(%d) '%s':%d\r\n", level_to_show, info.source, info.currentline)

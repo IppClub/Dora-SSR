@@ -30,7 +30,7 @@ LabelEx = Class Node,
 		@_label = label
 		@text = text
 
-	text:property => @_text,
+	text:property (=> @_text),
 		(value)=>
 			@_text = value
 			@_label.text = "..."

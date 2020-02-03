@@ -150,15 +150,14 @@ end
 
 builtin.namespace = function(path,func)
 	if path then
-		local function req(name)
-			return require(path.."."..name)
-		end
 		if func then
 			Content:insertSearchPath(1, path)
-			func(req)
+			func()
 			Content:removeSearchPath(path)
 		else
-			return req
+			return function(name)
+				return require(path.."."..name)
+			end
 		end
 	end
 end

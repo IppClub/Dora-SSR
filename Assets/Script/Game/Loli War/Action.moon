@@ -24,7 +24,7 @@ UnitAction\add "fallOff",
 		=>
 			if @onSurface
 				return true
-			false,
+			false
 	stop: =>
 		@model\stop!
 
@@ -50,7 +50,7 @@ UnitAction\add "pushSwitch",
 		with @entity.atSwitch
 			.entity.pushed = true
 			.entity.fromRight = @x > .x
-		-> false,
+		-> false
 	stop: =>
 		@model\slot("AnimationEnd")\remove pushSwitchEnd
 		@model\stop!
@@ -65,7 +65,7 @@ UnitAction\add "waitUser",
 			.speed = 1
 			.loop = true
 			\play "idle"
-		-> false,
+		-> false
 	stop: =>
 		@model\stop!
 
@@ -142,7 +142,7 @@ UnitAction\add "strike",
 			\play "hit"
 			\slot "AnimationEnd",strikeEnd
 		Audio\play "Audio/hit.wav"
-		-> false,
+		-> false
 	stop: =>
 		@model\slot("AnimationEnd")\remove strikeEnd
 		@model\stop!
@@ -184,7 +184,7 @@ UnitAction\add "villyAttack",
 			sleep 0.63/attackSpeed
 			onAttack!
 			sleep 1.0
-			true,
+			true
 	stop: =>
 		@model\slot("AnimationEnd")\remove villyAttackEnd
 		@model\stop!
@@ -203,6 +203,6 @@ UnitAction\add "wait",
 		=>
 			if not @onSurface
 				return true
-			false,
+			false
 	stop: =>
 		@model\stop!

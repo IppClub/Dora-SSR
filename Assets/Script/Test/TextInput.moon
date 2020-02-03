@@ -109,7 +109,7 @@ TextInput = Class ((args)->
 		.size = Size width,height
 		\addChild node
 	),{
-		text:property => @label.text,
+		text:property (=> @label.text),
 			(value)=>
 				@content\detachIME! if @content.imeAttached
 				@content\updateDisplayText value
