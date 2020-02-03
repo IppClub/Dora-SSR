@@ -3959,16 +3959,16 @@ private:
 		str_list temp;
 		if (usage == ExpUsage::Closure) {
 			temp.push_back(s("(function()"sv) + nll(doNode));
-			pushScope();
+		} else {
+			temp.push_back(indent() + s("do"sv) + nll(doNode));
 		}
-		temp.push_back(indent() + s("do"sv) + nll(doNode));
 		pushScope();
 		transformBody(doNode->body, temp, usage, assignList);
 		popScope();
-		temp.push_back(indent() + s("end"sv) + nlr(doNode));
 		if (usage == ExpUsage::Closure) {
-			popScope();
 			temp.push_back(indent() + s("end)()"sv));
+		} else {
+			temp.push_back(indent() + s("end"sv) + nlr(doNode));
 		}
 		out.push_back(join(temp));
 	}
