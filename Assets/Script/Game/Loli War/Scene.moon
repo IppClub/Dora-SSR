@@ -22,7 +22,10 @@ GameWorld = Class PlatformWorld,
 	__init:=>
 		@entity = with Entity!
 			.world = @
-		@slot "Cleanup",-> @entity\destroy!
+
+		@slot "Cleanup",->
+			@entity\destroy!
+			Content\removeSearchPath "Script/Game/Loli War"
 
 	buildBackground: =>
 		terrainDef = with BodyDef!

@@ -81,6 +81,8 @@ Relation Data::getRelation(Uint8 groupA, Uint8 groupB) const
 
 Relation Data::getRelation(Body* bodyA, Body* bodyB) const
 {
+	DoraAssert(bodyA, "invalid body");
+	DoraAssert(bodyB, "invalid body");
 	return Data::getRelation(bodyA->getGroup(), bodyB->getGroup());
 }
 

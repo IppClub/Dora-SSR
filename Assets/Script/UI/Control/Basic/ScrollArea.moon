@@ -271,13 +271,13 @@ Class ScrollArea,
 				@barBgY = nil
 				@barY = nil
 
-	offset:property => @getTotalDelta!,
+	offset:property (=> @getTotalDelta!),
 		(offset)=> @scroll offset-@getTotalDelta!
 
-	viewSize:property => @getViewSize!,
+	viewSize:property (=> @getViewSize!),
 		(size)=> @resetSize @contentSize.width,@contentSize.height,size.width,size.height
 
-	padding:property => @getPadding!,
+	padding:property (=> @getPadding!),
 		(padding)=> @updatePadding padding.x,padding.y
 
 	setupMenuScroll:(menu)=>
