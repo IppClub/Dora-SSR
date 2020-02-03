@@ -9,19 +9,3 @@ Content.searchPaths = {
 }
 
 require("Dev.Entry")
-
-print(moontolua([==[
-UnitAction\add "fallOff",
-	create: =>
-		with @model
-			.speed = 1.5
-			.loop = true
-			\resume "jump"
-		=>
-			if @onSurface
-				return true
-			false
-	stop: =>
-		@model\stop!
-
-]==]))

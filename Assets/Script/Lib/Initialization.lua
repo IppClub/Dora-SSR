@@ -148,20 +148,12 @@ builtin.sleep = function(duration)
 	end
 end
 
-builtin.namespace = function(path,func)
-	if path then
-		if func then
-			Content:insertSearchPath(1, path)
-			func()
-			Content:removeSearchPath(path)
-		else
-			return function(name)
-				return require(path.."."..name)
-			end
-		end
+builtin.namespace = function(path)
+	return function(name)
+		return require(path.."."..name)
 	end
 end
-_G.using = builtin.using
+_G.namespace = builtin.namespace
 
 -- Async functions
 
