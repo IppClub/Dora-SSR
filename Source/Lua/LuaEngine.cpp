@@ -226,12 +226,6 @@ static int dora_moontolua(lua_State* L)
 				config.implicitReturnRoot = lua_toboolean(L, -1);
 			}
 			lua_pop(L, 1);
-			tolua_pushslice(L, "implicit_return_root"_slice);
-			lua_gettable(L, -2);
-			if (!lua_isnil(L, -1)) {
-				config.implicitReturnRoot = lua_toboolean(L, -1);
-			}
-			lua_pop(L, 1);
 			tolua_pushslice(L, "reserve_line_number"_slice);
 			lua_gettable(L, -2);
 			if (!lua_isnil(L, -1)) {
