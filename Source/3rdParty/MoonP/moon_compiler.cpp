@@ -29,7 +29,7 @@ inline std::string s(std::string_view sv) {
 }
 
 const char* moonScriptVersion() {
-	return "0.5.0-r0.1.0";
+	return "0.5.0-r0.1.2";
 }
 
 class MoonCompiler {
@@ -1248,42 +1248,20 @@ private:
 				break;
 			}
 			case "Assign"_id: {
-				auto defs = getAssignDefs(expList);
-				bool oneLined = defs.size() == expList->exprs.objects().size() &&
-					traversal::Stop != action->traverse([&](ast_node* n) {
-					switch (n->getId()) {
-						case "ChainValue"_id: {
-							auto chainValue = static_cast<ChainValue_t*>(n);
-							const auto& items = chainValue->items.objects();
-							BLOCK_START
-							auto callable = ast_cast<Callable_t>(*items.begin());
-							BREAK_IF(!callable);
-							auto next = items.begin(); ++next;
-							BREAK_IF(next == items.end());
-							BREAK_IF((!ast_is<Invoke_t,InvokeArgs_t>(*next)));
-							for (const auto& def : defs) {
-								switch (callable->item->getId()) {
-									case "Variable"_id:
-										if (def == _parser.toString(callable->item)) {
-											return traversal::Stop;
-										}
-										return traversal::Return;
-									case "SelfName"_id:
-										if (def == "self"sv) {
-											return traversal::Stop;
-										}
-										return traversal::Return;
-								}
+				bool oneLined = true;
+				auto assign = static_cast<Assign_t*>(action);
+				for (auto val : assign->values.objects()) {
+					if (auto value = singleValueFrom(val)) {
+						if (auto spValue = value->item.as<SimpleValue_t>()) {
+							if (spValue->value.is<FunLit_t>()) {
+								oneLined = false;
+								break;
 							}
-							BLOCK_END
-							return traversal::Continue;
 						}
-						default:
-							return traversal::Continue;
 					}
-				});
-				if (oneLined) {
-					auto assign = static_cast<Assign_t*>(action);
+				}
+				auto defs = getAssignDefs(expList);
+				if (oneLined && defs.size() == expList->exprs.objects().size()) {
 					for (auto value : assign->values.objects()) {
 						transformAssignItem(value, temp);
 					}
@@ -1299,8 +1277,7 @@ private:
 					} else {
 						out.push_back(preDefine + s(" = "sv) + join(temp, ", "sv) + nll(assignment));
 					}
-				}
-				else {
+				} else {
 					std::string preDefine = getPredefine(defs);
 					for (const auto& def : defs) {
 						addToScope(def);
@@ -1308,7 +1285,6 @@ private:
 					transformExpList(expList, temp);
 					std::string left = temp.back();
 					temp.pop_back();
-					auto assign = static_cast<Assign_t*>(action);
 					for (auto value : assign->values.objects()) {
 						transformAssignItem(value, temp);
 					}
@@ -1528,10 +1504,26 @@ private:
 						}
 						if (isChainValueCall(chainValue)) {
 							auto last = chainValue->items.back();
+							_ast_list* args = nullptr;
 							if (auto invoke = ast_cast<InvokeArgs_t>(last)) {
-								invoke->args.push_front(arg);
+								args = &invoke->args;
 							} else {
-								ast_to<Invoke_t>(last)->args.push_front(arg);
+								args = &(ast_to<Invoke_t>(last)->args);
+							}
+							bool findPlaceHolder = false;
+							for (auto a : args->objects()) {
+								auto name = singleVariableFrom(a);
+								if (name == "_"sv) {
+									if (!findPlaceHolder) {
+										args->swap(a, arg);
+										findPlaceHolder = true;
+									} else {
+										throw std::logic_error(_info.errorMessage("backcall placeholder can be used only in one place."sv, a));
+									}
+								}
+							}
+							if (!findPlaceHolder) {
+								args->push_front(arg);
 							}
 						} else {
 							auto invoke = x->new_ptr<Invoke_t>();
