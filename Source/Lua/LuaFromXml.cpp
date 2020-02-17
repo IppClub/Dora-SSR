@@ -1152,7 +1152,8 @@ string XmlDelegator::compileMoonCodes(const char* codes)
 	string compiledCodes, err;
 	MoonP::GlobalVars _;
 	MoonP::MoonConfig config;
-	config.reserveLineNumber = true;
+	config.reserveLineNumber = false;
+	config.implicitReturnRoot = false;
 	std::tie(compiledCodes, err, _) = MoonP::moonCompile(fmt::format("do\n{}", codes), config);
 	if (compiledCodes.empty())
 	{
