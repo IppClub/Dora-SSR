@@ -1154,7 +1154,7 @@ string XmlDelegator::compileMoonCodes(const char* codes)
 	MoonP::MoonConfig config;
 	config.reserveLineNumber = false;
 	config.implicitReturnRoot = false;
-	std::tie(compiledCodes, err, _) = MoonP::moonCompile(fmt::format("do\n{}", codes), config);
+	std::tie(compiledCodes, err, _) = MoonP::MoonCompiler{}.compile(fmt::format("do\n{}", codes), config);
 	if (compiledCodes.empty())
 	{
 		lastError += fmt::format("Fail to compile moon codes started at line {}\n{}", parser->getLineNumber(codes), err);

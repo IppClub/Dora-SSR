@@ -20,7 +20,7 @@ class BulletDef : public Object
 {
 public:
 	void setVelocity(float angle, float speed);
-	PROPERTY_REF(Vec2, Velocity);
+	PROPERTY_CREF(Vec2, Velocity);
 	PROPERTY(Vec2, Gravity);
 	void setHighSpeedFix(bool var);
 	bool isHighSpeedFix() const;

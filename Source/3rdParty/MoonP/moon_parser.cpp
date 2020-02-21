@@ -36,7 +36,6 @@ MoonParser::MoonParser() {
 	plain_space = *set(" \t");
 	Break = nl(-expr('\r') >> '\n');
 	Any = Break | any();
-	White = *(set(" \t") | Break);
 	Stop = Break | eof();
 	Indent = plain_space;
 	Comment = "--" >> *(not_(set("\r\n")) >> Any) >> and_(Stop);
@@ -45,8 +44,9 @@ MoonParser::MoonParser() {
 	multi_line_content = *(not_(multi_line_close) >> Any);
 	MultiLineComment = multi_line_open >> multi_line_content >> multi_line_close;
 	EscapeNewLine = expr('\\') >> *(set(" \t") | MultiLineComment) >> -Comment >> Break;
-	Space = *(set(" \t") | MultiLineComment | EscapeNewLine) >> -Comment;
+	Space = *(set(" \t") | and_(set("-\\")) >> (MultiLineComment | EscapeNewLine)) >> -Comment;
 	SpaceBreak = Space >> Break;
+	White = Space >> *(Break >> Space);
 	EmptyLine = SpaceBreak;
 	AlphaNum = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
 	Name = (range('a', 'z') | range('A', 'Z') | '_') >> *AlphaNum;
@@ -198,8 +198,8 @@ MoonParser::MoonParser() {
 
 	While = key("while") >> DisableDo >> ensure(Exp, PopDo) >> -key("do") >> Body;
 
-	for_step_value = sym(',') >> Exp;
-	for_args = Space >> Variable >> sym('=') >> Exp >> sym(',') >> Exp >> -for_step_value;
+	for_step_value = sym(',') >> White >> Exp;
+	for_args = Space >> Variable >> sym('=') >> Exp >> sym(',') >> White >> Exp >> -for_step_value;
 
 	For = key("for") >> DisableDo >>
 		ensure(for_args, PopDo) >>
@@ -207,7 +207,7 @@ MoonParser::MoonParser() {
 
 	for_in = star_exp | ExpList;
 
-	ForEach = key("for") >> AssignableNameList >> key("in") >>
+	ForEach = key("for") >> AssignableNameList >> White >> key("in") >>
 		DisableDo >> ensure(for_in, PopDo) >>
 		-key("do") >> Body;
 
@@ -233,15 +233,15 @@ MoonParser::MoonParser() {
 
 	Comprehension = sym('[') >> Exp >> CompInner >> sym(']');
 	comp_value = sym(',') >> Exp;
-	TblComprehension = sym('{') >> (Exp >> -comp_value) >> CompInner >> sym('}');
+	TblComprehension = sym('{') >> Exp >> -comp_value >> CompInner >> sym('}');
 
 	CompInner = Seperator >> (CompForEach | CompFor) >> *CompClause;
 	star_exp = sym('*') >> Exp;
 	CompForEach = key("for") >> AssignableNameList >> key("in") >> (star_exp | Exp);
-	CompFor = key("for") >> Space >> Variable >> sym('=') >> Exp >> sym(',') >> Exp >> -for_step_value;
+	CompFor = key("for") >> Space >> Variable >> sym('=') >> Exp >> sym(',') >> White >> Exp >> -for_step_value;
 	CompClause = CompFor | CompForEach | key("when") >> Exp;
 
-	Assign = sym('=') >> Seperator >> (With | If | Switch | TableBlock | Exp >> *((sym(',') | sym(';')) >> Exp));
+	Assign = sym('=') >> Seperator >> (With | If | Switch | TableBlock | Exp >> *((sym(',') | sym(';')) >> White >> Exp));
 
 	update_op =
 		expr("..") |
@@ -430,9 +430,9 @@ MoonParser::MoonParser() {
 	fn_arrow = expr("->") | expr("=>");
 	FunLit = -FnArgsDef >> Space >> fn_arrow >> -Body;
 
-	NameList = Seperator >> Space >> Variable >> *(sym(',') >> Space >> Variable);
+	NameList = Seperator >> Space >> Variable >> *(sym(',') >> White >> Variable);
 	NameOrDestructure = Space >> Variable | TableLit;
-	AssignableNameList = Seperator >> NameOrDestructure >> *(sym(',') >> NameOrDestructure);
+	AssignableNameList = Seperator >> NameOrDestructure >> *(sym(',') >> White >> NameOrDestructure);
 
 	Backcall = -FnArgsDef >> Space >> symx("<-") >> Space >> ChainValue;
 
@@ -493,11 +493,11 @@ MoonParser::MoonParser() {
 	File = White >> -Shebang >> Block >> eof();
 }
 
-ParseInfo MoonParser::parse(const std::string& codes, rule& r) {
+ParseInfo MoonParser::parse(std::string_view codes, rule& r) {
 	ParseInfo res;
 	try {
 		res.codes = std::make_unique<input>();
-		*(res.codes) = _converter.from_bytes(codes);
+		*(res.codes) = _converter.from_bytes(codes.begin(), codes.end());
 	} catch (const std::range_error&) {
 		res.error = "Invalid text encoding."sv;
 		return res;
@@ -537,7 +537,7 @@ std::string MoonParser::toString(input::iterator begin, input::iterator end) {
 }
 
 input MoonParser::encode(std::string_view codes) {
-	return _converter.from_bytes(std::string(codes));
+	return _converter.from_bytes(codes.begin(), codes.end());
 }
 
 std::string MoonParser::decode(const input& codes) {

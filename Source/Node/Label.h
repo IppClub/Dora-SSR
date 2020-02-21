@@ -31,7 +31,7 @@ class Font : public Object
 {
 public:
 	PROPERTY_READONLY(bgfx::FontHandle, Handle);
-	PROPERTY_READONLY_REF(bgfx::FontInfo, Info);
+	PROPERTY_READONLY_CREF(bgfx::FontInfo, Info);
 	PROPERTY_READONLY(TrueTypeFile*, File);
 	CREATE_FUNC(Font);
 	virtual ~Font();
@@ -96,7 +96,7 @@ public:
 	PROPERTY(float, LineGap);
 	PROPERTY_STRING(Text);
 	PROPERTY(SpriteEffect*, Effect);
-	PROPERTY_REF(BlendFunc, BlendFunc);
+	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY(float, AlphaRef);
 	PROPERTY_BOOL(Batched);

@@ -41,7 +41,7 @@ protected:
 	{
 	public:
 		Vec2 ratio;
-		PROPERTY_REF(Vec2, Offset);
+		PROPERTY_CREF(Vec2, Offset);
 		PROPERTY(int, Index);
 		CREATE_FUNC(Layer);
 	protected:

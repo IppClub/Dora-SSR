@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaFromXml.h"
 #include "Support/Value.h"
 #include "Node/Node.h"
-#include "MoonP/moon_compiler.h"
+#include "Common/Async.h"
 using namespace Dorothy::Platformer;
 
 NS_DOROTHY_BEGIN
@@ -48,7 +48,8 @@ static int dora_traceback(lua_State* L)
 	lua_getglobal(L, "debug"); // err debug
 	lua_getfield(L, -1, "traceback"); // err debug traceback
 	lua_pushvalue(L, -3); // err debug traceback err
-	lua_call(L, 1, 1); // traceback(err), err debug tace
+	lua_pushinteger(L, 1); // err debug traceback err 1
+	lua_call(L, 2, 1); // traceback(err, 1), err debug msg
 	LogPrint(tolua_toslice(L, -1, nullptr).toString());
 	lua_pop(L, 3); // empty
 	return 0;
@@ -90,7 +91,7 @@ static int dora_loadfile(lua_State* L, String filename)
 	string codes;
 	switch (Switch::hash(extension))
 	{
-		case "xml"_hash:
+		case "xml"_hash: {
 			codes = SharedXmlLoader.load(targetFile);
 			if (codes.empty())
 			{
@@ -102,6 +103,7 @@ static int dora_loadfile(lua_State* L, String filename)
 				codeBufferSize = codes.size();
 			}
 			break;
+		}
 		default:
 			buffer = SharedContent.loadFile(targetFile);
 			codeBuffer = r_cast<char*>(buffer.get());
@@ -168,7 +170,7 @@ static int dora_doxml(lua_State* L)
 	codes = SharedXmlLoader.load(codes);
 	if (codes.empty())
 	{
-		luaL_error(L, "error parsing local xml\n");
+		luaL_error(L, "error parsing local xml, %s\n", SharedXmlLoader.getLastError().c_str());
 	}
 	if (luaL_loadbuffer(L, codes.c_str(), codes.size(), "xml") != 0)
 	{
@@ -195,6 +197,85 @@ static int dora_xmltolua(lua_State* L)
 	}
 	lua_pushlstring(L, codes.c_str(), codes.size());
 	return 1;
+}
+
+static int dora_mooncompile(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isstring(L, 1, 0, &tolua_err) ||
+		!tolua_isstring(L, 2, 0, &tolua_err) ||
+		!tolua_isfunction(L, 3, &tolua_err) ||
+		!tolua_isfunction(L, 4, &tolua_err) ||
+		!tolua_isnoobj(L, 5, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		string src = tolua_toslice(L, 1, 0);
+		string dest = tolua_toslice(L, 2, 0);
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
+		LuaFunction<void> callback(tolua_ref_function(L, 4));
+		SharedContent.loadFileAsyncMove(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes)
+		{
+			if (codes.size() == 0) {
+				Warn("fail to get moon source codes from \"{}\".", src);
+			} else {
+				auto input = std::make_shared<std::tuple<
+					string, string, OwnArray<Uint8>>>(
+					src, dest, std::move(codes));
+				SharedAsyncThread.run([input]()
+				{
+					MoonP::MoonConfig config;
+					config.implicitReturnRoot = true;
+					config.reserveLineNumber = true;
+					config.lintGlobalVariable = true;
+					string compiledCodes, err;
+					MoonP::GlobalVars globals;
+					const auto& codes = std::get<2>(*input);
+					std::tie(compiledCodes, err, globals) = MoonP::MoonCompiler{}.compile({r_cast<char*>(codes.get()), codes.size()}, config);
+					return Values::create(compiledCodes, err, std::move(globals));
+				}, [input, handler, callback](Values* values)
+				{
+					string compiledCodes, err;
+					MoonP::GlobalVars globals;
+					values->get(compiledCodes, err, globals);
+					lua_State* L = SharedLuaEngine.getState();
+					int top = lua_gettop(L);
+					tolua_pushslice(L, compiledCodes);
+					tolua_pushslice(L, err);
+					lua_createtable(L, s_cast<int>(globals->size()), 0);
+					int i = 1;
+					for (const auto& var : *globals)
+					{
+						lua_createtable(L, 3, 0);
+						lua_pushlstring(L, var.name.c_str(), var.name.size());
+						lua_rawseti(L, -2, 1);
+						lua_pushinteger(L, var.line);
+						lua_rawseti(L, -2, 2);
+						lua_pushinteger(L, var.col);
+						lua_rawseti(L, -2, 3);
+						lua_rawseti(L, -2, i);
+						i++;
+					}
+					string result;
+					SharedLuaEngine.executeReturn(result, handler->get(), 3);
+					lua_settop(L, top);
+					if (!compiledCodes.empty()) {
+						SharedContent.saveToFileAsync(std::get<1>(*input), result, callback);
+					}
+				});
+			}
+		});
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'mooncompile'.", &tolua_err);
+	return 0;
+#endif
 }
 
 static int dora_moontolua(lua_State* L)
@@ -236,7 +317,7 @@ static int dora_moontolua(lua_State* L)
 		if (config.lintGlobalVariable) {
 			string compiledCodes, err;
 			MoonP::GlobalVars globals;
-			std::tie(compiledCodes, err, globals) = MoonP::moonCompile(codes, config);
+			std::tie(compiledCodes, err, globals) = SharedLuaEngine.getMoon().compile(codes, config);
 			if (compiledCodes.empty())
 			{
 				lua_pushnil(L);
@@ -271,7 +352,7 @@ static int dora_moontolua(lua_State* L)
 		{
 			string compiledCodes, err;
 			MoonP::GlobalVars globals;
-			std::tie(compiledCodes, err, globals) = MoonP::moonCompile(codes, config);
+			std::tie(compiledCodes, err, globals) = SharedLuaEngine.getMoon().compile(codes, config);
 			if (compiledCodes.empty())
 			{
 				lua_pushnil(L);
@@ -324,6 +405,15 @@ lua_State* LuaEngine::getState() const
 	return L;
 }
 
+MoonP::MoonCompiler& LuaEngine::getMoon()
+{
+	if (!_moonCompiler)
+	{
+		_moonCompiler = New<MoonP::MoonCompiler>();
+	}
+	return *_moonCompiler;
+}
+
 LuaEngine::LuaEngine()
 {
 	L = luaL_newstate();
@@ -339,6 +429,7 @@ LuaEngine::LuaEngine()
 		{ "doxml", dora_doxml },
 		{ "xmltolua", dora_xmltolua },
 		{ "moontolua", dora_moontolua },
+		{ "mooncompile", dora_mooncompile },
 		{ "ubox", dora_ubox },
 		{ "emit", dora_emit },
 		{ NULL, NULL }
@@ -624,7 +715,7 @@ bool LuaEngine::to(Object*& value, int index)
 	return false;
 }
 
-bool LuaEngine::to(Slice& value, int index)
+bool LuaEngine::to(string& value, int index)
 {
 	if (lua_isstring(L, index))
 	{

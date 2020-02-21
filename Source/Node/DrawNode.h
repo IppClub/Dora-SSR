@@ -52,11 +52,11 @@ struct VertexColor
 class DrawNode : public Node
 {
 public:
-	PROPERTY_REF(BlendFunc, BlendFunc);
+	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
-	PROPERTY_READONLY_REF(vector<DrawVertex>, Vertices);
-	PROPERTY_READONLY_REF(vector<Uint16>, Indices);
+	PROPERTY_READONLY_CREF(vector<DrawVertex>, Vertices);
+	PROPERTY_READONLY_CREF(vector<Uint16>, Indices);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	void drawDot(const Vec2& pos, float radius, Color color);
@@ -138,7 +138,7 @@ public:
 	PROPERTY(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
-	PROPERTY_READONLY_REF(vector<PosColorVertex>, Vertices);
+	PROPERTY_READONLY_CREF(vector<PosColorVertex>, Vertices);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	void add(const vector<Vec2>& verts, Color color);

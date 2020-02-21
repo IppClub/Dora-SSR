@@ -13,6 +13,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+template <class T>
+struct unwrap_refwrapper
+{
+    using type = T;
+};
+
+template <class T>
+struct unwrap_refwrapper<std::reference_wrapper<T>>
+{
+    using type = T&;
+};
+
+template <class T>
+using special_decay_t = typename unwrap_refwrapper<typename std::decay<T>::type>::type;
+
 template <class T, class Enable = void>
 class ValueEx;
 
@@ -29,7 +44,7 @@ public:
 	virtual void pushToLua(lua_State* L) const = 0;
 
 	template <class T>
-	static Value* create(const T& value);
+	static Value* create(T&& value);
 protected:
 	Value() { }
 };
@@ -69,7 +84,7 @@ protected:
 	_value(value)
 	{ }
 	ValueEx(T&& value):
-	_value(std::move(value))
+	_value(std::forward<T>(value))
 	{ }
 private:
 	T _value;
@@ -121,9 +136,9 @@ ValueEx<T>* Value::as()
 }
 
 template <class T>
-Value* Value::create(const T& value)
+Value* Value::create(T&& value)
 {
-	return ValueEx<T>::create(value);
+	return ValueEx<special_decay_t<T>>::create(value);
 }
 
 class Values : public Object
@@ -131,7 +146,7 @@ class Values : public Object
 public:
 	virtual ~Values() { }
 	template<class... Args>
-	static Ref<Values> create(const Args&... args);
+	static Ref<Values> create(Args&&... args);
 	template<class... Args>
 	void get(Args&... args);
 	static const Ref<Values> None;
@@ -144,16 +159,16 @@ class ValuesEx : public Values
 {
 public:
 	template<class... Args>
-	ValuesEx(const Args&... args):values(std::make_tuple(args...))
+	ValuesEx(Args&&... args):values{std::forward<Args>(args)...}
 	{ }
 	std::tuple<Fields...> values;
 	DORA_TYPE_OVERRIDE(ValuesEx<Fields...>);
 };
 
 template<class... Args>
-Ref<Values> Values::create(const Args&... args)
+Ref<Values> Values::create(Args&&... args)
 {
-	auto item = new ValuesEx<Args...>(args...);
+	auto item = new ValuesEx<special_decay_t<Args>...>(std::forward<Args>(args)...);
 	Ref<Values> itemRef(item);
 	item->release();
 	return itemRef;
@@ -162,9 +177,9 @@ Ref<Values> Values::create(const Args&... args)
 template<class... Args>
 void Values::get(Args&... args)
 {
-	auto values = DoraCast<ValuesEx<Args...>>(this);
+	auto values = DoraCast<ValuesEx<special_decay_t<Args>...>>(this);
 	AssertIf(values == nullptr, "no required value type can be retrieved.");
-	std::tie(args...) = values->values;
+	std::tie(args...) = std::move(values->values);
 }
 
 NS_DOROTHY_END

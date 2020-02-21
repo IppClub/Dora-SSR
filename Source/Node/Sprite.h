@@ -69,11 +69,11 @@ public:
 	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY(Texture2D*, Texture);
 	PROPERTY(float, AlphaRef);
-	PROPERTY_REF(Rect, TextureRect);
-	PROPERTY_REF(BlendFunc, BlendFunc);
+	PROPERTY_CREF(Rect, TextureRect);
+	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
-	PROPERTY_READONLY_REF(SpriteQuad, Quad);
+	PROPERTY_READONLY_CREF(SpriteQuad, Quad);
 	PROPERTY_READONLY(Uint64, TextureFlags);
 	PROPERTY_READONLY(Uint32, SamplerFlags);
 	PROPERTY(TextureFilter, Filter);

@@ -40,10 +40,10 @@ public:
 	PROPERTY_READONLY_BOOL(Mouse);
 	PROPERTY_READONLY(int, Id);
 	PROPERTY_READONLY(Vec2, Delta);
-	PROPERTY_READONLY_REF(Vec2, Location);
-	PROPERTY_READONLY_REF(Vec2, PreLocation);
-	PROPERTY_READONLY_REF(Vec2, WorldLocation);
-	PROPERTY_READONLY_REF(Vec2, WorldPreLocation);
+	PROPERTY_READONLY_CREF(Vec2, Location);
+	PROPERTY_READONLY_CREF(Vec2, PreLocation);
+	PROPERTY_READONLY_CREF(Vec2, WorldLocation);
+	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
 	PROPERTY_READONLY_CLASS(Uint32, Source);
 	CREATE_FUNC(Touch);
 protected:
@@ -94,7 +94,7 @@ public:
 	PROPERTY_BOOL(TouchSwallowed);
 	PROPERTY_BOOL(WheelSwallowed);
 	PROPERTY_READONLY(float, MouseWheel);
-	PROPERTY_READONLY_REF(Vec2, MousePos);
+	PROPERTY_READONLY_CREF(Vec2, MousePos);
 	PROPERTY_READONLY_BOOL(LeftButtonPressed);
 	PROPERTY_READONLY_BOOL(RightButtonPressed);
 	PROPERTY_READONLY_BOOL(MiddleButtonPressed);

@@ -36,7 +36,7 @@ public:
 	PROPERTY(Model*, Model);
 	PROPERTY(BulletDef*, BulletDef);
 	PROPERTY(float, DetectDistance);
-	PROPERTY_REF(Size, AttackRange);
+	PROPERTY_CREF(Size, AttackRange);
 	PROPERTY_BOOL(FaceRight);
 	PROPERTY_BOOL(ReceivingDecisionTrace);
 	PROPERTY_READONLY(Entity*, Entity);

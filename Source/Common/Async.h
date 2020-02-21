@@ -23,8 +23,8 @@ class Async
 public:
 	Async();
 	virtual ~Async();
-	void run(function<Ref<Values>()> worker, function<void(Values*)> finisher);
-	void run(function<void()> worker);
+	void run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher);
+	void run(const function<void()>& worker);
 	void pause();
 	void resume();
 	void cancel();

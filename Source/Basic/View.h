@@ -20,7 +20,7 @@ public:
 	PROPERTY_READONLY(Size, Size);
 	PROPERTY_READONLY(float, StandardDistance);
 	PROPERTY_READONLY(float, AspectRatio);
-	PROPERTY_READONLY_REF(Matrix, Projection);
+	PROPERTY_READONLY_CREF(Matrix, Projection);
 	PROPERTY(float, NearPlaneDistance);
 	PROPERTY(float, FarPlaneDistance);
 	PROPERTY(float, FieldOfView);
@@ -29,7 +29,7 @@ public:
 	PROPERTY_BOOL(VSync);
 	PROPERTY_READONLY_BOOL(PostProcessNeeded);
 	PROPERTY_READONLY(bgfx::ViewId, Id);
-	PROPERTY_READONLY_REF(string, Name);
+	PROPERTY_READONLY_CREF(string, Name);
 	void clear();
 	void reset();
 

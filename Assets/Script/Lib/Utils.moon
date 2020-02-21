@@ -346,6 +346,12 @@ Path =
 			Content\remove path
 		visitResource rootPath
 
+	make:(path,prefix="")->
+		items = {}
+		for item in path\gmatch "[^\\/]+"
+			table.insert items,item
+			Content\mkdir prefix..table.concat items,"/"
+
 	isValid:(filename)-> not filename\match "[\\/|:*?<>\"]"
 
 {

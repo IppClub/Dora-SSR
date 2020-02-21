@@ -20,8 +20,8 @@ class Listener : public Object
 {
 public:
 	PROPERTY_BOOL(Enabled);
-	PROPERTY_REF(EventHandler, Handler);
-	PROPERTY_READONLY_REF(string, Name);
+	PROPERTY_CREF(EventHandler, Handler);
+	PROPERTY_READONLY_CREF(string, Name);
 	virtual ~Listener();
 	virtual bool init() override;
 	void clearHandler();

@@ -356,6 +356,15 @@ void Content::loadFileAsync(String filename, const function<void(String)>& callb
 	});
 }
 
+void Content::loadFileAsyncMove(String filename, const function<void(OwnArray<Uint8>&&)>& callback)
+{
+	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	{
+		callback(MakeOwnArray(buffer, s_cast<size_t>(size)));
+	});
+}
+
+
 void Content::loadFileAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback)
 {
 	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)

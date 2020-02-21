@@ -15,7 +15,7 @@ NS_DOROTHY_BEGIN
 class Camera : public Object
 {
 public:
-	PROPERTY_READONLY_REF(string, Name);
+	PROPERTY_READONLY_CREF(string, Name);
 	virtual const Vec3& getPosition();
 	virtual const Vec3& getTarget();
 	virtual const Vec3& getUp();

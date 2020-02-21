@@ -442,7 +442,7 @@ Stack Traceback
 ]]
 	--print(error_message)
 
-	local level_to_show = level
+	local level_to_show = 1
 	if dumper.dumping_same_thread then level = level + 1 end
 
 	local info = dumper.getinfo(level, "nSlf")

@@ -28,7 +28,7 @@ public:
 	static const Slice HitKey;
 	//Most are static properties below.
 	PROPERTY_STRING(Model);
-	PROPERTY_REF(Size, Size);
+	PROPERTY_CREF(Size, Size);
 	PROPERTY(float, Density);
 	PROPERTY(float, Friction);
 	PROPERTY(float, Restitution);

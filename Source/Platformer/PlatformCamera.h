@@ -22,8 +22,8 @@ class PlatformCamera : public Camera
 {
 public:
 	PlatformCamera();
-	PROPERTY_REF(Rect, Boundary);
-	PROPERTY_REF(Vec2, FollowRatio);
+	PROPERTY_CREF(Rect, Boundary);
+	PROPERTY_CREF(Vec2, FollowRatio);
 	PROPERTY(Node*, FollowTarget);
 	PROPERTY(float, Rotation);
 	PROPERTY(float, Zoom);
