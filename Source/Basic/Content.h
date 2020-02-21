@@ -13,9 +13,9 @@ NS_DOROTHY_BEGIN
 class Content
 {
 public:
-	PROPERTY_READONLY_REF(string, AssetPath);
-	PROPERTY_READONLY_REF(string, WritablePath);
-	PROPERTY_REF(vector<string>, SearchPaths);
+	PROPERTY_READONLY_CREF(string, AssetPath);
+	PROPERTY_READONLY_CREF(string, WritablePath);
+	PROPERTY_CREF(vector<string>, SearchPaths);
 	virtual ~Content();
 	bool isExist(String filename);
 	bool isFolder(String path);
@@ -36,6 +36,7 @@ public:
 	void removeSearchPath(String path);
 	void loadFileAsync(String filename, const function<void(String)>& callback);
 	void loadFileAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback);
+	void loadFileAsyncMove(String filename, const function<void(OwnArray<Uint8>&&)>& callback);
 	void copyFileAsync(String src, String dst, const function<void()>& callback);
 	void saveToFileAsync(String filename, String content, const function<void()>& callback);
 	void saveToFileAsync(String filename, OwnArray<Uint8> content, const function<void()>& callback);

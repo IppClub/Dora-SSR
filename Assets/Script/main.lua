@@ -5,7 +5,8 @@ Content.searchPaths = {
 	Content.writablePath.."Script/Lib",
 	"Script",
 	"Script/Lib",
-	"Image"
+	"Image",
+	Content.writablePath
 }
 
 require("Dev.Entry")

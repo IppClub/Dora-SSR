@@ -31,7 +31,7 @@ public:
 	PROPERTY_READONLY(bgfx::TextureHandle, Handle);
 	PROPERTY_READONLY(int, Width);
 	PROPERTY_READONLY(int, Height);
-	PROPERTY_READONLY_REF(bgfx::TextureInfo, Info);
+	PROPERTY_READONLY_CREF(bgfx::TextureInfo, Info);
 	PROPERTY_READONLY(TextureFilter, Filter);
 	PROPERTY_READONLY(TextureWrap, UWrap);
 	PROPERTY_READONLY(TextureWrap, VWrap);

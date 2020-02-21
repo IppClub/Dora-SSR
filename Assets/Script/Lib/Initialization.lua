@@ -30,7 +30,7 @@ local unpack = unpack
 local function wait(cond)
 	repeat
 		yield(false)
-	until not cond(Director.deltaTime)
+	until cond(Director.deltaTime)
 end
 
 local function once(work)
@@ -107,14 +107,22 @@ setmetatable(Routine,
 	end,
 })
 
+local function traceback(err)
+	return debug.traceback(err,1)
+end
+
 Director.postScheduler:schedule(function()
 	local i,count = 1,#Routine
 	while i <= count do
-		if Routine[i]() then
+		local success,result = xpcall(Routine[i],traceback)
+		if (success and result) or (not success) then
 			Routine[i] = Routine[count]
 			table_remove(Routine,count)
 			i = i-1
 			count = count-1
+		end
+		if not success then
+			print(result)
 		end
 		i = i+1
 	end
@@ -168,7 +176,7 @@ Content.loadAsync = function(self,filename,handler)
 		loadedData = data
 		loaded = true
 	end)
-	wait(function() return not loaded end)
+	wait(function() return loaded end)
 	return loadedData
 end
 
@@ -178,7 +186,7 @@ Content.saveAsync = function(self,filename,content)
 	Content_saveAsync(self,filename,content,function()
 		saved = true
 	end)
-	wait(function() return not saved end)
+	wait(function() return saved end)
 end
 
 local Content_copyAsync = Content.copyAsync
@@ -187,7 +195,7 @@ Content.copyAsync = function(self,src,dst)
 	Content_copyAsync(self,src,dst,function()
 		loaded = true
 	end)
-	wait(function() return not loaded end)
+	wait(function() return loaded end)
 end
 
 local Cache = builtin.Cache
@@ -209,7 +217,7 @@ Cache.loadAsync = function(self,target,handler)
 			count = count + 1
 		end)
 	end
-	wait(function() return count < total end)
+	wait(function() return count == total end)
 end
 
 local RenderTarget = builtin.RenderTarget
@@ -224,7 +232,7 @@ RenderTarget.saveAsync = function(self,filename,handler)
 		loadedData = data
 		loaded = true
 	end)
-	wait(function() return not loaded end)
+	wait(function() return loaded end)
 	return loadedData
 end
 

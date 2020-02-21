@@ -1,11 +1,12 @@
 Dorothy builtin.ImGui
 import "Utils" as {:Set,:Path}
 
-debug.traceback = (err)->
+debug.traceback = (err,level)->
 	with require "StackTracePlus"
 		.dump_locals = false
 		.simplified = true
-		return .stacktrace err, 1
+		msg = .stacktrace err,level+1
+		return msg
 
 LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20--, "Chinese"
 
@@ -65,7 +66,7 @@ allowedUseOfGlobals = Set {
 	"builtin"
 }
 
-LintMoonGlobals = (moonCodes,globals,entry)->
+LintMoonGlobals = (moonCodes,globals,file)->
 	requireModules = {}
 	withImGui = false
 	withPlatformer = false
@@ -106,93 +107,68 @@ LintMoonGlobals = (moonCodes,globals,entry)->
 							code = lineCode
 							break
 						countLine += 1
-					error "Used invalid global value \"#{name}\"\nin \"#{entry}\", at line #{line}, col #{col}.\n#{code\gsub("\t"," ")..string.rep(" ",col-1).."^"}"
+					print "Used invalid global value \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t"," ")..string.rep(" ",col-1).."^"}"
 	table.concat requireModules, "\n"
-
-totalFiles = 0
-totalMoonTime = 0
-totalXmlTime = 0
-totalMinifyTime = 0
-compile = (dir,minify)->
-	{:ParseLua} = require "luaminify.ParseLua"
-	FormatMini = require "luaminify.FormatMini"
-	pathLen = #Content.assetPath
-	files = Path.getAllFiles dir, {"moon","xml"}
-	for file in *files
-		path = Path.getPath file
-		name = Path.getName file
-		isXml = "xml" == Path.getExtension file
-		sourceCodes = Content\loadAsync "#{dir}/#{file}"
-		startTime = App.eclapsedTime
-		codes,err = nil,nil
-		requires = ""
-		if isXml
-			codes,err = xmltolua sourceCodes
-			totalXmlTime += App.eclapsedTime - startTime
-		else
-			codes,err,globals = moontolua sourceCodes, lint_global:true
-			requires = LintMoonGlobals(sourceCodes,globals,file) unless isXml
-			requires ..= "\n" unless requires == ""
-			totalMoonTime += App.eclapsedTime - startTime
-		startTime = App.eclapsedTime
-		if not codes
-			print "Compile errors in #{file}."
-			print err
-			return false
-		else
-			codes = "-- [moon]: #{file}\n"..requires..codes\gsub "Dorothy%([^%)]*%)[^\r\n]*[\r\n]*","" unless isXml
-			if minify
-				st, ast = ParseLua codes
-				if not st
-					print "Compile errors in #{file}."
-					print ast
-					return false
-				codes = FormatMini ast
-			totalMinifyTime += App.eclapsedTime - startTime
-			filePath = Content.writablePath..path
-			Content\mkdir filePath
-			filename = "#{filePath}#{name}.lua"
-			Content\saveAsync filename,codes
-			print "#{isXml and "Xml" or "Moon"} compiled: #{path}#{name}.#{isXml and "xml" or "moon"}"
-			totalFiles += 1
-	if minify
-		files = Path.getAllFiles dir, "lua"
-		for file in *files
-			path = Path.getPath file
-			name = Path.getName file
-			sourceCodes = Content\loadAsync "#{dir}/#{file}"
-			startTime = App.eclapsedTime
-			st, ast = ParseLua sourceCodes
-			if not st
-				print ast
-				return false
-			codes = FormatMini ast
-			totalMinifyTime += App.eclapsedTime - startTime
-			filePath = Content.writablePath..path
-			Content\mkdir filePath
-			filename = "#{filePath}#{name}.lua"
-			Content\saveAsync filename,codes
-			print "Lua minified: #{path}#{name}.lua"
-			totalFiles += 1
-	return true
 
 building = false
 
 doCompile = (minify)->
 	return if building
 	building = true
-	totalFiles = 0
-	totalMoonTime = 0
-	totalXmlTime = 0
-	totalMinifyTime = 0
+	moonFiles = Path.getAllFiles Content.assetPath,"moon"
+	xmlFiles = Path.getAllFiles Content.assetPath,"xml"
+	paths = {Path.getPath(file),true for file in *moonFiles}
+	Path.make path,Content.writablePath for path in pairs paths
+	totalFiles = #moonFiles+#xmlFiles
+	fileCount = 0
+	for file in *moonFiles
+		dest = Content.writablePath..Path.getPath(file)..Path.getName(file)..".lua"
+		mooncompile file,dest,((codes,err,globals)->
+			if not codes
+				print "Compile errors in #{file}."
+				print err
+				return
+			requires = LintMoonGlobals(codes,globals,file)
+			requires ..= "\n" unless requires == ""
+			"-- [moon]: #{file}\n"..requires..codes\gsub "Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
+		),->
+			print "Moon compiled: #{file}"
+			fileCount += 1
+	paths = {Path.getPath(file),true for file in *xmlFiles}
+	Path.make path,Content.writablePath for path in pairs paths
 	thread ->
-		print "Output path: #{Content.writablePath}"
-		xpcall (-> compile Content.assetPath\sub(1,-2),minify),(msg)->
-			msg = debug.traceback msg
-			print msg
-			building = false
-		print string.format "Compile #{minify and 'and minify ' or ''}done. %d files in total.\nCompile time, Moon %.3fs, Xml %.3fs#{minify and ', Minify %.3fs' or ''}.\n",totalFiles,totalMoonTime,totalXmlTime,totalMinifyTime
+		for file in *xmlFiles
+			dest = Content.writablePath..Path.getPath(file)..Path.getName(file)..".lua"
+			sourceCodes = Content\loadAsync file
+			codes,err = xmltolua sourceCodes
+			if not codes
+				print "Compile errors in #{file}."
+				print err
+			else
+				Content\saveAsync dest,codes
+			print "Xml compiled: #{file}"
+			fileCount += 1
+	thread ->
+		wait -> fileCount == totalFiles
+		if minify
+			{:ParseLua} = require "luaminify.ParseLua"
+			FormatMini = require "luaminify.FormatMini"
+			luaFiles = Path.getAllFiles Content.assetPath,"lua"
+			for file in *Path.getAllFiles Content.writablePath,"lua"
+				table.insert luaFiles,file
+			paths = {Path.getPath(file),true for file in *luaFiles}
+			Path.make path,Content.writablePath for path in pairs paths
+			for file in *luaFiles
+				sourceCodes = Content\loadAsync file
+				st, ast = ParseLua sourceCodes
+				if not st
+					print ast
+				else
+					codes = FormatMini ast
+					Content\saveAsync Content.writablePath..file,codes
+					print "Minify: #{file}"
 		building = false
+		print "Build complete!"
 
 doClean = ->
 	return if building

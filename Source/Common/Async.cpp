@@ -39,7 +39,7 @@ void Async::stop()
 	}
 }
 
-void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finisher)
+void Async::run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher)
 {
 	if (!_thread.isRunning())
 	{
@@ -69,7 +69,7 @@ void Async::run(function<Ref<Values> ()> worker, function<void(Values*)> finishe
 	_workerSemaphore.post();
 }
 
-void Async::run(function<void()> worker)
+void Async::run(const function<void()>& worker)
 {
 	if (!_thread.isRunning())
 	{
@@ -214,7 +214,7 @@ void Async::cancel()
 
 AsyncThread::AsyncThread():
 _nextProcess(0),
-_process(std::max(std::thread::hardware_concurrency(), 4u) - 2)
+_process(std::max(std::thread::hardware_concurrency(), 4u) - 1)
 {
 	for (int i = 0; i < s_cast<int>(_process.size()); i++)
 	{

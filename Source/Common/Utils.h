@@ -15,7 +15,7 @@ NS_DOROTHY_BEGIN
 public: varType get##funName() const; \
 public: void set##funName(varType var)
 
-#define PROPERTY_REF(varType, funName) \
+#define PROPERTY_CREF(varType, funName) \
 public: const varType& get##funName() const; \
 public: void set##funName(const varType& var)
 
@@ -31,7 +31,7 @@ public: void set##funName(varType var)
 public: varType get##funName() const; \
 public: virtual void set##funName(varType var)
 
-#define PROPERTY_VIRTUAL_REF(varType, funName) \
+#define PROPERTY_VIRTUAL_CREF(varType, funName) \
 public: const varType& get##funName() const; \
 public: virtual void set##funName(const varType& var)
 
@@ -41,8 +41,11 @@ public: virtual varType get##funName() const
 #define PROPERTY_READONLY(varType, funName) \
 public: varType get##funName() const
 
-#define PROPERTY_READONLY_REF(varType, funName) \
+#define PROPERTY_READONLY_CREF(varType, funName) \
 public: const varType& get##funName() const
+
+#define PROPERTY_READONLY_REF(varType, funName) \
+public: varType& get##funName()
 
 #define PROPERTY_READONLY_BOOL(funName) \
 public: bool is##funName() const

@@ -15,9 +15,9 @@ class Array : public Object
 public:
 	PROPERTY_READONLY(int, Count);
 	PROPERTY_READONLY(int, Capacity);
-	PROPERTY_READONLY_REF(Ref<Object>, Last);
-	PROPERTY_READONLY_REF(Ref<Object>, First);
-	PROPERTY_READONLY_REF(Ref<Object>, RandomObject);
+	PROPERTY_READONLY_CREF(Ref<Object>, Last);
+	PROPERTY_READONLY_CREF(Ref<Object>, First);
+	PROPERTY_READONLY_CREF(Ref<Object>, RandomObject);
 	PROPERTY_READONLY_BOOL(Empty);
 	bool contains(Object* object) const;
 	void add(Object* object);

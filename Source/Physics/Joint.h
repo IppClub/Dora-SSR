@@ -131,7 +131,7 @@ protected:
 class MoveJoint : public Joint
 {
 public:
-	PROPERTY_REF(Vec2, Position);
+	PROPERTY_CREF(Vec2, Position);
 	CREATE_FUNC(MoveJoint);
 protected:
 	MoveJoint():_position(Vec2::zero) { }

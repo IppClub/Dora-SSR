@@ -45,7 +45,7 @@ public:
 class UnitAction
 {
 public:
-	PROPERTY_READONLY_REF(string, Name);
+	PROPERTY_READONLY_CREF(string, Name);
 	PROPERTY_READONLY(int, Priority);
 	PROPERTY_READONLY(Unit*, Owner);
 	PROPERTY_READONLY(float, EclapsedTime);

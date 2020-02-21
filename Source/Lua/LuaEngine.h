@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/ToLua/tolua++.h"
 #include "Common/Ref.h"
+#include "MoonP/moon_compiler.h"
 
 NS_DOROTHY_BEGIN
 
@@ -22,6 +23,7 @@ class LuaEngine
 public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
+	PROPERTY_READONLY_REF(MoonP::MoonCompiler, Moon);
 
 	void insertLuaLoader(lua_CFunction func);
 
@@ -82,7 +84,7 @@ public:
 	bool to(float& value, int index);
 	bool to(double& value, int index);
 	bool to(Object*& value, int index);
-	bool to(Slice& value, int index);
+	bool to(string& value, int index);
 
 	template<typename T>
 	typename std::enable_if<std::is_base_of<Object, T>::value, bool>::type to(T*& t, int index)
@@ -114,6 +116,8 @@ public:
 	bool executeAssert(bool cond, String condStr);
 	bool scriptHandlerEqual(int handlerA, int handlerB);
 
+	void compileMoon(const std::list<std::pair<string,string>>& srcAndDests) const;
+
 	static bool call(lua_State* L, int paramCount, int returnCount); // returns success or failure
 	static bool execute(lua_State* L, int handler, int numArgs); // returns function result
 	static bool execute(lua_State* L, int numArgs); // returns function result
@@ -122,6 +126,7 @@ protected:
 	LuaEngine();
 	static int _callFromLua;
 	lua_State* L;
+	Own<MoonP::MoonCompiler> _moonCompiler;
 	SINGLETON_REF(LuaEngine, AsyncThread);
 };
 

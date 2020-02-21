@@ -17,7 +17,7 @@ class Listener;
 class EventType
 {
 public:
-	PROPERTY_READONLY_REF(string, Name);
+	PROPERTY_READONLY_CREF(string, Name);
 	PROPERTY_READONLY_BOOL(Empty);
 	EventType(const string& name);
 	void add(Listener* listener);
