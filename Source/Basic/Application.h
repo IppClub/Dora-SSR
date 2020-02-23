@@ -62,7 +62,7 @@ public:
 		_mm_free(p);
 	}
 #elif BX_PLATFORM_ANDROID
-	PROPERTY_READONLY_REF(string, APKPath);
+	PROPERTY_READONLY_CREF(string, APKPath);
 #endif // BX_PLATFORM
 protected:
 	Application();

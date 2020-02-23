@@ -30,7 +30,7 @@ local unpack = unpack
 local function wait(cond)
 	repeat
 		yield(false)
-	until cond(Director.deltaTime)
+	until cond()
 end
 
 local function once(work)
@@ -152,7 +152,7 @@ builtin.sleep = function(duration)
 			time = time + Director.deltaTime
 		until time >= duration
 	else
-		yield()
+		yield(false)
 	end
 end
 
@@ -166,17 +166,12 @@ _G.namespace = builtin.namespace
 -- Async functions
 
 local Content_loadAsync = Content.loadAsync
-Content.loadAsync = function(self,filename,handler)
-	local loaded = false
+Content.loadAsync = function(self,filename)
 	local loadedData
 	Content_loadAsync(self,filename,function(data)
-		if handler then
-			handler(filename, data)
-		end
 		loadedData = data
-		loaded = true
 	end)
-	wait(function() return loaded end)
+	wait(function() return loadedData end)
 	return loadedData
 end
 
@@ -222,18 +217,12 @@ end
 
 local RenderTarget = builtin.RenderTarget
 local RenderTarget_saveAsync = RenderTarget.saveAsync
-RenderTarget.saveAsync = function(self,filename,handler)
-	local loaded = false
-	local loadedData
+RenderTarget.saveAsync = function(self,filename)
+	local saved = false
 	RenderTarget_saveAsync(self,filename,function()
-		if handler then
-			handler()
-		end
-		loadedData = data
-		loaded = true
+		saved = true
 	end)
-	wait(function() return loaded end)
-	return loadedData
+	wait(function() return saved end)
 end
 
 -- Action

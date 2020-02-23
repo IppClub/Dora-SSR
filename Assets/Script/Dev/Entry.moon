@@ -123,7 +123,7 @@ doCompile = (minify)->
 	fileCount = 0
 	for file in *moonFiles
 		dest = Content.writablePath..Path.getPath(file)..Path.getName(file)..".lua"
-		mooncompile file,dest,((codes,err,globals)->
+		<- mooncompile file,dest,(codes,err,globals)->
 			if not codes
 				print "Compile errors in #{file}."
 				print err
@@ -131,9 +131,8 @@ doCompile = (minify)->
 			requires = LintMoonGlobals(codes,globals,file)
 			requires ..= "\n" unless requires == ""
 			"-- [moon]: #{file}\n"..requires..codes\gsub "Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
-		),->
-			print "Moon compiled: #{file}"
-			fileCount += 1
+		print "Moon compiled: #{file}"
+		fileCount += 1
 	paths = {Path.getPath(file),true for file in *xmlFiles}
 	Path.make path,Content.writablePath for path in pairs paths
 	thread ->
