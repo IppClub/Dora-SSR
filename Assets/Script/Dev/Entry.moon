@@ -1,7 +1,7 @@
 Dorothy builtin.ImGui
 import "Utils" as {:Set,:Path}
 
-debug.traceback = (err,level)->
+debug.traceback = (err,level=1)->
 	with require "StackTracePlus"
 		.dump_locals = false
 		.simplified = true
@@ -121,12 +121,13 @@ doCompile = (minify)->
 	Path.make path,Content.writablePath for path in pairs paths
 	totalFiles = #moonFiles+#xmlFiles
 	fileCount = 0
+	errors = {}
 	for file in *moonFiles
 		dest = Content.writablePath..Path.getPath(file)..Path.getName(file)..".lua"
 		<- mooncompile file,dest,(codes,err,globals)->
 			if not codes
-				print "Compile errors in #{file}."
-				print err
+				table.insert errors,"Compile errors in #{file}.\n#{err}"
+				fileCount += 1
 				return
 			requires = LintMoonGlobals(codes,globals,file)
 			requires ..= "\n" unless requires == ""
@@ -141,11 +142,10 @@ doCompile = (minify)->
 			sourceCodes = Content\loadAsync file
 			codes,err = xmltolua sourceCodes
 			if not codes
-				print "Compile errors in #{file}."
-				print err
+				table.insert errors,"Compile errors in #{file}.\n#{err}"
 			else
 				Content\saveAsync dest,codes
-			print "Xml compiled: #{file}"
+				print "Xml compiled: #{file}"
 			fileCount += 1
 	thread ->
 		wait -> fileCount == totalFiles
@@ -161,13 +161,14 @@ doCompile = (minify)->
 				sourceCodes = Content\loadAsync file
 				st, ast = ParseLua sourceCodes
 				if not st
-					print ast
+					table.insert errors,"Minify errors in #{file}.\n#{ast}"
 				else
 					codes = FormatMini ast
 					Content\saveAsync Content.writablePath..file,codes
 					print "Minify: #{file}"
-		building = false
+		print err for err in *errors
 		print "Build complete!"
+		building = false
 
 doClean = ->
 	return if building

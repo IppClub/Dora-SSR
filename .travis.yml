@@ -17,7 +17,7 @@ matrix:
     components:
       - tools
       - platform-tools
-      - build-tools-29.0.1
+      - build-tools-30.0.0-rc1
       - android-26
       - extra-google-m2repository
       - extra-android-m2repository
@@ -36,7 +36,7 @@ matrix:
       - lua tolua++.lua
     install:
       - yes | sdkmanager "ndk-bundle"
-      - yes | sdkmanager "cmake;3.6.4111459"
+      - yes | sdkmanager "cmake;3.10.2"
       - yes | sdkmanager "lldb;3.1"
     before_script:
       - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle

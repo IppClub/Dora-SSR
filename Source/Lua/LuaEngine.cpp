@@ -244,26 +244,38 @@ static int dora_mooncompile(lua_State* L)
 					values->get(compiledCodes, err, globals);
 					lua_State* L = SharedLuaEngine.getState();
 					int top = lua_gettop(L);
-					tolua_pushslice(L, compiledCodes);
-					tolua_pushslice(L, err);
-					lua_createtable(L, s_cast<int>(globals->size()), 0);
-					int i = 1;
-					for (const auto& var : *globals)
+					if (compiledCodes.empty())
 					{
-						lua_createtable(L, 3, 0);
-						lua_pushlstring(L, var.name.c_str(), var.name.size());
-						lua_rawseti(L, -2, 1);
-						lua_pushinteger(L, var.line);
-						lua_rawseti(L, -2, 2);
-						lua_pushinteger(L, var.col);
-						lua_rawseti(L, -2, 3);
-						lua_rawseti(L, -2, i);
-						i++;
+						lua_pushnil(L);
+						lua_pushlstring(L, err.c_str(), err.size());
 					}
+					else
+					{
+						lua_pushlstring(L, compiledCodes.c_str(), compiledCodes.size());
+						lua_pushnil(L);
+					}
+					if (globals)
+					{
+						lua_createtable(L, s_cast<int>(globals->size()), 0);
+						int i = 1;
+						for (const auto& var : *globals)
+						{
+							lua_createtable(L, 3, 0);
+							lua_pushlstring(L, var.name.c_str(), var.name.size());
+							lua_rawseti(L, -2, 1);
+							lua_pushinteger(L, var.line);
+							lua_rawseti(L, -2, 2);
+							lua_pushinteger(L, var.col);
+							lua_rawseti(L, -2, 3);
+							lua_rawseti(L, -2, i);
+							i++;
+						}
+					}
+					else lua_pushnil(L);
 					string result;
 					SharedLuaEngine.executeReturn(result, handler->get(), 3);
 					lua_settop(L, top);
-					if (!compiledCodes.empty()) {
+					if (!result.empty()) {
 						SharedContent.saveToFileAsync(std::get<1>(*input), result, callback);
 					}
 				});
@@ -344,7 +356,7 @@ static int dora_moontolua(lua_State* L)
 					i++;
 				}
 			} else {
-				lua_createtable(L, 0, 0);
+				lua_pushnil(L);
 			}
 			return 3;
 		}
