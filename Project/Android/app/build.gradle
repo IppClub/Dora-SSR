@@ -38,7 +38,8 @@ android {
 		sourceCompatibility = 1.8
 		targetCompatibility = 1.8
 	}
-	buildToolsVersion = '29.0.3'
+	buildToolsVersion = '30.0.0-rc1'
+	ndkVersion = '21.0.6113669'
 }
 
 dependencies {
