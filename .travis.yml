@@ -1,4 +1,4 @@
-matrix:
+jobs:
   include:
   - language: cpp
     os: osx
@@ -12,21 +12,20 @@ matrix:
     script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator13.2
   - language: android
     dist: trusty
-    sudo: true
     android:
-    components:
-      - tools
-      - platform-tools
-      - build-tools-29.0.3
-      - android-26
-      - extra-google-m2repository
-      - extra-android-m2repository
-    addons:
-      apt_packages:
-        - pandoc
-    licenses:
-      - 'android-sdk-license-.+'
-      - '.+'
+      components:
+        - tools
+        - platform-tools
+        - build-tools-30.0.0-preview
+        - android-26
+        - extra-google-m2repository
+        - extra-android-m2repository
+      addons:
+        apt_packages:
+          - pandoc
+      licenses:
+        - 'android-sdk-license-.+'
+        - '.+'
     before_install:
       - sudo apt-get install ant
       - sudo apt-get install lua5.1
@@ -35,11 +34,9 @@ matrix:
       - cd ./Tools/tolua++
       - lua tolua++.lua
     install:
-      - yes | sdkmanager "ndk-bundle"
+      - yes | sdkmanager "ndk;21.0.6113669"
       - yes | sdkmanager "cmake;3.10.2.4988404"
       - yes | sdkmanager "lldb;3.1"
-    before_script:
-      - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
     script:
       - cd ../../Project/Android
       - ./gradlew assemble
