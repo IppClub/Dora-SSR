@@ -36,7 +36,7 @@ matrix:
       - lua tolua++.lua
     install:
       - yes | sdkmanager "ndk-bundle"
-      - yes | sdkmanager "cmake;3.10.2"
+      - yes | sdkmanager "cmake;3.10.2.4988404"
       - yes | sdkmanager "lldb;3.1"
     before_script:
       - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
