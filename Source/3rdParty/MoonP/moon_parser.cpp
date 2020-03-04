@@ -28,8 +28,8 @@ std::unordered_set<std::string> Keywords = {
 	"repeat", "return", "then", "true", "until",
 	"while", // Lua keywords
 	"as", "class", "continue", "export", "extends",
-	"from", "import", "switch", "unless", "using",
-	"when", "with" // Moon keywords
+	"from", "global", "import", "switch", "unless",
+	"using", "when", "with" // Moon keywords
 };
 
 MoonParser::MoonParser() {
@@ -74,9 +74,15 @@ MoonParser::MoonParser() {
 	Variable = pl::user(Name, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		for (auto it = item.begin; it != item.end; ++it) st->buffer += static_cast<char>(*it);
-		auto it = Keywords.find(st->buffer);
+		auto isValid = Keywords.find(st->buffer) == Keywords.end();
+		if (isValid) {
+			if (st->buffer == st->moduleName) {
+				st->moduleFix++;
+				st->moduleName = std::string("_module_"sv) + std::to_string(st->moduleFix);
+			}
+		}
 		st->buffer.clear();
-		return it == Keywords.end();
+		return isValid;
 	});
 
 	LuaKeyword = pl::user(Name, [](const item_t& item) {
@@ -153,7 +159,7 @@ MoonParser::MoonParser() {
 		return true;
 	});
 
-	InBlock = Advance >> Block >> PopIndent;
+	InBlock = Advance >> ensure(Block, PopIndent);
 
 	local_flag = expr('*') | expr('^');
 	Local = key("local") >> ((Space >> local_flag) | NameList);
@@ -211,21 +217,18 @@ MoonParser::MoonParser() {
 		DisableDo >> ensure(for_in, PopDo) >>
 		-key("do") >> Body;
 
-	Do = pl::user(key("do") >> Body, [](const item_t& item)
-	{
+	Do = pl::user(key("do") >> Body, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		return st->doStack.empty() || st->doStack.top();
 	});
 
-	DisableDo = pl::user(true_(), [](const item_t& item)
-	{
+	DisableDo = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->doStack.push(false);
 		return true;
 	});
 
-	PopDo = pl::user(true_(), [](const item_t& item)
-	{
+	PopDo = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->doStack.pop();
 		return true;
@@ -312,11 +315,7 @@ MoonParser::MoonParser() {
 
 	LuaStringContent = *(not_(LuaStringClose) >> Any);
 
-	LuaString = pl::user(LuaStringOpen >> -Break >> LuaStringContent >> LuaStringClose, [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		st->stringOpen = -1;
-		return true;
-	});
+	LuaString = LuaStringOpen >> -Break >> LuaStringContent >> LuaStringClose;
 
 	Parens = sym('(') >> *SpaceBreak >> Exp >> *SpaceBreak >> sym(')');
 	Callable = Space >> Variable | SelfName | VarArg | Parens;
@@ -392,9 +391,30 @@ MoonParser::MoonParser() {
 		-(key("extends")  >> PreventIndent >> ensure(Exp, PopIndent)) >>
 		-ClassBlock;
 
-	export_values = NameList >> -(sym('=') >> ExpListLow);
-	export_op = expr('*') | expr('^');
-	Export = key("export") >> (ClassDecl | (Space >> export_op) | export_values);
+	global_values = NameList >> -(sym('=') >> ExpListLow);
+	global_op = expr('*') | expr('^');
+	Global = key("global") >> (ClassDecl | (Space >> global_op) | global_values);
+
+	Export = pl::user(key("export") >> ExpList >> -Assign, [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		if (st->exportStack.empty() || st->exportStack.top()) {
+			st->exportMode = true;
+			return true;
+		}
+		return false;
+	});
+
+	DisableExport = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->exportStack.push(false);
+		return true;
+	});
+
+	PopExport = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->exportStack.pop();
+		return true;
+	});
 
 	variable_pair = sym(':') >> Variable;
 
@@ -428,7 +448,7 @@ MoonParser::MoonParser() {
 
 	FnArgsDef = sym('(') >> White >> -FnArgDefList >> -outer_var_shadow >> White >> sym(')');
 	fn_arrow = expr("->") | expr("=>");
-	FunLit = -FnArgsDef >> Space >> fn_arrow >> -Body;
+	FunLit = -FnArgsDef >> Space >> fn_arrow >> DisableExport >> -Body >> PopExport;
 
 	NameList = Seperator >> Space >> Variable >> *(sym(',') >> White >> Variable);
 	NameOrDestructure = Space >> Variable | TableLit;
@@ -479,7 +499,7 @@ MoonParser::MoonParser() {
 	statement_appendix = (if_else_line | unless_line | CompInner) >> Space;
 	Statement = (
 		Import | While | For | ForEach |
-		Return | Local | Export | Space >> BreakLoop |
+		Return | Local | Global | Export | Space >> BreakLoop |
 		Backcall | ExpListAssign
 	) >> Space >>
 	-statement_appendix;
@@ -507,6 +527,9 @@ ParseInfo MoonParser::parse(std::string_view codes, rule& r) {
 	try {
 		State state;
 		res.node.set(pl::parse(*(res.codes), r, errors, &state));
+		if (state.exportMode) {
+			res.moduleName = std::move(state.moduleName);
+		}
 	} catch (const std::logic_error& err) {
 		res.error = err.what();
 		return res;
@@ -572,7 +595,6 @@ std::string ParseInfo::errorMessage(std::string_view msg, const input_range* loc
 			count++;
 		}
 	}
-	auto line = Converter{}.to_bytes(std::wstring(begin, end));
 	int oldCol = loc->m_begin.m_col;
 	int col = std::max(0, oldCol - 1);
 	auto it = begin;
@@ -582,6 +604,11 @@ std::string ParseInfo::errorMessage(std::string_view msg, const input_range* loc
 		}
 		++it;
 	}
+	while (it != end && (*it == '\t' || *it == ' ')) {
+		++col;
+		++it;
+	}
+	auto line = Converter{}.to_bytes(std::wstring(begin, end));
 	Utils::replace(line, "\t"sv, " "sv);
 	std::ostringstream buf;
 	buf << loc->m_begin.m_line << ": "sv << msg <<
