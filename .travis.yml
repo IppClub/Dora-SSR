@@ -20,9 +20,6 @@ jobs:
         - android-26
         - extra-google-m2repository
         - extra-android-m2repository
-      addons:
-        apt_packages:
-          - pandoc
       licenses:
         - 'android-sdk-license-.+'
         - '.+'
