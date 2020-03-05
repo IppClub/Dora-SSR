@@ -11,7 +11,7 @@ StarVertices = (radius,line=true)->
 		cr = i%2 == 1 and r or R
 		Vec2 cr*math.sin(angle), cr*math.cos(angle)
 
-(args)->
+export default (args)->
 	with Node!
 		.position = Vec2 args.x or 0, args.y or 0
 		if args.fillColor
@@ -21,4 +21,3 @@ StarVertices = (radius,line=true)->
 		if args.borderColor
 			\addChild with Line StarVertices(args.size),Color args.borderColor
 				.renderOrder = args.lineOrder if args.lineOrder
-

@@ -1,7 +1,7 @@
 Dorothy builtin.Platformer
 import "UI.View.StartPanel"
 
-Class StartPanel,
+export default Class StartPanel,
 	__init:=>
 		buttons = {@fButton,@vButton,@dButton}
 		for button in *buttons

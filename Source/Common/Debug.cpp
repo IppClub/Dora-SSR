@@ -27,6 +27,7 @@ Delegate<void (const string&)> LogHandler;
 void LogPrintInThread(const string& str)
 {
 	LogHandler(str);
+#if DORA_DEBUG
 	SharedAsyncLogThread.run([str]
 	{
 #if BX_PLATFORM_ANDROID
@@ -35,6 +36,7 @@ void LogPrintInThread(const string& str)
 		fmt::print("{}", str);
 #endif
 	});
+#endif // DORA_DEBUG
 }
 
 #if !DORA_DISABLE_ASSERT_IN_LUA

@@ -1,7 +1,7 @@
 Dorothy builtin.Platformer
 import "UI.View.ButtonGlow"
 
-Class ButtonGlow,
+export default Class ButtonGlow,
 	__init:=>
 		@slot "Tapped",(touch)->
 			with Visual "Particle/select.par"

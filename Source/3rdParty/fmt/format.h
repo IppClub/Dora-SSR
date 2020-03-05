@@ -43,12 +43,6 @@
 
 #include "core.h"
 
-#ifdef __clang__
-#  define FMT_CLANG_VERSION (__clang_major__ * 100 + __clang_minor__)
-#else
-#  define FMT_CLANG_VERSION 0
-#endif
-
 #ifdef __INTEL_COMPILER
 #  define FMT_ICC_VERSION __INTEL_COMPILER
 #elif defined(__ICL)
@@ -131,11 +125,11 @@ FMT_END_NAMESPACE
 #endif
 
 #ifndef FMT_USE_UDL_TEMPLATE
-// EDG front end based compilers (icc, nvcc) do not support UDL templates yet
-// and GCC 9 warns about them.
+// EDG front end based compilers (icc, nvcc) and GCC < 6.4 do not propertly
+// support UDL templates and GCC >= 9 warns about them.
 #  if FMT_USE_USER_DEFINED_LITERALS && FMT_ICC_VERSION == 0 && \
       FMT_CUDA_VERSION == 0 &&                                 \
-      ((FMT_GCC_VERSION >= 600 && FMT_GCC_VERSION <= 900 &&    \
+      ((FMT_GCC_VERSION >= 604 && FMT_GCC_VERSION <= 900 &&    \
         __cplusplus >= 201402L) ||                             \
        FMT_CLANG_VERSION >= 304)
 #    define FMT_USE_UDL_TEMPLATE 1
@@ -312,7 +306,7 @@ template <typename It> class is_output_iterator {
   using type = decltype(test<It>(typename iterator_category<It>::type{}));
 
  public:
-  static const bool value = !std::is_const<remove_reference_t<type>>::value;
+  enum { value = !std::is_const<remove_reference_t<type>>::value };
 };
 
 // A workaround for std::string not having mutable data() until C++17.
@@ -479,13 +473,18 @@ inline size_t count_code_points(basic_string_view<Char> s) {
 }
 
 // Counts the number of code points in a UTF-8 string.
-inline size_t count_code_points(basic_string_view<char8_t> s) {
-  const char8_t* data = s.data();
+inline size_t count_code_points(basic_string_view<char> s) {
+  const char* data = s.data();
   size_t num_code_points = 0;
   for (size_t i = 0, size = s.size(); i != size; ++i) {
     if ((data[i] & 0xc0) != 0x80) ++num_code_points;
   }
   return num_code_points;
+}
+
+inline size_t count_code_points(basic_string_view<char8_t> s) {
+  return count_code_points(basic_string_view<char>(
+      reinterpret_cast<const char*>(s.data()), s.size()));
 }
 
 template <typename Char>
@@ -567,7 +566,8 @@ class FMT_DEPRECATED u8string_view : public basic_string_view<char8_t> {
 
 #if FMT_USE_USER_DEFINED_LITERALS
 inline namespace literals {
-inline basic_string_view<char8_t> operator"" _u(const char* s, std::size_t n) {
+FMT_DEPRECATED inline basic_string_view<char8_t> operator"" _u(const char* s,
+                                                               std::size_t n) {
   return {reinterpret_cast<const char8_t*>(s), n};
 }
 }  // namespace literals
@@ -1609,6 +1609,18 @@ template <typename Range> class basic_writer {
     }
   };
 
+  struct bytes_writer {
+    string_view bytes;
+
+    size_t size() const { return bytes.size(); }
+    size_t width() const { return bytes.size(); }
+
+    template <typename It> void operator()(It&& it) const {
+      const char* data = bytes.data();
+      it = copy_str<char>(data, data + size(), it);
+    }
+  };
+
   template <typename UIntPtr> struct pointer_writer {
     UIntPtr value;
     int num_digits;
@@ -1765,6 +1777,10 @@ template <typename Range> class basic_writer {
     if (specs.precision >= 0 && to_unsigned(specs.precision) < size)
       size = code_point_index(s, to_unsigned(specs.precision));
     write(data, size, specs);
+  }
+
+  void write_bytes(string_view bytes, const format_specs& specs) {
+    write_padded(specs, bytes_writer{bytes});
   }
 
   template <typename UIntPtr>
@@ -2543,7 +2559,7 @@ FMT_CONSTEXPR void parse_format_string(basic_string_view<Char> format_str,
     // Doing two passes with memchr (one for '{' and another for '}') is up to
     // 2.5x faster than the naive one-pass implementation on big format strings.
     const Char* p = begin;
-    if (*begin != '{' && !find<IS_CONSTEXPR>(begin, end, '{', p))
+    if (*begin != '{' && !find<IS_CONSTEXPR>(begin + 1, end, '{', p))
       return write(begin, end);
     write(begin, p);
     ++p;
@@ -2647,10 +2663,9 @@ FMT_CONSTEXPR bool do_check_format_string(basic_string_view<Char> s,
 template <typename... Args, typename S,
           enable_if_t<(is_compile_string<S>::value), int>>
 void check_format_string(S format_str) {
-  FMT_CONSTEXPR_DECL bool invalid_format =
-      internal::do_check_format_string<typename S::char_type,
-                                       internal::error_handler, Args...>(
-          to_string_view(format_str));
+  FMT_CONSTEXPR_DECL bool invalid_format = internal::do_check_format_string<
+      typename S::char_type, internal::error_handler,
+      remove_const_t<remove_reference_t<Args>>...>(to_string_view(format_str));
   (void)invalid_format;
 }
 
@@ -2953,7 +2968,7 @@ struct formatter<T, Char,
   template <typename Char>                                                    \
   struct formatter<Type, Char> : formatter<Base, Char> {                      \
     template <typename FormatContext>                                         \
-    auto format(const Type& val, FormatContext& ctx) -> decltype(ctx.out()) { \
+    auto format(Type const& val, FormatContext& ctx) -> decltype(ctx.out()) { \
       return formatter<Base, Char>::format(val, ctx);                         \
     }                                                                         \
   }
@@ -3157,11 +3172,32 @@ class bytes {
   explicit bytes(string_view data) : data_(data) {}
 };
 
-template <> struct formatter<bytes> : formatter<string_view> {
+template <> struct formatter<bytes> {
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
+    using handler_type = internal::dynamic_specs_handler<ParseContext>;
+    internal::specs_checker<handler_type> handler(handler_type(specs_, ctx),
+                                                  internal::type::string_type);
+    auto it = parse_format_specs(ctx.begin(), ctx.end(), handler);
+    internal::check_string_type_spec(specs_.type, ctx.error_handler());
+    return it;
+  }
+
   template <typename FormatContext>
   auto format(bytes b, FormatContext& ctx) -> decltype(ctx.out()) {
-    return formatter<string_view>::format(b.data_, ctx);
+    internal::handle_dynamic_spec<internal::width_checker>(
+        specs_.width, specs_.width_ref, ctx);
+    internal::handle_dynamic_spec<internal::precision_checker>(
+        specs_.precision, specs_.precision_ref, ctx);
+    using range_type =
+        internal::output_range<typename FormatContext::iterator, char>;
+    internal::basic_writer<range_type> writer(range_type(ctx.out()));
+    writer.write_bytes(b.data_, specs_);
+    return writer.out();
   }
+
+ private:
+  internal::dynamic_format_specs<char> specs_;
 };
 
 template <typename It, typename Char> struct arg_join : internal::view {
@@ -3238,7 +3274,6 @@ arg_join<internal::iterator_t<const Range>, wchar_t> join(const Range& range,
 /**
   \rst
   Converts *value* to ``std::string`` using the default format for type *T*.
-  It doesn't support user-defined types with custom formatters.
 
   **Example**::
 

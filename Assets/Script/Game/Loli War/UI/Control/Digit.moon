@@ -1,7 +1,7 @@
 Dorothy builtin.Platformer
 import "UI.View.Digit"
 
-Class Digit,
+export default Class Digit,
 	__init:=>
 		@_value = 99
 		@maxValue = 99

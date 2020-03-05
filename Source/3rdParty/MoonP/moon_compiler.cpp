@@ -32,7 +32,7 @@ inline std::string s(std::string_view sv) {
 }
 
 const char* moonScriptVersion() {
-	return "0.5.0-r0.1.5";
+	return "0.5.0-r0.2.0";
 }
 
 class MoonCompilerImpl {
@@ -1813,9 +1813,10 @@ private:
 					auto expListAssign = x->new_ptr<ExpListAssign_t>();
 					expListAssign->expList.set(expList);
 					newStmt->content.set(expListAssign);
+					newStmt->appendix.set(stmt->appendix);
 					newBlock->statements.push_back(newStmt);
 				}
-				transformBlock(newBlock, out, usage, assignList);
+				transformBlock(newBlock, out, usage, assignList, isRoot);
 				return;
 			}
 			if (auto local = stmt->content.as<Local_t>()) {
@@ -1896,7 +1897,7 @@ private:
 			}
 		}
 		if (isRoot && !_info.moduleName.empty()) {
-			block->statements.push_front(toAst<Statement_t>(_info.moduleName + s("={}"sv), block));
+			block->statements.push_front(toAst<Statement_t>(_info.moduleName + s(_info.exportDefault ? "=nil"sv : "={}"sv), block));
 		}
 		switch (usage) {
 			case ExpUsage::Closure:
@@ -1961,7 +1962,9 @@ private:
 
 	void transformReturn(Return_t* returnNode, str_list& out) {
 		if (!enableReturn.top()) {
-			throw std::logic_error(_info.errorMessage("Illegal return statement here."sv, returnNode));
+			ast_node* target = returnNode->valueList.get();
+			if (!target) target = returnNode;
+			throw std::logic_error(_info.errorMessage("Illegal return statement here."sv, target));
 		}
 		if (auto valueList = returnNode->valueList.get()) {
 			if (valueList->exprs.size() == 1) {
@@ -3893,11 +3896,15 @@ private:
 
 	void transformExport(Export_t* exportNode, str_list& out) {
 		auto x = exportNode;
+		if (_scopes.size() > 1) {
+			throw std::logic_error(_info.errorMessage("Can not do module export outside root block."sv, x));
+		}
 		if (exportNode->assign) {
-			if (exportNode->expList->exprs.size() != exportNode->assign->values.size()) {
+			auto expList = exportNode->target.to<ExpList_t>();
+			if (expList->exprs.size() != exportNode->assign->values.size()) {
 				throw std::logic_error(_info.errorMessage("Left and right expressions must be matched in export statement."sv, x));
 			}
-			for (auto _exp : exportNode->expList->exprs.objects()) {
+			for (auto _exp : expList->exprs.objects()) {
 				auto exp = static_cast<Exp_t*>(_exp);
 				if (!variableFrom(exp) &&
 					!exp->getByPath<Value_t, SimpleValue_t, TableLit_t>() &&
@@ -3905,12 +3912,11 @@ private:
 					throw std::logic_error(_info.errorMessage("Left hand expressions must be variables in export statement."sv, x));
 				}
 			}
-			str_list temp;
 			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(exportNode->expList);
+			assignment->expList.set(expList);
 			assignment->action.set(exportNode->assign);
-			transformAssignment(assignment, temp);
-			str_list names = transformAssignDefs(exportNode->expList, false);
+			transformAssignment(assignment, out);
+			str_list names = transformAssignDefs(expList, false);
 			auto info = extractDestructureInfo(assignment, true);
 			if (!info.first.empty()) {
 				for (const auto& destruct : info.first)
@@ -3918,23 +3924,52 @@ private:
 						if (item.isVariable)
 							names.push_back(item.name);
 			}
-			str_list lefts, rights;
-			for (const auto& name : names) {
-				lefts.push_back(_info.moduleName + s("[\""sv) + name + s("\"]"sv));
-				rights.push_back(name);
+			if (_info.exportDefault) {
+				out.back().append(indent() + _info.moduleName + s(" = "sv) + names.back() + nlr(exportNode));
+			} else {
+				str_list lefts, rights;
+				for (const auto& name : names) {
+					lefts.push_back(_info.moduleName + s("[\""sv) + name + s("\"]"sv));
+					rights.push_back(name);
+				}
+				out.back().append(indent() + join(lefts,", "sv) + s(" = "sv) + join(rights, ", "sv) + nlr(exportNode));
 			}
-			out.push_back(temp.back() + indent() + join(lefts,", "sv) + s(" = "sv) + join(rights, ", "sv) + nlr(exportNode));
 		} else {
-			str_list temp;
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(toAst<ExpList_t>(_info.moduleName + s("[#"sv) + _info.moduleName + s("+1]"sv), x));
-			for (auto value : exportNode->expList->exprs.objects()) {
+			if (_info.exportDefault) {
+				auto exp = exportNode->target.to<Exp_t>();
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(toAst<ExpList_t>(_info.moduleName, x));
 				auto assign = x->new_ptr<Assign_t>();
-				assign->values.push_back(value);
+				assign->values.push_back(exp);
 				assignment->action.set(assign);
-				transformAssignment(assignment, temp);
+				transformAssignment(assignment, out);
+			} else {
+				str_list temp;
+				auto expList = exportNode->target.to<ExpList_t>();
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				auto assignList = toAst<ExpList_t>(_info.moduleName + s("[#"sv) + _info.moduleName + s("+1]"sv), x);
+				assignment->expList.set(assignList);
+				for (auto exp : expList->exprs.objects()) {
+					if (auto classDecl = exp->getByPath<Value_t, SimpleValue_t, ClassDecl_t>()) {
+						if (classDecl->name && classDecl->name->item->getId() == id<Variable_t>()) {
+							transformClassDecl(classDecl, temp, ExpUsage::Common);
+							auto name = _parser.toString(classDecl->name->item);
+							assignment->expList.set(toAst<ExpList_t>(_info.moduleName + s("[\""sv) + name + s("\"]"sv), x));
+							auto assign = x->new_ptr<Assign_t>();
+							assign->values.push_back(toAst<Exp_t>(name, x));
+							assignment->action.set(assign);
+							transformAssignment(assignment, temp);
+							assignment->expList.set(assignList);
+							continue;
+						}
+					}
+					auto assign = x->new_ptr<Assign_t>();
+					assign->values.push_back(exp);
+					assignment->action.set(assign);
+					transformAssignment(assignment, temp);
+				}
+				out.push_back(join(temp));
 			}
-			out.push_back(join(temp));
 		}
 	}
 

@@ -26,6 +26,7 @@ struct ParseInfo {
 	ast_ptr<false, ast_node> node;
 	std::string error;
 	std::unique_ptr<input> codes;
+	bool exportDefault = false;
 	std::string moduleName;
 	std::string errorMessage(std::string_view msg, const input_range* loc) const;
 };
@@ -74,14 +75,14 @@ protected:
 		State() {
 			indents.push(0);
 		}
-		bool exportMode = false;
+		bool exportDefault = false;
+		int exportCount = 0;
 		int moduleFix = 0;
 		size_t stringOpen = 0;
 		std::string moduleName = "_module_0";
 		std::string buffer;
 		std::stack<int> indents;
 		std::stack<bool> doStack;
-		std::stack<bool> exportStack;
 	};
 
 	template <class T>
@@ -130,8 +131,6 @@ private:
 	rule WithExp;
 	rule DisableDo;
 	rule PopDo;
-	rule DisableExport;
-	rule PopExport;
 	rule SwitchElse;
 	rule SwitchBlock;
 	rule IfElseIf;
@@ -258,6 +257,7 @@ private:
 	AST_RULE(global_values)
 	AST_RULE(global_op)
 	AST_RULE(Global)
+	AST_RULE(export_default)
 	AST_RULE(Export)
 	AST_RULE(variable_pair)
 	AST_RULE(normal_pair)

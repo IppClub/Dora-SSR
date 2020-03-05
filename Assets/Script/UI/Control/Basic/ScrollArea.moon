@@ -12,7 +12,7 @@ import "UI.View.Shape.SolidRect"
 -- x,y,width,height,
 -- paddingX,paddingY,
 -- viewWidth,viewHeight
-Class ScrollArea,
+export default Class ScrollArea,
 	__init: (args)=>
 		{:width,:height} = args
 		screenSize = (Vec2 View.size).length

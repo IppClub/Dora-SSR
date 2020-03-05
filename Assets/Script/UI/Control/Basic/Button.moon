@@ -5,7 +5,7 @@ import "UI.View.Control.Basic.Button"
 -- "Tapped",(button)->
 -- [params]
 -- text, x, y, width, height, fontName=18, fontSize=NotoSansHans-Regular
-Class Button,
+export default Class Button,
 	__init:(args)=>
 		@_text = @label.text if @label
 		@slot "TapFilter", (touch)->

@@ -217,10 +217,10 @@ MoonParser::MoonParser() {
 		DisableDo >> ensure(for_in, PopDo) >>
 		-key("do") >> Body;
 
-	Do = pl::user(key("do") >> Body, [](const item_t& item) {
+	Do = pl::user(key("do"), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		return st->doStack.empty() || st->doStack.top();
-	});
+	}) >> Body;
 
 	DisableDo = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -395,26 +395,26 @@ MoonParser::MoonParser() {
 	global_op = expr('*') | expr('^');
 	Global = key("global") >> (ClassDecl | (Space >> global_op) | global_values);
 
-	Export = pl::user(key("export") >> ExpList >> -Assign, [](const item_t& item) {
+	export_default = key("default");
+
+	Export = pl::user(key("export"), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
-		if (st->exportStack.empty() || st->exportStack.top()) {
-			st->exportMode = true;
+		st->exportCount++;
+		return true;
+	}) >> ((pl::user(export_default, [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		bool isValid = !st->exportDefault && st->exportCount == 1;
+		st->exportDefault = true;
+		return isValid;
+	}) >> Exp)
+	| (pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		if (st->exportDefault && st->exportCount > 1) {
+			return false;
+		} else {
 			return true;
 		}
-		return false;
-	});
-
-	DisableExport = pl::user(true_(), [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		st->exportStack.push(false);
-		return true;
-	});
-
-	PopExport = pl::user(true_(), [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		st->exportStack.pop();
-		return true;
-	});
+	}) >> ExpList >> -Assign)) >> not_(Space >> statement_appendix);
 
 	variable_pair = sym(':') >> Variable;
 
@@ -448,7 +448,7 @@ MoonParser::MoonParser() {
 
 	FnArgsDef = sym('(') >> White >> -FnArgDefList >> -outer_var_shadow >> White >> sym(')');
 	fn_arrow = expr("->") | expr("=>");
-	FunLit = -FnArgsDef >> Space >> fn_arrow >> DisableExport >> -Body >> PopExport;
+	FunLit = -FnArgsDef >> Space >> fn_arrow >> -Body;
 
 	NameList = Seperator >> Space >> Variable >> *(sym(',') >> White >> Variable);
 	NameOrDestructure = Space >> Variable | TableLit;
@@ -504,7 +504,7 @@ MoonParser::MoonParser() {
 	) >> Space >>
 	-statement_appendix;
 
-	Body = -Space >> Break >> *EmptyLine >> InBlock | Statement;
+	Body = Space >> Break >> *EmptyLine >> InBlock | Statement;
 
 	empty_line_stop = Space >> and_(Stop);
 	Line = CheckIndent >> Statement | empty_line_stop;
@@ -518,7 +518,7 @@ ParseInfo MoonParser::parse(std::string_view codes, rule& r) {
 	ParseInfo res;
 	try {
 		res.codes = std::make_unique<input>();
-		*(res.codes) = _converter.from_bytes(codes.begin(), codes.end());
+		*(res.codes) = _converter.from_bytes(&codes.front(), &codes.back() + 1);
 	} catch (const std::range_error&) {
 		res.error = "Invalid text encoding."sv;
 		return res;
@@ -527,8 +527,9 @@ ParseInfo MoonParser::parse(std::string_view codes, rule& r) {
 	try {
 		State state;
 		res.node.set(pl::parse(*(res.codes), r, errors, &state));
-		if (state.exportMode) {
+		if (state.exportCount > 0) {
 			res.moduleName = std::move(state.moduleName);
+			res.exportDefault = state.exportDefault;
 		}
 	} catch (const std::logic_error& err) {
 		res.error = err.what();
@@ -561,7 +562,7 @@ std::string MoonParser::toString(input::iterator begin, input::iterator end) {
 }
 
 input MoonParser::encode(std::string_view codes) {
-	return _converter.from_bytes(codes.begin(), codes.end());
+	return _converter.from_bytes(&codes.front(), &codes.back() + 1);
 }
 
 std::string MoonParser::decode(const input& codes) {
@@ -602,10 +603,6 @@ std::string ParseInfo::errorMessage(std::string_view msg, const input_range* loc
 		if (*it > ASCII) {
 			++col;
 		}
-		++it;
-	}
-	while (it != end && (*it == '\t' || *it == ' ')) {
-		++col;
 		++it;
 	}
 	auto line = Converter{}.to_bytes(std::wstring(begin, end));
