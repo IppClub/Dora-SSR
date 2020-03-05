@@ -336,6 +336,10 @@ class fp {
  private:
   using significand_type = uint64_t;
 
+ public:
+  significand_type f;
+  int e;
+
   // All sizes are in bits.
   // Subtract 1 to account for an implicit most significant bit in the
   // normalized form.
@@ -343,11 +347,6 @@ class fp {
       std::numeric_limits<double>::digits - 1;
   static FMT_CONSTEXPR_DECL const uint64_t implicit_bit =
       1ULL << double_significand_size;
-
- public:
-  significand_type f;
-  int e;
-
   static FMT_CONSTEXPR_DECL const int significand_size =
       bits<significand_type>::value;
 
@@ -357,22 +356,6 @@ class fp {
   // Constructs fp from an IEEE754 double. It is a template to prevent compile
   // errors on platforms where double is not IEEE754.
   template <typename Double> explicit fp(Double d) { assign(d); }
-
-  // Normalizes the value converted from double and multiplied by (1 << SHIFT).
-  template <int SHIFT> friend fp normalize(fp value) {
-    // Handle subnormals.
-    const auto shifted_implicit_bit = fp::implicit_bit << SHIFT;
-    while ((value.f & shifted_implicit_bit) == 0) {
-      value.f <<= 1;
-      --value.e;
-    }
-    // Subtract 1 to account for hidden bit.
-    const auto offset =
-        fp::significand_size - fp::double_significand_size - SHIFT - 1;
-    value.f <<= offset;
-    value.e -= offset;
-    return value;
-  }
 
   // Assigns d to this and return true iff predecessor is closer than successor.
   template <typename Double, FMT_ENABLE_IF(sizeof(Double) == sizeof(uint64_t))>
@@ -433,6 +416,22 @@ class fp {
     return boundaries{lower.f, upper.f};
   }
 };
+
+// Normalizes the value converted from double and multiplied by (1 << SHIFT).
+template <int SHIFT> fp normalize(fp value) {
+  // Handle subnormals.
+  const auto shifted_implicit_bit = fp::implicit_bit << SHIFT;
+  while ((value.f & shifted_implicit_bit) == 0) {
+    value.f <<= 1;
+    --value.e;
+  }
+  // Subtract 1 to account for hidden bit.
+  const auto offset =
+      fp::significand_size - fp::double_significand_size - SHIFT - 1;
+  value.f <<= offset;
+  value.e -= offset;
+  return value;
+}
 
 inline bool operator==(fp x, fp y) { return x.f == y.f && x.e == y.e; }
 
@@ -527,8 +526,7 @@ class bigint {
     FMT_ASSERT(compare(*this, other) >= 0, "");
     bigit borrow = 0;
     int i = other.exp_ - exp_;
-    for (int j = 0, n = static_cast<int>(other.bigits_.size()); j != n;
-         ++i, ++j) {
+    for (size_t j = 0, n = other.bigits_.size(); j != n; ++i, ++j) {
       subtract_bigits(i, other.bigits_[j], borrow);
     }
     while (borrow > 0) subtract_bigits(i, 0, borrow);
@@ -579,7 +577,7 @@ class bigint {
   }
 
   void assign(uint64_t n) {
-    int num_bigits = 0;
+    size_t num_bigits = 0;
     do {
       bigits_[num_bigits++] = n & ~bigit(0);
       n >>= bigit_bits;
@@ -757,7 +755,7 @@ enum result {
 }
 
 // A version of count_digits optimized for grisu_gen_digits.
-inline unsigned grisu_count_digits(uint32_t n) {
+inline int grisu_count_digits(uint32_t n) {
   if (n < 10) return 1;
   if (n < 100) return 2;
   if (n < 1000) return 3;

@@ -229,4 +229,4 @@ GameWorld = Class PlatformWorld,
 		@removeLayer LayerPlayerHero
 		@removeLayer LayerEnemyHero
 
-GameWorld!
+export default GameWorld!

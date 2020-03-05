@@ -10,3 +10,7 @@ Content.searchPaths = {
 }
 
 require("Dev.Entry")
+
+print(moontolua([[
+export default {flag:1, value:"x"}
+]],{reserve_line_number=false}))

@@ -2,7 +2,7 @@ Dorothy!
 import "UI.View.Control.Basic.Ruler"
 import "Utils" as {:Round}
 
-Class Ruler,
+export default Class Ruler,
 	__init:(args)=>
 		{:y,:width,:height,:fontName,:fontSize,:fixed} = args
 		viewSize = View.size

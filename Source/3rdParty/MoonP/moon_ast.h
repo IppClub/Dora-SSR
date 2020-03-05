@@ -514,10 +514,14 @@ AST_NODE(Global)
 	AST_MEMBER(Global, &item)
 AST_END(Global)
 
+AST_LEAF(export_default)
+AST_END(export_default)
+
 AST_NODE(Export)
-	ast_ptr<true, ExpList_t> expList;
+	ast_ptr<false, export_default_t> def;
+	ast_sel<true, ExpList_t, Exp_t> target;
 	ast_ptr<false, Assign_t> assign;
-	AST_MEMBER(Export, &expList, &assign)
+	AST_MEMBER(Export, &def, &target, &assign)
 AST_END(Export)
 
 AST_NODE(FnArgDef)

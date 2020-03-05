@@ -10,7 +10,7 @@ import "UI.View.EPHint"
 	:MaxHP
 } = Data.store
 
-Class HPWheel,
+export default Class HPWheel,
 	__init:=>
 		@ep = MaxEP
 		@hp = MaxHP

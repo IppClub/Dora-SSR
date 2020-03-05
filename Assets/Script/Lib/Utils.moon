@@ -220,7 +220,7 @@ StructLoad = (data)->
 		setmetatable data,Struct[data[1]]
 		for item in *data
 			StructLoad item
-Struct = setmetatable {
+export Struct = setmetatable {
 	load:(arg)=>
 		data = switch type arg
 			when "string"
@@ -247,9 +247,9 @@ Struct = setmetatable {
 		concat [tostring v for _,v in pairs StructDefs], "\n"
 }
 
-Set = (list)-> {item,true for item in *list}
+export Set = (list)-> {item,true for item in *list}
 
-CompareTable = (olds,news)->
+export CompareTable = (olds,news)->
 	itemsToDel = {}
 	itemSet = Set news
 	for item in *olds
@@ -262,7 +262,7 @@ CompareTable = (olds,news)->
 			insert itemsToAdd,item
 	return itemsToAdd,itemsToDel
 
-Round = (val)->
+export Round = (val)->
 	if type(val) == "number"
 		val > 0 and floor(val+0.5) or ceil(val-0.5)
 	else
@@ -270,7 +270,7 @@ Round = (val)->
 			val.y > 0 and floor(val.y+0.5) or ceil(val.y-0.5)
 
 local Path
-Path =
+export Path =
 	-- input: /aa/bb/file.XML
 	-- output: xml
 	getExtension:(filename)->
@@ -353,11 +353,3 @@ Path =
 			Content\mkdir prefix..table.concat items,"/"
 
 	isValid:(filename)-> not filename\match "[\\/|:*?<>\"]"
-
-{
-	:Set
-	:CompareTable
-	:Round
-	:Path
-	:Struct
-}

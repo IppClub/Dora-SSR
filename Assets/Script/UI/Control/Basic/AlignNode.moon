@@ -1,7 +1,7 @@
 Dorothy!
 import "moon" as {:run_with_scope}
 
-Class Node,
+export default Class Node,
 	__init:(args)=>
 		{
 			:isRoot, :inUI,
