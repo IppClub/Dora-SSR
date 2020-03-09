@@ -1319,7 +1319,7 @@ void XmlDelegator::textHandler(const char* s, int len)
 
 XmlLoader::XmlLoader():_delegator(new XmlDelegator(&_parser))
 {
-	_parser.setDelegator(_delegator);
+	_parser.setDelegator(_delegator.get());
 }
 
 XmlLoader::~XmlLoader()

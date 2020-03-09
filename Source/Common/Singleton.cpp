@@ -175,7 +175,7 @@ LifeCycler* getCycler()
 	{
 		globalCycler = New<LifeCycler>();
 	});
-	return globalCycler;
+	return globalCycler.get();
 }
 
 void Life::addName(String name)

@@ -24,7 +24,7 @@ public:
 	virtual ~ObjectBase()
 	{
 #if DORA_DEBUG
-		Uint32 count = maxIdCount - s_cast<Uint32>(availableIds.size());
+		int count = s_cast<int>(maxIdCount) - s_cast<int>(availableIds.size());
 		if (count > 0)
 		{
 			Warn("{} C++ objects leaks.", count);

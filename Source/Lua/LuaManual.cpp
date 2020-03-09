@@ -86,8 +86,8 @@ static void pushVectorString(lua_State* L, const vector<string>& array)
 
 void __Content_loadFile(lua_State* L, Content* self, String filename)
 {
-	OwnArray<Uint8> data = self->loadFile(filename);
-	if (data) lua_pushlstring(L, r_cast<char*>(data.get()), data.size());
+	auto data = self->loadFile(filename);
+	if (data.first) lua_pushlstring(L, r_cast<char*>(data.first.get()), data.second);
 	else lua_pushnil(L);
 }
 

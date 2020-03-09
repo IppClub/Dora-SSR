@@ -86,7 +86,7 @@ static int dora_loadfile(lua_State* L, String filename)
 	}
 
 	const char* codeBuffer = nullptr;
-	Sint64 codeBufferSize = 0;
+	size_t codeBufferSize = 0;
 	OwnArray<Uint8> buffer;
 	string codes;
 	switch (Switch::hash(extension))
@@ -104,16 +104,18 @@ static int dora_loadfile(lua_State* L, String filename)
 			}
 			break;
 		}
-		default:
-			buffer = SharedContent.loadFile(targetFile);
+		default: {
+			auto data = SharedContent.loadFile(targetFile);
+			buffer = std::move(data.first);
 			codeBuffer = r_cast<char*>(buffer.get());
-			codeBufferSize = buffer.size();
+			codeBufferSize = data.second;
 			break;
+		}
 	}
 
 	if (codeBuffer)
 	{
-		if (luaL_loadbuffer(L, codeBuffer, s_cast<size_t>(codeBufferSize), filename.toString().c_str()) != 0)
+		if (luaL_loadbuffer(L, codeBuffer, codeBufferSize, filename.toString().c_str()) != 0)
 		{
 			luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
 				lua_tostring(L, 1), filename.toString().c_str(), lua_tostring(L, -1));
@@ -199,6 +201,10 @@ static int dora_xmltolua(lua_State* L)
 	return 1;
 }
 
+extern "C" {
+int luaopen_moonp(lua_State* L);
+}
+
 static int dora_loadlibs(lua_State* L)
 {
 	const luaL_Reg lualibs[] =
@@ -217,7 +223,13 @@ static int dora_loadlibs(lua_State* L)
 		lua_pushstring(L, lib->name);
 		lua_call(L, 1, 0);
 	}
-	return 1;
+	lua_pushcfunction(L, luaopen_moonp);
+	if (lua_pcall(L, 0, 0, 0) != 0) {
+		string err = lua_tostring(L, -1);
+		lua_pop(L, 1);
+		Error("fail to open lib moonp.\n{}", err);
+	};
+	return 0;
 }
 
 static void dora_open_compiler(void* state) {
@@ -250,14 +262,14 @@ static int dora_mooncompile(lua_State* L)
 		string dest = tolua_toslice(L, 2, 0);
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
 		LuaFunction<void> callback(tolua_ref_function(L, 4));
-		SharedContent.loadFileAsyncMove(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes)
+		SharedContent.loadFileAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
 		{
-			if (codes.size() == 0) {
+			if (!codes) {
 				Warn("fail to get moon source codes from \"{}\".", src);
 			} else {
 				auto input = std::make_shared<std::tuple<
-					string, string, OwnArray<Uint8>>>(
-					src, dest, std::move(codes));
+					string, string, OwnArray<Uint8>, size_t>>(
+					src, dest, std::move(codes), size);
 				SharedAsyncThread.run([input]()
 				{
 					MoonP::MoonConfig config;
@@ -266,10 +278,11 @@ static int dora_mooncompile(lua_State* L)
 					config.lintGlobalVariable = true;
 					string compiledCodes, err;
 					MoonP::GlobalVars globals;
+					size_t size = std::get<3>(*input);
 					const auto& codes = std::get<2>(*input);
-					std::tie(compiledCodes, err, globals) = MoonP::MoonCompiler{dora_open_compiler}.compile({r_cast<char*>(codes.get()), codes.size()}, config);
+					std::tie(compiledCodes, err, globals) = MoonP::MoonCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
 					return Values::create(compiledCodes, err, std::move(globals));
-				}, [input, handler, callback](Values* values)
+				}, [input, handler, callback](std::unique_ptr<Values> values)
 				{
 					string compiledCodes, err;
 					MoonP::GlobalVars globals;
@@ -432,7 +445,7 @@ MoonP::MoonCompiler& LuaEngine::getMoon()
 {
 	if (!_moonCompiler)
 	{
-		_moonCompiler = New<MoonP::MoonCompiler>(dora_open_compiler);
+		_moonCompiler = New<MoonP::MoonCompiler>(L);
 	}
 	return *_moonCompiler;
 }

@@ -1,7 +1,6 @@
+R"lua_codes(
 --[[
-The MIT License
-
-Copyright (c) 2010 Ignacio Burgueño
+Copyright (c) 2010 Ignacio Burgueño, modified by Li Jin
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,10 +32,11 @@ local error = error
 
 assert(debug, "debug table must be available at this point")
 
-local Content = require("Content")
 local string_gmatch = string.gmatch
 local string_sub = string.sub
 local table_concat = table.concat
+
+local moonp = require("moonp")
 
 local _M = {
 	max_tb_output_len = 70,	-- controls the maximum length of the 'stringified' table before cutting with ' (more...)'
@@ -159,7 +159,11 @@ end
 local function GuessFunctionName(info)
 	-- print("guessing function name")
 	if type(info.source) == "string" and info.source:sub(1,1) == "@" then
-		local text = Content:load(info.source:sub(2))
+		local fname = info.source:sub(2)
+		local text
+		if moonp.file_exist(fname) then
+			text = moonp.read_file(fname)
+		end
 		if not text then
 			-- print("file not found: "..tostring(err))	-- whoops!
 			return "?"
@@ -314,14 +318,19 @@ function Dumper:DumpLocals (level)
 end
 
 local function getMoonLineNumber(fname, line)
-	local moonCompiled = require("moon_compiled")
-	local source = moonCompiled[fname]
-	if not source and Content:exist(fname) then
-		local codes = Content:load(fname)
-		local moonFile = codes:match("^%s*--%s*%[moon%]:%s*([^\n]*)")
-		if moonFile then
-			fname = moonFile:gsub("^%s*(.-)%s*$", "%1")
-			source = codes
+	local moonCompiled = require("moonp").moon_compiled
+	local source = moonCompiled["@"..fname]
+	if not source then
+		source = moonCompiled["@="..fname]
+	end
+	if not source then
+		if moonp.file_exist(fname) then
+			local codes = moonp.read_file(fname)
+			local moonFile = codes:match("^%s*--%s*%[moon%]:%s*([^\n]*)")
+			if moonFile then
+				fname = moonFile:gsub("^%s*(.-)%s*$", "%1")
+				source = codes
+			end
 		end
 	end
 	if source then
@@ -338,23 +347,6 @@ local function getMoonLineNumber(fname, line)
 		end
 	end
 	return fname, line
-end
-
-local function getShortName(fname)
-	local index = 0
-	local shortName = fname
-	repeat
-		index = fname:find("[\\/]",index+1)
-		if index == nil then
-			break
-		end
-		local name = fname:sub(index+1,-1)
-		if Content:exist(name) then
-			fname = name
-			shortName = name
-		end
-	until index == nil
-	return shortName
 end
 
 ---
@@ -412,11 +404,11 @@ function _M.stacktrace(thread, message, level)
 			local extension = fname:match("%.([^%.\\/]*)$")
 			if not extension then
 				local fext = fname .. ".lua"
-				if Content:exist(fext) then
+				if moonp.file_exist(fext) then
 					fname = fext
 				else
 					fext = fname .. ".moon"
-					if Content:exist(fext) then
+					if moonp.file_exist(fext) then
 						fname = fext
 					end
 				end
@@ -424,11 +416,11 @@ function _M.stacktrace(thread, message, level)
 			fname, line = getMoonLineNumber(fname, line)
 			if _M.simplified then
 				message = table.concat({
-					"'", getShortName(fname), "':",
+					"'", fname, "':",
 					line, ": ", msg})
 			else
 				message = table.concat({
-					"[string \"", getShortName(fname), "\"]:",
+					"[string \"", fname, "\"]:",
 					line, ": ", msg})
 			end
 		end
@@ -440,7 +432,6 @@ function _M.stacktrace(thread, message, level)
 Stack Traceback
 ===============
 ]]
-	--print(error_message)
 
 	local level_to_show = 1
 	if dumper.dumping_same_thread then level = level + 1 end
@@ -456,17 +447,16 @@ Stack Traceback
 		local extension = fname:match("%.([^%.\\/]*)$")
 		if not extension then
 			local fext = fname .. ".lua"
-			if Content:exist(fext) then
+			if moonp.file_exist(fext) then
 				fname = fext
 			else
 				fext = fname .. ".moon"
-				if Content:exist(fext) then
+				if moonp.file_exist(fext) then
 					fname = fext
 				end
 			end
 		end
 		info.source, info.currentline = getMoonLineNumber(fname, info.currentline)
-		info.source = getShortName(info.source)
 		if info.what == "main" then
 			if _M.simplified then
 				dumper:add_f("(%d) '%s':%d\r\n", level_to_show, info.source, info.currentline)
@@ -549,3 +539,5 @@ function _M.add_known_function(fun, description)
 end
 
 return _M
+
+)lua_codes";

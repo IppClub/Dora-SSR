@@ -21,7 +21,7 @@ public:
 	bool isFolder(String path);
     bool isAbsolutePath(String strPath);
 	string getFullPath(String filename);
-	OwnArray<Uint8> loadFile(String filename);
+	std::pair<OwnArray<Uint8>,size_t> loadFile(String filename);
 	const bgfx::Memory* loadFileBX(String filename);
 	void copyFile(String src, String dst);
 	bool removeFile(String filename);
@@ -36,10 +36,10 @@ public:
 	void removeSearchPath(String path);
 	void loadFileAsync(String filename, const function<void(String)>& callback);
 	void loadFileAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback);
-	void loadFileAsyncMove(String filename, const function<void(OwnArray<Uint8>&&)>& callback);
+	void loadFileAsyncData(String filename, const function<void(OwnArray<Uint8>&&,size_t)>& callback);
 	void copyFileAsync(String src, String dst, const function<void()>& callback);
 	void saveToFileAsync(String filename, String content, const function<void()>& callback);
-	void saveToFileAsync(String filename, OwnArray<Uint8> content, const function<void()>& callback);
+	void saveToFileAsync(String filename, OwnArray<Uint8> content, size_t size, const function<void()>& callback);
 public:
 	void loadFileAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback);
 	Uint8* loadFileUnsafe(String filename, Sint64& size);

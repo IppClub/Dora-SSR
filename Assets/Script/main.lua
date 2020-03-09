@@ -9,20 +9,22 @@ Content.searchPaths = {
 	Content.writablePath
 }
 
-require("Dev.Entry")
+require("moonp")("Dev.Entry")
 
 print(moontolua([==[
 ---[[
 
 macro block config = (debugging = true)->
-	global debugMode = debugging == "true"
-	global debugMacro = false
+	import "Director"
+	Director.debugMode = debugging == "true"
+	Director.debugMacro = false
 	""
 
 $config!
 
 macro expr showMacro = (name,res)->
-	if debugMacro
+	import "Director"
+	if Director.debugMacro
 		"do
 		txt = #{res}
 		print '['..#{name}..']'
@@ -32,13 +34,15 @@ macro expr showMacro = (name,res)->
 		"#{res}"
 
 macro block asserts = (cond)->
-	if debugMode
+	import "Director"
+	if Director.debugMode
 		$showMacro "assert", "assert #{cond}"
 	else
 		""
 
 macro expr assert = (cond)->
-	if debugMode
+	import "Director"
+	if Director.debugMode
 		$showMacro "assert", "assert #{cond}"
 	else
 		"#{cond}"

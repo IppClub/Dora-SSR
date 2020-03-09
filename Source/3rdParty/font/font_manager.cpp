@@ -151,9 +151,9 @@ TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size)
 {
 	uint16_t id = m_filesHandles.alloc();
 	AssertUnless(id != bx::kInvalidHandle, "Invalid handle used");
-	m_cachedFiles[id].buffer = new uint8_t[_size];
-	m_cachedFiles[id].bufferSize = _size;
-	memcpy(m_cachedFiles[id].buffer, _buffer, _size);
+	m_cachedFiles.get()[id].buffer = new uint8_t[_size];
+	m_cachedFiles.get()[id].bufferSize = _size;
+	memcpy(m_cachedFiles.get()[id].buffer, _buffer, _size);
 
 	TrueTypeHandle ret = { id };
 	return ret;
@@ -162,9 +162,9 @@ TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size)
 void FontManager::destroyTtf(TrueTypeHandle _handle)
 {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
-	delete m_cachedFiles[_handle.idx].buffer;
-	m_cachedFiles[_handle.idx].bufferSize = 0;
-	m_cachedFiles[_handle.idx].buffer = NULL;
+	delete m_cachedFiles.get()[_handle.idx].buffer;
+	m_cachedFiles.get()[_handle.idx].bufferSize = 0;
+	m_cachedFiles.get()[_handle.idx].buffer = NULL;
 	m_filesHandles.free(_handle.idx);
 }
 
@@ -173,7 +173,7 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 	AssertUnless(bgfx::isValid(_ttfHandle), "Invalid handle used");
 
 	TrueTypeFont* ttf = new TrueTypeFont();
-	if (!ttf->init(m_cachedFiles[_ttfHandle.idx].buffer, m_cachedFiles[_ttfHandle.idx].bufferSize, _pixelSize))
+	if (!ttf->init(m_cachedFiles.get()[_ttfHandle.idx].buffer, m_cachedFiles.get()[_ttfHandle.idx].bufferSize, _pixelSize))
 	{
 		delete ttf;
 		FontHandle invalid = BGFX_INVALID_HANDLE;
@@ -183,7 +183,7 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 	uint16_t fontIdx = m_fontHandles.alloc();
 	AssertUnless(fontIdx != bx::kInvalidHandle, "Invalid handle used");
 
-	CachedFont& font = m_cachedFonts[fontIdx];
+	CachedFont& font = m_cachedFonts.get()[fontIdx];
 	font.trueTypeFont = ttf;
 	font.fontInfo = ttf->getFontInfo();
 	font.fontInfo.pixelSize = uint16_t(_pixelSize);
@@ -197,7 +197,7 @@ void FontManager::destroyFont(FontHandle _handle)
 {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
 
-	CachedFont& font = m_cachedFonts[_handle.idx];
+	CachedFont& font = m_cachedFonts.get()[_handle.idx];
 
 	if (font.trueTypeFont != NULL)
 	{
@@ -212,7 +212,7 @@ void FontManager::destroyFont(FontHandle _handle)
 bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint)
 {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
-	CachedFont& font = m_cachedFonts[_handle.idx];
+	CachedFont& font = m_cachedFonts.get()[_handle.idx];
 
 	GlyphHashMap::iterator iter = font.cachedGlyphs.find(_codePoint);
 	if (iter != font.cachedGlyphs.end() )
@@ -222,15 +222,15 @@ bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint)
 	if (nullptr != font.trueTypeFont)
 	{
 		GlyphInfo glyphInfo;
-		if (!font.trueTypeFont->bakeGlyphAlpha(_codePoint, glyphInfo, m_buffer))
+		if (!font.trueTypeFont->bakeGlyphAlpha(_codePoint, glyphInfo, m_buffer.get()))
 		{
 			return false;
 		}
-		if (!addBitmap(glyphInfo, m_buffer))
+		if (!addBitmap(glyphInfo, m_buffer.get()))
 		{
 			m_currentAtlas = new Atlas(m_textureWidth, Atlas::Gray, true);
 			m_atlases.push_back(MakeOwn(m_currentAtlas));
-			if (!addBitmap(glyphInfo, m_buffer))
+			if (!addBitmap(glyphInfo, m_buffer.get()))
 			{
 				return false;
 			}
@@ -244,12 +244,12 @@ bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint)
 const FontInfo& FontManager::getFontInfo(FontHandle _handle) const
 {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
-	return m_cachedFonts[_handle.idx].fontInfo;
+	return m_cachedFonts.get()[_handle.idx].fontInfo;
 }
 
 const GlyphInfo* FontManager::getGlyphInfo(FontHandle _handle, CodePoint _codePoint)
 {
-	const GlyphHashMap& cachedGlyphs = m_cachedFonts[_handle.idx].cachedGlyphs;
+	const GlyphHashMap& cachedGlyphs = m_cachedFonts.get()[_handle.idx].cachedGlyphs;
 	GlyphHashMap::const_iterator it = cachedGlyphs.find(_codePoint);
 
 	if (it == cachedGlyphs.end())
@@ -280,7 +280,7 @@ bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data)
 
 float FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight)
 {
-	const CachedFont& font = m_cachedFonts[_handle.idx];
+	const CachedFont& font = m_cachedFonts.get()[_handle.idx];
 	TrueTypeFont* trueTypeFont = font.trueTypeFont;
 	const GlyphHashMap& cachedGlyphs = font.cachedGlyphs;
 	GlyphHashMap::const_iterator left = cachedGlyphs.find(_codeLeft);

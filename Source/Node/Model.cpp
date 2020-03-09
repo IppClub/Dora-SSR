@@ -196,7 +196,7 @@ void Model::stop()
 	{
 		if (_currentAnimation != Animation::None)
 		{
-			for (Animation* animation : _animationGroups[_currentAnimation]->animations)
+			for (const auto& animation : _animationGroups[_currentAnimation]->animations)
 			{
 				animation->stop();
 			}
@@ -223,13 +223,13 @@ void Model::onActionEnd()
 	{
 		return;
 	}
-	AnimationGroup* group = _animationGroups[_currentAnimation];
+	AnimationGroup* group = _animationGroups[_currentAnimation].get();
 	group->animationEnd(this);
 	if (_loop && group->duration > 0.0f)
 	{
 		if (!_isRecovering)
 		{
-			for (Animation* animation : group->animations)
+			for (const auto& animation : group->animations)
 			{
 				animation->stop();
 				animation->run();
@@ -272,7 +272,7 @@ void Model::resume(Uint32 index)
 	{
 		if (!_animationGroups[_currentAnimation]->animations.empty())
 		{
-			Animation* animation = _animationGroups[_currentAnimation]->animations[0];
+			Animation* animation = _animationGroups[_currentAnimation]->animations[0].get();
 			if (animation->getEclapsed() >= animation->getDuration())
 			{
 				Model::play(index);
@@ -294,7 +294,7 @@ void Model::resume()
 		_isPaused = false;
 		if (!_isRecovering)
 		{
-			for (Animation* animation : _animationGroups[_currentAnimation]->animations)
+			for (const auto& animation : _animationGroups[_currentAnimation]->animations)
 			{
 				animation->resume();
 			}
@@ -317,7 +317,7 @@ void Model::pause()
 	if (_isPlaying && !_isPaused)
 	{
 		_isPaused = true;
-		for (Animation* animation : _animationGroups[_currentAnimation]->animations)
+		for (const auto& animation : _animationGroups[_currentAnimation]->animations)
 		{
 			animation->pause();
 		}
@@ -329,9 +329,9 @@ void Model::setSpeed(float speed)
 	if (_speed != speed)
 	{
 		_speed = std::max(speed, 0.0f);
-		for (AnimationGroup* animationGroup : _animationGroups)
+		for (const auto& animationGroup : _animationGroups)
 		{
-			for (Animation* animation : animationGroup->animations)
+			for (const auto& animation : animationGroup->animations)
 			{
 				animation->setSpeed(_speed);
 			}
@@ -349,9 +349,9 @@ void Model::setReversed(bool var)
 	if (_reversed != var)
 	{
 		_reversed = var;
-		for (AnimationGroup* animationGroup : _animationGroups)
+		for (const auto& animationGroup : _animationGroups)
 		{
-			for (Animation* animation : animationGroup->animations)
+			for (const auto& animation : animationGroup->animations)
 			{
 				animation->setReversed(var);
 			}
@@ -368,7 +368,7 @@ void Model::updateTo(float eclapsed, bool reversed)
 {
 	if (_isPlaying)
 	{
-		for (Animation* animation : _animationGroups[_currentAnimation]->animations)
+		for (const auto& animation : _animationGroups[_currentAnimation]->animations)
 		{
 			animation->updateTo(eclapsed, reversed);
 		}
@@ -401,7 +401,7 @@ float Model::getDuration() const
 void Model::cleanup()
 {
 	Node::cleanup();
-	for (AnimationGroup* animationGroup : _animationGroups)
+	for (const auto& animationGroup : _animationGroups)
 	{
 		animationGroup->animationEnd.Clear();
 	}
@@ -451,7 +451,7 @@ Model* Model::none()
 void Model::onResetAnimationEnd()
 {
 	_isRecovering = false;
-	for (Animation* animation : _animationGroups[_currentAnimation]->animations)
+	for (const auto& animation : _animationGroups[_currentAnimation]->animations)
 	{
 		animation->run();
 	}
@@ -466,7 +466,7 @@ void Model::visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef)
 	const OwnVector<SpriteDef>& childrenDefs = parentDef->children;
 	for (size_t n = 0; n < childrenDefs.size(); n++)
 	{
-		SpriteDef* nodeDef = childrenDefs[n];
+		SpriteDef* nodeDef = childrenDefs[n].get();
 		Sprite* node = nodeDef->toSprite(clipDef);
 		_spritePairs.push_back(std::make_pair(node, nodeDef));
 
@@ -495,7 +495,7 @@ void Model::visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef)
 		const OwnVector<AnimationDef>& animationDefs = nodeDef->animationDefs;
 		for (size_t i = 0; i < animationDefs.size(); i++)
 		{
-			AnimationDef* animationDef = animationDefs[i];
+			AnimationDef* animationDef = animationDefs[i].get();
 			if (animationDef)
 			{
 				Model::addAnimation(s_cast<int>(i), node, animationDef->toAction());
@@ -652,14 +652,14 @@ void ResetAnimation::add(SpriteDef* spriteDef, Node* node, Action* action, Actio
 
 void ResetAnimation::run(float duration, int index)
 {
-	for (AnimationData* pair : _group)
+	for (const auto& pair : _group)
 	{
 		if (pair->resetTarget)
 		{
 			AnimationDef* animationDef = nullptr;
 			if (index < s_cast<int>(pair->spriteDef->animationDefs.size()))
 			{
-				animationDef = pair->spriteDef->animationDefs[index];
+				animationDef = pair->spriteDef->animationDefs[index].get();
 			}
 			if (animationDef)
 			{
@@ -678,7 +678,7 @@ void ResetAnimation::run(float duration, int index)
 
 void ResetAnimation::stop()
 {
-	for (AnimationData* pair : _group)
+	for (const auto& pair : _group)
 	{
 		pair->node->stopAction(pair->action);
 	}
@@ -712,14 +712,14 @@ AnimationHandler& Model::AnimationHandlerGroup::operator[](String name)
 
 void Model::setupCallback()
 {
-	for (AnimationGroup* animationGroup : _animationGroups)
+	for (const auto& animationGroup : _animationGroups)
 	{
 		if (animationGroup->animations.empty())
 		{
 			continue;
 		}
 		float duration = 0.0f;
-		for (Animation* animation : animationGroup->animations)
+		for (const auto& animation : animationGroup->animations)
 		{
 			float d = animation->getDuration();
 			if (duration < d)

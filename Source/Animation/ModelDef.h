@@ -60,9 +60,9 @@ public:
 	{
 		func(root);
 		const OwnVector<SpriteDef>& childrenDef = root->children;
-		for (SpriteDef* childDef: childrenDef)
+		for (const auto& childDef : childrenDef)
 		{
-			SpriteDef::traverse(childDef, func);
+			SpriteDef::traverse(childDef.get(), func);
 		}
 	}
 };

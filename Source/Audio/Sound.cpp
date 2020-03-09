@@ -21,13 +21,14 @@ SoLoud::Wav& SoundFile::getWav()
 	return _wav;
 }
 
-SoundFile::SoundFile(OwnArray<Uint8>&& data):
-_data(std::move(data))
+SoundFile::SoundFile(OwnArray<Uint8>&& data, size_t size):
+_data(std::move(data)),
+_size(size)
 { }
 
 bool SoundFile::init()
 {
-	SoLoud::result result = _wav.loadMem(_data, s_cast<Uint32>(_data.size()), false, false);
+	SoLoud::result result = _wav.loadMem(_data.get(), s_cast<Uint32>(_size), false, false);
 	_data.reset();
 	if (result)
 	{
@@ -45,7 +46,7 @@ SoLoud::WavStream& SoundStream::getStream()
 
 bool SoundStream::init()
 {
-	SoLoud::result result = _stream.loadMem(_data, s_cast<Uint32>(_data.size()), false, false);
+	SoLoud::result result = _stream.loadMem(_data.get(), s_cast<Uint32>(_size), false, false);
 	if (result)
 	{
 		Error("fail to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
@@ -54,8 +55,9 @@ bool SoundStream::init()
 	return true;
 }
 
-SoundStream::SoundStream(OwnArray<Uint8>&& data):
-_data(std::move(data))
+SoundStream::SoundStream(OwnArray<Uint8>&& data, size_t size):
+_data(std::move(data)),
+_size(size)
 { }
 
 /* Audio */
@@ -117,7 +119,7 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime)
 		{
 			_currentStream->getStream().stop();
 		}
-		_currentStream = SoundStream::create(MakeOwnArray(data, s_cast<size_t>(size)));
+		_currentStream = SoundStream::create(MakeOwnArray(data), s_cast<size_t>(size));
 		_currentVoice = _soloud.play(_currentStream->getStream(), 0.0f);
 		_soloud.setLooping(_currentVoice, loop);
 		_soloud.setProtectVoice(_currentVoice, true);

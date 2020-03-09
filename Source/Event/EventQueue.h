@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "bx/spscqueue.h"
+#include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
 
@@ -33,9 +34,9 @@ class QEventArgs : public QEvent
 {
 public:
 	template<class... Args>
-	QEventArgs(String name, const Args&... args):
+	QEventArgs(String name, Args&&... args):
 	QEvent(name),
-	arguments(std::make_tuple(args...))
+	arguments{std::forward<Args>(args)...}
 	{ }
 	std::tuple<Fields...> arguments;
 	DORA_TYPE_OVERRIDE(QEventArgs<Fields...>);
@@ -44,9 +45,9 @@ public:
 template<class... Args>
 void QEvent::get(Args&... args)
 {
-	auto targetEvent = DoraCast<QEventArgs<Args...>>(this);
+	auto targetEvent = DoraCast<QEventArgs<special_decay_t<Args>...>>(this);
 	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
-	std::tie(args...) = targetEvent->arguments;
+	std::tie(args...) = std::move(targetEvent->arguments);
 }
 
 /** @brief This event system is designed to be used in a multi-threaded
@@ -103,9 +104,9 @@ public:
 	 for producer thread use.
 	 */
 	template<class... Args>
-	void post(String name, const Args& ...args)
+	void post(String name, Args&& ...args)
 	{
-		auto event = new QEventArgs<Args...>(name, args...);
+		auto event = new QEventArgs<special_decay_t<Args>...>(name, std::forward<Args>(args)...);
 		_queue.push(event);
 	}
 

@@ -32,7 +32,7 @@ void Event::unreg(Listener* listener)
 	auto it = _eventMap.find(listener->getName());
 	if (it != _eventMap.end())
 	{
-		EventType* type = it->second;
+		EventType* type = it->second.get();
 		type->remove(listener);
 		if (type->isEmpty())
 		{

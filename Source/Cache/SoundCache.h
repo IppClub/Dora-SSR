@@ -18,7 +18,6 @@ class SoundCache
 {
 public:
 	SoundFile* update(String name, SoundFile* soundFile);
-	SoundFile* update(String filename, const Uint8* data, Sint64 size);
 	SoundFile* get(String filename);
 	/** @brief support format .wav .ogg */
 	SoundFile* load(String filename);

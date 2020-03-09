@@ -710,7 +710,7 @@ bool Node::isSwallowMouseWheel() const
 
 TouchHandler* Node::getTouchHandler() const
 {
-	return _touchHandler;
+	return _touchHandler.get();
 }
 
 void Node::schedule(const function<bool(double)>& func)

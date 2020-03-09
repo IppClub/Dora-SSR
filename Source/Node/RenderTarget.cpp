@@ -239,7 +239,7 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 				lodepng_state_cleanup(&state);
 				delete [] data;
 				return Values::create(out, outSize);
-			}, [callback, file](Values* values)
+			}, [callback, file](std::unique_ptr<Values> values)
 			{
 				Uint8* out;
 				size_t outSize;

@@ -141,15 +141,16 @@ Value* Value::create(T&& value)
 	return ValueEx<special_decay_t<T>>::create(value);
 }
 
-class Values : public Object
+class Values
 {
 public:
 	virtual ~Values() { }
 	template<class... Args>
-	static Ref<Values> create(Args&&... args);
+	static std::unique_ptr<Values> create(Args&&... args);
 	template<class... Args>
 	void get(Args&... args);
-	static const Ref<Values> None;
+	static std::unique_ptr<Values> None;
+	DORA_TYPE_BASE(Values);
 protected:
 	Values() { }
 };
@@ -166,12 +167,9 @@ public:
 };
 
 template<class... Args>
-Ref<Values> Values::create(Args&&... args)
+std::unique_ptr<Values> Values::create(Args&&... args)
 {
-	auto item = new ValuesEx<special_decay_t<Args>...>(std::forward<Args>(args)...);
-	Ref<Values> itemRef(item);
-	item->release();
-	return itemRef;
+	return std::make_unique<ValuesEx<special_decay_t<Args>...>>(std::forward<Args>(args)...);
 }
 
 template<class... Args>

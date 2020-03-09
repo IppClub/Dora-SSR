@@ -257,7 +257,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						break;
 				}
 			}
-			SpriteDef* nodeDef = _nodeStack.top();
+			SpriteDef* nodeDef = _nodeStack.top().get();
 			nodeDef->animationDefs.push_back(Own<AnimationDef>(frameAnimationDef));
 			break;
 		}
@@ -269,7 +269,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				{
 					case Xml::Model::Look::Name:
 					{
-						SpriteDef* nodeDef = _nodeStack.top();
+						SpriteDef* nodeDef = _nodeStack.top().get();
 						Slice attr(attrs[++i]);
 						auto tokens = attr.split(",");
 						for (const auto& token : tokens)
@@ -380,20 +380,20 @@ void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len)
 			}
 			else
 			{
-				SpriteDef* parentDef = _nodeStack.top();
+				SpriteDef* parentDef = _nodeStack.top().get();
 				parentDef->children.push_back(std::move(nodeDef));
 			}
 			break;
 		}
 		case Xml::Model::Element::KeyAnimation:
 		{
-			SpriteDef* nodeDef = _nodeStack.top();
+			SpriteDef* nodeDef = _nodeStack.top().get();
 			nodeDef->animationDefs.push_back(std::move(_currentAnimationDef));
 			break;
 		}
 		case Xml::Model::Element::Track:
 		{
-			SpriteDef* nodeDef = _nodeStack.top();
+			SpriteDef* nodeDef = _nodeStack.top().get();
 			nodeDef->animationDefs.push_back(std::move(_currentTrackDef));
 			break;
 		}

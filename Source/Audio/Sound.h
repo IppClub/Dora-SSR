@@ -23,9 +23,10 @@ public:
 	virtual bool init() override;
 	CREATE_FUNC(SoundFile);
 protected:
-	SoundFile(OwnArray<Uint8>&& data);
+	SoundFile(OwnArray<Uint8>&& data, size_t size);
 private:
 	OwnArray<Uint8> _data;
+	size_t _size;
 	SoLoud::Wav _wav;
 	DORA_TYPE_OVERRIDE(SoundFile);
 };
@@ -37,8 +38,9 @@ public:
 	virtual bool init() override;
 	CREATE_FUNC(SoundStream);
 protected:
-	SoundStream(OwnArray<Uint8>&& data);
+	SoundStream(OwnArray<Uint8>&& data, size_t size);
 private:
+	size_t _size;
 	OwnArray<Uint8> _data;
 	SoLoud::WavStream _stream;
 	DORA_TYPE_OVERRIDE(SoundStream);

@@ -69,7 +69,7 @@ int nvg::CreateImage(int w, int h, int imageFlags, String filename)
 {
 	auto data = SharedContent.loadFile(filename);
 	bx::DefaultAllocator allocator;
-	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.get(), s_cast<uint32_t>(data.size()), bimg::TextureFormat::RGBA8);
+	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.first.get(), s_cast<uint32_t>(data.second), bimg::TextureFormat::RGBA8);
 	int result = nvgCreateImageRGBA(Context(), w, h, imageFlags, r_cast<Uint8*>(imageContainer->m_data));
 	bimg::imageFree(imageContainer);
 	return result;
@@ -91,9 +91,9 @@ int nvg::CreateFont(String name)
 	BLOCK_END
 	if (fontFile.empty()) return -1;
 	auto data = SharedContent.loadFile(fontFile);
-	Uint8* fontData = r_cast<Uint8*>(malloc(data.size()));
-	bx::memCopy(fontData, data.get(), data.size());
-	return nvgCreateFontMem(Context(), name.toString().c_str(), fontData, s_cast<int>(data.size()), 1);
+	Uint8* fontData = r_cast<Uint8*>(malloc(data.second));
+	bx::memCopy(fontData, data.first.get(), data.second);
+	return nvgCreateFontMem(Context(), name.toString().c_str(), fontData, s_cast<int>(data.second), 1);
 }
 
 float nvg::TextBounds(float x, float y, String text, Dorothy::Rect& bounds)

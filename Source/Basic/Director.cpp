@@ -96,7 +96,7 @@ UITouchHandler* Director::getUITouchHandler()
 	{
 		_uiTouchHandler = New<UITouchHandler>();
 	}
-	return _uiTouchHandler;
+	return _uiTouchHandler.get();
 }
 
 void Director::setClearColor(Color var)

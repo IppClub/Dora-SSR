@@ -283,7 +283,7 @@ KeyFrameDef* KeyAnimationDef::getLastFrameDef() const
 {
 	if (!_keyFrameDefs.empty())
 	{
-		return _keyFrameDefs.back();
+		return _keyFrameDefs.back().get();
 	}
 	return nullptr;
 }
@@ -310,12 +310,12 @@ Action* KeyAnimationDef::toAction()
 	vector<Own<ActionDuration>> keyAttrs;
 	keyAttrs.reserve(KeyFrameDef::MaxKeyAttributes);
 
-	KeyFrameDef* lastDef = _keyFrameDefs.front();
+	KeyFrameDef* lastDef = _keyFrameDefs.front().get();
 	keyFrames.push_back(KeyReset::alloc(lastDef));
 	for (size_t i = 1; i < _keyFrameDefs.size(); i++)
 	{
 		/* Get current keyFrameDef */
-		KeyFrameDef* def = _keyFrameDefs[i];
+		KeyFrameDef* def = _keyFrameDefs[i].get();
 		/* Check for animated attributes of keyFrame */
 		if (lastDef->x != def->x)
 		{
@@ -384,10 +384,10 @@ string KeyAnimationDef::toXml()
 	{
 		fmt::format_to(out, ">");
 		KeyFrameDef* lastDef = nullptr;
-		for (KeyFrameDef* keyFrameDef : _keyFrameDefs)
+		for (const auto& keyFrameDef : _keyFrameDefs)
 		{
 			fmt::format_to(out, "{}", keyFrameDef->toXml(lastDef));
-			lastDef = keyFrameDef;
+			lastDef = keyFrameDef.get();
 		}
 		fmt::format_to(out, "</{}>", char(Xml::Model::Element::KeyAnimation));
 	}
@@ -401,7 +401,7 @@ void KeyAnimationDef::restoreResetAnimation(Node* target, ActionDuration* action
 	{
 		target->setVisible(_keyFrameDefs[0]->visible);
 		resetAction->prepareWith(target);
-		resetAction->updateEndValues(_keyFrameDefs[0]);
+		resetAction->updateEndValues(_keyFrameDefs[0].get());
 	}
 }
 

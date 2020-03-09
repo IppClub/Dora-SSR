@@ -70,7 +70,7 @@ bool VisualCache::load(String filename)
 		VisualCache::unload();
 	}
 	auto data = SharedContent.loadFile(filename);
-	if (!data)
+	if (!data.first)
 	{
 		return false;
 	}
@@ -78,12 +78,12 @@ bool VisualCache::load(String filename)
 	_path = Slice(fullPath).getFilePath();
 	try
 	{
-		_parser.parse(r_cast<char*>(data.get()), s_cast<int>(data.size()));
+		_parser.parse(r_cast<char*>(data.first.get()), s_cast<int>(data.second));
 		return true;
 	}
 	catch (rapidxml::parse_error error)
 	{
-		Warn("xml parse error: {}, at: {}, ", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+		Warn("xml parse error: {}, at: {}, ", error.what(), error.where<char>() - r_cast<char*>(data.first.get()));
 		return false;
 	}
 }
@@ -95,11 +95,11 @@ bool VisualCache::update(String content)
 		VisualCache::unload();
 	}
 	size_t size = content.size() + 1;
-	auto data = MakeOwnArray(new char[size], size);
-	content.copyTo(data);
+	auto data = MakeOwnArray(new char[size]);
+	content.copyTo(data.get());
 	try
 	{
-		_parser.parse(r_cast<char*>(data.get()), s_cast<int>(data.size()));
+		_parser.parse(r_cast<char*>(data.get()), s_cast<int>(size));
 		return true;
 	}
 	catch (rapidxml::parse_error error)
