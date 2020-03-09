@@ -26,7 +26,6 @@ Delegate<void (const string&)> LogHandler;
 
 void LogPrintInThread(const string& str)
 {
-	LogHandler(str);
 #if DORA_DEBUG
 	SharedAsyncLogThread.run([str]
 	{
@@ -35,6 +34,10 @@ void LogPrintInThread(const string& str)
 #else
 		fmt::print("{}", str);
 #endif
+		return Values::None;
+	}, [str](Values*)
+	{
+		LogHandler(str);
 	});
 #endif // DORA_DEBUG
 }
