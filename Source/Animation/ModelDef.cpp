@@ -105,7 +105,7 @@ string SpriteDef::toXml()
 		fmt::format_to(out, " {}=\"0\"", char(Xml::Model::Sprite::Front));
 	}
 	fmt::format_to(out, ">");
-	for (AnimationDef* actionDef : animationDefs)
+	for (const auto& actionDef : animationDefs)
 	{
 		if (actionDef)
 		{
@@ -131,7 +131,7 @@ string SpriteDef::toXml()
 		}
 		fmt::format_to(out, "\"/>");
 	}
-	for (SpriteDef* spriteDef : children)
+	for (const auto& spriteDef : children)
 	{
 		fmt::format_to(out, "{}", spriteDef->toXml());
 	}
@@ -192,7 +192,7 @@ void ModelDef::setRoot(Own<SpriteDef>&& root )
 
 SpriteDef* ModelDef::getRoot()
 {
-	return _root;
+	return _root.get();
 }
 
 string ModelDef::toXml()

@@ -24,7 +24,7 @@ _queue(&_allocator)
 
 EventQueue::~EventQueue()
 {
-	for (QEvent* e = poll(); e; e = poll());
+	for (auto e = poll(); e; e = poll());
 }
 
 Own<QEvent> EventQueue::poll()

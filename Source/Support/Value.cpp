@@ -13,6 +13,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-const Ref<Values> Values::None;
+std::unique_ptr<Values> Values::None;
 
 NS_DOROTHY_END

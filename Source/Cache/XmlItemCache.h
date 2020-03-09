@@ -56,20 +56,20 @@ public:
 		else
 		{
 			auto data = SharedContent.loadFile(file);
-			if (data)
+			if (data.first)
 			{
 				auto parser = prepareParser(file);
 				T* result = nullptr;
 				try
 				{
-					parser->parse(r_cast<char*>(data.get()), s_cast<int>(data.size()));
+					parser->parse(r_cast<char*>(data.first.get()), s_cast<int>(data.second));
 					result = parser->getItem();
 					_dict[file] = parser->getItem();
 					return result;
 				}
 				catch (rapidxml::parse_error error)
 				{
-					Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+					Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.first.get()));
 					return nullptr;
 				}
 			}
@@ -94,8 +94,8 @@ public:
 					auto parser = prepareParser(file);
 					SharedAsyncThread.run([this, file, parser, data, size]()
 					{
-						OwnArray<Uint8> dataOwner(data, s_cast<size_t>(size));
-						Ref<T> result;
+						OwnArray<Uint8> dataOwner = MakeOwnArray(data);
+						T* result;
 						try
 						{
 							parser->parse(r_cast<char*>(data), s_cast<int>(size));
@@ -106,9 +106,9 @@ public:
 							Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
 						}
 						return Values::create(result);
-					}, [this, handler, file](Values* values)
+					}, [this, handler, file](std::unique_ptr<Values> values)
 					{
-						Ref<T> item;
+						T* item;
 						values->get(item);
 						_dict[file] = item;
 						handler(item);

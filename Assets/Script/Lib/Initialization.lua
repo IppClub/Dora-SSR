@@ -1,6 +1,5 @@
-package.path = nil
+package.path = "?.lua"
 package.cpath = nil
-package.preload = nil
 
 local App = builtin.Application()
 local Content = builtin.Content()
@@ -542,30 +541,13 @@ setmetatable(_G,builtinEnvMeta)
 setmetatable(builtin,builtinEnvMeta)
 
 -- moonscript
-local function moonLoader(name)
-	local namePath = name:gsub("%.", "/")
-	local filename = namePath..".moon"
-	local fullPath = Content:getFullPath(filename)
-	local fileExist = Content:exist(fullPath)
-	if fileExist then
-		local text = Content:load(fullPath)
-		assert(text, "file "..filename.." load failed!")
-		local code, err = moontolua(text)
-		if not code then
-			error(filename .. ":" .. err)
-		end
-		local moon_compiled = package.loaded["moon_compiled"]
-		moon_compiled[filename] = code
-		local res, err = loadstring(code, "@" .. filename)
-		if not res then
-			error(err)
-		end
-		return res
-	end
-	return nil, "Could not find moon file"
+local moonp = package.loaded["moonp"]
+moonp.file_exist = function(fname)
+	return Content:exist(fname)
 end
-package.loaders = {package.loaders[1], moonLoader}
-package.loaded["moon_compiled"] = {}
+moonp.read_file = function(fname)
+	return Content:load(fname)
+end
 
 collectgarbage("setpause", 100)
 collectgarbage("setstepmul", 5000)

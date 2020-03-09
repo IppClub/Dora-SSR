@@ -19,11 +19,11 @@ NS_DOROTHY_BEGIN
  get a finisher receives the result and runs in main thread. */
 class Async
 {
-	typedef std::pair<function<Ref<Values>()>, function<void(Values*)>> Package;
+	typedef std::pair<function<Own<Values>()>, function<void(Own<Values>)>> Package;
 public:
 	Async();
 	virtual ~Async();
-	void run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher);
+	void run(const function<Own<Values>()>& worker, const function<void(Own<Values>)>& finisher);
 	void run(const function<void()>& worker);
 	void pause();
 	void resume();
@@ -36,8 +36,8 @@ private:
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	bx::Semaphore _pauseSemaphore;
-	vector<function<void()>*> _workers;
-	vector<Package*> _packages;
+	vector<std::unique_ptr<function<void()>>> _workers;
+	vector<std::unique_ptr<Package>> _packages;
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
 };
@@ -47,7 +47,7 @@ class AsyncThread
 public:
 	Async FileIO;
 	AsyncThread();
-	void run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher);
+	void run(const function<std::unique_ptr<Values>()>& worker, const function<void(std::unique_ptr<Values>)>& finisher);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i)
 	{

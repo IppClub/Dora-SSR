@@ -268,20 +268,20 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 		SharedAsyncThread.run([this]()
 		{
 			_fonts->Build();
-			return Values::None;
-		}, [this, fileData, size](Values* result)
+			return std::move(Values::None);
+		}, [this, fileData, size](std::unique_ptr<Values> result)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			io.Fonts->Clear();
-			io.Fonts = _fonts;
+			io.Fonts = _fonts.get();
 			updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
-			MakeOwnArray(fileData, s_cast<size_t>(size));
+			MakeOwnArray(fileData);
 			isLoadingFont = false;
 		});
 	}
 	else
 	{
-		MakeOwnArray(fileData, s_cast<size_t>(size));
+		MakeOwnArray(fileData);
 		isLoadingFont = false;
 	}
 }
@@ -364,7 +364,7 @@ void ImGuiDora::showLog()
 
 bool ImGuiDora::init()
 {
-	ImGui::CreateContext(_defaultFonts);
+	ImGui::CreateContext(_defaultFonts.get());
 	ImGuiStyle& style = ImGui::GetStyle();
 	float rounding = 0.0f;
 	style.Alpha = 1.0f;

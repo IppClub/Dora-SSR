@@ -175,7 +175,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 				return nullptr;
 			}
 			auto data = SharedContent.loadFile(fontFile);
-			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(data.size()));
+			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<Uint32>(data.second));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontName] = file;
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
@@ -350,7 +350,7 @@ const string& Label::getText() const
 void Label::setBlendFunc(const BlendFunc& var)
 {
 	_blendFunc = var;
-	for (CharItem* fontChar : _characters)
+	for (const auto& fontChar : _characters)
 	{
 		if (fontChar && fontChar->sprite)
 		{
@@ -367,7 +367,7 @@ const BlendFunc& Label::getBlendFunc() const
 void Label::setEffect(SpriteEffect* var)
 {
 	_effect = var;
-	for (CharItem* fontChar : _characters)
+	for (const auto& fontChar : _characters)
 	{
 		if (fontChar && fontChar->sprite)
 		{
@@ -404,7 +404,7 @@ float Label::getAlphaRef() const
 void Label::setRenderOrder(int var)
 {
 	Node::setRenderOrder(var);
-	for (CharItem* fontChar : _characters)
+	for (const auto& fontChar : _characters)
 	{
 		if (fontChar && fontChar->sprite)
 		{
@@ -422,7 +422,7 @@ void Label::setBatched(bool var)
 	_flags.set(Label::TextBatched, var);
 	if (var)
 	{
-		for (CharItem* fontChar : _characters)
+		for (const auto& fontChar : _characters)
 		{
 			if (fontChar && fontChar->sprite)
 			{
@@ -511,7 +511,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 	for (size_t i = 0; i < chars.size(); i++)
 	{
 		Uint32 ch = chars[i];
-		CharItem* fontChar = _characters[i];
+		CharItem* fontChar = _characters[i].get();
 
 		if (ch == '\n')
 		{
@@ -553,7 +553,7 @@ void Label::updateCharacters(const vector<Uint32>& chars)
 		else
 		{
 			_characters[i] = New<CharItem>();
-			fontChar = _characters[i];
+			fontChar = _characters[i].get();
 			if (_flags.isOff(Label::TextBatched))
 			{
 				Sprite* sprite = SharedFontCache.createCharacter(_font, ch);
@@ -646,7 +646,7 @@ void Label::updateLabel()
 		{
 			int justSkipped = 0;
 			CharItem* characterItem;
-			while (!(characterItem = _characters[j + justSkipped]) || characterItem->code == '\n')
+			while (!(characterItem = _characters[j + justSkipped].get()) || characterItem->code == '\n')
 			{
 				justSkipped++;
 				if (j + justSkipped >= stringLength)
@@ -734,7 +734,7 @@ void Label::updateLabel()
 						multiline_string.insert(multiline_string.end(), begin, end);
 						multiline_string.push_back('\n');
 						last_word.erase(begin, end);
-						startOfWord = getLetterPosXLeft(_characters[i - last_word.size()]);
+						startOfWord = getLetterPosXLeft(_characters[i - last_word.size()].get());
 						start_word = true;
 						startOfLine = startOfWord;
 						start_line = true;
@@ -844,7 +844,7 @@ void Label::updateLabel()
 				}
 				int index = i + line_length - 1 + lineNumber;
 				if (index < 0) continue;
-				CharItem* lastChar = _characters[index];
+				CharItem* lastChar = _characters[index].get();
 				if (!lastChar) continue;
 				lineWidth = getLetterPosXRight(lastChar);
 
@@ -866,7 +866,7 @@ void Label::updateLabel()
 					{
 						index = i + j + lineNumber;
 						if (index < 0) continue;
-						CharItem* characterItem = _characters[index];
+						CharItem* characterItem = _characters[index].get();
 						if (characterItem)
 						{
 							characterItem->pos += Vec2{shift, 0.0f};
@@ -901,7 +901,7 @@ void Label::updateVertTexCoord()
 	Uint32 abgr = _realColor.toABGR();
 	for (size_t i = 0; i < _text.size(); i++)
 	{
-		CharItem* item = _characters[i];
+		CharItem* item = _characters[i].get();
 		if (item && item->code != '\n')
 		{
 			const bgfx::TextureInfo& info = item->texture->getInfo();
@@ -934,7 +934,7 @@ void Label::updateVertPosition()
 	_quadPos.reserve(_characters.size());
 	for (size_t i = 0; i < _text.size(); i++)
 	{
-		CharItem* item = _characters[i];
+		CharItem* item = _characters[i].get();
 		if (item && item->code != '\n')
 		{
 			const Vec2& pos = item->pos;
@@ -1040,7 +1040,7 @@ void Label::render()
 	int start = 0, index = 0;
 	for (size_t i = 0; i < _text.size(); i++)
 	{
-		CharItem* item = _characters[i];
+		CharItem* item = _characters[i].get();
 		if (item && item->code != '\n')
 		{
 			if (!lastTexture) lastTexture = item->texture;

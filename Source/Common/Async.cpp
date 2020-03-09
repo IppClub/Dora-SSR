@@ -39,7 +39,7 @@ void Async::stop()
 	}
 }
 
-void Async::run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher)
+void Async::run(const function<Own<Values>()>& worker, const function<void(Own<Values>)>& finisher)
 {
 	if (!_thread.isRunning())
 	{
@@ -55,17 +55,16 @@ void Async::run(const function<Ref<Values>()>& worker, const function<void(Value
 				event != nullptr;
 				event = _finisherEvent.poll())
 			{
-				Package* package;
-				Ref<Values> result;
+				Own<Package> package;
+				Own<Values> result;
 				event->get(package, result);
-				package->second(result);
-				delete package;
+				package->second(std::move(result));
 			}
 			return false;
 		});
 	}
-	auto package = new Package(worker, finisher);
-	_workerEvent.post("WorkDone"_slice, package);
+	auto package = New<Package>(worker, finisher);
+	_workerEvent.post("WorkDone"_slice, std::move(package));
 	_workerSemaphore.post();
 }
 
@@ -75,8 +74,8 @@ void Async::run(const function<void()>& worker)
 	{
 		_thread.init(Async::work, this);
 	}
-	auto work = new function<void()>(worker);
-	_workerEvent.post("Work"_slice, work);
+	auto work = New<function<void()>>(worker);
+	_workerEvent.post("Work"_slice, std::move(work));
 	_workerSemaphore.post();
 }
 
@@ -86,7 +85,7 @@ int Async::work(bx::Thread* thread, void* userData)
 	Async* worker = r_cast<Async*>(userData);
 	while (true)
 	{
-		for (Own<QEvent> event = worker->_workerEvent.poll();
+		for (auto event = worker->_workerEvent.poll();
 			event != nullptr;
 			event = worker->_workerEvent.poll())
 		{
@@ -94,18 +93,17 @@ int Async::work(bx::Thread* thread, void* userData)
 			{
 				case "Work"_hash:
 				{
-					function<void()>* worker;
+					std::unique_ptr<function<void()>> worker;
 					event->get(worker);
 					(*worker)();
-					delete worker;
 					break;
 				}
 				case "WorkDone"_hash:
 				{
-					Package* package;
+					Own<Package> package;
 					event->get(package);
-					Ref<Values> result = package->first();
-					worker->_finisherEvent.post(Slice::Empty, package, result);
+					Own<Values> result = package->first();
+					worker->_finisherEvent.post(Slice::Empty, std::move(package), std::move(result));
 					break;
 				}
 				case "Stop"_hash:
@@ -128,7 +126,7 @@ void Async::pause()
 {
 	if (_thread.isRunning())
 	{
-		for (Own<QEvent> event = _workerEvent.poll();
+		for (auto event = _workerEvent.poll();
 			event != nullptr;
 			event = _workerEvent.poll())
 		{
@@ -136,16 +134,16 @@ void Async::pause()
 			{
 				case "Work"_hash:
 				{
-					function<void()>* worker;
+					Own<function<void()>> worker;
 					event->get(worker);
-					_workers.push_back(worker);
+					_workers.push_back(std::move(worker));
 					break;
 				}
 				case "WorkDone"_hash:
 				{
-					Package* package;
+					std::unique_ptr<Package> package;
 					event->get(package);
-					_packages.push_back(package);
+					_packages.push_back(std::move(package));
 					break;
 				}
 			}
@@ -160,13 +158,13 @@ void Async::resume()
 {
 	if (_thread.isRunning() && !_packages.empty())
 	{
-		for (Package* package : _packages)
+		for (auto& package : _packages)
 		{
-			_workerEvent.post("WorkDone"_slice, package);
+			_workerEvent.post("WorkDone"_slice, std::move(package));
 		}
-		for (function<void()>* worker : _workers)
+		for (auto& worker : _workers)
 		{
-			_workerEvent.post("Work"_slice, worker);
+			_workerEvent.post("Work"_slice, std::move(worker));
 		}
 		_packages.clear();
 		_workers.clear();
@@ -176,7 +174,7 @@ void Async::resume()
 
 void Async::cancel()
 {
-	for (Own<QEvent> event = _workerEvent.poll();
+	for (auto event = _workerEvent.poll();
 		event != nullptr;
 		event = _workerEvent.poll())
 	{
@@ -184,29 +182,19 @@ void Async::cancel()
 		{
 			case "Work"_hash:
 			{
-				function<void()>* worker;
+				Own<function<void()>> worker;
 				event->get(worker);
-				delete worker;
 				break;
 			}
 			case "WorkDone"_hash:
 			{
-				Package* package;
+				Own<Package> package;
 				event->get(package);
-				delete package;
 				break;
 			}
 		}
 	}
-	for (Package* package : _packages)
-	{
-		delete package;
-	}
 	_packages.clear();
-	for (function<void()>* worker : _workers)
-	{
-		delete worker;
-	}
 	_workers.clear();
 }
 
@@ -222,9 +210,9 @@ _process(std::max(std::thread::hardware_concurrency(), 4u) - 1)
 	}
 }
 
-void AsyncThread::run(const function<Ref<Values>()>& worker, const function<void(Values*)>& finisher)
+void AsyncThread::run(const function<Own<Values>()>& worker, const function<void(Own<Values>)>& finisher)
 {
-	Async* async = _process[_nextProcess];
+	Async* async = _process[_nextProcess].get();
 	async->run(worker, finisher);
 	_nextProcess = (_nextProcess + 1) % _process.size();
 }

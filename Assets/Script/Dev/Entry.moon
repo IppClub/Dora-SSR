@@ -2,7 +2,7 @@ Dorothy builtin.ImGui
 import "Utils" as {:Set,:Path}
 
 debug.traceback = (err,level=1)->
-	with require "StackTracePlus"
+	with require("moonp").stp
 		.dump_locals = false
 		.simplified = true
 		msg = .stacktrace err,level+1
@@ -115,15 +115,17 @@ building = false
 doCompile = (minify)->
 	return if building
 	building = true
-	moonFiles = Path.getAllFiles Content.assetPath,"moon"
-	xmlFiles = Path.getAllFiles Content.assetPath,"xml"
+	inputPath = "#{Content.assetPath}Script/"
+	outputPath = "#{Content.writablePath}Script/"
+	moonFiles = Path.getAllFiles inputPath,"moon"
+	xmlFiles = Path.getAllFiles inputPath,"xml"
 	paths = {Path.getPath(file),true for file in *moonFiles}
-	Path.make path,Content.writablePath for path in pairs paths
+	Path.make path,outputPath for path in pairs paths
 	totalFiles = #moonFiles+#xmlFiles
 	fileCount = 0
 	errors = {}
 	for file in *moonFiles
-		dest = Content.writablePath..Path.getPath(file)..Path.getName(file)..".lua"
+		dest = outputPath..Path.getPath(file)..Path.getName(file)..".lua"
 		<- mooncompile file,dest,(codes,err,globals)->
 			if not codes
 				table.insert errors,"Compile errors in #{file}.\n#{err}"
@@ -135,10 +137,10 @@ doCompile = (minify)->
 		print "Moon compiled: #{file}"
 		fileCount += 1
 	paths = {Path.getPath(file),true for file in *xmlFiles}
-	Path.make path,Content.writablePath for path in pairs paths
+	Path.make path,outputPath for path in pairs paths
 	thread ->
 		for file in *xmlFiles
-			dest = Content.writablePath..Path.getPath(file)..Path.getName(file)..".lua"
+			dest = outputPath..Path.getPath(file)..Path.getName(file)..".lua"
 			sourceCodes = Content\loadAsync file
 			codes,err = xmltolua sourceCodes
 			if not codes
@@ -152,11 +154,13 @@ doCompile = (minify)->
 		if minify
 			{:ParseLua} = require "luaminify.ParseLua"
 			FormatMini = require "luaminify.FormatMini"
-			luaFiles = Path.getAllFiles Content.assetPath,"lua"
-			for file in *Path.getAllFiles Content.writablePath,"lua"
+			inputPath = "#{Content.assetPath}Script/"
+			outputPath = "#{Content.writablePath}Script/"
+			luaFiles = Path.getAllFiles inputPath,"lua"
+			for file in *Path.getAllFiles outputPath,"lua"
 				table.insert luaFiles,file
 			paths = {Path.getPath(file),true for file in *luaFiles}
-			Path.make path,Content.writablePath for path in pairs paths
+			Path.make path,outputPath for path in pairs paths
 			for file in *luaFiles
 				sourceCodes = Content\loadAsync file
 				st, ast = ParseLua sourceCodes
@@ -164,7 +168,7 @@ doCompile = (minify)->
 					table.insert errors,"Minify errors in #{file}.\n#{ast}"
 				else
 					codes = FormatMini ast
-					Content\saveAsync Content.writablePath..file,codes
+					Content\saveAsync outputPath..file,codes
 					print "Minify: #{file}"
 		print err for err in *errors
 		print "Build complete!"

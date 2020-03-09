@@ -221,14 +221,14 @@ UnitAction* Unit::attachAction(String name)
 	if (it == _actions.end())
 	{
 		Own<UnitAction> action = UnitAction::alloc(name, this);
-		UnitAction* temp = action;
+		UnitAction* temp = action.get();
 		if (action)
 		{
 			_actions[name] = std::move(action);
 		}
 		return temp;
 	}
-	return it->second;
+	return it->second.get();
 }
 
 void Unit::removeAction(String name)
@@ -255,7 +255,7 @@ void Unit::eachAction(const UnitActionHandler& func)
 {
 	for (const auto& pair : _actions)
 	{
-		func(pair.second);
+		func(pair.second.get());
 	}
 }
 
@@ -264,7 +264,7 @@ bool Unit::start(String name)
 	auto it = _actions.find(name);
 	if (it != _actions.end())
 	{
-		UnitAction* action = it->second;
+		UnitAction* action = it->second.get();
 		if (action->isDoing()) return true;
 		if (action->isAvailable())
 		{

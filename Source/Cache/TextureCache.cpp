@@ -159,7 +159,7 @@ Texture2D* TextureCache::load(String filename)
 		return it->second;
 	}
 	auto data = SharedContent.loadFile(filename);
-	return update(filename, data, data.size());
+	return update(filename, data.first.get(), data.second);
 }
 
 void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& handler)
@@ -179,7 +179,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
 			delete [] data;
 			return Values::create(imageContainer);
-		}, [this, file, handler](Values* result)
+		}, [this, file, handler](std::unique_ptr<Values> result)
 		{
 			bimg::ImageContainer* imageContainer;
 			result->get(imageContainer);

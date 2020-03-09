@@ -12,55 +12,10 @@ NS_DOROTHY_BEGIN
 
 /** @brief Used with Composition Relationship. */
 template<class Item, class Del = std::default_delete<Item>>
-class Own : public std::unique_ptr<Item, Del>
-{
-public:
-	Own() { }
-	Own(Own&& own):std::unique_ptr<Item>(std::move(own)) { }
-	explicit Own(Item* item):std::unique_ptr<Item>(item) { }
-	inline operator Item*() const
-	{
-		return std::unique_ptr<Item, Del>::get();
-	}
-	inline Own& operator=(std::nullptr_t)
-	{
-		std::unique_ptr<Item, Del>::reset();
-		return (*this);
-	}
-	inline const Own& operator=(Own&& own) noexcept
-	{
-		std::unique_ptr<Item, Del>::operator=(std::move(own));
-		return *this;
-	}
-private:
-	Own(const Own& own) = delete;
-	const Own& operator=(const Own& own) = delete;
-};
+using Own = std::unique_ptr<Item, Del>;
 
 template<class Item>
-class OwnArray : public std::unique_ptr<Item, std::default_delete<Item[]>>
-{
-	typedef std::unique_ptr<Item, std::default_delete<Item[]>> UPtr;
-public:
-	OwnArray():_size(0){}
-	OwnArray(OwnArray&& own) noexcept:UPtr(std::move(own)),_size(own._size) { }
-	OwnArray(Item* item, size_t size):UPtr(item), _size(size) { }
-	inline operator Item*() const
-	{
-		return UPtr::get();
-	}
-	inline const OwnArray& operator=(OwnArray&& own)
-	{
-		UPtr::operator=(std::move(own));
-		_size = own._size;
-		return *this;
-	}
-	size_t size() const { return _size; }
-private:
-	size_t _size;
-	OwnArray(const OwnArray& own) = delete;
-	const OwnArray& operator=(const OwnArray& own) = delete;
-};
+using OwnArray = std::unique_ptr<Item, std::default_delete<Item[]>>;
 
 /** Useless */
 template<class T>
@@ -78,13 +33,13 @@ inline Own<T> New(Args&&... args)
 template<class T>
 inline OwnArray<T> NewArray(size_t size)
 {
-	return OwnArray<T>(new T[size], size);
+	return OwnArray<T>(new T[size]);
 }
 
 template<class T>
-inline OwnArray<T> MakeOwnArray(T* item, size_t size)
+inline OwnArray<T> MakeOwnArray(T* item)
 {
-	return OwnArray<T>(item, size);
+	return OwnArray<T>(item);
 }
 
 /** @brief vector of pointers, but accessed as values

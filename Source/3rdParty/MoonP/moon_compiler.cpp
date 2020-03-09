@@ -2869,7 +2869,7 @@ private:
 			lua_rawgeti(L, -2, 3); // cur macro err macroCodes
 			std::string macroCodes = lua_tostring(L, -1);
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage(s("Fail to expand macro: \n"sv) + macroCodes + err, callable));
+			throw std::logic_error(_info.errorMessage(s("Fail to expand macro: \n"sv) + macroCodes + '\n' + err, callable));
 		}
 		if (lua_isstring(L, -1) == 0) {
 			lua_settop(L, top);
@@ -4751,8 +4751,8 @@ private:
 
 const std::string MoonCompilerImpl::Empty;
 
-MoonCompiler::MoonCompiler(const std::function<void(void*)>& luaOpen):
-_compiler(std::make_unique<MoonCompilerImpl>(nullptr, luaOpen)) {}
+MoonCompiler::MoonCompiler(void* state, const std::function<void(void*)>& luaOpen):
+_compiler(std::make_unique<MoonCompilerImpl>(static_cast<lua_State*>(state), luaOpen)) {}
 
 MoonCompiler::~MoonCompiler() {}
 

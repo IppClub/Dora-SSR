@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Debug.h"
 #include "Common/Singleton.h"
 #include "Common/Async.h"
+#include "Basic/Application.h"
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -26,20 +27,23 @@ Delegate<void (const string&)> LogHandler;
 
 void LogPrintInThread(const string& str)
 {
-#if DORA_DEBUG
-	SharedAsyncLogThread.run([str]
+	SharedApplication.invokeInLogic([str]()
 	{
-#if BX_PLATFORM_ANDROID
-		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
-#else
-		fmt::print("{}", str);
-#endif
-		return Values::None;
-	}, [str](Values*)
-	{
-		LogHandler(str);
+		SharedAsyncLogThread.run([str]
+		{
+	#if DORA_DEBUG
+	#if BX_PLATFORM_ANDROID
+			__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
+	#else
+			fmt::print("{}", str);
+	#endif // BX_PLATFORM_ANDROID
+	#endif // DORA_DEBUG
+			return std::move(Values::None);
+		}, [str](std::unique_ptr<Values>)
+		{
+			LogHandler(str);
+		});
 	});
-#endif // DORA_DEBUG
 }
 
 #if !DORA_DISABLE_ASSERT_IN_LUA

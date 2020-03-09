@@ -46,7 +46,7 @@ SoundFile* SoundCache::load(String filename)
 		case "ogg"_hash:
 		{
 			auto data = SharedContent.loadFile(fullPath);
-			SoundFile* soundFile = SoundFile::create(std::move(data));
+			SoundFile* soundFile = SoundFile::create(std::move(data.first), data.second);
 			if (soundFile)
 			{
 				_soundFiles[fullPath] = soundFile;
@@ -66,14 +66,6 @@ SoundFile* SoundCache::load(String filename)
 	}
 }
 
-SoundFile* SoundCache::update(String filename, const Uint8* data, Sint64 size)
-{
-	string fullPath = SharedContent.getFullPath(filename);
-	SoundFile* soundFile = SoundFile::create(MakeOwnArray(c_cast<Uint8*>(data), s_cast<size_t>(size)));
-	_soundFiles[fullPath] = soundFile;
-	return soundFile;
-}
-
 void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& handler)
 {
 	string ext = filename.getFileExtension();
@@ -85,7 +77,7 @@ void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& ha
 			string fullPath = SharedContent.getFullPath(filename);
 			SharedContent.loadFileAsyncUnsafe(fullPath, [this, fullPath, handler](Uint8* data, Sint64 size)
 			{
-				SoundFile* soundFile = SoundFile::create(MakeOwnArray(data, s_cast<size_t>(size)));
+				SoundFile* soundFile = SoundFile::create(MakeOwnArray(data), s_cast<size_t>(size));
 				if (soundFile)
 				{
 					_soundFiles[fullPath] = soundFile;

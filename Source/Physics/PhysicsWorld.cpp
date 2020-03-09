@@ -70,8 +70,8 @@ PhysicsWorld::~PhysicsWorld()
 bool PhysicsWorld::init()
 {
 	if (!Node::init()) return false;
-	_world.SetContactListener(_contactListner);
-	_world.SetDestructionListener(_destructionListener);
+	_world.SetContactListener(_contactListner.get());
+	_world.SetDestructionListener(_destructionListener.get());
 	for (int i = 0; i < TotalGroups; i++)
 	{
 		_filters[i].groupIndex = i;

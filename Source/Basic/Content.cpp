@@ -40,13 +40,13 @@ NS_DOROTHY_BEGIN
 Content::~Content()
 { }
 
-OwnArray<Uint8> Content::loadFile(String filename)
+std::pair<OwnArray<Uint8>,size_t> Content::loadFile(String filename)
 {
 	SharedAsyncThread.FileIO.pause();
 	Sint64 size = 0;
 	Uint8* data = Content::_loadFileUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
-	return OwnArray<Uint8>(data, s_cast<size_t>(size));
+	return {OwnArray<Uint8>(data), s_cast<size_t>(size)};
 }
 
 const bgfx::Memory* Content::loadFileBX(String filename)
@@ -338,7 +338,7 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 		Uint8* buffer = this->_loadFileUnsafe(fileStr, size);
 		return Values::create(buffer, size);
 	},
-	[callback](Values* result)
+	[callback](std::unique_ptr<Values> result)
 	{
 		Uint8* buffer;
 		Sint64 size;
@@ -351,16 +351,16 @@ void Content::loadFileAsync(String filename, const function<void(String)>& callb
 {
 	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
-		auto data = MakeOwnArray(buffer, s_cast<size_t>(size));
-		callback(Slice(r_cast<char*>(data.get()), data.size()));
+		auto data = MakeOwnArray(buffer);
+		callback(Slice(r_cast<char*>(data.get()), s_cast<size_t>(size)));
 	});
 }
 
-void Content::loadFileAsyncMove(String filename, const function<void(OwnArray<Uint8>&&)>& callback)
+void Content::loadFileAsyncData(String filename, const function<void(OwnArray<Uint8>&&,size_t)>& callback)
 {
 	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
-		callback(MakeOwnArray(buffer, s_cast<size_t>(size)));
+		callback(MakeOwnArray(buffer), s_cast<size_t>(size));
 	});
 }
 
@@ -379,9 +379,9 @@ void Content::copyFileAsync(String src, String dst, const function<void()>& call
 	SharedAsyncThread.FileIO.run([srcFile,dstFile,this]()
 	{
 		Content::copyFileUnsafe(srcFile, dstFile);
-		return Values::None;
+		return std::move(Values::None);
 	},
-	[callback](Values* result)
+	[callback](std::unique_ptr<Values> result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();
@@ -395,25 +395,25 @@ void Content::saveToFileAsync(String filename, String content, const function<vo
 	SharedAsyncThread.FileIO.run([file,data,this]()
 	{
 		Content::saveToFile(file, *MakeOwn(data));
-		return Values::None;
+		return std::move(Values::None);
 	},
-	[callback](Values* result)
+	[callback](std::unique_ptr<Values> result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();
 	});
 }
 
-void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, const function<void()>& callback)
+void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, size_t size, const function<void()>& callback)
 {
 	string file(filename);
-	auto data = new OwnArray<Uint8>(std::move(content));
-	SharedAsyncThread.FileIO.run([file,data,this]()
+	auto data = std::make_shared<OwnArray<Uint8>>(std::move(content));
+	SharedAsyncThread.FileIO.run([file,data,size,this]()
 	{
-		Content::saveToFile(file, *MakeOwn(data).get(), data->size());
-		return Values::None;
+		Content::saveToFile(file, Slice(r_cast<char*>((*data).get()), size));
+		return std::move(Values::None);
 	},
-	[callback](Values* result)
+	[callback](std::unique_ptr<Values> result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();

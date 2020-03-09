@@ -37,7 +37,7 @@ class MoonCompilerImpl;
 
 class MoonCompiler {
 public:
-	MoonCompiler(const std::function<void(void*)>& luaOpen = nullptr);
+	MoonCompiler(void* luaState = nullptr, const std::function<void(void*)>& luaOpen = nullptr);
 	virtual ~MoonCompiler();
 	std::tuple<std::string,std::string,GlobalVars> compile(std::string_view codes, const MoonConfig& config = {});
 private:

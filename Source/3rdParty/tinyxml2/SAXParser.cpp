@@ -120,7 +120,7 @@ bool SAXParser::parseXml(const string& xmlData)
 bool SAXParser::parse(const string& filename)
 {
 	auto data = SharedContent.loadFile(filename);
-    return parseXml(Slice(r_cast<char*>(data.get()), data.size()));
+    return parseXml(Slice(r_cast<char*>(data.first.get()), data.second));
 }
 
 void SAXParser::startElement(void* ctx, const XML_CHAR* name, const XML_CHAR** atts)
