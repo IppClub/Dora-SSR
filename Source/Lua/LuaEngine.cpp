@@ -199,6 +199,38 @@ static int dora_xmltolua(lua_State* L)
 	return 1;
 }
 
+static int dora_loadlibs(lua_State* L)
+{
+	const luaL_Reg lualibs[] =
+	{
+		{ "", luaopen_base },
+		{ LUA_LOADLIBNAME, luaopen_package },
+		{ LUA_TABLIBNAME, luaopen_table },
+		{ LUA_STRLIBNAME, luaopen_string },
+		{ LUA_MATHLIBNAME, luaopen_math },
+		{ LUA_DBLIBNAME, luaopen_debug },
+		{ NULL, NULL }
+	};
+	for (const luaL_Reg* lib = lualibs; lib->func; lib++)
+	{
+		lua_pushcfunction(L, lib->func);
+		lua_pushstring(L, lib->name);
+		lua_call(L, 1, 0);
+	}
+	return 1;
+}
+
+static void dora_open_compiler(void* state) {
+	lua_State* L = s_cast<lua_State*>(state);
+	dora_loadlibs(L);
+	const luaL_Reg global_functions[] =
+	{
+		{ "print", dora_print },
+		{ NULL, NULL }
+	};
+	luaL_register(L, "_G", global_functions);
+}
+
 static int dora_mooncompile(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
@@ -235,7 +267,7 @@ static int dora_mooncompile(lua_State* L)
 					string compiledCodes, err;
 					MoonP::GlobalVars globals;
 					const auto& codes = std::get<2>(*input);
-					std::tie(compiledCodes, err, globals) = MoonP::MoonCompiler{}.compile({r_cast<char*>(codes.get()), codes.size()}, config);
+					std::tie(compiledCodes, err, globals) = MoonP::MoonCompiler{dora_open_compiler}.compile({r_cast<char*>(codes.get()), codes.size()}, config);
 					return Values::create(compiledCodes, err, std::move(globals));
 				}, [input, handler, callback](Values* values)
 				{
@@ -391,27 +423,6 @@ static int dora_ubox(lua_State* L)
 	return 1;
 }
 
-static int dora_loadlibs(lua_State* L)
-{
-	const luaL_Reg lualibs[] =
-	{
-		{ "", luaopen_base },
-		{ LUA_LOADLIBNAME, luaopen_package },
-		{ LUA_TABLIBNAME, luaopen_table },
-		{ LUA_STRLIBNAME, luaopen_string },
-		{ LUA_MATHLIBNAME, luaopen_math },
-		{ LUA_DBLIBNAME, luaopen_debug },
-		{ NULL, NULL }
-	};
-	for (const luaL_Reg* lib = lualibs; lib->func; lib++)
-	{
-		lua_pushcfunction(L, lib->func);
-		lua_pushstring(L, lib->name);
-		lua_call(L, 1, 0);
-	}
-	return 1;
-}
-
 lua_State* LuaEngine::getState() const
 {
 	return L;
@@ -421,7 +432,7 @@ MoonP::MoonCompiler& LuaEngine::getMoon()
 {
 	if (!_moonCompiler)
 	{
-		_moonCompiler = New<MoonP::MoonCompiler>();
+		_moonCompiler = New<MoonP::MoonCompiler>(dora_open_compiler);
 	}
 	return *_moonCompiler;
 }

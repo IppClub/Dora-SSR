@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <tuple>
 #include <list>
 #include <memory>
+#include <functional>
 
 namespace MoonP {
 
@@ -36,7 +37,7 @@ class MoonCompilerImpl;
 
 class MoonCompiler {
 public:
-	MoonCompiler();
+	MoonCompiler(const std::function<void(void*)>& luaOpen = nullptr);
 	virtual ~MoonCompiler();
 	std::tuple<std::string,std::string,GlobalVars> compile(std::string_view codes, const MoonConfig& config = {});
 private:

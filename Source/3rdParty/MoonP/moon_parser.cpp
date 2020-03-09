@@ -28,8 +28,8 @@ std::unordered_set<std::string> Keywords = {
 	"repeat", "return", "then", "true", "until",
 	"while", // Lua keywords
 	"as", "class", "continue", "export", "extends",
-	"from", "global", "import", "switch", "unless",
-	"using", "when", "with" // Moon keywords
+	"from", "global", "import", "macro", "switch",
+	"unless", "using", "when", "with" // Moon keywords
 };
 
 MoonParser::MoonParser() {
@@ -98,9 +98,9 @@ MoonParser::MoonParser() {
 	self_class = expr("@@");
 	self_class_name = "@@" >> Name;
 
-	SelfName = Space >> (self_class_name | self_class | self_name | self);
-	KeyName = SelfName | Space >> Name;
-	VarArg = Space >> "...";
+	SelfName = self_class_name | self_class | self_name | self;
+	KeyName = Space >> (SelfName | Name);
+	VarArg = expr("...");
 
 	check_indent = pl::user(Indent, [](const item_t& item) {
 		int indent = 0;
@@ -162,7 +162,8 @@ MoonParser::MoonParser() {
 	InBlock = Advance >> ensure(Block, PopIndent);
 
 	local_flag = expr('*') | expr('^');
-	Local = key("local") >> ((Space >> local_flag) | NameList);
+	local_values = NameList >> -(sym('=') >> ExpListLow);
+	Local = key("local") >> (Space >> local_flag | local_values);
 
 	colon_import_name = sym('\\') >> Space >> Variable;
 	ImportName = colon_import_name | Space >> Variable;
@@ -278,7 +279,7 @@ MoonParser::MoonParser() {
 
 	BackcallOperator = expr("|>");
 
-	Assignable = AssignableChain | Space >> Variable | SelfName;
+	Assignable = AssignableChain | Space >> Variable | Space >> SelfName;
 
 	exp_op_value = Space >> (BackcallOperator | BinaryOperator) >> *SpaceBreak >> Value;
 	Exp = Value >> *exp_op_value;
@@ -317,8 +318,8 @@ MoonParser::MoonParser() {
 
 	LuaString = LuaStringOpen >> -Break >> LuaStringContent >> LuaStringClose;
 
-	Parens = sym('(') >> *SpaceBreak >> Exp >> *SpaceBreak >> sym(')');
-	Callable = Space >> Variable | SelfName | VarArg | Parens;
+	Parens = symx('(') >> *SpaceBreak >> Exp >> *SpaceBreak >> sym(')');
+	Callable = Space >> (Variable | SelfName | MacroName | VarArg | Parens);
 	FnArgsExpList = Exp >> *((Break | sym(',')) >> White >> Exp);
 
 	FnArgs = (symx('(') >> *SpaceBreak >> -FnArgsExpList >> *SpaceBreak >> sym(')')) |
@@ -414,7 +415,8 @@ MoonParser::MoonParser() {
 		} else {
 			return true;
 		}
-	}) >> ExpList >> -Assign)) >> not_(Space >> statement_appendix);
+	}) >> ExpList >> -Assign)
+	| Macro) >> not_(Space >> statement_appendix);
 
 	variable_pair = sym(':') >> Variable;
 
@@ -432,9 +434,9 @@ MoonParser::MoonParser() {
 	KeyValueList = KeyValue >> *(sym(',') >> KeyValue);
 	KeyValueLine = CheckIndent >> KeyValueList >> -sym(',');
 
-	FnArgDef = (Space >> Variable | SelfName) >> -(sym('=') >> Exp);
+	FnArgDef = (Variable | SelfName) >> -(sym('=') >> Space >> Exp);
 
-	FnArgDefList = Seperator >> (
+	FnArgDefList = Space >> Seperator >> (
 		(
 			FnArgDef >>
 			*((sym(',') | Break) >> White >> FnArgDef) >>
@@ -449,6 +451,12 @@ MoonParser::MoonParser() {
 	FnArgsDef = sym('(') >> White >> -FnArgDefList >> -outer_var_shadow >> White >> sym(')');
 	fn_arrow = expr("->") | expr("=>");
 	FunLit = -FnArgsDef >> Space >> fn_arrow >> -Body;
+
+	MacroName = expr('$') >> Name;
+	macro_type = expr("expr") | expr("block");
+	macro_args_def = sym('(') >> White >> -FnArgDefList >> White >> sym(')');
+	MacroLit = -macro_args_def >> Space >> expr("->") >> Body;
+	Macro = key("macro") >> Space >> macro_type >> Space >> Name >> sym('=') >> MacroLit;
 
 	NameList = Seperator >> Space >> Variable >> *(sym(',') >> White >> Variable);
 	NameOrDestructure = Space >> Variable | TableLit;
@@ -499,7 +507,8 @@ MoonParser::MoonParser() {
 	statement_appendix = (if_else_line | unless_line | CompInner) >> Space;
 	Statement = (
 		Import | While | For | ForEach |
-		Return | Local | Global | Export | Space >> BreakLoop |
+		Return | Local | Global | Export |
+		Macro | Space >> BreakLoop |
 		Backcall | ExpListAssign
 	) >> Space >>
 	-statement_appendix;
@@ -576,6 +585,12 @@ namespace Utils {
 			str.replace(start_pos, from.size(), to);
 			start_pos += to.size();
 		}
+	}
+
+	void trim(std::string& str) {
+		if (str.empty()) return;
+		str.erase(0, str.find_first_not_of(" \t"));
+		str.erase(str.find_last_not_of(" \t") + 1);
 	}
 }
 
