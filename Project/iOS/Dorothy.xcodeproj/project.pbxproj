@@ -177,7 +177,6 @@
 		3CB7307E1E80343E006DFA18 /* Sensor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730751E80343E006DFA18 /* Sensor.cpp */; };
 		3CB730821E80344C006DFA18 /* Dictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730801E80344C006DFA18 /* Dictionary.cpp */; };
 		3CC05B6A1E716EB000F2BA1B /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B681E716EB000F2BA1B /* DrawNode.cpp */; };
-		3CC05B6D1E7171D600F2BA1B /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B6B1E7171D600F2BA1B /* Value.cpp */; };
 		3CC7A1441E8D657C003188D6 /* libsoloud.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC7A1431E8D657C003188D6 /* libsoloud.a */; };
 		3CC7A1581E8D69EB003188D6 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3CC7A1571E8D69EB003188D6 /* Audio */; };
 		3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC8201B1D96680C008C8B77 /* Assets.xcassets */; };
@@ -213,6 +212,7 @@
 		3CF730E41E66544A0002DEED /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E01E66544A0002DEED /* Image */; };
 		3CF730E51E66544A0002DEED /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3CF730E11E66544A0002DEED /* Script */; };
 		3CFA31AE1E6B07EA00493633 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */; };
+		3CFDE1512417F47400E7D26A /* moonplus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDE14E2417F47300E7D26A /* moonplus.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -619,7 +619,6 @@
 		3CB730811E80344C006DFA18 /* Dictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dictionary.h; path = ../../../Source/Support/Dictionary.h; sourceTree = "<group>"; };
 		3CC05B681E716EB000F2BA1B /* DrawNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrawNode.cpp; path = ../../../Source/Node/DrawNode.cpp; sourceTree = "<group>"; };
 		3CC05B691E716EB000F2BA1B /* DrawNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrawNode.h; path = ../../../Source/Node/DrawNode.h; sourceTree = "<group>"; };
-		3CC05B6B1E7171D600F2BA1B /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3CC05B6C1E7171D600F2BA1B /* Value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Value.h; path = ../../../Source/Support/Value.h; sourceTree = "<group>"; };
 		3CC7A1431E8D657C003188D6 /* libsoloud.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsoloud.a; path = ../../Source/3rdParty/soloud/Lib/iOS/libsoloud.a; sourceTree = "<group>"; };
 		3CC7A1571E8D69EB003188D6 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = ../../Assets/Audio; sourceTree = "<group>"; };
@@ -675,6 +674,9 @@
 		3CF730E11E66544A0002DEED /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Script; path = ../../Assets/Script; sourceTree = "<group>"; };
 		3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Node/RenderTarget.cpp; sourceTree = "<group>"; };
 		3CFA31AD1E6B07EA00493633 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Node/RenderTarget.h; sourceTree = "<group>"; };
+		3CFDE14E2417F47300E7D26A /* moonplus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moonplus.cpp; sourceTree = "<group>"; };
+		3CFDE14F2417F47300E7D26A /* moonplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moonplus.h; sourceTree = "<group>"; };
+		3CFDE1502417F47300E7D26A /* stacktraceplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stacktraceplus.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1098,7 +1100,6 @@
 			children = (
 				3CB730801E80344C006DFA18 /* Dictionary.cpp */,
 				3CB730811E80344C006DFA18 /* Dictionary.h */,
-				3CC05B6B1E7171D600F2BA1B /* Value.cpp */,
 				3CC05B6C1E7171D600F2BA1B /* Value.h */,
 				3CD6C2A61E30C22300B36FFC /* Common.cpp */,
 				3CD6C2A71E30C22300B36FFC /* Common.h */,
@@ -1122,6 +1123,9 @@
 				3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */,
 				3C6A2BE8238E039700AD8C80 /* moon_compiler.h */,
 				3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */,
+				3CFDE14E2417F47300E7D26A /* moonplus.cpp */,
+				3CFDE14F2417F47300E7D26A /* moonplus.h */,
+				3CFDE1502417F47300E7D26A /* stacktraceplus.h */,
 			);
 			name = MoonP;
 			path = ../../../Source/3rdParty/MoonP;
@@ -1762,6 +1766,7 @@
 				3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */,
 				3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */,
 				3C131FFE21011BB60087154A /* Define.cpp in Sources */,
+				3CFDE1512417F47400E7D26A /* moonplus.cpp in Sources */,
 				3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */,
 				3C1677B82212C0FD00892CD4 /* ChainShapeConf.cpp in Sources */,
 				3C13200321011BB60087154A /* VisualCache.cpp in Sources */,
@@ -1781,7 +1786,6 @@
 				3CABB25A21199C0000737278 /* PhysicsWorld.cpp in Sources */,
 				3C16779D2212C0FD00892CD4 /* ContactImpulsesList.cpp in Sources */,
 				3C1677A02212C0FD00892CD4 /* Island.cpp in Sources */,
-				3CC05B6D1E7171D600F2BA1B /* Value.cpp in Sources */,
 				3C16778A2212C0FD00892CD4 /* WheelJoint.cpp in Sources */,
 				3C883B1621E338F500BFD758 /* AutoreleasePool.cpp in Sources */,
 				3C1677AA2212C0FD00892CD4 /* StackAllocator.cpp in Sources */,

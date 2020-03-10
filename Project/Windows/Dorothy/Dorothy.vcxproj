@@ -52,6 +52,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moonplus.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -500,7 +506,6 @@
     <ClCompile Include="..\..\..\Source\Support\Common.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp" />
-    <ClCompile Include="..\..\..\Source\Support\Value.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h" />
@@ -528,10 +533,12 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\ast.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moonplus.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_ast.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_parser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\parser.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\stacktraceplus.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fontstash.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fs_nanovg_fill.bin.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg.h" />
