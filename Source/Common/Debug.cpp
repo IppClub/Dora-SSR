@@ -27,19 +27,32 @@ Delegate<void (const string&)> LogHandler;
 
 void LogPrintInThread(const string& str)
 {
+	if (Singleton<Dorothy::Application>::isDisposed() ||
+		Singleton<Dorothy::AsyncLogThread>::isDisposed() ||
+		!SharedApplication.isLogicRunning())
+	{
+#if DORA_DEBUG
+#if BX_PLATFORM_ANDROID
+		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
+#else
+		fmt::print("{}", str);
+#endif // BX_PLATFORM_ANDROID
+#endif // DORA_DEBUG
+		return;
+	}
 	SharedApplication.invokeInLogic([str]()
 	{
 		SharedAsyncLogThread.run([str]
 		{
-	#if DORA_DEBUG
-	#if BX_PLATFORM_ANDROID
+#if DORA_DEBUG
+#if BX_PLATFORM_ANDROID
 			__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
-	#else
+#else
 			fmt::print("{}", str);
-	#endif // BX_PLATFORM_ANDROID
-	#endif // DORA_DEBUG
-			return std::move(Values::None);
-		}, [str](std::unique_ptr<Values>)
+#endif // BX_PLATFORM_ANDROID
+#endif // DORA_DEBUG
+			return nullptr;
+		}, [str](Own<Values>)
 		{
 			LogHandler(str);
 		});

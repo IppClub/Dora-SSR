@@ -174,9 +174,23 @@ MoonParser::MoonParser() {
 	ImportLiteral = sym('\'') >> import_literal_chain >> symx('\'') | sym('"') >> import_literal_chain >> symx('"');
 
 	ImportFrom = ImportNameList >> *SpaceBreak >> key("from") >> Exp;
-	ImportAs = ImportLiteral >> -(key("as") >> (Space >> Variable | TableLit));
+
+	EnableMacroPair = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->macroPairEnabled = true;
+		return true;
+	});
+
+	DiableMacroPair = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->macroPairEnabled = false;
+		return true;
+	});
+
+	ImportAs = ImportLiteral >> -(key("as") >> (Space >> Variable | EnableMacroPair >> ensure(TableLit, DiableMacroPair)));
 
 	Import = key("import") >> (ImportAs | ImportFrom);
+
 	BreakLoop = (expr("break") | expr("continue")) >> not_(AlphaNum);
 
 	Return = key("return") >> -ExpListLow;
@@ -429,7 +443,12 @@ MoonParser::MoonParser() {
 	symx(':') >>
 	(Exp | TableBlock | +(SpaceBreak) >> Exp);
 
-	KeyValue = variable_pair | normal_pair;
+	macro_name_pair = Space >> MacroName >> Space >> symx(':') >> Space >> MacroName;
+
+	KeyValue = variable_pair | normal_pair | pl::user(sym(':') >> MacroName | macro_name_pair, [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		return st->macroPairEnabled;
+	});
 
 	KeyValueList = KeyValue >> *(sym(',') >> KeyValue);
 	KeyValueLine = CheckIndent >> KeyValueList >> -sym(',');
@@ -550,10 +569,10 @@ ParseInfo MoonParser::parse(std::string_view codes, rule& r) {
 			const error& err = *it;
 			switch (err.m_type) {
 				case ERROR_TYPE::ERROR_SYNTAX_ERROR:
-					buf << res.errorMessage("Syntax error."sv, &err);
+					buf << res.errorMessage("syntax error"sv, &err);
 					break;
 				case ERROR_TYPE::ERROR_INVALID_EOF:
-					buf << res.errorMessage("Invalid EOF."sv, &err);
+					buf << res.errorMessage("invalid EOF"sv, &err);
 					break;
 			}
 		}

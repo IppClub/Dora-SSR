@@ -372,8 +372,6 @@ function _M.stacktrace(thread, message, level)
 
 	local dumper = Dumper.new(thread)
 
-	local original_error
-
 	if type(message) == "table" then
 		dumper:add("an error object {\r\n")
 		local first = true
@@ -389,9 +387,7 @@ function _M.stacktrace(thread, message, level)
 			dumper:add(safe_tostring(v))
 		end
 		dumper:add("\r\n}")
-		original_error = dumper:concat_lines()
 	elseif type(message) == "string" then
-		original_error = message
 		local fname, line, msg = message:match('(.+):(%d+): (.*)$')
 		local nfname, nline, nmsg = fname:match('(.+):(%d+): (.*)$')
 		if nfname then
@@ -416,8 +412,10 @@ function _M.stacktrace(thread, message, level)
 			fname, line = getMoonLineNumber(fname, line)
 			if _M.simplified then
 				message = table.concat({
-					"'", fname, "':",
+					"", fname, ":",
 					line, ": ", msg})
+				message = message:gsub("^%(moonplus%):%s*%d+:%s*", "")
+				message = message:gsub("%s(%d+):", "%1:")
 			else
 				message = table.concat({
 					"[string \"", fname, "\"]:",
@@ -425,6 +423,13 @@ function _M.stacktrace(thread, message, level)
 			end
 		end
 		dumper:add(message)
+	end
+
+	local moonp = require("moonp")
+	if moonp._hide_stacktrace_ then
+		local msg = dumper:concat_lines()
+		moonp._hide_stacktrace_ = nil
+		return message
 	end
 
 	dumper:add("\r\n")
@@ -517,7 +522,7 @@ Stack Traceback
 		info = dumper.getinfo(level, "nSlf")
 	end
 
-	return dumper:concat_lines(), original_error
+	return dumper:concat_lines()
 end
 
 --

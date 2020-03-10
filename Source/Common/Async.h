@@ -47,7 +47,7 @@ class AsyncThread
 public:
 	Async FileIO;
 	AsyncThread();
-	void run(const function<std::unique_ptr<Values>()>& worker, const function<void(std::unique_ptr<Values>)>& finisher);
+	void run(const function<Own<Values>()>& worker, const function<void(Own<Values>)>& finisher);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i)
 	{

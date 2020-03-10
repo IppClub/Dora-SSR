@@ -75,6 +75,7 @@ protected:
 		State() {
 			indents.push(0);
 		}
+		bool macroPairEnabled = false;
 		bool exportDefault = false;
 		int exportCount = 0;
 		int moduleFix = 0;
@@ -131,6 +132,8 @@ private:
 	rule WithExp;
 	rule DisableDo;
 	rule PopDo;
+	rule EnableMacroPair;
+	rule DiableMacroPair;
 	rule SwitchElse;
 	rule SwitchBlock;
 	rule IfElseIf;
@@ -263,6 +266,7 @@ private:
 	AST_RULE(Export)
 	AST_RULE(variable_pair)
 	AST_RULE(normal_pair)
+	AST_RULE(macro_name_pair)
 	AST_RULE(FnArgDef)
 	AST_RULE(FnArgDefList)
 	AST_RULE(outer_var_shadow)

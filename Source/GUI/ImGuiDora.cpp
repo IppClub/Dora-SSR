@@ -268,8 +268,8 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 		SharedAsyncThread.run([this]()
 		{
 			_fonts->Build();
-			return std::move(Values::None);
-		}, [this, fileData, size](std::unique_ptr<Values> result)
+			return nullptr;
+		}, [this, fileData, size](Own<Values> result)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			io.Fonts->Clear();

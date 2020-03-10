@@ -232,7 +232,25 @@ static int dora_loadlibs(lua_State* L)
 	return 0;
 }
 
-static void dora_open_compiler(void* state) {
+static int dora_file_exist(lua_State* L)
+{
+	size_t size = 0;
+	auto str = luaL_checklstring(L, 1, &size);
+	lua_pushboolean(L, SharedContent.isExist({str, size}) ? 1 : 0);
+	return 1;
+}
+
+static int dora_read_file(lua_State* L)
+{
+	size_t size = 0;
+	auto str = luaL_checklstring(L, 1, &size);
+	auto data = SharedContent.loadFile({str, size});
+	lua_pushlstring(L, r_cast<char*>(data.first.get()), data.second);
+	return 1;
+}
+
+static void dora_open_compiler(void* state)
+{
 	lua_State* L = s_cast<lua_State*>(state);
 	dora_loadlibs(L);
 	const luaL_Reg global_functions[] =
@@ -241,6 +259,14 @@ static void dora_open_compiler(void* state) {
 		{ NULL, NULL }
 	};
 	luaL_register(L, "_G", global_functions);
+	lua_getglobal(L, "package"); // package
+	lua_getfield(L, -1, "loaded"); // package loaded
+	lua_getfield(L, -1, "moonp"); // package loaded moonp
+	lua_pushcfunction(L, dora_file_exist);
+	lua_setfield(L, -2, "file_exist");
+	lua_pushcfunction(L, dora_read_file);
+	lua_setfield(L, -2, "read_file");
+	lua_pop(L, 3);
 }
 
 static int dora_mooncompile(lua_State* L)
@@ -282,7 +308,7 @@ static int dora_mooncompile(lua_State* L)
 					const auto& codes = std::get<2>(*input);
 					std::tie(compiledCodes, err, globals) = MoonP::MoonCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
 					return Values::create(compiledCodes, err, std::move(globals));
-				}, [input, handler, callback](std::unique_ptr<Values> values)
+				}, [input, handler, callback](Own<Values> values)
 				{
 					string compiledCodes, err;
 					MoonP::GlobalVars globals;
@@ -335,101 +361,6 @@ tolua_lerror:
 #endif
 }
 
-static int dora_moontolua(lua_State* L)
-{
-#ifndef TOLUA_RELEASE
-	tolua_Error tolua_err;
-	if (!tolua_isstring(L, 1, 0, &tolua_err) ||
-		(!tolua_istable(L, 2, 0, &tolua_err) &&
-			!tolua_isnoobj(L, 2, &tolua_err)) ||
-				!tolua_isnoobj(L, 3, &tolua_err))
-	{
-		goto tolua_lerror;
-	}
-	else
-#endif
-	{
-		string codes(tolua_toslice(L, 1, 0));
-		MoonP::MoonConfig config;
-		if (lua_gettop(L) == 2) {
-			tolua_pushslice(L, "lint_global"_slice);
-			lua_gettable(L, -2);
-			if (!lua_isnil(L, -1)) {
-				config.lintGlobalVariable = lua_toboolean(L, -1);
-			}
-			lua_pop(L, 1);
-			tolua_pushslice(L, "implicit_return_root"_slice);
-			lua_gettable(L, -2);
-			if (!lua_isnil(L, -1)) {
-				config.implicitReturnRoot = lua_toboolean(L, -1);
-			}
-			lua_pop(L, 1);
-			tolua_pushslice(L, "reserve_line_number"_slice);
-			lua_gettable(L, -2);
-			if (!lua_isnil(L, -1)) {
-				config.reserveLineNumber = lua_toboolean(L, -1);
-			}
-			lua_pop(L, 1);
-		}
-		if (config.lintGlobalVariable) {
-			string compiledCodes, err;
-			MoonP::GlobalVars globals;
-			std::tie(compiledCodes, err, globals) = SharedLuaEngine.getMoon().compile(codes, config);
-			if (compiledCodes.empty())
-			{
-				lua_pushnil(L);
-				lua_pushlstring(L, err.c_str(), err.size());
-			}
-			else
-			{
-				lua_pushlstring(L, compiledCodes.c_str(), compiledCodes.size());
-				lua_pushnil(L);
-			}
-			if (globals) {
-				lua_createtable(L, s_cast<int>(globals->size()), 0);
-				int i = 1;
-				for (const auto& var : *globals)
-				{
-					lua_createtable(L, 3, 0);
-					lua_pushlstring(L, var.name.c_str(), var.name.size());
-					lua_rawseti(L, -2, 1);
-					lua_pushinteger(L, var.line);
-					lua_rawseti(L, -2, 2);
-					lua_pushinteger(L, var.col);
-					lua_rawseti(L, -2, 3);
-					lua_rawseti(L, -2, i);
-					i++;
-				}
-			} else {
-				lua_pushnil(L);
-			}
-			return 3;
-		}
-		else
-		{
-			string compiledCodes, err;
-			MoonP::GlobalVars globals;
-			std::tie(compiledCodes, err, globals) = SharedLuaEngine.getMoon().compile(codes, config);
-			if (compiledCodes.empty())
-			{
-				lua_pushnil(L);
-				lua_pushlstring(L, err.c_str(), err.size());
-			}
-			else
-			{
-				lua_pushlstring(L, compiledCodes.c_str(), compiledCodes.size());
-				lua_pushnil(L);
-			}
-			return 2;
-		}
-	}
-#ifndef TOLUA_RELEASE
-tolua_lerror :
-	tolua_error(L, "#ferror in function 'moontolua'.", &tolua_err);
-	return 0;
-#endif
-}
-
 static int dora_ubox(lua_State* L)
 {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
@@ -464,7 +395,6 @@ LuaEngine::LuaEngine()
 		{ "dofile", dora_dofile },
 		{ "doxml", dora_doxml },
 		{ "xmltolua", dora_xmltolua },
-		{ "moontolua", dora_moontolua },
 		{ "mooncompile", dora_mooncompile },
 		{ "ubox", dora_ubox },
 		{ "emit", dora_emit },

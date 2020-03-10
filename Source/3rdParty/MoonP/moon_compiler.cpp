@@ -18,10 +18,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "MoonP/moon_compiler.h"
 
 extern "C" {
+
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
-}
+
+} // extern "C"
 
 namespace MoonP {
 using namespace std::string_view_literals;
@@ -38,15 +40,36 @@ inline std::string s(std::string_view sv) {
 }
 
 const char* moonScriptVersion() {
-	return "0.5.0-r0.2.0";
+	return "0.5.0-r0.3.0";
 }
+
+// name of table stored in lua registry
+#define MOONP_MODULE "_modules_"
 
 class MoonCompilerImpl {
 public:
-	MoonCompilerImpl(lua_State* state,
-		const std::function<void(void*)>& luaOpen):
-		L(state),
-		_luaOpen(luaOpen) {}
+	MoonCompilerImpl(lua_State* sharedState,
+		const std::function<void(void*)>& luaOpen,
+		bool sameModule,
+		std::string_view moduleName = {}):
+		L(sharedState),
+		_luaOpen(luaOpen),
+		_moduleName(moduleName) {
+		int top = -1;
+		BLOCK_START
+		BREAK_IF(!sameModule);
+		BREAK_IF(!L);
+		top = lua_gettop(L);
+		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+		lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
+		BREAK_IF(lua_istable(L, -1) == 0);
+		int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
+		BREAK_IF(idx == 0);
+		_useModule = true;
+		_sameModule = true;
+		BLOCK_END
+		if (top != -1) lua_settop(L, top);
+	}
 
 	~MoonCompilerImpl() {
 		if (L && _stateOwner) {
@@ -101,19 +124,22 @@ public:
 		_joinBuf.str("");
 		_joinBuf.clear();
 		_globals.clear();
-		if (_useMacro) {
-			_useMacro = false;
-			lua_pushliteral(L, "_macros_"); // "_macros_"
-			lua_rawget(L, LUA_REGISTRYINDEX); // reg["_macros_"], tb
-			int idx = static_cast<int>(lua_objlen(L, -1));
-			lua_pushnil(L); // tb nil
-			lua_rawseti(L, -2, idx); // tb[idx] = nil, tb
-			lua_pop(L, 1); // empty
+		if (_useModule) {
+			_useModule = false;
+			if (!_sameModule) {
+				lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+				lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
+				int idx = static_cast<int>(lua_objlen(L, -1));
+				lua_pushnil(L); // tb nil
+				lua_rawseti(L, -2, idx); // tb[idx] = nil, tb
+				lua_pop(L, 1); // empty
+			}
 		}
 	}
 private:
 	bool _stateOwner = false;
-	bool _useMacro = false;
+	bool _useModule = false;
+	bool _sameModule = false;
 	lua_State* L = nullptr;
 	MoonConfig _config;
 	MoonParser _parser;
@@ -128,6 +154,7 @@ private:
 	std::ostringstream _joinBuf;
 	const std::string _newLine = "\n";
 	std::function<void(void*)> _luaOpen;
+	std::string _moduleName;
 
 	enum class LocalMode {
 		None = 0,
@@ -286,7 +313,7 @@ private:
 
 	const std::string nll(ast_node* node) const {
 		if (_config.reserveLineNumber) {
-			return s(" -- "sv) + std::to_string(node->m_begin.m_line) + _newLine;
+			return s(" -- "sv) + std::to_string(node->m_begin.m_line + _config.lineOffset) + _newLine;
 		} else {
 			return _newLine;
 		}
@@ -294,7 +321,7 @@ private:
 
 	const std::string nlr(ast_node* node) const {
 		if (_config.reserveLineNumber) {
-			return s(" -- "sv) + std::to_string(node->m_end.m_line) + _newLine;
+			return s(" -- "sv) + std::to_string(node->m_end.m_line + _config.lineOffset) + _newLine;
 		} else {
 			return _newLine;
 		}
@@ -571,7 +598,7 @@ private:
 		for (auto exp_ : expList->exprs.objects()) {
 			Exp_t* exp = static_cast<Exp_t*>(exp_);
 			if (!isAssignable(exp)) {
-				throw std::logic_error(_info.errorMessage("Left hand expression is not assignable."sv, exp));
+				throw std::logic_error(_info.errorMessage("left hand expression is not assignable"sv, exp));
 			}
 		}
 	}
@@ -599,7 +626,7 @@ private:
 		BREAK_IF(!callable->item.is<MacroName_t>());
 		if (chainList.size() == 1 ||
 			!ast_is<Invoke_t,InvokeArgs_t>(*(++chainList.begin()))) {
-			throw std::logic_error(_info.errorMessage("Macro expression must be followed by argument list."sv, callable));
+			throw std::logic_error(_info.errorMessage("macro expression must be followed by argument list"sv, callable));
 		}
 		return true;
 		BLOCK_END
@@ -722,7 +749,7 @@ private:
 			case id<Local_t>(): transformLocal(static_cast<Local_t*>(content), out); break;
 			case id<Global_t>(): transformGlobal(static_cast<Global_t*>(content), out); break;
 			case id<Export_t>(): transformExport(static_cast<Export_t*>(content), out); break;
-			case id<Macro_t>(): transformMacro(static_cast<Macro_t*>(content), out); break;
+			case id<Macro_t>(): transformMacro(static_cast<Macro_t*>(content), out, false); break;
 			case id<BreakLoop_t>(): transformBreakLoop(static_cast<BreakLoop_t*>(content), out); break;
 			case id<ExpListAssign_t>(): {
 				auto expListAssign = static_cast<ExpListAssign_t*>(content);
@@ -768,7 +795,7 @@ private:
 							break;
 						}
 					}
-					throw std::logic_error(_info.errorMessage("Expression list is not supported here."sv, expList));
+					throw std::logic_error(_info.errorMessage("expression list is not supported here"sv, expList));
 				}
 				break;
 			}
@@ -818,7 +845,7 @@ private:
 					BLOCK_END
 				}
 			} else {
-				throw std::logic_error(_info.errorMessage("Left hand expression is not assignable."sv, exp));
+				throw std::logic_error(_info.errorMessage("left hand expression is not assignable"sv, exp));
 			}
 		}
 		return preDefs;
@@ -847,7 +874,7 @@ private:
 					BLOCK_END
 				}
 			} else {
-				throw std::logic_error(_info.errorMessage("Left hand expression is not assignable."sv, exp));
+				throw std::logic_error(_info.errorMessage("left hand expression is not assignable"sv, exp));
 			}
 		}
 		return defs;
@@ -1098,7 +1125,7 @@ private:
 		const node_container* tableItems = nullptr;
 		if (ast_is<Exp_t>(node)) {
 			auto item = singleValueFrom(node)->item.get();
-			if (!item) throw std::logic_error(_info.errorMessage("Invalid destructure value."sv, node));
+			if (!item) throw std::logic_error(_info.errorMessage("invalid destructure value"sv, node));
 			auto tbA = item->getByPath<TableLit_t>();
 			if (tbA) {
 				tableItems = &tbA->values.objects();
@@ -1116,7 +1143,7 @@ private:
 				case id<Exp_t>(): {
 					++index;
 					if (!isAssignable(static_cast<Exp_t*>(pair)))  {
-						throw std::logic_error(_info.errorMessage("Can't destructure value."sv, pair));
+						throw std::logic_error(_info.errorMessage("can't destructure value"sv, pair));
 					}
 					auto value = singleValueFrom(pair);
 					auto item = value->item.get();
@@ -1160,9 +1187,9 @@ private:
 				case id<normal_pair_t>(): {
 					auto np = static_cast<normal_pair_t*>(pair);
 					auto key = np->key->getByPath<Name_t>();
-					if (!key) throw std::logic_error(_info.errorMessage("Invalid key for destructure."sv, np));
+					if (!key) throw std::logic_error(_info.errorMessage("invalid key for destructure"sv, np));
 					if (auto exp = np->value.as<Exp_t>()) {
-						if (!isAssignable(exp)) throw std::logic_error(_info.errorMessage("Can't destructure value."sv, exp));
+						if (!isAssignable(exp)) throw std::logic_error(_info.errorMessage("can't destructure value"sv, exp));
 						auto item = singleValueFrom(exp)->item.get();
 						if (ast_is<simple_table_t>(item) ||
 							item->getByPath<TableLit_t>()) {
@@ -1284,11 +1311,11 @@ private:
 		auto action = assignment->action.get();
 		switch (action->getId()) {
 			case id<Update_t>(): {
-				if (expList->exprs.size() > 1) throw std::logic_error(_info.errorMessage("Can not apply update to multiple values."sv, expList));
+				if (expList->exprs.size() > 1) throw std::logic_error(_info.errorMessage("can not apply update to multiple values"sv, expList));
 				auto update = static_cast<Update_t*>(action);
 				auto leftExp = static_cast<Exp_t*>(expList->exprs.objects().front());
 				auto leftValue = singleValueFrom(leftExp);
-				if (!leftValue) throw std::logic_error(_info.errorMessage("Left hand expression is not assignable."sv, leftExp));
+				if (!leftValue) throw std::logic_error(_info.errorMessage("left hand expression is not assignable"sv, leftExp));
 				if (auto chain = leftValue->getByPath<ChainValue_t>()) {
 					auto tmpChain = x->new_ptr<ChainValue_t>();
 					for (auto item : chain->items.objects()) {
@@ -1601,7 +1628,7 @@ private:
 										args->swap(a, arg);
 										findPlaceHolder = true;
 									} else {
-										throw std::logic_error(_info.errorMessage("backcall placeholder can be used only in one place."sv, a));
+										throw std::logic_error(_info.errorMessage("backcall placeholder can be used only in one place"sv, a));
 									}
 								}
 							}
@@ -1633,7 +1660,7 @@ private:
 					}
 					return;
 				} else {
-					throw std::logic_error(_info.errorMessage("Backcall operator must be followed by chain value."sv, opValue->value));
+					throw std::logic_error(_info.errorMessage("backcall operator must be followed by chain value"sv, opValue->value));
 				}
 			}
 		}
@@ -1846,7 +1873,7 @@ private:
 								args->swap(a, arg);
 								findPlaceHolder = true;
 							} else {
-								throw std::logic_error(_info.errorMessage("Backcall placeholder can be used only in one place."sv, a));
+								throw std::logic_error(_info.errorMessage("backcall placeholder can be used only in one place"sv, a));
 							}
 						}
 					}
@@ -2023,16 +2050,16 @@ private:
 		}
 	}
 
-	void pushMacroTable() {
-		if (_useMacro) {
-			lua_pushliteral(L, "_macros_"); // "_macros_"
-			lua_rawget(L, LUA_REGISTRYINDEX); // reg["_macros_"], tb
+	void pushCurrentModule() {
+		if (_useModule) {
+			lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+			lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
 			int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 			lua_rawgeti(L, -1, idx); // tb[idx], tb cur
 			lua_remove(L, -2); // cur
 			return;
 		}
-		_useMacro = true;
+		_useModule = true;
 		if (!L) {
 			L = luaL_newstate();
 			if (_luaOpen) {
@@ -2040,14 +2067,14 @@ private:
 			}
 			_stateOwner = true;
 		}
-		lua_pushliteral(L, "_macros_"); // "_macros_"
-		lua_rawget(L, LUA_REGISTRYINDEX); // reg["_macros_"], tb
+		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+		lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
 		if (lua_isnil(L, -1) != 0) { // tb == nil
 			lua_pop(L, 1);
 			lua_newtable(L); // tb
-			lua_pushliteral(L, "_macros_"); // tb "_macros_"
-			lua_pushvalue(L, -2); // tb "_macros_" tb
-			lua_rawset(L, LUA_REGISTRYINDEX); // reg["_macros_"] = tb, tb
+			lua_pushliteral(L, MOONP_MODULE); // tb MOONP_MODULE
+			lua_pushvalue(L, -2); // tb MOONP_MODULE tb
+			lua_rawset(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE] = tb, tb
 		} // tb
 		int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 		lua_newtable(L); // tb cur
@@ -2056,7 +2083,78 @@ private:
 		lua_remove(L, -2); // cur
 	}
 
-	void transformMacro(Macro_t* macro, str_list& out) {
+	void pushMoonp(std::string_view name) {
+		lua_getglobal(L, "package"); // package
+		lua_getfield(L, -1, "loaded"); // package loaded
+		lua_getfield(L, -1, "moonp"); // package loaded moonp
+		lua_pushlstring(L, &name.front(), name.size()); // package loaded moonp name
+		lua_gettable(L, -2); // loaded[name], package loaded moonp item
+		lua_insert(L, -4); // item package loaded moonp
+		lua_pop(L, 3); // item
+	}
+
+	void hideStackTrace(bool hide) {
+		lua_getglobal(L, "package"); // package
+		lua_getfield(L, -1, "loaded"); // package loaded
+		lua_getfield(L, -1, "moonp"); // package loaded moonp
+		if (hide) {
+			lua_pushboolean(L, 1); // package loaded moonp true
+		} else {
+			lua_pushnil(L); // package loaded moonp nil
+		}
+		lua_setfield(L, -2, "_hide_stacktrace_");
+		lua_pop(L, 3); // empty
+	}
+
+	bool isModuleLoaded(std::string_view name) {
+		int top = lua_gettop(L);
+		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+		lua_rawget(L, LUA_REGISTRYINDEX); // modules
+		lua_pushlstring(L, &name.front(), name.size());
+		lua_rawget(L, -2); // modules module
+		if (lua_isnil(L, -1) != 0) {
+			lua_settop(L, top);
+			return false;
+		}
+		lua_settop(L, top);
+		return true;
+	}
+
+	void pushModuleTable(std::string_view name) {
+		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+		lua_rawget(L, LUA_REGISTRYINDEX); // modules
+		lua_pushlstring(L, &name.front(), name.size());
+		lua_rawget(L, -2); // modules module
+		if (lua_isnil(L, -1) != 0) {
+			lua_pop(L, 1);
+			lua_newtable(L); // modules module
+			lua_pushlstring(L, &name.front(), name.size());
+			lua_pushvalue(L, -2); // modules module name module
+			lua_rawset(L, -4); // modules[name] = module, modules module
+		}
+		lua_remove(L, -2); // module
+	}
+
+	void pushOptions(int lineOffset) {
+		lua_newtable(L);
+		lua_pushliteral(L, "lint_global");
+		lua_pushboolean(L, 0);
+		lua_rawset(L, -3);
+		lua_pushliteral(L, "implicit_return_root");
+		lua_pushboolean(L, 1);
+		lua_rawset(L, -3);
+		lua_pushliteral(L, "reserve_line_number");
+		lua_pushboolean(L, 1);
+		lua_rawset(L, -3);
+		lua_pushliteral(L, "same_module");
+		lua_pushboolean(L, 1);
+		lua_rawset(L, -3);
+		lua_pushliteral(L, "line_offset");
+		lua_pushinteger(L, lineOffset);
+		lua_rawset(L, -3);
+	}
+
+	void transformMacro(Macro_t* macro, str_list& out, bool exporting) {
 		auto type = _parser.toString(macro->type);
 		auto macroName = _parser.toString(macro->name);
 		auto argsDef = macro->macroLit->argsDef.get();
@@ -2065,7 +2163,7 @@ private:
 			for (auto def_ : argsDef->definitions.objects()) {
 				auto def = static_cast<FnArgDef_t*>(def_);
 				if (def->name.is<SelfName_t>()) {
-					throw std::logic_error(_info.errorMessage("Self name is not supported here."sv, def->name));
+					throw std::logic_error(_info.errorMessage("self name is not supported here"sv, def->name));
 				} else {
 					std::string defVal;
 					if (def->defaultValue) {
@@ -2081,27 +2179,52 @@ private:
 				newArgs.emplace_back(_parser.toString(argsDef->varArg));
 			}
 		}
-		auto funLit = toAst<FunLit_t>(s("("sv) + join(newArgs, ","sv) + s(")->"sv), macro->macroLit);
-		funLit->body.set(macro->macroLit->body);
-		str_list temp;
-		transformFunLit(funLit, temp);
-		_buf << "local macro = "sv << temp.back() << '\n';
-		_buf << "return {macro, \"" << type << "\", [===========["sv << temp.back() << "]===========]}"sv;
+		_buf << "fmacro = ("sv << join(newArgs, ","sv) << ")->"sv;
+		_buf << _parser.toString(macro->macroLit->body) << '\n';
+		_buf << "{fmacro, \"" << type << "\"}"sv;
 		auto macroCodes = clearBuf();
-		pushMacroTable(); // cur
+		_buf << "=(macro "sv << macroName << ")";
+		auto chunkName = clearBuf();
+		pushCurrentModule(); // cur
 		int top = lua_gettop(L) - 1;
-		if (luaL_loadbuffer(L, macroCodes.c_str(), macroCodes.size(), ("=(macro " + macroName + ')').c_str()) != 0) {
+		pushMoonp("loadstring"sv); // cur loadstring
+		lua_pushlstring(L, macroCodes.c_str(), macroCodes.size()); // cur loadstring codes
+		lua_pushlstring(L, chunkName.c_str(), chunkName.size()); // cur loadstring codes chunk
+		pushOptions(macro->m_begin.m_line - 1); // cur loadstring codes chunk options
+		if (lua_pcall(L, 3, 2, 0) != 0) { // loadstring(codes,chunk,options), cur f err
 			std::string err = lua_tostring(L, -1);
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage(s("Fail to load macro codes: \n"sv) + temp.back() + '\n' + err, macro->macroLit));
-		} else {
-			if (lua_pcall(L, 0, 1, 0) != 0) {
-				throw std::logic_error(_info.errorMessage(s("Fail to generate macro function: "sv) + lua_tostring(L, -1), macro->macroLit));
-			} // cur macro
-			lua_pushlstring(L, macroName.c_str(), macroName.size()); // cur macro name
-			lua_insert(L, -2); // cur name macro
-			lua_rawset(L, -3); // cur[name] = macro, cur
+			throw std::logic_error(_info.errorMessage(s("fail to load macro codes\n"sv) + err, macro->macroLit));
+		} // cur f err
+		if (lua_isnil(L, -2) != 0) { // f == nil, cur f err
+			std::string err = lua_tostring(L, -1);
+			lua_settop(L, top);
+			throw std::logic_error(_info.errorMessage(s("fail to load macro codes, at (macro "sv) + macroName + s("): "sv) + err, macro->macroLit));
 		}
+		lua_pop(L, 1); // cur f
+		pushMoonp("pcall"sv); // cur f pcall
+		lua_insert(L, -2); // cur pcall f
+		if (lua_pcall(L, 1, 2, 0) != 0) { // f(), cur success macro
+			std::string err = lua_tostring(L, -1);
+			lua_settop(L, top);
+			throw std::logic_error(_info.errorMessage(s("fail to generate macro function\n"sv) + err, macro->macroLit));
+		} // cur success res
+		if (lua_toboolean(L, -2) == 0) {
+			std::string err = lua_tostring(L, -1);
+			lua_settop(L, top);
+			throw std::logic_error(_info.errorMessage(s("fail to generate macro function\n"sv) + err, macro->macroLit));
+		} // cur true macro
+		lua_remove(L, -2); // cur macro
+		if (exporting && !_moduleName.empty()) {
+			pushModuleTable(_moduleName); // cur macro module
+			lua_pushlstring(L, macroName.c_str(), macroName.size()); // cur macro module name
+			lua_pushvalue(L, -3); // cur macro module name macro
+			lua_rawset(L, -3); // cur macro module
+			lua_pop(L, 1);
+		} // cur macro
+		lua_pushlstring(L, macroName.c_str(), macroName.size()); // cur macro name
+		lua_insert(L, -2); // cur name macro
+		lua_rawset(L, -3); // cur[name] = macro, cur
 		lua_settop(L, top);
 		out.push_back(Empty);
 	}
@@ -2110,7 +2233,7 @@ private:
 		if (!enableReturn.top()) {
 			ast_node* target = returnNode->valueList.get();
 			if (!target) target = returnNode;
-			throw std::logic_error(_info.errorMessage("Illegal return statement here."sv, target));
+			throw std::logic_error(_info.errorMessage("illegal return statement here"sv, target));
 		}
 		if (auto valueList = returnNode->valueList.get()) {
 			if (valueList->exprs.size() == 1) {
@@ -2432,7 +2555,7 @@ private:
 					chainValue->items.pop_back();
 					if (chainValue->items.empty()) {
 						if (_withVars.empty()) {
-							throw std::logic_error(_info.errorMessage("Short dot/colon syntax must be called within a with block."sv, x));
+							throw std::logic_error(_info.errorMessage("short dot/colon syntax must be called within a with block"sv, x));
 						}
 					chainValue->items.push_back(toAst<Callable_t>(_withVars.top(), x));
 					}
@@ -2563,7 +2686,7 @@ private:
 				case id<DotChainItem_t>():
 				case id<ColonChainItem_t>():
 					if (_withVars.empty()) {
-						throw std::logic_error(_info.errorMessage("Short dot/colon syntax must be called within a with block."sv, chainList.front()));
+						throw std::logic_error(_info.errorMessage("short dot/colon syntax must be called within a with block"sv, chainList.front()));
 					} else {
 						baseChain->items.push_back(toAst<Callable_t>(_withVars.top(), x));
 					}
@@ -2645,7 +2768,7 @@ private:
 			case id<DotChainItem_t>():
 			case id<ColonChainItem_t>():
 				if (_withVars.empty()) {
-					throw std::logic_error(_info.errorMessage("Short dot/colon syntax must be called within a with block."sv, x));
+					throw std::logic_error(_info.errorMessage("short dot/colon syntax must be called within a with block"sv, x));
 				} else {
 					temp.push_back(_withVars.top());
 				}
@@ -2677,7 +2800,7 @@ private:
 						--next;
 					}
 					if (!ast_is<Invoke_t, InvokeArgs_t>(followItem)) {
-						throw std::logic_error(_info.errorMessage("Colon chain item must be followed by invoke arguments."sv, colonItem));
+						throw std::logic_error(_info.errorMessage("colon chain item must be followed by invoke arguments"sv, colonItem));
 					}
 					if (colonItem->name.is<LuaKeyword_t>()) {
 						std::string callVar;
@@ -2817,18 +2940,20 @@ private:
 		const auto& chainList = chainValue->items.objects();
 		auto callable = ast_cast<Callable_t>(chainList.front());
 		auto macroName = _parser.toString(callable->item.to<MacroName_t>()->name);
-		if (!_useMacro) {
-			throw std::logic_error(_info.errorMessage("Can not resolve macro.", callable->item));
+		if (!_useModule) {
+			throw std::logic_error(_info.errorMessage("can not resolve macro", callable->item));
 		}
-		pushMacroTable(); // cur
+		pushCurrentModule(); // cur
 		int top = lua_gettop(L) - 1;
 		lua_pushlstring(L, macroName.c_str(), macroName.size()); // cur macroName
 		lua_rawget(L, -2); // cur[macroName], cur macro
 		if (lua_istable(L, -1) == 0) {
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage("Can not resolve macro.", callable->item));
+			throw std::logic_error(_info.errorMessage("can not resolve macro", callable->item));
 		}
 		lua_rawgeti(L, -1, 1); // cur macro func
+		pushMoonp("pcall"sv); // cur macro func pcall
+		lua_insert(L, -2); // cur macro pcall func
 		auto item = *(++chainList.begin());
 		const node_container* args = nullptr;
 		if (auto invoke = ast_cast<Invoke_t>(item)) {
@@ -2861,20 +2986,25 @@ private:
 			} else str = _parser.toString(arg);
 			Utils::trim(str);
 			lua_pushlstring(L, str.c_str(), str.size());
-		}
-		bool success = lua_pcall(L, static_cast<int>(args->size()), 1, 0) == 0;
-		if (!success) {
-			// cur macro err
+		} // cur macro pcall func args...
+		hideStackTrace(true);
+		bool success = lua_pcall(L, static_cast<int>(args->size()) + 1, 2, 0) == 0;
+		if (!success) { // cur macro err
 			std::string err = lua_tostring(L, -1);
-			lua_rawgeti(L, -2, 3); // cur macro err macroCodes
-			std::string macroCodes = lua_tostring(L, -1);
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage(s("Fail to expand macro: \n"sv) + macroCodes + '\n' + err, callable));
+			throw std::logic_error(_info.errorMessage(s("fail to expand macro\n"sv) + err, callable));
+		} // cur macro success res
+		hideStackTrace(false);
+		if (lua_toboolean(L, -2) == 0) {
+			std::string err = lua_tostring(L, -1);
+			lua_settop(L, top);
+			throw std::logic_error(_info.errorMessage(s("fail to expand macro\n"sv) + err, callable));
 		}
+		lua_remove(L, -2); // cur macro res
 		if (lua_isstring(L, -1) == 0) {
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage(s("Macro function must return string with expanded codes."sv), callable));
-		}
+			throw std::logic_error(_info.errorMessage(s("macro function must return string with expanded codes"sv), callable));
+		} // cur macro codes
 		lua_rawgeti(L, -2, 2); // cur macro codes type
 		std::string type = lua_tostring(L, -1);
 		std::string codes = lua_tostring(L, -2);
@@ -2889,7 +3019,7 @@ private:
 		std::tie(type, codes) = expandMacroStr(chainValue);
 		std::string targetType(usage == ExpUsage::Common ? "block"sv : "expr"sv);
 		if (type != targetType) {
-			throw std::logic_error(_info.errorMessage(s("Macro type mismatch, "sv) + targetType + s(" expected, got "sv) + type + '.', x));
+			throw std::logic_error(_info.errorMessage(s("macro type mismatch, "sv) + targetType + s(" expected, got "sv) + type + '.', x));
 		}
 		ParseInfo info;
 		if (usage == ExpUsage::Common) {
@@ -2901,7 +3031,7 @@ private:
 			info = _parser.parse<Exp_t>(codes);
 		}
 		if (!info.node) {
-			throw std::logic_error(_info.errorMessage("Fail to expand macro: " + info.error, x));
+			throw std::logic_error(_info.errorMessage("fail to expand macro: " + info.error, x));
 		}
 		int line = x->m_begin.m_line;
 		int col = x->m_begin.m_col;
@@ -3004,7 +3134,7 @@ private:
 	}
 
 	void transformSlice(Slice_t* slice, str_list&) {
-		throw std::logic_error(_info.errorMessage("Slice syntax not supported here."sv, slice));
+		throw std::logic_error(_info.errorMessage("slice syntax not supported here"sv, slice));
 	}
 
 	void transformInvoke(Invoke_t* invoke, str_list& out) {
@@ -3199,7 +3329,7 @@ private:
 				auto indexVar = getUnusedName("_index_"sv);
 				varAfter.push_back(indexVar);
 				auto value = singleValueFrom(star_exp->value);
-				if (!value) throw std::logic_error(_info.errorMessage("Invalid star syntax."sv, star_exp));
+				if (!value) throw std::logic_error(_info.errorMessage("invalid star syntax"sv, star_exp));
 				bool endWithSlice = false;
 				BLOCK_START
 				auto chainValue = value->item.as<ChainValue_t>();
@@ -3649,7 +3779,7 @@ private:
 		std::string assignItem;
 		if (assignable) {
 			if (!isAssignable(assignable)) {
-				throw std::logic_error(_info.errorMessage("Left hand expression is not assignable."sv, assignable));
+				throw std::logic_error(_info.errorMessage("left hand expression is not assignable"sv, assignable));
 			}
 			bool newDefined = false;
 			std::tie(className, newDefined) = defineClassVariable(assignable);
@@ -3890,7 +4020,7 @@ private:
 			if (selfName) {
 				type = MemType::Property;
 				auto name = ast_cast<self_name_t>(selfName->name);
-				if (!name) throw std::logic_error(_info.errorMessage("Invalid class poperty name."sv, selfName->name));
+				if (!name) throw std::logic_error(_info.errorMessage("invalid class poperty name"sv, selfName->name));
 				newSuperCall = classVar + s(".__parent."sv) + _parser.toString(name->name);
 			} else {
 				auto x = keyName;
@@ -4201,19 +4331,19 @@ private:
 	void transformExport(Export_t* exportNode, str_list& out) {
 		auto x = exportNode;
 		if (_scopes.size() > 1) {
-			throw std::logic_error(_info.errorMessage("Can not do module export outside root block."sv, x));
+			throw std::logic_error(_info.errorMessage("can not do module export outside root block"sv, x));
 		}
 		if (exportNode->assign) {
 			auto expList = exportNode->target.to<ExpList_t>();
 			if (expList->exprs.size() != exportNode->assign->values.size()) {
-				throw std::logic_error(_info.errorMessage("Left and right expressions must be matched in export statement."sv, x));
+				throw std::logic_error(_info.errorMessage("left and right expressions must be matched in export statement"sv, x));
 			}
 			for (auto _exp : expList->exprs.objects()) {
 				auto exp = static_cast<Exp_t*>(_exp);
 				if (!variableFrom(exp) &&
 					!exp->getByPath<Value_t, SimpleValue_t, TableLit_t>() &&
 					!exp->getByPath<Value_t, simple_table_t>()) {
-					throw std::logic_error(_info.errorMessage("Left hand expressions must be variables in export statement."sv, x));
+					throw std::logic_error(_info.errorMessage("left hand expressions must be variables in export statement"sv, x));
 				}
 			}
 			auto assignment = x->new_ptr<ExpListAssign_t>();
@@ -4239,7 +4369,9 @@ private:
 				out.back().append(indent() + join(lefts,", "sv) + s(" = "sv) + join(rights, ", "sv) + nlr(exportNode));
 			}
 		} else {
-			if (_info.exportDefault) {
+			if (auto macro = exportNode->target.as<Macro_t>()) {
+				transformMacro(macro, out, true);
+			} else if (_info.exportDefault) {
 				auto exp = exportNode->target.to<Exp_t>();
 				auto assignment = x->new_ptr<ExpListAssign_t>();
 				assignment->expList.set(toAst<ExpList_t>(_info.moduleName, x));
@@ -4522,13 +4654,101 @@ private:
 		out.push_back(join(temp));
 	}
 
+	std::string moduleNameFrom(ImportLiteral_t* literal) {
+		auto name = _parser.toString(literal->inners.back());
+		Utils::replace(name, "-"sv, "_"sv);
+		Utils::replace(name, " "sv, "_"sv);
+		return name;
+	}
+
 	void transformImportAs(ImportAs_t* import, str_list& out) {
 		auto x = import;
 		if (!import->target) {
-			auto name = _parser.toString(import->literal->inners.back());
-			Utils::replace(name, "-"sv, "_"sv);
-			Utils::replace(name, " "sv, "_"sv);
+			auto name = moduleNameFrom(import->literal);
 			import->target.set(toAst<Variable_t>(name, x));
+		}
+		if (auto tableLit = import->target.as<TableLit_t>()) {
+			auto newTab = x->new_ptr<TableLit_t>();
+			std::list<std::pair<std::string,std::string>> macroPairs;
+			for (auto item : tableLit->values.objects()) {
+				switch (item->getId()) {
+					case id<MacroName_t>(): {
+						auto macroName = static_cast<MacroName_t*>(item);
+						auto name = _parser.toString(macroName->name);
+						macroPairs.emplace_back(name, name);
+						break;
+					}
+					case id<macro_name_pair_t>(): {
+						auto pair = static_cast<macro_name_pair_t*>(item);
+					macroPairs.emplace_back(_parser.toString(pair->value->name), _parser.toString(pair->key->name));
+						break;
+					}
+					default:
+						newTab->values.push_back(item);
+						break;
+				}
+			}
+			if (!macroPairs.empty()) {
+				auto moduleName = _parser.toString(import->literal);
+				Utils::replace(moduleName, "'"sv, ""sv);
+				Utils::replace(moduleName, "\""sv, ""sv);
+				Utils::trim(moduleName);
+				pushCurrentModule(); // cur
+				int top = lua_gettop(L) - 1;
+				pushMoonp("find_modulepath"sv); // cur find_modulepath
+				lua_pushlstring(L, moduleName.c_str(), moduleName.size()); // cur find_modulepath moduleName
+				if (lua_pcall(L, 1, 1, 0) != 0) {
+					std::string err = lua_tostring(L, -1);
+					lua_settop(L, top);
+					throw std::logic_error(_info.errorMessage(s("fail to resolve module path\n"sv) + err, x));
+				}
+				if (lua_isnil(L, -1) != 0) {
+					lua_settop(L, top);
+					throw std::logic_error(_info.errorMessage(s("fail to find module '"sv) + moduleName + '\'', x));
+				}
+				std::string moduleFullName = lua_tostring(L, -1);
+				lua_pop(L, 1); // cur
+				if (!isModuleLoaded(moduleFullName)) {
+					pushMoonp("read_file"sv); // cur read_file
+					lua_pushlstring(L, moduleFullName.c_str(), moduleFullName.size()); // cur load_text moduleFullName
+					if (lua_pcall(L, 1, 1, 0) != 0) {
+						std::string err = lua_tostring(L, -1);
+						lua_settop(L, top);
+						throw std::logic_error(_info.errorMessage(s("fail to read module file\n"sv) + err, x));
+					} // cur text
+					if (lua_isnil(L, -1) != 0) {
+						lua_settop(L, top);
+						throw std::logic_error(_info.errorMessage("fail to get module text"sv, x));
+					} // cur text
+					std::string text = lua_tostring(L, -1);
+					auto compiler = MoonCompilerImpl(L, _luaOpen, false, moduleFullName);
+					MoonConfig config;
+					config.lineOffset = 0;
+					config.lintGlobalVariable = false;
+					config.reserveLineNumber = false;
+					config.implicitReturnRoot = _config.implicitReturnRoot;
+					std::string codes, err;
+					GlobalVars globals;
+					std::tie(codes, err, globals) = compiler.compile(text, config);
+					if (codes.empty() && !err.empty()) {
+						lua_settop(L, top);
+						throw std::logic_error(_info.errorMessage(s("fail to compile module '"sv) + moduleName + s("\': "sv) + err, x));
+					}
+					lua_pop(L, 1); // cur
+				}
+				pushModuleTable(moduleFullName); // cur module
+				for (const auto& pair : macroPairs) {
+					lua_getfield(L, -1, pair.first.c_str());
+					lua_setfield(L, -3, pair.second.c_str());
+				}
+				lua_settop(L, top);
+			}
+			if (newTab->values.empty()) {
+				out.push_back(Empty);
+				return;
+			} else {
+				import->target.set(newTab);
+			}
 		}
 		auto target = import->target.get();
 		auto value = x->new_ptr<Value_t>();
@@ -4742,7 +4962,7 @@ private:
 			out.push_back(indent() + keyword + nll(breakLoop));
 			return;
 		}
-		if (_continueVars.empty()) throw std::logic_error(_info.errorMessage("Continue is not inside a loop."sv, breakLoop));
+		if (_continueVars.empty()) throw std::logic_error(_info.errorMessage("continue is not inside a loop"sv, breakLoop));
 		_buf << indent() << _continueVars.top() << " = true"sv << nll(breakLoop);
 		_buf << indent() << "break"sv << nll(breakLoop);
 		out.push_back(clearBuf());
@@ -4751,8 +4971,10 @@ private:
 
 const std::string MoonCompilerImpl::Empty;
 
-MoonCompiler::MoonCompiler(void* state, const std::function<void(void*)>& luaOpen):
-_compiler(std::make_unique<MoonCompilerImpl>(static_cast<lua_State*>(state), luaOpen)) {}
+MoonCompiler::MoonCompiler(void* sharedState,
+	const std::function<void(void*)>& luaOpen,
+	bool sameModule):
+_compiler(std::make_unique<MoonCompilerImpl>(static_cast<lua_State*>(sharedState), luaOpen, sameModule)) {}
 
 MoonCompiler::~MoonCompiler() {}
 
