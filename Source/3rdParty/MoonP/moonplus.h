@@ -27,7 +27,7 @@ local lua = {
 	loadstring = loadstring,
 	load = load
 }
-local dirsep, split, get_options, create_moonpath, moon_loader, moon_call, loadstring, loadfile, dofile, insert_loader, remove_loader, moon_require
+local dirsep, split, get_options, create_moonpath, moon_loader, load_text, moon_call, loadstring, loadfile, dofile, insert_loader, remove_loader, moon_require, find_modulepath
 dirsep = "/"
 moonp.moon_compiled = { }
 moonp.file_exist = function(fname)
@@ -99,7 +99,10 @@ create_moonpath = function(package_path)
 	end
 	return concat(moonpaths, ";")
 end
-moon_loader = function(name)
+find_modulepath = function(name)
+	if not package.moonpath then
+		package.moonpath = create_moonpath(package.path)
+	end
 	local name_path = name:gsub("%.", dirsep)
 	local file_exist, file_path
 	for path in package.moonpath:gmatch("[^;]+") do
@@ -110,8 +113,22 @@ moon_loader = function(name)
 		end
 	end
 	if file_exist then
-		local text = moonp.read_file(file_path)
-		local res, err = loadstring(text, tostring(file_path))
+		return file_path
+	else
+		return nil
+	end
+end
+load_text = function(name)
+	local file_path = find_modulepath(name)
+	if file_path then
+		return moonp.read_file(file_path), file_path
+	end
+	return nil, nil
+end
+moon_loader = function(name)
+	local text, file_path = load_text(name)
+	if text then
+		local res, err = loadstring(text, file_path)
 		if not res then
 			error(file_path .. ": " .. err)
 		end
@@ -184,8 +201,9 @@ moon_require = function(name)
 	local success, res = xpcall((function()
 		return require(name)
 	end), function(err)
-		local msg = moonp.stp.stacktrace(err, 2)
-		return print(msg)
+		local msg = moonp.stp.stacktrace(err, 1)
+		print(msg)
+		return msg
 	end)
 	if success then
 		return res
@@ -223,6 +241,7 @@ for k, v in pairs({
 	loadfile = loadfile,
 	loadstring = loadstring,
 	create_moonpath = create_moonpath,
+	find_modulepath = find_modulepath,
 	pcall = moon_call,
 	require = moon_require
 }) do

@@ -338,7 +338,7 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 		Uint8* buffer = this->_loadFileUnsafe(fileStr, size);
 		return Values::create(buffer, size);
 	},
-	[callback](std::unique_ptr<Values> result)
+	[callback](Own<Values> result)
 	{
 		Uint8* buffer;
 		Sint64 size;
@@ -379,9 +379,9 @@ void Content::copyFileAsync(String src, String dst, const function<void()>& call
 	SharedAsyncThread.FileIO.run([srcFile,dstFile,this]()
 	{
 		Content::copyFileUnsafe(srcFile, dstFile);
-		return std::move(Values::None);
+		return nullptr;
 	},
-	[callback](std::unique_ptr<Values> result)
+	[callback](Own<Values> result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();
@@ -395,9 +395,9 @@ void Content::saveToFileAsync(String filename, String content, const function<vo
 	SharedAsyncThread.FileIO.run([file,data,this]()
 	{
 		Content::saveToFile(file, *MakeOwn(data));
-		return std::move(Values::None);
+		return nullptr;
 	},
-	[callback](std::unique_ptr<Values> result)
+	[callback](Own<Values> result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();
@@ -411,9 +411,9 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, size_t s
 	SharedAsyncThread.FileIO.run([file,data,size,this]()
 	{
 		Content::saveToFile(file, Slice(r_cast<char*>((*data).get()), size));
-		return std::move(Values::None);
+		return nullptr;
 	},
-	[callback](std::unique_ptr<Values> result)
+	[callback](Own<Values> result)
 	{
 		DORA_UNUSED_PARAM(result);
 		callback();

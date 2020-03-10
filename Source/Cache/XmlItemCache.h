@@ -106,7 +106,7 @@ public:
 							Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
 						}
 						return Values::create(result);
-					}, [this, handler, file](std::unique_ptr<Values> values)
+					}, [this, handler, file](Own<Values> values)
 					{
 						T* item;
 						values->get(item);

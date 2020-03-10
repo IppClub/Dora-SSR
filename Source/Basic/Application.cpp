@@ -56,6 +56,8 @@ BGFXDora::~BGFXDora()
 Application::Application():
 _seed(0),
 _fpsLimited(false),
+_renderRunning(true),
+_logicRunning(true),
 _frame(0),
 _visualWidth(1024),
 _visualHeight(768),
@@ -160,6 +162,16 @@ SDL_Window* Application::getSDLWindow() const
 	return _sdlWindow;
 }
 
+bool Application::isRenderRunning() const
+{
+	return _renderRunning;
+}
+
+bool Application::isLogicRunning() const
+{
+	return _logicRunning;
+}
+
 // This function runs in main thread, and do render work
 int Application::run()
 {
@@ -196,8 +208,7 @@ int Application::run()
 	_logicThread.init(Application::mainLogic, this);
 
 	SDL_Event event;
-	bool running = true;
-	while (running)
+	while (_renderRunning)
 	{
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event))
@@ -205,7 +216,7 @@ int Application::run()
 			switch (event.type)
 			{
 			case SDL_QUIT:
-				running = false;
+				_renderRunning = false;
 				break;
 			case SDL_WINDOWEVENT:
 			{
@@ -407,8 +418,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	SharedPoolManager.pop();
 
-	bool running = true;
-	while (running)
+	while (app->_logicRunning)
 	{
 		SharedPoolManager.push();
 		// poll events from render thread
@@ -426,7 +436,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 					{
 						case SDL_QUIT:
 						{
-							running = false;
+							app->_logicRunning = false;
 							app->quitHandler();
 							// Info("singleton reference tree:\n{}", Life::getRefTree());
 							break;

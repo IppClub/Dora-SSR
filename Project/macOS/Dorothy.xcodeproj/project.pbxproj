@@ -89,7 +89,6 @@
 		3CB487181E16398700D51749 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487111E16398700D51749 /* tolua_to.cpp */; };
 		3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4871C1E16419800D51749 /* Geometry.cpp */; };
 		3CC05B641E71229A00F2BA1B /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B621E71229A00F2BA1B /* DrawNode.cpp */; };
-		3CC05B671E7131CB00F2BA1B /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B651E7131CB00F2BA1B /* Value.cpp */; };
 		3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC098681E262F85006F4B76 /* Sprite.cpp */; };
 		3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E911E03C09F00462FD7 /* ioapi.cpp */; };
 		3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E931E03C09F00462FD7 /* unzip.cpp */; };
@@ -412,7 +411,6 @@
 		3CB4871D1E16419800D51749 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
 		3CC05B621E71229A00F2BA1B /* DrawNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrawNode.cpp; path = ../../../Source/Node/DrawNode.cpp; sourceTree = "<group>"; };
 		3CC05B631E71229A00F2BA1B /* DrawNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrawNode.h; path = ../../../Source/Node/DrawNode.h; sourceTree = "<group>"; };
-		3CC05B651E7131CB00F2BA1B /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3CC05B661E7131CB00F2BA1B /* Value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Value.h; path = ../../../Source/Support/Value.h; sourceTree = "<group>"; };
 		3CC098681E262F85006F4B76 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
 		3CC098691E262F85006F4B76 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
@@ -1120,7 +1118,6 @@
 			children = (
 				3CE9D7FA1E7FE99D003AAECB /* Dictionary.cpp */,
 				3CE9D7FB1E7FE99D003AAECB /* Dictionary.h */,
-				3CC05B651E7131CB00F2BA1B /* Value.cpp */,
 				3CC05B661E7131CB00F2BA1B /* Value.h */,
 				3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */,
 				3C0D399F1E1BA8FB007FEFC3 /* Array.h */,
@@ -1860,7 +1857,6 @@
 				3CFDA9472200358900C9DFD0 /* DistanceProxy.cpp in Sources */,
 				3CE3456A20F7248A00D7F60C /* MemoryPool.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
-				3CC05B671E7131CB00F2BA1B /* Value.cpp in Sources */,
 				3CFDA9232200358900C9DFD0 /* FrictionJoint.cpp in Sources */,
 				3CFDA9222200358900C9DFD0 /* RopeJointConf.cpp in Sources */,
 				3CE9D7F41E7FC2A6003AAECB /* Body.cpp in Sources */,

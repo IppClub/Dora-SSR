@@ -146,10 +146,9 @@ class Values
 public:
 	virtual ~Values() { }
 	template<class... Args>
-	static std::unique_ptr<Values> create(Args&&... args);
+	static Own<Values> create(Args&&... args);
 	template<class... Args>
 	void get(Args&... args);
-	static std::unique_ptr<Values> None;
 	DORA_TYPE_BASE(Values);
 protected:
 	Values() { }
@@ -167,7 +166,7 @@ public:
 };
 
 template<class... Args>
-std::unique_ptr<Values> Values::create(Args&&... args)
+Own<Values> Values::create(Args&&... args)
 {
 	return std::make_unique<ValuesEx<special_decay_t<Args>...>>(std::forward<Args>(args)...);
 }

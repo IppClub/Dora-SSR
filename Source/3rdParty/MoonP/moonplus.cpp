@@ -43,32 +43,45 @@ static int moontolua(lua_State* L) {
 	size_t size = 0;
 	const char* input = luaL_checklstring(L, 1, &size);
 	MoonP::MoonConfig config;
+	bool sameModule = false;
 	if (lua_gettop(L) == 2) {
 		luaL_checktype(L, 2, LUA_TTABLE);
-		lua_pushstring(L, "lint_global");
+		lua_pushliteral(L, "lint_global");
 		lua_gettable(L, -2);
-		if (!lua_isnil(L, -1)) {
+		if (lua_isboolean(L, -1) != 0) {
 			config.lintGlobalVariable = lua_toboolean(L, -1) != 0;
 		}
 		lua_pop(L, 1);
-		lua_pushstring(L, "implicit_return_root");
+		lua_pushliteral(L, "implicit_return_root");
 		lua_gettable(L, -2);
-		if (!lua_isnil(L, -1)) {
+		if (lua_isboolean(L, -1) != 0) {
 			config.implicitReturnRoot = lua_toboolean(L, -1) != 0;
 		}
 		lua_pop(L, 1);
-		lua_pushstring(L, "reserve_line_number");
+		lua_pushliteral(L, "reserve_line_number");
 		lua_gettable(L, -2);
-		if (!lua_isnil(L, -1)) {
+		if (lua_isboolean(L, -1) != 0) {
 			config.reserveLineNumber = lua_toboolean(L, -1) != 0;
+		}
+		lua_pop(L, 1);
+		lua_pushliteral(L, "same_module");
+		lua_gettable(L, -2);
+		if (lua_isboolean(L, -1) != 0) {
+			sameModule = lua_toboolean(L, -1) != 0;
+		}
+		lua_pop(L, 1);
+		lua_pushliteral(L, "line_offset");
+		lua_gettable(L, -2);
+		if (lua_isnumber(L, -1) != 0) {
+			config.lineOffset = static_cast<int>(lua_tonumber(L, -1));
 		}
 		lua_pop(L, 1);
 	}
 	std::string s(input, size);
 	std::string codes, err;
 	MoonP::GlobalVars globals;
-	std::tie(codes, err, globals) = MoonP::MoonCompiler{L}.compile(s, config);
-	if (codes.empty()) {
+	std::tie(codes, err, globals) = MoonP::MoonCompiler(L, nullptr, sameModule).compile(s, config);
+	if (codes.empty() && !err.empty()) {
 		lua_pushnil(L);
 	} else {
 		lua_pushlstring(L, codes.c_str(), codes.size());

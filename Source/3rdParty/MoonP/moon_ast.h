@@ -124,18 +124,18 @@ AST_NODE(ImportLiteral)
 	AST_MEMBER(ImportLiteral, &sep, &inners)
 AST_END(ImportLiteral)
 
-AST_NODE(ImportAs)
-	ast_ptr<true, ImportLiteral_t> literal;
-	ast_sel<false, Variable_t, TableLit_t> target;
-	AST_MEMBER(ImportAs, &literal, &target)
-AST_END(ImportAs)
-
 AST_NODE(ImportFrom)
 	ast_ptr<true, Seperator_t> sep;
 	ast_sel_list<true, colon_import_name_t, Variable_t> names;
 	ast_ptr<true, Exp_t> exp;
 	AST_MEMBER(ImportFrom, &sep, &names, &exp)
 AST_END(ImportFrom)
+
+AST_NODE(ImportAs)
+	ast_ptr<true, ImportLiteral_t> literal;
+	ast_sel<false, Variable_t, TableLit_t> target;
+	AST_MEMBER(ImportAs, &literal, &target)
+AST_END(ImportAs)
 
 AST_NODE(Import)
 	ast_sel<true, ImportAs_t, ImportFrom_t> content;
@@ -478,9 +478,15 @@ AST_END(Value)
 AST_LEAF(default_value)
 AST_END(default_value)
 
+AST_NODE(macro_name_pair)
+	ast_ptr<true, MacroName_t> key;
+	ast_ptr<true, MacroName_t> value;
+	AST_MEMBER(macro_name_pair, &key, &value)
+AST_END(macro_name_pair)
+
 AST_NODE(TableLit)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, variable_pair_t, normal_pair_t, Exp_t> values;
+	ast_sel_list<false, variable_pair_t, normal_pair_t, Exp_t, MacroName_t, macro_name_pair_t> values;
 	AST_MEMBER(TableLit, &sep, &values)
 AST_END(TableLit)
 
@@ -526,9 +532,11 @@ AST_END(Global)
 AST_LEAF(export_default)
 AST_END(export_default)
 
+class Macro_t;
+
 AST_NODE(Export)
 	ast_ptr<false, export_default_t> def;
-	ast_sel<true, ExpList_t, Exp_t> target;
+	ast_sel<true, ExpList_t, Exp_t, Macro_t> target;
 	ast_ptr<false, Assign_t> assign;
 	AST_MEMBER(Export, &def, &target, &assign)
 AST_END(Export)

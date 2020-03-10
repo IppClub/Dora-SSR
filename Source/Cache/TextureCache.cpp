@@ -179,7 +179,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
 			delete [] data;
 			return Values::create(imageContainer);
-		}, [this, file, handler](std::unique_ptr<Values> result)
+		}, [this, file, handler](Own<Values> result)
 		{
 			bimg::ImageContainer* imageContainer;
 			result->get(imageContainer);

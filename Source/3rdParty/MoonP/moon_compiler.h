@@ -23,6 +23,7 @@ struct MoonConfig {
 	bool lintGlobalVariable = false;
 	bool implicitReturnRoot = true;
 	bool reserveLineNumber = true;
+	int lineOffset = 0;
 };
 
 struct GlobalVar {
@@ -37,7 +38,9 @@ class MoonCompilerImpl;
 
 class MoonCompiler {
 public:
-	MoonCompiler(void* luaState = nullptr, const std::function<void(void*)>& luaOpen = nullptr);
+	MoonCompiler(void* luaState = nullptr,
+		const std::function<void(void*)>& luaOpen = nullptr,
+		bool sameModule = false);
 	virtual ~MoonCompiler();
 	std::tuple<std::string,std::string,GlobalVars> compile(std::string_view codes, const MoonConfig& config = {});
 private:

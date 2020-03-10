@@ -41,6 +41,8 @@ public:
 	PROPERTY_READONLY(Uint32, RandMin);
 	PROPERTY_READONLY(Uint32, RandMax);
 	PROPERTY_READONLY(SDL_Window*, SDLWindow);
+	PROPERTY_READONLY_BOOL(RenderRunning);
+	PROPERTY_READONLY_BOOL(LogicRunning);
 	PROPERTY(Uint32, MaxFPS);
 	PROPERTY(Uint32, MinFPS);
 	PROPERTY(Uint32, Seed);
@@ -72,6 +74,8 @@ protected:
 	void setupSdlWindow();
 private:
 	bool _fpsLimited;
+	bool _renderRunning;
+	bool _logicRunning;
 	int _visualWidth;
 	int _visualHeight;
 	int _winWidth;
