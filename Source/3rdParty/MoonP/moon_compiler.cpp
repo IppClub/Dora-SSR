@@ -40,7 +40,7 @@ inline std::string s(std::string_view sv) {
 }
 
 const char* moonScriptVersion() {
-	return "0.5.0-r0.3.0";
+	return "0.5.0-r0.3.2";
 }
 
 // name of table stored in lua registry
@@ -626,7 +626,7 @@ private:
 		BREAK_IF(!callable->item.is<MacroName_t>());
 		if (chainList.size() == 1 ||
 			!ast_is<Invoke_t,InvokeArgs_t>(*(++chainList.begin()))) {
-			throw std::logic_error(_info.errorMessage("macro expression must be followed by argument list"sv, callable));
+			throw std::logic_error(_info.errorMessage("macro expression must be followed by arguments list"sv, callable));
 		}
 		return true;
 		BLOCK_END
@@ -2155,6 +2155,9 @@ private:
 	}
 
 	void transformMacro(Macro_t* macro, str_list& out, bool exporting) {
+		if (_scopes.size() > 1) {
+			throw std::logic_error(_info.errorMessage("can not define macro outside the root block"sv, macro));
+		}
 		auto type = _parser.toString(macro->type);
 		auto macroName = _parser.toString(macro->name);
 		auto argsDef = macro->macroLit->argsDef.get();
@@ -2941,7 +2944,7 @@ private:
 		auto callable = ast_cast<Callable_t>(chainList.front());
 		auto macroName = _parser.toString(callable->item.to<MacroName_t>()->name);
 		if (!_useModule) {
-			throw std::logic_error(_info.errorMessage("can not resolve macro", callable->item));
+			throw std::logic_error(_info.errorMessage("can not resolve macro"sv, callable->item));
 		}
 		pushCurrentModule(); // cur
 		int top = lua_gettop(L) - 1;
@@ -2949,7 +2952,7 @@ private:
 		lua_rawget(L, -2); // cur[macroName], cur macro
 		if (lua_istable(L, -1) == 0) {
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage("can not resolve macro", callable->item));
+			throw std::logic_error(_info.errorMessage("can not resolve macro"sv, callable->item));
 		}
 		lua_rawgeti(L, -1, 1); // cur macro func
 		pushMoonp("pcall"sv); // cur macro func pcall
@@ -2985,6 +2988,7 @@ private:
 				}
 			} else str = _parser.toString(arg);
 			Utils::trim(str);
+			Utils::replace(str, "\r\n"sv, "\n"sv);
 			lua_pushlstring(L, str.c_str(), str.size());
 		} // cur macro pcall func args...
 		hideStackTrace(true);
@@ -2992,13 +2996,13 @@ private:
 		if (!success) { // cur macro err
 			std::string err = lua_tostring(L, -1);
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage(s("fail to expand macro\n"sv) + err, callable));
+			throw std::logic_error(_info.errorMessage(s("fail to expand macro: "sv) + err, callable));
 		} // cur macro success res
 		hideStackTrace(false);
 		if (lua_toboolean(L, -2) == 0) {
 			std::string err = lua_tostring(L, -1);
 			lua_settop(L, top);
-			throw std::logic_error(_info.errorMessage(s("fail to expand macro\n"sv) + err, callable));
+			throw std::logic_error(_info.errorMessage(s("fail to expand macro: "sv) + err, callable));
 		}
 		lua_remove(L, -2); // cur macro res
 		if (lua_isstring(L, -1) == 0) {
@@ -3017,16 +3021,20 @@ private:
 		const auto& chainList = chainValue->items.objects();
 		std::string type, codes;
 		std::tie(type, codes) = expandMacroStr(chainValue);
-		std::string targetType(usage == ExpUsage::Common ? "block"sv : "expr"sv);
+		std::string targetType(usage != ExpUsage::Common || chainList.size() > 2 ? "expr"sv : "block"sv);
 		if (type != targetType) {
-			throw std::logic_error(_info.errorMessage(s("macro type mismatch, "sv) + targetType + s(" expected, got "sv) + type + '.', x));
+			throw std::logic_error(_info.errorMessage(s("macro type mismatch, "sv) + targetType + s(" expected, got "sv) + type, x));
 		}
 		ParseInfo info;
 		if (usage == ExpUsage::Common) {
 			if (codes.empty()) {
 				return {x->new_ptr<Block_t>().get(),std::move(info.codes)};
 			}
-			info = _parser.parse<Block_t>(codes);
+			if (type == "expr"sv) {
+				info = _parser.parse<Exp_t>(codes);
+			} else {
+				info = _parser.parse<Block_t>(codes);
+			}
 		} else {
 			info = _parser.parse<Exp_t>(codes);
 		}
@@ -3042,9 +3050,7 @@ private:
 			node->m_end.m_col = col;
 			return traversal::Continue;
 		});
-		if (usage == ExpUsage::Common) {
-			return {info.node,std::move(info.codes)};
-		} else {
+		if (type == "expr"sv) {
 			ast_ptr<false, Exp_t> exp;
 			exp.set(info.node);
 			if (!exp->opValues.empty() || chainList.size() > 2) {
@@ -3064,15 +3070,28 @@ private:
 				exp = x->new_ptr<Exp_t>();
 				exp->value.set(value);
 			}
-			return {exp.get(),std::move(info.codes)};
+			if (usage == ExpUsage::Common) {
+				auto expList = x->new_ptr<ExpList_t>();
+				expList->exprs.push_back(exp);
+				auto exps = x->new_ptr<ExpListAssign_t>();
+				exps->expList.set(expList);
+				auto stmt = x->new_ptr<Statement_t>();
+				stmt->content.set(exps);
+				auto block = x->new_ptr<Block_t>();
+				block->statements.push_back(stmt);
+				info.node.set(block);
+			} else {
+				info.node.set(exp);
+			}
 		}
+		return {info.node,std::move(info.codes)};
 	}
 
 	void transformChainValue(ChainValue_t* chainValue, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		if (isMacroChain(chainValue)) {
 			ast_ptr<false,ast_node> node;
 			std::unique_ptr<input> codes;
-			std::tie(node,codes) = expandMacro(chainValue, usage);
+			std::tie(node, codes) = expandMacro(chainValue, usage);
 			if (usage == ExpUsage::Common) {
 				transformBlock(node.to<Block_t>(), out, usage, assignList);
 			} else {
@@ -3702,14 +3721,14 @@ private:
 
 	void transformLuaString(LuaString_t* luaString, str_list& out) {
 		auto content = _parser.toString(luaString->content);
-		Utils::replace(content, "\r"sv, "");
+		Utils::replace(content, "\r\n"sv, "\n");
 		if (content[0] == '\n') content.erase(content.begin());
 		out.push_back(_parser.toString(luaString->open) + content + _parser.toString(luaString->close));
 	}
 
 	void transformSingleString(SingleString_t* singleString, str_list& out) {
 		auto str = _parser.toString(singleString);
-		Utils::replace(str, "\r"sv, "");
+		Utils::replace(str, "\r\n"sv, "\n");
 		Utils::replace(str, "\n"sv, "\\n"sv);
 		out.push_back(str);
 	}
@@ -3722,7 +3741,7 @@ private:
 			switch (content->getId()) {
 				case id<double_string_inner_t>(): {
 					auto str = _parser.toString(content);
-					Utils::replace(str, "\r"sv, "");
+					Utils::replace(str, "\r\n"sv, "\n");
 					Utils::replace(str, "\n"sv, "\\n"sv);
 					temp.push_back(s("\""sv) + str + s("\""sv));
 					break;
@@ -4331,7 +4350,7 @@ private:
 	void transformExport(Export_t* exportNode, str_list& out) {
 		auto x = exportNode;
 		if (_scopes.size() > 1) {
-			throw std::logic_error(_info.errorMessage("can not do module export outside root block"sv, x));
+			throw std::logic_error(_info.errorMessage("can not do module export outside the root block"sv, exportNode));
 		}
 		if (exportNode->assign) {
 			auto expList = exportNode->target.to<ExpList_t>();
