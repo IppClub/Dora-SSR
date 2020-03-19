@@ -9,16 +9,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Basic/Content.h"
 #include "Basic/Application.h"
-#include "FileSystem/mkdir.h"
-#include "FileSystem/tinydir.h"
 #include "Common/Async.h"
-
+#ifdef DORA_FILESYSTEM_ALTER
+#include "ghc/fs_impl.hpp"
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif // DORA_FILESYSTEM_ALTER
 #include <fstream>
 using std::ofstream;
-
-#if BX_PLATFORM_WINDOWS
-#include <Shlobj.h>
-#endif // BX_PLATFORM_WINDOWS
 
 #if BX_PLATFORM_ANDROID
 #include "Zip/Support/ZipUtils.h"
@@ -80,80 +81,73 @@ void Content::saveToFile(String filename, Uint8* content, Sint64 size)
 bool Content::removeFile(String filename)
 {
 	string fullpath = Content::getFullPath(filename);
-	return ::remove(fullpath.c_str()) == 0 || RMDIR(fullpath.c_str()) == 0;
+	return fs::remove_all(fullpath) > 0;
 }
 
-bool Content::createFolder(String path)
+bool Content::createFolder(String folder)
 {
-	const int MAX_PATH_LEN = 256;
-	size_t len = path.size();
-	if (len > MAX_PATH_LEN - 2)
-	{
-		return false;
-	}
-	char pszDir[MAX_PATH_LEN];
-	path.copyTo(pszDir);
-
-	if (pszDir[len - 1] != '\\' && pszDir[len - 1] != '/')
-	{
-		pszDir[len] = '/';
-		pszDir[len + 1] = '\0';
-	}
-	for (size_t i = 0; i < len + 1; i++)
-	{
-		if (i != 0 && (pszDir[i] == '\\' || pszDir[i] == '/') && pszDir[i - 1] != ':')
-		{
-			pszDir[i] = '\0';
-			// file exist
-			struct stat buf;
-			int iRet = ::stat(pszDir, &buf);
-			if (iRet != 0)
-			{
-				iRet = MKDIR(pszDir);
-				if (iRet != 0)
-				{
-					return false;
-				}
-			}
-			pszDir[i] = '/';
-		}
-	}
-	return true;
+	fs::path path = folder.toString();
+	return fs::create_directories(path);
 }
 
-vector<string> Content::getDirs(String path)
+list<string> Content::getDirs(String path)
 {
 	return Content::getDirEntries(path, true);
 }
 
-vector<string> Content::getFiles(String path)
+list<string> Content::getFiles(String path)
 {
 	return Content::getDirEntries(path, false);
 }
 
+list<string> Content::getAllFiles(String path)
+{
+	string searchName = path.empty() ? _assetPath : path.toString();
+	string fullPath = Content::getFullPath(searchName);
+#if BX_PLATFORM_ANDROID
+	if (fullPath[0] != '/')
+	{
+		return g_apkFile->getAllFiles(fullPath);
+	}
+#endif // BX_PLATFORM_ANDROID
+	list<string> files;
+	if (Content::isFileExist(fullPath))
+	{
+		fs::path parentPath = fullPath;
+		for (const auto& item : fs::recursive_directory_iterator(parentPath))
+		{
+			if (!item.is_directory())
+			{
+				files.push_back(item.path().lexically_relative(parentPath).string());
+			}
+		}
+	}
+	else
+	{
+		Error("Content fail to get entry of \"{}\"", fullPath);
+	}
+	return files;
+}
+
 bool Content::visitDir(String path, const function<bool(String,String)>& func)
 {
-	char last = *(path.end() - 1);
-	string rootPath = path + (last == '\\' || last == '/' ? "" : "/");
 	function<bool(String)> visit;
 	visit = [&visit,&func,this](String path)
 	{
 		auto files = getFiles(path);
 		for (const auto& file : files)
 		{
-			if (func(file,path)) return true;
+			if (func(file, path)) return true;
 		}
 		auto dirs = getDirs(path);
+		auto parent = fs::path(path.begin(), path.end());
 		for (const auto& dir : dirs)
 		{
-			if (dir != "." && dir != "..")
-			{
-				if (visit(path + dir + "/")) return true;
-			}
+			if (visit((parent / dir).string())) return true;
 		}
 		return false;
 	};
-	return visit(rootPath);
+	return visit(path);
 }
 
 const string& Content::getAssetPath() const
@@ -184,9 +178,12 @@ string Content::getFullPath(String filename)
 	AssertIf(filename.empty(), "invalid filename for full path.");
 
 	Slice targetFile = filename;
-	if (filename[0] == '.' && (filename[1] == '/' || filename[1] == '\\'))
+	targetFile.trimSpace();
+
+	while (targetFile.size() > 1 &&
+		(targetFile.back() == '\\' || targetFile.back() == '/'))
 	{
-		targetFile.skip(2);
+		targetFile.skipRight(1);
 	}
 
 	if (Content::isAbsolutePath(targetFile))
@@ -201,13 +198,14 @@ string Content::getFullPath(String filename)
 	}
 
 	string path, file, fullPath;
-	for (const string& searchPath : _searchPaths)
+	auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
+	for (const auto& searchPath : _searchPaths)
 	{
-		std::tie(path, file) = splitDirectoryAndFilename(searchPath + targetFile);
+		std::tie(path, file) = splitDirectoryAndFilename((fs::path(searchPath) / fname).string());
 		fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
 		if (!fullPath.empty())
 		{
-			_fullPathCache[targetFile] = fullPath;
+			_fullPathCache[fname.string()] = fullPath;
 			return fullPath;
 		}
 	}
@@ -226,10 +224,6 @@ string Content::getFullPath(String filename)
 void Content::insertSearchPath(int index, String path)
 {
 	string searchPath = Content::getFullPath(path);
-	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
-	{
-		searchPath.append("/");
-	}
 	_searchPaths.insert(_searchPaths.begin() + index, searchPath);
 	_fullPathCache.clear();
 }
@@ -237,20 +231,12 @@ void Content::insertSearchPath(int index, String path)
 void Content::addSearchPath(String path)
 {
 	string searchPath = Content::getFullPath(path);
-	if (searchPath.length() > 0 && (searchPath.back() != '/' && searchPath.back() != '\\'))
-	{
-		searchPath.append("/");
-	}
 	_searchPaths.push_back(searchPath);
 }
 
 void Content::removeSearchPath(String path)
 {
 	string realPath = Content::getFullPath(path);
-	if (realPath.length() > 0 && (realPath.back() != '/' && realPath.back() != '\\'))
-	{
-		realPath.append("/");
-	}
 	for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it)
 	{
 		if (*it == realPath)
@@ -288,30 +274,27 @@ void Content::copyFileUnsafe(String src, String dst)
 		auto folders = Content::getDirEntries(src, true);
 		for (const string& folder : folders)
 		{
-			if (folder != "." && folder != "..")
+			string dstFolder = (fs::path(dstPath) / folder).string();
+			if (!Content::isFileExist(dstFolder))
 			{
-				// Info("now copy folder {}", folder);
-				string dstFolder = dstPath+'/'+folder;
-				if (!Content::isFileExist(dstFolder))
+				if (!Content::createFolder(dstFolder))
 				{
-					if (!Content::createFolder(dstFolder))
-					{
-						Error("Create folder failed! {}", dstFolder);
-					}
+					Error("Create folder failed! {}", dstFolder);
 				}
-				Content::copyFileUnsafe((srcPath+'/'+folder), dstFolder);
 			}
+			string srcFolder = (fs::path(srcPath) / folder).string();
+			Content::copyFileUnsafe(srcFolder, dstFolder);
 		}
 		auto files = Content::getDirEntries(src, false);
 		for (const string& file : files)
 		{
 			// Info("now copy file {}",file);
-			ofstream stream((dstPath + '/' + file), std::ios::out | std::ios::trunc | std::ios::binary);
-			Content::loadFileByChunks((srcPath + '/' + file), [&](Uint8* buffer, int size)
+			ofstream stream(fs::path(dstPath) / file, std::ios::out | std::ios::trunc | std::ios::binary);
+			Content::loadFileByChunks((fs::path(srcPath) / file).string(), [&](Uint8* buffer, int size)
 			{
 				if (!stream.write(r_cast<char*>(buffer), size))
 				{
-					Error("write file failed! {}", dstPath + '/' + file);
+					Error("write file failed! {}", (fs::path(dstPath) / file).string());
 				}
 			});
 		}
@@ -430,14 +413,9 @@ bool Content::isFolder(String path)
 	return Content::isPathFolder(Content::getFullPath(path));
 }
 
-vector<string> Content::getDirEntries(String path, bool isFolder)
+list<string> Content::getDirEntries(String path, bool isFolder)
 {
 	string searchName = path.empty() ? _assetPath : path.toString();
-	char last = searchName.back();
-	if (last == '/' || last == '\\')
-	{
-		searchName.erase(--searchName.end());
-	}
 	string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
 	if (fullPath[0] != '/')
@@ -445,29 +423,21 @@ vector<string> Content::getDirEntries(String path, bool isFolder)
 		return g_apkFile->getDirEntries(fullPath, isFolder);
 	}
 #endif // BX_PLATFORM_ANDROID
-	vector<string> files;
-	tinydir_dir dir;
-	int ret = tinydir_open(&dir, fullPath.c_str());
-	if (ret == 0)
+	list<string> files;
+	if (Content::isFileExist(fullPath))
 	{
-		while (dir.has_next)
+		fs::path parentPath = fullPath;
+		for (const auto& item : fs::directory_iterator(parentPath))
 		{
-			tinydir_file file;
-			tinydir_readfile(&dir, &file);
-			if ((file.is_dir != 0) == isFolder)
+			if (isFolder == item.is_directory())
 			{
-				if (!isFolder || (std::strcmp(file.name, ".") != 0 && std::strcmp(file.name, "..") != 0))
-				{
-					files.push_back(file.name);
-				}
+				files.push_back(item.path().lexically_relative(parentPath).string());
 			}
-			tinydir_next(&dir);
 		}
-		tinydir_close(&dir);
 	}
 	else
 	{
-		Error("Content fail to get entry, {}, {}", strerror(errno), fullPath);
+		Error("Content fail to get entry of \"{}\"", fullPath);
 	}
 	return files;
 }
@@ -605,7 +575,7 @@ bool Content::isAbsolutePath(String strPath)
 {
 	// On Android, there are two situations for full path.
 	// 1) Files in APK, e.g. assets/path/path/file.png
-	// 2) Files not in APK, e.g. /data/data/org.cocos2dx.hellocpp/cache/path/path/file.png, or /sdcard/path/path/file.png.
+	// 2) Files not in APK, e.g. /data/data/org.luvfight.dorothy/cache/path/path/file.png, or /sdcard/path/path/file.png.
 	// So these two situations need to be checked on Android.
 	if (strPath[0] == '/' || string(strPath).find(_assetPath) == 0)
 	{
@@ -618,9 +588,7 @@ bool Content::isAbsolutePath(String strPath)
 #if BX_PLATFORM_WINDOWS
 Content::Content()
 {
-	char currentPath[MAX_PATH] = {0};
-	GetCurrentDirectory(sizeof(currentPath), currentPath);
-	_assetPath = string(currentPath) + "\\";
+	_assetPath = fs::current_path().string();
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
@@ -701,20 +669,15 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 
 bool Content::isPathFolder(String path)
 {
-	struct stat buf;
-	if (::stat(path.toString().c_str(), &buf) == 0)
-	{
-		return (buf.st_mode & S_IFDIR) != 0;
-	}
-	return false;
+	return fs::is_directory(path.toString());
 }
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
 {
-	string fullPath = (Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
-	fullPath.append(directory + filename);
+	auto rootPath = fs::path(Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
+	string fullPath = (rootPath / directory.toString() / filename.toString()).string();
 	if (!Content::isFileExist(fullPath))
 	{
 		fullPath.clear();

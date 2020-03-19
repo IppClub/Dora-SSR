@@ -1,9 +1,10 @@
 package.path = "?.lua"
 package.cpath = nil
+package.moonpath = "?.moon"
 
 local App = builtin.Application()
-local Content = builtin.Content()
 local Director = builtin.Director()
+local Content = builtin.Content()
 local View = builtin.View()
 local Audio = builtin.Audio()
 local Keyboard = builtin.Keyboard()
@@ -25,6 +26,7 @@ local table_insert = table.insert
 local table_remove = table.remove
 local type = type
 local unpack = unpack
+local xpcall = xpcall
 
 local function wait(cond)
 	repeat
@@ -417,6 +419,11 @@ end
 -- ImGui
 local ImGui = builtin.ImGui
 
+local function traceback(msg)
+	msg = debug.traceback(msg)
+	print(msg)
+end
+
 local function pairCallA(beginFunc, endFunc)
 	return function(...)
 		local args = {...}
@@ -425,7 +432,7 @@ local function pairCallA(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		if beginFunc(unpack(args)) then
-			callFunc()
+			xpcall(callFunc, traceback)
 		end
 		endFunc()
 	end
@@ -439,7 +446,7 @@ local function pairCallB(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		if beginFunc(unpack(args)) then
-			callFunc()
+			xpcall(callFunc, traceback)
 			endFunc()
 		end
 	end
@@ -453,7 +460,7 @@ local function pairCallC(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		beginFunc(unpack(args))
-		callFunc()
+		xpcall(callFunc, traceback)
 		endFunc()
 	end
 end

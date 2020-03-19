@@ -415,8 +415,6 @@
 		3CC098681E262F85006F4B76 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
 		3CC098691E262F85006F4B76 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
-		3CC54E631E03AA7A00462FD7 /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
-		3CC54E641E03AA7A00462FD7 /* tinydir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinydir.h; path = ../../../Source/3rdParty/FileSystem/tinydir.h; sourceTree = "<group>"; };
 		3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.8.tbd; path = usr/lib/libz.1.2.8.tbd; sourceTree = SDKROOT; };
 		3CC54E901E03C09F00462FD7 /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypt.h; path = ../../../Source/3rdParty/Zip/Support/crypt.h; sourceTree = "<group>"; };
 		3CC54E911E03C09F00462FD7 /* ioapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ioapi.cpp; path = ../../../Source/3rdParty/Zip/Support/ioapi.cpp; sourceTree = "<group>"; };
@@ -811,7 +809,6 @@
 				3C6C07631E5E857B00BAA745 /* fmt */,
 				3CDED0381E52F53F00B5E578 /* font */,
 				3CD328211E4B0A370036906C /* imgui */,
-				3CC54E621E03AA6800462FD7 /* FileSystem */,
 				3C54E27F234E390400202423 /* MoonP */,
 				3CC54E5E1E039E1300462FD7 /* Other */,
 				3CFDA8492200358900C9DFD0 /* PlayRho */,
@@ -1162,15 +1159,6 @@
 				3CB2487E1E4DB41500B6BF26 /* utf8.h */,
 			);
 			name = Other;
-			sourceTree = "<group>";
-		};
-		3CC54E621E03AA6800462FD7 /* FileSystem */ = {
-			isa = PBXGroup;
-			children = (
-				3CC54E631E03AA7A00462FD7 /* mkdir.h */,
-				3CC54E641E03AA7A00462FD7 /* tinydir.h */,
-			);
-			name = FileSystem;
 			sourceTree = "<group>";
 		};
 		3CC54E8B1E03BC9700462FD7 /* Resources */ = {
@@ -1930,7 +1918,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "";
@@ -1981,7 +1969,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
@@ -1994,6 +1982,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -2010,7 +1999,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/Lua/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/soloud/Lib/macOS",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"-pagezero_size",
 					10000,
@@ -2030,6 +2019,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -2046,7 +2036,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/Lua/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/soloud/Lib/macOS",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"-pagezero_size",
 					10000,

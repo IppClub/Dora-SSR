@@ -410,6 +410,9 @@ LuaEngine::LuaEngine()
 
 	// add manual binding
 	tolua_beginmodule(L, nullptr); // stack: package.loaded
+		tolua_beginmodule(L, "Path");
+			tolua_call(L, MT_CALL, Path_create);
+		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "Content");
 			tolua_variable(L, "searchPaths", Content_GetSearchPaths, Content_SetSearchPaths);

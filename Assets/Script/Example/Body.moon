@@ -47,8 +47,6 @@ Director.entry\addChild with world
 
 -- example codes ends here, some test ui below --
 
-print 1 + nil
-
 Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!

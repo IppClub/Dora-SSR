@@ -75,11 +75,53 @@ tolua_lerror:
 static void pushVectorString(lua_State* L, const vector<string>& array)
 {
 	lua_createtable(L, s_cast<int>(array.size()), 0);
-	for (int i = 0; i < s_cast<int>(array.size()); i++)
+	int i = 0;
+	for (const auto& item : array)
 	{
-		lua_pushlstring(L, array[i].c_str(), array[i].size());
-		lua_rawseti(L, -2, i + 1);
+		lua_pushlstring(L, item.c_str(), item.size());
+		lua_rawseti(L, -2, ++i);
 	}
+}
+
+static void pushListString(lua_State* L, const list<string>& array)
+{
+	lua_createtable(L, s_cast<int>(array.size()), 0);
+	int i = 0;
+	for (const auto& item : array)
+	{
+		lua_pushlstring(L, item.c_str(), item.size());
+		lua_rawseti(L, -2, ++i);
+	}
+}
+
+/* Path */
+int Path_create(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertable(L, 1, "Path"_slice, 0, &tolua_err))
+	{
+		tolua_error(L, "#ferror in function 'Path_create'.", &tolua_err);
+		return 0;
+	}
+#endif
+	int top = lua_gettop(L);
+	list<string> paths;
+	for (int i = 2; i <= top; i++)
+	{
+#ifndef TOLUA_RELEASE
+		if (!tolua_isstring(L, i, 0, &tolua_err))
+		{
+			tolua_error(L, "#ferror in function 'Path_create'.", &tolua_err);
+			return 0;
+		}
+#endif
+		auto str = tolua_toslice(L, i, 0);
+		paths.push_back(str);
+	}
+	auto result = Path::concat(paths);
+	lua_pushlstring(L, result.c_str(), result.size());
+	return 1;
 }
 
 /* Content */
@@ -94,13 +136,19 @@ void __Content_loadFile(lua_State* L, Content* self, String filename)
 void __Content_getDirs(lua_State* L, Content* self, String path)
 {
 	auto dirs = self->getDirs(path);
-	pushVectorString(L, dirs);
+	pushListString(L, dirs);
 }
 
 void __Content_getFiles(lua_State* L, Content* self, String path)
 {
 	auto files = self->getFiles(path);
-	pushVectorString(L, files);
+	pushListString(L, files);
+}
+
+void __Content_getAllFiles(lua_State* L, Content* self, String path)
+{
+	auto files = self->getAllFiles(path);
+	pushListString(L, files);
 }
 
 int Content_GetSearchPaths(lua_State* L)
@@ -128,7 +176,7 @@ int Node_emit(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Node", 0, &tolua_err) ||
+	if (!tolua_isusertype(L, 1, "Node"_slice, 0, &tolua_err) ||
 		!tolua_isstring(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
@@ -174,7 +222,7 @@ int Node_slot(lua_State* L)
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
 	if (
-		!tolua_isusertype(L, 1, "Node", 0, &tolua_err) ||
+		!tolua_isusertype(L, 1, "Node"_slice, 0, &tolua_err) ||
 		!tolua_isstring(L, 2, 0, &tolua_err) ||
 		!(tolua_isfunction(L, 3, &tolua_err) ||
 			lua_isnil(L, 3) ||
@@ -217,7 +265,7 @@ int Node_gslot(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Node", 0, &tolua_err) ||
+	if (!tolua_isusertype(L, 1, "Node"_slice, 0, &tolua_err) ||
 		!(tolua_isstring(L, 2, 0, &tolua_err) || tolua_isusertype(L, 2, "GSlot", 0, &tolua_err)) ||
 		!(tolua_isfunction(L, 3, &tolua_err) || lua_isnil(L, 3) || tolua_isnoobj(L, 3, &tolua_err)) ||
 		!tolua_isnoobj(L, 4, &tolua_err))
@@ -760,7 +808,7 @@ int Action_create(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertable(L, 1, "Action", 0, &tolua_err) ||
+	if (!tolua_isusertable(L, 1, "Action"_slice, 0, &tolua_err) ||
 		!tolua_istable(L, 2, 0, &tolua_err) ||
 		!tolua_isnoobj(L, 3, &tolua_err))
 	{

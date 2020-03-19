@@ -19,7 +19,7 @@ public:
 	virtual ~Content();
 	bool isExist(String filename);
 	bool isFolder(String path);
-    bool isAbsolutePath(String strPath);
+	bool isAbsolutePath(String strPath);
 	string getFullPath(String filename);
 	std::pair<OwnArray<Uint8>,size_t> loadFile(String filename);
 	const bgfx::Memory* loadFileBX(String filename);
@@ -28,8 +28,9 @@ public:
 	void saveToFile(String filename, String content);
 	void saveToFile(String filename, Uint8* content, Sint64 size);
 	bool createFolder(String path);
-	vector<string> getDirs(String path);
-	vector<string> getFiles(String path);
+	list<string> getDirs(String path);
+	list<string> getFiles(String path);
+	list<string> getAllFiles(String path);
 	bool visitDir(String path, const function<bool(String,String)>& func);
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
@@ -52,7 +53,7 @@ protected:
 	void saveToFileUnsafe(String filename, Uint8* content, Sint64 size);
 	bool isFileExist(String filePath);
 	bool isPathFolder(String filePath);
-	vector<string> getDirEntries(String path, bool isFolder);
+	list<string> getDirEntries(String path, bool isFolder);
 private:
 	Uint8* _loadFileUnsafe(String filename, Sint64& size);
 	string _assetPath;
