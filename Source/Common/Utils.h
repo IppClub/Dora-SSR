@@ -346,5 +346,17 @@ private:
 	double _lastTime;
 };
 
+class Path
+{
+public:
+	static string concat(const list<string>& paths);
+	static string getExt(const string& path);
+	static string getPath(const string& path);
+	static string getName(const string& path);
+	static string getFilename(const string& path);
+	static string replaceExt(const string& path, const string& newExt);
+	static string replaceFilename(const string& path, const string& newFile);
+};
+
 NS_DOROTHY_END
 

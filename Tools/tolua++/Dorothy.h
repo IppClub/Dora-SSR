@@ -174,6 +174,16 @@ class EntityObserver @ Observer
 	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
 };
 
+struct Path
+{
+	static string getExt(String path);
+	static string getPath(String path);
+	static string getName(String path);
+	static string getFilename(String path);
+	static string replaceExt(String path, String newExt);
+	static string replaceFilename(String path, String newFile);
+};
+
 class Content
 {
 	tolua_readonly tolua_property__common string assetPath;
@@ -192,6 +202,7 @@ class Content
 	void copyFileAsync @ copyAsync(String src, String dst, tolua_function_void handler);
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
+	tolua_outside void Content_getAllFiles @ getAllFiles(String path);
 	tolua_outside void Content_loadFile @ load(String filename);
 	static tolua_outside Content* Content_shared @ create();
 };

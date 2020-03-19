@@ -129,6 +129,16 @@ class Slice {
     return str_ + len_;
   }
 
+  char front() const {
+    assert(!empty());
+    return *begin();
+  }
+
+  char back() const {
+  	 assert(!empty());
+    return *(end() - 1);
+  }
+
   std::string getFilePath() const;
   std::string getFileName() const;
   std::string getFileExtension() const;

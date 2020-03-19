@@ -23,7 +23,7 @@ THE SOFTWARE.
 ****************************************************************************/
 #pragma once
 
-#include <vector>
+#include <list>
 #include <string>
 #include <functional>
 
@@ -87,7 +87,8 @@ public:
 
 	void getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*,int)>& handler);
 
-	std::vector<std::string> getDirEntries(const std::string& path, bool isFolder);
+	std::list<std::string> getDirEntries(const std::string& path, bool isFolder);
+	std::list<std::string> getAllFiles(const std::string& path);
 private:
 	/** Internal data like zip file pointer / file list array and so on */
 	ZipFilePrivate* m_data;

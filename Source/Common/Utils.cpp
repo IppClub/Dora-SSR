@@ -10,6 +10,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 #include "Basic/Application.h"
 #include "Lua/ToLua/tolua++.h"
+#ifdef DORA_FILESYSTEM_ALTER
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif // DORA_FILESYSTEM_ALTER
 
 NS_DOROTHY_BEGIN
 
@@ -67,6 +74,51 @@ double Profiler::stop(String logName)
 	}
 	_lastTime = SharedApplication.getCurrentTime();
 	return deltaTime;
+}
+
+string Path::concat(const list<string>& paths)
+{
+	if (paths.empty()) return Slice::Empty;
+	if (paths.size() == 1) return paths.front();
+	fs::path path = paths.front();
+	for (auto it = ++paths.begin(); it != paths.end(); ++it)
+	{
+		path /= *(it);
+	}
+	return path.string();
+}
+
+string Path::getExt(const string& path)
+{
+	auto ext = fs::path(path).extension().string();
+	if (!ext.empty()) ext.erase(ext.begin());
+	for (auto& ch : ext) ch = s_cast<char>(std::tolower(ch));
+	return ext;
+}
+
+string Path::getPath(const string& path)
+{
+	return fs::path(path).parent_path().string();
+}
+
+string Path::getName(const string& path)
+{
+	return fs::path(path).stem().string();
+}
+
+string Path::getFilename(const string& path)
+{
+	return fs::path(path).filename().string();
+}
+
+string Path::replaceExt(const string& path, const string& newExt)
+{
+	return fs::path(path).replace_extension('.' + newExt).string();
+}
+
+string Path::replaceFilename(const string& path, const string& newFile)
+{
+	return fs::path(path).replace_filename(newFile).string();
 }
 
 NS_DOROTHY_END

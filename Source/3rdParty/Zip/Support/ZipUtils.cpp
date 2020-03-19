@@ -124,9 +124,9 @@ bool ZipFile::setFilter(const std::string& filterStr)
 	return ret;
 }
 
-std::vector<std::string> ZipFile::getDirEntries(const std::string& path, bool isFolder)
+std::list<std::string> ZipFile::getDirEntries(const std::string& path, bool isFolder)
 {
-	std::string searchName(path == "." ? string() : path);
+	std::string searchName(path == "." ? std::string() : path);
 	char last = searchName[searchName.length() - 1];
 	if (last == '/' || last == '\\')
 	{
@@ -137,19 +137,19 @@ std::vector<std::string> ZipFile::getDirEntries(const std::string& path, bool is
 	{
 		searchName[pos] = '/';
 	}
-	std::vector<std::string> results;
+	std::list<std::string> results;
 	if (isFolder)
 	{
 		for (const auto& folder : m_data->folderList)
 		{
 			if (searchName == folder.substr(0, searchName.length()))
 			{
-				size_t pos = folder.find('/', searchName.length()+1);
+				size_t pos = folder.find('/', searchName.length() + 1);
 				if (pos == std::string::npos)
 				{
 					if (searchName.length() < folder.length())
 					{
-						string name = folder.substr(searchName.length()+1);
+						string name = folder.substr(searchName.length() + 1);
 						if (name != "." && name != "..")
 						{
 							results.push_back(name);
@@ -166,14 +166,42 @@ std::vector<std::string> ZipFile::getDirEntries(const std::string& path, bool is
 			const std::string& file = it.first;
 			if (searchName == file.substr(0, searchName.length()))
 			{
-				size_t pos = file.find('/', searchName.length()+1);
+				size_t pos = file.find('/', searchName.length() + 1);
 				if (pos == std::string::npos)
 				{
 					if (searchName.length() < file.length())
 					{
-						results.push_back(file.substr(searchName.length()+1));
+						results.push_back(file.substr(searchName.length() + 1));
 					}
 				}
+			}
+		}
+	}
+	return results;
+}
+
+std::list<std::string> ZipFile::getAllFiles(const std::string& path)
+{
+	std::string searchName(path == "." ? std::string() : path);
+	char last = searchName[searchName.length() - 1];
+	if (last == '/' || last == '\\')
+	{
+		searchName.erase(--searchName.end());
+	}
+	size_t pos = 0;
+	while ((pos = searchName.find("\\", pos)) != std::string::npos)
+	{
+		searchName[pos] = '/';
+	}
+	std::list<std::string> results;
+	for (const auto& it : m_data->fileList)
+	{
+		const std::string& file = it.first;
+		if (searchName == file.substr(0, searchName.length()))
+		{
+			if (searchName.length() < file.length())
+			{
+				results.push_back(file.substr(searchName.length() + 1));
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 Dorothy builtin.ImGui
-import "Utils" as {:Set,:Path}
+import "Utils" as {:Set}
 
 debug.traceback = (err,level=1)->
 	with require("moonp").stp
@@ -112,20 +112,26 @@ LintMoonGlobals = (moonCodes,globals,file)->
 
 building = false
 
+getAllFiles = (path,exts)->
+	filters = Set exts
+	return for file in *Content\getAllFiles path
+		continue if not filters[Path\getExt file]
+		file
+
 doCompile = (minify)->
 	return if building
 	building = true
-	inputPath = "#{Content.assetPath}Script/"
-	outputPath = "#{Content.writablePath}Script/"
-	moonFiles = Path.getAllFiles inputPath,"moon"
-	xmlFiles = Path.getAllFiles inputPath,"xml"
-	paths = {Path.getPath(file),true for file in *moonFiles}
-	Path.make path,outputPath for path in pairs paths
+	inputPath = Path Content.assetPath,"Script"
+	outputPath = Path Content.writablePath,"Script"
+	moonFiles = getAllFiles inputPath,{"moon"}
+	xmlFiles = getAllFiles inputPath,{"xml"}
+	paths = {Path\getPath(file),true for file in *moonFiles}
+	Content\mkdir Path outputPath,path for path in pairs paths
 	totalFiles = #moonFiles+#xmlFiles
 	fileCount = 0
 	errors = {}
 	for file in *moonFiles
-		dest = outputPath..Path.getPath(file)..Path.getName(file)..".lua"
+		dest = Path\replaceExt Path(outputPath,file),"lua"
 		<- mooncompile file,dest,(codes,err,globals)->
 			if not codes
 				table.insert errors,"Compile errors in #{file}.\n#{err}"
@@ -136,11 +142,11 @@ doCompile = (minify)->
 			"-- [moon]: #{file}\n"..requires..codes\gsub "Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
 		print "Moon compiled: #{file}"
 		fileCount += 1
-	paths = {Path.getPath(file),true for file in *xmlFiles}
-	Path.make path,outputPath for path in pairs paths
+	paths = {Path\getPath(file),true for file in *xmlFiles}
+	Content\mkdir Path outputPath,path for path in pairs paths
 	thread ->
 		for file in *xmlFiles
-			dest = outputPath..Path.getPath(file)..Path.getName(file)..".lua"
+			dest = Path\replaceExt Path(outputPath,file),"lua"
 			sourceCodes = Content\loadAsync file
 			codes,err = xmltolua sourceCodes
 			if not codes
@@ -154,13 +160,13 @@ doCompile = (minify)->
 		if minify
 			{:ParseLua} = require "luaminify.ParseLua"
 			FormatMini = require "luaminify.FormatMini"
-			inputPath = "#{Content.assetPath}Script/"
-			outputPath = "#{Content.writablePath}Script/"
-			luaFiles = Path.getAllFiles inputPath,"lua"
-			for file in *Path.getAllFiles outputPath,"lua"
+			inputPath = Path Content.assetPath,"Script"
+			outputPath = Path Content.writablePath,"Script"
+			luaFiles = getAllFiles inputPath,{"lua"}
+			for file in *getAllFiles outputPath,{"lua"}
 				table.insert luaFiles,file
-			paths = {Path.getPath(file),true for file in *luaFiles}
-			Path.make path,outputPath for path in pairs paths
+			paths = {Path\getPath(file),true for file in *luaFiles}
+			Content\mkdir Path outputPath,path for path in pairs paths
 			for file in *luaFiles
 				sourceCodes = Content\loadAsync file
 				st, ast = ParseLua sourceCodes
@@ -168,7 +174,7 @@ doCompile = (minify)->
 					table.insert errors,"Minify errors in #{file}.\n#{ast}"
 				else
 					codes = FormatMini ast
-					Content\saveAsync outputPath..file,codes
+					Content\saveAsync Path(outputPath,file),codes
 					print "Minify: #{file}"
 		print err for err in *errors
 		print "Build complete!"
@@ -176,9 +182,8 @@ doCompile = (minify)->
 
 doClean = ->
 	return if building
-	targetDir = "#{Content.writablePath}Script/"
-	if Content\exist targetDir
-		Path.removeFolder targetDir
+	targetDir = Path Content.writablePath,"Script"
+	if Content\remove targetDir
 		print "Cleaned: #{targetDir}"
 	else
 		print "Nothing to clean."
@@ -208,15 +213,15 @@ allClear = ->
 	isInEntry = true
 	Audio\stopStream 0.2
 
-games = [Path.getName item for item in *Path.getFolders Content.assetPath.."Script/Game", {"xml","lua","moon"}]
+games = [Path\getName item for item in *Content\getDirs Path Content.assetPath,"Script","Game"]
 table.sort games
-examples = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Example", {"xml","lua","moon"}]
+examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Example"), {"xml","lua","moon"}]
 table.sort examples
-tests = [Path.getName item for item in *Path.getAllFiles Content.assetPath.."Script/Test", {"xml","lua","moon"}]
+tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Test"), {"xml","lua","moon"}]
 table.sort tests
-allNames = for game in *games do "Game/#{game}/init"
-for example in *examples do table.insert allNames,"Example/#{example}"
-for test in *tests do table.insert allNames,"Test/#{test}"
+allNames = [Path "Game",game,"init" for game in *games]
+for example in *examples do table.insert allNames,Path "Example",example
+for test in *tests do table.insert allNames,Path "Test",test
 
 enterDemoEntry = (name)->
 	isInEntry = false
@@ -224,7 +229,7 @@ enterDemoEntry = (name)->
 		result = require name
 		if "function" == type result
 			result = result!
-			Director.entry\addChild if tolua.cast result, "Node"
+			Director.entry\addChild if tolua.cast result,"Node"
 				result
 			else
 				Node!
@@ -342,19 +347,20 @@ threadLoop ->
 			Columns math.max(math.floor(width/200),1), false
 			for game in *games
 				if Button game, Vec2(-1,40)
-					enterDemoEntry "Game/#{game}/init"
+					enterDemoEntry Path "Game",game,"init"
 				NextColumn!
 			Columns 1, false
 			TextColored Color(0xff00ffff), "Examples"
 			Columns math.max(math.floor(width/200),1), false
 			for example in *examples
 				if Button example, Vec2(-1,40)
-					enterDemoEntry "Example/#{example}"
+					enterDemoEntry Path "Example",example
 				NextColumn!
 			Columns 1, false
 			TextColored Color(0xff00ffff), "Tests"
 			Columns math.max(math.floor(width/200),1), false
 			for test in *tests
 				if Button test, Vec2(-1,40)
-					enterDemoEntry "Test/#{test}"
+					enterDemoEntry Path "Test",test
 				NextColumn!
+

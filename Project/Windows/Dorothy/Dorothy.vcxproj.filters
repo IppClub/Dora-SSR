@@ -19,9 +19,6 @@
     <Filter Include="3rdParty\silly">
       <UniqueIdentifier>{d3d5ca95-9734-4684-8f81-8cd17fbdb6dd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\FileSystem">
-      <UniqueIdentifier>{d6cfce9a-f6d0-44ec-9576-0b9ff9c321d2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParty\Zip">
       <UniqueIdentifier>{c5c729d4-c12c-4299-bc2f-ad1309722d81}</UniqueIdentifier>
     </Filter>
@@ -659,12 +656,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\mkdir.h">
-      <Filter>3rdParty\FileSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\FileSystem\tinydir.h">
-      <Filter>3rdParty\FileSystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
       <Filter>3rdParty\Zip\Support</Filter>
     </ClInclude>
