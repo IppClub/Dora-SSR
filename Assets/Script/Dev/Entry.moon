@@ -363,4 +363,3 @@ threadLoop ->
 				if Button test, Vec2(-1,40)
 					enterDemoEntry Path "Test",test
 				NextColumn!
-
