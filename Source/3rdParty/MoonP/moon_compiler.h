@@ -17,12 +17,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 namespace MoonP {
 
-const char* moonScriptVersion();
+const char* version();
 
 struct MoonConfig {
 	bool lintGlobalVariable = false;
 	bool implicitReturnRoot = true;
 	bool reserveLineNumber = true;
+	bool useSpaceOverTab = false;
 	int lineOffset = 0;
 };
 

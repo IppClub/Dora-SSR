@@ -1,6 +1,6 @@
 /*
 SoLoud audio engine
-Copyright (c) 2013-2015 Jari Komppa
+Copyright (c) 2013-2020 Jari Komppa
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -22,46 +22,61 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#ifndef SOLOUD_BASSBOOSTFILTER_H
-#define SOLOUD_BASSBOOSTFILTER_H
+#ifndef SOLOUD_FREEVERBFILTER_H
+#define SOLOUD_FREEVERBFILTER_H
 
 #include "soloud.h"
-#include "soloud_fftfilter.h"
 
 namespace SoLoud
 {
-	class BassboostFilter;
-
-	class BassboostFilterInstance : public FFTFilterInstance
+	class FreeverbFilter;
+	namespace FreeverbImpl
 	{
-		enum FILTERATTRIBUTE
-		{
+		class Revmodel;
+	}
+
+	class FreeverbFilterInstance : public FilterInstance
+	{
+		enum FILTERPARAM {
 			WET = 0,
-			BOOST = 1
-		};
-		BassboostFilter *mParent;
+			FREEZE,
+			ROOMSIZE,
+			DAMP,
+			WIDTH
+		};		
+
+		FreeverbFilter *mParent;
+		FreeverbImpl::Revmodel *mModel;
 	public:
-		virtual void fftFilterChannel(float *aFFTBuffer, unsigned int aSamples, float aSamplerate, time aTime, unsigned int aChannel, unsigned int aChannels);
-		BassboostFilterInstance(BassboostFilter *aParent);
+		virtual void filter(float* aBuffer, unsigned int aSamples, unsigned int aBufferSize, unsigned int aChannels, float aSamplerate, time aTime);
+		virtual ~FreeverbFilterInstance();
+		FreeverbFilterInstance(FreeverbFilter *aParent);
 	};
 
-	class BassboostFilter : public FFTFilter
+	class FreeverbFilter : public Filter
 	{
 	public:
-		enum FILTERATTRIBUTE
-		{
+		enum FILTERPARAM {
 			WET = 0,
-			BOOST = 1
+			FREEZE,
+			ROOMSIZE,
+			DAMP,
+			WIDTH
 		};
 		virtual int getParamCount();
 		virtual const char* getParamName(unsigned int aParamIndex);
 		virtual unsigned int getParamType(unsigned int aParamIndex);
 		virtual float getParamMax(unsigned int aParamIndex);
 		virtual float getParamMin(unsigned int aParamIndex);
-		float mBoost;
-		result setParams(float aBoost);
-		virtual FilterInstance *createInstance();
-		BassboostFilter();
+
+		float mMode;
+		float mRoomSize;
+		float mDamp;
+		float mWidth;
+		virtual FreeverbFilterInstance *createInstance();
+		FreeverbFilter();
+		result setParams(float aMode, float aRoomSize, float aDamp, float aWidth);
+		virtual ~FreeverbFilter();
 	};
 }
 

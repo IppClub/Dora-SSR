@@ -270,4 +270,3 @@ export Round = (val)->
 			val.y > 0 and floor(val.y+0.5) or ceil(val.y-0.5)
 
 export IsValidPath = (filename)-> not filename\match "[\\/|:*?<>\"]"
-

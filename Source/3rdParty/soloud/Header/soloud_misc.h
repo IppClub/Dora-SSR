@@ -1,6 +1,6 @@
 /*
 SoLoud audio engine
-Copyright (c) 2013-2020 Jari Komppa
+Copyright (c) 2020 Jari Komppa
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -22,15 +22,32 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-/*
-See soloud_file_hack_on.h
-*/
+#ifndef SOLOUD_MISC_H
+#define SOLOUD_MISC_H
 
-#undef FILE  
-#undef fgetc 
-#undef fread 
-#undef fseek 
-#undef ftell 
-#undef fclose
-#undef fopen 
-#undef fopen_s
+#include "soloud.h"
+
+namespace SoLoud
+{
+	namespace Misc
+	{
+		// Generate a waveform.
+		float generateWaveform(int aWaveform, float p);
+
+		// WELL512 random
+		class Prg
+		{
+		public:
+			// random generator
+			Prg();
+			unsigned int mState[16];
+			unsigned int mIndex;
+			unsigned int rand();
+			float rand_float();
+			void srand(int aSeed);
+		};
+
+	};
+};
+
+#endif

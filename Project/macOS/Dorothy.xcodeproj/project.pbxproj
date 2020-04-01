@@ -501,6 +501,10 @@
 		3CF16C8B1E68F165002587CD /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Basic/Renderer.h; sourceTree = "<group>"; };
 		3CF16C941E69078C002587CD /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Node/RenderTarget.cpp; sourceTree = "<group>"; };
 		3CF16C951E69078C002587CD /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Node/RenderTarget.h; sourceTree = "<group>"; };
+		3CF89B5624332C5000A195C7 /* concurrentqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = concurrentqueue.h; path = ../../../Source/3rdParty/Other/concurrentqueue.h; sourceTree = "<group>"; };
+		3CF89B5D2433388100A195C7 /* fs_fwd.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_fwd.hpp; path = ../../../Source/3rdParty/ghc/fs_fwd.hpp; sourceTree = "<group>"; };
+		3CF89B5E2433388100A195C7 /* filesystem.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = filesystem.hpp; path = ../../../Source/3rdParty/ghc/filesystem.hpp; sourceTree = "<group>"; };
+		3CF89B5F2433388200A195C7 /* fs_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_impl.hpp; path = ../../../Source/3rdParty/ghc/fs_impl.hpp; sourceTree = "<group>"; };
 		3CFDA84A2200358900C9DFD0 /* Defines.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Defines.hpp; sourceTree = "<group>"; };
 		3CFDA84C2200358900C9DFD0 /* StepConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = StepConf.hpp; sourceTree = "<group>"; };
 		3CFDA84D2200358900C9DFD0 /* World.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = World.hpp; sourceTree = "<group>"; };
@@ -801,6 +805,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CF89B5C2433386E00A195C7 /* ghc */,
 				3C49FFEA20EF63C000E775D7 /* stb */,
 				3C49FFE020EF607900E775D7 /* nanovg */,
 				3CA718A41FCCF0FA00B6AC80 /* lodepng */,
@@ -1151,6 +1156,7 @@
 		3CC54E5E1E039E1300462FD7 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				3CF89B5624332C5000A195C7 /* concurrentqueue.h */,
 				3CD1D4BC1E78F0350003A7FD /* rapidxml_sax3.hpp */,
 				3C9A7D781E55957500205094 /* atlas.cpp */,
 				3C9A7D791E55957500205094 /* atlas.h */,
@@ -1323,6 +1329,16 @@
 				3CE9D7F31E7FC2A6003AAECB /* PhysicsWorld.h */,
 			);
 			name = Physics;
+			sourceTree = "<group>";
+		};
+		3CF89B5C2433386E00A195C7 /* ghc */ = {
+			isa = PBXGroup;
+			children = (
+				3CF89B5E2433388100A195C7 /* filesystem.hpp */,
+				3CF89B5D2433388100A195C7 /* fs_fwd.hpp */,
+				3CF89B5F2433388200A195C7 /* fs_impl.hpp */,
+			);
+			name = ghc;
 			sourceTree = "<group>";
 		};
 		3CFDA8492200358900C9DFD0 /* PlayRho */ = {

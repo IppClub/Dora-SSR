@@ -190,7 +190,8 @@
 		3CD6C2A51E30C1F500B36FFC /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD6C2A31E30C1F500B36FFC /* Effect.cpp */; };
 		3CD6C2A81E30C22300B36FFC /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD6C2A61E30C22300B36FFC /* Common.cpp */; };
 		3CDED0351E52A2E600B5E578 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CDED0331E52A2E600B5E578 /* utf8.cpp */; };
-		3CE3316E1D96D91200F9C3F6 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316D1D96D91200F9C3F6 /* GameController.framework */; };
+		3CE0FDAF24336CB800F8F9B3 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE0FDAE24336CB800F8F9B3 /* CoreBluetooth.framework */; };
+		3CE0FDB024336CCC00F8F9B3 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316D1D96D91200F9C3F6 /* GameController.framework */; };
 		3CE331701D96D92700F9C3F6 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */; };
 		3CE331721D96D92F00F9C3F6 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331711D96D92F00F9C3F6 /* AudioToolbox.framework */; };
 		3CE331741D96D94500F9C3F6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331731D96D94500F9C3F6 /* QuartzCore.framework */; };
@@ -644,6 +645,7 @@
 		3CDED0321E52A2E600B5E578 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
 		3CDED0331E52A2E600B5E578 /* utf8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utf8.cpp; path = ../../../Source/3rdParty/Other/utf8.cpp; sourceTree = "<group>"; };
 		3CDED0341E52A2E600B5E578 /* utf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utf8.h; path = ../../../Source/3rdParty/Other/utf8.h; sourceTree = "<group>"; };
+		3CE0FDAE24336CB800F8F9B3 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		3CE3316D1D96D91200F9C3F6 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		3CE331711D96D92F00F9C3F6 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -672,6 +674,10 @@
 		3CF730DF1E66544A0002DEED /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Font; path = ../../Assets/Font; sourceTree = "<group>"; };
 		3CF730E01E66544A0002DEED /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Image; path = ../../Assets/Image; sourceTree = "<group>"; };
 		3CF730E11E66544A0002DEED /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Script; path = ../../Assets/Script; sourceTree = "<group>"; };
+		3CF89B5724332CC900A195C7 /* concurrentqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = concurrentqueue.h; path = ../../../Source/3rdParty/Other/concurrentqueue.h; sourceTree = "<group>"; };
+		3CF89B592433352300A195C7 /* fs_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_impl.hpp; path = ../../../Source/3rdParty/ghc/fs_impl.hpp; sourceTree = "<group>"; };
+		3CF89B5A2433352300A195C7 /* filesystem.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = filesystem.hpp; path = ../../../Source/3rdParty/ghc/filesystem.hpp; sourceTree = "<group>"; };
+		3CF89B5B2433352300A195C7 /* fs_fwd.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_fwd.hpp; path = ../../../Source/3rdParty/ghc/fs_fwd.hpp; sourceTree = "<group>"; };
 		3CFA31AC1E6B07EA00493633 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Node/RenderTarget.cpp; sourceTree = "<group>"; };
 		3CFA31AD1E6B07EA00493633 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Node/RenderTarget.h; sourceTree = "<group>"; };
 		3CFDE14E2417F47300E7D26A /* moonplus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moonplus.cpp; sourceTree = "<group>"; };
@@ -695,14 +701,15 @@
 				3CD210611E663F8B004676F1 /* Metal.framework in Frameworks */,
 				3CE331841D96E19100F9C3F6 /* OpenGLES.framework in Frameworks */,
 				3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */,
+				3CE0FDAF24336CB800F8F9B3 /* CoreBluetooth.framework in Frameworks */,
 				3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */,
 				3CE331781D96D97700F9C3F6 /* UIKit.framework in Frameworks */,
 				3CE331761D96D95F00F9C3F6 /* CoreGraphics.framework in Frameworks */,
+				3CE0FDB024336CCC00F8F9B3 /* GameController.framework in Frameworks */,
 				3CE331741D96D94500F9C3F6 /* QuartzCore.framework in Frameworks */,
 				3CE331721D96D92F00F9C3F6 /* AudioToolbox.framework in Frameworks */,
 				3C1F87C91DF7B4C5005F1B4D /* AVFoundation.framework in Frameworks */,
 				3CE331701D96D92700F9C3F6 /* CoreMotion.framework in Frameworks */,
-				3CE3316E1D96D91200F9C3F6 /* GameController.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1218,6 +1225,7 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CE0FDAE24336CB800F8F9B3 /* CoreBluetooth.framework */,
 				3CE7D3771EADF642008EADB3 /* libbimg_decode.a */,
 				3CE7D3781EADF642008EADB3 /* libbimg.a */,
 				3CC7A1431E8D657C003188D6 /* libsoloud.a */,
@@ -1255,6 +1263,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CF89B58243334F900A195C7 /* ghc */,
 				3CE9509920F33D97002FFC18 /* stb */,
 				3CA1B7F01EC16EBD00BC58FF /* tinyxml2 */,
 				3C88056C1E5ED12600B52D4B /* font */,
@@ -1439,6 +1448,7 @@
 		3CDED0311E52A2D300B5E578 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				3CF89B5724332CC900A195C7 /* concurrentqueue.h */,
 				3C5973011E7F74DC00BFD00F /* rapidxml_sax3.hpp */,
 				3C8805701E5ED18F00B52D4B /* atlas.cpp */,
 				3C8805711E5ED18F00B52D4B /* atlas.h */,
@@ -1481,6 +1491,16 @@
 				3C0AD7BA1E0CE95F0033AD59 /* Listener.h */,
 			);
 			name = Event;
+			sourceTree = "<group>";
+		};
+		3CF89B58243334F900A195C7 /* ghc */ = {
+			isa = PBXGroup;
+			children = (
+				3CF89B5A2433352300A195C7 /* filesystem.hpp */,
+				3CF89B5B2433352300A195C7 /* fs_fwd.hpp */,
+				3CF89B592433352300A195C7 /* fs_impl.hpp */,
+			);
+			name = ghc;
 			sourceTree = "<group>";
 		};
 		3CFF5F281E0136A5004E3CA6 /* Common */ = {

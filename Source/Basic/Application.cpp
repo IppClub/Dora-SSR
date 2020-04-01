@@ -549,7 +549,7 @@ NS_DOROTHY_END
 
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
-int main(int argc, char *argv[])
+extern "C" int main(int argc, char* argv[])
 {
 	return SharedApplication.run();
 }

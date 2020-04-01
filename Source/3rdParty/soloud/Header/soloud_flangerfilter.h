@@ -1,6 +1,6 @@
 /*
 SoLoud audio engine
-Copyright (c) 2013-2014 Jari Komppa
+Copyright (c) 2013-2020 Jari Komppa
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@ namespace SoLoud
 		double mIndex;
 
 	public:
-		virtual void filter(float *aBuffer, unsigned int aSamples, unsigned int aChannels, float aSamplerate, time aTime);
+		virtual void filter(float *aBuffer, unsigned int aSamples, unsigned int aBufferSize, unsigned int aChannels, float aSamplerate, time aTime);
 		virtual ~FlangerFilterInstance();
 		FlangerFilterInstance(FlangerFilter *aParent);
 	};
@@ -56,6 +56,11 @@ namespace SoLoud
 		};
 		float mDelay;
 		float mFreq;
+		virtual int getParamCount();
+		virtual const char* getParamName(unsigned int aParamIndex);
+		virtual unsigned int getParamType(unsigned int aParamIndex);
+		virtual float getParamMax(unsigned int aParamIndex);
+		virtual float getParamMin(unsigned int aParamIndex);
 		virtual FilterInstance *createInstance();
 		FlangerFilter();
 		result setParams(float aDelay, float aFreq);

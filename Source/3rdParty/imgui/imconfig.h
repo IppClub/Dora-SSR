@@ -17,6 +17,7 @@
 #include "Support/Geometry.h"
 
 //---- Define assertion handler. Defaults to calling assert().
+// If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
 #define IM_ASSERT(_EXPR)  AssertUnless(_EXPR, "Imgui assert: "#_EXPR)
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 

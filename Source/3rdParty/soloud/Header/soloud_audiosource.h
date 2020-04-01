@@ -119,7 +119,9 @@ namespace SoLoud
 			// If inaudible, should be killed (default = don't kill kill)
 			INAUDIBLE_KILL = 64,
 			// If inaudible, should still be ticked (default = pause)
-			INAUDIBLE_TICK = 128
+			INAUDIBLE_TICK = 128,
+			// Don't auto-stop sound
+			DISABLE_AUTOSTOP = 256
 		};
 		// Ctor
 		AudioSourceInstance();
@@ -175,8 +177,8 @@ namespace SoLoud
 		FilterInstance *mFilter[FILTERS_PER_STREAM];
 		// Initialize instance. Mostly internal use.
 		void init(AudioSource &aSource, int aPlayIndex);
-		// Buffers for the resampler
-		AlignedFloatBuffer *mResampleData[2];
+		// Pointers to buffers for the resampler
+		float *mResampleData[2];
 		// Sub-sample playhead; 16.16 fixed point
 		unsigned int mSrcOffset;
 		// Samples left over from earlier pass
@@ -221,7 +223,9 @@ namespace SoLoud
 			// If inaudible, should be killed (default)
 			INAUDIBLE_KILL = 64,
 			// If inaudible, should still be ticked (default = pause)
-			INAUDIBLE_TICK = 128
+			INAUDIBLE_TICK = 128,
+			// Disable auto-stop
+			DISABLE_AUTOSTOP = 256
 		};
 		enum ATTENUATION_MODELS
 		{
@@ -276,6 +280,8 @@ namespace SoLoud
 		void setLooping(bool aLoop);
 		// Set whether only one instance of this sound should ever be playing at the same time
 		void setSingleInstance(bool aSingleInstance);
+		// Set whether audio should auto-stop when it ends or not
+		void setAutoStop(bool aAutoStop);
 		
 		// Set the minimum and maximum distances for 3d audio source (closer to min distance = max vol)
 		void set3dMinMaxDistance(float aMinDistance, float aMaxDistance);

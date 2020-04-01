@@ -18,8 +18,7 @@ _name(name)
 QEvent::~QEvent()
 { }
 
-EventQueue::EventQueue():
-_queue(&_allocator)
+EventQueue::EventQueue()
 { }
 
 EventQueue::~EventQueue()
@@ -29,12 +28,9 @@ EventQueue::~EventQueue()
 
 Own<QEvent> EventQueue::poll()
 {
-	return MakeOwn(_queue.pop());
-}
-
-QEvent* EventQueue::peek()
-{
-	return _queue.peek();
+	QEvent* event = nullptr;
+	_queue.try_dequeue(event);
+	return MakeOwn(event);
 }
 
 NS_DOROTHY_END

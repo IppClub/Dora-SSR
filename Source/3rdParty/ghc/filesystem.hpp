@@ -3922,8 +3922,8 @@ GHC_INLINE void last_write_time(const path& p, file_time_type new_time)
 GHC_INLINE void last_write_time(const path& p, file_time_type new_time, std::error_code& ec) noexcept
 {
     ec.clear();
-    auto d = new_time.time_since_epoch();
 #ifdef GHC_OS_WINDOWS
+    auto d = new_time.time_since_epoch();
     std::shared_ptr<void> file(::CreateFileW(p.wstring().c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL), ::CloseHandle);
     FILETIME ft;
     auto tt = std::chrono::duration_cast<std::chrono::microseconds>(d).count() * 10 + 116444736000000000;
@@ -3935,6 +3935,7 @@ GHC_INLINE void last_write_time(const path& p, file_time_type new_time, std::err
 #elif defined(GHC_OS_MACOS)
 #ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
 #if __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
+    auto d = new_time.time_since_epoch();
     struct ::stat fs;
     if (::stat(p.c_str(), &fs) == 0) {
         struct ::timeval tv[2];
@@ -3949,6 +3950,7 @@ GHC_INLINE void last_write_time(const path& p, file_time_type new_time, std::err
     ec = detail::make_system_error();
     return;
 #else
+    auto d = new_time.time_since_epoch();
     struct ::timespec times[2];
     times[0].tv_sec = 0;
     times[0].tv_nsec = UTIME_OMIT;
@@ -3961,6 +3963,7 @@ GHC_INLINE void last_write_time(const path& p, file_time_type new_time, std::err
 #endif
 #endif
 #else
+    auto d = new_time.time_since_epoch();
     struct ::timespec times[2];
     times[0].tv_sec = 0;
     times[0].tv_nsec = UTIME_OMIT;

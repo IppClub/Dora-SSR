@@ -1,6 +1,6 @@
 /*
-TED/SID module for SoLoud audio engine
-Copyright (c) 2013-2015 Jari Komppa
+SoLoud audio engine
+Copyright (c) 2020 Jari Komppa
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -22,52 +22,52 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#ifndef TEDSID_H
-#define TEDSID_H
+#ifndef SOLOUD_NOISE_H
+#define SOLOUD_NOISE_H
 
 #include "soloud.h"
-
-class SIDsound;
-class TED;
+#include "soloud_misc.h"
 
 namespace SoLoud
 {
-	class TedSid;
-	class File;
+	class Noise;
 
-	class TedSidInstance : public AudioSourceInstance
+	class NoiseInstance : public AudioSourceInstance
 	{
-		TedSid *mParent;		
-		SIDsound *mSID;
-		TED *mTED;
-		unsigned int mSampleCount;
-		int mNextReg;
-		int mNextVal;
-		int mRegValues[128];
 	public:
+		NoiseInstance(Noise *aParent);
+		~NoiseInstance();
 
-		TedSidInstance(TedSid *aParent);
-		~TedSidInstance();
 		virtual unsigned int getAudio(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize);
-		virtual void tick();
 		virtual bool hasEnded();
-		virtual float getInfo(unsigned int aInfoKey);
+
+	public:
+		float mOctaveScale[10];
+	    Misc::Prg mPrg;
 	};
 
-	class TedSid : public AudioSource
+	class Noise : public AudioSource
 	{
 	public:
-		File *mFile;
-		int mModel;
-		bool mFileOwned;
-		TedSid();
-		~TedSid();
-		result load(const char *aFilename);
-		result loadToMem(const char *aFilename);
-		result loadMem(const unsigned char *aMem, unsigned int aLength, bool aCopy = false, bool aTakeOwnership = true);
-		result loadFileToMem(File *aFile);
-		result loadFile(File *aFile);
+
+		enum NOISETYPES
+		{
+			WHITE = 0,
+			PINK,
+			BROWNISH,
+			BLUEISH
+		};
+
+		Noise();
+
+		void setOctaveScale(float aOct0, float aOct1, float aOct2, float aOct3, float aOct4, float aOct5, float aOct6, float aOct7, float aOct8, float aOct9);
+		void setType(int aType);
+
+		virtual ~Noise();
+		
+	public:
 		virtual AudioSourceInstance *createInstance();
+		float mOctaveScale[10];
 	};
 };
 

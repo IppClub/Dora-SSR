@@ -2,7 +2,7 @@
 #include "Basic/Application.h"
 
 #if BX_PLATFORM_IOS
-#import <QuartzCore/CAEAGLLayer.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 NS_DOROTHY_BEGIN
 void Application::updateWindowSize()

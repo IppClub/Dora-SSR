@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "bx/spscqueue.h"
+#include "Other/concurrentqueue.h"
 #include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
@@ -107,7 +107,7 @@ public:
 	void post(String name, Args&& ...args)
 	{
 		auto event = new QEventArgs<special_decay_t<Args>...>(name, std::forward<Args>(args)...);
-		_queue.push(event);
+		_queue.enqueue(event);
 	}
 
 	/** @brief Try get a posted event and consume it,
@@ -116,14 +116,8 @@ public:
 	 */
 	Own<QEvent> poll();
 
-	/** @brief Try get a posted event and not consume it,
-	 for consumer thread use.
-	 Return null item if there is no event posted.
-	 */
-	QEvent* peek();
 private:
-	bx::DefaultAllocator _allocator;
-	bx::SpScUnboundedQueueT<QEvent> _queue;
+	moodycamel::ConcurrentQueue<QEvent*> _queue;
 };
 
 NS_DOROTHY_END

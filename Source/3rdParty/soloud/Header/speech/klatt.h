@@ -1,7 +1,7 @@
 #ifndef KLATT_H
 #define KLATT_H
 
-#include "speech/resonator.h"
+#include "resonator.h"
 
 #define CASCADE_PARALLEL      1
 #define ALL_PARALLEL          2
