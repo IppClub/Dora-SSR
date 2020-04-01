@@ -15,7 +15,7 @@
 #ifndef BGFX_DEFINES_H_HEADER_GUARD
 #define BGFX_DEFINES_H_HEADER_GUARD
 
-#define BGFX_API_VERSION UINT32_C(103)
+#define BGFX_API_VERSION UINT32_C(104)
 
 /**
  * Color RGB/alpha/depth write. When it's not specified write will be disabled.
@@ -258,6 +258,7 @@
  * on a finer grain.
  *
  */
+#define BGFX_DISCARD_NONE                   UINT8_C(0x00) //!< Discard nothing
 #define BGFX_DISCARD_INDEX_BUFFER           UINT8_C(0x01) //!< Discard only Index Buffer
 #define BGFX_DISCARD_VERTEX_STREAMS         UINT8_C(0x02) //!< Discard only Vertex Streams
 #define BGFX_DISCARD_TEXTURE_SAMPLERS       UINT8_C(0x04) //!< Discard only texture samplers

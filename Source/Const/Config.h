@@ -67,6 +67,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 /** @brief Use alternative file system implementation
  due to the Android NDK issue #609
 */
-#if BX_PLATFORM_ANDROID
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 	#define DORA_FILESYSTEM_ALTER
 #endif

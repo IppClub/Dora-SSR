@@ -1,6 +1,6 @@
 /*
-TED/SID module for SoLoud audio engine
-Copyright (c) 2013-2015 Jari Komppa
+AY module for SoLoud audio engine
+Copyright (c) 2020 Jari Komppa
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -22,46 +22,38 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#ifndef TEDSID_H
-#define TEDSID_H
+#ifndef AY_H
+#define AY_H
 
 #include "soloud.h"
 
-class SIDsound;
-class TED;
+class ChipPlayer;
 
 namespace SoLoud
 {
-	class TedSid;
+    class Ay;
 	class File;
-
-	class TedSidInstance : public AudioSourceInstance
+	class AyInstance : public AudioSourceInstance
 	{
-		TedSid *mParent;		
-		SIDsound *mSID;
-		TED *mTED;
-		unsigned int mSampleCount;
-		int mNextReg;
-		int mNextVal;
-		int mRegValues[128];
+		Ay *mParent;
+		ChipPlayer *mChip;
 	public:
 
-		TedSidInstance(TedSid *aParent);
-		~TedSidInstance();
+		AyInstance(Ay *aParent);
+		~AyInstance();
 		virtual unsigned int getAudio(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize);
-		virtual void tick();
 		virtual bool hasEnded();
+		virtual result rewind();
 		virtual float getInfo(unsigned int aInfoKey);
 	};
 
-	class TedSid : public AudioSource
+	class Ay : public AudioSource
 	{
 	public:
 		File *mFile;
-		int mModel;
 		bool mFileOwned;
-		TedSid();
-		~TedSid();
+		Ay();
+		~Ay();
 		result load(const char *aFilename);
 		result loadToMem(const char *aFilename);
 		result loadMem(const unsigned char *aMem, unsigned int aLength, bool aCopy = false, bool aTakeOwnership = true);

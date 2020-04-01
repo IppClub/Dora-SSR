@@ -71,28 +71,34 @@ namespace SoLoud
 	// ALSA back-end initialization call
 	result alsa_init(SoLoud::Soloud *aSoloud, unsigned int aFlags = Soloud::CLIP_ROUNDOFF, unsigned int aSamplerate = 44100, unsigned int aBuffer = 2048, unsigned int aChannels = 2);
 
+	// JACK back-end initialization call
+	result jack_init(SoLoud::Soloud *aSoloud, unsigned int aFlags = Soloud::CLIP_ROUNDOFF, unsigned int aSamplerate = 44100, unsigned int aBuffer = 2048, unsigned int aChannels = 2);
+
+	// MiniAudio back-end initialization call
+	result miniaudio_init(SoLoud::Soloud* aSoloud, unsigned int aFlags = Soloud::CLIP_ROUNDOFF, unsigned int aSamplerate = 44100, unsigned int aBuffer = 2048, unsigned int aChannels = 2);
+
+	// nosound back-end initialization call
+	result nosound_init(SoLoud::Soloud* aSoloud, unsigned int aFlags = Soloud::CLIP_ROUNDOFF, unsigned int aSamplerate = 44100, unsigned int aBuffer = 2048, unsigned int aChannels = 2);
+
 	// null driver back-end initialization call
 	result null_init(SoLoud::Soloud *aSoloud, unsigned int aFlags = Soloud::CLIP_ROUNDOFF, unsigned int aSamplerate = 44100, unsigned int aBuffer = 2048, unsigned int aChannels = 2);
 
-	// Deinterlace samples in a buffer. From 12121212 to 11112222
-	void deinterlace_samples_float(const float *aSourceBuffer, float *aDestBuffer, unsigned int aSamples, unsigned int aChannels);
-
 	// Interlace samples in a buffer. From 11112222 to 12121212
-	void interlace_samples_float(const float *aSourceBuffer, float *aDestBuffer, unsigned int aSamples, unsigned int aChannels);
+	void interlace_samples_float(const float *aSourceBuffer, float *aDestBuffer, unsigned int aSamples, unsigned int aChannels, unsigned int aStride);
 
 	// Convert to 16-bit and interlace samples in a buffer. From 11112222 to 12121212
-	void interlace_samples_s16(const float *aSourceBuffer, short *aDestBuffer, unsigned int aSamples, unsigned int aChannels);
+	void interlace_samples_s16(const float *aSourceBuffer, short *aDestBuffer, unsigned int aSamples, unsigned int aChannels, unsigned int aStride);
 };
 
 #define FOR_ALL_VOICES_PRE \
 		handle *h_ = NULL; \
 		handle th_[2] = { aVoiceHandle, 0 }; \
-		lockAudioMutex(); \
-		h_ = voiceGroupHandleToArray(aVoiceHandle); \
+		lockAudioMutex_internal(); \
+		h_ = voiceGroupHandleToArray_internal(aVoiceHandle); \
 		if (h_ == NULL) h_ = th_; \
 		while (*h_) \
 		{ \
-			int ch = getVoiceFromHandle(*h_); \
+			int ch = getVoiceFromHandle_internal(*h_); \
 			if (ch != -1)  \
 			{
 
@@ -100,12 +106,12 @@ namespace SoLoud
 			} \
 			h_++; \
 		} \
-		unlockAudioMutex();
+		unlockAudioMutex_internal();
 
 #define FOR_ALL_VOICES_PRE_3D \
 		handle *h_ = NULL; \
 		handle th_[2] = { aVoiceHandle, 0 }; \
-		h_ = voiceGroupHandleToArray(aVoiceHandle); \
+		h_ = voiceGroupHandleToArray_internal(aVoiceHandle); \
 		if (h_ == NULL) h_ = th_; \
 				while (*h_) \
 						{ \
@@ -114,6 +120,40 @@ namespace SoLoud
 						{
 
 #define FOR_ALL_VOICES_POST_3D \
+						} \
+			h_++; \
+						} 
+
+#define FOR_ALL_VOICES_PRE_EXT \
+		handle *h_ = NULL; \
+		handle th_[2] = { aVoiceHandle, 0 }; \
+		mSoloud->lockAudioMutex_internal(); \
+		h_ = mSoloud->voiceGroupHandleToArray_internal(aVoiceHandle); \
+		if (h_ == NULL) h_ = th_; \
+		while (*h_) \
+		{ \
+			int ch = mSoloud->getVoiceFromHandle_internal(*h_); \
+			if (ch != -1)  \
+			{
+
+#define FOR_ALL_VOICES_POST_EXT \
+			} \
+			h_++; \
+		} \
+		mSoloud->unlockAudioMutex_internal();
+
+#define FOR_ALL_VOICES_PRE_3D_EXT \
+		handle *h_ = NULL; \
+		handle th_[2] = { aVoiceHandle, 0 }; \
+		h_ = mSoloud->voiceGroupHandleToArray(aVoiceHandle); \
+		if (h_ == NULL) h_ = th_; \
+				while (*h_) \
+						{ \
+			int ch = (*h_ & 0xfff) - 1; \
+			if (ch != -1 && mSoloud->m3dData[ch].mHandle == *h_)  \
+						{
+
+#define FOR_ALL_VOICES_POST_3D_EXT \
 						} \
 			h_++; \
 						} 
