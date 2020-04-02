@@ -21,8 +21,9 @@ jobs:
         - extra-google-m2repository
         - extra-android-m2repository
       licenses:
-        - 'android-sdk-license-.+'
-        - '.+'
+        - android-sdk-preview-license-.+
+        - android-sdk-license-.+
+        - google-gdk-license-.+
     before_install:
       - sudo apt-get install ant
       - sudo apt-get install lua5.1
@@ -31,6 +32,7 @@ jobs:
       - cd ./Tools/tolua++
       - lua tolua++.lua
     install:
+      - yes | sdkmanager --update
       - yes | sdkmanager "ndk;21.0.6113669"
       - yes | sdkmanager "cmake;3.10.2.4988404"
       - yes | sdkmanager "lldb;3.1"
