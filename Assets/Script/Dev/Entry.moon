@@ -158,8 +158,6 @@ doCompile = (minify)->
 	thread ->
 		wait -> fileCount == totalFiles
 		if minify
-			{:ParseLua} = require "luaminify.ParseLua"
-			FormatMini = require "luaminify.FormatMini"
 			inputPath = Path Content.assetPath,"Script"
 			outputPath = Path Content.writablePath,"Script"
 			luaFiles = getAllFiles inputPath,{"lua"}
@@ -167,15 +165,15 @@ doCompile = (minify)->
 				table.insert luaFiles,file
 			paths = {Path\getPath(file),true for file in *luaFiles}
 			Content\mkdir Path outputPath,path for path in pairs paths
+			import "luaminify.FormatMini"
 			for file in *luaFiles
 				sourceCodes = Content\loadAsync file
-				st, ast = ParseLua sourceCodes
-				if not st
-					table.insert errors,"Minify errors in #{file}.\n#{ast}"
-				else
-					codes = FormatMini ast
-					Content\saveAsync Path(outputPath,file),codes
+				res,err = FormatMini sourceCodes
+				if res
+					Content\saveAsync Path(outputPath,file),res
 					print "Minify: #{file}"
+				else
+					table.insert errors,"Minify errors in #{file}.\n#{err}"
 		print err for err in *errors
 		print "Build complete!"
 		building = false

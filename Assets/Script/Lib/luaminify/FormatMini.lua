@@ -335,9 +335,9 @@ local function Format_Mini(ast)
 			out = joinStatementsSafe(out, formatStatlist(statement.Body))
 			out = joinStatementsSafe(out, "end")
 		elseif statement.AstType == 'LabelStatement' then
-			out = getIndentation() .. "::" .. statement.Label .. "::"
+			out = joinStatementsSafe(out, "::" .. statement.Label .. "::")
 		elseif statement.AstType == 'GotoStatement' then
-			out = getIndentation() .. "goto " .. statement.Label
+			out = joinStatementsSafe(out, "goto " .. statement.Label)
 		elseif statement.AstType == 'Comment' then
 			-- ignore
 		elseif statement.AstType == 'Eof' then
@@ -362,4 +362,11 @@ local function Format_Mini(ast)
 	return formatStatlist(ast)
 end
 
-return Format_Mini
+return function(src)
+	local st, ast = ParseLua(src)
+	if st then
+		return Format_Mini(ast)
+	else
+		return nil, ast
+	end
+end

@@ -5055,6 +5055,9 @@ static VGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int 
 	SharedView.pushName(Slice::Empty, [&]()
 	{
 		bgfx::ViewId viewId = SharedView.getId();
+		bgfx::setViewClear(viewId,
+			BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+			Color::Black.toRGBA());
 		NVGcontext* context = nvgCreate(2, viewId);
 		NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
 			s_cast<int>(width * scale),
