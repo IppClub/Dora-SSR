@@ -2,14 +2,14 @@ jobs:
   include:
   - language: cpp
     os: osx
-    osx_image: xcode11.3
+    osx_image: xcode11.4
     before_install: Tools/tolua++/build.sh
     script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
   - language: cpp
     os: osx
-    osx_image: xcode11.3
+    osx_image: xcode11.4
     before_install: Tools/tolua++/build.sh
-    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator13.2
+    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Simulator -arch x86_64 -sdk iphonesimulator13.4
   - language: android
     dist: trusty
     android:
