@@ -16,6 +16,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <ctime>
 #include "Other/utf8.h"
 
+#define DORA_VERSION "1.0.2"_slice
+
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
 static string g_androidAPKPath;
@@ -502,11 +504,12 @@ const Slice Application::getPlatform() const
 
 const Slice Application::getVersion() const
 {
-	static string version = fmt::format("{}.{}.{}",
-		DORA_MAJOR_VERSION,
-		DORA_MINOR_VERSION,
-		DORA_PATCHLEVEL);
-	return version;
+	return DORA_VERSION;
+}
+
+bool Application::isDebugging() const
+{
+	return DORA_DEBUG ? true : false;
 }
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
