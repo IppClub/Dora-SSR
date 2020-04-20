@@ -5060,11 +5060,11 @@ static VGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int 
 			Color::Black.toRGBA());
 		NVGcontext* context = nvgCreate(2, viewId);
 		NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
-			s_cast<int>(width * scale),
-			s_cast<int>(height * scale), 0);
+			s_cast<int32_t>(width * scale),
+			s_cast<int32_t>(height * scale), 0);
 		nvgluSetViewFramebuffer(viewId, framebuffer);
 		nvgluBindFramebuffer(framebuffer);
-		nvgBeginFrame(context, width, height, scale);
+		nvgBeginFrame(context, s_cast<float>(width), s_cast<float>(height), scale);
 		switch (bgfx::getCaps()->rendererType)
 		{
 			case bgfx::RendererType::OpenGL:

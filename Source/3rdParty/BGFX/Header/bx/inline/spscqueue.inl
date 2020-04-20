@@ -38,7 +38,7 @@ namespace bx
 		while (m_first != m_divider)
 		{
 			Node* node = m_first;
-			atomicExchangePtr( (void**)&m_first, m_first->m_next);
+			m_first = m_first->m_next;
 			BX_DELETE(m_allocator, node);
 		}
 	}

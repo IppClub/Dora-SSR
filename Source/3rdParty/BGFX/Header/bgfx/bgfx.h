@@ -609,11 +609,14 @@ namespace bgfx
 	{
 		PlatformData();
 
-		void* ndt;          //!< Native display type.
-		void* nwh;          //!< Native window handle.
-		void* context;      //!< GL context, or D3D device.
-		void* backBuffer;   //!< GL backbuffer, or D3D render target view.
-		void* backBufferDS; //!< Backbuffer depth/stencil.
+		void* ndt;          //!< Native display type (*nix specific).
+		void* nwh;          //!< Native window handle. If `NULL` bgfx will create headless
+		                    ///  context/device if renderer API supports it.
+		void* context;      //!< GL context, or D3D device. If `NULL`, bgfx will create context/device.
+		void* backBuffer;   //!< GL back-buffer, or D3D render target view. If `NULL` bgfx will
+		                    ///  create back-buffer color surface.
+		void* backBufferDS; //!< Backbuffer depth/stencil. If `NULL` bgfx will create back-buffer
+		                    ///  depth/stencil surface.
 	};
 
 	/// Backbuffer resolution and reset parameters.
@@ -1227,7 +1230,8 @@ namespace bgfx
 		/// @param[in] _handle Vertex buffer.
 		/// @param[in] _startVertex First vertex to render.
 		/// @param[in] _numVertices Number of vertices to render.
-		/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer.
+		/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is
+		///   used, vertex layout used for creation of vertex buffer will be used.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_set_vertex_buffer`.
 		///
@@ -1257,7 +1261,8 @@ namespace bgfx
 		/// @param[in] _handle Dynamic vertex buffer.
 		/// @param[in] _startVertex First vertex to render.
 		/// @param[in] _numVertices Number of vertices to render.
-		/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer.
+		/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is
+		///   used, vertex layout used for creation of vertex buffer will be used.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_set_dynamic_vertex_buffer`.
 		///
@@ -1287,7 +1292,8 @@ namespace bgfx
 		/// @param[in] _tvb Transient vertex buffer.
 		/// @param[in] _startVertex First vertex to render.
 		/// @param[in] _numVertices Number of vertices to render.
-		/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer.
+		/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is
+		///   used, vertex layout used for creation of vertex buffer will be used.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_set_transient_vertex_buffer`.
 		///
@@ -1391,12 +1397,13 @@ namespace bgfx
 			);
 
 		/// Submit an empty primitive for rendering. Uniforms and draw state
-		/// will be applied but no geometry will be submitted.
+		/// will be applied but no geometry will be submitted. Useful in cases
+		/// when no other draw/compute primitive is submitted to view, but it's
+		/// desired to execute clear view.
 		///
 		/// These empty draw calls will sort before ordinary draw calls.
 		///
 		/// @param[in] _id View id.
-		///
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_touch`.
 		///
@@ -1407,8 +1414,7 @@ namespace bgfx
 		/// @param[in] _id View id.
 		/// @param[in] _program Program.
 		/// @param[in] _depth Depth for sorting.
-		/// @param[in] _flags Which states to discard for next draw. See BGFX_DISCARD_
-		///   call submit.
+		/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_submit`.
 		///
@@ -1416,7 +1422,7 @@ namespace bgfx
 			  ViewId _id
 			, ProgramHandle _program
 			, uint32_t _depth = 0
-			, uint8_t _flags = BGFX_DISCARD_ALL
+			, uint8_t _flags  = BGFX_DISCARD_ALL
 			);
 
 		/// Submit primitive with occlusion query for rendering.
@@ -1425,8 +1431,7 @@ namespace bgfx
 		/// @param[in] _program Program.
 		/// @param[in] _occlusionQuery Occlusion query.
 		/// @param[in] _depth Depth for sorting.
-		/// @param[in] _flags Which states to discard for next draw. See BGFX_DISCARD_
-		///   call submit.
+		/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_submit_occlusion_query`.
 		///
@@ -1435,7 +1440,7 @@ namespace bgfx
 			, ProgramHandle _program
 			, OcclusionQueryHandle _occlusionQuery
 			, uint32_t _depth = 0
-			, uint8_t _flags = BGFX_DISCARD_ALL
+			, uint8_t _flags  = BGFX_DISCARD_ALL
 			);
 
 		/// Submit primitive for rendering with index and instance data info from
@@ -1447,8 +1452,7 @@ namespace bgfx
 		/// @param[in] _start First element in indirect buffer.
 		/// @param[in] _num Number of dispatches.
 		/// @param[in] _depth Depth for sorting.
-		/// @param[in] _flags Which states to discard for next draw. See BGFX_DISCARD_
-		///   call submit.
+		/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_submit_indirect`.
 		///
@@ -1557,6 +1561,7 @@ namespace bgfx
 		/// @param[in] _numX Number of groups X.
 		/// @param[in] _numY Number of groups Y.
 		/// @param[in] _numZ Number of groups Z.
+		/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_dispatch`.
 		///
@@ -1566,6 +1571,7 @@ namespace bgfx
 			, uint32_t _numX = 1
 			, uint32_t _numY = 1
 			, uint32_t _numZ = 1
+			, uint8_t _flags = BGFX_DISCARD_ALL
 			);
 
 		/// Dispatch compute indirect.
@@ -1575,6 +1581,7 @@ namespace bgfx
 		/// @param[in] _indirectHandle Indirect buffer.
 		/// @param[in] _start First element in indirect buffer.
 		/// @param[in] _num Number of dispatches.
+		/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 		///
 		/// @attention C99 equivalent is `bgfx_encoder_dispatch_indirect`.
 		///
@@ -1583,7 +1590,8 @@ namespace bgfx
 			, ProgramHandle _handle
 			, IndirectBufferHandle _indirectHandle
 			, uint16_t _start = 0
-			, uint16_t _num = 1
+			, uint16_t _num   = 1
+			, uint8_t _flags  = BGFX_DISCARD_ALL
 			);
 
 		/// Discard all previously set state for draw or compute call.
@@ -3625,7 +3633,8 @@ namespace bgfx
 	/// @param[in] _handle Vertex buffer.
 	/// @param[in] _startVertex First vertex to render.
 	/// @param[in] _numVertices Number of vertices to render.
-	/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer.
+	/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is
+	///   used, vertex layout used for creation of vertex buffer will be used.
 	///
 	/// @attention C99 equivalent is `bgfx_set_vertex_buffer`.
 	///
@@ -3655,7 +3664,8 @@ namespace bgfx
 	/// @param[in] _handle Dynamic vertex buffer.
 	/// @param[in] _startVertex First vertex to render.
 	/// @param[in] _numVertices Number of vertices to render.
-	/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer.
+	/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is
+	///   used, vertex layout used for creation of vertex buffer will be used.
 	///
 	/// @attention C99 equivalent is `bgfx_set_dynamic_vertex_buffer`.
 	///
@@ -3685,7 +3695,8 @@ namespace bgfx
 	/// @param[in] _tvb Transient vertex buffer.
 	/// @param[in] _startVertex First vertex to render.
 	/// @param[in] _numVertices Number of vertices to render.
-	/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer.
+	/// @param[in] _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is
+	///   used, vertex layout used for creation of vertex buffer will be used.
 	///
 	/// @attention C99 equivalent is `bgfx_set_transient_vertex_buffer`.
 	///
@@ -3804,8 +3815,7 @@ namespace bgfx
 	/// @param[in] _id View id.
 	/// @param[in] _program Program.
 	/// @param[in] _depth Depth for sorting.
-	/// @param[in] _flags Which states to discard for next draw. See BGFX_DISCARD_
-	///   call submit.
+	/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 	///
 	/// @attention C99 equivalent is `bgfx_submit`.
 	///
@@ -3813,7 +3823,7 @@ namespace bgfx
 		  ViewId _id
 		, ProgramHandle _program
 		, uint32_t _depth = 0
-		, uint8_t _flags = BGFX_DISCARD_ALL
+		, uint8_t _flags  = BGFX_DISCARD_ALL
 		);
 
 	/// Submit primitive with occlusion query for rendering.
@@ -3822,8 +3832,7 @@ namespace bgfx
 	/// @param[in] _program Program.
 	/// @param[in] _occlusionQuery Occlusion query.
 	/// @param[in] _depth Depth for sorting.
-	/// @param[in] _flags Which states to discard for next draw. See BGFX_DISCARD_
-	///   call submit.
+	/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 	///
 	/// @attention C99 equivalent is `bgfx_submit_occlusion_query`.
 	///
@@ -3832,7 +3841,7 @@ namespace bgfx
 		, ProgramHandle _program
 		, OcclusionQueryHandle _occlusionQuery
 		, uint32_t _depth = 0
-		, uint8_t _flags = BGFX_DISCARD_ALL
+		, uint8_t _flags  = BGFX_DISCARD_ALL
 		);
 
 	/// Submit primitive for rendering with index and instance data info from
@@ -3844,8 +3853,7 @@ namespace bgfx
 	/// @param[in] _start First element in indirect buffer.
 	/// @param[in] _num Number of dispatches.
 	/// @param[in] _depth Depth for sorting.
-	/// @param[in] _flags Which states to discard for next draw. See BGFX_DISCARD_
-	///   call submit.
+	/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 	///
 	/// @attention C99 equivalent is `bgfx_submit_indirect`.
 	///
@@ -3854,9 +3862,9 @@ namespace bgfx
 		, ProgramHandle _program
 		, IndirectBufferHandle _indirectHandle
 		, uint16_t _start = 0
-		, uint16_t _num = 1
+		, uint16_t _num   = 1
 		, uint32_t _depth = 0
-		, uint8_t _flags = BGFX_DISCARD_ALL
+		, uint8_t _flags  = BGFX_DISCARD_ALL
 		);
 
 	/// Set compute index buffer.
@@ -3954,6 +3962,7 @@ namespace bgfx
 	/// @param[in] _numX Number of groups X.
 	/// @param[in] _numY Number of groups Y.
 	/// @param[in] _numZ Number of groups Z.
+	/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 	///
 	/// @attention C99 equivalent is `bgfx_dispatch`.
 	///
@@ -3963,6 +3972,7 @@ namespace bgfx
 		, uint32_t _numX = 1
 		, uint32_t _numY = 1
 		, uint32_t _numZ = 1
+		, uint8_t _flags = BGFX_DISCARD_ALL
 		);
 
 	/// Dispatch compute indirect.
@@ -3972,6 +3982,7 @@ namespace bgfx
 	/// @param[in] _indirectHandle Indirect buffer.
 	/// @param[in] _start First element in indirect buffer.
 	/// @param[in] _num Number of dispatches.
+	/// @param[in] _flags Discard or preserve states. See `BGFX_DISCARD_*`.
 	///
 	/// @attention C99 equivalent is `bgfx_dispatch_indirect`.
 	///
@@ -3980,7 +3991,8 @@ namespace bgfx
 		, ProgramHandle _handle
 		, IndirectBufferHandle _indirectHandle
 		, uint16_t _start = 0
-		, uint16_t _num = 1
+		, uint16_t _num   = 1
+		, uint8_t _flags  = BGFX_DISCARD_ALL
 		);
 
 	/// Discard all previously set state for draw or compute call.
