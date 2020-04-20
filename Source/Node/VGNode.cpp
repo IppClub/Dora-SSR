@@ -64,7 +64,7 @@ void VGNode::render(const function<void()>& func)
 			0x0);
 		nvgluSetViewFramebuffer(viewId, framebuffer);
 		nvgluBindFramebuffer(framebuffer);
-		nvgBeginFrame(context, s_cast<int>(_frameWidth), s_cast<int>(_frameHeight), _frameScale);
+		nvgBeginFrame(context, _frameWidth, _frameHeight, _frameScale);
 		nvg::BindContext(context);
 		switch (bgfx::getCaps()->rendererType)
 		{

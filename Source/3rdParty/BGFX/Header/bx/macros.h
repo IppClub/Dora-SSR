@@ -3,10 +3,12 @@
  * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
+#ifndef BX_H_HEADER_GUARD
+#	error "Do not include macros.h directly #include <bx/bx.h> instead."
+#endif // BX_H_HEADER_GUARD
+
 #ifndef BX_MACROS_H_HEADER_GUARD
 #define BX_MACROS_H_HEADER_GUARD
-
-#include "bx.h"
 
 ///
 #if BX_COMPILER_MSVC
@@ -39,12 +41,6 @@
 
 ///
 #define BX_FILE_LINE_LITERAL "" __FILE__ "(" BX_STRINGIZE(__LINE__) "): "
-
-///
-#define BX_ALIGN_MASK(_value, _mask) ( ( (_value)+(_mask) ) & ( (~0)&(~(_mask) ) ) )
-#define BX_ALIGN_16(_value) BX_ALIGN_MASK(_value, 0xf)
-#define BX_ALIGN_256(_value) BX_ALIGN_MASK(_value, 0xff)
-#define BX_ALIGN_4096(_value) BX_ALIGN_MASK(_value, 0xfff)
 
 ///
 #define BX_ALIGNOF(_type) __alignof(_type)

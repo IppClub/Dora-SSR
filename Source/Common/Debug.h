@@ -70,7 +70,7 @@ inline void LogPrint(const Slice& str)
 	#define AssertUnless(cond, ...) DORA_DUMMY
 #else
 	#define AssertIf(cond, ...) \
-		{ \
+		do { \
 			if (cond) \
 			{ \
 				Dorothy::LogPrint( \
@@ -79,9 +79,9 @@ inline void LogPrint(const Slice& str)
 				); \
 				DORA_ASSERT(!(cond)); \
 			} \
-		}
+		} while (false)
 	#define AssertUnless(cond, ...) \
-		{ \
+		do { \
 			if (!(cond)) \
 			{ \
 				Dorothy::LogPrint( \
@@ -90,7 +90,7 @@ inline void LogPrint(const Slice& str)
 				); \
 				DORA_ASSERT(cond); \
 			} \
-		}
+		} while (false)
 #endif
 
 NS_DOROTHY_END
