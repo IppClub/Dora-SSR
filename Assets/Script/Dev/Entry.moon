@@ -1,6 +1,8 @@
 Dorothy builtin.ImGui
 import "Utils" as {:Set}
 
+print "Dorothy SSR version: #{App.version}#{App.debugging and ', debugging' or ''}"
+
 debug.traceback = (err,level=1)->
 	with require("moonp").stp
 		.dump_locals = false

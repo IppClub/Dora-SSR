@@ -101,8 +101,10 @@ class Application
 	tolua_readonly tolua_property__common Size visualSize;
 	tolua_readonly tolua_property__common float deviceRatio;
 	tolua_readonly tolua_property__common String platform;
+	tolua_readonly tolua_property__common String version;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_readonly tolua_property__common Uint32 rand;
+	tolua_readonly tolua_property__bool bool debugging;
 	tolua_property__common unsigned int seed;
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
