@@ -237,8 +237,7 @@ enterDemoEntry = (name)->
 			Director.entry\addChild Node!
 		currentEntryName = name
 	),(msg)->
-		msg = debug.traceback msg
-		print msg
+		print debug.traceback msg
 		allClear!
 
 showEntry = false
@@ -272,7 +271,7 @@ threadLoop ->
 		if not footerFocus
 			footerFocus = true
 			SetNextWindowFocus!
-		PushStyleColor "WindowBg", Color(0x0), ->
+		return true if PushStyleColor "WindowBg", Color(0x0), ->
 			Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoSavedSettings", ->
 				Columns 2,false
 				if showFooter
@@ -288,7 +287,7 @@ threadLoop ->
 	return unless showFooter
 	SetNextWindowSize Vec2(width,60)
 	SetNextWindowPos Vec2(0,height-60)
-	Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
+	return true if Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
 		Separator!
 		_, showStats = Checkbox "Stats", showStats
 		SameLine!
@@ -296,7 +295,7 @@ threadLoop ->
 		SameLine!
 		if isInEntry
 			OpenPopup "build" if Button "Build", Vec2(70,30)
-			BeginPopup "build", ->
+			return true if BeginPopup "build", ->
 				doCompile false if Selectable "Compile"
 				Separator!
 				doCompile true if Selectable "Minify"
@@ -336,12 +335,12 @@ threadLoop ->
 	{:width,:height} = App.visualSize
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2(width,53)
-	PushStyleColor "TitleBgActive", Color(0xcc000000), ->
+	return true if PushStyleColor "TitleBgActive", Color(0xcc000000), ->
 		Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
 			Separator!
 	SetNextWindowPos Vec2(0,53)
 	SetNextWindowSize Vec2(width,height-107)
-	PushStyleColor "WindowBg",Color(0x0), ->
+	return true if PushStyleColor "WindowBg",Color(0x0), ->
 		Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
 			TextColored Color(0xff00ffff), "Game Demos"
 			Columns math.max(math.floor(width/200),1), false

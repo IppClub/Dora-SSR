@@ -108,14 +108,10 @@ setmetatable(Routine,
 	end,
 })
 
-local function traceback(err)
-	return debug.traceback(err,1)
-end
-
 Director.postScheduler:schedule(function()
 	local i,count = 1,#Routine
 	while i <= count do
-		local success,result = xpcall(Routine[i],traceback)
+		local success,result = xpcall(Routine[i],debug.traceback)
 		if (success and result) or (not success) then
 			Routine[i] = Routine[count]
 			table_remove(Routine,count)
@@ -419,11 +415,6 @@ end
 -- ImGui
 local ImGui = builtin.ImGui
 
-local function traceback(msg)
-	msg = debug.traceback(msg)
-	print(msg)
-end
-
 local function pairCallA(beginFunc, endFunc)
 	return function(...)
 		local args = {...}
@@ -432,9 +423,17 @@ local function pairCallA(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		if beginFunc(unpack(args)) then
-			xpcall(callFunc, traceback)
+			local success,result = xpcall(callFunc,debug.traceback)
+			endFunc()
+			if success then
+				return result
+			else
+				print(result)
+				return true
+			end
 		end
 		endFunc()
+		return false
 	end
 end
 
@@ -446,9 +445,16 @@ local function pairCallB(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		if beginFunc(unpack(args)) then
-			xpcall(callFunc, traceback)
+			local success,result = xpcall(callFunc,debug.traceback)
 			endFunc()
+			if success then
+				return result
+			else
+				print(result)
+				return true
+			end
 		end
+		return false
 	end
 end
 
@@ -460,8 +466,14 @@ local function pairCallC(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		beginFunc(unpack(args))
-		xpcall(callFunc, traceback)
+		local success,result = xpcall(callFunc,debug.traceback)
 		endFunc()
+		if success then
+			return result
+		else
+			print(result)
+			return true
+		end
 	end
 end
 
