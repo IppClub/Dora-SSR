@@ -57,7 +57,7 @@ Texture2D* ClipCache::loadTexture(String clipStr)
 		ClipDef* clipDef = ClipCache::load(tokens.front());
 		return SharedTextureCache.load(clipDef->textureFile);
 	}
-	else if (clipStr.getFileExtension() == "clip"_slice)
+	else if (Path::getExt(clipStr) == "clip"_slice)
 	{
 		ClipDef* clipDef = SharedClipCache.load(clipStr);
 		return SharedTextureCache.load(clipDef->textureFile);
@@ -73,12 +73,12 @@ std::pair<ClipDef*,Slice> ClipCache::loadClip(String clipStr)
 	if (clipStr.toString().find('|') != string::npos)
 	{
 		auto tokens = clipStr.split("|");
-		AssertUnless(tokens.size() == 2 && tokens.front().getFileExtension() == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
+		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
 		ClipDef* clipDef = ClipCache::load(tokens.front());
 		Slice name = tokens.back();
 		return std::make_pair(clipDef, name);
 	}
-	else if (clipStr.getFileExtension() == "clip"_slice)
+	else if (Path::getExt(clipStr) == "clip"_slice)
 	{
 		ClipDef* clipDef = SharedClipCache.load(clipStr);
 		return std::make_pair(clipDef, Slice());
@@ -91,7 +91,7 @@ Sprite* ClipCache::loadSprite(String clipStr)
 	if (clipStr.toString().find('|') != string::npos)
 	{
 		auto tokens = clipStr.split("|");
-		AssertUnless(tokens.size() == 2 && tokens.front().getFileExtension() == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
+		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
 		ClipDef* clipDef = ClipCache::load(tokens.front());
 		Slice name = tokens.back();
 		auto it = clipDef->rects.find(name);
@@ -106,7 +106,7 @@ Sprite* ClipCache::loadSprite(String clipStr)
 			return Sprite::create(clipDef->textureFile);
 		}
 	}
-	else if (clipStr.getFileExtension() == "clip"_slice)
+	else if (Path::getExt(clipStr) == "clip"_slice)
 	{
 		ClipDef* clipDef = SharedClipCache.load(clipStr);
 		return Sprite::create(clipDef->textureFile);
@@ -128,9 +128,9 @@ bool ClipCache::isClip(String clipStr) const
 	if (clipStr.toString().find('|') != string::npos)
 	{
 		auto tokens = clipStr.split("|");
-		return tokens.size() == 2 && tokens.front().getFileExtension() == "clip"_slice;
+		return tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice;
 	}
-	else if (clipStr.getFileExtension() == "clip"_slice)
+	else if (Path::getExt(clipStr) == "clip"_slice)
 	{
 		return true;
 	}
@@ -139,7 +139,7 @@ bool ClipCache::isClip(String clipStr) const
 
 std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename)
 {
-	return std::shared_ptr<XmlParser<ClipDef>>(new Parser(ClipDef::create(), filename.getFilePath()));
+	return std::shared_ptr<XmlParser<ClipDef>>(new Parser(ClipDef::create(), Path::getPath(filename)));
 }
 
 void ClipCache::Parser::xmlSAX2Text(const char *s, size_t len)
@@ -156,7 +156,7 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 				switch (Xml::Clip::Dorothy(attrs[i].first[0]))
 				{
 					case Xml::Clip::Dorothy::File:
-						_item->textureFile = _path + Slice(attrs[++i]);
+						_item->textureFile = Path::concat({_path, Slice(attrs[++i])});
 						break;
 				}
 			}

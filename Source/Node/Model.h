@@ -93,31 +93,49 @@ private:
 	OwnVector<AnimationData> _group;
 };
 
-class Model : public Node
+class Playable : public Node
 {
 public:
-	PROPERTY(float, Speed);
-	PROPERTY(float, Recovery);
-	PROPERTY_BOOL(Loop);
+	Playable();
+	PROPERTY_VIRTUAL(float, Speed);
+	PROPERTY_VIRTUAL(float, Recovery);
+	PROPERTY_VIRTUAL_STRING(Look);
+	PROPERTY_VIRTUAL_BOOL(FaceRight);
+	virtual const string& getCurrentAnimationName() const = 0;
+	virtual Vec2 getKeyPoint(String name) const = 0;
+	virtual float play(String name, bool loop = false) = 0;
+	virtual void stop() = 0;
+	static Playable* create(String filename);
+protected:
+	bool _faceRight;
+	float _speed;
+	float _recoveryTime;
+	string _lookName;
+	DORA_TYPE_OVERRIDE(Playable);
+};
+
+class Model : public Playable
+{
+public:
 	PROPERTY_BOOL(Reversed);
-	PROPERTY_BOOL(FaceRight);
 	PROPERTY_READONLY(float, Duration);
-	PROPERTY_STRING(Look);
 	PROPERTY_READONLY_BOOL(Playing);
 	PROPERTY_READONLY_BOOL(Paused);
+	virtual void setSpeed(float var) override;
+	virtual void setRecovery(float var) override;
+	virtual void setFaceRight(bool var) override;
+	virtual void setLook(String var) override;
+	virtual const string& getCurrentAnimationName() const override;
+	virtual Vec2 getKeyPoint(String name) const override;
+	virtual float play(String name, bool loop = false) override;
+	virtual void stop() override;
 	bool hasAnimation(String name) const;
-	void setLook(int index);
-	float play(Uint32 index);
-	float play(String name);
 	void pause();
 	void resume();
-	void resume(Uint32 index);
-	void resume(String name);
+	void resume(String name, bool loop = false);
 	void reset();
-	void stop();
 	void updateTo(float eclapsed, bool reversed = false);
 	int getCurrentAnimationIndex() const;
-	string getCurrentAnimationName() const;
 	ModelDef* getModelDef() const;
 	Node* getNodeByName(String name);
 	bool eachNode(function<bool(Node* node)>) const;
@@ -141,6 +159,9 @@ protected:
 	Model(ModelDef* def);
 	Model(String filename);
 private:
+	void setLook(int index);
+	float play(Uint32 index, bool loop);
+	void resume(Uint32 index, bool loop);
 	typedef unordered_map<string,Node*> NodeMap;
 	void visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef);
 	void onResetAnimationEnd();
@@ -158,11 +179,8 @@ private:
 	bool _isPaused;
 	bool _isRecovering;
 	float _time;
-	float _speed;
-	float _recoveryTime;
 	int _currentLook;
 	int _currentAnimation;
-	const string& _currentLookName;
 	Node* _root;
 	Own<NodeMap> _nodeMap;
 	Ref<ModelDef> _modelDef;

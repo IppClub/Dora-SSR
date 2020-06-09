@@ -139,9 +139,6 @@ class Slice {
     return *(end() - 1);
   }
 
-  std::string getFilePath() const;
-  std::string getFileName() const;
-  std::string getFileExtension() const;
   std::string toLower() const;
   std::string toUpper() const;
   std::list<Slice> split(const Slice& delimer) const;

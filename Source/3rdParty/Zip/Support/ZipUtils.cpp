@@ -227,9 +227,9 @@ bool ZipFile::isFolder(const std::string& pathStr) const
 	return m_data->folderList.find(path) != m_data->folderList.end();
 }
 
-unsigned char* ZipFile::getFileData(const std::string& fileName, unsigned long* pSize)
+uint8_t* ZipFile::getFileData(const std::string& fileName, unsigned long* pSize)
 {
-	unsigned char* pBuffer = NULL;
+	uint8_t* pBuffer = nullptr;
 	if (pSize)
 	{
 		*pSize = 0;
@@ -252,7 +252,7 @@ unsigned char* ZipFile::getFileData(const std::string& fileName, unsigned long* 
 		nRet = unzOpenCurrentFile(m_data->zipFile);
 		BREAK_IF(UNZ_OK != nRet);
 
-		pBuffer = new unsigned char[fileInfo.uncompressed_size];
+		pBuffer = new uint8_t[fileInfo.uncompressed_size];
 		int nSize = unzReadCurrentFile(m_data->zipFile, pBuffer, (unsigned int)fileInfo.uncompressed_size);
 		AssertUnless(nSize == 0 || nSize == (int)fileInfo.uncompressed_size, "FileUtils: the file size is wrong.");
 

@@ -272,7 +272,7 @@ static const Color& GetColor(const Body& body)
     {
         return sleepColor;
     }
-	return activeColor;
+	 return activeColor;
 }
 
 static void Draw(DebugDraw* drawer, const Body& body)

@@ -179,12 +179,13 @@ int Application::run()
 {
 	Application::setSeed(s_cast<Uint32>(std::time(nullptr)));
 
-	if (SDL_Init(SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER) != 0)
+	if (SDL_Init(SDL_INIT_TIMER) != 0)
 	{
 		Error("SDL failed to initialize! {}", SDL_GetError());
 		return 1;
 	}
 	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
 
 	Uint32 windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
@@ -198,7 +199,7 @@ int Application::run()
 		_winWidth, _winHeight, windowFlags);
 	if (!_sdlWindow)
 	{
-		Error("SDL failed to create window!");
+		Error("SDL failed to create window! {}", SDL_GetError());
 		return 1;
 	}
 	Application::setupSdlWindow();

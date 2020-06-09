@@ -277,6 +277,16 @@ Texture2D* ParticleNode::getTexture() const
 	return _texture;
 }
 
+void ParticleNode::setDepthWrite(bool var)
+{
+	_flags.set(ParticleNode::DepthWrite, var);
+}
+
+bool ParticleNode::isDepthWrite() const
+{
+	return _flags.isOn(ParticleNode::DepthWrite);
+}
+
 void ParticleNode::addParticle()
 {
 	if (s_cast<Uint32>(_particles.size()) >= _particleDef->maxParticles)
@@ -392,15 +402,15 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 {
 	const Vec3& pos = particle.pos;
 	SpriteQuad quad = {
-		{0, 0, 0, 0, _texLeft, _texTop},
-		{0, 0, 0, 0, _texRight, _texTop},
+		{0, 0, 0, 0, _texRight, _texBottom},
 		{0, 0, 0, 0, _texLeft, _texBottom},
-		{0, 0, 0, 0, _texRight, _texBottom}
+		{0, 0, 0, 0, _texLeft, _texTop},
+		{0, 0, 0, 0, _texRight, _texTop}
 	};
+	quad.rb.abgr = Color(particle.color).toABGR();
+	quad.lb.abgr = Color(particle.color).toABGR();
 	quad.lt.abgr = Color(particle.color).toABGR();
 	quad.rt.abgr = Color(particle.color).toABGR();
-	quad.lb.abgr = Color(particle.color).toABGR();
-	quad.rb.abgr = Color(particle.color).toABGR();
 	SpriteQuad::Position quadPos = {
 		{0, 0, 0, 1},
 		{0, 0, 0, 1},
@@ -425,25 +435,25 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		float cy = x2 * sr + y2 * cr;
 		float dx = x1 * cr - y2 * sr;
 		float dy = x1 * sr + y2 * cr;
+		quadPos.rb.x = pos.x + bx;
+		quadPos.rb.y = pos.y + by;
+		quadPos.lb.x = pos.x + ax;
+		quadPos.lb.y = pos.y + ay;
 		quadPos.lt.x = pos.x + dx;
 		quadPos.lt.y = pos.y + dy;
 		quadPos.rt.x = pos.x + cx;
 		quadPos.rt.y = pos.y + cy;
-		quadPos.lb.x = pos.x + ax;
-		quadPos.lb.y = pos.y + ay;
-		quadPos.rb.x = pos.x + bx;
-		quadPos.rb.y = pos.y + by;
 	}
 	else
 	{
+		quadPos.rb.x = pos.x + halfSize;
+		quadPos.rb.y = pos.y - halfSize;
+		quadPos.lb.x = pos.x - halfSize;
+		quadPos.lb.y = pos.y - halfSize;
 		quadPos.lt.x = pos.x - halfSize;
 		quadPos.lt.y = pos.y + halfSize;
 		quadPos.rt.x = pos.x + halfSize;
 		quadPos.rt.y = pos.y + halfSize;
-		quadPos.lb.x = pos.x - halfSize;
-		quadPos.lb.y = pos.y - halfSize;
-		quadPos.rb.x = pos.x + halfSize;
-		quadPos.rb.y = pos.y - halfSize;
 	}
 	if (angleX || angleY)
 	{
@@ -451,18 +461,18 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		bx::mtxRotateXY(rotate, -bx::toRad(angleX), -bx::toRad(angleY));
 		Matrix transform;
 		bx::mtxMul(transform, rotate, SharedDirector.getViewProjection());
+		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
+		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
 		bx::vec4MulMtx(&quad.lt.x, &quadPos.lt.x, transform);
 		bx::vec4MulMtx(&quad.rt.x, &quadPos.rt.x, transform);
-		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
-		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
 	}
 	else
 	{
 		const Matrix& transform = SharedDirector.getViewProjection();
+		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
+		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
 		bx::vec4MulMtx(&quad.lt.x, &quadPos.lt.x, transform);
 		bx::vec4MulMtx(&quad.rt.x, &quadPos.rt.x, transform);
-		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
-		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
 	}
 	_quads.push_back(quad);
 }
@@ -608,10 +618,10 @@ void ParticleNode::render()
 		BGFX_STATE_MSAA | blendFunc.toValue());
 	if (_flags.isOn(ParticleNode::DepthWrite))
 	{
-		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
+		_renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
-	SharedSpriteRenderer.push(_quads[0], s_cast<Uint32>(_quads.size() * 4), _effect, _texture, _renderState);
+	SharedSpriteRenderer.push(_quads[0], _quads.size() * 4, _effect, _texture, _renderState);
 }
 
 NS_DOROTHY_END

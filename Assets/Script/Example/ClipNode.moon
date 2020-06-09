@@ -1,30 +1,29 @@
 Dorothy!
 
-StarVertices = (radius,line=false)->
+StarVertices = (radius, line=false)->
 	a = math.rad 36
 	c = math.rad 72
-	f = math.sin(a)*math.tan(c)+math.cos(a)
+	f = math.sin(a) * math.tan(c) + math.cos a
 	R = radius
-	r = R/f
-	return for i = 9,line and -1 or 0,-1
-		angle = i*a
-		cr = i%2 == 1 and r or R
-		Vec2 cr*math.sin(angle), cr*math.cos(angle)
+	r = R / f
+	return for i = 9, line and -1 or 0, -1
+		angle = i * a
+		cr = i % 2 == 1 and r or R
+		Vec2 cr * math.sin(angle), cr * math.cos angle
 
 -- example A
 
 maskA = with DrawNode!
-	\drawPolygon StarVertices(160)
+	\drawPolygon StarVertices 160
 
 targetA = with Model "Model/xiaoli.model"
 	.look = "happy"
-	.loop = true
 	.faceRight = true
-	\play "walk"
+	\play "walk", true
 	\runAction Sequence(
-		X 1.5,-200,200
+		X 1.5, -200, 200
 		Emit "Turn"
-		X 1.5,200,-200
+		X 1.5, 200, -200
 		Emit "Turn"
 	)
 	\slot "ActionEnd", (action)-> \runAction action
@@ -34,7 +33,7 @@ exampleA = with Node!
 	\addChild with ClipNode maskA
 		\addChild targetA
 		.inverted = true
-	\addChild with Line StarVertices(160,true),Color(0xff00ffff)
+	\addChild with Line StarVertices(160, true), Color 0xff00ffff
 		.visible = false
 	\addTo Director.entry
 	.visible = false
@@ -43,14 +42,16 @@ exampleA = with Node!
 
 maskB = with Model "Model/xiaoli.model"
 	.look = "happy"
-	.loop = true
 	.faceRight = true
-	\play "walk"
+	\play "walk", true
 
 targetB = with DrawNode!
-	\drawPolygon StarVertices(160)
-	\runAction Sequence X(1.5,-200,200),X(1.5,200,-200)
-	\slot "ActionEnd",(action)-> \runAction action
+	\drawPolygon StarVertices 160
+	\runAction Sequence(
+		X 1.5, -200, 200
+		X 1.5, 200, -200
+	)
+	\slot "ActionEnd", (action)-> \runAction action
 
 exampleB = with Node!
 	\addChild with ClipNode maskB
@@ -61,15 +62,15 @@ exampleB = with Node!
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 inverted = true
 withAlphaThreshold = true
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.visualSize
-		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-		SetNextWindowSize Vec2(240,180), "FirstUseEver"
+		:width, :height = App.visualSize
+		SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
+		SetNextWindowSize Vec2(240, 180), "FirstUseEver"
 		Begin "Clip Node", "NoResize|NoSavedSettings", ->
 			TextWrapped "Render children nodes with mask!"
 			changed, inverted = Checkbox "Inverted", inverted

@@ -336,11 +336,13 @@ bool Node_eachChild(Node* self, const LuaFunction<bool>& func)
 
 bool Cache::load(String filename)
 {
-	string ext = filename.getFileExtension();
+	string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
 		{
+			case "atlas"_hash:
+				return SharedAtlasCache.load(filename);
 			case "clip"_hash:
 				return SharedClipCache.load(filename);
 			case "frame"_hash:
@@ -360,9 +362,19 @@ bool Cache::load(String filename)
 			case "wav"_hash:
 			case "ogg"_hash:
 				return SharedSoundCache.load(filename);
-			default:
+			default: {
+				auto items = filename.split("|"_slice);
+				if (items.size() == 2)
+				{
+					if (Path::getExt(items.front()) == "skel"_slice &&
+						Path::getExt(items.back()) == "atlas"_slice)
+					{
+						return SharedSkeletonCache.load(items.front(), items.back());
+					}
+				}
 				Error("fail to load unsupported resource \"{}\".", filename);
 				break;
+			}
 		}
 	}
 	return false;
@@ -370,11 +382,24 @@ bool Cache::load(String filename)
 
 void Cache::loadAsync(String filename, const function<void()>& callback)
 {
-	string ext = filename.getFileExtension();
+	auto items = filename.split("|"_slice);
+	if (items.size() == 2)
+	{
+		if (Path::getExt(items.front()) == "skel"_slice &&
+			Path::getExt(items.back()) == "atlas"_slice)
+		{
+			SharedSkeletonCache.loadAsync(items.front(), items.back(), [callback](SkeletonData*) { callback(); });
+			return;
+		}
+	}
+	string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
 		{
+			case "atlas"_hash:
+				SharedAtlasCache.loadAsync(filename, [callback](Atlas*) { callback(); });
+				break;
 			case "clip"_hash:
 				SharedClipCache.loadAsync(filename, [callback](ClipDef*) { callback(); });
 				break;
@@ -410,7 +435,7 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 
 void Cache::update(String filename, String content)
 {
-	string ext = filename.getFileExtension();
+	string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
@@ -441,11 +466,15 @@ void Cache::update(String filename, Texture2D* texture)
 
 bool Cache::unload(String name)
 {
-	string ext = name.getFileExtension();
+	string ext = Path::getExt(name);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
 		{
+			case "atlas"_hash:
+				return SharedAtlasCache.unload(name);
+			case "skel"_hash:
+				return SharedSkeletonCache.unload(name);
 			case "clip"_hash:
 				return SharedClipCache.unload(name);
 			case "frame"_hash:
@@ -535,6 +564,12 @@ void Cache::removeUnused(String name)
 {
 	switch (Switch::hash(name))
 	{
+		case "atlas"_hash:
+			SharedAtlasCache.removeUnused();
+			break;
+		case "skel"_hash:
+			SharedSkeletonCache.removeUnused();
+			break;
 		case "Texture"_hash:
 			SharedTextureCache.removeUnused();
 			break;
@@ -829,11 +864,6 @@ tolua_lerror:
 }
 
 /* Model */
-
-Vec2 Model_getKey(Model* model, String key)
-{
-	return model->getModelDef()->getKeyPoint(key);
-}
 
 void __Model_getClipFile(lua_State* L, String filename)
 {

@@ -984,7 +984,7 @@ Slot* Node::slot(String name)
 	{
 		_signal = New<Signal>();
 	}
-	return _signal->addSlot(name, EventHandler());
+	return _signal->addSlot(name);
 }
 
 Slot* Node::slot(String name, const EventHandler& handler)
@@ -1481,6 +1481,9 @@ Slot::Slot(const EventHandler& handler):
 _handler(handler)
 { }
 
+Slot::Slot()
+{ }
+
 void Slot::add(const EventHandler& handler)
 {
 	_handler += handler;
@@ -1509,6 +1512,60 @@ void Slot::handle(Event* event)
 /* Signal */
 
 const size_t Signal::MaxSlotArraySize = 5;
+
+Slot* Signal::addSlot(String name)
+{
+	if (_slots)
+	{
+		auto it = _slots->find(name);
+		if (it != _slots->end())
+		{
+			return it->second;
+		}
+		else
+		{
+			Slot* slot = Slot::create();
+			(*_slots)[name] = slot;
+			return slot;
+		}
+	}
+	else if (_slotsArray)
+	{
+		for (auto& item : *_slotsArray)
+		{
+			if (name == item.first)
+			{
+				return item.second;
+			}
+		}
+		if (_slotsArray->size() < Signal::MaxSlotArraySize)
+		{
+			Slot* slot = Slot::create();
+			_slotsArray->push_back(
+				std::make_pair(name.toString(), MakeRef(slot)));
+			return slot;
+		}
+		else
+		{
+			_slots = New<unordered_map<string, Ref<Slot>>>();
+			for (auto& item : *_slotsArray)
+			{
+				(*_slots)[item.first] = item.second;
+			}
+			Slot* slot = Slot::create();
+			(*_slots)[name] = slot;
+			_slotsArray = nullptr;
+			return slot;
+		}
+	}
+	else
+	{
+		_slotsArray = New<vector<std::pair<string, Ref<Slot>>>>(MaxSlotArraySize);
+		Slot* slot = Slot::create();
+		_slotsArray->push_back(std::make_pair(name.toString(), MakeRef(slot)));
+		return slot;
+	}
+}
 
 Slot* Signal::addSlot(String name, const EventHandler& handler)
 {

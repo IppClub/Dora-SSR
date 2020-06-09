@@ -391,6 +391,250 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Animation.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AnimationState.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AnimationStateData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Atlas.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AtlasAttachmentLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Attachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AttachmentLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AttachmentTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Bone.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\BoneData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\BoundingBoxAttachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ClippingAttachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ColorTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ConstraintData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\CurveTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\DeformTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\DrawOrderTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Event.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\EventData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\EventTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Extension.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\IkConstraint.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\IkConstraintData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\IkConstraintTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Json.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\LinkedMesh.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\MathUtil.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\MeshAttachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathAttachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraint.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintMixTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintPositionTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintSpacingTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PointAttachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\RegionAttachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\RotateTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\RTTI.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ScaleTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ShearTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Skeleton.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonBinary.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonBounds.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonClipping.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonJson.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Skin.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Slot.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SlotData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SpineObject.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TextureLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Timeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TransformConstraint.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TransformConstraintData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TransformConstraintTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TranslateTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Triangulator.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TwoColorTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Updatable.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexAttachment.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexEffect.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\stb\stb.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -433,11 +677,13 @@
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\VGRender.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\AtlasCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\SkeletonCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
@@ -479,6 +725,7 @@
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
     <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Spine.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp" />
@@ -669,6 +916,87 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldConf.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\PlayRho.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Animation.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AnimationState.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AnimationStateData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Atlas.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AtlasAttachmentLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Attachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AttachmentLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AttachmentTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AttachmentType.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BlendMode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Bone.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BoneData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BoundingBoxAttachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ClippingAttachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Color.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ColorTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ConstraintData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ContainerUtil.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\CurveTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Debug.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\DeformTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\dll.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\DrawOrderTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Event.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\EventData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\EventTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Extension.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\HashMap.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\HasRendererObject.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\IkConstraint.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\IkConstraintData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\IkConstraintTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Json.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\LinkedMesh.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MathUtil.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MeshAttachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MixBlend.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MixDirection.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathAttachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraint.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintMixTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintPositionTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintSpacingTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PointAttachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Pool.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PositionMode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RegionAttachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RotateMode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RotateTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RTTI.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ScaleTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ShearTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Skeleton.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonBinary.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonBounds.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonClipping.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonJson.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Skin.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Slot.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SlotData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SpacingMode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\spine.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SpineObject.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SpineString.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TextureLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Timeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TimelineType.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraint.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraintData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraintTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformMode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TranslateTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Triangulator.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TwoColorTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Updatable.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Vector.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\VertexAttachment.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\VertexEffect.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Vertices.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_rect_pack.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_truetype.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h" />
@@ -692,11 +1020,13 @@
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
     <ClInclude Include="..\..\..\Source\Basic\VGRender.h" />
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
+    <ClInclude Include="..\..\..\Source\Cache\AtlasCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ClipCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\FrameCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ModelCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\SkeletonCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\SoundCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\XmlItemCache.h" />
@@ -737,6 +1067,7 @@
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
     <ClInclude Include="..\..\..\Source\Node\RenderTarget.h" />
+    <ClInclude Include="..\..\..\Source\Node\Spine.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
     <ClInclude Include="..\..\..\Source\Node\VGNode.h" />
     <ClInclude Include="..\..\..\Source\Physics\Body.h" />

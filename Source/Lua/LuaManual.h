@@ -85,7 +85,6 @@ Uint32 BlendFunc_get(String func);
 int Action_create(lua_State* L);
 
 /* Model */
-Vec2 Model_getKey(Model* model, String key);
 void __Model_getClipFile(lua_State* L, String filename);
 #define Model_getClipFile(filename) {__Model_getClipFile(tolua_S,filename);return 1;}
 void __Model_getLookNames(lua_State* L, String filename);

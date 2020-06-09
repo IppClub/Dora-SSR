@@ -305,6 +305,7 @@ public:
 	CREATE_FUNC(Slot);
 protected:
 	Slot(const EventHandler& handler);
+	Slot();
 private:
 	EventHandler _handler;
 	DORA_TYPE_OVERRIDE(Slot);
@@ -313,6 +314,7 @@ private:
 class Signal
 {
 public:
+	Slot* addSlot(String name);
 	Slot* addSlot(String name, const EventHandler& handler);
 	Listener* addGSlot(String name, const EventHandler& handler);
 	void removeSlot(String name, const EventHandler& handler);

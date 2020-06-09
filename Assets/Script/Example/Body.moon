@@ -51,7 +51,7 @@ Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.visualSize
+		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Body", "NoResize|NoSavedSettings", ->

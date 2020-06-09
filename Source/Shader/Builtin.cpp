@@ -27,7 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-static const bgfx::EmbeddedShader _DoraShaders[] =
+static const bgfx::EmbeddedShader doraShaders[] =
 {
 	BGFX_EMBEDDED_SHADER(vs_draw),
 	BGFX_EMBEDDED_SHADER(fs_draw),
@@ -44,6 +44,6 @@ static const bgfx::EmbeddedShader _DoraShaders[] =
 	BGFX_EMBEDDED_SHADER_END()
 };
 
-const bgfx::EmbeddedShader* DoraShaders = _DoraShaders;
+const bgfx::EmbeddedShader* DoraShaders = doraShaders;
 
 NS_DOROTHY_END

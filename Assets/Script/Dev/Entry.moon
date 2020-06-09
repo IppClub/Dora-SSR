@@ -93,7 +93,7 @@ LintMoonGlobals = (moonCodes,globals,file)->
 			else
 				findModule = false
 				for i,importItem in ipairs importItems
-					if importItem[1][name] ~= nil
+					if importItem[1][name]?
 						moduleName = "_module_#{i-1}"
 						if not importSet[importItem[1]]
 							importSet[importItem[1]] = true
@@ -243,7 +243,7 @@ enterDemoEntry = (name)->
 showEntry = false
 
 thread ->
-	{:width,:height} = App.visualSize
+	:width,:height = App.visualSize
 	scale = App.deviceRatio*0.7*math.min(width,height)/760
 	if false
 		with Sprite GetDorothySSRHappyWhite scale
@@ -264,7 +264,7 @@ threadLoop ->
 	left = Keyboard\isKeyDown "Left"
 	right = Keyboard\isKeyDown "Right"
 	App\shutdown! if Keyboard\isKeyDown "Escape"
-	{:width,:height} = App.visualSize
+	:width,:height = App.visualSize
 	SetNextWindowSize Vec2(190,50)
 	SetNextWindowPos Vec2(width-190,height-50)
 	if width >= 600
@@ -332,7 +332,7 @@ threadLoop ->
 threadLoop ->
 	return unless showEntry
 	return unless isInEntry
-	{:width,:height} = App.visualSize
+	:width,:height = App.visualSize
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2(width,53)
 	return true if PushStyleColor "TitleBgActive", Color(0xcc000000), ->

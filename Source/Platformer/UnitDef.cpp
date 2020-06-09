@@ -67,11 +67,6 @@ BodyDef* UnitDef::getBodyDef()
 	return _bodyDef;
 }
 
-ModelDef* UnitDef::getModelDef() const
-{
-	return _modelDef;
-}
-
 const Size& UnitDef::getSize() const
 {
 	return _size;
@@ -155,22 +150,14 @@ void UnitDef::updateBodyDef()
 	}
 }
 
-void UnitDef::setModel(String modelFile)
+void UnitDef::setPlayable(String file)
 {
-	_model = modelFile;
-	if (!modelFile.empty())
-	{
-		_modelDef = SharedModelCache.load(modelFile);
-		if (_size == Size::zero)
-		{
-			UnitDef::setSize(_modelDef->getSize());
-		}
-	}
+	_playable = file;
 }
 
-const string& UnitDef::getModel() const
+const string& UnitDef::getPlayable() const
 {
-	return _model;
+	return _playable;
 }
 
 void UnitDef::setStatic(bool var)

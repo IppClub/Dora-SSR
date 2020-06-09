@@ -136,7 +136,7 @@ struct ActionSetting
 
 	static const Slice LookNormal;
 	static const Slice LookFight;
-	static const Slice LookSad;
+	static const Slice LookFailure;
 	static const Slice LookFallen;
 };
 
@@ -167,7 +167,7 @@ public:
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
-	void onAnimationEnd(Model* model);
+	void onAnimationEnd(Event* e);
 	float getDamage(Unit* target);
 	virtual void onAttack() = 0;
 	static Vec2 getHitPoint(Body* self, Body* target, pd::Shape* selfShape);
@@ -216,10 +216,11 @@ public:
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
-	void onAnimationEnd(Model* model);
+	void onAnimationEnd(Event* event);
 	static Own<UnitAction> alloc(Unit* unit);
 private:
 	Jump(Unit* unit);
+	float _duration;
 };
 
 class Cancel : public UnitAction
@@ -238,7 +239,7 @@ public:
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
-	void onAnimationEnd(Model* model);
+	void onAnimationEnd(Event* e);
 	static Own<UnitAction> alloc(Unit* unit);
 protected:
 	Hit(Unit* unit);
@@ -253,7 +254,7 @@ public:
 	virtual void update(float dt) override;
 	virtual void stop() override;
 	static Own<UnitAction> alloc(Unit* unit);
-	void onAnimationEnd(Model* model);
+	void onAnimationEnd(Event* e);
 protected:
 	Fall(Unit* unit);
 };

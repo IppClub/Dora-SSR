@@ -39,7 +39,7 @@ SoundFile* SoundCache::load(String filename)
 	{
 		return it->second;
 	}
-	string ext = filename.getFileExtension();
+	string ext = Path::getExt(filename);
 	switch (Switch::hash(ext))
 	{
 		case "wav"_hash:
@@ -68,7 +68,7 @@ SoundFile* SoundCache::load(String filename)
 
 void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& handler)
 {
-	string ext = filename.getFileExtension();
+	string ext = Path::getExt(filename);
 	switch (Switch::hash(ext))
 	{
 		case "wav"_hash:

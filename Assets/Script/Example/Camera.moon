@@ -3,8 +3,7 @@ Dorothy!
 Director.entry\addChild with Node!
 	\addChild with Model "Model/xiaoli.model"
 		.look = "happy"
-		.loop = true
-		\play "idle"
+		\play "idle", true
 
 	\addChild with Sprite "Image/logo.png"
 		.position = Vec2 200,-100
@@ -26,7 +25,7 @@ Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.visualSize
+		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Camera", "NoResize|NoSavedSettings", ->

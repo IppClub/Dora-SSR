@@ -198,7 +198,7 @@ SpriteDef* ModelDef::getRoot()
 string ModelDef::toXml()
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{} {}=\"{}\" ", char(Xml::Model::Element::Dorothy), char(Xml::Model::Dorothy::File), Slice(_clip).getFileName());
+	fmt::format_to(out, "<{} {}=\"{}\" ", char(Xml::Model::Element::Dorothy), char(Xml::Model::Dorothy::File), Path::getFilename(_clip));
 	if (_isFaceRight)
 	{
 		fmt::format_to(out, "{}=\"1\" ", char(Xml::Model::Dorothy::FaceRight));

@@ -6,6 +6,7 @@ Content.searchPaths = {
 	"Script",
 	"Script/Lib",
 	"Image",
+	"Spine",
 	Content.writablePath
 }
 

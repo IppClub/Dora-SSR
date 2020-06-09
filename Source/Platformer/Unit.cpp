@@ -29,7 +29,7 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
 Unit::Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot) :
 Body(unitDef->getBodyDef(), physicsWorld, pos, rot),
-_model(nullptr),
+_playable(nullptr),
 _groundSensor(nullptr),
 _detectSensor(nullptr),
 _attackSensor(nullptr),
@@ -68,12 +68,12 @@ bool Unit::init()
 	Unit::setAttackRange(_unitDef->attackRange);
 	Unit::setTag(_unitDef->tag);
 	_groundSensor = Body::getSensorByTag(UnitDef::GroundSensorTag);
-	ModelDef* modelDef = _unitDef->getModelDef();
-	Model* model = modelDef ? Model::create(modelDef) : Model::none();
-	_flags.set(Unit::FaceRight, !modelDef || modelDef->isFaceRight());
-	model->setScaleX(_unitDef->getScale());
-	model->setScaleY(_unitDef->getScale());
-	Unit::setModel(model);
+	const string& playableStr = _unitDef->getPlayable();
+	Playable* playable = Playable::create(playableStr);
+	_flags.set(Unit::FaceRight, true);
+	playable->setScaleX(_unitDef->getScale());
+	playable->setScaleY(_unitDef->getScale());
+	Unit::setPlayable(playable);
 	_bulletDef = SharedData.getStore()->get(_unitDef->bulletType).to<BulletDef>();
 	Body::setOwner(this);
 	for (const string& name : _unitDef->actions)
@@ -108,9 +108,9 @@ void Unit::setFaceRight(bool var)
 	if (_flags.isOn(Unit::FaceRight) != var)
 	{
 		_flags.set(Unit::FaceRight, var);
-		if (_model)
+		if (_playable)
 		{
-			_model->setFaceRight(var);
+			_playable->setFaceRight(var);
 		}
 	}
 }
@@ -130,26 +130,26 @@ bool Unit::isReceivingDecisionTrace() const
 	return _flags.isOn(Unit::ReceivingDecisionTrace);
 }
 
-void Unit::setModel(Model* model)
+void Unit::setPlayable(Playable* playable)
 {
-	if (_model != model)
+	if (_playable != playable)
 	{
-		if (_model != nullptr)
+		if (_playable != nullptr)
 		{
-			this->removeChild(_model, true);
+			this->removeChild(_playable, true);
 		}
-		if (model)
+		if (playable)
 		{
-			this->addChild(model);
-			model->setFaceRight(_flags.isOn(Unit::FaceRight));
+			this->addChild(playable);
+			playable->setFaceRight(_flags.isOn(Unit::FaceRight));
 		}
-		_model = model;
+		_playable = playable;
 	}
 }
 
-Model* Unit::getModel() const
+Playable* Unit::getPlayable() const
 {
-	return _model;
+	return _playable;
 }
 
 bool Unit::update(double deltaTime)

@@ -245,14 +245,14 @@ void Sprite::updateVertTexCoord()
 		float top = _textureRect.getY() / info.height;
 		float right = (_textureRect.getX() + _textureRect.getWidth()) / info.width;
 		float bottom = (_textureRect.getY() + _textureRect.getHeight()) / info.height;
+		_quad.rb.u = right;
+		_quad.rb.v = bottom;
+		_quad.lb.u = left;
+		_quad.lb.v = bottom;
 		_quad.lt.u = left;
 		_quad.lt.v = top;
 		_quad.rt.u = right;
 		_quad.rt.v = top;
-		_quad.lb.u = left;
-		_quad.lb.v = bottom;
-		_quad.rb.u = right;
-		_quad.rb.v = bottom;
 	}
 }
 
@@ -263,14 +263,14 @@ void Sprite::updateVertPosition()
 		float width = _textureRect.getWidth();
 		float height = _textureRect.getHeight();
 		float left = 0, right = width, top = height, bottom = 0;
+		_quadPos.rb.x = right;
+		_quadPos.rb.y = bottom;
+		_quadPos.lb.x = left;
+		_quadPos.lb.y = bottom;
 		_quadPos.lt.x = left;
 		_quadPos.lt.y = top;
 		_quadPos.rt.x = right;
 		_quadPos.rt.y = top;
-		_quadPos.lb.x = left;
-		_quadPos.lb.y = bottom;
-		_quadPos.rb.x = right;
-		_quadPos.rb.y = bottom;
 		_flags.setOn(Sprite::VertexPosDirty);
 	}
 }
@@ -280,10 +280,10 @@ void Sprite::updateVertColor()
 	if (_texture)
 	{
 		Uint32 abgr = _realColor.toABGR();
+		_quad.rb.abgr = abgr;
+		_quad.lb.abgr = abgr;
 		_quad.lt.abgr = abgr;
 		_quad.rt.abgr = abgr;
-		_quad.lb.abgr = abgr;
-		_quad.rb.abgr = abgr;
 	}
 }
 
@@ -323,10 +323,10 @@ void Sprite::render()
 		_flags.setOff(Sprite::VertexPosDirty);
 		Matrix transform;
 		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		bx::vec4MulMtx(&_quad.rb.x, _quadPos.rb, transform);
+		bx::vec4MulMtx(&_quad.lb.x, _quadPos.lb, transform);
 		bx::vec4MulMtx(&_quad.lt.x, _quadPos.lt, transform);
 		bx::vec4MulMtx(&_quad.rt.x, _quadPos.rt, transform);
-		bx::vec4MulMtx(&_quad.lb.x, _quadPos.lb, transform);
-		bx::vec4MulMtx(&_quad.rb.x, _quadPos.rb, transform);
 	}
 
 	_renderState = (
@@ -335,7 +335,7 @@ void Sprite::render()
 		BGFX_STATE_MSAA | _blendFunc.toValue());
 	if (_flags.isOn(Sprite::DepthWrite))
 	{
-		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
+		_renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
@@ -345,7 +345,7 @@ void Sprite::render()
 /* SpriteRenderer */
 
 SpriteRenderer::SpriteRenderer():
-_spriteIndices{0, 1, 2, 1, 3, 2},
+_spriteIndices{0, 1, 2, 2, 3, 0},
 _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
@@ -377,22 +377,14 @@ void SpriteRenderer::render()
 		bgfx::TransientVertexBuffer vertexBuffer;
 		bgfx::TransientIndexBuffer indexBuffer;
 		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
-		Uint32 spriteCount = vertexCount >> 2;
-		Uint32 indexCount = spriteCount * 6;
+		Uint32 indexCount = s_cast<Uint32>(_indices.size());
 		if (bgfx::allocTransientBuffers(
 			&vertexBuffer, SpriteVertex::ms_layout, vertexCount,
 			&indexBuffer, indexCount))
 		{
 			Renderer::render();
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
-			uint16_t* indices = r_cast<uint16_t*>(indexBuffer.data);
-			for (size_t i = 0; i < spriteCount; i++)
-			{
-				for (size_t j = 0; j < 6; j++)
-				{
-					indices[i * 6 + j] = s_cast<uint16_t>(_spriteIndices[j] + i * 4);
-				}
-			}
+			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(_indices[0]));
 			bgfx::setVertexBuffer(0, &vertexBuffer);
 			bgfx::setIndexBuffer(&indexBuffer);
 			bgfx::ViewId viewId = SharedView.getId();
@@ -405,6 +397,7 @@ void SpriteRenderer::render()
 			Warn("not enough transient buffer for {} vertices, {} indices.", vertexCount, indexCount);
 		}
 		_vertices.clear();
+		_indices.clear();
 		_lastEffect = nullptr;
 		_lastTexture = nullptr;
 		_lastState = 0;
@@ -429,17 +422,23 @@ void SpriteRenderer::push(Sprite* sprite)
 	_lastFlags = flags;
 
 	const SpriteVertex* verts = sprite->getQuad();
-	size_t oldSize = _vertices.size();
-	_vertices.resize(oldSize + 4);
-	std::memcpy(_vertices.data() + oldSize, verts, sizeof(verts[0]) * 4);
+	size_t vertSize = _vertices.size();
+	_vertices.resize(vertSize + 4);
+	std::memcpy(_vertices.data() + vertSize, verts, sizeof(verts[0]) * 4);
+	size_t indSize = _indices.size();
+	_indices.resize(indSize + 6);
+	auto indPtr = _indices.data() + indSize;
+	for (size_t i = 0; i < 6; ++i)
+	{
+		indPtr[i] = _spriteIndices[i] + vertSize;
+	}
 }
 
-void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
-	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags,
-	const Matrix* modelWorld)
+void SpriteRenderer::push(SpriteVertex* verts, size_t size,
+	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags, const Matrix* localWorld)
 {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
-	if (modelWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	if (localWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();
 	}
@@ -448,13 +447,61 @@ void SpriteRenderer::push(SpriteVertex* verts, Uint32 size,
 	_lastState = state;
 	_lastFlags = flags;
 
-	size_t oldSize = _vertices.size();
-	_vertices.resize(oldSize + size);
-	std::memcpy(_vertices.data() + oldSize, verts, sizeof(verts[0]) * size);
+	size_t vertSize = _vertices.size();
+	_vertices.resize(vertSize + size);
+	std::memcpy(_vertices.data() + vertSize, verts, sizeof(verts[0]) * size);
 
-	if (modelWorld)
+	size_t indSize = _indices.size();
+	size_t spriteCount = size / 4;
+	size_t added = 6 * spriteCount;
+	_indices.resize(indSize + added);
+	auto indices = _indices.data() + indSize;
+	for (size_t i = 0; i < spriteCount; i++)
 	{
-		bgfx::setTransform(modelWorld);
+		for (size_t j = 0; j < 6; j++)
+		{
+			indices[i * 6 + j] = s_cast<uint16_t>(_spriteIndices[j] + i * 4 + vertSize);
+		}
+	}
+
+	if (localWorld)
+	{
+		bgfx::setTransform(localWorld);
+		render();
+	}
+}
+
+void SpriteRenderer::push(
+	SpriteVertex* verts, size_t vsize,
+	uint16_t* inds, size_t isize,
+	SpriteEffect* effect, Texture2D* texture,
+	Uint64 state, Uint32 flags,
+	const Matrix* localWorld)
+{
+	if (localWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	{
+		render();
+	}
+	_lastEffect = effect;
+	_lastTexture = texture;
+	_lastState = state;
+	_lastFlags = flags;
+
+	size_t vertSize = _vertices.size();
+	_vertices.resize(vertSize + vsize);
+	std::memcpy(_vertices.data() + vertSize, verts, sizeof(verts[0]) * vsize);
+
+	size_t indSize = _indices.size();
+	_indices.resize(indSize + isize);
+	auto indices = _indices.data() + indSize;
+	for (size_t i = 0; i < isize; ++i)
+	{
+		indices[i] = inds[i] + vertSize;
+	}
+
+	if (localWorld)
+	{
+		bgfx::setTransform(localWorld);
 		render();
 	}
 }

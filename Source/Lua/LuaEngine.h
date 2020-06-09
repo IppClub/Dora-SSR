@@ -80,6 +80,7 @@ public:
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
 
+	bool to(bool& value, int index);
 	bool to(int& value, int index);
 	bool to(float& value, int index);
 	bool to(double& value, int index);
@@ -115,8 +116,6 @@ public:
 
 	bool executeAssert(bool cond, String condStr);
 	bool scriptHandlerEqual(int handlerA, int handlerB);
-
-	void compileMoon(const std::list<std::pair<string,string>>& srcAndDests) const;
 
 	static bool call(lua_State* L, int paramCount, int returnCount); // returns success or failure
 	static bool execute(lua_State* L, int handler, int numArgs); // returns function result

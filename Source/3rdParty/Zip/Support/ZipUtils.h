@@ -83,7 +83,7 @@ public:
 	*
 	* @since v2.0.5
 	*/
-	unsigned char* getFileData(const std::string&, unsigned long* size);
+	uint8_t* getFileData(const std::string&, unsigned long* size);
 
 	void getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*,int)>& handler);
 

@@ -3,10 +3,9 @@ Dorothy!
 node = with Node!
 	\addChild with Model "Model/xiaoli.model"
 		.y = -80
-		.loop = true
 		.faceRight = true
 		.look = "happy"
-		\play "walk"
+		\play "walk", true
 		\runAction Sequence(
 			X 2,-150,250
 			Emit "Turn"
@@ -42,7 +41,7 @@ Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.visualSize
+		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Render Target", "NoResize|NoSavedSettings",->

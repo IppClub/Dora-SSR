@@ -126,7 +126,7 @@ work = loop ->
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.visualSize
+		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width-400,10), "FirstUseEver"
 		SetNextWindowSize Vec2(390,height-80), "FirstUseEver"
 		Begin "Particle", "NoResize|NoSavedSettings", ->
