@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 {store:Store} = Data
 
 Store["Flandre"] = with UnitDef!

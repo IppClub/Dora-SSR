@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 Content\insertSearchPath 1,"Script/Game/Loli War"
 require = namespace "Game.Loli War"

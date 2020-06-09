@@ -818,7 +818,7 @@ public:
 		XmlDelegator::clear();
 		fmt::format_to(stream,
 			"return function(args)\n"
-			"Dorothy(args)\n\n");
+			"local _ENV = Dorothy(args)\n\n");
 	}
 	void end()
 	{

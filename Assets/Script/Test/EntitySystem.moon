@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 hpGroup = Group {"hp"}
 spGroup = Group {"sp"}

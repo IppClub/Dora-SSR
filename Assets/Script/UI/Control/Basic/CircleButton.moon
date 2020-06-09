@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 import "UI.View.Control.Basic.CircleButton"
 
 -- [signals]

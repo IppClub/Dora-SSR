@@ -136,6 +136,7 @@
 		3C883AF621DF4A4A00BFD758 /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883AF421DF4A4A00BFD758 /* VGRender.cpp */; };
 		3C883AF921E0896A00BFD758 /* VGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883AF721E0896A00BFD758 /* VGNode.cpp */; };
 		3C88AB3623BB502200C1F48E /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C88AB3423BB502100C1F48E /* os.cpp */; };
+		3C8E77E1248F954700546BCB /* liblua.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C8E77E0248F954700546BCB /* liblua.a */; };
 		3C9A7D701E53F9EF00205094 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C9A7D6F1E53F9EF00205094 /* Font */; };
 		3C9A7D731E5428A200205094 /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D711E5428A200205094 /* Label.cpp */; };
 		3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D781E55957500205094 /* atlas.cpp */; };
@@ -166,7 +167,6 @@
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
 		3CCB0C791E6DB0590088C118 /* ClipNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCB0C771E6DB0590088C118 /* ClipNode.cpp */; };
 		3CCEDD471E1D55BF00F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD461E1D55BF00F32295 /* Utils.cpp */; };
-		3CCF42E0248DD4AC00484397 /* libluajit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029171E07DEB10016E1EC /* libluajit.a */; };
 		3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD028FE1E07D3C50016E1EC /* LuaEngine.cpp */; };
 		3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
@@ -590,6 +590,7 @@
 		3C88AB3523BB502200C1F48E /* os.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = os.h; path = ../../../Source/3rdParty/fmt/os.h; sourceTree = "<group>"; };
 		3C8934B320F3094A00124463 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
 		3C8DC32F1E666B2B00E59BEC /* Header.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Header.pch; path = ../../../Source/Const/Header.pch; sourceTree = "<group>"; };
+		3C8E77E0248F954700546BCB /* liblua.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblua.a; path = ../../Source/3rdParty/Lua/Lib/macOS/liblua.a; sourceTree = "<group>"; };
 		3C9A7D6F1E53F9EF00205094 /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Font; path = ../../Assets/Font; sourceTree = "<group>"; };
 		3C9A7D711E5428A200205094 /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Label.cpp; path = ../../../Source/Node/Label.cpp; sourceTree = "<group>"; };
 		3C9A7D721E5428A200205094 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Label.h; path = ../../../Source/Node/Label.h; sourceTree = "<group>"; };
@@ -931,7 +932,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3CCF42E0248DD4AC00484397 /* libluajit.a in Frameworks */,
+				3C8E77E1248F954700546BCB /* liblua.a in Frameworks */,
 				3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */,
 				3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */,
 				3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */,
@@ -1133,6 +1134,7 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3C8E77E0248F954700546BCB /* liblua.a */,
 				3CE7D3731EADF594008EADB3 /* libbimg_decode.a */,
 				3CE7D3741EADF594008EADB3 /* libbimg.a */,
 				3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */,
@@ -2452,12 +2454,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/soloud/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				OTHER_LDFLAGS = (
-					"-pagezero_size",
-					10000,
-					"-image_base",
-					100000000,
-				);
+				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2489,12 +2486,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/soloud/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				OTHER_LDFLAGS = (
-					"-pagezero_size",
-					10000,
-					"-image_base",
-					100000000,
-				);
+				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 Data = {
 	Angle: {"B","float",90}
@@ -76,7 +76,7 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 DataDirty = false
 

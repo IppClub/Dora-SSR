@@ -46,9 +46,11 @@ void tolua_collect_callback_ref_id(int refid)
 
 int tolua_collect_object(lua_State* L)
 {
-	Object* object = r_cast<Object*>(tolua_tousertype(L, 1, 0));
-	object->removeLuaRef();
-	object->release();
+	if (Object* object = r_cast<Object*>(tolua_tousertype(L, 1, 0)))
+	{
+		object->removeLuaRef();
+		object->release();
+	}
 	return 0;
 }
 
@@ -75,7 +77,7 @@ void tolua_pushobject(lua_State* L, Object* object)
 		lua_rawgeti(L, LUA_REGISTRYINDEX, object->getDoraType()); // newud mt
 		lua_setmetatable(L, -2); // newud<mt>, newud
 		lua_pushvalue(L, TOLUA_NOPEER);
-		lua_setfenv(L, -2);
+		lua_setuservalue(L, -2);
 		// register oObject GC
 		object->addLuaRef();
 		object->retain();

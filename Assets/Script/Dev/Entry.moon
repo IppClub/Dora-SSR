@@ -1,4 +1,4 @@
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 import "Utils" as {:Set}
 
 print "Dorothy SSR version: #{App.version}#{App.debugging and ', debugging' or ''}"
@@ -79,7 +79,7 @@ LintMoonGlobals = (moonCodes,globals,file)->
 		), ","
 	importItems = if importCodes
 		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
-			getImport = loadstring "return #{item}"
+			getImport = load "return #{item}"
 			importItem = getImport?!
 			continue if not importItem or "table" ~= type importItem
 			{importItem, item}
@@ -141,7 +141,7 @@ doCompile = (minify)->
 				return
 			requires = LintMoonGlobals(codes,globals,file)
 			requires ..= "\n" unless requires == ""
-			"-- [moon]: #{file}\n"..requires..codes\gsub "Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
+			"-- [moon]: #{file}\n"..requires..codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
 		print "Moon compiled: #{file}"
 		fileCount += 1
 	paths = {Path\getPath(file),true for file in *xmlFiles}
@@ -212,6 +212,7 @@ allClear = ->
 	currentEntryName = nil
 	isInEntry = true
 	Audio\stopStream 0.2
+	collectgarbage!
 
 games = [Path\getName item for item in *Content\getDirs Path Content.assetPath,"Script","Game"]
 table.sort games

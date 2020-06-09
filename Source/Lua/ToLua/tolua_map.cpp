@@ -156,14 +156,14 @@ static int tolua_bnd_setpeer(lua_State* L)
 		lua_pop(L, 1);
 		lua_pushvalue(L, TOLUA_NOPEER);
 	}
-	lua_setfenv(L, -2);
+	lua_setuservalue(L, -2);
 	return 0;
 };
 
 static int tolua_bnd_getpeer(lua_State* L)
 {
 	/* stack: userdata */
-	lua_getfenv(L, -1);
+	lua_getuservalue(L, -1);
 	if (lua_rawequal(L, -1, TOLUA_NOPEER))
 	{
 		lua_pop(L, 1);

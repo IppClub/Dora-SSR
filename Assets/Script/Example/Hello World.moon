@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 Director.entry\addChild with Node!
 	\slot "Enter",-> print "on enter event"
@@ -12,7 +12,7 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->

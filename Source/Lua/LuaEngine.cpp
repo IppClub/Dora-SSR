@@ -17,6 +17,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 using namespace Dorothy::Platformer;
 
+extern "C" {
+int luaopen_moonp(lua_State* L);
+}
+
 NS_DOROTHY_BEGIN
 
 int LuaEngine::_callFromLua = 0;
@@ -201,27 +205,24 @@ static int dora_xmltolua(lua_State* L)
 	return 1;
 }
 
-extern "C" {
-int luaopen_moonp(lua_State* L);
-}
-
 static int dora_loadlibs(lua_State* L)
 {
 	const luaL_Reg lualibs[] =
 	{
-		{ "", luaopen_base },
+		{ LUA_GNAME, luaopen_base },
 		{ LUA_LOADLIBNAME, luaopen_package },
+		{ LUA_COLIBNAME, luaopen_coroutine },
 		{ LUA_TABLIBNAME, luaopen_table },
 		{ LUA_STRLIBNAME, luaopen_string },
 		{ LUA_MATHLIBNAME, luaopen_math },
+		{ LUA_UTF8LIBNAME, luaopen_utf8 },
 		{ LUA_DBLIBNAME, luaopen_debug },
-		{ NULL, NULL }
+		{ NULL, NULL}
 	};
 	for (const luaL_Reg* lib = lualibs; lib->func; lib++)
 	{
-		lua_pushcfunction(L, lib->func);
-		lua_pushstring(L, lib->name);
-		lua_call(L, 1, 0);
+		luaL_requiref(L, lib->name, lib->func, 1);
+		lua_pop(L, 1);
 	}
 	lua_pushcfunction(L, luaopen_moonp);
 	if (lua_pcall(L, 0, 0, 0) != 0) {
@@ -258,7 +259,10 @@ static void dora_open_compiler(void* state)
 		{ "print", dora_print },
 		{ NULL, NULL }
 	};
-	luaL_register(L, "_G", global_functions);
+	lua_pushglobaltable(L);
+	luaL_setfuncs(L, global_functions, 0);
+	lua_pop(L, 1);
+
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "moonp"); // package loaded moonp
@@ -400,7 +404,9 @@ LuaEngine::LuaEngine()
 		{ "emit", dora_emit },
 		{ NULL, NULL }
 	};
-	luaL_register(L, "_G", global_functions);
+	lua_pushglobaltable(L);
+	luaL_setfuncs(L, global_functions, 0);
+	lua_pop(L, 1);
 
 	// add dorothy loader
 	LuaEngine::insertLuaLoader(dora_loader);
@@ -475,16 +481,16 @@ void LuaEngine::insertLuaLoader(lua_CFunction func)
 {
 	if (!func) return;
 	lua_getglobal(L, "package"); // package
-	lua_getfield(L, -1, "loaders"); // package loaders
-	// insert loader into index 1
-	lua_pushcfunction(L, func); // package loaders func
-	for (int i = s_cast<int>(lua_objlen(L, -2)) + 1; i > 1; --i)
+	lua_getfield(L, -1, "searchers"); // package, searchers
+	// insert searcher into index 1
+	lua_pushcfunction(L, func); // package, searchers, func
+	for (int i = s_cast<int>(lua_rawlen(L, -2)) + 1; i > 1; --i)
 	{
-		lua_rawgeti(L, -2, i - 1); // package loaders func function
-		// we call lua_rawgeti, so the loader table now is at -3
-		lua_rawseti(L, -3, i); // package loaders func
+		lua_rawgeti(L, -2, i - 1); // package, searchers, func, function
+		// we call lua_rawgeti, so the searchers table now is at -3
+		lua_rawseti(L, -3, i); // package, searchers, func
 	}
-	lua_rawseti(L, -2, 1); // loaders[1] = func, package loaders
+	lua_rawseti(L, -2, 1); // searchers[1] = func, package searchers
 	lua_pop(L, 2); // stack empty
 }
 
@@ -503,7 +509,7 @@ void LuaEngine::removePeer(Object* object)
 		if (!lua_toboolean(L, -1))
 		{
 			lua_pushvalue(L, TOLUA_NOPEER); // ubox ud nopeer
-			lua_setfenv(L, -2); // ud<nopeer>, ubox ud
+			lua_setuservalue(L, -2); // ud<nopeer>, ubox ud
 		}
 		lua_pop(L, 2); // empty
 	}
@@ -730,7 +736,7 @@ bool LuaEngine::scriptHandlerEqual(int handlerA, int handlerB)
 {
 	tolua_get_function_by_refid(L, handlerA);
 	tolua_get_function_by_refid(L, handlerB);
-	int result = lua_equal(L, -1, -2);
+	int result = lua_rawequal(L, -1, -2);
 	lua_pop(L, 2);
 	return result != 0;
 }

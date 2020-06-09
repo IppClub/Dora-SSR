@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 sceneGroup = Group {"scene"}
 positionGroup = Group {"position"}
@@ -32,7 +32,7 @@ with Group {"position","direction","speed","target"}
 		return if target == position
 		dir = target - position
 		dir\normalize!
-		angle = math.deg math.atan2 dir.x,dir.y
+		angle = math.deg math.atan dir.x,dir.y
 		newPos = position + dir * speed
 		newPos\clamp position, target
 		entity.position = newPos
@@ -64,7 +64,7 @@ with Entity!
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 with Observer "Add", {"scene"}
 	\every (entity)-> entity.scene\schedule ->

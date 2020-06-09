@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 require = namespace "Game.Zombie Escape"
 require "Constant"
 require "Unit"

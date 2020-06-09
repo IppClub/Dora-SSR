@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 texture = GetDorothySSRWhite!
 sprite = Sprite texture
@@ -22,7 +22,7 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->

@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 import "UI.View.Control.Basic.Ruler"
 import "Utils" as {:Round}
 
@@ -26,7 +26,7 @@ export default Class Ruler,
 			for i = center-len,center+len
 				pos = i*100
 				label = with Label fontName,fontSize
-					.text = tostring(pos/100*indent)
+					.text = string.format "%.0f",pos/100*indent
 					.scaleX = 1/@intervalNode.scaleX
 					.position = Vec2 pos,halfH-18-fontSize
 					.tag = tostring pos
@@ -37,7 +37,7 @@ export default Class Ruler,
 		moveLabel = (label,pos)->
 			labels[tonumber label.tag] = nil
 			labels[pos] = with label
-				.text = tostring pos/100*indent
+				.text = string.format "%.0f",pos/100*indent
 				.scaleX = 1/@intervalNode.scaleX
 				.position = Vec2 pos,halfH-18-fontSize
 				.tag = tostring pos
@@ -134,7 +134,7 @@ export default Class Ruler,
 		@setIndent = (ind)=>
 			indent = ind
 			for i,label in pairs labels
-				label.text = tostring ind*i/100
+				label.text = string.format "%.0f",ind*i/100
 		@getIndent = => indent
 
 		@lastValue = nil

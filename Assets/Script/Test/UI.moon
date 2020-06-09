@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 import "UI.Control.Basic.Button"
 import "UI.View.Shape.LineRect"
 import "UI.Control.Basic.ScrollArea"

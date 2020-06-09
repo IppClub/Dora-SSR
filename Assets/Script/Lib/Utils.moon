@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 import insert,remove,concat,sort from table
 import floor,ceil from math
 import type,tostring,setmetatable,table,rawset,rawget from _G
@@ -172,6 +172,8 @@ StructHelper = {
 					if notify
 						notify "Modified",key,value
 						StructUpdated @
+				elseif "number" == type key
+					rawset @,key,value
 				elseif key ~= "__notify"
 					error "Access invalid key \"#{ key }\" for #{ tupleDef }"
 				elseif value

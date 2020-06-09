@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 modelFile = "Model/xiaoli.model"
 
@@ -12,7 +12,7 @@ Director.entry\addChild model
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 looks = Model\getLooks modelFile
 animations = Model\getAnimations modelFile

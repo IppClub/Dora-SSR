@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 sprite = Sprite "Image/logo.png"
 
@@ -11,7 +11,7 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, test ui codes below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->

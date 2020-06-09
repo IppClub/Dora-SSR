@@ -48,7 +48,7 @@ int dora_emit(lua_State* L)
 
 static vector<string> getVectorString(lua_State* L, int loc)
 {
-	int length = s_cast<int>(lua_objlen(L, loc));
+	int length = s_cast<int>(lua_rawlen(L, loc));
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
 	if (!tolua_isslicearray(L, loc, length, 0, &tolua_err))
@@ -710,7 +710,7 @@ namespace LuaAction
 #endif
 		{
 			if (location == -1) location = lua_gettop(L);
-			int length = s_cast<int>(lua_objlen(L, location));
+			int length = s_cast<int>(lua_rawlen(L, location));
 			if (length > 0)
 			{
 				lua_rawgeti(L, location, 1);
@@ -1297,7 +1297,7 @@ int Array_create(lua_State* L)
 		else if (tolua_istable(L, 2, 0, &tolua_err) &&
 			tolua_isnoobj(L, 3, &tolua_err))
 		{
-			int tolua_len = s_cast<int>(lua_objlen(L, 2));
+			int tolua_len = s_cast<int>(lua_rawlen(L, 2));
 			Array* tolua_ret = Array::create(tolua_len);
 			for (int i=0; i< tolua_len; i++)
 			{
