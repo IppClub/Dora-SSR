@@ -1,6 +1,6 @@
-Dorothy!
+_ENV = Dorothy!
 LineRect = require "UI.View.Shape.LineRect"
-utf8 = require "utf8"
+import "utf-8" as utf8
 
 LabelEx = Class Node,
 	__init:(args)=>

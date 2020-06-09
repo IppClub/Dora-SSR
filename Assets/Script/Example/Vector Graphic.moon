@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 drawHeart = -> with nvg
 	.BeginPath!
@@ -42,7 +42,7 @@ threadLoop ->
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->

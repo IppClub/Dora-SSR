@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 gravity = Vec2 0,-10
 
@@ -36,13 +36,13 @@ disk = with Body diskDef,world,Vec2(100,200)
 	.receivingContact = true
 	\slot "ContactStart",(body,point)->
 		drawNode.position = point
-		label.text = "Contact: "..string.format("[%d,%d]",point.x,point.y)
+		label.text = "Contact: "..string.format("[%.0f,%.0f]",point.x,point.y)
 
 Director.entry\addChild world
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->

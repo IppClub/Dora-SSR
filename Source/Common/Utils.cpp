@@ -20,7 +20,7 @@ namespace fs = std::filesystem;
 
 NS_DOROTHY_BEGIN
 
-int doraType = TOLUA_REG_INDEX_TYPE; // 1:UBOX 2:CALLBACK 3:LUA_TYPE
+int doraType = TOLUA_REG_INDEX_TYPE; // UBOX, CALLBACK, LUA_TYPE
 
 namespace Math
 {

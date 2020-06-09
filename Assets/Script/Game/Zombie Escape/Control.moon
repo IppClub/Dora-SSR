@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 import "UI.Control.Basic.AlignNode"
 import "UI.View.Shape.Rectangle"
 import "UI.View.Shape.Circle"

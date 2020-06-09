@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 size,grid = 1500,50
 

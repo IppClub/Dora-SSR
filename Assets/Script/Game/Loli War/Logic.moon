@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 
 {store:Store} = Data
 {
@@ -46,6 +46,7 @@ with Observer "Add",{"world"}
 				for ep in *{6,1,1}
 					emit "EPChange",GroupPlayer,ep
 					emit "EPChange",GroupEnemy,ep
+				Store.winner = nil
 				.playing = true
 				Audio\playStream "Audio/LOOP14.ogg",true
 				names = [n for n in *{"Flandre","Dorothy","Villy"} when n ~= hero]
@@ -237,7 +238,7 @@ with Observer "Change", {"hp","unit","block"}
 				unit.faceRight = false
 				with unit.playable
 					.recovery = 0.5
-					\play "hp#{hp}"
+					\play "hp#{string.format '%.0f',hp}"
 			else
 				unit\start "hit"
 				unit.faceRight = false
@@ -357,8 +358,10 @@ with Observer "Change", {"blocks","group"}
 				.linearAcceleration = Vec2 0,-10
 				.type = BodyType.Dynamic
 				\attachPolygon sp.width*2,sp.height*2,1,0,1
-			with Body rectDef,world,Vec2(@unit.x,512)
-				.order = LayerBunny
-				.group = GroupDisplay
-				\addChild sp
-				\addTo world
+			heroes\each (hero)->
+				if hero.group == GroupPlayer
+					with Body rectDef,world,Vec2(hero.unit.x,512)
+						.order = LayerBunny
+						.group = GroupDisplay
+						\addChild sp
+						\addTo world

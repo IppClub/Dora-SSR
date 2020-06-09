@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 gravity = Vec2 0,-10
 
@@ -47,7 +47,7 @@ Director.entry\addChild with world
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->

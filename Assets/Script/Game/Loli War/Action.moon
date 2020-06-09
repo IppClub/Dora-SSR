@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 
 {store:Store} = Data
 {
@@ -75,7 +75,7 @@ UnitAction\add "pushed",
 		with @playable
 			.recovery = 0.2
 			.speed = 1.5
-			\play @entity.fromRight and "pushRight" or "pushLeft"
+			\play @entity.fromRight and "pushLeft" or "pushRight"
 			\slot "AnimationEnd",switchPushed
 		once =>
 			sleep 0.5

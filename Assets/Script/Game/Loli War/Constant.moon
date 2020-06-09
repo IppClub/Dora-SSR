@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 
 with Data.store
 	.GroupPlayer = 1

@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 import "UI.View.Digit"
 
 export default Class Digit,
@@ -12,11 +12,11 @@ export default Class Digit,
 			@removeAllChildren!
 			two = math.floor @_value/10
 			if two > 0
-				with Sprite "Image/misc.clip|#{two}"
+				with Sprite "Image/misc.clip|#{string.format '%.0f',two}"
 					.anchor = Vec2 0,0.5
 					\addTo @
 			one = @_value%10
-			with Sprite "Image/misc.clip|#{one}"
+			with Sprite "Image/misc.clip|#{string.format '%.0f',one}"
 				.x = 6
 				.anchor = Vec2 0,0.5
 				\addTo @

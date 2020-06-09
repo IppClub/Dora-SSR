@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 
 groundEntranceEnd = (name,playable)->
 	return unless name == "groundEntrance"

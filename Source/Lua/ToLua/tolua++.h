@@ -40,9 +40,9 @@ NS_DOROTHY_BEGIN
 #define MT_LT 11
 #define MT_LE 12
 
-#define TOLUA_REG_INDEX_UBOX 1
-#define TOLUA_REG_INDEX_CALLBACK 2
-#define TOLUA_REG_INDEX_TYPE 3
+#define TOLUA_REG_INDEX_UBOX LUA_RIDX_LAST+1
+#define TOLUA_REG_INDEX_CALLBACK LUA_RIDX_LAST+2
+#define TOLUA_REG_INDEX_TYPE LUA_RIDX_LAST+3
 
 #define TOLUA_UBOX_START_SIZE 4096
 
@@ -56,7 +56,7 @@ struct tolua_Error
 };
 typedef struct tolua_Error tolua_Error;
 
-#define TOLUA_NOPEER LUA_REGISTRYINDEX /* for lua 5.1 */
+#define TOLUA_NOPEER LUA_REGISTRYINDEX
 
 class Object;
 

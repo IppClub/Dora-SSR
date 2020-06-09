@@ -1,4 +1,4 @@
-Dorothy!
+_ENV = Dorothy!
 
 Item = Class Node,
 	__init:=>
@@ -40,7 +40,7 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, some test ui below --
 
-Dorothy builtin.ImGui
+_ENV = Dorothy builtin.ImGui
 
 currentEntry = Director.entry.children.first
 Director.entry\addChild with Node!

@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 
 import "UI.Control.HPWheel"
 import "UI.Control.Basic.AlignNode"

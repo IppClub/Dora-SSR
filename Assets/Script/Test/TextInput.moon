@@ -1,7 +1,7 @@
-Dorothy!
+_ENV = Dorothy!
 import "UI.View.Shape.LineRect"
 import "UI.View.Shape.SolidRect"
-import "utf8"
+import "utf-8" as utf8
 
 TextInput = Class ((args)->
 	{:fontName,:fontSize,:width,:height,:hint,:text} = args

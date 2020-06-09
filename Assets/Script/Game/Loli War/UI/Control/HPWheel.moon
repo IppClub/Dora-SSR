@@ -1,4 +1,4 @@
-Dorothy builtin.Platformer
+_ENV = Dorothy builtin.Platformer
 import "UI.View.HPWheel"
 import "UI.View.EPHint"
 {

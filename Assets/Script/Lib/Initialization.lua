@@ -25,7 +25,7 @@ local wrap = coroutine.wrap
 local table_insert = table.insert
 local table_remove = table.remove
 local type = type
-local unpack = unpack
+local unpack = table.unpack
 local xpcall = xpcall
 
 local function wait(cond)
@@ -527,13 +527,13 @@ end
 
 local function Dorothy(...)
 	if select("#", ...) == 0 then
-		setfenv(2,builtin)
+		return builtin
 	else
 		local envs
 		envs = {
 			__index = function(_,key)
-				for _,env in ipairs(envs) do
-					local item = env[key]
+				for i = 1, #envs do
+					local item = rawget(envs, i)[key]
 					if item then
 						return item
 					end
@@ -543,7 +543,7 @@ local function Dorothy(...)
 			__newindex = disallowAssignGlobal,
 			builtin,...
 		}
-		setfenv(2,setmetatable(envs,envs))
+		return setmetatable(envs,envs)
 	end
 end
 _G.Dorothy = Dorothy
@@ -569,5 +569,4 @@ moonp.read_file = function(fname)
 	return Content:load(fname)
 end
 
-collectgarbage("setpause", 100)
-collectgarbage("setstepmul", 5000)
+collectgarbage("generational", 20, 100)

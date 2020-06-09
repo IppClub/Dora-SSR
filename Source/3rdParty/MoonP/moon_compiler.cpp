@@ -24,12 +24,12 @@ extern "C" {
 #include "lualib.h"
 
 } // extern "C"
+
 #if LUA_VERSION_NUM > 501
 	#ifndef LUA_COMPAT_5_1
 		#define lua_objlen lua_rawlen
 	#endif // LUA_COMPAT_5_1
 #endif // LUA_VERSION_NUM
-
 
 namespace MoonP {
 using namespace std::string_view_literals;
