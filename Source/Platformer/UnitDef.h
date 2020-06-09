@@ -27,14 +27,13 @@ public:
 	static const Slice AttackKey;
 	static const Slice HitKey;
 	//Most are static properties below.
-	PROPERTY_STRING(Model);
+	PROPERTY_STRING(Playable);
 	PROPERTY_CREF(Size, Size);
 	PROPERTY(float, Density);
 	PROPERTY(float, Friction);
 	PROPERTY(float, Restitution);
 	PROPERTY(float, Scale);
 	PROPERTY_BOOL(Static);
-	PROPERTY_READONLY(ModelDef*, ModelDef);
 	PROPERTY_READONLY_CALL(BodyDef*, BodyDef);
 	string tag;
 	float sensity;
@@ -69,9 +68,8 @@ protected:
 	bool _physicsDirty;
 	float _scale;
 	Size _size;
-	string _model;
+	string _playable;
 	Ref<BodyDef> _bodyDef;
-	Ref<ModelDef> _modelDef;
 	float _density;
 	float _friction;
 	float _restitution;

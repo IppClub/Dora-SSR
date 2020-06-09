@@ -146,7 +146,7 @@ Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
 		_textures[fullPath] = texture;
 		return texture;
 	}
-	Warn("texture format \"{}\" is not supported for \"{}\".", filename.getFileExtension(), filename);
+	Warn("texture format \"{}\" is not supported for \"{}\".", Path::getExt(filename), filename);
 	return nullptr;
 }
 
@@ -174,6 +174,12 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 	string file(filename);
 	SharedContent.loadFileAsyncUnsafe(fullPath, [this, file, handler](Uint8* data, Sint64 size)
 	{
+		if (!data)
+		{
+			Warn("fail to read file data from \"{}\".", file);
+			handler(nullptr);
+			return;
+		}
 		SharedAsyncThread.run([this, data, size]()
 		{
 			bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
@@ -213,7 +219,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 			}
 			else
 			{
-				Warn("texture format \"{}\" is not supported for \"{}\".", Slice(file).getFileExtension(), file);
+				Warn("texture format \"{}\" is not supported for \"{}\".", Path::getExt(file), file);
 				handler(nullptr);
 			}
 		});

@@ -5,7 +5,7 @@ Dorothy builtin.Platformer
 } = Store
 
 gameEndWait = Seq {
-	Con "game end",=> Store.winner ~= nil
+	Con "game end",=> Store.winner?
 	Sel {
 		Seq {
 			Con "need wait",=> @onSurface and not @isDoing "wait"

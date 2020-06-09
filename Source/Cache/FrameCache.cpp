@@ -17,7 +17,7 @@ NS_DOROTHY_BEGIN
 
 FrameActionDef* FrameCache::loadFrame(String frameStr)
 {
-	if (frameStr.getFileExtension() == "frame"_slice) return load(frameStr);
+	if (Path::getExt(frameStr) == "frame"_slice) return load(frameStr);
 	BLOCK_START
 	{
 		auto parts = frameStr.split("::"_slice);
@@ -57,14 +57,14 @@ FrameActionDef* FrameCache::loadFrame(String frameStr)
 bool FrameCache::isFrame(String frameStr) const
 {
 	auto parts = frameStr.split("::"_slice);
-	if (parts.size() == 1) return parts.front().getFileExtension() == "frame"_slice;
+	if (parts.size() == 1) return Path::getExt(parts.front()) == "frame"_slice;
 	else if (parts.size() == 2) return parts.back().split(","_slice).size() == 4;
 	else return false;
 }
 
 std::shared_ptr<XmlParser<FrameActionDef>> FrameCache::prepareParser(String filename)
 {
-	return std::shared_ptr<XmlParser<FrameActionDef>>(new Parser(FrameActionDef::create(), filename.getFilePath()));
+	return std::shared_ptr<XmlParser<FrameActionDef>>(new Parser(FrameActionDef::create(), Path::getPath(filename)));
 }
 
 void FrameCache::Parser::xmlSAX2Text(const char* s, size_t len)
@@ -83,7 +83,7 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					case Xml::Frame::Dorothy::File:
 					{
 						string file = Slice(attrs[++i]);
-						string localFile = _path + file;
+						string localFile = Path::concat({_path, file});
 						_item->clipStr = SharedContent.isExist(localFile) ? localFile : file;
 						break;
 					}

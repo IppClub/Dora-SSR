@@ -17,21 +17,18 @@ UnitAction\add "fallOff",
 	recovery: 0
 	available: => not @onSurface
 	create: =>
-		with @model
+		with @playable
 			.speed = 1.5
-			.loop = true
-			\resume "jump"
+			\resume "jump", true
 		=>
 			if @onSurface
 				return true
 			false
-	stop: =>
-		@model\stop!
 
-pushSwitchEnd = (name,model)->
+pushSwitchEnd = (name,playable)->
 	switch name
 		when "switch","attack"
-			model.parent\stop!
+			playable.parent\stop!
 
 UnitAction\add "pushSwitch",
 	priority: 3
@@ -39,9 +36,8 @@ UnitAction\add "pushSwitch",
 	recovery: 0.2
 	available: => @onSurface
 	create: =>
-		with @model
+		with @playable
 			.speed = 1.5
-			.loop = false
 			.look = "noweapon"
 			\play "switch"
 			if not .playing
@@ -52,8 +48,7 @@ UnitAction\add "pushSwitch",
 			.entity.fromRight = @x > .x
 		-> false
 	stop: =>
-		@model\slot("AnimationEnd")\remove pushSwitchEnd
-		@model\stop!
+		@playable\slot("AnimationEnd")\remove pushSwitchEnd
 
 UnitAction\add "waitUser",
 	priority: 1
@@ -61,18 +56,15 @@ UnitAction\add "waitUser",
 	recovery: 0.2
 	available: -> true
 	create: =>
-		with @model
+		with @playable
 			.speed = 1
-			.loop = true
-			\play "idle"
+			\play "idle", true
 		-> false
-	stop: =>
-		@model\stop!
 
-switchPushed = (name,model)->
+switchPushed = (name,playable)->
 	switch name
 		when "pushRight","pushLeft"
-			model.parent\stop!
+			playable.parent\stop!
 
 UnitAction\add "pushed",
 	priority: 2
@@ -80,7 +72,7 @@ UnitAction\add "pushed",
 	recovery: 0.2
 	available: -> true
 	create: =>
-		with @model
+		with @playable
 			.recovery = 0.2
 			.speed = 1.5
 			\play @entity.fromRight and "pushRight" or "pushLeft"
@@ -123,11 +115,10 @@ UnitAction\add "pushed",
 				sleep!
 	stop: =>
 		@entity.pushed = false
-		@model\slot("AnimationEnd")\remove pushSwitchEnd
-		@model\stop!
+		@playable\slot("AnimationEnd")\remove pushSwitchEnd
 
-strikeEnd = (name,model)->
-	model.parent\stop! if name == "hit"
+strikeEnd = (name,playable)->
+	playable.parent\stop! if name == "hit"
 
 UnitAction\add "strike",
 	priority: 4
@@ -135,20 +126,18 @@ UnitAction\add "strike",
 	recovery: 0
 	available: => true
 	create: =>
-		with @model
+		with @playable
 			.speed = 1
-			.loop = false
 			.look = "sad"
 			\play "hit"
 			\slot "AnimationEnd",strikeEnd
 		Audio\play "Audio/hit.wav"
 		-> false
 	stop: =>
-		@model\slot("AnimationEnd")\remove strikeEnd
-		@model\stop!
+		@playable\slot("AnimationEnd")\remove strikeEnd
 
-villyAttackEnd = (name,model)->
-	model.parent\stop! if name == "attack"
+villyAttackEnd = (name,playable)->
+	playable.parent\stop! if name == "attack"
 
 UnitAction\add "villyAttack",
 	priority: 3
@@ -156,9 +145,8 @@ UnitAction\add "villyAttack",
 	recovery: 0.1
 	available: => true
 	create: =>
-		with @model
+		with @playable
 			.speed = @attackSpeed
-			.loop = false
 			.look = "fight"
 			\play "attack"
 			\slot "AnimationEnd",villyAttackEnd
@@ -186,8 +174,7 @@ UnitAction\add "villyAttack",
 			sleep 1.0
 			true
 	stop: =>
-		@model\slot("AnimationEnd")\remove villyAttackEnd
-		@model\stop!
+		@playable\slot("AnimationEnd")\remove villyAttackEnd
 
 UnitAction\add "wait",
 	priority: 1
@@ -195,14 +182,11 @@ UnitAction\add "wait",
 	recovery: 0
 	available: => @onSurface
 	create: =>
-		with @model
+		with @playable
 			.speed = 1
 			.look = Store.winner == @group and "happy" or "sad"
-			.loop = true
-			\play "idle"
+			\play "idle", true
 		=>
 			if not @onSurface
 				return true
 			false
-	stop: =>
-		@model\stop!

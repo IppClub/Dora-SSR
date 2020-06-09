@@ -111,6 +111,7 @@ class ParticleNode : public Node
 public:
 	PROPERTY_READONLY_BOOL(Active);
 	PROPERTY_READONLY(Texture2D*, Texture);
+	PROPERTY_BOOL(DepthWrite);
 	virtual ~ParticleNode();
 	virtual bool init() override;
 	virtual void visit() override;

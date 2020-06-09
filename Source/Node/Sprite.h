@@ -40,10 +40,10 @@ struct SpriteVertex
 
 struct SpriteQuad
 {
+	SpriteVertex rb;
+	SpriteVertex lb;
 	SpriteVertex lt;
 	SpriteVertex rt;
-	SpriteVertex lb;
-	SpriteVertex rb;
 	inline operator SpriteVertex*()
 	{
 		return r_cast<SpriteVertex*>(this);
@@ -54,10 +54,10 @@ struct SpriteQuad
 	}
 	struct Position
 	{
+		Vec4 rb;
+		Vec4 lb;
 		Vec4 lt;
 		Vec4 rt;
-		Vec4 lb;
-		Vec4 rb;
 	};
 };
 
@@ -124,9 +124,12 @@ public:
 	virtual ~SpriteRenderer() { }
 	virtual void render() override;
 	void push(Sprite* sprite);
-	void push(SpriteVertex* verts, Uint32 size,
+	void push(SpriteVertex* verts, size_t size,
 		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = UINT32_MAX,
-		const Matrix* modelWorld = nullptr);
+		const Matrix* localWorld = nullptr);
+	void push(SpriteVertex* verts, size_t vsize, uint16_t* inds, size_t isize,
+		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = UINT32_MAX,
+		const Matrix* localWorld = nullptr);
 protected:
 	SpriteRenderer();
 private:
@@ -138,6 +141,7 @@ private:
 	Uint64 _lastState;
 	Uint32 _lastFlags;
 	vector<SpriteVertex> _vertices;
+	vector<uint16_t> _indices;
 	const uint16_t _spriteIndices[6];
 	SINGLETON_REF(SpriteRenderer, RendererManager);
 };

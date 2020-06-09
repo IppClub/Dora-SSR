@@ -63,9 +63,17 @@ public: varType get##funName()
 public: bool is##funName() const; \
 public: void set##funName(bool var)
 
+#define PROPERTY_VIRTUAL_BOOL(funName) \
+public: bool is##funName() const; \
+public: void virtual set##funName(bool var)
+
 #define PROPERTY_STRING(funName) \
 public: const string& get##funName() const; \
 public: void set##funName(String var)
+
+#define PROPERTY_VIRTUAL_STRING(funName) \
+public: const string& get##funName() const; \
+public: virtual void set##funName(String var)
 
 /** @brief Code block for condition check.
 	@example Use it as below.

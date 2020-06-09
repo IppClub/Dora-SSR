@@ -47,25 +47,6 @@ int Slice::compare(const Slice &rhs) const {
   return ret;
 }
 
-std::string Slice::getFilePath() const {
-  std::string filename = toString();
-  size_t pos = filename.find_last_of("/\\");
-  if (pos == std::string::npos)
-  {
-    return Slice::Empty;
-  }
-  return filename.substr(0, pos) + "/";
-}
-
-std::string Slice::getFileName() const {
-  std::string filename = toString();
-  size_t pos = filename.find_last_of("/\\");
-  if (pos == std::string::npos) {
-    return Slice::Empty;
-  }
-  return filename.substr(pos+1);
-}
-
 std::string Slice::toLower() const {
   std::string tmp = toString();
   for (size_t i = 0; i < tmp.length(); i++) {
@@ -80,15 +61,6 @@ std::string Slice::toUpper() const {
     tmp[i] = (char)toupper(tmp[i]);
   }
   return tmp;
-}
-
-std::string Slice::getFileExtension() const {
-  std::string filename = toString();
-  size_t pos = filename.rfind('.');
-  if (pos == std::string::npos) {
-    return Slice::Empty;
-  }
-  return Slice(filename.substr(pos + 1)).toLower();
 }
 
 std::list<Slice> Slice::split(const Slice& delims) const {

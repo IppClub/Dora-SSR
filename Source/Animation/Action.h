@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "bx/easing.h"
-#include "Common/Utils.h"
 #include "Support/Geometry.h"
 
 NS_DOROTHY_BEGIN

@@ -118,7 +118,7 @@ void DrawNode::render()
 		_blendFunc.toValue();
 	if (_flags.isOn(DrawNode::DepthWrite))
 	{
-		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
+		_renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
 	SharedRendererManager.setCurrent(SharedDrawRenderer.getTarget());
@@ -610,7 +610,7 @@ void Line::render()
 		BGFX_STATE_PT_LINESTRIP | _blendFunc.toValue();
 	if (_flags.isOn(Line::DepthWrite))
 	{
-		_renderState |= BGFX_STATE_DEPTH_TEST_LESS;
+		_renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
 	SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());

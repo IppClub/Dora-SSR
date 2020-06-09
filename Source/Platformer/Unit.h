@@ -12,10 +12,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 class Sensor;
-class Model;
 class PhysicsWorld;
 class Entity;
 class EntityWorld;
+class Playable;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -33,7 +33,7 @@ class Unit : public Body
 	typedef unordered_map<string, Own<UnitAction>> ActionMap;
 public:
 	// Class properties
-	PROPERTY(Model*, Model);
+	PROPERTY(Playable*, Playable);
 	PROPERTY(BulletDef*, BulletDef);
 	PROPERTY(float, DetectDistance);
 	PROPERTY_CREF(Size, AttackRange);
@@ -96,7 +96,7 @@ private:
 	Ref<AILeaf> _decisionTree;
 	Ref<UnitDef> _unitDef;
 	Ref<BulletDef> _bulletDef;
-	WRef<Model> _model;
+	WRef<Playable> _playable;
 	Size _size;
 	Sensor* _groundSensor;
 	Sensor* _detectSensor;

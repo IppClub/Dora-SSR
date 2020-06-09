@@ -47,13 +47,8 @@ with Observer "Add",{"world"}
 					emit "EPChange",GroupPlayer,ep
 					emit "EPChange",GroupEnemy,ep
 				.playing = true
-				Store.winner = nil
 				Audio\playStream "Audio/LOOP14.ogg",true
-				names = {"Flandre","Dorothy","Villy"}
-				for i,v in ipairs names
-					if v == hero
-						table.remove names,i
-						break
+				names = [n for n in *{"Flandre","Dorothy","Villy"} when n ~= hero]
 				enemyHero = names[(App.rand%2)+1]
 				with Entity!
 					.hero = hero
@@ -123,7 +118,7 @@ with Observer "Add",{"switch_","group","layer","look","position"}
 		unit = with Unit Store[switch_],world,@,position
 			.group = group
 			.order = layer
-			with .model
+			with .playable
 				.look = look
 				.scaleX = 2
 				.scaleY = 2
@@ -165,7 +160,7 @@ with Observer "Add",{"block","group","layer","look","position"}
 		with Unit Store[block],world,@,position
 			.group = group
 			.order = layer
-			.model.look = look
+			.playable.look = look
 			\addTo world
 
 with Observer "Add",{"poke","group","layer","position"}
@@ -240,14 +235,14 @@ with Observer "Change", {"hp","unit","block"}
 			if hp > 0
 				unit\start "hit"
 				unit.faceRight = false
-				with unit.model
+				with unit.playable
 					.recovery = 0.5
 					\play "hp#{hp}"
 			else
 				unit\start "hit"
 				unit.faceRight = false
 				unit.group = Data.groupHide
-				unit.model\perform Scale 0.3,1,0,Ease.OutQuad
+				unit.playable\perform Scale 0.3,1,0,Ease.OutQuad
 				unit\schedule once ->
 					sleep 5
 					unit\removeFromParent!
@@ -326,7 +321,7 @@ with Observer "Change", {"hp","hero"}
 						when GroupPlayer then Vec2 512,1004-512
 						when GroupEnemy then Vec2 3584,1004-512
 					cycle 5,(dt)-> unit.position = start + (stop-start) * Ease\func Ease.OutQuad,dt
-					unit.model.look = "happy"
+					unit.playable.look = "happy"
 					unit.visible = true
 					unit.velocityY = 1
 					unit.group = lastGroup

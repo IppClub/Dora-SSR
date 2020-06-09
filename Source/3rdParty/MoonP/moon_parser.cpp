@@ -44,7 +44,8 @@ MoonParser::MoonParser() {
 	multi_line_content = *(not_(multi_line_close) >> Any);
 	MultiLineComment = multi_line_open >> multi_line_content >> multi_line_close;
 	EscapeNewLine = expr('\\') >> *(set(" \t") | MultiLineComment) >> -Comment >> Break;
-	Space = *(set(" \t") | and_(set("-\\")) >> (MultiLineComment | EscapeNewLine)) >> -Comment;
+	space_one = set(" \t") | and_(set("-\\")) >> (MultiLineComment | EscapeNewLine);
+	Space = *space_one >> -Comment;
 	SpaceBreak = Space >> Break;
 	White = Space >> *(Break >> Space);
 	EmptyLine = SpaceBreak;
@@ -170,7 +171,7 @@ MoonParser::MoonParser() {
 	InBlock = Advance >> ensure(Block, PopIndent);
 
 	local_flag = expr('*') | expr('^');
-	local_values = NameList >> -(sym('=') >> ExpListLow);
+	local_values = NameList >> -(sym('=') >> (TableBlock | ExpListLow));
 	Local = key("local") >> (Space >> local_flag | local_values);
 
 	colon_import_name = sym('\\') >> Space >> Variable;
@@ -209,7 +210,7 @@ MoonParser::MoonParser() {
 
 	WithExp = ExpList >> -Assign;
 
-	With = key("with") >> DisableDo >> ensure(WithExp, PopDo) >> -key("do") >> Body;
+	With = key("with") >> -existential_op >> DisableDo >> ensure(WithExp, PopDo) >> -key("do") >> Body;
 	SwitchCase = key("when") >> ExpList >> -key("then") >> Body;
 	SwitchElse = key("else") >> Body;
 
@@ -231,6 +232,7 @@ MoonParser::MoonParser() {
 	Unless = key("unless") >> Seperator >> IfCond >> -key("then") >> Body >> *IfElseIf >> -IfElse;
 
 	While = key("while") >> DisableDo >> ensure(Exp, PopDo) >> -key("do") >> Body;
+	Repeat = key("repeat") >> Body >> Break >> *EmptyLine >> CheckIndent >> key("until") >> Exp;
 
 	for_step_value = sym(',') >> White >> Exp;
 	for_args = Space >> Variable >> sym('=') >> Exp >> sym(',') >> White >> Exp >> -for_step_value;
@@ -290,6 +292,25 @@ MoonParser::MoonParser() {
 
 	Update = Space >> update_op >> expr("=") >> Exp;
 
+	Assignable = AssignableChain | Space >> Variable | Space >> SelfName;
+
+	unary_value = unary_operator >> *(Space >> unary_operator) >> Value;
+
+	ExponentialOperator = expr('^');
+	expo_value = Space >> ExponentialOperator >> *SpaceBreak >> Value;
+	expo_exp = Value >> *expo_value;
+
+	unary_operator =
+		expr('-') >> not_(expr('>') | space_one) |
+		expr('#') |
+		expr('~') >> not_(space_one) |
+		expr("not") >> not_(AlphaNum);
+	unary_exp = *(Space >> unary_operator) >> expo_exp;
+
+	BackcallOperator = expr("|>");
+	backcall_value = Space >> BackcallOperator >> *SpaceBreak >> unary_exp;
+	backcall_exp = unary_exp >> *backcall_value;
+
 	BinaryOperator =
 		(expr("or") >> not_(AlphaNum)) |
 		(expr("and") >> not_(AlphaNum)) |
@@ -302,14 +323,9 @@ MoonParser::MoonParser() {
 		expr("<<") |
 		expr(">>") |
 		expr("//") |
-		set("+-*/%^><|&");
-
-	BackcallOperator = expr("|>");
-
-	Assignable = AssignableChain | Space >> Variable | Space >> SelfName;
-
-	exp_op_value = Space >> (BackcallOperator | BinaryOperator) >> *SpaceBreak >> Value;
-	Exp = Value >> *exp_op_value;
+		set("+-*/%><|&~");
+	exp_op_value = Space >> BinaryOperator >> *SpaceBreak >> backcall_exp;
+	Exp = Seperator >> backcall_exp >> *exp_op_value;
 
 	ChainValue = Seperator >> (Chain | Callable) >> -existential_op >> -InvokeArgs;
 
@@ -419,7 +435,7 @@ MoonParser::MoonParser() {
 		-(key("extends")  >> PreventIndent >> ensure(Exp, PopIndent)) >>
 		-ClassBlock;
 
-	global_values = NameList >> -(sym('=') >> ExpListLow);
+	global_values = NameList >> -(sym('=') >> (TableBlock | ExpListLow));
 	global_op = expr('*') | expr('^');
 	Global = key("global") >> (ClassDecl | (Space >> global_op) | global_values);
 
@@ -511,23 +527,18 @@ MoonParser::MoonParser() {
 		);
 
 	InvokeArgs =
-		not_(expr('-')) >> Seperator >>
+		not_(set("-~")) >> Seperator >>
 		(
 			Exp >> *(sym(',') >> Exp) >> -(invoke_args_with_table | TableBlock) |
 			TableBlock
 		);
 
 	const_value = (expr("nil") | expr("true") | expr("false")) >> not_(AlphaNum);
-	minus_exp = expr('-') >> not_(set(" \t")) >> Exp;
-	sharp_exp = expr('#') >> Exp;
-	tilde_exp = expr('~') >> Exp;
-	not_exp = expr("not") >> not_(AlphaNum) >> Exp;
-	unary_exp = minus_exp | sharp_exp | tilde_exp | not_exp;
 
 	SimpleValue =
 		(Space >> const_value) |
 		If | Unless | Switch | With | ClassDecl | ForEach | For | While | Do |
-		(Space >> unary_exp) |
+		(Space >> unary_value) |
 		TblComprehension | TableLit | Comprehension | FunLit |
 		(Space >> Num);
 
@@ -537,13 +548,13 @@ MoonParser::MoonParser() {
 	unless_line = key("unless") >> Exp;
 
 	statement_appendix = (if_line | unless_line | CompInner) >> Space;
+	statement_sep = and_(*SpaceBreak >> CheckIndent >> Space >> (set("($'\"") | expr("[[") | expr("[=")));
 	Statement = (
-		Import | While | For | ForEach |
-		Return | Local | Global | Export |
-		Macro | Space >> BreakLoop | Label |
-		Goto | Backcall | ExpListAssign
+		Import | While | Repeat | For | ForEach |
+		Return | Local | Global | Export | Macro |
+		Space >> BreakLoop | Label | Goto | Backcall | ExpListAssign
 	) >> Space >>
-	-statement_appendix;
+	-statement_appendix >> -statement_sep;
 
 	Body = Space >> Break >> *EmptyLine >> InBlock | Statement;
 

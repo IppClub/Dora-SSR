@@ -183,7 +183,7 @@ end
 
 local Content_copyAsync = Content.copyAsync
 Content.copyAsync = function(self,src,dst)
-	local loaded  = false
+	local loaded = false
 	Content_copyAsync(self,src,dst,function()
 		loaded = true
 	end)
@@ -402,6 +402,7 @@ end
 
 local UnitAction = builtin.Platformer.UnitAction
 local UnitAction_add = UnitAction.add
+local function dummy() end
 UnitAction.add = function(self, name, params)
 	UnitAction_add(self, name,
 		params.priority,
@@ -409,7 +410,7 @@ UnitAction.add = function(self, name, params)
 		params.recovery,
 		params.available,
 		params.create,
-		params.stop)
+		params.stop or dummy)
 end
 
 -- ImGui

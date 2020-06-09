@@ -1,6 +1,118 @@
 Dorothy builtin.Platformer
 {store:Store} = Data
 
+import "Platformer" as {Act:Do}
+
+lastAction = "idle"
+lastActionFrame = App.frame
+data = {}
+row = nil
+Act = (name)-> Seq {
+	Con "Collect data", =>
+		switch name
+			when "fallOff","cancel"
+				return true
+		return true if @decisionTree ~= "AI_KidSearch"
+		sensor = @getSensorByTag UnitDef.AttackSensorTag
+		attack_path_blocked = if sensor.sensedBodies\each (body)->
+				body.group == Data.groupTerrain and
+				(@x > body.x) ~= @faceRight and
+				body.tag == "Obstacle"
+			faceObstacle = true
+			start = @position
+			stop = Vec2 start.x+(@faceRight and 1 or -1)*@unitDef.attackRange.width,start.y
+			Store.world\raycast start,stop,true,(b)->
+				return false if b.group == Data.groupDetection
+				faceObstacle = false if Relation.Enemy == Data\getRelation @,b
+				true
+			faceObstacle
+		else false
+
+		face_right = @faceRight
+
+		obstacle_distance = 999999
+		obstacle_ahead = do
+			start = @position
+			stop = Vec2 start.x+(@faceRight and 140 or -140),start.y
+			Store.world\raycast start,stop,false,(b,p)->
+				if b.group == Data.groupTerrain and b.tag == "Obstacle"
+					obstacle_distance = math.abs p.x-start.x
+					true
+				else false
+
+		has_forward_speed = math.abs(@velocityX) > 0
+
+		see_enemy = AI\getNearestUnit(Relation.Enemy)?
+
+		evade_right = nil
+
+		need_evade = do
+			return false if not @getAction "rangeAttack" or not @onSurface
+			evadeLeftEnemy = false
+			evadeRightEnemy = false
+			sensor = @getSensorByTag UnitDef.AttackSensorTag
+			sensor.sensedBodies\each (body)->
+				if Relation.Enemy == Data\getRelation @,body
+					distance = math.abs @x - body.x
+					if distance < 80
+						evadeRightEnemy = false
+						evadeLeftEnemy = false
+						return true
+					elseif distance < 200
+						evadeRightEnemy = true if body.x > @x
+						evadeLeftEnemy = true if body.x <= @x
+			needEvade = not (evadeLeftEnemy == evadeRightEnemy) and math.abs(@x) < 1000
+			evade_right = evadeRightEnemy if needEvade
+			needEvade
+
+		face_enemy = evade_right? and not @isDoing("backJump") and evade_right == @faceRight
+
+		last_action = lastAction
+
+		last_action_interval = (App.frame - lastActionFrame) / 60
+
+		not_facing_nearest_enemy = do
+			enemy = AI\getNearestUnit Relation.Enemy
+			if enemy?
+				(@x > enemy.x) == @faceRight
+
+		enemy_in_attack_range = do
+			enemy = AI\getNearestUnit Relation.Enemy
+			attackUnits = AI\getUnitsInAttackRange!
+			attackUnits and attackUnits\contains(enemy) or false
+
+		reach_search_limit = math.abs(@x) > 1150 and (@x > 0 == @faceRight)
+
+		row = {:attack_path_blocked,:face_right,:obstacle_ahead,:obstacle_distance,:has_forward_speed,:see_enemy,:evade_right,:need_evade,:face_enemy,:last_action,:last_action_interval,:not_facing_nearest_enemy,:enemy_in_attack_range,:reach_search_limit,action:name}
+
+		lastAction = name
+		lastActionFrame = App.frame
+		true
+	Do name
+	Con "Save data",=>
+		switch name
+			when "fallOff","cancel"
+				return true
+		return true if @decisionTree ~= "AI_KidSearch"
+		table.insert data,row
+		print #data
+}
+
+rowNames = {'attack_path_blocked','face_right','obstacle_ahead','obstacle_distance','has_forward_speed','see_enemy','evade_right','need_evade','face_enemy','last_action','last_action_interval','not_facing_nearest_enemy','enemy_in_attack_range','reach_search_limit','action'}
+
+Director.entry\addChild with Node!
+	\slot "Cleanup",->
+		csvData = for row in *data
+			rd = for name in *rowNames
+				val = if row[name]? then row[name] else "N"
+				if "boolean" == type val
+					val = if val then "T" else "F"
+				tostring val
+			table.concat rd,","
+		names = table.concat([string.upper n for n in *rowNames],",").."\n"
+		Content\save Path(Content.writablePath,"data.csv"), names..table.concat(csvData,"\n")
+		print "#{#csvData} records saved!"
+
 rangeAttack = Sel {
 	Seq {
 		Con "attack path blocked", =>
@@ -29,13 +141,11 @@ walk = Sel {
 		Con "obstacles ahead",=>
 			start = @position
 			stop = Vec2 start.x+(@faceRight and 140 or -140),start.y
-			if Store.world\raycast start,stop,false,(b,p)->
-					if b.group == Data.groupTerrain and b.tag == "Obstacle"
-						@entity.obstacleDistance = math.abs p.x-start.x
-						true
-					else false
-				true
-			else false
+			Store.world\raycast start,stop,false,(b,p)->
+				if b.group == Data.groupTerrain and b.tag == "Obstacle"
+					@entity.obstacleDistance = math.abs p.x-start.x
+					true
+				else false
 		Sel {
 			Seq {
 				Con "obstacle distance <= 80",=> @entity.obstacleDistance <= 80
@@ -51,8 +161,7 @@ walk = Sel {
 }
 
 fightDecision = Seq {
-	Con "see enemy",=>
-		AI\getNearestUnit(Relation.Enemy)?
+	Con "see enemy",=> AI\getNearestUnit(Relation.Enemy)?
 	Sel {
 		Seq {
 			Con "need evade",=>

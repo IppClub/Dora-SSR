@@ -31,13 +31,13 @@ _angle(angle)
 	{
 		_type = Face::Frame;
 	}
-	else if (file.getFileExtension() == "par"_slice)
+	else if (Path::getExt(file) == "par"_slice)
 	{
 		_type = Face::Particle;
 	}
 	else
 	{
-		switch (Switch::hash(file.getFileExtension()))
+		switch (Switch::hash(Path::getExt(file)))
 		{
 			case "jpg"_hash:
 			case "png"_hash:

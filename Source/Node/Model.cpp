@@ -16,6 +16,52 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+Playable::Playable():
+_faceRight(true),
+_speed(1.0f),
+_recoveryTime(0.0f)
+{ }
+
+void Playable::setFaceRight(bool var)
+{
+	_faceRight = var;
+}
+
+bool Playable::isFaceRight() const
+{
+	return _faceRight;
+}
+
+void Playable::setSpeed(float var)
+{
+	_speed = var;
+}
+
+float Playable::getSpeed() const
+{
+	return _speed;
+}
+
+void Playable::setRecovery(float var)
+{
+	_recoveryTime = var;
+}
+
+float Playable::getRecovery() const
+{
+	return _recoveryTime;
+}
+
+void Playable::setLook(String var)
+{
+	_lookName = var;
+}
+
+const string& Playable::getLook() const
+{
+	return _lookName;
+}
+
 void Look::add(Node* node)
 {
 	_nodes.push_back(node);
@@ -46,10 +92,7 @@ _faceRight(def->isFaceRight()),
 _loop(false),
 _currentLook(-1),
 _currentAnimation(-1),
-_modelDef(def),
-_speed(1.0f),
-_recoveryTime(0.0f),
-_currentLookName(Slice::Empty)
+_modelDef(def)
 {
 	_flags.setOff(Node::TraverseEnabled);
 }
@@ -63,22 +106,26 @@ bool Model::init()
 	if (!Node::init()) return false;
 	_resetAnimation.end = std::make_pair(this, &Model::onResetAnimationEnd);
 	_root = Node::create();
-	ClipDef* clipDef = SharedClipCache.load(_modelDef->getClipFile());
-	Model::visit(_modelDef->getRoot(), _root, clipDef);
-	Model::setupCallback();
+	const string& clipFile = _modelDef->getClipFile();
+	if (!clipFile.empty())
+	{
+		ClipDef* clipDef = SharedClipCache.load(_modelDef->getClipFile());
+		Model::visit(_modelDef->getRoot(), _root, clipDef);
+		Model::setupCallback();
+		for (int i = 0; i < s_cast<int>(_animationGroups.size()); i++)
+		{
+			const string& name = _modelDef->getAnimationNameByIndex(i);
+			_animationGroups[i]->animationEnd = [this, name](Model* model)
+			{
+				emit("AnimationEnd"_slice, name, s_cast<Playable*>(model));
+			};
+		}
+	}
 	Size size = _modelDef->getSize();
 	Model::setSize(size);
 	_root->setPosition(Vec2{size.width * 0.5f, size.height * 0.5f});
 	addChild(_root);
 	handlers(this);
-	for (int i = 0; i < s_cast<int>(_animationGroups.size()); i++)
-	{
-		const string& name = _modelDef->getAnimationNameByIndex(i);
-		_animationGroups[i]->animationEnd = [this, name](Model* model)
-		{
-			emit("AnimationEnd"_slice, name, model);
-		};
-	}
 	return true;
 }
 
@@ -121,12 +168,8 @@ void Model::setLook(int index)
 void Model::setLook(String name)
 {
 	int index = _modelDef->getLookIndexByName(name);
+	Playable::setLook(name);
 	Model::setLook(index);
-}
-
-const string& Model::getLook() const
-{
-	return _currentLookName;
 }
 
 void Model::setFaceRight(bool var)
@@ -139,14 +182,10 @@ void Model::setFaceRight(bool var)
 	}
 }
 
-bool Model::isFaceRight() const
+float Model::play(Uint32 index, bool loop)
 {
-	return _faceRight;
-}
-
-float Model::play(Uint32 index)
-{
-	if (index >= _animationGroups.size())
+	_loop = loop;
+	if (index == Animation::None || index >= _animationGroups.size())
 	{
 		return 0;
 	}
@@ -166,10 +205,10 @@ float Model::play(Uint32 index)
 	return (_animationGroups[_currentAnimation]->duration + _recoveryTime) / std::max(_speed, FLT_EPSILON);
 }
 
-float Model::play(String name)
+float Model::play(String name, bool loop)
 {
 	int index = _modelDef->getAnimationIndexByName(name);
-	return Model::play(index);
+	return Model::play(index, loop);
 }
 
 void Model::reset()
@@ -242,16 +281,6 @@ void Model::onActionEnd()
 	}
 }
 
-void Model::setLoop(bool loop)
-{
-	_loop = loop;
-}
-
-bool Model::isLoop() const
-{
-	return _loop;
-}
-
 int Model::getCurrentAnimationIndex() const
 {
 	if (_isPlaying)
@@ -261,12 +290,12 @@ int Model::getCurrentAnimationIndex() const
 	return Animation::None;
 }
 
-void Model::resume(Uint32 index)
+void Model::resume(Uint32 index, bool loop)
 {
 	Model::resume();
 	if (!_isPlaying || _currentAnimation != index)
 	{
-		Model::play(index);
+		Model::play(index, loop);
 	}
 	else if (_isPlaying)
 	{
@@ -275,16 +304,20 @@ void Model::resume(Uint32 index)
 			Animation* animation = _animationGroups[_currentAnimation]->animations[0].get();
 			if (animation->getEclapsed() >= animation->getDuration())
 			{
-				Model::play(index);
+				Model::play(index, loop);
 			}
+		}
+		else
+		{
+			_loop = loop;
 		}
 	}
 }
 
-void Model::resume(String name)
+void Model::resume(String name, bool loop)
 {
 	int index = _modelDef->getAnimationIndexByName(name);
-	Model::resume(index);
+	Model::resume(index, loop);
 }
 
 void Model::resume()
@@ -336,12 +369,8 @@ void Model::setSpeed(float speed)
 				animation->setSpeed(_speed);
 			}
 		}
+		Playable::setSpeed(speed);
 	}
-}
-
-float Model::getSpeed() const
-{
-	return _speed;
 }
 
 void Model::setReversed(bool var)
@@ -381,12 +410,7 @@ void Model::setRecovery(float var)
 	{
 		var = 0.0f;
 	}
-	_recoveryTime = var;
-}
-
-float Model::getRecovery() const
-{
-	return _recoveryTime;
+	Playable::setRecovery(var);
 }
 
 float Model::getDuration() const
@@ -546,9 +570,14 @@ bool Model::eachNode(function<bool(Node* node)> handler) const
 	}
 }
 
-string Model::getCurrentAnimationName() const
+const string& Model::getCurrentAnimationName() const
 {
 	return _modelDef->getAnimationNameByIndex(_currentAnimation);
+}
+
+Vec2 Model::getKeyPoint(String name) const
+{
+	return _modelDef->getKeyPoint(name);
 }
 
 Animation::Animation(Node* node, Action* action):

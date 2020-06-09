@@ -17,7 +17,7 @@ NS_DOROTHY_BEGIN
 
 std::shared_ptr<XmlParser<ModelDef>> ModelCache::prepareParser(String filename)
 {
-	return std::shared_ptr<XmlParser<ModelDef>>(new Parser(ModelDef::create(), filename.getFilePath()));
+	return std::shared_ptr<XmlParser<ModelDef>>(new Parser(ModelDef::create(), Path::getPath(filename)));
 }
 
 ModelCache::Parser::Parser(ModelDef* def, String path):
@@ -69,7 +69,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					case Xml::Model::Dorothy::File:
 					{
 						string file = Slice(attrs[++i]);
-						string localFile = _path + file;
+						string localFile = Path::concat({_path, file});
 						_item->_clip = SharedContent.isExist(localFile) ? localFile : file;
 						break;
 					}
@@ -248,7 +248,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					case Xml::Model::FrameAnimation::File:
 					{
 						string file = Slice(attrs[++i]);
-						string localFile = _path + file;
+						string localFile = Path::concat({_path, file});
 						frameAnimationDef->setFile(SharedClipCache.isFileExist(localFile) ? localFile : file);
 						break;
 					}

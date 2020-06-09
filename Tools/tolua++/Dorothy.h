@@ -97,6 +97,7 @@ struct Rect
 
 class Application
 {
+	tolua_readonly tolua_property__common Uint32 frame;
 	tolua_readonly tolua_property__common Size bufferSize;
 	tolua_readonly tolua_property__common Size visualSize;
 	tolua_readonly tolua_property__common float deviceRatio;
@@ -597,25 +598,28 @@ class ParticleNode @ Particle : public Node
 	static ParticleNode* create(String filename);
 };
 
-class Model : public Node
+class Playable : public Node
 {
 	tolua_property__common string look;
 	tolua_property__common float speed;
-	tolua_property__bool bool loop;
-	tolua_readonly tolua_property__common float duration;
 	tolua_property__common float recovery;
 	tolua_property__bool bool faceRight;
+	tolua_readonly tolua_property__common string currentAnimationName @ currentAnimation;
+	Vec2 getKeyPoint @ getKey(String name);
+	float play(String name, bool loop = false);
+	void stop();
+};
+
+class Model : public Playable
+{
+	tolua_readonly tolua_property__common float duration;
 	tolua_property__bool bool reversed;
 	tolua_readonly tolua_property__bool bool playing;
 	tolua_readonly tolua_property__bool bool paused;
-	tolua_readonly tolua_property__common string currentAnimationName @ currentAnimation;
-	tolua_outside Vec2 Model_getKey @ getKey(String key);
 	bool hasAnimation(String name);
-	float play(String name);
 	void pause();
 	void resume();
-	void resume(String name);
-	void stop();
+	void resume(String name, bool loop = false);
 	void reset();
 	void updateTo(float eclapsed, bool reversed = false);
 	bool eachNode(tolua_function_bool func);
@@ -625,6 +629,12 @@ class Model : public Node
 	static tolua_outside void Model_getClipFile @ getClipFile(String filename);
 	static tolua_outside void Model_getLookNames @ getLooks(String filename);
 	static tolua_outside void Model_getAnimationNames @ getAnimations(String filename);
+};
+
+class Spine : public Playable
+{
+	static Spine* create(String skelFile, String atlasFile);
+	static Spine* create(String spineStr);
 };
 
 class PhysicsWorld : public Node
@@ -1182,7 +1192,7 @@ class UnitDef : public Object
 	tolua_property__common float density;
 	tolua_property__common float friction;
 	tolua_property__common float restitution;
-	tolua_property__common string model;
+	tolua_property__common string playable;
 	tolua_property__common Size size;
 	string tag;
 	float sensity;
@@ -1231,7 +1241,7 @@ class Unit : public Body
 	TargetAllow targetAllow;
 	Uint16 damageType;
 	Uint16 defenceType;
-	tolua_property__common Model* model;
+	tolua_property__common Playable* playable;
 	tolua_property__common float detectDistance;
 	tolua_property__common Size attackRange;
 	tolua_property__bool bool faceRight;

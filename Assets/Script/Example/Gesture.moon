@@ -3,7 +3,7 @@ Dorothy!
 texture = GetDorothySSRWhite!
 sprite = Sprite texture
 length = (Vec2 View.size).length
-{:width,:height} = sprite
+:width,:height = sprite
 size = Vec2(width,height).length
 scaledSize = size
 
@@ -26,7 +26,7 @@ Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		{:width,:height} = App.visualSize
+		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,120), "FirstUseEver"
 		Begin "Gesture", "NoResize|NoSavedSettings", ->

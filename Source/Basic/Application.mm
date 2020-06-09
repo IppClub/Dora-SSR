@@ -23,7 +23,7 @@ void Application::setupSdlWindow()
 	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
 
 	CALayer* layer = wmi.info.uikit.window.rootViewController.view.layer;
-	CAEAGLLayer* displayLayer = [[CAEAGLLayer alloc] init];
+	CAMetalLayer* displayLayer = [[CAMetalLayer alloc] init];
 	
 	CGRect bounds = [UIScreen mainScreen].bounds;
 	CGFloat scale = [UIScreen mainScreen].scale;

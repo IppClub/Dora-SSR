@@ -98,10 +98,11 @@ AST_NODE(NameList)
 AST_END(NameList)
 
 class ExpListLow_t;
+class TableBlock_t;
 
 AST_NODE(local_values)
 	ast_ptr<true, NameList_t> nameList;
-	ast_ptr<false, ExpListLow_t> valueList;
+	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
 	AST_MEMBER(local_values, &nameList, &valueList)
 AST_END(local_values)
 
@@ -189,14 +190,16 @@ AST_NODE(Return)
 	AST_MEMBER(Return, &valueList)
 AST_END(Return)
 
+class existential_op_t;
 class Assign_t;
 class Body_t;
 
 AST_NODE(With)
+	ast_ptr<false, existential_op_t> eop;
 	ast_ptr<true, ExpList_t> valueList;
 	ast_ptr<false, Assign_t> assigns;
 	ast_ptr<true, Body_t> body;
-	AST_MEMBER(With, &valueList, &assigns, &body)
+	AST_MEMBER(With, &eop, &valueList, &assigns, &body)
 AST_END(With)
 
 AST_NODE(SwitchCase)
@@ -236,6 +239,12 @@ AST_NODE(While)
 	ast_ptr<true, Body_t> body;
 	AST_MEMBER(While, &condition, &body)
 AST_END(While)
+
+AST_NODE(Repeat)
+	ast_ptr<true, Body_t> body;
+	ast_ptr<true, Exp_t> condition;
+	AST_MEMBER(Repeat, &body, &condition)
+AST_END(Repeat)
 
 AST_NODE(for_step_value)
 	ast_ptr<true, Exp_t> value;
@@ -332,8 +341,8 @@ AST_END(Update)
 AST_LEAF(BinaryOperator)
 AST_END(BinaryOperator)
 
-AST_LEAF(BackcallOperator)
-AST_END(BackcallOperator)
+AST_LEAF(unary_operator)
+AST_END(unary_operator)
 
 class AssignableChain_t;
 
@@ -342,18 +351,19 @@ AST_NODE(Assignable)
 	AST_MEMBER(Assignable, &item)
 AST_END(Assignable)
 
-class Value_t;
+class unary_exp_t;
 
 AST_NODE(exp_op_value)
-	ast_sel<true, BinaryOperator_t, BackcallOperator_t> op;
-	ast_ptr<true, Value_t> value;
-	AST_MEMBER(exp_op_value, &op, &value)
+	ast_ptr<true, BinaryOperator_t> op;
+	ast_list<true, unary_exp_t> backcalls;
+	AST_MEMBER(exp_op_value, &op, &backcalls)
 AST_END(exp_op_value)
 
 AST_NODE(Exp)
-	ast_ptr<true, Value_t> value;
+	ast_ptr<true, Seperator_t> sep;
+	ast_list<true, unary_exp_t> backcalls;
 	ast_list<false, exp_op_value_t> opValues;
-	AST_MEMBER(Exp, &value, &opValues)
+	AST_MEMBER(Exp, &sep, &backcalls, &opValues)
 AST_END(Exp)
 
 class Parens_t;
@@ -387,14 +397,15 @@ AST_END(simple_table)
 class String_t;
 class const_value_t;
 class ClassDecl_t;
-class unary_exp_t;
+class unary_value_t;
 class TableLit_t;
 class FunLit_t;
 
 AST_NODE(SimpleValue)
 	ast_sel<true, const_value_t,
 	If_t, Unless_t, Switch_t, With_t, ClassDecl_t,
-	ForEach_t, For_t, While_t, Do_t, unary_exp_t,
+	ForEach_t, For_t, While_t, Do_t,
+	unary_value_t,
 	TblComprehension_t, TableLit_t, Comprehension_t,
 	FunLit_t, Num_t> value;
 	AST_MEMBER(SimpleValue, &value)
@@ -533,7 +544,7 @@ AST_END(ClassDecl)
 
 AST_NODE(global_values)
 	ast_ptr<true, NameList_t> nameList;
-	ast_ptr<false, ExpListLow_t> valueList;
+	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
 	AST_MEMBER(global_values, &nameList, &valueList)
 AST_END(global_values)
 
@@ -632,9 +643,16 @@ AST_END(InvokeArgs)
 AST_LEAF(const_value)
 AST_END(const_value)
 
+AST_NODE(unary_value)
+	ast_list<true, unary_operator_t> ops;
+	ast_ptr<true, Value_t> value;
+	AST_MEMBER(unary_value, &ops, &value)
+AST_END(unary_value)
+
 AST_NODE(unary_exp)
-	ast_ptr<true, Exp_t> item;
-	AST_MEMBER(unary_exp, &item)
+	ast_list<false, unary_operator_t> ops;
+	ast_list<true, Value_t> expos;
+	AST_MEMBER(unary_exp, &ops, &expos)
 AST_END(unary_exp)
 
 AST_NODE(ExpListAssign)
@@ -654,20 +672,24 @@ AST_NODE(unless_line)
 	AST_MEMBER(unless_line, &condition)
 AST_END(unless_line)
 
+AST_LEAF(BreakLoop)
+AST_END(BreakLoop)
+
 AST_NODE(statement_appendix)
 	ast_sel<true, if_line_t, unless_line_t, CompInner_t> item;
 	AST_MEMBER(statement_appendix, &item)
 AST_END(statement_appendix)
 
-AST_LEAF(BreakLoop)
-AST_END(BreakLoop)
+AST_LEAF(statement_sep)
+AST_END(statement_sep)
 
 AST_NODE(Statement)
-	ast_sel<true, Import_t, While_t, For_t, ForEach_t,
+	ast_sel<true, Import_t, While_t, Repeat_t, For_t, ForEach_t,
 		Return_t, Local_t, Global_t, Export_t, Macro_t, BreakLoop_t,
 		Label_t, Goto_t, Backcall_t, ExpListAssign_t> content;
 	ast_ptr<false, statement_appendix_t> appendix;
-	AST_MEMBER(Statement, &content, &appendix)
+	ast_ptr<false, statement_sep_t> needSep;
+	AST_MEMBER(Statement, &content, &appendix, &needSep)
 AST_END(Statement)
 
 class Block_t;

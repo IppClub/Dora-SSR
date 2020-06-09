@@ -58,7 +58,7 @@ static int dora_traceback(lua_State* L)
 static int dora_loadfile(lua_State* L, String filename)
 {
 	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
-	string extension = filename.getFileExtension();
+	string extension = Path::getExt(filename);
 	string targetFile = filename;
 	if (extension.empty() && targetFile.back() != '.')
 	{
@@ -642,6 +642,16 @@ void LuaEngine::push(lua_State* L, const string& value)
 void LuaEngine::push(lua_State* L, std::nullptr_t)
 {
 	lua_pushnil(L);
+}
+
+bool LuaEngine::to(bool& value, int index)
+{
+	if (lua_isboolean(L, index))
+	{
+		value = lua_toboolean(L, index) != 0;
+		return true;
+	}
+	return false;
 }
 
 bool LuaEngine::to(int& value, int index)

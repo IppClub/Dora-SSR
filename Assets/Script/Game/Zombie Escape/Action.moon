@@ -1,8 +1,8 @@
 Dorothy builtin.Platformer
 
-groundEntranceEnd = (name,model)->
+groundEntranceEnd = (name,playable)->
 	return unless name == "groundEntrance"
-	model.parent\stop!
+	playable.parent\stop!
 
 UnitAction\add "groundEntrance",
 	priority: 6
@@ -12,14 +12,13 @@ UnitAction\add "groundEntrance",
 	create: =>
 		@entity.lastGroup = @group
 		@group = 0
-		with @model
+		with @playable
 			.speed = 1
-			.loop = false
 			\slot "AnimationEnd",groundEntranceEnd
 			\play "groundEntrance"
 		-> false
 	stop: =>
-		@model\slot("AnimationEnd")\remove groundEntranceEnd
+		@playable\slot("AnimationEnd")\remove groundEntranceEnd
 		@group = @entity.lastGroup
 		@entity.lastGroup = nil
 		@entity.entered = true
@@ -32,24 +31,20 @@ UnitAction\add "fallOff",
 	create: =>
 		if @velocityY <= 0
 			@entity.fallDown = true
-			with @model
+			with @playable
 				.speed = 1
-				.loop = false
 				\play "fallOff"
 		else @entity.fallDown = false
 		(action)=>
 			return true if @onSurface
 			if not @entity.fallDown and
-				@model.currentAnimation ~= "fallOff" and
+				@playable.currentAnimation ~= "fallOff" and
 				@velocityY <= 0
 				@entity.fallDown = true
-				with @model
+				with @playable
 					.speed = 1
-					.loop = false
 					\play "fallOff"
 			false
-	stop: =>
-		@model\stop!
 
 UnitAction\add "backJump",
 	priority: 2
@@ -58,10 +53,9 @@ UnitAction\add "backJump",
 	available: => @onSurface
 	create: =>
 		@faceRight = not @faceRight
-		with @model
+		with @playable
 			.speed = 1
-			.loop = true
-			\play "walk"
+			\play "walk", true
 		@velocityX = (@faceRight and 1 or -1)*@move*@moveSpeed
 		loop =>
 			cycle 0.3,->
@@ -71,11 +65,8 @@ UnitAction\add "backJump",
 				@velocityX = (@faceRight and 1 or -1)*@move*@moveSpeed	
 			@velocityY = @jump
 			@velocityX = (@faceRight and 1 or -1)*@move*@moveSpeed
-			with @model
+			with @playable
 				.speed = 1
-				.loop = false
 				\play "jump"
 			sleep 0.2
 			true
-	stop: =>
-		@model\stop!

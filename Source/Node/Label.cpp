@@ -1031,7 +1031,7 @@ void Label::render()
 		BGFX_STATE_MSAA | _blendFunc.toValue());
 	if (_flags.isOn(Label::DepthWrite))
 	{
-		renderState |= BGFX_STATE_DEPTH_TEST_LESS;
+		renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());

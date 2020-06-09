@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/AI.h"
 #include "Animation/ModelDef.h"
 #include "Node/Model.h"
+#include "Node/Spine.h"
 #include "Physics/Sensor.h"
 #include "Physics/PhysicsWorld.h"
 #include "Platformer/VisualCache.h"
@@ -195,12 +196,11 @@ bool Walk::isAvailable()
 
 void Walk::run()
 {
-	Model* model = _owner->getModel();
-	model->setSpeed(_owner->moveSpeed);
-	model->setLoop(true);
-	model->setLook(ActionSetting::LookNormal);
-	model->setRecovery(UnitAction::recovery);
-	model->resume(ActionSetting::AnimationWalk);
+	Playable* playable = _owner->getPlayable();
+	playable->setSpeed(_owner->moveSpeed);
+	playable->setLook(ActionSetting::LookNormal);
+	playable->setRecovery(UnitAction::recovery);
+	playable->play(ActionSetting::AnimationWalk, true);
 	UnitAction::run();
 }
 
@@ -225,7 +225,6 @@ void Walk::update(float dt)
 void Walk::stop()
 {
 	UnitAction::stop();
-	_owner->getModel()->pause();
 }
 
 Own<UnitAction> Walk::alloc(Unit* unit)
@@ -268,12 +267,11 @@ void Idle::run()
 	UnitAction::run();
 	if (_owner->isOnSurface())
 	{
-		Model* model = _owner->getModel();
-		model->setSpeed(1.0f);
-		model->setLoop(true);
-		model->setLook(ActionSetting::LookNormal);
-		model->setRecovery(UnitAction::recovery);
-		model->resume(ActionSetting::AnimationIdle);
+		Playable* playable = _owner->getPlayable();
+		playable->setSpeed(1.0f);
+		playable->setLook(ActionSetting::LookNormal);
+		playable->setRecovery(UnitAction::recovery);
+		playable->play(ActionSetting::AnimationIdle, true);
 	}
 	else
 	{
@@ -283,12 +281,12 @@ void Idle::run()
 
 void Idle::update(float dt)
 {
-	Model* model = _owner->getModel();
+	Playable* playable = _owner->getPlayable();
 	if (_owner->isOnSurface())
 	{
-		if (_owner->getModel()->getCurrentAnimationName() != ActionSetting::AnimationIdle)
+		if (_owner->getPlayable()->getCurrentAnimationName() != ActionSetting::AnimationIdle)
 		{
-			model->resume(ActionSetting::AnimationIdle);
+			playable->play(ActionSetting::AnimationIdle);
 		}
 	}
 	else
@@ -301,7 +299,6 @@ void Idle::update(float dt)
 void Idle::stop()
 {
 	UnitAction::stop();
-	_owner->getModel()->pause();
 }
 
 Own<UnitAction> Idle::alloc(Unit* unit)
@@ -311,6 +308,7 @@ Own<UnitAction> Idle::alloc(Unit* unit)
 }
 
 Jump::Jump(Unit* unit):
+_duration(0.0f),
 UnitAction(ActionSetting::UnitActionJump, ActionSetting::PriorityJump, unit)
 {
 	UnitAction::reaction = ActionSetting::ReactionJump;
@@ -324,13 +322,12 @@ bool Jump::isAvailable()
 
 void Jump::run()
 {
-	Model* model = _owner->getModel();
-	model->setSpeed(_owner->moveSpeed);
-	model->setLoop(false);
-	model->setLook(ActionSetting::LookNormal);
-	model->setRecovery(UnitAction::recovery);
-	model->resume(ActionSetting::AnimationJump);
-	model->handlers[ActionSetting::AnimationJump] += std::make_pair(this, &Jump::onAnimationEnd);
+	Playable* playable = _owner->getPlayable();
+	playable->setSpeed(_owner->moveSpeed);
+	playable->setLook(ActionSetting::LookNormal);
+	playable->setRecovery(UnitAction::recovery);
+	_duration = playable->play(ActionSetting::AnimationJump, false);
+	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Jump::onAnimationEnd));
 	_owner->setVelocityY(_owner->jump);
 	Sensor* sensor = _owner->getGroundSensor();
 	pd::Body* self = _owner->getPrBody();
@@ -353,8 +350,7 @@ void Jump::run()
 
 void Jump::update(float dt)
 {
-	Model* model = _owner->getModel();
-	if (model->getDuration() == 0.0f)
+	if (_duration == 0.0f)
 	{
 		if (_eclapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
 		{
@@ -367,13 +363,20 @@ void Jump::update(float dt)
 
 void Jump::stop()
 {
+	Playable* playable = _owner->getPlayable();
+	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Jump::onAnimationEnd));
 	UnitAction::stop();
-	_owner->getModel()->pause();
 }
 
-void Jump::onAnimationEnd(Model* model)
+void Jump::onAnimationEnd(Event* e)
 {
-	Jump::stop();
+	string name;
+	Playable* playable = nullptr;
+	e->get(name, playable);
+	if (name == ActionSetting::AnimationJump)
+	{
+		Jump::stop();
+	}
 }
 
 Own<UnitAction> Jump::alloc(Unit* unit)
@@ -410,13 +413,12 @@ void Attack::run()
 {
 	_attackDelay = _owner->getUnitDef()->attackDelay / _owner->attackSpeed;
 	_attackEffectDelay = _owner->getUnitDef()->attackEffectDelay / _owner->attackSpeed;
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationAttack] += std::make_pair(this, &Attack::onAnimationEnd);
-	model->setLoop(false);
-	model->setLook(ActionSetting::LookFight);
-	model->setRecovery(UnitAction::recovery);
-	model->setSpeed(_owner->attackSpeed);
-	model->play(ActionSetting::AnimationAttack);
+	Playable* playable = _owner->getPlayable();
+	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Attack::onAnimationEnd));
+	playable->setLook(ActionSetting::LookFight);
+	playable->setRecovery(UnitAction::recovery);
+	playable->setSpeed(_owner->attackSpeed);
+	playable->play(ActionSetting::AnimationAttack);
 	UnitAction::run();
 }
 
@@ -438,8 +440,8 @@ void Attack::update(float dt)
 		const string& attackEffect = _owner->getUnitDef()->attackEffect;
 		if (!attackEffect.empty())
 		{
-			Vec2 key = _owner->getModel()->getModelDef()->getKeyPoint(UnitDef::AttackKey);
-			if (_owner->getModel()->getModelDef()->isFaceRight() != _owner->isFaceRight())
+			Vec2 key = _owner->getPlayable()->getKeyPoint(UnitDef::AttackKey);
+			if (!_owner->isFaceRight())
 			{
 				key.x = -key.x;
 			}
@@ -454,17 +456,22 @@ void Attack::update(float dt)
 
 void Attack::stop()
 {
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationAttack] -= std::make_pair(this, &Attack::onAnimationEnd);
-	model->stop();
+	Playable* playable = _owner->getPlayable();
+	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Attack::onAnimationEnd));
 	UnitAction::stop();
 }
 
-void Attack::onAnimationEnd(Model* model)
+void Attack::onAnimationEnd(Event* e)
 {
-	if (UnitAction::isDoing())
+	string name;
+	Playable* playable = nullptr;
+	e->get(name, playable);
+	if (name == ActionSetting::AnimationAttack)
 	{
-		this->stop();
+		if (UnitAction::isDoing())
+		{
+			this->stop();
+		}
 	}
 }
 
@@ -626,41 +633,39 @@ void Hit::run()
 	_owner->setVelocity(Vec2{hitFromRight ? -hitPower.x : hitPower.x, hitPower.y} / mass);
 	_owner->setFaceRight(hitFromRight);
 	UnitAction::run();
-	Model* model = _owner->getModel();
-	if (model->hasAnimation(ActionSetting::AnimationHit))
+	Playable* playable = _owner->getPlayable();
+	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Hit::onAnimationEnd));
+	playable->setLook(ActionSetting::LookFailure);
+	playable->setRecovery(UnitAction::recovery);
+	playable->setSpeed(1.0f);
+	float duration = playable->play(ActionSetting::AnimationHit);
+	if (duration == 0.0f)
 	{
-		model->handlers[ActionSetting::AnimationHit] += std::make_pair(this, &Hit::onAnimationEnd);
-		model->setLook(ActionSetting::LookSad);
-		model->setLoop(false);
-		model->setRecovery(UnitAction::recovery);
-		model->setSpeed(1.0f);
-		model->play(ActionSetting::AnimationHit);
-	}
-	else
-	{
-		UnitAction::stop();
+		Hit::stop();
 	}
 }
 
 void Hit::update(float dt)
 { }
 
-void Hit::onAnimationEnd(Model* model)
+void Hit::onAnimationEnd(Event* e)
 {
-	if (UnitAction::isDoing())
+	string name;
+	Playable* playable = nullptr;
+	e->get(name, playable);
+	if (name == ActionSetting::AnimationHit)
 	{
-		this->stop();
+		if (UnitAction::isDoing())
+		{
+			this->stop();
+		}
 	}
 }
 
 void Hit::stop()
 {
-	Model* model = _owner->getModel();
-	if (model->hasAnimation(ActionSetting::AnimationHit))
-	{
-		model->handlers[ActionSetting::AnimationHit] -= std::make_pair(this, &Hit::onAnimationEnd);
-		model->stop();
-	}
+	Playable* playable = _owner->getPlayable();
+	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Hit::onAnimationEnd));
 	UnitAction::stop();
 }
 
@@ -681,13 +686,12 @@ Fall::~Fall()
 
 void Fall::run()
 {
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationFall] += std::make_pair(this, &Fall::onAnimationEnd);
-	model->setLook(ActionSetting::LookFallen);
-	model->setLoop(false);
-	model->setRecovery(UnitAction::recovery);
-	model->setSpeed(1.0f);
-	model->play(ActionSetting::AnimationFall);
+	Playable* playable = _owner->getPlayable();
+	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Fall::onAnimationEnd));
+	playable->setLook(ActionSetting::LookFallen);
+	playable->setRecovery(UnitAction::recovery);
+	playable->setSpeed(1.0f);
+	playable->play(ActionSetting::AnimationFall);
 	const string& hitEffect = _owner->getUnitDef()->hitEffect;
 	if (!hitEffect.empty())
 	{
@@ -703,22 +707,27 @@ void Fall::run()
 	UnitAction::run();
 }
 
-void Fall::update(float dt)
+void Fall::update(float)
 { }
 
 void Fall::stop()
 {
-	Model* model = _owner->getModel();
-	model->handlers[ActionSetting::AnimationFall] -= std::make_pair(this, &Fall::onAnimationEnd);
-	model->stop();
+	Playable* playable = _owner->getPlayable();
+	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Fall::onAnimationEnd));
 	UnitAction::stop();
 }
 
-void Fall::onAnimationEnd(Model* model)
+void Fall::onAnimationEnd(Event* e)
 {
-	if (UnitAction::isDoing())
+	string name;
+	Playable* playable = nullptr;
+	e->get(name, playable);
+	if (name == ActionSetting::AnimationFall)
 	{
-		this->stop();
+		if (UnitAction::isDoing())
+		{
+			this->stop();
+		}
 	}
 }
 
@@ -799,7 +808,7 @@ float ActionSetting::RecoveryFall = 0.05f;
 
 const Slice ActionSetting::LookNormal = "normal"_slice;
 const Slice ActionSetting::LookFight = "fight"_slice;
-const Slice ActionSetting::LookSad = "sad"_slice;
+const Slice ActionSetting::LookFailure = "fail"_slice;
 const Slice ActionSetting::LookFallen = "fallen"_slice;
 
 NS_DOROTHY_PLATFORMER_END

@@ -642,8 +642,8 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 		return nullptr;
 	}
 	size = SDL_RWsize(io);
-	Uint8* buffer = new Uint8[(size_t)size];
-	SDL_RWread(io, buffer, sizeof(Uint8), (size_t)size);
+	Uint8* buffer = new Uint8[s_cast<size_t>(size)];
+	SDL_RWread(io, buffer, sizeof(Uint8), s_cast<size_t>(size));
 	SDL_RWclose(io);
 	return buffer;
 }

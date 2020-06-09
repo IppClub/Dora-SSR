@@ -28,7 +28,7 @@ _type(VisualType::Unkown)
 	{
 		_type = VisualType::Frame;
 	}
-	else if (filename.getFileExtension() == "par"_slice)
+	else if (Path::getExt(filename) == "par"_slice)
 	{
 		_type = VisualType::Particle;
 	}
@@ -75,7 +75,7 @@ bool VisualCache::load(String filename)
 		return false;
 	}
 	string fullPath = SharedContent.getFullPath(filename);
-	_path = Slice(fullPath).getFilePath();
+	_path = Path::getPath(fullPath);
 	try
 	{
 		_parser.parse(r_cast<char*>(data.first.get()), s_cast<int>(data.second));
@@ -133,7 +133,7 @@ Visual* VisualCache::create(String name)
 	{
 		return SpriteVisual::create(name);
 	}
-	else if (name.getFileExtension() == "par"_slice)
+	else if (Path::getExt(name) == "par"_slice)
 	{
 		return ParticleVisual::create(name);
 	}
