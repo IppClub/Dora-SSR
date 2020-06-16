@@ -30,21 +30,16 @@ namespace slice {
 const std::string Slice::Empty;
 
 int Slice::compare(const Slice &rhs) const {
-  int ret = 0;
-
-  // It's illegal to pass nullptr to memcmp.
-  if (str_ && rhs.str_)
-    ret = memcmp(str_, rhs.str_, len_);
-
-  if (ret == 0) {
-    // Use len_ - rhs.len_ as returned value may cause overflow
-    // of size_t type length. Therefore +1, -1 are returned here.
-    if (len_ < rhs.len_)
-      return -1;
-    else if (len_ > rhs.len_)
-      return 1;
+  if (len_ < rhs.len_)
+    return -1;
+  else if (len_ > rhs.len_)
+    return 1;
+  else {
+    // It's illegal to pass nullptr to memcmp.
+    if (str_ && rhs.str_)
+      return memcmp(str_, rhs.str_, len_);
+    return 0;
   }
-  return ret;
 }
 
 std::string Slice::toLower() const {

@@ -12,11 +12,11 @@ export default Class Digit,
 			@removeAllChildren!
 			two = math.floor @_value/10
 			if two > 0
-				with Sprite "Image/misc.clip|#{string.format '%.0f',two}"
+				with Sprite "Image/misc.clip|#{math.floor two}"
 					.anchor = Vec2 0,0.5
 					\addTo @
 			one = @_value%10
-			with Sprite "Image/misc.clip|#{string.format '%.0f',one}"
+			with Sprite "Image/misc.clip|#{math.floor one}"
 				.x = 6
 				.anchor = Vec2 0,0.5
 				\addTo @

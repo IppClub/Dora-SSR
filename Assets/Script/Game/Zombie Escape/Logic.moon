@@ -92,7 +92,7 @@ spawnZombies = ->
 				pos = Vec2 App.rand%2400-1200,-430
 				available = not world\query Rect(pos,Size(5,5)),=> @group == Data.groupTerrain
 			with Entity!
-				.unitDef = "Unit_Zombie#{App.rand%2 + 1}"
+				.unitDef = "Unit_Zombie#{math.floor App.rand%2 + 1}"
 				.order = ZombieLayer
 				.position = pos
 				.group = ZombieGroup
