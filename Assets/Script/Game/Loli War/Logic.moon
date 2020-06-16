@@ -238,7 +238,7 @@ with Observer "Change", {"hp","unit","block"}
 				unit.faceRight = false
 				with unit.playable
 					.recovery = 0.5
-					\play "hp#{string.format '%.0f',hp}"
+					\play "hp#{math.floor hp}"
 			else
 				unit\start "hit"
 				unit.faceRight = false

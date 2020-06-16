@@ -272,7 +272,7 @@ function classDeclaration:builddeclaration (narg, cplusplus)
    line = concatparam(line,'[',self.dim,'];')
   else
 	if cplusplus then
-		output('  int tolua_len = (int)lua_objlen(tolua_S,',narg,");")
+		output('  int tolua_len = (int)lua_rawlen(tolua_S,',narg,");")
 		line = concatparam(line,' = Mtolua_new_dim(',type,ptr,', '..self.dim..');')
 	else
 		line = concatparam(line,' = (',type,ptr,'*)',

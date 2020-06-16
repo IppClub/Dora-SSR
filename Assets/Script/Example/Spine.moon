@@ -36,3 +36,4 @@ Director.entry\addChild with Spine "char_sijin"
 	.speed = 0.5
 	print duration
 	\slot "AnimationEnd", (...)-> print ...
+

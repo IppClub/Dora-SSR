@@ -13,11 +13,5 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/ToLua/tolua++.h"
 #include "imgui/imgui.h"
 
-#if LUA_VERSION_NUM > 501
-	#ifndef LUA_COMPAT_5_1
-		#define lua_objlen lua_rawlen
-	#endif // LUA_COMPAT_5_1
-#endif // LUA_VERSION_NUM
-
 int tolua_LuaBinding_open(lua_State* tolua_S);
 int tolua_LuaCode_open(lua_State* tolua_S);

@@ -36,7 +36,7 @@ disk = with Body diskDef,world,Vec2(100,200)
 	.receivingContact = true
 	\slot "ContactStart",(body,point)->
 		drawNode.position = point
-		label.text = "Contact: "..string.format("[%.0f,%.0f]",point.x,point.y)
+		label.text = string.format "Contact: [%.0f,%.0f]",point.x,point.y
 
 Director.entry\addChild world
 
