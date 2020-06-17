@@ -569,5 +569,5 @@ moonp.read_file = function(fname)
 	return Content:load(fname)
 end
 
-collectgarbage("incremental", 100, 5000)
---collectgarbage("generational", 20, 100)
+--collectgarbage("incremental", 100, 5000)
+collectgarbage("generational", 20, 100)
