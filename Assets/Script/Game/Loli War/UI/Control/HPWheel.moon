@@ -17,7 +17,7 @@ export default Class HPWheel,
 		@hints = {}
 
 		@hpShow\slot "AnimationEnd",(name)->
-			@hpShow\play "idle" if name == "hit"
+			@hpShow\play "idle",true if name == "hit"
 
 		@gslot "HPChange",(group,value)->
 			if group == GroupPlayer

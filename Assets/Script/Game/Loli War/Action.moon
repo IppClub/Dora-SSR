@@ -31,7 +31,7 @@ pushSwitchEnd = (name,playable)->
 			playable.parent\stop!
 
 UnitAction\add "pushSwitch",
-	priority: 3
+	priority: 4
 	reaction: 3
 	recovery: 0.2
 	available: => @onSurface
@@ -128,7 +128,7 @@ UnitAction\add "strike",
 	create: =>
 		with @playable
 			.speed = 1
-			.look = "sad"
+			.look = "fail"
 			\play "hit"
 			\slot "AnimationEnd",strikeEnd
 		Audio\play "Audio/hit.wav"
@@ -184,7 +184,7 @@ UnitAction\add "wait",
 	create: =>
 		with @playable
 			.speed = 1
-			.look = Store.winner == @group and "happy" or "sad"
+			.look = Store.winner == @group and "happy" or "fail"
 			\play "idle", true
 		=>
 			if not @onSurface

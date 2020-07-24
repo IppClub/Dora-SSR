@@ -786,14 +786,14 @@ Own<UnitAction> UnitAction::alloc(String name, Unit* unit)
 	return Own<UnitAction>();
 }
 
-int ActionSetting::PriorityIdle = 0;
+int ActionSetting::PriorityIdle = 1;
 int ActionSetting::PriorityWalk = 1;
 int ActionSetting::PriorityTurn = 2;
 int ActionSetting::PriorityJump = 2;
 int ActionSetting::PriorityAttack = 3;
+int ActionSetting::PriorityHit = 5;
+int ActionSetting::PriorityFall = 6;
 int ActionSetting::PriorityCancel = std::numeric_limits<int>::max();
-int ActionSetting::PriorityHit = 4;
-int ActionSetting::PriorityFall = 5;
 
 float ActionSetting::ReactionWalk = 1.5f;
 float ActionSetting::ReactionIdle = 2.0f;

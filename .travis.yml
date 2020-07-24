@@ -2,21 +2,21 @@ jobs:
   include:
   - language: cpp
     os: osx
-    osx_image: xcode11.4
+    osx_image: xcode11.5
     before_install: Tools/tolua++/build.sh
     script: xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
   - language: cpp
     os: osx
-    osx_image: xcode11.4
+    osx_image: xcode11.5
     before_install: Tools/tolua++/build.sh
-    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Simulator -arch x86_64 -sdk iphonesimulator13.4
+    script: xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator13.5
   - language: android
     dist: trusty
     android:
       components:
         - tools
         - platform-tools
-        - build-tools-29.0.3
+        - build-tools-30.0.0
         - android-26
         - extra-google-m2repository
         - extra-android-m2repository
@@ -32,7 +32,7 @@ jobs:
       - cd ./Tools/tolua++
       - lua tolua++.lua
     install:
-      - yes | sdkmanager "ndk;21.0.6113669"
+      - yes | sdkmanager "ndk;21.3.6528147"
       - yes | sdkmanager "cmake;3.10.2.4988404"
       - yes | sdkmanager "lldb;3.1"
     script:

@@ -11,56 +11,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Animation/ModelDef.h"
 #include "Animation/Animation.h"
 #include "Cache/ClipCache.h"
-#include "Node/Sprite.h"
 #include "Cache/ModelCache.h"
+#include "Node/Sprite.h"
 
 NS_DOROTHY_BEGIN
-
-Playable::Playable():
-_faceRight(true),
-_speed(1.0f),
-_recoveryTime(0.0f)
-{ }
-
-void Playable::setFaceRight(bool var)
-{
-	_faceRight = var;
-}
-
-bool Playable::isFaceRight() const
-{
-	return _faceRight;
-}
-
-void Playable::setSpeed(float var)
-{
-	_speed = var;
-}
-
-float Playable::getSpeed() const
-{
-	return _speed;
-}
-
-void Playable::setRecovery(float var)
-{
-	_recoveryTime = var;
-}
-
-float Playable::getRecovery() const
-{
-	return _recoveryTime;
-}
-
-void Playable::setLook(String var)
-{
-	_lookName = var;
-}
-
-const string& Playable::getLook() const
-{
-	return _lookName;
-}
 
 void Look::add(Node* node)
 {
@@ -88,12 +42,12 @@ _isRecovering(false),
 _reversed(false),
 _isPlaying(false),
 _isPaused(false),
-_faceRight(def->isFaceRight()),
 _loop(false),
 _currentLook(-1),
 _currentAnimation(-1),
 _modelDef(def)
 {
+	_faceRight = def->isFaceRight();
 	_flags.setOff(Node::TraverseEnabled);
 }
 

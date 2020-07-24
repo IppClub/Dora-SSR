@@ -27,7 +27,7 @@ enum struct AttackTarget
 
 enum struct Relation
 {
-	Unkown = 0,
+	Unknown = 0,
 	Friend = 1<<0,
 	Neutral = 1<<1,
 	Enemy = 1<<2,

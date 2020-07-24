@@ -222,8 +222,12 @@ local Scope = {
 
 	ObfuscateLocals = function(self, recommendedMaxLength, validNameChars)
 		for i, var in pairs(self.Locals) do
-			local id = GetUnique(self)
-			self:RenameLocal(var.Name, id)
+			if var.Name == "_ENV" then
+				self:RenameLocal(var.Name, "_ENV")
+			else
+				local id = GetUnique(self)
+				self:RenameLocal(var.Name, id)
+			end
 		end
 	end
 }

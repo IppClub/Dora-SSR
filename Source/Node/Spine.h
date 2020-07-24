@@ -8,8 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node.h"
-#include "Node/Model.h"
+#include "Node/Playable.h"
 #include "spine/spine.h"
 
 NS_DOROTHY_BEGIN

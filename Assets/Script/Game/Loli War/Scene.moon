@@ -230,3 +230,37 @@ GameWorld = Class PlatformWorld,
 		@removeLayer LayerEnemyHero
 
 export default GameWorld!
+
+_ENV = Dorothy builtin.Platformer,builtin.ImGui
+
+AICount = 0
+predicted = 0
+totalPrediction = 0
+trained = false
+Director.entry\addChild with Node!
+	\gslot "CollectedData",(count)-> AICount = count
+	\gslot "Prediction",(result)->
+		totalPrediction += 1
+		predicted += 1 if result
+	\gslot "PlayerSelect",->
+		AICount = 0
+		predicted = 0
+		totalPrediction = 0
+		trained = false
+	\schedule ->
+		:width,:height = App.visualSize
+		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+		SetNextWindowSize Vec2(240,120), "FirstUseEver"
+		Begin "Loli War","NoResize|NoSavedSettings",->
+			if not trained
+				TextWrapped "Collected data: #{AICount}"
+				if Button "Train AI"
+					trained = true
+					emit "TrainAI"
+			else
+				TextWrapped "AI Learned!"
+				rate = if totalPrediction == 0
+					0
+				else
+					predicted*100/totalPrediction
+				TextWrapped "Prediction: #{string.format "%.2f",rate}%"

@@ -76,11 +76,12 @@ Relation Data::getRelation(Uint8 groupA, Uint8 groupB) const
 	if (groupA == groupB) return Relation::Friend;
 	Uint16 key = groupA<<8 | groupB;
 	auto it = _relationMap.find(key);
-	return it != _relationMap.end() ? it->second : Relation::Unkown;
+	return it != _relationMap.end() ? it->second : Relation::Unknown;
 }
 
 Relation Data::getRelation(Body* bodyA, Body* bodyB) const
 {
+	if (!bodyA || !bodyB) return Relation::Unknown;
 	return Data::getRelation(bodyA->getGroup(), bodyB->getGroup());
 }
 

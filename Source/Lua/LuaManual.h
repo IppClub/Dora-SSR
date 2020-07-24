@@ -201,6 +201,9 @@ namespace ImGui { namespace Binding
 	bool BeginPopupModal(const char* name, String windowsFlags = nullptr);
 	bool BeginPopupModal(const char* name, bool* p_open = nullptr, String windowsFlags = nullptr);
 	bool BeginChildFrame(ImGuiID id, const Vec2& size, String windowsFlags = nullptr);
+	bool BeginPopupContextItem(const char* name, String popupFlags);
+	bool BeginPopupContextWindow(const char* name, String popupFlags);
+	bool BeginPopupContextVoid(const char* name, String popupFlags);
 
 	void PushStyleColor(String name, Color color);
 	void PushStyleVar(String name, float val);
@@ -250,4 +253,6 @@ namespace ImGui { namespace Binding
 	ImGuiCol_ getColorIndex(String col);
 	ImGuiColorEditFlags_ getColorEditFlags(String mode);
 	ImGuiCond_ getSetCond(String cond);
+	ImGuiPopupFlags getPopupFlag(String flag);
+	Uint32 getPopupCombinedFlags(String flags);
 } }

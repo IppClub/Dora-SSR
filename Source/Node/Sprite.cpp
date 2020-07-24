@@ -430,7 +430,7 @@ void SpriteRenderer::push(Sprite* sprite)
 	auto indPtr = _indices.data() + indSize;
 	for (size_t i = 0; i < 6; ++i)
 	{
-		indPtr[i] = _spriteIndices[i] + vertSize;
+		indPtr[i] = _spriteIndices[i] + s_cast<uint16_t>(vertSize);
 	}
 }
 
@@ -496,7 +496,7 @@ void SpriteRenderer::push(
 	auto indices = _indices.data() + indSize;
 	for (size_t i = 0; i < isize; ++i)
 	{
-		indices[i] = inds[i] + vertSize;
+		indices[i] = inds[i] + s_cast<uint16_t>(vertSize);
 	}
 
 	if (localWorld)
