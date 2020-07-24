@@ -104,6 +104,7 @@ class Application
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common String version;
 	tolua_readonly tolua_property__common double eclapsedTime;
+	tolua_readonly tolua_property__common double totalTime;
 	tolua_readonly tolua_property__common Uint32 rand;
 	tolua_readonly tolua_property__bool bool debugging;
 	tolua_property__common unsigned int seed;
@@ -1068,7 +1069,7 @@ enum AttackTarget {};
 struct Relation
 {
 	enum {
-		Unkown,
+		Unknown,
 		Friend,
 		Neutral,
 		Enemy,
@@ -1142,6 +1143,7 @@ AILeaf* ParSel(AILeaf* nodes[tolua_len]);
 AILeaf* ParSeq(AILeaf* nodes[tolua_len]);
 AILeaf* Con(String name, tolua_function_bool handler);
 AILeaf* Act(String action);
+AILeaf* Act(tolua_function_string handler);
 AILeaf* Pass();
 AILeaf* Reject();
 
@@ -1149,9 +1151,11 @@ class AI
 {
 	Array* getUnitsByRelation(Relation relation);
 	Array* getDetectedUnits();
+	Array* getDetectedBodies();
 	Unit* getNearestUnit(Relation relation);
 	float getNearestUnitDistance(Relation relation);
 	Array* getUnitsInAttackRange();
+	Array* getBodiesInAttackRange();
 	static tolua_outside AI* AI_shared @ create();
 };
 
@@ -1316,4 +1320,9 @@ class Data
 };
 
 } // namespace Platformer
+
+class ML
+{
+	static void buildDecisionTreeAsync(String data, int maxDepth, tolua_function_void handleTree);
+};
 

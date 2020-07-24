@@ -214,6 +214,12 @@ local function Format_Mini(ast)
 			out = out.."local "
 			for i = 1, #statement.LocalList do
 				out = out..statement.LocalList[i].Name
+				if statement.AttrList[i] then
+					out = out.."<"..statement.AttrList[i]..">"
+					if i == #statement.LocalList then
+						out = out.." "
+					end
+				end
 				if i ~= #statement.LocalList then
 					out = out..","
 				end

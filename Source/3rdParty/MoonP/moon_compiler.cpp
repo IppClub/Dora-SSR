@@ -49,7 +49,7 @@ inline std::string s(std::string_view sv) {
 }
 
 const std::string_view version() {
-	return "0.4.0"sv;
+	return "0.4.5"sv;
 }
 
 // name of table stored in lua registry
@@ -134,12 +134,13 @@ public:
 		if (_useModule) {
 			_useModule = false;
 			if (!_sameModule) {
+				int top = lua_gettop(L);
+				DEFER(lua_settop(L, top));
 				lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
 				lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
 				int idx = static_cast<int>(lua_objlen(L, -1));
 				lua_pushnil(L); // tb nil
 				lua_rawseti(L, -2, idx); // tb[idx] = nil, tb
-				lua_pop(L, 1); // empty
 			}
 		}
 	}
@@ -775,6 +776,7 @@ private:
 			case id<BreakLoop_t>(): transformBreakLoop(static_cast<BreakLoop_t*>(content), out); break;
 			case id<Label_t>(): transformLabel(static_cast<Label_t*>(content), out); break;
 			case id<Goto_t>(): transformGoto(static_cast<Goto_t*>(content), out); break;
+			case id<LocalAttrib_t>(): transformLocalAttrib(static_cast<LocalAttrib_t*>(content), out); break;
 			case id<ExpListAssign_t>(): {
 				auto expListAssign = static_cast<ExpListAssign_t*>(content);
 				if (expListAssign->action) {
@@ -1496,6 +1498,7 @@ private:
 		if (usage == ExpUsage::Closure) {
 			temp.push_back(s("(function()"sv) + nll(nodes.front()));
 			pushScope();
+			_enableReturn.push(true);
 		}
 		std::list<std::pair<IfCond_t*, Body_t*>> ifCondPairs;
 		ifCondPairs.emplace_back();
@@ -1611,6 +1614,7 @@ private:
 			temp.push_back(indent() + s("end"sv) + nlr(nodes.front()));
 		}
 		if (usage == ExpUsage::Closure) {
+			_enableReturn.pop();
 			popScope();
 			temp.push_back(indent() + s("end)()"sv));
 		}
@@ -2077,7 +2081,18 @@ private:
 				last->needSep.set(nullptr);
 				auto bLast = ++nodes.rbegin();
 				if (bLast != nodes.rend()) {
-					static_cast<Statement_t*>(*bLast)->needSep.set(nullptr);
+					bool isMacro = false;
+					BLOCK_START
+					BREAK_IF(expListLow->exprs.size() != 1);
+					auto exp = static_cast<Exp_t*>(expListLow->exprs.back());
+					BREAK_IF(!exp->opValues.empty());
+					auto chainValue = exp->getByPath<unary_exp_t, Value_t, ChainValue_t>();
+					BREAK_IF(!chainValue);
+					isMacro = isMacroChain(chainValue);
+					BLOCK_END
+					if (!isMacro) {
+						ast_to<Statement_t>(*bLast)->needSep.set(nullptr);
+					}
 				}
 				BLOCK_END
 				break;
@@ -2575,6 +2590,7 @@ private:
 			if (usage == ExpUsage::Closure) {
 				temp.push_back(s("(function()"sv) + nll(x));
 				pushScope();
+				_enableReturn.push(true);
 			}
 			auto partOne = x->new_ptr<ChainValue_t>();
 			for (auto it = chainList.begin();it != opIt;++it) {
@@ -2705,6 +2721,7 @@ private:
 					break;
 				case ExpUsage::Closure:
 					temp.push_back(indent() + s("return nil"sv) + nlr(x));
+					_enableReturn.pop();
 					popScope();
 					temp.push_back(indent() + s("end)()"sv));
 					break;
@@ -2729,6 +2746,7 @@ private:
 				case ExpUsage::Closure:
 					temp.push_back(s("(function()"sv) + nll(x));
 					pushScope();
+					_enableReturn.push(true);
 					break;
 				default:
 					break;
@@ -2800,6 +2818,7 @@ private:
 					temp.push_back(indent() + s("end"sv) + nlr(x));
 					break;
 				case ExpUsage::Closure:
+					_enableReturn.pop();
 					popScope();
 					temp.push_back(indent() + s("end)()"sv));
 					break;
@@ -2970,7 +2989,7 @@ private:
 					break;
 				case id<Exp_t>():
 					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
-					temp.back() = s("["sv) + temp.back() + s("]"sv);
+					temp.back() = s(temp.back().front() == '[' ? "[ "sv : "["sv) + temp.back() + s("]"sv);
 					break;
 				case id<InvokeArgs_t>(): transformInvokeArgs(static_cast<InvokeArgs_t*>(item), temp); break;
 				default: assert(false); break;
@@ -3346,6 +3365,9 @@ private:
 		auto x = comp;
 		switch (usage) {
 			case ExpUsage::Closure:
+				_enableReturn.push(true);
+				pushScope();
+				break;
 			case ExpUsage::Assignment:
 				pushScope();
 				break;
@@ -3400,6 +3422,7 @@ private:
 			case ExpUsage::Common:
 				break;
 			case ExpUsage::Closure: {
+				_enableReturn.pop();
 				out.push_back(clearBuf());
 				out.back().append(indent() + s("return "sv) + accumVar + nlr(comp));
 				popScope();
@@ -3684,8 +3707,10 @@ private:
 		str_list temp;
 		_buf << "(function()"sv << nll(forNode);
 		pushScope();
+		_enableReturn.push(true);
 		auto accum = transformForInner(forNode, temp);
 		temp.push_back(indent() + s("return "sv) + accum + nlr(forNode));
+		_enableReturn.pop();
 		popScope();
 		temp.push_back(indent() + s("end)()"sv));
 		out.push_back(join(temp));
@@ -3751,8 +3776,10 @@ private:
 		str_list temp;
 		_buf << "(function()"sv << nll(forEach);
 		pushScope();
+		_enableReturn.push(true);
 		auto accum = transformForEachInner(forEach, temp);
 		temp.push_back(indent() + s("return "sv) + accum + nlr(forEach));
+		_enableReturn.pop();
 		popScope();
 		temp.push_back(indent() + s("end)()"sv));
 		out.push_back(join(temp));
@@ -3801,7 +3828,7 @@ private:
 			}
 			case id<Exp_t>():
 				transformExp(static_cast<Exp_t*>(key), temp, ExpUsage::Closure);
-				temp.back() = s("["sv) + temp.back() + s("]"sv);
+				temp.back() = s(temp.back().front() == '[' ? "[ "sv : "["sv) + temp.back() + s("]"sv);
 				break;
 			case id<DoubleString_t>():
 				transformDoubleString(static_cast<DoubleString_t*>(key), temp);
@@ -3809,6 +3836,9 @@ private:
 				break;
 			case id<SingleString_t>(): transformSingleString(static_cast<SingleString_t*>(key), temp);
 				temp.back() = s("["sv) + temp.back() + s("]"sv);
+				break;
+			case id<LuaString_t>(): transformLuaString(static_cast<LuaString_t*>(key), temp);
+				temp.back() = s("[ "sv) + temp.back() + s("]"sv);
 				break;
 			default: assert(false); break;
 		}
@@ -3857,10 +3887,19 @@ private:
 					temp.push_back(s("\""sv) + str + s("\""sv));
 					break;
 				}
-				case id<Exp_t>():
+				case id<Exp_t>(): {
 					transformExp(static_cast<Exp_t*>(content), temp, ExpUsage::Closure);
-					temp.back() = s("tostring("sv) + temp.back() + s(")"sv);
+					std::string tostr("tostring"sv);
+					temp.back() = tostr + '(' + temp.back() + s(")"sv);
+					if (_config.lintGlobalVariable) {
+						if (!isDefined(tostr)) {
+							if (_globals.find(tostr) == _globals.end()) {
+								_globals[tostr] = {content->m_begin.m_line, content->m_begin.m_col};
+							}
+						}
+					}
 					break;
+				}
 				default: assert(false); break;
 			}
 		}
@@ -3893,7 +3932,9 @@ private:
 		str_list temp;
 		temp.push_back(s("(function()"sv) + nll(classDecl));
 		pushScope();
+		_enableReturn.push(true);
 		transformClassDecl(classDecl, temp, ExpUsage::Return);
+		_enableReturn.pop();
 		popScope();
 		temp.push_back(s("end)()"sv));
 		out.push_back(join(temp));
@@ -4255,7 +4296,9 @@ private:
 		str_list temp;
 		temp.push_back(s("(function()"sv) + nll(with));
 		pushScope();
+		_enableReturn.push(true);
 		transformWith(with, temp, nullptr, true);
+		_enableReturn.pop();
 		popScope();
 		temp.push_back(indent() + s("end)()"sv));
 		out.push_back(join(temp));
@@ -4580,6 +4623,9 @@ private:
 	void transformTblComprehension(TblComprehension_t* comp, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		switch (usage) {
 			case ExpUsage::Closure:
+				pushScope();
+				_enableReturn.push(true);
+				break;
 			case ExpUsage::Assignment:
 				pushScope();
 				break;
@@ -4635,6 +4681,7 @@ private:
 			case ExpUsage::Closure:
 				out.push_back(clearBuf() + indent() + s("return "sv) + tbl + nlr(comp));
 				popScope();
+				_enableReturn.pop();
 				out.back().insert(0, s("(function()"sv) + nll(comp));
 				out.back().append(indent() + s("end)()"sv));
 				break;
@@ -4688,6 +4735,7 @@ private:
 		str_list temp;
 		if (usage == ExpUsage::Closure) {
 			temp.push_back(s("(function()"sv) + nll(doNode));
+			_enableReturn.push(true);
 		} else {
 			temp.push_back(indent() + s("do"sv) + nll(doNode));
 		}
@@ -4695,6 +4743,7 @@ private:
 		transformBody(doNode->body, temp, usage, assignList);
 		popScope();
 		if (usage == ExpUsage::Closure) {
+			_enableReturn.pop();
 			temp.push_back(indent() + s("end)()"sv));
 		} else {
 			temp.push_back(indent() + s("end"sv) + nlr(doNode));
@@ -4965,6 +5014,7 @@ private:
 		str_list temp;
 		temp.push_back(s("(function() "sv) + nll(whileNode));
 		pushScope();
+		_enableReturn.push(true);
 		auto accumVar = getUnusedName("_accum_"sv);
 		addToScope(accumVar);
 		auto lenVar = getUnusedName("_len_"sv);
@@ -4980,6 +5030,7 @@ private:
 		popScope();
 		temp.push_back(indent() + s("end"sv) + nlr(whileNode));
 		temp.push_back(indent() + s("return "sv) + accumVar + nlr(whileNode));
+		_enableReturn.pop();
 		popScope();
 		temp.push_back(indent() + s("end)()"sv));
 		out.push_back(join(temp));
@@ -5014,6 +5065,7 @@ private:
 		if (usage == ExpUsage::Closure) {
 			temp.push_back(s("(function()"sv) + nll(switchNode));
 			pushScope();
+			_enableReturn.push(true);
 		}
 		auto objVar = singleVariableFrom(switchNode->target);
 		if (objVar.empty()) {
@@ -5051,6 +5103,7 @@ private:
 		}
 		temp.push_back(indent() + s("end"sv) + nlr(switchNode));
 		if (usage == ExpUsage::Closure) {
+			_enableReturn.pop();
 			popScope();
 			temp.push_back(indent() + s("end)()"sv));
 		}
@@ -5102,6 +5155,46 @@ private:
 				transformAssignment(assignment, temp);
 			}
 		}
+		out.push_back(join(temp));
+	}
+
+	void transformLocalAttrib(LocalAttrib_t* localAttrib, str_list& out) {
+		auto x = localAttrib;
+		auto attrib = _parser.toString(localAttrib->attrib);
+		if (attrib != "close"sv && attrib != "const"sv) {
+			throw std::logic_error(_info.errorMessage(s("unknown attribute '"sv) + attrib + '\'', localAttrib->attrib));
+		}
+		auto expList = x->new_ptr<ExpList_t>();
+		str_list tmpVars;
+		str_list vars;
+		pushScope();
+		for (auto name : localAttrib->nameList->names.objects()) {
+			auto callable = x->new_ptr<Callable_t>();
+			callable->item.set(name);
+			auto chainValue = x->new_ptr<ChainValue_t>();
+			chainValue->items.push_back(callable);
+			auto value = x->new_ptr<Value_t>();
+			value->item.set(chainValue);
+			auto exp = newExp(value, x);
+			expList->exprs.push_back(exp);
+			tmpVars.push_back(getUnusedName("_var_"sv));
+			addToScope(tmpVars.back());
+			vars.push_back(_parser.toString(name));
+		}
+		popScope();
+		auto tmpVarStr = join(tmpVars, ", "sv);
+		auto tmpVarList = toAst<ExpList_t>(tmpVarStr, x);
+		auto assignment = x->new_ptr<ExpListAssign_t>();
+		assignment->expList.set(tmpVarList);
+		assignment->action.set(localAttrib->assign);
+		str_list temp;
+		transformAssignment(assignment, temp);
+		attrib = s(" <"sv) + attrib + '>';
+		for (auto& var : vars) {
+			forceAddToScope(var);
+			var.append(attrib);
+		}
+		temp.push_back(indent() + s("local "sv) + join(vars, ", "sv) + s(" = "sv) + tmpVarStr + nll(x));
 		out.push_back(join(temp));
 	}
 

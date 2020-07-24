@@ -65,3 +65,7 @@ imgui.ini
 
 # include tolua tool
 !tolua++.exe
+
+# Ignore production files
+Assets/Production/
+

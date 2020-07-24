@@ -14,11 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-const string& AILeaf::getName() const
-{
-	return Slice::Empty;
-}
-
 AINode* AINode::add(AILeaf* node)
 {
 	_children.push_back(node);
@@ -160,11 +155,6 @@ bool ParSeqNode::doAction(Unit* self)
 
 /* ConNode */
 
-const string& ConNode::getName() const
-{
-	return _name;
-}
-
 bool ConNode::doAction(Unit* self)
 {
 	if (_handler && _handler(self))
@@ -185,11 +175,6 @@ _handler(handler)
 
 /* ActNode */
 
-const string& ActNode::getName() const
-{
-	return _actionName;
-}
-
 bool ActNode::doAction(Unit* self)
 {
 	if (self->start(_actionName))
@@ -207,11 +192,35 @@ ActNode::ActNode(String actionName):
 _actionName(actionName)
 { }
 
+/* DynamicActNode */
+
+bool DynamicActNode::doAction(Unit* self)
+{
+	auto actionName = _handler(self);
+	if (self->start(actionName))
+	{
+		if (self->isReceivingDecisionTrace() && !actionName.empty())
+		{
+			SharedAI.getDecisionNodes().push_back("[dynamic] "_slice + actionName);
+		}
+		return true;
+	}
+	return false;
+}
+
+DynamicActNode::DynamicActNode(const function<string(Unit*)>& handler):
+_handler(handler)
+{ }
+
+/* PassNode */
+
 bool PassNode::doAction(Unit* self)
 {
 	DORA_UNUSED_PARAM(self);
 	return true;
 }
+
+/* RejectNode */
 
 bool RejectNode::doAction(Unit* self)
 {
@@ -267,6 +276,11 @@ AILeaf* Con(String name, const function<bool(Unit*)>& handler)
 AILeaf* Act(String actionName)
 {
 	return ActNode::create(actionName);
+}
+
+AILeaf* Act(const function<string(Unit*)>& handler)
+{
+	return DynamicActNode::create(handler);
 }
 
 AILeaf* Pass()

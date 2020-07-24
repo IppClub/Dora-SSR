@@ -228,7 +228,7 @@ export Struct = setmetatable {
 			when "string"
 				if arg\sub(1,6) ~= "return"
 					arg = "return "..arg
-				(loadstring arg)!
+				(load arg)!
 			when "table"
 				arg
 		StructLoad data

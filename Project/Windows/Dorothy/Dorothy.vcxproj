@@ -1193,14 +1193,13 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;zlib.lib;lua51.lib;soloud_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;zlib.lib;luad.lib;soloud_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(OutDir)"
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Zip\Lib\Windows\zlib1.dll" "$(OutDir)"
-xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
     <Manifest>
@@ -1251,14 +1250,13 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(O
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxRelease.lib;bimgRelease.lib;bimg_decodeRelease.lib;bxRelease.lib;psapi.lib;msvcrt.lib;zlib.lib;lua51.lib;soloud.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxRelease.lib;bimgRelease.lib;bimg_decodeRelease.lib;bxRelease.lib;psapi.lib;msvcrt.lib;zlib.lib;lua.lib;soloud.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(OutDir)"
 xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Zip\Lib\Windows\zlib1.dll" "$(OutDir)"
-xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Lua\Lib\Windows\lua51.dll" "$(OutDir)"
 </Command>
     </PostBuildEvent>
     <Manifest>

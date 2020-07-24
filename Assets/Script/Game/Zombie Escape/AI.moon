@@ -95,10 +95,11 @@ Act = (name)-> Seq {
 				return true
 		return true if @decisionTree ~= "AI_KidSearch"
 		table.insert data,row
-		print #data
 }
 
 rowNames = {'attack_path_blocked','face_right','obstacle_ahead','obstacle_distance','has_forward_speed','see_enemy','evade_right','need_evade','face_enemy','last_action','last_action_interval','not_facing_nearest_enemy','enemy_in_attack_range','reach_search_limit','action'}
+
+rowTypes = {'C','C','C','N','C','C','C','C','C','C','N','C','C','C','C'}
 
 Director.entry\addChild with Node!
 	\slot "Cleanup",->
@@ -110,8 +111,19 @@ Director.entry\addChild with Node!
 				tostring val
 			table.concat rd,","
 		names = table.concat([string.upper n for n in *rowNames],",").."\n"
-		Content\save Path(Content.writablePath,"data.csv"), names..table.concat(csvData,"\n")
+		data = names..table.concat(rowTypes,",").."\n"..table.concat(csvData,"\n")
+		Content\save Path(Content.writablePath,"zombie.csv"),data
 		print "#{#csvData} records saved!"
+		thread ->
+			lines = {}
+			accuracy = ML\buildDecisionTreeAsync data,0,(depth,name,op,value)->
+				line = string.rep("\t",depth) .. if name ~= "" then
+					"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
+				else
+					"#{op} \"#{value}\""
+				lines[#lines+1] = line
+			print table.concat lines,"\n"
+			print "accuracy: #{accuracy}"
 
 rangeAttack = Sel {
 	Seq {

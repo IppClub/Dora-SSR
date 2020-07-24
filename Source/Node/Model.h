@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node.h"
+#include "Node/Playable.h"
 
 NS_DOROTHY_BEGIN
 
@@ -23,7 +23,7 @@ class ClipDef;
 
 /** @brief A look is to change visibility of a model`s different parts.
  For example you can change a character`s face by different look.
- It`s component class of oModel. Do not use it alone.
+ It`s component class of Model. Do not use it alone.
 */
 class Look
 {
@@ -93,27 +93,6 @@ private:
 	OwnVector<AnimationData> _group;
 };
 
-class Playable : public Node
-{
-public:
-	Playable();
-	PROPERTY_VIRTUAL(float, Speed);
-	PROPERTY_VIRTUAL(float, Recovery);
-	PROPERTY_VIRTUAL_STRING(Look);
-	PROPERTY_VIRTUAL_BOOL(FaceRight);
-	virtual const string& getCurrentAnimationName() const = 0;
-	virtual Vec2 getKeyPoint(String name) const = 0;
-	virtual float play(String name, bool loop = false) = 0;
-	virtual void stop() = 0;
-	static Playable* create(String filename);
-protected:
-	bool _faceRight;
-	float _speed;
-	float _recoveryTime;
-	string _lookName;
-	DORA_TYPE_OVERRIDE(Playable);
-};
-
 class Model : public Playable
 {
 public:
@@ -174,7 +153,6 @@ private:
 private:
 	bool _loop;
 	bool _reversed;
-	bool _faceRight;
 	bool _isPlaying;
 	bool _isPaused;
 	bool _isRecovering;

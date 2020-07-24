@@ -1769,6 +1769,21 @@ namespace ImGui { namespace Binding
 		return ImGui::BeginChildFrame(id, size, getWindowFlags(windowsFlags));
 	}
 
+	bool BeginPopupContextItem(const char* name, String popupFlags)
+	{
+		return ImGui::BeginPopupContextItem(name, getPopupCombinedFlags(popupFlags));
+	}
+
+	bool BeginPopupContextWindow(const char* name, String popupFlags)
+	{
+		return ImGui::BeginPopupContextWindow(name, getPopupCombinedFlags(popupFlags));
+	}
+
+	bool BeginPopupContextVoid(const char* name, String popupFlags)
+	{
+		return ImGui::BeginPopupContextVoid(name, getPopupCombinedFlags(popupFlags));
+	}
+
 	void PushStyleColor(String name, Color color)
 	{
 		ImGui::PushStyleColor(getColorIndex(name), color.toVec4());
@@ -2087,9 +2102,8 @@ namespace ImGui { namespace Binding
 			case ""_hash: return ImGuiInputTextFlags_(0);
 			default:
 				AssertIf(true, "ImGui input text flag name \"{}\" is invalid.", flag);
-				break;
+				return ImGuiInputTextFlags_(0);
 		}
-		return ImGuiInputTextFlags_(0);
 	}
 
 	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag)
@@ -2110,9 +2124,8 @@ namespace ImGui { namespace Binding
 			case ""_hash: return ImGuiTreeNodeFlags_(0);
 			default:
 				AssertIf(true, "ImGui tree node flag name \"{}\" is invalid.", flag);
-				break;
+				return ImGuiTreeNodeFlags_(0);
 		}
-		return ImGuiTreeNodeFlags_(0);
 	}
 
 	ImGuiSelectableFlags_ getSelectableFlags(String flag)
@@ -2125,9 +2138,8 @@ namespace ImGui { namespace Binding
 			case ""_hash: return ImGuiSelectableFlags_(0);
 			default:
 				AssertIf(true, "ImGui selectable flag name \"{}\" is invalid.", flag);
-				break;
+				return ImGuiSelectableFlags_(0);
 		}
-		return ImGuiSelectableFlags_(0);
 	}
 
 	ImGuiCol_ getColorIndex(String col)
@@ -2173,9 +2185,8 @@ namespace ImGui { namespace Binding
 			case "ModalWindowDimBg"_hash: return ImGuiCol_ModalWindowDimBg;
 			default:
 				AssertIf(true, "ImGui color index name \"{}\" is invalid.", col);
-				break;
+				return ImGuiCol_(0);
 		}
-		return ImGuiCol_(0);
 	}
 
 	ImGuiColorEditFlags_ getColorEditFlags(String mode)
@@ -2188,9 +2199,8 @@ namespace ImGui { namespace Binding
 			case ""_hash: return ImGuiColorEditFlags_None;
 			default:
 				AssertIf(true, "ImGui color edit flag name \"{}\" is invalid.", mode);
-				break;
+				return ImGuiColorEditFlags_None;
 		}
-		return ImGuiColorEditFlags_None;
 	}
 
 	ImGuiCond_ getSetCond(String cond)
@@ -2204,8 +2214,38 @@ namespace ImGui { namespace Binding
 			case ""_hash: return ImGuiCond_(0);
 			default:
 				AssertIf(true, "ImGui set cond name \"{}\" is invalid.", cond);
-				break;
+				return ImGuiCond_(0);
 		}
-		return ImGuiCond_(0);
+	}
+
+	ImGuiPopupFlags getPopupFlag(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+			case "None"_hash: return ImGuiPopupFlags_None;
+			case "MouseButtonLeft"_hash: return ImGuiPopupFlags_MouseButtonLeft;
+			case "MouseButtonRight"_hash: return ImGuiPopupFlags_MouseButtonRight;
+			case "MouseButtonMiddle"_hash: return ImGuiPopupFlags_MouseButtonMiddle;
+			case "NoOpenOverExistingPopup"_hash: return ImGuiPopupFlags_NoOpenOverExistingPopup;
+			case "NoOpenOverItems"_hash: return ImGuiPopupFlags_NoOpenOverItems;
+			case "AnyPopupId"_hash: return ImGuiPopupFlags_AnyPopupId;
+			case "AnyPopupLevel"_hash: return ImGuiPopupFlags_AnyPopupLevel;
+			case "AnyPopup"_hash: return ImGuiPopupFlags_AnyPopup;
+			case ""_hash: return ImGuiPopupFlags_MouseButtonRight;
+			default:
+				AssertIf(true, "ImGui popup flag name \"{}\" is invalid.", flag);
+				return ImGuiPopupFlags_None;
+		}
+	}
+
+	Uint32 getPopupCombinedFlags(String flags)
+	{
+		auto tokens = flags.split("|"_slice);
+		Uint32 result = 0;
+		for (const auto& token : tokens)
+		{
+			result |= getPopupFlag(token);
+		}
+		return result;
 	}
 } }

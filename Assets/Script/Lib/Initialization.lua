@@ -1,5 +1,5 @@
 package.path = "?.lua"
-package.cpath = nil
+package.cpath = ""
 package.moonpath = "?.moon"
 
 local App = builtin.Application()
@@ -375,7 +375,7 @@ local Entity_get = Entity.get
 local rawset = rawset
 Entity.__index = function(self,key)
 	if key == "oldValues" then
-		rawset(Entity_oldValues, 1, self)
+		rawset(Entity_oldValues,1,self)
 		return Entity_oldValues
 	end
 	local item = Entity_get(self,key)
@@ -416,6 +416,29 @@ end
 -- ImGui
 local ImGui = builtin.ImGui
 
+-- ML
+local ML = builtin.ML
+local ML_buildDecisionTreeAsync = ML.buildDecisionTreeAsync
+ML.buildDecisionTreeAsync = function(self,data,maxDepth,handler)
+	local accuracy = nil
+	ML_buildDecisionTreeAsync(self,data,maxDepth,function(...)
+		if not accuracy then
+			accuracy = select(1, ...)
+		else
+			handler(...)
+		end
+	end)
+	wait(function() return accuracy end)
+	return accuracy
+end
+
+local closeVar = setmetatable({},{
+	__close = function(self)
+		self[#self]()
+		self[#self] = nil
+	end
+})
+
 local function pairCallA(beginFunc, endFunc)
 	return function(...)
 		local args = {...}
@@ -423,18 +446,11 @@ local function pairCallA(beginFunc, endFunc)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
+		closeVar[#closeVar + 1] = endFunc
+		local _ <close> = closeVar
 		if beginFunc(unpack(args)) then
-			local success,result = xpcall(callFunc,debug.traceback)
-			endFunc()
-			if success then
-				return result
-			else
-				print(result)
-				return true
-			end
+			callFunc()
 		end
-		endFunc()
-		return false
 	end
 end
 
@@ -446,16 +462,10 @@ local function pairCallB(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		if beginFunc(unpack(args)) then
-			local success,result = xpcall(callFunc,debug.traceback)
-			endFunc()
-			if success then
-				return result
-			else
-				print(result)
-				return true
-			end
+			closeVar[#closeVar + 1] = endFunc
+			local _ <close> = closeVar
+			callFunc()
 		end
-		return false
 	end
 end
 
@@ -467,14 +477,9 @@ local function pairCallC(beginFunc, endFunc)
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		beginFunc(unpack(args))
-		local success,result = xpcall(callFunc,debug.traceback)
-		endFunc()
-		if success then
-			return result
-		else
-			print(result)
-			return true
-		end
+		closeVar[#closeVar + 1] = endFunc
+		local _ <close> = closeVar
+		callFunc()
 	end
 end
 
@@ -554,9 +559,7 @@ for k,v in pairs(_G) do
 end
 setmetatable(package.loaded,{__index=builtin})
 
-local builtinEnvMeta = {
-	__newindex = disallowAssignGlobal
-}
+local builtinEnvMeta = {__newindex = disallowAssignGlobal}
 setmetatable(_G,builtinEnvMeta)
 setmetatable(builtin,builtinEnvMeta)
 

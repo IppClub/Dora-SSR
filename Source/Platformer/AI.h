@@ -23,12 +23,14 @@ class AI
 public:
 	PROPERTY_READONLY_CALL(vector<Slice>&, DecisionNodes);
 	bool runDecisionTree(Unit* unit);
-	Unit* getSelf();
-	Array* getUnitsByRelation(Relation relation);
-	Array* getDetectedUnits();
-	Unit* getNearestUnit(Relation relation);
+	Unit* getSelf() const;
+	Array* getUnitsByRelation(Relation relation) const;
+	Array* getDetectedUnits() const;
+	Array* getDetectedBodies() const;
+	Unit* getNearestUnit(Relation relation) const;
 	Array* getUnitsInAttackRange() const;
-	float getNearestUnitDistance(Relation relation);
+	Array* getBodiesInAttackRange() const;
+	float getNearestUnitDistance(Relation relation) const;
 	SINGLETON_REF(AI, Data, Director);
 protected:
 	AI();
@@ -42,6 +44,7 @@ private:
 	Ref<Array> _enemies;
 	Ref<Array> _neutrals;
 	Ref<Array> _detectedUnits;
+	Ref<Array> _attackUnits;
 	float _nearestUnitDistance;
 	float _nearestFriendDistance;
 	float _nearestEnemyDistance;

@@ -50,7 +50,7 @@
 #ifdef FMT_SYSTEM
 #  define FMT_POSIX_CALL(call) FMT_SYSTEM(call)
 #else
-#  define FMT_SYSTEM(call) call
+#  define FMT_SYSTEM(call) ::call
 #  ifdef _WIN32
 // Fix warnings about deprecated symbols.
 #    define FMT_POSIX_CALL(call) ::_##call
@@ -133,7 +133,7 @@ class error_code {
 };
 
 #ifdef _WIN32
-namespace internal {
+namespace detail {
 // A converter from UTF-16 to UTF-8.
 // It is only provided for Windows since other systems support UTF-8 natively.
 class utf16_to_utf8 {
@@ -156,7 +156,7 @@ class utf16_to_utf8 {
 
 FMT_API void format_windows_error(buffer<char>& out, int error_code,
                                   string_view message) FMT_NOEXCEPT;
-}  // namespace internal
+}  // namespace detail
 
 /** A Windows error. */
 class windows_error : public system_error {
@@ -277,7 +277,8 @@ class file {
   enum {
     RDONLY = FMT_POSIX(O_RDONLY),  // Open for reading only.
     WRONLY = FMT_POSIX(O_WRONLY),  // Open for writing only.
-    RDWR = FMT_POSIX(O_RDWR)       // Open for reading and writing.
+    RDWR = FMT_POSIX(O_RDWR),      // Open for reading and writing.
+    CREATE = FMT_POSIX(O_CREAT)    // Create if the file doesn't exist.
   };
 
   // Constructs a file object which doesn't represent any file.
@@ -313,10 +314,10 @@ class file {
   FMT_API long long size() const;
 
   // Attempts to read count bytes from the file into the specified buffer.
-  FMT_API std::size_t read(void* buffer, std::size_t count);
+  FMT_API size_t read(void* buffer, size_t count);
 
   // Attempts to write count bytes from the specified buffer to the file.
-  FMT_API std::size_t write(const void* buffer, std::size_t count);
+  FMT_API size_t write(const void* buffer, size_t count);
 
   // Duplicates a file descriptor with the dup function and returns
   // the duplicate as a file object.
@@ -341,6 +342,49 @@ class file {
 
 // Returns the memory page size.
 long getpagesize();
+
+// A fast output stream which is not thread-safe.
+class ostream : private detail::buffer<char> {
+ private:
+  file file_;
+  char buffer_[BUFSIZ];
+
+  void flush() {
+    if (size() == 0) return;
+    file_.write(buffer_, size());
+    clear();
+  }
+
+  void grow(size_t) final;
+
+  ostream(cstring_view path, int oflag)
+      : buffer<char>(buffer_, 0, BUFSIZ), file_(path, oflag) {}
+
+ public:
+  ostream(ostream&& other)
+      : buffer<char>(buffer_, 0, BUFSIZ), file_(std::move(other.file_)) {
+    append(other.begin(), other.end());
+    other.clear();
+  }
+  ~ostream() { flush(); }
+
+  friend ostream output_file(cstring_view path, int oflag);
+
+  void close() {
+    flush();
+    file_.close();
+  }
+
+  template <typename S, typename... Args>
+  void print(const S& format_str, const Args&... args) {
+    format_to(detail::buffer_appender<char>(*this), format_str, args...);
+  }
+};
+
+inline ostream output_file(cstring_view path,
+                           int oflag = file::WRONLY | file::CREATE) {
+  return {path, oflag};
+}
 #endif  // FMT_USE_FCNTL
 
 #ifdef FMT_LOCALE

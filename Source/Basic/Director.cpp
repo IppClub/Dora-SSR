@@ -231,9 +231,15 @@ bool Director::init()
 	}
 	SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 	{
-		if (file.toLower() == "main.lua"_slice)
+		auto name = file.toLower();
+		if (name == "init.lua"_slice)
 		{
 			SharedLuaEngine.executeScriptFile(Path::concat({path,file}));
+			return true;
+		}
+		else if (name == "init.moon"_slice)
+		{
+			SharedLuaEngine.executeString(fmt::format("require('moonp').dofile('{}','init')", Path::concat({path,file})));
 			return true;
 		}
 		return false;

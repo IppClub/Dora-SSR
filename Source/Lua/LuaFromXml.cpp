@@ -618,11 +618,10 @@ static const char* _toBoolean(const char* str)
 #define Model_Handle \
 	Node_Handle\
 	if (look) fmt::format_to(stream, "{}.look = \"{}\"\n", self, Val(look));\
-	if (loop) fmt::format_to(stream, "{}.loop = {}\n", self, toBoolean(loop));\
 	if (reversed) fmt::format_to(stream, "{}.reversed = {}\n", self, toBoolean(reversed));\
 	if (faceRight) fmt::format_to(stream, "{}.faceRight = {}\n", self, toBoolean(faceRight));\
 	if (speed) fmt::format_to(stream, "{}.speed = {}\n", self, Val(speed));\
-	if (play) fmt::format_to(stream, "{}:play(\"{}\")\n", self, Val(play));
+	if (play) fmt::format_to(stream, "{}:play(\"{}\"{})\n", self, Val(play), loop ? string(",") + toBoolean(loop) : string());
 #define Model_Finish \
 	Add_To_Parent
 

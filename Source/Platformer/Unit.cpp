@@ -270,7 +270,7 @@ bool Unit::start(String name)
 		{
 			if (_currentAction != nullptr && _currentAction->isDoing())
 			{
-				if (_currentAction->getPriority() < action->getPriority())
+				if (_currentAction->getPriority() <= action->getPriority())
 				{
 					_currentAction->stop();
 					_currentAction = nullptr;

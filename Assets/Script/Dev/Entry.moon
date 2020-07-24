@@ -14,56 +14,16 @@ LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20--, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
-newRequire = (path)->
+require = (path)->
 	loaded = package.loaded[path]
-	if not loaded
+	if not loaded?
 		table.insert moduleCache,path
 		return oldRequire path
 	loaded
-_G.require = newRequire
-builtin.require = newRequire
+_G.require = require
+builtin.require = require
 
 allowedUseOfGlobals = Set {
-	'_G'
-	'_VERSION'
-	'assert'
-	'collectgarbage'
-	'coroutine'
-	'debug'
-	'dofile'
-	'error'
-	'getfenv'
-	'getmetatable'
-	'ipairs'
-	'load'
-	'loadfile'
-	'loadstring'
-	'module'
-	'next'
-	'package'
-	'pairs'
-	'pcall'
-	'print'
-	'rawequal'
-	'rawget'
-	'rawlen'
-	'rawset'
-	'require'
-	'select'
-	'setfenv'
-	'setmetatable'
-	'string'
-	'table'
-	'tonumber'
-	'tostring'
-	'type'
-	'unpack'
-	'xpcall'
-	"nil"
-	"true"
-	"false"
-	'math'
-
 	"Dorothy"
 	"builtin"
 }
@@ -224,9 +184,13 @@ allNames = [Path "Game",game,"init" for game in *games]
 for example in *examples do table.insert allNames,Path "Example",example
 for test in *tests do table.insert allNames,Path "Test",test
 
+productionEntry = if Content\exist(Path "Production","Script","init.moon") or
+	Content\exist Path "Production","Script","init.lua"
+		productionEntry = "Production.Script.init"
+
 enterDemoEntry = (name)->
 	isInEntry = false
-	xpcall (->
+	(msg)<- xpcall ->
 		result = require name
 		if "function" == type result
 			result = result!
@@ -237,16 +201,15 @@ enterDemoEntry = (name)->
 		else
 			Director.entry\addChild Node!
 		currentEntryName = name
-	),(msg)->
-		print debug.traceback msg
-		allClear!
+	print debug.traceback msg
+	allClear!
 
 showEntry = false
 
 thread ->
 	:width,:height = App.visualSize
 	scale = App.deviceRatio*0.7*math.min(width,height)/760
-	if false
+	unless App.debugging
 		with Sprite GetDorothySSRHappyWhite scale
 			\addTo Director.entry
 			sleep 1.0
@@ -272,7 +235,7 @@ threadLoop ->
 		if not footerFocus
 			footerFocus = true
 			SetNextWindowFocus!
-		return true if PushStyleColor "WindowBg", Color(0x0), ->
+		PushStyleColor "WindowBg", Color(0x0), ->
 			Begin "Show", "NoTitleBar|NoResize|NoMove|NoCollapse|NoSavedSettings", ->
 				Columns 2,false
 				if showFooter
@@ -288,7 +251,7 @@ threadLoop ->
 	return unless showFooter
 	SetNextWindowSize Vec2(width,60)
 	SetNextWindowPos Vec2(0,height-60)
-	return true if Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
+	Begin "Footer", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
 		Separator!
 		_, showStats = Checkbox "Stats", showStats
 		SameLine!
@@ -296,7 +259,7 @@ threadLoop ->
 		SameLine!
 		if isInEntry
 			OpenPopup "build" if Button "Build", Vec2(70,30)
-			return true if BeginPopup "build", ->
+			BeginPopup "build", ->
 				doCompile false if Selectable "Compile"
 				Separator!
 				doCompile true if Selectable "Minify"
@@ -336,12 +299,12 @@ threadLoop ->
 	:width,:height = App.visualSize
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2(width,53)
-	return true if PushStyleColor "TitleBgActive", Color(0xcc000000), ->
+	PushStyleColor "TitleBgActive", Color(0xcc000000), ->
 		Begin "Dorothy Dev", "NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
 			Separator!
 	SetNextWindowPos Vec2(0,53)
 	SetNextWindowSize Vec2(width,height-107)
-	return true if PushStyleColor "WindowBg",Color(0x0), ->
+	PushStyleColor "WindowBg",Color(0x0), ->
 		Begin "Content", "NoTitleBar|NoResize|NoMove|NoCollapse|NoBringToFrontOnFocus|NoSavedSettings", ->
 			TextColored Color(0xff00ffff), "Game Demos"
 			Columns math.max(math.floor(width/200),1), false
@@ -362,4 +325,11 @@ threadLoop ->
 			for test in *tests
 				if Button test, Vec2(-1,40)
 					enterDemoEntry Path "Test",test
+				NextColumn!
+			if productionEntry
+				Columns 1, false
+				TextColored Color(0xff00ffff), "Product"
+				Columns math.max(math.floor(width/200),1), false
+				if Button "Enter", Vec2(-1,40)
+					enterDemoEntry productionEntry
 				NextColumn!

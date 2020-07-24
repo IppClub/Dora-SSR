@@ -32,7 +32,8 @@ _nearestNeutralDistance(0),
 _friends(Array::create()),
 _enemies(Array::create()),
 _neutrals(Array::create()),
-_detectedUnits(Array::create())
+_detectedUnits(Array::create()),
+_attackUnits(Array::create())
 { }
 
 vector<Slice>& AI::getDecisionNodes()
@@ -40,7 +41,7 @@ vector<Slice>& AI::getDecisionNodes()
 	return _decisionNodes;
 }
 
-Unit* AI::getSelf()
+Unit* AI::getSelf() const
 {
 	return _self;
 }
@@ -65,10 +66,10 @@ bool AI::runDecisionTree(Unit* unit)
 	float minEnemyDistance = 0;
 	float minNeutralDistance = 0;
 
-	Sensor* sensor = unit->getDetectSensor();
-	if (sensor)
+	Sensor* detectSensor = unit->getDetectSensor();
+	if (detectSensor)
 	{
-		ARRAY_START(Body, body, sensor->getSensedBodies())
+		ARRAY_START(Body, body, detectSensor->getSensedBodies())
 		{
 			Unit* aroundUnit = DoraCast<Unit>(body->getOwner());
 			if (!aroundUnit) continue;
@@ -120,6 +121,19 @@ bool AI::runDecisionTree(Unit* unit)
 		_nearestNeutralDistance = std::sqrt(minNeutralDistance);
 	}
 
+	Sensor* attackSensor = unit->getAttackSensor();
+	if (attackSensor)
+	{
+		ARRAY_START(Body, body, attackSensor->getSensedBodies())
+		{
+			if (Unit* unit = DoraCast<Unit>(body->getOwner()))
+			{
+				_attackUnits->add(unit);
+			}
+		}
+		ARRAY_END
+	}
+
 	bool result = false;
 	if (_self->isReceivingDecisionTrace())
 	{
@@ -142,12 +156,13 @@ bool AI::runDecisionTree(Unit* unit)
 	_enemies->clear();
 	_neutrals->clear();
 	_detectedUnits->clear();
+	_attackUnits->clear();
 	_self = nullptr;
 
 	return result;
 }
 
-Array* AI::getUnitsByRelation(Relation relation)
+Array* AI::getUnitsByRelation(Relation relation) const
 {
 	Array* units = _detectedUnits;
 	switch (relation)
@@ -167,12 +182,18 @@ Array* AI::getUnitsByRelation(Relation relation)
 	return units;
 }
 
-Array* AI::getDetectedUnits()
+Array* AI::getDetectedUnits() const
 {
 	return _detectedUnits;
 }
 
-Unit* AI::getNearestUnit(Relation relation)
+Array* AI::getDetectedBodies() const
+{
+	Sensor* sensor = _self->getDetectSensor();
+	return sensor ? sensor->getSensedBodies() : nullptr;
+}
+
+Unit* AI::getNearestUnit(Relation relation) const
 {
 	switch (relation)
 	{
@@ -187,7 +208,7 @@ Unit* AI::getNearestUnit(Relation relation)
 	}
 }
 
-float AI::getNearestUnitDistance(Relation relation)
+float AI::getNearestUnitDistance(Relation relation) const
 {
 	switch (relation)
 	{
@@ -203,6 +224,11 @@ float AI::getNearestUnitDistance(Relation relation)
 }
 
 Array* AI::getUnitsInAttackRange() const
+{
+	return _attackUnits;
+}
+
+Array* AI::getBodiesInAttackRange() const
 {
 	Sensor* sensor = _self->getAttackSensor();
 	return sensor ? sensor->getSensedBodies() : nullptr;

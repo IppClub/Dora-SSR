@@ -168,16 +168,16 @@ namespace ImGui
 	bool Checkbox(CString label, bool* v);
 	bool RadioButton(CString label, bool active);
 	bool RadioButton(CString label, int* v, int v_button);
-	void PlotLines(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
-	void PlotHistogram(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
-	void ProgressBar(float fraction, Vec2 size_arg = NewVec2(-1,0), CString overlay = NULL);
+	void PlotLines(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
+	void PlotHistogram(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
+	void ProgressBar(float fraction, Vec2 size_arg = NewVec2(-1,0), CString overlay = nullptr);
 
 	bool ListBox(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 
 	bool DragFloat(CString label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString display_format = "%.3f", float power = 1.0f);
-	bool DragFloatRange2(CString label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString display_format = "%.3f", CString display_format_max = NULL, float power = 1.0f);
+	bool DragFloatRange2(CString label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString display_format = "%.3f", CString display_format_max = nullptr, float power = 1.0f);
 	bool DragInt(CString label, int* v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%.0f");
-	bool DragIntRange2(CString label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%.0f", CString display_format_max = NULL);
+	bool DragIntRange2(CString label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%.0f", CString display_format_max = nullptr);
 
 	bool SliderFloat(CString label, float* v, float v_min, float v_max, CString display_format = "%.3f", float power = 1.0f);
 	bool SliderAngle(CString label, float* v_rad, float v_degrees_min = -360.0f, float v_degrees_max = 360.0f);
@@ -186,7 +186,7 @@ namespace ImGui
 	bool VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString display_format = "%.0f");
 
 	bool TreeNode(CString label);
-	void TreePush(CString str_id = NULL);
+	void TreePush(CString str_id = nullptr);
 	void TreePop();
 	float GetTreeNodeToLabelSpacing();
 	bool ListBoxHeader(CString label, Vec2 size = Vec2::zero);
@@ -195,7 +195,7 @@ namespace ImGui
 
 	void Value(CString prefix, bool b);
 	void Value(CString prefix, int v);
-	void Value(CString prefix, float v, CString float_format = NULL);
+	void Value(CString prefix, float v, CString float_format = nullptr);
 
 	void BeginTooltip();
 	void EndTooltip();
@@ -206,14 +206,14 @@ namespace ImGui
 	void EndMenuBar();
 	bool BeginMenu(CString label, bool enabled = true);
 	void EndMenu();
-	bool MenuItem(CString label, CString shortcut = NULL, bool selected = false, bool enabled = true);
+	bool MenuItem(CString label, CString shortcut = nullptr, bool selected = false, bool enabled = true);
 	bool MenuItem @ MenuItemToggle(CString label, CString shortcut, bool* p_selected, bool enabled = true);
 
 	void OpenPopup(CString str_id);
 	bool BeginPopup(CString str_id);
-	bool BeginPopupContextItem(CString str_id, int mouse_button = 1);
-	bool BeginPopupContextWindow(CString str_id = NULL, int mouse_button = 1, bool also_over_items = true);
-	bool BeginPopupContextVoid(CString str_id = NULL, int mouse_button = 1);
+	bool Binding::BeginPopupContextItem @ BeginPopupContextItem(CString str_id = nullptr, String popupFlags = nullptr);
+	bool Binding::BeginPopupContextWindow @ BeginPopupContextWindow(CString str_id = nullptr, String popupFlags = nullptr);
+	bool Binding::BeginPopupContextVoid @ BeginPopupContextVoid(CString str_id = nullptr, String popupFlags = nullptr);
 	void EndPopup();
 	void CloseCurrentPopup();
 
