@@ -95,6 +95,7 @@ Act = (name)-> Seq {
 				return true
 		return true if @decisionTree ~= "AI_KidSearch"
 		table.insert data,row
+		true
 }
 
 rowNames = {'attack_path_blocked','face_right','obstacle_ahead','obstacle_distance','has_forward_speed','see_enemy','evade_right','need_evade','face_enemy','last_action','last_action_interval','not_facing_nearest_enemy','enemy_in_attack_range','reach_search_limit','action'}

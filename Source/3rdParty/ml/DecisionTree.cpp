@@ -844,4 +844,3 @@ std::pair<std::list<DecisionTree::Node>, double> DecisionTree::BuildTestFromFile
 }
 
 } // GaGa
-
