@@ -124,6 +124,12 @@
     <Filter Include="3rdParty\spine">
       <UniqueIdentifier>{499dcf6f-2ff9-468a-81c8-897f74e1ec78}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\ml">
+      <UniqueIdentifier>{0d933f0e-76aa-4a7d-9567-7e856f14f5b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ML">
+      <UniqueIdentifier>{e7b04149-98f2-4dec-9c5c-df5a94913f23}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -848,6 +854,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexEffect.cpp">
       <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\ml\DecisionTree.cpp">
+      <Filter>3rdParty\ml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Playable.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ML\ML.cpp">
+      <Filter>ML</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1874,6 +1889,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Vertices.h">
       <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\ml\DecisionTree.h">
+      <Filter>3rdParty\ml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Playable.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ML\ML.h">
+      <Filter>ML</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

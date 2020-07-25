@@ -48,6 +48,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\ml\DecisionTree.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\MoonP\ast.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -717,6 +721,7 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
+    <ClCompile Include="..\..\..\Source\ML\ML.cpp" />
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
@@ -724,6 +729,7 @@
     <ClCompile Include="..\..\..\Source\Node\Model.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Playable.cpp" />
     <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Spine.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
@@ -777,6 +783,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\ml\DecisionTree.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\ast.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moonplus.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_ast.h" />
@@ -1059,6 +1066,7 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
+    <ClInclude Include="..\..\..\Source\ML\ML.h" />
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
@@ -1066,6 +1074,7 @@
     <ClInclude Include="..\..\..\Source\Node\Model.h" />
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
+    <ClInclude Include="..\..\..\Source\Node\Playable.h" />
     <ClInclude Include="..\..\..\Source\Node\RenderTarget.h" />
     <ClInclude Include="..\..\..\Source\Node\Spine.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
