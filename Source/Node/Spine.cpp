@@ -169,9 +169,13 @@ void Spine::setLook(String name)
 	}
 	else
 	{
-		_skeleton->setSkin(spine::String{name.begin(), name.size(), false});
+		auto skin = _skeletonData->getSkel()->findSkin(spine::String{name.begin(), name.size(), false});
+		if (skin)
+		{
+			_skeleton->setSkin(skin);
+			Playable::setLook(name);
+		}
 	}
-	Playable::setLook(name);
 }
 
 void Spine::setFaceRight(bool var)
