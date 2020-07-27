@@ -122,8 +122,11 @@ void Model::setLook(int index)
 void Model::setLook(String name)
 {
 	int index = _modelDef->getLookIndexByName(name);
-	Playable::setLook(name);
-	Model::setLook(index);
+	if (index != Look::None)
+	{
+		Model::setLook(index);
+		Playable::setLook(name);
+	}
 }
 
 void Model::setFaceRight(bool var)

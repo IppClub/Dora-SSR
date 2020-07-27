@@ -35,7 +35,7 @@ with Observer "Add",{"world"}
 			\gslot "BlockValue",(group,value)-> heroes\each (hero)->
 				hero.blocks = value if hero.group == group
 			\gslot "BlockChange",(group,value)-> heroes\each (hero)->
-				if hero.group == group
+				if hero.group == group and hero.blocks
 					hero.blocks = math.max hero.blocks+value,0
 					hero.defending = true if value < 0
 			\gslot "EPChange",(group,value)-> heroes\each (hero)->
@@ -235,13 +235,13 @@ with Observer "Change", {"hp","unit","block"}
 			unit\start "cancel" if unit\isDoing "hit"
 			if hp > 0
 				unit\start "hit"
-				unit.faceRight = false
+				unit.faceRight = true
 				with unit.playable
 					.recovery = 0.5
 					\play "hp#{math.floor hp}"
 			else
 				unit\start "hit"
-				unit.faceRight = false
+				unit.faceRight = true
 				unit.group = Data.groupHide
 				unit.playable\perform Scale 0.3,1,0,Ease.OutQuad
 				unit\schedule once ->
