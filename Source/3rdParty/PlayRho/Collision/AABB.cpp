@@ -45,7 +45,7 @@ AABB ComputeAABB(const DistanceProxy& proxy, const Transformation& xf) noexcept
 }
 
 AABB ComputeAABB(const DistanceProxy& proxy,
-                   const Transformation& xfm0, const Transformation& xfm1) noexcept
+                 const Transformation& xfm0, const Transformation& xfm1) noexcept
 {
     assert(IsValid(xfm0));
     assert(IsValid(xfm1));

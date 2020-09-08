@@ -111,8 +111,8 @@ Simplex Simplex::Get(const SimplexEdge& s0, const SimplexEdge& s1) noexcept
     }
     
     // Must be in e12 region.
-    const auto d12_sum = d12_1 + d12_2;
-    return Simplex{{s0, s1}, {d12_1 / d12_sum, d12_2 / d12_sum}};
+    const auto inv_sum = Real{1} / (d12_1 + d12_2);
+    return Simplex{{s0, s1}, {d12_1 * inv_sum, d12_2 * inv_sum}};
 }
 
 Simplex Simplex::Get(const SimplexEdge& s0, const SimplexEdge& s1, const SimplexEdge& s2) noexcept
@@ -179,8 +179,8 @@ Simplex Simplex::Get(const SimplexEdge& s0, const SimplexEdge& s1, const Simplex
     const auto d123_3 = n123 * cp_w1_w2;
     if ((d12_1 > 0_m2) && (d12_2 > 0_m2) && (d123_3 <= 0 * SquareMeter * SquareMeter))
     {
-        const auto d12_sum = d12_1 + d12_2;
-        return Simplex{{s0, s1}, {d12_1 / d12_sum, d12_2 / d12_sum}};
+        const auto inv_sum = Real{1} / (d12_1 + d12_2);
+        return Simplex{{s0, s1}, {d12_1 * inv_sum, d12_2 * inv_sum}};
     }
     
     // e13
@@ -188,8 +188,8 @@ Simplex Simplex::Get(const SimplexEdge& s0, const SimplexEdge& s1, const Simplex
     const auto d123_2 = n123 * cp_w3_w1;
     if ((d13_1 > 0_m2) && (d13_2 > 0_m2) && (d123_2 <= 0 * SquareMeter * SquareMeter))
     {
-        const auto d13_sum = d13_1 + d13_2;
-        return Simplex{{s0, s2}, {d13_1 / d13_sum, d13_2 / d13_sum}};
+        const auto inv_sum = Real{1} / (d13_1 + d13_2);
+        return Simplex{{s0, s2}, {d13_1 * inv_sum, d13_2 * inv_sum}};
     }
     
     // e23
@@ -197,13 +197,13 @@ Simplex Simplex::Get(const SimplexEdge& s0, const SimplexEdge& s1, const Simplex
     const auto d123_1 = n123 * cp_w2_w3;
     if ((d23_1 > 0_m2) && (d23_2 > 0_m2) && (d123_1 <= 0 * SquareMeter * SquareMeter))
     {
-        const auto d23_sum = d23_1 + d23_2;
-        return Simplex{{s2, s1}, {d23_2 / d23_sum, d23_1 / d23_sum}};
+        const auto inv_sum = Real{1} / (d23_1 + d23_2);
+        return Simplex{{s2, s1}, {d23_2 * inv_sum, d23_1 * inv_sum}};
     }
     
     // Must be in triangle123
-    const auto d123_sum = d123_1 + d123_2 + d123_3;
-    return Simplex{{s0, s1, s2}, {d123_1 / d123_sum, d123_2 / d123_sum, d123_3 / d123_sum}};
+    const auto inv_sum = Real{1} / (d123_1 + d123_2 + d123_3);
+    return Simplex{{s0, s1, s2}, {d123_1 * inv_sum, d123_2 * inv_sum, d123_3 * inv_sum}};
 }
 
 Simplex Simplex::Get(const SimplexEdges& edges) noexcept

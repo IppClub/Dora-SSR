@@ -385,10 +385,10 @@ void tolua_call(lua_State* L, int index, lua_CFunction func)
 /* Map constant number
 	* It assigns a constant number into the current module(or class)
 	*/
-void tolua_constant(lua_State* L, const char* name, lua_Number value)
+void tolua_constant(lua_State* L, const char* name, lua_Integer value)
 {
 	lua_pushstring(L, name);
-	tolua_pushnumber(L, value);
+	tolua_pushinteger(L, value);
 	lua_rawset(L, -3);
 }
 

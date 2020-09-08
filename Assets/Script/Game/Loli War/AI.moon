@@ -1,5 +1,6 @@
 _ENV = Dorothy builtin.Platformer
-{store:Store} = Data
+
+store:Store = Data
 {
 	:MaxBunnies
 	:GroupPlayer

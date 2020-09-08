@@ -77,10 +77,14 @@ namespace playrho {
         ///   Otherwise looks for an appropriately sized block from the free list.
         ///   Failing that, <code>Alloc</code> is used to grow the free list from which
         ///   memory is returned.
+        /// @return Non-null pointer if asked to make non-zero sized allocation,
+        ///   <code>nullptr</code> otherwise.
+        /// @throws std::bad_alloc If unable to allocate non-zero size of memory.
         /// @sa Alloc.
         void* Allocate(size_type n);
 
         /// @brief Allocates an array.
+        /// @throws std::bad_alloc If unable to allocate non-zero elements of non-zero size.
         template <typename T>
         T* AllocateArray(size_type n)
         {

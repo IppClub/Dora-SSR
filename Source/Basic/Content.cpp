@@ -374,10 +374,10 @@ void Content::copyFileAsync(String src, String dst, const function<void()>& call
 void Content::saveToFileAsync(String filename, String content, const function<void()>& callback)
 {
 	string file(filename);
-	auto data = new string(content);
+	auto data = std::make_shared<string>(content);
 	SharedAsyncThread.FileIO.run([file,data,this]()
 	{
-		Content::saveToFile(file, *MakeOwn(data));
+		Content::saveToFile(file, *data);
 		return nullptr;
 	},
 	[callback](Own<Values> result)

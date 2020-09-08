@@ -165,6 +165,6 @@ void IkConstraintTimeline::setFrame(int frameIndex, float time, float mix, float
 	_frames[frameIndex + MIX] = mix;
 	_frames[frameIndex + SOFTNESS] = softness;
 	_frames[frameIndex + BEND_DIRECTION] = (float)bendDirection;
-	_frames[frameIndex + COMPRESS] = compress ? 1 : 0;
-	_frames[frameIndex + STRETCH] = stretch ? 1 : 0;
+	_frames[frameIndex + COMPRESS] = compress ? 1.0f : 0.0f;
+	_frames[frameIndex + STRETCH] = stretch ? 1.0f : 0.0f;
 }

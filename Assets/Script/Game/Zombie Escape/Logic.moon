@@ -2,7 +2,8 @@ _ENV = Dorothy builtin.Platformer
 import "UI.View.Shape.Rectangle"
 import "UI.View.Shape.Circle"
 import "UI.View.Shape.Star"
-{store:Store} = Data
+
+store:Store = Data
 
 with Observer "Add", {"obstacleDef","size","position","color"}
 	\every =>

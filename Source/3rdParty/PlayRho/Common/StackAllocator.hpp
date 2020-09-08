@@ -52,7 +52,7 @@ public:
     }
 
     /// @brief Initializing constructor.
-    explicit StackAllocator(Conf config = GetDefaultConf()) noexcept;
+    explicit StackAllocator(Conf config = GetDefaultConf());
 
     ~StackAllocator() noexcept;
 
@@ -70,14 +70,14 @@ public:
     /// @return Pointer to memory if the allocator has allocation records left,
     /// <code>nullptr</code> otherwise.
     /// @sa GetEntryCount.
-    void* Allocate(size_type size) noexcept;
+    void* Allocate(size_type size);
 
     /// @brief Frees the given pointer.
     void Free(void* p) noexcept;
 
     /// @brief Allocates and array of the given size number of elements.
     template <typename T>
-    T* AllocateArray(size_type size) noexcept
+    T* AllocateArray(size_type size)
     {
         return static_cast<T*>(Allocate(size * sizeof(T)));
     }

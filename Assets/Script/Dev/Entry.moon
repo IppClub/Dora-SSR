@@ -10,7 +10,7 @@ debug.traceback = (err,level=1)->
 		msg = .stacktrace err,level+1
 		return msg
 
-LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20--, "Chinese"
+LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -83,6 +83,7 @@ getAllFiles = (path,exts)->
 doCompile = (minify)->
 	return if building
 	building = true
+	startTime = App.runningTime
 	inputPath = Path Content.assetPath,"Script"
 	outputPath = Path Content.writablePath,"Script"
 	moonFiles = getAllFiles inputPath,{"moon"}
@@ -137,7 +138,7 @@ doCompile = (minify)->
 				else
 					table.insert errors,"Minify errors in #{file}.\n#{err}"
 		print err for err in *errors
-		print "Build complete!"
+		print "Build complete! Cost #{string.format '%.2f', App.runningTime - startTime}s"
 		building = false
 
 doClean = ->

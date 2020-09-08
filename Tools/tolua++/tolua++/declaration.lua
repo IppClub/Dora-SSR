@@ -272,7 +272,7 @@ function classDeclaration:builddeclaration (narg, cplusplus)
    line = concatparam(line,'[',self.dim,'];')
   else
 	if cplusplus then
-		output('  int tolua_len = (int)lua_rawlen(tolua_S,',narg,");")
+		output('  int tolua_len = static_cast<int>(lua_rawlen(tolua_S,',narg,"));")
 		line = concatparam(line,' = Mtolua_new_dim(',type,ptr,', '..self.dim..');')
 	else
 		line = concatparam(line,' = (',type,ptr,'*)',
@@ -290,13 +290,14 @@ function classDeclaration:builddeclaration (narg, cplusplus)
   		t = 'userdata'
   	end
 	if not t and ptr=='' then line = concatparam(line,'*') end
-	line = concatparam(line,'((',self.mod,type)
+	line = concatparam(line,'static_cast<',self.mod,type)
 	if not t then
 		line = concatparam(line,'*')
 	end
-	line = concatparam(line,') ')
-	if isenum(nctype) then
-		line = concatparam(line,'(int) ')
+	line = concatparam(line,'>(')
+	local ise = isenum(nctype)
+	if ise then
+		line = concatparam(line,'static_cast<int>(')
 	end
 	local def = 0
 	if self.def ~= '' then
@@ -305,11 +306,12 @@ function classDeclaration:builddeclaration (narg, cplusplus)
 			def = "(void*)(&"..def..")"
 		end
 	end
+	local endsym = ise and ');' or ';'
 	if t then
-		line = concatparam(line,'tolua_to'..t,'(tolua_S,',narg,',',def,'));')
+		line = concatparam(line,'tolua_to'..t,'(tolua_S,',narg,',',def,'))',endsym)
 	else
 		local to_func = get_to_function(type)
-		line = concatparam(line,to_func..'(tolua_S,',narg,',',def,'));')
+		line = concatparam(line,to_func..'(tolua_S,',narg,',',def,'))',endsym)
 	end
   end
  end

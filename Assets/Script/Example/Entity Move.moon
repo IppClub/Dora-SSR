@@ -50,14 +50,14 @@ with Observer "AddOrChange", {"position","direction","sprite"}
 with Entity!
 	.sprite = Sprite "Image/logo.png"
 	.position = Vec2 0,0
-	.direction = 45
-	.speed = 4
+	.direction = 45.0
+	.speed = 4.0
 
 with Entity!
 	.sprite = Sprite "Image/logo.png"
 	.position = Vec2 -100,200
-	.direction = 90
-	.speed = 10
+	.direction = 90.0
+	.speed = 10.0
 
 with Entity!
 	.scene = Node!

@@ -32,6 +32,8 @@ struct Vec2
 	Vec2& operator*=(const Vec2& vec);
 	Vec2 operator/(float value) const;
 	Vec2& operator/=(float value);
+	Vec2 operator/(const Vec2& vec) const;
+	Vec2& operator/=(const Vec2& vec);
 	bool operator==(const Vec2& vec) const;
 	bool operator!=(const Vec2& vec) const;
 	Vec2 operator*(const Size& size) const;

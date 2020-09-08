@@ -62,11 +62,13 @@ Length2 ComputeCentroid(const Span<const Length2>& vertices)
         const auto e1 = p2 - p1;
         const auto e2 = p3 - p1;
         
-        const auto triangleArea = Area{Cross(e1, e2) / Real(2)};
+        PLAYRHO_CONSTEXPR const auto RealInverseOfTwo = Real{1} / Real{2};
+        const auto triangleArea = Area{Cross(e1, e2) * RealInverseOfTwo};
         area += triangleArea;
         
         // Area weighted centroid
-        const auto aveP = (p1 + p2 + p3) / Real{3};
+        PLAYRHO_CONSTEXPR const auto RealInverseOfThree = Real{1} / Real{3};
+        const auto aveP = (p1 + p2 + p3) * RealInverseOfThree;
         c += triangleArea * aveP;
     }
     
@@ -129,7 +131,8 @@ NonNegative<Area> GetAreaOfPolygon(Span<const Length2> vertices)
     
     // Note that using the absolute value isn't necessary for vertices in counter-clockwise
     // ordering; only needed for clockwise ordering.
-    return abs(sum) / Real{2};
+    PLAYRHO_CONSTEXPR const auto RealInverseOfTwo = Real{1} / Real{2};
+    return abs(sum) * RealInverseOfTwo;
 }
 
 SecondMomentOfArea GetPolarMoment(Span<const Length2> vertices)
@@ -161,7 +164,8 @@ SecondMomentOfArea GetPolarMoment(Span<const Length2> vertices)
     }
     const auto secondMomentOfAreaX = SecondMomentOfArea{sum_x};
     const auto secondMomentOfAreaY = SecondMomentOfArea{sum_y};
-    return (secondMomentOfAreaX + secondMomentOfAreaY) / Real{12};
+    PLAYRHO_CONSTEXPR const auto RealInverseOfTwelve = Real{1} / Real{12};
+    return (secondMomentOfAreaX + secondMomentOfAreaY) * RealInverseOfTwelve;
 }
 
 namespace d2 {

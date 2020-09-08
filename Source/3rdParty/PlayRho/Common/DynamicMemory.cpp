@@ -20,21 +20,37 @@
  */
 
 #include "PlayRho/Common/DynamicMemory.hpp"
+
 #include <cstdlib>
 
 namespace playrho {
-    
+
     // Memory allocators. Modify these to use your own allocator.
     void* Alloc(std::size_t size)
     {
-        return std::malloc(size);
+        if (size) {
+            const auto memory = std::malloc(size);
+            if (!memory) {
+                throw std::bad_alloc{};
+            }
+            return memory;
+        }
+        return nullptr;
     }
-    
-    void* Realloc(void* ptr, std::size_t new_size)
+
+    void* Realloc(void* ptr, std::size_t size)
     {
-        return std::realloc(ptr, new_size);
+        if (size) {
+            const auto memory = std::realloc(ptr, size);
+             if (!memory) {
+                 throw std::bad_alloc{};
+             }
+             return memory;
+        }
+        Free(ptr);
+        return nullptr;
     }
-    
+
     void Free(void* mem)
     {
         std::free(mem);

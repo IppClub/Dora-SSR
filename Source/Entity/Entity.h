@@ -135,7 +135,7 @@ void Entity::set(String name, const T& value, bool rawFlag)
 	if (com)
 	{
 		auto content = com->as<T>();
-		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
+		AssertIf(content == nullptr, "component value type mismatch\"{}\".", name);
 		updateComponent(index, com->clone(), false);
 		content->set(value);
 	}

@@ -84,14 +84,17 @@ private:
         return false;
     }
     
-    /// @brief Clears the fixtures of the given body.
-    static void ClearFixtures(Body& b, std::function<void(Fixture&)> callback)
+    /// @brief Executes function for all the fixtures of the given body.
+    static void ForallFixtures(Body& b, std::function<void(Fixture&)> callback)
     {
-        const auto begIter = begin(b.m_fixtures);
-        const auto endIter = end(b.m_fixtures);
-        std::for_each(begIter, endIter, [&](Body::Fixtures::value_type& f) {
+        std::for_each(begin(b.m_fixtures), end(b.m_fixtures), [&](Body::Fixtures::value_type& f) {
             callback(GetRef(f));
         });
+    }
+
+    /// @brief Clears the fixtures of the given body.
+    static void ClearFixtures(Body& b)
+    {
         b.m_fixtures.clear();
     }
 

@@ -33,7 +33,7 @@ _scheduler(Scheduler::create()),
 _postScheduler(Scheduler::create()),
 _postSystemScheduler(Scheduler::create()),
 _camStack(Array::create()),
-_clearColor(0xff000000),
+_clearColor(0xff1a1a1a),
 _displayStats(false),
 _nvgDirty(false),
 _stoped(false),
@@ -235,11 +235,6 @@ bool Director::init()
 		if (name == "init.lua"_slice)
 		{
 			SharedLuaEngine.executeScriptFile(Path::concat({path,file}));
-			return true;
-		}
-		else if (name == "init.moon"_slice)
-		{
-			SharedLuaEngine.executeString(fmt::format("require('moonp').dofile('{}','init')", Path::concat({path,file})));
 			return true;
 		}
 		return false;
@@ -539,7 +534,7 @@ NVGcontext* Director::markNVGDirty()
 		_nvgDirty = true;
 		Size visualSize = SharedApplication.getVisualSize();
 		float deviceRatio = SharedApplication.getDeviceRatio();
-		nvgBeginFrame(_nvgContext, s_cast<int>(visualSize.width), s_cast<int>(visualSize.height), deviceRatio);
+		nvgBeginFrame(_nvgContext, visualSize.width, visualSize.height, deviceRatio);
 	}
 	return _nvgContext;
 }
@@ -574,6 +569,9 @@ void Director::handleSDLEvent(const SDL_Event& event)
 			break;
 		case SDL_APP_DIDENTERFOREGROUND:
 			Event::send("AppDidEnterForeground"_slice);
+			SharedView.reset();
+			markDirty();
+			Event::send("AppSizeChanged"_slice);
 			break;
 		case SDL_WINDOWEVENT:
 			{

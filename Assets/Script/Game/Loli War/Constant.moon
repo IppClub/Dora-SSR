@@ -21,8 +21,8 @@ with Data.store
 	.LayerReadMe = 7
 
 	.MaxBunnies = 6
-	.MaxEP = 8
-	.MaxHP = 8
+	.MaxEP = 8.0
+	.MaxHP = 8.0
 
 	Data\setShouldContact .GroupPlayerBlock, .GroupPlayerBlock, true
 	Data\setShouldContact .GroupEnemyBlock, .GroupEnemyBlock, true

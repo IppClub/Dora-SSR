@@ -27,14 +27,10 @@ FrameActionDef* FrameCache::loadFrame(String frameStr)
 		Vec2 origin{};
 		if (SharedClipCache.isClip(parts.front()))
 		{
-			ClipDef* def;
-			Slice clip;
-			std::tie(def, clip) = SharedClipCache.loadClip(parts.front());
-			auto it = def->rects.find(clip);
-			if (it != def->rects.end())
-			{
-				origin = (*it->second).origin;
-			}
+			Texture2D* tex = nullptr;
+			Rect rect;
+			std::tie(tex, rect) = SharedClipCache.loadTexture(parts.front());
+			origin = rect.origin;
 		}
 		auto tokens = parts.back().split(","_slice);
 		BREAK_IF(tokens.size() != 4);

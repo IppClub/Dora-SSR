@@ -105,6 +105,7 @@ class Application
 	tolua_readonly tolua_property__common String version;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_readonly tolua_property__common double totalTime;
+	tolua_readonly tolua_property__common double runningTime;
 	tolua_readonly tolua_property__common Uint32 rand;
 	tolua_readonly tolua_property__bool bool debugging;
 	tolua_property__common unsigned int seed;
@@ -623,6 +624,7 @@ class Model : public Playable
 	void resume(String name, bool loop = false);
 	void reset();
 	void updateTo(float eclapsed, bool reversed = false);
+	Node* getNodeByName(String name);
 	bool eachNode(tolua_function_bool func);
 	static Model* create(String filename);
 	static Model* none();

@@ -50,7 +50,8 @@ bool Bullet::init()
 		Bullet::setFace(node);
 	}
 	Playable* playable = _owner->getPlayable();
-	Vec2 offset = (playable ? playable->getKeyPoint(UnitDef::BulletKey) : Vec2::zero) * Vec2{_owner->getScaleX(), _owner->getScaleY()};
+	float scale = _owner->getUnitDef()->getScale();
+	Vec2 offset = (playable ? playable->getKeyPoint(UnitDef::BulletKey) : Vec2::zero) * Vec2{scale, scale};
 	Bullet::setPosition(
 		_owner->getPosition() +
 		(_owner->isFaceRight() ? offset : Vec2{-offset.x, offset.y})

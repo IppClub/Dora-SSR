@@ -222,18 +222,18 @@ namespace ImGui { namespace Binding
 
 	bool Combo(const char* label, int* current_item, const char* const* items, int items_count, int height_in_items = -1);
 
-	bool DragFloat2(const char* label, Vec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
-	bool DragInt2(const char* label, Vec2& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
-	bool InputFloat2(const char* label, Vec2& v, String format = "%.1f", String extra_flags = nullptr);
-	bool InputInt2(const char* label, Vec2& v, String extra_flags = nullptr);
-	bool SliderFloat2(const char* label, Vec2& v, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
-	bool SliderInt2(const char* label, Vec2& v, int v_min, int v_max, const char* display_format = "%.0f");
+	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
+	bool DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
+	bool InputFloat2(const char* label, float* v1, float* v2, String format = "%.1f", String extra_flags = nullptr);
+	bool InputInt2(const char* label, int* v1, int* v2, String extra_flags = nullptr);
+	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
+	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f");
 
 	bool ColorEdit3(const char* label, Color3& color3);
 	bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
 
-	void Image(Texture2D* user_texture, const Vec2& size, const Vec2& uv0 = Vec2::zero, const Vec2& uv1 = Vec2{1,1}, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
-	bool ImageButton(Texture2D* user_texture, const Vec2& size, const Vec2& uv0 = Vec2::zero, const Vec2& uv1 = Vec2{1,1}, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
+	void Image(String clipStr, const Vec2& size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
+	bool ImageButton(String clipStr, const Vec2& size, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
 	bool ColorButton(const char* desc_id, Color col, String flags = nullptr, const Vec2& size = Vec2::zero);
 

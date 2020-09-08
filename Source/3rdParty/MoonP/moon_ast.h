@@ -97,12 +97,12 @@ AST_NODE(NameList)
 	AST_MEMBER(NameList, &sep, &names)
 AST_END(NameList)
 
-class ExpListLow_t;
+class ExpList_t;
 class TableBlock_t;
 
 AST_NODE(local_values)
 	ast_ptr<true, NameList_t> nameList;
-	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
+	ast_sel<false, TableBlock_t, ExpList_t> valueList;
 	AST_MEMBER(local_values, &nameList, &valueList)
 AST_END(local_values)
 
@@ -181,12 +181,6 @@ AST_NODE(Backcall)
 	AST_MEMBER(Backcall, &argsDef, &arrow, &value)
 AST_END(Backcall)
 
-AST_NODE(ExpListLow)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, Exp_t> exprs;
-	AST_MEMBER(ExpListLow, &sep, &exprs)
-AST_END(ExpListLow)
-
 AST_NODE(ExpList)
 	ast_ptr<true, Seperator_t> sep;
 	ast_list<true, Exp_t> exprs;
@@ -195,7 +189,7 @@ AST_END(ExpList)
 
 AST_NODE(Return)
 	bool allowBlockMacroReturn = false;
-	ast_ptr<false, ExpListLow_t> valueList;
+	ast_ptr<false, ExpList_t> valueList;
 	AST_MEMBER(Return, &valueList)
 AST_END(Return)
 
@@ -554,7 +548,7 @@ AST_END(ClassDecl)
 
 AST_NODE(global_values)
 	ast_ptr<true, NameList_t> nameList;
-	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
+	ast_sel<false, TableBlock_t, ExpList_t> valueList;
 	AST_MEMBER(global_values, &nameList, &valueList)
 AST_END(global_values)
 

@@ -134,17 +134,8 @@ PLAYRHO_CONSTEXPR inline Velocity operator* (const Real lhs, const Velocity& rhs
 /// @relatedalso Velocity
 PLAYRHO_CONSTEXPR inline Velocity operator/ (const Velocity& lhs, const Real rhs)
 {
-    /*
-     * While it can be argued that division operations shouldn't be supported due to
-     * hardware support for division typically being significantly slower than hardware
-     * support for multiplication, it can also be argued that it shouldn't be the
-     * software developer's role to attempt to optimize what the compiler should be
-     * much better at knowing how to optimize. So here the code chooses the latter
-     * strategy which allows the intention to be clearer, and just passes the division
-     * on down to the Vec2 and Angle types (rather than manually rewriting the divisions
-     * as multiplications).
-     */
-    return Velocity{lhs.linear / rhs, lhs.angular / rhs};
+    const auto inverseRhs = Real{1} / rhs;
+    return Velocity{lhs.linear * inverseRhs, lhs.angular * inverseRhs};
 }
 
 /// @brief Velocity pair.

@@ -85,6 +85,18 @@ Vec2& Vec2::operator/=(float value)
 	return *this;
 }
 
+Vec2 Vec2::operator/(const Vec2& vec) const
+{
+	return {x / vec.x, y / vec.y};
+}
+
+Vec2& Vec2::operator/=(const Vec2& vec)
+{
+	x /= vec.x;
+	y /= vec.y;
+	return *this;
+}
+
 bool Vec2::operator==(const Vec2& vec) const
 {
 	return x == vec.x && y == vec.y;
@@ -132,8 +144,11 @@ float Vec2::angle() const
 void Vec2::normalize()
 {
 	float length = Vec2::length();
-	x /= length;
-	y /= length;
+	if (length > 0)
+	{
+		x /= length;
+		y /= length;
+	}
 }
 
 void Vec2::perp()
@@ -155,7 +170,11 @@ float Vec2::dot(const Vec2& vec) const
 Vec2 Vec2::normalize(const Vec2& vec)
 {
 	float length = vec.length();
-	return {vec.x / length, vec.y / length};
+	if (length > 0)
+	{
+		return {vec.x / length, vec.y / length};
+	}
+	return {vec.x, vec.y};
 }
 
 Vec2 Vec2::perp(const Vec2& vec)

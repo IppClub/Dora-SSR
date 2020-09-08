@@ -541,12 +541,17 @@ void LuaEngine::push(bool value)
 	lua_pushboolean(L, value ? 1 : 0);
 }
 
+void LuaEngine::push(int value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
 void LuaEngine::push(Uint16 value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(int value)
+void LuaEngine::push(lua_Integer value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
@@ -556,7 +561,7 @@ void LuaEngine::push(float value)
 	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
 
-void LuaEngine::push(double value)
+void LuaEngine::push(lua_Number value)
 {
 	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
@@ -598,12 +603,17 @@ void LuaEngine::push(lua_State* L, bool value)
 	lua_pushboolean(L, value ? 1 : 0);
 }
 
+void LuaEngine::push(lua_State* L, int value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
 void LuaEngine::push(lua_State* L, Uint16 value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(lua_State* L, int value)
+void LuaEngine::push(lua_State* L, lua_Integer value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
@@ -613,7 +623,7 @@ void LuaEngine::push(lua_State* L, float value)
 	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
 
-void LuaEngine::push(lua_State* L, double value)
+void LuaEngine::push(lua_State* L, lua_Number value)
 {
 	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
@@ -665,6 +675,26 @@ bool LuaEngine::to(int& value, int index)
 	if (lua_isnumber(L, index))
 	{
 		value = s_cast<int>(lua_tonumber(L, index));
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(Uint16& value, int index)
+{
+	if (lua_isinteger(L, index))
+	{
+		value = s_cast<Uint16>(lua_tointeger(L, index));
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(Sint64& value, int index)
+{
+	if (lua_isinteger(L, index))
+	{
+		value = s_cast<Sint64>(lua_tointeger(L, index));
 		return true;
 	}
 	return false;

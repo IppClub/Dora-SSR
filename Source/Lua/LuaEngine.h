@@ -39,10 +39,11 @@ public:
 	void pop(int count = 1);
 
 	void push(bool value);
-	void push(Uint16 value);
 	void push(int value);
+	void push(Uint16 value);
+	void push(lua_Integer value);
 	void push(float value);
-	void push(double value);
+	void push(lua_Number value);
 	void push(Value* value);
 	void push(Object* value);
 	void push(String value);
@@ -60,10 +61,11 @@ public:
 	}
 
 	static void push(lua_State* L, bool value);
-	static void push(lua_State* L, Uint16 value);
 	static void push(lua_State* L, int value);
+	static void push(lua_State* L, Uint16 value);
+	static void push(lua_State* L, lua_Integer value);
 	static void push(lua_State* L, float value);
-	static void push(lua_State* L, double value);
+	static void push(lua_State* L, lua_Number value);
 	static void push(lua_State* L, Value* value);
 	static void push(lua_State* L, Object* value);
 	static void push(lua_State* L, String value);
@@ -82,6 +84,8 @@ public:
 
 	bool to(bool& value, int index);
 	bool to(int& value, int index);
+	bool to(Uint16& value, int index);
+	bool to(Sint64& value, int index);
 	bool to(float& value, int index);
 	bool to(double& value, int index);
 	bool to(Object*& value, int index);

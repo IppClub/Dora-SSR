@@ -1,5 +1,6 @@
 _ENV = Dorothy builtin.Platformer
-{store:Store} = Data
+
+store:Store = Data
 
 Store["Body_ObstacleS"] = with BodyDef!
 	.type = BodyType.Static

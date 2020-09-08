@@ -22,6 +22,11 @@ lua_Number tolua_tonumber(lua_State* L, int narg, lua_Number def)
 	return lua_gettop(L) < abs(narg) ? def : lua_tonumber(L, narg);
 }
 
+lua_Integer tolua_tointeger(lua_State* L, int narg, lua_Integer def)
+{
+	return lua_gettop(L) < abs(narg) ? def : lua_tointeger(L, narg);
+}
+
 const char* tolua_tostring(lua_State* L, int narg, const char* def)
 {
 	return lua_gettop(L) < abs(narg) ? def : lua_tostring(L, narg);
@@ -30,11 +35,11 @@ const char* tolua_tostring(lua_State* L, int narg, const char* def)
 void* tolua_touserdata(lua_State* L, int narg, void* def)
 {
 	/* return lua_gettop(L)<abs(narg) ? def : lua_touserdata(L,narg); */
-	if(lua_gettop(L) < abs(narg))
+	if (lua_gettop(L) < abs(narg))
 	{
 		return def;
 	}
-	if(lua_islightuserdata(L, narg))
+	if (lua_islightuserdata(L, narg))
 	{
 		return lua_touserdata(L, narg);
 	}
@@ -43,7 +48,7 @@ void* tolua_touserdata(lua_State* L, int narg, void* def)
 
 void* tolua_tousertype(lua_State* L, int narg, void* def)
 {
-	if(lua_gettop(L) < abs(narg))
+	if (lua_gettop(L) < abs(narg))
 	{
 		return def;
 	}
@@ -67,60 +72,63 @@ bool tolua_toboolean(lua_State* L, int narg, int def)
 
 lua_Number tolua_tofieldnumber(lua_State* L, int lo, int index, lua_Number def)
 {
-	lua_Number v;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	v = lua_isnil(L, -1) ? def : lua_tonumber(L, -1);
+	lua_Number v = lua_isnil(L, -1) ? def : lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	return v;
+}
+
+lua_Integer tolua_tofieldinteger(lua_State* L, int lo, int index, lua_Integer def)
+{
+	lua_pushnumber(L, index);
+	lua_gettable(L, lo);
+	lua_Integer v = lua_isnil(L, -1) ? def : lua_tointeger(L, -1);
 	lua_pop(L, 1);
 	return v;
 }
 
 const char* tolua_tofieldstring(lua_State* L, int lo, int index, const char* def)
 {
-	const char* v;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	v = lua_isnil(L, -1) ? def : lua_tostring(L, -1);
+	const char* v = lua_isnil(L, -1) ? def : lua_tostring(L, -1);
 	lua_pop(L, 1);
 	return v;
 }
 
 void* tolua_tofielduserdata(lua_State* L, int lo, int index, void* def)
 {
-	void* v;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	v = lua_isnil(L, -1) ? def : lua_touserdata(L, -1);
+	void* v = lua_isnil(L, -1) ? def : lua_touserdata(L, -1);
 	lua_pop(L, 1);
 	return v;
 }
 
 void* tolua_tofieldusertype(lua_State* L, int lo, int index, void* def)
 {
-	void* v;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	v = lua_isnil(L, -1) ? def : (*r_cast<void**>(lua_touserdata(L, -1))); /* lua_unboxpointer(L,-1); */
+	void* v = lua_isnil(L, -1) ? def : (*r_cast<void**>(lua_touserdata(L, -1))); /* lua_unboxpointer(L,-1); */
 	lua_pop(L, 1);
 	return v;
 }
 
 int tolua_tofieldvalue(lua_State* L, int lo, int index, int def)
 {
-	int v;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	v = lua_isnil(L, -1) ? def : lo;
+	int v = lua_isnil(L, -1) ? def : lo;
 	lua_pop(L, 1);
 	return v;
 }
 
 int tolua_getfieldboolean(lua_State* L, int lo, int index, int def)
 {
-	int v;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	v = lua_isnil(L, -1) ? 0 : lua_toboolean(L, -1);
+	int v = lua_isnil(L, -1) ? 0 : lua_toboolean(L, -1);
 	lua_pop(L, 1);
 	return v;
 }

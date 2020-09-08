@@ -620,7 +620,7 @@ void Node::cleanup()
 Node* Node::getChildByTag(String tag)
 {
 	Node* targetNode = nullptr;
-	traverse([&](Node* child)
+	traverseAll([&](Node* child)
 	{
 		if (child->getTag() == tag)
 		{

@@ -455,6 +455,37 @@ static auto Size(T& v)
         }
     };
 
+    /// @brief Convenience template function for erasing first found value from container.
+    /// @return <code>true</code> if value was found and erased, <code>false</code> otherwise.
+    /// @see EraseAll.
+    template <typename T, typename U>
+    auto EraseFirst(T& container, const U& value) ->
+        decltype(container.erase(find(begin(container), end(container), value)) != end(container))
+    {
+        const auto endIt = end(container);
+        const auto it = find(begin(container), endIt, value);
+        if (it != endIt) {
+            container.erase(it);
+            return true;
+        }
+        return false;
+    }
+
+    /// @brief Convenience template function for erasing specified value from container.
+    /// @note This basically is the C++20 <code>std::erase</code> function.
+    /// @return Count of elements erased.
+    /// @see EraseFirst.
+    template <typename T, typename U>
+    auto EraseAll(T& container, const U& value) ->
+        decltype(distance(container.erase(remove(begin(container), end(container), value), end(container)), end(container)))
+    {
+        const auto itEnd = end(container);
+        const auto it = remove(begin(container), itEnd, value);
+        const auto count = distance(it, itEnd);
+        container.erase(it, itEnd);
+        return count;
+    }
+
 } // namespace playrho
 
 #endif // PLAYRHO_COMMON_TEMPLATES_HPP

@@ -33,6 +33,7 @@ public:
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);
 	PROPERTY_READONLY(double, CurrentTime);
+	PROPERTY_READONLY(double, RunningTime);
 	PROPERTY_READONLY(double, CPUTime);
 	PROPERTY_READONLY(double, TotalTime);
 	PROPERTY_READONLY(const Slice, Platform);
@@ -88,6 +89,7 @@ private:
 	Uint32 _minFPS;
 	uint32_t _frame;
 	const double _frequency;
+	double _startTime;
 	double _lastTime;
 	double _deltaTime;
 	double _cpuTime;

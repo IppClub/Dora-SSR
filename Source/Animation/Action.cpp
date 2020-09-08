@@ -57,47 +57,48 @@ SetFunc Property::getFunc(Property::Enum prop)
 	return setFuncs[prop];
 }
 
-static bx::EaseFn easeFuncs[] = {
+static bx::EaseFn easeFuncs[] =
+{
 	bx::easeLinear,
 	bx::easeInQuad,
 	bx::easeOutQuad,
 	bx::easeInOutQuad,
-	bx::easeOutInQuad,
 	bx::easeInCubic,
 	bx::easeOutCubic,
 	bx::easeInOutCubic,
-	bx::easeOutInCubic,
 	bx::easeInQuart,
 	bx::easeOutQuart,
 	bx::easeInOutQuart,
-	bx::easeOutInQuart,
 	bx::easeInQuint,
 	bx::easeOutQuint,
 	bx::easeInOutQuint,
-	bx::easeOutInQuint,
 	bx::easeInSine,
 	bx::easeOutSine,
 	bx::easeInOutSine,
-	bx::easeOutInSine,
 	bx::easeInExpo,
 	bx::easeOutExpo,
 	bx::easeInOutExpo,
-	bx::easeOutInExpo,
 	bx::easeInCirc,
 	bx::easeOutCirc,
 	bx::easeInOutCirc,
-	bx::easeOutInCirc,
 	bx::easeInElastic,
 	bx::easeOutElastic,
 	bx::easeInOutElastic,
-	bx::easeOutInElastic,
 	bx::easeInBack,
 	bx::easeOutBack,
 	bx::easeInOutBack,
-	bx::easeOutInBack,
 	bx::easeInBounce,
 	bx::easeOutBounce,
 	bx::easeInOutBounce,
+	bx::easeOutInQuad,
+	bx::easeOutInCubic,
+	bx::easeOutInQuart,
+	bx::easeOutInQuint,
+	bx::easeOutInSine,
+	bx::easeOutInExpo,
+	bx::easeOutInCirc,
+	bx::easeOutInElastic,
+	bx::easeOutInBack,
 	bx::easeOutInBounce
 };
 
@@ -522,7 +523,7 @@ Own<ActionDuration> FrameAction::alloc(FrameActionDef* def)
 	FrameAction* action = new FrameAction();
 	action->_def = def;
 	action->_ended = false;
-	action->_texture = SharedClipCache.loadTexture(def->clipStr);
+	action->_texture = SharedClipCache.loadTexture(def->clipStr).first;
 	return Own<ActionDuration>(action);
 }
 

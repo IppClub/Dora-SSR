@@ -163,6 +163,7 @@ int ImGuiDora::_lastIMEPosY;
 
 ImGuiDora::ImGuiDora():
 _touchHandler(nullptr),
+_rejectAllEvents(false),
 _textInputing(false),
 _mouseVisible(true),
 _lastCursor(0),
@@ -246,7 +247,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	switch (Switch::hash(glyphRanges))
 	{
 		case "Chinese"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesChineseSimplifiedCommon();
+			targetGlyphRanges = io.Fonts->GetGlyphRangesChineseFull();
 			break;
 		case "Korean"_hash:
 			targetGlyphRanges = io.Fonts->GetGlyphRangesKorean();
@@ -429,7 +430,7 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.00f, 0.70f, 0.70f, 1.00f);
 	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.00f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 1.00f, 1.00f, 0.35f);
-	style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.00f, 0.20f, 0.20f, 0.35f);
+	style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 	style.Colors[ImGuiCol_Tab] = style.Colors[ImGuiCol_Header];
     style.Colors[ImGuiCol_TabHovered] = style.Colors[ImGuiCol_HeaderHovered];
     style.Colors[ImGuiCol_TabActive] = style.Colors[ImGuiCol_HeaderActive];
@@ -465,9 +466,13 @@ bool ImGuiDora::init()
 	_iniFilePath = SharedContent.getWritablePath() + "imgui.ini";
 	io.IniFilename = _iniFilePath.c_str();
 
-	_effect = SpriteEffect::create(
+	_defaultEffect = SpriteEffect::create(
 		"builtin::vs_ocornut_imgui"_slice,
 		"builtin::fs_ocornut_imgui"_slice);
+
+	_imageEffect = SpriteEffect::create(
+		"builtin::vs_ocornut_imgui"_slice,
+		"builtin::fs_ocornut_imgui_image"_slice);
 
 	Uint8* texData;
 	int width;
@@ -597,10 +602,9 @@ void ImGuiDora::render()
 	{
 		bgfx::ViewId viewId = SharedView.getId();
 
-		ImGuiDora* guiDora = SharedImGui.getTarget();
-		bgfx::TextureHandle textureHandle = guiDora->_fontTexture->getHandle();
-		bgfx::UniformHandle sampler = guiDora->_effect->getSampler();
-		bgfx::ProgramHandle program = guiDora->_effect->apply();
+		float scale = SharedApplication.getDeviceRatio();
+		_defaultEffect->set("u_scale"_slice,  scale);
+		_imageEffect->set("u_scale"_slice,  scale);
 
 		// Render command lists
 		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)
@@ -612,20 +616,17 @@ void ImGuiDora::render()
 			uint32_t numVertices = (uint32_t)drawList->VtxBuffer.size();
 			uint32_t numIndices = (uint32_t)drawList->IdxBuffer.size();
 
-			if (!checkAvailTransientBuffers(numVertices, guiDora->_vertexLayout, numIndices))
+			if (!checkAvailTransientBuffers(numVertices, _vertexLayout, numIndices))
 			{
 				Warn("not enough space in transient buffer just quit drawing the rest.");
 				break;
 			}
 
-			bgfx::allocTransientVertexBuffer(&tvb, numVertices, guiDora->_vertexLayout);
+			bgfx::allocTransientVertexBuffer(&tvb, numVertices, _vertexLayout);
 			bgfx::allocTransientIndexBuffer(&tib, numIndices);
 
 			ImDrawVert* verts = (ImDrawVert*)tvb.data;
 			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
-
-			float scale = SharedApplication.getDeviceRatio();
-			_effect->set("u_scale"_slice,  scale);
 
 			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
 			std::memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(drawList->IdxBuffer[0]));
@@ -639,6 +640,9 @@ void ImGuiDora::render()
 				}
 				else if (0 != cmd->ElemCount)
 				{
+					bgfx::TextureHandle textureHandle;
+					bgfx::UniformHandle sampler;
+					bgfx::ProgramHandle program;
 					if (nullptr != cmd->TextureId)
 					{
 						union
@@ -647,6 +651,14 @@ void ImGuiDora::render()
 							struct { bgfx::TextureHandle handle; } s;
 						} texture = { cmd->TextureId };
 						textureHandle = texture.s.handle;
+						sampler = _imageEffect->getSampler();
+						program = _imageEffect->apply();
+					}
+					else
+					{
+						textureHandle = _fontTexture->getHandle();
+						sampler = _defaultEffect->getSampler();
+						program = _defaultEffect->apply();
 					}
 
 					uint64_t state = 0
@@ -908,11 +920,29 @@ bool ImGuiDora::handle(const SDL_Event& event)
 {
 	switch (event.type)
 	{
-	case SDL_MOUSEBUTTONDOWN:
-	case SDL_FINGERDOWN:
-	case SDL_MOUSEWHEEL:
-	case SDL_MULTIGESTURE:
-		return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive();
+		case SDL_MOUSEBUTTONDOWN:
+			if (ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive())
+			{
+				_rejectAllEvents = true;
+			}
+			break;
+		case SDL_MOUSEBUTTONUP:
+			if (_rejectAllEvents)
+			{
+				_rejectAllEvents = false;
+			}
+			break;
+		default:
+			break;
+	}
+	switch (event.type)
+	{
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_FINGERDOWN:
+		case SDL_MULTIGESTURE:
+			return _rejectAllEvents;
+		case SDL_MOUSEWHEEL:
+			return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive();
 	}
 	return false;
 }

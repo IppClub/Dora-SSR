@@ -137,7 +137,7 @@ Manifold GetManifold(bool flipped,
         if (size(clipPoints) == 2)
         {
             const auto abs_normal = GetFwdPerpendicular(shape0_abs_e0_dir);
-            const auto rel_midpoint = (shape0_rel_v0 + shape0_rel_v1) / 2;
+            const auto rel_midpoint = (shape0_rel_v0 + shape0_rel_v1) / Real{2};
             const auto abs_offset = Dot(abs_normal, shape0_abs_v0); ///< Face offset.
             
             auto manifold = Manifold{};

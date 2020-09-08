@@ -36,7 +36,7 @@ inline std::size_t alignment_size(std::size_t size)
 
 } // anonymous namespace
 
-StackAllocator::StackAllocator(Conf config) noexcept:
+StackAllocator::StackAllocator(Conf config):
     m_data{static_cast<decltype(m_data)>(Alloc(config.preallocation_size))},
     m_entries{static_cast<AllocationRecord*>(Alloc(config.allocation_records * sizeof(AllocationRecord)))},
     m_size{config.preallocation_size},
@@ -53,7 +53,7 @@ StackAllocator::~StackAllocator() noexcept
     playrho::Free(m_data);
 }
 
-void* StackAllocator::Allocate(size_type size) noexcept
+void* StackAllocator::Allocate(size_type size)
 {
     assert(m_index <= m_size);
 

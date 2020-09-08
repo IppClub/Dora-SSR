@@ -27,6 +27,7 @@ using std::list;
 #include <memory>
 #include <tuple>
 using std::tuple;
+#include <optional>
 #include <algorithm>
 #include <cctype>
 #include <cmath>

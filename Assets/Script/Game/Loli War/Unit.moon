@@ -1,5 +1,6 @@
 _ENV = Dorothy builtin.Platformer
-{store:Store} = Data
+
+store:Store = Data
 
 Store["Flandre"] = with UnitDef!
 	.bodyDef.linearAcceleration = Vec2 0,-10

@@ -1,7 +1,8 @@
 _ENV = Dorothy builtin.Platformer
 import "UI.View.Shape.Rectangle"
 import "UI.View.Shape.Star"
-{store:Store} = Data
+
+store:Store = Data
 
 Store["Bullet_KidM"] = with BulletDef!
 	.tag = ""
