@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Shader/ImGui/vs_ocornut_imgui.bin.h"
 #include "Shader/ImGui/fs_ocornut_imgui.bin.h"
+#include "Shader/ImGui/fs_ocornut_imgui_image.bin.h"
 
 #include "Shader/Simple/vs_poscolor.bin.h"
 #include "Shader/Simple/fs_poscolor.bin.h"
@@ -33,6 +34,7 @@ static const bgfx::EmbeddedShader doraShaders[] =
 	BGFX_EMBEDDED_SHADER(fs_draw),
 	BGFX_EMBEDDED_SHADER(vs_ocornut_imgui),
 	BGFX_EMBEDDED_SHADER(fs_ocornut_imgui),
+	BGFX_EMBEDDED_SHADER(fs_ocornut_imgui_image),
 	BGFX_EMBEDDED_SHADER(vs_poscolor),
 	BGFX_EMBEDDED_SHADER(fs_poscolor),
 	BGFX_EMBEDDED_SHADER(vs_sprite),

@@ -49,7 +49,7 @@ inline std::string s(std::string_view sv) {
 }
 
 const std::string_view version() {
-	return "0.4.5"sv;
+	return "0.4.11"sv;
 }
 
 // name of table stored in lua registry
@@ -402,13 +402,6 @@ private:
 				break;
 			case id<ExpList_t>(): {
 				auto expList = static_cast<ExpList_t*>(item);
-				if (expList->exprs.size() == 1) {
-					exp = static_cast<Exp_t*>(expList->exprs.front());
-				}
-				break;
-			}
-			case id<ExpListLow_t>(): {
-				auto expList = static_cast<ExpListLow_t*>(item);
 				if (expList->exprs.size() == 1) {
 					exp = static_cast<Exp_t*>(expList->exprs.front());
 				}
@@ -1637,14 +1630,6 @@ private:
 		out.push_back(join(temp, ", "sv));
 	}
 
-	void transformExpListLow(ExpListLow_t* expListLow, str_list& out) {
-		str_list temp;
-		for (auto exp : expListLow->exprs.objects()) {
-			transformExp(static_cast<Exp_t*>(exp), temp, ExpUsage::Closure);
-		}
-		out.push_back(join(temp, ", "sv));
-	}
-
 	void transform_backcall_exp(const node_container& values, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		if (values.size() == 1 && usage == ExpUsage::Closure) {
 			transform_unary_exp(static_cast<unary_exp_t*>(values.front()), out);
@@ -1716,9 +1701,9 @@ private:
 				}
 				case ExpUsage::Return: {
 					auto ret = x->new_ptr<Return_t>();
-					auto expListLow = x->new_ptr<ExpListLow_t>();
-					expListLow->exprs.push_back(arg);
-					ret->valueList.set(expListLow);
+					auto newExpList = x->new_ptr<ExpList_t>();
+					newExpList->exprs.push_back(arg);
+					ret->valueList.set(newExpList);
 					transformReturn(ret, out);
 					return;
 				}
@@ -2072,10 +2057,10 @@ private:
 				BREAK_IF(!expList ||
 					(last->appendix &&
 						last->appendix->item.is<CompInner_t>()));
-				auto expListLow = x->new_ptr<ExpListLow_t>();
-				expListLow->exprs.dup(expList->exprs);
+				auto newExpList = x->new_ptr<ExpList_t>();
+				newExpList->exprs.dup(expList->exprs);
 				auto returnNode = x->new_ptr<Return_t>();
-				returnNode->valueList.set(expListLow);
+				returnNode->valueList.set(newExpList);
 				returnNode->allowBlockMacroReturn = true;
 				last->content.set(returnNode);
 				last->needSep.set(nullptr);
@@ -2083,8 +2068,8 @@ private:
 				if (bLast != nodes.rend()) {
 					bool isMacro = false;
 					BLOCK_START
-					BREAK_IF(expListLow->exprs.size() != 1);
-					auto exp = static_cast<Exp_t*>(expListLow->exprs.back());
+					BREAK_IF(expList->exprs.size() != 1);
+					auto exp = static_cast<Exp_t*>(expList->exprs.back());
 					BREAK_IF(!exp->opValues.empty());
 					auto chainValue = exp->getByPath<unary_exp_t, Value_t, ChainValue_t>();
 					BREAK_IF(!chainValue);
@@ -2369,7 +2354,7 @@ private:
 				return;
 			} else {
 				str_list temp;
-				transformExpListLow(valueList, temp);
+				transformExpList(valueList, temp);
 				out.push_back(indent() + s("return "sv) + temp.back() + nlr(returnNode));
 			}
 		} else {
@@ -2706,9 +2691,9 @@ private:
 					value->item.set(partTwo);
 					auto exp = newExp(value, x);
 					auto ret = x->new_ptr<Return_t>();
-					auto expListLow = x->new_ptr<ExpListLow_t>();
-					expListLow->exprs.push_back(exp);
-					ret->valueList.set(expListLow);
+					auto newExpList = x->new_ptr<ExpList_t>();
+					newExpList->exprs.push_back(exp);
+					ret->valueList.set(newExpList);
 					transformReturn(ret, temp);
 					break;
 				}
@@ -2794,9 +2779,9 @@ private:
 				case ExpUsage::Closure:
 				case ExpUsage::Return: {
 					auto returnNode = x->new_ptr<Return_t>();
-					auto expListLow = x->new_ptr<ExpListLow_t>();
-					expListLow->exprs.push_back(funLit);
-					returnNode->valueList.set(expListLow);
+					auto newExpList = x->new_ptr<ExpList_t>();
+					newExpList->exprs.push_back(funLit);
+					returnNode->valueList.set(newExpList);
 					transformReturn(returnNode, temp);
 					break;
 				}
@@ -3217,10 +3202,10 @@ private:
 						break;
 					}
 					case ExpUsage::Return: {
-						auto expListLow = x->new_ptr<ExpListLow_t>();
-						expListLow->exprs.push_back(node);
+						auto newExpList = x->new_ptr<ExpList_t>();
+						newExpList->exprs.push_back(node);
 						auto returnNode = x->new_ptr<Return_t>();
-						returnNode->valueList.set(expListLow);
+						returnNode->valueList.set(newExpList);
 						transformReturn(returnNode, out);
 						break;
 					}
@@ -3734,8 +3719,8 @@ private:
 		} else {
 			auto accum = transformForInner(forNode, temp);
 			auto returnNode = x->new_ptr<Return_t>();
-			auto expListLow = toAst<ExpListLow_t>(accum, x);
-			returnNode->valueList.set(expListLow);
+			auto newExpList = toAst<ExpList_t>(accum, x);
+			returnNode->valueList.set(newExpList);
 			transformReturn(returnNode, temp);
 		}
 		out.push_back(join(temp));
@@ -3803,8 +3788,8 @@ private:
 		} else {
 			auto accum = transformForEachInner(forEach, temp);
 			auto returnNode = x->new_ptr<Return_t>();
-			auto expListLow = toAst<ExpListLow_t>(accum, x);
-			returnNode->valueList.set(expListLow);
+			auto newExpList = toAst<ExpList_t>(accum, x);
+			returnNode->valueList.set(newExpList);
 			transformReturn(returnNode, temp);
 		}
 		out.push_back(join(temp));
@@ -4115,13 +4100,14 @@ private:
 		}
 		_buf << indent(1) << "__base = "sv << baseVar;
     	if (!className.empty()) {
-    		_buf << ","sv << nll(classDecl) << indent(1) << "__name = "sv << className << (extend ? s(","sv) : Empty) << nll(classDecl);
-		} else {
-			_buf << nll(classDecl);
+    		_buf << ","sv << nll(classDecl);
+    		_buf << indent(1) << "__name = "sv << className;
 		}
 		if (extend) {
-			_buf << indent(1) << "__parent = "sv << parentVar << nll(classDecl);
+			_buf << ","sv << nll(classDecl);
+			_buf << indent(1) << "__parent = "sv << parentVar;
 		}
+		_buf << nll(classDecl);
 		_buf << indent() << "}, {"sv << nll(classDecl);
 		if (extend) {
 			_buf << indent(1) << "__index = function(cls, name)"sv << nll(classDecl);
@@ -4495,8 +4481,8 @@ private:
 					auto assignment = x->new_ptr<ExpListAssign_t>();
 					assignment->expList.set(expList);
 					auto assign = x->new_ptr<Assign_t>();
-					if (auto expListLow = values->valueList.as<ExpListLow_t>()) {
-						assign->values.dup(expListLow->exprs);
+					if (auto newExpList = values->valueList.as<ExpList_t>()) {
+						assign->values.dup(newExpList->exprs);
 					} else {
 						auto tableBlock = values->valueList.to<TableBlock_t>();
 						assign->values.push_back(tableBlock);
@@ -5145,8 +5131,8 @@ private:
 				auto assignment = x->new_ptr<ExpListAssign_t>();
 				assignment->expList.set(expList);
 				auto assign = x->new_ptr<Assign_t>();
-				if (auto expListLow = values->valueList.as<ExpListLow_t>()) {
-					assign->values.dup(expListLow->exprs);
+				if (auto newExpList = values->valueList.as<ExpList_t>()) {
+					assign->values.dup(newExpList->exprs);
 				} else {
 					auto tableBlock = values->valueList.to<TableBlock_t>();
 					assign->values.push_back(tableBlock);

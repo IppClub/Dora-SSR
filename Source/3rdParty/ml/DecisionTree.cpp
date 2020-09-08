@@ -724,7 +724,7 @@ public:
 		Visit(std::string(), -1, handler);
 	}
 
-	double Test(const Matrix& matrix)
+	double TestAccuracy(const Matrix& matrix)
 	{
 		std::vector<std::string> predictions;
 		Predict(matrix, predictions);
@@ -819,7 +819,7 @@ static std::pair<std::list<DecisionTree::Node>, double> BuildTestTree(const Matr
 	{
 		nodes.push_back({depth, name, op, value});
 	});
-	double accuracy = tree->Test(matrix);
+	double accuracy = tree->TestAccuracy(matrix);
 	return {std::move(nodes), accuracy};
 }
 

@@ -1,7 +1,7 @@
 _ENV = Dorothy builtin.Platformer
 import "UI.View.Shape.Rectangle"
-{store:Store} = Data
 
+store:Store = Data
 {
 	:PlayerLayer,
 	:PlayerGroup,

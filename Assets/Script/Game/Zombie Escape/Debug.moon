@@ -1,12 +1,13 @@
 _ENV = Dorothy builtin.ImGui,builtin.Platformer
 import "UI.View.Shape.Star"
-{store:Store} = Data
 
+store:Store = Data
 {
 	:world
 	:ZombieLayer
 	:PlayerGroup
 } = Store
+
 playerGroup = Group {"player"}
 zombieGroup = Group {"zombie"}
 userControl = false

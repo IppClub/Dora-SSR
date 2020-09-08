@@ -14,6 +14,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define NS_DOROTHY_BEGIN namespace Dorothy {
 #define NS_DOROTHY_END }
 
+#define NS_BEGIN(name) namespace name {
+#define NS_END(name) }
+
 /** @brief Debug flag, set with the compilar flag by default. */
 #ifndef DORA_DEBUG
 	#if NDEBUG

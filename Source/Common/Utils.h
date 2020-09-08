@@ -367,4 +367,3 @@ public:
 };
 
 NS_DOROTHY_END
-

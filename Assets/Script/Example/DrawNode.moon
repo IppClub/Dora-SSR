@@ -53,9 +53,9 @@ Director.entry\addChild with Node!
 				Vec2 0,0
 			}
 			.position = Vec2 -20,-10
-		\addChild with Line CircleVertices(10)
+		\addChild with Line CircleVertices 10
 			.position = Vec2 -21,10
-		\addChild with Line CircleVertices(10)
+		\addChild with Line CircleVertices 10
 			.position = Vec2 1,10
 		\addChild Line {
 			Vec2 20,3

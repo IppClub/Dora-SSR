@@ -30,25 +30,26 @@ namespace playrho {
     class FlagGuard
     {
     public:
+        static_assert(std::is_unsigned<T>::value, "Unsigned type required");
+
         /// @brief Initializing constructor.
         /// @details Sets the given flag variable to the bitwise or of it with the
         ///   given value and then unsets those bits on destruction of this instance.
         /// @param flag Flag variable to set until the destruction of this instance.
         /// @param value Bit value to or with the flag variable on construction.
-        FlagGuard(T& flag, T value) : m_flag(flag), m_value(value)
+        FlagGuard(T& flag, T value) : m_flag{flag}, m_value{value}
         {
-            static_assert(std::is_unsigned<T>::value, "Unsigned type required");
             m_flag |= m_value;
         }
         
-        /// @brief Copy constructor.
-        FlagGuard(const FlagGuard<T>& value) = default;
+        /// @brief Copy constructor is deleted.
+        FlagGuard(const FlagGuard<T>& value) = delete;
 
         /// @brief Move constructor.
         FlagGuard(FlagGuard<T>&& value) noexcept = default;
 
-        /// @brief Copy assignment operator.
-        FlagGuard<T>& operator= (const FlagGuard<T>& value) = default;
+        /// @brief Copy assignment operator is deleted.
+        FlagGuard<T>& operator= (const FlagGuard<T>& value) = delete;
 
         /// @brief Move assignment operator.
         FlagGuard<T>& operator= (FlagGuard<T>&& value) noexcept = default;

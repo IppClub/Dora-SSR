@@ -129,7 +129,7 @@ GetSeparationScenario(IndexPair3 indices,
             const auto axis = GetUnitVector(GetFwdPerpendicular(localPointB2 - localPointB1),
                                             UnitVec::GetZero());
             const auto normal = Rotate(axis, xfB.q);
-            const auto localPoint = (localPointB1 + localPointB2) / 2;
+            const auto localPoint = (localPointB1 + localPointB2) / Real{2};
             const auto pointB = Transform(localPoint, xfB);
             const auto localPointA = proxyA.GetVertex(std::get<0>(ip0));
             const auto pointA = Transform(localPointA, xfA);
@@ -148,7 +148,7 @@ GetSeparationScenario(IndexPair3 indices,
             const auto axis = GetUnitVector(GetFwdPerpendicular(localPointA2 - localPointA1),
                                             UnitVec::GetZero());
             const auto normal = Rotate(axis, xfA.q);
-            const auto localPoint = (localPointA1 + localPointA2) / 2;
+            const auto localPoint = (localPointA1 + localPointA2) / Real{2};
             const auto pointA = Transform(localPoint, xfA);
             const auto localPointB = proxyB.GetVertex(std::get<1>(ip0));
             const auto pointB = Transform(localPointB, xfB);

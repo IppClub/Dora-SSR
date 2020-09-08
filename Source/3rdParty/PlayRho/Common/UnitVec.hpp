@@ -132,7 +132,8 @@ public:
         {
             const auto magnitude = sqrt(magnitudeSquared);
             assert(isnormal(magnitude));
-            return {UnitVec{value_type{x / magnitude}, value_type{y / magnitude}}, magnitude};
+            const auto invMagnitude = Real{1} / magnitude;
+            return {UnitVec{value_type{x * invMagnitude}, value_type{y * invMagnitude}}, magnitude};
         }
         
         // Failed the faster way, try the more accurate and robust way...

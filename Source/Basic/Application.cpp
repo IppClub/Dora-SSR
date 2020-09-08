@@ -292,7 +292,7 @@ int Application::run()
 
 void Application::updateDeltaTime()
 {
-	double currentTime = bx::getHPCounter() / _frequency;
+	double currentTime = getCurrentTime();
 	_deltaTime = currentTime - _lastTime;
 	// in case of system timer api error
 	if (_deltaTime < 0)
@@ -331,13 +331,18 @@ const string& Application::getAPKPath() const
 
 double Application::getEclapsedTime() const
 {
-	double currentTime = bx::getHPCounter() / _frequency;
+	double currentTime = getCurrentTime();
 	return std::max(currentTime - _lastTime, 0.0);
 }
 
 double Application::getCurrentTime() const
 {
 	return bx::getHPCounter() / _frequency;
+}
+
+double Application::getRunningTime() const
+{
+	return getCurrentTime() - _startTime;
 }
 
 double Application::getLastTime() const
@@ -363,7 +368,7 @@ double Application::getTotalTime() const
 void Application::makeTimeNow()
 {
 	_totalTime += _deltaTime;
-	_lastTime = bx::getHPCounter() / _frequency;
+	_lastTime = getCurrentTime();
 }
 
 void Application::shutdown()
@@ -401,8 +406,8 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 	// pass one frame
 	SharedView.pushName("Main"_slice, [](){});
 	app->_frame = bgfx::frame();
-	app->updateDeltaTime();
 	app->makeTimeNow();
+	app->_startTime = app->_lastTime;
 
 	SharedPoolManager.push();
 	if (!SharedDirector.init())

@@ -25,8 +25,9 @@
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Common/Templates.hpp"
 
-#include <cstring>
 #include <algorithm>
+#include <cstring>
+#include <limits>
 #include <numeric>
 #include <utility>
 
@@ -426,14 +427,16 @@ DynamicTree::~DynamicTree() noexcept
     Free(m_nodes);
 }
 
-void DynamicTree::SetNodeCapacity(Size value) noexcept
+void DynamicTree::SetNodeCapacity(Size value)
 {
     assert(value > m_nodeCapacity);
 
     // The free list is empty. Rebuild a bigger pool.
+    // Call Realloc first in case it throws so this code doesn't have to restore any state
+    // and so this function will have no effect.
+    m_nodes = Realloc<TreeNode>(m_nodes, value);
     m_nodeCapacity = value;
-    m_nodes = Realloc<TreeNode>(m_nodes, m_nodeCapacity);
-    
+
     // Build a linked list for the free list. The parent
     // pointer becomes the "next" pointer.
     const auto endCapacity = m_nodeCapacity - 1;
@@ -445,7 +448,7 @@ void DynamicTree::SetNodeCapacity(Size value) noexcept
     m_freeIndex = m_nodeCount;
 }
 
-DynamicTree::Size DynamicTree::AllocateNode(const LeafData& data, AABB aabb) noexcept
+DynamicTree::Size DynamicTree::AllocateNode(const LeafData& data, AABB aabb)
 {
     const auto index = AllocateNode();
     m_nodes[index] = TreeNode{data, aabb};
@@ -453,7 +456,7 @@ DynamicTree::Size DynamicTree::AllocateNode(const LeafData& data, AABB aabb) noe
 }
 
 DynamicTree::Size DynamicTree::AllocateNode(const BranchData& data, AABB aabb,
-                                            Height height, Size parent) noexcept
+                                            Height height, Size parent)
 {
     assert(height > 0);
     const auto index = AllocateNode();
@@ -461,7 +464,7 @@ DynamicTree::Size DynamicTree::AllocateNode(const BranchData& data, AABB aabb,
     return index;
 }
 
-DynamicTree::Size DynamicTree::AllocateNode() noexcept
+DynamicTree::Size DynamicTree::AllocateNode()
 {
     // Expand the node pool as needed.
     if (m_freeIndex == GetInvalidSize())

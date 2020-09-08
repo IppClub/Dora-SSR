@@ -220,17 +220,13 @@ bool ParticleNode::init()
 		if (SharedClipCache.isClip(_particleDef->textureName) &&
 			SharedClipCache.isFileExist(_particleDef->textureName))
 		{
-			_texture = SharedClipCache.loadTexture(_particleDef->textureName);
-			ClipDef* def = nullptr;
-			Slice name;
-			std::tie(def, name) = SharedClipCache.loadClip(_particleDef->textureName);
-			if (def && !name.empty())
+			Texture2D* tex = nullptr;
+			Rect rect;
+			std::tie(tex, rect) = SharedClipCache.loadTexture(_particleDef->textureName);
+			if (tex)
 			{
-				auto it = def->rects.find(name);
-				if (it != def->rects.end())
-				{
-					textureRect = *(it->second);
-				}
+				_texture = tex;
+				textureRect = rect;
 			}
 		}
 		else if (SharedContent.isExist(_particleDef->textureName) &&

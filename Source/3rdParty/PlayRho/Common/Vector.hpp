@@ -355,9 +355,10 @@ PLAYRHO_CONSTEXPR inline
 std::enable_if_t<std::is_same<T1, decltype(T1{} / T2{})>::value, Vector<T1, N>&>
 operator/= (Vector<T1, N>& lhs, const T2 rhs) noexcept
 {
+    const auto inverseRhs = Real{1} / rhs;
     for (auto i = decltype(N){0}; i < N; ++i)
     {
-        lhs[i] /= rhs;
+        lhs[i] *= inverseRhs;
     }
     return lhs;
 }
@@ -506,9 +507,10 @@ operator/ (Vector<T1, N> a, const T2 s) noexcept
 {
     // Can't base this off of /= since result type in this case can be different
     auto result = Vector<OT, N>{};
+    const auto inverseS = Real{1} / s;
     for (auto i = decltype(N){0}; i < N; ++i)
     {
-        result[i] = a[i] / s;
+        result[i] = a[i] * inverseS;
     }
     return result;
 }

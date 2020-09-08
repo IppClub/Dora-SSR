@@ -94,6 +94,10 @@
 		3C3598321E1254D600E62C16 /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3598301E1254D600E62C16 /* Async.cpp */; };
 		3C374C571E09241600527752 /* Director.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C374C551E09241600527752 /* Director.cpp */; };
 		3C38E6AC1E1513E5003E9189 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C38E6AB1E1513E5003E9189 /* Application.mm */; };
+		3C3A5E1124D9A3D000E59288 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E0F24D9A3CF00E59288 /* Particle.cpp */; };
+		3C3A5E1424D9BBBF00E59288 /* Constraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E1324D9BBBF00E59288 /* Constraint.cpp */; };
+		3C3A5E1A24DA4BB900E59288 /* World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E1824DA4BB900E59288 /* World.cpp */; };
+		3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E1C24DA5E1700E59288 /* SoftNode.cpp */; };
 		3C3A6FB01E27B50A0074C076 /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A6FAE1E27B50A0074C076 /* View.cpp */; };
 		3C40555020FD92CC0057B0E4 /* Face.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40554F20FD92CC0057B0E4 /* Face.cpp */; };
 		3C40555320FD93AA0057B0E4 /* Define.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40555220FD93A90057B0E4 /* Define.cpp */; };
@@ -508,6 +512,14 @@
 		3C374C551E09241600527752 /* Director.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Director.cpp; path = ../../../Source/Basic/Director.cpp; sourceTree = "<group>"; };
 		3C374C561E09241600527752 /* Director.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Director.h; path = ../../../Source/Basic/Director.h; sourceTree = "<group>"; };
 		3C38E6AB1E1513E5003E9189 /* Application.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Application.mm; path = ../../../Source/Basic/Application.mm; sourceTree = "<group>"; };
+		3C3A5E0F24D9A3CF00E59288 /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Particle.cpp; path = ../../../Source/Physics/Soft/Particle.cpp; sourceTree = "<group>"; };
+		3C3A5E1024D9A3D000E59288 /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Particle.h; path = ../../../Source/Physics/Soft/Particle.h; sourceTree = "<group>"; };
+		3C3A5E1224D9BBBE00E59288 /* Constraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Constraint.h; path = ../../../Source/Physics/Soft/Constraint.h; sourceTree = "<group>"; };
+		3C3A5E1324D9BBBF00E59288 /* Constraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Constraint.cpp; path = ../../../Source/Physics/Soft/Constraint.cpp; sourceTree = "<group>"; };
+		3C3A5E1824DA4BB900E59288 /* World.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = World.cpp; path = ../../../Source/Physics/Soft/World.cpp; sourceTree = "<group>"; };
+		3C3A5E1924DA4BB900E59288 /* World.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = World.h; path = ../../../Source/Physics/Soft/World.h; sourceTree = "<group>"; };
+		3C3A5E1B24DA5E1700E59288 /* SoftNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoftNode.h; path = ../../../Source/Node/SoftNode.h; sourceTree = "<group>"; };
+		3C3A5E1C24DA5E1700E59288 /* SoftNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoftNode.cpp; path = ../../../Source/Node/SoftNode.cpp; sourceTree = "<group>"; };
 		3C3A6FAE1E27B50A0074C076 /* View.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = View.cpp; path = ../../../Source/Basic/View.cpp; sourceTree = "<group>"; };
 		3C3A6FAF1E27B50A0074C076 /* View.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = View.h; path = ../../../Source/Basic/View.h; sourceTree = "<group>"; };
 		3C40554E20FD92CB0057B0E4 /* Face.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Face.h; path = ../../../Source/Platformer/Face.h; sourceTree = "<group>"; };
@@ -1534,6 +1546,19 @@
 			name = Support;
 			sourceTree = "<group>";
 		};
+		3CB9ED9E24D412C10082989F /* Soft */ = {
+			isa = PBXGroup;
+			children = (
+				3C3A5E1824DA4BB900E59288 /* World.cpp */,
+				3C3A5E1924DA4BB900E59288 /* World.h */,
+				3C3A5E1324D9BBBF00E59288 /* Constraint.cpp */,
+				3C3A5E1224D9BBBE00E59288 /* Constraint.h */,
+				3C3A5E0F24D9A3CF00E59288 /* Particle.cpp */,
+				3C3A5E1024D9A3D000E59288 /* Particle.h */,
+			);
+			name = Soft;
+			sourceTree = "<group>";
+		};
 		3CC0986B1E2630D5006F4B76 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
@@ -1648,6 +1673,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C3A5E1C24DA5E1700E59288 /* SoftNode.cpp */,
+				3C3A5E1B24DA5E1700E59288 /* SoftNode.h */,
 				3C65B5B41EC010CA0039DA1D /* Menu.cpp */,
 				3C65B5B51EC010CA0039DA1D /* Menu.h */,
 				3CC05B621E71229A00F2BA1B /* DrawNode.cpp */,
@@ -1721,6 +1748,7 @@
 		3CE9D7C31E7FC073003AAECB /* Physics */ = {
 			isa = PBXGroup;
 			children = (
+				3CB9ED9E24D412C10082989F /* Soft */,
 				3CE9D7FE1E7FF7A7003AAECB /* DebugDraw.cpp */,
 				3CE9D7FF1E7FF7A7003AAECB /* DebugDraw.h */,
 				3CE9D7E81E7FC2A6003AAECB /* Body.cpp */,
@@ -2142,6 +2170,7 @@
 				3C0D31122456665F009C592B /* Attachment.cpp in Sources */,
 				3CFDA9262200358900C9DFD0 /* WeldJointConf.cpp in Sources */,
 				3CE9D7F61E7FC2A6003AAECB /* Joint.cpp in Sources */,
+				3C3A5E1424D9BBBF00E59288 /* Constraint.cpp in Sources */,
 				3C0D30D82456665F009C592B /* MeshAttachment.cpp in Sources */,
 				3C3A6FB01E27B50A0074C076 /* View.cpp in Sources */,
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
@@ -2239,6 +2268,7 @@
 				3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */,
 				3CFDA9522200358A00C9DFD0 /* ShapeSeparation.cpp in Sources */,
 				3C0D30FD2456665F009C592B /* ClippingAttachment.cpp in Sources */,
+				3C3A5E1A24DA4BB900E59288 /* World.cpp in Sources */,
 				3C40555C20FDC0B00057B0E4 /* VisualCache.cpp in Sources */,
 				3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */,
 				3C291D4E1E0279990098C860 /* Content.cpp in Sources */,
@@ -2256,6 +2286,7 @@
 				3C0D30EE2456665F009C592B /* VertexEffect.cpp in Sources */,
 				3C42B0A220FECB0A00186F9C /* UnitDef.cpp in Sources */,
 				3CFDA9342200358900C9DFD0 /* Body.cpp in Sources */,
+				3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */,
 				3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */,
 				3C0D30ED2456665F009C592B /* SkeletonJson.cpp in Sources */,
 				3CFDA9272200358900C9DFD0 /* PulleyJointConf.cpp in Sources */,
@@ -2299,6 +2330,7 @@
 				3CFDA9332200358900C9DFD0 /* Fixture.cpp in Sources */,
 				3C0D31022456665F009C592B /* Slot.cpp in Sources */,
 				3C0D30F62456665F009C592B /* DeformTimeline.cpp in Sources */,
+				3C3A5E1124D9A3D000E59288 /* Particle.cpp in Sources */,
 				3C42B09420FEC56C00186F9C /* Data.cpp in Sources */,
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,

@@ -45,8 +45,7 @@ public:
 	 then create a new sprite instance with certain clip.
 	*/
 	Sprite* loadSprite(String clipStr);
-	std::pair<ClipDef*,Slice> loadClip(String clipStr);
-	Texture2D* loadTexture(String clipStr);
+	std::pair<Texture2D*,Rect> loadTexture(String clipStr);
 	bool isFileExist(String clipStr) const;
 	bool isClip(String clipStr) const;
 protected:

@@ -27,6 +27,7 @@
 
 #include "PlayRho/Collision/AABB.hpp"
 #include "PlayRho/Common/Settings.hpp"
+#include "PlayRho/Common/Vector2.hpp"
 
 #include <functional>
 #include <type_traits>
@@ -73,24 +74,24 @@ class DynamicTree
 public:
     /// @brief Size type.
     using Size = ContactCounter;
-    
+
     class TreeNode;
     struct UnusedData;
     struct BranchData;
     struct LeafData;
     union VariantData;
-    
+
     /// @brief Gets the invalid size value.
     static PLAYRHO_CONSTEXPR inline Size GetInvalidSize() noexcept
     {
         return static_cast<Size>(-1);
     }
-    
+
     /// @brief Type for heights.
     /// @note The maximum height of a tree can never exceed half of the max value of the
     ///   <code>Size</code> type due to the binary nature of this tree structure.
     using Height = ContactCounter;
-    
+
     /// @brief Invalid height constant value.
     static PLAYRHO_CONSTEXPR const auto InvalidHeight = static_cast<Height>(-1);
 
@@ -99,19 +100,19 @@ public:
     {
         return InvalidHeight;
     }
-    
+
     /// @brief Gets whether the given height is the height for an "unused" node.
     static PLAYRHO_CONSTEXPR inline bool IsUnused(Height value) noexcept
     {
         return value == GetInvalidHeight();
     }
-    
+
     /// @brief Gets whether the given height is the height for a "leaf" node.
     static PLAYRHO_CONSTEXPR inline bool IsLeaf(Height value) noexcept
     {
         return value == 0;
     }
-    
+
     /// @brief Gets whether the given height is a height for a "branch" node.
     static PLAYRHO_CONSTEXPR inline bool IsBranch(Height value) noexcept
     {
@@ -120,10 +121,10 @@ public:
 
     /// @brief Gets the default initial node capacity.
     static PLAYRHO_CONSTEXPR inline Size GetDefaultInitialNodeCapacity() noexcept;
-    
+
     /// @brief Default constructor.
     DynamicTree() noexcept;
-    
+
     /// @brief Size initializing constructor.
     explicit DynamicTree(Size nodeCapacity);
 
@@ -132,7 +133,7 @@ public:
 
     /// @brief Copy constructor.
     DynamicTree(const DynamicTree& other);
-    
+
     /// @brief Move constructor.
     DynamicTree(DynamicTree&& other) noexcept;
 
@@ -143,14 +144,22 @@ public:
     /// @see https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Copy-and-swap
     /// @see https://stackoverflow.com/a/3279550/7410358
     DynamicTree& operator= (DynamicTree other) noexcept;
-    
+
     /// @brief Creates a new leaf node.
     /// @details Creates a leaf node for a tight fitting AABB and the given data.
+    /// @warning Behavior is undefined unless the number of nodes already allocated (as reported by
+    ///   <code>GetNodeCount()</code>) is less than <code>std::numeric_limits<Size>::max()</code>.
     /// @note The indices of leaf nodes that have been destroyed get reused for new nodes.
     /// @post If the root index had been the <code>GetInvalidSize()</code>, then it will
     ///   be set to the index returned from this method.
-    /// @post The leaf count will be incremented by one.
-    /// @return The index of the created leaf node.
+    /// @post The leaf count (as reported by <code>GetLeafCount()</code>) will be incremented by one.
+    /// @post The node count (as reported by <code>GetNodeCount()</code>) will be incremented by one
+    ///   or two (if the root index had not been <code>GetInvalidSize()</code>).
+    /// @return The index of the created leaf node. This will be a value not equal to
+    ///   <code>GetInvalidSize()</code>.
+    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
+    ///   thrown, this function has no effect.
+    /// @see GetLeafCount(), GetNodeCount()
     Size CreateLeaf(const AABB& aabb, const LeafData& data);
 
     /// @brief Destroys a leaf node.
@@ -181,7 +190,7 @@ public:
     /// @brief Gets the height value for the identified node.
     /// @warning Behavior is undefined if the given index is not valid.
     Height GetHeight(Size index) const noexcept;
-    
+
     /// @brief Gets the "other" index for the node at the given index.
     /// @note For unused nodes, this is the index to the "next" unused node.
     /// @note For used nodes (leaf or branch nodes), this is the index to the "parent" node.
@@ -189,7 +198,7 @@ public:
     /// @pre This tree has a node capacity greater than the given index.
     /// @return The invalid index value or a value less than the node capacity.
     Size GetOther(Size index) const noexcept;
-    
+
     /// @brief Gets the branch data for the identified node.
     /// @warning Behavior is undefined if the given index in not a valid branch node.
     BranchData GetBranchData(Size index) const noexcept;
@@ -206,6 +215,7 @@ public:
     /// @brief Builds an optimal tree.
     /// @note This operation is very expensive.
     /// @note Meant for testing.
+    /// @throws std::bad_alloc If unable to allocate necessary memory.
     void RebuildBottomUp();
 
     /// @brief Shifts the world origin.
@@ -220,11 +230,11 @@ public:
     /// @brief Gets the current count of allocated nodes.
     /// @return Count of existing proxies (count of nodes currently allocated).
     Size GetNodeCount() const noexcept;
-    
+
     /// @brief Gets the current leaf node count.
     /// @details Gets the current leaf node count.
     Size GetLeafCount() const noexcept;
-    
+
     /// @brief Finds first node which references the given index.
     /// @note Primarily intended for unit testing and/or debugging.
     /// @return Index of node referencing the given index, or the value of
@@ -235,27 +245,47 @@ public:
     /// @note This satisfies the <code>Swappable</code> concept.
     /// @see http://en.cppreference.com/w/cpp/concept/Swappable
     friend void swap(DynamicTree& lhs, DynamicTree& rhs) noexcept;
-    
+
 private:
-    
+
     /// @brief Sets the node capacity to the given value.
-    void SetNodeCapacity(Size value) noexcept;
+    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
+    ///   thrown, this function has no effect.
+    void SetNodeCapacity(Size value);
 
     /// @brief Allocates a node.
     /// @details This allocates a node from the free list that can be used as either a leaf
     ///   node or a branch node.
-    Size AllocateNode() noexcept;
+    /// @warning Behavior is undefined unless the number of nodes allocated (as reported by
+    ///   <code>GetNodeCount()</code>) is less than <code>std::numeric_limits<Size>::max()</code>.
+    /// @return Value not equal to <code>GetInvalidSize()</code>.
+    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
+    ///   thrown, this function has no effect.
+    /// @see GetNodeCount()
+    Size AllocateNode();
 
     /// @brief Allocates a leaf node.
     /// @details This allocates a node from the free list as a leaf node.
-    Size AllocateNode(const LeafData& data, AABB aabb) noexcept;
+    /// @warning Behavior is undefined unless the number of nodes allocated (as reported by
+    ///   <code>GetNodeCount()</code>) is less than <code>std::numeric_limits<Size>::max()</code>.
+    /// @return Value not equal to <code>GetInvalidSize()</code>.
+    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
+    ///   thrown, this function has no effect.
+    /// @see GetNodeCount()
+    Size AllocateNode(const LeafData& data, AABB aabb);
 
     /// @brief Allocates a branch node.
     /// @details This allocates a node from the free list as a branch node.
+    /// @warning Behavior is undefined unless the number of nodes allocated (as reported by
+    ///   <code>GetNodeCount()</code>) is less than <code>std::numeric_limits<Size>::max()</code>.
     /// @post The free list no longer references the returned index.
+    /// @return Value not equal to <code>GetInvalidSize()</code>.
+    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
+    ///   thrown, this function has no effect.
+    /// @see GetNodeCount()
     Size AllocateNode(const BranchData& data, AABB aabb, Height height,
-                      Size parent = GetInvalidSize()) noexcept;
- 
+                      Size parent = GetInvalidSize());
+
     /// @brief Frees the specified node.
     ///
     /// @warning Behavior is undefined if the given index is not valid.
@@ -266,7 +296,7 @@ private:
     /// @post The free list links to the given index.
     ///
     void FreeNode(Size index) noexcept;
-    
+
     TreeNode* m_nodes{nullptr}; ///< Nodes. @details Initialized on construction.
     Size m_rootIndex{GetInvalidSize()}; ///< Index of root element in m_nodes or <code>GetInvalidSize()</code>.
     Size m_freeIndex{GetInvalidSize()}; ///< Free list. @details Index to free nodes.
@@ -313,7 +343,7 @@ struct DynamicTree::LeafData
     ///   is usable. This suggests that space could be saved by using indexes into arrays of
     ///   bodies instead of direct pointers to memory.
     Body* body;
-    
+
     /// @brief Pointer to associated Fixture.
     /// @note On 64-bit architectures, this is an 8-byte sized field. As an 8-byte field it
     ///   conceptually identifies 2^64 separate fixtures within a world. As a practical matter
@@ -348,22 +378,22 @@ union DynamicTree::VariantData
 {
     /// @brief Unused/free-list specific data.
     UnusedData unused;
-    
+
     /// @brief Leaf specific data.
     LeafData leaf;
-    
+
     /// @brief Branch specific data.
     BranchData branch;
-    
+
     /// @brief Default constructor.
     VariantData() noexcept = default;
-    
+
     /// @brief Initializing constructor.
     PLAYRHO_CONSTEXPR inline VariantData(UnusedData value) noexcept: unused{value} {}
-    
+
     /// @brief Initializing constructor.
     PLAYRHO_CONSTEXPR inline VariantData(LeafData value) noexcept: leaf{value} {}
-    
+
     /// @brief Initializing constructor.
     PLAYRHO_CONSTEXPR inline VariantData(BranchData value) noexcept: branch{value} {}
 };
@@ -396,7 +426,7 @@ class DynamicTree::TreeNode
 {
 public:
     ~TreeNode() = default;
-    
+
     /// @brief Copy constructor.
     PLAYRHO_CONSTEXPR inline TreeNode(const TreeNode& other) = default;
 
@@ -417,7 +447,7 @@ public:
     {
         // Intentionally empty.
     }
-    
+
     /// @brief Initializing constructor.
     PLAYRHO_CONSTEXPR inline TreeNode(const BranchData& value, AABB aabb, Height height,
                        Size other = DynamicTree::GetInvalidSize()) noexcept:
@@ -427,22 +457,22 @@ public:
         assert(value.child1 != GetInvalidSize());
         assert(value.child2 != GetInvalidSize());
     }
-    
+
     /// @brief Copy assignment operator.
     TreeNode& operator= (const TreeNode& other) = default;
-    
+
     /// @brief Gets the node "height".
     PLAYRHO_CONSTEXPR inline Height GetHeight() const noexcept
     {
         return m_height;
     }
-    
+
     /// @brief Gets the node's "other" index.
     PLAYRHO_CONSTEXPR inline Size GetOther() const noexcept
     {
         return m_other;
     }
-                
+
     /// @brief Sets the node's "other" index to the given value.
     PLAYRHO_CONSTEXPR inline void SetOther(Size other) noexcept
     {
@@ -464,7 +494,7 @@ public:
         assert(!IsUnused(m_height));
         m_aabb = value;
     }
-    
+
     /// @brief Gets the node as an "unused" value.
     /// @warning Behavior is undefined unless called on a free/unused node!
     PLAYRHO_CONSTEXPR inline UnusedData AsUnused() const noexcept
@@ -472,7 +502,7 @@ public:
         assert(IsUnused(m_height));
         return m_variant.unused;
     }
-    
+
     /// @brief Gets the node as a "leaf" value.
     /// @warning Behavior is undefined unless called on a leaf node!
     PLAYRHO_CONSTEXPR inline LeafData AsLeaf() const noexcept
@@ -480,7 +510,7 @@ public:
         assert(IsLeaf(m_height));
         return m_variant.leaf;
     }
-    
+
     /// @brief Gets the node as a "branch" value.
     /// @warning Behavior is undefined unless called on a branch node!
     PLAYRHO_CONSTEXPR inline BranchData AsBranch() const noexcept
@@ -495,14 +525,14 @@ public:
         m_variant.unused = v;
         m_height = static_cast<Height>(-1);
     }
-    
+
     /// @brief Gets the node as a "leaf" value.
     PLAYRHO_CONSTEXPR inline void Assign(const LeafData& v) noexcept
     {
         m_variant.leaf = v;
         m_height = 0;
     }
-    
+
     /// @brief Assigns the node as a "branch" value.
     PLAYRHO_CONSTEXPR inline void Assign(const BranchData& v, const AABB& bb, Height h) noexcept
     {
@@ -525,12 +555,12 @@ private:
     /// @note This is an index to the next node for a free node, else this is the index to the
     ///   parent node.
     Size m_other = DynamicTree::GetInvalidSize(); ///< Index of another node.
-    
+
     /// @brief AABB.
     /// @note This field is unused for free nodes, else it's the minimally enclosing AABB
     ///   for the node.
     AABB m_aabb;
-    
+
     /// @brief Variant data for the node.
     VariantData m_variant{UnusedData{}};
 };

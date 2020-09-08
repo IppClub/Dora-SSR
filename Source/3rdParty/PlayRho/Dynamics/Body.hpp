@@ -408,9 +408,16 @@ public:
     ///   collisions, ray-casts, or queries.
     /// @note Joints connected to a disabled body are implicitly disabled.
     ///
+    /// @throws WrongState If call would change body's state when world is locked.
+    ///
+    /// @post <code>IsEnabled()</code> returns the state given to this function.
+    ///
+    /// @see IsEnabled.
+    ///
     void SetEnabled(bool flag);
 
     /// @brief Gets the enabled/disabled state of the body.
+    /// @see SetEnabled.
     bool IsEnabled() const noexcept;
 
     /// @brief Sets this body to have fixed rotation.

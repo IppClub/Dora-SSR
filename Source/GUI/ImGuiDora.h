@@ -47,11 +47,13 @@ private:
 	bool _backSpaceIgnore;
 	bool _mouseVisible;
 	bool _mousePressed[3];
+	bool _rejectAllEvents;
 	float _mouseWheel;
 	int _lastCursor;
 	UITouchHandler* _touchHandler;
 	Ref<Texture2D> _fontTexture;
-	Ref<SpriteEffect> _effect;
+	Ref<SpriteEffect> _defaultEffect;
+	Ref<SpriteEffect> _imageEffect;
 	bgfx::VertexLayout _vertexLayout;
 	list<SDL_Event> _inputs;
 	vector<Uint32> _textEditing;

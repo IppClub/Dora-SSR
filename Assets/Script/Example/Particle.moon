@@ -90,15 +90,16 @@ Item = (name)->
 				changed, Data[name][3] = DragFloat name, Data[name][3], 0.1, -1, 1000, "%.1f"
 				DataDirty = true if changed
 			when "Uint32"
-				changed, Data[name][3] = DragInt name, Data[name][3], 1, 0, 1000
+				changed, Data[name][3] = DragInt name, math.floor(Data[name][3]), 1, 0, 1000
 				DataDirty = true if changed
 			when "EmitterType"
 				LabelText "EmitterType","Gravity"
 			when "BlendFunc"
 				LabelText "BlendFunc","Additive"
 			when "Vec2"
-				changed = DragInt2 name, Data[name][3], 1, -1000, 1000
-				DataDirty = true if changed
+				:x,:y = Data[name][3]
+				changed, x, y = DragInt2 name, math.floor(x), math.floor(y), 1, -1000, 1000
+				DataDirty, Data[name][3] = true, Vec2 x,y if changed
 			when "Color"
 				PushItemWidth -150, ->
 					SetColorEditOptions "RGB"

@@ -4,7 +4,8 @@ import "UI.View.Shape.Rectangle"
 import "UI.View.Shape.Circle"
 import "UI.View.Shape.Star"
 import "UI.Control.Basic.CircleButton"
-{store:Store} = Data
+
+store:Store = Data
 
 Store.controlPlayer = "KidW"
 playerGroup = Group {"player"}
@@ -25,7 +26,7 @@ with AlignNode isRoot:true
 					x: 20*uiScale
 					y: 60*uiScale
 					radius: 30*uiScale
-					fontSize: 18*uiScale
+					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
 				\slot "TapBegan",-> updatePlayerControl "keyLeft",true
@@ -35,7 +36,7 @@ with AlignNode isRoot:true
 					x: 90*uiScale
 					y: 60*uiScale
 					radius: 30*uiScale
-					fontSize: 18*uiScale
+					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
 				\slot "TapBegan",-> updatePlayerControl "keyRight",true
@@ -49,7 +50,7 @@ with AlignNode isRoot:true
 					x: -80*uiScale
 					y: 60*uiScale
 					radius: 30*uiScale
-					fontSize: 18*uiScale
+					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
 				\slot "TapBegan",-> updatePlayerControl "keyUp",true
@@ -59,7 +60,7 @@ with AlignNode isRoot:true
 					x: -150*uiScale
 					y: 60*uiScale
 					radius: 30*uiScale
-					fontSize: 18*uiScale
+					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
 				\slot "TapBegan",-> updatePlayerControl "keyShoot",true

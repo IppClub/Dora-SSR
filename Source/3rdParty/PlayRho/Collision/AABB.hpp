@@ -25,12 +25,13 @@
 /// @file
 /// Declaration of the AABB class and free functions that return instances of it.
 
-#include "PlayRho/Common/Intervals.hpp"
-#include "PlayRho/Common/Vector2.hpp"
+#include "PlayRho/Common/Intervals.hpp" // for LengthInterval, IsIntersecting
+#include "PlayRho/Common/Vector.hpp"
+#include "PlayRho/Common/Settings.hpp" // for ChildCounter, etc.
 #include "PlayRho/Common/Templates.hpp"
-#include <array>
-#include <algorithm>
-#include <functional>
+
+#include <algorithm> // for std::mismatch, lexicographical_compare, etc
+#include <utility> // for std::get
 
 namespace playrho {
 
@@ -63,7 +64,7 @@ struct AABB
     /// @details Constructs an "unset" AABB.
     /// @note If an unset AABB is added to another AABB, the result will be the other AABB.
     PLAYRHO_CONSTEXPR inline AABB() = default;
-    
+
     /// @brief Initializing constructor.
     /// @details Initializing constructor supporting construction by the same number of elements
     ///   as this AABB template type is defined for.
@@ -236,7 +237,8 @@ PLAYRHO_CONSTEXPR inline Vector<Length, N> GetDimensions(const AABB<N>& aabb) no
 template <std::size_t N>
 PLAYRHO_CONSTEXPR inline Vector<Length, N> GetExtents(const AABB<N>& aabb) noexcept
 {
-    return GetDimensions(aabb) / 2;
+    PLAYRHO_CONSTEXPR const auto RealInverseOfTwo = Real{1} / Real{2};
+    return GetDimensions(aabb) * RealInverseOfTwo;
 }
 
 /// @brief Checks whether the first AABB fully contains the second AABB.
@@ -469,7 +471,7 @@ AABB ComputeIntersectingAABB(const Fixture& fA, ChildCounter iA,
 /// @brief Computes the intersecting AABB for the given contact.
 /// @relatedalso Contact
 AABB ComputeIntersectingAABB(const Contact& contact);
-    
+
 /// @brief Gets the AABB for the given ray cast input data.
 /// @relatedalso playrho::detail::RayCastInput<2>
 AABB GetAABB(const playrho::detail::RayCastInput<2>& input) noexcept;

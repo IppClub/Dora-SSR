@@ -42,6 +42,7 @@ class Effect;
 
 struct VertexColor
 {
+	VertexColor() { }
 	VertexColor(const Vec2& vertex, Color color):
 	vertex(vertex),
 	color(color) { }

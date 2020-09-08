@@ -48,45 +48,7 @@ string ClipDef::toXml()
 
 /* ClipCache */
 
-Texture2D* ClipCache::loadTexture(String clipStr)
-{
-	if (clipStr.toString().find('|') != string::npos)
-	{
-		auto tokens = clipStr.split("|");
-		AssertUnless(tokens.size() == 2, "invalid clip str for: \"{}\".", clipStr);
-		ClipDef* clipDef = ClipCache::load(tokens.front());
-		return SharedTextureCache.load(clipDef->textureFile);
-	}
-	else if (Path::getExt(clipStr) == "clip"_slice)
-	{
-		ClipDef* clipDef = SharedClipCache.load(clipStr);
-		return SharedTextureCache.load(clipDef->textureFile);
-	}
-	else
-	{
-		return SharedTextureCache.load(clipStr);
-	}
-}
-
-std::pair<ClipDef*,Slice> ClipCache::loadClip(String clipStr)
-{
-	if (clipStr.toString().find('|') != string::npos)
-	{
-		auto tokens = clipStr.split("|");
-		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
-		ClipDef* clipDef = ClipCache::load(tokens.front());
-		Slice name = tokens.back();
-		return std::make_pair(clipDef, name);
-	}
-	else if (Path::getExt(clipStr) == "clip"_slice)
-	{
-		ClipDef* clipDef = SharedClipCache.load(clipStr);
-		return std::make_pair(clipDef, Slice());
-	}
-	return std::make_pair(s_cast<ClipDef*>(nullptr), Slice());
-}
-
-Sprite* ClipCache::loadSprite(String clipStr)
+std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr)
 {
 	if (clipStr.toString().find('|') != string::npos)
 	{
@@ -98,23 +60,52 @@ Sprite* ClipCache::loadSprite(String clipStr)
 		if (it != clipDef->rects.end())
 		{
 			Texture2D* texture = SharedTextureCache.load(clipDef->textureFile);
-			return Sprite::create(texture, *it->second);
+			return {texture, *it->second};
 		}
 		else
 		{
 			Warn("no clip named \"{}\" in {}", name, tokens.front());
-			return Sprite::create(clipDef->textureFile);
+			Texture2D* tex = SharedTextureCache.load(clipDef->textureFile);
+			Rect rect(0.0f, 0.0f, tex->getWidth(), tex->getHeight());
+			return {tex, rect};
 		}
 	}
 	else if (Path::getExt(clipStr) == "clip"_slice)
 	{
+		Texture2D* tex = nullptr;
 		ClipDef* clipDef = SharedClipCache.load(clipStr);
-		return Sprite::create(clipDef->textureFile);
+		if (clipDef) tex = SharedTextureCache.load(clipDef->textureFile);
+		if (tex)
+		{
+			Rect rect(0.0f, 0.0f, tex->getWidth(), tex->getHeight());
+			return {tex, rect};
+		}
+		Warn("fail to get clip from clipStr \"{}\".", clipStr);
+		return {};
 	}
 	else
 	{
-		return Sprite::create(clipStr);
+		Texture2D* tex = SharedTextureCache.load(clipStr);
+		if (tex)
+		{
+			Rect rect(0.0f, 0.0f, tex->getWidth(), tex->getHeight());
+			return {tex, rect};
+		}
+		Warn("fail to get texture from clipStr \"{}\".", clipStr);
+		return {};
 	}
+}
+
+Sprite* ClipCache::loadSprite(String clipStr)
+{
+	Texture2D* tex = nullptr;
+	Rect rect;
+	std::tie(tex, rect) = loadTexture(clipStr);
+	if (tex)
+	{
+		return Sprite::create(tex, rect);
+	}
+	return Sprite::create();
 }
 
 bool ClipCache::isFileExist(String clipStr) const

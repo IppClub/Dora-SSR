@@ -193,6 +193,16 @@ int tolua_isnumber(lua_State* L, int lo, int def, tolua_Error* err)
 	return 0;
 }
 
+int tolua_isinteger(lua_State* L, int lo, int def, tolua_Error* err)
+{
+	if (def && lua_gettop(L) < abs(lo)) return 1;
+	if (lua_isinteger(L, lo)) return 1;
+	err->index = lo;
+	err->array = 0;
+	err->type = "integer"_slice;
+	return 0;
+}
+
 int tolua_isstring(lua_State* L, int lo, int def, tolua_Error* err)
 {
 	if (def && lua_gettop(L) < abs(lo)) return 1;
@@ -314,6 +324,33 @@ int tolua_isnumberarray(lua_State* L, int lo, int dim, int def, tolua_Error* err
 				err->index = lo;
 				err->array = 1;
 				err->type = "number"_slice;
+				return 0;
+			}
+			lua_pop(L, 1);
+		}
+	}
+	return 1;
+}
+
+int tolua_isintegerarray(lua_State* L, int lo, int dim, int def, tolua_Error* err)
+{
+	if (!tolua_istable(L, lo, def, err))
+	{
+		return 0;
+	}
+	else
+	{
+		int i;
+		for (i = 1; i <= dim; ++i)
+		{
+			lua_pushnumber(L, i);
+			lua_gettable(L, lo);
+			if (!lua_isinteger(L, -1) &&
+				!(def && lua_isnil(L, -1)))
+			{
+				err->index = lo;
+				err->array = 1;
+				err->type = "integer"_slice;
 				return 0;
 			}
 			lua_pop(L, 1);

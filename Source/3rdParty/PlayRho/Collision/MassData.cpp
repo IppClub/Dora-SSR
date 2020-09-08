@@ -63,7 +63,7 @@ MassData GetMassData(Length r, NonNegative<AreaDensity> density, Length2 v0, Len
     const auto h = r * Real{2};
     const auto rect_mass = density * b * h;
     const auto totalMass = circle_mass + rect_mass;
-    const auto center = (v0 + v1) / 2;
+    const auto center = (v0 + v1) / Real{2};
 
     /// Use the fixture's areal mass density times the shape's second moment of area to derive I.
     /// @sa https://en.wikipedia.org/wiki/Second_moment_of_area
@@ -145,16 +145,19 @@ MassData GetMassData(Length vertexRadius, NonNegative<AreaDensity> density,
         
         const auto D = Cross(e1, e2);
         
-        const auto triangleArea = D / Real{2};
+        PLAYRHO_CONSTEXPR const auto RealReciprocalOfTwo = Real{1} / Real{2}; // .5
+        const auto triangleArea = D * RealReciprocalOfTwo;
         area += triangleArea;
         
         // Area weighted centroid
-        center += StripUnit(triangleArea) * (e1 + e2) / Real{3};
+        PLAYRHO_CONSTEXPR const auto RealReciprocalOfThree = Real{1} / Real{3}; // .3333333...
+        center += StripUnit(triangleArea) * (e1 + e2) * RealReciprocalOfThree;
         
         const auto intx2 = Square(GetX(e1)) + GetX(e2) * GetX(e1) + Square(GetX(e2));
         const auto inty2 = Square(GetY(e1)) + GetY(e2) * GetY(e1) + Square(GetY(e2));
         
-        const auto triangleI = D * (intx2 + inty2) / Real{3 * 4};
+        PLAYRHO_CONSTEXPR const auto RealReciprocalOfTwelve = Real{1} / Real{3 * 4}; // .083333..
+        const auto triangleI = D * (intx2 + inty2) * RealReciprocalOfTwelve;
         I += triangleI;
     }
     

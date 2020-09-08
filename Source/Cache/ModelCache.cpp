@@ -124,7 +124,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		}
 		case Xml::Model::Element::KeyFrame:
 		{
-			KeyFrameDef* keyFrameDef = new KeyFrameDef();
+			auto keyFrameDef = New<KeyFrameDef>();
 			KeyAnimationDef* animationDef = getCurrentKeyAnimation();
 			Slice duration;
 			Slice position;
@@ -235,7 +235,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			{
 				keyFrameDef->visible = lastDef->visible;
 			}
-			animationDef->add(MakeOwn(keyFrameDef));
+			animationDef->add(std::move(keyFrameDef));
 			break;
 		}
 		case Xml::Model::Element::FrameAnimation:

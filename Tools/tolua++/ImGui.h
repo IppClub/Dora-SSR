@@ -63,8 +63,8 @@ namespace ImGui
 	bool Binding::ColorEdit3 @ ColorEdit3(const char* label, Color3& color3);
 	bool Binding::ColorEdit4 @ ColorEdit4(const char* label, Color& color, bool show_alpha = true);
 
-	void Binding::Image @ Image(Texture2D* user_texture, Vec2 size, Vec2 uv0 = Vec2::zero, Vec2 uv1 = NewVec2(1,1), Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
-	bool Binding::ImageButton @ ImageButton(Texture2D* user_texture, Vec2 size, Vec2 uv0 = Vec2::zero, Vec2 uv1 = NewVec2(1,1), int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
+	void Binding::Image @ Image(String clipStr, Vec2 size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
+	bool Binding::ImageButton @ ImageButton(String clipStr, Vec2 size, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
 	bool Binding::ColorButton @ ColorButton(const char* desc_id, Color col, String flags = nullptr, Vec2 size = Vec2::zero);
 	
@@ -78,12 +78,12 @@ namespace ImGui
 	
 	bool Binding::Combo @ Combo(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 
-	bool Binding::DragFloat2 @ DragFloat2(const char* label, Vec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
-	bool Binding::DragInt2 @ DragInt2(const char* label, Vec2& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
-	bool Binding::InputFloat2 @ InputFloat2(const char* label, Vec2& v, String format = "%.1f", String extra_flags = nullptr);
-	bool Binding::InputInt2 @ InputInt2(const char* label, Vec2& v, String extra_flags = nullptr);
-	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, Vec2& v, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
-	bool Binding::SliderInt2 @ SliderInt2(const char* label, Vec2& v, int v_min, int v_max, const char* display_format = "%.0f");
+	bool Binding::DragFloat2 @ DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
+	bool Binding::DragInt2 @ DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
+	bool Binding::InputFloat2 @ InputFloat2(const char* label, float* v1, float* v2, String format = "%.1f", String extra_flags = nullptr);
+	bool Binding::InputInt2 @ InputInt2(const char* label, int* v1, int* v2, String extra_flags = nullptr);
+	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
+	bool Binding::SliderInt2 @ SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f");
 
 	void ShowDemoWindow();
 	void End();
@@ -166,8 +166,8 @@ namespace ImGui
 	bool SmallButton(CString label);
 	bool InvisibleButton(CString str_id, Vec2 size);
 	bool Checkbox(CString label, bool* v);
-	bool RadioButton(CString label, bool active);
 	bool RadioButton(CString label, int* v, int v_button);
+	bool RadioButton(CString label, bool active);
 	void PlotLines(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
 	void PlotHistogram(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
 	void ProgressBar(float fraction, Vec2 size_arg = NewVec2(-1,0), CString overlay = nullptr);

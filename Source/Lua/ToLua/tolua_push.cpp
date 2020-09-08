@@ -32,6 +32,11 @@ void tolua_pushnumber(lua_State* L, lua_Number value)
 	lua_pushnumber(L, value);
 }
 
+void tolua_pushinteger(lua_State* L, lua_Integer value)
+{
+	lua_pushinteger(L, value);
+}
+
 void tolua_pushstring(lua_State* L, const char* value)
 {
 	if (value == NULL) lua_pushnil(L);
@@ -84,6 +89,13 @@ void tolua_pushfieldnumber(lua_State* L, int lo, int index, lua_Number v)
 {
 	lua_pushnumber(L, index);
 	tolua_pushnumber(L, v);
+	lua_settable(L, lo);
+}
+
+void tolua_pushfieldinteger(lua_State* L, int lo, int index, lua_Integer v)
+{
+	lua_pushnumber(L, index);
+	tolua_pushinteger(L, v);
 	lua_settable(L, lo);
 }
 

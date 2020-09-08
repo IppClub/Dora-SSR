@@ -967,7 +967,11 @@ static Object* Dora_getObject(lua_State* L, int loc)
 {
 	if (!lua_isnil(L, loc))
 	{
-		if (lua_isnumber(L, loc))
+		if (lua_isinteger(L, loc))
+		{
+			return Value::create(lua_tointeger(L, loc));
+		}
+		else if (lua_isnumber(L, loc))
 		{
 			return Value::create(lua_tonumber(L, loc));
 		}
@@ -1445,7 +1449,7 @@ int Entity_set(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_set'", nullptr);
@@ -1458,7 +1462,11 @@ int Entity_set(lua_State* L)
 		}
 		else
 		{
-			if (lua_isnumber(L, 3))
+			if (lua_isinteger(L, 3))
+			{
+				self->set(key, lua_tointeger(L, 3), raw_flag);
+			}
+			else if (lua_isnumber(L, 3))
 			{
 				self->set(key, lua_tonumber(L, 3), raw_flag);
 			}
@@ -1486,12 +1494,10 @@ int Entity_set(lua_State* L)
 			{
 				self->set(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)), raw_flag);
 			}
-#ifndef TOLUA_RELEASE
 			else
 			{
 				tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size and Rect.", nullptr);
 			}
-#endif
 		}
 		return 0;
 	}
@@ -1512,7 +1518,7 @@ int Entity_setNext(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_setNext'", nullptr);
@@ -1524,7 +1530,11 @@ int Entity_setNext(lua_State* L)
 		}
 		else
 		{
-			if (lua_isnumber(L, 3))
+			if (lua_isinteger(L, 3))
+			{
+				self->setNext(key, lua_tointeger(L, 3));
+			}
+			else if (lua_isnumber(L, 3))
 			{
 				self->setNext(key, lua_tonumber(L, 3));
 			}
@@ -1552,12 +1562,10 @@ int Entity_setNext(lua_State* L)
 			{
 				self->setNext(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)));
 			}
-#ifndef TOLUA_RELEASE
 			else
 			{
 				tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size and Rect.", nullptr);
 			}
-#endif
 		}
 		return 0;
 	}
@@ -1756,17 +1764,17 @@ namespace ImGui { namespace Binding
 
 	bool BeginPopupModal(const char* name, String windowsFlags)
 	{
-		return ImGui::BeginPopupModal(name, nullptr, getWindowFlags(windowsFlags));
+		return ImGui::BeginPopupModal(name, nullptr, getWindowCombinedFlags(windowsFlags));
 	}
 
 	bool BeginPopupModal(const char* name, bool* p_open, String windowsFlags)
 	{
-		return ImGui::BeginPopupModal(name, p_open, getWindowFlags(windowsFlags));
+		return ImGui::BeginPopupModal(name, p_open, getWindowCombinedFlags(windowsFlags));
 	}
 
 	bool BeginChildFrame(ImGuiID id, const Vec2& size, String windowsFlags)
 	{
-		return ImGui::BeginChildFrame(id, size, getWindowFlags(windowsFlags));
+		return ImGui::BeginChildFrame(id, size, getWindowCombinedFlags(windowsFlags));
 	}
 
 	bool BeginPopupContextItem(const char* name, String popupFlags)
@@ -1882,45 +1890,57 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	bool DragFloat2(const char* label, Vec2& v, float v_speed, float v_min, float v_max, const char* display_format, float power)
+	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed, float v_min, float v_max, const char* display_format, float power)
 	{
-		return ImGui::DragFloat2(label, &v.x, v_speed, v_min, v_max, display_format, power);
+		float floats[2] = {*v1, *v2};
+		bool changed = ImGui::DragFloat2(label, floats, v_speed, v_min, v_max, display_format, power);
+		*v1 = floats[0];
+		*v2 = floats[1];
+		return changed;
 	}
 
-	bool DragInt2(const char* label, Vec2& v, float v_speed, int v_min, int v_max, const char* display_format)
+	bool DragInt2(const char* label, int* v1, int* v2, float v_speed, int v_min, int v_max, const char* display_format)
 	{
-		int ints[2] = {s_cast<int>(v.x), s_cast<int>(v.y)};
+		int ints[2] = {*v1, *v2};
 		bool changed = ImGui::DragInt2(label, ints, v_speed, v_min, v_max, display_format);
-		v.x = s_cast<float>(ints[0]);
-		v.y = s_cast<float>(ints[1]);
+		*v1 = ints[0];
+		*v2 = ints[1];
 		return changed;
 	}
 
-	bool InputFloat2(const char* label, Vec2& v, String format, String extra_flags)
+	bool InputFloat2(const char* label, float* v1, float* v2, String format, String extra_flags)
 	{
-		return ImGui::InputFloat2(label, &v.x, format.toString().c_str(), getInputTextFlags(extra_flags));
+		float floats[2] = {*v1, *v2};
+		bool changed = ImGui::InputFloat2(label, floats, format.toString().c_str(), getInputTextFlags(extra_flags));
+		*v1 = floats[0];
+		*v2 = floats[1];
+		return changed;
 	}
 
-	bool InputInt2(const char* label, Vec2& v, String extra_flags)
+	bool InputInt2(const char* label, int* v1, int* v2, String extra_flags)
 	{
-		int ints[2] = {s_cast<int>(v.x), s_cast<int>(v.y)};
+		int ints[2] = {*v1, *v2};
 		bool changed = ImGui::InputInt2(label, ints, getInputTextFlags(extra_flags));
-		v.x = s_cast<float>(ints[0]);
-		v.y = s_cast<float>(ints[1]);
+		*v1 = ints[0];
+		*v2 = ints[1];
 		return changed;
 	}
 
-	bool SliderFloat2(const char* label, Vec2& v, float v_min, float v_max, const char* display_format, float power)
+	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format, float power)
 	{
-		return ImGui::SliderFloat2(label, &v.x, v_min, v_max, display_format, power);
+		float floats[2] = {*v1, *v2};
+		bool changed = ImGui::SliderFloat2(label, floats, v_min, v_max, display_format, power);
+		*v1 = floats[0];
+		*v2 = floats[1];
+		return changed;
 	}
 
-	bool SliderInt2(const char* label, Vec2& v, int v_min, int v_max, const char* display_format)
+	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format)
 	{
-		int ints[2] = {s_cast<int>(v.x), s_cast<int>(v.y)};
+		int ints[2] = {*v1, *v2};
 		bool changed = ImGui::SliderInt2(label, ints, v_min, v_max, display_format);
-		v.x = s_cast<float>(ints[0]);
-		v.y = s_cast<float>(ints[1]);
+		*v1 = ints[0];
+		*v2 = ints[1];
 		return changed;
 	}
 
@@ -1940,25 +1960,37 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	void Image(Texture2D* user_texture, const Vec2& size, const Vec2& uv0, const Vec2& uv1, Color tint_col, Color border_col)
+	void Image(String clipStr, const Vec2& size, Color tint_col, Color border_col)
 	{
+		Texture2D* tex = nullptr;
+		Rect rect;
+		std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
 		union
 		{
 			ImTextureID ptr;
 			struct { bgfx::TextureHandle handle; } s;
 		} texture;
-		texture.s.handle = user_texture->getHandle();
+		texture.s.handle = tex->getHandle();
+		Vec2 texSize{s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight())};
+		Vec2 uv0 = rect.origin / texSize;
+		Vec2 uv1 = (rect.origin + Vec2{1,1} * rect.size) / texSize;
 		ImGui::Image(texture.ptr, size, uv0, uv1, tint_col.toVec4(), border_col.toVec4());
 	}
 
-	bool ImageButton(Texture2D* user_texture, const Vec2& size, const Vec2& uv0, const Vec2& uv1, int frame_padding, Color bg_col, Color tint_col)
+	bool ImageButton(String clipStr, const Vec2& size, int frame_padding, Color bg_col, Color tint_col)
 	{
+		Texture2D* tex = nullptr;
+		Rect rect;
+		std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
 		union
 		{
 			ImTextureID ptr;
 			struct { bgfx::TextureHandle handle; } s;
 		} texture;
-		texture.s.handle = user_texture->getHandle();
+		texture.s.handle = tex->getHandle();
+		Vec2 texSize{s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight())};
+		Vec2 uv0 = rect.origin / texSize;
+		Vec2 uv1 = (rect.origin + Vec2{1,1} * rect.size) / texSize;
 		return ImGui::ImageButton(texture.ptr, size, uv0, uv1, frame_padding, bg_col.toVec4(), tint_col.toVec4());
 	}
 

@@ -27,7 +27,7 @@ function classDefine:register (pre)
 	end
 
  pre = pre or ''
- output(pre..'tolua_constant(tolua_S,"'..self.lname..'",lua_Number('..self.name..'));')
+ output(pre..'tolua_constant(tolua_S,"'..self.lname..'",lua_Integer('..self.name..'));')
 end
 
 -- Print method

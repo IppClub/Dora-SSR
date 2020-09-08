@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+	signingConfigs {
+		release {
+			storeFile file('***REMOVED***')
+			keyAlias 'key0'
+			storePassword '***REMOVED***'
+			keyPassword '***REMOVED***'
+		}
+	}
 	compileSdkVersion 26
 	defaultConfig {
 		applicationId "com.luvfight.dorothy"
@@ -22,6 +30,7 @@ android {
 		release {
 			minifyEnabled false
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
 		}
 	}
 	externalNativeBuild {
@@ -33,6 +42,9 @@ android {
 		main {
 			jniLibs.srcDirs = ['src/main/cpp/3rdParty/SDL2/Lib/Android', 'src/main/cpp/3rdParty/bgfx/Lib/Android']
 		}
+	}
+	packagingOptions {
+		pickFirst '**/*.so'
 	}
 	compileOptions {
 		sourceCompatibility = 1.8

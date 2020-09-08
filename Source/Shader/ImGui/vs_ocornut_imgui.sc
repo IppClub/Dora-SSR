@@ -3,7 +3,7 @@ $output v_color0, v_texcoord0
 
 uniform vec4 u_scale;
 
-#include "../bgfx_shader.sh"
+#include <bgfx_shader.sh>
 
 void main()
 {

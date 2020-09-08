@@ -111,7 +111,6 @@ private:
 	rule multi_line_content;
 	rule MultiLineComment;
 	rule Indent;
-	rule EscapeNewLine;
 	rule space_one;
 	rule Space;
 	rule SpaceBreak;
@@ -169,8 +168,6 @@ private:
 	rule ClassLine;
 	rule KeyValueLine;
 	rule KeyValueList;
-	rule ArgLine;
-	rule ArgBlock;
 	rule invoke_args_with_table;
 	rule BackcallOperator;
 	rule ExponentialOperator;
@@ -210,7 +207,6 @@ private:
 	AST_RULE(Goto)
 	AST_RULE(fn_arrow_back)
 	AST_RULE(Backcall)
-	AST_RULE(ExpListLow)
 	AST_RULE(ExpList)
 	AST_RULE(Return)
 	AST_RULE(With)

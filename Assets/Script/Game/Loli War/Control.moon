@@ -1,13 +1,13 @@
 _ENV = Dorothy builtin.Platformer
-
 import "UI.Control.HPWheel"
 import "UI.Control.Basic.AlignNode"
 import "UI.View.LeftTouchPad"
 import "UI.View.RightTouchPad"
 import "UI.View.RestartPad"
 import "UI.Control.StartPanel"
-{store:Store} = Data
-{:GroupPlayer} = Store
+
+store:Store = Data
+:GroupPlayer = Store
 
 playerGroup = Group {"hero"}
 updatePlayerControl = (key,flag)->

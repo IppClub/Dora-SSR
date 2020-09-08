@@ -451,11 +451,12 @@ template <typename T, typename U>
 PLAYRHO_CONSTEXPR inline auto Solve(const Matrix22<U> mat, const Vector2<T> b) noexcept
 {
     const auto cp = Cross(get<0>(mat), get<1>(mat));
+    const auto inverseCp = Real{1} / cp;
     using OutType = decltype((U{} * T{}) / cp);
     return (!AlmostZero(StripUnit(cp)))?
         Vector2<OutType>{
-            (get<1>(mat)[1] * b[0] - get<1>(mat)[0] * b[1]) / cp,
-            (get<0>(mat)[0] * b[1] - get<0>(mat)[1] * b[0]) / cp
+            (get<1>(mat)[1] * b[0] - get<1>(mat)[0] * b[1]) * inverseCp,
+            (get<0>(mat)[0] * b[1] - get<0>(mat)[1] * b[0]) * inverseCp
         }: Vector2<OutType>{};
 }
 
@@ -465,10 +466,11 @@ PLAYRHO_CONSTEXPR inline auto Invert(const Matrix22<IN_TYPE> value) noexcept
 {
     const auto cp = Cross(get<0>(value), get<1>(value));
     using OutType = decltype(get<0>(value)[0] / cp);
+    const auto inverseCp = Real{1} / cp;
     return (!AlmostZero(StripUnit(cp)))?
         Matrix22<OutType>{
-            Vector2<OutType>{ get<1>(get<1>(value)) / cp, -get<1>(get<0>(value)) / cp},
-            Vector2<OutType>{-get<0>(get<1>(value)) / cp,  get<0>(get<0>(value)) / cp}
+            Vector2<OutType>{ get<1>(get<1>(value)) * inverseCp, -get<1>(get<0>(value)) * inverseCp},
+            Vector2<OutType>{-get<0>(get<1>(value)) * inverseCp,  get<0>(get<0>(value)) * inverseCp}
         }:
         Matrix22<OutType>{};
 }
@@ -478,7 +480,7 @@ PLAYRHO_CONSTEXPR inline auto Invert(const Matrix22<IN_TYPE> value) noexcept
 PLAYRHO_CONSTEXPR inline Vec3 Solve33(const Mat33& mat, const Vec3 b) noexcept
 {
     const auto dp = Dot(GetX(mat), Cross(GetY(mat), GetZ(mat)));
-    const auto det = (dp != 0)? 1 / dp: dp;
+    const auto det = (dp != 0)? Real{1} / dp: dp;
     const auto x = det * Dot(b, Cross(GetY(mat), GetZ(mat)));
     const auto y = det * Dot(GetX(mat), Cross(b, GetZ(mat)));
     const auto z = det * Dot(GetX(mat), Cross(GetY(mat), b));
@@ -492,7 +494,7 @@ template <typename T>
 PLAYRHO_CONSTEXPR inline T Solve22(const Mat33& mat, const T b) noexcept
 {
     const auto cp = GetX(GetX(mat)) * GetY(GetY(mat)) - GetX(GetY(mat)) * GetY(GetX(mat));
-    const auto det = (cp != 0)? 1 / cp: cp;
+    const auto det = (cp != 0)? Real{1} / cp: cp;
     const auto x = det * (GetY(GetY(mat)) * GetX(b) - GetX(GetY(mat)) * GetY(b));
     const auto y = det * (GetX(GetX(mat)) * GetY(b) - GetY(GetX(mat)) * GetX(b));
     return T{x, y};
@@ -623,7 +625,7 @@ inline Real Normalize(Vec2& vector)
     const auto length = GetMagnitude(vector);
     if (!AlmostZero(length))
     {
-        const auto invLength = 1 / length;
+        const auto invLength = Real{1} / length;
         vector[0] *= invLength;
         vector[1] *= invLength;
         return length;
@@ -734,7 +736,8 @@ PLAYRHO_CONSTEXPR inline Vector2<T> operator* (const UnitVec u, const T s) noexc
 /// @brief Division operator.
 PLAYRHO_CONSTEXPR inline Vec2 operator/ (const UnitVec u, const UnitVec::value_type s) noexcept
 {
-    return Vec2{GetX(u) / s, GetY(u) / s};
+    const auto inverseS = Real{1} / s;
+    return Vec2{GetX(u) * inverseS, GetY(u) * inverseS};
 }
 
 /// @brief Rotates a vector by a given angle.

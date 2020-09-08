@@ -67,6 +67,7 @@ int tolua_isvalue(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_isvaluenil(lua_State* L, int lo, tolua_Error* err);
 int tolua_isboolean(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_isnumber(lua_State* L, int lo, int def, tolua_Error* err);
+int tolua_isinteger(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_isstring(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_istable(lua_State* L, int lo, int def, tolua_Error* err);
 int tolua_isusertable(lua_State* L, int lo, String type, int def, tolua_Error* err);
@@ -76,6 +77,7 @@ int tolua_isusertype(lua_State* L, int lo, String type, int def, tolua_Error* er
 int tolua_isvaluearray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isbooleanarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isnumberarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
+int tolua_isintegerarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isstringarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_istablearray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isuserdataarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
@@ -93,7 +95,7 @@ void tolua_module(lua_State* L, const char* name, int hasvar);
 void tolua_cclass(lua_State* L, const char* name, const char* lname, const char* base, lua_CFunction col);
 void tolua_function(lua_State* L, const char* name, lua_CFunction func);
 void tolua_call(lua_State* L, int index, lua_CFunction func);
-void tolua_constant(lua_State* L, const char* name, lua_Number value);
+void tolua_constant(lua_State* L, const char* name, lua_Integer value);
 void tolua_string(lua_State* L, const char* str);
 void tolua_variable(lua_State* L, const char* name, lua_CFunction get, lua_CFunction set);
 
@@ -103,22 +105,26 @@ void tolua_addbase(lua_State* L, char* name, char* base);
 void tolua_pushvalue(lua_State* L, int lo);
 void tolua_pushboolean(lua_State* L, int value);
 void tolua_pushnumber(lua_State* L, lua_Number value);
+void tolua_pushinteger(lua_State* L, lua_Integer value);
 void tolua_pushstring(lua_State* L, const char* value);
 void tolua_pushstring(lua_State* L, const char* value, size_t len);
 void tolua_pushusertype(lua_State* L, void* value, int typeId);
 void tolua_pushfieldvalue(lua_State* L, int lo, int index, int v);
 void tolua_pushfieldboolean(lua_State* L, int lo, int index, int v);
 void tolua_pushfieldnumber(lua_State* L, int lo, int index, lua_Number v);
+void tolua_pushfieldinteger(lua_State* L, int lo, int index, lua_Integer v);
 void tolua_pushfieldstring(lua_State* L, int lo, int index, const char* v);
 void tolua_pushfieldusertype(lua_State* L, int lo, int index, void* v, int typeId);
 void tolua_pushobject(lua_State* L, Object* object);
 
 lua_Number tolua_tonumber(lua_State* L, int narg, lua_Number def);
+lua_Integer tolua_tointeger(lua_State* L, int narg, lua_Integer def);
 const char* tolua_tostring(lua_State* L, int narg, const char* def);
 void* tolua_tousertype(lua_State* L, int narg, void* def);
 int tolua_tovalue(lua_State* L, int narg, int def);
 bool tolua_toboolean(lua_State* L, int narg, int def);
 lua_Number tolua_tofieldnumber(lua_State* L, int lo, int index, lua_Number def);
+lua_Integer tolua_tofieldinteger(lua_State* L, int lo, int index, lua_Integer def);
 const char* tolua_tofieldstring(lua_State* L, int lo, int index, const char* def);
 void* tolua_tofielduserdata(lua_State* L, int lo, int index, void* def);
 void* tolua_tofieldusertype(lua_State* L, int lo, int index, void* def);
@@ -168,11 +174,11 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 #endif
 
 #ifndef Mtolua_new_dim
-	#define Mtolua_new_dim(EXP, len) r_cast<EXP*>(alloca(sizeof(EXP)*len)) //new EXP[len]
+	#define Mtolua_new_dim(EXP, len) r_cast<EXP*>(alloca(sizeof(EXP)*len)) // new EXP[len]
 #endif
 
 #ifndef Mtolua_delete_dim
-	#define Mtolua_delete_dim(EXP) //delete [] EXP
+	#define Mtolua_delete_dim(EXP) // delete [] EXP
 #endif
 
 #ifndef tolua_outside
@@ -188,6 +194,6 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 #endif
 
 #define TOLUA_API
-#define _cstring char*
+#define _cstring const char*
 
 NS_DOROTHY_END

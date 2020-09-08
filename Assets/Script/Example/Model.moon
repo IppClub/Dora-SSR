@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-modelFile = "Model/xiaoli.model"
+modelFile = "Model/patreon.model"
 
 model = with Model modelFile
 	.recovery = 0.2
@@ -15,9 +15,11 @@ Director.entry\addChild model
 _ENV = Dorothy builtin.ImGui
 
 looks = Model\getLooks modelFile
+looks = {""} if #looks == 0
 animations = Model\getAnimations modelFile
-currentLook = 1
-currentAnim = 4
+animations = {""} if #animations == 0
+currentLook = #looks
+currentAnim = #animations
 loop = true
 model\schedule ->
 	:width, :height = App.visualSize
@@ -38,7 +40,6 @@ model\schedule ->
 			changed, model.recovery = DragFloat "Recovery", model.recovery, 0.01, 0, 10, "%.2f"
 		scale = model.scaleX
 		_, scale = DragFloat "Scale", scale, 0.01, 0.5, 2, "%.2f"
-		model.scaleX = scale
-		model.scaleY = scale
+		model.scaleX, model.scaleY = scale, scale
 		if Button "Play", Vec2 140, 30
 			model\play animations[currentAnim], loop

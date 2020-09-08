@@ -265,16 +265,20 @@ end
 				output(' = ')
 			end
 			if not t and ptr=='' then output('*') end
-			output('((',self.mod,self.type)
+			output('static_cast<',self.mod,self.type)
 			if not t then
 				output('*')
 			end
-			output(') ')
+			output('>(')
 			if t then
-				if isenum(self.type) then
-					output('(int) ')
+				local ise = isenum(self.type)
+				if ise then
+					output('static_cast<int>(')
 				end
 				output('tolua_to'..t,'(tolua_S,'..tostring(var_index)..',',def,'))')
+				if ise then
+					output(')')
+				end
 			else
 				local to_func = get_to_function(self.type)
 				output(to_func,'(tolua_S,'..tostring(var_index)..',',def,'))')

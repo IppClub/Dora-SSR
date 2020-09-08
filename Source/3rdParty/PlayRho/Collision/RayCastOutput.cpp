@@ -93,8 +93,9 @@ RayCastOutput RayCast(const AABB& aabb, const RayCastInput& input) noexcept
         }
         else
         {
-            auto t1 = Real{(range.GetMin() - p1i) / pdi};
-            auto t2 = Real{(range.GetMax() - p1i) / pdi};
+            const auto reciprocalOfPdi = Real{1} / pdi;
+            auto t1 = Real{(range.GetMin() - p1i) * reciprocalOfPdi};
+            auto t2 = Real{(range.GetMax() - p1i) * reciprocalOfPdi};
             auto s = -1; // Sign of the normal vector.
             if (t1 > t2)
             {
@@ -187,11 +188,13 @@ RayCastOutput RayCast(const DistanceProxy& proxy, const RayCastInput& input,
             const auto v0off = v0 + offset;
             const auto q_sub_p = v0off - ray0;
             
+            const auto reciprocalRayCrossEdge = Real{1} / ray_cross_edge;
+
             // t = ((q - p) x s) / (r x s)
-            const auto t = Cross(q_sub_p, edge) / ray_cross_edge;
+            const auto t = Cross(q_sub_p, edge) * reciprocalRayCrossEdge;
             
             // u = ((q - p) x r) / (r x s)
-            const auto u = Cross(q_sub_p, ray) / ray_cross_edge;
+            const auto u = Cross(q_sub_p, ray) * reciprocalRayCrossEdge;
 
             if ((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1))
             {
