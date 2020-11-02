@@ -57,7 +57,7 @@ struct ContactFeature
 
 /// @brief Gets the vertex vertex contact feature for the given indices.
 /// @relatedalso ContactFeature
-PLAYRHO_CONSTEXPR inline ContactFeature GetVertexVertexContactFeature(ContactFeature::Index a,
+constexpr ContactFeature GetVertexVertexContactFeature(ContactFeature::Index a,
                                                        ContactFeature::Index b) noexcept
 {
     return ContactFeature{ContactFeature::e_vertex, a, ContactFeature::e_vertex, b};
@@ -65,7 +65,7 @@ PLAYRHO_CONSTEXPR inline ContactFeature GetVertexVertexContactFeature(ContactFea
 
 /// @brief Gets the vertex face contact feature for the given indices.
 /// @relatedalso ContactFeature
-PLAYRHO_CONSTEXPR inline ContactFeature GetVertexFaceContactFeature(ContactFeature::Index a,
+constexpr ContactFeature GetVertexFaceContactFeature(ContactFeature::Index a,
                                                      ContactFeature::Index b) noexcept
 {
     return ContactFeature{ContactFeature::e_vertex, a, ContactFeature::e_face, b};
@@ -73,7 +73,7 @@ PLAYRHO_CONSTEXPR inline ContactFeature GetVertexFaceContactFeature(ContactFeatu
 
 /// @brief Gets the face vertex contact feature for the given indices.
 /// @relatedalso ContactFeature
-PLAYRHO_CONSTEXPR inline ContactFeature GetFaceVertexContactFeature(ContactFeature::Index a,
+constexpr ContactFeature GetFaceVertexContactFeature(ContactFeature::Index a,
                                                      ContactFeature::Index b) noexcept
 {
     return ContactFeature{ContactFeature::e_face, a, ContactFeature::e_vertex, b};
@@ -81,7 +81,7 @@ PLAYRHO_CONSTEXPR inline ContactFeature GetFaceVertexContactFeature(ContactFeatu
 
 /// @brief Gets the face face contact feature for the given indices.
 /// @relatedalso ContactFeature
-PLAYRHO_CONSTEXPR inline ContactFeature GetFaceFaceContactFeature(ContactFeature::Index a,
+constexpr ContactFeature GetFaceFaceContactFeature(ContactFeature::Index a,
                                                    ContactFeature::Index b) noexcept
 {
     return ContactFeature{ContactFeature::e_face, a, ContactFeature::e_face, b};
@@ -89,14 +89,14 @@ PLAYRHO_CONSTEXPR inline ContactFeature GetFaceFaceContactFeature(ContactFeature
 
 /// @brief Flips contact features information.
 /// @relatedalso ContactFeature
-PLAYRHO_CONSTEXPR inline ContactFeature Flip(ContactFeature val) noexcept
+constexpr ContactFeature Flip(ContactFeature val) noexcept
 {
     return ContactFeature{val.typeB, val.indexB, val.typeA, val.indexA};
 }
 
 /// @brief Determines if the given two contact features are equal.
 /// @relatedalso ContactFeature
-PLAYRHO_CONSTEXPR inline bool operator==(ContactFeature lhs, ContactFeature rhs) noexcept
+constexpr bool operator==(ContactFeature lhs, ContactFeature rhs) noexcept
 {
     return (lhs.typeA == rhs.typeA) && (lhs.indexA == rhs.indexA)
         && (lhs.typeB == rhs.typeB) && (lhs.indexB == rhs.indexB);
@@ -104,7 +104,7 @@ PLAYRHO_CONSTEXPR inline bool operator==(ContactFeature lhs, ContactFeature rhs)
 
 /// @brief Determines if the given two contact features are not equal.
 /// @relatedalso ContactFeature
-PLAYRHO_CONSTEXPR inline bool operator!=(ContactFeature lhs, ContactFeature rhs) noexcept
+constexpr bool operator!=(ContactFeature lhs, ContactFeature rhs) noexcept
 {
     return !(lhs == rhs);
 }

@@ -42,7 +42,7 @@ class PolygonShapeConf: public ShapeBuilder<PolygonShapeConf>
 {
 public:
     /// @brief Gets the default vertex radius for the <code>PolygonShapeConf</code>.
-    static PLAYRHO_CONSTEXPR inline NonNegative<Length> GetDefaultVertexRadius() noexcept
+    static constexpr NonNegative<Length> GetDefaultVertexRadius() noexcept
     {
         return NonNegative<Length>{DefaultLinearSlop * 2};
     }
@@ -56,6 +56,9 @@ public:
     PolygonShapeConf();
     
     /// @brief Initializing constructor for a 4-sided box polygon.
+    /// @param hx Half of the width.
+    /// @param hy Half of the height.
+    /// @see SetAsBox.
     PolygonShapeConf(Length hx, Length hy,
                      const PolygonShapeConf& conf = GetDefaultConf()) noexcept;
     
@@ -99,7 +102,7 @@ public:
     PolygonShapeConf& Transform(Transformation xfm) noexcept;
     
     /// @brief Transforms the vertices by the given transformation matrix.
-    /// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+    /// @see https://en.wikipedia.org/wiki/Transformation_matrix
     PolygonShapeConf& Transform(const Mat22& m) noexcept;
 
     /// @brief Equality operator.
@@ -198,7 +201,7 @@ inline PolygonShapeConf& PolygonShapeConf::UseVertexRadius(NonNegative<Length> v
 
 /// @brief Gets the "child" count for the given shape configuration.
 /// @return 1.
-PLAYRHO_CONSTEXPR inline ChildCounter GetChildCount(const PolygonShapeConf&) noexcept
+constexpr ChildCounter GetChildCount(const PolygonShapeConf&) noexcept
 {
     return 1;
 }
@@ -240,7 +243,7 @@ Length2 GetEdge(const PolygonShapeConf& shape, VertexCounter index);
 
 /// @brief Transforms the given polygon configuration's vertices by the given
 ///   transformation matrix.
-/// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+/// @see https://en.wikipedia.org/wiki/Transformation_matrix
 inline void Transform(PolygonShapeConf& arg, const Mat22& m) noexcept
 {
     arg.Transform(m);

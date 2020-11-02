@@ -24,7 +24,7 @@
 
 namespace playrho {
 
-class StepConf;
+struct StepConf;
 
 namespace d2 {
 
@@ -65,7 +65,7 @@ inline PositionSolution operator- (PositionSolution lhs, PositionSolution rhs)
 /// Constraint solver configuration data.
 /// @details
 /// Defines how a constraint solver should resolve a given constraint.
-/// @sa SolvePositionConstraint.
+/// @see SolvePositionConstraint.
 struct ConstraintSolverConf
 {
     /// @brief Uses the given resolution rate.
@@ -187,7 +187,7 @@ Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc);
 /// @details
 /// This pushes apart the two given positions for every point in the contact position constraint
 /// and returns the minimum separation value from the position solver manifold for each point.
-/// @sa http://allenchou.net/2013/12/game-physics-resolution-contact-constraints/
+/// @see http://allenchou.net/2013/12/game-physics-resolution-contact-constraints/
 /// @return Minimum separation distance of the position constraint's manifold points
 ///   (prior to "solving").
 d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,

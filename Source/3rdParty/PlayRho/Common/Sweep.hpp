@@ -46,10 +46,10 @@ public:
     Sweep() = default;
     
     /// @brief Copy constructor.
-    PLAYRHO_CONSTEXPR inline Sweep(const Sweep& copy) = default;
+    constexpr Sweep(const Sweep& copy) = default;
     
     /// @brief Initializing constructor.
-    PLAYRHO_CONSTEXPR inline Sweep(const Position p0, const Position p1,
+    constexpr Sweep(const Position p0, const Position p1,
                     const Length2 lc = Length2{0_m, 0_m},
                     Real a0 = 0) noexcept:
         pos0{p0}, pos1{p1}, localCenter{lc}, alpha0{a0}
@@ -59,7 +59,7 @@ public:
     }
     
     /// @brief Initializing constructor.
-    PLAYRHO_CONSTEXPR inline explicit Sweep(const Position p,
+    constexpr explicit Sweep(const Position p,
                              const Length2 lc = Length2{0_m, 0_m}):
         Sweep{p, p, lc, 0}
     {
@@ -132,7 +132,7 @@ inline void Sweep::ResetAlpha0() noexcept
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Transformation
 template <>
-PLAYRHO_CONSTEXPR inline bool IsValid(const d2::Sweep& value) noexcept
+constexpr bool IsValid(const d2::Sweep& value) noexcept
 {
     return IsValid(value.pos0) && IsValid(value.pos1)
     && IsValid(value.GetLocalCenter()) && IsValid(value.GetAlpha0());

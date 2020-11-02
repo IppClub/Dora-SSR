@@ -24,7 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_PLATFORMER_BEGIN
 
 Bullet::Bullet(BulletDef* bulletDef, Unit* unit) :
-Body(bulletDef->getBodyDef(), unit->getWorld()),
+Body(bulletDef->getBodyDef(), unit->getPhysicsWorld()),
 _bulletDef(bulletDef),
 _owner(unit),
 _current(0),
@@ -66,16 +66,17 @@ bool Bullet::init()
 
 void Bullet::updatePhysics()
 {
-	if (_prBody->IsAwake())
+	auto& world = _pWorld->getPrWorld();
+	if (pd::IsAwake(world, _prBody))
 	{
-		const pr::Vec2& pos = _prBody->GetLocation();
+		const pr::Vec2& pos = pd::GetLocation(world, _prBody);
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overridden by Body`s.
 		*/
 		Node::setPosition(Vec2{PhysicsWorld::oVal(pos[0]), PhysicsWorld::oVal(pos[1])});
-		if (_prBody->GetLinearAcceleration() != pr::LinearAcceleration2{})
+		if (pd::GetLinearAcceleration(world, _prBody) != pr::LinearAcceleration2{})
 		{
-			pd::Velocity velocity = _prBody->GetVelocity();
+			pd::Velocity velocity = pd::GetVelocity(world, _prBody);
 			Node::setAngle(-bx::toDeg(std::atan2(velocity.linear[1], velocity.linear[0])));
 		}
 	}
@@ -138,7 +139,7 @@ void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal)
 				pos.y - _bulletDef->damageRadius,
 				_bulletDef->damageRadius * 2,
 				_bulletDef->damageRadius * 2);
-			_world->query(rect, [&](Body* body)
+			_pWorld->query(rect, [&](Body* body)
 			{
 				Unit* unit = DoraCast<Unit>(body->getOwner());
 				if (unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit)))

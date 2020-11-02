@@ -34,6 +34,28 @@
 namespace playrho {
 namespace d2 {
 
+static_assert(std::is_nothrow_default_constructible<DynamicTree>::value,
+              "DynamicTree must be nothrow default constructible!");
+static_assert(std::is_copy_constructible<DynamicTree>::value,
+              "DynamicTree must be copy constructible!");
+static_assert(std::is_nothrow_move_constructible<DynamicTree>::value,
+              "DynamicTree must be nothrow move constructible!");
+static_assert(std::is_copy_assignable<DynamicTree>::value,
+              "DynamicTree must be copy assignable!");
+static_assert(std::is_nothrow_move_assignable<DynamicTree>::value,
+              "DynamicTree must be move assignable!");
+
+static_assert(std::is_nothrow_default_constructible<DynamicTree::LeafData>::value,
+              "DynamicTree::LeafData must be nothrow default constructible!");
+static_assert(std::is_copy_constructible<DynamicTree::LeafData>::value,
+              "DynamicTree::LeafData must be copy constructible!");
+static_assert(std::is_nothrow_move_constructible<DynamicTree::LeafData>::value,
+              "DynamicTree::LeafData must be nothrow move constructible!");
+static_assert(std::is_copy_assignable<DynamicTree::LeafData>::value,
+              "DynamicTree::LeafData must be copy assignable!");
+static_assert(std::is_nothrow_move_assignable<DynamicTree::LeafData>::value,
+              "DynamicTree::LeafData must be move assignable!");
+
 namespace {
 
 inline DynamicTree::TreeNode
@@ -380,7 +402,7 @@ DynamicTree::Size UpdateNonRoot(DynamicTree::TreeNode nodes[],
 DynamicTree::DynamicTree() noexcept = default;
 
 DynamicTree::DynamicTree(Size nodeCapacity):
-    m_nodes{nodeCapacity? Alloc<TreeNode>(nodeCapacity): nullptr},
+    m_nodes{nodeCapacity? AllocArray<TreeNode>(nodeCapacity): nullptr},
     m_freeIndex{nodeCapacity? 0: GetInvalidSize()},
     m_nodeCapacity{nodeCapacity}
 {
@@ -397,7 +419,7 @@ DynamicTree::DynamicTree(Size nodeCapacity):
 }
 
 DynamicTree::DynamicTree(const DynamicTree& other):
-    m_nodes{Alloc<TreeNode>(other.m_nodeCapacity)},
+    m_nodes{AllocArray<TreeNode>(other.m_nodeCapacity)},
     m_rootIndex{other.m_rootIndex},
     m_freeIndex{other.m_freeIndex},
     m_nodeCount{other.m_nodeCount},
@@ -434,7 +456,7 @@ void DynamicTree::SetNodeCapacity(Size value)
     // The free list is empty. Rebuild a bigger pool.
     // Call Realloc first in case it throws so this code doesn't have to restore any state
     // and so this function will have no effect.
-    m_nodes = Realloc<TreeNode>(m_nodes, value);
+    m_nodes = ReallocArray<TreeNode>(m_nodes, value);
     m_nodeCapacity = value;
 
     // Build a linked list for the free list. The parent
@@ -494,6 +516,28 @@ void DynamicTree::FreeNode(Size index) noexcept
     m_nodes[index] = TreeNode{m_freeIndex};
     m_freeIndex = index;
     --m_nodeCount;
+}
+
+void DynamicTree::Clear() noexcept
+{
+    m_nodeCount = Size{0u};
+    m_leafCount = Size{0u};
+    m_rootIndex = GetInvalidSize();
+    if (m_nodeCapacity && m_nodes) {
+        m_freeIndex = Size{0u};
+        const auto endCapacity = m_nodeCapacity - 1;
+        for (auto i = Size{0u}; i < endCapacity; ++i)
+        {
+            m_nodes[i] = TreeNode{i + 1};
+        }
+        m_nodes[endCapacity] = TreeNode{};
+    }
+    else {
+        Free(m_nodes);
+        m_nodes = nullptr;
+        m_nodeCapacity = Size{0u};
+        m_freeIndex = GetInvalidSize();
+    }
 }
 
 DynamicTree::Size DynamicTree::FindReference(Size index) const noexcept
@@ -585,7 +629,7 @@ void DynamicTree::UpdateLeaf(Size index, const AABB& aabb)
 
 void DynamicTree::RebuildBottomUp()
 {
-    const auto nodes = Alloc<Size>(m_nodeCount);
+    const auto nodes = AllocArray<Size>(m_nodeCount);
     auto count = Size{0};
 
     // Build array of leaves. Free the rest.

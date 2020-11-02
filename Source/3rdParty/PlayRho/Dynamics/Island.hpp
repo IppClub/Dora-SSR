@@ -20,15 +20,17 @@
 #ifndef PLAYRHO_DYNAMICS_ISLAND_HPP
 #define PLAYRHO_DYNAMICS_ISLAND_HPP
 
-#include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Templates.hpp" // IsFull
+#include "PlayRho/Common/Settings.hpp" // BodyCounter, ContactCounter, JointCounter
+
+#include "PlayRho/Dynamics/BodyID.hpp"
+#include "PlayRho/Dynamics/Joints/JointID.hpp"
+#include "PlayRho/Dynamics/Contacts/ContactID.hpp"
+
 #include <vector>
 
 namespace playrho {
 namespace d2 {
-
-class Body;
-class Contact;
-class Joint;
 
 /// @brief Definition of a self-contained constraint "island".
 /// @details A container of bodies contacts and joints relevant to handling world dynamics.
@@ -37,63 +39,52 @@ class Joint;
 struct Island
 {   
     /// @brief Body container type.
-    using Bodies = std::vector<Body*>;
+    using Bodies = std::vector<BodyID>;
 
     /// @brief Contact container type.
-    using Contacts = std::vector<Contact*>;
-    
+    using Contacts = std::vector<ContactID>;
+
     /// @brief Joint container type.
-    using Joints = std::vector<Joint*>;
-    
-    /// @brief Initializing constructor.
-    Island(Bodies::size_type bodyCapacity, Contacts::size_type contactCapacity,
-           Joints::size_type jointCapacity);
+    using Joints = std::vector<JointID>;
 
-    /// @brief Copy constructor.
-    Island(const Island& copy) = default;
-
-    /// @brief Move constructor.
-    Island(Island&& other) noexcept = default;
-
-    /// Destructor.
-    ~Island() = default;
-
-    /// @brief Copy assignment operator.
-    Island& operator= (const Island& other) = default;
-
-    /// @brief Assignment operator.
-    Island& operator= (Island&& other) noexcept = default;
-
-    Bodies m_bodies; ///< Body container.
-    Contacts m_contacts; ///< Contact container.
-    Joints m_joints; ///< Joint container.
+    Bodies bodies; ///< Body container.
+    Contacts contacts; ///< Contact container.
+    Joints joints; ///< Joint container.
 };
+
+/// @brief Reserves space ahead of time.
+/// @relatedalso Island
+void Reserve(Island& island, BodyCounter bodies, ContactCounter contacts, JointCounter joints);
+
+/// @brief Clears the island containers.
+/// @relatedalso Island
+void Clear(Island& island) noexcept;
 
 /// @brief Determines whether the given island is full of bodies.
 /// @relatedalso Island
 inline bool IsFullOfBodies(const Island& island)
 {
-    return IsFull(island.m_bodies);
+    return IsFull(island.bodies);
 }
 
 /// @brief Determines whether the given island is full of contacts.
 /// @relatedalso Island
 inline bool IsFullOfContacts(const Island& island)
 {
-    return IsFull(island.m_contacts);
+    return IsFull(island.contacts);
 }
 
 /// @brief Counts the number of occurrences of the given entry in the given island.
 /// @relatedalso Island
-std::size_t Count(const Island& island, const Body* entry);
+std::size_t Count(const Island& island, BodyID entry);
 
 /// @brief Counts the number of occurrences of the given entry in the given island.
 /// @relatedalso Island
-std::size_t Count(const Island& island, const Contact* entry);
+std::size_t Count(const Island& island, ContactID entry);
 
 /// @brief Counts the number of occurrences of the given entry in the given island.
 /// @relatedalso Island
-std::size_t Count(const Island& island, const Joint* entry);
+std::size_t Count(const Island& island, JointID entry);
 
 } // namespace d2
 } // namespace playrho

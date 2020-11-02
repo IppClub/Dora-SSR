@@ -32,7 +32,7 @@
 namespace playrho
 {
     // Memory Allocation
-
+    
     /// @brief Allocates memory.
     /// @note One can change this function to use ones own memory allocator. Be sure to conform
     ///   to this function's interface: throw a <code>std::bad_alloc</code> exception if
@@ -42,20 +42,20 @@ namespace playrho
     /// @throws std::bad_alloc If unable to allocate non-zero sized memory.
     /// @return Non-null pointer if size is not zero else <code>nullptr</code>. Pointer must be
     ///   deallocated with <code>Free(void*)</code> or one of the <code>Realloc</code> functions.
-    /// @see Free(void*).
+    /// @see Free, Realloc, ReallocArray.
     void* Alloc(std::size_t size);
-
-    /// @brief Allocates memory.
+    
+    /// @brief Allocates memory for an array.
     /// @throws std::bad_alloc If unable to allocate non-zero sized memory.
     /// @return Non-null pointer if size is not zero else <code>nullptr</code>. Pointer must be
     ///   deallocated with <code>Free(void*)</code> or one of the <code>Realloc</code> functions.
-    /// @see Free(void*), Alloc(std::size_t).
+    /// @see Free, Alloc, ReallocArray.
     template <typename T>
-    T* Alloc(std::size_t size)
+    T* AllocArray(std::size_t size)
     {
         return static_cast<T*>(Alloc(size * sizeof(T)));
     }
-
+    
     /// @brief Reallocates memory.
     /// @note One can change this function to use ones own memory allocator. Be sure to conform
     ///   to this function's interface: throw a <code>std::bad_alloc</code> exception if
@@ -66,10 +66,10 @@ namespace playrho
     /// @throws std::bad_alloc If unable to reallocate non-zero sized memory. Pointer must be
     ///   deallocated with <code>Free(void*)</code> or one of the <code>Realloc</code> functions.
     /// @return Non-null pointer if size is not zero else <code>nullptr</code>.
-    /// @see Alloc(std::size_t size), Free(void*).
+    /// @see Alloc, Free.
     void* Realloc(void* ptr, std::size_t size);
-
-    /// @brief Reallocates memory.
+    
+    /// @brief Reallocates memory for an array.
     /// @param ptr Pointer to the old memory.
     /// @param count Count of elements to reallocate for. This value must be less than the value
     ///   of <code>std::numeric_limits<std::size_t>::max() / sizeof(T)</code> or an exception will
@@ -78,9 +78,9 @@ namespace playrho
     /// @throws std::bad_alloc If unable to reallocate non-zero sized memory.
     /// @return Non-null pointer if count is not zero else <code>nullptr</code>. Pointer must be
     ///   deallocated with <code>Free(void*)</code> or one of the <code>Realloc</code> functions.
-    /// @see Realloc(void*, std::size_t), Free(void*).
+    /// @see Realloc, Free.
     template <typename T>
-    T* Realloc(T* ptr, std::size_t count)
+    T* ReallocArray(T* ptr, std::size_t count)
     {
         // Ensure no overflow
         constexpr auto maxCount = std::numeric_limits<std::size_t>::max() / sizeof(T);
@@ -89,10 +89,10 @@ namespace playrho
         }
         return static_cast<T*>(Realloc(static_cast<void *>(ptr), count * sizeof(T)));
     }
-
+    
     /// @brief Frees memory.
     /// @note If you change <code>Alloc</code>, consider also changing this function.
-    /// @see Alloc(std::size_t), Realloc(void*, std::size_t).
+    /// @see Alloc, AllocArray, Realloc, ReallocArray.
     void Free(void* mem);
 
 } // namespace playrho

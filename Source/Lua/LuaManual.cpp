@@ -1713,23 +1713,13 @@ namespace ImGui { namespace Binding
 	bool InputText(const char* label, Buffer* buffer, String inputTextFlags)
 	{
 		if (!buffer) return false;
-		return ImGui::InputText(label, buffer->get(), buffer->size(), getInputTextFlags(inputTextFlags));
+		return ImGui::InputText(label, buffer->get(), buffer->size(), getInputTextCombinedFlags(inputTextFlags));
 	}
 
 	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size, String inputTextFlags)
 	{
 		if (!buffer) return false;
-		return ImGui::InputTextMultiline(label, buffer->get(), buffer->size(), size, getInputTextFlags(inputTextFlags));
-	}
-
-	bool InputFloat(const char* label, float* v, float step, float step_fast, String format, String inputTextFlags)
-	{
-		return ImGui::InputFloat(label, v, step, step_fast, format.toString().c_str(), getInputTextFlags(inputTextFlags));
-	}
-
-	bool InputInt(const char* label, int* v, int step, int step_fast, String inputTextFlags)
-	{
-		return ImGui::InputInt(label, v, step, step_fast, getInputTextFlags(inputTextFlags));
+		return ImGui::InputTextMultiline(label, buffer->get(), buffer->size(), size, getInputTextCombinedFlags(inputTextFlags));
 	}
 
 	bool TreeNodeEx(const char* label, String treeNodeFlags)
@@ -1890,58 +1880,108 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed, float v_min, float v_max, const char* display_format, float power)
+	bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format, String flags)
+	{
+		return ImGui::DragFloat(label, v, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+	}
+
+	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed, float v_min, float v_max, const char* display_format, String flags)
 	{
 		float floats[2] = {*v1, *v2};
-		bool changed = ImGui::DragFloat2(label, floats, v_speed, v_min, v_max, display_format, power);
+		bool changed = ImGui::DragFloat2(label, floats, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
 		*v1 = floats[0];
 		*v2 = floats[1];
 		return changed;
 	}
 
-	bool DragInt2(const char* label, int* v1, int* v2, float v_speed, int v_min, int v_max, const char* display_format)
+	bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format, String flags)
+	{
+		return ImGui::DragInt(label, v, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+	}
+
+	bool DragInt2(const char* label, int* v1, int* v2, float v_speed, int v_min, int v_max, const char* display_format, String flags)
 	{
 		int ints[2] = {*v1, *v2};
-		bool changed = ImGui::DragInt2(label, ints, v_speed, v_min, v_max, display_format);
+		bool changed = ImGui::DragInt2(label, ints, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
 		*v1 = ints[0];
 		*v2 = ints[1];
 		return changed;
 	}
 
-	bool InputFloat2(const char* label, float* v1, float* v2, String format, String extra_flags)
+	bool InputFloat(const char* label, float* v, float step, float step_fast, const char* format, String flags)
+	{
+		return ImGui::InputFloat(label, v, step, step_fast, format, getInputTextCombinedFlags(flags));
+	}
+
+	bool InputFloat2(const char* label, float* v1, float* v2, const char* format, String flags)
 	{
 		float floats[2] = {*v1, *v2};
-		bool changed = ImGui::InputFloat2(label, floats, format.toString().c_str(), getInputTextFlags(extra_flags));
+		bool changed = ImGui::InputFloat2(label, floats, format, getInputTextCombinedFlags(flags));
 		*v1 = floats[0];
 		*v2 = floats[1];
 		return changed;
 	}
 
-	bool InputInt2(const char* label, int* v1, int* v2, String extra_flags)
+	bool InputInt(const char* label, int* v, int step, int step_fast, String flags)
+	{
+		return ImGui::InputInt(label, v, step, step_fast, getInputTextCombinedFlags(flags));
+	}
+
+	bool InputInt2(const char* label, int* v1, int* v2, String flags)
 	{
 		int ints[2] = {*v1, *v2};
-		bool changed = ImGui::InputInt2(label, ints, getInputTextFlags(extra_flags));
+		bool changed = ImGui::InputInt2(label, ints, getInputTextCombinedFlags(flags));
 		*v1 = ints[0];
 		*v2 = ints[1];
 		return changed;
 	}
 
-	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format, float power)
+	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, String flags)
+	{
+		return ImGui::SliderFloat(label, v, v_min, v_max, format, getSliderCombinedFlags(flags));
+	}
+
+	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format, String flags)
 	{
 		float floats[2] = {*v1, *v2};
-		bool changed = ImGui::SliderFloat2(label, floats, v_min, v_max, display_format, power);
+		bool changed = ImGui::SliderFloat2(label, floats, v_min, v_max, display_format, getSliderCombinedFlags(flags));
 		*v1 = floats[0];
 		*v2 = floats[1];
 		return changed;
 	}
 
-	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format)
+	bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format, String flags)
+	{
+		return ImGui::SliderInt(label, v, v_min, v_max, format, getSliderCombinedFlags(flags));
+	}
+
+	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format, String flags)
 	{
 		int ints[2] = {*v1, *v2};
-		bool changed = ImGui::SliderInt2(label, ints, v_min, v_max, display_format);
+		bool changed = ImGui::SliderInt2(label, ints, v_min, v_max, display_format, getSliderCombinedFlags(flags));
 		*v1 = ints[0];
 		*v2 = ints[1];
 		return changed;
+	}
+	
+	bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed, float v_min, float v_max, const char* format, const char* format_max, String flags)
+	{
+		return ImGui::DragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, getSliderCombinedFlags(flags));
+	}
+
+	bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed, int v_min, int v_max, const char* format, const char* format_max, String flags)
+	{
+		return ImGui::DragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, getSliderCombinedFlags(flags));
+	}
+
+	bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format, String flags)
+	{
+		return ImGui::VSliderFloat(label, size, v, v_min, v_max, format, getSliderCombinedFlags(flags));
+	}
+
+	bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format, String flags)
+	{
+		return ImGui::VSliderInt(label, size, v, v_min, v_max, format, getSliderCombinedFlags(flags));
 	}
 
 	bool ColorEdit3(const char* label, Color3& color3)
@@ -2072,6 +2112,39 @@ namespace ImGui { namespace Binding
 		style.Colors[index] = color.toVec4();
 	}
 
+	ImGuiSliderFlags_ getSliderFlag(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+		case "None"_hash:
+			return ImGuiSliderFlags_None;
+		case "AlwaysClamp"_hash:
+			return ImGuiSliderFlags_AlwaysClamp;
+		case "Logarithmic"_hash:
+			return ImGuiSliderFlags_Logarithmic;
+		case "NoRoundToFormat"_hash:
+			return ImGuiSliderFlags_NoRoundToFormat;
+		case "NoInput"_hash:
+			return ImGuiSliderFlags_NoInput;
+		case ""_hash: return ImGuiSliderFlags_None;
+		default:
+			AssertIf(true, "ImGui slider flag named \"{}\" is invalid.", flag);
+			break;
+		}
+		return ImGuiSliderFlags_None;
+	}
+
+	Uint32 getSliderCombinedFlags(String flags)
+	{
+		auto tokens = flags.split("|"_slice);
+		Uint32 result = 0;
+		for (const auto& token : tokens)
+		{
+			result |= getSliderFlag(token);
+		}
+		return result;
+	}
+
 	ImGuiWindowFlags_ getWindowFlags(String style)
 	{
 		switch (Switch::hash(style))
@@ -2094,7 +2167,7 @@ namespace ImGui { namespace Binding
 			case "AlwaysUseWindowPadding"_hash: return ImGuiWindowFlags_AlwaysUseWindowPadding;
 			case ""_hash: return ImGuiWindowFlags_(0);
 			default:
-				AssertIf(true, "ImGui window flag name \"{}\" is invalid.", style);
+				AssertIf(true, "ImGui window flag named \"{}\" is invalid.", style);
 				break;
 		}
 		return ImGuiWindowFlags_(0);
@@ -2111,7 +2184,7 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	ImGuiInputTextFlags_ getInputTextFlags(String flag)
+	ImGuiInputTextFlags_ getInputTextFlag(String flag)
 	{
 		switch (Switch::hash(flag))
 		{
@@ -2133,9 +2206,20 @@ namespace ImGui { namespace Binding
 			case "Password"_hash: return ImGuiInputTextFlags_Password;
 			case ""_hash: return ImGuiInputTextFlags_(0);
 			default:
-				AssertIf(true, "ImGui input text flag name \"{}\" is invalid.", flag);
+				AssertIf(true, "ImGui input text flag named \"{}\" is invalid.", flag);
 				return ImGuiInputTextFlags_(0);
 		}
+	}
+
+	Uint32 getInputTextCombinedFlags(String flags)
+	{
+		auto tokens = flags.split("|"_slice);
+		Uint32 result = 0;
+		for (const auto& token : tokens)
+		{
+			result |= getInputTextFlag(token);
+		}
+		return result;
 	}
 
 	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag)
@@ -2155,7 +2239,7 @@ namespace ImGui { namespace Binding
 			case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
 			case ""_hash: return ImGuiTreeNodeFlags_(0);
 			default:
-				AssertIf(true, "ImGui tree node flag name \"{}\" is invalid.", flag);
+				AssertIf(true, "ImGui tree node flag named \"{}\" is invalid.", flag);
 				return ImGuiTreeNodeFlags_(0);
 		}
 	}
@@ -2169,7 +2253,7 @@ namespace ImGui { namespace Binding
 			case "AllowDoubleClick"_hash: return ImGuiSelectableFlags_AllowDoubleClick;
 			case ""_hash: return ImGuiSelectableFlags_(0);
 			default:
-				AssertIf(true, "ImGui selectable flag name \"{}\" is invalid.", flag);
+				AssertIf(true, "ImGui selectable flag named \"{}\" is invalid.", flag);
 				return ImGuiSelectableFlags_(0);
 		}
 	}
@@ -2216,7 +2300,7 @@ namespace ImGui { namespace Binding
 			case "TextSelectedBg"_hash: return ImGuiCol_TextSelectedBg;
 			case "ModalWindowDimBg"_hash: return ImGuiCol_ModalWindowDimBg;
 			default:
-				AssertIf(true, "ImGui color index name \"{}\" is invalid.", col);
+				AssertIf(true, "ImGui color index named \"{}\" is invalid.", col);
 				return ImGuiCol_(0);
 		}
 	}
@@ -2230,7 +2314,7 @@ namespace ImGui { namespace Binding
 			case "HEX"_hash: return ImGuiColorEditFlags_DisplayHex;
 			case ""_hash: return ImGuiColorEditFlags_None;
 			default:
-				AssertIf(true, "ImGui color edit flag name \"{}\" is invalid.", mode);
+				AssertIf(true, "ImGui color edit flag named \"{}\" is invalid.", mode);
 				return ImGuiColorEditFlags_None;
 		}
 	}
@@ -2245,7 +2329,7 @@ namespace ImGui { namespace Binding
 			case "Appearing"_hash: return ImGuiCond_Appearing;
 			case ""_hash: return ImGuiCond_(0);
 			default:
-				AssertIf(true, "ImGui set cond name \"{}\" is invalid.", cond);
+				AssertIf(true, "ImGui set cond named \"{}\" is invalid.", cond);
 				return ImGuiCond_(0);
 		}
 	}
@@ -2265,7 +2349,7 @@ namespace ImGui { namespace Binding
 			case "AnyPopup"_hash: return ImGuiPopupFlags_AnyPopup;
 			case ""_hash: return ImGuiPopupFlags_MouseButtonRight;
 			default:
-				AssertIf(true, "ImGui popup flag name \"{}\" is invalid.", flag);
+				AssertIf(true, "ImGui popup flag named \"{}\" is invalid.", flag);
 				return ImGuiPopupFlags_None;
 		}
 	}

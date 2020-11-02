@@ -25,9 +25,12 @@
 /// @file
 /// Declaration of the RayCastOutput structure and related free functions.
 
-#include "PlayRho/Common/BoundedValue.hpp"
+#include "PlayRho/Common/UnitInterval.hpp"
 #include "PlayRho/Common/OptionalValue.hpp"
 #include "PlayRho/Collision/RayCastInput.hpp"
+
+#include "PlayRho/Dynamics/BodyID.hpp"
+#include "PlayRho/Dynamics/FixtureID.hpp"
 
 namespace playrho {
 namespace detail {
@@ -63,9 +66,9 @@ enum class RayCastOpcode
 namespace d2 {
 
 class Shape;
-class Fixture;
 class DistanceProxy;
 class DynamicTree;
+class World;
 
 /// @brief Ray-cast hit data.
 /// @details The ray hits at <code>p1 + fraction * (p2 - p1)</code>, where
@@ -82,17 +85,22 @@ struct RayCastHit
 
 /// @brief Ray cast output.
 /// @details This is a type alias for an optional <code>RayCastHit</code> instance.
-/// @sa RayCast, Optional, RayCastHit
+/// @see RayCast, Optional, RayCastHit
 using RayCastOutput = Optional<RayCastHit>;
 
 /// @brief Ray cast callback function.
 /// @note Return 0 to terminate ray casting, or > 0 to update the segment bounding box.
-using DynamicTreeRayCastCB = std::function<Real(Fixture* fixture, ChildCounter child,
+using DynamicTreeRayCastCB = std::function<Real(BodyID body,
+                                                FixtureID fixture,
+                                                ChildCounter child,
                                                 const RayCastInput& input)>;
 
 /// @brief Ray cast callback function signature.
-using FixtureRayCastCB = std::function<RayCastOpcode(Fixture* fixture, ChildCounter child,
-                                                     Length2 point, UnitVec normal)>;
+using FixtureRayCastCB = std::function<RayCastOpcode(BodyID body,
+                                                     FixtureID fixture,
+                                                     ChildCounter child,
+                                                     Length2 point,
+                                                     UnitVec normal)>;
 
 /// @defgroup RayCastGroup Ray Casting Functions
 /// @brief Collection of functions that do ray casting.
@@ -146,20 +154,22 @@ RayCastOutput RayCast(const Shape& shape, ChildCounter childIndex,
 /// @return <code>true</code> if terminated at the callback's request,
 ///   <code>false</code> otherwise.
 ///
-bool RayCast(const DynamicTree& tree, RayCastInput input, const DynamicTreeRayCastCB& callback);
+bool RayCast(const DynamicTree& tree, RayCastInput input,
+             const DynamicTreeRayCastCB& callback);
 
-/// @brief Ray-cast the dynamic tree for all fixtures in the path of the ray.
+/// @brief Ray-cast the world for all fixtures in the path of the ray.
 ///
 /// @note The callback controls whether you get the closest point, any point, or n-points.
 /// @note The ray-cast ignores shapes that contain the starting point.
 ///
-/// @param tree Dynamic tree to ray cast.
+/// @param world The world instance to raycast in.
 /// @param input Ray cast input data.
 /// @param callback A user implemented callback function.
 ///
 /// @return <code>true</code> if terminated by callback, <code>false</code> otherwise.
 ///
-bool RayCast(const DynamicTree& tree, const RayCastInput& input, FixtureRayCastCB callback);
+/// @relatedalso World
+bool RayCast(const World& world, const RayCastInput& input, const FixtureRayCastCB& callback);
 
 /// @}
 

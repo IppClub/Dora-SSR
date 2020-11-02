@@ -38,23 +38,23 @@ namespace playrho {
 ///   implementation is unlikely to be anywhere near as tested as standard C++ math library
 ///   functions likely are; this implementation is unlikely to have anywhere near as much
 ///   performance tuning as standard library functions have had.
-/// @sa Fixed
-/// @sa http://en.cppreference.com/w/cpp/numeric/math
+/// @see Fixed
+/// @see https://en.cppreference.com/w/cpp/numeric/math
 /// @{
 
 /// @brief Computes the absolute value.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/fabs
+/// @see https://en.cppreference.com/w/cpp/numeric/math/fabs
 template <typename BT, unsigned int FB, int N = 5>
-constexpr inline Fixed<BT, FB> abs(Fixed<BT, FB> arg)
+constexpr Fixed<BT, FB> abs(Fixed<BT, FB> arg)
 {
-    return arg >= 0 ? arg: -arg;
+    return arg >= 0? arg: -arg;
 }
 
 /// @brief Computes the value of the given number raised to the given power.
 /// @note This implementation is for raising a given value to an integer power.
 ///   This may have significantly different performance than raising a value to a
 ///   non-integer power.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/pow
+/// @see https://en.cppreference.com/w/cpp/numeric/math/pow
 template <typename BT, unsigned int FB>
 constexpr Fixed<BT, FB> pow(Fixed<BT, FB> value, int n)
 {
@@ -110,10 +110,10 @@ namespace detail {
 
 /// @brief Fixed point pi value.
 template <typename BT, unsigned int FB>
-constexpr const auto FixedPi = Fixed<BT, FB>{3.14159265358979323846264338327950288};
+constexpr auto FixedPi = Fixed<BT, FB>{3.14159265358979323846264338327950288};
 
 /// @brief Computes the factorial.
-constexpr inline auto factorial(std::int64_t n)
+constexpr auto factorial(std::int64_t n)
 {
     auto res = n;
     for (--n; n > 1; --n)
@@ -125,12 +125,12 @@ constexpr inline auto factorial(std::int64_t n)
 
 /// @brief Computes Euler's number raised to the given power argument.
 /// @note Uses Maclaurin series approximation.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/exp
-/// @sa https://en.wikipedia.org/wiki/Taylor_series
-/// @sa https://en.wikipedia.org/wiki/Exponentiation
-/// @sa https://en.wikipedia.org/wiki/Exponential_function
+/// @see https://en.cppreference.com/w/cpp/numeric/math/exp
+/// @see https://en.wikipedia.org/wiki/Taylor_series
+/// @see https://en.wikipedia.org/wiki/Exponentiation
+/// @see https://en.wikipedia.org/wiki/Exponential_function
 template <typename BT, unsigned int FB, int N = 6>
-constexpr inline Fixed<BT, FB> exp(Fixed<BT, FB> arg)
+constexpr Fixed<BT, FB> exp(Fixed<BT, FB> arg)
 {
     const auto doReciprocal = (arg < 0);
     if (doReciprocal)
@@ -159,8 +159,8 @@ constexpr inline Fixed<BT, FB> exp(Fixed<BT, FB> arg)
 
 /// @brief Computes the natural logarithm.
 /// @note A better method may be explained in https://math.stackexchange.com/a/61236/408405
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/log
-/// @sa https://en.wikipedia.org/wiki/Natural_logarithm
+/// @see https://en.cppreference.com/w/cpp/numeric/math/log
+/// @see https://en.wikipedia.org/wiki/Natural_logarithm
 template <typename BT, unsigned int FB, int N = 6>
 Fixed<BT, FB> log(Fixed<BT, FB> arg)
 {
@@ -212,9 +212,9 @@ Fixed<BT, FB> log(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the sine of the given argument via Maclaurin series approximation.
-/// @sa https://en.wikipedia.org/wiki/Taylor_series
+/// @see https://en.wikipedia.org/wiki/Taylor_series
 template <typename BT, unsigned int FB, int N = 5>
-constexpr inline Fixed<BT, FB> sin(Fixed<BT, FB> arg)
+constexpr Fixed<BT, FB> sin(Fixed<BT, FB> arg)
 {
     // Maclaurin series approximation...
     // sin x = sum((-1^n)*(x^(2n+1))/(2n+1)!)
@@ -226,7 +226,7 @@ constexpr inline Fixed<BT, FB> sin(Fixed<BT, FB> arg)
     // 2 - 8/6 + 32/120 - 128/5040 + 512/362880 = 0.90934744268
     auto res = arg;
     auto sgn = -1;
-    constexpr const auto last = 2 * N + 1;
+    constexpr auto last = 2 * N + 1;
     auto pt = arg;
     auto ft = 1;
     for (auto i = 3; i <= last; i += 2)
@@ -241,9 +241,9 @@ constexpr inline Fixed<BT, FB> sin(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the cosine of the given argument via Maclaurin series approximation.
-/// @sa https://en.wikipedia.org/wiki/Taylor_series
+/// @see https://en.wikipedia.org/wiki/Taylor_series
 template <typename BT, unsigned int FB, int N = 5>
-constexpr inline Fixed<BT, FB> cos(Fixed<BT, FB> arg)
+constexpr Fixed<BT, FB> cos(Fixed<BT, FB> arg)
 {
     // Maclaurin series approximation...
     // cos x = sum((-1^n)*(x^(2n))/(2n)!)
@@ -253,7 +253,7 @@ constexpr inline Fixed<BT, FB> cos(Fixed<BT, FB> arg)
     // 1 - 2^2/2 + 2^4/24 - 2^6/720 = -0.422
     auto res = Fixed<BT, FB>{1};
     auto sgn = -1;
-    constexpr const auto last = 2 * N;
+    constexpr auto last = 2 * N;
     auto ft = 1;
     auto pt = Fixed<BT, FB>{1};
     for (auto i = 2; i <= last; i += 2)
@@ -268,10 +268,10 @@ constexpr inline Fixed<BT, FB> cos(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the arctangent of the given argument via Maclaurin series approximation.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/atan
-/// @sa https://en.wikipedia.org/wiki/Taylor_series
+/// @see https://en.cppreference.com/w/cpp/numeric/math/atan
+/// @see https://en.wikipedia.org/wiki/Taylor_series
 template <typename BT, unsigned int FB, int N = 5>
-constexpr inline Fixed<BT, FB> atan(Fixed<BT, FB> arg)
+constexpr Fixed<BT, FB> atan(Fixed<BT, FB> arg)
 {
     // Note: if (x > 0) then arctan(x) ==  Pi/2 - arctan(1/x)
     //       if (x < 0) then arctan(x) == -Pi/2 - arctan(1/x).
@@ -304,9 +304,9 @@ constexpr inline Fixed<BT, FB> atan(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the square root of a non-negative value.
-/// @sa https://en.wikipedia.org/wiki/Methods_of_computing_square_roots
+/// @see https://en.wikipedia.org/wiki/Methods_of_computing_square_roots
 template <typename BT, unsigned int FB>
-constexpr inline auto ComputeSqrt(Fixed<BT, FB> arg)
+constexpr auto ComputeSqrt(Fixed<BT, FB> arg)
 {
     auto temp = Fixed<BT, FB>{1};
     auto tempSquared = Square(temp);
@@ -337,15 +337,15 @@ constexpr inline auto ComputeSqrt(Fixed<BT, FB> arg)
 } // namespace detail
 
 /// @brief Truncates the given value.
-/// @sa http://en.cppreference.com/w/c/numeric/math/trunc
+/// @see https://en.cppreference.com/w/c/numeric/math/trunc
 template <typename BT, unsigned int FB>
-constexpr inline Fixed<BT, FB> trunc(Fixed<BT, FB> arg)
+constexpr Fixed<BT, FB> trunc(Fixed<BT, FB> arg)
 {
     return static_cast<Fixed<BT, FB>>(static_cast<long long>(arg));
 }
 
 /// @brief Next after function for Fixed types.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/nextafter
+/// @see https://en.cppreference.com/w/cpp/numeric/math/nextafter
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> nextafter(Fixed<BT, FB> from, Fixed<BT, FB> to) noexcept
 {
@@ -361,7 +361,7 @@ inline Fixed<BT, FB> nextafter(Fixed<BT, FB> from, Fixed<BT, FB> to) noexcept
 }
 
 /// @brief Computes the remainder of the division of the given dividend by the given divisor.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/fmod
+/// @see https://en.cppreference.com/w/cpp/numeric/math/fmod
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> fmod(Fixed<BT, FB> dividend, Fixed<BT, FB> divisor) noexcept
 {
@@ -378,7 +378,7 @@ inline Fixed<BT, FB> fmod(Fixed<BT, FB> dividend, Fixed<BT, FB> divisor) noexcep
 ///   that puts a high expectation on this implementation for fixed-point types.
 /// @note "Domain error" occurs if <code>arg</code> is less than zero.
 /// @return Mathematical square root value of the given value or the <code>NaN</code> value.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/sqrt
+/// @see https://en.cppreference.com/w/cpp/numeric/math/sqrt
 template <typename BT, unsigned int FB>
 inline auto sqrt(Fixed<BT, FB> arg)
 {
@@ -395,7 +395,7 @@ inline auto sqrt(Fixed<BT, FB> arg)
 }
 
 /// @brief Gets whether the given value is normal - i.e. not 0 nor infinite.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/isnormal
+/// @see https://en.cppreference.com/w/cpp/numeric/math/isnormal
 template <typename BT, unsigned int FB>
 inline bool isnormal(Fixed<BT, FB> arg)
 {
@@ -408,7 +408,7 @@ namespace detail {
 template <typename BT, unsigned int FB>
 inline auto AngularNormalize(Fixed<BT, FB> angleInRadians)
 {
-    constexpr const auto oneRotationInRadians = 2 * FixedPi<BT, FB>;
+    constexpr auto oneRotationInRadians = 2 * FixedPi<BT, FB>;
 
     angleInRadians = fmod(angleInRadians, oneRotationInRadians);
     if (angleInRadians > FixedPi<BT, FB>)
@@ -427,7 +427,7 @@ inline auto AngularNormalize(Fixed<BT, FB> angleInRadians)
 } // namespace detail
 
 /// @brief Computes the sine of the argument for Fixed types.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/sin
+/// @see https://en.cppreference.com/w/cpp/numeric/math/sin
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> sin(Fixed<BT, FB> arg)
 {
@@ -436,7 +436,7 @@ inline Fixed<BT, FB> sin(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the cosine of the argument for Fixed types.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/cos
+/// @see https://en.cppreference.com/w/cpp/numeric/math/cos
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> cos(Fixed<BT, FB> arg)
 {
@@ -445,7 +445,7 @@ inline Fixed<BT, FB> cos(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the arc tangent.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/atan
+/// @see https://en.cppreference.com/w/cpp/numeric/math/atan
 /// @return Value between <code>-Pi / 2</code> and <code>Pi / 2</code>.
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> atan(Fixed<BT, FB> arg)
@@ -466,7 +466,7 @@ inline Fixed<BT, FB> atan(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the multi-valued inverse tangent.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/atan2
+/// @see https://en.cppreference.com/w/cpp/numeric/math/atan2
 /// @return Value between <code>-Pi</code> and <code>+Pi</code> inclusive.
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> atan2(Fixed<BT, FB> y, Fixed<BT, FB> x)
@@ -493,7 +493,7 @@ inline Fixed<BT, FB> atan2(Fixed<BT, FB> y, Fixed<BT, FB> x)
 }
 
 /// @brief Computes the natural logarithm of the given argument.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/log
+/// @see https://en.cppreference.com/w/cpp/numeric/math/log
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> log(Fixed<BT, FB> arg)
 {
@@ -501,7 +501,7 @@ inline Fixed<BT, FB> log(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the Euler number raised to the power of the given argument.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/exp
+/// @see https://en.cppreference.com/w/cpp/numeric/math/exp
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> exp(Fixed<BT, FB> arg)
 {
@@ -509,7 +509,7 @@ inline Fixed<BT, FB> exp(Fixed<BT, FB> arg)
 }
 
 /// @brief Computes the value of the base number raised to the power of the exponent.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/pow
+/// @see https://en.cppreference.com/w/cpp/numeric/math/pow
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> pow(Fixed<BT, FB> base, Fixed<BT, FB> exponent)
 {
@@ -534,7 +534,7 @@ inline Fixed<BT, FB> pow(Fixed<BT, FB> base, Fixed<BT, FB> exponent)
 }
 
 /// @brief Computes the square root of the sum of the squares.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/hypot
+/// @see https://en.cppreference.com/w/cpp/numeric/math/hypot
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> hypot(Fixed<BT, FB> x, Fixed<BT, FB> y)
 {
@@ -542,7 +542,7 @@ inline Fixed<BT, FB> hypot(Fixed<BT, FB> x, Fixed<BT, FB> y)
 }
 
 /// @brief Rounds the given value.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/round
+/// @see https://en.cppreference.com/w/cpp/numeric/math/round
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> round(Fixed<BT, FB> value) noexcept
 {
@@ -552,7 +552,7 @@ inline Fixed<BT, FB> round(Fixed<BT, FB> value) noexcept
 }
 
 /// @brief Determines whether the given value is negative.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/signbit
+/// @see https://en.cppreference.com/w/cpp/numeric/math/signbit
 template <typename BT, unsigned int FB>
 inline bool signbit(Fixed<BT, FB> value) noexcept
 {
@@ -560,15 +560,15 @@ inline bool signbit(Fixed<BT, FB> value) noexcept
 }
 
 /// @brief Gets whether the given value is not-a-number.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/isnan
+/// @see https://en.cppreference.com/w/cpp/numeric/math/isnan
 template <typename BT, unsigned int FB>
-PLAYRHO_CONSTEXPR inline bool isnan(Fixed<BT, FB> value) noexcept
+constexpr bool isnan(Fixed<BT, FB> value) noexcept
 {
     return value.Compare(0) == Fixed<BT, FB>::CmpResult::Incomparable;
 }
 
 /// @brief Gets whether the given value is finite.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/isfinite
+/// @see https://en.cppreference.com/w/cpp/numeric/math/isfinite
 template <typename BT, unsigned int FB>
 inline bool isfinite(Fixed<BT, FB> value) noexcept
 {

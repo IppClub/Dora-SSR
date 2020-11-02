@@ -17,15 +17,18 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include "PlayRho/Collision/RayCastOutput.hpp"
+
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Common/GrowableStack.hpp"
-#include "PlayRho/Collision/RayCastOutput.hpp"
 #include "PlayRho/Collision/RayCastInput.hpp"
 #include "PlayRho/Collision/AABB.hpp"
 #include "PlayRho/Collision/DistanceProxy.hpp"
 #include "PlayRho/Collision/DynamicTree.hpp"
-#include "PlayRho/Dynamics/Fixture.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
+#include "PlayRho/Dynamics/WorldBody.hpp"
+#include "PlayRho/Dynamics/WorldFixture.hpp"
+#include "PlayRho/Dynamics/WorldMisc.hpp"
+
 #include <utility>
 
 namespace playrho {
@@ -274,7 +277,8 @@ bool RayCast(const DynamicTree& tree, RayCastInput input, const DynamicTreeRayCa
         {
             assert(DynamicTree::IsLeaf(tree.GetHeight(index)));
             const auto leafData = tree.GetLeafData(index);
-            const auto value = callback(leafData.fixture, leafData.childIndex, input);
+            const auto value = callback(leafData.body, leafData.fixture, leafData.childIndex,
+                                        input);
             if (value == 0)
             {
                 return true; // Callback has terminated the ray cast.
@@ -290,11 +294,13 @@ bool RayCast(const DynamicTree& tree, RayCastInput input, const DynamicTreeRayCa
     return false;
 }
 
-bool RayCast(const DynamicTree& tree, const RayCastInput& rci, FixtureRayCastCB callback)
+bool RayCast(const World& world, const RayCastInput& input, const FixtureRayCastCB& callback)
 {
-    return RayCast(tree, rci, [callback](Fixture* fixture, ChildCounter index, const RayCastInput& input) {
-        const auto output = RayCast(GetChild(fixture->GetShape(), index), input,
-                                    fixture->GetBody()->GetTransformation());
+    return RayCast(GetTree(world), input,
+                   [&world,&callback](BodyID body, FixtureID fixture, ChildCounter index,
+                                      const RayCastInput& rci) {
+        const auto output = RayCast(GetChild(GetShape(world, fixture), index), rci,
+                                    GetTransformation(world, body));
         if (output.has_value())
         {
             const auto fraction = output->fraction;
@@ -313,17 +319,17 @@ bool RayCast(const DynamicTree& tree, const RayCastInput& rci, FixtureRayCastCB 
             //
             // The second way, does not have this problem.
             //
-            const auto point = input.p1 + (input.p2 - input.p1) * fraction;
-            const auto opcode = callback(fixture, index, point, output->normal);
+            const auto point = rci.p1 + (rci.p2 - rci.p1) * fraction;
+            const auto opcode = callback(body, fixture, index, point, output->normal);
             switch (opcode)
             {
                 case RayCastOpcode::Terminate: return Real{0};
                 case RayCastOpcode::IgnoreFixture: return Real{-1};
                 case RayCastOpcode::ClipRay: return Real{fraction};
-                case RayCastOpcode::ResetRay: return Real{input.maxFraction};
+                case RayCastOpcode::ResetRay: return Real{rci.maxFraction};
             }
         }
-        return Real{input.maxFraction};
+        return Real{rci.maxFraction};
     });
 }
 

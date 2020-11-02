@@ -33,14 +33,14 @@ namespace playrho {
 /// @brief Generic M by N matrix.
 /// @note M is the number of rows of the matrix.
 /// @note N is the number of columns of the matrix.
-/// @sa https://en.wikipedia.org/wiki/Matrix_(mathematics)
-/// @sa Vector, MatrixTraitsGroup, IsVector
+/// @see https://en.wikipedia.org/wiki/Matrix_(mathematics)
+/// @see Vector, MatrixTraitsGroup, IsVector
 template <typename T, std::size_t M, std::size_t N>
 using Matrix = Vector<Vector<T, N>, M>;
 
 /// @defgroup MatrixTraitsGroup Matrix Traits
 /// @brief Collection of trait classes for matrices.
-/// @sa Matrix
+/// @see Matrix
 /// @{
 
 /// @brief Trait class for checking if type is a matrix type.
@@ -51,7 +51,7 @@ using Matrix = Vector<Vector<T, N>, M>;
 /// @code{.cpp}
 /// IsMatrix<int>::value || IsMatrix<float>::value
 /// @endcode
-/// @sa Matrix, IsSquareMatrix, IsVector
+/// @see Matrix, IsSquareMatrix, IsVector
 template <typename>
 struct IsMatrix: std::false_type {};
 
@@ -63,7 +63,7 @@ struct IsMatrix: std::false_type {};
 /// @code{.cpp}
 /// IsMatrix<Matrix<int, 2, 3>>::value && IsMatrix<Mat22>::value && IsMatrix<Mat33>::value
 /// @endcode
-/// @sa Matrix, IsSquareMatrix, IsVector
+/// @see Matrix, IsSquareMatrix, IsVector
 template <typename T, std::size_t M, std::size_t N>
 struct IsMatrix<Vector<Vector<T, N>, M>>: std::true_type {};
 
@@ -76,7 +76,7 @@ struct IsMatrix<Vector<Vector<T, N>, M>>: std::true_type {};
 /// IsSquareMatrix<int>::value || IsSquareMatrix<float>::value
 /// @endcode
 /// @relatedalso Vector
-/// @sa IsMatrix, Matrix, Vector
+/// @see IsMatrix, Matrix, Vector
 template <typename>
 struct IsSquareMatrix: std::false_type {};
 
@@ -88,17 +88,17 @@ struct IsSquareMatrix: std::false_type {};
 /// @code{.cpp}
 /// IsSquareMatrix<Mat22>::value && IsSquareMatrix<Mat33>::value
 /// @endcode
-/// @sa IsMatrix, Matrix, Vector
+/// @see IsMatrix, Matrix, Vector
 template <typename T, std::size_t M>
 struct IsSquareMatrix<Vector<Vector<T, M>, M>>: std::true_type {};
 
 /// @}
 
 /// @brief Gets the identity matrix of the template type and size.
-/// @sa https://en.wikipedia.org/wiki/Identity_matrix
-/// @sa Matrix, IsMatrix, IsSquareMatrix
+/// @see https://en.wikipedia.org/wiki/Identity_matrix
+/// @see Matrix, IsMatrix, IsSquareMatrix
 template <typename T, std::size_t N>
-PLAYRHO_CONSTEXPR inline
+constexpr
 std::enable_if_t<!IsVector<T>::value, Matrix<T, N, N>> GetIdentityMatrix()
 {
     auto result = Matrix<Real, N, N>{};
@@ -110,17 +110,17 @@ std::enable_if_t<!IsVector<T>::value, Matrix<T, N, N>> GetIdentityMatrix()
 }
 
 /// @brief Gets the identity matrix of the template type and size as given by the argument.
-/// @sa https://en.wikipedia.org/wiki/Identity_matrix
-/// @sa Matrix, IsMatrix, IsSquareMatrix
+/// @see https://en.wikipedia.org/wiki/Identity_matrix
+/// @see Matrix, IsMatrix, IsSquareMatrix
 template <typename T>
-PLAYRHO_CONSTEXPR inline std::enable_if_t<IsSquareMatrix<T>::value, T> GetIdentity()
+constexpr std::enable_if_t<IsSquareMatrix<T>::value, T> GetIdentity()
 {
     return GetIdentityMatrix<typename T::value_type::value_type, std::tuple_size<T>::value>();
 }
 
 /// @brief Gets the specified row of the given matrix as a row matrix.
 template <typename T, std::size_t N>
-PLAYRHO_CONSTEXPR inline
+constexpr
 std::enable_if_t<!IsVector<T>::value, Vector<Vector<T, N>, 1>> GetRowMatrix(Vector<T, N> arg)
 {
     return Vector<Vector<T, N>, 1>{arg};
@@ -128,7 +128,7 @@ std::enable_if_t<!IsVector<T>::value, Vector<Vector<T, N>, 1>> GetRowMatrix(Vect
 
 /// @brief Gets the specified column of the given matrix as a column matrix.
 template <typename T, std::size_t N>
-PLAYRHO_CONSTEXPR inline
+constexpr
 std::enable_if_t<!IsVector<T>::value, Vector<Vector<T, 1>, N>> GetColumnMatrix(Vector<T, N> arg)
 {
     auto result = Vector<Vector<T, 1>, N>{};
@@ -140,9 +140,9 @@ std::enable_if_t<!IsVector<T>::value, Vector<Vector<T, 1>, N>> GetColumnMatrix(V
 }
 
 /// @brief Matrix addition operator for two same-type, same-sized matrices.
-/// @sa https://en.wikipedia.org/wiki/Matrix_addition
+/// @see https://en.wikipedia.org/wiki/Matrix_addition
 template <typename T, std::size_t M, std::size_t N>
-PLAYRHO_CONSTEXPR inline
+constexpr
 auto operator+ (const Matrix<T, M, N>& lhs, const Matrix<T, M, N>& rhs) noexcept
 {
     auto result = Matrix<T, M, N>{};
@@ -157,9 +157,9 @@ auto operator+ (const Matrix<T, M, N>& lhs, const Matrix<T, M, N>& rhs) noexcept
 }
 
 /// @brief Matrix subtraction operator for two same-type, same-sized matrices.
-/// @sa https://en.wikipedia.org/wiki/Matrix_addition
+/// @see https://en.wikipedia.org/wiki/Matrix_addition
 template <typename T, std::size_t M, std::size_t N>
-PLAYRHO_CONSTEXPR inline
+constexpr
 auto operator- (const Matrix<T, M, N>& lhs, const Matrix<T, M, N>& rhs) noexcept
 {
     auto result = Matrix<T, M, N>{};
@@ -195,14 +195,14 @@ using Mat33 = Matrix33<Real>;
 
 /// @brief Determines if the given value is valid.
 template <>
-PLAYRHO_CONSTEXPR inline bool IsValid(const Mat22& value) noexcept
+constexpr bool IsValid(const Mat22& value) noexcept
 {
     return IsValid(get<0>(value)) && IsValid(get<1>(value));
 }
 
 /// @brief Gets an invalid value for a <code>Mat22</code>.
 template <>
-PLAYRHO_CONSTEXPR inline Mat22 GetInvalid() noexcept
+constexpr Mat22 GetInvalid() noexcept
 {
     return Mat22{GetInvalid<Vec2>(), GetInvalid<Vec2>()};
 }

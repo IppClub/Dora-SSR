@@ -72,7 +72,7 @@ struct ClipVertex
 };
 
 /// @brief Clip list for <code>ClipSegmentToLine</code>.
-/// @sa ClipSegmentToLine.
+/// @see ClipSegmentToLine.
 /// @note This data structure is at least 24-bytes large.
 using ClipList = ArrayList<ClipVertex, MaxManifoldPoints>;
 

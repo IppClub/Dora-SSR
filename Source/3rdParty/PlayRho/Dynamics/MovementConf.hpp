@@ -25,7 +25,7 @@
 
 namespace playrho {
 
-class StepConf;
+struct StepConf;
 
 /// @brief Movement configuration.
 struct MovementConf

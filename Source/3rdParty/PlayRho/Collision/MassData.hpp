@@ -26,7 +26,10 @@
 /// Declaration of the <code>MassData</code> structure and associated free functions.
 
 #include "PlayRho/Common/Math.hpp"
-#include "PlayRho/Common/BoundedValue.hpp"
+#include "PlayRho/Common/NonNegative.hpp"
+
+#include "PlayRho/Dynamics/BodyID.hpp"
+#include "PlayRho/Dynamics/FixtureID.hpp"
 
 namespace playrho {
 namespace detail {
@@ -44,7 +47,7 @@ struct MassData
     
     /// @brief Rotational inertia, a.k.a. moment of inertia.
     /// @details This is the rotational inertia of the shape about the local origin.
-    /// @sa https://en.wikipedia.org/wiki/Moment_of_inertia
+    /// @see https://en.wikipedia.org/wiki/Moment_of_inertia
     NonNegative<RotInertia> I = NonNegative<RotInertia>{0 * 1_m2 * 1_kg / SquareRadian};
 };
 
@@ -53,7 +56,7 @@ struct MassData
 /// @brief Equality operator for mass data.
 /// @relatedalso MassData
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline bool operator== (MassData<N> lhs, MassData<N> rhs)
+constexpr bool operator== (MassData<N> lhs, MassData<N> rhs)
 {
     return lhs.center == rhs.center && lhs.mass == rhs.mass && lhs.I == rhs.I;
 }
@@ -61,16 +64,13 @@ PLAYRHO_CONSTEXPR inline bool operator== (MassData<N> lhs, MassData<N> rhs)
 /// @brief Inequality operator for mass data.
 /// @relatedalso MassData
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline bool operator!= (MassData<N> lhs, MassData<N> rhs)
+constexpr bool operator!= (MassData<N> lhs, MassData<N> rhs)
 {
     return !(lhs == rhs);
 }
 } // namespace detail
 
 namespace d2 {
-
-class Fixture;
-class Body;
 
 /// @brief Mass data alias for 2-D objects.
 /// @note This data structure is 16-bytes large (on at least one 64-bit platform).
@@ -97,33 +97,6 @@ MassData GetMassData(Length r, NonNegative<AreaDensity> density, Length2 v0, Len
 ///    properties.
 MassData GetMassData(Length vertexRadius, NonNegative<AreaDensity> density,
                      Span<const Length2> vertices);
-
-/// @brief Computes the mass data for the given fixture.
-///
-/// @details
-/// The mass data is based on the density and the shape of the fixture.
-/// The rotational inertia is about the shape's origin.
-/// @note This operation may be expensive.
-///
-/// @param f Fixture to compute the mass data for.
-///
-/// @relatedalso Fixture
-///
-MassData GetMassData(const Fixture& f);
-
-/// @brief Computes the body's mass data.
-/// @details This basically accumulates the mass data over all fixtures.
-/// @note The center is the mass weighted sum of all fixture centers. Divide it by the
-///   mass to get the averaged center.
-/// @return accumulated mass data for all fixtures associated with the given body.
-/// @relatedalso Body
-MassData ComputeMassData(const Body& body) noexcept;
-
-
-/// @brief Gets the mass data of the body.
-/// @return Data structure containing the mass, inertia, and center of the body.
-/// @relatedalso Body
-MassData GetMassData(const Body& body) noexcept;
 
 } // namespace d2
 } // namespace playrho

@@ -23,9 +23,9 @@
 #include "PlayRho/Collision/RayCastInput.hpp"
 #include "PlayRho/Collision/DistanceProxy.hpp"
 #include "PlayRho/Collision/Shapes/Shape.hpp"
-#include "PlayRho/Dynamics/Fixture.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
 #include "PlayRho/Dynamics/Contacts/Contact.hpp"
+#include "PlayRho/Dynamics/WorldFixture.hpp"
+#include "PlayRho/Dynamics/WorldBody.hpp"
 
 /// @file
 /// Definitions for the AABB class.
@@ -69,38 +69,40 @@ AABB ComputeAABB(const Shape& shape, const Transformation& xf) noexcept
     return sum;
 }
 
-AABB ComputeAABB(const Fixture& fixture) noexcept
+AABB ComputeAABB(const World& world, FixtureID id)
 {
-    return ComputeAABB(fixture.GetShape(), fixture.GetBody()->GetTransformation());
+    return ComputeAABB(GetShape(world, id), GetTransformation(world, GetBody(world, id)));
 }
 
-AABB ComputeAABB(const Body& body)
+AABB ComputeAABB(const World& world, BodyID id)
 {
     auto sum = AABB{};
-    const auto xf = body.GetTransformation();
-    for (auto&& f: body.GetFixtures())
+    const auto xf = GetTransformation(world, id);
+    for (const auto& f: GetFixtures(world, id))
     {
-        Include(sum, ComputeAABB((GetRef(f).GetShape()), xf));
+        Include(sum, ComputeAABB(GetShape(world, f), xf));
     }
     return sum;
 }
 
-AABB ComputeIntersectingAABB(const Fixture& fA, ChildCounter iA,
-                             const Fixture& fB, ChildCounter iB) noexcept
+AABB ComputeIntersectingAABB(const World& world,
+                             FixtureID fA, ChildCounter iA,
+                             FixtureID fB, ChildCounter iB) noexcept
 {
-    const auto xA = fA.GetBody()->GetTransformation();
-    const auto xB = fB.GetBody()->GetTransformation();
-    const auto childA = GetChild(fA.GetShape(), iA);
-    const auto childB = GetChild(fB.GetShape(), iB);
+    const auto xA = GetTransformation(world, GetBody(world, fA));
+    const auto xB = GetTransformation(world, GetBody(world, fB));
+    const auto childA = GetChild(GetShape(world, fA), iA);
+    const auto childB = GetChild(GetShape(world, fB), iB);
     const auto aabbA = ComputeAABB(childA, xA);
     const auto aabbB = ComputeAABB(childB, xB);
     return GetIntersectingAABB(aabbA, aabbB);
 }
 
-AABB ComputeIntersectingAABB(const Contact& contact)
+AABB ComputeIntersectingAABB(const World& world, const Contact& contact)
 {
-    return ComputeIntersectingAABB(*contact.GetFixtureA(), contact.GetChildIndexA(),
-                                   *contact.GetFixtureB(), contact.GetChildIndexB());
+    return ComputeIntersectingAABB(world,
+                                   contact.GetFixtureA(), contact.GetChildIndexA(),
+                                   contact.GetFixtureB(), contact.GetChildIndexB());
 }
 
 AABB GetAABB(const RayCastInput& input) noexcept

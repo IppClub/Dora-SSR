@@ -27,6 +27,7 @@ namespace d2 {
 
 class Manifold;
 class Contact;
+class World;
 
 /// @brief Essentially a Manifold expressed in world coordinate terms.
 ///
@@ -34,7 +35,7 @@ class Contact;
 ///
 /// @note This data structure is 48-bytes large (on at least one 64-bit platform).
 ///
-/// @sa GetWorldManifold
+/// @see GetWorldManifold
 ///
 class WorldManifold
 {
@@ -75,7 +76,7 @@ public:
     WorldManifold() = default;
     
     /// @brief Initializing constructor.
-    PLAYRHO_CONSTEXPR inline explicit WorldManifold(UnitVec normal) noexcept:
+    constexpr explicit WorldManifold(UnitVec normal) noexcept:
         m_normal{normal}
     {
         assert(IsValid(normal));
@@ -83,7 +84,7 @@ public:
     }
     
     /// @brief Initializing constructor.
-    PLAYRHO_CONSTEXPR inline explicit WorldManifold(UnitVec normal, PointData ps0) noexcept:
+    constexpr explicit WorldManifold(UnitVec normal, PointData ps0) noexcept:
         m_normal{normal},
         m_points{ps0.location, GetInvalid<Length2>()},
         m_impulses{ps0.impulse, Momentum2{}},
@@ -94,7 +95,7 @@ public:
     }
     
     /// @brief Initializing constructor.
-    PLAYRHO_CONSTEXPR inline explicit WorldManifold(UnitVec normal, PointData ps0, PointData ps1) noexcept:
+    constexpr explicit WorldManifold(UnitVec normal, PointData ps0, PointData ps1) noexcept:
         m_normal{normal},
         m_points{ps0.location, ps1.location},
         m_impulses{ps0.impulse, ps1.impulse},
@@ -199,7 +200,8 @@ WorldManifold GetWorldManifold(const Manifold& manifold,
 ///
 /// @relatedalso Contact
 ///
-WorldManifold GetWorldManifold(const Contact& contact);
+WorldManifold GetWorldManifold(const World& world,
+                               const Contact& contact, const Manifold& manifold);
 
 } // namespace d2
 } // namespace playrho

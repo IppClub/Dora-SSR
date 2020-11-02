@@ -15,9 +15,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Body::Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos, float rot):
-_prBody(nullptr),
+_prBody(pr::InvalidBodyID),
 _bodyDef(bodyDef),
-_world(world),
+_pWorld(world),
 _group(0)
 {
 	AssertIf(world == nullptr, "init Body with invalid PhysicsWorld.");
@@ -27,10 +27,11 @@ _group(0)
 
 Body::~Body()
 {
-	if (_prBody)
+	if (_prBody != pr::InvalidBodyID)
 	{
-		_world->getPrWorld()->Destroy(_prBody);
-		_prBody = nullptr;
+		_pWorld->getPrWorld().Destroy(_prBody);
+		_pWorld->setBodyData(_prBody, nullptr);
+		_prBody = pr::InvalidBodyID;
 	}
 	ARRAY_START(Sensor, sensor, _sensors)
 	{
@@ -45,14 +46,14 @@ Body::~Body()
 bool Body::init()
 {
 	if (!Node::init()) return false;
-	_prBody = _world->getPrWorld()->CreateBody(*_bodyDef->getConf());
-	_prBody->SetUserData(r_cast<void*>(this));
+	_prBody = _pWorld->getPrWorld().CreateBody(*_bodyDef->getConf());
+	_pWorld->setBodyData(_prBody, this);
 	Node::setPosition(PhysicsWorld::oVal(_bodyDef->getConf()->location));
 	for (FixtureDef& fixtureDef : _bodyDef->getFixtureConfs())
 	{
 		if (fixtureDef.conf.isSensor)
 		{
-			Body::attachSensor(s_cast<int>(r_cast<intptr_t>(fixtureDef.conf.userData)), &fixtureDef);
+			Body::attachSensor(fixtureDef.tag, &fixtureDef);
 		}
 		else
 		{
@@ -65,27 +66,29 @@ bool Body::init()
 void Body::onEnter()
 {
 	Node::onEnter();
-	_prBody->SetEnabled(true);
+	pd::SetEnabled(_pWorld->getPrWorld(), _prBody, true);
 }
 
 void Body::onExit()
 {
 	Node::onExit();
-	_prBody->SetEnabled(false); // Set enable false to trigger sensor`s body leave event.
+	pd::SetEnabled(_pWorld->getPrWorld(), _prBody, false); // Set enable false to trigger sensor`s body leave event.
 }
 
 void Body::cleanup()
 {
 	Node::cleanup();
-	if (_prBody)
+	if (_prBody != pr::InvalidBodyID)
 	{
-		_world->getPrWorld()->Destroy(_prBody);
-		_prBody = nullptr;
+		_pWorld->getPrWorld().Destroy(_prBody);
+		_pWorld->setBodyData(_prBody, nullptr);
+		_prBody = pr::InvalidBodyID;
 	}
 	if (_sensors)
 	{
 		ARRAY_START(Sensor, sensor, _sensors)
 		{
+			_pWorld->setFixtureData(sensor->getFixture(), nullptr);
 			sensor->bodyEnter.Clear();
 			sensor->bodyLeave.Clear();
 			sensor->setEnabled(false);
@@ -103,12 +106,12 @@ BodyDef* Body::getBodyDef() const
 	return _bodyDef;
 }
 
-PhysicsWorld* Body::getWorld() const
+PhysicsWorld* Body::getPhysicsWorld() const
 {
-	return _world;
+	return _pWorld;
 }
 
-pd::Body* Body::getPrBody() const
+pr::BodyID Body::getPrBody() const
 {
 	return _prBody;
 }
@@ -134,9 +137,11 @@ bool Body::removeSensorByTag(int tag)
 
 bool Body::removeSensor(Sensor* sensor)
 {
-	if (_sensors && sensor && sensor->getFixture()->GetBody() == _prBody)
+	auto& world = _pWorld->getPrWorld();
+	if (_sensors && sensor && pd::GetBody(world, sensor->getFixture()) == _prBody)
 	{
-		_prBody->Destroy(sensor->getFixture());
+		pd::Destroy(world, sensor->getFixture());
+		_pWorld->setFixtureData(sensor->getFixture(), nullptr);
 		_sensors->remove(sensor);
 		return true;
 	}
@@ -145,7 +150,8 @@ bool Body::removeSensor(Sensor* sensor)
 
 void Body::setVelocity(float x, float y)
 {
-	pd::SetLinearVelocity(*_prBody, pr::LinearVelocity2{PhysicsWorld::b2Val(x), PhysicsWorld::b2Val(y)});
+	auto& world = _pWorld->getPrWorld();
+	pd::SetVelocity(world, _prBody, pr::LinearVelocity2{PhysicsWorld::b2Val(x), PhysicsWorld::b2Val(y)});
 }
 
 void Body::setVelocity(const Vec2& velocity)
@@ -155,37 +161,44 @@ void Body::setVelocity(const Vec2& velocity)
 
 Vec2 Body::getVelocity() const
 {
-	return PhysicsWorld::oVal(_prBody->GetVelocity().linear);
+	auto& world = _pWorld->getPrWorld();
+	return PhysicsWorld::oVal(pd::GetVelocity(world, _prBody).linear);
 }
 
 void Body::setAngularRate(float var)
 {
-	pd::SetAngularVelocity(*_prBody, -bx::toRad(var));
+	auto& world = _pWorld->getPrWorld();
+	pd::SetVelocity(world, _prBody, -bx::toRad(var));
 }
 
 float Body::getAngularRate() const
 {
-	return -bx::toDeg(_prBody->GetVelocity().angular);
+	auto& world = _pWorld->getPrWorld();
+	return -bx::toDeg(pd::GetAngularVelocity(world, _prBody));
 }
 
 void Body::setLinearDamping(float var)
 {
-	_prBody->SetLinearDamping(var);
+	auto& world = _pWorld->getPrWorld();
+	pd::SetLinearDamping(world, _prBody, var);
 }
 
 float Body::getLinearDamping() const
 {
-	return _prBody->GetLinearDamping();
+	auto& world = _pWorld->getPrWorld();
+	return pd::GetLinearDamping(world, _prBody);
 }
 
 void Body::setAngularDamping(float var)
 {
-	_prBody->SetAngularDamping(var);
+	auto& world = _pWorld->getPrWorld();
+	pd::SetAngularDamping(world, _prBody, var);
 }
 
 float Body::getAngularDamping() const
 {
-	return _prBody->GetAngularDamping();
+	auto& world = _pWorld->getPrWorld();
+	return pd::GetAngularDamping(world, _prBody);
 }
 
 void Body::setOwner(Object* owner)
@@ -200,16 +213,19 @@ Object* Body::getOwner() const
 
 float Body::getMass() const
 {
-	return 1.0f / _prBody->GetInvMass();
+	auto& world = _pWorld->getPrWorld();
+	return 1.0f / pd::GetInvMass(world, _prBody);
 }
 
 void Body::setGroup(Uint8 group)
 {
 	AssertIf(group >= PhysicsWorld::TotalGroups, "Body group should be less than {}.", PhysicsWorld::TotalGroups);
 	_group = group;
-	for (pd::Fixture* f : _prBody->GetFixtures())
+	auto& world = _pWorld->getPrWorld();
+	const auto& filter = _pWorld->getFilter(group);
+	for (pr::FixtureID f : pd::GetFixtures(world, _prBody))
 	{
-		f->SetFilterData(_world->getFilter(group));
+		pd::SetFilterData(world, f, filter);
 	}
 }
 
@@ -220,30 +236,34 @@ Uint8 Body::getGroup() const
 
 void Body::applyLinearImpulse(const Vec2& impulse, const Vec2& pos)
 {
-	pd::ApplyLinearImpulse(*_prBody, PhysicsWorld::b2Val(impulse), PhysicsWorld::b2Val(pos));
+	auto& world = _pWorld->getPrWorld();
+	pd::ApplyLinearImpulse(world, _prBody, PhysicsWorld::b2Val(impulse), PhysicsWorld::b2Val(pos));
 }
 
 void Body::applyAngularImpulse(float impulse)
 {
-	pd::ApplyAngularImpulse(*_prBody, PhysicsWorld::b2Val(impulse));
+	auto& world = _pWorld->getPrWorld();
+	pd::ApplyAngularImpulse(world, _prBody, PhysicsWorld::b2Val(impulse));
 }
 
-pd::Fixture* Body::attachFixture(FixtureDef* fixtureDef)
+pr::FixtureID Body::attachFixture(FixtureDef* fixtureDef)
 {
-	pd::Fixture* fixture = _prBody->CreateFixture(
+	auto& world = _pWorld->getPrWorld();
+	pr::FixtureID fixture = pd::CreateFixture(
+		world,
+		_prBody,
 		fixtureDef->shape,
-		fixtureDef->conf.UseFilter(_world->getFilter(_group))
+		fixtureDef->conf.UseFilter(_pWorld->getFilter(_group))
 			.UseIsSensor(false)
-			.UseUserData(nullptr)
 	);
 	return fixture;
 }
 
-pd::Fixture* Body::attach(FixtureDef* fixtureDef)
+pr::FixtureID Body::attach(FixtureDef* fixtureDef)
 {
-	pd::Fixture* fixture = Body::attachFixture(fixtureDef);
+	pr::FixtureID fixture = Body::attachFixture(fixtureDef);
 	/* cleanup temp vertices */
-	if (pd::GetUseType(fixtureDef->shape) == pd::ShapeType<pd::ChainShapeConf>())
+	if (pd::GetType(fixtureDef->shape) == pr::GetTypeID<pd::ChainShapeConf>())
 	{
 		fixtureDef->shape = pd::Shape{};
 	}
@@ -254,11 +274,12 @@ Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef)
 {
 	pd::Shape shape = fixtureDef->shape;
 	pd::FixtureConf conf = fixtureDef->conf
-		.UseFilter(_world->getFilter(_group))
+		.UseFilter(_pWorld->getFilter(_group))
 		.UseIsSensor(true);
-	pd::Fixture* fixture = _prBody->CreateFixture(shape, conf);
+	auto& world = _pWorld->getPrWorld();
+	pr::FixtureID fixture = pd::CreateFixture(world, _prBody, shape, conf);
 	Sensor* sensor = Sensor::create(this, tag, fixture);
-	fixture->SetUserData(r_cast<void*>(sensor));
+	_pWorld->setFixtureData(fixture, sensor);
 	if (!_sensors) _sensors = Array::create();
 	_sensors->add(sensor);
 	sensorAdded(sensor, this);
@@ -281,24 +302,28 @@ void Body::eachSensor(const SensorHandler& func)
 
 void Body::setVelocityX(float x)
 {
-	auto v = _prBody->GetVelocity().linear;
-	pd::SetLinearVelocity(*_prBody, pr::LinearVelocity2{PhysicsWorld::b2Val(x), v[1]});
+	auto& world = _pWorld->getPrWorld();
+	auto v = pd::GetVelocity(world, _prBody).linear;
+	pd::SetVelocity(world, _prBody, pr::LinearVelocity2{PhysicsWorld::b2Val(x), v[1]});
 }
 
 float Body::getVelocityX() const
 {
-	return PhysicsWorld::oVal(_prBody->GetVelocity().linear[0]);
+	auto& world = _pWorld->getPrWorld();
+	return PhysicsWorld::oVal(pd::GetVelocity(world, _prBody).linear[0]);
 }
 
 void Body::setVelocityY(float y)
 {
-	auto v = _prBody->GetVelocity().linear;
-	pd::SetLinearVelocity(*_prBody, pr::LinearVelocity2{v[0], PhysicsWorld::b2Val(y)});
+	auto& world = _pWorld->getPrWorld();
+	auto v = pd::GetVelocity(world, _prBody).linear;
+	pd::SetVelocity(world, _prBody, pr::LinearVelocity2{v[0], PhysicsWorld::b2Val(y)});
 }
 
 float Body::getVelocityY() const
 {
-	return PhysicsWorld::oVal(_prBody->GetVelocity().linear[1]);
+	auto& world = _pWorld->getPrWorld();
+	return PhysicsWorld::oVal(pd::GetVelocity(world, _prBody).linear[1]);
 }
 
 void Body::setPosition(const Vec2& var)
@@ -306,7 +331,8 @@ void Body::setPosition(const Vec2& var)
 	if (var != Node::getPosition())
 	{
 		Node::setPosition(var);
-		_prBody->SetTransform(PhysicsWorld::b2Val(var), _prBody->GetAngle());
+		auto& world = _pWorld->getPrWorld();
+		pd::SetTransform(world, _prBody, PhysicsWorld::b2Val(var), pd::GetAngle(world, _prBody));
 	}
 }
 
@@ -315,13 +341,15 @@ void Body::setAngle(float var)
 	if (var != Node::getAngle())
 	{
 		Node::setAngle(var);
-		_prBody->SetTransform(_prBody->GetLocation(), -bx::toRad(var));
+		auto& world = _pWorld->getPrWorld();
+		pd::SetTransform(world, _prBody, pd::GetLocation(world, _prBody), -bx::toRad(var));
 	}
 }
 
 Rect Body::getBoundingBox()
 {
-	pd::AABB aabb = pd::ComputeAABB(*_prBody);
+	auto& world = _pWorld->getPrWorld();
+	pd::AABB aabb = pd::ComputeAABB(world, _prBody);
 	Vec2 lower = PhysicsWorld::oVal(pr::detail::GetLowerBound(aabb));
 	Vec2 upper = PhysicsWorld::oVal(pr::detail::GetUpperBound(aabb));
 	return Rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
@@ -400,14 +428,15 @@ void Body::setEmittingEvent(bool var)
 
 void Body::updatePhysics()
 {
-	if (_prBody->IsAwake())
+	auto& world = _pWorld->getPrWorld();
+	if (pd::IsAwake(world, _prBody))
 	{
-		Vec2 pos = PhysicsWorld::oVal(_prBody->GetLocation());
+		Vec2 pos = PhysicsWorld::oVal(pd::GetLocation(world, _prBody));
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overriden by Body`s.
 		*/
 		Node::setPosition(pos);
-		float angle = _prBody->GetAngle();
+		float angle = pd::GetAngle(world, _prBody);
 		Node::setAngle(-bx::toDeg(angle));
 	}
 }

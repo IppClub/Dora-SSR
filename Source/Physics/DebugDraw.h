@@ -17,6 +17,8 @@ NS_DOROTHY_BEGIN
 namespace pr = playrho;
 namespace pd = playrho::d2;
 
+class Body;
+class PhysicsWorld;
 class DrawNode;
 class Line;
 
@@ -26,10 +28,10 @@ public:
 	PROPERTY_READONLY(DrawNode*, Renderer);
 	DebugDraw();
 	virtual ~DebugDraw();
-	void DrawWorld(pd::World* world);
+	void DrawWorld(PhysicsWorld* world);
 public:
-	static bool IsVisible(pd::Fixture* fixture);
-	static bool IsVisible(pd::Body* body);
+	static bool IsVisible(PhysicsWorld* world, pr::FixtureID fixture);
+	static bool IsVisible(Body* body);
 	void DrawPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
 	void DrawSolidPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
 	void DrawCircle(const pr::Length2& center, float radius, const Color& color);

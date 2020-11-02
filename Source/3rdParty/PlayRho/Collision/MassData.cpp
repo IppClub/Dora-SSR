@@ -18,13 +18,12 @@
  */
 
 #include "PlayRho/Collision/MassData.hpp"
+
 #include "PlayRho/Collision/Shapes/Shape.hpp"
 #include "PlayRho/Collision/Shapes/EdgeShapeConf.hpp"
 #include "PlayRho/Collision/Shapes/PolygonShapeConf.hpp"
 #include "PlayRho/Collision/Shapes/ChainShapeConf.hpp"
 #include "PlayRho/Collision/Shapes/DiskShapeConf.hpp"
-#include "PlayRho/Dynamics/Fixture.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -66,7 +65,7 @@ MassData GetMassData(Length r, NonNegative<AreaDensity> density, Length2 v0, Len
     const auto center = (v0 + v1) / Real{2};
 
     /// Use the fixture's areal mass density times the shape's second moment of area to derive I.
-    /// @sa https://en.wikipedia.org/wiki/Second_moment_of_area
+    /// @see https://en.wikipedia.org/wiki/Second_moment_of_area
     const auto halfCircleArea = circle_area / 2;
     const auto halfRSquared = r_squared / 2;
     
@@ -145,18 +144,18 @@ MassData GetMassData(Length vertexRadius, NonNegative<AreaDensity> density,
         
         const auto D = Cross(e1, e2);
         
-        PLAYRHO_CONSTEXPR const auto RealReciprocalOfTwo = Real{1} / Real{2}; // .5
+        constexpr auto RealReciprocalOfTwo = Real{1} / Real{2}; // .5
         const auto triangleArea = D * RealReciprocalOfTwo;
         area += triangleArea;
         
         // Area weighted centroid
-        PLAYRHO_CONSTEXPR const auto RealReciprocalOfThree = Real{1} / Real{3}; // .3333333...
+        constexpr auto RealReciprocalOfThree = Real{1} / Real{3}; // .3333333...
         center += StripUnit(triangleArea) * (e1 + e2) * RealReciprocalOfThree;
         
         const auto intx2 = Square(GetX(e1)) + GetX(e2) * GetX(e1) + Square(GetX(e2));
         const auto inty2 = Square(GetY(e1)) + GetY(e2) * GetY(e1) + Square(GetY(e2));
         
-        PLAYRHO_CONSTEXPR const auto RealReciprocalOfTwelve = Real{1} / Real{3 * 4}; // .083333..
+        constexpr auto RealReciprocalOfTwelve = Real{1} / Real{3 * 4}; // .083333..
         const auto triangleI = D * (intx2 + inty2) * RealReciprocalOfTwelve;
         I += triangleI;
     }
@@ -165,8 +164,9 @@ MassData GetMassData(Length vertexRadius, NonNegative<AreaDensity> density,
     const auto mass = Mass{AreaDensity{density} * area};
     
     // Center of mass
-    assert((area > 0_m2) && !AlmostZero(StripUnit(area)));
-    center /= StripUnit(area);
+    assert(area >= 0_m2);
+    center = ((area > 0_m2) && !AlmostZero(StripUnit(area)))
+        ? center / StripUnit(area): Length2{};
     const auto massDataCenter = center + s;
     
     // Inertia tensor relative to the local origin (point s).
@@ -177,36 +177,6 @@ MassData GetMassData(Length vertexRadius, NonNegative<AreaDensity> density,
     const auto massDataI = RotInertia{((AreaDensity{density} * I) + (mass * inertialLever)) / SquareRadian};
     
     return MassData{massDataCenter, mass, massDataI};
-}
-
-MassData GetMassData(const Fixture& f)
-{
-    return GetMassData(f.GetShape());
-}
-
-MassData ComputeMassData(const Body& body) noexcept
-{
-    auto mass = 0_kg;
-    auto I = RotInertia{0};
-    auto center = Length2{};
-    for (auto&& f: body.GetFixtures())
-    {
-        const auto& fixture = GetRef(f);
-        if (fixture.GetDensity() > 0_kgpm2)
-        {
-            const auto massData = GetMassData(fixture);
-            mass += Mass{massData.mass};
-            center += Real{Mass{massData.mass} / Kilogram} * massData.center;
-            I += RotInertia{massData.I};
-        }
-    }
-    return MassData{center, mass, I};
-}
-
-MassData GetMassData(const Body& body) noexcept
-{
-    const auto I = GetLocalRotInertia(body);
-    return MassData{body.GetLocalCenter(), GetMass(body), I};
 }
 
 } // namespace d2

@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Sensor::Sensor(Body* owner, int tag, pd::Fixture* fixture):
+Sensor::Sensor(Body* owner, int tag, pr::FixtureID fixture):
 _owner(owner),
 _tag(tag),
 _fixture(fixture),
@@ -25,7 +25,7 @@ _sensedBodies(Array::create())
 Sensor::~Sensor()
 {
 	Sensor::clear();
-	_fixture = nullptr;
+	_fixture = pr::InvalidFixtureID;
 }
 
 void Sensor::add(Body* body)
@@ -89,12 +89,14 @@ int Sensor::getTag() const
 
 void Sensor::setGroup(int var)
 {
-	_fixture->SetFilterData(_owner->getWorld()->getFilter(var));
+	auto world = _owner->getPhysicsWorld();
+	pd::SetFilterData(world->getPrWorld(), _fixture, world->getFilter(var));
 }
 
 int Sensor::getGroup() const
 {
-	return _fixture->GetFilterData().groupIndex;
+	auto world = _owner->getPhysicsWorld();
+	return pd::GetFilterData(world->getPrWorld(), _fixture).groupIndex;
 }
 
 Body* Sensor::getOwner() const
@@ -102,7 +104,7 @@ Body* Sensor::getOwner() const
 	return _owner;
 }
 
-pd::Fixture* Sensor::getFixture() const
+pr::FixtureID Sensor::getFixture() const
 {
 	return _fixture;
 }

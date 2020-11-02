@@ -29,35 +29,40 @@
 
 Hello and welcome to PlayRho's API documentation!
 
-PlayRho is an interactive, real-time oriented, C++14 based, physics engine and library
+PlayRho is an interactive, real-time oriented, C++ based, physics engine and library
  currently best suited for 2-dimensional games. To view its source code, please
- see: https://github.com/louis-langholtz/PlayRho . For issues,
- visit: https://github.com/louis-langholtz/PlayRho/issues .
- For mathemtical insight into how a physics engine works, see:
+ see: https://github.com/louis-langholtz/PlayRho. For issues,
+ visit: https://github.com/louis-langholtz/PlayRho/issues.
+ For mathematical insight into how a physics engine works, see:
  <a href="http://box2d.org/files/GDC2009/GDC2009_Catto_Erin_Solver.ppt">Erin Catto's
  2009 Modeling and Solving Constraints slides</a>.
 
 @section coding_sec Getting Started
 
-For coding, begin simply by including the <code>PlayRho/PlayRho.hpp</code> header file
- and making an instance of the
+For coding, purists may want to begin by just including the
+ <code>World.hpp</code> header file and making an instance of the
  <a href="classplayrho_1_1d2_1_1World.html"><code>playrho::d2::World</code></a> class.
  Here's what this might look like:
  @code
- #include "PlayRho/PlayRho.hpp"
+ #include "PlayRho/Dynamics/World.hpp"
  
  int main()
  {
      auto world = playrho::d2::World{};
      const auto body = world.CreateBody();
-     // do more things with the world instance and body pointer
+     // do more things with the world instance and body identifier.
      return 0; // world and associated resources go away automatically
  }
  @endcode
-For a more elaborate example, see
+Pragmatists may instead want to begin by including this file, <code>PlayRho.hpp</code>,
+ which includes headers for most of the entire PlayRho public API.
+
+@section helloworld_sec An Entire Application
+
+For a more elaborate example, that's of an entire application, see
  <a href="HelloWorld_8cpp-example.html"><code>HelloWorld.cpp</code></a>.
 
- @sa playrho::d2::World, PhysicalEntities
+ @see playrho::d2::World, PhysicalEntities
 */
 
 // These include files constitute the main PlayRho API
@@ -91,39 +96,36 @@ For a more elaborate example, see
 /// @namespace playrho::detail
 /// Name space for internal/detail related PlayRho names.
 
-#include "PlayRho/Common/Settings.hpp"
+// For purists, just include this first file.
+#include "PlayRho/Dynamics/World.hpp"
 
+// For pragmatists, add these for free function interfaces to the world and some additional
+// functionality. Note that using these free function interfaces, instead of directly using
+// world member functions, may help isolate your code from changes to the World class.
+#include "PlayRho/Dynamics/WorldMisc.hpp"
+#include "PlayRho/Dynamics/WorldBody.hpp"
+#include "PlayRho/Dynamics/WorldFixture.hpp"
+#include "PlayRho/Dynamics/WorldJoint.hpp"
+#include "PlayRho/Dynamics/WorldContact.hpp"
+
+// For any and all shape configurations, add one or more of the following.
 #include "PlayRho/Collision/Shapes/DiskShapeConf.hpp"
 #include "PlayRho/Collision/Shapes/EdgeShapeConf.hpp"
 #include "PlayRho/Collision/Shapes/ChainShapeConf.hpp"
 #include "PlayRho/Collision/Shapes/PolygonShapeConf.hpp"
 #include "PlayRho/Collision/Shapes/MultiShapeConf.hpp"
 
-#include "PlayRho/Collision/Collision.hpp"
-#include "PlayRho/Collision/Manifold.hpp"
-#include "PlayRho/Collision/WorldManifold.hpp"
-#include "PlayRho/Collision/Distance.hpp"
-#include "PlayRho/Collision/DistanceProxy.hpp"
-
-#include "PlayRho/Dynamics/Body.hpp"
-#include "PlayRho/Dynamics/BodyConf.hpp"
-#include "PlayRho/Dynamics/Fixture.hpp"
-#include "PlayRho/Dynamics/WorldCallbacks.hpp"
-#include "PlayRho/Dynamics/StepConf.hpp"
-#include "PlayRho/Dynamics/World.hpp"
-
-#include "PlayRho/Dynamics/Contacts/Contact.hpp"
-
-#include "PlayRho/Dynamics/Joints/DistanceJoint.hpp"
-#include "PlayRho/Dynamics/Joints/FrictionJoint.hpp"
-#include "PlayRho/Dynamics/Joints/GearJoint.hpp"
-#include "PlayRho/Dynamics/Joints/MotorJoint.hpp"
-#include "PlayRho/Dynamics/Joints/TargetJoint.hpp"
-#include "PlayRho/Dynamics/Joints/PrismaticJoint.hpp"
-#include "PlayRho/Dynamics/Joints/PulleyJoint.hpp"
-#include "PlayRho/Dynamics/Joints/RevoluteJoint.hpp"
-#include "PlayRho/Dynamics/Joints/RopeJoint.hpp"
-#include "PlayRho/Dynamics/Joints/WeldJoint.hpp"
-#include "PlayRho/Dynamics/Joints/WheelJoint.hpp"
+// For any and all joint configurations, add one or more of the following.
+#include "PlayRho/Dynamics/Joints/DistanceJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/FrictionJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/GearJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/MotorJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/TargetJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/PrismaticJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/PulleyJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/RevoluteJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/RopeJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/WeldJointConf.hpp"
+#include "PlayRho/Dynamics/Joints/WheelJointConf.hpp"
 
 #endif // PLAYRHO_PLAYRHO_HPP

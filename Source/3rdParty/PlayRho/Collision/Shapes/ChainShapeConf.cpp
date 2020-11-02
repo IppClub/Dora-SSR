@@ -28,22 +28,33 @@ namespace playrho {
 namespace d2 {
 
 namespace {
-#if 0
-    inline bool IsEachVertexFarEnoughApart(Span<const Length2> vertices)
+
+void ResetNormals(std::vector<UnitVec>& normals, const std::vector<Length2>& vertices)
+{
+    normals.clear();
+    if (size(vertices) > std::size_t{1})
     {
-        for (auto i = decltype(size(vertices)){1}; i < size(vertices); ++i)
+        auto vprev = Length2{};
+        auto first = true;
+        for (const auto& v: vertices)
         {
-            const auto delta = vertices[i-1] - vertices[i];
-            
-            // XXX not quite right unit-wise but this works well enough.
-            if (GetMagnitudeSquared(delta) <= DefaultLinearSlop)
+            if (!first)
             {
-                return false;
+                // Get the normal and push it and its reverse.
+                // This "doubling up" of the normals, makes the GetChild() method work.
+                const auto normal = GetUnitVector(GetFwdPerpendicular(v - vprev));
+                normals.push_back(normal);
+                normals.push_back(-normal);
             }
+            else
+            {
+                first = false;
+            }
+            vprev = v;
         }
-        return true;
     }
-#endif
+}
+
 } // anonymous namespace
 
 ChainShapeConf::ChainShapeConf() = default;
@@ -57,34 +68,8 @@ ChainShapeConf& ChainShapeConf::Set(std::vector<Length2> vertices)
     }
 
     m_vertices = vertices;
-    ResetNormals();
+    ResetNormals(m_normals, m_vertices);
     return *this;
-}
-
-void ChainShapeConf::ResetNormals()
-{
-    m_normals.clear();
-    if (size(m_vertices) > std::size_t{1})
-    {
-        auto vprev = Length2{};
-        auto first = true;
-        for (const auto& v: m_vertices)
-        {
-            if (!first)
-            {
-                // Get the normal and push it and its reverse.
-                // This "doubling up" of the normals, makes the GetChild() method work.
-                const auto normal = GetUnitVector(GetFwdPerpendicular(v - vprev));
-                m_normals.push_back(normal);
-                m_normals.push_back(-normal);
-            }
-            else
-            {
-                first = false;
-            }
-            vprev = v;
-        }
-    }
 }
 
 ChainShapeConf& ChainShapeConf::Transform(const Mat22& m) noexcept
@@ -92,7 +77,7 @@ ChainShapeConf& ChainShapeConf::Transform(const Mat22& m) noexcept
     std::for_each(begin(m_vertices), end(m_vertices), [=](Length2& v){
         v = m * v;
     });
-    ResetNormals();
+    ResetNormals(m_normals, m_vertices);
     return *this;
 }
 

@@ -19,27 +19,9 @@
  */
 
 #include "PlayRho/Dynamics/Contacts/ContactKey.hpp"
-#include "PlayRho/Dynamics/Contacts/Contact.hpp"
-#include "PlayRho/Dynamics/Fixture.hpp"
-#include "PlayRho/Dynamics/FixtureProxy.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
-#include "PlayRho/Dynamics/World.hpp"
 
 namespace playrho {
 namespace d2 {
-
-ContactKey GetContactKey(const Fixture& fixtureA, ChildCounter childIndexA,
-                         const Fixture& fixtureB, ChildCounter childIndexB) noexcept
-{
-    return ContactKey(fixtureA.GetProxy(childIndexA).treeId,
-                      fixtureB.GetProxy(childIndexB).treeId);
-}
-
-ContactKey GetContactKey(const Contact& contact) noexcept
-{
-    return GetContactKey(*contact.GetFixtureA(), contact.GetChildIndexA(),
-                         *contact.GetFixtureB(), contact.GetChildIndexB());
-}
 
 } // namespace d2
 } // namespace playrho

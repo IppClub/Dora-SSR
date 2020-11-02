@@ -114,16 +114,16 @@ public:
 		float motorSpeed = 0.0f,
 		float frequency = 2.0f,
 		float damping = 0.7f);
-	pd::Joint* getPrJoint();
-	PhysicsWorld* getWorld();
+	pr::JointID getPrJoint();
+	PhysicsWorld* getPhysicsWorld();
 	void destroy();
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 	CREATE_FUNC(Joint);
 protected:
-	Joint():_joint(nullptr) {}
+	Joint():_joint(pr::InvalidJointID) {}
 protected:
 	WRef<PhysicsWorld> _world;
-	pd::Joint* _joint;
+	pr::JointID _joint;
 	friend class DestructionListener;
 	DORA_TYPE_OVERRIDE(Joint);
 };

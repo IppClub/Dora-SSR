@@ -26,7 +26,7 @@
 /// Declaration of the RayCastInput struct.
 
 #include "PlayRho/Common/Math.hpp"
-#include "PlayRho/Common/BoundedValue.hpp"
+#include "PlayRho/Common/UnitInterval.hpp"
 
 namespace playrho {
 namespace detail {

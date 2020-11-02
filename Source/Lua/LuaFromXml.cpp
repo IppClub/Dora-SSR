@@ -1148,17 +1148,15 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 
 string XmlDelegator::compileMoonCodes(const char* codes)
 {
-	string compiledCodes, err;
-	MoonP::GlobalVars _;
 	MoonP::MoonConfig config;
 	config.reserveLineNumber = false;
 	config.implicitReturnRoot = false;
-	std::tie(compiledCodes, err, _) = MoonP::MoonCompiler{}.compile(fmt::format("do\n{}", codes), config);
-	if (compiledCodes.empty())
+	auto result = MoonP::MoonCompiler{}.compile(fmt::format("do\n{}", codes), config);
+	if (result.codes.empty())
 	{
-		lastError += fmt::format("Fail to compile moon codes started at line {}\n{}", parser->getLineNumber(codes), err);
+		lastError += fmt::format("Fail to compile moon codes started at line {}\n{}", parser->getLineNumber(codes), result.error);
 	}
-	return compiledCodes;
+	return std::move(result.codes);
 }
 
 void XmlDelegator::endElement(const char *name)

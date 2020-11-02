@@ -43,15 +43,15 @@ MoonParser::MoonParser() {
 	multi_line_close = expr("]]");
 	multi_line_content = *(not_(multi_line_close) >> Any);
 	MultiLineComment = multi_line_open >> multi_line_content >> multi_line_close;
-	space_one = set(" \t") | MultiLineComment;
+	EscapeNewLine = expr('\\') >> *(set(" \t") | MultiLineComment) >> -Comment >> Break;
+	space_one = set(" \t") | and_(set("-\\")) >> (MultiLineComment | EscapeNewLine);
 	Space = *space_one >> -Comment;
 	SpaceBreak = Space >> Break;
 	White = Space >> *(Break >> Space);
 	EmptyLine = SpaceBreak;
 	AlphaNum = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
 	Name = (range('a', 'z') | range('A', 'Z') | '_') >> *AlphaNum;
-	Num =
-	(
+	Num = (
 		"0x" >>
 		+(range('0', '9') | range('a', 'f') | range('A', 'F')) >>
 		-(-set("uU") >> set("lL") >> set("lL"))
@@ -59,10 +59,12 @@ MoonParser::MoonParser() {
 		+range('0', '9') >> -set("uU") >> set("lL") >> set("lL")
 	) | (
 		(
-			(+range('0', '9') >> -('.' >> +range('0', '9'))) |
-			('.' >> +range('0', '9'))
-		) >> -(set("eE") >> -expr('-') >> +range('0', '9'))
-	);
+			+range('0', '9') >> -('.' >> +range('0', '9'))
+		) | (
+			'.' >> +range('0', '9')
+		)
+	) >> -(set("eE") >> -expr('-') >> +range('0', '9'));
+
 	Cut = false_();
 	Seperator = true_();
 
@@ -170,7 +172,7 @@ MoonParser::MoonParser() {
 	InBlock = Advance >> ensure(Block, PopIndent);
 
 	local_flag = expr('*') | expr('^');
-	local_values = NameList >> -(sym('=') >> (TableBlock | ExpList));
+	local_values = NameList >> -(sym('=') >> (TableBlock | ExpListLow));
 	Local = key("local") >> (Space >> local_flag | local_values);
 
 	LocalAttrib = and_(key(pl::user(Name, [](const item_t& item) {
@@ -184,26 +186,28 @@ MoonParser::MoonParser() {
 	colon_import_name = sym('\\') >> Space >> Variable;
 	ImportName = colon_import_name | Space >> Variable;
 	ImportNameList = Seperator >> *SpaceBreak >> ImportName >> *((+SpaceBreak | sym(',') >> *SpaceBreak) >> ImportName);
+	ImportFrom = ImportNameList >> *SpaceBreak >> key("from") >> Exp;
 
 	import_literal_inner = (range('a', 'z') | range('A', 'Z') | set("_-")) >> *(AlphaNum | '-');
 	import_literal_chain = Seperator >> import_literal_inner >> *(expr('.') >> import_literal_inner);
 	ImportLiteral = sym('\'') >> import_literal_chain >> symx('\'') | sym('"') >> import_literal_chain >> symx('"');
 
-	ImportFrom = ImportNameList >> *SpaceBreak >> key("from") >> Exp;
+	macro_name_pair = Space >> MacroName >> Space >> symx(':') >> Space >> MacroName;
+	import_all_macro = expr('$');
+	ImportTabItem = variable_pair | normal_pair | sym(':') >> MacroName | macro_name_pair | Space >> import_all_macro;
+	ImportTabList = ImportTabItem >> *(sym(',') >> ImportTabItem);
+	ImportTabLine = (
+		PushIndent >> (ImportTabList >> PopIndent | PopIndent)
+	) | Space;
+	import_tab_lines = SpaceBreak >> ImportTabLine >> *(-sym(',') >> SpaceBreak >> ImportTabLine) >> -sym(',');
+	ImportTabLit =
+		sym('{') >> Seperator >>
+		-ImportTabList >>
+		-sym(',') >>
+		-import_tab_lines >>
+		White >> sym('}');
 
-	EnableMacroPair = pl::user(true_(), [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		st->macroPairEnabled = true;
-		return true;
-	});
-
-	DiableMacroPair = pl::user(true_(), [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		st->macroPairEnabled = false;
-		return true;
-	});
-
-	ImportAs = ImportLiteral >> -(key("as") >> (Space >> Variable | EnableMacroPair >> ensure(TableLit, DiableMacroPair)));
+	ImportAs = ImportLiteral >> -(key("as") >> (Space >> Variable | ImportTabLit));
 
 	Import = key("import") >> (ImportAs | ImportFrom);
 
@@ -213,7 +217,7 @@ MoonParser::MoonParser() {
 
 	BreakLoop = (expr("break") | expr("continue")) >> not_(AlphaNum);
 
-	Return = key("return") >> -ExpList;
+	Return = key("return") >> -ExpListLow;
 
 	WithExp = ExpList >> -Assign;
 
@@ -241,8 +245,8 @@ MoonParser::MoonParser() {
 	While = key("while") >> DisableDo >> ensure(Exp, PopDo) >> -key("do") >> Body;
 	Repeat = key("repeat") >> Body >> Break >> *EmptyLine >> CheckIndent >> key("until") >> Exp;
 
-	for_step_value = sym(',') >> White >> Exp;
-	for_args = Space >> Variable >> sym('=') >> Exp >> sym(',') >> White >> Exp >> -for_step_value;
+	for_step_value = sym(',') >> Exp;
+	for_args = Space >> Variable >> sym('=') >> Exp >> sym(',') >> Exp >> -for_step_value;
 
 	For = key("for") >> DisableDo >>
 		ensure(for_args, PopDo) >>
@@ -250,7 +254,7 @@ MoonParser::MoonParser() {
 
 	for_in = star_exp | ExpList;
 
-	ForEach = key("for") >> AssignableNameList >> White >> key("in") >>
+	ForEach = key("for") >> AssignableNameList >> key("in") >>
 		DisableDo >> ensure(for_in, PopDo) >>
 		-key("do") >> Body;
 
@@ -278,10 +282,10 @@ MoonParser::MoonParser() {
 	CompInner = Seperator >> (CompForEach | CompFor) >> *CompClause;
 	star_exp = sym('*') >> Exp;
 	CompForEach = key("for") >> AssignableNameList >> key("in") >> (star_exp | Exp);
-	CompFor = key("for") >> Space >> Variable >> sym('=') >> Exp >> sym(',') >> White >> Exp >> -for_step_value;
+	CompFor = key("for") >> Space >> Variable >> sym('=') >> Exp >> sym(',') >> Exp >> -for_step_value;
 	CompClause = CompFor | CompForEach | key("when") >> Exp;
 
-	Assign = sym('=') >> Seperator >> (With | If | Switch | TableBlock | Exp >> *(White >> expr(',') >> White >> Exp));
+	Assign = sym('=') >> Seperator >> (With | If | Switch | TableBlock | Exp >> *(Space >> set(",;") >> Exp));
 
 	update_op =
 		expr("..") |
@@ -331,7 +335,7 @@ MoonParser::MoonParser() {
 		expr(">>") |
 		expr("//") |
 		set("+-*/%><|&~");
-	exp_op_value = (White >> not_(unary_operator) | Space) >> BinaryOperator >> *SpaceBreak >> backcall_exp;
+	exp_op_value = Space >> BinaryOperator >> *SpaceBreak >> backcall_exp;
 	Exp = Seperator >> backcall_exp >> *exp_op_value;
 
 	ChainValue = Seperator >> (Chain | Callable) >> -existential_op >> -InvokeArgs;
@@ -429,12 +433,14 @@ MoonParser::MoonParser() {
 		Space
 	);
 
-	TableBlockInner = Seperator >> KeyValueLine >> *(+(SpaceBreak) >> KeyValueLine);
-	TableBlock = +(SpaceBreak) >> Advance >> ensure(TableBlockInner, PopIndent);
+	TableBlockInner = Seperator >> KeyValueLine >> *(+SpaceBreak >> KeyValueLine);
+	TableBlock = +SpaceBreak >> Advance >> ensure(TableBlockInner, PopIndent);
+	TableBlockIndent = sym('*') >> Seperator >> KeyValueList >> -sym(',') >>
+		-(+SpaceBreak >> Advance >> ensure(KeyValueList >> -sym(',') >> *(+SpaceBreak >> KeyValueLine), PopIndent));
 
 	class_member_list = Seperator >> KeyValue >> *(sym(',') >> KeyValue);
 	ClassLine = CheckIndent >> (class_member_list | Statement) >> -sym(',');
-	ClassBlock = +(SpaceBreak) >> Advance >>Seperator >> ClassLine >> *(+(SpaceBreak) >> ClassLine) >> PopIndent;
+	ClassBlock = +SpaceBreak >> Advance >> Seperator >> ClassLine >> *(+SpaceBreak >> ClassLine) >> PopIndent;
 
 	ClassDecl =
 		key("class") >> not_(expr(':')) >>
@@ -442,7 +448,7 @@ MoonParser::MoonParser() {
 		-(key("extends")  >> PreventIndent >> ensure(Exp, PopIndent)) >>
 		-ClassBlock;
 
-	global_values = NameList >> -(sym('=') >> (TableBlock | ExpList));
+	global_values = NameList >> -(sym('=') >> (TableBlock | ExpListLow));
 	global_op = expr('*') | expr('^');
 	Global = key("global") >> (ClassDecl | (Space >> global_op) | global_values);
 
@@ -480,15 +486,10 @@ MoonParser::MoonParser() {
 	symx(':') >>
 	(Exp | TableBlock | +(SpaceBreak) >> Exp);
 
-	macro_name_pair = Space >> MacroName >> Space >> symx(':') >> Space >> MacroName;
-
-	KeyValue = variable_pair | normal_pair | pl::user(sym(':') >> MacroName | macro_name_pair, [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		return st->macroPairEnabled;
-	});
+	KeyValue = variable_pair | normal_pair;
 
 	KeyValueList = KeyValue >> *(sym(',') >> KeyValue);
-	KeyValueLine = CheckIndent >> KeyValueList >> -sym(',');
+	KeyValueLine = CheckIndent >> (KeyValueList >> -sym(',') | TableBlockIndent | Space >> expr('*') >> Exp);
 
 	FnArgDef = (Variable | SelfName) >> -(sym('=') >> Space >> Exp);
 
@@ -508,32 +509,36 @@ MoonParser::MoonParser() {
 	fn_arrow = expr("->") | expr("=>");
 	FunLit = -FnArgsDef >> Space >> fn_arrow >> -Body;
 
-	MacroName = expr('$') >> Name;
-	macro_type = expr("expr") | expr("block") | expr("lua");
+	MacroName = expr('$') >> -Name;
+	macro_type = expr("expr") | expr("block") | expr("lua") | expr("text");
 	macro_args_def = sym('(') >> White >> -FnArgDefList >> White >> sym(')');
 	MacroLit = -macro_args_def >> Space >> expr("->") >> Body;
 	Macro = key("macro") >> Space >> macro_type >> Space >> Name >> sym('=') >> MacroLit;
 
-	NameList = Seperator >> Space >> Variable >> *(sym(',') >> White >> Variable);
+	NameList = Seperator >> Space >> Variable >> *(sym(',') >> Space >> Variable);
 	NameOrDestructure = Space >> Variable | TableLit;
-	AssignableNameList = Seperator >> NameOrDestructure >> *(sym(',') >> White >> NameOrDestructure);
+	AssignableNameList = Seperator >> NameOrDestructure >> *(sym(',') >> NameOrDestructure);
 
 	fn_arrow_back = expr('<') >> set("-=");
 	Backcall = -FnArgsDef >> Space >> fn_arrow_back >> Space >> ChainValue;
 
-	ExpList = Seperator >> Exp >> *(White >> expr(',') >> White >> Exp);
+	ExpList = Seperator >> Exp >> *(sym(',') >> Exp);
+	ExpListLow = Seperator >> Exp >> *(Space >> set(",;") >> Exp);
+
+	ArgLine = CheckIndent >> Exp >> *(sym(',') >> Exp);
+	ArgBlock = ArgLine >> *(sym(',') >> SpaceBreak >> ArgLine) >> PopIndent;
 
 	invoke_args_with_table =
-		White >> expr(',') >>
+		sym(',') >>
 		(
 			TableBlock |
-			White >> Exp >> *(White >> expr(',') >> (TableBlock | White >> Exp))
+			SpaceBreak >> Advance >> ArgBlock >> -TableBlock
 		);
 
 	InvokeArgs =
 		not_(set("-~")) >> Seperator >>
 		(
-			Exp >> -invoke_args_with_table |
+			Exp >> *(sym(',') >> Exp) >> -(invoke_args_with_table | TableBlock) |
 			TableBlock
 		);
 

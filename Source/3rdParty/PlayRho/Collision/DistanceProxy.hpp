@@ -46,7 +46,7 @@ namespace d2 {
     ///
     /// @note This data structure is 24-bytes.
     ///
-    /// @sa https://en.wikipedia.org/wiki/Gilbert%2DJohnson%2DKeerthi_distance_algorithm
+    /// @see https://en.wikipedia.org/wiki/Gilbert%2DJohnson%2DKeerthi_distance_algorithm
     ///
     class DistanceProxy
     {
@@ -159,7 +159,7 @@ namespace d2 {
         ///
         /// @return Vertex linear position (relative to the shape's origin) at the given index.
         ///
-        /// @sa Distance.
+        /// @see Distance.
         ///
         auto GetVertex(VertexCounter index) const noexcept
         {
@@ -215,7 +215,7 @@ namespace d2 {
     /// @param dir Direction vector to find index for.
     /// @return <code>InvalidVertex</code> if d is invalid or the count of vertices is zero,
     ///   otherwise a value from 0 to one less than count.
-    /// @sa GetVertexCount().
+    /// @see GetVertexCount().
     /// @relatedalso DistanceProxy
     template <class T>
     inline VertexCounter GetSupportIndex(const DistanceProxy& proxy, T dir) noexcept

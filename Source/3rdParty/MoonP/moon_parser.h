@@ -75,7 +75,6 @@ protected:
 		State() {
 			indents.push(0);
 		}
-		bool macroPairEnabled = false;
 		bool exportDefault = false;
 		int exportCount = 0;
 		int moduleFix = 0;
@@ -111,6 +110,7 @@ private:
 	rule multi_line_content;
 	rule MultiLineComment;
 	rule Indent;
+	rule EscapeNewLine;
 	rule space_one;
 	rule Space;
 	rule SpaceBreak;
@@ -129,11 +129,13 @@ private:
 	rule ImportName;
 	rule ImportNameList;
 	rule import_literal_chain;
+	rule ImportTabItem;
+	rule ImportTabList;
+	rule ImportTabLine;
+	rule import_tab_lines;
 	rule WithExp;
 	rule DisableDo;
 	rule PopDo;
-	rule EnableMacroPair;
-	rule DiableMacroPair;
 	rule SwitchElse;
 	rule SwitchBlock;
 	rule IfElseIf;
@@ -168,6 +170,8 @@ private:
 	rule ClassLine;
 	rule KeyValueLine;
 	rule KeyValueList;
+	rule ArgLine;
+	rule ArgBlock;
 	rule invoke_args_with_table;
 	rule BackcallOperator;
 	rule ExponentialOperator;
@@ -201,12 +205,16 @@ private:
 	AST_RULE(import_literal_inner)
 	AST_RULE(ImportLiteral)
 	AST_RULE(ImportFrom)
+	AST_RULE(macro_name_pair)
+	AST_RULE(import_all_macro)
+	AST_RULE(ImportTabLit)
 	AST_RULE(ImportAs)
 	AST_RULE(Import)
 	AST_RULE(Label)
 	AST_RULE(Goto)
 	AST_RULE(fn_arrow_back)
 	AST_RULE(Backcall)
+	AST_RULE(ExpListLow)
 	AST_RULE(ExpList)
 	AST_RULE(Return)
 	AST_RULE(With)
@@ -260,6 +268,7 @@ private:
 	AST_RULE(existential_op)
 	AST_RULE(TableLit)
 	AST_RULE(TableBlock)
+	AST_RULE(TableBlockIndent)
 	AST_RULE(class_member_list)
 	AST_RULE(ClassBlock)
 	AST_RULE(ClassDecl)
@@ -270,7 +279,6 @@ private:
 	AST_RULE(Export)
 	AST_RULE(variable_pair)
 	AST_RULE(normal_pair)
-	AST_RULE(macro_name_pair)
 	AST_RULE(FnArgDef)
 	AST_RULE(FnArgDefList)
 	AST_RULE(outer_var_shadow)
