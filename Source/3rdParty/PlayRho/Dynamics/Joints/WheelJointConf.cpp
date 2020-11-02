@@ -20,38 +20,318 @@
  */
 
 #include "PlayRho/Dynamics/Joints/WheelJointConf.hpp"
-#include "PlayRho/Dynamics/Joints/WheelJoint.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
+
+#include "PlayRho/Dynamics/Joints/Joint.hpp"
+#include "PlayRho/Dynamics/WorldBody.hpp"
+#include "PlayRho/Dynamics/StepConf.hpp"
+#include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
+#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
 
 namespace playrho {
 namespace d2 {
 
-WheelJointConf::WheelJointConf(NonNull<Body*> bA, NonNull<Body*> bB, const Length2 anchor,
-                             const UnitVec axis) noexcept:
-    super{super{JointType::Wheel}.UseBodyA(bA).UseBodyB(bB)},
-    localAnchorA{GetLocalPoint(*bA, anchor)},
-    localAnchorB{GetLocalPoint(*bB, anchor)},
-    localAxisA{GetLocalVector(*bA, axis)}
+static_assert(std::is_default_constructible<WheelJointConf>::value,
+              "WheelJointConf should be default constructible!");
+static_assert(std::is_copy_constructible<WheelJointConf>::value,
+              "WheelJointConf should be copy constructible!");
+static_assert(std::is_copy_assignable<WheelJointConf>::value,
+              "WheelJointConf should be copy assignable!");
+static_assert(std::is_move_constructible<WheelJointConf>::value,
+              "WheelJointConf should be move constructible!");
+static_assert(std::is_move_assignable<WheelJointConf>::value,
+              "WheelJointConf should be move assignable!");
+static_assert(std::is_nothrow_destructible<WheelJointConf>::value,
+              "WheelJointConf should be nothrow destructible!");
+
+// Linear constraint (point-to-line)
+// d = pB - pA = xB + rB - xA - rA
+// C = dot(ay, d)
+// Cdot = dot(d, cross(wA, ay)) + dot(ay, vB + cross(wB, rB) - vA - cross(wA, rA))
+//      = -dot(ay, vA) - dot(cross(d + rA, ay), wA) + dot(ay, vB) + dot(cross(rB, ay), vB)
+// J = [-ay, -cross(d + rA, ay), ay, cross(rB, ay)]
+
+// Spring linear constraint
+// C = dot(ax, d)
+// Cdot = = -dot(ax, vA) - dot(cross(d + rA, ax), wA) + dot(ax, vB) + dot(cross(rB, ax), vB)
+// J = [-ax -cross(d+rA, ax) ax cross(rB, ax)]
+
+// Motor rotational constraint
+// Cdot = wB - wA
+// J = [0 0 -1 0 0 1]
+
+WheelJointConf::WheelJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB,
+                               UnitVec axis) noexcept:
+    super{super{}.UseBodyA(bA).UseBodyB(bB)},
+    localAnchorA{laA}, localAnchorB{laB},
+    localXAxisA{axis}, localYAxisA{GetRevPerpendicular(axis)}
 {
     // Intentionally empty.
 }
 
-WheelJointConf GetWheelJointConf(const WheelJoint& joint) noexcept
+WheelJointConf GetWheelJointConf(const Joint& joint)
 {
-    auto def = WheelJointConf{};
-    
-    Set(def, joint);
-    
-    def.localAnchorA = joint.GetLocalAnchorA();
-    def.localAnchorB = joint.GetLocalAnchorB();
-    def.localAxisA = joint.GetLocalAxisA();
-    def.enableMotor = joint.IsMotorEnabled();
-    def.maxMotorTorque = joint.GetMaxMotorTorque();
-    def.motorSpeed = joint.GetMotorSpeed();
-    def.frequency = joint.GetSpringFrequency();
-    def.dampingRatio = joint.GetSpringDampingRatio();
-    
-    return def;
+    return TypeCast<WheelJointConf>(joint);
+}
+
+WheelJointConf GetWheelJointConf(const World& world, BodyID bodyA, BodyID bodyB,
+                                 Length2 anchor, UnitVec axis)
+{
+    return WheelJointConf{
+        bodyA, bodyB,
+        GetLocalPoint(world, bodyA, anchor), GetLocalPoint(world, bodyB, anchor),
+        GetLocalVector(world, bodyA, axis)};
+}
+
+AngularVelocity GetAngularVelocity(const World& world, const WheelJointConf& conf)
+{
+    return GetVelocity(world, GetBodyB(conf)).angular
+         - GetVelocity(world, GetBodyA(conf)).angular;
+}
+
+void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
+                  const StepConf& step,
+                  const ConstraintSolverConf&)
+{
+    auto& bodyConstraintA = At(bodies, GetBodyA(object));
+    auto& bodyConstraintB = At(bodies, GetBodyB(object));
+
+    const auto posA = bodyConstraintA.GetPosition();
+    auto velA = bodyConstraintA.GetVelocity();
+    const auto invMassA = bodyConstraintA.GetInvMass();
+    const auto invRotInertiaA = bodyConstraintA.GetInvRotInertia();
+
+    const auto posB = bodyConstraintB.GetPosition();
+    auto velB = bodyConstraintB.GetVelocity();
+    const auto invMassB = bodyConstraintB.GetInvMass();
+    const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
+
+    const auto qA = UnitVec::Get(posA.angular);
+    const auto qB = UnitVec::Get(posB.angular);
+
+    // Compute the effective masses.
+    const auto rA = Length2{Rotate(object.localAnchorA - bodyConstraintA.GetLocalCenter(), qA)};
+    const auto rB = Length2{Rotate(object.localAnchorB - bodyConstraintB.GetLocalCenter(), qB)};
+    const auto dd = Length2{(posB.linear + rB) - (posA.linear + rA)};
+
+    // Point to line constraint
+    {
+        object.ay = Rotate(object.localYAxisA, qA);
+        object.sAy = Cross(dd + rA, object.ay);
+        object.sBy = Cross(rB, object.ay);
+
+        const auto invRotMassA = invRotInertiaA * Square(object.sAy) / SquareRadian;
+        const auto invRotMassB = invRotInertiaB * Square(object.sBy) / SquareRadian;
+        const auto invMass = invMassA + invMassB + invRotMassA + invRotMassB;
+
+        object.mass = (invMass > InvMass{0})? Real{1} / invMass: 0;
+    }
+
+    // Spring constraint
+    object.springMass = 0_kg;
+    object.bias = 0;
+    object.gamma = 0;
+    if (object.frequency > 0_Hz)
+    {
+        object.ax = Rotate(object.localXAxisA, qA);
+        object.sAx = Cross(dd + rA, object.ax);
+        object.sBx = Cross(rB, object.ax);
+
+        const auto invRotMassA = invRotInertiaA * Square(object.sAx) / SquareRadian;
+        const auto invRotMassB = invRotInertiaB * Square(object.sBx) / SquareRadian;
+        const auto invMass = invMassA + invMassB + invRotMassA + invRotMassB;
+
+        if (invMass > InvMass{0})
+        {
+            object.springMass = Real{1} / invMass;
+
+            const auto C = Length{Dot(dd, object.ax)};
+
+            // Frequency
+            const auto omega = Real{2} * Pi * object.frequency;
+
+            // Damping coefficient
+            const auto d = Real{2} * object.springMass * object.dampingRatio * omega;
+
+            // Spring stiffness
+            const auto k = object.springMass * omega * omega;
+
+            // magic formulas
+            const auto h = step.deltaTime;
+
+            const auto invGamma = Mass{h * (d + h * k)};
+            object.gamma = (invGamma > 0_kg)? Real{1} / invGamma: 0;
+            object.bias = LinearVelocity{C * h * k * object.gamma};
+
+            const auto totalInvMass = invMass + object.gamma;
+            object.springMass = (totalInvMass > InvMass{0})? Real{1} / totalInvMass: 0_kg;
+        }
+    }
+    else
+    {
+        object.springImpulse = 0;
+
+        object.ax = UnitVec::GetZero();
+        object.sAx = 0_m;
+        object.sBx = 0_m;
+    }
+
+    // Rotational motor
+    if (object.enableMotor)
+    {
+        const auto invRotInertia = invRotInertiaA + invRotInertiaB;
+        object.angularMass = (invRotInertia > InvRotInertia{0})? Real{1} / invRotInertia: RotInertia{0};
+    }
+    else
+    {
+        object.angularMass = RotInertia{0};
+        object.angularImpulse = 0;
+    }
+
+    if (step.doWarmStart)
+    {
+        // Account for variable time step.
+        object.impulse *= step.dtRatio;
+        object.springImpulse *= step.dtRatio;
+        object.angularImpulse *= step.dtRatio;
+
+        const auto P = object.impulse * object.ay + object.springImpulse * object.ax;
+
+        // Momentum is M L T^-1. Length * momentum is L^2 M T^-1
+        // Angular momentum is L^2 M T^-1 QP^-1
+        const auto LA = AngularMomentum{(object.impulse * object.sAy + object.springImpulse * object.sAx) / Radian + object.angularImpulse};
+        const auto LB = AngularMomentum{(object.impulse * object.sBy + object.springImpulse * object.sBx) / Radian + object.angularImpulse};
+
+        velA -= Velocity{invMassA * P, invRotInertiaA * LA};
+        velB += Velocity{invMassB * P, invRotInertiaB * LB};
+    }
+    else
+    {
+        object.impulse = 0;
+        object.springImpulse = 0;
+        object.angularImpulse = 0;
+    }
+
+    bodyConstraintA.SetVelocity(velA);
+    bodyConstraintB.SetVelocity(velB);
+}
+
+bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
+                   const StepConf& step)
+{
+    auto& bodyConstraintA = At(bodies, GetBodyA(object));
+    auto& bodyConstraintB = At(bodies, GetBodyB(object));
+
+    const auto oldVelA = bodyConstraintA.GetVelocity();
+    const auto invMassA = bodyConstraintA.GetInvMass();
+    const auto invRotInertiaA = bodyConstraintA.GetInvRotInertia();
+
+    const auto oldVelB = bodyConstraintB.GetVelocity();
+    const auto invMassB = bodyConstraintB.GetInvMass();
+    const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
+
+    auto velA = oldVelA;
+    auto velB = oldVelB;
+
+    // Solve spring constraint
+    {
+        const auto dot = LinearVelocity{Dot(object.ax, velB.linear - velA.linear)};
+        const auto Cdot = dot + object.sBx * velB.angular / Radian - object.sAx * velA.angular / Radian;
+        const auto impulse = -object.springMass * (Cdot + object.bias + object.gamma * object.springImpulse);
+        object.springImpulse += impulse;
+
+        const auto P = impulse * object.ax;
+        const auto LA = AngularMomentum{impulse * object.sAx / Radian};
+        const auto LB = AngularMomentum{impulse * object.sBx / Radian};
+
+        velA -= Velocity{invMassA * P, invRotInertiaA * LA};
+        velB += Velocity{invMassB * P, invRotInertiaB * LB};
+    }
+
+    // Solve rotational motor constraint
+    {
+        const auto Cdot = (velB.angular - velA.angular - object.motorSpeed);
+        auto impulse = AngularMomentum{-object.angularMass * Cdot};
+
+        const auto oldImpulse = object.angularImpulse;
+        const auto maxImpulse = AngularMomentum{step.deltaTime * object.maxMotorTorque};
+        object.angularImpulse = std::clamp(object.angularImpulse + impulse,
+                                           -maxImpulse, maxImpulse);
+        impulse = object.angularImpulse - oldImpulse;
+
+        velA.angular -= AngularVelocity{invRotInertiaA * impulse};
+        velB.angular += AngularVelocity{invRotInertiaB * impulse};
+    }
+
+    // Solve point to line constraint
+    {
+        const auto dot = LinearVelocity{Dot(object.ay, velB.linear - velA.linear)};
+        const auto Cdot = dot + object.sBy * velB.angular / Radian - object.sAy * velA.angular / Radian;
+        const auto impulse = -object.mass * Cdot;
+        object.impulse += impulse;
+
+        const auto P = impulse * object.ay;
+        const auto LA = AngularMomentum{impulse * object.sAy / Radian};
+        const auto LB = AngularMomentum{impulse * object.sBy / Radian};
+
+        velA -= Velocity{invMassA * P, invRotInertiaA * LA};
+        velB += Velocity{invMassB * P, invRotInertiaB * LB};
+    }
+
+    if ((velA != oldVelA) || (velB != oldVelB))
+    {
+        bodyConstraintA.SetVelocity(velA);
+        bodyConstraintB.SetVelocity(velB);
+        return false;
+    }
+    return true;
+}
+
+bool SolvePosition(const WheelJointConf& object, std::vector<BodyConstraint>& bodies,
+                   const ConstraintSolverConf& conf)
+{
+    auto& bodyConstraintA = At(bodies, GetBodyA(object));
+    auto& bodyConstraintB = At(bodies, GetBodyB(object));
+
+    auto posA = bodyConstraintA.GetPosition();
+    const auto invMassA = bodyConstraintA.GetInvMass();
+    const auto invRotInertiaA = bodyConstraintA.GetInvRotInertia();
+
+    auto posB = bodyConstraintB.GetPosition();
+    const auto invMassB = bodyConstraintB.GetInvMass();
+    const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
+
+    const auto qA = UnitVec::Get(posA.angular);
+    const auto qB = UnitVec::Get(posB.angular);
+
+    const auto rA = Rotate(object.localAnchorA - bodyConstraintA.GetLocalCenter(), qA);
+    const auto rB = Rotate(object.localAnchorB - bodyConstraintB.GetLocalCenter(), qB);
+    const auto d = Length2{(posB.linear - posA.linear) + (rB - rA)};
+
+    const auto ay = Rotate(object.localYAxisA, qA);
+
+    const auto sAy = Cross(d + rA, ay);
+    const auto sBy = Cross(rB, ay);
+
+    const auto C = Length{Dot(d, ay)};
+
+    const auto invRotMassA = invRotInertiaA * Square(object.sAy) / SquareRadian;
+    const auto invRotMassB = invRotInertiaB * Square(object.sBy) / SquareRadian;
+
+    const auto k = InvMass{invMassA + invMassB + invRotMassA + invRotMassB};
+
+    const auto impulse = (k != InvMass{0})? -(C / k): 0 * Kilogram * Meter;
+
+    const auto P = impulse * ay;
+    const auto LA = impulse * sAy / Radian;
+    const auto LB = impulse * sBy / Radian;
+
+    posA -= Position{invMassA * P, invRotInertiaA * LA};
+    posB += Position{invMassB * P, invRotInertiaB * LB};
+
+    bodyConstraintA.SetPosition(posA);
+    bodyConstraintB.SetPosition(posB);
+
+    return abs(C) <= conf.linearSlop;
 }
 
 } // namespace d2

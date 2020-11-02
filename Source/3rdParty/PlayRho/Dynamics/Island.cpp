@@ -19,10 +19,6 @@
 
 #include "PlayRho/Collision/Distance.hpp"
 #include "PlayRho/Dynamics/Island.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
-#include "PlayRho/Dynamics/Fixture.hpp"
-#include "PlayRho/Dynamics/World.hpp"
-#include "PlayRho/Dynamics/Contacts/Contact.hpp"
 
 #include <algorithm>
 
@@ -126,28 +122,46 @@ namespace d2 {
 
 using std::count;
 
-Island::Island(Bodies::size_type bodyCapacity,
-               Contacts::size_type contactCapacity,
-               Joints::size_type jointCapacity)
+static_assert(std::is_default_constructible<Island>::value,
+              "Must be default constructible.");
+static_assert(std::is_copy_constructible<Island>::value,
+              "Must be copy constructible.");
+static_assert(std::is_copy_assignable<Island>::value,
+              "Must be copy assignable.");
+static_assert(std::is_nothrow_move_constructible<Island>::value,
+              "Must be nothrow move constructible.");
+static_assert(std::is_nothrow_move_assignable<Island>::value,
+              "Must be nothrow move assignable.");
+static_assert(std::is_nothrow_destructible<Island>::value,
+              "Must be nothrow destructible.");
+
+void Reserve(Island& island, BodyCounter bodies, ContactCounter contacts, JointCounter joints)
 {
-    m_bodies.reserve(bodyCapacity);
-    m_contacts.reserve(contactCapacity);
-    m_joints.reserve(jointCapacity);
+    island.bodies.reserve(bodies);
+    island.contacts.reserve(contacts);
+    island.joints.reserve(joints);
 }
 
-std::size_t Count(const Island& island, const Body* entry)
+void Clear(Island& island) noexcept
 {
-    return MakeUnsigned(count(cbegin(island.m_bodies), cend(island.m_bodies), entry));
+    island.bodies.clear();
+    island.contacts.clear();
+    island.joints.clear();
 }
 
-std::size_t Count(const Island& island, const Contact* entry)
+std::size_t Count(const Island& island, BodyID entry)
 {
-    return MakeUnsigned(count(cbegin(island.m_contacts), cend(island.m_contacts), entry));
+    return MakeUnsigned(count(cbegin(island.bodies), cend(island.bodies), entry));
 }
 
-std::size_t Count(const Island& island, const Joint* entry)
+std::size_t Count(const Island& island, ContactID entry)
 {
-    return MakeUnsigned(count(cbegin(island.m_joints), cend(island.m_joints), entry));
+    return MakeUnsigned(count(cbegin(island.contacts), cend(island.contacts), entry));
+}
+
+std::size_t Count(const Island& island, JointID entry)
+{
+    return MakeUnsigned(count(cbegin(island.joints), cend(island.joints), entry));
 }
 
 } // namespace d2

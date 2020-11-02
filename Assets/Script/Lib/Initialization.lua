@@ -1,6 +1,6 @@
 package.path = "?.lua"
 package.cpath = ""
-package.moonpath = "?.moon"
+package.moonpath = "?." .. require("moonp").options.extension
 
 local App = builtin.Application()
 local Director = builtin.Director()

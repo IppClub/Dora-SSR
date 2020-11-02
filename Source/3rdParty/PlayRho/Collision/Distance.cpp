@@ -18,9 +18,12 @@
  */
 
 #include "PlayRho/Collision/Distance.hpp"
+
 #include "PlayRho/Collision/DistanceProxy.hpp"
 #include "PlayRho/Collision/Simplex.hpp"
 #include "PlayRho/Collision/TimeOfImpact.hpp"
+
+#include "PlayRho/Dynamics/StepConf.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -79,12 +82,19 @@ DistanceConf GetDistanceConf(const ToiConf& conf) noexcept
     return distanceConf;
 }
 
+DistanceConf GetDistanceConf(const StepConf& conf) noexcept
+{
+    DistanceConf distanceConf;
+    distanceConf.maxIterations = conf.maxDistanceIters;
+    return distanceConf;
+}
+
 PairLength2 GetWitnessPoints(const Simplex& simplex) noexcept
 {
     auto pointA = Length2{};
     auto pointB = Length2{};
 
-    const auto numEdges = std::size(simplex);
+    const auto numEdges = size(simplex);
     for (auto i = decltype(numEdges){0}; i < numEdges; ++i)
     {
         const auto e = simplex.GetSimplexEdge(i);

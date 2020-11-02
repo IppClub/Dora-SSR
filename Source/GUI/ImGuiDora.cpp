@@ -107,14 +107,16 @@ public:
 		{
 			ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0));
-            ImGuiListClipper clipper(s_cast<int>(_logs.size()));
-            while (clipper.Step())
-            {
-            	for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+			ImGuiListClipper clipper;
+			clipper.Begin(s_cast<int>(_logs.size()));
+			while (clipper.Step())
+			{
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 				{
 					ImGui::TextUnformatted(&_logs.at(i).front(), &_logs.at(i).back()+1);
 				}
 			}
+			clipper.End();
 			ImGui::PopStyleVar();
 		}
 		else
@@ -127,14 +129,16 @@ public:
 					_filteredLogs.push_back(line);
 				}
 			}
-			ImGuiListClipper clipper(s_cast<int>(_filteredLogs.size()));
-            while (clipper.Step())
-            {
-            	for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+			ImGuiListClipper clipper;
+			clipper.Begin(s_cast<int>(_filteredLogs.size()));
+			while (clipper.Step())
+			{
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 				{
 					ImGui::TextUnformatted(_filteredLogs.at(i).begin(), _filteredLogs.at(i).end());
 				}
 			}
+			clipper.End();
 		}
 		if (_scrollToBottom)
 		{

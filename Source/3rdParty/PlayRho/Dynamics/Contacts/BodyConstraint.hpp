@@ -43,7 +43,7 @@ namespace d2 {
         BodyConstraint() = default;
         
         /// @brief Initializing constructor.
-        PLAYRHO_CONSTEXPR inline
+        constexpr
         BodyConstraint(InvMass invMass, InvRotInertia invRotI, Length2 localCenter,
                          Position position, Velocity velocity) noexcept:
             m_position{position},

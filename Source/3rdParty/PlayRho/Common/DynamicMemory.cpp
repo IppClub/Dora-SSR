@@ -24,7 +24,7 @@
 #include <cstdlib>
 
 namespace playrho {
-
+    
     // Memory allocators. Modify these to use your own allocator.
     void* Alloc(std::size_t size)
     {
@@ -37,7 +37,7 @@ namespace playrho {
         }
         return nullptr;
     }
-
+    
     void* Realloc(void* ptr, std::size_t size)
     {
         if (size) {
@@ -50,7 +50,7 @@ namespace playrho {
         Free(ptr);
         return nullptr;
     }
-
+    
     void Free(void* mem)
     {
         std::free(mem);

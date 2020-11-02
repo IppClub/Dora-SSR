@@ -29,7 +29,7 @@ namespace playrho {
 /// This is a stack allocator used for fast per step allocations.
 /// You must nest allocate/free pairs. The code will assert
 /// if you try to interleave multiple allocate/free pairs.
-/// @note This class satisfies the C++11 <code>std::unique_ptr()</code> Deleter concept.
+/// @note This class satisfies the C++11 <code>std::unique_ptr()</code> Deleter requirement.
 /// @note This data structure is 64-bytes large (on at least one 64-bit platform).
 class StackAllocator
 {
@@ -46,7 +46,7 @@ public:
     };
 
     /// @brief Gets the default configuration.
-    static PLAYRHO_CONSTEXPR inline Conf GetDefaultConf()
+    static constexpr Conf GetDefaultConf()
     {
         return Conf{};
     }
@@ -69,7 +69,7 @@ public:
     /// Allocates an aligned block of memory of the given size.
     /// @return Pointer to memory if the allocator has allocation records left,
     /// <code>nullptr</code> otherwise.
-    /// @sa GetEntryCount.
+    /// @see GetEntryCount.
     void* Allocate(size_type size);
 
     /// @brief Frees the given pointer.
@@ -98,7 +98,7 @@ public:
 
     /// Gets the current allocation record entry usage count.
     /// @return Value between 0 and the maximum number of entries possible for this allocator.
-    /// @sa GetMaxEntries.
+    /// @see GetMaxEntries.
     auto GetEntryCount() const noexcept
     {
         return m_entryCount;

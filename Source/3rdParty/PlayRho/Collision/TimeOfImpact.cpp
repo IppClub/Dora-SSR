@@ -268,7 +268,7 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
                 ++roots;
 
                 // If t == a1 or t == a2 then, there's a precision/rounding problem.
-                // Accept that for now and keep going...
+                // Allow that for now and keep going...
 
                 const auto txfA = GetTransformation(sweepA, t);
                 const auto txfB = GetTransformation(sweepB, t);

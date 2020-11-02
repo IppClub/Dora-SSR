@@ -23,7 +23,7 @@
 #define PLAYRHO_COMMON_MATH_HPP
 
 #include "PlayRho/Common/Settings.hpp"
-#include "PlayRho/Common/BoundedValue.hpp"
+#include "PlayRho/Common/NonNegative.hpp"
 #include "PlayRho/Common/Span.hpp"
 #include "PlayRho/Common/UnitVec.hpp"
 #include "PlayRho/Common/Vector2.hpp"
@@ -63,42 +63,42 @@ using std::abs;
 
 /// @brief Gets the "X" element of the given value - i.e. the first element.
 template <typename T>
-PLAYRHO_CONSTEXPR inline auto& GetX(T& value)
+constexpr auto& GetX(T& value)
 {
     return get<0>(value);
 }
 
 /// @brief Gets the "Y" element of the given value - i.e. the second element.
 template <typename T>
-PLAYRHO_CONSTEXPR inline auto& GetY(T& value)
+constexpr auto& GetY(T& value)
 {
     return get<1>(value);
 }
 
 /// @brief Gets the "Z" element of the given value - i.e. the third element.
 template <typename T>
-PLAYRHO_CONSTEXPR inline auto& GetZ(T& value)
+constexpr auto& GetZ(T& value)
 {
     return get<2>(value);
 }
 
 /// @brief Gets the "X" element of the given value - i.e. the first element.
 template <typename T>
-PLAYRHO_CONSTEXPR inline auto GetX(const T& value)
+constexpr auto GetX(const T& value)
 {
     return get<0>(value);
 }
 
 /// @brief Gets the "Y" element of the given value - i.e. the second element.
 template <typename T>
-PLAYRHO_CONSTEXPR inline auto GetY(const T& value)
+constexpr auto GetY(const T& value)
 {
     return get<1>(value);
 }
 
 /// @brief Gets the "Z" element of the given value - i.e. the third element.
 template <typename T>
-PLAYRHO_CONSTEXPR inline auto GetZ(const T& value)
+constexpr auto GetZ(const T& value)
 {
     return get<2>(value);
 }
@@ -107,15 +107,16 @@ PLAYRHO_CONSTEXPR inline auto GetZ(const T& value)
 /// @note If the given value is negative, this will result in an unsigned value which is the
 ///   two's complement modulo-wrapped value.
 template <typename T>
-PLAYRHO_CONSTEXPR inline std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>>
+constexpr std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>>
 MakeUnsigned(const T& arg) noexcept
 {
     return static_cast<std::make_unsigned_t<T>>(arg);
 }
 
 /// @brief Strips the unit from the given value.
-template <typename T, LoValueCheck lo, HiValueCheck hi>
-PLAYRHO_CONSTEXPR inline auto StripUnit(const BoundedValue<T, lo, hi>& v)
+template <typename T>
+constexpr auto StripUnit(const T& v)
+-> decltype(StripUnit(v.get()))
 {
     return StripUnit(v.get());
 }
@@ -127,18 +128,18 @@ PLAYRHO_CONSTEXPR inline auto StripUnit(const BoundedValue<T, lo, hi>& v)
 /// @{
 
 /// @brief Secant method.
-/// @sa https://en.wikipedia.org/wiki/Secant_method
+/// @see https://en.wikipedia.org/wiki/Secant_method
 template <typename T, typename U>
-PLAYRHO_CONSTEXPR inline U Secant(T target, U a1, T s1, U a2, T s2) noexcept
+constexpr U Secant(T target, U a1, T s1, U a2, T s2) noexcept
 {
     static_assert(IsArithmetic<T>::value && IsArithmetic<U>::value, "Arithmetic types required.");
-    return (a1 + (target - s1) * (a2 - a1) / (s2 - s1));
+    return a1 + (target - s1) * (a2 - a1) / (s2 - s1);
 }
 
 /// @brief Bisection method.
-/// @sa https://en.wikipedia.org/wiki/Bisection_method
+/// @see https://en.wikipedia.org/wiki/Bisection_method
 template <typename T>
-PLAYRHO_CONSTEXPR inline T Bisect(T a1, T a2) noexcept
+constexpr T Bisect(T a1, T a2) noexcept
 {
     return (a1 + a2) / 2;
 }
@@ -146,7 +147,7 @@ PLAYRHO_CONSTEXPR inline T Bisect(T a1, T a2) noexcept
 /// @brief Is-odd.
 /// @details Determines whether the given integral value is odd (as opposed to being even).
 template <typename T>
-PLAYRHO_CONSTEXPR inline bool IsOdd(T val) noexcept
+constexpr bool IsOdd(T val) noexcept
 {
     static_assert(std::is_integral<T>::value, "Integral type required.");
     return val % 2;
@@ -154,11 +155,11 @@ PLAYRHO_CONSTEXPR inline bool IsOdd(T val) noexcept
 
 /// @brief Squares the given value.
 template<class TYPE>
-PLAYRHO_CONSTEXPR inline auto Square(TYPE t) noexcept { return t * t; }
+constexpr auto Square(TYPE t) noexcept { return t * t; }
 
 /// @brief Computes the arc-tangent of the given y and x values.
 /// @return Normalized angle - an angle between -Pi and Pi inclusively.
-/// @sa http://en.cppreference.com/w/cpp/numeric/math/atan2
+/// @see https://en.cppreference.com/w/cpp/numeric/math/atan2
 template<typename T>
 inline auto Atan2(T y, T x)
 {
@@ -175,7 +176,7 @@ inline auto Average(const T& span)
 
     // Relies on C++11 zero initialization to zero initialize value_type.
     // See: http://en.cppreference.com/w/cpp/language/zero_initialization
-    PLAYRHO_CONSTEXPR const auto zero = value_type{};
+    constexpr auto zero = value_type{};
     assert(zero * Real{2} == zero);
     
     // For C++17, switch from using std::accumulate to using std::reduce.
@@ -201,7 +202,7 @@ inline Vec2 RoundOff(Vec2 value, std::uint32_t precision = 100000)
 /// @brief Absolute value function for vectors.
 /// @relatedalso Vector
 template <typename T, std::size_t N>
-PLAYRHO_CONSTEXPR inline Vector<T, N> abs(const Vector<T, N>& v) noexcept
+constexpr Vector<T, N> abs(const Vector<T, N>& v) noexcept
 {
     auto result = Vector<T, N>{};
     for (auto i = decltype(N){0}; i < N; ++i)
@@ -222,7 +223,7 @@ inline d2::UnitVec abs(const d2::UnitVec& v) noexcept
 /// odd results like a divide by zero trap occurring.
 /// @return <code>true</code> if the given value is almost zero, <code>false</code> otherwise.
 template <typename T>
-PLAYRHO_CONSTEXPR inline
+constexpr
 std::enable_if_t<std::is_arithmetic<T>::value, bool> AlmostZero(T value)
 {
     return abs(value) < std::numeric_limits<T>::min();
@@ -230,7 +231,7 @@ std::enable_if_t<std::is_arithmetic<T>::value, bool> AlmostZero(T value)
 
 /// @brief Determines whether the given two values are "almost equal".
 template <typename T>
-PLAYRHO_CONSTEXPR inline
+constexpr
 std::enable_if_t<std::is_floating_point<T>::value, bool> AlmostEqual(T x, T y, int ulp = 2)
 {
     // From http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon :
@@ -239,12 +240,13 @@ std::enable_if_t<std::is_floating_point<T>::value, bool> AlmostEqual(T x, T y, i
     //    unless the result is subnormal".
     // Where "subnormal" means almost zero.
     //
-    return (abs(x - y) < (std::numeric_limits<T>::epsilon() * abs(x + y) * ulp)) || AlmostZero(x - y);
+    return (abs(x - y) < (std::numeric_limits<T>::epsilon() * abs(x + y) * static_cast<T>(ulp)))
+        || AlmostZero(x - y);
 }
 
 /// @brief Modulo operation using <code>std::fmod</code>.
 /// @note Modulo via <code>std::fmod</code> appears slower than via <code>std::trunc</code>.
-/// @sa ModuloViaTrunc
+/// @see ModuloViaTrunc
 template <typename T>
 inline auto ModuloViaFmod(T dividend, T divisor) noexcept
 {
@@ -254,7 +256,7 @@ inline auto ModuloViaFmod(T dividend, T divisor) noexcept
 
 /// @brief Modulo operation using <code>std::trunc</code>.
 /// @note Modulo via <code>std::fmod</code> appears slower than via <code>std::trunc</code>.
-/// @sa ModuloViaFmod
+/// @see ModuloViaFmod
 template <typename T>
 inline auto ModuloViaTrunc(T dividend, T divisor) noexcept
 {
@@ -266,10 +268,10 @@ inline auto ModuloViaTrunc(T dividend, T divisor) noexcept
 
 /// @brief Gets the "normalized" value of the given angle.
 /// @return Angle between -Pi and Pi radians inclusively where 0 represents the positive X-axis.
-/// @sa Atan2
+/// @see Atan2
 inline Angle GetNormalized(Angle value) noexcept
 {
-    PLAYRHO_CONSTEXPR const auto oneRotationInRadians = Real{2 * Pi};
+    constexpr auto oneRotationInRadians = Real{2 * Pi};
     auto angleInRadians = Real{value / Radian};
 #if defined(NORMALIZE_ANGLE_VIA_FMOD)
     // Note: std::fmod appears slower than std::trunc.
@@ -305,7 +307,7 @@ inline Angle GetAngle(const Vector2<T> value)
 /// @note For performance, use this instead of <code>GetMagnitude(T value)</code> (if possible).
 /// @return Non-negative value from 0 to infinity, or NaN.
 template <typename T>
-PLAYRHO_CONSTEXPR inline
+constexpr
 auto GetMagnitudeSquared(T value) noexcept
 {
     using VT = typename T::value_type;
@@ -343,7 +345,7 @@ inline auto GetMagnitude(T value)
 ///   except benchmark tests suggest this implementation is faster at least for
 ///   <code>Vec2</code> like instances.
 ///
-/// @sa https://en.wikipedia.org/wiki/Dot_product
+/// @see https://en.wikipedia.org/wiki/Dot_product
 ///
 /// @param a Vector A.
 /// @param b Vector B.
@@ -351,7 +353,7 @@ inline auto GetMagnitude(T value)
 /// @return Dot product of the vectors (0 means the two vectors are perpendicular).
 ///
 template <typename T1, typename T2>
-PLAYRHO_CONSTEXPR inline auto Dot(const T1 a, const T2 b) noexcept
+constexpr auto Dot(const T1 a, const T2 b) noexcept
 {
     static_assert(std::tuple_size<T1>::value == std::tuple_size<T2>::value,
                   "Dot only for same tuple-like sized types");
@@ -390,13 +392,13 @@ PLAYRHO_CONSTEXPR inline auto Dot(const T1 a, const T2 b) noexcept
 /// @note The absolute value of the result is the area of the parallelogram formed by
 ///   the vectors A and B.
 ///
-/// @sa https://en.wikipedia.org/wiki/Cross_product
+/// @see https://en.wikipedia.org/wiki/Cross_product
 ///
 /// @return Cross product of the two values.
 ///
 template <class T1, class T2, std::enable_if_t<
     std::tuple_size<T1>::value == 2 && std::tuple_size<T2>::value == 2, int> = 0>
-PLAYRHO_CONSTEXPR inline auto Cross(T1 a, T2 b) noexcept
+constexpr auto Cross(T1 a, T2 b) noexcept
 {
     assert(isfinite(StripUnit(get<0>(a))));
     assert(isfinite(StripUnit(get<1>(a))));
@@ -422,13 +424,13 @@ PLAYRHO_CONSTEXPR inline auto Cross(T1 a, T2 b) noexcept
 
 /// @brief Cross-products the given two values.
 /// @note This operation is anti-commutative. I.e. Cross(a, b) == -Cross(b, a).
-/// @sa https://en.wikipedia.org/wiki/Cross_product
+/// @see https://en.wikipedia.org/wiki/Cross_product
 /// @param a Value A of a 3-element type.
 /// @param b Value B of a 3-element type.
 /// @return Cross product of the two values.
 template <class T1, class T2, std::enable_if_t<
     std::tuple_size<T1>::value == 3 && std::tuple_size<T2>::value == 3, int> = 0>
-PLAYRHO_CONSTEXPR inline auto Cross(T1 a, T2 b) noexcept
+constexpr auto Cross(T1 a, T2 b) noexcept
 {
     assert(isfinite(get<0>(a)));
     assert(isfinite(get<1>(a)));
@@ -448,7 +450,7 @@ PLAYRHO_CONSTEXPR inline auto Cross(T1 a, T2 b) noexcept
 /// @brief Solves A * x = b, where b is a column vector.
 /// @note This is more efficient than computing the inverse in one-shot cases.
 template <typename T, typename U>
-PLAYRHO_CONSTEXPR inline auto Solve(const Matrix22<U> mat, const Vector2<T> b) noexcept
+constexpr auto Solve(const Matrix22<U> mat, const Vector2<T> b) noexcept
 {
     const auto cp = Cross(get<0>(mat), get<1>(mat));
     const auto inverseCp = Real{1} / cp;
@@ -462,7 +464,7 @@ PLAYRHO_CONSTEXPR inline auto Solve(const Matrix22<U> mat, const Vector2<T> b) n
 
 /// @brief Inverts the given value.
 template <class IN_TYPE>
-PLAYRHO_CONSTEXPR inline auto Invert(const Matrix22<IN_TYPE> value) noexcept
+constexpr auto Invert(const Matrix22<IN_TYPE> value) noexcept
 {
     const auto cp = Cross(get<0>(value), get<1>(value));
     using OutType = decltype(get<0>(value)[0] / cp);
@@ -477,7 +479,7 @@ PLAYRHO_CONSTEXPR inline auto Invert(const Matrix22<IN_TYPE> value) noexcept
 
 /// @brief Solves A * x = b, where b is a column vector.
 /// @note This is more efficient than computing the inverse in one-shot cases.
-PLAYRHO_CONSTEXPR inline Vec3 Solve33(const Mat33& mat, const Vec3 b) noexcept
+constexpr Vec3 Solve33(const Mat33& mat, const Vec3 b) noexcept
 {
     const auto dp = Dot(GetX(mat), Cross(GetY(mat), GetZ(mat)));
     const auto det = (dp != 0)? Real{1} / dp: dp;
@@ -491,7 +493,7 @@ PLAYRHO_CONSTEXPR inline Vec3 Solve33(const Mat33& mat, const Vec3 b) noexcept
 /// @note This is more efficient than computing the inverse in one-shot cases.
 /// @note Solves only the upper 2-by-2 matrix equation.
 template <typename T>
-PLAYRHO_CONSTEXPR inline T Solve22(const Mat33& mat, const T b) noexcept
+constexpr T Solve22(const Mat33& mat, const T b) noexcept
 {
     const auto cp = GetX(GetX(mat)) * GetY(GetY(mat)) - GetX(GetY(mat)) * GetY(GetX(mat));
     const auto det = (cp != 0)? Real{1} / cp: cp;
@@ -502,7 +504,7 @@ PLAYRHO_CONSTEXPR inline T Solve22(const Mat33& mat, const T b) noexcept
 
 /// @brief Gets the inverse of the given matrix as a 2-by-2.
 /// @return Zero matrix if singular.
-PLAYRHO_CONSTEXPR inline Mat33 GetInverse22(const Mat33& value) noexcept
+constexpr Mat33 GetInverse22(const Mat33& value) noexcept
 {
     const auto a = GetX(GetX(value)), b = GetX(GetY(value)), c = GetY(GetX(value)), d = GetY(GetY(value));
     auto det = (a * d) - (b * c);
@@ -515,7 +517,7 @@ PLAYRHO_CONSTEXPR inline Mat33 GetInverse22(const Mat33& value) noexcept
     
 /// @brief Gets the symmetric inverse of this matrix as a 3-by-3.
 /// @return Zero matrix if singular.
-PLAYRHO_CONSTEXPR inline Mat33 GetSymInverse33(const Mat33& value) noexcept
+constexpr Mat33 GetSymInverse33(const Mat33& value) noexcept
 {
     auto det = Dot(GetX(value), Cross(GetY(value), GetZ(value)));
     if (det != Real{0})
@@ -542,9 +544,9 @@ PLAYRHO_CONSTEXPR inline Mat33 GetSymInverse33(const Mat33& value) noexcept
 /// @details This takes a vector of form (x, y) and returns the vector (-y, x).
 /// @param vector Vector to return a counter-clockwise perpendicular equivalent for.
 /// @return A counter-clockwise 90-degree rotation of the given vector.
-/// @sa GetFwdPerpendicular.
+/// @see GetFwdPerpendicular.
 template <class T>
-PLAYRHO_CONSTEXPR inline auto GetRevPerpendicular(const T vector) noexcept
+constexpr auto GetRevPerpendicular(const T vector) noexcept
 {
     // See http://mathworld.wolfram.com/PerpendicularVector.html
     return T{-GetY(vector), GetX(vector)};
@@ -554,9 +556,9 @@ PLAYRHO_CONSTEXPR inline auto GetRevPerpendicular(const T vector) noexcept
 /// @details This takes a vector of form (x, y) and returns the vector (y, -x).
 /// @param vector Vector to return a clockwise perpendicular equivalent for.
 /// @return A clockwise 90-degree rotation of the given vector.
-/// @sa GetRevPerpendicular.
+/// @see GetRevPerpendicular.
 template <class T>
-PLAYRHO_CONSTEXPR inline auto GetFwdPerpendicular(const T vector) noexcept
+constexpr auto GetFwdPerpendicular(const T vector) noexcept
 {
     // See http://mathworld.wolfram.com/PerpendicularVector.html
     return T{GetY(vector), -GetX(vector)};
@@ -565,15 +567,15 @@ PLAYRHO_CONSTEXPR inline auto GetFwdPerpendicular(const T vector) noexcept
 /// @brief Multiplies an M-element vector by an M-by-N matrix.
 /// @param v Vector that's interpreted as a matrix with 1 row and M-columns.
 /// @param m An M-row by N-column *transformation matrix* to multiply the vector by.
-/// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+/// @see https://en.wikipedia.org/wiki/Transformation_matrix
 template <std::size_t M, typename T1, std::size_t N, typename T2>
-PLAYRHO_CONSTEXPR inline auto Transform(const Vector<T1, M> v, const Matrix<T2, M, N>& m) noexcept
+constexpr auto Transform(const Vector<T1, M> v, const Matrix<T2, M, N>& m) noexcept
 {
     return m * v;
 }
 
 /// @brief Multiplies a vector by a matrix.
-PLAYRHO_CONSTEXPR inline Vec2 Transform(const Vec2 v, const Mat33& A) noexcept
+constexpr Vec2 Transform(const Vec2 v, const Mat33& A) noexcept
 {
     return Vec2{
         get<0>(get<0>(A)) * v[0] + get<0>(get<1>(A)) * v[1],
@@ -583,13 +585,13 @@ PLAYRHO_CONSTEXPR inline Vec2 Transform(const Vec2 v, const Mat33& A) noexcept
 
 /// Multiply a matrix transpose times a vector. If a rotation matrix is provided,
 /// then this transforms the vector from one frame to another (inverse transform).
-PLAYRHO_CONSTEXPR inline Vec2 InverseTransform(const Vec2 v, const Mat22& A) noexcept
+constexpr Vec2 InverseTransform(const Vec2 v, const Mat22& A) noexcept
 {
     return Vec2{Dot(v, GetX(A)), Dot(v, GetY(A))};
 }
 
 /// @brief Computes A^T * B.
-PLAYRHO_CONSTEXPR inline Mat22 MulT(const Mat22& A, const Mat22& B) noexcept
+constexpr Mat22 MulT(const Mat22& A, const Mat22& B) noexcept
 {
     const auto c1 = Vec2{Dot(GetX(A), GetX(B)), Dot(GetY(A), GetX(B))};
     const auto c2 = Vec2{Dot(GetX(A), GetY(B)), Dot(GetY(A), GetY(B))};
@@ -640,7 +642,7 @@ Length2 ComputeCentroid(const Span<const Length2>& vertices);
 
 /// @brief Gets the modulo next value.
 template <typename T>
-PLAYRHO_CONSTEXPR inline T GetModuloNext(T value, T count) noexcept
+constexpr T GetModuloNext(T value, T count) noexcept
 {
     assert(value < count);
     return (value + 1) % count;
@@ -648,7 +650,7 @@ PLAYRHO_CONSTEXPR inline T GetModuloNext(T value, T count) noexcept
 
 /// @brief Gets the modulo previous value.
 template <typename T>
-PLAYRHO_CONSTEXPR inline T GetModuloPrev(T value, T count) noexcept
+constexpr T GetModuloPrev(T value, T count) noexcept
 {
     assert(value < count);
     return (value? value: count) - 1;
@@ -658,12 +660,12 @@ PLAYRHO_CONSTEXPR inline T GetModuloPrev(T value, T count) noexcept
 /// @details This gets the angle to rotate angle 1 by in order to get to angle 2 with the
 ///   least amount of rotation.
 /// @return Angle between -Pi and Pi radians inclusively.
-/// @sa GetNormalized
+/// @see GetNormalized
 Angle GetDelta(Angle a1, Angle a2) noexcept;
 
 /// Gets the reverse (counter) clockwise rotational angle to go from angle 1 to angle 2.
 /// @return Angular rotation in the counter clockwise direction to go from angle 1 to angle 2.
-PLAYRHO_CONSTEXPR inline Angle GetRevRotationalAngle(Angle a1, Angle a2) noexcept
+constexpr Angle GetRevRotationalAngle(Angle a1, Angle a2) noexcept
 {
     return (a1 > a2)? 360_deg - (a1 - a2): a2 - a1;
 }
@@ -694,7 +696,7 @@ SecondMomentOfArea GetPolarMoment(Span<const Length2> vertices);
 namespace d2 {
 
 /// @brief Gets a <code>Vec2</code> representation of the given value.
-PLAYRHO_CONSTEXPR inline Vec2 GetVec2(const UnitVec value)
+constexpr Vec2 GetVec2(const UnitVec value)
 {
     return Vec2{get<0>(value), get<1>(value)};
 }
@@ -706,35 +708,35 @@ inline Angle GetAngle(const UnitVec value)
 }
 
 /// @brief Multiplication operator.
-template <class T, LoValueCheck lo, HiValueCheck hi>
-PLAYRHO_CONSTEXPR inline Vector2<T> operator* (BoundedValue<T, lo, hi> s, UnitVec u) noexcept
-{
-    return Vector2<T>{u.GetX() * s, u.GetY() * T{s}};
-}
-
-/// @brief Multiplication operator.
-template <class T>
-PLAYRHO_CONSTEXPR inline Vector2<T> operator* (const T s, const UnitVec u) noexcept
+template <class T, typename U>
+constexpr Vector2<T> operator* (CheckedValue<T, U> s, UnitVec u) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
 
 /// @brief Multiplication operator.
-template <class T, LoValueCheck lo, HiValueCheck hi>
-PLAYRHO_CONSTEXPR inline Vector2<T> operator* (UnitVec u, BoundedValue<T, lo, hi> s) noexcept
+template <class T>
+constexpr Vector2<T> operator* (const T s, const UnitVec u) noexcept
 {
-    return Vector2<T>{u.GetX() * s, u.GetY() * T{s}};
+    return Vector2<T>{u.GetX() * s, u.GetY() * s};
+}
+
+/// @brief Multiplication operator.
+template <class T, typename U>
+constexpr Vector2<T> operator* (UnitVec u, CheckedValue<T, U> s) noexcept
+{
+    return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
 
 /// @brief Multiplication operator.
 template <class T>
-PLAYRHO_CONSTEXPR inline Vector2<T> operator* (const UnitVec u, const T s) noexcept
+constexpr Vector2<T> operator* (const UnitVec u, const T s) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
 
 /// @brief Division operator.
-PLAYRHO_CONSTEXPR inline Vec2 operator/ (const UnitVec u, const UnitVec::value_type s) noexcept
+constexpr Vec2 operator/ (const UnitVec u, const UnitVec::value_type s) noexcept
 {
     const auto inverseS = Real{1} / s;
     return Vec2{GetX(u) * inverseS, GetY(u) * inverseS};
@@ -744,9 +746,9 @@ PLAYRHO_CONSTEXPR inline Vec2 operator/ (const UnitVec u, const UnitVec::value_t
 /// @details This rotates a vector by the angle expressed by the angle parameter.
 /// @param vector Vector to forward rotate.
 /// @param angle Expresses the angle to forward rotate the given vector by.
-/// @sa InverseRotate.
+/// @see InverseRotate.
 template <class T>
-PLAYRHO_CONSTEXPR inline auto Rotate(const Vector2<T> vector, const UnitVec& angle) noexcept
+constexpr auto Rotate(const Vector2<T> vector, const UnitVec& angle) noexcept
 {
     const auto newX = (GetX(angle) * GetX(vector)) - (GetY(angle) * GetY(vector));
     const auto newY = (GetY(angle) * GetX(vector)) + (GetX(angle) * GetY(vector));
@@ -759,9 +761,9 @@ PLAYRHO_CONSTEXPR inline auto Rotate(const Vector2<T> vector, const UnitVec& ang
 ///   expressed by the angle parameter.
 /// @param vector Vector to reverse rotate.
 /// @param angle Expresses the angle to reverse rotate the given vector by.
-/// @sa Rotate.
+/// @see Rotate.
 template <class T>
-PLAYRHO_CONSTEXPR inline auto InverseRotate(const Vector2<T> vector, const UnitVec& angle) noexcept
+constexpr auto InverseRotate(const Vector2<T> vector, const UnitVec& angle) noexcept
 {
     const auto newX = (GetX(angle) * GetX(vector)) + (GetY(angle) * GetY(vector));
     const auto newY = (GetX(angle) * GetY(vector)) - (GetY(angle) * GetX(vector));
@@ -773,7 +775,7 @@ PLAYRHO_CONSTEXPR inline auto InverseRotate(const Vector2<T> vector, const UnitV
 /// @param fallback Fallback unit vector value to use in case a unit vector can't effectively be
 ///   calculated from the given value.
 /// @return value divided by its length if length not almost zero otherwise invalid value.
-/// @sa AlmostEqual.
+/// @see AlmostEqual.
 template <class T>
 inline UnitVec GetUnitVector(Vector2<T> value, UnitVec fallback = UnitVec::GetDefaultFallback())
 {
@@ -809,11 +811,11 @@ inline Sweep GetNormalized(Sweep sweep) noexcept
 /// @note Passing the output of this function to <code>InverseTransform</code> (with the same
 /// transformation again) will result in the original vector being returned.
 /// @note For a 2-D linear position of the origin (0, 0), the result is simply the translation.
-/// @sa <code>InverseTransform</code>.
+/// @see <code>InverseTransform</code>.
 /// @param v 2-D position to transform (to rotate and then translate).
 /// @param xfm Transformation (a translation and rotation) to apply to the given vector.
 /// @return Rotated and translated vector.
-PLAYRHO_CONSTEXPR inline Length2 Transform(const Length2 v, const Transformation xfm) noexcept
+constexpr Length2 Transform(const Length2 v, const Transformation xfm) noexcept
 {
     return Rotate(v, xfm.q) + xfm.p;
 }
@@ -824,20 +826,19 @@ PLAYRHO_CONSTEXPR inline Length2 Transform(const Length2 v, const Transformation
 /// defined by the given transformation.
 /// @note Passing the output of this function to <code>Transform</code> (with the same
 /// transformation again) will result in the original vector being returned.
-/// @sa <code>Transform</code>.
+/// @see <code>Transform</code>.
 /// @param v 2-D vector to inverse transform (inverse translate and inverse rotate).
-/// @param T Transformation (a translation and rotation) to inversely apply to the given vector.
+/// @param xfm Transformation (a translation and rotation) to inversely apply to the given vector.
 /// @return Inverse transformed vector.
-PLAYRHO_CONSTEXPR inline Length2 InverseTransform(const Length2 v, const Transformation T) noexcept
+constexpr Length2 InverseTransform(const Length2 v, const Transformation xfm) noexcept
 {
-    const auto v2 = v - T.p;
-    return InverseRotate(v2, T.q);
+    return InverseRotate(v - xfm.p, xfm.q);
 }
 
 /// @brief Multiplies a given transformation by another given transformation.
 /// @note <code>v2 = A.q.Rot(B.q.Rot(v1) + B.p) + A.p
 ///                = (A.q * B.q).Rot(v1) + A.q.Rot(B.p) + A.p</code>
-PLAYRHO_CONSTEXPR inline Transformation Mul(const Transformation& A, const Transformation& B) noexcept
+constexpr Transformation Mul(const Transformation& A, const Transformation& B) noexcept
 {
     return Transformation{A.p + Rotate(B.p, A.q), A.q.Rotate(B.q)};
 }
@@ -845,14 +846,14 @@ PLAYRHO_CONSTEXPR inline Transformation Mul(const Transformation& A, const Trans
 /// @brief Inverse multiplies a given transformation by another given transformation.
 /// @note <code>v2 = A.q' * (B.q * v1 + B.p - A.p)
 ///                = A.q' * B.q * v1 + A.q' * (B.p - A.p)</code>
-PLAYRHO_CONSTEXPR inline Transformation MulT(const Transformation& A, const Transformation& B) noexcept
+constexpr Transformation MulT(const Transformation& A, const Transformation& B) noexcept
 {
     const auto dp = B.p - A.p;
     return Transformation{InverseRotate(dp, A.q), B.q.Rotate(A.q.FlipY())};
 }
 
 /// @brief Gets the transformation for the given values.
-PLAYRHO_CONSTEXPR inline Transformation GetTransformation(const Length2 ctr, const UnitVec rot,
+constexpr Transformation GetTransformation(const Length2 ctr, const UnitVec rot,
                                                             const Length2 localCtr) noexcept
 {
     assert(IsValid(rot));
@@ -880,7 +881,7 @@ inline Transformation GetTransformation(const Sweep& sweep, const Real beta) noe
 
 /// @brief Gets the transform at "time" zero.
 /// @note This is like calling <code>GetTransformation(sweep, 0)</code>, except more efficiently.
-/// @sa GetTransformation(const Sweep& sweep, Real beta).
+/// @see GetTransformation(const Sweep& sweep, Real beta).
 /// @param sweep Sweep data to get the transform from.
 /// @return Transformation of the given sweep at time zero.
 inline Transformation GetTransform0(const Sweep& sweep) noexcept
@@ -890,7 +891,7 @@ inline Transformation GetTransform0(const Sweep& sweep) noexcept
 
 /// @brief Gets the transform at "time" one.
 /// @note This is like calling <code>GetTransformation(sweep, 1.0)</code>, except more efficiently.
-/// @sa GetTransformation(const Sweep& sweep, Real beta).
+/// @see GetTransformation(const Sweep& sweep, Real beta).
 /// @param sweep Sweep data to get the transform from.
 /// @return Transformation of the given sweep at time one.
 inline Transformation GetTransform1(const Sweep& sweep) noexcept
@@ -915,8 +916,8 @@ inline bool IsUnderActive(Velocity velocity,
 
 /// @brief Gets the reflection matrix for the given unit vector that defines the normal of
 ///   the line through the origin that points should be reflected against.
-/// @sa https://en.wikipedia.org/wiki/Transformation_matrix
-PLAYRHO_CONSTEXPR inline auto GetReflectionMatrix(UnitVec axis)
+/// @see https://en.wikipedia.org/wiki/Transformation_matrix
+constexpr auto GetReflectionMatrix(UnitVec axis)
 {
     constexpr auto TupleSize = std::tuple_size<decltype(axis)>::value;
     constexpr auto NumRows = TupleSize;

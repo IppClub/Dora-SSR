@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-FixtureDef BodyDef::_tempConf;
+FixtureDef BodyDef::_tempConf{};
 
 BodyDef::BodyDef():
 angleOffset(0),
@@ -40,7 +40,7 @@ void BodyDef::attachPolygon(const Vec2& center, float width, float height, float
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachPolygon(float width, float height, float density, float friction, float restitution)
@@ -53,7 +53,7 @@ void BodyDef::attachPolygon(float width, float height, float density, float fric
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
@@ -71,7 +71,7 @@ void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float f
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, float friction, float restitution)
@@ -89,7 +89,7 @@ void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, flo
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachMulti(const vector<Vec2>& vertices, float density, float friction, float restitution)
@@ -119,7 +119,7 @@ void BodyDef::attachMulti(const vector<Vec2>& vertices, float density, float fri
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachMulti(const Vec2 vertices[], int count, float density, float friction, float restitution)
@@ -149,7 +149,7 @@ void BodyDef::attachMulti(const Vec2 vertices[], int count, float density, float
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachDisk(const Vec2& center, float radius, float density, float friction, float restitution)
@@ -160,7 +160,7 @@ void BodyDef::attachDisk(const Vec2& center, float radius, float density, float 
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachDisk(float radius, float density, float friction, float restitution)
@@ -182,7 +182,7 @@ void BodyDef::attachChain(const vector<Vec2>& vertices, float friction, float re
 	.Set(vs)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, float restitution)
@@ -199,7 +199,7 @@ void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, floa
 	.Set(vs)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_fixtureConfs.push_back({pd::Shape{conf}, pd::FixtureConf{}});
+	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
 void BodyDef::attachPolygonSensor(int tag, float width, float height)
@@ -209,8 +209,8 @@ void BodyDef::attachPolygonSensor(int tag, float width, float height)
 
 void BodyDef::attachPolygonSensor(int tag, float width, float height, const Vec2& center, float angle)
 {
-	_fixtureConfs.push_back(
-	{
+	_fixtureConfs.emplace_back(
+		tag,
 		pd::Shape{
 			pd::PolygonShapeConf{}
 			.SetAsBox(
@@ -221,9 +221,8 @@ void BodyDef::attachPolygonSensor(int tag, float width, float height, const Vec2
 			)
 		},
 		pd::FixtureConf{}
-			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
 			.UseIsSensor(true)
-	});
+	);
 }
 
 void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
@@ -236,16 +235,15 @@ void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
 			PhysicsWorld::b2Val(vertices[i].y)
 		};
 	}
-	_fixtureConfs.push_back(
-	{
+	_fixtureConfs.emplace_back(
+		tag,
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.Set(vs)
 		},
 		pd::FixtureConf{}
-			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
 			.UseIsSensor(true)
-	});
+	);
 }
 
 void BodyDef::attachPolygonSensor(int tag, const Vec2 vertices[], int count)
@@ -258,31 +256,29 @@ void BodyDef::attachPolygonSensor(int tag, const Vec2 vertices[], int count)
 			PhysicsWorld::b2Val(vertices[i].y)
 		};
 	}
-	_fixtureConfs.push_back(
-	{
+	_fixtureConfs.emplace_back(
+		tag,
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.Set(vs)
 		},
 		pd::FixtureConf{}
-			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
 			.UseIsSensor(true)
-	});
+	);
 }
 
 void BodyDef::attachDiskSensor(int tag, const Vec2& center, float radius)
 {
-	_fixtureConfs.push_back(
-	{
+	_fixtureConfs.emplace_back(
+		tag,
 		pd::Shape{
 			pd::DiskShapeConf{}
 				.UseLocation(PhysicsWorld::b2Val(center))
 				.UseRadius(PhysicsWorld::b2Val(radius))
 		},
 		pd::FixtureConf{}
-			.UseUserData(r_cast<void*>(s_cast<intptr_t>(tag)))
 			.UseIsSensor(true)
-	});
+	);
 }
 
 void BodyDef::attachDiskSensor(int tag, float radius)
@@ -293,6 +289,7 @@ void BodyDef::attachDiskSensor(int tag, float radius)
 FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, float angle, float density, float friction, float restitution)
 {
 	_tempConf = {
+		0,
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.SetAsBox(
@@ -313,6 +310,7 @@ FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, floa
 FixtureDef* BodyDef::polygon(float width, float height, float density, float friction, float restitution)
 {
 	_tempConf = {
+		0,
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.SetAsBox(
@@ -339,6 +337,7 @@ FixtureDef* BodyDef::polygon(const vector<Vec2>& vertices, float density, float 
 		};
 	}
 	_tempConf = {
+		0,
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.Set(vs)
@@ -362,6 +361,7 @@ FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, fl
 		};
 	}
 	_tempConf = {
+		0,
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.Set(vs)
@@ -401,7 +401,7 @@ FixtureDef* BodyDef::multi(const vector<Vec2>& vertices, float density, float fr
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	_tempConf = {0, pd::Shape{conf}, pd::FixtureConf{}};
 	return &_tempConf;
 }
 
@@ -432,7 +432,7 @@ FixtureDef* BodyDef::multi(const Vec2 vertices[], int count, float density, floa
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	_tempConf = {0, pd::Shape{conf}, pd::FixtureConf{}};
 	return &_tempConf;
 }
 
@@ -444,7 +444,7 @@ FixtureDef* BodyDef::disk(const Vec2& center, float radius, float density, float
 	.UseDensity(density)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	_tempConf = {0, pd::Shape{conf}, pd::FixtureConf{}};
 	return &_tempConf;
 }
 
@@ -467,7 +467,7 @@ FixtureDef* BodyDef::chain(const vector<Vec2>& vertices, float friction, float r
 	.Set(vs)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	_tempConf = {0, pd::Shape{conf}, pd::FixtureConf{}};
 	return &_tempConf;
 }
 
@@ -485,7 +485,7 @@ FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, flo
 	.Set(vs)
 	.UseFriction(friction)
 	.UseRestitution(restitution);
-	_tempConf = {pd::Shape{conf}, pd::FixtureConf{}};
+	_tempConf = {0, pd::Shape{conf}, pd::FixtureConf{}};
 	return &_tempConf;
 }
 

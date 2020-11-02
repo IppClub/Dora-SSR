@@ -21,6 +21,12 @@ class World;
 
 struct FixtureDef
 {
+	FixtureDef(): tag(0) { }
+	FixtureDef(int tag,
+		const pd::Shape& shape,
+		const pd::FixtureConf& conf):
+		tag(tag), shape(shape), conf(conf) { }
+	int tag;
 	pd::Shape shape;
 	pd::FixtureConf conf;
 };

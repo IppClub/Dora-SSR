@@ -45,14 +45,14 @@ using InvMass3 = Vector3<InvMass>;
 
 /// @brief Gets an invalid value for the 3-element vector of real (<code>Vec3</code>) type.
 template <>
-PLAYRHO_CONSTEXPR inline Vec3 GetInvalid() noexcept
+constexpr Vec3 GetInvalid() noexcept
 {
     return Vec3{GetInvalid<Real>(), GetInvalid<Real>(), GetInvalid<Real>()};
 }
 
 /// @brief Determines whether the given vector contains finite coordinates.
 template <>
-PLAYRHO_CONSTEXPR inline bool IsValid(const Vec3& value) noexcept
+constexpr bool IsValid(const Vec3& value) noexcept
 {
     return IsValid(get<0>(value)) && IsValid(get<1>(value)) && IsValid(get<2>(value));
 }

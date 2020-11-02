@@ -29,17 +29,17 @@ namespace d2 {
     class Body;
     class Joint;
     class Fixture;
-    class DistanceJoint;
-    class FrictionJoint;
-    class GearJoint;
-    class MotorJoint;
-    class TargetJoint;
-    class PrismaticJoint;
-    class PulleyJoint;
-    class RevoluteJoint;
-    class RopeJoint;
-    class WeldJoint;
-    class WheelJoint;
+    struct DistanceJointConf;
+    struct FrictionJointConf;
+    struct GearJointConf;
+    struct MotorJointConf;
+    struct TargetJointConf;
+    struct PrismaticJointConf;
+    struct PulleyJointConf;
+    struct RevoluteJointConf;
+    struct RopeJointConf;
+    struct WeldJointConf;
+    struct WheelJointConf;
 
     /// Dump the world into the log file.
     /// @warning this should be called outside of a time step.
@@ -49,43 +49,43 @@ namespace d2 {
     void Dump(const Body& body, std::size_t bodyIndex);
     
     /// Dump joint to the log file.
-    void Dump(const Joint& joint, std::size_t index);
+    void Dump(const Joint& joint, std::size_t index, const World& world);
 
     /// Dump fixture to log file.
     void Dump(const Fixture& fixture, std::size_t bodyIndex);
 
     /// Dump joint to log file.
-    void Dump(const DistanceJoint& joint, std::size_t index);
+    void Dump(const DistanceJointConf& joint, std::size_t index, const World& world);
 
     /// Dump joint to the log file.
-    void Dump(const FrictionJoint& joint, std::size_t index);
+    void Dump(const FrictionJointConf& joint, std::size_t index, const World& world);
 
     /// @brief Dumps the joint to the log file.
-    void Dump(const GearJoint& joint, std::size_t index);
+    void Dump(const GearJointConf& joint, std::size_t index, const World& world);
     
     /// @brief Dumps the joint to the log file.
-    void Dump(const MotorJoint& joint, std::size_t index);
+    void Dump(const MotorJointConf& joint, std::size_t index, const World& world);
 
     /// @brief Dumps the joint to the log file.
-    void Dump(const TargetJoint& joint, std::size_t index);
+    void Dump(const TargetJointConf& joint, std::size_t index, const World& world);
 
     /// @brief Dumps the joint to the log file.
-    void Dump(const PrismaticJoint& joint, std::size_t index);
+    void Dump(const PrismaticJointConf& joint, std::size_t index, const World& world);
 
     /// Dump joint to log file.
-    void Dump(const PulleyJoint& joint, std::size_t index);
+    void Dump(const PulleyJointConf& joint, std::size_t index, const World& world);
 
     /// @brief Dumps the joint to the log file.
-    void Dump(const RevoluteJoint& joint, std::size_t index);
+    void Dump(const RevoluteJointConf& joint, std::size_t index, const World& world);
 
     /// @brief Dumps the joint to the log file.
-    void Dump(const RopeJoint& joint, std::size_t index);
+    void Dump(const RopeJointConf& joint, std::size_t index, const World& world);
 
     /// @brief Dumps the joint to the log file.
-    void Dump(const WeldJoint& joint, std::size_t index);
+    void Dump(const WeldJointConf& joint, std::size_t index, const World& world);
 
     /// @brief Dumps the joint to the log file.
-    void Dump(const WheelJoint& joint, std::size_t index);
+    void Dump(const WheelJointConf& joint, std::size_t index, const World& world);
     
 } // namespace d2
 } // namespace playrho

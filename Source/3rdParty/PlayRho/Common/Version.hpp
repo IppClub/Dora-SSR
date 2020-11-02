@@ -32,8 +32,8 @@ namespace playrho {
     /// @brief Version numbering scheme.
     /// @details Version class for numbering the PlayRho library releases. Follows
     ///   Semantic Versioning 2.0.0.
-    /// @sa http://en.wikipedia.org/wiki/Software_versioning
-    /// @sa http://semver.org
+    /// @see https://en.wikipedia.org/wiki/Software_versioning
+    /// @see https://semver.org
     struct Version
     {
         /// @brief Revision number type.
@@ -61,13 +61,13 @@ namespace playrho {
     };
     
     /// @brief Equality operator.
-    PLAYRHO_CONSTEXPR inline bool operator== (Version lhs, Version rhs)
+    constexpr bool operator== (Version lhs, Version rhs)
     {
         return lhs.major == rhs.major && lhs.minor == rhs.minor && lhs.revision == rhs.revision;
     }
     
     /// @brief Inequality operator.
-    PLAYRHO_CONSTEXPR inline bool operator!= (Version lhs, Version rhs)
+    constexpr bool operator!= (Version lhs, Version rhs)
     {
         return !(lhs == rhs);
     }

@@ -53,8 +53,8 @@ namespace d2 {
     /// @invariant Vertex's for the same index must have the same point locations.
     /// @invariant There may not be more than one entry for the same index pair.
     ///
-    /// @sa https://en.wikipedia.org/wiki/Simplex
-    /// @sa https://en.wikipedia.org/wiki/Gilbert%2DJohnson%2DKeerthi_distance_algorithm
+    /// @see https://en.wikipedia.org/wiki/Simplex
+    /// @see https://en.wikipedia.org/wiki/Gilbert%2DJohnson%2DKeerthi_distance_algorithm
     ///
     class Simplex
     {
@@ -126,16 +126,16 @@ namespace d2 {
         Simplex() = default;
 
         /// @brief Gets the edges.
-        PLAYRHO_CONSTEXPR inline SimplexEdges GetEdges() const noexcept;
+        constexpr SimplexEdges GetEdges() const noexcept;
 
         /// @brief Gets the give indexed simplex edge.
         const SimplexEdge& GetSimplexEdge(size_type index) const noexcept;
 
         /// @brief Gets the coefficient for the given index.
-        PLAYRHO_CONSTEXPR inline Real GetCoefficient(size_type index) const noexcept;
+        constexpr Real GetCoefficient(size_type index) const noexcept;
 
         /// @brief Gets the size in number of simplex edges that this instance is made up of.
-        PLAYRHO_CONSTEXPR inline size_type size() const noexcept;
+        constexpr size_type size() const noexcept;
 
     private:
         
@@ -175,7 +175,7 @@ namespace d2 {
 #endif
     }
 
-    PLAYRHO_CONSTEXPR inline SimplexEdges Simplex::GetEdges() const noexcept
+    constexpr SimplexEdges Simplex::GetEdges() const noexcept
     {
         return m_simplexEdges;
     }
@@ -185,14 +185,14 @@ namespace d2 {
         return m_simplexEdges[index];
     }
     
-    PLAYRHO_CONSTEXPR inline Real Simplex::GetCoefficient(size_type index) const noexcept
+    constexpr Real Simplex::GetCoefficient(size_type index) const noexcept
     {
         return m_normalizedWeights[index];
     }
     
     /// @brief Gets the size in number of valid edges of this Simplex.
     /// @return Value between 0 and <code>MaxEdges</code> (inclusive).
-    PLAYRHO_CONSTEXPR inline Simplex::size_type Simplex::size() const noexcept
+    constexpr Simplex::size_type Simplex::size() const noexcept
     {
         return m_simplexEdges.size();
     }
@@ -204,7 +204,7 @@ namespace d2 {
     }
 
     /// Gets the "closest point".
-    PLAYRHO_CONSTEXPR inline Length2 GetClosestPoint(const Simplex& simplex)
+    constexpr Length2 GetClosestPoint(const Simplex& simplex)
     {
         switch (simplex.size())
         {

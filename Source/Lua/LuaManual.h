@@ -190,8 +190,6 @@ namespace ImGui { namespace Binding
 	void SetColorEditOptions(String colorEditMode);
 	bool InputText(const char* label, Buffer* buffer, String inputTextFlags = nullptr);
 	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size = Vec2::zero, String inputTextFlags = nullptr);
-	bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, String format = "%.1f", String inputTextFlags = nullptr);
-	bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String inputTextFlags = nullptr);
 	bool TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
 	void SetNextItemOpen(bool is_open, String setCond = nullptr);
 	bool CollapsingHeader(const char* label, String treeNodeFlags = nullptr);
@@ -222,12 +220,22 @@ namespace ImGui { namespace Binding
 
 	bool Combo(const char* label, int* current_item, const char* const* items, int items_count, int height_in_items = -1);
 
-	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
-	bool DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
-	bool InputFloat2(const char* label, float* v1, float* v2, String format = "%.1f", String extra_flags = nullptr);
-	bool InputInt2(const char* label, int* v1, int* v2, String extra_flags = nullptr);
-	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
-	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f");
+	bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format = "%.3f", String flags = nullptr);
+	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", String flags = nullptr);
+	bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format = "%d", String flags = nullptr);
+	bool DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f", String flags = nullptr);
+	bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f", String flags = nullptr);
+	bool InputFloat2(const char* label, float* v1, float* v2, const char* format = "%.1f", String flags = nullptr);
+	bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String flags = nullptr);
+	bool InputInt2(const char* label, int* v1, int* v2, String flags = nullptr);
+	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", String flags = nullptr);
+	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", String flags = nullptr);
+	bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d", String flags = nullptr);
+	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f", String flags = nullptr);
+	bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", const char* format_max = nullptr, String flags = nullptr);
+	bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* format = "%d", const char* format_max = nullptr, String flags = nullptr);
+	bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", String flags = nullptr);
+	bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", String flags = nullptr);
 
 	bool ColorEdit3(const char* label, Color3& color3);
 	bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
@@ -247,7 +255,10 @@ namespace ImGui { namespace Binding
 
 	ImGuiWindowFlags_ getWindowFlags(String flag);
 	Uint32 getWindowCombinedFlags(String flags);
-	ImGuiInputTextFlags_ getInputTextFlags(String flag);
+	ImGuiSliderFlags_ getSliderFlag(String flag);
+	Uint32 getSliderCombinedFlags(String flags);
+	ImGuiInputTextFlags_ getInputTextFlag(String flag);
+	Uint32 getInputTextCombinedFlags(String flags);
 	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag);
 	ImGuiSelectableFlags_ getSelectableFlags(String flag);
 	ImGuiCol_ getColorIndex(String col);

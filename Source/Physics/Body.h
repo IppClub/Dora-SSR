@@ -39,9 +39,9 @@ public:
 	PROPERTY(float, AngularDamping);
 	PROPERTY(float, AngularRate);
 	PROPERTY(Object*, Owner);
-	PROPERTY_READONLY(PhysicsWorld*, World);
+	PROPERTY_READONLY(PhysicsWorld*, PhysicsWorld);
 	PROPERTY_READONLY(BodyDef*, BodyDef);
-	PROPERTY_READONLY(pd::Body*, PrBody);
+	PROPERTY_READONLY(pr::BodyID, PrBody);
 	PROPERTY_READONLY(Vec2, Velocity);
 	PROPERTY_READONLY(float, Mass);
 	PROPERTY(float, VelocityX);
@@ -64,16 +64,16 @@ public:
 	void eachSensor(const SensorHandler& func);
 	bool removeSensorByTag(int tag);
 	bool removeSensor(Sensor* sensor);
-	pd::Fixture* attach(FixtureDef* fixtureDef);
+	pr::FixtureID attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
 	bool isSensor() const;
 	CREATE_FUNC(Body);
 protected:
 	Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0);
-	pd::Fixture* attachFixture(FixtureDef* fixtureDef);
+	pr::FixtureID attachFixture(FixtureDef* fixtureDef);
 	virtual void updatePhysics();
-	pd::Body* _prBody; // weak reference
-	PhysicsWorld* _world;
+	pr::BodyID _prBody; // weak reference
+	PhysicsWorld* _pWorld;
 	Uint8 _group;
 	enum
 	{

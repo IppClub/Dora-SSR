@@ -58,7 +58,7 @@ public:
     }
     
     /// @brief Transforms all the vertices by the given transformation matrix.
-    /// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+    /// @see https://en.wikipedia.org/wiki/Transformation_matrix
     ConvexHull& Transform(const Mat22& m) noexcept;
 
     /// @brief Equality operator.
@@ -111,7 +111,7 @@ private:
 struct MultiShapeConf: public ShapeBuilder<MultiShapeConf>
 {
     /// @brief Gets the default vertex radius for the <code>MultiShapeConf</code>.
-    static PLAYRHO_CONSTEXPR inline NonNegative<Length> GetDefaultVertexRadius() noexcept
+    static constexpr NonNegative<Length> GetDefaultVertexRadius() noexcept
     {
         return NonNegative<Length>{DefaultLinearSlop * 2};
     }
@@ -137,7 +137,7 @@ struct MultiShapeConf: public ShapeBuilder<MultiShapeConf>
                                   GetDefaultVertexRadius()) noexcept;
     
     /// @brief Transforms the vertices of all the children by the given transformation matrix.
-    /// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+    /// @see https://en.wikipedia.org/wiki/Transformation_matrix
     MultiShapeConf& Transform(const Mat22& m) noexcept;
 
     std::vector<ConvexHull> children; ///< Children.
@@ -189,7 +189,7 @@ inline NonNegative<Length> GetVertexRadius(const MultiShapeConf& arg, ChildCount
 
 /// @brief Transforms the given multi shape configuration by the given
 ///   transformation matrix.
-/// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+/// @see https://en.wikipedia.org/wiki/Transformation_matrix
 inline void Transform(MultiShapeConf& arg, const Mat22& m) noexcept
 {
     arg.Transform(m);

@@ -50,11 +50,11 @@ struct LookupTable
     
     std::uint8_t elements[BlockAllocator::GetMaxBlockSize() + 1];
 };
-static constexpr const LookupTable BlockSizeLookup;
+static constexpr LookupTable BlockSizeLookup;
 #endif
 
 /// @brief Block size lookup array.
-static PLAYRHO_CONSTEXPR const std::uint8_t s_blockSizeLookup[BlockAllocator::GetMaxBlockSize() + 1] =
+static constexpr std::uint8_t s_blockSizeLookup[BlockAllocator::GetMaxBlockSize() + 1] =
 {
     0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 1-16
@@ -103,7 +103,7 @@ struct BlockAllocator::Block
 };
 
 BlockAllocator::BlockAllocator():
-    m_chunks(Alloc<Chunk>(m_chunkSpace))
+    m_chunks(AllocArray<Chunk>(m_chunkSpace))
 {
     static_assert(size(AllocatorBlockSizes) < std::numeric_limits<std::uint8_t>::max(),
                   "AllocatorBlockSizes too big");
@@ -146,7 +146,7 @@ void* BlockAllocator::Allocate(size_type n)
     if (m_chunkCount == m_chunkSpace)
     {
         m_chunkSpace += GetChunkArrayIncrement();
-        m_chunks = Realloc<Chunk>(m_chunks, m_chunkSpace);
+        m_chunks = ReallocArray<Chunk>(m_chunks, m_chunkSpace);
         std::memset(m_chunks + m_chunkCount, 0, GetChunkArrayIncrement() * sizeof(Chunk));
     }
 

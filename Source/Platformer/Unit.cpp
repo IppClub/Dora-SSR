@@ -186,17 +186,18 @@ void Unit::cleanup()
 void Unit::setGroup(Uint8 group)
 {
 	_group = group;
-	for (pd::Fixture* f : _prBody->GetFixtures())
+	auto& world = _pWorld->getPrWorld();
+	for (pr::FixtureID f : pd::GetFixtures(world, _prBody))
 	{
-		if (f->IsSensor())
+		if (pd::IsSensor(world, f))
 		{
-			Sensor* sensor = r_cast<Sensor*>(f->GetUserData());
-			if (sensor->getTag() != UnitDef::GroundSensorTag)
+			Sensor* sensor = _pWorld->getFixtureData(f);
+			if (sensor && sensor->getTag() != UnitDef::GroundSensorTag)
 			{
 				continue;
 			}
 		}
-		f->SetFilterData(Body::getWorld()->getFilter(group));
+		pd::SetFilterData(world, f, _pWorld->getFilter(group));
 	}
 }
 

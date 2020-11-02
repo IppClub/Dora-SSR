@@ -28,35 +28,34 @@
 namespace playrho {
 
 /// Allocated Array.
-template <typename T, typename Deleter = std::function<void (void *)> >
+template <typename T, typename Deleter = std::function<void(void*)>>
 class AllocatedArray
 {
 public:
-    
     /// @brief Size type.
     using size_type = std::size_t;
 
     /// @brief Value type.
     using value_type = T;
-    
+
     /// @brief Constant value type.
     using const_value_type = const value_type;
-    
+
     /// @brief Reference type.
     using reference = value_type&;
-    
+
     /// @brief Constant reference type.
     using const_reference = const value_type&;
-    
+
     /// @brief Pointer type.
     using pointer = value_type*;
-    
+
     /// @brief Constant pointer type.
     using const_pointer = const value_type*;
-    
+
     /// @brief Difference type.
     using difference_type = std::ptrdiff_t;
-    
+
     /// @brief Deleter type.
     using deleter_type = Deleter;
 
@@ -67,12 +66,12 @@ public:
     using const_iterator = const_pointer;
 
     /// @brief Initializing constructor.
-    PLAYRHO_CONSTEXPR inline AllocatedArray(size_type max_size, pointer data, deleter_type deleter = noop_deleter):
-        m_max_size{max_size}, m_data{data}, m_deleter{deleter}
+    constexpr AllocatedArray(size_type max_size, pointer data, deleter_type deleter = noop_deleter)
+        : m_max_size{max_size}, m_data{data}, m_deleter{deleter}
     {
         assert(data);
     }
-    
+
     /// @brief Destructor.
     ~AllocatedArray() noexcept
     {
@@ -84,24 +83,39 @@ public:
     AllocatedArray(const AllocatedArray& copy) = delete;
 
     /// @brief Move constructor.
-    AllocatedArray(AllocatedArray&& other) noexcept:
-        m_max_size{other.m_max_size}, m_size{other.m_size}, m_data{other.m_data}, m_deleter{other.m_deleter}
+    AllocatedArray(AllocatedArray&& other) noexcept
+        : m_max_size{other.m_max_size},
+          m_size{other.m_size},
+          m_data{other.m_data},
+          m_deleter{other.m_deleter}
     {
         other.m_size = 0;
         other.m_data = nullptr;
     }
 
     /// @brief Gets the current size of this array.
-    size_type size() const noexcept { return m_size; }
+    size_type size() const noexcept
+    {
+        return m_size;
+    }
 
     /// @brief Gets the maximum size this array can possibly get to.
-    size_type max_size() const noexcept { return m_max_size; }
-    
+    size_type max_size() const noexcept
+    {
+        return m_max_size;
+    }
+
     /// @brief Determines whether this array is empty.
-    bool empty() const noexcept { return size() == 0; }
+    bool empty() const noexcept
+    {
+        return size() == 0;
+    }
 
     /// @brief Gets a direct pointer to this array's memory.
-    pointer data() const noexcept { return m_data; }
+    pointer data() const noexcept
+    {
+        return m_data;
+    }
 
     /// @brief Indexed operator.
     reference operator[](size_type i)
@@ -118,29 +132,47 @@ public:
     }
 
     /// @brief Gets the "begin" iterator value for this array.
-    iterator begin() { return iterator{m_data}; }
+    iterator begin()
+    {
+        return iterator{m_data};
+    }
 
     /// @brief Gets the "end" iterator value for this array.
-    iterator end() { return iterator{m_data + size()}; }
-    
+    iterator end()
+    {
+        return iterator{m_data + size()};
+    }
+
     /// @brief Gets the "begin" iterator value for this array.
-    const_iterator begin() const { return const_iterator{m_data}; }
-    
+    const_iterator begin() const
+    {
+        return const_iterator{m_data};
+    }
+
     /// @brief Gets the "end" iterator value for this array.
-    const_iterator end() const { return const_iterator{m_data + size()}; }
-    
+    const_iterator end() const
+    {
+        return const_iterator{m_data + size()};
+    }
+
     /// @brief Gets the "begin" iterator value for this array.
-    const_iterator cbegin() const { return const_iterator{m_data}; }
-    
+    const_iterator cbegin() const
+    {
+        return const_iterator{m_data};
+    }
+
     /// @brief Gets the "end" iterator value for this array.
-    const_iterator cend() const { return const_iterator{m_data + size()}; }
+    const_iterator cend() const
+    {
+        return const_iterator{m_data + size()};
+    }
 
     /// @brief Gets a reference to the "back" element of this array.
     /// @warning Behavior is undefined if the size of this array is less than 1.
     reference back() noexcept
     {
         assert(m_size > 0);
-        return m_data[m_size - 1];        
+        return m_data[m_size - 1];
     }
 
     /// @brief Gets a reference to the "back" element of this array.
@@ -164,7 +196,7 @@ public:
         m_data[m_size] = value;
         ++m_size;
     }
-    
+
     /// @brief Pop "back".
     void pop_back() noexcept
     {
@@ -173,7 +205,6 @@ public:
     }
 
 private:
-    
     /// @brief No-op deleter method.
     static void noop_deleter(void* /*unused*/) {}
 

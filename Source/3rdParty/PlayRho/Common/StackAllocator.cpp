@@ -29,7 +29,7 @@ namespace {
 
 inline std::size_t alignment_size(std::size_t size)
 {
-    PLAYRHO_CONSTEXPR const auto one = static_cast<std::size_t>(1u);
+    constexpr auto one = static_cast<std::size_t>(1u);
     return (size < one)? one: (size < sizeof(std::max_align_t))?
         static_cast<std::size_t>(NextPowerOfTwo(size - one)): alignof(std::max_align_t);
 };

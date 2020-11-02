@@ -24,11 +24,11 @@
 
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Common/Wider.hpp"
-#include "PlayRho/Common/BoundedValue.hpp"
+#include "PlayRho/Common/NonNegative.hpp"
 
 namespace playrho {
 
-class StepConf;
+struct StepConf;
     
 /// @brief Time of impact configuration.
 ///
@@ -45,8 +45,8 @@ class StepConf;
 /// @note Min target distance needs to be significantly less than the max target distance and
 ///   significantly more than 0.
 ///
-/// @sa SolvePositionConstraints
-/// @sa SolveTOIPositionConstraints
+/// @see SolvePositionConstraints
+/// @see SolveTOIPositionConstraints
 ///
 struct ToiConf
 {
@@ -60,22 +60,22 @@ struct ToiConf
     using dist_iter_type = std::remove_const<decltype(DefaultMaxDistanceIters)>::type;
 
     /// @brief Uses the given time max value.
-    PLAYRHO_CONSTEXPR inline ToiConf& UseTimeMax(Real value) noexcept;
+    constexpr ToiConf& UseTimeMax(Real value) noexcept;
 
     /// @brief Uses the given target depth value.
-    PLAYRHO_CONSTEXPR inline ToiConf& UseTargetDepth(Length value) noexcept;
+    constexpr ToiConf& UseTargetDepth(Length value) noexcept;
     
     /// @brief Uses the given tolerance value.
-    PLAYRHO_CONSTEXPR inline ToiConf& UseTolerance(NonNegative<Length> value) noexcept;
+    constexpr ToiConf& UseTolerance(NonNegative<Length> value) noexcept;
     
     /// @brief Uses the given max root iterations value.
-    PLAYRHO_CONSTEXPR inline ToiConf& UseMaxRootIters(root_iter_type value) noexcept;
+    constexpr ToiConf& UseMaxRootIters(root_iter_type value) noexcept;
     
     /// @brief Uses the given max TOI iterations value.
-    PLAYRHO_CONSTEXPR inline ToiConf& UseMaxToiIters(toi_iter_type value) noexcept;
+    constexpr ToiConf& UseMaxToiIters(toi_iter_type value) noexcept;
     
     /// @brief Uses the given max distance iterations value.
-    PLAYRHO_CONSTEXPR inline ToiConf& UseMaxDistIters(dist_iter_type value) noexcept;
+    constexpr ToiConf& UseMaxDistIters(dist_iter_type value) noexcept;
 
     /// @brief T-Max.
     Real tMax = 1;
@@ -106,37 +106,37 @@ struct ToiConf
     dist_iter_type maxDistIters = DefaultMaxDistanceIters; ///< Max distance iterations.
 };
 
-PLAYRHO_CONSTEXPR inline ToiConf& ToiConf::UseTimeMax(Real value) noexcept
+constexpr ToiConf& ToiConf::UseTimeMax(Real value) noexcept
 {
     tMax = value;
     return *this;
 }
 
-PLAYRHO_CONSTEXPR inline ToiConf& ToiConf::UseTargetDepth(Length value) noexcept
+constexpr ToiConf& ToiConf::UseTargetDepth(Length value) noexcept
 {
     targetDepth = value;
     return *this;
 }
 
-PLAYRHO_CONSTEXPR inline ToiConf& ToiConf::UseTolerance(NonNegative<Length> value) noexcept
+constexpr ToiConf& ToiConf::UseTolerance(NonNegative<Length> value) noexcept
 {
     tolerance = value;
     return *this;
 }
 
-PLAYRHO_CONSTEXPR inline ToiConf& ToiConf::UseMaxRootIters(root_iter_type value) noexcept
+constexpr ToiConf& ToiConf::UseMaxRootIters(root_iter_type value) noexcept
 {
     maxRootIters = value;
     return *this;
 }
 
-PLAYRHO_CONSTEXPR inline ToiConf& ToiConf::UseMaxToiIters(toi_iter_type value) noexcept
+constexpr ToiConf& ToiConf::UseMaxToiIters(toi_iter_type value) noexcept
 {
     maxToiIters = value;
     return *this;
 }
 
-PLAYRHO_CONSTEXPR inline ToiConf& ToiConf::UseMaxDistIters(dist_iter_type value) noexcept
+constexpr ToiConf& ToiConf::UseMaxDistIters(dist_iter_type value) noexcept
 {
     maxDistIters = value;
     return *this;
@@ -144,7 +144,7 @@ PLAYRHO_CONSTEXPR inline ToiConf& ToiConf::UseMaxDistIters(dist_iter_type value)
 
 /// @brief Gets the default time of impact configuration.
 /// @relatedalso ToiConf
-PLAYRHO_CONSTEXPR inline auto GetDefaultToiConf()
+constexpr auto GetDefaultToiConf()
 {
     return ToiConf{};
 }
@@ -275,7 +275,7 @@ class DistanceProxy;
 /// non-tunneling collision.
 /// If you change the time interval, you should call this function again.
 ///
-/// @sa https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
+/// @see https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
 /// @pre The given sweeps are both at the same alpha-0.
 /// @warning Behavior is undefined if sweeps are not at the same alpha-0.
 /// @warning Behavior is undefined if the configuration's <code>tMax</code> is not

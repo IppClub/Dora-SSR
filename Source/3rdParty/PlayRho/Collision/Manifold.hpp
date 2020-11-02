@@ -25,6 +25,9 @@
 #include "PlayRho/Collision/IndexPair.hpp"
 
 namespace playrho {
+
+struct StepConf;
+
 namespace d2 {
 
 class DistanceProxy;
@@ -57,9 +60,9 @@ struct Transformation;
 ///
 /// @image html manifolds.png
 ///
-/// @sa Contact, PositionConstraint, VelocityConstraint
-/// @sa https://en.wikipedia.org/wiki/Convex_set
-/// @sa http://box2d.org/files/GDC2007/GDC2007_Catto_Erin_Physics2.ppt
+/// @see Contact, PositionConstraint, VelocityConstraint
+/// @see https://en.wikipedia.org/wiki/Convex_set
+/// @see http://box2d.org/files/GDC2007/GDC2007_Catto_Erin_Physics2.ppt
 ///
 class alignas(64) Manifold
 {
@@ -139,7 +142,7 @@ public:
         /// @brief Contact feature.
         /// @details Uniquely identifies a contact point between two shapes - A and B.
         /// @note This field is 4-bytes.
-        /// @sa GetPointStates.
+        /// @see GetPointStates.
         ContactFeature contactFeature;
         
         /// @brief Normal impulse.
@@ -314,7 +317,7 @@ public:
     /// @note This must be a constant expression in order to use it in the context
     ///   of the <code>IsValid</code> specialized template function for it.
     ///
-    PLAYRHO_CONSTEXPR inline Type GetType() const noexcept { return m_type; }
+    constexpr Type GetType() const noexcept { return m_type; }
     
     /// Gets the manifold point count.
     ///
@@ -325,14 +328,14 @@ public:
     ///
     /// @return Value between 0 and <code>MaxManifoldPoints</code>.
     ///
-    /// @sa MaxManifoldPoints.
-    /// @sa AddPoint().
-    /// @sa GetPoint().
+    /// @see MaxManifoldPoints.
+    /// @see AddPoint().
+    /// @see GetPoint().
     ///
-    PLAYRHO_CONSTEXPR inline size_type GetPointCount() const noexcept { return m_pointCount; }
+    constexpr size_type GetPointCount() const noexcept { return m_pointCount; }
     
     /// @brief Gets the contact feature for the given index.
-    PLAYRHO_CONSTEXPR inline ContactFeature GetContactFeature(size_type index) const noexcept
+    constexpr ContactFeature GetContactFeature(size_type index) const noexcept
     {
         assert(index < m_pointCount);
         return m_points[index].contactFeature;
@@ -341,7 +344,7 @@ public:
     /// @brief Gets the contact impulses for the given index.
     /// @return Pair of impulses where the first impulse is the "normal impulse"
     ///   and the second impulse is the "tangent impulse".
-    PLAYRHO_CONSTEXPR inline Momentum2 GetContactImpulses(size_type index) const noexcept
+    constexpr Momentum2 GetContactImpulses(size_type index) const noexcept
     {
         assert(index < m_pointCount);
         return Momentum2{m_points[index].normalImpulse, m_points[index].tangentImpulse};
@@ -388,7 +391,7 @@ public:
     /// @warning Behavior is undefined for unset (e_unset) type manifolds.
     /// @warning Behavior is undefined for circles (e_circles) type manifolds.
     /// @return Local normal if the manifold type is face A or face B, else invalid value.
-    PLAYRHO_CONSTEXPR inline UnitVec GetLocalNormal() const noexcept
+    constexpr UnitVec GetLocalNormal() const noexcept
     {
         assert(m_type != e_unset);
         assert(m_type != e_circles);
@@ -403,14 +406,14 @@ public:
     /// @note Only valid for circle, face-A, or face-B type manifolds.
     /// @warning Behavior is undefined for unset (e_unset) type manifolds.
     /// @return Local point.
-    PLAYRHO_CONSTEXPR inline Length2 GetLocalPoint() const noexcept
+    constexpr Length2 GetLocalPoint() const noexcept
     {
         assert(m_type != e_unset);
         return m_localPoint;
     }
     
     /// @brief Gets the opposing point.
-    PLAYRHO_CONSTEXPR inline Length2 GetOpposingPoint(size_type index) const noexcept
+    constexpr Length2 GetOpposingPoint(size_type index) const noexcept
     {
         assert((0 <= index) && (index < m_pointCount));
         return m_points[index].localPoint;
@@ -424,10 +427,10 @@ private:
         Point elements[MaxManifoldPoints]; ///< Elements.
 
         /// @brief Array indexing operator.
-        PLAYRHO_CONSTEXPR inline Point& operator[](std::size_t i) { return elements[i]; }
+        constexpr Point& operator[](std::size_t i) { return elements[i]; }
         
         /// @brief Array indexing operator.
-        PLAYRHO_CONSTEXPR const Point& operator[](std::size_t i) const { return elements[i]; }
+        constexpr const Point& operator[](std::size_t i) const { return elements[i]; }
     };
 
     /// Constructs manifold with array of points using the given values.
@@ -436,7 +439,7 @@ private:
     /// @param lp Local point.
     /// @param n number of points defined in array.
     /// @param mpa Manifold point array.
-    PLAYRHO_CONSTEXPR inline Manifold(Type t, UnitVec ln, Length2 lp, size_type n, const PointArray& mpa) noexcept;
+    constexpr Manifold(Type t, UnitVec ln, Length2 lp, size_type n, const PointArray& mpa) noexcept;
     
     Type m_type = e_unset; ///< Type of collision this manifold is associated with (1-byte).
     size_type m_pointCount = 0; ///< Number of defined manifold points (1-byte).
@@ -451,7 +454,7 @@ private:
     /// @note Invalid for the unset manifold type.
     Length2 m_localPoint = GetInvalid<Length2>();
     
-    PointArray m_points; ///< Points of contact (at least 40-bytes). @sa pointCount.
+    PointArray m_points; ///< Points of contact (at least 40-bytes). @see pointCount.
 };
 
 /// @brief Configuration data for manifold calculation.
@@ -476,12 +479,16 @@ struct Manifold::Conf
 
 /// @brief Gets the default manifold configuration.
 /// @relatedalso Manifold::Conf
-PLAYRHO_CONSTEXPR inline Manifold::Conf GetDefaultManifoldConf() noexcept
+constexpr Manifold::Conf GetDefaultManifoldConf() noexcept
 {
     return Manifold::Conf{};
 }
 
-PLAYRHO_CONSTEXPR inline Manifold::Manifold(Type t, UnitVec ln, Length2 lp, size_type n,
+/// @brief Gets the manifold configuration for the given step configuration.
+/// @relatedalso Manifold::Conf
+Manifold::Conf GetManifoldConf(const StepConf& conf) noexcept;
+
+constexpr Manifold::Manifold(Type t, UnitVec ln, Length2 lp, size_type n,
                                           const PointArray& mpa) noexcept:
     m_type{t}, m_pointCount{n}, m_localNormal{ln}, m_localPoint{lp}, m_points{mpa}
 {
@@ -617,7 +624,7 @@ const char* GetName(Manifold::Type type) noexcept;
 /// @brief Gets whether the given manifold is valid.
 /// @relatedalso d2::Manifold
 template <>
-PLAYRHO_CONSTEXPR inline bool IsValid(const d2::Manifold& value) noexcept
+constexpr bool IsValid(const d2::Manifold& value) noexcept
 {
     return value.GetType() != d2::Manifold::e_unset;
 }

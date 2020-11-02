@@ -170,7 +170,7 @@ public:
 	void onAnimationEnd(Event* e);
 	float getDamage(Unit* target);
 	virtual void onAttack() = 0;
-	static Vec2 getHitPoint(Body* self, Body* target, pd::Shape* selfShape);
+	static Vec2 getHitPoint(Body* self, Body* target, const pd::Shape& selfShape);
 protected:
 	Attack(String name, Unit* unit);
 	float _attackDelay;

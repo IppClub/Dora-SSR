@@ -306,34 +306,31 @@ static int dora_mooncompile(lua_State* L)
 					config.implicitReturnRoot = true;
 					config.reserveLineNumber = true;
 					config.lintGlobalVariable = true;
-					string compiledCodes, err;
-					MoonP::GlobalVars globals;
 					size_t size = std::get<3>(*input);
 					const auto& codes = std::get<2>(*input);
-					std::tie(compiledCodes, err, globals) = MoonP::MoonCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
-					return Values::create(compiledCodes, err, std::move(globals));
+					auto result = MoonP::MoonCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
+					return Values::create(std::move(result));
 				}, [input, handler, callback](Own<Values> values)
 				{
-					string compiledCodes, err;
-					MoonP::GlobalVars globals;
-					values->get(compiledCodes, err, globals);
+					MoonP::CompileInfo result;
+					values->get(result);
 					lua_State* L = SharedLuaEngine.getState();
 					int top = lua_gettop(L);
-					if (compiledCodes.empty())
+					if (result.codes.empty())
 					{
 						lua_pushnil(L);
-						lua_pushlstring(L, err.c_str(), err.size());
+						lua_pushlstring(L, result.error.c_str(), result.error.size());
 					}
 					else
 					{
-						lua_pushlstring(L, compiledCodes.c_str(), compiledCodes.size());
+						lua_pushlstring(L, result.codes.c_str(), result.codes.size());
 						lua_pushnil(L);
 					}
-					if (globals)
+					if (result.globals)
 					{
-						lua_createtable(L, s_cast<int>(globals->size()), 0);
+						lua_createtable(L, s_cast<int>(result.globals->size()), 0);
 						int i = 1;
-						for (const auto& var : *globals)
+						for (const auto& var : *result.globals)
 						{
 							lua_createtable(L, 3, 0);
 							lua_pushlstring(L, var.name.c_str(), var.name.size());
@@ -347,11 +344,11 @@ static int dora_mooncompile(lua_State* L)
 						}
 					}
 					else lua_pushnil(L);
-					string result;
-					SharedLuaEngine.executeReturn(result, handler->get(), 3);
+					string ret;
+					SharedLuaEngine.executeReturn(ret, handler->get(), 3);
 					lua_settop(L, top);
-					if (!result.empty()) {
-						SharedContent.saveToFileAsync(std::get<1>(*input), result, callback);
+					if (!ret.empty()) {
+						SharedContent.saveToFileAsync(std::get<1>(*input), ret, callback);
 					}
 				});
 			}

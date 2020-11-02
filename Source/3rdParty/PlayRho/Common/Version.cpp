@@ -20,20 +20,19 @@
  */
 
 #include "PlayRho/Common/Version.hpp"
-#include "PlayRho/Common/Templates.hpp"
+#include "PlayRho/Common/TypeInfo.hpp" // for GetTypeName
 #include "PlayRho/Common/Real.hpp"
 
 #include <cstdio>
 #include <cstdarg>
 #include <cstdlib>
-#include <typeinfo>
 #include <sstream>
 
 namespace playrho {
     
     Version GetVersion() noexcept
     {
-        return Version{0, 9, 0};
+        return Version{0, 10, 0};
     }
     
     std::string GetBuildDetails() noexcept

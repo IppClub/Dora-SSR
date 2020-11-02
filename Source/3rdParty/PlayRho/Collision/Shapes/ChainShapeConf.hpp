@@ -50,7 +50,7 @@ class ChainShapeConf: public ShapeBuilder<ChainShapeConf>
 {
 public:
     /// @brief Gets the default vertex radius.
-    static PLAYRHO_CONSTEXPR inline NonNegative<Length> GetDefaultVertexRadius() noexcept
+    static constexpr NonNegative<Length> GetDefaultVertexRadius() noexcept
     {
         return NonNegative<Length>{DefaultLinearSlop * Real{2}};
     }
@@ -66,7 +66,7 @@ public:
     
     /// @brief Transforms all the vertices by the given transformation matrix.
     /// @note This updates the normals too.
-    /// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+    /// @see https://en.wikipedia.org/wiki/Transformation_matrix
     ChainShapeConf& Transform(const Mat22& m) noexcept;
 
     /// @brief Gets the "child" shape count.
@@ -135,9 +135,6 @@ public:
     NonNegative<Length> vertexRadius = GetDefaultVertexRadius();
 
 private:
-    /// @brief Resets the normals based on the current vertices.
-    void ResetNormals();
-
     std::vector<Length2> m_vertices; ///< Vertices.
     std::vector<UnitVec> m_normals; ///< Normals.
 };
@@ -195,7 +192,7 @@ inline NonNegative<Length> GetVertexRadius(const ChainShapeConf& arg, ChildCount
 
 /// @brief Transforms the given chain shape configuration's vertices by the given
 ///   transformation matrix.
-/// @sa https://en.wikipedia.org/wiki/Transformation_matrix
+/// @see https://en.wikipedia.org/wiki/Transformation_matrix
 inline void Transform(ChainShapeConf& arg, const Mat22& m) noexcept
 {
     arg.Transform(m);

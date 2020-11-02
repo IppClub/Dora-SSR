@@ -31,7 +31,7 @@ public:
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_READONLY(int, Tag);
 	PROPERTY_READONLY(Body*, Owner);
-	PROPERTY_READONLY(pd::Fixture*, Fixture);
+	PROPERTY_READONLY(pr::FixtureID, Fixture);
 	PROPERTY_READONLY(Array*, SensedBodies);
 	PROPERTY(int, Group);
 	bool isSensed() const;
@@ -49,10 +49,10 @@ public:
 
 	CREATE_FUNC(Sensor);
 protected:
-	Sensor(Body* owner, int tag, pd::Fixture* fixture);
+	Sensor(Body* owner, int tag, pr::FixtureID fixture);
 	int _tag;
 	Body* _owner;
-	pd::Fixture* _fixture;
+	pr::FixtureID _fixture;
 private:
 	void executeEnterHandler();
 	void executeLeaveHandler();
@@ -61,7 +61,7 @@ private:
 	void clear();
 	bool _enabled;
 	Ref<Array> _sensedBodies;
-	friend class ContactListener;
+	friend class PhysicsWorld;
 	DORA_TYPE_OVERRIDE(Sensor);
 };
 

@@ -42,13 +42,13 @@ public:
     using CountType = std::size_t;
 
     /// @brief Gets the initial capacity.
-    static PLAYRHO_CONSTEXPR inline CountType GetInitialCapacity() noexcept
+    static constexpr CountType GetInitialCapacity() noexcept
     {
         return CountType(N);
     }
     
     /// @brief Gets the buffer growth rate.
-    static PLAYRHO_CONSTEXPR inline CountType GetBufferGrowthRate() noexcept
+    static constexpr CountType GetBufferGrowthRate() noexcept
     {
         return CountType{2};
     }
@@ -79,7 +79,7 @@ public:
         {
             const auto old = m_stack;
             m_capacity *= GetBufferGrowthRate();
-            m_stack = Alloc<T>(m_capacity);
+            m_stack = AllocArray<T>(m_capacity);
             std::memcpy(m_stack, old, m_count * sizeof(T));
             if (old != m_array)
             {
@@ -108,19 +108,19 @@ public:
     }
 
     /// @brief Gets the current size in numbers of elements.
-    PLAYRHO_CONSTEXPR inline CountType size() const noexcept
+    constexpr CountType size() const noexcept
     {
         return m_count;
     }
     
     /// @brief Gets the capacity in number of elements.
-    PLAYRHO_CONSTEXPR inline CountType capacity() const noexcept
+    constexpr CountType capacity() const noexcept
     {
         return m_capacity;
     }
 
     /// @brief Whether this stack is empty.
-    PLAYRHO_CONSTEXPR inline bool empty() const noexcept
+    constexpr bool empty() const noexcept
     {
         return m_count == 0;
     }

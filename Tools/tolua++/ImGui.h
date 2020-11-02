@@ -33,8 +33,6 @@ namespace ImGui
 	void Binding::SetColorEditOptions @ SetColorEditOptions(String colorEditMode);
 	bool Binding::InputText @ InputText(const char* label, Buffer* buffer, String inputTextFlags = nullptr);
 	bool Binding::InputTextMultiline @ InputTextMultiline(const char* label, Buffer* buffer, Vec2 size = Vec2::zero, String inputTextFlags = nullptr);
-	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, String format = "%.1f", String inputTextFlags = nullptr);
-	bool Binding::InputInt @ InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String inputTextFlags = nullptr);
 	bool Binding::TreeNodeEx @ TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
 	void Binding::SetNextItemOpen @ SetNextItemOpen(bool is_open, String setCond = nullptr);
 	bool Binding::CollapsingHeader @ CollapsingHeader(const char* label, String treeNodeFlags = nullptr);
@@ -78,12 +76,22 @@ namespace ImGui
 	
 	bool Binding::Combo @ Combo(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 
-	bool Binding::DragFloat2 @ DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
-	bool Binding::DragInt2 @ DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
-	bool Binding::InputFloat2 @ InputFloat2(const char* label, float* v1, float* v2, String format = "%.1f", String extra_flags = nullptr);
-	bool Binding::InputInt2 @ InputInt2(const char* label, int* v1, int* v2, String extra_flags = nullptr);
-	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", float power = 1.0f);
-	bool Binding::SliderInt2 @ SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f");
+	bool Binding::DragFloat @ DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format = "%.3f", String flags = nullptr);
+	bool Binding::DragFloat2 @ DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", String flags = nullptr);
+	bool Binding::DragInt @ DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format = "%d", String flags = nullptr);
+	bool Binding::DragInt2 @ DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f", String flags = nullptr);
+	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f", String flags = nullptr);
+	bool Binding::InputFloat2 @ InputFloat2(const char* label, float* v1, float* v2, const char* format = "%.1f", String flags = nullptr);
+	bool Binding::InputInt @ InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String flags = nullptr);
+	bool Binding::InputInt2 @ InputInt2(const char* label, int* v1, int* v2, String flags = nullptr);
+	bool Binding::SliderFloat @ SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", String flags = nullptr);
+	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", String flags = nullptr);
+	bool Binding::SliderInt @ SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d", String flags = nullptr);
+	bool Binding::SliderInt2 @ SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f", String flags = nullptr);
+	bool Binding::DragFloatRange2 @ DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", const char* format_max = nullptr, String flags = nullptr);
+	bool Binding::DragIntRange2 @ DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* format = "%d", const char* format_max = nullptr, String flags = nullptr);	
+	bool Binding::VSliderFloat @ VSliderFloat(const char* label, ImVec2 size, float* v, float v_min, float v_max, const char* format = "%.3f", String flags = nullptr);
+	bool Binding::VSliderInt @ VSliderInt(const char* label, ImVec2 size, int* v, int v_min, int v_max, const char* format = "%d", String flags = nullptr);
 
 	void ShowDemoWindow();
 	void End();
@@ -155,7 +163,6 @@ namespace ImGui
 	float GetColumnWidth(int column_index = -1);
 	int GetColumnsCount();
 
-
 	void PushID(CString str_id);
 	void PushID(int int_id);
 	void PopID();
@@ -174,16 +181,7 @@ namespace ImGui
 
 	bool ListBox(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
 
-	bool DragFloat(CString label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString display_format = "%.3f", float power = 1.0f);
-	bool DragFloatRange2(CString label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString display_format = "%.3f", CString display_format_max = nullptr, float power = 1.0f);
-	bool DragInt(CString label, int* v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%.0f");
-	bool DragIntRange2(CString label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%.0f", CString display_format_max = nullptr);
-
-	bool SliderFloat(CString label, float* v, float v_min, float v_max, CString display_format = "%.3f", float power = 1.0f);
 	bool SliderAngle(CString label, float* v_rad, float v_degrees_min = -360.0f, float v_degrees_max = 360.0f);
-	bool SliderInt(CString label, int* v, int v_min, int v_max, CString display_format = "%.0f");
-	bool VSliderFloat(CString label, Vec2 size, float* v, float v_min, float v_max, CString display_format = "%.3f", float power = 1.0f);
-	bool VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString display_format = "%.0f");
 
 	bool TreeNode(CString label);
 	void TreePush(CString str_id = nullptr);

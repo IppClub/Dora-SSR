@@ -23,7 +23,7 @@
 #define PLAYRHO_COLLISION_SHAPES_SHAPECONF_HPP
 
 #include "PlayRho/Common/Units.hpp"
-#include "PlayRho/Common/BoundedValue.hpp"
+#include "PlayRho/Common/Finite.hpp"
 #include "PlayRho/Common/Settings.hpp"
 
 namespace playrho {
@@ -64,34 +64,34 @@ struct BaseShapeConf
 /// @note This is a templated nested value class for initializing shapes that
 ///   uses the Curiously Recurring Template Pattern (CRTP) to provide method chaining
 ///   via static polymorphism.
-/// @sa https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
+/// @see https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
 template <typename ConcreteConf>
 struct ShapeBuilder: BaseShapeConf
 {
     // Note: don't use 'using ShapeConf::ShapeConf' here as it doesn't work in this context!
     
     /// @brief Default constructor.
-    PLAYRHO_CONSTEXPR inline ShapeBuilder() = default;
+    constexpr ShapeBuilder() = default;
 
     /// @brief Initializing constructor.
-    PLAYRHO_CONSTEXPR inline explicit ShapeBuilder(const BaseShapeConf& value) noexcept:
+    constexpr explicit ShapeBuilder(const BaseShapeConf& value) noexcept:
         BaseShapeConf{value}
     {
         // Intentionally empty.
     }
     
     /// @brief Uses the given friction.
-    PLAYRHO_CONSTEXPR inline ConcreteConf& UseFriction(NonNegative<Real> value) noexcept;
+    constexpr ConcreteConf& UseFriction(NonNegative<Real> value) noexcept;
     
     /// @brief Uses the given restitution.
-    PLAYRHO_CONSTEXPR inline ConcreteConf& UseRestitution(Finite<Real> value) noexcept;
+    constexpr ConcreteConf& UseRestitution(Finite<Real> value) noexcept;
     
     /// @brief Uses the given density.
-    PLAYRHO_CONSTEXPR inline ConcreteConf& UseDensity(NonNegative<AreaDensity> value) noexcept;
+    constexpr ConcreteConf& UseDensity(NonNegative<AreaDensity> value) noexcept;
 };
 
 template <typename ConcreteConf>
-PLAYRHO_CONSTEXPR inline ConcreteConf&
+constexpr ConcreteConf&
 ShapeBuilder<ConcreteConf>::UseFriction(NonNegative<Real> value) noexcept
 {
     friction = value;
@@ -99,7 +99,7 @@ ShapeBuilder<ConcreteConf>::UseFriction(NonNegative<Real> value) noexcept
 }
 
 template <typename ConcreteConf>
-PLAYRHO_CONSTEXPR inline ConcreteConf&
+constexpr ConcreteConf&
 ShapeBuilder<ConcreteConf>::UseRestitution(Finite<Real> value) noexcept
 {
     restitution = value;
@@ -107,7 +107,7 @@ ShapeBuilder<ConcreteConf>::UseRestitution(Finite<Real> value) noexcept
 }
 
 template <typename ConcreteConf>
-PLAYRHO_CONSTEXPR inline ConcreteConf&
+constexpr ConcreteConf&
 ShapeBuilder<ConcreteConf>::UseDensity(NonNegative<AreaDensity> value) noexcept
 {
     density = value;
@@ -123,19 +123,19 @@ struct ShapeConf: public ShapeBuilder<ShapeConf>
 // Free functions...
 
 /// @brief Gets the density of the given shape configuration.
-PLAYRHO_CONSTEXPR inline NonNegative<AreaDensity> GetDensity(const BaseShapeConf& arg) noexcept
+constexpr NonNegative<AreaDensity> GetDensity(const BaseShapeConf& arg) noexcept
 {
     return arg.density;
 }
 
 /// @brief Gets the restitution of the given shape configuration.
-PLAYRHO_CONSTEXPR inline Finite<Real> GetRestitution(const BaseShapeConf& arg) noexcept
+constexpr Finite<Real> GetRestitution(const BaseShapeConf& arg) noexcept
 {
     return arg.restitution;
 }
 
 /// @brief Gets the friction of the given shape configuration.
-PLAYRHO_CONSTEXPR inline NonNegative<Real> GetFriction(const BaseShapeConf& arg) noexcept
+constexpr NonNegative<Real> GetFriction(const BaseShapeConf& arg) noexcept
 {
     return arg.friction;
 }

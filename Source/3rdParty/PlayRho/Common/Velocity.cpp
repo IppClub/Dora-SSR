@@ -27,11 +27,8 @@ namespace d2 {
 
 VelocityPair CalcWarmStartVelocityDeltas(const VelocityConstraint& vc)
 {
-    auto vp = VelocityPair{
-        Velocity{LinearVelocity2{}, 0_rpm},
-        Velocity{LinearVelocity2{}, 0_rpm}
-    };
-    
+    auto vp = VelocityPair{Velocity{LinearVelocity2{}, 0_rpm}, Velocity{LinearVelocity2{}, 0_rpm}};
+
     const auto normal = vc.GetNormal();
     const auto tangent = vc.GetTangent();
     const auto pointCount = vc.GetPointCount();
@@ -40,12 +37,11 @@ VelocityPair CalcWarmStartVelocityDeltas(const VelocityConstraint& vc)
 
     const auto invMassA = bodyA->GetInvMass();
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
-    
+
     const auto invMassB = bodyB->GetInvMass();
     const auto invRotInertiaB = bodyB->GetInvRotInertia();
-    
-    for (auto j = decltype(pointCount){0}; j < pointCount; ++j)
-    {
+
+    for (auto j = decltype(pointCount){0}; j < pointCount; ++j) {
         // inverse moment of inertia : L^-2 M^-1 QP^2
         // P is M L T^-2
         // GetPointRelPosA() is Length2
@@ -58,7 +54,7 @@ VelocityPair CalcWarmStartVelocityDeltas(const VelocityConstraint& vc)
         std::get<0>(vp) -= Velocity{invMassA * P, invRotInertiaA * LA};
         std::get<1>(vp) += Velocity{invMassB * P, invRotInertiaB * LB};
     }
-    
+
     return vp;
 }
 

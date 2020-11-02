@@ -31,6 +31,7 @@ namespace playrho {
 using PairLength2 = std::pair<Length2, Length2>;
 
 struct ToiConf;
+struct StepConf;
 
 namespace d2 {
 
@@ -40,7 +41,7 @@ class DistanceProxy;
 PairLength2 GetWitnessPoints(const Simplex& simplex) noexcept;
 
 /// @brief Gets the delta to go from the first element to the second.
-PLAYRHO_CONSTEXPR inline Length2 GetDelta(PairLength2 arg) noexcept
+constexpr Length2 GetDelta(PairLength2 arg) noexcept
 {
     return std::get<1>(arg) - std::get<0>(arg);
 }
@@ -57,7 +58,12 @@ struct DistanceConf
 };
 
 /// @brief Gets the distance configuration for the given time of impact configuration.
+/// @relatedalso DistanceConf
 DistanceConf GetDistanceConf(const ToiConf& conf) noexcept;
+
+/// @brief Gets the distance configuration for the given step configuration.
+/// @relatedalso DistanceConf
+DistanceConf GetDistanceConf(const StepConf& conf) noexcept;
 
 /// @brief Distance Output.
 struct DistanceOutput

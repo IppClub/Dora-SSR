@@ -33,7 +33,7 @@ namespace playrho {
     /// @brief A C++ encapsulation of an array and its size.
     ///
     /// @note This is conceptually like the Guideline Support Library's span template class.
-    /// @sa http://open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0122r1.pdf
+    /// @see http://open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0122r1.pdf
     ///
     template <typename T>
     class Span
@@ -58,22 +58,22 @@ namespace playrho {
         Span(const Span& copy) = default;
         
         /// @brief Initializing constructor.
-        PLAYRHO_CONSTEXPR inline Span(pointer array, size_type size) noexcept:
+        constexpr Span(pointer array, size_type size) noexcept:
             m_array{array}, m_size{size}
         {
         }
         
         /// @brief Initializing constructor.
         template <std::size_t SIZE>
-        PLAYRHO_CONSTEXPR inline Span(data_type (&array)[SIZE]) noexcept: m_array{&array[0]}, m_size{SIZE} {}
+        constexpr Span(data_type (&array)[SIZE]) noexcept: m_array{&array[0]}, m_size{SIZE} {}
         
         /// @brief Initializing constructor.
         template <typename U, typename = std::enable_if_t< !std::is_array<U>::value > >
-        PLAYRHO_CONSTEXPR inline Span(U& value) noexcept:
+        constexpr Span(U& value) noexcept:
         m_array{detail::Data(value)}, m_size{detail::Size(value)} {}
         
         /// @brief Initializing constructor.
-        PLAYRHO_CONSTEXPR inline Span(std::initializer_list<T> list) noexcept:
+        constexpr Span(std::initializer_list<T> list) noexcept:
             m_array{list.begin()}, m_size{list.size()} {}
 
         /// @brief Gets the "begin" iterator value.
@@ -103,13 +103,13 @@ namespace playrho {
         }
 
         /// @brief Gets the size of this span.
-        PLAYRHO_CONSTEXPR size_type size() const noexcept { return m_size; }
+        constexpr size_type size() const noexcept { return m_size; }
         
         /// @brief Direct access to data.
         pointer data() const noexcept { return m_array; }
         
         /// @brief Checks whether this span is empty.
-        PLAYRHO_CONSTEXPR bool empty() const noexcept { return m_size == 0; }
+        constexpr bool empty() const noexcept { return m_size == 0; }
 
     private:
         pointer m_array = nullptr; ///< Pointer to array of data.

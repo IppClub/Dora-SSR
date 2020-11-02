@@ -29,6 +29,8 @@
 #include "PlayRho/Common/Vector.hpp"
 #include "PlayRho/Common/Settings.hpp" // for ChildCounter, etc.
 #include "PlayRho/Common/Templates.hpp"
+#include "PlayRho/Dynamics/BodyID.hpp"
+#include "PlayRho/Dynamics/FixtureID.hpp"
 
 #include <algorithm> // for std::mismatch, lexicographical_compare, etc
 #include <utility> // for std::get
@@ -44,15 +46,15 @@ template <std::size_t N> struct RayCastInput;
 /// @details This is a concrete value class template for an N-dimensional axis aligned
 ///   bounding box (AABB) which is a type of bounding volume.
 ///
-/// @note This class satisfies at least the following concepts: all the basic concepts,
-///   <code>EqualityComparable</code>, and <code>Swappable</code>.
+/// @note This class satisfies at least the following named requirement: all the basic named
+///   requirements, <code>EqualityComparable</code>, and <code>Swappable</code>.
 /// @note This class is composed of &mdash; as in contains and owns &mdash; N
 ///   <code>LengthInterval</code> variables.
 /// @note Non-defaulted methods of this class are marked <code>noexcept</code> and expect
 ///   that the Length type doesn't throw.
 ///
-/// @sa https://en.wikipedia.org/wiki/Bounding_volume
-/// @sa http://en.cppreference.com/w/cpp/concept
+/// @see https://en.wikipedia.org/wiki/Bounding_volume
+/// @see https://en.cppreference.com/w/cpp/named_req
 ///
 template <std::size_t N>
 struct AABB
@@ -63,8 +65,8 @@ struct AABB
     /// @brief Default constructor.
     /// @details Constructs an "unset" AABB.
     /// @note If an unset AABB is added to another AABB, the result will be the other AABB.
-    PLAYRHO_CONSTEXPR inline AABB() = default;
-
+    constexpr AABB() = default;
+    
     /// @brief Initializing constructor.
     /// @details Initializing constructor supporting construction by the same number of elements
     ///   as this AABB template type is defined for.
@@ -73,7 +75,7 @@ struct AABB
     /// const auto aabb = AABB<2>{LengthInterval{1_m, 4_m}, LengthInterval{-3_m, 3_m}};
     /// @endcode
     template<typename... Tail>
-    PLAYRHO_CONSTEXPR inline AABB(std::enable_if_t<sizeof...(Tail)+1 == N, LengthInterval> head,
+    constexpr AABB(std::enable_if_t<sizeof...(Tail)+1 == N, LengthInterval> head,
                                   Tail... tail) noexcept:
         ranges{head, LengthInterval(tail)...}
     {
@@ -86,7 +88,7 @@ struct AABB
     ///   given point's X value.
     /// @post <code>rangeY</code> will have its min and max values both set to the
     ///   given point's Y value.
-    PLAYRHO_CONSTEXPR inline explicit AABB(const Location p) noexcept
+    constexpr explicit AABB(const Location p) noexcept
     {
         for (auto i = decltype(N){0}; i < N; ++i)
         {
@@ -97,7 +99,7 @@ struct AABB
     /// @brief Initializing constructor for two points.
     /// @param a Point location "A" to initialize this AABB with.
     /// @param b Point location "B" to initialize this AABB with.
-    PLAYRHO_CONSTEXPR inline AABB(const Location a, const Location b) noexcept
+    constexpr AABB(const Location a, const Location b) noexcept
     {
         for (auto i = decltype(N){0}; i < N; ++i)
         {
@@ -113,7 +115,7 @@ struct AABB
 /// @return <code>true</code> if the two values are equal, <code>false</code> otherwise.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline bool operator== (const AABB<N>& lhs, const AABB<N>& rhs) noexcept
+constexpr bool operator== (const AABB<N>& lhs, const AABB<N>& rhs) noexcept
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -129,7 +131,7 @@ PLAYRHO_CONSTEXPR inline bool operator== (const AABB<N>& lhs, const AABB<N>& rhs
 /// @return <code>true</code> if the two values are not equal, <code>false</code> otherwise.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline bool operator!= (const AABB<N>& lhs, const AABB<N>& rhs) noexcept
+constexpr bool operator!= (const AABB<N>& lhs, const AABB<N>& rhs) noexcept
 {
     return !(lhs == rhs);
 }
@@ -182,7 +184,7 @@ inline bool operator>= (const AABB<N>& lhs, const AABB<N>& rhs) noexcept
 /// @note This function's complexity is constant.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline bool TestOverlap(const AABB<N>& a, const AABB<N>& b) noexcept
+constexpr bool TestOverlap(const AABB<N>& a, const AABB<N>& b) noexcept
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -196,7 +198,7 @@ PLAYRHO_CONSTEXPR inline bool TestOverlap(const AABB<N>& a, const AABB<N>& b) no
 
 /// @brief Gets the intersecting AABB of the two given AABBs'.
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N> GetIntersectingAABB(const AABB<N>& a, const AABB<N>& b) noexcept
+constexpr AABB<N> GetIntersectingAABB(const AABB<N>& a, const AABB<N>& b) noexcept
 {
     auto result = AABB<N>{};
     for (auto i = decltype(N){0}; i < N; ++i)
@@ -209,7 +211,7 @@ PLAYRHO_CONSTEXPR inline AABB<N> GetIntersectingAABB(const AABB<N>& a, const AAB
 /// @brief Gets the center of the AABB.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline Vector<Length, N> GetCenter(const AABB<N>& aabb) noexcept
+constexpr Vector<Length, N> GetCenter(const AABB<N>& aabb) noexcept
 {
     auto result = Vector<Length, N>{};
     for (auto i = decltype(N){0}; i < N; ++i)
@@ -222,7 +224,7 @@ PLAYRHO_CONSTEXPR inline Vector<Length, N> GetCenter(const AABB<N>& aabb) noexce
 /// @brief Gets dimensions of the given AABB.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline Vector<Length, N> GetDimensions(const AABB<N>& aabb) noexcept
+constexpr Vector<Length, N> GetDimensions(const AABB<N>& aabb) noexcept
 {
     auto result = Vector<Length, N>{};
     for (auto i = decltype(N){0}; i < N; ++i)
@@ -235,9 +237,9 @@ PLAYRHO_CONSTEXPR inline Vector<Length, N> GetDimensions(const AABB<N>& aabb) no
 /// @brief Gets the extents of the AABB (half-widths).
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline Vector<Length, N> GetExtents(const AABB<N>& aabb) noexcept
+constexpr Vector<Length, N> GetExtents(const AABB<N>& aabb) noexcept
 {
-    PLAYRHO_CONSTEXPR const auto RealInverseOfTwo = Real{1} / Real{2};
+    constexpr auto RealInverseOfTwo = Real{1} / Real{2};
     return GetDimensions(aabb) * RealInverseOfTwo;
 }
 
@@ -250,7 +252,7 @@ PLAYRHO_CONSTEXPR inline Vector<Length, N> GetExtents(const AABB<N>& aabb) noexc
 /// @param b AABB to test whether it's contained by the first AABB.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline bool Contains(const AABB<N>& a, const AABB<N>& b) noexcept
+constexpr bool Contains(const AABB<N>& a, const AABB<N>& b) noexcept
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -265,7 +267,7 @@ PLAYRHO_CONSTEXPR inline bool Contains(const AABB<N>& a, const AABB<N>& b) noexc
 /// @brief Includes the given location into the given AABB.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N>& Include(AABB<N>& var, const Vector<Length, N>& value) noexcept
+constexpr AABB<N>& Include(AABB<N>& var, const Vector<Length, N>& value) noexcept
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -280,7 +282,7 @@ PLAYRHO_CONSTEXPR inline AABB<N>& Include(AABB<N>& var, const Vector<Length, N>&
 ///   the other AABB.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N>& Include(AABB<N>& var, const AABB<N>& val) noexcept
+constexpr AABB<N>& Include(AABB<N>& var, const AABB<N>& val) noexcept
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -291,7 +293,7 @@ PLAYRHO_CONSTEXPR inline AABB<N>& Include(AABB<N>& var, const AABB<N>& val) noex
 
 /// @brief Moves the given AABB by the given value.
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N>& Move(AABB<N>& var, const Vector<Length, N> value) noexcept
+constexpr AABB<N>& Move(AABB<N>& var, const Vector<Length, N> value) noexcept
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -303,7 +305,7 @@ PLAYRHO_CONSTEXPR inline AABB<N>& Move(AABB<N>& var, const Vector<Length, N> val
 /// @brief Fattens an AABB by the given amount.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N>& Fatten(AABB<N>& var, const NonNegative<Length> amount) noexcept
+constexpr AABB<N>& Fatten(AABB<N>& var, const NonNegative<Length> amount) noexcept
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -316,7 +318,7 @@ PLAYRHO_CONSTEXPR inline AABB<N>& Fatten(AABB<N>& var, const NonNegative<Length>
 ///   displacement amount.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N> GetDisplacedAABB(AABB<N> aabb, const Vector<Length, N> displacement)
+constexpr AABB<N> GetDisplacedAABB(AABB<N> aabb, const Vector<Length, N> displacement)
 {
     for (auto i = decltype(N){0}; i < N; ++i)
     {
@@ -328,7 +330,7 @@ PLAYRHO_CONSTEXPR inline AABB<N> GetDisplacedAABB(AABB<N> aabb, const Vector<Len
 /// @brief Gets the fattened AABB result.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N> GetFattenedAABB(AABB<N> aabb, const Length amount)
+constexpr AABB<N> GetFattenedAABB(AABB<N> aabb, const Length amount)
 {
     return Fatten(aabb, amount);
 }
@@ -336,7 +338,7 @@ PLAYRHO_CONSTEXPR inline AABB<N> GetFattenedAABB(AABB<N> aabb, const Length amou
 /// @brief Gets the result of moving the given AABB by the given value.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N> GetMovedAABB(AABB<N> aabb, const Vector<Length, N> value) noexcept
+constexpr AABB<N> GetMovedAABB(AABB<N> aabb, const Vector<Length, N> value) noexcept
 {
     return Move(aabb, value);
 }
@@ -344,7 +346,7 @@ PLAYRHO_CONSTEXPR inline AABB<N> GetMovedAABB(AABB<N> aabb, const Vector<Length,
 /// @brief Gets the AABB that minimally encloses the given AABBs.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline AABB<N> GetEnclosingAABB(AABB<N> a, const AABB<N>& b)
+constexpr AABB<N> GetEnclosingAABB(AABB<N> a, const AABB<N>& b)
 {
     return Include(a, b);
 }
@@ -352,7 +354,7 @@ PLAYRHO_CONSTEXPR inline AABB<N> GetEnclosingAABB(AABB<N> a, const AABB<N>& b)
 /// @brief Gets the lower bound.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline Vector<Length, N> GetLowerBound(const AABB<N>& aabb) noexcept
+constexpr Vector<Length, N> GetLowerBound(const AABB<N>& aabb) noexcept
 {
     auto result = Vector<Length, N>{};
     for (auto i = decltype(N){0}; i < N; ++i)
@@ -365,7 +367,7 @@ PLAYRHO_CONSTEXPR inline Vector<Length, N> GetLowerBound(const AABB<N>& aabb) no
 /// @brief Gets the upper bound.
 /// @relatedalso AABB
 template <std::size_t N>
-PLAYRHO_CONSTEXPR inline Vector<Length, N> GetUpperBound(const AABB<N>& aabb) noexcept
+constexpr Vector<Length, N> GetUpperBound(const AABB<N>& aabb) noexcept
 {
     auto result = Vector<Length, N>{};
     for (auto i = decltype(N){0}; i < N; ++i)
@@ -407,6 +409,7 @@ class Body;
 class Contact;
 class DistanceProxy;
 struct Transformation;
+class World;
 
 using detail::TestOverlap;
 using detail::Contains;
@@ -419,8 +422,8 @@ using AABB = detail::AABB<2>;
 /// @warning Behavior is undefined for an invalid AABB.
 /// @return Twice the sum of the width and height.
 /// @relatedalso playrho::detail::AABB
-/// @sa https://en.wikipedia.org/wiki/Perimeter
-PLAYRHO_CONSTEXPR inline Length GetPerimeter(const AABB& aabb) noexcept
+/// @see https://en.wikipedia.org/wiki/Perimeter
+constexpr Length GetPerimeter(const AABB& aabb) noexcept
 {
     return (GetSize(aabb.ranges[0]) + GetSize(aabb.ranges[1])) * 2;
 }
@@ -451,27 +454,26 @@ AABB ComputeAABB(const DistanceProxy& proxy,
 /// @relatedalso Shape
 AABB ComputeAABB(const Shape& shape, const Transformation& xf) noexcept;
 
-/// @brief Computes the AABB for the given fixture.
-/// @details This is the AABB of the entire shape of the given fixture at the body's
-///   location for the given fixture.
-/// @relatedalso Fixture
-AABB ComputeAABB(const Fixture& fixture) noexcept;
+/// @brief Computes the AABB for the identified fixture within the given world.
+/// @relatedalso World
+AABB ComputeAABB(const World& world, FixtureID id);
 
-/// @brief Computes the AABB for the given body.
-/// @relatedalso Body
-AABB ComputeAABB(const Body& body);
+/// @brief Computes the AABB for the identified body within the given world.
+/// @relatedalso World
+AABB ComputeAABB(const World& world, BodyID id);
 
 /// @brief Computes the intersecting AABB for the given pair of fixtures and indexes.
 /// @details The intersecting AABB for the given pair of fixtures is the intersection
 ///   of the AABB for child A of the shape of fixture A with the AABB for child B of
 ///   the shape of fixture B.
-AABB ComputeIntersectingAABB(const Fixture& fA, ChildCounter iA,
-                             const Fixture& fB, ChildCounter iB) noexcept;
+AABB ComputeIntersectingAABB(const World& world,
+                             FixtureID fA, ChildCounter iA,
+                             FixtureID fB, ChildCounter iB) noexcept;
 
 /// @brief Computes the intersecting AABB for the given contact.
 /// @relatedalso Contact
-AABB ComputeIntersectingAABB(const Contact& contact);
-
+AABB ComputeIntersectingAABB(const World& world, const Contact& contact);
+    
 /// @brief Gets the AABB for the given ray cast input data.
 /// @relatedalso playrho::detail::RayCastInput<2>
 AABB GetAABB(const playrho::detail::RayCastInput<2>& input) noexcept;
@@ -481,7 +483,7 @@ AABB GetAABB(const playrho::detail::RayCastInput<2>& input) noexcept;
 /// @brief Gets an invalid AABB value.
 /// @relatedalso detail::AABB
 template <>
-PLAYRHO_CONSTEXPR inline d2::AABB GetInvalid() noexcept
+constexpr d2::AABB GetInvalid() noexcept
 {
     return d2::AABB{LengthInterval{GetInvalid<Length>()}, LengthInterval{GetInvalid<Length>()}};
 }

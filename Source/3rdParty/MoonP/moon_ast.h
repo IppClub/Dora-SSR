@@ -97,12 +97,12 @@ AST_NODE(NameList)
 	AST_MEMBER(NameList, &sep, &names)
 AST_END(NameList)
 
-class ExpList_t;
+class ExpListLow_t;
 class TableBlock_t;
 
 AST_NODE(local_values)
 	ast_ptr<true, NameList_t> nameList;
-	ast_sel<false, TableBlock_t, ExpList_t> valueList;
+	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
 	AST_MEMBER(local_values, &nameList, &valueList)
 AST_END(local_values)
 
@@ -146,9 +146,29 @@ AST_NODE(ImportFrom)
 	AST_MEMBER(ImportFrom, &sep, &names, &exp)
 AST_END(ImportFrom)
 
+class MacroName_t;
+
+AST_NODE(macro_name_pair)
+	ast_ptr<true, MacroName_t> key;
+	ast_ptr<true, MacroName_t> value;
+	AST_MEMBER(macro_name_pair, &key, &value)
+AST_END(macro_name_pair)
+
+AST_LEAF(import_all_macro)
+AST_END(import_all_macro)
+
+class variable_pair_t;
+class normal_pair_t;
+
+AST_NODE(ImportTabLit)
+	ast_ptr<true, Seperator_t> sep;
+	ast_sel_list<false, variable_pair_t, normal_pair_t, MacroName_t, macro_name_pair_t, import_all_macro_t> items;
+	AST_MEMBER(ImportTabLit, &sep, &items)
+AST_END(ImportTabLit)
+
 AST_NODE(ImportAs)
 	ast_ptr<true, ImportLiteral_t> literal;
-	ast_sel<false, Variable_t, TableLit_t> target;
+	ast_sel<false, Variable_t, ImportTabLit_t> target;
 	AST_MEMBER(ImportAs, &literal, &target)
 AST_END(ImportAs)
 
@@ -181,6 +201,12 @@ AST_NODE(Backcall)
 	AST_MEMBER(Backcall, &argsDef, &arrow, &value)
 AST_END(Backcall)
 
+AST_NODE(ExpListLow)
+	ast_ptr<true, Seperator_t> sep;
+	ast_list<true, Exp_t> exprs;
+	AST_MEMBER(ExpListLow, &sep, &exprs)
+AST_END(ExpListLow)
+
 AST_NODE(ExpList)
 	ast_ptr<true, Seperator_t> sep;
 	ast_list<true, Exp_t> exprs;
@@ -189,7 +215,7 @@ AST_END(ExpList)
 
 AST_NODE(Return)
 	bool allowBlockMacroReturn = false;
-	ast_ptr<false, ExpList_t> valueList;
+	ast_ptr<false, ExpListLow_t> valueList;
 	AST_MEMBER(Return, &valueList)
 AST_END(Return)
 
@@ -509,21 +535,21 @@ AST_END(Value)
 AST_LEAF(default_value)
 AST_END(default_value)
 
-AST_NODE(macro_name_pair)
-	ast_ptr<true, MacroName_t> key;
-	ast_ptr<true, MacroName_t> value;
-	AST_MEMBER(macro_name_pair, &key, &value)
-AST_END(macro_name_pair)
-
 AST_NODE(TableLit)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, variable_pair_t, normal_pair_t, Exp_t, MacroName_t, macro_name_pair_t> values;
+	ast_sel_list<false, variable_pair_t, normal_pair_t, Exp_t> values;
 	AST_MEMBER(TableLit, &sep, &values)
 AST_END(TableLit)
 
+AST_NODE(TableBlockIndent)
+	ast_ptr<true, Seperator_t> sep;
+	ast_sel_list<false, variable_pair_t, normal_pair_t, TableBlockIndent_t> values;
+	AST_MEMBER(TableBlockIndent, &sep, &values)
+AST_END(TableBlockIndent)
+
 AST_NODE(TableBlock)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, variable_pair_t, normal_pair_t> values;
+	ast_sel_list<false, variable_pair_t, normal_pair_t, TableBlockIndent_t, Exp_t> values;
 	AST_MEMBER(TableBlock, &sep, &values)
 AST_END(TableBlock)
 
@@ -548,7 +574,7 @@ AST_END(ClassDecl)
 
 AST_NODE(global_values)
 	ast_ptr<true, NameList_t> nameList;
-	ast_sel<false, TableBlock_t, ExpList_t> valueList;
+	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
 	AST_MEMBER(global_values, &nameList, &valueList)
 AST_END(global_values)
 
@@ -610,7 +636,7 @@ AST_LEAF(macro_type)
 AST_END(macro_type)
 
 AST_NODE(MacroName)
-	ast_ptr<true, Name_t> name;
+	ast_ptr<false, Name_t> name;
 	AST_MEMBER(MacroName, &name)
 AST_END(MacroName)
 

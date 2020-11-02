@@ -787,7 +787,7 @@ class Sensor : public Object
 
 class Body : public Node
 {
-	tolua_readonly tolua_property__common PhysicsWorld* world;
+	tolua_readonly tolua_property__common PhysicsWorld* physicsWorld @ world;
 	tolua_readonly tolua_property__common BodyDef* bodyDef;
 	tolua_readonly tolua_property__common float mass;
 	tolua_readonly tolua_property__bool bool sensor;
@@ -989,7 +989,7 @@ class Joint : public Object
 		float motorSpeed = 0.0f,
 		float frequency = 2.0f,
 		float damping = 0.7f);
-	tolua_readonly tolua_property__common PhysicsWorld* world;
+	tolua_readonly tolua_property__common PhysicsWorld* physicsWorld @ world;
 	void destroy();
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 };

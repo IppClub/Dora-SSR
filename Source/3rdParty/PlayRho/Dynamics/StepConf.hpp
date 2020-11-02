@@ -26,7 +26,8 @@
 /// Declarations of the StepConf class, and free functions associated with it.
 
 #include "PlayRho/Common/Settings.hpp"
-#include "PlayRho/Common/BoundedValue.hpp"
+#include "PlayRho/Common/NonNegative.hpp"
+#include "PlayRho/Common/Positive.hpp"
 
 namespace playrho {
 
@@ -34,59 +35,23 @@ namespace playrho {
 /// @details
 /// Provides the primary means for configuring the per-step world physics simulation. All
 /// the values have defaults. These defaults are intended to most likely be the values desired.
-/// @note Be sure to confirm that the delta time (the time-per-step i.e. <code>dt</code>) is
-///   correct for your use.
-/// @note This data structure is 108-bytes large (with 4-byte Real on at least one 64-bit platform).
-/// @sa World::Step.
-class StepConf
-{
-public:
+/// @note Be sure to confirm that the delta time (the time-per-step i.e. <code>deltaTime</code>)
+///   is correct for your use.
+/// @note This data structure is 104-bytes large (with 4-byte Real on at least one 64-bit platform).
+/// @see World::Step.
+struct StepConf {
     /// @brief Step iterations type.
     /// @details A type for counting iterations per-step.
     /// @note The special value of -1 is reserved for signifying an invalid iteration value.
     using iteration_type = TimestepIters;
 
     /// @brief Invalid iteration value.
-    static PLAYRHO_CONSTEXPR const auto InvalidIteration = static_cast<iteration_type>(-1);
+    static constexpr auto InvalidIteration = static_cast<iteration_type>(-1);
 
-    /// @brief Gets the delta time (time amount for this time step).
-    /// @sa SetTime(Real).
-    /// @return Time step amount in seconds.
-    Time GetTime() const noexcept { return time; }
+    /// @brief Delta time.
+    /// @details This is the time step in seconds.
+    Time deltaTime = DefaultStepTime;
 
-    /// @brief Gets the inverse delta-t value.
-    /// @return <code>1/dt</code> or 0 if <code>dt</code> is 0.
-    /// @sa GetTime().
-    Frequency GetInvTime() const noexcept { return invTime; }
-    
-    /// @brief Sets the delta time and inverse time from the given value and its inverse respectively.
-    /// @note Used in both the regular and TOI phases of step processing.
-    /// @post Getting the delta time will return this value.
-    /// @post The inverse delta time value is the inverse of the given value or zero if the value is zero.
-    /// @sa GetTime().
-    /// @sa GetInvTime().
-    /// @param value Elapsed time amount.
-    PLAYRHO_CONSTEXPR inline StepConf& SetTime(Time value) noexcept
-    {
-        time = value;
-        invTime = (value != 0_s)? Real{1} / value: 0_Hz;
-        return *this;
-    }
-
-    /// @brief Sets the inverse time and delta time from the given value and its inverse respectively.
-    /// @note Used in both the regular and TOI phases of step processing.
-    /// @post Getting the inverse delta time will return this value.
-    /// @post The delta time value is the inverse of the given value or zero if the value is zero.
-    /// @sa GetTime().
-    /// @sa GetInvTime().
-    /// @param value Inverse time amount.
-    PLAYRHO_CONSTEXPR inline StepConf& SetInvTime(Frequency value) noexcept
-    {
-        invTime = value;
-        time = (value != 0_Hz)? Time{Real{1} / value}: 0_s;
-        return *this;
-    }
-    
     /// @brief Delta time ratio.
     /// @details This is the delta-time multiplied by the inverse delta time from the previous
     ///    world step. The value of 1 indicates that the time step has not varied.
@@ -104,12 +69,12 @@ public:
     /// @note Must be greater than 0.
     /// @note Used in both the regular and TOI phases of step processing.
     Positive<Length> linearSlop = DefaultLinearSlop;
-    
+
     /// @brief Angular slop.
     /// @note Must be greater than 0.
     /// @note Used in both the regular and TOI phases of step processing.
     Positive<Angle> angularSlop = DefaultAngularSlop;
-    
+
     /// @brief Regular resolution rate.
     /// @details
     /// This scale factor controls how fast positional overlap is resolved.
@@ -118,17 +83,17 @@ public:
     /// @note Must be greater than 0 for any regular-phase positional resolution to get done.
     /// @note Used in the regular phase of step processing.
     Real regResolutionRate = Real{2} / 10; // aka 0.2.
-    
+
     /// @brief Regular minimum separation.
     /// @details
     /// This is the minimum amount of separation there must be between regular-phase interacting
     /// bodies for intra-step position resolution to be considered successful and end before all
     /// of the regular position iterations have been done.
     /// @note Used in the regular phase of step processing.
-    /// @sa regPositionIterations.
+    /// @see regPositionIterations.
     Length regMinSeparation = -DefaultLinearSlop * Real{3};
-    
-    /// @brief Regular-phase min momentum.
+
+    /// @brief Regular-phase minimum momentum.
     Momentum regMinMomentum = DefaultRegMinMomentum;
 
     /// @brief Time of impact resolution rate.
@@ -146,10 +111,10 @@ public:
     /// bodies for intra-step position resolution to be considered successful and end before all
     /// of the TOI position iterations have been done.
     /// @note Used in the TOI phase of step processing.
-    /// @sa toiPositionIterations.
+    /// @see toiPositionIterations.
     Length toiMinSeparation = -DefaultLinearSlop * Real(1.5f);
 
-    /// @brief TOI-phase min momentum.
+    /// @brief TOI-phase minimum momentum.
     Momentum toiMinMomentum = DefaultToiMinMomentum;
 
     /// @brief Target depth.
@@ -157,7 +122,7 @@ public:
     /// @note Recommend value that's less than twice the world's minimum vertex radius.
     /// @note Used in the TOI phase of step processing.
     Length targetDepth = DefaultLinearSlop * Real{3};
-    
+
     /// @brief Tolerance.
     /// @details The acceptable plus or minus tolerance from the target depth for TOI calculations.
     /// @note Must be greater than 0.
@@ -186,7 +151,7 @@ public:
     /// @note Used in both the regular and TOI phases of step processing.
     ///
     Length maxTranslation = DefaultMaxTranslation;
-    
+
     /// @brief Maximum rotation.
     ///
     /// @details The maximum amount a body can rotate in a single step. This represents
@@ -216,7 +181,7 @@ public:
     /// @note This value should be greater than the linear slop value.
     /// @note Used in both the regular and TOI phases of step processing.
     Length maxLinearCorrection = DefaultMaxLinearCorrection;
-    
+
     /// @brief Maximum angular correction.
     /// @note Used in both the regular and TOI phases of step processing.
     Angle maxAngularCorrection = DefaultMaxAngularCorrection;
@@ -228,10 +193,10 @@ public:
     /// @brief Angular sleep tolerance.
     /// @note Used in the regular phase of step processing.
     AngularVelocity angularSleepTolerance = DefaultAngularSleepTolerance;
-    
+
     /// @brief Displacement multiplier for directional AABB fattening.
     Real displaceMultiplier = DefaultDistanceMultiplier;
-    
+
     /// @brief AABB extension.
     /// @details This is the extension that will be applied to Axis Aligned Bounding Box
     ///    objects used in broad phase collision detection. This fattens AABBs in the
@@ -251,7 +216,7 @@ public:
     /// @details The number of iterations of velocity resolution that will be done in the step.
     /// @note Used in the regular phase of step processing.
     iteration_type regVelocityIterations = 8;
-    
+
     /// @brief Regular position iterations.
     /// @details
     /// This is the maximum number of iterations of position resolution that will
@@ -259,7 +224,7 @@ public:
     /// In this context, positions are satisfied when the minimum separation is greater than
     /// or equal to the regular minimum separation amount.
     /// @note Used in the regular phase of step processing.
-    /// @sa regMinSeparation.
+    /// @see regMinSeparation.
     iteration_type regPositionIterations = 3;
 
     /// @brief TOI velocity iterations.
@@ -275,17 +240,17 @@ public:
     /// In this context, positions are satisfied when the minimum separation is greater than
     /// or equal to the TOI minimum separation amount.
     /// @note Used in the TOI phase of step processing.
-    /// @sa toiMinSeparation.
+    /// @see toiMinSeparation.
     iteration_type toiPositionIterations = 20;
-    
+
     /// @brief Max TOI root finder iterations.
     /// @note Used in the TOI phase of step processing.
     iteration_type maxToiRootIters = DefaultMaxToiRootIters;
-    
+
     /// @brief Max TOI iterations.
     /// @note Used in the TOI phase of step processing.
     iteration_type maxToiIters = DefaultMaxToiIters;
-    
+
     /// @brief Max distance iterations.
     /// @note Used in the TOI phase of step processing.
     iteration_type maxDistanceIters = DefaultMaxDistanceIters;
@@ -297,12 +262,12 @@ public:
     /// have continuous collision resolution done for it.
     /// @note Used in the TOI phase of step processing.
     iteration_type maxSubSteps = DefaultMaxSubSteps;
-    
+
     /// @brief Do warm start.
     /// @details Whether or not to perform warm starting (in the regular phase).
     /// @note Used in the regular phase of step processing.
     bool doWarmStart = true;
-    
+
     /// @brief Do time of impact (TOI) calculations.
     /// @details Whether or not to perform any time of impact (TOI) calculations used for doing
     ///   continuous collision detection. Without this, steps can potentially be computed
@@ -314,16 +279,6 @@ public:
 
     /// @brief Do the block-solve algorithm.
     bool doBlocksolve = true;
-
-private:
-    /// @brief Delta time.
-    /// @details This is the time step in seconds.
-    Time time = DefaultStepTime;
-
-    /// @brief Inverse time step.
-    /// @details The inverse time step. Specifically: 1/time or 0 if time == 0.
-    /// @see time.
-    Frequency invTime = DefaultStepFrequency;
 };
 
 /// @brief Gets the maximum regular linear correction from the given value.

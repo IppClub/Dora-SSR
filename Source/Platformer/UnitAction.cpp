@@ -25,6 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaHandler.h"
 #include "Audio/Sound.h"
 #include "Entity/Entity.h"
+#include "PlayRho/Collision/Distance.hpp"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
@@ -330,20 +331,22 @@ void Jump::run()
 	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Jump::onAnimationEnd));
 	_owner->setVelocityY(_owner->jump);
 	Sensor* sensor = _owner->getGroundSensor();
-	pd::Body* self = _owner->getPrBody();
-	pd::Body* target = sensor->getSensedBodies()->get(0).to<Body>()->getPrBody();
-	const auto shapeA = pr::GetPtr(*pr::begin(self->GetFixtures()))->GetShape();
-	const auto shapeB = pr::GetPtr(*pr::begin(target->GetFixtures()))->GetShape();
+	auto& world = _owner->getPhysicsWorld()->getPrWorld();
+	pr::BodyID self = _owner->getPrBody();
+	pr::BodyID target = sensor->getSensedBodies()->get(0).to<Body>()->getPrBody();
+	const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetFixtures(world, self)));
+	const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetFixtures(world, target)));
 	const auto proxyA = pd::GetChild(shapeA, 0);
 	const auto proxyB = pd::GetChild(shapeB, 0);
-	const auto transformA = self->GetTransformation();
-	const auto transformB = target->GetTransformation();
+	const auto transformA = pd::GetTransformation(world, self);
+	const auto transformB = pd::GetTransformation(world, target);
 	pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
 	const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
-	const auto velocity = self->GetVelocity().linear;
-	pd::ApplyLinearImpulse(pr::GetRef(target),
-		pr::Vec2{-velocity[0] / self->GetInvMass(),
-		-velocity[1] / self->GetInvMass()},
+	const auto velocity = pd::GetVelocity(world, self).linear;
+	auto invMass = pd::GetInvMass(world, self);
+	pd::ApplyLinearImpulse(world, target,
+		pr::Vec2{-velocity[0] / invMass,
+		-velocity[1] / invMass},
 		std::get<1>(witnessPoints));
 	UnitAction::run();
 }
@@ -482,18 +485,21 @@ float Attack::getDamage(Unit* target)
 	return damage;
 }
 
-Vec2 Attack::getHitPoint(Body* self, Body* target, pd::Shape* selfShape)
+Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape)
 {
 	Vec2 hitPoint{};
 	float distance = -1;
-	for (pd::Fixture* f : target->getPrBody()->GetFixtures())
+	auto selfB = self->getPrBody();
+	auto targetB = target->getPrBody();
+	auto& world = target->getPhysicsWorld()->getPrWorld();
+	const auto transformA = pd::GetTransformation(world, selfB);
+	for (pr::FixtureID f : pd::GetFixtures(world, targetB))
 	{
-		if (!f->IsSensor())
+		if (!pd::IsSensor(world, f))
 		{
-			const auto proxyA = pd::GetChild(pr::GetRef(selfShape), 0);
-			const auto proxyB = pd::GetChild(f->GetShape(), 0);
-			const auto transformA = self->getPrBody()->GetTransformation();
-			const auto transformB = target->getPrBody()->GetTransformation();
+			const auto proxyA = pd::GetChild(selfShape, 0);
+			const auto proxyB = pd::GetChild(pd::GetShape(world, f), 0);
+			const auto transformB = pd::GetTransformation(world, targetB);
 			pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
 			const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
 			const auto outputDistance = pr::GetMagnitude(std::get<0>(witnessPoints) - std::get<1>(witnessPoints));
@@ -534,7 +540,7 @@ void MeleeAttack::onAttack()
 				BREAK_IF(!_owner->targetAllow.isAllow(relation));
 				/* Get hit point */
 				Entity* entity = target->getEntity();
-				Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, &_polygon) : Vec2(target->getPosition());
+				Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, _polygon) : Vec2(target->getPosition());
 				entity->set("hitPoint"_slice, hitPoint);
 				entity->set("hitPower"_slice, _owner->attackPower);
 				entity->set("hitFromRight"_slice, !attackRight);
@@ -575,7 +581,7 @@ void RangeAttack::onAttack()
 		Bullet* bullet = Bullet::create(bulletDef, _owner);
 		bullet->targetAllow = _owner->targetAllow;
 		bullet->hitTarget = std::make_pair(this, &RangeAttack::onHitTarget);
-		_owner->getWorld()->addChild(bullet, _owner->getOrder());
+		_owner->getPhysicsWorld()->addChild(bullet, _owner->getOrder());
 	}
 }
 

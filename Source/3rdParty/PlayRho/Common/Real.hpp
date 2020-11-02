@@ -62,9 +62,9 @@ namespace playrho {
 /// @warning The note regarding division applies even more so when using a fixed-point type
 ///   (for <code>Real</code>).
 ///
-/// @sa http://en.cppreference.com/w/cpp/language/types
-/// @sa http://en.cppreference.com/w/cpp/types/is_floating_point
-/// @sa http://en.cppreference.com/w/cpp/concept/LiteralType
+/// @see https://en.cppreference.com/w/cpp/language/types
+/// @see https://en.cppreference.com/w/cpp/types/is_floating_point
+/// @see https://en.cppreference.com/w/cpp/named_req/LiteralType
 ///
 using Real = float;
 

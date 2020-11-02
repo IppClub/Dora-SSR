@@ -26,7 +26,7 @@ namespace d2 {
 
 JointKey GetJointKey(const Joint& joint) noexcept
 {
-    return JointKey::Get(joint.GetBodyA(), joint.GetBodyB());
+    return JointKey::Get(GetBodyA(joint), GetBodyB(joint));
 }
 
 } // namespace d2

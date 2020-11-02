@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/DrawNode.h"
 #include "Physics/Body.h"
 #include "Physics/PhysicsWorld.h"
-#include "PlayRho/Dynamics/Joints/FunctionalJointVisitor.hpp"
 
 NS_DOROTHY_BEGIN
 
@@ -30,14 +29,15 @@ _line(Line::create())
 DebugDraw::~DebugDraw()
 { }
 
-bool DebugDraw::IsVisible(pd::Fixture* fixture)
+bool DebugDraw::IsVisible(PhysicsWorld* world, pr::FixtureID fixture)
 {
-	return IsVisible(fixture->GetBody());
+	auto body = pd::GetBody(world->getPrWorld(), fixture);
+	return IsVisible(world->getBodyData(body));
 }
 
-bool DebugDraw::IsVisible(pd::Body* prBody)
+bool DebugDraw::IsVisible(Body* body)
 {
-	Body* body = r_cast<Body*>(prBody->GetUserData());
+	if (!body) return true;
 	Node* owner = s_cast<Node*>(body->getOwner());
 	return body->isVisible() && (owner == nullptr || (owner->isVisible() && (owner->getParent() == nullptr || owner->getParent()->isVisible())));
 }
@@ -120,131 +120,88 @@ void DebugDraw::DrawSegment(const pr::Length2& p1, const pr::Length2& p2, const 
 	_line->add(vertices, 2, color);
 }
 
-NS_DOROTHY_END
-
-using namespace playrho;
-using namespace playrho::d2;
-
-using Dorothy::DebugDraw;
-using Dorothy::Color;
-
-static void Draw(DebugDraw* drawer, const DistanceProxy& shape, Color color, Transformation xf)
+static void Draw(DebugDraw* drawer, const pd::DistanceProxy& shape, Color color, pd::Transformation xf)
 {
-    const auto vertexCount = shape.GetVertexCount();
-    auto vertices = std::vector<Length2>(vertexCount);
-    for (auto i = decltype(vertexCount){0}; i < vertexCount; ++i)
-    {
-        vertices[i] = Transform(shape.GetVertex(i), xf);
-    }
-    drawer->DrawSolidPolygon(&vertices[0], vertexCount, color);
+	const auto vertexCount = shape.GetVertexCount();
+	auto vertices = std::vector<pr::Length2>(vertexCount);
+	for (auto i = decltype(vertexCount){0}; i < vertexCount; ++i)
+	{
+		vertices[i] = Transform(shape.GetVertex(i), xf);
+	}
+	drawer->DrawSolidPolygon(&vertices[0], vertexCount, color);
 }
 
-static void Draw(DebugDraw* drawer, const DiskShapeConf& shape, Color color, Transformation xf)
+static void Draw(DebugDraw* drawer, const pd::DiskShapeConf& shape, Color color, pd::Transformation xf)
 {
-    const auto center = Transform(shape.GetLocation(), xf);
-    const auto radius = shape.GetRadius();
-    drawer->DrawSolidCircle(center, radius, color);
-    const auto axis = Rotate(Vec2{1, 0}, xf.q);
-    drawer->DrawSegment(center, center + radius * axis, color);
+	const auto center = Transform(shape.GetLocation(), xf);
+	const auto radius = shape.GetRadius();
+	drawer->DrawSolidCircle(center, radius, color);
+	const auto axis = pd::Rotate(pd::UnitVec::GetLeft(), xf.q);
+	drawer->DrawSegment(center, center + radius * axis, color);
 }
 
-static void Draw(DebugDraw* drawer, const EdgeShapeConf& shape, Color color, Transformation xf)
+static void Draw(DebugDraw* drawer, const pd::EdgeShapeConf& shape, Color color, pd::Transformation xf)
 {
 	Color ghostColor(s_cast<Uint8>(0.75f * color.r), s_cast<Uint8>(0.75f * color.g), s_cast<Uint8>(0.75f * color.b), color.a);
-    const auto v1 = Transform(shape.GetVertexA(), xf);
-    const auto v2 = Transform(shape.GetVertexB(), xf);
-    drawer->DrawSegment(v1, v2, color);
+	const auto v1 = Transform(shape.GetVertexA(), xf);
+	const auto v2 = Transform(shape.GetVertexB(), xf);
+	drawer->DrawSegment(v1, v2, color);
 	drawer->DrawCircle(v1, 0.05f, ghostColor);
 	drawer->DrawCircle(v2, 0.05f, ghostColor);
 }
 
-static void Draw(DebugDraw* drawer, const ChainShapeConf& shape, Color color, Transformation xf)
+static void Draw(DebugDraw* drawer, const pd::ChainShapeConf& shape, Color color, pd::Transformation xf)
 {
-    const auto count = shape.GetVertexCount();
+	const auto count = shape.GetVertexCount();
 	Color ghostColor(s_cast<Uint8>(0.75f * color.r), s_cast<Uint8>(0.75f * color.g), s_cast<Uint8>(0.75f * color.b), color.a);
-    auto v1 = Transform(shape.GetVertex(0), xf);
-    for (auto i = decltype(count){1}; i < count; ++i)
-    {
-        const auto v2 = Transform(shape.GetVertex(i), xf);
-        drawer->DrawSegment(v1, v2, color);
-        drawer->DrawCircle(v1, 0.05f, ghostColor);
-        v1 = v2;
-    }
+	auto v1 = Transform(shape.GetVertex(0), xf);
+	for (auto i = decltype(count){1}; i < count; ++i)
+	{
+		const auto v2 = Transform(shape.GetVertex(i), xf);
+		drawer->DrawSegment(v1, v2, color);
+		drawer->DrawCircle(v1, 0.05f, ghostColor);
+		v1 = v2;
+	}
 }
 
-static void Draw(DebugDraw* drawer, const PolygonShapeConf& shape, Color color, Transformation xf)
+static void Draw(DebugDraw* drawer, const pd::PolygonShapeConf& shape, Color color, pd::Transformation xf)
 {
-    Draw(drawer, GetChild(shape, 0), color, xf);
+	Draw(drawer, GetChild(shape, 0), color, xf);
 }
 
-static void Draw(DebugDraw* drawer, const MultiShapeConf& shape, Color color, Transformation xf)
+static void Draw(DebugDraw* drawer, const pd::MultiShapeConf& shape, Color color, pd::Transformation xf)
 {
-    const auto count = GetChildCount(shape);
-    for (auto i = decltype(count){0}; i < count; ++i)
-    {
-        Draw(drawer, GetChild(shape, i), color, xf);
-    }
+	const auto count = GetChildCount(shape);
+	for (auto i = decltype(count){0}; i < count; ++i)
+	{
+		Draw(drawer, GetChild(shape, i), color, xf);
+	}
 }
 
-struct VisitorData
+static void Draw(DebugDraw* drawer, const pd::World& world, pr::FixtureID fixture, const Color& color)
 {
-    DebugDraw* drawer;
-    Transformation xf;
-    Color color;
-};
-
-namespace playrho {
-
-template <>
-bool Visit(const d2::DiskShapeConf& shape, void* userData)
-{
-    const auto data = static_cast<VisitorData*>(userData);
-    Draw(data->drawer, shape, data->color, data->xf);
-    return true;
-}
-
-template <>
-bool Visit(const d2::EdgeShapeConf& shape, void* userData)
-{
-    const auto data = static_cast<VisitorData*>(userData);
-    Draw(data->drawer, shape, data->color, data->xf);
-    return true;
-}
-
-template <>
-bool Visit(const d2::PolygonShapeConf& shape, void* userData)
-{
-    const auto data = static_cast<VisitorData*>(userData);
-    Draw(data->drawer, shape, data->color, data->xf);
-    return true;
-}
-
-template <>
-bool Visit(const d2::ChainShapeConf& shape, void* userData)
-{
-    const auto data = static_cast<VisitorData*>(userData);
-    Draw(data->drawer, shape, data->color, data->xf);
-    return true;
-}
-
-template <>
-bool Visit(const d2::MultiShapeConf& shape, void* userData)
-{
-    const auto data = static_cast<VisitorData*>(userData);
-    Draw(data->drawer, shape, data->color, data->xf);
-    return true;
-}
-
-} // namespace playrho
-
-static void Draw(DebugDraw* drawer, const Fixture& fixture, const Color& color)
-{
-    const auto xf = GetTransformation(fixture);
-    auto visitor = VisitorData{};
-    visitor.drawer = drawer;
-    visitor.xf = xf;
-    visitor.color = color;
-    Visit(fixture.GetShape(), &visitor);
+	const auto xf = pd::GetTransformation(world, fixture);
+	auto shape = pd::GetShape(world, fixture);
+	if (pd::GetType(shape) == pr::GetTypeID<pd::DiskShapeConf>())
+	{
+		Draw(drawer, pd::TypeCast<pd::DiskShapeConf>(shape), color, xf);
+	}
+	else if (pd::GetType(shape) == pr::GetTypeID<pd::EdgeShapeConf>())
+	{
+		Draw(drawer, pd::TypeCast<pd::EdgeShapeConf>(shape), color, xf);
+	}
+	else if (pd::GetType(shape) == pr::GetTypeID<pd::PolygonShapeConf>())
+	{
+		Draw(drawer, pd::TypeCast<pd::PolygonShapeConf>(shape), color, xf);
+	}
+	else if (pd::GetType(shape) == pr::GetTypeID<pd::ChainShapeConf>())
+	{
+		Draw(drawer, pd::TypeCast<pd::ChainShapeConf>(shape), color, xf);
+	}
+	else if (pd::GetType(shape) == pr::GetTypeID<pd::MultiShapeConf>())
+	{
+		Draw(drawer, pd::TypeCast<pd::MultiShapeConf>(shape), color, xf);
+	}
 }
 
 const static Color disabledColor(Dorothy::Vec4{0.5f, 0.5f, 0.3f, 1.0f});
@@ -254,98 +211,82 @@ const static Color sleepColor(Dorothy::Vec4{0.6f, 0.6f, 0.6f, 1.0f});
 const static Color activeColor(Dorothy::Vec4{0.9f, 0.7f, 0.7f, 1.0f});
 const static Color sensorColor(Dorothy::Vec4{1.0f, 0.9f, 0.0f, 1.0f});
 
-static const Color& GetColor(const Body& body)
+static const Color& GetColor(const pd::World& world, pr::BodyID body)
 {
-    if (!body.IsEnabled())
-    {
-        return disabledColor;
-    }
-    if (body.GetType() == BodyType::Static)
-    {
-        return staticColor;
-    }
-    if (body.GetType() == BodyType::Kinematic)
-    {
-        return kinematicColor;
-    }
-    if (!body.IsAwake())
-    {
-        return sleepColor;
-    }
-	 return activeColor;
+	if (!pd::IsEnabled(world, body))
+	{
+		return disabledColor;
+	}
+	switch (pd::GetBodyConf(world, body).type)
+	{
+		case pr::BodyType::Static: return staticColor;
+		case pr::BodyType::Kinematic: return kinematicColor;
+		default:
+			if (!pd::IsAwake(world, body))
+			{
+				return sleepColor;
+			}
+			return activeColor;
+	}
 }
 
-static void Draw(DebugDraw* drawer, const Body& body)
+static void Draw(DebugDraw* drawer, const pd::World& world, pr::BodyID body)
 {
-    const auto bodyColor = GetColor(body);
-    for (auto&& fixture: body.GetFixtures())
-    {
-		const auto& f = GetRef(fixture);
-		auto color = f.IsSensor() ? sensorColor : bodyColor;
-		Draw(drawer, f, color);
-    }
+	const auto bodyColor = GetColor(world, body);
+	for (auto f : pd::GetFixtures(world, body))
+	{
+		auto color = pd::IsSensor(world, f) ? sensorColor : bodyColor;
+		Draw(drawer, world, f, color);
+	}
 }
 
 static const Color jointColor(Dorothy::Vec4{0.5f, 0.8f, 0.8f, 1.0f});
 
-static void Draw(DebugDraw* drawer, const Joint& joint)
+static void Draw(DebugDraw* drawer, const pd::World& world, pr::JointID joint)
 {
-    const auto p1 = joint.GetAnchorA();
-    const auto p2 = joint.GetAnchorB();
-
-    switch (GetType(joint))
-    {
-        case JointType::Distance:
-            drawer->DrawSegment(p1, p2, jointColor);
-            break;
-        case JointType::Pulley:
-		{
-			const auto pulley = static_cast<const PulleyJoint&>(joint);
-			const auto s1 = pulley.GetGroundAnchorA();
-			const auto s2 = pulley.GetGroundAnchorB();
-			drawer->DrawSegment(s1, p1, jointColor);
-			drawer->DrawSegment(s2, p2, jointColor);
-			drawer->DrawSegment(s1, s2, jointColor);
-			break;
-		}
-        case JointType::Target:
-            break;
-        default:
-        {
-            const auto bodyA = joint.GetBodyA();
-            const auto bodyB = joint.GetBodyB();
-            const auto x1 = bodyA->GetTransformation().p;
-            const auto x2 = bodyB->GetTransformation().p;
-            drawer->DrawSegment(x1, p1, jointColor);
-            drawer->DrawSegment(p1, p2, jointColor);
-            drawer->DrawSegment(x2, p2, jointColor);
-        }
-    }
-}
-
-void DrawWorld(DebugDraw* drawer, const World& world)
-{
-	for (auto&& body: world.GetBodies())
+	const auto p1 = pd::GetAnchorA(world, joint);
+	const auto p2 = pd::GetAnchorB(world, joint);
+	auto jointType = pd::GetType(world, joint);
+	if (jointType == pr::GetTypeID<pd::DistanceJointConf>())
 	{
-		if (DebugDraw::IsVisible(body))
-		{
-			const auto b = GetPtr(body);
-			Draw(drawer, *b);
-		}
+		drawer->DrawSegment(p1, p2, jointColor);
 	}
-	for (auto&& j: world.GetJoints())
+	else if (jointType == pr::GetTypeID<pd::PulleyJointConf>())
 	{
-		Draw(drawer, *j);
+		const auto s1 = pd::GetGroundAnchorA(world, joint);
+		const auto s2 = pd::GetGroundAnchorB(world, joint);
+		drawer->DrawSegment(s1, p1, jointColor);
+		drawer->DrawSegment(s2, p2, jointColor);
+		drawer->DrawSegment(s1, s2, jointColor);
+	}
+	else
+	{
+		const auto bodyA = pd::GetBodyA(world, joint);
+		const auto bodyB = pd::GetBodyB(world, joint);
+		const auto x1 = pd::GetTransformation(world, bodyA).p;
+		const auto x2 = pd::GetTransformation(world, bodyB).p;
+		drawer->DrawSegment(x1, p1, jointColor);
+		drawer->DrawSegment(p1, p2, jointColor);
+		drawer->DrawSegment(x2, p2, jointColor);
 	}
 }
 
-NS_DOROTHY_BEGIN
-
-void DebugDraw::DrawWorld(pd::World* world)
+void DebugDraw::DrawWorld(PhysicsWorld* pworld)
 {
 	_drawNode->clear();
 	_line->clear();
-	::DrawWorld(this, *world);
+	auto& world = pworld->getPrWorld();
+	for (auto body : world.GetBodies())
+	{
+		if (DebugDraw::IsVisible(pworld->getBodyData(body)))
+		{
+			Draw(this, world, body);
+		}
+	}
+	for (auto joint : world.GetJoints())
+	{
+		Draw(this, world, joint);
+	}
 }
 
 NS_DOROTHY_END

@@ -25,7 +25,7 @@
 namespace playrho {
 
     /// @brief Allocator block sizes array data.
-    PLAYRHO_CONSTEXPR const std::size_t AllocatorBlockSizes[] =
+    constexpr std::size_t AllocatorBlockSizes[] =
     {
         16, 32, 64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640,
     };
@@ -35,7 +35,7 @@ namespace playrho {
     /// This is a small object allocator used for allocating small
     ///   objects that persist for more than one time step.
     /// @note This data structure is 136-bytes large (on at least one 64-bit platform).
-    /// @sa http://www.codeproject.com/useritems/Small_Block_Allocator.asp
+    /// @see http://www.codeproject.com/useritems/Small_Block_Allocator.asp
     ///
     class BlockAllocator
     {
@@ -45,16 +45,16 @@ namespace playrho {
         using size_type = std::size_t;
 
         /// @brief Chunk size.
-        static PLAYRHO_CONSTEXPR const auto ChunkSize = size_type{16 * 1024};
+        static constexpr auto ChunkSize = size_type{16 * 1024};
         
         /// @brief Max block size (before using external allocator).
-        static PLAYRHO_CONSTEXPR size_type GetMaxBlockSize() noexcept
+        static constexpr size_type GetMaxBlockSize() noexcept
         {
             return AllocatorBlockSizes[size(AllocatorBlockSizes) - 1];
         }
         
         /// @brief Chunk array increment.
-        static PLAYRHO_CONSTEXPR size_type GetChunkArrayIncrement() noexcept
+        static constexpr size_type GetChunkArrayIncrement() noexcept
         {
             return size_type{128};
         }
@@ -80,7 +80,7 @@ namespace playrho {
         /// @return Non-null pointer if asked to make non-zero sized allocation,
         ///   <code>nullptr</code> otherwise.
         /// @throws std::bad_alloc If unable to allocate non-zero size of memory.
-        /// @sa Alloc.
+        /// @see Alloc.
         void* Allocate(size_type n);
 
         /// @brief Allocates an array.
@@ -133,7 +133,7 @@ namespace playrho {
         BlockDeallocator() = default;
 
         /// @brief Initializing constructor.
-        PLAYRHO_CONSTEXPR inline BlockDeallocator(BlockAllocator* a, size_type n) noexcept:
+        constexpr BlockDeallocator(BlockAllocator* a, size_type n) noexcept:
             allocator{a}, nelem{n}
         {
             // Intentionally empty.

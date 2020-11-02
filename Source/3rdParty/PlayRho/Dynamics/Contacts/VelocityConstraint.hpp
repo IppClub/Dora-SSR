@@ -25,7 +25,7 @@
 
 namespace playrho {
 
-class StepConf;
+struct StepConf;
 
 namespace d2 {
 
@@ -58,7 +58,7 @@ public:
     };
     
     /// @brief Gets the default configuration for a <code>VelocityConstraint</code>.
-    static PLAYRHO_CONSTEXPR inline Conf GetDefaultConf() noexcept
+    static constexpr Conf GetDefaultConf() noexcept
     {
         return Conf{};
     }
@@ -93,8 +93,8 @@ public:
     
     /// Gets the count of points added to this object.
     /// @return Value between 0 and <code>MaxManifoldPoints</code>.
-    /// @sa MaxManifoldPoints.
-    /// @sa AddPoint.
+    /// @see MaxManifoldPoints.
+    /// @see AddPoint.
     size_type GetPointCount() const noexcept { return m_pointCount; }
     
     /// Gets the "K" value.
@@ -126,14 +126,14 @@ public:
     /// @note Call the <code>AddPoint</code> or <code>SetNormalImpulseAtPoint</code> method
     ///   to set this value.
     /// @return Value previously set, or an invalid value.
-    /// @sa SetNormalImpulseAtPoint.
+    /// @see SetNormalImpulseAtPoint.
     Momentum GetNormalImpulseAtPoint(size_type index) const noexcept;
     
     /// Gets the tangent impulse at the given point.
     /// @note Call the <code>AddPoint</code> or <code>SetTangentImpulseAtPoint</code> method
     ///   to set this value.
     /// @return Value previously set, or an invalid value.
-    /// @sa SetTangentImpulseAtPoint.
+    /// @see SetTangentImpulseAtPoint.
     Momentum GetTangentImpulseAtPoint(size_type index) const noexcept;
     
     /// Gets the velocity bias at the given point.
@@ -220,7 +220,7 @@ public:
     ///   by <code>GetPointCount</code>.
     /// @return velocity constraint point for the given index. This point's data will be invalid
     ///   unless previously added and set.
-    /// @sa GetPointCount.
+    /// @see GetPointCount.
     const Point& GetPointAt(size_type index) const
     {
         assert(index < MaxManifoldPoints);
@@ -234,7 +234,7 @@ private:
     ///   have already been added, call <code>GetPointCount</code>.
     /// @warning Behavior is undefined if an attempt is made to add more than
     ///   <code>MaxManifoldPoints</code> points.
-    /// @sa GetPointCount().
+    /// @see GetPointCount().
     void AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
                   Length2 relA, Length2 relB, Conf conf);
     
@@ -252,7 +252,7 @@ private:
     ///   by <code>GetPointCount</code>.
     /// @return velocity constraint point for the given index. This point's data will be invalid
     ///   unless previously added and set.
-    /// @sa GetPointCount.
+    /// @see GetPointCount.
     Point& PointAt(size_type index)
     {
         assert(index < MaxManifoldPoints);

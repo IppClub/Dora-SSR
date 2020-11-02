@@ -11,25 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "PlayRho/Collision/RayCastOutput.hpp"
 
-namespace playrho {
-
-template <>
-bool Visit(const d2::DiskShapeConf& shape, void* userData);
-
-template <>
-bool Visit(const d2::EdgeShapeConf& shape, void* userData);
-
-template <>
-bool Visit(const d2::PolygonShapeConf& shape, void* userData);
-
-template <>
-bool Visit(const d2::ChainShapeConf& shape, void* userData);
-
-template <>
-bool Visit(const d2::MultiShapeConf& shape, void* userData);
-
-} // namespace playrho
-
 NS_DOROTHY_BEGIN
 
 namespace pr = playrho;
@@ -37,58 +18,14 @@ namespace pd = playrho::d2;
 
 class Body;
 class Sensor;
+class Joint;
 class DebugDraw;
-
-class ContactListener : public pd::ContactListener
-{
-public:
-	virtual ~ContactListener();
-	 virtual void BeginContact(pd::Contact& contact) override;
-	 virtual void EndContact(pd::Contact& contact) override;
-	/**
-	 In subclass functions first call these functions from the base class,
-	 then do some extra works.
-	 */
-	 virtual void PreSolve(pd::Contact& contact, const pd::Manifold& oldManifold) override;
-	 virtual void PostSolve(pd::Contact& contact, const pd::ContactImpulsesList& impulses,
-	 	iteration_type solved) override;
-	 void SolveContacts();
-
-	struct SensorPair
-	{
-		Sensor* sensor;
-		Body* body;
-		void retain();
-		void release();
-	};
-	struct ContactPair
-	{
-		Body* bodyA;
-		Body* bodyB;
-		Vec2 point;
-		Vec2 normal;
-		void retain();
-		void release();
-	};
-protected:
-	vector<SensorPair> _sensorEnters;
-	vector<SensorPair> _sensorLeaves;
-	vector<ContactPair> _contactStarts;
-	vector<ContactPair> _contactEnds;
-};
-
-class DestructionListener : public pd::DestructionListener
-{
-public:
-	virtual void SayGoodbye(const pd::Joint& joint) noexcept override;
-	virtual void SayGoodbye(const pd::Fixture& fixture) noexcept override;
-};
 
 class PhysicsWorld : public Node
 {
 public:
 	virtual ~PhysicsWorld();
-	PROPERTY_READONLY(pd::World*, PrWorld);
+	PROPERTY_READONLY_REF(pd::World, PrWorld);
 	PROPERTY_BOOL(ShowDebug);
 	/**
 	 Iterations affect PlayRho`s CPU cost greatly.
@@ -96,15 +33,20 @@ public:
 	 Default with the minimum value 1,1.
 	 */
 	void setIterations(int velocityIter, int positionIter);
-	/**
-	 You can change the contact listener with a subclass of ContactListener with
-	 world->setContactListener(New<MyContactListener>());
-	 */
-	void setContactListener(Own<ContactListener>&& listener);
 
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;
 	virtual void render() override;
+
+	void setFixtureData(pr::FixtureID fixture, Sensor* sensor);
+	Sensor* getFixtureData(pr::FixtureID fixture) const;
+
+	void setBodyData(pr::BodyID b, Body* body);
+	Body* getBodyData(pr::BodyID body) const;
+
+	void setJointData(pr::JointID j, Joint* joint);
+	Joint* getJointData(pr::JointID joint) const;
+
 	/**
 	 Use this rect query at any time without worrying Box2D`s callback limits.
 	 */
@@ -127,11 +69,15 @@ public:
 	 Better change this value before any physics body creation.
 	 */
 	static float b2Factor;
-	enum { TotalGroups = 32 };
+	enum { TotalGroups = sizeof(pr::Filter::bits_type) * 8 };
 	CREATE_FUNC(PhysicsWorld);
 protected:
 	PhysicsWorld();
 private:
+	void setupBeginContact();
+	void setupEndContact();
+	void setupPreSolve();
+	void solveContacts();
 	vector<Body*> _queryResultsOfCommonShapes;
 	vector<Body*> _queryResultsOfChainsAndEdges;
 private:
@@ -149,8 +95,30 @@ private:
 	pr::Filter _filters[TotalGroups];
 	pd::World _world;
 	pr::StepConf _stepConf;
-	Own<ContactListener> _contactListner;
-	Own<DestructionListener> _destructionListener;
+
+	struct SensorPair
+	{
+		Sensor* sensor;
+		Body* body;
+		void retain();
+		void release();
+	};
+	struct ContactPair
+	{
+		Body* bodyA;
+		Body* bodyB;
+		Vec2 point;
+		Vec2 normal;
+		void retain();
+		void release();
+	};
+	vector<SensorPair> _sensorEnters;
+	vector<SensorPair> _sensorLeaves;
+	vector<ContactPair> _contactStarts;
+	vector<ContactPair> _contactEnds;
+	vector<Body*> _bodyData;
+	vector<Sensor*> _fixtureData;
+	vector<Joint*> _jointData;
 	DORA_TYPE_OVERRIDE(PhysicsWorld);
 };
 

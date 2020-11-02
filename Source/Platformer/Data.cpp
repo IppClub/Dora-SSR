@@ -28,26 +28,22 @@ _store(Dictionary::create())
 	};
 }
 
-//Group [0] for hide
-//Group [1 - 28] for player
-//Group [29] for player sensor
-//Group [30] for terrain
-//Group [31] for sense all
 #define Hide 0
-#define P1 1
-#define P28 28
-#define PSensor 29
-#define Terrain 30
-#define SenseAll 31
+#define FP 1
+#define LP PhysicsWorld::TotalGroups - 4
+#define PSensor PhysicsWorld::TotalGroups - 3
+#define Terrain PhysicsWorld::TotalGroups - 2
+#define SenseAll PhysicsWorld::TotalGroups - 1
 
 void Data::apply(PhysicsWorld* world)
 {
-	for (int p = P1; p <= P28; p++)
+	for (int p = FP; p <= LP; p++)
 	{
 		world->setShouldContact(PSensor, p, true);
 		world->setShouldContact(Terrain, p, true);
 		world->setShouldContact(SenseAll, p, true);
 		world->setShouldContact(Hide, p, false);
+		world->setShouldContact(p, p, false);
 	}
 	world->setShouldContact(Hide, PSensor, false);
 	world->setShouldContact(Hide, SenseAll, false);
@@ -140,7 +136,7 @@ float Data::getDamageFactor(Uint16 damageType, Uint16 defenceType) const
 bool Data::isPlayer(Body* body)
 {
 	Sint16 index = body->getGroup();
-	return P1 <= index && index <= P28;
+	return FP <= index && index <= LP;
 }
 
 bool Data::isTerrain(Body* body)
