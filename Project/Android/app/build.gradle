@@ -1,14 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-	signingConfigs {
-		release {
-			storeFile file('***REMOVED***')
-			keyAlias 'key0'
-			storePassword '***REMOVED***'
-			keyPassword '***REMOVED***'
-		}
-	}
 	compileSdkVersion 26
 	defaultConfig {
 		applicationId "com.luvfight.dorothy"
@@ -28,9 +20,8 @@ android {
 	}
 	buildTypes {
 		release {
-			minifyEnabled false
+			minifyEnabled true
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-			signingConfig signingConfigs.release
 		}
 	}
 	externalNativeBuild {
@@ -50,7 +41,7 @@ android {
 		sourceCompatibility = 1.8
 		targetCompatibility = 1.8
 	}
-	buildToolsVersion = '30.0.0'
+	buildToolsVersion = '30.0.2'
 	ndkVersion = '21.3.6528147'
 }
 
