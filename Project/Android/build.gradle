@@ -2,11 +2,8 @@
 
 buildscript {
 	repositories {
-		maven { url 'https://maven.aliyun.com/repository/public/' }
-		maven { url 'https://maven.aliyun.com/repository/google' }
-		maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-		mavenLocal()
-		mavenCentral()
+		google()
+		jcenter()
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:4.1.0'
@@ -17,11 +14,8 @@ buildscript {
 
 allprojects {
 	repositories {
-		maven { url 'https://maven.aliyun.com/repository/public/' }
-		maven { url 'https://maven.aliyun.com/repository/google' }
-		maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-		mavenLocal()
-		mavenCentral()
+		google()
+		jcenter()
 	}
 	tasks.withType(JavaCompile) {
 		options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
