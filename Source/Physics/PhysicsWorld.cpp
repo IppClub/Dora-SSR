@@ -301,9 +301,9 @@ bool PhysicsWorld::update(double deltaTime)
 
 void PhysicsWorld::setFixtureData(pr::FixtureID f, Sensor* sensor)
 {
-	if (_fixtureData.size() < f.get() + 1)
+	if (_fixtureData.size() < f.get() + 1u)
 	{
-		_fixtureData.resize(f.get() + 1);
+		_fixtureData.resize(f.get() + 1u);
 	}
 	_fixtureData[f.get()] = sensor;
 }
@@ -315,9 +315,9 @@ Sensor* PhysicsWorld::getFixtureData(pr::FixtureID fixture) const
 
 void PhysicsWorld::setBodyData(pr::BodyID b, Body* body)
 {
-	if (_bodyData.size() < b.get() + 1)
+	if (_bodyData.size() < b.get() + 1u)
 	{
-		_bodyData.resize(b.get() + 1);
+		_bodyData.resize(b.get() + 1u);
 	}
 	_bodyData[b.get()] = body;
 }
@@ -329,9 +329,9 @@ Body* PhysicsWorld::getBodyData(pr::BodyID body) const
 
 void PhysicsWorld::setJointData(pr::JointID j, Joint* joint)
 {
-	if (_jointData.size() < j.get() + 1)
+	if (_jointData.size() < j.get() + 1u)
 	{
-		_jointData.resize(j.get() + 1);
+		_jointData.resize(j.get() + 1u);
 	}
 	_jointData[j.get()] = joint;
 }
