@@ -53,7 +53,7 @@ inline std::string s(std::string_view sv) {
 	return std::string(sv);
 }
 
-const std::string_view version = "0.4.19"sv;
+const std::string_view version = "0.4.21"sv;
 const std::string_view extension = "mp"sv;
 
 class MoonCompilerImpl {
@@ -3814,17 +3814,16 @@ private:
 	void transformLoopBody(Body_t* body, str_list& out, const std::string& appendContent, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		str_list temp;
 		bool withContinue = traversal::Stop == body->traverse([&](ast_node* node) {
-			switch (node->getId()) {
-				case id<For_t>():
-				case id<ForEach_t>():
-					return traversal::Return;
-				case id<BreakLoop_t>(): {
-					return _parser.toString(node) == "continue"sv ?
-						traversal::Stop : traversal::Return;
-				}
-				default:
+			if (auto stmt = ast_cast<Statement_t>(node)) {
+				if (stmt->content.is<BreakLoop_t>()) {
+					return _parser.toString(stmt->content) == "continue"sv ?
+					traversal::Stop : traversal::Return;
+				} else if (expListFrom(stmt)) {
 					return traversal::Continue;
+				}
+				return traversal::Return;
 			}
+			return traversal::Continue;
 		});
 		if (withContinue) {
 			auto continueVar = getUnusedName("_continue_"sv);
@@ -4786,6 +4785,7 @@ private:
 				case id<variable_pair_t>(): transform_variable_pair(static_cast<variable_pair_t*>(pair), temp); break;
 				case id<normal_pair_t>(): transform_normal_pair(static_cast<normal_pair_t*>(pair), temp); break;
 				case id<TableBlockIndent_t>(): transformTableBlockIndent(static_cast<TableBlockIndent_t*>(pair), temp); break;
+				case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(pair), temp); break;
 				default: assert(false); break;
 			}
 			temp.back() = indent() + temp.back() + (pair == pairs.back() ? Empty : s(","sv)) + nll(pair);
