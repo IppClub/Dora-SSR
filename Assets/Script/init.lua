@@ -9,8 +9,6 @@ Content.searchPaths = {
 	"Image",
 	"Spine",
 	"Production",
-	Path("Production", "Script"),
-	Path("Production", "Spine"),
 	Content.writablePath
 }
 

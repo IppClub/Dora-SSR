@@ -147,7 +147,7 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 				switch (Xml::Clip::Dorothy(attrs[i].first[0]))
 				{
 					case Xml::Clip::Dorothy::File:
-						_item->textureFile = Path::concat({_path, Slice(attrs[++i])});
+						_item->textureFile = Path::concat({_path, attrs[++i]});
 						break;
 				}
 			}

@@ -104,7 +104,7 @@ find_modulepath = function(name)
 	if not package.moonpath then
 		package.moonpath = create_moonpath(package.path)
 	end
-	local name_path = name:gsub("%.", moonp.dirsep)
+	local name_path = name:match("[\\/]") and name or name:gsub("%.", moonp.dirsep)
 	local file_exist, file_path
 	for path in package.moonpath:gmatch("[^;]+") do
 		file_path = path:gsub("?", name_path)

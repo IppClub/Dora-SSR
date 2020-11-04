@@ -161,11 +161,21 @@ static int dora_loader(lua_State* L)
 {
 	size_t size = 0;
 	const char* str = luaL_checklstring(L, 1, &size);
-	string filename(str, size);
-	size_t pos = 0;
-	while ((pos = filename.find('.', pos)) != string::npos)
+	Slice filename(str, size);
+	bool convertToPath = true;
+	for (auto ch : filename)
 	{
-		filename[pos] = '/';
+		if (ch == '\\' || ch == '/')
+		{
+			convertToPath = false;
+			break;
+		}
+	}
+	if (convertToPath)
+	{
+		auto tokens = filename.split("."_slice);
+		auto file = Path::concat(tokens);
+		return dora_loadfile(L, file);
 	}
 	return dora_loadfile(L, filename);
 }

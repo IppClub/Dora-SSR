@@ -357,7 +357,7 @@ private:
 class Path
 {
 public:
-	static string concat(const list<string>& paths);
+	static string concat(const list<Slice>& paths);
 	static string getExt(const string& path);
 	static string getPath(const string& path);
 	static string getName(const string& path);

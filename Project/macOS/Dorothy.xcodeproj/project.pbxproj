@@ -136,7 +136,6 @@
 		3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708301E08CB4300B38C2A /* LuaBinding.cpp */; };
 		3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7708311E08CB4300B38C2A /* LuaCode.cpp */; };
 		3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */; };
-		3C7EB6122547CC5F00390DA6 /* Real.hpp.in in Resources */ = {isa = PBXBuildFile; fileRef = 3C7EB5E22547CC5B00390DA6 /* Real.hpp.in */; };
 		3C7EB6132547CC5F00390DA6 /* UnitVec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7EB5E42547CC5C00390DA6 /* UnitVec.cpp */; };
 		3C7EB6142547CC5F00390DA6 /* Version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7EB5E52547CC5C00390DA6 /* Version.cpp */; };
 		3C7EB6152547CC5F00390DA6 /* BlockAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C7EB5E92547CC5C00390DA6 /* BlockAllocator.cpp */; };
@@ -2125,7 +2124,6 @@
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
 				3CBC785124CE7528003C9E83 /* Model in Resources */,
-				3C7EB6122547CC5F00390DA6 /* Real.hpp.in in Resources */,
 				3CBC785024CE7528003C9E83 /* Spine in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
