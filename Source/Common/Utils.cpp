@@ -76,14 +76,14 @@ double Profiler::stop(String logName)
 	return deltaTime;
 }
 
-string Path::concat(const list<string>& paths)
+string Path::concat(const list<Slice>& paths)
 {
 	if (paths.empty()) return Slice::Empty;
 	if (paths.size() == 1) return paths.front();
-	fs::path path = paths.front();
+	fs::path path = paths.front().toString();
 	for (auto it = ++paths.begin(); it != paths.end(); ++it)
 	{
-		path /= *(it);
+		path /= it->toString();
 	}
 	return path.string();
 }

@@ -185,9 +185,15 @@ allNames = [Path "Game",game,"init" for game in *games]
 for example in *examples do table.insert allNames,Path "Example",example
 for test in *tests do table.insert allNames,Path "Test",test
 
-productionEntry = if Content\exist(Path "Production","Script","init.#{moonext}") or
-	Content\exist Path "Production","Script","init.lua"
-		productionEntry = "Production.Script.init"
+productionEntry = nil
+for file in *Content\getAllFiles Path Content.assetPath, "Production"
+	if "init" == Path\getName file
+		scriptFolder = Path\getPath Path Content.assetPath, "Production", file
+		Content\addSearchPath Path\getPath scriptFolder
+		package.moonpath ..= ";" .. Path scriptFolder, "?.mp"
+		package.moonpath ..= ";" .. Path Content.assetPath, "Production", "?.mp"
+		productionEntry = Path Path\getPath(file), "init"
+		break
 
 enterDemoEntry = (name)->
 	isInEntry = false
@@ -269,19 +275,19 @@ threadLoop ->
 		else
 			SameLine!
 			allClear! if Button "Home", Vec2(70,30)
-			currentIndex = 1
+			currentIndex = nil
 			for i,name in ipairs allNames
 				if currentEntryName == name
 					currentIndex = i
 			SameLine!
-			if currentIndex > 1
+			if currentIndex and currentIndex > 1
 				if Button("Prev", Vec2(70,30)) or left
 					allClear!
 					isInEntry = false
 					thread -> enterDemoEntry allNames[currentIndex-1]
 			else Dummy Vec2 70,30
 			SameLine!
-			if currentIndex < #allNames
+			if currentIndex and currentIndex < #allNames
 				if Button("Next", Vec2(70,30)) or right
 					allClear!
 					isInEntry = false

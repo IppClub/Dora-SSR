@@ -68,9 +68,9 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				{
 					case Xml::Model::Dorothy::File:
 					{
-						string file = Slice(attrs[++i]);
+						Slice file(attrs[++i]);
 						string localFile = Path::concat({_path, file});
-						_item->_clip = SharedContent.isExist(localFile) ? localFile : file;
+						_item->_clip = SharedContent.isExist(localFile) ? localFile : file.toString();
 						break;
 					}
 					case Xml::Model::Dorothy::FaceRight:
@@ -247,9 +247,9 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				{
 					case Xml::Model::FrameAnimation::File:
 					{
-						string file = Slice(attrs[++i]);
+						Slice file(attrs[++i]);
 						string localFile = Path::concat({_path, file});
-						frameAnimationDef->setFile(SharedClipCache.isFileExist(localFile) ? localFile : file);
+						frameAnimationDef->setFile(SharedClipCache.isFileExist(localFile) ? localFile : file.toString());
 						break;
 					}
 					case Xml::Model::FrameAnimation::Delay:

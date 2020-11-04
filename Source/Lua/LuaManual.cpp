@@ -106,7 +106,7 @@ int Path_create(lua_State* L)
 	}
 #endif
 	int top = lua_gettop(L);
-	list<string> paths;
+	list<Slice> paths;
 	for (int i = 2; i <= top; i++)
 	{
 #ifndef TOLUA_RELEASE
