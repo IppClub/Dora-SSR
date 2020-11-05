@@ -45,7 +45,7 @@ class WorldImpl;
 struct FixtureConf; // for CreateFixture
 
 /// @relatedalso WorldImpl
-FixtureID CreateFixture(WorldImpl& world, const FixtureConf& def, bool resetMassData = true);
+FixtureID CreateFixture(WorldImpl& world, const FixtureConf& def);
 
 /// @brief Gets the identified fixture state.
 /// @throws std::out_of_range If given an invalid fixture identifier.
@@ -58,13 +58,7 @@ const FixtureConf& GetFixture(const WorldImpl& world, FixtureID id);
 void SetFixture(WorldImpl& world, FixtureID id, const FixtureConf& value);
 
 /// @relatedalso WorldImpl
-bool Destroy(WorldImpl& world, FixtureID id, bool resetMassData);
-
-/// @relatedalso WorldImpl
-void Refilter(WorldImpl& world, FixtureID id);
-
-/// @brief Flags the contacts of the identifed fixture for filtering.
-void FlagContactsForFiltering(WorldImpl& world, FixtureID id);
+bool Destroy(WorldImpl& world, FixtureID id);
 
 /// @brief Gets the dynamic tree leaves awaiting processing for the finding of new contacts.
 /// @relatedalso WorldImpl

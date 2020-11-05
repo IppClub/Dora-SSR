@@ -65,6 +65,12 @@ constexpr bool operator!= (Transformation lhs, Transformation rhs) noexcept
     return (lhs.p != rhs.p) || (lhs.q != rhs.q);
 }
 
+/// @brief Gets the location information from the given transformation.
+constexpr Length2 GetLocation(const Transformation& value) noexcept
+{
+    return value.p;
+}
+
 } // namespace d2
 
 /// @brief Determines if the given value is valid.

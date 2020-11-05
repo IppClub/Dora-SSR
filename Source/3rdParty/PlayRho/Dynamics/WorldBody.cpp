@@ -22,6 +22,7 @@
 #include "PlayRho/Dynamics/WorldBody.hpp"
 
 #include "PlayRho/Dynamics/World.hpp"
+#include "PlayRho/Dynamics/Body.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -59,6 +60,16 @@ BodyID CreateBody(World& world, const BodyConf& def)
     return world.CreateBody(def);
 }
 
+const Body& GetBody(const World& world, BodyID id)
+{
+    return world.GetBody(id);
+}
+
+void SetBody(World& world, BodyID id, const Body& body)
+{
+    world.SetBody(id, body);
+}
+
 void Destroy(World& world, BodyID id)
 {
     world.Destroy(id);
@@ -72,46 +83,58 @@ GetFixtures(const World& world, BodyID id)
 
 LinearAcceleration2 GetLinearAcceleration(const World& world, BodyID id)
 {
-    return world.GetLinearAcceleration(id);
+    return GetLinearAcceleration(GetBody(world, id));
 }
 
 AngularAcceleration GetAngularAcceleration(const World& world, BodyID id)
 {
-    return world.GetAngularAcceleration(id);
+    return GetAngularAcceleration(GetBody(world, id));
 }
 
 Acceleration GetAcceleration(const World& world, BodyID id)
 {
-    return Acceleration{
-        world.GetLinearAcceleration(id),
-        world.GetAngularAcceleration(id)
-    };
+    const auto& body = GetBody(world, id);
+    return Acceleration{GetLinearAcceleration(body), GetAngularAcceleration(body)};
 }
 
 void SetAcceleration(World& world, BodyID id,
                      LinearAcceleration2 linear, AngularAcceleration angular)
 {
-    world.SetAcceleration(id, linear, angular);
+    auto body = GetBody(world, id);
+    SetAcceleration(body, linear, angular);
+    world.SetBody(id, body);
 }
 
 void SetAcceleration(World& world, BodyID id, LinearAcceleration2 value)
 {
-    world.SetAcceleration(id, value, world.GetAngularAcceleration(id));
+    auto body = GetBody(world, id);
+    SetAcceleration(body, value);
+    world.SetBody(id, body);
 }
 
 void SetAcceleration(World& world, BodyID id, AngularAcceleration value)
 {
-    world.SetAcceleration(id, world.GetLinearAcceleration(id), value);
+    auto body = GetBody(world, id);
+    SetAcceleration(body, value);
+    world.SetBody(id, body);
 }
 
 void SetAcceleration(World& world, BodyID id, Acceleration value)
 {
-    world.SetAcceleration(id, value.linear, value.angular);
+    auto body = GetBody(world, id);
+    SetAcceleration(body, value);
+    world.SetBody(id, body);
 }
 
-void SetTransformation(World& world, BodyID id, Transformation xfm)
+void SetTransformation(World& world, BodyID id, Transformation value)
 {
-    world.SetTransformation(id, xfm);
+    auto body = GetBody(world, id);
+    SetTransformation(body, value);
+    SetSweep(body, Sweep{
+        Position{Transform(body.GetLocalCenter(), value), GetAngle(value.q)},
+        body.GetLocalCenter()
+    });
+    world.SetBody(id, body);
 }
 
 void SetLocation(World& world, BodyID body, Length2 value)
@@ -189,124 +212,197 @@ BodyCounter GetWorldIndex(const World& world, BodyID id) noexcept
     return BodyCounter(-1);
 }
 
-BodyConf GetBodyConf(const World& world, BodyID id)
-{
-    return world.GetBodyConf(id);
-}
-
-void SetType(World& world, BodyID id, BodyType value)
-{
-    world.SetType(id, value);
-}
-
 BodyType GetType(const World& world, BodyID id)
 {
-    return world.GetType(id);
+    return GetType(GetBody(world, id));
+}
+
+void SetType(World& world, BodyID id, BodyType value, bool resetMassData)
+{
+    auto body = GetBody(world, id);
+    if (GetType(body) != value) {
+        SetType(body, value);
+        world.SetBody(id, body);
+        if (resetMassData) {
+            SetMassData(world, id, ComputeMassData(world, id));
+        }
+    }
 }
 
 Transformation GetTransformation(const World& world, BodyID id)
 {
-    return world.GetTransformation(id);
+    return GetTransformation(GetBody(world, id));
 }
 
 Angle GetAngle(const World& world, BodyID id)
 {
-    return world.GetAngle(id);
+    return GetAngle(GetBody(world, id));
 }
 
 Velocity GetVelocity(const World& world, BodyID id)
 {
-    return world.GetVelocity(id);
+    return GetVelocity(GetBody(world, id));
 }
 
 void SetVelocity(World& world, BodyID id, const Velocity& value)
 {
-    world.SetVelocity(id, value);
+    auto body = GetBody(world, id);
+    SetVelocity(body, value);
+    world.SetBody(id, body);
 }
 
 void SetVelocity(World& world, BodyID id, const LinearVelocity2& value)
 {
-    world.SetVelocity(id, Velocity{value, GetVelocity(world, id).angular});
+    auto body = GetBody(world, id);
+    SetVelocity(body, Velocity{value, GetAngularVelocity(body)});
+    world.SetBody(id, body);
 }
 
 void SetVelocity(World& world, BodyID id, AngularVelocity value)
 {
-    world.SetVelocity(id, Velocity{GetVelocity(world, id).linear, value});
+    auto body = GetBody(world, id);
+    SetVelocity(body, Velocity{GetLinearVelocity(body), value});
+    world.SetBody(id, body);
 }
 
-void DestroyFixtures(World& world, BodyID id)
+void DestroyFixtures(World& world, BodyID id, bool resetMassData)
 {
-    world.DestroyFixtures(id);
+    while (!empty(GetFixtures(world, id))) {
+        world.Destroy(*GetFixtures(world, id).begin());
+    }
+    if (resetMassData) {
+        SetMassData(world, id, ComputeMassData(world, id));
+    }
 }
 
 bool IsEnabled(const World& world, BodyID id)
 {
-    return world.IsEnabled(id);
+    return IsEnabled(GetBody(world, id));
 }
 
 void SetEnabled(World& world, BodyID id, bool value)
 {
-    world.SetEnabled(id, value);
+    auto body = GetBody(world, id);
+    SetEnabled(body, value);
+    world.SetBody(id, body);
 }
 
 bool IsAwake(const World& world, BodyID id)
 {
-    return world.IsAwake(id);
+    return IsAwake(GetBody(world, id));
 }
 
 void SetAwake(World& world, BodyID id)
 {
-    world.SetAwake(id);
+    auto body = GetBody(world, id);
+    SetAwake(body);
+    world.SetBody(id, body);
 }
 
 void UnsetAwake(World& world, BodyID id)
 {
-    world.UnsetAwake(id);
+    auto body = GetBody(world, id);
+    UnsetAwake(body);
+    world.SetBody(id, body);
 }
 
 bool IsMassDataDirty(const World& world, BodyID id)
 {
-    return world.IsMassDataDirty(id);
+    return IsMassDataDirty(GetBody(world, id));
 }
 
 bool IsFixedRotation(const World& world, BodyID id)
 {
-    return world.IsFixedRotation(id);
+    return IsFixedRotation(GetBody(world, id));
 }
 
 void SetFixedRotation(World& world, BodyID id, bool value)
 {
-    world.SetFixedRotation(id, value);
+    auto body = GetBody(world, id);
+    if (IsFixedRotation(body) != value) {
+        SetFixedRotation(body, value);
+        world.SetBody(id, body);
+        ResetMassData(world, id);
+    }
 }
 
 Length2 GetWorldCenter(const World& world, BodyID id)
 {
-    return world.GetWorldCenter(id);
+    return GetWorldCenter(GetBody(world, id));
 }
 
 InvMass GetInvMass(const World& world, BodyID id)
 {
-    return world.GetInvMass(id);
+    return GetInvMass(GetBody(world, id));
 }
 
 InvRotInertia GetInvRotInertia(const World& world, BodyID id)
 {
-    return world.GetInvRotInertia(id);
+    return GetInvRotInertia(GetBody(world, id));
 }
 
 Length2 GetLocalCenter(const World& world, BodyID id)
 {
-    return world.GetLocalCenter(id);
+    return GetLocalCenter(GetBody(world, id));
 }
 
 MassData ComputeMassData(const World& world, BodyID id)
 {
-    return world.ComputeMassData(id);
+    auto mass = 0_kg;
+    auto I = RotInertia{0};
+    auto weightedCenter = Length2{};
+    for (const auto& f: world.GetFixtures(id)) {
+        const auto& fixture = world.GetFixture(f);
+        if (GetDensity(fixture) > 0_kgpm2) {
+            const auto massData = GetMassData(GetShape(fixture));
+            mass += Mass{massData.mass};
+            weightedCenter += Real{massData.mass / Kilogram} * massData.center;
+            I += RotInertia{massData.I};
+        }
+    }
+    const auto center = (mass > 0_kg)? (weightedCenter / (Real{mass/1_kg})): Length2{};
+    return MassData{center, mass, I};
 }
 
 void SetMassData(World& world, BodyID id, const MassData& massData)
 {
-    world.SetMassData(id, massData);
+    auto body = GetBody(world, id);
+
+    if (!body.IsAccelerable()) {
+        body.SetInvMass(InvMass{});
+        body.SetInvRotI(InvRotInertia{});
+        body.SetSweep(Sweep{Position{body.GetLocation(), body.GetAngle()}});
+        body.UnsetMassDataDirty();
+        world.SetBody(id, body);
+        return;
+    }
+
+    const auto mass = (massData.mass > 0_kg)? Mass{massData.mass}: 1_kg;
+    body.SetInvMass(Real{1} / mass);
+    if ((massData.I > RotInertia{0}) && (!body.IsFixedRotation())) {
+        const auto lengthSquared = GetMagnitudeSquared(massData.center);
+        // L^2 M QP^-2
+        const auto I = RotInertia{massData.I} - RotInertia{(mass * lengthSquared) / SquareRadian};
+        assert(I > RotInertia{0});
+        body.SetInvRotI(Real{1} / I);
+    }
+    else {
+        body.SetInvRotI(0);
+    }
+    // Move center of mass.
+    const auto oldCenter = body.GetWorldCenter();
+    body.SetSweep(Sweep{
+        Position{Transform(massData.center, GetTransformation(body)), body.GetAngle()},
+        massData.center
+    });
+    // Update center of mass velocity.
+    const auto newCenter = body.GetWorldCenter();
+    const auto deltaCenter = newCenter - oldCenter;
+    auto newVelocity = body.GetVelocity();
+    newVelocity.linear += GetRevPerpendicular(deltaCenter) * (newVelocity.angular / Radian);
+    body.JustSetVelocity(newVelocity);
+    body.UnsetMassDataDirty();
+    world.SetBody(id, body);
 }
 
 SizedRange<std::vector<std::pair<BodyID, JointID>>::const_iterator>
@@ -317,57 +413,67 @@ GetJoints(const World& world, BodyID id)
 
 bool IsSpeedable(const World& world, BodyID id)
 {
-    return world.IsSpeedable(id);
+    return IsSpeedable(GetBody(world, id));
 }
 
 bool IsAccelerable(const World& world, BodyID id)
 {
-    return world.IsAccelerable(id);
+    return IsAccelerable(GetBody(world, id));
 }
 
 bool IsImpenetrable(const World& world, BodyID id)
 {
-    return world.IsImpenetrable(id);
+    return IsImpenetrable(GetBody(world, id));
 }
 
 void SetImpenetrable(World& world, BodyID id)
 {
-    world.SetImpenetrable(id);
+    auto body = GetBody(world, id);
+    SetImpenetrable(body);
+    world.SetBody(id, body);
 }
 
 void UnsetImpenetrable(World& world, BodyID id)
 {
-    world.UnsetImpenetrable(id);
+    auto body = GetBody(world, id);
+    UnsetImpenetrable(body);
+    world.SetBody(id, body);
 }
 
 bool IsSleepingAllowed(const World& world, BodyID id)
 {
-    return world.IsSleepingAllowed(id);
+    return IsSleepingAllowed(GetBody(world, id));
 }
 
 void SetSleepingAllowed(World& world, BodyID id, bool value)
 {
-    world.SetSleepingAllowed(id, value);
+    auto body = GetBody(world, id);
+    SetSleepingAllowed(body, value);
+    world.SetBody(id, body);
 }
 
 Frequency GetLinearDamping(const World& world, BodyID id)
 {
-    return world.GetLinearDamping(id);
+    return GetLinearDamping(GetBody(world, id));
 }
 
 void SetLinearDamping(World& world, BodyID id, NonNegative<Frequency> value)
 {
-    world.SetLinearDamping(id, value);
+    auto body = GetBody(world, id);
+    SetLinearDamping(body, value);
+    world.SetBody(id, body);
 }
 
 Frequency GetAngularDamping(const World& world, BodyID id)
 {
-    return world.GetAngularDamping(id);
+    return GetAngularDamping(GetBody(world, id));
 }
 
 void SetAngularDamping(World& world, BodyID id, NonNegative<Frequency> value)
 {
-    world.SetAngularDamping(id, value);
+    auto body = GetBody(world, id);
+    SetAngularDamping(body, value);
+    world.SetBody(id, body);
 }
 
 SizedRange<std::vector<KeyedContactPtr>::const_iterator>
@@ -395,9 +501,10 @@ Force2 GetCentripetalForce(const World& world, BodyID id, Length2 axis)
 void ApplyForce(World& world, BodyID id, Force2 force, Length2 point)
 {
     // Torque is L^2 M T^-2 QP^-1.
-    const auto linAccel = LinearAcceleration2{force * world.GetInvMass(id)};
-    const auto invRotI = world.GetInvRotInertia(id); // L^-2 M^-1 QP^2
-    const auto dp = Length2{point - world.GetWorldCenter(id)}; // L
+    const auto& body = GetBody(world, id);
+    const auto linAccel = LinearAcceleration2{force * GetInvMass(body)};
+    const auto invRotI = GetInvRotInertia(body); // L^-2 M^-1 QP^2
+    const auto dp = Length2{point - GetWorldCenter(body)}; // L
     const auto cp = Torque{Cross(dp, force) / Radian}; // L * M L T^-2 is L^2 M T^-2
                                                        // L^2 M T^-2 QP^-1 * L^-2 M^-1 QP^2 = QP T^-2;
     const auto angAccel = AngularAcceleration{cp * invRotI};

@@ -37,8 +37,6 @@
 
 #include "PlayRho/Defines.hpp"
 
-#include "PlayRho/Common/OptionalValue.hpp"
-
 #include <algorithm>
 
 namespace playrho {

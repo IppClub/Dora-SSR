@@ -25,18 +25,28 @@
 #include "PlayRho/Common/Templates.hpp" // for GetInvalid, IsValid
 
 namespace playrho {
+namespace detail {
 
+/// @brief Gets a null-terminated byte string identifying this function.
+/// @note Intended for use by <code>TypeInfo</code> to set the value of its
+///    <code>name</code> variable to something dependent on the type and avoid issues
+///    like <code>TypeInfo::name</code> being a non-unique address like happens on MSVC
+///    when whole program is turned on. Such an issue is documented in Issue #370.
+/// @see https://github.com/louis-langholtz/PlayRho/issues/370
 template <typename T>
-constexpr const char* UnqiueName()
+static constexpr const char* GetNameForTypeInfo() noexcept
 {
-#ifdef __clang__
-    return __PRETTY_FUNCTION__;
-#elif defined(__GNUC__)
-    return __PRETTY_FUNCTION__;
-#elif defined(_MSC_VER)
+    // Ideally return string unique to the type T...
+#if defined(_WIN32)
     return __FUNCSIG__;
+#elif defined(__GNUC__) || defined(__clang__)
+    return __PRETTY_FUNCTION__;
+#else
+    return __func__; // not unique but maybe still helpful at avoiding compiler issues
 #endif
 }
+
+} // namespace detail
 
 /// @brief Type information.
 /// @note Users may specialize this for their own types.
@@ -46,7 +56,11 @@ struct TypeInfo
     /// @brief The name of the templated type.
     /// @note This is also a static member providing a unique ID, via its address, for
     ///   the type T without resorting to using C++ run-time type information (RTTI).
-    static constexpr const char* name = UnqiueName<T>();
+    /// @note Setting this to a null-terminated byte string that's unique to at least the
+    ///   template's type <code>T</code> prevents issue #370. Credit for this technique
+    ///   goes to Li Jin (github user pigpigyyy).
+    /// @see https://github.com/louis-langholtz/PlayRho/issues/370
+    static constexpr const char* name = detail::GetNameForTypeInfo<T>();
 };
 
 /// @brief Type info specialization for <code>float</code>.

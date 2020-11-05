@@ -102,15 +102,11 @@ Filter GetFilterData(const World& world, FixtureID id);
 /// @brief Sets the contact filtering data.
 /// @note This won't update contacts until the next time step when either parent body
 ///    is speedable and awake.
-/// @note This automatically calls <code>Refilter</code>.
+/// @note This automatically refilters contacts.
 /// @throws std::out_of_range If given an invalid fixture identifier.
 /// @see GetFilterData.
 /// @relatedalso World
 void SetFilterData(World& world, FixtureID id, const Filter& filter);
-
-/// @copydoc World::Refilter
-/// @relatedalso World
-void Refilter(World& world, FixtureID id);
 
 /// @brief Gets the identifier of the body associated with the identified fixture.
 /// @throws std::out_of_range If given an invalid fixture identifier.

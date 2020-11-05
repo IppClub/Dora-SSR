@@ -1,6 +1,7 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
  * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * TypeCast code derived from the LLVM Project https://llvm.org/LICENSE.txt
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -34,6 +35,12 @@
 #include <functional>
 #include <utility>
 #include <stdexcept>
+#include <type_traits> // for std::add_pointer_t, std::add_const_t
+
+// Set this to 1 to use std::unique_ptr instead of std::shared_ptr.
+// Note that using std::shared_ptr is nearly twice as fast as using std::unique_ptr
+// (at least in the World_Longer.TilesComesToRest unit test)!
+#define SHAPE_USES_UNIQUE_PTR 0
 
 namespace playrho {
 namespace d2 {
@@ -74,7 +81,6 @@ Real GetRestitution(const Shape& shape) noexcept;
 NonNegative<AreaDensity> GetDensity(const Shape& shape) noexcept;
 
 /// @brief Gets the vertex radius of the indexed child of the given shape.
-///
 /// @details This gets the radius from the vertex that the shape's "skin" should
 ///   extend outward by. While any edges - line segments between multiple vertices -
 ///   are straight, corners between them (the vertices) are rounded and treated
@@ -82,18 +88,12 @@ NonNegative<AreaDensity> GetDensity(const Shape& shape) noexcept;
 ///   therefore will be more prone to rolling or having other shapes more prone
 ///   to roll off of them. Here's an image of a shape configured via a
 ///   <code>PolygonShapeConf</code> with it's skin drawn:
-///
 /// @param shape Shape to get child's vertex radius for.
 /// @param idx Child index to get vertex radius for.
-///
 /// @image html SkinnedPolygon.png
-///
 /// @note This must be a non-negative value.
-///
 /// @see UseVertexRadius
-///
 /// @throws InvalidArgument if the child index is not less than the child count.
-///
 NonNegative<Length> GetVertexRadius(const Shape& shape, ChildCounter idx);
 
 /// @brief Transforms all of the given shape's vertices by the given transformation matrix.
@@ -112,6 +112,26 @@ const void* GetData(const Shape& shape) noexcept;
 /// @return Type info of the underlying value's type.
 TypeID GetType(const Shape& shape) noexcept;
 
+/// @brief Converts the given shape into its current configuration value.
+/// @note The design for this was based off the design of the C++17 <code>std::any</code>
+///   class and its associated <code>std::any_cast</code> function. The code for this is based
+///   off of the <code>std::any</code> code from the LLVM Project.
+/// @see https://llvm.org/
+/// @see GetType(const Shape&)
+template <typename T>
+std::add_pointer_t<std::add_const_t<T>> TypeCast(const Shape* value) noexcept;
+
+#if SHAPE_USES_UNIQUE_PTR
+/// @brief Converts the given shape into its current configuration value.
+/// @note The design for this was based off the design of the C++17 <code>std::any</code>
+///   class and its associated <code>std::any_cast</code> function. The code for this is based
+///   off of the <code>std::any</code> implementation from the LLVM Project.
+/// @see https://llvm.org/
+/// @see GetType(const Shape&)
+template <typename T>
+std::add_pointer_t<T> TypeCast(Shape* value) noexcept;
+#endif
+
 /// @brief Equality operator for shape to shape comparisons.
 bool operator== (const Shape& lhs, const Shape& rhs) noexcept;
 
@@ -128,26 +148,22 @@ bool operator!= (const Shape& lhs, const Shape& rhs) noexcept;
 ///   moved into them &mdash; maybe better thought of as "parts".
 
 /// @brief Shape.
-///
 /// @details A shape is used for collision detection. You can create a shape from any
 ///   supporting type. Shapes are conceptually made up of zero or more convex child shapes
 ///   where each child shape is made up of zero or more vertices and an associated radius
 ///   called its "vertex radius".
-///
-/// @note This class implements polymorphism without inheritance. This is based on a technique
-///   that's described by Sean Parent in his January 2017 Norwegian Developers Conference
-///   London talk "Better Code: Runtime Polymorphism". With this implementation, different
-///   shapes types can be had by constructing instances of this class with the different types
-///   that provide the required support. Different shapes of a given type meanwhile are had by
-///   providing different values for the type.
-///
+/// @note This class's design provides a "polymorphic value type" offering polymorphism
+///   without public inheritance. This is based on a technique that's described by Sean Parent
+///   in his January 2017 Norwegian Developers Conference London talk "Better Code: Runtime
+///   Polymorphism". With this implementation, different shapes types can be had by constructing
+///   instances of this class with the different types that provide the required support.
+///   Different shapes of a given type meanwhile are had by providing different values for the
+///   type.
 /// @note This data structure is 32-bytes large (on at least one 64-bit platform).
-///
 /// @ingroup PartsGroup
-///
-/// @see Fixture
+/// @see FixtureConf
 /// @see https://youtu.be/QGcVXgEVMJg
-///
+/// @see https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Polymorphic_Value_Types
 class Shape
 {
 public:
@@ -167,20 +183,43 @@ public:
     /// @see GetRestitution
     /// @throws std::bad_alloc if there's a failure allocating storage.
     template <typename T>
-    Shape(T arg): m_self{std::make_shared<Model<T>>(std::move(arg))}
+    Shape(T arg): m_self{
+#if SHAPE_USES_UNIQUE_PTR
+        std::make_unique<Model<T>>(std::move(arg))
+#else
+        std::make_shared<Model<T>>(std::move(arg))
+#endif
+    }
     {
         // Intentionally empty.
     }
 
+#if SHAPE_USES_UNIQUE_PTR
+    /// @brief Copy constructor.
+    Shape(const Shape& other): m_self{other.m_self? other.m_self->Clone_(): nullptr}
+    {
+        // Intentionally empty.
+    }
+#else
     /// @brief Copy constructor.
     Shape(const Shape& other) = default;
-    
+#endif
+
     /// @brief Move constructor.
     Shape(Shape&& other) = default;
-    
+
+#if SHAPE_USES_UNIQUE_PTR
+    /// @brief Copy assignment.
+    Shape& operator= (const Shape& other)
+    {
+        m_self = other.m_self? other.m_self->Clone_(): nullptr;
+        return *this;
+    }
+#else
     /// @brief Copy assignment operator.
     Shape& operator= (const Shape& other) = default;
-    
+#endif
+
     /// @brief Move assignment operator.
     Shape& operator= (Shape&& other) = default;
 
@@ -245,11 +284,17 @@ public:
 
     friend void Transform(Shape& shape, const Mat22& m)
     {
+#if SHAPE_USES_UNIQUE_PTR
         if (shape.m_self) {
-            auto copy = shape.m_self->Clone();
-            copy->Transform_(m);
-            shape.m_self = std::unique_ptr<const Shape::Concept>{std::move(copy)};
+            shape.m_self->Transform_(m);
         }
+#else
+        if (shape.m_self) {
+            auto copy = shape.m_self->Clone_();
+            copy->Transform_(m);
+            shape.m_self = std::unique_ptr<decltype(shape.m_self)::element_type>{std::move(copy)};
+        }
+#endif
     }
 
     friend const void* GetData(const Shape& shape) noexcept
@@ -263,13 +308,12 @@ public:
     }
 
     template <typename T>
-    friend auto TypeCast(const Shape* value) noexcept
-    {
-        if (!value || (GetType(*value) != GetTypeID<std::remove_pointer_t<T>>())) {
-            return static_cast<T>(nullptr);
-        }
-        return static_cast<T>(value->m_self->GetData_());
-    }
+    friend std::add_pointer_t<std::add_const_t<T>> TypeCast(const Shape* value) noexcept;
+
+#if SHAPE_USES_UNIQUE_PTR
+    template <typename T>
+    friend std::add_pointer_t<T> TypeCast(Shape* value) noexcept;
+#endif
 
     friend bool operator== (const Shape& lhs, const Shape& rhs) noexcept
     {
@@ -293,7 +337,7 @@ private:
         /// @note This may throw <code>std::bad_alloc</code> or any exception that's thrown
         ///   by the constructor for the model's underlying data type.
         /// @throws std::bad_alloc if there's a failure allocating storage.
-        virtual std::unique_ptr<Concept> Clone() const = 0;
+        virtual std::unique_ptr<Concept> Clone_() const = 0;
         
         /// @brief Gets the "child" count.
         virtual ChildCounter GetChildCount_() const noexcept = 0;
@@ -310,7 +354,7 @@ private:
 
         /// @brief Gets the density.
         virtual NonNegative<AreaDensity> GetDensity_() const noexcept = 0;
-        
+
         /// @brief Gets the friction.
         virtual Real GetFriction_() const noexcept = 0;
         
@@ -330,7 +374,12 @@ private:
         
         /// @brief Gets the data for the underlying configuration.
         virtual const void* GetData_() const noexcept = 0;
-        
+
+#if SHAPE_USES_UNIQUE_PTR
+        /// @brief Gets the data for the underlying configuration.
+        virtual void* GetData_() noexcept = 0;
+#endif
+
         /// @brief Equality operator.
         friend bool operator== (const Concept& lhs, const Concept &rhs) noexcept
         {
@@ -355,7 +404,7 @@ private:
         /// @brief Initializing constructor.
         Model(T arg): data{std::move(arg)} {}
         
-        std::unique_ptr<Concept> Clone() const override
+        std::unique_ptr<Concept> Clone_() const override
         {
             return std::make_unique<Model>(data);
         }
@@ -420,10 +469,23 @@ private:
             return &data;
         }
 
+#if SHAPE_USES_UNIQUE_PTR
+        void* GetData_() noexcept override
+        {
+            // Note address of "data" not necessarily same as address of "this" since
+            // base class is virtual.
+            return &data;
+        }
+#endif
+
         data_type data; ///< Data.
     };
 
+#if SHAPE_USES_UNIQUE_PTR
+    std::unique_ptr<Concept> m_self; ///< Self shared pointer.
+#else
     std::shared_ptr<const Concept> m_self; ///< Self shared pointer.
+#endif
 };
 
 // Related free functions...
@@ -440,14 +502,90 @@ bool TestPoint(const Shape& shape, Length2 point) noexcept;
 /// @brief Casts the specified instance into the template specified type.
 /// @throws std::bad_cast If the template specified type is not the type of data underlying
 ///   the given instance.
+/// @see GetType(const Shape&)
+/// @relatedalso Shape
 template <typename T>
-inline auto TypeCast(const Shape& shape)
+inline T TypeCast(const Shape& value)
 {
-    auto tmp = TypeCast<std::add_pointer_t<std::add_const_t<T>>>(&shape);
+    using RawType = std::remove_cv_t<std::remove_reference_t<T>>;
+    static_assert(std::is_constructible<T, RawType const &>::value,
+                  "T is required to be a const lvalue reference "
+                  "or a CopyConstructible type");
+    auto tmp = ::playrho::d2::TypeCast<std::add_const_t<RawType>>(&value);
     if (tmp == nullptr)
         throw std::bad_cast();
-    return *tmp;
+    return static_cast<T>(*tmp);
 }
+
+#if SHAPE_USES_UNIQUE_PTR
+/// @brief Converts the given shape into its current configuration value.
+/// @note The design for this was based off the design of the C++17 <code>std::any</code>
+///   class and its associated <code>std::any_cast</code> function. The code for this is based
+///   off of the <code>std::any</code> implementation from the LLVM Project.
+/// @see https://llvm.org/
+/// @see GetType(const Shape&)
+/// @relatedalso Shape
+template <typename T>
+inline T TypeCast(Shape& value)
+{
+    using RawType = std::remove_cv_t<std::remove_reference_t<T>>;
+    static_assert(std::is_constructible<T, RawType &>::value,
+                  "T is required to be a const lvalue reference "
+                  "or a CopyConstructible type");
+    auto tmp = ::playrho::d2::TypeCast<RawType>(&value);
+    if (tmp == nullptr)
+        throw std::bad_cast();
+    return static_cast<T>(*tmp);
+}
+
+/// @brief Converts the given shape into its current configuration value.
+/// @note The design for this was based off the design of the C++17 <code>std::any</code>
+///   class and its associated <code>std::any_cast</code> function. The code for this is based
+///   off of the <code>std::any</code> implementation from the LLVM Project.
+/// @see https://llvm.org/
+/// @see GetType(const Shape&)
+/// @relatedalso Shape
+template <typename T>
+inline T TypeCast(Shape&& value)
+{
+    using RawType = std::remove_cv_t<std::remove_reference_t<T>>;
+    static_assert(std::is_constructible<T, RawType>::value,
+                  "T is required to be a const lvalue reference "
+                  "or a CopyConstructible type");
+    auto tmp = ::playrho::d2::TypeCast<RawType>(&value);
+    if (tmp == nullptr)
+        throw std::bad_cast();
+    return static_cast<T>(std::move(*tmp));
+}
+#endif
+
+template <typename T>
+inline std::add_pointer_t<std::add_const_t<T>> TypeCast(const Shape* value) noexcept
+{
+    static_assert(!std::is_reference<T>::value, "T may not be a reference.");
+#if SHAPE_USES_UNIQUE_PTR
+    return ::playrho::d2::TypeCast<T>(const_cast<Shape*>(value));
+#else
+    using ReturnType = std::add_pointer_t<std::add_const_t<T>>;
+    if (value && value->m_self && (GetType(*value) == GetTypeID<T>())) {
+        return static_cast<ReturnType>(value->m_self->GetData_());
+    }
+    return nullptr;
+#endif
+}
+
+#if SHAPE_USES_UNIQUE_PTR
+template <typename T>
+inline std::add_pointer_t<T> TypeCast(Shape* value) noexcept
+{
+    static_assert(!std::is_reference<T>::value, "T may not be a reference.");
+    using ReturnType = std::add_pointer_t<T>;
+    if (value && value->m_self && (GetType(*value) == GetTypeID<T>())) {
+        return static_cast<ReturnType>(value->m_self->GetData_());
+    }
+    return nullptr;
+}
+#endif
 
 } // namespace d2
 } // namespace playrho

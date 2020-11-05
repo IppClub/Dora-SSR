@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Body.h"
 #include "Physics/PhysicsWorld.h"
 #include "Physics/Sensor.h"
+#include "PlayRho/Dynamics/Joints/Joint.hpp"
 
 NS_DOROTHY_BEGIN
 
@@ -64,7 +65,7 @@ Joint* Joint::distance(
 	auto& prWorld = world->getPrWorld();
 	Joint* joint = Joint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::DistanceJointConf{
 			bA, bB,
 			pd::GetWorldPoint(world->getPrWorld(), bA, aA),
@@ -97,7 +98,7 @@ Joint* Joint::friction(
 	auto& prWorld = world->getPrWorld();
 	Joint* joint = Joint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::FrictionJointConf{bA, bB, a}
 			.UseMaxForce(maxForce)
 			.UseMaxTorque(maxTorque)
@@ -123,7 +124,7 @@ Joint* Joint::gear(
 	auto& prWorld = world->getPrWorld();
 	Joint* joint = Joint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::GetGearJointConf(prWorld, jA, jB, ratio)
 			.UseCollideConnected(collideConnected)
 	);
@@ -151,7 +152,7 @@ Joint* Joint::spring(
 	auto& prWorld = world->getPrWorld();
 	Joint* joint = Joint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::MotorJointConf{bA, bB}
 			.UseLinearOffset(PhysicsWorld::b2Val(linearOffset))
 			.UseAngularOffset(-bx::toRad(angularOffset))
@@ -177,7 +178,7 @@ MoveJoint* Joint::move(
 	auto world = body->getPhysicsWorld();
 	auto& prWorld = world->getPrWorld();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::TargetJointConf{b}
 			.UseTarget(PhysicsWorld::b2Val(target))
 			.UseFrequency(frequency)
@@ -219,7 +220,7 @@ MotorJoint* Joint::prismatic(
 	conf.motorSpeed = motorSpeed;
 	MotorJoint* joint = MotorJoint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(conf);
+	joint->_joint = pd::CreateJoint(prWorld, conf);
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -248,7 +249,7 @@ Joint* Joint::pulley(
 	pr::Vec2 gB = PhysicsWorld::b2Val(groundAnchorB);
 	Joint* joint = Joint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::PulleyJointConf{bA, bB, gA, gB, aA, aB}
 			.UseRatio(ratio)
 			.UseCollideConnected(collideConnected)
@@ -288,7 +289,7 @@ MotorJoint* Joint::revolute(
 	conf.motorSpeed = motorSpeed;
 	MotorJoint* joint = MotorJoint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(conf);
+	joint->_joint = pd::CreateJoint(prWorld, conf);
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -318,7 +319,7 @@ Joint* Joint::rope(
 	conf.UseCollideConnected(collideConnected);
 	Joint* joint = Joint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(conf);
+	joint->_joint = pd::CreateJoint(prWorld, conf);
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -342,7 +343,7 @@ Joint* Joint::weld(
 	auto& prWorld = world->getPrWorld();
 	Joint* joint = Joint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::WeldJointConf{bA, bB, a}
 			.UseFrequency(frequency)
 			.UseDampingRatio(damping)
@@ -374,7 +375,7 @@ MotorJoint* Joint::wheel(
 	auto& prWorld = world->getPrWorld();
 	MotorJoint* joint = MotorJoint::create();
 	joint->_world = world;
-	joint->_joint = prWorld.CreateJoint(
+	joint->_joint = pd::CreateJoint(prWorld,
 		pd::GetWheelJointConf(prWorld, bA, bB, a, pd::UnitVec::Get(-bx::toRad(axisAngle)))
 			.UseDampingRatio(damping)
 			.UseFrequency(frequency)

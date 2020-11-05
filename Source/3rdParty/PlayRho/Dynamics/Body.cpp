@@ -48,9 +48,15 @@ Body::FlagsType Body::GetFlags(BodyType type) noexcept
 {
     auto flags = FlagsType{0};
     switch (type) {
-        case BodyType::Dynamic:   flags |= (e_velocityFlag|e_accelerationFlag); break;
-        case BodyType::Kinematic: flags |= (e_impenetrableFlag|e_velocityFlag); break;
-        case BodyType::Static:    flags |= (e_impenetrableFlag); break;
+        case BodyType::Dynamic:
+            flags |= (e_velocityFlag|e_accelerationFlag);
+            break;
+        case BodyType::Kinematic:
+            flags |= (e_impenetrableFlag|e_velocityFlag);
+            break;
+        case BodyType::Static:
+            flags |= (e_impenetrableFlag);
+            break;
     }
     return flags;
 }
@@ -114,6 +120,61 @@ Body::Body(const BodyConf& bd) noexcept:
     SetVelocity(Velocity{bd.linearVelocity, bd.angularVelocity});
     SetAcceleration(bd.linearAcceleration, bd.angularAcceleration);
     SetUnderActiveTime(bd.underActiveTime);
+}
+
+BodyType Body::GetType() const noexcept
+{
+    switch (m_flags & (e_accelerationFlag|e_velocityFlag))
+    {
+        case e_velocityFlag|e_accelerationFlag: return BodyType::Dynamic;
+        case e_velocityFlag: return BodyType::Kinematic;
+        default: break; // handle case 0 this way so compiler doesn't warn of no default handling.
+    }
+    return BodyType::Static;
+}
+
+void Body::SetType(BodyType value) noexcept
+{
+    m_flags &= ~(e_impenetrableFlag|e_velocityFlag|e_accelerationFlag);
+    m_flags |= GetFlags(value);
+    switch (value)
+    {
+        case BodyType::Dynamic:
+            SetAwakeFlag();
+            break;
+        case BodyType::Kinematic:
+            SetAwakeFlag();
+            break;
+        case BodyType::Static:
+            UnsetAwakeFlag();
+            m_linearVelocity = LinearVelocity2{};
+            m_angularVelocity = 0_rpm;
+            m_sweep.pos0 = m_sweep.pos1;
+            break;
+    }
+    m_underActiveTime = 0;
+}
+
+void Body::SetAwake() noexcept
+{
+    // Ignore this request unless this body is speedable so as to maintain the body's invariant
+    // that only "speedable" bodies can be awake.
+    if (IsSpeedable())
+    {
+        SetAwakeFlag();
+        ResetUnderActiveTime();
+    }
+}
+
+void Body::UnsetAwake() noexcept
+{
+    if (!IsSpeedable() || IsSleepingAllowed())
+    {
+        UnsetAwakeFlag();
+        m_underActiveTime = 0;
+        m_linearVelocity = LinearVelocity2{};
+        m_angularVelocity = 0_rpm;
+    }
 }
 
 void Body::SetVelocity(const Velocity& velocity) noexcept

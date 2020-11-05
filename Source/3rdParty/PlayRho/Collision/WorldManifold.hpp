@@ -192,7 +192,9 @@ WorldManifold GetWorldManifold(const Manifold& manifold,
 ///                           const Transformation& xfB, const Real)</code>
 ///    function.
 ///
+/// @param world World that the result is to be relative to.
 /// @param contact Contact to return a world manifold for.
+/// @param manifold The manifold to covert to a world manifold.
 ///
 /// @return World manifold value for the given inputs which will have the same number of points as
 ///   the given manifold has. The returned world manifold points will be the mid-points of the

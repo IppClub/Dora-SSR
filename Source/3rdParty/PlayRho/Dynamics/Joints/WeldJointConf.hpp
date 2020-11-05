@@ -59,6 +59,7 @@ struct WeldJointConf : public JointBuilder<WeldJointConf>
     /// @param laA Local anchor A location in world coordinates.
     /// @param bodyB Body B.
     /// @param laB Local anchor B location in world coordinates.
+    /// @param ra Reference angle.
     WeldJointConf(BodyID bodyA, BodyID bodyB,
                   Length2 laA = Length2{}, Length2 laB = Length2{}, Angle ra = 0_deg) noexcept;
 
@@ -165,6 +166,7 @@ constexpr void SetFrequency(WeldJointConf& object, NonNegative<Frequency> value)
     object.UseFrequency(value);
 }
 
+/// @brief Free function for setting the damping ratio of the given configuration.
 /// @relatedalso WeldJointConf
 constexpr void SetDampingRatio(WeldJointConf& object, Real value) noexcept
 {

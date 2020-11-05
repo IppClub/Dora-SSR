@@ -219,7 +219,9 @@ bool SolvePosition(const PulleyJointConf& object,
     const auto totalInvMass = totalInvMassA + object.ratio * object.ratio * totalInvMassB;
     const auto mass = (totalInvMass > InvMass{0})? Real{1} / totalInvMass: 0_kg;
 
-    const auto C = Length{object.constant - lengthA - (object.ratio * lengthB)};
+    const auto srcLengthRatio = object.lengthA + object.ratio * object.lengthB; // constant C0
+    const auto dstLengthRatio = lengthA + object.ratio * lengthB;
+    const auto C = srcLengthRatio - dstLengthRatio;
     const auto linearError = abs(C);
 
     const auto impulse = -mass * C;

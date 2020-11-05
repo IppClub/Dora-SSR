@@ -28,9 +28,9 @@
 namespace playrho {
 namespace d2 {
 
-FixtureID CreateFixture(WorldImpl& world, const FixtureConf& def, bool resetMassData)
+FixtureID CreateFixture(WorldImpl& world, const FixtureConf& def)
 {
-    return world.CreateFixture(def, resetMassData);
+    return world.CreateFixture(def);
 }
 
 const FixtureConf& GetFixture(const WorldImpl& world, FixtureID id)
@@ -43,26 +43,9 @@ void SetFixture(WorldImpl& world, FixtureID id, const FixtureConf& value)
     world.SetFixture(id, value);
 }
 
-bool Destroy(WorldImpl& world, FixtureID id, bool resetMassData)
+bool Destroy(WorldImpl& world, FixtureID id)
 {
-    return world.Destroy(id, resetMassData);
-}
-
-void FlagContactsForFiltering(WorldImpl& world, FixtureID id)
-{
-    const auto& contacts = world.GetContacts(GetBody(world.GetFixture(id)));
-    std::for_each(cbegin(contacts), cend(contacts), [&world, id](const auto& ci) {
-        auto& contact = world.GetContact(std::get<ContactID>(ci));
-        if ((contact.GetFixtureA() == id) || (contact.GetFixtureB() == id)) {
-            contact.FlagForFiltering();
-        }
-    });
-}
-
-void Refilter(WorldImpl& world, FixtureID id)
-{
-    FlagContactsForFiltering(world, id);
-    world.AddProxies(world.GetProxies(id));
+    return world.Destroy(id);
 }
 
 const std::vector<ContactCounter>& GetProxies(const WorldImpl& world, FixtureID id)

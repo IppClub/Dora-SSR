@@ -707,6 +707,12 @@ inline Angle GetAngle(const UnitVec value)
     return Atan2(GetY(value), GetX(value));
 }
 
+/// @brief Gets the angle of the given transformation.
+inline Angle GetAngle(const Transformation& value)
+{
+    return GetAngle(value.q);
+}
+
 /// @brief Multiplication operator.
 template <class T, typename U>
 constexpr Vector2<T> operator* (CheckedValue<T, U> s, UnitVec u) noexcept

@@ -47,7 +47,7 @@ BodyConf GetBodyConf(const Body& body) noexcept
     return def;
 }
 
-Transformation GetTransformation(const BodyConf& conf)
+Transformation GetTransformation(const BodyConf& conf) noexcept
 {
     return {conf.location, UnitVec::Get(conf.angle)};
 }

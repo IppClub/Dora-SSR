@@ -202,6 +202,7 @@ constexpr auto DefaultToiMinMomentum = Momentum{0_Ns / 100};
 /// @note This is 65534 based off <code>std::uint16_t</code> and eliminating one value for invalid.
 constexpr auto MaxFixtures = static_cast<std::uint16_t>(std::numeric_limits<std::uint16_t>::max() -
                                                         std::uint16_t{1u});
+
 /// @brief Fixture count type.
 /// @note This type must always be able to contain the <code>MaxFixtures</code> value.
 using FixtureCounter = std::remove_const<decltype(MaxFixtures)>::type;

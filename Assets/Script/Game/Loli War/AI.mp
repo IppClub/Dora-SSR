@@ -9,222 +9,6 @@ store:Store = Data
 
 heroes = Group {"hero"}
 
-lastAction = "idle"
-lastActionFrame = App.frame
-data = {}
-row = nil
-Do = (name)-> Seq {
-	Con "Collect data", =>
-		if @isDoing name
-			row = nil
-			return true
-
-		unless AI\getNearestUnit(Relation.Enemy)?
-			row = nil
-			return true
-
-		attack_ready = do
-			attackUnits = AI\getUnitsInAttackRange!
-			ready = false
-			for unit in *attackUnits
-				if Relation.Enemy == Data\getRelation(@,unit) and
-					(@x < unit.x) == @faceRight
-					ready = true
-					break
-			ready
-
-		not_facing_enemy = heroes\each (hero)->
-			{:unit} = hero
-			if Relation.Enemy == Data\getRelation unit,@
-				if (@x > unit.x) == @faceRight
-					return true
-
-		enemy_in_attack_range = do
-			enemy = AI\getNearestUnit Relation.Enemy
-			attackUnits = AI\getUnitsInAttackRange!
-			attackUnits and attackUnits\contains(enemy) or false
-
-		nearest_enemy_distance = do
-			enemy = AI\getNearestUnit Relation.Enemy
-			if enemy?
-				math.abs enemy.x - @x
-			else
-				999999
-
-		enemy_hero_action = do
-			enemies = AI\getUnitsByRelation Relation.Enemy
-			actionName = "unknown"
-			for enemy in *enemies
-				if enemy.entity.hero
-					actionName = enemy.currentAction?.name or "unknown"
-					break
-			actionName
-
-		hero_hp = @entity.hp
-
-		last_action = lastAction
-
-		last_action_interval = (App.frame - lastActionFrame) / 60
-
-		see_enemy = AI\getNearestUnit(Relation.Enemy)?
-
-		reach_map_limit = (@x < 100 and not @faceRight) or (@x > 3990 and @faceRight)
-
-		hero_ep = @entity.ep
-
-		switch_available = heroes\each (hero)->
-			return false if @group ~= hero.group
-			needEP,available = switch @entity.targetSwitch
-				when "Switch"
-					bunnyCount = 0
-					Group({"bunny"})\each (bunny)->
-						bunnyCount += 1 if bunny.group == @group
-					1,bunnyCount < MaxBunnies
-				when "SwitchG"
-					2,hero.defending
-				else
-					0,false
-			if hero.ep >= needEP and available
-				if not @entity.atSwitch\isDoing "pushed"
-					hero.defending = false if @entity.targetSwitch == "SwitchG"
-					return true
-
-		is_at_switch = do
-			theSwitch = @entity.atSwitch
-			theSwitch? and not theSwitch.entity.pushed and
-			(@x < theSwitch.x == @faceRight)
-
-		facing_enemy_base = @faceRight
-
-		enemy_base_distance = math.abs 3990 - @x
-
-		poke_is_around, nearest_poke_distance, poke_coming_at_face = do
-			is_around = false
-			distance = 999999
-			coming_at_face = false
-			for body in *AI\getDetectedBodies!
-				if body.group == GroupEnemyPoke
-					is_around = true
-					distance = math.min(math.abs body.x - @x, distance)
-					coming_at_face or= (@faceRight == (body.velocityX < 0))
-			is_around, distance, coming_at_face
-
-		row = {
-			--:is_at_switch
-			--:switch_available
-			--:see_enemy
-			:not_facing_enemy
-			:enemy_in_attack_range
-			:attack_ready
-			:enemy_hero_action
-			:nearest_enemy_distance
-			:hero_hp
-			--:hero_ep
-			:last_action
-			:last_action_interval
-			--:reach_map_limit
-			--:facing_enemy_base
-			--:enemy_base_distance
-			:poke_is_around
-			:nearest_poke_distance
-			:poke_coming_at_face
-			action:name
-		}
-		true
-	Sel {
-		Con "is doing",=> @isDoing name
-		Seq {
-			Act name
-			Con "action succeeded",=>
-				lastAction = name
-				lastActionFrame = App.frame
-				true
-		}
-	}
-	Con "Save data",=>
-		return true if row == nil
-		table.insert data,row
-		emit "CollectedData",#data
-		true
-}
-
-rowNames = {
-	--"is_at_switch"
-	--"switch_available"
-	--"see_enemy"
-	"not_facing_enemy"
-	"enemy_in_attack_range"
-
-	"attack_ready"
-	"enemy_hero_action"
-	"nearest_enemy_distance"
-	"hero_hp"
-	--"hero_ep"
-
-	"last_action"
-	"last_action_interval"
-	--"reach_map_limit"
-	--"facing_enemy_base"
-	--"enemy_base_distance"
-
-	"poke_is_around"
-	"nearest_poke_distance"
-	"poke_coming_at_face"
-
-	"action"
-}
-
-rowTypes = {
-	--'C','C',
-	--'C'
-	'C','C'
-	'C','C','N','N'
-	--'N'
-	'C','N'
-	--'C','C','N'
-	'C','N','C'
-	'C'
-}
-
-learnedAI = -> "unknown"
-
-Director.entry\addChild with Node!
-	\gslot "TrainAI",->
-		csvData = for row in *data
-			rd = for name in *rowNames
-				val = if row[name]? then row[name] else "N"
-				if "boolean" == type val
-					val = if val then "T" else "F"
-				tostring val
-			table.concat rd,","
-		names = "#{table.concat rowNames,','}\n"
-		dataStr = "#{names}#{table.concat rowTypes,','}\n#{table.concat csvData,'\n'}"
-		data = {}
-		Content\save Path(Content.writablePath,"loliwar.csv"),dataStr
-		print "#{#csvData} records saved!"
-		thread ->
-			lines = {"(_ENV)->"}
-			accuracy = ML\buildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
-				line = string.rep("\t",depth+1) .. if name ~= "" then
-					"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
-				else
-					"#{op} \"#{value}\""
-				lines[#lines+1] = line
-			lines[#lines+1] = "\treturn \"unknown\""
-			codes = table.concat lines,"\n"
-			print "accuracy: #{accuracy}"
-			import "moonp"
-			luaCodes = moonp.to_lua codes,{reserve_line_number:false}
-			learnedAI = load(luaCodes)!
-			print codes
-			wait -> heroes\each (hero)->
-				:unit = hero
-				if unit.group == GroupPlayer
-					unit.decisionTree = "HeroLearnedAI"
-					return true
-				false
-			print "Done!"
-
 gameEndWait = Seq {
 	Con "game end",=> Store.winner?
 	Sel {
@@ -268,9 +52,9 @@ Store["PlayerControlAI"] = Sel {
 					(@x < theSwitch.x == @faceRight)
 				Act "pushSwitch"
 			}
-			Do "villyAttack"
-			Do "meleeAttack"
-			Do "rangeAttack"
+			Act "villyAttack"
+			Act "meleeAttack"
+			Act "rangeAttack"
 		}
 	}
 	Sel {
@@ -280,7 +64,7 @@ Store["PlayerControlAI"] = Sel {
 		}
 		Seq {
 			Con "jump key down",=> @entity.keyUp
-			Do "jump"
+			Act "jump"
 		}
 	}
 	Seq {

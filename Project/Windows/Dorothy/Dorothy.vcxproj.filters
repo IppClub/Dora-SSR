@@ -1686,9 +1686,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonZero.hpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\OptionalValue.hpp">
-      <Filter>3rdParty\PlayRho\Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Position.hpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>

@@ -82,11 +82,6 @@ void SetPostSolveContactListener(WorldImpl& world,
     world.SetPostSolveContactListener(listener);
 }
 
-BodyID CreateBody(WorldImpl& world, const BodyConf& def)
-{
-    return world.CreateBody(def);
-}
-
 StepStats Step(WorldImpl& world, const StepConf& conf)
 {
     return world.Step(conf);
@@ -157,11 +152,6 @@ Frequency GetInvDeltaTime(const WorldImpl& world) noexcept
 const DynamicTree& GetTree(const WorldImpl& world) noexcept
 {
     return world.GetTree();
-}
-
-FixtureCounter GetShapeCount(const WorldImpl& world) noexcept
-{
-    return world.GetShapeCount();
 }
 
 SizedRange<std::vector<FixtureID>::const_iterator>

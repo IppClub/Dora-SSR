@@ -28,55 +28,54 @@
 #include <string>
 
 namespace playrho {
-    
-    /// @brief Version numbering scheme.
-    /// @details Version class for numbering the PlayRho library releases. Follows
-    ///   Semantic Versioning 2.0.0.
-    /// @see https://en.wikipedia.org/wiki/Software_versioning
-    /// @see https://semver.org
-    struct Version
-    {
-        /// @brief Revision number type.
-        using Revnum = std::int32_t;
-        
-        /// @brief Major version number.
-        /// @details Changed to represent significant changes. Specifically this field
-        ///   is incremented when backwards incompatible changes are introduced to the
-        ///   public API. The minor and revision fields are reset to 0 when this field
-        ///   is incremented.
-        /// @note Started at 0.
-        Revnum major;
-        
-        /// @brief Minor version number.
-        /// @details Changed to represent incremental changes. Specifically this field
-        ///   is incremented when new, backwards compatible functionality is introduced
-        ///   to the public API, or when any public API functionality is marked as
-        ///   deprecated.
-        Revnum minor;
-        
-        /// @brief Revision version number.
-        /// @details Changed to represent bug fixes.
-        /// @note Also known as the patch version.
-        Revnum revision;
-    };
-    
-    /// @brief Equality operator.
-    constexpr bool operator== (Version lhs, Version rhs)
-    {
-        return lhs.major == rhs.major && lhs.minor == rhs.minor && lhs.revision == rhs.revision;
-    }
-    
-    /// @brief Inequality operator.
-    constexpr bool operator!= (Version lhs, Version rhs)
-    {
-        return !(lhs == rhs);
-    }
-    
-    /// @brief Gets the version information of the library.
-    Version GetVersion() noexcept;
-    
-    /// @brief Gets the build details of the library.
-    std::string GetBuildDetails() noexcept;
+
+/// @brief Version numbering scheme.
+/// @details Version class for numbering the PlayRho library releases. Follows
+///   Semantic Versioning 2.0.0.
+/// @see https://en.wikipedia.org/wiki/Software_versioning
+/// @see https://semver.org
+struct Version {
+    /// @brief Revision number type.
+    using Revnum = std::int32_t;
+
+    /// @brief Major version number.
+    /// @details Changed to represent significant changes. Specifically this field
+    ///   is incremented when backwards incompatible changes are introduced to the
+    ///   public API. The minor and revision fields are reset to 0 when this field
+    ///   is incremented.
+    /// @note Started at 0.
+    Revnum major;
+
+    /// @brief Minor version number.
+    /// @details Changed to represent incremental changes. Specifically this field
+    ///   is incremented when new, backwards compatible functionality is introduced
+    ///   to the public API, or when any public API functionality is marked as
+    ///   deprecated.
+    Revnum minor;
+
+    /// @brief Revision version number.
+    /// @details Changed to represent bug fixes.
+    /// @note Also known as the patch version.
+    Revnum revision;
+};
+
+/// @brief Equality operator.
+constexpr bool operator==(Version lhs, Version rhs)
+{
+    return lhs.major == rhs.major && lhs.minor == rhs.minor && lhs.revision == rhs.revision;
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(Version lhs, Version rhs)
+{
+    return !(lhs == rhs);
+}
+
+/// @brief Gets the version information of the library.
+Version GetVersion() noexcept;
+
+/// @brief Gets the build details of the library.
+std::string GetBuildDetails() noexcept;
 
 } // namespace playrho
 
