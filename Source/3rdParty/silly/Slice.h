@@ -98,10 +98,10 @@ class Slice {
   Slice &trimSpace() {
     assert(len_ > 0);
     size_t start = 0, end = len_ - 1;
-    while (start < end && isspace(str_[start])) {
+    while (start < end && std::isspace(static_cast<unsigned char>(str_[start]))) {
       start++;
     }
-    while (start < end && isspace(str_[end])) {
+    while (start < end && std::isspace(static_cast<unsigned char>(str_[end]))) {
       end--;
     }
     str_ += start;

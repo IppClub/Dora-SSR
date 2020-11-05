@@ -27,7 +27,7 @@ UnitAction\add "fallOff",
 
 pushSwitchEnd = (name,playable)->
 	switch name
-		when "switch","attack"
+		when "attack"
 			playable.parent\stop!
 
 UnitAction\add "pushSwitch",
@@ -39,7 +39,7 @@ UnitAction\add "pushSwitch",
 		with @playable
 			.speed = 1.5
 			.look = "noweapon"
-			\play "switch"
+			\play "attack"
 			if not .playing
 				\play "attack"
 			\slot "AnimationEnd",pushSwitchEnd

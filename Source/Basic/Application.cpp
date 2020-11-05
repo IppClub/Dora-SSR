@@ -57,7 +57,7 @@ BGFXDora::~BGFXDora()
 
 Application::Application():
 _seed(0),
-_fpsLimited(false),
+_fpsLimited(BX_PLATFORM_WINDOWS != 0),
 _renderRunning(true),
 _logicRunning(true),
 _frame(0),
