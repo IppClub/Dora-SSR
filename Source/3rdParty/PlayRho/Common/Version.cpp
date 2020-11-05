@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,23 +29,23 @@
 #include <sstream>
 
 namespace playrho {
-    
-    Version GetVersion() noexcept
-    {
-        return Version{0, 10, 0};
-    }
-    
-    std::string GetBuildDetails() noexcept
-    {
-        std::stringstream stream;
-        stream << "asserts=";
+
+Version GetVersion() noexcept
+{
+    return Version{0, 12, 0};
+}
+
+std::string GetBuildDetails() noexcept
+{
+    std::stringstream stream;
+    stream << "asserts=";
 #ifdef NDEBUG
-        stream << "off";
+    stream << "off";
 #else
-        stream << "on";
+    stream << "on";
 #endif
-        stream << ", Real='" << GetTypeName<Real>() << "'";
-        return stream.str();
-    }
-        
+    stream << ", Real='" << GetTypeName<Real>() << "'";
+    return stream.str();
+}
+
 } // namespace playrho

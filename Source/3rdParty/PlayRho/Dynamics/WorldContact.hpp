@@ -70,13 +70,30 @@ class Manifold;
 SizedRange<std::vector<KeyedContactPtr>::const_iterator>
 GetContacts(const World& world) noexcept;
 
-/// @copydoc World::IsTouching
+/// @brief Gets the identified contact.
+/// @throws std::out_of_range If given an invalid contact identifier.
+/// @relatedalso World
+const Contact& GetContact(const World& world, ContactID id);
+
+/// @brief Sets the identified contact's state.
+/// @throws std::out_of_range If given an invalid contact identifier.
+/// @relatedalso World
+void SetContact(World& world, ContactID id, const Contact& value);
+
+/// @brief Is this contact touching?
+/// @details
+/// Touching is defined as either:
+///   1. This contact's manifold has more than 0 contact points, or
+///   2. This contact has sensors and the two shapes of this contact are found to be
+///      overlapping.
+/// @return true if this contact is said to be touching, false otherwise.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 bool IsTouching(const World& world, ContactID id);
 
 /// @brief Gets the awake status of the specified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
+/// @see SetAwake.
 /// @relatedalso World
 bool IsAwake(const World& world, ContactID id);
 
@@ -122,36 +139,46 @@ ChildCounter GetChildIndexB(const World& world, ContactID id);
 /// @relatedalso World
 TimestepIters GetToiCount(const World& world, ContactID id);
 
-/// @copydoc World::NeedsFiltering
+/// @brief Whether or not the contact needs filtering.
+/// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 bool NeedsFiltering(const World& world, ContactID id);
 
-/// @copydoc World::NeedsUpdating
+/// @brief Whether or not the contact needs updating.
+/// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 bool NeedsUpdating(const World& world, ContactID id);
 
-/// @copydoc World::HasValidToi
+/// @brief Whether or not the contact has a valid TOI.
+/// @throws std::out_of_range If given an invalid contact identifier.
+/// @see GetToi.
 /// @relatedalso World
 bool HasValidToi(const World& world, ContactID id);
 
-/// @brief Gets the time of impact associated with the identified contact.
+/// @brief Gets the time of impact (TOI) as a fraction.
+/// @note This is only valid if a TOI has been set.
+/// @return Time of impact fraction in the range of 0 to 1 if set (where 1
+///   means no actual impact in current time slot), otherwise undefined.
 /// @throws std::out_of_range If given an invalid contact identifier.
+/// @see HasValidToi.
 /// @relatedalso World
 Real GetToi(const World& world, ContactID id);
 
 /// @brief Gets the default friction amount for the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
+/// @see SetFriction.
 /// @relatedalso World
 Real GetDefaultFriction(const World& world, ContactID id);
 
 /// @brief Gets the default restitution amount for the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
+/// @see SetRestitution.
 /// @relatedalso World
 Real GetDefaultRestitution(const World& world, ContactID id);
 
 /// @brief Gets the friction used with the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
-/// @see SetFriction(World& world, ContactID id, Real friction)
+/// @see SetFriction.
 /// @relatedalso World
 Real GetFriction(const World& world, ContactID id);
 
@@ -206,11 +233,13 @@ inline void ResetRestitution(World& world, ContactID id)
     SetRestitution(world, id, GetDefaultRestitution(world, id));
 }
 
-/// @copydoc World::GetTangentSpeed
+/// @brief Gets the tangent speed of the identified contact.
+/// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 LinearVelocity GetTangentSpeed(const World& world, ContactID id);
 
-/// @copydoc World::SetTangentSpeed
+/// @brief Sets the desired tangent speed for a conveyor belt behavior.
+/// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 void SetTangentSpeed(World& world, ContactID id, LinearVelocity value);
 

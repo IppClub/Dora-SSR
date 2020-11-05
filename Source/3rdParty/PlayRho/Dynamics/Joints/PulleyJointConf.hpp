@@ -104,8 +104,6 @@ struct PulleyJointConf : public JointBuilder<PulleyJointConf>
     /// The pulley ratio, used to simulate a block-and-tackle.
     Real ratio = 1;
 
-    Length constant = 0_m; ///< Constant.
-
     // Solver shared (between calls to InitVelocityConstraints).
     Momentum impulse = 0_Ns; ///< Impulse.
 
@@ -180,6 +178,13 @@ constexpr auto GetLengthA(const PulleyJointConf& object) noexcept
 constexpr auto GetLengthB(const PulleyJointConf& object) noexcept
 {
     return object.lengthB;
+}
+
+/// @brief Free function for setting the ratio value of the given configuration.
+/// @relatedalso PulleyJointConf
+constexpr auto SetRatio(PulleyJointConf& object, Real value) noexcept
+{
+    object.UseRatio(value);
 }
 
 } // namespace d2

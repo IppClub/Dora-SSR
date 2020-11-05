@@ -116,9 +116,10 @@ struct PrismaticJointConf : public JointBuilder<PrismaticJointConf>
     /// The local anchor point relative to body B's origin.
     Length2 localAnchorB = Length2{};
 
-    /// The local translation unit axis in body A.
+    /// The local X translation unit axis in body A.
     UnitVec localXAxisA = UnitVec::GetRight();
 
+    /// The local Y translation unit axis in body A.
     UnitVec localYAxisA = GetRevPerpendicular(UnitVec::GetRight());
 
     /// The constrained angle between the bodies: body B's angle minus body A's angle.

@@ -43,11 +43,6 @@ static_assert(std::is_nothrow_destructible<World>::value, "World must be nothrow
 // Special member functions are off in their own .cpp file to avoid their
 // necessary includes being in this file!!
 
-void World::Clear() noexcept
-{
-    ::playrho::d2::Clear(*m_impl);
-}
-
 void World::SetFixtureDestructionListener(const FixtureListener& listener) noexcept
 {
     ::playrho::d2::SetFixtureDestructionListener(*m_impl, listener);
@@ -78,109 +73,14 @@ void World::SetPostSolveContactListener(ImpulsesContactListener listener) noexce
     ::playrho::d2::SetPostSolveContactListener(*m_impl, listener);
 }
 
-BodyID World::CreateBody(const BodyConf& def)
+void World::Clear() noexcept
 {
-    return ::playrho::d2::CreateBody(*m_impl, def);
-}
-
-void World::Destroy(BodyID id)
-{
-    ::playrho::d2::Destroy(*m_impl, id);
-}
-
-JointID World::CreateJoint(const Joint& def)
-{
-    return ::playrho::d2::CreateJoint(*m_impl, def);
-}
-
-void World::Destroy(JointID id)
-{
-    ::playrho::d2::Destroy(*m_impl, id);
+    ::playrho::d2::Clear(*m_impl);
 }
 
 StepStats World::Step(const StepConf& conf)
 {
     return ::playrho::d2::Step(*m_impl, conf);
-}
-
-void World::ShiftOrigin(Length2 newOrigin)
-{
-    ::playrho::d2::ShiftOrigin(*m_impl, newOrigin);
-}
-
-BodyCounter World::GetBodyRange() const noexcept
-{
-    return ::playrho::d2::GetBodyRange(*m_impl);
-}
-
-SizedRange<World::Bodies::const_iterator> World::GetBodies() const noexcept
-{
-    return ::playrho::d2::GetBodies(*m_impl);
-}
-
-SizedRange<World::Bodies::const_iterator> World::GetBodiesForProxies() const noexcept
-{
-    return ::playrho::d2::GetBodiesForProxies(*m_impl);
-}
-
-SizedRange<World::Joints::const_iterator> World::GetJoints() const noexcept
-{
-    return ::playrho::d2::GetJoints(*m_impl);
-}
-
-SizedRange<World::BodyJoints::const_iterator> World::GetJoints(BodyID id) const
-{
-    return ::playrho::d2::GetJoints(*m_impl, id);
-}
-
-bool World::IsSpeedable(BodyID id) const
-{
-    return ::playrho::d2::IsSpeedable(*m_impl, id);
-}
-
-bool World::IsAccelerable(BodyID id) const
-{
-    return ::playrho::d2::IsAccelerable(*m_impl, id);
-}
-
-bool World::IsImpenetrable(BodyID id) const
-{
-    return ::playrho::d2::IsImpenetrable(*m_impl, id);
-}
-
-void World::SetImpenetrable(BodyID id)
-{
-    ::playrho::d2::SetImpenetrable(*m_impl, id);
-}
-
-void World::UnsetImpenetrable(BodyID id)
-{
-    ::playrho::d2::UnsetImpenetrable(*m_impl, id);
-}
-
-bool World::IsSleepingAllowed(BodyID id) const
-{
-    return ::playrho::d2::IsSleepingAllowed(*m_impl, id);
-}
-
-void World::SetSleepingAllowed(BodyID id, bool value)
-{
-    ::playrho::d2::SetSleepingAllowed(*m_impl, id, value);
-}
-
-SizedRange<World::Contacts::const_iterator> World::GetContacts(BodyID id) const
-{
-    return ::playrho::d2::GetContacts(*m_impl, id);
-}
-
-SizedRange<World::Contacts::const_iterator> World::GetContacts() const noexcept
-{
-    return ::playrho::d2::GetContacts(*m_impl);
-}
-
-bool World::IsLocked() const noexcept
-{
-    return m_impl && ::playrho::d2::IsLocked(*m_impl);
 }
 
 bool World::IsStepComplete() const noexcept
@@ -198,6 +98,21 @@ void World::SetSubStepping(bool flag) noexcept
     ::playrho::d2::SetSubStepping(*m_impl, flag);
 }
 
+const DynamicTree& World::GetTree() const noexcept
+{
+    return ::playrho::d2::GetTree(*m_impl);
+}
+
+bool World::IsLocked() const noexcept
+{
+    return m_impl && ::playrho::d2::IsLocked(*m_impl);
+}
+
+void World::ShiftOrigin(Length2 newOrigin)
+{
+    ::playrho::d2::ShiftOrigin(*m_impl, newOrigin);
+}
+
 Length World::GetMinVertexRadius() const noexcept
 {
     return ::playrho::d2::GetMinVertexRadius(*m_impl);
@@ -213,24 +128,59 @@ Frequency World::GetInvDeltaTime() const noexcept
     return ::playrho::d2::GetInvDeltaTime(*m_impl);
 }
 
-const DynamicTree& World::GetTree() const noexcept
+BodyCounter World::GetBodyRange() const noexcept
 {
-    return ::playrho::d2::GetTree(*m_impl);
+    return ::playrho::d2::GetBodyRange(*m_impl);
 }
 
-void World::Refilter(FixtureID id)
+SizedRange<World::Bodies::const_iterator> World::GetBodies() const noexcept
 {
-    ::playrho::d2::Refilter(*m_impl, id);
+    return ::playrho::d2::GetBodies(*m_impl);
 }
 
-void World::SetType(BodyID id, BodyType type)
+SizedRange<World::Bodies::const_iterator> World::GetBodiesForProxies() const noexcept
 {
-    ::playrho::d2::SetType(*m_impl, id, type);
+    return ::playrho::d2::GetBodiesForProxies(*m_impl);
 }
 
-FixtureID World::CreateFixture(const FixtureConf& def, bool resetMassData)
+BodyID World::CreateBody(const BodyConf& def)
 {
-    return ::playrho::d2::CreateFixture(*m_impl, def, resetMassData);
+    return ::playrho::d2::CreateBody(*m_impl, def);
+}
+
+const Body& World::GetBody(BodyID id) const
+{
+    return ::playrho::d2::GetBody(*m_impl, id);
+}
+
+void World::SetBody(BodyID id, const Body& value)
+{
+    ::playrho::d2::SetBody(*m_impl, id, value);
+}
+
+void World::Destroy(BodyID id)
+{
+    ::playrho::d2::Destroy(*m_impl, id);
+}
+
+SizedRange<World::Fixtures::const_iterator> World::GetFixtures(BodyID id) const
+{
+    return ::playrho::d2::GetFixtures(*m_impl, id);
+}
+
+SizedRange<World::BodyJoints::const_iterator> World::GetJoints(BodyID id) const
+{
+    return ::playrho::d2::GetJoints(*m_impl, id);
+}
+
+SizedRange<World::Contacts::const_iterator> World::GetContacts(BodyID id) const
+{
+    return ::playrho::d2::GetContacts(*m_impl, id);
+}
+
+FixtureID World::CreateFixture(const FixtureConf& def)
+{
+    return ::playrho::d2::CreateFixture(*m_impl, def);
 }
 
 const FixtureConf& World::GetFixture(FixtureID id) const
@@ -243,184 +193,19 @@ void World::SetFixture(FixtureID id, const FixtureConf& value)
     ::playrho::d2::SetFixture(*m_impl, id, value);
 }
 
-bool World::Destroy(FixtureID id, bool resetMassData)
+bool World::Destroy(FixtureID id)
 {
-    return ::playrho::d2::Destroy(*m_impl, id, resetMassData);
+    return ::playrho::d2::Destroy(*m_impl, id);
 }
 
-void World::DestroyFixtures(BodyID id)
+SizedRange<World::Joints::const_iterator> World::GetJoints() const noexcept
 {
-    ::playrho::d2::DestroyFixtures(*m_impl, id);
+    return ::playrho::d2::GetJoints(*m_impl);
 }
 
-bool World::IsEnabled(BodyID id) const
+JointID World::CreateJoint(const Joint& def)
 {
-    return ::playrho::d2::IsEnabled(*m_impl, id);
-}
-
-void World::SetEnabled(BodyID id, bool flag)
-{
-    ::playrho::d2::SetEnabled(*m_impl, id, flag);
-}
-
-MassData World::ComputeMassData(BodyID id) const
-{
-    return ::playrho::d2::ComputeMassData(*m_impl, id);
-}
-
-void World::SetMassData(BodyID id, const MassData& massData)
-{
-    ::playrho::d2::SetMassData(*m_impl, id, massData);
-}
-
-Frequency World::GetLinearDamping(BodyID id) const
-{
-    return ::playrho::d2::GetLinearDamping(*m_impl, id);
-}
-
-void World::SetLinearDamping(BodyID id, NonNegative<Frequency> value)
-{
-    ::playrho::d2::SetLinearDamping(*m_impl, id, value);
-}
-
-Frequency World::GetAngularDamping(BodyID id) const
-{
-    return ::playrho::d2::GetAngularDamping(*m_impl, id);
-}
-
-void World::SetAngularDamping(BodyID id, NonNegative<Frequency> value)
-{
-    ::playrho::d2::SetAngularDamping(*m_impl, id, value);
-}
-
-SizedRange<World::Fixtures::const_iterator> World::GetFixtures(BodyID id) const
-{
-    return ::playrho::d2::GetFixtures(*m_impl, id);
-}
-
-FixtureCounter World::GetShapeCount() const noexcept
-{
-    return ::playrho::d2::GetShapeCount(*m_impl);
-}
-
-BodyConf World::GetBodyConf(BodyID id) const
-{
-    return ::playrho::d2::GetBodyConf(*m_impl, id);
-}
-
-Angle World::GetAngle(BodyID id) const
-{
-    return ::playrho::d2::GetAngle(*m_impl, id);
-}
-
-Transformation World::GetTransformation(BodyID id) const
-{
-    return ::playrho::d2::GetTransformation(*m_impl, id);
-}
-
-void World::SetTransformation(BodyID id, Transformation xfm)
-{
-    return ::playrho::d2::SetTransformation(*m_impl, id, xfm);
-}
-
-Length2 World::GetLocalCenter(BodyID id) const
-{
-    return ::playrho::d2::GetLocalCenter(*m_impl, id);
-}
-
-Length2 World::GetWorldCenter(BodyID id) const
-{
-    return ::playrho::d2::GetWorldCenter(*m_impl, id);
-}
-
-Velocity World::GetVelocity(BodyID id) const
-{
-    return ::playrho::d2::GetVelocity(*m_impl, id);
-}
-
-void World::SetVelocity(BodyID id, const Velocity& value)
-{
-    ::playrho::d2::SetVelocity(*m_impl, id, value);
-}
-
-void World::UnsetAwake(BodyID id)
-{
-    ::playrho::d2::UnsetAwake(*m_impl, id);
-}
-
-void World::SetAwake(BodyID id)
-{
-    ::playrho::d2::SetAwake(*m_impl, id);
-}
-
-bool World::IsAwake(ContactID id) const
-{
-    return ::playrho::d2::IsAwake(*m_impl, id);
-}
-
-void World::SetAwake(ContactID id)
-{
-    ::playrho::d2::SetAwake(*m_impl, id);
-}
-
-LinearVelocity World::GetTangentSpeed(ContactID id) const
-{
-    return ::playrho::d2::GetTangentSpeed(*m_impl, id);
-}
-
-void World::SetTangentSpeed(ContactID id, LinearVelocity value)
-{
-    ::playrho::d2::SetTangentSpeed(*m_impl, id, value);
-}
-
-bool World::IsMassDataDirty(BodyID id) const
-{
-    return ::playrho::d2::IsMassDataDirty(*m_impl, id);
-}
-
-bool World::IsFixedRotation(BodyID id) const
-{
-    return ::playrho::d2::IsFixedRotation(*m_impl, id);
-}
-
-void World::SetFixedRotation(BodyID id, bool value)
-{
-    ::playrho::d2::SetFixedRotation(*m_impl, id, value);
-}
-
-BodyType World::GetType(BodyID id) const
-{
-    return ::playrho::d2::GetType(*m_impl, id);
-}
-
-bool World::IsAwake(BodyID id) const
-{
-    return ::playrho::d2::IsAwake(*m_impl, id);
-}
-
-LinearAcceleration2 World::GetLinearAcceleration(BodyID id) const
-{
-    return ::playrho::d2::GetLinearAcceleration(*m_impl, id);
-}
-
-AngularAcceleration World::GetAngularAcceleration(BodyID id) const
-{
-    return ::playrho::d2::GetAngularAcceleration(*m_impl, id);
-}
-
-void World::SetAcceleration(BodyID id, LinearAcceleration2 linear, AngularAcceleration angular)
-{
-    ::playrho::d2::SetAcceleration(*m_impl, id, linear, angular);
-}
-
-InvMass World::GetInvMass(BodyID id) const
-{
-    return ::playrho::d2::GetInvMass(*m_impl, id);
-}
-
-InvRotInertia World::GetInvRotInertia(BodyID id) const
-{
-    return ::playrho::d2::GetInvRotInertia(*m_impl, id);
+    return ::playrho::d2::CreateJoint(*m_impl, def);
 }
 
 const Joint& World::GetJoint(JointID id) const
@@ -433,114 +218,29 @@ void World::SetJoint(JointID id, const Joint& def)
     ::playrho::d2::SetJoint(*m_impl, id, def);
 }
 
-bool World::IsTouching(ContactID id) const
+void World::Destroy(JointID id)
 {
-    return ::playrho::d2::IsTouching(*m_impl, id);
+    ::playrho::d2::Destroy(*m_impl, id);
 }
 
-bool World::NeedsFiltering(ContactID id) const
+SizedRange<World::Contacts::const_iterator> World::GetContacts() const noexcept
 {
-    return ::playrho::d2::NeedsFiltering(*m_impl, id);
+    return ::playrho::d2::GetContacts(*m_impl);
 }
 
-bool World::NeedsUpdating(ContactID id) const
+const Contact& World::GetContact(ContactID id) const
 {
-    return ::playrho::d2::NeedsUpdating(*m_impl, id);
+    return ::playrho::d2::GetContact(*m_impl, id);
 }
 
-bool World::HasValidToi(ContactID id) const
+void World::SetContact(ContactID id, const Contact& value)
 {
-    return ::playrho::d2::HasValidToi(*m_impl, id);
-}
-
-Real World::GetToi(ContactID id) const
-{
-    return ::playrho::d2::GetToi(*m_impl, id);
-}
-
-FixtureID World::GetFixtureA(ContactID id) const
-{
-    return ::playrho::d2::GetFixtureA(*m_impl, id);
-}
-
-FixtureID World::GetFixtureB(ContactID id) const
-{
-    return ::playrho::d2::GetFixtureB(*m_impl, id);
-}
-
-BodyID World::GetBodyA(ContactID id) const
-{
-    return ::playrho::d2::GetBodyA(*m_impl, id);
-}
-
-BodyID World::GetBodyB(ContactID id) const
-{
-    return ::playrho::d2::GetBodyB(*m_impl, id);
-}
-
-ChildCounter World::GetChildIndexA(ContactID id) const
-{
-    return ::playrho::d2::GetChildIndexA(*m_impl, id);
-}
-
-ChildCounter World::GetChildIndexB(ContactID id) const
-{
-    return ::playrho::d2::GetChildIndexB(*m_impl, id);
-}
-
-TimestepIters World::GetToiCount(ContactID id) const
-{
-    return ::playrho::d2::GetToiCount(*m_impl, id);
-}
-
-Real World::GetDefaultFriction(ContactID id) const
-{
-    return ::playrho::d2::GetDefaultFriction(*m_impl, id);
-}
-
-Real World::GetDefaultRestitution(ContactID id) const
-{
-    return ::playrho::d2::GetDefaultRestitution(*m_impl, id);
-}
-
-Real World::GetFriction(ContactID id) const
-{
-    return ::playrho::d2::GetFriction(*m_impl, id);
-}
-
-Real World::GetRestitution(ContactID id) const
-{
-    return ::playrho::d2::GetRestitution(*m_impl, id);
-}
-
-void World::SetFriction(ContactID id, Real value)
-{
-    ::playrho::d2::SetFriction(*m_impl, id, value);
-}
-
-void World::SetRestitution(ContactID id, Real value)
-{
-    ::playrho::d2::SetRestitution(*m_impl, id, value);
+    ::playrho::d2::SetContact(*m_impl, id, value);
 }
 
 const Manifold& World::GetManifold(ContactID id) const
 {
     return ::playrho::d2::GetManifold(*m_impl, id);
-}
-
-bool World::IsEnabled(ContactID id) const
-{
-    return ::playrho::d2::IsEnabled(*m_impl, id);
-}
-
-void World::SetEnabled(ContactID id)
-{
-    ::playrho::d2::SetEnabled(*m_impl, id);
-}
-
-void World::UnsetEnabled(ContactID id)
-{
-    ::playrho::d2::UnsetEnabled(*m_impl, id);
 }
 
 } // namespace d2

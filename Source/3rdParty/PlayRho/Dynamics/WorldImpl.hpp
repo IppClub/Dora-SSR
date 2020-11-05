@@ -96,10 +96,19 @@ public:
     /// @brief Proxy container type alias.
     using Proxies = std::vector<ProxyId>;
 
+    /// @brief Fixture listener.
     using FixtureListener = std::function<void(FixtureID)>;
+
+    /// @brief Joint listener.
     using JointListener = std::function<void(JointID)>;
+
+    /// @brief Contact listener.
     using ContactListener = std::function<void(ContactID)>;
+
+    /// @brief Manifold contact listener.
     using ManifoldContactListener = std::function<void(ContactID, const Manifold&)>;
+
+    /// @brief Impulses contact listener.
     using ImpulsesContactListener = std::function<void(ContactID, const ContactImpulsesList&, unsigned)>;
 
     struct ContactUpdateConf;
@@ -117,13 +126,17 @@ public:
     explicit WorldImpl(const WorldConf& def = GetDefaultWorldConf());
 
     /// @brief Copy constructor.
+    /// @details Copy constructs this world with a deep copy of the given world.
     WorldImpl(const WorldImpl& other) = default;
 
+    /// @brief Assignment operator.
+    /// @details Copy assigns this world with a deep copy of the given world.
     WorldImpl& operator=(const WorldImpl& other) = default;
 
     /// @brief Destructor.
-    /// @details All physics entities are destroyed and all dynamically allocated memory
-    ///    is released.
+    /// @details All physics entities are destroyed and all memory is released.
+    /// @note This will call the <code>Clear()</code> function.
+    /// @see Clear.
     ~WorldImpl() noexcept;
 
     /// @}
@@ -244,10 +257,6 @@ public:
     /// @see Step.
     Frequency GetInvDeltaTime() const noexcept;
 
-    /// @brief Gets the shape count.
-    /// @todo Consider removing this function.
-    FixtureCounter GetShapeCount() const noexcept;
-
     /// @brief Gets the dynamic tree leaves queued for finding new contacts.
     /// @see FindNewContacts, AddProxies.
     const Proxies& GetProxies() const noexcept;
@@ -305,6 +314,14 @@ public:
     /// @see PhysicalEntities.
     BodyID CreateBody(const BodyConf& def = GetDefaultBodyConf());
 
+    /// @brief Gets the identified body.
+    /// @throws std::out_of_range if given an invalid id.
+    const Body& GetBody(BodyID id) const;
+
+    /// @brief Sets the identified body.
+    /// @throws std::out_of_range if given an invalid id.
+    void SetBody(BodyID id, const Body& value);
+
     /// @brief Destroys the given body.
     /// @details Destroys a given body that had previously been created by a call to this
     ///   world's <code>CreateBody(const BodyConf&)</code> method.
@@ -322,71 +339,6 @@ public:
     /// @see CreateBody(const BodyConf&), GetBodies, GetFixturesForProxies.
     /// @see PhysicalEntities.
     void Destroy(BodyID id);
-
-    /// @brief Sets the type of the given body.
-    /// @note This may alter the body's mass and velocity.
-    /// @throws WrongState if this method is called while the world is locked.
-    void SetType(BodyID id, playrho::BodyType type);
-
-    /// @brief Destroys fixtures of the given body.
-    /// @details Destroys all of the fixtures previously created for this body by the
-    ///   <code>CreateFixture(const Shape&, const FixtureConf&, bool)</code> method.
-    /// @note This unconditionally calls the <code>ResetMassData()</code> method.
-    /// @post After this call, no fixtures will show up in the fixture enumeration
-    ///   returned by the <code>GetFixtures()</code> methods.
-    /// @see CreateFixture, GetFixtures, ResetMassData.
-    /// @see PhysicalEntities
-    void DestroyFixtures(BodyID id);
-
-    /// @brief Sets the enabled state of the body.
-    ///
-    /// @details A disabled body is not simulated and cannot be collided with or woken up.
-    ///   If you pass a flag of true, all fixtures will be added to the broad-phase.
-    ///   If you pass a flag of false, all fixtures will be removed from the broad-phase
-    ///   and all contacts will be destroyed. Fixtures and joints are otherwise unaffected.
-    ///
-    /// @note A disabled body is still owned by a World object and remains in the world's
-    ///   body container.
-    /// @note You may continue to create/destroy fixtures and joints on disabled bodies.
-    /// @note Fixtures on a disabled body are implicitly disabled and will not participate in
-    ///   collisions, ray-casts, or queries.
-    /// @note Joints connected to a disabled body are implicitly disabled.
-    ///
-    /// @throws WrongState If call would change body's state when world is locked.
-    ///
-    /// @post <code>IsEnabled()</code> returns the state given to this function.
-    ///
-    void SetEnabled(BodyID id, bool flag);
-
-    /// @brief Computes the mass data of the identified body.
-    MassData ComputeMassData(BodyID id) const;
-
-    /// @brief Set the mass properties to override the mass properties of the fixtures.
-    /// @note This changes the center of mass position.
-    /// @note Creating or destroying fixtures can also alter the mass.
-    /// @note This function has no effect if the body isn't dynamic.
-    /// @param id Body to set mass data for.
-    /// @param massData the mass properties.
-    void SetMassData(BodyID id, const MassData& massData);
-
-    /// @brief Sets the transformation of the body.
-    /// @details This instantly adjusts the body to have the new transformation.
-    /// @warning Manipulating a body's transform can cause non-physical behavior!
-    /// @warning Behavior is undefined if the value is invalid.
-    /// @note Associated contacts may be flagged for updating on the next call to WorldImpl::Step.
-    /// @throws WrongState If call would change body's state when world is locked.
-    void SetTransformation(BodyID id, Transformation xfm);
-
-    /// @throws std::out_of_range if given an invalid id.
-    const Body& GetBody(BodyID id) const;
-
-    /// @throws std::out_of_range if given an invalid id.
-    Body& GetBody(BodyID id);
-
-    /// @brief Flags the contacts of the identified body for updating.
-    /// @details Calling this function will flag every contact of the identified body
-    ///   for updating in the next step.
-    void FlagContactsForUpdating(BodyID id);
 
     /// @brief Gets the contacts associated with the identified body.
     /// @throws std::out_of_range if given an invalid id.
@@ -409,45 +361,23 @@ public:
     ///   given body. Fixtures automatically go away when the body is destroyed. Fixtures can
     ///   also be manually removed and destroyed using the
     ///   <code>Destroy(FixtureID, bool)</code>, or <code>DestroyFixtures()</code> methods.
-    ///
     /// @note This function should not be called if the world is locked.
+    /// @note This function does not reset the body's mass data.
     /// @warning This function is locked during callbacks.
-    ///
     /// @post After creating a new fixture, it will show up in the fixture enumeration
     ///   returned by the <code>GetFixtures()</code> methods.
-    ///
     /// @param def Initial fixture settings.
     ///   Friction and density must be >= 0.
     ///   Restitution must be > -infinity and < infinity.
-    /// @param resetMassData Whether or not to reset the mass data of the body.
-    ///
     /// @return Identifier for the created fixture.
-    ///
     /// @throws WrongState if called while the world is "locked".
     /// @throws InvalidArgument if called for a shape with a vertex radius less than the
     ///    minimum vertex radius.
     /// @throws InvalidArgument if called for a shape with a vertex radius greater than the
     ///    maximum vertex radius.
-    ///
     /// @see Destroy, GetFixtures
     /// @see PhysicalEntities
-    ///
-    FixtureID CreateFixture(const FixtureConf& def = FixtureConf{},
-                            bool resetMassData = true);
-
-    /// @brief Destroys a fixture.
-    /// @details This removes the fixture from the broad-phase and destroys all contacts
-    ///   associated with this fixture.
-    ///   All fixtures attached to a body are implicitly destroyed when the body is destroyed.
-    /// @warning This function is locked during callbacks.
-    /// @note Make sure to explicitly call <code>Body::ResetMassData</code> after fixtures have
-    ///   been destroyed.
-    /// @param fixture the fixture to be removed.
-    /// @param resetMassData Whether or not to reset the mass data of the associated body.
-    /// @see Body::ResetMassData.
-    /// @throws WrongState if this method is called while the world is locked.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    bool Destroy(FixtureID fixture, bool resetMassData = true);
+    FixtureID CreateFixture(const FixtureConf& def = FixtureConf{});
 
     /// @brief Gets the identified fixture state.
     /// @throws std::out_of_range If given an invalid fixture identifier.
@@ -455,7 +385,19 @@ public:
 
     /// @brief Sets the identified fixture's state.
     /// @throws std::out_of_range If given an invalid fixture identifier.
+    /// @throws std::invalid_argument If given an invalid fixture state.
     void SetFixture(FixtureID id, const FixtureConf& value);
+
+    /// @brief Destroys a fixture.
+    /// @details This removes the fixture from the broad-phase and destroys all contacts
+    ///   associated with this fixture.
+    ///   All fixtures attached to a body are implicitly destroyed when the body is destroyed.
+    /// @warning This function is locked during callbacks.
+    /// @note This function does not reset the body's mass data.
+    /// @param fixture the fixture to be removed.
+    /// @throws WrongState if this method is called while the world is locked.
+    /// @throws std::out_of_range If given an invalid fixture identifier.
+    bool Destroy(FixtureID fixture);
 
     /// @brief Gets the fixtures-for-proxies range for this world.
     /// @details Provides insight on what fixtures have been queued for proxy processing
@@ -495,6 +437,14 @@ public:
     /// @see Destroy(JointID), GetJoints.
     JointID CreateJoint(const Joint& def);
 
+    /// @brief Gets the identified joint.
+    /// @throws std::invalid_argument If given an invalid identifier.
+    const Joint& GetJoint(JointID id) const;
+
+    /// @brief Sets the identified joint.
+    /// @throws std::invalid_argument If given an invalid identifier.
+    void SetJoint(JointID id, const Joint& def);
+
     /// @brief Destroys a joint.
     /// @details Destroys a given joint that had previously been created by a call to this
     ///   world's <code>CreateJoint(const JointConf&)</code> method.
@@ -505,14 +455,10 @@ public:
     ///   <code>GetJoints()</code> method.
     /// @param joint Joint to destroy that had been created by this world.
     /// @throws WrongState if this method is called while the world is locked.
+    /// @throws std::invalid_argument If given an invalid identifier.
     /// @see CreateJoint(const JointConf&), GetJoints.
     /// @see PhysicalEntities.
     void Destroy(JointID joint);
-
-    const Joint& GetJoint(JointID id) const;
-    Joint& GetJoint(JointID id);
-
-    void SetJoint(JointID id, const Joint& def);
 
     /// @}
 
@@ -526,11 +472,19 @@ public:
     /// @return World contacts sized-range.
     SizedRange<Contacts::const_iterator> GetContacts() const noexcept;
 
+    /// @brief Gets the identified contact.
+    /// @throws std::out_of_range If given an invalid contact identifier.
+    /// @see SetContact.
     const Contact& GetContact(ContactID id) const;
-    Contact& GetContact(ContactID id);
 
+    /// @brief Sets the identified contact's state.
+    /// @throws std::out_of_range If given an invalid contact identifier.
+    /// @see GetContact.
+    void SetContact(ContactID id, const Contact& value);
+
+    /// @brief Gets the identified manifold.
+    /// @throws std::out_of_range If given an invalid contact identifier.
     const Manifold& GetManifold(ContactID id) const;
-    Manifold& GetManifold(ContactID id);
 
     /// @}
 
@@ -799,7 +753,7 @@ private:
     ///   and decrements the contact manager's contact count.
     /// @param contact Contact to destroy.
     /// @param from From body.
-    void Destroy(ContactID contact, Body* from);
+    void Destroy(ContactID contact, const Body* from);
 
     /// @brief Adds a contact for the proxies identified by the key if appropriate.
     /// @details Adds a new contact object to represent a contact between proxy A and proxy B
@@ -818,7 +772,7 @@ private:
     bool Add(ContactKey key);
 
     /// @brief Destroys the given contact.
-    void InternalDestroy(ContactID contact, Body* from = nullptr);
+    void InternalDestroy(ContactID contact, const Body* from = nullptr);
 
     /// @brief Synchronizes the given body.
     /// @details This updates the broad phase dynamic tree data for all of the given fixtures.

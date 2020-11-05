@@ -279,7 +279,14 @@ BodyConf GetBodyConf(const Body& body) noexcept;
 
 /// @brief Gets the transformation associated with the given configuration.
 /// @relatedalso BodyConf
-Transformation GetTransformation(const BodyConf& conf);
+Transformation GetTransformation(const BodyConf& conf) noexcept;
+
+/// @brief Gets the angle of the given configuration.
+/// @relatedalso BodyConf
+constexpr Angle GetAngle(const BodyConf& conf) noexcept
+{
+    return conf.angle;
+}
 
 } // namespace d2
 } // namespace playrho

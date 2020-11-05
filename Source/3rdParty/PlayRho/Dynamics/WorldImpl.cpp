@@ -93,9 +93,6 @@ static_assert(std::is_nothrow_destructible<WorldImpl>::value,
 
 using playrho::size;
 
-/// @brief A body pointer and body constraint pointer pair.
-using BodyConstraintsPair = std::pair<const Body* const, BodyConstraint*>;
-
 /// @brief Collection of body constraints.
 using BodyConstraints = std::vector<BodyConstraint>;
 
@@ -214,7 +211,7 @@ PositionConstraints GetPositionConstraints(const Island::Contacts& contacts,
         const auto radiusA = GetVertexRadius(shapeA, indexA);
         const auto radiusB = GetVertexRadius(shapeB, indexB);
         return PositionConstraint{
-            manifold, bodyConstraintA, radiusA, bodyConstraintB, radiusB
+            manifold, bodyConstraintA, bodyConstraintB, radiusA + radiusB
         };
     });
     return constraints;
@@ -383,9 +380,9 @@ inline bool IsValidForTime(TOIOutput::State state) noexcept
     return state == TOIOutput::e_touching;
 }
 
-void FlagContactsForFiltering(ArrayAllocator<Contact>& contactBuffer, BodyID bodyA,
-                              const std::vector<KeyedContactPtr>& contactsBodyB,
-                              BodyID bodyB) noexcept
+void FlagForFiltering(ArrayAllocator<Contact>& contactBuffer, BodyID bodyA,
+                      const std::vector<KeyedContactPtr>& contactsBodyB,
+                      BodyID bodyB) noexcept
 {
     for (const auto& ci: contactsBodyB) {
         auto& contact = contactBuffer[UnderlyingValue(std::get<ContactID>(ci))];
@@ -398,6 +395,18 @@ void FlagContactsForFiltering(ArrayAllocator<Contact>& contactBuffer, BodyID bod
             contact.FlagForFiltering();
         }
     }
+}
+
+void FlagForFiltering(ArrayAllocator<Contact>& contactBuffer,
+                      const std::vector<KeyedContactPtr>& contacts,
+                      FixtureID id) noexcept
+{
+    std::for_each(cbegin(contacts), cend(contacts), [&contactBuffer, id](const auto& ci) {
+        auto& contact = contactBuffer[std::get<ContactID>(ci).get()];
+        if ((contact.GetFixtureA() == id) || (contact.GetFixtureB() == id)) {
+            contact.FlagForFiltering();
+        }
+    });
 }
 
 /// @brief Gets the update configuration from the given step configuration data.
@@ -414,7 +423,7 @@ bool HasSensor(const ArrayAllocator<FixtureConf>& fixtures, const Contact& c)
 }
 
 template <typename T>
-void FlagForUpdating(ArrayAllocator<Contact>& contactsBuffer, const T& contacts)
+void FlagForUpdating(ArrayAllocator<Contact>& contactsBuffer, const T& contacts) noexcept
 {
     std::for_each(begin(contacts), end(contacts), [&](const auto& ci) {
         contactsBuffer[UnderlyingValue(std::get<ContactID>(ci))].FlagForUpdating();
@@ -650,7 +659,7 @@ void WorldImpl::Destroy(BodyID id)
         throw WrongState("Destroy: world is locked");
     }
 
-    auto& body = GetBody(id);
+    const auto& body = GetBody(id);
 
     // Delete the attached joints.
     auto& joints = m_bodyJoints[id.get()];
@@ -733,7 +742,7 @@ void WorldImpl::Add(JointID id, bool flagForFiltering)
         m_bodyJoints[bodyB.get()].push_back(std::make_pair(bodyA, id));
     }
     if (flagForFiltering && (bodyA != InvalidBodyID) && (bodyB != InvalidBodyID)) {
-        FlagContactsForFiltering(m_contactBuffer, bodyA, m_bodyContacts[bodyB.get()], bodyB);
+        FlagForFiltering(m_contactBuffer, bodyA, m_bodyContacts[bodyB.get()], bodyB);
     }
 }
 
@@ -747,7 +756,7 @@ void WorldImpl::Remove(JointID id) noexcept
 
     // If the joint prevented collisions, then flag any contacts for filtering.
     if ((!collideConnected) && (bodyIdA != InvalidBodyID) && (bodyIdB != InvalidBodyID)) {
-        FlagContactsForFiltering(m_contactBuffer, bodyIdA, m_bodyContacts[bodyIdB.get()], bodyIdB);
+        FlagForFiltering(m_contactBuffer, bodyIdA, m_bodyContacts[bodyIdB.get()], bodyIdB);
     }
 
     // Wake up connected bodies.
@@ -1778,12 +1787,13 @@ void WorldImpl::ShiftOrigin(Length2 newOrigin)
     m_tree.ShiftOrigin(newOrigin);
 }
 
-void WorldImpl::InternalDestroy(ContactID contactID, Body* from)
+void WorldImpl::InternalDestroy(ContactID contactID, const Body* from)
 {
     assert(contactID != InvalidContactID);
     auto& contact = m_contactBuffer[UnderlyingValue(contactID)];
     if (m_endContactListener && contact.IsTouching()) {
-        // EndContact hadn't been called in DestroyOrUpdateContacts() since is-touching, so call it now
+        // EndContact hadn't been called in DestroyOrUpdateContacts() since is-touching,
+        //  so call it now
         m_endContactListener(contactID);
     }
     const auto bodyIdA = contact.GetBodyA();
@@ -1815,7 +1825,7 @@ void WorldImpl::InternalDestroy(ContactID contactID, Body* from)
     m_manifoldBuffer.Free(UnderlyingValue(contactID));
 }
 
-void WorldImpl::Destroy(ContactID contactID, Body* from)
+void WorldImpl::Destroy(ContactID contactID, const Body* from)
 {
     assert(contactID != InvalidContactID);
     const auto it = FindTypeValue(m_contacts, contactID);
@@ -2014,8 +2024,8 @@ ContactCounter WorldImpl::FindNewContacts()
     {
         Add(key);
     });
+    m_islandedContacts.resize(size(m_contactBuffer));
     const auto numContactsAfter = size(m_contacts);
-    m_islandedContacts.resize(numContactsAfter);
     return static_cast<ContactCounter>(numContactsAfter - numContactsBefore);
 }
 
@@ -2196,49 +2206,12 @@ PreStepStats::counter_type WorldImpl::SynchronizeProxies(const StepConf& conf)
     return proxiesMoved;
 }
 
-void WorldImpl::SetType(BodyID bodyID, playrho::BodyType type)
-{
-    auto& body = GetBody(bodyID);
-    if (body.GetType() == type) {
-        return;
-    }
-
-    if (IsLocked()) {
-        throw WrongState("SetType: world is locked");
-    }
-
-    body.SetType(type);
-    SetMassData(bodyID, ComputeMassData(bodyID));
-
-    // Destroy the attached contacts.
-    Erase(m_bodyContacts[bodyID.get()], [this,&body](ContactID contactID) {
-        Destroy(contactID, &body);
-        return true;
-    });
-
-    if (type == BodyType::Static) {
-#ifndef NDEBUG
-        const auto xfm1 = GetTransform0(body.GetSweep());
-        const auto xfm2 = GetTransformation(body);
-        assert(xfm1 == xfm2);
-#endif
-        m_bodiesForProxies.push_back(bodyID);
-    }
-    else {
-        body.SetAwake();
-        const auto& fixtures = m_bodyFixtures[bodyID.get()];
-        for_each(begin(fixtures), end(fixtures), [this](const auto& fixtureID) {
-            AddProxies(m_fixtureProxies[UnderlyingValue(fixtureID)]);
-        });
-    }
-}
-
 const WorldImpl::Proxies& WorldImpl::GetProxies(FixtureID id) const
 {
     return m_fixtureProxies.at(id.get());
 }
 
-FixtureID WorldImpl::CreateFixture(const FixtureConf& def, bool resetMassData)
+FixtureID WorldImpl::CreateFixture(const FixtureConf& def)
 {
     {
         const auto childCount = GetChildCount(def.shape);
@@ -2260,8 +2233,8 @@ FixtureID WorldImpl::CreateFixture(const FixtureConf& def, bool resetMassData)
     if (size(m_fixtureBuffer) >= MaxFixtures) {
         throw LengthError("CreateFixture: operation would exceed MaxFixtures");
     }
-
-    auto& body = GetBody(def.body); // must be called before any mutating actions to validate bodyID!
+    // The following must be called before any mutating actions to validate def.body!
+    auto& body = m_bodyBuffer.at(def.body.get());
     const auto fixtureID = static_cast<FixtureID>(
         static_cast<FixtureID::underlying_type>(m_fixtureBuffer.Allocate(def)));
     m_fixtureProxies.Allocate();
@@ -2272,9 +2245,6 @@ FixtureID WorldImpl::CreateFixture(const FixtureConf& def, bool resetMassData)
     // Adjust mass properties if needed.
     if (GetDensity(m_fixtureBuffer[UnderlyingValue(fixtureID)]) > 0_kgpm2) {
         body.SetMassDataDirty();
-        if (resetMassData) {
-            SetMassData(def.body, ComputeMassData(def.body));
-        }
     }
     // Let the world know we have a new fixture. This will cause new contacts
     // to be created at the beginning of the next time step.
@@ -2285,21 +2255,25 @@ FixtureID WorldImpl::CreateFixture(const FixtureConf& def, bool resetMassData)
 void WorldImpl::SetFixture(FixtureID id, const FixtureConf& value)
 {
     auto& variable = m_fixtureBuffer.at(UnderlyingValue(id));
+    if ((::playrho::d2::GetBody(variable) != ::playrho::d2::GetBody(value)) ||
+        (GetShape(variable) != GetShape(value))) {
+        if (::playrho::d2::GetBody(value).get() >= m_bodyBuffer.size()) {
+            throw std::invalid_argument("body for fixture does not exist!");
+        }
+        Destroy(id);
+        [[maybe_unused]] const auto newId = CreateFixture(value);
+        assert(id == newId);
+        return;
+    }
+    const auto bodyID = ::playrho::d2::GetBody(value);
+    assert(bodyID == ::playrho::d2::GetBody(variable));
+    m_bodyBuffer[bodyID.get()].SetAwake();
+    if (GetFilterData(variable) != GetFilterData(value)) {
+        FlagForFiltering(m_contactBuffer, m_bodyContacts[bodyID.get()], id);
+        AddProxies(m_fixtureProxies[id.get()]); // not end of world if this throws
+    }
     if (IsSensor(variable) != IsSensor(value)) {
-        const auto oldBodyID = ::playrho::d2::GetBody(variable);
-        GetBody(oldBodyID).SetAwake();
-        FlagContactsForUpdating(oldBodyID);
-        const auto newBodyID = ::playrho::d2::GetBody(value);
-        GetBody(newBodyID).SetAwake();
-        FlagContactsForUpdating(newBodyID);
-    }
-    if (GetShape(variable) != GetShape(value)) {
-        // TODO
-        throw std::invalid_argument("changing shapes not supported");
-    }
-    if (::playrho::d2::GetBody(variable) != ::playrho::d2::GetBody(value)) {
-        // TODO
-        throw std::invalid_argument("changing bodies not supported");
+        FlagForUpdating(m_contactBuffer, m_bodyContacts[bodyID.get()]);
     }
     variable = value;
 }
@@ -2309,14 +2283,9 @@ const FixtureConf& WorldImpl::GetFixture(FixtureID id) const
     return m_fixtureBuffer.at(UnderlyingValue(id));
 }
 
-void WorldImpl::FlagContactsForUpdating(BodyID id)
-{
-    FlagForUpdating(m_contactBuffer, GetContacts(id));
-}
-
 SizedRange<WorldImpl::Contacts::const_iterator> WorldImpl::GetContacts(BodyID id) const
 {
-    const auto& container =  m_bodyContacts.at(id.get());;
+    const auto& container =  m_bodyContacts.at(id.get());
     return SizedRange<WorldImpl::Contacts::const_iterator>{
         begin(container), end(container), size(container)
     };
@@ -2356,7 +2325,7 @@ bool WorldImpl::RemoveFixture(BodyID id, FixtureID fixture)
     return false;
 }
 
-bool WorldImpl::Destroy(FixtureID id, bool resetMassData)
+bool WorldImpl::Destroy(FixtureID id)
 {
     if (IsLocked()) {
         throw WrongState("Destroy: world is locked");
@@ -2392,18 +2361,7 @@ bool WorldImpl::Destroy(FixtureID id, bool resetMassData)
     m_fixtureBuffer.Free(UnderlyingValue(id));
     m_fixtureProxies.Free(UnderlyingValue(id));
     body.SetMassDataDirty();
-    if (resetMassData) {
-        SetMassData(bodyID, ComputeMassData(bodyID));
-    }
     return true;
-}
-
-void WorldImpl::DestroyFixtures(BodyID id)
-{
-    while (!empty(GetFixtures(id))) {
-        Destroy(*GetFixtures(id).begin(), false);
-    }
-    SetMassData(id, ComputeMassData(id));
 }
 
 ContactCounter WorldImpl::Synchronize(const Fixtures& fixtures,
@@ -2431,122 +2389,6 @@ ContactCounter WorldImpl::Synchronize(const Fixtures& fixtures,
         }
     });
     return updatedCount;
-}
-
-void WorldImpl::SetEnabled(BodyID id, bool flag)
-{
-    auto& body = GetBody(id);
-    if (body.IsEnabled() == flag) {
-        return;
-    }
-
-    if (IsLocked()) {
-        throw WrongState("Body::SetEnabled: world is locked");
-    }
-
-    if (flag) {
-        body.SetEnabledFlag();
-    }
-    else {
-        body.UnsetEnabledFlag();
-    }
-
-    // Register for proxies so contacts created or destroyed the next time step.
-    ForallFixtures(m_bodyFixtures[id.get()], [this](const auto& fixtureID) {
-        m_fixturesForProxies.push_back(fixtureID);
-    });
-}
-
-MassData WorldImpl::ComputeMassData(BodyID id) const
-{
-    auto mass = 0_kg;
-    auto I = RotInertia{0};
-    auto weightedCenter = Length2{};
-    for (const auto& f: GetFixtures(id)) {
-        const auto& fixture = m_fixtureBuffer[UnderlyingValue(f)];
-        if (GetDensity(fixture) > 0_kgpm2) {
-            const auto massData = GetMassData(GetShape(fixture));
-            mass += Mass{massData.mass};
-            weightedCenter += Real{massData.mass / Kilogram} * massData.center;
-            I += RotInertia{massData.I};
-        }
-    }
-    const auto center = (mass > 0_kg)? (weightedCenter / (Real{mass/1_kg})): Length2{};
-    return MassData{center, mass, I};
-}
-
-void WorldImpl::SetMassData(BodyID id, const MassData& massData)
-{
-    if (IsLocked()) {
-        throw WrongState("SetMassData: world is locked");
-    }
-
-    auto& body = GetBody(id);
-    if (!body.IsAccelerable()) {
-        body.SetInvMass(InvMass{});
-        body.SetInvRotI(InvRotInertia{});
-        body.SetSweep(Sweep{Position{body.GetLocation(), body.GetAngle()}});
-        body.UnsetMassDataDirty();
-        return;
-    }
-
-    const auto mass = (massData.mass > 0_kg)? Mass{massData.mass}: 1_kg;
-    body.SetInvMass(Real{1} / mass);
-
-    if ((massData.I > RotInertia{0}) && (!body.IsFixedRotation())) {
-        const auto lengthSquared = GetMagnitudeSquared(massData.center);
-        // L^2 M QP^-2
-        const auto I = RotInertia{massData.I} - RotInertia{(mass * lengthSquared) / SquareRadian};
-        assert(I > RotInertia{0});
-        body.SetInvRotI(Real{1} / I);
-    }
-    else {
-        body.SetInvRotI(0);
-    }
-
-    // Move center of mass.
-    const auto oldCenter = body.GetWorldCenter();
-    body.SetSweep(Sweep{
-        Position{Transform(massData.center, GetTransformation(body)), body.GetAngle()},
-        massData.center
-    });
-
-    // Update center of mass velocity.
-    const auto newCenter = body.GetWorldCenter();
-    const auto deltaCenter = newCenter - oldCenter;
-    auto newVelocity = body.GetVelocity();
-    newVelocity.linear += GetRevPerpendicular(deltaCenter) * (newVelocity.angular / Radian);
-    body.JustSetVelocity(newVelocity);
-    body.UnsetMassDataDirty();
-}
-
-void WorldImpl::SetTransformation(BodyID id, Transformation xfm)
-{
-    assert(IsValid(xfm));
-    if (IsLocked()) {
-        throw WrongState("SetTransformation: world is locked");
-    }
-    auto& body = GetBody(id);
-    if (GetTransformation(body) != xfm) {
-        FlagForUpdating(m_contactBuffer, m_bodyContacts[id.get()]);
-        body.SetTransformation(xfm);
-        body.SetSweep(Sweep{
-            Position{Transform(body.GetLocalCenter(), xfm), GetAngle(xfm.q)}, body.GetLocalCenter()
-        });
-        m_bodiesForProxies.push_back(id);
-    }
-}
-
-FixtureCounter WorldImpl::GetShapeCount() const noexcept
-{
-    auto shapes = std::set<const void*>();
-    for_each(cbegin(m_bodies), cend(m_bodies), [&](const auto& b) {
-        const auto& fixtures = m_bodyFixtures[UnderlyingValue(b)];
-        for_each(cbegin(fixtures), cend(fixtures), [&](const auto& f) {
-            shapes.insert(GetData(GetShape(m_fixtureBuffer[UnderlyingValue(f)])));
-        });
-    });
-    return static_cast<FixtureCounter>(size(shapes));
 }
 
 void WorldImpl::Update(ContactID contactID, const ContactUpdateConf& conf)
@@ -2706,12 +2548,71 @@ void WorldImpl::Update(ContactID contactID, const ContactUpdateConf& conf)
     }
 }
 
-const Body& WorldImpl::GetBody(BodyID id) const
+void WorldImpl::SetBody(BodyID id, const Body& value)
 {
-    return m_bodyBuffer.at(UnderlyingValue(id));
+    if (IsLocked()) {
+        throw WrongState("SetBody: world is locked");
+    }
+    // handle state changes that other data needs to stay in sync with
+    const auto& body = GetBody(id);
+    if (GetType(body) != GetType(value)) {
+        // Destroy the attached contacts.
+        Erase(m_bodyContacts[id.get()], [this,&body](ContactID contactID) {
+            Destroy(contactID, &body);
+            return true;
+        });
+        if (value.GetType() == BodyType::Static) {
+#ifndef NDEBUG
+            const auto xfm1 = GetTransform0(value.GetSweep());
+            const auto xfm2 = GetTransformation(value);
+            assert(xfm1 == xfm2);
+#endif
+            m_bodiesForProxies.push_back(id);
+        }
+        else {
+            const auto& fixtures = m_bodyFixtures[id.get()];
+            for_each(begin(fixtures), end(fixtures), [this](const auto& fixtureID) {
+                AddProxies(m_fixtureProxies[UnderlyingValue(fixtureID)]);
+            });
+        }
+    }
+    if (IsEnabled(body) != IsEnabled(value)) {
+        // Register for proxies so contacts created or destroyed the next time step.
+        ForallFixtures(m_bodyFixtures[id.get()], [this](const auto& fixtureID) {
+            m_fixturesForProxies.push_back(fixtureID);
+        });
+    }
+    if (GetTransformation(body) != GetTransformation(value)) {
+        FlagForUpdating(m_contactBuffer, m_bodyContacts[id.get()]);
+        m_bodiesForProxies.push_back(id);
+    }
+    if (IsAwake(body) != IsAwake(value)) {
+        // Update associated contacts
+        if (IsAwake(value)) {
+            for (const auto& elem: m_bodyContacts[id.get()]) {
+                m_contactBuffer[std::get<ContactID>(elem).get()].SetIsActive();
+            }
+        }
+        else { // sleep associated contacts whose other body is also asleep
+            for (const auto& elem: m_bodyContacts[id.get()]) {
+                auto& contact = m_contactBuffer[std::get<ContactID>(elem).get()];
+                const auto otherID = (contact.GetBodyA() != id)
+                    ? contact.GetBodyA(): contact.GetBodyB();
+                if (!m_bodyBuffer[otherID.get()].IsAwake()) {
+                    contact.UnsetIsActive();
+                }
+            }
+        }
+    }
+    m_bodyBuffer[id.get()] = value;
 }
 
-Body& WorldImpl::GetBody(BodyID id)
+void WorldImpl::SetContact(ContactID id, const Contact& value)
+{
+    m_contactBuffer.at(id.get()) = value;
+}
+
+const Body& WorldImpl::GetBody(BodyID id) const
 {
     return m_bodyBuffer.at(UnderlyingValue(id));
 }
@@ -2721,27 +2622,12 @@ const Joint& WorldImpl::GetJoint(JointID id) const
     return m_jointBuffer.at(UnderlyingValue(id));
 }
 
-Joint& WorldImpl::GetJoint(JointID id)
-{
-    return m_jointBuffer.at(UnderlyingValue(id));
-}
-
 const Contact& WorldImpl::GetContact(ContactID id) const
 {
     return m_contactBuffer.at(UnderlyingValue(id));
 }
 
-Contact& WorldImpl::GetContact(ContactID id)
-{
-    return m_contactBuffer.at(UnderlyingValue(id));
-}
-
 const Manifold& WorldImpl::GetManifold(ContactID id) const
-{
-    return m_manifoldBuffer.at(UnderlyingValue(id));
-}
-
-Manifold& WorldImpl::GetManifold(ContactID id)
 {
     return m_manifoldBuffer.at(UnderlyingValue(id));
 }

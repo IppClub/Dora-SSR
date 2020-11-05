@@ -29,6 +29,7 @@
 #include "PlayRho/Dynamics/MovementConf.hpp"
 
 #include <algorithm> // for std::for_each
+#include <set>
 
 using std::for_each;
 
@@ -106,6 +107,16 @@ StepStats Step(World& world, Time delta, TimestepIters velocityIterations,
     return world.Step(conf);
 }
 
+bool GetSubStepping(const World& world) noexcept
+{
+    return world.GetSubStepping();
+}
+
+void SetSubStepping(World& world, bool flag) noexcept
+{
+    world.SetSubStepping(flag);
+}
+
 const DynamicTree& GetTree(const World& world) noexcept
 {
     return world.GetTree();
@@ -113,7 +124,18 @@ const DynamicTree& GetTree(const World& world) noexcept
 
 FixtureCounter GetShapeCount(const World& world) noexcept
 {
-    return world.GetShapeCount();
+    auto shapes = std::set<const void*>();
+    for (const auto& bodyID: world.GetBodies()) {
+        for (const auto& fixtureID: world.GetFixtures(bodyID)) {
+            shapes.insert(GetData(GetShape(world.GetFixture(fixtureID))));
+        }
+    }
+    return static_cast<FixtureCounter>(size(shapes));
+}
+
+void ShiftOrigin(World& world, Length2 newOrigin)
+{
+    world.ShiftOrigin(newOrigin);
 }
 
 } // namespace d2

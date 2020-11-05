@@ -24,9 +24,9 @@
 #include "PlayRho/Dynamics/Contacts/VelocityConstraint.hpp"
 #include "PlayRho/Dynamics/Contacts/PositionConstraint.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
-#include "PlayRho/Common/OptionalValue.hpp"
 
 #include <algorithm>
+#include <optional>
 
 #if !defined(NDEBUG)
 // Solver debugging is normally disabled because the block solver sometimes has to deal with a
@@ -100,7 +100,7 @@ Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2 newImpulses)
     return std::max(abs(newImpulses[0]), abs(newImpulses[1]));
 }
 
-Optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
+std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
                                          const LinearVelocity2 b_prime)
 {
     //
@@ -135,12 +135,12 @@ Optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
         assert(abs(vn0 - vcp0.velocityBias) < k_errorTol);
         assert(abs(vn1 - vcp1.velocityBias) < k_errorTol);
 #endif
-        return Optional<Momentum>{max};
+        return std::optional<Momentum>{max};
     }
-    return Optional<Momentum>{};
+    return std::optional<Momentum>{};
 }
 
-Optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc, const LinearVelocity2 b_prime)
+std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc, const LinearVelocity2 b_prime)
 {
     //
     // Case 2: vn1 = 0 and x2 = 0
@@ -170,12 +170,12 @@ Optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc, const LinearVel
 
         assert(abs(vn1 - vcp1.velocityBias) < k_errorTol);
 #endif
-        return Optional<Momentum>{max};
+        return std::optional<Momentum>{max};
     }
-    return Optional<Momentum>{};
+    return std::optional<Momentum>{};
 }
 
-Optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc, const LinearVelocity2 b_prime)
+std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc, const LinearVelocity2 b_prime)
 {
     //
     // Case 3: vn2 = 0 and x1 = 0
@@ -205,12 +205,12 @@ Optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc, const LinearVel
 
         assert(abs(vn2 - vcp2.velocityBias) < k_errorTol);
 #endif
-        return Optional<Momentum>{max};
+        return std::optional<Momentum>{max};
     }
-    return Optional<Momentum>{};
+    return std::optional<Momentum>{};
 }
 
-Optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc, const LinearVelocity2 b_prime)
+std::optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc, const LinearVelocity2 b_prime)
 {
     //
     // Case 4: x1 = 0 and x2 = 0
@@ -221,9 +221,9 @@ Optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc, const LinearVel
     const auto vn2 = get<1>(b_prime);
     if ((vn1 >= 0_mps) && (vn2 >= 0_mps))
     {
-        return Optional<Momentum>{BlockSolveUpdate(vc, Momentum2{0_Ns, 0_Ns})};
+        return std::optional<Momentum>{BlockSolveUpdate(vc, Momentum2{0_Ns, 0_Ns})};
     }
-    return Optional<Momentum>{};
+    return std::optional<Momentum>{};
 }
 
 inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc)
@@ -291,7 +291,7 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc)
         return b - Transform(GetNormalImpulses(vc), K);
     }();
     
-    auto maxIncImpulse = Optional<Momentum>{};
+    auto maxIncImpulse = std::optional<Momentum>{};
     maxIncImpulse = BlockSolveNormalCase1(vc, b_prime);
     if (maxIncImpulse.has_value())
     {
@@ -515,7 +515,7 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
     const auto invMassTotal = invMassA + invMassB;
     assert(invMassTotal >= InvMass{0});
     
-    const auto totalRadius = pc.GetRadiusA() + pc.GetRadiusB();
+    const auto totalRadius = pc.GetTotalRadius();
     
     const auto solver_fn = [&](const d2::PositionSolverManifold psm,
                                const Length2 pA, const Length2 pB) {

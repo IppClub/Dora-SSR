@@ -26,11 +26,12 @@
 /// Declaration of the RayCastOutput structure and related free functions.
 
 #include "PlayRho/Common/UnitInterval.hpp"
-#include "PlayRho/Common/OptionalValue.hpp"
 #include "PlayRho/Collision/RayCastInput.hpp"
 
 #include "PlayRho/Dynamics/BodyID.hpp"
 #include "PlayRho/Dynamics/FixtureID.hpp"
+
+#include <optional>
 
 namespace playrho {
 namespace detail {
@@ -85,8 +86,8 @@ struct RayCastHit
 
 /// @brief Ray cast output.
 /// @details This is a type alias for an optional <code>RayCastHit</code> instance.
-/// @see RayCast, Optional, RayCastHit
-using RayCastOutput = Optional<RayCastHit>;
+/// @see RayCast, RayCastHit
+using RayCastOutput = std::optional<RayCastHit>;
 
 /// @brief Ray cast callback function.
 /// @note Return 0 to terminate ray casting, or > 0 to update the segment bounding box.

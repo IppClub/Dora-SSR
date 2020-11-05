@@ -45,7 +45,7 @@ For coding, purists may want to begin by just including the
  Here's what this might look like:
  @code
  #include "PlayRho/Dynamics/World.hpp"
- 
+
  int main()
  {
      auto world = playrho::d2::World{};

@@ -217,7 +217,7 @@ static const Color& GetColor(const pd::World& world, pr::BodyID body)
 	{
 		return disabledColor;
 	}
-	switch (pd::GetBodyConf(world, body).type)
+	switch (pd::GetType(world, body))
 	{
 		case pr::BodyType::Static: return staticColor;
 		case pr::BodyType::Kinematic: return kinematicColor;

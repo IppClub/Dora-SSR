@@ -74,13 +74,12 @@ public:
     /// @see GetLocation, Body::SetTransformation.
     Transformation GetTransformation() const noexcept;
 
-    /// Sets the body's transformation.
+    /// @brief Sets the body's transformation.
     /// @note This sets what <code>Body::GetLocation</code> returns.
-    /// @see Body::GetLocation, Body::GetTransformation
-    void SetTransformation(Transformation value) noexcept
-    {
-        m_xf = value;
-    }
+    /// @note <code>SetSweep</code> may also need to be called.
+    /// @post <code>GetTransformation</code> will return the value set.
+    /// @see Body::GetLocation, Body::GetTransformation, SetSweep
+    void SetTransformation(Transformation value) noexcept;
 
     /// @brief Gets the world body origin location.
     /// @details This is the location of the body's origin relative to its world.
@@ -145,7 +144,7 @@ public:
     /// As such, it's likely faster to multiply values by this inverse value than to redivide
     /// them all the time by the mass.
     /// @return Value of zero or more representing the body's inverse mass (in 1/kg).
-    /// @see SetMassData.
+    /// @see SetInvMass.
     InvMass GetInvMass() const noexcept;
 
     /// @brief Gets the inverse rotational inertia of the body.
@@ -207,6 +206,11 @@ public:
     /// body will be woken.
     void SetSleepingAllowed(bool flag) noexcept;
 
+    /// @brief Gets the awake/asleep state of this body.
+    /// @warning Being awake may or may not imply being speedable.
+    /// @return true if the body is awake.
+    bool IsAwake() const noexcept;
+
     /// @brief Awakens this body.
     ///
     /// @details Sets this body to awake and resets its under-active time if it's a "speedable"
@@ -232,11 +236,6 @@ public:
     ///
     void UnsetAwake() noexcept;
 
-    /// @brief Gets the awake/asleep state of this body.
-    /// @warning Being awake may or may not imply being speedable.
-    /// @return true if the body is awake.
-    bool IsAwake() const noexcept;
-
     /// @brief Gets this body's under-active time value.
     /// @return Zero or more time in seconds (of step time) that this body has been
     ///   "under-active" for.
@@ -261,12 +260,12 @@ public:
     /// @see SetEnabled.
     bool IsEnabled() const noexcept;
 
+    /// @brief Does this body have fixed rotation?
+    bool IsFixedRotation() const noexcept;
+
     /// @brief Sets this body to have fixed rotation.
     /// @note This causes the mass to be reset.
     void SetFixedRotation(bool flag);
-
-    /// @brief Does this body have fixed rotation?
-    bool IsFixedRotation() const noexcept;
 
     /// @brief Gets whether the mass data for this body is "dirty".
     bool IsMassDataDirty() const noexcept;
@@ -286,11 +285,11 @@ public:
     /// @brief Unsets the body from being in the mass data dirty state.
     void UnsetMassDataDirty() noexcept;
 
-    /// @brief Sets the enabled flag.
-    void SetEnabledFlag() noexcept;
+    /// @brief Sets the enabled state.
+    void SetEnabled() noexcept;
 
     /// @brief Unsets the enabled flag.
-    void UnsetEnabledFlag() noexcept;
+    void UnsetEnabled() noexcept;
 
     /// @brief Sets the inverse rotational inertia.
     void SetInvRotI(InvRotInertia v) noexcept
@@ -299,6 +298,7 @@ public:
     }
 
     /// @brief Sets the inverse mass.
+    /// @see GetInvMass
     void SetInvMass(InvMass v) noexcept
     {
         m_invMass = v;
@@ -468,40 +468,14 @@ private:
     Time m_underActiveTime = 0;
 };
 
-inline BodyType Body::GetType() const noexcept
-{
-    switch (m_flags & (e_accelerationFlag|e_velocityFlag))
-    {
-        case e_velocityFlag|e_accelerationFlag: return BodyType::Dynamic;
-        case e_velocityFlag: return BodyType::Kinematic;
-        default: break; // handle case 0 this way so compiler doesn't warn of no default handling.
-    }
-    return BodyType::Static;
-}
-
-inline void Body::SetType(BodyType value) noexcept
-{
-    m_flags &= ~(e_impenetrableFlag|e_velocityFlag|e_accelerationFlag);
-    m_flags |= GetFlags(value);
-    switch (value)
-    {
-        case BodyType::Dynamic:
-            break;
-        case BodyType::Kinematic:
-            break;
-        case BodyType::Static:
-            UnsetAwakeFlag();
-            m_underActiveTime = 0;
-            m_linearVelocity = LinearVelocity2{};
-            m_angularVelocity = 0_rpm;
-            m_sweep.pos0 = m_sweep.pos1;
-            break;
-    }
-}
-
 inline Transformation Body::GetTransformation() const noexcept
 {
     return m_xf;
+}
+
+inline void Body::SetTransformation(Transformation value) noexcept
+{
+    m_xf = value;
 }
 
 inline Length2 Body::GetLocation() const noexcept
@@ -586,7 +560,6 @@ inline void Body::SetAwakeFlag() noexcept
 {
     // Protect the body's invariant that only "speedable" bodies can be awake.
     assert(IsSpeedable());
-
     m_flags |= e_awakeFlag;
 }
 
@@ -594,28 +567,6 @@ inline void Body::UnsetAwakeFlag() noexcept
 {
     assert(!IsSpeedable() || IsSleepingAllowed());
     m_flags &= ~e_awakeFlag;
-}
-
-inline void Body::SetAwake() noexcept
-{
-    // Ignore this request unless this body is speedable so as to maintain the body's invariant
-    // that only "speedable" bodies can be awake.
-    if (IsSpeedable())
-    {
-    	SetAwakeFlag();
-        ResetUnderActiveTime();
-    }
-}
-
-inline void Body::UnsetAwake() noexcept
-{
-    if (!IsSpeedable() || IsSleepingAllowed())
-    {
-        UnsetAwakeFlag();
-        m_underActiveTime = 0;
-        m_linearVelocity = LinearVelocity2{};
-        m_angularVelocity = 0_rpm;
-    }
 }
 
 inline bool Body::IsAwake() const noexcept
@@ -705,17 +656,234 @@ inline bool Body::IsMassDataDirty() const noexcept
     return (m_flags & e_massDataDirtyFlag) != 0;
 }
 
-inline void Body::SetEnabledFlag() noexcept
+inline void Body::SetEnabled() noexcept
 {
     m_flags |= e_enabledFlag;
 }
 
-inline void Body::UnsetEnabledFlag() noexcept
+inline void Body::UnsetEnabled() noexcept
 {
     m_flags &= ~e_enabledFlag;
 }
 
 // Free functions...
+
+/// @brief Gets the type of this body.
+/// @see SetType.
+/// @relatedalso Body
+inline BodyType GetType(const Body& body) noexcept
+{
+    return body.GetType();
+}
+
+/// @brief Sets the type of this body.
+/// @relatedalso Body
+inline void SetType(Body& body, BodyType value) noexcept
+{
+    body.SetType(value);
+}
+
+/// @brief Is "speedable".
+/// @details Is this body able to have a non-zero speed associated with it.
+/// Kinematic and Dynamic bodies are speedable. Static bodies are not.
+/// @relatedalso Body
+inline bool IsSpeedable(const Body& body) noexcept
+{
+    return body.IsSpeedable();
+}
+
+/// @brief Is "accelerable".
+/// @details Indicates whether this body is accelerable, i.e. whether it is effected by
+///   forces. Only Dynamic bodies are accelerable.
+/// @return true if the body is accelerable, false otherwise.
+/// @relatedalso Body
+inline bool IsAccelerable(const Body& body) noexcept
+{
+    return body.IsAccelerable();
+}
+
+/// @brief Is this body treated like a bullet for continuous collision detection?
+/// @relatedalso Body
+inline bool IsImpenetrable(const Body& body) noexcept
+{
+    return body.IsImpenetrable();
+}
+
+/// @brief Sets the impenetrable status of this body.
+/// @details Sets whether or not this body should be treated like a bullet for continuous
+///   collision detection.
+/// @relatedalso Body
+inline void SetImpenetrable(Body& body) noexcept
+{
+    body.SetImpenetrable();
+}
+
+/// @brief Unsets the impenetrable status of this body.
+/// @details Sets whether or not this body should be treated like a bullet for continuous
+///   collision detection.
+/// @relatedalso Body
+inline void UnsetImpenetrable(Body& body) noexcept
+{
+    body.UnsetImpenetrable();
+}
+
+/// @brief Gets whether or not this body allowed to sleep
+/// @relatedalso Body
+inline bool IsSleepingAllowed(const Body& body) noexcept
+{
+    return body.IsSleepingAllowed();
+}
+
+/// You can disable sleeping on this body. If you disable sleeping, the
+/// body will be woken.
+/// @relatedalso Body
+inline void SetSleepingAllowed(Body& body, bool value) noexcept
+{
+    body.SetSleepingAllowed(value);
+}
+
+/// @brief Gets the enabled/disabled state of the body.
+/// @see SetEnabled.
+/// @relatedalso Body
+inline bool IsEnabled(const Body& body) noexcept
+{
+    return body.IsEnabled();
+}
+
+/// @brief Sets the enabled state.
+/// @relatedalso Body
+inline void SetEnabled(Body& body) noexcept
+{
+    body.SetEnabled();
+}
+
+/// @brief Unsets the enabled state.
+/// @relatedalso Body
+inline void UnsetEnabled(Body& body) noexcept
+{
+    body.UnsetEnabled();
+}
+
+/// @brief Sets the enabled state to the given value.
+/// @relatedalso Body
+inline void SetEnabled(Body& body, bool value) noexcept
+{
+    if (value)
+        body.SetEnabled();
+    else
+        body.UnsetEnabled();
+}
+
+/// @brief Gets the awake/asleep state of this body.
+/// @warning Being awake may or may not imply being speedable.
+/// @return true if the body is awake.
+/// @relatedalso Body
+inline bool IsAwake(const Body& body) noexcept
+{
+    return body.IsAwake();
+}
+
+/// @brief Awakens this body.
+/// @details Sets this body to awake and resets its under-active time if it's a "speedable"
+///   body. This method has no effect otherwise.
+/// @post If this body is a "speedable" body, then this body's <code>IsAwake</code> method
+///   returns true.
+/// @post If this body is a "speedable" body, then this body's <code>GetUnderActiveTime</code>
+///   method returns zero.
+/// @relatedalso Body
+inline void SetAwake(Body& body) noexcept
+{
+    body.SetAwake();
+}
+
+/// @brief Sets this body to asleep if sleeping is allowed.
+/// @details If this body is allowed to sleep, this: sets the sleep state of the body to
+/// asleep, resets this body's under active time, and resets this body's velocity (linear
+/// and angular).
+/// @post This body's <code>IsAwake</code> method returns false.
+/// @post This body's <code>GetUnderActiveTime</code> method returns zero.
+/// @post This body's <code>GetVelocity</code> method returns zero linear and zero angular
+///   speed.
+/// @relatedalso Body
+inline void UnsetAwake(Body& body) noexcept
+{
+    body.UnsetAwake();
+}
+
+/// @brief Does this body have fixed rotation?
+/// @relatedalso Body
+inline bool IsFixedRotation(const Body& body) noexcept
+{
+    return body.IsFixedRotation();
+}
+
+/// @brief Sets this body to have fixed rotation.
+/// @note This causes the mass to be reset.
+/// @relatedalso Body
+inline void SetFixedRotation(Body& body, bool value)
+{
+    body.SetFixedRotation(value);
+}
+
+/// @brief Gets whether the mass data for this body is "dirty".
+/// @relatedalso Body
+inline bool IsMassDataDirty(const Body& body) noexcept
+{
+    return body.IsMassDataDirty();
+}
+
+/// @brief Gets the inverse total mass of the body.
+/// @details This is the cached result of dividing 1 by the body's mass.
+/// Often floating division is much slower than multiplication.
+/// As such, it's likely faster to multiply values by this inverse value than to redivide
+/// them all the time by the mass.
+/// @return Value of zero or more representing the body's inverse mass (in 1/kg).
+/// @see SetInvMass.
+/// @relatedalso Body
+inline InvMass GetInvMass(const Body& body) noexcept
+{
+    return body.GetInvMass();
+}
+
+/// @brief Gets the inverse rotational inertia of the body.
+/// @details This is the cached result of dividing 1 by the body's rotational inertia.
+/// Often floating division is much slower than multiplication.
+/// As such, it's likely faster to multiply values by this inverse value than to redivide
+/// them all the time by the rotational inertia.
+/// @return Inverse rotational inertia (in 1/kg-m^2).
+/// @relatedalso Body
+inline InvRotInertia GetInvRotInertia(const Body& body) noexcept
+{
+    return body.GetInvRotInertia();
+}
+
+/// @brief Gets the linear damping of the body.
+/// @relatedalso Body
+inline Frequency GetLinearDamping(const Body& body) noexcept
+{
+    return body.GetLinearDamping();
+}
+
+/// @brief Sets the linear damping of the body.
+/// @relatedalso Body
+inline void SetLinearDamping(Body& body, NonNegative<Frequency> value) noexcept
+{
+    body.SetLinearDamping(value);
+}
+
+/// @brief Gets the angular damping of the body.
+/// @relatedalso Body
+inline Frequency GetAngularDamping(const Body& body) noexcept
+{
+    return body.GetAngularDamping();
+}
+
+/// @brief Sets the angular damping of the body.
+/// @relatedalso Body
+inline void SetAngularDamping(Body& body, NonNegative<Frequency> value) noexcept
+{
+    body.SetAngularDamping(value);
+}
 
 /// @brief Gets the given body's acceleration.
 /// @param body Body whose acceleration should be returned.
@@ -735,7 +903,21 @@ inline void SetAcceleration(Body& body, Acceleration value) noexcept
 {
     body.SetAcceleration(value.linear, value.angular);
 }
-    
+
+/// @brief Gets this body's linear acceleration.
+/// @relatedalso Body
+inline LinearAcceleration2 GetLinearAcceleration(const Body& body) noexcept
+{
+    return body.GetLinearAcceleration();
+}
+
+/// @brief Gets this body's angular acceleration.
+/// @relatedalso Body
+inline AngularAcceleration GetAngularAcceleration(const Body& body) noexcept
+{
+    return body.GetAngularAcceleration();
+}
+
 /// @brief Awakens the body if it's asleep.
 /// @relatedalso Body
 inline bool Awaken(Body& body) noexcept
@@ -770,7 +952,7 @@ inline Position GetPosition1(const Body& body) noexcept
 /// @brief Gets the mass of the body.
 /// @note This may be the total calculated mass or it may be the set mass of the body.
 /// @return Value of zero or more representing the body's mass.
-/// @see GetInvMass, SetMassData
+/// @see GetInvMass, SetInvMass
 /// @relatedalso Body
 inline Mass GetMass(const Body& body) noexcept
 {
@@ -784,6 +966,7 @@ inline Mass GetMass(const Body& body) noexcept
 /// @param body Body to set the acceleration of.
 /// @param linear Linear acceleration.
 /// @param angular Angular acceleration.
+/// @relatedalso Body
 inline void SetAcceleration(Body& body, LinearAcceleration2 linear, AngularAcceleration angular) noexcept
 {
     body.SetAcceleration(linear, angular);
@@ -850,6 +1033,23 @@ inline RotInertia GetLocalRotInertia(const Body& body) noexcept
 {
     return GetRotInertia(body)
          + GetMass(body) * GetMagnitudeSquared(body.GetLocalCenter()) / SquareRadian;
+}
+
+/// @brief Gets the velocity.
+/// @relatedalso Body
+inline Velocity GetVelocity(const Body& body) noexcept
+{
+    return body.GetVelocity();
+}
+
+/// @brief Sets the body's velocity (linear and angular velocity).
+/// @note This method does nothing if this body is not speedable.
+/// @note A non-zero velocity will awaken this body.
+/// @see SetAwake, SetUnderActiveTime.
+/// @relatedalso Body
+inline void SetVelocity(Body& body, const Velocity& value) noexcept
+{
+    return body.SetVelocity(value);
 }
 
 /// @brief Gets the linear velocity of the center of mass.
@@ -1005,7 +1205,21 @@ Velocity GetVelocity(const Body& body, Time h) noexcept;
 /// @relatedalso Body
 inline Length2 GetLocation(const Body& body) noexcept
 {
-    return body.GetTransformation().p;
+    return GetLocation(body.GetTransformation());
+}
+
+/// @brief Gets the body's sweep.
+/// @relatedalso Body
+inline const Sweep& GetSweep(const Body& body) noexcept
+{
+    return body.GetSweep();
+}
+
+/// @brief Sets the sweep value of the given body.
+/// @relatedalso Body
+inline void SetSweep(Body& body, const Sweep& value) noexcept
+{
+    body.SetSweep(value);
 }
 
 /// @brief Gets the body's angle.
@@ -1016,11 +1230,32 @@ inline Angle GetAngle(const Body& body) noexcept
     return body.GetSweep().pos1.angular;
 }
 
+/// @brief Get the world position of the center of mass.
+inline Length2 GetWorldCenter(const Body& body) noexcept
+{
+    return body.GetWorldCenter();
+}
+
+/// @brief Gets the local position of the center of mass.
+inline Length2 GetLocalCenter(const Body& body) noexcept
+{
+    return body.GetLocalCenter();
+}
+
 /// @brief Gets the body's transformation.
 /// @relatedalso Body
 inline Transformation GetTransformation(const Body& body) noexcept
 {
     return body.GetTransformation();
+}
+
+/// Sets the body's transformation.
+/// @note This sets what <code>GetLocation</code> returns.
+/// @see GetTransformation.
+/// @relatedalso Body
+inline void SetTransformation(Body& body, Transformation value) noexcept
+{
+    body.SetTransformation(value);
 }
 
 /// @brief Gets the body's position.

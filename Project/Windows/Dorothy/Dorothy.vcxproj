@@ -820,7 +820,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonNegative.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonPositive.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonZero.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\OptionalValue.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Position.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Positive.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\propagate_const.hpp" />

@@ -644,7 +644,6 @@
 		3C7EB6002547CC5E00390DA6 /* CodeDumper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CodeDumper.cpp; sourceTree = "<group>"; };
 		3C7EB6012547CC5E00390DA6 /* Velocity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Velocity.cpp; sourceTree = "<group>"; };
 		3C7EB6022547CC5E00390DA6 /* Version.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Version.hpp; sourceTree = "<group>"; };
-		3C7EB6032547CC5E00390DA6 /* OptionalValue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OptionalValue.hpp; sourceTree = "<group>"; };
 		3C7EB6042547CC5E00390DA6 /* CodeDumper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CodeDumper.hpp; sourceTree = "<group>"; };
 		3C7EB6052547CC5E00390DA6 /* Vector3.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Vector3.hpp; sourceTree = "<group>"; };
 		3C7EB6062547CC5E00390DA6 /* ArrayList.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ArrayList.hpp; sourceTree = "<group>"; };
@@ -1946,7 +1945,6 @@
 				3C7EB6112547CC5F00390DA6 /* NonNegative.hpp */,
 				3C7EB5E62547CC5C00390DA6 /* NonPositive.hpp */,
 				3C7EB5F52547CC5D00390DA6 /* NonZero.hpp */,
-				3C7EB6032547CC5E00390DA6 /* OptionalValue.hpp */,
 				3C7EB5F72547CC5D00390DA6 /* Position.hpp */,
 				3C7EB5F42547CC5D00390DA6 /* Positive.hpp */,
 				3C7EB5E32547CC5C00390DA6 /* propagate_const.hpp */,

@@ -37,8 +37,6 @@
 #include "PlayRho/Dynamics/Joints/RopeJointConf.hpp"
 #include "PlayRho/Dynamics/Joints/MotorJointConf.hpp"
 
-#include "PlayRho/Common/OptionalValue.hpp" // for Optional
-
 namespace playrho {
 namespace d2 {
 
