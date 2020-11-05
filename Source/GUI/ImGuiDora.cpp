@@ -925,7 +925,8 @@ bool ImGuiDora::handle(const SDL_Event& event)
 	switch (event.type)
 	{
 		case SDL_MOUSEBUTTONDOWN:
-			if (ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive())
+			if (ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() ||
+				ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel))
 			{
 				_rejectAllEvents = true;
 			}
@@ -946,7 +947,8 @@ bool ImGuiDora::handle(const SDL_Event& event)
 		case SDL_MULTIGESTURE:
 			return _rejectAllEvents;
 		case SDL_MOUSEWHEEL:
-			return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive();
+			return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() ||
+				ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
 	}
 	return false;
 }
