@@ -141,12 +141,12 @@ void Model::setFaceRight(bool var)
 
 float Model::play(Uint32 index, bool loop)
 {
-	_loop = loop;
+	Model::stop();
 	if (index == Animation::None || index >= _animationGroups.size())
 	{
 		return 0;
 	}
-	Model::stop();
+	_loop = loop;
 	_isPlaying = true;
 	_currentAnimation = index;
 	if (_recoveryTime > 0.0f)
