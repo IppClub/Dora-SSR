@@ -19,7 +19,7 @@ UnitAction\add "fallOff",
 	create: =>
 		with @playable
 			.speed = 1.5
-			\resume "jump", true
+			\play "jump", true
 		=>
 			if @onSurface
 				return true
@@ -27,7 +27,7 @@ UnitAction\add "fallOff",
 
 pushSwitchEnd = (name,playable)->
 	switch name
-		when "attack"
+		when "switch","attack"
 			playable.parent\stop!
 
 UnitAction\add "pushSwitch",
@@ -39,7 +39,7 @@ UnitAction\add "pushSwitch",
 		with @playable
 			.speed = 1.5
 			.look = "noweapon"
-			\play "attack"
+			\play "switch"
 			if not .playing
 				\play "attack"
 			\slot "AnimationEnd",pushSwitchEnd
