@@ -20,10 +20,7 @@ UnitAction\add "fallOff",
 		with @playable
 			.speed = 1.5
 			\play "jump", true
-		=>
-			if @onSurface
-				return true
-			false
+		=> @onSurface
 
 pushSwitchEnd = (name,playable)->
 	switch name

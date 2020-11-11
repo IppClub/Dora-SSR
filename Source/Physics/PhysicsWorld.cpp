@@ -66,11 +66,19 @@ PhysicsWorld::~PhysicsWorld()
 	{
 		b->cleanup();
 	}
-	for (SensorPair& pair: _sensorEnters)
+	for (auto& pair: _sensorEnters)
 	{
 		pair.release();
 	}
-	for (SensorPair& pair: _sensorLeaves)
+	for (auto& pair : _sensorLeaves)
+	{
+		pair.release();
+	}
+	for (auto& pair : _contactStarts)
+	{
+		pair.release();
+	}
+	for (auto& pair : _contactEnds)
 	{
 		pair.release();
 	}
@@ -91,7 +99,7 @@ void PhysicsWorld::setupBeginContact()
 			if (sensor && sensor->isEnabled() &&
 				!pd::IsSensor(_world, fixtureB))
 			{
-				SensorPair pair = {sensor, bodyB};
+				SensorPair pair{sensor, bodyB};
 				pair.retain();
 				_sensorEnters.push_back(pair);
 			}
@@ -101,7 +109,7 @@ void PhysicsWorld::setupBeginContact()
 			Sensor* sensor = _fixtureData[fixtureB.get()];
 			if (sensor && sensor->isEnabled())
 			{
-				SensorPair pair = {sensor, bodyA};
+				SensorPair pair{sensor, bodyA};
 				pair.retain();
 				_sensorEnters.push_back(pair);
 			}
@@ -114,14 +122,14 @@ void PhysicsWorld::setupBeginContact()
 			if (bodyA->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair = { bodyA, bodyB, point, {normal[0], normal[1]} };
+				ContactPair pair{ bodyA, bodyB, point, {normal[0], normal[1]} };
 				pair.retain();
 				_contactStarts.push_back(pair);
 			}
 			if (bodyB->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair = { bodyB, bodyA, point, {normal[0], normal[1]} };
+				ContactPair pair{ bodyB, bodyA, point, {normal[0], normal[1]} };
 				pair.retain();
 				_contactStarts.push_back(pair);
 			}
@@ -143,7 +151,7 @@ void PhysicsWorld::setupEndContact()
 			if (sensor && bodyB && sensor->isEnabled() &&
 				!pd::IsSensor(_world, fixtureB))
 			{
-				SensorPair pair = {sensor, bodyB};
+				SensorPair pair{sensor, bodyB};
 				pair.retain();
 				_sensorLeaves.push_back(pair);
 			}
@@ -153,7 +161,7 @@ void PhysicsWorld::setupEndContact()
 			Sensor* sensor = _fixtureData[fixtureB.get()];
 			if (sensor && bodyA && sensor->isEnabled())
 			{
-				SensorPair pair = {sensor, bodyA};
+				SensorPair pair{sensor, bodyA};
 				pair.retain();
 				_sensorLeaves.push_back(pair);
 			}
@@ -166,14 +174,14 @@ void PhysicsWorld::setupEndContact()
 			if (bodyA->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair = { bodyA, bodyB, point, {normal[0],normal[1]} };
+				ContactPair pair{ bodyA, bodyB, point, {normal[0],normal[1]} };
 				pair.retain();
 				_contactEnds.push_back(pair);
 			}
 			if (bodyB->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair = { bodyB, bodyA, point, {normal[0],normal[1]} };
+				ContactPair pair{ bodyB, bodyA, point, {normal[0],normal[1]} };
 				pair.retain();
 				_contactEnds.push_back(pair);
 			}
@@ -206,14 +214,14 @@ void PhysicsWorld::setupPreSolve()
 		if (bodyA->isReceivingContact())
 		{
 			pd::UnitVec normal = worldManifold.GetNormal();
-			ContactPair pair = { bodyA, bodyB, point, {normal[0],normal[1]} };
+			ContactPair pair{ bodyA, bodyB, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
 		if (bodyB->isReceivingContact())
 		{
 			pd::UnitVec normal = worldManifold.GetNormal();
-			ContactPair pair = { bodyB, bodyA, point, {normal[0],normal[1]} };
+			ContactPair pair{ bodyB, bodyA, point, {normal[0],normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
