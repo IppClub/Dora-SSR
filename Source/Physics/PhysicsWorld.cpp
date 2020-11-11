@@ -66,7 +66,7 @@ PhysicsWorld::~PhysicsWorld()
 	{
 		b->cleanup();
 	}
-	for (auto& pair: _sensorEnters)
+	for (auto& pair : _sensorEnters)
 	{
 		pair.release();
 	}
@@ -174,14 +174,14 @@ void PhysicsWorld::setupEndContact()
 			if (bodyA->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair{ bodyA, bodyB, point, {normal[0],normal[1]} };
+				ContactPair pair{ bodyA, bodyB, point, {normal[0], normal[1]} };
 				pair.retain();
 				_contactEnds.push_back(pair);
 			}
 			if (bodyB->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair{ bodyB, bodyA, point, {normal[0],normal[1]} };
+				ContactPair pair{ bodyB, bodyA, point, {normal[0], normal[1]} };
 				pair.retain();
 				_contactEnds.push_back(pair);
 			}
@@ -214,14 +214,14 @@ void PhysicsWorld::setupPreSolve()
 		if (bodyA->isReceivingContact())
 		{
 			pd::UnitVec normal = worldManifold.GetNormal();
-			ContactPair pair{ bodyA, bodyB, point, {normal[0],normal[1]} };
+			ContactPair pair{ bodyA, bodyB, point, {normal[0], normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
 		if (bodyB->isReceivingContact())
 		{
 			pd::UnitVec normal = worldManifold.GetNormal();
-			ContactPair pair{ bodyB, bodyA, point, {normal[0],normal[1]} };
+			ContactPair pair{ bodyB, bodyA, point, {normal[0], normal[1]} };
 			pair.retain();
 			_contactStarts.push_back(pair);
 		}
@@ -419,7 +419,7 @@ bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback
 
 bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
 {
-	pd::RayCastInput input{b2Val(start),b2Val(end),pr::Real{1}};
+	pd::RayCastInput input{b2Val(start), b2Val(end), pr::Real{1}};
 	bool result = false;
 	pd::RayCast(_world, input, [&](pr::BodyID body, pr::FixtureID fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal)
 	{
