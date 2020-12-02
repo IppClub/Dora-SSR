@@ -21,13 +21,13 @@
 #ifndef PLAYRHO_DYNAMICS_BODYID_HPP
 #define PLAYRHO_DYNAMICS_BODYID_HPP
 
-#include "PlayRho/Common/StrongType.hpp"
+#include "PlayRho/Common/IndexingNamedType.hpp"
 #include "PlayRho/Common/Settings.hpp"
 
 namespace playrho {
 
-/// @brief Body identifier.
-using BodyID = strongtype::IndexingNamedType<BodyCounter, struct BodyIdentifier>;
+/// @brief Identifier for bodies.
+using BodyID = detail::IndexingNamedType<BodyCounter, struct BodyIdentifier>;
 
 /// @brief Invalid body ID value.
 constexpr auto InvalidBodyID = static_cast<BodyID>(static_cast<BodyID::underlying_type>(-1));

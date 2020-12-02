@@ -31,7 +31,10 @@
 
 namespace playrho {
 
-/// Array list.
+/// @brief Array list.
+/// @details This is a <code>std::array</code> backed <code>std::vector</code> like container. It
+///   provides vector like behavior whose max size is capped at the size given by the template max
+///   size parameter without using dynamic storage.
 template <typename VALUE_TYPE, std::size_t MAXSIZE, typename SIZE_TYPE = std::size_t>
 class ArrayList
 {

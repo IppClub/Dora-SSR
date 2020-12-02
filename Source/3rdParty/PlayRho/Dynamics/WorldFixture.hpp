@@ -24,6 +24,19 @@
 
 /// @file
 /// Declarations of free functions of World for fixtures identified by <code>FixtureID</code>.
+/// @details This is a collection of non-member non-friend functions - also called "free"
+///   functions - that are related to fixtures within an instance of a <code>World</code>.
+///   Many are just "wrappers" to similarly named member functions but some are additional
+///   functionality built on those member functions. A benefit to using free functions that
+///   are now just wrappers, is that of helping to isolate your code from future changes that
+///   might occur to the underlying <code>World</code> member functions. Free functions in
+///   this sense are "cheap" abstractions. While using these incurs extra run-time overhead
+///   when compiled without any compiler optimizations enabled, enabling optimizations
+///   should entirely eliminate that overhead.
+/// @note The four basic categories of these functions are "CRUD": create, read, update,
+///   and delete.
+/// @see World, FixtureID.
+/// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Common/Range.hpp" // for SizedRange
@@ -51,41 +64,50 @@ class World;
 ///   interfaces to <code>playrho::d2::World</code> fixture member functions and additional
 ///   functionality.
 
-/// @defgroup WorldFixtureFreeFunctions World Fixture Related Free Functions
-/// @brief Collection of "free" functions related to fixtures within a <code>World</code>.
-/// @details This is a collection of non-member non-friend functions - also called "free"
-///   functions - that are related to fixtures within an instance of a <code>World</code>.
-///   Many are just "wrappers" to similarly named member functions but some are additional
-///   functionality built on those member functions. A benefit to using free functions that
-///   are now just wrappers, is that of helping to isolate your code from future changes that
-///   might occur to the underlying <code>World</code> member functions. Free functions in
-///   this sense are "cheap" abstractions. While using these incurs extra run-time overhead
-///   when compiled without any compiler optimizations enabled, enabling optimizations
-///   should entirely eliminate that overhead.
-/// @note The four basic categories of these functions are "CRUD": create, read, update,
-///   and delete.
-/// @see World, FixtureID.
-/// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
-/// @{
+/// @brief Gets the extent of the currently valid fixture range.
+/// @note This is one higher than the maxium <code>FixtureID</code> that is in range
+///   for fixture related functions.
+/// @see CreateFixture(World& world, FixtureConf).
+/// @relatedalso World
+FixtureCounter GetFixtureRange(const World& world) noexcept;
 
 /// @brief Gets the count of fixtures in the given world.
+/// @return Value that's less than or equal to what's returned by
+///   <code>GetFixtureRange(const World& world)</code>.
 /// @throws WrongState if called while the world is "locked".
+/// @see GetFixtureRange(const World& world).
 /// @relatedalso World
 FixtureCounter GetFixtureCount(const World& world) noexcept;
 
 /// @brief Creates a fixture within the specified world.
 /// @throws WrongState if called while the world is "locked".
 /// @throws std::out_of_range If given an invalid body identifier in the configuration.
+/// @see CreateFixture(World&, BodyID, const Shape&,FixtureConf,bool).
 /// @relatedalso World
 FixtureID CreateFixture(World& world, FixtureConf def = FixtureConf{}, bool resetMassData = true);
 
 /// @brief Creates a fixture within the specified world.
 /// @throws WrongState if called while the world is "locked".
 /// @throws std::out_of_range If given an invalid body identifier.
+/// @see CreateFixture(World& world, FixtureConf def).
 /// @relatedalso World
 FixtureID CreateFixture(World& world, BodyID id, const Shape& shape,
                         FixtureConf def = FixtureConf{},
                         bool resetMassData = true);
+
+/// @brief Creates a fixture within the specified world using a configuration of a shape.
+/// @details This is a convenience function for allowing limited implicit conversions to shapes.
+/// @throws WrongState if called while the world is "locked".
+/// @throws std::out_of_range If given an invalid body identifier.
+/// @see CreateFixture(World& world, FixtureConf def).
+/// @relatedalso World
+template <typename T>
+FixtureID CreateFixture(World& world, BodyID id, const T& shapeConf,
+                        FixtureConf def = FixtureConf{},
+                        bool resetMassData = true)
+{
+    return CreateFixture(world, id, Shape{shapeConf}, def, resetMassData);
+}
 
 /// @brief Destroys the identified fixture.
 /// @throws WrongState if this function is called while the world is locked.
@@ -177,8 +199,6 @@ inline MassData GetMassData(const World& world, FixtureID id)
 /// @relatedalso World
 /// @ingroup TestPointGroup
 bool TestPoint(const World& world, FixtureID id, Length2 p);
-
-/// @}
 
 } // namespace d2
 } // namespace playrho

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,6 +36,10 @@ namespace d2 {
 class World;
 class BodyConstraint;
 
+/// @example WheelJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::WheelJointConf</code>.
+
 /// @brief Wheel joint definition.
 /// @details This joint provides two degrees of freedom: translation along an axis fixed
 ///   in body A and rotation in the plane. In other words, it is a point to line constraint
@@ -48,8 +52,7 @@ class BodyConstraint;
 /// @ingroup JointsGroup
 /// @image html WheelJoint.png
 /// @see Joint, World::CreateJoint
-struct WheelJointConf : public JointBuilder<WheelJointConf>
-{
+struct WheelJointConf : public JointBuilder<WheelJointConf> {
     /// @brief Super type.
     using super = JointBuilder<WheelJointConf>;
 
@@ -58,8 +61,7 @@ struct WheelJointConf : public JointBuilder<WheelJointConf>
 
     /// Initialize the bodies, anchors, axis, and reference angle using the world
     /// anchor and world axis.
-    WheelJointConf(BodyID bA, BodyID bB,
-                   Length2 laA = Length2{}, Length2 laB = Length2{},
+    WheelJointConf(BodyID bA, BodyID bB, Length2 laA = Length2{}, Length2 laB = Length2{},
                    UnitVec axis = UnitVec::GetRight()) noexcept;
 
     /// @brief Uses the given enable motor state value.
@@ -144,14 +146,52 @@ struct WheelJointConf : public JointBuilder<WheelJointConf>
     InvMass gamma = InvMass{0}; ///< Gamma.
 };
 
+/// @brief Equality operator.
+constexpr bool operator==(const WheelJointConf& lhs, const WheelJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.localAnchorA == rhs.localAnchorA) // line break
+        && (lhs.localAnchorB == rhs.localAnchorB) // line break
+        && (lhs.localXAxisA == rhs.localXAxisA) // line break
+        && (lhs.localYAxisA == rhs.localYAxisA) // line break
+        && (lhs.enableMotor == rhs.enableMotor) // line break
+        && (lhs.maxMotorTorque == rhs.maxMotorTorque) // line break
+        && (lhs.motorSpeed == rhs.motorSpeed) // line break
+        && (lhs.frequency == rhs.frequency) // line break
+        && (lhs.dampingRatio == rhs.dampingRatio) // line break
+        && (lhs.impulse == rhs.impulse) // line break
+        && (lhs.angularImpulse == rhs.angularImpulse) // line break
+        && (lhs.springImpulse == rhs.springImpulse) // line break
+        && (lhs.ax == rhs.ax) // line break
+        && (lhs.ay == rhs.ay) // line break
+        && (lhs.sAx == rhs.sAx) // line break
+        && (lhs.sBx == rhs.sBx) // line break
+        && (lhs.sAy == rhs.sAy) // line break
+        && (lhs.sBy == rhs.sBy) // line break
+        && (lhs.mass == rhs.mass) // line break
+        && (lhs.angularMass == rhs.angularMass) // line break
+        && (lhs.springMass == rhs.springMass) // line break
+        && (lhs.bias == rhs.bias) // line break
+        && (lhs.gamma == rhs.gamma);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const WheelJointConf& lhs, const WheelJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
 WheelJointConf GetWheelJointConf(const Joint& joint);
 
 /// @brief Gets the definition data for the given parameters.
 /// @relatedalso World
-WheelJointConf GetWheelJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                                 Length2 anchor, UnitVec axis = UnitVec::GetRight());
+WheelJointConf GetWheelJointConf(const World& world, BodyID bodyA, BodyID bodyB, Length2 anchor,
+                                 UnitVec axis = UnitVec::GetRight());
 
 /// @brief Gets the angular velocity for the given configuration within the specified world.
 /// @relatedalso World
@@ -175,8 +215,7 @@ constexpr auto ShiftOrigin(WheelJointConf&, Length2)
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
 /// @see SolveVelocity.
 /// @relatedalso WheelJointConf
-void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -218,8 +257,7 @@ constexpr void SetDampingRatio(WheelJointConf& object, Real value) noexcept
 
 /// @brief Type info specialization for <code>d2::WheelJointConf</code>.
 template <>
-struct TypeInfo<d2::WheelJointConf>
-{
+struct TypeInfo<d2::WheelJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::WheelJointConf";
 };

@@ -21,7 +21,7 @@
 #ifndef PLAYRHO_COMMON_TYPEID_HPP
 #define PLAYRHO_COMMON_TYPEID_HPP
 
-#include "PlayRho/Common/StrongType.hpp"
+#include "PlayRho/Common/IndexingNamedType.hpp"
 #include "PlayRho/Common/Templates.hpp" // for GetInvalid, IsValid
 
 namespace playrho {
@@ -88,7 +88,7 @@ struct TypeInfo<long double>
 };
 
 /// @brief Type identifier.
-using TypeID = strongtype::IndexingNamedType<const char * const *, struct TypeIdentifier>;
+using TypeID = detail::IndexingNamedType<const char * const *, struct TypeIdentifier>;
 
 /// @brief Invalid type ID value.
 constexpr auto InvalidTypeID =

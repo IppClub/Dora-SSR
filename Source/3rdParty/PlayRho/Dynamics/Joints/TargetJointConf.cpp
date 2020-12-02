@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -51,15 +51,19 @@ TargetJointConf GetTargetJointConf(const Joint& joint)
 Mass22 GetEffectiveMassMatrix(const TargetJointConf& object, const BodyConstraint& body) noexcept
 {
     // K    = [(1/m1 + 1/m2) * eye(2) - skew(r1) * invI1 * skew(r1) - skew(r2) * invI2 * skew(r2)]
-    //      = [1/m1+1/m2     0    ] + invI1 * [r1.y*r1.y -r1.x*r1.y] + invI2 * [r1.y*r1.y -r1.x*r1.y]
-    //        [    0     1/m1+1/m2]           [-r1.x*r1.y r1.x*r1.x]           [-r1.x*r1.y r1.x*r1.x]
+    //      = [1/m1+1/m2     0    ] + invI1 * [r1.y*r1.y -r1.x*r1.y] + invI2 * [r1.y*r1.y
+    //      -r1.x*r1.y]
+    //        [    0     1/m1+1/m2]           [-r1.x*r1.y r1.x*r1.x]           [-r1.x*r1.y
+    //        r1.x*r1.x]
 
     const auto invMass = body.GetInvMass();
     const auto invRotInertia = body.GetInvRotInertia();
 
-    const auto exx = InvMass{invMass + (invRotInertia * Square(GetY(object.rB)) / SquareRadian) + object.gamma};
+    const auto exx =
+        InvMass{invMass + (invRotInertia * Square(GetY(object.rB)) / SquareRadian) + object.gamma};
     const auto exy = InvMass{-invRotInertia * GetX(object.rB) * GetY(object.rB) / SquareRadian};
-    const auto eyy = InvMass{invMass + (invRotInertia * Square(GetX(object.rB)) / SquareRadian) + object.gamma};
+    const auto eyy =
+        InvMass{invMass + (invRotInertia * Square(GetX(object.rB)) / SquareRadian) + object.gamma};
 
     InvMass22 K;
     GetX(GetX(K)) = exx;
@@ -88,7 +92,8 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     const auto qB = UnitVec::Get(posB.angular);
 
     const auto mass = (bodyConstraintB.GetInvMass() != InvMass{})
-        ? (Real{1} / bodyConstraintB.GetInvMass()): 0_kg;
+                          ? (Real{1} / bodyConstraintB.GetInvMass())
+                          : 0_kg;
 
     // Frequency
     const auto omega = Real{2} * Pi * object.frequency; // T^-1
@@ -106,7 +111,7 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     const auto tmp = d + h * k; // M T^-1
     assert(IsValid(Real{tmp * Second / Kilogram}));
     const auto invGamma = Mass{h * tmp}; // M T^-1 * T is simply M.
-    object.gamma = (invGamma != 0_kg)? Real{1} / invGamma: InvMass{0};
+    object.gamma = (invGamma != 0_kg) ? Real{1} / invGamma : InvMass{0};
     const auto beta = Frequency{h * k * object.gamma}; // T * M T^-2 * M^-1 is T^-1
 
     // Compute the effective mass matrix.
@@ -120,15 +125,15 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     // Cheat with some damping
     velB.angular *= 0.98f;
 
-    if (step.doWarmStart)
-    {
+    if (step.doWarmStart) {
         object.impulse *= step.dtRatio;
         const auto P = object.impulse;
-        const auto crossBP = AngularMomentum{Cross(object.rB, P) / Radian}; // L * M * L T^-1 is: L^2 M T^-1
-        velB += Velocity{bodyConstraintB.GetInvMass() * P, bodyConstraintB.GetInvRotInertia() * crossBP};
+        const auto crossBP =
+            AngularMomentum{Cross(object.rB, P) / Radian}; // L * M * L T^-1 is: L^2 M T^-1
+        velB += Velocity{bodyConstraintB.GetInvMass() * P,
+                         bodyConstraintB.GetInvRotInertia() * crossBP};
     }
-    else
-    {
+    else {
         object.impulse = Momentum2{};
     }
 
@@ -143,25 +148,23 @@ bool SolveVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     auto velB = bodyConstraintB.GetVelocity();
     assert(IsValid(velB));
 
-    const auto Cdot = LinearVelocity2{velB.linear + (GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
+    const auto Cdot =
+        LinearVelocity2{velB.linear + (GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
     const auto ev = Cdot + LinearVelocity2{object.C + (object.gamma * object.impulse)};
     const auto oldImpulse = object.impulse;
     const auto addImpulse = Transform(-ev, object.mass);
     assert(IsValid(addImpulse));
     object.impulse += addImpulse;
     const auto maxImpulse = step.deltaTime * Force{object.maxForce};
-    if (GetMagnitudeSquared(object.impulse) > Square(maxImpulse))
-    {
+    if (GetMagnitudeSquared(object.impulse) > Square(maxImpulse)) {
         object.impulse = GetUnitVector(object.impulse, UnitVec::GetZero()) * maxImpulse;
     }
 
     const auto incImpulse = (object.impulse - oldImpulse);
     const auto angImpulseB = AngularMomentum{Cross(object.rB, incImpulse) / Radian};
 
-    velB += Velocity{
-        bodyConstraintB.GetInvMass() * incImpulse,
-        bodyConstraintB.GetInvRotInertia() * angImpulseB
-    };
+    velB += Velocity{bodyConstraintB.GetInvMass() * incImpulse,
+                     bodyConstraintB.GetInvRotInertia() * angImpulseB};
 
     bodyConstraintB.SetVelocity(velB);
 

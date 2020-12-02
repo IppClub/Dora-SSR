@@ -38,6 +38,12 @@ class WorldImpl;
 class Contact;
 class Manifold;
 
+/// @brief Gets the extent of the currently valid contact range.
+/// @note This is one higher than the maxium <code>ContactID</code> that is in range
+///   for contact related functions.
+/// @relatedalso WorldImpl
+ContactCounter GetContactRange(const WorldImpl& world) noexcept;
+
 /// @brief Gets the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso WorldImpl

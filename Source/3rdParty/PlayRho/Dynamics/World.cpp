@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -131,6 +131,21 @@ Frequency World::GetInvDeltaTime() const noexcept
 BodyCounter World::GetBodyRange() const noexcept
 {
     return ::playrho::d2::GetBodyRange(*m_impl);
+}
+
+FixtureCounter World::GetFixtureRange() const noexcept
+{
+    return ::playrho::d2::GetFixtureRange(*m_impl);
+}
+
+JointCounter World::GetJointRange() const noexcept
+{
+    return ::playrho::d2::GetJointRange(*m_impl);
+}
+
+ContactCounter World::GetContactRange() const noexcept
+{
+    return ::playrho::d2::GetContactRange(*m_impl);
 }
 
 SizedRange<World::Bodies::const_iterator> World::GetBodies() const noexcept

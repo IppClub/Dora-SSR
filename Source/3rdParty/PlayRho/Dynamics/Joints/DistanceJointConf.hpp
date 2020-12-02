@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,6 +36,10 @@ namespace d2 {
 class World;
 class BodyConstraint;
 
+/// @example DistanceJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::DistanceJointConf</code>.
+
 /// @brief Distance joint definition.
 /// @details This requires defining an anchor point on both bodies and the non-zero
 ///   length of the distance joint. The definition uses local anchor points so that
@@ -45,8 +49,7 @@ class BodyConstraint;
 /// @see Joint, World::CreateJoint
 /// @ingroup JointsGroup
 /// @image html distanceJoint.gif
-struct DistanceJointConf : public JointBuilder<DistanceJointConf>
-{
+struct DistanceJointConf : public JointBuilder<DistanceJointConf> {
     /// @brief Super type.
     using super = JointBuilder<DistanceJointConf>;
 
@@ -58,8 +61,8 @@ struct DistanceJointConf : public JointBuilder<DistanceJointConf>
 
     /// @brief Initializing constructor.
     /// @details Initialize the bodies, anchors, and length using the world anchors.
-    DistanceJointConf(BodyID bA, BodyID bB,
-                      Length2 laA = Length2{}, Length2 laB = Length2{}, Length l = 1_m) noexcept;
+    DistanceJointConf(BodyID bA, BodyID bB, Length2 laA = Length2{}, Length2 laB = Length2{},
+                      Length l = 1_m) noexcept;
 
     /// @brief Uses the given length.
     /// @note Manipulating the length when the frequency is zero can lead to non-physical behavior.
@@ -86,20 +89,20 @@ struct DistanceJointConf : public JointBuilder<DistanceJointConf>
     /// @brief Local anchor point relative to body A's origin.
     /// @note 8-bytes (with 4-byte Real).
     Length2 localAnchorA = Length2{};
-    
+
     /// @brief Local anchor point relative to body B's origin.
     /// @note 8-bytes (with 4-byte Real).
     Length2 localAnchorB = Length2{};
-    
+
     /// @brief Natural length between the anchor points.
     /// @note 4-bytes (with 4-byte Real).
     Length length = 1_m;
-    
+
     /// @brief Mass-spring-damper frequency.
     /// @note 0 disables softness.
     /// @note 4-bytes (with 4-byte Real).
     NonNegative<Frequency> frequency{};
-    
+
     /// @brief Damping ratio.
     /// @note 0 = no damping, 1 = critical damping.
     /// @note 4-bytes (with 4-byte Real).
@@ -118,6 +121,33 @@ struct DistanceJointConf : public JointBuilder<DistanceJointConf>
     LinearVelocity bias = {}; ///< Bias. 4-bytes (with 4-byte Real).
     Mass mass = 0_kg; ///< Mass. 4-bytes (with 4-byte Real).
 };
+
+/// @brief Equality operator.
+constexpr bool operator==(const DistanceJointConf& lhs, const DistanceJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.localAnchorA == rhs.localAnchorA) // line break
+        && (lhs.localAnchorB == rhs.localAnchorB) // line break
+        && (lhs.length == rhs.length) // line break
+        && (lhs.frequency == rhs.frequency) // line break
+        && (lhs.dampingRatio == rhs.dampingRatio) // line break
+        && (lhs.impulse == rhs.impulse) // line break
+        && (lhs.u == rhs.u) // line break
+        && (lhs.rA == rhs.rA) // line break
+        && (lhs.rB == rhs.rB) // line break
+        && (lhs.invGamma == rhs.invGamma) // line break
+        && (lhs.bias == rhs.bias) // line break
+        && (lhs.mass == rhs.mass);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const DistanceJointConf& lhs, const DistanceJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
 
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
@@ -154,8 +184,7 @@ constexpr bool ShiftOrigin(DistanceJointConf&, Length2) noexcept
 /// @see SolveVelocity.
 /// @relatedalso DistanceJointConf
 void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf& conf);
+                  const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
@@ -203,8 +232,7 @@ constexpr auto SetLength(DistanceJointConf& object, Length value) noexcept
 
 /// @brief Type info specialization for <code>d2::DistanceJointConf</code>.
 template <>
-struct TypeInfo<d2::DistanceJointConf>
-{
+struct TypeInfo<d2::DistanceJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::DistanceJointConf";
 };

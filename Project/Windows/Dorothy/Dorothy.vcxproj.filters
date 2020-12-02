@@ -660,6 +660,24 @@
     <ClCompile Include="..\..\..\Source\ML\ML.cpp">
       <Filter>ML</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.cpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.cpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
     </ClCompile>
@@ -698,24 +716,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\WorldManifold.cpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.cpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.cpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.cpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.cpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.cpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.cpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\BlockAllocator.cpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
@@ -804,6 +804,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldSpecial.cpp">
       <Filter>3rdParty\PlayRho\Dynamics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ConstraintSolverConf.cpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\Contact.cpp">
       <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
     </ClCompile>
@@ -835,9 +838,6 @@
       <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointKey.cpp">
-      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointType.cpp">
       <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\LimitState.cpp">
@@ -1542,6 +1542,27 @@
     <ClInclude Include="..\..\..\Source\ML\ML.h">
       <Filter>ML</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ShapeConf.hpp">
+      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.hpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
     </ClInclude>
@@ -1593,27 +1614,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\WorldManifold.hpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.hpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.hpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.hpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.hpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.hpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.hpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ShapeConf.hpp">
-      <Filter>3rdParty\PlayRho\Collision\Shapes</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Acceleration.hpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
@@ -1654,6 +1654,9 @@
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\GrowableStack.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\IndexingNamedType.hpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Interval.hpp">
@@ -1711,9 +1714,6 @@
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StackAllocator.hpp">
-      <Filter>3rdParty\PlayRho\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StrongType.hpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Sweep.hpp">
@@ -1842,6 +1842,9 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\BodyConstraint.hpp">
       <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ConstraintSolverConf.hpp">
+      <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\Contact.hpp">
       <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
     </ClInclude>
@@ -1885,9 +1888,6 @@
       <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointKey.hpp">
-      <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointType.hpp">
       <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\LimitState.hpp">

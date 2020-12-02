@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -29,13 +29,13 @@ namespace d2 {
 
 namespace {
 
-inline InvMass3 ComputeK(const VelocityConstraint& vc) noexcept
+inline InvMass3 ComputeK(const VelocityConstraint& vc, const std::vector<BodyConstraint>& bodies) noexcept
 {
     assert(vc.GetPointCount() == 2);
 
     const auto normal = vc.GetNormal();
-    const auto bodyA = vc.GetBodyA();
-    const auto bodyB = vc.GetBodyB();
+    const auto bodyA = &bodies[vc.GetBodyA().get()];
+    const auto bodyB = &bodies[vc.GetBodyB().get()];
 
     const auto relA0 = vc.GetPointRelPosA(0);
     const auto relB0 = vc.GetPointRelPosB(0);
@@ -75,10 +75,11 @@ inline InvMass3 ComputeK(const VelocityConstraint& vc) noexcept
 VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
                                        LinearVelocity tangentSpeed,
                                        const WorldManifold& worldManifold,
-                                       BodyConstraint& bA,
-                                       BodyConstraint& bB,
-                                       Conf conf):
-    m_bodyA{&bA}, m_bodyB{&bB},
+                                       BodyID bA,
+                                       BodyID bB,
+                                       const std::vector<BodyConstraint>& bodies,
+                                       const Conf& conf):
+    m_bodyA{bA}, m_bodyB{bB},
     m_normal{worldManifold.GetNormal()},
     m_friction{friction}, m_restitution{restitution}, m_tangentSpeed{tangentSpeed}
 {
@@ -93,14 +94,14 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
     {
         const auto ci = worldManifold.GetImpulses(j);
         const auto worldPoint = worldManifold.GetPoint(j);
-        const auto relA = worldPoint - bA.GetPosition().linear;
-        const auto relB = worldPoint - bB.GetPosition().linear;
-        AddPoint(get<0>(ci), get<1>(ci), relA, relB, conf);
+        const auto relA = worldPoint - bodies[bA.get()].GetPosition().linear;
+        const auto relB = worldPoint - bodies[bB.get()].GetPosition().linear;
+        AddPoint(get<0>(ci), get<1>(ci), relA, relB, bodies, conf);
     }
     
     if (conf.blockSolve && (pointCount == 2))
     {
-        const auto k = ComputeK(*this);
+        const auto k = ComputeK(*this, bodies);
         
         // Ensure a reasonable condition number.
         const auto k00_squared = Square(get<0>(k));
@@ -127,15 +128,16 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
 
 VelocityConstraint::Point
 VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                             Length2 relA, Length2 relB, Conf conf) const noexcept
+                             Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
+                             Conf conf) const noexcept
 {
     assert(IsValid(normalImpulse));
     assert(IsValid(tangentImpulse));
     assert(IsValid(relA));
     assert(IsValid(relB));
     
-    const auto bodyA = GetBodyA();
-    const auto bodyB = GetBodyB();
+    const auto bodyA = &bodies[GetBodyA().get()];
+    const auto bodyB = &bodies[GetBodyB().get()];
     
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();
@@ -176,11 +178,12 @@ VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
 }
 
 void VelocityConstraint::AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                                  Length2 relA, Length2 relB, Conf conf)
+                                  Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
+                                  Conf conf)
 {
     assert(m_pointCount < MaxManifoldPoints);
     m_points[m_pointCount] = GetPoint(normalImpulse * conf.dtRatio, tangentImpulse * conf.dtRatio,
-                                      relA, relB, conf);
+                                      relA, relB, bodies, conf);
     ++m_pointCount;
 }
 

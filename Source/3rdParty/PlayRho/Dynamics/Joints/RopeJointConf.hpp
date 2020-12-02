@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -38,6 +38,10 @@ class Joint;
 class World;
 class BodyConstraint;
 
+/// @example RopeJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::RopeJointConf</code>.
+
 /// @brief Rope joint definition.
 /// @details A rope joint enforces a maximum distance between two points on two bodies.
 ///   It has no other effect. This requires two body anchor points and a maximum lengths.
@@ -50,8 +54,7 @@ class BodyConstraint;
 /// @ingroup JointsGroup
 /// @see collideConnected in JointConf.
 /// @see Joint, World::CreateJoint
-struct RopeJointConf : public JointBuilder<RopeJointConf>
-{
+struct RopeJointConf : public JointBuilder<RopeJointConf> {
     /// @brief Super type.
     using super = JointBuilder<RopeJointConf>;
 
@@ -59,8 +62,8 @@ struct RopeJointConf : public JointBuilder<RopeJointConf>
     constexpr RopeJointConf() = default;
 
     /// @brief Initializing constructor.
-    constexpr RopeJointConf(BodyID bodyA, BodyID bodyB) noexcept:
-        super{super{}.UseBodyA(bodyA).UseBodyB(bodyB)}
+    constexpr RopeJointConf(BodyID bodyA, BodyID bodyB) noexcept
+        : super{super{}.UseBodyA(bodyA).UseBodyB(bodyB)}
     {
         // Intentionally empty.
     }
@@ -74,10 +77,10 @@ struct RopeJointConf : public JointBuilder<RopeJointConf>
 
     /// The local anchor point relative to body A's origin.
     Length2 localAnchorA = Length2{-1_m, 0_m};
-    
+
     /// The local anchor point relative to body B's origin.
     Length2 localAnchorB = Length2{+1_m, 0_m};
-    
+
     /// The maximum length of the rope.
     Length maxLength = 0_m;
 
@@ -91,6 +94,25 @@ struct RopeJointConf : public JointBuilder<RopeJointConf>
     Mass mass = 0_kg; ///< Mass.
     LimitState limitState = LimitState::e_inactiveLimit; ///< Limit state.
 };
+
+/// @brief Equality operator.
+constexpr bool operator==(const RopeJointConf& lhs, const RopeJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.localAnchorA == rhs.localAnchorA) && (lhs.localAnchorB == rhs.localAnchorB) &&
+        (lhs.maxLength == rhs.maxLength) && (lhs.impulse == rhs.impulse) && (lhs.u == rhs.u) &&
+        (lhs.rA == rhs.rA) && (lhs.rB == rhs.rB) && (lhs.mass == rhs.mass) &&
+        (lhs.limitState == rhs.limitState);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const RopeJointConf& lhs, const RopeJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
 
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
@@ -121,8 +143,7 @@ constexpr auto ShiftOrigin(RopeJointConf&, Length2) noexcept
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
 /// @see SolveVelocity.
 /// @relatedalso RopeJointConf
-void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -157,8 +178,7 @@ constexpr auto SetMaxLength(RopeJointConf& object, Length value) noexcept
 
 /// @brief Type info specialization for <code>d2::RopeJointConf</code>.
 template <>
-struct TypeInfo<d2::RopeJointConf>
-{
+struct TypeInfo<d2::RopeJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::RopeJointConf";
 };

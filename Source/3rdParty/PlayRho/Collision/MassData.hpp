@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -74,7 +74,7 @@ namespace d2 {
 
 /// @brief Mass data alias for 2-D objects.
 /// @note This data structure is 16-bytes large (on at least one 64-bit platform).
-using MassData = detail::MassData<2>;
+using MassData = ::playrho::detail::MassData<2>;
 
 /// @brief Computes the mass data for a circular shape.
 ///

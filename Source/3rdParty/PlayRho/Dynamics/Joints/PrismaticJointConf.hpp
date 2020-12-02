@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -37,6 +37,10 @@ namespace d2 {
 class World;
 class BodyConstraint;
 
+/// @example PrismaticJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::PrismaticJointConf</code>.
+
 /// @brief Prismatic joint definition.
 /// @details This joint provides one degree of freedom: translation along an axis fixed in
 ///   body-A. Relative rotation is prevented. This requires defining a line of motion using
@@ -50,8 +54,7 @@ class BodyConstraint;
 /// @image html prismaticJoint.gif
 /// @see https://en.wikipedia.org/wiki/Prismatic_joint
 /// @see Joint, World::CreateJoint
-struct PrismaticJointConf : public JointBuilder<PrismaticJointConf>
-{
+struct PrismaticJointConf : public JointBuilder<PrismaticJointConf> {
     /// @brief Super type.
     using super = JointBuilder<PrismaticJointConf>;
 
@@ -64,8 +67,7 @@ struct PrismaticJointConf : public JointBuilder<PrismaticJointConf>
     /// @brief Initializing constructor.
     /// @details Initializes the bodies, anchors, axis, and reference angle using the world
     ///   anchor and unit world axis.
-    PrismaticJointConf(BodyID bA, BodyID bB,
-                       Length2 laA = Length2{}, Length2 laB = Length2{},
+    PrismaticJointConf(BodyID bA, BodyID bB, Length2 laA = Length2{}, Length2 laB = Length2{},
                        UnitVec axisA = UnitVec::GetRight(), Angle angle = 0_deg) noexcept;
 
     /// @brief Uses the given enable limit state value.
@@ -160,16 +162,51 @@ struct PrismaticJointConf : public JointBuilder<PrismaticJointConf>
     Mass motorMass = 0_kg; ///< Motor mass.
 };
 
+/// @brief Equality operator.
+constexpr bool operator==(const PrismaticJointConf& lhs, const PrismaticJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.localAnchorA == rhs.localAnchorA) // line break
+        && (lhs.localAnchorB == rhs.localAnchorB) // line break
+        && (lhs.localXAxisA == rhs.localXAxisA) // line break
+        && (lhs.localYAxisA == rhs.localYAxisA) // line break
+        && (lhs.referenceAngle == rhs.referenceAngle) // line break
+        && (lhs.impulse == rhs.impulse) // line break
+        && (lhs.motorImpulse == rhs.motorImpulse) // line break
+        && (lhs.enableLimit == rhs.enableLimit) // line break
+        && (lhs.lowerTranslation == rhs.lowerTranslation) // line break
+        && (lhs.upperTranslation == rhs.upperTranslation) // line break
+        && (lhs.enableMotor == rhs.enableMotor) // line break
+        && (lhs.maxMotorForce == rhs.maxMotorForce) // line break
+        && (lhs.motorSpeed == rhs.motorSpeed) // line break
+        && (lhs.limitState == rhs.limitState) // line break
+        && (lhs.axis == rhs.axis) // line break
+        && (lhs.perp == rhs.perp) // line break
+        && (lhs.s1 == rhs.s1) // line break
+        && (lhs.s2 == rhs.s2) // line break
+        && (lhs.a1 == rhs.a1) // line break
+        && (lhs.a2 == rhs.a2) // line break
+        && (lhs.K == rhs.K) // line break
+        && (lhs.motorMass == rhs.motorMass);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const PrismaticJointConf& lhs, const PrismaticJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
 PrismaticJointConf GetPrismaticJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
-PrismaticJointConf GetPrismaticJointConf(const World& world,
-                                         BodyID bA, BodyID bB,
-                                         const Length2 anchor,
-                                         const UnitVec axis);
+PrismaticJointConf GetPrismaticJointConf(const World& world, BodyID bA, BodyID bB,
+                                         const Length2 anchor, const UnitVec axis);
 
 /// @brief Gets the current linear velocity of the given configuration.
 /// @relatedalso World
@@ -216,8 +253,7 @@ AngularMomentum GetAngularReaction(const PrismaticJointConf& conf);
 /// @see SolveVelocityConstraints.
 /// @relatedalso PrismaticJointConf
 void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf& conf);
+                  const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
@@ -244,8 +280,7 @@ constexpr void SetMaxMotorForce(PrismaticJointConf& object, Force value)
 
 /// @brief Type info specialization for <code>d2::PrismaticJointConf</code>.
 template <>
-struct TypeInfo<d2::PrismaticJointConf>
-{
+struct TypeInfo<d2::PrismaticJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::PrismaticJointConf";
 };

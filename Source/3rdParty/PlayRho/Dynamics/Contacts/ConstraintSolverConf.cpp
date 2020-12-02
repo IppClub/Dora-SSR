@@ -1,6 +1,5 @@
 /*
- * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -19,15 +18,30 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "PlayRho/Dynamics/Joints/JointType.hpp"
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
+
+#include "PlayRho/Dynamics/StepConf.hpp"
 
 namespace playrho {
-namespace d2 {
 
-const char* ToString(JointType type) noexcept
+ConstraintSolverConf GetRegConstraintSolverConf(const StepConf& conf) noexcept
 {
-    return GetName(type);
+    return ConstraintSolverConf{}
+        .UseResolutionRate(conf.regResolutionRate)
+        .UseLinearSlop(conf.linearSlop)
+        .UseAngularSlop(conf.angularSlop)
+        .UseMaxLinearCorrection(conf.maxLinearCorrection)
+        .UseMaxAngularCorrection(conf.maxAngularCorrection);
 }
 
-} // namespace d2
+ConstraintSolverConf GetToiConstraintSolverConf(const StepConf& conf) noexcept
+{
+    return ConstraintSolverConf{}
+        .UseResolutionRate(conf.toiResolutionRate)
+        .UseLinearSlop(conf.linearSlop)
+        .UseAngularSlop(conf.angularSlop)
+        .UseMaxLinearCorrection(conf.maxLinearCorrection)
+        .UseMaxAngularCorrection(conf.maxAngularCorrection);
+}
+
 } // namespace playrho

@@ -19,15 +19,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef PLAYRHO_COMMON_STRONGTYPE_HPP
-#define PLAYRHO_COMMON_STRONGTYPE_HPP
+#ifndef PLAYRHO_COMMON_INDEXINGNAMEDTYPE_HPP
+#define PLAYRHO_COMMON_INDEXINGNAMEDTYPE_HPP
 
 #include <utility>
 #include <functional> // for std::hash
 #include <type_traits> // for std::is_nothrow_default_constructible
 
 namespace playrho {
-namespace strongtype {
+namespace detail {
 
 /// @brief An indexable, hashable, named "strong type" template class.
 /// @details A template class for wrapping types into more special-purposed types. Wrapping
@@ -137,12 +137,6 @@ static_assert(std::is_default_constructible<IndexingNamedType<int, struct Test>>
 static_assert(std::is_nothrow_copy_constructible<IndexingNamedType<int, struct Test>>::value, "");
 static_assert(std::is_nothrow_move_constructible<IndexingNamedType<int, struct Test>>::value, "");
 
-template <typename T, typename Tag>
-constexpr T UnderlyingTypeImpl(IndexingNamedType<T, Tag>);
-
-template <typename T>
-using UnderlyingType = decltype(UnderlyingTypeImpl(std::declval<T>()));
-
 /// @brief Gets the underlying value.
 template <typename T, typename Tag>
 constexpr T& UnderlyingValue(IndexingNamedType<T, Tag>& o) noexcept
@@ -157,24 +151,23 @@ constexpr const T& UnderlyingValue(const IndexingNamedType<T, Tag>& o) noexcept
     return static_cast<const T&>(o);
 }
 
-} // namespace strongtype
+} // namespace detail
 } // namespace playrho
 
 namespace std {
 
 /// @brief Custom specialization of std::hash for
-///   <code>::playrho::strongtype::IndexingNamedType</code>.
+///   <code>::playrho::detail::IndexingNamedType</code>.
 template <typename T, typename Tag>
-struct hash<::playrho::strongtype::IndexingNamedType<T, Tag>>
+struct hash<::playrho::detail::IndexingNamedType<T, Tag>>
 {
     /// @brief Hashing functor operator.
-    ::std::size_t operator()(const ::playrho::strongtype::IndexingNamedType<T, Tag>& v) const noexcept
+    ::std::size_t operator()(const ::playrho::detail::IndexingNamedType<T, Tag>& v) const noexcept
     {
-        using type = ::playrho::strongtype::UnderlyingType<::playrho::strongtype::IndexingNamedType<T, Tag>>;
-        return ::std::hash<type>()(v.get());;
+        return ::std::hash<T>()(v.get());;
     }
 };
 
 } // namespace std
 
-#endif // PLAYRHO_COMMON_STRONGTYPE_HPP
+#endif // PLAYRHO_COMMON_INDEXINGNAMEDTYPE_HPP

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -45,22 +45,13 @@ using std::swap;
 
 namespace detail {
 
-/// @brief Voiding template class.
-template<class...> struct Voidify {
-    /// @brief Type alias.
-    using type = void;
-};
-
-/// @brief Void type templated alias.
-template<class... Ts> using VoidT = typename Voidify<Ts...>::type;
-
 /// @brief Low-level implementation of the is-iterable default value trait.
 template<class T, class = void>
 struct IsIterableImpl: std::false_type {};
 
 /// @brief Low-level implementation of the is-iterable true value trait.
 template<class T>
-struct IsIterableImpl<T, VoidT<
+struct IsIterableImpl<T, std::void_t<
     decltype(begin(std::declval<T>())),
     decltype(end(std::declval<T>())),
     decltype(++std::declval<decltype(begin(std::declval<T&>()))&>()),
@@ -183,7 +174,7 @@ struct IsEqualityComparable: std::false_type {};
 
 /// @brief Template specialization for equality comparable types.
 template<class T1, class T2>
-struct IsEqualityComparable<T1, T2, detail::VoidT<decltype(T1{} == T2{})> >: std::true_type {};
+struct IsEqualityComparable<T1, T2, std::void_t<decltype(T1{} == T2{})> >: std::true_type {};
 
 /// @brief Template for determining if the given type is an inequality comparable type.
 template<class T1, class T2, class = void>
@@ -191,7 +182,7 @@ struct IsInequalityComparable: std::false_type {};
 
 /// @brief Template specialization for inequality comparable types.
 template<class T1, class T2>
-struct IsInequalityComparable<T1, T2, detail::VoidT<decltype(T1{} != T2{})> >: std::true_type {};
+struct IsInequalityComparable<T1, T2, std::void_t<decltype(T1{} != T2{})> >: std::true_type {};
 
 /// @brief Template for determining if the given types are addable.
 template<class T1, class T2 = T1, class = void>
@@ -199,7 +190,7 @@ struct IsAddable: std::false_type {};
 
 /// @brief Template specializing for addable types.
 template<class T1, class T2>
-struct IsAddable<T1, T2, detail::VoidT<decltype(T1{} + T2{})> >: std::true_type {};
+struct IsAddable<T1, T2, std::void_t<decltype(T1{} + T2{})> >: std::true_type {};
 
 /// @brief Template for determining if the given types are multipliable.
 template<class T1, class T2, class = void>
@@ -207,7 +198,7 @@ struct IsMultipliable: std::false_type {};
 
 /// @brief Template specializing for multipliable types.
 template<class T1, class T2>
-struct IsMultipliable<T1, T2, detail::VoidT<decltype(T1{} * T2{})> >: std::true_type {};
+struct IsMultipliable<T1, T2, std::void_t<decltype(T1{} * T2{})> >: std::true_type {};
 
 /// @brief Template for determining if the given types are divisable.
 template<class T1, class T2, class = void>
@@ -215,7 +206,7 @@ struct IsDivisable: std::false_type {};
 
 /// @brief Template specializing for divisable types.
 template<class T1, class T2>
-struct IsDivisable<T1, T2, detail::VoidT<decltype(T1{} / T2{})> >: std::true_type {};
+struct IsDivisable<T1, T2, std::void_t<decltype(T1{} / T2{})> >: std::true_type {};
 
 /// @brief Template for determining if the given type is an "arithmetic" type.
 /// @note In the context of this library, "arithmetic" types are all types which
@@ -225,7 +216,7 @@ struct IsArithmetic: std::false_type {};
 
 /// @brief Template specialization for valid/acceptable "arithmetic" types.
 template<class T>
-struct IsArithmetic<T, detail::VoidT<
+struct IsArithmetic<T, std::void_t<
     decltype(T{} + T{}), decltype(T{} - T{}), decltype(T{} * T{}), decltype(T{} / T{})
 > >: std::true_type {};
 

@@ -24,26 +24,6 @@
 
 /// @file
 /// Declarations of free functions of World for joints identified by <code>JointID</code>.
-
-#include "PlayRho/Common/Math.hpp"
-#include "PlayRho/Common/Range.hpp" // for SizedRange
-
-#include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/Joints/JointID.hpp"
-#include "PlayRho/Dynamics/Joints/JointType.hpp"
-#include "PlayRho/Dynamics/Joints/LimitState.hpp"
-
-#include <vector>
-
-namespace playrho {
-namespace d2 {
-
-class World;
-class Joint;
-struct JointConf;
-
-/// @defgroup WorldJointFreeFunctions World Joint Related Free Functions
-/// @brief Collection of "free" functions related to joints within a <code>World</code>.
 /// @details This is a collection of non-member non-friend functions - also called "free"
 ///   functions - that are related to joints within an instance of a <code>World</code>.
 ///   Many are just "wrappers" to similarly named member functions but some are additional
@@ -57,15 +37,45 @@ struct JointConf;
 ///   and delete.
 /// @see World, JointID.
 /// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
-/// @{
+
+#include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Range.hpp" // for SizedRange
+
+#include "PlayRho/Dynamics/BodyID.hpp"
+#include "PlayRho/Dynamics/Joints/Joint.hpp"
+#include "PlayRho/Dynamics/Joints/JointID.hpp"
+#include "PlayRho/Dynamics/Joints/LimitState.hpp"
+
+#include <vector>
+
+namespace playrho {
+namespace d2 {
+
+class World;
+struct JointConf;
+
+/// @brief Gets the extent of the currently valid joint range.
+/// @note This is one higher than the maxium <code>JointID</code> that is in range
+///   for joint related functions.
+/// @relatedalso World
+JointCounter GetJointRange(const World& world) noexcept;
 
 /// @brief Gets the joints of the specified world.
 /// @relatedalso World
 SizedRange<std::vector<JointID>::const_iterator> GetJoints(const World& world) noexcept;
 
-/// @brief Create a new joint.
+/// @brief Creates a new joint within the given world.
 /// @relatedalso World
 JointID CreateJoint(World& world, const Joint& def);
+
+/// @brief Creates a new joint from a configuration.
+/// @details This is a convenience function for allowing limited implicit conversions to joints.
+/// @relatedalso World
+template <typename T>
+JointID CreateJoint(World& world, const T& value)
+{
+    return CreateJoint(world, Joint{value});
+}
 
 /// @brief Destroys the identified joint.
 /// @throws std::out_of_range If given an invalid joint identifier.
@@ -75,7 +85,7 @@ void Destroy(World& world, JointID id);
 /// @brief Gets the type of the joint.
 /// @throws std::out_of_range If given an invalid joint identifier.
 /// @relatedalso World
-JointType GetType(const World& world, JointID id);
+TypeID GetType(const World& world, JointID id);
 
 /// @brief Gets the value of the identified joint.
 /// @throws std::out_of_range If given an invalid joint identifier.
@@ -86,6 +96,15 @@ const Joint& GetJoint(const World& world, JointID id);
 /// @throws std::out_of_range If given an invalid joint identifier.
 /// @relatedalso World
 void SetJoint(World& world, JointID id, const Joint& def);
+
+/// @brief Sets a joint's value from a configuration.
+/// @details This is a convenience function for allowing limited implicit conversions to joints.
+/// @relatedalso World
+template <typename T>
+void SetJoint(World& world, JointID id, const T& value)
+{
+    return SetJoint(world, id, Joint{value});
+}
 
 /// @brief Gets collide connected for the specified joint.
 /// @note Modifying the collide connect flag won't work correctly because
@@ -365,8 +384,6 @@ inline JointCounter GetJointCount(const World& world) noexcept
     using std::size;
     return static_cast<JointCounter>(size(GetJoints(world)));
 }
-
-/// @}
 
 } // namespace d2
 } // namespace playrho

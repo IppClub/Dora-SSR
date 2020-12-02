@@ -44,6 +44,14 @@ namespace d2 {
 class WorldImpl;
 struct FixtureConf; // for CreateFixture
 
+/// @brief Gets the extent of the currently valid fixture range.
+/// @note This is one higher than the maxium <code>FixtureID</code> that is in range
+///   for fixture related functions.
+/// @relatedalso WorldImpl
+FixtureCounter GetFixtureRange(const WorldImpl& world) noexcept;
+
+/// @brief Creates a fixture per the given configuration.
+/// @see Destroy(WorldImpl& world, FixtureID id).
 /// @relatedalso WorldImpl
 FixtureID CreateFixture(WorldImpl& world, const FixtureConf& def);
 
@@ -57,6 +65,9 @@ const FixtureConf& GetFixture(const WorldImpl& world, FixtureID id);
 /// @relatedalso WorldImpl
 void SetFixture(WorldImpl& world, FixtureID id, const FixtureConf& value);
 
+/// @brief Destroys the identified fixture.
+/// @throws std::out_of_range If given an invalid fixture identifier.
+/// @see CreateFixture(WorldImpl& world, const FixtureConf& def).
 /// @relatedalso WorldImpl
 bool Destroy(WorldImpl& world, FixtureID id);
 
@@ -66,7 +77,7 @@ const std::vector<ContactCounter>& GetProxies(const WorldImpl& world, FixtureID 
 
 /// @brief Gets the count of proxies of the identified fixture.
 /// @throws std::out_of_range If given an invalid fixture identifier.
-/// @relatedalso World
+/// @relatedalso WorldImpl
 inline ChildCounter GetProxyCount(const WorldImpl& world, FixtureID id)
 {
     return static_cast<ChildCounter>(std::size(GetProxies(world, id)));
@@ -74,7 +85,7 @@ inline ChildCounter GetProxyCount(const WorldImpl& world, FixtureID id)
 
 /// @brief Gets the specified proxy of the identified fixture.
 /// @throws std::out_of_range If given an invalid fixture identifier.
-/// @relatedalso World
+/// @relatedalso WorldImpl
 ContactCounter GetProxy(const WorldImpl& world, FixtureID id, ChildCounter child);
 
 } // namespace d2

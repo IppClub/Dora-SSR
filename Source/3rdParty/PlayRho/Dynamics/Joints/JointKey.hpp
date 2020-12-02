@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -44,15 +44,15 @@ public:
     /// @brief Gets the <code>JointKey</code> for the given bodies.
     static constexpr JointKey Get(BodyID bodyA, BodyID bodyB) noexcept
     {
-        return (bodyA < bodyB)? JointKey{bodyA, bodyB}: JointKey{bodyB, bodyA};
+        return (bodyA < bodyB) ? JointKey{bodyA, bodyB} : JointKey{bodyB, bodyA};
     }
-    
+
     /// @brief Gets body 1.
     constexpr BodyID GetBody1() const noexcept
     {
         return m_body1;
     }
-    
+
     /// @brief Gets body 2.
     constexpr BodyID GetBody2() const
     {
@@ -61,17 +61,16 @@ public:
 
 private:
     /// @brief Initializing constructor.
-    constexpr JointKey(BodyID body1, BodyID body2):
-        m_body1(body1), m_body2(body2)
+    constexpr JointKey(BodyID body1, BodyID body2) : m_body1(body1), m_body2(body2)
     {
         // Intentionally empty.
     }
 
-    /// @brief Body 1.
+    /// @brief Identifier of body 1.
     /// @details This is the body with the lower-than or equal-to address.
     BodyID m_body1;
 
-    /// @brief Body 2.
+    /// @brief Identifier of body 2.
     /// @details This is the body with the higher-than or equal-to address.
     BodyID m_body2;
 };
@@ -82,20 +81,16 @@ JointKey GetJointKey(const Joint& joint) noexcept;
 /// @brief Compares the given joint keys.
 constexpr int Compare(const JointKey& lhs, const JointKey& rhs) noexcept
 {
-    if (lhs.GetBody1() < rhs.GetBody1())
-    {
+    if (lhs.GetBody1() < rhs.GetBody1()) {
         return -1;
     }
-    if (lhs.GetBody1() > rhs.GetBody1())
-    {
+    if (lhs.GetBody1() > rhs.GetBody1()) {
         return +1;
     }
-    if (lhs.GetBody2() < rhs.GetBody2())
-    {
+    if (lhs.GetBody2() < rhs.GetBody2()) {
         return -1;
     }
-    if (lhs.GetBody2() > rhs.GetBody2())
-    {
+    if (lhs.GetBody2() > rhs.GetBody2()) {
         return +1;
     }
     return 0;
@@ -111,32 +106,28 @@ constexpr bool IsFor(const JointKey key, BodyID body) noexcept
 } // namespace d2
 } // namespace playrho
 
-namespace std
-{
-    /// @brief Function object for performing less-than comparisons between two joint keys.
-    template <>
-    struct less<playrho::d2::JointKey>
+namespace std {
+/// @brief Function object for performing less-than comparisons between two joint keys.
+template <>
+struct less<playrho::d2::JointKey> {
+    /// @brief Function object operator.
+    constexpr bool operator()(const playrho::d2::JointKey& lhs,
+                              const playrho::d2::JointKey& rhs) const
     {
-        /// @brief Function object operator.
-        constexpr
-        bool operator()(const playrho::d2::JointKey& lhs, const playrho::d2::JointKey& rhs) const
-        {
-            return playrho::d2::Compare(lhs, rhs) < 0;
-        }
-    };
-    
-    /// @brief Function object for performing equal-to comparisons between two joint keys.
-    template <>
-    struct equal_to<playrho::d2::JointKey>
+        return playrho::d2::Compare(lhs, rhs) < 0;
+    }
+};
+
+/// @brief Function object for performing equal-to comparisons between two joint keys.
+template <>
+struct equal_to<playrho::d2::JointKey> {
+    /// @brief Function object operator.
+    constexpr bool operator()(const playrho::d2::JointKey& lhs,
+                              const playrho::d2::JointKey& rhs) const
     {
-        
-        /// @brief Function object operator.
-        constexpr
-        bool operator()( const playrho::d2::JointKey& lhs, const playrho::d2::JointKey& rhs ) const
-        {
-            return playrho::d2::Compare(lhs, rhs) == 0;
-        }
-    };
+        return playrho::d2::Compare(lhs, rhs) == 0;
+    }
+};
 
 } // namespace std
 

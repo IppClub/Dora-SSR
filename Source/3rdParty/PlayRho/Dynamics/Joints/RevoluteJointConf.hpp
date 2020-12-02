@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -37,6 +37,10 @@ namespace d2 {
 class World;
 class BodyConstraint;
 
+/// @example RevoluteJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::RevoluteJointConf</code>.
+
 /// @brief Revolute joint definition.
 /// @details A revolute joint constrains two bodies to share a common point while they
 ///   are free to rotate about the point. The relative rotation about the shared point
@@ -57,8 +61,7 @@ class BodyConstraint;
 /// @image html revoluteJoint.gif
 /// @see https://en.wikipedia.org/wiki/Revolute_joint
 /// @see Joint, World::CreateJoint
-struct RevoluteJointConf : public JointBuilder<RevoluteJointConf>
-{
+struct RevoluteJointConf : public JointBuilder<RevoluteJointConf> {
     /// @brief Super type.
     using super = JointBuilder<RevoluteJointConf>;
 
@@ -66,8 +69,7 @@ struct RevoluteJointConf : public JointBuilder<RevoluteJointConf>
     constexpr RevoluteJointConf() = default;
 
     /// @brief Initialize the bodies, anchors, and reference angle using a world anchor point.
-    RevoluteJointConf(BodyID bA, BodyID bB,
-                      Length2 laA = Length2{}, Length2 laB = Length2{},
+    RevoluteJointConf(BodyID bA, BodyID bB, Length2 laA = Length2{}, Length2 laB = Length2{},
                       Angle ra = 0_deg) noexcept;
 
     /// @brief Uses the given enable limit state value.
@@ -156,13 +158,37 @@ struct RevoluteJointConf : public JointBuilder<RevoluteJointConf>
     LimitState limitState = LimitState::e_inactiveLimit; ///< Limit state.
 };
 
+/// @brief Equality operator.
+constexpr bool operator==(const RevoluteJointConf& lhs, const RevoluteJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.localAnchorA == rhs.localAnchorA) && (lhs.localAnchorB == rhs.localAnchorB) &&
+        (lhs.impulse == rhs.impulse) && (lhs.angularMotorImpulse == rhs.angularMotorImpulse) &&
+        (lhs.referenceAngle == rhs.referenceAngle) && (lhs.enableLimit == rhs.enableLimit) &&
+        (lhs.lowerAngle == rhs.lowerAngle) && (lhs.upperAngle == rhs.upperAngle) &&
+        (lhs.enableMotor == rhs.enableMotor) && (lhs.motorSpeed == rhs.motorSpeed) &&
+        (lhs.maxMotorTorque == rhs.maxMotorTorque) && (lhs.rA == rhs.rA) && (lhs.rB == rhs.rB) &&
+        (lhs.mass == rhs.mass) && (lhs.angularMass == rhs.angularMass) &&
+        (lhs.limitState == rhs.limitState);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const RevoluteJointConf& lhs, const RevoluteJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
 RevoluteJointConf GetRevoluteJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
-RevoluteJointConf GetRevoluteJointConf(const World& world, BodyID bodyA, BodyID bodyB, Length2 anchor);
+RevoluteJointConf GetRevoluteJointConf(const World& world, BodyID bodyA, BodyID bodyB,
+                                       Length2 anchor);
 
 /// @brief Gets the current angle of the given configuration in the given world.
 /// @relatedalso World
@@ -213,8 +239,7 @@ constexpr AngularMomentum GetAngularReaction(const RevoluteJointConf& conf) noex
 /// @see SolveVelocityConstraints.
 /// @relatedalso RevoluteJointConf
 void InitVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf& conf);
+                  const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
@@ -248,8 +273,7 @@ constexpr void SetMaxMotorTorque(RevoluteJointConf& object, Torque value)
 
 /// @brief Type info specialization for <code>d2::RevoluteJointConf</code>.
 template <>
-struct TypeInfo<d2::RevoluteJointConf>
-{
+struct TypeInfo<d2::RevoluteJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::RevoluteJointConf";
 };

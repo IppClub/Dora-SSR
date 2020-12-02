@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -83,11 +83,11 @@ public:
 
     /// @brief Initializing constructor.
     ///
-    /// @param bA Body-A identifier.
+    /// @param bA Identifier of body-A.
     /// @param fA Non-invalid identifier to fixture A that must have a shape
     ///   and may not be the same or have the same body as the other fixture.
     /// @param iA Child index A.
-    /// @param bB Body-B identifier.
+    /// @param bB Identifier of body-B.
     /// @param fB Non-invalid identifier to fixture B that must have a shape
     ///   and may not be the same or have the same body as the other fixture.
     /// @param iB Child index B.
@@ -98,8 +98,8 @@ public:
     /// @warning Behavior is undefined if <code>fA == fB</code>.
     /// @warning Behavior is undefined if both fixture's have the same body.
     ///
-    Contact(BodyID bA, FixtureID fA, ChildCounter iA,
-            BodyID bB, FixtureID fB, ChildCounter iB) noexcept;
+    Contact(BodyID bA, FixtureID fA, ChildCounter iA, BodyID bB, FixtureID fB,
+            ChildCounter iB) noexcept;
 
     /// @brief Is this contact touching?
     /// @details
@@ -247,8 +247,7 @@ public:
     using FlagsType = std::uint8_t;
 
     /// @brief Flags stored in m_flags
-    enum: FlagsType
-    {
+    enum : FlagsType {
         // Set when the shapes are touching.
         e_touchingFlag = 0x01,
 
@@ -260,7 +259,7 @@ public:
 
         // This contact has a valid TOI in m_toi
         e_toiFlag = 0x08,
-        
+
         // This contacts needs its touching state updated.
         e_dirtyFlag = 0x10,
 
@@ -273,7 +272,7 @@ public:
         /// Indicates whether the contact is to be treated as between impenetrable bodies.
         e_impenetrableFlag = 0x80,
     };
-    
+
     /// @brief Flags this contact for filtering.
     /// @note Filtering will occur the next time step.
     void UnflagForFiltering() noexcept;
@@ -282,11 +281,13 @@ public:
     void UnflagForUpdating() noexcept;
 
     /// @brief Sets the time of impact (TOI).
-    /// @details After returning, this object will have a TOI that is set as indicated by <code>HasValidToi()</code>.
+    /// @details After returning, this object will have a TOI that is set as indicated by
+    /// <code>HasValidToi()</code>.
     /// @note Behavior is undefined if the value assigned is less than 0 or greater than 1.
     /// @see Real GetToi() const.
     /// @see HasValidToi.
-    /// @param toi Time of impact as a fraction between 0 and 1 where 1 indicates no actual impact in the current time slot.
+    /// @param toi Time of impact as a fraction between 0 and 1 where 1 indicates no actual impact
+    /// in the current time slot.
     void SetToi(Real toi) noexcept;
 
     /// @brief Unsets the TOI.
@@ -306,12 +307,12 @@ private:
     // info then minimally only those two indexes are needed. That may be sub-optimal
     // however depending the speed of cache and memory access.
 
-    /// Body A.
+    /// Identifier of body A.
     /// @note Field is 2-bytes.
     /// @warning Should only be body of fixture A.
     BodyID m_bodyA = InvalidBodyID;
 
-    /// Body B.
+    /// Identifier of body B.
     /// @note Field is 2-bytes.
     /// @warning Should only be body of fixture B.
     BodyID m_bodyB = InvalidBodyID;
@@ -354,17 +355,15 @@ private:
     /// Count of TOI calculations contact has gone through since last reset.
     substep_type m_toiCount = 0;
 
-    FlagsType m_flags = e_enabledFlag|e_dirtyFlag; ///< Flags.
+    FlagsType m_flags = e_enabledFlag | e_dirtyFlag; ///< Flags.
 };
 
 inline void Contact::SetEnabled(bool flag) noexcept
 {
-    if (flag)
-    {
+    if (flag) {
         SetEnabled();
     }
-    else
-    {
+    else {
         UnsetEnabled();
     }
 }

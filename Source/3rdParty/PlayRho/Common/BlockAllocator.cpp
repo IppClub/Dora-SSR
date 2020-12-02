@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -25,10 +25,12 @@
 
 namespace playrho {
 
-static_assert(size(AllocatorBlockSizes) == 14,
+static_assert(size(BlockAllocator::AllocatorBlockSizes) == 14,
               "Invalid number of elements of AllocatorBlockSizes");
 static_assert(BlockAllocator::GetMaxBlockSize() == 640,
               "Invalid maximum block size of AllocatorBlockSizes");
+
+namespace {
 
 #if 0
 struct LookupTable
@@ -40,7 +42,7 @@ struct LookupTable
         elements[0] = 0;
         for (auto i = std::size_t{1}; i < maxIndex; ++i)
         {
-            if (i > AllocatorBlockSizes[j])
+            if (i > BlockAllocator::AllocatorBlockSizes[j])
             {
                 ++j;
             }
@@ -50,11 +52,12 @@ struct LookupTable
     
     std::uint8_t elements[BlockAllocator::GetMaxBlockSize() + 1];
 };
-static constexpr LookupTable BlockSizeLookup;
+
+constexpr LookupTable BlockSizeLookup;
 #endif
 
 /// @brief Block size lookup array.
-static constexpr std::uint8_t s_blockSizeLookup[BlockAllocator::GetMaxBlockSize() + 1] =
+constexpr std::uint8_t s_blockSizeLookup[BlockAllocator::GetMaxBlockSize() + 1] =
 {
     0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 1-16
@@ -81,11 +84,13 @@ static constexpr std::uint8_t s_blockSizeLookup[BlockAllocator::GetMaxBlockSize(
 };
 
 /// @brief Gets the block size index for the given data block size.
-static inline std::uint8_t GetBlockSizeIndex(std::size_t n)
+inline std::uint8_t GetBlockSizeIndex(std::size_t n)
 {
     assert(n < size(s_blockSizeLookup));
     return s_blockSizeLookup[n];
 }
+
+} // namespace
 
 /// @brief Chunk.
 struct BlockAllocator::Chunk

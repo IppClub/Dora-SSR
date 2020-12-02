@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,36 +25,26 @@
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {
 
 namespace {
 
-Mat33 GetMat33(InvMass invMassA, Length2 rA, InvRotInertia invRotInertiaA,
-               InvMass invMassB, Length2 rB, InvRotInertia invRotInertiaB)
+Mat33 GetMat33(InvMass invMassA, Length2 rA, InvRotInertia invRotInertiaA, InvMass invMassB,
+               Length2 rB, InvRotInertia invRotInertiaB)
 {
-    const auto exx = InvMass{
-        invMassA + Square(GetY(rA)) * invRotInertiaA / SquareRadian +
-        invMassB + Square(GetY(rB)) * invRotInertiaB / SquareRadian
-    };
-    const auto eyx = InvMass{
-        -GetY(rA) * GetX(rA) * invRotInertiaA / SquareRadian +
-        -GetY(rB) * GetX(rB) * invRotInertiaB / SquareRadian
-    };
-    const auto ezx = InvMass{
-        -GetY(rA) * invRotInertiaA * Meter / SquareRadian +
-        -GetY(rB) * invRotInertiaB * Meter / SquareRadian
-    };
-    const auto eyy = InvMass{
-        invMassA + Square(GetX(rA)) * invRotInertiaA / SquareRadian +
-        invMassB + Square(GetX(rB)) * invRotInertiaB / SquareRadian
-    };
-    const auto ezy = InvMass{
-        GetX(rA) * invRotInertiaA * Meter / SquareRadian +
-        GetX(rB) * invRotInertiaB * Meter / SquareRadian
-    };
+    const auto exx = InvMass{invMassA + Square(GetY(rA)) * invRotInertiaA / SquareRadian +
+                             invMassB + Square(GetY(rB)) * invRotInertiaB / SquareRadian};
+    const auto eyx = InvMass{-GetY(rA) * GetX(rA) * invRotInertiaA / SquareRadian +
+                             -GetY(rB) * GetX(rB) * invRotInertiaB / SquareRadian};
+    const auto ezx = InvMass{-GetY(rA) * invRotInertiaA * Meter / SquareRadian +
+                             -GetY(rB) * invRotInertiaB * Meter / SquareRadian};
+    const auto eyy = InvMass{invMassA + Square(GetX(rA)) * invRotInertiaA / SquareRadian +
+                             invMassB + Square(GetX(rB)) * invRotInertiaB / SquareRadian};
+    const auto ezy = InvMass{GetX(rA) * invRotInertiaA * Meter / SquareRadian +
+                             GetX(rB) * invRotInertiaB * Meter / SquareRadian};
     const auto ezz = InvMass{(invRotInertiaA + invRotInertiaB) * SquareMeter / SquareRadian};
 
     Mat33 K;
@@ -99,9 +89,11 @@ static_assert(std::is_nothrow_destructible<WeldJointConf>::value,
 // J = [0 0 -1 0 0 1]
 // K = invI1 + invI2
 
-WeldJointConf::WeldJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB, Angle ra) noexcept:
-    super{super{}.UseBodyA(bA).UseBodyB(bB)},
-    localAnchorA{laA}, localAnchorB{laB}, referenceAngle{ra}
+WeldJointConf::WeldJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB, Angle ra) noexcept
+    : super{super{}.UseBodyA(bA).UseBodyB(bB)},
+      localAnchorA{laA},
+      localAnchorB{laB},
+      referenceAngle{ra}
 {
     // Intentionally empty.
 }
@@ -113,15 +105,12 @@ WeldJointConf GetWeldJointConf(const Joint& joint)
 
 WeldJointConf GetWeldJointConf(const World& world, BodyID bodyA, BodyID bodyB, const Length2 anchor)
 {
-    return WeldJointConf{
-        bodyA, bodyB,
-        GetLocalPoint(world, bodyA, anchor), GetLocalPoint(world, bodyB, anchor),
-        GetAngle(world, bodyB) - GetAngle(world, bodyA)
-    };
+    return WeldJointConf{bodyA, bodyB, GetLocalPoint(world, bodyA, anchor),
+                         GetLocalPoint(world, bodyB, anchor),
+                         GetAngle(world, bodyB) - GetAngle(world, bodyA)};
 }
 
-void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
@@ -148,20 +137,23 @@ void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
     // r_skew = [-ry; rx]
 
     // Matlab
-    // K = [ invMassA+r1y^2*invRotInertiaA+invMassB+r2y^2*invRotInertiaB,  -r1y*invRotInertiaA*r1x-r2y*invRotInertiaB*r2x,          -r1y*invRotInertiaA-r2y*invRotInertiaB]
-    //     [  -r1y*invRotInertiaA*r1x-r2y*invRotInertiaB*r2x, invMassA+r1x^2*invRotInertiaA+invMassB+r2x^2*invRotInertiaB,           r1x*invRotInertiaA+r2x*invRotInertiaB]
-    //     [          -r1y*invRotInertiaA-r2y*invRotInertiaB,           r1x*invRotInertiaA+r2x*invRotInertiaB,                   invRotInertiaA+invRotInertiaB]
+    // K = [ invMassA+r1y^2*invRotInertiaA+invMassB+r2y^2*invRotInertiaB,
+    // -r1y*invRotInertiaA*r1x-r2y*invRotInertiaB*r2x, -r1y*invRotInertiaA-r2y*invRotInertiaB]
+    //     [  -r1y*invRotInertiaA*r1x-r2y*invRotInertiaB*r2x,
+    //     invMassA+r1x^2*invRotInertiaA+invMassB+r2x^2*invRotInertiaB,
+    //     r1x*invRotInertiaA+r2x*invRotInertiaB] [          -r1y*invRotInertiaA-r2y*invRotInertiaB,
+    //     r1x*invRotInertiaA+r2x*invRotInertiaB,                   invRotInertiaA+invRotInertiaB]
 
-    const auto K = GetMat33(invMassA, object.rA, invRotInertiaA,
-                            invMassB, object.rB, invRotInertiaB);
-    if (object.frequency > 0_Hz)
-    {
+    const auto K =
+        GetMat33(invMassA, object.rA, invRotInertiaA, invMassB, object.rB, invRotInertiaB);
+    if (object.frequency > 0_Hz) {
         object.mass = GetInverse22(K);
 
         // InvRotInertia is L^-2 M^-1 QP^2
         //    RotInertia is L^2  M    QP^-2
         auto invRotInertia = InvRotInertia{invRotInertiaA + invRotInertiaB};
-        const auto rotInertia = (invRotInertia > InvRotInertia{0})? Real{1} / invRotInertia: RotInertia{0};
+        const auto rotInertia =
+            (invRotInertia > InvRotInertia{0}) ? Real{1} / invRotInertia : RotInertia{0};
 
         const auto C = Angle{posB.angular - posA.angular - object.referenceAngle};
         const auto omega = Real(2) * Pi * object.frequency; // T^-1
@@ -173,44 +165,42 @@ void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
         // magic formulas
         const auto h = step.deltaTime;
         const auto invGamma = RotInertia{h * (d + h * k)};
-        object.gamma = (invGamma != RotInertia{0})? Real{1} / invGamma: InvRotInertia{0};
+        object.gamma = (invGamma != RotInertia{0}) ? Real{1} / invGamma : InvRotInertia{0};
         // QP * T * L^2 M QP^-2 T^-2 * L^-2 M^-1 QP^2 is: QP T^-1
         object.bias = AngularVelocity{C * h * k * object.gamma};
 
         invRotInertia += object.gamma;
-        GetZ(GetZ(object.mass)) = StripUnit((invRotInertia != InvRotInertia{0}) ?
-                                       Real{1} / invRotInertia : RotInertia{0});
+        GetZ(GetZ(object.mass)) = StripUnit(
+            (invRotInertia != InvRotInertia{0}) ? Real{1} / invRotInertia : RotInertia{0});
     }
-    else if (GetZ(GetZ(K)) == 0)
-    {
+    else if (GetZ(GetZ(K)) == 0) {
         object.mass = GetInverse22(K);
         object.gamma = InvRotInertia{0};
         object.bias = 0_rpm;
     }
-    else
-    {
+    else {
         object.mass = GetSymInverse33(K);
         object.gamma = InvRotInertia{0};
         object.bias = 0_rpm;
     }
 
-    if (step.doWarmStart)
-    {
+    if (step.doWarmStart) {
         // Scale impulses to support a variable time step.
         object.impulse *= step.dtRatio;
 
-        const auto P = Momentum2{GetX(object.impulse) * NewtonSecond, GetY(object.impulse) * NewtonSecond};
+        const auto P =
+            Momentum2{GetX(object.impulse) * NewtonSecond, GetY(object.impulse) * NewtonSecond};
 
         // AngularMomentum is L^2 M T^-1 QP^-1.
-        const auto L = AngularMomentum{GetZ(object.impulse) * SquareMeter * Kilogram / (Second * Radian)};
+        const auto L =
+            AngularMomentum{GetZ(object.impulse) * SquareMeter * Kilogram / (Second * Radian)};
         const auto LA = L + AngularMomentum{Cross(object.rA, P) / Radian};
         const auto LB = L + AngularMomentum{Cross(object.rB, P) / Radian};
 
         velA -= Velocity{invMassA * P, invRotInertiaA * LA};
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
-    else
-    {
+    else {
         object.impulse = Vec3{};
     }
 
@@ -222,8 +212,7 @@ void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
 /// @pre <code>InitVelocity</code> has been called.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
-bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
-                   const StepConf&)
+bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
@@ -238,26 +227,31 @@ bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
     const auto invMassB = bodyConstraintB.GetInvMass();
     const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
 
-    if (object.frequency > 0_Hz)
-    {
+    if (object.frequency > 0_Hz) {
         const auto Cdot2 = velB.angular - velA.angular;
 
         // InvRotInertia is L^-2 M^-1 QP^2. Angular velocity is QP T^-1
-        const auto gamma = AngularVelocity{object.gamma * GetZ(object.impulse) * SquareMeter * Kilogram / (Radian * Second)};
+        const auto gamma = AngularVelocity{object.gamma * GetZ(object.impulse) * SquareMeter *
+                                           Kilogram / (Radian * Second)};
 
         // AngularMomentum is L^2 M T^-1 QP^-1.
         const auto impulse2 = -GetZ(GetZ(object.mass)) * StripUnit(Cdot2 + object.bias + gamma);
         GetZ(object.impulse) += impulse2;
 
-        velA.angular -= AngularVelocity{invRotInertiaA * impulse2 * SquareMeter * Kilogram / (Second * Radian)};
-        velB.angular += AngularVelocity{invRotInertiaB * impulse2 * SquareMeter * Kilogram / (Second * Radian)};
+        velA.angular -=
+            AngularVelocity{invRotInertiaA * impulse2 * SquareMeter * Kilogram / (Second * Radian)};
+        velB.angular +=
+            AngularVelocity{invRotInertiaB * impulse2 * SquareMeter * Kilogram / (Second * Radian)};
 
-        const auto vb = velB.linear + LinearVelocity2{(GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
-        const auto va = velA.linear + LinearVelocity2{(GetRevPerpendicular(object.rA) * (velA.angular / Radian))};
+        const auto vb = velB.linear +
+                        LinearVelocity2{(GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
+        const auto va = velA.linear +
+                        LinearVelocity2{(GetRevPerpendicular(object.rA) * (velA.angular / Radian))};
 
         const auto Cdot1 = vb - va;
 
-        const auto impulse1 = -Transform(Vec2{GetX(Cdot1) / MeterPerSecond, GetY(Cdot1) / MeterPerSecond}, object.mass);
+        const auto impulse1 = -Transform(
+            Vec2{GetX(Cdot1) / MeterPerSecond, GetY(Cdot1) / MeterPerSecond}, object.mass);
         GetX(object.impulse) += GetX(impulse1);
         GetY(object.impulse) += GetY(impulse1);
 
@@ -268,10 +262,11 @@ bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
         velA -= Velocity{invMassA * P, invRotInertiaA * LA};
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
-    else
-    {
-        const auto vb = velB.linear + LinearVelocity2{(GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
-        const auto va = velA.linear + LinearVelocity2{(GetRevPerpendicular(object.rA) * (velA.angular / Radian))};
+    else {
+        const auto vb = velB.linear +
+                        LinearVelocity2{(GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
+        const auto va = velA.linear +
+                        LinearVelocity2{(GetRevPerpendicular(object.rA) * (velA.angular / Radian))};
 
         const auto Cdot1 = vb - va;
         const auto Cdot2 = Real{(velB.angular - velA.angular) / RadianPerSecond};
@@ -291,8 +286,7 @@ bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
 
-    if ((velA != oldVelA) || (velB != oldVelB))
-    {
+    if ((velA != oldVelA) || (velB != oldVelB)) {
         bodyConstraintA.SetVelocity(velA);
         bodyConstraintB.SetVelocity(velB);
         return false;
@@ -325,10 +319,8 @@ bool SolvePosition(const WeldJointConf& object, std::vector<BodyConstraint>& bod
     auto positionError = 0_m;
     auto angularError = 0_deg;
 
-    const auto K = GetMat33(invMassA, rA, invRotInertiaA,
-                            invMassB, rB, invRotInertiaB);
-    if (object.frequency > 0_Hz)
-    {
+    const auto K = GetMat33(invMassA, rA, invRotInertiaA, invMassB, rB, invRotInertiaB);
+    if (object.frequency > 0_Hz) {
         const auto C1 = Length2{(posB.linear + rB) - (posA.linear + rA)};
 
         positionError = GetMagnitude(C1);
@@ -341,8 +333,7 @@ bool SolvePosition(const WeldJointConf& object, std::vector<BodyConstraint>& bod
         posA -= Position{invMassA * P, invRotInertiaA * LA};
         posB += Position{invMassB * P, invRotInertiaB * LB};
     }
-    else
-    {
+    else {
         const auto C1 = Length2{(posB.linear + rB) - (posA.linear + rA)};
         const auto C2 = Angle{posB.angular - posA.angular - object.referenceAngle};
 
@@ -352,12 +343,10 @@ bool SolvePosition(const WeldJointConf& object, std::vector<BodyConstraint>& bod
         const auto C = Vec3{StripUnit(GetX(C1)), StripUnit(GetY(C1)), StripUnit(C2)};
 
         Vec3 impulse;
-        if (GetZ(GetZ(K)) > 0)
-        {
+        if (GetZ(GetZ(K)) > 0) {
             impulse = -Solve33(K, C);
         }
-        else
-        {
+        else {
             const auto impulse2 = -Solve22(K, GetVec2(C1));
             impulse = Vec3{GetX(impulse2), GetY(impulse2), 0};
         }

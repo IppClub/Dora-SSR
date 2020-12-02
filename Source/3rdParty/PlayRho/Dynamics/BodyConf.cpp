@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,21 +29,21 @@ namespace d2 {
 BodyConf GetBodyConf(const Body& body) noexcept
 {
     auto def = BodyConf{};
-    def.type = body.GetType();
-    def.location = body.GetLocation();
-    def.angle = body.GetAngle();
+    def.type = GetType(body);
+    def.location = GetLocation(body);
+    def.angle = GetAngle(body);
     def.linearVelocity = GetLinearVelocity(body);
     def.angularVelocity = GetAngularVelocity(body);
-    def.linearAcceleration = body.GetLinearAcceleration();
-    def.angularAcceleration = body.GetAngularAcceleration();
-    def.linearDamping = body.GetLinearDamping();
-    def.angularDamping = body.GetAngularDamping();
-    def.underActiveTime = body.GetUnderActiveTime();
-    def.allowSleep = body.IsSleepingAllowed();
-    def.awake = body.IsAwake();
-    def.fixedRotation = body.IsFixedRotation();
-    def.bullet = body.IsAccelerable() && body.IsImpenetrable();
-    def.enabled = body.IsEnabled();
+    def.linearAcceleration = GetLinearAcceleration(body);
+    def.angularAcceleration = GetAngularAcceleration(body);
+    def.linearDamping = GetLinearDamping(body);
+    def.angularDamping = GetAngularDamping(body);
+    def.underActiveTime = GetUnderActiveTime(body);
+    def.allowSleep = IsSleepingAllowed(body);
+    def.awake = IsAwake(body);
+    def.fixedRotation = IsFixedRotation(body);
+    def.bullet = IsAccelerable(body) && IsImpenetrable(body);
+    def.enabled = IsEnabled(body);
     return def;
 }
 

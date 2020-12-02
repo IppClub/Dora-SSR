@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -27,10 +27,8 @@ namespace d2 {
 bool TestPoint(const Shape& shape, Length2 point) noexcept
 {
     const auto childCount = GetChildCount(shape);
-    for (auto i = decltype(childCount){0}; i < childCount; ++i)
-    {
-        if (playrho::d2::TestPoint(GetChild(shape, i), point))
-        {
+    for (auto i = decltype(childCount){0}; i < childCount; ++i) {
+        if (playrho::d2::TestPoint(GetChild(shape, i), point)) {
             return true;
         }
     }

@@ -21,13 +21,13 @@
 #ifndef PLAYRHO_DYNAMICS_CONTACTS_CONTACTID_HPP
 #define PLAYRHO_DYNAMICS_CONTACTS_CONTACTID_HPP
 
-#include "PlayRho/Common/StrongType.hpp"
+#include "PlayRho/Common/IndexingNamedType.hpp"
 #include "PlayRho/Common/Settings.hpp"
 
 namespace playrho {
 
 /// @brief Contact identifier.
-using ContactID = strongtype::IndexingNamedType<ContactCounter, struct ContactIdentifier>;
+using ContactID = detail::IndexingNamedType<ContactCounter, struct ContactIdentifier>;
 
 /// @brief Invalid contact ID value.
 constexpr auto InvalidContactID =

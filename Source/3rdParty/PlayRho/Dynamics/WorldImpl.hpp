@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -44,7 +44,6 @@
 #include "PlayRho/Dynamics/Contacts/KeyedContactID.hpp" // for KeyedContactPtr
 #include "PlayRho/Dynamics/WorldConf.hpp"
 #include "PlayRho/Dynamics/Joints/JointID.hpp"
-#include "PlayRho/Dynamics/Joints/JointType.hpp"
 #include "PlayRho/Dynamics/IslandStats.hpp"
 
 #include <iterator>
@@ -279,6 +278,11 @@ public:
     /// Member functions relating to bodies.
     /// @{
 
+    /// @brief Gets the extent of the currently valid body range.
+    /// @note This is one higher than the maxium <code>BodyID</code> that is in range
+    ///   for body related functions.
+    BodyCounter GetBodyRange() const noexcept;
+
     /// @brief Gets the world body range for this constant world.
     /// @details Gets a range enumerating the bodies currently existing within this world.
     ///   These are the bodies that had been created from previous calls to the
@@ -287,11 +291,6 @@ public:
     ///   or using ranged-based for-loops.
     /// @see CreateBody(const BodyConf&).
     SizedRange<Bodies::const_iterator> GetBodies() const noexcept;
-
-    /// @brief Gets the extent of the currently valid body range.
-    /// @note This is one higher than the maxium BodyID that is in range for body related
-    ///   functions.
-    BodyCounter GetBodyRange() const noexcept;
 
     /// @brief Gets the bodies-for-proxies range for this world.
     /// @details Provides insight on what bodies have been queued for proxy processing
@@ -340,6 +339,9 @@ public:
     /// @see PhysicalEntities.
     void Destroy(BodyID id);
 
+    /// @brief Gets whether the given identifier is to a body that's been destroyed.
+    bool IsDestroyed(BodyID id) const noexcept;
+
     /// @brief Gets the contacts associated with the identified body.
     /// @throws std::out_of_range if given an invalid id.
     SizedRange<WorldImpl::Contacts::const_iterator> GetContacts(BodyID id) const;
@@ -355,6 +357,11 @@ public:
     /// @name Fixture Member Functions
     /// Member functions relating to fixtures.
     /// @{
+
+    /// @brief Gets the extent of the currently valid fixture range.
+    /// @note This is one higher than the maxium <code>FixtureID</code> that is in range
+    ///   for fixture related functions.
+    FixtureCounter GetFixtureRange() const noexcept;
 
     /// @brief Creates a fixture with the given parameters.
     /// @details Creates a fixture for attaching a shape and other characteristics to the
@@ -399,6 +406,9 @@ public:
     /// @throws std::out_of_range If given an invalid fixture identifier.
     bool Destroy(FixtureID fixture);
 
+    /// @brief Gets whether the given identifier is to a fixture that's been destroyed.
+    bool IsDestroyed(FixtureID id) const noexcept;
+
     /// @brief Gets the fixtures-for-proxies range for this world.
     /// @details Provides insight on what fixtures have been queued for proxy processing
     ///   during the next call to the world step method.
@@ -414,6 +424,11 @@ public:
     /// @name Joint Member Functions
     /// Member functions relating to joints.
     /// @{
+
+    /// @brief Gets the extent of the currently valid joint range.
+    /// @note This is one higher than the maxium <code>JointID</code> that is in range
+    ///   for joint related functions.
+    JointCounter GetJointRange() const noexcept;
 
     /// @brief Gets the world joint range.
     /// @details Gets a range enumerating the joints currently existing within this world.
@@ -460,11 +475,19 @@ public:
     /// @see PhysicalEntities.
     void Destroy(JointID joint);
 
+    /// @brief Gets whether the given identifier is to a joint that's been destroyed.
+    bool IsDestroyed(JointID id) const noexcept;
+
     /// @}
 
     /// @name Contact Member Functions
     /// Member functions relating to contacts.
     /// @{
+
+    /// @brief Gets the extent of the currently valid contact range.
+    /// @note This is one higher than the maxium <code>ContactID</code> that is in range
+    ///   for contact related functions.
+    ContactCounter GetContactRange() const noexcept;
 
     /// @brief Gets the world contact range.
     /// @warning contacts are created and destroyed in the middle of a time step.
@@ -485,6 +508,9 @@ public:
     /// @brief Gets the identified manifold.
     /// @throws std::out_of_range If given an invalid contact identifier.
     const Manifold& GetManifold(ContactID id) const;
+
+    /// @brief Gets whether the given identifier is to a contact that's been destroyed.
+    bool IsDestroyed(ContactID id) const noexcept;
 
     /// @}
 
@@ -804,7 +830,7 @@ private:
 
     /******** Member variables. ********/
 
-    ArrayAllocator<Body> m_bodyBuffer;
+    ArrayAllocator<Body> m_bodyBuffer; ///< Array of body data both used and freed.
     ArrayAllocator<Contacts> m_bodyContacts; ///< Cache of contacts associated with body.
     ArrayAllocator<BodyJoints> m_bodyJoints; ///< Cache of joints associated with body.
 
@@ -815,11 +841,11 @@ private:
     ///   entire fixture array.
     ArrayAllocator<Fixtures> m_bodyFixtures;
 
-    ArrayAllocator<FixtureConf> m_fixtureBuffer;
-    ArrayAllocator<Proxies> m_fixtureProxies;
-    ArrayAllocator<Joint> m_jointBuffer;
-    ArrayAllocator<Contact> m_contactBuffer;
-    ArrayAllocator<Manifold> m_manifoldBuffer;
+    ArrayAllocator<FixtureConf> m_fixtureBuffer; ///< Array of fixture data both used and freed.
+    ArrayAllocator<Proxies> m_fixtureProxies; ///< Array of arrays of dynamic tree leaves.
+    ArrayAllocator<Joint> m_jointBuffer; ///< Array of joint data both used and freed.
+    ArrayAllocator<Contact> m_contactBuffer; ///< Array of contact data both used and freed.
+    ArrayAllocator<Manifold> m_manifoldBuffer; ///< Array of manifold data both used and freed.
 
     DynamicTree m_tree; ///< Dynamic tree.
 
@@ -838,16 +864,16 @@ private:
     Contacts m_contacts;
 
     Island m_island; ///< Island buffer.
-    std::vector<bool> m_islandedBodies;
-    std::vector<bool> m_islandedContacts;
-    std::vector<bool> m_islandedJoints;
+    std::vector<bool> m_islandedBodies; ///< Per body boolean on whether body islanded.
+    std::vector<bool> m_islandedContacts; ///< Per contact boolean on whether contact islanded.
+    std::vector<bool> m_islandedJoints; ///< Per joint boolean on whether joint islanded.
 
-    FixtureListener m_fixtureDestructionListener;
-    JointListener m_jointDestructionListener;
-    ContactListener m_beginContactListener;
-    ContactListener m_endContactListener;
-    ManifoldContactListener m_preSolveContactListener;
-    ImpulsesContactListener m_postSolveContactListener;
+    FixtureListener m_fixtureDestructionListener; ///< Listener for fixture destruction.
+    JointListener m_jointDestructionListener; ///< Listener for joint destruction.
+    ContactListener m_beginContactListener; ///< Listener for beginning contact events.
+    ContactListener m_endContactListener; ///< Listener for ending contact events.
+    ManifoldContactListener m_preSolveContactListener; ///< Listener for pre-solving contacts.
+    ImpulsesContactListener m_postSolveContactListener; ///< Listener for post-solving contacts.
 
     FlagsType m_flags = e_stepComplete; ///< Flags.
     

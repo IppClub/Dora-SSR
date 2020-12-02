@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -55,14 +55,15 @@ static_assert(std::is_nothrow_destructible<PulleyJointConf>::value,
 // K = J * invM * JT
 //   = invMass1 + invI1 * cross(r1, u1)^2 + ratio^2 * (invMass2 + invI2 * cross(r2, u2)^2)
 
-PulleyJointConf::PulleyJointConf(BodyID bA, BodyID bB,
-                                 Length2 groundA, Length2 groundB,
-                                 Length2 anchorA, Length2 anchorB,
-                                 Length lA, Length lB):
-    super{super{}.UseBodyA(bA).UseBodyB(bB).UseCollideConnected(true)},
-    groundAnchorA{groundA}, groundAnchorB{groundB},
-    localAnchorA{anchorA}, localAnchorB{anchorB},
-    lengthA{lA}, lengthB{lB}
+PulleyJointConf::PulleyJointConf(BodyID bA, BodyID bB, Length2 groundA, Length2 groundB,
+                                 Length2 anchorA, Length2 anchorB, Length lA, Length lB)
+    : super{super{}.UseBodyA(bA).UseBodyB(bB).UseCollideConnected(true)},
+      groundAnchorA{groundA},
+      groundAnchorB{groundB},
+      localAnchorA{anchorA},
+      localAnchorB{anchorB},
+      lengthA{lA},
+      lengthB{lB}
 {
     // Intentionally empty.
 }
@@ -72,21 +73,21 @@ PulleyJointConf GetPulleyJointConf(const Joint& joint)
     return TypeCast<PulleyJointConf>(joint);
 }
 
-PulleyJointConf GetPulleyJointConf(const World& world,
-                                   BodyID bA, BodyID bB,
-                                   Length2 groundA, Length2 groundB,
-                                   Length2 anchorA, Length2 anchorB)
+PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, Length2 groundA,
+                                   Length2 groundB, Length2 anchorA, Length2 anchorB)
 {
-    return PulleyJointConf{
-        bA, bB, groundA, groundB,
-        GetLocalPoint(world, bA, anchorA), GetLocalPoint(world, bB, anchorB),
-        GetMagnitude(anchorA - groundA), GetMagnitude(anchorB - groundB)
-    };
+    return PulleyJointConf{bA,
+                           bB,
+                           groundA,
+                           groundB,
+                           GetLocalPoint(world, bA, anchorA),
+                           GetLocalPoint(world, bB, anchorB),
+                           GetMagnitude(anchorA - groundA),
+                           GetMagnitude(anchorB - groundB)};
 }
 
 void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf&)
+                  const StepConf& step, const ConstraintSolverConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
@@ -123,10 +124,9 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
 
     const auto totalInvMass = totInvMassA + object.ratio * object.ratio * totInvMassB;
 
-    object.mass = (totalInvMass > InvMass{0})? Real{1} / totalInvMass: 0_kg;
+    object.mass = (totalInvMass > InvMass{0}) ? Real{1} / totalInvMass : 0_kg;
 
-    if (step.doWarmStart)
-    {
+    if (step.doWarmStart) {
         // Scale impulses to support variable time steps.
         object.impulse *= step.dtRatio;
 
@@ -137,8 +137,7 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
         velA += Velocity{invMassA * PA, invRotInertiaA * Cross(object.rA, PA) / Radian};
         velB += Velocity{invMassB * PB, invRotInertiaB * Cross(object.rB, PB) / Radian};
     }
-    else
-    {
+    else {
         object.impulse = 0_Ns;
     }
 
@@ -146,8 +145,7 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(PulleyJointConf& object,
-                   std::vector<BodyConstraint>& bodies, const StepConf&)
+bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
@@ -160,8 +158,10 @@ bool SolveVelocity(PulleyJointConf& object,
     const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
     auto velB = bodyConstraintB.GetVelocity();
 
-    const auto vpA = LinearVelocity2{velA.linear + GetRevPerpendicular(object.rA) * (velA.angular / Radian)};
-    const auto vpB = LinearVelocity2{velB.linear + GetRevPerpendicular(object.rB) * (velB.angular / Radian)};
+    const auto vpA =
+        LinearVelocity2{velA.linear + GetRevPerpendicular(object.rA) * (velA.angular / Radian)};
+    const auto vpB =
+        LinearVelocity2{velB.linear + GetRevPerpendicular(object.rB) * (velB.angular / Radian)};
 
     const auto Cdot = LinearVelocity{-Dot(object.uA, vpA) - object.ratio * Dot(object.uB, vpB)};
     const auto impulse = -object.mass * Cdot;
@@ -178,8 +178,7 @@ bool SolveVelocity(PulleyJointConf& object,
     return impulse == 0_Ns;
 }
 
-bool SolvePosition(const PulleyJointConf& object,
-                   std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
@@ -193,10 +192,10 @@ bool SolvePosition(const PulleyJointConf& object,
     const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
     auto posB = bodyConstraintB.GetPosition();
 
-    const auto rA = Rotate(object.localAnchorA - bodyConstraintA.GetLocalCenter(),
-                           UnitVec::Get(posA.angular));
-    const auto rB = Rotate(object.localAnchorB - bodyConstraintB.GetLocalCenter(),
-                           UnitVec::Get(posB.angular));
+    const auto rA =
+        Rotate(object.localAnchorA - bodyConstraintA.GetLocalCenter(), UnitVec::Get(posA.angular));
+    const auto rB =
+        Rotate(object.localAnchorB - bodyConstraintB.GetLocalCenter(), UnitVec::Get(posB.angular));
 
     // Get the pulley axes.
     const auto pA = Length2{posA.linear + rA - object.groundAnchorA};
@@ -213,11 +212,11 @@ bool SolvePosition(const PulleyJointConf& object,
     const auto ruA = Length{Cross(rA, uA)};
     const auto ruB = Length{Cross(rB, uB)};
 
-    const auto totalInvMassA = invMassA + invRotInertiaA * ruA * ruA / SquareRadian;
-    const auto totalInvMassB = invMassB + invRotInertiaB * ruB * ruB / SquareRadian;
+    const auto totalInvMassA = invMassA + invRotInertiaA * Square(ruA) / SquareRadian;
+    const auto totalInvMassB = invMassB + invRotInertiaB * Square(ruB) / SquareRadian;
 
-    const auto totalInvMass = totalInvMassA + object.ratio * object.ratio * totalInvMassB;
-    const auto mass = (totalInvMass > InvMass{0})? Real{1} / totalInvMass: 0_kg;
+    const auto totalInvMass = totalInvMassA + Square(object.ratio) * totalInvMassB;
+    const auto mass = (totalInvMass > InvMass{0}) ? Real{1} / totalInvMass : 0_kg;
 
     const auto srcLengthRatio = object.lengthA + object.ratio * object.lengthB; // constant C0
     const auto dstLengthRatio = lengthA + object.ratio * lengthB;

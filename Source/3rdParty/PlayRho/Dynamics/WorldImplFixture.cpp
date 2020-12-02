@@ -22,11 +22,14 @@
 #include "PlayRho/Dynamics/WorldImplFixture.hpp"
 
 #include "PlayRho/Dynamics/WorldImpl.hpp"
-#include "PlayRho/Dynamics/Body.hpp" // for use of WorldImpl::GetBody
-#include "PlayRho/Dynamics/Contacts/Contact.hpp" // for use of WorldImpl::GetBody
 
 namespace playrho {
 namespace d2 {
+
+FixtureCounter GetFixtureRange(const WorldImpl& world) noexcept
+{
+    return world.GetFixtureRange();
+}
 
 FixtureID CreateFixture(WorldImpl& world, const FixtureConf& def)
 {

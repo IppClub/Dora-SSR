@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #include "PlayRho/Dynamics/WorldBody.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -60,10 +60,12 @@ static_assert(std::is_nothrow_destructible<WheelJointConf>::value,
 // J = [0 0 -1 0 0 1]
 
 WheelJointConf::WheelJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB,
-                               UnitVec axis) noexcept:
-    super{super{}.UseBodyA(bA).UseBodyB(bB)},
-    localAnchorA{laA}, localAnchorB{laB},
-    localXAxisA{axis}, localYAxisA{GetRevPerpendicular(axis)}
+                               UnitVec axis) noexcept
+    : super{super{}.UseBodyA(bA).UseBodyB(bB)},
+      localAnchorA{laA},
+      localAnchorB{laB},
+      localXAxisA{axis},
+      localYAxisA{GetRevPerpendicular(axis)}
 {
     // Intentionally empty.
 }
@@ -73,23 +75,19 @@ WheelJointConf GetWheelJointConf(const Joint& joint)
     return TypeCast<WheelJointConf>(joint);
 }
 
-WheelJointConf GetWheelJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                                 Length2 anchor, UnitVec axis)
+WheelJointConf GetWheelJointConf(const World& world, BodyID bodyA, BodyID bodyB, Length2 anchor,
+                                 UnitVec axis)
 {
-    return WheelJointConf{
-        bodyA, bodyB,
-        GetLocalPoint(world, bodyA, anchor), GetLocalPoint(world, bodyB, anchor),
-        GetLocalVector(world, bodyA, axis)};
+    return WheelJointConf{bodyA, bodyB, GetLocalPoint(world, bodyA, anchor),
+                          GetLocalPoint(world, bodyB, anchor), GetLocalVector(world, bodyA, axis)};
 }
 
 AngularVelocity GetAngularVelocity(const World& world, const WheelJointConf& conf)
 {
-    return GetVelocity(world, GetBodyB(conf)).angular
-         - GetVelocity(world, GetBodyA(conf)).angular;
+    return GetVelocity(world, GetBodyB(conf)).angular - GetVelocity(world, GetBodyA(conf)).angular;
 }
 
-void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
@@ -123,15 +121,14 @@ void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
         const auto invRotMassB = invRotInertiaB * Square(object.sBy) / SquareRadian;
         const auto invMass = invMassA + invMassB + invRotMassA + invRotMassB;
 
-        object.mass = (invMass > InvMass{0})? Real{1} / invMass: 0;
+        object.mass = (invMass > InvMass{0}) ? Real{1} / invMass : 0;
     }
 
     // Spring constraint
     object.springMass = 0_kg;
     object.bias = 0;
     object.gamma = 0;
-    if (object.frequency > 0_Hz)
-    {
+    if (object.frequency > 0_Hz) {
         object.ax = Rotate(object.localXAxisA, qA);
         object.sAx = Cross(dd + rA, object.ax);
         object.sBx = Cross(rB, object.ax);
@@ -140,8 +137,7 @@ void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
         const auto invRotMassB = invRotInertiaB * Square(object.sBx) / SquareRadian;
         const auto invMass = invMassA + invMassB + invRotMassA + invRotMassB;
 
-        if (invMass > InvMass{0})
-        {
+        if (invMass > InvMass{0}) {
             object.springMass = Real{1} / invMass;
 
             const auto C = Length{Dot(dd, object.ax)};
@@ -159,15 +155,14 @@ void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
             const auto h = step.deltaTime;
 
             const auto invGamma = Mass{h * (d + h * k)};
-            object.gamma = (invGamma > 0_kg)? Real{1} / invGamma: 0;
+            object.gamma = (invGamma > 0_kg) ? Real{1} / invGamma : 0;
             object.bias = LinearVelocity{C * h * k * object.gamma};
 
             const auto totalInvMass = invMass + object.gamma;
-            object.springMass = (totalInvMass > InvMass{0})? Real{1} / totalInvMass: 0_kg;
+            object.springMass = (totalInvMass > InvMass{0}) ? Real{1} / totalInvMass : 0_kg;
         }
     }
-    else
-    {
+    else {
         object.springImpulse = 0;
 
         object.ax = UnitVec::GetZero();
@@ -176,19 +171,17 @@ void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
     }
 
     // Rotational motor
-    if (object.enableMotor)
-    {
+    if (object.enableMotor) {
         const auto invRotInertia = invRotInertiaA + invRotInertiaB;
-        object.angularMass = (invRotInertia > InvRotInertia{0})? Real{1} / invRotInertia: RotInertia{0};
+        object.angularMass =
+            (invRotInertia > InvRotInertia{0}) ? Real{1} / invRotInertia : RotInertia{0};
     }
-    else
-    {
+    else {
         object.angularMass = RotInertia{0};
         object.angularImpulse = 0;
     }
 
-    if (step.doWarmStart)
-    {
+    if (step.doWarmStart) {
         // Account for variable time step.
         object.impulse *= step.dtRatio;
         object.springImpulse *= step.dtRatio;
@@ -198,14 +191,17 @@ void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
 
         // Momentum is M L T^-1. Length * momentum is L^2 M T^-1
         // Angular momentum is L^2 M T^-1 QP^-1
-        const auto LA = AngularMomentum{(object.impulse * object.sAy + object.springImpulse * object.sAx) / Radian + object.angularImpulse};
-        const auto LB = AngularMomentum{(object.impulse * object.sBy + object.springImpulse * object.sBx) / Radian + object.angularImpulse};
+        const auto LA = AngularMomentum{
+            (object.impulse * object.sAy + object.springImpulse * object.sAx) / Radian +
+            object.angularImpulse};
+        const auto LB = AngularMomentum{
+            (object.impulse * object.sBy + object.springImpulse * object.sBx) / Radian +
+            object.angularImpulse};
 
         velA -= Velocity{invMassA * P, invRotInertiaA * LA};
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
-    else
-    {
+    else {
         object.impulse = 0;
         object.springImpulse = 0;
         object.angularImpulse = 0;
@@ -235,8 +231,10 @@ bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
     // Solve spring constraint
     {
         const auto dot = LinearVelocity{Dot(object.ax, velB.linear - velA.linear)};
-        const auto Cdot = dot + object.sBx * velB.angular / Radian - object.sAx * velA.angular / Radian;
-        const auto impulse = -object.springMass * (Cdot + object.bias + object.gamma * object.springImpulse);
+        const auto Cdot =
+            dot + object.sBx * velB.angular / Radian - object.sAx * velA.angular / Radian;
+        const auto impulse =
+            -object.springMass * (Cdot + object.bias + object.gamma * object.springImpulse);
         object.springImpulse += impulse;
 
         const auto P = impulse * object.ax;
@@ -254,8 +252,8 @@ bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
 
         const auto oldImpulse = object.angularImpulse;
         const auto maxImpulse = AngularMomentum{step.deltaTime * object.maxMotorTorque};
-        object.angularImpulse = std::clamp(object.angularImpulse + impulse,
-                                           -maxImpulse, maxImpulse);
+        object.angularImpulse =
+            std::clamp(object.angularImpulse + impulse, -maxImpulse, maxImpulse);
         impulse = object.angularImpulse - oldImpulse;
 
         velA.angular -= AngularVelocity{invRotInertiaA * impulse};
@@ -265,7 +263,8 @@ bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
     // Solve point to line constraint
     {
         const auto dot = LinearVelocity{Dot(object.ay, velB.linear - velA.linear)};
-        const auto Cdot = dot + object.sBy * velB.angular / Radian - object.sAy * velA.angular / Radian;
+        const auto Cdot =
+            dot + object.sBy * velB.angular / Radian - object.sAy * velA.angular / Radian;
         const auto impulse = -object.mass * Cdot;
         object.impulse += impulse;
 
@@ -277,8 +276,7 @@ bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
 
-    if ((velA != oldVelA) || (velB != oldVelB))
-    {
+    if ((velA != oldVelA) || (velB != oldVelB)) {
         bodyConstraintA.SetVelocity(velA);
         bodyConstraintB.SetVelocity(velB);
         return false;
@@ -319,7 +317,7 @@ bool SolvePosition(const WheelJointConf& object, std::vector<BodyConstraint>& bo
 
     const auto k = InvMass{invMassA + invMassB + invRotMassA + invRotMassB};
 
-    const auto impulse = (k != InvMass{0})? -(C / k): 0 * Kilogram * Meter;
+    const auto impulse = (k != InvMass{0}) ? -(C / k) : 0 * Kilogram * Meter;
 
     const auto P = impulse * ay;
     const auto LA = impulse * sAy / Radian;

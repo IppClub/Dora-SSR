@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,8 +29,7 @@ static_assert(std::is_default_constructible<JointConf>::value,
               "JointConf should be default constructible!");
 static_assert(std::is_copy_constructible<JointConf>::value,
               "JointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<JointConf>::value,
-              "JointConf should be copy assignable!");
+static_assert(std::is_copy_assignable<JointConf>::value, "JointConf should be copy assignable!");
 static_assert(std::is_nothrow_move_constructible<JointConf>::value,
               "JointConf should be nothrow move constructible!");
 static_assert(std::is_nothrow_move_assignable<JointConf>::value,

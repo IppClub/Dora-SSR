@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -8,16 +8,19 @@
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
+ *
  * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
 #include "PlayRho/Common/CodeDumper.hpp"
+
+#ifdef CODE_DUMPER_IS_READY
 
 #include "PlayRho/Dynamics/WorldBody.hpp"
 #include "PlayRho/Dynamics/WorldJoint.hpp"
@@ -53,16 +56,16 @@ namespace d2 {
 
 namespace {
 
-    // You can modify this to use your logging facility.
-    void log(const char* string, ...)
-    {
-        va_list args;
-        va_start(args, string);
-        std::vprintf(string, args);
-        va_end(args);
-    }
-    
+// You can modify this to use your logging facility.
+void log(const char* string, ...)
+{
+    va_list args;
+    va_start(args, string);
+    std::vprintf(string, args);
+    va_end(args);
 }
+
+} // namespace
 
 void Dump(const World& world)
 {
@@ -179,10 +182,8 @@ void Dump(const FixtureConf& fixture, std::size_t bodyIndex)
     log("    fd.isSensor = bool(%d);\n", IsSensor(fixture));
     log("    fd.filter.categoryBits = Filter::bits_type(%u);\n",
         GetFilterData(fixture).categoryBits);
-    log("    fd.filter.maskBits = Filter::bits_type(%u);\n",
-        GetFilterData(fixture).maskBits);
-    log("    fd.filter.groupIndex = Filter::index_type(%d);\n",
-        GetFilterData(fixture).groupIndex);
+    log("    fd.filter.maskBits = Filter::bits_type(%u);\n", GetFilterData(fixture).maskBits);
+    log("    fd.filter.groupIndex = Filter::index_type(%d);\n", GetFilterData(fixture).groupIndex);
 #if 0
     const auto shape = fixture.GetShape();
     std::ostringstream os;
@@ -207,10 +208,8 @@ void Dump(const DistanceJointConf& joint, std::size_t index, const World& world)
     log("  jd.localAnchorB = Vec2(%.15lef, %.15lef);\n",
         static_cast<double>(Real{get<0>(GetLocalAnchorB(joint)) / Meter}),
         static_cast<double>(Real{get<1>(GetLocalAnchorB(joint)) / Meter}));
-    log("  jd.length = %.15lef;\n",
-        static_cast<double>(Real{GetLength(joint) / Meter}));
-    log("  jd.frequency = %.15lef;\n",
-        static_cast<double>(Real{GetFrequency(joint) / Hertz}));
+    log("  jd.length = %.15lef;\n", static_cast<double>(Real{GetLength(joint) / Meter}));
+    log("  jd.frequency = %.15lef;\n", static_cast<double>(Real{GetFrequency(joint) / Hertz}));
     log("  jd.dampingRatio = %.15lef;\n", GetDampingRatio(joint));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
@@ -227,8 +226,7 @@ void Dump(const FrictionJointConf& joint, std::size_t index, const World& world)
     log("  jd.localAnchorB = Vec2(%.15lef, %.15lef);\n",
         static_cast<double>(Real{get<0>(GetLocalAnchorB(joint)) / Meter}),
         static_cast<double>(Real{get<1>(GetLocalAnchorB(joint)) / Meter}));
-    log("  jd.maxForce = %.15lef;\n",
-        static_cast<double>(Real{GetMaxForce(joint) / Newton}));
+    log("  jd.maxForce = %.15lef;\n", static_cast<double>(Real{GetMaxForce(joint) / Newton}));
     log("  jd.maxTorque = %.15lef;\n",
         static_cast<double>(Real{GetMaxTorque(joint) / NewtonMeter}));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
@@ -240,8 +238,8 @@ void Dump(const GearJointConf& joint, std::size_t index, const World& world)
     log("  jd.bodyA = bodies[%d];\n", GetWorldIndex(world, GetBodyA(joint)));
     log("  jd.bodyB = bodies[%d];\n", GetWorldIndex(world, GetBodyB(joint)));
     log("  jd.collideConnected = bool(%d);\n", GetCollideConnected(joint));
-  //  log("  jd.joint1 = joints[%d];\n", GetWorldIndex(world, joint.GetJoint1()));
-  //  log("  jd.joint2 = joints[%d];\n", GetWorldIndex(world, joint.GetJoint2()));
+    //  log("  jd.joint1 = joints[%d];\n", GetWorldIndex(world, joint.GetJoint1()));
+    //  log("  jd.joint2 = joints[%d];\n", GetWorldIndex(world, joint.GetJoint2()));
     log("  jd.ratio = %.15lef;\n", GetRatio(joint));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
@@ -257,8 +255,7 @@ void Dump(const MotorJointConf& joint, std::size_t index, const World& world)
         static_cast<double>(Real{get<1>(GetLinearOffset(joint)) / Meter}));
     log("  jd.angularOffset = %.15lef;\n",
         static_cast<double>(Real{GetAngularOffset(joint) / Radian}));
-    log("  jd.maxForce = %.15lef;\n",
-        static_cast<double>(Real{GetMaxForce(joint) / Newton}));
+    log("  jd.maxForce = %.15lef;\n", static_cast<double>(Real{GetMaxForce(joint) / Newton}));
     log("  jd.maxTorque = %.15lef;\n",
         static_cast<double>(Real{GetMaxTorque(joint) / NewtonMeter}));
     log("  jd.correctionFactor = %.15lef;\n", joint.correctionFactor);
@@ -274,11 +271,9 @@ void Dump(const TargetJointConf& joint, std::size_t index, const World& world)
     log("  jd.localAnchorB = Vec2(%.15lef, %.15lef);\n",
         static_cast<double>(Real{get<0>(GetLocalAnchorB(joint)) / Meter}),
         static_cast<double>(Real{get<1>(GetLocalAnchorB(joint)) / Meter}));
-    log("  jd.frequency = %.15lef;\n",
-        static_cast<double>(Real{GetFrequency(joint) / Hertz}));
+    log("  jd.frequency = %.15lef;\n", static_cast<double>(Real{GetFrequency(joint) / Hertz}));
     log("  jd.dampingRatio = %.15lef;\n", static_cast<double>(Real{GetDampingRatio(joint)}));
-    log("  jd.maxForce = %.15lef;\n",
-        static_cast<double>(Real{GetMaxForce(joint) / Newton}));
+    log("  jd.maxForce = %.15lef;\n", static_cast<double>(Real{GetMaxForce(joint) / Newton}));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
 
@@ -294,8 +289,8 @@ void Dump(const PrismaticJointConf& joint, std::size_t index, const World& world
     log("  jd.localAnchorB = Vec2(%.15lef, %.15lef);\n",
         static_cast<double>(Real{get<0>(GetLocalAnchorB(joint)) / Meter}),
         static_cast<double>(Real{get<1>(GetLocalAnchorB(joint)) / Meter}));
-    log("  jd.localXAxisA = Vec2(%.15lef, %.15lef);\n",
-        GetX(GetLocalXAxisA(joint)), GetY(GetLocalXAxisA(joint)));
+    log("  jd.localXAxisA = Vec2(%.15lef, %.15lef);\n", GetX(GetLocalXAxisA(joint)),
+        GetY(GetLocalXAxisA(joint)));
     log("  jd.referenceAngle = %.15lef;\n",
         static_cast<double>(Real{GetReferenceAngle(joint) / Radian}));
     log("  jd.enableLimit = bool(%d);\n", IsLimitEnabled(joint));
@@ -306,8 +301,7 @@ void Dump(const PrismaticJointConf& joint, std::size_t index, const World& world
     log("  jd.enableMotor = bool(%d);\n", IsMotorEnabled(joint));
     log("  jd.motorSpeed = %.15lef;\n",
         static_cast<double>(Real{GetMotorSpeed(joint) / RadianPerSecond}));
-    log("  jd.maxMotorForce = %.15lef;\n",
-        static_cast<double>(Real{joint.maxMotorForce / Newton}));
+    log("  jd.maxMotorForce = %.15lef;\n", static_cast<double>(Real{joint.maxMotorForce / Newton}));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
 
@@ -329,10 +323,8 @@ void Dump(const PulleyJointConf& joint, std::size_t index, const World& world)
     log("  jd.localAnchorB = Vec2(%.15lef, %.15lef);\n",
         static_cast<double>(Real{get<0>(GetLocalAnchorB(joint)) / Meter}),
         static_cast<double>(Real{get<1>(GetLocalAnchorB(joint)) / Meter}));
-    log("  jd.lengthA = %.15lef;\n",
-        static_cast<double>(Real{joint.lengthA / Meter}));
-    log("  jd.lengthB = %.15lef;\n",
-        static_cast<double>(Real{joint.lengthB / Meter}));
+    log("  jd.lengthA = %.15lef;\n", static_cast<double>(Real{joint.lengthA / Meter}));
+    log("  jd.lengthB = %.15lef;\n", static_cast<double>(Real{joint.lengthB / Meter}));
     log("  jd.ratio = %.15lef;\n", GetRatio(joint));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
@@ -376,8 +368,7 @@ void Dump(const RopeJointConf& joint, std::size_t index, const World& world)
     log("  jd.localAnchorB = Vec2(%.15lef, %.15lef);\n",
         static_cast<double>(Real{get<0>(GetLocalAnchorB(joint)) / Meter}),
         static_cast<double>(Real{get<1>(GetLocalAnchorB(joint)) / Meter}));
-    log("  jd.maxLength = %.15lef;\n",
-        static_cast<double>(Real{joint.maxLength / Meter}));
+    log("  jd.maxLength = %.15lef;\n", static_cast<double>(Real{joint.maxLength / Meter}));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
 
@@ -395,8 +386,7 @@ void Dump(const WeldJointConf& joint, std::size_t index, const World& world)
         static_cast<double>(Real{get<1>(GetLocalAnchorB(joint)) / Meter}));
     log("  jd.referenceAngle = %.15lef;\n",
         static_cast<double>(Real{GetReferenceAngle(joint) / Radian}));
-    log("  jd.frequency = %.15lef;\n",
-        static_cast<double>(Real{GetFrequency(joint) / Hertz}));
+    log("  jd.frequency = %.15lef;\n", static_cast<double>(Real{GetFrequency(joint) / Hertz}));
     log("  jd.dampingRatio = %.15lef;\n", GetDampingRatio(joint));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
@@ -421,11 +411,12 @@ void Dump(const WheelJointConf& joint, std::size_t index, const World& world)
         static_cast<double>(Real{GetMotorSpeed(joint) / RadianPerSecond}));
     log("  jd.maxMotorTorque = %.15lef;\n",
         static_cast<double>(Real{GetMaxMotorTorque(joint) / NewtonMeter}));
-    log("  jd.frequency = %.15lef;\n",
-        static_cast<double>(Real{GetFrequency(joint) / Hertz}));
+    log("  jd.frequency = %.15lef;\n", static_cast<double>(Real{GetFrequency(joint) / Hertz}));
     log("  jd.dampingRatio = %.15lef;\n", GetDampingRatio(joint));
     log("  joints[%d] = m_world->CreateJoint(jd);\n", index);
 }
 
 } // namespace d2
 } // namespace playrho
+
+#endif // CODE_DUMPER_IS_READY
