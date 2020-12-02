@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,37 +25,24 @@
 namespace playrho {
 namespace d2 {
 
-VelocityPair CalcWarmStartVelocityDeltas(const VelocityConstraint& vc)
+Velocity Cap(Velocity velocity, Time h, const MovementConf& conf) noexcept
 {
-    auto vp = VelocityPair{Velocity{LinearVelocity2{}, 0_rpm}, Velocity{LinearVelocity2{}, 0_rpm}};
-
-    const auto normal = vc.GetNormal();
-    const auto tangent = vc.GetTangent();
-    const auto pointCount = vc.GetPointCount();
-    const auto bodyA = vc.GetBodyA();
-    const auto bodyB = vc.GetBodyB();
-
-    const auto invMassA = bodyA->GetInvMass();
-    const auto invRotInertiaA = bodyA->GetInvRotInertia();
-
-    const auto invMassB = bodyB->GetInvMass();
-    const auto invRotInertiaB = bodyB->GetInvRotInertia();
-
-    for (auto j = decltype(pointCount){0}; j < pointCount; ++j) {
-        // inverse moment of inertia : L^-2 M^-1 QP^2
-        // P is M L T^-2
-        // GetPointRelPosA() is Length2
-        // Cross(Length2, P) is: M L^2 T^-2
-        // L^-2 M^-1 QP^2 M L^2 T^-2 is: QP^2 T^-2
-        const auto& vcp = vc.GetPointAt(j);
-        const auto P = vcp.normalImpulse * normal + vcp.tangentImpulse * tangent;
-        const auto LA = Cross(vcp.relA, P) / Radian;
-        const auto LB = Cross(vcp.relB, P) / Radian;
-        std::get<0>(vp) -= Velocity{invMassA * P, invRotInertiaA * LA};
-        std::get<1>(vp) += Velocity{invMassB * P, invRotInertiaB * LB};
+    const auto translation = h * velocity.linear;
+    const auto lsquared = GetMagnitudeSquared(translation);
+    if (lsquared > Square(conf.maxTranslation)) {
+        // Scale back linear velocity so max translation not exceeded.
+        const auto ratio = conf.maxTranslation / sqrt(lsquared);
+        velocity.linear *= ratio;
     }
 
-    return vp;
+    const auto absRotation = abs(h * velocity.angular);
+    if (absRotation > conf.maxRotation) {
+        // Scale back angular velocity so max rotation not exceeded.
+        const auto ratio = conf.maxRotation / absRotation;
+        velocity.angular *= ratio;
+    }
+
+    return velocity;
 }
 
 } // namespace d2

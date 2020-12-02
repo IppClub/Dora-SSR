@@ -24,6 +24,19 @@
 
 /// @file
 /// Declarations of free functions of World for contacts identified by <code>ContactID</code>.
+/// @details This is a collection of non-member non-friend functions - also called "free"
+///   functions - that are related to contacts within an instance of a <code>World</code>.
+///   Many are just "wrappers" to similarly named member functions but some are additional
+///   functionality built on those member functions. A benefit to using free functions that
+///   are now just wrappers, is that of helping to isolate your code from future changes that
+///   might occur to the underlying <code>World</code> member functions. Free functions in
+///   this sense are "cheap" abstractions. While using these incurs extra run-time overhead
+///   when compiled without any compiler optimizations enabled, enabling optimizations
+///   should entirely eliminate that overhead.
+/// @note The four basic categories of these functions are "CRUD": create, read, update,
+///   and delete.
+/// @see World, ContactID.
+/// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
 #include "PlayRho/Common/Settings.hpp"
 #include "PlayRho/Common/Range.hpp" // for SizedRange
@@ -48,22 +61,11 @@ class Manifold;
 ///   interfaces to <code>playrho::d2::World</code> contact member functions and additional
 ///   functionality.
 
-/// @defgroup WorldContactFreeFunctions World Contacts Related Free Functions
-/// @brief Collection of "free" functions related to contacts within a <code>World</code>.
-/// @details This is a collection of non-member non-friend functions - also called "free"
-///   functions - that are related to contacts within an instance of a <code>World</code>.
-///   Many are just "wrappers" to similarly named member functions but some are additional
-///   functionality built on those member functions. A benefit to using free functions that
-///   are now just wrappers, is that of helping to isolate your code from future changes that
-///   might occur to the underlying <code>World</code> member functions. Free functions in
-///   this sense are "cheap" abstractions. While using these incurs extra run-time overhead
-///   when compiled without any compiler optimizations enabled, enabling optimizations
-///   should entirely eliminate that overhead.
-/// @note The four basic categories of these functions are "CRUD": create, read, update,
-///   and delete.
-/// @see World, ContactID.
-/// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
-/// @{
+/// @brief Gets the extent of the currently valid contact range.
+/// @note This is one higher than the maxium <code>ContactID</code> that is in range
+///   for contact related functions.
+/// @relatedalso World
+ContactCounter GetContactRange(const World& world) noexcept;
 
 /// @brief Gets the contacts recognized within the given world.
 /// @relatedalso World
@@ -287,8 +289,6 @@ inline ContactCounter GetContactCount(const World& world) noexcept
     using std::size;
     return static_cast<ContactCounter>(size(GetContacts(world)));
 }
-
-/// @}
 
 } // namespace d2
 } // namespace playrho

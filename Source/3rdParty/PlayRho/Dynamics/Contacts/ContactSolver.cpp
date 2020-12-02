@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -18,8 +18,11 @@
  */
 
 #include "PlayRho/Dynamics/Contacts/ContactSolver.hpp"
+
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 #include "PlayRho/Collision/Collision.hpp"
 #include "PlayRho/Collision/WorldManifold.hpp"
+#include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
 #include "PlayRho/Dynamics/Contacts/PositionSolverManifold.hpp"
 #include "PlayRho/Dynamics/Contacts/VelocityConstraint.hpp"
 #include "PlayRho/Dynamics/Contacts/PositionConstraint.hpp"
@@ -61,12 +64,13 @@ struct ImpulseChange
     UnitVec direction; ///< Direction.
 };
 
-VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2 impulses)
+VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2 impulses,
+                              const std::vector<BodyConstraint>& bodies)
 {
     assert(IsValid(impulses));
 
-    const auto bodyA = vc.GetBodyA();
-    const auto bodyB = vc.GetBodyB();
+    const auto bodyA = &bodies[vc.GetBodyA().get()];
+    const auto bodyB = &bodies[vc.GetBodyB().get()];
     const auto normal = vc.GetNormal();
 
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
@@ -91,17 +95,21 @@ VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2 impu
     };
 }
 
-Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2 newImpulses)
+Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2 newImpulses,
+                          std::vector<BodyConstraint>& bodies)
 {
-    const auto delta_v = GetVelocityDelta(vc, newImpulses - GetNormalImpulses(vc));
-    vc.GetBodyA()->SetVelocity(vc.GetBodyA()->GetVelocity() + std::get<0>(delta_v));
-    vc.GetBodyB()->SetVelocity(vc.GetBodyB()->GetVelocity() + std::get<1>(delta_v));
+    const auto delta_v = GetVelocityDelta(vc, newImpulses - GetNormalImpulses(vc), bodies);
+    const auto bodyA = &bodies[vc.GetBodyA().get()];
+    const auto bodyB = &bodies[vc.GetBodyB().get()];
+    bodyA->SetVelocity(bodyA->GetVelocity() + std::get<0>(delta_v));
+    bodyB->SetVelocity(bodyB->GetVelocity() + std::get<1>(delta_v));
     SetNormalImpulses(vc, newImpulses);
     return std::max(abs(newImpulses[0]), abs(newImpulses[1]));
 }
 
 std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
-                                         const LinearVelocity2 b_prime)
+                                              std::vector<BodyConstraint>& bodies,
+                                              const LinearVelocity2 b_prime)
 {
     //
     // Case 1: vn = 0
@@ -112,11 +120,10 @@ std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
     //
     // x = -inv(A) * b'
     //
-    const auto normalMass = vc.GetNormalMass();
-    const auto newImpulses = -Transform(b_prime, normalMass);
+    const auto newImpulses = -Transform(b_prime, vc.GetNormalMass());
     if ((newImpulses[0] >= 0_Ns) && (newImpulses[1] >= 0_Ns))
     {
-        const auto max = BlockSolveUpdate(vc, newImpulses);
+        const auto max = BlockSolveUpdate(vc, newImpulses, bodies);
 
 #if defined(B2_DEBUG_SOLVER)
         auto& vcp0 = vc.GetPointAt(0);
@@ -140,7 +147,9 @@ std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
     return std::optional<Momentum>{};
 }
 
-std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc, const LinearVelocity2 b_prime)
+std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc,
+                                              std::vector<BodyConstraint>& bodies,
+                                              const LinearVelocity2 b_prime)
 {
     //
     // Case 2: vn1 = 0 and x2 = 0
@@ -155,7 +164,7 @@ std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc, const Line
     const auto vn2 = get<1>(get<0>(K)) * get<0>(newImpulses) + get<1>(b_prime);
     if ((get<0>(newImpulses) >= 0_Ns) && (vn2 >= 0_mps))
     {
-        const auto max = BlockSolveUpdate(vc, newImpulses);
+        const auto max = BlockSolveUpdate(vc, newImpulses, bodies);
 
 #if defined(B2_DEBUG_SOLVER)
         auto& vcp1 = vc.GetPointAt(0);
@@ -175,7 +184,9 @@ std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc, const Line
     return std::optional<Momentum>{};
 }
 
-std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc, const LinearVelocity2 b_prime)
+std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc,
+                                              std::vector<BodyConstraint>& bodies,
+                                              const LinearVelocity2 b_prime)
 {
     //
     // Case 3: vn2 = 0 and x1 = 0
@@ -190,7 +201,7 @@ std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc, const Line
     const auto vn1 = get<0>(get<1>(K)) * get<1>(newImpulses) + get<0>(b_prime);
     if ((get<1>(newImpulses) >= 0_Ns) && (vn1 >= 0_mps))
     {
-        const auto max = BlockSolveUpdate(vc, newImpulses);
+        const auto max = BlockSolveUpdate(vc, newImpulses, bodies);
 
 #if defined(B2_DEBUG_SOLVER)
         auto& vcp2 = vc.GetPointAt(1);
@@ -210,7 +221,9 @@ std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc, const Line
     return std::optional<Momentum>{};
 }
 
-std::optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc, const LinearVelocity2 b_prime)
+std::optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc,
+                                              std::vector<BodyConstraint>& bodies,
+                                              const LinearVelocity2 b_prime)
 {
     //
     // Case 4: x1 = 0 and x2 = 0
@@ -221,12 +234,13 @@ std::optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc, const Line
     const auto vn2 = get<1>(b_prime);
     if ((vn1 >= 0_mps) && (vn2 >= 0_mps))
     {
-        return std::optional<Momentum>{BlockSolveUpdate(vc, Momentum2{0_Ns, 0_Ns})};
+        return std::optional<Momentum>{BlockSolveUpdate(vc, Momentum2{0_Ns, 0_Ns}, bodies)};
     }
     return std::optional<Momentum>{};
 }
 
-inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc)
+inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc,
+                                           std::vector<BodyConstraint>& bodies)
 {
     assert(vc.GetPointCount() == 2);
 
@@ -263,11 +277,11 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc)
     //    = A * x + b'
     // b' = b - A * a;
     
-    const auto b_prime = [=]() {
+    const auto b_prime = [&bodies,&vc]() {
         const auto normal = vc.GetNormal();
         
-        const auto velA = vc.GetBodyA()->GetVelocity();
-        const auto velB = vc.GetBodyB()->GetVelocity();
+        const auto velA = bodies[vc.GetBodyA().get()].GetVelocity();
+        const auto velB = bodies[vc.GetBodyB().get()].GetVelocity();
         const auto ra0 = vc.GetPointRelPosA(0);
         const auto rb0 = vc.GetPointRelPosB(0);
         const auto ra1 = vc.GetPointRelPosA(1);
@@ -292,22 +306,22 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc)
     }();
     
     auto maxIncImpulse = std::optional<Momentum>{};
-    maxIncImpulse = BlockSolveNormalCase1(vc, b_prime);
+    maxIncImpulse = BlockSolveNormalCase1(vc, bodies, b_prime);
     if (maxIncImpulse.has_value())
     {
         return *maxIncImpulse;
     }
-    maxIncImpulse = BlockSolveNormalCase2(vc, b_prime);
+    maxIncImpulse = BlockSolveNormalCase2(vc, bodies, b_prime);
     if (maxIncImpulse.has_value())
     {
         return *maxIncImpulse;
     }
-    maxIncImpulse = BlockSolveNormalCase3(vc, b_prime);
+    maxIncImpulse = BlockSolveNormalCase3(vc, bodies, b_prime);
     if (maxIncImpulse.has_value())
     {
         return *maxIncImpulse;
     }
-    maxIncImpulse = BlockSolveNormalCase4(vc, b_prime);
+    maxIncImpulse = BlockSolveNormalCase4(vc, bodies, b_prime);
     if (maxIncImpulse.has_value())
     {
         return *maxIncImpulse;
@@ -317,14 +331,15 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc)
     return 0;
 }
 
-inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc)
+inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc,
+                                         std::vector<BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
     
     const auto direction = vc.GetNormal();
     const auto count = vc.GetPointCount();
-    const auto bodyA = vc.GetBodyA();
-    const auto bodyB = vc.GetBodyB();
+    const auto bodyA = &bodies[vc.GetBodyA().get()];
+    const auto bodyB = &bodies[vc.GetBodyB().get()];
     
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();
@@ -374,7 +389,8 @@ inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc)
     return maxIncImpulse;
 }
 
-inline Momentum SolveTangentConstraint(VelocityConstraint& vc)
+inline Momentum SolveTangentConstraint(VelocityConstraint& vc,
+                                       std::vector<BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
     
@@ -382,8 +398,8 @@ inline Momentum SolveTangentConstraint(VelocityConstraint& vc)
     const auto friction = vc.GetFriction();
     const auto tangentSpeed = vc.GetTangentSpeed();
     const auto count = vc.GetPointCount();
-    const auto bodyA = vc.GetBodyA();
-    const auto bodyB = vc.GetBodyB();
+    const auto bodyA = &bodies[vc.GetBodyA().get()];
+    const auto bodyB = &bodies[vc.GetBodyB().get()];
     
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();
@@ -434,7 +450,8 @@ inline Momentum SolveTangentConstraint(VelocityConstraint& vc)
     return maxIncImpulse;
 }
 
-inline Momentum SolveNormalConstraint(VelocityConstraint& vc)
+inline Momentum SolveNormalConstraint(VelocityConstraint& vc,
+                                      std::vector<BodyConstraint>& bodies)
 {
 #if 1
     // Note: Block solving reduces World.TilesComesToRest iteration counts and is faster.
@@ -444,11 +461,11 @@ inline Momentum SolveNormalConstraint(VelocityConstraint& vc)
     assert((count == 1) || (count == 2));
     if ((count == 1) || (vc.GetK() == InvMass22{}))
     {
-        return SeqSolveNormalConstraint(vc);
+        return SeqSolveNormalConstraint(vc, bodies);
     }
-    return BlockSolveNormalConstraint(vc);
+    return BlockSolveNormalConstraint(vc, bodies);
 #else
-    return SeqSolveNormalConstraint(vc);
+    return SeqSolveNormalConstraint(vc, bodies);
 #endif
 }
 
@@ -456,51 +473,33 @@ inline Momentum SolveNormalConstraint(VelocityConstraint& vc)
     
 } // namespace d2
 
-ConstraintSolverConf GetRegConstraintSolverConf(const StepConf& conf) noexcept
-{
-    return ConstraintSolverConf{}
-        .UseResolutionRate(conf.regResolutionRate)
-        .UseLinearSlop(conf.linearSlop)
-        .UseAngularSlop(conf.angularSlop)
-        .UseMaxLinearCorrection(conf.maxLinearCorrection)
-        .UseMaxAngularCorrection(conf.maxAngularCorrection);
-}
-
-ConstraintSolverConf GetToiConstraintSolverConf(const StepConf& conf) noexcept
-{
-    return ConstraintSolverConf{}
-        .UseResolutionRate(conf.toiResolutionRate)
-        .UseLinearSlop(conf.linearSlop)
-        .UseAngularSlop(conf.angularSlop)
-        .UseMaxLinearCorrection(conf.maxLinearCorrection)
-        .UseMaxAngularCorrection(conf.maxAngularCorrection);
-}
-
 namespace GaussSeidel {
 
-Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc)
+Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc,
+                                 std::vector<d2::BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
     
     // Applies frictional changes to velocity.
-    maxIncImpulse = std::max(maxIncImpulse, d2::SolveTangentConstraint(vc));
+    maxIncImpulse = std::max(maxIncImpulse, d2::SolveTangentConstraint(vc, bodies));
     
     // Applies restitutional changes to velocity.
-    maxIncImpulse = std::max(maxIncImpulse, d2::SolveNormalConstraint(vc));
+    maxIncImpulse = std::max(maxIncImpulse, d2::SolveNormalConstraint(vc, bodies));
     
     return maxIncImpulse;
 }
 
 d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
-                                           const bool moveA, const bool moveB,
-                                           ConstraintSolverConf conf)
+                                             bool moveA, bool moveB,
+                                             const std::vector<d2::BodyConstraint>& bodies,
+                                             const ConstraintSolverConf& conf)
 {
     assert(IsValid(conf.resolutionRate));
     assert(IsValid(conf.linearSlop));
     assert(IsValid(conf.maxLinearCorrection));
     
-    const auto bodyA = pc.GetBodyA();
-    const auto bodyB = pc.GetBodyB();
+    const auto bodyA = &bodies[pc.GetBodyA().get()];
+    const auto bodyB = &bodies[pc.GetBodyB().get()];
     
     const auto invMassA = moveA? bodyA->GetInvMass(): InvMass{0};
     const auto invRotInertiaA = moveA? bodyA->GetInvRotInertia(): InvRotInertia{0};
@@ -527,16 +526,9 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
         const auto rA = Length2{psm.m_point - pA};
         const auto rB = Length2{psm.m_point - pB};
         
-        // Compute the effective mass.
-        const auto K = InvMass{[&]() {
-            const auto rnA = Length{Cross(rA, psm.m_normal)} / Radian;
-            const auto rnB = Length{Cross(rB, psm.m_normal)} / Radian;
-            // InvRotInertia is L^-2 M^-1 QP^2
-            // L^-2 M^-1 QP^2 * L^2 is: M^-1 QP^2
-            const auto invRotMassA = InvMass{invRotInertiaA * Square(rnA)};
-            const auto invRotMassB = InvMass{invRotInertiaB * Square(rnB)};
-            return invMassTotal + invRotMassA + invRotMassB;
-        }()};
+        // Compute the total effective inverse mass.
+        const auto K = invMassTotal + GetEffectiveInvMass(invRotInertiaA, rA, psm.m_normal) +
+            GetEffectiveInvMass(invRotInertiaB, rB, psm.m_normal);
         
         assert(K >= InvMass{0});
         

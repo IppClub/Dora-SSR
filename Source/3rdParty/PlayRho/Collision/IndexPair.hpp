@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -141,10 +141,10 @@ struct LengthIndexPair
 namespace d2 {
 
 /// @brief Length and vertex counter array of indices for 2-D space.
-using LengthIndices = detail::LengthIndices<2>;
+using LengthIndices = ::playrho::detail::LengthIndices<2>;
 
 /// @brief Separation information alias for 2-D space.
-using SeparationInfo = detail::SeparationInfo<2>;
+using SeparationInfo = ::playrho::detail::SeparationInfo<2>;
 
 } // namespace 2d
 } // namespace playrho

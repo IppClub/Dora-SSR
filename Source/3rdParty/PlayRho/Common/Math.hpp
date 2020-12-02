@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -103,9 +103,12 @@ constexpr auto GetZ(const T& value)
     return get<2>(value);
 }
 
-/// @brief Makes the given value into an unsigned value.
+/// @brief Makes the given **value** into an **unsigned value**.
 /// @note If the given value is negative, this will result in an unsigned value which is the
 ///   two's complement modulo-wrapped value.
+/// @note This is different from <code>std::make_unsigned</code> in that this changes the **value**
+///   to the value in the type that's the unsigned type equivalent of the input value.
+///   <code>std::make_unsigned</code> merely provides the unsigned **type** equivalent.
 template <typename T>
 constexpr std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>>
 MakeUnsigned(const T& arg) noexcept
@@ -609,15 +612,25 @@ inline Mat22 abs(const Mat22& A)
 /// Given a binary integer value x, the next largest power of 2 can be computed by a S.W.A.R.
 /// algorithm that recursively "folds" the upper bits into the lower bits. This process yields
 /// a bit vector with the same most significant 1 as x, but all one's below it. Adding 1 to
-/// that value yields the next largest power of 2. For a 64-bit value:"
-inline std::uint64_t NextPowerOfTwo(std::uint64_t x)
+/// that value yields the next largest power of 2.
+template <typename T>
+constexpr T NextPowerOfTwo(T x)
 {
     x |= (x >>  1u);
     x |= (x >>  2u);
     x |= (x >>  4u);
-    x |= (x >>  8u);
-    x |= (x >> 16u);
-    x |= (x >> 32u);
+    if constexpr (sizeof(T) >= 2u) {
+        x |= (x >> 8u);
+    }
+    if constexpr (sizeof(T) >= 4u) {
+        x |= (x >> 16u);
+    }
+    if constexpr (sizeof(T) >= 8u) {
+        x |= (x >> 32u);
+    }
+    if constexpr (sizeof(T) >= 16u) {
+        x |= (x >> 64u);
+    }
     return x + 1;
 }
 
@@ -918,6 +931,13 @@ inline bool IsUnderActive(Velocity velocity,
     const auto linVelSquared = GetMagnitudeSquared(velocity.linear);
     const auto angVelSquared = Square(velocity.angular);
     return (angVelSquared <= Square(angSleepTol)) && (linVelSquared <= Square(linSleepTol));
+}
+
+/// @brief Gets the "effective" inverse mass.
+inline InvMass GetEffectiveInvMass(const InvRotInertia invRotI, const Length2 p, const UnitVec q)
+{
+    // InvRotInertia is L^-2 M^-1 QP^2. Therefore (L^-2 M^-1 QP^2) * (L^2 / QP^2) gives M^-1.
+    return invRotI * Square(Length{Cross(p, q)} / Radian);
 }
 
 /// @brief Gets the reflection matrix for the given unit vector that defines the normal of

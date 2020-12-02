@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -38,6 +38,10 @@ class Joint;
 class World;
 class BodyConstraint;
 
+/// @example GearJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::GearJointConf</code>.
+
 /// @brief Gear joint definition.
 /// @details A gear joint is used to connect two joints together. Either joint can be
 ///   a revolute or prismatic joint. You specify a gear ratio to bind the motions together:
@@ -48,8 +52,7 @@ class BodyConstraint;
 /// @see Joint, World::CreateJoint
 /// @ingroup JointsGroup
 /// @image html gearJoint.gif
-struct GearJointConf : public JointBuilder<GearJointConf>
-{
+struct GearJointConf : public JointBuilder<GearJointConf> {
     /// @brief Super type.
     using super = JointBuilder<GearJointConf>;
 
@@ -73,17 +76,17 @@ struct GearJointConf : public JointBuilder<GearJointConf>
     BodyID bodyD = InvalidBodyID;
 
     /// @brief Type of the first joint.
-    JointType type1 = GetTypeID<void>();
+    TypeID type1 = GetTypeID<void>();
 
     /// @brief Type of the second joint.
-    JointType type2 = GetTypeID<void>();
+    TypeID type2 = GetTypeID<void>();
 
     // Used when not Revolute...
     Length2 localAnchorA{}; ///< Local anchor A.
     Length2 localAnchorB{}; ///< Local anchor B.
     Length2 localAnchorC{}; ///< Local anchor C.
     Length2 localAnchorD{}; ///< Local anchor D.
-    
+
     UnitVec localAxis1; ///< Local axis 1. Used when type1 is not Revolute.
     UnitVec localAxis2; ///< Local axis 2. Used when type2 is not Revolute.
 
@@ -109,6 +112,43 @@ struct GearJointConf : public JointBuilder<GearJointConf>
     Length JwD = 0_m; ///< D <code>Jw</code> data.
     Real mass = 0; ///< Either linear mass or angular mass.
 };
+
+/// @brief Equality operator.
+constexpr bool operator==(const GearJointConf& lhs, const GearJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.bodyC == rhs.bodyC) // line break
+        && (lhs.bodyD == rhs.bodyD) // line break
+        && (lhs.type1 == rhs.type1) // line break
+        && (lhs.type2 == rhs.type2) // line break
+        && (lhs.localAnchorA == rhs.localAnchorA) // line break
+        && (lhs.localAnchorB == rhs.localAnchorB) // line break
+        && (lhs.localAnchorC == rhs.localAnchorC) // line break
+        && (lhs.localAnchorD == rhs.localAnchorD) // line break
+        && (lhs.localAxis1 == rhs.localAxis1) // line break
+        && (lhs.localAxis2 == rhs.localAxis2) // line break
+        && (lhs.referenceAngle1 == rhs.referenceAngle1) // line break
+        && (lhs.referenceAngle2 == rhs.referenceAngle2) // line break
+        && (lhs.ratio == rhs.ratio) // line break
+        && (lhs.constant == rhs.constant) // line break
+        && (lhs.impulse == rhs.impulse) // line break
+        && (lhs.JvAC == rhs.JvAC) // line break
+        && (lhs.JvBD == rhs.JvBD) // line break
+        && (lhs.JwA == rhs.JwA) // line break
+        && (lhs.JwB == rhs.JwB) // line break
+        && (lhs.JwC == rhs.JwC) // line break
+        && (lhs.JwD == rhs.JwD) // line break
+        && (lhs.mass == rhs.mass);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const GearJointConf& lhs, const GearJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
 
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
@@ -143,8 +183,7 @@ constexpr bool ShiftOrigin(GearJointConf&, Length2) noexcept
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
 /// @see SolveVelocity.
 /// @relatedalso GearJointConf
-void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -200,8 +239,7 @@ constexpr auto GetType2(const GearJointConf& object) noexcept
 
 /// @brief Type info specialization for <code>d2::GearJointConf</code>.
 template <>
-struct TypeInfo<d2::GearJointConf>
-{
+struct TypeInfo<d2::GearJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::GearJointConf";
 };

@@ -22,12 +22,16 @@
 #include "PlayRho/Dynamics/WorldImplContact.hpp"
 
 #include "PlayRho/Dynamics/WorldImpl.hpp"
-#include "PlayRho/Dynamics/Body.hpp" // for use of GetBody
 
 #include "PlayRho/Dynamics/Contacts/Contact.hpp" // for use of GetContact
 
 namespace playrho {
 namespace d2 {
+
+ContactCounter GetContactRange(const WorldImpl& world) noexcept
+{
+    return world.GetContactRange();
+}
 
 const Contact& GetContact(const WorldImpl& world, ContactID id)
 {

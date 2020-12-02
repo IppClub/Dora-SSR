@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -37,6 +37,10 @@ class Joint;
 class World;
 class BodyConstraint;
 
+/// @example PulleyJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::PulleyJointConf</code>.
+
 /// @brief Pulley joint definition.
 /// @details The pulley joint is connected to two bodies and two fixed ground points.
 ///   The pulley supports a ratio such that: <code>length1 + ratio * length2 <= constant</code>.
@@ -48,8 +52,7 @@ class BodyConstraint;
 /// @ingroup JointsGroup
 /// @image html pulleyJoint.gif
 /// @see Joint, World::CreateJoint
-struct PulleyJointConf : public JointBuilder<PulleyJointConf>
-{
+struct PulleyJointConf : public JointBuilder<PulleyJointConf> {
     /// @brief Super type.
     using super = JointBuilder<PulleyJointConf>;
 
@@ -66,14 +69,12 @@ struct PulleyJointConf : public JointBuilder<PulleyJointConf>
     static constexpr Length2 DefaultLocalAnchorB = Length2{+1_m, 0_m};
 
     /// @brief Default constructor.
-    PulleyJointConf() noexcept: super{super{}.UseCollideConnected(true)} {}
+    PulleyJointConf() noexcept : super{super{}.UseCollideConnected(true)} {}
 
     /// Initialize the bodies, anchors, lengths, max lengths, and ratio using the world anchors.
-    PulleyJointConf(BodyID bodyA, BodyID bodyB,
-                    Length2 groundAnchorA = DefaultGroundAnchorA,
+    PulleyJointConf(BodyID bodyA, BodyID bodyB, Length2 groundAnchorA = DefaultGroundAnchorA,
                     Length2 groundAnchorB = DefaultGroundAnchorB,
-                    Length2 anchorA = DefaultLocalAnchorA,
-                    Length2 anchorB = DefaultLocalAnchorB,
+                    Length2 anchorA = DefaultLocalAnchorA, Length2 anchorB = DefaultLocalAnchorB,
                     Length lA = 0_m, Length lB = 0_m);
 
     /// @brief Uses the given ratio value.
@@ -115,16 +116,42 @@ struct PulleyJointConf : public JointBuilder<PulleyJointConf>
     Mass mass = 0_kg; ///< Mass.
 };
 
+/// @brief Equality operator.
+constexpr bool operator==(const PulleyJointConf& lhs, const PulleyJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.groundAnchorA == rhs.groundAnchorA) // line break
+        && (lhs.groundAnchorB == rhs.groundAnchorB) // line break
+        && (lhs.localAnchorA == rhs.localAnchorA) // line break
+        && (lhs.localAnchorB == rhs.localAnchorB) // line break
+        && (lhs.lengthA == rhs.lengthA) // line break
+        && (lhs.lengthB == rhs.lengthB) // line break
+        && (lhs.ratio == rhs.ratio) // line break
+        && (lhs.impulse == rhs.impulse) // line break
+        && (lhs.uA == rhs.uA) // line break
+        && (lhs.uB == rhs.uB) // line break
+        && (lhs.rA == rhs.rA) // line break
+        && (lhs.rB == rhs.rB) // line break
+        && (lhs.mass == rhs.mass);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const PulleyJointConf& lhs, const PulleyJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
 PulleyJointConf GetPulleyJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
-PulleyJointConf GetPulleyJointConf(const World& world,
-                                   BodyID bA, BodyID bB,
-                                   Length2 groundA, Length2 groundB,
-                                   Length2 anchorA, Length2 anchorB);
+PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, Length2 groundA,
+                                   Length2 groundB, Length2 anchorA, Length2 anchorB);
 
 /// @brief Gets the current linear reaction of the given configuration.
 /// @relatedalso PulleyJointConf
@@ -149,8 +176,7 @@ bool ShiftOrigin(PulleyJointConf& object, Length2 newOrigin) noexcept;
 /// @see SolveVelocity.
 /// @relatedalso PulleyJointConf
 void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf& conf);
+                  const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
@@ -191,8 +217,7 @@ constexpr auto SetRatio(PulleyJointConf& object, Real value) noexcept
 
 /// @brief Type info specialization for <code>d2::PulleyJointConf</code>.
 template <>
-struct TypeInfo<d2::PulleyJointConf>
-{
+struct TypeInfo<d2::PulleyJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::PulleyJointConf";
 };

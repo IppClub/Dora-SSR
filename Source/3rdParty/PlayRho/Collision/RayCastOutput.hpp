@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -117,7 +117,7 @@ RayCastOutput RayCast(Length radius, Length2 location, const RayCastInput& input
 /// @brief Cast a ray against the given AABB.
 /// @param aabb Axis Aligned Bounding Box.
 /// @param input the ray-cast input parameters.
-RayCastOutput RayCast(const detail::AABB<2>& aabb, const RayCastInput& input) noexcept;
+RayCastOutput RayCast(const ::playrho::detail::AABB<2>& aabb, const RayCastInput& input) noexcept;
 
 /// @brief Cast a ray against the distance proxy.
 /// @param proxy Distance-proxy object (in local coordinates).

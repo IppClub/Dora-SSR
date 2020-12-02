@@ -29,7 +29,8 @@
 #include "PlayRho/Dynamics/BodyID.hpp"
 #include "PlayRho/Collision/Shapes/Shape.hpp"
 
-#include <utility> // for std::move
+#include <utility> // for std::move, std::forward
+#include <type_traits> // for std::decay_t, std::void_t
 
 namespace playrho {
 namespace d2 {
@@ -47,6 +48,17 @@ struct FixtureConf {
     FixtureConf& UseShape(Shape value) noexcept
     {
         shape = std::move(value);
+        return *this;
+    }
+
+    /// @brief Uses the given value for the configuration of the shape member variable.
+    /// @details This is a convenience function for allowing limited implicit conversions to shapes.
+    template <typename T, typename Tp = std::decay_t<T>,
+              typename = std::enable_if_t<!std::is_same<Tp, Shape>::value &&
+                                          std::is_copy_constructible<Tp>::value>>
+    FixtureConf& UseShape(T&& value) noexcept
+    {
+        shape = Shape{std::forward<T>(value)};
         return *this;
     }
 
@@ -77,7 +89,7 @@ struct FixtureConf {
     /// Contact filtering data.
     Filter filter;
 
-    /// @brief Body to associate the fixture with.
+    /// @brief Identifier of body to associate the fixture with.
     BodyID body = InvalidBodyID;
 
     /// A sensor shape collects contact information but never generates a collision

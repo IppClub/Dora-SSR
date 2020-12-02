@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -37,13 +37,16 @@ namespace d2 {
 class World;
 class BodyConstraint;
 
+/// @example FrictionJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::FrictionJointConf</code>.
+
 /// @brief Friction joint definition.
 /// @details This is used for top-down friction. It provides 2-D translational friction
 ///   and angular friction.
 /// @see Joint, World::CreateJoint
 /// @ingroup JointsGroup
-struct FrictionJointConf : public JointBuilder<FrictionJointConf>
-{
+struct FrictionJointConf : public JointBuilder<FrictionJointConf> {
     /// @brief Super type.
     using super = JointBuilder<FrictionJointConf>;
 
@@ -53,8 +56,8 @@ struct FrictionJointConf : public JointBuilder<FrictionJointConf>
     /// @brief Initializing constructor.
     /// @details Initialize the bodies, anchors, axis, and reference angle using the world
     ///   anchor and world axis.
-    FrictionJointConf(BodyID bodyA, BodyID bodyB,
-                      Length2 laA = Length2{}, Length2 laB = Length2{}) noexcept;
+    FrictionJointConf(BodyID bodyA, BodyID bodyB, Length2 laA = Length2{},
+                      Length2 laB = Length2{}) noexcept;
 
     /// @brief Uses the given maximum force value.
     constexpr auto& UseMaxForce(NonNegative<Force> v) noexcept
@@ -93,14 +96,39 @@ struct FrictionJointConf : public JointBuilder<FrictionJointConf>
     RotInertia angularMass = {}; ///< Angular mass.
 };
 
+/// @brief Equality operator.
+constexpr bool operator==(const FrictionJointConf& lhs, const FrictionJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.localAnchorA == rhs.localAnchorA) // line break
+        && (lhs.localAnchorB == rhs.localAnchorB) // line break
+        && (lhs.maxForce == rhs.maxForce) // line break
+        && (lhs.maxTorque == rhs.maxTorque) // line break
+        && (lhs.linearImpulse == rhs.linearImpulse) // line break
+        && (lhs.angularImpulse == rhs.angularImpulse) // line break
+        && (lhs.rA == rhs.rA) // line break
+        && (lhs.rB == rhs.rB) // line break
+        && (lhs.linearMass == rhs.linearMass) // line break
+        && (lhs.angularMass == rhs.angularMass);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const FrictionJointConf& lhs, const FrictionJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
 FrictionJointConf GetFrictionJointConf(const Joint& joint) noexcept;
 
 /// @brief Gets the confguration for the given parameters.
 /// @relatedalso World
-FrictionJointConf GetFrictionJointConf(const World& world,
-                                       BodyID bodyA, BodyID bodyB, Length2 anchor);
+FrictionJointConf GetFrictionJointConf(const World& world, BodyID bodyA, BodyID bodyB,
+                                       Length2 anchor);
 
 /// @brief Gets the current linear reaction for the given configuration.
 /// @relatedalso FrictionJointConf
@@ -128,8 +156,7 @@ constexpr bool ShiftOrigin(FrictionJointConf&, Length2) noexcept
 /// @see SolveVelocity.
 /// @relatedalso FrictionJointConf
 void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf& conf);
+                  const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
@@ -177,8 +204,7 @@ constexpr auto SetMaxTorque(FrictionJointConf& object, NonNegative<Torque> value
 
 /// @brief Type info specialization for <code>d2::FrictionJointConf</code>.
 template <>
-struct TypeInfo<d2::FrictionJointConf>
-{
+struct TypeInfo<d2::FrictionJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::FrictionJointConf";
 };

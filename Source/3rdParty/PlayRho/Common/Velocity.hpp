@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -23,12 +23,15 @@
 
 #include "PlayRho/Common/Settings.hpp"
 #include "PlayRho/Common/Vector2.hpp"
+
 #include <utility>
+#include <vector>
 
 namespace playrho {
-namespace d2 {
 
-class VelocityConstraint;
+struct MovementConf;
+
+namespace d2 {
 
 /// @brief 2-D velocity related data structure.
 /// @note This data structure is 12-bytes (with 4-byte Real on at least one 64-bit platform).
@@ -140,8 +143,13 @@ constexpr Velocity operator/(const Velocity& lhs, const Real rhs)
 /// @brief Velocity pair.
 using VelocityPair = std::pair<Velocity, Velocity>;
 
-/// @brief Calculates the "warm start" velocity deltas for the given velocity constraint.
-VelocityPair CalcWarmStartVelocityDeltas(const VelocityConstraint& vc);
+/// @brief Caps velocity.
+/// @details Enforces maximums on the given velocity.
+/// @param velocity Velocity to cap. Behavior is undefined if this value is invalid.
+/// @param h Time elapsed to get velocity for. Behavior is undefined if this value is invalid.
+/// @param conf Movement configuration. This defines caps on linear and angular speeds.
+/// @relatedalso Velocity
+Velocity Cap(Velocity velocity, Time h, const MovementConf& conf) noexcept;
 
 } // namespace d2
 

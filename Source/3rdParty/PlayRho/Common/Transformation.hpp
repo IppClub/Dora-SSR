@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -35,15 +35,15 @@ namespace d2 {
 struct BodyConf;
 
 /// @brief Describes a geometric transformation.
-/// @details A transform contains translation and rotation. It is used to represent
-///   the position and orientation of rigid frames.
+/// @details A transformation contains translation and rotation. It's used to represent
+///   the location and direction of things like bodies.
 /// @note The default transformation is the identity transformation - the transformation
 ///   which neither translates nor rotates a location.
 /// @note This data structure is 16-bytes large (on at least one 64-bit platform).
 struct Transformation
 {
-    Length2 p = Length2{}; ///< Translational portion of the transformation. 8-bytes.
-    UnitVec q = UnitVec::GetRight(); ///< Rotational portion of the transformation. 8-bytes.
+    Length2 p = Length2{}; ///< Translational portion of the transformation.
+    UnitVec q = UnitVec::GetRight(); ///< Rotational/directional portion of the transformation.
 };
 
 /// @brief Identity transformation value.
@@ -53,14 +53,14 @@ constexpr auto Transform_identity = Transformation{
 
 /// @brief Equality operator.
 /// @relatedalso Transformation
-constexpr bool operator== (Transformation lhs, Transformation rhs) noexcept
+constexpr bool operator== (const Transformation& lhs, const Transformation& rhs) noexcept
 {
     return (lhs.p == rhs.p) && (lhs.q == rhs.q);
 }
 
 /// @brief Inequality operator.
 /// @relatedalso Transformation
-constexpr bool operator!= (Transformation lhs, Transformation rhs) noexcept
+constexpr bool operator!= (const Transformation& lhs, const Transformation& rhs) noexcept
 {
     return (lhs.p != rhs.p) || (lhs.q != rhs.q);
 }
@@ -69,6 +69,12 @@ constexpr bool operator!= (Transformation lhs, Transformation rhs) noexcept
 constexpr Length2 GetLocation(const Transformation& value) noexcept
 {
     return value.p;
+}
+
+/// @brief Gets the directional information from the given transformation.
+constexpr UnitVec GetDirection(const Transformation& value) noexcept
+{
+    return value.q;
 }
 
 } // namespace d2

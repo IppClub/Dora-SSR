@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -56,8 +56,7 @@ RopeJointConf GetRopeJointConf(const Joint& joint) noexcept
 // K = J * invM * JT
 //   = invMassA + invIA * cross(rA, u)^2 + invMassB + invIB * cross(rB, u)^2
 
-void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
@@ -85,14 +84,12 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
     object.length = std::get<Length>(uvresult);
 
     const auto C = object.length - object.maxLength;
-    object.limitState = (C > 0_m)? LimitState::e_atUpperLimit: LimitState::e_inactiveLimit;
+    object.limitState = (C > 0_m) ? LimitState::e_atUpperLimit : LimitState::e_inactiveLimit;
 
-    if (object.length > conf.linearSlop)
-    {
+    if (object.length > conf.linearSlop) {
         object.u = uv;
     }
-    else
-    {
+    else {
         object.u = UnitVec::GetZero();
         object.mass = 0_kg;
         object.impulse = 0;
@@ -108,8 +105,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
 
     object.mass = (invMass != InvMass{0}) ? Real{1} / invMass : 0_kg;
 
-    if (step.doWarmStart)
-    {
+    if (step.doWarmStart) {
         // Scale the impulse to support a variable time step.
         object.impulse *= step.dtRatio;
 
@@ -122,8 +118,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
         velA -= Velocity{invMassA * P, invRotInertiaA * LA};
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
-    else
-    {
+    else {
         object.impulse = 0;
     }
 
@@ -131,8 +126,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
-                   const StepConf& step)
+bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
@@ -146,8 +140,8 @@ bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
     const auto C = object.length - object.maxLength;
 
     // Predictive constraint.
-    const auto inv_h = (step.deltaTime != 0_s)? Real(1) / step.deltaTime: 0_Hz;
-    const auto Cdot = LinearVelocity{Dot(object.u, vpB - vpA) + ((C < 0_m)? inv_h * C: 0_mps)};
+    const auto inv_h = (step.deltaTime != 0_s) ? Real(1) / step.deltaTime : 0_Hz;
+    const auto Cdot = LinearVelocity{Dot(object.u, vpB - vpA) + ((C < 0_m) ? inv_h * C : 0_mps)};
 
     auto localImpulse = -object.mass * Cdot;
     const auto oldImpulse = object.impulse;

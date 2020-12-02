@@ -22,7 +22,6 @@
 #include "PlayRho/Dynamics/WorldImplJoint.hpp"
 
 #include "PlayRho/Dynamics/WorldImpl.hpp"
-#include "PlayRho/Dynamics/Body.hpp" // for use of GetBody(BodyID)
 
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 #include "PlayRho/Dynamics/Joints/RevoluteJointConf.hpp"
@@ -39,6 +38,11 @@
 
 namespace playrho {
 namespace d2 {
+
+JointCounter GetJointRange(const WorldImpl& world) noexcept
+{
+    return world.GetJointRange();
+}
 
 JointID CreateJoint(WorldImpl& world, const Joint& def)
 {

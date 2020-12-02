@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -44,16 +44,13 @@ namespace d2 {
 
 static_assert(std::is_nothrow_default_constructible<Joint>::value,
               "Joint must be nothrow default constructible!");
-static_assert(std::is_copy_constructible<Joint>::value,
-              "Joint must be copy constructible!");
+static_assert(std::is_copy_constructible<Joint>::value, "Joint must be copy constructible!");
 static_assert(std::is_nothrow_move_constructible<Joint>::value,
               "Joint must be nothrow move constructible!");
-static_assert(std::is_copy_assignable<Joint>::value,
-              "Joint must be copy assignable!");
+static_assert(std::is_copy_assignable<Joint>::value, "Joint must be copy assignable!");
 static_assert(std::is_nothrow_move_assignable<Joint>::value,
               "Joint must be nothrow move assignable!");
-static_assert(std::is_nothrow_destructible<Joint>::value,
-              "Joint must be nothrow destructible!");
+static_assert(std::is_nothrow_destructible<Joint>::value, "Joint must be nothrow destructible!");
 
 // Free functions...
 

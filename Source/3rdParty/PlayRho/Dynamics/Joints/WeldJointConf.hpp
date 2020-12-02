@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,6 +36,10 @@ namespace d2 {
 class World;
 class BodyConstraint;
 
+/// @example WeldJoint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::WeldJointConf</code>.
+
 /// @brief Weld joint definition.
 /// @note A weld joint essentially glues two bodies together. A weld joint may
 ///   distort somewhat because the island constraint solver is approximate.
@@ -44,8 +48,7 @@ class BodyConstraint;
 /// @note The position of the anchor points is important for computing the reaction torque.
 /// @ingroup JointsGroup
 /// @see Joint, World::CreateJoint
-struct WeldJointConf : public JointBuilder<WeldJointConf>
-{
+struct WeldJointConf : public JointBuilder<WeldJointConf> {
     /// @brief Super type.
     using super = JointBuilder<WeldJointConf>;
 
@@ -55,13 +58,13 @@ struct WeldJointConf : public JointBuilder<WeldJointConf>
     /// @brief Initializing constructor.
     /// @details Initializes the bodies, anchors, and reference angle using a world
     ///   anchor point.
-    /// @param bodyA Body A.
+    /// @param bodyA Identifier of body A.
     /// @param laA Local anchor A location in world coordinates.
-    /// @param bodyB Body B.
+    /// @param bodyB Identifier of body B.
     /// @param laB Local anchor B location in world coordinates.
     /// @param ra Reference angle.
-    WeldJointConf(BodyID bodyA, BodyID bodyB,
-                  Length2 laA = Length2{}, Length2 laB = Length2{}, Angle ra = 0_deg) noexcept;
+    WeldJointConf(BodyID bodyA, BodyID bodyB, Length2 laA = Length2{}, Length2 laB = Length2{},
+                  Angle ra = 0_deg) noexcept;
 
     /// @brief Uses the given frequency value.
     constexpr auto& UseFrequency(NonNegative<Frequency> v) noexcept
@@ -106,6 +109,26 @@ struct WeldJointConf : public JointBuilder<WeldJointConf>
     Mat33 mass = {}; ///< Mass.
 };
 
+/// @brief Equality operator.
+constexpr bool operator==(const WeldJointConf& lhs, const WeldJointConf& rhs) noexcept
+{
+    return // First check base...
+        (lhs.bodyA == rhs.bodyA) && (lhs.bodyB == rhs.bodyB) &&
+        (lhs.collideConnected == rhs.collideConnected)
+        // Now check rest...
+        && (lhs.localAnchorA == rhs.localAnchorA) && (lhs.localAnchorB == rhs.localAnchorB) &&
+        (lhs.referenceAngle == rhs.referenceAngle) && (lhs.frequency == rhs.frequency) &&
+        (lhs.dampingRatio == rhs.dampingRatio) && (lhs.impulse == rhs.impulse) &&
+        (lhs.gamma == rhs.gamma) && (lhs.bias == rhs.bias) && (lhs.rA == rhs.rA) &&
+        (lhs.rB == rhs.rB) && (lhs.mass == rhs.mass);
+}
+
+/// @brief Inequality operator.
+constexpr bool operator!=(const WeldJointConf& lhs, const WeldJointConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 /// @brief Gets the definition data for the given joint.
 /// @relatedalso Joint
 WeldJointConf GetWeldJointConf(const Joint& joint);
@@ -141,8 +164,7 @@ constexpr auto ShiftOrigin(WeldJointConf&, Length2) noexcept
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
 /// @see SolveVelocity.
 /// @relatedalso WeldJointConf
-void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -177,8 +199,7 @@ constexpr void SetDampingRatio(WeldJointConf& object, Real value) noexcept
 
 /// @brief Type info specialization for <code>d2::WeldJointConf</code>.
 template <>
-struct TypeInfo<d2::WeldJointConf>
-{
+struct TypeInfo<d2::WeldJointConf> {
     /// @brief Provides a null-terminated string name for the type.
     static constexpr const char* name = "d2::WeldJointConf";
 };

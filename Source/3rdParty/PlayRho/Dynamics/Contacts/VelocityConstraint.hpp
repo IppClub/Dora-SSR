@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -31,10 +31,9 @@ namespace d2 {
 
 class WorldManifold;
 
-/// Contact velocity constraint.
+/// @brief The per-contact velocity constraint data structure.
 ///
 /// @note A valid contact velocity constraint must have a point count of either 1 or 2.
-/// @note This data structure is 136-bytes large (on at least one 64-bit platform).
 ///
 /// @invariant The "K" value cannot be changed independent of: the total inverse mass,
 ///   the normal, and the point relative positions.
@@ -45,10 +44,9 @@ class WorldManifold;
 class VelocityConstraint
 {
 public:
-    
     /// @brief Size type.
     using size_type = std::remove_const<decltype(MaxManifoldPoints)>::type;
-    
+
     /// @brief Configuration data for velocity constraints.
     struct Conf
     {
@@ -56,7 +54,7 @@ public:
         LinearVelocity velocityThreshold = DefaultVelocityThreshold; ///< Velocity threshold.
         bool blockSolve = true; ///< Whether to block solve.
     };
-    
+
     /// @brief Gets the default configuration for a <code>VelocityConstraint</code>.
     static constexpr Conf GetDefaultConf() noexcept
     {
@@ -68,19 +66,20 @@ public:
     /// Initializes object with: a zero point count, an invalid K, an invalid normal mass,
     /// an invalid normal, invalid friction, invalid restitution, an invalid tangent speed.
     VelocityConstraint() = default;
-    
+
     /// @brief Copy constructor.
     VelocityConstraint(const VelocityConstraint& copy) = default;
-    
+
     /// @brief Assignment operator.
     VelocityConstraint& operator= (const VelocityConstraint& copy) = default;
-    
+
     /// @brief Initializing constructor.
     VelocityConstraint(Real friction, Real restitution, LinearVelocity tangentSpeed,
                        const WorldManifold& worldManifold,
-                       BodyConstraint& bA,
-                       BodyConstraint& bB,
-                       Conf conf = GetDefaultConf());
+                       BodyID bA,
+                       BodyID bB,
+                       const std::vector<BodyConstraint>& bodies,
+                       const Conf& conf = GetDefaultConf());
     
     /// Gets the normal of the contact in world coordinates.
     /// @note This value is set on construction.
@@ -116,11 +115,11 @@ public:
     /// Gets the tangent speed of the associated contact.
     LinearVelocity GetTangentSpeed() const noexcept { return m_tangentSpeed; }
     
-    /// @brief Gets body A.
-    BodyConstraint* GetBodyA() const noexcept { return m_bodyA; }
+    /// @brief Gets identifier of body A.
+    BodyID GetBodyA() const noexcept { return m_bodyA; }
     
-    /// @brief Gets body B.
-    BodyConstraint* GetBodyB() const noexcept { return m_bodyB; }
+    /// @brief Gets identifier of body B.
+    BodyID GetBodyB() const noexcept { return m_bodyB; }
     
     /// Gets the normal impulse at the given point.
     /// @note Call the <code>AddPoint</code> or <code>SetNormalImpulseAtPoint</code> method
@@ -236,14 +235,16 @@ private:
     ///   <code>MaxManifoldPoints</code> points.
     /// @see GetPointCount().
     void AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                  Length2 relA, Length2 relB, Conf conf);
+                  Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
+                  Conf conf);
     
     /// Removes the last point added.
     void RemovePoint() noexcept;
     
     /// @brief Gets a point instance for the given parameters.
     Point GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                   Length2 relA, Length2 relB, Conf conf) const noexcept;
+                   Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
+                   Conf conf) const noexcept;
     
     /// Accesses the point identified by the given index.
     /// @warning Behavior is undefined if given index is not less than
@@ -276,8 +277,8 @@ private:
     /// @note This field is 12-bytes (on at least one 64-bit platform).
     Mass3 m_normalMass = Mass3{};
     
-    BodyConstraint* m_bodyA = nullptr; ///< Body A contact velocity constraint data.
-    BodyConstraint* m_bodyB = nullptr; ///< Body B contact velocity constraint data.
+    BodyID m_bodyA = InvalidBodyID; ///< Identifier for body-A.
+    BodyID m_bodyB = InvalidBodyID; ///< Identifier for body-B.
     
     UnitVec m_normal = GetInvalid<UnitVec>(); ///< Normal of the world manifold. 8-bytes.
     
@@ -382,12 +383,6 @@ inline UnitVec GetNormal(const VelocityConstraint& vc) noexcept
 inline UnitVec GetTangent(const VelocityConstraint& vc) noexcept
 {
     return vc.GetTangent();
-}
-
-/// @brief Gets the inverse mass from the given velocity constraint data.
-inline InvMass GetInvMass(const VelocityConstraint& vc) noexcept
-{
-    return vc.GetBodyA()->GetInvMass() + vc.GetBodyB()->GetInvMass();
 }
 
 /// @brief Gets the point relative position A data.

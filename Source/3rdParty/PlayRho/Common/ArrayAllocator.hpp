@@ -21,9 +21,10 @@
 #ifndef PLAYRHO_COMMON_ARRAYALLOCATOR_HPP
 #define PLAYRHO_COMMON_ARRAYALLOCATOR_HPP
 
+#include <stdexcept>
+#include <type_traits>
 #include <utility>
 #include <vector>
-#include <type_traits>
 
 namespace playrho {
 
@@ -55,6 +56,9 @@ public:
     }
 
     /// @brief Allocates an entry in the array with the given constructor parameters.
+    /// @note Call <code>Free(size_type)</code> if the allocated entry needs to be freed.
+    /// @post <code>size() - free_size()</code> will return a value one less than before.
+    /// @see Free, size, free_size.
     template <class... Args>
     size_type Allocate(Args&&... args)
     {
@@ -70,6 +74,9 @@ public:
     }
 
     /// @brief Allocates an entry in the array with the given instance.
+    /// @note Call <code>Free(size_type)</code> if the allocated entry needs to be freed.
+    /// @post <code>size() - free_size()</code> will return a value one less than before.
+    /// @see Free, size, free_size.
     size_type Allocate(const value_type& copy)
     {
         if (!m_free.empty()) {
@@ -83,22 +90,48 @@ public:
         return index;
     }
 
-    /// @brief Frees the specified index entry.
+    /// @brief Frees the previously-allocated index entry.
+    /// @post <code>FindFree(size_type)</code> returns <code>true</code> for the freed index.
+    /// @post <code>free_size()</code> returns a value one greater than before.
+    /// @throws std::out_of_range if given an index that's greater than or equal to the size
+    ///    of this instance as returned by <code>size()</code>.
+    /// @todo Consider having this function check if given index already freed.
+    /// @see Allocate, FindFree, free_size, size.
     void Free(size_type index)
     {
-        if (index != static_cast<size_type>(-1)) {
-            m_data[index] = value_type{};
-            m_free.push_back(index);
+        // only put index into free list if within size range
+        if (index >= m_data.size()) {
+            throw std::out_of_range("can't free given index");
         }
+        m_data[index] = value_type{};
+        m_free.push_back(index);
+    }
+
+    /// @brief Finds whether the given index is in the free list.
+    /// @note Complexity is at most O(n) where n is the number of elements free.
+    /// @see Free, free_size.
+    /// @see https://en.wikipedia.org/wiki/Big_O_notation
+    bool FindFree(size_type index) const noexcept
+    {
+        for (const auto& element: m_free) {
+            if (element == index) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// @brief Array index operator.
+    /// @note This does not do bounds checking.
+    /// @see at
     reference operator[](size_type pos)
     {
         return m_data[pos];
     }
 
     /// @brief Constant array index operator.
+    /// @note This does not do bounds checking.
+    /// @see at
     const_reference operator[](size_type pos) const
     {
         return m_data[pos];
@@ -117,6 +150,7 @@ public:
     }
 
     /// @brief Gets the size of this instance in number of elements.
+    /// @see Allocate, Free.
     size_type size() const noexcept
     {
         return m_data.size();
@@ -129,12 +163,14 @@ public:
     }
 
     /// @brief Gets the number of elements currently free.
-    size_type free() const noexcept
+    /// @see Free.
+    size_type free_size() const noexcept
     {
         return m_free.size();
     }
 
     /// @brief Reserves the given number of elements from dynamic memory.
+    /// @note This may increase this instance's capacity; not its size.
     void reserve(size_type value)
     {
         m_data.reserve(value);
@@ -157,7 +193,7 @@ private:
 template <typename T>
 typename ArrayAllocator<T>::size_type used(const ArrayAllocator<T>& array) noexcept
 {
-    return array.size() - array.free();
+    return array.size() - array.free_size();
 }
 
 } // namespace playrho

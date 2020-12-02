@@ -1,7 +1,8 @@
 /*
- * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
- * TypeCast code derived from the LLVM Project https://llvm.org/LICENSE.txt
+ * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ *
+ * Erin Catto's http://www.box2d.org was the origin for this software.
+ * TypeCast code originated from the LLVM Project https://llvm.org/LICENSE.txt.
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,15 +25,14 @@
 #define PLAYRHO_DYNAMICS_JOINTS_JOINT_HPP
 
 #include "PlayRho/Common/Math.hpp"
-
-#include "PlayRho/Dynamics/Joints/JointType.hpp"
 #include "PlayRho/Dynamics/Joints/LimitState.hpp"
 #include "PlayRho/Dynamics/BodyID.hpp"
 
 #include <memory> // for std::unique_ptr
 #include <vector>
-#include <utility>
+#include <utility> // for std::move, std::forward
 #include <stdexcept> // for std::bad_cast
+#include <type_traits> // for std::decay_t, std::void_t
 
 namespace playrho {
 
@@ -50,7 +50,7 @@ class BodyConstraint;
 // in terms of lookup.
 
 /// @brief Gets the identifier of the type of data this can be casted to.
-JointType GetType(const Joint& object) noexcept;
+TypeID GetType(const Joint& object) noexcept;
 
 /// @brief Converts the given joint into its current configuration value.
 /// @note The design for this was based off the design of the C++17 <code>std::any</code>
@@ -67,6 +67,12 @@ std::add_pointer_t<std::add_const_t<T>> TypeCast(const Joint* value) noexcept;
 /// @see https://llvm.org/
 template <typename T>
 std::add_pointer_t<T> TypeCast(Joint* value) noexcept;
+
+/// @brief Equality operator for joint comparisons.
+bool operator==(const Joint& lhs, const Joint& rhs) noexcept;
+
+/// @brief Inequality operator for joint comparisons.
+bool operator!=(const Joint& lhs, const Joint& rhs) noexcept;
 
 /// @brief Gets the first body attached to this joint.
 BodyID GetBodyA(const Joint& object) noexcept;
@@ -86,27 +92,29 @@ bool ShiftOrigin(Joint& object, Length2 value) noexcept;
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
 /// @see SolveVelocity.
-void InitVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
+void InitVelocity(Joint& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
-bool SolveVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
-                   const StepConf& step);
+bool SolveVelocity(Joint& object, std::vector<BodyConstraint>& bodies, const StepConf& step);
 
 /// @brief Solves the position constraint.
 /// @return <code>true</code> if the position errors are within tolerance.
 bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
+/// @example Joint.cpp
+/// This is the <code>googletest</code> based unit testing file for the interfaces to
+///   <code>playrho::d2::Joint</code>.
+
 /// @defgroup JointsGroup Joint Classes
 /// @brief The user creatable classes that specify constraints on one or more body instances.
 /// @ingroup ConstraintsGroup
 
-/// @brief Joint class.
+/// @brief A joint-like constraint on one or more bodies.
 /// @details This is a concrete manifestation of the joint concept. Joints are constraints
 ///   that are used to constrain one or more bodies in various fashions. Some joints also
 ///   feature limits and motors.
@@ -114,59 +122,125 @@ bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
 ///   without public inheritance. This is based on a technique that's described by Sean Parent
 ///   in his January 2017 Norwegian Developers Conference London talk "Better Code: Runtime
 ///   Polymorphism".
+/// @note A joint can be constructed from or have its value set to any value whose type
+/// <code>T</code> has at least the following function definitions available for it:
+///   - <code>bool operator==(const T& lhs, const T& rhs) noexcept;</code>
+///   - <code>BodyID GetBodyA(const T& object) noexcept;</code>
+///   - <code>BodyID GetBodyB(const T& object) noexcept;</code>
+///   - <code>bool GetCollideConnected(const T& object) noexcept;</code>
+///   - <code>bool ShiftOrigin(T& object, Length2 value) noexcept;</code>
+///   - <code>void InitVelocity(T& object, std::vector<BodyConstraint>& bodies,
+///       const StepConf& step, const ConstraintSolverConf& conf);</code>
+///   - <code>bool SolveVelocity(T& object, std::vector<BodyConstraint>& bodies,
+///       const StepConf& step);</code>
+///   - <code>bool SolvePosition(const T& object, std::vector<BodyConstraint>& bodies,
+///       const ConstraintSolverConf& conf);</code>
 /// @ingroup JointsGroup
 /// @ingroup PhysicalEntities
+/// @see JointsGroup, PhysicalEntities.
 /// @see https://youtu.be/QGcVXgEVMJg
 /// @see https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Polymorphic_Value_Types
 class Joint
 {
+    /// @brief Decayed type if not same as this class.
+    /// @note This is done separately from other checks to ensure order of compiler's SFINAE
+    ///   processing and to ensure elimination of self class before attempting to process other
+    ///   checks like is_copy_constructible. This prevents a compiler error that started showing
+    ///   up in gcc-9.
+    template <typename Type, typename DecayedType = std::decay_t<Type>>
+    using DecayedTypeIfNotSelf = std::enable_if_t<!std::is_same_v<DecayedType, Joint>, DecayedType>;
+
 public:
-    /// @brief Body constraints map type alias.
+    /// @brief Type alias for body constraints mapping.
     using BodyConstraintsMap = std::vector<BodyConstraint>;
 
     /// @brief Default constructor.
+    /// @details Constructs a joint that contains no value.
+    /// @post <code>has_value()</code> returns false.
+    /// @post <code>GetType(const Joint&)</code> returns <code>GetTypeID<void>()</code>.
     Joint() noexcept = default;
 
-    /// @brief Initializing constructor.
-    template <typename T>
-    Joint(T arg): m_self{std::make_unique<Model<T>>(std::move(arg))}
-    {
-        // Intentionally empty.
-    }
-
     /// @brief Copy constructor.
-    Joint(const Joint& other): m_self{other.m_self? other.m_self->Clone_(): nullptr}
+    /// @details This constructor copies all the details of \a other.
+    Joint(const Joint& other) : m_self{other.m_self ? other.m_self->Clone_() : nullptr}
     {
         // Intentionally empty.
     }
 
     /// @brief Move constructor.
-    Joint(Joint&& other) noexcept: m_self{std::move(other.m_self)}
+    /// @details This constructor moves all the details of \a other into <code>*this</code> and
+    ///   leaves \a other in the default constructed state.
+    Joint(Joint&& other) noexcept : m_self{std::move(other.m_self)}
+    {
+        // Intentionally empty.
+    }
+
+    /// @brief Initializing constructor.
+    /// @note See the class notes section for an explanation of requirements on a type
+    ///   <code>T</code> for its values to be valid candidates for this function.
+    /// @note This constructor is marked <code>explicit</code> to prevent implicit conversions and
+    ///   to provide preferable error messages from the compiler with less to-do when a type doesn't
+    ///   support one or more of the required functions. For instance, if there exists no function
+    ///   <code>GetBodyA(const T&)</code> for the type <code>T</code>, then clang issues the error:
+    ///   <b>No matching function for call to 'GetBodyA'</b>.
+    /// @note If this constructor was not marked <code>explicit</code> and nothing else is done,
+    ///   then <code>GetBodyA(const Joint&)</code> becomes eligible to satisfy that requirement
+    ///   (because of implicit conversion from <code>T</code> to <code>Joint</code>). This results
+    ///   in an exhaustive loop which is decidely less desirable than a compile time error.
+    /// @note If this constructor is not marked <code>explicit</code> and <code>const</code> rvalue
+    ///   reference taking versions of the required functions are deleted with definitions like
+    ///   <code>BodyID GetBodyA(const Joint&&) noexcept = delete</code>, then clang issues an error
+    ///   of: <b>Call to deleted function 'GetBodyA'</b>. The idea for these deleted functions came
+    ///   from the article <a href="https://foonathan.net/2015/10/overload-resolution-1/">
+    ///   Controlling overload resolution #1: Preventing implicit conversions</a>. While this would
+    ///   be preferable to discovering the issue at runtime, that's not as preferable as the error
+    ///   clang generates when this constructor is marked <code>explicit</code> since this message
+    ///   points to the deleted function as the problem rather than directly to there being "no
+    ///   matching function".
+    /// @note While allowing implicit conversion would be preferable from a syntactic perspective
+    ///   and its similarity to the behavior of <code>std::any</code>, dealing with overload
+    ///   resolution of the required functions is less appealing than marking this constuctor
+    ///   <code>explicit</code> as explained above.
+    /// @note This constructor allows code like the following to work:
+    /// @code{.cpp}
+    /// auto def = WheelJointConf{};
+    /// auto joint = Joint{def}; Joint{WheelJointConf{}};
+    /// void f(Joint j);
+    /// f(joint); f(Joint{def}); // but not f(def);
+    /// @endcode
+    /// @post <code>has_value()</code> returns true.
+    /// @see https://foonathan.net/2015/10/overload-resolution-1/
+    template <typename T, typename Tp = DecayedTypeIfNotSelf<T>,
+              typename = std::enable_if_t<std::is_copy_constructible<Tp>::value>>
+    explicit Joint(T&& arg) : m_self{std::make_unique<Model<Tp>>(std::forward<T>(arg))}
     {
         // Intentionally empty.
     }
 
     /// @brief Copy assignment.
-    Joint& operator= (const Joint& other)
+    /// @details This operator copies all the details of \a other into <code>*this</code>.
+    Joint& operator=(const Joint& other)
     {
-        m_self = other.m_self? other.m_self->Clone_(): nullptr;
+        m_self = other.m_self ? other.m_self->Clone_() : nullptr;
         return *this;
     }
 
     /// @brief Move assignment.
-    Joint& operator= (Joint&& other) noexcept
+    /// @details This operator moves all the details of \a other into <code>*this</code> and
+    ///   leaves \a other in the default constructed state.
+    Joint& operator=(Joint&& other) noexcept
     {
         m_self = std::move(other.m_self);
         return *this;
     }
 
     /// @brief Move assignment support for any valid underlying configuration.
-    template <typename T, typename Tp = std::decay_t<T>,
-        typename = std::enable_if_t<
-            !std::is_same<Tp, Joint>::value && std::is_copy_constructible<Tp>::value
-        >
-    >
-    Joint& operator= (T&& other) noexcept
+    /// @note See the class notes section for an explanation of requirements on a type
+    ///   <code>T</code> for its values to be valid candidates for this function.
+    /// @post <code>has_value()</code> returns true.
+    template <typename T, typename Tp = DecayedTypeIfNotSelf<T>,
+              typename = std::enable_if_t<std::is_copy_constructible<Tp>::value>>
+    Joint& operator=(T&& other) noexcept
     {
         Joint(std::forward<T>(other)).swap(*this);
         return *this;
@@ -178,9 +252,15 @@ public:
         std::swap(m_self, other.m_self);
     }
 
-    friend JointType GetType(const Joint& object) noexcept
+    /// @brief Checks whether this instance contains a value.
+    bool has_value() const noexcept
     {
-        return object.m_self? object.m_self->GetType_(): GetTypeID<void>();
+        return static_cast<bool>(m_self);
+    }
+
+    friend TypeID GetType(const Joint& object) noexcept
+    {
+        return object.m_self ? object.m_self->GetType_() : GetTypeID<void>();
     }
 
     template <typename T>
@@ -189,50 +269,60 @@ public:
     template <typename T>
     friend std::add_pointer_t<T> TypeCast(Joint* value) noexcept;
 
+    friend bool operator==(const Joint& lhs, const Joint& rhs) noexcept
+    {
+        return (lhs.m_self == rhs.m_self) ||
+               ((lhs.m_self && rhs.m_self) && (lhs.m_self->IsEqual_(*rhs.m_self)));
+    }
+
+    friend bool operator!=(const Joint& lhs, const Joint& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+
     friend BodyID GetBodyA(const Joint& object) noexcept
     {
-        return object.m_self? object.m_self->GetBodyA_(): InvalidBodyID;
+        return object.m_self ? object.m_self->GetBodyA_() : InvalidBodyID;
     }
 
     friend BodyID GetBodyB(const Joint& object) noexcept
     {
-        return object.m_self? object.m_self->GetBodyB_(): InvalidBodyID;
+        return object.m_self ? object.m_self->GetBodyB_() : InvalidBodyID;
     }
 
     friend bool GetCollideConnected(const Joint& object) noexcept
     {
-        return object.m_self? object.m_self->GetCollideConnected_(): false;
+        return object.m_self ? object.m_self->GetCollideConnected_() : false;
     }
 
     friend bool ShiftOrigin(Joint& object, Length2 value) noexcept
     {
-        return object.m_self? object.m_self->ShiftOrigin_(value): false;
+        return object.m_self ? object.m_self->ShiftOrigin_(value) : false;
     }
 
     friend void InitVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
-                             const playrho::StepConf& step,
-                             const ConstraintSolverConf& conf)
+                             const playrho::StepConf& step, const ConstraintSolverConf& conf)
     {
-        if (object.m_self) object.m_self->InitVelocity_(bodies, step, conf);
+        if (object.m_self)
+            object.m_self->InitVelocity_(bodies, step, conf);
     }
 
     friend bool SolveVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
                               const playrho::StepConf& step)
     {
-        return object.m_self? object.m_self->SolveVelocity_(bodies, step): false;
+        return object.m_self ? object.m_self->SolveVelocity_(bodies, step) : false;
     }
 
     friend bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
                               const ConstraintSolverConf& conf)
     {
-        return object.m_self? object.m_self->SolvePosition_(bodies, conf): false;
+        return object.m_self ? object.m_self->SolvePosition_(bodies, conf) : false;
     }
 
 private:
     /// @brief Internal configuration concept.
     /// @note Provides the interface for runtime value polymorphism.
-    struct Concept
-    {
+    struct Concept {
         /// @brief Explicitly declared virtual destructor.
         virtual ~Concept() = default;
 
@@ -252,6 +342,9 @@ private:
         /// @brief Gets the data for the underlying configuration.
         virtual void* GetData_() noexcept = 0;
 
+        /// @brief Equality checking method.
+        virtual bool IsEqual_(const Concept& other) const noexcept = 0;
+
         /// @brief Gets the ID of body-A.
         virtual BodyID GetBodyA_() const noexcept = 0;
 
@@ -265,13 +358,11 @@ private:
         virtual bool ShiftOrigin_(Length2 value) noexcept = 0;
 
         /// @brief Initializes the velocities for this joint.
-        virtual void InitVelocity_(BodyConstraintsMap& bodies,
-                                   const playrho::StepConf& step,
+        virtual void InitVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step,
                                    const ConstraintSolverConf& conf) = 0;
 
         /// @brief Solves the velocities for this joint.
-        virtual bool SolveVelocity_(BodyConstraintsMap& bodies,
-                                    const playrho::StepConf& step) = 0;
+        virtual bool SolveVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step) = 0;
 
         /// @brief Solves the positions for this joint.
         virtual bool SolvePosition_(BodyConstraintsMap& bodies,
@@ -281,18 +372,25 @@ private:
     /// @brief Internal model configuration concept.
     /// @note Provides the implementation for runtime value polymorphism.
     template <typename T>
-    struct Model final: Concept
-    {
+    struct Model final : Concept {
         /// @brief Type alias for the type of the data held.
         using data_type = T;
 
         /// @brief Initializing constructor.
-        Model(T arg): data{std::move(arg)} {}
+        explicit Model(const T& arg) noexcept(std::is_nothrow_copy_constructible_v<T>) : data{arg}
+        {
+        }
+
+        /// @brief Initializing constructor.
+        explicit Model(T&& arg) noexcept(std::is_nothrow_move_constructible_v<T>)
+            : data{std::move(arg)}
+        {
+        }
 
         /// @copydoc Concept::Clone_
         std::unique_ptr<Concept> Clone_() const override
         {
-            return std::make_unique<Model>(data);
+            return std::make_unique<Model<T>>(data);
         }
 
         /// @copydoc Concept::GetType_
@@ -315,6 +413,14 @@ private:
             // Note address of "data" not necessarily same as address of "this" since
             // base class is virtual.
             return &data;
+        }
+
+        bool IsEqual_(const Concept& other) const noexcept override
+        {
+            // Would be preferable to do this without using any kind of RTTI system.
+            // But how would that be done?
+            return (GetType_() == other.GetType_()) &&
+                   (data == *static_cast<const T*>(other.GetData_()));
         }
 
         /// @copydoc Concept::GetBodyA_
@@ -342,16 +448,14 @@ private:
         }
 
         /// @copydoc Concept::InitVelocity_
-        void InitVelocity_(BodyConstraintsMap& bodies,
-                           const playrho::StepConf& step,
+        void InitVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step,
                            const ConstraintSolverConf& conf) override
         {
             InitVelocity(data, bodies, step, conf);
         }
 
         /// @copydoc Concept::SolveVelocity_
-        bool SolveVelocity_(BodyConstraintsMap& bodies,
-                            const playrho::StepConf& step) override
+        bool SolveVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step) override
         {
             return SolveVelocity(data, bodies, step);
         }
@@ -367,6 +471,34 @@ private:
     };
 
     std::unique_ptr<Concept> m_self; ///< Self pointer.
+};
+
+// Traits...
+
+/// @brief An "is valid joint type" trait.
+/// @note This is the general false template type.
+template <typename T, class = void>
+struct IsValidJointType : std::false_type {
+};
+
+/// @brief An "is valid joint type" trait.
+/// @note This is the specialized true template type.
+template <typename T>
+struct IsValidJointType<
+    T,
+    std::void_t<
+        decltype(GetBodyA(std::declval<T>())), //
+        decltype(GetBodyB(std::declval<T>())), //
+        decltype(GetCollideConnected(std::declval<T>())), //
+        decltype(ShiftOrigin(std::declval<T&>(), std::declval<Length2>())), //
+        decltype(InitVelocity(std::declval<T&>(), std::declval<std::vector<BodyConstraint>&>(),
+                              std::declval<StepConf>(), std::declval<ConstraintSolverConf>())), //
+        decltype(SolveVelocity(std::declval<T&>(), std::declval<std::vector<BodyConstraint>&>(),
+                               std::declval<StepConf>())), //
+        decltype(SolvePosition(std::declval<T>(), std::declval<std::vector<BodyConstraint>&>(),
+                               std::declval<ConstraintSolverConf>())), //
+        decltype(std::declval<T>() == std::declval<T>()), //
+        decltype(Joint{std::declval<T>()})>> : std::true_type {
 };
 
 // Free functions...
@@ -386,7 +518,7 @@ template <typename T>
 inline T TypeCast(const Joint& value)
 {
     using RawType = std::remove_cv_t<std::remove_reference_t<T>>;
-    static_assert(std::is_constructible<T, RawType const &>::value,
+    static_assert(std::is_constructible<T, RawType const&>::value,
                   "T is required to be a const lvalue reference "
                   "or a CopyConstructible type");
     auto tmp = ::playrho::d2::TypeCast<std::add_const_t<RawType>>(&value);
@@ -405,7 +537,7 @@ template <typename T>
 inline T TypeCast(Joint& value)
 {
     using RawType = std::remove_cv_t<std::remove_reference_t<T>>;
-    static_assert(std::is_constructible<T, RawType &>::value,
+    static_assert(std::is_constructible<T, RawType&>::value,
                   "T is required to be a const lvalue reference "
                   "or a CopyConstructible type");
     auto tmp = ::playrho::d2::TypeCast<RawType>(&value);

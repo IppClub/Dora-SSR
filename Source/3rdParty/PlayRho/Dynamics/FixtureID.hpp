@@ -21,13 +21,13 @@
 #ifndef PLAYRHO_DYNAMICS_FIXTUREID_HPP
 #define PLAYRHO_DYNAMICS_FIXTUREID_HPP
 
-#include "PlayRho/Common/StrongType.hpp"
+#include "PlayRho/Common/IndexingNamedType.hpp"
 #include "PlayRho/Common/Settings.hpp"
 
 namespace playrho {
 
 /// @brief Fixture identifier.
-using FixtureID = strongtype::IndexingNamedType<FixtureCounter, struct FixtureIdentifier>;
+using FixtureID = detail::IndexingNamedType<FixtureCounter, struct FixtureIdentifier>;
 
 /// @brief Invalid fixture ID value.
 constexpr auto InvalidFixtureID =

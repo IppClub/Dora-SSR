@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -55,9 +55,8 @@ static_assert(std::is_nothrow_destructible<FrictionJointConf>::value,
 // J = [0 0 -1 0 0 1]
 // K = invI1 + invI2
 
-FrictionJointConf::FrictionJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB) noexcept:
-    super{super{}.UseBodyA(bA).UseBodyB(bB)},
-    localAnchorA{laA}, localAnchorB{laB}
+FrictionJointConf::FrictionJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB) noexcept
+    : super{super{}.UseBodyA(bA).UseBodyB(bB)}, localAnchorA{laA}, localAnchorB{laB}
 {
     // Intentionally empty.
 }
@@ -67,17 +66,15 @@ FrictionJointConf GetFrictionJointConf(const Joint& joint) noexcept
     return TypeCast<FrictionJointConf>(joint);
 }
 
-FrictionJointConf GetFrictionJointConf(const World& world,
-                                       BodyID bodyA, BodyID bodyB, Length2 anchor)
+FrictionJointConf GetFrictionJointConf(const World& world, BodyID bodyA, BodyID bodyB,
+                                       Length2 anchor)
 {
-    return FrictionJointConf{
-        bodyA, bodyB, GetLocalPoint(world, bodyA, anchor), GetLocalPoint(world, bodyB, anchor)
-    };
+    return FrictionJointConf{bodyA, bodyB, GetLocalPoint(world, bodyA, anchor),
+                             GetLocalPoint(world, bodyB, anchor)};
 }
 
 void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf&)
+                  const StepConf& step, const ConstraintSolverConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
@@ -87,8 +84,10 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
     auto velB = bodyConstraintB.GetVelocity();
 
     // Compute the effective mass matrix.
-    object.rA = Rotate(object.localAnchorA - bodyConstraintA.GetLocalCenter(), UnitVec::Get(posA.angular));
-    object.rB = Rotate(object.localAnchorB - bodyConstraintB.GetLocalCenter(), UnitVec::Get(posB.angular));
+    object.rA =
+        Rotate(object.localAnchorA - bodyConstraintA.GetLocalCenter(), UnitVec::Get(posA.angular));
+    object.rB =
+        Rotate(object.localAnchorB - bodyConstraintB.GetLocalCenter(), UnitVec::Get(posB.angular));
 
     // J = [-I -r1_skew I r2_skew]
     //     [ 0       -1 0       1]
@@ -105,18 +104,15 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
     const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
 
     {
-        const auto exx = InvMass{
-            invMassA + invRotInertiaA * Square(GetY(object.rA)) / SquareRadian +
-            invMassB + invRotInertiaB * Square(GetY(object.rB)) / SquareRadian
-        };
-        const auto exy = InvMass{
-            -invRotInertiaA * GetX(object.rA) * GetY(object.rA) / SquareRadian +
-            -invRotInertiaB * GetX(object.rB) * GetY(object.rB) / SquareRadian
-        };
-        const auto eyy = InvMass{
-            invMassA + invRotInertiaA * Square(GetX(object.rA)) / SquareRadian +
-            invMassB + invRotInertiaB * Square(GetX(object.rB)) / SquareRadian
-        };
+        const auto exx =
+            InvMass{invMassA + invRotInertiaA * Square(GetY(object.rA)) / SquareRadian + invMassB +
+                    invRotInertiaB * Square(GetY(object.rB)) / SquareRadian};
+        const auto exy =
+            InvMass{-invRotInertiaA * GetX(object.rA) * GetY(object.rA) / SquareRadian +
+                    -invRotInertiaB * GetX(object.rB) * GetY(object.rB) / SquareRadian};
+        const auto eyy =
+            InvMass{invMassA + invRotInertiaA * Square(GetX(object.rA)) / SquareRadian + invMassB +
+                    invRotInertiaB * Square(GetX(object.rB)) / SquareRadian};
         InvMass22 K;
         GetX(GetX(K)) = exx;
         GetY(GetX(K)) = exy;
@@ -126,11 +122,10 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
     }
 
     const auto invRotInertia = invRotInertiaA + invRotInertiaB;
-    object.angularMass = (invRotInertia > InvRotInertia{0})?
-    RotInertia{Real{1} / invRotInertia}: RotInertia{0};
+    object.angularMass =
+        (invRotInertia > InvRotInertia{0}) ? RotInertia{Real{1} / invRotInertia} : RotInertia{0};
 
-    if (step.doWarmStart)
-    {
+    if (step.doWarmStart) {
         // Scale impulses to support a variable time step.
         object.linearImpulse *= step.dtRatio;
         object.angularImpulse *= step.dtRatio;
@@ -139,13 +134,13 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
 
         // L * M * L T^-1 / QP is: L^2 M T^-1 QP^-1 which is: AngularMomentum.
         const auto crossAP = AngularMomentum{Cross(object.rA, P) / Radian};
-        const auto crossBP = AngularMomentum{Cross(object.rB, P) / Radian}; // L * M * L T^-1 is: L^2 M T^-1
+        const auto crossBP =
+            AngularMomentum{Cross(object.rB, P) / Radian}; // L * M * L T^-1 is: L^2 M T^-1
 
         velA -= Velocity{invMassA * P, invRotInertiaA * (crossAP + object.angularImpulse)};
         velB += Velocity{invMassB * P, invRotInertiaB * (crossBP + object.angularImpulse)};
     }
-    else
-    {
+    else {
         object.linearImpulse = Momentum2{};
         object.angularImpulse = AngularMomentum{0};
     }
@@ -174,16 +169,16 @@ bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodie
     {
         // L^2 M QP^-2 * QP T^-1 is: L^2 M QP^-1 T^-1 (SquareMeter * Kilogram / Second) / Radian
         //                           L^2 M QP^-1 T^-1
-        const auto angularImpulse = AngularMomentum{-object.angularMass * (velB.angular - velA.angular)};
+        const auto angularImpulse =
+            AngularMomentum{-object.angularMass * (velB.angular - velA.angular)};
 
         const auto oldAngularImpulse = object.angularImpulse;
         const auto maxAngularImpulse = h * object.maxTorque;
         object.angularImpulse = std::clamp(object.angularImpulse + angularImpulse,
-                                      -maxAngularImpulse, maxAngularImpulse);
+                                           -maxAngularImpulse, maxAngularImpulse);
         const auto incAngularImpulse = object.angularImpulse - oldAngularImpulse;
 
-        if (incAngularImpulse != AngularMomentum{0})
-        {
+        if (incAngularImpulse != AngularMomentum{0}) {
             solved = false;
         }
 
@@ -193,8 +188,10 @@ bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodie
 
     // Solve linear friction
     {
-        const auto vb = LinearVelocity2{velB.linear + (GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
-        const auto va = LinearVelocity2{velA.linear + (GetRevPerpendicular(object.rA) * (velA.angular / Radian))};
+        const auto vb = LinearVelocity2{velB.linear +
+                                        (GetRevPerpendicular(object.rB) * (velB.angular / Radian))};
+        const auto va = LinearVelocity2{velA.linear +
+                                        (GetRevPerpendicular(object.rA) * (velA.angular / Radian))};
 
         const auto impulse = -Transform(vb - va, object.linearMass);
         const auto oldImpulse = object.linearImpulse;
@@ -202,17 +199,16 @@ bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodie
 
         const auto maxImpulse = h * object.maxForce;
 
-        if (GetMagnitudeSquared(object.linearImpulse) > Square(maxImpulse))
-        {
-            object.linearImpulse = GetUnitVector(object.linearImpulse, UnitVec::GetZero()) * maxImpulse;
+        if (GetMagnitudeSquared(object.linearImpulse) > Square(maxImpulse)) {
+            object.linearImpulse =
+                GetUnitVector(object.linearImpulse, UnitVec::GetZero()) * maxImpulse;
         }
 
         const auto incImpulse = Momentum2{object.linearImpulse - oldImpulse};
         const auto angImpulseA = AngularMomentum{Cross(object.rA, incImpulse) / Radian};
         const auto angImpulseB = AngularMomentum{Cross(object.rB, incImpulse) / Radian};
 
-        if (incImpulse != Momentum2{})
-        {
+        if (incImpulse != Momentum2{}) {
             solved = false;
         }
 

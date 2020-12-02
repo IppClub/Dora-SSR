@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #include "PlayRho/Collision/DynamicTree.hpp"
 #include "PlayRho/Common/GrowableStack.hpp"
 #include "PlayRho/Common/DynamicMemory.hpp"
-#include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Math.hpp" // for NextPowerOfTwo and others
 #include "PlayRho/Common/Templates.hpp"
 
 #include <algorithm>
@@ -402,15 +402,15 @@ DynamicTree::Size UpdateNonRoot(DynamicTree::TreeNode nodes[],
 DynamicTree::DynamicTree() noexcept = default;
 
 DynamicTree::DynamicTree(Size nodeCapacity):
-    m_nodes{nodeCapacity? AllocArray<TreeNode>(nodeCapacity): nullptr},
     m_freeIndex{nodeCapacity? 0: GetInvalidSize()},
-    m_nodeCapacity{nodeCapacity}
+    m_nodeCapacity{NextPowerOfTwo(nodeCapacity - 1u /*rollover okay!*/)},
+    m_nodes{m_nodeCapacity? AllocArray<TreeNode>(m_nodeCapacity): nullptr}
 {
-    if (nodeCapacity)
+    if (m_nodeCapacity)
     {
         // Build a linked list for the free list.
-        const auto endCapacity = nodeCapacity - Size{1};
-        for (auto i = decltype(nodeCapacity){0}; i < endCapacity; ++i)
+        const auto endCapacity = m_nodeCapacity - Size{1};
+        for (auto i = decltype(m_nodeCapacity){0}; i < endCapacity; ++i)
         {
             new (&m_nodes[i]) TreeNode{i + 1};
         }
@@ -419,12 +419,12 @@ DynamicTree::DynamicTree(Size nodeCapacity):
 }
 
 DynamicTree::DynamicTree(const DynamicTree& other):
-    m_nodes{AllocArray<TreeNode>(other.m_nodeCapacity)},
+    m_nodeCount{other.m_nodeCount},
+    m_leafCount{other.m_leafCount},
     m_rootIndex{other.m_rootIndex},
     m_freeIndex{other.m_freeIndex},
-    m_nodeCount{other.m_nodeCount},
     m_nodeCapacity{other.m_nodeCapacity},
-    m_leafCount{other.m_leafCount}
+    m_nodes{AllocArray<TreeNode>(other.m_nodeCapacity)}
 {
     std::copy(&other.m_nodes[0], &other.m_nodes[other.m_nodeCapacity], &m_nodes[0]);
 }
@@ -435,6 +435,12 @@ DynamicTree::DynamicTree(DynamicTree&& other) noexcept:
     swap(*this, other);
 }
 
+DynamicTree::~DynamicTree() noexcept
+{
+    // This frees the entire tree in one shot.
+    Free(m_nodes);
+}
+
 DynamicTree& DynamicTree::operator= (DynamicTree other) noexcept
 {
     // Leverages the "copy-and-swap" idiom.
@@ -443,61 +449,31 @@ DynamicTree& DynamicTree::operator= (DynamicTree other) noexcept
     return *this;
 }
 
-DynamicTree::~DynamicTree() noexcept
+void DynamicTree::Reserve(Size value)
 {
-    // This frees the entire tree in one shot.
-    Free(m_nodes);
-}
+    if (value > m_nodeCapacity) {
+        value = NextPowerOfTwo(value - 1u /*rollover okay!*/);
+        // Call Realloc first in case it throws so this code doesn't have to restore any state
+        // and so this function will have no effect.
+        m_nodes = ReallocArray<TreeNode>(m_nodes, value);
+        m_nodeCapacity = value;
 
-void DynamicTree::SetNodeCapacity(Size value)
-{
-    assert(value > m_nodeCapacity);
-
-    // The free list is empty. Rebuild a bigger pool.
-    // Call Realloc first in case it throws so this code doesn't have to restore any state
-    // and so this function will have no effect.
-    m_nodes = ReallocArray<TreeNode>(m_nodes, value);
-    m_nodeCapacity = value;
-
-    // Build a linked list for the free list. The parent
-    // pointer becomes the "next" pointer.
-    const auto endCapacity = m_nodeCapacity - 1;
-    for (auto i = m_nodeCount; i < endCapacity; ++i)
-    {
-        new (m_nodes + i) TreeNode{i + 1};
+        // Build a linked list for the free list. The parent
+        // pointer becomes the "next" pointer.
+        const auto endCapacity = m_nodeCapacity - 1;
+        for (auto i = m_nodeCount; i < endCapacity; ++i)
+        {
+            new (m_nodes + i) TreeNode{i + 1};
+        }
+        new (m_nodes + endCapacity) TreeNode{};
+        m_freeIndex = m_nodeCount;
     }
-    new (m_nodes + endCapacity) TreeNode{};
-    m_freeIndex = m_nodeCount;
 }
 
-DynamicTree::Size DynamicTree::AllocateNode(const LeafData& data, AABB aabb)
+DynamicTree::Size DynamicTree::AllocateNode() noexcept
 {
-    const auto index = AllocateNode();
-    m_nodes[index] = TreeNode{data, aabb};
-    return index;
-}
-
-DynamicTree::Size DynamicTree::AllocateNode(const BranchData& data, AABB aabb,
-                                            Height height, Size parent)
-{
-    assert(height > 0);
-    const auto index = AllocateNode();
-    m_nodes[index] = TreeNode{data, aabb, height, parent};
-    return index;
-}
-
-DynamicTree::Size DynamicTree::AllocateNode()
-{
-    // Expand the node pool as needed.
-    if (m_freeIndex == GetInvalidSize())
-    {
-        assert(m_nodeCount == m_nodeCapacity);
-        
-        // The free list is empty. Rebuild a bigger pool.
-        SetNodeCapacity(m_nodeCapacity? m_nodeCapacity * 2: GetDefaultInitialNodeCapacity());
-    }
-    
     // Peel a node off the free list.
+    assert(m_freeIndex < m_nodeCapacity);
     const auto index = m_freeIndex;
     m_freeIndex = m_nodes[index].GetOther();
     ++m_nodeCount;
@@ -542,7 +518,7 @@ void DynamicTree::Clear() noexcept
 
 DynamicTree::Size DynamicTree::FindReference(Size index) const noexcept
 {
-    const auto it = std::find_if(m_nodes, m_nodes + m_nodeCapacity, [&](TreeNode& node) {
+    const auto it = std::find_if(m_nodes, m_nodes + m_nodeCapacity, [index](TreeNode& node) {
         if (node.GetOther() == index)
         {
             return true;
@@ -563,16 +539,18 @@ DynamicTree::Size DynamicTree::FindReference(Size index) const noexcept
 DynamicTree::Size DynamicTree::CreateLeaf(const AABB& aabb, const LeafData& data)
 {
     assert(IsValid(aabb));
-    const auto index = AllocateNode(data, aabb);
-    if (m_rootIndex != GetInvalidSize())
-    {
-        const auto newParent = AllocateNode(); // Note: may change m_nodes!
-        m_rootIndex = InsertParent(m_nodes, newParent, aabb, index, m_rootIndex);
-    }
-    else
-    {
+    if (m_rootIndex == GetInvalidSize()) {
+        Reserve(GetNodeCount() + 1u); // Note: may change m_nodes!
+        const auto index = AllocateNode();
+        m_nodes[index] = TreeNode{data, aabb};
         m_rootIndex = index;
+        ++m_leafCount;
+        return index;
     }
+    Reserve(GetNodeCount() + 2u); // Note: may change m_nodes!
+    const auto index = AllocateNode();
+    m_nodes[index] = TreeNode{data, aabb};
+    m_rootIndex = InsertParent(m_nodes, AllocateNode(), aabb, index, m_rootIndex);
     ++m_leafCount;
     return index;
 }
@@ -683,7 +661,9 @@ void DynamicTree::RebuildBottomUp()
         const auto height = 1 + std::max(m_nodes[index1].GetHeight(), m_nodes[index2].GetHeight());
         
         // Warning: the following may change value of m_nodes!
-        const auto parent = AllocateNode(BranchData{index1, index2}, aabb, height);
+        Reserve(GetNodeCount() + 1u);
+        const auto parent = AllocateNode();
+        m_nodes[parent] = TreeNode{BranchData{index1, index2}, aabb, height};
         m_nodes[index1].SetOther(parent);
         m_nodes[index2].SetOther(parent);
 
@@ -696,7 +676,7 @@ void DynamicTree::RebuildBottomUp()
     Free(nodes);
 }
 
-void DynamicTree::ShiftOrigin(Length2 newOrigin)
+void DynamicTree::ShiftOrigin(Length2 newOrigin) noexcept
 {
     // Build array of leaves. Free the rest.
     for (auto i = decltype(m_nodeCapacity){0}; i < m_nodeCapacity; ++i)

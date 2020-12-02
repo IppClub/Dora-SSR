@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -24,12 +24,6 @@
 
 namespace playrho {
 
-    /// @brief Allocator block sizes array data.
-    constexpr std::size_t AllocatorBlockSizes[] =
-    {
-        16, 32, 64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640,
-    };
-    
     /// Block allocator.
     ///
     /// This is a small object allocator used for allocating small
@@ -40,9 +34,14 @@ namespace playrho {
     class BlockAllocator
     {
     public:
-        
         /// @brief Size type.
         using size_type = std::size_t;
+
+        /// @brief Allocator block sizes array data.
+        static constexpr std::size_t AllocatorBlockSizes[] =
+        {
+            16, 32, 64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640,
+        };
 
         /// @brief Chunk size.
         static constexpr auto ChunkSize = size_type{16 * 1024};

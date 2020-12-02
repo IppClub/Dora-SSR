@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -404,19 +404,17 @@ inline ::std::ostream& operator<< (::std::ostream& os, const AABB<N>& value)
 namespace d2 {
 
 class Shape;
-class Fixture;
-class Body;
 class Contact;
 class DistanceProxy;
 struct Transformation;
 class World;
 
-using detail::TestOverlap;
-using detail::Contains;
+using ::playrho::detail::TestOverlap;
+using ::playrho::detail::Contains;
 
 /// @brief 2-Dimensional Axis Aligned Bounding Box.
 /// @note This data structure is 16-bytes large (on at least one 64-bit platform).
-using AABB = detail::AABB<2>;
+using AABB = ::playrho::detail::AABB<2>;
 
 /// @brief Gets the perimeter length of the 2-dimensional AABB.
 /// @warning Behavior is undefined for an invalid AABB.

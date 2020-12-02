@@ -20,8 +20,11 @@
  */
 
 #include "PlayRho/Common/Version.hpp"
+
 #include "PlayRho/Common/TypeInfo.hpp" // for GetTypeName
 #include "PlayRho/Common/Real.hpp"
+
+#include "PlayRho/Defines.hpp" // for PLAYRHO_VERSION_*
 
 #include <cstdio>
 #include <cstdarg>
@@ -32,7 +35,7 @@ namespace playrho {
 
 Version GetVersion() noexcept
 {
-    return Version{0, 12, 0};
+    return Version{PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH};
 }
 
 std::string GetBuildDetails() noexcept

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -118,25 +118,24 @@ public:
         return !IsUnused(value) && !IsLeaf(value);
     }
 
-    /// @brief Gets the default initial node capacity.
-    static constexpr Size GetDefaultInitialNodeCapacity() noexcept;
-
     /// @brief Non-throwing default constructor.
     DynamicTree() noexcept;
 
     /// @brief Size initializing constructor.
     /// @param nodeCapacity Node capacity. If zero, this is the same as calling
     ///   the default constructor except this isn't recognized as non-throwing.
+    /// @throws std::bad_alloc If unable to allocate non-zero sized memory.
     explicit DynamicTree(Size nodeCapacity);
 
-    /// @brief Destroys the tree, freeing the node pool.
-    ~DynamicTree() noexcept;
-
     /// @brief Copy constructor.
+    /// @throws std::bad_alloc If unable to allocate non-zero sized memory.
     DynamicTree(const DynamicTree& other);
 
     /// @brief Move constructor.
     DynamicTree(DynamicTree&& other) noexcept;
+
+    /// @brief Destroys the tree, freeing the node pool.
+    ~DynamicTree() noexcept;
 
     /// @brief Unifying assignment operator.
     /// @note This intentionally takes the argument by-value. Along with the move constructor,
@@ -234,10 +233,21 @@ public:
     /// @note Useful for large worlds.
     /// @note The shift formula is: <code>position -= newOrigin</code>.
     /// @param newOrigin the new origin with respect to the old origin.
-    void ShiftOrigin(Length2 newOrigin);
+    void ShiftOrigin(Length2 newOrigin) noexcept;
 
     /// @brief Gets the current node capacity of this tree.
+    /// @see Reserve.
     Size GetNodeCapacity() const noexcept;
+
+    /// @brief Reserves at least as much capacity as requested.
+    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
+    ///   thrown, this function has no effect.
+    /// @post <code>GetNodeCapacity()</code> returns a new capacity that's at least as much
+    ///   as the requested capacity if that's greater than before.
+    /// @post <code>GetFreeIndex()</code> returns the value of <code>GetNodeCount()</code> if the
+    ///   new capacity is greater than before.
+    /// @see GetNodeCapacity, GetFreeIndex, GetNodeCount.
+    void Reserve(Size value);
 
     /// @brief Gets the current count of allocated nodes.
     /// @return Count of existing proxies (count of nodes currently allocated).
@@ -259,62 +269,33 @@ public:
     friend void swap(DynamicTree& lhs, DynamicTree& rhs) noexcept;
 
 private:
-    
-    /// @brief Sets the node capacity to the given value.
-    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
-    ///   thrown, this function has no effect.
-    void SetNodeCapacity(Size value);
-
     /// @brief Allocates a node.
     /// @details This allocates a node from the free list that can be used as either a leaf
     ///   node or a branch node.
+    /// @pre <code>GetNodeCapacity()</code> returns a value at least one greater than the value
+    ///   returned from <code>GetNodeCount()</code>.
     /// @warning Behavior is undefined unless the number of nodes allocated (as reported by
-    ///   <code>GetNodeCount()</code>) is less than <code>std::numeric_limits<Size>::max()</code>.
+    ///   <code>GetNodeCount()</code>) is less than <code>GetNodeCapacity()</code>.
+    /// @note Call <code>Reserve(GetNodeCount() + 1u)</code> before this if uncertain of whether
+    ///   any entries are available on the free list.
     /// @return Value not equal to <code>GetInvalidSize()</code>.
-    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
-    ///   thrown, this function has no effect.
     /// @see GetNodeCount()
-    Size AllocateNode();
+    Size AllocateNode() noexcept;
 
-    /// @brief Allocates a leaf node.
-    /// @details This allocates a node from the free list as a leaf node.
-    /// @warning Behavior is undefined unless the number of nodes allocated (as reported by
-    ///   <code>GetNodeCount()</code>) is less than <code>std::numeric_limits<Size>::max()</code>.
-    /// @return Value not equal to <code>GetInvalidSize()</code>.
-    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
-    ///   thrown, this function has no effect.
-    /// @see GetNodeCount()
-    Size AllocateNode(const LeafData& data, AABB aabb);
-
-    /// @brief Allocates a branch node.
-    /// @details This allocates a node from the free list as a branch node.
-    /// @warning Behavior is undefined unless the number of nodes allocated (as reported by
-    ///   <code>GetNodeCount()</code>) is less than <code>std::numeric_limits<Size>::max()</code>.
-    /// @post The free list no longer references the returned index.
-    /// @return Value not equal to <code>GetInvalidSize()</code>.
-    /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
-    ///   thrown, this function has no effect.
-    /// @see GetNodeCount()
-    Size AllocateNode(const BranchData& data, AABB aabb, Height height,
-                      Size parent = GetInvalidSize());
- 
     /// @brief Frees the specified node.
-    ///
     /// @warning Behavior is undefined if the given index is not valid.
     /// @warning Specified node must be a "leaf" or "branch" node.
-    ///
     /// @pre Specified node's other index is the invalid size index.
     /// @pre Specified node isn't referenced by any other nodes.
     /// @post The free list links to the given index.
-    ///
     void FreeNode(Size index) noexcept;
     
-    TreeNode* m_nodes{nullptr}; ///< Nodes. @details Initialized on construction.
+    Size m_nodeCount{0u}; ///< Node count. @details Count of currently allocated nodes.
+    Size m_leafCount{0u}; ///< Leaf count. @details Count of currently allocated leaf nodes.
     Size m_rootIndex{GetInvalidSize()}; ///< Index of root element in m_nodes or <code>GetInvalidSize()</code>.
     Size m_freeIndex{GetInvalidSize()}; ///< Free list. @details Index to free nodes.
-    Size m_nodeCount{0u}; ///< Node count. @details Count of currently allocated nodes.
     Size m_nodeCapacity{0u}; ///< Node capacity. @details Size of buffer allocated for nodes.
-    Size m_leafCount{0u}; ///< Leaf count. @details Count of currently allocated leaf nodes.
+    TreeNode* m_nodes{nullptr}; ///< Nodes. @details Initialized on construction.
 };
 
 /// @brief Unused data of a tree node.
@@ -565,11 +546,6 @@ private:
     ///   parent node.
     Size m_other = DynamicTree::GetInvalidSize(); ///< Index of another node.
 };
-
-constexpr DynamicTree::Size DynamicTree::GetDefaultInitialNodeCapacity() noexcept
-{
-    return Size{64};
-}
 
 inline DynamicTree::Size DynamicTree::GetRootIndex() const noexcept
 {

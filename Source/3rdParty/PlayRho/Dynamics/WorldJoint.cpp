@@ -22,7 +22,7 @@
 #include "PlayRho/Dynamics/WorldJoint.hpp"
 
 #include "PlayRho/Dynamics/World.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
+#include "PlayRho/Dynamics/Body.hpp" // for GetBody
 
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 
@@ -30,6 +30,11 @@
 
 namespace playrho {
 namespace d2 {
+
+JointCounter GetJointRange(const World& world) noexcept
+{
+    return world.GetJointRange();
+}
 
 SizedRange<std::vector<JointID>::const_iterator> GetJoints(const World& world) noexcept
 {
@@ -56,7 +61,7 @@ void SetJoint(World& world, JointID id, const Joint& def)
     world.SetJoint(id, def);
 }
 
-JointType GetType(const World& world, JointID id)
+TypeID GetType(const World& world, JointID id)
 {
     return GetType(world.GetJoint(id));
 }

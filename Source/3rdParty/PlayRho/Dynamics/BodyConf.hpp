@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2017 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -35,7 +35,7 @@ namespace d2 {
 
 class Body;
 
-/// @brief Body configuration.
+/// @brief Configuration for a body.
 ///
 /// @details A body configuration holds all the data needed to construct a rigid body.
 ///   You can safely re-use body configurations.
@@ -43,7 +43,9 @@ class Body;
 /// @note This is a value class meant for passing in to the <code>World::CreateBody</code>
 ///   method.
 ///
-/// @see World.
+/// @ingroup PhysicalEntities
+///
+/// @see World, Body.
 ///
 struct BodyConf {
     // Builder-styled methods...

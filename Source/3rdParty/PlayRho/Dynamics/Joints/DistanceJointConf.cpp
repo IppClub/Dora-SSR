@@ -25,7 +25,7 @@
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp" // for ConstraintSolverConf
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -58,10 +58,9 @@ static_assert(std::is_nothrow_destructible<DistanceJointConf>::value,
 // K = J * invM * JT
 //   = invMass1 + invI1 * cross(r1, u)^2 + invMass2 + invI2 * cross(r2, u)^2
 
-DistanceJointConf::DistanceJointConf(BodyID bA, BodyID bB,
-                                     Length2 laA, Length2 laB, Length l) noexcept :
-    super{super{}.UseBodyA(bA).UseBodyB(bB)},
-    localAnchorA{laA}, localAnchorB{laB}, length{l}
+DistanceJointConf::DistanceJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB,
+                                     Length l) noexcept
+    : super{super{}.UseBodyA(bA).UseBodyB(bB)}, localAnchorA{laA}, localAnchorB{laB}, length{l}
 {
     // Intentionally empty.
 }
@@ -74,17 +73,12 @@ DistanceJointConf GetDistanceJointConf(const Joint& joint) noexcept
 DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID bodyB,
                                        Length2 anchorA, Length2 anchorB)
 {
-    return DistanceJointConf{
-        bodyA, bodyB,
-        GetLocalPoint(world, bodyA, anchorA),
-        GetLocalPoint(world, bodyB, anchorB),
-        GetMagnitude(anchorB - anchorA)
-    };
+    return DistanceJointConf{bodyA, bodyB, GetLocalPoint(world, bodyA, anchorA),
+                             GetLocalPoint(world, bodyB, anchorB), GetMagnitude(anchorB - anchorA)};
 }
 
 void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
-                  const StepConf& step,
-                  const ConstraintSolverConf&)
+                  const StepConf& step, const ConstraintSolverConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
@@ -116,10 +110,9 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
     const auto invRotMassB = InvMass{invRotInertiaB * Square(crBu)};
     auto invMass = invMassA + invRotMassA + invMassB + invRotMassB;
 
-    object.mass = (invMass != InvMass{0}) ? Real{1} / invMass: 0_kg;
+    object.mass = (invMass != InvMass{0}) ? Real{1} / invMass : 0_kg;
 
-    if (object.frequency > 0_Hz)
-    {
+    if (object.frequency > 0_Hz) {
         const auto C = length - object.length; // L
 
         // Frequency
@@ -134,20 +127,18 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
         // magic formulas
         const auto h = step.deltaTime;
         const auto gamma = Mass{h * (d + h * k)}; // T (M T^-1 + T M T^-2) = M
-        object.invGamma = (gamma != 0_kg)? Real{1} / gamma: 0;
+        object.invGamma = (gamma != 0_kg) ? Real{1} / gamma : 0;
         object.bias = C * h * k * object.invGamma; // L T M T^-2 M^-1 = L T^-1
 
         invMass += object.invGamma;
-        object.mass = (invMass != InvMass{0}) ? Real{1} / invMass: 0;
+        object.mass = (invMass != InvMass{0}) ? Real{1} / invMass : 0;
     }
-    else
-    {
+    else {
         object.invGamma = InvMass{0};
         object.bias = 0_mps;
     }
 
-    if (step.doWarmStart)
-    {
+    if (step.doWarmStart) {
         // Scale the impulse to support a variable time step.
         object.impulse *= step.dtRatio;
 
@@ -162,8 +153,7 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
         velA -= Velocity{invMassA * P, invRotInertiaA * LA};
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
-    else
-    {
+    else {
         object.impulse = 0;
     }
 
@@ -171,8 +161,7 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
-                   const StepConf&)
+bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
 {
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
@@ -185,7 +174,8 @@ bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodie
     const auto vpB = velB.linear + GetRevPerpendicular(object.rB) * (velB.angular / Radian);
     const auto Cdot = LinearVelocity{Dot(object.u, vpB - vpA)};
 
-    const auto impulse = Momentum{-object.mass * (Cdot + object.bias + object.invGamma * object.impulse)};
+    const auto impulse =
+        Momentum{-object.mass * (Cdot + object.bias + object.invGamma * object.impulse)};
     object.impulse += impulse;
 
     const auto P = impulse * object.u;
@@ -204,8 +194,7 @@ bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodie
 bool SolvePosition(const DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
-    if (object.frequency > 0_Hz)
-    {
+    if (object.frequency > 0_Hz) {
         // There is no position correction for soft distance constraints.
         return true;
     }

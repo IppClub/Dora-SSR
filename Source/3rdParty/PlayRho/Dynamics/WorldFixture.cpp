@@ -23,12 +23,17 @@
 
 #include "PlayRho/Dynamics/World.hpp"
 #include "PlayRho/Dynamics/WorldBody.hpp"
-#include "PlayRho/Dynamics/Body.hpp"
+#include "PlayRho/Dynamics/Body.hpp" // for GetBody
 
 namespace playrho {
 namespace d2 {
 
 using playrho::size;
+
+FixtureCounter GetFixtureRange(const World& world) noexcept
+{
+    return world.GetFixtureRange();
+}
 
 FixtureCounter GetFixtureCount(const World& world) noexcept
 {
