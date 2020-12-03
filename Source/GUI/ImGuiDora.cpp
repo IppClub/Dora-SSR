@@ -209,7 +209,13 @@ void ImGuiDora::setImePositionHint(int x, int y)
 	if (x <= 1 && y <= 1) return;
 	_lastIMEPosX = x;
 	_lastIMEPosY = y;
-	SharedKeyboard.updateIMEPosHint({s_cast<float>(x), s_cast<float>(y)});
+	float scale =
+#if BX_PLATFORM_WINDOWS
+		SharedApplication.getDeviceRatio();
+#else
+		1.0f;
+#endif // BX_PLATFORM_WINDOWS
+	SharedKeyboard.updateIMEPosHint({s_cast<float>(x) * scale, s_cast<float>(y) * scale});
 }
 
 void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges)

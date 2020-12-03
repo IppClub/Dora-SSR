@@ -215,6 +215,23 @@ static int dora_xmltolua(lua_State* L)
 	return 1;
 }
 
+static int dora_file_exist(lua_State* L)
+{
+	size_t size = 0;
+	auto str = luaL_checklstring(L, 1, &size);
+	lua_pushboolean(L, SharedContent.isExist({ str, size }) ? 1 : 0);
+	return 1;
+}
+
+static int dora_read_file(lua_State* L)
+{
+	size_t size = 0;
+	auto str = luaL_checklstring(L, 1, &size);
+	auto data = SharedContent.loadFile({ str, size });
+	lua_pushlstring(L, r_cast<char*>(data.first.get()), data.second);
+	return 1;
+}
+
 static int dora_loadlibs(lua_State* L)
 {
 	const luaL_Reg lualibs[] =
@@ -239,25 +256,16 @@ static int dora_loadlibs(lua_State* L)
 		string err = lua_tostring(L, -1);
 		lua_pop(L, 1);
 		Error("fail to open lib moonp.\n{}", err);
-	};
+	}
+	lua_getglobal(L, "package"); // package
+	lua_getfield(L, -1, "loaded"); // package loaded
+	lua_getfield(L, -1, "moonp"); // package loaded moonp
+	lua_pushcfunction(L, dora_file_exist);
+	lua_setfield(L, -2, "file_exist");
+	lua_pushcfunction(L, dora_read_file);
+	lua_setfield(L, -2, "read_file");
+	lua_pop(L, 3);
 	return 0;
-}
-
-static int dora_file_exist(lua_State* L)
-{
-	size_t size = 0;
-	auto str = luaL_checklstring(L, 1, &size);
-	lua_pushboolean(L, SharedContent.isExist({str, size}) ? 1 : 0);
-	return 1;
-}
-
-static int dora_read_file(lua_State* L)
-{
-	size_t size = 0;
-	auto str = luaL_checklstring(L, 1, &size);
-	auto data = SharedContent.loadFile({str, size});
-	lua_pushlstring(L, r_cast<char*>(data.first.get()), data.second);
-	return 1;
 }
 
 static void dora_open_compiler(void* state)

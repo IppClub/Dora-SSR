@@ -586,6 +586,7 @@ bool Content::isAbsolutePath(String strPath)
 #endif // BX_PLATFORM_ANDROID
 
 #if BX_PLATFORM_WINDOWS
+
 Content::Content()
 {
 	_assetPath = fs::current_path().string();
@@ -602,7 +603,24 @@ bool Content::isFileExist(String filePath)
 	{
 		strPath.insert(0, _assetPath);
 	}
-	return GetFileAttributesA(strPath.c_str()) != -1 ? true : false;
+	bool res = true;
+	if (GetFileAttributesA(strPath.c_str()) == INVALID_FILE_ATTRIBUTES)
+	{
+		switch (GetLastError())
+		{
+		case ERROR_FILE_NOT_FOUND:
+		case ERROR_PATH_NOT_FOUND:
+		case ERROR_INVALID_NAME:
+		case ERROR_INVALID_DRIVE:
+		case ERROR_NOT_READY:
+		case ERROR_INVALID_PARAMETER:
+		case ERROR_BAD_PATHNAME:
+		case ERROR_BAD_NETPATH:
+			res = false;
+			break;
+		}
+	}
+	return res;
 }
 
 bool Content::isAbsolutePath(String strPath)
@@ -631,14 +649,37 @@ Content::Content()
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS
+
+#if BX_PLATFORM_WINDOWS
+static std::string toUTF8String(const std::string& str)
+{
+	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), 0, 0);
+	std::wstring wstr(wsize, 0);
+	MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), &wstr[0], wsize);
+	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(),
+		wstr.length(), nullptr, 0,
+		nullptr, nullptr);
+	std::string u8str(u8size, '\0');
+	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(),
+		wstr.length(), &u8str[0], u8size,
+		nullptr, nullptr);
+	return u8str;
+}
+#endif // BX_PLATFORM_WINDOWS
+
 Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 {
 	if (filename.empty()) return nullptr;
-	string fullPath = Content::getFullPath(filename);
+	string fullPath =
+#if BX_PLATFORM_WINDOWS
+		toUTF8String(Content::getFullPath(filename));
+#else
+		Content::getFullPath(filename);
+#endif // BX_PLATFORM_WINDOWS
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Error("fail to load file: {}", fullPath);
+		Error("fail to load file: {}", filename);
 		return nullptr;
 	}
 	size = SDL_RWsize(io);
