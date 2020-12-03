@@ -235,15 +235,15 @@ bool Keyboard::isIMEAttached() const
 
 void Keyboard::updateIMEPosHint(const Vec2& winPos)
 {
-	int offset =
+	int offsetY =
 #if BX_PLATFORM_IOS
 		45;
-#elif BX_PLATFORM_OSX
-		10 * SharedApplication.getDeviceRatio();
+#elif BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+		s_cast<int>(10.0f * SharedApplication.getDeviceRatio());
 #else
 		0;
 #endif
-	SDL_Rect rc = { s_cast<int>(winPos.x), s_cast<int>(winPos.y), 0, offset };
+	SDL_Rect rc = { s_cast<int>(winPos.x), s_cast<int>(winPos.y) + offsetY, 0, 0 };
 	SharedApplication.invokeInRender([rc]()
 	{
 		SDL_SetTextInputRect(c_cast<SDL_Rect*>(&rc));
