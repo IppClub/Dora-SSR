@@ -122,6 +122,11 @@
 		3C20F3DE248F772A00BBA830 /* TwoColorTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C20F365248F772800BBA830 /* TwoColorTimeline.cpp */; };
 		3C20F3E4248F774600BBA830 /* SkeletonCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C20F3E1248F774600BBA830 /* SkeletonCache.cpp */; };
 		3C20F3E6248F774600BBA830 /* AtlasCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C20F3E2248F774600BBA830 /* AtlasCache.cpp */; };
+		3C25B870257A7F8B002DD8E1 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B867257A7F8A002DD8E1 /* ast.cpp */; };
+		3C25B871257A7F8B002DD8E1 /* yue_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B868257A7F8A002DD8E1 /* yue_compiler.cpp */; };
+		3C25B872257A7F8B002DD8E1 /* yuescript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B869257A7F8A002DD8E1 /* yuescript.cpp */; };
+		3C25B873257A7F8B002DD8E1 /* yue_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B86E257A7F8B002DD8E1 /* yue_parser.cpp */; };
+		3C25B874257A7F8B002DD8E1 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B86F257A7F8B002DD8E1 /* parser.cpp */; };
 		3C41D60321490BE6003FDDFE /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FB21490BE5003FDDFE /* imgui.cpp */; };
 		3C41D60421490BE6003FDDFE /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */; };
 		3C41D60521490BE6003FDDFE /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */; };
@@ -142,10 +147,6 @@
 		3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973041E7F74E900BFD00F /* FrameCache.cpp */; };
 		3C59730B1E7F74E900BFD00F /* ModelCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973061E7F74E900BFD00F /* ModelCache.cpp */; };
 		3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */; };
-		3C6A2BF1238E039700AD8C80 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BE9238E039700AD8C80 /* ast.cpp */; };
-		3C6A2BF3238E039700AD8C80 /* moon_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */; };
-		3C6A2BF4238E039700AD8C80 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BEE238E039700AD8C80 /* parser.cpp */; };
-		3C6A2BF5238E039700AD8C80 /* moon_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */; };
 		3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */; };
 		3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37271E27DA09008C92E8 /* lodepng.cpp */; };
 		3C73E45B21B02625004E5731 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C73E45921B02624004E5731 /* Sound.cpp */; };
@@ -282,7 +283,6 @@
 		3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509B20F33DA9002FFC18 /* stb.cpp */; };
 		3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509F20F33DD5002FFC18 /* Builtin.cpp */; };
 		3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */; };
-		3CFDE1512417F47400E7D26A /* moonplus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDE14E2417F47300E7D26A /* moonplus.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -536,6 +536,18 @@
 		3C20F3E1248F774600BBA830 /* SkeletonCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonCache.cpp; path = ../../../Source/Cache/SkeletonCache.cpp; sourceTree = "<group>"; };
 		3C20F3E2248F774600BBA830 /* AtlasCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AtlasCache.cpp; path = ../../../Source/Cache/AtlasCache.cpp; sourceTree = "<group>"; };
 		3C20F3E3248F774600BBA830 /* SkeletonCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonCache.h; path = ../../../Source/Cache/SkeletonCache.h; sourceTree = "<group>"; };
+		3C25B864257A7F8A002DD8E1 /* stacktraceplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stacktraceplus.h; path = ../../../Source/3rdParty/yuescript/stacktraceplus.h; sourceTree = "<group>"; };
+		3C25B865257A7F8A002DD8E1 /* yue_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_ast.h; path = ../../../Source/3rdParty/yuescript/yue_ast.h; sourceTree = "<group>"; };
+		3C25B866257A7F8A002DD8E1 /* ast.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ast.hpp; path = ../../../Source/3rdParty/yuescript/ast.hpp; sourceTree = "<group>"; };
+		3C25B867257A7F8A002DD8E1 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ast.cpp; path = ../../../Source/3rdParty/yuescript/ast.cpp; sourceTree = "<group>"; };
+		3C25B868257A7F8A002DD8E1 /* yue_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_compiler.cpp; path = ../../../Source/3rdParty/yuescript/yue_compiler.cpp; sourceTree = "<group>"; };
+		3C25B869257A7F8A002DD8E1 /* yuescript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yuescript.cpp; path = ../../../Source/3rdParty/yuescript/yuescript.cpp; sourceTree = "<group>"; };
+		3C25B86A257A7F8A002DD8E1 /* yue_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_parser.h; path = ../../../Source/3rdParty/yuescript/yue_parser.h; sourceTree = "<group>"; };
+		3C25B86B257A7F8A002DD8E1 /* parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = parser.hpp; path = ../../../Source/3rdParty/yuescript/parser.hpp; sourceTree = "<group>"; };
+		3C25B86C257A7F8A002DD8E1 /* yue_compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_compiler.h; path = ../../../Source/3rdParty/yuescript/yue_compiler.h; sourceTree = "<group>"; };
+		3C25B86D257A7F8A002DD8E1 /* yuescript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yuescript.h; path = ../../../Source/3rdParty/yuescript/yuescript.h; sourceTree = "<group>"; };
+		3C25B86E257A7F8B002DD8E1 /* yue_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_parser.cpp; path = ../../../Source/3rdParty/yuescript/yue_parser.cpp; sourceTree = "<group>"; };
+		3C25B86F257A7F8B002DD8E1 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parser.cpp; path = ../../../Source/3rdParty/yuescript/parser.cpp; sourceTree = "<group>"; };
 		3C41D5FB21490BE5003FDDFE /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
 		3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../../../Source/3rdParty/imgui/imgui_draw.cpp; sourceTree = "<group>"; };
 		3C41D5FD21490BE5003FDDFE /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../../../Source/3rdParty/imgui/imconfig.h; sourceTree = "<group>"; };
@@ -582,15 +594,6 @@
 		3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Keyboard.cpp; path = ../../../Source/Input/Keyboard.cpp; sourceTree = "<group>"; };
 		3C6577471ECC2C9D00C5FB09 /* Keyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Keyboard.h; path = ../../../Source/Input/Keyboard.h; sourceTree = "<group>"; };
 		3C6A2BE5238E02E900AD8C80 /* compile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = compile.h; path = ../../../Source/3rdParty/fmt/compile.h; sourceTree = "<group>"; };
-		3C6A2BE7238E039700AD8C80 /* parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = parser.hpp; sourceTree = "<group>"; };
-		3C6A2BE8238E039700AD8C80 /* moon_compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_compiler.h; sourceTree = "<group>"; };
-		3C6A2BE9238E039700AD8C80 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast.cpp; sourceTree = "<group>"; };
-		3C6A2BEB238E039700AD8C80 /* moon_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_ast.h; sourceTree = "<group>"; };
-		3C6A2BEC238E039700AD8C80 /* moon_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_parser.h; sourceTree = "<group>"; };
-		3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_compiler.cpp; sourceTree = "<group>"; };
-		3C6A2BEE238E039700AD8C80 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
-		3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_parser.cpp; sourceTree = "<group>"; };
-		3C6A2BF0238E039700AD8C80 /* ast.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ast.hpp; sourceTree = "<group>"; };
 		3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureCache.cpp; path = ../../../Source/Cache/TextureCache.cpp; sourceTree = "<group>"; };
 		3C6D37241E27D9CE008C92E8 /* TextureCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureCache.h; path = ../../../Source/Cache/TextureCache.h; sourceTree = "<group>"; };
 		3C6D37271E27DA09008C92E8 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
@@ -911,9 +914,6 @@
 		3CF89B592433352300A195C7 /* fs_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_impl.hpp; path = ../../../Source/3rdParty/ghc/fs_impl.hpp; sourceTree = "<group>"; };
 		3CF89B5A2433352300A195C7 /* filesystem.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = filesystem.hpp; path = ../../../Source/3rdParty/ghc/filesystem.hpp; sourceTree = "<group>"; };
 		3CF89B5B2433352300A195C7 /* fs_fwd.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_fwd.hpp; path = ../../../Source/3rdParty/ghc/fs_fwd.hpp; sourceTree = "<group>"; };
-		3CFDE14E2417F47300E7D26A /* moonplus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moonplus.cpp; sourceTree = "<group>"; };
-		3CFDE14F2417F47300E7D26A /* moonplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moonplus.h; sourceTree = "<group>"; };
-		3CFDE1502417F47300E7D26A /* stacktraceplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stacktraceplus.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1497,6 +1497,25 @@
 			name = spine;
 			sourceTree = "<group>";
 		};
+		3C25B863257A7F71002DD8E1 /* yuescript */ = {
+			isa = PBXGroup;
+			children = (
+				3C25B867257A7F8A002DD8E1 /* ast.cpp */,
+				3C25B866257A7F8A002DD8E1 /* ast.hpp */,
+				3C25B86F257A7F8B002DD8E1 /* parser.cpp */,
+				3C25B86B257A7F8A002DD8E1 /* parser.hpp */,
+				3C25B864257A7F8A002DD8E1 /* stacktraceplus.h */,
+				3C25B865257A7F8A002DD8E1 /* yue_ast.h */,
+				3C25B868257A7F8A002DD8E1 /* yue_compiler.cpp */,
+				3C25B86C257A7F8A002DD8E1 /* yue_compiler.h */,
+				3C25B86E257A7F8B002DD8E1 /* yue_parser.cpp */,
+				3C25B86A257A7F8A002DD8E1 /* yue_parser.h */,
+				3C25B869257A7F8A002DD8E1 /* yuescript.cpp */,
+				3C25B86D257A7F8A002DD8E1 /* yuescript.h */,
+			);
+			name = yuescript;
+			sourceTree = "<group>";
+		};
 		3C41D60721490CCD003FDDFE /* nanovg */ = {
 			isa = PBXGroup;
 			children = (
@@ -1525,26 +1544,6 @@
 				3C4BC6561E17F17100292200 /* Geometry.h */,
 			);
 			name = Support;
-			sourceTree = "<group>";
-		};
-		3C6A2BE6238E039700AD8C80 /* MoonP */ = {
-			isa = PBXGroup;
-			children = (
-				3C6A2BF0238E039700AD8C80 /* ast.hpp */,
-				3C6A2BE9238E039700AD8C80 /* ast.cpp */,
-				3C6A2BE7238E039700AD8C80 /* parser.hpp */,
-				3C6A2BEE238E039700AD8C80 /* parser.cpp */,
-				3C6A2BEB238E039700AD8C80 /* moon_ast.h */,
-				3C6A2BEC238E039700AD8C80 /* moon_parser.h */,
-				3C6A2BEF238E039700AD8C80 /* moon_parser.cpp */,
-				3C6A2BE8238E039700AD8C80 /* moon_compiler.h */,
-				3C6A2BED238E039700AD8C80 /* moon_compiler.cpp */,
-				3CFDE14E2417F47300E7D26A /* moonplus.cpp */,
-				3CFDE14F2417F47300E7D26A /* moonplus.h */,
-				3CFDE1502417F47300E7D26A /* stacktraceplus.h */,
-			);
-			name = MoonP;
-			path = ../../../Source/3rdParty/MoonP;
 			sourceTree = "<group>";
 		};
 		3C6D37221E27D9BE008C92E8 /* Cache */ = {
@@ -1683,12 +1682,12 @@
 				3CA1B7F01EC16EBD00BC58FF /* tinyxml2 */,
 				3C88056C1E5ED12600B52D4B /* font */,
 				3C88055F1E5ED0F900B52D4B /* fmt */,
-				3C6A2BE6238E039700AD8C80 /* MoonP */,
 				3CDED0311E52A2D300B5E578 /* Other */,
 				3C1676B42212C0FD00892CD4 /* PlayRho */,
 				3CD328341E4C428E0036906C /* imgui */,
 				3C6D37261E27D9F6008C92E8 /* lodepng */,
 				3C41D60721490CCD003FDDFE /* nanovg */,
+				3C25B863257A7F71002DD8E1 /* yuescript */,
 				3CB410351E05B17F00A8804D /* Zip */,
 				3CB4102A1E05B0E200A8804D /* FileSystem */,
 				3CB410231E05B0A200A8804D /* silly */,
@@ -2084,6 +2083,7 @@
 				3C883B1721E338F500BFD758 /* Application.mm in Sources */,
 				3C92794E257899B800B8C43F /* StackAllocator.cpp in Sources */,
 				3C883B1321E338F500BFD758 /* Object.cpp in Sources */,
+				3C25B871257A7F8B002DD8E1 /* yue_compiler.cpp in Sources */,
 				3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */,
 				3C20F3C0248F772A00BBA830 /* IkConstraint.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
@@ -2097,7 +2097,6 @@
 				3C20F3A4248F772900BBA830 /* EventData.cpp in Sources */,
 				3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */,
 				3C20F3B4248F772900BBA830 /* DeformTimeline.cpp in Sources */,
-				3C6A2BF3238E039700AD8C80 /* moon_compiler.cpp in Sources */,
 				3CB730791E80343E006DFA18 /* Body.cpp in Sources */,
 				3C20F372248F772900BBA830 /* TransformConstraint.cpp in Sources */,
 				3C030CCE24CAC2BA0074786E /* Model.cpp in Sources */,
@@ -2109,13 +2108,11 @@
 				3C20F3B6248F772A00BBA830 /* RotateTimeline.cpp in Sources */,
 				3C0AD7BE1E0CE95F0033AD59 /* Listener.cpp in Sources */,
 				3C20F3E4248F774600BBA830 /* SkeletonCache.cpp in Sources */,
-				3C6A2BF1238E039700AD8C80 /* ast.cpp in Sources */,
 				3C20F3E6248F774600BBA830 /* AtlasCache.cpp in Sources */,
 				3C59730B1E7F74E900BFD00F /* ModelCache.cpp in Sources */,
 				3C927960257899D900B8C43F /* PolygonShapeConf.cpp in Sources */,
 				3C9278BD2578998900B8C43F /* DistanceJointConf.cpp in Sources */,
 				3C20F382248F772900BBA830 /* RegionAttachment.cpp in Sources */,
-				3C6A2BF4238E039700AD8C80 /* parser.cpp in Sources */,
 				3CB410291E05B0C500A8804D /* Slice.cpp in Sources */,
 				3C20F39E248F772900BBA830 /* SkeletonData.cpp in Sources */,
 				3C20F3CC248F772A00BBA830 /* IkConstraintData.cpp in Sources */,
@@ -2124,6 +2121,7 @@
 				3CB7307C1E80343E006DFA18 /* Joint.cpp in Sources */,
 				3C4A542F20F5F9BE007ED601 /* Component.cpp in Sources */,
 				3C20F368248F772900BBA830 /* ShearTimeline.cpp in Sources */,
+				3C25B873257A7F8B002DD8E1 /* yue_parser.cpp in Sources */,
 				3C9278BC2578998900B8C43F /* TargetJointConf.cpp in Sources */,
 				3C9278C12578998900B8C43F /* JointConf.cpp in Sources */,
 				3C9278C52578998900B8C43F /* WheelJointConf.cpp in Sources */,
@@ -2201,6 +2199,7 @@
 				3C883B1821E338F500BFD758 /* Application.cpp in Sources */,
 				3C20F3D0248F772A00BBA830 /* PointAttachment.cpp in Sources */,
 				3C20F3AC248F772900BBA830 /* Timeline.cpp in Sources */,
+				3C25B874257A7F8B002DD8E1 /* parser.cpp in Sources */,
 				3C9278FE2578999B00B8C43F /* FixtureConf.cpp in Sources */,
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
 				3C20F3DE248F772A00BBA830 /* TwoColorTimeline.cpp in Sources */,
@@ -2227,6 +2226,7 @@
 				3C0AD7CA1E0CE9990033AD59 /* LuaBinding.cpp in Sources */,
 				3C20F3D6248F772A00BBA830 /* ColorTimeline.cpp in Sources */,
 				3C030CD224CAC2BA0074786E /* RenderTarget.cpp in Sources */,
+				3C25B870257A7F8B002DD8E1 /* ast.cpp in Sources */,
 				3C9278B92578998900B8C43F /* GearJointConf.cpp in Sources */,
 				3C41D60F21490CFB003FDDFE /* nanovg.cpp in Sources */,
 				3C20F3AA248F772900BBA830 /* ClippingAttachment.cpp in Sources */,
@@ -2247,7 +2247,6 @@
 				3C030CD124CAC2BA0074786E /* DrawNode.cpp in Sources */,
 				3C030CCD24CAC2BA0074786E /* Spine.cpp in Sources */,
 				3C131FFE21011BB60087154A /* Define.cpp in Sources */,
-				3CFDE1512417F47400E7D26A /* moonplus.cpp in Sources */,
 				3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */,
 				3C030CC824CAC2B90074786E /* Label.cpp in Sources */,
 				3C92794F257899B800B8C43F /* CodeDumper.cpp in Sources */,
@@ -2269,10 +2268,10 @@
 				3C20F370248F772900BBA830 /* PathConstraintPositionTimeline.cpp in Sources */,
 				3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */,
 				3C030CD024CAC2BA0074786E /* VGNode.cpp in Sources */,
+				3C25B872257A7F8B002DD8E1 /* yuescript.cpp in Sources */,
 				3C9278C42578998900B8C43F /* JointKey.cpp in Sources */,
 				3C9279062578999B00B8C43F /* WorldImplContact.cpp in Sources */,
 				3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */,
-				3C6A2BF5238E039700AD8C80 /* moon_parser.cpp in Sources */,
 				3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */,
 				3C927965257899D900B8C43F /* Shape.cpp in Sources */,
 				3C20F384248F772900BBA830 /* PathConstraint.cpp in Sources */,

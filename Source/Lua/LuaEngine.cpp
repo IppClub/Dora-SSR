@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 using namespace Dorothy::Platformer;
 
 extern "C" {
-int luaopen_moonp(lua_State* L);
+int luaopen_yue(lua_State* L);
 }
 
 NS_DOROTHY_BEGIN
@@ -251,15 +251,15 @@ static int dora_loadlibs(lua_State* L)
 		luaL_requiref(L, lib->name, lib->func, 1);
 		lua_pop(L, 1);
 	}
-	lua_pushcfunction(L, luaopen_moonp);
+	lua_pushcfunction(L, luaopen_yue);
 	if (lua_pcall(L, 0, 0, 0) != 0) {
 		string err = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		Error("fail to open lib moonp.\n{}", err);
+		Error("fail to open lib yue.\n{}", err);
 	}
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
-	lua_getfield(L, -1, "moonp"); // package loaded moonp
+	lua_getfield(L, -1, "yue"); // package loaded yue
 	lua_pushcfunction(L, dora_file_exist);
 	lua_setfield(L, -2, "file_exist");
 	lua_pushcfunction(L, dora_read_file);
@@ -283,7 +283,7 @@ static void dora_open_compiler(void* state)
 
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
-	lua_getfield(L, -1, "moonp"); // package loaded moonp
+	lua_getfield(L, -1, "yue"); // package loaded yue
 	lua_pushcfunction(L, dora_file_exist);
 	lua_setfield(L, -2, "file_exist");
 	lua_pushcfunction(L, dora_read_file);
@@ -291,7 +291,7 @@ static void dora_open_compiler(void* state)
 	lua_pop(L, 3);
 }
 
-static int dora_mooncompile(lua_State* L)
+static int dora_yuecompile(lua_State* L)
 {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
@@ -313,24 +313,24 @@ static int dora_mooncompile(lua_State* L)
 		SharedContent.loadFileAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
 		{
 			if (!codes) {
-				Warn("fail to get moon source codes from \"{}\".", src);
+				Warn("fail to get yue source codes from \"{}\".", src);
 			} else {
 				auto input = std::make_shared<std::tuple<
 					string, string, OwnArray<Uint8>, size_t>>(
 					src, dest, std::move(codes), size);
 				SharedAsyncThread.run([input]()
 				{
-					MoonP::MoonConfig config;
+					yue::YueConfig config;
 					config.implicitReturnRoot = true;
 					config.reserveLineNumber = true;
 					config.lintGlobalVariable = true;
 					size_t size = std::get<3>(*input);
 					const auto& codes = std::get<2>(*input);
-					auto result = MoonP::MoonCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
+					auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
 					return Values::create(std::move(result));
 				}, [input, handler, callback](Own<Values> values)
 				{
-					MoonP::CompileInfo result;
+					yue::CompileInfo result;
 					values->get(result);
 					lua_State* L = SharedLuaEngine.getState();
 					int top = lua_gettop(L);
@@ -375,7 +375,7 @@ static int dora_mooncompile(lua_State* L)
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
-	tolua_error(L, "#ferror in function 'mooncompile'.", &tolua_err);
+	tolua_error(L, "#ferror in function 'yuecompile'.", &tolua_err);
 	return 0;
 #endif
 }
@@ -391,13 +391,13 @@ lua_State* LuaEngine::getState() const
 	return L;
 }
 
-MoonP::MoonCompiler& LuaEngine::getMoon()
+yue::YueCompiler& LuaEngine::getYue()
 {
-	if (!_moonCompiler)
+	if (!_yueCompiler)
 	{
-		_moonCompiler = New<MoonP::MoonCompiler>(L);
+		_yueCompiler = New<yue::YueCompiler>(L);
 	}
-	return *_moonCompiler;
+	return *_yueCompiler;
 }
 
 LuaEngine::LuaEngine()
@@ -414,7 +414,7 @@ LuaEngine::LuaEngine()
 		{ "dofile", dora_dofile },
 		{ "doxml", dora_doxml },
 		{ "xmltolua", dora_xmltolua },
-		{ "mooncompile", dora_mooncompile },
+		{ "yuecompile", dora_yuecompile },
 		{ "ubox", dora_ubox },
 		{ "emit", dora_emit },
 		{ NULL, NULL }

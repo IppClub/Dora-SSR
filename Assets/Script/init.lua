@@ -12,5 +12,5 @@ Content.searchPaths = {
 	Content.writablePath
 }
 
-local moonp = require("moonp")
-moonp("Dev.Entry")
+local yue = require("yue")
+yue("Dev.Entry")

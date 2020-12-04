@@ -44,26 +44,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\ast.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moonplus.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_parser.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\parser.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\nanovg\nanovg.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -613,6 +593,26 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\ast.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\parser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yuescript.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_compiler.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_parser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -746,13 +746,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\ml\DecisionTree.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\ast.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moonplus.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_ast.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_parser.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\parser.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\stacktraceplus.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fontstash.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fs_nanovg_fill.bin.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg.h" />
@@ -975,6 +968,13 @@
     <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_truetype.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\ast.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\parser.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\stacktraceplus.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yuescript.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_ast.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_compiler.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_parser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\unzip.h" />

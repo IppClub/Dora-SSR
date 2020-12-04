@@ -1,11 +1,11 @@
 _ENV = Dorothy builtin.ImGui
 import "Utils" as {:Set}
-import "moonp" as {options:{extension:moonext}}
+import "yue" as {options:{extension:yueext}}
 
 print "Dorothy SSR version: #{App.version}#{App.debugging and ', debugging' or ''}"
 
 debug.traceback = (err,level=1)->
-	with require("moonp").stp
+	with require("yue").stp
 		.dump_locals = false
 		.simplified = true
 		msg = .stacktrace err,level+1
@@ -17,7 +17,7 @@ moduleCache = {}
 oldRequire = _G.require
 require = (path)->
 	loaded = package.loaded[path]
-	if not loaded?
+	if loaded == nil
 		table.insert moduleCache,path
 		return oldRequire path
 	loaded
@@ -28,12 +28,12 @@ allowedUseOfGlobals = Set
 	* "Dorothy"
 	* "builtin"
 
-LintMoonGlobals = (moonCodes,globals,file)->
+LintYueGlobals = (yueCodes,globals,file)->
 	requireModules = {}
 	withImGui = false
 	withPlatformer = false
 	importCodes = table.concat (
-		for importLine in moonCodes\gmatch "Dorothy%s*%(?([^%)!\r\n]*)%s*[%)!]?"
+		for importLine in yueCodes\gmatch "Dorothy%s*%(?([^%)!\r\n]*)%s*[%)!]?"
 			continue if importLine == ""
 			importLine
 		), ","
@@ -64,7 +64,7 @@ LintMoonGlobals = (moonCodes,globals,file)->
 				if not findModule
 					countLine = 1
 					code = nil
-					for lineCode in moonCodes\gmatch "[^\n]*\n"
+					for lineCode in yueCodes\gmatch "[^\n]*\n"
 						if countLine == line
 							code = lineCode
 							break
@@ -86,24 +86,24 @@ doCompile = (minify)->
 	startTime = App.runningTime
 	inputPath = Path Content.assetPath,"Script"
 	outputPath = Path Content.writablePath,"Script"
-	moonFiles = getAllFiles inputPath,{moonext}
+	yueFiles = getAllFiles inputPath,{yueext}
 	xmlFiles = getAllFiles inputPath,{"xml"}
-	paths = {Path\getPath(file),true for file in *moonFiles}
+	paths = {Path\getPath(file),true for file in *yueFiles}
 	Content\mkdir Path outputPath,path for path in pairs paths
-	totalFiles = #moonFiles+#xmlFiles
+	totalFiles = #yueFiles+#xmlFiles
 	fileCount = 0
 	errors = {}
-	for file in *moonFiles
+	for file in *yueFiles
 		dest = Path\replaceExt Path(outputPath,file),"lua"
-		<- mooncompile file,dest,(codes,err,globals)->
+		<- yuecompile file,dest,(codes,err,globals)->
 			if not codes
 				table.insert errors,"Compile errors in #{file}.\n#{err}"
 				fileCount += 1
 				return
-			requires = LintMoonGlobals(codes,globals,file)
+			requires = LintYueGlobals(codes,globals,file)
 			requires ..= "\n" unless requires == ""
-			"-- [moonp]: #{file}\n"..requires..codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
-		print "Moon+ compiled: #{file}"
+			"-- [yue]: #{file}\n"..requires..codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
+		print "Yue compiled: #{file}"
 		fileCount += 1
 	paths = {Path\getPath(file),true for file in *xmlFiles}
 	Content\mkdir Path outputPath,path for path in pairs paths
@@ -177,9 +177,9 @@ allClear = ->
 
 games = [Path\getName item for item in *Content\getDirs Path Content.assetPath,"Script","Game"]
 table.sort games
-examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Example"), {"xml","lua",moonext}]
+examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Example"), {"xml","lua",yueext}]
 table.sort examples
-tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Test"), {"xml","lua",moonext}]
+tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Test"), {"xml","lua",yueext}]
 table.sort tests
 allNames = [Path "Game",game,"init" for game in *games]
 for example in *examples do table.insert allNames,Path "Example",example
@@ -190,8 +190,8 @@ for file in *Content\getAllFiles Path Content.assetPath, "Production"
 	if "init" == Path\getName file
 		scriptFolder = Path\getPath Path Content.assetPath, "Production", file
 		Content\addSearchPath Path\getPath scriptFolder
-		package.moonpath ..= ";" .. Path scriptFolder, "?.mp"
-		package.moonpath ..= ";" .. Path Content.assetPath, "Production", "?.mp"
+		package.yuepath ..= ";" .. Path scriptFolder, "?.mp"
+		package.yuepath ..= ";" .. Path Content.assetPath, "Production", "?.mp"
 		productionEntry = Path Path\getPath(file), "init"
 		break
 
@@ -274,21 +274,21 @@ threadLoop ->
 				doClean! if Selectable "Clean"
 		else
 			SameLine!
-			allClear! if Button "Home", Vec2(70,30)
+			allClear! if Button "Home", Vec2 70,30
 			currentIndex = nil
 			for i,name in ipairs allNames
 				if currentEntryName == name
 					currentIndex = i
 			SameLine!
 			if currentIndex and currentIndex > 1
-				if Button("Prev", Vec2(70,30)) or left
+				if Button("Prev", Vec2 70,30) or left
 					allClear!
 					isInEntry = false
 					thread -> enterDemoEntry allNames[currentIndex-1]
 			else Dummy Vec2 70,30
 			SameLine!
 			if currentIndex and currentIndex < #allNames
-				if Button("Next", Vec2(70,30)) or right
+				if Button("Next", Vec2 70,30) or right
 					allClear!
 					isInEntry = false
 					thread -> enterDemoEntry allNames[currentIndex+1]

@@ -118,9 +118,6 @@
     <Filter Include="3rdParty\PlayRho\Collision\Shapes">
       <UniqueIdentifier>{49b83829-6370-4f2c-8e36-9333b8ffd875}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\MoonP">
-      <UniqueIdentifier>{e891c088-58db-4a80-9bf4-cc982aca15a1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParty\spine">
       <UniqueIdentifier>{499dcf6f-2ff9-468a-81c8-897f74e1ec78}</UniqueIdentifier>
     </Filter>
@@ -129,6 +126,9 @@
     </Filter>
     <Filter Include="ML">
       <UniqueIdentifier>{e7b04149-98f2-4dec-9c5c-df5a94913f23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yuescript">
+      <UniqueIdentifier>{e891c088-58db-4a80-9bf4-cc982aca15a1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -441,23 +441,8 @@
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
       <Filter>3rdParty\fmt</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\ast.cpp">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.cpp">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moon_parser.cpp">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\parser.cpp">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\os.cpp">
       <Filter>3rdParty\fmt</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\MoonP\moonplus.cpp">
-      <Filter>3rdParty\MoonP</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\AtlasCache.cpp">
       <Filter>Cache</Filter>
@@ -867,6 +852,21 @@
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJointConf.cpp">
       <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\ast.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\parser.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_compiler.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_parser.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yuescript.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
@@ -1257,29 +1257,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h">
       <Filter>3rdParty\fmt</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\ast.hpp">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_ast.h">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_compiler.h">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moon_parser.h">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\parser.hpp">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\os.h">
       <Filter>3rdParty\fmt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\moonplus.h">
-      <Filter>3rdParty\MoonP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\MoonP\stacktraceplus.h">
-      <Filter>3rdParty\MoonP</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\AtlasCache.h">
       <Filter>Cache</Filter>
@@ -1916,6 +1895,27 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJointConf.hpp">
       <Filter>3rdParty\PlayRho\Dynamics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\ast.hpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\parser.hpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\stacktraceplus.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_ast.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_compiler.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_parser.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yuescript.h">
+      <Filter>3rdParty\yuescript</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

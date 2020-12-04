@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaFromXml.h"
 #include "tinyxml2/SAXParser.h"
 #include "Lua/LuaEngine.h"
-#include "MoonP/moon_compiler.h"
+#include "yuescript/yue_compiler.h"
 
 NS_DOROTHY_BEGIN
 
@@ -734,7 +734,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Perform) { perform = atts[++i]; break; }\
 	CASE_STR(Type) { type = atts[++i]; break; }
 #define Slot_Create \
-	isMoon = type && string(type) == "Moon";\
+	isYue = type && string(type) == "Yue";\
 	oFunc func = {elementStack.top().name+":slot("+toText(name)+",function("+(args ? args : "")+")"+(perform ? string("\n")+(target ? string(target) : elementStack.top().name)+":perform("+perform+")\n" : Slice::Empty), "end)"};\
 	funcs.push(func);
 
@@ -744,7 +744,7 @@ static const char* _toBoolean(const char* str)
 #define Script_Check \
 	CASE_STR(Type) { type = atts[++i]; break; }
 #define Script_Create \
-	isMoon = type && string(type) == "Moon";
+	isYue = type && string(type) == "Yue";
 
 #define Item_Define(name) name##_Define
 #define Item_Loop(name) \
@@ -789,7 +789,7 @@ class XmlDelegator : public SAXDelegator
 {
 public:
 	XmlDelegator(SAXParser* parser):
-	isMoon(false),
+	isYue(false),
 	codes(nullptr),
 	parser(parser)
 	{ }
@@ -797,7 +797,7 @@ public:
 	virtual void endElement(const char* name);
 	virtual void textHandler(const char* s, int len);
 	string oVal(const char* value, const char* def = nullptr, const char* element = nullptr, const char* attr = nullptr);
-	string compileMoonCodes(const char* codes);
+	string compileYueCodes(const char* codes);
 public:
 	void clear()
 	{
@@ -867,7 +867,7 @@ private:
 	};
 	SAXParser* parser;
 	// Script
-	bool isMoon;
+	bool isYue;
 	const char* codes;
 	// Loader
 	string firstItem;
@@ -1146,15 +1146,15 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 	SWITCH_STR_END
 }
 
-string XmlDelegator::compileMoonCodes(const char* codes)
+string XmlDelegator::compileYueCodes(const char* codes)
 {
-	MoonP::MoonConfig config;
+	yue::YueConfig config;
 	config.reserveLineNumber = false;
 	config.implicitReturnRoot = false;
-	auto result = MoonP::MoonCompiler{}.compile(fmt::format("do\n{}", codes), config);
+	auto result = yue::YueCompiler{}.compile(fmt::format("do\n{}", codes), config);
 	if (result.codes.empty())
 	{
-		lastError += fmt::format("Fail to compile moon codes started at line {}\n{}", parser->getLineNumber(codes), result.error);
+		lastError += fmt::format("Fail to compile yue codes started at line {}\n{}", parser->getLineNumber(codes), result.error);
 	}
 	return std::move(result.codes);
 }
@@ -1172,20 +1172,20 @@ void XmlDelegator::endElement(const char *name)
 		{
 			if (codes)
 			{
-				if (isMoon) fmt::format_to(stream, "{}\n", compileMoonCodes(codes));
+				if (isYue) fmt::format_to(stream, "{}\n", compileYueCodes(codes));
 				else fmt::format_to(stream, "{}\n", codes);
 			}
 			codes = nullptr;
-			isMoon = false;
+			isYue = false;
 			break;
 		}
 		CASE_STR(Slot)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			fmt::format_to(stream, "{}{}{}\n", func.begin, (codes ? (isMoon ? compileMoonCodes(codes) : string(codes)) : Slice::Empty), func.end);
+			fmt::format_to(stream, "{}{}{}\n", func.begin, (codes ? (isYue ? compileYueCodes(codes) : string(codes)) : Slice::Empty), func.end);
 			codes = nullptr;
-			isMoon = false;
+			isYue = false;
 			break;
 		}
 		#define CaseAction(x) CASE_STR(x)

@@ -14,10 +14,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <memory>
 #include <cassert>
 
-#include "MoonP/moon_parser.h"
-#include "MoonP/moon_compiler.h"
+#include "yuescript/yue_parser.h"
+#include "yuescript/yue_compiler.h"
 
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 
 extern "C" {
 #include "lua.h"
@@ -26,7 +26,7 @@ extern "C" {
 } // extern "C"
 
 // name of table stored in lua registry
-#define MOONP_MODULE "__moon_modules__"
+#define YUE_MODULE "__yue_modules__"
 
 #if LUA_VERSION_NUM > 501
 	#ifndef LUA_COMPAT_5_1
@@ -34,9 +34,9 @@ extern "C" {
 	#endif // LUA_COMPAT_5_1
 #endif // LUA_VERSION_NUM
 
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 
-namespace MoonP {
+namespace yue {
 using namespace std::string_view_literals;
 using namespace parserlib;
 
@@ -54,12 +54,12 @@ inline std::string s(std::string_view sv) {
 }
 
 const std::string_view version = "0.4.21"sv;
-const std::string_view extension = "mp"sv;
+const std::string_view extension = "yue"sv;
 
-class MoonCompilerImpl {
+class YueCompilerImpl {
 public:
-#ifndef MOONP_NO_MACRO
-	MoonCompilerImpl(lua_State* sharedState,
+#ifndef YUE_NO_MACRO
+	YueCompilerImpl(lua_State* sharedState,
 		const std::function<void(void*)>& luaOpen,
 		bool sameModule,
 		std::string_view moduleName = {}):
@@ -72,8 +72,8 @@ public:
 		_sameModule = true;
 		int top = lua_gettop(L);
 		DEFER(lua_settop(L, top));
-		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
-		lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
+		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
+		lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
 		BREAK_IF(lua_istable(L, -1) == 0);
 		int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 		BREAK_IF(idx == 0);
@@ -81,19 +81,19 @@ public:
 		BLOCK_END
 	}
 
-	~MoonCompilerImpl() {
+	~YueCompilerImpl() {
 		if (L && _stateOwner) {
 			lua_close(L);
 			L = nullptr;
 		}
 	}
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 
-	CompileInfo compile(std::string_view codes, const MoonConfig& config) {
+	CompileInfo compile(std::string_view codes, const YueConfig& config) {
 		_config = config;
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 		if (L) passOptions();
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 		_info = _parser.parse<File_t>(codes);
 		std::unique_ptr<GlobalVars> globals;
 		std::unique_ptr<Options> options;
@@ -118,14 +118,14 @@ public:
 						globals->push_back({var.first, line, col});
 					}
 				}
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 				if (L) {
 					int top = lua_gettop(L);
 					DEFER(lua_settop(L, top));
 					if (!options) {
 						options = std::make_unique<Options>();
 					}
-					pushMoonp("options"sv);
+					pushYuep("options"sv);
 					lua_pushnil(L); // options startKey
 					while (lua_next(L, -2) != 0) { // options key value
 						size_t len = 0;
@@ -137,7 +137,7 @@ public:
 						lua_pop(L, 1); // options key
 					}
 				}
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 				return {std::move(out.back()), Empty, std::move(globals), std::move(options)};
 			} catch (const std::logic_error& error) {
 				return {Empty, error.what(), std::move(globals), std::move(options)};
@@ -161,31 +161,31 @@ public:
 		_withVars = {};
 		_continueVars = {};
 		_enableReturn = {};
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 		if (_useModule) {
 			_useModule = false;
 			if (!_sameModule) {
 				int top = lua_gettop(L);
 				DEFER(lua_settop(L, top));
-				lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
-				lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
+				lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
+				lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
 				int idx = static_cast<int>(lua_objlen(L, -1));
 				lua_pushnil(L); // tb nil
 				lua_rawseti(L, -2, idx); // tb[idx] = nil, tb
 			}
 		}
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 	}
 private:
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 	bool _stateOwner = false;
 	bool _useModule = false;
 	bool _sameModule = false;
 	lua_State* L = nullptr;
 	std::function<void(void*)> _luaOpen;
-#endif // MOONP_NO_MACRO
-	MoonConfig _config;
-	MoonParser _parser;
+#endif // YUE_NO_MACRO
+	YueConfig _config;
+	YueParser _parser;
 	ParseInfo _info;
 	int _indentOffset = 0;
 	std::stack<bool> _varArgs;
@@ -2176,10 +2176,10 @@ private:
 		}
 	}
 
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 	void passOptions() {
 		if (!_config.options.empty()) {
-			pushMoonp("options"sv); // options
+			pushYuep("options"sv); // options
 			for (const auto& option : _config.options) {
 				lua_pushlstring(L, option.second.c_str(), option.second.size());
 				lua_setfield(L, -2, option.first.c_str());
@@ -2190,8 +2190,8 @@ private:
 
 	void pushCurrentModule() {
 		if (_useModule) {
-			lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
-			lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
+			lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
+			lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
 			int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 			lua_rawgeti(L, -1, idx); // tb[idx], tb cur
 			lua_remove(L, -2); // cur
@@ -2206,14 +2206,14 @@ private:
 			passOptions();
 			_stateOwner = true;
 		}
-		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
-		lua_rawget(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE], tb
+		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
+		lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
 		if (lua_isnil(L, -1) != 0) { // tb == nil
 			lua_pop(L, 1);
 			lua_newtable(L); // tb
-			lua_pushliteral(L, MOONP_MODULE); // tb MOONP_MODULE
-			lua_pushvalue(L, -2); // tb MOONP_MODULE tb
-			lua_rawset(L, LUA_REGISTRYINDEX); // reg[MOONP_MODULE] = tb, tb
+			lua_pushliteral(L, YUE_MODULE); // tb YUE_MODULE
+			lua_pushvalue(L, -2); // tb YUE_MODULE tb
+			lua_rawset(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE] = tb, tb
 		} // tb
 		int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 		lua_newtable(L); // tb cur
@@ -2222,20 +2222,20 @@ private:
 		lua_remove(L, -2); // cur
 	}
 
-	void pushMoonp(std::string_view name) {
+	void pushYuep(std::string_view name) {
 		lua_getglobal(L, "package"); // package
 		lua_getfield(L, -1, "loaded"); // package loaded
-		lua_getfield(L, -1, "moonp"); // package loaded moonp
-		lua_pushlstring(L, &name.front(), name.size()); // package loaded moonp name
-		lua_gettable(L, -2); // loaded[name], package loaded moonp item
-		lua_insert(L, -4); // item package loaded moonp
+		lua_getfield(L, -1, "yue"); // package loaded yue
+		lua_pushlstring(L, &name.front(), name.size()); // package loaded yue name
+		lua_gettable(L, -2); // loaded[name], package loaded yue item
+		lua_insert(L, -4); // item package loaded yue
 		lua_pop(L, 3); // item
 	}
 
 	bool isModuleLoaded(std::string_view name) {
 		int top = lua_gettop(L);
 		DEFER(lua_settop(L, top));
-		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
 		lua_rawget(L, LUA_REGISTRYINDEX); // modules
 		lua_pushlstring(L, &name.front(), name.size());
 		lua_rawget(L, -2); // modules module
@@ -2246,7 +2246,7 @@ private:
 	}
 
 	void pushModuleTable(std::string_view name) {
-		lua_pushliteral(L, MOONP_MODULE); // MOONP_MODULE
+		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
 		lua_rawget(L, LUA_REGISTRYINDEX); // modules
 		lua_pushlstring(L, &name.front(), name.size());
 		lua_rawget(L, -2); // modules module
@@ -2316,7 +2316,7 @@ private:
 		pushCurrentModule(); // cur
 		int top = lua_gettop(L) - 1;
 		DEFER(lua_settop(L, top));
-		pushMoonp("loadstring"sv); // cur loadstring
+		pushYuep("loadstring"sv); // cur loadstring
 		lua_pushlstring(L, macroCodes.c_str(), macroCodes.size()); // cur loadstring codes
 		lua_pushlstring(L, chunkName.c_str(), chunkName.size()); // cur loadstring codes chunk
 		pushOptions(macro->m_begin.m_line - 1); // cur loadstring codes chunk options
@@ -2329,7 +2329,7 @@ private:
 			throw std::logic_error(_info.errorMessage(s("fail to load macro codes, at (macro "sv) + macroName + s("): "sv) + err, macro->macroLit));
 		}
 		lua_pop(L, 1); // cur f
-		pushMoonp("pcall"sv); // cur f pcall
+		pushYuep("pcall"sv); // cur f pcall
 		lua_insert(L, -2); // cur pcall f
 		if (lua_pcall(L, 1, 2, 0) != 0) { // f(), cur success macro
 			std::string err = lua_tostring(L, -1);
@@ -2356,7 +2356,7 @@ private:
 	void transformMacro(Macro_t* macro, str_list&, bool) {
 		throw std::logic_error(_info.errorMessage("macro feature not supported"sv, macro));
 	}
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 
 	void transformReturn(Return_t* returnNode, str_list& out) {
 		if (!_enableReturn.top()) {
@@ -3061,7 +3061,7 @@ private:
 		}
 	}
 
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 	std::tuple<std::string,std::string,str_list> expandMacroStr(ChainValue_t* chainValue) {
 		const auto& chainList = chainValue->items.objects();
 		auto x = ast_to<Callable_t>(chainList.front())->item.to<MacroName_t>();
@@ -3086,7 +3086,7 @@ private:
 			}
 			auto fcodes = _parser.toString(args->back());
 			Utils::trim(fcodes);
-			pushMoonp("loadstring"sv); // loadstring
+			pushYuep("loadstring"sv); // loadstring
 			lua_pushlstring(L, fcodes.c_str(), fcodes.size()); // loadstring codes
 			lua_pushliteral(L, "=(macro in-place)"); // loadstring codes chunk
 			pushOptions(args->back()->m_begin.m_line - 1); // loadstring codes chunk options
@@ -3099,7 +3099,7 @@ private:
 				throw std::logic_error(_info.errorMessage(s("fail to load macro codes, at (macro in-place): "sv) + err, x));
 			}
 			lua_pop(L, 1); // f
-			pushMoonp("pcall"sv); // f pcall
+			pushYuep("pcall"sv); // f pcall
 			lua_insert(L, -2); // pcall f
 			if (lua_pcall(L, 1, 2, 0) != 0) { // f(), success macroFunc
 				std::string err = lua_tostring(L, -1);
@@ -3110,7 +3110,7 @@ private:
 				throw std::logic_error(_info.errorMessage(s("fail to generate macro function\n"sv) + err, x));
 			} // true macroFunc
 			lua_remove(L, -2); // macroFunc
-			pushMoonp("pcall"sv); // macroFunc pcall
+			pushYuep("pcall"sv); // macroFunc pcall
 			lua_insert(L, -2); // pcall macroFunc
 			bool success = lua_pcall(L, 1, 2, 0) == 0;
 			if (!success) { // err
@@ -3129,7 +3129,7 @@ private:
 			throw std::logic_error(_info.errorMessage("can not resolve macro"sv, x));
 		}
 		lua_rawgeti(L, -1, 1); // cur macro func
-		pushMoonp("pcall"sv); // cur macro func pcall
+		pushYuep("pcall"sv); // cur macro func pcall
 		lua_insert(L, -2); // cur macro pcall func
 		auto item = *(++chainList.begin());
 		const node_container* args = nullptr;
@@ -3317,11 +3317,11 @@ private:
 		}
 		return {info.node, std::move(info.codes), Empty, std::move(localVars)};
 	}
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 
 	void transformChainValue(ChainValue_t* chainValue, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr, bool allowBlockMacroReturn = false) {
 		if (isMacroChain(chainValue)) {
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 			ast_ptr<false,ast_node> node;
 			std::unique_ptr<input> codes;
 			std::string luaCodes;
@@ -3375,7 +3375,7 @@ private:
 #else
 			(void)allowBlockMacroReturn;
 			throw std::logic_error(_info.errorMessage("macro feature not supported"sv, chainValue));
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 		}
 		const auto& chainList = chainValue->items.objects();
 		if (transformChainEndWithEOP(chainList, out, usage, assignList)) {
@@ -5040,7 +5040,7 @@ private:
 		}
 		if (auto tabLit = import->target.as<ImportTabLit_t>()) {
 			auto newTab = x->new_ptr<ImportTabLit_t>();
-#ifndef MOONP_NO_MACRO
+#ifndef YUE_NO_MACRO
 			bool importAllMacro = false;
 			std::list<std::pair<std::string,std::string>> macroPairs;
 			for (auto item : tabLit->items.objects()) {
@@ -5075,7 +5075,7 @@ private:
 				pushCurrentModule(); // cur
 				int top = lua_gettop(L) - 1; // Lua state may be setup by pushCurrentModule()
 				DEFER(lua_settop(L, top));
-				pushMoonp("find_modulepath"sv); // cur find_modulepath
+				pushYuep("find_modulepath"sv); // cur find_modulepath
 				lua_pushlstring(L, moduleName.c_str(), moduleName.size()); // cur find_modulepath moduleName
 				if (lua_pcall(L, 1, 1, 0) != 0) {
 					std::string err = lua_tostring(L, -1);
@@ -5087,7 +5087,7 @@ private:
 				std::string moduleFullName = lua_tostring(L, -1);
 				lua_pop(L, 1); // cur
 				if (!isModuleLoaded(moduleFullName)) {
-					pushMoonp("read_file"sv); // cur read_file
+					pushYuep("read_file"sv); // cur read_file
 					lua_pushlstring(L, moduleFullName.c_str(), moduleFullName.size()); // cur load_text moduleFullName
 					if (lua_pcall(L, 1, 1, 0) != 0) {
 						std::string err = lua_tostring(L, -1);
@@ -5097,8 +5097,8 @@ private:
 						throw std::logic_error(_info.errorMessage("fail to get module text"sv, x));
 					} // cur text
 					std::string text = lua_tostring(L, -1);
-					auto compiler = MoonCompilerImpl(L, _luaOpen, false, moduleFullName);
-					MoonConfig config;
+					auto compiler = YueCompilerImpl(L, _luaOpen, false, moduleFullName);
+					YueConfig config;
 					config.lineOffset = 0;
 					config.lintGlobalVariable = false;
 					config.reserveLineNumber = false;
@@ -5123,7 +5123,7 @@ private:
 					lua_setfield(L, -3, pair.second.c_str()); // cur[second] = val, cur mod
 				}
 			}
-#else // MOONP_NO_MACRO
+#else // YUE_NO_MACRO
 			for (auto item : tabLit->items.objects()) {
 				switch (item->getId()) {
 					case id<MacroName_t>():
@@ -5139,7 +5139,7 @@ private:
 					default: assert(false); break;
 				}
 			}
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 			if (newTab->items.empty()) {
 				out.push_back(Empty);
 				return;
@@ -5435,25 +5435,25 @@ private:
 	}
 };
 
-const std::string MoonCompilerImpl::Empty;
+const std::string YueCompilerImpl::Empty;
 
-MoonCompiler::MoonCompiler(void* sharedState,
+YueCompiler::YueCompiler(void* sharedState,
 	const std::function<void(void*)>& luaOpen,
 	bool sameModule):
-#ifndef MOONP_NO_MACRO
-_compiler(std::make_unique<MoonCompilerImpl>(static_cast<lua_State*>(sharedState), luaOpen, sameModule)) {}
+#ifndef YUE_NO_MACRO
+_compiler(std::make_unique<YueCompilerImpl>(static_cast<lua_State*>(sharedState), luaOpen, sameModule)) {}
 #else
-_compiler(std::make_unique<MoonCompilerImpl>()) {
+_compiler(std::make_unique<YueCompilerImpl>()) {
 	(void)sharedState;
 	(void)luaOpen;
 	(void)sameModule;
 }
-#endif // MOONP_NO_MACRO
+#endif // YUE_NO_MACRO
 
-MoonCompiler::~MoonCompiler() {}
+YueCompiler::~YueCompiler() {}
 
-CompileInfo MoonCompiler::compile(std::string_view codes, const MoonConfig& config) {
+CompileInfo YueCompiler::compile(std::string_view codes, const YueConfig& config) {
 	return _compiler->compile(codes, config);
 }
 
-} // namespace MoonP
+} // namespace yue
