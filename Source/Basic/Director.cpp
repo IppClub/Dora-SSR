@@ -242,22 +242,21 @@ bool Director::init()
 	return true;
 }
 
-void Director::mainLoop()
+void Director::doLogic()
 {
 	if (_stoped) return;
 
 	/* push default view projection */
-	Matrix viewProj;
 	Camera* camera = getCurrentCamera();
 	if (camera->isOtho())
 	{
-		viewProj = camera->getView();
+		_defaultViewProj = camera->getView();
 	}
 	else
 	{
-		bx::mtxMul(viewProj, camera->getView(), SharedView.getProjection());
+		bx::mtxMul(_defaultViewProj, camera->getView(), SharedView.getProjection());
 	}
-	pushViewProjection(viewProj, [&]()
+	pushViewProjection(_defaultViewProj, [&]()
 	{
 		/* update system logic */
 		_systemScheduler->update(getDeltaTime());
@@ -303,6 +302,20 @@ void Director::mainLoop()
 			SharedTouchDispatcher.dispatch();
 			SharedTouchDispatcher.clearEvents();
 		}
+	});
+}
+
+void Director::doRender()
+{
+	if (_stoped) return;
+
+	/* push default view projection */
+	pushViewProjection(_defaultViewProj, [&]()
+	{
+		Size viewSize = SharedView.getSize();
+		Matrix ortho;
+		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0,
+		bgfx::getCaps()->homogeneousDepth);
 
 		/* do render */
 		if (SharedView.isPostProcessNeeded())

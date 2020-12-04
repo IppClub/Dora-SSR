@@ -1,6 +1,6 @@
 package.path = "?.lua"
 package.cpath = ""
-package.moonpath = "?." .. require("moonp").options.extension
+package.yuepath = "?." .. require("yue").options.extension
 
 local App = builtin.Application()
 local Director = builtin.Director()
@@ -562,15 +562,6 @@ setmetatable(package.loaded,{__index=builtin})
 local builtinEnvMeta = {__newindex = disallowAssignGlobal}
 setmetatable(_G,builtinEnvMeta)
 setmetatable(builtin,builtinEnvMeta)
-
--- moonscript
-local moonp = package.loaded["moonp"]
-moonp.file_exist = function(fname)
-	return Content:exist(fname)
-end
-moonp.read_file = function(fname)
-	return Content:load(fname)
-end
 
 --collectgarbage("incremental", 100, 5000)
 collectgarbage("generational", 20, 100)

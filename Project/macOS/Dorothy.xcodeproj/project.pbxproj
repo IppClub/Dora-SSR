@@ -148,10 +148,6 @@
 		3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE720EF609700E775D7 /* nanovg_bgfx.cpp */; };
 		3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFEE20EF644900E775D7 /* stb.cpp */; };
 		3C4A542D20F5F8B6007ED601 /* Component.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4A542C20F5F8B6007ED601 /* Component.cpp */; };
-		3C4DEBCC234E3D5300ACA60F /* moon_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4DEBCB234E3D5300ACA60F /* moon_compiler.cpp */; };
-		3C54E28B234E390400202423 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54E282234E390400202423 /* ast.cpp */; };
-		3C54E28F234E390400202423 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54E288234E390400202423 /* parser.cpp */; };
-		3C54E290234E390400202423 /* moon_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54E289234E390400202423 /* moon_parser.cpp */; };
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
@@ -241,6 +237,11 @@
 		3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E971E03C09F00462FD7 /* ZipUtils.cpp */; };
 		3CC54E9D1E03C0B100462FD7 /* libz.1.2.8.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */; };
 		3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54EA01E03CA6C00462FD7 /* Slice.cpp */; };
+		3CC7945D2579F9B000042394 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC794512579F9AF00042394 /* parser.cpp */; };
+		3CC7945E2579F9B000042394 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC794522579F9AF00042394 /* ast.cpp */; };
+		3CC7945F2579F9B000042394 /* yue_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC794572579F9AF00042394 /* yue_parser.cpp */; };
+		3CC794602579F9B000042394 /* yuescript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC7945B2579F9B000042394 /* yuescript.cpp */; };
+		3CC794612579F9B000042394 /* yue_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC7945C2579F9B000042394 /* yue_compiler.cpp */; };
 		3CC7A0EE1E8D56E8003188D6 /* libsoloud.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
 		3CCB0C791E6DB0590088C118 /* ClipNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCB0C771E6DB0590088C118 /* ClipNode.cpp */; };
@@ -284,7 +285,6 @@
 		3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF09EF51E581AAD009E8C6F /* Singleton.cpp */; };
 		3CF16C8C1E68F165002587CD /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C8A1E68F165002587CD /* Renderer.cpp */; };
 		3CF16C961E69078C002587CD /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF16C941E69078C002587CD /* RenderTarget.cpp */; };
-		3CFDE14D2415C9F900E7D26A /* moonplus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFDE14A2415C9F900E7D26A /* moonplus.cpp */; };
 		3CFEDAA623A1402B00F60301 /* format.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEDA9E23A1402A00F60301 /* format.cpp */; };
 /* End PBXBuildFile section */
 
@@ -670,15 +670,6 @@
 		3C49FFED20EF63D000E775D7 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/stb/stb_rect_pack.h; sourceTree = "<group>"; };
 		3C49FFEE20EF644900E775D7 /* stb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = stb.cpp; path = ../../../Source/3rdParty/stb/stb.cpp; sourceTree = "<group>"; };
 		3C4A542C20F5F8B6007ED601 /* Component.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Component.cpp; path = ../../../Source/Entity/Component.cpp; sourceTree = "<group>"; };
-		3C4DEBCA234E3D5300ACA60F /* moon_compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_compiler.h; sourceTree = "<group>"; };
-		3C4DEBCB234E3D5300ACA60F /* moon_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_compiler.cpp; sourceTree = "<group>"; };
-		3C54E280234E390400202423 /* parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = parser.hpp; sourceTree = "<group>"; };
-		3C54E282234E390400202423 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast.cpp; sourceTree = "<group>"; };
-		3C54E285234E390400202423 /* moon_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_ast.h; sourceTree = "<group>"; };
-		3C54E287234E390400202423 /* moon_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moon_parser.h; sourceTree = "<group>"; };
-		3C54E288234E390400202423 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
-		3C54E289234E390400202423 /* moon_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moon_parser.cpp; sourceTree = "<group>"; };
-		3C54E28A234E390400202423 /* ast.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ast.hpp; sourceTree = "<group>"; };
 		3C57A39B1E0A05AD002141DF /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C57A39C1E0A05AD002141DF /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C57A39D1E0A05AD002141DF /* EventType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventType.cpp; path = ../../../Source/Event/EventType.cpp; sourceTree = "<group>"; };
@@ -863,6 +854,18 @@
 		3CC54E981E03C09F00462FD7 /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZipUtils.h; path = ../../../Source/3rdParty/Zip/Support/ZipUtils.h; sourceTree = "<group>"; };
 		3CC54EA01E03CA6C00462FD7 /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CC54EA11E03CA6C00462FD7 /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
+		3CC794512579F9AF00042394 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parser.cpp; path = ../../../Source/3rdParty/yuescript/parser.cpp; sourceTree = "<group>"; };
+		3CC794522579F9AF00042394 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ast.cpp; path = ../../../Source/3rdParty/yuescript/ast.cpp; sourceTree = "<group>"; };
+		3CC794532579F9AF00042394 /* parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = parser.hpp; path = ../../../Source/3rdParty/yuescript/parser.hpp; sourceTree = "<group>"; };
+		3CC794542579F9AF00042394 /* yuescript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yuescript.h; path = ../../../Source/3rdParty/yuescript/yuescript.h; sourceTree = "<group>"; };
+		3CC794552579F9AF00042394 /* ast.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ast.hpp; path = ../../../Source/3rdParty/yuescript/ast.hpp; sourceTree = "<group>"; };
+		3CC794562579F9AF00042394 /* stacktraceplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stacktraceplus.h; path = ../../../Source/3rdParty/yuescript/stacktraceplus.h; sourceTree = "<group>"; };
+		3CC794572579F9AF00042394 /* yue_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_parser.cpp; path = ../../../Source/3rdParty/yuescript/yue_parser.cpp; sourceTree = "<group>"; };
+		3CC794582579F9B000042394 /* yue_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_ast.h; path = ../../../Source/3rdParty/yuescript/yue_ast.h; sourceTree = "<group>"; };
+		3CC794592579F9B000042394 /* yue_compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_compiler.h; path = ../../../Source/3rdParty/yuescript/yue_compiler.h; sourceTree = "<group>"; };
+		3CC7945A2579F9B000042394 /* yue_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_parser.h; path = ../../../Source/3rdParty/yuescript/yue_parser.h; sourceTree = "<group>"; };
+		3CC7945B2579F9B000042394 /* yuescript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yuescript.cpp; path = ../../../Source/3rdParty/yuescript/yuescript.cpp; sourceTree = "<group>"; };
+		3CC7945C2579F9B000042394 /* yue_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_compiler.cpp; path = ../../../Source/3rdParty/yuescript/yue_compiler.cpp; sourceTree = "<group>"; };
 		3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsoloud.a; path = ../../Source/3rdParty/soloud/Lib/macOS/libsoloud.a; sourceTree = "<group>"; };
 		3CC81FE61D966770008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -942,9 +945,6 @@
 		3CF89B5F2433388200A195C7 /* fs_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_impl.hpp; path = ../../../Source/3rdParty/ghc/fs_impl.hpp; sourceTree = "<group>"; };
 		3CFDA84A2200358900C9DFD0 /* Defines.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Defines.hpp; sourceTree = "<group>"; };
 		3CFDA8E12200358900C9DFD0 /* PlayRho.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayRho.hpp; sourceTree = "<group>"; };
-		3CFDE14A2415C9F900E7D26A /* moonplus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = moonplus.cpp; sourceTree = "<group>"; };
-		3CFDE14B2415C9F900E7D26A /* stacktraceplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stacktraceplus.h; sourceTree = "<group>"; };
-		3CFDE14C2415C9F900E7D26A /* moonplus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = moonplus.h; sourceTree = "<group>"; };
 		3CFEDA9923A1402A00F60301 /* chrono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = chrono.h; path = ../../../Source/3rdParty/fmt/chrono.h; sourceTree = "<group>"; };
 		3CFEDA9A23A1402A00F60301 /* compile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = compile.h; path = ../../../Source/3rdParty/fmt/compile.h; sourceTree = "<group>"; };
 		3CFEDA9B23A1402A00F60301 /* ostream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ostream.h; path = ../../../Source/3rdParty/fmt/ostream.h; sourceTree = "<group>"; };
@@ -1237,10 +1237,10 @@
 				3C6C07631E5E857B00BAA745 /* fmt */,
 				3CDED0381E52F53F00B5E578 /* font */,
 				3CD328211E4B0A370036906C /* imgui */,
-				3C54E27F234E390400202423 /* MoonP */,
 				3CC54E5E1E039E1300462FD7 /* Other */,
 				3CFDA8492200358900C9DFD0 /* PlayRho */,
 				3C291D341E0264380098C860 /* silly */,
+				3CC7943D2579F94600042394 /* yuescript */,
 				3CC54E8E1E03C08200462FD7 /* Zip */,
 			);
 			name = 3rdParty;
@@ -1357,26 +1357,6 @@
 				3C49FFEE20EF644900E775D7 /* stb.cpp */,
 			);
 			name = stb;
-			sourceTree = "<group>";
-		};
-		3C54E27F234E390400202423 /* MoonP */ = {
-			isa = PBXGroup;
-			children = (
-				3C54E282234E390400202423 /* ast.cpp */,
-				3C54E28A234E390400202423 /* ast.hpp */,
-				3C54E288234E390400202423 /* parser.cpp */,
-				3C54E280234E390400202423 /* parser.hpp */,
-				3C54E285234E390400202423 /* moon_ast.h */,
-				3C54E289234E390400202423 /* moon_parser.cpp */,
-				3C54E287234E390400202423 /* moon_parser.h */,
-				3C4DEBCB234E3D5300ACA60F /* moon_compiler.cpp */,
-				3C4DEBCA234E3D5300ACA60F /* moon_compiler.h */,
-				3CFDE14A2415C9F900E7D26A /* moonplus.cpp */,
-				3CFDE14C2415C9F900E7D26A /* moonplus.h */,
-				3CFDE14B2415C9F900E7D26A /* stacktraceplus.h */,
-			);
-			name = MoonP;
-			path = ../../../Source/3rdParty/MoonP;
 			sourceTree = "<group>";
 		};
 		3C57A39A1E0A059A002141DF /* Event */ = {
@@ -1629,6 +1609,25 @@
 				3CC54E981E03C09F00462FD7 /* ZipUtils.h */,
 			);
 			name = Support;
+			sourceTree = "<group>";
+		};
+		3CC7943D2579F94600042394 /* yuescript */ = {
+			isa = PBXGroup;
+			children = (
+				3CC794522579F9AF00042394 /* ast.cpp */,
+				3CC794552579F9AF00042394 /* ast.hpp */,
+				3CC794512579F9AF00042394 /* parser.cpp */,
+				3CC794532579F9AF00042394 /* parser.hpp */,
+				3CC794562579F9AF00042394 /* stacktraceplus.h */,
+				3CC794582579F9B000042394 /* yue_ast.h */,
+				3CC7945C2579F9B000042394 /* yue_compiler.cpp */,
+				3CC794592579F9B000042394 /* yue_compiler.h */,
+				3CC794572579F9AF00042394 /* yue_parser.cpp */,
+				3CC7945A2579F9B000042394 /* yue_parser.h */,
+				3CC7945B2579F9B000042394 /* yuescript.cpp */,
+				3CC794542579F9AF00042394 /* yuescript.h */,
+			);
+			name = yuescript;
 			sourceTree = "<group>";
 		};
 		3CC81FDD1D966770008C8B77 = {
@@ -2159,7 +2158,7 @@
 				3CF16C961E69078C002587CD /* RenderTarget.cpp in Sources */,
 				3CC05B641E71229A00F2BA1B /* DrawNode.cpp in Sources */,
 				3C0D30F72456665F009C592B /* Updatable.cpp in Sources */,
-				3CFDE14D2415C9F900E7D26A /* moonplus.cpp in Sources */,
+				3CC7945D2579F9B000042394 /* parser.cpp in Sources */,
 				3C6DA20C1EAEF8EC006EEE32 /* LuaFromXml.cpp in Sources */,
 				3C0D30FB2456665F009C592B /* AttachmentTimeline.cpp in Sources */,
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
@@ -2216,7 +2215,6 @@
 				3C291D331E025A980098C860 /* AutoreleasePool.cpp in Sources */,
 				3C0D30E72456665F009C592B /* ConstraintData.cpp in Sources */,
 				3C7EB6982547CCB300390DA6 /* Body.cpp in Sources */,
-				3C4DEBCC234E3D5300ACA60F /* moon_compiler.cpp in Sources */,
 				3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */,
 				3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */,
 				3C3E9142257788CA00A7A963 /* FrictionJointConf.cpp in Sources */,
@@ -2278,6 +2276,7 @@
 				3CE9509820F30A65002FFC18 /* Builtin.cpp in Sources */,
 				3C40555020FD92CC0057B0E4 /* Face.cpp in Sources */,
 				3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */,
+				3CC7945E2579F9B000042394 /* ast.cpp in Sources */,
 				3C0D30FD2456665F009C592B /* ClippingAttachment.cpp in Sources */,
 				3C7EB68E2547CCB300390DA6 /* WorldImplBody.cpp in Sources */,
 				3C3E9144257788CA00A7A963 /* LimitState.cpp in Sources */,
@@ -2300,10 +2299,10 @@
 				3C7EB69B2547CCB300390DA6 /* WorldFixture.cpp in Sources */,
 				3C0D310C2456665F009C592B /* RTTI.cpp in Sources */,
 				3C0D3116245681D2009C592B /* Spine.cpp in Sources */,
-				3C54E28F234E390400202423 /* parser.cpp in Sources */,
 				3C3E911F257788A900A7A963 /* Contact.cpp in Sources */,
 				3C0D30EE2456665F009C592B /* VertexEffect.cpp in Sources */,
 				3C7EB63A2547CC8400390DA6 /* MassData.cpp in Sources */,
+				3CC794612579F9B000042394 /* yue_compiler.cpp in Sources */,
 				3C42B0A220FECB0A00186F9C /* UnitDef.cpp in Sources */,
 				3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */,
 				3C7EB68F2547CCB300390DA6 /* WorldJoint.cpp in Sources */,
@@ -2327,7 +2326,6 @@
 				3C7EB6942547CCB300390DA6 /* WorldImpl.cpp in Sources */,
 				3C0D30DF2456665F009C592B /* Skeleton.cpp in Sources */,
 				3C7EB6902547CCB300390DA6 /* MovementConf.cpp in Sources */,
-				3C54E290234E390400202423 /* moon_parser.cpp in Sources */,
 				3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */,
 				3C0D30DB2456665F009C592B /* TextureLoader.cpp in Sources */,
 				3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */,
@@ -2347,6 +2345,7 @@
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,
 				3C7EB6A12547CCB300390DA6 /* WorldImplJoint.cpp in Sources */,
+				3CC7945F2579F9B000042394 /* yue_parser.cpp in Sources */,
 				3C7EB69C2547CCB300390DA6 /* WorldSpecial.cpp in Sources */,
 				3C7EB69F2547CCB300390DA6 /* WorldBody.cpp in Sources */,
 				3C7EB6582547CC9900390DA6 /* MultiShapeConf.cpp in Sources */,
@@ -2360,6 +2359,7 @@
 				3C3E9145257788CA00A7A963 /* WheelJointConf.cpp in Sources */,
 				3C0D30E92456665F009C592B /* IkConstraint.cpp in Sources */,
 				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,
+				3CC794602579F9B000042394 /* yuescript.cpp in Sources */,
 				3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
 				3C0044EB1E6682A000369672 /* Particle.cpp in Sources */,
@@ -2375,7 +2375,6 @@
 				3CDA2E1324C20DDD009B0AA5 /* ML.cpp in Sources */,
 				3C3E911C257788A900A7A963 /* ConstraintSolverConf.cpp in Sources */,
 				3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */,
-				3C54E28B234E390400202423 /* ast.cpp in Sources */,
 				3C3E91922577891500A7A963 /* Version.cpp in Sources */,
 				3CE3456A20F7248A00D7F60C /* MemoryPool.cpp in Sources */,
 				3C7EB6A22547CCB300390DA6 /* WorldContact.cpp in Sources */,

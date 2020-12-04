@@ -19,7 +19,7 @@
 	<Slot Name="Enter" Perform="rotate"/>
 
 	<!-- example ends here, print xml and compiled lua codes below -->
-	<Script Type="Moon">
+	<Script Type="Yue">
 		_ENV = Dorothy builtin.ImGui
 		xmlCodes = Content\load "Example/Dorothy Xml.xml"
 		luaCodes = xmltolua xmlCodes

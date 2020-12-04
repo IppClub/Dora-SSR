@@ -288,8 +288,8 @@ Director.entry\addChild with Node!
 			--print "learning accuracy: #{accuracy}"
 			--print codes
 			--print dataStr
-			import "moonp"
-			luaCodes = moonp.to_lua codes,{reserve_line_number:false}
+			import "yue"
+			luaCodes = yue.to_lua codes,{reserve_line_number:false}
 			learnedAI = load(luaCodes)?! or -> "unknown"
 			characters[charSet].learnedAI = learnedAI
 			emit "LearnedAI", learnedAI
@@ -637,7 +637,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 
 -- background
 
-size,grid = 2500,100
+size,grid = 1500,100
 
 background = -> with DrawNode!
 	.is3D = true
@@ -895,8 +895,12 @@ Director.ui\addChild with AlignNode isRoot:true
 				fontName:"NotoSansHans-Regular"
 				fontSize:48
 			}
-			\gslot "ShowFight",(show)-> .visible = not show
-			\gslot "ShowTraining",(show)-> .visible = not show
+			showItems = (show)->
+				for fighter in *fighterFigures
+					fighter.touchEnabled = not show
+				.visible = not show
+			\gslot "ShowFight", showItems
+			\gslot "ShowTraining", showItems
 			\slot "Tapped",->
 				return if not .visible
 				for i = 1,#characters

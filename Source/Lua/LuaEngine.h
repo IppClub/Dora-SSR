@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/ToLua/tolua++.h"
 #include "Common/Ref.h"
-#include "MoonP/moon_compiler.h"
+#include "yuescript/yue_compiler.h"
 
 NS_DOROTHY_BEGIN
 
@@ -23,7 +23,7 @@ class LuaEngine
 public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
-	PROPERTY_READONLY_REF(MoonP::MoonCompiler, Moon);
+	PROPERTY_READONLY_REF(yue::YueCompiler, Yue);
 
 	void insertLuaLoader(lua_CFunction func);
 
@@ -129,7 +129,7 @@ protected:
 	LuaEngine();
 	static int _callFromLua;
 	lua_State* L;
-	Own<MoonP::MoonCompiler> _moonCompiler;
+	Own<yue::YueCompiler> _yueCompiler;
 	SINGLETON_REF(LuaEngine, AsyncThread);
 };
 

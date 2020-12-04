@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 #include <ctime>
 #include "Other/utf8.h"
+#include "Common/Async.h"
 
 #define DORA_VERSION "1.0.2"_slice
 
@@ -206,6 +207,7 @@ int Application::run()
 
 	// call this function here to disable default render threads creation of bgfx
 	bgfx::renderFrame();
+	_logicEvent.post("RenderStop"_slice);
 
 	// start running logic thread
 	_logicThread.init(Application::mainLogic, this);
@@ -213,6 +215,10 @@ int Application::run()
 	SDL_Event event;
 	while (_renderRunning)
 	{
+		// do render staff and swap buffers
+		bgfx::renderFrame();
+		_logicEvent.post("RenderStop"_slice);
+
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event))
 		{
@@ -275,9 +281,6 @@ int Application::run()
 					break;
 			}
 		}
-
-		// do render staff and swap buffers
-		bgfx::renderFrame();
 	}
 
 	// wait for render process to stop
@@ -297,9 +300,10 @@ void Application::updateDeltaTime()
 	// in case of system timer api error
 	if (_deltaTime < 0)
 	{
-		_deltaTime = 0;
+		_deltaTime = 1.0/_maxFPS;
 		_lastTime = currentTime;
 	}
+	_deltaTime = std::min(1.0/_minFPS, _deltaTime);
 }
 
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
@@ -403,9 +407,6 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		return 1;
 	}
 
-	// pass one frame
-	SharedView.pushName("Main"_slice, [](){});
-	app->_frame = bgfx::frame();
 	app->makeTimeNow();
 	app->_startTime = app->_lastTime;
 
@@ -415,6 +416,11 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		Error("Director failed to initialize!");
 		return 1;
 	}
+
+	// pass one frame
+	SharedView.pushName("Main"_slice, []() {});
+	app->_frame = bgfx::frame();
+
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	Timer::create()->start(0, [app]()
 	{
@@ -429,52 +435,70 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 	while (app->_logicRunning)
 	{
 		SharedPoolManager.push();
-		// poll events from render thread
-		for (Own<QEvent> event = app->_logicEvent.poll();
-			event != nullptr;
-			event = app->_logicEvent.poll())
+		auto cpuStartTime = app->getEclapsedTime();
+		SharedDirector.doLogic();
+		app->_cpuTime = app->getEclapsedTime() - cpuStartTime;
+
+		bool renderWorking = true;
+		while (renderWorking)
 		{
-			switch (Switch::hash(event->getName()))
+			// poll events from render thread
+			for (Own<QEvent> event = app->_logicEvent.poll();
+				event != nullptr;
+				event = app->_logicEvent.poll())
 			{
-				case "SDLEvent"_hash:
+				switch (Switch::hash(event->getName()))
 				{
-					SDL_Event sdlEvent;
-					event->get(sdlEvent);
-					switch (sdlEvent.type)
+					case "SDLEvent"_hash:
 					{
-						case SDL_QUIT:
+						SDL_Event sdlEvent;
+						event->get(sdlEvent);
+						switch (sdlEvent.type)
 						{
-							app->_logicRunning = false;
-							app->quitHandler();
-							// Info("singleton reference tree:\n{}", Life::getRefTree());
-							break;
+							case SDL_QUIT:
+							{
+								renderWorking = false;
+								app->_logicRunning = false;
+								app->quitHandler();
+								// Info("singleton reference tree:\n{}", Life::getRefTree());
+								break;
+							}
+							default:
+								break;
 						}
-						default:
-							break;
+						SharedDirector.handleSDLEvent(sdlEvent);
+						app->eventHandler(sdlEvent);
+						break;
 					}
-					SharedDirector.handleSDLEvent(sdlEvent);
-					app->eventHandler(sdlEvent);
-					break;
+					case "Invoke"_hash:
+					{
+						function<void()> func;
+						event->get(func);
+						func();
+						break;
+					}
+					case "RenderStop"_hash:
+					{
+						renderWorking = false;
+						break;
+					}
+					default:
+						break;
 				}
-				case "Invoke"_hash:
-				{
-					function<void()> func;
-					event->get(func);
-					func();
-					break;
-				}
-				default:
-					break;
 			}
 		}
-		SharedDirector.mainLoop();
+
+		cpuStartTime = app->getEclapsedTime();
+		SharedDirector.doRender();
 		SharedPoolManager.pop();
+		app->_cpuTime += (app->getEclapsedTime() - cpuStartTime);
 
-		app->_cpuTime = app->getEclapsedTime();
-
-		// advance to next frame. rendering thread will be kicked to
-		// process submitted rendering primitives.
-		app->_frame = bgfx::frame();
+		SharedAsyncThread.RenderKick.run([&]()
+		{
+			// advance to next frame. rendering thread will be kicked to
+			// process submitted rendering primitives.
+			app->_frame = bgfx::frame();
+		});
 
 		// limit for max FPS
 		if (app->_fpsLimited)

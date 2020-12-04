@@ -41,7 +41,8 @@ public:
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
 	bool init();
-	void mainLoop();
+	void doLogic();
+	void doRender();
 	void handleSDLEvent(const SDL_Event& event);
 
 	void pushCamera(Camera* camera);
@@ -81,6 +82,7 @@ private:
 	Ref<RenderTarget> _renderTarget;
 	Own<UITouchHandler> _uiTouchHandler;
 	stack<Own<Matrix>> _viewProjs;
+	Matrix _defaultViewProj;
 	NVGcontext* _nvgContext;
 	SINGLETON_REF(Director, FontManager, LuaEngine, BGFXDora, Application);
 };
