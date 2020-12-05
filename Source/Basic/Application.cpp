@@ -407,9 +407,6 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		return 1;
 	}
 
-	app->makeTimeNow();
-	app->_startTime = app->_lastTime;
-
 	SharedPoolManager.push();
 	if (!SharedDirector.init())
 	{
@@ -420,6 +417,9 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 	// pass one frame
 	SharedView.pushName("Main"_slice, []() {});
 	app->_frame = bgfx::frame();
+
+	app->makeTimeNow();
+	app->_startTime = app->_lastTime;
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	Timer::create()->start(0, [app]()
@@ -493,12 +493,9 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		SharedPoolManager.pop();
 		app->_cpuTime += (app->getEclapsedTime() - cpuStartTime);
 
-		SharedAsyncThread.RenderKick.run([&]()
-		{
-			// advance to next frame. rendering thread will be kicked to
-			// process submitted rendering primitives.
-			app->_frame = bgfx::frame();
-		});
+		// advance to next frame. rendering thread will be kicked to
+		// process submitted rendering primitives.
+		app->_frame = bgfx::frame();
 
 		// limit for max FPS
 		if (app->_fpsLimited)

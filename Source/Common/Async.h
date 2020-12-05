@@ -46,7 +46,6 @@ class AsyncThread
 {
 public:
 	Async FileIO;
-	Async RenderKick;
 	AsyncThread();
 	void run(const function<Own<Values>()>& worker, const function<void(Own<Values>)>& finisher);
 #if BX_PLATFORM_WINDOWS
