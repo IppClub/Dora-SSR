@@ -139,13 +139,23 @@ class Slice {
     return *(end() - 1);
   }
 
+  Slice left(size_t n) const {
+    assert(n <= len_);
+    return Slice(str_, n);
+  }
+
+  Slice right(size_t n) const {
+    assert(n <= len_);
+    return Slice(str_ + len_ - n, n);
+  }
+
   std::string toLower() const;
   std::string toUpper() const;
   std::list<Slice> split(const Slice& delimer) const;
 
   static const std::string Empty;
   static float stof(const Slice& str);
-  static int stoi(const Slice& str);
+  static int stoi(const Slice& str, int base = 10);
 
   constexpr friend Slice operator"" _slice(const char* s, size_t n);
  private:

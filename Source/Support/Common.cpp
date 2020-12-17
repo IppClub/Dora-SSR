@@ -30,9 +30,9 @@ b(b)
 { }
 
 Color3::Color3(const Vec3& vec):
-r(s_cast<Uint8>(vec.x * 255.0f)),
-g(s_cast<Uint8>(vec.y * 255.0f)),
-b(s_cast<Uint8>(vec.z * 255.0f))
+r(s_cast<Uint8>(std::round(vec.x * 255.0f))),
+g(s_cast<Uint8>(std::round(vec.y * 255.0f))),
+b(s_cast<Uint8>(std::round(vec.z * 255.0f)))
 { }
 
 Uint32 Color3::toRGB() const
@@ -74,10 +74,10 @@ a(a)
 { }
 
 Color::Color(const Vec4& vec):
-r(s_cast<Uint8>(vec.x * 255.0f)),
-g(s_cast<Uint8>(vec.y * 255.0f)),
-b(s_cast<Uint8>(vec.z * 255.0f)),
-a(s_cast<Uint8>(vec.w * 255.0f))
+r(s_cast<Uint8>(std::round(vec.x * 255.0f))),
+g(s_cast<Uint8>(std::round(vec.y * 255.0f))),
+b(s_cast<Uint8>(std::round(vec.z * 255.0f))),
+a(s_cast<Uint8>(std::round(vec.w * 255.0f)))
 { }
 
 Uint32 Color::toABGR() const
@@ -107,7 +107,7 @@ Vec4 Color::toVec4() const
 
 void Color::setOpacity(float var)
 {
-	a = s_cast<Uint8>(Math::clamp(var, 0.0f, 1.0f) * 255.0f);
+	a = s_cast<Uint8>(std::round(Math::clamp(var, 0.0f, 1.0f) * 255.0f));
 }
 
 float Color::getOpacity() const

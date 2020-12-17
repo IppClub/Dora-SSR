@@ -22,6 +22,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+#define MAX_FONT_TEXTURE_WIDTH 8192
+
 class LogPanel
 {
 public:
@@ -278,6 +280,8 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 		_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
 		SharedAsyncThread.run([this]()
 		{
+			_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
+			_fonts->TexDesiredWidth = MAX_FONT_TEXTURE_WIDTH;
 			_fonts->Build();
 			return nullptr;
 		}, [this, fileData, size](Own<Values> result)

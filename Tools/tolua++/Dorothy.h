@@ -1048,6 +1048,14 @@ Texture2D* GetDorothySSRWhite(float scale = 1.0f);
 Texture2D* GetDorothySSRHappy(float scale = 1.0f);
 Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
 
+class SVGDef @ SVG : public Object
+{
+	tolua_readonly tolua_property__common float width;
+	tolua_readonly tolua_property__common float height;
+	void render();
+	static tolua_outside SVGDef* SVGDef_create @ create(String filename);
+};
+
 namespace Platformer {
 
 struct AttackType

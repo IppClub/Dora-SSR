@@ -149,6 +149,9 @@ int Entity_setNext(lua_State* L);
 /* EntityWorld */
 EntityObserver* EntityObserver_create(String option, Slice components[], int count);
 
+/* SVGDef */
+SVGDef* SVGDef_create(String filename);
+
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN

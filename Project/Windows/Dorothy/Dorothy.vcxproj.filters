@@ -867,6 +867,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yuescript.cpp">
       <Filter>3rdParty\yuescript</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\SVGCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
@@ -1916,6 +1919,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yuescript.h">
       <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\SVGCache.h">
+      <Filter>Cache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

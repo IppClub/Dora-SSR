@@ -319,7 +319,7 @@ namespace rapidxml
     class xml_sax2_handler : public xml_sax3_handler
     {
     public:
-		typedef std::pair<const char*,size_t> AttrSlice;
+        typedef std::pair<const char*,size_t> AttrSlice;
 
         xml_sax2_handler() { elementAttrs.reserve(64); }
 
@@ -358,9 +358,9 @@ namespace rapidxml
             auto chTemp = elementName.first[elementName.second];
             elementName.first[elementName.second] = '\0';
 
-			elementAttrs.push_back(std::make_pair(nullptr, 0));
-			xmlSAX2StartElement(elementName.first, elementName.second, elementAttrs);
-			elementAttrs.clear();
+            elementAttrs.push_back(std::make_pair(nullptr, 0));
+            xmlSAX2StartElement(elementName.first, elementName.second, elementAttrs);
+            elementAttrs.clear();
 
             elementName.first[elementName.second] = chTemp;
         }

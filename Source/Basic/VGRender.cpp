@@ -18,12 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-inline NVGcolor nvgColor(Color color)
-{
-	return nvgRGBA(color.r, color.g, color.b, color.a);
-}
-
-NVGcontext* nvg::currentContext = nullptr;
+NVGcontext* nvg::_currentContext = nullptr;
 
 Vec2 nvg::TouchPos()
 {
@@ -451,12 +446,12 @@ void nvg::FontFace(String font)
 
 void nvg::BindContext(NVGcontext* context)
 {
-	currentContext = context;
+	_currentContext = context;
 }
 
 NVGcontext* nvg::Context()
 {
-	return nvg::currentContext ? nvg::currentContext : SharedDirector.markNVGDirty();
+	return _currentContext ? _currentContext : SharedDirector.markNVGDirty();
 }
 
 void nvg::DorothySSR()
@@ -1296,7 +1291,6 @@ void RenderDorothySSRHappyWhite(NVGcontext* context)
 	nvgLineTo(context, 383.729f, 738.614f);
 	nvgLineTo(context, 383.729f, 706.69f);
 	nvgLineTo(context, 383.729f, 673.067f);
-	nvgLineTo(context, 383.729f, 673.067f);
 	nvgClosePath(context);
 	nvgPathWinding(context, NVG_HOLE);
 	nvgMoveTo(context, 399.436f, 762.488f);
@@ -1325,7 +1319,6 @@ void RenderDorothySSRHappyWhite(NVGcontext* context)
 	nvgLineTo(context, 416.059f, 755.977f);
 	nvgBezierTo(context, 418.124f, 757.084f, 420.185f, 758.191f, 422.508f, 759.445f);
 	nvgLineTo(context, 422.508f, 725.814f);
-	nvgLineTo(context, 422.508f, 690.441f);
 	nvgLineTo(context, 422.508f, 690.441f);
 	nvgClosePath(context);
 	nvgPathWinding(context, NVG_HOLE);
@@ -1383,7 +1376,6 @@ void RenderDorothySSRHappyWhite(NVGcontext* context)
 	nvgLineTo(context, 458.248f, 736.311f);
 	nvgLineTo(context, 458.248f, 722.226f);
 	nvgLineTo(context, 458.248f, 706.546f);
-	nvgLineTo(context, 458.248f, 706.546f);
 	nvgClosePath(context);
 	nvgPathWinding(context, NVG_HOLE);
 	nvgMoveTo(context, 475.864f, 804.694f);
@@ -1402,7 +1394,6 @@ void RenderDorothySSRHappyWhite(NVGcontext* context)
 	nvgLineTo(context, 476.648f, 805.941f);
 	nvgLineTo(context, 477.521f, 804.694f);
 	nvgLineTo(context, 475.864f, 804.694f);
-	nvgLineTo(context, 475.864f, 804.694f);
 	nvgClosePath(context);
 	nvgMoveTo(context, 498.937f, 725.162f);
 	nvgBezierTo(context, 495.94f, 723.807f, 492.309f, 722.153f, 488.608f, 720.467f);
@@ -1411,7 +1402,6 @@ void RenderDorothySSRHappyWhite(NVGcontext* context)
 	nvgLineTo(context, 492.224f, 796.879f);
 	nvgBezierTo(context, 494.362f, 798.03f, 496.454f, 799.159f, 498.937f, 800.49f);
 	nvgLineTo(context, 498.937f, 763.684f);
-	nvgLineTo(context, 498.937f, 725.162f);
 	nvgLineTo(context, 498.937f, 725.162f);
 	nvgClosePath(context);
 	nvgPathWinding(context, NVG_HOLE);
