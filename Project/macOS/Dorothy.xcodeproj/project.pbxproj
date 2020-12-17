@@ -270,6 +270,7 @@
 		3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE3555D1E1B3F7200268A19 /* LuaHandler.cpp */; };
 		3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3731EADF594008EADB3 /* libbimg_decode.a */; };
 		3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3741EADF594008EADB3 /* libbimg.a */; };
+		3CE916DA2581B9250008130C /* SVGCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE916D82581B9250008130C /* SVGCache.cpp */; };
 		3CE9509820F30A65002FFC18 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509620F30A65002FFC18 /* Builtin.cpp */; };
 		3CE9D7F41E7FC2A6003AAECB /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7E81E7FC2A6003AAECB /* Body.cpp */; };
 		3CE9D7F51E7FC2A6003AAECB /* BodyDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7EA1E7FC2A6003AAECB /* BodyDef.cpp */; };
@@ -909,6 +910,8 @@
 		3CE3555E1E1B3F7200268A19 /* LuaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaHandler.h; path = ../../../Source/Lua/LuaHandler.h; sourceTree = "<group>"; };
 		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg.a; sourceTree = "<group>"; };
+		3CE916D82581B9250008130C /* SVGCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SVGCache.cpp; path = ../../../Source/Cache/SVGCache.cpp; sourceTree = "<group>"; };
+		3CE916D92581B9250008130C /* SVGCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SVGCache.h; path = ../../../Source/Cache/SVGCache.h; sourceTree = "<group>"; };
 		3CE9509620F30A65002FFC18 /* Builtin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Builtin.cpp; path = ../../../Source/Shader/Builtin.cpp; sourceTree = "<group>"; };
 		3CE9509720F30A65002FFC18 /* Builtin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Builtin.h; path = ../../../Source/Shader/Builtin.h; sourceTree = "<group>"; };
 		3CE9D7E81E7FC2A6003AAECB /* Body.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Body.cpp; path = ../../../Source/Physics/Body.cpp; sourceTree = "<group>"; };
@@ -1567,6 +1570,8 @@
 				3C2F9C8B1E7B12D900B98D39 /* XmlItemCache.h */,
 				3C0EBE341E2E1D840066450A /* ShaderCache.cpp */,
 				3C0EBE351E2E1D840066450A /* ShaderCache.h */,
+				3CE916D82581B9250008130C /* SVGCache.cpp */,
+				3CE916D92581B9250008130C /* SVGCache.h */,
 				3CD4634A1E27239B00BA9D30 /* TextureCache.cpp */,
 				3CD4634B1E27239B00BA9D30 /* TextureCache.h */,
 			);
@@ -2169,6 +2174,7 @@
 				3C3E914A257788CA00A7A963 /* Joint.cpp in Sources */,
 				3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */,
 				3C3E918E2577891500A7A963 /* BlockAllocator.cpp in Sources */,
+				3CE916DA2581B9250008130C /* SVGCache.cpp in Sources */,
 				3CEDF77E1E839DE6008839A3 /* ParticleCache.cpp in Sources */,
 				3C0D30E22456665F009C592B /* Event.cpp in Sources */,
 				3C0D30F12456665F009C592B /* RotateTimeline.cpp in Sources */,

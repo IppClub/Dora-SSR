@@ -283,6 +283,7 @@
 		3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509B20F33DA9002FFC18 /* stb.cpp */; };
 		3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509F20F33DD5002FFC18 /* Builtin.cpp */; };
 		3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */; };
+		3CF00E39258B475A00898F4B /* SVGCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF00E37258B475A00898F4B /* SVGCache.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -910,6 +911,8 @@
 		3CE950A020F33DD5002FFC18 /* Builtin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Builtin.h; path = ../../../Source/Shader/Builtin.h; sourceTree = "<group>"; };
 		3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ParticleCache.cpp; path = ../../../Source/Cache/ParticleCache.cpp; sourceTree = "<group>"; };
 		3CEDF7801E83BADB008839A3 /* ParticleCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParticleCache.h; path = ../../../Source/Cache/ParticleCache.h; sourceTree = "<group>"; };
+		3CF00E37258B475A00898F4B /* SVGCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SVGCache.cpp; path = ../../../Source/Cache/SVGCache.cpp; sourceTree = "<group>"; };
+		3CF00E38258B475A00898F4B /* SVGCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SVGCache.h; path = ../../../Source/Cache/SVGCache.h; sourceTree = "<group>"; };
 		3CF89B5724332CC900A195C7 /* concurrentqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = concurrentqueue.h; path = ../../../Source/3rdParty/Other/concurrentqueue.h; sourceTree = "<group>"; };
 		3CF89B592433352300A195C7 /* fs_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_impl.hpp; path = ../../../Source/3rdParty/ghc/fs_impl.hpp; sourceTree = "<group>"; };
 		3CF89B5A2433352300A195C7 /* filesystem.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = filesystem.hpp; path = ../../../Source/3rdParty/ghc/filesystem.hpp; sourceTree = "<group>"; };
@@ -1566,6 +1569,8 @@
 				3C5973081E7F74E900BFD00F /* XmlItemCache.h */,
 				3CD6C29F1E30C14800B36FFC /* ShaderCache.cpp */,
 				3CD6C2A01E30C14800B36FFC /* ShaderCache.h */,
+				3CF00E37258B475A00898F4B /* SVGCache.cpp */,
+				3CF00E38258B475A00898F4B /* SVGCache.h */,
 				3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */,
 				3C6D37241E27D9CE008C92E8 /* TextureCache.h */,
 			);
@@ -2126,6 +2131,7 @@
 				3C9278C12578998900B8C43F /* JointConf.cpp in Sources */,
 				3C9278C52578998900B8C43F /* WheelJointConf.cpp in Sources */,
 				3C20F390248F772900BBA830 /* TranslateTimeline.cpp in Sources */,
+				3CF00E39258B475A00898F4B /* SVGCache.cpp in Sources */,
 				3C131FFB21011BB60087154A /* Bullet.cpp in Sources */,
 				3C9278F92578999B00B8C43F /* ContactImpulsesList.cpp in Sources */,
 				3C9278932578997C00B8C43F /* ContactKey.cpp in Sources */,

@@ -64,11 +64,11 @@ std::list<Slice> Slice::split(const Slice& delims) const {
   std::list<Slice> tokens;
   std::size_t start = 0, end = 0;
   while ((end = text.find(delimers, start)) < text.size()) {
-    tokens.push_back(Slice(str_ + start, end - start));
-	start = end + delimers.size();
+    tokens.push_back(Slice(str_ + start, end - start).trimSpace());
+    start = end + delimers.size();
   }
   if (start < text.size()) {
-    tokens.push_back(Slice(str_ + start, len_ - start));
+    tokens.push_back(Slice(str_ + start, len_ - start).trimSpace());
   }
   return tokens;
 }
@@ -77,8 +77,8 @@ float Slice::stof(const Slice& str) {
   return static_cast<float>(std::atof(str.toString().c_str()));
 }
 
-int Slice::stoi(const Slice& str) {
-  return std::atoi(str.toString().c_str());
+int Slice::stoi(const Slice& str, int base) {
+  return std::stoi(str.toString(), 0, base);
 }
 
 } // namespace slice

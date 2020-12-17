@@ -17,7 +17,7 @@ namespace nvg
 		void skewY(float a);
 		void multiply(Transform src);
 		bool inverseFrom(Transform src);
-		Vec2 point(Vec2 src);
+		Vec2 applyPoint(Vec2 src);
 	};
 	Vec2 TouchPos();
 	bool LeftButtonPressed();

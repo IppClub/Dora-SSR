@@ -357,6 +357,8 @@ bool Cache::load(String filename)
 			case "pvr"_hash:
 			case "ktx"_hash:
 				return SharedTextureCache.load(filename);
+			case "svg"_hash:
+				return SharedSVGCache.load(filename);
 			case "bin"_hash:
 				return SharedShaderCache.load(filename);
 			case "wav"_hash:
@@ -419,6 +421,9 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 			case "ktx"_hash:
 				SharedTextureCache.loadAsync(filename, [callback](Texture2D*) { callback(); });
 				break;
+			case "svg"_hash:
+				SharedSVGCache.loadAsync(filename, [callback](SVGDef*) { callback(); });
+				break;
 			case "bin"_hash:
 				SharedShaderCache.loadAsync(filename, [callback](Shader*) { callback(); });
 				break;
@@ -451,6 +456,9 @@ void Cache::update(String filename, String content)
 				break;
 			case "par"_hash:
 				SharedParticleCache.update(filename, content);
+				break;
+			case "svg"_hash:
+				SharedSVGCache.update(filename, content);
 				break;
 			default:
 				Error("fail to update unsupported resource \"{}\".", filename);
@@ -489,6 +497,8 @@ bool Cache::unload(String name)
 			case "pvr"_hash:
 			case "ktx"_hash:
 				return SharedTextureCache.unload(name);
+			case "svg"_hash:
+				return SharedSVGCache.unload(name);
 			case "bin"_hash:
 				return SharedShaderCache.unload(name);
 			case "wav"_hash:
@@ -505,6 +515,8 @@ bool Cache::unload(String name)
 		{
 			case "Texture"_hash:
 				return SharedTextureCache.unload();
+			case "SVG"_hash:
+				return SharedSVGCache.unload();
 			case "Clip"_hash:
 				return SharedClipCache.unload();
 			case "Frame"_hash:
@@ -544,6 +556,7 @@ void Cache::unload()
 	SharedParticleCache.unload();
 	SharedClipCache.unload();
 	SharedTextureCache.unload();
+	SharedSVGCache.unload();
 	SharedFontCache.unload();
 	SharedSoundCache.unload();
 }
@@ -556,6 +569,7 @@ void Cache::removeUnused()
 	SharedParticleCache.removeUnused();
 	SharedClipCache.removeUnused();
 	SharedTextureCache.removeUnused();
+	SharedSVGCache.removeUnused();
 	SharedFontCache.removeUnused();
 	SharedSoundCache.removeUnused();
 }
@@ -572,6 +586,9 @@ void Cache::removeUnused(String name)
 			break;
 		case "Texture"_hash:
 			SharedTextureCache.removeUnused();
+			break;
+		case "SVG"_hash:
+			SharedSVGCache.removeUnused();
 			break;
 		case "Clip"_hash:
 			SharedClipCache.removeUnused();
@@ -1592,6 +1609,13 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 			break;
 	}
 	return EntityObserver::create(optionVal, components, count);
+}
+
+/* SVGDef */
+
+SVGDef* SVGDef_create(String filename)
+{
+	return SharedSVGCache.load(filename);
 }
 
 NS_DOROTHY_END

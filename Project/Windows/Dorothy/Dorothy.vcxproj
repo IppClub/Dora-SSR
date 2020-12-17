@@ -651,6 +651,7 @@
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SkeletonCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\SVGCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Debug.cpp" />
@@ -1002,6 +1003,7 @@
     <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\SkeletonCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\SoundCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\SVGCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\XmlItemCache.h" />
     <ClInclude Include="..\..\..\Source\Common\Async.h" />
