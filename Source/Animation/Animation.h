@@ -28,10 +28,6 @@ public:
 class KeyFrameDef
 {
 public:
-	enum
-	{
-		MaxKeyAttributes = 6
-	};
 	KeyFrameDef();
 	Ease::Enum easePos;
 	Ease::Enum easeScale;
@@ -48,6 +44,7 @@ public:
 	float rotation;
 	float skewX;
 	float skewY;
+	std::optional<string> event;
 	string toXml(KeyFrameDef* lastDef);
 };
 
@@ -131,18 +128,6 @@ public:
 private:
 	Ref<FrameActionDef> _def;
 	string _file;
-};
-
-class PlayTrackDef : public AnimationDef
-{
-public:
-	PlayTrackDef() { }
-	void addSound(float delay, String filename);
-	virtual Action* toAction() override;
-	virtual string toXml() override;
-	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override { }
-private:
-	vector<std::pair<float,string>> _sounds;
 };
 
 NS_DOROTHY_END

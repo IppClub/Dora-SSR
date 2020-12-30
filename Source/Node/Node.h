@@ -151,7 +151,10 @@ public:
 	{
 		if (_children && !_children->isEmpty())
 		{
-			return _children->each<Node>(func);
+			return _children->each([&](Value* value)
+			{
+				return func(&value->to<Node>());
+			});
 		}
 		return false;
 	}
@@ -163,9 +166,9 @@ public:
 		if (func(this)) return true;
 		if (_children && _flags.isOn(Node::TraverseEnabled))
 		{
-			for (auto child : _children->data())
+			for (const auto& child : _children->data())
 			{
-				if (child.to<Node>()->traverse(func))
+				if (child->to<Node>().traverse(func))
 				{
 					return true;
 				}
@@ -181,9 +184,9 @@ public:
 		if (func(this)) return true;
 		if (_children)
 		{
-			for (auto child : _children->data())
+			for (const auto& child : _children->data())
 			{
-				if (child.to<Node>()->traverseAll(func))
+				if (child->to<Node>().traverseAll(func))
 				{
 					return true;
 				}
@@ -199,9 +202,9 @@ public:
 		if (!isVisible() || func(this)) return true;
 		if (_children && _flags.isOn(Node::TraverseEnabled))
 		{
-			for (auto child : _children->data())
+			for (const auto& child : _children->data())
 			{
-				if (child.to<Node>()->traverse(func))
+				if (child->to<Node>().traverse(func))
 				{
 					return true;
 				}

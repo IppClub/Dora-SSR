@@ -142,7 +142,8 @@ bool Body::removeSensor(Sensor* sensor)
 	{
 		pd::Destroy(world, sensor->getFixture());
 		_pWorld->setFixtureData(sensor->getFixture(), nullptr);
-		_sensors->remove(sensor);
+		auto sensorRef = Value::alloc(sensor);
+		_sensors->remove(sensorRef.get());
 		return true;
 	}
 	return false;
@@ -281,7 +282,7 @@ Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef)
 	Sensor* sensor = Sensor::create(this, tag, fixture);
 	_pWorld->setFixtureData(fixture, sensor);
 	if (!_sensors) _sensors = Array::create();
-	_sensors->add(sensor);
+	_sensors->add(Value::alloc(sensor));
 	sensorAdded(sensor, this);
 	return sensor;
 }

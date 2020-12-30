@@ -308,7 +308,8 @@ Action* KeyAnimationDef::toAction()
 	vector<Own<ActionDuration>> keyFrames;
 	keyFrames.reserve(_keyFrameDefs.size());
 	vector<Own<ActionDuration>> keyAttrs;
-	keyAttrs.reserve(KeyFrameDef::MaxKeyAttributes);
+	const int MaxKeyAttributes = 10;
+	keyAttrs.reserve(MaxKeyAttributes);
 
 	KeyFrameDef* lastDef = _keyFrameDefs.front().get();
 	keyFrames.push_back(KeyReset::alloc(lastDef));
@@ -353,6 +354,10 @@ Action* KeyAnimationDef::toAction()
 		{
 			keyAttrs.push_back(Sequence::alloc(Delay::alloc(def->duration), def->visible ? Show::alloc() : Hide::alloc()));
 		}
+		if (def->event)
+		{
+			keyAttrs.push_back(Emit::alloc("ModelEvent"_slice, def->event.value()));
+		}
 		/* Add a new keyFrame */
 		if (keyAttrs.size() > 1) // Multiple attributes animated
 		{
@@ -396,7 +401,7 @@ string KeyAnimationDef::toXml()
 
 void KeyAnimationDef::restoreResetAnimation(Node* target, ActionDuration* action)
 {
-	ResetAction* resetAction = DoraCast<ResetAction>(action);
+	ResetAction* resetAction = DoraAs<ResetAction>(action);
 	if (resetAction)
 	{
 		target->setVisible(_keyFrameDefs[0]->visible);
@@ -435,37 +440,6 @@ string FrameAnimationDef::toXml()
 		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::FrameAnimation::Delay), delay);
 	}
 	fmt::format_to(out, "/>");
-	return fmt::to_string(out);
-}
-
-/* PlayTrackDef */
-
-void PlayTrackDef::addSound(float delay, String filename)
-{
-	_sounds.push_back(std::make_pair(delay, filename));
-}
-
-Action* PlayTrackDef::toAction()
-{
-	vector<Own<ActionDuration>> sounds;
-	for (const auto& sound : _sounds)
-	{
-		sounds.push_back(Delay::alloc(sound.first));
-		sounds.push_back(PlaySound::alloc(sound.second));
-	}
-	return Sequence::create(std::move(sounds));
-}
-
-string PlayTrackDef::toXml()
-{
-	fmt::memory_buffer out;
-	fmt::format_to(out, "<{}>", char(Xml::Model::Element::Track));
-	for (const auto& sound : _sounds) {
-		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{}\">", char(Xml::Model::Element::Sound),
-			char(Xml::Model::Sound::Delay), sound.first,
-			char(Xml::Model::Sound::File), sound.second);
-	}
-	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Track));
 	return fmt::to_string(out);
 }
 

@@ -40,7 +40,6 @@
 		3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C81E0CE9990033AD59 /* LuaManual.cpp */; };
 		3C0EBE321E2DB9E10066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE311E2DB9E10066450A /* libbx.a */; };
 		3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1070681E13A2D800EB8C7A /* Async.cpp */; };
-		3C131FF821011BB60087154A /* UnitDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FDD21011BB40087154A /* UnitDef.cpp */; };
 		3C131FF921011BB60087154A /* PlatformWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FDE21011BB40087154A /* PlatformWorld.cpp */; };
 		3C131FFB21011BB60087154A /* Bullet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FE221011BB40087154A /* Bullet.cpp */; };
 		3C131FFC21011BB60087154A /* BulletDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FE821011BB40087154A /* BulletDef.cpp */; };
@@ -133,7 +132,6 @@
 		3C41D60621490BE6003FDDFE /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60221490BE5003FDDFE /* imgui_demo.cpp */; };
 		3C41D60F21490CFB003FDDFE /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60821490CFB003FDDFE /* nanovg.cpp */; };
 		3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60E21490CFB003FDDFE /* nanovg_bgfx.cpp */; };
-		3C4A542F20F5F9BE007ED601 /* Component.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4A542E20F5F9BE007ED601 /* Component.cpp */; };
 		3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6551E17F17100292200 /* Geometry.cpp */; };
 		3C4BC6641E17F1B500292200 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC65B1E17F1B500292200 /* tolua_event.cpp */; };
 		3C4BC6651E17F1B500292200 /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC65D1E17F1B500292200 /* tolua_fix.cpp */; };
@@ -150,6 +148,7 @@
 		3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */; };
 		3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37271E27DA09008C92E8 /* lodepng.cpp */; };
 		3C73E45B21B02625004E5731 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C73E45921B02624004E5731 /* Sound.cpp */; };
+		3C814F5D259C75CF0009DEC9 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C814F5C259C75CF0009DEC9 /* Value.cpp */; };
 		3C88056F1E5ED13800B52D4B /* font_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C88056D1E5ED13800B52D4B /* font_manager.cpp */; };
 		3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805701E5ED18F00B52D4B /* atlas.cpp */; };
 		3C883B1321E338F500BFD758 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883AFD21E338F200BFD758 /* Object.cpp */; };
@@ -351,11 +350,9 @@
 		3C1070691E13A2D800EB8C7A /* Async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Async.h; path = ../../../Source/Common/Async.h; sourceTree = "<group>"; };
 		3C127B2A1EE63BFE0078EA22 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Config.h; path = ../../../Source/Const/Config.h; sourceTree = "<group>"; };
 		3C131FDC21011BB30087154A /* Define.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Define.h; path = ../../../Source/Platformer/Define.h; sourceTree = "<group>"; };
-		3C131FDD21011BB40087154A /* UnitDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UnitDef.cpp; path = ../../../Source/Platformer/UnitDef.cpp; sourceTree = "<group>"; };
 		3C131FDE21011BB40087154A /* PlatformWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlatformWorld.cpp; path = ../../../Source/Platformer/PlatformWorld.cpp; sourceTree = "<group>"; };
 		3C131FDF21011BB40087154A /* PlatformWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlatformWorld.h; path = ../../../Source/Platformer/PlatformWorld.h; sourceTree = "<group>"; };
 		3C131FE221011BB40087154A /* Bullet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bullet.cpp; path = ../../../Source/Platformer/Bullet.cpp; sourceTree = "<group>"; };
-		3C131FE321011BB40087154A /* UnitDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UnitDef.h; path = ../../../Source/Platformer/UnitDef.h; sourceTree = "<group>"; };
 		3C131FE421011BB40087154A /* PlatformCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlatformCamera.h; path = ../../../Source/Platformer/PlatformCamera.h; sourceTree = "<group>"; };
 		3C131FE521011BB40087154A /* VisualCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VisualCache.h; path = ../../../Source/Platformer/VisualCache.h; sourceTree = "<group>"; };
 		3C131FE621011BB40087154A /* BulletDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BulletDef.h; path = ../../../Source/Platformer/BulletDef.h; sourceTree = "<group>"; };
@@ -564,7 +561,6 @@
 		3C41D60C21490CFB003FDDFE /* nanovg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanovg.h; path = ../../../Source/3rdParty/nanovg/nanovg.h; sourceTree = "<group>"; };
 		3C41D60D21490CFB003FDDFE /* nanovg_bgfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanovg_bgfx.h; path = ../../../Source/3rdParty/nanovg/nanovg_bgfx.h; sourceTree = "<group>"; };
 		3C41D60E21490CFB003FDDFE /* nanovg_bgfx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = nanovg_bgfx.cpp; path = ../../../Source/3rdParty/nanovg/nanovg_bgfx.cpp; sourceTree = "<group>"; };
-		3C4A542E20F5F9BE007ED601 /* Component.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Component.cpp; path = ../../../Source/Entity/Component.cpp; sourceTree = "<group>"; };
 		3C4BC6551E17F17100292200 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Geometry.cpp; path = ../../../Source/Support/Geometry.cpp; sourceTree = "<group>"; };
 		3C4BC6561E17F17100292200 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
 		3C4BC65B1E17F1B500292200 /* tolua_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_event.cpp; path = ../../../Source/Lua/ToLua/tolua_event.cpp; sourceTree = "<group>"; };
@@ -601,6 +597,7 @@
 		3C6D37281E27DA09008C92E8 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
 		3C73E45921B02624004E5731 /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
 		3C73E45A21B02625004E5731 /* Sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound.h; path = ../../../Source/Audio/Sound.h; sourceTree = "<group>"; };
+		3C814F5C259C75CF0009DEC9 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3C88056D1E5ED13800B52D4B /* font_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = font_manager.cpp; path = ../../../Source/3rdParty/font/font_manager.cpp; sourceTree = "<group>"; };
 		3C88056E1E5ED13800B52D4B /* font_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = font_manager.h; path = ../../../Source/3rdParty/font/font_manager.h; sourceTree = "<group>"; };
 		3C8805701E5ED18F00B52D4B /* atlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = atlas.cpp; path = ../../../Source/3rdParty/Other/atlas.cpp; sourceTree = "<group>"; };
@@ -827,7 +824,6 @@
 		3C92DEC31FFE1CFA003AF655 /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = ../../../Source/Entity/Entity.h; sourceTree = "<group>"; };
 		3C9862701D9CA4500056A045 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbgfx.a; sourceTree = "<group>"; };
 		3C9862731D9CA4830056A045 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
-		3CA022A220F4C0D500FD28B8 /* Component.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component.h; path = ../../../Source/Entity/Component.h; sourceTree = "<group>"; };
 		3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaFromXml.cpp; path = ../../../Source/Lua/LuaFromXml.cpp; sourceTree = "<group>"; };
 		3CA1B7EE1EC16E9F00BC58FF /* LuaFromXml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaFromXml.h; path = ../../../Source/Lua/LuaFromXml.h; sourceTree = "<group>"; };
 		3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SAXParser.cpp; path = ../../../Source/3rdParty/tinyxml2/SAXParser.cpp; sourceTree = "<group>"; };
@@ -1032,8 +1028,6 @@
 				3C131FED21011BB50087154A /* Unit.h */,
 				3C131FE921011BB50087154A /* UnitAction.cpp */,
 				3C131FEE21011BB50087154A /* UnitAction.h */,
-				3C131FDD21011BB40087154A /* UnitDef.cpp */,
-				3C131FE321011BB40087154A /* UnitDef.h */,
 				3C131FF221011BB50087154A /* VisualCache.cpp */,
 				3C131FE521011BB40087154A /* VisualCache.h */,
 			);
@@ -1538,6 +1532,7 @@
 			children = (
 				3CB730801E80344C006DFA18 /* Dictionary.cpp */,
 				3CB730811E80344C006DFA18 /* Dictionary.h */,
+				3C814F5C259C75CF0009DEC9 /* Value.cpp */,
 				3CC05B6C1E7171D600F2BA1B /* Value.h */,
 				3CD6C2A61E30C22300B36FFC /* Common.cpp */,
 				3CD6C2A71E30C22300B36FFC /* Common.h */,
@@ -1631,8 +1626,6 @@
 		3C92DEC11FFE1CDC003AF655 /* Entity */ = {
 			isa = PBXGroup;
 			children = (
-				3C4A542E20F5F9BE007ED601 /* Component.cpp */,
-				3CA022A220F4C0D500FD28B8 /* Component.h */,
 				3C92DEC21FFE1CFA003AF655 /* Entity.cpp */,
 				3C92DEC31FFE1CFA003AF655 /* Entity.h */,
 			);
@@ -2124,7 +2117,6 @@
 				3C927964257899D900B8C43F /* EdgeShapeConf.cpp in Sources */,
 				3C4BC6661E17F1B500292200 /* tolua_is.cpp in Sources */,
 				3CB7307C1E80343E006DFA18 /* Joint.cpp in Sources */,
-				3C4A542F20F5F9BE007ED601 /* Component.cpp in Sources */,
 				3C20F368248F772900BBA830 /* ShearTimeline.cpp in Sources */,
 				3C25B873257A7F8B002DD8E1 /* yue_parser.cpp in Sources */,
 				3C9278BC2578998900B8C43F /* TargetJointConf.cpp in Sources */,
@@ -2240,6 +2232,7 @@
 				3C883B1A21E338F500BFD758 /* Camera.cpp in Sources */,
 				3C9278BA2578998900B8C43F /* RevoluteJointConf.cpp in Sources */,
 				3C883B1521E338F500BFD758 /* Content.mm in Sources */,
+				3C814F5D259C75CF0009DEC9 /* Value.cpp in Sources */,
 				3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */,
 				3C883B1921E338F500BFD758 /* Scheduler.cpp in Sources */,
 				3C0AD7CC1E0CE9990033AD59 /* LuaEngine.cpp in Sources */,
@@ -2269,7 +2262,6 @@
 				3C927988257899EC00B8C43F /* Collision.cpp in Sources */,
 				3C01B6C21E96433600A0CC1C /* SoundCache.cpp in Sources */,
 				3C927948257899B800B8C43F /* Version.cpp in Sources */,
-				3C131FF821011BB60087154A /* UnitDef.cpp in Sources */,
 				3C20F3BC248F772A00BBA830 /* RTTI.cpp in Sources */,
 				3C20F370248F772900BBA830 /* PathConstraintPositionTimeline.cpp in Sources */,
 				3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */,

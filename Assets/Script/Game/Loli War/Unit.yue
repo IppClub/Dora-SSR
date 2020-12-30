@@ -2,9 +2,9 @@ _ENV = Dorothy builtin.Platformer
 
 store:Store = Data
 
-Store["Flandre"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["Flandre"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 2
 	.density = 1.0
 	.friction = 0.6
@@ -16,12 +16,15 @@ Store["Flandre"] = with UnitDef!
 	.move = 200
 	.jump = 780
 	.detectDistance = 300
-	.maxHp = 8
+	.hp = 8.0
 	.attackBase = 1.0
+	.attackSpeed = 1.0
 	.attackDelay = 20.0*1.0/30.0
 	.attackEffectDelay = 0.0
 	.attackRange = Size 260+84/2,200
 	.attackPower = Vec2 400,400
+	.attackBonus = 0
+	.attackFactor = 1.0
 	.attackType = AttackType.Melee
 	.attackTarget = AttackTarget.Multi
 	.targetAllow = (with TargetAllow!
@@ -32,13 +35,11 @@ Store["Flandre"] = with UnitDef!
 	.bulletType = ""
 	.attackEffect = ""
 	.hitEffect = "Particle/blood.par"
-	.name = "Flandre"
-	.desc = ""
 	.sndAttack = "Audio/f_att.wav"
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = {
+	.actions = Array {
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -53,9 +54,9 @@ Store["Flandre"] = with UnitDef!
 		"wait"
 	}
 
-Store["Dorothy"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["Dorothy"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 2
 	.density = 1.0
 	.friction = 0.4
@@ -67,12 +68,15 @@ Store["Dorothy"] = with UnitDef!
 	.move = 150
 	.jump = 600
 	.detectDistance = 300
-	.maxHp = 8
+	.hp = 8.0
 	.attackBase = 2.0
+	.attackSpeed = 1.0
 	.attackDelay = 18.0*1.0/30.0
 	.attackEffectDelay = 0.0
 	.attackRange = Size 500+84/2,100
 	.attackPower = Vec2 300,300
+	.attackBonus = 0
+	.attackFactor = 1.0
 	.attackType = AttackType.Range
 	.attackTarget = AttackTarget.Single
 	.targetAllow = (with TargetAllow!
@@ -83,13 +87,11 @@ Store["Dorothy"] = with UnitDef!
 	.bulletType = "Arrow"
 	.attackEffect = ""
 	.hitEffect = "Particle/blood.par"
-	.name = "Dorothy"
-	.desc = ""
 	.sndAttack = "Audio/d_att.wav"
 	.sndFallen = ""
 	.decisionTree = "HeroAI"
 	.usePreciseHit = true
-	.actions = {
+	.actions = Array {
 		"walk"
 		"turn"
 		"rangeAttack"
@@ -104,9 +106,9 @@ Store["Dorothy"] = with UnitDef!
 		"wait"
 	}
 
-Store["Villy"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["Villy"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 2
 	.density = 1.0
 	.friction = 0.4
@@ -118,12 +120,15 @@ Store["Villy"] = with UnitDef!
 	.move = 240
 	.jump = 600
 	.detectDistance = 300
-	.maxHp = 8
+	.hp = 8.0
 	.attackBase = 1.0
+	.attackSpeed = 1.0
 	.attackDelay = 0.0
 	.attackEffectDelay = 0.0
 	.attackRange = Size 300+84/2,100
 	.attackPower = Vec2 200,300
+	.attackBonus = 0
+	.attackFactor = 1.0
 	.attackType = AttackType.Range
 	.attackTarget = AttackTarget.Single
 	.targetAllow = (with TargetAllow!
@@ -134,13 +139,11 @@ Store["Villy"] = with UnitDef!
 	.bulletType = "Bubble"
 	.attackEffect = ""
 	.hitEffect = "Particle/blood.par"
-	.name = "Villy"
-	.desc = ""
 	.sndAttack = "Audio/v_att.wav"
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = {
+	.actions = Array {
 		"walk"
 		"turn"
 		"villyAttack"
@@ -155,9 +158,9 @@ Store["Villy"] = with UnitDef!
 		"wait"
 	}
 
-Store["BunnyP"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["BunnyP"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 2
 	.density = 1.0
 	.friction = 0.4
@@ -169,12 +172,15 @@ Store["BunnyP"] = with UnitDef!
 	.move = 150
 	.jump = 600
 	.detectDistance = 0
-	.maxHp = 3
+	.hp = 3.0
 	.attackBase = 1.0
+	.attackSpeed = 1.0
 	.attackDelay = 20.0*1.0/60.0
 	.attackEffectDelay = 0.0
 	.attackRange = Size 60+132/2,80
 	.attackPower = Vec2 400,400
+	.attackBonus = 0
+	.attackFactor = 1.0
 	.attackType = AttackType.Melee
 	.attackTarget = AttackTarget.Single
 	.targetAllow = (with TargetAllow!
@@ -185,13 +191,11 @@ Store["BunnyP"] = with UnitDef!
 	.bulletType = ""
 	.attackEffect = ""
 	.hitEffect = "Particle/blood.par"
-	.name = "BunnyP"
-	.desc = ""
 	.sndAttack = "Audio/b_att.wav"
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = {
+	.actions = Array {
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -206,9 +210,9 @@ Store["BunnyP"] = with UnitDef!
 		"wait"
 	}
 
-Store["BunnyG"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["BunnyG"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 2
 	.density = 1.0
 	.friction = 0.4
@@ -220,12 +224,15 @@ Store["BunnyG"] = with UnitDef!
 	.move = 150
 	.jump = 600
 	.detectDistance = 0
-	.maxHp = 3
+	.hp = 3.0
 	.attackBase = 1.0
+	.attackSpeed = 1.0
 	.attackDelay = 20.0*1.0/60.0
 	.attackEffectDelay = 0.0
 	.attackRange = Size 60+132/2,80
 	.attackPower = Vec2 400,400
+	.attackBonus = 0
+	.attackFactor = 1.0
 	.attackType = AttackType.Melee
 	.attackTarget = AttackTarget.Single
 	.targetAllow = (with TargetAllow!
@@ -236,13 +243,11 @@ Store["BunnyG"] = with UnitDef!
 	.bulletType = ""
 	.attackEffect = ""
 	.hitEffect = "Particle/blood.par"
-	.name = "BunnyG"
-	.desc = ""
 	.sndAttack = "Audio/b_att.wav"
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = {
+	.actions = Array {
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -257,68 +262,66 @@ Store["BunnyG"] = with UnitDef!
 		"wait"
 	}
 
-Store["BlockA"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["BlockA"] = with Dictionary!
 	.scale = 2
 	.playable = "Model/block1.model"
-	.bodyDef\attachPolygon 90,90,1.0,0.4,0.0
+	.bodyDef = (with BodyDef!
+		.linearAcceleration = Vec2 0,-10
+		.type = "Dynamic"
+		\attachPolygon 90,90,1.0,0.4,0.0)
 	.tag = "Block"
-	.maxHp = 2
+	.hp = 2.0
 	.hitEffect = "Particle/heart.par"
-	.name = "BlockA"
-	.actions = {
+	.actions = Array {
 		"hit"
 	}
 
-Store["BlockB"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["BlockB"] = with Dictionary!
 	.scale = 2
 	.playable = "Model/block2.model"
-	.bodyDef\attachPolygon 90,210,0.5,0.4,0.0
+	.bodyDef = (with BodyDef!
+		.linearAcceleration = Vec2 0,-10
+		.type = "Dynamic"
+		\attachPolygon 90,210,0.5,0.4,0.0)
 	.tag = "Block"
-	.maxHp = 3
+	.hp = 3.0
 	.hitEffect = "Particle/heart.par"
-	.name = "BlockB"
-	.actions = {
+	.actions = Array {
 		"hit"
 	}
 
-Store["BlockC"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["BlockC"] = with Dictionary!
 	.scale = 2
 	.playable = "Model/block3.model"
-	.bodyDef\attachPolygon 450,90,0.5,0.4,0.0
+	.bodyDef = (with BodyDef!
+		.linearAcceleration = Vec2 0,-10
+		.type = "Dynamic"
+		\attachPolygon 450,90,0.5,0.4,0.0)
 	.tag = "Block"
-	.maxHp = 4
+	.hp = 4.0
 	.hitEffect = "Particle/heart.par"
-	.name = "BlockC"
-	.actions = {
+	.actions = Array {
 		"hit"
 	}
 
-Store["Switch"] = with UnitDef!
-	.static = true
+Store["Switch"] = with Dictionary!
+	.bodyType = "Static"
 	.playable = "Model/switch.model"
 	.attackRange = Size 80,126
 	.tag = "Switch"
-	.name = "Switch"
 	.decisionTree = "SwitchAI"
-	.actions = {
+	.actions = Array {
 		"waitUser"
 		"pushed"
 	}
 
-Store["SwitchG"] = with UnitDef!
-	.static = true
+Store["SwitchG"] = with Dictionary!
+	.bodyType = "Static"
 	.playable = "Model/switch.model"
 	.attackRange = Size 80,126
 	.tag = "Switch"
-	.name = "SwitchG"
 	.decisionTree = "SwitchAI"
-	.actions = {
+	.actions = Array {
 		"waitUser"
 		"pushed"
 	}

@@ -76,20 +76,39 @@ with Observer "Add",{"world"}
 		world\buildGameReadme!
 		Audio\playStream "Audio/LOOP13.ogg",true
 
+mutables = {
+	"hp"
+	"moveSpeed"
+	"move"
+	"jump"
+	"targetAllow"
+	"attackBase"
+	"attackPower"
+	"attackSpeed"
+	"damageType"
+	"attackBonus"
+	"attackFactor"
+	"attackTarget"
+	"defenceType"
+}
+
 with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
 	\every =>
 		{:hero,:group,:layer,:position,:faceRight,:AI} = @
 		{:world} = Store
-		unit = with Unit Store[hero],world,@,position
+		def = Store[hero]
+		for var in *mutables
+			@[var] = def[var]
+		unit = with Unit def,world,@,position
 			.group = group
 			.faceRight = faceRight
 			.order = layer
 			.decisionTree = AI
-			.attackSpeed = switch hero
+			@attackSpeed = switch hero
 				when "Dorothy" then 1.2
 				when "Villy" then 1.3
 				when "Flandre" then 1.8
-			.moveSpeed = 1.5
+			@moveSpeed = 1.5
 			\eachAction => @recovery = 0.05
 			\addTo world
 			\addChild with Visual "Particle/select.par"
@@ -103,14 +122,19 @@ with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
 	\every =>
 		{:bunny,:group,:layer,:position,:faceRight,:AI} = @
 		{:world} = Store
-		unit = with Unit Store[bunny],world,@,position
+		def = Store[bunny]
+		for var in *mutables
+			if var == "hp" and @[var] ~= nil
+				continue
+			@[var] = def[var]
+		unit = with Unit def,world,@,position
 			.group = group
 			.faceRight = faceRight
 			.order = layer
 			.decisionTree = AI
 			\eachAction => @recovery = 0.1
 			\addTo world
-			@hp -= 1 if @hp == 0
+			@hp -= 1.0 if @hp == 0.0
 
 with Observer "Add",{"switch_","group","layer","look","position"}
 	\every =>
@@ -158,7 +182,10 @@ with Observer "Add",{"block","group","layer","look","position"}
 	\every =>
 		{:block,:group,:layer,:look,:position} = @
 		{:world} = Store
-		with Unit Store[block],world,@,position
+		def = Store[block]
+		@hp = def.hp
+		@defenceType = 0
+		with Unit def,world,@,position
 			.group = group
 			.order = layer
 			.playable.look = look
@@ -170,7 +197,7 @@ with Observer "Add",{"poke","group","layer","position"}
 		{:world} = Store
 		pokeDef = with BodyDef!
 			.linearAcceleration = Vec2 0,-10
-			.type = BodyType.Dynamic
+			.type = "Dynamic"
 			\attachDisk 192,10.0,0.1,0.4
 			\attachDiskSensor 0,194
 		with Body pokeDef,world,position
@@ -356,7 +383,7 @@ with Observer "Change", {"blocks","group"}
 				.filter = TextureFilter.Point
 			rectDef = with BodyDef!
 				.linearAcceleration = Vec2 0,-10
-				.type = BodyType.Dynamic
+				.type = "Dynamic"
 				\attachPolygon sp.width*2,sp.height*2,1,0,1
 			heroes\each (hero)->
 				if hero.group == GroupPlayer

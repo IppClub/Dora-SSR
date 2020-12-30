@@ -16,13 +16,13 @@ NS_DOROTHY_BEGIN
 template <class T>
 struct unwrap_refwrapper
 {
-    using type = T;
+	using type = T;
 };
 
 template <class T>
 struct unwrap_refwrapper<std::reference_wrapper<T>>
 {
-    using type = T&;
+	using type = T&;
 };
 
 template <class T>
@@ -31,114 +31,168 @@ using special_decay_t = typename unwrap_refwrapper<typename std::decay<T>::type>
 template <class T, class Enable = void>
 class ValueEx;
 
-class Value : public Object
+class Value
 {
 public:
+	virtual ~Value() { }
 	template <class T>
-	const T& to();
-
+	T& to();
 	template <class T>
-	ValueEx<T>* as();
-
-	virtual Value* clone() const = 0;
+	T* as();
+	virtual Own<Value> clone() const = 0;
 	virtual void pushToLua(lua_State* L) const = 0;
-
+	virtual bool isNumeric() const = 0;
+	virtual float toFloat() const = 0;
+	virtual bool equals(Value* other) const = 0;
 	template <class T>
-	static Value* create(T&& value);
+	static Own<Value> alloc(T&& value);
+	static const Own<Value> None;
 protected:
 	Value() { }
+	DORA_TYPE_BASE(Value);
 };
 
 template <class T>
-class ValueEx<T, typename std::enable_if<!std::is_base_of<Object, T>::value>::type> : public Value
+class ValueEx<T,
+	typename std::enable_if<
+		!std::is_pointer_v<T> &&
+		!std::is_same_v<Slice,T>
+	>::type> : public Value
 {
 public:
 	inline void set(const T& value)
 	{
 		_value = value;
 	}
-	inline const T& get()
+	inline T& get()
 	{
 		return _value;
 	}
-	virtual Value* clone() const override
+	virtual Own<Value> clone() const override
 	{
-		return ValueEx<T>::create(_value);
-	}
-	virtual bool equals(Object* other) const override
-	{
-		if (this != other)
-		{
-			return getDoraType() == other->getDoraType()
-			&& s_cast<decltype(this)>(other)->_value == _value;
-		}
-		return true;
+		return Value::alloc(_value);
 	}
 	virtual void pushToLua(lua_State* L) const override
 	{
 		LuaEngine::push(L, _value);
 	}
-	CREATE_FUNC(ValueEx<T>);
+	virtual bool isNumeric() const override
+	{
+		return std::is_arithmetic_v<T>;
+	}
+	virtual float toFloat() const override
+	{
+		if constexpr (std::is_arithmetic_v<T>)
+		{
+			return s_cast<float>(_value);
+		}
+		else
+		{
+			return 0.0f;
+		}
+	}
+	virtual bool equals(Value* other) const override
+	{
+		if (auto value = DoraAs<ValueEx<T>>(other))
+		{
+			return _value == value->get();
+		}
+		return false;
+	}
 protected:
 	ValueEx(const T& value):
 	_value(value)
 	{ }
-	ValueEx(T&& value):
-	_value(std::forward<T>(value))
-	{ }
 private:
 	T _value;
+	friend class Value;
+	USE_MEMORY_POOL(ValueEx<T>);
 	DORA_TYPE_OVERRIDE(ValueEx<T>);
 };
 
-template<>
-class ValueEx<Object*> : public Value
+template<class T>
+MemoryPoolImpl<ValueEx<T>> ValueEx<T,
+	typename std::enable_if<
+		!std::is_pointer_v<T> &&
+		!std::is_same_v<Slice,T>
+	>::type>::_memory;
+
+class ValueObject : public Value
 {
 public:
+	virtual ~ValueObject() { }
 	inline void set(Object* value)
 	{
 		_value = value;
 	}
-	inline Object* get()
+	inline Object* get() const
 	{
 		return _value.get();
 	}
-	virtual Value* clone() const override
-	{
-		return ValueEx<Object*>::create(_value);
-	}
-	virtual void pushToLua(lua_State* L) const override
-	{
-		LuaEngine::push(L, _value.get());
-	}
-	CREATE_FUNC(ValueEx<Object*>);
+	virtual Own<Value> clone() const override;
+	virtual void pushToLua(lua_State* L) const override;
+	virtual bool isNumeric() const override;
+	virtual float toFloat() const override;
+	virtual bool equals(Value* other) const override;
 protected:
-	ValueEx(Object* value):
+	ValueObject(Object* value):
 	_value(value)
 	{ }
 private:
 	Ref<> _value;
-	DORA_TYPE_OVERRIDE(ValueEx<Object*>);
+	friend class Value;
+	USE_MEMORY_POOL(ValueObject);
+	DORA_TYPE_OVERRIDE(ValueObject);
 };
 
 template <class T>
-const T& Value::to()
+T& Value::to()
 {
-	auto item = DoraCast<ValueEx<T>>(this);
-	AssertUnless(item, "can not get value of target type from value object.");
-	return item->get();
+	if constexpr (std::is_base_of_v<Object,T>)
+	{
+		auto item = DoraAs<ValueObject>(this);
+		AssertUnless(item, "can not convert value to Object.");
+		return DoraTo<T>(item->get());
+	}
+	else
+	{
+		auto item = DoraAs<ValueEx<T>>(this);
+		AssertUnless(item, "can not convert value to target type.");
+		return item->get();
+	}
 }
 
 template <class T>
-ValueEx<T>* Value::as()
+T* Value::as()
 {
-	return DoraCast<ValueEx<T>>(this);
+	if constexpr (std::is_base_of_v<Object,T>)
+	{
+		if (auto item = DoraAs<ValueObject>(this))
+		{
+			return DoraAs<T>(item->get());
+		}
+	}
+	else
+	{
+		if (auto item = DoraAs<ValueEx<T>>(this))
+		{
+			return &item->get();
+		}
+	}
+	return nullptr;
 }
 
 template <class T>
-Value* Value::create(T&& value)
+Own<Value> Value::alloc(T&& value)
 {
-	return ValueEx<special_decay_t<T>>::create(value);
+	if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<special_decay_t<T>>>)
+	{
+		return Own<Value>(new ValueObject(value));
+	}
+	else
+	{
+		return Own<Value>(new ValueEx<special_decay_t<T>>(value));
+	}
 }
 
 class Values
@@ -174,7 +228,7 @@ Own<Values> Values::create(Args&&... args)
 template<class... Args>
 void Values::get(Args&... args)
 {
-	auto values = DoraCast<ValuesEx<special_decay_t<Args>...>>(this);
+	auto values = DoraAs<ValuesEx<special_decay_t<Args>...>>(this);
 	AssertIf(values == nullptr, "no required value type can be retrieved.");
 	std::tie(args...) = std::move(values->values);
 }

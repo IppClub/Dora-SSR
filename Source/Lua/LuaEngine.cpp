@@ -455,6 +455,9 @@ LuaEngine::LuaEngine()
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "Array");
+			tolua_variable(L, "first", Array_getFirst, nullptr);
+			tolua_variable(L, "last", Array_getLast, nullptr);
+			tolua_variable(L, "randomObject", Array_getRandomObject, nullptr);
 			tolua_function(L, "set", Array_set);
 			tolua_function(L, "get", Array_get);
 			tolua_function(L, "add", Array_add);
@@ -473,10 +476,8 @@ LuaEngine::LuaEngine()
 			tolua_function(L, "getOld", Entity_getOld);
 		tolua_endmodule(L);
 
-		tolua_beginmodule(L, "Platformer");
-			tolua_beginmodule(L, "UnitDef");
-				tolua_variable(L, "actions", UnitDef_GetActions, UnitDef_SetActions);
-			tolua_endmodule(L);
+		tolua_beginmodule(L, "BodyDef");
+			tolua_variable(L, "type", BodyDef_GetType, BodyDef_SetType);
 		tolua_endmodule(L);
 
 	tolua_endmodule(L);
@@ -762,9 +763,20 @@ bool LuaEngine::executeFunction(int handler, int paramCount)
 
 void LuaEngine::executeReturn(LuaHandler*& luaHandler, int handler, int paramCount)
 {
-	LuaEngine::invoke(L, handler, paramCount, 1);
-	luaHandler = LuaHandler::create(tolua_ref_function(L, -1));
-	lua_pop(L, 1);
+	int top = lua_gettop(L);
+	if (LuaEngine::invoke(L, handler, paramCount, 1))
+	{
+		int funcRef = tolua_ref_function(L, -1);
+		if (funcRef)
+		{
+			luaHandler = LuaHandler::create(funcRef);
+		}
+		else
+		{
+			Error("Lua callback should return another function.");
+		}
+	}
+	lua_settop(L, top);
 }
 
 bool LuaEngine::executeAssert(bool cond, String msg)

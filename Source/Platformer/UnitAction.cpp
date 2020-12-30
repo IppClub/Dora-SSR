@@ -9,9 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Platformer/Define.h"
 #include "Support/Geometry.h"
+#include "Support/Dictionary.h"
 #include "Platformer/UnitAction.h"
 #include "Platformer/Unit.h"
-#include "Platformer/UnitDef.h"
 #include "Platformer/Data.h"
 #include "Platformer/BulletDef.h"
 #include "Platformer/Bullet.h"
@@ -59,7 +59,8 @@ _priority(priority),
 _isDoing(false),
 _owner(owner),
 reaction(-1.0f),
-_eclapsedTime(0.0f)
+_eclapsedTime(0.0f),
+_sensity(_owner->getUnitDef()->get(ActionSetting::Sensity, 0.0f))
 { }
 
 UnitAction::~UnitAction()
@@ -107,7 +108,7 @@ void UnitAction::run()
 void UnitAction::update(float dt)
 {
 	_eclapsedTime += dt;
-	float reactionTime = _owner->sensity * UnitAction::reaction;
+	float reactionTime = _sensity * UnitAction::reaction;
 	if (reactionTime >= 0)
 	{
 		_decisionDelay += dt;
@@ -198,7 +199,8 @@ bool Walk::isAvailable()
 void Walk::run()
 {
 	Playable* playable = _owner->getPlayable();
-	playable->setSpeed(_owner->moveSpeed);
+	auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
+	playable->setSpeed(moveSpeed);
 	playable->setLook(ActionSetting::LookNormal);
 	playable->setRecovery(UnitAction::recovery);
 	playable->play(ActionSetting::AnimationWalk, true);
@@ -209,7 +211,9 @@ void Walk::update(float dt)
 {
 	if (_owner->isOnSurface())
 	{
-		float move = _owner->move * _owner->moveSpeed;
+		auto move = _owner->getEntity()->get(ActionSetting::Move, 0.0f);
+		auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
+		move *= moveSpeed;
 		if (_eclapsedTime < UnitAction::recovery)
 		{
 			move *= std::min(_eclapsedTime / UnitAction::recovery, 1.0f);
@@ -266,18 +270,11 @@ bool Idle::isAvailable()
 void Idle::run()
 {
 	UnitAction::run();
-	if (_owner->isOnSurface())
-	{
-		Playable* playable = _owner->getPlayable();
-		playable->setSpeed(1.0f);
-		playable->setLook(ActionSetting::LookNormal);
-		playable->setRecovery(UnitAction::recovery);
-		playable->play(ActionSetting::AnimationIdle, true);
-	}
-	else
-	{
-		Idle::stop();
-	}
+	Playable* playable = _owner->getPlayable();
+	playable->setSpeed(1.0f);
+	playable->setLook(ActionSetting::LookNormal);
+	playable->setRecovery(UnitAction::recovery);
+	playable->play(ActionSetting::AnimationIdle, true);
 }
 
 void Idle::update(float dt)
@@ -324,16 +321,18 @@ bool Jump::isAvailable()
 void Jump::run()
 {
 	Playable* playable = _owner->getPlayable();
-	playable->setSpeed(_owner->moveSpeed);
+	auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
+	auto jump = _owner->getEntity()->get(ActionSetting::Jump, 0.0f);
+	playable->setSpeed(moveSpeed);
 	playable->setLook(ActionSetting::LookNormal);
 	playable->setRecovery(UnitAction::recovery);
 	_duration = playable->play(ActionSetting::AnimationJump, false);
 	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Jump::onAnimationEnd));
-	_owner->setVelocityY(_owner->jump);
+	_owner->setVelocityY(jump);
 	Sensor* sensor = _owner->getGroundSensor();
 	auto& world = _owner->getPhysicsWorld()->getPrWorld();
 	pr::BodyID self = _owner->getPrBody();
-	pr::BodyID target = sensor->getSensedBodies()->get(0).to<Body>()->getPrBody();
+	pr::BodyID target = sensor->getSensedBodies()->get(0)->to<Body>().getPrBody();
 	const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetFixtures(world, self)));
 	const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetFixtures(world, target)));
 	const auto proxyA = pd::GetChild(shapeA, 0);
@@ -414,13 +413,16 @@ Attack::~Attack()
 
 void Attack::run()
 {
-	_attackDelay = _owner->getUnitDef()->attackDelay / _owner->attackSpeed;
-	_attackEffectDelay = _owner->getUnitDef()->attackEffectDelay / _owner->attackSpeed;
+	auto attackDelay = _owner->getUnitDef()->get(ActionSetting::AttackDelay, 0.0f);
+	auto attackSpeed = _owner->getEntity()->get(ActionSetting::AttackSpeed, 1.0f);
+	auto attackEffectDelay = _owner->getUnitDef()->get(ActionSetting::AttackEffectDelay, 0.0f);
+	_attackDelay = attackDelay / attackSpeed;
+	_attackEffectDelay = attackEffectDelay / attackSpeed;
 	Playable* playable = _owner->getPlayable();
 	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Attack::onAnimationEnd));
 	playable->setLook(ActionSetting::LookFight);
 	playable->setRecovery(UnitAction::recovery);
-	playable->setSpeed(_owner->attackSpeed);
+	playable->setSpeed(attackSpeed);
 	playable->play(ActionSetting::AnimationAttack);
 	UnitAction::run();
 }
@@ -431,19 +433,20 @@ void Attack::update(float dt)
 	if (_attackDelay >= 0 && _eclapsedTime >= _attackDelay)
 	{
 		_attackDelay = -1;
-		if (!_owner->getUnitDef()->sndAttack.empty())
+		auto sndAttack = _owner->getUnitDef()->get(ActionSetting::SndAttack, Slice::Empty);
+		if (!sndAttack.empty())
 		{
-			SharedAudio.play(_owner->getUnitDef()->sndAttack);
+			SharedAudio.play(sndAttack);
 		}
 		this->onAttack();
 	}
 	if (_attackEffectDelay >= 0 && _eclapsedTime >= _attackEffectDelay)
 	{
 		_attackEffectDelay = -1;
-		const string& attackEffect = _owner->getUnitDef()->attackEffect;
+		auto attackEffect = _owner->getUnitDef()->get(ActionSetting::AttackEffect, Slice::Empty);
 		if (!attackEffect.empty())
 		{
-			Vec2 key = _owner->getPlayable()->getKeyPoint(UnitDef::AttackKey);
+			Vec2 key = _owner->getPlayable()->getKeyPoint(ActionSetting::AttackKey);
 			if (!_owner->isFaceRight())
 			{
 				key.x = -key.x;
@@ -480,8 +483,13 @@ void Attack::onAnimationEnd(Event* e)
 
 float Attack::getDamage(Unit* target)
 {
-	float factor = SharedData.getDamageFactor(_owner->damageType, target->defenceType);
-	float damage = (_owner->attackBase + _owner->attackBonus) * (_owner->attackFactor + factor);
+	auto damageType = _owner->getUnitDef()->get(ActionSetting::DamageType, 0.0f);
+	auto defenceType = _owner->getUnitDef()->get(ActionSetting::DefenceType, 0.0f);
+	auto attackBase = _owner->getUnitDef()->get(ActionSetting::AttackBase, 0.0f);
+	auto attackBonus = _owner->getUnitDef()->get(ActionSetting::AttackBonus, 0.0f);
+	auto attackFactor = _owner->getUnitDef()->get(ActionSetting::AttackFactor, 1.0f);
+	float factor = SharedData.getDamageFactor(s_cast<Uint16>(damageType), s_cast<Uint16>(defenceType));
+	float damage = (attackBase + attackBonus) * (attackFactor + factor);
 	return damage;
 }
 
@@ -518,7 +526,7 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape)
 MeleeAttack::MeleeAttack(Unit* unit):
 Attack(ActionSetting::UnitActionMeleeAttack, unit)
 {
-	pd::PolygonShapeConf conf{PhysicsWorld::b2Val(_owner->getWidth()*0.5f), 0.0005f};
+	pd::PolygonShapeConf conf{PhysicsWorld::b2Val(std::max(_owner->getWidth(), 10.0f) * 0.5f), 0.0005f};
 	_polygon = pd::Shape{conf};
 }
 
@@ -529,7 +537,7 @@ void MeleeAttack::onAttack()
 	{
 		ARRAY_START(Body, body, sensor->getSensedBodies())
 		{
-			Unit* target = DoraCast<Unit>(body->getOwner());
+			Unit* target = DoraAs<Unit>(body->getOwner());
 			BLOCK_START
 			{
 				BREAK_UNLESS(target);
@@ -537,17 +545,21 @@ void MeleeAttack::onAttack()
 				bool faceRight = _owner->isFaceRight();
 				BREAK_IF(attackRight != faceRight); // !(hitRight == faceRight || hitLeft == faceLeft)
 				Relation relation = SharedData.getRelation(_owner, target);
-				BREAK_IF(!_owner->targetAllow.isAllow(relation));
+				auto targetAllow = _owner->getEntity()->get(ActionSetting::TargetAllow, TargetAllow());
+				BREAK_IF(!targetAllow.isAllow(relation));
 				/* Get hit point */
 				Entity* entity = target->getEntity();
-				Vec2 hitPoint = _owner->getUnitDef()->usePreciseHit ? Attack::getHitPoint(_owner, target, _polygon) : Vec2(target->getPosition());
-				entity->set("hitPoint"_slice, hitPoint);
-				entity->set("hitPower"_slice, _owner->attackPower);
-				entity->set("hitFromRight"_slice, !attackRight);
+				auto usePreciseHit = _owner->getUnitDef()->get(ActionSetting::UsePreciseHit, false);
+				auto attackPower = _owner->getEntity()->get(ActionSetting::AttackPower, Vec2::zero);
+				Vec2 hitPoint = usePreciseHit ? Attack::getHitPoint(_owner, target, _polygon) : Vec2(target->getPosition());
+				entity->set(ActionSetting::HitPoint, hitPoint);
+				entity->set(ActionSetting::HitPower, attackPower);
+				entity->set(ActionSetting::HitFromRight, !attackRight);
 				/* Make damage */
 				float damage = Attack::getDamage(target);
-				entity->set("hp"_slice, entity->get<double>("hp"_slice) - damage);
-				if (_owner->attackTarget == AttackTarget::Single) return;
+				entity->set(ActionSetting::HP, entity->get<double>(ActionSetting::HP) - damage);
+				auto attackTarget = _owner->getEntity()->get(ActionSetting::AttackTarget, 0.0f);
+				if (attackTarget == s_cast<float>(AttackTarget::Single)) return;
 			}
 			BLOCK_END
 		}
@@ -575,11 +587,13 @@ Own<UnitAction> RangeAttack::alloc(Unit* unit)
 
 void RangeAttack::onAttack()
 {
-	BulletDef* bulletDef = _owner->getBulletDef();
+	auto bulletType = _owner->getUnitDef()->get(ActionSetting::BulletType, Slice::Empty);
+	BulletDef* bulletDef = SharedData.getStore()->get(bulletType, (BulletDef*)nullptr);
 	if (bulletDef)
 	{
 		Bullet* bullet = Bullet::create(bulletDef, _owner);
-		bullet->targetAllow = _owner->targetAllow;
+		auto targetAllow = _owner->getEntity()->get(ActionSetting::TargetAllow, TargetAllow());
+		bullet->targetAllow = targetAllow;
 		bullet->hitTarget = std::make_pair(this, &RangeAttack::onHitTarget);
 		_owner->getPhysicsWorld()->addChild(bullet, _owner->getOrder());
 	}
@@ -598,12 +612,13 @@ bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint)
 		attackFromRight = bullet->getVelocityX() < 0.0f;
 	}
 	Entity* entity = target->getEntity();
-	entity->set("hitPoint"_slice, hitPoint);
-	entity->set("hitPower"_slice, _owner->attackPower);
-	entity->set("hitFromRight"_slice, attackFromRight);
+	auto attackPower = _owner->getEntity()->get(ActionSetting::AttackPower, Vec2::zero);
+	entity->set(ActionSetting::HitPoint, hitPoint);
+	entity->set(ActionSetting::HitPower, attackPower);
+	entity->set(ActionSetting::HitFromRight, attackFromRight);
 	/* Make damage */
 	float damage = Attack::getDamage(target);
-	entity->set("hp"_slice, entity->get<double>("hp"_slice) - damage);
+	entity->set(ActionSetting::HP, entity->get<double>(ActionSetting::HP) - damage);
 	return true;
 }
 
@@ -612,7 +627,7 @@ UnitAction(ActionSetting::UnitActionHit, ActionSetting::PriorityHit, unit),
 _effect(nullptr)
 {
 	UnitAction::recovery = ActionSetting::RecoveryHit;
-	const string& hitEffect = _owner->getUnitDef()->hitEffect;
+	auto hitEffect = _owner->getUnitDef()->get(ActionSetting::HitEffect, Slice::Empty);
 	if (!hitEffect.empty())
 	{
 		_effect = Visual::create(hitEffect);
@@ -626,7 +641,7 @@ Hit::~Hit()
 void Hit::run()
 {
 	Entity* entity = _owner->getEntity();
-	Vec2 hitPoint = entity->tryGet<Vec2>("hitPoint"_slice, Vec2::zero);
+	Vec2 hitPoint = entity->get(ActionSetting::HitPoint, Vec2::zero);
 	Vec2 key = _owner->convertToNodeSpace(hitPoint);
 	if (_effect)
 	{
@@ -634,14 +649,14 @@ void Hit::run()
 		_effect->start();
 	}
 	float mass = _owner->getMass();
-	bool hitFromRight = entity->tryGet<bool>("hitFromRight"_slice, false);
-	Vec2 hitPower = entity->tryGet<Vec2>("hitPower"_slice, Vec2::zero);
+	bool hitFromRight = entity->get(ActionSetting::HitFromRight, false);
+	Vec2 hitPower = entity->get(ActionSetting::HitPower, Vec2::zero);
 	_owner->setVelocity(Vec2{hitFromRight ? -hitPower.x : hitPower.x, hitPower.y} / mass);
 	_owner->setFaceRight(hitFromRight);
 	UnitAction::run();
 	Playable* playable = _owner->getPlayable();
 	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Hit::onAnimationEnd));
-	playable->setLook(ActionSetting::LookFailure);
+	playable->setLook(ActionSetting::LookHit);
 	playable->setRecovery(UnitAction::recovery);
 	playable->setSpeed(1.0f);
 	float duration = playable->play(ActionSetting::AnimationHit);
@@ -698,7 +713,7 @@ void Fall::run()
 	playable->setRecovery(UnitAction::recovery);
 	playable->setSpeed(1.0f);
 	playable->play(ActionSetting::AnimationFall);
-	const string& hitEffect = _owner->getUnitDef()->hitEffect;
+	auto hitEffect = _owner->getUnitDef()->get(ActionSetting::HitEffect, Slice::Empty);
 	if (!hitEffect.empty())
 	{
 		Visual* effect = Visual::create(hitEffect);
@@ -706,9 +721,10 @@ void Fall::run()
 		effect->autoRemove();
 		effect->start();
 	}
-	if (!_owner->getUnitDef()->sndFallen.empty())
+	auto sndFallen = _owner->getUnitDef()->get(ActionSetting::SndFallen, Slice::Empty);
+	if (!sndFallen.empty())
 	{
-		SharedAudio.play(_owner->getUnitDef()->sndFallen);
+		SharedAudio.play(sndFallen);
 	}
 	UnitAction::run();
 }
@@ -792,29 +808,58 @@ Own<UnitAction> UnitAction::alloc(String name, Unit* unit)
 	return Own<UnitAction>();
 }
 
-int ActionSetting::PriorityIdle = 1;
-int ActionSetting::PriorityWalk = 1;
-int ActionSetting::PriorityTurn = 2;
-int ActionSetting::PriorityJump = 2;
-int ActionSetting::PriorityAttack = 3;
-int ActionSetting::PriorityHit = 5;
-int ActionSetting::PriorityFall = 6;
-int ActionSetting::PriorityCancel = std::numeric_limits<int>::max();
+const int ActionSetting::PriorityIdle = 1;
+const int ActionSetting::PriorityWalk = 1;
+const int ActionSetting::PriorityTurn = 2;
+const int ActionSetting::PriorityJump = 2;
+const int ActionSetting::PriorityAttack = 3;
+const int ActionSetting::PriorityHit = 5;
+const int ActionSetting::PriorityFall = 6;
+const int ActionSetting::PriorityCancel = std::numeric_limits<int>::max();
 
-float ActionSetting::ReactionWalk = 1.5f;
-float ActionSetting::ReactionIdle = 2.0f;
-float ActionSetting::ReactionJump = 1.5f;
+const float ActionSetting::ReactionWalk = 1.5f;
+const float ActionSetting::ReactionIdle = 2.0f;
+const float ActionSetting::ReactionJump = 1.5f;
 
-float ActionSetting::RecoveryWalk = 0.1f;
-float ActionSetting::RecoveryAttack = 0.2f;
-float ActionSetting::RecoveryIdle = 0.1f;
-float ActionSetting::RecoveryJump = 0.2f;
-float ActionSetting::RecoveryHit = 0.05f;
-float ActionSetting::RecoveryFall = 0.05f;
+const float ActionSetting::RecoveryWalk = 0.1f;
+const float ActionSetting::RecoveryAttack = 0.2f;
+const float ActionSetting::RecoveryIdle = 0.1f;
+const float ActionSetting::RecoveryJump = 0.2f;
+const float ActionSetting::RecoveryHit = 0.05f;
+const float ActionSetting::RecoveryFall = 0.05f;
 
 const Slice ActionSetting::LookNormal = "normal"_slice;
 const Slice ActionSetting::LookFight = "fight"_slice;
-const Slice ActionSetting::LookFailure = "fail"_slice;
+const Slice ActionSetting::LookHit = "hit"_slice;
 const Slice ActionSetting::LookFallen = "fallen"_slice;
+
+const Slice ActionSetting::HP = "hp"_slice;
+const Slice ActionSetting::MoveSpeed = "moveSpeed"_slice;
+const Slice ActionSetting::Move = "move"_slice;
+const Slice ActionSetting::Jump = "jump"_slice;
+const Slice ActionSetting::TargetAllow = "targetAllow"_slice;
+const Slice ActionSetting::AttackPower = "attackPower"_slice;
+const Slice ActionSetting::AttackSpeed = "attackSpeed"_slice;
+const Slice ActionSetting::Sensity = "sensity"_slice;
+const Slice ActionSetting::AttackDelay = "attackDelay"_slice;
+const Slice ActionSetting::AttackEffectDelay = "attackEffectDelay"_slice;
+const Slice ActionSetting::AttackEffect = "attackEffect"_slice;
+const Slice ActionSetting::SndAttack = "sndAttack"_slice;
+const Slice ActionSetting::DamageType = "damageType"_slice;
+const Slice ActionSetting::DefenceType = "defenceType"_slice;
+const Slice ActionSetting::AttackBase = "attackBase"_slice;
+const Slice ActionSetting::AttackBonus = "attackBonus"_slice;
+const Slice ActionSetting::AttackFactor = "attackFactor"_slice;
+const Slice ActionSetting::UsePreciseHit = "usePreciseHit"_slice;
+const Slice ActionSetting::BulletType = "bulletType"_slice;
+const Slice ActionSetting::HitEffect = "hitEffect"_slice;
+const Slice ActionSetting::SndFallen = "sndFallen"_slice;
+
+const Slice ActionSetting::AttackKey = "attack"_slice;
+
+const Slice ActionSetting::HitPoint = "hitPoint"_slice;
+const Slice ActionSetting::HitFromRight = "hitFromRight"_slice;
+const Slice ActionSetting::HitPower = "hitPower"_slice;
+const Slice ActionSetting::AttackTarget = "attackTarget"_slice;
 
 NS_DOROTHY_PLATFORMER_END

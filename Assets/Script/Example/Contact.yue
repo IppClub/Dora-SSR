@@ -32,7 +32,7 @@ drawNode = with Line {
 	\addTo world
 
 diskDef = with BodyDef!
-	.type = BodyType.Dynamic
+	.type = "Dynamic"
 	.linearAcceleration = gravity
 	\attachDisk 20,5,0.8,1
 

@@ -70,6 +70,7 @@ public:
 protected:
 	UnitAction(String name, int priority, Unit* owner);
 	Unit* _owner;
+	float _sensity;
 	float _eclapsedTime;
 private:
 	bool _isDoing;
@@ -114,30 +115,59 @@ struct ActionSetting
 	static const Slice UnitActionHit;
 	static const Slice UnitActionFall;
 
-	static int PriorityWalk;
-	static int PriorityTurn;
-	static int PriorityJump;
-	static int PriorityAttack;
-	static int PriorityIdle;
-	static int PriorityCancel;
-	static int PriorityHit;
-	static int PriorityFall;
+	static const int PriorityWalk;
+	static const int PriorityTurn;
+	static const int PriorityJump;
+	static const int PriorityAttack;
+	static const int PriorityIdle;
+	static const int PriorityCancel;
+	static const int PriorityHit;
+	static const int PriorityFall;
 
-	static float ReactionWalk;
-	static float ReactionIdle;
-	static float ReactionJump;
+	static const float ReactionWalk;
+	static const float ReactionIdle;
+	static const float ReactionJump;
 
-	static float RecoveryWalk;
-	static float RecoveryAttack;
-	static float RecoveryIdle;
-	static float RecoveryJump;
-	static float RecoveryHit;
-	static float RecoveryFall;
+	static const float RecoveryWalk;
+	static const float RecoveryAttack;
+	static const float RecoveryIdle;
+	static const float RecoveryJump;
+	static const float RecoveryHit;
+	static const float RecoveryFall;
 
 	static const Slice LookNormal;
 	static const Slice LookFight;
-	static const Slice LookFailure;
+	static const Slice LookHit;
 	static const Slice LookFallen;
+
+	static const Slice HP; // mutable
+	static const Slice MoveSpeed; // mutable
+	static const Slice Move; // mutable
+	static const Slice Jump; // mutable
+	static const Slice TargetAllow; // mutable
+	static const Slice AttackPower; // mutable
+	static const Slice AttackSpeed; // mutable
+	static const Slice Sensity;
+	static const Slice AttackDelay;
+	static const Slice AttackEffectDelay;
+	static const Slice AttackEffect;
+	static const Slice SndAttack;
+	static const Slice DamageType;
+	static const Slice DefenceType;
+	static const Slice AttackBase;
+	static const Slice AttackBonus;
+	static const Slice AttackFactor;
+	static const Slice UsePreciseHit;
+	static const Slice BulletType;
+	static const Slice HitEffect;
+	static const Slice SndFallen;
+
+	static const Slice AttackKey;
+
+	static const Slice HitPoint;
+	static const Slice HitFromRight;
+	static const Slice HitPower;
+	static const Slice AttackTarget;
 };
 
 class Walk : public UnitAction

@@ -55,6 +55,7 @@ void SpriteDef::restore(Sprite* sprite)
 }
 
 SpriteDef::SpriteDef():
+emittingEvent(false),
 front(true),
 x(0.0f),
 y(0.0f),
@@ -148,7 +149,7 @@ std::tuple<Action*, ResetAction*> SpriteDef::toResetAction()
 
 void SpriteDef::restoreResetAnimation(Node* target, ActionDuration* action)
 {
-	ResetAction* resetAction = DoraCast<ResetAction>(action);
+	ResetAction* resetAction = DoraAs<ResetAction>(action);
 	if (resetAction)
 	{
 		resetAction->prepareWith(target);

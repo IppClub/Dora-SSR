@@ -132,7 +132,7 @@ public:
 	virtual bool init() override;
 	virtual void cleanup() override;
 	virtual Rect getBoundingBox() override;
-	static Model* none();
+	static Model* dummy();
 	CREATE_FUNC(Model);
 protected:
 	Model(ModelDef* def);

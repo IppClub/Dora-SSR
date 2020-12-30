@@ -93,7 +93,7 @@ UnitAction\add "pushed",
 								bunnyCount = 0
 								Group({"bunny"})\each (bunny)->
 									bunnyCount += 1 if bunny.group == @group
-								.hp = 0 if bunnyCount > MaxBunnies
+								.hp = 0.0 if bunnyCount > MaxBunnies
 							emit "EPChange",@group,-1
 							return true
 				when "SwitchG"
@@ -142,8 +142,14 @@ UnitAction\add "villyAttack",
 	recovery: 0.1
 	available: => true
 	create: =>
+		{
+			:attackSpeed, :targetAllow
+			:damageType, :attackBase
+			:attackBonus, :attackFactor
+			:attackPower
+		} = @entity
 		with @playable
-			.speed = @attackSpeed
+			.speed = attackSpeed
 			.look = "fight"
 			\play "attack"
 			\slot "AnimationEnd",villyAttackEnd
@@ -152,18 +158,17 @@ UnitAction\add "villyAttack",
 			onAttack = ->
 				Audio\play "Audio/v_att.wav"
 				with Bullet bulletDef,@
-					.targetAllow = @targetAllow
+					.targetAllow = targetAllow
 					\slot "HitTarget",(bullet,target,pos)->
 						entity = target.entity
 						entity.hitPoint = pos
-						entity.hitPower = @attackPower
+						entity.hitPower = attackPower
 						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor @damageType, target.defenceType
-						damage = (@attackBase + @attackBonus) * (@attackFactor + factor)
+						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true
 					\addTo @world,@order
-			attackSpeed = @attackSpeed
 			sleep 0.17/attackSpeed
 			onAttack!
 			sleep 0.63/attackSpeed

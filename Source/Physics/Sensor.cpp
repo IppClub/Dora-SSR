@@ -30,7 +30,7 @@ Sensor::~Sensor()
 
 void Sensor::add(Body* body)
 {
-	_sensedBodies->add(body);
+	_sensedBodies->add(Value::alloc(body));
 	if (bodyEnter)
 	{
 		bodyEnter(this, body);
@@ -39,7 +39,8 @@ void Sensor::add(Body* body)
 
 void Sensor::remove(Body* body)
 {
-	if (_sensedBodies->fastRemove(body) && bodyLeave)
+	auto value = Value::alloc(body);
+	if (_sensedBodies->fastRemove(value.get()) && bodyLeave)
 	{
 		bodyLeave(this, body);
 	}

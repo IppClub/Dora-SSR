@@ -149,11 +149,11 @@ void PlatformWorld::sortAllChildren()
 {
 	if (_flags.isOn(Node::Reorder))
 	{
-		RefVector<Object>& data = _children->data();
-		std::stable_sort(data.begin(), data.end(), [](const Ref<>& a, const Ref<>& b)
+		auto& data = _children->data();
+		std::stable_sort(data.begin(), data.end(), [](const Own<Value>& a, const Own<Value>& b)
 		{
-			int orderA = a.to<Layer>() ? a.to<Layer>()->getIndex() : a.to<Node>()->getOrder();
-			int orderB = b.to<Layer>() ? b.to<Layer>()->getIndex() : b.to<Node>()->getOrder();
+			int orderA = a->as<Layer>() ? a->as<Layer>()->getIndex() : a->to<Node>().getOrder();
+			int orderB = b->as<Layer>() ? b->as<Layer>()->getIndex() : b->to<Node>().getOrder();
 			return orderA < orderB;
 		});
 		_flags.setOff(Node::Reorder);
@@ -162,7 +162,7 @@ void PlatformWorld::sortAllChildren()
 
 void PlatformWorld::moveChild(Node* child, int newOrder)
 {
-	Layer* layer = DoraCast<Layer>(child->getParent());
+	Layer* layer = DoraAs<Layer>(child->getParent());
 	if (layer && layer->getIndex() != newOrder)
 	{
 		layer->removeChild(child);

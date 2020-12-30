@@ -37,6 +37,10 @@ public:
 	BulletHandler hitTarget;
 	void destroy();
 	CREATE_FUNC(Bullet);
+	struct Def
+	{
+		static const Slice BulletKey;
+	};
 protected:
 	Bullet(BulletDef* def, Unit* unit);
 	virtual void updatePhysics() override;

@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Support/Dictionary.h"
+#include "lua.hpp"
 
 NS_DOROTHY_BEGIN
 
@@ -27,7 +28,7 @@ vector<Slice> Dictionary::getKeys() const
 	return keys;
 }
 
-const unordered_map<string,Ref<Object>>& Dictionary::data() const
+const unordered_map<string,Own<Value>>& Dictionary::data() const
 {
 	return _dict;
 }
@@ -37,19 +38,33 @@ bool Dictionary::has(String key) const
 	return _dict.find(key) != _dict.end();
 }
 
-Ref<Object> Dictionary::get(String key) const
+const Own<Value>& Dictionary::get(String key) const
 {
 	auto it = _dict.find(key);
 	if (it != _dict.end())
 	{
 		return it->second;
 	}
-	return Ref<Object>();
+	return Value::None;
 }
 
-void Dictionary::set(String key, Object* value)
+float Dictionary::get(String key, float def) const
 {
-	_dict[key] = value;
+	const auto& value = get(key);
+	if (value && value->isNumeric())
+	{
+		return value->toFloat();
+	}
+	return def;
+}
+
+void Dictionary::set(String key, Own<Value>&& value)
+{
+	if (value)
+	{
+		_dict[key] = std::move(value);
+	}
+	else remove(key);
 }
 
 bool Dictionary::remove(String key)

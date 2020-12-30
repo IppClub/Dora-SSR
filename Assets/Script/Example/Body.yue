@@ -7,11 +7,11 @@ groupOne = 1
 groupTwo = 2
 
 terrainDef = with BodyDef!
-	.type = BodyType.Static
+	.type = "Static"
 	\attachPolygon 800,10,1,0.8,0.2
 
 polygonDef = with BodyDef!
-	.type = BodyType.Dynamic
+	.type = "Dynamic"
 	.linearAcceleration = gravity
 	\attachPolygon {
 		Vec2 60,0
@@ -23,7 +23,7 @@ polygonDef = with BodyDef!
 	},1,0.4,0.4
 
 diskDef = with BodyDef!
-	.type = BodyType.Dynamic
+	.type = "Dynamic"
 	.linearAcceleration = gravity
 	\attachDisk 60,1,0.4,0.4
 

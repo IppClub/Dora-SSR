@@ -94,6 +94,26 @@ static void pushListString(lua_State* L, const list<string>& array)
 	}
 }
 
+static Slice GetString(lua_State* L, int loc)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isstring(L, loc, 0, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		return tolua_toslice(L, loc, nullptr);
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'getString'.", &tolua_err);
+	return Slice::Empty;
+#endif
+}
+
 /* Path */
 int Path_create(lua_State* L)
 {
@@ -364,18 +384,14 @@ bool Cache::load(String filename)
 			case "wav"_hash:
 			case "ogg"_hash:
 				return SharedSoundCache.load(filename);
-			default: {
-				auto items = filename.split("|"_slice);
-				if (items.size() == 2)
+			default:
+			{
+				if (filename.split("|"_slice).size() == 2)
 				{
-					if (Path::getExt(items.front()) == "skel"_slice &&
-						Path::getExt(items.back()) == "atlas"_slice)
-					{
-						return SharedSkeletonCache.load(items.front(), items.back());
-					}
+					return SharedSkeletonCache.load(filename);
 				}
 				Error("fail to load unsupported resource \"{}\".", filename);
-				break;
+				return false;
 			}
 		}
 	}
@@ -384,15 +400,10 @@ bool Cache::load(String filename)
 
 void Cache::loadAsync(String filename, const function<void()>& callback)
 {
-	auto items = filename.split("|"_slice);
-	if (items.size() == 2)
+	if (filename.split("|"_slice).size() == 2)
 	{
-		if (Path::getExt(items.front()) == "skel"_slice &&
-			Path::getExt(items.back()) == "atlas"_slice)
-		{
-			SharedSkeletonCache.loadAsync(items.front(), items.back(), [callback](SkeletonData*) { callback(); });
-			return;
-		}
+		SharedSkeletonCache.loadAsync(filename, [callback](SkeletonData*) { callback(); });
+		return;
 	}
 	string ext = Path::getExt(filename);
 	if (!ext.empty())
@@ -799,8 +810,10 @@ namespace LuaAction
 						{
 							lua_rawgeti(L, location, 2);
 							Slice name = tolua_toslice(L, -1, nullptr);
-							lua_pop(L, 1);
-							return Emit::alloc(name);
+							lua_rawgeti(L, location, 3);
+							Slice arg = tolua_toslice(L, -1, nullptr);
+							lua_pop(L, 2);
+							return Emit::alloc(name, arg);
 						}
 						case "Spawn"_hash:
 						{
@@ -905,7 +918,7 @@ void __Model_getLookNames(lua_State* L, String filename)
 	}
 	else
 	{
-		lua_pushnil(L);
+		lua_createtable(L, 0, 0);
 	}
 }
 
@@ -925,8 +938,83 @@ void __Model_getAnimationNames(lua_State* L, String filename)
 	}
 	else
 	{
-		lua_pushnil(L);
+		lua_createtable(L, 0, 0);
 	}
+}
+
+/* Spine */
+
+void __Spine_getLookNames(lua_State* L, String spineStr)
+{
+	auto skelData = SharedSkeletonCache.load(spineStr);
+	if (skelData)
+	{
+		auto& skins = skelData->getSkel()->getSkins();
+		int size = s_cast<int>(skins.size());
+		lua_createtable(L, size, 0);
+		for (int i = 0; i < size;i++)
+		{
+			const auto& name = skins[i]->getName();
+			lua_pushlstring(L, name.buffer(), name.length());
+			lua_rawseti(L, -2, i + 1);
+		}
+	}
+	else
+	{
+		lua_createtable(L, 0, 0);
+	}
+}
+
+void __Spine_getAnimationNames(lua_State* L, String spineStr)
+{
+	auto skelData = SharedSkeletonCache.load(spineStr);
+	if (skelData)
+	{
+		auto& anims = skelData->getSkel()->getAnimations();
+		int size = s_cast<int>(anims.size());
+		lua_createtable(L, size, 0);
+		for (int i = 0; i < size; i++)
+		{
+			const auto& name = anims[i]->getName();
+			lua_pushlstring(L, name.buffer(), name.length());
+			lua_rawseti(L, -2, i + 1);
+		}
+	}
+	else
+	{
+		lua_createtable(L, 0, 0);
+	}
+}
+
+/* BodyDef */
+
+int BodyDef_GetType(lua_State* L)
+{
+	BodyDef* self = r_cast<BodyDef*>(tolua_tousertype(L, 1, 0));
+	Slice value;
+	switch (self->getType()) {
+		case pr::BodyType::Static: value = "Static"_slice; break;
+		case pr::BodyType::Dynamic: value = "Dynamic"_slice; break;
+		case pr::BodyType::Kinematic: value = "Kinematic"_slice; break;
+	}
+	tolua_pushslice(L, value);
+	return 1;
+}
+
+int BodyDef_SetType(lua_State* L)
+{
+	BodyDef* self = r_cast<BodyDef*>(tolua_tousertype(L, 1, 0));
+	auto value = GetString(L, 2);
+	switch (Switch::hash(value))
+	{
+		case "Static"_hash: self->setType(pr::BodyType::Static); break;
+		case "Dynamic"_hash: self->setType(pr::BodyType::Dynamic); break;
+		case "Kinematic"_hash: self->setType(pr::BodyType::Kinematic); break;
+		default:
+			luaL_error(L, LogFormat("Body type \"{}\" is invalid, only \"Static\", \"Dynamic\", \"Kinematic\" are allowed.", value).c_str());
+			break;
+	}
+	return 0;
 }
 
 /* Body */
@@ -946,7 +1034,7 @@ Array* __Dictionary_getKeys(Dictionary* self)
 	Array* array = Array::create(s_cast<int>(keys.size()));
 	for (size_t i = 0; i < keys.size(); i++)
 	{
-		array->set(s_cast<int>(i), Value::create(keys[i].toString()));
+		array->set(s_cast<int>(i), Value::alloc(keys[i].toString()));
 	}
 	return array;
 }
@@ -961,16 +1049,15 @@ int Dictionary_get(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Dictionary* self = r_cast<Dictionary*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Dictionary_get'", nullptr);
 #endif
 		Slice key = tolua_toslice(L, 2, nullptr);
-		Object* value = self->get(key);
-		Value* valueItem = dynamic_cast<Value*>(value);
-		if (valueItem) valueItem->pushToLua(L);
-		else tolua_pushobject(L, value);
+		const auto& value = self->get(key);
+		if (value) value->pushToLua(L);
+		else lua_pushnil(L);
 		return 1;
 	}
 #ifndef TOLUA_RELEASE
@@ -980,48 +1067,51 @@ tolua_lerror:
 #endif
 }
 
-static Object* Dora_getObject(lua_State* L, int loc)
+static Own<Value> Dora_getValue(lua_State* L, int loc)
 {
 	if (!lua_isnil(L, loc))
 	{
 		if (lua_isinteger(L, loc))
 		{
-			return Value::create(lua_tointeger(L, loc));
+			return Value::alloc(lua_tointeger(L, loc));
 		}
 		else if (lua_isnumber(L, loc))
 		{
-			return Value::create(lua_tonumber(L, loc));
+			return Value::alloc(lua_tonumber(L, loc));
 		}
 		else if (lua_isboolean(L, loc))
 		{
-			return Value::create(lua_toboolean(L, loc) != 0);
+			return Value::alloc(lua_toboolean(L, loc) != 0);
 		}
 		else if (lua_isstring(L, loc))
 		{
-			return Value::create(tolua_toslice(L, loc, nullptr).toString());
+			return Value::alloc(tolua_toslice(L, loc, nullptr).toString());
 		}
 		else if (tolua_isobject(L, loc))
 		{
-			return r_cast<Object*>(tolua_tousertype(L, loc, 0));
+			return Value::alloc(r_cast<Object*>(tolua_tousertype(L, loc, 0)));
 		}
-		else if (tolua_istype(L, loc, "Vec2"_slice))
-		{
-			return Value::create(*r_cast<Vec2*>(tolua_tousertype(L, loc, 0)));
-		}
-		else if (tolua_istype(L, loc, "Size"_slice))
-		{
-			return Value::create(*r_cast<Size*>(tolua_tousertype(L, loc, 0)));
-		}
-		else if (tolua_istype(L, loc, "Rect"_slice))
-		{
-			return Value::create(*r_cast<Rect*>(tolua_tousertype(L, loc, 0)));
-		}
-#ifndef TOLUA_RELEASE
 		else
 		{
-			tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size and Rect in containers.", nullptr);
+			auto name = tolua_typename(L, loc);
+			lua_pop(L, 1);
+			switch (Switch::hash(name))
+			{
+				case "Vec2"_hash:
+					return Value::alloc(*r_cast<Vec2*>(tolua_tousertype(L, loc, 0)));
+				case "Size"_hash:
+					return Value::alloc(*r_cast<Size*>(tolua_tousertype(L, loc, 0)));
+				case "Rect"_hash:
+					return Value::alloc(*r_cast<Rect*>(tolua_tousertype(L, loc, 0)));
+				case "Platformer::TargetAllow"_hash:
+					return Value::alloc(*r_cast<Platformer::TargetAllow*>(tolua_tousertype(L, loc, 0)));
+				default:
+#ifndef TOLUA_RELEASE
+					tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size and Rect in containers.", nullptr);
+#endif // TOLUA_RELEASE
+					break;
+			}
 		}
-#endif
 	}
 	return nullptr;
 }
@@ -1036,25 +1126,46 @@ int Dictionary_set(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Dictionary* self = r_cast<Dictionary*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Dictionary_set'", nullptr);
 #endif
-		Object* object = Dora_getObject(L, 3);
+		auto value = Dora_getValue(L, 3);
 		Slice key = tolua_toslice(L, 2, nullptr);
-		if (object) self->set(key, object);
+		if (value) self->set(key, std::move(value));
 		else self->remove(key);
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
-tolua_lerror :
+tolua_lerror:
 	tolua_error(L, "#ferror in function 'Dictionary_set'.", &tolua_err);
 	return 0;
 #endif
 }
 
 /* Array */
+
+int Array_getFirst(lua_State* L)
+{
+	Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+	self->getFirst()->pushToLua(L);
+	return 1;
+}
+
+int Array_getLast(lua_State* L)
+{
+	Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+	self->getLast()->pushToLua(L);
+	return 1;
+}
+
+int Array_getRandomObject(lua_State* L)
+{
+	Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+	self->getRandomObject()->pushToLua(L);
+	return 1;
+}
 
 int Array_index(lua_State* L)
 {
@@ -1066,13 +1177,13 @@ int Array_index(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_index'", nullptr);
 #endif
-		Object* object = Dora_getObject(L, 2);
-		int index = self->index(object) + 1;
+		auto value = Dora_getValue(L, 2);
+		size_t index = self->index(value.get()) + 1;
 		lua_pushnumber(L, index);
 		return 1;
 	}
@@ -1093,14 +1204,14 @@ int Array_set(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_set'", nullptr);
 #endif
-		Object* object = Dora_getObject(L, 3);
-		self->set(index - 1, object);
+		auto value = Dora_getValue(L, 3);
+		self->set(index - 1, std::move(value));
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
@@ -1120,16 +1231,15 @@ int Array_get(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_get'", nullptr);
 #endif
 		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
-		Object* value = self->get(index - 1);
-		Value* valueItem = dynamic_cast<Value*>(value);
-		if (valueItem) valueItem->pushToLua(L);
-		else tolua_pushobject(L, value);
+		const auto& value = self->get(index - 1);
+		if (value) value->pushToLua(L);
+		else lua_pushnil(L);
 		return 1;
 	}
 #ifndef TOLUA_RELEASE
@@ -1149,14 +1259,14 @@ int Array_insert(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_insert'", nullptr);
 #endif
-		Object* object = Dora_getObject(L, 3);
-		self->insert(index - 1, object);
+		auto value = Dora_getValue(L, 3);
+		self->insert(index - 1, std::move(value));
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
@@ -1176,13 +1286,13 @@ int Array_fastRemove(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_fastRemove'", nullptr);
 #endif
-		Object* object = Dora_getObject(L, 2);
-		self->fastRemove(object);
+		auto value = Dora_getValue(L, 2);
+		self->fastRemove(value.get());
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
@@ -1202,13 +1312,13 @@ int Array_add(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_add'", nullptr);
 #endif
-		Object* object = Dora_getObject(L, 2);
-		self->add(object);
+		auto value = Dora_getValue(L, 2);
+		self->add(std::move(value));
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
@@ -1228,13 +1338,13 @@ int Array_contains(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_contains'", nullptr);
 #endif
-		Object* object = Dora_getObject(L, 2);
-		lua_pushboolean(L, self->contains(object) ? 1 : 0);
+		auto value = Dora_getValue(L, 2);
+		lua_pushboolean(L, self->contains(value.get()) ? 1 : 0);
 		return 1;
 	}
 #ifndef TOLUA_RELEASE
@@ -1254,15 +1364,14 @@ int Array_removeLast(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_removeLast'", nullptr);
 #endif
-		Ref<> value = self->removeLast();
-		Value* valueItem = dynamic_cast<Value*>(value.get());
-		if (valueItem) valueItem->pushToLua(L);
-		else tolua_pushobject(L, value);
+		auto value = self->removeLast();
+		if (value) value->pushToLua(L);
+		else lua_pushnil(L);
 		return 1;
 	}
 #ifndef TOLUA_RELEASE
@@ -1290,7 +1399,7 @@ bool Array_fastRemoveAt(Array* self, int index)
 bool Array_each(Array* self, const LuaFunction<bool>& handler)
 {
 	int index = 0;
-	return self->each([&](Object* item)
+	return self->each([&](Value* item)
 	{
 		return handler(item, ++index);
 	});
@@ -1324,7 +1433,7 @@ int Array_create(lua_State* L)
 			{
 				lua_pushnumber(L, i + 1);
 				lua_gettable(L, 2);
-				tolua_ret->set(i, Dora_getObject(L, -1));
+				tolua_ret->set(i, Dora_getValue(L, -1));
 				lua_pop(L, 1);
 			}
 			tolua_pushobject(L, tolua_ret);
@@ -1410,17 +1519,17 @@ int Entity_get(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_get'", nullptr);
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
-		Com* com = self->getComponent(name);
+		Value* com = self->getComponent(name);
 		if (com) com->pushToLua(L);
 		else lua_pushnil(L);
 		return 1;
-    }
+	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'Entity_get'.", &tolua_err);
@@ -1438,17 +1547,17 @@ int Entity_getOld(lua_State* L)
 		goto tolua_lerror;
 	}
 #endif
-    {
+	{
 		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_getCache'", nullptr);
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
-		Com* com = self->getOldCom(name);
+		Value* com = self->getOldCom(name);
 		if (com) com->pushToLua(L);
 		else lua_pushnil(L);
 		return 1;
-    }
+	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'Entity_getCache'.", &tolua_err);
@@ -1499,21 +1608,30 @@ int Entity_set(lua_State* L)
 			{
 				self->set(key, s_cast<Object*>(tolua_tousertype(L, 3, 0)), raw_flag);
 			}
-			else if (tolua_istype(L, 3, "Vec2"_slice))
-			{
-				self->set(key, *s_cast<Vec2*>(tolua_tousertype(L, 3, 0)), raw_flag);
-			}
-			else if (tolua_istype(L, 3, "Size"_slice))
-			{
-				self->set(key, *s_cast<Size*>(tolua_tousertype(L, 3, 0)), raw_flag);
-			}
-			else if (tolua_istype(L, 3, "Rect"_slice))
-			{
-				self->set(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)), raw_flag);
-			}
 			else
 			{
-				tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size and Rect.", nullptr);
+				auto name = tolua_typename(L, 3);
+				lua_pop(L, 1);
+				switch (Switch::hash(name))
+				{
+					case "Vec2"_hash:
+						self->set(key, *r_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
+						break;
+					case "Size"_hash:
+						self->set(key, *r_cast<Size*>(tolua_tousertype(L, 3, 0)));
+						break;
+					case "Rect"_hash:
+						self->set(key, *r_cast<Rect*>(tolua_tousertype(L, 3, 0)));
+						break;
+					case "Platformer::TargetAllow"_hash:
+						self->set(key, *r_cast<Platformer::TargetAllow*>(tolua_tousertype(L, 3, 0)));
+						break;
+					default:
+#ifndef TOLUA_RELEASE
+						tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size, Rect and TargetAllow in containers.", nullptr);
+#endif // TOLUA_RELEASE
+						break;
+				}
 			}
 		}
 		return 0;
@@ -1567,21 +1685,30 @@ int Entity_setNext(lua_State* L)
 			{
 				self->setNext(key, s_cast<Object*>(tolua_tousertype(L, 3, 0)));
 			}
-			else if (tolua_istype(L, 3, "Vec2"_slice))
-			{
-				self->setNext(key, *s_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
-			}
-			else if (tolua_istype(L, 3, "Size"_slice))
-			{
-				self->setNext(key, *s_cast<Size*>(tolua_tousertype(L, 3, 0)));
-			}
-			else if (tolua_istype(L, 3, "Rect"_slice))
-			{
-				self->setNext(key, *s_cast<Rect*>(tolua_tousertype(L, 3, 0)));
-			}
 			else
 			{
-				tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size and Rect.", nullptr);
+				auto name = tolua_typename(L, 3);
+				lua_pop(L, 1);
+				switch (Switch::hash(name))
+				{
+					case "Vec2"_hash:
+						self->setNext(key, *r_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
+						break;
+					case "Size"_hash:
+						self->setNext(key, *r_cast<Size*>(tolua_tousertype(L, 3, 0)));
+						break;
+					case "Rect"_hash:
+						self->setNext(key, *r_cast<Rect*>(tolua_tousertype(L, 3, 0)));
+						break;
+					case "Platformer::TargetAllow"_hash:
+						self->setNext(key, *r_cast<Platformer::TargetAllow*>(tolua_tousertype(L, 3, 0)));
+						break;
+					default:
+#ifndef TOLUA_RELEASE
+						tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size, Rect and TargetAllow in containers.", nullptr);
+#endif // TOLUA_RELEASE
+						break;
+				}
 			}
 		}
 		return 0;
@@ -1621,22 +1748,6 @@ SVGDef* SVGDef_create(String filename)
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
-
-/* UnitDef */
-
-int UnitDef_GetActions(lua_State* L)
-{
-	UnitDef* self = r_cast<UnitDef*>(tolua_tousertype(L, 1, 0));
-	pushVectorString(L, self->actions);
-	return 1;
-}
-
-int UnitDef_SetActions(lua_State* L)
-{
-	UnitDef* self = r_cast<UnitDef*>(tolua_tousertype(L, 1, 0));
-	self->actions = getVectorString(L, 2);
-	return 0;
-}
 
 /* Bullet */
 

@@ -549,14 +549,14 @@ bool BodyDef::isBullet() const
 	return _conf.bullet;
 }
 
-void BodyDef::setType(int var)
+void BodyDef::setType(pr::BodyType var)
 {
-	_conf.UseType(s_cast<pr::BodyType>(var));
+	_conf.UseType(var);
 }
 
-int BodyDef::getType() const
+pr::BodyType BodyDef::getType() const
 {
-	return s_cast<int>(_conf.type);
+	return _conf.type;
 }
 
 pd::BodyConf* BodyDef::getConf()

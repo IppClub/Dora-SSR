@@ -127,15 +127,11 @@ class Object
 
 class Array : public Object
 {
-	tolua_readonly tolua_property__common int count;
-	tolua_readonly tolua_property__common int capacity;
-	tolua_readonly tolua_property__common Object* last;
-	tolua_readonly tolua_property__common Object* first;
-	tolua_readonly tolua_property__common Object* randomObject;
+	tolua_readonly tolua_property__common size_t count;
+	tolua_readonly tolua_property__common size_t capacity;
 	tolua_readonly tolua_property__bool bool empty;
 	void addRange(Array* other);
 	void removeFrom(Array* other);
-	Object* removeLast();
 	void clear();
 	void reverse();
 	void shrink();
@@ -610,6 +606,7 @@ class Playable : public Node
 	Vec2 getKeyPoint @ getKey(String name);
 	float play(String name, bool loop = false);
 	void stop();
+	static Playable* create(String filename);
 };
 
 class Model : public Playable
@@ -627,7 +624,7 @@ class Model : public Playable
 	Node* getNodeByName(String name);
 	bool eachNode(tolua_function_bool func);
 	static Model* create(String filename);
-	static Model* none();
+	static Model* dummy();
 	
 	static tolua_outside void Model_getClipFile @ getClipFile(String filename);
 	static tolua_outside void Model_getLookNames @ getLooks(String filename);
@@ -638,6 +635,8 @@ class Spine : public Playable
 {
 	static Spine* create(String skelFile, String atlasFile);
 	static Spine* create(String spineStr);
+	static tolua_outside void Spine_getLookNames @ getLooks(String spineStr);
+	static tolua_outside void Spine_getAnimationNames @ getAnimations(String spineStr);
 };
 
 class PhysicsWorld : public Node
@@ -654,21 +653,12 @@ class PhysicsWorld : public Node
 
 class FixtureDef {};
 
-struct BodyType
-{
-	#define BodyDef::Static @ Static
-	#define BodyDef::Dynamic @ Dynamic
-	#define BodyDef::Kinematic @ Kinematic
-};
-enum BodyType {};
-
 class BodyDef : public Object
 {
 	Vec2 offset @ position;
 	float angleOffset @ angle;
 	string face;
 	Vec2 facePos;
-	tolua_property__common Uint32 type;
 	tolua_property__common float linearDamping;
 	tolua_property__common float angularDamping;
 	tolua_property__common Vec2 linearAcceleration;
@@ -1189,84 +1179,27 @@ class UnitAction
 	static void clear();
 };
 
-class UnitDef : public Object
+class PlatformWorld;
+
+class Unit : public Body
 {
 	enum
 	{
 		GroundSensorTag,
 		DetectSensorTag,
 		AttackSensorTag
-	};
-	tolua_readonly static const Slice BulletKey;
-	tolua_readonly static const Slice AttackKey;
-	tolua_readonly static const Slice HitKey;
-	tolua_readonly tolua_property__common BodyDef* bodyDef;
-	tolua_property__bool bool static;
-	tolua_property__common float scale;
-	tolua_property__common float density;
-	tolua_property__common float friction;
-	tolua_property__common float restitution;
-	tolua_property__common string playable;
-	tolua_property__common Size size;
-	string tag;
-	float sensity;
-	float move;
-	float jump;
-	float detectDistance;
-	float maxHp;
-	float attackBase;
-	float attackDelay;
-	float attackEffectDelay;
-	Size attackRange;
-	Vec2 attackPower;
-	AttackType attackType;
-	AttackTarget attackTarget;
-	TargetAllow targetAllow;
-	Uint16 damageType;
-	Uint16 defenceType;
-	string bulletType;
-	string attackEffect;
-	string hitEffect;
-	string name;
-	string desc;
-	string sndAttack;
-	string sndFallen;
-	string decisionTree;
-	bool usePreciseHit;
-	static UnitDef* create();
-};
-
-class PlatformWorld;
-
-class Unit : public Body
-{
-	float sensity;
-	float move;
-	float moveSpeed;
-	float jump;
-	float maxHp;
-	float attackBase;
-	float attackBonus;
-	float attackFactor;
-	float attackSpeed;
-	Vec2 attackPower;
-	AttackType attackType;
-	AttackTarget attackTarget;
-	TargetAllow targetAllow;
-	Uint16 damageType;
-	Uint16 defenceType;
+	};	
 	tolua_property__common Playable* playable;
 	tolua_property__common float detectDistance;
 	tolua_property__common Size attackRange;
 	tolua_property__bool bool faceRight;
 	tolua_property__bool bool receivingDecisionTrace;
-	tolua_property__common BulletDef* bulletDef;
 	tolua_property__common string decisionTreeName @ decisionTree;
 	tolua_readonly tolua_property__bool bool onSurface;
 	tolua_readonly tolua_property__common Sensor* groundSensor;
 	tolua_readonly tolua_property__common Sensor* detectSensor;
 	tolua_readonly tolua_property__common Sensor* attackSensor;
-	tolua_readonly tolua_property__common UnitDef* unitDef;
+	tolua_readonly tolua_property__common Dictionary* unitDef;
 	tolua_readonly tolua_property__common UnitAction* currentAction;
 	tolua_readonly tolua_property__common float width;
 	tolua_readonly tolua_property__common float height;
@@ -1279,7 +1212,7 @@ class Unit : public Body
 	bool start(String name);
 	void stop();
 	bool isDoing(String name);
-	static Unit* create(UnitDef* unitDef, PhysicsWorld* physicsworld, Entity* entity, Vec2 pos, float rot = 0.0f);
+	static Unit* create(Dictionary* unitDef, PhysicsWorld* physicsworld, Entity* entity, Vec2 pos, float rot = 0.0f);
 	static Unit* create(String defName, String worldName, Entity* entity, Vec2 pos, float rot = 0.0f);
 };
 

@@ -17,7 +17,7 @@ world = with PlatformWorld!
 Store["world"] = world
 
 terrainDef = with BodyDef!
-	.type = BodyType.Static
+	.type = "Static"
 	\attachPolygon Vec2(0,-500),2500,10,0,1,1,0
 	\attachPolygon Vec2(0,500),2500,10,0,1,1,0
 	\attachPolygon Vec2(1250,0),10,1000,0,1,1,0

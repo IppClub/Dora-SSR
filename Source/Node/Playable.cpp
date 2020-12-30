@@ -61,15 +61,12 @@ const string& Playable::getLook() const
 
 Playable* Playable::create(String filename)
 {
-	if (filename.empty()) return Model::none();
-	auto items = filename.split("|"_slice);
-	BLOCK_START
-	BREAK_IF(items.size() != 2);
-	BREAK_IF(Path::getExt(items.front()) != "skel"_slice);
-	BREAK_IF(Path::getExt(items.back()) != "atlas"_slice);
-	return Spine::create(items.front(), items.back());
-	BLOCK_END
-	return Model::create(filename);
+	if (filename.empty()) return Model::dummy();
+	if (Path::getExt(filename) == "model"_slice)
+	{
+		return Model::create(filename);
+	}
+	return Spine::create(filename);
 }
 
 NS_DOROTHY_END

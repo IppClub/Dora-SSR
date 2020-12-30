@@ -105,19 +105,10 @@ void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventTy
 }
 
 Spine::Spine(String spineStr):
+_skeletonData(SharedSkeletonCache.load(spineStr)),
 _effect(SharedSpriteRenderer.getDefaultEffect()),
 _listener(this)
-{
-	auto items = spineStr.split("|"_slice);
-	if (items.size() == 2)
-	{
-		_skeletonData = SharedSkeletonCache.load(items.front(), items.back());
-	}
-	else
-	{
-		_skeletonData = SharedSkeletonCache.load(spineStr.toString() + ".skel"_slice, spineStr.toString() + ".atlas"_slice);
-	}
-}
+{ }
 
 Spine::Spine(String skelFile, String atlasFile):
 _skeletonData(SharedSkeletonCache.load(skelFile, atlasFile)),
@@ -238,24 +229,24 @@ void Spine::render()
 		spine::Attachment* attachment = slot->getAttachment();
 		if (!attachment) continue;
 
-      BlendFunc blendFunc = BlendFunc::Default;
-      switch (slot->getData().getBlendMode())
-      {
-         case spine::BlendMode_Normal:
-            blendFunc = {BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
-            break;
-         case spine::BlendMode_Additive:
-         	blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One};
-            break;
-         case spine::BlendMode_Multiply:
-         	blendFunc = {BlendFunc::DstColor, BlendFunc::InvSrcAlpha};
-            break;
-         case spine::BlendMode_Screen:
-         	blendFunc = {BlendFunc::One, BlendFunc::InvSrcColor};
-            break;
-         default:
-         	break;
-      }
+		BlendFunc blendFunc = BlendFunc::Default;
+		switch (slot->getData().getBlendMode())
+		{
+			case spine::BlendMode_Normal:
+				blendFunc = {BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
+				break;
+			case spine::BlendMode_Additive:
+				blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One};
+				break;
+			case spine::BlendMode_Multiply:
+				blendFunc = {BlendFunc::DstColor, BlendFunc::InvSrcAlpha};
+				break;
+			case spine::BlendMode_Screen:
+				blendFunc = {BlendFunc::One, BlendFunc::InvSrcColor};
+				break;
+			default:
+				break;
+		}
 
 		Uint64 renderState = (
 			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
@@ -265,68 +256,68 @@ void Spine::render()
 			renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 		}
 
-      spine::Color skeletonColor = _skeleton->getColor();
-      spine::Color slotColor = slot->getColor();
-      uint32_t abgr = Color(Vec4{
-      	skeletonColor.r * slotColor.r,
-      	skeletonColor.g * slotColor.g,
-      	skeletonColor.b * slotColor.b,
-      	skeletonColor.a * slotColor.a}).toABGR();
+		spine::Color skeletonColor = _skeleton->getColor();
+		spine::Color slotColor = slot->getColor();
+		uint32_t abgr = Color(Vec4{
+			skeletonColor.r * slotColor.r,
+			skeletonColor.g * slotColor.g,
+			skeletonColor.b * slotColor.b,
+			skeletonColor.a * slotColor.a}).toABGR();
 
-      Texture2D* texture = nullptr;
-      if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti))
-      {
-         spine::RegionAttachment* regionAttachment = s_cast<spine::RegionAttachment*>(attachment);
-         texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(regionAttachment->getRendererObject())->page->getRendererObject());
+		Texture2D* texture = nullptr;
+		if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti))
+		{
+			spine::RegionAttachment* regionAttachment = s_cast<spine::RegionAttachment*>(attachment);
+			texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(regionAttachment->getRendererObject())->page->getRendererObject());
 			vertices.assign(4, {0, 0, 0, 1});
 			regionAttachment->computeWorldVertices(slot->getBone(), &vertices.front().x, 0, sizeof(SpriteVertex) / sizeof(float));
 
-         for (size_t j = 0, l = 0; j < 4; j++, l+=2)
-         {
-            SpriteVertex& vertex = vertices[j];
-            SpriteVertex oldVert = vertex;
-            bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
-            vertex.abgr = abgr;
-            vertex.u = regionAttachment->getUVs()[l];
-            vertex.v = regionAttachment->getUVs()[l + 1];
-         }
+			for (size_t j = 0, l = 0; j < 4; j++, l+=2)
+			{
+				SpriteVertex& vertex = vertices[j];
+				SpriteVertex oldVert = vertex;
+				bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
+				vertex.abgr = abgr;
+				vertex.u = regionAttachment->getUVs()[l];
+				vertex.v = regionAttachment->getUVs()[l + 1];
+			}
 
 			SharedSpriteRenderer.push(
 				vertices.data(), vertices.size(),
 				_effect, texture, renderState);
-      }
-      else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti))
-      {
-         spine::MeshAttachment* mesh = s_cast<spine::MeshAttachment*>(attachment);
-         texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(mesh->getRendererObject())->page->getRendererObject());
-         size_t verticeLength = mesh->getWorldVerticesLength();
-         size_t numVertices = verticeLength / 2;
-         vertices.assign(numVertices, {0, 0, 0, 1});
-         mesh->computeWorldVertices(*slot, 0, verticeLength, &vertices.front().x, 0, sizeof(SpriteVertex) / sizeof(float));
+		}
+		else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti))
+		{
+			spine::MeshAttachment* mesh = s_cast<spine::MeshAttachment*>(attachment);
+			texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(mesh->getRendererObject())->page->getRendererObject());
+			size_t verticeLength = mesh->getWorldVerticesLength();
+			size_t numVertices = verticeLength / 2;
+			vertices.assign(numVertices, {0, 0, 0, 1});
+			mesh->computeWorldVertices(*slot, 0, verticeLength, &vertices.front().x, 0, sizeof(SpriteVertex) / sizeof(float));
 
-         for (size_t j = 0, l = 0; j < numVertices; j++, l+=2)
-         {
-            SpriteVertex& vertex = vertices[j];
-            SpriteVertex oldVert = vertex;
-            bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
-            vertex.abgr = abgr;
-            vertex.u = mesh->getUVs()[l];
-            vertex.v = mesh->getUVs()[l + 1];
-         }
+			for (size_t j = 0, l = 0; j < numVertices; j++, l+=2)
+			{
+				SpriteVertex& vertex = vertices[j];
+				SpriteVertex oldVert = vertex;
+				bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
+				vertex.abgr = abgr;
+				vertex.u = mesh->getUVs()[l];
+				vertex.v = mesh->getUVs()[l + 1];
+			}
 
-         auto& meshIndices = mesh->getTriangles();
+			auto& meshIndices = mesh->getTriangles();
 			SharedSpriteRenderer.push(
 				vertices.data(), vertices.size(),
 				meshIndices.buffer(), meshIndices.size(),
 				_effect, texture, renderState);
-      }
-
+		}
 		vertices.clear();
-   }
+	}
 }
 
 NS_DOROTHY_END
 
-spine::SpineExtension* spine::getDefaultExtension() {
-   return new Dorothy::SpineExtension();
+spine::SpineExtension* spine::getDefaultExtension()
+{
+	return new Dorothy::SpineExtension();
 }

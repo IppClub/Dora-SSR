@@ -189,9 +189,11 @@ productionEntry = nil
 for file in *Content\getAllFiles Path Content.assetPath, "Production"
 	if "init" == Path\getName file
 		scriptFolder = Path\getPath Path Content.assetPath, "Production", file
-		Content\addSearchPath Path\getPath scriptFolder
-		package.yuepath ..= ";" .. Path scriptFolder, "?.mp"
-		package.yuepath ..= ";" .. Path Content.assetPath, "Production", "?.mp"
+		productionAssets = Path\getPath scriptFolder
+		Content\addSearchPath productionAssets
+		Content\addSearchPath Path productionAssets, "Spine"
+		Content\addSearchPath Path productionAssets, "Image"
+		package.yuepath ..= ";" .. Path scriptFolder, "?.yue"
 		productionEntry = Path Path\getPath(file), "init"
 		break
 

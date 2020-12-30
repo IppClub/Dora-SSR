@@ -5,7 +5,7 @@ store:Store = Data
 rangeAttack = Sel {
 	Seq {
 		Con "attack path blocked", =>
-			sensor = @getSensorByTag UnitDef.AttackSensorTag
+			sensor = @getSensorByTag Unit.AttackSensorTag
 			if sensor.sensedBodies\each (body)->
 					body.group == Data.groupTerrain and
 					(@x > body.x) ~= @faceRight and
@@ -57,7 +57,7 @@ fightDecision = Seq {
 				return false if not @getAction "rangeAttack" or not @onSurface
 				evadeLeftEnemy = false
 				evadeRightEnemy = false
-				sensor = @getSensorByTag UnitDef.AttackSensorTag
+				sensor = @getSensorByTag Unit.AttackSensorTag
 				sensor.sensedBodies\each (body)->
 					if Relation.Enemy == Data\getRelation @,body
 						distance = math.abs @x - body.x

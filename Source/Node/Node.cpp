@@ -494,9 +494,9 @@ void Node::addChild(Node* child, int order, String tag)
 	Node* last = nullptr;
 	if (!_children->isEmpty())
 	{
-		last = _children->getLast().to<Node>();
+		last = &_children->getLast()->to<Node>();
 	}
-	_children->add(child);
+	_children->add(Value::alloc(child));
 	if (last && last->getOrder() > child->getOrder())
 	{
 		_flags.setOn(Node::Reorder);
@@ -547,8 +547,8 @@ void Node::removeChild(Node* child, bool cleanup)
 	{
 		return;
 	}
-	Ref<> childRef(child);
-	if (_children->remove(child))
+	auto childRef = Value::alloc(child);
+	if (_children->remove(childRef.get()))
 	{
 		if (_flags.isOn(Node::Running))
 		{
@@ -798,10 +798,10 @@ void Node::visit()
 		{
 			/* visit and render child whose order is less than 0 */
 			size_t index = 0;
-			RefVector<Object>& data = _children->data();
+			auto& data = _children->data();
 			for (index = 0; index < data.size(); index++)
 			{
-				Node* node = data[index].to<Node>();
+				Node* node = &data[index]->to<Node>();
 				if (node->getOrder() >= 0) break;
 				node->visit();
 			}
@@ -819,7 +819,7 @@ void Node::visit()
 			/* visit and render child whose order is greater equal than 0 */
 			for (; index < data.size(); index++)
 			{
-				Node* node = data[index].to<Node>();
+				Node* node = &data[index]->to<Node>();
 				node->visit();
 			}
 		};
@@ -1048,10 +1048,10 @@ void Node::sortAllChildren()
 {
 	if (_flags.isOn(Node::Reorder))
 	{
-		RefVector<Object>& data = _children->data();
-		std::stable_sort(data.begin(), data.end(), [](const Ref<>& a, const Ref<>& b)
+		auto& data = _children->data();
+		std::stable_sort(data.begin(), data.end(), [](const Own<Value>& a, const Own<Value>& b)
 		{
-			return a.to<Node>()->getOrder() < b.to<Node>()->getOrder();
+			return a->to<Node>().getOrder() < b->to<Node>().getOrder();
 		});
 		_flags.setOff(Node::Reorder);
 	}

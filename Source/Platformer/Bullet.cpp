@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Bullet.h"
 #include "Platformer/BulletDef.h"
 #include "Platformer/Unit.h"
-#include "Platformer/UnitDef.h"
 #include "Platformer/Data.h"
 #include "Platformer/VisualCache.h"
 #include "Platformer/Face.h"
@@ -20,8 +19,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/BodyDef.h"
 #include "Node/Model.h"
 #include "Animation/ModelDef.h"
+#include "Support/Dictionary.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
+
+const Slice Bullet::Def::BulletKey = "bullet"_slice;
 
 Bullet::Bullet(BulletDef* bulletDef, Unit* unit) :
 Body(bulletDef->getBodyDef(), unit->getPhysicsWorld()),
@@ -50,8 +52,8 @@ bool Bullet::init()
 		Bullet::setFace(node);
 	}
 	Playable* playable = _owner->getPlayable();
-	float scale = _owner->getUnitDef()->getScale();
-	Vec2 offset = (playable ? playable->getKeyPoint(UnitDef::BulletKey) : Vec2::zero) * Vec2{scale, scale};
+	auto scale = _owner->getUnitDef()->get(Unit::Def::Scale, 1.0f);
+	Vec2 offset = (playable ? playable->getKeyPoint(Def::BulletKey) : Vec2::zero) * Vec2{scale, scale};
 	Bullet::setPosition(
 		_owner->getPosition() +
 		(_owner->isFaceRight() ? offset : Vec2{-offset.x, offset.y})
@@ -124,7 +126,7 @@ void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal)
 	{
 		return;
 	}
-	Unit* unit = DoraCast<Unit>(body->getOwner());
+	Unit* unit = DoraAs<Unit>(body->getOwner());
 	bool isHitTerrain = SharedData.isTerrain(body) && targetAllow.isTerrainAllowed();
 	bool isHitUnit = unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit));
 	bool isHit = isHitTerrain || isHitUnit;
@@ -141,7 +143,7 @@ void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal)
 				_bulletDef->damageRadius * 2);
 			_pWorld->query(rect, [&](Body* body)
 			{
-				Unit* unit = DoraCast<Unit>(body->getOwner());
+				Unit* unit = DoraAs<Unit>(body->getOwner());
 				if (unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit)))
 				{
 					hitTarget(this, unit, unit->getPosition());

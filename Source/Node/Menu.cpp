@@ -105,7 +105,7 @@ static Node* getTouchedItem(Node* parentItem, const Vec2& worldLocation)
 	{
 		for (int i = s_cast<int>(children->getCount()) - 1; i >= 0; i--)
 		{
-			Node* childItem = children->get(i).to<Node>();
+			Node* childItem = &children->get(i)->to<Node>();
 			if (childItem && childItem->isVisible() && childItem->isTouchEnabled())
 			{
 				Vec2 local = childItem->convertToNodeSpace(worldLocation);
@@ -127,7 +127,7 @@ Node* Menu::itemForTouch(Touch* touch)
 	{
 		for (int i = s_cast<int>(_children->getCount()) - 1; i >= 0; i--)
 		{
-			Node* childItem = _children->get(i).to<Node>();
+			Node* childItem = &_children->get(i)->to<Node>();
 			if (childItem && childItem->isVisible() && childItem->isTouchEnabled())
 			{
 				Vec2 local = childItem->convertToNodeSpace(worldLocation);

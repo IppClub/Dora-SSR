@@ -164,7 +164,7 @@ function classFunction:supcode(local_constructor)
  -- check self
  if class and self.name~='new' and static==nil then
 	 output('#ifndef TOLUA_RELEASE\n')
-	 output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in function \'%s\'", self.name)..'", NULL);');
+	 output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in function \'%s\'", class..'.'..self.name)..'", NULL);');
 	 output('#endif\n')
  end
 
@@ -339,7 +339,11 @@ function classFunction:supcode(local_constructor)
 
 		output('#ifndef TOLUA_RELEASE\n')
 		output('tolua_lerror:\n')
-		output(' tolua_error(tolua_S,"'..output_error_hook("#ferror in function \'%s\'.", self.lname)..'",&tolua_err);')
+		if class then
+			output(' tolua_error(tolua_S,"'..output_error_hook("#ferror in function \'"..class..".%s\'.", self.lname)..'",&tolua_err);')
+		else
+			output(' tolua_error(tolua_S,"'..output_error_hook("#ferror in function \'%s\'.", self.lname)..'",&tolua_err);')
+		end
 		output(' return 0;')
 		output('#endif\n')
 	else

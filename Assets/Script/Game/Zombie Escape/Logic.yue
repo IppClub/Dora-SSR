@@ -41,11 +41,22 @@ with Observer "Add", {"obstacleDef","size","position","color"}
 			\addTo world
 		@destroy!
 
+mutables =
+	* "hp"
+	* "moveSpeed"
+	* "move"
+	* "jump"
+	* "targetAllow"
+	* "attackPower"
+	* "attackSpeed"
+
 with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight"}
 	\every =>
 		{:unitDef,:position,:order,:group,:isPlayer,:faceRight} = @
 		{:world} = Store
 		def = Store[unitDef]
+		for var in *mutables
+			@[var] = def[var]
 		unit = with Unit def,world,@,position
 			.group = group
 			.order = order

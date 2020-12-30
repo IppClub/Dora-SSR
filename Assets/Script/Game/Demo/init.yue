@@ -494,9 +494,9 @@ Store["AI_PlayerControl"] = Sel {
 	Act "idle"
 }
 
-NewFighterDef = -> with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+NewFighterDef = -> with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 1
 	.density = 1.0
 	.friction = 1.0
@@ -506,12 +506,16 @@ NewFighterDef = -> with UnitDef!
 	.tag = "Fighter"
 	.sensity = 0
 	.move = 250
+	.moveSpeed = 1.0
 	.jump = 700
 	.detectDistance = 800
-	.maxHp = 50
+	.hp = 50.0
+	.attackSpeed = 1.0
 	.attackBase = 2.5
 	.attackDelay = 20.0/60.0
 	.attackEffectDelay = 20.0/60.0
+	.attackBonus = 0.0
+	.attackFactor = 1.0
 	.attackRange = Size 350,150
 	.attackPower = Vec2 100,100
 	.attackType = AttackType.Range
@@ -530,7 +534,7 @@ NewFighterDef = -> with UnitDef!
 	.sndFallen = ""
 	.decisionTree = "AI_PlayerControl"
 	.usePreciseHit = true
-	.actions = {
+	.actions = Array {
 		"walk"
 		"turn"
 		"idle"
@@ -540,9 +544,9 @@ NewFighterDef = -> with UnitDef!
 		"fallOff"
 	}
 
-NewBossDef = -> with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+NewBossDef = -> with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 2
 	.density = 10.0
 	.friction = 1.0
@@ -552,12 +556,16 @@ NewBossDef = -> with UnitDef!
 	.tag = "Boss"
 	.sensity = 0
 	.move = 100
+	.moveSpeed = 1.0
 	.jump = 600
 	.detectDistance = 1500
-	.maxHp = 200
+	.hp = 200.0
+	.attackSpeed = 1.0
 	.attackBase = 2.5
 	.attackDelay = 50.0/60.0
 	.attackEffectDelay = 50.0/60.0
+	.attackBonus = 0.0
+	.attackFactor = 1.0
 	.attackRange = Size 780,300
 	.attackPower = Vec2 200,200
 	.attackType = AttackType.Range
@@ -570,13 +578,11 @@ NewBossDef = -> with UnitDef!
 	.bulletType = "Bullet_Arrow"
 	.attackEffect = ""
 	.hitEffect = "Particle/bloodp.par"
-	.name = "Boss"
-	.desc = ""
 	.sndAttack = ""
 	.sndFallen = ""
 	.decisionTree = "AI_Boss"
 	.usePreciseHit = true
-	.actions = {
+	.actions = Array {
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -586,7 +592,7 @@ NewBossDef = -> with UnitDef!
 		"cancel"
 		"jump"
 		"fall"
-		"fallOff",
+		"fallOff"
 	}
 
 UnitDefFuncs = {
@@ -682,7 +688,7 @@ world = with PlatformWorld!
 Store["world"] = world
 
 terrainDef = with BodyDef!
-	.type = BodyType.Static
+	.type = "Static"
 	\attachPolygon Vec2(0,0),2500,10,0,1,1,0
 	\attachPolygon Vec2(0,1000),2500,10,0,1,1,0
 	\attachPolygon Vec2(1250,500),10,1000,0,1,1,0
@@ -1010,26 +1016,31 @@ UnitAction\add "range",
 	recovery: 0.1
 	available: => true
 	create: =>
+		{
+			:attackSpeed, :targetAllow
+			:attackPower, :damageType
+			:attackBase, :attackBonus
+			:attackFactor
+		} = @entity
 		with @playable
-			.speed = @attackSpeed
+			.speed = attackSpeed
 			\play "range"
 			\slot "AnimationEnd", rangeAttackEnd
 		once =>
 			bulletDef = Store[@unitDef.bulletType]
 			onAttack = ->
 				with Bullet bulletDef,@
-					.targetAllow = @targetAllow
+					.targetAllow = targetAllow
 					\slot "HitTarget",(bullet,target,pos)->
 						entity = target.entity
 						entity.hitPoint = pos
-						entity.hitPower = @attackPower
+						entity.hitPower = attackPower
 						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor @damageType, target.defenceType
-						damage = (@attackBase + @attackBonus) * (@attackFactor + factor)
+						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true
 					\addTo @world,@order
-			attackSpeed = @attackSpeed
 			sleep 0.5*28.0/30.0/attackSpeed
 			onAttack!
 			while true do sleep!
@@ -1053,26 +1064,31 @@ UnitAction\add "multiArrow",
 	recovery: 0.1
 	available: => true
 	create: =>
+		{
+			:attackSpeed, :targetAllow
+			:attackPower, :damageType
+			:attackBase, :attackBonus
+			:attackFactor
+		} = @entity
 		with @playable
-			.speed = @attackSpeed
+			.speed = attackSpeed
 			\play "range"
 			\slot "AnimationEnd", rangeAttackEnd
 		once =>
 			onAttack = (angle,speed)->
 				BigArrow\setVelocity angle,speed
 				with Bullet BigArrow,@
-					.targetAllow = @targetAllow
+					.targetAllow = targetAllow
 					\slot "HitTarget",(bullet,target,pos)->
 						entity = target.entity
 						entity.hitPoint = pos
-						entity.hitPower = @attackPower
+						entity.hitPower = attackPower
 						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor @damageType, target.defenceType
-						damage = (@attackBase + @attackBonus) * (@attackFactor + factor)
+						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true
 					\addTo @world,@order
-			attackSpeed = @attackSpeed
 			sleep 30.0/60.0/attackSpeed
 			onAttack 30,1100
 			onAttack 10,1000
@@ -1135,8 +1151,13 @@ UnitAction\add "spearAttack",
 	recovery: 0.1
 	available: => true
 	create: =>
+		{
+			:attackSpeed, :attackPower
+			:damageType, :attackBase
+			:attackBonus, :attackFactor
+		} = @entity
 		with @playable
-			.speed = 1.0
+			.speed = attackSpeed
 			.recovery = 0.2
 			\play "spear"
 			\slot "AnimationEnd", spearAttackEnd
@@ -1149,15 +1170,31 @@ UnitAction\add "spearAttack",
 				if body.entity and Relation.Enemy == Data\getRelation(body,@)
 					entity = body.entity
 					entity.hitPoint = body.position
-					entity.hitPower = @attackPower
+					entity.hitPower = attackPower
 					entity.hitFromRight = not @faceRight
-					factor = Data\getDamageFactor @damageType, body.defenceType
-					damage = (@attackBase + @attackBonus) * (@attackFactor + factor)
+					factor = Data\getDamageFactor damageType, body.entity.defenceType
+					damage = (attackBase + attackBonus) * (attackFactor + factor)
 					entity.hp -= damage
 				false
 			while true do sleep!
 	stop: =>
 		@playable\slot("AnimationEnd")\remove spearAttackEnd
+
+mutables = {
+	"hp"
+	"moveSpeed"
+	"move"
+	"jump"
+	"targetAllow"
+	"attackBase"
+	"attackPower"
+	"attackSpeed"
+	"damageType"
+	"attackBonus"
+	"attackFactor"
+	"attackTarget"
+	"defenceType"
+}
 
 with Observer "Add", {"unitDef","position","order","group","faceRight"}
 	\every =>
@@ -1165,6 +1202,8 @@ with Observer "Add", {"unitDef","position","order","group","faceRight"}
 		{:world} = Store
 		func = UnitDefFuncs[unitDef]
 		def = func!
+		for var in *mutables
+			@[var] = def[var]
 		if charSet
 			set = characters[charSet]
 			actions = def.actions
@@ -1174,10 +1213,9 @@ with Observer "Add", {"unitDef","position","order","group","faceRight"}
 				continue unless item
 				skill = itemSettings[item].skill
 				if skill and not actionSet[skill]
-					table.insert actions, skill
+					actions\add skill
 				attackRange = itemSettings[item].attackRange
 				def.attackRange = attackRange if attackRange
-			def.actions = actions
 		def.decisionTree = decisionTree if decisionTree
 		unit = with Unit def,world,@,position
 			.group = group

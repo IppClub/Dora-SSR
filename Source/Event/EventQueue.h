@@ -45,7 +45,7 @@ public:
 template<class... Args>
 void QEvent::get(Args&... args)
 {
-	auto targetEvent = DoraCast<QEventArgs<special_decay_t<Args>...>>(this);
+	auto targetEvent = DoraAs<QEventArgs<special_decay_t<Args>...>>(this);
 	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
 	std::tie(args...) = std::move(targetEvent->arguments);
 }

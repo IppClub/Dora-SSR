@@ -117,10 +117,10 @@ public:
 	template<class Type>
 	inline Type* as() const
 	{
-		return DoraCast<Type>(_item);
+		return DoraAs<Type>(_item);
 	}
 	template<class Type>
-	inline Type* to() const
+	inline Type& to() const
 	{
 		return DoraTo<Type>(_item);
 	}

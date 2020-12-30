@@ -7,24 +7,42 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Entity/Component.h"
+#include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
 
-Own<Com> Com::none()
+const Own<Value> Value::None;
+
+Own<Value> ValueObject::clone() const
 {
-	return Own<Com>(new ComNone());
+	return Value::alloc(_value.get());
 }
 
-Own<Com> ComNone::clone() const
+void ValueObject::pushToLua(lua_State* L) const
 {
-	return Own<Com>(new ComNone());
+	LuaEngine::push(L, _value.get());
 }
 
-void ComNone::pushToLua(lua_State* L) const
-{ }
+bool ValueObject::isNumeric() const
+{
+	return false;
+}
 
-MEMORY_POOL(ComEx<Object*>);
+float ValueObject::toFloat() const
+{
+	return 0.0f;
+}
+
+bool ValueObject::equals(Value* other) const
+{
+	if (auto value = DoraAs<ValueObject>(other))
+	{
+		return _value == value->get();
+	}
+	return false;
+}
+
+MEMORY_POOL(ValueObject);
 
 NS_DOROTHY_END
 

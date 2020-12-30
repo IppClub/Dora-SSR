@@ -247,8 +247,8 @@ Vec2 JointDef::t(const Vec2& target)
 
 Joint* DistanceDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::distance(collision, targetA, targetB, anchorA, anchorB, frequency, damping);
@@ -258,8 +258,8 @@ Joint* DistanceDef::toJoint(Dictionary* itemDict)
 
 Joint* FrictionDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::friction(collision, targetA, targetB, t(worldPos), maxForce, maxTorque);
@@ -269,8 +269,8 @@ Joint* FrictionDef::toJoint(Dictionary* itemDict)
 
 Joint* GearDef::toJoint(Dictionary* itemDict)
 {
-	Joint* targetA = DoraCast<Joint>(itemDict->get(jointA).get());
-	Joint* targetB = DoraCast<Joint>(itemDict->get(jointB).get());
+	Joint* targetA = itemDict->get(jointA)->as<Joint>();
+	Joint* targetB = itemDict->get(jointB)->as<Joint>();
 	if (targetA && targetB)
 	{
 		return Joint::gear(collision, targetA, targetB, ratio);
@@ -280,8 +280,8 @@ Joint* GearDef::toJoint(Dictionary* itemDict)
 
 Joint* SpringDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::spring(collision, targetA, targetB, linearOffset, angularOffset, maxForce, maxTorque, correctionFactor);
@@ -291,8 +291,8 @@ Joint* SpringDef::toJoint(Dictionary* itemDict)
 
 Joint* PrismaticDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::prismatic(collision, targetA, targetB, t(worldPos), axisAngle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed);
@@ -302,8 +302,8 @@ Joint* PrismaticDef::toJoint(Dictionary* itemDict)
 
 Joint* PulleyDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::pulley(collision, targetA, targetB, anchorA, anchorB, t(groundAnchorA), t(groundAnchorB), ratio);
@@ -313,8 +313,8 @@ Joint* PulleyDef::toJoint(Dictionary* itemDict)
 
 Joint* RevoluteDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::revolute(collision, targetA, targetB, t(worldPos), lowerAngle + angle, upperAngle + angle, maxMotorTorque, motorSpeed);
@@ -324,8 +324,8 @@ Joint* RevoluteDef::toJoint(Dictionary* itemDict)
 
 Joint* RopeDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::rope(collision, targetA, targetB, anchorA, anchorB, maxLength);
@@ -335,8 +335,8 @@ Joint* RopeDef::toJoint(Dictionary* itemDict)
 
 Joint* WeldDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::weld(collision, targetA, targetB, t(worldPos), frequency, damping);
@@ -346,8 +346,8 @@ Joint* WeldDef::toJoint(Dictionary* itemDict)
 
 Joint* WheelDef::toJoint(Dictionary* itemDict)
 {
-	Body* targetA = DoraCast<Body>(itemDict->get(bodyA).get());
-	Body* targetB = DoraCast<Body>(itemDict->get(bodyB).get());
+	Body* targetA = &itemDict->get(bodyA)->to<Body>();
+	Body* targetB = &itemDict->get(bodyB)->to<Body>();
 	if (targetA && targetB)
 	{
 		return Joint::wheel(collision, targetA, targetB, t(worldPos), axisAngle, maxMotorTorque, motorSpeed, frequency, damping);

@@ -29,6 +29,43 @@ Atlas* SkeletonData::getAtlas() const
 	return _atlas;
 }
 
+std::pair<string, string> SkeletonCache::getFileFromStr(String spineStr)
+{
+	auto items = spineStr.split("|"_slice);
+	if (items.size() == 2)
+	{
+		Slice skelFile, atlasFile;
+		for (auto item : items)
+		{
+			switch (Switch::hash(Path::getExt(item)))
+			{
+				case "skel"_hash:
+				case "json"_hash:
+					skelFile = item;
+					break;
+				case "atlas"_hash:
+					atlasFile = item;
+					break;
+			}
+		}
+		return {skelFile, atlasFile};
+	}
+	auto str = spineStr.toString();
+	string skelFile = str + ".skel"_slice;
+	if (!SharedContent.isExist(str + ".skel"_slice))
+	{
+		skelFile = str + ".json"_slice;
+	}
+	return {skelFile, str + ".atlas"_slice};
+}
+
+SkeletonData* SkeletonCache::load(String spineStr)
+{
+	string skelFile, atlasFile;
+	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
+	return load(skelFile, atlasFile);
+}
+
 SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 {
 	string skelPath = SharedContent.getFullPath(skelFile);
@@ -63,7 +100,7 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 		}
 		default:
 			Warn("can not load skeleton format of \"{}\"", ext);
-			return nullptr;;
+			return nullptr;
 	}
 	if (skeletonData && skeletonData->getSkel())
 	{
@@ -72,6 +109,13 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 	}
 	Warn("fail to load skeleton data \"{}\".", skelFile);
 	return nullptr;
+}
+
+void SkeletonCache::loadAsync(String spineStr, const function<void(SkeletonData*)>& handler)
+{
+	string skelFile, atlasFile;
+	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
+	loadAsync(skelFile, atlasFile, handler);
 }
 
 void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<void(SkeletonData*)>& handler)

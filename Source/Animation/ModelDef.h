@@ -23,6 +23,7 @@ class Node;
 class SpriteDef
 {
 public:
+	bool emittingEvent;
 	bool front;
 	float x;
 	float y;
