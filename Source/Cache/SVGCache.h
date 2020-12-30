@@ -14,7 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Geometry.h"
 #include "Support/Common.h"
 #include "Basic/VGRender.h"
-#include <optional>
 
 NS_DOROTHY_BEGIN
 

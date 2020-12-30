@@ -47,7 +47,6 @@ _currentLook(-1),
 _currentAnimation(-1),
 _modelDef(def)
 {
-	_faceRight = def->isFaceRight();
 	_flags.setOff(Node::TraverseEnabled);
 }
 
@@ -58,6 +57,8 @@ Model(SharedModelCache.load(filename))
 bool Model::init()
 {
 	if (!Node::init()) return false;
+	if (!_modelDef) return false;
+	_faceRight = _modelDef->isFaceRight();
 	_resetAnimation.end = std::make_pair(this, &Model::onResetAnimationEnd);
 	_root = Node::create();
 	const string& clipFile = _modelDef->getClipFile();
@@ -424,7 +425,7 @@ Rect Model::getBoundingBox()
 	return AffineTransform::applyRect(getLocalTransform(), rect);
 }
 
-Model* Model::none()
+Model* Model::dummy()
 {
 	return Model::create(ModelDef::create());
 }
@@ -449,6 +450,10 @@ void Model::visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef)
 	{
 		SpriteDef* nodeDef = childrenDefs[n].get();
 		Sprite* node = nodeDef->toSprite(clipDef);
+		if (nodeDef->emittingEvent)
+		{
+			node->slot("ModelEvent"_slice, [this](Event* e) { emit(e); });
+		}
 		_spritePairs.push_back(std::make_pair(node, nodeDef));
 
 		Model::visit(nodeDef, node, clipDef);

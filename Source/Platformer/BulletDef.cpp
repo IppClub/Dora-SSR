@@ -22,7 +22,7 @@ damageRadius(0),
 endEffect(),
 _bodyDef(BodyDef::create())
 {
-	_bodyDef->setType(BodyDef::Dynamic);
+	_bodyDef->setType(pr::BodyType::Dynamic);
 }
 
 BodyDef* BulletDef::getBodyDef() const

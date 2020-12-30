@@ -82,8 +82,8 @@ void Scheduler::schedule(Action* action)
 {
 	if (action && action->_target && !action->isRunning())
 	{
-		action->_order = _actionList->getCount();
-		_actionList->add(action);
+		action->_order = s_cast<int>(_actionList->getCount());
+		_actionList->add(Value::alloc(action));
 		if (action->updateProgress())
 		{
 			Ref<Action> actionRef(action);
@@ -99,7 +99,7 @@ void Scheduler::unschedule(Action* action)
 {
 	Ref<> ref(action);
 	if (action && action->_target && action->isRunning()
-		&& _actionList->get(action->_order) == action)
+		&& _actionList->get(action->_order)->as<Action>() == action)
 	{
 		_actionList->set(action->_order, nullptr);
 		action->_order = Action::InvalidOrder;
@@ -112,10 +112,10 @@ bool Scheduler::update(double deltaTime)
 	_deltaTime = deltaTime * _timeScale;
 
 	/* update actions */
-	int i = 0, count = _actionList->getCount();
+	int i = 0, count = s_cast<int>(_actionList->getCount());
 	while (i < count)
 	{
-		Ref<Action> action(_actionList->get(i).to<Action>());
+		Ref<Action> action(_actionList->get(i)->as<Action>());
 		if (action)
 		{
 			if (!action->isPaused())
@@ -139,7 +139,7 @@ bool Scheduler::update(double deltaTime)
 			_actionList->fastRemoveAt(i);
 			if (i < _actionList->getCount())
 			{
-				Action* action = _actionList->get(i).to<Action>();
+				Action* action = _actionList->get(i)->as<Action>();
 				if (action)
 				{
 					action->_order = i;
@@ -158,7 +158,7 @@ bool Scheduler::update(double deltaTime)
 	{
 		if (item->update(_deltaTime))
 		{
-			FuncWrapper* func = DoraCast<FuncWrapper>(item.get());
+			FuncWrapper* func = DoraAs<FuncWrapper>(item.get());
 			if (func)
 			{
 				_updateList.erase(func->it);

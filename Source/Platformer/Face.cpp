@@ -127,11 +127,11 @@ Node* Face::toNode() const
 	{
 		if (self)
 		{
-			Ref<ValueEx<Uint32>> count(ValueEx<Uint32>::create(0));
+			auto count = std::make_shared<int>(0);
 			auto callback = [self,total,count](Event*)
 			{
-				count->set(count->get() + 1);
-				if (count->get() == total)
+				(*count)++;
+				if (*count == total)
 				{
 					self->emit("Stoped"_slice);
 				}

@@ -15,37 +15,44 @@ Array::Array()
 { }
 
 Array::Array(Array* other):
-_data(other->_data)
-{ }
+_data(other->_data.size())
+{
+	for (size_t i = 0; i < other->_data.size(); i++)
+	{
+		_data[i] = other->_data[i]->clone();
+	}
+}
 
-Array::Array(int capacity):
+Array::Array(size_t capacity):
 _data(capacity)
 { }
 
-int Array::getCount() const
+size_t Array::getCount() const
 {
-	return s_cast<int>(_data.size());
+	return _data.size();
 }
 
-int Array::getCapacity() const
+size_t Array::getCapacity() const
 {
-	return s_cast<int>(_data.capacity());
+	return _data.capacity();
 }
 
-const Ref<Object>& Array::getLast() const
+const Own<Value>& Array::getLast() const
 {
+	AssertIf(_data.empty(), "get last item from an empty array.");
 	return _data.back();
 }
 
-const Ref<Object>& Array::getFirst() const
+const Own<Value>& Array::getFirst() const
 {
+	AssertIf(_data.empty(), "get first item from an empty array.");
 	return _data.front();
 }
 
-const Ref<Object>& Array::getRandomObject() const
+const Own<Value>& Array::getRandomObject() const
 {
 	AssertIf(_data.empty(), "retrieving random item from an empty array.");
-	return _data[std::rand()%_data.size()];
+	return _data[std::rand() % _data.size()];
 }
 
 bool Array::isEmpty() const
@@ -53,40 +60,51 @@ bool Array::isEmpty() const
 	return _data.empty();
 }
 
-bool Array::contains(Object* object) const
+bool Array::contains(Value* value) const
 {
-	return std::find(_data.begin(), _data.end(), MakeRef(object)) != _data.end();
+	return std::find_if(_data.begin(), _data.end(), [&](const Own<Value>& val)
+	{
+		return value->equals(val.get());
+	}) != _data.end();
 }
 
-void Array::add(Object* object)
+void Array::add(Own<Value>&& value)
 {
-	_data.push_back(object);
+	_data.push_back(std::move(value));
 }
 
 void Array::addRange(Array* other)
 {
-	_data.insert(_data.end(), other->_data.begin(), other->_data.end());
+	for (const auto& item : other->_data)
+	{
+		_data.push_back(item->clone());
+	}
 }
 
 void Array::removeFrom(Array* other)
 {
 	for (const auto& it : other->_data)
 	{
-		Array::remove(it);
+		Array::remove(it.get());
 	}
 }
 
-Ref<Object> Array::removeLast()
+Own<Value> Array::removeLast()
 {
-	Ref<Object> item(_data.back());
-	item->autoretain();
+	auto value = _data.back()->clone();
 	_data.pop_back();
-	return item;
+	return value;
 }
 
-bool Array::remove(Object* object)
+bool Array::remove(Value* value)
 {
-	return _data.remove(object);
+	auto it = std::remove_if(_data.begin(), _data.end(), [&](Own<Value>& item)
+	{
+		return item->equals(value);
+	});
+	if (it == _data.end()) return false;
+	_data.erase(it);
+	return true;
 }
 
 void Array::clear()
@@ -94,17 +112,24 @@ void Array::clear()
 	_data.clear();
 }
 
-bool Array::fastRemove(Object* object)
+bool Array::fastRemove(Value* value)
 {
-	return _data.fast_remove(object);
+	size_t ind = index(value);
+	if (ind < _data.size())
+	{
+		_data.at(ind) = std::move(_data.back());
+		_data.pop_back();
+		return true;
+	}
+	return false;
 }
 
-void Array::swap(Object* objectA, Object* objectB)
+void Array::swap(Value* objectA, Value* objectB)
 {
 	std::swap(_data[index(objectA)], _data[index(objectB)]);
 }
 
-void Array::swap(int indexA, int indexB)
+void Array::swap(size_t indexA, size_t indexB)
 {
 	std::swap(_data[indexA], _data[indexB]);
 }
@@ -119,30 +144,40 @@ void Array::shrink()
 	_data.shrink_to_fit();
 }
 
-int Array::index(Object* object)
+size_t Array::index(Value* value)
 {
-	size_t index = std::distance(_data.begin(), _data.index(object));
-	return index == _data.size() ? -1 : s_cast<int>(index);
+	auto it = std::find_if(_data.begin(), _data.end(), [&](const Own<Value>& val)
+	{
+		return value->equals(val.get());
+	});
+	return std::distance(_data.begin(), it);
 }
 
-void Array::set(int index, Object* object)
+void Array::set(size_t index, Own<Value>&& value)
 {
-	_data[index] = object;
+	if (value)
+	{
+		_data[index] = std::move(value);
+	}
+	else
+	{
+		_data[index] = nullptr;
+	}
 }
 
-const Ref<Object>& Array::get(int index) const
+const Own<Value>& Array::get(size_t index) const
 {
 	return _data[index];
 }
 
-void Array::insert(int index, Object* object)
+void Array::insert(size_t index, Own<Value>&& value)
 {
-	_data.insert(index, object);
+	_data.insert(_data.begin() + index, std::move(value));
 }
 
-bool Array::removeAt(int index)
+bool Array::removeAt(size_t index)
 {
-	if (index < s_cast<int>(_data.size()))
+	if (index < _data.size())
 	{
 		_data.erase(_data.begin() + index);
 		return true;
@@ -150,18 +185,18 @@ bool Array::removeAt(int index)
 	return false;
 }
 
-bool Array::fastRemoveAt(int index)
+bool Array::fastRemoveAt(size_t index)
 {
-	if (index < s_cast<int>(_data.size()))
+	if (index < _data.size())
 	{
-		_data[index] = _data.back();
+		_data[index] = std::move(_data.back());
 		_data.pop_back();
 		return true;
 	}
 	return false;
 }
 
-RefVector<Object>& Array::data()
+vector<Own<Value>>& Array::data()
 {
 	return _data;
 }

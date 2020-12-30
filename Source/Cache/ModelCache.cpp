@@ -23,8 +23,7 @@ std::shared_ptr<XmlParser<ModelDef>> ModelCache::prepareParser(String filename)
 ModelCache::Parser::Parser(ModelDef* def, String path):
 XmlParser<ModelDef>(this, def),
 _path(path),
-_currentAnimationDef(nullptr),
-_currentTrackDef(nullptr)
+_currentAnimationDef(nullptr)
 { }
 
 KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation()
@@ -35,16 +34,6 @@ KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation()
 		_currentAnimationDef.reset(new KeyAnimationDef());
 	}
 	return s_cast<KeyAnimationDef*>(_currentAnimationDef.get());
-}
-
-PlayTrackDef* ModelCache::Parser::getCurrentTrack()
-{
-	// lazy alloc
-	if (!_currentTrackDef)
-	{
-		_currentTrackDef.reset(new PlayTrackDef());
-	}
-	return s_cast<PlayTrackDef*>(_currentTrackDef.get());
 }
 
 void ModelCache::Parser::getPosFromStr(String str, float& x, float& y)
@@ -172,6 +161,10 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						break;
 					case Xml::Model::KeyFrame::EaseOpacity:
 						keyFrameDef->easeOpacity = Ease::Enum(std::atoi(attrs[++i].first));
+						break;
+					case Xml::Model::KeyFrame::Event:
+						keyFrameDef->event = Slice(attrs[++i]);
+						_nodeStack.top()->emittingEvent = true;
 						break;
 				}
 			}
@@ -341,28 +334,6 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		}
 		case Xml::Model::Element::KeyAnimation:
 			break;
-		case Xml::Model::Element::Track:
-			break;
-		case Xml::Model::Element::Sound:
-		{
-			float delay = 0.0f;
-			Slice file;
-			for (int i = 0; attrs[i].first != nullptr; i++)
-			{
-				switch (Xml::Model::Sound(attrs[i].first[0]))
-				{
-					case Xml::Model::Sound::Delay:
-						delay = s_cast<float>(std::atof(attrs[++i].first));
-						break;
-					case Xml::Model::Sound::File:
-						file = attrs[++i];
-						break;
-				}
-			}
-			PlayTrackDef* trackDef = getCurrentTrack();
-			trackDef->addSound(delay, file);
-			break;
-		}
 	}
 }
 
@@ -389,12 +360,6 @@ void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len)
 		{
 			SpriteDef* nodeDef = _nodeStack.top().get();
 			nodeDef->animationDefs.push_back(std::move(_currentAnimationDef));
-			break;
-		}
-		case Xml::Model::Element::Track:
-		{
-			SpriteDef* nodeDef = _nodeStack.top().get();
-			nodeDef->animationDefs.push_back(std::move(_currentTrackDef));
 			break;
 		}
 		default:

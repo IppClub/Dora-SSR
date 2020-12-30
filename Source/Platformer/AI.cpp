@@ -71,10 +71,10 @@ bool AI::runDecisionTree(Unit* unit)
 	{
 		ARRAY_START(Body, body, detectSensor->getSensedBodies())
 		{
-			Unit* aroundUnit = DoraCast<Unit>(body->getOwner());
+			Unit* aroundUnit = DoraAs<Unit>(body->getOwner());
 			if (!aroundUnit) continue;
 
-			_detectedUnits->add(aroundUnit);
+			_detectedUnits->add(Value::alloc(aroundUnit));
 
 			float newDistance = unit->getPosition().distanceSquared(aroundUnit->getPosition());
 
@@ -87,7 +87,7 @@ bool AI::runDecisionTree(Unit* unit)
 			switch (relation)
 			{
 			case Relation::Friend:
-				_friends->add(aroundUnit);
+				_friends->add(Value::alloc(aroundUnit));
 				if (!_nearestFriend || newDistance < minFriendDistance)
 				{
 					minFriendDistance = newDistance;
@@ -95,7 +95,7 @@ bool AI::runDecisionTree(Unit* unit)
 				}
 				break;
 			case Relation::Enemy:
-				_enemies->add(aroundUnit);
+				_enemies->add(Value::alloc(aroundUnit));
 				if (!_nearestEnemy || newDistance < minEnemyDistance)
 				{
 					minEnemyDistance = newDistance;
@@ -103,7 +103,7 @@ bool AI::runDecisionTree(Unit* unit)
 				}
 				break;
 			case Relation::Neutral:
-				_neutrals->add(aroundUnit);
+				_neutrals->add(Value::alloc(aroundUnit));
 				if (!_nearestNeutral || newDistance < minNeutralDistance)
 				{
 					minNeutralDistance = newDistance;
@@ -126,9 +126,9 @@ bool AI::runDecisionTree(Unit* unit)
 	{
 		ARRAY_START(Body, body, attackSensor->getSensedBodies())
 		{
-			if (Unit* unit = DoraCast<Unit>(body->getOwner()))
+			if (Unit* unit = DoraAs<Unit>(body->getOwner()))
 			{
-				_attackUnits->add(unit);
+				_attackUnits->add(Value::alloc(unit));
 			}
 		}
 		ARRAY_END

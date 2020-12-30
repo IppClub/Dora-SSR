@@ -92,6 +92,17 @@ void __Model_getLookNames(lua_State* L, String filename);
 void __Model_getAnimationNames(lua_State* L, String filename);
 #define Model_getAnimationNames(filename) {__Model_getAnimationNames(tolua_S, filename);return 1;}
 
+/* Spine */
+void __Spine_getLookNames(lua_State* L, String spineStr);
+#define Spine_getLookNames(spineStr) {__Spine_getLookNames(tolua_S,spineStr);return 1;}
+void __Spine_getAnimationNames(lua_State* L, String spineStr);
+#define Spine_getAnimationNames(spineStr) {__Spine_getAnimationNames(tolua_S, spineStr);return 1;}
+
+/* BodyDef */
+
+int BodyDef_GetType(lua_State* L);
+int BodyDef_SetType(lua_State* L);
+
 /* Body */
 Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
 
@@ -102,6 +113,9 @@ int Dictionary_get(lua_State* L);
 int Dictionary_set(lua_State* L);
 
 /* Array */
+int Array_getFirst(lua_State* L);
+int Array_getLast(lua_State* L);
+int Array_getRandomObject(lua_State* L);
 int Array_index(lua_State* L);
 int Array_set(lua_State* L);
 int Array_get(lua_State* L);
@@ -161,10 +175,6 @@ inline AI* AI_shared() { return &SharedAI; }
 
 /* Bullet */
 Bullet* Bullet_create(BulletDef* def, Unit* unit);
-
-/* UnitDef */
-int UnitDef_GetActions(lua_State* L);
-int UnitDef_SetActions(lua_State* L);
 
 /* Data */
 inline Data* Data_shared() { return &SharedData; }

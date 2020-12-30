@@ -212,7 +212,7 @@ end
 		output('#ifndef TOLUA_RELEASE\n')
 		output('  tolua_Error tolua_err;')
   if class and static==nil then
-   output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in accessing variable \'%s\'", self.name)..'",NULL);');
+   output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in accessing variable \'%s\'", class..'.'..self.name)..'",NULL);');
   elseif static then
    _,_,self.mod = strfind(self.mod,'^%s*static%s%s*(.*)')
   end
@@ -224,7 +224,7 @@ end
   else
     output('  if ('..self:outchecktype(var_index)..')')
   end
-  output('   tolua_error(tolua_S,"#vinvalid type in variable assignment",&tolua_err);')
+  output('   tolua_error(tolua_S,"#vinvalid type in variable assignment for \''..(class and class..'.' or '')..self.name..'\'",&tolua_err);')
   output('#endif\n')
   -- assign value
 		local def = 0

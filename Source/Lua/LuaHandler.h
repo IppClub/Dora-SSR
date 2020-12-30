@@ -92,12 +92,13 @@ public:
 	LuaFunction(LuaHandler* handler):_handler(handler) { }
 	inline bool operator==(const LuaFunction& other) const
 	{
-		return _handler->equals(other._handler);
+		if (_handler) return _handler->equals(other._handler);
+		return other._handler == nullptr;
 	}
 	template<typename ...Args>
 	bool operator()(Args ...args) const
 	{
-		if (_handler->get() > 0)
+		if (_handler && _handler->get() > 0)
 		{
 			return SharedLuaEngine.executeFunction(_handler->get(), Tuple::foreach(std::make_tuple(args...), LuaArgsPusher()));
 		}

@@ -22,9 +22,9 @@ Effect::Uniform::~Uniform()
 	}
 }
 
-Effect::Uniform::Uniform(bgfx::UniformHandle handle, Value* value):
+Effect::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value):
 _handle(handle),
-_value(value)
+_value(std::move(value))
 { }
 
 bgfx::UniformHandle Effect::Uniform::getHandle() const
@@ -34,25 +34,22 @@ bgfx::UniformHandle Effect::Uniform::getHandle() const
 
 Value* Effect::Uniform::getValue() const
 {
-	return _value;
+	return _value.get();
 }
 
 void Effect::Uniform::apply()
 {
-	if (_value->as<float>())
+	if (auto value = _value->as<float>())
 	{
-		float value = _value->as<float>()->get();
-		bgfx::setUniform(_handle, Vec4{value});
+		bgfx::setUniform(_handle, Vec4{*value});
 	}
-	else if (_value->as<Vec4>())
+	else if (auto value = _value->as<Vec4>())
 	{
-		const Vec4& value = _value->as<Vec4>()->get();
-		bgfx::setUniform(_handle, value);
+		bgfx::setUniform(_handle, *value);
 	}
-	else if (_value->as<Matrix>())
+	else if (auto value = _value->as<Matrix>())
 	{
-		const Matrix& value = _value->as<Matrix>()->get();
-		bgfx::setUniform(_handle, value);
+		bgfx::setUniform(_handle, *value);
 	}
 }
 
@@ -98,12 +95,12 @@ void Effect::set(String name, float var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		it->second->getValue()->as<float>()->set(var);
+		it->second->getValue()->to<float>() = var;
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
-		_uniforms[uname] = Uniform::create(handle, Value::create(var));
+		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
 }
 
@@ -118,12 +115,12 @@ void Effect::set(String name, const Vec4& var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		it->second->getValue()->as<Vec4>()->set(var);
+		it->second->getValue()->to<Vec4>() = var;
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
-		_uniforms[uname] = Uniform::create(handle, Value::create(var));
+		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
 }
 
@@ -133,12 +130,12 @@ void Effect::set(String name, const Matrix& var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		it->second->getValue()->as<Matrix>()->set(var);
+		it->second->getValue()->to<Matrix>() = var;
 	}
 	else
 	{
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Mat4);
-		_uniforms[uname] = Uniform::create(handle, Value::create(var));
+		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
 }
 

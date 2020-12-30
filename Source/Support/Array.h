@@ -8,44 +8,47 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Basic/Object.h"
+#include "Support/Value.h"
+
 NS_DOROTHY_BEGIN
 
 class Array : public Object
 {
 public:
-	PROPERTY_READONLY(int, Count);
-	PROPERTY_READONLY(int, Capacity);
-	PROPERTY_READONLY_CREF(Ref<Object>, Last);
-	PROPERTY_READONLY_CREF(Ref<Object>, First);
-	PROPERTY_READONLY_CREF(Ref<Object>, RandomObject);
+	PROPERTY_READONLY(size_t, Count);
+	PROPERTY_READONLY(size_t, Capacity);
+	PROPERTY_READONLY_CREF(Own<Value>, Last);
+	PROPERTY_READONLY_CREF(Own<Value>, First);
+	PROPERTY_READONLY_CREF(Own<Value>, RandomObject);
 	PROPERTY_READONLY_BOOL(Empty);
-	bool contains(Object* object) const;
-	void add(Object* object);
+	bool contains(Value* value) const;
+	void add(Own<Value>&& value);
 	void addRange(Array* other);
 	void removeFrom(Array* other);
-	Ref<Object> removeLast();
-	bool remove(Object* object);
+	Own<Value> removeLast();
+	bool remove(Value* value);
 	void clear();
-	bool fastRemove(Object* object);
-	void swap(Object* objectA, Object* objectB);
-	void swap(int indexA, int indexB);
+	bool fastRemove(Value* value);
+	void swap(Value* valueA, Value* valueB);
+	void swap(size_t indexA, size_t indexB);
 	void reverse();
 	void shrink();
-	int index(Object* object);
-	void set(int index, Object* object);
-	const Ref<Object>& get(int index) const;
-	void insert(int index, Object* object);
-	bool removeAt(int index);
-	bool fastRemoveAt(int index);
-	RefVector<Object>& data();
+	size_t index(Value* value);
+	void set(size_t index, Own<Value>&& value);
+	const Own<Value>& get(size_t index) const;
+	void insert(size_t index, Own<Value>&& value);
+	bool removeAt(size_t index);
+	bool fastRemoveAt(size_t index);
+	vector<Own<Value>>& data();
 	CREATE_FUNC(Array);
 public:
-	template <class Type = Object, class Func>
+	template <class Func>
 	bool each(const Func& handler)
 	{
 		for (const auto& item : _data)
 		{
-			if (handler(item.to<Type>())) return true;
+			if (handler(item.get())) return true;
 		}
 		return false;
 	}
@@ -57,9 +60,9 @@ public:
 protected:
 	Array();
 	Array(Array* other);
-	Array(int capacity);
+	Array(size_t capacity);
 private:
-	RefVector<Object> _data;
+	vector<Own<Value>> _data;
 	DORA_TYPE_OVERRIDE(Array);
 };
 
@@ -68,7 +71,7 @@ private:
 	{ \
 		for (const auto& _item_ : array->data()) \
 		{ \
-			type* varName = _item_.to<type>();
+			type* varName = &_item_->to<type>();
 
 #define ARRAY_END }}
 

@@ -405,9 +405,6 @@
     <ClCompile Include="..\..\..\Source\Platformer\UnitAction.cpp">
       <Filter>Platformer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Platformer\UnitDef.cpp">
-      <Filter>Platformer</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Platformer\VisualCache.cpp">
       <Filter>Platformer</Filter>
     </ClCompile>
@@ -870,6 +867,9 @@
     <ClCompile Include="..\..\..\Source\Cache\SVGCache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Value.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
@@ -1177,9 +1177,6 @@
       <Filter>Platformer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Platformer\UnitAction.h">
-      <Filter>Platformer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Platformer\UnitDef.h">
       <Filter>Platformer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Platformer\VisualCache.h">

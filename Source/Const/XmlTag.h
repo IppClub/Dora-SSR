@@ -125,8 +125,6 @@ namespace Model
 		KeyFrame = 'D',
 		FrameAnimation = 'E',
 		Look = 'F',
-		Sound = 'G',
-		Track = 'H',
 		LookName = 'I',
 		AnimationName = 'J',
 		KeyPoint = 'K',
@@ -166,6 +164,7 @@ namespace Model
 		EaseScale = 'J',
 		EaseRotate = 'K',
 		EaseSkew = 'L',
+		Event = 'M',
 	};
 
 	enum struct FrameAnimation
@@ -177,12 +176,6 @@ namespace Model
 	enum struct Look
 	{
 		Name = 'H',
-	};
-
-	enum struct Sound
-	{
-		File = 'A',
-		Delay = 'B',
 	};
 
 	enum struct LookName

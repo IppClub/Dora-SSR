@@ -48,6 +48,8 @@ class TargetAllow
 {
 public:
 	TargetAllow();
+	bool operator==(const TargetAllow& other) const;
+	bool operator!=(const TargetAllow& other) const;
 	void setTerrainAllowed(bool var);
 	bool isTerrainAllowed() const;
 	void allow(Relation flag, bool allow);

@@ -15,6 +15,16 @@ TargetAllow::TargetAllow():
 _flag(0)
 { }
 
+bool TargetAllow::operator==(const TargetAllow& other) const
+{
+	return _flag == other._flag;
+}
+
+bool TargetAllow::operator!=(const TargetAllow& other) const
+{
+	return _flag != other._flag;
+}
+
 void TargetAllow::allow(Relation flag, bool allow)
 {
 	if (allow)

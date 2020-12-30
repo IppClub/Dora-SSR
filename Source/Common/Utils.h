@@ -281,7 +281,7 @@ public: virtual int getDoraType() const override \
 }
 
 template <class OutT, class InT>
-OutT* DoraCast(InT* obj)
+OutT* DoraAs(InT* obj)
 {
 	return (obj && obj->getDoraType() == DoraType<OutT>()) ? s_cast<OutT*>(obj) : nullptr;
 }
@@ -293,10 +293,10 @@ bool DoraIs(SelfT* obj)
 }
 
 template <class OutT, class InT>
-OutT* DoraTo(InT* obj)
+OutT& DoraTo(InT* obj)
 {
 	AssertIf(obj && d_cast<OutT*>(obj) == nullptr, "failed to do Dora type convertion.");
-	return s_cast<OutT*>(obj);
+	return *s_cast<OutT*>(obj);
 }
 
 class Flag

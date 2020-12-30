@@ -1,5 +1,11 @@
 _ENV = Dorothy!
 
-Director.entry\addChild with Spine "dragon-ess.skel","dragon.atlas"
-	\play "flying", true
+spineStr = "dragon-ess.skel|dragon.atlas"
+
+animations = Spine\getAnimations spineStr
+looks = Spine\getLooks spineStr
+
+Director.entry\addChild with Spine spineStr
+	.look = looks[1]
+	\play animations[1], true
 	\slot "AnimationEnd", (name)-> print "#{name} end!"

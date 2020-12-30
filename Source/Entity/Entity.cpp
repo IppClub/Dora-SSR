@@ -27,7 +27,7 @@ public:
 				Entity* entity = entities[nextValue.entity];
 				if (entity)
 				{
-					if (DoraCast<ComNone>(nextValue.value.get()))
+					if (!nextValue.value)
 					{
 						entity->remove(nextValue.component);
 					}
@@ -79,7 +79,7 @@ public:
 	{
 		int entity;
 		int component;
-		Own<Com> value;
+		Own<Value> value;
 	};
 	stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
@@ -225,7 +225,7 @@ void Entity::remove(int index)
 void Entity::removeNext(int index)
 {
 	if (!has(index)) return;
-	setNext(index, Com::none());
+	setNext(index, Own<Value>());
 }
 
 bool Entity::each(const function<bool(Entity*)>& func)
@@ -243,9 +243,9 @@ Uint32 Entity::getCount()
 	return s_cast<Uint32>(SharedEntityPool.usedIndices.size());
 }
 
-void Entity::set(int index, Own<Com>&& value)
+void Entity::set(int index, Own<Value>&& value)
 {
-	Com* com = getComponent(index);
+	Value* com = getComponent(index);
 	if (com)
 	{
 		updateComponent(index, com->clone(), false);
@@ -257,13 +257,23 @@ void Entity::set(int index, Own<Com>&& value)
 	}
 }
 
-void Entity::setNext(int index, Own<Com>&& value)
+void Entity::setNext(int index, Own<Value>&& value)
 {
 	int id = getIndex();
 	SharedEntityPool.nextValues.push_back({id,index,std::move(value)});
 }
 
-void Entity::updateComponent(int index, Own<Com>&& com, bool add)
+float Entity::get(String key, float def) const
+{
+	Value* com = getComponent(key);
+	if (com)
+	{
+		return com->toFloat();
+	}
+	return def;
+}
+
+void Entity::updateComponent(int index, Own<Value>&& com, bool add)
 {
 	EntityHandler* handler;
 	if (add)
@@ -281,31 +291,31 @@ void Entity::updateComponent(int index, Own<Com>&& com, bool add)
 	{
 		if (!_oldComs[index])
 		{
-			_oldComs[index] = add ? Own<Com>() : std::move(com);
+			_oldComs[index] = add ? nullptr : std::move(com);
 			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
 		}
 		(*handler)(this);
 	}
 }
 
-Com* Entity::getComponent(String name) const
+Value* Entity::getComponent(String name) const
 {
 	int index = SharedEntityPool.tryGetIndex(name);
 	return has(index) ? _components[index].get() : nullptr;
 }
 
-Com* Entity::getComponent(int index) const
+Value* Entity::getComponent(int index) const
 {
 	return has(index) ? _components[index].get() : nullptr;
 }
 
-Com* Entity::getOldCom(String name) const
+Value* Entity::getOldCom(String name) const
 {
 	int index = SharedEntityPool.tryGetIndex(name);
 	return hasOld(index) ? _oldComs[index].get() : nullptr;
 }
 
-Com* Entity::getOldCom(int index) const
+Value* Entity::getOldCom(int index) const
 {
 	return has(index) ? _oldComs[index].get() : nullptr;
 }

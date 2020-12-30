@@ -73,7 +73,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Data.h"
 #include "Platformer/VisualCache.h"
 #include "Platformer/Face.h"
-#include "Platformer/UnitDef.h"
 #include "Platformer/Unit.h"
 #include "Platformer/UnitAction.h"
 #include "Platformer/PlatformCamera.h"

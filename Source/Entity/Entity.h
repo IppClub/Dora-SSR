@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #pragma once
-#include "Entity/Component.h"
+#include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
 
@@ -35,8 +35,8 @@ public:
 	static Entity* create();
 	static bool each(const function<bool(Entity*)>& func);
 	static void clear();
-	Com* getComponent(String name) const;
-	Com* getOldCom(String name) const;
+	Value* getComponent(String name) const;
+	Value* getOldCom(String name) const;
 	void clearOldComs();
 public:
 	template<typename T>
@@ -45,24 +45,25 @@ public:
 	void setNext(String name, const T& value);
 	template<typename T>
 	const T& get(String name) const;
+	float get(String key, float def) const;
 	template<typename T>
-	const T& tryGet(String name, const T& def) const;
+	const T& get(String name, const T& def) const;
 public:
 	int getIndex(String name);
 	bool has(int index) const;
 	bool hasOld(int index) const;
 	void remove(int index);
 	void removeNext(int index);
-	void set(int index, Own<Com>&& value);
-	void setNext(int index, Own<Com>&& value);
-	Com* getComponent(int index) const;
-	Com* getOldCom(int index) const;
+	void set(int index, Own<Value>&& value);
+	void setNext(int index, Own<Value>&& value);
+	Value* getComponent(int index) const;
+	Value* getOldCom(int index) const;
 protected:
-	void updateComponent(int index, Own<Com>&& com, bool add);
+	void updateComponent(int index, Own<Value>&& com, bool add);
 private:
 	int _index;
-	vector<Own<Com>> _components;
-	vector<Own<Com>> _oldComs;
+	vector<Own<Value>> _components;
+	vector<Own<Value>> _oldComs;
 	DORA_TYPE_OVERRIDE(Entity);
 };
 
@@ -123,25 +124,40 @@ template<typename T>
 void Entity::set(String name, const T& value, bool rawFlag)
 {
 	int index = getIndex(name);
-	Com* com = getComponent(index);
+	Value* com = getComponent(index);
 	if (rawFlag)
 	{
 		AssertIf(com == nullptr, "raw set non-exist component \"{}\".", name);
-		auto content = com->as<T>();
-		AssertIf(content == nullptr, "assign non-exist component \"{}\".", name);
-		content->set(value);
+		if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<T>>)
+		{
+			auto objVal = DoraAs<ValueObject>(com);
+			AssertIf(objVal == nullptr, "assign non-exist component \"{}\".", name);
+			objVal->set(value);
+		}
+		else
+		{
+			com->to<T>() = value;
+		}
 		return;
 	}
 	if (com)
 	{
-		auto content = com->as<T>();
-		AssertIf(content == nullptr, "component value type mismatch\"{}\".", name);
-		updateComponent(index, com->clone(), false);
-		content->set(value);
+		if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<T>>)
+		{
+			auto object = DoraAs<ValueObject>(com);
+			AssertIf(object == nullptr, "component value type mismatch\"{}\".", name);
+			updateComponent(index, object->clone(), false);
+			object->set(value);
+		}
+		else
+		{
+			updateComponent(index, com->clone(), false);
+			com->to<T>() = value;
+		}
 	}
 	else
 	{
-		updateComponent(index, Com::alloc(value), true);
+		updateComponent(index, Value::alloc(value), true);
 	}
 }
 
@@ -149,21 +165,21 @@ template<typename T>
 void Entity::setNext(String name, const T& value)
 {
 	int index = getIndex(name);
-	setNext(index, Com::alloc(value));
+	setNext(index, Value::alloc(value));
 }
 
 template<typename T>
 const T& Entity::get(String name) const
 {
-	Com* com = getComponent(name);
+	Value* com = getComponent(name);
 	AssertIf(com == nullptr, "access non-exist component \"{}\".", name);
 	return com->to<T>();
 }
 
 template<typename T>
-const T& Entity::tryGet(String name, const T& def) const
+const T& Entity::get(String name, const T& def) const
 {
-	Com* com = getComponent(name);
+	Value* com = getComponent(name);
 	if (com) return com->to<T>();
 	else return def;
 }

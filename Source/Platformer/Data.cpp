@@ -154,6 +154,14 @@ void Data::clear()
 	_contactMap.clear();
 	_relationMap.clear();
 	_damageBounusMap.clear();
+	_store->each([](Value* value, const string& key)
+	{
+		if (auto dict = value->as<Dictionary>())
+		{
+			dict->clear();
+		}
+		return false;
+	});
 	_store->clear();
 }
 

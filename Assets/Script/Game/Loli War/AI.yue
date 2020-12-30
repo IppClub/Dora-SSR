@@ -209,6 +209,7 @@ Store["BunnySwitcherAI"] = Sel {
 						if not @entity.atSwitch\isDoing "pushed"
 							hero.defending = false if @entity.targetSwitch == "SwitchG"
 							return true
+					false
 				Act "pushSwitch"
 			}
 			turnToSwitch

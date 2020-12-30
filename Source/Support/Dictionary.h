@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Basic/Object.h"
+#include "Support/Value.h"
 
 NS_DOROTHY_BEGIN
 
@@ -17,20 +18,45 @@ class Dictionary : public Object
 public:
 	PROPERTY_READONLY(int, Count);
 	PROPERTY_READONLY(vector<Slice>, Keys);
-	const unordered_map<string,Ref<Object>>& data() const;
+	const unordered_map<string,Own<Value>>& data() const;
 
 	bool has(String key) const;
-	Ref<Object> get(String key) const;
-	void set(String key, Object* value);
+	const Own<Value>& get(String key) const;
+	void set(String key, Own<Value>&& value);
 	bool remove(String key);
 	void clear();
+
+	float get(String key, float def) const;
+
+	template <typename T>
+	T get(String key, const T& def) const
+	{
+		const auto& val = get(key);
+		if (!val) return def;
+		using Type = std::remove_pointer_t<T>;
+		if constexpr (std::is_base_of_v<Object, Type>)
+		{
+			if (auto item = DoraAs<ValueObject>(val.get()))
+			{
+				return d_cast<T>(item->get());
+			}
+		}
+		else
+		{
+			if (auto item = val->as<Type>())
+			{
+				return *item;
+			}
+		}
+		return def;
+	}
 
 	template <typename Func>
 	bool each(const Func& func)
 	{
 		for (const auto& item : _dict)
 		{
-			if (func(item.second, item.first))
+			if (func(item.second.get(), item.first))
 			{
 				return true;
 			}
@@ -40,7 +66,7 @@ public:
 
 	CREATE_FUNC(Dictionary);
 private:
-	unordered_map<string,Ref<Object>> _dict;
+	unordered_map<string,Own<Value>> _dict;
 	DORA_TYPE_OVERRIDE(Dictionary);
 };
 

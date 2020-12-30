@@ -41,7 +41,7 @@ _nvgContext(nullptr)
 {
 	Camera* defaultCamera = Camera2D::create("Default"_slice);
 	defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
-	_camStack->add(defaultCamera);
+	_camStack->add(Value::alloc(defaultCamera));
 }
 
 Director::~Director()
@@ -144,7 +144,7 @@ void Director::pushCamera(Camera* var)
 	Camera* lastCamera = getCurrentCamera();
 	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
 	var->Updated += std::make_pair(this, &Director::markDirty);
-	_camStack->add(var);
+	_camStack->add(Value::alloc(var));
 	markDirty();
 }
 
@@ -155,7 +155,7 @@ void Director::popCamera()
 	_camStack->removeLast();
 	if (_camStack->isEmpty())
 	{
-		_camStack->add(Camera2D::create("Default"_slice));
+		_camStack->add(Value::alloc(Camera2D::create("Default"_slice)));
 	}
 	getCurrentCamera()->Updated += std::make_pair(this, &Director::markDirty);
 	markDirty();
@@ -171,7 +171,8 @@ bool Director::removeCamera(Camera* camera)
 	}
 	else
 	{
-		return _camStack->remove(camera);
+		auto cam = Value::alloc(camera);
+		return _camStack->remove(cam.get());
 	}
 }
 
@@ -182,13 +183,13 @@ void Director::clearCamera()
 	_camStack->clear();
 	Camera2D* defaultCamera = Camera2D::create("Default"_slice);
 	defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
-	_camStack->add(defaultCamera);
+	_camStack->add(Value::alloc(defaultCamera));
 	markDirty();
 }
 
 Camera* Director::getCurrentCamera() const
 {
-	return _camStack->getLast().to<Camera>();
+	return &_camStack->getLast()->to<Camera>();
 }
 
 const Matrix& Director::getViewProjection() const

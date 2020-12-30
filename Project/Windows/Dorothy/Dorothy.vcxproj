@@ -715,13 +715,13 @@
     <ClCompile Include="..\..\..\Source\Platformer\PlatformWorld.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\Unit.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\UnitAction.cpp" />
-    <ClCompile Include="..\..\..\Source\Platformer\UnitDef.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\VisualCache.cpp" />
     <ClCompile Include="..\..\..\Source\Shader\Builtin.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Array.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Common.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp" />
+    <ClCompile Include="..\..\..\Source\Support\Value.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h" />
@@ -1066,7 +1066,6 @@
     <ClInclude Include="..\..\..\Source\Platformer\PlatformWorld.h" />
     <ClInclude Include="..\..\..\Source\Platformer\Unit.h" />
     <ClInclude Include="..\..\..\Source\Platformer\UnitAction.h" />
-    <ClInclude Include="..\..\..\Source\Platformer\UnitDef.h" />
     <ClInclude Include="..\..\..\Source\Platformer\VisualCache.h" />
     <ClInclude Include="..\..\..\Source\Shader\Builtin.h" />
     <ClInclude Include="..\..\..\Source\Support\Array.h" />

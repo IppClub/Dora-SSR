@@ -16,15 +16,14 @@ class PhysicsWorld;
 class Entity;
 class EntityWorld;
 class Playable;
+class Dictionary;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 class UnitAction;
 class Property;
 class Instinct;
-class BulletDef;
 class AILeaf;
-class UnitDef;
 
 typedef Delegate<void (UnitAction* action)> UnitActionHandler;
 
@@ -32,9 +31,9 @@ class Unit : public Body
 {
 	typedef unordered_map<string, Own<UnitAction>> ActionMap;
 public:
+	enum {GroundSensorTag = 0, DetectSensorTag = 1, AttackSensorTag = 2};
 	// Class properties
 	PROPERTY(Playable*, Playable);
-	PROPERTY(BulletDef*, BulletDef);
 	PROPERTY(float, DetectDistance);
 	PROPERTY_CREF(Size, AttackRange);
 	PROPERTY_BOOL(FaceRight);
@@ -43,7 +42,7 @@ public:
 	PROPERTY_READONLY(Sensor*, GroundSensor);
 	PROPERTY_READONLY(Sensor*, DetectSensor);
 	PROPERTY_READONLY(Sensor*, AttackSensor);
-	PROPERTY_READONLY(UnitDef*, UnitDef);
+	PROPERTY_READONLY(Dictionary*, UnitDef);
 	PROPERTY_READONLY(UnitAction*, CurrentAction);
 	PROPERTY_READONLY(float, Width);
 	PROPERTY_READONLY(float, Height);
@@ -64,38 +63,41 @@ public:
 	bool isDoing(String name);
 	// Physics state
 	bool isOnSurface() const;
-	// Dynamic properties
-	float sensity;
-	float move;
-	float moveSpeed;
-	float jump;
-	float maxHp;
-	float attackBase;
-	float attackBonus;
-	float attackFactor;
-	float attackSpeed;
-	Vec2 attackPower;
-	AttackType attackType;
-	AttackTarget attackTarget;
-	TargetAllow targetAllow;
-	Uint16 damageType;
-	Uint16 defenceType;
 	// Decision tree AI nodes
 	void setDecisionTreeName(String name);
 	const string& getDecisionTreeName() const;
 	AILeaf* getDecisionTree() const;
+	struct Def
+	{
+		static const Slice Size;
+		static const Slice Density;
+		static const Slice Friction;
+		static const Slice Restitution;
+		static const Slice BodyDef;
+		static const Slice LinearAcceleration;
+		static const Slice LinearDamping;
+		static const Slice AngularDamping;
+		static const Slice BodyType;
+		static const Slice DetectDistance;
+		static const Slice AttackRange;
+		static const Slice Tag;
+		static const Slice Playable;
+		static const Slice Scale;
+		static const Slice Actions;
+		static const Slice DecisionTree;
+	};
 	CREATE_FUNC(Unit);
 protected:
-	Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot);
+	Unit(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot);
 	Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot);
 private:
+	BodyDef* getBodyDef(Dictionary* def) const;
 	WRef<Entity> _entity;
 	float _detectDistance;
 	Size _attackRange;
 	string _decisionTreeName;
 	Ref<AILeaf> _decisionTree;
-	Ref<UnitDef> _unitDef;
-	Ref<BulletDef> _bulletDef;
+	Ref<Dictionary> _unitDef;
 	WRef<Playable> _playable;
 	Size _size;
 	Sensor* _groundSensor;
@@ -103,6 +105,8 @@ private:
 	Sensor* _attackSensor;
 	UnitAction* _currentAction;
 	ActionMap _actions;
+	static const float BOTTOM_OFFSET;
+	static const float GROUND_SENSOR_HEIGHT;
 	enum
 	{
 		FaceRight = BodyUserFlag,

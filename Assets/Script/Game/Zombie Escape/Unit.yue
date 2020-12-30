@@ -2,9 +2,9 @@ _ENV = Dorothy builtin.Platformer
 
 store:Store = Data
 
-Store["Unit_KidW"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["Unit_KidW"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
@@ -14,9 +14,10 @@ Store["Unit_KidW"] = with UnitDef!
 	.tag = "KidW"
 	.sensity = 0.1
 	.move = 250
+	.moveSpeed = 1.0
 	.jump = 500
 	.detectDistance = 350
-	.maxHp = 5
+	.hp = 5.0
 	.attackBase = 2.5
 	.attackDelay = 0.1
 	.attackEffectDelay = 0.1
@@ -32,28 +33,25 @@ Store["Unit_KidW"] = with UnitDef!
 	.bulletType = "Bullet_KidW"
 	.attackEffect = ""
 	.hitEffect = ""
-	.name = "KidW"
-	.desc = ""
 	.sndAttack = ""
 	.sndFallen = ""
 	.decisionTree = "AI_KidSearch"
 	.usePreciseHit = false
-	.actions = {
-		"walk",
-		"turn",
-		"rangeAttack",
-		"idle",
-		"cancel",
-		"jump",
-		"backJump",
-		"hit",
-		"fall",
-		"fallOff",
-	}
+	.actions = Array
+		* "walk"
+		* "turn"
+		* "rangeAttack"
+		* "idle"
+		* "cancel"
+		* "jump"
+		* "backJump"
+		* "hit"
+		* "fall"
+		* "fallOff"
 
-Store["Unit_KidM"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["Unit_KidM"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
@@ -63,9 +61,10 @@ Store["Unit_KidM"] = with UnitDef!
 	.tag = "KidM"
 	.sensity = 0.1
 	.move = 250
+	.moveSpeed = 1.0
 	.jump = 500
 	.detectDistance = 500
-	.maxHp = 5
+	.hp = 5.0
 	.attackBase = 1.0
 	.attackDelay = 0.1
 	.attackEffectDelay = 0.1
@@ -81,28 +80,25 @@ Store["Unit_KidM"] = with UnitDef!
 	.bulletType = "Bullet_KidM"
 	.attackEffect = ""
 	.hitEffect = ""
-	.name = "KidM"
-	.desc = ""
 	.sndAttack = ""
 	.sndFallen = ""
 	.decisionTree = "AI_KidFollow"
 	.usePreciseHit = false
-	.actions = {
-		"walk",
-		"turn",
-		"rangeAttack",
-		"idle",
-		"cancel",
-		"jump",
-		"backJump",
-		"hit",
-		"fall",
-		"fallOff"
-	}
+	.actions = Array
+		* "walk"
+		* "turn"
+		* "rangeAttack"
+		* "idle"
+		* "cancel"
+		* "jump"
+		* "backJump"
+		* "hit"
+		* "fall"
+		* "fallOff"
 
-Store["Unit_Zombie1"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["Unit_Zombie1"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
@@ -112,9 +108,10 @@ Store["Unit_Zombie1"] = with UnitDef!
 	.tag = "Zombie1"
 	.sensity = 0.2
 	.move = 120
+	.moveSpeed = 1.0
 	.jump = 600
 	.detectDistance = 600
-	.maxHp = 5
+	.hp = 5.0
 	.attackBase = 1
 	.attackDelay = 0.25
 	.attackEffectDelay = 0.1
@@ -130,29 +127,26 @@ Store["Unit_Zombie1"] = with UnitDef!
 	.bulletType = ""
 	.attackEffect = ""
 	.hitEffect = ""
-	.name = "Zombie1"
-	.desc = ""
 	.sndAttack = ""
 	.sndFallen = ""
 	.decisionTree = "AI_Zombie"
 	.usePreciseHit = false
-	.actions = {
-		"walk",
-		"turn",
-		"meleeAttack",
-		"idle",
-		"cancel",
-		"jump",
-		"backJump",
-		"hit",
-		"fall",
-		"groundEntrance",
-		"fallOff"
-	}
+	.actions = Array
+		* "walk"
+		* "turn"
+		* "meleeAttack"
+		* "idle"
+		* "cancel"
+		* "jump"
+		* "backJump"
+		* "hit"
+		* "fall"
+		* "groundEntrance"
+		* "fallOff"
 
-Store["Unit_Zombie2"] = with UnitDef!
-	.bodyDef.linearAcceleration = Vec2 0,-10
-	.static = false
+Store["Unit_Zombie2"] = with Dictionary!
+	.linearAcceleration = Vec2 0,-10
+	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
@@ -162,9 +156,10 @@ Store["Unit_Zombie2"] = with UnitDef!
 	.tag = "Zombie2"
 	.sensity = 0.2
 	.move = 60
+	.moveSpeed = 1.0
 	.jump = 500
 	.detectDistance = 600
-	.maxHp = 5
+	.hp = 5.0
 	.attackBase = 1
 	.attackDelay = 0.4
 	.attackEffectDelay = 0.1
@@ -180,23 +175,20 @@ Store["Unit_Zombie2"] = with UnitDef!
 	.bulletType = ""
 	.attackEffect = ""
 	.hitEffect = ""
-	.name = "Zombie2"
-	.desc = ""
 	.sndAttack = ""
 	.sndFallen = ""
 	.decisionTree = "AI_Zombie"
 	.usePreciseHit = false
-	.actions = {
-		"walk",
-		"turn",
-		"meleeAttack",
-		"idle",
-		"cancel",
-		"jump",
-		"backJump",
-		"hit",
-		"fall",
-		"groundEntrance",
-		"fallOff"
-	}
+	.actions = Array
+		* "walk"
+		* "turn"
+		* "meleeAttack"
+		* "idle"
+		* "cancel"
+		* "jump"
+		* "backJump"
+		* "hit"
+		* "fall"
+		* "groundEntrance"
+		* "fallOff"
 

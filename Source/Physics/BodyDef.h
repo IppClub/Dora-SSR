@@ -34,17 +34,11 @@ struct FixtureDef
 class BodyDef : public Object
 {
 public:
-	enum
-	{
-		Static = s_cast<int>(pr::BodyType::Static),
-		Dynamic = s_cast<int>(pr::BodyType::Dynamic),
-		Kinematic = s_cast<int>(pr::BodyType::Kinematic)
-	};
 	Vec2 offset;
 	float angleOffset;
 	string face;
 	Vec2 facePos;
-	PROPERTY(int, Type);
+	PROPERTY(pr::BodyType, Type);
 	PROPERTY(float, LinearDamping);
 	PROPERTY(float, AngularDamping);
 	PROPERTY(Vec2, LinearAcceleration);

@@ -122,7 +122,6 @@
 		3C3E914F257788CA00A7A963 /* DistanceJointConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3E9140257788CA00A7A963 /* DistanceJointConf.cpp */; };
 		3C3E918E2577891500A7A963 /* BlockAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3E91552577891000A7A963 /* BlockAllocator.cpp */; };
 		3C3E918F2577891500A7A963 /* CodeDumper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3E915E2577891100A7A963 /* CodeDumper.cpp */; };
-		3C3E91902577891500A7A963 /* Real.hpp.in in Resources */ = {isa = PBXBuildFile; fileRef = 3C3E91642577891200A7A963 /* Real.hpp.in */; };
 		3C3E91912577891500A7A963 /* Velocity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3E91672577891200A7A963 /* Velocity.cpp */; };
 		3C3E91922577891500A7A963 /* Version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3E91702577891300A7A963 /* Version.cpp */; };
 		3C3E91932577891500A7A963 /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3E91732577891300A7A963 /* Math.cpp */; };
@@ -141,13 +140,12 @@
 		3C42B09720FEC57C00186F9C /* AINode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09620FEC57C00186F9C /* AINode.cpp */; };
 		3C42B0A020FECB0A00186F9C /* Bullet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09820FECB0900186F9C /* Bullet.cpp */; };
 		3C42B0A120FECB0A00186F9C /* Unit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09A20FECB0A00186F9C /* Unit.cpp */; };
-		3C42B0A220FECB0A00186F9C /* UnitDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09C20FECB0A00186F9C /* UnitDef.cpp */; };
 		3C42B0A320FECB0A00186F9C /* AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B09F20FECB0A00186F9C /* AI.cpp */; };
 		3C42B0A620FEFEA800186F9C /* UnitAction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C42B0A420FEFEA800186F9C /* UnitAction.cpp */; };
 		3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE120EF609600E775D7 /* nanovg.cpp */; };
 		3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE720EF609700E775D7 /* nanovg_bgfx.cpp */; };
 		3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFEE20EF644900E775D7 /* stb.cpp */; };
-		3C4A542D20F5F8B6007ED601 /* Component.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4A542C20F5F8B6007ED601 /* Component.cpp */; };
+		3C54F0DA2599CD65003D8F08 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54F0D92599CD65003D8F08 /* Value.cpp */; };
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
@@ -653,8 +651,6 @@
 		3C42B09820FECB0900186F9C /* Bullet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bullet.cpp; path = ../../../Source/Platformer/Bullet.cpp; sourceTree = "<group>"; };
 		3C42B09920FECB0A00186F9C /* Unit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Unit.h; path = ../../../Source/Platformer/Unit.h; sourceTree = "<group>"; };
 		3C42B09A20FECB0A00186F9C /* Unit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Unit.cpp; path = ../../../Source/Platformer/Unit.cpp; sourceTree = "<group>"; };
-		3C42B09B20FECB0A00186F9C /* UnitDef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UnitDef.h; path = ../../../Source/Platformer/UnitDef.h; sourceTree = "<group>"; };
-		3C42B09C20FECB0A00186F9C /* UnitDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UnitDef.cpp; path = ../../../Source/Platformer/UnitDef.cpp; sourceTree = "<group>"; };
 		3C42B09D20FECB0A00186F9C /* AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AI.h; path = ../../../Source/Platformer/AI.h; sourceTree = "<group>"; };
 		3C42B09E20FECB0A00186F9C /* Bullet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bullet.h; path = ../../../Source/Platformer/Bullet.h; sourceTree = "<group>"; };
 		3C42B09F20FECB0A00186F9C /* AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AI.cpp; path = ../../../Source/Platformer/AI.cpp; sourceTree = "<group>"; };
@@ -670,7 +666,7 @@
 		3C49FFEC20EF63D000E775D7 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/stb/stb_truetype.h; sourceTree = "<group>"; };
 		3C49FFED20EF63D000E775D7 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/stb/stb_rect_pack.h; sourceTree = "<group>"; };
 		3C49FFEE20EF644900E775D7 /* stb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = stb.cpp; path = ../../../Source/3rdParty/stb/stb.cpp; sourceTree = "<group>"; };
-		3C4A542C20F5F8B6007ED601 /* Component.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Component.cpp; path = ../../../Source/Entity/Component.cpp; sourceTree = "<group>"; };
+		3C54F0D92599CD65003D8F08 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3C57A39B1E0A05AD002141DF /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C57A39C1E0A05AD002141DF /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C57A39D1E0A05AD002141DF /* EventType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventType.cpp; path = ../../../Source/Event/EventType.cpp; sourceTree = "<group>"; };
@@ -812,7 +808,6 @@
 		3C9ADE561E00F16100D42018 /* WRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRef.h; path = ../../../Source/Common/WRef.h; sourceTree = "<group>"; };
 		3C9ADE581E00F24200D42018 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../Source/Basic/Object.cpp; sourceTree = "<group>"; };
 		3C9ADE591E00F24200D42018 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = ../../../Source/Basic/Object.h; sourceTree = "<group>"; };
-		3CA022A120F4C05600FD28B8 /* Component.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component.h; path = ../../../Source/Entity/Component.h; sourceTree = "<group>"; };
 		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
 		3CA718A61FCCF11000B6AC80 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
 		3CB2487D1E4DB41500B6BF26 /* utf8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utf8.cpp; path = ../../../Source/3rdParty/Other/utf8.cpp; sourceTree = "<group>"; };
@@ -1330,8 +1325,6 @@
 				3C1984762100656800B6F370 /* PlatformWorld.h */,
 				3C42B09A20FECB0A00186F9C /* Unit.cpp */,
 				3C42B09920FECB0A00186F9C /* Unit.h */,
-				3C42B09C20FECB0A00186F9C /* UnitDef.cpp */,
-				3C42B09B20FECB0A00186F9C /* UnitDef.h */,
 				3C42B0A420FEFEA800186F9C /* UnitAction.cpp */,
 				3C42B0A520FEFEA800186F9C /* UnitAction.h */,
 			);
@@ -1380,8 +1373,6 @@
 		3C5AE0851FFC735600CB95EB /* Entity */ = {
 			isa = PBXGroup;
 			children = (
-				3C4A542C20F5F8B6007ED601 /* Component.cpp */,
-				3CA022A120F4C05600FD28B8 /* Component.h */,
 				3C5AE08A1FFC737100CB95EB /* Entity.cpp */,
 				3C5AE0871FFC737100CB95EB /* Entity.h */,
 			);
@@ -1526,6 +1517,7 @@
 			children = (
 				3CE9D7FA1E7FE99D003AAECB /* Dictionary.cpp */,
 				3CE9D7FB1E7FE99D003AAECB /* Dictionary.h */,
+				3C54F0D92599CD65003D8F08 /* Value.cpp */,
 				3CC05B661E7131CB00F2BA1B /* Value.h */,
 				3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */,
 				3C0D399F1E1BA8FB007FEFC3 /* Array.h */,
@@ -2127,7 +2119,6 @@
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
 				3CBC785124CE7528003C9E83 /* Model in Resources */,
-				3C3E91902577891500A7A963 /* Real.hpp.in in Resources */,
 				3CBC785024CE7528003C9E83 /* Spine in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2168,7 +2159,6 @@
 				3C0D30FB2456665F009C592B /* AttachmentTimeline.cpp in Sources */,
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
-				3C4A542D20F5F8B6007ED601 /* Component.cpp in Sources */,
 				3C7EB6972547CCB300390DA6 /* StepConf.cpp in Sources */,
 				3C7EB69A2547CCB300390DA6 /* WorldImplFixture.cpp in Sources */,
 				3C3E914A257788CA00A7A963 /* Joint.cpp in Sources */,
@@ -2309,7 +2299,6 @@
 				3C0D30EE2456665F009C592B /* VertexEffect.cpp in Sources */,
 				3C7EB63A2547CC8400390DA6 /* MassData.cpp in Sources */,
 				3CC794612579F9B000042394 /* yue_compiler.cpp in Sources */,
-				3C42B0A220FECB0A00186F9C /* UnitDef.cpp in Sources */,
 				3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */,
 				3C7EB68F2547CCB300390DA6 /* WorldJoint.cpp in Sources */,
 				3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */,
@@ -2320,6 +2309,7 @@
 				3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */,
 				3C0D30F92456665F009C592B /* Timeline.cpp in Sources */,
 				3C7EB6572547CC9900390DA6 /* PolygonShapeConf.cpp in Sources */,
+				3C54F0DA2599CD65003D8F08 /* Value.cpp in Sources */,
 				3C42B0A320FECB0A00186F9C /* AI.cpp in Sources */,
 				3C42B0A020FECB0A00186F9C /* Bullet.cpp in Sources */,
 				3C3E914C257788CA00A7A963 /* JointKey.cpp in Sources */,

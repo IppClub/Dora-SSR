@@ -104,7 +104,7 @@ void Event::send(String name, const Args&... args)
 template<class... Args>
 void Event::get(Args&... args)
 {
-	LuaEventArgs* luaEvent = DoraCast<LuaEventArgs>(this);
+	LuaEventArgs* luaEvent = DoraAs<LuaEventArgs>(this);
 	if (luaEvent)
 	{
 		lua_State* L = SharedLuaEngine.getState();
@@ -122,7 +122,7 @@ void Event::get(Args&... args)
 	}
 	else
 	{
-		auto targetEvent = DoraCast<EventArgs<Args...>>(this);
+		auto targetEvent = DoraAs<EventArgs<Args...>>(this);
 		AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
 		std::tie(args...) = targetEvent->arguments;
 	}

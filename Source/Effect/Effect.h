@@ -40,10 +40,10 @@ private:
 		void apply();
 		CREATE_FUNC(Uniform);
 	protected:
-		Uniform(bgfx::UniformHandle handle, Value* value);
+		Uniform(bgfx::UniformHandle handle, Own<Value>&& value);
 	private:
 		bgfx::UniformHandle _handle;
-		Ref<Value> _value;
+		Own<Value> _value;
 	};
 	Ref<Shader> _fragShader;
 	Ref<Shader> _vertShader;

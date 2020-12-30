@@ -33,13 +33,16 @@ private:
 class SkeletonCache
 {
 public:
+	SkeletonData* load(String spineStr);
 	SkeletonData* load(String skelFile, String atlasFile);
+	void loadAsync(String spineStr, const function<void(SkeletonData*)>& handler);
 	void loadAsync(String skelFile, String atlasFile, const function<void(SkeletonData*)>& handler);
 	bool unload(String filename);
 	bool unload(SkeletonData* data);
 	bool unload();
 	void removeUnused();
 private:
+	std::pair<string, string> getFileFromStr(String spineStr);
 	unordered_map<string, Ref<SkeletonData>> _skeletons;
 	SINGLETON_REF(SkeletonCache, Director, AsyncThread);
 };

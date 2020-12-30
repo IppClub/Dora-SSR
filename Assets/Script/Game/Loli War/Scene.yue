@@ -29,7 +29,7 @@ GameWorld = Class PlatformWorld,
 
 	buildBackground: =>
 		terrainDef = with BodyDef!
-			.type = BodyType.Static
+			.type = "Static"
 			\attachPolygon Vec2(2048,1004-994),4096,10
 			\attachPolygon Vec2(2048,1004),4096,10
 			\attachPolygon Vec2(-5,1004-512),10,1024
@@ -59,7 +59,7 @@ GameWorld = Class PlatformWorld,
 	buildGameReadme: =>
 		pos = @camera.position
 		readmeDef = with BodyDef!
-			.type = BodyType.Static
+			.type = "Static"
 			\attachPolygon Vec2(pos.x,1004-994),1024,10
 			\attachPolygon Vec2(pos.x,1004),1024,10
 			\attachPolygon Vec2(pos.x-512,1004-512),10,1024
@@ -97,7 +97,7 @@ GameWorld = Class PlatformWorld,
 				.filter = TextureFilter.Point
 			rectDef = with BodyDef!
 				.linearAcceleration = Vec2 0,-10
-				.type = BodyType.Dynamic
+				.type = "Dynamic"
 				\attachPolygon sp.width*2,sp.height*2,1,0,1
 			with Body rectDef,@,item[2]
 				.order = LayerBackground
@@ -175,9 +175,9 @@ GameWorld = Class PlatformWorld,
 		with Group {"block"}
 			\each => switch @group
 				when GroupPlayerBlock
-					playerBlockHP += Store[@block].maxHp
+					playerBlockHP += Store[@block].hp
 				when GroupEnemyBlock
-					enemyBlockHP += Store[@block].maxHp
+					enemyBlockHP += Store[@block].hp
 		emit "BlockValue",GroupPlayer,playerBlockHP
 		emit "BlockValue",GroupEnemy,enemyBlockHP
 

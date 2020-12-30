@@ -38,10 +38,8 @@ private:
 		string _path;
 		void getPosFromStr(String str, float& x, float& y);
 		KeyAnimationDef* getCurrentKeyAnimation();
-		PlayTrackDef* getCurrentTrack();
 		stack<Own<SpriteDef>> _nodeStack;
 		Own<AnimationDef> _currentAnimationDef;
-		Own<AnimationDef> _currentTrackDef;
 	};
 	SINGLETON_REF(ModelCache, Director, AsyncThread);
 };

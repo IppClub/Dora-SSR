@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Platformer/Define.h"
 #include "Platformer/Unit.h"
-#include "Platformer/UnitDef.h"
 #include "Platformer/UnitAction.h"
 #include "Platformer/Data.h"
 #include "Platformer/BulletDef.h"
@@ -27,64 +26,118 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-Unit::Unit(UnitDef* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot) :
-Body(unitDef->getBodyDef(), physicsWorld, pos, rot),
+const float Unit::BOTTOM_OFFSET(1.0f);
+const float Unit::GROUND_SENSOR_HEIGHT(1.0f);
+
+const Slice Unit::Def::Size = "size"_slice;
+const Slice Unit::Def::Density = "density"_slice;
+const Slice Unit::Def::Friction = "friction"_slice;
+const Slice Unit::Def::Restitution = "restitution"_slice;
+const Slice Unit::Def::BodyDef = "bodyDef"_slice;
+const Slice Unit::Def::LinearAcceleration = "linearAcceleration"_slice;
+const Slice Unit::Def::LinearDamping = "linearDamping"_slice;
+const Slice Unit::Def::AngularDamping = "angularDamping"_slice;
+const Slice Unit::Def::BodyType = "bodyType"_slice;
+const Slice Unit::Def::DetectDistance = "detectDistance"_slice;
+const Slice Unit::Def::AttackRange = "attackRange"_slice;
+const Slice Unit::Def::Tag = "tag"_slice;
+const Slice Unit::Def::Playable = "playable"_slice;
+const Slice Unit::Def::Scale = "scale"_slice;
+const Slice Unit::Def::Actions = "actions"_slice;
+const Slice Unit::Def::DecisionTree = "decisionTree"_slice;
+
+BodyDef* Unit::getBodyDef(Dictionary* def) const
+{
+	auto bodyDef = def->get(Def::BodyDef, (BodyDef*)nullptr);
+	if (bodyDef) return bodyDef;
+	bodyDef = BodyDef::create();
+	bodyDef->setFixedRotation(false);
+	auto size = def->get(Unit::Def::Size, Size::zero);
+	if (size.width != 0.0f && size.height != 0.0f)
+	{
+		bodyDef->setFixedRotation(true);
+		float hw = size.width * 0.5f;
+		float hh = size.height * 0.5f;
+		Vec2 vertices[] =
+		{
+			Vec2{-hw, hh},
+			Vec2{-hw, BOTTOM_OFFSET - hh},
+			Vec2{-hw + BOTTOM_OFFSET, -hh},
+			Vec2{hw - BOTTOM_OFFSET, -hh},
+			Vec2{hw, BOTTOM_OFFSET - hh},
+			Vec2{hw, hh}
+		};
+		auto density = def->get(Def::Density, 0.0f);
+		auto friction = def->get(Def::Friction, 0.2f);
+		auto restitution = def->get(Def::Restitution, 0.0f);
+		bodyDef->attachPolygon(vertices, 6, density, friction, restitution);
+		bodyDef->attachPolygonSensor(
+			Unit::GroundSensorTag,
+			size.width - BOTTOM_OFFSET * 2,
+			GROUND_SENSOR_HEIGHT,
+			Vec2{0, -hh},
+			0);
+		auto linearAcceleration = def->get(Def::LinearAcceleration, Vec2{0.0f, -10.0f});
+		bodyDef->setLinearAcceleration(linearAcceleration);
+		auto linearDamping = def->get(Def::LinearDamping, 0.0f);
+		bodyDef->setLinearDamping(linearDamping);
+		auto angularDamping = def->get(Def::AngularDamping, 0.0f);
+		bodyDef->setAngularDamping(angularDamping);
+		auto bodyType = def->get(Def::BodyType, Slice::Empty);
+		switch (Switch::hash(bodyType))
+		{
+			case "Static"_hash: bodyDef->setType(pr::BodyType::Static); break;
+			case "Dynamic"_hash: bodyDef->setType(pr::BodyType::Dynamic); break;
+			case "Kinematic"_hash: bodyDef->setType(pr::BodyType::Kinematic); break;
+		}
+	}
+	return bodyDef;
+}
+
+Unit::Unit(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot) :
+Body(getBodyDef(unitDef), physicsWorld, pos, rot),
 _playable(nullptr),
 _groundSensor(nullptr),
 _detectSensor(nullptr),
 _attackSensor(nullptr),
 _currentAction(nullptr),
-_size(unitDef->getSize()),
-move(unitDef->move),
-moveSpeed(1.0f),
-jump(unitDef->jump),
-attackSpeed(1.0f),
-maxHp(unitDef->maxHp),
-attackBase(unitDef->attackBase),
-attackBonus(0),
-attackFactor(1.0f),
-attackType(unitDef->attackType),
-attackTarget(unitDef->attackTarget),
-attackPower(unitDef->attackPower),
-targetAllow(unitDef->targetAllow),
-damageType(unitDef->damageType),
-defenceType(unitDef->defenceType),
-sensity(unitDef->sensity),
 _unitDef(unitDef),
-_entity(entity)
+_entity(entity),
+_size(unitDef->get(Def::Size, Size::zero))
 { }
 
 Unit::Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot):
 Unit(
-	SharedData.getStore()->get(defName).to<UnitDef>(),
-	SharedData.getStore()->get(worldName).to<PhysicsWorld>(),
+	&SharedData.getStore()->get(defName)->to<Dictionary>(),
+	&SharedData.getStore()->get(worldName)->to<PhysicsWorld>(),
 	entity, pos, rot)
 { }
 
 bool Unit::init()
 {
 	if (!Body::init()) return false;
-	Unit::setDetectDistance(_unitDef->detectDistance);
-	Unit::setAttackRange(_unitDef->attackRange);
-	Unit::setTag(_unitDef->tag);
-	_groundSensor = Body::getSensorByTag(UnitDef::GroundSensorTag);
-	const string& playableStr = _unitDef->getPlayable();
+	auto detectDistance = _unitDef->get(Def::DetectDistance, 0.0f);
+	auto attackRange = _unitDef->get(Def::AttackRange, Size::zero);
+	auto tag = _unitDef->get(Def::Tag, Slice::Empty);
+	auto playableStr = _unitDef->get(Def::Playable, Slice::Empty);
+	auto scale = _unitDef->get(Def::Scale, 1.0f);
+	auto actions = _unitDef->get(Def::Actions, s_cast<Array*>(nullptr));
+	Unit::setDetectDistance(detectDistance);
+	Unit::setAttackRange(attackRange);
+	Unit::setTag(tag);
+	_groundSensor = Body::getSensorByTag(Unit::GroundSensorTag);
 	Playable* playable = Playable::create(playableStr);
 	_flags.set(Unit::FaceRight, true);
-	playable->setScaleX(_unitDef->getScale());
-	playable->setScaleY(_unitDef->getScale());
+	playable->setScaleX(scale);
+	playable->setScaleY(scale);
 	Unit::setPlayable(playable);
-	_bulletDef = SharedData.getStore()->get(_unitDef->bulletType).to<BulletDef>();
 	Body::setOwner(this);
-	for (const string& name : _unitDef->actions)
+	ARRAY_START(string, action, actions)
 	{
-		Unit::attachAction(name);
+		Unit::attachAction(*action);
 	}
+	ARRAY_END
 	_entity->set("unit"_slice, s_cast<Object*>(this));
-	if (!_entity->has("hp"_slice))
-	{
-		_entity->set("hp"_slice, s_cast<double>(_unitDef->maxHp));
-	}
 	this->scheduleUpdate();
 	return true;
 }
@@ -94,11 +147,12 @@ void Unit::onEnter()
 	Body::onEnter();
 	if (_decisionTree == nullptr)
 	{
-		Unit::setDecisionTreeName(_unitDef->decisionTree);
+		auto decisionTree = _unitDef->get(Def::DecisionTree, Slice::Empty);
+		Unit::setDecisionTreeName(decisionTree);
 	}
 }
 
-UnitDef* Unit::getUnitDef() const
+Dictionary* Unit::getUnitDef() const
 {
 	return _unitDef;
 }
@@ -178,7 +232,6 @@ void Unit::cleanup()
 	}
 	_decisionTree = nullptr;
 	_unitDef = nullptr;
-	_bulletDef = nullptr;
 	_actions.clear();
 	Body::cleanup();
 }
@@ -192,7 +245,7 @@ void Unit::setGroup(Uint8 group)
 		if (pd::IsSensor(world, f))
 		{
 			Sensor* sensor = _pWorld->getFixtureData(f);
-			if (sensor && sensor->getTag() != UnitDef::GroundSensorTag)
+			if (sensor && sensor->getTag() != Unit::GroundSensorTag)
 			{
 				continue;
 			}
@@ -320,7 +373,7 @@ void Unit::setDetectDistance(float var)
 	}
 	if (var > 0)
 	{
-		_detectSensor = Body::attachSensor(UnitDef::DetectSensorTag, BodyDef::disk(var));
+		_detectSensor = Body::attachSensor(Unit::DetectSensorTag, BodyDef::disk(var));
 		_detectSensor->setGroup(SharedData.getGroupDetectPlayer());
 	}
 }
@@ -335,7 +388,7 @@ void Unit::setAttackRange(const Size& var)
 	}
 	if (var.width != 0.0f && var.height != 0.0f)
 	{
-		_attackSensor = Body::attachSensor(UnitDef::AttackSensorTag, BodyDef::polygon(var.width*2, var.height));
+		_attackSensor = Body::attachSensor(Unit::AttackSensorTag, BodyDef::polygon(var.width*2, var.height));
 		_attackSensor->setGroup(SharedData.getGroupDetectPlayer());
 	}
 }
@@ -365,16 +418,6 @@ Sensor* Unit::getAttackSensor() const
 	return _attackSensor;
 }
 
-void Unit::setBulletDef(BulletDef* var)
-{
-	_bulletDef = var;
-}
-
-BulletDef* Unit::getBulletDef() const
-{
-	return _bulletDef;
-}
-
 UnitAction* Unit::getCurrentAction() const
 {
 	return _currentAction;
@@ -383,9 +426,12 @@ UnitAction* Unit::getCurrentAction() const
 void Unit::setDecisionTreeName(String name)
 {
 	_decisionTreeName = name;
-	AILeaf* leaf = SharedData.getStore()->get(name).to<AILeaf>();
-	_decisionTree = leaf;
-	SharedAI.runDecisionTree(this);
+	if (const auto& item = SharedData.getStore()->get(name))
+	{
+		AILeaf* leaf = &item->to<AILeaf>();
+		_decisionTree = leaf;
+		SharedAI.runDecisionTree(this);
+	}
 }
 
 const string& Unit::getDecisionTreeName() const

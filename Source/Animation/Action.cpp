@@ -438,52 +438,33 @@ float Emit::getDuration() const
 bool Emit::update(Node* target, float eclapsed)
 {
 	if (_ended && eclapsed > 0.0f) return true;
-	if (Emit::available) target->emit(_event);
+	if (Emit::available)
+	{
+		if (_argument.empty())
+		{
+			target->emit(_event);
+		}
+		else
+		{
+			target->emit(_event, _argument);
+		}
+	}
 	_ended = eclapsed > 0.0f;
 	return true;
 }
 
-Own<ActionDuration> Emit::alloc(String event)
+Own<ActionDuration> Emit::alloc(String event, String arg)
 {
 	Emit* emit = new Emit();
 	emit->_ended = false;
 	emit->_event = event;
+	emit->_argument = arg;
 	return Own<ActionDuration>(emit);
 }
 
-Action* Emit::create(String event)
+Action* Emit::create(String event, String arg)
 {
-	return Action::create(Emit::alloc(event));
-}
-
-/* PlaySound */
-
-bool PlaySound::available = true;
-
-float PlaySound::getDuration() const
-{
-	return 0.0f;
-}
-
-bool PlaySound::update(Node* target, float eclapsed)
-{
-	if (_ended && eclapsed > 0.0f) return true;
-	if (PlaySound::available && !_filename.empty()) SharedAudio.play(_filename);
-	_ended = eclapsed > 0.0f;
-	return true;
-}
-
-Own<ActionDuration> PlaySound::alloc(String filename)
-{
-	PlaySound* play = new PlaySound();
-	play->_ended = false;
-	play->_filename = filename;
-	return Own<ActionDuration>(play);
-}
-
-Action* PlaySound::create(String filename)
-{
-	return Action::create(PlaySound::alloc(filename));
+	return Action::create(Emit::alloc(event, arg));
 }
 
 /* FrameAction */
@@ -496,7 +477,7 @@ float FrameAction::getDuration() const
 bool FrameAction::update(Node* target, float eclapsed)
 {
 	if (_ended && eclapsed > _def->duration) return true;
-	Sprite* sprite = DoraCast<Sprite>(target);
+	Sprite* sprite = DoraAs<Sprite>(target);
 	if (sprite)
 	{
 		int frames = s_cast<int>(_def->rects.size());

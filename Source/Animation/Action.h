@@ -222,29 +222,15 @@ class Emit : public ActionDuration
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
-	static Own<ActionDuration> alloc(String event);
-	static Action* create(String event);
+	static Own<ActionDuration> alloc(String event, String arg = Slice::Empty);
+	static Action* create(String event, String arg = Slice::Empty);
 	static bool available;
 protected:
 	Emit() { }
 private:
 	bool _ended;
 	string _event;
-};
-
-class PlaySound : public ActionDuration
-{
-public:
-	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
-	static Own<ActionDuration> alloc(String filename);
-	static Action* create(String filename);
-	static bool available;
-protected:
-	PlaySound() { }
-private:
-	bool _ended;
-	string _filename;
+	string _argument;
 };
 
 class Texture2D;
