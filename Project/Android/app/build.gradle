@@ -35,6 +35,7 @@ android {
 		}
 	}
 	packagingOptions {
+		exclude 'classes.dex'
 		pickFirst '**/*.so'
 	}
 	compileOptions {

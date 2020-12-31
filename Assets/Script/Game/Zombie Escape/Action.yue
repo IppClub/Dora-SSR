@@ -6,7 +6,7 @@ groundEntranceEnd = (name,playable)->
 
 UnitAction\add "groundEntrance",
 	priority: 6
-	reaction: 0
+	reaction: -1
 	recovery: 0
 	available: -> true
 	create: =>
@@ -48,7 +48,7 @@ UnitAction\add "fallOff",
 
 UnitAction\add "backJump",
 	priority: 2
-	reaction: 0
+	reaction: -1
 	recovery: 0
 	available: => @onSurface
 	create: =>
