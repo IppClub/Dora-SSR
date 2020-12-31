@@ -663,7 +663,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Effect\Effect.cpp" />
-    <ClCompile Include="..\..\..\Source\Entity\Component.cpp" />
     <ClCompile Include="..\..\..\Source\Entity\Entity.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp" />
@@ -1019,7 +1018,6 @@
     <ClInclude Include="..\..\..\Source\Const\XmlTag.h" />
     <ClInclude Include="..\..\..\Source\Dorothy.h" />
     <ClInclude Include="..\..\..\Source\Effect\Effect.h" />
-    <ClInclude Include="..\..\..\Source\Entity\Component.h" />
     <ClInclude Include="..\..\..\Source\Entity\Entity.h" />
     <ClInclude Include="..\..\..\Source\Event\Event.h" />
     <ClInclude Include="..\..\..\Source\Event\EventQueue.h" />

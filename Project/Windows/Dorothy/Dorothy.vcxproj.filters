@@ -366,9 +366,6 @@
     <ClCompile Include="..\..\..\Source\Shader\Builtin.cpp">
       <Filter>Shader</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Entity\Component.cpp">
-      <Filter>Entity</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Common\MemoryPool.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -1142,9 +1139,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Shader\Builtin.h">
       <Filter>Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Entity\Component.h">
-      <Filter>Entity</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Platformer\AI.h">
       <Filter>Platformer</Filter>
