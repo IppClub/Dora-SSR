@@ -156,6 +156,7 @@ int tolua_ref_function(lua_State* L, int lo);
 void tolua_get_function_by_refid(lua_State* L, int refid);
 void tolua_remove_function_by_refid(lua_State* L, int refid);
 int tolua_isfunction(lua_State* L, int lo, tolua_Error* err);
+int tolua_isfunction(lua_State* L, int lo);
 void tolua_stack_dump(lua_State* L, int offset, const char* label);
 int tolua_get_callback_ref_count();
 int tolua_get_max_callback_ref_count();

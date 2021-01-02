@@ -119,27 +119,50 @@ void tolua_dobuffer(lua_State* L, char* codes, unsigned int size, const char* na
 
 int tolua_ref_function(lua_State* L, int lo)
 {
-	/* function at lo */
-    if (!lua_isfunction(L, lo)) return 0;
-	int refid = tolua_alloc_callback_ref_id();
-	lua_pushvalue(L, lo); // fun
-	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // fun, funcMap
-	lua_insert(L, -2); // funcMap, fun
-    lua_rawseti(L, -2, refid); // funcMap[refid] = fun, funcMap
-	lua_pop(L, 1); // empty
-    return refid;
+	/* function or thread at lo */
+	int type = lua_type(L, lo);
+	if (type == LUA_TFUNCTION || type == LUA_TTHREAD)
+	{
+		int refid = tolua_alloc_callback_ref_id();
+		lua_pushvalue(L, lo); // fun
+		lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // fun, funcMap
+		lua_insert(L, -2); // funcMap, fun
+		lua_rawseti(L, -2, refid); // funcMap[refid] = fun, funcMap
+		lua_pop(L, 1); // empty
+		return refid;
+	}
+	return 0;
 }
 
 void tolua_get_function_by_refid(lua_State* L, int refid)
 {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
-    lua_rawgeti(L, -1, refid); // funcMap fun
-    lua_remove(L, -2); // fun
+	lua_rawgeti(L, -1, refid); // funcMap fun
+	lua_remove(L, -2); // fun
 }
 
 void tolua_remove_function_by_refid(lua_State* L, int refid)
 {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
+	lua_rawgeti(L, -1, refid); // funcMap func
+	if (lua_isthread(L, -1))
+	{
+		lua_State* co = lua_tothread(L, -1);
+		switch (lua_status(co))
+		{
+			case LUA_YIELD:
+			{
+				int state = lua_resetthread(co);
+				if (state != LUA_OK)
+				{
+					Error("[Lua] fail to close a suspended coroutine, due to {}.", lua_tostring(co, -1));
+					lua_pop(L, 1);
+				}
+				break;
+			}
+		}
+	}
+	lua_pop(L, 1); // funcMap
 	lua_pushboolean(L, 0); // funcMap false
 	lua_rawseti(L, -2, refid); // funcMap[refid] = false, funcMap
 	lua_pop(L, 1); // empty
@@ -148,43 +171,50 @@ void tolua_remove_function_by_refid(lua_State* L, int refid)
 
 int tolua_isfunction(lua_State* L, int lo, tolua_Error* err)
 {
-    if (lua_gettop(L) >= abs(lo) && lua_isfunction(L, lo))
-    {
-        return 1;
-    }
-    err->index = lo;
-    err->array = 0;
-    err->type = "function";
-    return 0;
+	int type = lua_type(L, lo);
+	if (lua_gettop(L) >= abs(lo) && (type == LUA_TFUNCTION || type == LUA_TTHREAD))
+	{
+		return 1;
+	}
+	err->index = lo;
+	err->array = 0;
+	err->type = "function or thread";
+	return 0;
+}
+
+int tolua_isfunction(lua_State* L, int lo)
+{
+	int type = lua_type(L, lo);
+	return type == LUA_TFUNCTION || type == LUA_TTHREAD;
 }
 
 void tolua_stack_dump(lua_State* L, int offset, const char* label)
 {
-    int top = lua_gettop(L) + offset;
+	int top = lua_gettop(L) + offset;
 	if (top == 0)
 	{
 		return;
 	}
-    LogPrint("Total [{}] in lua stack: {}\n", top, label != 0 ? label : "");
-    for (int i = -1; i >= -top; i--)
-    {
-        int t = lua_type(L, i);
-        switch (t)
-        {
-            case LUA_TSTRING:
-                LogPrint("  [{}] [string] {}\n", i, lua_tostring(L, i));
-                break;
-            case LUA_TBOOLEAN:
-                LogPrint("  [{}] [boolean] {}\n", i, lua_toboolean(L, i) ? "true" : "false");
-                break;
-            case LUA_TNUMBER:
-                LogPrint("  [{}] [number] {}\n", i, lua_tonumber(L, i));
-                break;
-            default:
-                LogPrint("  [{}] {}\n", i, lua_typename(L, t));
-                break;
-        }
-    }
+	LogPrint("Total [{}] in lua stack: {}\n", top, label != 0 ? label : "");
+	for (int i = -1; i >= -top; i--)
+	{
+		int t = lua_type(L, i);
+		switch (t)
+		{
+			case LUA_TSTRING:
+				LogPrint("  [{}] [string] {}\n", i, lua_tostring(L, i));
+				break;
+			case LUA_TBOOLEAN:
+				LogPrint("  [{}] [boolean] {}\n", i, lua_toboolean(L, i) ? "true" : "false");
+				break;
+			case LUA_TNUMBER:
+				LogPrint("  [{}] [number] {}\n", i, lua_tonumber(L, i));
+				break;
+			default:
+				LogPrint("  [{}] {}\n", i, lua_typename(L, t));
+				break;
+		}
+	}
 }
 
 Slice tolua_toslice(lua_State* L, int narg, const char* def)
