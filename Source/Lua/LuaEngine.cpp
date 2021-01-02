@@ -54,7 +54,7 @@ static int dora_traceback(lua_State* L)
 	lua_pushvalue(L, -3); // err debug traceback err
 	lua_pushinteger(L, 1); // err debug traceback err 1
 	lua_call(L, 2, 1); // traceback(err, 1), err debug msg
-	LogPrint(tolua_toslice(L, -1, nullptr).toString());
+	LogPrint(tolua_toslice(L, -1, nullptr));
 	lua_pop(L, 3); // empty
 	return 0;
 }
@@ -804,28 +804,71 @@ bool LuaEngine::call(lua_State* L, int paramCount, int returnCount)
 	int functionIndex = -(paramCount + 1);
 	int top = lua_gettop(L);
 	int traceIndex = std::max(functionIndex + top, 1);
-	if (!lua_isfunction(L, functionIndex))
+	int type = lua_type(L, functionIndex);
+	switch (type)
 	{
-		Error("[Lua] value at stack [{}] is not function in LuaEngine::call", functionIndex);
-		lua_pop(L, paramCount + 1); // remove function and arguments
-		return false;
-	}
+		case LUA_TFUNCTION:
+		{
+			lua_pushcfunction(L, dora_traceback); // func args... traceback
+			lua_insert(L, traceIndex); // traceback func args...
 
-	lua_pushcfunction(L, dora_traceback); // func args... traceback
-	lua_insert(L, traceIndex); // traceback func args...
+			++_callFromLua;
+			int error = lua_pcall(L, paramCount, returnCount, traceIndex); // traceback error ret
+			--_callFromLua;
 
-	++_callFromLua;
-	int error = lua_pcall(L, paramCount, returnCount, traceIndex); // traceback error ret
-	--_callFromLua;
+			lua_remove(L, traceIndex);
 
-	lua_remove(L, traceIndex);
-
-	if (error) // traceback error
-	{
-		return false;
+			if (error) // traceback error
+			{
+				return false;
+			}
+			break;
+		}
+		case LUA_TTHREAD:
+		{
+			int nres = 0;
+			lua_State* co = lua_tothread(L, functionIndex);
+			lua_xmove(L, co, paramCount);
+			lua_pop(L, 1);
+			++_callFromLua;
+			int res = lua_resume(co, nullptr, paramCount, &nres);
+			--_callFromLua;
+			if (res != LUA_OK && res != LUA_YIELD)
+			{
+				dora_traceback(co);
+				return false;
+			}
+			else lua_xmove(co, L, nres);
+			break;
+		}
+		default:
+			Error("[Lua] value at stack [{}] is not function or thread in LuaEngine::call", functionIndex);
+			lua_pop(L, paramCount + 1); // remove function and arguments
+			return false;
 	}
 #else
-	lua_call(L, paramCount, returnCount);
+	int type = lua_type(L, functionIndex);
+	switch (type)
+	{
+		case LUA_TFUNCTION:
+		{
+			lua_call(L, paramCount, returnCount);
+			break;
+		}
+		case LUA_TTHREAD:
+		{
+			int nres = 0;
+			lua_State* co = lua_tothread(L, -(paramCount + 1));
+			lua_xmove(L, co, paramCount);
+			lua_pop(L, 1);
+			int res = lua_resume(co, nullptr, paramCount, &nres);
+			if (res == LUA_OK || res == LUA_YIELD)
+			{
+				lua_xmove(co, L, nres);
+			}
+			break;
+		}
+	}
 #endif
 	return true;
 }
@@ -854,10 +897,10 @@ bool LuaEngine::execute(lua_State* L, int numArgs)
 bool LuaEngine::execute(lua_State* L, int handler, int numArgs)
 {
 	tolua_get_function_by_refid(L, handler); // args... func
-	if (!lua_isfunction(L, -1))
+	if (!tolua_isfunction(L, -1))
 	{
 		Slice name = tolua_typename(L, -1);
-		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function.", handler, name);
+		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name);
 		lua_pop(L, 2 + numArgs);
 		return 1;
 	}
@@ -868,10 +911,10 @@ bool LuaEngine::execute(lua_State* L, int handler, int numArgs)
 bool LuaEngine::invoke(lua_State* L, int handler, int numArgs, int numRets)
 {
 	tolua_get_function_by_refid(L, handler); // args... func
-	if (!lua_isfunction(L, -1))
+	if (!tolua_isfunction(L, -1))
 	{
 		Slice name = tolua_typename(L, -1);
-		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function.", handler, name);
+		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name);
 		lua_pop(L, 2 + numArgs);
 		return 1;
 	}

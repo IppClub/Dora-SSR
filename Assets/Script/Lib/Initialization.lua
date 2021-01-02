@@ -21,7 +21,8 @@ builtin.Platformer.AI = AI
 builtin.Platformer.Data = Data
 
 local yield = coroutine.yield
-local wrap = coroutine.wrap
+local create = coroutine.create
+local resume = coroutine.resume
 local table_insert = table.insert
 local table_remove = table.remove
 local type = type
@@ -35,7 +36,7 @@ local function wait(cond)
 end
 
 local function once(work)
-	return wrap(function(...)
+	return create(function(...)
 		work(...)
 		yield(false)
 		return true
@@ -43,7 +44,7 @@ local function once(work)
 end
 
 local function loop(work)
-	return wrap(function(...)
+	return create(function(...)
 		while work(...) ~= true do
 			yield(false)
 		end
@@ -111,7 +112,14 @@ setmetatable(Routine,
 Director.postScheduler:schedule(function()
 	local i,count = 1,#Routine
 	while i <= count do
-		local success,result = xpcall(Routine[i],debug.traceback)
+		local routine = Routine[i]
+		local type = type(routine)
+		local success, result
+		if type == "function" then
+			success, result = xpcall(routine, debug.traceback)
+		else
+			success, result = resume(routine)
+		end
 		if (success and result) or (not success) then
 			Routine[i] = Routine[count]
 			table_remove(Routine,count)
@@ -119,7 +127,11 @@ Director.postScheduler:schedule(function()
 			count = count-1
 		end
 		if not success then
-			print(result)
+			if type == "function" then
+				print(result)
+			else
+				print(debug.traceback(result))
+			end
 		end
 		i = i+1
 	end

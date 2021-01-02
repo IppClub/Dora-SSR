@@ -20,23 +20,28 @@ drawHeart = -> with nvg
 
 stopRendering = false
 
-Director.entry\addChild with VGNode 60,50,5
+Director.entry\addChild with VGNode 60, 50, 5
 	\render drawHeart
 	\slot "Cleanup",-> stopRendering = true
-	\runAction Sequence Scale(0.2,1.0,0.3),Scale(0.5,0.3,1.0,Ease.OutBack)
-	\slot "ActionEnd",=> \runAction @
+	\runAction Sequence(
+		Scale 0.2, 1.0, 0.3
+		Scale 0.5, 0.3, 1.0, Ease.OutBack
+	)
+	\slot "ActionEnd", => \runAction @
 
-drawAnimated = loop ->
-	cycle 0.2,(time)->
-		scale = 1-time*0.7
-		nvg.Scale scale,scale
-		drawHeart!
-	cycle 0.5,(time)->
-		scale = 0.3+Ease\func(Ease.OutBack,time)*0.7
-		nvg.Scale scale,scale
-		drawHeart!
+drawAnimated = coroutine.wrap ->
+	while true
+		cycle 0.2, (time)->
+			scale = 1 - 0.7 * time
+			nvg.Scale scale, scale
+			drawHeart!
+		cycle 0.5, (time)->
+			scale = 0.3 + 0.7 * Ease\func Ease.OutBack, time
+			nvg.Scale scale, scale
+			drawHeart!
+
 threadLoop ->
-	nvg.Scale 2,2
+	nvg.Scale 2, 2
 	drawAnimated!
 	stopRendering
 

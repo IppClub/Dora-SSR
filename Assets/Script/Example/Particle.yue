@@ -115,18 +115,19 @@ Item = (name)->
 					DataDirty = true
 					Data[name][3] = buffer\toString!
 
-work = loop ->
-	sleep 1
-	if DataDirty
-		DataDirty = false
-		Cache\update "__test__.par", "<A>"..table.concat(["<#{v[1]} A=\"#{toString v[3]}\"/>" for k,v in pairs Data]).."</A>"
-		particle\removeFromParent!
-		particle = with Particle "__test__.par"
-			\start!
-		Director.entry.children.first\addChild particle
+work = coroutine.wrap ->
+	while true
+		sleep 1
+		if DataDirty
+			DataDirty = false
+			Cache\update "__test__.par", "<A>"..table.concat(["<#{v[1]} A=\"#{toString v[3]}\"/>" for k,v in pairs Data]).."</A>"
+			particle\removeFromParent!
+			particle = with Particle "__test__.par"
+				\start!
+			Director.entry.children.first\addChild particle
 
 Director.entry\addChild with Node!
-	\schedule ->
+	\schedule loop ->
 		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width-400,10), "FirstUseEver"
 		SetNextWindowSize Vec2(390,height-80), "FirstUseEver"

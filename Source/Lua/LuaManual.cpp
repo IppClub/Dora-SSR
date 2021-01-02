@@ -260,7 +260,7 @@ int Node_slot(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'Node_slot'", NULL);
 #endif
 		Slice name = tolua_toslice(L, 2, 0);
-		if (lua_isfunction(L, 3))
+		if (tolua_isfunction(L, 3))
 		{
 			int handler = tolua_ref_function(L, 3);
 			self->slot(name, LuaFunction<void>(handler));
@@ -302,7 +302,7 @@ int Node_gslot(lua_State* L)
 		if (lua_isstring(L, 2))
 		{
 			Slice name = tolua_toslice(L, 2, 0);
-			if (lua_isfunction(L, 3)) // set
+			if (tolua_isfunction(L, 3)) // set
 			{
 				int handler = tolua_ref_function(L, 3);
 				Listener* listener =self->gslot(name, LuaFunction<void>(handler));
