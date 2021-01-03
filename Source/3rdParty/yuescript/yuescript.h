@@ -1,6 +1,6 @@
 R"yuescript_codes(
 --[[
-Copyright (C) 2020 by Leaf Corcoran, modified by Li Jin
+Copyright (C) 2020 by Leaf Corcoran, modified by Li Jin, 2021
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

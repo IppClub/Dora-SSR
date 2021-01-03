@@ -27,7 +27,7 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2020年 Dorothy-SSR. All rights reserved.</string>
+	<string>Copyright © 2021年 Dorothy-SSR. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>
