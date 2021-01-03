@@ -1,6 +1,6 @@
 /* tolua: funcitons to convert to C types
 ** Support code for Lua bindings.
-** Written by Waldemar Celes, modified by Jin Li, 2020
+** Written by Waldemar Celes, modified by Jin Li, 2021
 ** TeCGraf/PUC-Rio
 ** Apr 2003, Apr 2014
 ** $Id: $

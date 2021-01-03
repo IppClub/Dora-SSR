@@ -1,4 +1,4 @@
-/* Copyright (c) 2020 Jin Li, http://www.luvfight.me
+/* Copyright (c) 2021 Jin Li, http://www.luvfight.me
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -800,8 +800,8 @@ bool LuaEngine::scriptHandlerEqual(int handlerA, int handlerB)
 
 bool LuaEngine::call(lua_State* L, int paramCount, int returnCount)
 {
-#ifndef TOLUA_RELEASE
 	int functionIndex = -(paramCount + 1);
+#ifndef TOLUA_RELEASE
 	int top = lua_gettop(L);
 	int traceIndex = std::max(functionIndex + top, 1);
 	int type = lua_type(L, functionIndex);
@@ -858,7 +858,7 @@ bool LuaEngine::call(lua_State* L, int paramCount, int returnCount)
 		case LUA_TTHREAD:
 		{
 			int nres = 0;
-			lua_State* co = lua_tothread(L, -(paramCount + 1));
+			lua_State* co = lua_tothread(L, functionIndex);
 			lua_xmove(L, co, paramCount);
 			lua_pop(L, 1);
 			int res = lua_resume(co, nullptr, paramCount, &nres);
