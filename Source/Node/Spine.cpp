@@ -85,13 +85,12 @@ void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventTy
 	switch (type)
 	{
 		case spine::EventType_End:
-			_owner->emit("AnimationFinished"_slice, animationName, s_cast<Playable*>(_owner));
+			_owner->_currentAnimationName.clear();
 			break;
 		case spine::EventType_Event:
 			_owner->emit(animationName, s_cast<Playable*>(_owner));
 			break;
 		case spine::EventType_Complete:
-			_owner->_currentAnimationName.clear();
 			_owner->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_owner));
 			break;
 		case spine::EventType_Interrupt:
@@ -171,7 +170,7 @@ void Spine::setLook(String name)
 
 void Spine::setFaceRight(bool var)
 {
-	_skeleton->setScaleX(var ? 1.0f : -1.0f);
+	_skeleton->setScaleX(var ? -1.0f : 1.0f);
 	Playable::setFaceRight(var);
 }
 
@@ -195,12 +194,23 @@ float Spine::play(String name, bool loop)
 	auto animation = _skeletonData->getSkel()->findAnimation(spine::String{name.begin(), name.size(), false});
 	if (!animation)
 	{
-		return 0;
+		return 0.0f;
 	}
-	auto trackEntry = _animationState->setAnimation(0, spine::String(name.begin(), name.size(), false), loop);
-	trackEntry->setListener(&_listener);
 	_currentAnimationName = name;
-	return trackEntry->getTrackEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
+	float recoveryTime = _animationStateData->getDefaultMix();
+	if (recoveryTime > 0.0f)
+	{
+		_animationState->setEmptyAnimation(0, recoveryTime);
+		auto trackEntry = _animationState->addAnimation(0, spine::String(name.begin(), name.size(), false), loop, 0.0f);
+		trackEntry->setListener(&_listener);
+		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
+	}
+	else
+	{
+		auto trackEntry = _animationState->setAnimation(0, spine::String(name.begin(), name.size(), false), loop);
+		trackEntry->setListener(&_listener);
+		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
+	}
 }
 
 void Spine::stop()

@@ -159,6 +159,10 @@ bool ScriptUnitAction::isAvailable()
 void ScriptUnitAction::run()
 {
 	UnitAction::run();
+	if (auto playable = _owner->getPlayable())
+	{
+		playable->setRecovery(recovery);
+	}
 	_update = _create(_owner, s_cast<UnitAction*>(this));
 	if (_update(_owner, s_cast<UnitAction*>(this), 0.0f))
 	{
