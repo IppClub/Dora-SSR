@@ -839,7 +839,7 @@ namespace LuaAction
 						}
 						default:
 						{
-							luaL_error(L, "action named \"%s\" is not exist.", name.rawData());
+							luaL_error(L, "action named \"%s\" is not exist.", name.toString().c_str());
 							return Own<ActionDuration>();
 						}
 					}
@@ -1107,7 +1107,7 @@ static Own<Value> Dora_getValue(lua_State* L, int loc)
 					return Value::alloc(*r_cast<Platformer::TargetAllow*>(tolua_tousertype(L, loc, 0)));
 				default:
 #ifndef TOLUA_RELEASE
-					tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size and Rect in containers.", nullptr);
+					tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size, Rect and TargetAllow in containers.", nullptr);
 #endif // TOLUA_RELEASE
 					break;
 			}
@@ -1550,7 +1550,7 @@ int Entity_getOld(lua_State* L)
 	{
 		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
-		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_getCache'", nullptr);
+		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_getOld'", nullptr);
 #endif
 		Slice name = tolua_toslice(L, 2, nullptr);
 		Value* com = self->getOldCom(name);
@@ -1560,7 +1560,7 @@ int Entity_getOld(lua_State* L)
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
-	tolua_error(L, "#ferror in function 'Entity_getCache'.", &tolua_err);
+	tolua_error(L, "#ferror in function 'Entity_getOld'.", &tolua_err);
 	return 0;
 #endif
 }

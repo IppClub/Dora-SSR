@@ -322,12 +322,11 @@ bool Unit::start(String name)
 		if (action->isDoing()) return true;
 		if (action->isAvailable())
 		{
-			if (_currentAction != nullptr && _currentAction->isDoing())
+			if (_currentAction && _currentAction->isDoing())
 			{
 				if (_currentAction->getPriority() <= action->getPriority())
 				{
 					_currentAction->stop();
-					_currentAction = nullptr;
 				}
 				else
 				{
@@ -338,6 +337,10 @@ bool Unit::start(String name)
 			if (action->isDoing())
 			{
 				_currentAction = action;
+			}
+			else
+			{
+				_currentAction = nullptr;
 			}
 			return true;
 		}
@@ -350,6 +353,7 @@ void Unit::stop()
 	if (_currentAction && _currentAction->isDoing())
 	{
 		_currentAction->stop();
+		_currentAction = nullptr;
 	}
 }
 
