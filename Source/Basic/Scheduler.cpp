@@ -137,7 +137,7 @@ bool Scheduler::update(double deltaTime)
 		else
 		{
 			_actionList->fastRemoveAt(i);
-			if (i < _actionList->getCount())
+			if (i < s_cast<int>(_actionList->getCount()))
 			{
 				Action* action = _actionList->get(i)->as<Action>();
 				if (action)

@@ -52,12 +52,8 @@ bool Bullet::init()
 		Bullet::setFace(node);
 	}
 	Playable* playable = _owner->getPlayable();
-	auto scale = _owner->getUnitDef()->get(Unit::Def::Scale, 1.0f);
-	Vec2 offset = (playable ? playable->getKeyPoint(Def::BulletKey) : Vec2::zero) * Vec2{scale, scale};
-	Bullet::setPosition(
-		_owner->getPosition() +
-		(_owner->isFaceRight() ? offset : Vec2{-offset.x, offset.y})
-	);
+	Vec2 offset = (playable ? playable->getKeyPoint(Def::BulletKey) : Vec2::zero);
+	Bullet::setPosition(_owner->getPosition() + offset);
 	if (Body::getBodyDef()->getLinearAcceleration() != Vec2::zero)
 	{
 		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _owner->isFaceRight() ? v.x : -v.x)));

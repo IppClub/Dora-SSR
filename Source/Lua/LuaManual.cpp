@@ -390,7 +390,7 @@ bool Cache::load(String filename)
 				{
 					return SharedSkeletonCache.load(filename);
 				}
-				Error("fail to load unsupported resource \"{}\".", filename);
+				Error("failed to load unsupported resource \"{}\".", filename);
 				return false;
 			}
 		}
@@ -472,7 +472,7 @@ void Cache::update(String filename, String content)
 				SharedSVGCache.update(filename, content);
 				break;
 			default:
-				Error("fail to update unsupported resource \"{}\".", filename);
+				Error("failed to update unsupported resource \"{}\".", filename);
 				break;
 		}
 	}
@@ -516,7 +516,7 @@ bool Cache::unload(String name)
 			case "ogg"_hash:
 				return SharedSoundCache.unload(name);
 			default:
-				Warn("fail to unload resource \"{}\".", name);
+				Warn("failed to unload resource \"{}\".", name);
 				break;
 		}
 	}
@@ -623,7 +623,7 @@ void Cache::removeUnused(String name)
 			SharedSoundCache.removeUnused();
 			break;
 		default:
-			Error("fail to remove unused cache type \"{}\".", name);
+			Error("failed to remove unused cache type \"{}\".", name);
 			break;
 	}
 }

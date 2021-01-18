@@ -1154,7 +1154,7 @@ string XmlDelegator::compileYueCodes(const char* codes)
 	auto result = yue::YueCompiler{}.compile(fmt::format("do\n{}", codes), config);
 	if (result.codes.empty())
 	{
-		lastError += fmt::format("Fail to compile yue codes started at line {}\n{}", parser->getLineNumber(codes), result.error);
+		lastError += fmt::format("failed to compile yue codes started at line {}\n{}", parser->getLineNumber(codes), result.error);
 	}
 	return std::move(result.codes);
 }

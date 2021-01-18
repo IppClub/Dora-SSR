@@ -156,14 +156,47 @@ void Spine::setLook(String name)
 	if (name.empty())
 	{
 		_skeleton->setSkin(nullptr);
+		_skeleton->setSlotsToSetupPose();
+		Playable::setLook(name);
 	}
 	else
 	{
-		auto skin = _skeletonData->getSkel()->findSkin(spine::String{name.begin(), name.size(), false});
-		if (skin)
+		Slice skinName = Slice::Empty, skinStr = name;
+		auto tokens = name.split(":"_slice);
+		if (tokens.size() == 2)
 		{
-			_skeleton->setSkin(skin);
-			Playable::setLook(name);
+			skinName = tokens.front();
+			skinStr = tokens.back();
+		}
+		tokens = skinStr.split(";"_slice);
+		if (!skinName.empty() || tokens.size() > 1)
+		{
+			if (skinName.empty())
+			{
+				skinName = "unnamed"_slice;
+			}
+			_newSkin = New<spine::Skin>(spine::String{skinName.begin(), skinName.size(), false});
+			for (const auto& token : tokens)
+			{
+				auto skin = _skeletonData->getSkel()->findSkin(spine::String{token.begin(), token.size(), false});
+				if (skin)
+				{
+					_newSkin->addSkin(skin);
+				}
+			}
+			_skeleton->setSkin(_newSkin.get());
+			_skeleton->setSlotsToSetupPose();
+			Playable::setLook(skinName);
+		}
+		else
+		{
+			auto skin = _skeletonData->getSkel()->findSkin(spine::String{name.begin(), name.size(), false});
+			if (skin)
+			{
+				_skeleton->setSkin(skin);
+				_skeleton->setSlotsToSetupPose();
+				Playable::setLook(name);
+			}
 		}
 	}
 }
@@ -181,10 +214,45 @@ const string& Spine::getCurrentAnimationName() const
 
 Vec2 Spine::getKeyPoint(String name) const
 {
-	auto bone = _skeleton->findBone(spine::String{name.begin(),name.size(),false});
-	if (bone)
+	auto tokens = name.split("/"_slice);
+	if (tokens.size() == 1)
 	{
-		return Vec2{bone->getWorldX(), bone->getWorldY()};
+		auto slotName = spine::String{name.begin(),name.size(),false};
+		auto slotIndex = _skeleton->findSlotIndex(slotName);
+		if (slotIndex < 0) return Vec2::zero;
+		if (auto skin = _skeleton->getSkin())
+		{
+			spine::Vector<spine::Attachment*> attachments;
+			skin->findAttachmentsForSlot(slotIndex, attachments);
+			for (size_t i = 0; i < attachments.size(); ++i)
+			{
+				auto attachment = attachments[i];
+				if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti))
+				{
+					spine::PointAttachment* point = s_cast<spine::PointAttachment*>(attachment);
+					Vec2 res = Vec2::zero;
+					auto& bone = _skeleton->getSlots()[slotIndex]->getBone();
+					point->computeWorldPosition(bone, res.x, res.y);
+					return res;
+				}
+			}
+		}
+		else if (tokens.size() == 2)
+		{
+			auto slotName = spine::String{tokens.front().begin(), tokens.front().size(), false};
+			int slotIndex = _skeleton->findSlotIndex(slotName);
+			if (slotIndex < 0) return Vec2::zero;
+			auto attachmentName = spine::String{tokens.back().begin(),tokens.back().size(),false};
+			auto attachment = _skeleton->getAttachment(slotIndex, attachmentName);
+			if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti))
+			{
+				spine::PointAttachment* point = s_cast<spine::PointAttachment*>(attachment);
+				Vec2 res = Vec2::zero;
+				auto& bone = _skeleton->getSlots()[slotIndex]->getBone();
+				point->computeWorldPosition(bone, res.x, res.y);
+				return res;
+			}
+		}
 	}
 	return Vec2::zero;
 }
@@ -215,7 +283,7 @@ float Spine::play(String name, bool loop)
 
 void Spine::stop()
 {
-	_animationState->setEmptyAnimation(0, _animationStateData->getDefaultMix());
+	_animationState->clearTrack(0);
 }
 
 void Spine::visit()

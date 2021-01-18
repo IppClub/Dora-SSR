@@ -32,7 +32,7 @@ bool SoundFile::init()
 	_data.reset();
 	if (result)
 	{
-		Warn("fail to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
+		Warn("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
 		return false;
 	}
 	return true;
@@ -49,7 +49,7 @@ bool SoundStream::init()
 	SoLoud::result result = _stream.loadMem(_data.get(), s_cast<Uint32>(_size), false, false);
 	if (result)
 	{
-		Error("fail to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
+		Error("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
 		return false;
 	}
 	return true;
@@ -81,7 +81,7 @@ bool Audio::init()
 	SoLoud::result result = _soloud.init();
 	if (result)
 	{
-		Error("fail to init soloud engine deal to reason: {}.", _soloud.getErrorString(result));
+		Error("failed to init soloud engine deal to reason: {}.", _soloud.getErrorString(result));
 		return false;
 	}
 	return true;

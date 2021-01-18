@@ -54,7 +54,7 @@ SoundFile* SoundCache::load(String filename)
 			}
 			else
 			{
-				Warn("fail to load sound file \"{}\".", filename);
+				Warn("failed to load sound file \"{}\".", filename);
 				return nullptr;
 			}
 		}
@@ -85,7 +85,7 @@ void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& ha
 				}
 				else
 				{
-					Warn("fail to load sound file \"{}\".", fullPath);
+					Warn("failed to load sound file \"{}\".", fullPath);
 					handler(nullptr);
 				}
 			});

@@ -79,7 +79,7 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 	auto atlas = SharedAtlasCache.load(atlasFile);
 	if (!atlas)
 	{
-		Warn("fail to load atlas \"{}\"", atlasFile);
+		Warn("failed to load atlas \"{}\"", atlasFile);
 		return nullptr;
 	}
 	SkeletonData* skeletonData = nullptr;
@@ -107,7 +107,7 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 		_skeletons[cacheKey] = skeletonData;
 		return skeletonData;
 	}
-	Warn("fail to load skeleton data \"{}\".", skelFile);
+	Warn("failed to load skeleton data \"{}\".", skelFile);
 	return nullptr;
 }
 
@@ -127,7 +127,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 	{
 		if (!atlas)
 		{
-			Warn("fail to load skeleton data \"{}\".", file);
+			Warn("failed to load skeleton data \"{}\".", file);
 			handler(nullptr);
 			return;
 		}
@@ -136,7 +136,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 		{
 			if (!data)
 			{
-				Warn("fail to load skeleton data \"{}\".", file);
+				Warn("failed to load skeleton data \"{}\".", file);
 				return;
 			}
 			auto skelData = std::make_shared<std::tuple<string, OwnArray<Uint8>, size_t>>(std::move(file), std::move(data), size);
@@ -179,7 +179,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 					handler(data);
 					return;
 				}
-				Warn("fail to load skeleton data \"{}\".", file);
+				Warn("failed to load skeleton data \"{}\".", file);
 				handler(nullptr);
 				return;
 			});

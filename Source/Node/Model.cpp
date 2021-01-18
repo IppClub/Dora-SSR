@@ -499,7 +499,7 @@ Model::NodeMap& Model::nodeMap()
 	return *_nodeMap;
 }
 
-Node* Model::getNodeByName(String name)
+Node* Model::getNodeByName(String name) const
 {
 	if (!_nodeMap)
 	{
@@ -539,7 +539,24 @@ const string& Model::getCurrentAnimationName() const
 
 Vec2 Model::getKeyPoint(String name) const
 {
-	return _modelDef->getKeyPoint(name);
+	auto& keyPoints = _modelDef->getKeyPoints();
+	auto it = keyPoints.find(name);
+	if (it != keyPoints.end())
+	{
+		auto keyPoint = it->second;
+		if (!isFaceRight())
+		{
+			keyPoint.x = -keyPoint.x;
+		}
+		return keyPoint * Vec2{_scaleX, _scaleY};
+	}
+	if (auto node = getNodeByName(name))
+	{
+		auto target = node->convertToWorldSpace(Vec2::zero);
+		Vec3 origin = Vec3::from(bx::mul(bx::Vec3{0.0f, 0.0f, 0.0f}, _world));
+		return target - origin.toVec2();
+	}
+	return Vec2::zero;
 }
 
 Animation::Animation(Node* node, Action* action):

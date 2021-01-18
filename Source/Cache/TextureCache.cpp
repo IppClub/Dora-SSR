@@ -176,7 +176,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 	{
 		if (!data)
 		{
-			Warn("fail to read file data from \"{}\".", file);
+			Warn("failed to read file data from \"{}\".", file);
 			handler(nullptr);
 			return;
 		}

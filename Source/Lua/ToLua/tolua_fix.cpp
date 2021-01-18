@@ -155,7 +155,7 @@ void tolua_remove_function_by_refid(lua_State* L, int refid)
 				int state = lua_resetthread(co);
 				if (state != LUA_OK)
 				{
-					Error("[Lua] fail to close a suspended coroutine, due to {}.", lua_tostring(co, -1));
+					Error("[Lua] failed to close a suspended coroutine, due to {}.", lua_tostring(co, -1));
 					lua_pop(L, 1);
 				}
 				break;

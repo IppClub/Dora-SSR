@@ -227,7 +227,7 @@ bool Director::init()
 	_nvgContext = nvgCreate(1, 0);
 	if (!_nvgContext)
 	{
-		Error("fail to init NanoVG context!");
+		Error("failed to init NanoVG context!");
 		return false;
 	}
 	SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
