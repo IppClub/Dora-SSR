@@ -124,7 +124,7 @@ list<string> Content::getAllFiles(String path)
 	}
 	else
 	{
-		Error("Content fail to get entry of \"{}\"", fullPath);
+		Error("Content failed to get entry of \"{}\"", fullPath);
 	}
 	return files;
 }
@@ -437,7 +437,7 @@ list<string> Content::getDirEntries(String path, bool isFolder)
 	}
 	else
 	{
-		Error("Content fail to get entry of \"{}\"", fullPath);
+		Error("Content failed to get entry of \"{}\"", fullPath);
 	}
 	return files;
 }
@@ -494,7 +494,7 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 	}
 	if (!data)
 	{
-		Error("fail to load file: {}", fullPath);
+		Error("failed to load file: {}", fullPath);
 	}
 	return data;
 }
@@ -679,7 +679,7 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Error("fail to load file: {}", filename);
+		Error("failed to load file: {}", filename);
 		return nullptr;
 	}
 	size = SDL_RWsize(io);
@@ -696,7 +696,7 @@ void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
-		Error("fail to load file: {}", fullPath);
+		Error("failed to load file: {}", fullPath);
 		return;
 	}
 	Uint8 buffer[DORA_COPY_BUFFER_SIZE];

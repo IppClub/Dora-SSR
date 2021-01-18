@@ -234,7 +234,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 
 	if (!fileData)
 	{
-		Warn("fail to load ttf file for ImGui!");
+		Warn("failed to load ttf file for ImGui!");
 		return;
 	}
 	

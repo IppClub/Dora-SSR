@@ -116,7 +116,7 @@ public:
 	void updateTo(float eclapsed, bool reversed = false);
 	int getCurrentAnimationIndex() const;
 	ModelDef* getModelDef() const;
-	Node* getNodeByName(String name);
+	Node* getNodeByName(String name) const;
 	bool eachNode(function<bool(Node* node)>) const;
 	class AnimationHandlerGroup
 	{

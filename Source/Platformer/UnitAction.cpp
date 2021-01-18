@@ -451,10 +451,6 @@ void Attack::update(float dt)
 		if (!attackEffect.empty())
 		{
 			Vec2 key = _owner->getPlayable()->getKeyPoint(ActionSetting::AttackKey);
-			if (!_owner->isFaceRight())
-			{
-				key.x = -key.x;
-			}
 			Visual* effect = Visual::create(attackEffect);
 			effect->setPosition(key);
 			effect->addTo(_owner);

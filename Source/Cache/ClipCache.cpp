@@ -80,7 +80,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr)
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-		Warn("fail to get clip from clipStr \"{}\".", clipStr);
+		Warn("failed to get clip from clipStr \"{}\".", clipStr);
 		return {};
 	}
 	else
@@ -91,7 +91,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr)
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-		Warn("fail to get texture from clipStr \"{}\".", clipStr);
+		Warn("failed to get texture from clipStr \"{}\".", clipStr);
 		return {};
 	}
 }

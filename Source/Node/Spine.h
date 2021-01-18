@@ -50,6 +50,7 @@ private:
 	Own<spine::Skeleton> _skeleton;
 	Own<spine::AnimationState> _animationState;
 	Own<spine::AnimationStateData> _animationStateData;
+	Own<spine::Skin> _newSkin;
 	enum
 	{
 		DepthWrite = Node::UserFlag,

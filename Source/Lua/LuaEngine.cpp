@@ -255,7 +255,7 @@ static int dora_loadlibs(lua_State* L)
 	if (lua_pcall(L, 0, 0, 0) != 0) {
 		string err = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		Error("fail to open lib yue.\n{}", err);
+		Error("failed to open lib yue.\n{}", err);
 	}
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
@@ -313,7 +313,7 @@ static int dora_yuecompile(lua_State* L)
 		SharedContent.loadFileAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
 		{
 			if (!codes) {
-				Warn("fail to get yue source codes from \"{}\".", src);
+				Warn("failed to get yue source codes from \"{}\".", src);
 			} else {
 				auto input = std::make_shared<std::tuple<
 					string, string, OwnArray<Uint8>, size_t>>(

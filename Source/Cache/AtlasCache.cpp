@@ -65,7 +65,7 @@ Atlas* AtlasCache::load(String filename)
 		_atlas[fullPath] = atlas;
 		return atlas;
 	}
-	Warn("fail to load atlas \"{}\".", filename);
+	Warn("failed to load atlas \"{}\".", filename);
 	return nullptr;
 }
 
@@ -84,7 +84,7 @@ void AtlasCache::loadAsync(String filename, const function<void(Atlas*)>& handle
 	{
 		if (data.empty())
 		{
-			Warn("fail to async load atlas \"{}\".", file);
+			Warn("failed to async load atlas \"{}\".", file);
 			handler(nullptr);
 			return;
 		}
@@ -117,7 +117,7 @@ void AtlasCache::loadAsync(String filename, const function<void(Atlas*)>& handle
 				else
 				{
 					failed = true;
-					Warn("fail to load texture \"{}\" of atlas \"{}\".", texFile, file);
+					Warn("failed to load texture \"{}\" of atlas \"{}\".", texFile, file);
 				}
 				count++;
 				if (count == total)
