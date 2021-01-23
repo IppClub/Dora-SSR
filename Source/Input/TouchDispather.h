@@ -38,6 +38,7 @@ public:
 	};
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_READONLY_BOOL(Mouse);
+	PROPERTY_READONLY_BOOL(First);
 	PROPERTY_READONLY(int, Id);
 	PROPERTY_READONLY(Vec2, Delta);
 	PROPERTY_READONLY_CREF(Vec2, Location);
@@ -59,7 +60,8 @@ private:
 	{
 		Enabled = 1,
 		Selected = 1 << 1,
-		IsMouse = 1 << 2
+		IsMouse = 1 << 2,
+		IsFirst = 1 << 3,
 	};
 	static Uint32 _source;
 	friend class NodeTouchHandler;

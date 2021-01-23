@@ -71,7 +71,7 @@ Director.entry\addChild with Node!
 	\addChild particle
 	.touchEnabled = true
 	\slot "TapMoved",(touch)->
-		return unless touch.id == 0
+		return unless touch.first
 		particle.position += touch.delta/2
 
 -- example codes ends here, some test ui below --

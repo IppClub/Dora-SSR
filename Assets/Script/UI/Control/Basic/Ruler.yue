@@ -205,7 +205,7 @@ export default Class Ruler,
 				else @unschedule!
 
 		@slot "TapFilter", (touch)->
-			touch.enabled = false unless touch.id == 0
+			touch.enabled = false unless touch.first
 
 		@slot "TapBegan",->
 			_s = 0

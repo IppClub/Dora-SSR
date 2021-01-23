@@ -9,7 +9,7 @@ export default Class CircleButton,
 	__init:(args)=>
 		@_text = @label.text if @label
 		@slot "TapFilter", (touch)->
-			touch.enabled = false unless touch.id == 0
+			touch.enabled = false unless touch.first
 		@slot "Tapped",->
 			enabled = @touchEnabled
 			@touchEnabled = false

@@ -67,7 +67,7 @@ TextInput = Class ((args)->
 			label.text = .hint if textDisplay == ""
 
 		.touchEnabled = true
-		\slot "Tapped",(touch)-> startEditing! if touch.id == 0
+		\slot "Tapped",(touch)-> startEditing! if touch.first
 
 		\slot "KeyPressed",(key)->
 			if App.platform == "Android" and utf8.len(textEditing) == 1
