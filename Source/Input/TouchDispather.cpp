@@ -47,6 +47,11 @@ bool Touch::isMouse() const
 	return _flags.isOn(Touch::IsMouse);
 }
 
+bool Touch::isFirst() const
+{
+	return _flags.isOn(Touch::IsFirst);
+}
+
 int Touch::getId() const
 {
 	return _id;
@@ -141,7 +146,7 @@ bool NodeTouchHandler::handle(const SDL_Event& event)
 
 Touch* NodeTouchHandler::alloc(SDL_FingerID fingerId)
 {
-	auto it  = _touchMap.find(fingerId);
+	auto it = _touchMap.find(fingerId);
 	if (it != _touchMap.end())
 	{
 		return it->second;
@@ -154,6 +159,10 @@ Touch* NodeTouchHandler::alloc(SDL_FingerID fingerId)
 			touch->_flags.setOn(Touch::IsMouse);
 		}
 		_touchMap[fingerId] = touch;
+		if (_touchMap.size() == 1)
+		{
+			touch->_flags.setOn(Touch::IsFirst);
+		}
 		return touch;
 	}
 	else
@@ -161,6 +170,10 @@ Touch* NodeTouchHandler::alloc(SDL_FingerID fingerId)
 		int touchId = _availableTouchIds.top();
 		Touch* touch = Touch::create(touchId);
 		_touchMap[fingerId] = touch;
+		if (_touchMap.size() == 1)
+		{
+			touch->_flags.setOn(Touch::IsFirst);
+		}
 		_availableTouchIds.pop();
 		return touch;
 	}
@@ -178,7 +191,7 @@ Touch* NodeTouchHandler::get(SDL_FingerID fingerId)
 
 void NodeTouchHandler::collect(SDL_FingerID fingerId)
 {
-	auto it  = _touchMap.find(fingerId);
+	auto it = _touchMap.find(fingerId);
 	if (it != _touchMap.end())
 	{
 		_availableTouchIds.push(it->second->_id);

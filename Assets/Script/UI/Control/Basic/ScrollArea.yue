@@ -149,7 +149,7 @@ export default Class ScrollArea,
 			false
 
 		@slot "TapFilter",(touch)->
-			if touch.id ~= 0 or not Rect(-width/2,-height/2,width,height)\containsPoint touch.location
+			if not touch.first or not Rect(-width/2,-height/2,width,height)\containsPoint touch.location
 				touch.enabled = false
 
 		@slot "TapBegan",(touch)->
