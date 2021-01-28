@@ -311,9 +311,16 @@ void Application::updateWindowSize()
 {
 	SDL_GL_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
+	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
+	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+	SDL_GetCurrentDisplayMode(displayIndex, &displayMode);
+	if (displayMode.refresh_rate > 0)
+	{
+		_maxFPS = displayMode.refresh_rate;
+	}
 #if BX_PLATFORM_WINDOWS
 	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
-	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
+	SDL_GetDisplayDPI(displayIndex, nullptr, &hdpi, &vdpi);
 	_visualWidth = MulDiv(_winWidth, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
 	_visualHeight = MulDiv(_winHeight, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
 #elif BX_PLATFORM_ANDROID
@@ -554,10 +561,11 @@ void Application::setupSdlWindow()
 	pd.nwh = wmi.info.android.window;
 #endif // BX_PLATFORM
 #if BX_PLATFORM_WINDOWS
+	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
 	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
-	SDL_GetDisplayDPI(0, nullptr, &hdpi, &vdpi);
-	SDL_DisplayMode displayMode{};
-	SDL_GetCurrentDisplayMode(0, &displayMode);
+	SDL_GetDisplayDPI(displayIndex, nullptr, &hdpi, &vdpi);
+	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+	SDL_GetCurrentDisplayMode(displayIndex, &displayMode);
 	int screenWidth = MulDiv(displayMode.w, DEFAULT_WIN_DPI, s_cast<int>(hdpi));
 	int screenHeight = MulDiv(displayMode.h, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
 	_visualWidth = Math::clamp(_visualWidth, 0, screenWidth);

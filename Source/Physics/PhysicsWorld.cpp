@@ -284,6 +284,11 @@ void PhysicsWorld::setIterations(int velocityIter, int positionIter)
 {
 	_stepConf.regVelocityIterations = velocityIter;
 	_stepConf.regPositionIterations = positionIter;
+	_stepConf.toiVelocityIterations = velocityIter;
+	if (positionIter == 0)
+	{
+		_stepConf.toiPositionIterations = 0;
+	}
 }
 
 bool PhysicsWorld::update(double deltaTime)
@@ -291,6 +296,7 @@ bool PhysicsWorld::update(double deltaTime)
 	if (isUpdating())
 	{
 		_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
+		_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
 		_world.Step(_stepConf);
 		const auto& bodies = _world.GetBodies();
 		for (pr::BodyID b : bodies)

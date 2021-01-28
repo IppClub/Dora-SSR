@@ -12,6 +12,12 @@ void Application::updateWindowSize()
 	_bufferWidth = bounds.size.width * scale;
 	_bufferHeight = bounds.size.height * scale;
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
+	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+	SDL_GetWindowDisplayMode(_sdlWindow, &displayMode);
+	if (displayMode.refresh_rate > 0)
+	{
+		_maxFPS = displayMode.refresh_rate;
+	}
 	_visualWidth = _winWidth;
 	_visualHeight = _winHeight;
 }
