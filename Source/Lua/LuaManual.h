@@ -261,6 +261,10 @@ namespace ImGui { namespace Binding
 	void Columns(int count = 1, bool border = true);
 	void Columns(int count, bool border, const char* id);
 
+	bool BeginTable(const char* str_id, int column, String flags = nullptr, const Vec2& outer_size = Vec2::zero, float inner_width = 0.0f);
+	void TableNextRow(String row_flags = nullptr, float min_row_height = 0.0f);
+	void TableSetupColumn(const char* label, String flags = nullptr, float init_width_or_weight = 0.0f, ImU32 user_id = 0);
+
 	void SetStyleVar(String name, bool var);
 	void SetStyleVar(String name, float var);
 	void SetStyleVar(String name, const Vec2& var);
@@ -279,4 +283,10 @@ namespace ImGui { namespace Binding
 	ImGuiCond_ getSetCond(String cond);
 	ImGuiPopupFlags getPopupFlag(String flag);
 	Uint32 getPopupCombinedFlags(String flags);
+	ImGuiTableFlags_ getTableFlags(String flag);
+	Uint32 getTableCombinedFlags(String flags);
+	ImGuiTableRowFlags_ getTableRowFlags(String flag);
+	Uint32 getTableRowCombinedFlags(String flags);
+	ImGuiTableColumnFlags_ getTableColumnFlags(String flag);
+	Uint32 getTableColumnCombinedFlags(String flags);
 } }

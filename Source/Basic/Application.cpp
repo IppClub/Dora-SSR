@@ -314,7 +314,7 @@ void Application::updateWindowSize()
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
 	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
 	SDL_GetCurrentDisplayMode(displayIndex, &displayMode);
-	if (displayMode.refresh_rate > 0)
+	if (!_fpsLimited && displayMode.refresh_rate > 0)
 	{
 		_maxFPS = displayMode.refresh_rate;
 	}

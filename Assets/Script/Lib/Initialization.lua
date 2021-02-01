@@ -519,7 +519,7 @@ ImGui.BeginMenu = pairCallC(ImGui.BeginMenu,ImGui.EndMenu)
 ImGui.EndMenu = nil
 ImGui.PushStyleColor = pairCallC(ImGui.PushStyleColor,ImGui.PopStyleColor)
 ImGui.PopStyleColor = nil
-ImGui.PushStyleVar = pairCallC(ImGui.PushStyleVar,ImGui.EndMenu)
+ImGui.PushStyleVar = pairCallC(ImGui.PushStyleVar,ImGui.PopStyleVar)
 ImGui.PopStyleVar = nil
 ImGui.PushItemWidth = pairCallC(ImGui.PushItemWidth,ImGui.PopItemWidth)
 ImGui.PopItemWidth = nil
@@ -535,6 +535,8 @@ ImGui.TreePush = pairCallC(ImGui.TreePush,ImGui.TreePop)
 ImGui.TreePop = nil
 ImGui.PushClipRect = pairCallC(ImGui.PushClipRect,ImGui.PopClipRect)
 ImGui.PopClipRect = nil
+ImGui.BeginTable = pairCallB(ImGui.BeginTable,ImGui.EndTable)
+ImGui.EndTable = nil
 
 -- Helpers
 

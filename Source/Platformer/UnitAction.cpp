@@ -484,7 +484,7 @@ void Attack::onAnimationEnd(Event* e)
 float Attack::getDamage(Unit* target)
 {
 	auto damageType = _owner->getUnitDef()->get(ActionSetting::DamageType, 0.0f);
-	auto defenceType = _owner->getUnitDef()->get(ActionSetting::DefenceType, 0.0f);
+	auto defenceType = target->getUnitDef()->get(ActionSetting::DefenceType, 0.0f);
 	auto attackBase = _owner->getUnitDef()->get(ActionSetting::AttackBase, 0.0f);
 	auto attackBonus = _owner->getUnitDef()->get(ActionSetting::AttackBonus, 0.0f);
 	auto attackFactor = _owner->getUnitDef()->get(ActionSetting::AttackFactor, 1.0f);

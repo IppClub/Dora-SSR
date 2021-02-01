@@ -316,7 +316,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		case Xml::Model::Element::KeyPoint:
 		{
 			Slice key;
-			Vec2 keyPoint;
+			Vec2 keyPoint{};
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
 				switch (Xml::Model::KeyPoint(attrs[i].first[0]))

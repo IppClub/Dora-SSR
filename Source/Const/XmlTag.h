@@ -193,7 +193,7 @@ namespace Model
 	enum struct KeyPoint
 	{
 		Key = 'A',
-		Position = 'B'
+		Position = 'D'
 	};
 };
 

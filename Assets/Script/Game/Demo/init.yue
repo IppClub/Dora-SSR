@@ -643,7 +643,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 
 -- background
 
-size,grid = 1500,100
+size,grid = 1500,150
 
 background = -> with DrawNode!
 	.is3D = true

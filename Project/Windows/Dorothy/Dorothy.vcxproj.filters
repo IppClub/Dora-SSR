@@ -867,6 +867,9 @@
     <ClCompile Include="..\..\..\Source\Support\Value.cpp">
       <Filter>Support</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_tables.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">

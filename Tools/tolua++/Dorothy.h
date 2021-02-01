@@ -364,9 +364,6 @@ class Node : public Object
 	Vec2 convertToWorldSpace(Vec2 nodePoint);
 	void convertToWindowSpace(Vec2 nodePoint, tolua_function_void callback);
 
-	void scheduleUpdate();
-	void unscheduleUpdate();
-
 	tolua_outside bool Node_eachChild @ eachChild(tolua_function_bool func);
 	bool traverse(tolua_function_bool func);
 	bool traverseAll(tolua_function_bool func);

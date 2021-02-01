@@ -1,0 +1,1022 @@
+_ENV = Dorothy builtin.Platformer, builtin.ImGui
+import "UI.Control.Basic.AlignNode"
+import "UI.Control.Basic.CircleButton"
+import "Utils" as {:Set}
+store:Store = Data
+
+-- settings
+
+mutables = {
+	"hp"
+	"moveSpeed"
+	"move"
+	"jump"
+	"targetAllow"
+	"attackBase"
+	"attackPower"
+	"attackSpeed"
+	"damageType"
+	"attackBonus"
+	"attackFactor"
+	"attackTarget"
+	"defenceType"
+}
+
+elementTypes =
+	Green: 1
+	Red: 2
+	Yellow: 3
+	Purple: 4
+
+with Data
+	\setDamageFactor elementTypes.Green, elementTypes.Red, 3
+	\setDamageFactor elementTypes.Red, elementTypes.Yellow, 3
+	\setDamageFactor elementTypes.Yellow, elementTypes.Green, 3
+
+itemSlots =
+	* "head"
+	* "mask"
+	* "body"
+	* "lhand"
+	* "rhand"
+
+headItems =
+	* "item_hat"
+	* "item_hatTop"
+	* "item_helmet"
+	* "item_helmetModern"
+
+lhandItems =
+	* "item_shield"
+	* "item_shieldRound"
+	* "tile_heart"
+	* "ui_hand"
+
+rhandItems =
+	* "item_bow"
+	* "item_sword"
+	* "item_rod"
+	* "item_spear"
+
+characterTypes =
+	* "square"
+	* "round"
+
+characterColors =
+	* "Green"
+	* "Red"
+	* "Yellow"
+
+masks = {
+	"bear"
+	"buffalo"
+	"chick"
+	"chicken"
+	"cow"
+	"crocodile"
+	"dog"
+	"duck"
+	"elephant"
+	"frog"
+	"giraffe"
+	"goat"
+	"gorilla"
+	"hippo"
+	"horse"
+	"monkey"
+	"moose"
+	"narwhal"
+	"owl"
+	"panda"
+	"parrot"
+	"penguin"
+	"pig"
+	"rabbit"
+	"rhino"
+	"sloth"
+	"snake"
+	"walrus"
+	"whale"
+	"zebra"
+}
+
+itemSettings =
+	item_hat:
+		name: "普通帽子"
+		skill: "jump"
+		skillDesc: "跳跃"
+		offset: Vec2 0,30
+
+	item_hatTop:
+		name: "高帽子"
+		skill: "evade"
+		skillDesc: "闪避"
+		offset: Vec2 0,30
+
+	item_helmet:
+		name: "战盔"
+		skill: "rush"
+		skillDesc: "冲锋"
+		offset: Vec2 0,0
+
+	item_helmetModern:
+		name: "橄榄球盔"
+		skill: "rush"
+		skillDesc: "冲锋"
+		offset: Vec2 0,0
+
+	item_shield:
+		name: "方形盾"
+		skill: ""
+		skillDesc: "无"
+		offset: Vec2 0,0
+
+	item_shieldRound:
+		name: "小圆盾"
+		skill: "jump"
+		skillDesc: "跳跃"
+		offset: Vec2 0,0
+
+	tile_heart:
+		name: "爱心"
+		skill: "jump"
+		skillDesc: "跳跃"
+		offset: Vec2 0,0
+		attackPower: Vec2 600,0
+
+	ui_hand:
+		name: "手套"
+		skill: "evade"
+		skillDesc: "闪避"
+		offset: Vec2 0,0
+
+	item_bow:
+		name: "短弓"
+		skill: "range"
+		skillDesc: "远程攻击"
+		offset: Vec2 10,0
+		attackRange: Size 550,150
+		sndAttack: "Audio/d_att.wav"
+
+	item_sword:
+		name: "剑"
+		skill: "meleeAttack"
+		skillDesc: "近程攻击"
+		offset: Vec2 15,50
+		attackRange: Size 120,150
+		sndAttack: "Audio/f_att.wav"
+
+	item_rod:
+		name: "法杖"
+		skill: "meleeAttack"
+		skillDesc: "近程攻击"
+		offset: Vec2 15,50
+		attackRange: Size 200,150
+		attackPower: Vec2 100,800
+		sndAttack: "Audio/b_att.wav"
+
+	item_spear:
+		name: "长矛"
+		skill: "meleeAttack"
+		skillDesc: "近程攻击"
+		offset: Vec2 15,50
+		attackRange: Size 200,150
+		sndAttack: "Audio/f_att.wav"
+
+GamePaused = true
+
+-- background
+
+size,grid = 1500,150
+
+background = -> with DrawNode!
+	.is3D = true
+	\drawPolygon {
+		Vec2 -size,size
+		Vec2 size,size
+		Vec2 size,-size
+		Vec2 -size,-size
+	}, Color 0xff888888
+	\addChild with Line!
+		.is3D = true
+		.z = -10
+		for i = -size/grid,size/grid
+			\add {
+				Vec2 i*grid,size
+				Vec2 i*grid,-size
+			}, Color 0xff000000
+			\add {
+				Vec2 -size,i*grid
+				Vec2 size,i*grid
+			}, Color 0xff000000
+
+Director.entry\addChild with background!
+	.z = 600
+Director.entry\addChild with background!
+	.angleX = 45
+
+-- Scene
+
+TerrainLayer = 0
+EnemyLayer = 1
+PlayerLayer = 2
+
+PlayerGroup = 1
+EnemyGroup = 2
+
+Data\setRelation PlayerGroup, EnemyGroup, Relation.Enemy
+Data\setShouldContact PlayerGroup, EnemyGroup, true
+
+unitGroup = Group {"unit"}
+
+world = with PlatformWorld!
+	\schedule ->
+		origin = Vec2.zero
+		locs = {origin}
+		unitGroup\each => table.insert locs,@unit.position
+		dist = 0
+		for loc in *locs
+			dist = math.max(dist, loc\distance origin)
+		currentZoom = .camera.zoom
+		width = App.visualSize.width
+		targetZoom = math.max(math.min(3.0, (width/dist/2)), 0.8)
+		.camera.zoom = currentZoom + (targetZoom - currentZoom) * 0.01
+	--.showDebug = true
+Store["world"] = world
+
+terrainDef = with BodyDef!
+	.type = "Static"
+	\attachPolygon Vec2(0,0),2500,10,0,1,1,0
+	\attachPolygon Vec2(0,1000),2500,10,0,1,1,0
+	\attachPolygon Vec2(800,1000),10,2000,0,1,1,0
+	\attachPolygon Vec2(-800,1000),10,2000,0,1,1,0
+
+with Body terrainDef,world,Vec2.zero
+	.order = TerrainLayer
+	.group = Data.groupTerrain
+	\addTo world
+
+with Director.entry
+	\addChild world
+
+-- action
+
+rangeAttackEnd = (name,playable)->
+	playable.parent\stop! if name == "range"
+
+UnitAction\add "range",
+	priority: 3
+	reaction: 10
+	recovery: 0.1
+	available: => true
+	create: =>
+		{
+			:attackSpeed, :targetAllow
+			:attackPower, :damageType
+			:attackBase, :attackBonus
+			:attackFactor
+		} = @entity
+		with @playable
+			.speed = attackSpeed
+			\play "range"
+			\slot "AnimationEnd", rangeAttackEnd
+		once =>
+			bulletDef = Store[@unitDef.bulletType]
+			onAttack = ->
+				Audio\play @unitDef.sndAttack
+				with Bullet bulletDef,@
+					.color = Color 0xff666666 if @group == EnemyGroup
+					.targetAllow = targetAllow
+					\slot "HitTarget",(bullet,target,pos)->
+						entity = target.entity
+						entity.hitPoint = pos
+						entity.hitPower = attackPower
+						entity.hitFromRight = bullet.velocityX < 0
+						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						damage = (attackBase + attackBonus) * (attackFactor + factor)
+						entity.hp -= damage
+						bullet.hitStop = true
+					\addTo @world,@order
+			sleep 0.5*28.0/30.0/attackSpeed
+			onAttack!
+			while true do sleep!
+	stop: =>
+		@playable\slot("AnimationEnd")\remove rangeAttackEnd
+
+BigArrow = with BulletDef!
+	.tag = ""
+	.endEffect = ""
+	.lifeTime = 5
+	.damageRadius = 0
+	.highSpeedFix = false
+	.gravity = Vec2 0,-10
+	.face = Face "Image/patreon.clip|item_arrow", Vec2(-100,0), 2
+	\setAsCircle 10
+	\setVelocity 25,800
+
+UnitAction\add "multiArrow",
+	priority: 3
+	reaction: 10
+	recovery: 0.1
+	available: => true
+	create: =>
+		{
+			:attackSpeed, :targetAllow
+			:attackPower, :damageType
+			:attackBase, :attackBonus
+			:attackFactor
+		} = @entity
+		with @playable
+			.speed = attackSpeed
+			\play "range"
+			\slot "AnimationEnd", rangeAttackEnd
+		once =>
+			onAttack = (angle,speed)->
+				BigArrow\setVelocity angle,speed
+				with Bullet BigArrow,@
+					.color = Color 0xff666666 if @group == EnemyGroup
+					.targetAllow = targetAllow
+					\slot "HitTarget",(bullet,target,pos)->
+						entity = target.entity
+						entity.hitPoint = pos
+						entity.hitPower = attackPower
+						entity.hitFromRight = bullet.velocityX < 0
+						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						damage = (attackBase + attackBonus) * (attackFactor + factor)
+						entity.hp -= damage
+						bullet.hitStop = true
+					\addTo @world,@order
+			sleep 30.0/60.0/attackSpeed
+			Audio\play "Audio/d_att.wav"
+			onAttack 30,1100
+			onAttack 10,1000
+			onAttack -10,900
+			onAttack -30,800
+			onAttack -50,700
+			while true do sleep!
+	stop: =>
+		@playable\slot("AnimationEnd")\remove rangeAttackEnd
+
+UnitAction\add "fallOff",
+	priority: 1
+	reaction: 1
+	recovery: 0
+	available: => not @onSurface
+	create: =>
+		if @velocityY <= 0
+			@entity.fallDown = true
+			with @playable
+				.speed = 2.5
+				\play "idle"
+		else @entity.fallDown = false
+		(action)=>
+			return true if @onSurface
+			if not @entity.fallDown and @velocityY <= 0
+				@entity.fallDown = true
+				with @playable
+					.speed = 2.5
+					\play "idle"
+			false
+
+UnitAction\add "evade",
+	priority: 10
+	reaction: 10
+	recovery: 0
+	available: => true
+	create: =>
+		with @playable
+			.speed = 1.0
+			.recovery = 0.0
+			\play "bevade"
+		once =>
+			group = @group
+			@group = Data.groupHide
+			dir = @faceRight and -1 or 1
+			cycle 0.1,-> @velocityX = 400 * dir
+			@group = group
+			sleep 0.1
+			with @playable
+				.speed = 1.0
+				\play "idle"
+			sleep 0.3
+			true
+
+UnitAction\add "rush",
+	priority: 10
+	reaction: 10
+	recovery: 0
+	available: => true
+	create: =>
+		with @playable
+			.speed = 1.0
+			.recovery = 0.0
+			\play "fevade"
+		once =>
+			group = @group
+			@group = Data.groupHide
+			dir = @faceRight and 1 or -1
+			cycle 0.1,-> @velocityX = 800 * dir
+			@group = group
+			sleep 0.1
+			with @playable
+				.speed = 1.0
+				\play "idle"
+			sleep 0.3
+			true
+
+spearAttackEnd = (name,playable)->
+	playable.parent\stop! if name == "spear"
+
+UnitAction\add "spearAttack",
+	priority: 3
+	reaction: 10
+	recovery: 0.1
+	available: => true
+	create: =>
+		{
+			:attackSpeed, :attackPower
+			:damageType, :attackBase
+			:attackBonus, :attackFactor
+		} = @entity
+		with @playable
+			.speed = attackSpeed
+			.recovery = 0.2
+			\play "spear"
+			\slot "AnimationEnd", spearAttackEnd
+		once =>
+			sleep 50.0/60.0
+			Audio\play "Audio/f_att.wav"
+			dir = @faceRight and 0 or -900
+			origin = @position - Vec2(0,205) + Vec2(dir,0)
+			size = Size 900,40
+			world\query Rect(origin,size), (body)->
+				if body.entity and Relation.Enemy == Data\getRelation(body,@)
+					entity = body.entity
+					entity.hitPoint = body.position
+					entity.hitPower = attackPower
+					entity.hitFromRight = not @faceRight
+					factor = Data\getDamageFactor damageType, body.entity.defenceType
+					damage = (attackBase + attackBonus) * (attackFactor + factor)
+					entity.hp -= damage
+				false
+			while true do sleep!
+	stop: =>
+
+Store["Bullet_Arrow"] = with BulletDef!
+	.tag = ""
+	.endEffect = ""
+	.lifeTime = 5
+	.damageRadius = 0
+	.highSpeedFix = false
+	.gravity = Vec2 0,-10
+	.face = Face "Image/patreon.clip|item_arrow", Vec2(0,0)
+	\setAsCircle 10
+	\setVelocity 25,800
+
+GetBoss = (entity, pos, black)->
+	unitDef = with Dictionary!
+		.linearAcceleration = Vec2 0,-10
+		.bodyType = "Dynamic"
+		.scale = 2
+		.density = 10.0
+		.friction = 1.0
+		.restitution = 0.0
+		.playable = "Model/bossp.model"
+		.size = Size 150,410
+		.tag = "Boss"
+		.sensity = 0
+		.move = 100
+		.moveSpeed = 1.0
+		.jump = 600
+		.detectDistance = 1500
+		.hp = 30.0
+		.attackSpeed = 1.0
+		.attackBase = 2.5
+		.attackDelay = 50.0/60.0
+		.attackEffectDelay = 50.0/60.0
+		.attackBonus = 0.0
+		.attackFactor = 1.0
+		.attackRange = Size 780,300
+		.attackPower = Vec2 200,200
+		.attackType = AttackType.Range
+		.attackTarget = AttackTarget.Multi
+		.targetAllow = (with TargetAllow!
+			.terrainAllowed = true
+			\allow Relation.Enemy,true)
+		.damageType = elementTypes.Purple
+		.defenceType = elementTypes.Purple
+		.bulletType = "Bullet_Arrow"
+		.attackEffect = ""
+		.hitEffect = "Particle/bloodp.par"
+		.sndAttack = "Audio/f_att.wav"
+		.sndFallen = ""
+		.decisionTree = "AI_Boss"
+		.usePreciseHit = true
+		.actions = Array {
+			"walk"
+			"turn"
+			"meleeAttack"
+			"multiArrow"
+			"spearAttack"
+			"idle"
+			"cancel"
+			"jump"
+			"fall"
+			"fallOff"
+		}
+	for var in *mutables
+		entity[var] = unitDef[var]
+	with Unit unitDef,world,entity,pos
+		if black
+			for i = 1,7
+				if node = .playable\getNodeByName "w#{i}"
+					node.color = Color 0xff666666
+		if node = .playable\getNodeByName "mask"
+			node\addChild Sprite "Image/patreon.clip|#{masks[math.random 1, #masks]}"
+
+GetUnit = (entity, pos, black)->
+	characterType = characterTypes[math.random 1, #characterTypes]
+	characterColor = characterColors[math.random 1, #characterColors]
+	character = 
+		body: "character_#{characterType}#{characterColor}"
+		lhand: "character_hand#{characterColor}"
+		rhand: "character_hand#{characterColor}"
+		mask: masks[math.random 1, #masks]
+	items = 
+		head: headItems[math.random 1, #headItems]
+		lhand: lhandItems[math.random 1, #lhandItems]
+		rhand: rhandItems[math.random 1, #rhandItems]
+	attackRange = itemSettings[items.rhand].attackRange or Size 350,150
+	bonusPower = itemSettings[items.lhand].attackPower or Vec2.zero
+	attackPower = bonusPower + (itemSettings[items.rhand].attackPower or Vec2 100,100)
+	sndAttack = itemSettings[items.rhand].sndAttack or ""
+	skills = Set for _, v in pairs items
+		if skill = itemSettings[v].skill
+			entity["#{skill}Skill"] = true
+			skill
+	actions = Array {
+		"walk"
+		"turn"
+		"idle"
+		"cancel"
+		"hit"
+		"fall"
+		"fallOff"
+	}
+	for k in pairs skills
+		actions\add k
+	unitDef = with Dictionary!
+		.linearAcceleration = Vec2 0,-10
+		.bodyType = "Dynamic"
+		.scale = 1
+		.density = 1.0
+		.friction = 1.0
+		.restitution = 0.0
+		.playable = "Model/patreon.model"
+		.size = Size 64,128
+		.tag = "Fighter"
+		.sensity = 0
+		.move = 250
+		.moveSpeed = 1.0
+		.jump = 700
+		.detectDistance = 800
+		.hp = 10.0
+		.attackSpeed = 1.0
+		.attackBase = 2.5
+		.attackDelay = 20.0/60.0
+		.attackEffectDelay = 20.0/60.0
+		.attackBonus = 0.0
+		.attackFactor = 1.0
+		.attackRange = attackRange
+		.attackPower = attackPower
+		.attackType = AttackType.Range
+		.attackTarget = AttackTarget.Single
+		.targetAllow = (with TargetAllow!
+			.terrainAllowed = true
+			\allow Relation.Enemy,true)
+		.damageType = elementTypes[characterColor]
+		.defenceType = elementTypes[characterColor]
+		.bulletType = "Bullet_Arrow"
+		.attackEffect = ""
+		.hitEffect = "Particle/bloodp.par"
+		.name = "Fighter"
+		.desc = ""
+		.sndAttack = sndAttack
+		.sndFallen = ""
+		.decisionTree = "AI_Common"
+		.usePreciseHit = true
+		.actions = actions
+	for var in *mutables
+		entity[var] = unitDef[var]
+	with Unit unitDef,world,entity,pos
+		for slot in *itemSlots
+			node = .playable\getNodeByName slot
+			if item = character[slot]
+				node\addChild Sprite "Image/patreon.clip|#{item}"
+			if item = items[slot]
+				node\addChild with Sprite "Image/patreon.clip|#{item}"
+					.color = Color 0xff666666 if black
+					.position = itemSettings[item].offset
+
+-- AI
+
+Store["AI_Common"] = Sel {
+	Seq {
+		Con "is dead",=> @entity.hp <= 0
+		Pass!
+	}
+	Seq {
+		Con "is falling",=> not @onSurface
+		Act "fallOff"
+	}
+	Seq {
+		Con "game paused", -> GamePaused
+		Act "idle"
+	}
+	Seq {
+		Con "is not attacking", =>
+			not @isDoing("melee") and
+			not @isDoing("range")
+		Con "need attack",=>
+			attackUnits = AI\getUnitsInAttackRange!
+			for unit in *attackUnits
+				if Relation.Enemy == Data\getRelation(@,unit) and
+					(@x < unit.x) == @faceRight
+					return true
+			false
+		Sel {
+			Seq {
+				Con "attack",=> App.rand % 10 == 0
+				Sel {
+					Act "meleeAttack"
+					Act "range"
+				}
+			}
+			Act "idle"
+		}
+	}
+	Seq {
+		Con "rush or evade", =>
+			not @isDoing("rush") and not @isDoing("evade") and App.rand % 300 == 0
+		Sel {
+			Seq {
+				Con "too far away", =>
+					if @entity.rushSkill
+						units = AI\getDetectedUnits!
+						for unit in *units
+							if Relation.Enemy == Data\getRelation(@,unit) and
+								(@x < unit.x) == @faceRight and @position\distance(unit.position) > 300
+								return true
+					false
+				Act "rush"
+			}
+			Seq {
+				Con "too close", =>
+					if @entity.evadeSkill
+						units = AI\getDetectedUnits!
+						for unit in *units
+							if Relation.Enemy == Data\getRelation(@,unit) and
+								(@x < unit.x) == @faceRight and @position\distance(unit.position) < 300
+								return true
+					false
+				Act "evade"
+			}
+		}
+	}
+	Seq {
+		Con "need turn",=>
+			(@x < -750 and not @faceRight) or (@x > 750 and @faceRight)
+		Act "turn"
+	}
+	Act "walk"
+}
+
+
+Store["AI_Boss"] = Sel {
+	Seq {
+		Con "is dead",=> @entity.hp <= 0
+		Pass!
+	}
+	Seq {
+		Con "is falling",=> not @onSurface
+		Act "fallOff"
+	}
+	Seq {
+		Con "game paused", -> GamePaused
+		Act "idle"
+	}
+	Seq {
+		Con "is not attacking", =>
+			not @isDoing("meleeAttack") and
+			not @isDoing("multiArrow") and
+			not @isDoing("spearAttack")
+		Con "need attack",=>
+			attackUnits = AI\getUnitsInAttackRange!
+			for unit in *attackUnits
+				if Relation.Enemy == Data\getRelation(@,unit) and
+					(@x < unit.x) == @faceRight
+					return true
+			false
+		Sel {
+			Seq {
+				Con "melee attack",=> App.rand % 40 == 0
+				Act "meleeAttack"
+			}
+			Seq {
+				Con "multi Arrow",=> App.rand % 40 == 0
+				Act "multiArrow"
+			}
+			Seq {
+				Con "spear attack",=> App.rand % 40 == 0
+				Act "spearAttack"
+			}
+			Act "idle"
+		}
+	}
+	Seq {
+		Con "need turn",=>
+			(@x < -750 and not @faceRight) or (@x > 750 and @faceRight)
+		Act "turn"
+	}
+	Act "walk"
+}
+
+with Observer "Add", {"position","order","group","faceRight"}
+	\every =>
+		:position,:order,:group,:faceRight = @
+		:world = Store
+		@player = true if group == PlayerGroup
+		@enemy = true if group == EnemyGroup
+		with (if @boss
+			GetBoss @,position,group == EnemyGroup
+		else
+			GetUnit @,position,group == EnemyGroup)
+			.group = group
+			.order = order
+			.playable\runAction Action Scale 0.5,0,@unit.unitDef.scale,Ease.OutBack
+			.faceRight = faceRight
+			\addTo world
+
+with Observer "Change", {"hp","unit"}
+	\every =>
+		:hp,:unit,:boss = @
+		hp:lastHp = @oldValues
+		if hp < lastHp
+			unit\start "cancel" if not boss and unit\isDoing "hit"
+			with Label "NotoSansHans-Regular",30
+				.order = PlayerLayer
+				.color = Color 0xffff0000
+				.position = unit.position + Vec2 0,40
+				.text = "-#{lastHp-hp}"
+				\runAction Action Sequence(
+					Y 0.5,.y,.y+100
+					Opacity 0.2,1,0
+					Emit "End"
+				)
+				\slot "End",-> \removeFromParent!
+				\addTo world
+			if boss
+				with Visual "Particle/bloodp.par"
+					.position = @hitPoint
+					\addTo world,unit.order
+					\autoRemove!
+					\start!
+			if hp > 0
+				unit\start "hit"
+			else
+				unit\start "cancel"
+				unit\start "hit"
+				unit\start "fall"
+				unit.group = Data.groupHide
+				unit\schedule once =>
+					sleep 3
+					unit\removeFromParent!
+					if not Group({"unit"})\each => @group == PlayerGroup
+						emit "Lost"
+					elseif not Group({"unit"})\each => @group == EnemyGroup
+						emit "Win"
+
+WaitForSignal = (text,duration)->
+	with Label "NotoSansHans-Regular", 100
+		.color = Color 0xff00ffff
+		.text = text
+		\runAction Spawn(
+			Scale 0.5,0.3,1,Ease.OutBack
+			Opacity 0.3,0,1
+		)
+		\addTo Director.entry
+		sleep duration-0.3
+		\runAction Spawn(
+			Scale 0.3,1,1.5,Ease.OutQuad
+			Opacity 0.3,1,0,Ease.OutQuad
+		)
+		sleep 0.3
+		\removeFromParent!
+
+GameScore = 20
+
+uiScale = App.deviceRatio
+Director.ui\addChild with AlignNode isRoot:true
+	\addChild with AlignNode!
+		.size = Size 0,0
+		.hAlign = "Left"
+		.vAlign = "Top"
+		.alignOffset = Vec2(360,80) * (uiScale / 2)
+		\gslot "AddScore",(value)->
+			return if value < 0 and GameScore == 0
+			\addChild with Label "NotoSansHans-Regular",64
+				.color = Color 0xff00ffff
+				.text = string.format "#{value > 0 and '+' or ''}%d",value
+				\runAction Sequence(
+					Spawn(
+						Scale 0.5,0.3,1,Ease.OutBack
+						Opacity 0.5,0,1
+					)
+					Delay 0.5
+					Spawn(
+						Scale 0.3,1,1.5,Ease.OutQuad
+						Opacity 0.3,1,0,Ease.OutQuad
+					)
+					Emit "End"
+				)
+				\slot "End",-> \removeFromParent!
+			GameScore = math.max 0, GameScore+value
+			if GameScore == 0
+				\schedule once ->
+					Audio\play "Audio/game_over.wav"
+					WaitForSignal "FOREVER LOST!", 3
+					emit "GameLost"
+	\addChild with AlignNode!
+		.size = Size 0,0
+		.hAlign = "Center"
+		.vAlign = "Center"
+		.alignOffset = Vec2 0,-300*(uiScale/2)
+		\addChild with CircleButton {
+				text:"STRIKE\nBACK"
+				radius:80
+				fontName:"NotoSansHans-Regular"
+				fontSize:48
+			}
+			.visible = false
+			.touchEnabled = false
+			\gslot "GameLost",->
+				.visible = true
+				.touchEnabled = true
+			\slot "Tapped",->
+				.touchEnabled = false
+				Audio\play "Audio/v_att.wav"
+				\schedule once ->
+					sleep 0.5
+					.visible = false
+					emit "AddScore", 20
+					emit "Start"
+		\addChild with CircleButton {
+				text:"FIGHT"
+				x:-200
+				radius:80
+				fontName:"NotoSansHans-Regular"
+				fontSize:48
+			}
+			\slot "Tapped",->
+				GamePaused = false
+				\schedule once ->
+					emit "Fight"
+					Audio\play "Audio/choose.wav"
+					WaitForSignal "FIGHT!", 1
+		\addChild with CircleButton {
+				text:"ANOTHER\nWAY"
+				x:200
+				radius:80
+				fontName:"NotoSansHans-Regular"
+				fontSize:48
+			}
+			\slot "Tapped",->
+				Audio\play "Audio/switch.wav"
+				emit "AddScore", -5
+				emit "Start"
+		\gslot "Lost",->
+			\schedule once ->
+				emit "AddScore", -(10+math.floor(GameScore/20)*5)
+				return if GameScore == 0
+				Audio\play "Audio/hero_fall.wav"
+				WaitForSignal "LOST!", 1.5
+				emit "Start"
+		\gslot "Win",->
+			\schedule once ->
+				score = 5*Group({"player"}).count
+				emit "AddScore", score
+				Audio\play "Audio/hero_win.wav"
+				WaitForSignal "WIN!", 1.5
+				emit "Start"
+		\gslot "Wasted",->
+			\eachChild =>
+				@visible = false
+				@touchEnabled = false
+			emit "AddScore", -20
+		\gslot "Fight",->
+			\eachChild =>
+				@visible = false
+				@touchEnabled = false
+			\unschedule!
+		\gslot "Start",->
+			return if GameScore == 0
+			GamePaused = true
+			\eachChild =>
+				if @text ~= "STRIKE\nBACK"
+					@touchEnabled = true
+					@visible = true
+			Group({"unit"})\each => @unit\removeFromParent!
+			unitCount = if GameScore < 40
+				1 + math.min(2,math.floor math.max(0,GameScore-20)/5)
+			else
+				3 + math.min(3,math.floor GameScore/35)
+			if math.random(1,100) == 1
+				with Entity!
+					.position = Vec2 -200,100
+					.order = PlayerLayer
+					.group = PlayerGroup
+					.boss = true
+					.faceRight = true
+			else
+				for i = 1, unitCount
+					with Entity!
+						.position = Vec2 -100*i,100
+						.order = PlayerLayer
+						.group = PlayerGroup
+						.faceRight = true
+			if math.random(1,100) == 1
+				with Entity!
+					.position = Vec2 200,100
+					.order = EnemyLayer
+					.group = EnemyGroup
+					.boss = true
+					.faceRight = false
+			else
+				for i = 1, unitCount
+					with Entity!
+						.position = Vec2 100*i,100
+						.order = EnemyLayer
+						.group = EnemyGroup
+						.faceRight = false
+			\schedule once ->
+				time = 2
+				cycle time,(dt)->
+					:width,:height = App.visualSize
+					SetNextWindowPos Vec2(width/2-150,height/2+30)
+					SetNextWindowSize Vec2(300,50), "FirstUseEver"
+					Begin "CountDown", "NoResize|NoSavedSettings|NoTitleBar|NoMove", ->
+						ProgressBar 1.0-dt, Vec2(-1,30), string.format("%.2fs",(1-dt)*time)
+				emit "Wasted"
+				return if GameScore == 0
+				Audio\play "Audio/choose.wav"
+				WaitForSignal "WASTED!", 1.5
+				emit "Start"
+		\addChild with Node!
+			\schedule ->
+				:width,:height = App.visualSize
+				SetNextWindowPos Vec2(20,20)
+				SetNextWindowSize Vec2(120,280), "FirstUseEver"
+				PushStyleVar "ItemSpacing",Vec2.zero,->
+					Begin "Stats", "NoResize|NoSavedSettings|NoTitleBar|NoMove", ->
+						Text "VALUE: #{GameScore}"
+						Image "Image/patreon.clip|character_handGreen", Vec2 30,30
+						SameLine!
+						Text "->"
+						SameLine!
+						Image "Image/patreon.clip|character_handRed", Vec2 30,30
+						SameLine!
+						Text "x3"
+						Image "Image/patreon.clip|character_handRed", Vec2 30,30
+						SameLine!
+						Text "->"
+						SameLine!
+						Image "Image/patreon.clip|character_handYellow", Vec2 30,30
+						SameLine!
+						Text "x3"
+						Image "Image/patreon.clip|character_handYellow", Vec2 30,30
+						SameLine!
+						Text "->"
+						SameLine!
+						Image "Image/patreon.clip|character_handGreen", Vec2 30,30
+						SameLine!
+						Text "x3"
+						Image "Image/patreon.clip|item_bow", Vec2 30,30
+						SameLine!
+						Text ">"
+						SameLine!
+						Image "Image/patreon.clip|item_sword", Vec2 30,30
+						Image "Image/patreon.clip|item_hatTop", Vec2 30,30
+						SameLine!
+						Text "dodge"
+						Image "Image/patreon.clip|item_helmet", Vec2 30,30
+						SameLine!
+						Text "rush"
+						Image "Image/patreon.clip|item_rod", Vec2 30,30
+						SameLine!
+						Text "knock"
+						Image "Image/patreon.clip|tile_heart", Vec2 30,30
+						SameLine!
+						Text "bash"
+
+emit "Start"
+
