@@ -230,6 +230,7 @@ void Unit::cleanup()
 		_entity->destroy();
 		_entity = nullptr;
 	}
+	_currentAction = nullptr;
 	_decisionTree = nullptr;
 	_unitDef = nullptr;
 	_actions.clear();

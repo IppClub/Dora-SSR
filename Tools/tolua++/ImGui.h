@@ -69,6 +69,10 @@ namespace ImGui
 	void Binding::Columns @ Columns(int count = 1, bool border = true);
 	void Binding::Columns @ Columns(int count, bool border, const char* id);
 
+	bool Binding::BeginTable @ BeginTable(const char* str_id, int column, String flags = nullptr, Vec2 outer_size = Vec2::zero, float inner_width = 0.0f);
+	void Binding::TableNextRow @ TableNextRow(String row_flags = nullptr, float min_row_height = 0.0f);
+	void Binding::TableSetupColumn @ TableSetupColumn(const char* label, String flags = nullptr, float init_width_or_weight = 0.0f, ImU32 user_id = 0);
+
 	void Binding::SetStyleVar @ SetStyleVar(String name, bool var);
 	void Binding::SetStyleVar @ SetStyleVar(String name, float var);
 	void Binding::SetStyleVar @ SetStyleVar(String name, Vec2 var);
@@ -162,6 +166,13 @@ namespace ImGui
 	void SetColumnOffset(int column_index, float offset_x);
 	float GetColumnWidth(int column_index = -1);
 	int GetColumnsCount();
+
+	void EndTable();
+	bool TableNextColumn();
+	bool TableSetColumnIndex(int column_n);
+	void TableSetupScrollFreeze(int cols, int rows);
+	void TableHeadersRow();
+	void TableHeader(CString label);
 
 	void PushID(CString str_id);
 	void PushID(int int_id);

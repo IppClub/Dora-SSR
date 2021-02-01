@@ -2184,6 +2184,21 @@ namespace ImGui { namespace Binding
 		ImGui::Columns(count, id, border);
 	}
 
+	bool BeginTable(const char* str_id, int column, String flags, const Vec2& outer_size, float inner_width)
+	{
+		return ImGui::BeginTable(str_id, column, getTableCombinedFlags(flags), outer_size, inner_width);
+	}
+
+	void TableNextRow(String row_flags, float min_row_height)
+	{
+		ImGui::TableNextRow(getTableRowCombinedFlags(row_flags), min_row_height);
+	}
+
+	void TableSetupColumn(const char* label, String flags, float init_width_or_weight, ImU32 user_id)
+	{
+		ImGui::TableSetupColumn(label, getTableColumnCombinedFlags(flags), init_width_or_weight, user_id);
+	}
+
 	void SetStyleVar(String name, const Vec2& var)
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -2496,6 +2511,129 @@ namespace ImGui { namespace Binding
 		for (const auto& token : tokens)
 		{
 			result |= getPopupFlag(token);
+		}
+		return result;
+	}
+
+	ImGuiTableFlags_ getTableFlags(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+			case "Resizable"_hash: return ImGuiTableFlags_Resizable;
+			case "Reorderable"_hash: return ImGuiTableFlags_Reorderable;
+			case "Hideable"_hash: return ImGuiTableFlags_Hideable;
+			case "Sortable"_hash: return ImGuiTableFlags_Sortable;
+			case "NoSavedSettings"_hash: return ImGuiTableFlags_NoSavedSettings;
+			case "ContextMenuInBody"_hash: return ImGuiTableFlags_ContextMenuInBody;
+			case "RowBg"_hash: return ImGuiTableFlags_RowBg;
+			case "BordersInnerH"_hash: return ImGuiTableFlags_BordersInnerH;
+			case "BordersOuterH"_hash: return ImGuiTableFlags_BordersOuterH;
+			case "BordersInnerV"_hash: return ImGuiTableFlags_BordersInnerV;
+			case "BordersOuterV"_hash: return ImGuiTableFlags_BordersOuterV;
+			case "BordersH"_hash: return ImGuiTableFlags_BordersH;
+			case "BordersV"_hash: return ImGuiTableFlags_BordersV;
+			case "BordersInner"_hash: return ImGuiTableFlags_BordersInner;
+			case "BordersOuter"_hash: return ImGuiTableFlags_BordersOuter;
+			case "Borders"_hash: return ImGuiTableFlags_Borders;
+			case "NoBordersInBody"_hash: return ImGuiTableFlags_NoBordersInBody;
+			case "NoBordersInBodyUntilResize"_hash: return ImGuiTableFlags_NoBordersInBodyUntilResize;
+			case "SizingFixedFit"_hash: return ImGuiTableFlags_SizingFixedFit;
+			case "SizingFixedSame"_hash: return ImGuiTableFlags_SizingFixedSame;
+			case "SizingStretchProp"_hash: return ImGuiTableFlags_SizingStretchProp;
+			case "SizingStretchSame"_hash: return ImGuiTableFlags_SizingStretchSame;
+			case "NoHostExtendX"_hash: return ImGuiTableFlags_NoHostExtendX;
+			case "NoHostExtendY"_hash: return ImGuiTableFlags_NoHostExtendY;
+			case "NoKeepColumnsVisible"_hash: return ImGuiTableFlags_NoKeepColumnsVisible;
+			case "PreciseWidths"_hash: return ImGuiTableFlags_PreciseWidths;
+			case "NoClip"_hash: return ImGuiTableFlags_NoClip;
+			case "PadOuterX"_hash: return ImGuiTableFlags_PadOuterX;
+			case "NoPadOuterX"_hash: return ImGuiTableFlags_NoPadOuterX;
+			case "NoPadInnerX"_hash: return ImGuiTableFlags_NoPadInnerX;
+			case "ScrollX"_hash: return ImGuiTableFlags_ScrollX;
+			case "ScrollY"_hash: return ImGuiTableFlags_ScrollY;
+			case "SortMulti"_hash: return ImGuiTableFlags_SortMulti;
+			case ""_hash: return ImGuiTableFlags_None;
+			default:
+				AssertIf(true, "ImGui table flag named \"{}\" is invalid.", flag);
+				return ImGuiTableFlags_None;
+		}
+		return ImGuiTableFlags_None;
+	}
+
+	Uint32 getTableCombinedFlags(String flags)
+	{
+		auto tokens = flags.split("|"_slice);
+		Uint32 result = 0;
+		for (const auto& token : tokens)
+		{
+			result |= getTableFlags(token);
+		}
+		return result;
+	}
+
+	ImGuiTableRowFlags_ getTableRowFlags(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+			case "Headers"_hash: return ImGuiTableRowFlags_Headers;
+			case ""_hash: return ImGuiTableRowFlags_None;
+			default:
+				AssertIf(true, "ImGui table row flag named \"{}\" is invalid.", flag);
+				return ImGuiTableRowFlags_None;
+		}
+		return ImGuiTableRowFlags_None;
+	}
+
+	Uint32 getTableRowCombinedFlags(String flags)
+	{
+		auto tokens = flags.split("|"_slice);
+		Uint32 result = 0;
+		for (const auto& token : tokens)
+		{
+			result |= getTableRowFlags(token);
+		}
+		return result;
+	}
+
+	ImGuiTableColumnFlags_ getTableColumnFlags(String flag)
+	{
+		switch (Switch::hash(flag))
+		{
+			case "DefaultHide"_hash: return ImGuiTableColumnFlags_DefaultHide;
+			case "DefaultSort"_hash: return ImGuiTableColumnFlags_DefaultSort;
+			case "WidthStretch"_hash: return ImGuiTableColumnFlags_WidthStretch;
+			case "WidthFixed"_hash: return ImGuiTableColumnFlags_WidthFixed;
+			case "NoResize"_hash: return ImGuiTableColumnFlags_NoResize;
+			case "NoReorder"_hash: return ImGuiTableColumnFlags_NoReorder;
+			case "NoHide"_hash: return ImGuiTableColumnFlags_NoHide;
+			case "NoClip"_hash: return ImGuiTableColumnFlags_NoClip;
+			case "NoSort"_hash: return ImGuiTableColumnFlags_NoSort;
+			case "NoSortAscending"_hash: return ImGuiTableColumnFlags_NoSortAscending;
+			case "NoSortDescending"_hash: return ImGuiTableColumnFlags_NoSortDescending;
+			case "NoHeaderWidth"_hash: return ImGuiTableColumnFlags_NoHeaderWidth;
+			case "PreferSortAscending"_hash: return ImGuiTableColumnFlags_PreferSortAscending;
+			case "PreferSortDescending"_hash: return ImGuiTableColumnFlags_PreferSortDescending;
+			case "IndentEnable"_hash: return ImGuiTableColumnFlags_IndentEnable;
+			case "IndentDisable"_hash: return ImGuiTableColumnFlags_IndentDisable;
+			case "IsEnabled"_hash: return ImGuiTableColumnFlags_IsEnabled;
+			case "IsVisible"_hash: return ImGuiTableColumnFlags_IsVisible;
+			case "IsSorted"_hash: return ImGuiTableColumnFlags_IsSorted;
+			case "IsHovered"_hash: return ImGuiTableColumnFlags_IsHovered;
+			case ""_hash: return ImGuiTableColumnFlags_None;
+			default:
+				AssertIf(true, "ImGui table column flag named \"{}\" is invalid.", flag);
+				return ImGuiTableColumnFlags_None;
+		}
+		return ImGuiTableColumnFlags_None;
+	}
+
+	Uint32 getTableColumnCombinedFlags(String flags)
+	{
+		auto tokens = flags.split("|"_slice);
+		Uint32 result = 0;
+		for (const auto& token : tokens)
+		{
+			result |= getTableColumnFlags(token);
 		}
 		return result;
 	}

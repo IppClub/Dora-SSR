@@ -210,6 +210,7 @@
 		3C9ADE4C1E00EFD000D42018 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE4A1E00EFD000D42018 /* Application.cpp */; };
 		3C9ADE5A1E00F24200D42018 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ADE581E00F24200D42018 /* Object.cpp */; };
 		3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA718A61FCCF11000B6AC80 /* lodepng.cpp */; };
+		3CB2115125C2984900CEA033 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115025C2984900CEA033 /* imgui_tables.cpp */; };
 		3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2487D1E4DB41500B6BF26 /* utf8.cpp */; };
 		3CB487061E1635A500D51749 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB487041E1635A500D51749 /* Node.cpp */; };
 		3CB487131E16398700D51749 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4870A1E16398700D51749 /* tolua_event.cpp */; };
@@ -810,6 +811,7 @@
 		3C9ADE591E00F24200D42018 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = ../../../Source/Basic/Object.h; sourceTree = "<group>"; };
 		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
 		3CA718A61FCCF11000B6AC80 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
+		3CB2115025C2984900CEA033 /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = ../../../Source/3rdParty/imgui/imgui_tables.cpp; sourceTree = "<group>"; };
 		3CB2487D1E4DB41500B6BF26 /* utf8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utf8.cpp; path = ../../../Source/3rdParty/Other/utf8.cpp; sourceTree = "<group>"; };
 		3CB2487E1E4DB41500B6BF26 /* utf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utf8.h; path = ../../../Source/3rdParty/Other/utf8.h; sourceTree = "<group>"; };
 		3CB487041E1635A500D51749 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = ../../../Source/Node/Node.cpp; sourceTree = "<group>"; };
@@ -1714,6 +1716,7 @@
 				3C41D5F62148AD02003FDDFE /* imgui_demo.cpp */,
 				3C41D5F02148AD01003FDDFE /* imgui_draw.cpp */,
 				3C41D5F22148AD01003FDDFE /* imgui_internal.h */,
+				3CB2115025C2984900CEA033 /* imgui_tables.cpp */,
 				3C41D5F32148AD01003FDDFE /* imgui_widgets.cpp */,
 				3C41D5EF2148AD01003FDDFE /* imgui.cpp */,
 				3C41D5F42148AD02003FDDFE /* imgui.h */,
@@ -2233,6 +2236,7 @@
 				3C0D30F42456665F009C592B /* PathConstraintMixTimeline.cpp in Sources */,
 				3C0D30FC2456665F009C592B /* PathAttachment.cpp in Sources */,
 				3C7EB6432547CC8400390DA6 /* SeparationScenario.cpp in Sources */,
+				3CB2115125C2984900CEA033 /* imgui_tables.cpp in Sources */,
 				3C7EB63C2547CC8400390DA6 /* AABB.cpp in Sources */,
 				3C41D5F92148AD02003FDDFE /* imgui_widgets.cpp in Sources */,
 				3C0D30EC2456665F009C592B /* SkeletonBinary.cpp in Sources */,

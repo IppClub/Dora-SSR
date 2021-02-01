@@ -240,6 +240,7 @@
 		3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */; };
 		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
 		3CABB25A21199C0000737278 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CABB25821199C0000737278 /* PhysicsWorld.cpp */; };
+		3CB2116325C63C3A00CEA033 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */; };
 		3CB410291E05B0C500A8804D /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410261E05B0C500A8804D /* Slice.cpp */; };
 		3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410381E05B19A00A8804D /* ioapi.cpp */; };
 		3CB410411E05B19A00A8804D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103A1E05B19A00A8804D /* unzip.cpp */; };
@@ -832,6 +833,7 @@
 		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
 		3CABB25821199C0000737278 /* PhysicsWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PhysicsWorld.cpp; path = ../../../Source/Physics/PhysicsWorld.cpp; sourceTree = "<group>"; };
 		3CABB25921199C0000737278 /* PhysicsWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicsWorld.h; path = ../../../Source/Physics/PhysicsWorld.h; sourceTree = "<group>"; };
+		3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = ../../../Source/3rdParty/imgui/imgui_tables.cpp; sourceTree = "<group>"; };
 		3CB410261E05B0C500A8804D /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CB410271E05B0C500A8804D /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
 		3CB4102B1E05B0F800A8804D /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
@@ -1821,6 +1823,7 @@
 				3C41D60221490BE5003FDDFE /* imgui_demo.cpp */,
 				3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */,
 				3C41D5FE21490BE5003FDDFE /* imgui_internal.h */,
+				3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */,
 				3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */,
 				3C41D5FB21490BE5003FDDFE /* imgui.cpp */,
 				3C41D60021490BE5003FDDFE /* imgui.h */,
@@ -2089,6 +2092,7 @@
 				3CB410421E05B19A00A8804D /* zip.cpp in Sources */,
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,
 				3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */,
+				3CB2116325C63C3A00CEA033 /* imgui_tables.cpp in Sources */,
 				3C20F39C248F772900BBA830 /* EventTimeline.cpp in Sources */,
 				3C883B1D21E338F500BFD758 /* VGRender.cpp in Sources */,
 				3CB7307E1E80343E006DFA18 /* Sensor.cpp in Sources */,
