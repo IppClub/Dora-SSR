@@ -119,6 +119,9 @@ Director.postScheduler:schedule(function()
 			success, result = xpcall(routine, debug.traceback)
 		else
 			success, result = resume(routine)
+			if not success then
+				coroutine.close(routine)
+			end
 		end
 		if (success and result) or (not success) then
 			Routine[i] = Routine[count]
@@ -458,9 +461,10 @@ local function pairCallA(beginFunc, endFunc)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
+		local began = beginFunc(unpack(args))
 		closeVar[#closeVar + 1] = endFunc
 		local _ <close> = closeVar
-		if beginFunc(unpack(args)) then
+		if began then
 			callFunc()
 		end
 	end

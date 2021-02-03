@@ -207,7 +207,9 @@ int Application::run()
 
 	// call this function here to disable default render threads creation of bgfx
 	bgfx::renderFrame();
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 	_logicEvent.post("RenderStop"_slice);
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 
 	// start running logic thread
 	_logicThread.init(Application::mainLogic, this);
@@ -217,7 +219,9 @@ int Application::run()
 	{
 		// do render staff and swap buffers
 		bgfx::renderFrame();
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 		_logicEvent.post("RenderStop"_slice);
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event))
@@ -403,11 +407,8 @@ void Application::invokeInLogic(const function<void()>& func)
 	_logicEvent.post("Invoke"_slice, func);
 }
 
-int Application::mainLogic(bx::Thread* thread, void* userData)
+int Application::mainLogic(Application* app)
 {
-	DORA_UNUSED_PARAM(thread);
-	Application* app = r_cast<Application*>(userData);
-
 	if (!SharedBGFX.init())
 	{
 		Error("bgfx failed to initialize!");
@@ -446,9 +447,11 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 		SharedDirector.doLogic();
 		app->_cpuTime = app->getEclapsedTime() - cpuStartTime;
 
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 		bool renderWorking = true;
 		while (renderWorking)
 		{
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 			// poll events from render thread
 			for (Own<QEvent> event = app->_logicEvent.poll();
 				event != nullptr;
@@ -464,7 +467,9 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 						{
 							case SDL_QUIT:
 							{
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 								renderWorking = false;
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 								app->_logicRunning = false;
 								app->quitHandler();
 								// Info("singleton reference tree:\n{}", Life::getRefTree());
@@ -484,16 +489,20 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 						func();
 						break;
 					}
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 					case "RenderStop"_hash:
 					{
 						renderWorking = false;
 						break;
 					}
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 					default:
 						break;
 				}
 			}
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 		}
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 
 		cpuStartTime = app->getEclapsedTime();
 		SharedDirector.doRender();
@@ -519,6 +528,21 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 
 	Life::destroy("BGFXDora"_slice);
 	return 0;
+}
+
+int Application::mainLogic(bx::Thread* thread, void* userData)
+{
+	DORA_UNUSED_PARAM(thread);
+	Application* app = r_cast<Application*>(userData);
+	try
+	{
+		return mainLogic(app);
+	}
+	catch (const std::runtime_error& e)
+	{
+		LogError(e.what());
+		abort();
+	}
 }
 
 const Slice Application::getPlatform() const

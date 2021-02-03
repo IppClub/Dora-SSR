@@ -95,7 +95,8 @@ static int dora_loadfile(lua_State* L, String filename)
 	string codes;
 	switch (Switch::hash(extension))
 	{
-		case "xml"_hash: {
+		case "xml"_hash:
+		{
 			codes = SharedXmlLoader.load(targetFile);
 			if (codes.empty())
 			{
@@ -108,7 +109,8 @@ static int dora_loadfile(lua_State* L, String filename)
 			}
 			break;
 		}
-		default: {
+		default:
+		{
 			auto data = SharedContent.loadFile(targetFile);
 			buffer = std::move(data.first);
 			codeBuffer = r_cast<char*>(buffer.get());
@@ -312,9 +314,12 @@ static int dora_yuecompile(lua_State* L)
 		LuaFunction<void> callback(tolua_ref_function(L, 4));
 		SharedContent.loadFileAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
 		{
-			if (!codes) {
+			if (!codes)
+			{
 				Warn("failed to get yue source codes from \"{}\".", src);
-			} else {
+			}
+			else
+			{
 				auto input = std::make_shared<std::tuple<
 					string, string, OwnArray<Uint8>, size_t>>(
 					src, dest, std::move(codes), size);
@@ -771,22 +776,14 @@ void LuaEngine::executeReturn(LuaHandler*& luaHandler, int handler, int paramCou
 		{
 			luaHandler = LuaHandler::create(funcRef);
 		}
-		else
-		{
-			Error("Lua callback should return another function.");
-		}
+		else Error("Lua callback should return another function.");
 	}
 	lua_settop(L, top);
 }
 
-bool LuaEngine::executeAssert(bool cond, String msg)
+bool LuaEngine::isInLua() const
 {
-	if (_callFromLua == 0)
-	{
-		return false;
-	}
-	luaL_error(L, "assert failed with C++ condition: %s", msg.empty() ? "unknown" : msg.toString().c_str());
-	return true;
+	return _callFromLua > 0;
 }
 
 bool LuaEngine::scriptHandlerEqual(int handlerA, int handlerB)

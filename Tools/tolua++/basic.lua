@@ -5,6 +5,27 @@ if not rebuild then
 	local input_changes = {
 		lfs.attributes(flags.f,"change"),
 		lfs.attributes("basic.lua","change"),
+		lfs.attributes("tolua++/compat.lua","change"),
+		lfs.attributes("tolua++/basic.lua","change"),
+		lfs.attributes("tolua++/feature.lua","change"),
+		lfs.attributes("tolua++/verbatim.lua","change"),
+		lfs.attributes("tolua++/code.lua","change"),
+		lfs.attributes("tolua++/typedef.lua","change"),
+		lfs.attributes("tolua++/container.lua","change"),
+		lfs.attributes("tolua++/package.lua","change"),
+		lfs.attributes("tolua++/module.lua","change"),
+		lfs.attributes("tolua++/namespace.lua","change"),
+		lfs.attributes("tolua++/define.lua","change"),
+		lfs.attributes("tolua++/enumerate.lua","change"),
+		lfs.attributes("tolua++/declaration.lua","change"),
+		lfs.attributes("tolua++/variable.lua","change"),
+		lfs.attributes("tolua++/array.lua","change"),
+		lfs.attributes("tolua++/function.lua","change"),
+		lfs.attributes("tolua++/operator.lua","change"),
+		lfs.attributes("tolua++/template_class.lua","change"),
+		lfs.attributes("tolua++/class.lua","change"),
+		lfs.attributes("tolua++/clean.lua","change"),
+		lfs.attributes("tolua++/doit.lua","change"),
 	}
 	local inputFile = io.open(flags.f,"r")
 	local content = inputFile:read("*a")

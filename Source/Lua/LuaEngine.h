@@ -24,6 +24,7 @@ public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
 	PROPERTY_READONLY_REF(yue::YueCompiler, Yue);
+	PROPERTY_READONLY_BOOL(InLua);
 
 	void insertLuaLoader(lua_CFunction func);
 
@@ -118,7 +119,6 @@ public:
 		LuaEngine::pop();
 	}
 
-	bool executeAssert(bool cond, String condStr);
 	bool scriptHandlerEqual(int handlerA, int handlerB);
 
 	static bool call(lua_State* L, int paramCount, int returnCount); // returns success or failure
