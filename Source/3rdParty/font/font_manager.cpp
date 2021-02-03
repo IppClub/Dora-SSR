@@ -144,8 +144,8 @@ void FontManager::init()
 
 FontManager::~FontManager()
 {
-	AssertUnless(m_fontHandles.getNumHandles() == 0, "All the fonts must be destroyed before destroying the manager.");
-	AssertUnless(m_filesHandles.getNumHandles() == 0, "All the font files must be destroyed before destroying the manager.");
+	assert(m_fontHandles.getNumHandles() == 0); // All the fonts must be destroyed before destroying the manager
+	assert(m_filesHandles.getNumHandles() == 0); // All the font files must be destroyed before destroying the manager
 }
 
 TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size)

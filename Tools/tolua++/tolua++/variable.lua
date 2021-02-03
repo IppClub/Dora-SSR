@@ -225,6 +225,7 @@ end
     output('  if ('..self:outchecktype(var_index)..')')
   end
   output('   tolua_error(tolua_S,"#vinvalid type in variable assignment for \''..(class and class..'.' or '')..self.name..'\'",&tolua_err);')
+  output('  try {\n')
   output('#endif\n')
   -- assign value
 		local def = 0
@@ -288,6 +289,9 @@ end
 			end
 			output(";")
 		end
+  output('#ifndef TOLUA_RELEASE\n')
+  output('  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n')
+  output('#endif\n')
   output(' return 0;')
   output('}')
   output('#endif //#ifndef TOLUA_DISABLE\n')

@@ -26,23 +26,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	#endif
 #endif
 
-/** @brief Disable assert function, set with the debug flag. */
-#ifndef DORA_DISABLE_ASSERT
+/** @brief Disable log function, set with the debug flag. */
+#ifndef DORA_DISABLE_LOG
 	#if DORA_DEBUG
-		#define DORA_DISABLE_ASSERT 0
+		#define DORA_DISABLE_LOG 0
 	#else
-		#define DORA_DISABLE_ASSERT 1
+		#define DORA_DISABLE_LOG 1
 	#endif
 #endif
 
-/** @brief Disable replacing C++ assert with lua_error.
- Use lua_error, assert info will be printed in lua console and program
- won`t be aborted.
- */
-#ifndef DORA_DISABLE_ASSERT_IN_LUA
-	#define DORA_DISABLE_ASSERT_IN_LUA 0
-#else
-	#define DORA_DISABLE_ASSERT_IN_LUA 1
+/** @brief Disable assert function, set with the debug flag. */
+#ifndef DORA_DISABLE_ASSERTION
+	#if DORA_DEBUG
+		#define DORA_DISABLE_ASSERTION 0
+	#else
+		#define DORA_DISABLE_ASSERTION 1
+	#endif
 #endif
 
 /** @brief The buffer size for content copy function.

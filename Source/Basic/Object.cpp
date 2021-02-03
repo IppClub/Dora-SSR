@@ -82,7 +82,7 @@ _weak(nullptr)
 Object::~Object()
 {
 	auto& info = SharedObjectBase;
-	AssertIf(_managed, "object is still managed when destroyed.");
+	assert(!_managed); // object is still managed when destroyed
 	info.availableIds.push(_id);
 	if (_luaRef != 0)
 	{

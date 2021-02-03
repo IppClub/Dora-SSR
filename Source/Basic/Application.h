@@ -56,6 +56,7 @@ public:
 	void invokeInRender(const function<void()>& func);
 	void invokeInLogic(const function<void()>& func);
 	static int mainLogic(bx::Thread* thread, void* userData);
+	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i)
 	{

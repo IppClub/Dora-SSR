@@ -25,6 +25,23 @@ NS_DOROTHY_BEGIN
 
 Delegate<void (const string&)> LogHandler;
 
+void LogError(const string& str)
+{
+#if BX_PLATFORM_ANDROID
+	__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
+#else
+	fmt::print(stderr, "{}", str);
+#endif // BX_PLATFORM_ANDROID
+	if (!Singleton<Dorothy::Application>::isDisposed() &&
+		SharedApplication.isLogicRunning())
+	{
+		SharedApplication.invokeInLogic([str]()
+		{
+			LogHandler(str);
+		});
+	}
+}
+
 void LogPrintInThread(const string& str)
 {
 	if (Singleton<Dorothy::Application>::isDisposed() ||
@@ -42,6 +59,7 @@ void LogPrintInThread(const string& str)
 	}
 	SharedApplication.invokeInLogic([str]()
 	{
+		LogHandler(str);
 		SharedAsyncLogThread.run([str]
 		{
 #if DORA_DEBUG
@@ -51,26 +69,13 @@ void LogPrintInThread(const string& str)
 			fmt::print("{}", str);
 #endif // BX_PLATFORM_ANDROID
 #endif // DORA_DEBUG
-			return nullptr;
-		}, [str](Own<Values>)
-		{
-			LogHandler(str);
 		});
 	});
 }
 
-#if !DORA_DISABLE_ASSERT_IN_LUA
-void DoraAssert(bool cond, const Slice& msg)
+bool IsInLua()
 {
-	if (Dorothy::Singleton<Dorothy::LuaEngine>::isDisposed())
-	{
-		assert(cond);
-	}
-	else if (!cond && !SharedLuaEngine.executeAssert(cond, msg))
-	{
-		assert(cond);
-	}
+	return !Dorothy::Singleton<Dorothy::LuaEngine>::isDisposed() && SharedLuaEngine.isInLua();
 }
-#endif // !DORA_DISABLE_ASSERT_IN_LUA
 
 NS_DOROTHY_END

@@ -181,6 +181,10 @@ function classFunction:supcode(local_constructor)
 
  pre_call_hook(self)
 
+ output('#ifndef TOLUA_RELEASE\n')
+ output('  try {\n')
+ output('#endif\n')
+
  -- call function
  if class and self.name=='delete' then
   output('  Mtolua_delete(self);')
@@ -276,7 +280,7 @@ function classFunction:supcode(local_constructor)
 	if string.find(self.mod, "tolua_owned") then
 		owned = true
 	end
-    local push_func = get_push_function(t)
+   local push_func = get_push_function(t)
 	-- new_t = _userltype[new_t] -- convert to renamed type
     if self.ptr == '' then
      output('   {')
@@ -307,6 +311,9 @@ function classFunction:supcode(local_constructor)
    i = i+1
   end
   output('  }')
+  output('#ifndef TOLUA_RELEASE\n')
+  output('  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n')
+  output('#endif\n')
 
   -- set array element values
   if class or (static and out) then narg=2 else narg=1 end

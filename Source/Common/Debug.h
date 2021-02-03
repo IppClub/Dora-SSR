@@ -31,6 +31,7 @@ string LogFormat(const char* format, const Args& ...args)
 
 extern Delegate<void (const string&)> LogHandler;
 
+void LogError(const string& str);
 void LogPrintInThread(const string& str);
 
 /** @brief The print function for debugging output. */
@@ -44,7 +45,9 @@ inline void LogPrint(const Slice& str)
 	LogPrintInThread(str);
 }
 
-#if !DORA_DEBUG
+bool IsInLua();
+
+#if DORA_DISABLE_LOG
 	#define Info(...) DORA_DUMMY
 	#define Warn(...) DORA_DUMMY
 	#define Error(...) DORA_DUMMY
@@ -57,15 +60,7 @@ inline void LogPrint(const Slice& str)
 		Dorothy::LogPrint("[Dorothy Error] " format "\n",  ##__VA_ARGS__)
 #endif
 
-#if DORA_DISABLE_ASSERT_IN_LUA
-	#define DORA_ASSERT(cond) assert(cond)
-#else
-	void DoraAssert(bool cond, const Slice& msg);
-	#define DORA_ASSERT(cond) \
-		Dorothy::DoraAssert(cond, #cond)
-#endif
-
-#if DORA_DISABLE_ASSERT
+#if DORA_DISABLE_ASSERTION
 	#define AssertIf(cond, ...) DORA_DUMMY
 	#define AssertUnless(cond, ...) DORA_DUMMY
 #else
@@ -73,22 +68,36 @@ inline void LogPrint(const Slice& str)
 		do { \
 			if (cond) \
 			{ \
-				Dorothy::LogPrint( \
-					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Message] {}\n", \
-						__FILE__, __FUNCTION__, __LINE__, Dorothy::LogFormat(__VA_ARGS__)) \
-				); \
-				DORA_ASSERT(!(cond)); \
+				auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
+					__FILE__, __FUNCTION__, __LINE__, \
+					Dorothy::LogFormat(__VA_ARGS__)); \
+				if (Dorothy::IsInLua()) \
+				{ \
+					throw std::runtime_error(msg); \
+				} \
+				else \
+				{ \
+					Dorothy::LogError(msg); \
+					abort(); \
+				} \
 			} \
 		} while (false)
 	#define AssertUnless(cond, ...) \
 		do { \
 			if (!(cond)) \
 			{ \
-				Dorothy::LogPrint( \
-					fmt::format("[Dorothy Error] [File] {}, [Func] {}, [Line] {}, [Message] {}\n", \
-						__FILE__, __FUNCTION__, __LINE__, Dorothy::LogFormat(__VA_ARGS__)) \
-				); \
-				DORA_ASSERT(cond); \
+				auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
+					__FILE__, __FUNCTION__, __LINE__, \
+					Dorothy::LogFormat(__VA_ARGS__)); \
+				if (Dorothy::IsInLua()) \
+				{ \
+					throw std::runtime_error(msg); \
+				} \
+				else \
+				{ \
+					Dorothy::LogError(msg); \
+					abort(); \
+				} \
 			} \
 		} while (false)
 #endif
