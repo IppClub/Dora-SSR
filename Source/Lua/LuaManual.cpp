@@ -1582,6 +1582,9 @@ int Entity_set(lua_State* L)
 #endif
 		bool raw_flag = lua_toboolean(L, 4) != 0;
 		Slice key = tolua_toslice(L, 2, nullptr);
+#ifndef TOLUA_RELEASE
+		try {
+#endif
 		if (lua_isnil(L, 3))
 		{
 			self->remove(key);
@@ -1634,6 +1637,9 @@ int Entity_set(lua_State* L)
 				}
 			}
 		}
+#ifndef TOLUA_RELEASE
+		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
+#endif
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
@@ -1659,6 +1665,9 @@ int Entity_setNext(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_setNext'", nullptr);
 #endif
 		Slice key = tolua_toslice(L, 2, nullptr);
+#ifndef TOLUA_RELEASE
+		try {
+#endif
 		if (lua_isnil(L, 3))
 		{
 			self->removeNext(self->getIndex(key));
@@ -1711,6 +1720,9 @@ int Entity_setNext(lua_State* L)
 				}
 			}
 		}
+#ifndef TOLUA_RELEASE
+		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
+#endif
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
