@@ -35,9 +35,10 @@ int dora_emit(lua_State* L)
 			lua_pushvalue(L, i);
 		}
 		lua_State* baseL = SharedLuaEngine.getState();
+		int baseTop = lua_gettop(baseL);
+		DEFER(lua_settop(baseL, baseTop));
 		lua_xmove(L, baseL, count);
 		LuaEventArgs::send(name, count);
-		lua_pop(baseL, count);
 	}
 	else
 	{
@@ -206,7 +207,7 @@ int Node_emit(lua_State* L)
 	{
 		Node* self = r_cast<Node*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
-		if (!self) tolua_error(L, "invalid 'self' in function 'Node_emit'", NULL);
+		if (!self) tolua_error(L, "invalid 'self' in function 'Node_emit'", nullptr);
 #endif
 		Slice name = tolua_toslice(L, 2, 0);
 		int top = lua_gettop(L);
@@ -218,10 +219,11 @@ int Node_emit(lua_State* L)
 				lua_pushvalue(L, i);
 			}
 			lua_State* baseL = SharedLuaEngine.getState();
+			int baseTop = lua_gettop(baseL);
+			DEFER(lua_settop(baseL, baseTop));
 			lua_xmove(L, baseL, count);
 			LuaEventArgs luaEvent(name, count);
 			self->emit(&luaEvent);
-			lua_pop(baseL, count);
 		}
 		else
 		{
@@ -257,7 +259,7 @@ int Node_slot(lua_State* L)
 	{
 		Node* self = r_cast<Node*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
-		if (!self) tolua_error(L, "invalid 'self' in function 'Node_slot'", NULL);
+		if (!self) tolua_error(L, "invalid 'self' in function 'Node_slot'", nullptr);
 #endif
 		Slice name = tolua_toslice(L, 2, 0);
 		if (tolua_isfunction(L, 3))
@@ -628,9 +630,115 @@ void Cache::removeUnused(String name)
 	}
 }
 
+/* Sprite */
+
 Sprite* Sprite_create(String clipStr)
 {
 	return SharedClipCache.loadSprite(clipStr);
+}
+
+static TextureWrap toTextureWrap(lua_State* L, String value)
+{
+	switch (Switch::hash(value))
+	{
+		case "None"_hash: return TextureWrap::None;
+		case "Mirror"_hash: return TextureWrap::Mirror;
+		case "Clamp"_hash: return TextureWrap::Clamp;
+		case "Border"_hash: return TextureWrap::Border;
+		default:
+			luaL_error(L, LogFormat("Texture wrap \"{}\" is invalid, only \"None\", \"Mirror\", \"Clamp\", \"Border\" are allowed.", value).c_str());
+			break;
+	}
+	return TextureWrap::None;
+}
+
+static Slice getTextureWrap(TextureWrap value)
+{
+	switch (value)
+	{
+		case TextureWrap::None: return "None"_slice;
+		case TextureWrap::Mirror: return "Mirror"_slice;
+		case TextureWrap::Clamp: return "Clamp"_slice;
+		case TextureWrap::Border: return "Border"_slice;
+		default: return "None"_slice;
+	}
+}
+
+int Sprite_GetUWrap(lua_State* L)
+{
+	Sprite* self = r_cast<Sprite*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_GetUWrap'", nullptr);
+#endif
+	tolua_pushslice(L, getTextureWrap(self->getUWrap()));
+	return 1;
+}
+
+int Sprite_SetUWrap(lua_State* L)
+{
+	Sprite* self = r_cast<Sprite*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_SetUWrap'", nullptr);
+#endif
+	auto value = GetString(L, 2);
+	self->setUWrap(toTextureWrap(L, value));
+	return 0;
+}
+
+int Sprite_GetVWrap(lua_State* L)
+{
+	Sprite* self = r_cast<Sprite*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_GetVWrap'", nullptr);
+#endif
+	tolua_pushslice(L, getTextureWrap(self->getVWrap()));
+	return 1;
+}
+
+int Sprite_SetVWrap(lua_State* L)
+{
+	Sprite* self = r_cast<Sprite*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_SetVWrap'", nullptr);
+#endif
+	auto value = GetString(L, 2);
+	self->setVWrap(toTextureWrap(L, value));
+	return 0;
+}
+
+int Sprite_GetTextureFilter(lua_State* L)
+{
+	Sprite* self = r_cast<Sprite*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_GetTextureFilter'", nullptr);
+#endif
+	switch (self->getFilter())
+	{
+		case TextureFilter::None: tolua_pushslice(L, "None"_slice);
+		case TextureFilter::Point: tolua_pushslice(L, "Point"_slice);
+		case TextureFilter::Anisotropic: tolua_pushslice(L, "Anisotropic"_slice);
+		default: tolua_pushslice(L, "None"_slice);
+	}
+	return 1;
+}
+
+int Sprite_SetTextureFilter(lua_State* L)
+{
+	Sprite* self = r_cast<Sprite*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_SetTextureFilter'", nullptr);
+#endif
+	auto value = GetString(L, 2);
+	switch (Switch::hash(value))
+	{
+		case "None"_hash: self->setFilter(TextureFilter::None); break;
+		case "Point"_hash: self->setFilter(TextureFilter::Point); break;
+		case "Anisotropic"_hash: self->setFilter(TextureFilter::Anisotropic); break;
+		default:
+			luaL_error(L, LogFormat("Texture filter \"{}\" is invalid, only \"None\", \"Point\", \"Anisotropic\" are allowed.", value).c_str());
+			break;
+	}
+	return 0;
 }
 
 /* Label */
@@ -638,6 +746,41 @@ Sprite* Sprite_create(String clipStr)
 Sprite* Label_getCharacter(Label* self, int index)
 {
 	return self->getCharacter(index - 1);
+}
+
+int Label_GetTextAlign(lua_State* L)
+{
+	Label* self = r_cast<Label*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Label_GetTextAlign'", nullptr);
+#endif
+	switch (self->getAlignment())
+	{
+		case TextAlign::Left: tolua_pushslice(L, "Left"_slice);
+		case TextAlign::Center: tolua_pushslice(L, "Center"_slice);
+		case TextAlign::Right: tolua_pushslice(L, "Right"_slice);
+		default: tolua_pushslice(L, "Left"_slice);
+	}
+	return 1;
+}
+
+int Label_SetTextAlign(lua_State* L)
+{
+	Label* self = r_cast<Label*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Label_SetTextAlign'", nullptr);
+#endif
+	auto value = GetString(L, 2);
+	switch (Switch::hash(value))
+	{
+		case "Left"_hash: self->setAlignment(TextAlign::Left); break;
+		case "Center"_hash: self->setAlignment(TextAlign::Center); break;
+		case "Right"_hash: self->setAlignment(TextAlign::Right); break;
+		default:
+			luaL_error(L, LogFormat("Label text alignment \"{}\" is invalid, only \"Left\", \"Center\", \"Right\" are allowed.", value).c_str());
+			break;
+	}
+	return 0;
 }
 
 /* Vec2 */
@@ -991,6 +1134,9 @@ void __Spine_getAnimationNames(lua_State* L, String spineStr)
 int BodyDef_GetType(lua_State* L)
 {
 	BodyDef* self = r_cast<BodyDef*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in function 'BodyDef_GetType'", nullptr);
+#endif
 	Slice value;
 	switch (self->getType()) {
 		case pr::BodyType::Static: value = "Static"_slice; break;
@@ -1004,6 +1150,9 @@ int BodyDef_GetType(lua_State* L)
 int BodyDef_SetType(lua_State* L)
 {
 	BodyDef* self = r_cast<BodyDef*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in function 'BodyDef_SetType'", nullptr);
+#endif
 	auto value = GetString(L, 2);
 	switch (Switch::hash(value))
 	{
@@ -1149,6 +1298,9 @@ tolua_lerror:
 int Array_getFirst(lua_State* L)
 {
 	Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in function 'Array_getFirst'", nullptr);
+#endif
 	self->getFirst()->pushToLua(L);
 	return 1;
 }
@@ -1156,6 +1308,9 @@ int Array_getFirst(lua_State* L)
 int Array_getLast(lua_State* L)
 {
 	Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in function 'Array_getLast'", nullptr);
+#endif
 	self->getLast()->pushToLua(L);
 	return 1;
 }
@@ -1163,6 +1318,9 @@ int Array_getLast(lua_State* L)
 int Array_getRandomObject(lua_State* L)
 {
 	Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in function 'Array_getRandomObject'", nullptr);
+#endif
 	self->getRandomObject()->pushToLua(L);
 	return 1;
 }

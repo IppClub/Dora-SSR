@@ -63,7 +63,7 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 			.faceRight = faceRight
 			\addTo world
 			\eachAction => @recovery = 0
-			.playable\eachNode (sp)-> sp.filter = TextureFilter.Point
+			.playable\eachNode (sp)-> sp.filter = "Point"
 		world.camera.followTarget = unit if isPlayer and unit.decisionTree == "AI_KidSearch"
 
 with Observer "Change", {"hp","unit"}

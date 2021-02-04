@@ -485,6 +485,16 @@ LuaEngine::LuaEngine()
 			tolua_variable(L, "type", BodyDef_GetType, BodyDef_SetType);
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "Sprite");
+			tolua_variable(L, "uwrap", Sprite_GetUWrap, Sprite_SetUWrap);
+			tolua_variable(L, "vwrap", Sprite_GetVWrap, Sprite_SetVWrap);
+			tolua_variable(L, "filter", Sprite_GetTextureFilter, Sprite_SetTextureFilter);
+		tolua_endmodule(L);
+
+		tolua_beginmodule(L, "Label");
+			tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);
+		tolua_endmodule(L);
+
 	tolua_endmodule(L);
 
 	// load binding codes

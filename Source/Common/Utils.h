@@ -366,4 +366,7 @@ public:
 	static string replaceFilename(const string& path, const string& newFile);
 };
 
+#define _DEFER(code,line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto){code;})
+#define DEFER(code) _DEFER(code,__LINE__)
+
 NS_DOROTHY_END

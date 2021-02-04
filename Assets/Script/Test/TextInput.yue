@@ -12,7 +12,7 @@ TextInput = Class ((args)->
 		.text = text
 		.y = height/2 - fontSize/2
 		.anchor = Vec2.zero
-		.alignment = TextAlign.Left
+		.alignment = "Left"
 
 	cursor = Line {Vec2.zero,Vec2(0,fontSize+2)},Color 0xffffffff
 	blink = -> loop ->

@@ -55,6 +55,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr)
 		auto tokens = clipStr.split("|");
 		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
 		ClipDef* clipDef = ClipCache::load(tokens.front());
+		AssertUnless(clipDef, "fail to load clip: \"{}\".", clipStr);
 		Slice name = tokens.back();
 		auto it = clipDef->rects.find(name);
 		if (it != clipDef->rects.end())
