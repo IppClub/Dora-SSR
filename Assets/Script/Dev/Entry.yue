@@ -64,7 +64,8 @@ LintYueGlobals = (yueCodes,globals,file)->
 				if not findModule
 					countLine = 1
 					code = nil
-					for lineCode in yueCodes\gmatch "[^\n]*\n"
+					codes = Content\load file
+					for lineCode in codes\gmatch "[^\n]*\n"
 						if countLine == line
 							code = lineCode
 							break
@@ -199,6 +200,7 @@ for file in *Content\getAllFiles Path Content.assetPath, "Production"
 
 enterDemoEntry = (name)->
 	isInEntry = false
+	<- thread
 	(msg)<- xpcall ->
 		result = require name
 		if "function" == type result
@@ -234,8 +236,9 @@ footerFocus = false
 screenScale = 2 -- App.deviceRatio
 threadLoop ->
 	return unless showEntry
-	left = Keyboard\isKeyDown "Left"
-	right = Keyboard\isKeyDown "Right"
+	ctrl = Keyboard\isKeyPressed "LCtrl"
+	left = ctrl and Keyboard\isKeyDown "Left"
+	right = ctrl and Keyboard\isKeyDown "Right"
 	App\shutdown! if Keyboard\isKeyDown "Escape"
 	:width,:height = App.visualSize
 	SetNextWindowSize Vec2(190,50)
@@ -286,14 +289,14 @@ threadLoop ->
 				if Button("Prev", Vec2 70,30) or left
 					allClear!
 					isInEntry = false
-					thread -> enterDemoEntry allNames[currentIndex-1]
+					enterDemoEntry allNames[currentIndex-1]
 			else Dummy Vec2 70,30
 			SameLine!
 			if currentIndex and currentIndex < #allNames
 				if Button("Next", Vec2 70,30) or right
 					allClear!
 					isInEntry = false
-					thread -> enterDemoEntry allNames[currentIndex+1]
+					enterDemoEntry allNames[currentIndex+1]
 			else Dummy Vec2 70,30
 		if showStats
 			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"

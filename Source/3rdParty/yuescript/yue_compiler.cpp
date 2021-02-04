@@ -53,7 +53,7 @@ inline std::string s(std::string_view sv) {
 	return std::string(sv);
 }
 
-const std::string_view version = "0.4.24"sv;
+const std::string_view version = "0.4.25"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -126,7 +126,7 @@ public:
 					if (!options) {
 						options = std::make_unique<Options>();
 					}
-					pushYuep("options"sv);
+					pushYue("options"sv);
 					lua_pushnil(L); // options startKey
 					while (lua_next(L, -2) != 0) { // options key value
 						size_t len = 0;
@@ -1555,7 +1555,10 @@ private:
 		if (assign) {
 			auto exp = ifCondPairs.front().first->condition.get();
 			auto x = exp;
+			bool lintGlobal = _config.lintGlobalVariable;
+			_config.lintGlobalVariable = false;
 			auto var = singleVariableFrom(exp);
+			_config.lintGlobalVariable = lintGlobal;
 			if (var.empty()) {
 				storingValue = true;
 				auto desVar = getUnusedName("_des_"sv);
@@ -2183,7 +2186,7 @@ private:
 #ifndef YUE_NO_MACRO
 	void passOptions() {
 		if (!_config.options.empty()) {
-			pushYuep("options"sv); // options
+			pushYue("options"sv); // options
 			for (const auto& option : _config.options) {
 				lua_pushlstring(L, option.second.c_str(), option.second.size());
 				lua_setfield(L, -2, option.first.c_str());
@@ -2226,7 +2229,7 @@ private:
 		lua_remove(L, -2); // cur
 	}
 
-	void pushYuep(std::string_view name) {
+	void pushYue(std::string_view name) {
 		lua_getglobal(L, "package"); // package
 		lua_getfield(L, -1, "loaded"); // package loaded
 		lua_getfield(L, -1, "yue"); // package loaded yue
@@ -2320,7 +2323,7 @@ private:
 		pushCurrentModule(); // cur
 		int top = lua_gettop(L) - 1;
 		DEFER(lua_settop(L, top));
-		pushYuep("loadstring"sv); // cur loadstring
+		pushYue("loadstring"sv); // cur loadstring
 		lua_pushlstring(L, macroCodes.c_str(), macroCodes.size()); // cur loadstring codes
 		lua_pushlstring(L, chunkName.c_str(), chunkName.size()); // cur loadstring codes chunk
 		pushOptions(macro->m_begin.m_line - 1); // cur loadstring codes chunk options
@@ -2333,7 +2336,7 @@ private:
 			throw std::logic_error(_info.errorMessage(s("failed to load macro codes, at (macro "sv) + macroName + s("): "sv) + err, macro->macroLit));
 		}
 		lua_pop(L, 1); // cur f
-		pushYuep("pcall"sv); // cur f pcall
+		pushYue("pcall"sv); // cur f pcall
 		lua_insert(L, -2); // cur pcall f
 		if (lua_pcall(L, 1, 2, 0) != 0) { // f(), cur success macro
 			std::string err = lua_tostring(L, -1);
@@ -3090,7 +3093,7 @@ private:
 			}
 			auto fcodes = _parser.toString(args->back());
 			Utils::trim(fcodes);
-			pushYuep("loadstring"sv); // loadstring
+			pushYue("loadstring"sv); // loadstring
 			lua_pushlstring(L, fcodes.c_str(), fcodes.size()); // loadstring codes
 			lua_pushliteral(L, "=(macro in-place)"); // loadstring codes chunk
 			pushOptions(args->back()->m_begin.m_line - 1); // loadstring codes chunk options
@@ -3103,7 +3106,7 @@ private:
 				throw std::logic_error(_info.errorMessage(s("failed to load macro codes, at (macro in-place): "sv) + err, x));
 			}
 			lua_pop(L, 1); // f
-			pushYuep("pcall"sv); // f pcall
+			pushYue("pcall"sv); // f pcall
 			lua_insert(L, -2); // pcall f
 			if (lua_pcall(L, 1, 2, 0) != 0) { // f(), success macroFunc
 				std::string err = lua_tostring(L, -1);
@@ -3114,7 +3117,7 @@ private:
 				throw std::logic_error(_info.errorMessage(s("failed to generate macro function\n"sv) + err, x));
 			} // true macroFunc
 			lua_remove(L, -2); // macroFunc
-			pushYuep("pcall"sv); // macroFunc pcall
+			pushYue("pcall"sv); // macroFunc pcall
 			lua_insert(L, -2); // pcall macroFunc
 			bool success = lua_pcall(L, 1, 2, 0) == 0;
 			if (!success) { // err
@@ -3133,7 +3136,7 @@ private:
 			throw std::logic_error(_info.errorMessage("can not resolve macro"sv, x));
 		}
 		lua_rawgeti(L, -1, 1); // cur macro func
-		pushYuep("pcall"sv); // cur macro func pcall
+		pushYue("pcall"sv); // cur macro func pcall
 		lua_insert(L, -2); // cur macro pcall func
 		auto item = *(++chainList.begin());
 		const node_container* args = nullptr;
@@ -5079,7 +5082,7 @@ private:
 				pushCurrentModule(); // cur
 				int top = lua_gettop(L) - 1; // Lua state may be setup by pushCurrentModule()
 				DEFER(lua_settop(L, top));
-				pushYuep("find_modulepath"sv); // cur find_modulepath
+				pushYue("find_modulepath"sv); // cur find_modulepath
 				lua_pushlstring(L, moduleName.c_str(), moduleName.size()); // cur find_modulepath moduleName
 				if (lua_pcall(L, 1, 1, 0) != 0) {
 					std::string err = lua_tostring(L, -1);
@@ -5091,7 +5094,7 @@ private:
 				std::string moduleFullName = lua_tostring(L, -1);
 				lua_pop(L, 1); // cur
 				if (!isModuleLoaded(moduleFullName)) {
-					pushYuep("read_file"sv); // cur read_file
+					pushYue("read_file"sv); // cur read_file
 					lua_pushlstring(L, moduleFullName.c_str(), moduleFullName.size()); // cur load_text moduleFullName
 					if (lua_pcall(L, 1, 1, 0) != 0) {
 						std::string err = lua_tostring(L, -1);

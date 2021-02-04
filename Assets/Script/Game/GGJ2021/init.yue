@@ -102,83 +102,59 @@ masks = {
 
 itemSettings =
 	item_hat:
-		name: "普通帽子"
 		skill: "jump"
-		skillDesc: "跳跃"
 		offset: Vec2 0,30
 
 	item_hatTop:
-		name: "高帽子"
 		skill: "evade"
-		skillDesc: "闪避"
 		offset: Vec2 0,30
 
 	item_helmet:
-		name: "战盔"
 		skill: "rush"
-		skillDesc: "冲锋"
 		offset: Vec2 0,0
 
 	item_helmetModern:
-		name: "橄榄球盔"
 		skill: "rush"
-		skillDesc: "冲锋"
 		offset: Vec2 0,0
 
 	item_shield:
-		name: "方形盾"
 		skill: ""
-		skillDesc: "无"
 		offset: Vec2 0,0
 
 	item_shieldRound:
-		name: "小圆盾"
 		skill: "jump"
-		skillDesc: "跳跃"
 		offset: Vec2 0,0
 
 	tile_heart:
-		name: "爱心"
 		skill: "jump"
-		skillDesc: "跳跃"
 		offset: Vec2 0,0
 		attackPower: Vec2 600,0
 
 	ui_hand:
-		name: "手套"
 		skill: "evade"
-		skillDesc: "闪避"
 		offset: Vec2 0,0
 
 	item_bow:
-		name: "短弓"
 		skill: "range"
-		skillDesc: "远程攻击"
 		offset: Vec2 10,0
 		attackRange: Size 550,150
 		sndAttack: "Audio/d_att.wav"
 
 	item_sword:
-		name: "剑"
 		skill: "meleeAttack"
-		skillDesc: "近程攻击"
 		offset: Vec2 15,50
 		attackRange: Size 120,150
 		sndAttack: "Audio/f_att.wav"
 
 	item_rod:
-		name: "法杖"
 		skill: "meleeAttack"
-		skillDesc: "近程攻击"
 		offset: Vec2 15,50
 		attackRange: Size 200,150
 		attackPower: Vec2 100,800
 		sndAttack: "Audio/b_att.wav"
 
 	item_spear:
-		name: "长矛"
 		skill: "meleeAttack"
-		skillDesc: "近程攻击"
 		offset: Vec2 15,50
 		attackRange: Size 200,150
 		sndAttack: "Audio/f_att.wav"
