@@ -42,11 +42,11 @@ function classVariable:cfuncname (prefix)
  local p = self:inmodule() or self:innamespace() or self:inclass()
 
  if p then
- 	if self.parent.classtype == 'class' then
-		parent = "_" .. self.parent.type
-	else
-	  parent = "_" .. p
-	end
+  if self.parent.classtype == 'class' then
+  parent = "_" .. self.parent.type
+ else
+   parent = "_" .. p
+ end
  end
 
  if strfind(self.mod,"(unsigned)") then
@@ -59,7 +59,7 @@ function classVariable:cfuncname (prefix)
 
  local name =  prefix .. parent .. unsigned .. "_" .. gsub(self.lname or self.name,".*::","") .. ptr
 
-	name = clean_template(name)
+ name = clean_template(name)
  return name
 
 end
@@ -72,21 +72,21 @@ end
 -- get variable value
 function classVariable:getvalue (class,static, prop_get)
 
-	local name
-	if prop_get then
+ local name
+ if prop_get then
 
-		name = prop_get.."()"
-	else
-		name = self.name
-	end
+  name = prop_get.."()"
+ else
+  name = self.name
+ end
 
-	if class and static then
-	 return self.parent.type..'::'..name
-	elseif class then
-	 return 'self->'..name
-	else
-	 return name
-	end
+ if class and static then
+  return self.parent.type..'::'..name
+ elseif class then
+  return 'self->'..name
+ else
+  return name
+ end
 end
 
 -- get variable pointer value
@@ -106,14 +106,14 @@ function classVariable:supcode ()
  local class = self:inclass()
  local out = string.find(self.mod, "tolua_outside")
  if out then class = false end
-	local prop_get,prop_set
-	if string.find(self.mod, 'tolua_property') then
+ local prop_get,prop_set
+ if string.find(self.mod, 'tolua_property') then
 
-		local _,_,type = string.find(self.mod, "tolua_property__([^%s]*)")
-		type = type or "default"
-		prop_get,prop_set = get_property_methods(type, self.name)
-		self.mod = string.gsub(self.mod, "tolua_property[^%s]*", "")
-	end
+  local _,_,type = string.find(self.mod, "tolua_property__([^%s]*)")
+  type = type or "default"
+  prop_get,prop_set = get_property_methods(type, self.name)
+  self.mod = string.gsub(self.mod, "tolua_property[^%s]*", "")
+ end
 
  -- get function ------------------------------------------------
  if class then
@@ -140,47 +140,47 @@ function classVariable:supcode ()
 
  -- check self value
  if class and static==nil then
-	 output('#ifndef TOLUA_RELEASE\n')
+  output('#ifndef TOLUA_RELEASE\n')
   output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in accessing variable \'%s\'", self.name)..'",NULL);');
-		output('#endif\n')
+  output('#endif\n')
  end
 
 local is_function = self.type:match("^tolua_function.*$") ~= nil or self.type == "tolua_handler"
  -- return value
 local t,ct = isbasic(self.type)
 if is_function then
-	output('  int handler = '..self:getvalue(class,static,prop_get)..';')
-	output('  if (handler) toluafix_get_function_by_refid(tolua_S, handler);')
-	output('  else lua_pushnil(tolua_S);')
+ output('  int handler = '..self:getvalue(class,static,prop_get)..';')
+ output('  if (handler) toluafix_get_function_by_refid(tolua_S, handler);')
+ output('  else lua_pushnil(tolua_S);')
 elseif t == "" and out then-- type void
-	output('  ',prop_get..'(self);')
+ output('  ',prop_get..'(self);')
 elseif t then
-	output('  tolua_push'..t..'(tolua_S,(',ct,')'..self:getvalue(class,static,prop_get)..');')
+ output('  tolua_push'..t..'(tolua_S,(',ct,')'..self:getvalue(class,static,prop_get)..');')
 else
-	local push_func = get_push_function(self.type)
-	t = self.type
-	local new_t = string.gsub(t, "const%s+", "")
-	-- t = _userltype[t] -- convert to renamed type
-	if self.ptr == '' then
-		if push_func == _push_object_func_name then
-			output(' ',push_func,"(tolua_S,tolua_obj);")
-		elseif push_func == "tolua_pushusertype" then
-			output('    void* tolua_obj = Mtolua_new((',new_t,')('..self:getvalue(class,static,prop_get)..'));')
-			output(' ',push_func,"(tolua_S,tolua_obj,LuaType<"..t..">());")
-		else
-			output(' ',push_func,'(tolua_S,tolua_obj,"',t,'");')
-		end
-	else
-		local ref = self.ptr == '&' and "&" or ""
-		local value = self:getvalue(class,static,prop_get)
-		if push_func == _push_object_func_name then
-			output(' ',push_func,'(tolua_S,'..ref..value..");")
-		elseif push_func == "tolua_pushusertype" then
-			output(' ',push_func,'(tolua_S,(void*)'..ref..value..",LuaType<"..t..">());")
-		else
-			output(' ',push_func,'(tolua_S,(void*)'..ref..value..',"',t,'");')
-		end
-	end
+ local push_func = get_push_function(self.type)
+ t = self.type
+ local new_t = string.gsub(t, "const%s+", "")
+ -- t = _userltype[t] -- convert to renamed type
+ if self.ptr == '' then
+  if push_func == _push_object_func_name then
+   output(' ',push_func,"(tolua_S,tolua_obj);")
+  elseif push_func == "tolua_pushusertype" then
+   output('    void* tolua_obj = Mtolua_new((',new_t,')('..self:getvalue(class,static,prop_get)..'));')
+   output(' ',push_func,"(tolua_S,tolua_obj,LuaType<"..t..">());")
+  else
+   output(' ',push_func,'(tolua_S,tolua_obj,"',t,'");')
+  end
+ else
+  local ref = self.ptr == '&' and "&" or ""
+  local value = self:getvalue(class,static,prop_get)
+  if push_func == _push_object_func_name then
+   output(' ',push_func,'(tolua_S,'..ref..value..");")
+  elseif push_func == "tolua_pushusertype" then
+   output(' ',push_func,'(tolua_S,(void*)'..ref..value..",LuaType<"..t..">());")
+  else
+   output(' ',push_func,'(tolua_S,(void*)'..ref..value..',"',t,'");')
+  end
+ end
 end
 
  output(' return 1;')
@@ -207,10 +207,10 @@ end
    local to_func = get_to_function(self.parent.type)
    output(to_func,'(tolua_S,1,0);')
    -- check self value
-		end
+  end
   -- check types
-		output('#ifndef TOLUA_RELEASE\n')
-		output('  tolua_Error tolua_err;')
+  output('#ifndef TOLUA_RELEASE\n')
+  output('  tolua_Error tolua_err;')
   if class and static==nil then
    output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in accessing variable \'%s\'", class..'.'..self.name)..'",NULL);');
   elseif static then
@@ -225,70 +225,69 @@ end
     output('  if ('..self:outchecktype(var_index)..')')
   end
   output('   tolua_error(tolua_S,"#vinvalid type in variable assignment for \''..(class and class..'.' or '')..self.name..'\'",&tolua_err);')
+  output('#endif\n')
+  output('#ifndef TOLUA_RELEASE\n')
   output('  try {\n')
   output('#endif\n')
   -- assign value
-		local def = 0
-		if self.def ~= '' then def = self.def end
-		if is_function then
-			local name = prop_set or self.name
-			if self.type:match("^tolua_function_") then
-				output("  LuaFunction<"..self.type:match("^tolua_function_([^ ]+)").."> "..name.."(tolua_ref_function(tolua_S,"..tostring(var_index).."));")
-			elseif self.type == 'tolua_handler' then
-			  output('  self->'..name..'(LuaHandler::create(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
-			end
-		elseif self.type == 'char*' and self.dim ~= '' then -- is string
-			output(' strncpy((char*)')
-			if class and static then
-				output(self.parent.type..'::'..self.name)
-			elseif class then
-				output('self->'..self.name)
-			else
-				output(self.name)
-			end
-			output(',(const char*)tolua_tostring(tolua_S,'..tostring(var_index)..',',def,'),',self.dim,'-1);')
-		else
-			local ptr = ''
-			if self.ptr~='' then ptr = '*' end
-			output(' ')
-			local name = prop_set or self.name
-			if class and static then
-				output(self.parent.type..'::'..name)
-			elseif class then
-				output('self->'..name)
-			else
-				output(name)
-			end
-			local t = isbasic(self.type)
-			if prop_set then
-				output('(')
-			else
-				output(' = ')
-			end
-			if not t and ptr=='' then output('*') end
-			output('static_cast<',self.mod,self.type)
-			if not t then
-				output('*')
-			end
-			output('>(')
-			if t then
-				local ise = isenum(self.type)
-				if ise then
-					output('static_cast<int>(')
-				end
-				output('tolua_to'..t,'(tolua_S,'..tostring(var_index)..',',def,'))')
-				if ise then
-					output(')')
-				end
-			else
-				local to_func = get_to_function(self.type)
-				output(to_func,'(tolua_S,'..tostring(var_index)..',',def,'))')
-			end
-			if prop_set then
-				output(")")
-			end
-			output(";")
-		end
+  local def = 0
+  if self.def ~= '' then def = self.def end
+  if is_function then
+   local name = prop_set or self.name
+   if self.type:match("^tolua_function_") then
+    output("  LuaFunction<"..self.type:match("^tolua_function_([^ ]+)").."> "..name.."(tolua_ref_function(tolua_S,"..tostring(var_index).."));")
+   elseif self.type == 'tolua_handler' then
+    output('  self->'..name..'(LuaHandler::create(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
+   end
+  elseif self.type == 'char*' and self.dim ~= '' then -- is string
+   output(' strncpy((char*)')
+   if class and static then
+    output(self.parent.type..'::'..self.name)
+   elseif class then
+    output('self->'..self.name)
+   else
+    output(self.name)
+   end
+   output(',(const char*)tolua_tostring(tolua_S,'..tostring(var_index)..',',def,'),',self.dim,'-1);')
+  else
+   local ptr = ''
+   if self.ptr~='' then ptr = '*' end
+   output(' ')
+   local name = prop_set or self.name
+   if class and static then
+    output(self.parent.type..'::'..name)
+   elseif class then
+    output('self->'..name)
+   else
+    output(name)
+   end
+   local t = isbasic(self.type)
+   if prop_set then
+    output('(')
+   else
+    output(' = ')
+   end
+   if not t and ptr=='' then output('*') end
+   output('static_cast<',self.mod,self.type)
+   if not t then
+    output('*')
+   end
+   output('>(')
+   if t then
+    local ise = isenum(self.type)
+    if ise then
+     output('static_cast<int>(')
+    end
+    output('tolua_to'..t,'(tolua_S,'..tostring(var_index)..',',def,'))')
+    if ise then
+     output(')')
+    end
+   else
+    local to_func = get_to_function(self.type)
+    output(to_func,'(tolua_S,'..tostring(var_index)..',',def,'))')
+   end
+   output(prop_set and ");" or ";")
+  end
   output('#ifndef TOLUA_RELEASE\n')
   output('  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n')
   output('#endif\n')
@@ -302,9 +301,9 @@ end
 
 function classVariable:register (pre)
 
-	if not self:check_public_access() then
-		return
-	end
+ if not self:check_public_access() then
+  return
+ end
  pre = pre or ''
  local parent = self:inmodule() or self:innamespace() or self:inclass()
  if not parent then
