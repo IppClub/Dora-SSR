@@ -6,7 +6,7 @@ LabelEx = Class Node,
 	__init:(args)=>
 		{:width,:height,:text,:fontName,:fontSize,:alignment,:renderOrder} = args
 		text or= ""
-		alignment or= TextAlign.Right
+		alignment or= "Right"
 		fontName or= "NotoSansHans-Regular"
 		fontSize or= 16
 		renderOrder or= 0
@@ -17,12 +17,12 @@ LabelEx = Class Node,
 			.alignment = alignment
 			.renderOrder = renderOrder
 			switch alignment
-				when TextAlign.Center
+				when "Center"
 					.position = Vec2(0.5,0.5)*@size
-				when TextAlign.Left
+				when "Left"
 					.y = height/2 - fontSize/2
 					.anchor = Vec2.zero
-				when TextAlign.Right
+				when "Right"
 					.x = width
 					.y = height/2 - fontSize/2
 					.anchor = Vec2 1,0
@@ -63,8 +63,8 @@ createLabel = (alignment)->
 				sleep 0.3
 
 Director.entry\addChild with Node!
-	\addChild createLabel TextAlign.Center
-	\addChild with createLabel TextAlign.Left
+	\addChild createLabel "Center"
+	\addChild with createLabel "Left"
 		.y = 40
-	\addChild with createLabel TextAlign.Right
+	\addChild with createLabel "Right"
 		.y = -40

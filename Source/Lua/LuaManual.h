@@ -65,9 +65,17 @@ struct Cache
 
 /* Sprite */
 Sprite* Sprite_create(String clipStr);
+int Sprite_GetUWrap(lua_State* L);
+int Sprite_SetUWrap(lua_State* L);
+int Sprite_GetVWrap(lua_State* L);
+int Sprite_SetVWrap(lua_State* L);
+int Sprite_GetTextureFilter(lua_State* L);
+int Sprite_SetTextureFilter(lua_State* L);
 
 /* Label */
 Sprite* Label_getCharacter(Label* self, int index);
+int Label_GetTextAlign(lua_State* L);
+int Label_SetTextAlign(lua_State* L);
 
 /* Vec2 */
 Vec2* Vec2_create(float x, float y);

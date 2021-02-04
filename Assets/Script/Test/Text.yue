@@ -30,7 +30,7 @@ Director.entry\addChild with AlignNode isRoot:true,inUI:false
 			.border = LineRect width:w, height:h, color:0xffffffff
 			.area\addChild .border
 		.view\addChild with Label "NotoSansHans-Regular",fontSize
-			.alignment = TextAlign.Left
+			.alignment = "Left"
 			.textWidth = width-fontSize
 			.text = [[# Dorothy SSR
 ## 项目目标

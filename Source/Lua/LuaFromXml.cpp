@@ -59,8 +59,8 @@ static const char* _toBoolean(const char* str)
 #define toBoolean(x) (_toBoolean(toVal(x,"False")))
 #define toEase(x) (isVal(x) ? string("Ease.")+Val(x) : Val(x))
 #define toBlendFunc(x) (isVal(x) ? toVal(x,"Zero") : Val(x))
-#define toTextAlign(x) (isVal(x) ? string("TextAlign.")+toVal(x,"Center") : Val(x))
-#define toText(x) (isVal(x) ? string("\"")+Val(x)+"\"" : Val(x))
+#define toTextAlign(x) (isVal(x) ? string("\"")+toVal(x,"Center")+'\"' : Val(x))
+#define toText(x) (isVal(x) ? string("\"")+Val(x)+'\"' : Val(x))
 
 #define Self_Check(name) \
 	if (self.empty()) { self = getUsableName(#name); names.insert(self); }\

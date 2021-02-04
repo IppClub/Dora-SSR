@@ -401,27 +401,6 @@ struct BlendFunc
 	static const BlendFunc Default;
 };
 
-struct TextureWrap
-{
-	enum {
-		None,
-		Mirror,
-		Clamp,
-		Border
-	};
-};
-enum TextureWrap {};
-
-struct TextureFilter
-{
-	enum {
-		None,
-		Point,
-		Anisotropic
-	};
-};
-enum TextureFilter {};
-
 class Effect : public Object
 {
 	void set(String name, float var);
@@ -440,9 +419,6 @@ class Sprite : public Node
 	tolua_property__common float alphaRef;
 	tolua_property__common Rect textureRect;
 	tolua_property__common BlendFunc blendFunc;
-	tolua_property__common TextureFilter filter;
-	tolua_property__common TextureWrap uWrap @ uwrap;
-	tolua_property__common TextureWrap vWrap @ vwrap;
 	tolua_property__common SpriteEffect* effect;
 	tolua_readonly tolua_property__common Texture2D* texture;
 	static Sprite* create();
@@ -511,19 +487,8 @@ struct Ease
 	static float func(Ease::Enum easing, float time);
 };
 
-struct TextAlign
-{
-	enum {
-		Left,
-		Center,
-		Right
-	};
-};
-enum TextAlign {};
-
 class Label : public Node
 {
-	tolua_property__common TextAlign alignment;
 	tolua_property__common float alphaRef;
 	tolua_property__common float textWidth;
 	tolua_property__common float lineGap;
