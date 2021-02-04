@@ -23,11 +23,10 @@ Store["Unit_KidW"] = with Dictionary!
 	.attackEffectDelay = 0.1
 	.attackRange = Size 350,150
 	.attackPower = Vec2 100,100
-	.attackType = AttackType.Range
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_KidW"
@@ -70,11 +69,10 @@ Store["Unit_KidM"] = with Dictionary!
 	.attackEffectDelay = 0.1
 	.attackRange = Size 400,100
 	.attackPower = Vec2 100,0
-	.attackType = AttackType.Range
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_KidM"
@@ -117,11 +115,10 @@ Store["Unit_Zombie1"] = with Dictionary!
 	.attackEffectDelay = 0.1
 	.attackRange = Size 80,50
 	.attackPower = Vec2 150,100
-	.attackType = AttackType.Melee
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""
@@ -165,11 +162,10 @@ Store["Unit_Zombie2"] = with Dictionary!
 	.attackEffectDelay = 0.1
 	.attackRange = Size 150,80
 	.attackPower = Vec2 150,100
-	.attackType = AttackType.Melee
-	.attackTarget = AttackTarget.Multi
+	.attackTarget = "Multi"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""

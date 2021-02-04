@@ -1919,6 +1919,64 @@ NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
+static Relation toRelation(String value)
+{
+	switch (Switch::hash(value))
+	{
+		case "Enemy"_hash: return Relation::Enemy;
+		case "Friend"_hash: return Relation::Friend;
+		case "Neutral"_hash: return Relation::Neutral;
+		case "Unknown"_hash: return Relation::Unknown;
+		case "Any"_hash: return Relation::Any;
+		default:
+			AssertIf(true, "Relation \"{}\" is invalid, only \"Enemy\", \"Friend\", \"Neutral\", \"Unknown\", \"Any\" are allowed.", value);
+			break;
+	}
+	return Relation::Unknown;
+}
+
+static Slice getRelation(Relation relation)
+{
+	switch (relation)
+	{
+		case Relation::Enemy: return "Enemy"_slice;
+		case Relation::Friend: return "Friend"_slice;
+		case Relation::Neutral: return "Neutral"_slice;
+		case Relation::Unknown: return "Unknown"_slice;
+		case Relation::Any: return "Any"_slice;
+		default: return "Unknown"_slice;
+	}
+}
+
+/* TargetAllow */
+
+void TargetAllow_allow(TargetAllow* self, String flag, bool allow)
+{
+	self->allow(toRelation(flag), allow);
+}
+
+bool TargetAllow_isAllow(TargetAllow* self, String relation)
+{
+	return self->isAllow(toRelation(relation));
+}
+
+/* AI */
+
+Array* AI_getUnitsByRelation(AI* self, String relation)
+{
+	return self->getUnitsByRelation(toRelation(relation));
+}
+
+Unit* AI_getNearestUnit(AI* self, String relation)
+{
+	return self->getNearestUnit(toRelation(relation));
+}
+
+float AI_getNearestUnitDistance(AI* self, String relation)
+{
+	return self->getNearestUnitDistance(toRelation(relation));
+}
+
 /* Bullet */
 
 Bullet* Bullet_create(BulletDef* def, Unit* unit)
@@ -1930,6 +1988,23 @@ Bullet* Bullet_create(BulletDef* def, Unit* unit)
 		return bullet->isHitStop();
 	};
 	return bullet;
+}
+
+/* Data */
+
+void Data_setRelation(Data* self, Uint8 groupA, Uint8 groupB, String relation)
+{
+	self->setRelation(groupA, groupB, toRelation(relation));
+}
+
+Slice Data_getRelation(Data* self, Uint8 groupA, Uint8 groupB)
+{
+	return getRelation(self->getRelation(groupA, groupB));
+}
+
+Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB)
+{
+	return getRelation(self->getRelation(bodyA, bodyB));
 }
 
 NS_DOROTHY_PLATFORMER_END

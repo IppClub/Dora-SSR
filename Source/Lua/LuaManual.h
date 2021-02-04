@@ -178,14 +178,24 @@ NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
+/* TargetAllow */
+void TargetAllow_allow(TargetAllow* self, String flag, bool allow);
+bool TargetAllow_isAllow(TargetAllow* self, String flag);
+
 /* AI */
 inline AI* AI_shared() { return &SharedAI; }
+Array* AI_getUnitsByRelation(AI* self, String relation);
+Unit* AI_getNearestUnit(AI* self, String relation);
+float AI_getNearestUnitDistance(AI* self, String relation);
 
 /* Bullet */
 Bullet* Bullet_create(BulletDef* def, Unit* unit);
 
 /* Data */
 inline Data* Data_shared() { return &SharedData; }
+void Data_setRelation(Data* self, Uint8 groupA, Uint8 groupB, String relation);
+Slice Data_getRelation(Data* self, Uint8 groupA, Uint8 groupB);
+Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB);
 
 NS_DOROTHY_PLATFORMER_END
 

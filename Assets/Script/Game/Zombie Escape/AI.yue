@@ -15,7 +15,7 @@ rangeAttack = Sel {
 				stop = Vec2 start.x+(@faceRight and 1 or -1)*@unitDef.attackRange.width,start.y
 				Store.world\raycast start,stop,true,(b)->
 					return false if b.group == Data.groupDetection
-					faceObstacle = false if Relation.Enemy == Data\getRelation @,b
+					faceObstacle = false if Data\isEnemy @,b
 					true
 				faceObstacle
 			else false
@@ -50,7 +50,7 @@ walk = Sel {
 }
 
 fightDecision = Seq {
-	Con "see enemy",=> AI\getNearestUnit(Relation.Enemy)?
+	Con "see enemy",=> AI\getNearestUnit("Enemy")?
 	Sel {
 		Seq {
 			Con "need evade",=>
@@ -59,7 +59,7 @@ fightDecision = Seq {
 				evadeRightEnemy = false
 				sensor = @getSensorByTag Unit.AttackSensorTag
 				sensor.sensedBodies\each (body)->
-					if Relation.Enemy == Data\getRelation @,body
+					if Data\isEnemy @,body
 						distance = math.abs @x - body.x
 						if distance < 80
 							evadeRightEnemy = false
@@ -83,13 +83,13 @@ fightDecision = Seq {
 		}
 		Seq {
 			Con "not facing nearest enemy",=>
-				enemy = AI\getNearestUnit Relation.Enemy
+				enemy = AI\getNearestUnit "Enemy"
 				(@x > enemy.x) == @faceRight
 			Act "turn"
 		}
 		Seq {
 			Con "enemy in attack range",=>
-				enemy = AI\getNearestUnit Relation.Enemy
+				enemy = AI\getNearestUnit "Enemy"
 				attackUnits = AI\getUnitsInAttackRange!
 				attackUnits and attackUnits\contains(enemy) or false
 			Sel {

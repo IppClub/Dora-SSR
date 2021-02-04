@@ -29,6 +29,12 @@ public:
 	void setRelation(Uint8 groupA, Uint8 groupB, Relation relation);
 	Relation getRelation(Uint8 groupA, Uint8 groupB) const;
 	Relation getRelation(Body* bodyA, Body* bodyB) const;
+	bool isEnemy(Uint8 groupA, Uint8 groupB) const;
+	bool isEnemy(Body* bodyA, Body* bodyB) const;
+	bool isFriend(Uint8 groupA, Uint8 groupB) const;
+	bool isFriend(Body* bodyA, Body* bodyB) const;
+	bool isNeutral(Uint8 groupA, Uint8 groupB) const;
+	bool isNeutral(Body* bodyA, Body* bodyB) const;
 	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
 	bool getShouldContact(Uint8 groupA, Uint8 groupB) const;
 	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);

@@ -25,11 +25,10 @@ Store["Flandre"] = with Dictionary!
 	.attackPower = Vec2 400,400
 	.attackBonus = 0
 	.attackFactor = 1.0
-	.attackType = AttackType.Melee
-	.attackTarget = AttackTarget.Multi
+	.attackTarget = "Multi"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = false
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""
@@ -77,11 +76,10 @@ Store["Dorothy"] = with Dictionary!
 	.attackPower = Vec2 300,300
 	.attackBonus = 0
 	.attackFactor = 1.0
-	.attackType = AttackType.Range
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Arrow"
@@ -129,11 +127,10 @@ Store["Villy"] = with Dictionary!
 	.attackPower = Vec2 200,300
 	.attackBonus = 0
 	.attackFactor = 1.0
-	.attackType = AttackType.Range
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bubble"
@@ -181,11 +178,10 @@ Store["BunnyP"] = with Dictionary!
 	.attackPower = Vec2 400,400
 	.attackBonus = 0
 	.attackFactor = 1.0
-	.attackType = AttackType.Melee
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = false
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""
@@ -233,11 +229,10 @@ Store["BunnyG"] = with Dictionary!
 	.attackPower = Vec2 400,400
 	.attackBonus = 0
 	.attackFactor = 1.0
-	.attackType = AttackType.Melee
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = false
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""

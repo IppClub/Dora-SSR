@@ -81,6 +81,36 @@ Relation Data::getRelation(Body* bodyA, Body* bodyB) const
 	return Data::getRelation(bodyA->getGroup(), bodyB->getGroup());
 }
 
+bool Data::isEnemy(Uint8 groupA, Uint8 groupB) const
+{
+	return getRelation(groupA, groupB) == Relation::Enemy;
+}
+
+bool Data::isEnemy(Body* bodyA, Body* bodyB) const
+{
+	return getRelation(bodyA, bodyB) == Relation::Enemy;
+}
+
+bool Data::isFriend(Uint8 groupA, Uint8 groupB) const
+{
+	return getRelation(groupA, groupB) == Relation::Enemy;
+}
+
+bool Data::isFriend(Body* bodyA, Body* bodyB) const
+{
+	return getRelation(bodyA, bodyB) == Relation::Friend;
+}
+
+bool Data::isNeutral(Uint8 groupA, Uint8 groupB) const
+{
+	return getRelation(groupA, groupB) == Relation::Neutral;
+}
+
+bool Data::isNeutral(Body* bodyA, Body* bodyB) const
+{
+	return getRelation(bodyA, bodyB) == Relation::Neutral;
+}
+
 void Data::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
 {
 	Uint16 key = groupA<<8 | groupB;
