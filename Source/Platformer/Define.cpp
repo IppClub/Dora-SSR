@@ -25,21 +25,21 @@ bool TargetAllow::operator!=(const TargetAllow& other) const
 	return _flag != other._flag;
 }
 
-void TargetAllow::allow(Relation flag, bool allow)
+void TargetAllow::allow(Relation relation, bool allow)
 {
 	if (allow)
 	{
-		_flag |= s_cast<Uint32>(flag);
+		_flag |= s_cast<Uint32>(relation);
 	}
 	else
 	{
-		_flag &= ~s_cast<Uint32>(flag);
+		_flag &= ~s_cast<Uint32>(relation);
 	}
 }
 
-bool TargetAllow::isAllow(Relation flag)
+bool TargetAllow::isAllow(Relation relation)
 {
-	return (_flag & s_cast<Uint32>(flag)) != 0;
+	return (_flag & s_cast<Uint32>(relation)) != 0;
 }
 
 void TargetAllow::setTerrainAllowed(bool var)

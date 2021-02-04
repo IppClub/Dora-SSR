@@ -40,16 +40,16 @@ with Data.store
 
 	Data\setShouldContact .GroupDisplay, .GroupDisplay, true
 
-	Data\setRelation .GroupPlayer, .GroupPlayerBlock, Relation.Friend
-	Data\setRelation .GroupPlayer, .GroupPlayerPoke, Relation.Friend
-	Data\setRelation .GroupEnemy, .GroupEnemyBlock, Relation.Friend
-	Data\setRelation .GroupEnemy, .GroupEnemyPoke, Relation.Friend
+	Data\setRelation .GroupPlayer, .GroupPlayerBlock, "Friend"
+	Data\setRelation .GroupPlayer, .GroupPlayerPoke, "Friend"
+	Data\setRelation .GroupEnemy, .GroupEnemyBlock, "Friend"
+	Data\setRelation .GroupEnemy, .GroupEnemyPoke, "Friend"
 
-	Data\setRelation .GroupPlayer, .GroupEnemy, Relation.Enemy
-	Data\setRelation .GroupPlayer, .GroupEnemyBlock, Relation.Enemy
-	Data\setRelation .GroupPlayer, .GroupEnemyPoke, Relation.Enemy
-	Data\setRelation .GroupEnemy, .GroupPlayerBlock, Relation.Enemy
-	Data\setRelation .GroupEnemy, .GroupPlayerPoke, Relation.Enemy
+	Data\setRelation .GroupPlayer, .GroupEnemy, "Enemy"
+	Data\setRelation .GroupPlayer, .GroupEnemyBlock, "Enemy"
+	Data\setRelation .GroupPlayer, .GroupEnemyPoke, "Enemy"
+	Data\setRelation .GroupEnemy, .GroupPlayerBlock, "Enemy"
+	Data\setRelation .GroupEnemy, .GroupPlayerPoke, "Enemy"
 
-	Data\setRelation .GroupPlayerPoke, .GroupEnemyBlock, Relation.Enemy
-	Data\setRelation .GroupEnemyPoke, .GroupPlayerBlock, Relation.Enemy
+	Data\setRelation .GroupPlayerPoke, .GroupEnemyBlock, "Enemy"
+	Data\setRelation .GroupEnemyPoke, .GroupPlayerBlock, "Enemy"

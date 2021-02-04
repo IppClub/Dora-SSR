@@ -8,6 +8,6 @@ with Data.store
 	.PlayerGroup = 1
 	.ZombieGroup = 2
 
-	Data\setRelation .PlayerGroup,.ZombieGroup,Relation.Enemy
+	Data\setRelation .PlayerGroup, .ZombieGroup, "Enemy"
 
 	.MaxZombies = 50

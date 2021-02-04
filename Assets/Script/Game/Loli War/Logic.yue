@@ -150,7 +150,7 @@ with Observer "Add",{"switch_","group","layer","look","position"}
 			\addTo world
 			.emittingEvent = true
 			\slot "BodyEnter",(sensor)=>
-				if .attackSensor == sensor and @entity and Relation.Friend == Data\getRelation @,unit
+				if .attackSensor == sensor and @entity and Data\isFriend @,unit
 					if @group == GroupPlayer and @entity.hero and not @entity.tip
 						floating = Action Sequence(
 							Y 0.5,140,150,Ease.OutQuad
@@ -167,7 +167,7 @@ with Observer "Add",{"switch_","group","layer","look","position"}
 							\addTo @
 					@entity.atSwitch = unit
 			\slot "BodyLeave",(sensor)=>
-				if .attackSensor == sensor and @entity and Relation.Friend == Data\getRelation @,unit
+				if .attackSensor == sensor and @entity and Data\isFriend @,unit
 					@entity.atSwitch = nil
 					if @entity.tip
 						with @entity.tip
@@ -217,9 +217,9 @@ with Observer "Add",{"poke","group","layer","position"}
 				.visible = false
 			\addChild glow
 			\slot "BodyEnter",(sensor)=>
-				if sensor.tag == 0 and Relation.Enemy == switch @group
-						when GroupPlayer,GroupEnemy then Data\getRelation @group,.group
-						else Relation.Unknown
+				if sensor.tag == 0 and switch @group
+						when GroupPlayer,GroupEnemy then Data\isEnemy @group,.group
+						else false
 					if (.x < @x) == (.velocityX > 0)
 						@velocity = Vec2 .velocityX > 0 and 500 or -500,400
 						@start "strike"
@@ -234,7 +234,7 @@ with Observer "Add",{"poke","group","layer","position"}
 				sensor = \attachSensor 1,BodyDef\disk 500
 				sleep!
 				for body in *sensor.sensedBodies
-					if Relation.Enemy == Data\getRelation body.group,.group
+					if Data\isEnemy body.group,.group
 						entity = body.entity
 						if entity and entity.hp > 0
 							entity.hitPoint = body\convertToWorldSpace Vec2.zero

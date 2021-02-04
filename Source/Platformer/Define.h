@@ -13,18 +13,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-enum struct AttackType
-{
-	Melee = 0,
-	Range = 1
-};
-
-enum struct AttackTarget
-{
-	Single = 0,
-	Multi = 1
-};
-
 enum struct Relation
 {
 	Unknown = 0,
@@ -52,8 +40,8 @@ public:
 	bool operator!=(const TargetAllow& other) const;
 	void setTerrainAllowed(bool var);
 	bool isTerrainAllowed() const;
-	void allow(Relation flag, bool allow);
-	bool isAllow(Relation flag);
+	void allow(Relation relation, bool allow);
+	bool isAllow(Relation relation);
 protected:
 	Uint32 _flag;
 };

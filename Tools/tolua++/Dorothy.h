@@ -1011,43 +1011,13 @@ class SVGDef @ SVG : public Object
 
 namespace Platformer {
 
-struct AttackType
-{
-	enum {
-		Melee,
-		Range
-	};
-};
-enum AttackType {};
-
-struct AttackTarget
-{
-	enum {
-		Single,
-		Multi
-	};
-};
-enum AttackTarget {};
-
-struct Relation
-{
-	enum {
-		Unknown,
-		Friend,
-		Neutral,
-		Enemy,
-		Any
-	};
-};
-enum Relation {};
-
 class TargetAllow
 {
 	TargetAllow();
 	~TargetAllow();
 	tolua_property__bool bool terrainAllowed;
-	void allow(Relation flag, bool allow);
-	bool isAllow(Relation flag);
+	tolua_outside void TargetAllow_allow @ allow(String relation, bool allow);
+	tolua_outside bool TargetAllow_isAllow @ isAllow(String relation);
 };
 
 class Face : public Object
@@ -1112,11 +1082,11 @@ AILeaf* Reject();
 
 class AI
 {
-	Array* getUnitsByRelation(Relation relation);
+	tolua_outside Array* AI_getUnitsByRelation @ getUnitsByRelation(String relation);
 	Array* getDetectedUnits();
 	Array* getDetectedBodies();
-	Unit* getNearestUnit(Relation relation);
-	float getNearestUnitDistance(Relation relation);
+	tolua_outside Unit* AI_getNearestUnit @ getNearestUnit(String relation);
+	tolua_outside float AI_getNearestUnitDistance @ getNearestUnitDistance(String relation);
 	Array* getUnitsInAttackRange();
 	Array* getBodiesInAttackRange();
 	static tolua_outside AI* AI_shared @ create();
@@ -1214,9 +1184,15 @@ class Data
 	tolua_readonly tolua_property__common Dictionary* store;
 	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
 	bool getShouldContact(Uint8 groupA, Uint8 groupB);
-	void setRelation(Uint8 groupA, Uint8 groupB, Relation relation);
-	Relation getRelation(Uint8 groupA, Uint8 groupB);
-	Relation getRelation(Body* bodyA, Body* bodyB);
+	tolua_outside void Data_setRelation @ setRelation(Uint8 groupA, Uint8 groupB, String relation);
+	tolua_outside Slice Data_getRelation @ getRelation(Uint8 groupA, Uint8 groupB);
+	tolua_outside Slice Data_getRelation @ getRelation(Body* bodyA, Body* bodyB);
+	bool isEnemy(Uint8 groupA, Uint8 groupB);
+	bool isEnemy(Body* bodyA, Body* bodyB);
+	bool isFriend(Uint8 groupA, Uint8 groupB);
+	bool isFriend(Body* bodyA, Body* bodyB);
+	bool isNeutral(Uint8 groupA, Uint8 groupB);
+	bool isNeutral(Body* bodyA, Body* bodyB);
 	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
 	float getDamageFactor(Uint16 damageType, Uint16 defenceType);
 	bool isPlayer(Body* body);

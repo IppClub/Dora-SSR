@@ -185,7 +185,7 @@ Do = (name)-> Seq {
 			row = nil
 			return true
 
-		unless AI\getNearestUnit(Relation.Enemy)?
+		unless AI\getNearestUnit("Enemy")?
 			row = nil
 			return true
 
@@ -193,33 +193,33 @@ Do = (name)-> Seq {
 			attackUnits = AI\getUnitsInAttackRange!
 			ready = false
 			for unit in *attackUnits
-				if Relation.Enemy == Data\getRelation(@,unit) and
+				if Data\isEnemy(@,unit) and
 					(@x < unit.x) == @faceRight
 					ready = true
 					break
 			ready
 
 		not_facing_enemy = do
-			enemy = AI\getNearestUnit Relation.Enemy
+			enemy = AI\getNearestUnit "Enemy"
 			if enemy
 				(@x > enemy.x) == @faceRight
 			else
 				false
 
 		enemy_in_attack_range = do
-			enemy = AI\getNearestUnit Relation.Enemy
+			enemy = AI\getNearestUnit "Enemy"
 			attackUnits = AI\getUnitsInAttackRange!
 			attackUnits and attackUnits\contains(enemy) or false
 
 		nearest_enemy_distance = do
-			enemy = AI\getNearestUnit Relation.Enemy
+			enemy = AI\getNearestUnit "Enemy"
 			if enemy?
 				math.abs enemy.x - @x
 			else
 				999999
 
 		enemy_hero_action = do
-			enemy = AI\getNearestUnit Relation.Enemy
+			enemy = AI\getNearestUnit "Enemy"
 			enemy.currentAction?.name or "unknown"
 
 		row = {
@@ -307,7 +307,7 @@ Store["AI_Learned"] = Sel {
 		Con "run learned AI", =>
 			@entity.lastActionTime or= 0.0
 
-			return false unless AI\getNearestUnit(Relation.Enemy)?
+			return false unless AI\getNearestUnit("Enemy")?
 
 			if App.totalTime - @entity.lastActionTime < 0.1
 				return false
@@ -318,14 +318,14 @@ Store["AI_Learned"] = Sel {
 				attackUnits = AI\getUnitsInAttackRange!
 				ready = "F"
 				for unit in *attackUnits
-					if Relation.Enemy == Data\getRelation(@,unit) and
+					if Data\isEnemy(@,unit) and
 						(@x < unit.x) == @faceRight
 						ready = "T"
 						break
 				ready
 
 			not_facing_enemy = do
-				enemy = AI\getNearestUnit Relation.Enemy
+				enemy = AI\getNearestUnit "Enemy"
 				if enemy
 					if (@x > enemy.x) == @faceRight
 						"T"
@@ -335,19 +335,19 @@ Store["AI_Learned"] = Sel {
 					"F"
 
 			enemy_in_attack_range = do
-				enemy = AI\getNearestUnit Relation.Enemy
+				enemy = AI\getNearestUnit "Enemy"
 				attackUnits = AI\getUnitsInAttackRange!
 				(attackUnits and attackUnits\contains(enemy)) and "T" or "F"
 
 			nearest_enemy_distance = do
-				enemy = AI\getNearestUnit Relation.Enemy
+				enemy = AI\getNearestUnit "Enemy"
 				if enemy?
 					math.abs enemy.x - @x
 				else
 					999999
 
 			enemy_hero_action = do
-				enemy = AI\getNearestUnit Relation.Enemy
+				enemy = AI\getNearestUnit "Enemy"
 				enemy.currentAction?.name or "unknown"
 
 			@entity.learnedAction = characters[@entity.charSet].learnedAI({
@@ -374,7 +374,7 @@ Store["AI_Learned"] = Sel {
 	Seq {
 		Con "not facing enemy",=> bossGroup\each (boss)->
 			{:unit} = boss
-			if Relation.Enemy == Data\getRelation unit,@
+			if Data\isEnemy unit,@
 				if (@x > unit.x) == @faceRight
 					return true
 		Act "turn"
@@ -421,7 +421,7 @@ Store["AI_Boss"] = Sel {
 		Con "need attack",=>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
-				if Relation.Enemy == Data\getRelation(@,unit) and
+				if Data\isEnemy(@,unit) and
 					(@x < unit.x) == @faceRight
 					return true
 			false
@@ -518,11 +518,10 @@ NewFighterDef = -> with Dictionary!
 	.attackFactor = 1.0
 	.attackRange = Size 350,150
 	.attackPower = Vec2 100,100
-	.attackType = AttackType.Range
-	.attackTarget = AttackTarget.Single
+	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_Arrow"
@@ -568,11 +567,10 @@ NewBossDef = -> with Dictionary!
 	.attackFactor = 1.0
 	.attackRange = Size 780,300
 	.attackPower = Vec2 200,200
-	.attackType = AttackType.Range
-	.attackTarget = AttackTarget.Multi
+	.attackTarget = "Multi"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow Relation.Enemy,true)
+		\allow "Enemy",true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_Arrow"
@@ -680,7 +678,7 @@ PlayerLayer = 2
 PlayerGroup = 1
 EnemyGroup = 2
 
-Data\setRelation PlayerGroup, EnemyGroup, Relation.Enemy
+Data\setRelation PlayerGroup, EnemyGroup, "Enemy"
 Data\setShouldContact PlayerGroup, EnemyGroup, true
 
 world = with PlatformWorld!
@@ -1167,7 +1165,7 @@ UnitAction\add "spearAttack",
 			origin = @position - Vec2(0,205) + Vec2(dir,0)
 			size = Size 900,40
 			world\query Rect(origin,size), (body)->
-				if body.entity and Relation.Enemy == Data\getRelation(body,@)
+				if body.entity and Data\isEnemy body,@
 					entity = body.entity
 					entity.hitPoint = body.position
 					entity.hitPower = attackPower
