@@ -19,25 +19,63 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Other/utf8.h"
 #include "imgui.h"
 #include "Input/Keyboard.h"
+#include "Lua/LuaEngine.h"
 
 NS_DOROTHY_BEGIN
 
 #define MAX_FONT_TEXTURE_WIDTH 8192
 
-class LogPanel
+void pushYue(lua_State* L, String name) {
+	lua_getglobal(L, "package"); // package
+	lua_getfield(L, -1, "loaded"); // package loaded
+	lua_getfield(L, -1, "yue"); // package loaded yue
+	lua_pushlstring(L, name.begin(), name.size()); // package loaded yue name
+	lua_gettable(L, -2); // loaded[name], package loaded yue item
+	lua_insert(L, -4); // item package loaded yue
+	lua_pop(L, 3); // item
+}
+
+void pushOptions(lua_State* L, int lineOffset) {
+	lua_newtable(L);
+	lua_pushliteral(L, "lint_global");
+	lua_pushboolean(L, 0);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "implicit_return_root");
+	lua_pushboolean(L, 1);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "reserve_line_number");
+	lua_pushboolean(L, 1);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "space_over_tab");
+	lua_pushboolean(L, 0);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "same_module");
+	lua_pushboolean(L, 1);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "line_offset");
+	lua_pushinteger(L, lineOffset);
+	lua_rawset(L, -3);
+}
+
+class ConsolePanel
 {
 public:
-	LogPanel():
+	ConsolePanel():
 	_forceScroll(0),
+	_historyPos(-1),
 	_fullScreen(false),
-	_scrollToBottom(false)
+	_scrollToBottom(false),
+	_commands({
+		"print"
+	})
 	{
-		LogHandler += std::make_pair(this, &LogPanel::addLog);
+		_buf.fill('\0');
+		LogHandler += std::make_pair(this, &ConsolePanel::addLog);
 	}
 
-	~LogPanel()
+	~ConsolePanel()
 	{
-		LogHandler -= std::make_pair(this, &LogPanel::addLog);
+		LogHandler -= std::make_pair(this, &ConsolePanel::addLog);
 	}
 
 	void clear()
@@ -60,6 +98,100 @@ public:
 			_logs.push_back(line);
 		}
 		_scrollToBottom = true;
+	}
+
+	static int TextEditCallbackStub(ImGuiInputTextCallbackData* data)
+	{
+		ConsolePanel* panel = r_cast<ConsolePanel*>(data->UserData);
+		return panel->TextEditCallback(data);
+	}
+
+	int TextEditCallback(ImGuiInputTextCallbackData* data)
+	{
+		switch (data->EventFlag)
+		{
+			case ImGuiInputTextFlags_CallbackCompletion:
+			{
+				const char* word_end = data->Buf + data->CursorPos;
+				const char* word_start = word_end;
+				while (word_start > data->Buf)
+				{
+					const char c = word_start[-1];
+					if (c == ' ' || c == '\t' || c == ',' || c == ';')
+					{
+						break;
+					}
+					word_start--;
+				}
+				ImVector<const char*> candidates;
+				for (size_t i = 0; i < _commands.size(); i++)
+				{
+					if (std::strncmp(_commands[i], word_start, (int)(word_end - word_start)) == 0)
+					{
+						candidates.push_back(_commands[i]);
+					}
+				}
+				if (candidates.Size == 1)
+				{
+					data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
+					data->InsertChars(data->CursorPos, candidates[0]);
+					data->InsertChars(data->CursorPos, " ");
+				}
+				else if (candidates.Size > 1)
+				{
+					int match_len = (int)(word_end - word_start);
+					for (;;)
+					{
+						int c = 0;
+						bool all_candidates_matches = true;
+						for (int i = 0; i < candidates.Size && all_candidates_matches; i++)
+						{
+							if (i == 0)
+							{
+								c = toupper(candidates[i][match_len]);
+							}
+							else if (c == 0 || c != toupper(candidates[i][match_len]))
+							{
+								all_candidates_matches = false;
+							}
+						}
+						if (!all_candidates_matches) break;
+						match_len++;
+					}
+					if (match_len > 0)
+					{
+						data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
+						data->InsertChars(data->CursorPos, candidates[0], candidates[0] + match_len);
+					}
+				}
+				break;
+			}
+			case ImGuiInputTextFlags_CallbackHistory:
+			{
+				const int prev_history_pos = _historyPos;
+				if (data->EventKey == ImGuiKey_UpArrow)
+				{
+					if (_historyPos == -1) _historyPos = s_cast<int>(_history.size()) - 1;
+					else if (_historyPos > 0) _historyPos--;
+				}
+				else if (data->EventKey == ImGuiKey_DownArrow)
+				{
+					if (_historyPos != -1)
+					if (++_historyPos >= _history.size())
+					{
+						_historyPos = -1;
+					}
+				}
+				if (prev_history_pos != _historyPos)
+				{
+					const char* history_str = (_historyPos >= 0) ? _history[_historyPos].c_str() : "";
+					data->DeleteChars(0, data->BufTextLen);
+					data->InsertChars(0, history_str);
+				}
+				break;
+			}
+		}
+		return 0;
 	}
 
 	void Draw(const char* title, bool* p_open = nullptr)
@@ -100,8 +232,9 @@ public:
 		ImGui::SameLine();
 		_filter.Draw("Filter", -55.0f);
 		ImGui::Separator();
-		ImGui::BeginChild(_fullScreen ? "scrolling_full" : "scrolling", ImVec2(0,0), false);
-		if (_forceScroll == 0 && _scrollToBottom && ImGui::GetScrollY()+20.0f < ImGui::GetScrollMaxY())
+		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+		ImGui::BeginChild(_fullScreen ? "scrolling_full" : "scrolling", ImVec2(0, -footer_height_to_reserve), false);
+		if (_forceScroll == 0 && _scrollToBottom && ImGui::GetScrollY()+footer_height_to_reserve < ImGui::GetScrollMaxY())
 		{
 			_scrollToBottom = false;
 		}
@@ -153,12 +286,101 @@ public:
 			ImGui::SetScrollHereY();
 		}
 		ImGui::EndChild();
+		ImGui::Separator();
+
+		bool reclaimFocus = false;
+		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+		ImGui::PushItemWidth(-55);
+		if (ImGui::InputText("Input", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this)))
+		{
+			_historyPos = -1;
+			for (int i = s_cast<int>(_history.size()) - 1; i >= 0; i--)
+			{
+				if (_history[i] == _buf.data())
+				{
+					_history.erase(_history.begin() + i);
+					break;
+				}
+			}
+			string codes = _buf.data();
+			_buf.fill('\0');
+			_history.push_back(codes);
+			LogPrint(codes + '\n');
+			codes.insert(0, "global *\n"_slice);
+			lua_State* L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			pushYue(L, "loadstring"_slice);
+			lua_pushlstring(L, codes.c_str(), codes.size());
+			lua_pushliteral(L, "=(repl)");
+			pushOptions(L, -1);
+			BLOCK_START
+			if (lua_pcall(L, 3, 2, 0) != 0)
+			{
+				LogPrint("{}\n", lua_tostring(L, -1));
+				break;
+			}
+			if (lua_isnil(L, -2) != 0)
+			{
+				std::string err = lua_tostring(L, -1);
+				auto modName = "(repl):"_slice;
+				if (err.substr(0, modName.size()) == modName)
+				{
+					err = err.substr(modName.size());
+				}
+				auto pos = err.find(':');
+				if (pos != std::string::npos)
+				{
+					int lineNum = std::stoi(err.substr(0, pos));
+					err = std::to_string(lineNum - 1) + err.substr(pos);
+				}
+				LogPrint("{}\n", err);
+				break;
+			}
+			lua_pop(L, 1);
+			pushYue(L, "pcall"_slice);
+			lua_insert(L, -2);
+			int last = lua_gettop(L) - 2;
+			if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0)
+			{
+				LogPrint("{}\n", lua_tostring(L, -1));
+				break;
+			}
+			int cur = lua_gettop(L);
+			int retCount = cur - last;
+			bool success = lua_toboolean(L, -retCount) != 0;
+			if (success)
+			{
+				if (retCount > 1)
+				{
+					for (int i = 1; i < retCount; ++i)
+					{
+						LogPrint("{}\n", luaL_tolstring(L, -retCount + i, nullptr));
+						lua_pop(L, 1);
+					}
+				}
+			}
+			else
+			{
+				LogPrint("{}\n", lua_tostring(L, -1));
+			}
+			BLOCK_END
+			_scrollToBottom = true;
+			reclaimFocus = true;
+		}
+		ImGui::PopItemWidth();
+		ImGui::SetItemDefaultFocus();
+		if (reclaimFocus) ImGui::SetKeyboardFocusHere(-1);
 		ImGui::End();
 	}
 private:
 	bool _fullScreen;
 	int _forceScroll;
 	bool _scrollToBottom;
+	std::array<char, 256> _buf;
+	vector<const char*> _commands;
+	vector<string> _history;
+	int _historyPos;
 	std::deque<string> _logs;
 	std::deque<Slice> _filteredLogs;
 	ImGuiTextFilter _filter;
@@ -176,7 +398,7 @@ _lastCursor(0),
 _backSpaceIgnore(false),
 _mousePressed{ false, false, false },
 _mouseWheel(0.0f),
-_log(New<LogPanel>()),
+_console(New<ConsolePanel>()),
 _defaultFonts(New<ImFontAtlas>()),
 _fonts(New<ImFontAtlas>())
 {
@@ -372,9 +594,9 @@ void ImGuiDora::showStats()
 	ImGui::End();
 }
 
-void ImGuiDora::showLog()
+void ImGuiDora::showConsole()
 {
-	_log->Draw("Dorothy Log");
+	_console->Draw("Dorothy Console");
 }
 
 bool ImGuiDora::init()

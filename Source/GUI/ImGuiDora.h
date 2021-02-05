@@ -19,7 +19,7 @@ NS_DOROTHY_BEGIN
 class Listener;
 class Texture2D;
 class SpriteEffect;
-class LogPanel;
+class ConsolePanel;
 
 class ImGuiDora : public TouchHandler
 {
@@ -31,7 +31,7 @@ public:
 	void render();
 	void loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default");
 	void showStats();
-	void showLog();
+	void showConsole();
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(Uint8* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
@@ -58,7 +58,7 @@ private:
 	list<SDL_Event> _inputs;
 	vector<Uint32> _textEditing;
 	string _iniFilePath;
-	Own<LogPanel> _log;
+	Own<ConsolePanel> _console;
 	Own<ImFontAtlas> _defaultFonts;
 	Own<ImFontAtlas> _fonts;
 	SINGLETON_REF(ImGuiDora, BGFXDora);
