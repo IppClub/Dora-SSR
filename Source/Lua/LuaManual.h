@@ -206,7 +206,7 @@ namespace ImGui { namespace Binding
 {
 	void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default"_slice);
 	void ShowStats();
-	void ShowLog();
+	void ShowConsole();
 	bool Begin(const char* name, String windowsFlags = nullptr);
 	bool Begin(const char* name, bool* p_open, String windowsFlags = nullptr);
 	bool BeginChild(const char* str_id, const Vec2& size = Vec2::zero, bool border = false, String windowsFlags = nullptr);

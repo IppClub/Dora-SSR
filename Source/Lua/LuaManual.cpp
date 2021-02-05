@@ -1649,7 +1649,7 @@ void Buffer::setString(String str)
 {
 	if (_data.empty()) return;
 	size_t length = std::min(_data.size() - 1, str.size());
-	memcpy(_data.data(), str.begin(), length);
+	std::memcpy(_data.data(), str.begin(), length);
 	_data[length] = '\0';
 }
 
@@ -2025,9 +2025,9 @@ namespace ImGui { namespace Binding
 		SharedImGui.showStats();
 	}
 
-	void ShowLog()
+	void ShowConsole()
 	{
-		SharedImGui.showLog();
+		SharedImGui.showConsole();
 	}
 
 	bool Begin(const char* name, String windowsFlags)

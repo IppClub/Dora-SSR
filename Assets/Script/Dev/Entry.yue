@@ -229,7 +229,7 @@ thread ->
 	Director.clearColor = Color 0xff1a1a1a
 
 showStats = false
-showLog = true
+showConsole = true
 showFooter = true
 scaleContent = false
 footerFocus = false
@@ -267,7 +267,7 @@ threadLoop ->
 		Separator!
 		_, showStats = Checkbox "Stats", showStats
 		SameLine!
-		_, showLog = Checkbox "Log", showLog
+		_, showConsole = Checkbox "Log", showConsole
 		SameLine!
 		if isInEntry
 			OpenPopup "build" if Button "Build", Vec2(70,30)
@@ -301,9 +301,9 @@ threadLoop ->
 		if showStats
 			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
 			ShowStats!
-		if showLog
+		if showConsole
 			SetNextWindowPos Vec2(width-400,height-65-300), "FirstUseEver"
-			ShowLog!
+			ShowConsole!
 
 threadLoop ->
 	return unless showEntry
