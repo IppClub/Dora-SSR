@@ -306,14 +306,14 @@ public:
 			_buf.fill('\0');
 			_history.push_back(codes);
 			LogPrint(codes + '\n');
-			codes.insert(0, "global *\n"_slice);
+			codes.insert(0, "_ENV = Dorothy!\nglobal *\n"_slice);
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
 			pushYue(L, "loadstring"_slice);
 			lua_pushlstring(L, codes.c_str(), codes.size());
 			lua_pushliteral(L, "=(repl)");
-			pushOptions(L, -1);
+			pushOptions(L, -2);
 			BLOCK_START
 			if (lua_pcall(L, 3, 2, 0) != 0)
 			{
