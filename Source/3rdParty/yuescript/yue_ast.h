@@ -110,6 +110,8 @@ AST_NODE(Local)
 	ast_sel<true, local_flag_t, local_values_t> item;
 	std::list<std::string> forceDecls;
 	std::list<std::string> decls;
+	bool collected = false;
+	bool defined = false;
 	AST_MEMBER(Local, &item)
 AST_END(Local)
 
@@ -506,7 +508,7 @@ AST_END(Parens)
 
 AST_NODE(Invoke)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, Exp_t, SingleString_t, DoubleString_t, LuaString_t> args;
+	ast_sel_list<false, Exp_t, SingleString_t, DoubleString_t, LuaString_t, TableLit_t> args;
 	AST_MEMBER(Invoke, &sep, &args)
 AST_END(Invoke)
 
@@ -701,6 +703,12 @@ AST_END(unless_line)
 AST_LEAF(BreakLoop)
 AST_END(BreakLoop)
 
+AST_NODE(BackcallBody)
+	ast_ptr<true, Seperator_t> sep;
+	ast_list<true, unary_exp_t> values;
+	AST_MEMBER(BackcallBody, &sep, &values)
+AST_END(BackcallBody)
+
 AST_NODE(statement_appendix)
 	ast_sel<true, if_line_t, unless_line_t, CompInner_t> item;
 	AST_MEMBER(statement_appendix, &item)
@@ -712,7 +720,7 @@ AST_END(statement_sep)
 AST_NODE(Statement)
 	ast_sel<true, Import_t, While_t, Repeat_t, For_t, ForEach_t,
 		Return_t, Local_t, Global_t, Export_t, Macro_t, BreakLoop_t,
-		Label_t, Goto_t, Backcall_t, LocalAttrib_t, ExpListAssign_t> content;
+		Label_t, Goto_t, Backcall_t, LocalAttrib_t, BackcallBody_t, ExpListAssign_t> content;
 	ast_ptr<false, statement_appendix_t> appendix;
 	ast_ptr<false, statement_sep_t> needSep;
 	AST_MEMBER(Statement, &content, &appendix, &needSep)

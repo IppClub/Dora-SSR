@@ -219,7 +219,7 @@ YueParser::YueParser() {
 
 	Return = key("return") >> -ExpListLow;
 
-	WithExp = ExpList >> -Assign;
+	WithExp = DisableChainBlock >> ensure(ExpList >> -Assign, PopChainBlock);
 
 	With = key("with") >> -existential_op >> DisableDo >> ensure(WithExp, PopDo) >> -key("do") >> Body;
 	SwitchCase = key("when") >> ExpList >> -key("then") >> Body;
@@ -319,7 +319,7 @@ YueParser::YueParser() {
 	unary_exp = *(Space >> unary_operator) >> expo_exp;
 
 	BackcallOperator = expr("|>");
-	backcall_value = White >> BackcallOperator >> *SpaceBreak >> unary_exp;
+	backcall_value = Space >> BackcallOperator >> *SpaceBreak >> unary_exp;
 	backcall_exp = unary_exp >> *backcall_value;
 
 	BinaryOperator =
@@ -338,7 +338,25 @@ YueParser::YueParser() {
 	exp_op_value = Space >> BinaryOperator >> *SpaceBreak >> backcall_exp;
 	Exp = Seperator >> backcall_exp >> *exp_op_value;
 
-	ChainValue = Seperator >> (Chain | Callable) >> -existential_op >> -InvokeArgs;
+	DisableChainBlock = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->chainBlockStack.push(false);
+		return true;
+	});
+
+	PopChainBlock = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->chainBlockStack.pop();
+		return true;
+	});
+
+	chain_line = CheckIndent >> (chain_item | Space >> (chain_dot_chain | ColonChain)) >> -InvokeArgs;
+	chain_block = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		return st->chainBlockStack.empty() || st->chainBlockStack.top();
+	}) >> +SpaceBreak >> Advance >> ensure(
+		chain_line >> *(+SpaceBreak >> chain_line), PopIndent);
+	ChainValue = Seperator >> (Chain | Callable) >> -existential_op >> (chain_block | -InvokeArgs);
 
 	simple_table = Seperator >> KeyValue >> *(sym(',') >> KeyValue);
 	Value = SimpleValue | simple_table | ChainValue | String;
@@ -412,7 +430,8 @@ YueParser::YueParser() {
 		FnArgs |
 		SingleString |
 		DoubleString |
-		and_(expr('[')) >> LuaString);
+		and_(expr('[')) >> LuaString |
+		and_(expr('{')) >> TableLit);
 
 	TableValue = KeyValue | Exp;
 
@@ -521,6 +540,8 @@ YueParser::YueParser() {
 	fn_arrow_back = expr('<') >> set("-=");
 	Backcall = -FnArgsDef >> Space >> fn_arrow_back >> Space >> ChainValue;
 
+	BackcallBody = Seperator >> Space >> BackcallOperator >> unary_exp >> *(+SpaceBreak >> CheckIndent >> Space >> BackcallOperator >> unary_exp);
+
 	ExpList = Seperator >> Exp >> *(sym(',') >> Exp);
 	ExpListLow = Seperator >> Exp >> *(Space >> set(",;") >> Exp);
 
@@ -561,14 +582,14 @@ YueParser::YueParser() {
 		Import | While | Repeat | For | ForEach |
 		Return | Local | Global | Export | Macro |
 		Space >> BreakLoop | Label | Goto | Backcall |
-		LocalAttrib | ExpListAssign
+		LocalAttrib | BackcallBody | ExpListAssign
 	) >> Space >>
 	-statement_appendix >> -statement_sep;
 
 	Body = Space >> Break >> *EmptyLine >> InBlock | Statement;
 
 	empty_line_stop = Space >> and_(Stop);
-	Line = CheckIndent >> Statement | empty_line_stop;
+	Line = CheckIndent >> Statement | and_(Space >> BackcallOperator) >> Advance >> ensure(Statement, PopIndent) | empty_line_stop;
 	Block = Seperator >> Line >> *(+Break >> Line);
 
 	Shebang = expr("#!") >> *(not_(Stop) >> Any);
