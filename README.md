@@ -4,9 +4,7 @@
 
 # Dorothy SSR
 
-|iOS|macOS|Android|Windows|
-|---|-----|-------|-------|
-|[![Build Status](https://travis-ci.com/pigpigyyy/Dorothy-SSR.svg?branch=master)](https://travis-ci.com/pigpigyyy/Dorothy-SSR)|[![Build Status](https://travis-ci.com/pigpigyyy/Dorothy-SSR.svg?branch=master)](https://travis-ci.com/pigpigyyy/Dorothy-SSR)|[![Build Status](https://travis-ci.com/pigpigyyy/Dorothy-SSR.svg?branch=master)](https://travis-ci.com/pigpigyyy/Dorothy-SSR)|[![Build status](https://ci.appveyor.com/api/projects/status/cypfm1makpfu4e7i?svg=true)](https://ci.appveyor.com/project/pigpigyyy/dorothy-ssr)|
+[![macOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml) [![iOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml) [![Android](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml) [![Windows](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml)
 
 ## 功能展示  
 
