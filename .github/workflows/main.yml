@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: macOS build
+        run: |
+          Tools/tolua++/build.sh
+          xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: iOS build
+        run: |
+          Tools/tolua++/build.sh
+          xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator13.5
+  android:
+    runs-on: ubantu-latest
+    steps:
+      - uses: action/checkout@v2
+      - name: Android build
+        uses: vgaidarji/android-github-actions-build@v1.0.1
+        with:
+          args: "cd Project/Android && ./gradlew assembleDebug"
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: action/checkout@v2
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v1
+      - name: Windows build
+        run: msbuild Project\Windows\Dorothy\Dorothy.vcxproj -p:Configuration=debug
