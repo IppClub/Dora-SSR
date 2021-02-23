@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 import "UI.View.Control.Basic.Ruler"
-import "Utils" as {:Round}
+import "Utils" as :Round
 
 export default Class Ruler,
 	__init:(args)=>

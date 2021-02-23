@@ -12,7 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <stack>
 #include <vector>
 #include <memory>
-#include <cassert>
 
 #include "yuescript/yue_parser.h"
 #include "yuescript/yue_compiler.h"
@@ -46,6 +45,12 @@ using namespace parserlib;
 
 #define _DEFER(code,line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto){code;})
 #define DEFER(code) _DEFER(code,__LINE__)
+#define YUEE(msg,node) throw std::logic_error( \
+	_info.errorMessage( \
+		std::string("[File] ") + __FILE__ \
+		+ ", [Func] " + __FUNCTION__ \
+		+ ", [Line] " + std::to_string(__LINE__) \
+		+ ", [Error] " + msg, node))
 
 typedef std::list<std::string> str_list;
 
@@ -53,7 +58,7 @@ inline std::string s(std::string_view sv) {
 	return std::string(sv);
 }
 
-const std::string_view version = "0.6.2"sv;
+const std::string_view version = "0.6.9"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -516,6 +521,18 @@ private:
 		return nullptr;
 	}
 
+	Statement_t* lastStatementFrom(ast_node* body) const {
+		switch (body->getId()) {
+			case id<Block_t>():
+				return lastStatementFrom(static_cast<Block_t*>(body));
+			case id<Statement_t>(): {
+				return static_cast<Statement_t*>(body);
+			}
+			default: YUEE("AST node mismatch", body); break;
+		}
+		return nullptr;
+	}
+
 	Statement_t* lastStatementFrom(const node_container& stmts) const {
 		if (!stmts.empty()) {
 			auto it = stmts.end(); --it;
@@ -576,6 +593,7 @@ private:
 						case id<ExpList_t>(): return static_cast<Exp_t*>(exportNode->target.to<ExpList_t>()->exprs.back());
 					}
 				}
+				return nullptr;
 			}
 			case id<Local_t>(): {
 				if (auto localValues = static_cast<Local_t*>(stmt->content.get())->item.as<local_values_t>()) {
@@ -583,6 +601,7 @@ private:
 						return static_cast<Exp_t*>(expList->exprs.back());
 					}
 				}
+				return nullptr;
 			}
 			case id<Global_t>(): {
 				if (auto globalValues = static_cast<Global_t*>(stmt->content.get())->item.as<global_values_t>()) {
@@ -590,6 +609,7 @@ private:
 						return static_cast<Exp_t*>(expList->exprs.back());
 					}
 				}
+				return nullptr;
 			}
 		}
 		return nullptr;
@@ -803,9 +823,7 @@ private:
 
 					auto stmt = x->new_ptr<Statement_t>();
 					stmt->content.set(statement->content);
-					auto body = x->new_ptr<Body_t>();
-					body->content.set(stmt);
-					ifNode->nodes.push_back(body);
+					ifNode->nodes.push_back(stmt);
 
 					statement->appendix.set(nullptr);
 					auto simpleValue = x->new_ptr<SimpleValue_t>();
@@ -830,9 +848,7 @@ private:
 
 					auto stmt = x->new_ptr<Statement_t>();
 					stmt->content.set(statement->content);
-					auto body = x->new_ptr<Body_t>();
-					body->content.set(stmt);
-					unless->nodes.push_back(body);
+					unless->nodes.push_back(stmt);
 
 					statement->appendix.set(nullptr);
 					auto simpleValue = x->new_ptr<SimpleValue_t>();
@@ -867,7 +883,7 @@ private:
 					statement->appendix.set(nullptr);
 					break;
 				}
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", appendix->item.get()); break;
 			}
 		}
 		auto content = statement->content.get();
@@ -939,7 +955,7 @@ private:
 				}
 				break;
 			}
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", content); break;
 		}
 		if (statement->needSep && !out.back().empty()) {
 			auto index = std::string::npos;
@@ -1221,7 +1237,7 @@ private:
 					if (pair.isVariable && !isDefined(pair.name)) {
 						_buf << s("local "sv);
 					}
-					_buf << pair.name << " = "sv << info.first.front().value << pair.structure << nll(assignment);
+					_buf << pair.name << " = "sv << destruct.value << pair.structure << nll(assignment);
 					addToScope(pair.name);
 					temp.push_back(clearBuf());
 				} else if (_parser.match<Name_t>(destruct.value)) {
@@ -1279,7 +1295,7 @@ private:
 			case id<Switch_t>(): transformSwitch(static_cast<Switch_t*>(value), out, ExpUsage::Closure); break;
 			case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(value), out); break;
 			case id<Exp_t>(): transformExp(static_cast<Exp_t*>(value), out, ExpUsage::Closure); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", value); break;
 		}
 	}
 
@@ -1403,7 +1419,7 @@ private:
 					}
 					break;
 				}
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", pair); break;
 			}
 		}
 		return pairs;
@@ -1435,6 +1451,13 @@ private:
 			auto value = singleValueFrom(expr);
 			ast_node* destructNode = value->getByPath<SimpleValue_t, TableLit_t>();
 			if (destructNode || (destructNode = value->item.as<simple_table_t>())) {
+				if (*j != nullNode) {
+					if (auto ssVal = simpleSingleValueFrom(*j)) {
+						if (ssVal->value.is<const_value_t>()) {
+							throw std::logic_error(_info.errorMessage("can not destruct a const value"sv, ssVal->value));
+						}
+					}
+				}
 				destructPairs.push_back({i,j});
 				auto& destruct = destructs.emplace_back();
 				if (!varDefOnly) {
@@ -1446,7 +1469,11 @@ private:
 				}
 				auto pairs = destructFromExp(expr);
 				destruct.items = std::move(pairs);
-				if (destruct.items.size() == 1 && !singleValueFrom(*j)) {
+				if (*j == nullNode) {
+					for (auto& item : destruct.items) {
+						item.structure.clear();
+					}
+				} else if (destruct.items.size() == 1 && !singleValueFrom(*j)) {
 					destruct.value.insert(0, "("sv);
 					destruct.value.append(")"sv);
 				}
@@ -1566,7 +1593,7 @@ private:
 				}
 				break;
 			}
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", action); break;
 		}
 	}
 
@@ -1593,9 +1620,7 @@ private:
 					expListAssign->expList.set(expList);
 					auto stmt = x->new_ptr<Statement_t>();
 					stmt->content.set(expListAssign);
-					auto body = x->new_ptr<Body_t>();
-					body->content.set(stmt);
-					ns.push_back(body.get());
+					ns.push_back(stmt.get());
 				}
 			}
 		}
@@ -1614,18 +1639,19 @@ private:
 			pushScope();
 			_enableReturn.push(true);
 		}
-		std::list<std::pair<IfCond_t*, Body_t*>> ifCondPairs;
+		std::list<std::pair<IfCond_t*, ast_node*>> ifCondPairs;
 		ifCondPairs.emplace_back();
 		for (auto node : nodes) {
 			switch (node->getId()) {
 				case id<IfCond_t>():
 					ifCondPairs.back().first = static_cast<IfCond_t*>(node);
 					break;
-				case id<Body_t>():
-					ifCondPairs.back().second = static_cast<Body_t*>(node);
+				case id<Block_t>():
+				case id<Statement_t>():
+					ifCondPairs.back().second = node;
 					ifCondPairs.emplace_back();
 					break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", node); break;
 			}
 		}
 		auto assign = ifCondPairs.front().first->assign.get();
@@ -1718,7 +1744,7 @@ private:
 				if (pair == ifCondPairs.front() && extraAssignment) {
 					transformAssignment(extraAssignment, temp);
 				}
-				transformBody(pair.second, temp, usage, assignList);
+				transform_plain_body(pair.second, temp, usage, assignList);
 				popScope();
 			}
 			if (!pair.first) {
@@ -1846,7 +1872,7 @@ private:
 					transformExp(arg, out, ExpUsage::Closure);
 					return;
 				}
-				default: assert(false); return;
+				default: YUEE("invalid expression usage", x); return;
 			}
 		}
 	}
@@ -1856,7 +1882,9 @@ private:
 			transform_backcall_exp(exp->backcalls.objects(), out, usage, assignList);
 			return;
 		}
-		assert(usage == ExpUsage::Closure);
+		if (usage != ExpUsage::Closure) {
+			YUEE("invalid expression usage", exp);
+		}
 		str_list temp;
 			transform_backcall_exp(exp->backcalls.objects(), temp, ExpUsage::Closure);
 		for (auto _opValue : exp->opValues.objects()) {
@@ -1874,7 +1902,7 @@ private:
 			case id<simple_table_t>(): transform_simple_table(static_cast<simple_table_t*>(item), out); break;
 			case id<ChainValue_t>(): transformChainValue(static_cast<ChainValue_t*>(item), out, ExpUsage::Closure); break;
 			case id<String_t>(): transformString(static_cast<String_t*>(item), out); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", value); break;
 		}
 	}
 
@@ -1909,7 +1937,7 @@ private:
 				out.push_back(s("..."sv));
 				break;
 			case id<Parens_t>(): transformParens(static_cast<Parens_t*>(item), out); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", item); break;
 		}
 	}
 
@@ -1938,7 +1966,7 @@ private:
 			case id<Comprehension_t>(): transformComprehension(static_cast<Comprehension_t*>(value), out, ExpUsage::Closure); break;
 			case id<FunLit_t>(): transformFunLit(static_cast<FunLit_t*>(value), out); break;
 			case id<Num_t>(): transformNum(static_cast<Num_t*>(value), out); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", value); break;
 		}
 	}
 
@@ -2606,11 +2634,11 @@ private:
 						case id<self_t>():
 							arg.name = "self"sv;
 							break;
-						default: assert(false); break;
+						default: YUEE("AST node mismatch", selfName->name.get()); break;
 					}
 					break;
 				}
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", def->name.get()); break;
 			}
 			forceAddToScope(arg.name);
 			if (def->defaultValue) {
@@ -2703,7 +2731,7 @@ private:
 			case id<self_t>():
 				out.push_back(s("self"sv));
 				break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", name); break;
 		}
 	}
 
@@ -3163,17 +3191,17 @@ private:
 					temp.back() = s(temp.back().front() == '[' ? "[ "sv : "["sv) + temp.back() + s("]"sv);
 					break;
 				case id<InvokeArgs_t>(): transformInvokeArgs(static_cast<InvokeArgs_t*>(item), temp); break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", item); break;
 			}
 		}
 		switch (usage) {
 			case ExpUsage::Common:
-				out.push_back(indent() + join(temp) + nll(chainList.front()));
+				out.push_back(indent() + join(temp) + nll(x));
 				break;
 			case ExpUsage::Return:
-				out.push_back(indent() + s("return "sv) + join(temp) + nll(chainList.front()));
+				out.push_back(indent() + s("return "sv) + join(temp) + nll(x));
 				break;
-			case ExpUsage::Assignment: assert(false); break;
+			case ExpUsage::Assignment: YUEE("invalid expression usage", x); break;
 			default:
 				out.push_back(join(temp));
 				break;
@@ -3304,7 +3332,7 @@ private:
 			throw std::logic_error(_info.errorMessage(s("failed to expand macro: "sv) + err, x));
 		} // cur success res
 		if (lua_toboolean(L, -2) == 0) {
-			std::string err = lua_tostring(L, -2);
+			std::string err = lua_tostring(L, -1);
 			throw std::logic_error(_info.errorMessage(s("failed to expand macro: "sv) + err, x));
 		}
 		lua_remove(L, -2); // cur res
@@ -3443,6 +3471,20 @@ private:
 						info.node.set(exp);
 					}
 				}
+				if (auto block = info.node.as<Block_t>()) {
+					for (auto stmt_ : block->statements.objects()) {
+						auto stmt = static_cast<Statement_t*>(stmt_);
+						if (auto global = stmt->content.as<Global_t>()) {
+							if (global->item.is<global_op_t>()) {
+								throw std::logic_error(_info.errorMessage(s("can not insert global statement with wildcard operator from macro"sv), x));
+							}
+						} else if (auto local = stmt->content.as<Local_t>()) {
+							if (local->item.is<local_flag_t>()) {
+								throw std::logic_error(_info.errorMessage(s("can not insert local statement with wildcard operator from macro"sv), x));
+							}
+						}
+					}
+				}
 				return {info.node, std::move(info.codes), Empty, std::move(localVars)};
 			} else {
 				if (!isBlock) throw std::logic_error(_info.errorMessage(s("failed to expanded empty macro as expr"sv), x));
@@ -3554,7 +3596,7 @@ private:
 				case id<DoubleString_t>(): transformDoubleString(static_cast<DoubleString_t*>(arg), temp); break;
 				case id<LuaString_t>(): transformLuaString(static_cast<LuaString_t*>(arg), temp); break;
 				case id<TableLit_t>(): transformTableLit(static_cast<TableLit_t*>(arg), temp); break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", arg); break;
 			}
 		}
 		out.push_back(s("("sv) + join(temp, ", "sv) + s(")"sv));
@@ -3617,7 +3659,7 @@ private:
 					temp.back() = indent() + s("if "sv) + temp.back() + s(" then"sv) + nll(item);
 					pushScope();
 					break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", item); break;
 			}
 		}
 		if (auto stmt = comp->value.as<Statement_t>()) {
@@ -3673,7 +3715,7 @@ private:
 					temp.back() = indent() + s("if "sv) + temp.back() + s(" then"sv) + nll(item);
 					pushScope();
 					break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", item); break;
 			}
 		}
 		{
@@ -3753,13 +3795,13 @@ private:
 					varAfter.push_back(desVar);
 					break;
 				}
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", item); break;
 			}
 		}
 		switch (loopTarget->getId()) {
 			case id<star_exp_t>(): {
 				auto star_exp = static_cast<star_exp_t*>(loopTarget);
-				auto listVar = singleVariableFrom(star_exp->value);
+				std::string listVar;
 				auto indexVar = getUnusedName("_index_"sv);
 				varAfter.push_back(indexVar);
 				auto value = singleValueFrom(star_exp->value);
@@ -3772,12 +3814,6 @@ private:
 				auto slice = ast_cast<Slice_t>(chainList.back());
 				BREAK_IF(!slice);
 				endWithSlice = true;
-				if (listVar.empty() && chainList.size() == 2 &&
-					ast_is<Callable_t>(chainList.front())) {
-					transformCallable(static_cast<Callable_t*>(chainList.front()), temp);
-					listVar = temp.back();
-					temp.pop_back();
-				}
 				chainList.pop_back();
 				auto chain = x->new_ptr<ChainValue_t>();
 				for (auto item : chainList) {
@@ -3801,12 +3837,10 @@ private:
 					stepValue = temp.back();
 					temp.pop_back();
 				}
-				if (listVar.empty()) {
-					listVar = getUnusedName("_list_"sv);
-					varBefore.push_back(listVar);
-					transformChainValue(chain, temp, ExpUsage::Closure);
-					_buf << indent() << "local "sv << listVar << " = "sv << temp.back() << nll(nameList);
-				}
+				listVar = getUnusedName("_list_"sv);
+				varBefore.push_back(listVar);
+				transformChainValue(chain, temp, ExpUsage::Closure);
+				_buf << indent() << "local "sv << listVar << " = "sv << temp.back() << nll(nameList);
 				std::string maxVar;
 				if (!stopValue.empty()) {
 					maxVar = getUnusedName("_max_"sv);
@@ -3852,7 +3886,7 @@ private:
 				_buf << indent() << "for "sv << join(vars, ", "sv) << " in "sv << temp.back() << " do"sv << nlr(loopTarget);
 				out.push_back(clearBuf());
 				break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", loopTarget); break;
 		}
 		for (auto& var : varBefore) addToScope(var);
 		pushScope();
@@ -3919,7 +3953,7 @@ private:
 			switch (arg->getId()) {
 				case id<Exp_t>(): transformExp(static_cast<Exp_t*>(arg), temp, ExpUsage::Closure); break;
 				case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(arg), temp); break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", arg); break;
 			}
 		}
 		out.push_back(s("("sv) + join(temp, ", "sv) + s(")"sv));
@@ -3945,7 +3979,22 @@ private:
 		out.push_back(clearBuf());
 	}
 
-	void transformLoopBody(Body_t* body, str_list& out, const std::string& appendContent, ExpUsage usage, ExpList_t* assignList = nullptr) {
+	void transform_plain_body(ast_node* body, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
+		switch (body->getId()) {
+			case id<Block_t>():
+				transformBlock(static_cast<Block_t*>(body), out, usage, assignList);
+				break;
+			case id<Statement_t>(): {
+				auto newBlock = body->new_ptr<Block_t>();
+				newBlock->statements.push_back(body);
+				transformBlock(newBlock, out, usage, assignList);
+				break;
+			}
+			default: YUEE("AST node mismatch", body); break;
+		}
+	}
+
+	void transformLoopBody(ast_node* body, str_list& out, const std::string& appendContent, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		str_list temp;
 		bool withContinue = traversal::Stop == body->traverse([&](ast_node* node) {
 			if (auto stmt = ast_cast<Statement_t>(node)) {
@@ -3968,7 +4017,7 @@ private:
 			_continueVars.push(continueVar);
 			pushScope();
 		}
-		transformBody(body, temp, usage, assignList);
+		transform_plain_body(body, temp, usage, assignList);
 		if (withContinue) {
 			if (!appendContent.empty()) {
 				_buf << indent() << appendContent;
@@ -4150,13 +4199,13 @@ private:
 			case id<LuaString_t>(): transformLuaString(static_cast<LuaString_t*>(key), temp);
 				temp.back() = s("[ "sv) + temp.back() + s("]"sv);
 				break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", key); break;
 		}
 		auto value = pair->value.get();
 		switch (value->getId()) {
 			case id<Exp_t>(): transformExp(static_cast<Exp_t*>(value), temp, ExpUsage::Closure); break;
 			case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(value), temp); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", value); break;
 		}
 		out.push_back(temp.front() + s(" = "sv) + temp.back());
 	}
@@ -4166,7 +4215,7 @@ private:
 		switch (name->getId()) {
 			case id<SelfName_t>(): transformSelfName(static_cast<SelfName_t*>(name), out); break;
 			case id<Name_t>(): out.push_back(_parser.toString(name)); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", name); break;
 		}
 	}
 
@@ -4210,7 +4259,7 @@ private:
 					}
 					break;
 				}
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", content); break;
 			}
 		}
 		out.push_back(temp.empty() ? s("\"\""sv) : join(temp, " .. "sv));
@@ -4222,7 +4271,7 @@ private:
 			case id<SingleString_t>(): transformSingleString(static_cast<SingleString_t*>(str), out); break;
 			case id<DoubleString_t>(): transformDoubleString(static_cast<DoubleString_t*>(str), out); break;
 			case id<LuaString_t>(): transformLuaString(static_cast<LuaString_t*>(str), out); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", str); break;
 		}
 	}
 
@@ -4374,7 +4423,7 @@ private:
 					case id<Statement_t>():
 						transformStatement(static_cast<Statement_t*>(content), statements);
 						break;
-					default: assert(false); break;
+					default:YUEE("AST node mismatch", content); break;
 				}
 			}
 			for (auto& member : members) {
@@ -4580,7 +4629,7 @@ private:
 				case id<normal_pair_t>():
 					transform_normal_pair(static_cast<normal_pair_t*>(keyValue), temp);
 					break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", keyValue); break;
 			}
 			if (type == MemType::Property) {
 				incIndentOffset();
@@ -4599,7 +4648,7 @@ private:
 			case id<AssignableChain_t>(): transformAssignableChain(static_cast<AssignableChain_t*>(item), out); break;
 			case id<Variable_t>(): transformVariable(static_cast<Variable_t*>(item), out); break;
 			case id<SelfName_t>(): transformSelfName(static_cast<SelfName_t*>(item), out); break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", item); break;
 		}
 	}
 
@@ -4624,14 +4673,8 @@ private:
 			checkAssignable(with->valueList);
 			auto vars = getAssignVars(with);
 			if (vars.front().empty()) {
-				if (with->assigns->values.objects().size() == 1) {
-					auto var = singleVariableFrom(with->assigns->values.objects().front());
-					if (!var.empty()) {
-						withVar = var;
-					}
-				}
-				if (withVar.empty()) {
-					withVar = getUnusedName("_with_"sv);
+				withVar = getUnusedName("_with_"sv);
+				{
 					auto assignment = x->new_ptr<ExpListAssign_t>();
 					assignment->expList.set(toAst<ExpList_t>(withVar, x));
 					auto assign = x->new_ptr<Assign_t>();
@@ -4671,21 +4714,18 @@ private:
 				transformAssignment(assignment, temp);
 			}
 		} else {
-			withVar = singleVariableFrom(with->valueList);
-			if (withVar.empty()) {
-				withVar = getUnusedName("_with_"sv);
-				auto assignment = x->new_ptr<ExpListAssign_t>();
-				assignment->expList.set(toAst<ExpList_t>(withVar, x));
-				auto assign = x->new_ptr<Assign_t>();
-				assign->values.dup(with->valueList->exprs);
-				assignment->action.set(assign);
-				if (!returnValue) {
-					scoped = true;
-					temp.push_back(indent() + s("do"sv) + nll(with));
-					pushScope();
-				}
-				transformAssignment(assignment, temp);
+			withVar = getUnusedName("_with_"sv);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(toAst<ExpList_t>(withVar, x));
+			auto assign = x->new_ptr<Assign_t>();
+			assign->values.dup(with->valueList->exprs);
+			assignment->action.set(assign);
+			if (!returnValue) {
+				scoped = true;
+				temp.push_back(indent() + s("do"sv) + nll(with));
+				pushScope();
 			}
+			transformAssignment(assignment, temp);
 		}
 		if (!with->eop && !scoped && !returnValue) {
 			pushScope();
@@ -4739,7 +4779,7 @@ private:
 			ifNode->nodes.push_back(with->body);
 			transformIf(ifNode, temp, ExpUsage::Common);
 		} else {
-			transformBody(with->body, temp, ExpUsage::Common);
+			transform_plain_body(with->body, temp, ExpUsage::Common);
 		}
 		_withVars.pop();
 		if (assignList) {
@@ -4821,7 +4861,7 @@ private:
 				}
 				break;
 			}
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", item); break;
 		}
 	}
 
@@ -4920,7 +4960,7 @@ private:
 				case id<normal_pair_t>(): transform_normal_pair(static_cast<normal_pair_t*>(pair), temp); break;
 				case id<TableBlockIndent_t>(): transformTableBlockIndent(static_cast<TableBlockIndent_t*>(pair), temp); break;
 				case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(pair), temp); break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", pair); break;
 			}
 			temp.back() = indent() + temp.back() + (pair == pairs.back() ? Empty : s(","sv)) + nll(pair);
 		}
@@ -4964,7 +5004,7 @@ private:
 					temp.back() = indent() + s("if "sv) + temp.back() + s(" then"sv) + nll(item);
 					pushScope();
 					break;
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", item); break;
 			}
 		}
 		transformExp(comp->key, kv, ExpUsage::Closure);
@@ -5136,7 +5176,7 @@ private:
 					expList->exprs.push_back(exp);
 					break;
 				}
-				default: assert(false); break;
+				default: YUEE("AST node mismatch", name); break;
 			}
 		}
 		if (objAssign) {
@@ -5196,9 +5236,10 @@ private:
 						break;
 					case id<variable_pair_t>():
 					case id<normal_pair_t>():
+					case id<Exp_t>():
 						newTab->items.push_back(item);
 						break;
-					default: assert(false); break;
+					default: YUEE("AST node mismatch", item); break;
 				}
 			}
 			if (importAllMacro || !macroPairs.empty()) {
@@ -5268,9 +5309,10 @@ private:
 					}
 					case id<variable_pair_t>():
 					case id<normal_pair_t>():
+					case id<Exp_t>():
 						newTab->items.push_back(item);
 						break;
-					default: assert(false); break;
+					default: YUEE("AST node mismatch", item); break;
 				}
 			}
 #endif // YUE_NO_MACRO
@@ -5317,7 +5359,7 @@ private:
 			case id<ImportFrom_t>():
 				transformImportFrom(static_cast<ImportFrom_t*>(content), out);
 				break;
-			default: assert(false); break;
+			default: YUEE("AST node mismatch", content); break;
 		}
 	}
 
@@ -5401,7 +5443,7 @@ private:
 	void transformRepeat(Repeat_t* repeat, str_list& out) {
 		str_list temp;
 		pushScope();
-		transformLoopBody(repeat->body, temp, Empty, ExpUsage::Common);
+		transformLoopBody(repeat->body->content, temp, Empty, ExpUsage::Common);
 		transformExp(repeat->condition, temp, ExpUsage::Closure);
 		popScope();
 		_buf << indent() << "repeat"sv << nll(repeat);
@@ -5442,13 +5484,13 @@ private:
 			}
 			temp.back().append(s(" then"sv) + nll(branch));
 			pushScope();
-			transformBody(branch->body, temp, usage, assignList);
+			transform_plain_body(branch->body, temp, usage, assignList);
 			popScope();
 		}
 		if (switchNode->lastBranch) {
 			temp.push_back(indent() + s("else"sv) + nll(switchNode->lastBranch));
 			pushScope();
-			transformBody(switchNode->lastBranch, temp, usage, assignList);
+			transform_plain_body(switchNode->lastBranch, temp, usage, assignList);
 			popScope();
 		}
 		temp.push_back(indent() + s("end"sv) + nlr(switchNode));

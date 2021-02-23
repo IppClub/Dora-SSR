@@ -1,5 +1,5 @@
 _ENV = Dorothy!
-import "moon" as {:run_with_scope}
+import "moon" as :run_with_scope
 
 export default Class Node,
 	__init:(args)=>
