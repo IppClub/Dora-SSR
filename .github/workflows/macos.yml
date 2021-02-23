@@ -1,0 +1,18 @@
+name: macOS
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: macOS build
+        run: |
+          Tools/tolua++/build.sh
+          xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy
