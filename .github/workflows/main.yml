@@ -28,6 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Generate Lua bindings
+        run: |
+          sudo apt-get install ant
+          sudo apt-get install lua5.1
+          sudo apt-get install -y luarocks
+          sudo luarocks install luafilesystem
+          cd ./Tools/tolua++
+          lua tolua++.lua
       - name: Android build
         uses: vgaidarji/android-github-actions-build@v1.0.1
         with:
