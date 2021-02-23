@@ -27,7 +27,7 @@ jobs:
   android:
     runs-on: ubantu-latest
     steps:
-      - uses: action/checkout@v2
+      - uses: actions/checkout@v2
       - name: Android build
         uses: vgaidarji/android-github-actions-build@v1.0.1
         with:
@@ -35,7 +35,7 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: action/checkout@v2
+      - uses: actions/checkout@v2
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1
       - name: Windows build
