@@ -23,7 +23,7 @@ jobs:
       - name: iOS build
         run: |
           Tools/tolua++/build.sh
-          xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator13.5
+          xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration debug -target Dorothy -arch x86_64 -sdk iphonesimulator
   android:
     runs-on: ubantu-latest
     steps:
