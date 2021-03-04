@@ -183,10 +183,14 @@ void TargetAllow_allow(TargetAllow* self, String flag, bool allow);
 bool TargetAllow_isAllow(TargetAllow* self, String flag);
 
 /* AI */
-inline AI* AI_shared() { return &SharedAI; }
-Array* AI_getUnitsByRelation(AI* self, String relation);
-Unit* AI_getNearestUnit(AI* self, String relation);
-float AI_getNearestUnitDistance(AI* self, String relation);
+inline Decision::AI* AI_shared() { return &SharedAI; }
+Array* AI_getUnitsByRelation(Decision::AI* self, String relation);
+Unit* AI_getNearestUnit(Decision::AI* self, String relation);
+float AI_getNearestUnitDistance(Decision::AI* self, String relation);
+
+/* Blackboard */
+int Blackboard_get(lua_State* L);
+int Blackboard_set(lua_State* L);
 
 /* Bullet */
 Bullet* Bullet_create(BulletDef* def, Unit* unit);

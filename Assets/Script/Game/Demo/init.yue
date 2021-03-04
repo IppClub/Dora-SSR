@@ -1,4 +1,8 @@
-_ENV = Dorothy builtin.Platformer, builtin.ImGui
+_ENV = Dorothy(
+	builtin.ImGui
+	builtin.Platformer
+	builtin.Platformer.Decision
+)
 import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"
 store:Store = Data

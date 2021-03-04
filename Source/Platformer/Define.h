@@ -8,8 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#define NS_DOROTHY_PLATFORMER_BEGIN namespace Dorothy { namespace Platformer {
-#define NS_DOROTHY_PLATFORMER_END }}
+#define NS_DOROTHY_PLATFORMER_BEGIN namespace Dorothy::Platformer {
+#define NS_DOROTHY_PLATFORMER_END }
+
+#define NS_DECISION_BEGIN namespace Decision {
+#define NS_DECISION_END }
+
+#define NS_BEHAVIOR_BEGIN namespace Behavior {
+#define NS_BEHAVIOR_END }
 
 NS_DOROTHY_PLATFORMER_BEGIN
 

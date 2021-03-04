@@ -1067,18 +1067,36 @@ class Visual : public Node
 	static Visual* create(String name);
 };
 
-class AILeaf : public Object
-{};
+namespace Behavior {
 
-AILeaf* Sel(AILeaf* nodes[tolua_len]);
-AILeaf* Seq(AILeaf* nodes[tolua_len]);
-AILeaf* ParSel(AILeaf* nodes[tolua_len]);
-AILeaf* ParSeq(AILeaf* nodes[tolua_len]);
-AILeaf* Con(String name, tolua_function_bool handler);
-AILeaf* Act(String action);
-AILeaf* Act(tolua_function_string handler);
-AILeaf* Pass();
-AILeaf* Reject();
+class Blackboard
+{
+	tolua_readonly tolua_property__common double deltaTime;
+	tolua_readonly tolua_property__common Unit* owner;
+};
+
+class Leaf : public Object { };
+
+Leaf* Seq(Leaf* nodes[tolua_len]);
+Leaf* Sel(Leaf* nodes[tolua_len]);
+Leaf* Con(String name, tolua_function_bool handler);
+Leaf* Command(String action);
+Leaf* Wait(double duration);
+
+} // namespace Behavior
+
+namespace Decision {
+
+class Leaf : public Object { };
+
+Leaf* Sel(Leaf* nodes[tolua_len]);
+Leaf* Seq(Leaf* nodes[tolua_len]);
+Leaf* Con(String name, tolua_function_bool handler);
+Leaf* Act(String action);
+Leaf* Act(tolua_function_string handler);
+Leaf* Pass();
+Leaf* Reject();
+Leaf* Behave(Behavior::Leaf* root);
 
 class AI
 {
@@ -1091,6 +1109,8 @@ class AI
 	Array* getBodiesInAttackRange();
 	static tolua_outside AI* AI_shared @ create();
 };
+
+} // namespace Decision
 
 class UnitAction
 {

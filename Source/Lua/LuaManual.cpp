@@ -1962,19 +1962,77 @@ bool TargetAllow_isAllow(TargetAllow* self, String relation)
 
 /* AI */
 
-Array* AI_getUnitsByRelation(AI* self, String relation)
+Array* AI_getUnitsByRelation(Decision::AI* self, String relation)
 {
 	return self->getUnitsByRelation(toRelation(relation));
 }
 
-Unit* AI_getNearestUnit(AI* self, String relation)
+Unit* AI_getNearestUnit(Decision::AI* self, String relation)
 {
 	return self->getNearestUnit(toRelation(relation));
 }
 
-float AI_getNearestUnitDistance(AI* self, String relation)
+float AI_getNearestUnitDistance(Decision::AI* self, String relation)
 {
 	return self->getNearestUnitDistance(toRelation(relation));
+}
+
+/* Blackboard */
+
+int Blackboard_get(lua_State* L)
+{
+	/* 1 self, 2 key */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Platformer::Behavior::Blackboard"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		Behavior::Blackboard* self = r_cast<Behavior::Blackboard*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Blackboard_get'", nullptr);
+#endif
+		Slice key = tolua_toslice(L, 2, nullptr);
+		auto value = self->get(key);
+		if (value) value->pushToLua(L);
+		else lua_pushnil(L);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Blackboard_get'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Blackboard_set(lua_State* L)
+{
+	/* 1 self, 2 key, 3 value */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Platformer::Behavior::Blackboard"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 4, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		Behavior::Blackboard* self = r_cast<Behavior::Blackboard*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'Blackboard_set'", nullptr);
+#endif
+		auto value = Dora_getValue(L, 3);
+		Slice key = tolua_toslice(L, 2, nullptr);
+		if (value) self->set(key, std::move(value));
+		else self->remove(key);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Blackboard_set'.", &tolua_err);
+	return 0;
+#endif
 }
 
 /* Bullet */

@@ -1,4 +1,7 @@
-_ENV = Dorothy builtin.Platformer
+_ENV = Dorothy(
+	builtin.Platformer
+	builtin.Platformer.Decision
+)
 
 store:Store = Data
 

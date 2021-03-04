@@ -8,7 +8,7 @@ local Content = builtin.Content()
 local View = builtin.View()
 local Audio = builtin.Audio()
 local Keyboard = builtin.Keyboard()
-local AI = builtin.Platformer.AI()
+local AI = builtin.Platformer.Decision.AI()
 local Data = builtin.Platformer.Data()
 
 builtin.App = App
@@ -17,7 +17,7 @@ builtin.Director = Director
 builtin.View = View
 builtin.Audio = Audio
 builtin.Keyboard = Keyboard
-builtin.Platformer.AI = AI
+builtin.Platformer.Decision.AI = AI
 builtin.Platformer.Data = Data
 
 local yield = coroutine.yield
@@ -341,16 +341,8 @@ Dictionary.__index = function(self,key)
 	return Dictionary_index(self,key)
 end
 
-local Dictionary_newindex = Dictionary.__newindex
-local Dictionary_set = Dictionary.set
-Dictionary.__newindex = function(self,key,value)
-	local vtype = type(value)
-	if vtype == "function" or vtype == "table" then
-		Dictionary_newindex(self,key,value)
-	else
-		Dictionary_set(self,key,value)
-	end
-end
+Dictionary.__newindex = Dictionary.set
+
 Dictionary.__len = function(self)
 	return self.count
 end
@@ -429,23 +421,8 @@ UnitAction.add = function(self, name, params)
 end
 
 -- ImGui
-local ImGui = builtin.ImGui
 
--- ML
-local ML = builtin.ML
-local ML_buildDecisionTreeAsync = ML.buildDecisionTreeAsync
-ML.buildDecisionTreeAsync = function(self,data,maxDepth,handler)
-	local accuracy = nil
-	ML_buildDecisionTreeAsync(self,data,maxDepth,function(...)
-		if not accuracy then
-			accuracy = select(1, ...)
-		else
-			handler(...)
-		end
-	end)
-	wait(function() return accuracy end)
-	return accuracy
-end
+local ImGui = builtin.ImGui
 
 local closeVar = setmetatable({},{
 	__close = function(self)
@@ -541,6 +518,36 @@ ImGui.PushClipRect = pairCallC(ImGui.PushClipRect,ImGui.PopClipRect)
 ImGui.PopClipRect = nil
 ImGui.BeginTable = pairCallB(ImGui.BeginTable,ImGui.EndTable)
 ImGui.EndTable = nil
+
+-- ML
+
+local ML = builtin.ML
+local ML_buildDecisionTreeAsync = ML.buildDecisionTreeAsync
+ML.buildDecisionTreeAsync = function(self,data,maxDepth,handler)
+	local accuracy = nil
+	ML_buildDecisionTreeAsync(self,data,maxDepth,function(...)
+		if not accuracy then
+			accuracy = select(1, ...)
+		else
+			handler(...)
+		end
+	end)
+	wait(function() return accuracy end)
+	return accuracy
+end
+
+-- Blackboard
+
+local Blackboard = builtin.Platformer.Behavior.Blackboard
+local Blackboard_index = Blackboard.__index
+local Blackboard_get = Blackboard.get
+Blackboard.__index = function(self,key)
+	local item = Blackboard_get(self,key)
+	if item ~= nil then return item end
+	return Blackboard_index(self,key)
+end
+
+Blackboard.__newindex = Blackboard.set
 
 -- Helpers
 
