@@ -23,7 +23,9 @@ NS_DOROTHY_PLATFORMER_BEGIN
 class UnitAction;
 class Property;
 class Instinct;
-class AILeaf;
+
+namespace Decision { class Leaf; }
+namespace Behavior { class Leaf; class Blackboard; }
 
 typedef Delegate<void (UnitAction* action)> UnitActionHandler;
 
@@ -64,9 +66,9 @@ public:
 	// Physics state
 	bool isOnSurface() const;
 	// Decision tree AI nodes
-	void setDecisionTreeName(String name);
-	const string& getDecisionTreeName() const;
-	AILeaf* getDecisionTree() const;
+	PROPERTY_STRING(DecisionTreeName);
+	PROPERTY_READONLY(Decision::Leaf*, DecisionTree);
+	PROPERTY(Behavior::Leaf*, BehaviorTree);
 	struct Def
 	{
 		static const Slice Size;
@@ -96,7 +98,9 @@ private:
 	float _detectDistance;
 	Size _attackRange;
 	string _decisionTreeName;
-	Ref<AILeaf> _decisionTree;
+	Ref<Decision::Leaf> _decisionTree;
+	Ref<Behavior::Leaf> _behaviorTree;
+	Own<Behavior::Blackboard> _blackboard;
 	Ref<Dictionary> _unitDef;
 	WRef<Playable> _playable;
 	Size _size;

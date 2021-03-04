@@ -20,6 +20,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
+NS_DECISION_BEGIN
+
 AI::AI():
 _nearestUnit(nullptr),
 _nearestFriend(nullptr),
@@ -47,8 +49,13 @@ Unit* AI::getSelf() const
 }
 
 bool AI::runDecisionTree(Unit* unit)
-{	
-	AILeaf* decisionTree = unit->getDecisionTree();
+{
+	if (unit->getBehaviorTree())
+	{
+		return false;
+	}
+
+	Leaf* decisionTree = unit->getDecisionTree();
 	if (!decisionTree)
 	{
 		return false;
@@ -233,5 +240,7 @@ Array* AI::getBodiesInAttackRange() const
 	Sensor* sensor = _self->getAttackSensor();
 	return sensor ? sensor->getSensedBodies() : nullptr;
 }
+
+NS_DECISION_END
 
 NS_DOROTHY_PLATFORMER_END

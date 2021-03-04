@@ -495,6 +495,15 @@ LuaEngine::LuaEngine()
 			tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "Platformer");
+			tolua_beginmodule(L, "Behavior");
+				tolua_beginmodule(L, "Blackboard");
+					tolua_function(L, "set", Blackboard_set);
+					tolua_function(L, "get", Blackboard_get);
+				tolua_endmodule(L);
+			tolua_endmodule(L);
+		tolua_endmodule(L);
+
 	tolua_endmodule(L);
 
 	// load binding codes

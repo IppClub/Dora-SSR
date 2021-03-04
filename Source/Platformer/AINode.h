@@ -8,32 +8,35 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_PLATFORMER_BEGIN
+#include "Support/Value.h"
 
-class AILeaf;
+NS_DOROTHY_PLATFORMER_BEGIN
 class Unit;
 
-/** @brief Behavior Tree base node */
-class AILeaf : public Object
+NS_BEHAVIOR_BEGIN
+class Leaf;
+NS_BEHAVIOR_END
+
+NS_DECISION_BEGIN
+class Leaf : public Object
 {
 public:
 	virtual bool doAction(Unit* self) = 0;
-	DORA_TYPE_OVERRIDE(AILeaf);
+	DORA_TYPE_OVERRIDE(Leaf);
 };
 
-class AINode : public AILeaf
+class BaseNode : public Leaf
 {
 public:
-	AINode* add(AILeaf* node);
-	void remove(AILeaf* node);
+	BaseNode* add(Leaf* node);
+	bool remove(Leaf* node);
 	void clear();
-	const RefVector<AILeaf>& getChildren() const;
+	const RefVector<Leaf>& getChildren() const;
 protected:
-	RefVector<AILeaf> _children;
+	RefVector<Leaf> _children;
 };
 
-/** @brief Selector Node */
-class SelNode : public AINode
+class SelNode : public BaseNode
 {
 public:
 	virtual bool doAction(Unit* self) override;
@@ -42,8 +45,7 @@ protected:
 	SelNode() { }
 };
 
-/** @brief Sequence Node */
-class SeqNode : public AINode
+class SeqNode : public BaseNode
 {
 public:
 	virtual bool doAction(Unit* self) override;
@@ -52,27 +54,7 @@ protected:
 	SeqNode() { }
 };
 
-/** @brief Parallel Selector Node */
-class ParSelNode : public AINode
-{
-public:
-	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(ParSelNode);
-protected:
-	ParSelNode() { }
-};
-
-/** @brief Parallel Sequence Node */
-class ParSeqNode : public AINode
-{
-public:
-	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(ParSeqNode);
-protected:
-	ParSeqNode() { }
-};
-
-class ConNode : public AILeaf
+class ConNode : public Leaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
@@ -84,7 +66,7 @@ private:
 	function<bool(Unit*)> _handler;
 };
 
-class ActNode : public AILeaf
+class ActNode : public Leaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
@@ -95,7 +77,7 @@ private:
 	string _actionName;
 };
 
-class DynamicActNode : public AILeaf
+class DynamicActNode : public Leaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
@@ -107,7 +89,7 @@ private:
 	function<string(Unit*)> _handler;
 };
 
-class PassNode : public AILeaf
+class PassNode : public Leaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
@@ -116,7 +98,7 @@ protected:
 	PassNode() { }
 };
 
-class RejectNode : public AILeaf
+class RejectNode : public Leaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
@@ -125,14 +107,137 @@ protected:
 	RejectNode() { }
 };
 
-AILeaf* Sel(AILeaf* nodes[], int count);
-AILeaf* Seq(AILeaf* nodes[], int count);
-AILeaf* ParSel(AILeaf* nodes[], int count);
-AILeaf* ParSeq(AILeaf* nodes[], int count);
-AILeaf* Con(String name, const function<bool(Unit*)>& handler);
-AILeaf* Act(String actionName);
-AILeaf* Act(const function<string(Unit*)>& handler);
-AILeaf* Pass();
-AILeaf* Reject();
+class BehaviorNode : public Leaf
+{
+public:
+	virtual bool doAction(Unit* self) override;
+	CREATE_FUNC(BehaviorNode);
+protected:
+	BehaviorNode(Behavior::Leaf* root);
+private:
+	Ref<Behavior::Leaf> _root;
+};
+
+Leaf* Sel(Leaf* nodes[], int count);
+Leaf* Seq(Leaf* nodes[], int count);
+Leaf* Con(String name, const function<bool(Unit*)>& handler);
+Leaf* Act(String actionName);
+Leaf* Act(const function<string(Unit*)>& handler);
+Leaf* Pass();
+Leaf* Reject();
+Leaf* Behave(Behavior::Leaf* root);
+
+NS_DECISION_END
+
+NS_BEHAVIOR_BEGIN
+class Blackboard
+{
+public:
+	PROPERTY(double, DeltaTime);
+	PROPERTY_READONLY(Unit*, Owner);
+	int getNode(Uint32 objId) const;
+	void setNode(Uint32 objId, int index);
+	void set(String name, Own<Value>&& value);
+	Value* get(String name);
+	void remove(String name);
+	void clear();
+	Own<Blackboard> clone() const;
+	void copy(const Blackboard* blackboard);
+public:
+	Blackboard(Unit* owner);
+private:
+	Unit* _owner;
+	double _deltaTime = 0.0;
+	unordered_map<Uint32, int> _nodeIds;
+	unordered_map<string, Own<Value>> _values;
+	DORA_TYPE_BASE(Blackboard);
+};
+
+enum class Status
+{
+	Success,
+	Failure,
+	Running
+};
+
+class Leaf : public Object
+{
+public:
+	virtual ~Leaf() { }
+	virtual Status tick(Blackboard* board) = 0;
+	DORA_TYPE_OVERRIDE(Leaf);
+};
+
+class BaseNode : public Leaf
+{
+public:
+	BaseNode* add(Leaf* node);
+	bool remove(Leaf* node);
+	void clear();
+	const RefVector<Leaf>& getChildren() const;
+protected:
+	RefVector<Leaf> _children;
+};
+
+class SeqNode : public BaseNode
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(SeqNode);
+protected:
+	SeqNode() { }
+};
+
+class SelNode : public BaseNode
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(SelNode);
+protected:
+	SelNode() { }
+};
+
+class ConNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(ConNode);
+protected:
+	ConNode(String name, const function<bool(Blackboard*)>& handler);
+private:
+	string _name;
+	function<bool(Blackboard*)> _handler;
+};
+
+class CommandNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(CommandNode);
+protected:
+	CommandNode(String actionName);
+private:
+	string _actionName;
+};
+
+class WaitNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(WaitNode);
+protected:
+	WaitNode(double duration);
+private:
+	double _duration;
+	string _key;
+};
+
+Leaf* Sel(Leaf* nodes[], int count);
+Leaf* Seq(Leaf* nodes[], int count);
+Leaf* Con(String name, const function<bool(Blackboard*)>& handler);
+Leaf* Command(String actionName);
+Leaf* Wait(double duration);
+
+NS_BEHAVIOR_END
 
 NS_DOROTHY_PLATFORMER_END

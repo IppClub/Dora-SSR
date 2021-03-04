@@ -216,9 +216,16 @@ bool Unit::update(double deltaTime)
 			_currentAction = nullptr;
 		}
 	}
-	else
+	else SharedAI.runDecisionTree(this);
+	if (_behaviorTree)
 	{
-		SharedAI.runDecisionTree(this);
+		_blackboard->setDeltaTime(deltaTime);
+		auto status = _behaviorTree->tick(_blackboard.get());
+		if (status != Behavior::Status::Running)
+		{
+			_blackboard->clear();
+			_behaviorTree = nullptr;
+		}
 	}
 	return Body::update(deltaTime);
 }
@@ -433,7 +440,7 @@ void Unit::setDecisionTreeName(String name)
 	_decisionTreeName = name;
 	if (const auto& item = SharedData.getStore()->get(name))
 	{
-		AILeaf* leaf = &item->to<AILeaf>();
+		Decision::Leaf* leaf = &item->to<Decision::Leaf>();
 		_decisionTree = leaf;
 		SharedAI.runDecisionTree(this);
 	}
@@ -444,9 +451,24 @@ const string& Unit::getDecisionTreeName() const
 	return _decisionTreeName;
 }
 
-AILeaf* Unit::getDecisionTree() const
+Decision::Leaf* Unit::getDecisionTree() const
 {
 	return _decisionTree;
+}
+
+void Unit::setBehaviorTree(Behavior::Leaf* var)
+{
+	_behaviorTree = var;
+	if (!_blackboard)
+	{
+		_blackboard = New<Behavior::Blackboard>(this);
+	}
+	else _blackboard->clear();
+}
+
+Behavior::Leaf* Unit::getBehaviorTree() const
+{
+	return _behaviorTree;
 }
 
 NS_DOROTHY_PLATFORMER_END

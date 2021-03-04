@@ -14,23 +14,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-AINode* AINode::add(AILeaf* node)
+NS_DECISION_BEGIN
+
+/* BaseNode */
+
+BaseNode* BaseNode::add(Leaf* node)
 {
 	_children.push_back(node);
 	return this;
 }
 
-void AINode::remove(AILeaf* node)
+bool BaseNode::remove(Leaf* node)
 {
-	_children.remove(node);
+	return _children.remove(node);
 }
 
-void AINode::clear()
+void BaseNode::clear()
 {
 	_children.clear();
 }
 
-const RefVector<AILeaf>& AINode::getChildren() const
+const RefVector<Leaf>& BaseNode::getChildren() const
 {
 	return _children;
 }
@@ -44,7 +48,7 @@ bool SelNode::doAction(Unit* self)
 		auto& decisionNodes = SharedAI.getDecisionNodes();
 		size_t oldSize = decisionNodes.size();
 		bool result = false;
-		for (AILeaf* node : _children)
+		for (Leaf* node : _children)
 		{
 			if (node->doAction(self))
 			{
@@ -69,7 +73,7 @@ bool SelNode::doAction(Unit* self)
 	}
 	else
 	{
-		for (AILeaf* node : _children)
+		for (Leaf* node : _children)
 		{
 			if (node->doAction(self))
 			{
@@ -89,7 +93,7 @@ bool SeqNode::doAction(Unit* self)
 		auto& decisionNodes = SharedAI.getDecisionNodes();
 		size_t oldSize = decisionNodes.size();
 		bool result = true;
-		for (AILeaf* node : _children)
+		for (Leaf* node : _children)
 		{
 			if (!node->doAction(self))
 			{
@@ -114,7 +118,7 @@ bool SeqNode::doAction(Unit* self)
 	}
 	else
 	{
-		for (AILeaf* node : _children)
+		for (Leaf* node : _children)
 		{
 			if (!node->doAction(self))
 			{
@@ -123,34 +127,6 @@ bool SeqNode::doAction(Unit* self)
 		}
 		return true;
 	}
-}
-
-/* ParSelNode */
-
-bool ParSelNode::doAction(Unit* self)
-{
-	bool result = true;
-	for (AILeaf* node : _children)
-	{
-		if (!node->doAction(self))
-		{
-			result = false;
-		}
-	}
-	return result;
-}
-
-bool ParSeqNode::doAction(Unit* self)
-{
-	bool result = false;
-	for (AILeaf* node : _children)
-	{
-		if (node->doAction(self))
-		{
-			result = true;
-		}
-	}
-	return result;
 }
 
 /* ConNode */
@@ -228,7 +204,19 @@ bool RejectNode::doAction(Unit* self)
 	return false;
 }
 
-AILeaf* Sel(AILeaf* nodes[], int count)
+/* BehaviorNode */
+
+bool BehaviorNode::doAction(Unit* self)
+{
+	self->setBehaviorTree(_root);
+	return true;
+}
+
+BehaviorNode::BehaviorNode(Behavior::Leaf* root):
+_root(root)
+{ }
+
+Leaf* Sel(Leaf* nodes[], int count)
 {
 	SelNode* sel = SelNode::create();
 	for (int i = 0; i < count; i++)
@@ -238,7 +226,7 @@ AILeaf* Sel(AILeaf* nodes[], int count)
 	return sel;
 }
 
-AILeaf* Seq(AILeaf* nodes[], int count)
+Leaf* Seq(Leaf* nodes[], int count)
 {
 	SeqNode* seq = SeqNode::create();
 	for (int i = 0; i < count; i++)
@@ -248,49 +236,310 @@ AILeaf* Seq(AILeaf* nodes[], int count)
 	return seq;
 }
 
-AILeaf* ParSel(AILeaf* nodes[], int count)
-{
-	ParSelNode* parSel = ParSelNode::create();
-	for (int i = 0; i < count; i++)
-	{
-		parSel->add(nodes[i]);
-	}
-	return parSel;
-}
-
-AILeaf* ParSeq(AILeaf* nodes[], int count)
-{
-	ParSeqNode* parSeq = ParSeqNode::create();
-	for (int i = 0; i < count; i++)
-	{
-		parSeq->add(nodes[i]);
-	}
-	return parSeq;
-}
-
-AILeaf* Con(String name, const function<bool(Unit*)>& handler)
+Leaf* Con(String name, const function<bool(Unit*)>& handler)
 {
 	return ConNode::create(name, handler);
 }
 
-AILeaf* Act(String actionName)
+Leaf* Act(String actionName)
 {
 	return ActNode::create(actionName);
 }
 
-AILeaf* Act(const function<string(Unit*)>& handler)
+Leaf* Act(const function<string(Unit*)>& handler)
 {
 	return DynamicActNode::create(handler);
 }
 
-AILeaf* Pass()
+Leaf* Pass()
 {
 	return PassNode::create();
 }
 
-AILeaf* Reject()
+Leaf* Reject()
 {
 	return RejectNode::create();
 }
+
+Leaf* Behave(Behavior::Leaf* root)
+{
+	return BehaviorNode::create(root);
+}
+
+NS_DECISION_END
+
+NS_BEHAVIOR_BEGIN
+
+/* Blackboard */
+
+Blackboard::Blackboard(Unit* owner):
+_owner(owner)
+{ }
+
+Unit* Blackboard::getOwner() const
+{
+	return _owner;
+}
+
+void Blackboard::setDeltaTime(double var)
+{
+	_deltaTime = var;
+}
+
+double Blackboard::getDeltaTime() const
+{
+	return _deltaTime;
+}
+
+int Blackboard::getNode(Uint32 objId) const
+{
+	auto it = _nodeIds.find(objId);
+	if (it != _nodeIds.end())
+	{
+		return it->second;
+	}
+	return -1;
+}
+
+void Blackboard::setNode(Uint32 objId, int index)
+{
+	_nodeIds[objId] = index;
+}
+
+void Blackboard::set(String name, Own<Value>&& value)
+{
+	_values[name] = std::move(value);
+}
+
+Value* Blackboard::get(String name)
+{
+	auto it = _values.find(name);
+	if (it != _values.end())
+	{
+		return it->second.get();
+	}
+	return nullptr;
+}
+
+void Blackboard::remove(String name)
+{
+	auto it = _values.find(name);
+	if (it != _values.end())
+	{
+		_values.erase(it);
+	}
+}
+
+void Blackboard::clear()
+{
+	_deltaTime = 0.0;
+	_nodeIds.clear();
+	_values.clear();
+}
+
+Own<Blackboard> Blackboard::clone() const
+{
+	auto blackboard = New<Blackboard>(_owner);
+	blackboard->copy(this);
+	return blackboard;
+}
+
+void Blackboard::copy(const Blackboard* blackboard)
+{
+	_nodeIds = blackboard->_nodeIds;
+	for (const auto& pair : blackboard->_values)
+	{
+		_values[pair.first] = pair.second->clone();
+	}
+}
+
+/* BaseNode */
+
+BaseNode* BaseNode::add(Leaf* node)
+{
+	_children.push_back(node);
+	return this;
+}
+
+bool BaseNode::remove(Leaf* node)
+{
+	return _children.remove(node);
+}
+
+void BaseNode::clear()
+{
+	_children.clear();
+}
+
+const RefVector<Leaf>& BaseNode::getChildren() const
+{
+	return _children;
+}
+
+/* SeqNode */
+
+Status SeqNode::tick(Blackboard* board)
+{
+	if (_children.empty()) return Status::Success;
+	int index = board->getNode(getId());
+	if (index < 0)
+	{
+		index = 0;
+		board->setNode(getId(), index);
+	}
+	auto status = Status::Running;
+	do
+	{
+		status = _children[index]->tick(board);
+		switch (status)
+		{
+			case Status::Running:
+				return Status::Running;
+			case Status::Success:
+			{
+				index++;
+				if (index >= s_cast<int>(_children.size()))
+				{
+					return Status::Success;
+				}
+				board->setNode(getId(), index);
+				break;
+			}
+			case Status::Failure:
+				return Status::Failure;
+		}
+	}
+	while (status == Status::Success);
+	return Status::Running;
+}
+
+/* SelNode */
+
+Status SelNode::tick(Blackboard* board)
+{
+	if (_children.empty()) return Status::Failure;
+	int index = board->getNode(getId());
+	if (index < 0)
+	{
+		index = 0;
+		board->setNode(getId(), index);
+	}
+	auto status = Status::Running;
+	do
+	{
+		status = _children[index]->tick(board);
+		switch (status)
+		{
+			case Status::Running:
+				return Status::Running;
+			case Status::Success:
+				return Status::Success;
+			case Status::Failure:
+			{
+				index++;
+				if (index >= s_cast<int>(_children.size()))
+				{
+					return Status::Failure;
+				}
+				board->setNode(getId(), index);
+				break;
+			}
+		}
+	}
+	while (status == Status::Failure);
+	return Status::Running;
+}
+
+/* ConNode */
+
+Status ConNode::tick(Blackboard* board)
+{
+	if (_handler && _handler(board))
+	{
+		return Status::Success;
+	}
+	return Status::Failure;
+}
+
+ConNode::ConNode(String name, const function<bool(Blackboard*)>& handler):
+_name(name),
+_handler(handler)
+{ }
+
+/* CommandNode */
+
+Status CommandNode::tick(Blackboard* board)
+{
+	auto result = board->getOwner()->start(_actionName);
+	return result ? Status::Success : Status::Failure;
+}
+
+CommandNode::CommandNode(String actionName):
+_actionName(actionName)
+{ }
+
+/* WaitNode */
+
+Status WaitNode::tick(Blackboard* board)
+{
+	if (auto value = board->get(_key))
+	{
+		auto time = value->to<double>();
+		time += board->getDeltaTime();
+		if (time >= _duration)
+		{
+			return Status::Success;
+		}
+		board->set(_key, Value::alloc(time));
+		return Status::Running;
+	}
+	else
+	{
+		board->set(_key, Value::alloc(double(0.0)));
+		return Status::Running;
+	}
+}
+
+WaitNode::WaitNode(double duration):
+_duration(duration),
+_key('$' + std::to_string(getId()))
+{ }
+
+Leaf* Sel(Leaf* nodes[], int count)
+{
+	SelNode* sel = SelNode::create();
+	for (int i = 0; i < count; i++)
+	{
+		sel->add(nodes[i]);
+	}
+	return sel;
+}
+
+Leaf* Seq(Leaf* nodes[], int count)
+{
+	SeqNode* seq = SeqNode::create();
+	for (int i = 0; i < count; i++)
+	{
+		seq->add(nodes[i]);
+	}
+	return seq;
+}
+
+Leaf* Con(String name, const function<bool(Blackboard*)>& handler)
+{
+	return ConNode::create(name, handler);
+}
+
+Leaf* Command(String actionName)
+{
+	return CommandNode::create(actionName);
+}
+
+Leaf* Wait(double duration)
+{
+	return WaitNode::create(duration);
+}
+
+NS_BEHAVIOR_END
 
 NS_DOROTHY_PLATFORMER_END

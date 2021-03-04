@@ -45,7 +45,7 @@ public:
 	virtual float toFloat() const = 0;
 	virtual bool equals(Value* other) const = 0;
 	template <class T>
-	static Own<Value> alloc(T&& value);
+	static Own<Value> alloc(const T& value);
 	static const Own<Value> None;
 protected:
 	Value() { }
@@ -183,7 +183,7 @@ T* Value::as()
 }
 
 template <class T>
-Own<Value> Value::alloc(T&& value)
+Own<Value> Value::alloc(const T& value)
 {
 	if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<special_decay_t<T>>>)
 	{

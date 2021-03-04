@@ -15,7 +15,6 @@ class World;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
-
 class Unit;
 class BulletDef;
 class Bullet;

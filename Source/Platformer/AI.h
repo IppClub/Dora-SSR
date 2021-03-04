@@ -15,9 +15,9 @@ class Array;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
-
 class Unit;
 
+NS_DECISION_BEGIN
 class AI
 {
 public:
@@ -49,12 +49,14 @@ private:
 	float _nearestFriendDistance;
 	float _nearestEnemyDistance;
 	float _nearestNeutralDistance;
-	unordered_map<string, Ref<AILeaf>> _decisionTrees;
+	unordered_map<string, Ref<Decision::Leaf>> _decisionTrees;
 	vector<Slice> _decisionNodes;
 	friend class Instinct;
 };
 
 #define SharedAI \
-	Dorothy::Singleton<Dorothy::Platformer::AI>::shared()
+	Dorothy::Singleton<Dorothy::Platformer::Decision::AI>::shared()
+
+NS_DECISION_END
 
 NS_DOROTHY_PLATFORMER_END
