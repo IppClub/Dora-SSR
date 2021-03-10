@@ -1080,8 +1080,10 @@ class Leaf : public Object { };
 Leaf* Seq(Leaf* nodes[tolua_len]);
 Leaf* Sel(Leaf* nodes[tolua_len]);
 Leaf* Con(String name, tolua_function_bool handler);
+Leaf* Act(String action);
 Leaf* Command(String action);
 Leaf* Wait(double duration);
+Leaf* CountDown(double time, Leaf* node);
 
 } // namespace Behavior
 
@@ -1096,7 +1098,7 @@ Leaf* Act(String action);
 Leaf* Act(tolua_function_string handler);
 Leaf* Pass();
 Leaf* Reject();
-Leaf* Behave(Behavior::Leaf* root);
+Leaf* Behave(String name, Behavior::Leaf* root);
 
 class AI
 {

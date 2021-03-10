@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <stack>
 #include <vector>
 #include <memory>
+#include <set>
 
 #include "yuescript/yue_parser.h"
 #include "yuescript/yue_compiler.h"
@@ -58,7 +59,7 @@ inline std::string s(std::string_view sv) {
 	return std::string(sv);
 }
 
-const std::string_view version = "0.7.0"sv;
+const std::string_view version = "0.7.3"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -1365,19 +1366,32 @@ private:
 
 	std::list<DestructItem> destructFromExp(ast_node* node) {
 		const node_container* tableItems = nullptr;
-		if (ast_is<Exp_t>(node)) {
-			auto item = singleValueFrom(node)->item.get();
-			if (!item) throw std::logic_error(_info.errorMessage("invalid destructure value"sv, node));
-			auto tbA = item->getByPath<TableLit_t>();
-			if (tbA) {
-				tableItems = &tbA->values.objects();
-			} else {
-				auto tbB = ast_cast<simple_table_t>(item);
-				if (tbB) tableItems = &tbB->pairs.objects();
+		switch (node->getId()) {
+			case id<Exp_t>(): {
+				auto item = singleValueFrom(node)->item.get();
+				if (!item) throw std::logic_error(_info.errorMessage("invalid destructure value"sv, node));
+				auto tbA = item->getByPath<TableLit_t>();
+				if (tbA) {
+					tableItems = &tbA->values.objects();
+				} else {
+					auto tbB = ast_cast<simple_table_t>(item);
+					if (tbB) tableItems = &tbB->pairs.objects();
+				}
+				break;
 			}
-		} else if (auto table = ast_cast<TableBlock_t>(node)) {
-			tableItems = &table->values.objects();
+			case id<TableBlock_t>(): {
+				auto table = ast_cast<TableBlock_t>(node);
+				tableItems = &table->values.objects();
+				break;
+			}
+			case id<TableBlockIndent_t>(): {
+				auto table = ast_cast<TableBlockIndent_t>(node);
+				tableItems = &table->values.objects();
+				break;
+			}
+			default: YUEE("AST node mismatch", node); break;
 		}
+		if (!tableItems) throw std::logic_error(_info.errorMessage("invalid destructure value"sv, node));
 		std::list<DestructItem> pairs;
 		int index = 0;
 		for (auto pair : *tableItems) {
@@ -1411,7 +1425,7 @@ private:
 						pairs.push_back({
 							isVariable,
 							varName,
-							s("["sv) + std::to_string(index) + s("]"sv)
+							'[' + std::to_string(index) + ']'
 						});
 					}
 					break;
@@ -1428,23 +1442,29 @@ private:
 				}
 				case id<normal_pair_t>(): {
 					auto np = static_cast<normal_pair_t*>(pair);
-					auto key = np->key->getByPath<Name_t>();
-					if (!key) throw std::logic_error(_info.errorMessage("invalid key for destructure"sv, np));
+					std::string keyName;
+					if (np->key) {
+						auto key = np->key->getByPath<Name_t>();
+						if (!key) throw std::logic_error(_info.errorMessage("invalid key for destructure"sv, np));
+						keyName = _parser.toString(key);
+						if (Keywords.find(keyName) != Keywords.end()) {
+							keyName = s("[\""sv) + keyName + s("\"]"sv);
+						} else {
+							keyName = s("."sv) + keyName;
+						}
+					}
 					if (auto exp = np->value.as<Exp_t>()) {
 						if (!isAssignable(exp)) throw std::logic_error(_info.errorMessage("can't destructure value"sv, exp));
 						auto item = singleValueFrom(exp)->item.get();
 						if (ast_is<simple_table_t>(item) ||
 							item->getByPath<TableLit_t>()) {
 							auto subPairs = destructFromExp(exp);
-							auto name = _parser.toString(key);
 							for (auto& p : subPairs) {
-								if (Keywords.find(name) != Keywords.end()) {
-									pairs.push_back({p.isVariable, p.name,
-										s("[\""sv) + name + s("\"]"sv) + p.structure});
-								} else {
-									pairs.push_back({p.isVariable, p.name,
-										s("."sv) + name + p.structure});
-								}
+								pairs.push_back({
+									p.isVariable,
+									p.name,
+									keyName + p.structure
+								});
 							}
 						} else {
 							bool lintGlobal = _config.lintGlobalVariable;
@@ -1457,29 +1477,36 @@ private:
 								varName = std::move(temp.back());
 							}
 							_config.lintGlobalVariable = lintGlobal;
-							auto name = _parser.toString(key);
-							if (Keywords.find(name) != Keywords.end()) {
-								pairs.push_back({
-									isVariable,
-									varName,
-									s("[\""sv) + name + s("\"]"sv)
-								});
-							} else {
-								pairs.push_back({
-									isVariable,
-									varName,
-									s("."sv) + name
-								});
-							}
+							pairs.push_back({
+								isVariable,
+								varName,
+								keyName
+							});
 						}
 						break;
 					}
 					if (np->value.is<TableBlock_t>()) {
-						auto subPairs = destructFromExp(pair);
+						auto subPairs = destructFromExp(np->value);
 						for (auto& p : subPairs) {
-							pairs.push_back({p.isVariable, p.name,
-								s("."sv) + _parser.toString(key) + p.structure});
+							pairs.push_back({
+								p.isVariable,
+								p.name,
+								keyName + p.structure
+							});
 						}
+					}
+					break;
+				}
+				case id<TableBlockIndent_t>(): {
+					auto tb = static_cast<TableBlockIndent_t*>(pair);
+					++index;
+					auto subPairs = destructFromExp(tb);
+					for (auto& p : subPairs) {
+						pairs.push_back({
+							p.isVariable,
+							p.name,
+							'[' + std::to_string(index) + ']' + p.structure
+						});
 					}
 					break;
 				}
@@ -1497,9 +1524,10 @@ private:
 		auto exprs = assignment->expList->exprs.objects();
 		auto values = assignment->action.to<Assign_t>()->values.objects();
 		size_t size = std::max(exprs.size(), values.size());
-		ast_ptr<false, Exp_t> var;
+		ast_list<false, ast_node> cache;
 		if (exprs.size() < size) {
-			var = toAst<Exp_t>("_"sv, x);
+			auto var = toAst<Exp_t>("_"sv, x);
+			cache.push_back(var);
 			while (exprs.size() < size) exprs.emplace_back(var);
 		}
 		ast_ptr<false, Exp_t> nullNode;
@@ -1549,11 +1577,22 @@ private:
 						}
 						case id<meta_normal_pair_t>(): {
 							auto mp = static_cast<meta_normal_pair_t*>(item);
-							auto key = _parser.toString(mp->key);
-							_buf << "__"sv << key;
-							auto newKey = toAst<KeyName_t>(clearBuf(), item);
 							auto newPair = item->new_ptr<normal_pair_t>();
-							newPair->key.set(newKey);
+							if (mp->key) {
+								switch (mp->key->getId()) {
+									case id<Name_t>(): {
+										auto key = _parser.toString(mp->key);
+										_buf << "__"sv << key;
+										auto newKey = toAst<KeyName_t>(clearBuf(), mp->key);
+										newPair->key.set(newKey);
+										break;
+									}
+									case id<Exp_t>():
+										newPair->key.set(mp->key);
+										break;
+									default: YUEE("AST node mismatch", mp->key); break;
+								}
+							}
 							newPair->value.set(mp->value);
 							subMetaDestruct->values.push_back(newPair);
 							break;
@@ -2341,6 +2380,7 @@ private:
 					auto exp = ast_cast<Exp_t>(assign->values.objects().front());
 					BREAK_IF(!exp);
 					auto value = singleValueFrom(exp);
+					BREAK_IF(!value);
 					classDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
 					BLOCK_END
 				} else if (auto expList = expListFrom(stmt)) {
@@ -3167,6 +3207,9 @@ private:
 		if (opIt == chainList.end()) return false;
 		auto x = chainList.front();
 		auto chain = x->new_ptr<ChainValue_t>();
+		if (opIt == chainList.begin() && ast_is<ColonChainItem_t, DotChainItem_t>(x)) {
+			chain->items.push_back(toAst<Callable_t>(_withVars.top(), x));
+		}
 		for (auto it = chainList.begin(); it != opIt; ++it) {
 			chain->items.push_back(*it);
 		}
@@ -5137,6 +5180,7 @@ private:
 		str_list temp;
 		incIndentOffset();
 		auto metatable = table->new_ptr<simple_table_t>();
+		ast_sel<false, Exp_t, TableBlock_t> metatableItem;
 		for (auto pair : pairs) {
 			bool isMetamethod = false;
 			switch (pair->getId()) {
@@ -5148,6 +5192,9 @@ private:
 				case id<meta_variable_pair_t>(): {
 					isMetamethod = true;
 					auto mp = static_cast<meta_variable_pair_t*>(pair);
+					if (metatableItem) {
+						throw std::logic_error(_info.errorMessage("too many metatable declarations"sv, mp->name));
+					}
 					auto name = _parser.toString(mp->name);
 					_buf << "__"sv << name << ':' << name;
 					auto newPair = toAst<normal_pair_t>(clearBuf(), pair);
@@ -5157,13 +5204,32 @@ private:
 				case id<meta_normal_pair_t>(): {
 					isMetamethod = true;
 					auto mp = static_cast<meta_normal_pair_t*>(pair);
-					auto key = _parser.toString(mp->key);
-					_buf << "__"sv << key;
-					auto newKey = toAst<KeyName_t>(clearBuf(), pair);
 					auto newPair = pair->new_ptr<normal_pair_t>();
-					newPair->key.set(newKey);
-					newPair->value.set(mp->value);
-					metatable->pairs.push_back(newPair);
+					if (mp->key) {
+						if (metatableItem) {
+							throw std::logic_error(_info.errorMessage("too many metatable declarations"sv, mp->key));
+						}
+						switch (mp->key->getId()) {
+							case id<Name_t>(): {
+								auto key = _parser.toString(mp->key);
+								_buf << "__"sv << key;
+								auto newKey = toAst<KeyName_t>(clearBuf(), mp->key);
+								newPair->key.set(newKey);
+								break;
+							}
+							case id<Exp_t>():
+								newPair->key.set(mp->key);
+								break;
+							default: YUEE("AST node mismatch", mp->key); break;
+						}
+						newPair->value.set(mp->value);
+						metatable->pairs.push_back(newPair);
+					} else {
+						if (!metatable->pairs.empty()) {
+							throw std::logic_error(_info.errorMessage("too many metatable declarations"sv, mp->value));
+						}
+						metatableItem.set(mp->value);
+					}
 					break;
 				}
 				default: YUEE("AST node mismatch", pair); break;
@@ -5172,7 +5238,7 @@ private:
 				temp.back() = indent() + temp.back() + (pair == pairs.back() ? Empty : s(","sv)) + nll(pair);
 			}
 		}
-		if (metatable->pairs.empty()) {
+		if (metatable->pairs.empty() && !metatableItem) {
 			out.push_back(s("{"sv) + nll(table) + join(temp));
 			decIndentOffset();
 			out.back() += (indent() + s("}"sv));
@@ -5189,7 +5255,16 @@ private:
 			}
 			tabStr += ", "sv;
 			str_list tmp;
-			transform_simple_table(metatable, tmp);
+			if (!metatable->pairs.empty()) {
+				transform_simple_table(metatable, tmp);
+			} else switch (metatableItem->getId()) {
+				case id<Exp_t>():
+					transformExp(static_cast<Exp_t*>(metatableItem.get()), tmp, ExpUsage::Closure);
+					break;
+				case id<TableBlock_t>():
+					transformTableBlock(static_cast<TableBlock_t*>(metatableItem.get()), tmp);
+					break;
+			}
 			tabStr += tmp.back();
 			tabStr += s(")"sv);
 			out.push_back(tabStr);

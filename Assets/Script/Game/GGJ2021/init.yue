@@ -440,7 +440,6 @@ UnitAction\add "spearAttack",
 					entity.hp -= damage
 				false
 			while true do sleep!
-	stop: =>
 
 Store["Bullet_Arrow"] = with BulletDef!
 	.tag = ""

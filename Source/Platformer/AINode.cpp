@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/AINode.h"
 #include "Platformer/AI.h"
 #include "Platformer/Unit.h"
+#include "Platformer/UnitAction.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
@@ -175,9 +176,9 @@ bool DynamicActNode::doAction(Unit* self)
 	auto actionName = _handler(self);
 	if (self->start(actionName))
 	{
-		if (self->isReceivingDecisionTrace() && !actionName.empty())
+		if (self->isReceivingDecisionTrace())
 		{
-			SharedAI.getDecisionNodes().push_back("[dynamic] "_slice + actionName);
+			SharedAI.getDecisionNodes().push_back("[dynamic] "_slice + (actionName.empty() ? string("none"_slice) : actionName));
 		}
 		return true;
 	}
@@ -209,11 +210,16 @@ bool RejectNode::doAction(Unit* self)
 bool BehaviorNode::doAction(Unit* self)
 {
 	self->setBehaviorTree(_root);
+	if (self->isReceivingDecisionTrace())
+	{
+		SharedAI.getDecisionNodes().push_back(_name);
+	}
 	return true;
 }
 
-BehaviorNode::BehaviorNode(Behavior::Leaf* root):
-_root(root)
+BehaviorNode::BehaviorNode(String name, Behavior::Leaf* root):
+_root(root),
+_name(name)
 { }
 
 Leaf* Sel(Leaf* nodes[], int count)
@@ -261,9 +267,9 @@ Leaf* Reject()
 	return RejectNode::create();
 }
 
-Leaf* Behave(Behavior::Leaf* root)
+Leaf* Behave(String name, Behavior::Leaf* root)
 {
-	return BehaviorNode::create(root);
+	return BehaviorNode::create(name, root);
 }
 
 NS_DECISION_END
@@ -466,6 +472,32 @@ _name(name),
 _handler(handler)
 { }
 
+/* ActNode */
+
+Status ActNode::tick(Blackboard* board)
+{
+	if (!board->get(_key))
+	{
+		board->getOwner()->start(_actionName);
+		board->set(_key, Value::alloc(true));
+	}
+	Status status = Status::Failure;
+	if (auto action = board->getOwner()->getAction(_actionName))
+	{
+		status = action->getStatus();
+	}
+	if (status != Status::Running)
+	{
+		board->remove(_key);
+	}
+	return status;
+}
+
+ActNode::ActNode(String actionName):
+_actionName(actionName),
+_key('$' + std::to_string(getId()))
+{ }
+
 /* CommandNode */
 
 Status CommandNode::tick(Blackboard* board)
@@ -476,6 +508,36 @@ Status CommandNode::tick(Blackboard* board)
 
 CommandNode::CommandNode(String actionName):
 _actionName(actionName)
+{ }
+
+/* CountDownNode */
+
+Status CountDownNode::tick(Blackboard* board)
+{
+	Status status = _node->tick(board);
+	if (status != Status::Running) return Status::Failure;
+	if (auto value = board->get(_key))
+	{
+		auto time = value->to<double>();
+		time += board->getDeltaTime();
+		if (time >= _time)
+		{
+			return Status::Success;
+		}
+		board->set(_key, Value::alloc(time));
+		return Status::Running;
+	}
+	else
+	{
+		board->set(_key, Value::alloc(double(0.0)));
+		return Status::Running;
+	}
+}
+
+CountDownNode::CountDownNode(double time, Leaf* node):
+_time(time),
+_node(node),
+_key('$' + std::to_string(getId()))
 { }
 
 /* WaitNode */
@@ -530,9 +592,19 @@ Leaf* Con(String name, const function<bool(Blackboard*)>& handler)
 	return ConNode::create(name, handler);
 }
 
+Leaf* Act(String actionName)
+{
+	return ActNode::create(actionName);
+}
+
 Leaf* Command(String actionName)
 {
 	return CommandNode::create(actionName);
+}
+
+Leaf* CountDown(double time, Leaf* node)
+{
+	return CountDownNode::create(time, node);
 }
 
 Leaf* Wait(double duration)

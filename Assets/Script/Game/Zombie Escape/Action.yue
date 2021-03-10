@@ -45,30 +45,3 @@ UnitAction\add "fallOff",
 					.speed = 1
 					\play "fallOff"
 			false
-
-UnitAction\add "backJump",
-	priority: 2
-	reaction: -1
-	recovery: 0
-	available: => @onSurface
-	create: =>
-		@faceRight = not @faceRight
-		with @playable
-			.speed = 1
-			\play "walk", true
-		:move,:moveSpeed,:jump = @entity
-		velocity = move * moveSpeed
-		@velocityX = (@faceRight and 1 or -1) * velocity
-		loop =>
-			cycle 0.3,->
-				@velocityX = (@faceRight and 1 or -1) * velocity
-			@faceRight = not @faceRight
-			cycle 0.1,->
-				@velocityX = (@faceRight and 1 or -1) * velocity
-			@velocityY = jump
-			@velocityX = (@faceRight and 1 or -1) * velocity
-			with @playable
-				.speed = 1
-				\play "jump"
-			sleep 0.2
-			true

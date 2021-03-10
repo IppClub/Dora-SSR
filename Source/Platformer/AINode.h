@@ -113,9 +113,10 @@ public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(BehaviorNode);
 protected:
-	BehaviorNode(Behavior::Leaf* root);
+	BehaviorNode(String name, Behavior::Leaf* root);
 private:
 	Ref<Behavior::Leaf> _root;
+	string _name;
 };
 
 Leaf* Sel(Leaf* nodes[], int count);
@@ -125,7 +126,7 @@ Leaf* Act(String actionName);
 Leaf* Act(const function<string(Unit*)>& handler);
 Leaf* Pass();
 Leaf* Reject();
-Leaf* Behave(Behavior::Leaf* root);
+Leaf* Behave(String name, Behavior::Leaf* root);
 
 NS_DECISION_END
 
@@ -209,6 +210,18 @@ private:
 	function<bool(Blackboard*)> _handler;
 };
 
+class ActNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(ActNode);
+protected:
+	ActNode(String actionName);
+private:
+	string _actionName;
+	string _key;
+};
+
 class CommandNode : public Leaf
 {
 public:
@@ -218,6 +231,19 @@ protected:
 	CommandNode(String actionName);
 private:
 	string _actionName;
+};
+
+class CountDownNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(CountDownNode);
+protected:
+	CountDownNode(double time, Leaf* node);
+private:
+	double _time;
+	Ref<Leaf> _node;
+	string _key;
 };
 
 class WaitNode : public Leaf
@@ -235,6 +261,8 @@ private:
 Leaf* Sel(Leaf* nodes[], int count);
 Leaf* Seq(Leaf* nodes[], int count);
 Leaf* Con(String name, const function<bool(Blackboard*)>& handler);
+Leaf* Act(String actionName);
+Leaf* CountDown(double time, Leaf* node);
 Leaf* Command(String actionName);
 Leaf* Wait(double duration);
 
