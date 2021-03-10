@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/BulletDef.h"
 #include "Platformer/Bullet.h"
 #include "Platformer/AI.h"
+#include "Platformer/AINode.h"
 #include "Animation/ModelDef.h"
 #include "Node/Model.h"
 #include "Node/Spine.h"
@@ -57,6 +58,7 @@ UnitAction::UnitAction(String name, int priority, Unit* owner):
 _name(name),
 _priority(priority),
 _isDoing(false),
+_status(Behavior::Status::Failure),
 _owner(owner),
 reaction(-1.0f),
 _eclapsedTime(0.0f),
@@ -96,6 +98,11 @@ bool UnitAction::isAvailable()
 float UnitAction::getEclapsedTime() const
 {
 	return _eclapsedTime;
+}
+
+Behavior::Status UnitAction::getStatus() const
+{
+	return _status;
 }
 
 void UnitAction::run()

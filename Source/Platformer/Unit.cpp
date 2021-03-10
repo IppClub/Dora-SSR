@@ -208,11 +208,27 @@ Playable* Unit::getPlayable() const
 
 bool Unit::update(double deltaTime)
 {
-	if (_currentAction != nullptr && _currentAction->isDoing())
+	if (_currentAction)
 	{
-		_currentAction->update(s_cast<float>(deltaTime));
-		if (_currentAction && !_currentAction->isDoing())
+		if (_currentAction->isDoing())
 		{
+			_currentAction->update(s_cast<float>(deltaTime));
+			if (_currentAction)
+			{
+				if (_currentAction->isDoing())
+				{
+					_currentAction->_status = Behavior::Status::Running;
+				}
+				else
+				{
+					_currentAction->_status = Behavior::Status::Success;
+					_currentAction = nullptr;
+				}
+			}
+		}
+		else
+		{
+			_currentAction->_status = Behavior::Status::Success;
 			_currentAction = nullptr;
 		}
 	}
@@ -335,19 +351,23 @@ bool Unit::start(String name)
 				if (_currentAction->getPriority() <= action->getPriority())
 				{
 					_currentAction->stop();
+					_currentAction->_status = Behavior::Status::Failure;
 				}
 				else
 				{
+					action->_status = Behavior::Status::Failure;
 					return false;
 				}
 			}
 			action->run();
 			if (action->isDoing())
 			{
+				action->_status = Behavior::Status::Running;
 				_currentAction = action;
 			}
 			else
 			{
+				action->_status = Behavior::Status::Success;
 				_currentAction = nullptr;
 			}
 			return true;

@@ -17,6 +17,10 @@ NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
+NS_BEHAVIOR_BEGIN
+enum class Status;
+NS_BEHAVIOR_END
+
 namespace pd = playrho::d2;
 
 class Unit;
@@ -45,6 +49,7 @@ public:
 class UnitAction
 {
 public:
+	PROPERTY_READONLY(Behavior::Status, Status);
 	PROPERTY_READONLY_CREF(string, Name);
 	PROPERTY_READONLY(int, Priority);
 	PROPERTY_READONLY(Unit*, Owner);
@@ -74,10 +79,12 @@ protected:
 	float _eclapsedTime;
 private:
 	bool _isDoing;
-	string _name;
+	Behavior::Status _status;
 	int _priority;
 	float _decisionDelay;
+	string _name;
 	static unordered_map<string, Own<UnitActionDef>> _actionDefs;
+	friend class Unit;
 };
 
 class ScriptUnitAction : public UnitAction

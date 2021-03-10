@@ -3,6 +3,8 @@ _ENV = Dorothy(
 	builtin.Platformer.Decision
 )
 
+Behavior:BT = builtin.Platformer
+
 store:Store = Data
 
 rangeAttack = Sel {
@@ -41,7 +43,13 @@ walk = Sel {
 		Sel {
 			Seq {
 				Con "obstacle distance <= 80",=> @entity.obstacleDistance <= 80
-				Act "backJump"
+				Behave "backJump", BT.Seq {
+					BT.Command "turn"
+					BT.CountDown 0.3, BT.Act "walk"
+					BT.Command "turn"
+					BT.CountDown 0.1, BT.Act "walk"
+					BT.Act "jump"
+				}
 			}
 			Seq {
 				Con "has forward speed",=> math.abs(@velocityX) > 0
@@ -76,8 +84,7 @@ fightDecision = Seq {
 				needEvade
 			Sel {
 				Seq {
-					Con "face enemy",=>
-						not @isDoing("backJump") and @entity.evadeRight == @faceRight
+					Con "face enemy",=> @entity.evadeRight == @faceRight
 					Act "turn"
 					walk
 				}
