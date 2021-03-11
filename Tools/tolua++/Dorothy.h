@@ -1083,7 +1083,12 @@ Leaf* Con(String name, tolua_function_bool handler);
 Leaf* Act(String action);
 Leaf* Command(String action);
 Leaf* Wait(double duration);
-Leaf* CountDown(double time, Leaf* node);
+Leaf* Countdown(double time, Leaf* node);
+Leaf* Timeout(double time, Leaf* node);
+Leaf* Repeat(int times, Leaf* node);
+Leaf* Repeat(Leaf* node);
+Leaf* Retry(int times, Leaf* node);
+Leaf* Retry(Leaf* node);
 
 } // namespace Behavior
 

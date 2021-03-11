@@ -136,11 +136,12 @@ class Blackboard
 public:
 	PROPERTY(double, DeltaTime);
 	PROPERTY_READONLY(Unit*, Owner);
-	int getNode(Uint32 objId) const;
-	void setNode(Uint32 objId, int index);
 	void set(String name, Own<Value>&& value);
+	void set(Uint32 key, Own<Value>&& value);
 	Value* get(String name);
+	Value* get(Uint32 key);
 	void remove(String name);
+	void remove(Uint32 key);
 	void clear();
 	Own<Blackboard> clone() const;
 	void copy(const Blackboard* blackboard);
@@ -149,7 +150,7 @@ public:
 private:
 	Unit* _owner;
 	double _deltaTime = 0.0;
-	unordered_map<Uint32, int> _nodeIds;
+	unordered_map<Uint32, Own<Value>> _nodeValues;
 	unordered_map<string, Own<Value>> _values;
 	DORA_TYPE_BASE(Blackboard);
 };
@@ -219,7 +220,6 @@ protected:
 	ActNode(String actionName);
 private:
 	string _actionName;
-	string _key;
 };
 
 class CommandNode : public Leaf
@@ -233,17 +233,28 @@ private:
 	string _actionName;
 };
 
-class CountDownNode : public Leaf
+class CountdownNode : public Leaf
 {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(CountDownNode);
+	CREATE_FUNC(CountdownNode);
 protected:
-	CountDownNode(double time, Leaf* node);
+	CountdownNode(double time, Leaf* node);
 private:
 	double _time;
 	Ref<Leaf> _node;
-	string _key;
+};
+
+class TimeoutNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(TimeoutNode);
+protected:
+	TimeoutNode(double time, Leaf* node);
+private:
+	double _time;
+	Ref<Leaf> _node;
 };
 
 class WaitNode : public Leaf
@@ -255,16 +266,46 @@ protected:
 	WaitNode(double duration);
 private:
 	double _duration;
-	string _key;
+};
+
+class RepeatNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(RepeatNode);
+protected:
+	RepeatNode(int times, Leaf* node);
+	RepeatNode(Leaf* node);
+private:
+	int _times;
+	Ref<Leaf> _node;
+};
+
+class RetryNode : public Leaf
+{
+public:
+	virtual Status tick(Blackboard* board) override;
+	CREATE_FUNC(RetryNode);
+protected:
+	RetryNode(int times, Leaf* node);
+	RetryNode(Leaf* node);
+private:
+	int _times;
+	Ref<Leaf> _node;
 };
 
 Leaf* Sel(Leaf* nodes[], int count);
 Leaf* Seq(Leaf* nodes[], int count);
 Leaf* Con(String name, const function<bool(Blackboard*)>& handler);
 Leaf* Act(String actionName);
-Leaf* CountDown(double time, Leaf* node);
+Leaf* Countdown(double time, Leaf* node);
+Leaf* Timeout(double time, Leaf* node);
 Leaf* Command(String actionName);
 Leaf* Wait(double duration);
+Leaf* Repeat(int times, Leaf* node);
+Leaf* Repeat(Leaf* node);
+Leaf* Retry(int times, Leaf* node);
+Leaf* Retry(Leaf* node);
 
 NS_BEHAVIOR_END
 

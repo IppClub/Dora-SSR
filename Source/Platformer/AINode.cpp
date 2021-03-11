@@ -297,30 +297,30 @@ double Blackboard::getDeltaTime() const
 	return _deltaTime;
 }
 
-int Blackboard::getNode(Uint32 objId) const
-{
-	auto it = _nodeIds.find(objId);
-	if (it != _nodeIds.end())
-	{
-		return it->second;
-	}
-	return -1;
-}
-
-void Blackboard::setNode(Uint32 objId, int index)
-{
-	_nodeIds[objId] = index;
-}
-
 void Blackboard::set(String name, Own<Value>&& value)
 {
 	_values[name] = std::move(value);
+}
+
+void Blackboard::set(Uint32 key, Own<Value>&& value)
+{
+	_nodeValues[key] = std::move(value);
 }
 
 Value* Blackboard::get(String name)
 {
 	auto it = _values.find(name);
 	if (it != _values.end())
+	{
+		return it->second.get();
+	}
+	return nullptr;
+}
+
+Value* Blackboard::get(Uint32 key)
+{
+	auto it = _nodeValues.find(key);
+	if (it != _nodeValues.end())
 	{
 		return it->second.get();
 	}
@@ -336,10 +336,19 @@ void Blackboard::remove(String name)
 	}
 }
 
+void Blackboard::remove(Uint32 key)
+{
+	auto it = _nodeValues.find(key);
+	if (it != _nodeValues.end())
+	{
+		_nodeValues.erase(it);
+	}
+}
+
 void Blackboard::clear()
 {
 	_deltaTime = 0.0;
-	_nodeIds.clear();
+	_nodeValues.clear();
 	_values.clear();
 }
 
@@ -352,7 +361,12 @@ Own<Blackboard> Blackboard::clone() const
 
 void Blackboard::copy(const Blackboard* blackboard)
 {
-	_nodeIds = blackboard->_nodeIds;
+	_nodeValues.clear();
+	for (const auto& pair : blackboard->_nodeValues)
+	{
+		_nodeValues[pair.first] = pair.second->clone();
+	}
+	_values.clear();
 	for (const auto& pair : blackboard->_values)
 	{
 		_values[pair.first] = pair.second->clone();
@@ -387,12 +401,13 @@ const RefVector<Leaf>& BaseNode::getChildren() const
 Status SeqNode::tick(Blackboard* board)
 {
 	if (_children.empty()) return Status::Success;
-	int index = board->getNode(getId());
-	if (index < 0)
+	int index = 0;
+	Uint32 key = getId();
+	if (auto value = board->get(key))
 	{
-		index = 0;
-		board->setNode(getId(), index);
+		index = value->to<int>();
 	}
+	else board->set(key, Value::alloc(index));
 	auto status = Status::Running;
 	do
 	{
@@ -406,12 +421,14 @@ Status SeqNode::tick(Blackboard* board)
 				index++;
 				if (index >= s_cast<int>(_children.size()))
 				{
+					board->remove(key);
 					return Status::Success;
 				}
-				board->setNode(getId(), index);
+				board->set(key, Value::alloc(index));
 				break;
 			}
 			case Status::Failure:
+				board->remove(key);
 				return Status::Failure;
 		}
 	}
@@ -424,12 +441,13 @@ Status SeqNode::tick(Blackboard* board)
 Status SelNode::tick(Blackboard* board)
 {
 	if (_children.empty()) return Status::Failure;
-	int index = board->getNode(getId());
-	if (index < 0)
+	int index = 0;
+	Uint32 key = getId();
+	if (auto value = board->get(key))
 	{
-		index = 0;
-		board->setNode(getId(), index);
+		index = value->to<int>();
 	}
+	else board->set(key, Value::alloc(index));
 	auto status = Status::Running;
 	do
 	{
@@ -439,15 +457,17 @@ Status SelNode::tick(Blackboard* board)
 			case Status::Running:
 				return Status::Running;
 			case Status::Success:
+				board->remove(key);
 				return Status::Success;
 			case Status::Failure:
 			{
 				index++;
 				if (index >= s_cast<int>(_children.size()))
 				{
+					board->remove(key);
 					return Status::Failure;
 				}
-				board->setNode(getId(), index);
+				board->set(key, Value::alloc(index));
 				break;
 			}
 		}
@@ -476,10 +496,11 @@ _handler(handler)
 
 Status ActNode::tick(Blackboard* board)
 {
-	if (!board->get(_key))
+	Uint32 key = getId();
+	if (!board->get(key))
 	{
 		board->getOwner()->start(_actionName);
-		board->set(_key, Value::alloc(true));
+		board->set(key, Value::alloc(true));
 	}
 	Status status = Status::Failure;
 	if (auto action = board->getOwner()->getAction(_actionName))
@@ -488,14 +509,13 @@ Status ActNode::tick(Blackboard* board)
 	}
 	if (status != Status::Running)
 	{
-		board->remove(_key);
+		board->remove(key);
 	}
 	return status;
 }
 
 ActNode::ActNode(String actionName):
-_actionName(actionName),
-_key('$' + std::to_string(getId()))
+_actionName(actionName)
 { }
 
 /* CommandNode */
@@ -510,61 +530,194 @@ CommandNode::CommandNode(String actionName):
 _actionName(actionName)
 { }
 
-/* CountDownNode */
+/* CountdownNode */
 
-Status CountDownNode::tick(Blackboard* board)
+Status CountdownNode::tick(Blackboard* board)
 {
+	Uint32 key = getId();
 	Status status = _node->tick(board);
-	if (status != Status::Running) return Status::Failure;
-	if (auto value = board->get(_key))
+	if (status != Status::Running)
+	{
+		board->remove(key);
+		return Status::Failure;
+	}
+	if (auto value = board->get(key))
 	{
 		auto time = value->to<double>();
 		time += board->getDeltaTime();
 		if (time >= _time)
 		{
+			board->remove(key);
 			return Status::Success;
 		}
-		board->set(_key, Value::alloc(time));
+		board->set(key, Value::alloc(time));
 		return Status::Running;
 	}
 	else
 	{
-		board->set(_key, Value::alloc(double(0.0)));
+		board->set(key, Value::alloc(double(0.0)));
 		return Status::Running;
 	}
 }
 
-CountDownNode::CountDownNode(double time, Leaf* node):
+CountdownNode::CountdownNode(double time, Leaf* node):
 _time(time),
-_node(node),
-_key('$' + std::to_string(getId()))
+_node(node)
+{ }
+
+/* TimeoutNode */
+
+Status TimeoutNode::tick(Blackboard* board)
+{
+	Uint32 key = getId();
+	Status status = _node->tick(board);
+	if (status != Status::Running)
+	{
+		board->remove(key);
+		return status;
+	}
+	if (auto value = board->get(key))
+	{
+		auto time = value->to<double>();
+		time += board->getDeltaTime();
+		if (time >= _time)
+		{
+			board->remove(key);
+			return Status::Failure;
+		}
+		board->set(key, Value::alloc(time));
+		return Status::Running;
+	}
+	else
+	{
+		board->set(key, Value::alloc(double(0.0)));
+		return Status::Running;
+	}
+}
+
+TimeoutNode::TimeoutNode(double time, Leaf* node):
+_time(time),
+_node(node)
 { }
 
 /* WaitNode */
 
 Status WaitNode::tick(Blackboard* board)
 {
-	if (auto value = board->get(_key))
+	Uint32 key = getId();
+	if (auto value = board->get(key))
 	{
 		auto time = value->to<double>();
 		time += board->getDeltaTime();
 		if (time >= _duration)
 		{
+			board->remove(key);
 			return Status::Success;
 		}
-		board->set(_key, Value::alloc(time));
+		board->set(key, Value::alloc(time));
 		return Status::Running;
 	}
 	else
 	{
-		board->set(_key, Value::alloc(double(0.0)));
+		board->set(key, Value::alloc(double(0.0)));
 		return Status::Running;
 	}
 }
 
 WaitNode::WaitNode(double duration):
-_duration(duration),
-_key('$' + std::to_string(getId()))
+_duration(duration)
+{ }
+
+/* RepeatNode */
+
+Status RepeatNode::tick(Blackboard* board)
+{
+	Uint32 key = getId();
+	if (!board->get(key))
+	{
+		std::shared_ptr<Blackboard> cloneBoard = board->clone();
+		board->set(key, Value::alloc(std::make_pair(int(0), cloneBoard)));
+	}
+	Status status = _node->tick(board);
+	switch (status)
+	{
+		case Status::Success:
+		{
+			auto value = board->get(key)->to<std::pair<int, std::shared_ptr<Blackboard>>>();
+			if (_times > 0) value.first++;
+			if (value.first > _times)
+			{
+				return Status::Success;
+			}
+			else
+			{
+				board->copy(value.second.get());
+				board->set(key, Value::alloc(value));
+				return Status::Running;
+			}
+		}
+		case Status::Failure:
+			board->remove(key);
+			return Status::Failure;
+		case Status::Running:
+			return Status::Running;
+	}
+}
+
+RepeatNode::RepeatNode(Leaf* node):
+_times(0),
+_node(node)
+{ }
+
+RepeatNode::RepeatNode(int times, Leaf* node):
+_times(times),
+_node(node)
+{ }
+
+/* RetryNode */
+
+Status RetryNode::tick(Blackboard* board)
+{
+	Uint32 key = getId();
+	if (!board->get(key))
+	{
+		std::shared_ptr<Blackboard> cloneBoard = board->clone();
+		board->set(key, Value::alloc(std::make_pair(int(0), cloneBoard)));
+	}
+	Status status = _node->tick(board);
+	switch (status)
+	{
+		case Status::Failure:
+		{
+			auto value = board->get(key)->to<std::pair<int, std::shared_ptr<Blackboard>>>();
+			if (_times > 0) value.first++;
+			if (value.first > _times)
+			{
+				return Status::Failure;
+			}
+			else
+			{
+				board->copy(value.second.get());
+				board->set(key, Value::alloc(value));
+				return Status::Running;
+			}
+		}
+		case Status::Success:
+			board->remove(key);
+			return Status::Success;
+		case Status::Running:
+			return Status::Running;
+	}
+}
+
+RetryNode::RetryNode(Leaf* node):
+_times(0),
+_node(node)
+{ }
+
+RetryNode::RetryNode(int times, Leaf* node):
+_times(times),
+_node(node)
 { }
 
 Leaf* Sel(Leaf* nodes[], int count)
@@ -602,14 +755,39 @@ Leaf* Command(String actionName)
 	return CommandNode::create(actionName);
 }
 
-Leaf* CountDown(double time, Leaf* node)
+Leaf* Countdown(double time, Leaf* node)
 {
-	return CountDownNode::create(time, node);
+	return CountdownNode::create(time, node);
+}
+
+Leaf* Timeout(double time, Leaf* node)
+{
+	return TimeoutNode::create(time, node);
 }
 
 Leaf* Wait(double duration)
 {
 	return WaitNode::create(duration);
+}
+
+Leaf* Repeat(int times, Leaf* node)
+{
+	return RepeatNode::create(times, node);
+}
+
+Leaf* Repeat(Leaf* node)
+{
+	return RepeatNode::create(node);
+}
+
+Leaf* Retry(int times, Leaf* node)
+{
+	return RetryNode::create(times, node);
+}
+
+Leaf* Retry(Leaf* node)
+{
+	return RetryNode::create(node);
 }
 
 NS_BEHAVIOR_END
