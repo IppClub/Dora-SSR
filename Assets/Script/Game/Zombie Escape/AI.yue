@@ -44,10 +44,10 @@ walk = Sel {
 			Seq {
 				Con "obstacle distance <= 80",=> @entity.obstacleDistance <= 80
 				Behave "backJump", BT.Seq {
-					BT.Command "turn"
-					BT.CountDown 0.3, BT.Act "walk"
-					BT.Command "turn"
-					BT.CountDown 0.1, BT.Act "walk"
+					BT.Act "turn"
+					BT.Countdown 0.3, BT.Act "walk"
+					BT.Act "turn"
+					BT.Countdown 0.1, BT.Act "walk"
 					BT.Act "jump"
 				}
 			}
