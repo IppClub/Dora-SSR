@@ -37,7 +37,7 @@ template <typename T>
 static constexpr const char* GetNameForTypeInfo() noexcept
 {
     // Ideally return string unique to the type T...
-#if defined(_WIN32)
+#if defined(_MSC_VER)
     return __FUNCSIG__;
 #elif defined(__GNUC__) || defined(__clang__)
     return __PRETTY_FUNCTION__;

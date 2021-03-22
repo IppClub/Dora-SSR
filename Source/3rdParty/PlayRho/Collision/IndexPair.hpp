@@ -59,10 +59,10 @@ static_assert(MaxSimplexEdges == 3, "Invalid assumption about size of MaxSimplex
 /// @return Value between 0 and 3 inclusive.
 constexpr std::size_t GetNumValidIndices(IndexPair3 pairs) noexcept
 {
-    return std::size_t{3}
-    - ((std::get<0>(pairs) == InvalidIndexPair)? 1u: 0u)
-    - ((std::get<1>(pairs) == InvalidIndexPair)? 1u: 0u)
-    - ((std::get<2>(pairs) == InvalidIndexPair)? 1u: 0u);
+    return std::size_t{0}
+    + ((std::get<0>(pairs) == InvalidIndexPair)? 0u: 1u)
+    + ((std::get<1>(pairs) == InvalidIndexPair)? 0u: 1u)
+    + ((std::get<2>(pairs) == InvalidIndexPair)? 0u: 1u);
 }
 
 /// @brief Checks whether the given collection of index pairs is empty.
