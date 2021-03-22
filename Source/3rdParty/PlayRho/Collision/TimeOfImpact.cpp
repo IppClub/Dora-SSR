@@ -239,32 +239,25 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
                 assert(!AlmostZero(s2 - s1));
                 assert(a1 <= a2);
 
-                auto state = TOIOutput::e_unknown;
                 if (roots == conf.maxRootIters)
                 {
-                    state = TOIOutput::e_maxRootIters;
-                }
-                else if (nextafter(a1, a2) >= a2)
-                {
-                    state = TOIOutput::e_nextAfter;
-                }
-                if (state != TOIOutput::e_unknown)
-                {
-                    // Reached max root iterations or...
-                    // Reached the limit of the Real type's precision!
-                    // In this state, there's no way to make progress anymore.
-                    // (a1 + a2) / 2 results in a1! So bail from function.
                     stats.sum_finder_iters += pbIter;
                     stats.sum_root_iters += roots;
                     stats.max_root_iters = std::max(stats.max_root_iters, roots);
-                    return TOIOutput{t, stats, state};
+                    return TOIOutput{t, stats, TOIOutput::e_maxRootIters};
+                }
+                if (nextafter(a1, a2) >= a2)
+                {
+                    stats.sum_finder_iters += pbIter;
+                    stats.sum_root_iters += roots;
+                    stats.max_root_iters = std::max(stats.max_root_iters, roots);
+                    return TOIOutput{t, stats, TOIOutput::e_nextAfter};
                 }
 
                 // Uses secant to improve convergence & bisection to guarantee progress.
                 t = IsOdd(roots)? Secant(target, a1, s1, a2, s2): Bisect(a1, a2);
                 
                 // Using secant method, t may equal a2 now.
-                //assert(t != a1);
                 ++roots;
 
                 // If t == a1 or t == a2 then, there's a precision/rounding problem.

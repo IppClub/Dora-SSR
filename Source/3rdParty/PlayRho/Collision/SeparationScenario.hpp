@@ -41,7 +41,14 @@ struct SeparationScenario
         e_faceA,
         e_faceB,
     };
-    
+
+    static constexpr Type GetType(IndexPair3 indices)
+    {
+        return (GetNumValidIndices(indices) == 1u)
+            ? e_points
+            : ((std::get<0>(indices[0]) == std::get<0>(indices[1])) ? e_faceB: e_faceA);
+    }
+
     const DistanceProxy& proxyA; ///< Distance proxy A.
     const DistanceProxy& proxyB; ///< Distance proxy B.
     const UnitVec axis; ///< Axis. @details Directional vector of the axis of separation.
@@ -49,7 +56,7 @@ struct SeparationScenario
     /// @brief Local point.
     /// @note Only used if type is <code>e_faceA</code> or <code>e_faceB</code>.
     const Length2 localPoint;
-    
+
     const Type type; ///< The type of this scenario.
 };
 

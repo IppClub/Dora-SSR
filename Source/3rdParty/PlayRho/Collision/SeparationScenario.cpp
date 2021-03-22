@@ -111,11 +111,7 @@ GetSeparationScenario(IndexPair3 indices,
     assert(proxyA.GetVertexCount() > 0);
     assert(proxyB.GetVertexCount() > 0);
     
-    const auto numIndices = GetNumValidIndices(indices);
-    const auto type = (numIndices == 1)?
-        SeparationScenario::e_points: ((std::get<0>(indices[0]) == std::get<0>(indices[1]))?
-                                       SeparationScenario::e_faceB: SeparationScenario::e_faceA);
-    
+    const auto type = SeparationScenario::GetType(indices);
     switch (type)
     {
         case SeparationScenario::e_faceB:
