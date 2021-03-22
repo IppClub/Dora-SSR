@@ -875,7 +875,6 @@
 		3CD028FF1E07D3C50016E1EC /* LuaEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaEngine.h; path = ../../../Source/Lua/LuaEngine.h; sourceTree = "<group>"; };
 		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbgfx.a; sourceTree = "<group>"; };
 		3CD029151E07DD720016E1EC /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/macOS/libSDL2.a; sourceTree = "<group>"; };
-		3CD029171E07DEB10016E1EC /* libluajit.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libluajit.a; path = ../../Source/3rdParty/Lua/Lib/macOS/libluajit.a; sourceTree = "<group>"; };
 		3CD1D4BC1E78F0350003A7FD /* rapidxml_sax3.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = rapidxml_sax3.hpp; path = ../../../Source/3rdParty/Other/rapidxml_sax3.hpp; sourceTree = "<group>"; };
 		3CD1D4BF1E798A8C0003A7FD /* XmlTag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XmlTag.h; path = ../../../Source/Const/XmlTag.h; sourceTree = "<group>"; };
 		3CD3282F1E4B0B530036906C /* ImGuiDora.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGuiDora.cpp; path = ../../../Source/GUI/ImGuiDora.cpp; sourceTree = "<group>"; };
@@ -1195,7 +1194,6 @@
 				3CE7D3741EADF594008EADB3 /* libbimg.a */,
 				3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */,
 				3C0EBE2F1E2DB3FB0066450A /* libbx.a */,
-				3CD029171E07DEB10016E1EC /* libluajit.a */,
 				3CD029151E07DD720016E1EC /* libSDL2.a */,
 				3CD029131E07DD5F0016E1EC /* libbgfx.a */,
 				3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */,
@@ -2464,7 +2462,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
 		};
@@ -2515,7 +2513,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;
 		};
@@ -2547,7 +2545,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui";
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
 		};
@@ -2579,7 +2577,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui";
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;
 		};

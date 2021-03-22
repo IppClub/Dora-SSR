@@ -37,6 +37,12 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_GCC("-Wunused-result");
 #include "fontstash.h"
 BX_PRAGMA_DIAGNOSTIC_POP();
 
+#define NVG_NO_STB
+#ifndef NVG_NO_STB
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#endif
+
 #ifdef _MSC_VER
 #pragma warning(disable: 4100)  // unreferenced formal parameter
 #pragma warning(disable: 4127)  // conditional expression is constant
@@ -797,6 +803,37 @@ void nvgFillPaint(NVGcontext* ctx, NVGpaint paint)
 	state->fill = paint;
 	nvgTransformMultiply(state->fill.xform, state->xform);
 }
+
+#ifndef NVG_NO_STB
+int nvgCreateImage(NVGcontext* ctx, const char* filename, int imageFlags)
+{
+	int w, h, n, image;
+	unsigned char* img;
+	stbi_set_unpremultiply_on_load(1);
+	stbi_convert_iphone_png_to_rgb(1);
+	img = stbi_load(filename, &w, &h, &n, 4);
+	if (img == NULL) {
+//		printf("Failed to load %s - %s\n", filename, stbi_failure_reason());
+		return 0;
+	}
+	image = nvgCreateImageRGBA(ctx, w, h, imageFlags, img);
+	stbi_image_free(img);
+	return image;
+}
+
+int nvgCreateImageMem(NVGcontext* ctx, int imageFlags, unsigned char* data, int ndata)
+{
+	int w, h, n, image;
+	unsigned char* img = stbi_load_from_memory(data, ndata, &w, &h, &n, 4);
+	if (img == NULL) {
+//		printf("Failed to load %s - %s\n", filename, stbi_failure_reason());
+		return 0;
+	}
+	image = nvgCreateImageRGBA(ctx, w, h, imageFlags, img);
+	stbi_image_free(img);
+	return image;
+}
+#endif
 
 int nvgCreateImageRGBA(NVGcontext* ctx, int w, int h, int imageFlags, const unsigned char* data)
 {
@@ -2430,6 +2467,12 @@ static void nvg__renderText(NVGcontext* ctx, NVGvertex* verts, int nverts)
 	ctx->textTriCount += nverts/3;
 }
 
+static int nvg__isTransformFlipped(const float *xform)
+{
+	float det = xform[0] * xform[3] - xform[2] * xform[1];
+	return( det < 0);
+}
+
 float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char* end)
 {
 	NVGstate* state = nvg__getState(ctx);
@@ -2440,6 +2483,7 @@ float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char*
 	float invscale = 1.0f / scale;
 	int cverts = 0;
 	int nverts = 0;
+	int isFlipped = nvg__isTransformFlipped(state->xform);
 
 	if (end == NULL)
 		end = string + strlen(string);
@@ -2473,6 +2517,12 @@ float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char*
 				break;
 		}
 		prevIter = iter;
+		if(isFlipped) {
+			float tmp;
+
+			tmp = q.y0; q.y0 = q.y1; q.y1 = tmp;
+			tmp = q.t0; q.t0 = q.t1; q.t1 = tmp;
+		}
 		// Transform corners.
 		nvgTransformPoint(&c[0],&c[1], state->xform, q.x0*invscale, q.y0*invscale);
 		nvgTransformPoint(&c[2],&c[3], state->xform, q.x1*invscale, q.y0*invscale);
