@@ -301,16 +301,17 @@ OutT& DoraTo(InT* obj)
 
 class Flag
 {
+	typedef Uint32 IntType;
 public:
-	Flag(Uint32 value);
-	void set(Uint32 type, bool value);
-	void toggle(Uint32 type);
-	inline void setOn(Uint32 type) { _flags |= type; }
-	inline void setOff(Uint32 type) { _flags &= ~type; }
-	inline bool isOn(Uint32 type) const { return (_flags & type) != 0; }
-	inline bool isOff(Uint32 type) const { return (_flags & type) == 0; }
+	Flag(IntType value);
+	void set(IntType type, bool value);
+	void toggle(IntType type);
+	inline void setOn(IntType type) { _flags |= type; }
+	inline void setOff(IntType type) { _flags &= ~type; }
+	inline bool isOn(IntType type) const { return (_flags & type) != 0; }
+	inline bool isOff(IntType type) const { return (_flags & type) == 0; }
 private:
-	Uint32 _flags;
+	IntType _flags;
 };
 
 #define LuaType DoraType

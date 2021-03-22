@@ -52,6 +52,7 @@ _world{}
 {
 	_stepConf.regVelocityIterations = 1;
 	_stepConf.regPositionIterations = 1;
+	_flags.setOn(PhysicsWorld::UseFixedUpdate);
 }
 
 PhysicsWorld::~PhysicsWorld()
@@ -241,7 +242,7 @@ bool PhysicsWorld::init()
 		_filters[i].categoryBits = 1<<i;
 		_filters[i].maskBits = 0;
 	}
-	Node::scheduleUpdate();
+	Node::scheduleUpdateFixed();
 	return true;
 }
 
@@ -256,6 +257,16 @@ void PhysicsWorld::render()
 pd::World& PhysicsWorld::getPrWorld()
 {
 	return _world;
+}
+
+void PhysicsWorld::setUpdateFixed(bool var)
+{
+	_flags.set(PhysicsWorld::UseFixedUpdate, var);
+}
+
+bool PhysicsWorld::isUpdateFixed() const
+{
+	return _flags.isOn(PhysicsWorld::UseFixedUpdate);
 }
 
 void PhysicsWorld::setShowDebug(bool var)
@@ -291,26 +302,39 @@ void PhysicsWorld::setIterations(int velocityIter, int positionIter)
 	}
 }
 
+void PhysicsWorld::doUpdate(double deltaTime)
+{
+	_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
+	_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
+	_world.Step(_stepConf);
+	const auto& bodies = _world.GetBodies();
+	for (pr::BodyID b : bodies)
+	{
+		if (pd::IsEnabled(_world, b))
+		{
+			Body* body = _bodyData[b.get()];
+			body->updatePhysics();
+		}
+	}
+	solveContacts();
+}
+
+bool PhysicsWorld::fixedUpdate(double deltaTime)
+{
+	if (isFixedUpdating() && _flags.isOn(PhysicsWorld::UseFixedUpdate))
+	{
+		doUpdate(deltaTime);
+	}
+	return Node::fixedUpdate(deltaTime);
+}
+
 bool PhysicsWorld::update(double deltaTime)
 {
-	if (isUpdating())
+	if (isUpdating() && _flags.isOff(PhysicsWorld::UseFixedUpdate))
 	{
-		_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
-		_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
-		_world.Step(_stepConf);
-		const auto& bodies = _world.GetBodies();
-		for (pr::BodyID b : bodies)
-		{
-			if (pd::IsEnabled(_world, b))
-			{
-				Body* body = _bodyData[b.get()];
-				body->updatePhysics();
-			}
-		}
-		solveContacts();
+		doUpdate(deltaTime);
 	}
-	bool result = Node::update(deltaTime);
-	return !isUpdating() && result;
+	return Node::update(deltaTime);
 }
 
 void PhysicsWorld::setFixtureData(pr::FixtureID f, Sensor* sensor)

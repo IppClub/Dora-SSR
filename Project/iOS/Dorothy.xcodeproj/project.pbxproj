@@ -532,6 +532,7 @@
 		3CBE0F2726087FE8003F4F45 /* liblua.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2626087FE8003F4F45 /* liblua.a */; };
 		3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2226087FC8003F4F45 /* libSDL2.a */; };
 		3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
+		3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
 		3CC7A1441E8D657C003188D6 /* libsoloud.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC7A1431E8D657C003188D6 /* libsoloud.a */; };
 		3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC8201B1D96680C008C8B77 /* Assets.xcassets */; };
 		3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD481E1D589500F32295 /* Utils.cpp */; };
@@ -1141,7 +1142,6 @@
 		3CB730801E80344C006DFA18 /* Dictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Dictionary.cpp; path = ../../../Source/Support/Dictionary.cpp; sourceTree = "<group>"; };
 		3CB730811E80344C006DFA18 /* Dictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dictionary.h; path = ../../../Source/Support/Dictionary.h; sourceTree = "<group>"; };
 		3CBE0F1226087F7B003F4F45 /* Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Simulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3CBE0F1526087F7C003F4F45 /* Dorothy copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Dorothy copy-Info.plist"; path = "/Users/Jin/Workspace/Dorothy-SSR/Project/iOS/Dorothy copy-Info.plist"; sourceTree = "<absolute>"; };
 		3CBE0F1A26087FB3003F4F45 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbimg.a"; sourceTree = "<group>"; };
 		3CBE0F1B26087FB3003F4F45 /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbx.a"; sourceTree = "<group>"; };
 		3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbimg_decode.a"; sourceTree = "<group>"; };
@@ -1246,6 +1246,7 @@
 				3C9862721D9CA4500056A045 /* libbgfx.a in Frameworks */,
 				3CC7A1441E8D657C003188D6 /* libsoloud.a in Frameworks */,
 				3CD210611E663F8B004676F1 /* Metal.framework in Frameworks */,
+				3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */,
 				3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */,
 				3CE0FDAF24336CB800F8F9B3 /* CoreBluetooth.framework in Frameworks */,
 				3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */,
@@ -2099,7 +2100,6 @@
 				3CC8200B1D96680C008C8B77 /* Dorothy */,
 				3CC8200A1D96680C008C8B77 /* Products */,
 				3C98626E1D9CA4500056A045 /* Frameworks */,
-				3CBE0F1526087F7C003F4F45 /* Dorothy copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2967,7 +2967,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/../../Source/Const/Header.pch";
-				INFOPLIST_FILE = "Dorothy copy-Info.plist";
+				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
@@ -3002,7 +3002,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/../../Source/Const/Header.pch";
-				INFOPLIST_FILE = "Dorothy copy-Info.plist";
+				INFOPLIST_FILE = Dorothy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
