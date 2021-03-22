@@ -35,10 +35,22 @@ protected:
 vector<Ref<Object>> Scheduler::_updateItems;
 
 Scheduler::Scheduler():
+_fixedFPS(60),
 _deltaTime(0.0),
+_leftTime(0.0),
 _timeScale(1.0f),
 _actionList(Array::create())
 { }
+
+void Scheduler::setFixedFPS(int var)
+{
+	_fixedFPS = var;
+}
+
+int Scheduler::getFixedFPS() const
+{
+	return _fixedFPS;
+}
 
 void Scheduler::setTimeScale(float value)
 {
@@ -61,6 +73,12 @@ void Scheduler::schedule(Object* object)
 	_updateMap[object] = _updateList.insert(_updateList.end(), MakeRef(object));
 }
 
+void Scheduler::scheduleFixed(Object* object)
+{
+	schedule(object);
+	_fixedUpdate.insert(object);
+}
+
 void Scheduler::schedule(const function<bool (double)>& handler)
 {
 	FuncWrapper* func = FuncWrapper::create(handler);
@@ -75,6 +93,7 @@ void Scheduler::unschedule(Object* object)
 		// O(1) remove operation
 		_updateList.erase(it->second);
 		_updateMap.erase(it);
+		_fixedUpdate.erase(object);
 	}
 }
 
@@ -108,8 +127,27 @@ void Scheduler::unschedule(Action* action)
 
 bool Scheduler::update(double deltaTime)
 {
-	// not save _it and _deltaTime on the stack memory
+	// not save _deltaTime on the stack memory
 	_deltaTime = deltaTime * _timeScale;
+	_leftTime += deltaTime;
+
+	double fixedDelta = 1.0 / _fixedFPS;
+	while (_leftTime > fixedDelta)
+	{
+		list<Object*> stopedItems;
+		for (Object* item : _fixedUpdate)
+		{
+			if (item->fixedUpdate(fixedDelta * _timeScale))
+			{
+				stopedItems.push_back(item);
+			}
+		}
+		for (Object* item : stopedItems)
+		{
+			_fixedUpdate.erase(item);
+		}
+		_leftTime -= fixedDelta;
+	}
 
 	/* update actions */
 	int i = 0, count = s_cast<int>(_actionList->getCount());
@@ -158,8 +196,7 @@ bool Scheduler::update(double deltaTime)
 	{
 		if (item->update(_deltaTime))
 		{
-			FuncWrapper* func = DoraAs<FuncWrapper>(item.get());
-			if (func)
+			if (FuncWrapper* func = DoraAs<FuncWrapper>(item.get()))
 			{
 				_updateList.erase(func->it);
 			}

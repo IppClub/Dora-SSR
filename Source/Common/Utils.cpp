@@ -36,10 +36,10 @@ namespace Math
 	}
 }
 
-Flag::Flag(Uint32 flags):_flags(flags)
+Flag::Flag(IntType flags):_flags(flags)
 { }
 
-void Flag::set(Uint32 type, bool value)
+void Flag::set(IntType type, bool value)
 {
 	if (value)
 	{
@@ -51,7 +51,7 @@ void Flag::set(Uint32 type, bool value)
 	}
 }
 
-void Flag::toggle(Uint32 type)
+void Flag::toggle(IntType type)
 {
 	set(type, !isOn(type));
 }

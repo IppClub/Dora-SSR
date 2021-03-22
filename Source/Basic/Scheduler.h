@@ -18,10 +18,13 @@ class Scheduler : public Object
 {
 	typedef list<Ref<Object>> UpdateList;
 	typedef unordered_map<Object*, UpdateList::iterator> UpdateMap;
+	typedef unordered_set<Object*> FixedUpdateSet;
 public:
 	PROPERTY(float, TimeScale);
+	PROPERTY(int, FixedFPS);
 	PROPERTY_READONLY(double, DeltaTime);
 	void schedule(Object* object);
+	void scheduleFixed(Object* object);
 	void schedule(const function<bool (double)>& handler);
 	void schedule(Action* action);
 	void unschedule(Object* object);
@@ -31,10 +34,13 @@ public:
 protected:
 	Scheduler();
 private:
+	int _fixedFPS;
 	float _timeScale;
 	double _deltaTime;
+	double _leftTime;
 	UpdateList _updateList;
 	UpdateMap _updateMap;
+	FixedUpdateSet _fixedUpdate;
 	Ref<Array> _actionList;
 private:
 	static vector<Ref<Object>> _updateItems;

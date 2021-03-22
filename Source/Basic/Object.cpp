@@ -148,6 +148,12 @@ bool Object::update(double deltaTime)
 	return true;
 }
 
+bool Object::fixedUpdate(double deltaTime)
+{
+	DORA_UNUSED_PARAM(deltaTime);
+	return true;
+}
+
 bool Object::equals(Object* other) const
 {
 	return this == other;

@@ -66,6 +66,7 @@ public:
 	PROPERTY_READONLY_HAS(Children);
 	PROPERTY_READONLY_BOOL(Running);
 	PROPERTY_READONLY_BOOL(Updating);
+	PROPERTY_READONLY_BOOL(FixedUpdating);
 	PROPERTY_READONLY_BOOL(Scheduled);
 	PROPERTY_BOOL(TouchEnabled);
 	PROPERTY_BOOL(SwallowTouches);
@@ -109,10 +110,12 @@ public:
 	void convertToWindowSpace(const Vec2& nodePoint, const function<void(const Vec2&)>& callback);
 
 	void scheduleUpdate();
+	void scheduleUpdateFixed();
 	void unscheduleUpdate();
 
 	virtual void visit();
 	virtual void render();
+	virtual bool fixedUpdate(double deltaTime) override;
 	virtual bool update(double deltaTime) override;
 
 	const AffineTransform& getLocalTransform();
@@ -292,7 +295,8 @@ protected:
 		KeyboardEnabled = 1 << 15,
 		TraverseEnabled = 1 << 16,
 		RenderGrouped = 1 << 17,
-		UserFlag = 1 << 18
+		FixedUpdating = 1 << 18,
+		UserFlag = 1 << 19
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

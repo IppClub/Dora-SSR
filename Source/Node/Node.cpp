@@ -363,7 +363,11 @@ void Node::setScheduler(Scheduler* var)
 	{
 		_scheduler->unschedule(this);
 		_scheduler = var;
-		_scheduler->schedule(this);
+		if (isFixedUpdating())
+		{
+			_scheduler->scheduleFixed(this);
+		}
+		else _scheduler->schedule(this);
 	}
 	else
 	{
@@ -443,7 +447,11 @@ void Node::onEnter()
 	_flags.setOn(Node::Running);
 	if (isUpdating() || isScheduled())
 	{
-		_scheduler->schedule(this);
+		if (isFixedUpdating())
+		{
+			_scheduler->scheduleFixed(this);
+		}
+		else _scheduler->schedule(this);
 	}
 	resumeActionInList(_action);
 	markDirty();
@@ -744,6 +752,11 @@ bool Node::isUpdating() const
 	return _flags.isOn(Node::Updating);
 }
 
+bool Node::isFixedUpdating() const
+{
+	return _flags.isOn(Node::FixedUpdating);
+}
+
 void Node::scheduleUpdate()
 {
 	if (_flags.isOff(Node::Updating))
@@ -756,16 +769,36 @@ void Node::scheduleUpdate()
 	}
 }
 
+void Node::scheduleUpdateFixed()
+{
+	if (_flags.isOff(Node::Updating))
+	{
+		_flags.setOn(Node::Updating);
+		_flags.setOn(Node::FixedUpdating);
+		if (_flags.isOff(Node::Scheduling) && _flags.isOn(Node::Running))
+		{
+			_scheduler->scheduleFixed(this);
+		}
+	}
+}
+
 void Node::unscheduleUpdate()
 {
 	if (_flags.isOn(Node::Updating))
 	{
 		_flags.setOff(Node::Updating);
+		_flags.setOff(Node::FixedUpdating);
 		if (_flags.isOff(Node::Scheduling))
 		{
 			_scheduler->unschedule(this);
 		}
 	}
+}
+
+bool Node::fixedUpdate(double deltaTime)
+{
+	DORA_UNUSED_PARAM(deltaTime);
+	return !isFixedUpdating();
 }
 
 bool Node::update(double deltaTime)

@@ -135,8 +135,7 @@ Scheduler* Director::getPostSystemScheduler() const
 
 double Director::getDeltaTime() const
 {
-	// only accept frames drop to min FPS
-	return std::min(SharedApplication.getDeltaTime(), 1.0/SharedApplication.getMinFPS());
+	return SharedApplication.getDeltaTime();
 }
 
 void Director::pushCamera(Camera* var)

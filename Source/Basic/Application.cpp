@@ -69,7 +69,6 @@ _winHeight(_visualHeight),
 _bufferWidth(0),
 _bufferHeight(0),
 _maxFPS(60),
-_minFPS(30),
 _deltaTime(0),
 _cpuTime(0),
 _totalTime(0),
@@ -133,16 +132,6 @@ void Application::setMaxFPS(Uint32 var)
 Uint32 Application::getMaxFPS() const
 {
 	return _maxFPS;
-}
-
-void Application::setMinFPS(Uint32 var)
-{
-	_minFPS = var;
-}
-
-Uint32 Application::getMinFPS() const
-{
-	return _minFPS;
 }
 
 void Application::setFPSLimited(bool var)
@@ -307,7 +296,6 @@ void Application::updateDeltaTime()
 		_deltaTime = 1.0/_maxFPS;
 		_lastTime = currentTime;
 	}
-	_deltaTime = std::min(1.0/_minFPS, _deltaTime);
 }
 
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS

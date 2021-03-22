@@ -27,6 +27,7 @@ public:
 	virtual ~PhysicsWorld();
 	PROPERTY_READONLY_REF(pd::World, PrWorld);
 	PROPERTY_BOOL(ShowDebug);
+	PROPERTY_BOOL(UpdateFixed);
 	/**
 	 Iterations affect PlayRho`s CPU cost greatly.
 	 Lower these values to get better performance, higher values to get better simulation.
@@ -35,6 +36,8 @@ public:
 	void setIterations(int velocityIter, int positionIter);
 
 	virtual bool init() override;
+	void doUpdate(double deltaTime);
+	virtual bool fixedUpdate(double deltaTime) override;
 	virtual bool update(double deltaTime) override;
 	virtual void render() override;
 
@@ -119,6 +122,10 @@ private:
 	vector<Body*> _bodyData;
 	vector<Sensor*> _fixtureData;
 	vector<Joint*> _jointData;
+	enum
+	{
+		UseFixedUpdate = Node::UserFlag,
+	};
 	DORA_TYPE_OVERRIDE(PhysicsWorld);
 };
 
