@@ -662,6 +662,7 @@ Status RepeatNode::tick(Blackboard* board)
 		case Status::Running:
 			return Status::Running;
 	}
+	return Status::Failure;
 }
 
 RepeatNode::RepeatNode(Leaf* node):
@@ -708,6 +709,7 @@ Status RetryNode::tick(Blackboard* board)
 		case Status::Running:
 			return Status::Running;
 	}
+	return Status::Failure;
 }
 
 RetryNode::RetryNode(Leaf* node):

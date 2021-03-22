@@ -53,6 +53,14 @@
 //---- Pack colors to BGRA8 instead of RGBA8 (to avoid converting from one to another)
 //#define IMGUI_USE_BGRA_PACKED_COLOR
 
+//---- Define constructor to convert your string type to ImStrv (which is a non-owning begin/end pair)
+// This will be inlined as part of ImStrv class declaration.
+//#include <string>
+//#include <string_view>
+//#define IM_STR_CLASS_EXTRA    ImStrv(const std::string& s)      { Begin = s.c_str(); End = Begin + s.length(); }
+//#define IM_STR_CLASS_EXTRA    ImStrv(const std::string_view& s) { Begin = s.data(); End = Begin + s.length(); }
+//#define IM_STR_CLASS_EXTRA    ImStrv(const MyString& s)         { Begin = s.Data; End = s.end(); }
+
 //---- Use 32-bit for ImWchar (default is 16-bit) to support unicode planes 1-16. (e.g. point beyond 0xFFFF like emoticons, dingbats, symbols, shapes, ancient languages, etc...)
 #define IMGUI_USE_WCHAR32
 

@@ -179,7 +179,7 @@ namespace ImGui
 	void PopID();
 	ImGuiID GetID(CString str_id);
 
-	void Bullet();
+	void Bullet @ BulletItem();
 	bool Button(CString label, Vec2 size = Vec2::zero);
 	bool SmallButton(CString label);
 	bool InvisibleButton(CString str_id, Vec2 size);
@@ -198,9 +198,8 @@ namespace ImGui
 	void TreePush(CString str_id = nullptr);
 	void TreePop();
 	float GetTreeNodeToLabelSpacing();
-	bool ListBoxHeader(CString label, Vec2 size = Vec2::zero);
-	bool ListBoxHeader(CString label, int items_count, int height_in_items = -1);
-	void ListBoxFooter();
+	bool BeginListBox(CString label, Vec2 size = Vec2::zero);
+	void EndListBox();
 
 	void Value(CString prefix, bool b);
 	void Value(CString prefix, int v);

@@ -422,20 +422,14 @@ int Application::mainLogic(Application* app)
 		return 1;
 	}
 
-	// pass one frame
-	SharedView.pushName("Main"_slice, []() {});
-	app->_frame = bgfx::frame();
-
+	app->_frame = 0;
 	app->makeTimeNow();
 	app->_startTime = app->_lastTime;
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
-	Timer::create()->start(0, [app]()
+	app->invokeInRender([app]()
 	{
-		app->invokeInRender([app]()
-		{
-			SDL_ShowWindow(app->_sdlWindow);
-		});
+		SDL_ShowWindow(app->_sdlWindow);
 	});
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	SharedPoolManager.pop();

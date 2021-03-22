@@ -177,7 +177,7 @@ public:
 				else if (data->EventKey == ImGuiKey_DownArrow)
 				{
 					if (_historyPos != -1)
-					if (++_historyPos >= _history.size())
+					if (++_historyPos >= s_cast<int>(_history.size()))
 					{
 						_historyPos = -1;
 					}
@@ -306,14 +306,17 @@ public:
 			_buf.fill('\0');
 			_history.push_back(codes);
 			LogPrint(codes + '\n');
-			codes.insert(0, "_ENV = Dorothy!\nglobal *\n"_slice);
+			codes.insert(0,
+				"rawset builtin, 'REPL', {k, v for k, v in pairs builtin} unless builtin.REPL\n"
+				"_ENV = builtin.REPL\n"
+				"global *\n"_slice);
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
 			pushYue(L, "loadstring"_slice);
 			lua_pushlstring(L, codes.c_str(), codes.size());
 			lua_pushliteral(L, "=(repl)");
-			pushOptions(L, -2);
+			pushOptions(L, -3);
 			BLOCK_START
 			if (lua_pcall(L, 3, 2, 0) != 0)
 			{
