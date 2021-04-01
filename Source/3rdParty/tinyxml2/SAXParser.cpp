@@ -119,7 +119,7 @@ bool SAXParser::parseXml(const string& xmlData)
 
 bool SAXParser::parse(const string& filename)
 {
-	auto data = SharedContent.loadFile(filename);
+	auto data = SharedContent.load(filename);
     return parseXml(Slice(r_cast<char*>(data.first.get()), data.second));
 }
 

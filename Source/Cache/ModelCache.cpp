@@ -59,7 +59,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					{
 						Slice file(attrs[++i]);
 						string localFile = Path::concat({_path, file});
-						_item->_clip = SharedContent.isExist(localFile) ? localFile : file.toString();
+						_item->_clip = SharedContent.exist(localFile) ? localFile : file.toString();
 						break;
 					}
 					case Xml::Model::Dorothy::FaceRight:

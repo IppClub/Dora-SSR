@@ -66,7 +66,8 @@ public:
 	_fullScreen(false),
 	_scrollToBottom(false),
 	_commands({
-		"print"
+		"print",
+		"import"
 	})
 	{
 		_buf.fill('\0');
@@ -455,7 +456,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	fontSize *= scale;
 
 	Sint64 size;
-	Uint8* fileData = SharedContent.loadFileUnsafe(ttfFontFile, size);
+	Uint8* fileData = SharedContent.loadUnsafe(ttfFontFile, size);
 
 	if (!fileData)
 	{
@@ -562,7 +563,7 @@ void ImGuiDora::showStats()
 	gpuTime += std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
 	deltaTime += SharedApplication.getDeltaTime();
 	frames++;
-	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getMaxFPS();
+	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getTargetFPS();
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "CPU time:");
 	ImGui::SameLine();
 	if (lastCpuTime == 0) ImGui::Text("-");
@@ -574,7 +575,7 @@ void ImGuiDora::showStats()
 	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Delta time:");
 	ImGui::SameLine();
 	ImGui::Text("%.1f ms", lastDeltaTime);
-	if (frames == SharedApplication.getMaxFPS())
+	if (frames == SharedApplication.getTargetFPS())
 	{
 		lastCpuTime = 1000.0 * cpuTime / frames;
 		lastGpuTime = 1000.0 * gpuTime / frames;

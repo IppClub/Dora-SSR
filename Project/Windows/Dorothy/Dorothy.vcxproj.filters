@@ -130,6 +130,9 @@
     <Filter Include="3rdParty\yuescript">
       <UniqueIdentifier>{e891c088-58db-4a80-9bf4-cc982aca15a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\sqlite">
+      <UniqueIdentifier>{2f1a6233-e93e-41f8-84a4-3e9542183c01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -869,6 +872,30 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_tables.cpp">
       <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Backup.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Column.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Database.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Exception.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Savepoint.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Statement.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Transaction.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Database.cpp">
+      <Filter>Basic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1916,6 +1943,45 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\SVGCache.h">
       <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Assertion.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Backup.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Column.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Database.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Exception.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\ExecuteMany.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Savepoint.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\SQLiteCpp.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Statement.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Transaction.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Utils.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\VariadicBind.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Database.h">
+      <Filter>Basic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

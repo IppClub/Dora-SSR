@@ -62,7 +62,7 @@ void nvg::Reset()
 
 int nvg::CreateImage(int w, int h, int imageFlags, String filename)
 {
-	auto data = SharedContent.loadFile(filename);
+	auto data = SharedContent.load(filename);
 	bx::DefaultAllocator allocator;
 	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.first.get(), s_cast<uint32_t>(data.second), bimg::TextureFormat::RGBA8);
 	int result = nvgCreateImageRGBA(Context(), w, h, imageFlags, r_cast<Uint8*>(imageContainer->m_data));
@@ -76,16 +76,16 @@ int nvg::CreateFont(String name)
 	BLOCK_START
 	{
 		fontFile = "Font/" + name.toString() + ".ttf";
-		BREAK_IF(SharedContent.isExist(fontFile));
+		BREAK_IF(SharedContent.exist(fontFile));
 		fontFile = "Font/" + name.toString() + ".otf";
-		BREAK_IF(SharedContent.isExist(fontFile));
+		BREAK_IF(SharedContent.exist(fontFile));
 		fontFile = name.toString();
-		BREAK_IF(SharedContent.isExist(fontFile));
+		BREAK_IF(SharedContent.exist(fontFile));
 		fontFile.clear();
 	}
 	BLOCK_END
 	if (fontFile.empty()) return -1;
-	auto data = SharedContent.loadFile(fontFile);
+	auto data = SharedContent.load(fontFile);
 	Uint8* fontData = r_cast<Uint8*>(malloc(data.second));
 	bx::memCopy(fontData, data.first.get(), data.second);
 	return nvgCreateFontMem(Context(), name.toString().c_str(), fontData, s_cast<int>(data.second), 1);

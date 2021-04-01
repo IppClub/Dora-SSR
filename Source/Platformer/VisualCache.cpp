@@ -69,7 +69,7 @@ bool VisualCache::load(String filename)
 	{
 		VisualCache::unload();
 	}
-	auto data = SharedContent.loadFile(filename);
+	auto data = SharedContent.load(filename);
 	if (!data.first)
 	{
 		return false;

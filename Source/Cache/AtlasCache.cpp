@@ -80,7 +80,7 @@ void AtlasCache::loadAsync(String filename, const function<void(Atlas*)>& handle
 	}
 	auto dir = Path::getPath(fullPath);
 	auto file = filename.toString();
-	SharedContent.loadFileAsync(fullPath, [file, dir, handler, this](String data)
+	SharedContent.loadAsync(fullPath, [file, dir, handler, this](String data)
 	{
 		if (data.empty())
 		{

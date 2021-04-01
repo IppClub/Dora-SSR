@@ -239,6 +239,24 @@
 		3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */; };
 		3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */; };
 		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
+		3CAA2D1526155DB3004443A6 /* Backup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0826155DB3004443A6 /* Backup.cpp */; };
+		3CAA2D1626155DB3004443A6 /* Column.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0B26155DB3004443A6 /* Column.cpp */; };
+		3CAA2D1726155DB3004443A6 /* Transaction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0C26155DB3004443A6 /* Transaction.cpp */; };
+		3CAA2D1826155DB3004443A6 /* Database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0E26155DB3004443A6 /* Database.cpp */; };
+		3CAA2D1926155DB3004443A6 /* Exception.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D1026155DB3004443A6 /* Exception.cpp */; };
+		3CAA2D1A26155DB3004443A6 /* Statement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D1126155DB3004443A6 /* Statement.cpp */; };
+		3CAA2D1B26155DB3004443A6 /* Savepoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D1426155DB3004443A6 /* Savepoint.cpp */; };
+		3CAA2D1F26155E1F004443A6 /* libsqlite3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CAA2D1E26155E1F004443A6 /* libsqlite3.a */; };
+		3CAA2D2126155E32004443A6 /* libsqlite3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CAA2D2026155E32004443A6 /* libsqlite3.a */; };
+		3CAA2D2626155F2C004443A6 /* Database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D2526155F2C004443A6 /* Database.cpp */; };
+		3CAA2D312615603A004443A6 /* Database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0E26155DB3004443A6 /* Database.cpp */; };
+		3CAA2D342615605A004443A6 /* Backup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0826155DB3004443A6 /* Backup.cpp */; };
+		3CAA2D352615605A004443A6 /* Column.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0B26155DB3004443A6 /* Column.cpp */; };
+		3CAA2D362615605A004443A6 /* Exception.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D1026155DB3004443A6 /* Exception.cpp */; };
+		3CAA2D372615605A004443A6 /* Savepoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D1426155DB3004443A6 /* Savepoint.cpp */; };
+		3CAA2D382615605A004443A6 /* Statement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D1126155DB3004443A6 /* Statement.cpp */; };
+		3CAA2D392615605A004443A6 /* Transaction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0C26155DB3004443A6 /* Transaction.cpp */; };
+		3CAA2D3C26156099004443A6 /* Database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D2526155F2C004443A6 /* Database.cpp */; };
 		3CABB25A21199C0000737278 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CABB25821199C0000737278 /* PhysicsWorld.cpp */; };
 		3CB2116325C63C3A00CEA033 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */; };
 		3CB410291E05B0C500A8804D /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410261E05B0C500A8804D /* Slice.cpp */; };
@@ -1110,6 +1128,29 @@
 		3CA1B7F21EC16ED300BC58FF /* SAXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SAXParser.h; path = ../../../Source/3rdParty/tinyxml2/SAXParser.h; sourceTree = "<group>"; };
 		3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml2.cpp; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.cpp; sourceTree = "<group>"; };
 		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
+		3CAA2D0226155DB2004443A6 /* Statement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Statement.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Statement.h; sourceTree = "<group>"; };
+		3CAA2D0326155DB2004443A6 /* SQLiteCpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SQLiteCpp.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/SQLiteCpp.h; sourceTree = "<group>"; };
+		3CAA2D0426155DB3004443A6 /* Backup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Backup.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Backup.h; sourceTree = "<group>"; };
+		3CAA2D0526155DB3004443A6 /* VariadicBind.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VariadicBind.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/VariadicBind.h; sourceTree = "<group>"; };
+		3CAA2D0626155DB3004443A6 /* Assertion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Assertion.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Assertion.h; sourceTree = "<group>"; };
+		3CAA2D0726155DB3004443A6 /* ExecuteMany.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ExecuteMany.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/ExecuteMany.h; sourceTree = "<group>"; };
+		3CAA2D0826155DB3004443A6 /* Backup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Backup.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Backup.cpp; sourceTree = "<group>"; };
+		3CAA2D0926155DB3004443A6 /* Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Exception.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Exception.h; sourceTree = "<group>"; };
+		3CAA2D0A26155DB3004443A6 /* Database.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Database.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Database.h; sourceTree = "<group>"; };
+		3CAA2D0B26155DB3004443A6 /* Column.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Column.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Column.cpp; sourceTree = "<group>"; };
+		3CAA2D0C26155DB3004443A6 /* Transaction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Transaction.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Transaction.cpp; sourceTree = "<group>"; };
+		3CAA2D0D26155DB3004443A6 /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Utils.h; sourceTree = "<group>"; };
+		3CAA2D0E26155DB3004443A6 /* Database.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Database.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Database.cpp; sourceTree = "<group>"; };
+		3CAA2D0F26155DB3004443A6 /* Column.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Column.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Column.h; sourceTree = "<group>"; };
+		3CAA2D1026155DB3004443A6 /* Exception.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Exception.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Exception.cpp; sourceTree = "<group>"; };
+		3CAA2D1126155DB3004443A6 /* Statement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Statement.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Statement.cpp; sourceTree = "<group>"; };
+		3CAA2D1226155DB3004443A6 /* Transaction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Transaction.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Transaction.h; sourceTree = "<group>"; };
+		3CAA2D1326155DB3004443A6 /* Savepoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Savepoint.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Savepoint.h; sourceTree = "<group>"; };
+		3CAA2D1426155DB3004443A6 /* Savepoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Savepoint.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Savepoint.cpp; sourceTree = "<group>"; };
+		3CAA2D1E26155E1F004443A6 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = "../../Source/3rdParty/sqlite/Lib/iOS-Simulator/libsqlite3.a"; sourceTree = "<group>"; };
+		3CAA2D2026155E32004443A6 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = ../../Source/3rdParty/sqlite/Lib/iOS/libsqlite3.a; sourceTree = "<group>"; };
+		3CAA2D2426155F2C004443A6 /* Database.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Database.h; path = ../../../Source/Basic/Database.h; sourceTree = "<group>"; };
+		3CAA2D2526155F2C004443A6 /* Database.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Database.cpp; path = ../../../Source/Basic/Database.cpp; sourceTree = "<group>"; };
 		3CABB25821199C0000737278 /* PhysicsWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PhysicsWorld.cpp; path = ../../../Source/Physics/PhysicsWorld.cpp; sourceTree = "<group>"; };
 		3CABB25921199C0000737278 /* PhysicsWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicsWorld.h; path = ../../../Source/Physics/PhysicsWorld.h; sourceTree = "<group>"; };
 		3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = ../../../Source/3rdParty/imgui/imgui_tables.cpp; sourceTree = "<group>"; };
@@ -1210,6 +1251,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CAA2D1F26155E1F004443A6 /* libsqlite3.a in Frameworks */,
 				3CBE0F2726087FE8003F4F45 /* liblua.a in Frameworks */,
 				3CBE0F2526087FDA003F4F45 /* libsoloud.a in Frameworks */,
 				3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */,
@@ -1237,6 +1279,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CAA2D2126155E32004443A6 /* libsqlite3.a in Frameworks */,
 				3CD093A52499B9DB000551BB /* liblua.a in Frameworks */,
 				3CE7D3791EADF642008EADB3 /* libbimg_decode.a in Frameworks */,
 				3CE7D37A1EADF642008EADB3 /* libbimg.a in Frameworks */,
@@ -1647,6 +1690,8 @@
 				3C883AFF21E338F300BFD758 /* Content.cpp */,
 				3C883B0621E338F300BFD758 /* Content.h */,
 				3C883B0121E338F300BFD758 /* Content.mm */,
+				3CAA2D2526155F2C004443A6 /* Database.cpp */,
+				3CAA2D2426155F2C004443A6 /* Database.h */,
 				3C883B0D21E338F400BFD758 /* Director.cpp */,
 				3C883B0321E338F300BFD758 /* Director.h */,
 				3C883AFD21E338F200BFD758 /* Object.cpp */,
@@ -1953,6 +1998,8 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CAA2D1E26155E1F004443A6 /* libsqlite3.a */,
+				3CAA2D2026155E32004443A6 /* libsqlite3.a */,
 				3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */,
 				3CBE0F2626087FE8003F4F45 /* liblua.a */,
 				3CBE0F2426087FDA003F4F45 /* libsoloud.a */,
@@ -1996,6 +2043,32 @@
 			name = tinyxml2;
 			sourceTree = "<group>";
 		};
+		3CAA2D0126155D8D004443A6 /* sqlite */ = {
+			isa = PBXGroup;
+			children = (
+				3CAA2D0626155DB3004443A6 /* Assertion.h */,
+				3CAA2D0826155DB3004443A6 /* Backup.cpp */,
+				3CAA2D0426155DB3004443A6 /* Backup.h */,
+				3CAA2D0B26155DB3004443A6 /* Column.cpp */,
+				3CAA2D0F26155DB3004443A6 /* Column.h */,
+				3CAA2D0E26155DB3004443A6 /* Database.cpp */,
+				3CAA2D0A26155DB3004443A6 /* Database.h */,
+				3CAA2D1026155DB3004443A6 /* Exception.cpp */,
+				3CAA2D0926155DB3004443A6 /* Exception.h */,
+				3CAA2D0726155DB3004443A6 /* ExecuteMany.h */,
+				3CAA2D1426155DB3004443A6 /* Savepoint.cpp */,
+				3CAA2D1326155DB3004443A6 /* Savepoint.h */,
+				3CAA2D0326155DB2004443A6 /* SQLiteCpp.h */,
+				3CAA2D1126155DB3004443A6 /* Statement.cpp */,
+				3CAA2D0226155DB2004443A6 /* Statement.h */,
+				3CAA2D0C26155DB3004443A6 /* Transaction.cpp */,
+				3CAA2D1226155DB3004443A6 /* Transaction.h */,
+				3CAA2D0D26155DB3004443A6 /* Utils.h */,
+				3CAA2D0526155DB3004443A6 /* VariadicBind.h */,
+			);
+			name = sqlite;
+			sourceTree = "<group>";
+		};
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
@@ -2003,6 +2076,7 @@
 				3C20F2D5248F76CC00BBA830 /* spine */,
 				3CF89B58243334F900A195C7 /* ghc */,
 				3CE9509920F33D97002FFC18 /* stb */,
+				3CAA2D0126155D8D004443A6 /* sqlite */,
 				3CA1B7F01EC16EBD00BC58FF /* tinyxml2 */,
 				3C88056C1E5ED12600B52D4B /* font */,
 				3C88055F1E5ED0F900B52D4B /* fmt */,
@@ -2444,6 +2518,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CAA2D3C26156099004443A6 /* Database.cpp in Sources */,
+				3CAA2D342615605A004443A6 /* Backup.cpp in Sources */,
+				3CAA2D352615605A004443A6 /* Column.cpp in Sources */,
+				3CAA2D362615605A004443A6 /* Exception.cpp in Sources */,
+				3CAA2D372615605A004443A6 /* Savepoint.cpp in Sources */,
+				3CAA2D382615605A004443A6 /* Statement.cpp in Sources */,
+				3CAA2D392615605A004443A6 /* Transaction.cpp in Sources */,
+				3CAA2D312615603A004443A6 /* Database.cpp in Sources */,
 				3CBE0DF826087F7B003F4F45 /* PathAttachment.cpp in Sources */,
 				3CBE0DF926087F7B003F4F45 /* Sprite.cpp in Sources */,
 				3CBE0DFA26087F7B003F4F45 /* FrictionJointConf.cpp in Sources */,
@@ -2763,6 +2845,8 @@
 				3C9278BC2578998900B8C43F /* TargetJointConf.cpp in Sources */,
 				3C9278C12578998900B8C43F /* JointConf.cpp in Sources */,
 				3C9278C52578998900B8C43F /* WheelJointConf.cpp in Sources */,
+				3CAA2D2626155F2C004443A6 /* Database.cpp in Sources */,
+				3CAA2D1726155DB3004443A6 /* Transaction.cpp in Sources */,
 				3C20F390248F772900BBA830 /* TranslateTimeline.cpp in Sources */,
 				3CF00E39258B475A00898F4B /* SVGCache.cpp in Sources */,
 				3C131FFB21011BB60087154A /* Bullet.cpp in Sources */,
@@ -2834,6 +2918,7 @@
 				3C20F38E248F772900BBA830 /* MathUtil.cpp in Sources */,
 				3C20F3B2248F772900BBA830 /* MeshAttachment.cpp in Sources */,
 				3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */,
+				3CAA2D1626155DB3004443A6 /* Column.cpp in Sources */,
 				3C9278F82578999B00B8C43F /* WorldImplFixture.cpp in Sources */,
 				3C883B1821E338F500BFD758 /* Application.cpp in Sources */,
 				3C20F3D0248F772A00BBA830 /* PointAttachment.cpp in Sources */,
@@ -2843,6 +2928,7 @@
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
 				3C20F3DE248F772A00BBA830 /* TwoColorTimeline.cpp in Sources */,
 				3C92798E257899EC00B8C43F /* Manifold.cpp in Sources */,
+				3CAA2D1826155DB3004443A6 /* Database.cpp in Sources */,
 				3C927991257899EC00B8C43F /* Simplex.cpp in Sources */,
 				3CD328461E4C42FF0036906C /* ImGuiDora.cpp in Sources */,
 				3C4BC6671E17F1B500292200 /* tolua_map.cpp in Sources */,
@@ -2882,15 +2968,18 @@
 				3C20F3D8248F772A00BBA830 /* Skin.cpp in Sources */,
 				3C15682920E4B7D7004F8785 /* format.cpp in Sources */,
 				3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */,
+				3CAA2D1526155DB3004443A6 /* Backup.cpp in Sources */,
 				3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */,
 				3C9279092578999B00B8C43F /* WorldJoint.cpp in Sources */,
 				3C030CD124CAC2BA0074786E /* DrawNode.cpp in Sources */,
 				3C030CCD24CAC2BA0074786E /* Spine.cpp in Sources */,
 				3C131FFE21011BB60087154A /* Define.cpp in Sources */,
 				3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */,
+				3CAA2D1A26155DB3004443A6 /* Statement.cpp in Sources */,
 				3C030CC824CAC2B90074786E /* Label.cpp in Sources */,
 				3C92794F257899B800B8C43F /* CodeDumper.cpp in Sources */,
 				3C9278FF2578999B00B8C43F /* WorldContact.cpp in Sources */,
+				3CAA2D1B26155DB3004443A6 /* Savepoint.cpp in Sources */,
 				3C927990257899EC00B8C43F /* DistanceProxy.cpp in Sources */,
 				3C20F3A8248F772900BBA830 /* LinkedMesh.cpp in Sources */,
 				3C030CCC24CAC2BA0074786E /* ClipNode.cpp in Sources */,
@@ -2923,6 +3012,7 @@
 				3C20F378248F772900BBA830 /* DrawOrderTimeline.cpp in Sources */,
 				3CABB25A21199C0000737278 /* PhysicsWorld.cpp in Sources */,
 				3C92798A257899EC00B8C43F /* SeparationScenario.cpp in Sources */,
+				3CAA2D1926155DB3004443A6 /* Exception.cpp in Sources */,
 				3C883B1621E338F500BFD758 /* AutoreleasePool.cpp in Sources */,
 				3C9278B82578998900B8C43F /* LimitState.cpp in Sources */,
 				3C9278FC2578999B00B8C43F /* WorldFixture.cpp in Sources */,
@@ -2979,7 +3069,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -3014,7 +3104,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
@@ -3159,7 +3249,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -3194,7 +3284,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;

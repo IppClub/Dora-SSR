@@ -113,7 +113,7 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime)
 		_lastStream = nullptr;
 	}
 	stopStream(crossFadeTime);
-	SharedContent.loadFileAsyncUnsafe(filename, [this, crossFadeTime, loop](Uint8* data, Sint64 size)
+	SharedContent.loadAsyncUnsafe(filename, [this, crossFadeTime, loop](Uint8* data, Sint64 size)
 	{
 		if (_currentStream)
 		{

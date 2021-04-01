@@ -13,6 +13,8 @@ include_directories(
 	src/main/cpp/3rdParty/lodepng
 	src/main/cpp/3rdParty/imgui
 	src/main/cpp/3rdParty/font
+	src/main/cpp/3rdParty/sqlite
+	src/main/cpp/3rdParty/sqlite/Header
 )
 
 add_library( SDL2-lib SHARED IMPORTED )
@@ -57,6 +59,13 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/soloud/Lib/Android/${ANDROID_ABI}/libsoloud.a
 )
 
+add_library( sqlite3-lib SHARED IMPORTED )
+set_target_properties(
+	sqlite3-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/sqlite/Lib/Android/${ANDROID_ABI}/libsqlite3.so
+)
+
 add_library( main SHARED ${src-files} )
 
-target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib lua-lib soloud-lib )
+target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib lua-lib soloud-lib sqlite3-lib )
+

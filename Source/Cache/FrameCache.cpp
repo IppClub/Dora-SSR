@@ -80,7 +80,7 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					{
 						Slice file(attrs[++i]);
 						string localFile = Path::concat({_path, file});
-						_item->clipStr = SharedContent.isExist(localFile) ? localFile : file.toString();
+						_item->clipStr = SharedContent.exist(localFile) ? localFile : file.toString();
 						break;
 					}
 					case Xml::Frame::Dorothy::Duration:

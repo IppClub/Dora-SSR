@@ -20,7 +20,7 @@ void ML::buildDecisionTreeAsync(String data, int maxDepth,
 	SharedAsyncThread.run([dataStr, maxDepth]()
 	{
 		auto result = GaGa::DecisionTree::BuildTest(std::move(*dataStr), maxDepth);
-		return Values::create(std::move(result));
+		return Values::alloc(std::move(result));
 	}, [handleTree](Own<Values> values)
 	{
 		std::pair<std::list<GaGa::DecisionTree::Node>, double> result;

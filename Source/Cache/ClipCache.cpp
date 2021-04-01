@@ -112,7 +112,7 @@ Sprite* ClipCache::loadSprite(String clipStr)
 bool ClipCache::isFileExist(String clipStr) const
 {
 	auto tokens = clipStr.split("|");
-	return SharedContent.isExist(tokens.front());
+	return SharedContent.exist(tokens.front());
 }
 
 bool ClipCache::isClip(String clipStr) const

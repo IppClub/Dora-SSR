@@ -229,7 +229,7 @@ bool ParticleNode::init()
 				textureRect = rect;
 			}
 		}
-		else if (SharedContent.isExist(_particleDef->textureName) &&
+		else if (SharedContent.exist(_particleDef->textureName) &&
 				!SharedContent.isFolder(_particleDef->textureName))
 		{
 			_texture = SharedTextureCache.load(_particleDef->textureName);

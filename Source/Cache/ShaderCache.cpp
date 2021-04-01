@@ -99,7 +99,7 @@ Shader* ShaderCache::load(String filename)
 	{
 		return it->second;
 	}
-	const bgfx::Memory* mem = SharedContent.loadFileBX(shaderFile);
+	const bgfx::Memory* mem = SharedContent.loadBX(shaderFile);
 	bgfx::ShaderHandle handle = bgfx::createShader(mem);
 	AssertUnless(bgfx::isValid(handle), "failed to load shader \"{}\".", shaderFile);
 	Shader* shader = Shader::create(handle);
@@ -110,7 +110,7 @@ Shader* ShaderCache::load(String filename)
 void ShaderCache::loadAsync(String filename, const function<void(Shader*)>& handler)
 {
 	string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
-	SharedContent.loadFileAsyncBX(shaderFile, [this, shaderFile, handler](const bgfx::Memory* mem)
+	SharedContent.loadAsyncBX(shaderFile, [this, shaderFile, handler](const bgfx::Memory* mem)
 	{
 		bgfx::ShaderHandle handle = bgfx::createShader(mem);
 		if (bgfx::isValid(handle))
