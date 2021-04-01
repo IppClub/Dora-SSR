@@ -64,6 +64,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "Entity/Entity.h"
 #include "Cache/SVGCache.h"
+#include "Basic/Database.h"
 
 #include "Platformer/Define.h"
 #include "Platformer/AINode.h"

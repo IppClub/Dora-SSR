@@ -67,7 +67,7 @@ static int dora_loadfile(lua_State* L, String filename)
 	if (extension.empty() && targetFile.back() != '.')
 	{
 		string fullPath = SharedContent.getFullPath(targetFile + ".lua");
-		if (SharedContent.isExist(fullPath))
+		if (SharedContent.exist(fullPath))
 		{
 			targetFile = fullPath;
 			extension = "lua";
@@ -75,7 +75,7 @@ static int dora_loadfile(lua_State* L, String filename)
 		else
 		{
 			fullPath = SharedContent.getFullPath(targetFile + ".xml");
-			if (SharedContent.isExist(fullPath))
+			if (SharedContent.exist(fullPath))
 			{
 				targetFile = fullPath;
 				extension = "xml";
@@ -111,7 +111,7 @@ static int dora_loadfile(lua_State* L, String filename)
 		}
 		default:
 		{
-			auto data = SharedContent.loadFile(targetFile);
+			auto data = SharedContent.load(targetFile);
 			buffer = std::move(data.first);
 			codeBuffer = r_cast<char*>(buffer.get());
 			codeBufferSize = data.second;
@@ -221,15 +221,15 @@ static int dora_file_exist(lua_State* L)
 {
 	size_t size = 0;
 	auto str = luaL_checklstring(L, 1, &size);
-	lua_pushboolean(L, SharedContent.isExist({ str, size }) ? 1 : 0);
+	lua_pushboolean(L, SharedContent.exist({ str, size }) ? 1 : 0);
 	return 1;
 }
 
 static int dora_read_file(lua_State* L)
 {
 	size_t size = 0;
-	auto str = luaL_checklstring(L, 1, &size);
-	auto data = SharedContent.loadFile({ str, size });
+	auto fileStr = luaL_checklstring(L, 1, &size);
+	auto data = SharedContent.load({ fileStr, size });
 	lua_pushlstring(L, r_cast<char*>(data.first.get()), data.second);
 	return 1;
 }
@@ -312,7 +312,7 @@ static int dora_yuecompile(lua_State* L)
 		string dest = tolua_toslice(L, 2, 0);
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
 		LuaFunction<void> callback(tolua_ref_function(L, 4));
-		SharedContent.loadFileAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
+		SharedContent.loadAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
 		{
 			if (!codes)
 			{
@@ -332,7 +332,7 @@ static int dora_yuecompile(lua_State* L)
 					size_t size = std::get<3>(*input);
 					const auto& codes = std::get<2>(*input);
 					auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
-					return Values::create(std::move(result));
+					return Values::alloc(std::move(result));
 				}, [input, handler, callback](Own<Values> values)
 				{
 					yue::CompileInfo result;
@@ -371,7 +371,7 @@ static int dora_yuecompile(lua_State* L)
 					SharedLuaEngine.executeReturn(ret, handler->get(), 3);
 					lua_settop(L, top);
 					if (!ret.empty()) {
-						SharedContent.saveToFileAsync(std::get<1>(*input), ret, callback);
+						SharedContent.saveAsync(std::get<1>(*input), ret, callback);
 					}
 				});
 			}
@@ -493,6 +493,15 @@ LuaEngine::LuaEngine()
 
 		tolua_beginmodule(L, "Label");
 			tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);
+		tolua_endmodule(L);
+
+		tolua_beginmodule(L, "DB");
+			tolua_function(L, "query", DB_query);
+			tolua_function(L, "insert", DB_insert);
+			tolua_function(L, "exec", DB_exec);
+			tolua_function(L, "queryAsync", DB_queryAsync);
+			tolua_function(L, "insertAsync", DB_insertAsync);
+			tolua_function(L, "execAsync", DB_execAsync);
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "Platformer");

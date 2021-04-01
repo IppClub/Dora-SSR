@@ -201,6 +201,15 @@ void Data_setRelation(Data* self, Uint8 groupA, Uint8 groupB, String relation);
 Slice Data_getRelation(Data* self, Uint8 groupA, Uint8 groupB);
 Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB);
 
+/* DB */
+inline DB* DB_shared() { return &SharedDB; }
+int DB_query(lua_State* L);
+int DB_insert(lua_State* L);
+int DB_exec(lua_State* L);
+int DB_queryAsync(lua_State* L);
+int DB_insertAsync(lua_State* L);
+int DB_execAsync(lua_State* L);
+
 NS_DOROTHY_PLATFORMER_END
 
 using namespace Dorothy;

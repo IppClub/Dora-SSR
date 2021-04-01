@@ -158,7 +158,7 @@ Texture2D* TextureCache::load(String filename)
 	{
 		return it->second;
 	}
-	auto data = SharedContent.loadFile(filename);
+	auto data = SharedContent.load(filename);
 	return update(filename, data.first.get(), data.second);
 }
 
@@ -172,7 +172,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 		return;
 	}
 	string file(filename);
-	SharedContent.loadFileAsyncUnsafe(fullPath, [this, file, handler](Uint8* data, Sint64 size)
+	SharedContent.loadAsyncUnsafe(fullPath, [this, file, handler](Uint8* data, Sint64 size)
 	{
 		if (!data)
 		{
@@ -184,7 +184,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 		{
 			bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
 			delete [] data;
-			return Values::create(imageContainer);
+			return Values::alloc(imageContainer);
 		}, [this, file, handler](Own<Values> result)
 		{
 			bimg::ImageContainer* imageContainer;

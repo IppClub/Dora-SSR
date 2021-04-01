@@ -475,14 +475,14 @@ void Director::displayStats()
 	gpuTime += std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
 	deltaTime += SharedApplication.getDeltaTime();
 	frames++;
-	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getMaxFPS();
+	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getTargetFPS();
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mCPU time: \x1b[15;m%.1f ms", lastCpuTime);
 	if (lastGpuTime > 0.0)
 	{
 		bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mGPU time: \x1b[15;m%.1f ms", lastGpuTime);
 	}
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mDelta time: \x1b[15;m%.1f ms", lastDeltaTime);
-	if (frames == SharedApplication.getMaxFPS())
+	if (frames == SharedApplication.getTargetFPS())
 	{
 		lastCpuTime = 1000.0 * cpuTime / frames;
 		lastGpuTime = 1000.0 * gpuTime / frames;

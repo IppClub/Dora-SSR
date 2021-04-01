@@ -55,7 +55,7 @@ public:
 		}
 		else
 		{
-			auto data = SharedContent.loadFile(file);
+			auto data = SharedContent.load(file);
 			if (data.first)
 			{
 				auto parser = prepareParser(file);
@@ -87,7 +87,7 @@ public:
 		else
 		{
 			string file(filename);
-			SharedContent.loadFileAsyncUnsafe(file, [this, file, handler](Uint8* data, Sint64 size)
+			SharedContent.loadAsyncUnsafe(file, [this, file, handler](Uint8* data, Sint64 size)
 			{
 				if (data)
 				{
@@ -105,7 +105,7 @@ public:
 						{
 							Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
 						}
-						return Values::create(result);
+						return Values::alloc(result);
 					}, [this, handler, file](Own<Values> values)
 					{
 						T* item;

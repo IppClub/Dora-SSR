@@ -162,11 +162,11 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 			BLOCK_START
 			{
 				fontFile = "Font/" + fontName.toString() + ".ttf";
-				BREAK_IF(SharedContent.isExist(fontFile));
+				BREAK_IF(SharedContent.exist(fontFile));
 				fontFile = "Font/" + fontName.toString() + ".otf";
-				BREAK_IF(SharedContent.isExist(fontFile));
+				BREAK_IF(SharedContent.exist(fontFile));
 				fontFile = fontName.toString();
-				BREAK_IF(SharedContent.isExist(fontFile));
+				BREAK_IF(SharedContent.exist(fontFile));
 			}
 			BLOCK_END
 			if (fontFile.empty())
@@ -174,7 +174,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 				Warn("can not load font file named \"{}\".", fontName);
 				return nullptr;
 			}
-			auto data = SharedContent.loadFile(fontFile);
+			auto data = SharedContent.load(fontFile);
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<Uint32>(data.second));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontName] = file;
@@ -210,11 +210,11 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(F
 			BLOCK_START
 			{
 				fontFile = "Font/" + fontName.toString() + ".ttf";
-				BREAK_IF(SharedContent.isExist(fontFile));
+				BREAK_IF(SharedContent.exist(fontFile));
 				fontFile = "Font/" + fontName.toString() + ".otf";
-				BREAK_IF(SharedContent.isExist(fontFile));
+				BREAK_IF(SharedContent.exist(fontFile));
 				fontFile = fontName.toString();
-				BREAK_IF(SharedContent.isExist(fontFile));
+				BREAK_IF(SharedContent.exist(fontFile));
 			}
 			BLOCK_END
 			if (fontFile.empty())
@@ -222,7 +222,7 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(F
 				Warn("can not load font file named \"{}\".", fontName);
 				callback(nullptr);
 			}
-			SharedContent.loadFileAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](Uint8* data, Sint64 size)
+			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](Uint8* data, Sint64 size)
 			{
 				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(size));
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);

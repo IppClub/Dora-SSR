@@ -52,7 +52,9 @@ _world{}
 {
 	_stepConf.regVelocityIterations = 1;
 	_stepConf.regPositionIterations = 1;
+#if TARGET_OS_SIMULATOR
 	_flags.setOn(PhysicsWorld::UseFixedUpdate);
+#endif // TARGET_OS_SIMULATOR
 }
 
 PhysicsWorld::~PhysicsWorld()

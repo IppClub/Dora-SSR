@@ -41,7 +41,7 @@ NS_DOROTHY_BEGIN
 Content::~Content()
 { }
 
-std::pair<OwnArray<Uint8>,size_t> Content::loadFile(String filename)
+std::pair<OwnArray<Uint8>,size_t> Content::load(String filename)
 {
 	SharedAsyncThread.FileIO.pause();
 	Sint64 size = 0;
@@ -50,7 +50,7 @@ std::pair<OwnArray<Uint8>,size_t> Content::loadFile(String filename)
 	return {OwnArray<Uint8>(data), s_cast<size_t>(size)};
 }
 
-const bgfx::Memory* Content::loadFileBX(String filename)
+const bgfx::Memory* Content::loadBX(String filename)
 {
 	SharedAsyncThread.FileIO.pause();
 	Sint64 size = 0;
@@ -59,26 +59,26 @@ const bgfx::Memory* Content::loadFileBX(String filename)
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
 
-void Content::copyFile(String src, String dst)
+void Content::copy(String src, String dst)
 {
 	SharedAsyncThread.FileIO.pause();
-	Content::copyFileUnsafe(src, dst);
+	Content::copyUnsafe(src, dst);
 	SharedAsyncThread.FileIO.resume();
 }
 
-void Content::saveToFile(String filename, String content)
+void Content::save(String filename, String content)
 {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
 	stream.write(content.rawData(), content.size());
 }
 
-void Content::saveToFile(String filename, Uint8* content, Sint64 size)
+void Content::save(String filename, Uint8* content, Sint64 size)
 {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
 	stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size));
 }
 
-bool Content::removeFile(String filename)
+bool Content::remove(String filename)
 {
 	string fullpath = Content::getFullPath(filename);
 	return fs::remove_all(fullpath) > 0;
@@ -263,7 +263,7 @@ const vector<string>& Content::getSearchPaths() const
 	return _searchPaths;
 }
 
-void Content::copyFileUnsafe(String src, String dst)
+void Content::copyUnsafe(String src, String dst)
 {
 	string srcPath = Content::getFullPath(src);
 	// Info("copy file from {}", srcPath);
@@ -283,14 +283,14 @@ void Content::copyFileUnsafe(String src, String dst)
 				}
 			}
 			string srcFolder = (fs::path(srcPath) / folder).string();
-			Content::copyFileUnsafe(srcFolder, dstFolder);
+			Content::copyUnsafe(srcFolder, dstFolder);
 		}
 		auto files = Content::getDirEntries(src, false);
 		for (const string& file : files)
 		{
 			// Info("now copy file {}",file);
 			ofstream stream(fs::path(dstPath) / file, std::ios::out | std::ios::trunc | std::ios::binary);
-			Content::loadFileByChunks((fs::path(srcPath) / file).string(), [&](Uint8* buffer, int size)
+			Content::loadByChunks((fs::path(srcPath) / file).string(), [&](Uint8* buffer, int size)
 			{
 				if (!stream.write(r_cast<char*>(buffer), size))
 				{
@@ -302,7 +302,7 @@ void Content::copyFileUnsafe(String src, String dst)
 	else
 	{
 		ofstream stream(dst, std::ios::out | std::ios::trunc | std::ios::binary);
-		Content::loadFileByChunks(src, [&](Uint8* buffer, int size)
+		Content::loadByChunks(src, [&](Uint8* buffer, int size)
 		{
 			if (!stream.write(r_cast<char*>(buffer), size))
 			{
@@ -312,14 +312,14 @@ void Content::copyFileUnsafe(String src, String dst)
 	}
 }
 
-void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback)
+void Content::loadAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback)
 {
 	string fileStr = filename;
 	SharedAsyncThread.FileIO.run([fileStr, this]()
 	{
 		Sint64 size = 0;
 		Uint8* buffer = this->_loadFileUnsafe(fileStr, size);
-		return Values::create(buffer, size);
+		return Values::alloc(buffer, size);
 	},
 	[callback](Own<Values> result)
 	{
@@ -330,38 +330,38 @@ void Content::loadFileAsyncUnsafe(String filename, const function<void (Uint8*, 
 	});
 }
 
-void Content::loadFileAsync(String filename, const function<void(String)>& callback)
+void Content::loadAsync(String filename, const function<void(String)>& callback)
 {
-	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
 		auto data = MakeOwnArray(buffer);
 		callback(Slice(r_cast<char*>(data.get()), s_cast<size_t>(size)));
 	});
 }
 
-void Content::loadFileAsyncData(String filename, const function<void(OwnArray<Uint8>&&,size_t)>& callback)
+void Content::loadAsyncData(String filename, const function<void(OwnArray<Uint8>&&,size_t)>& callback)
 {
-	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
 		callback(MakeOwnArray(buffer), s_cast<size_t>(size));
 	});
 }
 
 
-void Content::loadFileAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback)
+void Content::loadAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback)
 {
-	Content::loadFileAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
 		callback(bgfx::makeRef(buffer, s_cast<uint32_t>(size), releaseFileData));
 	});
 }
 
-void Content::copyFileAsync(String src, String dst, const function<void()>& callback)
+void Content::copyAsync(String src, String dst, const function<void()>& callback)
 {
 	string srcFile(src), dstFile(dst);
 	SharedAsyncThread.FileIO.run([srcFile,dstFile,this]()
 	{
-		Content::copyFileUnsafe(srcFile, dstFile);
+		Content::copyUnsafe(srcFile, dstFile);
 		return nullptr;
 	},
 	[callback](Own<Values> result)
@@ -371,13 +371,13 @@ void Content::copyFileAsync(String src, String dst, const function<void()>& call
 	});
 }
 
-void Content::saveToFileAsync(String filename, String content, const function<void()>& callback)
+void Content::saveAsync(String filename, String content, const function<void()>& callback)
 {
 	string file(filename);
 	auto data = std::make_shared<string>(content);
 	SharedAsyncThread.FileIO.run([file,data,this]()
 	{
-		Content::saveToFile(file, *data);
+		Content::save(file, *data);
 		return nullptr;
 	},
 	[callback](Own<Values> result)
@@ -387,13 +387,13 @@ void Content::saveToFileAsync(String filename, String content, const function<vo
 	});
 }
 
-void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, size_t size, const function<void()>& callback)
+void Content::saveAsync(String filename, OwnArray<Uint8> content, size_t size, const function<void()>& callback)
 {
 	string file(filename);
 	auto data = std::make_shared<OwnArray<Uint8>>(std::move(content));
 	SharedAsyncThread.FileIO.run([file,data,size,this]()
 	{
-		Content::saveToFile(file, Slice(r_cast<char*>((*data).get()), size));
+		Content::save(file, Slice(r_cast<char*>((*data).get()), size));
 		return nullptr;
 	},
 	[callback](Own<Values> result)
@@ -403,7 +403,7 @@ void Content::saveToFileAsync(String filename, OwnArray<Uint8> content, size_t s
 	});
 }
 
-bool Content::isExist(String filename)
+bool Content::exist(String filename)
 {
 	return Content::isFileExist(Content::getFullPath(filename));
 }
@@ -442,7 +442,7 @@ list<string> Content::getDirEntries(String path, bool isFolder)
 	return files;
 }
 
-Uint8* Content::loadFileUnsafe(String filename, Sint64& size)
+Uint8* Content::loadUnsafe(String filename, Sint64& size)
 {
 	SharedAsyncThread.FileIO.pause();
 	Uint8* data = Content::_loadFileUnsafe(filename, size);
@@ -499,7 +499,7 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 	return data;
 }
 
-void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,int)>& handler)
+void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)>& handler)
 {
 	if (filename.empty())
 	{
@@ -689,7 +689,7 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 	return buffer;
 }
 
-void Content::loadFileByChunks(String filename, const std::function<void(Uint8*,int)>& handler)
+void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)>& handler)
 {
 	if (filename.empty()) return;
 	string fullPath = Content::getFullPath(filename);

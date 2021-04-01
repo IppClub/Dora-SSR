@@ -189,18 +189,18 @@ class Content
 {
 	tolua_readonly tolua_property__common string assetPath;
 	tolua_readonly tolua_property__common string writablePath;
-	void saveToFile @ save(String filename, String content);
-	bool isExist @ exist(String filename);
+	void save(String filename, String content);
+	bool exist(String filename);
 	bool createFolder @ mkdir(String path);
 	bool isFolder @ isdir(String path);
-	bool removeFile @ remove(String path);
+	bool remove(String path);
 	string getFullPath(String filename);
 	tolua_outside void Content_insertSearchPath @ insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
-	void loadFileAsync @ loadAsync(String filename, tolua_function_void handler);
-	void saveToFileAsync @ saveAsync(String filename, String content, tolua_function_void handler);
-	void copyFileAsync @ copyAsync(String src, String dst, tolua_function_void handler);
+	void loadAsync(String filename, tolua_function_void handler);
+	void saveAsync(String filename, String content, tolua_function_void handler);
+	void copyAsync(String src, String dst, tolua_function_void handler);
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
 	tolua_outside void Content_getAllFiles @ getAllFiles(String path);
@@ -1007,6 +1007,13 @@ class SVGDef @ SVG : public Object
 	tolua_readonly tolua_property__common float height;
 	void render();
 	static tolua_outside SVGDef* SVGDef_create @ create(String filename);
+};
+
+class DB
+{
+	bool exist(String tableName);
+	bool transaction(tolua_function_void func);
+	static tolua_outside DB* DB_shared @ create();
 };
 
 namespace Platformer {

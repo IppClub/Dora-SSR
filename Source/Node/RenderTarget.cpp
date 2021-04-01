@@ -238,14 +238,14 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 				error = lodepng_encode(&out, &outSize, data, width, height, &state);
 				lodepng_state_cleanup(&state);
 				delete [] data;
-				return Values::create(out, outSize);
+				return Values::alloc(out, outSize);
 			}, [callback, file](Own<Values> values)
 			{
 				Uint8* out;
 				size_t outSize;
 				values->get(out, outSize);
 				Slice content(r_cast<char*>(out), outSize);
-				SharedContent.saveToFileAsync(file, content, [out, callback]()
+				SharedContent.saveAsync(file, content, [out, callback]()
 				{
 					::free(out);
 					callback();

@@ -8,6 +8,7 @@ local Content = builtin.Content()
 local View = builtin.View()
 local Audio = builtin.Audio()
 local Keyboard = builtin.Keyboard()
+local DB = builtin.DB()
 local AI = builtin.Platformer.Decision.AI()
 local Data = builtin.Platformer.Data()
 
@@ -17,6 +18,7 @@ builtin.Director = Director
 builtin.View = View
 builtin.Audio = Audio
 builtin.Keyboard = Keyboard
+builtin.DB = DB
 builtin.Platformer.Decision.AI = AI
 builtin.Platformer.Data = Data
 
@@ -25,6 +27,7 @@ local create = coroutine.create
 local resume = coroutine.resume
 local table_insert = table.insert
 local table_remove = table.remove
+local table_concat = table.concat
 local type = type
 local unpack = table.unpack
 local xpcall = xpcall
@@ -235,6 +238,42 @@ RenderTarget.saveAsync = function(self,filename)
 		saved = true
 	end)
 	wait(function() return saved end)
+end
+
+local DB_queryAsync = DB.queryAsync
+DB.queryAsync = function(self, ...)
+	local result
+	local args = {...}
+	table_insert(args, 1, function(data)
+		result = data
+	end)
+	DB_queryAsync(self, unpack(args))
+	wait(function() return result end)
+	return result
+end
+
+local DB_insertAsync = DB.insertAsync
+DB.insertAsync = function(self, ...)
+	local result
+	local args = {...}
+	table_insert(args, function(res)
+		result = res
+	end)
+	DB_insertAsync(self, unpack(args))
+	wait(function() return result ~= nil end)
+	return result
+end
+
+local DB_execAsync = DB.execAsync
+DB.execAsync = function(self, ...)
+	local result
+	local args = {...}
+	table_insert(args, function(res)
+		result = res
+	end)
+	DB_execAsync(self, args)
+	wait(function() return result ~= nil end)
+	return result
 end
 
 -- Action
@@ -550,6 +589,43 @@ end
 Blackboard.__newindex = Blackboard.set
 
 -- Helpers
+
+local function dump(what)
+	local seen = { }
+	local _dump
+	_dump = function(what, depth)
+		depth = depth or 0
+		local t = type(what)
+		if "string" == t then
+			return "\"" .. tostring(what) .. "\"\n"
+		elseif "table" == t then
+			if seen[what] then
+				return "recursion(" .. tostring(what) .. ")...\n"
+			end
+			seen[what] = true
+			depth = depth + 1
+			local lines = {}
+			for k, v in pairs(what) do
+				table_insert(lines, ('\t'):rep(depth) .. "[" .. tostring(k) .. "] = " .. _dump(v, depth))
+			end
+			seen[what] = false
+			return "{\n" .. table_concat(lines) .. ('\t'):rep(depth - 1) .. "}\n"
+		else
+			return tostring(what) .. "\n"
+		end
+	end
+	return _dump(what)
+end
+
+local function p(...)
+	local args = {...}
+	for i = 1, #args do
+		args[i] = dump(args[i])
+	end
+	print(table_concat(args))
+end
+_G.p = p
+builtin.p = p
 
 local function disallowAssignGlobal(_,name)
 	error("Disallow creating global variable \""..name.."\".")

@@ -31,7 +31,10 @@ android {
 	}
 	sourceSets {
 		main {
-			jniLibs.srcDirs = ['src/main/cpp/3rdParty/SDL2/Lib/Android', 'src/main/cpp/3rdParty/bgfx/Lib/Android']
+			jniLibs.srcDirs = [
+				'src/main/cpp/3rdParty/SDL2/Lib/Android',
+				'src/main/cpp/3rdParty/sqlite/Lib/Android'
+			]
 		}
 	}
 	packagingOptions {

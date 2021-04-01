@@ -68,7 +68,7 @@ _winWidth(_visualWidth),
 _winHeight(_visualHeight),
 _bufferWidth(0),
 _bufferHeight(0),
-_maxFPS(60),
+_targetFPS(60),
 _deltaTime(0),
 _cpuTime(0),
 _totalTime(0),
@@ -124,14 +124,14 @@ Uint32 Application::getRandMax() const
 	return std::mt19937::max();
 }
 
-void Application::setMaxFPS(Uint32 var)
+void Application::setTargetFPS(Uint32 var)
 {
-	_maxFPS = var;
+	_targetFPS = var;
 }
 
-Uint32 Application::getMaxFPS() const
+Uint32 Application::getTargetFPS() const
 {
-	return _maxFPS;
+	return _targetFPS;
 }
 
 void Application::setFPSLimited(bool var)
@@ -293,7 +293,7 @@ void Application::updateDeltaTime()
 	// in case of system timer api error
 	if (_deltaTime < 0)
 	{
-		_deltaTime = 1.0/_maxFPS;
+		_deltaTime = 1.0 / _targetFPS;
 		_lastTime = currentTime;
 	}
 }
@@ -308,7 +308,7 @@ void Application::updateWindowSize()
 	SDL_GetCurrentDisplayMode(displayIndex, &displayMode);
 	if (!_fpsLimited && displayMode.refresh_rate > 0)
 	{
-		_maxFPS = displayMode.refresh_rate;
+		_targetFPS = displayMode.refresh_rate;
 	}
 #if BX_PLATFORM_WINDOWS
 	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
@@ -502,7 +502,7 @@ int Application::mainLogic(Application* app)
 			{
 				app->updateDeltaTime();
 			}
-			while (app->getDeltaTime() < 1.0/app->_maxFPS);
+			while (app->getDeltaTime() < 1.0 / app->_targetFPS);
 		}
 		else app->updateDeltaTime();
 		app->makeTimeNow();
@@ -523,7 +523,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData)
 	catch (const std::runtime_error& e)
 	{
 		LogError(e.what());
-		abort();
+		std::abort();
 	}
 }
 

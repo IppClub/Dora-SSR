@@ -45,7 +45,7 @@ public:
 	PROPERTY_READONLY_BOOL(RenderRunning);
 	PROPERTY_READONLY_BOOL(LogicRunning);
 	PROPERTY_READONLY_BOOL(Debugging);
-	PROPERTY(Uint32, MaxFPS);
+	PROPERTY(Uint32, TargetFPS);
 	PROPERTY(Uint32, Seed);
 	PROPERTY_BOOL(FPSLimited);
 	SDLEventHandler eventHandler;
@@ -85,7 +85,7 @@ private:
 	int _bufferWidth;
 	int _bufferHeight;
 	Uint32 _seed;
-	Uint32 _maxFPS;
+	Uint32 _targetFPS;
 	uint32_t _frame;
 	const double _frequency;
 	double _startTime;

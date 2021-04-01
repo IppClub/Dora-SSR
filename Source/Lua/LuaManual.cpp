@@ -149,7 +149,7 @@ int Path_create(lua_State* L)
 
 void __Content_loadFile(lua_State* L, Content* self, String filename)
 {
-	auto data = self->loadFile(filename);
+	auto data = self->load(filename);
 	if (data.first) lua_pushlstring(L, r_cast<char*>(data.first.get()), data.second);
 	else lua_pushnil(L);
 }
@@ -2063,6 +2063,382 @@ Slice Data_getRelation(Data* self, Uint8 groupA, Uint8 groupB)
 Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB)
 {
 	return getRelation(self->getRelation(bodyA, bodyB));
+}
+
+/* DB */
+
+static Own<Value> Dora_getDBValue(lua_State* L, int loc)
+{
+	if (!lua_isnil(L, loc))
+	{
+		if (lua_isinteger(L, loc))
+		{
+			return Value::alloc(lua_tointeger(L, loc));
+		}
+		else if (lua_isnumber(L, loc))
+		{
+			return Value::alloc(lua_tonumber(L, loc));
+		}
+		else if (lua_isboolean(L, loc))
+		{
+#ifndef TOLUA_RELEASE
+			if (lua_toboolean(L, loc) != 0)
+			{
+				tolua_error(L, "DB is not accepting value of boolean true.", nullptr);
+			}
+#endif // TOLUA_RELEASE
+			return Value::alloc(false);
+		}
+		else if (lua_isstring(L, loc))
+		{
+			return Value::alloc(tolua_toslice(L, loc, nullptr).toString());
+		}
+#ifndef TOLUA_RELEASE
+		else
+		{
+			tolua_error(L, "Can only store number, string and boolean false as NULL in DB.", nullptr);
+		}
+#endif // TOLUA_RELEASE
+	}
+	return Value::alloc(false);
+}
+
+int DB_query(lua_State* L)
+{
+	/* 1 self, 2 sql, 3 args or noobj */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !(
+				(
+					tolua_isboolean(L, 3, 1, &tolua_err) &&
+					tolua_isnoobj(L, 4, &tolua_err)
+				) || (
+					tolua_istable(L, 3, 0, &tolua_err) &&
+					tolua_isboolean(L, 4, 1, &tolua_err) &&
+					tolua_isnoobj(L, 5, &tolua_err)
+				)
+			)
+		)
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_query'", nullptr);
+#endif
+		auto sql = tolua_toslice(L, 2, nullptr);
+		vector<Own<Value>> args;
+		bool withColumns = false;
+		if (lua_istable(L, 3) != 0)
+		{
+			int size = s_cast<int>(lua_rawlen(L, 3));
+			args.resize(size);
+			for (int i = 0; i < size; i++)
+			{
+				lua_rawgeti(L, 3, i + 1);
+				args[i] = Dora_getDBValue(L, -1);
+				lua_pop(L, 1);
+			}
+			withColumns = tolua_toboolean(L, 4, 0);
+		}
+		else withColumns = tolua_toboolean(L, 3, 0);
+		auto result = self->query(sql, args, withColumns);
+		lua_createtable(L, s_cast<int>(result.size()), 0);
+		int i = 0;
+		for (const auto& row : result)
+		{
+			lua_createtable(L, s_cast<int>(row.size()), 0);
+			int j = 0;
+			for (const auto& col : row)
+			{
+				col->pushToLua(L);
+				lua_rawseti(L, -2, ++j);
+			}
+			lua_rawseti(L, -2, ++i);
+		}
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_query'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int DB_insert(lua_State* L)
+{
+	/* 1 self, 2 tableName, 3 values */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !tolua_istable(L, 3, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 4, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_insert'", nullptr);
+#endif
+		auto tableName = tolua_toslice(L, 2, nullptr);
+		list<vector<Own<Value>>> values;
+		int size = s_cast<int>(lua_rawlen(L, 3));
+		for (int i = 1; i <= size; i++)
+		{
+			lua_rawgeti(L, 3, i);
+#ifndef TOLUA_RELEASE
+			if (lua_istable(L, -1) == 0)
+			{
+				tolua_error(L, "invalid row value in function 'DB_insert'", nullptr);
+			}
+#endif
+			int colSize = s_cast<int>(lua_rawlen(L, -1));
+			auto& row = values.emplace_back(colSize);
+			for (int j = 0; j < colSize; j++)
+			{
+				lua_rawgeti(L, -1, j + 1);
+				row[j] = Dora_getDBValue(L, -1);
+				lua_pop(L, 1);
+			}
+		}
+		self->insert(tableName, values);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_insert'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int DB_exec(lua_State* L)
+{
+	/* 1 self, 2 sql, 3 values or noobj */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !(
+				tolua_isnoobj(L, 3, &tolua_err) ||
+				(
+					tolua_istable(L, 3, 0, &tolua_err) &&
+					tolua_isnoobj(L, 4, &tolua_err)
+				)
+			)
+		)
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_update'", nullptr);
+#endif
+		auto sql = tolua_toslice(L, 2, nullptr);
+		vector<Own<Value>> values;
+		if (lua_istable(L, 3) != 0)
+		{
+			int size = s_cast<int>(lua_rawlen(L, 3));
+			values.resize(size);
+			for (int i = 0; i < size; i++)
+			{
+				lua_rawgeti(L, 3, i + 1);
+				values[i] = Dora_getDBValue(L, -1);
+				lua_pop(L, 1);
+			}
+		}
+		int result = self->exec(sql, values);
+		lua_pushinteger(L, result);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_update'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int DB_queryAsync(lua_State* L)
+{
+	/* 1 self, 2 func, 3 sql, (4 args, 5 col) or (4 col) */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_isfunction(L, 2, &tolua_err)
+		|| !tolua_isslice(L, 3, 0, &tolua_err)
+		|| !(
+				(
+					tolua_isboolean(L, 4, 1, &tolua_err) &&
+					tolua_isnoobj(L, 5, &tolua_err)
+				) || (
+					tolua_istable(L, 4, 0, &tolua_err) &&
+					tolua_isboolean(L, 5, 1, &tolua_err) &&
+					tolua_isnoobj(L, 6, &tolua_err)
+				)
+			)
+		)
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_queryAsync'", nullptr);
+#endif
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 2)));
+		auto sql = tolua_toslice(L, 3, nullptr);
+		vector<Own<Value>> args;
+		bool withColumns = false;
+		if (lua_istable(L, 4) != 0)
+		{
+			int size = s_cast<int>(lua_rawlen(L, 4));
+			args.resize(size);
+			for (int i = 0; i < size; i++)
+			{
+				lua_rawgeti(L, 4, i + 1);
+				args[i] = Dora_getDBValue(L, -1);
+				lua_pop(L, 1);
+			}
+			withColumns = tolua_toboolean(L, 5, 0);
+		}
+		else withColumns = tolua_toboolean(L, 4, 0);
+		self->queryAsync(sql, std::move(args), withColumns, [handler](const list<vector<Own<Value>>>& result)
+		{
+			lua_State* L = SharedLuaEngine.getState();
+			lua_createtable(L, s_cast<int>(result.size()), 0);
+			int i = 0;
+			for (const auto& row : result)
+			{
+				lua_createtable(L, s_cast<int>(row.size()), 0);
+				int j = 0;
+				for (const auto& col : row)
+				{
+					col->pushToLua(L);
+					lua_rawseti(L, -2, ++j);
+				}
+				lua_rawseti(L, -2, ++i);
+			}
+			SharedLuaEngine.executeFunction(handler->get(), 1);
+		});
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_queryAsync'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int DB_insertAsync(lua_State* L)
+{
+	/* 1 self, 2 tableName, 3 values, 4 func */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !tolua_istable(L, 3, 0, &tolua_err)
+		|| !tolua_isfunction(L, 4, &tolua_err)
+		|| !tolua_isnoobj(L, 5, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
+#endif
+		auto tableName = tolua_toslice(L, 2, nullptr);
+		list<vector<Own<Value>>> values;
+		int size = s_cast<int>(lua_rawlen(L, 3));
+		for (int i = 1; i <= size; i++)
+		{
+			lua_rawgeti(L, 3, i);
+#ifndef TOLUA_RELEASE
+			if (lua_istable(L, -1) == 0)
+			{
+				tolua_error(L, "invalid row value in function 'DB_insert'", nullptr);
+			}
+#endif
+			int colSize = s_cast<int>(lua_rawlen(L, -1));
+			auto& row = values.emplace_back(colSize);
+			for (int j = 0; j < colSize; j++)
+			{
+				lua_rawgeti(L, -1, j + 1);
+				row[j] = Dora_getDBValue(L, -1);
+				lua_pop(L, 1);
+			}
+		}
+		LuaFunction<void> callback(tolua_ref_function(L, 4));
+		self->insertAsync(tableName, std::move(values), callback);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_insertAsync'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int DB_execAsync(lua_State* L)
+{
+	/* 1 self, 2 sql, (3 values, 4 func) or (3 func) */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !((
+				tolua_isfunction(L, 3, &tolua_err) &&
+				tolua_isnoobj(L, 4, &tolua_err)
+			) || (
+				tolua_istable(L, 3, 0, &tolua_err) &&
+				tolua_isfunction(L, 4, &tolua_err) &&
+				tolua_isnoobj(L, 5, &tolua_err)
+			))
+		)
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
+#endif
+		auto sql = tolua_toslice(L, 2, nullptr);
+		vector<Own<Value>> values;
+		int funcId = 0;
+		if (lua_istable(L, 3) != 0)
+		{
+			int size = s_cast<int>(lua_rawlen(L, 3));
+			values.resize(size);
+			for (int i = 0; i < size; i++)
+			{
+				lua_rawgeti(L, 3, i + 1);
+				values[i] = Dora_getDBValue(L, -1);
+				lua_pop(L, 1);
+			}
+			funcId = tolua_ref_function(L, 4);
+		}
+		else funcId = tolua_ref_function(L, 3);
+		LuaFunction<void> callback(funcId);
+		self->execAsync(sql, std::move(values), callback);
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_execAsync'.", &tolua_err);
+	return 0;
+#endif
 }
 
 NS_DOROTHY_PLATFORMER_END

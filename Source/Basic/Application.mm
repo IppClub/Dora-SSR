@@ -16,7 +16,7 @@ void Application::updateWindowSize()
 	SDL_GetWindowDisplayMode(_sdlWindow, &displayMode);
 	if (!_fpsLimited && displayMode.refresh_rate > 0)
 	{
-		_maxFPS = displayMode.refresh_rate;
+		_targetFPS = displayMode.refresh_rate;
 	}
 	_visualWidth = _winWidth;
 	_visualHeight = _winHeight;

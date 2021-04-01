@@ -1,0 +1,130 @@
+lua = :debug, :type
+
+export setfenv = setfenv or (fn, env)->
+	local name
+	i = 1
+	while true
+		name = debug.getupvalue fn, i
+		break if not name or name == "_ENV"
+		i += 1
+	if name
+		debug.upvaluejoin fn, i, (-> env), 1
+	fn
+
+export getfenv = getfenv or (fn)->
+	i = 1
+	while true
+		name, val = debug.getupvalue fn, i
+		break unless name
+		return val if name == "_ENV"
+		i += 1
+	nil
+
+export is_object = (value)-> -- is a yuescript object
+	lua.type(value) == "table" and value.__class
+
+export type = (value)-> -- class aware type
+	base_type = lua.type value
+	if base_type == "table"
+		cls = value.__class
+		return cls if cls
+	base_type
+
+export debug =
+	upvalue: (fn, k, v)->
+		upvalues = {}
+		i = 1
+		while true
+			name = lua.debug.getupvalue(fn, i)
+			break if name == nil
+			upvalues[name] = i
+			i += 1
+		if not upvalues[k]
+			error "Failed to find upvalue: #{k}"
+		if not v
+			_, value = lua.debug.getupvalue fn, upvalues[k]
+			value
+		else
+			lua.debug.setupvalue fn, upvalues[k], v
+	index#: lua.debug
+
+-- run a function with scope injected before its function environment
+export run_with_scope = (fn, scope, ...)->
+	old_env = getfenv fn
+	env = index#: (name)=>
+		val = scope[name]
+		if val != nil
+			val
+		else
+			old_env[name]
+	setfenv fn, env
+	fn ...
+
+-- wrap obj such that calls to methods do not need a reference to self
+export bind_methods = (obj)->
+	index#: (name)=>
+		val = obj[name]
+		if val and lua.type(val) == "function"
+			bound = (...)-> val obj, ...
+			@[name] = bound
+			bound
+		else
+			val
+
+-- use a function to provide default values to table
+-- optionally specify a starting table
+-- fibanocci table:
+-- t = defaultbl {[0]: 0, [1]: 1}, (i) -> self[i - 1] + self[i - 2]
+export defaultbl = (t, fn)->
+	if not fn
+		fn = t
+		t = {}
+	t.# = __index: (name)=>
+		val = fn @, name
+		rawset @, name, val
+		val
+
+-- chain together tables by __index metatables
+export extend = (...)->
+	tbls = {...}
+	return if #tbls < 2
+	for i = 1, #tbls - 1
+		a = tbls[i]
+		b = tbls[i + 1]
+		a.# = __index: b
+	tbls[1]
+
+-- shallow copy
+export copy = => {key,val for key,val in pairs @}
+
+-- mixin class properties into self, call new
+export mixin = (cls, ...)=>
+	for key, val in pairs cls.__base
+		@[key] = val if not key\match"^__"
+	cls.__init @, ...
+
+-- mixin methods from an object into self
+export mixin_object = (object, methods)=>
+	for name in *methods
+		@[name] = (parent, ...)->
+			object[name](object, ...)
+
+-- mixin table values into self
+export mixin_table = (tbl, keys)=>
+	if keys
+		for key in *keys
+			@[key] = tbl[key]
+	else
+		for key, val in pairs tbl
+			@[key] = val
+
+export fold = (items, fn)->
+	len = #items
+	if len > 1
+		accum = fn items[1], items[2]
+		for i = 3, len
+			accum = fn accum, items[i]
+		accum
+	else
+		items[1]
+

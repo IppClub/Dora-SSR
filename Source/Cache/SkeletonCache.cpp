@@ -52,7 +52,7 @@ std::pair<string, string> SkeletonCache::getFileFromStr(String spineStr)
 	}
 	auto str = spineStr.toString();
 	string skelFile = str + ".skel"_slice;
-	if (!SharedContent.isExist(str + ".skel"_slice))
+	if (!SharedContent.exist(str + ".skel"_slice))
 	{
 		skelFile = str + ".json"_slice;
 	}
@@ -132,7 +132,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 			return;
 		}
 		Ref<Atlas> at(atlas);
-		SharedContent.loadFileAsyncData(file, [file, handler, at, this](OwnArray<Uint8>&& data, size_t size)
+		SharedContent.loadAsyncData(file, [file, handler, at, this](OwnArray<Uint8>&& data, size_t size)
 		{
 			if (!data)
 			{
@@ -166,7 +166,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 						Warn("can not load skeleton format of \"{}\" from \"{}\"", ext, file);
 						break;
 				}
-				return Values::create(skelData);
+				return Values::alloc(skelData);
 			}, [file, handler, at, this](Own<Values> result)
 			{
 				spine::SkeletonData* skelData = nullptr;
