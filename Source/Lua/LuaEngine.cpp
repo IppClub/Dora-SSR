@@ -496,6 +496,7 @@ LuaEngine::LuaEngine()
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "DB");
+			tolua_function(L, "transaction", DB_transaction);
 			tolua_function(L, "query", DB_query);
 			tolua_function(L, "insert", DB_insert);
 			tolua_function(L, "exec", DB_exec);
@@ -927,7 +928,7 @@ bool LuaEngine::execute(lua_State* L, int handler, int numArgs)
 		Slice name = tolua_typename(L, -1);
 		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name);
 		lua_pop(L, 2 + numArgs);
-		return 1;
+		return true;
 	}
 	if (numArgs > 0) lua_insert(L, -(numArgs + 1)); // func args...
 	return LuaEngine::execute(L, numArgs);

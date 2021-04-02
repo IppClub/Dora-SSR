@@ -1,0 +1,33 @@
+_ENV = Dorothy!
+
+result = DB\transaction
+	* "DROP TABLE IF EXISTS test"
+	* "CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)"
+	*
+		* "INSERT INTO test VALUES(?, ?)"
+		*
+			* {false, "hello"} -- false is treated like NULL
+			* {false, "world"}
+			* {false, "ok"}
+
+print result and "Success" or "Failure"
+
+print DB\exist "test"
+
+p DB\query "SELECT * FROM test", true
+
+print "row changed:", DB\exec "DELETE FROM test WHERE id > 1"
+
+print "row changed:", DB\exec "UPDATE test SET value = ? WHERE id = 1", {"hello world!"}
+
+thread ->
+	print "insert async"
+	data = [{false, k} for k in pairs _G]
+	p DB\insertAsync "test", data -- insert values in another thread with transaction
+
+	print "query async..."
+	items = DB\queryAsync "SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC"
+	p [item[1] for item in *items]
+
+print "OK"
+

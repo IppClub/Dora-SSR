@@ -203,6 +203,7 @@ Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB);
 
 /* DB */
 inline DB* DB_shared() { return &SharedDB; }
+int DB_transaction(lua_State* L);
 int DB_query(lua_State* L);
 int DB_insert(lua_State* L);
 int DB_exec(lua_State* L);
