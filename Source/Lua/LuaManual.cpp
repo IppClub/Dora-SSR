@@ -2103,6 +2103,103 @@ static Own<Value> Dora_getDBValue(lua_State* L, int loc)
 	return Value::alloc(false);
 }
 
+int DB_transaction(lua_State* L)
+{
+	/* 1 self, 2 table */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_istable(L, 2, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_transaction'", nullptr);
+#endif
+		list<std::pair<string, list<vector<Own<Value>>>>> sqls;
+		int itemCount = s_cast<int>(lua_rawlen(L, 2));
+		for (int i = 0; i < itemCount; i++)
+		{
+			lua_rawgeti(L, 2, i + 1);
+#ifndef TOLUA_RELEASE
+			if (!tolua_isstring(L, -1, 0, &tolua_err)
+				&& !tolua_istable(L, -1, 0, &tolua_err)) {
+				goto tolua_lerror;
+			}
+#endif
+			auto& sql = sqls.emplace_back();
+			if (lua_istable(L, -1) != 0)
+			{
+				const int strLoc = -1;
+				const int tableLoc = -2;
+				lua_rawgeti(L, -1, 2);
+				lua_rawgeti(L, -2, 1);
+#ifndef TOLUA_RELEASE
+				if (!tolua_isstring(L, strLoc, 0, &tolua_err)
+					|| !tolua_istable(L, tableLoc, 0, &tolua_err)) {
+					goto tolua_lerror;
+				}
+#endif
+				sql.first = tolua_toslice(L, strLoc, 0);
+				int argListSize = s_cast<int>(lua_rawlen(L, tableLoc));
+				for (int j = 0; j < argListSize; j++)
+				{
+					lua_rawgeti(L, tableLoc, j + 1);
+#ifndef TOLUA_RELEASE
+					if (!tolua_istable(L, -1, 0, &tolua_err)) {
+						goto tolua_lerror;
+					}
+#endif
+					auto& args = sql.second.emplace_back();
+					int argSize = s_cast<int>(lua_rawlen(L, -1));
+					args.resize(argSize);
+					for (int k = 0; k < argSize; k++)
+					{
+						lua_rawgeti(L, -1, k + 1);
+						args[k] = Dora_getDBValue(L, -1);
+						lua_pop(L, 1);
+					}
+					lua_pop(L, 1);
+				}
+				lua_pop(L, 2);
+			}
+			else
+			{
+				sql.first = tolua_toslice(L, -1, 0);
+			}
+			lua_pop(L, 1);
+		}
+		bool result = self->transaction([&]()
+		{
+			for (const auto& sql : sqls)
+			{
+				if (sql.second.empty())
+				{
+					self->exec(sql.first);
+				}
+				else
+				{
+					for (const auto& arg : sql.second)
+					{
+						self->exec(sql.first, arg);
+					}
+				}
+			}
+		});
+		lua_pushboolean(L, result ? 1 : 0);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_transaction'.", &tolua_err);
+	return 0;
+#endif
+}
+
 int DB_query(lua_State* L)
 {
 	/* 1 self, 2 sql, 3 args or noobj */
@@ -2190,9 +2287,9 @@ int DB_insert(lua_State* L)
 		auto tableName = tolua_toslice(L, 2, nullptr);
 		list<vector<Own<Value>>> values;
 		int size = s_cast<int>(lua_rawlen(L, 3));
-		for (int i = 1; i <= size; i++)
+		for (int i = 0; i < size; i++)
 		{
-			lua_rawgeti(L, 3, i);
+			lua_rawgeti(L, 3, i + 1);
 #ifndef TOLUA_RELEASE
 			if (lua_istable(L, -1) == 0)
 			{
@@ -2207,6 +2304,7 @@ int DB_insert(lua_State* L)
 				row[j] = Dora_getDBValue(L, -1);
 				lua_pop(L, 1);
 			}
+			lua_pop(L, 1);
 		}
 		self->insert(tableName, values);
 		return 0;
@@ -2314,6 +2412,8 @@ int DB_queryAsync(lua_State* L)
 		self->queryAsync(sql, std::move(args), withColumns, [handler](const list<vector<Own<Value>>>& result)
 		{
 			lua_State* L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
 			lua_createtable(L, s_cast<int>(result.size()), 0);
 			int i = 0;
 			for (const auto& row : result)
@@ -2360,9 +2460,9 @@ int DB_insertAsync(lua_State* L)
 		auto tableName = tolua_toslice(L, 2, nullptr);
 		list<vector<Own<Value>>> values;
 		int size = s_cast<int>(lua_rawlen(L, 3));
-		for (int i = 1; i <= size; i++)
+		for (int i = 0; i < size; i++)
 		{
-			lua_rawgeti(L, 3, i);
+			lua_rawgeti(L, 3, i + 1);
 #ifndef TOLUA_RELEASE
 			if (lua_istable(L, -1) == 0)
 			{
@@ -2377,6 +2477,7 @@ int DB_insertAsync(lua_State* L)
 				row[j] = Dora_getDBValue(L, -1);
 				lua_pop(L, 1);
 			}
+			lua_pop(L, 1);
 		}
 		LuaFunction<void> callback(tolua_ref_function(L, 4));
 		self->insertAsync(tableName, std::move(values), callback);

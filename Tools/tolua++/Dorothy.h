@@ -1012,7 +1012,6 @@ class SVGDef @ SVG : public Object
 class DB
 {
 	bool exist(String tableName);
-	bool transaction(tolua_function_void func);
 	static tolua_outside DB* DB_shared @ create();
 };
 
