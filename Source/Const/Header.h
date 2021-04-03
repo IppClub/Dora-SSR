@@ -24,6 +24,8 @@ using std::queue;
 using std::unordered_set;
 #include <list>
 using std::list;
+#include <deque>
+using std::deque;
 #include <memory>
 #include <tuple>
 using std::tuple;

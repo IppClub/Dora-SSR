@@ -22,12 +22,12 @@ public:
 	virtual ~DB();
 	bool exist(String tableName) const;
 	bool transaction(const function<void()>& func);
-	list<vector<Own<Value>>> query(String sql, const vector<Own<Value>>& args, bool withColumns = false);
-	void insert(String tableName, const list<vector<Own<Value>>>& values);
+	deque<vector<Own<Value>>> query(String sql, const vector<Own<Value>>& args, bool withColumns = false);
+	void insert(String tableName, const vector<vector<Own<Value>>>& values);
 	int exec(String sql);
 	int exec(String sql, const vector<Own<Value>>& values);
-	void queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, const function<void(const list<vector<Own<Value>>>& result)>& callback);
-	void insertAsync(String tableName, list<vector<Own<Value>>>&& values, const function<void(bool)>& callback);
+	void queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, const function<void(const deque<vector<Own<Value>>>& result)>& callback);
+	void insertAsync(String tableName, vector<vector<Own<Value>>>&& values, const function<void(bool)>& callback);
 	void execAsync(String sql, vector<Own<Value>>&& values, const function<void(int)>& callback);
 protected:
 	DB();

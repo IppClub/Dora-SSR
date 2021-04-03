@@ -2120,8 +2120,9 @@ int DB_transaction(lua_State* L)
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_transaction'", nullptr);
 #endif
-		list<std::pair<string, list<vector<Own<Value>>>>> sqls;
+		vector<std::pair<string, vector<vector<Own<Value>>>>> sqls;
 		int itemCount = s_cast<int>(lua_rawlen(L, 2));
+		sqls.resize(itemCount);
 		for (int i = 0; i < itemCount; i++)
 		{
 			lua_rawgeti(L, 2, i + 1);
@@ -2131,7 +2132,7 @@ int DB_transaction(lua_State* L)
 				goto tolua_lerror;
 			}
 #endif
-			auto& sql = sqls.emplace_back();
+			auto& sql = sqls[i];
 			if (lua_istable(L, -1) != 0)
 			{
 				const int strLoc = -1;
@@ -2146,6 +2147,7 @@ int DB_transaction(lua_State* L)
 #endif
 				sql.first = tolua_toslice(L, strLoc, 0);
 				int argListSize = s_cast<int>(lua_rawlen(L, tableLoc));
+				sql.second.resize(argListSize);
 				for (int j = 0; j < argListSize; j++)
 				{
 					lua_rawgeti(L, tableLoc, j + 1);
@@ -2154,7 +2156,7 @@ int DB_transaction(lua_State* L)
 						goto tolua_lerror;
 					}
 #endif
-					auto& args = sql.second.emplace_back();
+					auto& args = sql.second[j];
 					int argSize = s_cast<int>(lua_rawlen(L, -1));
 					args.resize(argSize);
 					for (int k = 0; k < argSize; k++)
@@ -2285,8 +2287,9 @@ int DB_insert(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_insert'", nullptr);
 #endif
 		auto tableName = tolua_toslice(L, 2, nullptr);
-		list<vector<Own<Value>>> values;
+		vector<vector<Own<Value>>> values;
 		int size = s_cast<int>(lua_rawlen(L, 3));
+		values.resize(size);
 		for (int i = 0; i < size; i++)
 		{
 			lua_rawgeti(L, 3, i + 1);
@@ -2297,7 +2300,8 @@ int DB_insert(lua_State* L)
 			}
 #endif
 			int colSize = s_cast<int>(lua_rawlen(L, -1));
-			auto& row = values.emplace_back(colSize);
+			auto& row = values[i];
+			row.resize(colSize);
 			for (int j = 0; j < colSize; j++)
 			{
 				lua_rawgeti(L, -1, j + 1);
@@ -2409,7 +2413,7 @@ int DB_queryAsync(lua_State* L)
 			withColumns = tolua_toboolean(L, 5, 0);
 		}
 		else withColumns = tolua_toboolean(L, 4, 0);
-		self->queryAsync(sql, std::move(args), withColumns, [handler](const list<vector<Own<Value>>>& result)
+		self->queryAsync(sql, std::move(args), withColumns, [handler](const deque<vector<Own<Value>>>& result)
 		{
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
@@ -2458,8 +2462,9 @@ int DB_insertAsync(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
 #endif
 		auto tableName = tolua_toslice(L, 2, nullptr);
-		list<vector<Own<Value>>> values;
+		vector<vector<Own<Value>>> values;
 		int size = s_cast<int>(lua_rawlen(L, 3));
+		values.resize(size);
 		for (int i = 0; i < size; i++)
 		{
 			lua_rawgeti(L, 3, i + 1);
@@ -2470,7 +2475,8 @@ int DB_insertAsync(lua_State* L)
 			}
 #endif
 			int colSize = s_cast<int>(lua_rawlen(L, -1));
-			auto& row = values.emplace_back(colSize);
+			auto& row = values[i];
+			row.resize(colSize);
 			for (int j = 0; j < colSize; j++)
 			{
 				lua_rawgeti(L, -1, j + 1);

@@ -122,9 +122,9 @@ static void bindValues(SQLite::Statement& query, const vector<Own<Value>>& args)
 	}
 }
 
-list<vector<Own<Value>>> DB::query(String sql, const vector<Own<Value>>& args, bool withColumns)
+deque<vector<Own<Value>>> DB::query(String sql, const vector<Own<Value>>& args, bool withColumns)
 {
-	list<vector<Own<Value>>> result;
+	deque<vector<Own<Value>>> result;
 	SQLite::Statement query(*_database, sql);
 	bindValues(query, args);
 	bool columnCollected = false;
@@ -165,7 +165,7 @@ list<vector<Own<Value>>> DB::query(String sql, const vector<Own<Value>>& args, b
 	return result;
 }
 
-void DB::insert(String tableName, const list<vector<Own<Value>>>& values)
+void DB::insert(String tableName, const vector<vector<Own<Value>>>& values)
 {
 	if (values.empty() || values.front().empty()) return;
 	string valueHolder;
@@ -196,7 +196,7 @@ int DB::exec(String sql, const vector<Own<Value>>& values)
 	return query.exec();
 }
 
-void DB::queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, const function<void(const list<vector<Own<Value>>>&)>& callback)
+void DB::queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, const function<void(const deque<vector<Own<Value>>>&)>& callback)
 {
 	string sqlStr(sql);
 	auto argsPtr = std::make_shared<vector<Own<Value>>>(std::move(args));
@@ -210,20 +210,20 @@ void DB::queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, con
 		catch (std::exception& e)
 		{
 			Error("fail to execute SQL transaction: {}", e.what());
-			return Values::alloc(list<vector<Own<Value>>>());
+			return Values::alloc(deque<vector<Own<Value>>>());
 		}
 	}, [callback](Own<Values> values)
 	{
-		list<vector<Own<Value>>> result;
+		deque<vector<Own<Value>>> result;
 		values->get(result);
 		callback(result);
 	});
 }
 
-void DB::insertAsync(String tableName, list<vector<Own<Value>>>&& values, const function<void(bool)>& callback)
+void DB::insertAsync(String tableName, vector<vector<Own<Value>>>&& values, const function<void(bool)>& callback)
 {
 	string tableStr(tableName);
-	auto valuesPtr = std::make_shared<list<vector<Own<Value>>>>(std::move(values));
+	auto valuesPtr = std::make_shared<vector<vector<Own<Value>>>>(std::move(values));
 	SharedAsyncThread.run([tableStr, valuesPtr]()
 	{
 		bool result = SharedDB.transaction([&]()
