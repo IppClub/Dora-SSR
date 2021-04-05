@@ -29,16 +29,16 @@ public:
 	void update(String name, Shader* shader);
 	/** @brief fragment or vertex shader */
 	Shader* load(String filename);
-	void loadAsync(String filename, const function<void(Shader*)>& handler);
-    bool unload(Shader* shader);
-    bool unload(String filename);
-    bool unload();
-    void removeUnused();
+	void loadAsync(String filename, const std::function<void(Shader*)>& handler);
+	bool unload(Shader* shader);
+	bool unload(String filename);
+	bool unload();
+	void removeUnused();
 protected:
 	ShaderCache();
-	string getShaderPath() const;
+	std::string getShaderPath() const;
 private:
-	unordered_map<string, Ref<Shader>> _shaders;
+	std::unordered_map<std::string, Ref<Shader>> _shaders;
 	SINGLETON_REF(ShaderCache, BGFXDora);
 };
 

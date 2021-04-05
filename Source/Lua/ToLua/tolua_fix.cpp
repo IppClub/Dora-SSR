@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 static int g_ref_id = 0;
-static stack<int> g_available_ref_ids;
+static std::stack<int> g_available_ref_ids;
 
 int tolua_get_max_callback_ref_count()
 {

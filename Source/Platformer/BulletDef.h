@@ -25,10 +25,10 @@ public:
 	void setHighSpeedFix(bool var);
 	bool isHighSpeedFix() const;
 	PROPERTY(Face*, Face);
-	string tag;
+	std::string tag;
 	float lifeTime;
 	float damageRadius;
-	string endEffect;
+	std::string endEffect;
 	void setAsCircle(float radius);
 	BodyDef* getBodyDef() const;
 	CREATE_FUNC(BulletDef);

@@ -33,7 +33,7 @@ public:
 	bool has(String name) const;
 	void remove(String name);
 	static Entity* create();
-	static bool each(const function<bool(Entity*)>& func);
+	static bool each(const std::function<bool(Entity*)>& func);
 	static void clear();
 	Value* getComponent(String name) const;
 	Value* getOldCom(String name) const;
@@ -62,8 +62,8 @@ protected:
 	void updateComponent(int index, Own<Value>&& com, bool add);
 private:
 	int _index;
-	vector<Own<Value>> _components;
-	vector<Own<Value>> _oldComs;
+	std::vector<Own<Value>> _components;
+	std::vector<Own<Value>> _oldComs;
 	DORA_TYPE_OVERRIDE(Entity);
 };
 
@@ -80,10 +80,10 @@ class EntityGroup : public Object
 {
 public:
 	PROPERTY_READONLY(int, Count);
-	EntityGroup(const vector<string>& components);
+	EntityGroup(const std::vector<std::string>& components);
 	virtual ~EntityGroup();
 	virtual bool init() override;
-	static EntityGroup* create(const vector<string>& components);
+	static EntityGroup* create(const std::vector<std::string>& components);
 	static EntityGroup* create(Slice components[], int count);
 public:
 	template<typename Func>
@@ -93,18 +93,18 @@ public:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
 private:
-	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
-	vector<int> _components;
+	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
+	std::vector<int> _components;
 	DORA_TYPE_OVERRIDE(EntityGroup);
 };
 
 class EntityObserver : public Object
 {
 public:
-	EntityObserver(int option, const vector<string>& components);
+	EntityObserver(int option, const std::vector<std::string>& components);
 	virtual ~EntityObserver();
 	virtual bool init() override;
-	static EntityObserver* create(int option, const vector<string>& components);
+	static EntityObserver* create(int option, const std::vector<std::string>& components);
 	static EntityObserver* create(int option, Slice components[], int count);
 public:
 	template<typename Func>
@@ -115,8 +115,8 @@ public:
 	void clear();
 private:
 	int _option;
-	unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
-	vector<int> _components;
+	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
+	std::vector<int> _components;
 	DORA_TYPE_OVERRIDE(EntityObserver);
 };
 

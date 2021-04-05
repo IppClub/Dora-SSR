@@ -52,8 +52,8 @@ public:
 	QuitHandler quitHandler;
 	int run();
 	void shutdown();
-	void invokeInRender(const function<void()>& func);
-	void invokeInLogic(const function<void()>& func);
+	void invokeInRender(const std::function<void()>& func);
+	void invokeInLogic(const std::function<void()>& func);
 	static int mainLogic(bx::Thread* thread, void* userData);
 	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS

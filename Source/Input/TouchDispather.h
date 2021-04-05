@@ -86,8 +86,8 @@ protected:
 	bool gesture(const SDL_Event& event);
 private:
 	Node* _target;
-	stack<int> _availableTouchIds;
-	unordered_map<SDL_FingerID, Ref<Touch>> _touchMap;
+	std::stack<int> _availableTouchIds;
+	std::unordered_map<SDL_FingerID, Ref<Touch>> _touchMap;
 };
 
 class UITouchHandler : public TouchHandler
@@ -126,8 +126,8 @@ public:
 protected:
 	TouchDispatcher() { }
 private:
-	vector<TouchHandler*> _handlers;
-	list<SDL_Event> _events;
+	std::vector<TouchHandler*> _handlers;
+	std::list<SDL_Event> _events;
 	SINGLETON_REF(TouchDispatcher, Director);
 };
 

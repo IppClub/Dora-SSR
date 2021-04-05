@@ -39,13 +39,13 @@ ShaderCache::ShaderCache()
 
 void ShaderCache::update(String name, Shader* shader)
 {
-	string shaderFile = SharedContent.getFullPath(getShaderPath() + name);
+	std::string shaderFile = SharedContent.getFullPath(getShaderPath() + name);
 	_shaders[shaderFile] = shader;
 }
 
-string ShaderCache::getShaderPath() const
+std::string ShaderCache::getShaderPath() const
 {
-	string shaderPath;
+	std::string shaderPath;
 	switch (bgfx::getRendererType())
 	{
 		case bgfx::RendererType::Direct3D9:
@@ -93,7 +93,7 @@ Shader* ShaderCache::load(String filename)
 		_shaders[filename] = shader;
 		return shader;
 	}
-	string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
+	std::string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
 	auto it = _shaders.find(shaderFile);
 	if (it != _shaders.end())
 	{
@@ -107,9 +107,9 @@ Shader* ShaderCache::load(String filename)
 	return shader;
 }
 
-void ShaderCache::loadAsync(String filename, const function<void(Shader*)>& handler)
+void ShaderCache::loadAsync(String filename, const std::function<void(Shader*)>& handler)
 {
-	string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
+	std::string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
 	SharedContent.loadAsyncBX(shaderFile, [this, shaderFile, handler](const bgfx::Memory* mem)
 	{
 		bgfx::ShaderHandle handle = bgfx::createShader(mem);
@@ -142,7 +142,7 @@ bool ShaderCache::unload(Shader* shader)
 
 bool ShaderCache::unload(String filename)
 {
-	string fullName = SharedContent.getFullPath(getShaderPath() + filename);
+	std::string fullName = SharedContent.getFullPath(getShaderPath() + filename);
 	auto it = _shaders.find(fullName);
 	if (it != _shaders.end())
 	{
@@ -164,7 +164,7 @@ bool ShaderCache::unload()
 
 void ShaderCache::removeUnused()
 {
-	vector<unordered_map<string,Ref<Shader>>::iterator> targets;
+	std::vector<std::unordered_map<std::string,Ref<Shader>>::iterator> targets;
 	for (auto it = _shaders.begin(); it != _shaders.end(); ++it)
 	{
 		if (it->second->isSingleReferenced())

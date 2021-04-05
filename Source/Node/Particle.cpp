@@ -98,7 +98,7 @@ textureRect()
 { }
 
 
-string ParticleDef::toXml() const
+std::string ParticleDef::toXml() const
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{}>", char(Xml::Particle::Dorothy));

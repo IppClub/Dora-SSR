@@ -1,5 +1,4 @@
 _ENV = Dorothy!
-import "moon" as :run_with_scope
 
 export default Class Node,
 	__init:(args)=>
@@ -37,11 +36,11 @@ export default Class Node,
 				env = :w,:h
 				oldSize = @size
 				if @alignWidth
-					widthFunc = load "return #{@alignWidth}"
-					@width = run_with_scope widthFunc, env
+					widthFunc = load "_ENV = ...\nreturn #{@alignWidth}"
+					@width = widthFunc env
 				if @alignHeight
-					heightFunc = load "return #{@alignHeight}"
-					@height = run_with_scope heightFunc, env
+					heightFunc = load "_ENV = ...\nreturn #{@alignHeight}"
+					@height = heightFunc env
 				@x = switch @hAlign
 					when "Left" then @width/2 + @alignOffset.x
 					when "Center" then w/2 + @alignOffset.x

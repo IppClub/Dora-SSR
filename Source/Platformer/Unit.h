@@ -31,7 +31,7 @@ typedef Delegate<void (UnitAction* action)> UnitActionHandler;
 
 class Unit : public Body
 {
-	typedef unordered_map<string, Own<UnitAction>> ActionMap;
+	typedef std::unordered_map<std::string, Own<UnitAction>> ActionMap;
 public:
 	enum {GroundSensorTag = 0, DetectSensorTag = 1, AttackSensorTag = 2};
 	// Class properties
@@ -97,7 +97,7 @@ private:
 	WRef<Entity> _entity;
 	float _detectDistance;
 	Size _attackRange;
-	string _decisionTreeName;
+	std::string _decisionTreeName;
 	Ref<Decision::Leaf> _decisionTree;
 	Ref<Behavior::Leaf> _behaviorTree;
 	Own<Behavior::Blackboard> _blackboard;

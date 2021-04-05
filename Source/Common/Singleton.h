@@ -60,7 +60,7 @@ public:
 	static void addItem(String name, Life* life);
 	static void addName(String name);
 	static void destroy(String name);
-	static string getRefTree();
+	static std::string getRefTree();
 };
 
 template <class T>
@@ -91,7 +91,7 @@ public:
 		_status = Status::Disposed;
 	}
 
-	const string& getName() const
+	const std::string& getName() const
 	{
 		return _name;
 	}
@@ -129,12 +129,12 @@ public:
 	}
 
 private:
-	static string _name;
+	static std::string _name;
 	static Status _status;
 };
 
 template <class T>
-string Singleton<T>::_name;
+std::string Singleton<T>::_name;
 
 template <class T>
 typename Singleton<T>::Status Singleton<T>::_status = Singleton<T>::Status::Uninitialized;

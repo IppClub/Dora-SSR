@@ -24,15 +24,15 @@ public:
 	{
 		return func(deltaTime);
 	}
-	function<bool (double)> func;
-	list<Ref<Object>>::iterator it;
+	std::function<bool (double)> func;
+	std::list<Ref<Object>>::iterator it;
 	CREATE_FUNC(FuncWrapper);
 protected:
-	FuncWrapper(const function<bool (double)>& func):func(func) { }
+	FuncWrapper(const std::function<bool (double)>& func):func(func) { }
 	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
-vector<Ref<Object>> Scheduler::_updateItems;
+std::vector<Ref<Object>> Scheduler::_updateItems;
 
 Scheduler::Scheduler():
 _fixedFPS(60),
@@ -79,7 +79,7 @@ void Scheduler::scheduleFixed(Object* object)
 	_fixedUpdate.insert(object);
 }
 
-void Scheduler::schedule(const function<bool (double)>& handler)
+void Scheduler::schedule(const std::function<bool (double)>& handler)
 {
 	FuncWrapper* func = FuncWrapper::create(handler);
 	func->it = _updateList.insert(_updateList.end(), Ref<Object>(func));
@@ -134,7 +134,7 @@ bool Scheduler::update(double deltaTime)
 	double fixedDelta = 1.0 / _fixedFPS;
 	while (_leftTime > fixedDelta)
 	{
-		list<Object*> stopedItems;
+		std::list<Object*> stopedItems;
 		for (Object* item : _fixedUpdate)
 		{
 			if (item->fixedUpdate(fixedDelta * _timeScale))
@@ -233,7 +233,7 @@ bool Timer::update(double deltaTime)
 	return false;
 }
 
-void Timer::start(float duration, const function<void()>& callback)
+void Timer::start(float duration, const std::function<void()>& callback)
 {
 	_time = 0.0f;
 	_duration = std::max(0.0f, duration);

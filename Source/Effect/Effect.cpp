@@ -91,7 +91,7 @@ bool Effect::init()
 
 void Effect::set(String name, float var)
 {
-	string uname(name);
+	std::string uname(name);
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
@@ -111,7 +111,7 @@ void Effect::set(String name, float var1, float var2, float var3, float var4)
 
 void Effect::set(String name, const Vec4& var)
 {
-	string uname(name);
+	std::string uname(name);
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
@@ -126,7 +126,7 @@ void Effect::set(String name, const Vec4& var)
 
 void Effect::set(String name, const Matrix& var)
 {
-	string uname(name);
+	std::string uname(name);
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{

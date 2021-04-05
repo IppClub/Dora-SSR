@@ -30,7 +30,7 @@ static int dora_print(lua_State* L)
 	int nargs = lua_gettop(L);
 	lua_getglobal(L, "tostring");
 	int funcIndex = lua_gettop(L);
-	string t;
+	std::string t;
 	for (int i = 1; i <= nargs; i++)
 	{
 		lua_pushvalue(L, funcIndex);
@@ -62,11 +62,11 @@ static int dora_traceback(lua_State* L)
 static int dora_loadfile(lua_State* L, String filename)
 {
 	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
-	string extension = Path::getExt(filename);
-	string targetFile = filename;
+	std::string extension = Path::getExt(filename);
+	std::string targetFile = filename;
 	if (extension.empty() && targetFile.back() != '.')
 	{
-		string fullPath = SharedContent.getFullPath(targetFile + ".lua");
+		std::string fullPath = SharedContent.getFullPath(targetFile + ".lua");
 		if (SharedContent.exist(fullPath))
 		{
 			targetFile = fullPath;
@@ -92,7 +92,7 @@ static int dora_loadfile(lua_State* L, String filename)
 	const char* codeBuffer = nullptr;
 	size_t codeBufferSize = 0;
 	OwnArray<Uint8> buffer;
-	string codes;
+	std::string codes;
 	switch (Switch::hash(extension))
 	{
 		case "xml"_hash:
@@ -184,7 +184,7 @@ static int dora_loader(lua_State* L)
 
 static int dora_doxml(lua_State* L)
 {
-	string codes(luaL_checkstring(L, 1));
+	std::string codes(luaL_checkstring(L, 1));
 	codes = SharedXmlLoader.load(codes);
 	if (codes.empty())
 	{
@@ -204,11 +204,11 @@ static int dora_doxml(lua_State* L)
 
 static int dora_xmltolua(lua_State* L)
 {
-	string codes(luaL_checkstring(L, 1));
+	std::string codes(luaL_checkstring(L, 1));
 	codes = SharedXmlLoader.loadXml(codes);
 	if (codes.empty())
 	{
-		const string& lastError = SharedXmlLoader.getLastError();
+		const std::string& lastError = SharedXmlLoader.getLastError();
 		lua_pushnil(L);
 		lua_pushlstring(L, lastError.c_str(), lastError.size());
 		return 2;
@@ -255,7 +255,7 @@ static int dora_loadlibs(lua_State* L)
 	}
 	lua_pushcfunction(L, luaopen_yue);
 	if (lua_pcall(L, 0, 0, 0) != 0) {
-		string err = lua_tostring(L, -1);
+		std::string err = lua_tostring(L, -1);
 		lua_pop(L, 1);
 		Error("failed to open lib yue.\n{}", err);
 	}
@@ -308,8 +308,8 @@ static int dora_yuecompile(lua_State* L)
 	else
 #endif
 	{
-		string src = tolua_toslice(L, 1, 0);
-		string dest = tolua_toslice(L, 2, 0);
+		std::string src = tolua_toslice(L, 1, 0);
+		std::string dest = tolua_toslice(L, 2, 0);
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
 		LuaFunction<void> callback(tolua_ref_function(L, 4));
 		SharedContent.loadAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
@@ -321,7 +321,7 @@ static int dora_yuecompile(lua_State* L)
 			else
 			{
 				auto input = std::make_shared<std::tuple<
-					string, string, OwnArray<Uint8>, size_t>>(
+					std::string, std::string, OwnArray<Uint8>, size_t>>(
 					src, dest, std::move(codes), size);
 				SharedAsyncThread.run([input]()
 				{
@@ -367,7 +367,7 @@ static int dora_yuecompile(lua_State* L)
 						}
 					}
 					else lua_pushnil(L);
-					string ret;
+					std::string ret;
 					SharedLuaEngine.executeReturn(ret, handler->get(), 3);
 					lua_settop(L, top);
 					if (!ret.empty()) {
@@ -505,6 +505,10 @@ LuaEngine::LuaEngine()
 			tolua_function(L, "execAsync", DB_execAsync);
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "QLearner");
+			tolua_function(L, "pack", QLearner_pack);
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Platformer");
 			tolua_beginmodule(L, "Behavior");
 				tolua_beginmodule(L, "Blackboard");
@@ -601,6 +605,16 @@ void LuaEngine::push(Uint16 value)
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
+void LuaEngine::push(Uint32 value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
+void LuaEngine::push(Uint64 value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
 void LuaEngine::push(lua_Integer value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
@@ -638,7 +652,7 @@ void LuaEngine::push(String value)
 	lua_pushlstring(L, value.begin(), value.size());
 }
 
-void LuaEngine::push(const string& value)
+void LuaEngine::push(const std::string& value)
 {
 	lua_pushlstring(L, value.c_str(), value.size());
 }
@@ -659,6 +673,16 @@ void LuaEngine::push(lua_State* L, int value)
 }
 
 void LuaEngine::push(lua_State* L, Uint16 value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
+void LuaEngine::push(lua_State* L, Uint32 value)
+{
+	lua_pushinteger(L, s_cast<lua_Integer>(value));
+}
+
+void LuaEngine::push(lua_State* L, Uint64 value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
@@ -700,7 +724,7 @@ void LuaEngine::push(lua_State* L, String value)
 	lua_pushlstring(L, value.begin(), value.size());
 }
 
-void LuaEngine::push(lua_State* L, const string& value)
+void LuaEngine::push(lua_State* L, const std::string& value)
 {
 	lua_pushlstring(L, value.c_str(), value.size());
 }
@@ -735,6 +759,26 @@ bool LuaEngine::to(Uint16& value, int index)
 	if (lua_isinteger(L, index))
 	{
 		value = s_cast<Uint16>(lua_tointeger(L, index));
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(Uint32& value, int index)
+{
+	if (lua_isinteger(L, index))
+	{
+		value = s_cast<Uint32>(lua_tointeger(L, index));
+		return true;
+	}
+	return false;
+}
+
+bool LuaEngine::to(Uint64& value, int index)
+{
+	if (lua_isinteger(L, index))
+	{
+		value = s_cast<Uint64>(lua_tointeger(L, index));
 		return true;
 	}
 	return false;
@@ -780,7 +824,7 @@ bool LuaEngine::to(Object*& value, int index)
 	return false;
 }
 
-bool LuaEngine::to(string& value, int index)
+bool LuaEngine::to(std::string& value, int index)
 {
 	if (lua_isstring(L, index))
 	{

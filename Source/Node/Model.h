@@ -33,7 +33,7 @@ public:
 	void apply();
 	void unApply();
 private:
-	vector<Node*> _nodes;
+	std::vector<Node*> _nodes;
 };
 
 /** @brief It`s component class of oModelDef. Do not use it alone. */
@@ -104,7 +104,7 @@ public:
 	virtual void setRecovery(float var) override;
 	virtual void setFaceRight(bool var) override;
 	virtual void setLook(String var) override;
-	virtual const string& getCurrentAnimationName() const override;
+	virtual const std::string& getCurrentAnimationName() const override;
 	virtual Vec2 getKeyPoint(String name) const override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
@@ -117,7 +117,7 @@ public:
 	int getCurrentAnimationIndex() const;
 	ModelDef* getModelDef() const;
 	Node* getNodeByName(String name) const;
-	bool eachNode(function<bool(Node* node)>) const;
+	bool eachNode(std::function<bool(Node* node)>) const;
 	class AnimationHandlerGroup
 	{
 	public:
@@ -141,7 +141,7 @@ private:
 	void setLook(int index);
 	float play(Uint32 index, bool loop);
 	void resume(Uint32 index, bool loop);
-	typedef unordered_map<string,Node*> NodeMap;
+	typedef std::unordered_map<std::string,Node*> NodeMap;
 	void visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef);
 	void onResetAnimationEnd();
 	void addLook(int index, Node* node);
@@ -165,7 +165,7 @@ private:
 	OwnVector<Look> _looks;
 	OwnVector<AnimationGroup> _animationGroups;
 	ResetAnimation _resetAnimation;
-	list<std::pair<Sprite*,SpriteDef*>> _spritePairs;
+	std::list<std::pair<Sprite*,SpriteDef*>> _spritePairs;
 	DORA_TYPE_OVERRIDE(Model);
 };
 

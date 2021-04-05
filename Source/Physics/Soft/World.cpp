@@ -12,12 +12,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 NS_BEGIN(Soft)
 
-const vector<Own<Particle>>& World::getParticles() const
+const std::vector<Own<Particle>>& World::getParticles() const
 {
 	return _particles;
 }
 
-const vector<Own<Constraint>>& World::getConstraints() const
+const std::vector<Own<Constraint>>& World::getConstraints() const
 {
 	return _constraints;
 }

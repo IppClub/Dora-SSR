@@ -15,7 +15,7 @@ NS_DOROTHY_BEGIN
 class Camera : public Object
 {
 public:
-	PROPERTY_READONLY_CREF(string, Name);
+	PROPERTY_READONLY_CREF(std::string, Name);
 	virtual const Vec3& getPosition();
 	virtual const Vec3& getTarget();
 	virtual const Vec3& getUp();
@@ -25,7 +25,7 @@ public:
 protected:
 	Camera(String name);
 protected:
-	string _name;
+	std::string _name;
 	Vec3 _position;
 	Vec3 _target;
 	Vec3 _up;

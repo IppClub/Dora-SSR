@@ -51,12 +51,12 @@ Uint64 DrawNode::getRenderState() const
 	return _renderState;
 }
 
-const vector<DrawVertex>& DrawNode::getVertices() const
+const std::vector<DrawVertex>& DrawNode::getVertices() const
 {
 	return _vertices;
 }
 
-const vector<Uint16>& DrawNode::getIndices() const
+const std::vector<Uint16>& DrawNode::getIndices() const
 {
 	return _indices;
 }
@@ -218,7 +218,7 @@ void DrawNode::drawSegment(const Vec2& from, const Vec2& to, float radius, Color
 	_flags.setOn(DrawNode::VertexPosDirty);
 }
 
-void DrawNode::drawPolygon(const vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor)
+void DrawNode::drawPolygon(const std::vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor)
 {
 	drawPolygon(verts.data(), s_cast<Uint32>(verts.size()), fillColor, borderWidth, borderColor);
 }
@@ -226,9 +226,9 @@ void DrawNode::drawPolygon(const vector<Vec2>& verts, Color fillColor, float bor
 void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, float borderWidth, Color borderColor)
 {
 	struct ExtrudeVerts {Vec2 offset, n;};
-	vector<ExtrudeVerts> extrude(count, {Vec2::zero,Vec2::zero});
+	std::vector<ExtrudeVerts> extrude(count, {Vec2::zero,Vec2::zero});
 	for (Uint32 i = 0; i < count; i++)
-    {
+	{
 		Vec2 v0 = verts[(i - 1 + count) % count];
 		Vec2 v1 = verts[i];
 		Vec2 v2 = verts[(i + 1) % count];
@@ -427,7 +427,7 @@ _blendFunc{BlendFunc::One, BlendFunc::InvSrcAlpha},
 _renderState(BGFX_STATE_NONE)
 { }
 
-Line::Line(const vector<Vec2>& verts, Color color):
+Line::Line(const std::vector<Vec2>& verts, Color color):
 Line()
 {
 	if (verts.empty()) return;
@@ -483,12 +483,12 @@ Uint64 Line::getRenderState() const
 	return _renderState;
 }
 
-const vector<PosColorVertex>& Line::getVertices() const
+const std::vector<PosColorVertex>& Line::getVertices() const
 {
 	return _vertices;
 }
 
-void Line::add(const vector<Vec2>& verts, Color color)
+void Line::add(const std::vector<Vec2>& verts, Color color)
 {
 	if (verts.empty()) return;
 	if (!_posColors.empty())
@@ -529,7 +529,7 @@ void Line::add(const Vec2* verts, Uint32 size, Color color)
 	_flags.setOn(Line::VertexPosDirty);
 }
 
-void Line::set(const vector<Vec2>& verts, Color color)
+void Line::set(const std::vector<Vec2>& verts, Color color)
 {
 	clear();
 	add(verts, color);

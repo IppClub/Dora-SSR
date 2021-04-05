@@ -49,9 +49,9 @@ inline OwnArray<T> MakeOwnArray(T* item)
  Used with Composition Relationship.
 */
 template<class T>
-class OwnVector : public vector<Own<T>>
+class OwnVector : public std::vector<Own<T>>
 {
-	typedef vector<Own<T>> OwnV;
+	typedef std::vector<Own<T>> OwnV;
 public:
 	using OwnV::OwnV;
 	using OwnV::insert;

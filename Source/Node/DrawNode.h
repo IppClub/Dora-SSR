@@ -56,13 +56,13 @@ public:
 	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
-	PROPERTY_READONLY_CREF(vector<DrawVertex>, Vertices);
-	PROPERTY_READONLY_CREF(vector<Uint16>, Indices);
+	PROPERTY_READONLY_CREF(std::vector<DrawVertex>, Vertices);
+	PROPERTY_READONLY_CREF(std::vector<Uint16>, Indices);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	void drawDot(const Vec2& pos, float radius, Color color);
 	void drawSegment(const Vec2& from, const Vec2& to, float radius, Color color);
-	void drawPolygon(const vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
+	void drawPolygon(const std::vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
 	void drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
 	void drawVertices(const VertexColor* verts, Uint32 count);
 	void clear();
@@ -80,9 +80,9 @@ private:
 	};
 	Uint64 _renderState;
 	BlendFunc _blendFunc;
-	vector<DrawVertex> _vertices;
-	vector<PosColor> _posColors;
-	vector<Uint16> _indices;
+	std::vector<DrawVertex> _vertices;
+	std::vector<PosColor> _posColors;
+	std::vector<Uint16> _indices;
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
@@ -104,8 +104,8 @@ protected:
 private:
 	Ref<Effect> _defaultEffect;
 	Uint64 _lastState;
-	vector<DrawVertex> _vertices;
-	vector<Uint16> _indices;
+	std::vector<DrawVertex> _vertices;
+	std::vector<Uint16> _indices;
 	SINGLETON_REF(DrawRenderer, RendererManager);
 };
 
@@ -139,18 +139,18 @@ public:
 	PROPERTY(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_READONLY(Uint64, RenderState);
-	PROPERTY_READONLY_CREF(vector<PosColorVertex>, Vertices);
+	PROPERTY_READONLY_CREF(std::vector<PosColorVertex>, Vertices);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
-	void add(const vector<Vec2>& verts, Color color);
+	void add(const std::vector<Vec2>& verts, Color color);
 	void add(const Vec2* verts, Uint32 size, Color color);
-	void set(const vector<Vec2>& verts, Color color);
+	void set(const std::vector<Vec2>& verts, Color color);
 	void set(const Vec2* verts, Uint32 size, Color color);
 	void clear();
 	CREATE_FUNC(Line);
 protected:
 	Line();
-	Line(const vector<Vec2>& verts, Color color);
+	Line(const std::vector<Vec2>& verts, Color color);
 	Line(const Vec2* verts, Uint32 size, Color color);
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
@@ -162,8 +162,8 @@ private:
 	};
 	Uint64 _renderState;
 	BlendFunc _blendFunc;
-	vector<PosColor> _posColors;
-	vector<PosColorVertex> _vertices;
+	std::vector<PosColor> _posColors;
+	std::vector<PosColorVertex> _vertices;
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
@@ -185,7 +185,7 @@ protected:
 private:
 	Ref<Effect> _defaultEffect;
 	Uint64 _lastState;
-	vector<PosColorVertex> _vertices;
+	std::vector<PosColorVertex> _vertices;
 	SINGLETON_REF(LineRenderer, RendererManager);
 };
 

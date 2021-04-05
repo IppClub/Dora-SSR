@@ -42,21 +42,23 @@ public:
 	void push(bool value);
 	void push(int value);
 	void push(Uint16 value);
+	void push(Uint32 value);
+	void push(Uint64 value);
 	void push(lua_Integer value);
 	void push(float value);
 	void push(lua_Number value);
 	void push(Value* value);
 	void push(Object* value);
 	void push(String value);
-	void push(const string& value);
+	void push(const std::string& value);
 	void push(std::nullptr_t);
 	template<typename T>
-	typename std::enable_if<!std::is_pointer<T>::value>::type push(const T& t)
+	typename std::enable_if<!std::is_pointer_v<T> && std::is_class_v<T>>::type push(const T& t)
 	{
 		tolua_pushusertype(L, new T(t), LuaType<T>());
 	}
 	template<typename T>
-	typename std::enable_if<!std::is_base_of<Object, T>::value>::type push(T* t)
+	typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
@@ -64,21 +66,23 @@ public:
 	static void push(lua_State* L, bool value);
 	static void push(lua_State* L, int value);
 	static void push(lua_State* L, Uint16 value);
+	static void push(lua_State* L, Uint32 value);
+	static void push(lua_State* L, Uint64 value);
 	static void push(lua_State* L, lua_Integer value);
 	static void push(lua_State* L, float value);
 	static void push(lua_State* L, lua_Number value);
 	static void push(lua_State* L, Value* value);
 	static void push(lua_State* L, Object* value);
 	static void push(lua_State* L, String value);
-	static void push(lua_State* L, const string& value);
+	static void push(lua_State* L, const std::string& value);
 	static void push(lua_State* L, std::nullptr_t);
 	template<typename T>
-	static typename std::enable_if<!std::is_pointer<T>::value>::type push(lua_State* L, const T& t)
+	static typename std::enable_if<!std::is_pointer_v<T>>::type push(lua_State* L, const T& t)
 	{
 		tolua_pushusertype(L, new T(t), LuaType<T>());
 	}
 	template<typename T>
-	static typename std::enable_if<!std::is_base_of<Object, T>::value>::type push(lua_State* L, T* t)
+	static typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(lua_State* L, T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
@@ -86,11 +90,13 @@ public:
 	bool to(bool& value, int index);
 	bool to(int& value, int index);
 	bool to(Uint16& value, int index);
+	bool to(Uint32& value, int index);
+	bool to(Uint64& value, int index);
 	bool to(Sint64& value, int index);
 	bool to(float& value, int index);
 	bool to(double& value, int index);
 	bool to(Object*& value, int index);
-	bool to(string& value, int index);
+	bool to(std::string& value, int index);
 
 	template<typename T>
 	typename std::enable_if<std::is_base_of<Object, T>::value, bool>::type to(T*& t, int index)

@@ -31,14 +31,14 @@ private:
 	{
 	public:
 		Parser(ModelDef* def, String path);
-		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
 	private:
-		string _path;
+		std::string _path;
 		void getPosFromStr(String str, float& x, float& y);
 		KeyAnimationDef* getCurrentKeyAnimation();
-		stack<Own<SpriteDef>> _nodeStack;
+		std::stack<Own<SpriteDef>> _nodeStack;
 		Own<AnimationDef> _currentAnimationDef;
 	};
 	SINGLETON_REF(ModelCache, Director, AsyncThread);

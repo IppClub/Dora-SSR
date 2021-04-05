@@ -17,17 +17,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-inline string s2(float var)
+inline std::string s2(float var)
 {
 	return Slice(fmt::format("{:.2f}", var)).trimZero();
 }
 
-inline string s3(float var)
+inline std::string s3(float var)
 {
 	return Slice(fmt::format("{:.3f}", var)).trimZero();
 }
 
-inline string s4(float var)
+inline std::string s4(float var)
 {
 	return Slice(fmt::format("{:.4f}", var)).trimZero();
 }
@@ -69,7 +69,7 @@ skewY(0.0f),
 opacity(1.0f)
 { }
 
-string SpriteDef::toXml()
+std::string SpriteDef::toXml()
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{}", char(Xml::Model::Element::Sprite));
@@ -169,9 +169,9 @@ ModelDef::ModelDef(
 	const Size& size,
 	String clipFile,
 	Own<SpriteDef>&& root,
-	const unordered_map<string,Vec2>& keys,
-	const unordered_map<string,int>& animationIndex,
-	const unordered_map<string,int>& lookIndex):
+	const std::unordered_map<std::string,Vec2>& keys,
+	const std::unordered_map<std::string,int>& animationIndex,
+	const std::unordered_map<std::string,int>& lookIndex):
 _clip(clipFile),
 _isFaceRight(isFaceRight),
 _size(size),
@@ -181,7 +181,7 @@ _lookIndex(lookIndex),
 _root(std::move(root))
 { }
 
-const string& ModelDef::getClipFile() const
+const std::string& ModelDef::getClipFile() const
 {
 	return _clip;
 }
@@ -196,7 +196,7 @@ SpriteDef* ModelDef::getRoot()
 	return _root.get();
 }
 
-string ModelDef::toXml()
+std::string ModelDef::toXml()
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{} {}=\"{}\" ", char(Xml::Model::Element::Dorothy), char(Xml::Model::Dorothy::File), Path::getFilename(_clip));
@@ -243,7 +243,7 @@ int ModelDef::getAnimationIndexByName(String name)
 	return Animation::None;
 }
 
-const string& ModelDef::getAnimationNameByIndex(int index)
+const std::string& ModelDef::getAnimationNameByIndex(int index)
 {
 	for (const auto& item : _animationIndex)
 	{
@@ -265,12 +265,12 @@ int ModelDef::getLookIndexByName(String name)
 	return Look::None;
 }
 
-const unordered_map<string, int>& ModelDef::getAnimationIndexMap() const
+const std::unordered_map<std::string, int>& ModelDef::getAnimationIndexMap() const
 {
 	return _animationIndex;
 }
 
-const unordered_map<string, int>& ModelDef::getLookIndexMap() const
+const std::unordered_map<std::string, int>& ModelDef::getLookIndexMap() const
 {
 	return _lookIndex;
 }
@@ -296,7 +296,7 @@ Vec2 ModelDef::getKeyPoint(String key) const
 	return it != _keys.end() ? it->second : Vec2::zero;
 }
 
-unordered_map<string,Vec2>& ModelDef::getKeyPoints()
+std::unordered_map<std::string,Vec2>& ModelDef::getKeyPoints()
 {
 	return _keys;
 }
@@ -313,9 +313,9 @@ const Size& ModelDef::getSize() const
 	return _size;
 }
 
-vector<string> ModelDef::getLookNames() const
+std::vector<std::string> ModelDef::getLookNames() const
 {
-	vector<string> names(_lookIndex.size());
+	std::vector<std::string> names(_lookIndex.size());
 	for (const auto& it : _lookIndex)
 	{
 		names[it.second] = it.first;
@@ -323,9 +323,9 @@ vector<string> ModelDef::getLookNames() const
 	return names;
 }
 
-vector<string> ModelDef::getAnimationNames() const
+std::vector<std::string> ModelDef::getAnimationNames() const
 {
-	vector<string> names(_animationIndex.size());
+	std::vector<std::string> names(_animationIndex.size());
 	for (const auto& it : _animationIndex)
 	{
 		names[it.second] = it.first;

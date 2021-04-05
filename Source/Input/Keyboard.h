@@ -34,15 +34,15 @@ protected:
 	Keyboard();
 	void handleEvent(const SDL_Event& event);
 private:
-	vector<int> _changedKeys;
+	std::vector<int> _changedKeys;
 	bool _oldKeyStates[SDL_NUM_SCANCODES];
 	bool _newKeyStates[SDL_NUM_SCANCODES];
 	bool _oldCodeStates[SDL_NUM_SCANCODES];
 	bool _newCodeStates[SDL_NUM_SCANCODES];
 	Slice _keyNames[SDL_NUM_SCANCODES];
 	Slice _codeNames[SDL_NUM_SCANCODES];
-	unordered_map<string,int> _keyMap;
-	unordered_map<string,int> _codeMap;
+	std::unordered_map<std::string,int> _keyMap;
+	std::unordered_map<std::string,int> _codeMap;
 	KeyboardHandler _imeHandler;
 	SINGLETON_REF(Keyboard, Director);
 };

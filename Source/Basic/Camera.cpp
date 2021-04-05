@@ -24,7 +24,7 @@ _target{0, 0, 1},
 _up{0, 1, 0}
 { }
 
-const string& Camera::getName() const
+const std::string& Camera::getName() const
 {
 	return _name;
 }

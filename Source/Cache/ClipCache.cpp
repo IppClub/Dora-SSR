@@ -29,7 +29,7 @@ Sprite* ClipDef::toSprite(String name)
 	return nullptr;
 }
 
-string ClipDef::toXml()
+std::string ClipDef::toXml()
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{} =\"{}\">", char(Xml::Clip::Element::Dorothy), char(Xml::Clip::Dorothy::File));
@@ -50,7 +50,7 @@ string ClipDef::toXml()
 
 std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr)
 {
-	if (clipStr.toString().find('|') != string::npos)
+	if (clipStr.toString().find('|') != std::string::npos)
 	{
 		auto tokens = clipStr.split("|");
 		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
@@ -117,7 +117,7 @@ bool ClipCache::isFileExist(String clipStr) const
 
 bool ClipCache::isClip(String clipStr) const
 {
-	if (clipStr.toString().find('|') != string::npos)
+	if (clipStr.toString().find('|') != std::string::npos)
 	{
 		auto tokens = clipStr.split("|");
 		return tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice;
@@ -137,7 +137,7 @@ std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename)
 void ClipCache::Parser::xmlSAX2Text(const char *s, size_t len)
 { }
 
-void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
 {
 	switch (Xml::Clip::Element(name[0]))
 	{

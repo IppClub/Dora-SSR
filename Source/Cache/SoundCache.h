@@ -21,15 +21,15 @@ public:
 	SoundFile* get(String filename);
 	/** @brief support format .wav .ogg */
 	SoundFile* load(String filename);
-	void loadAsync(String filename, const function<void(SoundFile*)>& handler);
-    bool unload(SoundFile* soundFile);
-    bool unload(String filename);
-    bool unload();
-    void removeUnused();
+	void loadAsync(String filename, const std::function<void(SoundFile*)>& handler);
+	bool unload(SoundFile* soundFile);
+	bool unload(String filename);
+	bool unload();
+void removeUnused();
 protected:
 	SoundCache() { }
 private:
-	unordered_map<string, Ref<SoundFile>> _soundFiles;
+	std::unordered_map<std::string, Ref<SoundFile>> _soundFiles;
 	SINGLETON_REF(SoundCache, Audio);
 };
 

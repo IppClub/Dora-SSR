@@ -59,7 +59,7 @@ public:
 	PROPERTY_READONLY(bgfx::FontManager*, Manager);
 	virtual ~FontCache();
 	void loadAync(String fontName, Uint32 fontSize,
-		const function<void(Font* font)>& callback);
+		const std::function<void(Font* font)>& callback);
 	Font* load(String fontName, Uint32 fontSize);
 	bool unload();
 	bool unload(String fontName, Uint32 fontSize);
@@ -72,8 +72,8 @@ protected:
 	FontCache();
 private:
 	Ref<SpriteEffect> _defaultEffect;
-	unordered_map<string, Ref<TrueTypeFile>> _fontFiles;
-	unordered_map<string, Ref<Font>> _fonts;
+	std::unordered_map<std::string, Ref<TrueTypeFile>> _fontFiles;
+	std::unordered_map<std::string, Ref<Font>> _fonts;
 	SINGLETON_REF(FontCache, FontManager, BGFXDora);
 };
 
@@ -110,7 +110,7 @@ public:
 	CREATE_FUNC(Label);
 protected:
 	Label(String fontName, Uint32 fontSize);
-	void updateCharacters(const vector<Uint32>& chars);
+	void updateCharacters(const std::vector<Uint32>& chars);
 	void updateLabel();
 	struct CharItem
 	{
@@ -137,11 +137,11 @@ private:
 	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;
 	TextAlign _alignment;
-	string _textUTF8;
-	vector<Uint32> _text;
+	std::string _textUTF8;
+	std::vector<Uint32> _text;
 	OwnVector<CharItem> _characters;
-	vector<SpriteQuad::Position> _quadPos;
-	vector<SpriteQuad> _quads;
+	std::vector<SpriteQuad::Position> _quadPos;
+	std::vector<SpriteQuad> _quads;
 	enum
 	{
 		DepthWrite = Node::UserFlag,

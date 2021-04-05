@@ -21,17 +21,17 @@ class Listener : public Object
 public:
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_CREF(EventHandler, Handler);
-	PROPERTY_READONLY_CREF(string, Name);
+	PROPERTY_READONLY_CREF(std::string, Name);
 	virtual ~Listener();
 	virtual bool init() override;
 	void clearHandler();
 	void handle(Event* e);
 	CREATE_FUNC(Listener);
 protected:
-	Listener(const string& name, const EventHandler& handler);
+	Listener(const std::string& name, const EventHandler& handler);
 private:
 	bool _enabled;
-	string _name;
+	std::string _name;
 	EventHandler _handler;
 	friend class EventType;
 	DORA_TYPE_OVERRIDE(Listener);

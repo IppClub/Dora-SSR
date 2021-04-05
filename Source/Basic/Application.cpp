@@ -265,7 +265,7 @@ int Application::run()
 				}
 				case "Invoke"_hash:
 				{
-					function<void()> func;
+					std::function<void()> func;
 					event->get(func);
 					func();
 					break;
@@ -385,12 +385,12 @@ void Application::shutdown()
 	}
 }
 
-void Application::invokeInRender(const function<void()>& func)
+void Application::invokeInRender(const std::function<void()>& func)
 {
 	_renderEvent.post("Invoke"_slice, func);
 }
 
-void Application::invokeInLogic(const function<void()>& func)
+void Application::invokeInLogic(const std::function<void()>& func)
 {
 	_logicEvent.post("Invoke"_slice, func);
 }
@@ -466,7 +466,7 @@ int Application::mainLogic(Application* app)
 					}
 					case "Invoke"_hash:
 					{
-						function<void()> func;
+						std::function<void()> func;
 						event->get(func);
 						func();
 						break;

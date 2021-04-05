@@ -36,7 +36,7 @@ bgfx::ViewId View::getId() const
 	return _views.top().first;
 }
 
-const string& View::getName() const
+const std::string& View::getName() const
 {
 	AssertIf(_views.empty(), "invalid view id.");
 	return _views.top().second;
@@ -57,7 +57,7 @@ void View::push(String viewName)
 	AssertIf(_id > 255, "running views exceeded 256.");
 	bgfx::ViewId viewId = s_cast<bgfx::ViewId>(++_id);
 	bgfx::resetView(viewId);
-	string name = viewName.toString();
+	std::string name = viewName.toString();
 	if (!name.empty())
 	{
 		bgfx::setViewName(viewId, name.c_str());

@@ -13,14 +13,14 @@ NS_DOROTHY_BEGIN
 class Content
 {
 public:
-	PROPERTY_READONLY_CREF(string, AssetPath);
-	PROPERTY_READONLY_CREF(string, WritablePath);
-	PROPERTY_CREF(vector<string>, SearchPaths);
+	PROPERTY_READONLY_CREF(std::string, AssetPath);
+	PROPERTY_READONLY_CREF(std::string, WritablePath);
+	PROPERTY_CREF(std::vector<std::string>, SearchPaths);
 	virtual ~Content();
 	bool exist(String filename);
 	bool isFolder(String path);
 	bool isAbsolutePath(String strPath);
-	string getFullPath(String filename);
+	std::string getFullPath(String filename);
 	std::pair<OwnArray<Uint8>,size_t> load(String filename);
 	const bgfx::Memory* loadBX(String filename);
 	void copy(String src, String dst);
@@ -28,38 +28,38 @@ public:
 	void save(String filename, String content);
 	void save(String filename, Uint8* content, Sint64 size);
 	bool createFolder(String path);
-	list<string> getDirs(String path);
-	list<string> getFiles(String path);
-	list<string> getAllFiles(String path);
-	bool visitDir(String path, const function<bool(String,String)>& func);
+	std::list<std::string> getDirs(String path);
+	std::list<std::string> getFiles(String path);
+	std::list<std::string> getAllFiles(String path);
+	bool visitDir(String path, const std::function<bool(String,String)>& func);
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
-	void loadAsync(String filename, const function<void(String)>& callback);
-	void loadAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback);
-	void loadAsyncData(String filename, const function<void(OwnArray<Uint8>&&,size_t)>& callback);
-	void copyAsync(String src, String dst, const function<void()>& callback);
-	void saveAsync(String filename, String content, const function<void()>& callback);
-	void saveAsync(String filename, OwnArray<Uint8> content, size_t size, const function<void()>& callback);
+	void loadAsync(String filename, const std::function<void(String)>& callback);
+	void loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback);
+	void loadAsyncData(String filename, const std::function<void(OwnArray<Uint8>&&,size_t)>& callback);
+	void copyAsync(String src, String dst, const std::function<void()>& callback);
+	void saveAsync(String filename, String content, const std::function<void()>& callback);
+	void saveAsync(String filename, OwnArray<Uint8> content, size_t size, const std::function<void()>& callback);
 public:
-	void loadAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback);
+	void loadAsyncUnsafe(String filename, const std::function<void (Uint8*, Sint64)>& callback);
 	Uint8* loadUnsafe(String filename, Sint64& size);
 protected:
 	Content();
-	string getFullPathForDirectoryAndFilename(String directory, String filename);
+	std::string getFullPathForDirectoryAndFilename(String directory, String filename);
 	void copyUnsafe(String srcFile, String dstFile);
-	void loadByChunks(String filename, const function<void(Uint8*,int)>& handler);
+	void loadByChunks(String filename, const std::function<void(Uint8*,int)>& handler);
 	void saveUnsafe(String filename, String content);
 	void saveUnsafe(String filename, Uint8* content, Sint64 size);
 	bool isFileExist(String filePath);
 	bool isPathFolder(String filePath);
-	list<string> getDirEntries(String path, bool isFolder);
+	std::list<std::string> getDirEntries(String path, bool isFolder);
 private:
 	Uint8* _loadFileUnsafe(String filename, Sint64& size);
-	string _assetPath;
-	string _writablePath;
-	vector<string> _searchPaths;
-	unordered_map<string, string> _fullPathCache;
+	std::string _assetPath;
+	std::string _writablePath;
+	std::vector<std::string> _searchPaths;
+	std::unordered_map<std::string, std::string> _fullPathCache;
 	SINGLETON_REF(Content, Application);
 };
 

@@ -18,21 +18,21 @@ inline typename std::enable_if<!std::is_same<T,Slice>::value,T>::type Argument(T
 	return value;
 }
 
-inline const char* Argument(const string& value)
+inline const char* Argument(const std::string& value)
 {
 	return value.empty() ? "" : value.c_str();
 }
 
 template <typename ...Args>
-string LogFormat(const char* format, const Args& ...args)
+std::string LogFormat(const char* format, const Args& ...args)
 {
 	return fmt::format(format, Argument(args)...);
 }
 
-extern Delegate<void (const string&)> LogHandler;
+extern Delegate<void (const std::string&)> LogHandler;
 
-void LogError(const string& str);
-void LogPrintInThread(const string& str);
+void LogError(const std::string& str);
+void LogPrintInThread(const std::string& str);
 
 /** @brief The print function for debugging output. */
 template <typename ...Args>

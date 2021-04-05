@@ -29,7 +29,7 @@ Atlas* SkeletonData::getAtlas() const
 	return _atlas;
 }
 
-std::pair<string, string> SkeletonCache::getFileFromStr(String spineStr)
+std::pair<std::string, std::string> SkeletonCache::getFileFromStr(String spineStr)
 {
 	auto items = spineStr.split("|"_slice);
 	if (items.size() == 2)
@@ -51,7 +51,7 @@ std::pair<string, string> SkeletonCache::getFileFromStr(String spineStr)
 		return {skelFile, atlasFile};
 	}
 	auto str = spineStr.toString();
-	string skelFile = str + ".skel"_slice;
+	std::string skelFile = str + ".skel"_slice;
 	if (!SharedContent.exist(str + ".skel"_slice))
 	{
 		skelFile = str + ".json"_slice;
@@ -61,16 +61,16 @@ std::pair<string, string> SkeletonCache::getFileFromStr(String spineStr)
 
 SkeletonData* SkeletonCache::load(String spineStr)
 {
-	string skelFile, atlasFile;
+	std::string skelFile, atlasFile;
 	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
 	return load(skelFile, atlasFile);
 }
 
 SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 {
-	string skelPath = SharedContent.getFullPath(skelFile);
-	string atlasPath = SharedContent.getFullPath(atlasFile);
-	string cacheKey = skelPath + atlasPath;
+	std::string skelPath = SharedContent.getFullPath(skelFile);
+	std::string atlasPath = SharedContent.getFullPath(atlasFile);
+	std::string cacheKey = skelPath + atlasPath;
 	auto it = _skeletons.find(cacheKey);
 	if (it != _skeletons.end())
 	{
@@ -111,18 +111,18 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 	return nullptr;
 }
 
-void SkeletonCache::loadAsync(String spineStr, const function<void(SkeletonData*)>& handler)
+void SkeletonCache::loadAsync(String spineStr, const std::function<void(SkeletonData*)>& handler)
 {
-	string skelFile, atlasFile;
+	std::string skelFile, atlasFile;
 	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
 	loadAsync(skelFile, atlasFile, handler);
 }
 
-void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<void(SkeletonData*)>& handler)
+void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::function<void(SkeletonData*)>& handler)
 {
-	string skelPath = SharedContent.getFullPath(skelFile);
-	string atlasPath = SharedContent.getFullPath(atlasFile);
-	string file = skelFile.toString();
+	std::string skelPath = SharedContent.getFullPath(skelFile);
+	std::string atlasPath = SharedContent.getFullPath(atlasFile);
+	std::string file = skelFile.toString();
 	SharedAtlasCache.loadAsync(atlasFile, [file, handler, this](Atlas* atlas)
 	{
 		if (!atlas)
@@ -139,10 +139,10 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 				Warn("failed to load skeleton data \"{}\".", file);
 				return;
 			}
-			auto skelData = std::make_shared<std::tuple<string, OwnArray<Uint8>, size_t>>(std::move(file), std::move(data), size);
+			auto skelData = std::make_shared<std::tuple<std::string, OwnArray<Uint8>, size_t>>(std::move(file), std::move(data), size);
 			SharedAsyncThread.run([skelData, at]()
 			{
-				string file;
+				std::string file;
 				OwnArray<Uint8> data;
 				size_t size = 0;
 				std::tie(file, data, size) = std::move(*skelData);
@@ -159,7 +159,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 					case "json"_hash:
 					{
 						spine::SkeletonJson json(at->get());
-						skelData = json.readSkeletonData(string(r_cast<char*>(data.get()), s_cast<int>(size)).c_str());
+						skelData = json.readSkeletonData(std::string(r_cast<char*>(data.get()), s_cast<int>(size)).c_str());
 						break;
 					}
 					default:
@@ -189,7 +189,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const function<
 
 bool SkeletonCache::unload(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _skeletons.find(fullPath);
 	if (it != _skeletons.end())
 	{
@@ -224,7 +224,7 @@ bool SkeletonCache::unload()
 
 void SkeletonCache::removeUnused()
 {
-	vector<unordered_map<string,Ref<SkeletonData>>::iterator> targets;
+	std::vector<std::unordered_map<std::string,Ref<SkeletonData>>::iterator> targets;
 	for (auto it = _skeletons.begin(); it != _skeletons.end(); ++it)
 	{
 		if (it->second->isSingleReferenced())

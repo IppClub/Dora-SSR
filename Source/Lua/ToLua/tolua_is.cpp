@@ -86,8 +86,8 @@ void tolua_error(lua_State* L, const char* msg, tolua_Error* err)
 {
 	if (msg[0] == '#')
 	{
-		string expected = err->type.toString();
-		string provided = tolua_typename(L, err->index);
+		std::string expected = err->type.toString();
+		std::string provided = tolua_typename(L, err->index);
 		if (msg[1] == 'f')
 		{
 			int narg = err->index;

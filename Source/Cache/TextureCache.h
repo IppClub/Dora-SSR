@@ -56,7 +56,7 @@ public:
 	Texture2D* get(String filename);
 	/** @brief support format .jpg .png .dds .pvr .ktx */
 	Texture2D* load(String filename);
-	void loadAsync(String filename, const function<void(Texture2D*)>& handler);
+	void loadAsync(String filename, const std::function<void(Texture2D*)>& handler);
     bool unload(Texture2D* texture);
     bool unload(String filename);
     bool unload();
@@ -65,7 +65,7 @@ protected:
 	TextureCache() { }
 private:
 	bx::DefaultAllocator _allocator;
-	unordered_map<string, Ref<Texture2D>> _textures;
+	std::unordered_map<std::string, Ref<Texture2D>> _textures;
 	SINGLETON_REF(TextureCache, BGFXDora);
 };
 

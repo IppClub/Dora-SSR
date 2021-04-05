@@ -22,7 +22,7 @@ std::shared_ptr<XmlParser<ParticleDef>> ParticleCache::prepareParser(String file
 void ParticleCache::Parser::xmlSAX2Text(const char *s, size_t len)
 { }
 
-void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
 {
 	if (Xml::Particle(name[0]) != Xml::Particle::Dorothy && attrs.size() <= 1)
 	{

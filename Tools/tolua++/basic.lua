@@ -95,13 +95,15 @@ local objects = {
 "Touch",
 "Label",
 "Slot",
+"QLearner",
 "Platformer::Unit",
 "Platformer::Face",
 "Platformer::PlatformCamera",
 "Platformer::Visual",
 "Platformer::UnitDef",
 "Platformer::BulletDef",
-"Platformer::AILeaf",
+"Platformer::Decision::Leaf",
+"Platformer::Behavior::Leaf",
 "Platformer::Bullet",
 "Platformer::PlatformWorld",
 }
@@ -117,6 +119,7 @@ _basic["Slice"] = "slice"
 _basic["Uint8"] = "integer"
 _basic["Uint16"] = "integer"
 _basic["Uint32"] = "integer"
+_basic["Uint64"] = "integer"
 _basic["size_t"] = "integer"
 _basic['string'] = 'slice'
 _basic['std::string'] = 'slice'

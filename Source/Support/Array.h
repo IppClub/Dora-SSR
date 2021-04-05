@@ -40,7 +40,7 @@ public:
 	void insert(size_t index, Own<Value>&& value);
 	bool removeAt(size_t index);
 	bool fastRemoveAt(size_t index);
-	vector<Own<Value>>& data();
+	std::vector<Own<Value>>& data();
 	CREATE_FUNC(Array);
 public:
 	template <class Func>
@@ -62,7 +62,7 @@ protected:
 	Array(Array* other);
 	Array(size_t capacity);
 private:
-	vector<Own<Value>> _data;
+	std::vector<Own<Value>> _data;
 	DORA_TYPE_OVERRIDE(Array);
 };
 

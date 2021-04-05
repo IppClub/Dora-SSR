@@ -185,7 +185,7 @@ public:
 
 private:
     std::vector<value_type> m_data; ///< Array data (both used & free).
-    std::vector<typename std::vector<value_type>::size_type> m_free; ///< Indices of free elements.
+    std::vector<size_type> m_free; ///< Indices of free elements.
 };
 
 /// @brief Gets the number of elements that are used in the specified structure.

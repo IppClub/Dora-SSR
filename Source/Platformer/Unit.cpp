@@ -132,7 +132,7 @@ bool Unit::init()
 	playable->setScaleY(scale);
 	Unit::setPlayable(playable);
 	Body::setOwner(this);
-	ARRAY_START(string, action, actions)
+	ARRAY_START(std::string, action, actions)
 	{
 		Unit::attachAction(*action);
 	}
@@ -466,7 +466,7 @@ void Unit::setDecisionTreeName(String name)
 	}
 }
 
-const string& Unit::getDecisionTreeName() const
+const std::string& Unit::getDecisionTreeName() const
 {
 	return _decisionTreeName;
 }

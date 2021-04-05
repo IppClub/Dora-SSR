@@ -17,17 +17,17 @@ class Listener;
 class EventType
 {
 public:
-	PROPERTY_READONLY_CREF(string, Name);
+	PROPERTY_READONLY_CREF(std::string, Name);
 	PROPERTY_READONLY_BOOL(Empty);
-	EventType(const string& name);
+	EventType(const std::string& name);
 	void add(Listener* listener);
 	void remove(Listener* listener);
 	void handle(Event* event);
 protected:
 	void handle(Event* event, int index);
 private:
-	string _name;
-	vector<Listener*> _listeners;
+	std::string _name;
+	std::vector<Listener*> _listeners;
 };
 
 NS_DOROTHY_END

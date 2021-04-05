@@ -1015,6 +1015,15 @@ class DB
 	static tolua_outside DB* DB_shared @ create();
 };
 
+class QLearner : public Object
+{
+	tolua_readonly tolua_property__common Uint64 currentState;
+	void iterate(Uint64 newState);
+	void iterate(Uint32 action, Uint64 newState, double reward);
+	Uint32 getBestAction(Uint64 state);
+	static QLearner* create(double gamma = 0.5, double alpha = 0.5, double maxQ = 100.0);
+};
+
 namespace Platformer {
 
 class TargetAllow
@@ -1236,8 +1245,5 @@ class Data
 
 } // namespace Platformer
 
-class ML
-{
-	static void buildDecisionTreeAsync(String data, int maxDepth, tolua_function_void handleTree);
-};
+void BuildDecisionTreeAsync(String data, int maxDepth, tolua_function_void handleTree);
 

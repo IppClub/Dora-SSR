@@ -53,8 +53,8 @@ public:
 	/**
 	 Use this rect query at any time without worrying Box2D`s callback limits.
 	 */
-	bool query(const Rect& rect, const function<bool(Body*)>& callback);
-	bool raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*, const Vec2&, const Vec2&)>& callback);
+	bool query(const Rect& rect, const std::function<bool(Body*)>& callback);
+	bool raycast(const Vec2& start, const Vec2& end, bool closest, const std::function<bool(Body*, const Vec2&, const Vec2&)>& callback);
 	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
 	bool getShouldContact(Uint8 groupA, Uint8 groupB) const;
 	const pr::Filter& getFilter(Uint8 group) const;
@@ -81,8 +81,8 @@ private:
 	void setupEndContact();
 	void setupPreSolve();
 	void solveContacts();
-	vector<Body*> _queryResultsOfCommonShapes;
-	vector<Body*> _queryResultsOfChainsAndEdges;
+	std::vector<Body*> _queryResultsOfCommonShapes;
+	std::vector<Body*> _queryResultsOfChainsAndEdges;
 private:
 	struct RayCastData
 	{
@@ -91,7 +91,7 @@ private:
 		Vec2 point;
 		Vec2 normal;
 	} _rayCastResult;
-	vector<RayCastData> _rayCastResults;
+	std::vector<RayCastData> _rayCastResults;
 protected:
 	Own<DebugDraw> _debugDraw;
 private:
@@ -115,13 +115,13 @@ private:
 		void retain();
 		void release();
 	};
-	vector<SensorPair> _sensorEnters;
-	vector<SensorPair> _sensorLeaves;
-	vector<ContactPair> _contactStarts;
-	vector<ContactPair> _contactEnds;
-	vector<Body*> _bodyData;
-	vector<Sensor*> _fixtureData;
-	vector<Joint*> _jointData;
+	std::vector<SensorPair> _sensorEnters;
+	std::vector<SensorPair> _sensorLeaves;
+	std::vector<ContactPair> _contactStarts;
+	std::vector<ContactPair> _contactEnds;
+	std::vector<Body*> _bodyData;
+	std::vector<Sensor*> _fixtureData;
+	std::vector<Joint*> _jointData;
 	enum
 	{
 		UseFixedUpdate = Node::UserFlag,

@@ -72,7 +72,7 @@ int nvg::CreateImage(int w, int h, int imageFlags, String filename)
 
 int nvg::CreateFont(String name)
 {
-	string fontFile;
+	std::string fontFile;
 	BLOCK_START
 	{
 		fontFile = "Font/" + name.toString() + ".ttf";

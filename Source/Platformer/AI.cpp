@@ -38,7 +38,7 @@ _detectedUnits(Array::create()),
 _attackUnits(Array::create())
 { }
 
-vector<Slice>& AI::getDecisionNodes()
+std::vector<Slice>& AI::getDecisionNodes()
 {
 	return _decisionNodes;
 }
@@ -153,7 +153,7 @@ bool AI::runDecisionTree(Unit* unit)
 		{
 			_self->getEntity()->set("decisionTrace"_slice,
 				std::accumulate(_decisionNodes.begin()+1, _decisionNodes.end(), _decisionNodes.front().toString(),
-				[](const string& a, String b) { return a + " -> " + b; }));
+				[](const std::string& a, String b) { return a + " -> " + b; }));
 			_decisionNodes.clear();
 		}
 	}

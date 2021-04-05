@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-unordered_map<string, Own<EventType>> Event::_eventMap;
+std::unordered_map<std::string, Own<EventType>> Event::_eventMap;
 
 Event::Event(String name):
 _name(name)

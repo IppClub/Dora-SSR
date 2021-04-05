@@ -18,9 +18,9 @@ class XmlLoader
 {
 public:
 	virtual ~XmlLoader();
-	string load(String filename);
-	string loadXml(String xml);
-	string getLastError();
+	std::string load(String filename);
+	std::string loadXml(String xml);
+	std::string getLastError();
 protected:
 	XmlLoader();
 private:

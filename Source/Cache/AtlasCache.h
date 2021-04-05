@@ -30,13 +30,13 @@ class AtlasCache
 {
 public:
 	Atlas* load(String filename);
-	void loadAsync(String filename, const function<void(Atlas*)>& handler);
+	void loadAsync(String filename, const std::function<void(Atlas*)>& handler);
 	bool unload(String filename);
 	bool unload(Atlas* atlas);
 	bool unload();
 	void removeUnused();
 private:
-	unordered_map<string, Ref<Atlas>> _atlas;
+	std::unordered_map<std::string, Ref<Atlas>> _atlas;
 	SINGLETON_REF(AtlasCache, Director, AsyncThread);
 };
 

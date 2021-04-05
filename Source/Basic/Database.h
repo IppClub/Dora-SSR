@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include <deque>
+
 namespace SQLite {
 class Database;
 } // namespace SQLite
@@ -21,14 +23,14 @@ class DB
 public:
 	virtual ~DB();
 	bool exist(String tableName) const;
-	bool transaction(const function<void()>& func);
-	deque<vector<Own<Value>>> query(String sql, const vector<Own<Value>>& args, bool withColumns = false);
-	void insert(String tableName, const vector<vector<Own<Value>>>& values);
+	bool transaction(const std::function<void()>& func);
+	std::deque<std::vector<Own<Value>>> query(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
+	void insert(String tableName, const std::vector<std::vector<Own<Value>>>& values);
 	int exec(String sql);
-	int exec(String sql, const vector<Own<Value>>& values);
-	void queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, const function<void(const deque<vector<Own<Value>>>& result)>& callback);
-	void insertAsync(String tableName, vector<vector<Own<Value>>>&& values, const function<void(bool)>& callback);
-	void execAsync(String sql, vector<Own<Value>>&& values, const function<void(int)>& callback);
+	int exec(String sql, const std::vector<Own<Value>>& values);
+	void queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(const std::deque<std::vector<Own<Value>>>& result)>& callback);
+	void insertAsync(String tableName, std::vector<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback);
+	void execAsync(String sql, std::vector<Own<Value>>&& values, const std::function<void(int)>& callback);
 protected:
 	DB();
 private:

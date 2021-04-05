@@ -210,7 +210,7 @@ Own<ActionDuration> Spawn::alloc(Own<ActionDuration>&& first, Own<ActionDuration
 	return Own<ActionDuration>(action);
 }
 
-Own<ActionDuration> Spawn::alloc(const vector<Own<ActionDuration>>& actions)
+Own<ActionDuration> Spawn::alloc(const std::vector<Own<ActionDuration>>& actions)
 {
 	if (actions.begin() == actions.end())
 	{
@@ -251,7 +251,7 @@ Action* Spawn::create(Own<ActionDuration>&& first, Own<ActionDuration>&& second)
 	return Action::create(Spawn::alloc(std::move(first), std::move(second)));
 }
 
-Action* Spawn::create(const vector<Own<ActionDuration>>& actions)
+Action* Spawn::create(const std::vector<Own<ActionDuration>>& actions)
 {
 	return Action::create(Spawn::alloc(actions));
 }
@@ -296,7 +296,7 @@ Own<ActionDuration> Sequence::alloc(Own<ActionDuration>&& first, Own<ActionDurat
 	return Own<ActionDuration>(action);
 }
 
-Own<ActionDuration> Sequence::alloc(vector<Own<ActionDuration>>&& actions)
+Own<ActionDuration> Sequence::alloc(std::vector<Own<ActionDuration>>&& actions)
 {
 	if (actions.begin() == actions.end())
 	{
@@ -337,7 +337,7 @@ Action* Sequence::create(Own<ActionDuration>&& first, Own<ActionDuration>&& seco
 	return Action::create(Sequence::alloc(std::move(first), std::move(second)));
 }
 
-Action* Sequence::create(vector<Own<ActionDuration>>&& actions)
+Action* Sequence::create(std::vector<Own<ActionDuration>>&& actions)
 {
 	return Action::create(Sequence::alloc(std::move(actions)));
 }

@@ -54,7 +54,7 @@ _angle(angle)
 	}
 }
 
-Face::Face(const function<Node*()>& func, const Vec2& point, float scale, float angle):
+Face::Face(const std::function<Node*()>& func, const Vec2& point, float scale, float angle):
 _file(),
 _userCreateFunc(func),
 _pos(point),

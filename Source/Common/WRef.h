@@ -135,9 +135,9 @@ inline WRef<T> MakeWRef(T* item)
  @param T Object
 */
 template<class T = Object>
-class WRefVector : public vector<WRef<T>>
+class WRefVector : public std::vector<WRef<T>>
 {
-	typedef vector<WRef<T>> WRefV;
+	typedef std::vector<WRef<T>> WRefV;
 public:
 	using WRefV::WRefV;
 	using WRefV::insert;

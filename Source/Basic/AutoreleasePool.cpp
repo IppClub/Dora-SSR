@@ -18,7 +18,7 @@ PoolManager::~PoolManager()
 
 void PoolManager::clear()
 {
-	stack<Ref<AutoreleasePool>> emptyStack;
+	std::stack<Ref<AutoreleasePool>> emptyStack;
 	_releasePoolStack.swap(emptyStack);
 }
 

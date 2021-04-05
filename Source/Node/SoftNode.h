@@ -34,7 +34,7 @@ private:
 	Own<Soft::World> _world;
 	Own<Soft::Material> _originMaterial;
 	Ref<Line> _line;
-	vector<vector<Soft::Particle*>> _nodes;
+	std::vector<std::vector<Soft::Particle*>> _nodes;
 	DORA_TYPE_OVERRIDE(SoftNode);
 };
 

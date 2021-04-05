@@ -16,16 +16,16 @@ class Array;
 
 class Scheduler : public Object
 {
-	typedef list<Ref<Object>> UpdateList;
-	typedef unordered_map<Object*, UpdateList::iterator> UpdateMap;
-	typedef unordered_set<Object*> FixedUpdateSet;
+	typedef std::list<Ref<Object>> UpdateList;
+	typedef std::unordered_map<Object*, UpdateList::iterator> UpdateMap;
+	typedef std::unordered_set<Object*> FixedUpdateSet;
 public:
 	PROPERTY(float, TimeScale);
 	PROPERTY(int, FixedFPS);
 	PROPERTY_READONLY(double, DeltaTime);
 	void schedule(Object* object);
 	void scheduleFixed(Object* object);
-	void schedule(const function<bool (double)>& handler);
+	void schedule(const std::function<bool (double)>& handler);
 	void schedule(Action* action);
 	void unschedule(Object* object);
 	void unschedule(Action* action);
@@ -43,7 +43,7 @@ private:
 	FixedUpdateSet _fixedUpdate;
 	Ref<Array> _actionList;
 private:
-	static vector<Ref<Object>> _updateItems;
+	static std::vector<Ref<Object>> _updateItems;
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 
@@ -52,7 +52,7 @@ class Timer : public Object
 public:
 	PROPERTY_BOOL(Running);
 	virtual bool update(double deltaTime) override;
-	void start(float duration, const function<void()>& callback);
+	void start(float duration, const std::function<void()>& callback);
 	void stop();
 	CREATE_FUNC(Timer);
 protected:
@@ -60,7 +60,7 @@ protected:
 private:
 	float _time;
 	float _duration;
-	function<void()> _callback;
+	std::function<void()> _callback;
 	DORA_TYPE_OVERRIDE(Timer);
 };
 

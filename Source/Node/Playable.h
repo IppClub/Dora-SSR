@@ -20,7 +20,7 @@ public:
 	PROPERTY_VIRTUAL(float, Recovery);
 	PROPERTY_VIRTUAL_STRING(Look);
 	PROPERTY_VIRTUAL_BOOL(FaceRight);
-	virtual const string& getCurrentAnimationName() const = 0;
+	virtual const std::string& getCurrentAnimationName() const = 0;
 	virtual Vec2 getKeyPoint(String name) const = 0;
 	virtual float play(String name, bool loop = false) = 0;
 	virtual void stop() = 0;
@@ -29,7 +29,7 @@ protected:
 	bool _faceRight;
 	float _speed;
 	float _recoveryTime;
-	string _lookName;
+	std::string _lookName;
 	DORA_TYPE_OVERRIDE(Playable);
 };
 

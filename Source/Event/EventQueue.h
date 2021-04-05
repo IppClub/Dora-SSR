@@ -18,14 +18,14 @@ class QEvent
 public:
 	QEvent(String name);
 	virtual ~QEvent();
-	inline const string& getName() const { return _name; }
+	inline const std::string& getName() const { return _name; }
 	
 	/** @brief Helper function to retrieve the passed event arguments.
 	 */
 	template<class... Args>
 	void get(Args&... args);
 protected:
-	string _name;
+	std::string _name;
 	DORA_TYPE_BASE(QEvent);
 };
 

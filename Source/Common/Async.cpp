@@ -39,7 +39,7 @@ void Async::stop()
 	}
 }
 
-void Async::run(const function<Own<Values>()>& worker, const function<void(Own<Values>)>& finisher)
+void Async::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher)
 {
 	if (!_thread.isRunning())
 	{
@@ -68,13 +68,13 @@ void Async::run(const function<Own<Values>()>& worker, const function<void(Own<V
 	_workerSemaphore.post();
 }
 
-void Async::run(const function<void()>& worker)
+void Async::run(const std::function<void()>& worker)
 {
 	if (!_thread.isRunning())
 	{
 		_thread.init(Async::work, this);
 	}
-	auto work = New<function<void()>>(worker);
+	auto work = New<std::function<void()>>(worker);
 	_workerEvent.post("Work"_slice, std::move(work));
 	_workerSemaphore.post();
 }
@@ -93,7 +93,7 @@ int Async::work(bx::Thread* thread, void* userData)
 			{
 				case "Work"_hash:
 				{
-					std::unique_ptr<function<void()>> worker;
+					std::unique_ptr<std::function<void()>> worker;
 					event->get(worker);
 					(*worker)();
 					break;
@@ -134,7 +134,7 @@ void Async::pause()
 			{
 				case "Work"_hash:
 				{
-					Own<function<void()>> worker;
+					Own<std::function<void()>> worker;
 					event->get(worker);
 					_workers.push_back(std::move(worker));
 					break;
@@ -182,7 +182,7 @@ void Async::cancel()
 		{
 			case "Work"_hash:
 			{
-				Own<function<void()>> worker;
+				Own<std::function<void()>> worker;
 				event->get(worker);
 				break;
 			}
@@ -210,7 +210,7 @@ _process(std::max(std::thread::hardware_concurrency(), 4u) - 1)
 	}
 }
 
-void AsyncThread::run(const function<Own<Values>()>& worker, const function<void(Own<Values>)>& finisher)
+void AsyncThread::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher)
 {
 	Async* async = _process[_nextProcess].get();
 	async->run(worker, finisher);

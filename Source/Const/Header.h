@@ -9,26 +9,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <string>
-using std::string;
 #include <vector>
-using std::vector;
 #include <functional>
-using std::function;
 #include <unordered_map>
-using std::unordered_map;
 #include <stack>
-using std::stack;
 #include <queue>
-using std::queue;
 #include <unordered_set>
-using std::unordered_set;
 #include <list>
-using std::list;
-#include <deque>
-using std::deque;
 #include <memory>
 #include <tuple>
-using std::tuple;
 #include <optional>
 #include <algorithm>
 #include <cctype>

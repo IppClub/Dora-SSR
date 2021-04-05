@@ -61,7 +61,7 @@ bool Model::init()
 	_faceRight = _modelDef->isFaceRight();
 	_resetAnimation.end = std::make_pair(this, &Model::onResetAnimationEnd);
 	_root = Node::create();
-	const string& clipFile = _modelDef->getClipFile();
+	const std::string& clipFile = _modelDef->getClipFile();
 	if (!clipFile.empty())
 	{
 		ClipDef* clipDef = SharedClipCache.load(_modelDef->getClipFile());
@@ -69,7 +69,7 @@ bool Model::init()
 		Model::setupCallback();
 		for (int i = 0; i < s_cast<int>(_animationGroups.size()); i++)
 		{
-			const string& name = _modelDef->getAnimationNameByIndex(i);
+			const std::string& name = _modelDef->getAnimationNameByIndex(i);
 			_animationGroups[i]->animationEnd = [this, name](Model* model)
 			{
 				emit("AnimationEnd"_slice, name, s_cast<Playable*>(model));
@@ -516,7 +516,7 @@ Node* Model::getNodeByName(String name) const
 	}
 }
 
-bool Model::eachNode(function<bool(Node* node)> handler) const
+bool Model::eachNode(std::function<bool(Node* node)> handler) const
 {
 	if (!_nodeMap)
 	{
@@ -532,7 +532,7 @@ bool Model::eachNode(function<bool(Node* node)> handler) const
 	}
 }
 
-const string& Model::getCurrentAnimationName() const
+const std::string& Model::getCurrentAnimationName() const
 {
 	return _modelDef->getAnimationNameByIndex(_currentAnimation);
 }
