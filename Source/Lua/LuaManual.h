@@ -54,7 +54,7 @@ bool Node_eachChild(Node* self, const LuaFunction<bool>& func);
 struct Cache
 {
 	static bool load(String filename);
-	static void loadAsync(String filename, const function<void()>& callback);
+	static void loadAsync(String filename, const std::function<void()>& callback);
 	static void update(String filename, String content);
 	static void update(String filename, Texture2D* texture);
 	static void unload();
@@ -152,7 +152,7 @@ public:
 protected:
 	Buffer(Uint32 size = 0);
 private:
-	vector<char> _data;
+	std::vector<char> _data;
 	DORA_TYPE_OVERRIDE(Buffer);
 };
 
@@ -173,6 +173,9 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 
 /* SVGDef */
 SVGDef* SVGDef_create(String filename);
+
+/* QLearner */
+int QLearner_pack(lua_State* L);
 
 NS_DOROTHY_END
 

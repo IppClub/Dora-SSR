@@ -76,7 +76,7 @@ double Profiler::stop(String logName)
 	return deltaTime;
 }
 
-string Path::concat(const list<Slice>& paths)
+std::string Path::concat(const std::list<Slice>& paths)
 {
 	if (paths.empty()) return Slice::Empty;
 	if (paths.size() == 1) return paths.front();
@@ -88,7 +88,7 @@ string Path::concat(const list<Slice>& paths)
 	return path.string();
 }
 
-string Path::getExt(const string& path)
+std::string Path::getExt(const std::string& path)
 {
 	auto ext = fs::path(path).extension().string();
 	if (!ext.empty()) ext.erase(ext.begin());
@@ -96,27 +96,27 @@ string Path::getExt(const string& path)
 	return ext;
 }
 
-string Path::getPath(const string& path)
+std::string Path::getPath(const std::string& path)
 {
 	return fs::path(path).parent_path().string();
 }
 
-string Path::getName(const string& path)
+std::string Path::getName(const std::string& path)
 {
 	return fs::path(path).stem().string();
 }
 
-string Path::getFilename(const string& path)
+std::string Path::getFilename(const std::string& path)
 {
 	return fs::path(path).filename().string();
 }
 
-string Path::replaceExt(const string& path, const string& newExt)
+std::string Path::replaceExt(const std::string& path, const std::string& newExt)
 {
 	return fs::path(path).replace_extension('.' + newExt).string();
 }
 
-string Path::replaceFilename(const string& path, const string& newFile)
+std::string Path::replaceFilename(const std::string& path, const std::string& newFile)
 {
 	return fs::path(path).replace_filename(newFile).string();
 }

@@ -66,7 +66,7 @@ std::shared_ptr<XmlParser<FrameActionDef>> FrameCache::prepareParser(String file
 void FrameCache::Parser::xmlSAX2Text(const char* s, size_t len)
 { }
 
-void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
 {
 	switch (Xml::Frame::Element(name[0]))
 	{
@@ -79,7 +79,7 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					case Xml::Frame::Dorothy::File:
 					{
 						Slice file(attrs[++i]);
-						string localFile = Path::concat({_path, file});
+						std::string localFile = Path::concat({_path, file});
 						_item->clipStr = SharedContent.exist(localFile) ? localFile : file.toString();
 						break;
 					}

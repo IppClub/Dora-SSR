@@ -44,7 +44,7 @@ bool DebugDraw::IsVisible(Body* body)
 
 void DebugDraw::DrawPolygon(const pr::Length2* oldVertices, int vertexCount, const Color& color)
 {
-	vector<Vec2> vertices(vertexCount + 1);
+	std::vector<Vec2> vertices(vertexCount + 1);
 	for (int i = 0; i < vertexCount; i++)
 	{
 		vertices[i] = PhysicsWorld::oVal(oldVertices[i]);
@@ -55,7 +55,7 @@ void DebugDraw::DrawPolygon(const pr::Length2* oldVertices, int vertexCount, con
 
 void DebugDraw::DrawSolidPolygon(const pr::Length2* oldVertices, int vertexCount, const Color& color)
 {
-	vector<Vec2> vertices(vertexCount + 1);
+	std::vector<Vec2> vertices(vertexCount + 1);
 	for (int i = 0; i < vertexCount; i++)
 	{
 		vertices[i] = PhysicsWorld::oVal(oldVertices[i]);

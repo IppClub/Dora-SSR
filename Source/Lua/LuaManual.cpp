@@ -47,7 +47,7 @@ int dora_emit(lua_State* L)
 	return 0;
 }
 
-static vector<string> getVectorString(lua_State* L, int loc)
+static std::vector<std::string> getVectorString(lua_State* L, int loc)
 {
 	int length = s_cast<int>(lua_rawlen(L, loc));
 #ifndef TOLUA_RELEASE
@@ -59,7 +59,7 @@ static vector<string> getVectorString(lua_State* L, int loc)
 	else
 #endif
 	{
-		vector<string> array(length);
+		std::vector<std::string> array(length);
 		for (int i = 0; i < length; i++)
 		{
 			array[i] = tolua_tofieldslice(L, loc, i + 1, 0);
@@ -69,11 +69,11 @@ static vector<string> getVectorString(lua_State* L, int loc)
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'getVectorString'.", &tolua_err);
-	return vector<string>();
+	return std::vector<std::string>();
 #endif
 }
 
-static void pushVectorString(lua_State* L, const vector<string>& array)
+static void pushVectorString(lua_State* L, const std::vector<std::string>& array)
 {
 	lua_createtable(L, s_cast<int>(array.size()), 0);
 	int i = 0;
@@ -84,7 +84,7 @@ static void pushVectorString(lua_State* L, const vector<string>& array)
 	}
 }
 
-static void pushListString(lua_State* L, const list<string>& array)
+static void pushListString(lua_State* L, const std::list<std::string>& array)
 {
 	lua_createtable(L, s_cast<int>(array.size()), 0);
 	int i = 0;
@@ -127,7 +127,7 @@ int Path_create(lua_State* L)
 	}
 #endif
 	int top = lua_gettop(L);
-	list<Slice> paths;
+	std::list<Slice> paths;
 	for (int i = 2; i <= top; i++)
 	{
 #ifndef TOLUA_RELEASE
@@ -358,7 +358,7 @@ bool Node_eachChild(Node* self, const LuaFunction<bool>& func)
 
 bool Cache::load(String filename)
 {
-	string ext = Path::getExt(filename);
+	std::string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
@@ -400,14 +400,14 @@ bool Cache::load(String filename)
 	return false;
 }
 
-void Cache::loadAsync(String filename, const function<void()>& callback)
+void Cache::loadAsync(String filename, const std::function<void()>& callback)
 {
 	if (filename.split("|"_slice).size() == 2)
 	{
 		SharedSkeletonCache.loadAsync(filename, [callback](SkeletonData*) { callback(); });
 		return;
 	}
-	string ext = Path::getExt(filename);
+	std::string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
@@ -453,7 +453,7 @@ void Cache::loadAsync(String filename, const function<void()>& callback)
 
 void Cache::update(String filename, String content)
 {
-	string ext = Path::getExt(filename);
+	std::string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
@@ -487,7 +487,7 @@ void Cache::update(String filename, Texture2D* texture)
 
 bool Cache::unload(String name)
 {
-	string ext = Path::getExt(name);
+	std::string ext = Path::getExt(name);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
@@ -960,7 +960,7 @@ namespace LuaAction
 						}
 						case "Spawn"_hash:
 						{
-							vector<Own<ActionDuration>> actions(length - 1);
+							std::vector<Own<ActionDuration>> actions(length - 1);
 							for (int i = 2; i <= length; i++)
 							{
 								lua_rawgeti(L, location, i);
@@ -971,7 +971,7 @@ namespace LuaAction
 						}
 						case "Sequence"_hash:
 						{
-							vector<Own<ActionDuration>> actions(length - 1);
+							std::vector<Own<ActionDuration>> actions(length - 1);
 							for (int i = 2; i <= length; i++)
 							{
 								lua_rawgeti(L, location, i);
@@ -1041,7 +1041,7 @@ tolua_lerror:
 void __Model_getClipFile(lua_State* L, String filename)
 {
 	ModelDef* modelDef = SharedModelCache.load(filename);
-	const string& clipFile = modelDef->getClipFile();
+	const std::string& clipFile = modelDef->getClipFile();
 	lua_pushlstring(L, clipFile.c_str(), clipFile.size());
 }
 
@@ -1179,7 +1179,7 @@ Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot)
 
 Array* __Dictionary_getKeys(Dictionary* self)
 {
-	vector<Slice> keys = self->getKeys();
+	std::vector<Slice> keys = self->getKeys();
 	Array* array = Array::create(s_cast<int>(keys.size()));
 	for (size_t i = 0; i < keys.size(); i++)
 	{
@@ -1915,6 +1915,65 @@ SVGDef* SVGDef_create(String filename)
 	return SharedSVGCache.load(filename);
 }
 
+/* QLearner */
+int QLearner_pack(lua_State* L)
+{
+	/* 1 self, 2 table */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_istable(L, 1, 0, &tolua_err)
+		|| !tolua_istable(L, 2, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		int hintsCount = s_cast<int>(lua_rawlen(L, 1));
+#ifndef TOLUA_RELEASE
+		if (!tolua_isintegerarray(L, 1, hintsCount, 0, &tolua_err))
+		{
+			goto tolua_lerror;
+		}
+#endif
+		std::vector<Uint32> hints;
+		hints.resize(hintsCount);
+		for (int i = 0; i < hintsCount; i++)
+		{
+			hints[i] = s_cast<Uint32>(tolua_tofieldinteger(L, 1, i + 1, 0));
+		}
+		
+		int valuesCount = s_cast<int>(lua_rawlen(L, 2));
+#ifndef TOLUA_RELEASE
+		if (!tolua_isintegerarray(L, 2, valuesCount, 0, &tolua_err))
+		{
+			goto tolua_lerror;
+		}
+#endif
+		std::vector<Uint32> values;
+		values.resize(valuesCount);
+		for (int i = 0; i < valuesCount; i++)
+		{
+			values[i] = s_cast<Uint32>(tolua_tofieldinteger(L, 2, i + 1, 0));
+		}
+		QLearner::QState state = 0;
+#ifndef TOLUA_RELEASE
+		try {
+#endif
+			state = QLearner::pack(hints, values);
+#ifndef TOLUA_RELEASE
+		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
+#endif
+		lua_pushinteger(L, s_cast<lua_Integer>(state));
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DB_transaction'.", &tolua_err);
+	return 0;
+#endif
+}
+
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -2120,7 +2179,7 @@ int DB_transaction(lua_State* L)
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_transaction'", nullptr);
 #endif
-		vector<std::pair<string, vector<vector<Own<Value>>>>> sqls;
+		std::vector<std::pair<std::string, std::vector<std::vector<Own<Value>>>>> sqls;
 		int itemCount = s_cast<int>(lua_rawlen(L, 2));
 		sqls.resize(itemCount);
 		for (int i = 0; i < itemCount; i++)
@@ -2230,7 +2289,7 @@ int DB_query(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_query'", nullptr);
 #endif
 		auto sql = tolua_toslice(L, 2, nullptr);
-		vector<Own<Value>> args;
+		std::vector<Own<Value>> args;
 		bool withColumns = false;
 		if (lua_istable(L, 3) != 0)
 		{
@@ -2287,7 +2346,7 @@ int DB_insert(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_insert'", nullptr);
 #endif
 		auto tableName = tolua_toslice(L, 2, nullptr);
-		vector<vector<Own<Value>>> values;
+		std::vector<std::vector<Own<Value>>> values;
 		int size = s_cast<int>(lua_rawlen(L, 3));
 		values.resize(size);
 		for (int i = 0; i < size; i++)
@@ -2345,7 +2404,7 @@ int DB_exec(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_update'", nullptr);
 #endif
 		auto sql = tolua_toslice(L, 2, nullptr);
-		vector<Own<Value>> values;
+		std::vector<Own<Value>> values;
 		if (lua_istable(L, 3) != 0)
 		{
 			int size = s_cast<int>(lua_rawlen(L, 3));
@@ -2398,7 +2457,7 @@ int DB_queryAsync(lua_State* L)
 #endif
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 2)));
 		auto sql = tolua_toslice(L, 3, nullptr);
-		vector<Own<Value>> args;
+		std::vector<Own<Value>> args;
 		bool withColumns = false;
 		if (lua_istable(L, 4) != 0)
 		{
@@ -2413,7 +2472,7 @@ int DB_queryAsync(lua_State* L)
 			withColumns = tolua_toboolean(L, 5, 0);
 		}
 		else withColumns = tolua_toboolean(L, 4, 0);
-		self->queryAsync(sql, std::move(args), withColumns, [handler](const deque<vector<Own<Value>>>& result)
+		self->queryAsync(sql, std::move(args), withColumns, [handler](const std::deque<std::vector<Own<Value>>>& result)
 		{
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
@@ -2462,7 +2521,7 @@ int DB_insertAsync(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
 #endif
 		auto tableName = tolua_toslice(L, 2, nullptr);
-		vector<vector<Own<Value>>> values;
+		std::vector<std::vector<Own<Value>>> values;
 		int size = s_cast<int>(lua_rawlen(L, 3));
 		values.resize(size);
 		for (int i = 0; i < size; i++)
@@ -2522,7 +2581,7 @@ int DB_execAsync(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
 #endif
 		auto sql = tolua_toslice(L, 2, nullptr);
-		vector<Own<Value>> values;
+		std::vector<Own<Value>> values;
 		int funcId = 0;
 		if (lua_istable(L, 3) != 0)
 		{

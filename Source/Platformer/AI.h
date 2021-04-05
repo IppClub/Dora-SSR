@@ -21,7 +21,7 @@ NS_DECISION_BEGIN
 class AI
 {
 public:
-	PROPERTY_READONLY_CALL(vector<Slice>&, DecisionNodes);
+	PROPERTY_READONLY_CALL(std::vector<Slice>&, DecisionNodes);
 	bool runDecisionTree(Unit* unit);
 	Unit* getSelf() const;
 	Array* getUnitsByRelation(Relation relation) const;
@@ -49,8 +49,8 @@ private:
 	float _nearestFriendDistance;
 	float _nearestEnemyDistance;
 	float _nearestNeutralDistance;
-	unordered_map<string, Ref<Decision::Leaf>> _decisionTrees;
-	vector<Slice> _decisionNodes;
+	std::unordered_map<std::string, Ref<Decision::Leaf>> _decisionTrees;
+	std::vector<Slice> _decisionNodes;
 	friend class Instinct;
 };
 

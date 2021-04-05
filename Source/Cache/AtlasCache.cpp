@@ -53,7 +53,7 @@ spine::Atlas* Atlas::get() const
 
 Atlas* AtlasCache::load(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _atlas.find(fullPath);
 	if (it != _atlas.end())
 	{
@@ -69,9 +69,9 @@ Atlas* AtlasCache::load(String filename)
 	return nullptr;
 }
 
-void AtlasCache::loadAsync(String filename, const function<void(Atlas*)>& handler)
+void AtlasCache::loadAsync(String filename, const std::function<void(Atlas*)>& handler)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _atlas.find(fullPath);
 	if (it != _atlas.end())
 	{
@@ -98,7 +98,7 @@ void AtlasCache::loadAsync(String filename, const function<void(Atlas*)>& handle
 		for (size_t i = 0; i < size; i++)
 		{
 			const auto& path = pages[i]->texturePath;
-			string texFile(path.buffer(), path.length());
+			std::string texFile(path.buffer(), path.length());
 			SharedTextureCache.loadAsync(file, [texFile, file, atlasData, i, handler, this](Texture2D* texture)
 			{
 				auto& data = *atlasData.get();
@@ -140,7 +140,7 @@ void AtlasCache::loadAsync(String filename, const function<void(Atlas*)>& handle
 
 bool AtlasCache::unload(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _atlas.find(fullPath);
 	if (it != _atlas.end())
 	{
@@ -175,7 +175,7 @@ bool AtlasCache::unload()
 
 void AtlasCache::removeUnused()
 {
-	vector<unordered_map<string,Ref<Atlas>>::iterator> targets;
+	std::vector<std::unordered_map<std::string,Ref<Atlas>>::iterator> targets;
 	for (auto it = _atlas.begin();it != _atlas.end();++it)
 	{
 		if (it->second->isSingleReferenced())

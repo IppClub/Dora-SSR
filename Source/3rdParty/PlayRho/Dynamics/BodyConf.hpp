@@ -290,6 +290,32 @@ constexpr Angle GetAngle(const BodyConf& conf) noexcept
     return conf.angle;
 }
 
+/// @brief Operator equals.
+constexpr bool operator==(const BodyConf& lhs, const BodyConf& rhs) noexcept
+{
+    return lhs.type == rhs.type && //
+           lhs.location == rhs.location && //
+           lhs.angle == rhs.angle && //
+           lhs.linearVelocity == rhs.linearVelocity && //
+           lhs.angularVelocity == rhs.angularVelocity && //
+           lhs.linearAcceleration == rhs.linearAcceleration && //
+           lhs.angularAcceleration == rhs.angularAcceleration && //
+           lhs.linearDamping == rhs.linearDamping && //
+           lhs.angularDamping == rhs.angularDamping && //
+           lhs.underActiveTime == rhs.underActiveTime && //
+           lhs.allowSleep == rhs.allowSleep && //
+           lhs.awake == rhs.awake && //
+           lhs.fixedRotation == rhs.fixedRotation && //
+           lhs.bullet == rhs.bullet && //
+           lhs.enabled == rhs.enabled;
+}
+
+/// @brief Operator not-equals.
+constexpr bool operator!=(const BodyConf& lhs, const BodyConf& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 } // namespace d2
 } // namespace playrho
 

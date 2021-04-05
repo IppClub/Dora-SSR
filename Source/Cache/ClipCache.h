@@ -25,12 +25,12 @@ class ClipDef : public Object
 {
 public:
 	/** Name of the texture file. Name only, not file path. */
-	string textureFile;
+	std::string textureFile;
 	/** Different areas on this texture. */
-	unordered_map<string, Own<Rect>> rects;
+	std::unordered_map<std::string, Own<Rect>> rects;
 	/** Get a sprite instance with an name. */
 	Sprite* toSprite(String name);
-	string toXml();
+	std::string toXml();
 	CREATE_FUNC(ClipDef);
 protected:
 	ClipDef();
@@ -56,11 +56,11 @@ private:
 	{
 	public:
 		Parser(ClipDef* def, String path):XmlParser<ClipDef>(this, def),_path(path) { }
-		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
 	private:
-		string _path;
+		std::string _path;
 	};
 	SINGLETON_REF(ClipCache, Director, AsyncThread);
 };

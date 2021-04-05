@@ -70,19 +70,19 @@ bool RendererManager::isGrouping() const
 
 void RendererManager::pushGroupItem(Node* item)
 {
-	vector<Node*>* renderGroup = _renderGroups.top().get();
+	std::vector<Node*>* renderGroup = _renderGroups.top().get();
 	renderGroup->push_back(item);
 }
 
 void RendererManager::pushGroup(Uint32 capacity)
 {
-	_renderGroups.push(New<vector<Node*>>());
+	_renderGroups.push(New<std::vector<Node*>>());
 	_renderGroups.top()->reserve(s_cast<size_t>(capacity));
 }
 
 void RendererManager::popGroup()
 {
-	vector<Node*>* renderGroup = _renderGroups.top().get();
+	std::vector<Node*>* renderGroup = _renderGroups.top().get();
 	std::stable_sort(renderGroup->begin(), renderGroup->end(), [](Node* nodeA, Node* nodeB)
 	{
 		return nodeA->getRenderOrder() < nodeB->getRenderOrder();

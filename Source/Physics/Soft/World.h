@@ -17,8 +17,8 @@ NS_BEGIN(Soft)
 class World
 {
 public:
-	PROPERTY_READONLY_CREF(vector<Own<Particle>>, Particles);
-	PROPERTY_READONLY_CREF(vector<Own<Constraint>>, Constraints);
+	PROPERTY_READONLY_CREF(std::vector<Own<Particle>>, Particles);
+	PROPERTY_READONLY_CREF(std::vector<Own<Constraint>>, Constraints);
 	PROPERTY_READONLY_CREF(Vec2, Size);
 
 	/** @brief Class constructor. Initialize the simulation world. Set global constants.
@@ -59,9 +59,9 @@ private:
 	// global gravitational acceleration
 	Vec2 _gravity;
 	// list of all particles being simulated
-	vector<Own<Particle>> _particles;
+	std::vector<Own<Particle>> _particles;
 	// list of all constraints being simulated
-	vector<Own<Constraint>> _constraints;
+	std::vector<Own<Constraint>> _constraints;
 };
 
 NS_END(Soft)

@@ -145,7 +145,7 @@ bool ConNode::doAction(Unit* self)
 	return false;
 }
 
-ConNode::ConNode(String name, const function<bool(Unit*)>& handler):
+ConNode::ConNode(String name, const std::function<bool(Unit*)>& handler):
 _name(name),
 _handler(handler)
 { }
@@ -178,14 +178,14 @@ bool DynamicActNode::doAction(Unit* self)
 	{
 		if (self->isReceivingDecisionTrace())
 		{
-			SharedAI.getDecisionNodes().push_back("[dynamic] "_slice + (actionName.empty() ? string("none"_slice) : actionName));
+			SharedAI.getDecisionNodes().push_back("[dynamic] "_slice + (actionName.empty() ? std::string("none"_slice) : actionName));
 		}
 		return true;
 	}
 	return false;
 }
 
-DynamicActNode::DynamicActNode(const function<string(Unit*)>& handler):
+DynamicActNode::DynamicActNode(const std::function<std::string(Unit*)>& handler):
 _handler(handler)
 { }
 
@@ -242,7 +242,7 @@ Leaf* Seq(Leaf* nodes[], int count)
 	return seq;
 }
 
-Leaf* Con(String name, const function<bool(Unit*)>& handler)
+Leaf* Con(String name, const std::function<bool(Unit*)>& handler)
 {
 	return ConNode::create(name, handler);
 }
@@ -252,7 +252,7 @@ Leaf* Act(String actionName)
 	return ActNode::create(actionName);
 }
 
-Leaf* Act(const function<string(Unit*)>& handler)
+Leaf* Act(const std::function<std::string(Unit*)>& handler)
 {
 	return DynamicActNode::create(handler);
 }
@@ -487,7 +487,7 @@ Status ConNode::tick(Blackboard* board)
 	return Status::Failure;
 }
 
-ConNode::ConNode(String name, const function<bool(Blackboard*)>& handler):
+ConNode::ConNode(String name, const std::function<bool(Blackboard*)>& handler):
 _name(name),
 _handler(handler)
 { }
@@ -742,7 +742,7 @@ Leaf* Seq(Leaf* nodes[], int count)
 	return seq;
 }
 
-Leaf* Con(String name, const function<bool(Blackboard*)>& handler)
+Leaf* Con(String name, const std::function<bool(Blackboard*)>& handler)
 {
 	return ConNode::create(name, handler);
 }

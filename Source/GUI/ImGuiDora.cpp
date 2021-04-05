@@ -84,7 +84,7 @@ public:
 		_logs.clear();
 	}
 
-	void addLog(const string& text)
+	void addLog(const std::string& text)
 	{
 		size_t start = 0, end = 0;
 		std::list<Slice> lines;
@@ -201,7 +201,7 @@ public:
 		{
 			ImGui::SetNextWindowPos(Vec2::zero);
 			ImGui::SetNextWindowSize(Vec2{1,1}*SharedApplication.getVisualSize(), ImGuiCond_Always);
-			ImGui::Begin((string(title)+"_full").c_str(), nullptr, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
+			ImGui::Begin((std::string(title)+"_full").c_str(), nullptr, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
 		}
 		else
 		{
@@ -212,7 +212,7 @@ public:
 		ImGui::SameLine();
 		if (ImGui::Button("Copy") && !_logs.empty())
 		{
-			string logText;
+			std::string logText;
 			for (const auto& line : _logs)
 			{
 				logText.append(line);
@@ -303,7 +303,7 @@ public:
 					break;
 				}
 			}
-			string codes = _buf.data();
+			std::string codes = _buf.data();
 			_buf.fill('\0');
 			_history.push_back(codes);
 			LogPrint(codes + '\n');
@@ -382,10 +382,10 @@ private:
 	int _forceScroll;
 	bool _scrollToBottom;
 	std::array<char, 256> _buf;
-	vector<const char*> _commands;
-	vector<string> _history;
+	std::vector<const char*> _commands;
+	std::vector<std::string> _history;
 	int _historyPos;
-	std::deque<string> _logs;
+	std::deque<std::string> _logs;
 	std::deque<Slice> _filteredLogs;
 	ImGuiTextFilter _filter;
 };

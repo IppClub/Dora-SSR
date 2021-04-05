@@ -54,7 +54,7 @@ void Playable::setLook(String var)
 	_lookName = var;
 }
 
-const string& Playable::getLook() const
+const std::string& Playable::getLook() const
 {
 	return _lookName;
 }

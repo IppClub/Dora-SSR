@@ -47,7 +47,7 @@ public:
 	/** Load a new xml file or get its data for cache. */
 	T* load(String filename)
 	{
-		string file = SharedContent.getFullPath(filename);
+		std::string file = SharedContent.getFullPath(filename);
 		auto it = _dict.find(file);
 		if (it != _dict.end())
 		{
@@ -76,9 +76,9 @@ public:
 			return nullptr;
 		}
 	}
-	void loadAsync(String filename, const function<void(T* item)>& handler)
+	void loadAsync(String filename, const std::function<void(T* item)>& handler)
 	{
-		string fullPath = SharedContent.getFullPath(filename);
+		std::string fullPath = SharedContent.getFullPath(filename);
 		auto it = _dict.find(fullPath);
 		if (it != _dict.end())
 		{
@@ -86,7 +86,7 @@ public:
 		}
 		else
 		{
-			string file(filename);
+			std::string file(filename);
 			SharedContent.loadAsyncUnsafe(file, [this, file, handler](Uint8* data, Sint64 size)
 			{
 				if (data)
@@ -123,8 +123,8 @@ public:
 	}
 	T* update(String name, String content)
 	{
-		string file = SharedContent.getFullPath(name);
-		string data(content);
+		std::string file = SharedContent.getFullPath(name);
+		std::string data(content);
 		T* result = nullptr;
 		auto parser = prepareParser(name);
 		try
@@ -142,14 +142,14 @@ public:
 	}
 	T* update(String name, T* item)
 	{
-		string file = SharedContent.getFullPath(name);
+		std::string file = SharedContent.getFullPath(name);
 		_dict[file] = item;
 		return item;
 	}
 	/** Purge the cached file. */
 	bool unload(String filename)
 	{
-		string file = SharedContent.getFullPath(filename);
+		std::string file = SharedContent.getFullPath(filename);
 		auto it = _dict.find(file);
 		if (it != _dict.end())
 		{
@@ -181,7 +181,7 @@ public:
 	}
 protected:
 	XmlItemCache() { }
-	unordered_map<string,Ref<T>> _dict;
+	std::unordered_map<std::string,Ref<T>> _dict;
 private:
 	/** Implement it to get prepare for specific xml parse. */
 	virtual std::shared_ptr<XmlParser<T>> prepareParser(String filename) = 0;

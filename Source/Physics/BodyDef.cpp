@@ -56,9 +56,9 @@ void BodyDef::attachPolygon(float width, float height, float density, float fric
 	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
-void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
+void BodyDef::attachPolygon(const std::vector<Vec2>& vertices, float density, float friction, float restitution)
 {
-	vector<pr::Length2> vs(vertices.size());
+	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		vs[i] = pr::Length2{
@@ -76,7 +76,7 @@ void BodyDef::attachPolygon(const vector<Vec2>& vertices, float density, float f
 
 void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, float friction, float restitution)
 {
-	vector<pr::Length2> vs(count);
+	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = pr::Length2{
@@ -92,7 +92,7 @@ void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, flo
 	_fixtureConfs.emplace_back(0, pd::Shape{conf}, pd::FixtureConf{});
 }
 
-void BodyDef::attachMulti(const vector<Vec2>& vertices, float density, float friction, float restitution)
+void BodyDef::attachMulti(const std::vector<Vec2>& vertices, float density, float friction, float restitution)
 {
 	pd::MultiShapeConf conf = pd::MultiShapeConf{};
 	pd::VertexSet vs;
@@ -168,9 +168,9 @@ void BodyDef::attachDisk(float radius, float density, float friction, float rest
 	BodyDef::attachDisk(Vec2::zero, radius, density, friction, restitution);
 }
 
-void BodyDef::attachChain(const vector<Vec2>& vertices, float friction, float restitution)
+void BodyDef::attachChain(const std::vector<Vec2>& vertices, float friction, float restitution)
 {
-	vector<pr::Length2> vs(vertices.size());
+	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		vs[i] = pr::Length2{
@@ -187,7 +187,7 @@ void BodyDef::attachChain(const vector<Vec2>& vertices, float friction, float re
 
 void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, float restitution)
 {
-	vector<pr::Length2> vs(count);
+	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = pr::Length2{
@@ -225,9 +225,9 @@ void BodyDef::attachPolygonSensor(int tag, float width, float height, const Vec2
 	);
 }
 
-void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
+void BodyDef::attachPolygonSensor(int tag, const std::vector<Vec2>& vertices)
 {
-	vector<pr::Length2> vs(vertices.size());
+	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		vs[i] = pr::Length2{
@@ -248,7 +248,7 @@ void BodyDef::attachPolygonSensor(int tag, const vector<Vec2>& vertices)
 
 void BodyDef::attachPolygonSensor(int tag, const Vec2 vertices[], int count)
 {
-	vector<pr::Length2> vs(count);
+	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = pr::Length2{
@@ -326,9 +326,9 @@ FixtureDef* BodyDef::polygon(float width, float height, float density, float fri
 	return &_tempConf;
 }
 
-FixtureDef* BodyDef::polygon(const vector<Vec2>& vertices, float density, float friction, float restitution)
+FixtureDef* BodyDef::polygon(const std::vector<Vec2>& vertices, float density, float friction, float restitution)
 {
-	vector<pr::Length2> vs(vertices.size());
+	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		vs[i] = pr::Length2{
@@ -352,7 +352,7 @@ FixtureDef* BodyDef::polygon(const vector<Vec2>& vertices, float density, float 
 
 FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, float friction, float restitution)
 {
-	vector<pr::Length2> vs(count);
+	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = pr::Length2{
@@ -374,7 +374,7 @@ FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, fl
 	return &_tempConf;
 }
 
-FixtureDef* BodyDef::multi(const vector<Vec2>& vertices, float density, float friction, float restitution)
+FixtureDef* BodyDef::multi(const std::vector<Vec2>& vertices, float density, float friction, float restitution)
 {
 	pd::MultiShapeConf conf = pd::MultiShapeConf{};
 	pd::VertexSet vs;
@@ -453,9 +453,9 @@ FixtureDef* BodyDef::disk(float radius, float density, float friction, float res
 	return BodyDef::disk(Vec2::zero, radius, density, friction, restitution);
 }
 
-FixtureDef* BodyDef::chain(const vector<Vec2>& vertices, float friction, float restitution)
+FixtureDef* BodyDef::chain(const std::vector<Vec2>& vertices, float friction, float restitution)
 {
-	vector<pr::Length2> vs(vertices.size());
+	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		vs[i] = pr::Length2{
@@ -473,7 +473,7 @@ FixtureDef* BodyDef::chain(const vector<Vec2>& vertices, float friction, float r
 
 FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, float restitution)
 {
-	vector<pr::Length2> vs(count);
+	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++)
 	{
 		vs[i] = pr::Length2{

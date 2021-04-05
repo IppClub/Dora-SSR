@@ -34,8 +34,8 @@ public:
 	Uint32 maxIdCount;
 	Uint32 maxLuaRefCount;
 	Uint32 luaRefCount;
-	stack<Uint32> availableLuaRefs;
-	stack<Uint32> availableIds;
+	std::stack<Uint32> availableLuaRefs;
+	std::stack<Uint32> availableIds;
 	SINGLETON_REF(ObjectBase, AsyncLogThread);
 };
 

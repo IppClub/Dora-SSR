@@ -36,7 +36,7 @@ public:
 		LuaFunction<bool> available,
 		LuaFunction<LuaFunction<bool>> create,
 		LuaFunction<void> stop);
-	string name;
+	std::string name;
 	int priority;
 	float reaction;
 	float recovery;
@@ -50,7 +50,7 @@ class UnitAction
 {
 public:
 	PROPERTY_READONLY(Behavior::Status, Status);
-	PROPERTY_READONLY_CREF(string, Name);
+	PROPERTY_READONLY_CREF(std::string, Name);
 	PROPERTY_READONLY(int, Priority);
 	PROPERTY_READONLY(Unit*, Owner);
 	PROPERTY_READONLY(float, EclapsedTime);
@@ -82,8 +82,8 @@ private:
 	Behavior::Status _status;
 	int _priority;
 	float _decisionDelay;
-	string _name;
-	static unordered_map<string, Own<UnitActionDef>> _actionDefs;
+	std::string _name;
+	static std::unordered_map<std::string, Own<UnitActionDef>> _actionDefs;
 	friend class Unit;
 };
 
@@ -96,10 +96,10 @@ public:
 	virtual void update(float dt) override;
 	virtual void stop() override;
 private:
-	function<bool(Unit*,UnitAction*)> _available;
-	function<LuaFunction<bool>(Unit*,UnitAction*)> _create;
-	function<bool(Unit*,UnitAction*,float)> _update;
-	function<void(Unit*,UnitAction*)> _stop;
+	std::function<bool(Unit*,UnitAction*)> _available;
+	std::function<LuaFunction<bool>(Unit*,UnitAction*)> _create;
+	std::function<bool(Unit*,UnitAction*,float)> _update;
+	std::function<void(Unit*,UnitAction*)> _stop;
 	friend class UnitActionDef;
 };
 

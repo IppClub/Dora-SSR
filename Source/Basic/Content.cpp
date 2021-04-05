@@ -80,7 +80,7 @@ void Content::save(String filename, Uint8* content, Sint64 size)
 
 bool Content::remove(String filename)
 {
-	string fullpath = Content::getFullPath(filename);
+	std::string fullpath = Content::getFullPath(filename);
 	return fs::remove_all(fullpath) > 0;
 }
 
@@ -90,27 +90,27 @@ bool Content::createFolder(String folder)
 	return fs::create_directories(path);
 }
 
-list<string> Content::getDirs(String path)
+std::list<std::string> Content::getDirs(String path)
 {
 	return Content::getDirEntries(path, true);
 }
 
-list<string> Content::getFiles(String path)
+std::list<std::string> Content::getFiles(String path)
 {
 	return Content::getDirEntries(path, false);
 }
 
-list<string> Content::getAllFiles(String path)
+std::list<std::string> Content::getAllFiles(String path)
 {
-	string searchName = path.empty() ? _assetPath : path.toString();
-	string fullPath = Content::getFullPath(searchName);
+	std::string searchName = path.empty() ? _assetPath : path.toString();
+	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
 	if (fullPath[0] != '/')
 	{
 		return g_apkFile->getAllFiles(fullPath);
 	}
 #endif // BX_PLATFORM_ANDROID
-	list<string> files;
+	std::list<std::string> files;
 	if (Content::isFileExist(fullPath))
 	{
 		fs::path parentPath = fullPath;
@@ -129,9 +129,9 @@ list<string> Content::getAllFiles(String path)
 	return files;
 }
 
-bool Content::visitDir(String path, const function<bool(String,String)>& func)
+bool Content::visitDir(String path, const std::function<bool(String,String)>& func)
 {
-	function<bool(String)> visit;
+	std::function<bool(String)> visit;
 	visit = [&visit,&func,this](String path)
 	{
 		auto files = getFiles(path);
@@ -150,20 +150,20 @@ bool Content::visitDir(String path, const function<bool(String,String)>& func)
 	return visit(path);
 }
 
-const string& Content::getAssetPath() const
+const std::string& Content::getAssetPath() const
 {
 	return _assetPath;
 }
 
-const string& Content::getWritablePath() const
+const std::string& Content::getWritablePath() const
 {
 	return _writablePath;
 }
 
-static tuple<string,string> splitDirectoryAndFilename(const string& filePath)
+static std::tuple<std::string,std::string> splitDirectoryAndFilename(const std::string& filePath)
 {
-	string file = filePath;
-	string path;
+	std::string file = filePath;
+	std::string path;
 	size_t pos = filePath.find_last_of("/\\");
 	if (pos != std::string::npos)
 	{
@@ -173,7 +173,7 @@ static tuple<string,string> splitDirectoryAndFilename(const string& filePath)
 	return std::make_tuple(path, file);
 }
 
-string Content::getFullPath(String filename)
+std::string Content::getFullPath(String filename)
 {
 	AssertIf(filename.empty(), "invalid filename for full path.");
 
@@ -197,7 +197,7 @@ string Content::getFullPath(String filename)
 		return it->second;
 	}
 
-	string path, file, fullPath;
+	std::string path, file, fullPath;
 	auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
 	for (const auto& searchPath : _searchPaths)
 	{
@@ -223,20 +223,20 @@ string Content::getFullPath(String filename)
 
 void Content::insertSearchPath(int index, String path)
 {
-	string searchPath = Content::getFullPath(path);
+	std::string searchPath = Content::getFullPath(path);
 	_searchPaths.insert(_searchPaths.begin() + index, searchPath);
 	_fullPathCache.clear();
 }
 
 void Content::addSearchPath(String path)
 {
-	string searchPath = Content::getFullPath(path);
+	std::string searchPath = Content::getFullPath(path);
 	_searchPaths.push_back(searchPath);
 }
 
 void Content::removeSearchPath(String path)
 {
-	string realPath = Content::getFullPath(path);
+	std::string realPath = Content::getFullPath(path);
 	for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it)
 	{
 		if (*it == realPath)
@@ -248,33 +248,33 @@ void Content::removeSearchPath(String path)
 	}
 }
 
-void Content::setSearchPaths(const vector<string>& searchPaths)
+void Content::setSearchPaths(const std::vector<std::string>& searchPaths)
 {
 	_searchPaths.clear();
 	_fullPathCache.clear();
-	for (const string& searchPath : searchPaths)
+	for (const std::string& searchPath : searchPaths)
 	{
 		Content::addSearchPath(searchPath);
 	}
 }
 
-const vector<string>& Content::getSearchPaths() const
+const std::vector<std::string>& Content::getSearchPaths() const
 {
 	return _searchPaths;
 }
 
 void Content::copyUnsafe(String src, String dst)
 {
-	string srcPath = Content::getFullPath(src);
+	std::string srcPath = Content::getFullPath(src);
 	// Info("copy file from {}", srcPath);
 	// Info("copy file to {}", dst);
 	if (Content::isPathFolder(srcPath))
 	{
-		string dstPath = dst;
+		std::string dstPath = dst;
 		auto folders = Content::getDirEntries(src, true);
-		for (const string& folder : folders)
+		for (const std::string& folder : folders)
 		{
-			string dstFolder = (fs::path(dstPath) / folder).string();
+			std::string dstFolder = (fs::path(dstPath) / folder).string();
 			if (!Content::isFileExist(dstFolder))
 			{
 				if (!Content::createFolder(dstFolder))
@@ -282,11 +282,11 @@ void Content::copyUnsafe(String src, String dst)
 					Error("Create folder failed! {}", dstFolder);
 				}
 			}
-			string srcFolder = (fs::path(srcPath) / folder).string();
+			std::string srcFolder = (fs::path(srcPath) / folder).string();
 			Content::copyUnsafe(srcFolder, dstFolder);
 		}
 		auto files = Content::getDirEntries(src, false);
-		for (const string& file : files)
+		for (const std::string& file : files)
 		{
 			// Info("now copy file {}",file);
 			ofstream stream(fs::path(dstPath) / file, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -312,9 +312,9 @@ void Content::copyUnsafe(String src, String dst)
 	}
 }
 
-void Content::loadAsyncUnsafe(String filename, const function<void (Uint8*, Sint64)>& callback)
+void Content::loadAsyncUnsafe(String filename, const std::function<void (Uint8*, Sint64)>& callback)
 {
-	string fileStr = filename;
+	std::string fileStr = filename;
 	SharedAsyncThread.FileIO.run([fileStr, this]()
 	{
 		Sint64 size = 0;
@@ -330,7 +330,7 @@ void Content::loadAsyncUnsafe(String filename, const function<void (Uint8*, Sint
 	});
 }
 
-void Content::loadAsync(String filename, const function<void(String)>& callback)
+void Content::loadAsync(String filename, const std::function<void(String)>& callback)
 {
 	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
@@ -339,7 +339,7 @@ void Content::loadAsync(String filename, const function<void(String)>& callback)
 	});
 }
 
-void Content::loadAsyncData(String filename, const function<void(OwnArray<Uint8>&&,size_t)>& callback)
+void Content::loadAsyncData(String filename, const std::function<void(OwnArray<Uint8>&&,size_t)>& callback)
 {
 	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
@@ -348,7 +348,7 @@ void Content::loadAsyncData(String filename, const function<void(OwnArray<Uint8>
 }
 
 
-void Content::loadAsyncBX(String filename, const function<void(const bgfx::Memory*)>& callback)
+void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback)
 {
 	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
 	{
@@ -356,9 +356,9 @@ void Content::loadAsyncBX(String filename, const function<void(const bgfx::Memor
 	});
 }
 
-void Content::copyAsync(String src, String dst, const function<void()>& callback)
+void Content::copyAsync(String src, String dst, const std::function<void()>& callback)
 {
-	string srcFile(src), dstFile(dst);
+	std::string srcFile(src), dstFile(dst);
 	SharedAsyncThread.FileIO.run([srcFile,dstFile,this]()
 	{
 		Content::copyUnsafe(srcFile, dstFile);
@@ -371,10 +371,10 @@ void Content::copyAsync(String src, String dst, const function<void()>& callback
 	});
 }
 
-void Content::saveAsync(String filename, String content, const function<void()>& callback)
+void Content::saveAsync(String filename, String content, const std::function<void()>& callback)
 {
-	string file(filename);
-	auto data = std::make_shared<string>(content);
+	std::string file(filename);
+	auto data = std::make_shared<std::string>(content);
 	SharedAsyncThread.FileIO.run([file,data,this]()
 	{
 		Content::save(file, *data);
@@ -387,9 +387,9 @@ void Content::saveAsync(String filename, String content, const function<void()>&
 	});
 }
 
-void Content::saveAsync(String filename, OwnArray<Uint8> content, size_t size, const function<void()>& callback)
+void Content::saveAsync(String filename, OwnArray<Uint8> content, size_t size, const std::function<void()>& callback)
 {
-	string file(filename);
+	std::string file(filename);
 	auto data = std::make_shared<OwnArray<Uint8>>(std::move(content));
 	SharedAsyncThread.FileIO.run([file,data,size,this]()
 	{
@@ -413,17 +413,17 @@ bool Content::isFolder(String path)
 	return Content::isPathFolder(Content::getFullPath(path));
 }
 
-list<string> Content::getDirEntries(String path, bool isFolder)
+std::list<std::string> Content::getDirEntries(String path, bool isFolder)
 {
-	string searchName = path.empty() ? _assetPath : path.toString();
-	string fullPath = Content::getFullPath(searchName);
+	std::string searchName = path.empty() ? _assetPath : path.toString();
+	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
 	if (fullPath[0] != '/')
 	{
 		return g_apkFile->getDirEntries(fullPath, isFolder);
 	}
 #endif // BX_PLATFORM_ANDROID
-	list<string> files;
+	std::list<std::string> files;
 	if (Content::isFileExist(fullPath))
 	{
 		fs::path parentPath = fullPath;
@@ -468,7 +468,7 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 	{
 		return data;
 	}
-	string fullPath = Content::getFullPath(filename);
+	std::string fullPath = Content::getFullPath(filename);
 	if (fullPath[0] != '/')
 	{
 		data = g_apkFile->getFileData(fullPath, r_cast<unsigned long*>(&size));
@@ -505,7 +505,7 @@ void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)
 	{
 		return;
 	}
-	string fullPath = Content::getFullPath(filename);
+	std::string fullPath = Content::getFullPath(filename);
 	if (fullPath[0] != '/')
 	{
 		g_apkFile->getFileDataByChunks(fullPath, handler);
@@ -543,7 +543,7 @@ bool Content::isFileExist(String strFilePath)
 	// Check whether file exists in apk.
 	if (strFilePath[0] != '/')
 	{
-		string strPath = strFilePath;
+		std::string strPath = strFilePath;
 		if (strPath.find(_assetPath) != 0)
 		{
 			// Didn't find "assets/" at the beginning of the path, adding it.
@@ -577,7 +577,7 @@ bool Content::isAbsolutePath(String strPath)
 	// 1) Files in APK, e.g. assets/path/path/file.png
 	// 2) Files not in APK, e.g. /data/data/org.luvfight.dorothy/cache/path/path/file.png, or /sdcard/path/path/file.png.
 	// So these two situations need to be checked on Android.
-	if (strPath[0] == '/' || string(strPath).find(_assetPath) == 0)
+	if (strPath[0] == '/' || std::string(strPath).find(_assetPath) == 0)
 	{
 		return true;
 	}
@@ -598,7 +598,7 @@ Content::Content()
 
 bool Content::isFileExist(String filePath)
 {
-	string strPath = filePath;
+	std::string strPath = filePath;
 	if (!Content::isAbsolutePath(strPath))
 	{
 		strPath.insert(0, _assetPath);
@@ -670,7 +670,7 @@ static std::string toUTF8String(const std::string& str)
 Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 {
 	if (filename.empty()) return nullptr;
-	string fullPath =
+	std::string fullPath =
 #if BX_PLATFORM_WINDOWS
 		toUTF8String(Content::getFullPath(filename));
 #else
@@ -692,7 +692,7 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)>& handler)
 {
 	if (filename.empty()) return;
-	string fullPath = Content::getFullPath(filename);
+	std::string fullPath = Content::getFullPath(filename);
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr)
 	{
@@ -718,7 +718,7 @@ bool Content::isPathFolder(String path)
 string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
 {
 	auto rootPath = fs::path(Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
-	string fullPath = (rootPath / directory.toString() / filename.toString()).string();
+	std::string fullPath = (rootPath / directory.toString() / filename.toString()).string();
 	if (!Content::isFileExist(fullPath))
 	{
 		fullPath.clear();

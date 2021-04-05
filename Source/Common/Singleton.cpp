@@ -15,10 +15,10 @@ NS_DOROTHY_BEGIN
 
 struct LifeCycler
 {
-	string getRefTree()
+	std::string getRefTree()
 	{
 		fmt::memory_buffer out;
-		unordered_set<string> entries;
+		std::unordered_set<std::string> entries;
 		for (const auto& life : lives)
 		{
 			entries.insert(life.first);
@@ -38,12 +38,12 @@ struct LifeCycler
 		}
 		for (const auto& entry : entries)
 		{
-			queue<std::pair<string,int>> refList;
+			std::queue<std::pair<std::string,int>> refList;
 			refList.push(std::make_pair(entry,-1));
 			while (!refList.empty())
 			{
 				auto name = refList.front();
-				string msg;
+				std::string msg;
 				for (int i = 0; i < name.second; i++)
 				{
 					msg += " ";
@@ -74,7 +74,7 @@ struct LifeCycler
 
 	void destroy(String itemName = Slice::Empty)
 	{
-		unordered_set<string> entries;
+		std::unordered_set<std::string> entries;
 		if (itemName.empty())
 		{
 			for (const auto& life : lives)
@@ -105,12 +105,12 @@ struct LifeCycler
 		}
 		for (const auto& entry : entries)
 		{
-			vector<string> items;
-			queue<string> refList;
+			std::vector<std::string> items;
+			std::queue<std::string> refList;
 			refList.push(entry);
 			while (!refList.empty())
 			{
-				string name = refList.front();
+				std::string name = refList.front();
 				refList.pop();
 				items.push_back(name);
 				auto it = itemRefs.find(name);
@@ -127,8 +127,8 @@ struct LifeCycler
 				}
 			}
 #if DORA_DEBUG
-			unordered_set<string> names;
-			vector<string> nameList;
+			std::unordered_set<std::string> names;
+			std::vector<std::string> nameList;
 			for (auto it = items.rbegin(); it != items.rend(); ++it)
 			{
 				if (names.find(*it) == names.end() && lives.find(*it) != lives.end())
@@ -140,7 +140,7 @@ struct LifeCycler
 			if (!nameList.empty())
 			{
 				Info("singleton destroyed: {}.", std::accumulate(nameList.begin()+1, nameList.end(), nameList.front(),
-				[](const string& a, const string& b) { return a + ", " + b; }));
+				[](const std::string& a, const std::string& b) { return a + ", " + b; }));
 			}
 #endif // DORA_DEBUG
 			for (auto it = items.rbegin(); it != items.rend(); ++it)
@@ -157,12 +157,12 @@ struct LifeCycler
 	struct Reference
 	{
 		bool visited;
-		string target;
+		std::string target;
 	};
-	list<Reference> refs;
-	unordered_set<string> names;
-	unordered_map<string, Own<Life>> lives;
-	unordered_map<string, Own<vector<Reference*>>> itemRefs;
+	std::list<Reference> refs;
+	std::unordered_set<std::string> names;
+	std::unordered_map<std::string, Own<Life>> lives;
+	std::unordered_map<std::string, Own<std::vector<Reference*>>> itemRefs;
 };
 
 Own<LifeCycler> globalCycler;
@@ -191,7 +191,7 @@ void Life::addDependency(String target, String dependency)
 	auto it = cycler->itemRefs.find(dependency);
 	if (it == cycler->itemRefs.end())
 	{
-		auto refList = new vector<LifeCycler::Reference*>();
+		auto refList = new std::vector<LifeCycler::Reference*>();
 		refList->push_back(&cycler->refs.back());
 		cycler->itemRefs[dependency] = MakeOwn(refList);
 	}
@@ -214,7 +214,7 @@ void Life::destroy(String name)
 	cycler->destroy(name);
 }
 
-string Life::getRefTree()
+std::string Life::getRefTree()
 {
 	LifeCycler* cycler = getCycler();
 	return cycler->getRefTree();

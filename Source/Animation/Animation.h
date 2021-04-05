@@ -21,7 +21,7 @@ class AnimationDef
 public:
 	virtual ~AnimationDef() { }
 	virtual Action* toAction() = 0;
-	virtual string toXml() = 0;
+	virtual std::string toXml() = 0;
 	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) = 0;
 };
 
@@ -44,8 +44,8 @@ public:
 	float rotation;
 	float skewX;
 	float skewY;
-	std::optional<string> event;
-	string toXml(KeyFrameDef* lastDef);
+	std::optional<std::string> event;
+	std::string toXml(KeyFrameDef* lastDef);
 };
 
 class KeyReset : public ActionDuration
@@ -110,7 +110,7 @@ public:
 	KeyFrameDef* getLastFrameDef() const;
 	const OwnVector<KeyFrameDef>& getFrames() const;
 	virtual Action* toAction() override;
-	virtual string toXml() override;
+	virtual std::string toXml() override;
 	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override;
 private:
 	OwnVector<KeyFrameDef> _keyFrameDefs;
@@ -123,11 +123,11 @@ public:
 	FrameAnimationDef():delay(0) { }
 	float delay;
 	virtual Action* toAction() override;
-	virtual string toXml() override;
+	virtual std::string toXml() override;
 	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override { }
 private:
 	Ref<FrameActionDef> _def;
-	string _file;
+	std::string _file;
 };
 
 NS_DOROTHY_END

@@ -55,9 +55,9 @@ private:
 	Ref<SpriteEffect> _defaultEffect;
 	Ref<SpriteEffect> _imageEffect;
 	bgfx::VertexLayout _vertexLayout;
-	list<SDL_Event> _inputs;
-	vector<Uint32> _textEditing;
-	string _iniFilePath;
+	std::list<SDL_Event> _inputs;
+	std::vector<Uint32> _textEditing;
+	std::string _iniFilePath;
 	Own<ConsolePanel> _console;
 	Own<ImFontAtlas> _defaultFonts;
 	Own<ImFontAtlas> _fonts;

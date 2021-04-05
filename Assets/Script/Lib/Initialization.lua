@@ -560,11 +560,10 @@ ImGui.EndTable = nil
 
 -- ML
 
-local ML = builtin.ML
-local ML_buildDecisionTreeAsync = ML.buildDecisionTreeAsync
-ML.buildDecisionTreeAsync = function(self,data,maxDepth,handler)
-	local accuracy = nil
-	ML_buildDecisionTreeAsync(self,data,maxDepth,function(...)
+local BuildDecisionTreeAsync = builtin.BuildDecisionTreeAsync
+builtin.BuildDecisionTreeAsync = function(data,maxDepth,handler)
+	local accuracy
+	BuildDecisionTreeAsync(data,maxDepth,function(...)
 		if not accuracy then
 			accuracy = select(1, ...)
 		else

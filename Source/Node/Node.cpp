@@ -275,7 +275,7 @@ void Node::setTag(String tag)
 	_tag = tag;
 }
 
-const string& Node::getTag() const
+const std::string& Node::getTag() const
 {
 	return _tag;
 }
@@ -721,7 +721,7 @@ TouchHandler* Node::getTouchHandler() const
 	return _touchHandler.get();
 }
 
-void Node::schedule(const function<bool(double)>& func)
+void Node::schedule(const std::function<bool(double)>& func)
 {
 	_scheduleFunc = func;
 	if (_flags.isOff(Node::Scheduling))
@@ -1494,16 +1494,16 @@ public:
 	}
 	CREATE_FUNC(ProjectNode);
 protected:
-	ProjectNode(const Vec2& nodePoint, const function<void(const Vec2&)>& convertHandler):
+	ProjectNode(const Vec2& nodePoint, const std::function<void(const Vec2&)>& convertHandler):
 	_nodePoint(nodePoint),
 	_convertHandler(convertHandler)
 	{ }
 private:
 	Vec2 _nodePoint;
-	function<void(const Vec2&)> _convertHandler;
+	std::function<void(const Vec2&)> _convertHandler;
 };
 
-void Node::convertToWindowSpace(const Vec2& nodePoint, const function<void(const Vec2&)>& callback)
+void Node::convertToWindowSpace(const Vec2& nodePoint, const std::function<void(const Vec2&)>& callback)
 {
 	addChild(ProjectNode::create(nodePoint, callback));
 }
@@ -1580,7 +1580,7 @@ Slot* Signal::addSlot(String name)
 		}
 		else
 		{
-			_slots = New<unordered_map<string, Ref<Slot>>>();
+			_slots = New<std::unordered_map<std::string, Ref<Slot>>>();
 			for (auto& item : *_slotsArray)
 			{
 				(*_slots)[item.first] = item.second;
@@ -1593,7 +1593,7 @@ Slot* Signal::addSlot(String name)
 	}
 	else
 	{
-		_slotsArray = New<vector<std::pair<string, Ref<Slot>>>>(MaxSlotArraySize);
+		_slotsArray = New<std::vector<std::pair<std::string, Ref<Slot>>>>(MaxSlotArraySize);
 		Slot* slot = Slot::create();
 		_slotsArray->push_back(std::make_pair(name.toString(), MakeRef(slot)));
 		return slot;
@@ -1636,7 +1636,7 @@ Slot* Signal::addSlot(String name, const EventHandler& handler)
 		}
 		else
 		{
-			_slots = New<unordered_map<string, Ref<Slot>>>();
+			_slots = New<std::unordered_map<std::string, Ref<Slot>>>();
 			for (auto& item : *_slotsArray)
 			{
 				(*_slots)[item.first] = item.second;
@@ -1649,7 +1649,7 @@ Slot* Signal::addSlot(String name, const EventHandler& handler)
 	}
 	else
 	{
-		_slotsArray = New<vector<std::pair<string, Ref<Slot>>>>(MaxSlotArraySize);
+		_slotsArray = New<std::vector<std::pair<std::string, Ref<Slot>>>>(MaxSlotArraySize);
 		Slot* slot = Slot::create(handler);
 		_slotsArray->push_back(std::make_pair(name.toString(), MakeRef(slot)));
 		return slot;

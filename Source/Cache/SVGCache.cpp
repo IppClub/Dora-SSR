@@ -62,7 +62,7 @@ static void get(String value, Color& color)
 		{
 			if (str.size() == 3)
 			{
-				rgb = Slice::stoi(string("0x") + str[0] + str[0] + str[1] + str[1] + str[2] + str[2], 16);
+				rgb = Slice::stoi(std::string("0x") + str[0] + str[0] + str[1] + str[1] + str[2] + str[2], 16);
 			}
 			else
 			{
@@ -120,7 +120,7 @@ static int getLineCap(String value)
 struct FillStrokeData
 {
 	Color color = 0xff000000;
-	std::optional<string> definition;
+	std::optional<std::string> definition;
 	std::optional<Color> strokeColor;
 	std::optional<int> lineCap, lineJoin;
 	std::optional<float> miterLimit, strokeWidth;
@@ -267,14 +267,14 @@ struct StopData
 
 struct LinearGradientData
 {
-	list<StopData> stops;
+	std::list<StopData> stops;
 	std::optional<nvg::Transform> transform;
 };
 
 struct PolygonData
 {
 	bool closePath = true;
-	vector<Vec2> points;
+	std::vector<Vec2> points;
 	FillStrokeData fillStroke;
 };
 
@@ -288,19 +288,19 @@ struct RectData
 struct CommandData
 {
 	char command;
-	vector<float> args;
+	std::vector<float> args;
 };
 
 struct PathData
 {
-	list<CommandData> commands;
+	std::list<CommandData> commands;
 	FillStrokeData fillStroke;
 };
 
 static bool getTransform(std::optional<nvg::Transform>& transform, Slice v)
 {
 	v.trimSpace();
-	vector<float> result;
+	std::vector<float> result;
 	if (v.left(7) == "matrix("_slice && v.right(1) == ")"_slice)
 	{
 		v.skip(7);
@@ -322,7 +322,7 @@ static bool getTransform(std::optional<nvg::Transform>& transform, Slice v)
 	return false;
 }
 
-void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& selfAttrs)
+void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& selfAttrs)
 {
 	auto def = getItem();
 	auto attrs = selfAttrs;
@@ -521,8 +521,8 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const v
 			ATTR_START
 			case "d"_hash:
 			{
-				string parameterString;
-				list<string> parameters;
+				std::string parameterString;
+				std::list<std::string> parameters;
 				std::optional<char> command;
 				bool foundDecimalSeparator = false;
 				auto executeCommand = [&]()
@@ -549,7 +549,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const v
 						}
 						while (!parameters.empty())
 						{
-							vector<float> args;
+							std::vector<float> args;
 							for (int i = 0; i < parameterCount; ++i)
 							{
 								args.push_back(Slice::stof(parameters.front()));
@@ -642,12 +642,12 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const v
 				std::optional<CommandData> previousPath;
 				std::optional<Vec2> previousMovePoint;
 				std::optional<char> previousCommand;
-				vector<float> previousParameters;
+				std::vector<float> previousParameters;
 				int subPathCount = 0;
 				for (const auto& cmd : data.commands)
 				{
 					// Converts relative coordinates to absolute coordinates.
-					vector<float> args = cmd.args;
+					std::vector<float> args = cmd.args;
 					if (std::islower(cmd.command))
 					{
 						auto previous = ctx->previousPathXY.back();

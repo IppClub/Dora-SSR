@@ -72,9 +72,9 @@ public:
 	VisualType(String filename);
 	/** Get a running effect instance of this effect type. */
 	Visual* toVisual() const;
-	const string& getFilename() const;
+	const std::string& getFilename() const;
 private:
-	string _file;
+	std::string _file;
 	Uint32 _type;
 };
 
@@ -93,15 +93,15 @@ public:
 	bool unload();
 	/** Create a new visual item instance. */
 	Visual* create(String name);
-	const string& getFileByName(String name);
+	const std::string& getFileByName(String name);
 protected:
 	VisualCache();
 private:
-	virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+	virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 	virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 	virtual void xmlSAX2Text(const char* s, size_t len) override;
-	unordered_map<string, Own<VisualType>> _visuals;
-	string _path;
+	std::unordered_map<std::string, Own<VisualType>> _visuals;
+	std::string _path;
 	rapidxml::xml_sax3_parser<> _parser;
 	SINGLETON_REF(VisualCache, Director);
 };

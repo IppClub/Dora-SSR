@@ -15,14 +15,14 @@ NS_DOROTHY_BEGIN
 
 SoundFile* SoundCache::update(String name, SoundFile* soundFile)
 {
-	string fullPath = SharedContent.getFullPath(name);
+	std::string fullPath = SharedContent.getFullPath(name);
 	_soundFiles[fullPath] = soundFile;
 	return soundFile;
 }
 
 SoundFile* SoundCache::get(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _soundFiles.find(fullPath);
 	if (it != _soundFiles.end())
 	{
@@ -33,13 +33,13 @@ SoundFile* SoundCache::get(String filename)
 
 SoundFile* SoundCache::load(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _soundFiles.find(fullPath);
 	if (it != _soundFiles.end())
 	{
 		return it->second;
 	}
-	string ext = Path::getExt(filename);
+	std::string ext = Path::getExt(filename);
 	switch (Switch::hash(ext))
 	{
 		case "wav"_hash:
@@ -66,15 +66,15 @@ SoundFile* SoundCache::load(String filename)
 	}
 }
 
-void SoundCache::loadAsync(String filename, const function<void(SoundFile*)>& handler)
+void SoundCache::loadAsync(String filename, const std::function<void(SoundFile*)>& handler)
 {
-	string ext = Path::getExt(filename);
+	std::string ext = Path::getExt(filename);
 	switch (Switch::hash(ext))
 	{
 		case "wav"_hash:
 		case "ogg"_hash:
 		{
-			string fullPath = SharedContent.getFullPath(filename);
+			std::string fullPath = SharedContent.getFullPath(filename);
 			SharedContent.loadAsyncUnsafe(fullPath, [this, fullPath, handler](Uint8* data, Sint64 size)
 			{
 				SoundFile* soundFile = SoundFile::create(MakeOwnArray(data), s_cast<size_t>(size));
@@ -115,7 +115,7 @@ bool SoundCache::unload(SoundFile* soundFile)
 
 bool SoundCache::unload(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _soundFiles.find(fullPath);
 	if (it != _soundFiles.end())
 	{
@@ -137,7 +137,7 @@ bool SoundCache::unload()
 
 void SoundCache::removeUnused()
 {
-	vector<unordered_map<string,Ref<SoundFile>>::iterator> targets;
+	std::vector<std::unordered_map<std::string,Ref<SoundFile>>::iterator> targets;
 	for (auto it = _soundFiles.begin();it != _soundFiles.end();++it)
 	{
 		if (it->second->isSingleReferenced())

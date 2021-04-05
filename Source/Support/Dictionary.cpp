@@ -17,9 +17,9 @@ int Dictionary::getCount() const
 	return s_cast<int>(_dict.size());
 }
 
-vector<Slice> Dictionary::getKeys() const
+std::vector<Slice> Dictionary::getKeys() const
 {
-	vector<Slice> keys;
+	std::vector<Slice> keys;
 	keys.reserve(_dict.size());
 	for (const auto& item : _dict)
 	{
@@ -28,7 +28,7 @@ vector<Slice> Dictionary::getKeys() const
 	return keys;
 }
 
-const unordered_map<string,Own<Value>>& Dictionary::data() const
+const std::unordered_map<std::string,Own<Value>>& Dictionary::data() const
 {
 	return _dict;
 }

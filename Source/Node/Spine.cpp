@@ -207,7 +207,7 @@ void Spine::setFaceRight(bool var)
 	Playable::setFaceRight(var);
 }
 
-const string& Spine::getCurrentAnimationName() const
+const std::string& Spine::getCurrentAnimationName() const
 {
 	return _currentAnimationName;
 }

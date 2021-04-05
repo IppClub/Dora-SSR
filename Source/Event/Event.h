@@ -61,7 +61,7 @@ protected:
 	static void send(Event* event);
 	Slice _name;
 private:
-	static unordered_map<string, Own<EventType>> _eventMap;
+	static std::unordered_map<std::string, Own<EventType>> _eventMap;
 	friend class Listener;
 	DORA_TYPE_BASE(Event);
 };

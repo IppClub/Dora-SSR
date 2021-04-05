@@ -47,7 +47,7 @@ Visual* VisualType::toVisual() const
 	return nullptr;
 }
 
-const string& VisualType::getFilename() const
+const std::string& VisualType::getFilename() const
 {
 	return _file;
 }
@@ -74,7 +74,7 @@ bool VisualCache::load(String filename)
 	{
 		return false;
 	}
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	_path = Path::getPath(fullPath);
 	try
 	{
@@ -140,7 +140,7 @@ Visual* VisualCache::create(String name)
 	return nullptr;
 }
 
-const string& VisualCache::getFileByName(String name)
+const std::string& VisualCache::getFileByName(String name)
 {
 	auto it = _visuals.find(name);
 	if (it != _visuals.end())
@@ -153,7 +153,7 @@ const string& VisualCache::getFileByName(String name)
 void VisualCache::xmlSAX2Text(const char* s, size_t len)
 { }
 
-void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
 {
 	switch (Xml::Visual::Element(name[0]))
 	{
@@ -161,7 +161,7 @@ void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const vector
 			break;
 		case Xml::Visual::Element::Visual:
 		{
-			string name, file;
+			std::string name, file;
 			for (int i = 0; attrs[i].first != nullptr; i++)
 			{
 				switch (Xml::Visual::Visual(attrs[i].first[0]))

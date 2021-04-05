@@ -98,7 +98,7 @@ public:
 
 	Node* getChildByTag(String tag);
 
-	void schedule(const function<bool(double)>& func);
+	void schedule(const std::function<bool(double)>& func);
 	void unschedule();
 
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
@@ -107,7 +107,7 @@ public:
 	Vec3 convertToNodeSpace3(const Vec3& worldPoint);
 	Vec3 convertToWorldSpace3(const Vec3& nodePoint);
 
-	void convertToWindowSpace(const Vec2& nodePoint, const function<void(const Vec2&)>& callback);
+	void convertToWindowSpace(const Vec2& nodePoint, const std::function<void(const Vec2&)>& callback);
 
 	void scheduleUpdate();
 	void scheduleUpdateFixed();
@@ -272,9 +272,9 @@ protected:
 	Ref<Scheduler> _scheduler;
 	Ref<Action> _action;
 	Own<Signal> _signal;
-	string _tag;
+	std::string _tag;
 	Own<NodeTouchHandler> _touchHandler;
-	function<bool(double)> _scheduleFunc;
+	std::function<bool(double)> _scheduleFunc;
 	enum
 	{
 		Visible = 1,
@@ -332,8 +332,8 @@ public:
 	void emit(Event* event);
 	static const size_t MaxSlotArraySize;
 private:
-	Own<unordered_map<string, Ref<Slot>>> _slots;
-	Own<vector<std::pair<string, Ref<Slot>>>> _slotsArray;
+	Own<std::unordered_map<std::string, Ref<Slot>>> _slots;
+	Own<std::vector<std::pair<std::string, Ref<Slot>>>> _slotsArray;
 	RefVector<Listener> _gslots;
 };
 

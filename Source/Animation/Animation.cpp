@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-inline string s(float var)
+inline std::string s(float var)
 {
 	return Slice(fmt::format("{:.2f}", var)).trimZero();
 }
@@ -40,7 +40,7 @@ skewX(0.0f),
 skewY(0.0f)
 { }
 
-string KeyFrameDef::toXml(KeyFrameDef* lastDef)
+std::string KeyFrameDef::toXml(KeyFrameDef* lastDef)
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{}", char(Xml::Model::Element::KeyFrame));
@@ -305,9 +305,9 @@ Action* KeyAnimationDef::toAction()
 		return nullptr;
 	}
 
-	vector<Own<ActionDuration>> keyFrames;
+	std::vector<Own<ActionDuration>> keyFrames;
 	keyFrames.reserve(_keyFrameDefs.size());
-	vector<Own<ActionDuration>> keyAttrs;
+	std::vector<Own<ActionDuration>> keyAttrs;
 	const int MaxKeyAttributes = 10;
 	keyAttrs.reserve(MaxKeyAttributes);
 
@@ -377,7 +377,7 @@ Action* KeyAnimationDef::toAction()
 	return Sequence::create(std::move(keyFrames));
 }
 
-string KeyAnimationDef::toXml()
+std::string KeyAnimationDef::toXml()
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{}", char(Xml::Model::Element::KeyAnimation));
@@ -426,12 +426,12 @@ void FrameAnimationDef::setFile(String filename)
 	_def = SharedFrameCache.loadFrame(filename);
 }
 
-const string& FrameAnimationDef::getFile() const
+const std::string& FrameAnimationDef::getFile() const
 {
 	return _file;
 }
 
-string FrameAnimationDef::toXml()
+std::string FrameAnimationDef::toXml()
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{} {}=\"{}\"", char(Xml::Model::Element::FrameAnimation), char(Xml::Model::FrameAnimation::File), _file);

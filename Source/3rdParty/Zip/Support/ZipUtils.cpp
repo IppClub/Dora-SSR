@@ -149,7 +149,7 @@ std::list<std::string> ZipFile::getDirEntries(const std::string& path, bool isFo
 				{
 					if (searchName.length() < folder.length())
 					{
-						string name = folder.substr(searchName.length() + 1);
+						std::string name = folder.substr(searchName.length() + 1);
 						if (name != "." && name != "..")
 						{
 							results.push_back(name);

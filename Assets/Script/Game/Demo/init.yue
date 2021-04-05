@@ -282,15 +282,15 @@ Director.entry\addChild with Node!
 		data = {}
 		thread ->
 			lines = {"(_ENV)->"}
-			accuracy = ML\buildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
+			accuracy = BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
 				line = string.rep("\t",depth+1) .. if name ~= "" then
 					"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
 				else
 					"#{op} \"#{value}\""
 				lines[#lines+1] = line
 			codes = table.concat lines,"\n"
-			--print "learning accuracy: #{accuracy}"
-			--print codes
+			print "learning accuracy: #{accuracy}"
+			print codes
 			--print dataStr
 			import "yue"
 			luaCodes = yue.to_lua codes,{reserve_line_number:false}

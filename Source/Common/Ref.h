@@ -149,9 +149,9 @@ inline Ref<T> NewRef(Args&&... args)
  @param T Object
 */
 template<class T = Object>
-class RefVector : public vector<Ref<T>>
+class RefVector : public std::vector<Ref<T>>
 {
-	typedef vector<Ref<T>> RefV;
+	typedef std::vector<Ref<T>> RefV;
 public:
 	using RefV::RefV;
 	using RefV::insert;

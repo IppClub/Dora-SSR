@@ -73,7 +73,7 @@ bool DB::exist(String tableName) const
 	return result == 0 ? false : true;
 }
 
-bool DB::transaction(const function<void()>& sqls)
+bool DB::transaction(const std::function<void()>& sqls)
 {
 	try
 	{
@@ -89,7 +89,7 @@ bool DB::transaction(const function<void()>& sqls)
 	}
 }
 
-static void bindValues(SQLite::Statement& query, const vector<Own<Value>>& args)
+static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& args)
 {
 	int argCount = 0;
 	for (auto& arg : args)
@@ -102,7 +102,7 @@ static void bindValues(SQLite::Statement& query, const vector<Own<Value>>& args)
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (auto v = arg->as<string>())
+		else if (auto v = arg->as<std::string>())
 		{
 			query.bind(++argCount, *v);
 		}
@@ -122,9 +122,9 @@ static void bindValues(SQLite::Statement& query, const vector<Own<Value>>& args)
 	}
 }
 
-deque<vector<Own<Value>>> DB::query(String sql, const vector<Own<Value>>& args, bool withColumns)
+std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<Value>>& args, bool withColumns)
 {
-	deque<vector<Own<Value>>> result;
+	std::deque<std::vector<Own<Value>>> result;
 	SQLite::Statement query(*_database, sql);
 	bindValues(query, args);
 	bool columnCollected = false;
@@ -137,7 +137,7 @@ deque<vector<Own<Value>>> DB::query(String sql, const vector<Own<Value>>& args, 
 			auto& values = result.emplace_back(colCount);
 			for (int i = 0; i < colCount; i++)
 			{
-				values[i] = Value::alloc(string(query.getColumn(i).getName()));
+				values[i] = Value::alloc(std::string(query.getColumn(i).getName()));
 			}
 		}
 		auto& values = result.emplace_back(colCount);
@@ -165,10 +165,10 @@ deque<vector<Own<Value>>> DB::query(String sql, const vector<Own<Value>>& args, 
 	return result;
 }
 
-void DB::insert(String tableName, const vector<vector<Own<Value>>>& values)
+void DB::insert(String tableName, const std::vector<std::vector<Own<Value>>>& values)
 {
 	if (values.empty() || values.front().empty()) return;
-	string valueHolder;
+	std::string valueHolder;
 	for (size_t i = 0; i < values.front().size(); i++)
 	{
 		valueHolder += '?';
@@ -189,17 +189,17 @@ int DB::exec(String sql)
 	return query.exec();
 }
 
-int DB::exec(String sql, const vector<Own<Value>>& values)
+int DB::exec(String sql, const std::vector<Own<Value>>& values)
 {
 	SQLite::Statement query(*_database, sql);
 	bindValues(query, values);
 	return query.exec();
 }
 
-void DB::queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, const function<void(const deque<vector<Own<Value>>>&)>& callback)
+void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(const std::deque<std::vector<Own<Value>>>&)>& callback)
 {
-	string sqlStr(sql);
-	auto argsPtr = std::make_shared<vector<Own<Value>>>(std::move(args));
+	std::string sqlStr(sql);
+	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
 	SharedAsyncThread.run([sqlStr, argsPtr, withColumns]()
 	{
 		try
@@ -210,20 +210,20 @@ void DB::queryAsync(String sql, vector<Own<Value>>&& args, bool withColumns, con
 		catch (std::exception& e)
 		{
 			Error("fail to execute SQL transaction: {}", e.what());
-			return Values::alloc(deque<vector<Own<Value>>>());
+			return Values::alloc(std::deque<std::vector<Own<Value>>>());
 		}
 	}, [callback](Own<Values> values)
 	{
-		deque<vector<Own<Value>>> result;
+		std::deque<std::vector<Own<Value>>> result;
 		values->get(result);
 		callback(result);
 	});
 }
 
-void DB::insertAsync(String tableName, vector<vector<Own<Value>>>&& values, const function<void(bool)>& callback)
+void DB::insertAsync(String tableName, std::vector<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback)
 {
-	string tableStr(tableName);
-	auto valuesPtr = std::make_shared<vector<vector<Own<Value>>>>(std::move(values));
+	std::string tableStr(tableName);
+	auto valuesPtr = std::make_shared<std::vector<std::vector<Own<Value>>>>(std::move(values));
 	SharedAsyncThread.run([tableStr, valuesPtr]()
 	{
 		bool result = SharedDB.transaction([&]()
@@ -239,10 +239,10 @@ void DB::insertAsync(String tableName, vector<vector<Own<Value>>>&& values, cons
 	});
 }
 
-void DB::execAsync(String sql, vector<Own<Value>>&& values, const function<void(int)>& callback)
+void DB::execAsync(String sql, std::vector<Own<Value>>&& values, const std::function<void(int)>& callback)
 {
-	string sqlStr(sql);
-	auto valuesPtr = std::make_shared<vector<Own<Value>>>(std::move(values));
+	std::string sqlStr(sql);
+	auto valuesPtr = std::make_shared<std::vector<Own<Value>>>(std::move(values));
 	SharedAsyncThread.run([sqlStr, valuesPtr]()
 	{
 		int result = 0;

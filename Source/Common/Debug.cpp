@@ -23,9 +23,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Delegate<void (const string&)> LogHandler;
+Delegate<void (const std::string&)> LogHandler;
 
-void LogError(const string& str)
+void LogError(const std::string& str)
 {
 #if BX_PLATFORM_ANDROID
 	__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
@@ -42,7 +42,7 @@ void LogError(const string& str)
 	}
 }
 
-void LogPrintInThread(const string& str)
+void LogPrintInThread(const std::string& str)
 {
 	if (Singleton<Dorothy::Application>::isDisposed() ||
 		Singleton<Dorothy::AsyncLogThread>::isDisposed() ||

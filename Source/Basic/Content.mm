@@ -45,7 +45,7 @@ bool Content::isFileExist(String filePath)
 	return false;
 }
 
-string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
+std::string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
 {
 	if (directory[0] != '/')
 	{

@@ -13,11 +13,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-EventType::EventType(const string& name):
+EventType::EventType(const std::string& name):
 _name(name)
 { }
 
-const string& EventType::getName() const
+const std::string& EventType::getName() const
 {
 	return _name;
 }

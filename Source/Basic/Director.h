@@ -81,7 +81,7 @@ private:
 	Ref<Scheduler> _postSystemScheduler;
 	Ref<RenderTarget> _renderTarget;
 	Own<UITouchHandler> _uiTouchHandler;
-	stack<Own<Matrix>> _viewProjs;
+	std::stack<Own<Matrix>> _viewProjs;
 	Matrix _defaultViewProj;
 	NVGcontext* _nvgContext;
 	SINGLETON_REF(Director, FontManager, LuaEngine, BGFXDora, Application);

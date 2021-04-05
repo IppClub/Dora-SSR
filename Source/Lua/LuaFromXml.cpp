@@ -57,10 +57,10 @@ static const char* _toBoolean(const char* str)
 }
 
 #define toBoolean(x) (_toBoolean(toVal(x,"False")))
-#define toEase(x) (isVal(x) ? string("Ease.")+Val(x) : Val(x))
+#define toEase(x) (isVal(x) ? std::string("Ease.")+Val(x) : Val(x))
 #define toBlendFunc(x) (isVal(x) ? toVal(x,"Zero") : Val(x))
-#define toTextAlign(x) (isVal(x) ? string("\"")+toVal(x,"Center")+'\"' : Val(x))
-#define toText(x) (isVal(x) ? string("\"")+Val(x)+'\"' : Val(x))
+#define toTextAlign(x) (isVal(x) ? std::string("\"")+toVal(x,"Center")+'\"' : Val(x))
+#define toText(x) (isVal(x) ? std::string("\"")+Val(x)+'\"' : Val(x))
 
 #define Self_Check(name) \
 	if (self.empty()) { self = getUsableName(#name); names.insert(self); }\
@@ -74,11 +74,11 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(X) { x = atts[++i]; break; }\
 	CASE_STR(Y) { y = atts[++i]; break; }
 #define Vec2_Handle \
-	items.push(string("Vec2(")+toVal(x,"0")+","+toVal(y,"0")+")");
+	items.push(std::string("Vec2(")+toVal(x,"0")+","+toVal(y,"0")+")");
 
 // Object
 #define Object_Define \
-	string self;\
+	std::string self;\
 	bool hasSelf = false;\
 	bool ref = false;
 #define Object_Check \
@@ -102,7 +102,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Time) { time = atts[++i]; break; }
 #define Delay_Create
 #define Delay_Handle \
-	oFunc func = {string("Delay(")+toVal(time,"0")+")","",def};\
+	oFunc func = {std::string("Delay(")+toVal(time,"0")+")","",def};\
 	funcs.push(func);
 #define Delay_Finish
 
@@ -121,7 +121,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Scale_Create
 #define Scale_Handle \
-	oFunc func = {string("Scale(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Scale(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Scale_Finish
 
@@ -144,7 +144,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Move_Create
 #define Move_Handle \
-	oFunc func = {string("Move(")+toVal(time,"0")+",Vec2("+Val(startX)+","+Val(startY)+"),Vec2("+Val(stopX)+","+Val(stopY)+")"+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Move(")+toVal(time,"0")+",Vec2("+Val(startX)+","+Val(startY)+"),Vec2("+Val(stopX)+","+Val(stopY)+")"+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Move_Finish
 
@@ -163,7 +163,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Angle_Create
 #define Angle_Handle \
-	oFunc func = {string("Angle(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Angle(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Angle_Finish
 
@@ -182,7 +182,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleX_Create
 #define AngleX_Handle \
-	oFunc func = {string("AngleX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("AngleX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define AngleX_Finish
 
@@ -201,7 +201,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleY_Create
 #define AngleY_Handle \
-	oFunc func = {string("AngleY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("AngleY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define AngleY_Finish
 
@@ -220,7 +220,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Opacity_Create
 #define Opacity_Handle \
-	oFunc func = {string("Opacity(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Opacity(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define Opacity_Finish
 
@@ -239,7 +239,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewX_Create
 #define SkewX_Handle \
-	oFunc func = {string("SkewX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("SkewX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define SkewX_Finish
 
@@ -258,7 +258,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewY_Create
 #define SkewY_Handle \
-	oFunc func = {string("SkewY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("SkewY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
 	funcs.push(func);
 #define SkewY_Finish
 
@@ -293,7 +293,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Event) { event = atts[++i]; break; }
 #define Emit_Create
 #define Emit_Handle \
-	oFunc func = {"Emit(\""+(event ? string(event) : Slice::Empty)+"\")",")",def};\
+	oFunc func = {"Emit(\""+(event ? std::string(event) : Slice::Empty)+"\")",")",def};\
 	funcs.push(func);
 #define Emit_Finish
 
@@ -482,7 +482,7 @@ static const char* _toBoolean(const char* str)
 	if (!elementStack.empty())\
 	{\
 		oFunc func = {elementStack.top().name+":drawPolygon({",\
-		string("},Color(")+Val(fillColor)+"),"+toVal(borderWidth,"0")+",Color("+toVal(borderColor,"")+"))\n\n"};\
+		std::string("},Color(")+Val(fillColor)+"),"+toVal(borderWidth,"0")+",Color("+toVal(borderColor,"")+"))\n\n"};\
 		funcs.push(func);\
 		items.push("Polygon");\
 	}
@@ -523,7 +523,7 @@ static const char* _toBoolean(const char* str)
 	Node_Handle
 #define Line_Finish \
 	Add_To_Parent\
-	oFunc func = {string(self)+":set({","},Color(0xffffffff))\n"};\
+	oFunc func = {std::string(self)+":set({","},Color(0xffffffff))\n"};\
 	funcs.push(func);\
 	items.push("Line");
 
@@ -568,7 +568,7 @@ static const char* _toBoolean(const char* str)
 	Node_Handle\
 	if (text && text[0]) fmt::format_to(stream, "{}.text = {}\n", self, toText(text));\
 	if (alignment) fmt::format_to(stream, "{}.alignment = {}\n", self, toTextAlign(alignment));\
-	if (textWidth) fmt::format_to(stream, "{}.textWidth = {}\n",self, strcmp(textWidth,"Auto") == 0 ? string("Label.AutomaticWidth") : Val(textWidth));\
+	if (textWidth) fmt::format_to(stream, "{}.textWidth = {}\n",self, strcmp(textWidth,"Auto") == 0 ? std::string("Label.AutomaticWidth") : Val(textWidth));\
 	if (lineGap) fmt::format_to(stream, "{}.lineGap = {}\n", self, Val(lineGap));
 #define Label_Finish \
 	Add_To_Parent
@@ -585,7 +585,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(BlendSrc) { blendSrc = atts[++i]; break; }\
 	CASE_STR(BlendDst) { blendDst = atts[++i]; break; }
 #define Sprite_Create \
-	fmt::format_to(stream, "local {} = Sprite({})\n", self, file ? toText(file) : string());
+	fmt::format_to(stream, "local {} = Sprite({})\n", self, file ? toText(file) : std::string());
 #define Sprite_Handle \
 	Node_Handle\
 	if (blendSrc && blendDst) fmt::format_to(stream, "{}.blendFunc = BlendFunc(\"{}\",\"{}\")\n", self, toBlendFunc(blendSrc), toBlendFunc(blendDst));\
@@ -621,7 +621,7 @@ static const char* _toBoolean(const char* str)
 	if (reversed) fmt::format_to(stream, "{}.reversed = {}\n", self, toBoolean(reversed));\
 	if (faceRight) fmt::format_to(stream, "{}.faceRight = {}\n", self, toBoolean(faceRight));\
 	if (speed) fmt::format_to(stream, "{}.speed = {}\n", self, Val(speed));\
-	if (play) fmt::format_to(stream, "{}:play(\"{}\"{})\n", self, Val(play), loop ? string(",") + toBoolean(loop) : string());
+	if (play) fmt::format_to(stream, "{}:play(\"{}\"{})\n", self, Val(play), loop ? std::string(",") + toBoolean(loop) : std::string());
 #define Model_Finish \
 	Add_To_Parent
 
@@ -652,7 +652,7 @@ static const char* _toBoolean(const char* str)
 	auto it = attributes.begin();\
 	while (it != attributes.end())\
 	{\
-		string str = string() + (char)tolower(it->first[0]) + it->first.substr(1) + " = ";\
+		std::string str = std::string() + (char)tolower(it->first[0]) + it->first.substr(1) + " = ";\
 		char* p;\
 		strtod(it->second.c_str(), &p);\
 		if (*p == 0) str += it->second;\
@@ -700,9 +700,9 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Name) { name = atts[++i]; break; }
 #define Import_Create \
 	if (module) {\
-		string mod(module);\
+		std::string mod(module);\
 		size_t pos = mod.rfind('.');\
-		string modStr = (name ? name : (pos == string::npos ? string(module) : mod.substr(pos+1)));\
+		std::string modStr = (name ? name : (pos == std::string::npos ? std::string(module) : mod.substr(pos+1)));\
 		imported.insert(modStr);\
 		fmt::format_to(requires, "local {} = require(\"{}\")\n", modStr, module);\
 	}
@@ -734,8 +734,8 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Perform) { perform = atts[++i]; break; }\
 	CASE_STR(Type) { type = atts[++i]; break; }
 #define Slot_Create \
-	isYue = type && string(type) == "Yue";\
-	oFunc func = {elementStack.top().name+":slot("+toText(name)+",function("+(args ? args : "")+")"+(perform ? string("\n")+(target ? string(target) : elementStack.top().name)+":perform("+perform+")\n" : Slice::Empty), "end)"};\
+	isYue = type && std::string(type) == "Yue";\
+	oFunc func = {elementStack.top().name+":slot("+toText(name)+",function("+(args ? args : "")+")"+(perform ? std::string("\n")+(target ? std::string(target) : elementStack.top().name)+":perform("+perform+")\n" : Slice::Empty), "end)"};\
 	funcs.push(func);
 
 // Script
@@ -744,7 +744,7 @@ static const char* _toBoolean(const char* str)
 #define Script_Check \
 	CASE_STR(Type) { type = atts[++i]; break; }
 #define Script_Create \
-	isYue = type && string(type) == "Yue";
+	isYue = type && std::string(type) == "Yue";
 
 #define Item_Define(name) name##_Define
 #define Item_Loop(name) \
@@ -796,8 +796,8 @@ public:
 	virtual void startElement(const char* name, const char** atts);
 	virtual void endElement(const char* name);
 	virtual void textHandler(const char* s, int len);
-	string oVal(const char* value, const char* def = nullptr, const char* element = nullptr, const char* attr = nullptr);
-	string compileYueCodes(const char* codes);
+	std::string oVal(const char* value, const char* def = nullptr, const char* element = nullptr, const char* attr = nullptr);
+	std::string compileYueCodes(const char* codes);
 public:
 	void clear()
 	{
@@ -823,25 +823,25 @@ public:
 	{
 		fmt::format_to(stream, "return {}\nend", firstItem);
 	}
-	string getResult()
+	std::string getResult()
 	{
 		if (lastError.empty())
 		{
-			string requireStr = fmt::to_string(requires);
+			std::string requireStr = fmt::to_string(requires);
 			return requireStr + (requireStr.empty() ? "" : "\n") + fmt::to_string(stream);
 		}
-		return string();
+		return std::string();
 	}
-	const string& getLastError()
+	const std::string& getLastError()
 	{
 		return lastError;
 	}
 private:
-	string getUsableName(const char* baseName)
+	std::string getUsableName(const char* baseName)
 	{
 		int index = 1;
-		string base(baseName);
-		string name;
+		std::string base(baseName);
+		std::string name;
 		do
 		{
 			name = fmt::format("{}{}", base, index);
@@ -856,13 +856,13 @@ private:
 	struct oItem
 	{
 		const char* type;
-		string name;
+		std::string name;
 		bool ref;
 	};
 	struct oFunc
 	{
-		string begin;
-		string end;
+		std::string begin;
+		std::string end;
 		bool flag;
 	};
 	SAXParser* parser;
@@ -870,33 +870,33 @@ private:
 	bool isYue;
 	const char* codes;
 	// Loader
-	string firstItem;
-	string lastError;
-	stack<oFunc> funcs;
-	stack<string> items;
-	stack<oItem> elementStack;
-	unordered_set<string> names;
-	unordered_set<string> imported;
-	unordered_map<string, string> attributes;
+	std::string firstItem;
+	std::string lastError;
+	std::stack<oFunc> funcs;
+	std::stack<std::string> items;
+	std::stack<oItem> elementStack;
+	std::unordered_set<std::string> names;
+	std::unordered_set<std::string> imported;
+	std::unordered_map<std::string, std::string> attributes;
 	fmt::memory_buffer stream;
 	fmt::memory_buffer requires;
 };
 
-string XmlDelegator::oVal(const char* value, const char* def, const char* element, const char* attr)
+std::string XmlDelegator::oVal(const char* value, const char* def, const char* element, const char* attr)
 {
 	if (!value || !value[0])
 	{
-		if (def) return string(def);
+		if (def) return std::string(def);
 		else if (attr && element)
 		{
-			string num = fmt::format("%d", parser->getLineNumber(element));
-			lastError += string("Missing attribute ") + (char)toupper(attr[0]) + string(attr).substr(1) + " for " + element + ", at line " + num + "\n";
+			std::string num = fmt::format("%d", parser->getLineNumber(element));
+			lastError += std::string("Missing attribute ") + (char)toupper(attr[0]) + std::string(attr).substr(1) + " for " + element + ", at line " + num + "\n";
 		}
-		return string();
+		return std::string();
 	}
 	if (value[0] == '{')
 	{
-		string valStr(value);
+		std::string valStr(value);
 		if (valStr.back() != '}') return valStr;
 		size_t start = 1;
 		for (; valStr[start] == ' ' || valStr[start] == '\t'; ++start);
@@ -906,13 +906,13 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 		{
 			if (attr && element)
 			{
-				string num = fmt::format("%d", parser->getLineNumber(element));
-				lastError += string("Missing attribute ") + (char)toupper(attr[0]) + string(attr).substr(1) + " for " + element + ", at line " + num + "\n";
+				std::string num = fmt::format("%d", parser->getLineNumber(element));
+				lastError += std::string("Missing attribute ") + (char)toupper(attr[0]) + std::string(attr).substr(1) + " for " + element + ", at line " + num + "\n";
 			}
-			return string();
+			return std::string();
 		}
 		valStr = valStr.substr(start, end - start + 1);
-		string newStr;
+		std::string newStr;
 		start = 0;
 		size_t i = 0;
 		while (i < valStr.size())
@@ -921,7 +921,7 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 			{
 				if (valStr[i] == '$')
 				{
-					string parent;
+					std::string parent;
 					if (!elementStack.empty())
 					{
 						oItem top = elementStack.top();
@@ -942,8 +942,8 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 					}
 					if (parent.empty() && element)
 					{
-						string num = fmt::format("%d", parser->getLineNumber(element));
-						lastError += string("The $ expression can`t be used in tag at line ") + num + "\n";
+						std::string num = fmt::format("%d", parser->getLineNumber(element));
+						lastError += std::string("The $ expression can`t be used in tag at line ") + num + "\n";
 					}
 					newStr += valStr.substr(start, i - start);
 					i++;
@@ -973,8 +973,8 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 					default:
 						if (element)
 						{
-							string num = fmt::format("%d", parser->getLineNumber(element));
-							lastError += string("Invalid expression $") + valStr[i] + " at line " + num + "\n";
+							std::string num = fmt::format("%d", parser->getLineNumber(element));
+							lastError += std::string("Invalid expression $") + valStr[i] + " at line " + num + "\n";
 						}
 						break;
 					}
@@ -1009,8 +1009,8 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 					default:
 						if (element)
 						{
-							string num = fmt::format("%d", parser->getLineNumber(element));
-							lastError += string("Invalid expression @") + valStr[i] + " at line " + num + "\n";
+							std::string num = fmt::format("%d", parser->getLineNumber(element));
+							lastError += std::string("Invalid expression @") + valStr[i] + " at line " + num + "\n";
 						}
 						break;
 					}
@@ -1025,7 +1025,7 @@ string XmlDelegator::oVal(const char* value, const char* def, const char* elemen
 		}
 		else return valStr;
 	}
-	else return string(value);
+	else return std::string(value);
 }
 
 void XmlDelegator::startElement(const char* element, const char** atts)
@@ -1146,7 +1146,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 	SWITCH_STR_END
 }
 
-string XmlDelegator::compileYueCodes(const char* codes)
+std::string XmlDelegator::compileYueCodes(const char* codes)
 {
 	yue::YueConfig config;
 	config.reserveLineNumber = false;
@@ -1183,7 +1183,7 @@ void XmlDelegator::endElement(const char *name)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			fmt::format_to(stream, "{}{}{}\n", func.begin, (codes ? (isYue ? compileYueCodes(codes) : string(codes)) : Slice::Empty), func.end);
+			fmt::format_to(stream, "{}{}{}\n", func.begin, (codes ? (isYue ? compileYueCodes(codes) : std::string(codes)) : Slice::Empty), func.end);
 			codes = nullptr;
 			isYue = false;
 			break;
@@ -1220,8 +1220,8 @@ void XmlDelegator::endElement(const char *name)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			string tempItem = string(name) + "(";
-			stack<string> tempStack;
+			std::string tempItem = std::string(name) + "(";
+			std::stack<std::string> tempStack;
 			while (items.top() != name)
 			{
 				tempStack.push(items.top());
@@ -1253,7 +1253,7 @@ void XmlDelegator::endElement(const char *name)
 			oFunc func = funcs.top();
 			funcs.pop();
 			fmt::format_to(stream, "{}", func.begin);
-			stack<string> tempStack;
+			std::stack<std::string> tempStack;
 			while (items.top() != name)
 			{
 				tempStack.push(items.top());
@@ -1322,33 +1322,33 @@ XmlLoader::XmlLoader():_delegator(new XmlDelegator(&_parser))
 XmlLoader::~XmlLoader()
 { }
 
-string XmlLoader::load(String filename)
+std::string XmlLoader::load(String filename)
 {
 	_delegator->begin();
 	SAXParser::setHeaderHandler(Handler);
 	bool result = _parser.parse(filename);
 	SAXParser::setHeaderHandler(nullptr);
 	_delegator->end();
-	return result ? _delegator->getResult() : string();
+	return result ? _delegator->getResult() : std::string();
 }
 
-string XmlLoader::loadXml(String xml)
+std::string XmlLoader::loadXml(String xml)
 {
 	_delegator->begin();
 	SAXParser::setHeaderHandler(Handler);
 	bool result = _parser.parseXml(xml);
 	SAXParser::setHeaderHandler(nullptr);
 	_delegator->end();
-	return result ? _delegator->getResult() : string();
+	return result ? _delegator->getResult() : std::string();
 }
 
-string XmlLoader::getLastError()
+std::string XmlLoader::getLastError()
 {
-	const string& parserError = _parser.getLastError();
-	const string& dorothyError = _delegator->getLastError();
+	const std::string& parserError = _parser.getLastError();
+	const std::string& dorothyError = _delegator->getLastError();
 	if (parserError.empty() && !dorothyError.empty())
 	{
-		return string("Xml document error\n") + dorothyError;
+		return std::string("Xml document error\n") + dorothyError;
 	}
 	return parserError + dorothyError;
 }

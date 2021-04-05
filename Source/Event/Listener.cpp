@@ -59,13 +59,13 @@ void Listener::handle( Event* e )
 	}
 }
 
-Listener::Listener( const string& name, const EventHandler& handler ):
+Listener::Listener(const std::string& name, const EventHandler& handler):
 _name(name),
 _handler(handler),
 _enabled(false)
 { }
 
-const string& Listener::getName() const
+const std::string& Listener::getName() const
 {
 	return _name;
 }

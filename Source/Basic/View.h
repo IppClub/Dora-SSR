@@ -29,7 +29,7 @@ public:
 	PROPERTY_BOOL(VSync);
 	PROPERTY_READONLY_BOOL(PostProcessNeeded);
 	PROPERTY_READONLY(bgfx::ViewId, Id);
-	PROPERTY_READONLY_CREF(string, Name);
+	PROPERTY_READONLY_CREF(std::string, Name);
 	void clear();
 	void reset();
 
@@ -48,7 +48,7 @@ protected:
 	bool empty();
 private:
 	Sint32 _id;
-	stack<std::pair<bgfx::ViewId,string>> _views;
+	std::stack<std::pair<bgfx::ViewId,std::string>> _views;
 	Uint32 _flag;
 	float _nearPlaneDistance;
 	float _farPlaneDistance;

@@ -55,12 +55,12 @@ _delegator(nullptr)
 SAXParser::~SAXParser()
 { }
 
-const string& SAXParser::getLastError() const
+const std::string& SAXParser::getLastError() const
 {
 	return _lastError;
 }
 
-bool SAXParser::parseXml(const string& xmlData)
+bool SAXParser::parseXml(const std::string& xmlData)
 {
 	_lastError.clear();
 	tinyxml2::XMLError error;
@@ -117,7 +117,7 @@ bool SAXParser::parseXml(const string& xmlData)
 	return _tinyDoc.Accept(&printer);
 }
 
-bool SAXParser::parse(const string& filename)
+bool SAXParser::parse(const std::string& filename)
 {
 	auto data = SharedContent.load(filename);
     return parseXml(Slice(r_cast<char*>(data.first.get()), data.second));

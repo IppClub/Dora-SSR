@@ -52,9 +52,9 @@ protected:
 	void pushGroup(Uint32 capacity);
 	void popGroup();
 private:
-	stack<Uint32> _stencilStates;
+	std::stack<Uint32> _stencilStates;
 	Renderer* _currentRenderer;
-	stack<Own<vector<Node*>>> _renderGroups;
+	std::stack<Own<std::vector<Node*>>> _renderGroups;
 	SINGLETON_REF(RendererManager, BGFXDora);
 };
 

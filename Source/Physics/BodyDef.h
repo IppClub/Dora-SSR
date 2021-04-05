@@ -36,7 +36,7 @@ class BodyDef : public Object
 public:
 	Vec2 offset;
 	float angleOffset;
-	string face;
+	std::string face;
 	Vec2 facePos;
 	PROPERTY(pr::BodyType, Type);
 	PROPERTY(float, LinearDamping);
@@ -61,7 +61,7 @@ public:
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	void attachPolygon(
-		const vector<Vec2>& vertices,
+		const std::vector<Vec2>& vertices,
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
@@ -72,7 +72,7 @@ public:
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	void attachMulti(
-		const vector<Vec2>& vertices,
+		const std::vector<Vec2>& vertices,
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
@@ -94,7 +94,7 @@ public:
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	void attachChain(
-		const vector<Vec2>& vertices,
+		const std::vector<Vec2>& vertices,
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	void attachChain(
@@ -114,7 +114,7 @@ public:
 		float angle = 0.0f);
 	void attachPolygonSensor(
 		int tag,
-		const vector<Vec2>& vertices);
+		const std::vector<Vec2>& vertices);
 	void attachPolygonSensor(
 		int tag,
 		const Vec2 vertices[],
@@ -152,7 +152,7 @@ public:
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	static FixtureDef* polygon(
-		const vector<Vec2>& vertices,
+		const std::vector<Vec2>& vertices,
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
@@ -163,7 +163,7 @@ public:
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	static FixtureDef* multi(
-		const vector<Vec2>& vertices,
+		const std::vector<Vec2>& vertices,
 		float density = 0.0f,
 		float friction = 0.2f,
 		float restitution = 0.0f);
@@ -174,7 +174,7 @@ public:
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	static FixtureDef* chain(
-		const vector<Vec2>& vertices,
+		const std::vector<Vec2>& vertices,
 		float friction = 0.2f,
 		float restitution = 0.0f);
 	static FixtureDef* chain(

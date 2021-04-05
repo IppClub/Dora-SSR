@@ -99,7 +99,7 @@ bool FontCache::unload()
 
 bool FontCache::unload(String fontName, Uint32 fontSize)
 {
-	string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
+	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
 	{
@@ -140,7 +140,7 @@ void FontCache::removeUnused()
 
 Font* FontCache::load(String fontName, Uint32 fontSize)
 {
-	string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
+	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
 	{
@@ -158,7 +158,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 		}
 		else
 		{
-			string fontFile;
+			std::string fontFile;
 			BLOCK_START
 			{
 				fontFile = "Font/" + fontName.toString() + ".ttf";
@@ -186,9 +186,9 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 	}
 }
 
-void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(Font* fontHandle)>& callback)
+void FontCache::loadAync(String fontName, Uint32 fontSize, const std::function<void(Font* fontHandle)>& callback)
 {
-	string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
+	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto faceIt = _fonts.find(fontFaceName);
 	if (faceIt != _fonts.end())
 	{
@@ -206,7 +206,7 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const function<void(F
 		}
 		else
 		{
-			string fontFile;
+			std::string fontFile;
 			BLOCK_START
 			{
 				fontFile = "Font/" + fontName.toString() + ".ttf";
@@ -342,7 +342,7 @@ void Label::setText(String var)
 	updateLabel();
 }
 
-const string& Label::getText() const
+const std::string& Label::getText() const
 {
 	return _textUTF8;
 }
@@ -467,7 +467,7 @@ float Label::getLetterPosXRight(CharItem* item)
 	return item->pos.x + item->rect.getWidth() * 0.5f;
 }
 
-void Label::updateCharacters(const vector<Uint32>& chars)
+void Label::updateCharacters(const std::vector<Uint32>& chars)
 {
 	float nextFontPositionX = 0;
 	float nextFontPositionY = 0;
@@ -633,9 +633,9 @@ void Label::updateLabel()
 	{
 		// Step 1: Make multiline
 		int stringLength = s_cast<int>(_text.size());
-		vector<Uint32> multiline_string;
+		std::vector<Uint32> multiline_string;
 		multiline_string.reserve(stringLength);
-		vector<Uint32> last_word;
+		std::vector<Uint32> last_word;
 		last_word.reserve(stringLength);
 
 		int i = 0;
@@ -814,7 +814,7 @@ void Label::updateLabel()
 			last_word.end());
 
 		size_t size = multiline_string.size();
-		vector<Uint32> str_new(size+1);
+		std::vector<Uint32> str_new(size+1);
 		for (size_t i = 0; i < size; ++i)
 		{
 			str_new[i] = multiline_string[i];
@@ -829,7 +829,7 @@ void Label::updateLabel()
 	{
 		int i = 0;
 		int lineNumber = 0;
-		vector<Uint32> last_line;
+		std::vector<Uint32> last_line;
 		for (size_t ctr = 0; ctr < _text.size(); ++ctr)
 		{
 			if (_text[ctr] == '\n' || _text[ctr] == '\0')

@@ -50,13 +50,13 @@ public:
 	CREATE_FUNC(Face);
 private:
 	Face(String file, const Vec2& point, float scale, float angle);
-	Face(const function<Node*()>& func, const Vec2& point, float scale, float angle);
-	string _file;
+	Face(const std::function<Node*()>& func, const Vec2& point, float scale, float angle);
+	std::string _file;
 	Uint32 _type;
 	float _scale;
 	Vec2 _pos;
 	float _angle;
-	function<Node*()> _userCreateFunc;
+	std::function<Node*()> _userCreateFunc;
 	RefVector<Face> _children;
 	DORA_TYPE_OVERRIDE(Face);
 };

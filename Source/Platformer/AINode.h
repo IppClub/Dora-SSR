@@ -60,10 +60,10 @@ public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ConNode);
 protected:
-	ConNode(String name, const function<bool(Unit*)>& handler);
+	ConNode(String name, const std::function<bool(Unit*)>& handler);
 private:
-	string _name;
-	function<bool(Unit*)> _handler;
+	std::string _name;
+	std::function<bool(Unit*)> _handler;
 };
 
 class ActNode : public Leaf
@@ -74,7 +74,7 @@ public:
 protected:
 	ActNode(String actionName);
 private:
-	string _actionName;
+	std::string _actionName;
 };
 
 class DynamicActNode : public Leaf
@@ -83,10 +83,10 @@ public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(DynamicActNode);
 protected:
-	DynamicActNode(const function<string(Unit*)>& handler);
+	DynamicActNode(const std::function<std::string(Unit*)>& handler);
 private:
-	string _actionName;
-	function<string(Unit*)> _handler;
+	std::string _actionName;
+	std::function<std::string(Unit*)> _handler;
 };
 
 class PassNode : public Leaf
@@ -116,14 +116,14 @@ protected:
 	BehaviorNode(String name, Behavior::Leaf* root);
 private:
 	Ref<Behavior::Leaf> _root;
-	string _name;
+	std::string _name;
 };
 
 Leaf* Sel(Leaf* nodes[], int count);
 Leaf* Seq(Leaf* nodes[], int count);
-Leaf* Con(String name, const function<bool(Unit*)>& handler);
+Leaf* Con(String name, const std::function<bool(Unit*)>& handler);
 Leaf* Act(String actionName);
-Leaf* Act(const function<string(Unit*)>& handler);
+Leaf* Act(const std::function<std::string(Unit*)>& handler);
 Leaf* Pass();
 Leaf* Reject();
 Leaf* Behave(String name, Behavior::Leaf* root);
@@ -150,8 +150,8 @@ public:
 private:
 	Unit* _owner;
 	double _deltaTime = 0.0;
-	unordered_map<Uint32, Own<Value>> _nodeValues;
-	unordered_map<string, Own<Value>> _values;
+	std::unordered_map<Uint32, Own<Value>> _nodeValues;
+	std::unordered_map<std::string, Own<Value>> _values;
 	DORA_TYPE_BASE(Blackboard);
 };
 
@@ -205,10 +205,10 @@ public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(ConNode);
 protected:
-	ConNode(String name, const function<bool(Blackboard*)>& handler);
+	ConNode(String name, const std::function<bool(Blackboard*)>& handler);
 private:
-	string _name;
-	function<bool(Blackboard*)> _handler;
+	std::string _name;
+	std::function<bool(Blackboard*)> _handler;
 };
 
 class ActNode : public Leaf
@@ -219,7 +219,7 @@ public:
 protected:
 	ActNode(String actionName);
 private:
-	string _actionName;
+	std::string _actionName;
 };
 
 class CommandNode : public Leaf
@@ -230,7 +230,7 @@ public:
 protected:
 	CommandNode(String actionName);
 private:
-	string _actionName;
+	std::string _actionName;
 };
 
 class CountdownNode : public Leaf
@@ -296,7 +296,7 @@ private:
 
 Leaf* Sel(Leaf* nodes[], int count);
 Leaf* Seq(Leaf* nodes[], int count);
-Leaf* Con(String name, const function<bool(Blackboard*)>& handler);
+Leaf* Con(String name, const std::function<bool(Blackboard*)>& handler);
 Leaf* Act(String actionName);
 Leaf* Countdown(double time, Leaf* node);
 Leaf* Timeout(double time, Leaf* node);

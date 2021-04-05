@@ -145,10 +145,10 @@ public:
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Own<ActionDuration> alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
-	static Own<ActionDuration> alloc(const vector<Own<ActionDuration>>& actions);
+	static Own<ActionDuration> alloc(const std::vector<Own<ActionDuration>>& actions);
 	static Action* create(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Action* create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
-	static Action* create(const vector<Own<ActionDuration>>& actions);
+	static Action* create(const std::vector<Own<ActionDuration>>& actions);
 protected:
 	Spawn() { }
 private:
@@ -165,10 +165,10 @@ public:
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Own<ActionDuration> alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
-	static Own<ActionDuration> alloc(vector<Own<ActionDuration>>&& actions);
+	static Own<ActionDuration> alloc(std::vector<Own<ActionDuration>>&& actions);
 	static Action* create(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Action* create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
-	static Action* create(vector<Own<ActionDuration>>&& actions);
+	static Action* create(std::vector<Own<ActionDuration>>&& actions);
 protected:
 	Sequence() { }
 private:
@@ -229,8 +229,8 @@ protected:
 	Emit() { }
 private:
 	bool _ended;
-	string _event;
-	string _argument;
+	std::string _event;
+	std::string _argument;
 };
 
 class Texture2D;

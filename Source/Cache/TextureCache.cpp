@@ -91,14 +91,14 @@ Texture2D::~Texture2D()
 
 Texture2D* TextureCache::update(String name, Texture2D* texture)
 {
-	string fullPath = SharedContent.getFullPath(name);
+	std::string fullPath = SharedContent.getFullPath(name);
 	_textures[fullPath] = texture;
 	return texture;
 }
 
 Texture2D* TextureCache::get(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _textures.find(fullPath);
 	if (it != _textures.end())
 	{
@@ -142,7 +142,7 @@ Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
 			imageContainer->m_numMips,
 			s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
 		Texture2D* texture = Texture2D::create(handle, info, flags);
-		string fullPath = SharedContent.getFullPath(filename);
+		std::string fullPath = SharedContent.getFullPath(filename);
 		_textures[fullPath] = texture;
 		return texture;
 	}
@@ -152,7 +152,7 @@ Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
 
 Texture2D* TextureCache::load(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _textures.find(fullPath);
 	if (it != _textures.end())
 	{
@@ -162,16 +162,16 @@ Texture2D* TextureCache::load(String filename)
 	return update(filename, data.first.get(), data.second);
 }
 
-void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& handler)
+void TextureCache::loadAsync(String filename, const std::function<void(Texture2D*)>& handler)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _textures.find(fullPath);
 	if (it != _textures.end())
 	{
 		handler(it->second);
 		return;
 	}
-	string file(filename);
+	std::string file(filename);
 	SharedContent.loadAsyncUnsafe(fullPath, [this, file, handler](Uint8* data, Sint64 size)
 	{
 		if (!data)
@@ -213,7 +213,7 @@ void TextureCache::loadAsync(String filename, const function<void(Texture2D*)>& 
 					imageContainer->m_numMips,
 					s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
 				Texture2D* texture = Texture2D::create(handle, info, flags);
-				string fullPath = SharedContent.getFullPath(file);
+				std::string fullPath = SharedContent.getFullPath(file);
 				_textures[fullPath] = texture;
 				handler(texture);
 			}
@@ -241,7 +241,7 @@ bool TextureCache::unload(Texture2D* texture)
 
 bool TextureCache::unload(String filename)
 {
-	string fullPath = SharedContent.getFullPath(filename);
+	std::string fullPath = SharedContent.getFullPath(filename);
 	auto it = _textures.find(fullPath);
 	if (it != _textures.end())
 	{
@@ -263,7 +263,7 @@ bool TextureCache::unload()
 
 void TextureCache::removeUnused()
 {
-	vector<unordered_map<string,Ref<Texture2D>>::iterator> targets;
+	std::vector<std::unordered_map<std::string,Ref<Texture2D>>::iterator> targets;
 	for (auto it = _textures.begin();it != _textures.end();++it)
 	{
 		if (it->second->isSingleReferenced())

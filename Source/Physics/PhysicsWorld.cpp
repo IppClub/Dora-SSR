@@ -381,7 +381,7 @@ Joint* PhysicsWorld::getJointData(pr::JointID joint) const
 	return _jointData[joint.get()];
 }
 
-bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback)
+bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& callback)
 {
 	pd::AABB aabb{
 		pd::AABB::Location{
@@ -418,7 +418,7 @@ bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback
 				!pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(shape, 0),
 				pd::GetTransformation(_world, b)));
 			Body* body = _bodyData[b.get()];
-			vector<Body*>& results = isCommonShape ? _queryResultsOfCommonShapes : _queryResultsOfChainsAndEdges;
+			std::vector<Body*>& results = isCommonShape ? _queryResultsOfCommonShapes : _queryResultsOfChainsAndEdges;
 			if (body && (results.empty() || results.back() != body))
 			{
 				results.push_back(body);
@@ -449,7 +449,7 @@ bool PhysicsWorld::query(const Rect& rect, const function<bool(Body*)>& callback
 	return result;
 }
 
-bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const function<bool(Body*,const Vec2&,const Vec2&)>& callback)
+bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const std::function<bool(Body*,const Vec2&,const Vec2&)>& callback)
 {
 	pd::RayCastInput input{b2Val(start), b2Val(end), pr::Real{1}};
 	bool result = false;

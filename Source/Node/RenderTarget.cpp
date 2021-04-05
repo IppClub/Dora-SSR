@@ -184,7 +184,7 @@ void RenderTarget::renderWithClear(Node* target, Color color, float depth, Uint8
 	renderAfterClear(target, true, color, depth, stencil);
 }
 
-void RenderTarget::saveAsync(String filename, const function<void()>& callback)
+void RenderTarget::saveAsync(String filename, const std::function<void()>& callback)
 {
 	AssertIf((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0, "texture read back not supported.");
 
@@ -218,7 +218,7 @@ void RenderTarget::saveAsync(String filename, const function<void()>& callback)
 	Uint32 frame = bgfx::readTexture(textureHandle, data);
 	Uint32 width = s_cast<Uint32>(_textureWidth);
 	Uint32 height = s_cast<Uint32>(_textureHeight);
-	string file(filename);
+	std::string file(filename);
 	SharedDirector.getSystemScheduler()->schedule([frame, textureHandle, extraFlags, data, width, height, file, callback](double deltaTime)
 	{
 		DORA_UNUSED_PARAM(deltaTime);

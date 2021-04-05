@@ -28,7 +28,7 @@ private:
 	{
 	public:
 		Parser(ParticleDef* def):XmlParser<ParticleDef>(this, def) { }
-		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
 	private:

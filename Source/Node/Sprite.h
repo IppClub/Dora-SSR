@@ -140,8 +140,8 @@ private:
 	SpriteEffect* _lastEffect;
 	Uint64 _lastState;
 	Uint32 _lastFlags;
-	vector<SpriteVertex> _vertices;
-	vector<uint16_t> _indices;
+	std::vector<SpriteVertex> _vertices;
+	std::vector<uint16_t> _indices;
 	const uint16_t _spriteIndices[6];
 	SINGLETON_REF(SpriteRenderer, RendererManager);
 };

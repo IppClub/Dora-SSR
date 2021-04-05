@@ -46,9 +46,9 @@ public:
 protected:
 	Data();
 private:
-	unordered_map<Uint16, bool> _contactMap;
-	unordered_map<Uint16, Relation> _relationMap;
-	unordered_map<Uint32, float> _damageBounusMap;
+	std::unordered_map<Uint16, bool> _contactMap;
+	std::unordered_map<Uint16, Relation> _relationMap;
+	std::unordered_map<Uint32, float> _damageBounusMap;
 	Ref<Dictionary> _store;
 };
 

@@ -196,7 +196,7 @@ bool Array::fastRemoveAt(size_t index)
 	return false;
 }
 
-vector<Own<Value>>& Array::data()
+std::vector<Own<Value>>& Array::data()
 {
 	return _data;
 }

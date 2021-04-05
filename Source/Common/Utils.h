@@ -68,11 +68,11 @@ public: bool is##funName() const; \
 public: void virtual set##funName(bool var)
 
 #define PROPERTY_STRING(funName) \
-public: const string& get##funName() const; \
+public: const std::string& get##funName() const; \
 public: void set##funName(String var)
 
 #define PROPERTY_VIRTUAL_STRING(funName) \
-public: const string& get##funName() const; \
+public: const std::string& get##funName() const; \
 public: virtual void set##funName(String var)
 
 /** @brief Code block for condition check.
@@ -358,13 +358,13 @@ private:
 class Path
 {
 public:
-	static string concat(const list<Slice>& paths);
-	static string getExt(const string& path);
-	static string getPath(const string& path);
-	static string getName(const string& path);
-	static string getFilename(const string& path);
-	static string replaceExt(const string& path, const string& newExt);
-	static string replaceFilename(const string& path, const string& newFile);
+	static std::string concat(const std::list<Slice>& paths);
+	static std::string getExt(const std::string& path);
+	static std::string getPath(const std::string& path);
+	static std::string getName(const std::string& path);
+	static std::string getFilename(const std::string& path);
+	static std::string replaceExt(const std::string& path, const std::string& newExt);
+	static std::string replaceFilename(const std::string& path, const std::string& newFile);
 };
 
 #define _DEFER(code,line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto){code;})

@@ -117,8 +117,8 @@ class DistanceDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 anchorA;
 	Vec2 anchorB;
 	float frequency;
@@ -130,8 +130,8 @@ class FrictionDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 worldPos;
 	float maxForce;
 	float maxTorque;
@@ -142,8 +142,8 @@ class GearDef : public JointDef
 {
 public:
 	bool collision;
-	string jointA;
-	string jointB;
+	std::string jointA;
+	std::string jointB;
 	float ratio;
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
@@ -152,8 +152,8 @@ class SpringDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 linearOffset;
 	float angularOffset;
 	float maxForce;
@@ -166,8 +166,8 @@ class PrismaticDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 worldPos;
 	float axisAngle;
 	float lowerTranslation;
@@ -181,8 +181,8 @@ class PulleyDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 anchorA;
 	Vec2 anchorB;
 	Vec2 groundAnchorA;
@@ -195,8 +195,8 @@ class RevoluteDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 worldPos;
 	float lowerAngle;
 	float upperAngle;
@@ -209,8 +209,8 @@ class RopeDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 anchorA;
 	Vec2 anchorB;
 	float maxLength;
@@ -221,8 +221,8 @@ class WeldDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 worldPos;
 	float frequency;
 	float damping;
@@ -233,8 +233,8 @@ class WheelDef : public JointDef
 {
 public:
 	bool collision;
-	string bodyA;
-	string bodyB;
+	std::string bodyA;
+	std::string bodyB;
 	Vec2 worldPos;
 	float axisAngle;
 	float maxMotorTorque;

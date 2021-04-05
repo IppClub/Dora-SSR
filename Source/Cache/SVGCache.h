@@ -24,11 +24,11 @@ public:
 	{
 		NVGcontext* nvg;
 		SVGDef* def;
-		vector<Vec2> previousPathXY;
-		vector<int> transformCounts;
+		std::vector<Vec2> previousPathXY;
+		std::vector<int> transformCounts;
 	};
-	using GradientMap = unordered_map<string,function<void(Context*)>>;
-	using CommandList = list<function<void(Context*)>>;
+	using GradientMap = std::unordered_map<std::string,std::function<void(Context*)>>;
+	using CommandList = std::list<std::function<void(Context*)>>;
 	PROPERTY_READONLY_CREF(GradientMap, Gradients);
 	PROPERTY_READONLY_CREF(CommandList, Commands);
 	PROPERTY_READONLY(float, Width);
@@ -58,19 +58,19 @@ private:
 			{'A', 7}, {'C', 6}, {'H', 1}, {'L', 2},
 			{'M', 2}, {'Q', 4}, {'S', 4}, {'T', 2},
 			{'V', 1}, {'Z', 0}} { }
-		virtual void xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs) override;
+		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
 	private:
 		struct LinearGradient
 		{
-			string id;
+			std::string id;
 			float x1 = 0.0f, y1 = 0.0f, x2 = 0.0f, y2 = 0.0f;
 			std::optional<nvg::Transform> transform;
-			vector<std::pair<float,Color>> stops;
+			std::vector<std::pair<float,Color>> stops;
 		} _currentLinearGradient;
-		unordered_map<char, int> _params;
-		stack<vector<AttrSlice>> _attrStack;
+		std::unordered_map<char, int> _params;
+		std::stack<std::vector<AttrSlice>> _attrStack;
 	};
 private:
 	SINGLETON_REF(SVGCache, Director, AsyncThread);

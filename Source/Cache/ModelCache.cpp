@@ -45,7 +45,7 @@ void ModelCache::Parser::getPosFromStr(String str, float& x, float& y)
 	y = Slice::stof(*++it);
 }
 
-void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const vector<AttrSlice>& attrs)
+void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
 {
 	switch (Xml::Model::Element(name[0]))
 	{
@@ -58,7 +58,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					case Xml::Model::Dorothy::File:
 					{
 						Slice file(attrs[++i]);
-						string localFile = Path::concat({_path, file});
+						std::string localFile = Path::concat({_path, file});
 						_item->_clip = SharedContent.exist(localFile) ? localFile : file.toString();
 						break;
 					}
@@ -241,7 +241,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					case Xml::Model::FrameAnimation::File:
 					{
 						Slice file(attrs[++i]);
-						string localFile = Path::concat({_path, file});
+						std::string localFile = Path::concat({_path, file});
 						frameAnimationDef->setFile(SharedClipCache.isFileExist(localFile) ? localFile : file.toString());
 						break;
 					}

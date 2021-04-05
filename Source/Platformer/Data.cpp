@@ -155,7 +155,7 @@ void Data::setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus)
 float Data::getDamageFactor(Uint16 damageType, Uint16 defenceType) const
 {
 	Uint32 key = damageType | defenceType<<16;
-	unordered_map<Uint32, float>::const_iterator it = _damageBounusMap.find(key);
+	std::unordered_map<Uint32, float>::const_iterator it = _damageBounusMap.find(key);
 	if (it != _damageBounusMap.end())
 	{
 		return it->second;
@@ -184,7 +184,7 @@ void Data::clear()
 	_contactMap.clear();
 	_relationMap.clear();
 	_damageBounusMap.clear();
-	_store->each([](Value* value, const string& key)
+	_store->each([](Value* value, const std::string& key)
 	{
 		if (auto dict = value->as<Dictionary>())
 		{

@@ -69,9 +69,9 @@ public:
 			float rotatePerSecondVariance;
 		} radius;
 	} mode;
-	string textureName;
+	std::string textureName;
 	Rect textureRect;
-	string toXml() const;
+	std::string toXml() const;
 	static ParticleDef* fire();
 	CREATE_FUNC(ParticleDef);
 protected:
@@ -136,8 +136,8 @@ private:
 	Ref<SpriteEffect> _effect;
 	Uint64 _renderState;
 	Ref<ParticleDef> _particleDef;
-	vector<SpriteQuad> _quads;
-	vector<Particle> _particles;
+	std::vector<SpriteQuad> _quads;
+	std::vector<Particle> _particles;
 	enum
 	{
 		Active = Node::UserFlag,

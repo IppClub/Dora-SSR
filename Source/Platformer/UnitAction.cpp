@@ -52,7 +52,7 @@ Own<UnitAction> UnitActionDef::toAction(Unit* unit)
 
 // UnitAction
 
-unordered_map<string, Own<UnitActionDef>> UnitAction::_actionDefs;
+std::unordered_map<std::string, Own<UnitActionDef>> UnitAction::_actionDefs;
 
 UnitAction::UnitAction(String name, int priority, Unit* owner):
 _name(name),
@@ -70,7 +70,7 @@ UnitAction::~UnitAction()
 	_owner = nullptr;
 }
 
-const string& UnitAction::getName() const
+const std::string& UnitAction::getName() const
 {
 	return _name;
 }
@@ -383,7 +383,7 @@ void Jump::stop()
 
 void Jump::onAnimationEnd(Event* e)
 {
-	string name;
+	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
 	if (name == ActionSetting::AnimationJump)
@@ -476,7 +476,7 @@ void Attack::stop()
 
 void Attack::onAnimationEnd(Event* e)
 {
-	string name;
+	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
 	if (name == ActionSetting::AnimationAttack)
@@ -678,7 +678,7 @@ void Hit::update(float dt)
 
 void Hit::onAnimationEnd(Event* e)
 {
-	string name;
+	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
 	if (name == ActionSetting::AnimationHit)
@@ -748,7 +748,7 @@ void Fall::stop()
 
 void Fall::onAnimationEnd(Event* e)
 {
-	string name;
+	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
 	if (name == ActionSetting::AnimationFall)
@@ -784,7 +784,7 @@ const Slice ActionSetting::UnitActionHit = "hit"_slice;
 const Slice ActionSetting::UnitActionFall = "fall"_slice;
 
 typedef Own<UnitAction> (*UnitActionFunc)(Unit* unit);
-static const unordered_map<string,UnitActionFunc> g_createFuncs =
+static const std::unordered_map<std::string,UnitActionFunc> g_createFuncs =
 {
 	{ActionSetting::UnitActionWalk, &Walk::alloc},
 	{ActionSetting::UnitActionTurn, &Turn::alloc},

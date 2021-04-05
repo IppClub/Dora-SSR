@@ -11,9 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-static list<IMemoryPool*>& getMemoryPools()
+static std::list<IMemoryPool*>& getMemoryPools()
 {
-	static list<IMemoryPool*> pools;
+	static std::list<IMemoryPool*> pools;
 	return pools;
 }
 

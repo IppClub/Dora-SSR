@@ -565,7 +565,7 @@ private:
     /// @return Island solver results.
     ///
     IslandStats SolveRegIslandViaGS(const StepConf& conf, const Island& island);
-    
+
     /// @brief Adds to the island based off of a given "seed" body.
     /// @post Contacts are listed in the island in the order that bodies provide those contacts.
     /// @post Joints are listed the island in the order that bodies provide those joints.
@@ -573,28 +573,28 @@ private:
                      BodyCounter& remNumBodies,
                      ContactCounter& remNumContacts,
                      JointCounter& remNumJoints);
-    
+
     /// @brief Body stack.
     using BodyStack = std::stack<BodyID, std::vector<BodyID>>;
-    
+
     /// @brief Adds to the island.
     void AddToIsland(Island& island, BodyStack& stack,
                      BodyCounter& remNumBodies,
                      ContactCounter& remNumContacts,
                      JointCounter& remNumJoints);
-    
+
     /// @brief Adds contacts to the island.
     void AddContactsToIsland(Island& island, BodyStack& stack, const Contacts& contacts,
                              BodyID bodyID);
 
     /// @brief Adds joints to the island.
     void AddJointsToIsland(Island& island, BodyStack& stack, const BodyJoints& joints);
-    
+
     /// @brief Removes <em>unspeedables</em> from the is <em>is-in-island</em> state.
     static Bodies::size_type RemoveUnspeedablesFromIslanded(const std::vector<BodyID>& bodies,
                                                             const ArrayAllocator<Body>& buffer,
                                                             std::vector<bool>& islanded);
-    
+
     /// @brief Solves the step using successive time of impact (TOI) events.
     /// @details Used for continuous physics.
     /// @note This is intended to detect and prevent the tunneling that the faster Solve method
@@ -755,10 +755,10 @@ private:
     ///  A non-null contact will be enabled, not have sensors, be active, and impenetrable.
     static ContactToiData GetSoonestContact(const Contacts& contacts,
                                             const ArrayAllocator<Contact>& buffer) noexcept;
-    
+
     /// @brief Determines whether this world has new fixtures.
     bool HasNewFixtures() const noexcept;
-    
+
     /// @brief Unsets the new fixtures state.
     void UnsetNewFixtures() noexcept;
 
@@ -770,7 +770,7 @@ private:
     /// contact listener as its argument.
     /// Essentially this really just purges contacts that are no longer relevant.
     DestroyContactsStats DestroyContacts(Contacts& contacts);
-    
+
     /// @brief Update contacts.
     UpdateContactsStats UpdateContacts(const StepConf& conf);
 
@@ -831,10 +831,10 @@ private:
     /******** Member variables. ********/
 
     ArrayAllocator<Body> m_bodyBuffer; ///< Array of body data both used and freed.
-    ArrayAllocator<Contacts> m_bodyContacts; ///< Cache of contacts associated with body.
-    ArrayAllocator<BodyJoints> m_bodyJoints; ///< Cache of joints associated with body.
+    ArrayAllocator<Contacts> m_bodyContacts; ///< Cache of contacts associated with bodies.
+    ArrayAllocator<BodyJoints> m_bodyJoints; ///< Cache of joints associated with bodies.
 
-    /// Cache of fixtures associated with body.
+    /// Cache of fixtures associated with bodies.
     /// @todo Consider eliminating this variable since calling <code>GetFixtures()</code>
     ///   isn't done within the <code>World::Step</code> except by
     ///   <code>World::Synchronize</code> which may be replacable with iterating over the
@@ -853,11 +853,11 @@ private:
     Proxies m_proxies; ///< Proxies queue.
     Fixtures m_fixturesForProxies; ///< Fixtures for proxies queue.
     Bodies m_bodiesForProxies; ///< Bodies for proxies queue.
-    
+
     Bodies m_bodies; ///< Body collection.
 
     Joints m_joints; ///< Joint collection.
-    
+
     /// @brief Container of contacts.
     /// @note In the <em>add pair</em> stress-test, 401 bodies can have some 31000 contacts
     ///   during a given time step.
@@ -876,16 +876,16 @@ private:
     ImpulsesContactListener m_postSolveContactListener; ///< Listener for post-solving contacts.
 
     FlagsType m_flags = e_stepComplete; ///< Flags.
-    
+
     /// Inverse delta-t from previous step.
     /// @details Used to compute time step ratio to support a variable time step.
     /// @note 4-bytes large.
     /// @see Step.
     Frequency m_inv_dt0 = 0;
-    
+
     /// @brief Minimum vertex radius.
     Positive<Length> m_minVertexRadius;
-    
+
     /// @brief Maximum vertex radius.
     /// @details
     /// This is the maximum shape vertex radius that any bodies' of this world should create
@@ -950,7 +950,7 @@ inline void WorldImpl::SetStepComplete(bool value) noexcept
     }
     else
     {
-        m_flags &= ~e_stepComplete;        
+        m_flags &= ~e_stepComplete;
     }
 }
 

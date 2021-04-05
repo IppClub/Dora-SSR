@@ -51,7 +51,7 @@ void VGNode::cleanup()
 	Node::cleanup();
 }
 
-void VGNode::render(const function<void()>& func)
+void VGNode::render(const std::function<void()>& func)
 {
 	VGTexture* texture = s_cast<VGTexture*>(_surface->getTexture());
 	NVGLUframebuffer* framebuffer = texture->getFramebuffer();

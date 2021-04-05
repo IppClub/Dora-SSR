@@ -2,6 +2,7 @@ $#include "Const/Header.h"
 $#include "Lua/LuaBinding.h"
 $using namespace Dorothy;
 $using namespace Dorothy::Platformer;
+$using string = std::string;
 $#define NewVec2(x,y) Vec2{x,y}
 
 $pfile "Dorothy.h"

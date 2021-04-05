@@ -35,12 +35,12 @@ public:
 	float skewX;
 	float skewY;
 	float opacity;
-	string name;
-	string clip;
+	std::string name;
+	std::string clip;
 
 	OwnVector<SpriteDef> children;
 	OwnVector<AnimationDef> animationDefs;
-	vector<int> looks;
+	std::vector<int> looks;
 
 	SpriteDef();
 	void restore(Sprite* sprite);
@@ -52,7 +52,7 @@ public:
 	*/
 	std::tuple<Action*,ResetAction*> toResetAction();
 	Sprite* toSprite(ClipDef* clipDef);
-	string toXml();
+	std::string toXml();
 
 	void restoreResetAnimation(Node* target, ActionDuration* action);
 
@@ -80,37 +80,37 @@ public:
 		const Size& size,
 		String clipFile,
 		Own<SpriteDef>&& root,
-		const unordered_map<string,Vec2>& keys,
-		const unordered_map<string,int>& animationIndex,
-		const unordered_map<string,int>& lookIndex);
-	const string& getClipFile() const;
+		const std::unordered_map<std::string,Vec2>& keys,
+		const std::unordered_map<std::string,int>& animationIndex,
+		const std::unordered_map<std::string,int>& lookIndex);
+	const std::string& getClipFile() const;
 	SpriteDef* getRoot();
 	void addKeyPoint(String key, const Vec2& point);
 	Vec2 getKeyPoint(String key) const;
-	unordered_map<string,Vec2>& getKeyPoints();
+	std::unordered_map<std::string,Vec2>& getKeyPoints();
 	bool isFaceRight() const;
 	const Size& getSize() const;
 	void setActionName(int index, String name);
 	void setLookName(int index, String name);
 	int getAnimationIndexByName(String name);
-	const string& getAnimationNameByIndex(int index);
+	const std::string& getAnimationNameByIndex(int index);
 	int getLookIndexByName(String name);
-	const unordered_map<string, int>& getAnimationIndexMap() const;
-	const unordered_map<string, int>& getLookIndexMap() const;
-	vector<string> getLookNames() const;
-	vector<string> getAnimationNames() const;
-	string getTextureFile() const;
-	string toXml();
+	const std::unordered_map<std::string, int>& getAnimationIndexMap() const;
+	const std::unordered_map<std::string, int>& getLookIndexMap() const;
+	std::vector<std::string> getLookNames() const;
+	std::vector<std::string> getAnimationNames() const;
+	std::string getTextureFile() const;
+	std::string toXml();
 	static ModelDef* create();
 private:
 	void setRoot(Own<SpriteDef>&& root);
 	bool _isFaceRight;
 	Size _size;
 	Own<SpriteDef> _root;
-	string _clip;
-	unordered_map<string,int> _animationIndex;
-	unordered_map<string,int> _lookIndex;
-	unordered_map<string,Vec2> _keys;
+	std::string _clip;
+	std::unordered_map<std::string,int> _animationIndex;
+	std::unordered_map<std::string,int> _lookIndex;
+	std::unordered_map<std::string,Vec2> _keys;
 	friend class ModelCache;
 };
 

@@ -81,18 +81,18 @@ public:
 		int component;
 		Own<Value> value;
 	};
-	stack<Ref<Entity>> availableEntities;
+	std::stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
-	vector<Delegate<void()>> triggers;
-	unordered_set<int> usedIndices;
-	unordered_map<string, int> comIndices;
-	unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
-	vector<EntityHandler> addHandlers;
-	vector<EntityHandler> changeHandlers;
-	vector<EntityHandler> removeHandlers;
-	vector<NextValue> nextValues;
-	unordered_map<string, Ref<EntityGroup>> groups;
-	unordered_map<string, Ref<EntityObserver>> observers;
+	std::vector<Delegate<void()>> triggers;
+	std::unordered_set<int> usedIndices;
+	std::unordered_map<std::string, int> comIndices;
+	std::unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
+	std::vector<EntityHandler> addHandlers;
+	std::vector<EntityHandler> changeHandlers;
+	std::vector<EntityHandler> removeHandlers;
+	std::vector<NextValue> nextValues;
+	std::unordered_map<std::string, Ref<EntityGroup>> groups;
+	std::unordered_map<std::string, Ref<EntityObserver>> observers;
 	EntityHandler& getAddHandler(int index)
 	{
 		while (s_cast<int>(addHandlers.size()) <= index) addHandlers.emplace_back();
@@ -108,7 +108,7 @@ public:
 		while (s_cast<int>(removeHandlers.size()) <= index) removeHandlers.emplace_back();
 		return removeHandlers[index];
 	}
-	bool eachEntity(const function<bool(Entity*)>& func)
+	bool eachEntity(const std::function<bool(Entity*)>& func)
 	{
 		WRefVector<Entity> allEntities;
 		allEntities.reserve(usedIndices.size());
@@ -132,7 +132,7 @@ public:
 			entity->destroy();
 			return false;
 		});
-		stack<Ref<Entity>> empty;
+		std::stack<Ref<Entity>> empty;
 		comIndices.clear();
 		availableEntities.swap(empty);
 		entities.clear();
@@ -228,7 +228,7 @@ void Entity::removeNext(int index)
 	setNext(index, Own<Value>());
 }
 
-bool Entity::each(const function<bool(Entity*)>& func)
+bool Entity::each(const std::function<bool(Entity*)>& func)
 {
 	return SharedEntityPool.eachEntity(func);
 }
@@ -350,7 +350,7 @@ Entity* Entity::create()
 	return entity;
 }
 
-EntityGroup::EntityGroup(const vector<string>& components)
+EntityGroup::EntityGroup(const std::vector<std::string>& components)
 {
 	_components.resize(components.size());
 	for (int i = 0; i < s_cast<int>(components.size()); i++)
@@ -439,11 +439,11 @@ EntityGroup* EntityGroup::every(const EntityHandler& handler)
 	return this;
 }
 
-EntityGroup* EntityGroup::create(const vector<string>& components)
+EntityGroup* EntityGroup::create(const std::vector<std::string>& components)
 {
-	vector<string> coms = components;
+	std::vector<std::string> coms = components;
 	std::sort(coms.begin(), coms.end());
-	string name;
+	std::string name;
 	for (const auto& com : coms)
 	{
 		name += com;
@@ -467,7 +467,7 @@ EntityGroup* EntityGroup::create(const vector<string>& components)
 
 EntityGroup* EntityGroup::create(Slice components[], int count)
 {
-	vector<string> coms;
+	std::vector<std::string> coms;
 	coms.resize(count);
 	for (int i = 0; i < count; i++)
 	{
@@ -476,7 +476,7 @@ EntityGroup* EntityGroup::create(Slice components[], int count)
 	return EntityGroup::create(coms);
 }
 
-EntityObserver::EntityObserver(int option, const vector<string>& components):
+EntityObserver::EntityObserver(int option, const std::vector<std::string>& components):
 _option(option)
 {
 	_components.resize(components.size());
@@ -572,9 +572,9 @@ void EntityObserver::clear()
 	_entities.clear();
 }
 
-EntityObserver* EntityObserver::create(int option, const vector<string>& components)
+EntityObserver* EntityObserver::create(int option, const std::vector<std::string>& components)
 {
-	vector<string> coms = components;
+	std::vector<std::string> coms = components;
 	std::sort(coms.begin(), coms.end());
 	fmt::memory_buffer out;
 	fmt::format_to(out, "{}", option);
@@ -582,7 +582,7 @@ EntityObserver* EntityObserver::create(int option, const vector<string>& compone
 	{
 		fmt::format_to(out, "{}", com);
 	}
-	string name = fmt::to_string(out);
+	std::string name = fmt::to_string(out);
 	auto& observers = SharedEntityPool.observers;
 	auto it = observers.find(name);
 	if (it != observers.end())
@@ -602,7 +602,7 @@ EntityObserver* EntityObserver::create(int option, const vector<string>& compone
 
 EntityObserver* EntityObserver::create(int option, Slice components[], int count)
 {
-	vector<string> coms;
+	std::vector<std::string> coms;
 	coms.resize(count);
 	for (int i = 0; i < count; i++)
 	{
