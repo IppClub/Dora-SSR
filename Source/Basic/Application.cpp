@@ -21,7 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
-static string g_androidAPKPath;
+static std::string g_androidAPKPath;
 extern "C" {
 	JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath)
 	{
@@ -326,7 +326,7 @@ void Application::updateWindowSize()
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 
 #if BX_PLATFORM_ANDROID
-const string& Application::getAPKPath() const
+const std::string& Application::getAPKPath() const
 {
 	return g_androidAPKPath;
 }

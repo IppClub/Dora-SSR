@@ -715,7 +715,7 @@ bool Content::isPathFolder(String path)
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
-string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
+std::string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
 {
 	auto rootPath = fs::path(Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
 	std::string fullPath = (rootPath / directory.toString() / filename.toString()).string();

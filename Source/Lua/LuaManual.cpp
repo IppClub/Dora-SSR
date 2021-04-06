@@ -1918,7 +1918,7 @@ SVGDef* SVGDef_create(String filename)
 /* QLearner */
 int QLearner_pack(lua_State* L)
 {
-	/* 1 self, 2 table */
+	/* 1 table, 2 table */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
 	if (!tolua_istable(L, 1, 0, &tolua_err)
@@ -1969,7 +1969,102 @@ int QLearner_pack(lua_State* L)
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
-	tolua_error(L, "#ferror in function 'DB_transaction'.", &tolua_err);
+	tolua_error(L, "#ferror in function 'QLearner_pack'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int QLearner_load(lua_State* L)
+{
+	/* 1 self, 2 table */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "QLearner"_slice, 0, &tolua_err)
+		|| !tolua_istable(L, 2, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		QLearner* self = r_cast<QLearner*>(tolua_tousertype(L, 1, 0));
+		int size = s_cast<int>(lua_rawlen(L, 2));
+#ifndef TOLUA_RELEASE
+		if (!tolua_istablearray(L, 2, size, 0, &tolua_err))
+		{
+			goto tolua_lerror;
+		}
+#endif
+		for (int i = 0; i < size; i++)
+		{
+			lua_rawgeti(L, 2, i + 1);
+			int index = lua_gettop(L);
+#ifndef TOLUA_RELEASE
+			if (!tolua_isnumberarray(L, index, 3, 0, &tolua_err))
+			{
+				goto tolua_lerror;
+			}
+#endif
+			lua_rawgeti(L, -1, 1);
+			QLearner::QState state = s_cast<QLearner::QState>(lua_tointeger(L, -1));
+			lua_pop(L, 1);
+			lua_rawgeti(L, -1, 2);
+			QLearner::QAction action = s_cast<QLearner::QAction>(lua_tointeger(L, -1));
+			lua_pop(L, 1);
+			lua_rawgeti(L, -1, 3);
+			double q = lua_tonumber(L, -1);
+			lua_pop(L, 1);
+			self->setQ(state, action, q);
+			lua_pop(L, 1);
+		}
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'QLearner_load'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int QLearner_getMatrix(lua_State* L)
+{
+	/* 1 self */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "QLearner"_slice, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 2, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		QLearner* self = r_cast<QLearner*>(tolua_tousertype(L, 1, 0));
+		const auto& matrix = self->getMatrix();
+		int i = 0;
+		lua_createtable(L, s_cast<int>(matrix.size()), 0);
+		for (const auto& row : matrix)
+		{
+			lua_createtable(L, 3, 0);
+			QLearner::QState state = row.first;
+			for (const auto& col : row.second)
+			{
+				QLearner::QAction action = col.first;
+				double q = col.second;
+				lua_pushinteger(L, s_cast<lua_Integer>(state));
+				lua_rawseti(L, -2, 1);
+				lua_pushinteger(L, s_cast<lua_Integer>(action));
+				lua_rawseti(L, -2, 2);
+				lua_pushnumber(L, q);
+				lua_rawseti(L, -2, 3);
+			}
+			lua_rawseti(L, -2, i + 1);
+			i++;
+		}
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'QLearner_load'.", &tolua_err);
 	return 0;
 #endif
 }
