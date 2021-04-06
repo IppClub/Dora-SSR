@@ -66,7 +66,7 @@ public:
 		_mm_free(p);
 	}
 #elif BX_PLATFORM_ANDROID
-	PROPERTY_READONLY_CREF(string, APKPath);
+	PROPERTY_READONLY_CREF(std::string, APKPath);
 #endif // BX_PLATFORM
 protected:
 	Application();

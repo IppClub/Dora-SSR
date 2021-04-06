@@ -176,6 +176,8 @@ SVGDef* SVGDef_create(String filename);
 
 /* QLearner */
 int QLearner_pack(lua_State* L);
+int QLearner_load(lua_State* L);
+int QLearner_getMatrix(lua_State* L);
 
 NS_DOROTHY_END
 
