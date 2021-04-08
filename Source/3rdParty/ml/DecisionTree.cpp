@@ -363,7 +363,7 @@ public:
 					}
 					break;
 				default:
-					assert(false);
+					assert(false && "numeric column is not accepting categorical value");
 					break;
 				}
 			}

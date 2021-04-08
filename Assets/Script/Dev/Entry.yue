@@ -12,7 +12,7 @@ debug.traceback = (err,level=1)->
 		msg = .stacktrace err,level+1
 		return msg
 
-LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20--, "Chinese"
+LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -222,6 +222,7 @@ thread ->
 	:width,:height = App.visualSize
 	scale = App.deviceRatio*0.7*math.min(width,height)/760
 	unless App.debugging
+		sleep!
 		with Sprite GetDorothySSRHappyWhite scale
 			\addTo Director.entry
 			sleep 1.0

@@ -47,7 +47,7 @@ QLearner::QState QLearner::pack(const std::vector<Uint32>& hints, const std::vec
 		AssertIf(value >= kind, "categorical value {} of index {} is greater or equal than {}", value, i, kind);
 		state += (s_cast<QLearner::QState>(value) << currentBit);
 		int bit = 1;
-		while ((1 << bit) < kind) bit++;
+		while ((Uint32(1) << bit) < kind) bit++;
 		currentBit += bit;
 	}
 	AssertIf(currentBit > sizeof(QLearner::QState) * 8, "can only pack values into {} bits instead of {} bits", sizeof(QLearner::QState) * 8, currentBit);
@@ -57,14 +57,8 @@ QLearner::QState QLearner::pack(const std::vector<Uint32>& hints, const std::vec
 QLearner::QLearner(double gamma, double alpha, double maxQ):
 _gamma(gamma),
 _alpha(alpha),
-_maxQ(maxQ),
-_currentState(0)
+_maxQ(maxQ)
 { }
-
-QLearner::QState QLearner::getCurrentState() const
-{
-	return _currentState;
-}
 
 QLearner::QAction QLearner::getBestAction(QState state) const
 {
@@ -110,18 +104,12 @@ double QLearner::getQ(QState s, QAction a) const
 	return _maxQ;
 }
 
-void QLearner::iterate(QState newState)
+void QLearner::update(QState state, QAction action, double reward)
 {
-	_currentState = newState;
-}
-
-void QLearner::iterate(QAction testAction, QState newState, double reward)
-{
-	QState oldState = _currentState;
-	double maxQ = getMaxQ(oldState);
-	double oldQ = getQ(oldState, testAction);
+	double maxQ = getMaxQ(state);
+	double oldQ = getQ(state, action);
 	double newQ = (1.0 - _alpha) * oldQ + _alpha * reward + _gamma * maxQ;
-	setQ(oldState, testAction, newQ);
+	setQ(state, action, newQ);
 }
 
 double QLearner::getMaxQ(QState state) const
