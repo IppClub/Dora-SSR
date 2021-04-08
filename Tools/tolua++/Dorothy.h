@@ -1017,9 +1017,7 @@ class DB
 
 class QLearner : public Object
 {
-	tolua_readonly tolua_property__common Uint64 currentState;
-	void iterate(Uint64 newState);
-	void iterate(Uint32 action, Uint64 newState, double reward);
+	void update(Uint64 state, Uint32 action, double reward);
 	Uint32 getBestAction(Uint64 state);
 	static QLearner* create(double gamma = 0.5, double alpha = 0.5, double maxQ = 100.0);
 };

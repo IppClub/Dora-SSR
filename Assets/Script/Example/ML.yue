@@ -1,0 +1,362 @@
+_ENV = Dorothy builtin.ImGui
+
+actions = {"观察","侦查","攀爬","挥舞","攻击","破坏","投掷","采集","挖掘","采收","沟通","鼓舞","恐吓"}
+
+relationTags = {"友善","中立","敌对"} -- 必选 1 个
+
+bodyTypes = {"大型","巨型"} -- 随机选取 0-1 个
+
+skills = {"迅速Lv1","迅速Lv2"} -- 随机选取 0-1 个
+
+unitTags = {"生物","挖掘资源","采集资源","可破坏","可攀爬","飞行"} -- 随机选取 0-N 个
+
+effectNames = {"揭示","伤害","破坏","采集","擒抱","攀爬","交涉","恐吓"}
+
+actionEffects = {
+	["观察"]: {
+		["生物"]:{"揭示",0,1}
+		["友善"]:{"揭示",0,1}
+		["中立"]:{"揭示",0,1}
+		["敌对"]:{"揭示",0,1}
+		["挖掘资源"]:{"揭示",0,1}
+		["采集资源"]:{"揭示",0,1}
+		["可破坏"]:{"揭示",0,1}
+		["可攀爬"]:{"揭示",0,1}
+		["巨型"]:{"揭示",0,0}
+		["迅速Lv2"]:{"揭示",0,0}
+	}
+	["侦查"]: {
+		["生物"]:{"揭示",1,1}
+		["挖掘资源"]:{"揭示",1,1}
+		["采集资源"]:{"揭示",1,1}
+		["可破坏"]:{"揭示",1,1}
+		["可攀爬"]:{"揭示",1,1}
+		["飞行"]:{"揭示",1,1}
+		["大型"]:{"揭示",1,1}
+		["巨型"]:{"揭示",1,1}
+		["迅速Lv1"]:{"揭示",1,1}
+		["迅速Lv2"]:{"揭示",1,1}
+	}
+	["攀爬"]: {
+		["友善"]:{"擒抱",0,1}
+		["中立"]:{"擒抱",0,1}
+		["可攀爬"]:{"攀爬",1,1}
+		["大型"]:{"攀爬",1,1}
+		["巨型"]:{"攀爬",1,1}
+	}
+	["挥舞"]: {
+		["生物"]:{"伤害",0,1}
+		["友善"]:{"取消伤害"}
+		["中立"]:{"取消伤害"}
+		["敌对"]:{"伤害",0,1}
+		["挖掘资源"]:{"采集",0,1}
+		["采集资源"]:{"采集",0,1}
+		["可破坏"]:{"破坏",0,1}
+		["可攀爬"]:{"破坏",0,1}
+		["飞行"]:{"伤害",-1,1}
+		["大型"]:{"伤害",0,1}
+		["巨型"]:{"伤害",0,1}
+		["迅速Lv1"]:{"伤害",0,0}
+		["迅速Lv2"]:{"伤害",0,0}
+	}
+	["攻击"]: {
+		["生物"]:{"伤害",1,1}
+		["友善"]:{"取消伤害"}
+		["中立"]:{"伤害",0,1}
+		["敌对"]:{"伤害",1,1}
+		["挖掘资源"]:{"破坏",0,1}
+		["采集资源"]:{"采集",0,1}
+		["可破坏"]:{"破坏",1,1}
+		["飞行"]:{"伤害",-1,1}
+		["大型"]:{"伤害",1,1}
+		["巨型"]:{"伤害",1,1}
+		["迅速Lv1"]:{"伤害",0,1}
+		["迅速Lv2"]:{"伤害",0,1}
+	}
+	["破坏"]: {
+		["生物"]:{"伤害",0,1}
+		["友善"]:{"取消伤害"}
+		["中立"]:{"伤害",0,1}
+		["敌对"]:{"伤害",0,1}
+		["挖掘资源"]:{"采集",0,1}
+		["采集资源"]:{"破坏",1,1}
+		["可破坏"]:{"破坏",1,1}
+		["巨型"]:{"伤害",1,1}
+		["迅速Lv1"]:{"伤害",0,0}
+		["迅速Lv2"]:{"伤害",0,0}
+	}
+	["投掷"]: {
+		["生物"]:{"伤害",1,1}
+		["友善"]:{"取消伤害"}
+		["中立"]:{"伤害",0,1}
+		["敌对"]:{"伤害",1,1}
+		["可破坏"]:{"破坏",1,1}
+		["飞行"]:{"伤害",1,1}
+		["大型"]:{"伤害",1,1}
+		["巨型"]:{"伤害",1,1}
+		["迅速Lv1"]:{"伤害",0,1}
+		["迅速Lv2"]:{"伤害",0,1}
+	}
+	["采集"]: {
+		["生物"]:{"伤害",0,1}
+		["友善"]:{"伤害",0,1}
+		["中立"]:{"伤害",0,1}
+		["敌对"]:{"伤害",0,1}
+		["挖掘资源"]:{"采集",0,1}
+		["采集资源"]:{"采集",0,1}
+		["可破坏"]:{"揭示",0,1}
+		["可攀爬"]:{"揭示",0,1}
+		["大型"]:{"伤害",0,1}
+	}
+	["挖掘"]: {
+		["挖掘资源"]:{"采集",1,1}
+		["采集资源"]:{"采集",0,1}
+		["可破坏"]:{"破坏",1,1}
+		["可攀爬"]:{"破坏",0,1}
+	}
+	["采收"]: {
+		["友善"]:{"采集",0,1}
+		["挖掘资源"]:{"采集",0,1}
+		["采集资源"]:{"采集",1,1}
+	}
+	["沟通"]: {
+		["生物"]:{"揭示",0,1}
+		["友善"]:{"交涉",0,1}
+		["中立"]:{"交涉",0,1}
+		["敌对"]:{"揭示",0,1}
+		["挖掘资源"]:{"揭示",0,1}
+		["采集资源"]:{"揭示",0,1}
+		["巨型"]:{"交涉",0,0}
+	}
+	["鼓舞"]: {
+		["友善"]:{"交涉",0,1}
+		["中立"]:{"交涉",0,1}
+	}
+	["恐吓"]: {
+		["生物"]:{"恐吓",1,1}
+		["友善"]:{"恐吓",1,1}
+		["中立"]:{"恐吓",1,1}
+		["敌对"]:{"恐吓",1,1}
+		["飞行"]:{"恐吓",1,1}
+		["大型"]:{"恐吓",0,1}
+	}
+}
+
+
+newCreature = ->
+	hints = {}
+	values = {}
+	tags = {}
+	record = {}
+	relationIndex = App.rand % #relationTags
+	table.insert tags, relationTags[relationIndex + 1]
+	table.insert hints, #relationTags
+	table.insert values, relationIndex
+	table.insert record, relationTags[relationIndex + 1]
+	bodyTypeIndex = App.rand % (#bodyTypes + 1)
+	if bodyTypeIndex ~= 0
+		table.insert tags, bodyTypes[bodyTypeIndex]
+		table.insert record, bodyTypes[bodyTypeIndex]
+	else
+		table.insert record, "无"
+	table.insert hints, #bodyTypes + 1
+	table.insert values, bodyTypeIndex
+	skillIndex = App.rand % (#skills + 1)
+	if skillIndex ~= 0
+		table.insert tags, skills[skillIndex]
+		table.insert record, skills[skillIndex]
+	else
+		table.insert record, "无"
+	table.insert hints, #skills + 1
+	table.insert values, skillIndex
+	for i = 1, #unitTags
+		table.insert hints, 2
+		if App.rand % 2 == 1
+			table.insert tags, unitTags[i]
+			table.insert values, 1
+			table.insert record, "有"
+		else
+			table.insert values, 0
+			table.insert record, "无"
+	{
+		name: table.concat tags, ","
+		:tags
+		:hints
+		:values
+		:record
+	}
+
+ql = QLearner!
+
+getEffect = (tags, action)->
+	effects = actionEffects[actions[action]]
+	cancelHarm = false
+	eset = {}
+	for tag in *tags
+		eff = effects[tag]
+		continue unless eff
+		if eff[1] == "取消伤害"
+			cancelHarm = true
+		else
+			if e = eset[eff[1]]
+				e[1] += eff[2]
+				e[2] = math.max e[2],eff[3]
+			else
+				eset[eff[1]] = {eff[2],eff[3]}
+	if cancelHarm
+		eset["伤害"] = nil
+	return for k, v in pairs eset
+		p = math.min 100, 50 + 20 * v[1]
+		if (1 + App.rand % 100) <= p
+			{k, v[2]}
+		else continue
+
+newRoundTraining = ->
+	result = {}
+	while #result == 0
+		unit = newCreature!
+		state = QLearner.pack unit.hints, unit.values
+		action = ql\getBestAction state
+		randomAction = false
+		if action == 0
+			randomAction = true
+			action = App.rand % #actions + 1
+		table.insert unit.record, actions[action]
+		result = getEffect unit.tags, action
+		if #result > 0
+			return {
+				name: unit.name
+				:state
+				:action
+				:result
+				rand: randomAction
+				record: unit.record
+			}
+		else
+			ql\update state, action, -1
+
+training = nil
+laborResult = nil
+effectFlags = [false for i = 1, #effectNames]
+manualOp = 0
+selfTrained = false
+records = {
+	{"关系","体型","技能","生物","挖掘资源","采集资源","可破坏","可攀爬","飞行","行动"},
+	{"C","C","C","C","C","C","C","C","C","C"}
+}
+decisionStr = nil
+Director.entry\addChild with Node!
+	\schedule ->
+		:width,:height = App.visualSize
+		SetNextWindowPos Vec2(width/2-300,height/2-300), "FirstUseEver"
+		SetNextWindowSize Vec2(600,600), "FirstUseEver"
+		Begin "Fairy", "NoResize|NoSavedSettings", ->
+			if training
+				TextWrapped "生物: #{training.name}"
+				TextWrapped "执行动作: #{actions[training.action]}"
+				TextWrapped "取得效果: #{table.concat ["#{item[1]}:#{item[2]}" for item in *training.result], ", "}"
+				TextWrapped "手工训练记录数: #{manualOp}"
+				if training.rand
+					TextWrapped "[执行了随机动作]"
+				else
+					TextWrapped "[执行了已习得动作]"
+				if Button "表扬"
+					manualOp += 1
+					ql\update training.state, training.action, 1
+					training = newRoundTraining!
+					table.insert records, training.record
+				SameLine!
+				if Button "批评"
+					manualOp += 1
+					ql\update training.state, training.action, -1
+					training = newRoundTraining!
+				SameLine!
+				if Button "跳过"
+					training = newRoundTraining!
+			else
+				if Button "开始人工训练"
+					training = newRoundTraining!
+			Separator!
+			if Button "对付100个随机生物"
+				result = {}
+				validAction = 0
+				for i = 1, 100
+					res = newRoundTraining!
+					validAction += 1 if not res.rand
+					for item in *res.result
+						if result[item[1]]
+							result[item[1]] += item[2]
+						else
+							result[item[1]] = item[2]
+				result = [{k,v} for k,v in pairs result]
+				table.sort result, (a,b)-> b[2] < a[2]
+				laborResult = table.concat ["#{k}:#{v}" for {k,v} in *result], ", "
+				laborResult ..= "\n习得动作生效次数: #{validAction}/100"
+			TextWrapped laborResult if laborResult
+			Separator!
+			doSelfTraining = false
+			if selfTrained
+				target = table.concat [effectNames[i] for i = 1, #effectFlags when effectFlags[i]], ", "
+				TextWrapped "已完成自我训练, 目标: #{target}"
+				if Button "遗忘"
+					selfTrained = false
+					ql = QLearner!
+			else
+				TextWrapped "选择训练目标"
+				for i = 1, #effectFlags
+					_, effectFlags[i] = Checkbox effectNames[i], effectFlags[i]
+				doSelfTraining = Button "进行自我训练"
+			if doSelfTraining
+				selfTrained = true
+				ql = QLearner!
+				targetEffects = {effectNames[i], true for i = 1, #effectFlags when effectFlags[i]}
+				hints = {}
+				table.insert hints, #relationTags
+				table.insert hints, #bodyTypes + 1
+				table.insert hints, #skills + 1
+				for i = 1, #unitTags
+					table.insert hints, 2
+				values = {}
+				l1 = #relationTags - 1
+				l2 = #bodyTypes
+				l3 = #skills
+				for i1 = 0, l1 do for i2 = 0, l2 do for i3 = 0, l3
+					for i4 = 0, 1 do for i5 = 0, 1 do for i6 = 0, 1
+						for i7 = 0, 1 do for i8 = 0, 1 do for i9 = 0, 1
+							tags = {}
+							table.insert tags, relationTags[l1 + 1]
+							bodyTypeIndex = l2
+							if bodyTypeIndex ~= 0
+								table.insert tags, bodyTypes[bodyTypeIndex]
+							skillIndex = l3
+							if skillIndex ~= 0
+								table.insert tags, skills[skillIndex]
+							table.insert tags, unitTags[1] if l4 ~= 0
+							table.insert tags, unitTags[2] if l5 ~= 0
+							table.insert tags, unitTags[3] if l6 ~= 0
+							table.insert tags, unitTags[4] if l7 ~= 0
+							table.insert tags, unitTags[5] if l8 ~= 0
+							table.insert tags, unitTags[6] if l9 ~= 0
+							state = QLearner.pack hints,{i1,i2,i3,i4,i5,i6,i7,i8,i9}
+							for action = 1, #actions
+								result = getEffect tags, action
+								r = 0
+								for {k,v} in *result
+									if targetEffects[k]
+										r += v
+								ql\update state, action, r == 0 and -1 or r
+			Separator!
+			TextWrapped "总结人工训练思维逻辑"
+			if Button("开始总结") and #records > 2
+				dataStr = table.concat [table.concat r, "," for r in *records], "\n"
+				thread ->
+					lines = {}
+					BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
+						line = string.rep("\t",depth) .. if name ~= "" then
+							"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
+						else
+							"#{op} \"#{value}\""
+						lines[#lines+1] = line
+					decisionStr = table.concat lines,"\n"
+			TextWrapped decisionStr if decisionStr
+

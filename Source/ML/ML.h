@@ -23,8 +23,7 @@ public:
 	using QMatrix = std::map<QState, std::map<QAction, double>>;
 public:
 	PROPERTY_READONLY(QState, CurrentState);
-	void iterate(QState newState);
-	void iterate(QAction action, QState newState, double reward);
+	void update(QState state, QAction action, double reward);
 	QAction getBestAction(QState state) const;
 	const QMatrix& getMatrix() const;
 	static QState pack(const std::vector<Uint32>& hints, const std::vector<Uint32>& values);
@@ -39,7 +38,6 @@ private:
 	double _maxQ;
 	double _gamma;
 	double _alpha;
-	QState _currentState;
 	QMatrix _values;
 	DORA_TYPE_OVERRIDE(QLearner);
 };

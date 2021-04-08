@@ -84,7 +84,7 @@ bool DB::transaction(const std::function<void()>& sqls)
 	}
 	catch (std::exception& e)
 	{
-		Error("fail to execute SQL transaction: {}", e.what());
+		LogError(fmt::format("[Dorothy Warning] fail to execute SQL transaction: {}", e.what()));
 		return false;
 	}
 }
@@ -209,7 +209,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 		}
 		catch (std::exception& e)
 		{
-			Error("fail to execute SQL transaction: {}", e.what());
+			LogError(fmt::format("[Dorothy Warning] fail to execute SQL transaction: {}", e.what()));
 			return Values::alloc(std::deque<std::vector<Own<Value>>>());
 		}
 	}, [callback](Own<Values> values)
@@ -252,7 +252,7 @@ void DB::execAsync(String sql, std::vector<Own<Value>>&& values, const std::func
 		}
 		catch (std::exception& e)
 		{
-			Error("fail to execute SQL transaction: {}", e.what());
+			LogError(fmt::format("[Dorothy Warning] fail to execute SQL transaction: {}", e.what()));
 		}
 		return Values::alloc(result);
 	}, [callback](Own<Values> values)
