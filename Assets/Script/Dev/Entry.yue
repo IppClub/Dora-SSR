@@ -5,13 +5,6 @@ import "yue" as options:{extension:yueext},version:yueVersion
 print "Dorothy SSR version: #{App.version}#{App.debugging and ', debugging' or ''}"
 print "Yuescript version: #{yueVersion}"
 
-debug.traceback = (err,level=1)->
-	with require("yue").stp
-		.dump_locals = false
-		.simplified = true
-		msg = .stacktrace err,level+1
-		return msg
-
 LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 moduleCache = {}

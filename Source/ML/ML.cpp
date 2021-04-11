@@ -19,17 +19,30 @@ void BuildDecisionTreeAsync(String data, int maxDepth,
 	auto dataStr = std::make_shared<std::string>(data.rawData(), data.size());
 	SharedAsyncThread.run([dataStr, maxDepth]()
 	{
-		auto result = GaGa::DecisionTree::BuildTest(std::move(*dataStr), maxDepth);
-		return Values::alloc(std::move(result));
+		try
+		{
+			auto result = GaGa::DecisionTree::BuildTest(std::move(*dataStr), maxDepth);
+			return Values::alloc(std::move(result), std::string());
+		}
+		catch (const std::logic_error& e)
+		{
+			std::string msg = e.what();
+			return Values::alloc(std::pair<std::list<GaGa::DecisionTree::Node>,double>(), msg);
+		}
 	}, [handleTree](Own<Values> values)
 	{
 		std::pair<std::list<GaGa::DecisionTree::Node>, double> result;
-		values->get(result);
-		handleTree(result.second, Slice::Empty, Slice::Empty, Slice::Empty);
-		for (const auto& node : result.first)
+		std::string err;
+		values->get(result, err);
+		if (err.empty())
 		{
-			handleTree(node.depth, node.name, node.op, node.value);
+			handleTree(result.second, Slice::Empty, Slice::Empty, Slice::Empty);
+			for (const auto& node : result.first)
+			{
+				handleTree(node.depth, node.name, node.op, node.value);
+			}
 		}
+		else handleTree(-1.0, err, Slice::Empty, Slice::Empty);
 	});
 }
 

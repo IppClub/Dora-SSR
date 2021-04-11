@@ -76,18 +76,16 @@ public:
 		_colNames.clear();
 	}
 
-	bool load(std::string&& data)
+	void load(std::string&& data)
 	{
 		std::istringstream istream(std::move(data));
-		return load(istream);
+		load(istream);
 	}
 
-	bool loadFile(const std::string& filename)
+	void loadFile(const std::string& filename)
 	{
 		std::ifstream istream(filename);
-		bool result = load(istream);
-		istream.close();
-		return result;
+		load(istream);
 	}
 
 	int ColCount() const
@@ -372,7 +370,7 @@ public:
 	}
 
 private:
-	bool load(std::basic_istream<char>& istream)
+	void load(std::basic_istream<char>& istream)
 	{
 		clear();
 		std::string line;
@@ -395,7 +393,7 @@ private:
 				uniques.emplace_back();
 			}
 		}
-		else return false;
+		else throw std::logic_error("missing column names");
 		if (!istream.eof())
 		{
 			std::getline(istream, line);
@@ -415,17 +413,18 @@ private:
 				{
 					_data.push_back(std::unique_ptr<Col>(new Col(ColType::Numeric)));
 				}
-				else return false;
+				else throw std::logic_error("invalid column type hint");
 				index++;
 				uit++;
 			}
-			if (index != columnCount) return false;
+			if (index != columnCount) throw std::logic_error("numbers of column names and column count mismatch");
 		}
-		else return false;
+		else throw std::logic_error("missing column hints");
 		_rowCount = 0;
 		while (!istream.eof())
 		{
 			std::getline(istream, line);
+			if (line.empty()) continue;
 			std::istringstream iss(line);
 			int index = 0;
 			auto uit = uniques.begin();
@@ -460,20 +459,19 @@ private:
 				index++;
 				uit++;
 			}
-			if (index != columnCount) return false;
+			if (index != columnCount) throw std::logic_error("numbers of column values and column count mismatch");
 			_rowCount++;
 		}
 		if (_data.back()->getType() == ColType::Categorical)
 		{
 			_labelCol = _data.back().get();
 		}
-		else return false;
+		else throw std::logic_error("label column must be of categorical values");
 		for (size_t i = 0; i < _data.size() - 1; i++)
 		{
 			_features.push_back(_data[i].get());
 			_featureNames.push_back(_colNames[i]);
 		}
-		return true;
 	}
 };
 
@@ -566,7 +564,6 @@ static double ComputeFeatureEntropyGain(const Matrix& matrix, int featureIndex, 
 			std::unique_ptr<Col> uniqueValues;
 			std::vector<std::vector<double>> valueScores;
 			std::tie(uniqueValues, valueScores) = matrix.GetFeatureValuesScores(featureIndex);
-
 			double afterEntropy = 0;
 			double tempEntropy = 0;
 			for (size_t i = 0; i < uniqueValues->values.size(); i++)
@@ -592,7 +589,7 @@ static double ComputeFeatureEntropyGain(const Matrix& matrix, int featureIndex, 
 			double gainedEntropy = originalEntropy - afterEntropy;
 			return gainedEntropy;
 		}
-		default: assert(false); return 0;
+		default: assert(false && "invalid column type"); return 0;
 	}
 }
 
@@ -694,7 +691,7 @@ public:
 			ops = { "<=", ">" };
 			valueTypes = { Matrix::ValueType::Lower, Matrix::ValueType::Upper };
 		}
-		else assert(false);
+		else assert(false && "invalid column type");
 
 		for (size_t k = 0; k < values.size(); k++)
 		{
@@ -826,21 +823,15 @@ static std::pair<std::list<DecisionTree::Node>, double> BuildTestTree(const Matr
 std::pair<std::list<DecisionTree::Node>, double> DecisionTree::BuildTest(std::string&& data, int maxDepth)
 {
 	Matrix matrix;
-	if (matrix.load(std::move(data)))
-	{
-		return BuildTestTree(matrix, maxDepth);
-	}
-	return {};
+	matrix.load(std::move(data));
+	return BuildTestTree(matrix, maxDepth);
 }
 
 std::pair<std::list<DecisionTree::Node>, double> DecisionTree::BuildTestFromFile(const std::string& filename, int maxDepth)
 {
 	Matrix matrix;
-	if (matrix.loadFile(filename))
-	{
-		return BuildTestTree(matrix, maxDepth);
-	}
-	return {};
+	matrix.loadFile(filename);
+	return BuildTestTree(matrix, maxDepth);
 }
 
 } // GaGa

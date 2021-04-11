@@ -11,3 +11,4 @@ with Data.store
 	Data\setRelation .PlayerGroup, .ZombieGroup, "Enemy"
 
 	.MaxZombies = 50
+	.ZombieWaveDelay = 0

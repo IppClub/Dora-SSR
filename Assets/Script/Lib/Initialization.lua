@@ -38,9 +38,17 @@ local function wait(cond)
 	until cond()
 end
 
+local function traceback(err)
+	local stp = require("yue").stp
+	stp.dump_locals = false
+	stp.simplified = true
+	local msg = stp.stacktrace(err, 2)
+	print(msg)
+end
+
 local function once(work)
 	return create(function(...)
-		work(...)
+		xpcall(work, traceback, ...)
 		yield(false)
 		return true
 	end)
@@ -48,9 +56,12 @@ end
 
 local function loop(work)
 	return create(function(...)
-		while work(...) ~= true do
+		local stoped = false
+		repeat
+			local success, result = xpcall(work, traceback, ...)
+			stoped = not success or result
 			yield(false)
-		end
+		until stoped
 		return true
 	end)
 end
@@ -116,15 +127,9 @@ Director.postScheduler:schedule(function()
 	local i,count = 1,#Routine
 	while i <= count do
 		local routine = Routine[i]
-		local type = type(routine)
-		local success, result
-		if type == "function" then
-			success, result = xpcall(routine, debug.traceback)
-		else
-			success, result = resume(routine)
-			if not success then
-				coroutine.close(routine)
-			end
+		local success, result = resume(routine)
+		if not success then
+			coroutine.close(routine)
 		end
 		if (success and result) or (not success) then
 			Routine[i] = Routine[count]
@@ -133,11 +138,7 @@ Director.postScheduler:schedule(function()
 			count = count-1
 		end
 		if not success then
-			if type == "function" then
-				print(result)
-			else
-				print(debug.traceback(result))
-			end
+			print(result)
 		end
 		i = i+1
 	end
@@ -429,16 +430,7 @@ Entity.__index = function(self,key)
 	return Entity_index(self,key)
 end
 
-local Entity_newindex = Entity.__newindex
-local Entity_set = Entity.set
-Entity.__newindex = function(self,key,value)
-	local vtype = type(value)
-	if vtype == "function" or vtype == "table" then
-		Entity_newindex(self,key,value)
-	else
-		Entity_set(self,key,value)
-	end
-end
+Entity.__newindex = Entity.set
 
 Entity.setRaw = function(self,key,value)
 	Entity_set(self,key,value,true)
@@ -562,16 +554,20 @@ ImGui.EndTable = nil
 
 local BuildDecisionTreeAsync = builtin.BuildDecisionTreeAsync
 builtin.BuildDecisionTreeAsync = function(data,maxDepth,handler)
-	local accuracy
+	local accuracy, err
 	BuildDecisionTreeAsync(data,maxDepth,function(...)
 		if not accuracy then
 			accuracy = select(1, ...)
+			if accuracy < 0 then
+				accuracy = nil
+				err = select(2, ...)
+			end
 		else
 			handler(...)
 		end
 	end)
-	wait(function() return accuracy end)
-	return accuracy
+	wait(function() return accuracy or err end)
+	return accuracy, err
 end
 
 -- Blackboard
@@ -588,6 +584,15 @@ end
 Blackboard.__newindex = Blackboard.set
 
 -- Helpers
+
+debug.traceback = function(err, level)
+	level = level or 1
+	local stp = require("yue").stp
+	stp.dump_locals = false
+	stp.simplified = true
+	local msg = stp.stacktrace(err, level + 1)
+	return msg
+end
 
 local function dump(what)
 	local seen = { }

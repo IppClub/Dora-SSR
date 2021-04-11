@@ -22,7 +22,6 @@ public:
 	using QAction = uint32_t; // action must start with 1, 0 means invalid action
 	using QMatrix = std::map<QState, std::map<QAction, double>>;
 public:
-	PROPERTY_READONLY(QState, CurrentState);
 	void update(QState state, QAction action, double reward);
 	QAction getBestAction(QState state) const;
 	const QMatrix& getMatrix() const;

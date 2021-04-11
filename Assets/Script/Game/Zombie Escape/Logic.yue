@@ -97,7 +97,7 @@ spawnZombies = ->
 		:world
 	} = Store
 	if zombieGroup.count < MaxZombies
-		for i = zombieGroup.count,MaxZombies
+		for i = zombieGroup.count+1,MaxZombies
 			available = false
 			pos = Vec2.zero
 			while not available
