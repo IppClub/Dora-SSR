@@ -220,6 +220,7 @@ void Entity::remove(int index)
 		removeHandler(this);
 	}
 	_components[index] = nullptr;
+	_oldComs[index] = nullptr;
 }
 
 void Entity::removeNext(int index)
