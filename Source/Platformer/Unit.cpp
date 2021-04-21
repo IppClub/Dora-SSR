@@ -45,6 +45,7 @@ const Slice Unit::Def::Playable = "playable"_slice;
 const Slice Unit::Def::Scale = "scale"_slice;
 const Slice Unit::Def::Actions = "actions"_slice;
 const Slice Unit::Def::DecisionTree = "decisionTree"_slice;
+const Slice Unit::Def::DefaultFaceRight = "defaultFaceRight"_slice;
 
 BodyDef* Unit::getBodyDef(Dictionary* def) const
 {
@@ -116,18 +117,20 @@ Unit(
 bool Unit::init()
 {
 	if (!Body::init()) return false;
+	auto defaultFaceRight = _unitDef->get(Def::DefaultFaceRight, true);
 	auto detectDistance = _unitDef->get(Def::DetectDistance, 0.0f);
 	auto attackRange = _unitDef->get(Def::AttackRange, Size::zero);
 	auto tag = _unitDef->get(Def::Tag, Slice::Empty);
 	auto playableStr = _unitDef->get(Def::Playable, Slice::Empty);
 	auto scale = _unitDef->get(Def::Scale, 1.0f);
 	auto actions = _unitDef->get(Def::Actions, s_cast<Array*>(nullptr));
+	_flags.set(Unit::DefaultFaceRight, defaultFaceRight);
 	Unit::setDetectDistance(detectDistance);
 	Unit::setAttackRange(attackRange);
 	Unit::setTag(tag);
 	_groundSensor = Body::getSensorByTag(Unit::GroundSensorTag);
 	Playable* playable = Playable::create(playableStr);
-	_flags.set(Unit::FaceRight, true);
+	Unit::setFaceRight(true);
 	playable->setScaleX(scale);
 	playable->setScaleY(scale);
 	Unit::setPlayable(playable);
@@ -159,12 +162,16 @@ Dictionary* Unit::getUnitDef() const
 
 void Unit::setFaceRight(bool var)
 {
-	if (_flags.isOn(Unit::FaceRight) != var)
+	_flags.set(Unit::FaceRight, var);
+	if (_playable)
 	{
-		_flags.set(Unit::FaceRight, var);
-		if (_playable)
+		if (_flags.isOn(Unit::DefaultFaceRight))
 		{
-			_playable->setFaceRight(var);
+			_playable->setFliped(!var);
+		}
+		else
+		{
+			_playable->setFliped(var);
 		}
 	}
 }
@@ -195,7 +202,7 @@ void Unit::setPlayable(Playable* playable)
 		if (playable)
 		{
 			this->addChild(playable);
-			playable->setFaceRight(_flags.isOn(Unit::FaceRight));
+			playable->setFliped(_flags.isOn(Unit::FaceRight));
 		}
 		_playable = playable;
 	}

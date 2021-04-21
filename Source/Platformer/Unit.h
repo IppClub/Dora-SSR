@@ -87,6 +87,7 @@ public:
 		static const Slice Scale;
 		static const Slice Actions;
 		static const Slice DecisionTree;
+		static const Slice DefaultFaceRight;
 	};
 	CREATE_FUNC(Unit);
 protected:
@@ -114,7 +115,8 @@ private:
 	enum
 	{
 		FaceRight = BodyUserFlag,
-		ReceivingDecisionTrace = BodyUserFlag << 1
+		DefaultFaceRight = BodyUserFlag << 1,
+		ReceivingDecisionTrace = BodyUserFlag << 2
 	};
 	DORA_TYPE_OVERRIDE(Unit);
 };

@@ -133,7 +133,6 @@ namespace Model
 	enum struct Dorothy
 	{
 		File = 'A',
-		FaceRight = 'B',
 		Size = 'D',
 	};
 

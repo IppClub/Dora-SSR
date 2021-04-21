@@ -58,7 +58,6 @@ bool Model::init()
 {
 	if (!Node::init()) return false;
 	if (!_modelDef) return false;
-	_faceRight = _modelDef->isFaceRight();
 	_resetAnimation.end = std::make_pair(this, &Model::onResetAnimationEnd);
 	_root = Node::create();
 	const std::string& clipFile = _modelDef->getClipFile();
@@ -130,14 +129,10 @@ void Model::setLook(String name)
 	}
 }
 
-void Model::setFaceRight(bool var)
+void Model::setFliped(bool var)
 {
-	if (_faceRight != var)
-	{
-		_faceRight = var;
-		float right = _modelDef->isFaceRight() ? 1.0f : -1.0f;
-		_root->setScaleX(var ? right : -right);
-	}
+	_root->setScaleX(var ? -1.0f : 1.0f);
+	Playable::setFliped(var);
 }
 
 float Model::play(Uint32 index, bool loop)
@@ -544,7 +539,7 @@ Vec2 Model::getKeyPoint(String name) const
 	if (it != keyPoints.end())
 	{
 		auto keyPoint = it->second;
-		if (!isFaceRight())
+		if (isFliped())
 		{
 			keyPoint.x = -keyPoint.x;
 		}

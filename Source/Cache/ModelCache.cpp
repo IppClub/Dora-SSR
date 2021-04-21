@@ -62,9 +62,6 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						_item->_clip = SharedContent.exist(localFile) ? localFile : file.toString();
 						break;
 					}
-					case Xml::Model::Dorothy::FaceRight:
-						_item->_isFaceRight = (std::atoi(attrs[++i].first) != 0);
-						break;
 					case Xml::Model::Dorothy::Size:
 						getPosFromStr(attrs[++i], _item->_size.width, _item->_size.height);
 						break;
