@@ -18,7 +18,7 @@ maskA = with DrawNode!
 
 targetA = with Model "Model/xiaoli.model"
 	.look = "happy"
-	.faceRight = true
+	.fliped = true
 	\play "walk", true
 	\runAction Sequence(
 		X 1.5, -200, 200
@@ -27,7 +27,7 @@ targetA = with Model "Model/xiaoli.model"
 		Emit "Turn"
 	)
 	\slot "ActionEnd", (action)-> \runAction action
-	\slot "Turn", -> .faceRight = not .faceRight
+	\slot "Turn", -> .fliped = not .fliped
 
 exampleA = with Node!
 	\addChild with ClipNode maskA
@@ -42,7 +42,7 @@ exampleA = with Node!
 
 maskB = with Model "Model/xiaoli.model"
 	.look = "happy"
-	.faceRight = true
+	.fliped = true
 	\play "walk", true
 
 targetB = with DrawNode!

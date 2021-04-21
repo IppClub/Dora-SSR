@@ -3,7 +3,7 @@ _ENV = Dorothy!
 node = with Node!
 	\addChild with Model "Model/xiaoli.model"
 		.y = -80
-		.faceRight = true
+		.fliped = true
 		.look = "happy"
 		\play "walk", true
 		\runAction Sequence(
@@ -13,7 +13,7 @@ node = with Node!
 			Emit "Turn"
 		)
 		\slot "ActionEnd",(action)-> \runAction action
-		\slot "Turn",-> .faceRight = not .faceRight
+		\slot "Turn",-> .fliped = not .fliped
 
 renderTarget = with RenderTarget 300,400
 	.z = 300

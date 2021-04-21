@@ -25,7 +25,7 @@ public:
 	virtual void render() override;
 	virtual void setSpeed(float var) override;
 	virtual void setRecovery(float var) override;
-	virtual void setFaceRight(bool var) override;
+	virtual void setFliped(bool var) override;
 	virtual void setLook(String var) override;
 	virtual const std::string& getCurrentAnimationName() const override;
 	virtual Vec2 getKeyPoint(String name) const override;

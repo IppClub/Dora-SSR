@@ -201,10 +201,10 @@ void Spine::setLook(String name)
 	}
 }
 
-void Spine::setFaceRight(bool var)
+void Spine::setFliped(bool var)
 {
 	_skeleton->setScaleX(var ? -1.0f : 1.0f);
-	Playable::setFaceRight(var);
+	Playable::setFliped(var);
 }
 
 const std::string& Spine::getCurrentAnimationName() const
