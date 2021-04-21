@@ -160,12 +160,10 @@ void SpriteDef::restoreResetAnimation(Node* target, ActionDuration* action)
 /* ModelDef */
 
 ModelDef::ModelDef():
-_isFaceRight(false),
 _size{}
 { }
 
 ModelDef::ModelDef(
-	bool isFaceRight,
 	const Size& size,
 	String clipFile,
 	Own<SpriteDef>&& root,
@@ -173,7 +171,6 @@ ModelDef::ModelDef(
 	const std::unordered_map<std::string,int>& animationIndex,
 	const std::unordered_map<std::string,int>& lookIndex):
 _clip(clipFile),
-_isFaceRight(isFaceRight),
 _size(size),
 _keys(keys),
 _animationIndex(animationIndex),
@@ -200,10 +197,6 @@ std::string ModelDef::toXml()
 {
 	fmt::memory_buffer out;
 	fmt::format_to(out, "<{} {}=\"{}\" ", char(Xml::Model::Element::Dorothy), char(Xml::Model::Dorothy::File), Path::getFilename(_clip));
-	if (_isFaceRight)
-	{
-		fmt::format_to(out, "{}=\"1\" ", char(Xml::Model::Dorothy::FaceRight));
-	}
 	if (_size != Size::zero)
 	{
 		fmt::format_to(out, "{}=\"{:d},{:d}\"", char(Xml::Model::Dorothy::Size), s_cast<int>(_size.width), s_cast<int>(_size.height));
@@ -226,11 +219,6 @@ std::string ModelDef::toXml()
 	}
 	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Dorothy));
 	return fmt::to_string(out);
-}
-
-bool ModelDef::isFaceRight() const
-{
-	return _isFaceRight;
 }
 
 int ModelDef::getAnimationIndexByName(String name)

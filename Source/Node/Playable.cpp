@@ -14,19 +14,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 Playable::Playable():
-_faceRight(true),
+_fliped(false),
 _speed(1.0f),
 _recoveryTime(0.0f)
 { }
 
-void Playable::setFaceRight(bool var)
+void Playable::setFliped(bool var)
 {
-	_faceRight = var;
+	_fliped = var;
 }
 
-bool Playable::isFaceRight() const
+bool Playable::isFliped() const
 {
-	return _faceRight;
+	return _fliped;
 }
 
 void Playable::setSpeed(float var)

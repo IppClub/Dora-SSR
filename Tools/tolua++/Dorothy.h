@@ -564,7 +564,7 @@ class Playable : public Node
 	tolua_property__common string look;
 	tolua_property__common float speed;
 	tolua_property__common float recovery;
-	tolua_property__bool bool faceRight;
+	tolua_property__bool bool fliped;
 	tolua_readonly tolua_property__common string currentAnimationName @ currentAnimation;
 	Vec2 getKeyPoint @ getKey(String name);
 	float play(String name, bool loop = false);
