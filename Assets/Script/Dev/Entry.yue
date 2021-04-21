@@ -1,6 +1,6 @@
 _ENV = Dorothy builtin.ImGui
 import "Utils" as :Set
-import "yue" as options:{extension:yueext},version:yueVersion
+import "yue" as options:{extension:yueext}, version:yueVersion
 
 print "Dorothy SSR version: #{App.version}#{App.debugging and ', debugging' or ''}"
 print "Yuescript version: #{yueVersion}"
@@ -215,7 +215,6 @@ thread ->
 	:width,:height = App.visualSize
 	scale = App.deviceRatio*0.7*math.min(width,height)/760
 	unless App.debugging
-		sleep!
 		with Sprite GetDorothySSRHappyWhite scale
 			\addTo Director.entry
 			sleep 1.0

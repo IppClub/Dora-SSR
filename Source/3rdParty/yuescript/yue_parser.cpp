@@ -75,6 +75,7 @@ YueParser::YueParser() {
 	#define disable_do(patt) (DisableDo >> ((patt) >> EnableDo | EnableDo >> Cut))
 	#define disable_chain(patt) (DisableChain >> ((patt) >> EnableChain | EnableChain >> Cut))
 	#define disable_do_chain(patt) (DisableDoChain >> ((patt) >> EnableDoChain | EnableDoChain >> Cut))
+	#define disable_arg_table_block(patt) (DisableArgTableBlock >> ((patt) >> EnableArgTableBlock | EnableArgTableBlock >> Cut))
 	#define plain_body_with(str) (-key(str) >> InBlock | key(str) >> Statement)
 	#define plain_body (InBlock | Statement)
 
@@ -290,6 +291,18 @@ YueParser::YueParser() {
 		return true;
 	});
 
+	DisableArgTableBlock = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->noTableBlockStack.push(true);
+		return true;
+	});
+
+	EnableArgTableBlock = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		st->noTableBlockStack.pop();
+		return true;
+	});
+
 	Comprehension = sym('[') >> Exp >> CompInner >> sym(']');
 	comp_value = sym(',') >> Exp;
 	TblComprehension = sym('{') >> Exp >> -comp_value >> CompInner >> sym('}');
@@ -333,9 +346,9 @@ YueParser::YueParser() {
 		expr("not") >> not_(AlphaNum);
 	unary_exp = *(Space >> unary_operator) >> expo_exp;
 
-	BackcallOperator = expr("|>");
-	backcall_value = Space >> BackcallOperator >> *SpaceBreak >> unary_exp;
-	backcall_exp = unary_exp >> *backcall_value;
+	PipeOperator = expr("|>");
+	pipe_value = Space >> PipeOperator >> *SpaceBreak >> unary_exp;
+	pipe_exp = unary_exp >> *pipe_value;
 
 	BinaryOperator =
 		(expr("or") >> not_(AlphaNum)) |
@@ -350,8 +363,8 @@ YueParser::YueParser() {
 		expr(">>") |
 		expr("//") |
 		set("+-*/%><|&~");
-	exp_op_value = Space >> BinaryOperator >> *SpaceBreak >> backcall_exp;
-	Exp = Seperator >> backcall_exp >> *exp_op_value;
+	exp_op_value = Space >> BinaryOperator >> *SpaceBreak >> pipe_exp;
+	Exp = Seperator >> pipe_exp >> *exp_op_value;
 
 	DisableChain = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -472,8 +485,9 @@ YueParser::YueParser() {
 
 	TableBlockInner = Seperator >> KeyValueLine >> *(+SpaceBreak >> KeyValueLine);
 	TableBlock = +SpaceBreak >> Advance >> ensure(TableBlockInner, PopIndent);
-	TableBlockIndent = sym('*') >> Seperator >> KeyValueList >> -sym(',') >>
-		-(+SpaceBreak >> Advance >> ensure(KeyValueList >> -sym(',') >> *(+SpaceBreak >> KeyValueLine), PopIndent));
+	TableBlockIndent = sym('*') >> Seperator >> disable_arg_table_block(
+		KeyValueList >> -sym(',') >>
+		-(+SpaceBreak >> Advance >> ensure(KeyValueList >> -sym(',') >> *(+SpaceBreak >> KeyValueLine), PopIndent)));
 
 	class_member_list = Seperator >> KeyValue >> *(sym(',') >> KeyValue);
 	ClassLine = CheckIndent >> (class_member_list | Statement) >> -sym(',');
@@ -495,13 +509,13 @@ YueParser::YueParser() {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->exportCount++;
 		return true;
-	}) >> ((pl::user(export_default, [](const item_t& item) {
+	}) >> (pl::user(export_default >> Exp, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		bool isValid = !st->exportDefault && st->exportCount == 1;
 		st->exportDefault = true;
 		return isValid;
-	}) >> Exp)
-	| (pl::user(true_(), [](const item_t& item) {
+	})
+	| (not_(export_default) >> pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		if (st->exportDefault && st->exportCount > 1) {
 			return false;
@@ -563,7 +577,7 @@ YueParser::YueParser() {
 	fn_arrow_back = expr('<') >> set("-=");
 	Backcall = -FnArgsDef >> Space >> fn_arrow_back >> Space >> ChainValue;
 
-	BackcallBody = Seperator >> Space >> BackcallOperator >> unary_exp >> *(+SpaceBreak >> CheckIndent >> Space >> BackcallOperator >> unary_exp);
+	PipeBody = Seperator >> Space >> PipeOperator >> unary_exp >> *(+SpaceBreak >> CheckIndent >> Space >> PipeOperator >> unary_exp);
 
 	ExpList = Seperator >> Exp >> *(sym(',') >> Exp);
 	ExpListLow = Seperator >> Exp >> *(Space >> set(",;") >> Exp);
@@ -571,18 +585,22 @@ YueParser::YueParser() {
 	ArgLine = CheckIndent >> Exp >> *(sym(',') >> Exp);
 	ArgBlock = ArgLine >> *(sym(',') >> SpaceBreak >> ArgLine) >> PopIndent;
 
+	arg_table_block = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		return st->noTableBlockStack.empty() || !st->noTableBlockStack.top();
+	}) >> TableBlock;
+
 	invoke_args_with_table =
-		sym(',') >>
-		(
+		sym(',') >> (
 			TableBlock |
-			SpaceBreak >> Advance >> ArgBlock >> -TableBlock
-		);
+			SpaceBreak >> Advance >> ArgBlock >> -arg_table_block
+		) | arg_table_block;
 
 	InvokeArgs =
 		not_(set("-~")) >> Seperator >>
 		(
-			Exp >> *(sym(',') >> Exp) >> -(invoke_args_with_table | TableBlock) |
-			TableBlock
+			(Exp >> *(sym(',') >> Exp) >> -invoke_args_with_table) |
+			arg_table_block
 		);
 
 	const_value = (expr("nil") | expr("true") | expr("false")) >> not_(AlphaNum);
@@ -605,18 +623,19 @@ YueParser::YueParser() {
 		Import | While | Repeat | For | ForEach |
 		Return | Local | Global | Export | Macro |
 		Space >> BreakLoop | Label | Goto | Backcall |
-		LocalAttrib | BackcallBody | ExpListAssign
+		LocalAttrib | PipeBody | ExpListAssign
 	) >> Space >>
 	-statement_appendix >> -statement_sep;
 
 	Body = InBlock | Statement;
 
-	empty_line_stop = Space >> and_(Stop);
-	Line = and_(check_indent >> Space >> not_(BackcallOperator)) >> Statement | Advance >> ensure(and_(Space >> BackcallOperator) >> Statement, PopIndent) | empty_line_stop;
+	empty_line_stop = Space >> and_(Break);
+	Line = and_(check_indent >> Space >> not_(PipeOperator)) >> Statement | Advance >> ensure(and_(Space >> PipeOperator) >> Statement, PopIndent) | empty_line_stop;
 	Block = Seperator >> Line >> *(+Break >> Line);
 
 	Shebang = expr("#!") >> *(not_(Stop) >> Any);
-	File = White >> -Shebang >> Block >> eof();
+	BlockEnd = Block >> -(+Break >> Space >> and_(Stop)) >> Stop;
+	File = White >> -Shebang >> Block >> -(+Break >> Space >> and_(eof())) >> eof();
 }
 
 ParseInfo YueParser::parse(std::string_view codes, rule& r) {
