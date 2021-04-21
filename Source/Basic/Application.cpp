@@ -403,6 +403,8 @@ int Application::mainLogic(Application* app)
 		return 1;
 	}
 
+	app->_frame = bgfx::frame();
+
 	SharedPoolManager.push();
 	if (!SharedDirector.init())
 	{
@@ -410,7 +412,6 @@ int Application::mainLogic(Application* app)
 		return 1;
 	}
 
-	app->_frame = 0;
 	app->makeTimeNow();
 	app->_startTime = app->_lastTime;
 

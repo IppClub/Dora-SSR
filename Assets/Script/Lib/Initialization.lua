@@ -1,6 +1,7 @@
 package.path = "?.lua"
 package.cpath = ""
-package.yuepath = "?." .. require("yue").options.extension
+local yue = require("yue")
+package.yuepath = "?." .. yue.options.extension
 
 local App = builtin.Application()
 local Director = builtin.Director()
@@ -22,9 +23,9 @@ builtin.DB = DB
 builtin.Platformer.Decision.AI = AI
 builtin.Platformer.Data = Data
 
-local yield = coroutine.yield
-local create = coroutine.create
-local resume = coroutine.resume
+local coroutine_yield = coroutine.yield
+local coroutine_create = coroutine.create
+local coroutine_resume = coroutine.resume
 local table_insert = table.insert
 local table_remove = table.remove
 local table_concat = table.concat
@@ -34,12 +35,12 @@ local xpcall = xpcall
 
 local function wait(cond)
 	repeat
-		yield(false)
+		coroutine_yield(false)
 	until cond()
 end
 
 local function traceback(err)
-	local stp = require("yue").stp
+	local stp = yue.stp
 	stp.dump_locals = false
 	stp.simplified = true
 	local msg = stp.stacktrace(err, 2)
@@ -47,20 +48,20 @@ local function traceback(err)
 end
 
 local function once(work)
-	return create(function(...)
+	return coroutine_create(function(...)
 		xpcall(work, traceback, ...)
-		yield(false)
+		coroutine_yield(false)
 		return true
 	end)
 end
 
 local function loop(work)
-	return create(function(...)
+	return coroutine_create(function(...)
 		local stoped = false
 		repeat
 			local success, result = xpcall(work, traceback, ...)
 			stoped = not success or result
-			yield(false)
+			coroutine_yield(false)
 		until stoped
 		return true
 	end)
@@ -89,9 +90,9 @@ local function cycle(duration,work)
 	end
 	work(0)
 	if time < duration then
-		yield(false)
+		coroutine_yield(false)
 		while worker() do
-			yield(false)
+			coroutine_yield(false)
 		end
 	end
 end
@@ -124,23 +125,21 @@ setmetatable(Routine,
 })
 
 Director.postScheduler:schedule(function()
-	local i,count = 1,#Routine
+	local i, count = 1, #Routine
 	while i <= count do
 		local routine = Routine[i]
-		local success, result = resume(routine)
+		local success, result = coroutine_resume(routine)
 		if not success then
 			coroutine.close(routine)
+			print(result)
 		end
 		if (success and result) or (not success) then
 			Routine[i] = Routine[count]
-			table_remove(Routine,count)
-			i = i-1
-			count = count-1
+			table_remove(Routine, count)
+			i = i - 1
+			count = count - 1
 		end
-		if not success then
-			print(result)
-		end
-		i = i+1
+		i = i + 1
 	end
 	return false
 end)
@@ -164,11 +163,11 @@ builtin.sleep = function(duration)
 	if duration then
 		local time = 0
 		repeat
-			yield(false)
+			coroutine_yield(false)
 			time = time + Director.deltaTime
 		until time >= duration
 	else
-		yield(false)
+		coroutine_yield(false)
 	end
 end
 
@@ -182,9 +181,11 @@ _G.namespace = builtin.namespace
 -- Async functions
 
 local Content_loadAsync = Content.loadAsync
-Content.loadAsync = function(self,filename)
+Content.loadAsync = function(self, filename)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "Content.loadAsync should be run in a thread")
 	local loadedData
-	Content_loadAsync(self,filename,function(data)
+	Content_loadAsync(self, filename, function(data)
 		loadedData = data
 	end)
 	wait(function() return loadedData end)
@@ -192,18 +193,22 @@ Content.loadAsync = function(self,filename)
 end
 
 local Content_saveAsync = Content.saveAsync
-Content.saveAsync = function(self,filename,content)
+Content.saveAsync = function(self, filename, content)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "Content.saveAsync should be run in a thread")
 	local saved = false
-	Content_saveAsync(self,filename,content,function()
+	Content_saveAsync(self, filename, content, function()
 		saved = true
 	end)
 	wait(function() return saved end)
 end
 
 local Content_copyAsync = Content.copyAsync
-Content.copyAsync = function(self,src,dst)
+Content.copyAsync = function(self, src, dst)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "Content.copyAsync should be run in a thread")
 	local loaded = false
-	Content_copyAsync(self,src,dst,function()
+	Content_copyAsync(self, src, dst, function()
 		loaded = true
 	end)
 	wait(function() return loaded end)
@@ -211,7 +216,9 @@ end
 
 local Cache = builtin.Cache
 local Cache_loadAsync = Cache.loadAsync
-Cache.loadAsync = function(self,target,handler)
+Cache.loadAsync = function(self, target, handler)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "Cache.loadAsync should be run in a thread")
 	local files
 	if type(target) == "table" then
 		files = target
@@ -221,7 +228,7 @@ Cache.loadAsync = function(self,target,handler)
 	local count = 0
 	local total = #files
 	for i = 1,total do
-		Cache_loadAsync(self,files[i],function()
+		Cache_loadAsync(self, files[i], function()
 			if handler then
 				handler(files[i])
 			end
@@ -233,9 +240,11 @@ end
 
 local RenderTarget = builtin.RenderTarget
 local RenderTarget_saveAsync = RenderTarget.saveAsync
-RenderTarget.saveAsync = function(self,filename)
+RenderTarget.saveAsync = function(self, filename)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "RenderTarget.saveAsync should be run in a thread")
 	local saved = false
-	RenderTarget_saveAsync(self,filename,function()
+	RenderTarget_saveAsync(self, filename, function()
 		saved = true
 	end)
 	wait(function() return saved end)
@@ -243,6 +252,8 @@ end
 
 local DB_queryAsync = DB.queryAsync
 DB.queryAsync = function(self, ...)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "DB.queryAsync should be run in a thread")
 	local result
 	local args = {...}
 	table_insert(args, 1, function(data)
@@ -255,6 +266,8 @@ end
 
 local DB_insertAsync = DB.insertAsync
 DB.insertAsync = function(self, ...)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "DB.insertAsync should be run in a thread")
 	local result
 	local args = {...}
 	table_insert(args, function(res)
@@ -267,6 +280,8 @@ end
 
 local DB_execAsync = DB.execAsync
 DB.execAsync = function(self, ...)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "DB.execAsync should be run in a thread")
 	local result
 	local args = {...}
 	table_insert(args, function(res)
@@ -321,7 +336,7 @@ for _,actionName in ipairs{
 	"Emit",
 	"Spawn",
 	"Sequence",
-	} do
+} do
 	builtin[actionName] = function(...)
 		return {actionName, ...}
 	end
@@ -587,49 +602,15 @@ Blackboard.__newindex = Blackboard.set
 
 debug.traceback = function(err, level)
 	level = level or 1
-	local stp = require("yue").stp
+	local stp = yue.stp
 	stp.dump_locals = false
 	stp.simplified = true
 	local msg = stp.stacktrace(err, level + 1)
 	return msg
 end
 
-local function dump(what)
-	local seen = { }
-	local _dump
-	_dump = function(what, depth)
-		depth = depth or 0
-		local t = type(what)
-		if "string" == t then
-			return "\"" .. tostring(what) .. "\"\n"
-		elseif "table" == t then
-			if seen[what] then
-				return "recursion(" .. tostring(what) .. ")...\n"
-			end
-			seen[what] = true
-			depth = depth + 1
-			local lines = {}
-			for k, v in pairs(what) do
-				table_insert(lines, ('\t'):rep(depth) .. "[" .. tostring(k) .. "] = " .. _dump(v, depth))
-			end
-			seen[what] = false
-			return "{\n" .. table_concat(lines) .. ('\t'):rep(depth - 1) .. "}\n"
-		else
-			return tostring(what) .. "\n"
-		end
-	end
-	return _dump(what)
-end
-
-local function p(...)
-	local args = {...}
-	for i = 1, #args do
-		args[i] = dump(args[i])
-	end
-	print(table_concat(args))
-end
-_G.p = p
-builtin.p = p
+_G.p = yue.p
+builtin.p = yue.p
 
 local function disallowAssignGlobal(_,name)
 	error("Disallow creating global variable \""..name.."\".")

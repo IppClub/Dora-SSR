@@ -308,8 +308,8 @@ public:
 			_history.push_back(codes);
 			LogPrint(codes + '\n');
 			codes.insert(0,
-				"rawset builtin, 'REPL', {k, v for k, v in pairs builtin} unless builtin.REPL\n"
-				"_ENV = builtin.REPL\n"
+				"rawset builtin, '_REPL', {k, v for k, v in pairs builtin} unless builtin._REPL\n"
+				"_ENV = builtin._REPL\n"
 				"global *\n"_slice);
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
