@@ -76,7 +76,6 @@ class ModelDef : public Object
 public:
 	ModelDef();
 	ModelDef(
-		bool isFaceRight,
 		const Size& size,
 		String clipFile,
 		Own<SpriteDef>&& root,
@@ -88,7 +87,6 @@ public:
 	void addKeyPoint(String key, const Vec2& point);
 	Vec2 getKeyPoint(String key) const;
 	std::unordered_map<std::string,Vec2>& getKeyPoints();
-	bool isFaceRight() const;
 	const Size& getSize() const;
 	void setActionName(int index, String name);
 	void setLookName(int index, String name);
@@ -104,7 +102,6 @@ public:
 	static ModelDef* create();
 private:
 	void setRoot(Own<SpriteDef>&& root);
-	bool _isFaceRight;
 	Size _size;
 	Own<SpriteDef> _root;
 	std::string _clip;

@@ -887,7 +887,7 @@ Director.ui\addChild with AlignNode isRoot:true
 		\addChild with Model "Model/bossp.model"
 			.x = 500
 			.y = 100
-			.faceRight = false
+			.fliped = true
 			.speed = 0.8
 			.scaleX,.scaleY = 2,2
 			.recovery = 0.2
