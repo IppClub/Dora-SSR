@@ -603,24 +603,7 @@ bool Content::isFileExist(String filePath)
 	{
 		strPath.insert(0, _assetPath);
 	}
-	bool res = true;
-	if (GetFileAttributesA(strPath.c_str()) == INVALID_FILE_ATTRIBUTES)
-	{
-		switch (GetLastError())
-		{
-		case ERROR_FILE_NOT_FOUND:
-		case ERROR_PATH_NOT_FOUND:
-		case ERROR_INVALID_NAME:
-		case ERROR_INVALID_DRIVE:
-		case ERROR_NOT_READY:
-		case ERROR_INVALID_PARAMETER:
-		case ERROR_BAD_PATHNAME:
-		case ERROR_BAD_NETPATH:
-			res = false;
-			break;
-		}
-	}
-	return res;
+	return fs::exists(strPath);
 }
 
 bool Content::isAbsolutePath(String strPath)

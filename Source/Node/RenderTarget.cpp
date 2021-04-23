@@ -60,25 +60,12 @@ bool RenderTarget::init()
 	const Uint64 textureFlags = (
 		BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
 		BGFX_TEXTURE_RT);
-	Uint64 extraFlags = 0;
-	switch (bgfx::getCaps()->rendererType)
-	{
-	case bgfx::RendererType::Direct3D9:
-	case bgfx::RendererType::Direct3D11:
-	case bgfx::RendererType::Direct3D12:
-	case bgfx::RendererType::OpenGLES:
-		break;
-	default:
-		extraFlags = BGFX_TEXTURE_READ_BACK;
-		break;
-	}
-
-	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags | extraFlags);
+	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags);
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
 		_textureWidth, _textureHeight,
 		0, false, false, 1, _format);
-	_texture = Texture2D::create(textureHandle, info, textureFlags | extraFlags);
+	_texture = Texture2D::create(textureHandle, info, textureFlags);
 
 	setSize(Size{s_cast<float>(_textureWidth), s_cast<float>(_textureHeight)});
 
