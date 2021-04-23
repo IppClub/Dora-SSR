@@ -25,6 +25,8 @@ std::basic_string<Char> vformat(
 }
 }  // namespace detail
 
+FMT_MODULE_EXPORT_BEGIN
+
 template <typename S, typename Char = char_t<S>>
 inline std::basic_string<Char> vformat(
     const std::locale& loc, const S& format_str,
@@ -52,13 +54,14 @@ inline OutputIt vformat_to(
 
 template <typename OutputIt, typename S, typename... Args,
           bool enable = detail::is_output_iterator<OutputIt, char_t<S>>::value>
-inline auto format_to(OutputIt out, const std::locale& loc,
-                      const S& format_str, Args&&... args) ->
+inline auto format_to(OutputIt out, const std::locale& loc, const S& format_str,
+                      Args&&... args) ->
     typename std::enable_if<enable, OutputIt>::type {
   const auto& vargs = fmt::make_args_checked<Args...>(format_str, args...);
   return vformat_to(out, loc, to_string_view(format_str), vargs);
 }
 
+FMT_MODULE_EXPORT_END
 FMT_END_NAMESPACE
 
 #endif  // FMT_LOCALE_H_
