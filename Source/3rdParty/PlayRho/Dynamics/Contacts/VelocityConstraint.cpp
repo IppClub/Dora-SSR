@@ -34,8 +34,8 @@ inline InvMass3 ComputeK(const VelocityConstraint& vc, const std::vector<BodyCon
     assert(vc.GetPointCount() == 2);
 
     const auto normal = vc.GetNormal();
-    const auto bodyA = &bodies[vc.GetBodyA().get()];
-    const auto bodyB = &bodies[vc.GetBodyB().get()];
+    const auto bodyA = &bodies[to_underlying(vc.GetBodyA())];
+    const auto bodyB = &bodies[to_underlying(vc.GetBodyB())];
 
     const auto relA0 = vc.GetPointRelPosA(0);
     const auto relB0 = vc.GetPointRelPosB(0);
@@ -94,8 +94,8 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
     {
         const auto ci = worldManifold.GetImpulses(j);
         const auto worldPoint = worldManifold.GetPoint(j);
-        const auto relA = worldPoint - bodies[bA.get()].GetPosition().linear;
-        const auto relB = worldPoint - bodies[bB.get()].GetPosition().linear;
+        const auto relA = worldPoint - bodies[to_underlying(bA)].GetPosition().linear;
+        const auto relB = worldPoint - bodies[to_underlying(bB)].GetPosition().linear;
         AddPoint(get<0>(ci), get<1>(ci), relA, relB, bodies, conf);
     }
     
@@ -136,8 +136,8 @@ VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
     assert(IsValid(relA));
     assert(IsValid(relB));
     
-    const auto bodyA = &bodies[GetBodyA().get()];
-    const auto bodyB = &bodies[GetBodyB().get()];
+    const auto bodyA = &bodies[to_underlying(GetBodyA())];
+    const auto bodyB = &bodies[to_underlying(GetBodyB())];
     
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();

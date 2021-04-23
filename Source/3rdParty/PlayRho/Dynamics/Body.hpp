@@ -1085,6 +1085,13 @@ inline Mass GetMass(const Body& body) noexcept
     return (invMass != InvMass{0}) ? Mass{Real{1} / invMass} : 0_kg;
 }
 
+/// @brief Sets the mass of the given body.
+/// @relatedalso Body
+inline void SetMass(Body& body, Mass mass)
+{
+    body.SetInvMass(InvMass{Real(1) / mass});
+}
+
 /// @brief Sets the linear and rotational accelerations on this body.
 /// @note This has no effect on non-accelerable bodies.
 /// @note A non-zero acceleration will also awaken the body.
@@ -1304,6 +1311,17 @@ void ApplyLinearImpulse(Body& body, Momentum2 impulse, Length2 point) noexcept;
 /// @param impulse Angular impulse to be applied.
 /// @relatedalso Body
 void ApplyAngularImpulse(Body& body, AngularMomentum impulse) noexcept;
+
+/// @brief Equals operator.
+/// @relatedalso Body
+bool operator==(const Body& lhs, const Body& rhs);
+
+/// @brief Not-equals operator.
+/// @relatedalso Body
+inline bool operator!=(const Body& lhs, const Body& rhs)
+{
+    return !(lhs == rhs);
+}
 
 } // namespace d2
 } // namespace playrho

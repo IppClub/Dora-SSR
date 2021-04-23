@@ -125,7 +125,7 @@ constexpr TypeID GetTypeID(T)
 /// @brief Gets the name associated with the given type ID.
 constexpr const char* GetName(TypeID id) noexcept
 {
-    return *id.get();
+    return *to_underlying(id);
 }
 
 /// @brief Gets the name associated with the given template parameter type.

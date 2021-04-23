@@ -41,40 +41,43 @@ namespace d2 {
 class Sweep
 {
 public:
-
     /// @brief Default constructor.
     Sweep() = default;
-    
+
     /// @brief Copy constructor.
     constexpr Sweep(const Sweep& copy) = default;
-    
+
     /// @brief Initializing constructor.
-    constexpr Sweep(const Position p0, const Position p1,
-                    const Length2 lc = Length2{0_m, 0_m},
-                    Real a0 = 0) noexcept:
-        pos0{p0}, pos1{p1}, localCenter{lc}, alpha0{a0}
+    constexpr Sweep(const Position p0, const Position p1, const Length2 lc = Length2{0_m, 0_m},
+                    Real a0 = 0) noexcept
+        : pos0{p0}, pos1{p1}, localCenter{lc}, alpha0{a0}
     {
         assert(a0 >= 0);
         assert(a0 < 1);
     }
-    
+
     /// @brief Initializing constructor.
-    constexpr explicit Sweep(const Position p,
-                             const Length2 lc = Length2{0_m, 0_m}):
-        Sweep{p, p, lc, 0}
+    constexpr explicit Sweep(const Position p, const Length2 lc = Length2{0_m, 0_m})
+        : Sweep{p, p, lc, 0}
     {
         // Intentionally empty.
     }
-    
+
     /// @brief Gets the local center of mass position.
     /// @note This value can only be set via a sweep constructed using an initializing
     ///   constructor.
-    Length2 GetLocalCenter() const noexcept { return localCenter; }
-    
+    Length2 GetLocalCenter() const noexcept
+    {
+        return localCenter;
+    }
+
     /// @brief Gets the alpha 0 for this sweep.
     /// @return Value between 0 and less than 1.
-    Real GetAlpha0() const noexcept { return alpha0; }
-    
+    Real GetAlpha0() const noexcept
+    {
+        return alpha0;
+    }
+
     /// @brief Advances the sweep by a factor of the difference between the given time alpha
     ///   and the sweep's alpha 0.
     /// @details This advances position 0 (<code>pos0</code>) of the sweep towards position
@@ -85,22 +88,22 @@ public:
     ///   undefined if value is invalid.
     ///
     void Advance0(Real alpha) noexcept;
-    
+
     /// @brief Resets the alpha 0 value back to zero.
     /// @post Getting the alpha 0 value after calling this method will return zero.
     void ResetAlpha0() noexcept;
-    
+
     /// @brief Center world position and world angle at time "0".
     Position pos0;
 
     /// @brief Center world position and world angle at time "1".
     Position pos1;
-    
+
 private:
     /// @brief Local center of mass position.
     /// @note 8-bytes.
     Length2 localCenter = Length2{0_m, 0_m};
-    
+
     /// @brief Fraction of the current time step in the range [0,1]
     /// @note <code>pos0.linear</code> and <code>pos0.angular</code> are the positions at
     ///   <code>alpha0</code>.
@@ -114,7 +117,7 @@ inline void Sweep::Advance0(const Real alpha) noexcept
     assert(alpha >= 0);
     assert(alpha < 1);
     assert(alpha0 < 1);
-    
+
     const auto beta = (alpha - alpha0) / (1 - alpha0);
     pos0 = GetPosition(pos0, pos1, beta);
     alpha0 = alpha;
@@ -127,15 +130,32 @@ inline void Sweep::ResetAlpha0() noexcept
 
 // Free functions...
 
+/// @brief Equals operator.
+/// @relatedalso Sweep
+constexpr bool operator==(const Sweep& lhs, const Sweep& rhs)
+{
+    return lhs.pos0 == rhs.pos0 && //
+           lhs.pos1 == rhs.pos1 && //
+           lhs.GetLocalCenter() == rhs.GetLocalCenter() && //
+           lhs.GetAlpha0() == rhs.GetAlpha0();
+}
+
+/// @brief Not-equals operator.
+/// @relatedalso Sweep
+constexpr bool operator!=(const Sweep& lhs, const Sweep& rhs)
+{
+    return !(lhs == rhs);
+}
+
 } // namespace d2
 
 /// @brief Determines if the given value is valid.
-/// @relatedalso d2::Transformation
+/// @relatedalso d2::Sweep
 template <>
 constexpr bool IsValid(const d2::Sweep& value) noexcept
 {
-    return IsValid(value.pos0) && IsValid(value.pos1)
-    && IsValid(value.GetLocalCenter()) && IsValid(value.GetAlpha0());
+    return IsValid(value.pos0) && IsValid(value.pos1) && IsValid(value.GetLocalCenter()) &&
+           IsValid(value.GetAlpha0());
 }
 
 } // namespace playrho

@@ -97,6 +97,23 @@ struct FixtureConf {
     bool isSensor = false;
 };
 
+/// @brief Operator equals.
+/// @relatedalso FixtureConf
+inline bool operator==(const FixtureConf& lhs, const FixtureConf& rhs)
+{
+    return lhs.shape == rhs.shape && //
+           lhs.filter == rhs.filter && //
+           lhs.body == rhs.body && //
+           lhs.isSensor == rhs.isSensor;
+}
+
+/// @brief Operator not-equals.
+/// @relatedalso FixtureConf
+inline bool operator!=(const FixtureConf& lhs, const FixtureConf& rhs)
+{
+    return !(lhs == rhs);
+}
+
 /// @brief Gets the body of the given configuration.
 /// @relatedalso FixtureConf
 inline BodyID GetBody(const FixtureConf& conf) noexcept

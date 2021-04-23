@@ -56,7 +56,7 @@ static_assert(std::is_nothrow_destructible<Joint>::value, "Joint must be nothrow
 
 BodyConstraint& At(std::vector<BodyConstraint>& container, BodyID key)
 {
-    return container.at(UnderlyingValue(key));
+    return container.at(to_underlying(key));
 }
 
 Length2 GetLocalAnchorA(const Joint& object)
