@@ -289,6 +289,8 @@ inline null<> gmtime_r(...) { return null<>(); }
 inline null<> gmtime_s(...) { return null<>(); }
 }  // namespace detail
 
+FMT_MODULE_EXPORT_BEGIN
+
 /**
   Converts given time since epoch as ``std::time_t`` value into calendar time,
   expressed in local time. Unlike ``std::localtime``, this function is
@@ -380,6 +382,8 @@ inline std::tm gmtime(
   return gmtime(std::chrono::system_clock::to_time_t(time_point));
 }
 
+FMT_MODULE_EXPORT_END
+
 namespace detail {
 inline size_t strftime(char* str, size_t count, const char* format,
                        const std::tm* time) {
@@ -401,9 +405,11 @@ inline size_t strftime(wchar_t* str, size_t count, const wchar_t* format,
 }
 }  // namespace detail
 
-template <typename Char>
-struct formatter<std::chrono::time_point<std::chrono::system_clock>, Char>
-    : formatter<std::tm, Char> {
+FMT_MODULE_EXPORT_BEGIN
+
+template <typename Char, typename Duration>
+struct formatter<std::chrono::time_point<std::chrono::system_clock, Duration>,
+                 Char> : formatter<std::tm, Char> {
   template <typename FormatContext>
   auto format(std::chrono::time_point<std::chrono::system_clock> val,
               FormatContext& ctx) -> decltype(ctx.out()) {
@@ -428,6 +434,10 @@ template <typename Char> struct formatter<std::tm, Char> {
       -> decltype(ctx.out()) {
     basic_memory_buffer<Char> tm_format;
     tm_format.append(specs.begin(), specs.end());
+    // By appending an extra space we can distinguish an empty result that
+    // indicates insufficient buffer size from a guaranteed non-empty result
+    // https://github.com/fmtlib/fmt/issues/2238
+    tm_format.push_back(' ');
     tm_format.push_back('\0');
     basic_memory_buffer<Char> buf;
     size_t start = buf.size();
@@ -438,17 +448,11 @@ template <typename Char> struct formatter<std::tm, Char> {
         buf.resize(start + count);
         break;
       }
-      if (size >= tm_format.size() * 256) {
-        // If the buffer is 256 times larger than the format string, assume
-        // that `strftime` gives an empty result. There doesn't seem to be a
-        // better way to distinguish the two cases:
-        // https://github.com/fmtlib/fmt/issues/367
-        break;
-      }
       const size_t MIN_GROWTH = 10;
       buf.reserve(buf.capacity() + (size > MIN_GROWTH ? size : MIN_GROWTH));
     }
-    return std::copy(buf.begin(), buf.end(), ctx.out());
+    // Remove the extra space.
+    return std::copy(buf.begin(), buf.end() - 1, ctx.out());
   }
 
   basic_string_view<Char> specs;
@@ -1185,6 +1189,7 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
   }
 };
 
+FMT_MODULE_EXPORT_END
 FMT_END_NAMESPACE
 
 #endif  // FMT_CHRONO_H_

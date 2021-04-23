@@ -200,6 +200,11 @@ FMT_API void report_windows_error(int error_code,
                                   string_view message) FMT_NOEXCEPT;
 #endif  // _WIN32
 
+template <typename S, typename... Args, typename Char = char_t<S>>
+void say(const S& format_str, Args&&... args) {
+  std::system(format("say \"{}\"", format(format_str, args...)).c_str());
+}
+
 // A buffered file.
 class buffered_file {
  private:
@@ -291,7 +296,8 @@ class file {
 
   file(file&& other) FMT_NOEXCEPT : fd_(other.fd_) { other.fd_ = -1; }
 
-  file& operator=(file&& other) FMT_NOEXCEPT {
+  // Move assignment is not noexcept because close may throw.
+  file& operator=(file&& other) {
     close();
     fd_ = other.fd_;
     other.fd_ = -1;
@@ -344,6 +350,7 @@ long getpagesize();
 namespace detail {
 
 struct buffer_size {
+  buffer_size() = default;
   size_t value = 0;
   buffer_size operator=(size_t val) const {
     auto bs = buffer_size();
@@ -395,6 +402,7 @@ class ostream final : private detail::buffer<char> {
   ostream(ostream&& other)
       : detail::buffer<char>(other.data(), other.size(), other.capacity()),
         file_(std::move(other.file_)) {
+    other.clear();
     other.set(nullptr, 0);
   }
   ~ostream() {

@@ -307,7 +307,9 @@ void format_arg(
     visit_format_arg(custom_formatter<Context>(parse_ctx, ctx), arg);
   } else {
     ctx.advance_to(visit_format_arg(
-        arg_formatter<OutputIt, typename Context::char_type>(ctx), arg));
+        default_arg_formatter<OutputIt, typename Context::char_type>{
+            ctx.out(), ctx.args(), ctx.locale()},
+        arg));
   }
 }
 
@@ -368,10 +370,9 @@ auto vformat_to(OutputIt out, CompiledFormat& cf,
       if (specs.precision >= 0) checker.check_precision();
 
       advance_to(parse_ctx, part.arg_id_end);
-      ctx.advance_to(
-          visit_format_arg(arg_formatter<OutputIt, typename Context::char_type>(
-                               ctx, &specs),
-                           arg));
+      ctx.advance_to(visit_format_arg(
+          arg_formatter<OutputIt, typename Context::char_type>(ctx, specs),
+          arg));
       break;
     }
     }
@@ -557,9 +558,10 @@ template <typename Char> struct runtime_named_field {
   basic_string_view<Char> name;
 
   template <typename OutputIt, typename T>
-  constexpr static bool try_format_argument(OutputIt& out,
-                                            basic_string_view<Char> arg_name,
-                                            const T& arg) {
+  constexpr static bool try_format_argument(
+      OutputIt& out,
+      // [[maybe_unused]] due to unused-but-set-parameter warning in GCC 7,8,9
+      [[maybe_unused]] basic_string_view<Char> arg_name, const T& arg) {
     if constexpr (is_named_arg<typename std::remove_cv<T>::type>::value) {
       if (arg_name == arg.name) {
         out = write<Char>(out, arg.value);
@@ -814,6 +816,8 @@ FMT_DEPRECATED auto compile(const Args&... args)
   return detail::compile(args...);
 }
 
+FMT_MODULE_EXPORT_BEGIN
+
 #if FMT_USE_CONSTEXPR
 #  ifdef __cpp_if_constexpr
 
@@ -943,14 +947,16 @@ size_t formatted_size(const CompiledFormat& cf, const Args&... args) {
 #if FMT_USE_NONTYPE_TEMPLATE_PARAMETERS
 inline namespace literals {
 template <detail::fixed_string Str>
-constexpr detail::udl_compiled_string<remove_cvref_t<decltype(Str.data[0])>,
-                                      sizeof(Str.data), Str>
+constexpr detail::udl_compiled_string<
+    remove_cvref_t<decltype(Str.data[0])>,
+    sizeof(Str.data) / sizeof(decltype(Str.data[0])), Str>
 operator""_cf() {
   return {};
 }
 }  // namespace literals
 #endif
 
+FMT_MODULE_EXPORT_END
 FMT_END_NAMESPACE
 
 #endif  // FMT_COMPILE_H_
