@@ -257,5 +257,19 @@ void ApplyAngularImpulse(Body& body, AngularMomentum impulse) noexcept
     body.SetVelocity(velocity);
 }
 
+bool operator==(const Body& lhs, const Body& rhs)
+{
+    return GetTransformation(lhs) == GetTransformation(rhs) && //
+           GetSweep(lhs) == GetSweep(rhs) && //
+           GetType(lhs) == GetType(rhs) && //
+           GetVelocity(lhs) == GetVelocity(rhs) && //
+           GetAcceleration(lhs) == GetAcceleration(rhs) && //
+           GetInvMass(lhs) == GetInvMass(rhs) && //
+           GetInvRotInertia(lhs) == GetInvRotInertia(rhs) && //
+           GetLinearDamping(lhs) == GetLinearDamping(rhs) && //
+           GetAngularDamping(lhs) == GetAngularDamping(rhs) && //
+           GetUnderActiveTime(lhs) == GetUnderActiveTime(rhs);
+}
+
 } // namespace d2
 } // namespace playrho

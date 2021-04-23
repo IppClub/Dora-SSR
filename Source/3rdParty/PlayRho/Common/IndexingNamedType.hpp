@@ -139,6 +139,7 @@ static_assert(std::is_nothrow_move_constructible<IndexingNamedType<int, struct T
 
 /// @brief Gets the underlying value.
 template <typename T, typename Tag>
+[[deprecated("Use to_underlying instead")]]
 constexpr T& UnderlyingValue(IndexingNamedType<T, Tag>& o) noexcept
 {
     return static_cast<T&>(o);
@@ -146,12 +147,44 @@ constexpr T& UnderlyingValue(IndexingNamedType<T, Tag>& o) noexcept
 
 /// @brief Gets the underlying value.
 template <typename T, typename Tag>
+[[deprecated("Use to_underlying instead")]]
 constexpr const T& UnderlyingValue(const IndexingNamedType<T, Tag>& o) noexcept
 {
     return static_cast<const T&>(o);
 }
 
 } // namespace detail
+
+/// Underlying-type template class.
+template <class T, class Enable = void>
+struct underlying_type {};
+
+/// Underlying-type class specialization for enum types.
+template <class T>
+struct underlying_type<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+    using type = std::underlying_type_t<T>;
+};
+
+/// Underlying-type template class for <code>detail::IndexingNamedType</code> types.
+template <class T, class Tag>
+struct underlying_type<detail::IndexingNamedType<T, Tag>>
+{
+    using type = T;
+};
+
+/// Underlying-type convenience alias.
+template <class T>
+using underlying_type_t = typename underlying_type<T>::type;
+
+/// Converts the given value to the value as the underlying type.
+/// @note This is like <code>std::to_underlying</code> slated for C++23.
+template <typename T>
+constexpr auto to_underlying(T value) noexcept -> underlying_type_t<T>
+{
+    return static_cast<underlying_type_t<T>>(value);
+}
+
 } // namespace playrho
 
 namespace std {
