@@ -3291,7 +3291,7 @@ namespace ImGui { namespace Binding
 			case "AllowTabInput"_hash: return ImGuiInputTextFlags_AllowTabInput;
 			case "CtrlEnterForNewLine"_hash: return ImGuiInputTextFlags_CtrlEnterForNewLine;
 			case "NoHorizontalScroll"_hash: return ImGuiInputTextFlags_NoHorizontalScroll;
-			case "AlwaysInsertMode"_hash: return ImGuiInputTextFlags_AlwaysInsertMode;
+			case "AlwaysOverwrite"_hash: return ImGuiInputTextFlags_AlwaysOverwrite;
 			case "ReadOnly"_hash: return ImGuiInputTextFlags_ReadOnly;
 			case "Password"_hash: return ImGuiInputTextFlags_Password;
 			case ""_hash: return ImGuiInputTextFlags_(0);
