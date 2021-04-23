@@ -130,10 +130,10 @@ bool Unit::init()
 	Unit::setTag(tag);
 	_groundSensor = Body::getSensorByTag(Unit::GroundSensorTag);
 	Playable* playable = Playable::create(playableStr);
-	Unit::setFaceRight(true);
 	playable->setScaleX(scale);
 	playable->setScaleY(scale);
 	Unit::setPlayable(playable);
+	Unit::setFaceRight(true);
 	Body::setOwner(this);
 	ARRAY_START(std::string, action, actions)
 	{
