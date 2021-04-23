@@ -324,19 +324,19 @@ Director.entry\addChild with Node!
 					for i4 = 0, 1 do for i5 = 0, 1 do for i6 = 0, 1
 						for i7 = 0, 1 do for i8 = 0, 1 do for i9 = 0, 1
 							tags = {}
-							table.insert tags, relationTags[l1 + 1]
-							bodyTypeIndex = l2
+							table.insert tags, relationTags[i1 + 1]
+							bodyTypeIndex = i2
 							if bodyTypeIndex ~= 0
 								table.insert tags, bodyTypes[bodyTypeIndex]
-							skillIndex = l3
+							skillIndex = i3
 							if skillIndex ~= 0
 								table.insert tags, skills[skillIndex]
-							table.insert tags, unitTags[1] if l4 ~= 0
-							table.insert tags, unitTags[2] if l5 ~= 0
-							table.insert tags, unitTags[3] if l6 ~= 0
-							table.insert tags, unitTags[4] if l7 ~= 0
-							table.insert tags, unitTags[5] if l8 ~= 0
-							table.insert tags, unitTags[6] if l9 ~= 0
+							table.insert tags, unitTags[1] if i4 ~= 0
+							table.insert tags, unitTags[2] if i5 ~= 0
+							table.insert tags, unitTags[3] if i6 ~= 0
+							table.insert tags, unitTags[4] if i7 ~= 0
+							table.insert tags, unitTags[5] if i8 ~= 0
+							table.insert tags, unitTags[6] if i9 ~= 0
 							state = QLearner.pack hints,{i1,i2,i3,i4,i5,i6,i7,i8,i9}
 							for action = 1, #actions
 								result = getEffect tags, action

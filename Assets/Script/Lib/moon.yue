@@ -1,6 +1,6 @@
 lua = :debug, :type
 
-export setfenv = setfenv or (fn, env)->
+export setfenv = (fn, env)->
 	local name
 	i = 1
 	while true
@@ -11,7 +11,7 @@ export setfenv = setfenv or (fn, env)->
 		debug.upvaluejoin fn, i, (-> env), 1
 	fn
 
-export getfenv = getfenv or (fn)->
+export getfenv = (fn)->
 	i = 1
 	while true
 		name, val = debug.getupvalue fn, i
@@ -127,4 +127,3 @@ export fold = (items, fn)->
 		accum
 	else
 		items[1]
-
