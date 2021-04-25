@@ -1137,7 +1137,6 @@ class UnitAction
 	float reaction;
 	float recovery;
 	tolua_readonly tolua_property__common string name;
-	tolua_readonly tolua_property__common int priority;
 	tolua_readonly tolua_property__bool bool doing;
 	tolua_readonly tolua_property__common Unit* owner;
 	tolua_readonly tolua_property__common float eclapsedTime;
@@ -1146,6 +1145,7 @@ class UnitAction
 		int priority,
 		float reaction,
 		float recovery,
+		bool queued,
 		tolua_function_bool available,
 		tolua_function_LuaFunction<bool> create,
 		tolua_function_void stop);

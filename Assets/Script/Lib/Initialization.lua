@@ -461,6 +461,7 @@ UnitAction.add = function(self, name, params)
 		params.priority,
 		params.reaction,
 		params.recovery,
+		params.queued or false,
 		params.available,
 		params.create,
 		params.stop or dummy)

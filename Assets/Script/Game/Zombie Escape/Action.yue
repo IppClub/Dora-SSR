@@ -8,6 +8,7 @@ UnitAction\add "groundEntrance",
 	priority: 6
 	reaction: -1
 	recovery: 0
+	queued: true
 	available: -> true
 	create: =>
 		@entity.lastGroup = @group
