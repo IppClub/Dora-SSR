@@ -31,6 +31,7 @@ UnitAction\add "pushSwitch",
 	priority: 4
 	reaction: 3
 	recovery: 0.2
+	queued: true
 	available: => @onSurface
 	create: =>
 		with @playable
@@ -67,6 +68,7 @@ UnitAction\add "pushed",
 	priority: 2
 	reaction: 0.1
 	recovery: 0.2
+	queued: true
 	available: -> true
 	create: =>
 		with @playable
@@ -121,6 +123,7 @@ UnitAction\add "strike",
 	priority: 4
 	reaction: 3
 	recovery: 0
+	queued: true
 	available: => true
 	create: =>
 		with @playable
@@ -140,6 +143,7 @@ UnitAction\add "villyAttack",
 	priority: 3
 	reaction: 10
 	recovery: 0.1
+	queued: true
 	available: => true
 	create: =>
 		{

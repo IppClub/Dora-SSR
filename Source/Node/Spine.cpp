@@ -85,7 +85,10 @@ void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventTy
 	switch (type)
 	{
 		case spine::EventType_End:
-			_owner->_currentAnimationName.clear();
+			if (_owner->_currentAnimationName == animationName)
+			{
+				_owner->_currentAnimationName.clear();
+			}
 			break;
 		case spine::EventType_Event:
 			_owner->emit(animationName, s_cast<Playable*>(_owner));

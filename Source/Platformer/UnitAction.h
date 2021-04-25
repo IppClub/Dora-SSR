@@ -37,9 +37,10 @@ public:
 		LuaFunction<LuaFunction<bool>> create,
 		LuaFunction<void> stop);
 	std::string name;
-	int priority;
-	float reaction;
-	float recovery;
+	int priority = 0;
+	float reaction = 0;
+	float recovery = 0;
+	bool queued = false;
 	LuaFunction<bool> available;
 	LuaFunction<LuaFunction<bool>> create;
 	LuaFunction<void> stop;
@@ -54,6 +55,7 @@ public:
 	PROPERTY_READONLY(int, Priority);
 	PROPERTY_READONLY(Unit*, Owner);
 	PROPERTY_READONLY(float, EclapsedTime);
+	PROPERTY_READONLY_BOOL(Queued);
 	PROPERTY_READONLY_BOOL(Doing);
 	virtual ~UnitAction();
 	float reaction;
@@ -68,17 +70,19 @@ public:
 		int priority,
 		float reaction,
 		float recovery,
+		bool queued,
 		LuaFunction<bool> available,
 		LuaFunction<LuaFunction<bool>> create,
 		LuaFunction<void> stop);
 	static void clear();
 protected:
-	UnitAction(String name, int priority, Unit* owner);
+	UnitAction(String name, int priority, bool queued, Unit* owner);
 	Unit* _owner;
 	float _sensity;
 	float _eclapsedTime;
 private:
-	bool _isDoing;
+	bool _doing;
+	bool _queued;
 	Behavior::Status _status;
 	int _priority;
 	float _decisionDelay;
@@ -90,7 +94,7 @@ private:
 class ScriptUnitAction : public UnitAction
 {
 public:
-	ScriptUnitAction(String name, int priority, Unit* owner);
+	ScriptUnitAction(String name, int priority, bool queued, Unit* owner);
 	virtual bool isAvailable() override;
 	virtual void run() override;
 	virtual void update(float dt) override;

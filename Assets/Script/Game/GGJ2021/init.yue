@@ -248,6 +248,7 @@ UnitAction\add "range",
 	priority: 3
 	reaction: 10
 	recovery: 0.1
+	queued: true
 	available: => true
 	create: =>
 		{
@@ -298,6 +299,7 @@ UnitAction\add "multiArrow",
 	priority: 3
 	reaction: 10
 	recovery: 0.1
+	queued: true
 	available: => true
 	create: =>
 		{
@@ -362,6 +364,7 @@ UnitAction\add "evade",
 	priority: 10
 	reaction: 10
 	recovery: 0
+	queued: true
 	available: => true
 	create: =>
 		with @playable
@@ -385,6 +388,7 @@ UnitAction\add "rush",
 	priority: 10
 	reaction: 10
 	recovery: 0
+	queued: true
 	available: => true
 	create: =>
 		with @playable
@@ -411,6 +415,7 @@ UnitAction\add "spearAttack",
 	priority: 3
 	reaction: 10
 	recovery: 0.1
+	queued: true
 	available: => true
 	create: =>
 		{

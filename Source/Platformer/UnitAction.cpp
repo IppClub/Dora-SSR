@@ -41,7 +41,7 @@ stop(stop)
 
 Own<UnitAction> UnitActionDef::toAction(Unit* unit)
 {
-	ScriptUnitAction* action = new ScriptUnitAction(name, priority, unit);
+	ScriptUnitAction* action = new ScriptUnitAction(name, priority, queued, unit);
 	action->reaction = reaction;
 	action->recovery = recovery;
 	action->_available = available;
@@ -54,13 +54,14 @@ Own<UnitAction> UnitActionDef::toAction(Unit* unit)
 
 std::unordered_map<std::string, Own<UnitActionDef>> UnitAction::_actionDefs;
 
-UnitAction::UnitAction(String name, int priority, Unit* owner):
+UnitAction::UnitAction(String name, int priority, bool queued, Unit* owner):
 _name(name),
 _priority(priority),
-_isDoing(false),
+_queued(queued),
+_doing(false),
 _status(Behavior::Status::Failure),
 _owner(owner),
-reaction(-1.0f),
+reaction(0.0f),
 _eclapsedTime(0.0f),
 _sensity(_owner->getUnitDef()->get(ActionSetting::Sensity, 0.0f))
 { }
@@ -82,7 +83,12 @@ int UnitAction::getPriority() const
 
 bool UnitAction::isDoing() const
 {
-	return _isDoing;
+	return _doing;
+}
+
+bool UnitAction::isQueued() const
+{
+	return _queued;
 }
 
 Unit* UnitAction::getOwner() const
@@ -107,7 +113,7 @@ Behavior::Status UnitAction::getStatus() const
 
 void UnitAction::run()
 {
-	_isDoing = true;
+	_doing = true;
 	_decisionDelay = 0.0f;
 	_eclapsedTime = 0.0f;
 }
@@ -130,13 +136,13 @@ void UnitAction::update(float dt)
 
 void UnitAction::stop()
 {
-	_isDoing = false;
+	_doing = false;
 	_eclapsedTime = 0.0f;
 	_decisionDelay = 0.0f;
 }
 
 void UnitAction::add(
-	String name, int priority, float reaction, float recovery,
+	String name, int priority, float reaction, float recovery, bool queued,
 	LuaFunction<bool> available,
 	LuaFunction<LuaFunction<bool>> create,
 	LuaFunction<void> stop)
@@ -146,6 +152,7 @@ void UnitAction::add(
 	actionDef->priority = priority;
 	actionDef->reaction = reaction;
 	actionDef->recovery = recovery;
+	actionDef->queued = queued;
 	_actionDefs[name] = MakeOwn(actionDef);
 }
 
@@ -154,8 +161,8 @@ void UnitAction::clear()
 	_actionDefs.clear();
 }
 
-ScriptUnitAction::ScriptUnitAction(String name, int priority, Unit* owner):
-UnitAction(name, priority, owner)
+ScriptUnitAction::ScriptUnitAction(String name, int priority, bool queued, Unit* owner):
+UnitAction(name, priority, queued, owner)
 { }
 
 bool ScriptUnitAction::isAvailable()
@@ -196,7 +203,7 @@ void ScriptUnitAction::stop()
 // Walk
 
 Walk::Walk(Unit* unit):
-UnitAction(ActionSetting::UnitActionWalk, ActionSetting::PriorityWalk, unit)
+UnitAction(ActionSetting::UnitActionWalk, ActionSetting::PriorityWalk, false, unit)
 {
 	UnitAction::reaction = ActionSetting::ReactionWalk;
 	UnitAction::recovery = ActionSetting::RecoveryWalk;
@@ -252,7 +259,7 @@ Own<UnitAction> Walk::alloc(Unit* unit)
 // Turn
 
 Turn::Turn(Unit* unit):
-UnitAction(ActionSetting::UnitActionTurn, ActionSetting::PriorityTurn, unit)
+UnitAction(ActionSetting::UnitActionTurn, ActionSetting::PriorityTurn, true, unit)
 { }
 
 void Turn::run()
@@ -267,7 +274,7 @@ Own<UnitAction> Turn::alloc(Unit* unit)
 }
 
 Idle::Idle(Unit* unit):
-UnitAction(ActionSetting::UnitActionIdle, ActionSetting::PriorityIdle, unit)
+UnitAction(ActionSetting::UnitActionIdle, ActionSetting::PriorityIdle, false, unit)
 {
 	UnitAction::reaction = ActionSetting::ReactionIdle;
 	UnitAction::recovery = ActionSetting::RecoveryIdle;
@@ -318,7 +325,7 @@ Own<UnitAction> Idle::alloc(Unit* unit)
 
 Jump::Jump(Unit* unit):
 _duration(0.0f),
-UnitAction(ActionSetting::UnitActionJump, ActionSetting::PriorityJump, unit)
+UnitAction(ActionSetting::UnitActionJump, ActionSetting::PriorityJump, true, unit)
 {
 	UnitAction::reaction = ActionSetting::ReactionJump;
 	UnitAction::recovery = ActionSetting::RecoveryJump;
@@ -399,7 +406,7 @@ Own<UnitAction> Jump::alloc(Unit* unit)
 }
 
 Cancel::Cancel(Unit* unit):
-UnitAction(ActionSetting::UnitActionCancel, ActionSetting::PriorityCancel, unit)
+UnitAction(ActionSetting::UnitActionCancel, ActionSetting::PriorityCancel, true, unit)
 { }
 
 void Cancel::run()
@@ -414,7 +421,7 @@ Own<UnitAction> Cancel::alloc(Unit* unit)
 // Attack
 
 Attack::Attack(String name, Unit* unit ):
-UnitAction(name, ActionSetting::PriorityAttack, unit)
+UnitAction(name, ActionSetting::PriorityAttack, true, unit)
 {
 	UnitAction::recovery = ActionSetting::RecoveryAttack;
 }
@@ -630,7 +637,7 @@ bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint)
 }
 
 Hit::Hit(Unit* unit):
-UnitAction(ActionSetting::UnitActionHit, ActionSetting::PriorityHit, unit),
+UnitAction(ActionSetting::UnitActionHit, ActionSetting::PriorityHit, true, unit),
 _effect(nullptr)
 {
 	UnitAction::recovery = ActionSetting::RecoveryHit;
@@ -704,7 +711,7 @@ Own<UnitAction> Hit::alloc(Unit* unit)
 }
 
 Fall::Fall(Unit* unit):
-UnitAction(ActionSetting::UnitActionFall, ActionSetting::PriorityFall, unit)
+UnitAction(ActionSetting::UnitActionFall, ActionSetting::PriorityFall, true, unit)
 {
 	UnitAction::recovery = ActionSetting::RecoveryFall;
 }

@@ -49,6 +49,7 @@ const Slice Unit::Def::DefaultFaceRight = "defaultFaceRight"_slice;
 
 BodyDef* Unit::getBodyDef(Dictionary* def) const
 {
+	AssertUnless(def, "using invalid unitDef(nullptr).");
 	auto bodyDef = def->get(Def::BodyDef, (BodyDef*)nullptr);
 	if (bodyDef) return bodyDef;
 	bodyDef = BodyDef::create();
@@ -355,7 +356,13 @@ bool Unit::start(String name)
 		{
 			if (_currentAction && _currentAction->isDoing())
 			{
-				if (_currentAction->getPriority() <= action->getPriority())
+				if (_currentAction->getPriority() < action->getPriority())
+				{
+					_currentAction->stop();
+					_currentAction->_status = Behavior::Status::Failure;
+				}
+				else if (_currentAction->getPriority() == action->getPriority() &&
+					!_currentAction->isQueued())
 				{
 					_currentAction->stop();
 					_currentAction->_status = Behavior::Status::Failure;

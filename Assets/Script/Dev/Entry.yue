@@ -186,8 +186,8 @@ for file in *Content\getAllFiles Path Content.assetPath, "Production"
 		scriptFolder = Path\getPath Path Content.assetPath, "Production", file
 		productionAssets = Path\getPath scriptFolder
 		Content\addSearchPath productionAssets
-		Content\addSearchPath Path productionAssets, "Spine"
-		Content\addSearchPath Path productionAssets, "Image"
+		Content\insertSearchPath 1, Path productionAssets, "Spine"
+		Content\insertSearchPath 1, Path productionAssets, "Image"
 		package.yuepath ..= ";" .. Path scriptFolder, "?.yue"
 		productionEntry = Path Path\getPath(file), "init"
 		break
