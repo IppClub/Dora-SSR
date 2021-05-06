@@ -39,7 +39,7 @@ public:
 	/** Get a new instance of the face. */
 	Node* toNode() const;
 	/** Type of face, Unknown, Clip, Image, Frame, Particle, User. */
-	Uint32 getType() const;
+	uint32_t getType() const;
 	/** Different type has different faceStr:
 	     type             faceStr
           Clip            "loli.clip|0"
@@ -52,7 +52,7 @@ private:
 	Face(String file, const Vec2& point, float scale, float angle);
 	Face(const std::function<Node*()>& func, const Vec2& point, float scale, float angle);
 	std::string _file;
-	Uint32 _type;
+	uint32_t _type;
 	float _scale;
 	Vec2 _pos;
 	float _angle;

@@ -25,13 +25,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Entity/Entity.h"
 #include "Basic/VGRender.h"
 
+#include "SDL.h"
+
 NS_DOROTHY_BEGIN
 
 Director::Director():
 _systemScheduler(Scheduler::create()),
 _scheduler(Scheduler::create()),
 _postScheduler(Scheduler::create()),
-_postSystemScheduler(Scheduler::create()),
 _camStack(Array::create()),
 _clearColor(0xff1a1a1a),
 _displayStats(false),
@@ -126,11 +127,6 @@ Scheduler* Director::getSystemScheduler() const
 Scheduler* Director::getPostScheduler() const
 {
 	return _postScheduler;
-}
-
-Scheduler* Director::getPostSystemScheduler() const
-{
-	return _postSystemScheduler;
 }
 
 double Director::getDeltaTime() const
@@ -260,14 +256,14 @@ void Director::doLogic()
 	{
 		/* update system logic */
 		_systemScheduler->update(getDeltaTime());
+
 		/* update game logic */
 		SharedImGui.begin();
 		_scheduler->update(getDeltaTime());
 		_postScheduler->update(getDeltaTime());
-		SharedKeyboard.update();
 		SharedImGui.end();
 
-		_postSystemScheduler->update(getDeltaTime());
+		SharedKeyboard.clearChanges();
 
 		/* handle ImGui touch */
 		SharedTouchDispatcher.add(SharedImGui.getTarget());
@@ -326,8 +322,8 @@ void Director::doRender()
 				_renderTarget->getHeight() != viewSize.height)
 			{
 				_renderTarget = RenderTarget::create(
-					s_cast<Uint16>(viewSize.width),
-					s_cast<Uint16>(viewSize.height));
+					s_cast<uint16_t>(viewSize.width),
+					s_cast<uint16_t>(viewSize.height));
 				_renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
 			}
 			SpriteEffect* postEffect = SharedView.getPostEffect();

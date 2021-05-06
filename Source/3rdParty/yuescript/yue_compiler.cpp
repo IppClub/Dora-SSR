@@ -59,7 +59,7 @@ inline std::string s(std::string_view sv) {
 	return std::string(sv);
 }
 
-const std::string_view version = "0.7.9"sv;
+const std::string_view version = "0.7.12"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -218,7 +218,7 @@ private:
 	};
 	struct Scope {
 		GlobalMode mode = GlobalMode::None;
-		std::unique_ptr<std::unordered_set<std::string>> vars;
+		std::unique_ptr<std::unordered_map<std::string,bool>> vars;
 		std::unique_ptr<std::unordered_set<std::string>> allows;
 		std::unique_ptr<std::unordered_set<std::string>> globals;
 	};
@@ -257,7 +257,7 @@ private:
 
 	void pushScope() {
 		_scopes.emplace_back();
-		_scopes.back().vars = std::make_unique<std::unordered_set<std::string>>();
+		_scopes.back().vars = std::make_unique<std::unordered_map<std::string,bool>>();
 	}
 
 	void popScope() {
@@ -272,11 +272,11 @@ private:
 			if (current.globals) {
 				if (current.globals->find(name) != current.globals->end()) {
 					isDefined = true;
-					current.vars->insert(name);
+					current.vars->insert_or_assign(name, false);
 				}
 			} else {
 				isDefined = true;
-				current.vars->insert(name);
+				current.vars->insert_or_assign(name, false);
 			}
 		}
 		decltype(_scopes.back().allows.get()) allows = nullptr;
@@ -310,6 +310,39 @@ private:
 		return isDefined;
 	}
 
+	bool isConst(const std::string& name) const {
+		bool isConst = false;
+		decltype(_scopes.back().allows.get()) allows = nullptr;
+		for (auto it  = _scopes.rbegin(); it != _scopes.rend(); ++it) {
+			if (it->allows) allows = it->allows.get();
+		}
+		bool checkShadowScopeOnly = false;
+		if (allows) {
+			checkShadowScopeOnly = allows->find(name) == allows->end();
+		}
+		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
+			auto vars = it->vars.get();
+			auto vit = vars->find(name);
+			if (vit != vars->end()) {
+				isConst = vit->second;
+				break;
+			}
+			if (checkShadowScopeOnly && it->allows) break;
+		}
+		return isConst;
+	}
+
+	void checkConst(const std::string& name, ast_node* x) const {
+		if (isConst(name)) {
+			throw std::logic_error(_info.errorMessage(s("attempt to assign to const variable '"sv) + name + '\'', x));
+		}
+	}
+
+	void markVarConst(const std::string& name) {
+		auto& scope = _scopes.back();
+		scope.vars->insert_or_assign(name, true);
+	}
+
 	void markVarShadowed() {
 		auto& scope = _scopes.back();
 		scope.allows = std::make_unique<std::unordered_set<std::string>>();
@@ -335,7 +368,7 @@ private:
 
 	void forceAddToScope(const std::string& name) {
 		auto& scope = _scopes.back();
-		scope.vars->insert(name);
+		scope.vars->insert_or_assign(name, false);
 	}
 
 	Scope& currentScope() {
@@ -346,7 +379,7 @@ private:
 		bool defined = isDefined(name);
 		if (!defined) {
 			auto& scope = currentScope();
-			scope.vars->insert(name);
+			scope.vars->insert_or_assign(name, false);
 		}
 		return !defined;
 	}
@@ -723,19 +756,21 @@ private:
 		return nullptr;
 	}
 
-	bool isAssignable(const node_container& chainItems) const {
+	bool isAssignable(const node_container& chainItems) {
 		if (chainItems.size() == 1) {
-			 auto firstItem = chainItems.back();
-			 if (auto callable = ast_cast<Callable_t>(firstItem)) {
-				 switch (callable->item->getId()) {
-					 case id<Variable_t>():
-					 case id<SelfName_t>():
-						 return true;
-				 }
-			 } else if (firstItem->getId() == id<DotChainItem_t>()) {
-				 return true;
-			 }
-		 } else {
+			auto firstItem = chainItems.back();
+			if (auto callable = ast_cast<Callable_t>(firstItem)) {
+				switch (callable->item->getId()) {
+					case id<Variable_t>():
+						checkConst(_parser.toString(callable->item.get()), callable->item.get());
+						return true;
+					case id<SelfName_t>():
+						return true;
+				}
+			} else if (firstItem->getId() == id<DotChainItem_t>()) {
+				return true;
+			}
+		} else {
 			auto lastItem = chainItems.back();
 			switch (lastItem->getId()) {
 				case id<DotChainItem_t>():
@@ -746,7 +781,7 @@ private:
 		return false;
 	}
 
-	bool isAssignable(Exp_t* exp) const {
+	bool isAssignable(Exp_t* exp) {
 		if (auto value = singleValueFrom(exp)) {
 			auto item = value->item.get();
 			switch (item->getId()) {
@@ -768,14 +803,16 @@ private:
 		return false;
 	}
 
-	bool isAssignable(Assignable_t* assignable) const {
+	bool isAssignable(Assignable_t* assignable) {
 		if (auto assignableChain = ast_cast<AssignableChain_t>(assignable->item)) {
 			return isAssignable(assignableChain->items.objects());
+		} else if (auto variable = assignable->item.as<Variable_t>()) {
+			checkConst(_parser.toString(variable), variable);
 		}
 		return true;
 	}
 
-	void checkAssignable(ExpList_t* expList) const {
+	void checkAssignable(ExpList_t* expList) {
 		for (auto exp_ : expList->exprs.objects()) {
 			Exp_t* exp = static_cast<Exp_t*>(exp_);
 			if (!isAssignable(exp)) {
@@ -1014,36 +1051,13 @@ private:
 		return vars;
 	}
 
-	str_list getAssignDefs(ExpList_t* expList) {
-		str_list preDefs;
-		for (auto exp_ : expList->exprs.objects()) {
-			auto exp = static_cast<Exp_t*>(exp_);
-			if (auto value = singleValueFrom(exp)) {
-				if (auto chain = value->item.as<ChainValue_t>()) {
-					BLOCK_START
-					BREAK_IF(chain->items.size() != 1);
-					auto callable = ast_cast<Callable_t>(chain->items.front());
-					BREAK_IF(!callable);
-					std::string name;
-					if (auto var = callable->item.as<Variable_t>()) {
-						name = _parser.toString(var);
-					} else if (auto self = callable->item.as<SelfName_t>()) {
-						if (self->name.is<self_t>()) name = "self"sv;
-					}
-					BREAK_IF(name.empty());
-					if (!isDefined(name)) {
-						preDefs.push_back(name);
-					}
-					BLOCK_END
-				}
-			} else {
-				throw std::logic_error(_info.errorMessage("left hand expression is not assignable"sv, exp));
-			}
-		}
-		return preDefs;
-	}
+	enum class DefOp {
+		Get,
+		Check,
+		Mark
+	};
 
-	str_list transformAssignDefs(ExpList_t* expList, bool markDefined = true) {
+	str_list transformAssignDefs(ExpList_t* expList, DefOp op) {
 		str_list defs;
 		for (auto exp_ : expList->exprs.objects()) {
 			auto exp = static_cast<Exp_t*>(exp_);
@@ -1060,8 +1074,16 @@ private:
 						if (self->name.is<self_t>()) name = "self"sv;
 					}
 					BREAK_IF(name.empty());
-					if (!markDefined || addToScope(name)) {
-						defs.push_back(name);
+					switch (op) {
+						case DefOp::Mark:
+							if (addToScope(name)) defs.push_back(name);
+							break;
+						case DefOp::Check:
+							if (!isDefined(name)) defs.push_back(name);
+							break;
+						case DefOp::Get:
+							defs.push_back(name);
+							break;
 					}
 					BLOCK_END
 				}
@@ -1096,7 +1118,7 @@ private:
 	std::string getPredefine(ExpListAssign_t* assignment) {
 		auto preDefine = getDestrucureDefine(assignment);
 		if (preDefine.empty()) {
-			preDefine = getPredefine(transformAssignDefs(assignment->expList));
+			preDefine = getPredefine(transformAssignDefs(assignment->expList, DefOp::Mark));
 		}
 		return preDefine;
 	}
@@ -1183,7 +1205,7 @@ private:
 			case id<Unless_t>(): {
 				auto expList = assignment->expList.get();
 				str_list temp;
-				auto defs = transformAssignDefs(expList);
+				auto defs = transformAssignDefs(expList, DefOp::Mark);
 				if (!defs.empty()) temp.push_back(getPredefine(defs) + nll(expList));
 				switch (value->getId()) {
 					case id<If_t>(): transformIf(static_cast<If_t*>(value), temp, ExpUsage::Assignment, expList); break;
@@ -1302,8 +1324,9 @@ private:
 				if (destruct.items.size() == 1) {
 					auto& pair = destruct.items.front();
 					_buf << indent();
-					if (pair.isVariable && !isDefined(pair.name)) {
-						_buf << s("local "sv);
+					if (pair.isVariable) {
+						checkConst(pair.name, assignment);
+						if (!isDefined(pair.name)) _buf << s("local "sv);
 					}
 					_buf << pair.name << " = "sv << destruct.value << pair.structure << nll(assignment);
 					addToScope(pair.name);
@@ -1311,8 +1334,9 @@ private:
 				} else if (_parser.match<Name_t>(destruct.value) && isDefined(destruct.value)) {
 					str_list defs, names, values;
 					for (const auto& item : destruct.items) {
-						if (item.isVariable && addToScope(item.name)) {
-							defs.push_back(item.name);
+						if (item.isVariable) {
+							checkConst(item.name, assignment);
+							if (addToScope(item.name)) defs.push_back(item.name);
 						}
 						names.push_back(item.name);
 						values.push_back(item.structure);
@@ -1331,8 +1355,9 @@ private:
 				} else {
 					str_list defs, names, values;
 					for (const auto& item : destruct.items) {
-						if (item.isVariable && addToScope(item.name)) {
-							defs.push_back(item.name);
+						if (item.isVariable) {
+							checkConst(item.name, assignment);
+							if (addToScope(item.name)) defs.push_back(item.name);
 						}
 						names.push_back(item.name);
 						values.push_back(item.structure);
@@ -1548,9 +1573,11 @@ private:
 				if (*j != nullNode) {
 					if (auto ssVal = simpleSingleValueFrom(*j)) {
 						if (ssVal->value.is<const_value_t>()) {
-							throw std::logic_error(_info.errorMessage("can not destruct a const value"sv, ssVal->value));
+							throw std::logic_error(_info.errorMessage("can not destructure a const value"sv, ssVal->value));
 						}
 					}
+				} else {
+					throw std::logic_error(_info.errorMessage("can not destructure a nil value"sv, destructNode));
 				}
 				destructPairs.push_back({i,j});
 				auto subDestruct = destructNode->new_ptr<TableLit_t>();
@@ -1711,7 +1738,7 @@ private:
 					right = s("("sv) + right + s(")"sv);
 				}
 				_buf << join(temp) << indent() << left << " = "sv << left <<
-					" "sv << _parser.toString(update->op) << " "sv << right << nll(assignment);
+					' ' << _parser.toString(update->op) << ' ' << right << nll(assignment);
 				out.push_back(clearBuf());
 				break;
 			}
@@ -1728,7 +1755,7 @@ private:
 						}
 					}
 				}
-				auto defs = getAssignDefs(expList);
+				auto defs = transformAssignDefs(expList, DefOp::Check);
 				if (oneLined && defs.size() == expList->exprs.objects().size()) {
 					for (auto value : assign->values.objects()) {
 						transformAssignItem(value, temp);
@@ -2374,7 +2401,7 @@ private:
 								}
 					}
 					if (info.second) {
-						auto defs = transformAssignDefs(info.second->expList, false);
+						auto defs = transformAssignDefs(info.second->expList, DefOp::Get);
 						for (const auto& def : defs) {
 							if (std::isupper(def[0]) && capital) { capital->decls.push_back(def);
 							} else if (any) {
@@ -4130,7 +4157,8 @@ private:
 		}
 		for (auto& var : varBefore) addToScope(var);
 		pushScope();
-		for (auto& var : varAfter) addToScope(var);
+		for (const auto& var : vars) forceAddToScope(var);
+		for (const auto& var : varAfter) addToScope(var);
 		if (!destructPairs.empty()) {
 			temp.clear();
 			for (auto& pair : destructPairs) {
@@ -4215,7 +4243,7 @@ private:
 		const auto& step = *(++it);
 		_buf << indent() << "for "sv << varName << " = "sv << start << ", "sv << stop << (step.empty() ? Empty : s(", "sv) + step) << " do"sv << nll(forNode);
 		pushScope();
-		addToScope(varName);
+		forceAddToScope(varName);
 		out.push_back(clearBuf());
 	}
 
@@ -4589,7 +4617,7 @@ private:
 				if (auto statement = ast_cast<Statement_t>(item)) {
 					ClassDecl_t* clsDecl = nullptr;
 					if (auto assignment = assignmentFrom(statement)) {
-						auto names = transformAssignDefs(assignment->expList.get());
+						auto names = transformAssignDefs(assignment->expList.get(), DefOp::Mark);
 						varDefs.insert(varDefs.end(), names.begin(), names.end());
 						auto info = extractDestructureInfo(assignment, true);
 						if (!info.first.empty()) {
@@ -4754,8 +4782,8 @@ private:
 			_buf << indent(1) << parentVar << ".__inherited("sv << parentVar << ", "sv << classVar << ")"sv << nll(classDecl);
 			_buf << indent() << "end"sv << nll(classDecl);
 		}
-  		if (!assignItem.empty()) {
-  			_buf << indent() << assignItem << " = "sv << classVar << nll(classDecl);
+		if (!assignItem.empty()) {
+			_buf << indent() << assignItem << " = "sv << classVar << nll(classDecl);
 		}
 		switch (usage) {
 			case ExpUsage::Return: {
@@ -4906,7 +4934,6 @@ private:
 		std::string withVar;
 		bool scoped = false;
 		if (with->assigns) {
-			checkAssignable(with->valueList);
 			auto vars = getAssignVars(with);
 			if (vars.front().empty()) {
 				if (with->assigns->values.objects().size() == 1) {
@@ -4978,7 +5005,7 @@ private:
 				if (auto statement = ast_cast<Statement_t>(node)) {
 					ClassDecl_t* clsDecl = nullptr;
 					if (auto assignment = assignmentFrom(statement)) {
-						auto names = getAssignDefs(assignment->expList.get());
+						auto names = transformAssignDefs(assignment->expList.get(), DefOp::Get);
 						if (!names.empty()) {
 							return traversal::Stop;
 						}
@@ -5132,7 +5159,7 @@ private:
 			assignment->expList.set(expList);
 			assignment->action.set(exportNode->assign);
 			transformAssignment(assignment, out);
-			str_list names = transformAssignDefs(expList, false);
+			str_list names = transformAssignDefs(expList, DefOp::Get);
 			auto info = extractDestructureInfo(assignment, true);
 			if (!info.first.empty()) {
 				for (const auto& destruct : info.first)
@@ -5346,7 +5373,7 @@ private:
 			kv.push_back(valVar);
 		}
 		_buf << indent(int(temp.size()) - 1) << tbl << "["sv << kv.front() << "] = "sv << kv.back() << nll(comp);
-		for (int ind = int(temp.size()) - 2; ind > -1 ; --ind) {
+		for (int ind = int(temp.size()) - 2; ind > -1; --ind) {
 			_buf << indent(ind) << "end"sv << nll(comp);
 		}
 		popScope();
@@ -5398,7 +5425,7 @@ private:
 		_buf << indent() << "for "sv << varName << " = "sv << start << ", "sv << stop << (step.empty() ? Empty : s(", "sv) + step) << " do"sv << nll(comp);
 		out.push_back(clearBuf());
 		pushScope();
-		addToScope(varName);
+		forceAddToScope(varName);
 	}
 
 	void transformTableBlockIndent(TableBlockIndent_t* table, str_list& out) {
@@ -5501,7 +5528,7 @@ private:
 			}
 		}
 		if (objAssign) {
-			auto preDef = getPredefine(transformAssignDefs(expList));
+			auto preDef = getPredefine(transformAssignDefs(expList, DefOp::Mark));
 			if (!preDef.empty()) {
 				temp.push_back(preDef + nll(import));
 			}
@@ -5885,6 +5912,26 @@ private:
 		auto attrib = _parser.toString(localAttrib->attrib);
 		if (attrib != "close"sv && attrib != "const"sv) {
 			throw std::logic_error(_info.errorMessage(s("unknown attribute '"sv) + attrib + '\'', localAttrib->attrib));
+		}
+		if (attrib == "const"sv) {
+			str_list vars;
+			for (auto name : localAttrib->nameList->names.objects()) {
+				vars.push_back(_parser.toString(name));
+				forceAddToScope(vars.back());
+			}
+			str_list temp;
+			auto varStr = join(vars, ", "sv);
+			temp.push_back(s("local "sv) + varStr + nll(x));
+			auto varList = toAst<ExpList_t>(varStr, x);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(varList);
+			assignment->action.set(localAttrib->assign);
+			transformAssignment(assignment, temp);
+			for (const auto& var : vars) {
+				markVarConst(var);
+			}
+			out.push_back(join(temp));
+			return;
 		}
 		auto expList = x->new_ptr<ExpList_t>();
 		str_list tmpVars;

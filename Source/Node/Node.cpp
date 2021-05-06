@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "Basic/View.h"
 #include "Basic/Application.h"
+#include "Support/Dictionary.h"
 
 NS_DOROTHY_BEGIN
 
@@ -380,13 +381,12 @@ Scheduler* Node::getScheduler() const
 	return _scheduler;
 }
 
-void Node::setUserData(Object* var)
+Dictionary* Node::getUserData()
 {
-	_userData = var;
-}
-
-Object* Node::getUserData() const
-{
+	if (!_userData)
+	{
+		_userData = Dictionary::create();
+	}
 	return _userData;
 }
 
@@ -426,9 +426,9 @@ bool Node::isRenderGroup() const
 	return _flags.isOn(Node::RenderGrouped);
 }
 
-Uint32 Node::getNodeCount() const
+uint32_t Node::getNodeCount() const
 {
-	Uint32 count = 1;
+	uint32_t count = 1;
 	ARRAY_START(Node, child, _children)
 	{
 		count += child->getNodeCount();
@@ -615,7 +615,10 @@ void Node::cleanup()
 		unschedule();
 		unscheduleUpdate();
 		stopActionInList(_action);
-		_userData = nullptr;
+		if (_userData)
+		{
+			_userData->clear();
+		}
 		_signal = nullptr;
 		if (_flags.isOn(Node::KeyboardEnabled))
 		{
@@ -1100,9 +1103,9 @@ void Node::updateRealColor3()
 	if (_parent && _parent->isPassColor3())
 	{
 		Color parentColor = _parent->_realColor;
-		_realColor.r = s_cast<Uint8>(_color.r * parentColor.r / 255.0f);
-		_realColor.g = s_cast<Uint8>(_color.g * parentColor.g / 255.0f);
-		_realColor.b = s_cast<Uint8>(_color.b * parentColor.b / 255.0f);
+		_realColor.r = s_cast<uint8_t>(_color.r * parentColor.r / 255.0f);
+		_realColor.g = s_cast<uint8_t>(_color.g * parentColor.g / 255.0f);
+		_realColor.b = s_cast<uint8_t>(_color.b * parentColor.b / 255.0f);
 	}
 	else
 	{

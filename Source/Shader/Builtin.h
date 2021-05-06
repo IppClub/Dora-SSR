@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "bgfx/embedded_shader.h"
+
 NS_DOROTHY_BEGIN
 
 extern const bgfx::EmbeddedShader* DoraShaders;

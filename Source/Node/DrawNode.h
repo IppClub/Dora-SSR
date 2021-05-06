@@ -55,16 +55,16 @@ class DrawNode : public Node
 public:
 	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
-	PROPERTY_READONLY(Uint64, RenderState);
+	PROPERTY_READONLY(uint64_t, RenderState);
 	PROPERTY_READONLY_CREF(std::vector<DrawVertex>, Vertices);
-	PROPERTY_READONLY_CREF(std::vector<Uint16>, Indices);
+	PROPERTY_READONLY_CREF(std::vector<uint16_t>, Indices);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	void drawDot(const Vec2& pos, float radius, Color color);
 	void drawSegment(const Vec2& from, const Vec2& to, float radius, Color color);
 	void drawPolygon(const std::vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
-	void drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
-	void drawVertices(const VertexColor* verts, Uint32 count);
+	void drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
+	void drawVertices(const VertexColor* verts, uint32_t count);
 	void clear();
 	CREATE_FUNC(DrawNode);
 protected:
@@ -78,11 +78,11 @@ private:
 		Vec4 pos;
 		Vec4 color;
 	};
-	Uint64 _renderState;
+	uint64_t _renderState;
 	BlendFunc _blendFunc;
 	std::vector<DrawVertex> _vertices;
 	std::vector<PosColor> _posColors;
-	std::vector<Uint16> _indices;
+	std::vector<uint16_t> _indices;
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
@@ -103,9 +103,9 @@ protected:
 	DrawRenderer();
 private:
 	Ref<Effect> _defaultEffect;
-	Uint64 _lastState;
+	uint64_t _lastState;
 	std::vector<DrawVertex> _vertices;
-	std::vector<Uint16> _indices;
+	std::vector<uint16_t> _indices;
 	SINGLETON_REF(DrawRenderer, RendererManager);
 };
 
@@ -138,20 +138,20 @@ class Line : public Node
 public:
 	PROPERTY(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
-	PROPERTY_READONLY(Uint64, RenderState);
+	PROPERTY_READONLY(uint64_t, RenderState);
 	PROPERTY_READONLY_CREF(std::vector<PosColorVertex>, Vertices);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	void add(const std::vector<Vec2>& verts, Color color);
-	void add(const Vec2* verts, Uint32 size, Color color);
+	void add(const Vec2* verts, uint32_t size, Color color);
 	void set(const std::vector<Vec2>& verts, Color color);
-	void set(const Vec2* verts, Uint32 size, Color color);
+	void set(const Vec2* verts, uint32_t size, Color color);
 	void clear();
 	CREATE_FUNC(Line);
 protected:
 	Line();
 	Line(const std::vector<Vec2>& verts, Color color);
-	Line(const Vec2* verts, Uint32 size, Color color);
+	Line(const Vec2* verts, uint32_t size, Color color);
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
 private:
@@ -160,7 +160,7 @@ private:
 		Vec4 pos;
 		Vec4 color;
 	};
-	Uint64 _renderState;
+	uint64_t _renderState;
 	BlendFunc _blendFunc;
 	std::vector<PosColor> _posColors;
 	std::vector<PosColorVertex> _vertices;
@@ -184,7 +184,7 @@ protected:
 	LineRenderer();
 private:
 	Ref<Effect> _defaultEffect;
-	Uint64 _lastState;
+	uint64_t _lastState;
 	std::vector<PosColorVertex> _vertices;
 	SINGLETON_REF(LineRenderer, RendererManager);
 };

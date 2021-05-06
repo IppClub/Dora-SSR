@@ -22,7 +22,7 @@ using namespace lodepnglib;
 
 NS_DOROTHY_BEGIN
 
-RenderTarget::RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format):
+RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format):
 _textureWidth(width),
 _textureHeight(height),
 _format(format),
@@ -57,7 +57,7 @@ Sprite* RenderTarget::getSurface() const
 bool RenderTarget::init()
 {
 	if (!Node::init()) return false;
-	const Uint64 textureFlags = (
+	const uint64_t textureFlags = (
 		BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
 		BGFX_TEXTURE_RT);
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags);
@@ -84,7 +84,7 @@ bool RenderTarget::init()
 	return true;
 }
 
-void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float depth, Uint8 stencil)
+void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float depth, uint8_t stencil)
 {
 	SharedView.pushName("RenderTarget"_slice, [&]()
 	{
@@ -161,12 +161,12 @@ void RenderTarget::render(Node* target)
 	renderAfterClear(target, false);
 }
 
-void RenderTarget::renderWithClear(Color color, float depth, Uint8 stencil)
+void RenderTarget::renderWithClear(Color color, float depth, uint8_t stencil)
 {
 	renderAfterClear(nullptr, true, color, depth, stencil);
 }
 
-void RenderTarget::renderWithClear(Node* target, Color color, float depth, Uint8 stencil)
+void RenderTarget::renderWithClear(Node* target, Color color, float depth, uint8_t stencil)
 {
 	renderAfterClear(target, true, color, depth, stencil);
 }
@@ -175,7 +175,7 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 {
 	AssertIf((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0, "texture read back not supported.");
 
-	Uint64 extraFlags = 0;
+	uint64_t extraFlags = 0;
 	switch (bgfx::getCaps()->rendererType)
 	{
 	case bgfx::RendererType::Direct3D9:
@@ -190,7 +190,7 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 	bgfx::TextureHandle textureHandle;
 	if (extraFlags)
 	{
-		const Uint64 textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_READ_BACK;
+		const uint64_t textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_READ_BACK;
 		textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags | extraFlags);
 		SharedView.pushName("SaveTarget"_slice, [&]()
 		{
@@ -201,10 +201,10 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 	{
 		textureHandle = _texture->getHandle();
 	}
-	Uint8* data = new Uint8[_texture->getInfo().storageSize];
-	Uint32 frame = bgfx::readTexture(textureHandle, data);
-	Uint32 width = s_cast<Uint32>(_textureWidth);
-	Uint32 height = s_cast<Uint32>(_textureHeight);
+	uint8_t* data = new uint8_t[_texture->getInfo().storageSize];
+	uint32_t frame = bgfx::readTexture(textureHandle, data);
+	uint32_t width = s_cast<uint32_t>(_textureWidth);
+	uint32_t height = s_cast<uint32_t>(_textureHeight);
 	std::string file(filename);
 	SharedDirector.getSystemScheduler()->schedule([frame, textureHandle, extraFlags, data, width, height, file, callback](double deltaTime)
 	{
@@ -220,7 +220,7 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 				unsigned error;
 				LodePNGState state;
 				lodepng_state_init(&state);
-				Uint8* out = nullptr;
+				uint8_t* out = nullptr;
 				size_t outSize = 0;
 				error = lodepng_encode(&out, &outSize, data, width, height, &state);
 				lodepng_state_cleanup(&state);
@@ -228,7 +228,7 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 				return Values::alloc(out, outSize);
 			}, [callback, file](Own<Values> values)
 			{
-				Uint8* out;
+				uint8_t* out;
 				size_t outSize;
 				values->get(out, outSize);
 				Slice content(r_cast<char*>(out), outSize);

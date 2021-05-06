@@ -109,7 +109,7 @@ void ClipNode::cleanup()
 	}
 }
 
-void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
+void ClipNode::drawFullScreenStencil(uint8_t maskLayer, bool value)
 {
 	SharedRendererManager.flush();
 	bgfx::TransientVertexBuffer vertexBuffer;
@@ -134,11 +134,11 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 		}
 		const uint16_t indices[] = {0, 1, 2, 1, 3, 2};
 		std::memcpy(indexBuffer.data, indices, sizeof(indices[0]) * 6);
-		Uint32 func = BGFX_STENCIL_TEST_NEVER |
+		uint32_t func = BGFX_STENCIL_TEST_NEVER |
 			BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
-		Uint32 fail = value ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
-		Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
-		Uint32 stencil = func | op;
+		uint32_t fail = value ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
+		uint32_t op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
+		uint32_t stencil = func | op;
 		bgfx::setStencil(stencil);
 		bgfx::setVertexBuffer(0, &vertexBuffer);
 		bgfx::setIndexBuffer(&indexBuffer);
@@ -148,12 +148,12 @@ void ClipNode::drawFullScreenStencil(Uint8 maskLayer, bool value)
 	}
 }
 
-void ClipNode::drawStencil(Uint8 maskLayer, bool value)
+void ClipNode::drawStencil(uint8_t maskLayer, bool value)
 {
-	Uint32 func = BGFX_STENCIL_TEST_NEVER |
+	uint32_t func = BGFX_STENCIL_TEST_NEVER |
 		BGFX_STENCIL_FUNC_REF(maskLayer) | BGFX_STENCIL_FUNC_RMASK(maskLayer);
-	Uint32 fail = value ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
-	Uint32 op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
+	uint32_t fail = value ? BGFX_STENCIL_OP_FAIL_S_REPLACE : BGFX_STENCIL_OP_FAIL_S_ZERO;
+	uint32_t op = fail | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
 	SharedRendererManager.pushStencilState(func | op, [&]()
 	{
 		_stencil->visit();
@@ -202,17 +202,17 @@ void ClipNode::visit()
 		return;
 	}
 	_layer++;
-	Uint32 maskLayer = 1 << _layer;
-	Uint32 maskLayerLess = maskLayer - 1;
-	Uint32 maskLayerLessEqual = maskLayer | maskLayerLess;
+	uint32_t maskLayer = 1 << _layer;
+	uint32_t maskLayerLess = maskLayer - 1;
+	uint32_t maskLayerLessEqual = maskLayer | maskLayerLess;
 	SharedRendererManager.flush();
 	if (isInverted())
 	{
 		drawFullScreenStencil(maskLayer, true);
 	}
 	drawStencil(maskLayer, !isInverted());
-	Uint32 func = BGFX_STENCIL_TEST_EQUAL | BGFX_STENCIL_FUNC_REF(maskLayerLessEqual) | BGFX_STENCIL_FUNC_RMASK(maskLayerLessEqual);
-	Uint32 op = BGFX_STENCIL_OP_FAIL_S_KEEP | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
+	uint32_t func = BGFX_STENCIL_TEST_EQUAL | BGFX_STENCIL_FUNC_REF(maskLayerLessEqual) | BGFX_STENCIL_FUNC_RMASK(maskLayerLessEqual);
+	uint32_t op = BGFX_STENCIL_OP_FAIL_S_KEEP | BGFX_STENCIL_OP_FAIL_Z_KEEP | BGFX_STENCIL_OP_PASS_Z_KEEP;
 	SharedRendererManager.pushStencilState(func | op, [&]()
 	{
 		Node::visit();

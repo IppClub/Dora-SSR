@@ -132,18 +132,18 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 			return;
 		}
 		Ref<Atlas> at(atlas);
-		SharedContent.loadAsyncData(file, [file, handler, at, this](OwnArray<Uint8>&& data, size_t size)
+		SharedContent.loadAsyncData(file, [file, handler, at, this](OwnArray<uint8_t>&& data, size_t size)
 		{
 			if (!data)
 			{
 				Warn("failed to load skeleton data \"{}\".", file);
 				return;
 			}
-			auto skelData = std::make_shared<std::tuple<std::string, OwnArray<Uint8>, size_t>>(std::move(file), std::move(data), size);
+			auto skelData = std::make_shared<std::tuple<std::string, OwnArray<uint8_t>, size_t>>(std::move(file), std::move(data), size);
 			SharedAsyncThread.run([skelData, at]()
 			{
 				std::string file;
-				OwnArray<Uint8> data;
+				OwnArray<uint8_t> data;
 				size_t size = 0;
 				std::tie(file, data, size) = std::move(*skelData);
 				auto ext = Path::getExt(file);

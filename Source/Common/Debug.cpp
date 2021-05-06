@@ -23,7 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Delegate<void (const std::string&)> LogHandler;
+Acf::Delegate<void (const std::string&)> LogHandler;
 
 void LogError(const std::string& str)
 {

@@ -13,22 +13,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 #include "Basic/Application.h"
 
+#include "soloud_wav.h"
+#include "soloud_wavstream.h"
+
 NS_DOROTHY_BEGIN
 
 /* SoundFile */
 SoLoud::Wav& SoundFile::getWav()
 {
-	return _wav;
+	return *_wav;
 }
 
-SoundFile::SoundFile(OwnArray<Uint8>&& data, size_t size):
+SoundFile::SoundFile(OwnArray<uint8_t>&& data, size_t size):
+_wav(new SoLoud::Wav),
 _data(std::move(data)),
 _size(size)
 { }
 
+SoundFile::~SoundFile()
+{
+	delete _wav;
+	_wav = nullptr;
+}
+
 bool SoundFile::init()
 {
-	SoLoud::result result = _wav.loadMem(_data.get(), s_cast<Uint32>(_size), false, false);
+	SoLoud::result result = _wav->loadMem(_data.get(), s_cast<uint32_t>(_size), false, false);
 	_data.reset();
 	if (result)
 	{
@@ -39,14 +49,15 @@ bool SoundFile::init()
 }
 
 /* SoundStream */
+
 SoLoud::WavStream& SoundStream::getStream()
 {
-	return _stream;
+	return *_stream;
 }
 
 bool SoundStream::init()
 {
-	SoLoud::result result = _stream.loadMem(_data.get(), s_cast<Uint32>(_size), false, false);
+	SoLoud::result result = _stream->loadMem(_data.get(), s_cast<uint32_t>(_size), false, false);
 	if (result)
 	{
 		Error("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
@@ -55,54 +66,65 @@ bool SoundStream::init()
 	return true;
 }
 
-SoundStream::SoundStream(OwnArray<Uint8>&& data, size_t size):
+SoundStream::SoundStream(OwnArray<uint8_t>&& data, size_t size):
+_stream(new SoLoud::WavStream()),
 _data(std::move(data)),
 _size(size)
 { }
 
+SoundStream::~SoundStream()
+{
+	delete _stream;
+	_stream = nullptr;
+}
+
 /* Audio */
+
 Audio::Audio():
+_soloud(new SoLoud::Soloud()),
 _currentVoice(0),
 _timer(Timer::create())
 { }
 
 SoLoud::Soloud& Audio::getSoLoud()
 {
-	return _soloud;
+	return *_soloud;
 }
 
 Audio::~Audio()
 {
-	_soloud.deinit();
+	_soloud->deinit();
+	delete _soloud;
+	_soloud = nullptr;
 }
 
 bool Audio::init()
 {
-	SoLoud::result result = _soloud.init();
+	SoLoud::result result = _soloud->init();
 	if (result)
 	{
-		Error("failed to init soloud engine deal to reason: {}.", _soloud.getErrorString(result));
+		Error("failed to init soloud engine deal to reason: {}.", _soloud->getErrorString(result));
 		return false;
 	}
 	return true;
 }
 
-Uint32 Audio::play(String filename, bool loop)
+uint32_t Audio::play(String filename, bool loop)
 {
 	SoundFile* file = SharedSoundCache.load(filename);
 	if (file)
 	{
-		SoLoud::handle handle = _soloud.play(file->getWav());
-		_soloud.setLooping(handle, loop);
-		_soloud.setInaudibleBehavior(handle, true, true);
+		SoLoud::handle handle = _soloud->play(file->getWav());
+		_soloud->setLooping(handle, loop);
+		_soloud->setInaudibleBehavior(handle, true, true);
 		return handle;
 	}
 	return 0;
 }
 
-void Audio::stop(Uint32 handle)
+void Audio::stop(uint32_t handle)
 {
-	_soloud.stop(handle);
+	_soloud->stop(handle);
 }
 
 void Audio::playStream(String filename, bool loop, float crossFadeTime)
@@ -113,17 +135,17 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime)
 		_lastStream = nullptr;
 	}
 	stopStream(crossFadeTime);
-	SharedContent.loadAsyncUnsafe(filename, [this, crossFadeTime, loop](Uint8* data, Sint64 size)
+	SharedContent.loadAsyncUnsafe(filename, [this, crossFadeTime, loop](uint8_t* data, int64_t size)
 	{
 		if (_currentStream)
 		{
 			_currentStream->getStream().stop();
 		}
 		_currentStream = SoundStream::create(MakeOwnArray(data), s_cast<size_t>(size));
-		_currentVoice = _soloud.play(_currentStream->getStream(), 0.0f);
-		_soloud.setLooping(_currentVoice, loop);
-		_soloud.setProtectVoice(_currentVoice, true);
-		_soloud.fadeVolume(_currentVoice, 1.0f, crossFadeTime);
+		_currentVoice = _soloud->play(_currentStream->getStream(), 0.0f);
+		_soloud->setLooping(_currentVoice, loop);
+		_soloud->setProtectVoice(_currentVoice, true);
+		_soloud->fadeVolume(_currentVoice, 1.0f, crossFadeTime);
 	});
 }
 
@@ -131,10 +153,10 @@ void Audio::stopStream(float fadeTime)
 {
 	if (fadeTime > 0.0f)
 	{
-		if (_currentVoice && _soloud.isValidVoiceHandle(_currentVoice))
+		if (_currentVoice && _soloud->isValidVoiceHandle(_currentVoice))
 		{
-			_soloud.fadeVolume(_currentVoice, 0.0f, fadeTime);
-			_soloud.scheduleStop(_currentVoice, fadeTime);
+			_soloud->fadeVolume(_currentVoice, 0.0f, fadeTime);
+			_soloud->scheduleStop(_currentVoice, fadeTime);
 			_lastStream = _currentStream;
 			_timer->start(fadeTime, [this]()
 			{

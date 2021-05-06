@@ -39,10 +39,10 @@ void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, co
 			_item->angleVariance = s_cast<float>(std::atof(attrs[1].first));
 			break;
 		case Xml::Particle::BlendFuncDestination:
-			_item->blendFuncDestination = s_cast<Uint32>(std::atoi(attrs[1].first));
+			_item->blendFuncDestination = s_cast<uint32_t>(std::atoi(attrs[1].first));
 			break;
 		case Xml::Particle::BlendFuncSource:
-			_item->blendFuncSource = s_cast<Uint32>(std::atoi(attrs[1].first));
+			_item->blendFuncSource = s_cast<uint32_t>(std::atoi(attrs[1].first));
 			break;
 		case Xml::Particle::Duration:
 			_item->duration = s_cast<float>(std::atof(attrs[1].first));
@@ -75,7 +75,7 @@ void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, co
 			_item->finishParticleSizeVariance = s_cast<float>(std::atof(attrs[1].first));
 			break;
 		case Xml::Particle::MaxParticles:
-			_item->maxParticles = s_cast<Uint32>(std::atoi(attrs[1].first));
+			_item->maxParticles = s_cast<uint32_t>(std::atoi(attrs[1].first));
 			break;
 		case Xml::Particle::ParticleLifespan:
 			_item->particleLifespan = s_cast<float>(std::atof(attrs[1].first));

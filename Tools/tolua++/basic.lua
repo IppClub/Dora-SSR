@@ -116,10 +116,14 @@ end
 
 -- Name -> push'name'
 _basic["Slice"] = "slice"
-_basic["Uint8"] = "integer"
-_basic["Uint16"] = "integer"
-_basic["Uint32"] = "integer"
-_basic["Uint64"] = "integer"
+_basic["int8_t"] = "integer"
+_basic["uint8_t"] = "integer"
+_basic["int16_t"] = "integer"
+_basic["uint16_t"] = "integer"
+_basic["int32_t"] = "integer"
+_basic["uint32_t"] = "integer"
+_basic["int64_t"] = "integer"
+_basic["uint64_t"] = "integer"
 _basic["size_t"] = "integer"
 _basic['string'] = 'slice'
 _basic['std::string'] = 'slice'

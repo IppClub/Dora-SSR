@@ -5,7 +5,6 @@
 
 #include "Const/Header.h"
 using namespace Dorothy;
-#include "bx/macros.h"
 
 #define STBTT_DEF extern
 #include "stb/stb_truetype.h"

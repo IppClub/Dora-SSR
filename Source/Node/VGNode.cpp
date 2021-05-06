@@ -39,7 +39,7 @@ bool VGNode::init()
 		s_cast<uint16_t>(_frameWidth * _frameScale),
 		s_cast<uint16_t>(_frameHeight * _frameScale),
 		0, false, false, 1, bgfx::TextureFormat::RGBA8);
-	Uint64 flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	uint64_t flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 	_surface = Sprite::create(VGTexture::create(context, framebuffer, info, flags));
 	_surface->addTo(this);
 	return true;

@@ -301,7 +301,7 @@ OutT& DoraTo(InT* obj)
 
 class Flag
 {
-	typedef Uint32 IntType;
+	typedef uint32_t IntType;
 public:
 	Flag(IntType value);
 	void set(IntType type, bool value);

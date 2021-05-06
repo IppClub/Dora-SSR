@@ -16,6 +16,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Data.h"
 #include "Physics/Sensor.h"
 #include "Entity/Entity.h"
+#include "Event/Event.h"
+#include "Basic/Application.h"
 #include <numeric>
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -50,6 +52,7 @@ Unit* AI::getSelf() const
 
 bool AI::runDecisionTree(Unit* unit)
 {
+	double start = SharedApplication.getEclapsedTime();
 	if (unit->getBehaviorTree())
 	{
 		return false;
@@ -152,7 +155,7 @@ bool AI::runDecisionTree(Unit* unit)
 		else if (!_decisionNodes.empty())
 		{
 			_self->getEntity()->set("decisionTrace"_slice,
-				std::accumulate(_decisionNodes.begin()+1, _decisionNodes.end(), _decisionNodes.front().toString(),
+				std::accumulate(_decisionNodes.begin() + 1, _decisionNodes.end(), _decisionNodes.front().toString(),
 				[](const std::string& a, String b) { return a + " -> " + b; }));
 			_decisionNodes.clear();
 		}
@@ -165,6 +168,10 @@ bool AI::runDecisionTree(Unit* unit)
 	_detectedUnits->clear();
 	_attackUnits->clear();
 	_self = nullptr;
+
+	Event::send("_TIMECOST_"_slice,
+		"AI"_slice.toString(),
+		SharedApplication.getEclapsedTime() - start);
 
 	return result;
 }

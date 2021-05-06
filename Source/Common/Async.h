@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include <atomic>
-#include <thread>
 #include "Event/EventQueue.h"
 #include "Support/Value.h"
+
+#include "bx/thread.h"
 
 NS_DOROTHY_BEGIN
 

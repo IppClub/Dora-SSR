@@ -87,14 +87,14 @@ public:
 		else
 		{
 			std::string file(filename);
-			SharedContent.loadAsyncUnsafe(file, [this, file, handler](Uint8* data, Sint64 size)
+			SharedContent.loadAsyncUnsafe(file, [this, file, handler](uint8_t* data, int64_t size)
 			{
 				if (data)
 				{
 					auto parser = prepareParser(file);
 					SharedAsyncThread.run([this, file, parser, data, size]()
 					{
-						OwnArray<Uint8> dataOwner = MakeOwnArray(data);
+						OwnArray<uint8_t> dataOwner = MakeOwnArray(data);
 						T* result;
 						try
 						{

@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "Basic/Application.h"
 #include "Common/Async.h"
+#include "Basic/VGRender.h"
 #ifdef DORA_FILESYSTEM_ALTER
 #include "ghc/fs_impl.hpp"
 #include "ghc/fs_fwd.hpp"
@@ -21,6 +22,9 @@ namespace fs = std::filesystem;
 #include <fstream>
 using std::ofstream;
 
+#include "SDL.h"
+#include "bgfx/bgfx.h"
+
 #if BX_PLATFORM_ANDROID
 #include "Zip/Support/ZipUtils.h"
 static Dorothy::Own<ZipFile> g_apkFile;
@@ -31,7 +35,7 @@ static void releaseFileData(void* _ptr, void* _userData)
 	DORA_UNUSED_PARAM(_userData);
 	if (_ptr)
 	{
-		Uint8* data = r_cast<Uint8*>(_ptr);
+		uint8_t* data = r_cast<uint8_t*>(_ptr);
 		delete [] data;
 	}
 }
@@ -41,20 +45,20 @@ NS_DOROTHY_BEGIN
 Content::~Content()
 { }
 
-std::pair<OwnArray<Uint8>,size_t> Content::load(String filename)
+std::pair<OwnArray<uint8_t>,size_t> Content::load(String filename)
 {
 	SharedAsyncThread.FileIO.pause();
-	Sint64 size = 0;
-	Uint8* data = Content::_loadFileUnsafe(filename, size);
+	int64_t size = 0;
+	uint8_t* data = Content::_loadFileUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
-	return {OwnArray<Uint8>(data), s_cast<size_t>(size)};
+	return {OwnArray<uint8_t>(data), s_cast<size_t>(size)};
 }
 
 const bgfx::Memory* Content::loadBX(String filename)
 {
 	SharedAsyncThread.FileIO.pause();
-	Sint64 size = 0;
-	Uint8* data = Content::_loadFileUnsafe(filename, size);
+	int64_t size = 0;
+	uint8_t* data = Content::_loadFileUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
@@ -72,7 +76,7 @@ void Content::save(String filename, String content)
 	stream.write(content.rawData(), content.size());
 }
 
-void Content::save(String filename, Uint8* content, Sint64 size)
+void Content::save(String filename, uint8_t* content, int64_t size)
 {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
 	stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size));
@@ -290,7 +294,7 @@ void Content::copyUnsafe(String src, String dst)
 		{
 			// Info("now copy file {}",file);
 			ofstream stream(fs::path(dstPath) / file, std::ios::out | std::ios::trunc | std::ios::binary);
-			Content::loadByChunks((fs::path(srcPath) / file).string(), [&](Uint8* buffer, int size)
+			Content::loadByChunks((fs::path(srcPath) / file).string(), [&](uint8_t* buffer, int size)
 			{
 				if (!stream.write(r_cast<char*>(buffer), size))
 				{
@@ -302,7 +306,7 @@ void Content::copyUnsafe(String src, String dst)
 	else
 	{
 		ofstream stream(dst, std::ios::out | std::ios::trunc | std::ios::binary);
-		Content::loadByChunks(src, [&](Uint8* buffer, int size)
+		Content::loadByChunks(src, [&](uint8_t* buffer, int size)
 		{
 			if (!stream.write(r_cast<char*>(buffer), size))
 			{
@@ -312,19 +316,19 @@ void Content::copyUnsafe(String src, String dst)
 	}
 }
 
-void Content::loadAsyncUnsafe(String filename, const std::function<void (Uint8*, Sint64)>& callback)
+void Content::loadAsyncUnsafe(String filename, const std::function<void (uint8_t*, int64_t)>& callback)
 {
 	std::string fileStr = filename;
 	SharedAsyncThread.FileIO.run([fileStr, this]()
 	{
-		Sint64 size = 0;
-		Uint8* buffer = this->_loadFileUnsafe(fileStr, size);
+		int64_t size = 0;
+		uint8_t* buffer = this->_loadFileUnsafe(fileStr, size);
 		return Values::alloc(buffer, size);
 	},
 	[callback](Own<Values> result)
 	{
-		Uint8* buffer;
-		Sint64 size;
+		uint8_t* buffer;
+		int64_t size;
 		result->get(buffer, size);
 		callback(buffer,size);
 	});
@@ -332,16 +336,16 @@ void Content::loadAsyncUnsafe(String filename, const std::function<void (Uint8*,
 
 void Content::loadAsync(String filename, const std::function<void(String)>& callback)
 {
-	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size)
 	{
 		auto data = MakeOwnArray(buffer);
 		callback(Slice(r_cast<char*>(data.get()), s_cast<size_t>(size)));
 	});
 }
 
-void Content::loadAsyncData(String filename, const std::function<void(OwnArray<Uint8>&&,size_t)>& callback)
+void Content::loadAsyncData(String filename, const std::function<void(OwnArray<uint8_t>&&,size_t)>& callback)
 {
-	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size)
 	{
 		callback(MakeOwnArray(buffer), s_cast<size_t>(size));
 	});
@@ -350,7 +354,7 @@ void Content::loadAsyncData(String filename, const std::function<void(OwnArray<U
 
 void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback)
 {
-	Content::loadAsyncUnsafe(filename, [callback](Uint8* buffer, Sint64 size)
+	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size)
 	{
 		callback(bgfx::makeRef(buffer, s_cast<uint32_t>(size), releaseFileData));
 	});
@@ -387,10 +391,10 @@ void Content::saveAsync(String filename, String content, const std::function<voi
 	});
 }
 
-void Content::saveAsync(String filename, OwnArray<Uint8> content, size_t size, const std::function<void()>& callback)
+void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback)
 {
 	std::string file(filename);
-	auto data = std::make_shared<OwnArray<Uint8>>(std::move(content));
+	auto data = std::make_shared<OwnArray<uint8_t>>(std::move(content));
 	SharedAsyncThread.FileIO.run([file,data,size,this]()
 	{
 		Content::save(file, Slice(r_cast<char*>((*data).get()), size));
@@ -442,10 +446,10 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder)
 	return files;
 }
 
-Uint8* Content::loadUnsafe(String filename, Sint64& size)
+uint8_t* Content::loadUnsafe(String filename, int64_t& size)
 {
 	SharedAsyncThread.FileIO.pause();
-	Uint8* data = Content::_loadFileUnsafe(filename, size);
+	uint8_t* data = Content::_loadFileUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return data;
 }
@@ -461,9 +465,9 @@ Content::Content()
 	SDL_free(prefPath);
 }
 
-Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
+uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size)
 {
-	Uint8* data = nullptr;
+	uint8_t* data = nullptr;
 	if (filename.empty())
 	{
 		return data;
@@ -499,7 +503,7 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 	return data;
 }
 
-void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)>& handler)
+void Content::loadByChunks(String filename, const std::function<void(uint8_t*,int)>& handler)
 {
 	if (filename.empty())
 	{
@@ -516,11 +520,11 @@ void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)
 		{
 			FILE* file = fopen(fullPath.c_str(), "rb");
 			BREAK_IF(!file);
-			Uint8 buffer[DORA_COPY_BUFFER_SIZE];
+			uint8_t buffer[DORA_COPY_BUFFER_SIZE];
 			int size = 0;
 			do
 			{
-				size = s_cast<int>(fread(buffer, sizeof(Uint8), DORA_COPY_BUFFER_SIZE, file));
+				size = s_cast<int>(fread(buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE, file));
 				if (size > 0)
 				{
 					handler(buffer, size);
@@ -634,6 +638,10 @@ Content::Content()
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif // WIN32_LEAN_AND_MEAN
+#include <windows.h>
 static std::string toUTF8String(const std::string& str)
 {
 	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), 0, 0);
@@ -650,7 +658,7 @@ static std::string toUTF8String(const std::string& str)
 }
 #endif // BX_PLATFORM_WINDOWS
 
-Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
+uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size)
 {
 	if (filename.empty()) return nullptr;
 	std::string fullPath =
@@ -666,13 +674,13 @@ Uint8* Content::_loadFileUnsafe(String filename, Sint64& size)
 		return nullptr;
 	}
 	size = SDL_RWsize(io);
-	Uint8* buffer = new Uint8[s_cast<size_t>(size)];
-	SDL_RWread(io, buffer, sizeof(Uint8), s_cast<size_t>(size));
+	uint8_t* buffer = new uint8_t[s_cast<size_t>(size)];
+	SDL_RWread(io, buffer, sizeof(uint8_t), s_cast<size_t>(size));
 	SDL_RWclose(io);
 	return buffer;
 }
 
-void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)>& handler)
+void Content::loadByChunks(String filename, const std::function<void(uint8_t*,int)>& handler)
 {
 	if (filename.empty()) return;
 	std::string fullPath = Content::getFullPath(filename);
@@ -682,9 +690,9 @@ void Content::loadByChunks(String filename, const std::function<void(Uint8*,int)
 		Error("failed to load file: {}", fullPath);
 		return;
 	}
-	Uint8 buffer[DORA_COPY_BUFFER_SIZE];
+	uint8_t buffer[DORA_COPY_BUFFER_SIZE];
 	int size = 0;
-	while ((size = s_cast<int>(SDL_RWread(io, buffer, sizeof(Uint8), DORA_COPY_BUFFER_SIZE))))
+	while ((size = s_cast<int>(SDL_RWread(io, buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE))))
 	{
 		handler(buffer, size);
 	}

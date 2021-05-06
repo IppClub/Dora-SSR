@@ -20,15 +20,15 @@ _id(-1),
 _nearPlaneDistance(0.1f),
 _farPlaneDistance(10000.0f),
 _fieldOfView(45.0f),
+#if BX_PLATFORM_WINDOWS
 _flag(BGFX_RESET_HIDPI),
+#else // BX_PLATFORM_WINDOWS
+_flag(BGFX_RESET_HIDPI | BGFX_RESET_VSYNC),
+#endif // BX_PLATFORM_WINDOWS
 _size(SharedApplication.getBufferSize()),
 _scale(1.0f),
 _projection(Matrix::Indentity)
-{
-#if !BX_PLATFORM_WINDOWS
-	_flag |= BGFX_RESET_VSYNC;
-#endif // BX_PLATFORM
-}
+{ }
 
 bgfx::ViewId View::getId() const
 {
@@ -111,7 +111,7 @@ void View::setVSync(bool var)
 			_flag &= ~BGFX_RESET_VSYNC;
 		}
 		Size bufferSize = SharedApplication.getBufferSize();
-		bgfx::reset(s_cast<Uint32>(bufferSize.width), s_cast<Uint32>(bufferSize.height), _flag);
+		bgfx::reset(s_cast<uint32_t>(bufferSize.width), s_cast<uint32_t>(bufferSize.height), _flag);
 	}
 }
 

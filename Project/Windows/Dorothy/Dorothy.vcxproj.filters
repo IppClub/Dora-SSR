@@ -133,6 +133,9 @@
     <Filter Include="3rdParty\sqlite">
       <UniqueIdentifier>{2f1a6233-e93e-41f8-84a4-3e9542183c01}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\implot">
+      <UniqueIdentifier>{53b9d27c-9d44-43a2-bc6c-3e696df8b5b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -896,6 +899,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Basic\Database.cpp">
       <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\implot\implot.cpp">
+      <Filter>3rdParty\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\implot\implot_demo.cpp">
+      <Filter>3rdParty\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\implot\implot_items.cpp">
+      <Filter>3rdParty\implot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1982,6 +1994,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Basic\Database.h">
       <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\implot\implot.h">
+      <Filter>3rdParty\implot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\implot\implot_internal.h">
+      <Filter>3rdParty\implot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

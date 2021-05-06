@@ -287,7 +287,7 @@ void ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 		nRet = unzOpenCurrentFile(m_data->zipFile);
 		BREAK_IF(UNZ_OK != nRet);
 
-		Uint8 buf[DORA_COPY_BUFFER_SIZE];
+		uint8_t buf[DORA_COPY_BUFFER_SIZE];
 		int nSize = 0, total = 0;
 		do
 		{

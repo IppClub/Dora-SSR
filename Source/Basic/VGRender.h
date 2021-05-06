@@ -128,7 +128,7 @@ public:
 	virtual ~VGTexture();
 	CREATE_FUNC(VGTexture);
 protected:
-	VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, Uint64 flags);
+	VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, uint64_t flags);
 	NVGLUframebuffer* _framebuffer;
 	NVGcontext* _context;
 };

@@ -33,7 +33,7 @@ public:
 	void showStats();
 	void showConsole();
 	void handleEvent(const SDL_Event& event);
-	void updateTexture(Uint8* data, int width, int height);
+	void updateTexture(uint8_t* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
 protected:
 	ImGuiDora();
@@ -42,6 +42,31 @@ protected:
 	static void setClipboardText(void*, const char* text);
 	static void setImePositionHint(int x, int y);
 	static int _lastIMEPosX, _lastIMEPosY;
+private:
+	bool _showPlot;
+	int _timeFrames;
+	int _memFrames;
+	int _profileFrames;
+	double _cpuTime;
+	double _gpuTime;
+	double _deltaTime;
+	double _avgCPUTime;
+	double _avgGPUTime;
+	double _avgDeltaTime;
+	double _logicTime;
+	double _renderTime;
+	int _memPoolSize;
+	int _memLua;
+	int _lastMemPoolSize;
+	int _lastMemLua;
+	std::vector<double> _cpuValues;
+	std::vector<double> _gpuValues;
+	std::vector<double> _dtValues;
+	std::vector<double> _times;
+	double _maxCPU;
+	double _maxGPU;
+	double _maxDelta;
+	double _yLimit;
 private:
 	bool _textInputing;
 	bool _backSpaceIgnore;
@@ -54,13 +79,16 @@ private:
 	Ref<Texture2D> _fontTexture;
 	Ref<SpriteEffect> _defaultEffect;
 	Ref<SpriteEffect> _imageEffect;
+	Ref<Listener> _costListener;
 	bgfx::VertexLayout _vertexLayout;
-	std::list<SDL_Event> _inputs;
-	std::vector<Uint32> _textEditing;
+	std::list<std::any> _inputs;
+	std::vector<uint32_t> _textEditing;
 	std::string _iniFilePath;
 	Own<ConsolePanel> _console;
 	Own<ImFontAtlas> _defaultFonts;
 	Own<ImFontAtlas> _fonts;
+	std::unordered_map<std::string, double> _timeCosts;
+	std::unordered_map<std::string, double> _updateCosts;
 	SINGLETON_REF(ImGuiDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGui
 	SINGLETON_REF(AsyncThread, ImGuiDora);

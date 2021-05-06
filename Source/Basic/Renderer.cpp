@@ -14,7 +14,7 @@ NS_DOROTHY_BEGIN
 
 void Renderer::render()
 {
-	Uint32 stencilState = SharedRendererManager.getCurrentStencilState();
+	uint32_t stencilState = SharedRendererManager.getCurrentStencilState();
 	if (stencilState != BGFX_STENCIL_NONE)
 	{
 		bgfx::setStencil(stencilState);
@@ -39,7 +39,7 @@ Renderer* RendererManager::getCurrent() const
 	return _currentRenderer;
 }
 
-Uint32 RendererManager::getCurrentStencilState() const
+uint32_t RendererManager::getCurrentStencilState() const
 {
 	return _stencilStates.empty() ? BGFX_STENCIL_NONE : _stencilStates.top();
 }
@@ -53,7 +53,7 @@ void RendererManager::flush()
 	}
 }
 
-void RendererManager::pushStencilState(Uint32 stencilState)
+void RendererManager::pushStencilState(uint32_t stencilState)
 {
 	_stencilStates.push(stencilState);
 }
@@ -74,7 +74,7 @@ void RendererManager::pushGroupItem(Node* item)
 	renderGroup->push_back(item);
 }
 
-void RendererManager::pushGroup(Uint32 capacity)
+void RendererManager::pushGroup(uint32_t capacity)
 {
 	_renderGroups.push(New<std::vector<Node*>>());
 	_renderGroups.top()->reserve(s_cast<size_t>(capacity));

@@ -24,18 +24,18 @@ public:
 	virtual ~RenderTarget();
 	virtual bool init() override;
 	void render(Node* target);
-	void renderWithClear(Color color, float depth = 1.0f, Uint8 stencil = 0);
-	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
+	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
+	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void saveAsync(String filename, const std::function<void()>& callback);
 	CREATE_FUNC(RenderTarget);
 protected:
-	RenderTarget(Uint16 width, Uint16 height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
-	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, Uint8 stencil = 0);
+	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
+	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();
 private:
-	Uint16 _textureWidth;
-	Uint16 _textureHeight;
+	uint16_t _textureWidth;
+	uint16_t _textureHeight;
 	bgfx::TextureFormat::Enum _format;
 	Ref<Texture2D> _texture;
 	Ref<Texture2D> _depthTexture;

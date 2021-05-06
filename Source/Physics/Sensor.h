@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Basic/Object.h"
+#include "PlayRho/PlayRho.hpp"
 
 NS_DOROTHY_BEGIN
 
@@ -19,7 +20,7 @@ class Body;
 class Sensor;
 class Array;
 
-typedef Delegate<void(Sensor*,Body*)> SensorHandler;
+typedef Acf::Delegate<void(Sensor*,Body*)> SensorHandler;
 
 class Sensor : public Object
 {

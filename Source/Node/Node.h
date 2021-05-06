@@ -23,8 +23,9 @@ class Scheduler;
 class TouchHandler;
 class NodeTouchHandler;
 class Action;
+class Dictionary;
 
-typedef Delegate<void (Event* event)> EventHandler;
+typedef Acf::Delegate<void (Event* event)> EventHandler;
 
 class Node : public Object
 {
@@ -59,7 +60,7 @@ public:
 	PROPERTY_BOOL(PassColor3);
 	PROPERTY(Node*, TransformTarget);
 	PROPERTY(Scheduler*, Scheduler);
-	PROPERTY(Object*, UserData);
+	PROPERTY_READONLY_CALL(Dictionary*, UserData);
 	PROPERTY_READONLY(Node*, Parent);
 	PROPERTY_READONLY(Node*, TargetParent);
 	PROPERTY_READONLY(Array*, Children);
@@ -75,7 +76,7 @@ public:
 	PROPERTY_BOOL(KeyboardEnabled);
 	PROPERTY_VIRTUAL(int, RenderOrder);
 	PROPERTY_BOOL(RenderGroup);
-	PROPERTY_READONLY(Uint32, NodeCount);
+	PROPERTY_READONLY(uint32_t, NodeCount);
 
 	virtual void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
@@ -267,7 +268,7 @@ protected:
 	AffineTransform _transform;
 	WRef<Node> _transformTarget;
 	Node* _parent;
-	Ref<Object> _userData;
+	Ref<Dictionary> _userData;
 	Ref<Array> _children;
 	Ref<Scheduler> _scheduler;
 	Ref<Action> _action;

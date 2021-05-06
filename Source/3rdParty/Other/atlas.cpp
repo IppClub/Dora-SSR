@@ -271,7 +271,7 @@ Atlas::Atlas(uint16_t _textureSize, Type type, bool antiAlias, uint16_t _maxRegi
 
 	bgfx::TextureFormat::Enum format = m_type == Gray ? bgfx::TextureFormat::A8 : bgfx::TextureFormat::RGBA8;
 
-	const Uint32 textureFlags = antiAlias ? (BGFX_SAMPLER_NONE) : (BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+	const uint32_t textureFlags = antiAlias ? (BGFX_SAMPLER_NONE) : (BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureSize
 		, _textureSize

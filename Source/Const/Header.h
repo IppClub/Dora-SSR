@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <functional>
@@ -22,20 +23,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <any>
+
 #include "bgfx/platform.h"
-#include "bgfx/bgfx.h"
-#include "bgfx/embedded_shader.h"
-#include "bx/thread.h"
-#include "bx/semaphore.h"
-#include "bx/math.h"
-#include "SDL_syswm.h"
-#include "SDL.h"
-#include "PlayRho/PlayRho.hpp"
 #include "Other/AcfDelegate.h"
-using Acf::Delegate;
+#include "fmt/format.h"
 #include "silly/Slice.h"
 using namespace silly::slice;
-#include "fmt/format.h"
 
 #include "Const/Config.h"
 #include "Common/Debug.h"

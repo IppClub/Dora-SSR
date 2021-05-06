@@ -14,7 +14,7 @@ NS_DOROTHY_BEGIN
 class Dictionary;
 class Entity;
 
-typedef Delegate<void(Entity*)> EntityHandler;
+typedef Acf::Delegate<void(Entity*)> EntityHandler;
 
 class Entity : public Object
 {
@@ -28,7 +28,7 @@ public:
 	};
 	Entity(int index);
 	PROPERTY_READONLY(int, Index);
-	PROPERTY_READONLY_CLASS(Uint32, Count);
+	PROPERTY_READONLY_CLASS(uint32_t, Count);
 	void destroy();
 	bool has(String name) const;
 	void remove(String name);

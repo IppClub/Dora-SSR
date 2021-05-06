@@ -9,6 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Support/Geometry.h"
+#include "Support/Value.h"
+
+union SDL_Event;
 
 NS_DOROTHY_BEGIN
 
@@ -45,7 +48,7 @@ public:
 	PROPERTY_READONLY_CREF(Vec2, PreLocation);
 	PROPERTY_READONLY_CREF(Vec2, WorldLocation);
 	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
-	PROPERTY_READONLY_CLASS(Uint32, Source);
+	PROPERTY_READONLY_CLASS(uint32_t, Source);
 	CREATE_FUNC(Touch);
 protected:
 	Touch(int id);
@@ -63,7 +66,7 @@ private:
 		IsMouse = 1 << 2,
 		IsFirst = 1 << 3,
 	};
-	static Uint32 _source;
+	static uint32_t _source;
 	friend class NodeTouchHandler;
 	DORA_TYPE_OVERRIDE(Touch);
 };
@@ -74,9 +77,9 @@ public:
 	NodeTouchHandler(Node* target);
 	virtual bool handle(const SDL_Event& event) override;
 protected:
-	Touch* alloc(SDL_FingerID fingerId);
-	Touch* get(SDL_FingerID fingerId);
-	void collect(SDL_FingerID fingerId);
+	Touch* alloc(int64_t fingerId);
+	Touch* get(int64_t fingerId);
+	void collect(int64_t fingerId);
 	Vec2 getPos(const SDL_Event& event);
 	Vec2 getPos(const Vec3& winPos);
 	bool up(const SDL_Event& event);
@@ -87,7 +90,7 @@ protected:
 private:
 	Node* _target;
 	std::stack<int> _availableTouchIds;
-	std::unordered_map<SDL_FingerID, Ref<Touch>> _touchMap;
+	std::unordered_map<int64_t, Ref<Touch>> _touchMap;
 };
 
 class UITouchHandler : public TouchHandler
@@ -127,7 +130,7 @@ protected:
 	TouchDispatcher() { }
 private:
 	std::vector<TouchHandler*> _handlers;
-	std::list<SDL_Event> _events;
+	std::list<std::any> _events;
 	SINGLETON_REF(TouchDispatcher, Director);
 };
 

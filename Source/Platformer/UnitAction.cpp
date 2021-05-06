@@ -502,7 +502,7 @@ float Attack::getDamage(Unit* target)
 	auto attackBase = _owner->getUnitDef()->get(ActionSetting::AttackBase, 0.0f);
 	auto attackBonus = _owner->getUnitDef()->get(ActionSetting::AttackBonus, 0.0f);
 	auto attackFactor = _owner->getUnitDef()->get(ActionSetting::AttackFactor, 1.0f);
-	float factor = SharedData.getDamageFactor(s_cast<Uint16>(damageType), s_cast<Uint16>(defenceType));
+	float factor = SharedData.getDamageFactor(s_cast<uint16_t>(damageType), s_cast<uint16_t>(defenceType));
 	float damage = (attackBase + attackBonus) * (attackFactor + factor);
 	return damage;
 }

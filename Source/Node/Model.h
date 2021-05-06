@@ -58,7 +58,7 @@ private:
 	Ref<Action> _action;
 };
 
-typedef Delegate<void (Model* model)> AnimationHandler;
+typedef Acf::Delegate<void (Model* model)> AnimationHandler;
 
 class AnimationGroup
 {
@@ -80,7 +80,7 @@ public:
 		ActionDuration* resetTarget);
 	void run(float duration, int index);
 	void stop();
-	Delegate<void()> end;
+	Acf::Delegate<void()> end;
 private:
 	void onActionEnd();
 	struct AnimationData
@@ -139,8 +139,8 @@ protected:
 	Model(String filename);
 private:
 	void setLook(int index);
-	float play(Uint32 index, bool loop);
-	void resume(Uint32 index, bool loop);
+	float play(uint32_t index, bool loop);
+	void resume(uint32_t index, bool loop);
 	typedef std::unordered_map<std::string,Node*> NodeMap;
 	void visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef);
 	void onResetAnimationEnd();

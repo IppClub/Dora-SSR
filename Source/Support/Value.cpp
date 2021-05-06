@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Support/Value.h"
+#include "Lua/LuaHandler.h"
 
 NS_DOROTHY_BEGIN
 
@@ -20,7 +21,11 @@ Own<Value> ValueObject::clone() const
 
 void ValueObject::pushToLua(lua_State* L) const
 {
-	LuaEngine::push(L, _value.get());
+	if (auto value = DoraAs<LuaHandler>(_value.get()))
+	{
+		tolua_get_function_by_refid(L, value->get());
+	}
+	else LuaEngine::push(L, _value.get());
 }
 
 bool ValueObject::isNumeric() const
@@ -37,6 +42,13 @@ bool ValueObject::equals(Value* other) const
 {
 	if (auto value = DoraAs<ValueObject>(other))
 	{
+		BLOCK_START
+		auto handler = DoraAs<LuaHandler>(_value.get());
+		BREAK_IF(!handler);
+		auto otherHandler = DoraAs<LuaHandler>(value->get());
+		BREAK_IF(!otherHandler);
+		return SharedLuaEngine.scriptHandlerEqual(handler->get(), otherHandler->get());
+		BLOCK_END
 		return _value == value->get();
 	}
 	return false;

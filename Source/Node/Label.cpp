@@ -97,7 +97,7 @@ bool FontCache::unload()
 	return true;
 }
 
-bool FontCache::unload(String fontName, Uint32 fontSize)
+bool FontCache::unload(String fontName, uint32_t fontSize)
 {
 	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
@@ -138,7 +138,7 @@ void FontCache::removeUnused()
 	}
 }
 
-Font* FontCache::load(String fontName, Uint32 fontSize)
+Font* FontCache::load(String fontName, uint32_t fontSize)
 {
 	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
@@ -175,7 +175,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 				return nullptr;
 			}
 			auto data = SharedContent.load(fontFile);
-			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<Uint32>(data.second));
+			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<uint32_t>(data.second));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontName] = file;
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
@@ -186,7 +186,7 @@ Font* FontCache::load(String fontName, Uint32 fontSize)
 	}
 }
 
-void FontCache::loadAync(String fontName, Uint32 fontSize, const std::function<void(Font* fontHandle)>& callback)
+void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function<void(Font* fontHandle)>& callback)
 {
 	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
 	auto faceIt = _fonts.find(fontFaceName);
@@ -222,9 +222,9 @@ void FontCache::loadAync(String fontName, Uint32 fontSize, const std::function<v
 				Warn("can not load font file named \"{}\".", fontName);
 				callback(nullptr);
 			}
-			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](Uint8* data, Sint64 size)
+			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](uint8_t* data, int64_t size)
 			{
-				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<Uint32>(size));
+				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<uint32_t>(size));
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 				_fontFiles[fontName] = file;
 				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
@@ -274,7 +274,7 @@ const bgfx::GlyphInfo* FontCache::updateCharacter(Sprite* sp, Font* font, bgfx::
 
 const float Label::AutomaticWidth = -1.0f;
 
-Label::Label(String fontName, Uint32 fontSize):
+Label::Label(String fontName, uint32_t fontSize):
 _alphaRef(0),
 _textWidth(Label::AutomaticWidth),
 _alignment(TextAlign::Center),
@@ -393,7 +393,7 @@ bool Label::isDepthWrite() const
 
 void Label::setAlphaRef(float var)
 {
-	_alphaRef = s_cast<Uint8>(255.0f * Math::clamp(var, 0.0f, 1.0f));
+	_alphaRef = s_cast<uint8_t>(255.0f * Math::clamp(var, 0.0f, 1.0f));
 }
 
 float Label::getAlphaRef() const
@@ -467,16 +467,16 @@ float Label::getLetterPosXRight(CharItem* item)
 	return item->pos.x + item->rect.getWidth() * 0.5f;
 }
 
-void Label::updateCharacters(const std::vector<Uint32>& chars)
+void Label::updateCharacters(const std::vector<uint32_t>& chars)
 {
 	float nextFontPositionX = 0;
 	float nextFontPositionY = 0;
-	Uint32 prev = 0;
+	uint32_t prev = 0;
 	float kerningAmount = 0;
 	Size finalSize;
 	float longestLine = 0;
 	float totalHeight = 0;
-	Uint32 quantityOfLines = 1;
+	uint32_t quantityOfLines = 1;
 
 	if (_characters.size() > chars.size())
 	{
@@ -494,7 +494,7 @@ void Label::updateCharacters(const std::vector<Uint32>& chars)
 		_characters.resize(chars.size());
 	}
 
-	for (Uint32 ch : chars)
+	for (uint32_t ch : chars)
 	{
 		if (ch == '\n')
 		{
@@ -510,7 +510,7 @@ void Label::updateCharacters(const std::vector<Uint32>& chars)
 	const bgfx::GlyphInfo* fontDef = nullptr;
 	for (size_t i = 0; i < chars.size(); i++)
 	{
-		Uint32 ch = chars[i];
+		uint32_t ch = chars[i];
 		CharItem* fontChar = _characters[i].get();
 
 		if (ch == '\n')
@@ -633,9 +633,9 @@ void Label::updateLabel()
 	{
 		// Step 1: Make multiline
 		int stringLength = s_cast<int>(_text.size());
-		std::vector<Uint32> multiline_string;
+		std::vector<uint32_t> multiline_string;
 		multiline_string.reserve(stringLength);
-		std::vector<Uint32> last_word;
+		std::vector<uint32_t> last_word;
 		last_word.reserve(stringLength);
 
 		int i = 0;
@@ -658,7 +658,7 @@ void Label::updateLabel()
 
 			if (i >= stringLength || !characterItem) break;
 
-			Uint32 character = _text[i];
+			uint32_t character = _text[i];
 
 			if (!start_word)
 			{
@@ -814,7 +814,7 @@ void Label::updateLabel()
 			last_word.end());
 
 		size_t size = multiline_string.size();
-		std::vector<Uint32> str_new(size+1);
+		std::vector<uint32_t> str_new(size+1);
 		for (size_t i = 0; i < size; ++i)
 		{
 			str_new[i] = multiline_string[i];
@@ -829,7 +829,7 @@ void Label::updateLabel()
 	{
 		int i = 0;
 		int lineNumber = 0;
-		std::vector<Uint32> last_line;
+		std::vector<uint32_t> last_line;
 		for (size_t ctr = 0; ctr < _text.size(); ++ctr)
 		{
 			if (_text[ctr] == '\n' || _text[ctr] == '\0')
@@ -898,7 +898,7 @@ void Label::updateVertTexCoord()
 {
 	_quads.clear();
 	_quads.reserve(_characters.size());
-	Uint32 abgr = _realColor.toABGR();
+	uint32_t abgr = _realColor.toABGR();
 	for (size_t i = 0; i < _text.size(); i++)
 	{
 		CharItem* item = _characters[i].get();
@@ -961,7 +961,7 @@ void Label::updateVertColor()
 {
 	for (auto& quad : _quads)
 	{
-		Uint32 abgr = _realColor.toABGR();
+		uint32_t abgr = _realColor.toABGR();
 		quad.lt.abgr = abgr;
 		quad.rt.abgr = abgr;
 		quad.lb.abgr = abgr;
@@ -1025,7 +1025,7 @@ void Label::render()
 		}
 	}
 
-	Uint64 renderState = (
+	uint64_t renderState = (
 		BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
 		BGFX_STATE_ALPHA_REF(_alphaRef) |
 		BGFX_STATE_MSAA | _blendFunc.toValue());

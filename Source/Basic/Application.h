@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Event/EventQueue.h"
 #include "Support/Geometry.h"
+
+#include "bx/thread.h"
 #include <random>
 
 struct SDL_Window;
@@ -17,14 +19,14 @@ union SDL_Event;
 
 NS_DOROTHY_BEGIN
 
-typedef Delegate<void(const SDL_Event&)> SDLEventHandler;
-typedef Delegate<void()> QuitHandler;
+typedef Acf::Delegate<void(const SDL_Event&)> SDLEventHandler;
+typedef Acf::Delegate<void()> QuitHandler;
 
 class Application
 {
 public:
 	virtual ~Application() { }
-	PROPERTY_READONLY(Uint32, Frame);
+	PROPERTY_READONLY(uint32_t, Frame);
 	PROPERTY_READONLY(Size, WinSize);
 	PROPERTY_READONLY(Size, BufferSize);
 	PROPERTY_READONLY(Size, VisualSize);
@@ -35,18 +37,22 @@ public:
 	PROPERTY_READONLY(double, CurrentTime);
 	PROPERTY_READONLY(double, RunningTime);
 	PROPERTY_READONLY(double, CPUTime);
+	PROPERTY_READONLY(double, GPUTime);
+	PROPERTY_READONLY(double, LogicTime);
+	PROPERTY_READONLY(double, RenderTime);
 	PROPERTY_READONLY(double, TotalTime);
 	PROPERTY_READONLY(const Slice, Platform);
 	PROPERTY_READONLY(const Slice, Version);
-	PROPERTY_READONLY_CALL(Uint32, Rand);
-	PROPERTY_READONLY(Uint32, RandMin);
-	PROPERTY_READONLY(Uint32, RandMax);
+	PROPERTY_READONLY_CALL(uint32_t, Rand);
+	PROPERTY_READONLY(uint32_t, RandMin);
+	PROPERTY_READONLY(uint32_t, RandMax);
 	PROPERTY_READONLY(SDL_Window*, SDLWindow);
 	PROPERTY_READONLY_BOOL(RenderRunning);
 	PROPERTY_READONLY_BOOL(LogicRunning);
 	PROPERTY_READONLY_BOOL(Debugging);
-	PROPERTY(Uint32, TargetFPS);
-	PROPERTY(Uint32, Seed);
+	PROPERTY(uint32_t, TargetFPS);
+	PROPERTY_READONLY(uint32_t, MaxFPS);
+	PROPERTY(uint32_t, Seed);
 	PROPERTY_BOOL(FPSLimited);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
@@ -84,8 +90,9 @@ private:
 	int _winHeight;
 	int _bufferWidth;
 	int _bufferHeight;
-	Uint32 _seed;
-	Uint32 _targetFPS;
+	uint32_t _seed;
+	uint32_t _targetFPS;
+	uint32_t _maxFPS;
 	uint32_t _frame;
 	const double _frequency;
 	double _startTime;
@@ -93,6 +100,8 @@ private:
 	double _deltaTime;
 	double _cpuTime;
 	double _totalTime;
+	double _logicTime;
+	double _renderTime;
 	bx::Thread _logicThread;
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;

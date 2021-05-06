@@ -65,7 +65,7 @@ int nvg::CreateImage(int w, int h, int imageFlags, String filename)
 	auto data = SharedContent.load(filename);
 	bx::DefaultAllocator allocator;
 	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.first.get(), s_cast<uint32_t>(data.second), bimg::TextureFormat::RGBA8);
-	int result = nvgCreateImageRGBA(Context(), w, h, imageFlags, r_cast<Uint8*>(imageContainer->m_data));
+	int result = nvgCreateImageRGBA(Context(), w, h, imageFlags, r_cast<uint8_t*>(imageContainer->m_data));
 	bimg::imageFree(imageContainer);
 	return result;
 }
@@ -86,7 +86,7 @@ int nvg::CreateFont(String name)
 	BLOCK_END
 	if (fontFile.empty()) return -1;
 	auto data = SharedContent.load(fontFile);
-	Uint8* fontData = r_cast<Uint8*>(malloc(data.second));
+	uint8_t* fontData = r_cast<uint8_t*>(malloc(data.second));
 	bx::memCopy(fontData, data.first.get(), data.second);
 	return nvgCreateFontMem(Context(), name.toString().c_str(), fontData, s_cast<int>(data.second), 1);
 }
@@ -5007,7 +5007,7 @@ void RenderDorothySSRWhite(NVGcontext* context)
 	nvgFill(context);
 }
 
-VGTexture::VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, Uint64 flags):
+VGTexture::VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, uint64_t flags):
 Texture2D({s_cast<uint16_t>(framebuffer->image)}, info, flags),
 _framebuffer(framebuffer),
 _context(context)
@@ -5074,7 +5074,7 @@ static VGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int 
 			s_cast<uint16_t>(width * scale),
 			s_cast<uint16_t>(height * scale),
 			0, false, false, 1, bgfx::TextureFormat::RGBA8);
-		Uint64 flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+		uint64_t flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		texture = VGTexture::create(context, framebuffer, info, flags);
 	});
 	return texture;

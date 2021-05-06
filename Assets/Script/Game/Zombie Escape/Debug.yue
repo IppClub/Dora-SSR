@@ -8,8 +8,8 @@ store:Store = Data
 	:PlayerGroup
 } = Store
 
-playerGroup = Group {"player"}
-zombieGroup = Group {"zombie"}
+playerGroup = Group {"player", "unit"}
+zombieGroup = Group {"zombie", "unit"}
 userControl = false
 playerChoice = 1
 controlChoice = switch App.platform

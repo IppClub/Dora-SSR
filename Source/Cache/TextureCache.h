@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "bx/allocator.h"
+
 NS_DOROTHY_BEGIN
 
 enum struct TextureWrap
@@ -35,15 +37,19 @@ public:
 	PROPERTY_READONLY(TextureFilter, Filter);
 	PROPERTY_READONLY(TextureWrap, UWrap);
 	PROPERTY_READONLY(TextureWrap, VWrap);
-	PROPERTY_READONLY(Uint64, Flags);
+	PROPERTY_READONLY(uint64_t, Flags);
+	PROPERTY_READONLY_CLASS(uint32_t, StorageSize);
+	PROPERTY_READONLY_CLASS(uint32_t, Count);
 	virtual ~Texture2D();
 	CREATE_FUNC(Texture2D);
 protected:
-	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint64 flags);
+	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, uint64_t flags);
 	bgfx::TextureHandle _handle;
 private:
-	Uint64 _flags;
+	uint64_t _flags;
 	bgfx::TextureInfo _info;
+	static uint32_t _storageSize;
+	static uint32_t _count;
 	DORA_TYPE_OVERRIDE(Texture2D);
 };
 
@@ -52,15 +58,15 @@ class TextureCache
 public:
 	virtual ~TextureCache() { }
 	Texture2D* update(String name, Texture2D* texture);
-	Texture2D* update(String filename, const Uint8* data, Sint64 size);
+	Texture2D* update(String filename, const uint8_t* data, int64_t size);
 	Texture2D* get(String filename);
 	/** @brief support format .jpg .png .dds .pvr .ktx */
 	Texture2D* load(String filename);
 	void loadAsync(String filename, const std::function<void(Texture2D*)>& handler);
-    bool unload(Texture2D* texture);
-    bool unload(String filename);
-    bool unload();
-    void removeUnused();
+	bool unload(Texture2D* texture);
+	bool unload(String filename);
+	bool unload();
+	void removeUnused();
 protected:
 	TextureCache() { }
 private:

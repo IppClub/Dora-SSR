@@ -14,11 +14,38 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, Uint64 flags):
+uint32_t Texture2D::_storageSize = 0;
+uint32_t Texture2D::_count = 0;
+
+Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, uint64_t flags):
 _handle(handle),
 _info(info),
 _flags(flags)
-{ }
+{
+	_count++;
+	_storageSize += info.storageSize;
+}
+
+Texture2D::~Texture2D()
+{
+	_storageSize -= _info.storageSize;
+	_count--;
+	if (bgfx::isValid(_handle))
+	{
+		bgfx::destroy(_handle);
+		_handle = BGFX_INVALID_HANDLE;
+	}
+}
+
+uint32_t Texture2D::getCount()
+{
+	return _count;
+}
+
+uint32_t Texture2D::getStorageSize()
+{
+	return _storageSize;
+}
 
 bgfx::TextureHandle Texture2D::getHandle() const
 {
@@ -75,18 +102,9 @@ TextureWrap Texture2D::getVWrap() const
 	return TextureWrap::Mirror;
 }
 
-Uint64 Texture2D::getFlags() const
+uint64_t Texture2D::getFlags() const
 {
 	return _flags;
-}
-
-Texture2D::~Texture2D()
-{
-	if (bgfx::isValid(_handle))
-	{
-		bgfx::destroy(_handle);
-		_handle = BGFX_INVALID_HANDLE;
-	}
 }
 
 Texture2D* TextureCache::update(String name, Texture2D* texture)
@@ -114,13 +132,13 @@ static void releaseImage(void* _ptr, void* _userData)
 	bimg::imageFree(imageContainer);
 }
 
-Texture2D* TextureCache::update(String filename, const Uint8* data, Sint64 size)
+Texture2D* TextureCache::update(String filename, const uint8_t* data, int64_t size)
 {
 	AssertUnless(data && size > 0, "add invalid data to texture cache.");
 	bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
 	if (imageContainer)
 	{
-		Uint64 flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+		uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 		const bgfx::Memory* mem = bgfx::makeRef(
 			imageContainer->m_data, imageContainer->m_size,
 			releaseImage, imageContainer);
@@ -172,7 +190,7 @@ void TextureCache::loadAsync(String filename, const std::function<void(Texture2D
 		return;
 	}
 	std::string file(filename);
-	SharedContent.loadAsyncUnsafe(fullPath, [this, file, handler](Uint8* data, Sint64 size)
+	SharedContent.loadAsyncUnsafe(fullPath, [this, file, handler](uint8_t* data, int64_t size)
 	{
 		if (!data)
 		{
@@ -191,7 +209,7 @@ void TextureCache::loadAsync(String filename, const std::function<void(Texture2D
 			result->get(imageContainer);
 			if (imageContainer)
 			{
-				Uint64 flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+				uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
 				const bgfx::Memory* mem = bgfx::makeRef(
 					imageContainer->m_data, imageContainer->m_size,
 					releaseImage, imageContainer);
@@ -228,11 +246,11 @@ void TextureCache::loadAsync(String filename, const std::function<void(Texture2D
 
 bool TextureCache::unload(Texture2D* texture)
 {
-	for (const auto& it : _textures)
+	for (auto it = _textures.begin(); it != _textures.end(); ++it)
 	{
-		if (it.second == texture)
+		if (it->second == texture)
 		{
-			_textures.erase(_textures.find(it.first));
+			_textures.erase(it);
 			return true;
 		}
 	}

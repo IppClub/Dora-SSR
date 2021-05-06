@@ -9,8 +9,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Basic/Object.h"
-#include "soloud_wav.h"
-#include "soloud_wavstream.h"
+
+namespace SoLoud {
+	class Wav;
+	class WavStream;
+	class Soloud;
+} // namespace SoLoud
 
 NS_DOROTHY_BEGIN
 
@@ -19,30 +23,32 @@ class Timer;
 class SoundFile : public Object
 {
 public:
+	virtual ~SoundFile();
 	PROPERTY_READONLY_CALL(SoLoud::Wav&, Wav);
 	virtual bool init() override;
 	CREATE_FUNC(SoundFile);
 protected:
-	SoundFile(OwnArray<Uint8>&& data, size_t size);
+	SoundFile(OwnArray<uint8_t>&& data, size_t size);
 private:
-	OwnArray<Uint8> _data;
+	OwnArray<uint8_t> _data;
 	size_t _size;
-	SoLoud::Wav _wav;
+	SoLoud::Wav* _wav;
 	DORA_TYPE_OVERRIDE(SoundFile);
 };
 
 class SoundStream : public Object
 {
 public:
+	virtual ~SoundStream();
 	PROPERTY_READONLY_CALL(SoLoud::WavStream&, Stream);
 	virtual bool init() override;
 	CREATE_FUNC(SoundStream);
 protected:
-	SoundStream(OwnArray<Uint8>&& data, size_t size);
+	SoundStream(OwnArray<uint8_t>&& data, size_t size);
 private:
 	size_t _size;
-	OwnArray<Uint8> _data;
-	SoLoud::WavStream _stream;
+	OwnArray<uint8_t> _data;
+	SoLoud::WavStream* _stream;
 	DORA_TYPE_OVERRIDE(SoundStream);
 };
 
@@ -52,23 +58,23 @@ public:
 	PROPERTY_READONLY_CALL(SoLoud::Soloud&, SoLoud);
 	virtual ~Audio();
 	bool init();
-	Uint32 play(String filename, bool loop = false);
-	void stop(Uint32 handle);
+	uint32_t play(String filename, bool loop = false);
+	void stop(uint32_t handle);
 	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
 	void stopStream(float fadeTime = 0.0f);
 protected:
 	Audio();
 	bool _init();
-	Uint32 _play(String filename, bool);
-	void _stop(Uint32 handle);
+	uint32_t _play(String filename, bool);
+	void _stop(uint32_t handle);
 	void _playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
 	void _stopStream(float fadeTime = 0.0f);
 private:
 	Ref<Timer> _timer;
-	Uint32 _currentVoice;
+	uint32_t _currentVoice;
 	Ref<SoundStream> _lastStream;
 	Ref<SoundStream> _currentStream;
-	SoLoud::Soloud _soloud;
+	SoLoud::Soloud* _soloud;
 	SINGLETON_REF(Audio, Application);
 };
 

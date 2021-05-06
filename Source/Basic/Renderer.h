@@ -24,12 +24,12 @@ class RendererManager
 {
 public:
 	PROPERTY(Renderer*, Current);
-	PROPERTY_READONLY(Uint32, CurrentStencilState);
+	PROPERTY_READONLY(uint32_t, CurrentStencilState);
 	PROPERTY_READONLY_BOOL(Grouping);
 	void flush();
 
 	template <typename Func>
-	void pushStencilState(Uint32 stencilState, const Func& workHere)
+	void pushStencilState(uint32_t stencilState, const Func& workHere)
 	{
 		pushStencilState(stencilState);
 		workHere();
@@ -39,7 +39,7 @@ public:
 	void pushGroupItem(Node* item);
 
 	template <typename Func>
-	void pushGroup(Uint32 capacity, const Func& workHere)
+	void pushGroup(uint32_t capacity, const Func& workHere)
 	{
 		pushGroup(capacity);
 		workHere();
@@ -47,12 +47,12 @@ public:
 	}
 protected:
 	RendererManager();
-	void pushStencilState(Uint32 stencilState);
+	void pushStencilState(uint32_t stencilState);
 	void popStencilState();
-	void pushGroup(Uint32 capacity);
+	void pushGroup(uint32_t capacity);
 	void popGroup();
 private:
-	std::stack<Uint32> _stencilStates;
+	std::stack<uint32_t> _stencilStates;
 	Renderer* _currentRenderer;
 	std::stack<Own<std::vector<Node*>>> _renderGroups;
 	SINGLETON_REF(RendererManager, BGFXDora);

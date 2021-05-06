@@ -27,7 +27,7 @@ class Instinct;
 namespace Decision { class Leaf; }
 namespace Behavior { class Leaf; class Blackboard; }
 
-typedef Delegate<void (UnitAction* action)> UnitActionHandler;
+typedef Acf::Delegate<void (UnitAction* action)> UnitActionHandler;
 
 class Unit : public Body
 {
@@ -49,7 +49,7 @@ public:
 	PROPERTY_READONLY(float, Width);
 	PROPERTY_READONLY(float, Height);
 	virtual bool init() override;
-	virtual void setGroup(Uint8 group) override;
+	virtual void setGroup(uint8_t group) override;
 	virtual bool update(double deltaTime) override;
 	virtual void onEnter() override;
 	virtual void cleanup() override;

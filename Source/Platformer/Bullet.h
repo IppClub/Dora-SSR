@@ -19,7 +19,7 @@ class Unit;
 class BulletDef;
 class Bullet;
 
-typedef Delegate<bool (Bullet* bullet, Unit* target, Vec2 point)> BulletHandler;
+typedef Acf::Delegate<bool (Bullet* bullet, Unit* target, Vec2 point)> BulletHandler;
 
 class Bullet : public Body
 {

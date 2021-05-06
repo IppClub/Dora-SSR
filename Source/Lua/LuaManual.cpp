@@ -544,6 +544,10 @@ bool Cache::unload(String name)
 				return SharedFontCache.unload();
 			case "Sound"_hash:
 				return SharedSoundCache.unload();
+			case "Atlas"_hash:
+				return SharedAtlasCache.unload();
+			case "Skel"_hash:
+				return SharedSkeletonCache.unload();
 			default:
 			{
 				auto tokens = name.split("::"_slice);
@@ -572,10 +576,14 @@ void Cache::unload()
 	SharedSVGCache.unload();
 	SharedFontCache.unload();
 	SharedSoundCache.unload();
+	SharedSkeletonCache.unload();
+	SharedAtlasCache.unload();
 }
 
 void Cache::removeUnused()
 {
+	SharedSkeletonCache.removeUnused();
+	SharedAtlasCache.removeUnused();
 	SharedShaderCache.removeUnused();
 	SharedModelCache.removeUnused();
 	SharedFrameCache.removeUnused();
@@ -591,10 +599,10 @@ void Cache::removeUnused(String name)
 {
 	switch (Switch::hash(name))
 	{
-		case "atlas"_hash:
+		case "Atlas"_hash:
 			SharedAtlasCache.removeUnused();
 			break;
-		case "skel"_hash:
+		case "Skel"_hash:
 			SharedSkeletonCache.removeUnused();
 			break;
 		case "Texture"_hash:
@@ -809,7 +817,7 @@ Size* Size_create(const Vec2& vec)
 
 /* BlendFunc */
 
-Uint32 getBlendFuncVal(String name)
+uint32_t getBlendFuncVal(String name)
 {
 	switch (Switch::hash(name))
 	{
@@ -837,7 +845,7 @@ BlendFunc* BlendFunc_create(String src, String dst)
 	return Mtolua_new((BlendFunc)({getBlendFuncVal(src), getBlendFuncVal(dst)}));
 }
 
-Uint32 BlendFunc_get(String func)
+uint32_t BlendFunc_get(String func)
 {
 	return getBlendFuncVal(func);
 }
@@ -1236,6 +1244,10 @@ static Own<Value> Dora_getValue(lua_State* L, int loc)
 		{
 			return Value::alloc(tolua_toslice(L, loc, nullptr).toString());
 		}
+		else if (lua_isthread(L, loc))
+		{
+			return Value::alloc(LuaHandler::create(tolua_ref_function(L, loc)));
+		}
 		else if (tolua_isobject(L, loc))
 		{
 			return Value::alloc(r_cast<Object*>(tolua_tousertype(L, loc, 0)));
@@ -1619,13 +1631,13 @@ tolua_lerror:
 
 /* Buffer */
 
-Buffer::Buffer(Uint32 size):
+Buffer::Buffer(uint32_t size):
 _data(size)
 {
 	zeroMemory();
 }
 
-void Buffer::resize(Uint32 size)
+void Buffer::resize(uint32_t size)
 {
 	_data.resize(s_cast<size_t>(size));
 }
@@ -1640,9 +1652,9 @@ char* Buffer::get()
 	return _data.data();
 }
 
-Uint32 Buffer::size() const
+uint32_t Buffer::size() const
 {
-	return s_cast<Uint32>(_data.size());
+	return s_cast<uint32_t>(_data.size());
 }
 
 void Buffer::setString(String str)
@@ -1894,7 +1906,7 @@ tolua_lerror :
 
 EntityObserver* EntityObserver_create(String option, Slice components[], int count)
 {
-	Uint32 optionVal = -1;
+	uint32_t optionVal = -1;
 	switch (Switch::hash(option))
 	{
 		case "Add"_hash: optionVal = Entity::Add; break;
@@ -1936,11 +1948,11 @@ int QLearner_pack(lua_State* L)
 			goto tolua_lerror;
 		}
 #endif
-		std::vector<Uint32> hints;
+		std::vector<uint32_t> hints;
 		hints.resize(hintsCount);
 		for (int i = 0; i < hintsCount; i++)
 		{
-			hints[i] = s_cast<Uint32>(tolua_tofieldinteger(L, 1, i + 1, 0));
+			hints[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 1, i + 1, 0));
 		}
 		
 		int valuesCount = s_cast<int>(lua_rawlen(L, 2));
@@ -1950,11 +1962,11 @@ int QLearner_pack(lua_State* L)
 			goto tolua_lerror;
 		}
 #endif
-		std::vector<Uint32> values;
+		std::vector<uint32_t> values;
 		values.resize(valuesCount);
 		for (int i = 0; i < valuesCount; i++)
 		{
-			values[i] = s_cast<Uint32>(tolua_tofieldinteger(L, 2, i + 1, 0));
+			values[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 2, i + 1, 0));
 		}
 		QLearner::QState state = 0;
 #ifndef TOLUA_RELEASE
@@ -2204,12 +2216,12 @@ Bullet* Bullet_create(BulletDef* def, Unit* unit)
 
 /* Data */
 
-void Data_setRelation(Data* self, Uint8 groupA, Uint8 groupB, String relation)
+void Data_setRelation(Data* self, uint8_t groupA, uint8_t groupB, String relation)
 {
 	self->setRelation(groupA, groupB, toRelation(relation));
 }
 
-Slice Data_getRelation(Data* self, Uint8 groupA, Uint8 groupB)
+Slice Data_getRelation(Data* self, uint8_t groupA, uint8_t groupB)
 {
 	return getRelation(self->getRelation(groupA, groupB));
 }
@@ -3224,10 +3236,10 @@ namespace ImGui { namespace Binding
 		return ImGuiSliderFlags_None;
 	}
 
-	Uint32 getSliderCombinedFlags(String flags)
+	uint32_t getSliderCombinedFlags(String flags)
 	{
 		auto tokens = flags.split("|"_slice);
-		Uint32 result = 0;
+		uint32_t result = 0;
 		for (const auto& token : tokens)
 		{
 			result |= getSliderFlag(token);
@@ -3263,10 +3275,10 @@ namespace ImGui { namespace Binding
 		return ImGuiWindowFlags_(0);
 	}
 
-	Uint32 getWindowCombinedFlags(String flags)
+	uint32_t getWindowCombinedFlags(String flags)
 	{
 		auto tokens = flags.split("|"_slice);
-		Uint32 result = 0;
+		uint32_t result = 0;
 		for (const auto& token : tokens)
 		{
 			result |= getWindowFlags(token);
@@ -3301,10 +3313,10 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	Uint32 getInputTextCombinedFlags(String flags)
+	uint32_t getInputTextCombinedFlags(String flags)
 	{
 		auto tokens = flags.split("|"_slice);
-		Uint32 result = 0;
+		uint32_t result = 0;
 		for (const auto& token : tokens)
 		{
 			result |= getInputTextFlag(token);
@@ -3444,10 +3456,10 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	Uint32 getPopupCombinedFlags(String flags)
+	uint32_t getPopupCombinedFlags(String flags)
 	{
 		auto tokens = flags.split("|"_slice);
-		Uint32 result = 0;
+		uint32_t result = 0;
 		for (const auto& token : tokens)
 		{
 			result |= getPopupFlag(token);
@@ -3500,10 +3512,10 @@ namespace ImGui { namespace Binding
 		return ImGuiTableFlags_None;
 	}
 
-	Uint32 getTableCombinedFlags(String flags)
+	uint32_t getTableCombinedFlags(String flags)
 	{
 		auto tokens = flags.split("|"_slice);
-		Uint32 result = 0;
+		uint32_t result = 0;
 		for (const auto& token : tokens)
 		{
 			result |= getTableFlags(token);
@@ -3524,10 +3536,10 @@ namespace ImGui { namespace Binding
 		return ImGuiTableRowFlags_None;
 	}
 
-	Uint32 getTableRowCombinedFlags(String flags)
+	uint32_t getTableRowCombinedFlags(String flags)
 	{
 		auto tokens = flags.split("|"_slice);
-		Uint32 result = 0;
+		uint32_t result = 0;
 		for (const auto& token : tokens)
 		{
 			result |= getTableRowFlags(token);
@@ -3567,10 +3579,10 @@ namespace ImGui { namespace Binding
 		return ImGuiTableColumnFlags_None;
 	}
 
-	Uint32 getTableColumnCombinedFlags(String flags)
+	uint32_t getTableColumnCombinedFlags(String flags)
 	{
 		auto tokens = flags.split("|"_slice);
-		Uint32 result = 0;
+		uint32_t result = 0;
 		for (const auto& token : tokens)
 		{
 			result |= getTableColumnFlags(token);
