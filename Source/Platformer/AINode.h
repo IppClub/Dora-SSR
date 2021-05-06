@@ -137,11 +137,11 @@ public:
 	PROPERTY(double, DeltaTime);
 	PROPERTY_READONLY(Unit*, Owner);
 	void set(String name, Own<Value>&& value);
-	void set(Uint32 key, Own<Value>&& value);
+	void set(uint32_t key, Own<Value>&& value);
 	Value* get(String name);
-	Value* get(Uint32 key);
+	Value* get(uint32_t key);
 	void remove(String name);
-	void remove(Uint32 key);
+	void remove(uint32_t key);
 	void clear();
 	Own<Blackboard> clone() const;
 	void copy(const Blackboard* blackboard);
@@ -150,7 +150,7 @@ public:
 private:
 	Unit* _owner;
 	double _deltaTime = 0.0;
-	std::unordered_map<Uint32, Own<Value>> _nodeValues;
+	std::unordered_map<uint32_t, Own<Value>> _nodeValues;
 	std::unordered_map<std::string, Own<Value>> _values;
 	DORA_TYPE_BASE(Blackboard);
 };

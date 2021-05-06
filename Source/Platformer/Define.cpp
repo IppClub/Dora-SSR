@@ -29,17 +29,17 @@ void TargetAllow::allow(Relation relation, bool allow)
 {
 	if (allow)
 	{
-		_flag |= s_cast<Uint32>(relation);
+		_flag |= s_cast<uint32_t>(relation);
 	}
 	else
 	{
-		_flag &= ~s_cast<Uint32>(relation);
+		_flag &= ~s_cast<uint32_t>(relation);
 	}
 }
 
 bool TargetAllow::isAllow(Relation relation)
 {
-	return (_flag & s_cast<Uint32>(relation)) != 0;
+	return (_flag & s_cast<uint32_t>(relation)) != 0;
 }
 
 void TargetAllow::setTerrainAllowed(bool var)

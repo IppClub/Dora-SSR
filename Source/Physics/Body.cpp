@@ -218,7 +218,7 @@ float Body::getMass() const
 	return 1.0f / pd::GetInvMass(world, _prBody);
 }
 
-void Body::setGroup(Uint8 group)
+void Body::setGroup(uint8_t group)
 {
 	AssertIf(group >= PhysicsWorld::TotalGroups, "Body group should be less than {}.", PhysicsWorld::TotalGroups);
 	_group = group;
@@ -230,7 +230,7 @@ void Body::setGroup(Uint8 group)
 	}
 }
 
-Uint8 Body::getGroup() const
+uint8_t Body::getGroup() const
 {
 	return _group;
 }

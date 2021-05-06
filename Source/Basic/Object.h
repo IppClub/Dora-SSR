@@ -25,18 +25,18 @@ private:
 class Object
 {
 public:
-	PROPERTY_READONLY(Uint32, Id);
-	PROPERTY_READONLY_CALL(Uint32, LuaRef);
+	PROPERTY_READONLY(uint32_t, Id);
+	PROPERTY_READONLY_CALL(uint32_t, LuaRef);
 	PROPERTY_READONLY_BOOL(LuaReferenced);
 	PROPERTY_READONLY_BOOL(SingleReferenced);
-	PROPERTY_READONLY(Uint32, RefCount);
+	PROPERTY_READONLY(uint32_t, RefCount);
 	PROPERTY_READONLY_CALL(Weak*, WeakRef);
-	PROPERTY_READONLY_CLASS(Uint32, Count);
-	PROPERTY_READONLY_CLASS(Uint32, MaxCount);
-	PROPERTY_READONLY_CLASS(Uint32, LuaRefCount);
-	PROPERTY_READONLY_CLASS(Uint32, MaxLuaRefCount);
-	PROPERTY_READONLY_CLASS(Uint32, LuaCallbackCount);
-	PROPERTY_READONLY_CLASS(Uint32, MaxLuaCallbackCount);
+	PROPERTY_READONLY_CLASS(uint32_t, Count);
+	PROPERTY_READONLY_CLASS(uint32_t, MaxCount);
+	PROPERTY_READONLY_CLASS(uint32_t, LuaRefCount);
+	PROPERTY_READONLY_CLASS(uint32_t, MaxLuaRefCount);
+	PROPERTY_READONLY_CLASS(uint32_t, LuaCallbackCount);
+	PROPERTY_READONLY_CLASS(uint32_t, MaxLuaCallbackCount);
 	virtual ~Object();
 	virtual bool init();
 	/** @brief return true to stop updating, false to continue. */
@@ -54,9 +54,9 @@ protected:
 	Object();
 private:
 	bool _managed;
-	Uint32 _id; // object id, each object has unique one
-	Uint32 _refCount; // count of C++ references
-	Uint32 _luaRef; // lua reference id
+	uint32_t _id; // object id, each object has unique one
+	uint32_t _refCount; // count of C++ references
+	uint32_t _luaRef; // lua reference id
 	Weak* _weak; // weak ref object
 	friend class PoolManager;
 	DORA_TYPE_BASE(Object);

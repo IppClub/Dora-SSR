@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 #include "Support/Value.h"
+#include "bgfx/bgfx.h"
 
 NS_DOROTHY_BEGIN
 

@@ -87,7 +87,7 @@ Size* Size_create(const Vec2& vec);
 
 /* BlendFunc */
 BlendFunc* BlendFunc_create(String src, String dst);
-Uint32 BlendFunc_get(String func);
+uint32_t BlendFunc_get(String func);
 
 /* Action */
 int Action_create(lua_State* L);
@@ -142,15 +142,15 @@ bool Array_each(Array* self, const LuaFunction<bool>& handler);
 class Buffer : public Object
 {
 public:
-	void resize(Uint32 size);
+	void resize(uint32_t size);
 	void zeroMemory();
 	char* get();
-	Uint32 size() const;
+	uint32_t size() const;
 	void setString(String str);
 	Slice toString();
 	CREATE_FUNC(Buffer);
 protected:
-	Buffer(Uint32 size = 0);
+	Buffer(uint32_t size = 0);
 private:
 	std::vector<char> _data;
 	DORA_TYPE_OVERRIDE(Buffer);
@@ -202,8 +202,8 @@ Bullet* Bullet_create(BulletDef* def, Unit* unit);
 
 /* Data */
 inline Data* Data_shared() { return &SharedData; }
-void Data_setRelation(Data* self, Uint8 groupA, Uint8 groupB, String relation);
-Slice Data_getRelation(Data* self, Uint8 groupA, Uint8 groupB);
+void Data_setRelation(Data* self, uint8_t groupA, uint8_t groupB, String relation);
+Slice Data_getRelation(Data* self, uint8_t groupA, uint8_t groupB);
 Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB);
 
 /* DB */
@@ -308,22 +308,22 @@ namespace ImGui { namespace Binding
 	void SetStyleColor(String name, Color color);
 
 	ImGuiWindowFlags_ getWindowFlags(String flag);
-	Uint32 getWindowCombinedFlags(String flags);
+	uint32_t getWindowCombinedFlags(String flags);
 	ImGuiSliderFlags_ getSliderFlag(String flag);
-	Uint32 getSliderCombinedFlags(String flags);
+	uint32_t getSliderCombinedFlags(String flags);
 	ImGuiInputTextFlags_ getInputTextFlag(String flag);
-	Uint32 getInputTextCombinedFlags(String flags);
+	uint32_t getInputTextCombinedFlags(String flags);
 	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag);
 	ImGuiSelectableFlags_ getSelectableFlags(String flag);
 	ImGuiCol_ getColorIndex(String col);
 	ImGuiColorEditFlags_ getColorEditFlags(String mode);
 	ImGuiCond_ getSetCond(String cond);
 	ImGuiPopupFlags getPopupFlag(String flag);
-	Uint32 getPopupCombinedFlags(String flags);
+	uint32_t getPopupCombinedFlags(String flags);
 	ImGuiTableFlags_ getTableFlags(String flag);
-	Uint32 getTableCombinedFlags(String flags);
+	uint32_t getTableCombinedFlags(String flags);
 	ImGuiTableRowFlags_ getTableRowFlags(String flag);
-	Uint32 getTableRowCombinedFlags(String flags);
+	uint32_t getTableRowCombinedFlags(String flags);
 	ImGuiTableColumnFlags_ getTableColumnFlags(String flag);
-	Uint32 getTableColumnCombinedFlags(String flags);
+	uint32_t getTableColumnCombinedFlags(String flags);
 } }

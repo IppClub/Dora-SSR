@@ -24,8 +24,8 @@ class ParticleDef : public Object
 public:
 	float angle;
 	float angleVariance;
-	Uint32 blendFuncDestination;
-	Uint32 blendFuncSource;
+	uint32_t blendFuncDestination;
+	uint32_t blendFuncSource;
 	float duration;
 	float emissionRate;
 	Vec4 finishColor;
@@ -36,7 +36,7 @@ public:
 	float rotationEndVariance;
 	float finishParticleSize;
 	float finishParticleSizeVariance;
-	Uint32 maxParticles;
+	uint32_t maxParticles;
 	float particleLifespan;
 	float particleLifespanVariance;
 	Vec2 startPosition;
@@ -134,7 +134,7 @@ private:
 	float _texBottom;
 	Ref<Texture2D> _texture;
 	Ref<SpriteEffect> _effect;
-	Uint64 _renderState;
+	uint64_t _renderState;
 	Ref<ParticleDef> _particleDef;
 	std::vector<SpriteQuad> _quads;
 	std::vector<Particle> _particles;

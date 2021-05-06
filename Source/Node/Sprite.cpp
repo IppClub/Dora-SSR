@@ -103,7 +103,7 @@ Texture2D* Sprite::getTexture() const
 
 void Sprite::setAlphaRef(float var)
 {
-	_alphaRef = s_cast<Uint8>(255.0f * Math::clamp(var, 0.0f, 1.0f));
+	_alphaRef = s_cast<uint8_t>(255.0f * Math::clamp(var, 0.0f, 1.0f));
 }
 
 float Sprite::getAlphaRef() const
@@ -131,7 +131,7 @@ bool Sprite::isDepthWrite() const
 	return _flags.isOn(Sprite::DepthWrite);
 }
 
-Uint64 Sprite::getRenderState() const
+uint64_t Sprite::getRenderState() const
 {
 	return _renderState;
 }
@@ -141,22 +141,22 @@ const SpriteQuad& Sprite::getQuad() const
 	return _quad;
 }
 
-Uint32 Sprite::getSamplerFlags() const
+uint32_t Sprite::getSamplerFlags() const
 {
 	return getTextureFlags() & UINT32_MAX;
 }
 
-Uint64 Sprite::getTextureFlags() const
+uint64_t Sprite::getTextureFlags() const
 {
-	Uint64 textureFlags = _texture->getFlags();
+	uint64_t textureFlags = _texture->getFlags();
 	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None)
 	{
 		return UINT32_MAX;
 	}
-	const Uint64 mask = (
+	const uint64_t mask = (
 		BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK |
 		BGFX_SAMPLER_U_MASK | BGFX_SAMPLER_V_MASK);
-	Uint64 flags = 0;
+	uint64_t flags = 0;
 	switch (_filter)
 	{
 		case TextureFilter::Point:
@@ -279,7 +279,7 @@ void Sprite::updateVertColor()
 {
 	if (_texture)
 	{
-		Uint32 abgr = _realColor.toABGR();
+		uint32_t abgr = _realColor.toABGR();
 		_quad.rb.abgr = abgr;
 		_quad.lb.abgr = abgr;
 		_quad.lt.abgr = abgr;
@@ -376,8 +376,8 @@ void SpriteRenderer::render()
 	{
 		bgfx::TransientVertexBuffer vertexBuffer;
 		bgfx::TransientIndexBuffer indexBuffer;
-		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
-		Uint32 indexCount = s_cast<Uint32>(_indices.size());
+		uint32_t vertexCount = s_cast<uint32_t>(_vertices.size());
+		uint32_t indexCount = s_cast<uint32_t>(_indices.size());
 		if (bgfx::allocTransientBuffers(
 			&vertexBuffer, SpriteVertex::ms_layout, vertexCount,
 			&indexBuffer, indexCount))
@@ -409,8 +409,8 @@ void SpriteRenderer::push(Sprite* sprite)
 {
 	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
-	Uint64 state = sprite->getRenderState();
-	Uint32 flags = sprite->getSamplerFlags();
+	uint64_t state = sprite->getRenderState();
+	uint32_t flags = sprite->getSamplerFlags();
 	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();
@@ -430,12 +430,12 @@ void SpriteRenderer::push(Sprite* sprite)
 	auto indPtr = _indices.data() + indSize;
 	for (size_t i = 0; i < 6; ++i)
 	{
-		indPtr[i] = _spriteIndices[i] + s_cast<uint16_t>(vertSize);
+		indPtr[i] = _spriteIndices[i] + s_cast<IndexType>(vertSize);
 	}
 }
 
 void SpriteRenderer::push(SpriteVertex* verts, size_t size,
-	SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags, const Matrix* localWorld)
+	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags, const Matrix* localWorld)
 {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
 	if (localWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
@@ -460,7 +460,7 @@ void SpriteRenderer::push(SpriteVertex* verts, size_t size,
 	{
 		for (size_t j = 0; j < 6; j++)
 		{
-			indices[i * 6 + j] = s_cast<uint16_t>(_spriteIndices[j] + i * 4 + vertSize);
+			indices[i * 6 + j] = s_cast<IndexType>(_spriteIndices[j] + i * 4 + vertSize);
 		}
 	}
 
@@ -473,9 +473,9 @@ void SpriteRenderer::push(SpriteVertex* verts, size_t size,
 
 void SpriteRenderer::push(
 	SpriteVertex* verts, size_t vsize,
-	uint16_t* inds, size_t isize,
+	IndexType* inds, size_t isize,
 	SpriteEffect* effect, Texture2D* texture,
-	Uint64 state, Uint32 flags,
+	uint64_t state, uint32_t flags,
 	const Matrix* localWorld)
 {
 	if (localWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
@@ -496,7 +496,7 @@ void SpriteRenderer::push(
 	auto indices = _indices.data() + indSize;
 	for (size_t i = 0; i < isize; ++i)
 	{
-		indices[i] = inds[i] + s_cast<uint16_t>(vertSize);
+		indices[i] = inds[i] + s_cast<IndexType>(vertSize);
 	}
 
 	if (localWorld)

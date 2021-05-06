@@ -16,7 +16,7 @@ NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-typedef Delegate<void (float deltaX, float deltaY)> CameraHandler;
+typedef Acf::Delegate<void (float deltaX, float deltaY)> CameraHandler;
 
 class PlatformCamera : public Camera
 {

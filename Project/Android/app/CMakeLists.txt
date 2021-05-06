@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.4.1)
+project(Dorothy-SSR)
 
 file(GLOB_RECURSE src-files FOLLOW_SYMLINKS *.cpp)
 
@@ -12,6 +13,7 @@ include_directories(
 	src/main/cpp/3rdParty/soloud/Header
 	src/main/cpp/3rdParty/lodepng
 	src/main/cpp/3rdParty/imgui
+	src/main/cpp/3rdParty/implot
 	src/main/cpp/3rdParty/font
 	src/main/cpp/3rdParty/sqlite
 	src/main/cpp/3rdParty/sqlite/Header

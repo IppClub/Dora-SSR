@@ -551,6 +551,12 @@
 		3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2226087FC8003F4F45 /* libSDL2.a */; };
 		3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
 		3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
+		3CBFB70A264376D4006348C8 /* implot_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB704264376D4006348C8 /* implot_demo.cpp */; };
+		3CBFB70B264376D4006348C8 /* implot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB706264376D4006348C8 /* implot.cpp */; };
+		3CBFB70C264376D4006348C8 /* implot_items.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB707264376D4006348C8 /* implot_items.cpp */; };
+		3CBFB70E2643782A006348C8 /* implot_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB704264376D4006348C8 /* implot_demo.cpp */; };
+		3CBFB70F2643782A006348C8 /* implot_items.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB707264376D4006348C8 /* implot_items.cpp */; };
+		3CBFB7102643782A006348C8 /* implot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB706264376D4006348C8 /* implot.cpp */; };
 		3CC7A1441E8D657C003188D6 /* libsoloud.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC7A1431E8D657C003188D6 /* libsoloud.a */; };
 		3CC8201C1D96680C008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC8201B1D96680C008C8B77 /* Assets.xcassets */; };
 		3CCEDD491E1D589500F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD481E1D589500F32295 /* Utils.cpp */; };
@@ -1191,6 +1197,11 @@
 		3CBE0F2426087FDA003F4F45 /* libsoloud.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsoloud.a; path = "../../Source/3rdParty/soloud/Lib/iOS-Simulator/libsoloud.a"; sourceTree = "<group>"; };
 		3CBE0F2626087FE8003F4F45 /* liblua.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblua.a; path = "../../Source/3rdParty/Lua/Lib/iOS-Simulator/liblua.a"; sourceTree = "<group>"; };
 		3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
+		3CBFB704264376D4006348C8 /* implot_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot_demo.cpp; path = ../../../Source/3rdParty/implot/implot_demo.cpp; sourceTree = "<group>"; };
+		3CBFB705264376D4006348C8 /* implot_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = implot_internal.h; path = ../../../Source/3rdParty/implot/implot_internal.h; sourceTree = "<group>"; };
+		3CBFB706264376D4006348C8 /* implot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot.cpp; path = ../../../Source/3rdParty/implot/implot.cpp; sourceTree = "<group>"; };
+		3CBFB707264376D4006348C8 /* implot_items.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot_items.cpp; path = ../../../Source/3rdParty/implot/implot_items.cpp; sourceTree = "<group>"; };
+		3CBFB708264376D4006348C8 /* implot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = implot.h; path = ../../../Source/3rdParty/implot/implot.h; sourceTree = "<group>"; };
 		3CC05B6C1E7171D600F2BA1B /* Value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Value.h; path = ../../../Source/Support/Value.h; sourceTree = "<group>"; };
 		3CC7A1431E8D657C003188D6 /* libsoloud.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsoloud.a; path = ../../Source/3rdParty/soloud/Lib/iOS/libsoloud.a; sourceTree = "<group>"; };
 		3CC820091D96680C008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2083,6 +2094,7 @@
 				3CDED0311E52A2D300B5E578 /* Other */,
 				3C1676B42212C0FD00892CD4 /* PlayRho */,
 				3CD328341E4C428E0036906C /* imgui */,
+				3CBFB703264376AE006348C8 /* implot */,
 				3C6D37261E27D9F6008C92E8 /* lodepng */,
 				3C41D60721490CCD003FDDFE /* nanovg */,
 				3C25B863257A7F71002DD8E1 /* yuescript */,
@@ -2164,6 +2176,18 @@
 				3CABB25921199C0000737278 /* PhysicsWorld.h */,
 			);
 			name = Physics;
+			sourceTree = "<group>";
+		};
+		3CBFB703264376AE006348C8 /* implot */ = {
+			isa = PBXGroup;
+			children = (
+				3CBFB704264376D4006348C8 /* implot_demo.cpp */,
+				3CBFB705264376D4006348C8 /* implot_internal.h */,
+				3CBFB707264376D4006348C8 /* implot_items.cpp */,
+				3CBFB706264376D4006348C8 /* implot.cpp */,
+				3CBFB708264376D4006348C8 /* implot.h */,
+			);
+			name = implot;
 			sourceTree = "<group>";
 		};
 		3CC820001D96680C008C8B77 = {
@@ -2518,6 +2542,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CBFB70E2643782A006348C8 /* implot_demo.cpp in Sources */,
+				3CBFB70F2643782A006348C8 /* implot_items.cpp in Sources */,
+				3CBFB7102643782A006348C8 /* implot.cpp in Sources */,
 				3CAA2D3C26156099004443A6 /* Database.cpp in Sources */,
 				3CAA2D342615605A004443A6 /* Backup.cpp in Sources */,
 				3CAA2D352615605A004443A6 /* Column.cpp in Sources */,
@@ -2795,6 +2822,7 @@
 				3C20F37E248F772900BBA830 /* Event.cpp in Sources */,
 				3C13200121011BB60087154A /* Face.cpp in Sources */,
 				3C030CAC24CAC2160074786E /* ML.cpp in Sources */,
+				3CBFB70B264376D4006348C8 /* implot.cpp in Sources */,
 				3C20F3A2248F772900BBA830 /* AtlasAttachmentLoader.cpp in Sources */,
 				3C13200421011BB60087154A /* Data.cpp in Sources */,
 				3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */,
@@ -2851,6 +2879,7 @@
 				3CF00E39258B475A00898F4B /* SVGCache.cpp in Sources */,
 				3C131FFB21011BB60087154A /* Bullet.cpp in Sources */,
 				3C9278F92578999B00B8C43F /* ContactImpulsesList.cpp in Sources */,
+				3CBFB70C264376D4006348C8 /* implot_items.cpp in Sources */,
 				3C9278932578997C00B8C43F /* ContactKey.cpp in Sources */,
 				3C41D60621490BE6003FDDFE /* imgui_demo.cpp in Sources */,
 				3C20F3AE248F772900BBA830 /* VertexAttachment.cpp in Sources */,
@@ -3001,6 +3030,7 @@
 				3C9279062578999B00B8C43F /* WorldImplContact.cpp in Sources */,
 				3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */,
 				3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */,
+				3CBFB70A264376D4006348C8 /* implot_demo.cpp in Sources */,
 				3C927965257899D900B8C43F /* Shape.cpp in Sources */,
 				3C20F384248F772900BBA830 /* PathConstraint.cpp in Sources */,
 				3C20F398248F772900BBA830 /* SpineObject.cpp in Sources */,
@@ -3069,7 +3099,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -3104,7 +3134,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
@@ -3163,6 +3193,7 @@
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -3214,6 +3245,7 @@
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
 				VALIDATE_PRODUCT = YES;
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -3249,7 +3281,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -3284,7 +3316,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua/Header ../../Source/3rdParty/soloud/Header ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/sqlite/Header ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;

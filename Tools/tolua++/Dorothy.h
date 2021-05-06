@@ -2,29 +2,29 @@ typedef Slice String;
 
 struct Color3
 {
-	Uint8 r;
-	Uint8 g;
-	Uint8 b;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
 	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
+	Color3(uint32_t rgb);
+	Color3(uint8_t r, uint8_t g, uint8_t b);
 	~Color3();
 };
 
 struct Color
 {
-	Uint8 r;
-	Uint8 g;
-	Uint8 b;
-	Uint8 a;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
 	tolua_property__common float opacity;
 	Color();
-	Color(Color3 color, Uint8 a = 0);
-	Color(Uint32 argb);
+	Color(Color3 color, uint8_t a = 0);
+	Color(uint32_t argb);
 	~Color();
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 	Color3 toColor3();
-	Uint32 toARGB();
+	uint32_t toARGB();
 };
 
 struct Vec2
@@ -97,7 +97,7 @@ struct Rect
 
 class Application
 {
-	tolua_readonly tolua_property__common Uint32 frame;
+	tolua_readonly tolua_property__common uint32_t frame;
 	tolua_readonly tolua_property__common Size bufferSize;
 	tolua_readonly tolua_property__common Size visualSize;
 	tolua_readonly tolua_property__common float deviceRatio;
@@ -106,7 +106,7 @@ class Application
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_readonly tolua_property__common double totalTime;
 	tolua_readonly tolua_property__common double runningTime;
-	tolua_readonly tolua_property__common Uint32 rand;
+	tolua_readonly tolua_property__common uint32_t rand;
 	tolua_readonly tolua_property__bool bool debugging;
 	tolua_property__common unsigned int seed;
 	void shutdown();
@@ -115,14 +115,14 @@ class Application
 
 class Object
 {
-	tolua_readonly tolua_property__common Uint32 id;
-	tolua_readonly tolua_property__common Uint32 luaRef @ ref;
-	static tolua_readonly tolua_property__common Uint32 count;
-	static tolua_readonly tolua_property__common Uint32 maxCount;
-	static tolua_readonly tolua_property__common Uint32 luaRefCount;
-	static tolua_readonly tolua_property__common Uint32 maxLuaRefCount;
-	static tolua_readonly tolua_property__common Uint32 luaCallbackCount @ callRefCount;
-	static tolua_readonly tolua_property__common Uint32 maxLuaCallbackCount @ maxCallRefCount;
+	tolua_readonly tolua_property__common uint32_t id;
+	tolua_readonly tolua_property__common uint32_t luaRef @ ref;
+	static tolua_readonly tolua_property__common uint32_t count;
+	static tolua_readonly tolua_property__common uint32_t maxCount;
+	static tolua_readonly tolua_property__common uint32_t luaRefCount;
+	static tolua_readonly tolua_property__common uint32_t maxLuaRefCount;
+	static tolua_readonly tolua_property__common uint32_t luaCallbackCount @ callRefCount;
+	static tolua_readonly tolua_property__common uint32_t maxLuaCallbackCount @ maxCallRefCount;
 };
 
 class Array : public Object
@@ -153,7 +153,7 @@ class Dictionary : public Object
 
 class Entity
 {
-	static tolua_readonly tolua_property__common Uint32 count;
+	static tolua_readonly tolua_property__common uint32_t count;
 	tolua_readonly tolua_property__common int index;
 	static void clear();
 	void destroy();
@@ -324,7 +324,6 @@ class Node : public Object
 	tolua_property__bool bool passColor3;
 	tolua_property__common Node* transformTarget;
 	tolua_property__common Scheduler* scheduler;
-	tolua_property__common Object* userData;
 	tolua_readonly tolua_property__qt bool hasChildren;
 	tolua_readonly tolua_property__common Array* children;
 	tolua_readonly tolua_property__common Node* parent;
@@ -333,6 +332,7 @@ class Node : public Object
 	tolua_readonly tolua_property__bool bool updating;
 	tolua_readonly tolua_property__bool bool scheduled;
 	tolua_readonly tolua_property__common int actionCount;
+	tolua_readonly tolua_property__common Dictionary* userData;
 	tolua_property__bool bool touchEnabled;
 	tolua_property__bool bool swallowTouches;
 	tolua_property__bool bool swallowMouseWheel;
@@ -397,7 +397,7 @@ struct BlendFunc
 	BlendFunc(BlendFunc other);
 	~BlendFunc();
 	static tolua_outside BlendFunc* BlendFunc_create @ create(String src, String dst);
-	static tolua_outside Uint32 BlendFunc_get @ get(String func);
+	static tolua_outside uint32_t BlendFunc_get @ get(String func);
 	static const BlendFunc Default;
 };
 
@@ -500,7 +500,7 @@ class Label : public Node
 	tolua_readonly tolua_property__common int characterCount;
 	tolua_outside Sprite* Label_getCharacter @ getCharacter(int index);
 	static const float AutomaticWidth;
-	static Label* create(String fontName, Uint32 fontSize);
+	static Label* create(String fontName, uint32_t fontSize);
 };
 
 class RenderTarget : public Node
@@ -508,10 +508,10 @@ class RenderTarget : public Node
 	tolua_property__common Camera* camera;
 	tolua_readonly tolua_property__common Sprite* surface;
 	void render(Node* target);
-	void renderWithClear(Color color, float depth = 1.0f, Uint8 stencil = 0);
-	void renderWithClear(Node* target, Color color, float depth = 1.0f, Uint8 stencil = 0);
+	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
+	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void saveAsync(String filename, tolua_function_void handler);
-	static RenderTarget* create(Uint16 width, Uint16 height);
+	static RenderTarget* create(uint16_t width, uint16_t height);
 };
 
 class ClipNode : public Node
@@ -608,8 +608,8 @@ class PhysicsWorld : public Node
 	bool query(Rect rect, tolua_function_bool handler);
 	bool raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);
 	void setIterations(int velocityIter, int positionIter);
-	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
-	bool getShouldContact(Uint8 groupA, Uint8 groupB);
+	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
+	bool getShouldContact(uint8_t groupA, uint8_t groupB);
 	static float b2Factor;
 	static PhysicsWorld* create();
 };
@@ -748,7 +748,7 @@ class Body : public Node
 	tolua_property__common float velocityY;
 	tolua_property__common Vec2 velocity;
 	tolua_property__common float angularRate;
-	tolua_property__common Uint8 group;
+	tolua_property__common uint8_t group;
 	tolua_property__common float linearDamping;
 	tolua_property__common float angularDamping;
 	tolua_property__common Object* owner;
@@ -973,8 +973,8 @@ struct Cache
 
 class Audio
 {
-	Uint32 play(String filename, bool loop = false);
-	void stop(Uint32 handle);
+	uint32_t play(String filename, bool loop = false);
+	void stop(uint32_t handle);
 	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
 	void stopStream(float fadeTime = 0.0f);
 	static tolua_outside Audio* Audio_shared @ create();
@@ -1017,8 +1017,8 @@ class DB
 
 class QLearner : public Object
 {
-	void update(Uint64 state, Uint32 action, double reward);
-	Uint32 getBestAction(Uint64 state);
+	void update(uint64_t state, uint32_t action, double reward);
+	uint32_t getBestAction(uint64_t state);
 	static QLearner* create(double gamma = 0.5, double alpha = 0.5, double maxQ = 100.0);
 };
 
@@ -1217,24 +1217,24 @@ class PlatformWorld : public PhysicsWorld
 
 class Data
 {
-	tolua_readonly tolua_property__common Uint8 groupHide;
-	tolua_readonly tolua_property__common Uint8 groupDetectPlayer;
-	tolua_readonly tolua_property__common Uint8 groupTerrain;
-	tolua_readonly tolua_property__common Uint8 groupDetection;
+	tolua_readonly tolua_property__common uint8_t groupHide;
+	tolua_readonly tolua_property__common uint8_t groupDetectPlayer;
+	tolua_readonly tolua_property__common uint8_t groupTerrain;
+	tolua_readonly tolua_property__common uint8_t groupDetection;
 	tolua_readonly tolua_property__common Dictionary* store;
-	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
-	bool getShouldContact(Uint8 groupA, Uint8 groupB);
-	tolua_outside void Data_setRelation @ setRelation(Uint8 groupA, Uint8 groupB, String relation);
-	tolua_outside Slice Data_getRelation @ getRelation(Uint8 groupA, Uint8 groupB);
+	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
+	bool getShouldContact(uint8_t groupA, uint8_t groupB);
+	tolua_outside void Data_setRelation @ setRelation(uint8_t groupA, uint8_t groupB, String relation);
+	tolua_outside Slice Data_getRelation @ getRelation(uint8_t groupA, uint8_t groupB);
 	tolua_outside Slice Data_getRelation @ getRelation(Body* bodyA, Body* bodyB);
-	bool isEnemy(Uint8 groupA, Uint8 groupB);
+	bool isEnemy(uint8_t groupA, uint8_t groupB);
 	bool isEnemy(Body* bodyA, Body* bodyB);
-	bool isFriend(Uint8 groupA, Uint8 groupB);
+	bool isFriend(uint8_t groupA, uint8_t groupB);
 	bool isFriend(Body* bodyA, Body* bodyB);
-	bool isNeutral(Uint8 groupA, Uint8 groupB);
+	bool isNeutral(uint8_t groupA, uint8_t groupB);
 	bool isNeutral(Body* bodyA, Body* bodyB);
-	void setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus);
-	float getDamageFactor(Uint16 damageType, Uint16 defenceType);
+	void setDamageFactor(uint16_t damageType, uint16_t defenceType, float bounus);
+	float getDamageFactor(uint16_t damageType, uint16_t defenceType);
 	bool isPlayer(Body* body);
 	bool isTerrain(Body* body);
 	void clear();

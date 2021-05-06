@@ -57,7 +57,7 @@ static void get(String value, Color& color)
 	if (str.front() == '#')
 	{
 		str.skip(1);
-		Uint32 rgb = 0;
+		uint32_t rgb = 0;
 		try
 		{
 			if (str.size() == 3)

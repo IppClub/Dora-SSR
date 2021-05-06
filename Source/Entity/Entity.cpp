@@ -19,7 +19,7 @@ class EntityPool
 public:
 	EntityPool()
 	{
-		SharedDirector.getPostSystemScheduler()->schedule([this](double deltaTime)
+		SharedDirector.getPostScheduler()->schedule([this](double deltaTime)
 		{
 			DORA_UNUSED_PARAM(deltaTime);
 			for (auto& nextValue : nextValues)
@@ -83,7 +83,7 @@ public:
 	};
 	std::stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
-	std::vector<Delegate<void()>> triggers;
+	std::vector<Acf::Delegate<void()>> triggers;
 	std::unordered_set<int> usedIndices;
 	std::unordered_map<std::string, int> comIndices;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
@@ -239,9 +239,9 @@ void Entity::clear()
 	SharedEntityPool.clear();
 }
 
-Uint32 Entity::getCount()
+uint32_t Entity::getCount()
 {
-	return s_cast<Uint32>(SharedEntityPool.usedIndices.size());
+	return s_cast<uint32_t>(SharedEntityPool.usedIndices.size());
 }
 
 void Entity::set(int index, Own<Value>&& value)

@@ -41,9 +41,9 @@ public:
 
 	void push(bool value);
 	void push(int value);
-	void push(Uint16 value);
-	void push(Uint32 value);
-	void push(Uint64 value);
+	void push(uint16_t value);
+	void push(uint32_t value);
+	void push(uint64_t value);
 	void push(lua_Integer value);
 	void push(float value);
 	void push(lua_Number value);
@@ -65,9 +65,9 @@ public:
 
 	static void push(lua_State* L, bool value);
 	static void push(lua_State* L, int value);
-	static void push(lua_State* L, Uint16 value);
-	static void push(lua_State* L, Uint32 value);
-	static void push(lua_State* L, Uint64 value);
+	static void push(lua_State* L, uint16_t value);
+	static void push(lua_State* L, uint32_t value);
+	static void push(lua_State* L, uint64_t value);
 	static void push(lua_State* L, lua_Integer value);
 	static void push(lua_State* L, float value);
 	static void push(lua_State* L, lua_Number value);
@@ -89,10 +89,10 @@ public:
 
 	bool to(bool& value, int index);
 	bool to(int& value, int index);
-	bool to(Uint16& value, int index);
-	bool to(Uint32& value, int index);
-	bool to(Uint64& value, int index);
-	bool to(Sint64& value, int index);
+	bool to(uint16_t& value, int index);
+	bool to(uint32_t& value, int index);
+	bool to(uint64_t& value, int index);
+	bool to(int64_t& value, int index);
 	bool to(float& value, int index);
 	bool to(double& value, int index);
 	bool to(Object*& value, int index);

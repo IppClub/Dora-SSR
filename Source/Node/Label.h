@@ -58,11 +58,11 @@ public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(bgfx::FontManager*, Manager);
 	virtual ~FontCache();
-	void loadAync(String fontName, Uint32 fontSize,
+	void loadAync(String fontName, uint32_t fontSize,
 		const std::function<void(Font* font)>& callback);
-	Font* load(String fontName, Uint32 fontSize);
+	Font* load(String fontName, uint32_t fontSize);
 	bool unload();
-	bool unload(String fontName, Uint32 fontSize);
+	bool unload(String fontName, uint32_t fontSize);
 	void removeUnused();
 	Sprite* createCharacter(Font* font, bgfx::CodePoint character);
 	std::tuple<Texture2D*, Rect> getCharacterInfo(Font* font, bgfx::CodePoint character);
@@ -109,14 +109,14 @@ public:
 	static const float AutomaticWidth;
 	CREATE_FUNC(Label);
 protected:
-	Label(String fontName, Uint32 fontSize);
-	void updateCharacters(const std::vector<Uint32>& chars);
+	Label(String fontName, uint32_t fontSize);
+	void updateCharacters(const std::vector<uint32_t>& chars);
 	void updateLabel();
 	struct CharItem
 	{
 		CharItem():
 		code(0),texture(nullptr),rect{},pos{},sprite(nullptr) { }
-		Uint32 code;
+		uint32_t code;
 		Texture2D* texture;
 		Rect rect;
 		Vec2 pos;
@@ -130,7 +130,7 @@ protected:
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
 private:
-	Uint8 _alphaRef;
+	uint8_t _alphaRef;
 	float _textWidth;
 	float _lineGap;
 	Ref<Font> _font;
@@ -138,7 +138,7 @@ private:
 	BlendFunc _blendFunc;
 	TextAlign _alignment;
 	std::string _textUTF8;
-	std::vector<Uint32> _text;
+	std::vector<uint32_t> _text;
 	OwnVector<CharItem> _characters;
 	std::vector<SpriteQuad::Position> _quadPos;
 	std::vector<SpriteQuad> _quads;

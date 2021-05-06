@@ -27,7 +27,6 @@ public:
 	virtual ~PhysicsWorld();
 	PROPERTY_READONLY_REF(pd::World, PrWorld);
 	PROPERTY_BOOL(ShowDebug);
-	PROPERTY_BOOL(UpdateFixed);
 	/**
 	 Iterations affect PlayRho`s CPU cost greatly.
 	 Lower these values to get better performance, higher values to get better simulation.
@@ -55,9 +54,9 @@ public:
 	 */
 	bool query(const Rect& rect, const std::function<bool(Body*)>& callback);
 	bool raycast(const Vec2& start, const Vec2& end, bool closest, const std::function<bool(Body*, const Vec2&, const Vec2&)>& callback);
-	void setShouldContact(Uint8 groupA, Uint8 groupB, bool contact);
-	bool getShouldContact(Uint8 groupA, Uint8 groupB) const;
-	const pr::Filter& getFilter(Uint8 group) const;
+	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
+	bool getShouldContact(uint8_t groupA, uint8_t groupB) const;
+	const pr::Filter& getFilter(uint8_t group) const;
 	static inline float oVal(pr::Real value) { return float(value) * b2Factor; }
 	static inline Vec2 oVal(const pr::Vec2& value) { return Vec2{value[0] * b2Factor, value[1] * b2Factor}; }
 	static inline Vec2 oVal(const Vec2& value) { return value * b2Factor; }
@@ -122,10 +121,6 @@ private:
 	std::vector<Body*> _bodyData;
 	std::vector<Sensor*> _fixtureData;
 	std::vector<Joint*> _jointData;
-	enum
-	{
-		UseFixedUpdate = Node::UserFlag,
-	};
 	DORA_TYPE_OVERRIDE(PhysicsWorld);
 };
 

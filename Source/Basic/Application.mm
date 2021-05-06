@@ -2,6 +2,10 @@
 #include "Basic/Application.h"
 
 #if BX_PLATFORM_IOS
+
+#include "SDL_syswm.h"
+#include "SDL.h"
+
 #import <QuartzCore/CAMetalLayer.h>
 
 NS_DOROTHY_BEGIN
@@ -14,9 +18,9 @@ void Application::updateWindowSize()
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
 	SDL_GetWindowDisplayMode(_sdlWindow, &displayMode);
-	if (!_fpsLimited && displayMode.refresh_rate > 0)
+	if (displayMode.refresh_rate > 0)
 	{
-		_targetFPS = displayMode.refresh_rate;
+		_maxFPS = displayMode.refresh_rate;
 	}
 	_visualWidth = _winWidth;
 	_visualHeight = _winHeight;
@@ -48,4 +52,5 @@ void Application::setupSdlWindow()
 	updateWindowSize();
 }
 NS_DOROTHY_END
+
 #endif // BX_PLATFORM_IOS

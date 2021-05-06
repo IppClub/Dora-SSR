@@ -46,7 +46,7 @@ bool DrawNode::isDepthWrite() const
 	return _flags.isOn(DrawNode::DepthWrite);
 }
 
-Uint64 DrawNode::getRenderState() const
+uint64_t DrawNode::getRenderState() const
 {
 	return _renderState;
 }
@@ -56,7 +56,7 @@ const std::vector<DrawVertex>& DrawNode::getVertices() const
 	return _vertices;
 }
 
-const std::vector<Uint16>& DrawNode::getIndices() const
+const std::vector<uint16_t>& DrawNode::getIndices() const
 {
 	return _indices;
 }
@@ -141,14 +141,14 @@ void DrawNode::drawDot(const Vec2& pos, float radius, Color color)
 	_indices.reserve(_indices.size() + indexCount);
 
 	Vec4 color4 = color.toVec4();
-	Uint16 start = s_cast<Uint16>(_vertices.size());
+	uint16_t start = s_cast<uint16_t>(_vertices.size());
 	pushVertex({pos.x - radius, pos.y - radius}, color4, {-1, -1});
 	pushVertex({pos.x - radius, pos.y + radius}, color4, {-1, 1});
 	pushVertex({pos.x + radius, pos.y + radius}, color4, {1, 1});
 	pushVertex({pos.x + radius, pos.y - radius}, color4, {1, -1});
 
-	const Uint16 indices[] = {0, 1, 2, 0, 2, 3};
-	for (Uint16 index : indices)
+	const uint16_t indices[] = {0, 1, 2, 0, 2, 3};
+	for (uint16_t index : indices)
 	{
 		_indices.push_back(start + index);
 	}
@@ -182,7 +182,7 @@ void DrawNode::drawSegment(const Vec2& from, const Vec2& to, float radius, Color
 	Vec2 v6 = a - (nw - tw);
 	Vec2 v7 = a + nw + tw;
 
-	Uint16 start = s_cast<Uint16>(_vertices.size());
+	uint16_t start = s_cast<uint16_t>(_vertices.size());
 	Vec4 color4 = color.toVec4();
 
 	pushVertex(v0, color4, -(n + t));
@@ -209,7 +209,7 @@ void DrawNode::drawSegment(const Vec2& from, const Vec2& to, float radius, Color
 	pushVertex(v7, color4, n + t);
 	pushVertex(v5, color4, n);
 
-	for (Uint16 i = 0; i < indexCount; i++)
+	for (uint16_t i = 0; i < indexCount; i++)
 	{
 		_indices.push_back(start + i);
 	}
@@ -220,14 +220,14 @@ void DrawNode::drawSegment(const Vec2& from, const Vec2& to, float radius, Color
 
 void DrawNode::drawPolygon(const std::vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor)
 {
-	drawPolygon(verts.data(), s_cast<Uint32>(verts.size()), fillColor, borderWidth, borderColor);
+	drawPolygon(verts.data(), s_cast<uint32_t>(verts.size()), fillColor, borderWidth, borderColor);
 }
 
-void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, float borderWidth, Color borderColor)
+void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, float borderWidth, Color borderColor)
 {
 	struct ExtrudeVerts {Vec2 offset, n;};
 	std::vector<ExtrudeVerts> extrude(count, {Vec2::zero,Vec2::zero});
-	for (Uint32 i = 0; i < count; i++)
+	for (uint32_t i = 0; i < count; i++)
 	{
 		Vec2 v0 = verts[(i - 1 + count) % count];
 		Vec2 v1 = verts[i];
@@ -248,12 +248,12 @@ void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, flo
 
 	Vec4 fillColor4 = fillColor.toVec4();
 	Vec4 borderColor4 = borderColor.toVec4();
-	Uint16 start = s_cast<Uint16>(_vertices.size());
+	uint16_t start = s_cast<uint16_t>(_vertices.size());
 
 	float inset = (outline ? 0.0f : 0.5f);
 	if (fillPoly)
 	{
-		for (Uint32 i = 0; i < count - 2; i++)
+		for (uint32_t i = 0; i < count - 2; i++)
 		{
 			Vec2 v0 = verts[0] - (extrude[0].offset * inset);
 			Vec2 v1 = verts[i+1] - (extrude[i+1].offset * inset);
@@ -265,9 +265,9 @@ void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, flo
 		}
 	}
 
-	for (Uint32 i = 0; i < count; i++)
+	for (uint32_t i = 0; i < count; i++)
     {
-		Uint32 j = (i+1) % count;
+		uint32_t j = (i+1) % count;
 		Vec2 v0 = verts[i];
 		Vec2 v1 = verts[j];
 		Vec2 n0 = extrude[i].n;
@@ -308,7 +308,7 @@ void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, flo
 	const size_t indexCount = _vertices.size() - start;
 	_indices.reserve(indexCount);
 
-	for (Uint16 i = 0; i < indexCount; i++)
+	for (uint16_t i = 0; i < indexCount; i++)
 	{
 		_indices.push_back(start + i);
 	}
@@ -317,16 +317,16 @@ void DrawNode::drawPolygon(const Vec2* verts, Uint32 count, Color fillColor, flo
 	_flags.setOn(DrawNode::VertexPosDirty);
 }
 
-void DrawNode::drawVertices(const VertexColor* verts, Uint32 count)
+void DrawNode::drawVertices(const VertexColor* verts, uint32_t count)
 {
 	const size_t triangleCount = 3 * count - 2;
 	const size_t vertexCount = 3 * triangleCount;
 	_posColors.reserve(vertexCount);
 	_vertices.reserve(vertexCount);
 
-	Uint16 start = s_cast<Uint16>(_vertices.size());
+	uint16_t start = s_cast<uint16_t>(_vertices.size());
 
-	for (Uint32 i = 0; i < count - 2; i++)
+	for (uint32_t i = 0; i < count - 2; i++)
 	{
 		pushVertex(verts[0].vertex, verts[0].color.toVec4(), Vec2::zero);
 		pushVertex(verts[i+1].vertex, verts[i+1].color.toVec4(), Vec2::zero);
@@ -336,7 +336,7 @@ void DrawNode::drawVertices(const VertexColor* verts, Uint32 count)
 	const size_t indexCount = _vertices.size() - start;
 	_indices.reserve(indexCount);
 
-	for (Uint16 i = 0; i < indexCount; i++)
+	for (uint16_t i = 0; i < indexCount; i++)
 	{
 		_indices.push_back(start + i);
 	}
@@ -366,14 +366,14 @@ Effect* DrawRenderer::getDefaultEffect() const
 
 void DrawRenderer::push(DrawNode* node)
 {
-	Uint64 state = node->getRenderState();
+	uint64_t state = node->getRenderState();
 	if (state != _lastState)
 	{
 		render();
 	}
 	_lastState = state;
 
-	Uint16 start = s_cast<Uint16>(_vertices.size());
+	uint16_t start = s_cast<uint16_t>(_vertices.size());
 	const auto& verts = node->getVertices();
 	_vertices.reserve(_vertices.size() + verts.size());
 	_vertices.insert(_vertices.end(), verts.begin(), verts.end());
@@ -392,8 +392,8 @@ void DrawRenderer::render()
 	{
 		bgfx::TransientVertexBuffer vertexBuffer;
 		bgfx::TransientIndexBuffer indexBuffer;
-		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
-		Uint32 indexCount = s_cast<Uint32>(_indices.size());
+		uint32_t vertexCount = s_cast<uint32_t>(_vertices.size());
+		uint32_t indexCount = s_cast<uint32_t>(_indices.size());
 		if (bgfx::allocTransientBuffers(
 			&vertexBuffer, DrawVertex::ms_layout, vertexCount,
 			&indexBuffer, indexCount))
@@ -442,14 +442,14 @@ Line()
 	_flags.setOn(Line::VertexPosDirty);
 }
 
-Line::Line(const Vec2* verts, Uint32 size, Color color):
+Line::Line(const Vec2* verts, uint32_t size, Color color):
 Line()
 {
 	if (size == 0) return;
 	_posColors.reserve(size);
 	_vertices.reserve(size);
 	Vec4 color4 = color.toVec4();
-	for (Uint32 i = 0; i < size; i++)
+	for (uint32_t i = 0; i < size; i++)
 	{
 		Vec2 vert = verts[i];
 		_posColors.push_back({{vert.x, vert.y, 0, 1}, color4});
@@ -478,7 +478,7 @@ bool Line::isDepthWrite() const
 	return _flags.isOn(Line::DepthWrite);
 }
 
-Uint64 Line::getRenderState() const
+uint64_t Line::getRenderState() const
 {
 	return _renderState;
 }
@@ -508,7 +508,7 @@ void Line::add(const std::vector<Vec2>& verts, Color color)
 	_flags.setOn(Line::VertexPosDirty);
 }
 
-void Line::add(const Vec2* verts, Uint32 size, Color color)
+void Line::add(const Vec2* verts, uint32_t size, Color color)
 {
 	if (size == 0) return;
 	if (!_posColors.empty())
@@ -520,7 +520,7 @@ void Line::add(const Vec2* verts, Uint32 size, Color color)
 	}
 	_posColors.reserve(_posColors.size() + size);
 	Vec4 color4 = color.toVec4();
-	for (Uint32 i = 0; i < size; i++)
+	for (uint32_t i = 0; i < size; i++)
 	{
 		Vec2 vert = verts[i];
 		_posColors.push_back({{vert.x, vert.y, 0, 1}, color4});
@@ -535,7 +535,7 @@ void Line::set(const std::vector<Vec2>& verts, Color color)
 	add(verts, color);
 }
 
-void Line::set(const Vec2* verts, Uint32 size, Color color)
+void Line::set(const Vec2* verts, uint32_t size, Color color)
 {
 	clear();
 	add(verts, size, color);
@@ -631,7 +631,7 @@ Effect* LineRenderer::getDefaultEffect() const
 
 void LineRenderer::push(Line* line)
 {
-	Uint64 state = line->getRenderState();
+	uint64_t state = line->getRenderState();
 	if (state != _lastState)
 	{
 		render();
@@ -654,7 +654,7 @@ void LineRenderer::render()
 	if (!_vertices.empty())
 	{
 		bgfx::TransientVertexBuffer vertexBuffer;
-		Uint32 vertexCount = s_cast<Uint32>(_vertices.size());
+		uint32_t vertexCount = s_cast<uint32_t>(_vertices.size());
 		if (bgfx::getAvailTransientVertexBuffer(vertexCount, PosColorVertex::ms_layout) >= vertexCount)
 		{
 			bgfx::allocTransientVertexBuffer(&vertexBuffer, vertexCount, PosColorVertex::ms_layout);

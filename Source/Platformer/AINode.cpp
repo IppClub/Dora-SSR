@@ -302,7 +302,7 @@ void Blackboard::set(String name, Own<Value>&& value)
 	_values[name] = std::move(value);
 }
 
-void Blackboard::set(Uint32 key, Own<Value>&& value)
+void Blackboard::set(uint32_t key, Own<Value>&& value)
 {
 	_nodeValues[key] = std::move(value);
 }
@@ -317,7 +317,7 @@ Value* Blackboard::get(String name)
 	return nullptr;
 }
 
-Value* Blackboard::get(Uint32 key)
+Value* Blackboard::get(uint32_t key)
 {
 	auto it = _nodeValues.find(key);
 	if (it != _nodeValues.end())
@@ -336,7 +336,7 @@ void Blackboard::remove(String name)
 	}
 }
 
-void Blackboard::remove(Uint32 key)
+void Blackboard::remove(uint32_t key)
 {
 	auto it = _nodeValues.find(key);
 	if (it != _nodeValues.end())
@@ -402,7 +402,7 @@ Status SeqNode::tick(Blackboard* board)
 {
 	if (_children.empty()) return Status::Success;
 	int index = 0;
-	Uint32 key = getId();
+	uint32_t key = getId();
 	if (auto value = board->get(key))
 	{
 		index = value->to<int>();
@@ -442,7 +442,7 @@ Status SelNode::tick(Blackboard* board)
 {
 	if (_children.empty()) return Status::Failure;
 	int index = 0;
-	Uint32 key = getId();
+	uint32_t key = getId();
 	if (auto value = board->get(key))
 	{
 		index = value->to<int>();
@@ -496,7 +496,7 @@ _handler(handler)
 
 Status ActNode::tick(Blackboard* board)
 {
-	Uint32 key = getId();
+	uint32_t key = getId();
 	if (!board->get(key))
 	{
 		board->getOwner()->start(_actionName);
@@ -534,7 +534,7 @@ _actionName(actionName)
 
 Status CountdownNode::tick(Blackboard* board)
 {
-	Uint32 key = getId();
+	uint32_t key = getId();
 	Status status = _node->tick(board);
 	if (status != Status::Running)
 	{
@@ -569,7 +569,7 @@ _node(node)
 
 Status TimeoutNode::tick(Blackboard* board)
 {
-	Uint32 key = getId();
+	uint32_t key = getId();
 	Status status = _node->tick(board);
 	if (status != Status::Running)
 	{
@@ -604,7 +604,7 @@ _node(node)
 
 Status WaitNode::tick(Blackboard* board)
 {
-	Uint32 key = getId();
+	uint32_t key = getId();
 	if (auto value = board->get(key))
 	{
 		auto time = value->to<double>();
@@ -632,7 +632,7 @@ _duration(duration)
 
 Status RepeatNode::tick(Blackboard* board)
 {
-	Uint32 key = getId();
+	uint32_t key = getId();
 	if (!board->get(key))
 	{
 		std::shared_ptr<Blackboard> cloneBoard = board->clone();
@@ -679,7 +679,7 @@ _node(node)
 
 Status RetryNode::tick(Blackboard* board)
 {
-	Uint32 key = getId();
+	uint32_t key = getId();
 	if (!board->get(key))
 	{
 		std::shared_ptr<Blackboard> cloneBoard = board->clone();

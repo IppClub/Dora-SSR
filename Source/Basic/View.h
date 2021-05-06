@@ -47,9 +47,9 @@ protected:
 	void pop();
 	bool empty();
 private:
-	Sint32 _id;
+	int32_t _id;
 	std::stack<std::pair<bgfx::ViewId,std::string>> _views;
-	Uint32 _flag;
+	uint32_t _flag;
 	float _nearPlaneDistance;
 	float _farPlaneDistance;
 	float _fieldOfView;

@@ -5,7 +5,7 @@ import "yue" as options:{extension:yueext}, version:yueVersion
 print "Dorothy SSR version: #{App.version}#{App.debugging and ', debugging' or ''}"
 print "Yuescript version: #{yueVersion}"
 
-LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
+LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 18, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -153,13 +153,13 @@ allClear = ->
 	moduleCache = {}
 	with Director.ui
 		\removeAllChildren!
-		.userData = nil
+		.userData\clear!
 	with Director.entry
 		\removeAllChildren!
-		.userData = nil
+		.userData\clear!
 	with Director.postNode
 		\removeAllChildren!
-		.userData = nil
+		.userData\clear!
 	Director\popCamera!
 	Cache\unload!
 	Entity\clear!
@@ -212,6 +212,7 @@ enterDemoEntry = (name)->
 showEntry = false
 
 thread ->
+	sleep!
 	:width,:height = App.visualSize
 	scale = App.deviceRatio*0.7*math.min(width,height)/760
 	unless App.debugging
@@ -293,7 +294,7 @@ threadLoop ->
 					enterDemoEntry allNames[currentIndex+1]
 			else Dummy Vec2 70,30
 		if showStats
-			SetNextWindowPos Vec2(0,height-65-296), "FirstUseEver"
+			SetNextWindowPos Vec2(10,10), "FirstUseEver"
 			ShowStats!
 		if showConsole
 			SetNextWindowPos Vec2(width-400,height-65-300), "FirstUseEver"

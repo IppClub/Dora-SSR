@@ -28,8 +28,8 @@ public:
 	CREATE_FUNC(ClipNode);
 protected:
 	ClipNode(Node* stencil = nullptr);
-	void drawFullScreenStencil(Uint8 maskLayer, bool value);
-	void drawStencil(Uint8 maskLayer, bool value);
+	void drawFullScreenStencil(uint8_t maskLayer, bool value);
+	void drawStencil(uint8_t maskLayer, bool value);
 	void setupAlphaTest();
 private:
 	float _alphaThreshold;

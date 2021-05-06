@@ -49,7 +49,7 @@ public:
 	void allow(Relation relation, bool allow);
 	bool isAllow(Relation relation);
 protected:
-	Uint32 _flag;
+	uint32_t _flag;
 };
 
 NS_DOROTHY_PLATFORMER_END

@@ -254,6 +254,9 @@
 		3CC794612579F9B000042394 /* yue_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC7945C2579F9B000042394 /* yue_compiler.cpp */; };
 		3CC7A0EE1E8D56E8003188D6 /* libsoloud.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
+		3CCA844A263668AE00AA9B44 /* implot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCA8445263668AE00AA9B44 /* implot.cpp */; };
+		3CCA844B263668AE00AA9B44 /* implot_items.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCA8448263668AE00AA9B44 /* implot_items.cpp */; };
+		3CCA844C263668AE00AA9B44 /* implot_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCA8449263668AE00AA9B44 /* implot_demo.cpp */; };
 		3CCB0C791E6DB0590088C118 /* ClipNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCB0C771E6DB0590088C118 /* ClipNode.cpp */; };
 		3CCEDD471E1D55BF00F32295 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD461E1D55BF00F32295 /* Utils.cpp */; };
 		3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CD028FE1E07D3C50016E1EC /* LuaEngine.cpp */; };
@@ -903,6 +906,11 @@
 		3CC81FE61D966770008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3CCA8445263668AE00AA9B44 /* implot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot.cpp; path = ../../../Source/3rdParty/implot/implot.cpp; sourceTree = "<group>"; };
+		3CCA8446263668AE00AA9B44 /* implot_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = implot_internal.h; path = ../../../Source/3rdParty/implot/implot_internal.h; sourceTree = "<group>"; };
+		3CCA8447263668AE00AA9B44 /* implot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = implot.h; path = ../../../Source/3rdParty/implot/implot.h; sourceTree = "<group>"; };
+		3CCA8448263668AE00AA9B44 /* implot_items.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot_items.cpp; path = ../../../Source/3rdParty/implot/implot_items.cpp; sourceTree = "<group>"; };
+		3CCA8449263668AE00AA9B44 /* implot_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot_demo.cpp; path = ../../../Source/3rdParty/implot/implot_demo.cpp; sourceTree = "<group>"; };
 		3CCB0C771E6DB0590088C118 /* ClipNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ClipNode.cpp; path = ../../../Source/Node/ClipNode.cpp; sourceTree = "<group>"; };
 		3CCB0C781E6DB0590088C118 /* ClipNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClipNode.h; path = ../../../Source/Node/ClipNode.h; sourceTree = "<group>"; };
 		3CCEDD461E1D55BF00F32295 /* Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utils.cpp; path = ../../../Source/Common/Utils.cpp; sourceTree = "<group>"; };
@@ -1269,6 +1277,7 @@
 				3C6C07631E5E857B00BAA745 /* fmt */,
 				3CDED0381E52F53F00B5E578 /* font */,
 				3CD328211E4B0A370036906C /* imgui */,
+				3CCA84442636688F00AA9B44 /* implot */,
 				3CC54E5E1E039E1300462FD7 /* Other */,
 				3CFDA8492200358900C9DFD0 /* PlayRho */,
 				3C291D341E0264380098C860 /* silly */,
@@ -1734,6 +1743,18 @@
 				3CC81FFA1D966770008C8B77 /* Info.plist */,
 			);
 			path = Dorothy;
+			sourceTree = "<group>";
+		};
+		3CCA84442636688F00AA9B44 /* implot */ = {
+			isa = PBXGroup;
+			children = (
+				3CCA8449263668AE00AA9B44 /* implot_demo.cpp */,
+				3CCA8446263668AE00AA9B44 /* implot_internal.h */,
+				3CCA8448263668AE00AA9B44 /* implot_items.cpp */,
+				3CCA8445263668AE00AA9B44 /* implot.cpp */,
+				3CCA8447263668AE00AA9B44 /* implot.h */,
+			);
+			name = implot;
 			sourceTree = "<group>";
 		};
 		3CCBBA381E14B50B00C0416B /* Node */ = {
@@ -2273,6 +2294,7 @@
 				3C030CA424CAC02E0074786E /* Playable.cpp in Sources */,
 				3C3E911B257788A900A7A963 /* ContactKey.cpp in Sources */,
 				3CB487151E16398700D51749 /* tolua_is.cpp in Sources */,
+				3CCA844A263668AE00AA9B44 /* implot.cpp in Sources */,
 				3C7EB6462547CC8400390DA6 /* Manifold.cpp in Sources */,
 				3C0D30E72456665F009C592B /* ConstraintData.cpp in Sources */,
 				3C7EB6982547CCB300390DA6 /* Body.cpp in Sources */,
@@ -2433,6 +2455,7 @@
 				3C6DA2131EAF0726006EEE32 /* tinyxml2.cpp in Sources */,
 				3C46E85B2614227300DC9D4F /* Application.mm in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
+				3CCA844B263668AE00AA9B44 /* implot_items.cpp in Sources */,
 				3C0D30EA2456665F009C592B /* SkeletonBounds.cpp in Sources */,
 				3C0D31072456665F009C592B /* ScaleTimeline.cpp in Sources */,
 				3C7EB6A02547CCB300390DA6 /* WorldImplContact.cpp in Sources */,
@@ -2442,6 +2465,7 @@
 				3C3E911C257788A900A7A963 /* ConstraintSolverConf.cpp in Sources */,
 				3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */,
 				3C3E91922577891500A7A963 /* Version.cpp in Sources */,
+				3CCA844C263668AE00AA9B44 /* implot_demo.cpp in Sources */,
 				3CE3456A20F7248A00D7F60C /* MemoryPool.cpp in Sources */,
 				3C7EB6A22547CCB300390DA6 /* WorldContact.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
@@ -2614,7 +2638,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/sqlite/Header";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/sqlite/Header";
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
@@ -2646,7 +2670,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/sqlite/Header";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua/Header $(SRCROOT)/../../Source/3rdParty/soloud/Header $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/sqlite/Header";
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;

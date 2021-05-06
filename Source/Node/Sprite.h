@@ -72,10 +72,10 @@ public:
 	PROPERTY_CREF(Rect, TextureRect);
 	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
-	PROPERTY_READONLY(Uint64, RenderState);
+	PROPERTY_READONLY(uint64_t, RenderState);
 	PROPERTY_READONLY_CREF(SpriteQuad, Quad);
-	PROPERTY_READONLY(Uint64, TextureFlags);
-	PROPERTY_READONLY(Uint32, SamplerFlags);
+	PROPERTY_READONLY(uint64_t, TextureFlags);
+	PROPERTY_READONLY(uint32_t, SamplerFlags);
 	PROPERTY(TextureFilter, Filter);
 	PROPERTY(TextureWrap, UWrap);
 	PROPERTY(TextureWrap, VWrap);
@@ -95,7 +95,7 @@ protected:
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
 private:
-	Uint8 _alphaRef;
+	uint8_t _alphaRef;
 	TextureFilter _filter;
 	TextureWrap _uwrap;
 	TextureWrap _vwrap;
@@ -105,7 +105,7 @@ private:
 	SpriteQuad::Position _quadPos;
 	SpriteQuad _quad;
 	BlendFunc _blendFunc;
-	Uint64 _renderState;
+	uint64_t _renderState;
 	enum
 	{
 		VertexColorDirty = Node::UserFlag,
@@ -118,6 +118,7 @@ private:
 class SpriteRenderer : public Renderer
 {
 public:
+	using IndexType = uint16_t;
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(SpriteEffect*, DefaultModelEffect);
 	PROPERTY_READONLY(SpriteEffect*, AlphaTestEffect);
@@ -125,10 +126,10 @@ public:
 	virtual void render() override;
 	void push(Sprite* sprite);
 	void push(SpriteVertex* verts, size_t size,
-		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = UINT32_MAX,
+		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX,
 		const Matrix* localWorld = nullptr);
-	void push(SpriteVertex* verts, size_t vsize, uint16_t* inds, size_t isize,
-		SpriteEffect* effect, Texture2D* texture, Uint64 state, Uint32 flags = UINT32_MAX,
+	void push(SpriteVertex* verts, size_t vsize, IndexType* inds, size_t isize,
+		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX,
 		const Matrix* localWorld = nullptr);
 protected:
 	SpriteRenderer();
@@ -138,11 +139,11 @@ private:
 	Ref<SpriteEffect> _alphaTestEffect;
 	Texture2D* _lastTexture;
 	SpriteEffect* _lastEffect;
-	Uint64 _lastState;
-	Uint32 _lastFlags;
+	uint64_t _lastState;
+	uint32_t _lastFlags;
 	std::vector<SpriteVertex> _vertices;
-	std::vector<uint16_t> _indices;
-	const uint16_t _spriteIndices[6];
+	std::vector<IndexType> _indices;
+	const IndexType _spriteIndices[6];
 	SINGLETON_REF(SpriteRenderer, RendererManager);
 };
 

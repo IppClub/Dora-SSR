@@ -21,7 +21,7 @@ public:
 	virtual const Vec3& getUp();
 	virtual const Matrix& getView();
 	virtual bool isOtho() const;
-	Delegate<void()> Updated;
+	Acf::Delegate<void()> Updated;
 protected:
 	Camera(String name);
 protected:

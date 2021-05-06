@@ -13,11 +13,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/View.h"
 
+#include "SDL.h"
+
 NS_DOROTHY_BEGIN
 
 /* Touch */
 
-Uint32 Touch::_source =
+uint32_t Touch::_source =
 #if BX_PLATFORM_OSX
 	Touch::FromMouse;
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
@@ -82,7 +84,7 @@ const Vec2& Touch::getWorldPreLocation() const
 	return _worldPreLocation;
 }
 
-Uint32 Touch::getSource()
+uint32_t Touch::getSource()
 {
 	return _source;
 }
@@ -296,7 +298,7 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event)
 bool NodeTouchHandler::down(const SDL_Event& event)
 {
 	if (!_target->isTouchEnabled()) return false;
-	Sint64 id = 0;
+	int64_t id = 0;
 	switch (event.type)
 	{
 		case SDL_MOUSEBUTTONDOWN:
@@ -335,7 +337,7 @@ bool NodeTouchHandler::down(const SDL_Event& event)
 bool NodeTouchHandler::up(const SDL_Event& event)
 {
 	if (!_target->isTouchEnabled()) return false;
-	Sint64 id = 0;
+	int64_t id = 0;
 	switch (event.type)
 	{
 		case SDL_MOUSEBUTTONUP:
@@ -595,7 +597,8 @@ void TouchDispatcher::dispatch()
 			TouchHandler* handler = *it;
 			for (auto eit = _events.begin(); eit != _events.end();)
 			{
-				if (handler->handle(*eit))
+				auto e = std::any_cast<SDL_Event>(&(*eit));
+				if (handler->handle(*e))
 				{
 					eit = _events.erase(eit);
 				}

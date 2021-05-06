@@ -118,7 +118,7 @@ Node* Face::toNode() const
 	node->setScaleX(_scale);
 	node->setScaleY(_scale);
 	WRef<Node> self(node);
-	Uint32 total = 1 + s_cast<Uint32>(_children.size());
+	uint32_t total = 1 + s_cast<uint32_t>(_children.size());
 	for (Face* child : _children)
 	{
 		node->addChild(child->toNode());
@@ -194,7 +194,7 @@ Node* Face::toNode() const
 	return node;
 }
 
-Uint32 Face::getType() const
+uint32_t Face::getType() const
 {
 	return _type;
 }

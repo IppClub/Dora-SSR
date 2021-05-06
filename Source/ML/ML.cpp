@@ -48,19 +48,19 @@ void BuildDecisionTreeAsync(String data, int maxDepth,
 
 /* QLearner */
 
-QLearner::QState QLearner::pack(const std::vector<Uint32>& hints, const std::vector<Uint32>& values)
+QLearner::QState QLearner::pack(const std::vector<uint32_t>& hints, const std::vector<uint32_t>& values)
 {
 	AssertUnless(hints.size() == values.size(), "Q state must be packed with same number of categorical hints with values");
 	int currentBit = 0;
 	QLearner::QState state = 0;
 	for (size_t i = 0; i < hints.size(); i++)
 	{
-		Uint32 kind = hints[i];
-		Uint32 value = values[i];
+		uint32_t kind = hints[i];
+		uint32_t value = values[i];
 		AssertIf(value >= kind, "categorical value {} of index {} is greater or equal than {}", value, i, kind);
 		state += (s_cast<QLearner::QState>(value) << currentBit);
 		int bit = 1;
-		while ((Uint32(1) << bit) < kind) bit++;
+		while ((uint32_t(1) << bit) < kind) bit++;
 		currentBit += bit;
 	}
 	AssertIf(currentBit > sizeof(QLearner::QState) * 8, "can only pack values into {} bits instead of {} bits", sizeof(QLearner::QState) * 8, currentBit);

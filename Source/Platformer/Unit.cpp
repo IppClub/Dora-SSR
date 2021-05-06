@@ -268,7 +268,7 @@ void Unit::cleanup()
 	Body::cleanup();
 }
 
-void Unit::setGroup(Uint8 group)
+void Unit::setGroup(uint8_t group)
 {
 	_group = group;
 	auto& world = _pWorld->getPrWorld();

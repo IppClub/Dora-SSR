@@ -12,10 +12,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/View.h"
 #include "Basic/Scheduler.h"
-#include "bx/timer.h"
-#include <ctime>
 #include "Other/utf8.h"
 #include "Common/Async.h"
+#include "Physics/PhysicsWorld.h"
+
+#include "bx/timer.h"
+#include <ctime>
+
+#include "SDL_syswm.h"
+#include "SDL.h"
 
 #define DORA_VERSION "1.0.2"_slice
 
@@ -58,7 +63,7 @@ BGFXDora::~BGFXDora()
 
 Application::Application():
 _seed(0),
-_fpsLimited(BX_PLATFORM_WINDOWS != 0),
+_fpsLimited(true),
 _renderRunning(true),
 _logicRunning(true),
 _frame(0),
@@ -69,6 +74,7 @@ _winHeight(_visualHeight),
 _bufferWidth(0),
 _bufferHeight(0),
 _targetFPS(60),
+_maxFPS(60),
 _deltaTime(0),
 _cpuTime(0),
 _totalTime(0),
@@ -98,40 +104,45 @@ float Application::getDeviceRatio() const
 	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
 
-void Application::setSeed(Uint32 var)
+void Application::setSeed(uint32_t var)
 {
 	_seed = var;
 	_randomEngine.seed(var);
 }
 
-Uint32 Application::getSeed() const
+uint32_t Application::getSeed() const
 {
 	return _seed;
 }
 
-Uint32 Application::getRand()
+uint32_t Application::getRand()
 {
 	return _randomEngine();
 }
 
-Uint32 Application::getRandMin() const
+uint32_t Application::getRandMin() const
 {
 	return std::mt19937::min();
 }
 
-Uint32 Application::getRandMax() const
+uint32_t Application::getRandMax() const
 {
 	return std::mt19937::max();
 }
 
-void Application::setTargetFPS(Uint32 var)
+void Application::setTargetFPS(uint32_t var)
 {
 	_targetFPS = var;
 }
 
-Uint32 Application::getTargetFPS() const
+uint32_t Application::getTargetFPS() const
 {
 	return _targetFPS;
+}
+
+uint32_t Application::getMaxFPS() const
+{
+	return _maxFPS;
 }
 
 void Application::setFPSLimited(bool var)
@@ -144,7 +155,7 @@ bool Application::isFPSLimited() const
 	return _fpsLimited;
 }
 
-Uint32 Application::getFrame() const
+uint32_t Application::getFrame() const
 {
 	return _frame;
 }
@@ -167,7 +178,7 @@ bool Application::isLogicRunning() const
 // This function runs in main thread, and do render work
 int Application::run()
 {
-	Application::setSeed(s_cast<Uint32>(std::time(nullptr)));
+	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
 
 	if (SDL_Init(SDL_INIT_TIMER) != 0)
 	{
@@ -177,7 +188,7 @@ int Application::run()
 	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
 
-	Uint32 windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
+	uint32_t windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 	windowFlags |= SDL_WINDOW_HIDDEN;
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
@@ -196,9 +207,6 @@ int Application::run()
 
 	// call this function here to disable default render threads creation of bgfx
 	bgfx::renderFrame();
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-	_logicEvent.post("RenderStop"_slice);
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 
 	// start running logic thread
 	_logicThread.init(Application::mainLogic, this);
@@ -208,9 +216,6 @@ int Application::run()
 	{
 		// do render staff and swap buffers
 		bgfx::renderFrame();
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-		_logicEvent.post("RenderStop"_slice);
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event))
@@ -306,9 +311,9 @@ void Application::updateWindowSize()
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
 	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
 	SDL_GetCurrentDisplayMode(displayIndex, &displayMode);
-	if (!_fpsLimited && displayMode.refresh_rate > 0)
+	if (displayMode.refresh_rate > 0)
 	{
-		_targetFPS = displayMode.refresh_rate;
+		_maxFPS = displayMode.refresh_rate;
 	}
 #if BX_PLATFORM_WINDOWS
 	float hdpi = DEFAULT_WIN_DPI, vdpi = DEFAULT_WIN_DPI;
@@ -363,6 +368,22 @@ double Application::getCPUTime() const
 	return _cpuTime;
 }
 
+double Application::getGPUTime() const
+{
+	const bgfx::Stats* stats = bgfx::getStats();
+	return std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
+}
+
+double Application::getLogicTime() const
+{
+	return _logicTime;
+}
+
+double Application::getRenderTime() const
+{
+	return _renderTime;
+}
+
 double Application::getTotalTime() const
 {
 	return _totalTime;
@@ -403,8 +424,6 @@ int Application::mainLogic(Application* app)
 		return 1;
 	}
 
-	app->_frame = bgfx::frame();
-
 	SharedPoolManager.push();
 	if (!SharedDirector.init())
 	{
@@ -425,78 +444,62 @@ int Application::mainLogic(Application* app)
 
 	while (app->_logicRunning)
 	{
+		auto startTime = app->getEclapsedTime();
+
 		SharedPoolManager.push();
-		auto cpuStartTime = app->getEclapsedTime();
 		SharedDirector.doLogic();
-		app->_cpuTime = app->getEclapsedTime() - cpuStartTime;
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-		bool renderWorking = true;
-		while (renderWorking)
+		// poll events from render thread
+		for (Own<QEvent> event = app->_logicEvent.poll();
+			event != nullptr;
+			event = app->_logicEvent.poll())
 		{
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-			// poll events from render thread
-			for (Own<QEvent> event = app->_logicEvent.poll();
-				event != nullptr;
-				event = app->_logicEvent.poll())
+			switch (Switch::hash(event->getName()))
 			{
-				switch (Switch::hash(event->getName()))
+				case "SDLEvent"_hash:
 				{
-					case "SDLEvent"_hash:
+					SDL_Event sdlEvent;
+					event->get(sdlEvent);
+					switch (sdlEvent.type)
 					{
-						SDL_Event sdlEvent;
-						event->get(sdlEvent);
-						switch (sdlEvent.type)
+						case SDL_QUIT:
 						{
-							case SDL_QUIT:
-							{
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-								renderWorking = false;
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-								app->_logicRunning = false;
-								app->quitHandler();
-								// Info("singleton reference tree:\n{}", Life::getRefTree());
-								break;
-							}
-							default:
-								break;
+							app->_logicRunning = false;
+							app->quitHandler();
+							// Info("singleton reference tree:\n{}", Life::getRefTree());
+							break;
 						}
-						SharedDirector.handleSDLEvent(sdlEvent);
-						app->eventHandler(sdlEvent);
-						break;
+						default:
+							break;
 					}
-					case "Invoke"_hash:
-					{
-						std::function<void()> func;
-						event->get(func);
-						func();
-						break;
-					}
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-					case "RenderStop"_hash:
-					{
-						renderWorking = false;
-						break;
-					}
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
-					default:
-						break;
+					SharedDirector.handleSDLEvent(sdlEvent);
+					app->eventHandler(sdlEvent);
+					break;
 				}
+				case "Invoke"_hash:
+				{
+					std::function<void()> func;
+					event->get(func);
+					func();
+					break;
+				}
+				default:
+					break;
 			}
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
 		}
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
+		app->_logicTime = app->getEclapsedTime() - startTime;
 
-		cpuStartTime = app->getEclapsedTime();
 		SharedDirector.doRender();
 		SharedPoolManager.pop();
-		app->_cpuTime += (app->getEclapsedTime() - cpuStartTime);
+
+		app->_cpuTime = app->getEclapsedTime() - startTime;
+		app->_renderTime = app->_cpuTime - app->_logicTime;
 
 		// advance to next frame. rendering thread will be kicked to
 		// process submitted rendering primitives.
 		app->_frame = bgfx::frame();
 
-		// limit for max FPS
+		// limit for target FPS
 		if (app->_fpsLimited)
 		{
 			do

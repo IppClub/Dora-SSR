@@ -1,17 +1,17 @@
 typedef unsigned int ImGuiID;
 typedef unsigned int ImGuiCol;
 typedef int ImGuiWindowFlags;
-typedef Uint32 ImU32;
+typedef uint32_t ImU32;
 typedef char* CString;
 
 class Buffer : public Object
 {
-	void resize(Uint32 size);
+	void resize(uint32_t size);
 	void zeroMemory();
-	tolua_readonly tolua_property__qt Uint32 size;
+	tolua_readonly tolua_property__qt uint32_t size;
 	void setString(String str);
 	Slice toString();
-	static Buffer* create(Uint32 size = 0);
+	static Buffer* create(uint32_t size = 0);
 };
 
 namespace ImGui

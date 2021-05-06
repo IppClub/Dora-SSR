@@ -67,7 +67,7 @@ public:
 
 	virtual char* _readFile(const spine::String& path, int* length)
 	{
-		Sint64 size = 0;
+		int64_t size = 0;
 		auto data = SharedContent.loadUnsafe({path.buffer(),path.length()}, size);
 		*length = s_cast<int>(size);
 		return r_cast<char*>(data);
@@ -329,7 +329,7 @@ void Spine::render()
 				break;
 		}
 
-		Uint64 renderState = (
+		uint64_t renderState = (
 			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
 			BGFX_STATE_MSAA | blendFunc.toValue());
 		if (_flags.isOn(Spine::DepthWrite))

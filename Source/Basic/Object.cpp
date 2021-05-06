@@ -31,11 +31,11 @@ public:
 		}
 #endif // DORA_DEBUG
 	}
-	Uint32 maxIdCount;
-	Uint32 maxLuaRefCount;
-	Uint32 luaRefCount;
-	std::stack<Uint32> availableLuaRefs;
-	std::stack<Uint32> availableIds;
+	uint32_t maxIdCount;
+	uint32_t maxLuaRefCount;
+	uint32_t luaRefCount;
+	std::stack<uint32_t> availableLuaRefs;
+	std::stack<uint32_t> availableIds;
 	SINGLETON_REF(ObjectBase, AsyncLogThread);
 };
 
@@ -137,7 +137,7 @@ bool Object::isSingleReferenced() const
 	return _refCount == 1;
 }
 
-Uint32 Object::getRefCount() const
+uint32_t Object::getRefCount() const
 {
 	return _refCount;
 }
@@ -164,38 +164,38 @@ void Object::cleanup()
 	if (_weak) _weak->target = nullptr;
 }
 
-Uint32 Object::getId() const
+uint32_t Object::getId() const
 {
 	return _id;
 }
 
-Uint32 Object::getCount()
+uint32_t Object::getCount()
 {
 	auto& info = SharedObjectBase;
-	return info.maxIdCount - s_cast<Uint32>(info.availableIds.size());
+	return info.maxIdCount - s_cast<uint32_t>(info.availableIds.size());
 }
 
-Uint32 Object::getMaxCount()
+uint32_t Object::getMaxCount()
 {
 	return SharedObjectBase.maxIdCount;
 }
 
-Uint32 Object::getLuaRefCount()
+uint32_t Object::getLuaRefCount()
 {
 	return SharedObjectBase.luaRefCount;
 }
 
-Uint32 Object::getMaxLuaRefCount()
+uint32_t Object::getMaxLuaRefCount()
 {
 	return SharedObjectBase.maxLuaRefCount;
 }
 
-Uint32 Object::getLuaCallbackCount()
+uint32_t Object::getLuaCallbackCount()
 {
 	return tolua_get_callback_ref_count();
 }
 
-Uint32 Object::getMaxLuaCallbackCount()
+uint32_t Object::getMaxLuaCallbackCount()
 {
 	return tolua_get_max_callback_ref_count();
 }
@@ -220,7 +220,7 @@ void Object::removeLuaRef()
 	--SharedObjectBase.luaRefCount;
 }
 
-Uint32 Object::getLuaRef()
+uint32_t Object::getLuaRef()
 {
 	if (_luaRef == 0)
 	{

@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Geometry.h"
 #include "Support/Common.h"
 
+union SDL_Event;
 struct NVGcontext;
 
 NS_DOROTHY_BEGIN
@@ -37,7 +38,6 @@ public:
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
-	PROPERTY_READONLY(Scheduler*, PostSystemScheduler);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
 	bool init();
@@ -78,7 +78,6 @@ private:
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
-	Ref<Scheduler> _postSystemScheduler;
 	Ref<RenderTarget> _renderTarget;
 	Own<UITouchHandler> _uiTouchHandler;
 	std::stack<Own<Matrix>> _viewProjs;

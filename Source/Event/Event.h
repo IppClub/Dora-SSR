@@ -15,7 +15,7 @@ NS_DOROTHY_BEGIN
 class Listener;
 class EventType;
 class Event;
-typedef Delegate<void (Event* event)> EventHandler;
+typedef Acf::Delegate<void (Event* event)> EventHandler;
 
 /** @brief This event system is designed to be used in a single threaded
  environment and is associated with event, event type and event listener.

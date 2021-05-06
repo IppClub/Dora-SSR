@@ -62,10 +62,10 @@ void DebugDraw::DrawSolidPolygon(const pr::Length2* oldVertices, int vertexCount
 	}
 	vertices[vertexCount] = vertices[0];
 	_drawNode->drawPolygon(vertices.data(), vertexCount, Color(
-		s_cast<Uint8>(color.r * 0.5f),
-		s_cast<Uint8>(color.g * 0.5f),
-		s_cast<Uint8>(color.b * 0.5f),
-		s_cast<Uint8>(color.a * 0.5f))
+		s_cast<uint8_t>(color.r * 0.5f),
+		s_cast<uint8_t>(color.g * 0.5f),
+		s_cast<uint8_t>(color.b * 0.5f),
+		s_cast<uint8_t>(color.a * 0.5f))
 	);
 	_line->add(vertices, color);
 }
@@ -105,10 +105,10 @@ void DebugDraw::DrawSolidCircle(const pr::Length2& center, float radius, const C
 		theta += k_increment;
 	}
 	_drawNode->drawPolygon(vertices, vertexCount, Color(
-		s_cast<Uint8>(color.r * 0.5f),
-		s_cast<Uint8>(color.g * 0.5f),
-		s_cast<Uint8>(color.b * 0.5f),
-		s_cast<Uint8>(color.a * 0.5f))
+		s_cast<uint8_t>(color.r * 0.5f),
+		s_cast<uint8_t>(color.g * 0.5f),
+		s_cast<uint8_t>(color.b * 0.5f),
+		s_cast<uint8_t>(color.a * 0.5f))
 	);
 	vertices[vertexCount] = vertices[0];
 	_line->add(vertices, vertexCount + 1, color);
@@ -142,7 +142,7 @@ static void Draw(DebugDraw* drawer, const pd::DiskShapeConf& shape, Color color,
 
 static void Draw(DebugDraw* drawer, const pd::EdgeShapeConf& shape, Color color, pd::Transformation xf)
 {
-	Color ghostColor(s_cast<Uint8>(0.75f * color.r), s_cast<Uint8>(0.75f * color.g), s_cast<Uint8>(0.75f * color.b), color.a);
+	Color ghostColor(s_cast<uint8_t>(0.75f * color.r), s_cast<uint8_t>(0.75f * color.g), s_cast<uint8_t>(0.75f * color.b), color.a);
 	const auto v1 = Transform(shape.GetVertexA(), xf);
 	const auto v2 = Transform(shape.GetVertexB(), xf);
 	drawer->DrawSegment(v1, v2, color);
@@ -153,7 +153,7 @@ static void Draw(DebugDraw* drawer, const pd::EdgeShapeConf& shape, Color color,
 static void Draw(DebugDraw* drawer, const pd::ChainShapeConf& shape, Color color, pd::Transformation xf)
 {
 	const auto count = shape.GetVertexCount();
-	Color ghostColor(s_cast<Uint8>(0.75f * color.r), s_cast<Uint8>(0.75f * color.g), s_cast<Uint8>(0.75f * color.b), color.a);
+	Color ghostColor(s_cast<uint8_t>(0.75f * color.r), s_cast<uint8_t>(0.75f * color.g), s_cast<uint8_t>(0.75f * color.b), color.a);
 	auto v1 = Transform(shape.GetVertex(0), xf);
 	for (auto i = decltype(count){1}; i < count; ++i)
 	{

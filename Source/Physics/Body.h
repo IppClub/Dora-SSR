@@ -23,9 +23,9 @@ class Contact;
 
 struct FixtureDef;
 
-typedef Delegate<bool(Body* body)> ContactFilterHandler;
-typedef Delegate<void(Body* body,const Vec2& point,const Vec2& normal)> ContactHandler;
-typedef Delegate<void(Sensor* sensor,Body* body)> SensorHandler;
+typedef Acf::Delegate<bool(Body* body)> ContactFilterHandler;
+typedef Acf::Delegate<void(Body* body,const Vec2& point,const Vec2& normal)> ContactHandler;
+typedef Acf::Delegate<void(Sensor* sensor,Body* body)> SensorHandler;
 
 class Body : public Node
 {
@@ -46,7 +46,7 @@ public:
 	PROPERTY_READONLY(float, Mass);
 	PROPERTY(float, VelocityX);
 	PROPERTY(float, VelocityY);
-	PROPERTY_VIRTUAL(Uint8, Group);
+	PROPERTY_VIRTUAL(uint8_t, Group);
 	PROPERTY_BOOL(ReceivingContact);
 	PROPERTY_BOOL(EmittingEvent);
 	ContactHandler contactStart;
@@ -74,7 +74,7 @@ protected:
 	virtual void updatePhysics();
 	pr::BodyID _prBody; // weak reference
 	PhysicsWorld* _pWorld;
-	Uint8 _group;
+	uint8_t _group;
 	enum
 	{
 		ReceivingContact = UserFlag,

@@ -18,8 +18,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TextureCache.h"
 #include "Other/utf8.h"
 #include "imgui.h"
+#include "implot.h"
 #include "Input/Keyboard.h"
 #include "Lua/LuaEngine.h"
+#include "Event/Event.h"
+#include "Event/Listener.h"
+
+#include "SDL.h"
 
 NS_DOROTHY_BEGIN
 
@@ -308,7 +313,7 @@ public:
 			_history.push_back(codes);
 			LogPrint(codes + '\n');
 			codes.insert(0,
-				"rawset builtin, '_REPL', {k, v for k, v in pairs builtin} unless builtin._REPL\n"
+				"rawset builtin, '_REPL', index#: builtin unless builtin._REPL\n"
 				"_ENV = builtin._REPL\n"
 				"global *\n"_slice);
 			lua_State* L = SharedLuaEngine.getState();
@@ -400,11 +405,31 @@ _textInputing(false),
 _mouseVisible(true),
 _lastCursor(0),
 _backSpaceIgnore(false),
-_mousePressed{ false, false, false },
+_mousePressed{false, false, false},
 _mouseWheel(0.0f),
 _console(New<ConsolePanel>()),
 _defaultFonts(New<ImFontAtlas>()),
-_fonts(New<ImFontAtlas>())
+_fonts(New<ImFontAtlas>()),
+_showPlot(false),
+_timeFrames(0),
+_memFrames(0),
+_profileFrames(0),
+_cpuTime(0),
+_gpuTime(0),
+_deltaTime(0),
+_logicTime(0),
+_renderTime(0),
+_avgCPUTime(0),
+_avgGPUTime(0),
+_avgDeltaTime(1000.0 / SharedApplication.getTargetFPS()),
+_memPoolSize(0),
+_memLua(0),
+_lastMemPoolSize(0),
+_lastMemLua(0),
+_maxCPU(0),
+_maxGPU(0),
+_maxDelta(0),
+_yLimit(0)
 {
 	_vertexLayout
 		.begin()
@@ -412,13 +437,23 @@ _fonts(New<ImFontAtlas>())
 			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
-
 	SharedApplication.eventHandler += std::make_pair(this, &ImGuiDora::handleEvent);
+	_costListener = Listener::create("_TIMECOST_"_slice, [&](Event* e)
+	{
+		std::string name;
+		double cost;
+		e->get(name, cost);
+		if (!_timeCosts.insert({name, cost}).second)
+		{
+			_timeCosts[name] += cost;
+		}
+	});
 }
 
 ImGuiDora::~ImGuiDora()
 {
 	SharedApplication.eventHandler -= std::make_pair(this, &ImGuiDora::handleEvent);
+	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
 }
 
@@ -455,8 +490,8 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	float scale = SharedApplication.getDeviceRatio();
 	fontSize *= scale;
 
-	Sint64 size;
-	Uint8* fileData = SharedContent.loadUnsafe(ttfFontFile, size);
+	int64_t size;
+	uint8_t* fileData = SharedContent.loadUnsafe(ttfFontFile, size);
 
 	if (!fileData)
 	{
@@ -473,7 +508,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	fontConfig.OversampleH = 1;
 	fontConfig.OversampleV = 1;
 	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), fontSize, &fontConfig, io.Fonts->GetGlyphRangesDefault());
-	Uint8* texData;
+	uint8_t* texData;
 	int width;
 	int height;
 	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
@@ -530,72 +565,230 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 void ImGuiDora::showStats()
 {
 	/* print debug text */
-	ImGui::SetNextWindowSize(Vec2{217,345}, ImGuiCond_FirstUseEver);
-	ImGui::Begin("Dorothy Stats", nullptr, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings);
-	const bgfx::Stats* stats = bgfx::getStats();
-	const char* rendererNames[] = {
-		"Noop", //!< No rendering.
-		"Direct3D9", //!< Direct3D 9.0
-		"Direct3D11", //!< Direct3D 11.0
-		"Direct3D12", //!< Direct3D 12.0
-		"Gnm", //!< GNM
-		"Metal", //!< Metal
-		"OpenGLES", //!< OpenGL ES 2.0+
-		"OpenGL", //!< OpenGL 2.1+
-		"Vulkan", //!< Vulkan
-	};
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Renderer:");
-	ImGui::SameLine();
-	ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Multithreaded:");
-	ImGui::SameLine();
-	ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Backbuffer:");
-	ImGui::SameLine();
-	Size size = SharedView.getSize();
-	ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Draw call:");
-	ImGui::SameLine();
-	ImGui::Text("%d", stats->numDraw);
-	static int frames = 0;
-	static double cpuTime = 0, gpuTime = 0, deltaTime = 0;
-	cpuTime += SharedApplication.getCPUTime();
-	gpuTime += std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
-	deltaTime += SharedApplication.getDeltaTime();
-	frames++;
-	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getTargetFPS();
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "CPU time:");
-	ImGui::SameLine();
-	if (lastCpuTime == 0) ImGui::Text("-");
-	else ImGui::Text("%.1f ms", lastCpuTime);
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "GPU time:");
-	ImGui::SameLine();
-	if (lastGpuTime == 0) ImGui::Text("-");
-	else ImGui::Text("%.1f ms", lastGpuTime);
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Delta time:");
-	ImGui::SameLine();
-	ImGui::Text("%.1f ms", lastDeltaTime);
-	if (frames == SharedApplication.getTargetFPS())
+	if (ImGui::Begin("Dorothy Stats", nullptr,
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		lastCpuTime = 1000.0 * cpuTime / frames;
-		lastGpuTime = 1000.0 * gpuTime / frames;
-		lastDeltaTime = 1000.0 * deltaTime / frames;
-		frames = 0;
-		cpuTime = gpuTime = deltaTime = 0.0;
+		if (ImGui::CollapsingHeader("Basic"))
+		{
+			static const char* rendererNames[] = {
+				"Noop", //!< No rendering.
+				"Direct3D9", //!< Direct3D 9.0
+				"Direct3D11", //!< Direct3D 11.0
+				"Direct3D12", //!< Direct3D 12.0
+				"Gnm", //!< GNM
+				"Metal", //!< Metal
+				"OpenGLES", //!< OpenGL ES 2.0+
+				"OpenGL", //!< OpenGL 2.1+
+				"Vulkan", //!< Vulkan
+			};
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Renderer:");
+			ImGui::SameLine();
+			ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Multithreaded:");
+			ImGui::SameLine();
+			ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Backbuffer:");
+			ImGui::SameLine();
+			Size size = SharedView.getSize();
+			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Drawcall:");
+			ImGui::SameLine();
+			ImGui::Text("%d", bgfx::getStats()->numDraw);
+			bool vsync = SharedView.isVSync();
+			if (ImGui::Checkbox("VSync", &vsync))
+			{
+				SharedView.setVSync(vsync);
+			}
+			ImGui::SameLine();
+			bool fpsLimited = SharedApplication.isFPSLimited();
+			if (ImGui::Checkbox("FPS Limited", &fpsLimited))
+			{
+				SharedApplication.setFPSLimited(fpsLimited);
+			}
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "FPS:");
+			ImGui::SameLine();
+			int targetFPS = SharedApplication.getTargetFPS();
+			if (ImGui::RadioButton("30", &targetFPS, 30))
+			{
+				SharedApplication.setTargetFPS(targetFPS);
+			}
+			ImGui::SameLine();
+			if (ImGui::RadioButton("60", &targetFPS, 60))
+			{
+				SharedApplication.setTargetFPS(targetFPS);
+			}
+			if (SharedApplication.getMaxFPS() > 60)
+			{
+				ImGui::SameLine();
+				int maxFPS = SharedApplication.getMaxFPS();
+				std::string fpsStr = std::to_string(maxFPS);
+				if (ImGui::RadioButton(fpsStr.c_str(), &targetFPS, maxFPS))
+				{
+					SharedApplication.setTargetFPS(targetFPS);
+				}
+			}
+			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
+			ImGui::PushItemWidth(100.0f);
+			if (ImGui::DragInt("FPS Fixed", &fixedFPS, 1, 30, SharedApplication.getMaxFPS()))
+			{
+				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
+			}
+			ImGui::PopItemWidth();
+		}
+		if (ImGui::CollapsingHeader("Time"))
+		{
+			_timeFrames++;
+			_cpuTime += SharedApplication.getCPUTime();
+			_gpuTime += SharedApplication.getGPUTime();
+			_deltaTime += SharedApplication.getDeltaTime();
+			if (_timeFrames >= SharedApplication.getTargetFPS())
+			{
+				_avgCPUTime = 1000.0 * _cpuTime / _timeFrames;
+				_avgGPUTime = 1000.0 * _gpuTime / _timeFrames;
+				_avgDeltaTime = 1000.0 * _deltaTime / _timeFrames;
+				_cpuTime = _gpuTime = _deltaTime = 0.0;
+				_timeFrames = 0;
+			}
+			ImGui::Checkbox("Show Plot", &_showPlot);
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG FPS:");
+			ImGui::SameLine();
+			ImGui::Text("%.1f", 1000.0f / _avgDeltaTime);
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG CPU:");
+			ImGui::SameLine();
+			if (_avgCPUTime == 0) ImGui::Text("-");
+			else ImGui::Text("%.1f ms", _avgCPUTime);
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG GPU:");
+			ImGui::SameLine();
+			if (_avgGPUTime == 0) ImGui::Text("-");
+			else ImGui::Text("%.1f ms", _avgGPUTime);
+		}
+		if (ImGui::CollapsingHeader("Object"))
+		{
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "C++ Object:");
+			ImGui::SameLine();
+			ImGui::Text("%d", Object::getCount());
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Object:");
+			ImGui::SameLine();
+			ImGui::Text("%d", Object::getLuaRefCount());
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Callback:");
+			ImGui::SameLine();
+			ImGui::Text("%d", Object::getLuaCallbackCount());
+		}
+		if (ImGui::CollapsingHeader("Memory"))
+		{
+			_memFrames++;
+			_memPoolSize += (MemoryPool::getCapacity() / 1024);
+			int k = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNT);
+			int b = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNTB);
+			_memLua += (k + b / 1024);
+			if (_memFrames >= SharedApplication.getTargetFPS())
+			{
+				_lastMemPoolSize = _memPoolSize / _memFrames;
+				_lastMemLua = _memLua / _memFrames;
+				_memPoolSize = _memLua = 0;
+				_memFrames = 0;
+			}
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Memory Pool:");
+			ImGui::SameLine();
+			ImGui::Text("%d kb", _lastMemPoolSize);
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Memory:");
+			ImGui::SameLine();
+			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f);
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Texture Size:");
+			ImGui::SameLine();
+			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
+		}
+		ImGui::Dummy(Vec2{200.0f, 0.0f});
 	}
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "C++ Object:");
-	ImGui::SameLine();
-	ImGui::Text("%d", Object::getCount());
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Object:");
-	ImGui::SameLine();
-	ImGui::Text("%d", Object::getLuaRefCount());
-	ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Callback:");
-	ImGui::SameLine();
-	ImGui::Text("%d", Object::getLuaCallbackCount());
-	//ImGui::TextColored(Color(0xff00ffff).toVec4(), "Memory Pool:");
-	//ImGui::SameLine();
-	//ImGui::Text("%d kb", MemoryPool::getCapacity()/1024);
 	ImGui::End();
+
+	if (_showPlot)
+	{
+		const int PlotCount = 30;
+		_profileFrames++;
+		_maxCPU = std::max(_maxCPU, SharedApplication.getCPUTime());
+		_maxGPU = std::max(_maxGPU, SharedApplication.getGPUTime());
+		_maxDelta = std::max(_maxDelta, SharedApplication.getDeltaTime());
+		double targetTime = 1000.0 / SharedApplication.getTargetFPS();
+		_logicTime += SharedApplication.getLogicTime();
+		_renderTime += SharedApplication.getRenderTime();
+		if (_profileFrames >= SharedApplication.getTargetFPS())
+		{
+			_cpuValues.push_back(_maxCPU * 1000.0);
+			_gpuValues.push_back(_maxGPU * 1000.0);
+			_dtValues.push_back(_maxDelta * 1000.0);
+			_maxCPU = _maxGPU = _maxDelta = 0;
+			if (_cpuValues.size() > PlotCount + 1) _cpuValues.erase(_cpuValues.begin());
+			if (_gpuValues.size() > PlotCount + 1) _gpuValues.erase(_gpuValues.begin());
+			if (_dtValues.size() > PlotCount + 1) _dtValues.erase(_dtValues.begin());
+			else _times.push_back(_dtValues.size() - 1);
+			_yLimit = 0;
+			for (auto v : _cpuValues) if (v > _yLimit) _yLimit = v;
+			for (auto v : _gpuValues) if (v > _yLimit) _yLimit = v;
+			for (auto v : _dtValues) if (v > _yLimit) _yLimit = v;
+			_updateCosts.clear();
+			double time = 0;
+			for (const auto& item : _timeCosts)
+			{
+				time += item.second;
+				_updateCosts[item.first] = item.second * 1000.0 / _profileFrames;
+			}
+			_timeCosts.clear();
+			_updateCosts["Logic"_slice] = (_logicTime - time) * 1000.0 / _profileFrames;
+			_updateCosts["Render"_slice] = _renderTime * 1000.0 / _profileFrames;
+			_logicTime = _renderTime = 0;
+			_profileFrames = 0;
+		}
+		Size size = SharedApplication.getVisualSize();
+		ImGui::SetNextWindowPos(Vec2{size.width/2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
+		if (ImGui::Begin("Frame Time Peaks(ms) in Seconds", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImPlot::SetNextPlotLimits(0, PlotCount, 0, std::max(_yLimit, targetTime) + 1.0, ImGuiCond_Always);
+			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0,0,0,0));
+			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0,0,0,0));
+			if (ImPlot::BeginPlot("Time Profiler", nullptr, nullptr, Vec2{300.0f, 130.0f},
+				ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle, ImPlotAxisFlags_NoTickLabels))
+			{
+				ImPlot::SetLegendLocation(ImPlotLocation_South, ImPlotOrientation_Horizontal, true);
+				ImPlot::PlotHLines("Base", &targetTime, 1);
+				ImPlot::PlotLine("CPU", _times.data(), _cpuValues.data(),
+					s_cast<int>(_cpuValues.size()));
+				ImPlot::PlotLine("GPU", _times.data(), _gpuValues.data(),
+					s_cast<int>(_gpuValues.size()));
+				ImPlot::PlotLine("Delta", _times.data(), _dtValues.data(),
+					s_cast<int>(_dtValues.size()));
+				ImPlot::EndPlot();
+			}
+			ImPlot::PopStyleColor(2);
+		}
+		ImGui::End();
+		ImGui::SetNextWindowPos(Vec2{size.width/2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
+		if (ImGui::Begin("CPU Time", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0,0,0,0));
+			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0,0,0,0));
+			ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0,0,0,0.3f));
+			ImPlot::SetNextPlotLimits(0, 1, 0, 1, ImGuiCond_Always);
+			if (ImPlot::BeginPlot("Update Pie", nullptr, nullptr, ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoMousePos | ImPlotFlags_NoChild, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations)) {
+				std::vector<const char*> pieLabels(_updateCosts.size());
+				std::vector<double> pieValues(_updateCosts.size());
+				int i = 0;
+				for (const auto& item : _updateCosts)
+				{
+					pieLabels[i] = item.first.c_str();
+					pieValues[i] = item.second;
+					i++;
+				}
+				ImPlot::SetLegendLocation(ImPlotLocation_SouthEast, ImPlotOrientation_Vertical, false);
+				ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 0.5, 0.5, 0.45, true, "%.1f");
+				ImPlot::EndPlot();
+			}
+			ImPlot::PopStyleColor(3);
+		}
+		ImGui::End();
+	}
 }
 
 void ImGuiDora::showConsole()
@@ -606,6 +799,7 @@ void ImGuiDora::showConsole()
 bool ImGuiDora::init()
 {
 	ImGui::CreateContext(_defaultFonts.get());
+	ImPlot::CreateContext();
 	ImGuiStyle& style = ImGui::GetStyle();
 	float rounding = 0.0f;
 	style.Alpha = 1.0f;
@@ -723,7 +917,7 @@ bool ImGuiDora::init()
 		"builtin::vs_ocornut_imgui"_slice,
 		"builtin::fs_ocornut_imgui_image"_slice);
 
-	Uint8* texData;
+	uint8_t* texData;
 	int width;
 	int height;
 	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
@@ -736,7 +930,7 @@ bool ImGuiDora::init()
 		if (_backSpaceIgnore) _backSpaceIgnore = false;
 		if (!_inputs.empty())
 		{
-			const auto& event = _inputs.front();
+			auto& event = *std::any_cast<SDL_Event>(&_inputs.front());
 			ImGuiIO& io = ImGui::GetIO();
 			switch (event.type)
 			{
@@ -760,7 +954,7 @@ bool ImGuiDora::init()
 				{
 					SDL_Keycode code = event.key.keysym.sym;
 					int key = code & ~SDLK_SCANCODE_MASK;
-					Uint16 mod = event.key.keysym.mod;
+					uint16_t mod = event.key.keysym.mod;
 					io.KeyShift = ((mod & KMOD_SHIFT) != 0);
 					io.KeyCtrl = ((mod & KMOD_CTRL) != 0);
 					io.KeyAlt = ((mod & KMOD_ALT) != 0);
@@ -862,8 +1056,8 @@ void ImGuiDora::render()
 			bgfx::TransientIndexBuffer tib;
 
 			const ImDrawList* drawList = drawData->CmdLists[ii];
-			uint32_t numVertices = (uint32_t)drawList->VtxBuffer.size();
-			uint32_t numIndices = (uint32_t)drawList->IdxBuffer.size();
+			uint32_t numVertices = s_cast<uint32_t>(drawList->VtxBuffer.size());
+			uint32_t numIndices = s_cast<uint32_t>(drawList->IdxBuffer.size());
 
 			if (!checkAvailTransientBuffers(numVertices, _vertexLayout, numIndices))
 			{
@@ -872,12 +1066,12 @@ void ImGuiDora::render()
 			}
 
 			bgfx::allocTransientVertexBuffer(&tvb, numVertices, _vertexLayout);
-			bgfx::allocTransientIndexBuffer(&tib, numIndices);
+			bgfx::allocTransientIndexBuffer(&tib, numIndices, std::is_same_v<ImDrawIdx, uint32_t>);
 
-			ImDrawVert* verts = (ImDrawVert*)tvb.data;
+			ImDrawVert* verts = r_cast<ImDrawVert*>(tvb.data);
 			std::memcpy(verts, drawList->VtxBuffer.begin(), numVertices * sizeof(drawList->VtxBuffer[0]));
 
-			ImDrawIdx* indices = (ImDrawIdx*)tib.data;
+			ImDrawIdx* indices = r_cast<ImDrawIdx*>(tib.data);
 			std::memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(drawList->IdxBuffer[0]));
 
 			uint32_t offset = 0;
@@ -947,9 +1141,9 @@ void ImGuiDora::sendKey(int key, int count)
 	}
 }
 
-void ImGuiDora::updateTexture(Uint8* data, int width, int height)
+void ImGuiDora::updateTexture(uint8_t* data, int width, int height)
 {
-	const Uint64 textureFlags = BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
+	const uint64_t textureFlags = BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
@@ -1045,7 +1239,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			start = length;
 			count = 0;
 			int lastPos = -1;
-			utf8_each_character(event.edit.text, [&](int stop, Uint32 code)
+			utf8_each_character(event.edit.text, [&](int stop, uint32_t code)
 			{
 				if (count >= s_cast<int>(_textEditing.size()) || _textEditing[count] != code)
 				{
@@ -1080,7 +1274,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 				}
 				if (!changed)
 				{
-					Sint32 cursor = event.edit.start;
+					int32_t cursor = event.edit.start;
 					if (cursor > _lastCursor)
 					{
 						sendKey(SDLK_RIGHT, cursor - _lastCursor);
@@ -1130,7 +1324,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			size_t start = length;
 			size_t count = 0;
 			int lastPos = -1;
-			utf8_each_character(event.edit.text, [&](int stop, Uint32 code)
+			utf8_each_character(event.edit.text, [&](int stop, uint32_t code)
 			{
 				if (count >= _textEditing.size() || _textEditing[count] != code)
 				{
@@ -1147,7 +1341,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			_inputs.push_back(e);
 			int addCount = utf8_count_characters(e.text.text);
 			_lastCursor += addCount;
-			Sint32 cursor = event.edit.start;
+			int32_t cursor = event.edit.start;
 			if (cursor > _lastCursor)
 			{
 				sendKey(SDLK_RIGHT, cursor - _lastCursor);

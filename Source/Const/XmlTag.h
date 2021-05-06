@@ -38,8 +38,8 @@ enum struct Particle
 	Dorothy = 'A',
 	Angle = 'B', // float
 	AngleVariance = 'C', // float
-	BlendFuncDestination = 'D', // Uint32
-	BlendFuncSource = 'E', // Uint32
+	BlendFuncDestination = 'D', // uint32_t
+	BlendFuncSource = 'E', // uint32_t
 	Duration = 'F', // float
 	EmissionRate = 'G', // float
 	FinishColor = 'H', // Vec4
@@ -50,7 +50,7 @@ enum struct Particle
 	RotationEndVariance = 'M', // float
 	FinishParticleSize = 'N', // float
 	FinishParticleSizeVariance = 'O', // float
-	MaxParticles = 'P', // Uint32
+	MaxParticles = 'P', // uint32_t
 	ParticleLifespan = 'Q', // float
 	ParticleLifespanVariance = 'R', // float
 	StartPosition = 'S', // Vec2
@@ -192,7 +192,7 @@ namespace Model
 	enum struct KeyPoint
 	{
 		Key = 'A',
-		Position = 'D'
+		Position = 'B'
 	};
 };
 

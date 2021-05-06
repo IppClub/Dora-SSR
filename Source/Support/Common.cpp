@@ -17,25 +17,25 @@ g(255),
 b(255)
 { }
 
-Color3::Color3(Uint32 rgb):
+Color3::Color3(uint32_t rgb):
 r((rgb & 0x00FF0000) >> 16),
 g((rgb & 0x0000FF00) >> 8),
 b(rgb & 0x000000FF)
 { }
 
-Color3::Color3(Uint8 r, Uint8 g, Uint8 b):
+Color3::Color3(uint8_t r, uint8_t g, uint8_t b):
 r(r),
 g(g),
 b(b)
 { }
 
 Color3::Color3(const Vec3& vec):
-r(s_cast<Uint8>(std::round(vec.x * 255.0f))),
-g(s_cast<Uint8>(std::round(vec.y * 255.0f))),
-b(s_cast<Uint8>(std::round(vec.z * 255.0f)))
+r(s_cast<uint8_t>(std::round(vec.x * 255.0f))),
+g(s_cast<uint8_t>(std::round(vec.y * 255.0f))),
+b(s_cast<uint8_t>(std::round(vec.z * 255.0f)))
 { }
 
-Uint32 Color3::toRGB() const
+uint32_t Color3::toRGB() const
 {
 	return r << 16 | g << 8 | b;
 }
@@ -52,21 +52,21 @@ b(255),
 a(255)
 { }
 
-Color::Color(Color3 color, Uint8 a):
+Color::Color(Color3 color, uint8_t a):
 a(a),
 r(color.r),
 g(color.g),
 b(color.b)
 { }
 
-Color::Color(Uint32 argb):
+Color::Color(uint32_t argb):
 a(argb >> 24),
 r((argb & 0x00ff0000) >> 16),
 g((argb & 0x0000ff00) >> 8),
 b(argb & 0x000000ff)
 { }
 
-Color::Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a):
+Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a):
 r(r),
 g(g),
 b(b),
@@ -74,23 +74,23 @@ a(a)
 { }
 
 Color::Color(const Vec4& vec):
-r(s_cast<Uint8>(std::round(vec.x * 255.0f))),
-g(s_cast<Uint8>(std::round(vec.y * 255.0f))),
-b(s_cast<Uint8>(std::round(vec.z * 255.0f))),
-a(s_cast<Uint8>(std::round(vec.w * 255.0f)))
+r(s_cast<uint8_t>(std::round(vec.x * 255.0f))),
+g(s_cast<uint8_t>(std::round(vec.y * 255.0f))),
+b(s_cast<uint8_t>(std::round(vec.z * 255.0f))),
+a(s_cast<uint8_t>(std::round(vec.w * 255.0f)))
 { }
 
-Uint32 Color::toABGR() const
+uint32_t Color::toABGR() const
 {
-	return *r_cast<Uint32*>(c_cast<Color*>(this));
+	return *r_cast<uint32_t*>(c_cast<Color*>(this));
 }
 
-Uint32 Color::toRGBA() const
+uint32_t Color::toRGBA() const
 {
 	return r << 24 | g << 16 | b << 8 | a;
 }
 
-Uint32 Color::toARGB() const
+uint32_t Color::toARGB() const
 {
 	return a << 24 | r << 16 | g << 8 | b;
 }
@@ -107,7 +107,7 @@ Vec4 Color::toVec4() const
 
 void Color::setOpacity(float var)
 {
-	a = s_cast<Uint8>(std::round(Math::clamp(var, 0.0f, 1.0f) * 255.0f));
+	a = s_cast<uint8_t>(std::round(Math::clamp(var, 0.0f, 1.0f) * 255.0f));
 }
 
 float Color::getOpacity() const
@@ -132,7 +132,7 @@ Color& Color::operator=(const Color& color)
 	return *this;
 }
 
-Color Color::convert(Uint32 abgr)
+Color Color::convert(uint32_t abgr)
 {
 	return *r_cast<Color*>(&abgr);
 }
@@ -142,7 +142,7 @@ Color Color::Black(0x0);
 
 const BlendFunc BlendFunc::Default{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 
-Uint64 BlendFunc::toValue()
+uint64_t BlendFunc::toValue()
 {
 	return BGFX_STATE_BLEND_FUNC(src, dst);
 }

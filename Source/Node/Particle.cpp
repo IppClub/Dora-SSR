@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-static const Uint8 __defaultParticleTexturePng[] = {
+static const uint8_t __defaultParticleTexturePng[] = {
 	0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
 	0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x20, 0x08, 0x06, 0x00, 0x00, 0x00, 0x73, 0x7A, 0x7A,
 	0xF4, 0x00, 0x00, 0x00, 0x04, 0x67, 0x41, 0x4D, 0x41, 0x00, 0x00, 0xAF, 0xC8, 0x37, 0x05, 0x8A,
@@ -285,7 +285,7 @@ bool ParticleNode::isDepthWrite() const
 
 void ParticleNode::addParticle()
 {
-	if (s_cast<Uint32>(_particles.size()) >= _particleDef->maxParticles)
+	if (s_cast<uint32_t>(_particles.size()) >= _particleDef->maxParticles)
 	{
 		return;
 	}
@@ -484,11 +484,11 @@ void ParticleNode::visit()
 	if (_flags.isOn(ParticleNode::Active) && _particleDef->emissionRate)
 	{
 		float rate = 1.0f / _particleDef->emissionRate;
-		if (s_cast<Uint32>(_particles.size()) < _particleDef->maxParticles)
+		if (s_cast<uint32_t>(_particles.size()) < _particleDef->maxParticles)
 		{
 			_emitCounter += deltaTime;
 		}
-		while (s_cast<Uint32>(_particles.size()) < _particleDef->maxParticles && _emitCounter > rate)
+		while (s_cast<uint32_t>(_particles.size()) < _particleDef->maxParticles && _emitCounter > rate)
 		{
 			addParticle();
 			_emitCounter -= rate;

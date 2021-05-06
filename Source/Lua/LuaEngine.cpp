@@ -91,7 +91,7 @@ static int dora_loadfile(lua_State* L, String filename)
 
 	const char* codeBuffer = nullptr;
 	size_t codeBufferSize = 0;
-	OwnArray<Uint8> buffer;
+	OwnArray<uint8_t> buffer;
 	std::string codes;
 	switch (Switch::hash(extension))
 	{
@@ -312,7 +312,7 @@ static int dora_yuecompile(lua_State* L)
 		std::string dest = tolua_toslice(L, 2, 0);
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
 		LuaFunction<void> callback(tolua_ref_function(L, 4));
-		SharedContent.loadAsyncData(src, [src,dest,handler,callback](OwnArray<Uint8>&& codes, size_t size)
+		SharedContent.loadAsyncData(src, [src,dest,handler,callback](OwnArray<uint8_t>&& codes, size_t size)
 		{
 			if (!codes)
 			{
@@ -321,7 +321,7 @@ static int dora_yuecompile(lua_State* L)
 			else
 			{
 				auto input = std::make_shared<std::tuple<
-					std::string, std::string, OwnArray<Uint8>, size_t>>(
+					std::string, std::string, OwnArray<uint8_t>, size_t>>(
 					src, dest, std::move(codes), size);
 				SharedAsyncThread.run([input]()
 				{
@@ -602,17 +602,17 @@ void LuaEngine::push(int value)
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(Uint16 value)
+void LuaEngine::push(uint16_t value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(Uint32 value)
+void LuaEngine::push(uint32_t value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(Uint64 value)
+void LuaEngine::push(uint64_t value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
@@ -674,17 +674,17 @@ void LuaEngine::push(lua_State* L, int value)
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(lua_State* L, Uint16 value)
+void LuaEngine::push(lua_State* L, uint16_t value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(lua_State* L, Uint32 value)
+void LuaEngine::push(lua_State* L, uint32_t value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
 
-void LuaEngine::push(lua_State* L, Uint64 value)
+void LuaEngine::push(lua_State* L, uint64_t value)
 {
 	lua_pushinteger(L, s_cast<lua_Integer>(value));
 }
@@ -756,41 +756,41 @@ bool LuaEngine::to(int& value, int index)
 	return false;
 }
 
-bool LuaEngine::to(Uint16& value, int index)
+bool LuaEngine::to(uint16_t& value, int index)
 {
 	if (lua_isinteger(L, index))
 	{
-		value = s_cast<Uint16>(lua_tointeger(L, index));
+		value = s_cast<uint16_t>(lua_tointeger(L, index));
 		return true;
 	}
 	return false;
 }
 
-bool LuaEngine::to(Uint32& value, int index)
+bool LuaEngine::to(uint32_t& value, int index)
 {
 	if (lua_isinteger(L, index))
 	{
-		value = s_cast<Uint32>(lua_tointeger(L, index));
+		value = s_cast<uint32_t>(lua_tointeger(L, index));
 		return true;
 	}
 	return false;
 }
 
-bool LuaEngine::to(Uint64& value, int index)
+bool LuaEngine::to(uint64_t& value, int index)
 {
 	if (lua_isinteger(L, index))
 	{
-		value = s_cast<Uint64>(lua_tointeger(L, index));
+		value = s_cast<uint64_t>(lua_tointeger(L, index));
 		return true;
 	}
 	return false;
 }
 
-bool LuaEngine::to(Sint64& value, int index)
+bool LuaEngine::to(int64_t& value, int index)
 {
 	if (lua_isinteger(L, index))
 	{
-		value = s_cast<Sint64>(lua_tointeger(L, index));
+		value = s_cast<int64_t>(lua_tointeger(L, index));
 		return true;
 	}
 	return false;

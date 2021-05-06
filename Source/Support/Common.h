@@ -14,59 +14,59 @@ NS_DOROTHY_BEGIN
 
 struct Color3
 {
-	Uint8 r;
-	Uint8 g;
-	Uint8 b;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
 	Color3();
-	Color3(Uint32 rgb);
-	Color3(Uint8 r, Uint8 g, Uint8 b);
+	Color3(uint32_t rgb);
+	Color3(uint8_t r, uint8_t g, uint8_t b);
 	Color3(const Vec3& vec);
-	Uint32 toRGB() const;
+	uint32_t toRGB() const;
 	Vec3 toVec3() const;
 };
 
 struct Color
 {
-	Uint8 r;
-	Uint8 g;
-	Uint8 b;
-	Uint8 a;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
 	Color();
-	Color(Color3 color, Uint8 a = 0);
-	Color(Uint32 argb);
-	Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+	Color(Color3 color, uint8_t a = 0);
+	Color(uint32_t argb);
+	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 	Color(const Vec4& vec);
-	Uint32 toABGR() const;
-	Uint32 toRGBA() const;
-	Uint32 toARGB() const;
+	uint32_t toABGR() const;
+	uint32_t toRGBA() const;
+	uint32_t toARGB() const;
 	Color3 toColor3() const;
 	Vec4 toVec4() const;
 	PROPERTY(float, Opacity);
 	Color& operator=(const Color3& color);
 	Color& operator=(const Color& color);
-	static Color convert(Uint32 abgr);
+	static Color convert(uint32_t abgr);
 	static Color White;
 	static Color Black;
 };
 
 struct BlendFunc
 {
-	Uint32 src;
-	Uint32 dst;
+	uint32_t src;
+	uint32_t dst;
 	enum
 	{
-		One = Uint32(BGFX_STATE_BLEND_ONE),
-		Zero = Uint32(BGFX_STATE_BLEND_ZERO),
-		SrcColor = Uint32(BGFX_STATE_BLEND_SRC_COLOR),
-		SrcAlpha = Uint32(BGFX_STATE_BLEND_SRC_ALPHA),
-		DstColor = Uint32(BGFX_STATE_BLEND_DST_COLOR),
-		DstAlpha = Uint32(BGFX_STATE_BLEND_DST_ALPHA),
-		InvSrcColor = Uint32(BGFX_STATE_BLEND_INV_SRC_COLOR),
-		InvSrcAlpha = Uint32(BGFX_STATE_BLEND_INV_SRC_ALPHA),
-		InvDstColor = Uint32(BGFX_STATE_BLEND_INV_DST_COLOR),
-		InvDstAlpha = Uint32(BGFX_STATE_BLEND_INV_DST_ALPHA)
+		One = uint32_t(BGFX_STATE_BLEND_ONE),
+		Zero = uint32_t(BGFX_STATE_BLEND_ZERO),
+		SrcColor = uint32_t(BGFX_STATE_BLEND_SRC_COLOR),
+		SrcAlpha = uint32_t(BGFX_STATE_BLEND_SRC_ALPHA),
+		DstColor = uint32_t(BGFX_STATE_BLEND_DST_COLOR),
+		DstAlpha = uint32_t(BGFX_STATE_BLEND_DST_ALPHA),
+		InvSrcColor = uint32_t(BGFX_STATE_BLEND_INV_SRC_COLOR),
+		InvSrcAlpha = uint32_t(BGFX_STATE_BLEND_INV_SRC_ALPHA),
+		InvDstColor = uint32_t(BGFX_STATE_BLEND_INV_DST_COLOR),
+		InvDstAlpha = uint32_t(BGFX_STATE_BLEND_INV_DST_ALPHA)
 	};
-	Uint64 toValue();
+	uint64_t toValue();
 	static const BlendFunc Default;
 };
 

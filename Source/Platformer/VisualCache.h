@@ -75,7 +75,7 @@ public:
 	const std::string& getFilename() const;
 private:
 	std::string _file;
-	Uint32 _type;
+	uint32_t _type;
 };
 
 /** @brief The visual interface class for loading and creating visual item instance.

@@ -13,13 +13,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 
+#include "SDL.h"
+
 NS_DOROTHY_BEGIN
 
 Keyboard::Keyboard():
-_oldCodeStates{},
-_newCodeStates{},
-_oldKeyStates{},
-_newKeyStates{}
+_oldCodeStates(SDL_NUM_SCANCODES, false),
+_newCodeStates(SDL_NUM_SCANCODES, false),
+_oldKeyStates(SDL_NUM_SCANCODES, false),
+_newKeyStates(SDL_NUM_SCANCODES, false),
+_keyNames(SDL_NUM_SCANCODES),
+_codeNames(SDL_NUM_SCANCODES)
 {
 	SharedApplication.eventHandler += std::make_pair(this, &Keyboard::handleEvent);
 }
@@ -31,26 +35,26 @@ Keyboard::~Keyboard()
 
 bool Keyboard::init()
 {
-    _keyNames[SDLK_RETURN] = "Return"_slice;
-    _keyNames[SDLK_ESCAPE] = "Escape"_slice;
-    _keyNames[SDLK_BACKSPACE] = "BackSpace"_slice;
-    _keyNames[SDLK_TAB] = "Tab"_slice;
-    _keyNames[SDLK_SPACE] = "Space"_slice;
-    _keyNames[SDLK_EXCLAIM] = "!"_slice;
-    _keyNames[SDLK_QUOTEDBL] = "\""_slice;
-    _keyNames[SDLK_HASH] = "#"_slice;
-    _keyNames[SDLK_PERCENT] = "%"_slice;
-    _keyNames[SDLK_DOLLAR] = "$"_slice;
-    _keyNames[SDLK_AMPERSAND] = "&"_slice;
-    _keyNames[SDLK_QUOTE] = "\'"_slice;
-    _keyNames[SDLK_LEFTPAREN] = "("_slice;
-    _keyNames[SDLK_RIGHTPAREN] = ")"_slice;
-    _keyNames[SDLK_ASTERISK] = "*"_slice;
-    _keyNames[SDLK_PLUS] = "+"_slice;
-    _keyNames[SDLK_COMMA] = ","_slice;
-    _keyNames[SDLK_MINUS] = "-"_slice;
-    _keyNames[SDLK_PERIOD] = "."_slice;
-    _keyNames[SDLK_SLASH] = "/"_slice;
+	_keyNames[SDLK_RETURN] = "Return"_slice;
+	_keyNames[SDLK_ESCAPE] = "Escape"_slice;
+	_keyNames[SDLK_BACKSPACE] = "BackSpace"_slice;
+	_keyNames[SDLK_TAB] = "Tab"_slice;
+	_keyNames[SDLK_SPACE] = "Space"_slice;
+	_keyNames[SDLK_EXCLAIM] = "!"_slice;
+	_keyNames[SDLK_QUOTEDBL] = "\""_slice;
+	_keyNames[SDLK_HASH] = "#"_slice;
+	_keyNames[SDLK_PERCENT] = "%"_slice;
+	_keyNames[SDLK_DOLLAR] = "$"_slice;
+	_keyNames[SDLK_AMPERSAND] = "&"_slice;
+	_keyNames[SDLK_QUOTE] = "\'"_slice;
+	_keyNames[SDLK_LEFTPAREN] = "("_slice;
+	_keyNames[SDLK_RIGHTPAREN] = ")"_slice;
+	_keyNames[SDLK_ASTERISK] = "*"_slice;
+	_keyNames[SDLK_PLUS] = "+"_slice;
+	_keyNames[SDLK_COMMA] = ","_slice;
+	_keyNames[SDLK_MINUS] = "-"_slice;
+	_keyNames[SDLK_PERIOD] = "."_slice;
+	_keyNames[SDLK_SLASH] = "/"_slice;
 
 	_keyNames[SDLK_1] = "1"_slice;
 	_keyNames[SDLK_2] = "2"_slice;
@@ -63,18 +67,18 @@ bool Keyboard::init()
 	_keyNames[SDLK_9] = "9"_slice;
 	_keyNames[SDLK_0] = "0"_slice;
 	_keyNames[SDLK_COLON] = ":"_slice;
-    _keyNames[SDLK_SEMICOLON] = ";"_slice;
-    _keyNames[SDLK_LESS] = "<"_slice;
-    _keyNames[SDLK_EQUALS] = "="_slice;
-    _keyNames[SDLK_GREATER] = ">"_slice;
-    _keyNames[SDLK_QUESTION] = "?"_slice;
-    _keyNames[SDLK_AT] = "@"_slice;
-    _keyNames[SDLK_LEFTBRACKET] = "["_slice;
-    _keyNames[SDLK_BACKSLASH] = "\\"_slice;
-    _keyNames[SDLK_RIGHTBRACKET] = "]"_slice;
-    _keyNames[SDLK_CARET] = "^"_slice;
-    _keyNames[SDLK_UNDERSCORE] = "_"_slice;
-    _keyNames[SDLK_BACKQUOTE] = "`"_slice;
+	_keyNames[SDLK_SEMICOLON] = ";"_slice;
+	_keyNames[SDLK_LESS] = "<"_slice;
+	_keyNames[SDLK_EQUALS] = "="_slice;
+	_keyNames[SDLK_GREATER] = ">"_slice;
+	_keyNames[SDLK_QUESTION] = "?"_slice;
+	_keyNames[SDLK_AT] = "@"_slice;
+	_keyNames[SDLK_LEFTBRACKET] = "["_slice;
+	_keyNames[SDLK_BACKSLASH] = "\\"_slice;
+	_keyNames[SDLK_RIGHTBRACKET] = "]"_slice;
+	_keyNames[SDLK_CARET] = "^"_slice;
+	_keyNames[SDLK_UNDERSCORE] = "_"_slice;
+	_keyNames[SDLK_BACKQUOTE] = "`"_slice;
 
 	_keyNames[SDLK_a] = "A"_slice;
 	_keyNames[SDLK_b] = "B"_slice;
@@ -161,7 +165,7 @@ bool Keyboard::init()
 	_codeNames[SDL_SCANCODE_KP_PERIOD] = "."_slice;
 
 	_codeNames[SDL_SCANCODE_APPLICATION] = "Application"_slice;
-	
+
 	_codeNames[SDL_SCANCODE_LCTRL] = "LCtrl"_slice;
 	_codeNames[SDL_SCANCODE_LSHIFT] = "LShift"_slice;
 	_codeNames[SDL_SCANCODE_LALT] = "LAlt"_slice;
@@ -181,7 +185,7 @@ bool Keyboard::init()
 	return true;
 }
 
-void Keyboard::update()
+void Keyboard::clearChanges()
 {
 	if (!_changedKeys.empty())
 	{
@@ -189,7 +193,7 @@ void Keyboard::update()
 		{
 			if ((symKey & SDLK_SCANCODE_MASK) != 0)
 			{
-				Uint32 code = s_cast<Uint32>(symKey) & ~SDLK_SCANCODE_MASK;
+				uint32_t code = s_cast<uint32_t>(symKey) & ~SDLK_SCANCODE_MASK;
 				_oldCodeStates[code] = _newCodeStates[code];
 			}
 			else

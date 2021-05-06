@@ -13,6 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Joint.h"
 #include "Physics/DebugDraw.h"
 #include "Node/DrawNode.h"
+#include "Basic/Application.h"
+#include "Event/Event.h"
 #include "PlayRho/Collision/Manifold.hpp"
 #include "PlayRho/Collision/DynamicTree.hpp"
 #include "PlayRho/Collision/Distance.hpp"
@@ -52,9 +54,6 @@ _world{}
 {
 	_stepConf.regVelocityIterations = 1;
 	_stepConf.regPositionIterations = 1;
-#if TARGET_OS_SIMULATOR
-	_flags.setOn(PhysicsWorld::UseFixedUpdate);
-#endif // TARGET_OS_SIMULATOR
 }
 
 PhysicsWorld::~PhysicsWorld()
@@ -261,16 +260,6 @@ pd::World& PhysicsWorld::getPrWorld()
 	return _world;
 }
 
-void PhysicsWorld::setUpdateFixed(bool var)
-{
-	_flags.set(PhysicsWorld::UseFixedUpdate, var);
-}
-
-bool PhysicsWorld::isUpdateFixed() const
-{
-	return _flags.isOn(PhysicsWorld::UseFixedUpdate);
-}
-
 void PhysicsWorld::setShowDebug(bool var)
 {
 	if (var)
@@ -306,6 +295,7 @@ void PhysicsWorld::setIterations(int velocityIter, int positionIter)
 
 void PhysicsWorld::doUpdate(double deltaTime)
 {
+	double start = SharedApplication.getEclapsedTime();
 	_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
 	_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
 	_world.Step(_stepConf);
@@ -318,12 +308,15 @@ void PhysicsWorld::doUpdate(double deltaTime)
 			body->updatePhysics();
 		}
 	}
+	Event::send("_TIMECOST_"_slice,
+		"Physics"_slice.toString(),
+		SharedApplication.getEclapsedTime() - start);
 	solveContacts();
 }
 
 bool PhysicsWorld::fixedUpdate(double deltaTime)
 {
-	if (isFixedUpdating() && _flags.isOn(PhysicsWorld::UseFixedUpdate))
+	if (isFixedUpdating())
 	{
 		doUpdate(deltaTime);
 	}
@@ -332,7 +325,7 @@ bool PhysicsWorld::fixedUpdate(double deltaTime)
 
 bool PhysicsWorld::update(double deltaTime)
 {
-	if (isUpdating() && _flags.isOff(PhysicsWorld::UseFixedUpdate))
+	if (isUpdating() && !isFixedUpdating())
 	{
 		doUpdate(deltaTime);
 	}
@@ -490,7 +483,7 @@ bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, con
 	return result;
 }
 
-void PhysicsWorld::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
+void PhysicsWorld::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact)
 {
 	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
 	pr::Filter& filterA = _filters[groupA];
@@ -522,7 +515,7 @@ void PhysicsWorld::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
 	}
 }
 
-bool PhysicsWorld::getShouldContact(Uint8 groupA, Uint8 groupB) const
+bool PhysicsWorld::getShouldContact(uint8_t groupA, uint8_t groupB) const
 {
 	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
 	const pr::Filter& filterA = _filters[groupA];
@@ -530,7 +523,7 @@ bool PhysicsWorld::getShouldContact(Uint8 groupA, Uint8 groupB) const
 	return (filterA.maskBits & filterB.categoryBits) && (filterA.categoryBits & filterB.maskBits);
 }
 
-const pr::Filter& PhysicsWorld::getFilter(Uint8 group) const
+const pr::Filter& PhysicsWorld::getFilter(uint8_t group) const
 {
 	AssertIf(group >= TotalGroups, "Body group should be less than {}.", TotalGroups);
 	return _filters[group];

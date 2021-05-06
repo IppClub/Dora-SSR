@@ -135,7 +135,7 @@ void Model::setFliped(bool var)
 	Playable::setFliped(var);
 }
 
-float Model::play(Uint32 index, bool loop)
+float Model::play(uint32_t index, bool loop)
 {
 	Model::stop();
 	if (index == Animation::None || index >= _animationGroups.size())
@@ -243,7 +243,7 @@ int Model::getCurrentAnimationIndex() const
 	return Animation::None;
 }
 
-void Model::resume(Uint32 index, bool loop)
+void Model::resume(uint32_t index, bool loop)
 {
 	Model::resume();
 	if (!_isPlaying || _currentAnimation != index)

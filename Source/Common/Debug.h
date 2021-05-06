@@ -29,7 +29,7 @@ std::string LogFormat(const char* format, const Args& ...args)
 	return fmt::format(format, Argument(args)...);
 }
 
-extern Delegate<void (const std::string&)> LogHandler;
+extern Acf::Delegate<void (const std::string&)> LogHandler;
 
 void LogError(const std::string& str);
 void LogPrintInThread(const std::string& str);

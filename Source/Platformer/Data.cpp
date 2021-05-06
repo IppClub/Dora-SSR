@@ -53,24 +53,24 @@ void Data::apply(PhysicsWorld* world)
 	world->setShouldContact(SenseAll, Terrain, true);
 	for (auto it : _contactMap)
 	{
-		Uint8 groupA = it.first >> 8;
-		Uint8 groupB = it.first & 0xff;
+		uint8_t groupA = it.first >> 8;
+		uint8_t groupB = it.first & 0xff;
 		world->setShouldContact(groupA, groupB, it.second);
 	}
 }
 
-void Data::setRelation(Uint8 groupA, Uint8 groupB, Relation relation)
+void Data::setRelation(uint8_t groupA, uint8_t groupB, Relation relation)
 {
-	Uint16 key = groupA<<8 | groupB;
+	uint16_t key = groupA<<8 | groupB;
 	_relationMap[key] = relation;
 	key = groupA | groupB<<8;
 	_relationMap[key] = relation;
 }
 
-Relation Data::getRelation(Uint8 groupA, Uint8 groupB) const
+Relation Data::getRelation(uint8_t groupA, uint8_t groupB) const
 {
 	if (groupA == groupB) return Relation::Friend;
-	Uint16 key = groupA<<8 | groupB;
+	uint16_t key = groupA<<8 | groupB;
 	auto it = _relationMap.find(key);
 	return it != _relationMap.end() ? it->second : Relation::Unknown;
 }
@@ -81,7 +81,7 @@ Relation Data::getRelation(Body* bodyA, Body* bodyB) const
 	return Data::getRelation(bodyA->getGroup(), bodyB->getGroup());
 }
 
-bool Data::isEnemy(Uint8 groupA, Uint8 groupB) const
+bool Data::isEnemy(uint8_t groupA, uint8_t groupB) const
 {
 	return getRelation(groupA, groupB) == Relation::Enemy;
 }
@@ -91,7 +91,7 @@ bool Data::isEnemy(Body* bodyA, Body* bodyB) const
 	return getRelation(bodyA, bodyB) == Relation::Enemy;
 }
 
-bool Data::isFriend(Uint8 groupA, Uint8 groupB) const
+bool Data::isFriend(uint8_t groupA, uint8_t groupB) const
 {
 	return getRelation(groupA, groupB) == Relation::Enemy;
 }
@@ -101,7 +101,7 @@ bool Data::isFriend(Body* bodyA, Body* bodyB) const
 	return getRelation(bodyA, bodyB) == Relation::Friend;
 }
 
-bool Data::isNeutral(Uint8 groupA, Uint8 groupB) const
+bool Data::isNeutral(uint8_t groupA, uint8_t groupB) const
 {
 	return getRelation(groupA, groupB) == Relation::Neutral;
 }
@@ -111,51 +111,51 @@ bool Data::isNeutral(Body* bodyA, Body* bodyB) const
 	return getRelation(bodyA, bodyB) == Relation::Neutral;
 }
 
-void Data::setShouldContact(Uint8 groupA, Uint8 groupB, bool contact)
+void Data::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact)
 {
-	Uint16 key = groupA<<8 | groupB;
+	uint16_t key = groupA<<8 | groupB;
 	_contactMap[key] = contact;
 	key = groupA | groupB<<8;
 	_contactMap[key] = contact;
 }
 
-bool Data::getShouldContact(Uint8 groupA, Uint8 groupB) const
+bool Data::getShouldContact(uint8_t groupA, uint8_t groupB) const
 {
-	Uint16 key = groupA<<8 | groupB;
+	uint16_t key = groupA<<8 | groupB;
 	auto it = _contactMap.find(key);
 	return it != _contactMap.end() ? it->second : false;
 }
 
-Uint8 Data::getGroupDetectPlayer() const
+uint8_t Data::getGroupDetectPlayer() const
 {
 	return PSensor;
 }
 
-Uint8 Data::getGroupTerrain() const
+uint8_t Data::getGroupTerrain() const
 {
 	return Terrain;
 }
 
-Uint8 Data::getGroupDetection() const
+uint8_t Data::getGroupDetection() const
 {
 	return SenseAll;
 }
 
-Uint8 Data::getGroupHide() const
+uint8_t Data::getGroupHide() const
 {
 	return Hide;
 }
 
-void Data::setDamageFactor(Uint16 damageType, Uint16 defenceType, float bounus)
+void Data::setDamageFactor(uint16_t damageType, uint16_t defenceType, float bounus)
 {
-	Uint32 key = damageType | defenceType<<16;
+	uint32_t key = damageType | defenceType<<16;
 	_damageBounusMap[key] = bounus;
 }
 
-float Data::getDamageFactor(Uint16 damageType, Uint16 defenceType) const
+float Data::getDamageFactor(uint16_t damageType, uint16_t defenceType) const
 {
-	Uint32 key = damageType | defenceType<<16;
-	std::unordered_map<Uint32, float>::const_iterator it = _damageBounusMap.find(key);
+	uint32_t key = damageType | defenceType<<16;
+	std::unordered_map<uint32_t, float>::const_iterator it = _damageBounusMap.find(key);
 	if (it != _damageBounusMap.end())
 	{
 		return it->second;
@@ -165,7 +165,7 @@ float Data::getDamageFactor(Uint16 damageType, Uint16 defenceType) const
 
 bool Data::isPlayer(Body* body)
 {
-	Sint16 index = body->getGroup();
+	int16_t index = body->getGroup();
 	return FP <= index && index <= LP;
 }
 

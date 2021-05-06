@@ -13,7 +13,7 @@ NS_DOROTHY_BEGIN
 class Event;
 class EventType;
 
-typedef Delegate<void (Event* event)> EventHandler;
+typedef Acf::Delegate<void (Event* event)> EventHandler;
 
 /** @brief Use event listener to handle event. */
 class Listener : public Object
