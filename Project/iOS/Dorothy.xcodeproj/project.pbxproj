@@ -1252,9 +1252,6 @@
 		3CF00E37258B475A00898F4B /* SVGCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SVGCache.cpp; path = ../../../Source/Cache/SVGCache.cpp; sourceTree = "<group>"; };
 		3CF00E38258B475A00898F4B /* SVGCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SVGCache.h; path = ../../../Source/Cache/SVGCache.h; sourceTree = "<group>"; };
 		3CF89B5724332CC900A195C7 /* concurrentqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = concurrentqueue.h; path = ../../../Source/3rdParty/Other/concurrentqueue.h; sourceTree = "<group>"; };
-		3CF89B592433352300A195C7 /* fs_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_impl.hpp; path = ../../../Source/3rdParty/ghc/fs_impl.hpp; sourceTree = "<group>"; };
-		3CF89B5A2433352300A195C7 /* filesystem.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = filesystem.hpp; path = ../../../Source/3rdParty/ghc/filesystem.hpp; sourceTree = "<group>"; };
-		3CF89B5B2433352300A195C7 /* fs_fwd.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_fwd.hpp; path = ../../../Source/3rdParty/ghc/fs_fwd.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2085,7 +2082,6 @@
 			children = (
 				3C030CA524CAC1CE0074786E /* ml */,
 				3C20F2D5248F76CC00BBA830 /* spine */,
-				3CF89B58243334F900A195C7 /* ghc */,
 				3CE9509920F33D97002FFC18 /* stb */,
 				3CAA2D0126155D8D004443A6 /* sqlite */,
 				3CA1B7F01EC16EBD00BC58FF /* tinyxml2 */,
@@ -2330,16 +2326,6 @@
 				3C0AD7BA1E0CE95F0033AD59 /* Listener.h */,
 			);
 			name = Event;
-			sourceTree = "<group>";
-		};
-		3CF89B58243334F900A195C7 /* ghc */ = {
-			isa = PBXGroup;
-			children = (
-				3CF89B5A2433352300A195C7 /* filesystem.hpp */,
-				3CF89B5B2433352300A195C7 /* fs_fwd.hpp */,
-				3CF89B592433352300A195C7 /* fs_impl.hpp */,
-			);
-			name = ghc;
 			sourceTree = "<group>";
 		};
 		3CFF5F281E0136A5004E3CA6 /* Common */ = {

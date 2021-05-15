@@ -44,9 +44,9 @@ protected:
 	static int _lastIMEPosX, _lastIMEPosY;
 private:
 	bool _showPlot;
-	int _timeFrames;
-	int _memFrames;
-	int _profileFrames;
+	uint32_t _timeFrames;
+	uint32_t _memFrames;
+	uint32_t _profileFrames;
 	double _cpuTime;
 	double _gpuTime;
 	double _deltaTime;

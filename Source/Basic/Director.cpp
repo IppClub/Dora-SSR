@@ -37,6 +37,7 @@ _camStack(Array::create()),
 _clearColor(0xff1a1a1a),
 _displayStats(false),
 _nvgDirty(false),
+_paused(false),
 _stoped(false),
 _nvgContext(nullptr)
 {
@@ -240,7 +241,7 @@ bool Director::init()
 
 void Director::doLogic()
 {
-	if (_stoped) return;
+	if (_paused || _stoped) return;
 
 	/* push default view projection */
 	Camera* camera = getCurrentCamera();
@@ -303,7 +304,7 @@ void Director::doLogic()
 
 void Director::doRender()
 {
-	if (_stoped) return;
+	if (_paused || _stoped) return;
 
 	/* push default view projection */
 	pushViewProjection(_defaultViewProj, [&]()
@@ -554,8 +555,8 @@ void Director::handleSDLEvent(const SDL_Event& event)
 	{
 		// User-requested quit
 		case SDL_QUIT:
-			Event::send("AppQuit"_slice);
 			_stoped = true;
+			Event::send("AppQuit"_slice);
 			clear();
 			break;
 		// The application is being terminated by the OS.
@@ -568,6 +569,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 			break;
 		// The application is about to enter the background.
 		case SDL_APP_WILLENTERBACKGROUND:
+			_paused = true;
 			Event::send("AppWillEnterBackground"_slice);
 			break;
 		case SDL_APP_DIDENTERBACKGROUND:
@@ -577,6 +579,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 			Event::send("AppWillEnterForeground"_slice);
 			break;
 		case SDL_APP_DIDENTERFOREGROUND:
+			_paused = false;
 			Event::send("AppDidEnterForeground"_slice);
 			SharedView.reset();
 			markDirty();
@@ -586,14 +589,18 @@ void Director::handleSDLEvent(const SDL_Event& event)
 			{
 				switch (event.window.event)
 				{
+					case SDL_WINDOWEVENT_HIDDEN:
+						_paused = true;
+						break;
+					case SDL_WINDOWEVENT_SHOWN:
+						_paused = false;
+						break;
 					case SDL_WINDOWEVENT_RESIZED:
 					case SDL_WINDOWEVENT_SIZE_CHANGED:
-					{
 						SharedView.reset();
 						markDirty();
 						Event::send("AppSizeChanged"_slice);
 						break;
-					}
 				}
 			}
 			break;

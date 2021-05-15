@@ -212,7 +212,6 @@ enterDemoEntry = (name)->
 showEntry = false
 
 thread ->
-	sleep!
 	:width,:height = App.visualSize
 	scale = App.deviceRatio*0.7*math.min(width,height)/760
 	unless App.debugging

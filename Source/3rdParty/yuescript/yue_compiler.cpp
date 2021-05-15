@@ -59,7 +59,7 @@ inline std::string s(std::string_view sv) {
 	return std::string(sv);
 }
 
-const std::string_view version = "0.7.12"sv;
+const std::string_view version = "0.7.14"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -216,9 +216,14 @@ private:
 		Capital = 1,
 		Any = 2
 	};
+	enum class VarType {
+		Local = 0,
+		Const = 1,
+		Global = 2
+	};
 	struct Scope {
 		GlobalMode mode = GlobalMode::None;
-		std::unique_ptr<std::unordered_map<std::string,bool>> vars;
+		std::unique_ptr<std::unordered_map<std::string,VarType>> vars;
 		std::unique_ptr<std::unordered_set<std::string>> allows;
 		std::unique_ptr<std::unordered_set<std::string>> globals;
 	};
@@ -257,7 +262,7 @@ private:
 
 	void pushScope() {
 		_scopes.emplace_back();
-		_scopes.back().vars = std::make_unique<std::unordered_map<std::string,bool>>();
+		_scopes.back().vars = std::make_unique<std::unordered_map<std::string,VarType>>();
 	}
 
 	void popScope() {
@@ -272,11 +277,11 @@ private:
 			if (current.globals) {
 				if (current.globals->find(name) != current.globals->end()) {
 					isDefined = true;
-					current.vars->insert_or_assign(name, false);
+					current.vars->insert_or_assign(name, VarType::Global);
 				}
 			} else {
 				isDefined = true;
-				current.vars->insert_or_assign(name, false);
+				current.vars->insert_or_assign(name, VarType::Global);
 			}
 		}
 		decltype(_scopes.back().allows.get()) allows = nullptr;
@@ -298,11 +303,12 @@ private:
 		return isDefined;
 	}
 
-	bool isSolidDefined(const std::string& name) const {
+	bool isLocal(const std::string& name) const {
 		bool isDefined = false;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
-			if (vars->find(name) != vars->end()) {
+			auto vit = vars->find(name);
+			if (vit != vars->end() && vit->second != VarType::Global) {
 				isDefined = true;
 				break;
 			}
@@ -324,7 +330,7 @@ private:
 			auto vars = it->vars.get();
 			auto vit = vars->find(name);
 			if (vit != vars->end()) {
-				isConst = vit->second;
+				isConst = (vit->second == VarType::Const);
 				break;
 			}
 			if (checkShadowScopeOnly && it->allows) break;
@@ -340,7 +346,7 @@ private:
 
 	void markVarConst(const std::string& name) {
 		auto& scope = _scopes.back();
-		scope.vars->insert_or_assign(name, true);
+		scope.vars->insert_or_assign(name, VarType::Const);
 	}
 
 	void markVarShadowed() {
@@ -348,16 +354,17 @@ private:
 		scope.allows = std::make_unique<std::unordered_set<std::string>>();
 	}
 
-	void markVarGlobal(GlobalMode mode, bool specified) {
+	void markVarsGlobal(GlobalMode mode) {
 		auto& scope = _scopes.back();
 		scope.mode = mode;
-		if (specified && !scope.globals) {
-			scope.globals = std::make_unique<std::unordered_set<std::string>>();
-		}
 	}
 
-	void addGlobalVar(const std::string& name) {
+	void addGlobalVar(const std::string& name, ast_node* x) {
+		if (isLocal(name)) throw std::logic_error(_info.errorMessage("can not declare a local variable to be global"sv, x));
 		auto& scope = _scopes.back();
+		if (!scope.globals) {
+			scope.globals = std::make_unique<std::unordered_set<std::string>>();
+		}
 		scope.globals->insert(name);
 	}
 
@@ -368,7 +375,7 @@ private:
 
 	void forceAddToScope(const std::string& name) {
 		auto& scope = _scopes.back();
-		scope.vars->insert_or_assign(name, false);
+		scope.vars->insert_or_assign(name, VarType::Local);
 	}
 
 	Scope& currentScope() {
@@ -379,7 +386,7 @@ private:
 		bool defined = isDefined(name);
 		if (!defined) {
 			auto& scope = currentScope();
-			scope.vars->insert_or_assign(name, false);
+			scope.vars->insert_or_assign(name, VarType::Local);
 		}
 		return !defined;
 	}
@@ -390,8 +397,24 @@ private:
 		do {
 			newName = s(name) + std::to_string(index);
 			index++;
-		} while (isSolidDefined(newName));
+		} while (isLocal(newName));
 		return newName;
+	}
+
+	std::string transformCondExp(Exp_t* cond, bool unless) {
+		str_list tmp;
+		if (unless) {
+			if (auto value = singleValueFrom(cond)) {
+				transformValue(value, tmp);
+			} else {
+				transformExp(cond, tmp, ExpUsage::Closure);
+				tmp.back() = s("("sv) + tmp.back() + s(")"sv);
+			}
+			return s("not "sv) + tmp.back();
+		} else {
+			transformExp(cond, tmp, ExpUsage::Closure);
+			return tmp.back();
+		}
 	}
 
 	const std::string nll(ast_node* node) const {
@@ -867,8 +890,10 @@ private:
 			auto appendix = statement->appendix.get();
 			switch (appendix->item->getId()) {
 				case id<if_line_t>(): {
-					auto if_line = appendix->item.to<if_line_t>();
+					auto if_line = static_cast<if_line_t*>(appendix->item.get());
 					auto ifNode = x->new_ptr<If_t>();
+					auto ifType = toAst<IfType_t>("if"sv, x);
+					ifNode->type.set(ifType);
 
 					auto ifCond = x->new_ptr<IfCond_t>();
 					ifCond->condition.set(if_line->condition);
@@ -893,20 +918,22 @@ private:
 					break;
 				}
 				case id<unless_line_t>(): {
-					auto unless_line = appendix->item.to<unless_line_t>();
-					auto unless = x->new_ptr<Unless_t>();
+					auto unless_line = static_cast<unless_line_t*>(appendix->item.get());
+					auto ifNode = x->new_ptr<If_t>();
+					auto ifType = toAst<IfType_t>("unless"sv, x);
+					ifNode->type.set(ifType);
 
 					auto ifCond = x->new_ptr<IfCond_t>();
 					ifCond->condition.set(unless_line->condition);
-					unless->nodes.push_back(ifCond);
+					ifNode->nodes.push_back(ifCond);
 
 					auto stmt = x->new_ptr<Statement_t>();
 					stmt->content.set(statement->content);
-					unless->nodes.push_back(stmt);
+					ifNode->nodes.push_back(stmt);
 
 					statement->appendix.set(nullptr);
 					auto simpleValue = x->new_ptr<SimpleValue_t>();
-					simpleValue->value.set(unless);
+					simpleValue->value.set(ifNode);
 					auto value = x->new_ptr<Value_t>();
 					value->item.set(simpleValue);
 					auto exp = newExp(value, x);
@@ -978,7 +1005,6 @@ private:
 							switch (value->getId()) {
 								case id<If_t>(): transformIf(static_cast<If_t*>(value), out, ExpUsage::Common); break;
 								case id<ClassDecl_t>(): transformClassDecl(static_cast<ClassDecl_t*>(value), out, ExpUsage::Common); break;
-								case id<Unless_t>(): transformUnless(static_cast<Unless_t*>(value), out, ExpUsage::Common); break;
 								case id<Switch_t>(): transformSwitch(static_cast<Switch_t*>(value), out, ExpUsage::Common); break;
 								case id<With_t>(): transformWith(static_cast<With_t*>(value), out); break;
 								case id<ForEach_t>(): transformForEach(static_cast<ForEach_t*>(value), out); break;
@@ -1201,16 +1227,12 @@ private:
 			}
 		}
 		switch (value->getId()) {
-			case id<If_t>():
-			case id<Unless_t>(): {
+			case id<If_t>(): {
 				auto expList = assignment->expList.get();
 				str_list temp;
 				auto defs = transformAssignDefs(expList, DefOp::Mark);
 				if (!defs.empty()) temp.push_back(getPredefine(defs) + nll(expList));
-				switch (value->getId()) {
-					case id<If_t>(): transformIf(static_cast<If_t*>(value), temp, ExpUsage::Assignment, expList); break;
-					case id<Unless_t>(): transformUnless(static_cast<Unless_t*>(value), temp, ExpUsage::Assignment, expList); break;
-				}
+				transformIf(static_cast<If_t*>(value), temp, ExpUsage::Assignment, expList);
 				out.push_back(join(temp));
 				return;
 			}
@@ -1799,6 +1821,7 @@ private:
 				if (*it != nodes.front() && cond->assign) {
 					auto x = *it;
 					auto newIf = x->new_ptr<If_t>();
+					newIf->type.set(toAst<IfType_t>("if"sv, x));
 					for (auto j = ns.rbegin(); j != ns.rend(); ++j) {
 						newIf->nodes.push_back(*j);
 					}
@@ -1821,6 +1844,7 @@ private:
 		if (nodes.size() != ns.size()) {
 			auto x = ns.back();
 			auto newIf = x->new_ptr<If_t>();
+			newIf->type.set(toAst<IfType_t>("if"sv, x));
 			for (auto j = ns.rbegin(); j != ns.rend(); ++j) {
 				newIf->nodes.push_back(*j);
 			}
@@ -1911,23 +1935,13 @@ private:
 			if (pair.first) {
 				str_list tmp;
 				auto condition = pair.first->condition.get();
-				if (unless) {
-					if (auto value = singleValueFrom(condition)) {
-						transformValue(value, tmp);
-					} else {
-						transformExp(condition, tmp, ExpUsage::Closure);
-						tmp.back() = s("("sv) + tmp.back() + s(")"sv);
-					}
-					tmp.back().insert(0, s("not "sv));
-					unless = false;
-				} else {
-					transformExp(condition, tmp, ExpUsage::Closure);
-				}
+				auto condStr = transformCondExp(condition, unless);
+				if (unless) unless = false;
 				_buf << indent();
 				if (pair != ifCondPairs.front()) {
 					_buf << "else"sv;
 				}
-				_buf << "if "sv << tmp.back() << " then"sv << nll(condition);
+				_buf << "if "sv << condStr << " then"sv << nll(condition);
 				temp.push_back(clearBuf());
 			}
 			if (pair.second) {
@@ -1959,11 +1973,8 @@ private:
 	}
 
 	void transformIf(If_t* ifNode, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
-		transformCond(ifNode->nodes.objects(), out, usage, false, assignList);
-	}
-
-	void transformUnless(Unless_t* unless, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
-		transformCond(unless->nodes.objects(), out, usage, true, assignList);
+		bool unless = _parser.toString(ifNode->type) == "unless"sv;
+		transformCond(ifNode->nodes.objects(), out, usage, unless, assignList);
 	}
 
 	void transformExpList(ExpList_t* expList, str_list& out) {
@@ -2105,7 +2116,7 @@ private:
 		switch (item->getId()) {
 			case id<Variable_t>(): {
 				transformVariable(static_cast<Variable_t*>(item), out);
-				if (_config.lintGlobalVariable && !isSolidDefined(out.back())) {
+				if (_config.lintGlobalVariable && !isLocal(out.back())) {
 					if (_globals.find(out.back()) == _globals.end()) {
 						_globals[out.back()] = {item->m_begin.m_line, item->m_begin.m_col};
 					}
@@ -2139,7 +2150,6 @@ private:
 		switch (value->getId()) {
 			case id<const_value_t>(): transform_const_value(static_cast<const_value_t*>(value), out); break;
 			case id<If_t>(): transformIf(static_cast<If_t*>(value), out, ExpUsage::Closure); break;
-			case id<Unless_t>(): transformUnless(static_cast<Unless_t*>(value), out, ExpUsage::Closure); break;
 			case id<Switch_t>(): transformSwitch(static_cast<Switch_t*>(value), out, ExpUsage::Closure); break;
 			case id<With_t>(): transformWithClosure(static_cast<With_t*>(value), out); break;
 			case id<ClassDecl_t>(): transformClassDeclClosure(static_cast<ClassDecl_t*>(value), out); break;
@@ -2749,9 +2759,6 @@ private:
 							return;
 						case id<If_t>():
 							transformIf(static_cast<If_t*>(value), out, ExpUsage::Return);
-							return;
-						case id<Unless_t>():
-							transformUnless(static_cast<Unless_t*>(value), out, ExpUsage::Return);
 							return;
 					}
 				} else if (auto chainValue = singleValue->item.as<ChainValue_t>()) {
@@ -4060,7 +4067,7 @@ private:
 			case id<star_exp_t>(): {
 				auto star_exp = static_cast<star_exp_t*>(loopTarget);
 				auto listVar = singleVariableFrom(star_exp->value);
-				if (!isSolidDefined(listVar)) listVar.clear();
+				if (!isLocal(listVar)) listVar.clear();
 				auto indexVar = getUnusedName("_index_"sv);
 				varAfter.push_back(indexVar);
 				auto value = singleValueFrom(star_exp->value);
@@ -4076,7 +4083,7 @@ private:
 				if (listVar.empty() && chainList.size() == 2) {
 					if (auto var = chainList.front()->getByPath<Variable_t>()) {
 						listVar = _parser.toString(var);
-						if (!isSolidDefined(listVar)) listVar.clear();
+						if (!isLocal(listVar)) listVar.clear();
 					}
 				}
 				chainList.pop_back();
@@ -4439,7 +4446,7 @@ private:
 
 	void transform_variable_pair(variable_pair_t* pair, str_list& out) {
 		auto name = _parser.toString(pair->name);
-		if (_config.lintGlobalVariable && !isSolidDefined(name)) {
+		if (_config.lintGlobalVariable && !isLocal(name)) {
 			if (_globals.find(name) == _globals.end()) {
 				_globals[name] = {pair->name->m_begin.m_line, pair->name->m_begin.m_col};
 			}
@@ -4938,7 +4945,7 @@ private:
 			if (vars.front().empty()) {
 				if (with->assigns->values.objects().size() == 1) {
 					auto var = singleVariableFrom(with->assigns->values.objects().front());
-					if (!var.empty() && isSolidDefined(var)) {
+					if (!var.empty() && isLocal(var)) {
 						withVar = var;
 					}
 				}
@@ -4984,7 +4991,7 @@ private:
 			}
 		} else {
 			withVar = singleVariableFrom(with->valueList);
-			if (withVar.empty() || !isSolidDefined(withVar)) {
+			if (withVar.empty() || !isLocal(withVar)) {
 				withVar = getUnusedName("_with_"sv);
 				auto assignment = x->new_ptr<ExpListAssign_t>();
 				assignment->expList.set(toAst<ExpList_t>(withVar, x));
@@ -5047,6 +5054,7 @@ private:
 		_withVars.push(withVar);
 		if (with->eop) {
 			auto ifNode = x->new_ptr<If_t>();
+			ifNode->type.set(toAst<IfType_t>("if"sv, x));
 			ifNode->nodes.push_back(toAst<IfCond_t>(withVar + s("~=nil"sv), x));
 			ifNode->nodes.push_back(with->body);
 			transformIf(ifNode, temp, ExpUsage::Common);
@@ -5086,26 +5094,26 @@ private:
 			case id<ClassDecl_t>(): {
 				auto classDecl = static_cast<ClassDecl_t*>(item);
 				if (classDecl->name && classDecl->name->item->getId() == id<Variable_t>()) {
-					markVarGlobal(GlobalMode::Any, true);
-					addGlobalVar(_parser.toString(classDecl->name->item));
+					markVarsGlobal(GlobalMode::Any);
+					addGlobalVar(_parser.toString(classDecl->name->item), classDecl->name->item);
 				}
 				transformClassDecl(classDecl, out, ExpUsage::Common);
 				break;
 			}
 			case id<global_op_t>():
 				if (_parser.toString(item) == "*"sv) {
-					markVarGlobal(GlobalMode::Any, false);
+					markVarsGlobal(GlobalMode::Any);
 				} else {
-					markVarGlobal(GlobalMode::Capital, false);
+					markVarsGlobal(GlobalMode::Capital);
 				}
 				break;
 			case id<global_values_t>(): {
-				markVarGlobal(GlobalMode::Any, true);
+				markVarsGlobal(GlobalMode::Any);
 				auto values = global->item.to<global_values_t>();
 				if (values->valueList) {
 					auto expList = x->new_ptr<ExpList_t>();
 					for (auto name : values->nameList->names.objects()) {
-						addGlobalVar(_parser.toString(name));
+						addGlobalVar(_parser.toString(name), name);
 						auto callable = x->new_ptr<Callable_t>();
 						callable->item.set(name);
 						auto chainValue = x->new_ptr<ChainValue_t>();
@@ -5128,7 +5136,7 @@ private:
 					transformAssignment(assignment, out);
 				} else {
 					for (auto name : values->nameList->names.objects()) {
-						addGlobalVar(_parser.toString(name));
+						addGlobalVar(_parser.toString(name), name);
 					}
 				}
 				break;
@@ -5726,8 +5734,9 @@ private:
 		addToScope(lenVar);
 		temp.push_back(indent() + s("local "sv) + accumVar + s(" = { }"sv) + nll(whileNode));
 		temp.push_back(indent() + s("local "sv) + lenVar + s(" = 1"sv) + nll(whileNode));
-		transformExp(whileNode->condition, temp, ExpUsage::Closure);
-		temp.back() = indent() + s("while "sv) + temp.back() + s(" do"sv) + nll(whileNode);
+		bool isUntil = _parser.toString(whileNode->type) == "until"sv;
+		auto condStr = transformCondExp(whileNode->condition, isUntil);
+		temp.push_back(indent() + s("while "sv) + condStr + s(" do"sv) + nll(whileNode));
 		pushScope();
 		auto assignLeft = toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), x);
 		auto lenLine = lenVar + s(" = "sv) + lenVar + s(" + 1"sv) + nlr(whileNode);
@@ -5763,8 +5772,9 @@ private:
 		addToScope(lenVar);
 		temp.push_back(indent() + s("local "sv) + accumVar + s(" = { }"sv) + nll(whileNode));
 		temp.push_back(indent() + s("local "sv) + lenVar + s(" = 1"sv) + nll(whileNode));
-		transformExp(whileNode->condition, temp, ExpUsage::Closure);
-		temp.back() = indent() + s("while "sv) + temp.back() + s(" do"sv) + nll(whileNode);
+		bool isUntil = _parser.toString(whileNode->type) == "until"sv;
+		auto condStr = transformCondExp(whileNode->condition, isUntil);
+		temp.push_back(indent() + s("while "sv) + condStr + s(" do"sv) + nll(whileNode));
 		pushScope();
 		auto assignLeft = toAst<ExpList_t>(accumVar + s("["sv) + lenVar + s("]"sv), x);
 		auto lenLine = lenVar + s(" = "sv) + lenVar + s(" + 1"sv) + nlr(whileNode);
@@ -5781,10 +5791,11 @@ private:
 	void transformWhile(While_t* whileNode, str_list& out) {
 		str_list temp;
 		pushScope();
-		transformExp(whileNode->condition, temp, ExpUsage::Closure);
+		bool isUntil = _parser.toString(whileNode->type) == "until"sv;
+		auto condStr = transformCondExp(whileNode->condition, isUntil);
 		transformLoopBody(whileNode->body, temp, Empty, ExpUsage::Common);
 		popScope();
-		_buf << indent() << "while "sv << temp.front() << " do"sv << nll(whileNode);
+		_buf << indent() << "while "sv << condStr << " do"sv << nll(whileNode);
 		_buf << temp.back();
 		_buf << indent() << "end"sv << nlr(whileNode);
 		out.push_back(clearBuf());
@@ -5810,7 +5821,7 @@ private:
 			_enableReturn.push(true);
 		}
 		auto objVar = singleVariableFrom(switchNode->target);
-		if (objVar.empty()) {
+		if (objVar.empty() || !isLocal(objVar)) {
 			objVar = getUnusedName("_exp_"sv);
 			addToScope(objVar);
 			transformExp(switchNode->target, temp, ExpUsage::Closure);
@@ -5921,7 +5932,7 @@ private:
 			}
 			str_list temp;
 			auto varStr = join(vars, ", "sv);
-			temp.push_back(s("local "sv) + varStr + nll(x));
+			temp.push_back(indent() + s("local "sv) + varStr + nll(x));
 			auto varList = toAst<ExpList_t>(varStr, x);
 			auto assignment = x->new_ptr<ExpListAssign_t>();
 			assignment->expList.set(varList);

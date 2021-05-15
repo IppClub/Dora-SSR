@@ -61,10 +61,3 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef DORA_FONT_TEXTURE_SIZE
 	#define DORA_FONT_TEXTURE_SIZE 2048
 #endif
-
-/** @brief Use alternative file system implementation
- due to the Android NDK issue #609 which will be solved in NDK r22
-*/
-#if BX_PLATFORM_ANDROID
-	#define DORA_FILESYSTEM_ALTER
-#endif
