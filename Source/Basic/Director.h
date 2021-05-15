@@ -69,6 +69,7 @@ protected:
 private:
 	bool _displayStats;
 	bool _nvgDirty;
+	bool _paused;
 	bool _stoped;
 	Color _clearColor;
 	Ref<Node> _ui;

@@ -631,7 +631,7 @@ void ImGuiDora::showStats()
 			}
 			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
 			ImGui::PushItemWidth(100.0f);
-			if (ImGui::DragInt("FPS Fixed", &fixedFPS, 1, 30, SharedApplication.getMaxFPS()))
+			if (ImGui::DragInt("Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS()))
 			{
 				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
 			}
@@ -771,7 +771,7 @@ void ImGuiDora::showStats()
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0,0,0,0));
 			ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0,0,0,0.3f));
 			ImPlot::SetNextPlotLimits(0, 1, 0, 1, ImGuiCond_Always);
-			if (ImPlot::BeginPlot("Update Pie", nullptr, nullptr, ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoMousePos | ImPlotFlags_NoChild, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations)) {
+			if (_updateCosts.size() > 0 && ImPlot::BeginPlot("Update Pie", nullptr, nullptr, ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoMousePos | ImPlotFlags_NoChild, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations)) {
 				std::vector<const char*> pieLabels(_updateCosts.size());
 				std::vector<double> pieValues(_updateCosts.size());
 				int i = 0;

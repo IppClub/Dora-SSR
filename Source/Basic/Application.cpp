@@ -225,6 +225,18 @@ int Application::run()
 			case SDL_QUIT:
 				_renderRunning = false;
 				break;
+#if BX_PLATFORM_ANDROID
+			case SDL_APP_DIDENTERFOREGROUND:
+			{
+				bgfx::PlatformData pd{};
+				pd.nwh = Android_JNI_GetNativeWindow();
+				if (pd.nwh)
+				{
+					bgfx::setPlatformData(pd);
+				}
+				break;
+			}
+#endif // BX_PLATFORM_ANDROID
 			case SDL_WINDOWEVENT:
 			{
 				switch (event.window.event)
@@ -234,7 +246,10 @@ int Application::run()
 #if BX_PLATFORM_ANDROID
 						bgfx::PlatformData pd{};
 						pd.nwh = Android_JNI_GetNativeWindow();
-						bgfx::setPlatformData(pd);
+						if (pd.nwh)
+						{
+							bgfx::setPlatformData(pd);
+						}
 #endif // BX_PLATFORM_ANDROID
 						updateWindowSize();
 						break;
@@ -430,6 +445,7 @@ int Application::mainLogic(Application* app)
 		Error("Director failed to initialize!");
 		return 1;
 	}
+	app->_frame = bgfx::frame();
 
 	app->makeTimeNow();
 	app->_startTime = app->_lastTime;

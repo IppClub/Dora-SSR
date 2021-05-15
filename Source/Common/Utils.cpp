@@ -10,13 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 #include "Basic/Application.h"
 #include "Lua/ToLua/tolua++.h"
-#ifdef DORA_FILESYSTEM_ALTER
-#include "ghc/fs_fwd.hpp"
-namespace fs = ghc::filesystem;
-#else
 #include <filesystem>
 namespace fs = std::filesystem;
-#endif // DORA_FILESYSTEM_ALTER
 
 NS_DOROTHY_BEGIN
 

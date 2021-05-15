@@ -978,9 +978,6 @@
 		3CF16C941E69078C002587CD /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Node/RenderTarget.cpp; sourceTree = "<group>"; };
 		3CF16C951E69078C002587CD /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Node/RenderTarget.h; sourceTree = "<group>"; };
 		3CF89B5624332C5000A195C7 /* concurrentqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = concurrentqueue.h; path = ../../../Source/3rdParty/Other/concurrentqueue.h; sourceTree = "<group>"; };
-		3CF89B5D2433388100A195C7 /* fs_fwd.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_fwd.hpp; path = ../../../Source/3rdParty/ghc/fs_fwd.hpp; sourceTree = "<group>"; };
-		3CF89B5E2433388100A195C7 /* filesystem.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = filesystem.hpp; path = ../../../Source/3rdParty/ghc/filesystem.hpp; sourceTree = "<group>"; };
-		3CF89B5F2433388200A195C7 /* fs_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = fs_impl.hpp; path = ../../../Source/3rdParty/ghc/fs_impl.hpp; sourceTree = "<group>"; };
 		3CFDA84A2200358900C9DFD0 /* Defines.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Defines.hpp; sourceTree = "<group>"; };
 		3CFDA8E12200358900C9DFD0 /* PlayRho.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PlayRho.hpp; sourceTree = "<group>"; };
 		3CFEDA9923A1402A00F60301 /* chrono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = chrono.h; path = ../../../Source/3rdParty/fmt/chrono.h; sourceTree = "<group>"; };
@@ -1266,7 +1263,6 @@
 			isa = PBXGroup;
 			children = (
 				3C00F71624CABCF300151CCA /* ml */,
-				3CF89B5C2433386E00A195C7 /* ghc */,
 				3C49FFEA20EF63C000E775D7 /* stb */,
 				3C0D30482456662D009C592B /* spine */,
 				3C46E81D26140A5600DC9D4F /* sqlite */,
@@ -1853,16 +1849,6 @@
 				3CE9D7F31E7FC2A6003AAECB /* PhysicsWorld.h */,
 			);
 			name = Physics;
-			sourceTree = "<group>";
-		};
-		3CF89B5C2433386E00A195C7 /* ghc */ = {
-			isa = PBXGroup;
-			children = (
-				3CF89B5E2433388100A195C7 /* filesystem.hpp */,
-				3CF89B5D2433388100A195C7 /* fs_fwd.hpp */,
-				3CF89B5F2433388200A195C7 /* fs_impl.hpp */,
-			);
-			name = ghc;
 			sourceTree = "<group>";
 		};
 		3CFDA8492200358900C9DFD0 /* PlayRho */ = {

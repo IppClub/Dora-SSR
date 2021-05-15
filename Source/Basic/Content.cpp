@@ -11,14 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Common/Async.h"
 #include "Basic/VGRender.h"
-#ifdef DORA_FILESYSTEM_ALTER
-#include "ghc/fs_impl.hpp"
-#include "ghc/fs_fwd.hpp"
-namespace fs = ghc::filesystem;
-#else
 #include <filesystem>
 namespace fs = std::filesystem;
-#endif // DORA_FILESYSTEM_ALTER
 #include <fstream>
 using std::ofstream;
 
