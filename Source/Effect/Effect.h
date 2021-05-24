@@ -16,10 +16,11 @@ NS_DOROTHY_BEGIN
 
 class Shader;
 
-class Effect : public Object
+class Pass : public Object
 {
 public:
-	virtual ~Effect();
+	PROPERTY_BOOL(RTNeeded);
+	virtual ~Pass();
 	virtual bool init() override;
 	void set(String name, float var);
 	void set(String name, float var1, float var2, float var3, float var4);
@@ -27,10 +28,10 @@ public:
 	void set(String name, const Matrix& var);
 	Value* get(String name) const;
 	bgfx::ProgramHandle apply();
-	CREATE_FUNC(Effect);
+	CREATE_FUNC(Pass);
 protected:
-	Effect(Shader* vertShader, Shader* fragShader);
-	Effect(String vertShader, String fragShader);
+	Pass(Shader* vertShader, Shader* fragShader);
+	Pass(String vertShader, String fragShader);
 private:
 	class Uniform : public Object
 	{
@@ -46,10 +47,28 @@ private:
 		bgfx::UniformHandle _handle;
 		Own<Value> _value;
 	};
+	bool _rtNeeded;
 	Ref<Shader> _fragShader;
 	Ref<Shader> _vertShader;
 	bgfx::ProgramHandle _program;
 	std::unordered_map<std::string, Ref<Uniform>> _uniforms;
+	DORA_TYPE_OVERRIDE(Pass);
+};
+
+class Effect : public Object
+{
+public:
+	PROPERTY_CREF(RefVector<Pass>, Passes);
+	void add(Pass* pass);
+	Pass* get(size_t index) const;
+	void clear();
+	CREATE_FUNC(Effect);
+protected:
+	Effect();
+	Effect(Shader* vertShader, Shader* fragShader);
+	Effect(String vertShader, String fragShader);
+private:
+	RefVector<Pass> _passes;
 	DORA_TYPE_OVERRIDE(Effect);
 };
 
@@ -60,6 +79,7 @@ public:
 	PROPERTY_READONLY(bgfx::UniformHandle, Sampler);
 	CREATE_FUNC(SpriteEffect);
 protected:
+	SpriteEffect();
 	SpriteEffect(Shader* vertShader, Shader* fragShader);
 	SpriteEffect(String vertShader, String fragShader);
 private:

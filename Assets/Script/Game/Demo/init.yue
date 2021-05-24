@@ -301,7 +301,7 @@ Director.entry\addChild with Node!
 Store["AI_Learned"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "is falling",=> not @onSurface
@@ -411,7 +411,7 @@ Store["Bullet_Arrow"] = with BulletDef!
 Store["AI_Boss"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "is falling",=> not @onSurface
@@ -456,7 +456,7 @@ Store["AI_Boss"] = Sel {
 Store["AI_PlayerControl"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Seq {

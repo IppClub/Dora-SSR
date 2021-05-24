@@ -144,7 +144,7 @@ void ClipNode::drawFullScreenStencil(uint8_t maskLayer, bool value)
 		bgfx::setIndexBuffer(&indexBuffer);
 		bgfx::setState(BGFX_STATE_NONE);
 		bgfx::ViewId viewId = SharedView.getId();
-		bgfx::submit(viewId, SharedLineRenderer.getDefaultEffect()->apply());
+		bgfx::submit(viewId, SharedLineRenderer.getDefaultPass()->apply());
 	}
 }
 

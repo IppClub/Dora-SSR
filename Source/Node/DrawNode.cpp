@@ -355,13 +355,13 @@ void DrawNode::clear()
 /* DrawRenderer */
 
 DrawRenderer::DrawRenderer():
-_defaultEffect(Effect::create("builtin::vs_draw"_slice, "builtin::fs_draw"_slice)),
+_defaultPass(Pass::create("builtin::vs_draw"_slice, "builtin::fs_draw"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 
-Effect* DrawRenderer::getDefaultEffect() const
+Pass* DrawRenderer::getDefaultPass() const
 {
-	return _defaultEffect;
+	return _defaultPass;
 }
 
 void DrawRenderer::push(DrawNode* node)
@@ -405,7 +405,7 @@ void DrawRenderer::render()
 			bgfx::setIndexBuffer(&indexBuffer);
 			bgfx::setState(_lastState);
 			bgfx::ViewId viewId = SharedView.getId();
-			bgfx::submit(viewId, _defaultEffect->apply());
+			bgfx::submit(viewId, _defaultPass->apply());
 		}
 		else
 		{
@@ -620,13 +620,13 @@ void Line::render()
 /* LineRenderer */
 
 LineRenderer::LineRenderer():
-_defaultEffect(Effect::create("builtin::vs_poscolor"_slice, "builtin::fs_poscolor"_slice)),
+_defaultPass(Pass::create("builtin::vs_poscolor"_slice, "builtin::fs_poscolor"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 
-Effect* LineRenderer::getDefaultEffect() const
+Pass* LineRenderer::getDefaultPass() const
 {
-	return _defaultEffect;
+	return _defaultPass;
 }
 
 void LineRenderer::push(Line* line)
@@ -663,7 +663,7 @@ void LineRenderer::render()
 			bgfx::setVertexBuffer(0, &vertexBuffer);
 			bgfx::setState(_lastState);
 			bgfx::ViewId viewId = SharedView.getId();
-			bgfx::submit(viewId, _defaultEffect->apply());
+			bgfx::submit(viewId, _defaultPass->apply());
 		}
 		else
 		{

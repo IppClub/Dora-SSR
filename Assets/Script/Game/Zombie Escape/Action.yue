@@ -39,7 +39,7 @@ UnitAction\add "fallOff",
 		(action)=>
 			return true if @onSurface
 			if not @entity.fallDown and
-				@playable.currentAnimation ~= "fallOff" and
+				@playable.current ~= "fallOff" and
 				@velocityY <= 0
 				@entity.fallDown = true
 				with @playable

@@ -153,13 +153,13 @@ allClear = ->
 	moduleCache = {}
 	with Director.ui
 		\removeAllChildren!
-		.userData\clear!
+		.data\clear!
 	with Director.entry
 		\removeAllChildren!
-		.userData\clear!
+		.data\clear!
 	with Director.postNode
 		\removeAllChildren!
-		.userData\clear!
+		.data\clear!
 	Director\popCamera!
 	Cache\unload!
 	Entity\clear!

@@ -110,8 +110,6 @@ private:
 	Sensor* _attackSensor;
 	UnitAction* _currentAction;
 	ActionMap _actions;
-	static const float BOTTOM_OFFSET;
-	static const float GROUND_SENSOR_HEIGHT;
 	enum
 	{
 		FaceRight = BodyUserFlag,

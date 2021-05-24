@@ -72,6 +72,7 @@ bool Model::init()
 			_animationGroups[i]->animationEnd = [this, name](Model* model)
 			{
 				emit("AnimationEnd"_slice, name, s_cast<Playable*>(model));
+				_lastCompletedAnimationName = name;
 			};
 		}
 	}
@@ -179,6 +180,7 @@ void Model::addAnimation(int index, Node* node, Action* action)
 void Model::stop()
 {
 	_isPlaying = false;
+	_lastCompletedAnimationName.clear();
 	Model::resume();
 	if (_isRecovering)
 	{
@@ -527,9 +529,14 @@ bool Model::eachNode(std::function<bool(Node* node)> handler) const
 	}
 }
 
-const std::string& Model::getCurrentAnimationName() const
+const std::string& Model::getCurrent() const
 {
 	return _modelDef->getAnimationNameByIndex(_currentAnimation);
+}
+
+const std::string& Model::getLastCompleted() const
+{
+	return _lastCompletedAnimationName;
 }
 
 Vec2 Model::getKeyPoint(String name) const

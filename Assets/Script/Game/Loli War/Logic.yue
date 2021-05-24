@@ -330,7 +330,7 @@ with Observer "Change", {"hp","hero"}
 					world\addChild with Node!
 						\schedule once ->
 							View.postEffect = with SpriteEffect "builtin::vs_sprite","builtin::fs_spritesaturation"
-								\set "u_adjustment",0
+								\get(1)\set "u_adjustment",0
 							sleep 3
 							cycle 5,(dt)-> View.postEffect\set "u_adjustment",dt
 							View.postEffect = nil

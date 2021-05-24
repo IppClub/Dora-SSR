@@ -2,8 +2,7 @@ _ENV = Dorothy(
 	builtin.Platformer
 	builtin.Platformer.Decision
 )
-
-Behavior:BT = builtin.Platformer
+import "Platformer" as Behavior:BT
 
 store:Store = Data
 
@@ -118,7 +117,7 @@ fightDecision = Seq {
 Store["AI_Zombie"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "not entered",=> not @entity.entered
@@ -137,7 +136,7 @@ playerGroup = Group {"player"}
 Store["AI_KidFollow"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	fightDecision
 	Seq {
@@ -155,7 +154,7 @@ Store["AI_KidFollow"] = Sel {
 				Con "not facing target",=> (@x > @entity.followTarget.x) == @faceRight
 				Act "turn"
 			}
-			Pass!
+			Accept!
 		}
 		walk
 	}
@@ -169,7 +168,7 @@ Store["AI_KidFollow"] = Sel {
 Store["AI_KidSearch"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	fightDecision
 	Seq {
@@ -189,7 +188,7 @@ Store["AI_KidSearch"] = Sel {
 Store["AI_PlayerControl"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Seq {

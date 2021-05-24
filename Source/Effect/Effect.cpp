@@ -14,7 +14,7 @@ NS_DOROTHY_BEGIN
 
 /* Effect */
 
-Effect::Uniform::~Uniform()
+Pass::Uniform::~Uniform()
 {
 	if (bgfx::isValid(_handle))
 	{
@@ -22,22 +22,22 @@ Effect::Uniform::~Uniform()
 	}
 }
 
-Effect::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value):
+Pass::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value):
 _handle(handle),
 _value(std::move(value))
 { }
 
-bgfx::UniformHandle Effect::Uniform::getHandle() const
+bgfx::UniformHandle Pass::Uniform::getHandle() const
 {
 	return _handle;
 }
 
-Value* Effect::Uniform::getValue() const
+Value* Pass::Uniform::getValue() const
 {
 	return _value.get();
 }
 
-void Effect::Uniform::apply()
+void Pass::Uniform::apply()
 {
 	if (auto value = _value->as<float>())
 	{
@@ -53,7 +53,7 @@ void Effect::Uniform::apply()
 	}
 }
 
-bgfx::ProgramHandle Effect::apply()
+bgfx::ProgramHandle Pass::apply()
 {
 	for (const auto& pair : _uniforms)
 	{
@@ -62,19 +62,21 @@ bgfx::ProgramHandle Effect::apply()
 	return _program;
 }
 
-Effect::Effect(Shader* vertShader, Shader* fragShader):
+Pass::Pass(Shader* vertShader, Shader* fragShader):
 _program(BGFX_INVALID_HANDLE),
 _vertShader(vertShader),
-_fragShader(fragShader)
+_fragShader(fragShader),
+_rtNeeded(false)
 { }
 
-Effect::Effect(String vertShader, String fragShader):
+Pass::Pass(String vertShader, String fragShader):
 _program(BGFX_INVALID_HANDLE),
 _vertShader(SharedShaderCache.load(vertShader)),
-_fragShader(SharedShaderCache.load(fragShader))
+_fragShader(SharedShaderCache.load(fragShader)),
+_rtNeeded(false)
 { }
 
-Effect::~Effect()
+Pass::~Pass()
 {
 	if (bgfx::isValid(_program))
 	{
@@ -82,14 +84,24 @@ Effect::~Effect()
 	}
 }
 
-bool Effect::init()
+bool Pass::init()
 {
 	if (!Object::init()) return false;
 	_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
 	return bgfx::isValid(_program);
 }
 
-void Effect::set(String name, float var)
+void Pass::setRTNeeded(bool var)
+{
+	_rtNeeded = var;
+}
+
+bool Pass::isRTNeeded() const
+{
+	return _rtNeeded;
+}
+
+void Pass::set(String name, float var)
 {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
@@ -104,12 +116,12 @@ void Effect::set(String name, float var)
 	}
 }
 
-void Effect::set(String name, float var1, float var2, float var3, float var4)
+void Pass::set(String name, float var1, float var2, float var3, float var4)
 {
 	set(name, Vec4{var1, var2, var3, var4});
 }
 
-void Effect::set(String name, const Vec4& var)
+void Pass::set(String name, const Vec4& var)
 {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
@@ -124,7 +136,7 @@ void Effect::set(String name, const Vec4& var)
 	}
 }
 
-void Effect::set(String name, const Matrix& var)
+void Pass::set(String name, const Matrix& var)
 {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
@@ -139,7 +151,7 @@ void Effect::set(String name, const Matrix& var)
 	}
 }
 
-Value* Effect::get(String name) const
+Value* Pass::get(String name) const
 {
 	auto it = _uniforms.find(name);
 	if (it != _uniforms.end())
@@ -149,7 +161,47 @@ Value* Effect::get(String name) const
 	return nullptr;
 }
 
+/* Effect */
+
+Effect::Effect()
+{ }
+
+Effect::Effect(Shader* vertShader, Shader* fragShader)
+{
+	_passes.push_back(Pass::create(vertShader, fragShader));
+}
+
+Effect::Effect(String vertShader, String fragShader)
+{
+	_passes.push_back(Pass::create(vertShader, fragShader));
+}
+
+const RefVector<Pass>& Effect::getPasses() const
+{
+	return _passes;
+}
+
+void Effect::add(Pass* pass)
+{
+	_passes.push_back(pass);
+}
+
+Pass* Effect::get(size_t index) const
+{
+	AssertUnless(index < _passes.size(), "effect pass index out of range");
+	return _passes[index];
+}
+
+void Effect::clear()
+{
+	_passes.clear();
+}
+
 /* SpriteEffect */
+
+SpriteEffect::SpriteEffect():
+_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler))
+{ }
 
 SpriteEffect::SpriteEffect(Shader* vertShader, Shader* fragShader):
 Effect(vertShader, fragShader),

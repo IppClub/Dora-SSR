@@ -79,7 +79,7 @@ private:
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
-	Ref<RenderTarget> _renderTarget;
+	RefVector<RenderTarget> _renderTargets;
 	Own<UITouchHandler> _uiTouchHandler;
 	std::stack<Own<Matrix>> _viewProjs;
 	Matrix _defaultViewProj;

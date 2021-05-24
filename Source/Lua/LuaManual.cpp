@@ -2714,6 +2714,13 @@ tolua_lerror:
 #endif
 }
 
+/* Pass */
+
+Pass* Effect_get(Effect* self, size_t index)
+{
+	return self->get(index - 1);
+}
+
 NS_DOROTHY_PLATFORMER_END
 
 using namespace Dorothy;

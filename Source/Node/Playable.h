@@ -20,7 +20,8 @@ public:
 	PROPERTY_VIRTUAL(float, Recovery);
 	PROPERTY_VIRTUAL_STRING(Look);
 	PROPERTY_VIRTUAL_BOOL(Fliped);
-	virtual const std::string& getCurrentAnimationName() const = 0;
+	virtual const std::string& getCurrent() const = 0;
+	virtual const std::string& getLastCompleted() const = 0;
 	virtual Vec2 getKeyPoint(String name) const = 0;
 	virtual float play(String name, bool loop = false) = 0;
 	virtual void stop() = 0;

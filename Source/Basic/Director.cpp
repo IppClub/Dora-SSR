@@ -24,6 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 #include "Entity/Entity.h"
 #include "Basic/VGRender.h"
+#include "Effect/Effect.h"
 
 #include "SDL.h"
 
@@ -318,35 +319,84 @@ void Director::doRender()
 		if (SharedView.isPostProcessNeeded())
 		{
 			/* initialize RT */
-			if (!_renderTarget ||
-				_renderTarget->getWidth() != viewSize.width ||
-				_renderTarget->getHeight() != viewSize.height)
-			{
-				_renderTarget = RenderTarget::create(
-					s_cast<uint16_t>(viewSize.width),
-					s_cast<uint16_t>(viewSize.height));
-				_renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
-			}
 			SpriteEffect* postEffect = SharedView.getPostEffect();
-			if (postEffect && postEffect != _renderTarget->getSurface()->getEffect())
+			size_t rtCount = 1;
+			if (postEffect)
 			{
-				_renderTarget->getSurface()->setEffect(postEffect);
+				for (Pass* pass : postEffect->getPasses())
+				{
+					if (pass->isRTNeeded())
+					{
+						rtCount = 2;
+						break;
+					}
+				}
 			}
-
+			if (rtCount < _renderTargets.size())
+			{
+				for (size_t i = rtCount; i < _renderTargets.size(); i++)
+				{
+					_renderTargets.pop_back();
+				}
+			}
+			else
+			{
+				for (size_t i = _renderTargets.size(); i < rtCount; i++)
+				{
+					auto renderTarget = RenderTarget::create(
+						s_cast<uint16_t>(viewSize.width),
+						s_cast<uint16_t>(viewSize.height));
+					renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+					renderTarget->getSurface()->setEffect(SpriteEffect::create());
+					_renderTargets.push_back(renderTarget);
+				}
+			}
+			for (size_t i = 0; i < _renderTargets.size(); i++)
+			{
+				RenderTarget* rt = _renderTargets[i];
+				if (rt->getWidth() != viewSize.width ||
+					rt->getHeight() != viewSize.height)
+				{
+					auto renderTarget = RenderTarget::create(
+						s_cast<uint16_t>(viewSize.width),
+						s_cast<uint16_t>(viewSize.height));
+					renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+					renderTarget->getSurface()->setEffect(SpriteEffect::create());
+					_renderTargets[i] = renderTarget;
+				}
+				_renderTargets[i]->getSurface()->getEffect()->clear();
+			}
 			/* render scene tree to RT */
-			_renderTarget->setCamera(getCurrentCamera());
-			_renderTarget->renderWithClear(_entry, _clearColor);
+			_renderTargets[0]->setCamera(getCurrentCamera());
+			_renderTargets[0]->renderWithClear(_entry, _clearColor);
+			_renderTargets[0]->setCamera(nullptr);
+			size_t rtIndex = 0;
+			for (Pass* pass : postEffect->getPasses())
+			{
+				Effect* effect = _renderTargets[rtIndex]->getSurface()->getEffect();
+				effect->add(pass);
+				if (pass->isRTNeeded())
+				{
+					RenderTarget* rt = _renderTargets[rtIndex];
+					rtIndex = (rtIndex + 1) % 2;
+					rt->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
+					_renderTargets[rtIndex]->render(rt);
+					rt->getSurface()->getEffect()->clear();
+					_renderTargets[rtIndex]->getSurface()->getEffect()->clear();
+				}
+			}
 
 			/* render RT, post node and ui node */
 			SharedView.pushName("Main"_slice, [&]()
 			{
 				bgfx::ViewId viewId = SharedView.getId();
+				bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
 				/* RT */
 				pushViewProjection(ortho, [&]()
 				{
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					_renderTarget->setPosition({viewSize.width/2.0f, viewSize.height/2.0f});
-					_renderTarget->visit();
+					_renderTargets[rtIndex]->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
+					_renderTargets[rtIndex]->visit();
 					SharedRendererManager.flush();
 				});
 				/* post node */
@@ -376,9 +426,9 @@ void Director::doRender()
 		else
 		{
 			/* release unused RT */
-			if (_renderTarget)
+			if (!_renderTargets.empty())
 			{
-				_renderTarget = nullptr;
+				_renderTargets.clear();
 			}
 
 			/* render scene tree and post node */
