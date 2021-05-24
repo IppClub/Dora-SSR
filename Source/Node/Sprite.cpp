@@ -390,7 +390,12 @@ void SpriteRenderer::render()
 			bgfx::ViewId viewId = SharedView.getId();
 			bgfx::setState(_lastState);
 			bgfx::setTexture(0, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
-			bgfx::submit(viewId, _lastEffect->apply());
+			SpriteEffect* effect = _lastEffect->getPasses().empty() ? _defaultEffect : _lastEffect;
+			Pass* lastPass = effect->getPasses().back().get();
+			for (Pass* pass : effect->getPasses())
+			{
+				bgfx::submit(viewId, pass->apply(), 0, pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
+			}
 		}
 		else
 		{

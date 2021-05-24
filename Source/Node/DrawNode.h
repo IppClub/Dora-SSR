@@ -38,7 +38,7 @@ struct DrawVertex
 	static Init init;
 };
 
-class Effect;
+class Pass;
 
 struct VertexColor
 {
@@ -95,14 +95,14 @@ private:
 class DrawRenderer : public Renderer
 {
 public:
-	PROPERTY_READONLY(Effect*, DefaultEffect);
+	PROPERTY_READONLY(Pass*, DefaultPass);
 	virtual ~DrawRenderer() { }
 	virtual void render() override;
 	void push(DrawNode* node);
 protected:
 	DrawRenderer();
 private:
-	Ref<Effect> _defaultEffect;
+	Ref<Pass> _defaultPass;
 	uint64_t _lastState;
 	std::vector<DrawVertex> _vertices;
 	std::vector<uint16_t> _indices;
@@ -173,17 +173,17 @@ private:
 	DORA_TYPE_OVERRIDE(Line);
 };
 
-class LineRenderer: public Renderer
+class LineRenderer : public Renderer
 {
 public:
-	PROPERTY_READONLY(Effect*, DefaultEffect);
+	PROPERTY_READONLY(Pass*, DefaultPass);
 	virtual ~LineRenderer() { }
 	virtual void render() override;
 	void push(Line* line);
 protected:
 	LineRenderer();
 private:
-	Ref<Effect> _defaultEffect;
+	Ref<Pass> _defaultPass;
 	uint64_t _lastState;
 	std::vector<PosColorVertex> _vertices;
 	SINGLETON_REF(LineRenderer, RendererManager);

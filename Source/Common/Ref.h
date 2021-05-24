@@ -171,6 +171,15 @@ public:
 		RefV::erase(it);
 		return true;
 	}
+	bool remove(size_t index)
+	{
+		if (index < RefV::size())
+		{
+			RefV::erase(RefV::begin() + index);
+			return true;
+		}
+		return false;
+	}
 	typename RefV::iterator index(T* item)
 	{
 		return std::find(RefV::begin(), RefV::end(), MakeRef(item));

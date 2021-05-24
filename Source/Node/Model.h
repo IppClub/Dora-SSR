@@ -104,7 +104,8 @@ public:
 	virtual void setRecovery(float var) override;
 	virtual void setFliped(bool var) override;
 	virtual void setLook(String var) override;
-	virtual const std::string& getCurrentAnimationName() const override;
+	virtual const std::string& getCurrent() const override;
+	virtual const std::string& getLastCompleted() const override;
 	virtual Vec2 getKeyPoint(String name) const override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
@@ -166,6 +167,7 @@ private:
 	OwnVector<AnimationGroup> _animationGroups;
 	ResetAnimation _resetAnimation;
 	std::list<std::pair<Sprite*,SpriteDef*>> _spritePairs;
+	std::string _lastCompletedAnimationName;
 	DORA_TYPE_OVERRIDE(Model);
 };
 

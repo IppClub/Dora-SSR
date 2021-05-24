@@ -332,7 +332,7 @@ class Node : public Object
 	tolua_readonly tolua_property__bool bool updating;
 	tolua_readonly tolua_property__bool bool scheduled;
 	tolua_readonly tolua_property__common int actionCount;
-	tolua_readonly tolua_property__common Dictionary* userData;
+	tolua_readonly tolua_property__common Dictionary* userData @ data;
 	tolua_property__bool bool touchEnabled;
 	tolua_property__bool bool swallowTouches;
 	tolua_property__bool bool swallowMouseWheel;
@@ -401,15 +401,25 @@ struct BlendFunc
 	static const BlendFunc Default;
 };
 
+class Pass : public Object
+{
+	tolua_property__bool bool rTNeeded @ rtNeeded;
+	void set(String name, float var1, float var2 = 0.0f, float var3 = 0.0f, float var4 = 0.0f);
+	static Pass* create(String vertShader, String fragShader);
+};
+
 class Effect : public Object
 {
-	void set(String name, float var);
-	void set(String name, float var1, float var2, float var3, float var4);
+	void add(Pass* pass);
+	tolua_outside Pass* Effect_get @ get(size_t index);
+	void clear();
+	static Effect* create();
 	static Effect* create(String vertShader, String fragShader);
 };
 
 class SpriteEffect : public Effect
 {
+	static SpriteEffect* create();
 	static SpriteEffect* create(String vertShader, String fragShader);
 };
 
@@ -565,7 +575,8 @@ class Playable : public Node
 	tolua_property__common float speed;
 	tolua_property__common float recovery;
 	tolua_property__bool bool fliped;
-	tolua_readonly tolua_property__common string currentAnimationName @ currentAnimation;
+	tolua_readonly tolua_property__common string current;
+	tolua_readonly tolua_property__common string lastCompleted;
 	Vec2 getKeyPoint @ getKey(String name);
 	float play(String name, bool loop = false);
 	void stop();
@@ -1114,7 +1125,7 @@ Leaf* Seq(Leaf* nodes[tolua_len]);
 Leaf* Con(String name, tolua_function_bool handler);
 Leaf* Act(String action);
 Leaf* Act(tolua_function_string handler);
-Leaf* Pass();
+Leaf* Accept();
 Leaf* Reject();
 Leaf* Behave(String name, Behavior::Leaf* root);
 

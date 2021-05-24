@@ -189,9 +189,9 @@ DynamicActNode::DynamicActNode(const std::function<std::string(Unit*)>& handler)
 _handler(handler)
 { }
 
-/* PassNode */
+/* AcceptNode */
 
-bool PassNode::doAction(Unit* self)
+bool AcceptNode::doAction(Unit* self)
 {
 	DORA_UNUSED_PARAM(self);
 	return true;
@@ -257,9 +257,9 @@ Leaf* Act(const std::function<std::string(Unit*)>& handler)
 	return DynamicActNode::create(handler);
 }
 
-Leaf* Pass()
+Leaf* Accept()
 {
-	return PassNode::create();
+	return AcceptNode::create();
 }
 
 Leaf* Reject()

@@ -300,7 +300,7 @@ void Idle::update(float dt)
 	Playable* playable = _owner->getPlayable();
 	if (_owner->isOnSurface())
 	{
-		if (_owner->getPlayable()->getCurrentAnimationName() != ActionSetting::AnimationIdle)
+		if (_owner->getPlayable()->getCurrent() != ActionSetting::AnimationIdle)
 		{
 			playable->play(ActionSetting::AnimationIdle);
 		}

@@ -20,18 +20,18 @@ gameEndWait = Seq {
 			Act "cancel"
 			Act "wait"
 		}
-		Pass!
+		Accept!
 	}
 }
 
 Store["PlayerControlAI"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "pushing switch",=> @isDoing "pushSwitch"
-		Pass!
+		Accept!
 	}
 	Seq {
 		Seq {
@@ -80,7 +80,7 @@ Store["PlayerControlAI"] = Sel {
 Store["HeroAI"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "is falling",=> not @onSurface
@@ -132,7 +132,7 @@ Store["HeroAI"] = Sel {
 Store["BunnyForwardReturnAI"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "is falling",=> not @onSurface
@@ -176,7 +176,7 @@ turnToSwitch = Seq {
 Store["BunnySwitcherAI"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "is falling",=> not @onSurface

@@ -89,13 +89,13 @@ private:
 	std::function<std::string(Unit*)> _handler;
 };
 
-class PassNode : public Leaf
+class AcceptNode : public Leaf
 {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(PassNode);
+	CREATE_FUNC(AcceptNode);
 protected:
-	PassNode() { }
+	AcceptNode() { }
 };
 
 class RejectNode : public Leaf
@@ -124,7 +124,7 @@ Leaf* Seq(Leaf* nodes[], int count);
 Leaf* Con(String name, const std::function<bool(Unit*)>& handler);
 Leaf* Act(String actionName);
 Leaf* Act(const std::function<std::string(Unit*)>& handler);
-Leaf* Pass();
+Leaf* Accept();
 Leaf* Reject();
 Leaf* Behave(String name, Behavior::Leaf* root);
 

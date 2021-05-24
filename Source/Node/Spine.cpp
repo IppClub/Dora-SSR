@@ -20,50 +20,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class SpineExtension : public spine::SpineExtension
+class SpineExtension : public spine::DefaultSpineExtension
 {
 public:
 	virtual ~SpineExtension() {}
-
-	virtual void* _alloc(size_t size, const char* file, int line)
-	{
-		DORA_UNUSED_PARAM(file);
-		DORA_UNUSED_PARAM(line);
-		if (size == 0) return nullptr;
-		return r_cast<void*>(new uint8_t[size]);
-	}
-
-	virtual void* _calloc(size_t size, const char* file, int line)
-	{
-		DORA_UNUSED_PARAM(file);
-		DORA_UNUSED_PARAM(line);
-		if (size == 0) return nullptr;
-		return r_cast<void*>(new uint8_t[size]{});
-	}
-
-	virtual void* _realloc(void* ptr, size_t size, const char* file, int line)
-	{
-		DORA_UNUSED_PARAM(file);
-		DORA_UNUSED_PARAM(line);
-		if (size == 0) return nullptr;
-		if (ptr == nullptr)
-		{
-			return r_cast<void*>(new uint8_t[size]);
-		}
-		else
-		{
-			auto newMem = new uint8_t[size];
-			std::copy(r_cast<uint8_t*>(ptr), r_cast<uint8_t*>(ptr) + size, newMem);
-			return newMem;
-		}
-	}
-
-	virtual void _free(void* mem, const char* file, int line)
-	{
-		DORA_UNUSED_PARAM(file);
-		DORA_UNUSED_PARAM(line);
-		delete [] r_cast<uint8_t*>(mem);
-	}
 
 	virtual char* _readFile(const spine::String& path, int* length)
 	{
@@ -95,10 +55,10 @@ void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventTy
 			break;
 		case spine::EventType_Complete:
 			_owner->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_owner));
+			_owner->_lastCompletedAnimationName = animationName;
 			break;
 		case spine::EventType_Interrupt:
-			_owner->_currentAnimationName.clear();
-			_owner->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_owner));
+			_owner->_lastCompletedAnimationName.clear();
 			break;
 		case spine::EventType_Start:
 		case spine::EventType_Dispose:
@@ -210,9 +170,14 @@ void Spine::setFliped(bool var)
 	Playable::setFliped(var);
 }
 
-const std::string& Spine::getCurrentAnimationName() const
+const std::string& Spine::getCurrent() const
 {
 	return _currentAnimationName;
+}
+
+const std::string& Spine::getLastCompleted() const
+{
+	return _lastCompletedAnimationName;
 }
 
 Vec2 Spine::getKeyPoint(String name) const

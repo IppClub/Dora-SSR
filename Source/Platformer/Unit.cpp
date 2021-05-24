@@ -26,8 +26,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-const float Unit::BOTTOM_OFFSET(1.0f);
-const float Unit::GROUND_SENSOR_HEIGHT(1.0f);
+static const float BOTTOM_OFFSET = 1.0f;
+static const float GROUND_SENSOR_HEIGHT = 1.0f;
 
 const Slice Unit::Def::Size = "size"_slice;
 const Slice Unit::Def::Density = "density"_slice;
@@ -131,6 +131,12 @@ bool Unit::init()
 	Unit::setTag(tag);
 	_groundSensor = Body::getSensorByTag(Unit::GroundSensorTag);
 	Playable* playable = Playable::create(playableStr);
+	if (!playable)
+	{
+		Warn("fail to load playable \"{}\" for an new unit.", playableStr);
+		Unit::cleanup();
+		return false;
+	}
 	playable->setScaleX(scale);
 	playable->setScaleY(scale);
 	Unit::setPlayable(playable);

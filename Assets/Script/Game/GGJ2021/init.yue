@@ -605,7 +605,7 @@ GetUnit = (entity, pos, black)->
 Store["AI_Common"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "is falling",=> not @onSurface
@@ -677,7 +677,7 @@ Store["AI_Common"] = Sel {
 Store["AI_Boss"] = Sel {
 	Seq {
 		Con "is dead",=> @entity.hp <= 0
-		Pass!
+		Accept!
 	}
 	Seq {
 		Con "is falling",=> not @onSurface

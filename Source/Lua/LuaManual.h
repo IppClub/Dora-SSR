@@ -216,6 +216,9 @@ int DB_queryAsync(lua_State* L);
 int DB_insertAsync(lua_State* L);
 int DB_execAsync(lua_State* L);
 
+/* Effect */
+Pass* Effect_get(Effect* self, size_t index);
+
 NS_DOROTHY_PLATFORMER_END
 
 using namespace Dorothy;

@@ -27,7 +27,8 @@ public:
 	virtual void setRecovery(float var) override;
 	virtual void setFliped(bool var) override;
 	virtual void setLook(String var) override;
-	virtual const std::string& getCurrentAnimationName() const override;
+	virtual const std::string& getCurrent() const override;
+	virtual const std::string& getLastCompleted() const override;
 	virtual Vec2 getKeyPoint(String name) const override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
@@ -45,6 +46,7 @@ protected:
 	} _listener;
 private:
 	std::string _currentAnimationName;
+	std::string _lastCompletedAnimationName;
 	Ref<SpriteEffect> _effect;
 	Ref<SkeletonData> _skeletonData;
 	Own<spine::Skeleton> _skeleton;

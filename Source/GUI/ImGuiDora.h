@@ -18,7 +18,7 @@ NS_DOROTHY_BEGIN
 
 class Listener;
 class Texture2D;
-class SpriteEffect;
+class Pass;
 class ConsolePanel;
 
 class ImGuiDora : public TouchHandler
@@ -29,7 +29,7 @@ public:
 	void begin();
 	void end();
 	void render();
-	void loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default");
+	void loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default"_slice);
 	void showStats();
 	void showConsole();
 	void handleEvent(const SDL_Event& event);
@@ -77,8 +77,9 @@ private:
 	int _lastCursor;
 	UITouchHandler* _touchHandler;
 	Ref<Texture2D> _fontTexture;
-	Ref<SpriteEffect> _defaultEffect;
-	Ref<SpriteEffect> _imageEffect;
+	bgfx::UniformHandle _sampler;
+	Ref<Pass> _defaultPass;
+	Ref<Pass> _imagePass;
 	Ref<Listener> _costListener;
 	bgfx::VertexLayout _vertexLayout;
 	std::list<std::any> _inputs;

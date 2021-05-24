@@ -429,7 +429,8 @@ _lastMemLua(0),
 _maxCPU(0),
 _maxGPU(0),
 _maxDelta(0),
-_yLimit(0)
+_yLimit(0),
+_sampler(BGFX_INVALID_HANDLE)
 {
 	_vertexLayout
 		.begin()
@@ -452,6 +453,11 @@ _yLimit(0)
 
 ImGuiDora::~ImGuiDora()
 {
+	if (bgfx::isValid(_sampler))
+	{
+		bgfx::destroy(_sampler);
+		_sampler = BGFX_INVALID_HANDLE;
+	}
 	SharedApplication.eventHandler -= std::make_pair(this, &ImGuiDora::handleEvent);
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
@@ -909,11 +915,13 @@ bool ImGuiDora::init()
 	_iniFilePath = SharedContent.getWritablePath() + "imgui.ini";
 	io.IniFilename = _iniFilePath.c_str();
 
-	_defaultEffect = SpriteEffect::create(
+	_sampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
+
+	_defaultPass = Pass::create(
 		"builtin::vs_ocornut_imgui"_slice,
 		"builtin::fs_ocornut_imgui"_slice);
 
-	_imageEffect = SpriteEffect::create(
+	_imagePass = Pass::create(
 		"builtin::vs_ocornut_imgui"_slice,
 		"builtin::fs_ocornut_imgui_image"_slice);
 
@@ -1046,8 +1054,8 @@ void ImGuiDora::render()
 		bgfx::ViewId viewId = SharedView.getId();
 
 		float scale = SharedApplication.getDeviceRatio();
-		_defaultEffect->set("u_scale"_slice,  scale);
-		_imageEffect->set("u_scale"_slice,  scale);
+		_defaultPass->set("u_scale"_slice,  scale);
+		_imagePass->set("u_scale"_slice,  scale);
 
 		// Render command lists
 		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)
@@ -1084,7 +1092,6 @@ void ImGuiDora::render()
 				else if (0 != cmd->ElemCount)
 				{
 					bgfx::TextureHandle textureHandle;
-					bgfx::UniformHandle sampler;
 					bgfx::ProgramHandle program;
 					if (nullptr != cmd->TextureId)
 					{
@@ -1094,14 +1101,12 @@ void ImGuiDora::render()
 							struct { bgfx::TextureHandle handle; } s;
 						} texture = { cmd->TextureId };
 						textureHandle = texture.s.handle;
-						sampler = _imageEffect->getSampler();
-						program = _imageEffect->apply();
+						program = _imagePass->apply();
 					}
 					else
 					{
 						textureHandle = _fontTexture->getHandle();
-						sampler = _defaultEffect->getSampler();
-						program = _defaultEffect->apply();
+						program = _defaultPass->apply();
 					}
 
 					uint64_t state = 0
@@ -1116,7 +1121,7 @@ void ImGuiDora::render()
 						uint16_t(bx::min(cmd->ClipRect.z*scale, 65535.0f) - xx),
 						uint16_t(bx::min(cmd->ClipRect.w*scale, 65535.0f) - yy));
 					bgfx::setState(state);
-					bgfx::setTexture(0, sampler, textureHandle);
+					bgfx::setTexture(0, _sampler, textureHandle);
 					bgfx::setVertexBuffer(0, &tvb, 0, numVertices);
 					bgfx::setIndexBuffer(&tib, offset, cmd->ElemCount);
 					bgfx::submit(viewId, program);
