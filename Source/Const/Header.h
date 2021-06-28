@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <vector>
 #include <functional>
 #include <unordered_map>
@@ -24,6 +23,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cctype>
 #include <cmath>
 #include <any>
+#include <string>
+using namespace std::string_literals;
+#include <string_view>
+using namespace std::string_view_literals;
 
 #include "bgfx/platform.h"
 #include "Other/AcfDelegate.h"

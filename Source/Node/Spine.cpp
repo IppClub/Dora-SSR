@@ -308,7 +308,7 @@ void Spine::render()
 			skeletonColor.r * slotColor.r,
 			skeletonColor.g * slotColor.g,
 			skeletonColor.b * slotColor.b,
-			skeletonColor.a * slotColor.a}).toABGR();
+			skeletonColor.a * slotColor.a * _realColor.getOpacity()}).toABGR();
 
 		Texture2D* texture = nullptr;
 		if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti))

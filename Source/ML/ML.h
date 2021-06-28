@@ -26,6 +26,7 @@ public:
 	QAction getBestAction(QState state) const;
 	const QMatrix& getMatrix() const;
 	static QState pack(const std::vector<uint32_t>& hints, const std::vector<uint32_t>& values);
+	static std::vector<uint32_t> unpack(const std::vector<uint32_t>& hints, QState state);
 	CREATE_FUNC(QLearner);
 public:
 	void setQ(QState s, QAction a, double q);

@@ -52,8 +52,7 @@ export debug =
 export run_with_scope = (fn, scope, ...)->
 	old_env = getfenv fn
 	env = index#: (name)=>
-		val = scope[name]
-		if val != nil
+		if val = scope[name]
 			val
 		else
 			old_env[name]

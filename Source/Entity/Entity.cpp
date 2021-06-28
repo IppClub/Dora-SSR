@@ -578,10 +578,10 @@ EntityObserver* EntityObserver::create(int option, const std::vector<std::string
 	std::vector<std::string> coms = components;
 	std::sort(coms.begin(), coms.end());
 	fmt::memory_buffer out;
-	fmt::format_to(out, "{}", option);
+	fmt::format_to(std::back_inserter(out), "{}"sv, option);
 	for (const auto& com : coms)
 	{
-		fmt::format_to(out, "{}", com);
+		fmt::format_to(std::back_inserter(out), "{}"sv, com);
 	}
 	std::string name = fmt::to_string(out);
 	auto& observers = SharedEntityPool.observers;

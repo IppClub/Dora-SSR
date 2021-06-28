@@ -192,13 +192,13 @@ const Size Size::zero{0.0f, 0.0f};
 
 void Size::set(float width, float height)
 {
-    this->width = width;
-    this->height = height;
+	this->width = width;
+	this->height = height;
 }
 
 bool Size::operator==(const Size& target) const
 {
-    return width == target.width && height == target.height;
+	return width == target.width && height == target.height;
 }
 
 bool Size::operator!=(const Size& target) const
@@ -236,10 +236,10 @@ size(other.size)
 
 void Rect::set(float x, float y, float width, float height)
 {
-    origin.x = x;
-    origin.y = y;
-    size.width = width;
-    size.height = height;
+	origin.x = x;
+	origin.y = y;
+	size.width = width;
+	size.height = height;
 }
 
 float Rect::getX() const
@@ -284,7 +284,7 @@ void Rect::setHeight(float height)
 
 bool Rect::operator==(const Rect& rect) const
 {
-    return origin == rect.origin && size == rect.size;
+	return origin == rect.origin && size == rect.size;
 }
 
 bool Rect::operator!=(const Rect& rect) const
@@ -294,7 +294,7 @@ bool Rect::operator!=(const Rect& rect) const
 
 float Rect::getRight() const
 {
-    return origin.x + size.width;
+	return origin.x + size.width;
 }
 
 void Rect::setRight(float right)
@@ -314,7 +314,7 @@ void Rect::setCenterX(float centerX)
 
 float Rect::getLeft() const
 {
-    return origin.x;
+	return origin.x;
 }
 
 void Rect::setLeft(float left)
@@ -326,7 +326,7 @@ void Rect::setLeft(float left)
 
 float Rect::getTop() const
 {
-    return origin.y + size.height;
+	return origin.y + size.height;
 }
 
 void Rect::setTop(float top)
@@ -380,16 +380,16 @@ void Rect::setUpperBound(const Vec2& point)
 
 bool Rect::containsPoint(const Vec2& point) const
 {
-    return (point.x >= getLeft() && point.x <= getRight()
-        && point.y >= getBottom() && point.y <= getTop());
+	return (point.x >= getLeft() && point.x <= getRight()
+		&& point.y >= getBottom() && point.y <= getTop());
 }
 
 bool Rect::intersectsRect(const Rect& rect) const
 {
-    return !(getRight() < rect.getLeft() ||
-			rect.getRight() < getLeft() ||
-			getTop() < rect.getBottom() ||
-			rect.getTop() < getBottom());
+	return !(getRight() < rect.getLeft() ||
+		rect.getRight() < getLeft() ||
+		getTop() < rect.getBottom() ||
+		rect.getTop() < getBottom());
 }
 
 // AffineTransform
@@ -426,7 +426,7 @@ Rect AffineTransform::applyRect(const AffineTransform& t, const Rect& rect)
 	float minY = std::min({topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
 	float maxY = std::max({topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
 
-    return Rect(minX, minY, (maxX - minX), (maxY - minY));
+	return Rect(minX, minY, (maxX - minX), (maxY - minY));
 }
 
 AffineTransform AffineTransform::translate(const AffineTransform& t, float tx, float ty)
@@ -468,7 +468,7 @@ AffineTransform AffineTransform::concat(const AffineTransform& t1, const AffineT
 AffineTransform AffineTransform::invert(const AffineTransform& t)
 {
 	float determinant = 1.0f / (t.a * t.d - t.b * t.c);
-    return {
+	return {
 		determinant * t.d,
 		-determinant * t.b,
 		-determinant * t.c,
@@ -480,14 +480,14 @@ AffineTransform AffineTransform::invert(const AffineTransform& t)
 
 void AffineTransform::toMatrix(const AffineTransform& t, float* m)
 {
-    // | m[0] m[4] m[8]   m[12] |       | m11 m21 m31 m41 |       | a c 0 tx |
-    // | m[1] m[5] m[9]   m[13] |       | m12 m22 m32 m42 |       | b d 0 ty |
-    // | m[2] m[6] m[10] m[14] | => | m13 m23 m33 m43 | => | 0 0 1  0 |
-    // | m[3] m[7] m[11] m[15] |       | m14 m24 m34 m44 |       | 0 0 0  1 |
-    m[2] = m[3] = m[6] = m[7] = m[8] = m[9] = m[11] = m[14] = 0.0f;
-    m[10] = m[15] = 1.0f;
-    m[0] = t.a; m[4] = t.c; m[12] = t.tx;
-    m[1] = t.b; m[5] = t.d; m[13] = t.ty;
+	// | m[0] m[4] m[8]   m[12] |       | m11 m21 m31 m41 |       | a c 0 tx |
+	// | m[1] m[5] m[9]   m[13] |       | m12 m22 m32 m42 |       | b d 0 ty |
+	// | m[2] m[6] m[10]  m[14] | =>    | m13 m23 m33 m43 | =>    | 0 0 1  0 |
+	// | m[3] m[7] m[11]  m[15] |       | m14 m24 m34 m44 |       | 0 0 0  1 |
+	m[2] = m[3] = m[6] = m[7] = m[8] = m[9] = m[11] = m[14] = 0.0f;
+	m[10] = m[15] = 1.0f;
+	m[0] = t.a; m[4] = t.c; m[12] = t.tx;
+	m[1] = t.b; m[5] = t.d; m[13] = t.ty;
 }
 
 const Matrix Matrix::Indentity = {

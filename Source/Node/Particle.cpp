@@ -101,55 +101,55 @@ textureRect()
 std::string ParticleDef::toXml() const
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{}>", char(Xml::Particle::Dorothy));
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::Angle), angle);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::AngleVariance), angleVariance);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::BlendFuncDestination), blendFuncDestination);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::BlendFuncSource), blendFuncSource);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::Duration), duration);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::EmissionRate), emissionRate);
-	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::FinishColor), finishColor.x, finishColor.y, finishColor.z, finishColor.w);
-	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::FinishColorVariance), finishColorVariance.x, finishColorVariance.y, finishColorVariance.z, finishColorVariance.w);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotationStart), rotationStart);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotationStartVariance), rotationStartVariance);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotationEnd), rotationEnd);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotationEndVariance), rotationEndVariance);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::FinishParticleSize), finishParticleSize);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::FinishParticleSizeVariance), finishParticleSizeVariance);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::MaxParticles), maxParticles);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::ParticleLifespan), particleLifespan);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::ParticleLifespanVariance), particleLifespanVariance);
-	fmt::format_to(out, "<{} A=\"{},{}\"/>", char(Xml::Particle::StartPosition), startPosition.x, startPosition.y);
-	fmt::format_to(out, "<{} A=\"{},{}\"/>", char(Xml::Particle::StartPositionVariance), startPositionVariance.x, startPositionVariance.y);
-	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::StartColor), startColor.x, startColor.y, startColor.z, startColor.w);
-	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::StartColorVariance), startColorVariance.x, startColorVariance.y, startColorVariance.z, startColorVariance.w);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSize), startParticleSize);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartParticleSizeVariance), startParticleSizeVariance);
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::EmitterMode), s_cast<int>(emitterMode));
-	fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::TextureName), textureName);
-	fmt::format_to(out, "<{} A=\"{},{},{},{}\"/>", char(Xml::Particle::TextureRect), textureRect.getX(), textureRect.getY(), textureRect.getWidth(), textureRect.getHeight());
+	fmt::format_to(std::back_inserter(out), "<{}>"sv, char(Xml::Particle::Dorothy));
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::Angle), angle);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::AngleVariance), angleVariance);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::BlendFuncDestination), blendFuncDestination);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::BlendFuncSource), blendFuncSource);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::Duration), duration);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::EmissionRate), emissionRate);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{},{},{}\"/>"sv, char(Xml::Particle::FinishColor), finishColor.x, finishColor.y, finishColor.z, finishColor.w);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{},{},{}\"/>"sv, char(Xml::Particle::FinishColorVariance), finishColorVariance.x, finishColorVariance.y, finishColorVariance.z, finishColorVariance.w);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotationStart), rotationStart);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotationStartVariance), rotationStartVariance);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotationEnd), rotationEnd);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotationEndVariance), rotationEndVariance);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::FinishParticleSize), finishParticleSize);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::FinishParticleSizeVariance), finishParticleSizeVariance);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::MaxParticles), maxParticles);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::ParticleLifespan), particleLifespan);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::ParticleLifespanVariance), particleLifespanVariance);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{}\"/>"sv, char(Xml::Particle::StartPosition), startPosition.x, startPosition.y);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{}\"/>"sv, char(Xml::Particle::StartPositionVariance), startPositionVariance.x, startPositionVariance.y);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{},{},{}\"/>"sv, char(Xml::Particle::StartColor), startColor.x, startColor.y, startColor.z, startColor.w);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{},{},{}\"/>"sv, char(Xml::Particle::StartColorVariance), startColorVariance.x, startColorVariance.y, startColorVariance.z, startColorVariance.w);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::StartParticleSize), startParticleSize);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::StartParticleSizeVariance), startParticleSizeVariance);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::EmitterMode), s_cast<int>(emitterMode));
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::TextureName), textureName);
+	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{},{},{}\"/>"sv, char(Xml::Particle::TextureRect), textureRect.getX(), textureRect.getY(), textureRect.getWidth(), textureRect.getHeight());
 	switch (emitterMode)
 	{
 		case EmitterMode::Gravity:
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotationIsDir), mode.gravity.rotationIsDir ? 1 : 0);
-			fmt::format_to(out, "<{} A=\"{},{}\"/>", char(Xml::Particle::Gravity), mode.gravity.gravity.x, mode.gravity.gravity.y);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::Speed), mode.gravity.speed);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::SpeedVariance), mode.gravity.speedVariance);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RadialAcceleration), mode.gravity.radialAcceleration);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RadialAccelVariance), mode.gravity.radialAccelVariance);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::TangentialAcceleration), mode.gravity.tangentialAcceleration);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::TangentialAccelVariance), mode.gravity.tangentialAccelVariance);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotationIsDir), mode.gravity.rotationIsDir ? 1 : 0);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{},{}\"/>"sv, char(Xml::Particle::Gravity), mode.gravity.gravity.x, mode.gravity.gravity.y);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::Speed), mode.gravity.speed);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::SpeedVariance), mode.gravity.speedVariance);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RadialAcceleration), mode.gravity.radialAcceleration);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RadialAccelVariance), mode.gravity.radialAccelVariance);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::TangentialAcceleration), mode.gravity.tangentialAcceleration);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::TangentialAccelVariance), mode.gravity.tangentialAccelVariance);
 			break;
 		case EmitterMode::Radius:
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartRadius), mode.radius.startRadius);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::StartRadiusVariance), mode.radius.startRadiusVariance);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::FinishRadius), mode.radius.finishRadius);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::FinishRadiusVariance), mode.radius.finishRadiusVariance);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotatePerSecond), mode.radius.rotatePerSecond);
-			fmt::format_to(out, "<{} A=\"{}\"/>", char(Xml::Particle::RotatePerSecondVariance), mode.radius.rotatePerSecondVariance);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::StartRadius), mode.radius.startRadius);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::StartRadiusVariance), mode.radius.startRadiusVariance);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::FinishRadius), mode.radius.finishRadius);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::FinishRadiusVariance), mode.radius.finishRadiusVariance);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotatePerSecond), mode.radius.rotatePerSecond);
+			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotatePerSecondVariance), mode.radius.rotatePerSecondVariance);
 			break;
 	}
-	fmt::format_to(out, "</{}>\n", char(Xml::Particle::Dorothy));
+	fmt::format_to(std::back_inserter(out), "</{}>\n"sv, char(Xml::Particle::Dorothy));
 	return fmt::to_string(out);
 }
 

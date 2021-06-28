@@ -72,71 +72,71 @@ opacity(1.0f)
 std::string SpriteDef::toXml()
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{}", char(Xml::Model::Element::Sprite));
+	fmt::format_to(std::back_inserter(out), "<{}"sv, char(Xml::Model::Element::Sprite));
 	if (x != 0.0f || y != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Position), s2(x), s2(y));
+		fmt::format_to(std::back_inserter(out), " {}=\"{},{}\""sv, char(Xml::Model::Sprite::Position), s2(x), s2(y));
 	}
 	if (rotation != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Rotation), s2(rotation));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::Sprite::Rotation), s2(rotation));
 	}
 	if (anchorX != 0.5f || anchorY != 0.5f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Key), s4(anchorX), s4(anchorY));
+		fmt::format_to(std::back_inserter(out), " {}=\"{},{}\""sv, char(Xml::Model::Sprite::Key), s4(anchorX), s4(anchorY));
 	}
 	if (scaleX != 1.0f || scaleY != 1.0f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Scale), s3(scaleX), s3(scaleY));
+		fmt::format_to(std::back_inserter(out), " {}=\"{},{}\""sv, char(Xml::Model::Sprite::Scale), s3(scaleX), s3(scaleY));
 	}
 	if (skewX != 0.0f || skewY != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::Sprite::Skew), s3(skewX), s3(skewY));
+		fmt::format_to(std::back_inserter(out), " {}=\"{},{}\""sv, char(Xml::Model::Sprite::Skew), s3(skewX), s3(skewY));
 	}
 	if (!name.empty())
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Name), name);
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::Sprite::Name), name);
 	}
 	if (!clip.empty())
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::Sprite::Clip), clip);
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::Sprite::Clip), clip);
 	}
 	if (!front)
 	{
-		fmt::format_to(out, " {}=\"0\"", char(Xml::Model::Sprite::Front));
+		fmt::format_to(std::back_inserter(out), " {}=\"0\""sv, char(Xml::Model::Sprite::Front));
 	}
-	fmt::format_to(out, ">");
+	fmt::format_to(std::back_inserter(out), ">"sv);
 	for (const auto& actionDef : animationDefs)
 	{
 		if (actionDef)
 		{
-			fmt::format_to(out, "{}", actionDef->toXml());
+			fmt::format_to(std::back_inserter(out), "{}"sv, actionDef->toXml());
 		}
 		else
 		{
-			fmt::format_to(out, "<{}/>", char(Xml::Model::Element::KeyAnimation));
+			fmt::format_to(std::back_inserter(out), "<{}/>"sv, char(Xml::Model::Element::KeyAnimation));
 		}
 	}
 	if (!looks.empty())
 	{
-		fmt::format_to(out, "<{} {}=\"", char(Xml::Model::Element::Look), char(Xml::Model::Look::Name));
+		fmt::format_to(std::back_inserter(out), "<{} {}=\""sv, char(Xml::Model::Element::Look), char(Xml::Model::Look::Name));
 		int lookSize = s_cast<int>(looks.size());
 		int last = lookSize - 1;
 		for (int i = 0; i < lookSize; i++)
 		{
-			fmt::format_to(out, "{}", looks[i]);
+			fmt::format_to(std::back_inserter(out), "{}"sv, looks[i]);
 			if (i != last)
 			{
-				fmt::format_to(out, ",");
+				fmt::format_to(std::back_inserter(out), ","sv);
 			}
 		}
-		fmt::format_to(out, "\"/>");
+		fmt::format_to(std::back_inserter(out), "\"/>"sv);
 	}
 	for (const auto& spriteDef : children)
 	{
-		fmt::format_to(out, "{}", spriteDef->toXml());
+		fmt::format_to(std::back_inserter(out), "{}"sv, spriteDef->toXml());
 	}
-	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Sprite));
+	fmt::format_to(std::back_inserter(out), "</{}>"sv, char(Xml::Model::Element::Sprite));
 	return fmt::to_string(out);
 }
 
@@ -196,28 +196,28 @@ SpriteDef* ModelDef::getRoot()
 std::string ModelDef::toXml()
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{} {}=\"{}\" ", char(Xml::Model::Element::Dorothy), char(Xml::Model::Dorothy::File), Path::getFilename(_clip));
+	fmt::format_to(std::back_inserter(out), "<{} {}=\"{}\" "sv, char(Xml::Model::Element::Dorothy), char(Xml::Model::Dorothy::File), Path::getFilename(_clip));
 	if (_size != Size::zero)
 	{
-		fmt::format_to(out, "{}=\"{:d},{:d}\"", char(Xml::Model::Dorothy::Size), s_cast<int>(_size.width), s_cast<int>(_size.height));
+		fmt::format_to(std::back_inserter(out), "{}=\"{:d},{:d}\""sv, char(Xml::Model::Dorothy::Size), s_cast<int>(_size.width), s_cast<int>(_size.height));
 	}
-	fmt::format_to(out, ">{}", _root->toXml());
+	fmt::format_to(std::back_inserter(out), ">{}"sv, _root->toXml());
 	for (const auto& item: _animationIndex)
 	{
-		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{}\"/>", char(Xml::Model::Element::AnimationName), char(Xml::Model::AnimationName::Index), item.second, char(Xml::Model::AnimationName::Name), item.first);
+		fmt::format_to(std::back_inserter(out), "<{} {}=\"{}\" {}=\"{}\"/>"sv, char(Xml::Model::Element::AnimationName), char(Xml::Model::AnimationName::Index), item.second, char(Xml::Model::AnimationName::Name), item.first);
 	}
 	for (const auto& item: _lookIndex)
 	{
-		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{}\"/>", char(Xml::Model::Element::LookName), char(Xml::Model::LookName::Index), item.second, char(Xml::Model::LookName::Name), item.first);
+		fmt::format_to(std::back_inserter(out), "<{} {}=\"{}\" {}=\"{}\"/>"sv, char(Xml::Model::Element::LookName), char(Xml::Model::LookName::Index), item.second, char(Xml::Model::LookName::Name), item.first);
 	}
 	for (const auto& it : _keys)
 	{
 		const Vec2& point = it.second;
-		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{},{}\"/>",
+		fmt::format_to(std::back_inserter(out), "<{} {}=\"{}\" {}=\"{},{}\"/>"sv,
 			char(Xml::Model::Element::KeyPoint), char(Xml::Model::KeyPoint::Key), it.first,
 			char(Xml::Model::KeyPoint::Position), s2(point.x), s2(point.y));
 	}
-	fmt::format_to(out, "</{}>", char(Xml::Model::Element::Dorothy));
+	fmt::format_to(std::back_inserter(out), "</{}>"sv, char(Xml::Model::Element::Dorothy));
 	return fmt::to_string(out);
 }
 

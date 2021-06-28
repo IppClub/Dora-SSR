@@ -23,7 +23,6 @@
 // ImPlot v0.10 WIP
 
 #include "implot.h"
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -222,6 +221,14 @@ void ShowDemoWindow(bool* p_open) {
     }
     //-------------------------------------------------------------------------
     ImGui::Text("ImPlot says hello. (%s)", IMPLOT_VERSION);
+    // display warning about 16-bit indices
+    static bool showWarning = sizeof(ImDrawIdx)*8 == 16 && (ImGui::GetIO().BackendFlags & ImGuiBackendFlags_RendererHasVtxOffset) == false;
+    if (showWarning) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1,1,0,1));
+        ImGui::TextWrapped("WARNING: ImDrawIdx is 16-bit and ImGuiBackendFlags_RendererHasVtxOffset is false. Expect visual glitches and artifacts! See README for more information.");
+        ImGui::PopStyleColor();
+    }
+
     ImGui::Spacing();
 
     if (ImGui::CollapsingHeader("Help")) {
@@ -1927,8 +1934,3 @@ void ShowBenchmarkTool() {
 }
 
 }
-#else // IMGUI_DISABLE_DEMO_WINDOWS
-namespace ImPlot {
-	void ShowDemoWindow(bool*) {}
-} // namespace ImPlot
-#endif // IMGUI_DISABLE_DEMO_WINDOWS

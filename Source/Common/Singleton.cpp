@@ -52,7 +52,7 @@ struct LifeCycler
 				{
 					msg += "|-";
 				}
-				fmt::format_to(out, "{}{}\n", msg, name.first);
+				fmt::format_to(std::back_inserter(out), "{}{}\n"sv, msg, name.first);
 				refList.pop();
 				auto it = itemRefs.find(name.first);
 				if (it != itemRefs.end())
@@ -67,7 +67,7 @@ struct LifeCycler
 					}
 				}
 			}
-			fmt::format_to(out, "\n");
+			fmt::format_to(std::back_inserter(out), "\n"sv);
 		}
 		return fmt::to_string(out);
 	}
