@@ -507,6 +507,7 @@ LuaEngine::LuaEngine()
 
 		tolua_beginmodule(L, "QLearner");
 			tolua_function(L, "pack", QLearner_pack);
+			tolua_function(L, "unpack", QLearner_unpack);
 			tolua_function(L, "load", QLearner_load);
 			tolua_variable(L, "matrix", QLearner_getMatrix, nullptr);
 		tolua_endmodule(L);

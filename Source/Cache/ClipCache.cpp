@@ -32,17 +32,17 @@ Sprite* ClipDef::toSprite(String name)
 std::string ClipDef::toXml()
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{} =\"{}\">", char(Xml::Clip::Element::Dorothy), char(Xml::Clip::Dorothy::File));
+	fmt::format_to(std::back_inserter(out), "<{} =\"{}\">"sv, char(Xml::Clip::Element::Dorothy), char(Xml::Clip::Dorothy::File));
 	for (const auto& rect : rects)
 	{
-		fmt::format_to(out, "<{} {}=\"{}\" {}=\"{},{},{},{}\"/>",
+		fmt::format_to(std::back_inserter(out), "<{} {}=\"{}\" {}=\"{},{},{},{}\"/>"sv,
 			char(Xml::Clip::Element::Clip),
 			char(Xml::Clip::Clip::Name), rect.first,
 			char(Xml::Clip::Clip::Rect),
 			rect.second->origin.x, rect.second->origin.y,
 			rect.second->size.width, rect.second->size.height);
 	}
-	fmt::format_to(out, "</{}>", char(Xml::Clip::Element::Dorothy));
+	fmt::format_to(std::back_inserter(out), "</{}>"sv, char(Xml::Clip::Element::Dorothy));
 	return fmt::to_string(out);
 }
 

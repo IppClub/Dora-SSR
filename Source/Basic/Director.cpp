@@ -371,18 +371,21 @@ void Director::doRender()
 			_renderTargets[0]->renderWithClear(_entry, _clearColor);
 			_renderTargets[0]->setCamera(nullptr);
 			size_t rtIndex = 0;
-			for (Pass* pass : postEffect->getPasses())
+			if (postEffect)
 			{
-				Effect* effect = _renderTargets[rtIndex]->getSurface()->getEffect();
-				effect->add(pass);
-				if (pass->isRTNeeded())
+				for (Pass* pass : postEffect->getPasses())
 				{
-					RenderTarget* rt = _renderTargets[rtIndex];
-					rtIndex = (rtIndex + 1) % 2;
-					rt->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
-					_renderTargets[rtIndex]->render(rt);
-					rt->getSurface()->getEffect()->clear();
-					_renderTargets[rtIndex]->getSurface()->getEffect()->clear();
+					Effect* effect = _renderTargets[rtIndex]->getSurface()->getEffect();
+					effect->add(pass);
+					if (pass->isRTNeeded())
+					{
+						RenderTarget* rt = _renderTargets[rtIndex];
+						rtIndex = (rtIndex + 1) % 2;
+						rt->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
+						_renderTargets[rtIndex]->render(rt);
+						rt->getSurface()->getEffect()->clear();
+						_renderTargets[rtIndex]->getSurface()->getEffect()->clear();
+					}
 				}
 			}
 

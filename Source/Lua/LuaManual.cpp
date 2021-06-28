@@ -1986,6 +1986,49 @@ tolua_lerror:
 #endif
 }
 
+int QLearner_unpack(lua_State* L)
+{
+	/* 1 table, 2 integer */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_istable(L, 1, 0, &tolua_err)
+		|| !tolua_isinteger(L, 2, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		int hintsCount = s_cast<int>(lua_rawlen(L, 1));
+#ifndef TOLUA_RELEASE
+		if (!tolua_isintegerarray(L, 1, hintsCount, 0, &tolua_err))
+		{
+			goto tolua_lerror;
+		}
+#endif
+		std::vector<uint32_t> hints;
+		hints.resize(hintsCount);
+		for (int i = 0; i < hintsCount; i++)
+		{
+			hints[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 1, i + 1, 0));
+		}
+		QLearner::QState state = s_cast<QLearner::QState>(lua_tointeger(L, 2));
+		std::vector<uint32_t> values = QLearner::unpack(hints, state);
+		lua_createtable(L, hintsCount, 0);
+		for (size_t i = 0; i < values.size(); i++)
+		{
+			lua_pushinteger(L, values[i]);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'QLearner_unpack'.", &tolua_err);
+	return 0;
+#endif
+}
+
 int QLearner_load(lua_State* L)
 {
 	/* 1 self, 2 table */

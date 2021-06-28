@@ -43,56 +43,56 @@ skewY(0.0f)
 std::string KeyFrameDef::toXml(KeyFrameDef* lastDef)
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{}", char(Xml::Model::Element::KeyFrame));
+	fmt::format_to(std::back_inserter(out), "<{}"sv, char(Xml::Model::Element::KeyFrame));
 	if ((lastDef && lastDef->duration != duration) || (!lastDef && duration != 0.0f))
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Duration), s_cast<int>(duration * 60.0f + 0.5f));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::Duration), s_cast<int>(duration * 60.0f + 0.5f));
 	}
 	if ((lastDef && lastDef->visible != visible) || (!lastDef && !visible))
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Visible), (visible ? "1" : "0"));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::Visible), (visible ? "1" : "0"));
 	}
 	if ((lastDef && (lastDef->x != x || lastDef->y != y)) || (!lastDef && (x != 0.0f || y != 0.0f)))
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::KeyFrame::Position), s(x), s(y));
+		fmt::format_to(std::back_inserter(out), " {}=\"{},{}\""sv, char(Xml::Model::KeyFrame::Position), s(x), s(y));
 	}
 	if ((lastDef && lastDef->rotation != rotation) || (!lastDef && rotation != 0.0f))
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Rotation), s(rotation));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::Rotation), s(rotation));
 	}
 	if ((lastDef && (lastDef->scaleX != scaleX || lastDef->scaleY != scaleY)) || (!lastDef && (scaleX != 1.0f || scaleY != 1.0f)))
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::KeyFrame::Scale), s(scaleX), s(scaleY));
+		fmt::format_to(std::back_inserter(out), " {}=\"{},{}\""sv, char(Xml::Model::KeyFrame::Scale), s(scaleX), s(scaleY));
 	}
 	if ((lastDef && lastDef->opacity != opacity) || (!lastDef && opacity != 1.0f))
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::Opacity), s(opacity));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::Opacity), s(opacity));
 	}
 	if ((lastDef && (lastDef->skewX != skewX || lastDef->skewY != skewY)) || (!lastDef && (skewX != 0.0f || skewY != 0.0f)))
 	{
-		fmt::format_to(out, " {}=\"{},{}\"", char(Xml::Model::KeyFrame::Skew), s(skewX), s(skewY));
+		fmt::format_to(std::back_inserter(out), " {}=\"{},{}\""sv, char(Xml::Model::KeyFrame::Skew), s(skewX), s(skewY));
 	}
 	if (easePos != Ease::Linear)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EasePos), s_cast<int>(easePos));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::EasePos), s_cast<int>(easePos));
 	}
 	if (easeScale != Ease::Linear)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseScale), s_cast<int>(easeScale));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::EaseScale), s_cast<int>(easeScale));
 	}
 	if (easeRotation != Ease::Linear)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseRotate), s_cast<int>(easeRotation));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::EaseRotate), s_cast<int>(easeRotation));
 	}
 	if (easeSkew != Ease::Linear)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseSkew), s_cast<int>(easeSkew));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::EaseSkew), s_cast<int>(easeSkew));
 	}
 	if (easeOpacity != Ease::Linear)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::KeyFrame::EaseOpacity), s_cast<int>(easeOpacity));
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::KeyFrame::EaseOpacity), s_cast<int>(easeOpacity));
 	}
-	fmt::format_to(out, "/>");
+	fmt::format_to(std::back_inserter(out), "/>"sv);
 	return fmt::to_string(out);
 }
 
@@ -380,21 +380,21 @@ Action* KeyAnimationDef::toAction()
 std::string KeyAnimationDef::toXml()
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{}", char(Xml::Model::Element::KeyAnimation));
+	fmt::format_to(std::back_inserter(out), "<{}"sv, char(Xml::Model::Element::KeyAnimation));
 	if (_keyFrameDefs.empty())
 	{
-		fmt::format_to(out, "/>");
+		fmt::format_to(std::back_inserter(out), "/>"sv);
 	}
 	else
 	{
-		fmt::format_to(out, ">");
+		fmt::format_to(std::back_inserter(out), ">"sv);
 		KeyFrameDef* lastDef = nullptr;
 		for (const auto& keyFrameDef : _keyFrameDefs)
 		{
-			fmt::format_to(out, "{}", keyFrameDef->toXml(lastDef));
+			fmt::format_to(std::back_inserter(out), "{}"sv, keyFrameDef->toXml(lastDef));
 			lastDef = keyFrameDef.get();
 		}
-		fmt::format_to(out, "</{}>", char(Xml::Model::Element::KeyAnimation));
+		fmt::format_to(std::back_inserter(out), "</{}>"sv, char(Xml::Model::Element::KeyAnimation));
 	}
 	return fmt::to_string(out);
 }
@@ -434,12 +434,12 @@ const std::string& FrameAnimationDef::getFile() const
 std::string FrameAnimationDef::toXml()
 {
 	fmt::memory_buffer out;
-	fmt::format_to(out, "<{} {}=\"{}\"", char(Xml::Model::Element::FrameAnimation), char(Xml::Model::FrameAnimation::File), _file);
+	fmt::format_to(std::back_inserter(out), "<{} {}=\"{}\""sv, char(Xml::Model::Element::FrameAnimation), char(Xml::Model::FrameAnimation::File), _file);
 	if (delay != 0.0f)
 	{
-		fmt::format_to(out, " {}=\"{}\"", char(Xml::Model::FrameAnimation::Delay), delay);
+		fmt::format_to(std::back_inserter(out), " {}=\"{}\""sv, char(Xml::Model::FrameAnimation::Delay), delay);
 	}
-	fmt::format_to(out, "/>");
+	fmt::format_to(std::back_inserter(out), "/>"sv);
 	return fmt::to_string(out);
 }
 

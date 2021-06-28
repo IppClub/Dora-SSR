@@ -67,6 +67,24 @@ QLearner::QState QLearner::pack(const std::vector<uint32_t>& hints, const std::v
 	return state;
 }
 
+std::vector<uint32_t> QLearner::unpack(const std::vector<uint32_t>& hints, QState state)
+{
+	std::vector<uint32_t> values;
+	int currentBit = 0;
+	for (auto kind : hints)
+	{
+		uint32_t bit = 1, mask = 1;
+		while ((uint32_t(1) << bit) < kind)
+		{
+			mask |= (1 << bit);
+			bit++;
+		}
+		values.push_back(s_cast<uint32_t>((state >> currentBit) & mask));
+		currentBit += bit;
+	}
+	return values;
+}
+
 QLearner::QLearner(double gamma, double alpha, double maxQ):
 _gamma(gamma),
 _alpha(alpha),
