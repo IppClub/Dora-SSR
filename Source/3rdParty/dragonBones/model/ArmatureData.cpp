@@ -161,7 +161,7 @@ int ArmatureData::setCacheFrame(const Matrix& globalTransformMatrix, const Trans
     dataArray[arrayOffset + 8] = transform.scaleX;
     dataArray[arrayOffset + 9] = transform.scaleY;
 
-    return arrayOffset;
+    return (int)arrayOffset;
 }
 
 void ArmatureData::getCacheFrame(Matrix& globalTransformMatrix, Transform& transform, unsigned arrayOffset) const

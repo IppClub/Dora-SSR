@@ -102,7 +102,7 @@ void Armature::_sortZOrder(const int16_t* slotIndices, unsigned offset)
             const auto slot = getSlot(slotData->name);
             if (slot != nullptr) 
             {
-                slot->_setZorder(i);
+                slot->_setZorder((int)i);
             }
         }
 

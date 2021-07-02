@@ -521,7 +521,7 @@ AnimationState* Animation::gotoAndStopByProgress(const std::string& animationNam
 
 AnimationState* Animation::getState(const std::string& animationName) const
 {
-    int i = _animationStates.size();
+    int i = int(_animationStates.size());
     while (i--)
     {
         const auto animationState = _animationStates[i];

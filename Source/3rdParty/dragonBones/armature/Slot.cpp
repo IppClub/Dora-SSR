@@ -862,7 +862,7 @@ void Slot::setRawDisplayDatas(const std::vector<DisplayData*>* value)
 
             if (rawDisplayData == nullptr)
             {
-                rawDisplayData = _getDefaultRawDisplayData(i);
+                rawDisplayData = _getDefaultRawDisplayData((unsigned)i);
             }
 
             _displayDatas[i] = rawDisplayData;

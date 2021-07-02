@@ -863,7 +863,7 @@ void DeformTimelineState::init(Armature* armature, AnimationState* animationStat
     else 
     {
         const auto deformVertices = slot->_deformVertices;
-        _deformCount = deformVertices != nullptr ? deformVertices->vertices.size() : 0;
+        _deformCount = deformVertices != nullptr ? (unsigned)deformVertices->vertices.size() : 0;
         _valueCount = _deformCount;
         _valueOffset = 0;
         _frameFloatOffset = 0;
@@ -923,7 +923,7 @@ void DeformTimelineState::update(float passedTime)
             }
             else 
             {
-                _deformCount = result.size();
+                _deformCount = (unsigned)result.size();
 
                 for (std::size_t i = 0; i < _deformCount; ++i)
                 {
@@ -957,7 +957,7 @@ void DeformTimelineState::update(float passedTime)
             }
             else 
             {
-                _deformCount = result.size();
+                _deformCount = (unsigned)result.size();
 
                 for (std::size_t i = 0; i < _deformCount; ++i)
                 {
