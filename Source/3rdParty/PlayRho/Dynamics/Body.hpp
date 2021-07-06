@@ -26,12 +26,12 @@
 /// Declarations of the Body class, and free functions associated with it.
 
 #include "PlayRho/Common/Math.hpp"
-#include "PlayRho/Common/Range.hpp"
+
 #include "PlayRho/Dynamics/BodyType.hpp"
 #include "PlayRho/Dynamics/BodyConf.hpp"
-#include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/MovementConf.hpp"
+
 #include "PlayRho/Collision/MassData.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
 #include <cassert>
 #include <utility>
@@ -39,29 +39,22 @@
 namespace playrho {
 namespace d2 {
 
-struct FixtureConf;
-class Shape;
-
 /// @example Body.cpp
 /// This is the <code>googletest</code> based unit testing file for the interfaces to
 ///   <code>playrho::d2::Body</code>.
 
-/// @brief Physical entity that exists within a World.
+/// @brief A "body" physical entity.
 ///
-/// @details A rigid body entity created or destroyed through a World instance. These have
-///   physical properties like: position, velocity, acceleration, and mass.
+/// @details A rigid body entity having associated properties like position, velocity,
+///   acceleration, and mass.
 ///
 /// @invariant Only bodies that allow sleeping, can be put to sleep.
 /// @invariant Only "speedable" bodies can be awake.
 /// @invariant Only "speedable" bodies can have non-zero velocities.
 /// @invariant Only "accelerable" bodies can have non-zero accelerations.
 /// @invariant Only "accelerable" bodies can have non-zero "under-active" times.
-///
-/// @note Create these using the <code>World::CreateBody</code> method.
-/// @note Destroy these using the <code>World::Destroy(BodyID)</code> method.
-/// @note From a memory management perspective, bodies own Fixture instances.
-/// @note On a 64-bit architecture with 4-byte Real, this data structure is at least
-///   192-bytes large.
+/// @invariant The body's transformation is always the body's sweep position one's linear position
+///   and the unit vector of the body's sweep position one's angular position.
 ///
 /// @ingroup PhysicalEntities
 ///
@@ -148,16 +141,10 @@ public:
     ///   2. Forces and torques acting on the body (applied force, applied impulse, etc.).
     ///   3. The mass and rotational inertia of the body.
     ///   4. Damping of the body.
-    ///   5. Restitution and friction values of the body's fixtures when they experience collisions.
+    ///   5. Restitutioen and friction values of body's shape parts when experiencing collisions.
     /// @return the world transform of the body's origin.
-    /// @see SetTransformation.
+    /// @see SetSweep.
     const Transformation& GetTransformation() const noexcept;
-
-    /// @brief Sets the body's transformation.
-    /// @note <code>SetSweep</code> may also need to be called.
-    /// @post <code>GetTransformation()</code> will return the value set.
-    /// @see GetTransformation, GetSweep, SetSweep.
-    void SetTransformation(const Transformation& value) noexcept;
 
     /// @brief Gets the body's sweep.
     /// @see SetSweep.
@@ -176,11 +163,7 @@ public:
     /// Sets the body's velocity.
     /// @note This sets what <code>GetVelocity()</code> returns.
     /// @see GetVelocity.
-    void JustSetVelocity(Velocity value) noexcept
-    {
-        m_linearVelocity = value.linear;
-        m_angularVelocity = value.angular;
-    }
+    void JustSetVelocity(Velocity value) noexcept;
 
     /// @brief Sets the linear and rotational accelerations on this body.
     /// @note This has no effect on non-accelerable bodies.
@@ -204,15 +187,8 @@ public:
     /// As such, it's likely faster to multiply values by this inverse value than to redivide
     /// them all the time by the mass.
     /// @return Value of zero or more representing the body's inverse mass (in 1/kg).
-    /// @see SetInvMass.
+    /// @see SetInvMassData.
     InvMass GetInvMass() const noexcept;
-
-    /// @brief Sets the inverse mass.
-    /// @see GetInvMass
-    void SetInvMass(InvMass v) noexcept
-    {
-        m_invMass = v;
-    }
 
     /// @brief Gets the inverse rotational inertia of the body.
     /// @details This is the cached result of dividing 1 by the body's rotational inertia.
@@ -220,15 +196,13 @@ public:
     /// As such, it's likely faster to multiply values by this inverse value than to redivide
     /// them all the time by the rotational inertia.
     /// @return Inverse rotational inertia (in 1/kg-m^2).
-    /// @see SetInvRotInertia.
+    /// @see SetInvMassData.
     InvRotInertia GetInvRotInertia() const noexcept;
 
-    /// @brief Sets the inverse rotational inertia.
-    /// @see GetInvRotInertia.
-    void SetInvRotInertia(InvRotInertia v) noexcept
-    {
-        m_invRotI = v;
-    }
+    /// @brief Sets the inverse mass data and clears the mass-data-dirty flag.
+    /// @note This calls <code>UnsetMassDataDirty</code>.
+    /// @see GetInvMass, GetInvRotInertia, IsMassDataDirty.
+    void SetInvMassData(InvMass invMass, InvRotInertia invRotI) noexcept;
 
     /// @brief Gets the linear damping of the body.
     /// @see SetLinearDamping.
@@ -386,76 +360,43 @@ public:
 
     /// @brief Sets the sweep value of the given body.
     /// @see GetSweep.
-    void SetSweep(const Sweep& value) noexcept
-    {
-        assert(IsSpeedable() || value.pos0 == value.pos1);
-        m_sweep = value;
-    }
+    void SetSweep(const Sweep& value) noexcept;
 
     /// @brief Sets the "position 0" value of the body to the given position.
     /// @see GetSweep, SetSweep.
-    void SetPosition0(const Position value) noexcept
-    {
-        assert(IsSpeedable() || m_sweep.pos0 == value);
-        m_sweep.pos0 = value;
-    }
+    void SetPosition0(const Position& value) noexcept;
 
     /// @brief Sets the body sweep's "position 1" value.
     /// @see GetSweep, SetSweep.
-    void SetPosition1(const Position value) noexcept
-    {
-        assert(IsSpeedable() || m_sweep.pos1 == value);
-        m_sweep.pos1 = value;
-    }
+    void SetPosition1(const Position& value) noexcept;
 
     /// @brief Resets the given body's "alpha-0" value.
     /// @see GetSweep.
-    void ResetAlpha0() noexcept
-    {
-        m_sweep.ResetAlpha0();
-    }
-
-    /// @brief Restores the given body's sweep to the given sweep value.
-    /// @see GetSweep, SetSweep.
-    void Restore(const Sweep& value) noexcept
-    {
-        SetSweep(value);
-        SetTransformation(GetTransform1(value));
-    }
+    void ResetAlpha0() noexcept;
 
     /// @brief Calls the body sweep's <code>Advance0</code> method to advance to
     ///    the given value.
     /// @see GetSweep.
-    void Advance0(Real value) noexcept
-    {
-        // Note: Static bodies must **never** have different sweep position values.
+    void Advance0(Real value) noexcept;
 
-        // Confirm bodies don't have different sweep positions to begin with...
-        assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
+    /// @brief Gets the identifiers of the shapes attached to this body.
+    /// @see SetShapes, Attach, Detach.
+    std::vector<ShapeID> GetShapes() const noexcept;
 
-        m_sweep.Advance0(value);
+    /// @brief Sets the identifiers of the shapes attached to this body.
+    /// @note This also sets the mass-data-dirty flag.
+    /// @see GetShapes, Attach, Detach.
+    void SetShapes(std::vector<ShapeID> value);
 
-        // Confirm bodies don't have different sweep positions to end with...
-        assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
-    }
+    /// @brief Adds the given shape identifier to the identifiers associated with this body.
+    /// @note This also sets the mass-data-dirty flag. Call <code>SetInvMassData</code> to clear it.
+    /// @see GetShapes, SetShapes, Detach, SetInvMassData.
+    Body& Attach(ShapeID shapeId);
 
-    /// Advances the body by a given time ratio.
-    /// @details This method:
-    ///    1. advances the body's sweep to the given time ratio;
-    ///    2. updates the body's sweep positions (linear and angular) to the advanced ones; and
-    ///    3. updates the body's transform to the new sweep one settings.
-    /// @param value Valid new time factor in [0,1) to advance the sweep to.
-    /// @see GetSweep, SetSweep, GetTransofmration, SetTransformation.
-    void Advance(Real value) noexcept
-    {
-        // assert(m_sweep.GetAlpha0() <= alpha);
-        assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
-
-        // Advance to the new safe time. This doesn't sync the broad-phase.
-        m_sweep.Advance0(value);
-        m_sweep.pos1 = m_sweep.pos0;
-        m_xf = GetTransform1(m_sweep);
-    }
+    /// @brief Removes the given shape identifier from the identifiers associated with this body.
+    /// @note This also sets the mass-data-dirty flag. Call <code>SetInvMassData</code> to clear it.
+    /// @see GetShapes, SetShapes, Attach, SetInvMassData.
+    bool Detach(ShapeID shapeId);
 
 private:
     //
@@ -464,12 +405,14 @@ private:
 
     /// Transformation for body origin.
     /// @note Also availble from <code>GetTransform1(m_sweep)</code>.
+    /// @note <code>m_xf.p == m_sweep.pos1.linear && m_xf.q ==
+    ///   UnitVec::Get(m_sweep.pos1.angular)</code>.
     /// @note 16-bytes.
     Transformation m_xf;
 
     /// @brief Sweep motion for CCD. 36-bytes.
-    /// @note This is something of a non-essential part.
-    /// @todo Consider refactoring this data out of this class and into the world implementation.
+    /// @note <code>m_sweep.pos1.linear == m_xf.p && UnitVec::Get(m_sweep.pos1.angular) ==
+    ///   m_xf.q</code>.
     Sweep m_sweep;
 
     FlagsType m_flags = 0; ///< Flags. 2-bytes.
@@ -509,16 +452,14 @@ private:
     ///   I.e. if a body is under-active for long enough, it should go to sleep.
     /// @note 4-bytes.
     Time m_underActiveTime = 0;
+
+    /// @brief Identifiers of shapes attached/associated with this body.
+    std::vector<ShapeID> m_shapes;
 };
 
 inline const Transformation& Body::GetTransformation() const noexcept
 {
     return m_xf;
-}
-
-inline void Body::SetTransformation(const Transformation& value) noexcept
-{
-    m_xf = value;
 }
 
 inline const Sweep& Body::GetSweep() const noexcept
@@ -539,6 +480,13 @@ inline InvMass Body::GetInvMass() const noexcept
 inline InvRotInertia Body::GetInvRotInertia() const noexcept
 {
     return m_invRotI;
+}
+
+inline void Body::SetInvMassData(InvMass invMass, InvRotInertia invRotI) noexcept
+{
+    m_invMass = invMass;
+    m_invRotI = invRotI;
+    UnsetMassDataDirty();
 }
 
 inline Frequency Body::GetLinearDamping() const noexcept
@@ -636,18 +584,6 @@ inline bool Body::IsSleepingAllowed() const noexcept
     return (m_flags & e_autoSleepFlag) != 0;
 }
 
-inline void Body::SetSleepingAllowed(bool flag) noexcept
-{
-    if (flag) {
-        m_flags |= e_autoSleepFlag;
-    }
-    else if (IsSpeedable()) {
-        m_flags &= ~e_autoSleepFlag;
-        SetAwakeFlag();
-        ResetUnderActiveTime();
-    }
-}
-
 inline LinearAcceleration2 Body::GetLinearAcceleration() const noexcept
 {
     return m_linearAcceleration;
@@ -681,6 +617,52 @@ inline void Body::SetEnabled() noexcept
 inline void Body::UnsetEnabled() noexcept
 {
     m_flags &= ~e_enabledFlag;
+}
+
+inline void Body::SetSweep(const Sweep& value) noexcept
+{
+    assert(IsSpeedable() || value.pos0 == value.pos1);
+    m_sweep = value;
+    m_xf = GetTransform1(value);
+}
+
+inline void Body::SetPosition0(const Position& value) noexcept
+{
+    assert(IsSpeedable() || m_sweep.pos0 == value);
+    m_sweep.pos0 = value;
+}
+
+inline void Body::SetPosition1(const Position& value) noexcept
+{
+    assert(IsSpeedable() || m_sweep.pos1 == value);
+    m_sweep.pos1 = value;
+    m_xf = ::playrho::d2::GetTransformation(value, m_sweep.GetLocalCenter());
+}
+
+inline void Body::ResetAlpha0() noexcept
+{
+    m_sweep.ResetAlpha0();
+}
+
+inline void Body::Advance0(Real value) noexcept
+{
+    // Note: Static bodies must **never** have different sweep position values.
+    // Confirm bodies don't have different sweep positions to begin with...
+    assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
+    m_sweep.Advance0(value);
+    // Confirm bodies don't have different sweep positions to end with...
+    assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
+}
+
+inline std::vector<ShapeID> Body::GetShapes() const noexcept
+{
+    return m_shapes;
+}
+
+inline void Body::SetShapes(std::vector<ShapeID> value)
+{
+    m_shapes = std::move(value);
+    SetMassDataDirty();
 }
 
 // Free functions...
@@ -839,23 +821,6 @@ inline void UnsetAwake(Body& body) noexcept
     body.UnsetAwake();
 }
 
-/// @brief Gets the body's transformation.
-/// @see SetTransformation(Body& body, Transformation value).
-/// @relatedalso Body
-inline Transformation GetTransformation(const Body& body) noexcept
-{
-    return body.GetTransformation();
-}
-
-/// Sets the body's transformation.
-/// @note This sets what <code>GetLocation</code> returns.
-/// @see GetTransformation(const Body& body).
-/// @relatedalso Body
-inline void SetTransformation(Body& body, Transformation value) noexcept
-{
-    body.SetTransformation(value);
-}
-
 /// @brief Gets the body's origin location.
 /// @details This is the location of the body's origin relative to its world.
 /// The location of the body after stepping the world's physics simulations is dependent on
@@ -864,7 +829,7 @@ inline void SetTransformation(Body& body, Transformation value) noexcept
 ///   2. Forces acting on the body (gravity, applied force, applied impulse).
 ///   3. The mass data of the body.
 ///   4. Damping of the body.
-///   5. Restitution and friction values of the body's fixtures when they experience collisions.
+///   5. Restitution and friction values of the body's shape parts when they experience collisions.
 /// @return World location of the body's origin.
 /// @see GetAngle.
 /// @relatedalso Body
@@ -872,6 +837,16 @@ inline Length2 GetLocation(const Body& body) noexcept
 {
     return GetLocation(body.GetTransformation());
 }
+
+/// @brief Sets the body's location.
+/// @details This instantly adjusts the body to be at the new location.
+/// @warning Manipulating a body's location this way can cause non-physical behavior!
+/// @param body The body to update.
+/// @param value Valid world location of the body's local origin. Behavior is undefined
+///   if value is invalid.
+/// @see GetLocation(const Body& body).
+/// @relatedalso Body
+void SetLocation(Body& body, Length2 value);
 
 /// @brief Gets the body's sweep.
 /// @see SetSweep(Body& body, const Sweep& value).
@@ -889,6 +864,13 @@ inline void SetSweep(Body& body, const Sweep& value) noexcept
     body.SetSweep(value);
 }
 
+/// @brief Gets the "position 0" Position information for the given body.
+/// @relatedalso Body
+inline Position GetPosition0(const Body& body) noexcept
+{
+    return body.GetSweep().pos0;
+}
+
 /// @brief Gets the "position 1" Position information for the given body.
 /// @relatedalso Body
 inline Position GetPosition1(const Body& body) noexcept
@@ -896,13 +878,74 @@ inline Position GetPosition1(const Body& body) noexcept
     return body.GetSweep().pos1;
 }
 
+/// @brief Sets the "position 0" Position information for the given body.
+/// @relatedalso Body
+inline void SetPosition0(Body& body, Position value) noexcept
+{
+    body.SetPosition0(value);
+}
+
+/// @brief Sets the "position 1" Position information for the given body.
+/// @relatedalso Body
+inline void SetPosition1(Body& body, Position value) noexcept
+{
+    body.SetPosition1(value);
+}
+
+/// @brief Calls the body sweep's <code>Advance0</code> method to advance to
+///    the given value.
+/// @see GetSweep.
+inline void Advance0(Body& body, Real value) noexcept
+{
+    body.Advance0(value);
+}
+
+/// Advances the body by a given time ratio.
+/// @details This method:
+///    1. advances the body's sweep to the given time ratio;
+///    2. updates the body's sweep positions (linear and angular) to the advanced ones; and
+///    3. updates the body's transform to the new sweep one settings.
+/// @param body The body to update.
+/// @param value Valid new time factor in [0,1) to advance the sweep to.
+/// @see GetSweep, SetSweep, GetTransofmration, SetTransformation.
+inline void Advance(Body& body, Real value) noexcept
+{
+    // Advance to the new safe time. This doesn't sync the broad-phase.
+    Advance0(body, value);
+    SetPosition1(body, GetPosition0(body));
+}
+
+/// @brief Gets the body's transformation.
+/// @see SetTransformation(Body& body, Transformation value).
+/// @relatedalso Body
+inline const Transformation& GetTransformation(const Body& body) noexcept
+{
+    return body.GetTransformation();
+}
+
+/// @brief Sets the body's transformation.
+/// @note This sets the sweep to the new transformation.
+/// @post <code>GetTransformation(const Body& body)</code> will return the value set.
+/// @post <code>GetPosition1(const Body& body)</code> will return a position equivalent to value
+///   given.
+/// @see GetTransformation(const Body& body), GetPosition1(const Body& body).
+/// @relatedalso Body
+void SetTransformation(Body& body, const Transformation& value) noexcept;
+
 /// @brief Gets the body's angle.
 /// @return Body's angle relative to its World.
 /// @relatedalso Body
-inline Angle GetAngle(const Body& body) noexcept
-{
-    return body.GetSweep().pos1.angular;
-}
+Angle GetAngle(const Body& body) noexcept;
+
+/// @brief Sets the body's angular orientation.
+/// @details This instantly adjusts the body to be at the new angular orientation.
+/// @warning Manipulating a body's angle this way can cause non-physical behavior!
+/// @param body The body to update.
+/// @param value Valid world angle of the body's local origin. Behavior is undefined
+///   if value is invalid.
+/// @see GetAngle(const Body& body).
+/// @relatedalso Body
+void SetAngle(Body& body, Angle value);
 
 /// @brief Get the world position of the center of mass.
 inline Length2 GetWorldCenter(const Body& body) noexcept
@@ -962,7 +1005,7 @@ inline bool IsMassDataDirty(const Body& body) noexcept
 /// As such, it's likely faster to multiply values by this inverse value than to redivide
 /// them all the time by the mass.
 /// @return Value of zero or more representing the body's inverse mass (in 1/kg).
-/// @see SetInvMass.
+/// @see SetInvMassData.
 /// @relatedalso Body
 inline InvMass GetInvMass(const Body& body) noexcept
 {
@@ -1077,19 +1120,38 @@ inline bool Unawaken(Body& body) noexcept
 /// @brief Gets the mass of the body.
 /// @note This may be the total calculated mass or it may be the set mass of the body.
 /// @return Value of zero or more representing the body's mass.
-/// @see GetInvMass, SetInvMass
+/// @see GetInvMass, SetInvMassData
 /// @relatedalso Body
 inline Mass GetMass(const Body& body) noexcept
 {
     const auto invMass = body.GetInvMass();
-    return (invMass != InvMass{0}) ? Mass{Real{1} / invMass} : 0_kg;
+    return (invMass == InvMass{}) ? std::numeric_limits<Mass>::infinity() : Mass{Real{1} / invMass};
 }
 
 /// @brief Sets the mass of the given body.
 /// @relatedalso Body
 inline void SetMass(Body& body, Mass mass)
 {
-    body.SetInvMass(InvMass{Real(1) / mass});
+    body.SetInvMassData(InvMass{Real(1) / mass}, body.GetInvRotInertia());
+}
+
+/// @brief Gets the rotational inertia of the body.
+/// @param body Body to get the rotational inertia for.
+/// @return the rotational inertia.
+/// @see Body::GetInvRotInertia, Body::SetInvMassData.
+/// @relatedalso Body
+inline RotInertia GetRotInertia(const Body& body) noexcept
+{
+    const auto invRotInertia = body.GetInvRotInertia();
+    return (invRotInertia == InvRotInertia{}) ? std::numeric_limits<RotInertia>::infinity()
+                                              : RotInertia{Real{1} / invRotInertia};
+}
+
+/// @brief Sets the rotational inertia of the body.
+/// @relatedalso Body
+inline void SetRotInertia(Body& body, RotInertia value) noexcept
+{
+    body.SetInvMassData(body.GetInvMass(), InvRotInertia{Real(1) / value});
 }
 
 /// @brief Sets the linear and rotational accelerations on this body.
@@ -1122,19 +1184,9 @@ inline void SetAcceleration(Body& body, AngularAcceleration value) noexcept
     body.SetAcceleration(body.GetLinearAcceleration(), value);
 }
 
-/// @brief Gets the rotational inertia of the body.
-/// @param body Body to get the rotational inertia for.
-/// @return the rotational inertia.
-/// @see Body::GetInvRotInertia, Body::SetInvRotInertia.
-/// @relatedalso Body
-inline RotInertia GetRotInertia(const Body& body) noexcept
-{
-    return Real{1} / body.GetInvRotInertia();
-}
-
 /// @brief Gets the rotational inertia of the body about the local origin.
 /// @return the rotational inertia.
-/// @see Body::GetInvRotInertia, Body::SetInvRotInertia.
+/// @see Body::GetInvRotInertia, Body::SetInvMassData.
 /// @relatedalso Body
 inline RotInertia GetLocalRotInertia(const Body& body) noexcept
 {
@@ -1311,6 +1363,13 @@ void ApplyLinearImpulse(Body& body, Momentum2 impulse, Length2 point) noexcept;
 /// @param impulse Angular impulse to be applied.
 /// @relatedalso Body
 void ApplyAngularImpulse(Body& body, AngularMomentum impulse) noexcept;
+
+/// @brief Gets the identifiers of the shapes attached to the body.
+/// @relatedalso Body
+inline std::vector<ShapeID> GetShapes(const Body& body) noexcept
+{
+    return body.GetShapes();
+}
 
 /// @brief Equals operator.
 /// @relatedalso Body

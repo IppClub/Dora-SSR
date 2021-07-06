@@ -28,7 +28,6 @@
 #include "PlayRho/Common/Real.hpp"
 
 #include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
 #include "PlayRho/Dynamics/Contacts/ContactID.hpp"
 
 namespace playrho {
@@ -50,6 +49,10 @@ ContactCounter GetContactRange(const WorldImpl& world) noexcept;
 const Contact& GetContact(const WorldImpl& world, ContactID id);
 
 /// @brief Sets the identified contact's state.
+/// @note This may throw an exception or update associated entities to preserve invariants.
+/// @invariant A contact may only be impenetrable if one or both bodies are.
+/// @invariant A contact may only be active if one or both bodies are awake.
+/// @invariant A contact may only be a sensor or one or both shapes are.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso WorldImpl
 void SetContact(WorldImpl& world, ContactID id, const Contact& value);

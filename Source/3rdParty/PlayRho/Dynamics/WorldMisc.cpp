@@ -23,7 +23,6 @@
 
 #include "PlayRho/Dynamics/World.hpp"
 #include "PlayRho/Dynamics/WorldBody.hpp"
-
 #include "PlayRho/Dynamics/BodyConf.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/MovementConf.hpp"
@@ -38,9 +37,14 @@ namespace d2 {
 
 using playrho::size;
 
-void SetFixtureDestructionListener(World& world, std::function<void(FixtureID)> listener) noexcept
+void SetShapeDestructionListener(World& world, std::function<void(ShapeID)> listener) noexcept
 {
-    world.SetFixtureDestructionListener(listener);
+    world.SetShapeDestructionListener(listener);
+}
+
+void SetDetachListener(World& world, std::function<void(std::pair<BodyID, ShapeID>)> listener) noexcept
+{
+    world.SetDetachListener(listener);
 }
 
 void SetJointDestructionListener(World& world, std::function<void(JointID)> listener) noexcept
@@ -96,12 +100,12 @@ StepStats Step(World& world, Time delta, TimestepIters velocityIterations,
 {
     StepConf conf;
     conf.deltaTime = delta;
-    conf.regVelocityIterations = velocityIterations;
-    conf.regPositionIterations = positionIterations;
-    conf.toiVelocityIterations = velocityIterations;
+    conf.regVelocityIters = velocityIterations;
+    conf.regPositionIters = positionIterations;
+    conf.toiVelocityIters = velocityIterations;
     if (positionIterations == 0)
     {
-        conf.toiPositionIterations = 0;
+        conf.toiPositionIters = 0;
     }
     conf.dtRatio = delta * world.GetInvDeltaTime();
     return world.Step(conf);
@@ -120,17 +124,6 @@ void SetSubStepping(World& world, bool flag) noexcept
 const DynamicTree& GetTree(const World& world) noexcept
 {
     return world.GetTree();
-}
-
-FixtureCounter GetShapeCount(const World& world) noexcept
-{
-    auto shapes = std::set<const void*>();
-    for (const auto& bodyID: world.GetBodies()) {
-        for (const auto& fixtureID: world.GetFixtures(bodyID)) {
-            shapes.insert(GetData(GetShape(world.GetFixture(fixtureID))));
-        }
-    }
-    return static_cast<FixtureCounter>(size(shapes));
 }
 
 void ShiftOrigin(World& world, Length2 newOrigin)

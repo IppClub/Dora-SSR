@@ -26,16 +26,14 @@
 /// Declarations of the World class.
 
 #include "PlayRho/Common/Math.hpp"
-#include "PlayRho/Common/Range.hpp" // for SizedRange
 #include "PlayRho/Common/propagate_const.hpp"
 
 #include "PlayRho/Collision/MassData.hpp"
 #include "PlayRho/Collision/Shapes/Shape.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
 #include "PlayRho/Dynamics/BodyConf.hpp" // for GetDefaultBodyConf
 #include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/FixtureConf.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/StepStats.hpp"
 #include "PlayRho/Dynamics/WorldConf.hpp"
@@ -78,14 +76,13 @@ class DynamicTree;
 ///   radius disk shape:
 /// @code{.cpp}
 /// auto world = World{};
-/// const auto body = world.CreateBody(BodyConf{}.UseType(BodyType::Dynamic));
-/// const auto fixture = world.CreateFixture(
-///     FixtureConf{}.UseBody(body).UseShape(DiskShapeConf{1_m}));
+/// const auto shape = world.CreateShape(Shape{DiskShapeConf{1_m}});
+/// const auto body = world.CreateBody(BodyConf{}.Use(BodyType::Dynamic).Use(shape));
 /// @endcode
 ///
 /// @see World.
 /// @see BodyID, World::CreateBody, World::Destroy(BodyID), World::GetBodies().
-/// @see FixtureID, World::CreateFixture, World::Destroy(FixtureID).
+/// @see ShapeID, World::CreateShape, World::Destroy(ShapeID).
 /// @see JointID, World::CreateJoint, World::Destroy(JointID), World::GetJoints().
 /// @see ContactID, World::GetContacts().
 /// @see BodyType, Shape, DiskShapeConf.
@@ -102,8 +99,8 @@ class DynamicTree;
 ///  different than some other engines (like <code>Box2D</code> which provides a world
 ///  gravity property).
 /// @note World instances are composed of &mdash; i.e. contain and own &mdash; body, contact,
-///   fixture, and joint entities. These are identified by <code>BodyID</code>,
-///   <code>ContactID</code>, <code>FixtureID</code>, and <code>JointID</code> values respectively.
+///   shape, and joint entities. These are identified by <code>BodyID</code>,
+///   <code>ContactID</code>, <code>ShapeID</code>, and <code>JointID</code> values respectively.
 /// @note This class uses the pointer to implementation (PIMPL) technique and non-vitural
 ///   interface (NVI) pattern to provide a complete layer of abstraction from the actual
 ///   implementations used. This forms a "compilation firewall" &mdash; or application
@@ -115,12 +112,11 @@ class DynamicTree;
 ///   meter radius disk shape:
 /// @code{.cpp}
 /// auto world = World{};
-/// const auto body = world.CreateBody(BodyConf{}.UseType(BodyType::Dynamic));
-/// const auto fixture = world.CreateFixture(
-///     FixtureConf{}.UseBody(body).UseShape(DiskShapeConf{1_m}));
+/// const auto shape = world.CreateShape(Shape{DiskShapeConf{1_m}});
+/// const auto body = world.CreateBody(BodyConf{}.Use(BodyType::Dynamic).Use(shape));
 /// @endcode
 ///
-/// @see BodyID, ContactID, FixtureID, JointID, PhysicalEntities.
+/// @see BodyID, ContactID, ShapeID, JointID, PhysicalEntities.
 /// @see https://en.wikipedia.org/wiki/Non-virtual_interface_pattern
 /// @see https://en.wikipedia.org/wiki/Application_binary_interface
 /// @see https://en.cppreference.com/w/cpp/language/pimpl
@@ -128,23 +124,26 @@ class DynamicTree;
 class World
 {
 public:
-    /// @brief Bodies container type.
+    /// @brief Container type for Shape identifiers.
+    using Shapes = std::vector<ShapeID>;
+
+    /// @brief Container type for Body identifiers.
     using Bodies = std::vector<BodyID>;
 
     /// @brief Container type for keyed contact identifiers.
     using Contacts = std::vector<KeyedContactPtr>;
 
-    /// @brief Container type for joint identifiers.
+    /// @brief Container type for Joint identifiers.
     using Joints = std::vector<JointID>;
 
-    /// @brief Container type for body associated joint identifiers.
+    /// @brief Container type for Body associated Joint identifiers.
     using BodyJoints = std::vector<std::pair<BodyID, JointID>>;
 
-    /// @brief Container type for fixture identifiers.
-    using Fixtures = std::vector<FixtureID>;
+    /// @brief Shape listener.
+    using ShapeListener = std::function<void(ShapeID)>;
 
-    /// @brief Listener type for some fixture related events.
-    using FixtureListener = std::function<void(FixtureID)>;
+    /// @brief Body-shape listener.
+    using AssociationListener = std::function<void(std::pair<BodyID, ShapeID>)>;
 
     /// @brief Listener type for some joint related events.
     using JointListener = std::function<void(JointID)>;
@@ -190,8 +189,11 @@ public:
     /// @name Listener Member Functions
     /// @{
 
-    /// @brief Registers a destruction listener for fixtures.
-    void SetFixtureDestructionListener(const FixtureListener& listener) noexcept;
+    /// @brief Registers a destruction listener for shapes.
+    void SetShapeDestructionListener(ShapeListener listener) noexcept;
+
+    /// @brief Registers a detach listener for shapes detaching from bodies.
+    void SetDetachListener(AssociationListener listener) noexcept;
 
     /// @brief Registers a destruction listener for joints.
     void SetJointDestructionListener(const JointListener& listener) noexcept;
@@ -276,6 +278,8 @@ public:
     void SetSubStepping(bool flag) noexcept;
 
     /// @brief Gets access to the broad-phase dynamic tree information.
+    /// @todo Consider removing this function. This function exposes the implementation detail
+    ///   of the broad-phase contact detection system.
     const DynamicTree& GetTree() const noexcept;
 
     /// @brief Is the world locked (in the middle of a time step).
@@ -319,32 +323,32 @@ public:
     /// @details Gets a range enumerating the bodies currently existing within this world.
     ///   These are the bodies that had been created from previous calls to the
     ///   <code>CreateBody(const BodyConf&)</code> method that haven't yet been destroyed.
-    /// @return Range of body identifiers that can be iterated over using its begin and end methods
-    ///   or using ranged-based for-loops.
+    /// @return An iterable of body identifiers.
     /// @see CreateBody(const BodyConf&).
-    SizedRange<Bodies::const_iterator> GetBodies() const noexcept;
+    Bodies GetBodies() const noexcept;
 
     /// @brief Gets the bodies-for-proxies range for this world.
     /// @details Provides insight on what bodies have been queued for proxy processing
     ///   during the next call to the world step method.
     /// @see Step.
     /// @todo Remove this function from this class - access from implementation instead.
-    SizedRange<Bodies::const_iterator> GetBodiesForProxies() const noexcept;
+    Bodies GetBodiesForProxies() const noexcept;
 
-    /// @brief Creates a rigid body with the given configuration.
+    /// @brief Creates a rigid body that's a copy of the given one.
     /// @warning This function should not be used while the world is locked &mdash; as it is
     ///   during callbacks. If it is, it will throw an exception or abort your program.
     /// @note No references to the configuration are retained. Its value is copied.
     /// @post The created body will be present in the range returned from the
     ///   <code>GetBodies()</code> method.
-    /// @param def A customized body configuration or its default value.
+    /// @param body A customized body or its default value.
     /// @return Identifier of the newly created body which can later be destroyed by calling
     ///   the <code>Destroy(BodyID)</code> method.
     /// @throws WrongState if this method is called while the world is locked.
     /// @throws LengthError if this operation would create more than <code>MaxBodies</code>.
+    /// @throws std::out_of_range if the given body references any invalid shape identifiers.
     /// @see Destroy(BodyID), GetBodies.
     /// @see PhysicalEntities.
-    BodyID CreateBody(const BodyConf& def = GetDefaultBodyConf());
+    BodyID CreateBody(const Body& body);
 
     /// @brief Gets the state of the identified body.
     /// @throws std::out_of_range If given an invalid body identifier.
@@ -352,7 +356,9 @@ public:
     const Body& GetBody(BodyID id) const;
 
     /// @brief Sets the state of the identified body.
-    /// @throws std::out_of_range If given an invalid body identifier.
+    /// @throws std::out_of_range if given an invalid id of if the given body references any
+    ///   invalid shape identifiers.
+    /// @throws InvalidArgument if the specified ID was destroyed.
     /// @see GetBody, GetBodyRange.
     void SetBody(BodyID id, const Body& value);
 
@@ -372,98 +378,22 @@ public:
     /// @see PhysicalEntities.
     void Destroy(BodyID id);
 
-    /// @brief Gets the range of fixtures attached to the identified body.
-    /// @throws std::out_of_range If given an invalid body identifier.
-    /// @see CreateFixture, GetBodyRange.
-    SizedRange<Fixtures::const_iterator> GetFixtures(BodyID id) const;
-
     /// @brief Gets the range of joints attached to the identified body.
     /// @throws std::out_of_range If given an invalid body identifier.
     /// @see CreateJoint, GetBodyRange.
-    SizedRange<World::BodyJoints::const_iterator> GetJoints(BodyID id) const;
+    BodyJoints GetJoints(BodyID id) const;
 
     /// @brief Gets the container of contacts attached to the identified body.
     /// @warning This collection changes during the time step and you may
     ///   miss some collisions if you don't use <code>ContactListener</code>.
     /// @throws std::out_of_range If given an invalid body identifier.
     /// @see GetBodyRange.
-    SizedRange<World::Contacts::const_iterator> GetContacts(BodyID id) const;
+    Contacts GetContacts(BodyID id) const;
 
-    /// @}
-
-    /// @name Fixture Member Functions
-    /// Member functions relating to fixtures.
-    /// @{
-
-    /// @brief Gets the extent of the currently valid fixture range.
-    /// @note This is one higher than the maxium <code>FixtureID</code> that is in range
-    ///   for fixture related functions.
-    FixtureCounter GetFixtureRange() const noexcept;
-
-    /// @brief Creates a fixture and attaches it to the identified body.
-    /// @details Creates a fixture for attaching a shape and other characteristics to this
-    ///   body. Fixtures automatically go away when this body is destroyed. Fixtures can
-    ///   also be manually removed and destroyed using the
-    ///   <code>Destroy(FixtureID, bool)</code>, or <code>DestroyFixtures()</code> methods.
-    ///
-    /// @warning This function is locked during callbacks.
-    /// @note This function should not be called if the world is locked.
-    /// @note This does not reset the associated body's mass data.
-    ///
-    /// @post After creating a new fixture, it will show up in the fixture enumeration
-    ///   returned by the <code>GetFixtures()</code> methods.
-    ///
-    /// @param def Initial fixture settings.
-    ///   Friction and density must be >= 0.
-    ///   Restitution must be > -infinity and < infinity.
-    ///
-    /// @return Identifier for the created fixture.
-    ///
-    /// @throws WrongState if called while the world is "locked".
+    /// @brief Gets the identities of the shapes associated with the identified body.
     /// @throws std::out_of_range If given an invalid body identifier.
-    /// @throws InvalidArgument if called for a shape with a vertex radius less than the
-    ///    minimum vertex radius.
-    /// @throws InvalidArgument if called for a shape with a vertex radius greater than the
-    ///    maximum vertex radius.
-    ///
-    /// @see Destroy(FixtureID), GetFixtures
-    /// @see PhysicalEntities
-    ///
-    FixtureID CreateFixture(const FixtureConf& def = FixtureConf{});
-
-    /// @brief Gets the identified fixture state.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    /// @see SetFixture, GetFixtureRange.
-    const FixtureConf& GetFixture(FixtureID id) const;
-
-    /// @brief Sets the identified fixture's state.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    /// @see GetFixture, GetFixtureRange.
-    void SetFixture(FixtureID id, const FixtureConf& value);
-
-    /// @brief Destroys the identified fixture.
-    ///
-    /// @details Destroys a fixture previously created by the
-    ///   <code>CreateFixture(const FixtureConf&)</code>
-    ///   method. This removes the fixture from the broad-phase and destroys all contacts
-    ///   associated with this fixture. All fixtures attached to a body are implicitly
-    ///   destroyed when the body is destroyed.
-    ///
-    /// @warning This function is locked during callbacks.
-    /// @note Make sure to explicitly call <code>ResetMassData()</code> after fixtures have
-    ///   been destroyed.
-    /// @throws WrongState if this function is called while the world is locked.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    ///
-    /// @post After destroying a fixture, it will no longer show up in the fixture enumeration
-    ///   returned by the <code>GetFixtures()</code> methods.
-    ///
-    /// @param id the fixture to be removed.
-    ///
-    /// @see CreateFixture, GetFixtureRange.
-    /// @see PhysicalEntities.
-    ///
-    bool Destroy(FixtureID id);
+    /// @see GetBodyRange, CreateBody, SetBody.
+    Shapes GetShapes(BodyID id) const;
 
     /// @}
 
@@ -482,7 +412,7 @@ public:
     ///   <code>CreateJoint</code> method that haven't yet been destroyed.
     /// @return World joints sized-range.
     /// @see CreateJoint.
-    SizedRange<Joints::const_iterator> GetJoints() const noexcept;
+    Joints GetJoints() const noexcept;
 
     /// @brief Creates a joint to constrain one or more bodies.
     /// @warning This function is locked during callbacks.
@@ -502,7 +432,9 @@ public:
     const Joint& GetJoint(JointID id) const;
 
     /// @brief Sets the identified joint to the given value.
+    /// @throws WrongState if this method is called while the world is locked.
     /// @throws std::out_of_range If given an invalid joint identifier.
+    /// @throws InvalidArgument if the specified ID was destroyed.
     /// @see GetJoint, GetJointRange.
     void SetJoint(JointID id, const Joint& def);
 
@@ -522,6 +454,40 @@ public:
 
     /// @}
 
+    /// @name Shape Member Functions
+    /// Member functions relating to shapes.
+    /// @{
+
+    /// @brief Gets the extent of the currently valid shape range.
+    /// @note This is one higher than the maxium <code>ShapeID</code> that is in range
+    ///   for shape related functions.
+    ShapeCounter GetShapeRange() const noexcept;
+
+    /// @brief Creates an identifiable copy of the given shape within this world.
+    /// @throws InvalidArgument if called for a shape with a vertex radius that's either:
+    ///    less than the minimum vertex radius, or greater than the maximum vertex radius.
+    /// @throws WrongState if this method is called while the world is locked.
+    /// @throws LengthError if this operation would create more than <code>MaxShapes</code>.
+    /// @see Destroy(ShapeID), GetShape, SetShape.
+    ShapeID CreateShape(const Shape& def);
+
+    /// @throws std::out_of_range If given an invalid shape identifier.
+    /// @see CreateShape.
+    const Shape& GetShape(ShapeID id) const;
+
+    /// @brief Sets the identified shape to the new value.
+    /// @throws std::out_of_range If given an invalid shape identifier.
+    /// @throws InvalidArgument if the specified ID was destroyed.
+    /// @see CreateShape.
+    void SetShape(ShapeID, const Shape& def);
+
+    /// @brief Destroys the identified shape.
+    /// @throws std::out_of_range If given an invalid shape identifier.
+    /// @see CreateShape.
+    void Destroy(ShapeID id);
+
+    /// @}
+
     /// @name Contact Member Functions
     /// Member functions relating to contacts.
     /// @{
@@ -535,7 +501,7 @@ public:
     /// @warning contacts are created and destroyed in the middle of a time step.
     /// Use <code>ContactListener</code> to avoid missing contacts.
     /// @return World contacts sized-range.
-    SizedRange<Contacts::const_iterator> GetContacts() const noexcept;
+    Contacts GetContacts() const noexcept;
 
     /// @brief Gets the identified contact.
     /// @throws std::out_of_range If given an invalid contact identifier.
@@ -543,7 +509,13 @@ public:
     const Contact& GetContact(ContactID id) const;
 
     /// @brief Sets the identified contact's state.
+    /// @note This may throw an exception or update associated entities to preserve invariants.
+    /// @invariant A contact may only be impenetrable if one or both bodies are.
+    /// @invariant A contact may only be active if one or both bodies are awake.
+    /// @invariant A contact may only be a sensor or one or both shapes are.
     /// @throws std::out_of_range If given an invalid contact identifier.
+    /// @throws InvalidArgument if a change would violate an invariant or if the specified ID
+    ///   was destroyed.
     /// @see GetContact, GetContactRange.
     void SetContact(ContactID id, const Contact& value);
 
@@ -563,10 +535,6 @@ private:
 /// @example HelloWorld.cpp
 /// This is the source file for the <code>HelloWorld</code> application that demonstrates
 /// use of the <code>playrho::d2::World</code> class and more.
-/// After instantiating a world, the code creates a body and its fixture to act as the ground,
-/// creates another body and a fixture for it to act like a ball, then steps the world using
-/// the world <code>playrho::d2::World::Step(const StepConf&)</code> function which simulates
-/// a ball falling to the ground and outputs the position of the ball after each step.
 
 /// @example World.cpp
 /// This is the <code>googletest</code> based unit testing file for the

@@ -24,6 +24,11 @@
 namespace playrho {
 namespace d2 {
 
+// Confirm that a Shape itself isn't a valid shape type in the sense of preventing what could
+// otherwise be an infinitely recursive configuration. Note that this doesn't prevent copy/move
+// construction nor copy/move assignment.
+static_assert(!IsValidShapeType<Shape>::value);
+
 bool TestPoint(const Shape& shape, Length2 point) noexcept
 {
     const auto childCount = GetChildCount(shape);

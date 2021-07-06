@@ -20,6 +20,7 @@
  */
 
 #include "PlayRho/Dynamics/WorldBody.hpp"
+#include "PlayRho/Dynamics/WorldShape.hpp"
 
 #include "PlayRho/Dynamics/World.hpp"
 #include "PlayRho/Dynamics/Body.hpp"
@@ -44,20 +45,23 @@ BodyCounter GetBodyRange(const World& world) noexcept
     return world.GetBodyRange();
 }
 
-SizedRange<std::vector<BodyID>::const_iterator> GetBodies(const World& world) noexcept
+std::vector<BodyID> GetBodies(const World& world) noexcept
 {
     return world.GetBodies();
 }
 
-SizedRange<std::vector<BodyID>::const_iterator>
-GetBodiesForProxies(const World& world) noexcept
+std::vector<BodyID> GetBodiesForProxies(const World& world) noexcept
 {
     return world.GetBodiesForProxies();
 }
 
-BodyID CreateBody(World& world, const BodyConf& def)
+BodyID CreateBody(World& world, const Body& body, bool resetMassData)
 {
-    return world.CreateBody(def);
+    const auto id = world.CreateBody(body);
+    if (resetMassData) {
+        ResetMassData(world, id);
+    }
+    return id;
 }
 
 const Body& GetBody(const World& world, BodyID id)
@@ -75,10 +79,49 @@ void Destroy(World& world, BodyID id)
     world.Destroy(id);
 }
 
-SizedRange<std::vector<FixtureID>::const_iterator>
-GetFixtures(const World& world, BodyID id)
+void Attach(World& world, BodyID id, ShapeID shapeID, bool resetMassData)
 {
-    return world.GetFixtures(id);
+    auto body = GetBody(world, id);
+    body.Attach(shapeID);
+    SetBody(world, id, body);
+    if (resetMassData) {
+        ResetMassData(world, id);
+    }
+}
+
+void Attach(World& world, BodyID id, const Shape& shape, bool resetMassData)
+{
+    Attach(world, id, CreateShape(world, shape), resetMassData);
+}
+
+bool Detach(World& world, BodyID id, ShapeID shapeID, bool resetMassData)
+{
+    auto body = GetBody(world, id);
+    if (body.Detach(shapeID)) {
+        SetBody(world, id, body);
+        if (resetMassData) {
+            ResetMassData(world, id);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Detach(World& world, BodyID id, bool resetMassData)
+{
+    auto anyDetached = false;
+    while (!GetShapes(world, id).empty()) {
+        anyDetached |= Detach(world, id, GetShapes(world, id).back());
+    }
+    if (anyDetached && resetMassData) {
+        ResetMassData(world, id);
+    }
+    return anyDetached;
+}
+
+std::vector<ShapeID> GetShapes(const World& world, BodyID id)
+{
+    return world.GetShapes(id);
 }
 
 LinearAcceleration2 GetLinearAcceleration(const World& world, BodyID id)
@@ -102,47 +145,49 @@ void SetAcceleration(World& world, BodyID id,
 {
     auto body = GetBody(world, id);
     SetAcceleration(body, linear, angular);
-    world.SetBody(id, body);
+    SetBody(world, id, body);
 }
 
 void SetAcceleration(World& world, BodyID id, LinearAcceleration2 value)
 {
     auto body = GetBody(world, id);
     SetAcceleration(body, value);
-    world.SetBody(id, body);
+    SetBody(world, id, body);
 }
 
 void SetAcceleration(World& world, BodyID id, AngularAcceleration value)
 {
     auto body = GetBody(world, id);
     SetAcceleration(body, value);
-    world.SetBody(id, body);
+    SetBody(world, id, body);
 }
 
 void SetAcceleration(World& world, BodyID id, Acceleration value)
 {
     auto body = GetBody(world, id);
     SetAcceleration(body, value);
-    world.SetBody(id, body);
+    SetBody(world, id, body);
 }
 
 void SetTransformation(World& world, BodyID id, Transformation value)
 {
     auto body = GetBody(world, id);
     SetTransformation(body, value);
-    const auto localCenter = GetLocalCenter(body);
-    SetSweep(body, Sweep{Position{Transform(localCenter, value), GetAngle(value.q)}, localCenter});
-    world.SetBody(id, body);
+    SetBody(world, id, body);
 }
 
-void SetLocation(World& world, BodyID body, Length2 value)
+void SetLocation(World& world, BodyID id, Length2 value)
 {
-    SetTransform(world, body, value, GetAngle(world, body));
+    auto body = GetBody(world, id);
+    SetLocation(body, value);
+    SetBody(world, id, body);
 }
 
-void SetAngle(World& world, BodyID body, Angle value)
+void SetAngle(World& world, BodyID id, Angle value)
 {
-    SetTransform(world, body, GetLocation(world, body), value);
+    auto body = GetBody(world, id);
+    SetAngle(body, value);
+    SetBody(world, id, body);
 }
 
 void RotateAboutWorldPoint(World& world, BodyID body, Angle amount, Length2 worldPoint)
@@ -199,15 +244,9 @@ Acceleration CalcGravitationalAcceleration(const World& world, BodyID body)
     return Acceleration{};
 }
 
-BodyCounter GetWorldIndex(const World& world, BodyID id) noexcept
+BodyCounter GetWorldIndex(const World&, BodyID id) noexcept
 {
-    const auto elems = world.GetBodies();
-    const auto it = std::find(cbegin(elems), cend(elems), id);
-    if (it != cend(elems))
-    {
-        return static_cast<BodyCounter>(std::distance(cbegin(elems), it));
-    }
-    return BodyCounter(-1);
+    return to_underlying(id);
 }
 
 BodyType GetType(const World& world, BodyID id)
@@ -222,7 +261,7 @@ void SetType(World& world, BodyID id, BodyType value, bool resetMassData)
         SetType(body, value);
         world.SetBody(id, body);
         if (resetMassData) {
-            SetMassData(world, id, ComputeMassData(world, id));
+            ResetMassData(world, id);
         }
     }
 }
@@ -261,16 +300,6 @@ void SetVelocity(World& world, BodyID id, AngularVelocity value)
     auto body = GetBody(world, id);
     SetVelocity(body, Velocity{GetLinearVelocity(body), value});
     world.SetBody(id, body);
-}
-
-void DestroyFixtures(World& world, BodyID id, bool resetMassData)
-{
-    while (!empty(GetFixtures(world, id))) {
-        world.Destroy(*GetFixtures(world, id).begin());
-    }
-    if (resetMassData) {
-        SetMassData(world, id, ComputeMassData(world, id));
-    }
 }
 
 bool IsEnabled(const World& world, BodyID id)
@@ -349,10 +378,10 @@ MassData ComputeMassData(const World& world, BodyID id)
     auto mass = 0_kg;
     auto I = RotInertia{0};
     auto weightedCenter = Length2{};
-    for (const auto& f: world.GetFixtures(id)) {
-        const auto& fixture = world.GetFixture(f);
-        if (GetDensity(fixture) > 0_kgpm2) {
-            const auto massData = GetMassData(GetShape(fixture));
+    for (const auto& shapeId: GetShapes(world, id)) {
+        const auto& shape = GetShape(world, shapeId);
+        if (GetDensity(shape) > 0_kgpm2) {
+            const auto massData = GetMassData(shape);
             mass += Mass{massData.mass};
             weightedCenter += Real{massData.mass / Kilogram} * massData.center;
             I += RotInertia{massData.I};
@@ -367,29 +396,28 @@ void SetMassData(World& world, BodyID id, const MassData& massData)
     auto body = GetBody(world, id);
 
     if (!body.IsAccelerable()) {
-        body.SetInvMass(InvMass{});
-        body.SetInvRotInertia(InvRotInertia{});
-        body.SetSweep(Sweep{Position{GetLocation(body), GetAngle(body)}});
-        body.UnsetMassDataDirty();
+        body.SetInvMassData(InvMass{}, InvRotInertia{});
+        if (!body.IsSpeedable()) {
+            body.SetSweep(Sweep{Position{GetLocation(body), GetAngle(body)}});
+        }
         world.SetBody(id, body);
         return;
     }
 
     const auto mass = (massData.mass > 0_kg)? Mass{massData.mass}: 1_kg;
-    body.SetInvMass(Real{1} / mass);
+    const auto invMass = Real{1} / mass;
+    auto invRotInertia = Real(0) / (1_m2 * 1_kg / SquareRadian);
     if ((massData.I > RotInertia{0}) && (!body.IsFixedRotation())) {
         const auto lengthSquared = GetMagnitudeSquared(massData.center);
         // L^2 M QP^-2
         const auto I = RotInertia{massData.I} - RotInertia{(mass * lengthSquared) / SquareRadian};
         assert(I > RotInertia{0});
-        body.SetInvRotInertia(Real{1} / I);
+        invRotInertia = Real{1} / I;
     }
-    else {
-        body.SetInvRotInertia(0);
-    }
+    body.SetInvMassData(invMass, invRotInertia);
     // Move center of mass.
     const auto oldCenter = GetWorldCenter(body);
-    body.SetSweep(Sweep{
+    SetSweep(body, Sweep{
         Position{Transform(massData.center, GetTransformation(body)), GetAngle(body)},
         massData.center
     });
@@ -399,12 +427,10 @@ void SetMassData(World& world, BodyID id, const MassData& massData)
     auto newVelocity = body.GetVelocity();
     newVelocity.linear += GetRevPerpendicular(deltaCenter) * (newVelocity.angular / Radian);
     body.JustSetVelocity(newVelocity);
-    body.UnsetMassDataDirty();
     world.SetBody(id, body);
 }
 
-SizedRange<std::vector<std::pair<BodyID, JointID>>::const_iterator>
-GetJoints(const World& world, BodyID id)
+std::vector<std::pair<BodyID, JointID>> GetJoints(const World& world, BodyID id)
 {
     return world.GetJoints(id);
 }
@@ -474,8 +500,7 @@ void SetAngularDamping(World& world, BodyID id, NonNegative<Frequency> value)
     world.SetBody(id, body);
 }
 
-SizedRange<std::vector<KeyedContactPtr>::const_iterator>
-GetContacts(const World& world, BodyID id)
+std::vector<KeyedContactPtr> GetContacts(const World& world, BodyID id)
 {
     return world.GetContacts(id);
 }

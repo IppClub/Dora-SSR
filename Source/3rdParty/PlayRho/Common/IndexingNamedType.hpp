@@ -163,6 +163,7 @@ struct underlying_type {};
 template <class T>
 struct underlying_type<T, std::enable_if_t<std::is_enum_v<T>>>
 {
+    /// @brief Type alias of the underlying type.
     using type = std::underlying_type_t<T>;
 };
 
@@ -170,6 +171,7 @@ struct underlying_type<T, std::enable_if_t<std::is_enum_v<T>>>
 template <class T, class Tag>
 struct underlying_type<detail::IndexingNamedType<T, Tag>>
 {
+    /// @brief Type alias of the underlying type.
     using type = T;
 };
 

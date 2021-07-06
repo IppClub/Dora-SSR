@@ -21,7 +21,8 @@
 
 #include "PlayRho/Collision/Manifold.hpp"
 #include "PlayRho/Dynamics/Contacts/Contact.hpp"
-#include "PlayRho/Dynamics/WorldFixture.hpp"
+#include "PlayRho/Dynamics/WorldBody.hpp"
+#include "PlayRho/Dynamics/WorldShape.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -58,16 +59,16 @@ inline WorldManifold GetForFaceA(const Manifold& manifold,
         const auto cB = clipPoint - (radiusB * normal);
         return WorldManifold::PointData{(cA + cB) / Real{2}, impulses, Dot(cB - cA, normal)};
     };
-    
+
     assert(manifold.GetPointCount() <= 2);
-    
+
     switch (manifold.GetPointCount())
     {
         case 1: return WorldManifold{normal, pointFn(0)};
         case 2: return WorldManifold{normal, pointFn(0), pointFn(1)};
         default: break; // should never be reached
     }
-    
+
     // should never be reached
     return WorldManifold{normal};
 }
@@ -85,9 +86,9 @@ inline WorldManifold GetForFaceB(const Manifold& manifold,
         const auto cA = clipPoint - (radiusA * normal);
         return WorldManifold::PointData{(cA + cB) / Real{2}, impulses, Dot(cA - cB, normal)};
     };
-    
+
     assert(manifold.GetPointCount() <= 2);
-    
+
     // Negate normal given to world manifold constructor to ensure it points from A to B.
     switch (manifold.GetPointCount())
     {
@@ -95,11 +96,11 @@ inline WorldManifold GetForFaceB(const Manifold& manifold,
         case 2: return WorldManifold{-normal, pointFn(0), pointFn(1)};
         default: break; // should never be reached
     }
-    
+
     // should never be reached
     return WorldManifold{-normal};
 }
-    
+
 } // anonymous namespace
 
 WorldManifold GetWorldManifold(const Manifold& manifold,
@@ -110,7 +111,7 @@ WorldManifold GetWorldManifold(const Manifold& manifold,
 
     assert((type == Manifold::e_circles) || (type == Manifold::e_faceA) ||
            (type == Manifold::e_faceB) || (type == Manifold::e_unset));
-    
+
     switch (type)
     {
         case Manifold::e_circles: return GetForCircles(manifold, xfA, radiusA, xfB, radiusB);
@@ -118,24 +119,18 @@ WorldManifold GetWorldManifold(const Manifold& manifold,
         case Manifold::e_faceB: return GetForFaceB(manifold, xfA, radiusA, xfB, radiusB);
         default: break;
     }
-    
+
     // When type == Manifold::e_unset (or is an undefined value & NDEBUG is defined)...
     return WorldManifold{};
 }
 
 WorldManifold GetWorldManifold(const World& world, const Contact& contact, const Manifold& manifold)
 {
-    const auto fA = contact.GetFixtureA();
-    const auto iA = contact.GetChildIndexA();
-    const auto xfA = GetTransformation(world, fA);
-    const auto radiusA = GetVertexRadius(GetShape(world, fA), iA);
-
-    const auto fB = contact.GetFixtureB();
-    const auto iB = contact.GetChildIndexB();
-    const auto xfB = GetTransformation(world, fB);
-    const auto radiusB = GetVertexRadius(GetShape(world, fB), iB);
-
-    return GetWorldManifold(manifold, xfA, radiusA, xfB, radiusB);
+    return GetWorldManifold(manifold,
+                            GetTransformation(world, contact.GetBodyA()),
+                            GetVertexRadius(GetShape(world, contact.GetShapeA()), contact.GetChildIndexA()),
+                            GetTransformation(world, contact.GetBodyB()),
+                            GetVertexRadius(GetShape(world, contact.GetShapeB()), contact.GetChildIndexB()));
 }
 
 } /* namespace d2 */

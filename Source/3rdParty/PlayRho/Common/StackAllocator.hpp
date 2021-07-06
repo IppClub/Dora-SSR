@@ -119,19 +119,19 @@ public:
     {
         return m_allocation;
     }
-    
+
     /// @brief Gets the preallocated size.
     auto GetPreallocatedSize() const noexcept
     {
         return m_size;
     }
-    
+
     /// @brief Gets the max entries.
     auto GetMaxEntries() const noexcept
     {
         return m_max_entries;
     }
-    
+
 private:
 
     /// @brief Allocation record.
@@ -141,18 +141,18 @@ private:
         size_type size; ///< Size.
         bool usedMalloc; ///< Whether <code>malloc</code> was used.
     };
-    
+
     char* const m_data; ///< Data.
     AllocationRecord* const m_entries; ///< Entries.
     size_type const m_size; ///< Size.
     size_type const m_max_entries; ///< Max entries.
-    
+
     size_type m_index = 0; ///< Index.
     size_type m_allocation = 0; ///< Allocation.
     size_type m_maxAllocation = 0; ///< Max allocation.
     size_type m_entryCount = 0; ///< Entry count.
 };
-    
+
 } // namespace playrho
 
 #endif // PLAYRHO_COMMON_STACKALLOCATOR_HPP

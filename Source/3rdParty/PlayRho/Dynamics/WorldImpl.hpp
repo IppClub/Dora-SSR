@@ -26,7 +26,6 @@
 /// Declarations of the WorldImpl class.
 
 #include "PlayRho/Common/Math.hpp"
-#include "PlayRho/Common/Range.hpp" // for SizedRange
 #include "PlayRho/Common/Positive.hpp"
 #include "PlayRho/Common/ArrayAllocator.hpp"
 
@@ -36,15 +35,14 @@
 #include "PlayRho/Dynamics/BodyID.hpp"
 #include "PlayRho/Dynamics/Filter.hpp"
 #include "PlayRho/Dynamics/Island.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
-#include "PlayRho/Dynamics/FixtureConf.hpp"
-#include "PlayRho/Dynamics/BodyConf.hpp" // for GetDefaultBodyConf
 #include "PlayRho/Dynamics/StepStats.hpp"
+#include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
 #include "PlayRho/Dynamics/Contacts/ContactKey.hpp"
 #include "PlayRho/Dynamics/Contacts/KeyedContactID.hpp" // for KeyedContactPtr
 #include "PlayRho/Dynamics/WorldConf.hpp"
 #include "PlayRho/Dynamics/Joints/JointID.hpp"
 #include "PlayRho/Dynamics/IslandStats.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
 #include <iterator>
 #include <vector>
@@ -61,7 +59,6 @@ enum class BodyType;
 
 namespace d2 {
 
-struct JointConf;
 class Body;
 class Contact;
 class Joint;
@@ -86,17 +83,17 @@ public:
     /// @brief Body joints container type.
     using BodyJoints = std::vector<std::pair<BodyID, JointID>>;
 
-    /// @brief Fixtures container type.
-    using Fixtures = std::vector<FixtureID>;
-
     /// @brief Proxy ID type alias.
     using ProxyId = DynamicTree::Size;
 
     /// @brief Proxy container type alias.
     using Proxies = std::vector<ProxyId>;
 
-    /// @brief Fixture listener.
-    using FixtureListener = std::function<void(FixtureID)>;
+    /// @brief Shape listener.
+    using ShapeListener = std::function<void(ShapeID)>;
+
+    /// @brief Body-shape listener.
+    using AssociationListener = std::function<void(std::pair<BodyID, ShapeID>)>;
 
     /// @brief Joint listener.
     using JointListener = std::function<void(JointID)>;
@@ -143,8 +140,11 @@ public:
     /// @name Listener Member Functions
     /// @{
 
-    /// @brief Register a destruction listener for fixtures.
-    void SetFixtureDestructionListener(FixtureListener listener) noexcept;
+    /// @brief Registers a destruction listener for shapes.
+    void SetShapeDestructionListener(ShapeListener listener) noexcept;
+
+    /// @brief Registers a detach listener for shapes detaching from bodies.
+    void SetDetachListener(AssociationListener listener) noexcept;
 
     /// @brief Register a destruction listener for joints.
     void SetJointDestructionListener(JointListener listener) noexcept;
@@ -205,7 +205,7 @@ public:
     ///
     /// @return Statistics for the step.
     ///
-    /// @throws WrongState if this method is called while the world is locked.
+    /// @throws WrongState if this function is called while the world is locked.
     ///
     /// @see GetBodiesForProxies, GetFixturesForProxies.
     ///
@@ -241,7 +241,7 @@ public:
     /// @post The "origin" of this world's bodies, joints, and the board-phase dynamic tree
     ///   have been translated per the shift amount and direction.
     /// @param newOrigin the new origin with respect to the old origin
-    /// @throws WrongState if this method is called while the world is locked.
+    /// @throws WrongState if this function is called while the world is locked.
     void ShiftOrigin(Length2 newOrigin);
 
     /// @brief Gets the minimum vertex radius that shapes in this world can be.
@@ -272,6 +272,12 @@ public:
     /// @see GetProxies.
     ContactCounter FindNewContacts();
 
+    /// @brief Gets the fixtures-for-proxies range for this world.
+    /// @details Provides insight on what fixtures have been queued for proxy processing
+    ///   during the next call to the world step method.
+    /// @see Step.
+    std::vector<std::pair<BodyID, ShapeID>> GetFixturesForProxies() const noexcept;
+
     /// @}
 
     /// @name Body Member Functions
@@ -286,44 +292,50 @@ public:
     /// @brief Gets the world body range for this constant world.
     /// @details Gets a range enumerating the bodies currently existing within this world.
     ///   These are the bodies that had been created from previous calls to the
-    ///   <code>CreateBody(const BodyConf&)</code> method that haven't yet been destroyed.
+    ///   <code>CreateBody(const Body&)</code> method that haven't yet been destroyed.
     /// @return Body range that can be iterated over using its begin and end methods
     ///   or using ranged-based for-loops.
-    /// @see CreateBody(const BodyConf&).
-    SizedRange<Bodies::const_iterator> GetBodies() const noexcept;
+    /// @see CreateBody(const Body&).
+    Bodies GetBodies() const noexcept;
 
     /// @brief Gets the bodies-for-proxies range for this world.
     /// @details Provides insight on what bodies have been queued for proxy processing
     ///   during the next call to the world step method.
     /// @see Step.
-    SizedRange<Bodies::const_iterator> GetBodiesForProxies() const noexcept;
+    Bodies GetBodiesForProxies() const noexcept;
 
-    /// @brief Creates a rigid body with the given configuration.
+    /// @brief Creates a rigid body that's a copy of the given one.
     /// @warning This function should not be used while the world is locked &mdash; as it is
     ///   during callbacks. If it is, it will throw an exception or abort your program.
     /// @note No references to the configuration are retained. Its value is copied.
     /// @post The created body will be present in the range returned from the
     ///   <code>GetBodies()</code> method.
-    /// @param def A customized body configuration or its default value.
+    /// @param body A customized body or its default value.
     /// @return Identifier of the newly created body which can later be destroyed by calling
     ///   the <code>Destroy(BodyID)</code> method.
-    /// @throws WrongState if this method is called while the world is locked.
+    /// @throws WrongState if this function is called while the world is locked.
     /// @throws LengthError if this operation would create more than <code>MaxBodies</code>.
+    /// @throws std::out_of_range if the given body references any invalid shape identifiers.
     /// @see Destroy(BodyID), GetBodies.
     /// @see PhysicalEntities.
-    BodyID CreateBody(const BodyConf& def = GetDefaultBodyConf());
+    BodyID CreateBody(Body body);
 
     /// @brief Gets the identified body.
     /// @throws std::out_of_range if given an invalid id.
+    /// @see SetBody, GetBodyRange.
     const Body& GetBody(BodyID id) const;
 
     /// @brief Sets the identified body.
-    /// @throws std::out_of_range if given an invalid id.
-    void SetBody(BodyID id, const Body& value);
+    /// @throws WrongState if this function is called while the world is locked.
+    /// @throws std::out_of_range if given an invalid id of if the given body references any
+    ///   invalid shape identifiers.
+    /// @throws InvalidArgument if the specified ID was destroyed.
+    /// @see GetBody, GetBodyRange.
+    void SetBody(BodyID id, Body value);
 
-    /// @brief Destroys the given body.
+    /// @brief Destroys the identified body.
     /// @details Destroys a given body that had previously been created by a call to this
-    ///   world's <code>CreateBody(const BodyConf&)</code> method.
+    ///   world's <code>CreateBody(const Body&)</code> method.
     /// @warning This automatically deletes all associated shapes and joints.
     /// @warning This function is locked during callbacks.
     /// @warning Behavior is undefined if given a null body.
@@ -334,90 +346,26 @@ public:
     /// @post None of the body's fixtures will be present in the fixtures-for-proxies
     ///   collection.
     /// @param id Body to destroy that had been created by this world.
-    /// @throws WrongState if this method is called while the world is locked.
-    /// @see CreateBody(const BodyConf&), GetBodies, GetFixturesForProxies.
+    /// @throws WrongState if this function is called while the world is locked.
+    /// @throws std::out_of_range If given an invalid body identifier.
+    /// @see CreateBody(const Body&), GetBodies, GetFixturesForProxies.
     /// @see PhysicalEntities.
     void Destroy(BodyID id);
 
     /// @brief Gets whether the given identifier is to a body that's been destroyed.
+    /// @note Complexity is at most O(n) where n is the number of elements free.
     bool IsDestroyed(BodyID id) const noexcept;
+
+    /// @brief Gets the proxies for the identified body.
+    /// @throws std::out_of_range If given an invalid identifier.
+    const Proxies& GetProxies(BodyID id) const;
 
     /// @brief Gets the contacts associated with the identified body.
     /// @throws std::out_of_range if given an invalid id.
-    SizedRange<WorldImpl::Contacts::const_iterator> GetContacts(BodyID id) const;
+    Contacts GetContacts(BodyID id) const;
 
     /// @throws std::out_of_range if given an invalid id.
-    SizedRange<WorldImpl::BodyJoints::const_iterator> GetJoints(BodyID id) const;
-
-    /// @brief Gets the range of all constant fixtures attached to this body.
-    SizedRange<WorldImpl::Fixtures::const_iterator> GetFixtures(BodyID id) const;
-
-    /// @}
-
-    /// @name Fixture Member Functions
-    /// Member functions relating to fixtures.
-    /// @{
-
-    /// @brief Gets the extent of the currently valid fixture range.
-    /// @note This is one higher than the maxium <code>FixtureID</code> that is in range
-    ///   for fixture related functions.
-    FixtureCounter GetFixtureRange() const noexcept;
-
-    /// @brief Creates a fixture with the given parameters.
-    /// @details Creates a fixture for attaching a shape and other characteristics to the
-    ///   given body. Fixtures automatically go away when the body is destroyed. Fixtures can
-    ///   also be manually removed and destroyed using the
-    ///   <code>Destroy(FixtureID, bool)</code>, or <code>DestroyFixtures()</code> methods.
-    /// @note This function should not be called if the world is locked.
-    /// @note This function does not reset the body's mass data.
-    /// @warning This function is locked during callbacks.
-    /// @post After creating a new fixture, it will show up in the fixture enumeration
-    ///   returned by the <code>GetFixtures()</code> methods.
-    /// @param def Initial fixture settings.
-    ///   Friction and density must be >= 0.
-    ///   Restitution must be > -infinity and < infinity.
-    /// @return Identifier for the created fixture.
-    /// @throws WrongState if called while the world is "locked".
-    /// @throws InvalidArgument if called for a shape with a vertex radius less than the
-    ///    minimum vertex radius.
-    /// @throws InvalidArgument if called for a shape with a vertex radius greater than the
-    ///    maximum vertex radius.
-    /// @see Destroy, GetFixtures
-    /// @see PhysicalEntities
-    FixtureID CreateFixture(const FixtureConf& def = FixtureConf{});
-
-    /// @brief Gets the identified fixture state.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    const FixtureConf& GetFixture(FixtureID id) const;
-
-    /// @brief Sets the identified fixture's state.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    /// @throws std::invalid_argument If given an invalid fixture state.
-    void SetFixture(FixtureID id, const FixtureConf& value);
-
-    /// @brief Destroys a fixture.
-    /// @details This removes the fixture from the broad-phase and destroys all contacts
-    ///   associated with this fixture.
-    ///   All fixtures attached to a body are implicitly destroyed when the body is destroyed.
-    /// @warning This function is locked during callbacks.
-    /// @note This function does not reset the body's mass data.
-    /// @param fixture the fixture to be removed.
-    /// @throws WrongState if this method is called while the world is locked.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    bool Destroy(FixtureID fixture);
-
-    /// @brief Gets whether the given identifier is to a fixture that's been destroyed.
-    bool IsDestroyed(FixtureID id) const noexcept;
-
-    /// @brief Gets the fixtures-for-proxies range for this world.
-    /// @details Provides insight on what fixtures have been queued for proxy processing
-    ///   during the next call to the world step method.
-    /// @see Step.
-    SizedRange<Fixtures::const_iterator> GetFixturesForProxies() const noexcept;
-
-    /// @brief Gets the proxies for the identified fixture.
-    /// @throws std::out_of_range If given an invalid fixture identifier.
-    const Proxies& GetProxies(FixtureID id) const;
+    BodyJoints GetJoints(BodyID id) const;
 
     /// @}
 
@@ -433,10 +381,10 @@ public:
     /// @brief Gets the world joint range.
     /// @details Gets a range enumerating the joints currently existing within this world.
     ///   These are the joints that had been created from previous calls to the
-    ///   <code>CreateJoint(const JointConf&)</code> method that haven't yet been destroyed.
+    ///   <code>CreateJoint(const Joint&)</code> method that haven't yet been destroyed.
     /// @return World joints sized-range.
-    /// @see CreateJoint(const JointConf&).
-    SizedRange<Joints::const_iterator> GetJoints() const noexcept;
+    /// @see CreateJoint(const Joint&).
+    Joints GetJoints() const noexcept;
 
     /// @brief Creates a joint to constrain one or more bodies.
     /// @warning This function is locked during callbacks.
@@ -445,38 +393,84 @@ public:
     ///   <code>GetJoints()</code> method.
     /// @return Identifier for the newly created joint which can later be destroyed by calling
     ///   the <code>Destroy(JointID)</code> method.
-    /// @throws WrongState if this method is called while the world is locked.
+    /// @throws WrongState if this function is called while the world is locked.
     /// @throws LengthError if this operation would create more than <code>MaxJoints</code>.
     /// @throws InvalidArgument if the given definition is not allowed.
+    /// @throws std::out_of_range if the given joint references any invalid body id.
     /// @see PhysicalEntities.
     /// @see Destroy(JointID), GetJoints.
-    JointID CreateJoint(const Joint& def);
+    JointID CreateJoint(Joint def);
 
     /// @brief Gets the identified joint.
-    /// @throws std::invalid_argument If given an invalid identifier.
+    /// @throws std::out_of_range if given an invalid ID.
     const Joint& GetJoint(JointID id) const;
 
     /// @brief Sets the identified joint.
-    /// @throws std::invalid_argument If given an invalid identifier.
-    void SetJoint(JointID id, const Joint& def);
+    /// @throws WrongState if this function is called while the world is locked.
+    /// @throws std::out_of_range if given an invalid ID or the given joint references any
+    ///    invalid body ID.
+    /// @throws InvalidArgument if the specified ID was destroyed.
+    /// @see CreateJoint(Joint def), Destroy(JointID joint).
+    void SetJoint(JointID id, Joint def);
 
     /// @brief Destroys a joint.
     /// @details Destroys a given joint that had previously been created by a call to this
-    ///   world's <code>CreateJoint(const JointConf&)</code> method.
+    ///   world's <code>CreateJoint(const Joint&)</code> method.
     /// @warning This function is locked during callbacks.
     /// @warning Behavior is undefined if the passed joint was not created by this world.
     /// @note This may cause the connected bodies to begin colliding.
     /// @post The destroyed joint will no longer be present in the range returned from the
     ///   <code>GetJoints()</code> method.
     /// @param joint Joint to destroy that had been created by this world.
-    /// @throws WrongState if this method is called while the world is locked.
-    /// @throws std::invalid_argument If given an invalid identifier.
-    /// @see CreateJoint(const JointConf&), GetJoints.
+    /// @throws WrongState if this function is called while the world is locked.
+    /// @see CreateJoint(const Joint&), GetJoints.
     /// @see PhysicalEntities.
     void Destroy(JointID joint);
 
     /// @brief Gets whether the given identifier is to a joint that's been destroyed.
+    /// @note Complexity is at most O(n) where n is the number of elements free.
     bool IsDestroyed(JointID id) const noexcept;
+
+    /// @}
+
+    /// @name Shape Member Functions
+    /// Member functions relating to shapes.
+    /// @{
+
+    /// @brief Gets the extent of the currently valid shape range.
+    /// @note This is one higher than the maxium <code>ShapeID</code> that is in range
+    ///   for shape related functions.
+    ShapeCounter GetShapeRange() const noexcept;
+
+    /// @brief Creates an identifiable copy of the given shape within this world.
+    /// @throws InvalidArgument if called for a shape with a vertex radius that's either:
+    ///    less than the minimum vertex radius, or greater than the maximum vertex radius.
+    /// @throws WrongState if this function is called while the world is locked.
+    /// @throws LengthError if this operation would create more than <code>MaxShapes</code>.
+    /// @see Destroy(ShapeID), GetShape, SetShape.
+    ShapeID CreateShape(Shape def);
+
+    /// @brief Gets the identified shape.
+    /// @throws std::out_of_range If given an invalid shape identifier.
+    /// @see CreateShape.
+    const Shape& GetShape(ShapeID id) const;
+
+    /// @brief Sets the value of the identified shape.
+    /// @warning This function is locked during callbacks.
+    /// @note This function does not reset the mass data of any effected bodies.
+    /// @throws WrongState if this function is called while the world is locked.
+    /// @throws std::out_of_range If given an invalid identifier.
+    /// @throws InvalidArgument if the specified ID was destroyed.
+    /// @see CreateShape, Destroy(ShapeID id).
+    void SetShape(ShapeID id, Shape def);
+
+    /// @brief Destroys the identified shape removing any body associations with it first.
+    /// @warning This function is locked during callbacks.
+    /// @note This function does not reset the mass data of any effected bodies.
+    /// @throws WrongState if this function is called while the world is locked.
+    /// @throws std::out_of_range If given an invalid shape identifier.
+    /// @see CreateShape, Detach.
+    void Destroy(ShapeID id);
 
     /// @}
 
@@ -493,7 +487,7 @@ public:
     /// @warning contacts are created and destroyed in the middle of a time step.
     /// Use <code>ContactListener</code> to avoid missing contacts.
     /// @return World contacts sized-range.
-    SizedRange<Contacts::const_iterator> GetContacts() const noexcept;
+    Contacts GetContacts() const noexcept;
 
     /// @brief Gets the identified contact.
     /// @throws std::out_of_range If given an invalid contact identifier.
@@ -501,15 +495,23 @@ public:
     const Contact& GetContact(ContactID id) const;
 
     /// @brief Sets the identified contact's state.
-    /// @throws std::out_of_range If given an invalid contact identifier.
+    /// @note This will throw an exception to preserve invariants.
+    /// @invariant A contact may only be impenetrable if one or both bodies are.
+    /// @invariant A contact may only be active if one or both bodies are awake.
+    /// @invariant A contact may only be a sensor or one or both shapes are.
+    /// @throws InvalidArgument if a change would violate an invariant or if the specified ID
+    ///   was destroyed.
+    /// @throws std::out_of_range If given an invalid contact identifier or an invalid identifier
+    ///   in the new contact value.
     /// @see GetContact.
-    void SetContact(ContactID id, const Contact& value);
+    void SetContact(ContactID id, Contact value);
 
     /// @brief Gets the identified manifold.
     /// @throws std::out_of_range If given an invalid contact identifier.
     const Manifold& GetManifold(ContactID id) const;
 
     /// @brief Gets whether the given identifier is to a contact that's been destroyed.
+    /// @note Complexity is at most O(n) where n is the number of elements free.
     bool IsDestroyed(ContactID id) const noexcept;
 
     /// @}
@@ -522,16 +524,19 @@ private:
     enum Flag: FlagsType
     {
         /// New fixture.
-        e_newFixture    = 0x0001,
+        e_newFixture = 0x0001,
 
         /// Locked.
-        e_locked        = 0x0002,
+        e_locked = 0x0002,
 
         /// Sub-stepping.
-        e_substepping   = 0x0020,
+        e_substepping = 0x0020,
 
         /// Step complete. @details Used for sub-stepping. @see e_substepping.
-        e_stepComplete  = 0x0040,
+        e_stepComplete = 0x0040,
+
+        /// Needs contact filtering.
+        e_needsContactFiltering = 0x0080,
     };
 
     /// @brief Contact key queue type alias.
@@ -636,14 +641,6 @@ private:
     ///
     IslandStats SolveToiViaGS(const Island& island, const StepConf& conf);
 
-    /// @brief Updates the given body.
-    /// @details Updates the given body's sweep position 1, and its transformation.
-    /// @param body Body to update.
-    /// @param pos New position to set the given body to.
-    /// @return <code>true</code> if body's contacts should be flagged for updating,
-    ///   otherwise <code>false</code>.
-    static bool UpdateBody(Body& body, const Position& pos);
-
     /// @brief Process contacts output.
     struct ProcessContactsOutput
     {
@@ -670,12 +667,6 @@ private:
 
     /// @brief Removes the given body from this world.
     void Remove(BodyID id) noexcept;
-
-    /// @brief Adds the given fixture to the given body.
-    void AddFixture(BodyID id, FixtureID fixture);
-
-    /// @brief Removes the given fixture from the given body.
-    bool RemoveFixture(BodyID id, FixtureID fixture);
 
     /// @brief Updates associated bodies and contacts for specified joint's addition.
     void Add(JointID j, bool flagForFiltering = false);
@@ -710,8 +701,8 @@ private:
     /// @brief Destroy contacts statistics.
     struct DestroyContactsStats
     {
-        ContactCounter ignored = 0; ///< Ignored.
-        ContactCounter erased = 0; ///< Erased.
+        ContactCounter overlap = 0; ///< Erased by not overlapping.
+        ContactCounter filter = 0; ///< Erased due to filtering.
     };
 
     /// @brief Contact TOI data.
@@ -744,10 +735,7 @@ private:
     };
 
     /// @brief Updates the contact times of impact.
-    static UpdateContactsData UpdateContactTOIs(ArrayAllocator<Contact>& contactBuffer,
-                                                ArrayAllocator<Body>& bodyBuffer,
-                                                const ArrayAllocator<FixtureConf>& fixtureBuffer,
-                                                const Contacts& contacts, const StepConf& conf);
+    UpdateContactsData UpdateContactTOIs(const StepConf& conf);
 
     /// @brief Gets the soonest contact.
     /// @details This finds the contact with the lowest (soonest) time of impact.
@@ -801,16 +789,10 @@ private:
     void InternalDestroy(ContactID contact, const Body* from = nullptr);
 
     /// @brief Synchronizes the given body.
-    /// @details This updates the broad phase dynamic tree data for all of the given fixtures.
-    ContactCounter Synchronize(const Fixtures& fixtures,
+    /// @details This updates the broad phase dynamic tree data for all of the identified shapes.
+    ContactCounter Synchronize(BodyID bodyId,
                                const Transformation& xfm1, const Transformation& xfm2,
                                Real multiplier, Length extension);
-
-    /// @brief Creates and destroys proxies.
-    void CreateAndDestroyProxies(Length extension);
-
-    /// @brief Synchronizes proxies of the bodies for proxies.
-    PreStepStats::counter_type SynchronizeProxies(const StepConf& conf);
 
     /// @brief Updates the touching related state and notifies listener (if one given).
     ///
@@ -830,29 +812,23 @@ private:
 
     /******** Member variables. ********/
 
+    DynamicTree m_tree; ///< Dynamic tree.
+
     ArrayAllocator<Body> m_bodyBuffer; ///< Array of body data both used and freed.
-    ArrayAllocator<Contacts> m_bodyContacts; ///< Cache of contacts associated with bodies.
-    ArrayAllocator<BodyJoints> m_bodyJoints; ///< Cache of joints associated with bodies.
-
-    /// Cache of fixtures associated with bodies.
-    /// @todo Consider eliminating this variable since calling <code>GetFixtures()</code>
-    ///   isn't done within the <code>World::Step</code> except by
-    ///   <code>World::Synchronize</code> which may be replacable with iterating over the
-    ///   entire fixture array.
-    ArrayAllocator<Fixtures> m_bodyFixtures;
-
-    ArrayAllocator<FixtureConf> m_fixtureBuffer; ///< Array of fixture data both used and freed.
-    ArrayAllocator<Proxies> m_fixtureProxies; ///< Array of arrays of dynamic tree leaves.
+    ArrayAllocator<Shape> m_shapeBuffer; ///< Array of shape data both used and freed.
     ArrayAllocator<Joint> m_jointBuffer; ///< Array of joint data both used and freed.
     ArrayAllocator<Contact> m_contactBuffer; ///< Array of contact data both used and freed.
     ArrayAllocator<Manifold> m_manifoldBuffer; ///< Array of manifold data both used and freed.
 
-    DynamicTree m_tree; ///< Dynamic tree.
+    ArrayAllocator<Contacts> m_bodyContacts; ///< Cache of contacts associated with bodies.
+    ArrayAllocator<BodyJoints> m_bodyJoints; ///< Cache of joints associated with bodies.
+    ArrayAllocator<Proxies> m_bodyProxies; ///< Cache of proxies associated with bodies.
 
     ContactKeyQueue m_proxyKeys; ///< Proxy keys.
-    Proxies m_proxies; ///< Proxies queue.
-    Fixtures m_fixturesForProxies; ///< Fixtures for proxies queue.
-    Bodies m_bodiesForProxies; ///< Bodies for proxies queue.
+    Proxies m_proxiesForContacts; ///< Proxies queue.
+    std::vector<std::pair<BodyID, ShapeID>> m_fixturesForProxies; ///< Fixtures for proxies queue.
+    std::vector<BodyConstraint> m_bodyConstraints; ///< Cache of constraints associated with bodies.
+    Bodies m_bodiesForSync; ///< Bodies for proxies queue.
 
     Bodies m_bodies; ///< Body collection.
 
@@ -868,7 +844,8 @@ private:
     std::vector<bool> m_islandedContacts; ///< Per contact boolean on whether contact islanded.
     std::vector<bool> m_islandedJoints; ///< Per joint boolean on whether joint islanded.
 
-    FixtureListener m_fixtureDestructionListener; ///< Listener for fixture destruction.
+    ShapeListener m_shapeDestructionListener; ///< Listener for shape destruction.
+    AssociationListener m_detachListener; ///< Listener for shapes detaching from bodies.
     JointListener m_jointDestructionListener; ///< Listener for joint destruction.
     ContactListener m_beginContactListener; ///< Listener for beginning contact events.
     ContactListener m_endContactListener; ///< Listener for ending contact events.
@@ -899,37 +876,37 @@ private:
 
 inline const WorldImpl::Proxies& WorldImpl::GetProxies() const noexcept
 {
-    return m_proxies;
+    return m_proxiesForContacts;
 }
 
 inline void WorldImpl::AddProxies(const Proxies& proxies)
 {
-    m_proxies.insert(end(m_proxies), begin(proxies), end(proxies));
+    m_proxiesForContacts.insert(end(m_proxiesForContacts), begin(proxies), end(proxies));
 }
 
-inline SizedRange<WorldImpl::Bodies::const_iterator> WorldImpl::GetBodies() const noexcept
+inline WorldImpl::Bodies WorldImpl::GetBodies() const noexcept
 {
-    return {begin(m_bodies), end(m_bodies), size(m_bodies)};
+    return m_bodies;
 }
 
-inline SizedRange<WorldImpl::Bodies::const_iterator> WorldImpl::GetBodiesForProxies() const noexcept
+inline WorldImpl::Bodies WorldImpl::GetBodiesForProxies() const noexcept
 {
-    return {cbegin(m_bodiesForProxies), cend(m_bodiesForProxies), size(m_bodiesForProxies)};
+    return m_bodiesForSync;
 }
 
-inline SizedRange<WorldImpl::Fixtures::const_iterator> WorldImpl::GetFixturesForProxies() const noexcept
+inline std::vector<std::pair<BodyID, ShapeID>> WorldImpl::GetFixturesForProxies() const noexcept
 {
-    return {cbegin(m_fixturesForProxies), cend(m_fixturesForProxies), size(m_fixturesForProxies)};
+    return m_fixturesForProxies;
 }
 
-inline SizedRange<WorldImpl::Joints::const_iterator> WorldImpl::GetJoints() const noexcept
+inline WorldImpl::Joints WorldImpl::GetJoints() const noexcept
 {
-    return {begin(m_joints), end(m_joints), size(m_joints)};
+    return m_joints;
 }
 
-inline SizedRange<WorldImpl::Contacts::const_iterator> WorldImpl::GetContacts() const noexcept
+inline WorldImpl::Contacts WorldImpl::GetContacts() const noexcept
 {
-    return {begin(m_contacts), end(m_contacts), size(m_contacts)};
+    return m_contacts;
 }
 
 inline bool WorldImpl::IsLocked() const noexcept
@@ -944,12 +921,10 @@ inline bool WorldImpl::IsStepComplete() const noexcept
 
 inline void WorldImpl::SetStepComplete(bool value) noexcept
 {
-    if (value)
-    {
+    if (value) {
         m_flags |= e_stepComplete;
     }
-    else
-    {
+    else {
         m_flags &= ~e_stepComplete;
     }
 }
@@ -961,12 +936,10 @@ inline bool WorldImpl::GetSubStepping() const noexcept
 
 inline void WorldImpl::SetSubStepping(bool flag) noexcept
 {
-    if (flag)
-    {
+    if (flag) {
         m_flags |= e_substepping;
     }
-    else
-    {
+    else {
         m_flags &= ~e_substepping;
     }
 }
@@ -1001,9 +974,14 @@ inline const DynamicTree& WorldImpl::GetTree() const noexcept
     return m_tree;
 }
 
-inline void WorldImpl::SetFixtureDestructionListener(FixtureListener listener) noexcept
+inline void WorldImpl::SetShapeDestructionListener(ShapeListener listener) noexcept
 {
-    m_fixtureDestructionListener = std::move(listener);
+    m_shapeDestructionListener = std::move(listener);
+}
+
+inline void WorldImpl::SetDetachListener(AssociationListener listener) noexcept
+{
+    m_detachListener = std::move(listener);
 }
 
 inline void WorldImpl::SetJointDestructionListener(JointListener listener) noexcept

@@ -49,7 +49,7 @@ struct LookupTable
             elements[i] = j;
         }
     }
-    
+
     std::uint8_t elements[BlockAllocator::GetMaxBlockSize() + 1];
 };
 

@@ -18,23 +18,26 @@
  */
 
 #include "PlayRho/Collision/Shapes/PolygonShapeConf.hpp"
+
+#include "PlayRho/Collision/Shapes/Shape.hpp"
 #include "PlayRho/Common/VertexSet.hpp"
 
 namespace playrho {
 namespace d2 {
 
+static_assert(IsValidShapeType<PolygonShapeConf>::value);
+
 PolygonShapeConf::PolygonShapeConf() = default;
 
-PolygonShapeConf::PolygonShapeConf(Length hx, Length hy,
-                                   const PolygonShapeConf& conf) noexcept:
-    ShapeBuilder{conf}
+PolygonShapeConf::PolygonShapeConf(Length hx, Length hy, const PolygonShapeConf& conf) noexcept
+    : ShapeBuilder{conf}
 {
     SetAsBox(hx, hy);
 }
 
 PolygonShapeConf::PolygonShapeConf(Span<const Length2> points,
-                                   const PolygonShapeConf& conf) noexcept:
-    ShapeBuilder{conf}
+                                   const PolygonShapeConf& conf) noexcept
+    : ShapeBuilder{conf}
 {
     Set(points);
 }
@@ -46,10 +49,10 @@ PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy) noexcept
     // vertices must be counter-clockwise
 
     const auto btm_rgt = Length2{+hx, -hy};
-    const auto top_rgt = Length2{ hx,  hy};
+    const auto top_rgt = Length2{hx, hy};
     const auto top_lft = Length2{-hx, +hy};
     const auto btm_lft = Length2{-hx, -hy};
-    
+
     m_vertices.clear();
     m_vertices.emplace_back(btm_rgt);
     m_vertices.emplace_back(top_rgt);
@@ -61,7 +64,7 @@ PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy) noexcept
     m_normals.emplace_back(UnitVec::GetTop());
     m_normals.emplace_back(UnitVec::GetLeft());
     m_normals.emplace_back(UnitVec::GetBottom());
-    
+
     return *this;
 }
 
@@ -70,9 +73,9 @@ PolygonShapeConf& PolygonShapeConf::UseVertices(const std::vector<Length2>& vert
 {
     return Set(Span<const Length2>(data(verts), size(verts)));
 }
-    
-PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy,
-                                                 Length2 center, Angle angle) noexcept
+
+PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy, Length2 center,
+                                             Angle angle) noexcept
 {
     SetAsBox(hx, hy);
     Transform(Transformation{center, UnitVec::Get(angle)});
@@ -81,10 +84,9 @@ PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy,
 
 PolygonShapeConf& PolygonShapeConf::Transform(Transformation xfm) noexcept
 {
-    for (auto i = decltype(GetVertexCount()){0}; i < GetVertexCount(); ++i)
-    {
+    for (auto i = decltype(GetVertexCount()){0}; i < GetVertexCount(); ++i) {
         m_vertices[i] = playrho::d2::Transform(m_vertices[i], xfm);
-        m_normals[i] = Rotate(m_normals[i], xfm.q);
+        m_normals[i] = ::playrho::d2::Rotate(m_normals[i], xfm.q);
     }
     m_centroid = playrho::d2::Transform(m_centroid, xfm);
     return *this;
@@ -93,10 +95,35 @@ PolygonShapeConf& PolygonShapeConf::Transform(Transformation xfm) noexcept
 PolygonShapeConf& PolygonShapeConf::Transform(const Mat22& m) noexcept
 {
     auto newPoints = VertexSet{};
-    // clang++ recommends the following loop variable 'v' be of reference type (instead of value).
-    for (const auto& v: m_vertices)
-    {
+    for (const auto& v : m_vertices) {
         newPoints.add(m * v);
+    }
+    return Set(newPoints);
+}
+
+PolygonShapeConf& PolygonShapeConf::Translate(const Length2& value) noexcept
+{
+    auto newPoints = VertexSet{};
+    for (const auto& v : m_vertices) {
+        newPoints.add(v + value);
+    }
+    return Set(newPoints);
+}
+
+PolygonShapeConf& PolygonShapeConf::Scale(const Vec2& value) noexcept
+{
+    auto newPoints = VertexSet{};
+    for (const auto& v : m_vertices) {
+        newPoints.add(Length2{GetX(v) * GetX(value), GetY(v) * GetY(value)});
+    }
+    return Set(newPoints);
+}
+
+PolygonShapeConf& PolygonShapeConf::Rotate(const UnitVec& value) noexcept
+{
+    auto newPoints = VertexSet{};
+    for (const auto& v : m_vertices) {
+        newPoints.add(::playrho::d2::Rotate(v, value));
     }
     return Set(newPoints);
 }
@@ -105,8 +132,7 @@ PolygonShapeConf& PolygonShapeConf::Set(Span<const Length2> points) noexcept
 {
     // Perform welding and copy vertices into local buffer.
     auto point_set = VertexSet(Square(DefaultLinearSlop));
-    for (auto&& p: points)
-    {
+    for (auto&& p : points) {
         point_set.add(p);
     }
     return Set(point_set);
@@ -116,41 +142,37 @@ PolygonShapeConf& PolygonShapeConf::Set(const VertexSet& points) noexcept
 {
     m_vertices = GetConvexHullAsVector(points);
     assert(size(m_vertices) < std::numeric_limits<VertexCounter>::max());
-    
+
     const auto count = static_cast<VertexCounter>(size(m_vertices));
 
     m_normals.clear();
-    if (count > 1)
-    {
+    if (count > 1) {
         // Compute normals.
-        for (auto i = decltype(count){0}; i < count; ++i)
-        {
+        for (auto i = decltype(count){0}; i < count; ++i) {
             const auto edge = GetEdge(*this, i);
             m_normals.emplace_back(GetUnitVector(GetFwdPerpendicular(edge)));
         }
     }
-    else if (count == 1)
-    {
+    else if (count == 1) {
         m_normals.emplace_back(UnitVec{});
     }
 
     // Compute the polygon centroid.
-    switch (count)
-    {
-        case 0:
-            m_centroid = GetInvalid<Length2>();
-            break;
-        case 1:
-            m_centroid = m_vertices[0];
-            break;
-        case 2:
-            m_centroid = (m_vertices[0] + m_vertices[1]) / Real{2};
-            break;
-        default:
-            m_centroid = ComputeCentroid(GetVertices());
-            break;
+    switch (count) {
+    case 0:
+        m_centroid = GetInvalid<Length2>();
+        break;
+    case 1:
+        m_centroid = m_vertices[0];
+        break;
+    case 2:
+        m_centroid = (m_vertices[0] + m_vertices[1]) / Real{2};
+        break;
+    default:
+        m_centroid = ComputeCentroid(GetVertices());
+        break;
     }
-    
+
     return *this;
 }
 
@@ -166,22 +188,18 @@ Length2 GetEdge(const PolygonShapeConf& shape, VertexCounter index)
 bool Validate(Span<const Length2> verts)
 {
     const auto count = size(verts);
-    for (auto i = decltype(count){0}; i < count; ++i)
-    {
+    for (auto i = decltype(count){0}; i < count; ++i) {
         const auto i1 = i;
         const auto i2 = GetModuloNext(i1, count);
         const auto p = verts[i1];
         const auto e = verts[i2] - p;
-        for (auto j = decltype(count){0}; j < count; ++j)
-        {
-            if ((j == i1) || (j == i2))
-            {
+        for (auto j = decltype(count){0}; j < count; ++j) {
+            if ((j == i1) || (j == i2)) {
                 continue;
             }
             const auto v = verts[j] - p;
             const auto c = Cross(e, v);
-            if (c < 0_m2)
-            {
+            if (c < 0_m2) {
                 return false;
             }
         }

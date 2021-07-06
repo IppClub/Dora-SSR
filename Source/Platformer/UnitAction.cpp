@@ -351,8 +351,8 @@ void Jump::run()
 	auto& world = _owner->getPhysicsWorld()->getPrWorld();
 	pr::BodyID self = _owner->getPrBody();
 	pr::BodyID target = sensor->getSensedBodies()->get(0)->to<Body>().getPrBody();
-	const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetFixtures(world, self)));
-	const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetFixtures(world, target)));
+	const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetShapes(world, self)));
+	const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetShapes(world, target)));
 	const auto proxyA = pd::GetChild(shapeA, 0);
 	const auto proxyB = pd::GetChild(shapeB, 0);
 	const auto transformA = pd::GetTransformation(world, self);
@@ -515,7 +515,7 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape)
 	auto targetB = target->getPrBody();
 	auto& world = target->getPhysicsWorld()->getPrWorld();
 	const auto transformA = pd::GetTransformation(world, selfB);
-	for (pr::FixtureID f : pd::GetFixtures(world, targetB))
+	for (pr::ShapeID f : pd::GetShapes(world, targetB))
 	{
 		if (!pd::IsSensor(world, f))
 		{

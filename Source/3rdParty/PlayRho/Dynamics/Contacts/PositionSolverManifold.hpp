@@ -44,7 +44,7 @@ struct PositionSolverManifold
     /// @details Point at which position resolution should be relatively applied.
     /// @note This field is 8-bytes large.
     Length2 m_point;
-    
+
     /// Separation.
     /// @details Separation between two points (i.e. penetration if negative).
     /// @note This field is 4-bytes large.

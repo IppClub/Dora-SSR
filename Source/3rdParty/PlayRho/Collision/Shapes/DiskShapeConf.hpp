@@ -38,8 +38,7 @@ namespace d2 {
 ///
 /// @ingroup PartsGroup
 ///
-struct DiskShapeConf: ShapeBuilder<DiskShapeConf>
-{
+struct DiskShapeConf : ShapeBuilder<DiskShapeConf> {
     /// @brief Gets the default radius.
     static constexpr NonNegative<Length> GetDefaultRadius() noexcept
     {
@@ -49,7 +48,7 @@ struct DiskShapeConf: ShapeBuilder<DiskShapeConf>
     constexpr DiskShapeConf() = default;
 
     /// @brief Initializing constructor.
-    constexpr DiskShapeConf(NonNegative<Length> r): vertexRadius{r}
+    constexpr DiskShapeConf(NonNegative<Length> r) : vertexRadius{r}
     {
         // Intentionally empty.
     }
@@ -60,34 +59,47 @@ struct DiskShapeConf: ShapeBuilder<DiskShapeConf>
         location = value;
         return *this;
     }
-    
+
     /// @brief Uses the given value as the radius.
     constexpr DiskShapeConf& UseRadius(NonNegative<Length> r) noexcept
     {
         vertexRadius = r;
         return *this;
     }
-    
-    /// @brief Transforms the location by the given transformation matrix.
-    /// @see https://en.wikipedia.org/wiki/Transformation_matrix
-    constexpr DiskShapeConf& Transform(const Mat22& m) noexcept
+
+    /// @brief Translates the location by the given amount.
+    constexpr DiskShapeConf& Translate(Length2 value) noexcept
     {
-        location = m * location;
+        location += value;
         return *this;
     }
-    
+
+    /// @brief Scales the location by the given amount.
+    constexpr DiskShapeConf& Scale(Vec2 value) noexcept
+    {
+        location = Length2{GetX(location) * GetX(value), GetY(location) * GetY(value)};
+        return *this;
+    }
+
+    /// @brief Rotates the location by the given amount.
+    constexpr DiskShapeConf& Rotate(const UnitVec& value) noexcept
+    {
+        location = ::playrho::d2::Rotate(location, value);
+        return *this;
+    }
+
     /// @brief Gets the radius property.
     NonNegative<Length> GetRadius() const noexcept
     {
         return vertexRadius;
     }
-    
+
     /// @brief Gets the location.
     Length2 GetLocation() const noexcept
     {
         return location;
     }
-    
+
     /// @brief Vertex radius.
     ///
     /// @details This is the radius from the vertex that the shape's "skin" should
@@ -108,15 +120,15 @@ struct DiskShapeConf: ShapeBuilder<DiskShapeConf>
 // Free functions...
 
 /// @brief Equality operator.
-inline bool operator== (const DiskShapeConf& lhs, const DiskShapeConf& rhs) noexcept
+inline bool operator==(const DiskShapeConf& lhs, const DiskShapeConf& rhs) noexcept
 {
-    return lhs.vertexRadius == rhs.vertexRadius && lhs.friction == rhs.friction
-        && lhs.restitution == rhs.restitution && lhs.density == rhs.density
-        && lhs.location == rhs.location;
+    return lhs.vertexRadius == rhs.vertexRadius && lhs.friction == rhs.friction &&
+           lhs.restitution == rhs.restitution && lhs.density == rhs.density &&
+           lhs.filter == rhs.filter && lhs.isSensor == rhs.isSensor && lhs.location == rhs.location;
 }
 
 /// @brief Inequality operator.
-inline bool operator!= (const DiskShapeConf& lhs, const DiskShapeConf& rhs) noexcept
+inline bool operator!=(const DiskShapeConf& lhs, const DiskShapeConf& rhs) noexcept
 {
     return !(lhs == rhs);
 }
@@ -130,8 +142,7 @@ constexpr ChildCounter GetChildCount(const DiskShapeConf&) noexcept
 /// @brief Gets the "child" of the given disk shape configuration.
 inline DistanceProxy GetChild(const DiskShapeConf& arg, ChildCounter index)
 {
-    if (index != 0)
-    {
+    if (index != 0) {
         throw InvalidArgument("only index of 0 is supported");
     }
     return DistanceProxy{arg.vertexRadius, 1, &arg.location, nullptr};
@@ -144,10 +155,15 @@ constexpr NonNegative<Length> GetVertexRadius(const DiskShapeConf& arg) noexcept
 }
 
 /// @brief Gets the vertex radius of the given shape configuration.
-constexpr NonNegative<Length> GetVertexRadius(const DiskShapeConf& arg,
-                                                             ChildCounter) noexcept
+constexpr NonNegative<Length> GetVertexRadius(const DiskShapeConf& arg, ChildCounter) noexcept
 {
     return GetVertexRadius(arg);
+}
+
+/// @brief Sets the vertex radius of shape for the given index.
+inline void SetVertexRadius(DiskShapeConf& arg, ChildCounter, NonNegative<Length> value)
+{
+    arg.vertexRadius = value;
 }
 
 /// @brief Gets the mass data of the given disk shape configuration.
@@ -156,15 +172,33 @@ inline MassData GetMassData(const DiskShapeConf& arg) noexcept
     return playrho::d2::GetMassData(arg.vertexRadius, arg.density, arg.location);
 }
 
-/// @brief Transforms the given shape configuration's vertices by the given
-///   transformation matrix.
-/// @see https://en.wikipedia.org/wiki/Transformation_matrix
-inline void Transform(DiskShapeConf& arg, const Mat22& m) noexcept
+/// @brief Translates the given shape configuration's vertices by the given amount.
+inline void Translate(DiskShapeConf& arg, const Length2& value) noexcept
 {
-    arg.Transform(m);
+    arg.Translate(value);
+}
+
+/// @brief Scales the given shape configuration's vertices by the given amount.
+inline void Scale(DiskShapeConf& arg, const Vec2& value) noexcept
+{
+    arg.Scale(value);
+}
+
+/// @brief Rotates the given shape configuration's vertices by the given amount.
+inline void Rotate(DiskShapeConf& arg, const UnitVec& value) noexcept
+{
+    arg.Rotate(value);
 }
 
 } // namespace d2
+
+/// @brief Type info specialization for <code>d2::DiskShapeConf</code>.
+template <>
+struct TypeInfo<d2::DiskShapeConf> {
+    /// @brief Provides a null-terminated string name for the type.
+    static constexpr const char* name = "d2::DiskShapeConf";
+};
+
 } // namespace playrho
 
 #endif // PLAYRHO_COLLISION_SHAPES_DISKSHAPECONF_HPP

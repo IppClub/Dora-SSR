@@ -52,7 +52,7 @@ struct Defaults
         // Return the value used by Box2D 2.3.2 b2_linearSlop define....
         return 0.005_m;
     }
-    
+
     /// @brief Gets the max vertex radius.
     static constexpr auto GetMaxVertexRadius() noexcept
     {
@@ -73,7 +73,7 @@ struct Defaults<Fixed<std::int32_t,FRACTION_BITS>>
         // ex: FRACTION_BITS==10, then divisor==256
         return Length{1_m / Real{(1u << (FRACTION_BITS - 2))}};
     }
-    
+
     /// @brief Gets the max vertex radius.
     static constexpr auto GetMaxVertexRadius() noexcept
     {
@@ -108,7 +108,7 @@ constexpr auto MaxFloat = std::numeric_limits<Real>::max(); // FLT_MAX
 /// Maximum manifold points.
 /// This is the maximum number of contact points between two convex shapes.
 /// Do not change this value.
-/// @note For memory efficiency, uses the smallest integral type that can hold the value. 
+/// @note For memory efficiency, uses the smallest integral type that can hold the value.
 constexpr auto MaxManifoldPoints = std::uint8_t{2};
 
 /// @brief Maximum number of vertices for any shape type.
@@ -165,10 +165,10 @@ constexpr auto DefaultMaxAngularCorrection = Real(8.0f / 180.0f) * Pi * 1_rad;
 constexpr auto DefaultMaxTranslation = 2_m;
 
 /// @brief Default maximum rotation per world step.
-/// @warning This value should be less than Pi * Radian.
+/// @warning This value should always be less than 180 degrees - i.e. less than .5 * Pi * Radian.
 /// @note This limit is meant to prevent numerical problems. Adjusting this value isn't advised.
 /// @see StepConf::maxRotation.
-constexpr auto DefaultMaxRotation = Angle{Pi * 1_rad / Real(2)};
+constexpr auto DefaultMaxRotation = Angle{179_deg};
 
 /// @brief Default maximum time of impact iterations.
 constexpr auto DefaultMaxToiIters = std::uint8_t{20};
@@ -186,7 +186,7 @@ constexpr auto DefaultMaxDistanceIters = std::uint8_t{20};
 /// have continuous collision resolution done for it.
 /// @note Used in the TOI phase of step processing.
 constexpr auto DefaultMaxSubSteps = std::uint8_t{8};
-    
+
 // Dynamics
 
 /// @brief Default velocity threshold.
@@ -197,15 +197,6 @@ constexpr auto DefaultRegMinMomentum = Momentum{0_Ns / 100};
 
 /// @brief Default TOI-phase minimum momentum.
 constexpr auto DefaultToiMinMomentum = Momentum{0_Ns / 100};
-
-/// @brief Maximum number of fixtures in a world.
-/// @note This is 65534 based off <code>std::uint16_t</code> and eliminating one value for invalid.
-constexpr auto MaxFixtures = static_cast<std::uint16_t>(std::numeric_limits<std::uint16_t>::max() -
-                                                        std::uint16_t{1u});
-
-/// @brief Counter type for fixtures.
-/// @note This type must always be able to contain the <code>MaxFixtures</code> value.
-using FixtureCounter = std::remove_const<decltype(MaxFixtures)>::type;
 
 /// @brief Maximum number of bodies in a world.
 /// @note This is 65534 based off <code>std::uint16_t</code> and eliminating one value for invalid.
@@ -237,6 +228,15 @@ constexpr auto MaxJoints = static_cast<std::uint16_t>(std::numeric_limits<std::u
 /// @brief Counter type for joints.
 /// @note This type must be able to contain the <code>MaxJoints</code> value.
 using JointCounter = std::remove_const<decltype(MaxJoints)>::type;
+
+/// @brief Maximum number of shapes in a world.
+/// @note This is 65534 based off <code>std::uint16_t</code> and eliminating one value for invalid.
+constexpr auto MaxShapes = static_cast<std::uint16_t>(std::numeric_limits<std::uint16_t>::max() -
+                                                      std::uint16_t{1});
+
+/// @brief Count type for shapes.
+/// @note This type must always be able to contain the <code>MaxShapes</code> value.
+using ShapeCounter = std::remove_const_t<decltype(MaxShapes)>;
 
 /// @brief Default step time.
 constexpr auto DefaultStepTime = Time{1_s / 60};

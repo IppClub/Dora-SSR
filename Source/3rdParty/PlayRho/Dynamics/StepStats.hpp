@@ -54,8 +54,9 @@ struct RegStepStats {
 
     BodyCounter islandsFound = 0; ///< Islands found count.
     BodyCounter islandsSolved = 0; ///< Islands solved count.
+    BodyCounter bodiesSlept = 0; ///< Bodies slept count.
+    BodyCounter maxIslandBodies = 0; ///< Max bodies in all of the islands.
     counter_type contactsAdded = 0; ///< Contacts added count.
-    counter_type bodiesSlept = 0; ///< Bodies slept count.
     counter_type proxiesMoved = 0; ///< Proxies moved count.
     counter_type sumPosIters = 0; ///< Sum of the position iterations.
     counter_type sumVelIters = 0; ///< Sum of the velocity iterations.

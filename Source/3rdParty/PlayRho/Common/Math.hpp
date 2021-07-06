@@ -42,22 +42,24 @@
 
 namespace playrho {
 
+struct ConstraintSolverConf;
+
 // Import common standard mathematical functions into the playrho namespace...
-using std::signbit;
-using std::nextafter;
-using std::trunc;
-using std::fmod;
-using std::isfinite;
-using std::round;
-using std::isnormal;
-using std::isnan;
-using std::hypot;
-using std::cos;
-using std::sin;
-using std::atan2;
-using std::sqrt;
-using std::pow;
 using std::abs;
+using std::atan2;
+using std::cos;
+using std::fmod;
+using std::hypot;
+using std::isfinite;
+using std::isnan;
+using std::isnormal;
+using std::nextafter;
+using std::pow;
+using std::round;
+using std::signbit;
+using std::sin;
+using std::sqrt;
+using std::trunc;
 
 // Other templates.
 
@@ -118,8 +120,7 @@ MakeUnsigned(const T& arg) noexcept
 
 /// @brief Strips the unit from the given value.
 template <typename T>
-constexpr auto StripUnit(const T& v)
--> decltype(StripUnit(v.get()))
+constexpr auto StripUnit(const T& v) -> decltype(StripUnit(v.get()))
 {
     return StripUnit(v.get());
 }
@@ -157,23 +158,26 @@ constexpr bool IsOdd(T val) noexcept
 }
 
 /// @brief Squares the given value.
-template<class TYPE>
-constexpr auto Square(TYPE t) noexcept { return t * t; }
+template <class TYPE>
+constexpr auto Square(TYPE t) noexcept -> decltype(t * t)
+{
+    return t * t;
+}
 
 /// @brief Computes the arc-tangent of the given y and x values.
 /// @return Normalized angle - an angle between -Pi and Pi inclusively.
 /// @see https://en.cppreference.com/w/cpp/numeric/math/atan2
-template<typename T>
+template <typename T>
 inline auto Atan2(T y, T x)
 {
     return Angle{static_cast<Real>(atan2(StripUnit(y), StripUnit(x))) * Radian};
 }
 
 /// @brief Computes the average of the given values.
-template <typename T, typename = std::enable_if_t<
-    IsIterable<T>::value && IsAddable<decltype(*begin(std::declval<T>()))>::value
-    > >
-inline auto Average(const T& span)
+template <typename T,
+          typename = std::enable_if_t<IsIterable<T>::value &&
+                                      IsAddable<decltype(*begin(std::declval<T>()))>::value>>
+auto Average(const T& span)
 {
     using value_type = decltype(*begin(std::declval<T>()));
 
@@ -181,7 +185,7 @@ inline auto Average(const T& span)
     // See: http://en.cppreference.com/w/cpp/language/zero_initialization
     constexpr auto zero = value_type{};
     assert(zero * Real{2} == zero);
-    
+
     // For C++17, switch from using std::accumulate to using std::reduce.
     const auto sum = std::accumulate(begin(span), end(span), zero);
     const auto count = std::max(size(span), std::size_t{1});
@@ -208,8 +212,7 @@ template <typename T, std::size_t N>
 constexpr Vector<T, N> abs(const Vector<T, N>& v) noexcept
 {
     auto result = Vector<T, N>{};
-    for (auto i = decltype(N){0}; i < N; ++i)
-    {
+    for (auto i = decltype(N){0}; i < N; ++i) {
         result[i] = abs(v[i]);
     }
     return result;
@@ -226,16 +229,15 @@ inline d2::UnitVec abs(const d2::UnitVec& v) noexcept
 /// odd results like a divide by zero trap occurring.
 /// @return <code>true</code> if the given value is almost zero, <code>false</code> otherwise.
 template <typename T>
-constexpr
-std::enable_if_t<std::is_arithmetic<T>::value, bool> AlmostZero(T value)
+constexpr std::enable_if_t<std::is_arithmetic<T>::value, bool> AlmostZero(T value)
 {
     return abs(value) < std::numeric_limits<T>::min();
 }
 
 /// @brief Determines whether the given two values are "almost equal".
 template <typename T>
-constexpr
-std::enable_if_t<std::is_floating_point<T>::value, bool> AlmostEqual(T x, T y, int ulp = 2)
+constexpr std::enable_if_t<std::is_floating_point<T>::value, bool> AlmostEqual(T x, T y,
+                                                                               int ulp = 2)
 {
     // From http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon :
     //   "the machine epsilon has to be scaled to the magnitude of the values used
@@ -243,15 +245,25 @@ std::enable_if_t<std::is_floating_point<T>::value, bool> AlmostEqual(T x, T y, i
     //    unless the result is subnormal".
     // Where "subnormal" means almost zero.
     //
-    return (abs(x - y) < (std::numeric_limits<T>::epsilon() * abs(x + y) * static_cast<T>(ulp)))
-        || AlmostZero(x - y);
+    return (abs(x - y) < (std::numeric_limits<T>::epsilon() * abs(x + y) * static_cast<T>(ulp))) ||
+           AlmostZero(x - y);
+}
+
+/// @brief Constant expression enhanced truncate function.
+/// @note Unlike <code>std::trunc</code>, this function is only defined for finite values.
+/// @see https://en.cppreference.com/w/cpp/numeric/math/trunc
+template <class T>
+constexpr auto ctrunc(T v) noexcept
+{
+    assert(isfinite(v));
+    return T(std::int64_t(v));
 }
 
 /// @brief Modulo operation using <code>std::fmod</code>.
 /// @note Modulo via <code>std::fmod</code> appears slower than via <code>std::trunc</code>.
 /// @see ModuloViaTrunc
 template <typename T>
-inline auto ModuloViaFmod(T dividend, T divisor) noexcept
+auto ModuloViaFmod(T dividend, T divisor)
 {
     // Note: modulo via std::fmod appears slower than via std::trunc.
     return static_cast<T>(fmod(dividend, divisor));
@@ -259,44 +271,26 @@ inline auto ModuloViaFmod(T dividend, T divisor) noexcept
 
 /// @brief Modulo operation using <code>std::trunc</code>.
 /// @note Modulo via <code>std::fmod</code> appears slower than via <code>std::trunc</code>.
+/// @note This function won't behave like <code>ModuloViaFmod</code> when divisor is infinite.
+/// @param dividend Dividend value for which <code>isfinite</code> returns true.
+/// @param divisor Divisor value for which <code>isfinite</code> returns true.
 /// @see ModuloViaFmod
 template <typename T>
-inline auto ModuloViaTrunc(T dividend, T divisor) noexcept
+auto ModuloViaTrunc(T dividend, T divisor) noexcept
 {
     const auto quotient = dividend / divisor;
-    const auto integer = static_cast<T>(trunc(quotient));
-    const auto remainder = quotient - integer;
-    return remainder * divisor;
+    return (quotient - trunc(quotient)) * divisor;
 }
 
 /// @brief Gets the "normalized" value of the given angle.
-/// @return Angle between -Pi and Pi radians inclusively where 0 represents the positive X-axis.
+/// @note An angle of zero (0), represents the positive X-axis.
+/// @note Both -Pi and +Pi normalize to -Pi.
+/// @param value A finite angular value. Behavior of this function is not defined if given a
+///   non-finite value.
+/// @return Angle that's greater than or equal to -Pi and that's less than +Pi radians. I.e. the
+///   value returned will be a value within the half-open interval of [-Pi, +Pi).
 /// @see Atan2
-inline Angle GetNormalized(Angle value) noexcept
-{
-    constexpr auto oneRotationInRadians = Real{2 * Pi};
-    auto angleInRadians = Real{value / Radian};
-#if defined(NORMALIZE_ANGLE_VIA_FMOD)
-    // Note: std::fmod appears slower than std::trunc.
-    //   See Benchmark ModuloViaFmod for data.
-    angleInRadians = ModuloViaFmod(angleInRadians, oneRotationInRadians);
-#else
-    // Note: std::trunc appears more than twice as fast as std::fmod.
-    //   See Benchmark ModuloViaTrunc for data.
-    angleInRadians = ModuloViaTrunc(angleInRadians, oneRotationInRadians);
-#endif
-    if (angleInRadians > Pi)
-    {
-        // 190_deg becomes 190_deg - 360_deg = -170_deg
-        angleInRadians -= Pi * 2;
-    }
-    else if (angleInRadians < -Pi)
-    {
-        // -200_deg becomes -200_deg + 360_deg = 100_deg
-        angleInRadians += Pi * 2;
-    }
-    return angleInRadians * Radian;
-}
+Angle GetNormalized(Angle value) noexcept;
 
 /// @brief Gets the angle.
 /// @return Angular value in the range of -Pi to +Pi radians.
@@ -310,14 +304,12 @@ inline Angle GetAngle(const Vector2<T> value)
 /// @note For performance, use this instead of <code>GetMagnitude(T value)</code> (if possible).
 /// @return Non-negative value from 0 to infinity, or NaN.
 template <typename T>
-constexpr
-auto GetMagnitudeSquared(T value) noexcept
+constexpr auto GetMagnitudeSquared(const T& value) noexcept
 {
     using VT = typename T::value_type;
     using OT = decltype(VT{} * VT{});
     auto result = OT{};
-    for (auto&& e: value)
-    {
+    for (auto&& e : value) {
         result += Square(e);
     }
     return result;
@@ -326,7 +318,7 @@ auto GetMagnitudeSquared(T value) noexcept
 /// @brief Gets the magnitude of the given value.
 /// @note Works for any type for which <code>GetMagnitudeSquared</code> also works.
 template <typename T>
-inline auto GetMagnitude(T value)
+inline auto GetMagnitude(const T& value) -> decltype(sqrt(GetMagnitudeSquared(value)))
 {
     return sqrt(GetMagnitudeSquared(value));
 }
@@ -365,8 +357,7 @@ constexpr auto Dot(const T1 a, const T2 b) noexcept
     using OT = decltype(VT1{} * VT2{});
     auto result = OT{};
     const auto numElements = size(a);
-    for (auto i = decltype(numElements){0}; i < numElements; ++i)
-    {
+    for (auto i = decltype(numElements){0}; i < numElements; ++i) {
         result += a[i] * b[i];
     }
     return result;
@@ -399,8 +390,9 @@ constexpr auto Dot(const T1 a, const T2 b) noexcept
 ///
 /// @return Cross product of the two values.
 ///
-template <class T1, class T2, std::enable_if_t<
-    std::tuple_size<T1>::value == 2 && std::tuple_size<T2>::value == 2, int> = 0>
+template <
+    class T1, class T2,
+    std::enable_if_t<std::tuple_size<T1>::value == 2 && std::tuple_size<T2>::value == 2, int> = 0>
 constexpr auto Cross(T1 a, T2 b) noexcept
 {
     assert(isfinite(StripUnit(get<0>(a))));
@@ -431,8 +423,9 @@ constexpr auto Cross(T1 a, T2 b) noexcept
 /// @param a Value A of a 3-element type.
 /// @param b Value B of a 3-element type.
 /// @return Cross product of the two values.
-template <class T1, class T2, std::enable_if_t<
-    std::tuple_size<T1>::value == 3 && std::tuple_size<T2>::value == 3, int> = 0>
+template <
+    class T1, class T2,
+    std::enable_if_t<std::tuple_size<T1>::value == 3 && std::tuple_size<T2>::value == 3, int> = 0>
 constexpr auto Cross(T1 a, T2 b) noexcept
 {
     assert(isfinite(get<0>(a)));
@@ -443,11 +436,9 @@ constexpr auto Cross(T1 a, T2 b) noexcept
     assert(isfinite(get<2>(b)));
 
     using OT = decltype(get<0>(a) * get<0>(b));
-    return Vector<OT, 3>{
-        GetY(a) * GetZ(b) - GetZ(a) * GetY(b),
-        GetZ(a) * GetX(b) - GetX(a) * GetZ(b),
-        GetX(a) * GetY(b) - GetY(a) * GetX(b)
-    };
+    return Vector<OT, 3>{GetY(a) * GetZ(b) - GetZ(a) * GetY(b),
+                         GetZ(a) * GetX(b) - GetX(a) * GetZ(b),
+                         GetX(a) * GetY(b) - GetY(a) * GetX(b)};
 }
 
 /// @brief Solves A * x = b, where b is a column vector.
@@ -458,11 +449,10 @@ constexpr auto Solve(const Matrix22<U> mat, const Vector2<T> b) noexcept
     const auto cp = Cross(get<0>(mat), get<1>(mat));
     const auto inverseCp = Real{1} / cp;
     using OutType = decltype((U{} * T{}) / cp);
-    return (!AlmostZero(StripUnit(cp)))?
-        Vector2<OutType>{
-            (get<1>(mat)[1] * b[0] - get<1>(mat)[0] * b[1]) * inverseCp,
-            (get<0>(mat)[0] * b[1] - get<0>(mat)[1] * b[0]) * inverseCp
-        }: Vector2<OutType>{};
+    return (!AlmostZero(StripUnit(cp)))
+               ? Vector2<OutType>{(get<1>(mat)[1] * b[0] - get<1>(mat)[0] * b[1]) * inverseCp,
+                                  (get<0>(mat)[0] * b[1] - get<0>(mat)[1] * b[0]) * inverseCp}
+               : Vector2<OutType>{};
 }
 
 /// @brief Inverts the given value.
@@ -472,12 +462,12 @@ constexpr auto Invert(const Matrix22<IN_TYPE> value) noexcept
     const auto cp = Cross(get<0>(value), get<1>(value));
     using OutType = decltype(get<0>(value)[0] / cp);
     const auto inverseCp = Real{1} / cp;
-    return (!AlmostZero(StripUnit(cp)))?
-        Matrix22<OutType>{
-            Vector2<OutType>{ get<1>(get<1>(value)) * inverseCp, -get<1>(get<0>(value)) * inverseCp},
-            Vector2<OutType>{-get<0>(get<1>(value)) * inverseCp,  get<0>(get<0>(value)) * inverseCp}
-        }:
-        Matrix22<OutType>{};
+    return (!AlmostZero(StripUnit(cp)))
+               ? Matrix22<OutType>{Vector2<OutType>{get<1>(get<1>(value)) * inverseCp,
+                                                    -get<1>(get<0>(value)) * inverseCp},
+                                   Vector2<OutType>{-get<0>(get<1>(value)) * inverseCp,
+                                                    get<0>(get<0>(value)) * inverseCp}}
+               : Matrix22<OutType>{};
 }
 
 /// @brief Solves A * x = b, where b is a column vector.
@@ -485,13 +475,13 @@ constexpr auto Invert(const Matrix22<IN_TYPE> value) noexcept
 constexpr Vec3 Solve33(const Mat33& mat, const Vec3 b) noexcept
 {
     const auto dp = Dot(GetX(mat), Cross(GetY(mat), GetZ(mat)));
-    const auto det = (dp != 0)? Real{1} / dp: dp;
+    const auto det = (dp != 0) ? Real{1} / dp : dp;
     const auto x = det * Dot(b, Cross(GetY(mat), GetZ(mat)));
     const auto y = det * Dot(GetX(mat), Cross(b, GetZ(mat)));
     const auto z = det * Dot(GetX(mat), Cross(GetY(mat), b));
     return Vec3{x, y, z};
 }
-    
+
 /// @brief Solves A * x = b, where b is a column vector.
 /// @note This is more efficient than computing the inverse in one-shot cases.
 /// @note Solves only the upper 2-by-2 matrix equation.
@@ -499,7 +489,7 @@ template <typename T>
 constexpr T Solve22(const Mat33& mat, const T b) noexcept
 {
     const auto cp = GetX(GetX(mat)) * GetY(GetY(mat)) - GetX(GetY(mat)) * GetY(GetX(mat));
-    const auto det = (cp != 0)? Real{1} / cp: cp;
+    const auto det = (cp != 0) ? Real{1} / cp : cp;
     const auto x = det * (GetY(GetY(mat)) * GetX(b) - GetX(GetY(mat)) * GetY(b));
     const auto y = det * (GetX(GetX(mat)) * GetY(b) - GetY(GetX(mat)) * GetX(b));
     return T{x, y};
@@ -509,38 +499,35 @@ constexpr T Solve22(const Mat33& mat, const T b) noexcept
 /// @return Zero matrix if singular.
 constexpr Mat33 GetInverse22(const Mat33& value) noexcept
 {
-    const auto a = GetX(GetX(value)), b = GetX(GetY(value)), c = GetY(GetX(value)), d = GetY(GetY(value));
+    const auto a = GetX(GetX(value)), b = GetX(GetY(value)), c = GetY(GetX(value)),
+               d = GetY(GetY(value));
     auto det = (a * d) - (b * c);
-    if (det != Real{0})
-    {
+    if (det != Real{0}) {
         det = Real{1} / det;
     }
     return Mat33{Vec3{det * d, -det * c, Real{0}}, Vec3{-det * b, det * a, 0}, Vec3{0, 0, 0}};
 }
-    
+
 /// @brief Gets the symmetric inverse of this matrix as a 3-by-3.
 /// @return Zero matrix if singular.
 constexpr Mat33 GetSymInverse33(const Mat33& value) noexcept
 {
     auto det = Dot(GetX(value), Cross(GetY(value), GetZ(value)));
-    if (det != Real{0})
-    {
+    if (det != Real{0}) {
         det = Real{1} / det;
     }
-    
+
     const auto a11 = GetX(GetX(value)), a12 = GetX(GetY(value)), a13 = GetX(GetZ(value));
     const auto a22 = GetY(GetY(value)), a23 = GetY(GetZ(value));
     const auto a33 = GetZ(GetZ(value));
-    
+
     const auto ex_y = det * (a13 * a23 - a12 * a33);
     const auto ey_z = det * (a13 * a12 - a11 * a23);
     const auto ex_z = det * (a12 * a23 - a13 * a22);
-    
-    return Mat33{
-        Vec3{det * (a22 * a33 - a23 * a23), ex_y, ex_z},
-        Vec3{ex_y, det * (a11 * a33 - a13 * a13), ey_z},
-        Vec3{ex_z, ey_z, det * (a11 * a22 - a12 * a12)}
-    };
+
+    return Mat33{Vec3{det * (a22 * a33 - a23 * a23), ex_y, ex_z},
+                 Vec3{ex_y, det * (a11 * a33 - a13 * a13), ey_z},
+                 Vec3{ex_z, ey_z, det * (a11 * a22 - a12 * a12)}};
 }
 
 /// @brief Gets a vector counter-clockwise (reverse-clockwise) perpendicular to the given vector.
@@ -554,7 +541,7 @@ constexpr auto GetRevPerpendicular(const T vector) noexcept
     // See http://mathworld.wolfram.com/PerpendicularVector.html
     return T{-GetY(vector), GetX(vector)};
 }
-    
+
 /// @brief Gets a vector clockwise (forward-clockwise) perpendicular to the given vector.
 /// @details This takes a vector of form (x, y) and returns the vector (y, -x).
 /// @param vector Vector to return a clockwise perpendicular equivalent for.
@@ -580,10 +567,8 @@ constexpr auto Transform(const Vector<T1, M> v, const Matrix<T2, M, N>& m) noexc
 /// @brief Multiplies a vector by a matrix.
 constexpr Vec2 Transform(const Vec2 v, const Mat33& A) noexcept
 {
-    return Vec2{
-        get<0>(get<0>(A)) * v[0] + get<0>(get<1>(A)) * v[1],
-        get<1>(get<0>(A)) * v[0] + get<1>(get<1>(A)) * v[1]
-    };
+    return Vec2{get<0>(get<0>(A)) * v[0] + get<0>(get<1>(A)) * v[1],
+                get<1>(get<0>(A)) * v[0] + get<1>(get<1>(A)) * v[1]};
 }
 
 /// Multiply a matrix transpose times a vector. If a rotation matrix is provided,
@@ -616,9 +601,9 @@ inline Mat22 abs(const Mat22& A)
 template <typename T>
 constexpr T NextPowerOfTwo(T x)
 {
-    x |= (x >>  1u);
-    x |= (x >>  2u);
-    x |= (x >>  4u);
+    x |= (x >> 1u);
+    x |= (x >> 2u);
+    x |= (x >> 4u);
     if constexpr (sizeof(T) >= 2u) {
         x |= (x >> 8u);
     }
@@ -635,18 +620,7 @@ constexpr T NextPowerOfTwo(T x)
 }
 
 /// @brief Converts the given vector into a unit vector and returns its original length.
-inline Real Normalize(Vec2& vector)
-{
-    const auto length = GetMagnitude(vector);
-    if (!AlmostZero(length))
-    {
-        const auto invLength = Real{1} / length;
-        vector[0] *= invLength;
-        vector[1] *= invLength;
-        return length;
-    }
-    return 0;
-}
+Real Normalize(Vec2& vector);
 
 /// @brief Computes the centroid of a counter-clockwise array of 3 or more vertices.
 /// @note Behavior is undefined if there are less than 3 vertices or the vertices don't
@@ -666,26 +640,33 @@ template <typename T>
 constexpr T GetModuloPrev(T value, T count) noexcept
 {
     assert(value < count);
-    return (value? value: count) - 1;
+    return (value ? value : count) - 1;
 }
 
-/// @brief Gets the shortest angular distance to go from angle 1 to angle 2.
-/// @details This gets the angle to rotate angle 1 by in order to get to angle 2 with the
+/// @brief Gets the shortest angular distance to go from angle 0 to angle 1.
+/// @details This gets the angle to rotate angle 0 by, in order to get to angle 1, with the
 ///   least amount of rotation.
 /// @return Angle between -Pi and Pi radians inclusively.
 /// @see GetNormalized
-Angle GetDelta(Angle a1, Angle a2) noexcept;
+Angle GetShortestDelta(Angle a0, Angle a1) noexcept;
 
-/// Gets the reverse (counter) clockwise rotational angle to go from angle 1 to angle 2.
+/// @brief Gets the forward/clockwise rotational angle to go from angle 1 to angle 2.
+/// @return Angular rotation in the clockwise direction to go from angle 1 to angle 2.
+constexpr Angle GetFwdRotationalAngle(Angle a1, Angle a2) noexcept
+{
+    return (a1 < a2) ? (a2 - a1) - 360_deg : a2 - a1;
+}
+
+/// @brief Gets the reverse (counter) clockwise rotational angle to go from angle 1 to angle 2.
 /// @return Angular rotation in the counter clockwise direction to go from angle 1 to angle 2.
 constexpr Angle GetRevRotationalAngle(Angle a1, Angle a2) noexcept
 {
-    return (a1 > a2)? 360_deg - (a1 - a2): a2 - a1;
+    return (a1 > a2) ? 360_deg - (a1 - a2) : a2 - a1;
 }
-    
+
 /// @brief Gets the vertices for a circle described by the given parameters.
-std::vector<Length2> GetCircleVertices(Length radius, unsigned slices,
-                                        Angle start = 0_deg, Real turns = Real{1});
+std::vector<Length2> GetCircleVertices(Length radius, unsigned slices, Angle start = 0_deg,
+                                       Real turns = Real{1});
 
 /// @brief Gets the area of a circle.
 NonNegative<Area> GetAreaOfCircle(Length radius);
@@ -728,34 +709,34 @@ inline Angle GetAngle(const Transformation& value)
 
 /// @brief Multiplication operator.
 template <class T, typename U>
-constexpr Vector2<T> operator* (CheckedValue<T, U> s, UnitVec u) noexcept
+constexpr Vector2<T> operator*(CheckedValue<T, U> s, UnitVec u) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
 
 /// @brief Multiplication operator.
 template <class T>
-constexpr Vector2<T> operator* (const T s, const UnitVec u) noexcept
+constexpr Vector2<T> operator*(const T s, const UnitVec u) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
 
 /// @brief Multiplication operator.
 template <class T, typename U>
-constexpr Vector2<T> operator* (UnitVec u, CheckedValue<T, U> s) noexcept
+constexpr Vector2<T> operator*(UnitVec u, CheckedValue<T, U> s) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
 
 /// @brief Multiplication operator.
 template <class T>
-constexpr Vector2<T> operator* (const UnitVec u, const T s) noexcept
+constexpr Vector2<T> operator*(const UnitVec u, const T s) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
 
 /// @brief Division operator.
-constexpr Vec2 operator/ (const UnitVec u, const UnitVec::value_type s) noexcept
+constexpr Vec2 operator/(const UnitVec u, const UnitVec::value_type s) noexcept
 {
     const auto inverseS = Real{1} / s;
     return Vec2{GetX(u) * inverseS, GetY(u) * inverseS};
@@ -816,12 +797,32 @@ inline Position GetNormalized(const Position& val) noexcept
 /// @relatedalso Sweep
 inline Sweep GetNormalized(Sweep sweep) noexcept
 {
+#if 1
     const auto pos0a = playrho::GetNormalized(sweep.pos0.angular);
     const auto d = sweep.pos0.angular - pos0a;
     sweep.pos0.angular = pos0a;
     sweep.pos1.angular -= d;
+#else
+    sweep.pos0.angular = playrho::GetNormalized(sweep.pos0.angular);
+    sweep.pos1.angular = playrho::GetNormalized(sweep.pos1.angular);
+#endif
     return sweep;
 }
+
+/// Gets the position between two positions at a given unit interval.
+/// @param pos0 Position at unit interval value of 0.
+/// @param pos1 Position at unit interval value of 1.
+/// @param beta Unit interval (value between 0 and 1) of travel between position 0 and
+///   position 1.
+/// @return position 0 if <code>pos0 == pos1</code> or <code>beta == 0</code>,
+///   position 1 if <code>beta == 1</code>, or at the given unit interval value
+///   between position 0 and position 1.
+/// @relatedalso Position
+Position GetPosition(Position pos0, Position pos1, Real beta) noexcept;
+
+/// @brief Caps the given position by the amounts specified in the given configuration.
+/// @relatedalso Position
+Position Cap(Position pos, const ConstraintSolverConf& conf);
 
 /// @brief Transforms the given 2-D vector with the given transformation.
 /// @details
@@ -873,7 +874,7 @@ constexpr Transformation MulT(const Transformation& A, const Transformation& B) 
 
 /// @brief Gets the transformation for the given values.
 constexpr Transformation GetTransformation(const Length2 ctr, const UnitVec rot,
-                                                            const Length2 localCtr) noexcept
+                                           const Length2 localCtr) noexcept
 {
     assert(IsValid(rot));
     return Transformation{ctr - (Rotate(localCtr, rot)), rot};
@@ -921,12 +922,12 @@ inline Transformation GetTransform1(const Sweep& sweep) noexcept
 /// @brief Gets the contact relative velocity.
 /// @note If <code>relA</code> and <code>relB</code> are the zero vectors, the resulting
 ///    value is simply <code>velB.linear - velA.linear</code>.
-LinearVelocity2 GetContactRelVelocity(const Velocity velA, const Length2 relA,
-                                      const Velocity velB, const Length2 relB) noexcept;
+LinearVelocity2 GetContactRelVelocity(const Velocity velA, const Length2 relA, const Velocity velB,
+                                      const Length2 relB) noexcept;
 
 /// @brief Gets whether the given velocity is "under active" based on the given tolerances.
-inline bool IsUnderActive(Velocity velocity,
-                          LinearVelocity linSleepTol, AngularVelocity angSleepTol) noexcept
+inline bool IsUnderActive(Velocity velocity, LinearVelocity linSleepTol,
+                          AngularVelocity angSleepTol) noexcept
 {
     const auto linVelSquared = GetMagnitudeSquared(velocity.linear);
     const auto angVelSquared = Square(velocity.angular);
@@ -949,11 +950,9 @@ constexpr auto GetReflectionMatrix(UnitVec axis)
     constexpr auto NumRows = TupleSize;
     constexpr auto NumCols = TupleSize;
     auto result = Matrix<Real, NumRows, NumCols>{};
-    for (auto row = decltype(NumRows){0}; row < NumRows; ++row)
-    {
-        for (auto col = decltype(NumCols){0}; col < NumCols; ++col)
-        {
-            result[row][col] = ((row == col)? Real{1}: Real{0}) - axis[row] * axis[col] * 2;
+    for (auto row = decltype(NumRows){0}; row < NumRows; ++row) {
+        for (auto col = decltype(NumCols){0}; col < NumCols; ++col) {
+            result[row][col] = ((row == col) ? Real{1} : Real{0}) - axis[row] * axis[col] * 2;
         }
     }
     return result;

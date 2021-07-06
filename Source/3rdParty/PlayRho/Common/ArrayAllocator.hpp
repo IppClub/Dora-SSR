@@ -183,6 +183,36 @@ public:
         m_free.clear();
     }
 
+    /// @brief Gets the beginning iterator over the data of this container.
+    typename std::vector<value_type>::iterator begin() noexcept
+    {
+        return m_data.begin();
+    }
+
+    /// @brief Gets the ending iterator over the data of this container.
+    typename std::vector<value_type>::iterator end() noexcept
+    {
+        return m_data.end();
+    }
+
+    /// @brief Gets the beginning iterator over the data of this container.
+    typename std::vector<value_type>::const_iterator begin() const noexcept
+    {
+        return m_data.begin();
+    }
+
+    /// @brief Gets the ending iterator over the data of this container.
+    typename std::vector<value_type>::const_iterator end() const noexcept
+    {
+        return m_data.end();
+    }
+
+    /// @brief Gets a pointer to the data of this container.
+    const value_type* data() const noexcept
+    {
+        return m_data.data();
+    }
+
 private:
     std::vector<value_type> m_data; ///< Array data (both used & free).
     std::vector<size_type> m_free; ///< Indices of free elements.

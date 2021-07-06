@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -28,7 +28,10 @@
 #include "PlayRho/Common/Settings.hpp"
 #include "PlayRho/Common/NonNegative.hpp"
 #include "PlayRho/Common/Math.hpp"
+
 #include "PlayRho/Dynamics/BodyType.hpp"
+
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -52,6 +55,9 @@ struct BodyConf {
 
     /// @brief Use the given type.
     constexpr BodyConf& UseType(BodyType t) noexcept;
+
+    /// @brief Use the given type.
+    constexpr BodyConf& Use(BodyType t) noexcept;
 
     /// @brief Use the given location.
     constexpr BodyConf& UseLocation(Length2 l) noexcept;
@@ -85,6 +91,9 @@ struct BodyConf {
 
     /// @brief Use the given under active time.
     constexpr BodyConf& UseUnderActiveTime(Time v) noexcept;
+
+    /// @brief Use the shape identifier as the identifier to attach to the body.
+    constexpr BodyConf& Use(ShapeID v) noexcept;
 
     /// @brief Use the given allow sleep value.
     constexpr BodyConf& UseAllowSleep(bool value) noexcept;
@@ -143,6 +152,10 @@ struct BodyConf {
     ///   or leave it as 0.
     Time underActiveTime = 0_s;
 
+    /// Identifier of shape that will be associated with the body on its creation.
+    /// @note This can often be faster than later using an <code>Attach</code> function.
+    ShapeID shape = InvalidShapeID;
+
     /// Set this flag to false if this body should never fall asleep. Note that
     /// this increases CPU usage.
     bool allowSleep = true;
@@ -164,6 +177,11 @@ struct BodyConf {
 };
 
 constexpr BodyConf& BodyConf::UseType(BodyType t) noexcept
+{
+    return Use(t);
+}
+
+constexpr BodyConf& BodyConf::Use(BodyType t) noexcept
 {
     type = t;
     return *this;
@@ -234,6 +252,12 @@ constexpr BodyConf& BodyConf::UseAngularDamping(NonNegative<Frequency> v) noexce
 constexpr BodyConf& BodyConf::UseUnderActiveTime(Time v) noexcept
 {
     underActiveTime = v;
+    return *this;
+}
+
+constexpr BodyConf& BodyConf::Use(ShapeID v) noexcept
+{
+    shape = v;
     return *this;
 }
 

@@ -60,7 +60,7 @@ void* StackAllocator::Allocate(size_type size)
     if (m_entryCount < m_max_entries)
     {
         auto entry = m_entries + m_entryCount;
-        
+
         const auto available = m_size - m_index;
         if (size > (available / sizeof(std::max_align_t)) * sizeof(std::max_align_t))
         {

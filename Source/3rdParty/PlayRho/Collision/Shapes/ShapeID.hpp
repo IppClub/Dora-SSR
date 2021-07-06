@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -18,35 +18,34 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef PLAYRHO_DYNAMICS_FIXTUREID_HPP
-#define PLAYRHO_DYNAMICS_FIXTUREID_HPP
+#ifndef PLAYRHO_COLLISION_SHAPES_SHAPEID_HPP
+#define PLAYRHO_COLLISION_SHAPES_SHAPEID_HPP
 
 #include "PlayRho/Common/IndexingNamedType.hpp"
 #include "PlayRho/Common/Settings.hpp"
 
 namespace playrho {
 
-/// @brief Fixture identifier.
-using FixtureID = detail::IndexingNamedType<FixtureCounter, struct FixtureIdentifier>;
+/// @brief Shape identifier.
+using ShapeID = detail::IndexingNamedType<ShapeCounter, struct ShapeIdentifier>;
 
 /// @brief Invalid fixture ID value.
-constexpr auto InvalidFixtureID =
-    static_cast<FixtureID>(static_cast<FixtureID::underlying_type>(-1));
+constexpr auto InvalidShapeID = static_cast<ShapeID>(static_cast<ShapeID::underlying_type>(-1));
 
-/// @brief Gets an invalid value for the FixtureID type.
+/// @brief Gets an invalid value for the ShapeID type.
 template <>
-constexpr FixtureID GetInvalid() noexcept
+constexpr ShapeID GetInvalid() noexcept
 {
-    return InvalidFixtureID;
+    return InvalidShapeID;
 }
 
 /// @brief Determines if the given value is valid.
 template <>
-constexpr bool IsValid(const FixtureID& value) noexcept
+constexpr bool IsValid(const ShapeID& value) noexcept
 {
-    return value != GetInvalid<FixtureID>();
+    return value != GetInvalid<ShapeID>();
 }
 
 } // namespace playrho
 
-#endif // PLAYRHO_DYNAMICS_FIXTUREID_HPP
+#endif // PLAYRHO_COLLISION_SHAPES_SHAPEID_HPP

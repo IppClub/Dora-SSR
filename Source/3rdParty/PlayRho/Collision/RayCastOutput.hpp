@@ -27,9 +27,9 @@
 
 #include "PlayRho/Common/UnitInterval.hpp"
 #include "PlayRho/Collision/RayCastInput.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
 #include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
 
 #include <optional>
 
@@ -48,16 +48,16 @@ enum class RayCastOpcode
     /// @brief End the ray-cast search for fixtures.
     /// @details Use this to stop searching for fixtures.
     Terminate,
-    
+
     /// @brief Ignore the current fixture.
     /// @details Use this to continue searching for fixtures along the ray.
     IgnoreFixture,
-    
+
     /// @brief Clip the ray end to the current point.
     /// @details Use this shorten the ray to the current point and to continue searching
     ///   for fixtures now along the newly shortened ray.
     ClipRay,
-    
+
     /// @brief Reset the ray end back to the second point.
     /// @details Use this to restore the ray to its full length and to continue searching
     ///    for fixtures now along the restored full length ray.
@@ -78,7 +78,7 @@ struct RayCastHit
 {
     /// @brief Surface normal in world coordinates at the point of contact.
     UnitVec normal;
-    
+
     /// @brief Fraction.
     /// @note This is a unit interval value - a value between 0 and 1 - or it's invalid.
     UnitInterval<Real> fraction = UnitInterval<Real>{0};
@@ -92,16 +92,16 @@ using RayCastOutput = std::optional<RayCastHit>;
 /// @brief Ray cast callback function.
 /// @note Return 0 to terminate ray casting, or > 0 to update the segment bounding box.
 using DynamicTreeRayCastCB = std::function<Real(BodyID body,
-                                                FixtureID fixture,
+                                                ShapeID shape,
                                                 ChildCounter child,
                                                 const RayCastInput& input)>;
 
 /// @brief Ray cast callback function signature.
-using FixtureRayCastCB = std::function<RayCastOpcode(BodyID body,
-                                                     FixtureID fixture,
-                                                     ChildCounter child,
-                                                     Length2 point,
-                                                     UnitVec normal)>;
+using ShapeRayCastCB = std::function<RayCastOpcode(BodyID body,
+                                                   ShapeID shape,
+                                                   ChildCounter child,
+                                                   Length2 point,
+                                                   UnitVec normal)>;
 
 /// @defgroup RayCastGroup Ray Casting Functions
 /// @brief Collection of functions that do ray casting.
@@ -170,7 +170,7 @@ bool RayCast(const DynamicTree& tree, RayCastInput input,
 /// @return <code>true</code> if terminated by callback, <code>false</code> otherwise.
 ///
 /// @relatedalso World
-bool RayCast(const World& world, const RayCastInput& input, const FixtureRayCastCB& callback);
+bool RayCast(const World& world, const RayCastInput& input, const ShapeRayCastCB& callback);
 
 /// @}
 

@@ -19,11 +19,15 @@
 
 #include "PlayRho/Collision/Shapes/EdgeShapeConf.hpp"
 
+#include "PlayRho/Collision/Shapes/Shape.hpp"
+
 namespace playrho {
 namespace d2 {
 
-EdgeShapeConf::EdgeShapeConf(Length2 vA, Length2 vB, const EdgeShapeConf& conf) noexcept:
-    ShapeBuilder{conf}, vertexRadius{conf.vertexRadius}, m_vertices{vA, vB}
+static_assert(IsValidShapeType<EdgeShapeConf>::value);
+
+EdgeShapeConf::EdgeShapeConf(Length2 vA, Length2 vB, const EdgeShapeConf& conf) noexcept
+    : ShapeBuilder{conf}, vertexRadius{conf.vertexRadius}, m_vertices{vA, vB}
 {
     const auto normal = GetUnitVector(GetFwdPerpendicular(vB - vA));
     m_normals[0] = normal;
@@ -40,11 +44,23 @@ EdgeShapeConf& EdgeShapeConf::Set(Length2 vA, Length2 vB) noexcept
     return *this;
 }
 
-EdgeShapeConf& EdgeShapeConf::Transform(const Mat22& m) noexcept
+EdgeShapeConf& EdgeShapeConf::Translate(const Length2& value) noexcept
 {
-    const auto newA = m * GetVertexA();
-    const auto newB = m * GetVertexB();
-    return Set(newA, newB);
+    m_vertices[0] += value;
+    m_vertices[1] += value;
+    return *this;
+}
+
+EdgeShapeConf& EdgeShapeConf::Scale(const Vec2& value) noexcept
+{
+    return Set(Length2{GetX(value) * GetX(GetVertexA()), GetY(value) * GetY(GetVertexA())},
+               Length2{GetX(value) * GetX(GetVertexB()), GetY(value) * GetY(GetVertexB())});
+}
+
+EdgeShapeConf& EdgeShapeConf::Rotate(const UnitVec& value) noexcept
+{
+    return Set(::playrho::d2::Rotate(GetVertexA(), value),
+               ::playrho::d2::Rotate(GetVertexB(), value));
 }
 
 } // namespace d2

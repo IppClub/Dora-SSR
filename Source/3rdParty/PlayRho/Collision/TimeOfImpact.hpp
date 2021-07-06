@@ -29,7 +29,7 @@
 namespace playrho {
 
 struct StepConf;
-    
+
 /// @brief Time of impact configuration.
 ///
 /// @details These parameters effect time of impact calculations by limiting the definitions
@@ -48,11 +48,10 @@ struct StepConf;
 /// @see SolvePositionConstraints
 /// @see SolveTOIPositionConstraints
 ///
-struct ToiConf
-{
+struct ToiConf {
     /// @brief Root iteration type.
     using root_iter_type = std::remove_const<decltype(DefaultMaxToiRootIters)>::type;
-    
+
     /// @brief TOI iteration type.
     using toi_iter_type = std::remove_const<decltype(DefaultMaxToiIters)>::type;
 
@@ -64,22 +63,22 @@ struct ToiConf
 
     /// @brief Uses the given target depth value.
     constexpr ToiConf& UseTargetDepth(Length value) noexcept;
-    
+
     /// @brief Uses the given tolerance value.
     constexpr ToiConf& UseTolerance(NonNegative<Length> value) noexcept;
-    
+
     /// @brief Uses the given max root iterations value.
     constexpr ToiConf& UseMaxRootIters(root_iter_type value) noexcept;
-    
+
     /// @brief Uses the given max TOI iterations value.
     constexpr ToiConf& UseMaxToiIters(toi_iter_type value) noexcept;
-    
+
     /// @brief Uses the given max distance iterations value.
     constexpr ToiConf& UseMaxDistIters(dist_iter_type value) noexcept;
 
     /// @brief T-Max.
     Real tMax = 1;
-    
+
     /// @brief Targeted depth of impact.
     /// @note Value must be less than twice the minimum vertex radius of any shape.
     Length targetDepth = DefaultLinearSlop * Real{3};
@@ -91,7 +90,7 @@ struct ToiConf
     /// @note Use the default value unless you really know what you're doing.
     /// @note Use 0 to require a TOI at exactly the target depth. This is ill-advised.
     NonNegative<Length> tolerance = NonNegative<Length>{DefaultLinearSlop / Real{4}};
-    
+
     /// @brief Maximum number of root finder iterations.
     /// @details This is the maximum number of iterations for calculating the 1-dimensional
     ///   root of <code>f(t) - (totalRadius - targetDepth) < tolerance</code>
@@ -100,9 +99,9 @@ struct ToiConf
     /// @note This value never needs to be more than the number of iterations needed to
     ///    achieve full machine precision.
     root_iter_type maxRootIters = DefaultMaxToiRootIters;
-    
+
     toi_iter_type maxToiIters = DefaultMaxToiIters; ///< Max time of impact iterations.
-    
+
     dist_iter_type maxDistIters = DefaultMaxDistanceIters; ///< Max distance iterations.
 };
 
@@ -153,26 +152,24 @@ constexpr auto GetDefaultToiConf()
 ToiConf GetToiConf(const StepConf& conf) noexcept;
 
 /// @brief Output data for time of impact.
-struct TOIOutput
-{
+struct TOIOutput {
     /// @brief Time of impact statistics.
-    struct Statistics
-    {
+    struct Statistics {
         /// @brief TOI iterations type.
         using toi_iter_type = std::remove_const<decltype(DefaultMaxToiIters)>::type;
-        
+
         /// @brief Distance iterations type.
         using dist_iter_type = std::remove_const<decltype(DefaultMaxDistanceIters)>::type;
-        
+
         /// @brief Root iterations type.
         using root_iter_type = std::remove_const<decltype(DefaultMaxToiRootIters)>::type;
-        
+
         /// @brief TOI iterations sum type.
         using toi_sum_type = Wider<toi_iter_type>::type;
-        
+
         /// @brief Distance iterations sum type.
         using dist_sum_type = Wider<dist_iter_type>::type;
-        
+
         /// @brief Root iterations sum type.
         using root_sum_type = Wider<root_iter_type>::type;
 
@@ -186,15 +183,14 @@ struct TOIOutput
         dist_iter_type max_dist_iters = 0; ///< Max. distance iterations count.
         root_iter_type max_root_iters = 0; ///< Max. root finder iterations for all TOI iterations.
     };
-    
+
     /// @brief State.
-    enum State: std::uint8_t
-    {
+    enum State : std::uint8_t {
         /// @brief Unknown.
         /// @details Unknown state.
         /// @note This is the default initialized state.
         e_unknown,
-        
+
         /// @brief Touching.
         /// @details Indicates that the returned time of impact for two convex polygons
         ///   is for a time at which the two polygons are within the minimum and maximum
@@ -202,14 +198,14 @@ struct TOIOutput
         /// @note This is a desirable result.
         /// @note Time of impact is the time when the two convex polygons "touch".
         e_touching,
-        
+
         /// @brief Separated.
         /// @details Indicates that the two convex polygons never actually collide
         ///   during their defined sweeps.
         /// @note This is a desirable result.
         /// @note Time of impact in this case is <code>tMax</code> (which is typically 1).
         e_separated,
-        
+
         /// @brief Overlapped.
         /// @details Indicates that the two convex polygons are closer to each other
         ///   at the returned time than the target depth range allows for.
@@ -224,34 +220,34 @@ struct TOIOutput
         /// @note Can happen if the configured max number of root iterations is too low.
         /// @note Can happen if the tolerance is too small.
         e_maxRootIters,
-        
+
         /// @brief Next after.
         /// @note Can happen if the length moved is too much bigger than the tolerance.
         e_nextAfter,
-        
+
         /// @brief Max TOI iterations.
         e_maxToiIters,
-        
+
         /// @brief Below minimum target.
         e_belowMinTarget,
-        
+
         /// @brief Max distance iterations.
         /// @details Indicates that the maximum number of distance iterations was done.
         /// @note Can happen if the configured max number of distance iterations was too low.
         e_maxDistIters,
-        
+
         e_targetDepthExceedsTotalRadius,
         e_minTargetSquaredOverflow,
         e_maxTargetSquaredOverflow,
-        
+
         e_notFinite,
     };
-    
+
     /// @brief Default constructor.
     TOIOutput() = default;
-    
+
     /// @brief Initializing constructor.
-    TOIOutput(Real t, Statistics s, State z) noexcept: time{t}, stats{s}, state{z} {}
+    TOIOutput(Real t, Statistics s, State z) noexcept : time{t}, stats{s}, state{z} {}
 
     Real time = 0; ///< Time factor in range of [0,1] into the future.
     Statistics stats; ///< Statistics.
@@ -259,7 +255,7 @@ struct TOIOutput
 };
 
 /// @brief Gets a human readable name for the given output state.
-const char *GetName(TOIOutput::State state) noexcept;
+const char* GetName(TOIOutput::State state) noexcept;
 
 namespace d2 {
 

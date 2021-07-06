@@ -104,12 +104,14 @@ class Joint;
 /// @relatedalso JointConf
 void Set(JointConf& def, const Joint& joint) noexcept;
 
+/// @brief Gets whether or not the limit property of the given object is enabled.
 template <typename T>
 constexpr auto IsLimitEnabled(const T& conf) noexcept -> decltype(std::declval<T>().enableLimit)
 {
     return conf.enableLimit;
 }
 
+/// @brief Enables or disables the limit based on the given value.
 template <typename T>
 constexpr auto EnableLimit(T& conf, bool v) noexcept
     -> decltype(std::declval<T>().UseEnableLimit(bool{}))
@@ -117,36 +119,42 @@ constexpr auto EnableLimit(T& conf, bool v) noexcept
     return conf.UseEnableLimit(v);
 }
 
+/// @brief Gets the length property of the given object.
 template <typename T>
 constexpr auto GetLength(const T& conf) noexcept -> decltype(std::declval<T>().length)
 {
     return conf.length;
 }
 
+/// @brief Gets the max force property of the given object.
 template <typename T>
 constexpr auto GetMaxForce(const T& conf) noexcept -> decltype(std::declval<T>().maxForce)
 {
     return conf.maxForce;
 }
 
+/// @brief Gets the max torque property of the given object.
 template <typename T>
 constexpr auto GetMaxTorque(const T& conf) noexcept -> decltype(std::declval<T>().maxTorque)
 {
     return conf.maxTorque;
 }
 
+/// @brief Gets the ratio property of the given object.
 template <typename T>
 constexpr auto GetRatio(const T& conf) noexcept -> decltype(std::declval<T>().ratio)
 {
     return conf.ratio;
 }
 
+/// @brief Gets the damping ratio property of the given object.
 template <typename T>
 constexpr auto GetDampingRatio(const T& conf) noexcept -> decltype(std::declval<T>().dampingRatio)
 {
     return conf.dampingRatio;
 }
 
+/// @brief Gets the reference angle property of the given object.
 template <typename T>
 constexpr auto GetReferenceAngle(const T& conf) noexcept
     -> decltype(std::declval<T>().referenceAngle)
@@ -154,6 +162,7 @@ constexpr auto GetReferenceAngle(const T& conf) noexcept
     return conf.referenceAngle;
 }
 
+/// @brief Gets the linear reaction property of the given object.
 template <typename T>
 constexpr auto GetLinearReaction(const T& conf) noexcept
     -> decltype(std::declval<T>().linearImpulse)
@@ -161,66 +170,77 @@ constexpr auto GetLinearReaction(const T& conf) noexcept
     return conf.linearImpulse;
 }
 
+/// @brief Gets the linear offset property of the given object.
 template <typename T>
 constexpr auto GetLinearOffset(const T& conf) noexcept -> decltype(std::declval<T>().linearOffset)
 {
     return conf.linearOffset;
 }
 
+/// @brief Gets the limit state property of the given object.
 template <typename T>
 constexpr auto GetLimitState(const T& conf) noexcept -> decltype(std::declval<T>().limitState)
 {
     return conf.limitState;
 }
 
+/// @brief Gets the ground anchor A property of the given object.
 template <typename T>
 constexpr auto GetGroundAnchorA(const T& conf) noexcept -> decltype(std::declval<T>().groundAnchorA)
 {
     return conf.groundAnchorA;
 }
 
+/// @brief Gets the ground anchor B property of the given object.
 template <typename T>
 constexpr auto GetGroundAnchorB(const T& conf) noexcept -> decltype(std::declval<T>().groundAnchorB)
 {
     return conf.groundAnchorB;
 }
 
+/// @brief Gets the local anchor A property of the given object.
 template <typename T>
 constexpr auto GetLocalAnchorA(const T& conf) noexcept -> decltype(std::declval<T>().localAnchorA)
 {
     return conf.localAnchorA;
 }
 
+/// @brief Gets the local anchor B property of the given object.
 template <typename T>
 constexpr auto GetLocalAnchorB(const T& conf) noexcept -> decltype(std::declval<T>().localAnchorB)
 {
     return conf.localAnchorB;
 }
 
+/// @brief Gets the local X axis A property of the given object.
 template <typename T>
 constexpr auto GetLocalXAxisA(const T& conf) noexcept -> decltype(std::declval<T>().localXAxisA)
 {
     return conf.localXAxisA;
 }
 
+/// @brief Gets the local Y axis A property of the given object.
 template <typename T>
 constexpr auto GetLocalYAxisA(const T& conf) noexcept -> decltype(std::declval<T>().localYAxisA)
 {
     return conf.localYAxisA;
 }
 
+/// @brief Gets the frequency property of the given object.
 template <typename T>
 constexpr auto GetFrequency(const T& conf) noexcept -> decltype(std::declval<T>().frequency)
 {
     return conf.frequency;
 }
 
+/// @brief Gets the motor enabled property of the given object.
 template <typename T>
 constexpr auto IsMotorEnabled(const T& conf) noexcept -> decltype(std::declval<T>().enableMotor)
 {
     return conf.enableMotor;
 }
 
+/// @brief Enables or disables the motor property of the given object.
 template <typename T>
 constexpr auto EnableMotor(T& conf, bool v) noexcept
     -> decltype(std::declval<T>().UseEnableMotor(bool{}))
@@ -228,12 +248,14 @@ constexpr auto EnableMotor(T& conf, bool v) noexcept
     return conf.UseEnableMotor(v);
 }
 
+/// @brief Gets the motor speed property of the given object.
 template <typename T>
 constexpr auto GetMotorSpeed(const T& conf) noexcept -> decltype(std::declval<T>().motorSpeed)
 {
     return conf.motorSpeed;
 }
 
+/// @brief Sets the motor speed property of the given object.
 template <typename T>
 constexpr auto SetMotorSpeed(T& conf, AngularVelocity v) noexcept
     -> decltype(std::declval<T>().UseMotorSpeed(AngularVelocity{}))
@@ -241,6 +263,7 @@ constexpr auto SetMotorSpeed(T& conf, AngularVelocity v) noexcept
     return conf.UseMotorSpeed(v);
 }
 
+/// @brief Gets the linear motor impulse property of the given object.
 template <typename T>
 constexpr auto GetLinearMotorImpulse(const T& conf) noexcept
     -> decltype(std::declval<T>().motorImpulse)
@@ -248,12 +271,14 @@ constexpr auto GetLinearMotorImpulse(const T& conf) noexcept
     return conf.motorImpulse;
 }
 
+/// @brief Gets the max motor force property of the given object.
 template <typename T>
 constexpr auto GetMaxMotorForce(const T& conf) noexcept -> decltype(std::declval<T>().maxMotorForce)
 {
     return conf.maxMotorForce;
 }
 
+/// @brief Gets the max motor torque property of the given object.
 template <typename T>
 constexpr auto GetMaxMotorTorque(const T& conf) noexcept
     -> decltype(std::declval<T>().maxMotorTorque)
@@ -261,12 +286,14 @@ constexpr auto GetMaxMotorTorque(const T& conf) noexcept
     return conf.maxMotorTorque;
 }
 
+/// @brief Gets the angular offset property of the given object.
 template <typename T>
 constexpr auto GetAngularOffset(const T& conf) noexcept -> decltype(std::declval<T>().angularOffset)
 {
     return conf.angularOffset;
 }
 
+/// @brief Gets the angular reaction property of the given object.
 template <typename T>
 constexpr auto GetAngularReaction(const T& conf) noexcept
     -> decltype(std::declval<T>().angularImpulse)
@@ -274,12 +301,14 @@ constexpr auto GetAngularReaction(const T& conf) noexcept
     return conf.angularImpulse;
 }
 
+/// @brief Gets the angular mass property of the given object.
 template <typename T>
 constexpr auto GetAngularMass(const T& conf) noexcept -> decltype(std::declval<T>().angularMass)
 {
     return conf.angularMass;
 }
 
+/// @brief Gets the angular motor impulse property of the given object.
 template <typename T>
 constexpr auto GetAngularMotorImpulse(const T& conf) noexcept
     -> decltype(std::declval<T>().angularMotorImpulse)

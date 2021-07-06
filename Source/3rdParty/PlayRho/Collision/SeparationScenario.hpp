@@ -30,23 +30,22 @@ namespace d2 {
 
 class DistanceProxy;
 struct Transformation;
-    
+
 /// Separation scenario.
-struct SeparationScenario
-{
+struct SeparationScenario {
     /// Separation finder type.
-    enum Type
-    {
+    enum Type {
         e_points,
         e_faceA,
         e_faceB,
     };
 
+    /// @brief Gets the type of the given value.
     static constexpr Type GetType(IndexPair3 indices)
     {
         return (GetNumValidIndices(indices) == 1u)
-            ? e_points
-            : ((std::get<0>(indices[0]) == std::get<0>(indices[1])) ? e_faceB: e_faceA);
+                   ? e_points
+                   : ((std::get<0>(indices[0]) == std::get<0>(indices[1])) ? e_faceB : e_faceA);
     }
 
     const DistanceProxy& proxyA; ///< Distance proxy A.
@@ -73,16 +72,15 @@ struct SeparationScenario
 /// @param proxyB Proxy B.
 /// @param xfB Transformation B.
 ///
-SeparationScenario
-GetSeparationScenario(IndexPair3 indices,
-                      const DistanceProxy& proxyA, const Transformation& xfA,
-                      const DistanceProxy& proxyB, const Transformation& xfB);
+SeparationScenario GetSeparationScenario(IndexPair3 indices, const DistanceProxy& proxyA,
+                                         const Transformation& xfA, const DistanceProxy& proxyB,
+                                         const Transformation& xfB);
 
 /// @brief Finds the minimum separation.
 /// @return indexes of proxy A's and proxy B's vertices that have the minimum
 ///    distance between them and what that distance is.
-LengthIndexPair FindMinSeparation(const SeparationScenario& scenario,
-                                  const Transformation& xfA, const Transformation& xfB);
+LengthIndexPair FindMinSeparation(const SeparationScenario& scenario, const Transformation& xfA,
+                                  const Transformation& xfB);
 
 /// Evaluates the separation of the identified proxy vertices at the given time factor.
 ///
@@ -94,9 +92,8 @@ LengthIndexPair FindMinSeparation(const SeparationScenario& scenario,
 /// @return Separation distance which will be negative when the given transforms put the
 ///    vertices on the opposite sides of the separating axis.
 ///
-Length Evaluate(const SeparationScenario& scenario,
-                const Transformation& xfA, const Transformation& xfB,
-                IndexPair indexPair);
+Length Evaluate(const SeparationScenario& scenario, const Transformation& xfA,
+                const Transformation& xfB, IndexPair indexPair);
 
 } // namespace d2
 } // namespace playrho

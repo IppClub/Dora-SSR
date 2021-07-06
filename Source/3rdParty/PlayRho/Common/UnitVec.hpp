@@ -51,22 +51,22 @@ class UnitVec
 public:
     /// @brief Value type used for the coordinate values of this vector.
     using value_type = Real;
-    
+
     /// @brief Size type.
     using size_type = std::size_t;
-    
+
     /// @brief Constant reference type.
     using const_reference = const value_type&;
-    
+
     /// @brief Constant pointer type.
     using const_pointer = const value_type*;
-    
+
     /// @brief Constant iterator type.
     using const_iterator = const value_type*;
-    
+
     /// @brief Constant reverse iterator type.
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    
+
     /// @brief Gets the right-ward oriented unit vector.
     /// @note This is the value for the 0/4 turned (0 angled) unit vector.
     /// @note This is the reverse perpendicular unit vector of the bottom oriented vector.
@@ -101,7 +101,7 @@ public:
         // Note that 1/sqrt(2) == sqrt(2)/(sqrt(2)*sqrt(2)) == sqrt(2)/2
         return UnitVec{+SquareRootTwo/Real(2), +SquareRootTwo/Real(2)};
     }
-    
+
     /// @brief Gets the -45 degree unit vector.
     /// @details This is the unit vector in the positive X and negative Y quadrant
     ///   where |X| == |Y|.
@@ -110,7 +110,7 @@ public:
         // Note that 1/sqrt(2) == sqrt(2)/(sqrt(2)*sqrt(2)) == sqrt(2)/2
         return UnitVec{+SquareRootTwo/Real(2), -SquareRootTwo/Real(2)};
     }
-    
+
     /// @brief Gets the default fallback.
     static constexpr UnitVec GetDefaultFallback() noexcept { return UnitVec{}; }
 
@@ -135,14 +135,14 @@ public:
             const auto invMagnitude = Real{1} / magnitude;
             return {UnitVec{value_type{x * invMagnitude}, value_type{y * invMagnitude}}, magnitude};
         }
-        
+
         // Failed the faster way, try the more accurate and robust way...
         const auto magnitude = hypot(x, y);
         if (isnormal(magnitude))
         {
             return std::make_pair(UnitVec{x / magnitude, y / magnitude}, magnitude);
         }
-        
+
         // Give up and return the fallback value.
         return std::make_pair(fallback, T{0});
     }
@@ -156,53 +156,53 @@ public:
     static UnitVec Get(const Angle angle) noexcept;
 
     constexpr UnitVec() noexcept = default;
-    
+
     /// @brief Gets the max size.
     constexpr size_type max_size() const noexcept { return size_type{2}; }
-    
+
     /// @brief Gets the size.
     constexpr size_type size() const noexcept { return size_type{2}; }
-    
+
     /// @brief Whether empty.
     /// @note Always false for N > 0.
     constexpr bool empty() const noexcept { return false; }
-    
+
     /// @brief Gets a "begin" iterator.
     const_iterator begin() const noexcept { return const_iterator(m_elems); }
-    
+
     /// @brief Gets an "end" iterator.
     const_iterator end() const noexcept { return const_iterator(m_elems + 2); }
-    
+
     /// @brief Gets a "begin" iterator.
     const_iterator cbegin() const noexcept { return begin(); }
-    
+
     /// @brief Gets an "end" iterator.
     const_iterator cend() const noexcept { return end(); }
-    
+
     /// @brief Gets a reverse "begin" iterator.
     const_reverse_iterator crbegin() const noexcept
     {
         return const_reverse_iterator{m_elems + 2};
     }
-    
+
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator crend() const noexcept
     {
         return const_reverse_iterator{m_elems};
     }
-    
+
     /// @brief Gets a reverse "begin" iterator.
     const_reverse_iterator rbegin() const noexcept
     {
         return crbegin();
     }
-    
+
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator rend() const noexcept
     {
         return crend();
     }
-    
+
     /// @brief Gets a constant reference to the requested element.
     /// @note No bounds checking is performed.
     /// @warning Behavior is undefined if given a position equal to or greater than size().
@@ -211,7 +211,7 @@ public:
         assert(pos < size());
         return m_elems[pos];
     }
-    
+
     /// @brief Gets a constant reference to the requested element.
     /// @throws InvalidArgument if given a position that's >= size().
     constexpr const_reference at(size_type pos) const
@@ -222,19 +222,19 @@ public:
         }
         return m_elems[pos];
     }
-    
+
     /// @brief Direct access to data.
     constexpr const_pointer data() const noexcept
     {
         return m_elems;
     }
-    
+
     /// @brief Gets the "X" value.
     constexpr auto GetX() const noexcept { return m_elems[0]; }
 
     /// @brief Gets the "Y" value.
     constexpr auto GetY() const noexcept { return m_elems[1]; }
-    
+
     /// @brief Flips the X and Y values.
     constexpr UnitVec FlipXY() const noexcept { return UnitVec{-GetX(), -GetY()}; }
 
@@ -290,7 +290,7 @@ public:
     }
 
 private:
-    
+
     /// @brief Initializing constructor.
     constexpr UnitVec(value_type x, value_type y) noexcept : m_elems{x, y}
     {

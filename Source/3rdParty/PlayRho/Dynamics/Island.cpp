@@ -149,6 +149,14 @@ void Clear(Island& island) noexcept
     island.joints.clear();
 }
 
+void Sort(Island& island) noexcept
+{
+    using std::sort;
+    sort(begin(island.bodies), end(island.bodies));
+    sort(begin(island.contacts), end(island.contacts));
+    sort(begin(island.joints), end(island.joints));
+}
+
 std::size_t Count(const Island& island, BodyID entry)
 {
     return MakeUnsigned(count(cbegin(island.bodies), cend(island.bodies), entry));

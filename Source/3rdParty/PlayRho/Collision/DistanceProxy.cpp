@@ -61,21 +61,21 @@ std::size_t FindLowestRightMostVertex(Span<const Length2> vertices)
 std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
 {
     auto result = std::vector<Length2>{};
-    
+
     // Create the convex hull using the Gift wrapping algorithm
     // http://en.wikipedia.org/wiki/Gift_wrapping_algorithm
-    
+
     const auto index0 = FindLowestRightMostVertex(vertices);
     if (index0 != GetInvalid<std::size_t>())
     {
         const auto numVertices = size(vertices);
         auto hull = std::vector<decltype(size(vertices))>();
-        
+
         auto ih = index0;
         for (;;)
         {
             hull.push_back(ih);
-            
+
             auto ie = decltype(numVertices){0};
             for (auto j = decltype(numVertices){1}; j < numVertices; ++j)
             {
@@ -84,7 +84,7 @@ std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
                     ie = j;
                     continue;
                 }
-                
+
                 const auto r = vertices[ie] - vertices[ih];
                 const auto v = vertices[j] - vertices[ih];
                 const auto c = Cross(r, v);
@@ -93,21 +93,21 @@ std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
                     ie = j;
                 }
             }
-            
+
             ih = ie;
             if (ie == index0)
             {
                 break;
             }
         }
-        
+
         const auto count = size(hull);
         for (auto i = decltype(count){0}; i < count; ++i)
         {
             result.emplace_back(vertices[hull[i]]);
         }
     }
-    
+
     return result;
 }
 
@@ -129,7 +129,7 @@ bool TestPoint(const DistanceProxy& proxy, Length2 point) noexcept
         default:
             break;
     }
-    
+
     auto maxDot = -MaxFloat * Meter;
     auto maxIdx = static_cast<decltype(count)>(-1);
     for (auto i = decltype(count){0}; i < count; ++i)
@@ -148,7 +148,7 @@ bool TestPoint(const DistanceProxy& proxy, Length2 point) noexcept
         }
     }
     assert(maxIdx < count);
-    
+
     const auto v0 = proxy.GetVertex(maxIdx);
     const auto v1 = proxy.GetVertex(GetModuloNext(maxIdx, count));
     const auto edge = v1 - v0;

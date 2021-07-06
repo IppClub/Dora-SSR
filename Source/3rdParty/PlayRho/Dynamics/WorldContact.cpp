@@ -23,10 +23,12 @@
 
 #include "PlayRho/Dynamics/World.hpp"
 #include "PlayRho/Dynamics/WorldBody.hpp"
+#include "PlayRho/Dynamics/WorldShape.hpp"
 #include "PlayRho/Dynamics/Body.hpp" // for GetBody
 #include "PlayRho/Dynamics/Contacts/Contact.hpp"
 
 #include "PlayRho/Collision/Manifold.hpp"
+#include "PlayRho/Collision/WorldManifold.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -36,8 +38,7 @@ ContactCounter GetContactRange(const World& world) noexcept
     return world.GetContactRange();
 }
 
-SizedRange<std::vector<KeyedContactPtr>::const_iterator>
-GetContacts(const World& world) noexcept
+std::vector<KeyedContactPtr> GetContacts(const World& world) noexcept
 {
     return world.GetContacts();
 }
@@ -79,14 +80,14 @@ ChildCounter GetChildIndexB(const World& world, ContactID id)
     return GetChildIndexB(GetContact(world, id));
 }
 
-FixtureID GetFixtureA(const World& world, ContactID id)
+ShapeID GetShapeA(const World& world, ContactID id)
 {
-    return GetFixtureA(GetContact(world, id));
+    return GetShapeA(GetContact(world, id));
 }
 
-FixtureID GetFixtureB(const World& world, ContactID id)
+ShapeID GetShapeB(const World& world, ContactID id)
 {
-    return GetFixtureB(GetContact(world, id));
+    return GetShapeB(GetContact(world, id));
 }
 
 BodyID GetBodyA(const World& world, ContactID id)
@@ -186,32 +187,19 @@ void UnsetEnabled(World& world, ContactID id)
 
 Real GetDefaultFriction(const World& world, ContactID id)
 {
-    const auto& contact = world.GetContact(id);
-    return GetDefaultFriction(world.GetFixture(GetFixtureA(contact)),
-                              world.GetFixture(GetFixtureB(contact)));
+    const auto& c = world.GetContact(id);
+    return GetDefaultFriction(world.GetShape(GetShapeA(c)), world.GetShape(GetShapeB(c)));
 }
 
 Real GetDefaultRestitution(const World& world, ContactID id)
 {
-    const auto& contact = world.GetContact(id);
-    return GetDefaultRestitution(world.GetFixture(GetFixtureA(contact)),
-                                 world.GetFixture(GetFixtureB(contact)));
+    const auto& c = world.GetContact(id);
+    return GetDefaultRestitution(world.GetShape(GetShapeA(c)), world.GetShape(GetShapeB(c)));
 }
 
 WorldManifold GetWorldManifold(const World& world, ContactID id)
 {
-    const auto bA = GetBodyA(world, id);
-    const auto fA = GetFixtureA(world, id);
-    const auto iA = GetChildIndexA(world, id);
-    const auto bB = GetBodyB(world, id);
-    const auto fB = GetFixtureB(world, id);
-    const auto iB = GetChildIndexB(world, id);
-    const auto manifold = GetManifold(world, id);
-    const auto xfA = GetTransformation(world.GetBody(bA));
-    const auto radiusA = GetVertexRadius(GetShape(world.GetFixture(fA)), iA);
-    const auto xfB = GetTransformation(world.GetBody(bB));
-    const auto radiusB = GetVertexRadius(GetShape(world.GetFixture(fB)), iB);
-    return GetWorldManifold(manifold, xfA, radiusA, xfB, radiusB);
+    return GetWorldManifold(world, GetContact(world, id), GetManifold(world, id));
 }
 
 ContactCounter GetTouchingCount(const World& world) noexcept

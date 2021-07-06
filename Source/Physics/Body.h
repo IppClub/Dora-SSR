@@ -64,13 +64,13 @@ public:
 	void eachSensor(const SensorHandler& func);
 	bool removeSensorByTag(int tag);
 	bool removeSensor(Sensor* sensor);
-	pr::FixtureID attach(FixtureDef* fixtureDef);
+	pr::ShapeID attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
 	bool isSensor() const;
 	CREATE_FUNC(Body);
 protected:
 	Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0);
-	pr::FixtureID attachFixture(FixtureDef* fixtureDef);
+	pr::ShapeID attachFixture(FixtureDef* fixtureDef);
 	virtual void updatePhysics();
 	pr::BodyID _prBody; // weak reference
 	PhysicsWorld* _pWorld;

@@ -22,9 +22,7 @@
 #include "PlayRho/Dynamics/Body.hpp"
 
 #include "PlayRho/Dynamics/BodyConf.hpp"
-#include "PlayRho/Common/WrongState.hpp"
 
-#include <iterator>
 #include <type_traits>
 #include <utility>
 
@@ -106,6 +104,9 @@ Body::Body(const BodyConf& bd) noexcept
     SetVelocity(Velocity{bd.linearVelocity, bd.angularVelocity});
     SetAcceleration(bd.linearAcceleration, bd.angularAcceleration);
     SetUnderActiveTime(bd.underActiveTime);
+    if (bd.shape != InvalidShapeID) {
+        m_shapes.push_back(bd.shape);
+    }
 }
 
 BodyType Body::GetType() const noexcept
@@ -126,20 +127,38 @@ void Body::SetType(BodyType value) noexcept
     m_flags &= ~(e_impenetrableFlag | e_velocityFlag | e_accelerationFlag);
     m_flags |= GetFlags(value);
     switch (value) {
-    case BodyType::Dynamic:
+    case BodyType::Dynamic: // IsSpeedable() && IsAccelerable()
         SetAwakeFlag();
         break;
-    case BodyType::Kinematic:
+    case BodyType::Kinematic: // IsSpeedable() && !IsAccelerable()
         SetAwakeFlag();
+        m_linearAcceleration = LinearAcceleration2{};
+        m_angularAcceleration = AngularAcceleration{};
+        SetInvMassData(InvMass{}, InvRotInertia{});
         break;
-    case BodyType::Static:
+    case BodyType::Static: // !IsSpeedable() && !IsAccelerable()
         UnsetAwakeFlag();
         m_linearVelocity = LinearVelocity2{};
         m_angularVelocity = 0_rpm;
         m_sweep.pos0 = m_sweep.pos1;
+        m_linearAcceleration = LinearAcceleration2{};
+        m_angularAcceleration = AngularAcceleration{};
+        SetInvMassData(InvMass{}, InvRotInertia{});
         break;
     }
     m_underActiveTime = 0;
+}
+
+void Body::SetSleepingAllowed(bool flag) noexcept
+{
+    if (flag) {
+        m_flags |= e_autoSleepFlag;
+    }
+    else if (IsSpeedable()) {
+        m_flags &= ~e_autoSleepFlag;
+        SetAwakeFlag();
+        ResetUnderActiveTime();
+    }
 }
 
 void Body::SetAwake() noexcept
@@ -164,7 +183,7 @@ void Body::UnsetAwake() noexcept
 
 void Body::SetVelocity(const Velocity& velocity) noexcept
 {
-    if ((velocity.linear != LinearVelocity2{}) || (velocity.angular != 0_rpm)) {
+    if (velocity != Velocity{}) {
         if (!IsSpeedable()) {
             return;
         }
@@ -172,6 +191,13 @@ void Body::SetVelocity(const Velocity& velocity) noexcept
         ResetUnderActiveTime();
     }
     JustSetVelocity(velocity);
+}
+
+void Body::JustSetVelocity(Velocity value) noexcept
+{
+    assert(IsSpeedable() || (value == Velocity{}));
+    m_linearVelocity = value.linear;
+    m_angularVelocity = value.angular;
 }
 
 void Body::SetAcceleration(LinearAcceleration2 linear, AngularAcceleration angular) noexcept
@@ -216,7 +242,46 @@ void Body::SetFixedRotation(bool flag)
     m_angularVelocity = 0_rpm;
 }
 
+Body& Body::Attach(ShapeID shapeId)
+{
+    m_shapes.push_back(shapeId);
+    SetMassDataDirty();
+    return *this;
+}
+
+bool Body::Detach(ShapeID shapeId)
+{
+    const auto endIt = end(m_shapes);
+    const auto it = find(begin(m_shapes), endIt, shapeId);
+    if (it != endIt) {
+        m_shapes.erase(it);
+        SetMassDataDirty();
+        return true;
+    }
+    return false;
+}
+
 // Free functions...
+
+void SetTransformation(Body& body, const Transformation& value) noexcept
+{
+    SetSweep(body, Sweep{Position{value.p, GetAngle(value.q)}, GetSweep(body).GetLocalCenter()});
+}
+
+void SetLocation(Body& body, Length2 value)
+{
+    SetTransformation(body, Transformation{value, GetTransformation(body).q});
+}
+
+Angle GetAngle(const Body& body) noexcept
+{
+    return GetSweep(body).pos1.angular;
+}
+
+void SetAngle(Body& body, Angle value)
+{
+    SetSweep(body, Sweep{Position{GetSweep(body).pos1.linear, value}, GetLocalCenter(body)});
+}
 
 Velocity GetVelocity(const Body& body, Time h) noexcept
 {
@@ -268,7 +333,8 @@ bool operator==(const Body& lhs, const Body& rhs)
            GetInvRotInertia(lhs) == GetInvRotInertia(rhs) && //
            GetLinearDamping(lhs) == GetLinearDamping(rhs) && //
            GetAngularDamping(lhs) == GetAngularDamping(rhs) && //
-           GetUnderActiveTime(lhs) == GetUnderActiveTime(rhs);
+           GetUnderActiveTime(lhs) == GetUnderActiveTime(rhs) && //
+           GetShapes(lhs) == GetShapes(rhs);
 }
 
 } // namespace d2

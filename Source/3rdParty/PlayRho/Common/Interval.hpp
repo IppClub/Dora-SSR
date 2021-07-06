@@ -39,15 +39,15 @@ template <typename T>
 class Interval
 {
 public:
-    
+
     /// @brief Value type.
     /// @details Alias for the type of the value that this class was template
     ///   instantiated for.
     using value_type = T;
-    
+
     /// @brief Limits alias for the <code>value_type</code>.
     using limits = std::numeric_limits<value_type>;
-    
+
     /// @brief Gets the "lowest" value supported by the <code>value_type</code>.
     /// @return Negative infinity if supported by the value type, limits::lowest()
     ///   otherwise.
@@ -55,7 +55,7 @@ public:
     {
         return (limits::has_infinity)? -limits::infinity(): limits::lowest();
     }
-    
+
     /// @brief Gets the "highest" value supported by the <code>value_type</code>.
     /// @return Positive infinity if supported by the value type, limits::max()
     ///   otherwise.
@@ -69,7 +69,7 @@ public:
     /// @post <code>GetMin()</code> returns the value of <code>GetHighest()</code>.
     /// @post <code>GetMax()</code> returns the value of <code>GetLowest()</code>.
     constexpr Interval() = default;
-    
+
     /// @brief Copy constructor.
     /// @post <code>GetMin()</code> returns the value of <code>other.GetMin()</code>.
     /// @post <code>GetMax()</code> returns the value of <code>other.GetMax()</code>.
@@ -79,7 +79,7 @@ public:
     /// @post <code>GetMin()</code> returns the value of <code>other.GetMin()</code>.
     /// @post <code>GetMax()</code> returns the value of <code>other.GetMax()</code>.
     constexpr Interval(Interval&& other) = default;
-    
+
     /// @brief Initializing constructor.
     /// @post <code>GetMin()</code> returns the value of <code>v</code>.
     /// @post <code>GetMax()</code> returns the value of <code>v</code>.
@@ -88,23 +88,23 @@ public:
     {
         // Intentionally empty.
     }
-    
+
     /// @brief Initializing constructor.
     constexpr Interval(const value_type& a, const value_type& b) noexcept:
         Interval(std::minmax(a, b))
     {
         // Intentionally empty.
     }
-    
+
     /// @brief Initializing constructor.
     constexpr Interval(const std::initializer_list<T> ilist) noexcept:
         Interval(std::minmax(ilist))
     {
         // Intentionally empty.
     }
-    
+
     ~Interval() noexcept = default;
-    
+
     /// @brief Copy assignment operator.
     /// @post <code>GetMin()</code> returns the value of <code>other.GetMin()</code>.
     /// @post <code>GetMax()</code> returns the value of <code>other.GetMax()</code>.
@@ -114,7 +114,7 @@ public:
     /// @post <code>GetMin()</code> returns the value of <code>other.GetMin()</code>.
     /// @post <code>GetMax()</code> returns the value of <code>other.GetMax()</code>.
     Interval& operator= (Interval&& other) = default;
-    
+
     /// @brief Moves the interval by the given amount.
     /// @warning Behavior is undefined if incrementing the min or max value by
     ///   the given amount overflows the finite range of the <code>value_type</code>,
@@ -136,7 +136,7 @@ public:
     {
         return m_max;
     }
-    
+
     /// @brief Includes the given value into this interval.
     /// @note If this value is the "unset" value then the result of this operation
     ///   will be the given value.
@@ -148,7 +148,7 @@ public:
         m_max = std::max(v, GetMax());
         return *this;
     }
-    
+
     /// @brief Includes the given interval into this interval.
     /// @note If this value is the "unset" value then the result of this operation
     ///   will be the given value.
@@ -161,7 +161,7 @@ public:
         m_max = std::max(v.GetMax(), GetMax());
         return *this;
     }
-    
+
     /// @brief Intersects this interval with the given interval.
     constexpr Interval& Intersect(const Interval& v) noexcept
     {
@@ -170,7 +170,7 @@ public:
         *this = (min <= max)? Interval{pair_type{min, max}}: Interval{};
         return *this;
     }
-    
+
     /// @brief Expands this interval.
     /// @details Expands this interval by decreasing the min value if the
     ///   given value is negative, or by increasing the max value if the
@@ -190,7 +190,7 @@ public:
         }
         return *this;
     }
-    
+
     /// @brief Expands equally both ends of this interval.
     /// @details Expands equally this interval by decreasing the min value and
     ///   by increasing the max value by the given amount.
@@ -205,13 +205,13 @@ public:
         m_max += amount;
         return *this;
     }
-    
+
 private:
     /// @brief Internal pair type.
     /// @note Uses <code>std::pair</code> since it's the most natural type given that
     ///   <code>std::minmax</code> returns it.
     using pair_type = std::pair<value_type, value_type>;
-    
+
     /// @brief Internal pair type accepting constructor.
     constexpr explicit Interval(pair_type pair) noexcept:
         m_min{std::get<0>(pair)}, m_max{std::get<1>(pair)}

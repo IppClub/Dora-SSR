@@ -29,12 +29,6 @@ _line(Line::create())
 DebugDraw::~DebugDraw()
 { }
 
-bool DebugDraw::IsVisible(PhysicsWorld* world, pr::FixtureID fixture)
-{
-	auto body = pd::GetBody(world->getPrWorld(), fixture);
-	return IsVisible(world->getBodyData(body));
-}
-
 bool DebugDraw::IsVisible(Body* body)
 {
 	if (!body) return true;
@@ -178,9 +172,9 @@ static void Draw(DebugDraw* drawer, const pd::MultiShapeConf& shape, Color color
 	}
 }
 
-static void Draw(DebugDraw* drawer, const pd::World& world, pr::FixtureID fixture, const Color& color)
+static void Draw(DebugDraw* drawer, const pd::World& world, pr::ShapeID fixture, pr::BodyID body, const Color& color)
 {
-	const auto xf = pd::GetTransformation(world, fixture);
+	const auto xf = pd::GetTransformation(world, body);
 	auto shape = pd::GetShape(world, fixture);
 	if (pd::GetType(shape) == pr::GetTypeID<pd::DiskShapeConf>())
 	{
@@ -233,10 +227,10 @@ static const Color& GetColor(const pd::World& world, pr::BodyID body)
 static void Draw(DebugDraw* drawer, const pd::World& world, pr::BodyID body)
 {
 	const auto bodyColor = GetColor(world, body);
-	for (auto f : pd::GetFixtures(world, body))
+	for (auto f : pd::GetShapes(world, body))
 	{
 		auto color = pd::IsSensor(world, f) ? sensorColor : bodyColor;
-		Draw(drawer, world, f, color);
+		Draw(drawer, world, f, body, color);
 	}
 }
 

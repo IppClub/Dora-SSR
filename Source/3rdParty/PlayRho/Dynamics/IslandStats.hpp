@@ -35,8 +35,8 @@ struct IslandStats
     ContactCounter contactsUpdated = 0; ///< Contacts updated.
     ContactCounter contactsSkipped = 0; ///< Contacts skipped.
     bool solved = false; ///< Solved. <code>true</code> if position constraints solved, <code>false</code> otherwise.
-    TimestepIters positionIterations = 0; ///< Position iterations actually performed.
-    TimestepIters velocityIterations = 0; ///< Velocity iterations actually performed.
+    TimestepIters positionIters = 0; ///< Position iterations actually performed.
+    TimestepIters velocityIters = 0; ///< Velocity iterations actually performed.
 };
 
 } // namespace playrho

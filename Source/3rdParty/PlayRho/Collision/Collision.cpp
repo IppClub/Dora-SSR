@@ -61,7 +61,7 @@ PointStates GetPointStates(const Manifold& manifold1, const Manifold& manifold2)
             }
         }
     }
-    
+
     return retval;
 }
 

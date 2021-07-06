@@ -23,12 +23,10 @@ struct FixtureDef
 {
 	FixtureDef(): tag(0) { }
 	FixtureDef(int tag,
-		const pd::Shape& shape,
-		const pd::FixtureConf& conf):
-		tag(tag), shape(shape), conf(conf) { }
+		const pd::Shape& shape):
+		tag(tag), shape(shape) { }
 	int tag;
 	pd::Shape shape;
-	pd::FixtureConf conf;
 };
 
 class BodyDef : public Object

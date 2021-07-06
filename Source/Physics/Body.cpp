@@ -46,12 +46,12 @@ Body::~Body()
 bool Body::init()
 {
 	if (!Node::init()) return false;
-	_prBody = _pWorld->getPrWorld().CreateBody(*_bodyDef->getConf());
+	_prBody = pd::CreateBody(_pWorld->getPrWorld(), *_bodyDef->getConf());
 	_pWorld->setBodyData(_prBody, this);
 	Node::setPosition(PhysicsWorld::oVal(_bodyDef->getConf()->location));
 	for (FixtureDef& fixtureDef : _bodyDef->getFixtureConfs())
 	{
-		if (fixtureDef.conf.isSensor)
+		if (pd::IsSensor(fixtureDef.shape))
 		{
 			Body::attachSensor(fixtureDef.tag, &fixtureDef);
 		}
@@ -138,12 +138,11 @@ bool Body::removeSensorByTag(int tag)
 bool Body::removeSensor(Sensor* sensor)
 {
 	auto& world = _pWorld->getPrWorld();
-	if (_sensors && sensor && pd::GetBody(world, sensor->getFixture()) == _prBody)
+	auto sensorRef = Value::alloc(sensor);
+	if (_sensors && sensor && _sensors->remove(sensorRef.get()))
 	{
 		pd::Destroy(world, sensor->getFixture());
 		_pWorld->setFixtureData(sensor->getFixture(), nullptr);
-		auto sensorRef = Value::alloc(sensor);
-		_sensors->remove(sensorRef.get());
 		return true;
 	}
 	return false;
@@ -224,7 +223,7 @@ void Body::setGroup(uint8_t group)
 	_group = group;
 	auto& world = _pWorld->getPrWorld();
 	const auto& filter = _pWorld->getFilter(group);
-	for (pr::FixtureID f : pd::GetFixtures(world, _prBody))
+	for (pr::ShapeID f : pd::GetShapes(world, _prBody))
 	{
 		pd::SetFilterData(world, f, filter);
 	}
@@ -247,22 +246,20 @@ void Body::applyAngularImpulse(float impulse)
 	pd::ApplyAngularImpulse(world, _prBody, PhysicsWorld::b2Val(impulse));
 }
 
-pr::FixtureID Body::attachFixture(FixtureDef* fixtureDef)
+pr::ShapeID Body::attachFixture(FixtureDef* fixtureDef)
 {
 	auto& world = _pWorld->getPrWorld();
-	pr::FixtureID fixture = pd::CreateFixture(
+	pr::ShapeID fixture = pd::CreateShape(
 		world,
-		_prBody,
-		fixtureDef->shape,
-		fixtureDef->conf.UseFilter(_pWorld->getFilter(_group))
-			.UseIsSensor(false)
+		fixtureDef->shape
 	);
+	pd::Attach(world, _prBody, fixture);
 	return fixture;
 }
 
-pr::FixtureID Body::attach(FixtureDef* fixtureDef)
+pr::ShapeID Body::attach(FixtureDef* fixtureDef)
 {
-	pr::FixtureID fixture = Body::attachFixture(fixtureDef);
+	pr::ShapeID fixture = Body::attachFixture(fixtureDef);
 	/* cleanup temp vertices */
 	if (pd::GetType(fixtureDef->shape) == pr::GetTypeID<pd::ChainShapeConf>())
 	{
@@ -274,11 +271,11 @@ pr::FixtureID Body::attach(FixtureDef* fixtureDef)
 Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef)
 {
 	pd::Shape shape = fixtureDef->shape;
-	pd::FixtureConf conf = fixtureDef->conf
-		.UseFilter(_pWorld->getFilter(_group))
-		.UseIsSensor(true);
+	pd::SetSensor(shape, true);
+	pd::SetFilter(shape, _pWorld->getFilter(_group));
 	auto& world = _pWorld->getPrWorld();
-	pr::FixtureID fixture = pd::CreateFixture(world, _prBody, shape, conf);
+	pr::ShapeID fixture = pd::CreateShape(world, shape);
+	pd::Attach(world, _prBody, fixture);
 	Sensor* sensor = Sensor::create(this, tag, fixture);
 	_pWorld->setFixtureData(fixture, sensor);
 	if (!_sensors) _sensors = Array::create();

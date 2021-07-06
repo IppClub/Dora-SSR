@@ -40,8 +40,8 @@ public:
 	virtual bool update(double deltaTime) override;
 	virtual void render() override;
 
-	void setFixtureData(pr::FixtureID fixture, Sensor* sensor);
-	Sensor* getFixtureData(pr::FixtureID fixture) const;
+	void setFixtureData(pr::ShapeID fixture, Sensor* sensor);
+	Sensor* getFixtureData(pr::ShapeID fixture) const;
 
 	void setBodyData(pr::BodyID b, Body* body);
 	Body* getBodyData(pr::BodyID body) const;

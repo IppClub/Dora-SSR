@@ -21,6 +21,8 @@
 #define PLAYRHO_COLLISION_DISTANCE_HPP
 
 #include "PlayRho/Common/Math.hpp"
+
+#include "PlayRho/Collision/DistanceConf.hpp"
 #include "PlayRho/Collision/Simplex.hpp"
 
 namespace playrho {
@@ -29,9 +31,6 @@ namespace playrho {
 /// @note Uses <code>std::pair</code> because this is a pair and also because
 ///   <code>std::pair</code> has more support for constant expressions.
 using PairLength2 = std::pair<Length2, Length2>;
-
-struct ToiConf;
-struct StepConf;
 
 namespace d2 {
 
@@ -46,36 +45,15 @@ constexpr Length2 GetDelta(PairLength2 arg) noexcept
     return std::get<1>(arg) - std::get<0>(arg);
 }
 
-/// @brief Distance Configuration.
-/// @details Configuration information for calling the <code>Distance</code> function.
-struct DistanceConf
-{
-    /// @brief Iteration type.
-    using iteration_type = std::remove_const<decltype(DefaultMaxDistanceIters)>::type;
-
-    Simplex::Cache cache; ///< Cache.
-    iteration_type maxIterations = DefaultMaxDistanceIters; ///< Max iterations.
-};
-
-/// @brief Gets the distance configuration for the given time of impact configuration.
-/// @relatedalso DistanceConf
-DistanceConf GetDistanceConf(const ToiConf& conf) noexcept;
-
-/// @brief Gets the distance configuration for the given step configuration.
-/// @relatedalso DistanceConf
-DistanceConf GetDistanceConf(const StepConf& conf) noexcept;
-
 /// @brief Distance Output.
-struct DistanceOutput
-{
+struct DistanceOutput {
     /// @brief State of the distance output.
-    enum State: std::uint8_t
-    {
+    enum State : std::uint8_t {
         Unknown,
-        MaxPoints,
         UnfitSearchDir,
+        HitMaxIters,
+        MaxPoints,
         DuplicateIndexPair,
-        HitMaxIters
     };
 
     /// @brief Iteration type.
@@ -86,19 +64,23 @@ struct DistanceOutput
     State state = Unknown; ///< Termination state.
 };
 
-/// @brief Determines the closest points between two shapes.
-/// @note Supports any combination of shapes.
-/// @note On the first call, the Simplex::Cache.count should be set to zero.
+/// @brief Determines the closest points between two shapes using an iterative method.
 /// @image html distance.png
+/// @note Supports any combination of convex shapes.
+/// @note Uses the G.J.K. (GJK) algorithm: "a method for determining the minimum distance
+///   between two convex sets".
+/// @note On the first call, <code>size(conf.cache.indices)</code> should be zero.
 /// @param proxyA Proxy A.
 /// @param transformA Transform of A.
 /// @param proxyB Proxy B.
 /// @param transformB Transform of B.
 /// @param conf Configuration to use including the simplex cache for assisting the determination.
-/// @relatedalso DistanceConf
-/// @return Closest points between the two shapes and the count of iterations it took to
-///   determine them. The iteration count will always be greater than zero unless
-///   <code>DefaultMaxDistanceIters</code> is zero.
+/// @relatedalso DistanceProxy
+/// @return Closest points between the two shapes, the count of iterations it took to determine
+///   them, and the reason iterations stopped. The iteration count will always be greater than zero
+///   unless <code>DefaultMaxDistanceIters</code> is zero.
+/// @see https://en.wikipedia.org/wiki/Gilbert%2DJohnson%2DKeerthi_distance_algorithm
+/// @see GetMaxSeparation.
 DistanceOutput Distance(const DistanceProxy& proxyA, const Transformation& transformA,
                         const DistanceProxy& proxyB, const Transformation& transformB,
                         DistanceConf conf = DistanceConf{});
@@ -108,6 +90,8 @@ DistanceOutput Distance(const DistanceProxy& proxyA, const Transformation& trans
 /// @note The returned touching state information typically agrees with that returned from
 ///   the <code>CollideShapes</code> function. This is not always the case however
 ///   especially when the separation or overlap distance is closer to zero.
+///
+/// @relatedalso DistanceProxy
 ///
 Area TestOverlap(const DistanceProxy& proxyA, const Transformation& xfA,
                  const DistanceProxy& proxyB, const Transformation& xfB,

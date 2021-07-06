@@ -278,7 +278,7 @@ void Unit::setGroup(uint8_t group)
 {
 	_group = group;
 	auto& world = _pWorld->getPrWorld();
-	for (pr::FixtureID f : pd::GetFixtures(world, _prBody))
+	for (pr::ShapeID f : pd::GetShapes(world, _prBody))
 	{
 		if (pd::IsSensor(world, f))
 		{

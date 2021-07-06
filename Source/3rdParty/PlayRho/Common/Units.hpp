@@ -424,6 +424,9 @@ constexpr auto RevolutionsPerMinute = 2 * Pi * Radian / (Real{60} * Second);
 
 /// @}
 
+inline namespace literals {
+inline namespace units {
+
 /// @defgroup Unitsymbols Literals For Unit Symbols
 /// @brief User defined literals for more conveniently setting the value of physical
 ///   quantities.
@@ -822,6 +825,17 @@ constexpr AngularVelocity operator"" _rpm(long double v) noexcept
 }
 
 /// @}
+
+} // namespace units
+} // namespace literals
+
+} // namespace playrho
+
+namespace playrho { // hoist the unit literals into namespace playrho
+using namespace literals::units;
+} // namespace playrho
+
+namespace playrho {
 
 /// @brief Strips the units off of the given value.
 constexpr Real StripUnit(const Real value)

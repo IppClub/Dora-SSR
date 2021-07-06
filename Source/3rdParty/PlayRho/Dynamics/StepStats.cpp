@@ -31,8 +31,8 @@ RegStepStats& Update(RegStepStats& lhs, const IslandStats& rhs) noexcept
     lhs.maxIncImpulse = std::max(lhs.maxIncImpulse, rhs.maxIncImpulse);
     lhs.minSeparation = std::min(lhs.minSeparation, rhs.minSeparation);
     lhs.islandsSolved += rhs.solved;
-    lhs.sumPosIters += rhs.positionIterations;
-    lhs.sumVelIters += rhs.velocityIterations;
+    lhs.sumPosIters += rhs.positionIters;
+    lhs.sumVelIters += rhs.velocityIters;
     lhs.bodiesSlept += rhs.bodiesSlept;
     return lhs;
 }
