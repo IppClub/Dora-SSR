@@ -96,7 +96,7 @@ int RectangleBoundingBoxData::rectangleIntersectsSegment(
 
             if (normalRadians != nullptr) 
             {
-                normalRadian = Transform::PI * 0.5;
+                normalRadian = Transform::PI * 0.5f;
             }
         }
         else if ((outcodeOut & OutCode::Right) != 0)       // point is to the right of clip rectangle

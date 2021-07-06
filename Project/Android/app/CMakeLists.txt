@@ -17,6 +17,7 @@ include_directories(
 	src/main/cpp/3rdParty/font
 	src/main/cpp/3rdParty/sqlite
 	src/main/cpp/3rdParty/sqlite/Header
+	src/main/cpp/3rdParty/dragonBones
 )
 
 add_library( SDL2-lib SHARED IMPORTED )
