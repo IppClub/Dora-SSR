@@ -351,18 +351,12 @@ _lastTexture(nullptr),
 _lastState(0),
 _lastFlags(UINT32_MAX),
 _defaultEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_sprite"_slice)),
-_defaultModelEffect(SpriteEffect::create("builtin::vs_spritemodel"_slice, "builtin::fs_sprite"_slice)),
 _alphaTestEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_spritealphatest"_slice))
 { }
 
 SpriteEffect* SpriteRenderer::getDefaultEffect() const
 {
 	return _defaultEffect;
-}
-
-SpriteEffect* SpriteRenderer::getDefaultModelEffect() const
-{
-	return _defaultModelEffect;
 }
 
 SpriteEffect* SpriteRenderer::getAlphaTestEffect() const
@@ -440,10 +434,10 @@ void SpriteRenderer::push(Sprite* sprite)
 }
 
 void SpriteRenderer::push(SpriteVertex* verts, size_t size,
-	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags, const Matrix* localWorld)
+	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags)
 {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
-	if (localWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();
 	}
@@ -468,22 +462,15 @@ void SpriteRenderer::push(SpriteVertex* verts, size_t size,
 			indices[i * 6 + j] = s_cast<IndexType>(_spriteIndices[j] + i * 4 + vertSize);
 		}
 	}
-
-	if (localWorld)
-	{
-		bgfx::setTransform(localWorld);
-		render();
-	}
 }
 
 void SpriteRenderer::push(
 	SpriteVertex* verts, size_t vsize,
 	IndexType* inds, size_t isize,
 	SpriteEffect* effect, Texture2D* texture,
-	uint64_t state, uint32_t flags,
-	const Matrix* localWorld)
+	uint64_t state, uint32_t flags)
 {
-	if (localWorld || effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
 	{
 		render();
 	}
@@ -502,12 +489,6 @@ void SpriteRenderer::push(
 	for (size_t i = 0; i < isize; ++i)
 	{
 		indices[i] = inds[i] + s_cast<IndexType>(vertSize);
-	}
-
-	if (localWorld)
-	{
-		bgfx::setTransform(localWorld);
-		render();
 	}
 }
 

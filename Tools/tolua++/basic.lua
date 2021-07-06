@@ -67,6 +67,7 @@ local objects = {
 "Playable",
 "Model",
 "Spine",
+"DragonBone",
 "OthoCamera",
 "BodyDef",
 "Buffer",

@@ -210,6 +210,11 @@ _process(std::max(std::thread::hardware_concurrency(), 4u) - 1)
 	}
 }
 
+Async& AsyncThread::getProcess(int index)
+{
+	return *_process[index];
+}
+
 void AsyncThread::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher)
 {
 	Async* async = _process[_nextProcess].get();

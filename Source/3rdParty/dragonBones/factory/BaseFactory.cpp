@@ -196,7 +196,7 @@ std::pair<void*, DisplayType> BaseFactory::_getSlotDisplay(const BuildArmaturePa
 
     if (dataPackage != nullptr)
     {
-        dataName = dataPackage->dataName;
+        dataName = dataPackage->textureAtlasName.empty() ? dataPackage->dataName : dataPackage->textureAtlasName;
     }
     else 
     {

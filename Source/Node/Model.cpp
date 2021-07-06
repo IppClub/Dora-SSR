@@ -51,7 +51,9 @@ _modelDef(def)
 }
 
 Model::Model(String filename):
-Model(SharedModelCache.load(filename))
+Model(SharedModelCache.load(
+	Path::getExt(filename).empty() ?
+	filename + ".model"s : filename.toString()))
 { }
 
 bool Model::init()

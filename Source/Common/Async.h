@@ -47,6 +47,7 @@ class AsyncThread
 public:
 	Async FileIO;
 	AsyncThread();
+	Async& getProcess(int index);
 	void run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i)

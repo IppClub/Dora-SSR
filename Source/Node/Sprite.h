@@ -120,22 +120,18 @@ class SpriteRenderer : public Renderer
 public:
 	using IndexType = uint16_t;
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
-	PROPERTY_READONLY(SpriteEffect*, DefaultModelEffect);
 	PROPERTY_READONLY(SpriteEffect*, AlphaTestEffect);
 	virtual ~SpriteRenderer() { }
 	virtual void render() override;
 	void push(Sprite* sprite);
 	void push(SpriteVertex* verts, size_t size,
-		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX,
-		const Matrix* localWorld = nullptr);
+		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX);
 	void push(SpriteVertex* verts, size_t vsize, IndexType* inds, size_t isize,
-		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX,
-		const Matrix* localWorld = nullptr);
+		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX);
 protected:
 	SpriteRenderer();
 private:
 	Ref<SpriteEffect> _defaultEffect;
-	Ref<SpriteEffect> _defaultModelEffect;
 	Ref<SpriteEffect> _alphaTestEffect;
 	Texture2D* _lastTexture;
 	SpriteEffect* _lastEffect;

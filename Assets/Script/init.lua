@@ -8,6 +8,7 @@ Content.searchPaths = {
 	Path("Script", "Lib"),
 	"Image",
 	"Spine",
+	"DragonBones",
 	"Production",
 	Content.writablePath
 }

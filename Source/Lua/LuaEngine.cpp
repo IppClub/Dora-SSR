@@ -495,6 +495,16 @@ LuaEngine::LuaEngine()
 			tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "Spine");
+			tolua_function(L, "containsPoint", Spine_containsPoint);
+			tolua_function(L, "intersectsSegment", Spine_intersectsSegment);
+		tolua_endmodule(L);
+
+		tolua_beginmodule(L, "DragonBone");
+			tolua_function(L, "containsPoint", DragonBone_containsPoint);
+			tolua_function(L, "intersectsSegment", DragonBone_intersectsSegment);
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "DB");
 			tolua_function(L, "transaction", DB_transaction);
 			tolua_function(L, "query", DB_query);

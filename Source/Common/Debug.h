@@ -63,6 +63,7 @@ bool IsInLua();
 #if DORA_DISABLE_ASSERTION
 	#define AssertIf(cond, ...) DORA_DUMMY
 	#define AssertUnless(cond, ...) DORA_DUMMY
+	#define Issue(...) DORA_DUMMY
 #else
 	#define AssertIf(cond, ...) \
 		do { \
@@ -98,6 +99,21 @@ bool IsInLua();
 					Dorothy::LogError(msg); \
 					std::abort(); \
 				} \
+			} \
+		} while (false)
+	#define Issue(...) \
+		do { \
+			auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
+				__FILE__, __FUNCTION__, __LINE__, \
+				Dorothy::LogFormat(__VA_ARGS__)); \
+			if (Dorothy::IsInLua()) \
+			{ \
+				throw std::runtime_error(msg); \
+			} \
+			else \
+			{ \
+				Dorothy::LogError(msg); \
+				std::abort(); \
 			} \
 		} while (false)
 #endif

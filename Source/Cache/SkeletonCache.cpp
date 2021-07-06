@@ -199,19 +199,6 @@ bool SkeletonCache::unload(String filename)
 	return false;
 }
 
-bool SkeletonCache::unload(SkeletonData* data)
-{
-	for (const auto& it : _skeletons)
-	{
-		if (it.second == data)
-		{
-			_skeletons.erase(_skeletons.find(it.first));
-			return true;
-		}
-	}
-	return false;
-}
-
 bool SkeletonCache::unload()
 {
 	if (_skeletons.empty())

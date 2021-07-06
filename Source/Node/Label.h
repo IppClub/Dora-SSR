@@ -58,10 +58,14 @@ public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(bgfx::FontManager*, Manager);
 	virtual ~FontCache();
+	void loadAync(String fontStr,
+		const std::function<void(Font* font)>& callback);
 	void loadAync(String fontName, uint32_t fontSize,
 		const std::function<void(Font* font)>& callback);
+	Font* load(String fontStr);
 	Font* load(String fontName, uint32_t fontSize);
 	bool unload();
+	bool unload(String fontStr);
 	bool unload(String fontName, uint32_t fontSize);
 	void removeUnused();
 	Sprite* createCharacter(Font* font, bgfx::CodePoint character);
@@ -71,6 +75,7 @@ public:
 protected:
 	FontCache();
 private:
+	std::pair<std::string, int> getArgsFromStr(String fontStr);
 	Ref<SpriteEffect> _defaultEffect;
 	std::unordered_map<std::string, Ref<TrueTypeFile>> _fontFiles;
 	std::unordered_map<std::string, Ref<Font>> _fonts;
@@ -103,12 +108,14 @@ public:
 	virtual void setRenderOrder(int var) override;
 	Sprite* getCharacter(int index) const;
 	int getCharacterCount() const;
+	virtual bool init() override;
 	virtual void cleanup() override;
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	static const float AutomaticWidth;
 	CREATE_FUNC(Label);
 protected:
+	Label(String fontStr);
 	Label(String fontName, uint32_t fontSize);
 	void updateCharacters(const std::vector<uint32_t>& chars);
 	void updateLabel();

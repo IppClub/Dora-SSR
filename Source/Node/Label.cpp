@@ -86,6 +86,23 @@ SpriteEffect* FontCache::getDefaultEffect() const
 	return _defaultEffect;
 }
 
+std::pair<std::string, int> FontCache::getArgsFromStr(String fontStr)
+{
+	auto tokens = fontStr.split(";"_slice);
+	if (tokens.size() == 2)
+	{
+		auto it = tokens.begin();
+		Slice fontName = *it;
+		int fontSize = Slice::stoi(*(++it));
+		return {fontName.toString(), fontSize};
+	}
+	else
+	{
+		Warn("invalid fontStr for \"{}\".", fontStr);
+		return {Slice::Empty, 0};
+	}
+}
+
 bool FontCache::unload()
 {
 	if (_fonts.empty() && _fontFiles.empty())
@@ -97,9 +114,32 @@ bool FontCache::unload()
 	return true;
 }
 
+bool FontCache::unload(String fontStr)
+{
+	std::string fontName;
+	int fontSize;
+	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
+	auto fontIt = _fonts.find(fontStr);
+	if (fontIt != _fonts.end())
+	{
+		TrueTypeFile* fontFile = fontIt->second->getFile();
+		_fonts.erase(fontIt);
+		if (fontFile->isSingleReferenced())
+		{
+			auto fileIt = _fontFiles.find(fontName);
+			if (fileIt != _fontFiles.end())
+			{
+				_fontFiles.erase(fileIt);
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
 bool FontCache::unload(String fontName, uint32_t fontSize)
 {
-	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
+	std::string fontFaceName = fmt::format("{};{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
 	{
@@ -138,9 +178,18 @@ void FontCache::removeUnused()
 	}
 }
 
+Font* FontCache::load(String fontStr)
+{
+	std::string fontName;
+	int fontSize;
+	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
+	if (fontName.empty()) return nullptr;
+	return load(fontName, fontSize);
+}
+
 Font* FontCache::load(String fontName, uint32_t fontSize)
 {
-	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
+	std::string fontFaceName = fmt::format("{};{}", fontName.toString(), fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end())
 	{
@@ -186,9 +235,22 @@ Font* FontCache::load(String fontName, uint32_t fontSize)
 	}
 }
 
+void FontCache::loadAync(String fontStr, const std::function<void(Font* fontHandle)>& callback)
+{
+	std::string fontName;
+	int fontSize;
+	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
+	if (fontName.empty())
+	{
+		callback(nullptr);
+		return;
+	}
+	loadAync(fontName, fontSize, callback);
+}
+
 void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function<void(Font* fontHandle)>& callback)
 {
-	std::string fontFaceName = fmt::format("{}:{}", fontName.toString(), fontSize);
+	std::string fontFaceName = fmt::format("{};{}", fontName.toString(), fontSize);
 	auto faceIt = _fonts.find(fontFaceName);
 	if (faceIt != _fonts.end())
 	{
@@ -287,8 +349,27 @@ _effect(SharedFontCache.getDefaultEffect())
 	_flags.setOn(Label::TextBatched);
 }
 
+Label::Label(String fontStr):
+_alphaRef(0),
+_textWidth(Label::AutomaticWidth),
+_alignment(TextAlign::Center),
+_font(SharedFontCache.load(fontStr)),
+_blendFunc(BlendFunc::Default),
+_effect(SharedFontCache.getDefaultEffect())
+{
+	_lineGap = _font->getInfo().lineGap;
+	_flags.setOff(Node::TraverseEnabled);
+	_flags.setOn(Label::TextBatched);
+}
+
 Label::~Label()
 { }
+
+bool Label::init()
+{
+	if (!Node::init()) return false;
+	return _font != nullptr;
+}
 
 void Label::setTextWidth(float var)
 {

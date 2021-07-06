@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Playable.h"
 #include "Node/Model.h"
 #include "Node/Spine.h"
+#include "Node/DragonBone.h"
 
 NS_DOROTHY_BEGIN
 
@@ -62,11 +63,21 @@ const std::string& Playable::getLook() const
 Playable* Playable::create(String filename)
 {
 	if (filename.empty()) return Model::dummy();
-	if (Path::getExt(filename) == "model"_slice)
+	auto tokens = filename.split(":"_slice);
+	if (tokens.size() != 2)
 	{
-		return Model::create(filename);
+		Error("playable str must be of format [label]:[filename], got \"{}\"", filename);
+		return Model::dummy();
 	}
-	return Spine::create(filename);
+	switch (Switch::hash(tokens.front()))
+	{
+		case "model"_hash: return Model::create(tokens.back());
+		case "spine"_hash: return Spine::create(tokens.back());
+		case "bone"_hash: return DragonBone::create(tokens.back());
+		default:
+			Error("playable str flag must be \"model\", \"spine\" and \"bone\" (dragonbones)");
+			return nullptr;
+	}
 }
 
 NS_DOROTHY_END

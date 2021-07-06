@@ -38,7 +38,6 @@ public:
 	void loadAsync(String spineStr, const std::function<void(SkeletonData*)>& handler);
 	void loadAsync(String skelFile, String atlasFile, const std::function<void(SkeletonData*)>& handler);
 	bool unload(String filename);
-	bool unload(SkeletonData* data);
 	bool unload();
 	void removeUnused();
 private:
