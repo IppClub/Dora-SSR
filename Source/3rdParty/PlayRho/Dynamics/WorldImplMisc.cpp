@@ -29,6 +29,7 @@
 #include "PlayRho/Dynamics/Joints/Joint.hpp" // for WorldImpl not being incomplete
 #include "PlayRho/Dynamics/Contacts/Contact.hpp" // for WorldImpl not being incomplete
 #include "PlayRho/Collision/Manifold.hpp" // for WorldImpl not being incomplete
+#include "PlayRho/Collision/Shapes/Shape.hpp" // for WorldImpl not being incomplete
 
 namespace playrho {
 namespace d2 {
@@ -48,10 +49,14 @@ void Clear(WorldImpl& world) noexcept
     world.Clear();
 }
 
-void SetFixtureDestructionListener(WorldImpl& world,
-                                   std::function<void(FixtureID)> listener) noexcept
+void SetShapeDestructionListener(WorldImpl& world, std::function<void(ShapeID)> listener) noexcept
 {
-    world.SetFixtureDestructionListener(listener);
+    world.SetShapeDestructionListener(listener);
+}
+
+void SetDetachListener(WorldImpl& world, std::function<void(std::pair<BodyID, ShapeID>)> listener) noexcept
+{
+    world.SetDetachListener(listener);
 }
 
 void SetJointDestructionListener(WorldImpl& world,
@@ -92,24 +97,22 @@ void ShiftOrigin(WorldImpl& world, Length2 newOrigin)
     world.ShiftOrigin(newOrigin);
 }
 
-SizedRange<std::vector<BodyID>::const_iterator> GetBodies(const WorldImpl& world) noexcept
+std::vector<BodyID> GetBodies(const WorldImpl& world) noexcept
 {
     return world.GetBodies();
 }
 
-SizedRange<std::vector<BodyID>::const_iterator>
-GetBodiesForProxies(const WorldImpl& world) noexcept
+std::vector<BodyID> GetBodiesForProxies(const WorldImpl& world) noexcept
 {
     return world.GetBodiesForProxies();
 }
 
-SizedRange<std::vector<JointID>::const_iterator> GetJoints(const WorldImpl& world) noexcept
+std::vector<JointID> GetJoints(const WorldImpl& world) noexcept
 {
     return world.GetJoints();
 }
 
-SizedRange<std::vector<KeyedContactPtr>::const_iterator>
-GetContacts(const WorldImpl& world) noexcept
+std::vector<KeyedContactPtr> GetContacts(const WorldImpl& world) noexcept
 {
     return world.GetContacts();
 }
@@ -154,8 +157,7 @@ const DynamicTree& GetTree(const WorldImpl& world) noexcept
     return world.GetTree();
 }
 
-SizedRange<std::vector<FixtureID>::const_iterator>
-GetFixturesForProxies(const WorldImpl& world) noexcept
+std::vector<std::pair<BodyID, ShapeID>> GetFixturesForProxies(const WorldImpl& world) noexcept
 {
     return world.GetFixturesForProxies();
 }

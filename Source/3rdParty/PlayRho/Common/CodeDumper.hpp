@@ -31,7 +31,6 @@ namespace d2 {
 class World;
 class Body;
 class Joint;
-class Fixture;
 struct DistanceJointConf;
 struct FrictionJointConf;
 struct GearJointConf;
@@ -53,9 +52,6 @@ void Dump(const Body& body, std::size_t bodyIndex);
 
 /// Dump joint to the log file.
 void Dump(const Joint& joint, std::size_t index, const World& world);
-
-/// Dump fixture to log file.
-void Dump(const Fixture& fixture, std::size_t bodyIndex);
 
 /// Dump joint to log file.
 void Dump(const DistanceJointConf& joint, std::size_t index, const World& world);

@@ -67,8 +67,8 @@ struct TargetJointConf : public JointBuilder<TargetJointConf> {
 
     /// @brief Use value for the "anchor" (in coordinates local to "body B").
     /// @note Typically this would be the value of:
-    ///   <code>bodyB
-    ///     ? InverseTransform(target, bodyB->GetTransformation())
+    ///   <code>bodyB != InvalidBodyID
+    ///     ? GetLocalPoint(GetBody(world, bodyB), target)
     ///     : GetInvalid<Length2>()</code>.
     constexpr auto& UseAnchor(Length2 v) noexcept
     {

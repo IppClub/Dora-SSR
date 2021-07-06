@@ -27,6 +27,8 @@
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Dynamics/Joints/JointID.hpp"
 
+#include <variant>
+
 namespace playrho {
 
 struct ConstraintSolverConf;
@@ -56,6 +58,21 @@ struct GearJointConf : public JointBuilder<GearJointConf> {
     /// @brief Super type.
     using super = JointBuilder<GearJointConf>;
 
+    /// @brief Prismatic specific data.
+    struct PrismaticData {
+        Length2 localAnchorA{}; ///< Local anchor A.
+        Length2 localAnchorB{}; ///< Local anchor B.
+        UnitVec localAxis; ///< Local axis.
+    };
+
+    /// @brief Revolute specific data.
+    struct RevoluteData {
+        Angle referenceAngle = 0_deg; ///< Reference angle between associated bodies.
+    };
+
+    /// @brief Type specific data type alias.
+    using TypeData = std::variant<std::monostate, PrismaticData, RevoluteData>;
+
     /// @brief Default constructor.
     constexpr GearJointConf() = default;
 
@@ -75,43 +92,62 @@ struct GearJointConf : public JointBuilder<GearJointConf> {
     /// @brief Identifier of body D.
     BodyID bodyD = InvalidBodyID;
 
-    /// @brief Type of the first joint.
-    TypeID type1 = GetTypeID<void>();
-
-    /// @brief Type of the second joint.
-    TypeID type2 = GetTypeID<void>();
-
-    // Used when not Revolute...
-    Length2 localAnchorA{}; ///< Local anchor A.
-    Length2 localAnchorB{}; ///< Local anchor B.
-    Length2 localAnchorC{}; ///< Local anchor C.
-    Length2 localAnchorD{}; ///< Local anchor D.
-
-    UnitVec localAxis1; ///< Local axis 1. Used when type1 is not Revolute.
-    UnitVec localAxis2; ///< Local axis 2. Used when type2 is not Revolute.
-
-    Angle referenceAngle1 = 0_deg; ///< Reference angle of joint 1. Used when type1 is Revolute.
-    Angle referenceAngle2 = 0_deg; ///< Reference angle of joint 2. Used when type2 is Revolute.
+    TypeData typeDataAC; ///< Data for a revolute or prismatic joint between body A & C.
+    TypeData typeDataBD; ///< Data for a revolute or prismatic joint between body B & D.
 
     /// The gear ratio.
     /// @see constant, GearJoint.
     Real ratio = Real{1};
 
     /// @brief Constant applied with the ratio.
+    /// @note If this value is not finite, then position constraint solving will be skipped.
     /// @see ratio.
     Real constant = Real{0};
 
     Momentum impulse = 0_Ns; ///< Impulse.
 
     // Solver temp
-    Vec2 JvAC = Vec2{}; ///< <code>AC Jv</code> data.
-    Vec2 JvBD = {}; ///< <code>BD Jv</code> data.
-    Length JwA = 0_m; ///< A <code>Jw</code> data.
-    Length JwB = 0_m; ///< B <code>Jw</code> data.
-    Length JwC = 0_m; ///< C <code>Jw</code> data.
-    Length JwD = 0_m; ///< D <code>Jw</code> data.
+    Vec2 JvAC = {}; ///< A-C directional data.
+    Vec2 JvBD = {}; ///< B-D directional data.
+    Length JwA = 0_m; ///< Data for calculating Body A velocity.
+    Length JwB = 0_m; ///< Data for calculating Body B velocity.
+    Length JwC = 0_m; ///< Data for calculating Body C velocity.
+    Length JwD = 0_m; ///< Data for calculating Body D velocity.
     Real mass = 0; ///< Either linear mass or angular mass.
 };
+
+/// @brief Equals operator.
+/// @relatedalso GearJointConf::PrismaticData
+constexpr bool operator==(const GearJointConf::PrismaticData& lhs,
+                          const GearJointConf::PrismaticData& rhs) noexcept
+{
+    return lhs.localAnchorA == rhs.localAnchorA && lhs.localAnchorB == rhs.localAnchorB &&
+           lhs.localAxis == rhs.localAxis;
+}
+
+/// @brief Not equals operator.
+/// @relatedalso GearJointConf::PrismaticData
+constexpr bool operator!=(const GearJointConf::PrismaticData& lhs,
+                          const GearJointConf::PrismaticData& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
+/// @brief Equals operator.
+/// @relatedalso GearJointConf::RevoluteData
+constexpr bool operator==(const GearJointConf::RevoluteData& lhs,
+                          const GearJointConf::RevoluteData& rhs) noexcept
+{
+    return lhs.referenceAngle == rhs.referenceAngle;
+}
+
+/// @brief Not equals operator.
+/// @relatedalso GearJointConf::RevoluteData
+constexpr bool operator!=(const GearJointConf::RevoluteData& lhs,
+                          const GearJointConf::RevoluteData& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
 
 /// @brief Equality operator.
 constexpr bool operator==(const GearJointConf& lhs, const GearJointConf& rhs) noexcept
@@ -122,16 +158,8 @@ constexpr bool operator==(const GearJointConf& lhs, const GearJointConf& rhs) no
         // Now check rest...
         && (lhs.bodyC == rhs.bodyC) // line break
         && (lhs.bodyD == rhs.bodyD) // line break
-        && (lhs.type1 == rhs.type1) // line break
-        && (lhs.type2 == rhs.type2) // line break
-        && (lhs.localAnchorA == rhs.localAnchorA) // line break
-        && (lhs.localAnchorB == rhs.localAnchorB) // line break
-        && (lhs.localAnchorC == rhs.localAnchorC) // line break
-        && (lhs.localAnchorD == rhs.localAnchorD) // line break
-        && (lhs.localAxis1 == rhs.localAxis1) // line break
-        && (lhs.localAxis2 == rhs.localAxis2) // line break
-        && (lhs.referenceAngle1 == rhs.referenceAngle1) // line break
-        && (lhs.referenceAngle2 == rhs.referenceAngle2) // line break
+        && (lhs.typeDataAC == rhs.typeDataAC) // line break
+        && (lhs.typeDataBD == rhs.typeDataBD) // line break
         && (lhs.ratio == rhs.ratio) // line break
         && (lhs.constant == rhs.constant) // line break
         && (lhs.impulse == rhs.impulse) // line break
@@ -223,17 +251,17 @@ constexpr auto GetConstant(const GearJointConf& object) noexcept
 
 /// @brief Free function for getting joint 1 type value of the given configuration.
 /// @relatedalso GearJointConf
-constexpr auto GetType1(const GearJointConf& object) noexcept
-{
-    return object.type1;
-}
+TypeID GetTypeAC(const GearJointConf& object) noexcept;
 
 /// @brief Free function for getting joint 2 type value of the given configuration.
 /// @relatedalso GearJointConf
-constexpr auto GetType2(const GearJointConf& object) noexcept
-{
-    return object.type2;
-}
+TypeID GetTypeBD(const GearJointConf& object) noexcept;
+
+/// @brief Gets the local anchor A property of the given joint.
+Length2 GetLocalAnchorA(const GearJointConf& conf);
+
+/// @brief Gets the local anchor B property of the given joint.
+Length2 GetLocalAnchorB(const GearJointConf& conf);
 
 } // namespace d2
 

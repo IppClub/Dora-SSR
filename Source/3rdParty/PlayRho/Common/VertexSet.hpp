@@ -35,7 +35,7 @@ namespace d2 {
 class VertexSet
 {
 public:
-    
+
     /// @brief Constant pointer type.
     using const_pointer = const Length2*;
 
@@ -44,7 +44,7 @@ public:
     {
         return sqrt(std::numeric_limits<Vec2::value_type>::min()) * SquareMeter;
     }
-    
+
     /// @brief Initializing constructor.
     explicit VertexSet(Area minSepSquared = GetDefaultMinSeparationSquared()):
         m_minSepSquared{minSepSquared}
@@ -65,7 +65,7 @@ public:
         m_elements.push_back(value);
         return true;
     }
-    
+
     /// @brief Clear this set.
     void clear() noexcept
     {
@@ -77,13 +77,13 @@ public:
     {
         return ::playrho::detail::Size(m_elements);
     }
-    
+
     /// @brief Gets the pointer to the data buffer.
     const_pointer data() const { return ::playrho::detail::Data(m_elements); }
-    
+
     /// @brief Gets the "begin" iterator value.
     const_pointer begin() const { return data(); }
-    
+
     /// @brief Gets the "end" iterator value.
     const_pointer end() const { return data() + size(); }
 

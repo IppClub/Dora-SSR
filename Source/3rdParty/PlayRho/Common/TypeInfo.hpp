@@ -39,7 +39,7 @@ static constexpr const char* GetNameForTypeInfo() noexcept
     // Ideally return string unique to the type T...
 #if defined(_MSC_VER)
     return __FUNCSIG__;
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined(__GNUC__)
     return __PRETTY_FUNCTION__;
 #else
     return __func__; // not unique but maybe still helpful at avoiding compiler issues

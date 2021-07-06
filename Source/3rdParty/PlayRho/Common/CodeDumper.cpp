@@ -79,7 +79,7 @@ void Dump(const World& world)
         Dump(b, i);
         ++i;
     }
-    
+
     const auto& joints = GetJoints(world);
     log("Joint** joints = (Joint**)Alloc(%d * sizeof(Joint*));\n", size(joints));
     i = 0;
@@ -90,7 +90,7 @@ void Dump(const World& world)
         log("}\n");
         ++i;
     }
-    
+
     log("Free(joints);\n");
     log("Free(bodies);\n");
     log("joints = nullptr;\n");
@@ -170,30 +170,6 @@ void Dump(const Joint& joint, std::size_t index, const World& world)
     else if (type == GetTypeID<WheelJointConf>()) {
         Dump(TypeCast<WheelJointConf>(joint), index, world);
     }
-}
-
-void Dump(const FixtureConf& fixture, std::size_t bodyIndex)
-{
-    log("    FixtureConf fd;\n");
-    log("    fd.friction = %.15lef;\n", static_cast<double>(GetFriction(fixture)));
-    log("    fd.restitution = %.15lef;\n", static_cast<double>(GetRestitution(fixture)));
-    log("    fd.density = %.15lef;\n",
-        static_cast<double>(Real{GetDensity(fixture) * SquareMeter / Kilogram}));
-    log("    fd.isSensor = bool(%d);\n", IsSensor(fixture));
-    log("    fd.filter.categoryBits = Filter::bits_type(%u);\n",
-        GetFilterData(fixture).categoryBits);
-    log("    fd.filter.maskBits = Filter::bits_type(%u);\n", GetFilterData(fixture).maskBits);
-    log("    fd.filter.groupIndex = Filter::index_type(%d);\n", GetFilterData(fixture).groupIndex);
-#if 0
-    const auto shape = fixture.GetShape();
-    std::ostringstream os;
-    os << shape << "\n";
-    log(os.str().c_str());
-#endif
-    log("\n");
-    log("    fd.shape = &shape;\n");
-    log("\n");
-    log("    bodies[%d]->CreateFixture(fd);\n", bodyIndex);
 }
 
 void Dump(const DistanceJointConf& joint, std::size_t index, const World& world)

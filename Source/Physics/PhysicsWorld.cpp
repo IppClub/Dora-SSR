@@ -52,8 +52,8 @@ float PhysicsWorld::b2Factor = 100.0f;
 PhysicsWorld::PhysicsWorld():
 _world{}
 {
-	_stepConf.regVelocityIterations = 1;
-	_stepConf.regPositionIterations = 1;
+	_stepConf.regVelocityIters = 1;
+	_stepConf.regPositionIters = 1;
 }
 
 PhysicsWorld::~PhysicsWorld()
@@ -90,10 +90,10 @@ void PhysicsWorld::setupBeginContact()
 {
 	_world.SetBeginContactListener([this](pr::ContactID contact)
 	{
-		pr::FixtureID fixtureA = pd::GetFixtureA(_world, contact);
-		pr::FixtureID fixtureB = pd::GetFixtureB(_world, contact);
-		Body* bodyA = _bodyData[pd::GetBody(_world, fixtureA).get()];
-		Body* bodyB = _bodyData[pd::GetBody(_world, fixtureB).get()];
+		pr::ShapeID fixtureA = pd::GetShapeA(_world, contact);
+		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
+		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
+		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
 		if (!bodyA || !bodyB) return;
 		if (pd::IsSensor(_world, fixtureA))
 		{
@@ -143,10 +143,10 @@ void PhysicsWorld::setupEndContact()
 {
 	_world.SetEndContactListener([this](pr::ContactID contact)
 	{
-		pr::FixtureID fixtureA = pd::GetFixtureA(_world, contact);
-		pr::FixtureID fixtureB = pd::GetFixtureB(_world, contact);
-		Body* bodyA = _bodyData[pd::GetBody(_world, fixtureA).get()];
-		Body* bodyB = _bodyData[pd::GetBody(_world, fixtureB).get()];
+		pr::ShapeID fixtureA = pd::GetShapeA(_world, contact);
+		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
+		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
+		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
 		if (pd::IsSensor(_world, fixtureA))
 		{
 			Sensor* sensor = _fixtureData[fixtureA.get()];
@@ -195,10 +195,8 @@ void PhysicsWorld::setupPreSolve()
 {
 	_world.SetPreSolveContactListener([this](pr::ContactID contact, const pd::Manifold&)
 	{
-		pr::FixtureID fixtureA = pd::GetFixtureA(_world, contact);
-		pr::FixtureID fixtureB = pd::GetFixtureB(_world, contact);
-		Body* bodyA = _bodyData[pd::GetBody(_world, fixtureA).get()];
-		Body* bodyB = _bodyData[pd::GetBody(_world, fixtureB).get()];
+		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
+		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
 		if (!bodyA || !bodyB) return;
 		if (!bodyA->isReceivingContact() && !bodyB->isReceivingContact()) return;
 		if (bodyA->isReceivingContact() && bodyA->filterContact && !bodyA->filterContact(bodyB))
@@ -284,12 +282,12 @@ bool PhysicsWorld::isShowDebug() const
 
 void PhysicsWorld::setIterations(int velocityIter, int positionIter)
 {
-	_stepConf.regVelocityIterations = velocityIter;
-	_stepConf.regPositionIterations = positionIter;
-	_stepConf.toiVelocityIterations = velocityIter;
+	_stepConf.regVelocityIters = velocityIter;
+	_stepConf.regPositionIters = positionIter;
+	_stepConf.toiVelocityIters = velocityIter;
 	if (positionIter == 0)
 	{
-		_stepConf.toiPositionIterations = 0;
+		_stepConf.toiPositionIters = 0;
 	}
 }
 
@@ -332,7 +330,7 @@ bool PhysicsWorld::update(double deltaTime)
 	return Node::update(deltaTime);
 }
 
-void PhysicsWorld::setFixtureData(pr::FixtureID f, Sensor* sensor)
+void PhysicsWorld::setFixtureData(pr::ShapeID f, Sensor* sensor)
 {
 	if (_fixtureData.size() < f.get() + 1u)
 	{
@@ -341,7 +339,7 @@ void PhysicsWorld::setFixtureData(pr::FixtureID f, Sensor* sensor)
 	_fixtureData[f.get()] = sensor;
 }
 
-Sensor* PhysicsWorld::getFixtureData(pr::FixtureID fixture) const
+Sensor* PhysicsWorld::getFixtureData(pr::ShapeID fixture) const
 {
 	return _fixtureData[fixture.get()];
 }
@@ -398,19 +396,17 @@ bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& cal
 			b2Val(rect.size.height)
 		}
 	};
-	pd::Query(_world.GetTree(), aabb, [&](pr::FixtureID fixture, const pr::ChildCounter)
+	pd::Query(_world.GetTree(), aabb, [&](pr::BodyID bodyID, pr::ShapeID shapeID, const pr::ChildCounter)
 	{
 		BLOCK_START
 		{
-			BREAK_IF(pd::IsSensor(_world, fixture));
-			const auto shape = pd::GetShape(_world, fixture);
-			const auto shapeType = pd::GetType(shape);
+			BREAK_IF(pd::IsSensor(_world, shapeID));
+			const auto shapeType = pd::GetType(_world, shapeID);
 			bool isCommonShape = shapeType != pr::GetTypeID<pd::ChainShapeConf>() && shapeType != pr::GetTypeID<pd::EdgeShapeConf>();
-			pr::BodyID b = pd::GetBody(_world, fixture);
 			BREAK_IF(isCommonShape &&
-				!pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(shape, 0),
-				pd::GetTransformation(_world, b)));
-			Body* body = _bodyData[b.get()];
+				!pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(pd::GetShape(_world, shapeID), 0),
+				pd::GetTransformation(_world, bodyID)));
+			Body* body = _bodyData[bodyID.get()];
 			std::vector<Body*>& results = isCommonShape ? _queryResultsOfCommonShapes : _queryResultsOfChainsAndEdges;
 			if (body && (results.empty() || results.back() != body))
 			{
@@ -446,7 +442,7 @@ bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, con
 {
 	pd::RayCastInput input{b2Val(start), b2Val(end), pr::Real{1}};
 	bool result = false;
-	pd::RayCast(_world, input, [&](pr::BodyID body, pr::FixtureID fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal)
+	pd::RayCast(_world, input, [&](pr::BodyID body, pr::ShapeID fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal)
 	{
 		Body* node = _bodyData[body.get()];
 		if (!node) return pr::RayCastOpcode::ResetRay;
@@ -500,7 +496,7 @@ void PhysicsWorld::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact
 	}
 	for (pr::BodyID body : _world.GetBodies())
 	{
-		for (pr::FixtureID f : pd::GetFixtures(_world, body))
+		for (pr::ShapeID f : pd::GetShapes(_world, body))
 		{
 			int groupIndex = pd::GetFilterData(_world, f).groupIndex;
 			if (groupIndex == groupA)

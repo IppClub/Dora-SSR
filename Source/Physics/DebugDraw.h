@@ -30,7 +30,6 @@ public:
 	virtual ~DebugDraw();
 	void DrawWorld(PhysicsWorld* world);
 public:
-	static bool IsVisible(PhysicsWorld* world, pr::FixtureID fixture);
 	static bool IsVisible(Body* body);
 	void DrawPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
 	void DrawSolidPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);

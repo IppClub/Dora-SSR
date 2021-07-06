@@ -50,7 +50,7 @@ struct PointStates
 {
     /// @brief State 1.
     PointState state1[MaxManifoldPoints] = {PointState::NullState, PointState::NullState};
-    
+
     /// @brief State 2.
     PointState state2[MaxManifoldPoints] = {PointState::NullState, PointState::NullState};
 };

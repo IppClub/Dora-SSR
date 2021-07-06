@@ -52,39 +52,39 @@ struct Vector
 
     /// @brief Size type.
     using size_type = std::size_t;
-    
+
     /// @brief Difference type.
     using difference_type = std::ptrdiff_t;
-    
+
     /// @brief Reference type.
     using reference = value_type&;
-    
+
     /// @brief Constant reference type.
     using const_reference = const value_type&;
-    
+
     /// @brief Pointer type.
     using pointer = value_type*;
-    
+
     /// @brief Constant pointer type.
     using const_pointer = const value_type*;
-    
+
     /// @brief Iterator type.
     using iterator = value_type*;
-    
+
     /// @brief Constant iterator type.
     using const_iterator = const value_type*;
-    
+
     /// @brief Reverse iterator type.
     using reverse_iterator = std::reverse_iterator<iterator>;
-    
+
     /// @brief Constant reverse iterator type.
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    
+
     /// @brief Default constructor.
     /// @note Defaulted explicitly.
     /// @note This constructor performs no action.
     constexpr Vector() = default;
-    
+
     /// @brief Initializing constructor.
     template<typename... Tail>
     constexpr Vector(std::enable_if_t<sizeof...(Tail)+1 == N, T> head,
@@ -95,29 +95,29 @@ struct Vector
 
     /// @brief Gets the max size.
     constexpr size_type max_size() const noexcept { return N; }
-    
+
     /// @brief Gets the size.
     constexpr size_type size() const noexcept { return N; }
-    
+
     /// @brief Whether empty.
     /// @note Always false for N > 0.
     constexpr bool empty() const noexcept { return N == 0; }
-    
+
     /// @brief Gets a "begin" iterator.
     iterator begin() noexcept { return iterator(elements); }
 
     /// @brief Gets an "end" iterator.
     iterator end() noexcept { return iterator(elements + N); }
-    
+
     /// @brief Gets a "begin" iterator.
     const_iterator begin() const noexcept { return const_iterator(elements); }
-    
+
     /// @brief Gets an "end" iterator.
     const_iterator end() const noexcept { return const_iterator(elements + N); }
-    
+
     /// @brief Gets a "begin" iterator.
     const_iterator cbegin() const noexcept { return begin(); }
-    
+
     /// @brief Gets an "end" iterator.
     const_iterator cend() const noexcept { return end(); }
 
@@ -126,13 +126,13 @@ struct Vector
 
     /// @brief Gets a reverse "end" iterator.
     reverse_iterator rend() noexcept { return reverse_iterator{elements}; }
-    
+
     /// @brief Gets a reverse "begin" iterator.
     const_reverse_iterator crbegin() const noexcept
     {
         return const_reverse_iterator{elements + N};
     }
-    
+
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator crend() const noexcept
     {
@@ -144,7 +144,7 @@ struct Vector
     {
         return crbegin();
     }
-    
+
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator rend() const noexcept
     {
@@ -159,7 +159,7 @@ struct Vector
         assert(pos < size());
         return elements[pos];
     }
-    
+
     /// @brief Gets a constant reference to the requested element.
     /// @note No bounds checking is performed.
     /// @warning Behavior is undefined if given a position equal to or greater than size().
@@ -168,7 +168,7 @@ struct Vector
         assert(pos < size());
         return elements[pos];
     }
-    
+
     /// @brief Gets a reference to the requested element.
     /// @throws InvalidArgument if given a position that's >= size().
     constexpr reference at(size_type pos)
@@ -179,7 +179,7 @@ struct Vector
         }
         return elements[pos];
     }
-    
+
     /// @brief Gets a constant reference to the requested element.
     /// @throws InvalidArgument if given a position that's >= size().
     constexpr const_reference at(size_type pos) const
@@ -190,19 +190,19 @@ struct Vector
         }
         return elements[pos];
     }
-    
+
     /// @brief Direct access to data.
     constexpr pointer data() noexcept
     {
         return elements;
     }
-    
+
     /// @brief Direct access to data.
     constexpr const_pointer data() const noexcept
     {
         return elements;
     }
-    
+
     /// @brief Elements.
     /// @details Array of N elements unless N is 0 in which case this is an array of 1 element.
     /// @warning Don't access this directly!
@@ -553,11 +553,11 @@ template <typename T, std::size_t N>
 } // namespace playrho
 
 namespace std {
-    
+
     /// @brief Tuple size info for <code>playrho::Vector</code>
     template<class T, std::size_t N>
     class tuple_size< playrho::Vector<T, N> >: public std::integral_constant<std::size_t, N> {};
-    
+
     /// @brief Tuple element type info for <code>playrho::Vector</code>
     template<std::size_t I, class T, std::size_t N>
     class tuple_element<I, playrho::Vector<T, N>>
@@ -566,7 +566,7 @@ namespace std {
         /// @brief Type alias revealing the actual element type of the given Vector.
         using type = T;
     };
-    
+
 } // namespace std
 
 #endif // PLAYRHO_COMMON_VECTOR_HPP

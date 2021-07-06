@@ -47,6 +47,7 @@ constexpr auto InvalidIndexPair = IndexPair{
 using IndexPair3 = std::array<IndexPair, MaxSimplexEdges>;
 
 /// @brief Invalid array of three index-pair elements.
+/// @relatedalso IndexPair3
 constexpr auto InvalidIndexPair3 = IndexPair3{{
     InvalidIndexPair, InvalidIndexPair, InvalidIndexPair
 }};

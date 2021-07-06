@@ -24,8 +24,8 @@
 #include "PlayRho/Collision/DistanceProxy.hpp"
 #include "PlayRho/Collision/Shapes/Shape.hpp"
 #include "PlayRho/Dynamics/Contacts/Contact.hpp"
-#include "PlayRho/Dynamics/WorldFixture.hpp"
 #include "PlayRho/Dynamics/WorldBody.hpp"
+#include "PlayRho/Dynamics/WorldShape.hpp"
 
 /// @file
 /// Definitions for the AABB class.
@@ -37,21 +37,19 @@ AABB ComputeAABB(const DistanceProxy& proxy, const Transformation& xf) noexcept
 {
     assert(IsValid(xf));
     auto result = AABB{};
-    for (const auto& vertex: proxy.GetVertices())
-    {
+    for (const auto& vertex : proxy.GetVertices()) {
         Include(result, Transform(vertex, xf));
     }
     return GetFattenedAABB(result, proxy.GetVertexRadius());
 }
 
-AABB ComputeAABB(const DistanceProxy& proxy,
-                 const Transformation& xfm0, const Transformation& xfm1) noexcept
+AABB ComputeAABB(const DistanceProxy& proxy, const Transformation& xfm0,
+                 const Transformation& xfm1) noexcept
 {
     assert(IsValid(xfm0));
     assert(IsValid(xfm1));
     auto result = AABB{};
-    for (const auto& vertex: proxy.GetVertices())
-    {
+    for (const auto& vertex : proxy.GetVertices()) {
         Include(result, Transform(vertex, xfm0));
         Include(result, Transform(vertex, xfm1));
     }
@@ -62,47 +60,43 @@ AABB ComputeAABB(const Shape& shape, const Transformation& xf) noexcept
 {
     auto sum = AABB{};
     const auto childCount = GetChildCount(shape);
-    for (auto i = decltype(childCount){0}; i < childCount; ++i)
-    {
+    for (auto i = decltype(childCount){0}; i < childCount; ++i) {
         Include(sum, ComputeAABB(GetChild(shape, i), xf));
     }
     return sum;
 }
 
-AABB ComputeAABB(const World& world, FixtureID id)
+AABB ComputeAABB(const World& world, BodyID bodyID, ShapeID shapeID)
 {
-    return ComputeAABB(GetShape(world, id), GetTransformation(world, GetBody(world, id)));
+    return ComputeAABB(GetShape(world, shapeID), GetTransformation(world, bodyID));
 }
 
 AABB ComputeAABB(const World& world, BodyID id)
 {
     auto sum = AABB{};
     const auto xf = GetTransformation(world, id);
-    for (const auto& f: GetFixtures(world, id))
-    {
-        Include(sum, ComputeAABB(GetShape(world, f), xf));
+    for (const auto& shapeId : GetShapes(world, id)) {
+        Include(sum, ComputeAABB(GetShape(world, shapeId), xf));
     }
     return sum;
 }
 
-AABB ComputeIntersectingAABB(const World& world,
-                             FixtureID fA, ChildCounter iA,
-                             FixtureID fB, ChildCounter iB) noexcept
+AABB ComputeIntersectingAABB(const World& world, BodyID bA, ShapeID sA, ChildCounter iA, BodyID bB,
+                             ShapeID sB, ChildCounter iB) noexcept
 {
-    const auto xA = GetTransformation(world, GetBody(world, fA));
-    const auto xB = GetTransformation(world, GetBody(world, fB));
-    const auto childA = GetChild(GetShape(world, fA), iA);
-    const auto childB = GetChild(GetShape(world, fB), iB);
+    const auto xA = GetTransformation(world, bA);
+    const auto xB = GetTransformation(world, bB);
+    const auto childA = GetChild(GetShape(world, sA), iA);
+    const auto childB = GetChild(GetShape(world, sB), iB);
     const auto aabbA = ComputeAABB(childA, xA);
     const auto aabbB = ComputeAABB(childB, xB);
     return GetIntersectingAABB(aabbA, aabbB);
 }
 
-AABB ComputeIntersectingAABB(const World& world, const Contact& contact)
+AABB ComputeIntersectingAABB(const World& world, const Contact& c)
 {
-    return ComputeIntersectingAABB(world,
-                                   contact.GetFixtureA(), contact.GetChildIndexA(),
-                                   contact.GetFixtureB(), contact.GetChildIndexB());
+    return ComputeIntersectingAABB(world, c.GetBodyA(), c.GetShapeA(), c.GetChildIndexA(),
+                                   c.GetBodyB(), c.GetShapeB(), c.GetChildIndexB());
 }
 
 AABB GetAABB(const RayCastInput& input) noexcept

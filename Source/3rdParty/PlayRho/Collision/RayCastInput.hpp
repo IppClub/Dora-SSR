@@ -38,7 +38,7 @@ struct RayCastInput
 {
     Vector<Length, N> p1; ///< Point 1.
     Vector<Length, N> p2; ///< Point 2.
-    
+
     /// @brief Max fraction.
     /// @details Unit interval value - a value between 0 and 1 inclusive.
     UnitInterval<Real> maxFraction = UnitInterval<Real>{0};

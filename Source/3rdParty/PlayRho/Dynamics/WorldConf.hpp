@@ -38,7 +38,10 @@ struct WorldConf {
     constexpr WorldConf& UseMaxVertexRadius(Positive<Length> value) noexcept;
 
     /// @brief Uses the given value as the initial dynamic tree size.
-    constexpr WorldConf& UseInitialTreeSize(ContactCounter value) noexcept;
+    constexpr WorldConf& UseTreeCapacity(ContactCounter value) noexcept;
+
+    /// @brief Uses the given value as the initial contact capacity.
+    constexpr WorldConf& UseContactCapacity(ContactCounter value) noexcept;
 
     /// @brief Minimum vertex radius.
     /// @details This is the minimum vertex radius that this world establishes which bodies
@@ -60,7 +63,10 @@ struct WorldConf {
     Positive<Length> maxVertexRadius = DefaultMaxVertexRadius;
 
     /// @brief Initial tree size.
-    ContactCounter initialTreeSize = 4096;
+    ContactCounter treeCapacity = 4096u;
+
+    /// @brief Initial contact capacity.
+    ContactCounter contactCapacity = 2048u;
 };
 
 constexpr WorldConf& WorldConf::UseMinVertexRadius(Positive<Length> value) noexcept
@@ -75,9 +81,15 @@ constexpr WorldConf& WorldConf::UseMaxVertexRadius(Positive<Length> value) noexc
     return *this;
 }
 
-constexpr WorldConf& WorldConf::UseInitialTreeSize(ContactCounter value) noexcept
+constexpr WorldConf& WorldConf::UseTreeCapacity(ContactCounter value) noexcept
 {
-    initialTreeSize = value;
+    treeCapacity = value;
+    return *this;
+}
+
+constexpr WorldConf& WorldConf::UseContactCapacity(ContactCounter value) noexcept
+{
+    contactCapacity = value;
     return *this;
 }
 

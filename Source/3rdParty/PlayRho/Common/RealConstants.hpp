@@ -51,14 +51,14 @@ namespace playrho {
 ///
 /// @see https://en.wikipedia.org/wiki/Pi
 ///
-constexpr auto Pi = Real(3.14159265358979323846264338327950288);
+constexpr auto Pi = Real(3.14159265358979323846264338327950288L);
 
 /// @brief Square root of two.
 ///
 /// @see https://en.wikipedia.org/wiki/Square_root_of_2
 ///
 constexpr auto SquareRootTwo =
-    Real(1.414213562373095048801688724209698078569671875376948073176679737990732478462);
+    Real(1.414213562373095048801688724209698078569671875376948073176679737990732478462L);
 
 /// @defgroup DecimalUnitPrefices Decimal Unit Prefices
 /// @brief Decimal unit prefices in the metric system for denoting a multiple, or

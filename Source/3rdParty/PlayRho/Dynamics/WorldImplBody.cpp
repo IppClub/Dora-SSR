@@ -22,7 +22,6 @@
 #include "PlayRho/Dynamics/WorldImplBody.hpp"
 
 #include "PlayRho/Dynamics/WorldImpl.hpp"
-#include "PlayRho/Dynamics/WorldImplFixture.hpp" // for GetDensity, GetMassData
 #include "PlayRho/Dynamics/Body.hpp"
 #include "PlayRho/Dynamics/BodyConf.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
@@ -47,9 +46,14 @@ BodyCounter GetBodyRange(const WorldImpl& world) noexcept
     return world.GetBodyRange();
 }
 
+BodyID CreateBody(WorldImpl& world, const Body& body)
+{
+    return world.CreateBody(body);
+}
+
 BodyID CreateBody(WorldImpl& world, const BodyConf& def)
 {
-    return world.CreateBody(def);
+    return CreateBody(world, Body{def});
 }
 
 const Body& GetBody(const WorldImpl& world, BodyID id)
@@ -67,19 +71,34 @@ void Destroy(WorldImpl& world, BodyID id)
     world.Destroy(id);
 }
 
-SizedRange<std::vector<std::pair<BodyID, JointID>>::const_iterator>
-GetJoints(const WorldImpl& world, BodyID id)
+std::vector<std::pair<BodyID, JointID>> GetJoints(const WorldImpl& world, BodyID id)
 {
     return world.GetJoints(id);
 }
 
-SizedRange<WorldImpl::Fixtures::const_iterator> GetFixtures(const WorldImpl& world, BodyID id)
+void Attach(WorldImpl& world, BodyID id, ShapeID shapeID)
 {
-    return world.GetFixtures(id);
+    auto body = GetBody(world, id);
+    body.Attach(shapeID);
+    SetBody(world, id, body);
 }
 
-SizedRange<std::vector<KeyedContactPtr>::const_iterator>
-GetContacts(const WorldImpl& world, BodyID id)
+bool Detach(WorldImpl& world, BodyID id, ShapeID shapeID)
+{
+    auto body = GetBody(world, id);
+    if (body.Detach(shapeID)) {
+        SetBody(world, id, body);
+        return true;
+    }
+    return false;
+}
+
+std::vector<ShapeID> GetShapes(const WorldImpl& world, BodyID id)
+{
+    return world.GetBody(id).GetShapes();
+}
+
+std::vector<KeyedContactPtr> GetContacts(const WorldImpl& world, BodyID id)
 {
     return world.GetContacts(id);
 }

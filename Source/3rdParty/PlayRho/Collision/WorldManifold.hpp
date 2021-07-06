@@ -41,7 +41,7 @@ class WorldManifold
 {
 private:
     UnitVec m_normal = GetInvalid<UnitVec>(); ///< world vector pointing from A to B
-    
+
     /// @brief Points.
     /// @details Manifold's contact points in world coordinates (mid-point of intersection)
     /// @note 16-bytes.
@@ -50,13 +50,13 @@ private:
     /// @brief Impulses.
     /// @note 16-bytes.
     Momentum2 m_impulses[MaxManifoldPoints] = {Momentum2{}, Momentum2{}};
-    
+
     /// @brief Separations.
     /// @details A negative value indicates overlap.
     Length m_separations[MaxManifoldPoints] = {GetInvalid<Length>(), GetInvalid<Length>()};
-    
+
 public:
-    
+
     /// @brief Size type.
     using size_type = std::remove_const<decltype(MaxManifoldPoints)>::type;
 
@@ -68,13 +68,13 @@ public:
         Momentum2 impulse; ///< "Normal" and "tangent" impulses at the point.
         Length separation; ///< Separation at point or the invalid value.
     };
-    
+
     /// Default constructor.
     /// @details
     /// A default constructed world manifold will gave a point count of zero, an invalid
     /// normal, invalid points, and invalid separations.
     WorldManifold() = default;
-    
+
     /// @brief Initializing constructor.
     constexpr explicit WorldManifold(UnitVec normal) noexcept:
         m_normal{normal}
@@ -82,7 +82,7 @@ public:
         assert(IsValid(normal));
         // Intentionally empty.
     }
-    
+
     /// @brief Initializing constructor.
     constexpr explicit WorldManifold(UnitVec normal, PointData ps0) noexcept:
         m_normal{normal},
@@ -93,7 +93,7 @@ public:
         assert(IsValid(normal));
         // Intentionally empty.
     }
-    
+
     /// @brief Initializing constructor.
     constexpr explicit WorldManifold(UnitVec normal, PointData ps0, PointData ps1) noexcept:
         m_normal{normal},
@@ -104,7 +104,7 @@ public:
         assert(IsValid(normal));
         // Intentionally empty.
     }
-    
+
     /// @brief Gets the point count.
     ///
     /// @details This is the maximum index value that can be used to access valid point or
@@ -116,12 +116,12 @@ public:
     {
         return (IsValid(m_separations[0])? 1: 0) + (IsValid(m_separations[1])? 1: 0);
     }
-    
+
     /// Gets the normal of the contact.
     /// @details This is a directional unit-vector.
     /// @return Normal of the contact or an invalid value.
     UnitVec GetNormal() const noexcept { return m_normal; }
-    
+
     /// Gets the indexed point's location in world coordinates.
     ///
     /// @warning Behavior is undefined if the index value is not less than
@@ -137,7 +137,7 @@ public:
         assert(index < MaxManifoldPoints);
         return m_points[index];
     }
-    
+
     /// Gets the amount of separation at the given indexed point.
     ///
     /// @warning Behavior is undefined if the index value is not less than
@@ -153,7 +153,7 @@ public:
         assert(index < MaxManifoldPoints);
         return m_separations[index];
     }
-    
+
     /// @brief Gets the given index contact impulses.
     /// @return "Normal impulse" and "tangent impulse" pair.
     Momentum2 GetImpulses(size_type index) const noexcept

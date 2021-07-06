@@ -90,19 +90,19 @@ constexpr Fixed<BT, FB> pow(Fixed<BT, FB> value, int n)
     {
         return (n < 0)? Fixed<BT, FB>{0}: Fixed<BT, FB>::GetInfinity();
     }
-    
+
     const auto doReciprocal = (n < 0);
     if (doReciprocal)
     {
         n = -n;
     }
-    
+
     auto res = value;
     for (; n > 1; --n)
     {
         res *= value;
     }
-    
+
     return (doReciprocal)? 1 / res: res;
 }
 
@@ -115,6 +115,7 @@ constexpr auto FixedPi = Fixed<BT, FB>{3.14159265358979323846264338327950288};
 /// @brief Computes the factorial.
 constexpr auto factorial(std::int64_t n)
 {
+    // n! = n·(n – 1)·(n – 2) · · · 3·2·1
     auto res = n;
     for (--n; n > 1; --n)
     {
@@ -196,7 +197,7 @@ Fixed<BT, FB> log(Fixed<BT, FB> arg)
         }
         return res;
     }
-    
+
     // The following algorithm isn't as accurate as desired.
     // Is there a better one?
     // ln(x) = ((x - 1) / x) + ((x - 1) / x)^2/2 + ((x - 1) / x)^3/3 + ...
@@ -295,7 +296,7 @@ constexpr Fixed<BT, FB> atan(Fixed<BT, FB> arg)
         res += sgn * term;
         sgn = -sgn;
     }
-    
+
     if (doReciprocal)
     {
         return (arg > 0)? FixedPi<BT, FB> / 2 - res: -FixedPi<BT, FB> / 2 - res;
@@ -522,7 +523,7 @@ inline Fixed<BT, FB> pow(Fixed<BT, FB> base, Fixed<BT, FB> exponent)
             return pow(base, intExp);
         }
     }
-    
+
     if (base < 0)
     {
         return Fixed<BT, FB>::GetNaN();

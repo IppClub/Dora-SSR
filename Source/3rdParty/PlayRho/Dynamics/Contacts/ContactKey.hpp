@@ -40,10 +40,10 @@ public:
     {
         // Intentionally empty
     }
-    
+
     /// @brief Initializing constructor.
-    constexpr ContactKey(ContactCounter fp1, ContactCounter fp2) noexcept:
-        m_ids{std::minmax(fp1, fp2)}
+    constexpr ContactKey(ContactCounter fp1, ContactCounter fp2) noexcept
+        : m_ids{std::minmax(fp1, fp2)}
     {
         // Intentionally empty
     }
@@ -53,7 +53,7 @@ public:
     {
         return std::get<0>(m_ids);
     }
-    
+
     /// @brief Gets the maximum index value.
     constexpr ContactCounter GetMax() const noexcept
     {
@@ -64,74 +64,73 @@ private:
     /// @brief Contact counter ID pair.
     /// @note Uses <code>std::pair</code> given that <code>std::minmax</code> returns
     ///   this type making it the most natural type for this class.
-    std::pair<ContactCounter, ContactCounter> m_ids{
-        static_cast<ContactCounter>(-1), static_cast<ContactCounter>(-1)
-    };
+    std::pair<ContactCounter, ContactCounter> m_ids{static_cast<ContactCounter>(-1),
+                                                    static_cast<ContactCounter>(-1)};
 };
 
 /// @brief Equality operator.
-constexpr bool operator== (const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator==(const ContactKey lhs, const ContactKey rhs) noexcept
 {
     return lhs.GetMin() == rhs.GetMin() && lhs.GetMax() == rhs.GetMax();
 }
 
 /// @brief Inequality operator.
-constexpr bool operator!= (const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator!=(const ContactKey lhs, const ContactKey rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
 /// @brief Less-than operator.
-constexpr bool operator< (const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator<(const ContactKey lhs, const ContactKey rhs) noexcept
 {
-    return (lhs.GetMin() < rhs.GetMin())
-        || ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() < rhs.GetMax()));
+    return (lhs.GetMin() < rhs.GetMin()) ||
+           ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() < rhs.GetMax()));
 }
 
 /// @brief Less-than or equal-to operator.
-constexpr bool operator<= (const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator<=(const ContactKey lhs, const ContactKey rhs) noexcept
 {
-    return (lhs.GetMin() < rhs.GetMin())
-    || ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() <= rhs.GetMax()));
+    return (lhs.GetMin() < rhs.GetMin()) ||
+           ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() <= rhs.GetMax()));
 }
 
 /// @brief Greater-than operator.
-constexpr bool operator> (const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator>(const ContactKey lhs, const ContactKey rhs) noexcept
 {
-    return (lhs.GetMin() > rhs.GetMin())
-        || ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() > rhs.GetMax()));
+    return (lhs.GetMin() > rhs.GetMin()) ||
+           ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() > rhs.GetMax()));
 }
 
 /// @brief Greater-than or equal-to operator.
-constexpr bool operator>= (const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator>=(const ContactKey lhs, const ContactKey rhs) noexcept
 {
-    return (lhs.GetMin() > rhs.GetMin())
-    || ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() >= rhs.GetMax()));
+    return (lhs.GetMin() > rhs.GetMin()) ||
+           ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() >= rhs.GetMax()));
 }
 
 } // namespace playrho
 
-namespace std
-{
-    /// @brief Hash function object specialization for <code>ContactKey</code>.
-    template <>
-    struct hash<playrho::ContactKey>
-    {
-        /// @brief Argument type.
-        using argument_type = playrho::ContactKey;
-        
-        /// @brief Result type.
-        using result_type = std::size_t;
+namespace std {
 
-        /// @brief Function object operator.
-        constexpr std::size_t operator()(const playrho::ContactKey& key) const
-        {
-            // Use simple and fast Knuth multiplicative hash...
-            const auto a = std::size_t{key.GetMin()} * 2654435761u;
-            const auto b = std::size_t{key.GetMax()} * 2654435761u;
-            return a ^ b;
-        }
-    };
+/// @brief Hash function object specialization for <code>ContactKey</code>.
+template <>
+struct hash<playrho::ContactKey> {
+    /// @brief Argument type.
+    using argument_type = playrho::ContactKey;
+
+    /// @brief Result type.
+    using result_type = std::size_t;
+
+    /// @brief Function object operator.
+    constexpr std::size_t operator()(const playrho::ContactKey& key) const
+    {
+        // Use simple and fast Knuth multiplicative hash...
+        const auto a = std::size_t{key.GetMin()} * 2654435761u;
+        const auto b = std::size_t{key.GetMax()} * 2654435761u;
+        return a ^ b;
+    }
+};
+
 } // namespace std
 
 #endif // PLAYRHO_DYNAMICS_CONTACTS_CONTACTKEY_HPP

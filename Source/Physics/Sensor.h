@@ -32,7 +32,7 @@ public:
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_READONLY(int, Tag);
 	PROPERTY_READONLY(Body*, Owner);
-	PROPERTY_READONLY(pr::FixtureID, Fixture);
+	PROPERTY_READONLY(pr::ShapeID, Fixture);
 	PROPERTY_READONLY(Array*, SensedBodies);
 	PROPERTY(int, Group);
 	bool isSensed() const;
@@ -50,10 +50,10 @@ public:
 
 	CREATE_FUNC(Sensor);
 protected:
-	Sensor(Body* owner, int tag, pr::FixtureID fixture);
+	Sensor(Body* owner, int tag, pr::ShapeID fixture);
 	int _tag;
 	Body* _owner;
-	pr::FixtureID _fixture;
+	pr::ShapeID _fixture;
 private:
 	void executeEnterHandler();
 	void executeLeaveHandler();

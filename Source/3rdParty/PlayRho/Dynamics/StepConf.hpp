@@ -215,7 +215,7 @@ struct StepConf {
     /// @brief Regular velocity iterations.
     /// @details The number of iterations of velocity resolution that will be done in the step.
     /// @note Used in the regular phase of step processing.
-    iteration_type regVelocityIterations = 8;
+    iteration_type regVelocityIters = 8;
 
     /// @brief Regular position iterations.
     /// @details
@@ -225,13 +225,13 @@ struct StepConf {
     /// or equal to the regular minimum separation amount.
     /// @note Used in the regular phase of step processing.
     /// @see regMinSeparation.
-    iteration_type regPositionIterations = 3;
+    iteration_type regPositionIters = 3;
 
     /// @brief TOI velocity iterations.
     /// @details
     /// This is the number of iterations of velocity resolution that will be done in the step.
     /// @note Used in the TOI phase of step processing.
-    iteration_type toiVelocityIterations = 8;
+    iteration_type toiVelocityIters = 8;
 
     /// @brief TOI position iterations.
     /// @details
@@ -241,7 +241,7 @@ struct StepConf {
     /// or equal to the TOI minimum separation amount.
     /// @note Used in the TOI phase of step processing.
     /// @see toiMinSeparation.
-    iteration_type toiPositionIterations = 20;
+    iteration_type toiPositionIters = 20;
 
     /// @brief Max TOI root finder iterations.
     /// @note Used in the TOI phase of step processing.
@@ -285,7 +285,7 @@ struct StepConf {
 /// @relatedalso StepConf
 inline Length GetMaxRegLinearCorrection(const StepConf& conf) noexcept
 {
-    return conf.maxLinearCorrection * static_cast<Real>(conf.regPositionIterations);
+    return conf.maxLinearCorrection * static_cast<Real>(conf.regPositionIters);
 }
 
 /// @brief Determines whether the maximum translation is within tolerance.

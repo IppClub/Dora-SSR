@@ -29,7 +29,7 @@
 namespace playrho {
 
 /// @brief A holder for contact filtering data.
-/// @note This data structure size is 9-bytes.
+/// @note This data structure size is 6-bytes.
 struct Filter {
     /// @brief Bits type definition.
     ///
@@ -43,7 +43,7 @@ struct Filter {
     ///
     /// @note Normally you would just set one bit.
     ///
-    bits_type categoryBits = 1;
+    bits_type categoryBits = 0x0001;
 
     /// @brief The collision mask bits.
     ///

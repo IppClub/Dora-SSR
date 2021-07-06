@@ -27,12 +27,11 @@
 
 #include "PlayRho/Common/Units.hpp" // for Length, Frequency, etc.
 #include "PlayRho/Common/Vector2.hpp" // for Length2
-#include "PlayRho/Common/Range.hpp" // for SizedRange
 
 #include "PlayRho/Dynamics/StepStats.hpp"
 #include "PlayRho/Dynamics/BodyID.hpp"
 #include "PlayRho/Dynamics/BodyConf.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 #include "PlayRho/Dynamics/Contacts/ContactID.hpp"
 #include "PlayRho/Dynamics/Contacts/KeyedContactID.hpp" // for KeyedContactPtr
 #include "PlayRho/Dynamics/Joints/JointID.hpp"
@@ -64,10 +63,11 @@ std::unique_ptr<WorldImpl> CreateWorldImpl(const WorldImpl& other);
 /// @relatedalso WorldImpl
 void Clear(WorldImpl& world) noexcept;
 
-/// @brief Registers a destruction listener for fixtures.
-/// @relatedalso WorldImpl
-void SetFixtureDestructionListener(WorldImpl& world,
-                                   std::function<void(FixtureID)> listener) noexcept;
+/// @brief Registers a destruction listener for shapes.
+void SetShapeDestructionListener(WorldImpl& world, std::function<void(ShapeID)> listener) noexcept;
+
+/// @brief Registers a detach listener for shapes detaching from bodies.
+void SetDetachListener(WorldImpl& world, std::function<void(std::pair<BodyID, ShapeID>)> listener) noexcept;
 
 /// @brief Registers a destruction listener for joints.
 /// @relatedalso WorldImpl
@@ -109,32 +109,29 @@ void ShiftOrigin(WorldImpl& world, Length2 newOrigin);
 
 /// @brief Gets the bodies of the specified world.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<BodyID>::const_iterator> GetBodies(const WorldImpl& world) noexcept;
+std::vector<BodyID> GetBodies(const WorldImpl& world) noexcept;
 
 /// @brief Gets the bodies-for-proxies range for this world.
 /// @details Provides insight on what bodies have been queued for proxy processing
 ///   during the next call to the world step method.
 /// @see WorldImpl::Step.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<BodyID>::const_iterator>
-GetBodiesForProxies(const WorldImpl& world) noexcept;
+std::vector<BodyID> GetBodiesForProxies(const WorldImpl& world) noexcept;
 
 /// @brief Gets the fixtures-for-proxies range for this world.
 /// @details Provides insight on what fixtures have been queued for proxy processing
 ///   during the next call to the world step method.
 /// @see Step.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<FixtureID>::const_iterator>
-GetFixturesForProxies(const WorldImpl& world) noexcept;
+std::vector<std::pair<BodyID, ShapeID>> GetFixturesForProxies(const WorldImpl& world) noexcept;
 
 /// @brief Gets the joints of the specified world.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<JointID>::const_iterator> GetJoints(const WorldImpl& world) noexcept;
+std::vector<JointID> GetJoints(const WorldImpl& world) noexcept;
 
 /// @brief Gets the contacts of the specified world.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<KeyedContactPtr>::const_iterator>
-GetContacts(const WorldImpl& world) noexcept;
+std::vector<KeyedContactPtr> GetContacts(const WorldImpl& world) noexcept;
 
 /// @brief Is the world locked (in the middle of a time step).
 /// @relatedalso WorldImpl

@@ -27,11 +27,14 @@
 
 #include "PlayRho/Common/Math.hpp"
 
-#include "PlayRho/Dynamics/FixtureID.hpp"
+#include "PlayRho/Dynamics/BodyID.hpp"
 #include "PlayRho/Dynamics/Joints/JointID.hpp"
 #include "PlayRho/Dynamics/Contacts/ContactID.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/StepStats.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
+
+#include <utility> // for std::pair
 
 namespace playrho {
 namespace d2 {
@@ -41,9 +44,13 @@ class DynamicTree;
 class Manifold;
 class ContactImpulsesList;
 
-/// @brief Sets the fixture destruction lister.
+/// @brief Sets the shape destruction lister.
 /// @relatedalso World
-void SetFixtureDestructionListener(World& world, std::function<void(FixtureID)> listener) noexcept;
+void SetShapeDestructionListener(World& world, std::function<void(ShapeID)> listener) noexcept;
+
+/// @brief Sets the detach lister.
+/// @relatedalso World
+void SetDetachListener(World& world, std::function<void(std::pair<BodyID, ShapeID>)> listener) noexcept;
 
 /// @brief Sets the joint destruction lister.
 /// @relatedalso World
@@ -131,10 +138,6 @@ void SetSubStepping(World& world, bool flag) noexcept;
 /// @brief Gets the dynamic tree of the given world.
 /// @relatedalso World
 const DynamicTree& GetTree(const World& world) noexcept;
-
-/// @brief Gets the count of unique shapes in the given world.
-/// @relatedalso World
-FixtureCounter GetShapeCount(const World& world) noexcept;
 
 /// @brief Gets the min vertex radius that shapes for the given world are allowed to be.
 /// @relatedalso World

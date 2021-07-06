@@ -37,7 +37,7 @@ namespace d2 {
 /// @note This is an internal class.
 /// @note This data structure is 72-bytes large (on at least one 64-bit platform).
 struct Island
-{   
+{
     /// @brief Container type for body identifiers.
     using Bodies = std::vector<BodyID>;
 
@@ -59,6 +59,10 @@ void Reserve(Island& island, BodyCounter bodies, ContactCounter contacts, JointC
 /// @brief Clears the island containers.
 /// @relatedalso Island
 void Clear(Island& island) noexcept;
+
+/// @brief Sorts the island containers.
+/// @relatedalso Island
+void Sort(Island& island) noexcept;
 
 /// @brief Determines whether the given island is full of bodies.
 /// @relatedalso Island

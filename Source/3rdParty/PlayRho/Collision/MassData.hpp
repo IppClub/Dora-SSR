@@ -29,7 +29,6 @@
 #include "PlayRho/Common/NonNegative.hpp"
 
 #include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
 
 namespace playrho {
 namespace detail {
@@ -41,10 +40,10 @@ struct MassData
 {
     /// @brief Position of the shape's centroid relative to the shape's origin.
     Vector<Length, N> center = Vector<Length, N>{};
-    
+
     /// @brief Mass of the shape in kilograms.
     NonNegative<Mass> mass = NonNegative<Mass>{0_kg};
-    
+
     /// @brief Rotational inertia, a.k.a. moment of inertia.
     /// @details This is the rotational inertia of the shape about the local origin.
     /// @see https://en.wikipedia.org/wiki/Moment_of_inertia

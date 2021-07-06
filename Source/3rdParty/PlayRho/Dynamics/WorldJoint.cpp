@@ -36,7 +36,7 @@ JointCounter GetJointRange(const World& world) noexcept
     return world.GetJointRange();
 }
 
-SizedRange<std::vector<JointID>::const_iterator> GetJoints(const World& world) noexcept
+std::vector<JointID> GetJoints(const World& world) noexcept
 {
     return world.GetJoints();
 }
@@ -194,15 +194,9 @@ bool IsEnabled(const World& world, JointID id)
         && (bB == InvalidBodyID || IsEnabled(world.GetBody(bB)));
 }
 
-JointCounter GetWorldIndex(const World& world, JointID id) noexcept
+JointCounter GetWorldIndex(const World&, JointID id) noexcept
 {
-    const auto elems = world.GetJoints();
-    const auto it = std::find(cbegin(elems), cend(elems), id);
-    if (it != cend(elems))
-    {
-        return static_cast<JointCounter>(std::distance(cbegin(elems), it));
-    }
-    return JointCounter(-1);
+    return to_underlying(id);
 }
 
 Length2 GetAnchorA(const World& world, JointID id)

@@ -39,10 +39,9 @@
 /// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
 #include "PlayRho/Common/Settings.hpp"
-#include "PlayRho/Common/Range.hpp" // for SizedRange
 
 #include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 #include "PlayRho/Dynamics/Contacts/ContactID.hpp"
 #include "PlayRho/Dynamics/Contacts/KeyedContactID.hpp" // for KeyedContactPtr
 
@@ -69,8 +68,7 @@ ContactCounter GetContactRange(const World& world) noexcept;
 
 /// @brief Gets the contacts recognized within the given world.
 /// @relatedalso World
-SizedRange<std::vector<KeyedContactPtr>::const_iterator>
-GetContacts(const World& world) noexcept;
+std::vector<KeyedContactPtr> GetContacts(const World& world) noexcept;
 
 /// @brief Gets the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
@@ -78,6 +76,10 @@ GetContacts(const World& world) noexcept;
 const Contact& GetContact(const World& world, ContactID id);
 
 /// @brief Sets the identified contact's state.
+/// @note This may throw an exception or update associated entities to preserve invariants.
+/// @invariant A contact may only be impenetrable if one or both bodies are.
+/// @invariant A contact may only be active if one or both bodies are awake.
+/// @invariant A contact may only be a sensor or one or both shapes are.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 void SetContact(World& world, ContactID id, const Contact& value);
@@ -99,7 +101,7 @@ bool IsTouching(const World& world, ContactID id);
 /// @relatedalso World
 bool IsAwake(const World& world, ContactID id);
 
-/// @brief Sets awake the bodies of the fixtures of the given contact.
+/// @brief Sets awake the bodies of the given contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 void SetAwake(World& world, ContactID id);
@@ -116,22 +118,22 @@ BodyID GetBodyA(const World& world, ContactID id);
 /// @relatedalso World
 BodyID GetBodyB(const World& world, ContactID id);
 
-/// @brief Gets fixture A of the identified contact.
+/// @brief Gets shape A of the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
-FixtureID GetFixtureA(const World& world, ContactID id);
+ShapeID GetShapeA(const World& world, ContactID id);
 
-/// @brief Gets fixture B of the identified contact.
+/// @brief Gets shape B of the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
-FixtureID GetFixtureB(const World& world, ContactID id);
+ShapeID GetShapeB(const World& world, ContactID id);
 
-/// @brief Get the child primitive index for fixture A.
+/// @brief Gets the child primitive index A for the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 ChildCounter GetChildIndexA(const World& world, ContactID id);
 
-/// @brief Get the child primitive index for fixture B.
+/// @brief Gets the child primitive index B for the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @relatedalso World
 ChildCounter GetChildIndexB(const World& world, ContactID id);

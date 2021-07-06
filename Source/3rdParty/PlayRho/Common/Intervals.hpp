@@ -26,7 +26,7 @@
 #include "PlayRho/Common/Units.hpp"
 
 namespace playrho {
-    
+
     /// @brief Length Interval alias.
     /// @relatedalso Interval
     using LengthInterval = Interval<Length>;

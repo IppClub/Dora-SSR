@@ -28,18 +28,17 @@
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Common/Units.hpp"
 #include "PlayRho/Common/Transformation.hpp"
-#include "PlayRho/Common/Range.hpp" // for SizedRange
 #include "PlayRho/Common/Velocity.hpp"
 #include "PlayRho/Common/Vector2.hpp" // for Length2, LinearAcceleration2
 
+#include "PlayRho/Dynamics/Body.hpp"
 #include "PlayRho/Dynamics/BodyID.hpp"
-#include "PlayRho/Dynamics/FixtureID.hpp"
 #include "PlayRho/Dynamics/BodyType.hpp"
-#include "PlayRho/Dynamics/BodyConf.hpp"
 #include "PlayRho/Dynamics/Contacts/KeyedContactID.hpp"
 #include "PlayRho/Dynamics/Joints/JointID.hpp"
 
 #include "PlayRho/Collision/MassData.hpp"
+#include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
 #include <vector>
 
@@ -47,7 +46,7 @@ namespace playrho {
 namespace d2 {
 
 class WorldImpl;
-class Body;
+struct BodyConf;
 
 /// @brief Gets the extent of the currently valid body range.
 /// @note This is one higher than the maxium BodyID that is in range for body related
@@ -55,9 +54,13 @@ class Body;
 /// @relatedalso WorldImpl
 BodyCounter GetBodyRange(const WorldImpl& world) noexcept;
 
-/// @brief Creates a body with the given configuration within the given world.
+/// @brief Creates a body within the world that's a copy of the given one.
 /// @relatedalso WorldImpl
-BodyID CreateBody(WorldImpl& world, const BodyConf& def = GetDefaultBodyConf());
+BodyID CreateBody(WorldImpl& world, const Body& body = Body{});
+
+/// @brief Creates a body within the world that's a copy of the given one.
+/// @relatedalso WorldImpl
+BodyID CreateBody(WorldImpl& world, const BodyConf& def);
 
 /// @brief Gets the body configuration for the identified body.
 /// @throws std::out_of_range If given an invalid body identifier.
@@ -76,22 +79,33 @@ void Destroy(WorldImpl& world, BodyID id);
 /// @brief Gets the range of all joints attached to this body.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<std::pair<BodyID, JointID>>::const_iterator>
-GetJoints(const WorldImpl& world, BodyID id);
+std::vector<std::pair<BodyID, JointID>> GetJoints(const WorldImpl& world, BodyID id);
 
-/// @brief Gets the range of all constant fixtures attached to the given body.
-/// @throws std::out_of_range If given an invalid body identifier.
+/// @brief Associates a validly identified shape with the validly identified body.
+/// @throws std::out_of_range If given an invalid body or shape identifier.
+/// @throws WrongState if this method is called while the world is locked.
+/// @see GetShapes.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<FixtureID>::const_iterator>
-GetFixtures(const WorldImpl& world, BodyID id);
+void Attach(WorldImpl& world, BodyID id, ShapeID shapeID);
+
+/// @brief Disassociates a validly identified shape from the validly identified body.
+/// @throws std::out_of_range If given an invalid body or shape identifier.
+/// @throws WrongState if this method is called while the world is locked.
+/// @relatedalso WorldImpl
+bool Detach(WorldImpl& world, BodyID id, ShapeID shapeID);
+
+/// @brief Disassociates all of the associated shape from the validly identified body.
+/// @throws std::out_of_range If given an invalid body identifier.
+/// @throws WrongState if this method is called while the world is locked.
+/// @relatedalso WorldImpl
+std::vector<ShapeID> GetShapes(const WorldImpl& world, BodyID id);
 
 /// @brief Gets the container of all contacts attached to this body.
 /// @warning This collection changes during the time step and you may
 ///   miss some collisions if you don't use <code>ContactListener</code>.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso WorldImpl
-SizedRange<std::vector<KeyedContactPtr>::const_iterator>
-GetContacts(const WorldImpl& world, BodyID id);
+std::vector<KeyedContactPtr> GetContacts(const WorldImpl& world, BodyID id);
 
 } // namespace d2
 } // namespace playrho

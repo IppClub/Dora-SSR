@@ -37,19 +37,19 @@ class VelocityConstraint;
 class ContactImpulsesList
 {
 public:
-    
+
     /// @brief Counter type.
     using Counter = std::remove_const<decltype(MaxManifoldPoints)>::type;
-    
+
     /// @brief Gets the count.
     Counter GetCount() const noexcept { return count; }
-    
+
     /// @brief Gets the given indexed entry normal.
     Momentum GetEntryNormal(Counter index) const noexcept { return normalImpulses[index]; }
-    
+
     /// @brief Gets the given indexed entry tangent.
     Momentum GetEntryTanget(Counter index) const noexcept { return tangentImpulses[index]; }
-    
+
     /// @brief Adds an entry of the given data.
     void AddEntry(Momentum normal, Momentum tangent) noexcept
     {
@@ -58,7 +58,7 @@ public:
         tangentImpulses[count] = tangent;
         ++count;
     }
-    
+
 private:
     Momentum normalImpulses[MaxManifoldPoints]; ///< Normal impulses.
     Momentum tangentImpulses[MaxManifoldPoints]; ///< Tangent impulses.

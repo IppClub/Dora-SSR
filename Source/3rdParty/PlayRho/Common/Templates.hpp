@@ -35,30 +35,41 @@ namespace playrho {
 
 // Bring standard customization points into the namespace...
 using std::begin;
-using std::end;
 using std::cbegin;
 using std::cend;
-using std::size;
-using std::empty;
 using std::data;
+using std::empty;
+using std::end;
+using std::size;
 using std::swap;
 
 namespace detail {
 
 /// @brief Low-level implementation of the is-iterable default value trait.
-template<class T, class = void>
-struct IsIterableImpl: std::false_type {};
+template <class T, class = void>
+struct IsIterableImpl : std::false_type {
+};
 
 /// @brief Low-level implementation of the is-iterable true value trait.
-template<class T>
-struct IsIterableImpl<T, std::void_t<
-    decltype(begin(std::declval<T>())),
-    decltype(end(std::declval<T>())),
-    decltype(++std::declval<decltype(begin(std::declval<T&>()))&>()),
-    decltype(*begin(std::declval<T>()))
-    >>:
-    std::true_type
-{};
+template <class T>
+struct IsIterableImpl<
+    T, std::void_t<decltype(begin(std::declval<T>())), decltype(end(std::declval<T>())),
+                   decltype(++std::declval<decltype(begin(std::declval<T&>()))&>()),
+                   decltype(*begin(std::declval<T>()))>> : std::true_type {
+};
+
+/// @brief Low-level implementation of the is-reverse-iterable default value trait.
+template <class T, class = void>
+struct IsReverseIterableImpl : std::false_type {
+};
+
+/// @brief Low-level implementation of the is-reverse-iterable true value trait.
+template <class T>
+struct IsReverseIterableImpl<
+    T, std::void_t<decltype(rbegin(std::declval<T>())), decltype(rend(std::declval<T>())),
+                   decltype(++std::declval<decltype(rbegin(std::declval<T&>()))&>()),
+                   decltype(*rbegin(std::declval<T>()))>> : std::true_type {
+};
 
 /// @brief Gets the maximum size of the given container.
 template <class T>
@@ -93,9 +104,12 @@ static auto Size(T& v)
 }
 
 } // namespace detail
-    
+
 /// @brief "Not used" annotator.
-template<class... T> void NOT_USED(T&&...){}
+template <class... T>
+void NOT_USED(T&&...)
+{
+}
 
 /// @brief Gets an invalid value for the type.
 /// @tparam T Type to get an invalid value for.
@@ -169,60 +183,105 @@ constexpr bool IsValid(const std::size_t& value) noexcept
 /// @brief Template for determining if the given type is an equality comparable type.
 /// @note This isn't exactly the same as the "EqualityComparable" named requirement.
 /// @see https://en.cppreference.com/w/cpp/named_req/EqualityComparable
-template<class T1, class T2, class = void>
-struct IsEqualityComparable: std::false_type {};
+template <class T1, class T2, class = void>
+struct IsEqualityComparable : std::false_type {
+};
 
 /// @brief Template specialization for equality comparable types.
-template<class T1, class T2>
-struct IsEqualityComparable<T1, T2, std::void_t<decltype(T1{} == T2{})> >: std::true_type {};
+template <class T1, class T2>
+struct IsEqualityComparable<T1, T2, std::void_t<decltype(T1{} == T2{})>> : std::true_type {
+};
 
 /// @brief Template for determining if the given type is an inequality comparable type.
-template<class T1, class T2, class = void>
-struct IsInequalityComparable: std::false_type {};
+template <class T1, class T2, class = void>
+struct IsInequalityComparable : std::false_type {
+};
 
 /// @brief Template specialization for inequality comparable types.
-template<class T1, class T2>
-struct IsInequalityComparable<T1, T2, std::void_t<decltype(T1{} != T2{})> >: std::true_type {};
+template <class T1, class T2>
+struct IsInequalityComparable<T1, T2, std::void_t<decltype(T1{} != T2{})>> : std::true_type {
+};
 
 /// @brief Template for determining if the given types are addable.
-template<class T1, class T2 = T1, class = void>
-struct IsAddable: std::false_type {};
+template <class T1, class T2 = T1, class = void>
+struct IsAddable : std::false_type {
+};
 
 /// @brief Template specializing for addable types.
-template<class T1, class T2>
-struct IsAddable<T1, T2, std::void_t<decltype(T1{} + T2{})> >: std::true_type {};
+template <class T1, class T2>
+struct IsAddable<T1, T2, std::void_t<decltype(T1{} + T2{})>> : std::true_type {
+};
 
 /// @brief Template for determining if the given types are multipliable.
-template<class T1, class T2, class = void>
-struct IsMultipliable: std::false_type {};
+template <class T1, class T2, class = void>
+struct IsMultipliable : std::false_type {
+};
 
 /// @brief Template specializing for multipliable types.
-template<class T1, class T2>
-struct IsMultipliable<T1, T2, std::void_t<decltype(T1{} * T2{})> >: std::true_type {};
+template <class T1, class T2>
+struct IsMultipliable<T1, T2, std::void_t<decltype(T1{} * T2{})>> : std::true_type {
+};
 
 /// @brief Template for determining if the given types are divisable.
-template<class T1, class T2, class = void>
-struct IsDivisable: std::false_type {};
+template <class T1, class T2, class = void>
+struct IsDivisable : std::false_type {
+};
 
 /// @brief Template specializing for divisable types.
-template<class T1, class T2>
-struct IsDivisable<T1, T2, std::void_t<decltype(T1{} / T2{})> >: std::true_type {};
+template <class T1, class T2>
+struct IsDivisable<T1, T2, std::void_t<decltype(T1{} / T2{})>> : std::true_type {
+};
 
 /// @brief Template for determining if the given type is an "arithmetic" type.
 /// @note In the context of this library, "arithmetic" types are all types which
 ///   have +, -, *, / arithmetic operator support.
-template<class T, class = void>
-struct IsArithmetic: std::false_type {};
+template <class T, class = void>
+struct IsArithmetic : std::false_type {
+};
 
 /// @brief Template specialization for valid/acceptable "arithmetic" types.
-template<class T>
-struct IsArithmetic<T, std::void_t<
-    decltype(T{} + T{}), decltype(T{} - T{}), decltype(T{} * T{}), decltype(T{} / T{})
-> >: std::true_type {};
+template <class T>
+struct IsArithmetic<T, std::void_t<decltype(T{} + T{}), decltype(T{} - T{}), decltype(T{} * T{}),
+                                   decltype(T{} / T{})>> : std::true_type {
+};
 
 /// @brief Determines whether the given type is an iterable type.
-template<class T>
+template <class T>
 using IsIterable = typename detail::IsIterableImpl<T>;
+
+/// @brief Determines whether the given type is a reverse iterable type.
+template <class T>
+using IsReverseIterable = typename detail::IsReverseIterableImpl<T>;
+
+/// @brief Wrapper for reversing ranged-for loop ordering.
+/// @warning This won't lifetime extend the iterable variable!
+/// @see https://stackoverflow.com/a/28139075/7410358
+template <typename T>
+struct ReversionWrapper {
+    T& iterable; ///< Reference to underlying iterable.
+};
+
+/// @brief Begin function for getting a reversed order iterator.
+template <typename T>
+auto begin(ReversionWrapper<T> w)
+{
+    return std::rbegin(w.iterable);
+}
+
+/// @brief End function for getting a reversed order iterator.
+template <typename T>
+auto end(ReversionWrapper<T> w)
+{
+    return std::rend(w.iterable);
+}
+
+/// @brief Gets a reversed order iterated wrapper.
+/// @see https://stackoverflow.com/a/28139075/7410358
+template <typename T>
+std::enable_if_t<IsReverseIterable<T>::value, ReversionWrapper<T>> Reverse(T&& iterable)
+{
+    return {iterable};
+}
 
 /// @brief Has-type trait template class.
 /// @note This is from Piotr Skotnicki's answer on the <em>StackOverflow</em> website
@@ -236,21 +295,24 @@ struct HasType;
 ///   to the question of: "How do I find out if a tuple contains a type?".
 /// @see https://stackoverflow.com/a/25958302/7410358
 template <typename T>
-struct HasType<T, std::tuple<>> : std::false_type {};
+struct HasType<T, std::tuple<>> : std::false_type {
+};
 
 /// @brief Has-type trait true class.
 /// @note This is from Piotr Skotnicki's answer on the <em>StackOverflow</em> website
 ///   to the question of: "How do I find out if a tuple contains a type?".
 /// @see https://stackoverflow.com/a/25958302/7410358
 template <typename T, typename... Ts>
-struct HasType<T, std::tuple<T, Ts...>> : std::true_type {};
+struct HasType<T, std::tuple<T, Ts...>> : std::true_type {
+};
 
 /// @brief Has-type trait template super class.
 /// @note This is from Piotr Skotnicki's answer on the <em>StackOverflow</em> website
 ///   to the question of: "How do I find out if a tuple contains a type?".
 /// @see https://stackoverflow.com/a/25958302/7410358
 template <typename T, typename U, typename... Ts>
-struct HasType<T, std::tuple<U, Ts...>> : HasType<T, std::tuple<Ts...>> {};
+struct HasType<T, std::tuple<U, Ts...>> : HasType<T, std::tuple<Ts...>> {
+};
 
 /// @brief Tuple contains type alias.
 /// @details Alias in case the trait itself should be <code>std::true_type</code> or
@@ -274,8 +336,7 @@ using detail::IsFull;
 /// @see https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare
 /// @see https://en.cppreference.com/w/cpp/utility/functional/less
 template <typename T>
-struct LexicographicalLess
-{
+struct LexicographicalLess {
     /// @brief Checks whether the first argument is lexicographically less-than the
     ///   second argument.
     constexpr bool operator()(const T& lhs, const T& rhs) const
@@ -292,8 +353,7 @@ struct LexicographicalLess
 /// @see https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare
 /// @see https://en.cppreference.com/w/cpp/utility/functional/greater
 template <typename T>
-struct LexicographicalGreater
-{
+struct LexicographicalGreater {
     /// @brief Checks whether the first argument is lexicographically greater-than the
     ///   second argument.
     constexpr bool operator()(const T& lhs, const T& rhs) const
@@ -310,15 +370,14 @@ struct LexicographicalGreater
 /// @see https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare
 /// @see https://en.cppreference.com/w/cpp/utility/functional/less_equal
 template <typename T>
-struct LexicographicalLessEqual
-{
+struct LexicographicalLessEqual {
     /// @brief Checks whether the first argument is lexicographically less-than or
     ///   equal-to the second argument.
     constexpr bool operator()(const T& lhs, const T& rhs) const
     {
-        using std::mismatch;
-        using std::less;
         using std::get;
+        using std::less;
+        using std::mismatch;
         using ElementType = decltype(*begin(lhs));
         const auto lhsEnd = end(lhs);
         const auto diff = mismatch(begin(lhs), lhsEnd, begin(rhs), end(rhs));
@@ -331,15 +390,14 @@ struct LexicographicalLessEqual
 /// @see https://en.cppreference.com/w/cpp/algorithm/lexicographical_compare
 /// @see https://en.cppreference.com/w/cpp/utility/functional/greater_equal
 template <typename T>
-struct LexicographicalGreaterEqual
-{
+struct LexicographicalGreaterEqual {
     /// @brief Checks whether the first argument is lexicographically greater-than or
     ///   equal-to the second argument.
     constexpr bool operator()(const T& lhs, const T& rhs) const
     {
-        using std::mismatch;
-        using std::greater;
         using std::get;
+        using std::greater;
+        using std::mismatch;
         using ElementType = decltype(*begin(lhs));
         const auto lhsEnd = end(lhs);
         const auto diff = mismatch(begin(lhs), lhsEnd, begin(rhs), end(rhs));
@@ -351,8 +409,8 @@ struct LexicographicalGreaterEqual
 /// @return <code>true</code> if value was found and erased, <code>false</code> otherwise.
 /// @see EraseAll.
 template <typename T, typename U>
-auto EraseFirst(T& container, const U& value) ->
-    decltype(container.erase(find(begin(container), end(container), value)) != end(container))
+auto EraseFirst(T& container, const U& value)
+    -> decltype(container.erase(find(begin(container), end(container), value)) != end(container))
 {
     const auto endIt = end(container);
     const auto it = find(begin(container), endIt, value);
@@ -368,8 +426,10 @@ auto EraseFirst(T& container, const U& value) ->
 /// @return Count of elements erased.
 /// @see EraseFirst.
 template <typename T, typename U>
-auto EraseAll(T& container, const U& value) ->
-    decltype(distance(container.erase(remove(begin(container), end(container), value), end(container)), end(container)))
+auto EraseAll(T& container, const U& value)
+    -> decltype(distance(container.erase(remove(begin(container), end(container), value),
+                                         end(container)),
+                         end(container)))
 {
     const auto itEnd = end(container);
     const auto it = remove(begin(container), itEnd, value);
@@ -396,12 +456,12 @@ template <typename Type, typename Return, typename... Args>
 struct HasFunctor<Type, Return(Args...)> {
 private:
     /// @brief Declaration of check function for supporting types given to template.
-    template<typename T>
-    static constexpr auto check(T*)
-    -> typename std::is_same<decltype(std::declval<T>()(std::declval<Args>()...)),Return>::type;
+    template <typename T>
+    static constexpr auto check(T*) ->
+        typename std::is_same<decltype(std::declval<T>()(std::declval<Args>()...)), Return>::type;
 
     /// @brief Declaration of check function for non-supporting types given to template.
-    template<typename>
+    template <typename>
     static constexpr std::false_type check(...);
 
     /// @brief Type alias for given template parameters.
@@ -415,12 +475,20 @@ public:
 /// @brief Has nullary functor type alias.
 /// @see HasUnaryFunctor.
 template <typename Type, typename Return>
-using HasNullaryFunctor = HasFunctor<Type,Return()>;
+using HasNullaryFunctor = HasFunctor<Type, Return()>;
 
 /// @brief Has unary functor type alias.
 /// @see HasNullaryFunctor.
 template <typename Type, typename Return, typename Arg>
-using HasUnaryFunctor = HasFunctor<Type,Return(Arg)>;
+using HasUnaryFunctor = HasFunctor<Type, Return(Arg)>;
+
+/// @brief Decayed type if not same as the checked type.
+/// @note This is done separately from other checks to ensure order of compiler's SFINAE
+///   processing and to ensure elimination of check class before attempting to process other
+///   checks like is_copy_constructible. This prevents a compiler error that started showing
+///   up in gcc-9.
+template <typename Type, typename Check, typename DecayedType = std::decay_t<Type>>
+using DecayedTypeIfNotSame = std::enable_if_t<!std::is_same_v<DecayedType, Check>, DecayedType>;
 
 } // namespace playrho
 

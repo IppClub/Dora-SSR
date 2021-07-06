@@ -38,10 +38,10 @@ class SimplexEdge
 public:
     /// @brief Default constructor.
     SimplexEdge() = default;
-    
+
     /// @brief Copy constructor.
     constexpr SimplexEdge(const SimplexEdge& copy) = default;
-    
+
     /// @brief Initializing constructor.
     /// @param pA Point A in world coordinates.
     /// @param iA Index of point A within the shape that it comes from.
@@ -49,16 +49,16 @@ public:
     /// @param iB Index of point B within the shape that it comes from.
     constexpr SimplexEdge(Length2 pA, VertexCounter iA,
                                          Length2 pB, VertexCounter iB) noexcept;
-    
+
     /// @brief Gets point A (in world coordinates).
     constexpr auto GetPointA() const noexcept { return m_wA; }
-    
+
     /// @brief Gets point B (in world coordinates).
     constexpr auto GetPointB() const noexcept { return m_wB; }
 
     /// @brief Gets index A.
     constexpr auto GetIndexA() const noexcept { return std::get<0>(m_indexPair); }
-    
+
     /// @brief Gets index B.
     constexpr auto GetIndexB() const noexcept { return std::get<1>(m_indexPair); }
 
