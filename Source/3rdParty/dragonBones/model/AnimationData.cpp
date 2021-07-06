@@ -69,7 +69,7 @@ void AnimationData::cacheFrames(unsigned frameRate)
     }
 
     cacheFrameRate = std::max(std::ceil(frameRate * scale), 1.0f);
-    const auto cacheFrameCount = std::ceil(cacheFrameRate * duration) + 1; // Cache one more frame.
+    const auto cacheFrameCount = (unsigned)std::ceil(cacheFrameRate * duration) + 1; // Cache one more frame.
 
     cachedFrames.resize(cacheFrameCount, false);
 
