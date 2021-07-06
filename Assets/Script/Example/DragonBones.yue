@@ -1,0 +1,13 @@
+_ENV = Dorothy!
+
+boneStr = "NewDragon"
+
+animations = DragonBone\getAnimations boneStr
+looks = DragonBone\getLooks boneStr
+
+p animations, looks
+
+Director.entry\addChild with DragonBone boneStr
+	.look = looks[1]
+	\play animations[1], true
+	\slot "AnimationEnd", (name)-> print "#{name} end!"

@@ -1428,17 +1428,6 @@ void Node::detachIME()
 	SharedKeyboard.detachIME();
 }
 
-
-static void transform_point(float out[4], const float m[16], const float in[4])
-{
-	#define M(row,col) m[col*4+row]
-	out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
-	out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
-	out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
-	out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
-	#undef M
-}
-
 static bool project(float objx, float objy, float objz,
 	const float model[16], const float proj[16],
 	const float viewport[4],
@@ -1451,18 +1440,18 @@ static bool project(float objx, float objy, float objz,
 	in[1] = objy;
 	in[2] = objz;
 	in[3] = 1.0;
-	transform_point(out, model, in);
-	transform_point(in, proj, out);
+	bx::vec4MulMtx(out, in, model);
+	bx::vec4MulMtx(in, out, proj);
 	/* d’ou le resultat normalise entre -1 et 1 */
 	if (in[3] == 0.0) return false;
 	in[0] /= in[3];
 	in[1] /= in[3];
 	in[2] /= in[3];
 	/* en coordonnees ecran */
-	*winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
-	*winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
+	*winx = viewport[0] + (1.0f + in[0]) * viewport[2] / 2.0f;
+	*winy = viewport[1] + (1.0f + in[1]) * viewport[3] / 2.0f;
 	/* entre 0 et 1 suivant z */
-	*winz = (1 + in[2]) / 2;
+	*winz = (1.0f + in[2]) / 2.0f;
 	return true;
 }
 
@@ -1485,13 +1474,11 @@ public:
 			}
 			_convertHandler(Vec2{winX, winY});
 		}
-		schedule([this](double deltaTime)
+		else _convertHandler(Vec2::zero);
+		WRef<Node> wref(this);
+		schedule([wref](double deltaTime)
 		{
-			Node* parent = getParent();
-			if (parent)
-			{
-				parent->removeChild(this);
-			}
+			if (wref) wref->removeFromParent();
 			return true;
 		});
 	}

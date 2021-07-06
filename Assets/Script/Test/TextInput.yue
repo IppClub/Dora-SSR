@@ -42,8 +42,8 @@ TextInput = Class ((args)->
 		\addChild cursor
 
 		updateIMEPos = ->
-			\convertToWindowSpace Vec2(-label.x+label.width,0),(pos)->
-				Keyboard\updateIMEPosHint pos
+			(pos)<- \convertToWindowSpace Vec2 -label.x+label.width, 0
+			Keyboard\updateIMEPosHint pos
 		startEditing = ->
 			\attachIME!
 			updateIMEPos!

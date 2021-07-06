@@ -20,7 +20,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Shader/Simple/fs_poscolor.bin.h"
 
 #include "Shader/Sprite/vs_sprite.bin.h"
-#include "Shader/Sprite/vs_spritemodel.bin.h"
 #include "Shader/Sprite/fs_sprite.bin.h"
 #include "Shader/Sprite/fs_spriteblurh.bin.h"
 #include "Shader/Sprite/fs_spriteblurv.bin.h"
@@ -40,7 +39,6 @@ static const bgfx::EmbeddedShader doraShaders[] =
 	BGFX_EMBEDDED_SHADER(vs_poscolor),
 	BGFX_EMBEDDED_SHADER(fs_poscolor),
 	BGFX_EMBEDDED_SHADER(vs_sprite),
-	BGFX_EMBEDDED_SHADER(vs_spritemodel),
 	BGFX_EMBEDDED_SHADER(fs_sprite),
 	BGFX_EMBEDDED_SHADER(fs_spriteblurh),
 	BGFX_EMBEDDED_SHADER(fs_spriteblurv),

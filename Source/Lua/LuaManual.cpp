@@ -358,40 +358,54 @@ bool Node_eachChild(Node* self, const LuaFunction<bool>& func)
 
 bool Cache::load(String filename)
 {
+	auto tokens = filename.split(":"_slice);
+	if (tokens.size() == 2)
+	{
+		switch (Switch::hash(tokens.front()))
+		{
+			case "model"_hash:
+				return SharedModelCache.load(tokens.back()) != nullptr;
+			case "spine"_hash:
+				return SharedSkeletonCache.load(tokens.back()) != nullptr;
+			case "bone"_hash:
+				return SharedDragonBoneCache.load(tokens.back()).first != nullptr;
+			case "font"_hash:
+				return SharedFontCache.load(tokens.back());
+			default:
+				Error("resource str flag must be \"model\", \"spine\", \"bone\" and \"font\".");
+				return false;
+		}
+	}
 	std::string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
 		{
 			case "atlas"_hash:
-				return SharedAtlasCache.load(filename);
+				return SharedAtlasCache.load(filename) != nullptr;
 			case "clip"_hash:
-				return SharedClipCache.load(filename);
+				return SharedClipCache.load(filename) != nullptr;
 			case "frame"_hash:
-				return SharedFrameCache.load(filename);
+				return SharedFrameCache.load(filename) != nullptr;
 			case "model"_hash:
-				return SharedModelCache.load(filename);
+				return SharedModelCache.load(filename) != nullptr;
 			case "par"_hash:
-				return SharedParticleCache.load(filename);
+				return SharedParticleCache.load(filename) != nullptr;
 			case "jpg"_hash:
 			case "png"_hash:
 			case "dds"_hash:
 			case "pvr"_hash:
 			case "ktx"_hash:
-				return SharedTextureCache.load(filename);
+				return SharedTextureCache.load(filename) != nullptr;
 			case "svg"_hash:
-				return SharedSVGCache.load(filename);
+				return SharedSVGCache.load(filename) != nullptr;
 			case "bin"_hash:
-				return SharedShaderCache.load(filename);
+				return SharedShaderCache.load(filename) != nullptr;
 			case "wav"_hash:
 			case "ogg"_hash:
-				return SharedSoundCache.load(filename);
+				return SharedSoundCache.load(filename) != nullptr;
 			default:
 			{
-				if (filename.split("|"_slice).size() == 2)
-				{
-					return SharedSkeletonCache.load(filename);
-				}
 				Error("failed to load unsupported resource \"{}\".", filename);
 				return false;
 			}
@@ -402,19 +416,33 @@ bool Cache::load(String filename)
 
 void Cache::loadAsync(String filename, const std::function<void()>& callback)
 {
-	if (filename.split("|"_slice).size() == 2)
+	auto tokens = filename.split(":"_slice);
+	if (tokens.size() == 2)
 	{
-		SharedSkeletonCache.loadAsync(filename, [callback](SkeletonData*) { callback(); });
-		return;
+		switch (Switch::hash(tokens.front()))
+		{
+			case "model"_hash:
+				SharedModelCache.loadAsync(tokens.back(), [callback](ModelDef*) { callback(); });
+				return;
+			case "spine"_hash:
+				SharedSkeletonCache.loadAsync(tokens.back(), [callback](SkeletonData*) { callback(); });
+				return;
+			case "bone"_hash:
+				SharedDragonBoneCache.loadAsync(tokens.back(), [callback](bool) { callback(); });
+				return;
+			case "font"_hash:
+				SharedFontCache.loadAync(tokens.back(), [callback](Font*) { callback(); });
+				return;
+			default:
+				Error("resource str flag must be \"model\", \"spine\", \"bone\" and \"font\".");
+				return;
+		}
 	}
 	std::string ext = Path::getExt(filename);
 	if (!ext.empty())
 	{
 		switch (Switch::hash(ext))
 		{
-			case "atlas"_hash:
-				SharedAtlasCache.loadAsync(filename, [callback](Atlas*) { callback(); });
-				break;
 			case "clip"_hash:
 				SharedClipCache.loadAsync(filename, [callback](ClipDef*) { callback(); });
 				break;
@@ -544,20 +572,11 @@ bool Cache::unload(String name)
 				return SharedFontCache.unload();
 			case "Sound"_hash:
 				return SharedSoundCache.unload();
-			case "Atlas"_hash:
-				return SharedAtlasCache.unload();
-			case "Skel"_hash:
-				return SharedSkeletonCache.unload();
+			case "Spine"_hash:
+				return SharedAtlasCache.unload() && SharedSkeletonCache.unload();
 			default:
 			{
-				auto tokens = name.split("::"_slice);
-				if (tokens.size() == 2)
-				{
-					auto it = tokens.begin();
-					Slice fontName = *it;
-					int fontSize = Slice::stoi(*(++it));
-					return SharedFontCache.unload(fontName, fontSize);
-				}
+				Warn("failed to unload resources \"{}\".", name);
 				break;
 			}
 		}
@@ -578,10 +597,12 @@ void Cache::unload()
 	SharedSoundCache.unload();
 	SharedSkeletonCache.unload();
 	SharedAtlasCache.unload();
+	SharedDragonBoneCache.removeUnused();
 }
 
 void Cache::removeUnused()
 {
+	SharedDragonBoneCache.removeUnused();
 	SharedSkeletonCache.removeUnused();
 	SharedAtlasCache.removeUnused();
 	SharedShaderCache.removeUnused();
@@ -599,10 +620,11 @@ void Cache::removeUnused(String name)
 {
 	switch (Switch::hash(name))
 	{
-		case "Atlas"_hash:
-			SharedAtlasCache.removeUnused();
+		case "Bone"_hash:
+			SharedDragonBoneCache.removeUnused();
 			break;
-		case "Skel"_hash:
+		case "Spine"_hash:
+			SharedAtlasCache.removeUnused();
 			SharedSkeletonCache.removeUnused();
 			break;
 		case "Texture"_hash:
@@ -832,7 +854,7 @@ uint32_t getBlendFuncVal(String name)
 		case "InvDstColor"_hash: return BlendFunc::InvDstColor;
 		case "InvDstAlpha"_hash: return BlendFunc::InvDstAlpha;
 		default:
-			AssertIf(true, "blendfunc name \"{}\" is invalid. use one of [One, Zero,\n"
+			Issue("blendfunc name \"{}\" is invalid. use one of [One, Zero,\n"
 			"SrcColor, SrcAlpha, DstColor, DstAlpha,\n"
 			"InvSrcColor, InvSrcAlpha, InvDstColor, InvDstAlpha]", name);
 			break;
@@ -1135,6 +1157,195 @@ void __Spine_getAnimationNames(lua_State* L, String spineStr)
 	{
 		lua_createtable(L, 0, 0);
 	}
+}
+
+int Spine_containsPoint(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Spine"_slice, 0, &tolua_err) ||
+		!tolua_isnumber(L, 2, 0, &tolua_err) ||
+		!tolua_isnumber(L, 3, 0, &tolua_err) ||
+		!tolua_isnoobj(L, 4, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		Spine* self = r_cast<Spine*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Spine_containsPoint'", nullptr);
+#endif
+		float x = s_cast<float>(lua_tonumber(L, 2));
+		float y = s_cast<float>(lua_tonumber(L, 3));
+		auto result = self->containsPoint(x, y);
+		if (result.empty()) lua_pushnil(L);
+		else tolua_pushslice(L, result);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Spine_containsPoint'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Spine_intersectsSegment(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Spine"_slice, 0, &tolua_err) ||
+		!tolua_isnumber(L, 2, 0, &tolua_err) ||
+		!tolua_isnumber(L, 3, 0, &tolua_err) ||
+		!tolua_isnumber(L, 4, 0, &tolua_err) ||
+		!tolua_isnumber(L, 5, 0, &tolua_err) ||
+		!tolua_isnoobj(L, 6, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		Spine* self = r_cast<Spine*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Spine_intersectsSegment'", nullptr);
+#endif
+		float x1 = s_cast<float>(lua_tonumber(L, 2));
+		float y1 = s_cast<float>(lua_tonumber(L, 3));
+		float x2 = s_cast<float>(lua_tonumber(L, 4));
+		float y2 = s_cast<float>(lua_tonumber(L, 5));
+		auto result = self->intersectsSegment(x1, y1, x2, y2);
+		if (result.empty()) lua_pushnil(L);
+		else tolua_pushslice(L, result);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Spine_intersectsSegment'.", &tolua_err);
+	return 0;
+#endif
+}
+
+/* DragonBone */
+
+void __DragonBone_getLookNames(lua_State* L, String boneStr)
+{
+	auto boneData = SharedDragonBoneCache.load(boneStr);
+	if (boneData.first)
+	{
+		if (boneData.second.empty())
+		{
+			boneData.second = boneData.first->getArmatureNames().front();
+		}
+		const auto& skins = boneData.first->getArmature(boneData.second)->skins;
+		int size = s_cast<int>(skins.size());
+		lua_createtable(L, size, 0);
+		int i = 0;
+		for (const auto& item : skins)
+		{
+			lua_pushlstring(L, item.first.c_str(), item.first.size());
+			lua_rawseti(L, -2, i + 1);
+			i++;
+		}
+	}
+	else
+	{
+		lua_createtable(L, 0, 0);
+	}
+}
+
+void __DragonBone_getAnimationNames(lua_State* L, String boneStr)
+{
+	auto boneData = SharedDragonBoneCache.load(boneStr);
+	if (boneData.first)
+	{
+		if (boneData.second.empty())
+		{
+			boneData.second = boneData.first->getArmatureNames().front();
+		}
+		const auto& anims = boneData.first->getArmature(boneData.second)->animationNames;
+		int size = s_cast<int>(anims.size());
+		lua_createtable(L, size, 0);
+		for (int i = 0; i < size; i++)
+		{
+			const auto& name = anims[i];
+			lua_pushlstring(L, name.c_str(), name.size());
+			lua_rawseti(L, -2, i + 1);
+		}
+	}
+	else
+	{
+		lua_createtable(L, 0, 0);
+	}
+}
+
+int DragonBone_containsPoint(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DragonBone"_slice, 0, &tolua_err) ||
+		!tolua_isnumber(L, 2, 0, &tolua_err) ||
+		!tolua_isnumber(L, 3, 0, &tolua_err) ||
+		!tolua_isnoobj(L, 4, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		DragonBone* self = r_cast<DragonBone*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in accessing variable 'DragonBone_containsPoint'", nullptr);
+#endif
+		float x = s_cast<float>(lua_tonumber(L, 2));
+		float y = s_cast<float>(lua_tonumber(L, 3));
+		auto result = self->containsPoint(x, y);
+		if (result.empty()) lua_pushnil(L);
+		else tolua_pushslice(L, result);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DragonBone_containsPoint'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int DragonBone_intersectsSegment(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DragonBone"_slice, 0, &tolua_err) ||
+		!tolua_isnumber(L, 2, 0, &tolua_err) ||
+		!tolua_isnumber(L, 3, 0, &tolua_err) ||
+		!tolua_isnumber(L, 4, 0, &tolua_err) ||
+		!tolua_isnumber(L, 5, 0, &tolua_err) ||
+		!tolua_isnoobj(L, 6, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+		DragonBone* self = r_cast<DragonBone*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in accessing variable 'DragonBone_intersectsSegment'", nullptr);
+#endif
+		float x1 = s_cast<float>(lua_tonumber(L, 2));
+		float y1 = s_cast<float>(lua_tonumber(L, 3));
+		float x2 = s_cast<float>(lua_tonumber(L, 4));
+		float y2 = s_cast<float>(lua_tonumber(L, 5));
+		auto result = self->intersectsSegment(x1, y1, x2, y2);
+		if (result.empty()) lua_pushnil(L);
+		else tolua_pushslice(L, result);
+		return 1;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DragonBone_intersectsSegment'.", &tolua_err);
+	return 0;
+#endif
 }
 
 /* BodyDef */
@@ -1914,7 +2125,7 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 		case "Remove"_hash: optionVal = Entity::Remove; break;
 		case "AddOrChange"_hash: optionVal = Entity::AddOrChange; break;
 		default:
-			AssertIf(true, "EntityObserver option name \"{}\" is invalid.", option);
+			Issue("EntityObserver option name \"{}\" is invalid.", option);
 			break;
 	}
 	return EntityObserver::create(optionVal, components, count);
@@ -2138,7 +2349,7 @@ static Relation toRelation(String value)
 		case "Unknown"_hash: return Relation::Unknown;
 		case "Any"_hash: return Relation::Any;
 		default:
-			AssertIf(true, "Relation \"{}\" is invalid, only \"Enemy\", \"Friend\", \"Neutral\", \"Unknown\", \"Any\" are allowed.", value);
+			Issue("Relation \"{}\" is invalid, only \"Enemy\", \"Friend\", \"Neutral\", \"Unknown\", \"Any\" are allowed.", value);
 			break;
 	}
 	return Relation::Unknown;
@@ -2936,7 +3147,7 @@ namespace ImGui { namespace Binding
 			case "ItemInnerSpacing"_hash: styleVar = ImGuiStyleVar_ItemInnerSpacing; break;
 			case "ButtonTextAlign"_hash: styleVar = ImGuiStyleVar_ButtonTextAlign; break;
 			default:
-				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				Issue("ImGui style var name \"{}\" is invalid.", name);
 				break;
 		}
 		ImGui::PushStyleVar(styleVar, val);
@@ -2954,7 +3165,7 @@ namespace ImGui { namespace Binding
 			case "IndentSpacing"_hash: styleVar = ImGuiStyleVar_IndentSpacing; break;
 			case "GrabMinSize"_hash: styleVar = ImGuiStyleVar_GrabMinSize; break;
 			default:
-				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				Issue("ImGui style var name \"{}\" is invalid.", name);
 				break;
 		}
 		ImGui::PushStyleVar(styleVar, val);
@@ -3217,7 +3428,7 @@ namespace ImGui { namespace Binding
 			case "DisplayWindowPadding"_hash: style.DisplayWindowPadding = var; break;
 			case "DisplaySafeAreaPadding"_hash: style.DisplaySafeAreaPadding = var; break;
 			default:
-				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				Issue("ImGui style var name \"{}\" is invalid.", name);
 				break;
 		}
 	}
@@ -3239,7 +3450,7 @@ namespace ImGui { namespace Binding
 			case "GrabRounding"_hash: style.GrabRounding = var; break;
 			case "CurveTessellationTol"_hash: style.CurveTessellationTol = var; break;
 			default:
-				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				Issue("ImGui style var name \"{}\" is invalid.", name);
 				break;
 		}
 	}
@@ -3252,7 +3463,7 @@ namespace ImGui { namespace Binding
 			case "AntiAliasedLines"_hash: style.AntiAliasedLines = var; break;
 			case "AntiAliasedFill"_hash: style.AntiAliasedFill = var; break;
 			default:
-				AssertIf(true, "ImGui style var name \"{}\" is invalid.", name);
+				Issue("ImGui style var name \"{}\" is invalid.", name);
 				break;
 		}
 	}
@@ -3280,7 +3491,7 @@ namespace ImGui { namespace Binding
 			return ImGuiSliderFlags_NoInput;
 		case ""_hash: return ImGuiSliderFlags_None;
 		default:
-			AssertIf(true, "ImGui slider flag named \"{}\" is invalid.", flag);
+			Issue("ImGui slider flag named \"{}\" is invalid.", flag);
 			break;
 		}
 		return ImGuiSliderFlags_None;
@@ -3319,7 +3530,7 @@ namespace ImGui { namespace Binding
 			case "AlwaysUseWindowPadding"_hash: return ImGuiWindowFlags_AlwaysUseWindowPadding;
 			case ""_hash: return ImGuiWindowFlags_(0);
 			default:
-				AssertIf(true, "ImGui window flag named \"{}\" is invalid.", style);
+				Issue("ImGui window flag named \"{}\" is invalid.", style);
 				break;
 		}
 		return ImGuiWindowFlags_(0);
@@ -3358,7 +3569,7 @@ namespace ImGui { namespace Binding
 			case "Password"_hash: return ImGuiInputTextFlags_Password;
 			case ""_hash: return ImGuiInputTextFlags_(0);
 			default:
-				AssertIf(true, "ImGui input text flag named \"{}\" is invalid.", flag);
+				Issue("ImGui input text flag named \"{}\" is invalid.", flag);
 				return ImGuiInputTextFlags_(0);
 		}
 	}
@@ -3391,7 +3602,7 @@ namespace ImGui { namespace Binding
 			case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
 			case ""_hash: return ImGuiTreeNodeFlags_(0);
 			default:
-				AssertIf(true, "ImGui tree node flag named \"{}\" is invalid.", flag);
+				Issue("ImGui tree node flag named \"{}\" is invalid.", flag);
 				return ImGuiTreeNodeFlags_(0);
 		}
 	}
@@ -3405,7 +3616,7 @@ namespace ImGui { namespace Binding
 			case "AllowDoubleClick"_hash: return ImGuiSelectableFlags_AllowDoubleClick;
 			case ""_hash: return ImGuiSelectableFlags_(0);
 			default:
-				AssertIf(true, "ImGui selectable flag named \"{}\" is invalid.", flag);
+				Issue("ImGui selectable flag named \"{}\" is invalid.", flag);
 				return ImGuiSelectableFlags_(0);
 		}
 	}
@@ -3452,7 +3663,7 @@ namespace ImGui { namespace Binding
 			case "TextSelectedBg"_hash: return ImGuiCol_TextSelectedBg;
 			case "ModalWindowDimBg"_hash: return ImGuiCol_ModalWindowDimBg;
 			default:
-				AssertIf(true, "ImGui color index named \"{}\" is invalid.", col);
+				Issue("ImGui color index named \"{}\" is invalid.", col);
 				return ImGuiCol_(0);
 		}
 	}
@@ -3466,7 +3677,7 @@ namespace ImGui { namespace Binding
 			case "HEX"_hash: return ImGuiColorEditFlags_DisplayHex;
 			case ""_hash: return ImGuiColorEditFlags_None;
 			default:
-				AssertIf(true, "ImGui color edit flag named \"{}\" is invalid.", mode);
+				Issue("ImGui color edit flag named \"{}\" is invalid.", mode);
 				return ImGuiColorEditFlags_None;
 		}
 	}
@@ -3481,7 +3692,7 @@ namespace ImGui { namespace Binding
 			case "Appearing"_hash: return ImGuiCond_Appearing;
 			case ""_hash: return ImGuiCond_(0);
 			default:
-				AssertIf(true, "ImGui set cond named \"{}\" is invalid.", cond);
+				Issue("ImGui set cond named \"{}\" is invalid.", cond);
 				return ImGuiCond_(0);
 		}
 	}
@@ -3501,7 +3712,7 @@ namespace ImGui { namespace Binding
 			case "AnyPopup"_hash: return ImGuiPopupFlags_AnyPopup;
 			case ""_hash: return ImGuiPopupFlags_MouseButtonRight;
 			default:
-				AssertIf(true, "ImGui popup flag named \"{}\" is invalid.", flag);
+				Issue("ImGui popup flag named \"{}\" is invalid.", flag);
 				return ImGuiPopupFlags_None;
 		}
 	}
@@ -3556,7 +3767,7 @@ namespace ImGui { namespace Binding
 			case "SortMulti"_hash: return ImGuiTableFlags_SortMulti;
 			case ""_hash: return ImGuiTableFlags_None;
 			default:
-				AssertIf(true, "ImGui table flag named \"{}\" is invalid.", flag);
+				Issue("ImGui table flag named \"{}\" is invalid.", flag);
 				return ImGuiTableFlags_None;
 		}
 		return ImGuiTableFlags_None;
@@ -3580,7 +3791,7 @@ namespace ImGui { namespace Binding
 			case "Headers"_hash: return ImGuiTableRowFlags_Headers;
 			case ""_hash: return ImGuiTableRowFlags_None;
 			default:
-				AssertIf(true, "ImGui table row flag named \"{}\" is invalid.", flag);
+				Issue("ImGui table row flag named \"{}\" is invalid.", flag);
 				return ImGuiTableRowFlags_None;
 		}
 		return ImGuiTableRowFlags_None;
@@ -3623,7 +3834,7 @@ namespace ImGui { namespace Binding
 			case "IsHovered"_hash: return ImGuiTableColumnFlags_IsHovered;
 			case ""_hash: return ImGuiTableColumnFlags_None;
 			default:
-				AssertIf(true, "ImGui table column flag named \"{}\" is invalid.", flag);
+				Issue("ImGui table column flag named \"{}\" is invalid.", flag);
 				return ImGuiTableColumnFlags_None;
 		}
 		return ImGuiTableColumnFlags_None;

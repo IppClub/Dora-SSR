@@ -37,7 +37,7 @@ void ActionTimelineState::_onCrossFrame(unsigned frameIndex) const
             {
                 const auto eventObject = BaseObject::borrowObject<EventObject>();
                 // eventObject->time = _frameArray[frameOffset] * _frameRateR; // Precision problem
-                eventObject->time = _frameArray[frameOffset] / _frameRate;
+                eventObject->time = (float)_frameArray[frameOffset] / _frameRate;
                 eventObject->animationState = _animationState;
                 EventObject::actionDataToInstance(action, eventObject, _armature);
                 _armature->_bufferAction(eventObject, true);
@@ -49,7 +49,7 @@ void ActionTimelineState::_onCrossFrame(unsigned frameIndex) const
                 {
                     const auto eventObject = BaseObject::borrowObject<EventObject>();
                     // eventObject->time = _frameArray[frameOffset] * _frameRateR; // Precision problem
-                    eventObject->time = _frameArray[frameOffset] / _frameRate;
+                    eventObject->time = (float)_frameArray[frameOffset] / _frameRate;
                     eventObject->animationState = _animationState;
                     EventObject::actionDataToInstance(action, eventObject, _armature);
                     _armature->_dragonBones->bufferEvent(eventObject);
@@ -667,10 +667,10 @@ void SlotColorTimelineState::_onArriveAtFrame()
     {
         const auto color = slot->_slotData->color;
 
-        _current[0] = color->alphaMultiplier * 100.0f;
-        _current[1] = color->redMultiplier * 100.0f;
-        _current[2] = color->greenMultiplier * 100.0f;
-        _current[3] = color->blueMultiplier * 100.0f;
+        _current[0] = int(color->alphaMultiplier * 100);
+        _current[1] = int(color->redMultiplier * 100);
+        _current[2] = int(color->greenMultiplier * 100);
+        _current[3] = int(color->blueMultiplier * 100);
         _current[4] = color->alphaOffset;
         _current[5] = color->redOffset;
         _current[6] = color->greenOffset;
@@ -726,16 +726,16 @@ void SlotColorTimelineState::update(float passedTime)
                 result.blueOffset != _result[7]
             ) 
             {
-                const auto fadeProgress = pow(_animationState->_fadeProgress, 2);
+                const auto fadeProgress = (float)pow(_animationState->_fadeProgress, 2);
 
                 result.alphaMultiplier += (_result[0] - result.alphaMultiplier) * fadeProgress;
                 result.redMultiplier += (_result[1] - result.redMultiplier) * fadeProgress;
                 result.greenMultiplier += (_result[2] - result.greenMultiplier) * fadeProgress;
                 result.blueMultiplier += (_result[3] - result.blueMultiplier) * fadeProgress;
-                result.alphaOffset += (_result[4] - result.alphaOffset) * fadeProgress;
-                result.redOffset += (_result[5] - result.redOffset) * fadeProgress;
-                result.greenOffset += (_result[6] - result.greenOffset) * fadeProgress;
-                result.blueOffset += (_result[7] - result.blueOffset) * fadeProgress;
+                result.alphaOffset += int((_result[4] - result.alphaOffset) * fadeProgress);
+                result.redOffset += int((_result[5] - result.redOffset) * fadeProgress);
+                result.greenOffset += int((_result[6] - result.greenOffset) * fadeProgress);
+                result.blueOffset += int((_result[7] - result.blueOffset) * fadeProgress);
 
                 slot->_colorDirty = true;
             }
@@ -758,10 +758,10 @@ void SlotColorTimelineState::update(float passedTime)
                 result.redMultiplier = _result[1];
                 result.greenMultiplier = _result[2];
                 result.blueMultiplier = _result[3];
-                result.alphaOffset = _result[4];
-                result.redOffset = _result[5];
-                result.greenOffset = _result[6];
-                result.blueOffset = _result[7];
+                result.alphaOffset = (int)_result[4];
+                result.redOffset = (int)_result[5];
+                result.greenOffset = (int)_result[6];
+                result.blueOffset = (int)_result[7];
 
                 slot->_colorDirty = true;
             }
@@ -901,7 +901,7 @@ void DeformTimelineState::update(float passedTime)
 
         if (_animationState->_fadeState != 0 || _animationState->_subFadeState != 0)
         {
-            const auto fadeProgress = pow(_animationState->_fadeProgress, 2);
+            const auto fadeProgress = (float)pow(_animationState->_fadeProgress, 2);
 
             if (_timelineData != nullptr)
             {

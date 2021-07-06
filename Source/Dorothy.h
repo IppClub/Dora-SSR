@@ -65,6 +65,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Entity/Entity.h"
 #include "Cache/SVGCache.h"
 #include "Basic/Database.h"
+#include "Cache/DragonBoneCache.h"
+#include "Node/DragonBone.h"
 
 #include "Platformer/Define.h"
 #include "Platformer/AINode.h"

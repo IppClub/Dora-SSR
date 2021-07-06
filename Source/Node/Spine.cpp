@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TextureCache.h"
 #include "Basic/Scheduler.h"
 #include "Node/Sprite.h"
+#include "Node/DrawNode.h"
 #include "Effect/Effect.h"
 #include "Support/Common.h"
 #include "Basic/Director.h"
@@ -86,6 +87,20 @@ bool Spine::init()
 		_animationStateData = New<spine::AnimationStateData>(_skeletonData->getSkel());
 		_animationState = New<spine::AnimationState>(_animationStateData.get());
 		_skeleton = New<spine::Skeleton>(_skeletonData->getSkel());
+		auto& slots = _skeleton->getSlots();
+		for (size_t i = 0; i < slots.size(); i++)
+		{
+			spine::Slot* slot = slots[i];
+			if (!slot->getBone().isActive()) continue;
+			spine::Attachment* attachment = slot->getAttachment();
+			if (attachment &&
+				!attachment->getRTTI().instanceOf(spine::BoundingBoxAttachment::rtti))
+			{
+				_bounds = New<spine::SkeletonBounds>();
+				setHitTestEnabled(true);
+				break;
+			}
+		}
 		this->scheduleUpdate();
 		return true;
 	}
@@ -112,6 +127,44 @@ void Spine::setDepthWrite(bool var)
 bool Spine::isDepthWrite() const
 {
 	return _flags.isOn(Spine::DepthWrite);
+}
+
+void Spine::setHitTestEnabled(bool var)
+{
+	_flags.set(Spine::HitTest, var);
+}
+
+bool Spine::isHitTestEnabled() const
+{
+	return _flags.isOn(Spine::HitTest);
+}
+
+void Spine::setShowDebug(bool var)
+{
+	if (var)
+	{
+		if (!_drawNode)
+		{
+			_drawNode = DrawNode::create();
+			addChild(_drawNode);
+			_line = Line::create();
+			_drawNode->addChild(_line);
+		}
+	}
+	else
+	{
+		if (_drawNode)
+		{
+			_drawNode->removeFromParent();
+			_drawNode = nullptr;
+			_line = nullptr;
+		}
+	}
+}
+
+bool Spine::isShowDebug() const
+{
+	return _drawNode != nullptr;
 }
 
 void Spine::setLook(String name)
@@ -254,11 +307,45 @@ void Spine::stop()
 	_animationState->clearTrack(0);
 }
 
+std::string Spine::containsPoint(float x, float y)
+{
+	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
+	if (_bounds->aabbcontainsPoint(x, y))
+	{
+		if (auto attachment = _bounds->containsPoint(x, y))
+		{
+			return std::string(
+				attachment->getName().buffer(),
+				attachment->getName().length());
+		}
+	}
+	return Slice::Empty;
+}
+
+std::string Spine::intersectsSegment(float x1, float y1, float x2, float y2)
+{
+	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
+	if (_bounds->aabbintersectsSegment(x1, y1, x2, y2))
+	{
+		if (auto attachment = _bounds->intersectsSegment(x1, y1, x2, y2))
+		{
+			return std::string(
+				attachment->getName().buffer(),
+				attachment->getName().length());
+		}
+	}
+	return Slice::Empty;
+}
+
 void Spine::visit()
 {
 	_animationState->update(s_cast<float>(getScheduler()->getDeltaTime()));
 	_animationState->apply(*_skeleton);
 	_skeleton->updateWorldTransform();
+	if (_bounds && isHitTestEnabled())
+	{
+		_bounds->update(*_skeleton, true);
+	}
 	Node::visit();
 }
 
@@ -267,6 +354,12 @@ void Spine::render()
 	Matrix transform;
 	bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
+
+	if (isShowDebug())
+	{
+		_drawNode->clear();
+		_line->clear();
+	}
 
 	std::vector<SpriteVertex> vertices;
 	for (size_t i = 0, n = _skeleton->getSlots().size(); i < n; ++i)
@@ -356,6 +449,25 @@ void Spine::render()
 				vertices.data(), vertices.size(),
 				meshIndices.buffer(), meshIndices.size(),
 				_effect, texture, renderState);
+		}
+		else if (attachment->getRTTI().isExactly(spine::BoundingBoxAttachment::rtti))
+		{
+			if (isShowDebug() && isHitTestEnabled())
+			{
+				spine::BoundingBoxAttachment* boundingBox = s_cast<spine::BoundingBoxAttachment*>(attachment);
+				auto polygon = _bounds->getPolygon(boundingBox);
+				int vertSize = polygon->_count / 2;
+				std::vector<Vec2> vertices(vertSize + 1);
+				for (int i = 0; i < vertSize; i++)
+				{
+					float x = polygon->_vertices[i * 2];
+					float y = polygon->_vertices[i * 2 + 1];
+					vertices[i] = {x, y};
+				}
+				vertices[vertSize] = vertices[0];
+				_drawNode->drawPolygon(vertices.data(), vertSize, Color(0x44008888));
+				_line->add(vertices, Color(0xff00ffff));
+			}
 		}
 		vertices.clear();
 	}

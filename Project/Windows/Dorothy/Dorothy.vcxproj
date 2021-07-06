@@ -11,6 +11,130 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\Animation.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\AnimationState.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\BaseTimelineState.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\TimelineState.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\WorldClock.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Armature.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Bone.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Constraint.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\DeformVertices.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Slot.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\TransformObject.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\core\BaseObject.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\core\DragonBones.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\event\EventObject.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\factory\BaseFactory.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\geom\Point.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\geom\Transform.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationConfig.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\ArmatureData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\BoundingBoxData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\CanvasData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\ConstraintData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\DisplayData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\DragonBonesData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\SkinData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\TextureAtlasData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\UserData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\parser\BinaryDataParser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\parser\DataParser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\parser\JSONDataParser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -690,6 +814,7 @@
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\AtlasCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\DragonBoneCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp" />
@@ -730,6 +855,7 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
     <ClCompile Include="..\..\..\Source\ML\ML.cpp" />
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\DragonBone.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Menu.cpp" />
@@ -768,6 +894,44 @@
     <ClCompile Include="..\..\..\Source\Support\Value.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\Animation.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\AnimationState.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\BaseTimelineState.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\IAnimatable.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\TimelineState.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\WorldClock.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Armature.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Bone.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Constraint.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\DeformVertices.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\IArmatureProxy.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Slot.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\TransformObject.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\core\BaseObject.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\core\DragonBones.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\DragonBonesHeaders.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\event\EventObject.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\event\IEventDispatcher.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\factory\BaseFactory.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\ColorTransform.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Matrix.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Point.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Rectangle.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Transform.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationConfig.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\ArmatureData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\BoundingBoxData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\CanvasData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\ConstraintData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\DisplayData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\DragonBonesData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\SkinData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\TextureAtlasData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\UserData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\BinaryDataParser.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\DataParser.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\JSONDataParser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\compile.h" />
@@ -1056,6 +1220,7 @@
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
     <ClInclude Include="..\..\..\Source\Cache\AtlasCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ClipCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\DragonBoneCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\FrameCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ModelCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h" />
@@ -1095,6 +1260,7 @@
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
     <ClInclude Include="..\..\..\Source\ML\ML.h" />
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
+    <ClInclude Include="..\..\..\Source\Node\DragonBone.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
     <ClInclude Include="..\..\..\Source\Node\Menu.h" />
@@ -1193,7 +1359,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/soloud/Header;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/sqlite/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/soloud/Header;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/sqlite/Header;../../../Source/3rdParty/dragonBones;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -1235,7 +1401,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\Zip\Lib\Windows\zlib1.dll" "$(O
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/soloud/Header;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/sqlite/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua/Header;../../../Source/3rdParty/Zip/Header;../../../Source/3rdParty/soloud/Header;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/sqlite/Header;../../../Source/3rdParty/dragonBones;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>

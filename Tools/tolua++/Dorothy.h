@@ -607,10 +607,22 @@ class Model : public Playable
 
 class Spine : public Playable
 {
+	tolua_property__bool bool showDebug;
+	tolua_property__bool bool hitTestEnabled;
 	static Spine* create(String skelFile, String atlasFile);
 	static Spine* create(String spineStr);
 	static tolua_outside void Spine_getLookNames @ getLooks(String spineStr);
 	static tolua_outside void Spine_getAnimationNames @ getAnimations(String spineStr);
+};
+
+class DragonBone : public Playable
+{
+	tolua_property__bool bool showDebug;
+	tolua_property__bool bool hitTestEnabled;
+	static DragonBone* create(String boneFile, String atlasFile);
+	static DragonBone* create(String boneStr);
+	static tolua_outside void DragonBone_getLookNames @ getLooks(String boneStr);
+	static tolua_outside void DragonBone_getAnimationNames @ getAnimations(String boneStr);
 };
 
 class PhysicsWorld : public Node

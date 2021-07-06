@@ -15,11 +15,15 @@ NS_DOROTHY_BEGIN
 
 class SkeletonData;
 class SpriteEffect;
+class DrawNode;
+class Line;
 
 class Spine : public Playable
 {
 public:
 	PROPERTY_BOOL(DepthWrite);
+	PROPERTY_BOOL(HitTestEnabled);
+	PROPERTY_BOOL(ShowDebug);
 	virtual bool init() override;
 	virtual void visit() override;
 	virtual void render() override;
@@ -32,6 +36,8 @@ public:
 	virtual Vec2 getKeyPoint(String name) const override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
+	std::string containsPoint(float x, float y);
+	std::string intersectsSegment(float x1, float y1, float x2, float y2);
 	CREATE_FUNC(Spine);
 protected:
 	Spine(String skelFile, String atlasFile);
@@ -53,9 +59,13 @@ private:
 	Own<spine::AnimationState> _animationState;
 	Own<spine::AnimationStateData> _animationStateData;
 	Own<spine::Skin> _newSkin;
+	Own<spine::SkeletonBounds> _bounds;
+	Ref<DrawNode> _drawNode;
+	Ref<Line> _line;
 	enum
 	{
 		DepthWrite = Node::UserFlag,
+		HitTest = Node::UserFlag << 1,
 	};
 	DORA_TYPE_OVERRIDE(Spine);
 };

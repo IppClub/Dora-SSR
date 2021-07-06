@@ -229,7 +229,7 @@ void TweenTimelineState::_onArriveAtFrame()
         }
         else if (_tweenType != TweenType::None && _tweenType != TweenType::Line) 
         {
-            _tweenEasing = _frameArray[_frameOffset + (unsigned)BinaryOffset::FrameTweenEasingOrCurveSampleCount] * 0.01;
+            _tweenEasing = _frameArray[_frameOffset + (unsigned)BinaryOffset::FrameTweenEasingOrCurveSampleCount] * 0.01f;
         }
 
         _framePosition = _frameArray[_frameOffset] * _frameRateR;

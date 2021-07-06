@@ -242,8 +242,6 @@ void Keyboard::updateIMEPosHint(const Vec2& winPos)
 	int offsetY =
 #if BX_PLATFORM_IOS
 		45;
-#elif BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
-		s_cast<int>(10.0f * SharedApplication.getDeviceRatio());
 #else
 		0;
 #endif

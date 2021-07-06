@@ -157,6 +157,11 @@ void Armature::dispose()
         _lockUpdate = true;
         _dragonBones->bufferObject(this);
     }
+    if (_proxy != nullptr)
+    {
+        _proxy->dbClear();
+        _proxy = nullptr;
+    }
 }
 
 void Armature::init(ArmatureData *armatureData, IArmatureProxy* proxy, void* display, DragonBones* dragonBones)

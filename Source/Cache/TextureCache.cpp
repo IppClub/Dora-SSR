@@ -177,6 +177,7 @@ Texture2D* TextureCache::load(String filename)
 		return it->second;
 	}
 	auto data = SharedContent.load(filename);
+	if (data.second == 0) Issue("failed to load texture \"{}\"", filename);
 	return update(filename, data.first.get(), data.second);
 }
 
