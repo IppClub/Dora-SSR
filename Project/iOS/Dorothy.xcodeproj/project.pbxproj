@@ -131,6 +131,11 @@
 		3C3EB52226943FDC00554DF1 /* Sweep.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB52126943FDC00554DF1 /* Sweep.cpp */; };
 		3C3EB52526943FED00554DF1 /* DistanceConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB52326943FED00554DF1 /* DistanceConf.cpp */; };
 		3C3EB52926943FF800554DF1 /* Compositor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB52726943FF800554DF1 /* Compositor.cpp */; };
+		3C3EB52A26945B7A00554DF1 /* WorldImplShape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB51826943FBE00554DF1 /* WorldImplShape.cpp */; };
+		3C3EB52B26945B7A00554DF1 /* WorldShape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB51726943FBE00554DF1 /* WorldShape.cpp */; };
+		3C3EB52C26945B7A00554DF1 /* Sweep.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB52126943FDC00554DF1 /* Sweep.cpp */; };
+		3C3EB52D26945B7A00554DF1 /* DistanceConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB52326943FED00554DF1 /* DistanceConf.cpp */; };
+		3C3EB52E26945B7A00554DF1 /* Compositor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3EB52726943FF800554DF1 /* Compositor.cpp */; };
 		3C41D60321490BE6003FDDFE /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FB21490BE5003FDDFE /* imgui.cpp */; };
 		3C41D60421490BE6003FDDFE /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */; };
 		3C41D60521490BE6003FDDFE /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */; };
@@ -2831,6 +2836,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C3EB52A26945B7A00554DF1 /* WorldImplShape.cpp in Sources */,
+				3C3EB52B26945B7A00554DF1 /* WorldShape.cpp in Sources */,
+				3C3EB52C26945B7A00554DF1 /* Sweep.cpp in Sources */,
+				3C3EB52D26945B7A00554DF1 /* DistanceConf.cpp in Sources */,
+				3C3EB52E26945B7A00554DF1 /* Compositor.cpp in Sources */,
 				3CFEBE4026930B36006D9974 /* DragonBoneCache.cpp in Sources */,
 				3CFEBE4126930B36006D9974 /* DragonBone.cpp in Sources */,
 				3CFEBE3926930AD3006D9974 /* os.cpp in Sources */,
