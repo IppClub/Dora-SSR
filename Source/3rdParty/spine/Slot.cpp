@@ -33,29 +33,29 @@
 
 #include "spine/Slot.h"
 
-#include "spine/SlotData.h"
+#include "spine/Attachment.h"
 #include "spine/Bone.h"
 #include "spine/Skeleton.h"
-#include "spine/Attachment.h"
+#include "spine/SlotData.h"
+#include "spine/VertexAttachment.h"
 
 using namespace spine;
 
-Slot::Slot(SlotData &data, Bone &bone) :
-		_data(data),
-		_bone(bone),
-		_skeleton(bone.getSkeleton()),
-		_color(1, 1, 1, 1),
-		_darkColor(0, 0, 0, 0),
-		_hasDarkColor(data.hasDarkColor()),
-		_attachment(NULL),
-		_attachmentState(0),
-		_attachmentTime(0) {
+Slot::Slot(SlotData &data, Bone &bone) : _data(data),
+										 _bone(bone),
+										 _skeleton(bone.getSkeleton()),
+										 _color(1, 1, 1, 1),
+										 _darkColor(0, 0, 0, 0),
+										 _hasDarkColor(data.hasDarkColor()),
+										 _attachment(NULL),
+										 _attachmentState(0),
+										 _attachmentTime(0) {
 	setToSetupPose();
 }
 
 void Slot::setToSetupPose() {
 	_color.set(_data.getColor());
-	if  (_hasDarkColor) _darkColor.set(_data.getDarkColor());
+	if (_hasDarkColor) _darkColor.set(_data.getDarkColor());
 
 	const String &attachmentName = _data.getAttachmentName();
 	if (attachmentName.length() > 0) {
@@ -99,17 +99,25 @@ void Slot::setAttachment(Attachment *inValue) {
 		return;
 	}
 
+	if (inValue && _attachment) {
+		if (!(inValue->getRTTI().instanceOf(VertexAttachment::rtti)) ||
+			!(_attachment->getRTTI().instanceOf(VertexAttachment::rtti)) ||
+			(static_cast<VertexAttachment *>(inValue)->getDeformAttachment() !=
+			 (static_cast<VertexAttachment *>(_attachment)->getDeformAttachment()))) {
+			_deform.clear();
+		}
+	}
+
 	_attachment = inValue;
 	_attachmentTime = _skeleton.getTime();
-	_deform.clear();
 }
 
 int Slot::getAttachmentState() {
-    return _attachmentState;
+	return _attachmentState;
 }
 
 void Slot::setAttachmentState(int state) {
-    _attachmentState = state;
+	_attachmentState = state;
 }
 
 float Slot::getAttachmentTime() {

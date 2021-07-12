@@ -51,26 +51,25 @@ const int RegionAttachment::BRX = 6;
 const int RegionAttachment::BRY = 7;
 
 RegionAttachment::RegionAttachment(const String &name) : Attachment(name), HasRendererObject(),
-	_x(0),
-	_y(0),
-	_rotation(0),
-	_scaleX(1),
-	_scaleY(1),
-	_width(0),
-	_height(0),
-	_regionOffsetX(0),
-	_regionOffsetY(0),
-	_regionWidth(0),
-	_regionHeight(0),
-	_regionOriginalWidth(0),
-	_regionOriginalHeight(0),
-	_path(),
-	_regionU(0),
-	_regionV(0),
-	_regionU2(0),
-	_regionV2(0),
-	_color(1, 1, 1, 1)
-{
+														 _x(0),
+														 _y(0),
+														 _rotation(0),
+														 _scaleX(1),
+														 _scaleY(1),
+														 _width(0),
+														 _height(0),
+														 _regionOffsetX(0),
+														 _regionOffsetY(0),
+														 _regionWidth(0),
+														 _regionHeight(0),
+														 _regionOriginalWidth(0),
+														 _regionOriginalHeight(0),
+														 _path(),
+														 _regionU(0),
+														 _regionV(0),
+														 _regionU2(0),
+														 _regionV2(0),
+														 _color(1, 1, 1, 1) {
 	_vertexOffset.setSize(NUM_UVS, 0);
 	_uvs.setSize(NUM_UVS, 0);
 }
@@ -103,8 +102,8 @@ void RegionAttachment::updateOffset() {
 	_vertexOffset[BRY] = localYCos + localX2Sin;
 }
 
-void RegionAttachment::setUVs(float u, float v, float u2, float v2, bool rotate) {
-	if (rotate) {
+void RegionAttachment::setUVs(float u, float v, float u2, float v2, float degrees) {
+	if (degrees == 90) {
 		_uvs[URX] = u;
 		_uvs[URY] = v2;
 		_uvs[BRX] = u;
@@ -130,32 +129,32 @@ void RegionAttachment::computeWorldVertices(Bone &bone, Vector<float> &worldVert
 	computeWorldVertices(bone, worldVertices.buffer(), offset, stride);
 }
 
-void RegionAttachment::computeWorldVertices(Bone &bone, float* worldVertices, size_t offset, size_t stride) {
+void RegionAttachment::computeWorldVertices(Bone &bone, float *worldVertices, size_t offset, size_t stride) {
 	float x = bone.getWorldX(), y = bone.getWorldY();
 	float a = bone.getA(), b = bone.getB(), c = bone.getC(), d = bone.getD();
 	float offsetX, offsetY;
 
 	offsetX = _vertexOffset[BRX];
 	offsetY = _vertexOffset[BRY];
-	worldVertices[offset] = offsetX * a + offsetY * b + x; // br
+	worldVertices[offset] = offsetX * a + offsetY * b + x;// br
 	worldVertices[offset + 1] = offsetX * c + offsetY * d + y;
 	offset += stride;
 
 	offsetX = _vertexOffset[BLX];
 	offsetY = _vertexOffset[BLY];
-	worldVertices[offset] = offsetX * a + offsetY * b + x; // bl
+	worldVertices[offset] = offsetX * a + offsetY * b + x;// bl
 	worldVertices[offset + 1] = offsetX * c + offsetY * d + y;
 	offset += stride;
 
 	offsetX = _vertexOffset[ULX];
 	offsetY = _vertexOffset[ULY];
-	worldVertices[offset] = offsetX * a + offsetY * b + x; // ul
+	worldVertices[offset] = offsetX * a + offsetY * b + x;// ul
 	worldVertices[offset + 1] = offsetX * c + offsetY * d + y;
 	offset += stride;
 
 	offsetX = _vertexOffset[URX];
 	offsetY = _vertexOffset[URY];
-	worldVertices[offset] = offsetX * a + offsetY * b + x; // ur
+	worldVertices[offset] = offsetX * a + offsetY * b + x;// ur
 	worldVertices[offset + 1] = offsetX * c + offsetY * d + y;
 }
 
@@ -283,8 +282,8 @@ spine::Color &RegionAttachment::getColor() {
 	return _color;
 }
 
-Attachment* RegionAttachment::copy() {
-	RegionAttachment* copy = new (__FILE__, __LINE__) RegionAttachment(getName());
+Attachment *RegionAttachment::copy() {
+	RegionAttachment *copy = new (__FILE__, __LINE__) RegionAttachment(getName());
 	copy->_regionWidth = _regionWidth;
 	copy->_regionHeight = _regionHeight;
 	copy->_regionOffsetX = _regionOffsetX;

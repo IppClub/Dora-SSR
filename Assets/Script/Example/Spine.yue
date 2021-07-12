@@ -5,6 +5,8 @@ spineStr = "dragon-ess.skel|dragon.atlas"
 animations = Spine\getAnimations spineStr
 looks = Spine\getLooks spineStr
 
+p animations, looks
+
 Director.entry\addChild with Spine spineStr
 	.look = looks[1]
 	\play animations[1], true

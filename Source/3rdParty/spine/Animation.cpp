@@ -32,9 +32,9 @@
 #endif
 
 #include "spine/Animation.h"
-#include "spine/Timeline.h"
-#include "spine/Skeleton.h"
 #include "spine/Event.h"
+#include "spine/Skeleton.h"
+#include "spine/Timeline.h"
 
 #include "spine/ContainerUtil.h"
 
@@ -42,18 +42,23 @@
 
 using namespace spine;
 
-Animation::Animation(const String &name, Vector<Timeline *> &timelines, float duration) :
-		_timelines(timelines),
-		_timelineIds(),
-		_duration(duration),
-		_name(name) {
+Animation::Animation(const String &name, Vector<Timeline *> &timelines, float duration) : _timelines(timelines),
+																						  _timelineIds(),
+																						  _duration(duration),
+																						  _name(name) {
 	assert(_name.length() > 0);
-	for (int i = 0; i < (int)timelines.size(); i++)
-		_timelineIds.put(timelines[i]->getPropertyId(), true);
+	for (size_t i = 0; i < timelines.size(); i++) {
+		Vector<PropertyId> propertyIds = timelines[i]->getPropertyIds();
+		for (size_t ii = 0; ii < propertyIds.size(); ii++)
+			_timelineIds.put(propertyIds[ii], true);
+	}
 }
 
-bool Animation::hasTimeline(int id) {
-	return _timelineIds.containsKey(id);
+bool Animation::hasTimeline(Vector<PropertyId> ids) {
+	for (size_t i = 0; i < ids.size(); i++) {
+		if (_timelineIds.containsKey(ids[i])) return true;
+	}
+	return false;
 }
 
 Animation::~Animation() {
@@ -61,8 +66,7 @@ Animation::~Animation() {
 }
 
 void Animation::apply(Skeleton &skeleton, float lastTime, float time, bool loop, Vector<Event *> *pEvents, float alpha,
-	MixBlend blend, MixDirection direction
-) {
+					  MixBlend blend, MixDirection direction) {
 	if (loop && _duration != 0) {
 		time = MathUtil::fmod(time, _duration);
 		if (lastTime > 0) {
@@ -91,52 +95,17 @@ void Animation::setDuration(float inValue) {
 	_duration = inValue;
 }
 
-int Animation::binarySearch(Vector<float> &values, float target, int step) {
-	int low = 0;
-	int size = (int)values.size();
-	int high = size / step - 2;
-	if (high == 0) {
-		return step;
+int Animation::search(Vector<float> &frames, float target) {
+	size_t n = (int) frames.size();
+	for (size_t i = 1; i < n; i++) {
+		if (frames[i] > target) return (int) i - 1;
 	}
-
-	int current = (int) (static_cast<uint32_t>(high) >> 1);
-	while (true) {
-		if (values[(current + 1) * step] <= target)
-			low = current + 1;
-		else
-			high = current;
-
-		if (low == high) return (low + 1) * step;
-
-		current = (int) (static_cast<uint32_t>(low + high) >> 1);
-	}
+	return (int) n - 1;
 }
 
-int Animation::binarySearch(Vector<float> &values, float target) {
-	int low = 0;
-	int size = (int)values.size();
-	int high = size - 2;
-	if (high == 0) return 1;
-
-	int current = (int) (static_cast<uint32_t>(high) >> 1);
-	while (true) {
-		if (values[(current + 1)] <= target)
-			low = current + 1;
-		else
-			high = current;
-
-		if (low == high) return (low + 1);
-
-		current = (int) (static_cast<uint32_t>(low + high) >> 1);
-	}
-}
-
-int Animation::linearSearch(Vector<float> &values, float target, int step) {
-	for (int i = 0, last = (int)values.size() - step; i <= last; i += step) {
-		if (values[i] > target) {
-			return i;
-		}
-	}
-
-	return -1;
+int Animation::search(Vector<float> &frames, float target, int step) {
+	size_t n = frames.size();
+	for (size_t i = step; i < n; i += step)
+		if (frames[i] > target) return (int) (i - step);
+	return (int) (n - step);
 }

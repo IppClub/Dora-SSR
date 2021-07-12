@@ -27,27 +27,31 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifndef Spine_TimelineType_h
-#define Spine_TimelineType_h
+#ifndef SPINE_DEBUG_LOG_H
+#define SPINE_DEBUG_LOG_H
+
+#include "spine/spine.h"
 
 namespace spine {
-enum TimelineType {
-	TimelineType_Rotate = 0,
-	TimelineType_Translate,
-	TimelineType_Scale,
-	TimelineType_Shear,
-	TimelineType_Attachment,
-	TimelineType_Color,
-	TimelineType_Deform,
-	TimelineType_Event,
-	TimelineType_DrawOrder,
-	TimelineType_IkConstraint,
-	TimelineType_TransformConstraint,
-	TimelineType_PathConstraintPosition,
-	TimelineType_PathConstraintSpacing,
-	TimelineType_PathConstraintMix,
-	TimelineType_TwoColor
-};
+	SP_API void spDebug_printSkeletonData(SkeletonData *skeletonData);
+
+	SP_API void spDebug_printAnimation(Animation *animation);
+
+	SP_API void spDebug_printTimeline(Timeline *timeline);
+
+	SP_API void spDebug_printBoneDatas(Vector<BoneData *> &boneDatas);
+
+	SP_API void spDebug_printBoneData(BoneData *boneData);
+
+	SP_API void spDebug_printSkeleton(Skeleton *skeleton);
+
+	SP_API void spDebug_printBones(Vector<Bone *> &bones);
+
+	SP_API void spDebug_printBone(Bone *bone);
+
+	SP_API void spDebug_printFloats(float *values, int numFloats);
+
+	SP_API void spDebug_printFloats(Vector<float> &values);
 }
 
-#endif /* Spine_TimelineType_h */
+#endif

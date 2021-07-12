@@ -42,7 +42,8 @@ using namespace spine;
 
 RTTI_IMPL(VertexAttachment, Attachment)
 
-VertexAttachment::VertexAttachment(const String &name) : Attachment(name), _worldVerticesLength(0), _deformAttachment(this), _id(getNextID()) {
+VertexAttachment::VertexAttachment(const String &name) : Attachment(name), _worldVerticesLength(0),
+														 _deformAttachment(this), _id(getNextID()) {
 }
 
 VertexAttachment::~VertexAttachment() {
@@ -56,11 +57,13 @@ void VertexAttachment::computeWorldVertices(Slot &slot, float *worldVertices) {
 	computeWorldVertices(slot, 0, _worldVerticesLength, worldVertices, 0);
 }
 
-void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t count, Vector<float> &worldVertices, size_t offset, size_t stride) {
+void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t count, Vector<float> &worldVertices,
+											size_t offset, size_t stride) {
 	computeWorldVertices(slot, start, count, worldVertices.buffer(), offset, stride);
 }
 
-void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t count, float *worldVertices, size_t offset, size_t stride) {
+void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t count, float *worldVertices, size_t offset,
+											size_t stride) {
 	count = offset + (count >> 1) * stride;
 	Skeleton &skeleton = slot._bone._skeleton;
 	Vector<float> *deformArray = &slot.getDeform();
@@ -84,7 +87,7 @@ void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t cou
 
 	int v = 0, skip = 0;
 	for (size_t i = 0; i < start; i += 2) {
-		int n = (int)bones[v];
+		int n = (int) bones[v];
 		v += n + 1;
 		skip += n;
 	}
@@ -93,7 +96,7 @@ void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t cou
 	if (deformArray->size() == 0) {
 		for (size_t w = offset, b = skip * 3; w < count; w += stride) {
 			float wx = 0, wy = 0;
-			int n = (int)bones[v++];
+			int n = (int) bones[v++];
 			n += v;
 			for (; v < n; v++, b += 3) {
 				Bone *boneP = skeletonBones[bones[v]];
@@ -110,7 +113,7 @@ void VertexAttachment::computeWorldVertices(Slot &slot, size_t start, size_t cou
 	} else {
 		for (size_t w = offset, b = skip * 3, f = skip << 1; w < count; w += stride) {
 			float wx = 0, wy = 0;
-			int n = (int)bones[v++];
+			int n = (int) bones[v++];
 			n += v;
 			for (; v < n; v++, b += 3, f += 2) {
 				Bone *boneP = skeletonBones[bones[v]];
@@ -147,21 +150,20 @@ void VertexAttachment::setWorldVerticesLength(size_t inValue) {
 	_worldVerticesLength = inValue;
 }
 
-VertexAttachment* VertexAttachment::getDeformAttachment() {
+VertexAttachment *VertexAttachment::getDeformAttachment() {
 	return _deformAttachment;
 }
 
-void VertexAttachment::setDeformAttachment(VertexAttachment* attachment) {
+void VertexAttachment::setDeformAttachment(VertexAttachment *attachment) {
 	_deformAttachment = attachment;
 }
 
 int VertexAttachment::getNextID() {
 	static int nextID = 0;
-
-	return (nextID++ & 65535) << 11;
+	return nextID++;
 }
 
-void VertexAttachment::copyTo(VertexAttachment* other) {
+void VertexAttachment::copyTo(VertexAttachment *other) {
 	other->_bones.clearAndAddAll(this->_bones);
 	other->_vertices.clearAndAddAll(this->_vertices);
 	other->_worldVerticesLength = this->_worldVerticesLength;

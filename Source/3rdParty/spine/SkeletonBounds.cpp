@@ -33,9 +33,9 @@
 
 #include "spine/SkeletonBounds.h"
 
-#include "spine/Skeleton.h"
 #include "spine/Bone.h"
 #include "spine/BoundingBoxAttachment.h"
+#include "spine/Skeleton.h"
 
 #include "spine/Slot.h"
 
@@ -47,9 +47,9 @@ SkeletonBounds::SkeletonBounds() : _minX(0), _minY(0), _maxX(0), _maxY(0) {
 }
 
 SkeletonBounds::~SkeletonBounds() {
-    for (size_t i = 0, n = _polygons.size(); i < n; i++)
-        _polygonPool.free(_polygons[i]);
-    _polygons.clear();
+	for (size_t i = 0, n = _polygons.size(); i < n; i++)
+		_polygonPool.free(_polygons[i]);
+	_polygons.clear();
 }
 
 void SkeletonBounds::update(Skeleton &skeleton, bool updateAabb) {
@@ -78,7 +78,7 @@ void SkeletonBounds::update(Skeleton &skeleton, bool updateAabb) {
 		Polygon &polygon = *polygonP;
 
 		size_t count = boundingBox->getWorldVerticesLength();
-		polygon._count = (int)count;
+		polygon._count = (int) count;
 		if (polygon._vertices.size() < count) {
 			polygon._vertices.setSize(count, 0);
 		}
