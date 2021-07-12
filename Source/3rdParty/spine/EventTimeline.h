@@ -35,29 +35,27 @@
 namespace spine {
 	class SP_API EventTimeline : public Timeline {
 		friend class SkeletonBinary;
+
 		friend class SkeletonJson;
 
-		RTTI_DECL
+	RTTI_DECL
 
 	public:
-		explicit EventTimeline(int frameCount);
+		explicit EventTimeline(size_t frameCount);
 
 		~EventTimeline();
 
-		virtual void apply(Skeleton& skeleton, float lastTime, float time, Vector<Event*>* pEvents, float alpha, MixBlend blend, MixDirection direction);
-
-		virtual int getPropertyId();
+		virtual void
+		apply(Skeleton &skeleton, float lastTime, float time, Vector<Event *> *pEvents, float alpha, MixBlend blend,
+			  MixDirection direction);
 
 		/// Sets the time and value of the specified keyframe.
-		void setFrame(size_t frameIndex, Event* event);
+		void setFrame(size_t frame, Event *event);
 
-		Vector<float> getFrames();
-		Vector<Event*>& getEvents();
-		size_t getFrameCount();
+		Vector<Event *> &getEvents();
 
 	private:
-		Vector<float> _frames;
-		Vector<Event*> _events;
+		Vector<Event *> _events;
 	};
 }
 

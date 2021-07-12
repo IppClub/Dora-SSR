@@ -290,13 +290,13 @@ float Spine::play(String name, bool loop)
 	if (recoveryTime > 0.0f)
 	{
 		_animationState->setEmptyAnimation(0, recoveryTime);
-		auto trackEntry = _animationState->addAnimation(0, spine::String(name.begin(), name.size(), false), loop, 0.0f);
+		auto trackEntry = _animationState->addAnimation(0, animation, loop, FLT_EPSILON);
 		trackEntry->setListener(&_listener);
 		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
 	}
 	else
 	{
-		auto trackEntry = _animationState->setAnimation(0, spine::String(name.begin(), name.size(), false), loop);
+		auto trackEntry = _animationState->setAnimation(0, animation, loop);
 		trackEntry->setListener(&_listener);
 		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
 	}

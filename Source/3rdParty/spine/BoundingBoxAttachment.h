@@ -31,16 +31,23 @@
 #define Spine_BoundingBoxAttachment_h
 
 #include "spine/VertexAttachment.h"
+#include "spine/Color.h"
 #include "spine/SpineObject.h"
 
 namespace spine {
 	/// Attachment that has a polygon for bounds checking.
 	class SP_API BoundingBoxAttachment : public VertexAttachment {
-		RTTI_DECL
+	RTTI_DECL
 
-		explicit BoundingBoxAttachment(const String& name);
+	public:
+		explicit BoundingBoxAttachment(const String &name);
 
-		virtual Attachment* copy();
+		Color &getColor();
+
+		virtual Attachment *copy();
+
+	private:
+		Color _color;
 	};
 }
 

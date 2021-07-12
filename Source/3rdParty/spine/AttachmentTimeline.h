@@ -40,37 +40,43 @@
 namespace spine {
 
 	class Skeleton;
+
 	class Slot;
+
 	class Event;
 
 	class SP_API AttachmentTimeline : public Timeline {
 		friend class SkeletonBinary;
+
 		friend class SkeletonJson;
 
-		RTTI_DECL
+	RTTI_DECL
 
 	public:
-		explicit AttachmentTimeline(int frameCount);
+		explicit AttachmentTimeline(size_t frameCount, int slotIndex);
 
-		virtual void apply(Skeleton& skeleton, float lastTime, float time, Vector<Event*>* pEvents, float alpha, MixBlend blend, MixDirection direction);
+		virtual ~AttachmentTimeline();
 
-		virtual int getPropertyId();
+		virtual void
+		apply(Skeleton &skeleton, float lastTime, float time, Vector<Event *> *pEvents, float alpha, MixBlend blend,
+			  MixDirection direction);
 
 		/// Sets the time and value of the specified keyframe.
-		void setFrame(int frameIndex, float time, const String& attachmentName);
+		void setFrame(int frame, float time, const String &attachmentName);
 
-		size_t getSlotIndex();
-		void setSlotIndex(size_t inValue);
-		Vector<float>& getFrames();
-		Vector<String>& getAttachmentNames();
-		size_t getFrameCount();
-	private:
-		size_t _slotIndex;
-		Vector<float> _frames;
+		Vector<String> &getAttachmentNames();
+
+		int getSlotIndex() { return _slotIndex; }
+
+		void setSlotIndex(int inValue) { _slotIndex = inValue; }
+
+	protected:
+		int _slotIndex;
+
 		Vector<String> _attachmentNames;
 
-        void setAttachment(Skeleton& skeleton, Slot& slot, String* attachmentName);
-    };
+		void setAttachment(Skeleton &skeleton, Slot &slot, String *attachmentName);
+	};
 }
 
 #endif /* Spine_AttachmentTimeline_h */

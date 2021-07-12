@@ -35,95 +35,103 @@
 #include "spine/Color.h"
 
 namespace spine {
-class SlotData;
+	class SlotData;
 
-class Bone;
+	class Bone;
 
-class Skeleton;
+	class Skeleton;
 
-class Attachment;
+	class Attachment;
 
-class SP_API Slot : public SpineObject {
-	friend class VertexAttachment;
+	class SP_API Slot : public SpineObject {
+		friend class VertexAttachment;
 
-	friend class Skeleton;
+		friend class Skeleton;
 
-	friend class SkeletonBounds;
+		friend class SkeletonBounds;
 
-	friend class SkeletonClipping;
+		friend class SkeletonClipping;
 
-	friend class AttachmentTimeline;
+		friend class AttachmentTimeline;
 
-	friend class ColorTimeline;
+		friend class RGBATimeline;
 
-	friend class DeformTimeline;
+		friend class RGBTimeline;
 
-	friend class DrawOrderTimeline;
+		friend class AlphaTimeline;
 
-	friend class EventTimeline;
+		friend class RGBA2Timeline;
 
-	friend class IkConstraintTimeline;
+		friend class RGB2Timeline;
 
-	friend class PathConstraintMixTimeline;
+		friend class DeformTimeline;
 
-	friend class PathConstraintPositionTimeline;
+		friend class DrawOrderTimeline;
 
-	friend class PathConstraintSpacingTimeline;
+		friend class EventTimeline;
 
-	friend class ScaleTimeline;
+		friend class IkConstraintTimeline;
 
-	friend class ShearTimeline;
+		friend class PathConstraintMixTimeline;
 
-	friend class TransformConstraintTimeline;
+		friend class PathConstraintPositionTimeline;
 
-	friend class TranslateTimeline;
+		friend class PathConstraintSpacingTimeline;
 
-	friend class TwoColorTimeline;
+		friend class ScaleTimeline;
 
-public:
-	Slot(SlotData &data, Bone &bone);
+		friend class ShearTimeline;
 
-	void setToSetupPose();
+		friend class TransformConstraintTimeline;
 
-	SlotData &getData();
+		friend class TranslateTimeline;
 
-	Bone &getBone();
+		friend class TwoColorTimeline;
 
-	Skeleton &getSkeleton();
+	public:
+		Slot(SlotData &data, Bone &bone);
 
-	Color &getColor();
+		void setToSetupPose();
 
-	Color &getDarkColor();
+		SlotData &getData();
 
-	bool hasDarkColor();
+		Bone &getBone();
 
-	/// May be NULL.
-	Attachment *getAttachment();
+		Skeleton &getSkeleton();
 
-	void setAttachment(Attachment *inValue);
+		Color &getColor();
 
-	int getAttachmentState();
+		Color &getDarkColor();
 
-	void setAttachmentState(int state);
+		bool hasDarkColor();
 
-	float getAttachmentTime();
+		/// May be NULL.
+		Attachment *getAttachment();
 
-	void setAttachmentTime(float inValue);
+		void setAttachment(Attachment *inValue);
 
-	Vector<float> &getDeform();
+		int getAttachmentState();
 
-private:
-	SlotData &_data;
-	Bone &_bone;
-	Skeleton &_skeleton;
-	Color _color;
-	Color _darkColor;
-	bool _hasDarkColor;
-	Attachment *_attachment;
-	int _attachmentState;
-	float _attachmentTime;
-	Vector<float> _deform;
-};
+		void setAttachmentState(int state);
+
+		float getAttachmentTime();
+
+		void setAttachmentTime(float inValue);
+
+		Vector<float> &getDeform();
+
+	private:
+		SlotData &_data;
+		Bone &_bone;
+		Skeleton &_skeleton;
+		Color _color;
+		Color _darkColor;
+		bool _hasDarkColor;
+		Attachment *_attachment;
+		int _attachmentState;
+		float _attachmentTime;
+		Vector<float> _deform;
+	};
 }
 
 #endif /* Spine_Slot_h */
