@@ -60,8 +60,7 @@ private:
 	Own<spine::AnimationStateData> _animationStateData;
 	Own<spine::Skin> _newSkin;
 	Own<spine::SkeletonBounds> _bounds;
-	Ref<DrawNode> _drawNode;
-	Ref<Line> _line;
+	Ref<Line> _debugLine;
 	enum
 	{
 		DepthWrite = Node::UserFlag,

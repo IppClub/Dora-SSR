@@ -119,8 +119,7 @@ private:
 	std::string _lastCompletedAnimationName;
 	Own<DBArmatureProxy> _armatureProxy;
 	Ref<SpriteEffect> _effect;
-	Ref<DrawNode> _drawNode;
-	Ref<Line> _line;
+	Ref<Line> _debugLine;
 	enum
 	{
 		DepthWrite = Node::UserFlag,

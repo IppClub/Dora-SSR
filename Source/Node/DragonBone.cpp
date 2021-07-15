@@ -485,7 +485,9 @@ DragonBone* DragonBone::DBArmatureProxy::getParent() const
 
 DragonBone::DragonBone():
 _armatureProxy(New<DBArmatureProxy>(this))
-{ }
+{
+	_flags.setOff(Node::TraverseEnabled);
+}
 
 void DragonBone::setSpeed(float var)
 {
@@ -522,29 +524,26 @@ void DragonBone::setShowDebug(bool var)
 {
 	if (var)
 	{
-		if (!_drawNode)
+		if (!_debugLine)
 		{
-			_drawNode = DrawNode::create();
-			_drawNode->setOrder(std::numeric_limits<int>::max());
-			addChild(_drawNode);
-			_line = Line::create();
-			_drawNode->addChild(_line);
+			_debugLine = Line::create();
+			_debugLine->setOrder(std::numeric_limits<int>::max());
+			addChild(_debugLine);
 		}
 	}
 	else
 	{
-		if (_drawNode)
+		if (_debugLine)
 		{
-			_drawNode->removeFromParent();
-			_drawNode = nullptr;
-			_line = nullptr;
+			_debugLine->removeFromParent();
+			_debugLine = nullptr;
 		}
 	}
 }
 
 bool DragonBone::isShowDebug() const
 {
-	return _drawNode != nullptr;
+	return _debugLine != nullptr;
 }
 
 DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const
@@ -630,8 +629,7 @@ void DragonBone::render()
 {
 	if (isShowDebug())
 	{
-		_drawNode->clear();
-		_line->clear();
+		_debugLine->clear();
 		for (db::Slot* slot : _armatureProxy->getArmature()->getSlots())
 		{
 			if (auto boxData = slot->getBoundingBoxData())
@@ -653,8 +651,7 @@ void DragonBone::render()
 							vertices[i] = AffineTransform::applyPoint(*transform, {x, y});
 						}
 						vertices[vertSize] = vertices[0];
-						_drawNode->drawPolygon(vertices.data(), vertSize, Color(0x44008888));
-						_line->add(vertices, Color(0xff00ffff));
+						_debugLine->add(vertices, Color(0xff00ffff));
 						break;
 					}
 					default:
