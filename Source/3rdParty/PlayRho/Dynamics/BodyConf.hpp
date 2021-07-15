@@ -33,8 +33,7 @@
 
 #include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 class Body;
 
@@ -342,7 +341,6 @@ constexpr bool operator!=(const BodyConf& lhs, const BodyConf& rhs) noexcept
     return !(lhs == rhs);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_DYNAMICS_BODYCONF_HPP

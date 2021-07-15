@@ -249,7 +249,10 @@ bool IsEnabled(const World& world, JointID id);
 /// @brief Gets the world index of the given joint.
 /// @throws std::out_of_range If given an invalid joint identifier.
 /// @relatedalso World
-JointCounter GetWorldIndex(const World& world, JointID id) noexcept;
+inline JointCounter GetWorldIndex(const World&, JointID id) noexcept
+{
+    return to_underlying(id);
+}
 
 /// Get the anchor point on body-A in world coordinates.
 /// @throws std::out_of_range If given an invalid joint identifier.

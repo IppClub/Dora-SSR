@@ -36,8 +36,7 @@
 #include <cassert>
 #include <utility>
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 /// @example Body.cpp
 /// This is the <code>googletest</code> based unit testing file for the interfaces to
@@ -71,34 +70,34 @@ public:
     /// @note For internal use. Made public to facilitate unit testing.
     enum Flag : FlagsType {
         /// @brief Awake flag.
-        e_awakeFlag = FlagsType(0x0002),
+        e_awakeFlag = FlagsType(0x0002u),
 
         /// @brief Auto sleep flag.
-        e_autoSleepFlag = FlagsType(0x0004),
+        e_autoSleepFlag = FlagsType(0x0004u),
 
         /// @brief Impenetrable flag.
         /// @details Indicates whether CCD should be done for this body.
         /// All static and kinematic bodies have this flag enabled.
-        e_impenetrableFlag = FlagsType(0x0008),
+        e_impenetrableFlag = FlagsType(0x0008u),
 
         /// @brief Fixed rotation flag.
-        e_fixedRotationFlag = FlagsType(0x0010),
+        e_fixedRotationFlag = FlagsType(0x0010u),
 
         /// @brief Enabled flag.
-        e_enabledFlag = FlagsType(0x0020),
+        e_enabledFlag = FlagsType(0x0020u),
 
         /// @brief Velocity flag.
         /// @details Set this to enable changes in position due to velocity.
         /// Bodies with this set are "speedable" - either kinematic or dynamic bodies.
-        e_velocityFlag = FlagsType(0x0080),
+        e_velocityFlag = FlagsType(0x0080u),
 
         /// @brief Acceleration flag.
         /// @details Set this to enable changes in velocity due to physical properties (like
         /// forces). Bodies with this set are "accelerable" - dynamic bodies.
-        e_accelerationFlag = FlagsType(0x0100),
+        e_accelerationFlag = FlagsType(0x0100u),
 
         /// @brief Mass Data Dirty Flag.
-        e_massDataDirtyFlag = FlagsType(0x0200),
+        e_massDataDirtyFlag = FlagsType(0x0200u),
     };
 
     /// @brief Gets the flags for the given value.
@@ -415,7 +414,7 @@ private:
     ///   m_xf.q</code>.
     Sweep m_sweep;
 
-    FlagsType m_flags = 0; ///< Flags. 2-bytes.
+    FlagsType m_flags = 0u; ///< Flags. 2-bytes.
 
     /// @brief Linear velocity.
     /// @note 8-bytes.
@@ -776,10 +775,12 @@ inline void UnsetEnabled(Body& body) noexcept
 /// @relatedalso Body
 inline void SetEnabled(Body& body, bool value) noexcept
 {
-    if (value)
+    if (value) {
         body.SetEnabled();
-    else
+    }
+    else {
         body.UnsetEnabled();
+    }
 }
 
 /// @brief Gets the awake/asleep state of this body.
@@ -1382,7 +1383,6 @@ inline bool operator!=(const Body& lhs, const Body& rhs)
     return !(lhs == rhs);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_DYNAMICS_BODY_HPP

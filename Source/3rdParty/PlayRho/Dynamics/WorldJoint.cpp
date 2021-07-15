@@ -194,11 +194,6 @@ bool IsEnabled(const World& world, JointID id)
         && (bB == InvalidBodyID || IsEnabled(world.GetBody(bB)));
 }
 
-JointCounter GetWorldIndex(const World&, JointID id) noexcept
-{
-    return to_underlying(id);
-}
-
 Length2 GetAnchorA(const World& world, JointID id)
 {
     const auto& joint = world.GetJoint(id);

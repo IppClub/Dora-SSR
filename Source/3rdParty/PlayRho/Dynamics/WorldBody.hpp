@@ -335,7 +335,10 @@ Acceleration CalcGravitationalAcceleration(const World& world, BodyID id);
 /// @brief Gets the world index for the given body.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
-BodyCounter GetWorldIndex(const World& world, const BodyID id) noexcept;
+inline BodyCounter GetWorldIndex(const World&, BodyID id) noexcept
+{
+    return to_underlying(id);
+}
 
 /// @brief Gets the type of the identified body.
 /// @see SetType(World& world, BodyID id, BodyType value)
@@ -816,27 +819,13 @@ void ApplyAngularImpulse(World& world, BodyID id, AngularMomentum impulse);
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
-inline void SetForce(World& world, BodyID id, Force2 force, Length2 point) noexcept
-{
-    const auto linAccel = LinearAcceleration2{force * GetInvMass(world, id)};
-    const auto invRotI = GetInvRotInertia(world, id);
-    const auto dp = point - GetWorldCenter(world, id);
-    const auto cp = Torque{Cross(dp, force) / Radian};
-    const auto angAccel = AngularAcceleration{cp * invRotI};
-    SetAcceleration(world, id, linAccel, angAccel);
-}
+void SetForce(World& world, BodyID id, Force2 force, Length2 point);
 
 /// @brief Sets the given amount of torque to the given body.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
-inline void SetTorque(World& world, BodyID id, Torque torque) noexcept
-{
-    const auto linAccel = GetLinearAcceleration(world, id);
-    const auto invRotI = GetInvRotInertia(world, id);
-    const auto angAccel = torque * invRotI;
-    SetAcceleration(world, id, linAccel, angAccel);
-}
+void SetTorque(World& world, BodyID id, Torque torque);
 
 /// @brief Gets the linear damping of the body.
 /// @throws std::out_of_range If given an invalid body identifier.

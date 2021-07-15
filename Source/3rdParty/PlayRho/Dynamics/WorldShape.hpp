@@ -221,6 +221,15 @@ inline MassData GetMassData(const World& world, ShapeID id)
     return GetMassData(GetShape(world, id));
 }
 
+/// @brief Computes the mass data total of the identified shapes.
+/// @details This basically accumulates the mass data over all shapes.
+/// @note The center is the mass weighted sum of all shape centers. Divide it by the
+///   mass to get the averaged center.
+/// @return accumulated mass data for all shapes identified.
+/// @throws std::out_of_range If given an invalid shape identifier.
+/// @relatedalso World
+MassData ComputeMassData(const World& world, const std::vector<ShapeID>& ids);
+
 /// @brief Tests a point for containment in a shape associated with a body.
 /// @param world The world that the given shape ID exists within.
 /// @param bodyId Body to use for test.
