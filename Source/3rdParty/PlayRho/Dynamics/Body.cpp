@@ -26,8 +26,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 static_assert(std::is_default_constructible<Body>::value, "Body must be default constructible!");
 static_assert(std::is_copy_constructible<Body>::value, "Body must be copy constructible!");
@@ -93,7 +92,9 @@ Body::Body(const BodyConf& bd) noexcept
       m_flags{GetFlags(bd)},
       m_invMass{(bd.type == playrho::BodyType::Dynamic) ? InvMass{Real{1} / Kilogram} : InvMass{0}},
       m_linearDamping{bd.linearDamping},
-      m_angularDamping{bd.angularDamping}
+      m_angularDamping{bd.angularDamping},
+      m_shapes{(bd.shape == InvalidShapeID) ? std::vector<ShapeID>{}
+                                            : std::vector<ShapeID>{bd.shape}}
 {
     assert(IsValid(bd.location));
     assert(IsValid(bd.angle));
@@ -104,9 +105,6 @@ Body::Body(const BodyConf& bd) noexcept
     SetVelocity(Velocity{bd.linearVelocity, bd.angularVelocity});
     SetAcceleration(bd.linearAcceleration, bd.angularAcceleration);
     SetUnderActiveTime(bd.underActiveTime);
-    if (bd.shape != InvalidShapeID) {
-        m_shapes.push_back(bd.shape);
-    }
 }
 
 BodyType Body::GetType() const noexcept
@@ -337,5 +335,4 @@ bool operator==(const Body& lhs, const Body& rhs)
            GetShapes(lhs) == GetShapes(rhs);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

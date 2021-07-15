@@ -23,8 +23,7 @@
 
 #include "PlayRho/Dynamics/Body.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 BodyConf GetBodyConf(const Body& body) noexcept
 {
@@ -52,5 +51,4 @@ Transformation GetTransformation(const BodyConf& conf) noexcept
     return {conf.location, UnitVec::Get(conf.angle)};
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

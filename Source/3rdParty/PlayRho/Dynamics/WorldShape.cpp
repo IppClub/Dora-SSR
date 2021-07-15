@@ -138,6 +138,24 @@ void Rotate(World& world, ShapeID id, const UnitVec& value)
     SetShape(world, id, object);
 }
 
+MassData ComputeMassData(const World& world, const std::vector<ShapeID>& ids)
+{
+    auto mass = 0_kg;
+    auto I = RotInertia{0};
+    auto weightedCenter = Length2{};
+    for (const auto& shapeId: ids) {
+        const auto& shape = GetShape(world, shapeId);
+        if (GetDensity(shape) > 0_kgpm2) {
+            const auto massData = GetMassData(shape);
+            mass += Mass{massData.mass};
+            weightedCenter += Real{massData.mass / Kilogram} * massData.center;
+            I += RotInertia{massData.I};
+        }
+    }
+    const auto center = (mass > 0_kg)? (weightedCenter / (Real{mass/1_kg})): Length2{};
+    return MassData{center, mass, I};
+}
+
 bool TestPoint(const World& world, BodyID bodyId, ShapeID shapeId, Length2 p)
 {
     return TestPoint(GetShape(world, shapeId), InverseTransform(p, GetTransformation(world, bodyId)));
