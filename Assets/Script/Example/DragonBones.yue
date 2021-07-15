@@ -7,7 +7,40 @@ looks = DragonBone\getLooks boneStr
 
 p animations, looks
 
-Director.entry\addChild with DragonBone boneStr
+bone = with DragonBone boneStr
 	.look = looks[1]
 	\play animations[1], true
 	\slot "AnimationEnd", (name)-> print "#{name} end!"
+	.y = -200
+	.touchEnabled = true
+	\slot "TapBegan", (touch)->
+		:x, :y = touch.location
+		if name = \containsPoint x, y
+			\addChild with Label "NotoSansHans-Regular", 30
+				.text = name
+				.color = Color 0xff00ffff
+				\perform Sequence(Spawn(
+					Scale 1, 0, 2, Ease.OutQuad
+					Sequence(
+						Delay 0.5
+						Opacity 0.5, 1, 0
+					)
+				), Emit "Stop")
+				.position = Vec2 x, y
+				.order = 100
+				\slot "Stop", -> \removeFromParent!
+
+Director.entry\addChild bone
+
+-- example codes ends here, some test ui below --
+
+_ENV = Dorothy builtin.ImGui
+
+Director.entry\addChild with Node!
+	\schedule ->
+		:width,:height = App.visualSize
+		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+		SetNextWindowSize Vec2(240,140), "FirstUseEver"
+		Begin "DragonBones", "NoResize|NoSavedSettings", ->
+			TextWrapped "Basic usage to create dragonBones! Tap it for a hit test."
+			_, bone.showDebug = Checkbox "BoundingBox", bone.showDebug

@@ -143,28 +143,25 @@ void Spine::setShowDebug(bool var)
 {
 	if (var)
 	{
-		if (!_drawNode)
+		if (!_debugLine)
 		{
-			_drawNode = DrawNode::create();
-			addChild(_drawNode);
-			_line = Line::create();
-			_drawNode->addChild(_line);
+			_debugLine = Line::create();
+			addChild(_debugLine);
 		}
 	}
 	else
 	{
-		if (_drawNode)
+		if (_debugLine)
 		{
-			_drawNode->removeFromParent();
-			_drawNode = nullptr;
-			_line = nullptr;
+			_debugLine->removeFromParent();
+			_debugLine = nullptr;
 		}
 	}
 }
 
 bool Spine::isShowDebug() const
 {
-	return _drawNode != nullptr;
+	return _debugLine != nullptr;
 }
 
 void Spine::setLook(String name)
@@ -357,8 +354,7 @@ void Spine::render()
 
 	if (isShowDebug())
 	{
-		_drawNode->clear();
-		_line->clear();
+		_debugLine->clear();
 	}
 
 	std::vector<SpriteVertex> vertices;
@@ -465,8 +461,7 @@ void Spine::render()
 					vertices[i] = {x, y};
 				}
 				vertices[vertSize] = vertices[0];
-				_drawNode->drawPolygon(vertices.data(), vertSize, Color(0x44008888));
-				_line->add(vertices, Color(0xff00ffff));
+				_debugLine->add(vertices, Color(0xff00ffff));
 			}
 		}
 		vertices.clear();

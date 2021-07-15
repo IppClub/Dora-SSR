@@ -2002,6 +2002,7 @@ void    ImFontAtlas::ClearInputData()
     ConfigData.clear();
     CustomRects.clear();
     PackIdMouseCursors = PackIdLines = -1;
+    TexReady = false;
 }
 
 void    ImFontAtlas::ClearTexData()
@@ -2014,12 +2015,14 @@ void    ImFontAtlas::ClearTexData()
     TexPixelsAlpha8 = NULL;
     TexPixelsRGBA32 = NULL;
     TexPixelsUseColors = false;
+    // Important: we leave TexReady untouched
 }
 
 void    ImFontAtlas::ClearFonts()
 {
     IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
     Fonts.clear_delete();
+    TexReady = false;
 }
 
 void    ImFontAtlas::Clear()
@@ -2033,11 +2036,7 @@ void    ImFontAtlas::GetTexDataAsAlpha8(unsigned char** out_pixels, int* out_wid
 {
     // Build atlas on demand
     if (TexPixelsAlpha8 == NULL)
-    {
-        if (ConfigData.empty())
-            AddFontDefault();
         Build();
-    }
 
     *out_pixels = TexPixelsAlpha8;
     if (out_width) *out_width = TexWidth;
@@ -2096,6 +2095,7 @@ ImFont* ImFontAtlas::AddFont(const ImFontConfig* font_cfg)
         new_font_cfg.DstFont->EllipsisChar = font_cfg->EllipsisChar;
 
     // Invalidate texture
+    TexReady = false;
     ClearTexData();
     return new_font_cfg.DstFont;
 }
@@ -2257,6 +2257,10 @@ bool ImFontAtlas::GetMouseCursorTexData(ImGuiMouseCursor cursor_type, ImVec2* ou
 bool    ImFontAtlas::Build()
 {
     IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
+
+    // Default font is none are specified
+    if (ConfigData.Size == 0)
+        AddFontDefault();
 
     // Select builder
     // - Note that we do not reassign to atlas->FontBuilderIO, since it is likely to point to static data which
@@ -2795,6 +2799,8 @@ void ImFontAtlasBuildFinish(ImFontAtlas* atlas)
     for (int i = 0; i < atlas->Fonts.Size; i++)
         if (atlas->Fonts[i]->DirtyLookupTables)
             atlas->Fonts[i]->BuildLookupTable();
+
+    atlas->TexReady = true;
 }
 
 // Retrieve list of range (2 int per range, values are inclusive)
@@ -3200,7 +3206,7 @@ void ImFont::BuildLookupTable()
         if (FallbackGlyph == NULL)
         {
             FallbackGlyph = &Glyphs.back();
-            FallbackChar = FallbackGlyph->Codepoint;
+            FallbackChar = (ImWchar)FallbackGlyph->Codepoint;
         }
     }
 
@@ -3730,6 +3736,7 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, ImVec2 pos, ImU32 col
 // - RenderMouseCursor()
 // - RenderArrowPointingAt()
 // - RenderRectFilledRangeH()
+// - RenderRectFilledWithHole()
 //-----------------------------------------------------------------------------
 // Function in need of a redesign (legacy mess)
 // - RenderColorRectWithAlphaCheckerboard()
