@@ -332,7 +332,7 @@ with Observer "Change", {"hp","hero"}
 							View.postEffect = with SpriteEffect "builtin::vs_sprite","builtin::fs_spritesaturation"
 								\get(1)\set "u_adjustment",0
 							sleep 3
-							cycle 5,(dt)-> View.postEffect\set "u_adjustment",dt
+							cycle 5,(dt)-> View.postEffect\get(1)\set "u_adjustment",dt
 							View.postEffect = nil
 						\slot "Cleanup",->
 							View.postEffect = nil
