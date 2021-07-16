@@ -507,7 +507,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	
 	ImGuiIO& io = ImGui::GetIO();
 	io.FontGlobalScale = 1.0f / scale;
-	io.Fonts->ClearFonts();
+	io.Fonts->Clear();
 	ImFontConfig fontConfig;
 	fontConfig.FontDataOwnedByAtlas = false;
 	fontConfig.PixelSnapH = true;
@@ -520,7 +520,6 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
 	updateTexture(texData, width, height);
 	io.Fonts->ClearTexData();
-	io.Fonts->ClearInputData();
 
 	const ImWchar* targetGlyphRanges = nullptr;
 	switch (Switch::hash(glyphRanges))
@@ -931,7 +930,6 @@ bool ImGuiDora::init()
 	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
 	updateTexture(texData, width, height);
 	io.Fonts->ClearTexData();
-	io.Fonts->ClearInputData();
 
 	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime)
 	{
