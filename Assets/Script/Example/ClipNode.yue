@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-StarVertices = (radius, line=false)->
+StarVertices = (radius, line = false)->
 	a = math.rad 36
 	c = math.rad 72
 	f = math.sin(a) * math.tan(c) + math.cos a
