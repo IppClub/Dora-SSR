@@ -1,7 +1,7 @@
 _ENV = Dorothy!
 
 Item = Class Node,
-	__init:=>
+	__init: =>
 		@width = 144
 		@height = 144
 		@anchor = Vec2.zero
@@ -30,12 +30,12 @@ Item = Class Node,
 			.angle = 45
 
 		@runAction Angle 5,0,360
-		@slot "ActionEnd",(action)-> @runAction action
+		@slot "ActionEnd", (action)-> @runAction action
 
 Director.entry\addChild with Node!
 	.renderGroup = true
 	.size = Size 750,750
-	for i = 1,16 do \addChild Item!
+	\addChild Item! for i = 1, 16
 	\alignItems!
 
 -- example codes ends here, some test ui below --
