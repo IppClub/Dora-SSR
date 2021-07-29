@@ -268,7 +268,7 @@ UnitAction\add "range",
 				with Bullet bulletDef,@
 					.color = Color 0xff666666 if @group == EnemyGroup
 					.targetAllow = targetAllow
-					\slot "HitTarget",(bullet,target,pos)->
+					\slot "HitTarget", (bullet,target,pos)->
 						entity = target.entity
 						entity.hitPoint = pos
 						entity.hitPower = attackPower
@@ -318,7 +318,7 @@ UnitAction\add "multiArrow",
 				with Bullet BigArrow,@
 					.color = Color 0xff666666 if @group == EnemyGroup
 					.targetAllow = targetAllow
-					\slot "HitTarget",(bullet,target,pos)->
+					\slot "HitTarget", (bullet,target,pos)->
 						entity = target.entity
 						entity.hitPoint = pos
 						entity.hitPower = attackPower
@@ -452,21 +452,21 @@ Store["Bullet_Arrow"] = with BulletDef!
 	.lifeTime = 5
 	.damageRadius = 0
 	.highSpeedFix = false
-	.gravity = Vec2 0,-10
-	.face = Face "Image/patreon.clip|item_arrow", Vec2(0,0)
+	.gravity = Vec2 0, -10
+	.face = Face "Image/patreon.clip|item_arrow", Vec2.zero
 	\setAsCircle 10
 	\setVelocity 25,800
 
 GetBoss = (entity, pos, black)->
 	unitDef = with Dictionary!
-		.linearAcceleration = Vec2 0,-10
+		.linearAcceleration = Vec2 0, -10
 		.bodyType = "Dynamic"
 		.scale = 2
 		.density = 10.0
 		.friction = 1.0
 		.restitution = 0.0
 		.playable = "model:Model/bossp.model"
-		.size = Size 150,410
+		.size = Size 150, 410
 		.tag = "Boss"
 		.sensity = 0
 		.move = 100
@@ -804,7 +804,7 @@ Director.ui\addChild with AlignNode isRoot:true
 		.hAlign = "Left"
 		.vAlign = "Top"
 		.alignOffset = Vec2(360,80) * (uiScale / 2)
-		\gslot "AddScore",(value)->
+		\gslot "AddScore", (value)->
 			return if value < 0 and GameScore == 0
 			\addChild with Label "NotoSansHans-Regular",64
 				.color = Color 0xff00ffff
@@ -942,12 +942,12 @@ Director.ui\addChild with AlignNode isRoot:true
 						.faceRight = false
 			\schedule once ->
 				time = 2
-				cycle time,(dt)->
+				cycle time, (dt)->
 					:width,:height = App.visualSize
 					SetNextWindowPos Vec2(width/2-150,height/2+30)
 					SetNextWindowSize Vec2(300,50), "FirstUseEver"
 					Begin "CountDown", "NoResize|NoSavedSettings|NoTitleBar|NoMove", ->
-						ProgressBar 1.0-dt, Vec2(-1,30), string.format("%.2fs",(1-dt)*time)
+						ProgressBar 1.0-dt, Vec2(-1,30), string.format("%.2fs", (1-dt)*time)
 				emit "Wasted"
 				return if GameScore == 0
 				Audio\play "Audio/choose.wav"

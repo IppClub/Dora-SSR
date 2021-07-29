@@ -16,8 +16,8 @@ _ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	\schedule ->
-		:width,:height = App.visualSize
-		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-		SetNextWindowSize Vec2(240,120), "FirstUseEver"
+		:width, :height = App.visualSize
+		SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
+		SetNextWindowSize Vec2(240, 120), "FirstUseEver"
 		Begin "Hello World", "NoResize|NoSavedSettings", ->
 			TextWrapped "Basic Dorothy schedule and signal function usage. View outputs in log window!"

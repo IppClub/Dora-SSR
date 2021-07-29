@@ -525,7 +525,7 @@ NewFighterDef = -> with Dictionary!
 	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow "Enemy",true)
+		\allow "Enemy", true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_Arrow"
