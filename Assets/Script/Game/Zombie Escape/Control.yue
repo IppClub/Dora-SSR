@@ -29,8 +29,8 @@ with AlignNode isRoot:true
 					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan",-> updatePlayerControl "keyLeft",true
-				\slot "TapEnded",-> updatePlayerControl "keyLeft",false
+				\slot "TapBegan", -> updatePlayerControl "keyLeft",true
+				\slot "TapEnded", -> updatePlayerControl "keyLeft",false
 			\addChild with CircleButton {
 					text: "Right"
 					x: 90*uiScale
@@ -39,8 +39,8 @@ with AlignNode isRoot:true
 					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan",-> updatePlayerControl "keyRight",true
-				\slot "TapEnded",-> updatePlayerControl "keyRight",false
+				\slot "TapBegan", -> updatePlayerControl "keyRight",true
+				\slot "TapEnded", -> updatePlayerControl "keyRight",false
 	\addChild with AlignNode!
 		.hAlign = "Right"
 		.vAlign = "Bottom"
@@ -53,8 +53,8 @@ with AlignNode isRoot:true
 					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan",-> updatePlayerControl "keyUp",true
-				\slot "TapEnded",-> updatePlayerControl "keyUp",false
+				\slot "TapBegan", -> updatePlayerControl "keyUp",true
+				\slot "TapEnded", -> updatePlayerControl "keyUp",false
 			\addChild with CircleButton {
 					text: "Shoot"
 					x: -150*uiScale
@@ -63,8 +63,8 @@ with AlignNode isRoot:true
 					fontSize: math.floor 18*uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan",-> updatePlayerControl "keyShoot",true
-				\slot "TapEnded",-> updatePlayerControl "keyShoot",false
+				\slot "TapBegan", -> updatePlayerControl "keyShoot",true
+				\slot "TapEnded", -> updatePlayerControl "keyShoot",false
 	\addTo with Director.ui
 		.renderGroup = true
 

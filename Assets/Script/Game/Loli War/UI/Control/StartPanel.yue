@@ -5,7 +5,7 @@ export default Class StartPanel,
 	__init:=>
 		buttons = {@fButton,@vButton,@dButton}
 		for button in *buttons
-			button\slot "Tapped",->
+			button\slot "Tapped", ->
 				Audio\play "Audio/choose.wav"
 				for btn in *buttons
 					btn.touchEnabled = false

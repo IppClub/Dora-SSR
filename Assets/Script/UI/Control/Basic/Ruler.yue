@@ -114,7 +114,7 @@ export default Class Ruler,
 		@makeScaleTo = (scale)=>
 			@intervalNode\perform ScaleX 0.5,@intervalNode.scaleX,scale,Ease.OutQuad
 			-- manually update and unscale interval text --
-			@intervalNode\schedule once -> cycle 0.5,-> updateIntervalTextScale 1/@intervalNode.scaleX
+			@intervalNode\schedule once -> cycle 0.5, -> updateIntervalTextScale 1/@intervalNode.scaleX
 			updateLabels!
 
 		_value = 0
@@ -207,7 +207,7 @@ export default Class Ruler,
 		@slot "TapFilter", (touch)->
 			touch.enabled = false unless touch.first
 
-		@slot "TapBegan",->
+		@slot "TapBegan", ->
 			_s = 0
 			_v = 0
 			@schedule updateSpeed
@@ -226,7 +226,7 @@ export default Class Ruler,
 			@setValue (v-_value)/@intervalNode.scaleX+_value
 			_s += deltaX
 
-		@slot "TapEnded",->
+		@slot "TapEnded", ->
 			if isReseting!
 				startReset!
 			elseif _v ~= 0

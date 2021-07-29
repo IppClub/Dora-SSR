@@ -20,7 +20,7 @@ export default Class Node,
 			@size = viewSize
 			@_viewSize = viewSize
 			@position = Vec2(0.5,0.5) * viewSize if @inUI
-			@gslot "AppSizeChanged",->
+			@gslot "AppSizeChanged", ->
 				viewSize = View.size
 				if @_viewSize ~= viewSize
 					@_viewSize = viewSize

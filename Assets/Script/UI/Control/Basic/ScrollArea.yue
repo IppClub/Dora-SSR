@@ -3,10 +3,10 @@ import "UI.View.Control.Basic.ScrollArea"
 import "UI.View.Shape.SolidRect"
 
 -- [signals]
--- "ScrollTouchBegan",->
--- "ScrollTouchEnded",->
--- "ScrollStart",->
--- "ScrollEnd",->
+-- "ScrollTouchBegan", ->
+-- "ScrollTouchEnded", ->
+-- "ScrollStart", ->
+-- "ScrollEnd", ->
 -- "Scrolled",(delta)->
 -- [params]
 -- x,y,width,height,
@@ -31,7 +31,7 @@ export default Class ScrollArea,
 		@contentSize = Size width,height
 		@setupMenuScroll @view
 
-		@view\slot "Tapped",->
+		@view\slot "Tapped", ->
 			enabled = @view.touchEnabled
 			@view.touchEnabled = false
 			@view\schedule once ->
@@ -159,7 +159,7 @@ export default Class ScrollArea,
 			@schedule updateSpeed
 			@emit "ScrollTouchBegan"
 
-		@slot "TapEnded",->
+		@slot "TapEnded", ->
 			@dragging = false
 			if isReseting!
 				startReset!
@@ -225,7 +225,7 @@ export default Class ScrollArea,
 					setOffset delta*-20
 					paddingX,paddingY = px,py
 
-		@slot "Enter",-> @emit "Scrolled", Vec2.zero
+		@slot "Enter", -> @emit "Scrolled", Vec2.zero
 
 		@scroll = (delta)=>
 			if delta
@@ -284,10 +284,10 @@ export default Class ScrollArea,
 		@slot "Scrolled",(delta)->
 			menu\moveAndCullItems delta -- reduce draw calls
 		menuEnabled = true
-		@slot "ScrollStart",->
+		@slot "ScrollStart", ->
 			menuEnabled = menu.enabled
 			menu.enabled = false
-		@slot "ScrollTouchEnded",->
+		@slot "ScrollTouchEnded", ->
 			menu.enabled = menuEnabled if not menu.enabled
 
 	adjustSizeWithAlign:(alignMode="auto",padding=10,size=@area.size,viewSize)=> -- alignMode:auto,vertical,horizontal

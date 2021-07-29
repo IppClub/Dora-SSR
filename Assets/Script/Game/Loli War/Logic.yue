@@ -136,11 +136,11 @@ with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
 			\addTo world
 			@hp -= 1.0 if @hp == 0.0
 
-with Observer "Add",{"switch_","group","layer","look","position"}
+with Observer "Add",{"switch","group","layer","look","position"}
 	\every =>
-		{:switch_,:group,:layer,:look,:position} = @
+		{switch:switchType,:group,:layer,:look,:position} = @
 		{:world} = Store
-		unit = with Unit Store[switch_],world,@,position
+		unit = with Unit Store[switchType],world,@,position
 			.group = group
 			.order = layer
 			with .playable
@@ -163,7 +163,7 @@ with Observer "Add",{"switch_","group","layer","look","position"}
 								Scale 0.3,0,1,Ease.OutQuad
 							)
 							\runAction scaleOut
-							\slot "ActionEnd",=> \runAction floating
+							\slot "ActionEnd", => \runAction floating
 							\addTo @
 					@entity.atSwitch = unit
 			\slot "BodyLeave",(sensor)=>
@@ -334,7 +334,7 @@ with Observer "Change", {"hp","hero"}
 							sleep 3
 							cycle 5,(dt)-> View.postEffect\get(1)\set "u_adjustment",dt
 							View.postEffect = nil
-						\slot "Cleanup",->
+						\slot "Cleanup", ->
 							View.postEffect = nil
 							Director.scheduler.timeScale = 1
 				unit\schedule once ->

@@ -34,7 +34,7 @@ export default Class HPWheel,
 						@fill\perform ScaleX 0.2,@fill.scaleX,@ep/MaxEP
 						hint = with EPHint index:#@hints+1,clip:string.format("%+d",value)
 							.index = #@hints+1
-							\slot "DisplayEnd",->
+							\slot "DisplayEnd", ->
 								index = hint.index
 								hint\removeFromParent!
 								table.remove @hints,index

@@ -10,7 +10,7 @@ export default Class CircleButton,
 		@_text = @label.text if @label
 		@slot "TapFilter", (touch)->
 			touch.enabled = false unless touch.first
-		@slot "Tapped",->
+		@slot "Tapped", ->
 			enabled = @touchEnabled
 			@touchEnabled = false
 			@schedule once ->

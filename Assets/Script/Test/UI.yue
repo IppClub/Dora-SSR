@@ -23,7 +23,7 @@ Panel = (width, height, viewWidth, viewHeight)->
 					fontName:"NotoSansHans-Regular"
 					fontSize:16
 				}
-				\slot "Tapped",-> print "clicked #{i}"
+				\slot "Tapped", -> print "clicked #{i}"
 		.view\alignItems Size viewWidth,height
 
 Director.ui\addChild with AlignNode isRoot:true
