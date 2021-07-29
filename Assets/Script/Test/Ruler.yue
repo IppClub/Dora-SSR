@@ -19,7 +19,7 @@ Director.entry\addChild with Node!
 			radius:30
 			fontSize:18
 		}
-		\slot "Tapped",->
+		\slot "Tapped", ->
 			if .text == "显示"
 				.text = "隐藏"
 				ruler\show 0,0,100,10,(value)->

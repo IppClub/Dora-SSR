@@ -80,7 +80,7 @@ UnitAction\add "pushed",
 			sleep 0.5
 			Audio\play "Audio/switch.wav"
 			heroes = Group {"hero"}
-			switch @entity.switch_
+			switch @entity.switch
 				when "Switch"
 					heroes\each (hero)->
 						if @group == hero.group and hero.ep >= 1

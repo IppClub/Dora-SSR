@@ -236,16 +236,16 @@ Do = (name)-> Seq {
 		}
 		true
 	Sel {
-		Con "is doing",=> @isDoing name
+		Con "is doing", => @isDoing name
 		Seq {
 			Act name
-			Con "action succeeded",=>
+			Con "action succeeded", =>
 				lastAction = name
 				lastActionFrame = App.frame
 				true
 		}
 	}
-	Con "Save data",=>
+	Con "Save data", =>
 		return true if row == nil
 		table.insert data,row
 		true
@@ -300,11 +300,11 @@ Director.entry\addChild with Node!
 
 Store["AI_Learned"] = Sel {
 	Seq {
-		Con "is dead",=> @entity.hp <= 0
+		Con "is dead", => @entity.hp <= 0
 		Accept!
 	}
 	Seq {
-		Con "is falling",=> not @onSurface
+		Con "is falling", => not @onSurface
 		Act "fallOff"
 	}
 	Seq {
@@ -363,20 +363,20 @@ Store["AI_Learned"] = Sel {
 			}) or "unknown"
 			true
 		Sel {
-			Con "is doing",=> @isDoing @entity.learnedAction
+			Con "is doing", => @isDoing @entity.learnedAction
 			Seq {
 				Act => @entity.learnedAction
-				Con "Succeeded prediction",=>
+				Con "Succeeded prediction", =>
 					emit "Prediction",true
 					true
 			}
-			Con "Failed prediction",=>
+			Con "Failed prediction", =>
 				emit "Prediction",false
 				false
 		}
 	}
 	Seq {
-		Con "not facing enemy",=> bossGroup\each (boss)->
+		Con "not facing enemy", => bossGroup\each (boss)->
 			{:unit} = boss
 			if Data\isEnemy unit,@
 				if (@x > unit.x) == @faceRight
@@ -384,13 +384,13 @@ Store["AI_Learned"] = Sel {
 		Act "turn"
 	}
 	Seq {
-		Con "need turn",=>
+		Con "need turn", =>
 			(@x < -1000 and not @faceRight) or (@x > 1000 and @faceRight)
 		Act "turn"
 	}
 	Sel {
 		Seq {
-			Con "take a break",=> App.rand % 60 == 0
+			Con "take a break", => App.rand % 60 == 0
 			Act "idle"
 		}
 		Act "walk"
@@ -410,11 +410,11 @@ Store["Bullet_Arrow"] = with BulletDef!
 
 Store["AI_Boss"] = Sel {
 	Seq {
-		Con "is dead",=> @entity.hp <= 0
+		Con "is dead", => @entity.hp <= 0
 		Accept!
 	}
 	Seq {
-		Con "is falling",=> not @onSurface
+		Con "is falling", => not @onSurface
 		Act "fallOff"
 	}
 	Seq {
@@ -422,7 +422,7 @@ Store["AI_Boss"] = Sel {
 			not @isDoing("meleeAttack") and
 			not @isDoing("multiArrow") and
 			not @isDoing("spearAttack")
-		Con "need attack",=>
+		Con "need attack", =>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
 				if Data\isEnemy(@,unit) and
@@ -431,22 +431,22 @@ Store["AI_Boss"] = Sel {
 			false
 		Sel {
 			Seq {
-				Con "melee attack",=> App.rand % 250 == 0
+				Con "melee attack", => App.rand % 250 == 0
 				Act "meleeAttack"
 			}
 			Seq {
-				Con "range attack",=> App.rand % 250 == 0
+				Con "range attack", => App.rand % 250 == 0
 				Act "multiArrow"
 			}
 			Seq {
-				Con "spear attack",=> App.rand % 250 == 0
+				Con "spear attack", => App.rand % 250 == 0
 				Act "spearAttack"
 			}
 			Act "idle"
 		}
 	}
 	Seq {
-		Con "need turn",=>
+		Con "need turn", =>
 			(@x < -1000 and not @faceRight) or (@x > 1000 and @faceRight)
 		Act "turn"
 	}
@@ -455,12 +455,12 @@ Store["AI_Boss"] = Sel {
 
 Store["AI_PlayerControl"] = Sel {
 	Seq {
-		Con "is dead",=> @entity.hp <= 0
+		Con "is dead", => @entity.hp <= 0
 		Accept!
 	}
 	Seq {
 		Seq {
-			Con "move key down",=>
+			Con "move key down", =>
 				not (@entity.keyLeft and @entity.keyRight) and
 				(
 					(@entity.keyLeft and @faceRight) or
@@ -471,11 +471,11 @@ Store["AI_PlayerControl"] = Sel {
 		Reject!
 	}
 	Seq {
-		Con "evade key down",=> @entity.keyE
+		Con "evade key down", => @entity.keyE
 		Do "evade"
 	}
 	Seq {
-		Con "attack key down",=> @entity.keyF
+		Con "attack key down", => @entity.keyF
 		Sel {
 			Do "meleeAttack"
 			Do "range"
@@ -483,16 +483,16 @@ Store["AI_PlayerControl"] = Sel {
 	}
 	Sel {
 		Seq {
-			Con "is falling",=> not @onSurface and not @isDoing "evade"
+			Con "is falling", => not @onSurface and not @isDoing "evade"
 			Act "fallOff"
 		}
 		Seq {
-			Con "jump key down",=> @entity.keyUp
+			Con "jump key down", => @entity.keyUp
 			Do "jump"
 		}
 	}
 	Seq {
-		Con "move key down",=> @entity.keyLeft or @entity.keyRight
+		Con "move key down", => @entity.keyLeft or @entity.keyRight
 		Do "walk"
 	}
 	Act "idle"
@@ -850,7 +850,7 @@ Director.ui\addChild with AlignNode isRoot:true
 						fontName:"NotoSansHans-Regular"
 						fontSize:48
 					}
-					\slot "Tapped",->
+					\slot "Tapped", ->
 						emit "ShowTraining", false
 						Group({"player"})\each (e)->
 							if e.charSet
@@ -871,7 +871,7 @@ Director.ui\addChild with AlignNode isRoot:true
 						fontName:"NotoSansHans-Regular"
 						fontSize:48
 					}
-					\slot "Tapped",->
+					\slot "Tapped", ->
 						Group({"unitDef"})\each (e)->
 							e.unit?\removeFromParent!
 						emit "ShowSetting", true
@@ -909,7 +909,7 @@ Director.ui\addChild with AlignNode isRoot:true
 				.visible = not show
 			\gslot "ShowFight", showItems
 			\gslot "ShowTraining", showItems
-			\slot "Tapped",->
+			\slot "Tapped", ->
 				return if not .visible
 				for i = 1,#characters
 					char = characters[i]
@@ -947,8 +947,8 @@ Director.ui\addChild with AlignNode isRoot:true
 							fontSize: math.floor 18*uiScale
 						}
 						.anchor = Vec2.zero
-						\slot "TapBegan",-> updatePlayerControl "keyLeft",true
-						\slot "TapEnded",-> updatePlayerControl "keyLeft",false
+						\slot "TapBegan", -> updatePlayerControl "keyLeft",true
+						\slot "TapEnded", -> updatePlayerControl "keyLeft",false
 					\addChild with CircleButton {
 							text: "右"
 							x: 90*uiScale
@@ -957,8 +957,8 @@ Director.ui\addChild with AlignNode isRoot:true
 							fontSize: math.floor 18*uiScale
 						}
 						.anchor = Vec2.zero
-						\slot "TapBegan",-> updatePlayerControl "keyRight",true
-						\slot "TapEnded",-> updatePlayerControl "keyRight",false
+						\slot "TapBegan", -> updatePlayerControl "keyRight",true
+						\slot "TapEnded", -> updatePlayerControl "keyRight",false
 			\addChild with AlignNode!
 				.hAlign = "Right"
 				.vAlign = "Bottom"
@@ -973,8 +973,8 @@ Director.ui\addChild with AlignNode isRoot:true
 							fontSize: math.floor 18*uiScale
 						}
 						.anchor = Vec2.zero
-						\slot "TapBegan",-> updatePlayerControl "keyE",true
-						\slot "TapEnded",-> updatePlayerControl "keyE",false
+						\slot "TapBegan", -> updatePlayerControl "keyE",true
+						\slot "TapEnded", -> updatePlayerControl "keyE",false
 					\addChild with CircleButton {
 							text: "跳"
 							x: -80*uiScale
@@ -983,8 +983,8 @@ Director.ui\addChild with AlignNode isRoot:true
 							fontSize: math.floor 18*uiScale
 						}
 						.anchor = Vec2.zero
-						\slot "TapBegan",-> updatePlayerControl "keyUp",true
-						\slot "TapEnded",-> updatePlayerControl "keyUp",false
+						\slot "TapBegan", -> updatePlayerControl "keyUp",true
+						\slot "TapEnded", -> updatePlayerControl "keyUp",false
 					\addChild with CircleButton {
 							text: "打"
 							x: -150*uiScale
@@ -993,8 +993,8 @@ Director.ui\addChild with AlignNode isRoot:true
 							fontSize: math.floor 18*uiScale
 						}
 						.anchor = Vec2.zero
-						\slot "TapBegan",-> updatePlayerControl "keyF",true
-						\slot "TapEnded",-> updatePlayerControl "keyF",false
+						\slot "TapBegan", -> updatePlayerControl "keyF",true
+						\slot "TapEnded", -> updatePlayerControl "keyF",false
 		when "macOS","Windows"
 			Director.entry\addChild with Node!
 				\schedule ->
@@ -1139,7 +1139,7 @@ UnitAction\add "evade",
 			group = @group
 			@group = Data.groupHide
 			dir = @faceRight and -1 or 1
-			cycle 0.2,-> @velocityX = 800 * dir
+			cycle 0.2, -> @velocityX = 800 * dir
 			@group = group
 			with @playable
 				.speed = 1.0

@@ -18,15 +18,15 @@ root = with AlignNode isRoot:true
 	switch App.platform
 		when "iOS","Android"
 			\addChild with LeftTouchPad!
-				\slot "KeyLeftUp",-> updatePlayerControl "keyLeft", false
-				\slot "KeyLeftDown",-> updatePlayerControl "keyLeft", true
-				\slot "KeyRightUp",-> updatePlayerControl "keyRight", false
-				\slot "KeyRightDown",-> updatePlayerControl "keyRight", true
+				\slot "KeyLeftUp", -> updatePlayerControl "keyLeft", false
+				\slot "KeyLeftDown", -> updatePlayerControl "keyLeft", true
+				\slot "KeyRightUp", -> updatePlayerControl "keyRight", false
+				\slot "KeyRightDown", -> updatePlayerControl "keyRight", true
 			\addChild with RightTouchPad!
-				\slot "KeyFUp",-> updatePlayerControl "keyF", false
-				\slot "KeyFDown",-> updatePlayerControl "keyF", true
-				\slot "KeyUpUp",-> updatePlayerControl "keyUp", false
-				\slot "KeyUpDown",-> updatePlayerControl "keyUp", true
+				\slot "KeyFUp", -> updatePlayerControl "keyF", false
+				\slot "KeyFDown", -> updatePlayerControl "keyF", true
+				\slot "KeyUpUp", -> updatePlayerControl "keyUp", false
+				\slot "KeyUpDown", -> updatePlayerControl "keyUp", true
 		when "macOS","Windows"
 			Director.entry\addChild with Node!
 				\schedule ->
@@ -35,7 +35,7 @@ root = with AlignNode isRoot:true
 					updatePlayerControl "keyUp", Keyboard\isKeyPressed "K"
 					updatePlayerControl "keyF", Keyboard\isKeyPressed "J"
 	\addChild with RestartPad!
-		\slot "Tapped",->
+		\slot "Tapped", ->
 			Store.winner = -1
 			root\addChild StartPanel!
 			root\alignLayout!

@@ -23,7 +23,7 @@ GameWorld = Class PlatformWorld,
 		@entity = with Entity!
 			.world = @
 
-		@slot "Cleanup",->
+		@slot "Cleanup", ->
 			@entity\destroy!
 			Content\removeSearchPath "Script/Game/Loli War"
 
@@ -69,7 +69,7 @@ GameWorld = Class PlatformWorld,
 			.order = LayerBackground
 			.group = GroupDisplay
 			\addTo @
-			\gslot "PlayerSelect",->
+			\gslot "PlayerSelect", ->
 				.children\each (child)->
 					with Visual "Particle/heart.par"
 						.position = child\convertToWorldSpace Vec2.zero
@@ -182,9 +182,9 @@ GameWorld = Class PlatformWorld,
 		emit "BlockValue",GroupEnemy,enemyBlockHP
 
 	buildSwitches: =>
-		Switch = (switch_,group,look,x,y)->
+		Switch = (switchType,group,look,x,y)->
 			with Entity!
-				.switch_ = switch_
+				.switch = switchType
 				.group = group
 				.look = look
 				.layer = LayerSwitch

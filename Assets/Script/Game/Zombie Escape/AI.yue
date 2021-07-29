@@ -31,7 +31,7 @@ rangeAttack = Sel {
 
 walk = Sel {
 	Seq {
-		Con "obstacles ahead",=>
+		Con "obstacles ahead", =>
 			start = @position
 			stop = Vec2 start.x+(@faceRight and 140 or -140),start.y
 			Store.world\raycast start,stop,false,(b,p)->
@@ -41,7 +41,7 @@ walk = Sel {
 				else false
 		Sel {
 			Seq {
-				Con "obstacle distance <= 80",=> @entity.obstacleDistance <= 80
+				Con "obstacle distance <= 80", => @entity.obstacleDistance <= 80
 				Behave "backJump", BT.Seq {
 					BT.Act "turn"
 					BT.Countdown 0.3, BT.Act "walk"
@@ -51,7 +51,7 @@ walk = Sel {
 				}
 			}
 			Seq {
-				Con "has forward speed",=> math.abs(@velocityX) > 0
+				Con "has forward speed", => math.abs(@velocityX) > 0
 				Act "jump"
 			}
 		}
@@ -60,10 +60,10 @@ walk = Sel {
 }
 
 fightDecision = Seq {
-	Con "see enemy",=> AI\getNearestUnit("Enemy")?
+	Con "see enemy", => AI\getNearestUnit("Enemy")?
 	Sel {
 		Seq {
-			Con "need evade",=>
+			Con "need evade", =>
 				return false if not @getAction "rangeAttack" or not @onSurface
 				evadeLeftEnemy = false
 				evadeRightEnemy = false
@@ -83,7 +83,7 @@ fightDecision = Seq {
 				needEvade
 			Sel {
 				Seq {
-					Con "face enemy",=> @entity.evadeRight == @faceRight
+					Con "face enemy", => @entity.evadeRight == @faceRight
 					Act "turn"
 					walk
 				}
@@ -91,13 +91,13 @@ fightDecision = Seq {
 			}
 		}
 		Seq {
-			Con "not facing nearest enemy",=>
+			Con "not facing nearest enemy", =>
 				enemy = AI\getNearestUnit "Enemy"
 				(@x > enemy.x) == @faceRight
 			Act "turn"
 		}
 		Seq {
-			Con "enemy in attack range",=>
+			Con "enemy in attack range", =>
 				enemy = AI\getNearestUnit "Enemy"
 				attackUnits = AI\getUnitsInAttackRange!
 				attackUnits and attackUnits\contains(enemy) or false
@@ -116,16 +116,16 @@ fightDecision = Seq {
 
 Store["AI_Zombie"] = Sel {
 	Seq {
-		Con "is dead",=> @entity.hp <= 0
+		Con "is dead", => @entity.hp <= 0
 		Accept!
 	}
 	Seq {
-		Con "not entered",=> not @entity.entered
+		Con "not entered", => not @entity.entered
 		Act "groundEntrance"
 	}
 	fightDecision
 	Seq {
-		Con "need stop",=> not @isDoing "idle"
+		Con "need stop", => not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
 	}
@@ -135,23 +135,23 @@ playerGroup = Group {"player"}
 
 Store["AI_KidFollow"] = Sel {
 	Seq {
-		Con "is dead",=> @entity.hp <= 0
+		Con "is dead", => @entity.hp <= 0
 		Accept!
 	}
 	fightDecision
 	Seq {
-		Con "is falling",=> not @onSurface
+		Con "is falling", => not @onSurface
 		Act "fallOff"
 	}
 	Seq {
-		Con "follow target is away",=>
+		Con "follow target is away", =>
 			target = nil
 			playerGroup\each (e)-> target = e.unit if e.unit ~= @
 			@entity.followTarget = target
 			target? and math.abs(@x-target.x) > 50
 		Sel {
 			Seq {
-				Con "not facing target",=> (@x > @entity.followTarget.x) == @faceRight
+				Con "not facing target", => (@x > @entity.followTarget.x) == @faceRight
 				Act "turn"
 			}
 			Accept!
@@ -159,7 +159,7 @@ Store["AI_KidFollow"] = Sel {
 		walk
 	}
 	Seq {
-		Con "need stop",=> not @isDoing "idle"
+		Con "need stop", => not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
 	}
@@ -167,32 +167,32 @@ Store["AI_KidFollow"] = Sel {
 
 Store["AI_KidSearch"] = Sel {
 	Seq {
-		Con "is dead",=> @entity.hp <= 0
+		Con "is dead", => @entity.hp <= 0
 		Accept!
 	}
 	fightDecision
 	Seq {
-		Con "is falling",=> not @onSurface
+		Con "is falling", => not @onSurface
 		Act "fallOff"
 	}
 	Seq {
-		Con "reach search limit",=> math.abs(@x) > 1150 and (@x > 0 == @faceRight)
+		Con "reach search limit", => math.abs(@x) > 1150 and (@x > 0 == @faceRight)
 		Act "turn"
 	}
 	Seq {
-		Con "continue search",-> true
+		Con "continue search", -> true
 		walk
 	}
 }
 
 Store["AI_PlayerControl"] = Sel {
 	Seq {
-		Con "is dead",=> @entity.hp <= 0
+		Con "is dead", => @entity.hp <= 0
 		Accept!
 	}
 	Seq {
 		Seq {
-			Con "move key down",=>
+			Con "move key down", =>
 				not (@entity.keyLeft and @entity.keyRight) and
 				(
 					(@entity.keyLeft and @faceRight) or
@@ -203,7 +203,7 @@ Store["AI_PlayerControl"] = Sel {
 		Reject!
 	}
 	Seq {
-		Con "attack key down",=> @entity.keyShoot
+		Con "attack key down", => @entity.keyShoot
 		Sel {
 			Act "meleeAttack"
 			Act "rangeAttack"
@@ -211,20 +211,20 @@ Store["AI_PlayerControl"] = Sel {
 	}
 	Sel {
 		Seq {
-			Con "is falling",=> not @onSurface
+			Con "is falling", => not @onSurface
 			Act "fallOff"
 		}
 		Seq {
-			Con "jump key down",=> @entity.keyUp
+			Con "jump key down", => @entity.keyUp
 			Act "jump"
 		}
 	}
 	Seq {
-		Con "move key down",=> @entity.keyLeft or @entity.keyRight
+		Con "move key down", => @entity.keyLeft or @entity.keyRight
 		Act "walk"
 	}
 	Seq {
-		Con "need stop",=> not @isDoing "idle"
+		Con "need stop", => not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
 	}

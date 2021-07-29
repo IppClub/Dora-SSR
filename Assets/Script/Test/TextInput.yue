@@ -52,12 +52,12 @@ TextInput = Class ((args)->
 			label.text = text
 
 		.imeAttached = false
-		\slot "AttachIME",->
+		\slot "AttachIME", ->
 			.imeAttached = true
 			.keyboardEnabled = true
 			updateText textDisplay
 
-		\slot "DetachIME",->
+		\slot "DetachIME", ->
 			.imeAttached = false
 			.keyboardEnabled = false
 			cursor.visible = false

@@ -22,7 +22,7 @@ stopRendering = false
 
 Director.entry\addChild with VGNode 60, 50, 5
 	\render drawHeart
-	\slot "Cleanup",-> stopRendering = true
+	\slot "Cleanup", -> stopRendering = true
 	\runAction Sequence(
 		Scale 0.2, 1.0, 0.3
 		Scale 0.5, 0.3, 1.0, Ease.OutBack
