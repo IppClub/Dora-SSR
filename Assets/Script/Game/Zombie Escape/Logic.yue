@@ -81,6 +81,9 @@ with Observer "Change", {"hp","unit"}
 					sleep 5
 					unit\runAction Opacity 0.5,1,0,Ease.OutQuad
 					sleep 0.5
+					if Store.world.camera.followTarget == unit
+						if player = Group({"isPlayer","unit"})\find => @isPlayer
+							Store.world.camera.followTarget = player.unit
 					unit\removeFromParent!
 
 Store.zombieKilled = 0

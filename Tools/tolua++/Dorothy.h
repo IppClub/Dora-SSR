@@ -164,6 +164,7 @@ class EntityGroup @ Group
 {
 	tolua_readonly tolua_property__common int count;
 	bool each(tolua_function_bool func);
+	Entity* find(tolua_function_bool func);
 	EntityGroup* every(tolua_function_void func);
 	static EntityGroup* create(String components[tolua_len]);
 };

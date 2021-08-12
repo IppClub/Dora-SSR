@@ -213,7 +213,7 @@ world = with PlatformWorld!
 	\schedule ->
 		origin = Vec2.zero
 		locs = {origin}
-		unitGroup\each => table.insert locs,@unit.position
+		unitGroup\each => table.insert locs, @unit.position
 		dist = 0
 		for loc in *locs
 			dist = math.max(dist, loc\distance origin)
