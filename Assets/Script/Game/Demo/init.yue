@@ -817,10 +817,7 @@ for i = 1, #characters
 	table.insert fighterPanels, fighterPanel
 
 playerGroup = Group {"player"}
-updatePlayerControl = (key,flag)->
-	player = nil
-	playerGroup\each => player = @
-	player[key] = flag if player
+updatePlayerControl = (key,flag)-> playerGroup\each => @[key] = flag
 
 uiScale = App.deviceRatio
 
@@ -1251,7 +1248,7 @@ with Observer "Change", {"hp","unit"}
 				unit\start "fall"
 				unit.group = Data.groupHide
 				if @player
-					playerGroup\each (p)=>
+					playerGroup\each (p)->
 						if p and p.unit and p.hp > 0
 							world.camera.followTarget = p.unit
 							true

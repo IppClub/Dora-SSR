@@ -145,8 +145,7 @@ Store["AI_KidFollow"] = Sel {
 	}
 	Seq {
 		Con "follow target is away", =>
-			target = nil
-			playerGroup\each (e)-> target = e.unit if e.unit ~= @
+			target = playerGroup\find (e)-> e.unit ~= @
 			@entity.followTarget = target
 			target? and math.abs(@x-target.x) > 50
 		Sel {

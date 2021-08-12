@@ -112,7 +112,7 @@ struct SimpleString {
 		while (isspace((unsigned char) *start) && start < end)
 			start++;
 		if (start == end) {
-			length = 0;
+			length = (int) (end - start);
 			return *this;
 		}
 		end--;

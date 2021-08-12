@@ -88,6 +88,8 @@ public:
 public:
 	template<typename Func>
 	bool each(const Func& func);
+	template<typename Func>
+	Entity* find(const Func& func);
 	EntityGroup* every(const EntityHandler& handler);
 public:
 	void onAdd(Entity* entity);
@@ -193,6 +195,16 @@ bool EntityGroup::each(const Func& func)
 		if (entity && func(entity)) return true;
 	}
 	return false;
+}
+
+template<typename Func>
+Entity* EntityGroup::find(const Func& func)
+{
+	for (Entity* entity : _entities)
+	{
+		if (entity && func(entity)) return entity;
+	}
+	return nullptr;
 }
 
 template<typename Func>
