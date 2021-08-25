@@ -34,6 +34,10 @@ extern "C" {
 	#endif // LUA_COMPAT_5_1
 #endif // LUA_VERSION_NUM
 
+#if LUA_VERSION_NUM < 504
+	#define YUE_NO_ATTRIB
+#endif // LUA_VERSION_NUM
+
 #endif // YUE_NO_MACRO
 
 namespace yue {
@@ -56,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.7.18"sv;
+const std::string_view version = "0.8.2"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -1671,6 +1675,36 @@ private:
 				}
 				case id<default_pair_t>() : {
 					auto dp = static_cast<default_pair_t*>(pair);
+					if (auto exp = dp->key.as<Exp_t>()) {
+						++index;
+						if (!isAssignable(static_cast<Exp_t*>(exp))) {
+							throw std::logic_error(_info.errorMessage("can't destructure value"sv, exp));
+						}
+						auto value = singleValueFrom(exp);
+						auto item = value->item.get();
+						if (ast_is<simple_table_t>(item) ||
+							item->getByPath<TableLit_t>()) {
+							throw std::logic_error(_info.errorMessage("invalid use of default value"sv, dp->defVal));
+						} else {
+							bool lintGlobal = _config.lintGlobalVariable;
+							_config.lintGlobalVariable = false;
+							auto varName = singleVariableFrom(exp);
+							bool isVariable = !varName.empty();
+							if (!isVariable) {
+								str_list temp;
+								transformExp(exp, temp, ExpUsage::Closure);
+								varName = std::move(temp.back());
+							}
+							_config.lintGlobalVariable = lintGlobal;
+							pairs.push_back({
+								isVariable,
+								varName,
+								'[' + std::to_string(index) + ']',
+								dp->defVal
+							});
+						}
+						break;
+					}
 					std::string keyName, valueStr;
 					if (dp->key) {
 						auto key = dp->key->getByPath<Name_t>();
@@ -1679,8 +1713,7 @@ private:
 						if (!dp->value) valueStr = keyName;
 						if (Keywords.find(keyName) != Keywords.end()) {
 							keyName = "[\""s + keyName + "\"]"s;
-						}
-						else {
+						} else {
 							keyName = "."s + keyName;
 						}
 					}
@@ -6223,58 +6256,38 @@ private:
 		if (attrib != "close"sv && attrib != "const"sv) {
 			throw std::logic_error(_info.errorMessage("unknown attribute '"s + attrib + '\'', localAttrib->attrib));
 		}
+		str_list vars;
+		for (auto name : localAttrib->nameList->names.objects()) {
+			auto var = _parser.toString(name);
+			forceAddToScope(var);
+			vars.push_back(var);
+		}
+#ifdef YUE_NO_ATTRIB
 		if (attrib == "const"sv) {
-			str_list vars;
-			for (auto name : localAttrib->nameList->names.objects()) {
-				vars.push_back(_parser.toString(name));
-				forceAddToScope(vars.back());
-			}
-			str_list temp;
-			auto varStr = join(vars, ", "sv);
-			temp.push_back(indent() + "local "s + varStr + nll(x));
-			auto varList = toAst<ExpList_t>(varStr, x);
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(varList);
-			assignment->action.set(localAttrib->assign);
-			transformAssignment(assignment, temp);
-			for (const auto& var : vars) {
+			for (auto& var : vars) {
 				markVarConst(var);
 			}
-			out.push_back(join(temp));
-			return;
+		} else {
+			throw std::logic_error(_info.errorMessage("attribute '"s + attrib + "' is not supported", localAttrib->attrib));
 		}
-		auto expList = x->new_ptr<ExpList_t>();
-		str_list tmpVars;
-		str_list vars;
-		pushScope();
-		for (auto name : localAttrib->nameList->names.objects()) {
-			auto callable = x->new_ptr<Callable_t>();
-			callable->item.set(name);
-			auto chainValue = x->new_ptr<ChainValue_t>();
-			chainValue->items.push_back(callable);
-			auto value = x->new_ptr<Value_t>();
-			value->item.set(chainValue);
-			auto exp = newExp(value, x);
-			expList->exprs.push_back(exp);
-			tmpVars.push_back(getUnusedName("_var_"sv));
-			addToScope(tmpVars.back());
-			vars.push_back(_parser.toString(name));
-		}
-		popScope();
-		auto tmpVarStr = join(tmpVars, ", "sv);
-		auto tmpVarList = toAst<ExpList_t>(tmpVarStr, x);
-		auto assignment = x->new_ptr<ExpListAssign_t>();
-		assignment->expList.set(tmpVarList);
-		assignment->action.set(localAttrib->assign);
-		str_list temp;
-		transformAssignment(assignment, temp);
+#else // YUE_NO_ATTRIB
 		attrib = " <"s + attrib + '>';
-		for (auto& var : vars) {
-			forceAddToScope(var);
-			var.append(attrib);
+		if (attrib == "<const>"sv) {
+			for (auto& var : vars) {
+				markVarConst(var);
+				var.append(attrib);
+			}
+		} else {
+			for (auto& var : vars) {
+				var.append(attrib);
+			}
 		}
-		temp.push_back(indent() + "local "s + join(vars, ", "sv) + " = "s + tmpVarStr + nll(x));
-		out.push_back(join(temp));
+#endif // YUE_NO_ATTRIB
+		str_list temp;
+		for (auto item : localAttrib->assign->values.objects()) {
+			transformAssignItem(item, temp);
+		}
+		out.push_back(indent() + "local "s + join(vars, ", "sv) + " = "s + join(temp, ", "sv) + nll(x));
 	}
 
 	void transformBreakLoop(BreakLoop_t* breakLoop, str_list& out) {
