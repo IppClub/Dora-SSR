@@ -60,6 +60,9 @@ void pushOptions(lua_State* L, int lineOffset) {
 	lua_pushliteral(L, "line_offset");
 	lua_pushinteger(L, lineOffset);
 	lua_rawset(L, -3);
+	lua_pushliteral(L, "teal_typed");
+	lua_pushboolean(L, 0);
+	lua_rawset(L, -3);
 }
 
 class ConsolePanel
