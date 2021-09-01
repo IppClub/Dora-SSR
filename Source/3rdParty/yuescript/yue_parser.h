@@ -189,6 +189,12 @@ private:
 	rule Line;
 	rule Shebang;
 
+	rule vararg_type;
+	rule recordkey;
+	rule recordentry;
+	rule partypelist;
+	rule parnamelist;
+
 	AST_RULE(Num)
 	AST_RULE(Name)
 	AST_RULE(Variable)
@@ -205,6 +211,9 @@ private:
 	AST_RULE(NameList)
 	AST_RULE(local_flag)
 	AST_RULE(local_values)
+	AST_RULE(Record)
+	AST_RULE(Enum)
+	AST_RULE(Attrib)
 	AST_RULE(Local)
 	AST_RULE(LocalAttrib);
 	AST_RULE(colon_import_name)
@@ -319,6 +328,28 @@ private:
 	AST_RULE(Block)
 	AST_RULE(BlockEnd)
 	AST_RULE(File)
+
+	AST_RULE(DoubleStringLit)
+	AST_RULE(LiteralString)
+	AST_RULE(type)
+	AST_RULE(baselit)
+	AST_RULE(baselist)
+	AST_RULE(basetab)
+	AST_RULE(chaintype)
+	AST_RULE(basetype)
+	AST_RULE(typelist)
+	AST_RULE(retlist)
+	AST_RULE(typeargs)
+	AST_RULE(newtype)
+	AST_RULE(recordbody)
+	AST_RULE(userdata)
+	AST_RULE(metamethod)
+	AST_RULE(fieldrecord)
+	AST_RULE(enumbody)
+	AST_RULE(functiontype)
+	AST_RULE(partype)
+	AST_RULE(parname)
+	AST_RULE(TypeAlias)
 };
 
 namespace Utils {

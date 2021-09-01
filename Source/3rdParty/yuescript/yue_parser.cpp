@@ -72,6 +72,7 @@ YueParser::YueParser() {
 	#define symx(str) expr(str)
 	#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> Cut)
 	#define key(str) (Space >> str >> not_(AlphaNum))
+	#define keyx(str) (expr(str) >> not_(AlphaNum))
 	#define disable_do(patt) (DisableDo >> ((patt) >> EnableDo | EnableDo >> Cut))
 	#define disable_chain(patt) (DisableChain >> ((patt) >> EnableChain | EnableChain >> Cut))
 	#define disable_do_chain(patt) (DisableDoChain >> ((patt) >> EnableDoChain | EnableDoChain >> Cut))
@@ -178,16 +179,13 @@ YueParser::YueParser() {
 	InBlock = +SpaceBreak >> Advance >> ensure(Block, PopIndent);
 
 	local_flag = expr('*') | expr('^');
-	local_values = NameList >> -(sym('=') >> (TableBlock | ExpListLow));
-	Local = key("local") >> (Space >> local_flag | local_values);
+	local_values = NameList >> -(sym("::") >> Space >> typelist) >> -(sym('=') >> (TableBlock | ExpListLow));
+	Record = keyx("record") >> Space >> Variable >> recordbody;
+	Enum = keyx("enum") >> Space >> Variable >> enumbody;
+	Attrib = (expr("const") | expr("close")) >> not_(AlphaNum);
+	Local = key("local") >> (Space >> local_flag | Space >> Record | Space >> Enum | Space >> TypeAlias | local_values);
 
-	LocalAttrib = and_(key(pl::user(Name, [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		for (auto it = item.begin; it != item.end; ++it) st->buffer += static_cast<char>(*it);
-		auto it = Keywords.find(st->buffer);
-		st->buffer.clear();
-		return it == Keywords.end();
-	})) >> NameList >> sym('=') >> not_('=')) >> Space >> Name >> NameList >> Assign;
+	LocalAttrib = Space >> -(expr("local") >> not_(AlphaNum) >> Space) >> Attrib >> NameList >> -(sym("::") >> Space >> typelist) >> Assign;
 
 	colon_import_name = sym('\\') >> Space >> Variable;
 	ImportName = colon_import_name | Space >> Variable;
@@ -388,7 +386,7 @@ YueParser::YueParser() {
 	ChainValue = Seperator >> (Chain | Callable) >> -existential_op >> -(InvokeArgs | chain_block);
 
 	simple_table = Seperator >> KeyValue >> *(sym(',') >> KeyValue);
-	Value = SimpleValue | simple_table | ChainValue | String;
+	Value = (SimpleValue | simple_table | ChainValue | String) >> -(key("as") >> Space >> type);
 
 	single_string_inner = expr("\\'") | "\\\\" | not_(expr('\'')) >> Any;
 	SingleString = symx('\'') >> *single_string_inner >> symx('\'');
@@ -445,7 +443,7 @@ YueParser::YueParser() {
 	Index = symx('[') >> Exp >> sym(']');
 	ChainItem = Invoke >> -existential_op | DotChainItem >> -existential_op | Slice | Index >> -existential_op;
 	DotChainItem = symx('.') >> (Name >> not_('#') | Metatable | Metamethod);
-	ColonChainItem = (expr('\\') | expr("::")) >> ((LuaKeyword | Name) >> not_('#') | Metamethod);
+	ColonChainItem = (expr('\\') | expr(".@")) >> ((LuaKeyword | Name) >> not_('#') | Metamethod);
 	invoke_chain = Invoke >> -existential_op >> -ChainItems;
 	ColonChain = ColonChainItem >> -existential_op >> -invoke_chain;
 
@@ -500,9 +498,9 @@ YueParser::YueParser() {
 		-(key("extends")  >> PreventIndent >> ensure(Exp, PopIndent)) >>
 		-ClassBlock;
 
-	global_values = NameList >> -(sym('=') >> (TableBlock | ExpListLow));
+	global_values = -(Space >> and_("const") >> Attrib) >> NameList >> -(sym("::") >> Space >> typelist) >> -(sym('=') >> (TableBlock | ExpListLow));
 	global_op = expr('*') | expr('^');
-	Global = key("global") >> (ClassDecl | (Space >> global_op) | global_values);
+	Global = key("global") >> (ClassDecl | (Space >> global_op) | Space >> Record | Space >> Enum | Space >> TypeAlias | global_values);
 
 	export_default = key("default");
 
@@ -551,15 +549,15 @@ YueParser::YueParser() {
 	KeyValueList = KeyValue >> *(sym(',') >> KeyValue);
 	KeyValueLine = CheckIndent >> (KeyValueList >> -sym(',') | TableBlockIndent | Space >> expr('*') >> (Exp | TableBlock));
 
-	FnArgDef = (Variable | SelfName >> -existential_op) >> -(sym('=') >> Space >> Exp);
+	FnArgDef = (Variable | SelfName >> -existential_op) >> -(sym("::") >> Space >> type) >> -(sym('=') >> Space >> Exp);
 
 	FnArgDefList = Space >> Seperator >> (
 		(
 			FnArgDef >>
 			*((sym(',') | Break) >> White >> FnArgDef) >>
-			-((sym(',') | Break) >> White >> VarArg)
+			-((sym(',') | Break) >> White >> VarArg >> -(sym("::") >> Space >> type))
 		) | (
-			VarArg
+			VarArg >> -(sym("::") >> Space >> type)
 		)
 	);
 
@@ -567,7 +565,7 @@ YueParser::YueParser() {
 
 	FnArgsDef = sym('(') >> White >> -FnArgDefList >> -outer_var_shadow >> White >> sym(')');
 	fn_arrow = expr("->") | expr("=>");
-	FunLit = -FnArgsDef >> Space >> fn_arrow >> -Body;
+	FunLit = -(Space >> typeargs) >> -FnArgsDef >> Space >> fn_arrow >> -(sym("::") >> Space >> retlist) >> -Body;
 
 	MacroName = expr('$') >> -Name;
 	macro_args_def = sym('(') >> White >> -FnArgDefList >> White >> sym(')');
@@ -616,7 +614,7 @@ YueParser::YueParser() {
 		TblComprehension | TableLit | Comprehension | FunLit |
 		(Space >> Num);
 
-	ExpListAssign = ExpList >> -(Update | Assign);
+	ExpListAssign = ExpList >> -(sym("::") >> Space >> typelist) >> -(Update | Assign);
 
 	if_line = key("if") >> Exp >> -Assign;
 	unless_line = key("unless") >> Exp;
@@ -625,9 +623,10 @@ YueParser::YueParser() {
 	statement_sep = and_(*SpaceBreak >> CheckIndent >> Space >> (set("($'\"") | expr("[[") | expr("[=")));
 	Statement = (
 		Import | While | Repeat | For | ForEach |
-		Return | Local | Global | Export | Macro |
-		Space >> BreakLoop | Label | Goto | Backcall |
-		LocalAttrib | PipeBody | ExpListAssign
+		Return | LocalAttrib | Local | Global | Export | Macro |
+		Space >> BreakLoop | Space >> Enum | Space >> Record | Space >> TypeAlias |
+		Label | Goto | Backcall | PipeBody |
+		ExpListAssign
 	) >> Space >>
 	-statement_appendix >> -statement_sep;
 
@@ -639,7 +638,34 @@ YueParser::YueParser() {
 
 	Shebang = expr("#!") >> *(not_(Stop) >> Any);
 	BlockEnd = Block >> -(+Break >> Space >> and_(Stop)) >> Stop;
-	File = White >> -Shebang >> Block >> -(+Break >> Space >> and_(eof())) >> eof();
+	File = White >> -Shebang >> -Block >> White >> eof();
+
+	DoubleStringLit = symx('"') >> *double_string_plain >> symx('"');
+	LiteralString = DoubleStringLit | SingleString | LuaString;
+	type = Seperator >> (basetype >> *(sym('|') >> Space >> basetype) | expr('(') >> Space >> type >> sym(')'));
+	baselit = (expr("any") | expr("boolean") | expr("bool") | expr("func") | expr("integer") | expr("int") | expr("nil") | expr("number") | expr("num") | expr("string") | expr("str") | expr("table") | expr("thread")) >> not_(AlphaNum);
+	baselist = expr('{') >> Seperator >> Space  >> type >> *(expr(',') >> Space >> type) >> sym('}');
+	basetab = expr('{') >> Space >> type >> sym(':') >> Space >> type >> sym('}');
+	chaintype = Seperator >> Variable >> *(expr('.') >> Variable) >> -(Space >> typeargs);
+	basetype = baselit | baselist | basetab | functiontype | chaintype;
+	typelist = Seperator >> type >> *(sym(',') >> Space >> type);
+	retlist = expr('(') >> -retlist >> sym(')') | typelist >> -(Space >> VarArg);
+	typeargs = expr('<') >> Seperator >> Space >> Variable >> *(sym(',') >> Space >> Variable) >> sym('>');
+	newtype = keyx("record") >> Space >> Variable >> Space >> recordbody | keyx("enum") >> Space >> Variable >> Space >> enumbody | keyx("type") >> Space >> Variable >> sym('=') >> Space >> type;
+	recordbody = -(Space >> typeargs) >> +SpaceBreak >> Advance >> ensure(Seperator >> CheckIndent >> Space >> recordentry >> *(+SpaceBreak >> CheckIndent >> Space >> recordentry), PopIndent);
+	userdata = keyx("userdata");
+	metamethod = keyx("metamethod");
+	fieldrecord = -metamethod >> Space >> recordkey >> sym("::") >> Space >> type;
+	recordentry = userdata | expr('{') >> Space >> type >> sym('}') | newtype | fieldrecord;
+	recordkey = LuaKeyword | Name | expr('[') >> Space >> LiteralString >> sym(']');
+	enumbody = +SpaceBreak >> Advance >> ensure(Seperator >> CheckIndent >> Space >> LiteralString >> *(+SpaceBreak >> CheckIndent >> Space >> LiteralString), PopIndent);
+	vararg_type = VarArg >> -(sym("::") >> Space >> type);
+	functiontype = -(typeargs >> Space) >> Seperator >> -(expr('(') >> Space >> (partypelist >> -(sym(',') >> Space >> vararg_type) | -vararg_type) >> sym(')')) >> sym("->") >> -(sym("::") >> Space >> retlist);
+	partypelist = partype >> *(sym(',') >> Space >> partype);
+	partype = -(Variable >> sym("::")) >> Space >> type;
+	parnamelist = parname >> *(sym(',') >> parname);
+	parname = Variable >> -(sym("::") >> Space >> type);
+	TypeAlias = keyx("type") >> Space >> Variable >> sym('=') >> Space >> type;
 }
 
 ParseInfo YueParser::parse(std::string_view codes, rule& r) {
