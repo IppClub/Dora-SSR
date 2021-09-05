@@ -601,10 +601,13 @@ AST_NODE(AssignableChain)
 	AST_MEMBER(AssignableChain, &sep, &items)
 AST_END(AssignableChain)
 
+class baselit_t;
+
 AST_NODE(Value)
 	ast_sel<true, SimpleValue_t, simple_table_t, ChainValue_t, String_t> item;
+	ast_ptr<false, baselit_t> checkType;
 	ast_ptr<false, type_t> type;
-	AST_MEMBER(Value, &item, &type)
+	AST_MEMBER(Value, &item, &checkType, &type)
 AST_END(Value)
 
 AST_LEAF(default_value)
@@ -923,20 +926,20 @@ AST_END(newtype)
 AST_LEAF(userdata)
 AST_END(userdata)
 
-AST_LEAF(metamethod)
-AST_END(metamethod)
+AST_LEAF(fieldtag)
+AST_END(fieldtag)
 
 AST_NODE(fieldrecord)
-	ast_ptr<false, metamethod_t> meta;
+	ast_ptr<false, fieldtag_t> tag;
 	ast_sel<true, LuaKeyword_t, Name_t, LiteralString_t> key;
 	ast_ptr<true, type_t> type;
-	AST_MEMBER(fieldrecord, &meta, &key, &type)
+	AST_MEMBER(fieldrecord, &tag, &key, &type)
 AST_END(fieldrecord)
 
 AST_NODE(recordbody)
 	ast_ptr<false, typeargs_t> arg;
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, userdata_t, type_t, newtype_t, fieldrecord_t> body;
+	ast_sel_list<false, userdata_t, chaintype_t, type_t, newtype_t, fieldrecord_t> body;
 	AST_MEMBER(recordbody, &arg, &sep, &body)
 AST_END(recordbody)
 

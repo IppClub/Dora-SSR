@@ -28,8 +28,8 @@ std::unordered_set<std::string> Keywords = {
 	"or", "repeat", "return", "then", "true",
 	"until", "while", // Lua keywords
 	"as", "class", "continue", "export", "extends",
-	"from", "global", "import", "macro", "switch",
-	"unless", "using", "when", "with" // Yue keywords
+	"from", "global", "import", "is", "macro",
+	"switch", "unless", "using", "when", "with" // Yue keywords
 };
 
 YueParser::YueParser() {
@@ -386,7 +386,7 @@ YueParser::YueParser() {
 	ChainValue = Seperator >> (Chain | Callable) >> -existential_op >> -(InvokeArgs | chain_block);
 
 	simple_table = Seperator >> KeyValue >> *(sym(',') >> KeyValue);
-	Value = (SimpleValue | simple_table | ChainValue | String) >> -(key("as") >> Space >> type);
+	Value = (SimpleValue | simple_table | ChainValue | String) >> -(key("is") >> Space >> baselit) >> -(key("as") >> Space >> type);
 
 	single_string_inner = expr("\\'") | "\\\\" | not_(expr('\'')) >> Any;
 	SingleString = symx('\'') >> *single_string_inner >> symx('\'');
@@ -652,11 +652,16 @@ YueParser::YueParser() {
 	retlist = expr('(') >> -retlist >> sym(')') | typelist >> -(Space >> VarArg);
 	typeargs = expr('<') >> Seperator >> Space >> Variable >> *(sym(',') >> Space >> Variable) >> sym('>');
 	newtype = keyx("record") >> Space >> Variable >> Space >> recordbody | keyx("enum") >> Space >> Variable >> Space >> enumbody | keyx("type") >> Space >> Variable >> sym('=') >> Space >> type;
-	recordbody = -(Space >> typeargs) >> +SpaceBreak >> Advance >> ensure(Seperator >> CheckIndent >> Space >> recordentry >> *(+SpaceBreak >> CheckIndent >> Space >> recordentry), PopIndent);
+	recordbody = -(Space >> typeargs) >> +SpaceBreak >> Advance >> Seperator >>
+		ensure(CheckIndent >> Space >> 
+			(userdata | expr('{') >> Space >> type >> sym('}') | recordentry) >>
+			*(+SpaceBreak >> CheckIndent >> Space >> recordentry),
+			PopIndent
+		);
 	userdata = keyx("userdata");
-	metamethod = keyx("metamethod");
-	fieldrecord = -metamethod >> Space >> recordkey >> sym("::") >> Space >> type;
-	recordentry = userdata | expr('{') >> Space >> type >> sym('}') | newtype | fieldrecord;
+	fieldtag = (expr("metamethod") | expr("const")) >> not_(expr(':') | AlphaNum);
+	fieldrecord = -fieldtag >> Space >> recordkey >> sym("::") >> Space >> type;
+	recordentry = newtype | fieldrecord | keyx("embed") >> not_(':') >> Space >> chaintype;
 	recordkey = LuaKeyword | Name | expr('[') >> Space >> LiteralString >> sym(']');
 	enumbody = +SpaceBreak >> Advance >> ensure(Seperator >> CheckIndent >> Space >> LiteralString >> *(+SpaceBreak >> CheckIndent >> Space >> LiteralString), PopIndent);
 	vararg_type = VarArg >> -(sym("::") >> Space >> type);

@@ -343,7 +343,7 @@ private:
 	AST_RULE(newtype)
 	AST_RULE(recordbody)
 	AST_RULE(userdata)
-	AST_RULE(metamethod)
+	AST_RULE(fieldtag)
 	AST_RULE(fieldrecord)
 	AST_RULE(enumbody)
 	AST_RULE(functiontype)
