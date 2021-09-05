@@ -60,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.9.0"sv;
+const std::string_view version = "0.9.3"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -788,7 +788,7 @@ private:
 			if (auto var = callable->item.as<Variable_t>()) {
 				auto name = _parser.toString(var->name);
 				list.push_back(name);
-			} else if (auto self = callable->getByPath<SelfName_t,self_t>()) {
+			} else if (callable->getByPath<SelfName_t,self_t>()) {
 				list.push_back("self"s);
 			}
 			isVariable = true;
@@ -1112,7 +1112,7 @@ private:
 				if (ind != std::string::npos) {
 					ending = ending.substr(ind + 1);
 				}
-				if (Keywords.find(ending) == Keywords.end()) {
+				if (LuaKeywords.find(ending) == LuaKeywords.end()) {
 					out.back().insert(index, ";"sv);
 				}
 			}
@@ -1683,7 +1683,7 @@ private:
 				case id<variable_pair_t>(): {
 					auto vp = static_cast<variable_pair_t*>(pair);
 					auto name = _parser.toString(vp->name);
-					if (Keywords.find(name) != Keywords.end()) {
+					if (LuaKeywords.find(name) != LuaKeywords.end()) {
 						pairs.push_back({true, name, "[\""s + name + "\"]"s, nullptr});
 					} else {
 						pairs.push_back({true, name, '.' + name, nullptr});
@@ -1697,7 +1697,7 @@ private:
 						auto key = np->key->getByPath<Name_t>();
 						if (!key) throw std::logic_error(_info.errorMessage("invalid key for destructure"sv, np));
 						keyName = _parser.toString(key);
-						if (Keywords.find(keyName) != Keywords.end()) {
+						if (LuaKeywords.find(keyName) != LuaKeywords.end()) {
 							keyName = "[\""s + keyName + "\"]"s;
 						} else {
 							keyName = "."s + keyName;
@@ -1805,7 +1805,7 @@ private:
 						if (!key) throw std::logic_error(_info.errorMessage("invalid key for destructure"sv, dp));
 						keyName = _parser.toString(key);
 						if (!dp->value) valueStr = keyName;
-						if (Keywords.find(keyName) != Keywords.end()) {
+						if (LuaKeywords.find(keyName) != LuaKeywords.end()) {
 							keyName = "[\""s + keyName + "\"]"s;
 						} else {
 							keyName = "."s + keyName;
@@ -2192,7 +2192,7 @@ private:
 					for (auto val : assign->values.objects()) {
 						if (auto value = singleValueFrom(val)) {
 							if (auto spValue = value->item.as<SimpleValue_t>()) {
-								if (auto fun = spValue->value.as<FunLit_t>()) {
+								if (spValue->value.is<FunLit_t>()) {
 									oneLined = false;
 									break;
 								}
@@ -2535,10 +2535,26 @@ private:
 			case id<String_t>(): transformString(static_cast<String_t*>(item), out); break;
 			default: YUEE("AST node mismatch", value); break;
 		}
-		if (_config.tealTyped && value->type) {
-			str_list temp;
-			transform_type(value->type, temp);
-			out.back().append(" as "s + temp.back());
+		if (_config.tealTyped) {
+			if (value->checkType) {
+				auto name = getTypeAlias(_parser.toString(value->checkType));
+				out.back().append(" is "s + name);
+			}
+			if (value->type) {
+				str_list temp;
+				transform_type(value->type, temp);
+				out.back().append(" as "s + temp.back());
+			}
+		} else {
+			if (value->checkType) {
+				auto name = getTypeAlias(_parser.toString(value->checkType));
+				if (name == "integer"sv) {
+					out.back() = globalVar("math"sv, value) + ".type("s + out.back() + ") == \"integer\"";
+				}
+				else if (name != "any"sv) {
+					out.back() = globalVar("type"sv, value) + '(' + out.back() + ") == \"" + name + '"';
+				}
+			}
 		}
 	}
 
@@ -4316,7 +4332,7 @@ private:
 
 	void transformDotChainItem(DotChainItem_t* dotChainItem, str_list& out) {
 		auto name = _parser.toString(dotChainItem->name);
-		if (Keywords.find(name) != Keywords.end()) {
+		if (LuaKeywords.find(name) != LuaKeywords.end()) {
 			out.push_back("[\""s + name + "\"]"s);
 		} else {
 			out.push_back('.' + name);
@@ -6703,6 +6719,7 @@ private:
 				case id<userdata_t>():
 				case id<type_t>():
 				case id<fieldrecord_t>():
+				case id<chaintype_t>():
 					break;
 				case id<newtype_t>(): {
 					auto size = temp.size();
@@ -6754,6 +6771,12 @@ private:
 				case id<userdata_t>():
 					temp.push_back(indent() + "userdata" + nll(item));
 					break;
+				case id<chaintype_t>(): {
+					str_list tmp;
+					transform_chaintype(static_cast<chaintype_t*>(item), tmp);
+					temp.push_back(indent() + "embed "s + tmp.back() + nll(item));
+					break;
+				}
 				case id<type_t>():
 					transform_type(static_cast<type_t*>(item), temp);
 					temp.back() = indent() + '{' + temp.back() + '}' + nll(item);
@@ -6775,14 +6798,14 @@ private:
 	void transform_fieldrecord(fieldrecord_t* field, str_list& out) {
 		str_list temp;
 		transform_type(field->type, temp);
-		std::string meta;
-		if (field->meta) meta = "metamethod "s;
+		std::string tag;
+		if (field->tag) tag = _parser.toString(field->tag) + ' ';
 		switch (field->key->getId()) {
 			case id<LuaKeyword_t>():
-				out.push_back(meta + "[\""s + _parser.toString(field->key) + "\"] : "s + temp.back());
+				out.push_back(tag + "[\""s + _parser.toString(field->key) + "\"] : "s + temp.back());
 				break;
 			case id<Name_t>():
-				out.push_back(meta + _parser.toString(field->key) + ": "s + temp.back());
+				out.push_back(tag + _parser.toString(field->key) + ": "s + temp.back());
 				break;
 			case id<LiteralString_t>(): {
 				std::string start;
@@ -6791,7 +6814,7 @@ private:
 				} else {
 					start = '[';
 				}
-				out.push_back(meta + start + _parser.toString(field->key) + "] : "s + temp.back());
+				out.push_back(tag + start + _parser.toString(field->key) + "] : "s + temp.back());
 				break;
 			}
 			default: YUEE("AST node mismatch", field->key); break;
@@ -6867,13 +6890,14 @@ private:
 	}
 
 	void transformTypeAlias(TypeAlias_t* alias, str_list& out, bool isLocal) {
+		auto name = _parser.toString(alias->var->name);
 		if (_config.tealTyped) {
-			auto name = _parser.toString(alias->var->name);
 			str_list temp;
 			transform_type(alias->type, temp);
 			out.push_back(indent() + (isLocal ? "local type "s : "global type "s) + name + " = "s + temp.back() + nll(alias));
 		} else {
-			out.push_back(Empty);
+			forceAddToScope(name);
+			out.push_back(indent() + (isLocal ? "local "s : Empty) + name + " = { }"s + nll(alias));
 		}
 	}
 };
