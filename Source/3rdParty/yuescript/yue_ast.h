@@ -99,42 +99,16 @@ AST_END(NameList)
 
 class ExpListLow_t;
 class TableBlock_t;
-class typelist_t;
 class Attrib_t;
 
 AST_NODE(local_values)
 	ast_ptr<true, NameList_t> nameList;
-	ast_ptr<false, typelist_t> typeList;
 	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
-	AST_MEMBER(local_values, &nameList, &typeList, &valueList)
+	AST_MEMBER(local_values, &nameList, &valueList)
 AST_END(local_values)
 
-class recordbody_t;
-
-AST_NODE(Record)
-	ast_ptr<true, Variable_t> name;
-	ast_ptr<true, recordbody_t> body;
-	AST_MEMBER(Record, &name, &body)
-AST_END(Record)
-
-class enumbody_t;
-
-AST_NODE(Enum)
-	ast_ptr<true, Variable_t> name;
-	ast_ptr<true, enumbody_t> body;
-	AST_MEMBER(Enum, &name, &body)
-AST_END(Enum)
-
-class type_t;
-
-AST_NODE(TypeAlias)
-	ast_ptr<true, Variable_t> var;
-	ast_ptr<true, type_t> type;
-	AST_MEMBER(TypeAlias, &var, &type)
-AST_END(TypeAlias)
-
 AST_NODE(Local)
-	ast_sel<true, local_flag_t, local_values_t, Record_t, Enum_t, TypeAlias_t> item;
+	ast_sel<true, local_flag_t, local_values_t> item;
 	std::list<std::string> forceDecls;
 	std::list<std::string> decls;
 	bool collected = false;
@@ -150,9 +124,8 @@ AST_END(Attrib)
 AST_NODE(LocalAttrib)
 	ast_ptr<true, Attrib_t> attrib;
 	ast_ptr<true, NameList_t> nameList;
-	ast_ptr<false, typelist_t> typeList;
 	ast_ptr<true, Assign_t> assign;
-	AST_MEMBER(LocalAttrib, &attrib, &nameList, &typeList, &assign)
+	AST_MEMBER(LocalAttrib, &attrib, &nameList, &assign)
 AST_END(LocalAttrib)
 
 AST_NODE(colon_import_name)
@@ -601,13 +574,9 @@ AST_NODE(AssignableChain)
 	AST_MEMBER(AssignableChain, &sep, &items)
 AST_END(AssignableChain)
 
-class baselit_t;
-
 AST_NODE(Value)
 	ast_sel<true, SimpleValue_t, simple_table_t, ChainValue_t, String_t> item;
-	ast_ptr<false, baselit_t> checkType;
-	ast_ptr<false, type_t> type;
-	AST_MEMBER(Value, &item, &checkType, &type)
+	AST_MEMBER(Value, &item)
 AST_END(Value)
 
 AST_LEAF(default_value)
@@ -659,18 +628,16 @@ AST_NODE(ClassDecl)
 AST_END(ClassDecl)
 
 AST_NODE(global_values)
-	ast_ptr<false, Attrib_t> attrib;
 	ast_ptr<true, NameList_t> nameList;
-	ast_ptr<false, typelist_t> typeList;
 	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
-	AST_MEMBER(global_values, &attrib, &nameList, &typeList, &valueList)
+	AST_MEMBER(global_values, &nameList, &valueList)
 AST_END(global_values)
 
 AST_LEAF(global_op)
 AST_END(global_op)
 
 AST_NODE(Global)
-	ast_sel<true, ClassDecl_t, global_op_t, global_values_t, Record_t, Enum_t, TypeAlias_t> item;
+	ast_sel<true, ClassDecl_t, global_op_t, global_values_t> item;
 	AST_MEMBER(Global, &item)
 AST_END(Global)
 
@@ -689,17 +656,15 @@ AST_END(Export)
 AST_NODE(FnArgDef)
 	ast_sel<true, Variable_t, SelfName_t> name;
 	ast_ptr<false, existential_op_t> op;
-	ast_ptr<false, type_t> type;
 	ast_ptr<false, Exp_t> defaultValue;
-	AST_MEMBER(FnArgDef, &name, &op, &type, &defaultValue)
+	AST_MEMBER(FnArgDef, &name, &op, &defaultValue)
 AST_END(FnArgDef)
 
 AST_NODE(FnArgDefList)
 	ast_ptr<true, Seperator_t> sep;
 	ast_list<false, FnArgDef_t> definitions;
 	ast_ptr<false, VarArg_t> varArg;
-	ast_ptr<false, type_t> varArgType;
-	AST_MEMBER(FnArgDefList, &sep, &definitions, &varArg, &varArgType)
+	AST_MEMBER(FnArgDefList, &sep, &definitions, &varArg)
 AST_END(FnArgDefList)
 
 AST_NODE(outer_var_shadow)
@@ -716,16 +681,11 @@ AST_END(FnArgsDef)
 AST_LEAF(fn_arrow)
 AST_END(fn_arrow)
 
-class typeargs_t;
-class retlist_t;
-
 AST_NODE(FunLit)
-	ast_ptr<false, typeargs_t> typeArg;
 	ast_ptr<false, FnArgsDef_t> argsDef;
 	ast_ptr<true, fn_arrow_t> arrow;
-	ast_ptr<false, retlist_t> ret;
 	ast_ptr<false, Body_t> body;
-	AST_MEMBER(FunLit, &typeArg, &argsDef, &arrow, &ret, &body)
+	AST_MEMBER(FunLit, &argsDef, &arrow, &body)
 AST_END(FunLit)
 
 AST_NODE(MacroName)
@@ -777,13 +737,10 @@ AST_NODE(unary_exp)
 	AST_MEMBER(unary_exp, &ops, &expos)
 AST_END(unary_exp)
 
-class typelist_t;
-
 AST_NODE(ExpListAssign)
 	ast_ptr<true, ExpList_t> expList;
-	ast_ptr<false, typelist_t> typeList;
 	ast_sel<false, Update_t, Assign_t> action;
-	AST_MEMBER(ExpListAssign, &expList, &typeList, &action)
+	AST_MEMBER(ExpListAssign, &expList, &action)
 AST_END(ExpListAssign)
 
 AST_NODE(if_line)
@@ -817,8 +774,7 @@ AST_END(statement_sep)
 AST_NODE(Statement)
 	ast_sel<true, Import_t, While_t, Repeat_t, For_t, ForEach_t,
 		Return_t, Local_t, Global_t, Export_t, Macro_t, BreakLoop_t,
-		Enum_t, Record_t, TypeAlias_t, Label_t, Goto_t, Backcall_t,
-		LocalAttrib_t, PipeBody_t, ExpListAssign_t> content;
+		Label_t, Goto_t, Backcall_t, LocalAttrib_t, PipeBody_t, ExpListAssign_t> content;
 	ast_ptr<false, statement_appendix_t> appendix;
 	ast_ptr<false, statement_sep_t> needSep;
 	AST_MEMBER(Statement, &content, &appendix, &needSep)
@@ -846,129 +802,5 @@ AST_NODE(File)
 	ast_ptr<false, Block_t> block;
 	AST_MEMBER(File, &block)
 AST_END(File)
-
-AST_LEAF(DoubleStringLit)
-AST_END(DoubleStringLit)
-
-AST_NODE(LiteralString)
-	ast_sel<true, DoubleStringLit_t, SingleString_t, LuaString_t> content;
-	AST_MEMBER(LiteralString, &content)
-AST_END(LiteralString)
-
-class basetype_t;
-class type_t;
-
-AST_NODE(type)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<false, basetype_t> types;
-	ast_ptr<false, type_t> inner;
-	AST_MEMBER(type, &sep, &types, &inner)
-AST_END(type)
-
-AST_LEAF(baselit)
-AST_END(baselit)
-
-AST_NODE(baselist)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, type_t> types;
-	AST_MEMBER(baselist, &sep, &types)
-AST_END(baselist)
-
-AST_NODE(basetab)
-	ast_ptr<true, type_t> key;
-	ast_ptr<true, type_t> value;
-	AST_MEMBER(basetab, &key, &value)
-AST_END(basetab)
-
-class typeargs_t;
-
-AST_NODE(chaintype)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, Variable_t> names;
-	ast_ptr<false, typeargs_t> arg;
-	AST_MEMBER(chaintype, &sep, &names, &arg)
-AST_END(chaintype)
-
-class functiontype_t;
-
-AST_NODE(basetype)
-	ast_sel<true, baselit_t, baselist_t, basetab_t, functiontype_t, chaintype_t> type;
-	AST_MEMBER(basetype, &type)
-AST_END(basetype)
-
-AST_NODE(typelist)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, type_t> types;
-	AST_MEMBER(typelist, &sep, &types)
-AST_END(typelist)
-
-AST_NODE(retlist)
-	ast_sel<false, typelist_t, retlist_t> typeList;
-	ast_ptr<false, VarArg_t> varArg;
-	AST_MEMBER(retlist, &typeList, &varArg)
-AST_END(retlist)
-
-AST_NODE(typeargs)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, Variable_t> items;
-	AST_MEMBER(typeargs, &sep, &items)
-AST_END(typeargs)
-
-class recordbody_t;
-class enumbody_t;
-
-AST_NODE(newtype)
-	ast_ptr<true, Variable_t> name;
-	ast_sel<true, recordbody_t, enumbody_t, type_t> body;
-	AST_MEMBER(newtype, &name, &body)
-AST_END(newtype)
-
-AST_LEAF(userdata)
-AST_END(userdata)
-
-AST_LEAF(fieldtag)
-AST_END(fieldtag)
-
-AST_NODE(fieldrecord)
-	ast_ptr<false, fieldtag_t> tag;
-	ast_sel<true, LuaKeyword_t, Name_t, LiteralString_t> key;
-	ast_ptr<true, type_t> type;
-	AST_MEMBER(fieldrecord, &tag, &key, &type)
-AST_END(fieldrecord)
-
-AST_NODE(recordbody)
-	ast_ptr<false, typeargs_t> arg;
-	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, userdata_t, chaintype_t, type_t, newtype_t, fieldrecord_t> body;
-	AST_MEMBER(recordbody, &arg, &sep, &body)
-AST_END(recordbody)
-
-AST_NODE(enumbody)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, LiteralString_t> items;
-	AST_MEMBER(enumbody, &sep, &items)
-AST_END(enumbody)
-
-AST_NODE(partype)
-	ast_ptr<false, Variable_t> var;
-	ast_ptr<true, type_t> type;
-	AST_MEMBER(partype, &var, &type)
-AST_END(partype)
-
-AST_NODE(functiontype)
-	ast_ptr<false, typeargs_t> arg;
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<false, partype_t> params;
-	ast_ptr<false, VarArg_t> varArg;
-	ast_ptr<false, type_t> varArgType;
-	ast_ptr<false, retlist_t> ret;
-	AST_MEMBER(functiontype, &arg, &sep, &params, &varArg, &varArgType, &ret)
-AST_END(functiontype)
-
-AST_NODE(parname)
-	ast_ptr<true, Variable_t> var;
-	ast_ptr<false, type_t> type;
-	AST_MEMBER(parname, &var, &type)
-AST_END(parname)
 
 } // namespace parserlib
