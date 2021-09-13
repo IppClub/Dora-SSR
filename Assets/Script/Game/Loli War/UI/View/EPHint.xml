@@ -13,7 +13,7 @@
 			<Delay Time="0.8"/>
 			<Opacity Time="0.3" Start="1" Stop="0"/>
 			<Hide/>
-			<Emit Event="DisplayEnd"/>
+			<Event Type="DisplayEnd"/>
 		</Sequence>
 	</Action>
 	<Slot Name="Enter" Perform="show"/>

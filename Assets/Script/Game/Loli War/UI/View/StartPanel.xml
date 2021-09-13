@@ -12,7 +12,7 @@
 								<Scale Time="1" Start="1" Stop="0.3" Ease="InBack"/>
 								<Opacity Time="1" Start="1" Stop="0"/>
 							</Spawn>
-							<Emit Event="PanelHide"/>
+							<Event Type="PanelHide"/>
 						</Sequence>
 					</Action>
 					<ButtonGlow Name="fButton" Normal="{ 'weaponf' }" Glow="{ 'weaponfl' }" X="{ $W/3-30 }" Y="{ $Y }" Width="118" Height="167" Ref="True">

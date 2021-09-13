@@ -959,7 +959,7 @@ Director.ui\addChild with AlignNode isRoot:true
 				SetNextWindowPos Vec2(20,20)
 				SetNextWindowSize Vec2(120,280), "FirstUseEver"
 				PushStyleVar "ItemSpacing",Vec2.zero, ->
-					Begin "Stats", {"NoResiz","NoSavedSettings","NoTitleBar","NoMove"}, ->
+					Begin "Stats", {"NoResize","NoSavedSettings","NoTitleBar","NoMove"}, ->
 						Text "VALUE: #{GameScore}"
 						Image "Image/patreon.clip|character_handGreen", Vec2 30,30
 						SameLine!
