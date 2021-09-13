@@ -813,6 +813,68 @@ int Label_SetTextAlign(lua_State* L)
 	return 0;
 }
 
+/* DrawNode */
+
+int DrawNode_drawVertices(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (
+		!tolua_isusertype(L, 1, "DrawNode"_slice, 0, &tolua_err) ||
+		!tolua_istable(L, 2, 0, &tolua_err) ||
+		!tolua_isnoobj(L, 3, &tolua_err)
+	)
+	goto tolua_lerror;
+	else
+#endif
+	{
+		DrawNode* self = (DrawNode*)  tolua_tousertype(L, 1, 0);
+		int tolua_len = static_cast<int>(lua_rawlen(L, 2));
+		std::vector<VertexColor> verts(tolua_len);
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DrawNode.drawVertices'", nullptr);
+#endif
+#ifndef TOLUA_RELEASE
+		if (!tolua_istablearray(L, 2, tolua_len, 0, &tolua_err))
+			goto tolua_lerror;
+		else
+#endif
+		{
+			for (int i = 0;i < (int)tolua_len; i++)
+			{
+				lua_geti(L, 2, i + 1); // item
+				lua_geti(L, -1, 1); // item Vec2
+#ifndef TOLUA_RELEASE
+				if (!tolua_isusertype(L, -1, "Vec2"_slice, 0, &tolua_err))
+				{
+					goto tolua_lerror;
+				}
+#endif
+				Vec2* vec = r_cast<Vec2*>(tolua_tousertype(L, -1, 0));
+				lua_pop(L, 1); // item
+				lua_geti(L, -1, 2); // item Color
+#ifndef TOLUA_RELEASE
+				if (!tolua_isusertype(L, -1, "Color"_slice, 0, &tolua_err))
+				{
+					goto tolua_lerror;
+				}
+#endif
+				Color* color = r_cast<Color*>(tolua_tousertype(L, -1, 0));
+				lua_pop(L, 1); // item
+				verts[i] = VertexColor(*vec, *color);
+				lua_pop(L, 1); // clear
+			}
+			self->drawVertices(verts);
+		}
+	}
+	return 0;
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'DrawNode.drawVertices'.", &tolua_err);
+	return 0;
+#endif
+}
+
 /* Vec2 */
 
 Vec2* Vec2_create(float x, float y)
@@ -979,7 +1041,7 @@ namespace LuaAction
 							float duration = toNumber(L, location, 2);
 							return Delay::alloc(duration);
 						}
-						case "Emit"_hash:
+						case "Event"_hash:
 						{
 							lua_rawgeti(L, location, 2);
 							Slice name = tolua_toslice(L, -1, nullptr);
@@ -2141,20 +2203,21 @@ SVGDef* SVGDef_create(String filename)
 /* QLearner */
 int QLearner_pack(lua_State* L)
 {
-	/* 1 table, 2 table */
+	/* 1 class, 2 table, 3 table */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_istable(L, 1, 0, &tolua_err)
+	if (!tolua_isusertable(L, 1, "QLearner"_slice, 0, &tolua_err)
 		|| !tolua_istable(L, 2, 0, &tolua_err)
-		|| !tolua_isnoobj(L, 3, &tolua_err))
+		|| !tolua_istable(L, 3, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 4, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
 #endif
 	{
-		int hintsCount = s_cast<int>(lua_rawlen(L, 1));
+		int hintsCount = s_cast<int>(lua_rawlen(L, 2));
 #ifndef TOLUA_RELEASE
-		if (!tolua_isintegerarray(L, 1, hintsCount, 0, &tolua_err))
+		if (!tolua_isintegerarray(L, 2, hintsCount, 0, &tolua_err))
 		{
 			goto tolua_lerror;
 		}
@@ -2163,12 +2226,12 @@ int QLearner_pack(lua_State* L)
 		hints.resize(hintsCount);
 		for (int i = 0; i < hintsCount; i++)
 		{
-			hints[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 1, i + 1, 0));
+			hints[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 2, i + 1, 0));
 		}
 		
-		int valuesCount = s_cast<int>(lua_rawlen(L, 2));
+		int valuesCount = s_cast<int>(lua_rawlen(L, 3));
 #ifndef TOLUA_RELEASE
-		if (!tolua_isintegerarray(L, 2, valuesCount, 0, &tolua_err))
+		if (!tolua_isintegerarray(L, 3, valuesCount, 0, &tolua_err))
 		{
 			goto tolua_lerror;
 		}
@@ -2177,7 +2240,7 @@ int QLearner_pack(lua_State* L)
 		values.resize(valuesCount);
 		for (int i = 0; i < valuesCount; i++)
 		{
-			values[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 2, i + 1, 0));
+			values[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 3, i + 1, 0));
 		}
 		QLearner::QState state = 0;
 #ifndef TOLUA_RELEASE
@@ -2199,20 +2262,21 @@ tolua_lerror:
 
 int QLearner_unpack(lua_State* L)
 {
-	/* 1 table, 2 integer */
+	/* 1 class, 2 table, 3 integer */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_istable(L, 1, 0, &tolua_err)
-		|| !tolua_isinteger(L, 2, 0, &tolua_err)
-		|| !tolua_isnoobj(L, 3, &tolua_err))
+	if (!tolua_isusertable(L, 1, "QLearner"_slice, 0, &tolua_err)
+		|| !tolua_istable(L, 2, 0, &tolua_err)
+		|| !tolua_isinteger(L, 3, 0, &tolua_err)
+		|| !tolua_isnoobj(L, 4, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
 #endif
 	{
-		int hintsCount = s_cast<int>(lua_rawlen(L, 1));
+		int hintsCount = s_cast<int>(lua_rawlen(L, 2));
 #ifndef TOLUA_RELEASE
-		if (!tolua_isintegerarray(L, 1, hintsCount, 0, &tolua_err))
+		if (!tolua_isintegerarray(L, 2, hintsCount, 0, &tolua_err))
 		{
 			goto tolua_lerror;
 		}
@@ -2221,9 +2285,9 @@ int QLearner_unpack(lua_State* L)
 		hints.resize(hintsCount);
 		for (int i = 0; i < hintsCount; i++)
 		{
-			hints[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 1, i + 1, 0));
+			hints[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 2, i + 1, 0));
 		}
-		QLearner::QState state = s_cast<QLearner::QState>(lua_tointeger(L, 2));
+		QLearner::QState state = s_cast<QLearner::QState>(lua_tointeger(L, 3));
 		std::vector<uint32_t> values = QLearner::unpack(hints, state);
 		lua_createtable(L, hintsCount, 0);
 		for (size_t i = 0; i < values.size(); i++)
@@ -2504,7 +2568,7 @@ static Own<Value> Dora_getDBValue(lua_State* L, int loc)
 #ifndef TOLUA_RELEASE
 			if (lua_toboolean(L, loc) != 0)
 			{
-				tolua_error(L, "DB is not accepting value of boolean true.", nullptr);
+				tolua_error(L, "DB only accepts value of boolean false as NULL value.", nullptr);
 			}
 #endif // TOLUA_RELEASE
 			return Value::alloc(false);
@@ -2998,24 +3062,24 @@ namespace ImGui { namespace Binding
 		SharedImGui.showConsole();
 	}
 
-	bool Begin(const char* name, String windowsFlags)
+	bool Begin(const char* name, Slice* windowsFlags, int flagCount)
 	{
-		return ImGui::Begin(name, nullptr, getWindowCombinedFlags(windowsFlags));
+		return ImGui::Begin(name, nullptr, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
-	bool Begin(const char* name, bool* p_open, String windowsFlags)
+	bool Begin(const char* name, bool* p_open, Slice* windowsFlags, int flagCount)
 	{
-		return ImGui::Begin(name, p_open, getWindowCombinedFlags(windowsFlags));
+		return ImGui::Begin(name, p_open, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
-	bool BeginChild(const char* str_id, const Vec2& size, bool border, String windowsFlags)
+	bool BeginChild(const char* str_id, const Vec2& size, bool border, Slice* windowsFlags, int flagCount)
 	{
-		return ImGui::BeginChild(str_id, size, border, getWindowCombinedFlags(windowsFlags));
+		return ImGui::BeginChild(str_id, size, border, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
-	bool BeginChild(ImGuiID id, const Vec2& size, bool border, String windowsFlags)
+	bool BeginChild(ImGuiID id, const Vec2& size, bool border, Slice* windowsFlags, int flagCount)
 	{
-		return ImGui::BeginChild(id, size, border, getWindowCombinedFlags(windowsFlags));
+		return ImGui::BeginChild(id, size, border, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
 	void SetNextWindowPos(const Vec2& pos, String setCond)
@@ -3058,16 +3122,16 @@ namespace ImGui { namespace Binding
 		ImGui::SetColorEditOptions(getColorEditFlags(colorEditMode));
 	}
 
-	bool InputText(const char* label, Buffer* buffer, String inputTextFlags)
+	bool InputText(const char* label, Buffer* buffer, Slice* inputTextFlags, int flagCount)
 	{
 		if (!buffer) return false;
-		return ImGui::InputText(label, buffer->get(), buffer->size(), getInputTextCombinedFlags(inputTextFlags));
+		return ImGui::InputText(label, buffer->get(), buffer->size(), getInputTextCombinedFlags(inputTextFlags, flagCount));
 	}
 
-	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size, String inputTextFlags)
+	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size, Slice* inputTextFlags, int flagCount)
 	{
 		if (!buffer) return false;
-		return ImGui::InputTextMultiline(label, buffer->get(), buffer->size(), size, getInputTextCombinedFlags(inputTextFlags));
+		return ImGui::InputTextMultiline(label, buffer->get(), buffer->size(), size, getInputTextCombinedFlags(inputTextFlags, flagCount));
 	}
 
 	bool TreeNodeEx(const char* label, String treeNodeFlags)
@@ -3100,34 +3164,34 @@ namespace ImGui { namespace Binding
 		return ImGui::Selectable(label, p_selected, getSelectableFlags(selectableFlags), size);
 	}
 
-	bool BeginPopupModal(const char* name, String windowsFlags)
+	bool BeginPopupModal(const char* name, Slice* windowsFlags, int flagCount)
 	{
-		return ImGui::BeginPopupModal(name, nullptr, getWindowCombinedFlags(windowsFlags));
+		return ImGui::BeginPopupModal(name, nullptr, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
-	bool BeginPopupModal(const char* name, bool* p_open, String windowsFlags)
+	bool BeginPopupModal(const char* name, bool* p_open, Slice* windowsFlags, int flagCount)
 	{
-		return ImGui::BeginPopupModal(name, p_open, getWindowCombinedFlags(windowsFlags));
+		return ImGui::BeginPopupModal(name, p_open, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
-	bool BeginChildFrame(ImGuiID id, const Vec2& size, String windowsFlags)
+	bool BeginChildFrame(ImGuiID id, const Vec2& size, Slice* windowsFlags, int flagCount)
 	{
-		return ImGui::BeginChildFrame(id, size, getWindowCombinedFlags(windowsFlags));
+		return ImGui::BeginChildFrame(id, size, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
-	bool BeginPopupContextItem(const char* name, String popupFlags)
+	bool BeginPopupContextItem(const char* name, Slice* popupFlags, int flagCount)
 	{
-		return ImGui::BeginPopupContextItem(name, getPopupCombinedFlags(popupFlags));
+		return ImGui::BeginPopupContextItem(name, getPopupCombinedFlags(popupFlags, flagCount));
 	}
 
-	bool BeginPopupContextWindow(const char* name, String popupFlags)
+	bool BeginPopupContextWindow(const char* name, Slice* popupFlags, int flagCount)
 	{
-		return ImGui::BeginPopupContextWindow(name, getPopupCombinedFlags(popupFlags));
+		return ImGui::BeginPopupContextWindow(name, getPopupCombinedFlags(popupFlags, flagCount));
 	}
 
-	bool BeginPopupContextVoid(const char* name, String popupFlags)
+	bool BeginPopupContextVoid(const char* name, Slice* popupFlags, int flagCount)
 	{
-		return ImGui::BeginPopupContextVoid(name, getPopupCombinedFlags(popupFlags));
+		return ImGui::BeginPopupContextVoid(name, getPopupCombinedFlags(popupFlags, flagCount));
 	}
 
 	void PushStyleColor(String name, Color color)
@@ -3228,108 +3292,108 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format, String flags)
+	bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format, Slice* flags, int flagCount)
 	{
-		return ImGui::DragFloat(label, v, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+		return ImGui::DragFloat(label, v, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags, flagCount));
 	}
 
-	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed, float v_min, float v_max, const char* display_format, String flags)
+	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed, float v_min, float v_max, const char* display_format, Slice* flags, int flagCount)
 	{
 		float floats[2] = {*v1, *v2};
-		bool changed = ImGui::DragFloat2(label, floats, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+		bool changed = ImGui::DragFloat2(label, floats, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags, flagCount));
 		*v1 = floats[0];
 		*v2 = floats[1];
 		return changed;
 	}
 
-	bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format, String flags)
+	bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format, Slice* flags, int flagCount)
 	{
-		return ImGui::DragInt(label, v, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+		return ImGui::DragInt(label, v, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags, flagCount));
 	}
 
-	bool DragInt2(const char* label, int* v1, int* v2, float v_speed, int v_min, int v_max, const char* display_format, String flags)
+	bool DragInt2(const char* label, int* v1, int* v2, float v_speed, int v_min, int v_max, const char* display_format, Slice* flags, int flagCount)
 	{
 		int ints[2] = {*v1, *v2};
-		bool changed = ImGui::DragInt2(label, ints, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+		bool changed = ImGui::DragInt2(label, ints, v_speed, v_min, v_max, display_format, getSliderCombinedFlags(flags, flagCount));
 		*v1 = ints[0];
 		*v2 = ints[1];
 		return changed;
 	}
 
-	bool InputFloat(const char* label, float* v, float step, float step_fast, const char* format, String flags)
+	bool InputFloat(const char* label, float* v, float step, float step_fast, const char* format, Slice* flags, int flagCount)
 	{
-		return ImGui::InputFloat(label, v, step, step_fast, format, getInputTextCombinedFlags(flags));
+		return ImGui::InputFloat(label, v, step, step_fast, format, getInputTextCombinedFlags(flags, flagCount));
 	}
 
-	bool InputFloat2(const char* label, float* v1, float* v2, const char* format, String flags)
+	bool InputFloat2(const char* label, float* v1, float* v2, const char* format, Slice* flags, int flagCount)
 	{
 		float floats[2] = {*v1, *v2};
-		bool changed = ImGui::InputFloat2(label, floats, format, getInputTextCombinedFlags(flags));
+		bool changed = ImGui::InputFloat2(label, floats, format, getInputTextCombinedFlags(flags, flagCount));
 		*v1 = floats[0];
 		*v2 = floats[1];
 		return changed;
 	}
 
-	bool InputInt(const char* label, int* v, int step, int step_fast, String flags)
+	bool InputInt(const char* label, int* v, int step, int step_fast, Slice* flags, int flagCount)
 	{
-		return ImGui::InputInt(label, v, step, step_fast, getInputTextCombinedFlags(flags));
+		return ImGui::InputInt(label, v, step, step_fast, getInputTextCombinedFlags(flags, flagCount));
 	}
 
-	bool InputInt2(const char* label, int* v1, int* v2, String flags)
+	bool InputInt2(const char* label, int* v1, int* v2, Slice* flags, int flagCount)
 	{
 		int ints[2] = {*v1, *v2};
-		bool changed = ImGui::InputInt2(label, ints, getInputTextCombinedFlags(flags));
+		bool changed = ImGui::InputInt2(label, ints, getInputTextCombinedFlags(flags, flagCount));
 		*v1 = ints[0];
 		*v2 = ints[1];
 		return changed;
 	}
 
-	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, String flags)
+	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, Slice* flags, int flagCount)
 	{
-		return ImGui::SliderFloat(label, v, v_min, v_max, format, getSliderCombinedFlags(flags));
+		return ImGui::SliderFloat(label, v, v_min, v_max, format, getSliderCombinedFlags(flags, flagCount));
 	}
 
-	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format, String flags)
+	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format, Slice* flags, int flagCount)
 	{
 		float floats[2] = {*v1, *v2};
-		bool changed = ImGui::SliderFloat2(label, floats, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+		bool changed = ImGui::SliderFloat2(label, floats, v_min, v_max, display_format, getSliderCombinedFlags(flags, flagCount));
 		*v1 = floats[0];
 		*v2 = floats[1];
 		return changed;
 	}
 
-	bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format, String flags)
+	bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format, Slice* flags, int flagCount)
 	{
-		return ImGui::SliderInt(label, v, v_min, v_max, format, getSliderCombinedFlags(flags));
+		return ImGui::SliderInt(label, v, v_min, v_max, format, getSliderCombinedFlags(flags, flagCount));
 	}
 
-	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format, String flags)
+	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format, Slice* flags, int flagCount)
 	{
 		int ints[2] = {*v1, *v2};
-		bool changed = ImGui::SliderInt2(label, ints, v_min, v_max, display_format, getSliderCombinedFlags(flags));
+		bool changed = ImGui::SliderInt2(label, ints, v_min, v_max, display_format, getSliderCombinedFlags(flags, flagCount));
 		*v1 = ints[0];
 		*v2 = ints[1];
 		return changed;
 	}
 	
-	bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed, float v_min, float v_max, const char* format, const char* format_max, String flags)
+	bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed, float v_min, float v_max, const char* format, const char* format_max, Slice* flags, int flagCount)
 	{
-		return ImGui::DragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, getSliderCombinedFlags(flags));
+		return ImGui::DragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, getSliderCombinedFlags(flags, flagCount));
 	}
 
-	bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed, int v_min, int v_max, const char* format, const char* format_max, String flags)
+	bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed, int v_min, int v_max, const char* format, const char* format_max, Slice* flags, int flagCount)
 	{
-		return ImGui::DragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, getSliderCombinedFlags(flags));
+		return ImGui::DragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, getSliderCombinedFlags(flags, flagCount));
 	}
 
-	bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format, String flags)
+	bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format, Slice* flags, int flagCount)
 	{
-		return ImGui::VSliderFloat(label, size, v, v_min, v_max, format, getSliderCombinedFlags(flags));
+		return ImGui::VSliderFloat(label, size, v, v_min, v_max, format, getSliderCombinedFlags(flags, flagCount));
 	}
 
-	bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format, String flags)
+	bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format, Slice* flags, int flagCount)
 	{
-		return ImGui::VSliderInt(label, size, v, v_min, v_max, format, getSliderCombinedFlags(flags));
+		return ImGui::VSliderInt(label, size, v, v_min, v_max, format, getSliderCombinedFlags(flags, flagCount));
 	}
 
 	bool ColorEdit3(const char* label, Color3& color3)
@@ -3397,19 +3461,19 @@ namespace ImGui { namespace Binding
 		ImGui::Columns(count, id, border);
 	}
 
-	bool BeginTable(const char* str_id, int column, String flags, const Vec2& outer_size, float inner_width)
+	bool BeginTable(const char* str_id, int column, const Vec2& outer_size, float inner_width, Slice* flags, int flagCount)
 	{
-		return ImGui::BeginTable(str_id, column, getTableCombinedFlags(flags), outer_size, inner_width);
+		return ImGui::BeginTable(str_id, column, getTableCombinedFlags(flags, flagCount), outer_size, inner_width);
 	}
 
-	void TableNextRow(String row_flags, float min_row_height)
+	void TableNextRow(float min_row_height, Slice* row_flags, int flagCount)
 	{
-		ImGui::TableNextRow(getTableRowCombinedFlags(row_flags), min_row_height);
+		ImGui::TableNextRow(getTableRowCombinedFlags(row_flags, flagCount), min_row_height);
 	}
 
-	void TableSetupColumn(const char* label, String flags, float init_width_or_weight, ImU32 user_id)
+	void TableSetupColumn(const char* label, float init_width_or_weight, ImU32 user_id, Slice* flags, int flagCount)
 	{
-		ImGui::TableSetupColumn(label, getTableColumnCombinedFlags(flags), init_width_or_weight, user_id);
+		ImGui::TableSetupColumn(label, getTableColumnCombinedFlags(flags, flagCount), init_width_or_weight, user_id);
 	}
 
 	void SetStyleVar(String name, const Vec2& var)
@@ -3497,13 +3561,12 @@ namespace ImGui { namespace Binding
 		return ImGuiSliderFlags_None;
 	}
 
-	uint32_t getSliderCombinedFlags(String flags)
+	uint32_t getSliderCombinedFlags(Slice* flags, int count)
 	{
-		auto tokens = flags.split("|"_slice);
 		uint32_t result = 0;
-		for (const auto& token : tokens)
+		for (int i = 0; i < count; i++)
 		{
-			result |= getSliderFlag(token);
+			result |= getSliderFlag(flags[i]);
 		}
 		return result;
 	}
@@ -3536,13 +3599,12 @@ namespace ImGui { namespace Binding
 		return ImGuiWindowFlags_(0);
 	}
 
-	uint32_t getWindowCombinedFlags(String flags)
+	uint32_t getWindowCombinedFlags(Slice* flags, int count)
 	{
-		auto tokens = flags.split("|"_slice);
 		uint32_t result = 0;
-		for (const auto& token : tokens)
+		for (int i = 0; i < count; i++)
 		{
-			result |= getWindowFlags(token);
+			result |= getWindowFlags(flags[i]);
 		}
 		return result;
 	}
@@ -3574,13 +3636,12 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	uint32_t getInputTextCombinedFlags(String flags)
+	uint32_t getInputTextCombinedFlags(Slice* flags, int count)
 	{
-		auto tokens = flags.split("|"_slice);
 		uint32_t result = 0;
-		for (const auto& token : tokens)
+		for (int i = 0; i < count; i++)
 		{
-			result |= getInputTextFlag(token);
+			result |= getInputTextFlag(flags[i]);
 		}
 		return result;
 	}
@@ -3717,13 +3778,12 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	uint32_t getPopupCombinedFlags(String flags)
+	uint32_t getPopupCombinedFlags(Slice* flags, int count)
 	{
-		auto tokens = flags.split("|"_slice);
 		uint32_t result = 0;
-		for (const auto& token : tokens)
+		for (int i = 0; i < count; i++)
 		{
-			result |= getPopupFlag(token);
+			result |= getPopupFlag(flags[i]);
 		}
 		return result;
 	}
@@ -3773,13 +3833,12 @@ namespace ImGui { namespace Binding
 		return ImGuiTableFlags_None;
 	}
 
-	uint32_t getTableCombinedFlags(String flags)
+	uint32_t getTableCombinedFlags(Slice* flags, int count)
 	{
-		auto tokens = flags.split("|"_slice);
 		uint32_t result = 0;
-		for (const auto& token : tokens)
+		for (int i = 0; i < count; i++)
 		{
-			result |= getTableFlags(token);
+			result |= getTableFlags(flags[i]);
 		}
 		return result;
 	}
@@ -3797,13 +3856,12 @@ namespace ImGui { namespace Binding
 		return ImGuiTableRowFlags_None;
 	}
 
-	uint32_t getTableRowCombinedFlags(String flags)
+	uint32_t getTableRowCombinedFlags(Slice* flags, int count)
 	{
-		auto tokens = flags.split("|"_slice);
 		uint32_t result = 0;
-		for (const auto& token : tokens)
+		for (int i = 0; i < count; i++)
 		{
-			result |= getTableRowFlags(token);
+			result |= getTableRowFlags(flags[i]);
 		}
 		return result;
 	}
@@ -3840,13 +3898,12 @@ namespace ImGui { namespace Binding
 		return ImGuiTableColumnFlags_None;
 	}
 
-	uint32_t getTableColumnCombinedFlags(String flags)
+	uint32_t getTableColumnCombinedFlags(Slice* flags, int count)
 	{
-		auto tokens = flags.split("|"_slice);
 		uint32_t result = 0;
-		for (const auto& token : tokens)
+		for (int i = 0; i < count; i++)
 		{
-			result |= getTableColumnFlags(token);
+			result |= getTableColumnFlags(flags[i]);
 		}
 		return result;
 	}

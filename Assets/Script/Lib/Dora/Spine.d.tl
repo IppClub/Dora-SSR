@@ -1,0 +1,17 @@
+local Playable = require("Playable").Type
+local record Spine
+	embed Playable
+	showDebug: boolean
+	hitTestEnabled: boolean
+	containsPoint: function(self: Spine, x: number, y: number): string | nil
+	intersectsSegment: function(self: Spine, x1: number, y1: number, x2: number, y2: number): string | nil
+end
+local record SpineClass
+	type Type = Spine
+	getLooks: function(cls: SpineClass, spineStr: string): {string}
+	getAnimations: function(cls: SpineClass, spineStr: string): {string}
+	metamethod __call: function(cls: SpineClass, spineStr: string): Spine
+	metamethod __call: function(cls: SpineClass, skelFile: string, atlasFile: string): Spine
+end
+local spineClass: SpineClass
+return spineClass

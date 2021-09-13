@@ -214,7 +214,7 @@ newRoundTraining = ->
 	result = {}
 	while #result == 0
 		unit = newCreature!
-		state = QLearner.pack unit.hints, unit.values
+		state = QLearner\pack unit.hints, unit.values
 		action = ql\getBestAction state
 		randomAction = false
 		if action == 0
@@ -249,7 +249,7 @@ Director.entry\addChild with Node!
 		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width/2-300,height/2-300), "FirstUseEver"
 		SetNextWindowSize Vec2(600,600), "FirstUseEver"
-		Begin "Fairy", "NoResize|NoSavedSettings", ->
+		Begin "Fairy", {"NoResize","NoSavedSettings"}, ->
 			if training
 				TextWrapped "生物: #{training.name}"
 				TextWrapped "执行动作: #{actions[training.action]}"
@@ -336,7 +336,7 @@ Director.entry\addChild with Node!
 							table.insert tags, unitTags[4] if i7 ~= 0
 							table.insert tags, unitTags[5] if i8 ~= 0
 							table.insert tags, unitTags[6] if i9 ~= 0
-							state = QLearner.pack hints,{i1,i2,i3,i4,i5,i6,i7,i8,i9}
+							state = QLearner\pack hints,{i1,i2,i3,i4,i5,i6,i7,i8,i9}
 							for action = 1, #actions
 								result = getEffect tags, action
 								r = 0

@@ -81,6 +81,9 @@ Sprite* Label_getCharacter(Label* self, int index);
 int Label_GetTextAlign(lua_State* L);
 int Label_SetTextAlign(lua_State* L);
 
+/* DrawNode */
+int DrawNode_drawVertices(lua_State* L);
+
 /* Vec2 */
 Vec2* Vec2_create(float x, float y);
 Vec2* Vec2_create(const Size& size);
@@ -251,10 +254,10 @@ namespace ImGui { namespace Binding
 	void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default"_slice);
 	void ShowStats();
 	void ShowConsole();
-	bool Begin(const char* name, String windowsFlags = nullptr);
-	bool Begin(const char* name, bool* p_open, String windowsFlags = nullptr);
-	bool BeginChild(const char* str_id, const Vec2& size = Vec2::zero, bool border = false, String windowsFlags = nullptr);
-	bool BeginChild(ImGuiID id, const Vec2& size = Vec2::zero, bool border = false, String windowsFlags = nullptr);
+	bool Begin(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
+	bool Begin(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
+	bool BeginChild(const char* str_id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
+	bool BeginChild(ImGuiID id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
 	void SetNextWindowPos(const Vec2& pos, String setCond = nullptr);
 	void SetNextWindowPosCenter(String setCond = nullptr);
 	void SetNextWindowSize(const Vec2& size, String setCond = nullptr);
@@ -263,20 +266,20 @@ namespace ImGui { namespace Binding
 	void SetWindowSize(const char* name, const Vec2& size, String setCond = nullptr);
 	void SetWindowCollapsed(const char* name, bool collapsed, String setCond = nullptr);
 	void SetColorEditOptions(String colorEditMode);
-	bool InputText(const char* label, Buffer* buffer, String inputTextFlags = nullptr);
-	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size = Vec2::zero, String inputTextFlags = nullptr);
+	bool InputText(const char* label, Buffer* buffer, Slice* inputTextFlags = nullptr, int flagCount = 0);
+	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size = Vec2::zero, Slice* inputTextFlags = nullptr, int flagCount = 0);
 	bool TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
 	void SetNextItemOpen(bool is_open, String setCond = nullptr);
 	bool CollapsingHeader(const char* label, String treeNodeFlags = nullptr);
 	bool CollapsingHeader(const char* label, bool* p_open, String treeNodeFlags = nullptr);
 	bool Selectable(const char* label, bool selected = false, String selectableFlags = nullptr, const Vec2& size = Vec2::zero);
 	bool Selectable(const char* label, bool* p_selected, String selectableFlags = nullptr, const Vec2& size = Vec2::zero);
-	bool BeginPopupModal(const char* name, String windowsFlags = nullptr);
-	bool BeginPopupModal(const char* name, bool* p_open = nullptr, String windowsFlags = nullptr);
-	bool BeginChildFrame(ImGuiID id, const Vec2& size, String windowsFlags = nullptr);
-	bool BeginPopupContextItem(const char* name, String popupFlags);
-	bool BeginPopupContextWindow(const char* name, String popupFlags);
-	bool BeginPopupContextVoid(const char* name, String popupFlags);
+	bool BeginPopupModal(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
+	bool BeginPopupModal(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
+	bool BeginChildFrame(ImGuiID id, const Vec2& size, Slice* windowsFlags = nullptr, int flagCount = 0);
+	bool BeginPopupContextItem(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
+	bool BeginPopupContextWindow(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
+	bool BeginPopupContextVoid(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
 
 	void PushStyleColor(String name, Color color);
 	void PushStyleVar(String name, float val);
@@ -295,22 +298,22 @@ namespace ImGui { namespace Binding
 
 	bool Combo(const char* label, int* current_item, const char* const* items, int items_count, int height_in_items = -1);
 
-	bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format = "%.3f", String flags = nullptr);
-	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", String flags = nullptr);
-	bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format = "%d", String flags = nullptr);
-	bool DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f", String flags = nullptr);
-	bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f", String flags = nullptr);
-	bool InputFloat2(const char* label, float* v1, float* v2, const char* format = "%.1f", String flags = nullptr);
-	bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100, String flags = nullptr);
-	bool InputInt2(const char* label, int* v1, int* v2, String flags = nullptr);
-	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", String flags = nullptr);
-	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", String flags = nullptr);
-	bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d", String flags = nullptr);
-	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f", String flags = nullptr);
-	bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", const char* format_max = nullptr, String flags = nullptr);
-	bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* format = "%d", const char* format_max = nullptr, String flags = nullptr);
-	bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", String flags = nullptr);
-	bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", String flags = nullptr);
+	bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+	bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format = "%d", Slice* flags = nullptr, int flagCount = 0);
+	bool DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f", Slice* flags = nullptr, int flagCount = 0);
+	bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+	bool InputFloat2(const char* label, float* v1, float* v2, const char* format = "%.1f", Slice* flags = nullptr, int flagCount = 0);
+	bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100, Slice* flags = nullptr, int flagCount = 0);
+	bool InputInt2(const char* label, int* v1, int* v2, Slice* flags = nullptr, int flagCount = 0);
+	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+	bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d", Slice* flags = nullptr, int flagCount = 0);
+	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f", Slice* flags = nullptr, int flagCount = 0);
+	bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", const char* format_max = nullptr, Slice* flags = nullptr, int flagCount = 0);
+	bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* format = "%d", const char* format_max = nullptr, Slice* flags = nullptr, int flagCount = 0);
+	bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+	bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", Slice* flags = nullptr, int flagCount = 0);
 
 	bool ColorEdit3(const char* label, Color3& color3);
 	bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
@@ -323,9 +326,9 @@ namespace ImGui { namespace Binding
 	void Columns(int count = 1, bool border = true);
 	void Columns(int count, bool border, const char* id);
 
-	bool BeginTable(const char* str_id, int column, String flags = nullptr, const Vec2& outer_size = Vec2::zero, float inner_width = 0.0f);
-	void TableNextRow(String row_flags = nullptr, float min_row_height = 0.0f);
-	void TableSetupColumn(const char* label, String flags = nullptr, float init_width_or_weight = 0.0f, ImU32 user_id = 0);
+	bool BeginTable(const char* str_id, int column, const Vec2& outer_size = Vec2::zero, float inner_width = 0.0f, Slice* flags = nullptr, int flagCount = 0);
+	void TableNextRow(float min_row_height = 0.0f, Slice* row_flags = nullptr, int flagCount = 0);
+	void TableSetupColumn(const char* label, float init_width_or_weight = 0.0f, ImU32 user_id = 0, Slice* flags = nullptr, int flagCount = 0);
 
 	void SetStyleVar(String name, bool var);
 	void SetStyleVar(String name, float var);
@@ -333,22 +336,22 @@ namespace ImGui { namespace Binding
 	void SetStyleColor(String name, Color color);
 
 	ImGuiWindowFlags_ getWindowFlags(String flag);
-	uint32_t getWindowCombinedFlags(String flags);
+	uint32_t getWindowCombinedFlags(Slice* flags, int count);
 	ImGuiSliderFlags_ getSliderFlag(String flag);
-	uint32_t getSliderCombinedFlags(String flags);
+	uint32_t getSliderCombinedFlags(Slice* flags, int count);
 	ImGuiInputTextFlags_ getInputTextFlag(String flag);
-	uint32_t getInputTextCombinedFlags(String flags);
+	uint32_t getInputTextCombinedFlags(Slice* flags, int count);
 	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag);
 	ImGuiSelectableFlags_ getSelectableFlags(String flag);
 	ImGuiCol_ getColorIndex(String col);
 	ImGuiColorEditFlags_ getColorEditFlags(String mode);
 	ImGuiCond_ getSetCond(String cond);
 	ImGuiPopupFlags getPopupFlag(String flag);
-	uint32_t getPopupCombinedFlags(String flags);
+	uint32_t getPopupCombinedFlags(Slice* flags, int count);
 	ImGuiTableFlags_ getTableFlags(String flag);
-	uint32_t getTableCombinedFlags(String flags);
+	uint32_t getTableCombinedFlags(Slice* flags, int count);
 	ImGuiTableRowFlags_ getTableRowFlags(String flag);
-	uint32_t getTableRowCombinedFlags(String flags);
+	uint32_t getTableRowCombinedFlags(Slice* flags, int count);
 	ImGuiTableColumnFlags_ getTableColumnFlags(String flag);
-	uint32_t getTableColumnCombinedFlags(String flags);
+	uint32_t getTableColumnCombinedFlags(Slice* flags, int count);
 } }

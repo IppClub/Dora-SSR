@@ -18,7 +18,7 @@ Director.entry\addChild with Node!
 		:width, :height = App.visualSize
 		SetNextWindowPos Vec2(width-250, 10), "FirstUseEver"
 		SetNextWindowSize Vec2(240, 520), "FirstUseEver"
-		Begin "Sprite", "NoResize|NoSavedSettings", ->
+		Begin "Sprite", {"NoResize","NoSavedSettings"}, ->
 			BeginChild "SpriteSetting", Vec2(-1, -40), ->
 				:z = sprite
 				changed, z = DragFloat "Z", z, 1, -1000, 1000, "%.2f"

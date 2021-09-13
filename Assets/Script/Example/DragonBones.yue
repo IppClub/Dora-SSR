@@ -25,7 +25,7 @@ bone = with DragonBone boneStr
 						Delay 0.5
 						Opacity 0.5, 1, 0
 					)
-				), Emit "Stop")
+				), Event "Stop")
 				.position = Vec2 x, y
 				.order = 100
 				\slot "Stop", -> \removeFromParent!
@@ -41,6 +41,6 @@ Director.entry\addChild with Node!
 		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 		SetNextWindowSize Vec2(240,140), "FirstUseEver"
-		Begin "DragonBones", "NoResize|NoSavedSettings", ->
+		Begin "DragonBones", {"NoResize","NoSavedSettings"}, ->
 			TextWrapped "Basic usage to create dragonBones! Tap it for a hit test."
 			_, bone.showDebug = Checkbox "BoundingBox", bone.showDebug

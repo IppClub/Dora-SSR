@@ -317,8 +317,9 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 	_flags.setOn(DrawNode::VertexPosDirty);
 }
 
-void DrawNode::drawVertices(const VertexColor* verts, uint32_t count)
+void DrawNode::drawVertices(const std::vector<VertexColor>& verts)
 {
+	uint32_t count = s_cast<uint32_t>(verts.size());
 	const size_t triangleCount = 3 * count - 2;
 	const size_t vertexCount = 3 * triangleCount;
 	_posColors.reserve(vertexCount);

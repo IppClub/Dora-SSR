@@ -209,7 +209,7 @@ class Content
 	static tolua_outside Content* Content_shared @ create();
 };
 
-class Listener @ GSlot : public 
+class Listener @ GSlot : public Object
 {
 	tolua_readonly tolua_property__common string name;
 	tolua_property__bool bool enabled;
@@ -533,12 +533,6 @@ class ClipNode : public Node
 	static ClipNode* create(Node* stencil = nullptr);
 };
 
-struct VertexColor
-{
-	VertexColor(Vec2 vertex, Color color);
-	~VertexColor();
-};
-
 class DrawNode : public Node
 {
 	tolua_property__bool bool depthWrite @ is3D;
@@ -546,7 +540,6 @@ class DrawNode : public Node
 	void drawDot(Vec2 pos, float radius, Color color = Color::White);
 	void drawSegment(Vec2 from, Vec2 to, float radius, Color color = Color::White);
 	void drawPolygon(Vec2 verts[tolua_len], Color fillColor = Color::White, float borderWidth = 0.0f, Color borderColor = Color::White);
-	void drawVertices(VertexColor verts[tolua_len]);
 	void clear();
 	static DrawNode* create();
 };

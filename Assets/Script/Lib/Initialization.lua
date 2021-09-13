@@ -13,6 +13,7 @@ local DB = builtin.DB()
 local AI = builtin.Platformer.Decision.AI()
 local Data = builtin.Platformer.Data()
 
+builtin.Application = nil
 builtin.App = App
 builtin.Content = Content
 builtin.Director = Director
@@ -65,14 +66,6 @@ local function loop(work)
 		until stoped
 		return true
 	end)
-end
-
-local function seconds(duration)
-	local time = 0
-	return function(deltaTime)
-		time = time + deltaTime
-		return time < duration
-	end
 end
 
 local function cycle(duration,work)
@@ -148,7 +141,6 @@ builtin.Routine = Routine
 builtin.wait = wait
 builtin.once = once
 builtin.loop = loop
-builtin.seconds = seconds
 builtin.cycle = cycle
 
 builtin.thread = function(routine)
@@ -170,13 +162,6 @@ builtin.sleep = function(duration)
 		coroutine_yield(false)
 	end
 end
-
-builtin.namespace = function(path)
-	return function(name)
-		return require(path.."."..name)
-	end
-end
-_G.namespace = builtin.namespace
 
 -- Async functions
 
@@ -287,7 +272,7 @@ DB.execAsync = function(self, ...)
 	table_insert(args, function(res)
 		result = res
 	end)
-	DB_execAsync(self, args)
+	DB_execAsync(self, unpack(args))
 	wait(function() return result ~= nil end)
 	return result
 end
@@ -333,7 +318,7 @@ for _,actionName in ipairs{
 	"Hide",
 	"Show",
 	"Delay",
-	"Emit",
+	"Event",
 	"Spawn",
 	"Sequence",
 } do

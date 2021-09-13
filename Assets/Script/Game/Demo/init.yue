@@ -751,7 +751,7 @@ NewFighter = (name, currentSet)->
 		if assembleFighter
 			assembleFighter = false
 			OpenPopup "战士#{name}"
-		BeginPopupModal "战士#{name}", "NoResize|NoSavedSettings", ->
+		BeginPopupModal "战士#{name}", {"NoResize","NoSavedSettings"}, ->
 			HeadItemPanel!
 			RHandItemPanel!
 			LHandItemPanel!
@@ -805,7 +805,7 @@ NewFighter = (name, currentSet)->
 					\runAction Sequence Spawn(
 						Scale 0.3, 1.8, 2.5
 						Opacity 0.3, 1, 0
-					), Emit "End"
+					), Event "End"
 					\slot "End", -> \removeFromParent!
 			NextColumn!
 
@@ -826,7 +826,7 @@ Director.ui\addChild with AlignNode isRoot:true
 		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(10,10), "FirstUseEver"
 		SetNextWindowSize Vec2(350,160), "FirstUseEver"
-		Begin "AI军团", "NoResize|NoSavedSettings", ->
+		Begin "AI军团", {"NoResize","NoSavedSettings"}, ->
 			isPC = switch App.platform
 				when "macOS","Windows" then true
 				else false

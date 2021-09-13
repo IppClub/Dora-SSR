@@ -46,7 +46,7 @@ struct nvg
 	static void Save();
 	static void Restore();
 	static void Reset();
-	static int CreateImage(int w, int h, int imageFlags, String filename);
+	static int CreateImage(int w, int h, String filename, Slice* imageFlags = nullptr, int flagCount = 0);
 	static int CreateFont(String name);
 	static float TextBounds(float x, float y, String text, Dorothy::Rect& bounds);
 	static Rect TextBoxBounds(float x, float y, float breakRowWidth, String text);

@@ -495,6 +495,10 @@ LuaEngine::LuaEngine()
 			tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "DrawNode");
+			tolua_function(L, "drawVertices", DrawNode_drawVertices);
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Spine");
 			tolua_function(L, "containsPoint", Spine_containsPoint);
 			tolua_function(L, "intersectsSegment", Spine_intersectsSegment);
