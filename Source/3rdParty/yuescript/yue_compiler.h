@@ -28,7 +28,6 @@ struct YueConfig {
 	bool implicitReturnRoot = true;
 	bool reserveLineNumber = true;
 	bool useSpaceOverTab = false;
-	bool tealTyped = false;
 	int lineOffset = 0;
 	Options options;
 };

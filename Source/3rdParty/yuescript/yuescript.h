@@ -79,7 +79,6 @@ create_yuepath = function(package_path)
 		local prefix = path:match("^(.-)%.lua$")
 		if prefix then
 			table.insert(yuepaths, prefix .. "." .. extension)
-			table.insert(yuepaths, prefix .. ".tl." .. extension)
 		end
 	end
 	return concat(yuepaths, ";")

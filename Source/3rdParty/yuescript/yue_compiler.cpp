@@ -60,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.9.3"sv;
+const std::string_view version = "0.8.3"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -773,31 +773,6 @@ private:
 		return Empty;
 	}
 
-	str_list undefinedVariableListFrom(ExpList_t* expList) {
-		str_list list;
-		for (auto exp : expList->exprs.objects()) {
-			bool isVariable = false;
-			BLOCK_START
-			auto value = singleValueFrom(exp);
-			BREAK_IF(!value);
-			auto chainValue = value->item.as<ChainValue_t>();
-			BREAK_IF(!chainValue);
-			BREAK_IF(chainValue->items.size() != 1);
-			auto callable = ast_cast<Callable_t>(chainValue->items.front());
-			BREAK_IF(!callable);
-			if (auto var = callable->item.as<Variable_t>()) {
-				auto name = _parser.toString(var->name);
-				list.push_back(name);
-			} else if (callable->getByPath<SelfName_t,self_t>()) {
-				list.push_back("self"s);
-			}
-			isVariable = true;
-			BLOCK_END
-			if (!isVariable) return str_list();
-		}
-		return list;
-	}
-
 	Variable_t* variableFrom(Exp_t* exp) {
 		BLOCK_START
 		auto value = singleValueFrom(exp);
@@ -909,8 +884,7 @@ private:
 	}
 
 	std::string anonFuncStart() const {
-		bool captureVarArg = !_varArgs.empty() && _varArgs.top().hasVar && _varArgs.top().usedVar;
-		return (captureVarArg ? "(function(...)"s : "(function()"s) + (_config.tealTyped ? ": any"s : Empty);
+		return !_varArgs.empty() && _varArgs.top().hasVar && _varArgs.top().usedVar ? "(function(...)"s : "(function()"s;
 	}
 
 	std::string anonFuncEnd() const {
@@ -1038,9 +1012,6 @@ private:
 			case id<Export_t>(): transformExport(static_cast<Export_t*>(content), out); break;
 			case id<Macro_t>(): transformMacro(static_cast<Macro_t*>(content), out, false); break;
 			case id<BreakLoop_t>(): transformBreakLoop(static_cast<BreakLoop_t*>(content), out); break;
-			case id<Enum_t>(): transformEnum(static_cast<Enum_t*>(content), out, true); break;
-			case id<Record_t>(): transformRecord(static_cast<Record_t*>(content), out, true); break;
-			case id<TypeAlias_t>(): transformTypeAlias(static_cast<TypeAlias_t*>(content), out, true); break;
 			case id<Label_t>(): transformLabel(static_cast<Label_t*>(content), out); break;
 			case id<Goto_t>(): transformGoto(static_cast<Goto_t*>(content), out); break;
 			case id<LocalAttrib_t>(): transformLocalAttrib(static_cast<LocalAttrib_t*>(content), out); break;
@@ -1087,10 +1058,6 @@ private:
 							transformExp(exp, out, ExpUsage::Common);
 							break;
 						}
-					}
-					if (expListAssign->typeList) {
-						transformTypeDefs(expListAssign, out);
-						break;
 					}
 					throw std::logic_error(_info.errorMessage("expression list is not supported here"sv, expList));
 				}
@@ -1212,7 +1179,7 @@ private:
 
 	ExpList_t* expListFrom(Statement_t* statement) {
 		if (auto expListAssign = statement->content.as<ExpListAssign_t>()) {
-			if (!expListAssign->action && !expListAssign->typeList) {
+			if (!expListAssign->action) {
 				return expListAssign->expList.get();
 			}
 		}
@@ -1228,60 +1195,7 @@ private:
 		return nullptr;
 	}
 
-	void transformTypeDefs(NameList_t* list, typelist_t* types, str_list& out, bool isLocal, bool isConst, Assign_t* assign) {
-		if (_config.tealTyped) {
-			str_list vars;
-			for (auto var : list->names.objects()) {
-				vars.push_back(_parser.toString(static_cast<Variable_t*>(var)->name));
-				if (isConst) vars.back().append(" <const>"s);
-				if (isLocal) forceAddToScope(vars.back());
-			}
-			if (types) {
-				transform_typelist(types, out);
-				out.back() = ": "s + out.back();
-			} else {
-				out.push_back(Empty);
-			}
-			std::string assignStr;
-			if (assign) {
-				str_list temp;
-				for (auto val : assign->values.objects()) {
-					transformAssignItem(val, temp);
-				}
-				assignStr = " = "s + join(temp, ", "sv);
-			}
-			out.back() = indent() + (isLocal ? "local "s : "global "s) + join(vars, ", "sv) + out.back() + assignStr + nll(list);
-		} else {
-			out.push_back(Empty);
-		}
-	}
-
-	void transformTypeDefs(ExpListAssign_t* assignment, str_list& out) {
-		auto vars = undefinedVariableListFrom(assignment->expList);
-		if (vars.empty()) throw std::logic_error(_info.errorMessage("can only add type annotation to variable"sv, assignment->expList));
-		if (_config.tealTyped) {
-			for (const auto& var : vars) {
-				if (!addToScope(var)) throw std::logic_error(_info.errorMessage("can not re-annotate type for a declared variable"sv, assignment->expList));
-			}
-			transform_typelist(assignment->typeList, out);
-			out.back() = indent() + "local "s + join(vars, ", "sv) + ": "s + out.back() + nll(assignment);
-		} else {
-			for (const auto& var : vars) {
-				if (isDefined(var)) throw std::logic_error(_info.errorMessage("can not re-annotate type for a declared variable"sv, assignment->expList));
-			}
-			out.push_back(Empty);
-		}
-	}
-
 	void transformAssignment(ExpListAssign_t* assignment, str_list& out) {
-		if (assignment->typeList) {
-			str_list temp;
-			transformTypeDefs(assignment, temp);
-			assignment->typeList.set(nullptr);
-			transformAssignment(assignment, temp);
-			out.push_back(join(temp));
-			return;
-		}
 		checkAssignable(assignment->expList);
 		BLOCK_START
 		auto assign = ast_cast<Assign_t>(assignment->action);
@@ -2142,60 +2056,12 @@ private:
 				auto assign = static_cast<Assign_t*>(action);
 				auto defs = transformAssignDefs(expList, DefOp::Check);
 				bool oneLined = defs.size() == expList->exprs.objects().size();
-				std::string typeStr;
-				if (_config.tealTyped) {
-					str_list types;
-					for (auto val : assign->values.objects()) {
-						if (auto value = singleValueFrom(val)) {
-							if (auto spValue = value->item.as<SimpleValue_t>()) {
-								if (auto fun = spValue->value.as<FunLit_t>()) {
-									oneLined = false;
-									auto funType = x->new_ptr<functiontype_t>();
-									if (fun->argsDef && fun->argsDef->defList) {
-										for (auto def : fun->argsDef->defList->definitions.objects()) {
-											if (auto aType = static_cast<FnArgDef_t*>(def)->type.get()) {
-												auto ptype = def->new_ptr<partype_t>();
-												ptype->type = aType;
-												funType->params.push_back(ptype);
-											} else {
-												funType->params.push_back(toAst<partype_t>("any"sv, def));
-											}
-										}
-										if (fun->argsDef->defList->varArgType) {
-											funType->varArg = fun->argsDef->defList->varArg;
-											funType->varArgType = fun->argsDef->defList->varArgType;
-										}
-									}
-									if (fun->typeArg) {
-										funType->arg = fun->typeArg;
-									}
-									if (fun->ret) {
-										funType->ret = fun->ret;
-									}
-									if (funType->params.size() > 0 || funType->ret) {
-										auto baseType = x->new_ptr<basetype_t>();
-										baseType->type.set(funType);
-										auto type = x->new_ptr<type_t>();
-										type->types.push_back(baseType);
-										transform_type(type, types);
-									} else {
-										types.push_back("any"s);
-									}
-									continue;
-								}
-							}
-						}
-						types.push_back("any"s);
-					}
-					typeStr = ": "s + join(types, ", "sv);
-				} else {
-					for (auto val : assign->values.objects()) {
-						if (auto value = singleValueFrom(val)) {
-							if (auto spValue = value->item.as<SimpleValue_t>()) {
-								if (spValue->value.is<FunLit_t>()) {
-									oneLined = false;
-									break;
-								}
+				for (auto val : assign->values.objects()) {
+					if (auto value = singleValueFrom(val)) {
+						if (auto spValue = value->item.as<SimpleValue_t>()) {
+							if (spValue->value.is<FunLit_t>()) {
+								oneLined = false;
+								break;
 							}
 						}
 					}
@@ -2227,7 +2093,7 @@ private:
 					for (auto value : assign->values.objects()) {
 						transformAssignItem(value, temp);
 					}
-					out.push_back((preDefine.empty() ? Empty : preDefine + typeStr + nll(assignment)) + indent() + left + " = "s + join(temp, ", "sv) + nll(assignment));
+					out.push_back((preDefine.empty() ? Empty : preDefine + nll(assignment)) + indent() + left + " = "s + join(temp, ", "sv) + nll(assignment));
 				}
 				break;
 			}
@@ -2535,27 +2401,6 @@ private:
 			case id<String_t>(): transformString(static_cast<String_t*>(item), out); break;
 			default: YUEE("AST node mismatch", value); break;
 		}
-		if (_config.tealTyped) {
-			if (value->checkType) {
-				auto name = getTypeAlias(_parser.toString(value->checkType));
-				out.back().append(" is "s + name);
-			}
-			if (value->type) {
-				str_list temp;
-				transform_type(value->type, temp);
-				out.back().append(" as "s + temp.back());
-			}
-		} else {
-			if (value->checkType) {
-				auto name = getTypeAlias(_parser.toString(value->checkType));
-				if (name == "integer"sv) {
-					out.back() = globalVar("math"sv, value) + ".type("s + out.back() + ") == \"integer\"";
-				}
-				else if (name != "any"sv) {
-					out.back() = globalVar("type"sv, value) + '(' + out.back() + ") == \"" + name + '"';
-				}
-			}
-		}
 	}
 
 	void transformCallable(Callable_t* callable, str_list& out, const ast_sel<false,Invoke_t,InvokeArgs_t>& invoke = {}) {
@@ -2624,18 +2469,6 @@ private:
 			forceAddToScope("self"s);
 		}
 		str_list temp;
-		std::string typeArg;
-		if (_config.tealTyped && funLit->typeArg) {
-			transform_typeargs(funLit->typeArg, temp);
-			typeArg = std::move(temp.back());
-			temp.clear();
-		}
-		std::string ret;
-		if (_config.tealTyped && funLit->ret) {
-			transform_retlist(funLit->ret, temp);
-			ret = std::move(temp.back());
-			temp.clear();
-		}
 		if (auto argsDef = funLit->argsDef.get()) {
 			transformFnArgsDef(argsDef, temp);
 			if (funLit->body) {
@@ -2647,12 +2480,12 @@ private:
 			auto& args = *it;
 			auto& initArgs = *(++it);
 			auto& bodyCodes = *(++it);
-			_buf << "function"sv << typeArg << '(';
+			_buf << "function("sv;
 			if (isFatArrow) {
 				_buf << "self"sv;
 				if (!args.empty()) _buf << ", "sv;
 			}
-			_buf << args << ')' << (ret.empty() ? Empty : ": "s + ret);
+			_buf << args << ')';
 			if (!initArgs.empty() || !bodyCodes.empty()) {
 				_buf << nlr(argsDef) << initArgs << bodyCodes;
 				popScope();
@@ -2668,9 +2501,9 @@ private:
 				temp.push_back(Empty);
 			}
 			auto& bodyCodes = temp.back();
-			_buf << "function"sv << typeArg << '(' <<
+			_buf << "function("sv <<
 				(isFatArrow ? "self"s : Empty) <<
-				')' << (ret.empty() ? Empty : ": "s + ret);
+				')';
 			if (!bodyCodes.empty()) {
 				_buf << nll(funLit) << bodyCodes;
 				popScope();
@@ -2834,18 +2667,12 @@ private:
 							break;
 						}
 						case id<local_values_t>(): {
-							auto values = static_cast<local_values_t*>(local->item.get());
-							if (!values->typeList) {
-								for (auto name : values->nameList->names.objects()) {
-									local->forceDecls.push_back(_parser.toString(name));
-								}
+							auto values = local->item.to<local_values_t>();
+							for (auto name : values->nameList->names.objects()) {
+								local->forceDecls.push_back(_parser.toString(name));
 							}
 							break;
 						}
-						case id<Record_t>():
-						case id<Enum_t>():
-						case id<TypeAlias_t>():
-							break;
 						default: YUEE("AST node mismatch", local->item); break;
 					}
 				}
@@ -3104,9 +2931,6 @@ private:
 		lua_pushliteral(L, "line_offset");
 		lua_pushinteger(L, lineOffset);
 		lua_rawset(L, -3);
-		lua_pushliteral(L, "teal_typed");
-		lua_pushboolean(L, 0);
-		lua_rawset(L, -3);
 	}
 
 	void transformMacro(Macro_t* macro, str_list& out, bool exporting) {
@@ -3343,22 +3167,12 @@ private:
 			}
 			if (varNames.empty()) varNames = arg.name;
 			else varNames.append(", "s + arg.name);
-			if (_config.tealTyped && def->type) {
-				str_list tmp;
-				transform_type(def->type, tmp);
-				varNames.append(": "s + tmp.back());
-			}
 		}
 		if (argDefList->varArg) {
 			auto& arg = argItems.emplace_back();
 			arg.name = "..."sv;
 			if (varNames.empty()) varNames = arg.name;
 			else varNames.append(", "s + arg.name);
-			if (_config.tealTyped && argDefList->varArgType) {
-				str_list tmp;
-				transform_type(argDefList->varArgType, tmp);
-				varNames.append(": "s + tmp.back());
-			}
 			_varArgs.top().hasVar = true;
 		}
 		if (assignSelf) {
@@ -5620,22 +5434,6 @@ private:
 			case id<global_values_t>(): {
 				markVarsGlobal(GlobalMode::Any);
 				auto values = global->item.to<global_values_t>();
-				if (values->attrib && _config.tealTyped) {
-					for (auto name : values->nameList->names.objects()) {
-						addGlobalVar(_parser.toString(name), name);
-					}
-					auto assign = x->new_ptr<Assign_t>();
-					if (auto expListLow = values->valueList.as<ExpListLow_t>()) {
-						assign->values.dup(expListLow->exprs);
-					} else {
-						auto tableBlock = values->valueList.to<TableBlock_t>();
-						assign->values.push_back(tableBlock);
-					}
-					transformTypeDefs(values->nameList, values->typeList, out, false, values->attrib, assign);
-					break;
-				} else if (values->typeList) {
-					transformTypeDefs(values->nameList, values->typeList, out, false, false, nullptr);
-				}
 				if (values->valueList) {
 					auto expList = x->new_ptr<ExpList_t>();
 					for (auto name : values->nameList->names.objects()) {
@@ -5667,15 +5465,6 @@ private:
 				}
 				break;
 			}
-			case id<Record_t>():
-				transformRecord(static_cast<Record_t*>(item), out, false);
-				break;
-			case id<Enum_t>():
-				transformEnum(static_cast<Enum_t*>(item), out, false);
-				break;
-			case id<TypeAlias_t>():
-				transformTypeAlias(static_cast<TypeAlias_t*>(item), out, false);
-				break;
 			default: YUEE("AST node mismatch", item); break;
 		}
 	}
@@ -6447,9 +6236,6 @@ private:
 		switch (local->item->getId()) {
 			case id<local_values_t>(): {
 				auto values = static_cast<local_values_t*>(local->item.get());
-				if (values->typeList) {
-					transformTypeDefs(values->nameList, values->typeList, temp, true, false, nullptr);
-				}
 				if (values->valueList) {
 					auto x = local;
 					auto expList = x->new_ptr<ExpList_t>();
@@ -6477,15 +6263,6 @@ private:
 				}
 				break;
 			}
-			case id<Record_t>():
-				transformRecord(static_cast<Record_t*>(local->item.get()), temp, true);
-				break;
-			case id<Enum_t>():
-				transformEnum(static_cast<Enum_t*>(local->item.get()), temp, true);
-				break;
-			case id<TypeAlias_t>():
-				transformTypeAlias(static_cast<TypeAlias_t*>(local->item.get()), temp, true);
-				break;
 			case id<local_flag_t>(): break;
 			default: YUEE("AST node mismatch", local->item); break;
 		}
@@ -6526,13 +6303,7 @@ private:
 		for (auto item : localAttrib->assign->values.objects()) {
 			transformAssignItem(item, temp);
 		}
-		std::string types;
-		if (localAttrib->typeList) {
-			str_list tmp;
-			transform_typelist(localAttrib->typeList, tmp);
-			types = ": "s + tmp.back();
-		}
-		out.push_back(indent() + "local "s + join(vars, ", "sv) + types + " = "s + join(temp, ", "sv) + nll(x));
+		out.push_back(indent() + "local "s + join(vars, ", "sv) + " = "s + join(temp, ", "sv) + nll(x));
 	}
 
 	void transformBreakLoop(BreakLoop_t* breakLoop, str_list& out) {
@@ -6553,352 +6324,6 @@ private:
 
 	void transformGoto(Goto_t* gotoNode, str_list& out) {
 		out.push_back(indent() + "goto "s + _parser.toString(gotoNode->label) + nll(gotoNode));
-	}
-
-	void transformLiteralString(LiteralString_t* str, str_list& out) {
-		out.push_back(_parser.toString(str));
-	}
-
-	void transform_type(type_t* type, str_list& out) {
-		if (type->inner) {
-			transform_type(type->inner, out);
-			out.back() = '(' + out.back() + ')';
-		} else {
-			str_list temp;
-			for (auto item : type->types.objects()) {
-				transform_basetype(static_cast<basetype_t*>(item), temp);
-			}
-			out.push_back(join(temp, " | "sv));
-		}
-	}
-
-	void transform_baselist(baselist_t* list, str_list& out) {
-		str_list temp;
-		for (auto item : list->types.objects()) {
-			transform_type(static_cast<type_t*>(item), temp);
-		}
-		out.push_back('{' + join(temp, ", "sv) + '}');
-	}
-
-	void transform_basetab(basetab_t* tab, str_list& out) {
-		str_list temp;
-		transform_type(tab->key, temp);
-		transform_type(tab->value, temp);
-		out.push_back('{' + temp.front() + ": "s + temp.back() + '}');
-	}
-
-	void transform_chaintype(chaintype_t* chain, str_list& out) {
-		str_list temp;
-		for (auto item : chain->names.objects()) {
-			temp.push_back(_parser.toString(static_cast<Variable_t*>(item)->name));
-		}
-		auto name = join(temp, "."sv);
-		temp.clear();
-		if (chain->arg) {
-			transform_typeargs(chain->arg, temp);
-			name.append(temp.back());
-		}
-		out.push_back(name);
-	}
-
-	std::string getTypeAlias(std::string_view name) {
-		if (name == "bool"sv) {
-			return "boolean"s;
-		} else if (name == "int"sv) {
-			return "integer"s;
-		} else if (name == "num"sv) {
-			return "number"s;
-		} else if (name == "str"sv) {
-			return "string"s;
-		} else if (name == "func"sv) {
-			return "function"s;
-		}
-		return std::string(name);
-	}
-
-	void transform_basetype(basetype_t* base, str_list& out) {
-		switch (base->type->getId()) {
-			case id<baselit_t>():
-				out.push_back(getTypeAlias(_parser.toString(base->type)));
-				break;
-			case id<baselist_t>():
-				transform_baselist(static_cast<baselist_t*>(base->type.get()), out);
-				break;
-			case id<basetab_t>():
-				transform_basetab(static_cast<basetab_t*>(base->type.get()), out);
-				break;
-			case id<functiontype_t>():
-				transform_functiontype(static_cast<functiontype_t*>(base->type.get()), out);
-				break;
-			case id<chaintype_t>():
-				transform_chaintype(static_cast<chaintype_t*>(base->type.get()), out);
-				break;
-			default: YUEE("AST node mismatch", base->type); break;
-		}
-	}
-
-	void transform_typelist(typelist_t* list, str_list& out) {
-		str_list temp;
-		for (auto item : list->types.objects()) {
-			transform_type(static_cast<type_t*>(item), temp);
-		}
-		out.push_back(join(temp, ", "sv));
-	}
-
-	void transform_retlist(retlist_t* ret, str_list& out) {
-		if (!ret->typeList) {
-			if (ret->varArg) {
-				out.push_back("..."s);
-			} else {
-				out.push_back("()"s);
-			}
-			return;
-		}
-		if (auto inner = ret->typeList.as<retlist_t>()) {
-			transform_retlist(inner, out);
-			out.back() = '(' + out.back() + (ret->varArg ? "..."s : Empty) + ')';
-		} else {
-			transform_typelist(ret->typeList.to<typelist_t>(), out);
-			if (ret->varArg) out.back().append("..."s);
-		}
-	}
-
-	void transform_typeargs(typeargs_t* arg, str_list& out) {
-		str_list temp;
-		for (auto item : arg->items.objects()) {
-			temp.push_back(getTypeAlias(_parser.toString(static_cast<Variable_t*>(item)->name)));
-		}
-		out.push_back('<' + join(temp, ", "sv) + '>');
-	}
-
-	void transform_newtype(newtype_t* newtype, str_list& out) {
-		auto name = _parser.toString(newtype->name->name);
-		switch (newtype->body->getId()) {
-			case id<recordbody_t>():
-				incIndentOffset();
-				transform_recordbody(static_cast<recordbody_t*>(newtype->body.get()), out, name);
-				decIndentOffset();
-				out.back().append(indent() + "end"s);
-				break;
-			case id<enumbody_t>():
-				incIndentOffset();
-				transform_enumbody(static_cast<enumbody_t*>(newtype->body.get()), out, name);
-				decIndentOffset();
-				out.back().append(indent() + "end"s);
-				break;
-			case id<type_t>(): {
-				str_list temp;
-				transform_type(static_cast<type_t*>(newtype->body.get()), temp);
-				out.push_back("type "s + name + " = "s + temp.back());
-				break;
-			}
-			default: YUEE("AST node mismatch", newtype->body); break;
-		}
-	}
-
-	void transform_newtype_table(newtype_t* newtype, str_list& out) {
-		auto name = _parser.toString(newtype->name->name);
-		switch (newtype->body->getId()) {
-			case id<recordbody_t>():
-				transform_recordbody_table(static_cast<recordbody_t*>(newtype->body.get()), out);
-				out.back() = name + " = "s + out.back();
-				break;
-			case id<enumbody_t>():
-			case id<type_t>():
-				break;
-			default: YUEE("AST node mismatch", newtype->body); break;
-		}
-	}
-
-	void transform_recordbody_table(recordbody_t* body, str_list& out) {
-		str_list temp;
-		node_container nodes;
-		incIndentOffset();
-		for (auto item : body->body.objects()) {
-			switch (item->getId()) {
-				case id<userdata_t>():
-				case id<type_t>():
-				case id<fieldrecord_t>():
-				case id<chaintype_t>():
-					break;
-				case id<newtype_t>(): {
-					auto size = temp.size();
-					transform_newtype_table(static_cast<newtype_t*>(item), temp);
-					if (temp.size() > size) nodes.push_back(item);
-					break;
-				}
-				default: YUEE("AST node mismatch", item); break;
-			}
-		}
-		if (temp.empty()) {
-			out.push_back("{ }"s);
-			decIndentOffset();
-		} else {
-			str_list tmp;
-			while (!temp.empty()) {
-				tmp.push_back(indent() + temp.front() + (temp.size() > 1 ? ","s : Empty) + nll(nodes.front()));
-				temp.pop_front();
-				nodes.pop_front();
-			}
-			decIndentOffset();
-			out.push_back('{' + nll(body) + join(tmp) + (tmp.empty() ? " }"s : indent() + '}'));
-		}
-	}
-	void transformRecord(Record_t* record, str_list& out, bool isLocal) {
-		auto name = _parser.toString(record->name->name);
-			if (isLocal) forceAddToScope(name);
-		if (_config.tealTyped) {
-			incIndentOffset();
-			transform_recordbody(record->body, out, name);
-			decIndentOffset();
-			out.back() = indent() + (isLocal ? "local "s : "global "s) + out.back() + indent() + "end"s + nlr(record);
-		} else {
-			transform_recordbody_table(record->body, out);
-			out.back() = indent() + (isLocal ? "local "s : ""s) + name + " = "s + out.back() + nll(record);
-		}
-	}
-
-	void transform_recordbody(recordbody_t* body, str_list& out, const std::string& name) {
-		str_list temp;
-		std::string arg;
-		if (body->arg) {
-			transform_typeargs(body->arg, temp);
-			arg = std::move(temp.back());
-			temp.clear();
-		}
-		for (auto item : body->body.objects()) {
-			switch (item->getId()) {
-				case id<userdata_t>():
-					temp.push_back(indent() + "userdata" + nll(item));
-					break;
-				case id<chaintype_t>(): {
-					str_list tmp;
-					transform_chaintype(static_cast<chaintype_t*>(item), tmp);
-					temp.push_back(indent() + "embed "s + tmp.back() + nll(item));
-					break;
-				}
-				case id<type_t>():
-					transform_type(static_cast<type_t*>(item), temp);
-					temp.back() = indent() + '{' + temp.back() + '}' + nll(item);
-					break;
-				case id<newtype_t>():
-					transform_newtype(static_cast<newtype_t*>(item), temp);
-					temp.back() = indent() + temp.back() + nll(item);
-					break;
-				case id<fieldrecord_t>():
-					transform_fieldrecord(static_cast<fieldrecord_t*>(item), temp);
-					temp.back() = indent() + temp.back() + nll(item);
-					break;
-				default: YUEE("AST node mismatch", item); break;
-			}
-		}
-		out.push_back("record "s + name + arg + nll(body) + join(temp));
-	}
-
-	void transform_fieldrecord(fieldrecord_t* field, str_list& out) {
-		str_list temp;
-		transform_type(field->type, temp);
-		std::string tag;
-		if (field->tag) tag = _parser.toString(field->tag) + ' ';
-		switch (field->key->getId()) {
-			case id<LuaKeyword_t>():
-				out.push_back(tag + "[\""s + _parser.toString(field->key) + "\"] : "s + temp.back());
-				break;
-			case id<Name_t>():
-				out.push_back(tag + _parser.toString(field->key) + ": "s + temp.back());
-				break;
-			case id<LiteralString_t>(): {
-				std::string start;
-				if (field->key.as<LiteralString_t>()->content.is<LuaString_t>()) {
-					start = "[ "s;
-				} else {
-					start = '[';
-				}
-				out.push_back(tag + start + _parser.toString(field->key) + "] : "s + temp.back());
-				break;
-			}
-			default: YUEE("AST node mismatch", field->key); break;
-		}
-	}
-
-	void transformEnum(Enum_t* enumDef, str_list& out, bool isLocal) {
-		if (_config.tealTyped) {
-			incIndentOffset();
-			transform_enumbody(enumDef->body, out, _parser.toString(enumDef->name->name));
-			decIndentOffset();
-			out.back() = indent() + (isLocal ? "local "s : "global "s) + out.back() + indent() + "end"s + nlr(enumDef);
-		} else {
-			out.push_back(Empty);
-		}
-	}
-
-	void transform_enumbody(enumbody_t* body, str_list& out, const std::string& name) {
-		str_list temp;
-		for (auto item : body->items.objects()) {
-			temp.push_back(indent() + _parser.toString(item) + nll(item));
-		}
-		out.push_back("enum "s + name + nll(body) + join(temp));
-	}
-
-	void transform_functiontype(functiontype_t* func, str_list& out) {
-		std::string arg;
-		str_list temp;
-		if (func->arg) {
-			transform_typeargs(func->arg, temp);
-			arg = std::move(temp.back());
-			temp.clear();
-		}
-		std::string param;
-		for (auto item : func->params.objects()) {
-			transform_partype(static_cast<partype_t*>(item), temp);
-		}
-		if (func->varArgType) {
-			transform_type(func->varArgType, temp);
-			temp.back().insert(0, "...: "s);
-		}
-		param = '(' + join(temp, ", "sv) + ')';
-		temp.clear();
-		std::string ret;
-		if (func->ret) {
-			transform_retlist(func->ret, temp);
-			ret = std::move(temp.back());
-			temp.clear();
-		}
-		out.push_back("function"s + arg + param + (ret.empty() ? Empty : ": "s + ret));
-	}
-
-	void transform_partype(partype_t* par, str_list& out) {
-		std::string name;
-		if (par->var) {
-			name = _parser.toString(par->var->name);
-		}
-		str_list temp;
-		transform_type(par->type, temp);
-		out.push_back((name.empty() ? Empty : name + ": "s) + temp.back());
-	}
-
-	void transform_parname(parname_t* par, str_list& out) {
-		std::string name = _parser.toString(par->var->name);
-		std::string type;
-		if (par->type) {
-			str_list temp;
-			transform_type(par->type, temp);
-			type = std::move(temp.back());
-			temp.clear();
-		}
-		out.push_back(name + (type.empty() ? Empty : ": "s + type));
-	}
-
-	void transformTypeAlias(TypeAlias_t* alias, str_list& out, bool isLocal) {
-		auto name = _parser.toString(alias->var->name);
-		if (_config.tealTyped) {
-			str_list temp;
-			transform_type(alias->type, temp);
-			out.push_back(indent() + (isLocal ? "local type "s : "global type "s) + name + " = "s + temp.back() + nll(alias));
-		} else {
-			forceAddToScope(name);
-			out.push_back(indent() + (isLocal ? "local "s : Empty) + name + " = { }"s + nll(alias));
-		}
 	}
 };
 
@@ -6924,3 +6349,4 @@ CompileInfo YueCompiler::compile(std::string_view codes, const YueConfig& config
 }
 
 } // namespace yue
+
