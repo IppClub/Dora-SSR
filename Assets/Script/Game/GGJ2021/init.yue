@@ -753,7 +753,7 @@ with Observer "Change", {"hp","unit"}
 				\runAction Action Sequence(
 					Y 0.5,.y,.y+100
 					Opacity 0.2,1,0
-					Emit "End"
+					Event "End"
 				)
 				\slot "End", -> \removeFromParent!
 				\addTo world
@@ -819,7 +819,7 @@ Director.ui\addChild with AlignNode isRoot:true
 						Scale 0.3,1,1.5,Ease.OutQuad
 						Opacity 0.3,1,0,Ease.OutQuad
 					)
-					Emit "End"
+					Event "End"
 				)
 				\slot "End", -> \removeFromParent!
 			GameScore = math.max 0, GameScore+value
@@ -946,7 +946,7 @@ Director.ui\addChild with AlignNode isRoot:true
 					:width,:height = App.visualSize
 					SetNextWindowPos Vec2(width/2-150,height/2+30)
 					SetNextWindowSize Vec2(300,50), "FirstUseEver"
-					Begin "CountDown", "NoResize|NoSavedSettings|NoTitleBar|NoMove", ->
+					Begin "CountDown", {"NoResize","NoSavedSettings","NoTitleBar","NoMove"}, ->
 						ProgressBar 1.0-dt, Vec2(-1,30), string.format("%.2fs", (1-dt)*time)
 				emit "Wasted"
 				return if GameScore == 0
@@ -959,7 +959,7 @@ Director.ui\addChild with AlignNode isRoot:true
 				SetNextWindowPos Vec2(20,20)
 				SetNextWindowSize Vec2(120,280), "FirstUseEver"
 				PushStyleVar "ItemSpacing",Vec2.zero, ->
-					Begin "Stats", "NoResize|NoSavedSettings|NoTitleBar|NoMove", ->
+					Begin "Stats", {"NoResiz","NoSavedSettings","NoTitleBar","NoMove"}, ->
 						Text "VALUE: #{GameScore}"
 						Image "Image/patreon.clip|character_handGreen", Vec2 30,30
 						SameLine!

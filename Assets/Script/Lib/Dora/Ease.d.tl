@@ -1,0 +1,46 @@
+local record Ease
+	record EaseFunc end
+	const Linear: EaseFunc
+	const InQuad: EaseFunc
+	const OutQuad: EaseFunc
+	const InOutQuad: EaseFunc
+	const OutInQuad: EaseFunc
+	const InCubic: EaseFunc
+	const OutCubic: EaseFunc
+	const InOutCubic: EaseFunc
+	const OutInCubic: EaseFunc
+	const InQuart: EaseFunc
+	const OutQuart: EaseFunc
+	const InOutQuart: EaseFunc
+	const OutInQuart: EaseFunc
+	const InQuint: EaseFunc
+	const OutQuint: EaseFunc
+	const InOutQuint: EaseFunc
+	const OutInQuint: EaseFunc
+	const InSine: EaseFunc
+	const OutSine: EaseFunc
+	const InOutSine: EaseFunc
+	const OutInSine: EaseFunc
+	const InExpo: EaseFunc
+	const OutExpo: EaseFunc
+	const InOutExpo: EaseFunc
+	const OutInExpo: EaseFunc
+	const InCirc: EaseFunc
+	const OutCirc: EaseFunc
+	const InOutCirc: EaseFunc
+	const OutInCirc: EaseFunc
+	const InElastic: EaseFunc
+	const OutElastic: EaseFunc
+	const InOutElastic: EaseFunc
+	const OutInElastic: EaseFunc
+	const InBack: EaseFunc
+	const OutBack: EaseFunc
+	const InOutBack: EaseFunc
+	const OutInBack: EaseFunc
+	const InBounce: EaseFunc
+	const OutBounce: EaseFunc
+	const InOutBounce: EaseFunc
+	const OutInBounce: EaseFunc
+	func: function(easing: EaseFunc, time: number): number
+end
+return Ease

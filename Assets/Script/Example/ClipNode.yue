@@ -22,9 +22,9 @@ targetA = with Model "Model/xiaoli.model"
 	\play "walk", true
 	\runAction Sequence(
 		X 1.5, -200, 200
-		Emit "Turn"
+		Event "Turn"
 		X 1.5, 200, -200
-		Emit "Turn"
+		Event "Turn"
 	)
 	\slot "ActionEnd", (action)-> \runAction action
 	\slot "Turn", -> .fliped = not .fliped
@@ -71,7 +71,7 @@ Director.entry\addChild with Node!
 		:width, :height = App.visualSize
 		SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
 		SetNextWindowSize Vec2(240, 180), "FirstUseEver"
-		Begin "Clip Node", "NoResize|NoSavedSettings", ->
+		Begin "Clip Node", {"NoResize","NoSavedSettings"}, ->
 			TextWrapped "Render children nodes with mask!"
 			changed, inverted = Checkbox "Inverted", inverted
 			if changed

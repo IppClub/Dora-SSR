@@ -60,12 +60,28 @@ void nvg::Reset()
 	nvgReset(Context());
 }
 
-int nvg::CreateImage(int w, int h, int imageFlags, String filename)
+int nvg::CreateImage(int w, int h, String filename, Slice* imageFlags, int flagCount)
 {
+	uint32_t flags = 0;
+	for (int i = 0; i < flagCount; i++)
+	{
+		switch (Switch::hash(imageFlags[i]))
+		{
+			case "Mipmaps"_hash: flags |= NVG_IMAGE_GENERATE_MIPMAPS; break;
+			case "RepeatX"_hash: flags |= NVG_IMAGE_REPEATX; break;
+			case "RepeatY"_hash: flags |= NVG_IMAGE_REPEATY; break;
+			case "FlipY"_hash: flags |= NVG_IMAGE_FLIPY; break;
+			case "Premultiplied"_hash: flags |= NVG_IMAGE_PREMULTIPLIED; break;
+			case "Nearest"_hash: flags |= NVG_IMAGE_NEAREST; break;
+			default:
+				Issue("nvg image flag named \"{}\" is invalid.", imageFlags[i]);
+				break;
+		}
+	}
 	auto data = SharedContent.load(filename);
 	bx::DefaultAllocator allocator;
 	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.first.get(), s_cast<uint32_t>(data.second), bimg::TextureFormat::RGBA8);
-	int result = nvgCreateImageRGBA(Context(), w, h, imageFlags, r_cast<uint8_t*>(imageContainer->m_data));
+	int result = nvgCreateImageRGBA(Context(), w, h, s_cast<int>(flags), r_cast<uint8_t*>(imageContainer->m_data));
 	bimg::imageFree(imageContainer);
 	return result;
 }

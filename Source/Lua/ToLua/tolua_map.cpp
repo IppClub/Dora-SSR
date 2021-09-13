@@ -175,7 +175,8 @@ static int tolua_bnd_getpeer(lua_State* L)
 static int tolua_bnd_class(lua_State* L)
 {
 	/* stack: classname */
-	lua_pushvalue(L, -1);// classname
+	luaL_checkstring(L, 1);
+	lua_pushvalue(L, 1);// classname
 	lua_rawget(L, LUA_REGISTRYINDEX);// reg[classname], mt
 	return 1;
 }

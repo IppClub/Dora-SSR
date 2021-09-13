@@ -1,4 +1,4 @@
-struct NVGpaint
+struct NVGpaint @ VGPaint
 {
 	~NVGpaint();
 }
@@ -27,9 +27,10 @@ namespace nvg
 	void Save();
 	void Restore();
 	void Reset();
-	int CreateImage(int w, int h, int imageFlags, String filename);
+	int CreateImage(int w, int h, String filename);
+	int CreateImage(int w, int h, String filename, String imageFlags[tolua_len]);
 	int CreateFont(String name);
-	float TextBounds(float x, float y, String text, Rect& bounds);
+	float TextBounds(float x, float y, String text, Rect bounds);
 	Rect TextBoxBounds(float x, float y, float breakRowWidth, String text);
 	float Text(float x, float y, String text);
 	void TextBox(float x, float y, float breakRowWidth, String text);
@@ -44,7 +45,7 @@ namespace nvg
 	void GlobalAlpha(float alpha);
 	void ResetTransform();
 	void ApplyTransform(Transform t);
-	void CurrentTransform(Transform& t);
+	void CurrentTransform(Transform t);
 	void Translate(float x, float y);
 	void Rotate(float angle);
 	void SkewX(float angle);
