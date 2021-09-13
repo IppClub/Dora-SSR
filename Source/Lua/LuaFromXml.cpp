@@ -284,18 +284,18 @@ static const char* _toBoolean(const char* str)
 	funcs.push(func);
 #define Hide_Finish
 
-// Emit
-#define Emit_Define \
+// Event
+#define Event_Define \
 	ActionBase_Define\
-	const char* event = nullptr;
-#define Emit_Check \
+	const char* type = nullptr;
+#define Event_Check \
 	ActionBase_Check\
-	CASE_STR(Event) { event = atts[++i]; break; }
-#define Emit_Create
-#define Emit_Handle \
-	oFunc func = {"Emit(\""+(event ? std::string(event) : Slice::Empty)+"\")",")",def};\
+	CASE_STR(Type) { type = atts[++i]; break; }
+#define Event_Create
+#define Event_Handle \
+	oFunc func = {"Event(\""+(type ? std::string(type) : Slice::Empty)+"\")",")",def};\
 	funcs.push(func);
-#define Emit_Finish
+#define Event_Finish
 
 // Sequence
 #define Sequence_Define \
@@ -1057,7 +1057,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 
 		Item(Show, show)
 		Item(Hide, hide)
-		Item(Emit, emit)
+		Item(Event, event)
 
 		Item(Sequence, sequence)
 		Item(Spawn, spawn)
@@ -1199,7 +1199,7 @@ void XmlDelegator::endElement(const char *name)
 		CaseAction(SkewY)
 		CaseAction(Show)
 		CaseAction(Hide)
-		CaseAction(Emit)
+		CaseAction(Event)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
