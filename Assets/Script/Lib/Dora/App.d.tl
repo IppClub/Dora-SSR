@@ -22,5 +22,7 @@ local record App
 	seed: integer
 	shutdown: function(self: App)
 end
+print(App.bufferSize)
+print(App.visualSize)
 local app: App
 return app

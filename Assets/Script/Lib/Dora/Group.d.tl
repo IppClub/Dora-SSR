@@ -11,5 +11,7 @@ local record GroupClass
 	type Type = Group
 	metamethod __call: function(cls: GroupClass, componemts: {string}): Group
 end
+print(Group:find())
+print(Group:every())
 local groupClass: GroupClass
 return groupClass

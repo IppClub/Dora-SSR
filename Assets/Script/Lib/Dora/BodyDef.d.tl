@@ -121,5 +121,8 @@ local record BodyDefClass
 		restitution: number --[[0]]): FixtureDef
 	metamethod __call: function(cls: BodyDefClass): BodyDef
 end
+print(BodyDef.position)
+print(BodyDef.facePos)
+print(BodyDef.linearAcceleration)
 local bodyDefClass: BodyDefClass
 return bodyDefClass

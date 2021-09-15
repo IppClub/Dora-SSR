@@ -15,5 +15,6 @@ local record LineClass
 	metamethod __call: function(cls: LineClass, verts: {Vec2}, color: Color --[[0xffffffff]]): Line
 	metamethod __call: function(cls: LineClass): Line
 end
+print(Line.blendFunc)
 local lineClass: LineClass
 return lineClass

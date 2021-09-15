@@ -1,7 +1,4 @@
 typedef unsigned int ImGuiID;
-typedef unsigned int ImGuiCol;
-typedef int ImGuiWindowFlags;
-typedef uint32_t ImU32;
 typedef char* CString;
 
 class Buffer : public Object
@@ -19,36 +16,41 @@ namespace ImGui
 	void Binding::LoadFontTTF @ LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default");
 	void Binding::ShowStats @ ShowStats();
 	void Binding::ShowConsole @ ShowConsole();
-	bool Binding::Begin @ Begin(const char* name);
-	bool Binding::Begin @ Begin(const char* name, String windowsFlags[tolua_len]);
-	bool Binding::Begin @ Begin(const char* name, bool* p_open);
-	bool Binding::Begin @ Begin(const char* name, bool* p_open, String windowsFlags[tolua_len]);
-	bool Binding::BeginChild @ BeginChild(const char* str_id, Vec2 size = Vec2::zero, bool border = false);
-	bool Binding::BeginChild @ BeginChild(const char* str_id, Vec2 size, bool border, String windowsFlags[tolua_len]);
+	bool Binding::Begin @ Begin(CString name);
+	bool Binding::Begin @ Begin(CString name, String windowsFlags[tolua_len]);
+	bool Binding::Begin @ Begin(CString name, bool* p_open);
+	bool Binding::Begin @ Begin(CString name, bool* p_open, String windowsFlags[tolua_len]);
+	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size = Vec2::zero, bool border = false);
+	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size, bool border, String windowsFlags[tolua_len]);
 	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size = Vec2::zero, bool border = false);
 	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size, bool border, String windowsFlags[tolua_len]);
 	void Binding::SetNextWindowPos @ SetNextWindowPos(Vec2 pos, String setCond = nullptr);
 	void Binding::SetNextWindowPosCenter @ SetNextWindowPosCenter(String setCond = nullptr);
 	void Binding::SetNextWindowSize @ SetNextWindowSize(Vec2 size, String setCond = nullptr);
 	void Binding::SetNextWindowCollapsed @ SetNextWindowCollapsed(bool collapsed, String setCond = nullptr);
-	void Binding::SetWindowPos @ SetWindowPos(const char* name, Vec2 pos, String setCond = nullptr);
-	void Binding::SetWindowSize @ SetWindowSize(const char* name, Vec2 size, String setCond = nullptr);
-	void Binding::SetWindowCollapsed @ SetWindowCollapsed(const char* name, bool collapsed, String setCond = nullptr);
+	void Binding::SetWindowPos @ SetWindowPos(CString name, Vec2 pos, String setCond = nullptr);
+	void Binding::SetWindowSize @ SetWindowSize(CString name, Vec2 size, String setCond = nullptr);
+	void Binding::SetWindowCollapsed @ SetWindowCollapsed(CString name, bool collapsed, String setCond = nullptr);
 	void Binding::SetColorEditOptions @ SetColorEditOptions(String colorEditMode);
-	bool Binding::InputText @ InputText(const char* label, Buffer* buffer);
-	bool Binding::InputText @ InputText(const char* label, Buffer* buffer, String inputTextFlags[tolua_len]);
-	bool Binding::InputTextMultiline @ InputTextMultiline(const char* label, Buffer* buffer, Vec2 size = Vec2::zero);
-	bool Binding::InputTextMultiline @ InputTextMultiline(const char* label, Buffer* buffer, Vec2 size, String inputTextFlags[tolua_len]);
-	bool Binding::TreeNodeEx @ TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
+	bool Binding::InputText @ InputText(CString label, Buffer* buffer);
+	bool Binding::InputText @ InputText(CString label, Buffer* buffer, String inputTextFlags[tolua_len]);
+	bool Binding::InputTextMultiline @ InputTextMultiline(CString label, Buffer* buffer, Vec2 size = Vec2::zero);
+	bool Binding::InputTextMultiline @ InputTextMultiline(CString label, Buffer* buffer, Vec2 size, String inputTextFlags[tolua_len]);
+	bool Binding::TreeNodeEx @ TreeNodeEx(CString label);
+	bool Binding::TreeNodeEx @ TreeNodeEx(CString label, String treeNodeFlags[tolua_len]);
+	bool Binding::TreeNodeEx @ TreeNodeEx(CString str_id, CString text);
+	bool Binding::TreeNodeEx @ TreeNodeEx(CString str_id, CString text, String treeNodeFlags[tolua_len]);
 	void Binding::SetNextItemOpen @ SetNextItemOpen(bool is_open, String setCond = nullptr);
-	bool Binding::CollapsingHeader @ CollapsingHeader(const char* label, String treeNodeFlags = nullptr);
-	bool Binding::CollapsingHeader @ CollapsingHeader(const char* label, bool* p_open, String treeNodeFlags = nullptr);
-	bool Binding::Selectable @ Selectable(const char* label, bool selected = false, String selectableFlags = nullptr, Vec2 size = Vec2::zero);
-	bool Binding::Selectable @ Selectable(const char* label, bool* p_selected, String selectableFlags = nullptr, Vec2 size = Vec2::zero);
-	bool Binding::BeginPopupModal @ BeginPopupModal(const char* name);
-	bool Binding::BeginPopupModal @ BeginPopupModal(const char* name, String windowsFlags[tolua_len]);
-	bool Binding::BeginPopupModal @ BeginPopupModal(const char* name, bool* p_open);
-	bool Binding::BeginPopupModal @ BeginPopupModal(const char* name, bool* p_open, String windowsFlags[tolua_len]);
+	bool Binding::CollapsingHeader @ CollapsingHeader(CString label);
+	bool Binding::CollapsingHeader @ CollapsingHeader(CString label, String treeNodeFlags[tolua_len]);
+	bool Binding::CollapsingHeader @ CollapsingHeader(CString label, bool* p_open);
+	bool Binding::CollapsingHeader @ CollapsingHeader(CString label, bool* p_open, String treeNodeFlags[tolua_len]);
+	bool Binding::Selectable @ Selectable(CString label, bool* p_selected, Vec2 size = Vec2::zero);
+	bool Binding::Selectable @ Selectable(CString label, bool* p_selected, Vec2 size, String selectableFlags[tolua_len]);
+	bool Binding::BeginPopupModal @ BeginPopupModal(CString name);
+	bool Binding::BeginPopupModal @ BeginPopupModal(CString name, String windowsFlags[tolua_len]);
+	bool Binding::BeginPopupModal @ BeginPopupModal(CString name, bool* p_open);
+	bool Binding::BeginPopupModal @ BeginPopupModal(CString name, bool* p_open, String windowsFlags[tolua_len]);
 	bool Binding::BeginChildFrame @ BeginChildFrame(ImGuiID id, Vec2 size);
 	bool Binding::BeginChildFrame @ BeginChildFrame(ImGuiID id, Vec2 size, String windowsFlags[tolua_len]);
 
@@ -56,74 +58,71 @@ namespace ImGui
 	void Binding::PushStyleVar @ PushStyleVar(String name, float val);
 	void Binding::PushStyleVar @ PushStyleVar(String name, Vec2 val);
 
-	bool Binding::TreeNodeEx @ TreeNodeEx(const char* str_id, String treeNodeFlags, const char* text);
-
 	void Binding::Text @ Text(String text);
 	void Binding::TextColored @ TextColored(Color color, String text);
 	void Binding::TextDisabled @ TextDisabled(String text);
 	void Binding::TextWrapped @ TextWrapped(String text);
-	void Binding::LabelText @ LabelText(const char* label, const char* text);
-	void Binding::BulletText @ BulletText(const char* text);
-	bool Binding::TreeNode @ TreeNode(const char* str_id, const char* text);
-	void Binding::SetTooltip @ SetTooltip(const char* text);
+	void Binding::LabelText @ LabelText(CString label, CString text);
+	void Binding::BulletText @ BulletText(CString text);
+	bool Binding::TreeNode @ TreeNode(CString str_id, CString text);
+	void Binding::SetTooltip @ SetTooltip(CString text);
 
-	bool Binding::ColorEdit3 @ ColorEdit3(const char* label, Color3& color3);
-	bool Binding::ColorEdit4 @ ColorEdit4(const char* label, Color& color, bool show_alpha = true);
+	bool Binding::ColorEdit3 @ ColorEdit3(CString label, Color3 color3);
+	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color color, bool show_alpha = true);
 
 	void Binding::Image @ Image(String clipStr, Vec2 size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
 	bool Binding::ImageButton @ ImageButton(String clipStr, Vec2 size, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
-	bool Binding::ColorButton @ ColorButton(const char* desc_id, Color col, String flags = nullptr, Vec2 size = Vec2::zero);
+	bool Binding::ColorButton @ ColorButton(CString desc_id, Color col, String flags = nullptr, Vec2 size = Vec2::zero);
 	
 	void Binding::Columns @ Columns(int count = 1, bool border = true);
-	void Binding::Columns @ Columns(int count, bool border, const char* id);
+	void Binding::Columns @ Columns(int count, bool border, CString id);
 
-	bool Binding::BeginTable @ BeginTable(const char* str_id, int column, Vec2 outer_size = Vec2::zero, float inner_width = 0.0f);
-	bool Binding::BeginTable @ BeginTable(const char* str_id, int column, Vec2 outer_size, float inner_width, String flags[tolua_len]);
-	void Binding::TableNextRow @ TableNextRow(float min_row_height = 0.0f);
-	void Binding::TableNextRow @ TableNextRow(float min_row_height, String row_flags[tolua_len]);
-	void Binding::TableSetupColumn @ TableSetupColumn(const char* label, float init_width_or_weight = 0.0f, ImU32 user_id = 0);
-	void Binding::TableSetupColumn @ TableSetupColumn(const char* label, float init_width_or_weight, ImU32 user_id, String flags[tolua_len]);
+	bool Binding::BeginTable @ BeginTable(CString str_id, int column, Vec2 outer_size = Vec2::zero, float inner_width = 0.0f);
+	bool Binding::BeginTable @ BeginTable(CString str_id, int column, Vec2 outer_size, float inner_width, String flags[tolua_len]);
+	void Binding::TableNextRow @ TableNextRow(float min_row_height = 0.0f, String row_flag = nullptr);
+	void Binding::TableSetupColumn @ TableSetupColumn(CString label, float init_width_or_weight = 0.0f, uint32_t user_id = 0);
+	void Binding::TableSetupColumn @ TableSetupColumn(CString label, float init_width_or_weight, uint32_t user_id, String flags[tolua_len]);
 
 	void Binding::SetStyleVar @ SetStyleVar(String name, bool var);
 	void Binding::SetStyleVar @ SetStyleVar(String name, float var);
 	void Binding::SetStyleVar @ SetStyleVar(String name, Vec2 var);
 	void Binding::SetStyleColor @ SetStyleColor(String name, Color color);
 	
-	bool Binding::Combo @ Combo(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
+	bool Binding::Combo @ Combo(CString label, int* current_item, CString items[tolua_len], int height_in_items = -1);
 
-	bool Binding::DragFloat @ DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format = "%.3f");
-	bool Binding::DragFloat @ DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format, String flags[tolua_len]);
-	bool Binding::DragFloat2 @ DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f");
-	bool Binding::DragFloat2 @ DragFloat2(const char* label, float* v1, float* v2, float v_speed, float v_min, float v_max, const char* display_format, String flags[tolua_len]);
-	bool Binding::DragInt @ DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format = "%d");
-	bool Binding::DragInt @ DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format, String flags[tolua_len]);
-	bool Binding::DragInt2 @ DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f");
-	bool Binding::DragInt2 @ DragInt2(const char* label, int* v1, int* v2, float v_speed, int v_min, int v_max, const char* display_format, String flags[tolua_len]);
-	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f");
-	bool Binding::InputFloat @ InputFloat(const char* label, float* v, float step, float step_fast, const char* format, String flags[tolua_len]);
-	bool Binding::InputFloat2 @ InputFloat2(const char* label, float* v1, float* v2, const char* format = "%.1f");
-	bool Binding::InputFloat2 @ InputFloat2(const char* label, float* v1, float* v2, const char* format, String flags[tolua_len]);
-	bool Binding::InputInt @ InputInt(const char* label, int* v, int step = 1, int step_fast = 100);
-	bool Binding::InputInt @ InputInt(const char* label, int* v, int step, int step_fast, String flags[tolua_len]);
-	bool Binding::InputInt2 @ InputInt2(const char* label, int* v1, int* v2);
-	bool Binding::InputInt2 @ InputInt2(const char* label, int* v1, int* v2, String flags[tolua_len]);
-	bool Binding::SliderFloat @ SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f");
-	bool Binding::SliderFloat @ SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, String flags[tolua_len]);
-	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f");
-	bool Binding::SliderFloat2 @ SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format, String flags[tolua_len]);
-	bool Binding::SliderInt @ SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d");
-	bool Binding::SliderInt @ SliderInt(const char* label, int* v, int v_min, int v_max, const char* format, String flags[tolua_len]);
-	bool Binding::SliderInt2 @ SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f");
-	bool Binding::SliderInt2 @ SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format, String flags[tolua_len]);
-	bool Binding::DragFloatRange2 @ DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", const char* format_max = nullptr);
-	bool Binding::DragFloatRange2 @ DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed, float v_min, float v_max, const char* format, const char* format_max, String flags[tolua_len]);
-	bool Binding::DragIntRange2 @ DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* format = "%d", const char* format_max = nullptr);	
-	bool Binding::DragIntRange2 @ DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed, int v_min, int v_max, const char* format, const char* format_max, String flags[tolua_len]);	
-	bool Binding::VSliderFloat @ VSliderFloat(const char* label, ImVec2 size, float* v, float v_min, float v_max, const char* format = "%.3f");
-	bool Binding::VSliderFloat @ VSliderFloat(const char* label, ImVec2 size, float* v, float v_min, float v_max, const char* format, String flags[tolua_len]);
-	bool Binding::VSliderInt @ VSliderInt(const char* label, ImVec2 size, int* v, int v_min, int v_max, const char* format = "%d");
-	bool Binding::VSliderInt @ VSliderInt(const char* label, ImVec2 size, int* v, int v_min, int v_max, const char* format, String flags[tolua_len]);
+	bool Binding::DragFloat @ DragFloat(CString label, float* v, float v_speed, float v_min, float v_max, CString display_format = "%.3f");
+	bool Binding::DragFloat @ DragFloat(CString label, float* v, float v_speed, float v_min, float v_max, CString display_format, String flags[tolua_len]);
+	bool Binding::DragFloat2 @ DragFloat2(CString label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString display_format = "%.3f");
+	bool Binding::DragFloat2 @ DragFloat2(CString label, float* v1, float* v2, float v_speed, float v_min, float v_max, CString display_format, String flags[tolua_len]);
+	bool Binding::DragInt @ DragInt(CString label, int* v, float v_speed, int v_min, int v_max, CString display_format = "%d");
+	bool Binding::DragInt @ DragInt(CString label, int* v, float v_speed, int v_min, int v_max, CString display_format, String flags[tolua_len]);
+	bool Binding::DragInt2 @ DragInt2(CString label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%.0f");
+	bool Binding::DragInt2 @ DragInt2(CString label, int* v1, int* v2, float v_speed, int v_min, int v_max, CString display_format, String flags[tolua_len]);
+	bool Binding::InputFloat @ InputFloat(CString label, float* v, float step = 0.0f, float step_fast = 0.0f, CString format = "%.3f");
+	bool Binding::InputFloat @ InputFloat(CString label, float* v, float step, float step_fast, CString format, String flags[tolua_len]);
+	bool Binding::InputFloat2 @ InputFloat2(CString label, float* v1, float* v2, CString format = "%.1f");
+	bool Binding::InputFloat2 @ InputFloat2(CString label, float* v1, float* v2, CString format, String flags[tolua_len]);
+	bool Binding::InputInt @ InputInt(CString label, int* v, int step = 1, int step_fast = 100);
+	bool Binding::InputInt @ InputInt(CString label, int* v, int step, int step_fast, String flags[tolua_len]);
+	bool Binding::InputInt2 @ InputInt2(CString label, int* v1, int* v2);
+	bool Binding::InputInt2 @ InputInt2(CString label, int* v1, int* v2, String flags[tolua_len]);
+	bool Binding::SliderFloat @ SliderFloat(CString label, float* v, float v_min, float v_max, CString format = "%.3f");
+	bool Binding::SliderFloat @ SliderFloat(CString label, float* v, float v_min, float v_max, CString format, String flags[tolua_len]);
+	bool Binding::SliderFloat2 @ SliderFloat2(CString label, float* v1, float* v2, float v_min, float v_max, CString display_format = "%.3f");
+	bool Binding::SliderFloat2 @ SliderFloat2(CString label, float* v1, float* v2, float v_min, float v_max, CString display_format, String flags[tolua_len]);
+	bool Binding::SliderInt @ SliderInt(CString label, int* v, int v_min, int v_max, CString format = "%d");
+	bool Binding::SliderInt @ SliderInt(CString label, int* v, int v_min, int v_max, CString format, String flags[tolua_len]);
+	bool Binding::SliderInt2 @ SliderInt2(CString label, int* v1, int* v2, int v_min, int v_max, CString display_format = "%.0f");
+	bool Binding::SliderInt2 @ SliderInt2(CString label, int* v1, int* v2, int v_min, int v_max, CString display_format, String flags[tolua_len]);
+	bool Binding::DragFloatRange2 @ DragFloatRange2(CString label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, CString format = "%.3f", CString format_max = nullptr);
+	bool Binding::DragFloatRange2 @ DragFloatRange2(CString label, float* v_current_min, float* v_current_max, float v_speed, float v_min, float v_max, CString format, CString format_max, String flags[tolua_len]);
+	bool Binding::DragIntRange2 @ DragIntRange2(CString label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString format = "%d", CString format_max = nullptr);	
+	bool Binding::DragIntRange2 @ DragIntRange2(CString label, int* v_current_min, int* v_current_max, float v_speed, int v_min, int v_max, CString format, CString format_max, String flags[tolua_len]);	
+	bool Binding::VSliderFloat @ VSliderFloat(CString label, Vec2 size, float* v, float v_min, float v_max, CString format = "%.3f");
+	bool Binding::VSliderFloat @ VSliderFloat(CString label, Vec2 size, float* v, float v_min, float v_max, CString format, String flags[tolua_len]);
+	bool Binding::VSliderInt @ VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString format = "%d");
+	bool Binding::VSliderInt @ VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString format, String flags[tolua_len]);
 
 	void ShowDemoWindow();
 	void End();
@@ -132,7 +131,6 @@ namespace ImGui
 	Vec2 GetContentRegionAvail();
 	Vec2 GetWindowContentRegionMin();
 	Vec2 GetWindowContentRegionMax();
-	float GetWindowContentRegionWidth();
 	Vec2 GetWindowPos();
 	Vec2 GetWindowSize();
 	float GetWindowWidth();
@@ -214,11 +212,11 @@ namespace ImGui
 	bool Checkbox(CString label, bool* v);
 	bool RadioButton(CString label, int* v, int v_button);
 	bool RadioButton(CString label, bool active);
-	void PlotLines(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
-	void PlotHistogram(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero, int stride = sizeof(float));
+	void PlotLines(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero);
+	void PlotHistogram(CString label, float values[tolua_len], int values_offset = 0, CString overlay_text = nullptr, float scale_min = FLT_MAX, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero);
 	void ProgressBar(float fraction, Vec2 size_arg = NewVec2(-1,0), CString overlay = nullptr);
 
-	bool ListBox(const char* label, int* current_item, char* items[tolua_len], int height_in_items = -1);
+	bool ListBox(CString label, int* current_item, CString items[tolua_len], int height_in_items = -1);
 
 	bool SliderAngle(CString label, float* v_rad, float v_degrees_min = -360.0f, float v_degrees_max = 360.0f);
 

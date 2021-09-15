@@ -105,8 +105,8 @@ local doxml = require("doxml")
 local VGNode = require("VGNode")
 local VGPaint = require("VGPaint")
 local nvg = require("nvg")
+local ImGui = require("ImGui")
 --local Platformer = require("Platformer")
---local ImGui = require("ImGui")
 --Dorothy
 --property
 --Class
@@ -219,4 +219,5 @@ global builtin = {
 	VGNode = VGNode,
 	VGPaint = VGPaint,
 	nvg = nvg,
+	ImGui = ImGui
 }

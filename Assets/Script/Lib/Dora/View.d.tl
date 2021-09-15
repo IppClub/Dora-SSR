@@ -12,5 +12,7 @@ local record View
 	postEffect: SpriteEffect
 	vsync: boolean
 end
+print(View.size)
+print(View.postEffect)
 local view: View
 return view

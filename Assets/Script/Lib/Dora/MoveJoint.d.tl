@@ -7,5 +7,6 @@ end
 local record MoveJointClass
 	type Type = MoveJoint
 end
+print(MoveJoint.position)
 local moveJointClass: MoveJointClass
 return moveJointClass

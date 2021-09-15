@@ -14,5 +14,6 @@ local record DictionaryClass
 	type Type = Dictionary
 	metamethod __call: function(cls: DictionaryClass): Dictionary
 end
+print(Dictionary.keys)
 local dictionaryClass: DictionaryClass
 return dictionaryClass
