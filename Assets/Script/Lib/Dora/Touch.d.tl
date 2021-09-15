@@ -13,5 +13,8 @@ end
 local record TouchClass
 	type Type = Touch
 end
+print(Touch.delta)
+print(Touch.location)
+print(Touch.worldLocation)
 local touchClass: TouchClass
 return touchClass

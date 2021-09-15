@@ -5,4 +5,5 @@ local record Joint
 	const world: PhysicsWorld
 	destroy: function(self: Joint)
 end
+print(Joint.world)
 return Joint

@@ -11,6 +11,8 @@ local Action = require("Action").Type
 local ActionDef = require("ActionDefBase")
 local Slot = require("Slot").Type
 local GSlot = require("GSlot").Type
+local Touch = require("Touch").Type
+local Routine = require("Routine")
 local record Node
 	embed Object
 	order: integer
@@ -22,7 +24,7 @@ local record Node
 	x: number
 	y: number
 	z: number
-	position: Vec2
+	const position: Vec2
 	skewX: number
 	skewY: number
 	visible: boolean
@@ -72,6 +74,7 @@ local record Node
 	getChildByTag: function(self: Node, tag: string): Node
 
 	schedule: function(self: Node, func: function(number): boolean)
+	schedule: function(self: Node, job: Routine.Job)
 	unschedule: function(self: Node)
 
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2): Vec2
@@ -100,15 +103,69 @@ local record Node
 	attachIME: function(self: Node)
 	detachIME: function(self: Node)
 
-	gslot: function(self: Node, eventName: string, handler: function(...: any))
 	gslot: function(self: Node, eventName: string): GSlot
-	slot: function(self: Node, eventName: string, handler: function(...: any))
+	gslot: function(self: Node, eventName: string, handler: function(...: any))
 	slot: function(self: Node, eventName: string): Slot
+	slot: function(self: Node, eventName: string, handler: function(...: any))
 	emit: function(self: Node, eventName: string, ...: any)
+end
+local record __SLOT__
+	-- Node:runAction() | Node:perform()
+	["ActionEnd"]: function(action: Action, target: Node)
+	-- Node.touchEnabled = true
+	["TapFilter"]: function(touch: Touch)
+	["TapBegan"]: function(touch: Touch)
+	["TapEnded"]: function(touch: Touch)
+	["Tapped"]: function(touch: Touch)
+	["TapMoved"]: function(touch: Touch)
+	["MouseWheel"]: function(delta: Vec2)
+	["Gesture"]: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number)
+	-- Node:addChild() | Node:removeChild()
+	["Enter"]: function()
+	["Exit"]: function()
+	["Cleanup"]: function()
+	-- Node.keyboardEnabled = true
+	["KeyDown"]: function(keyName: string)
+	["KeyUp"]: function(keyName: string)
+	["KeyPressed"]: function(keyName: string)
+	-- Node:attachIME() | Node:DetachIME()
+	["AttachIME"]: function()
+	["DetachIME"]: function()
+	["TextInput"]: function(text: string)
+	["TextEditing"]: function(text: string, startPos: integer)
+end
+local record __GSLOT__
+	["AppQuit"]: function()
+	["AppLowMemory"]: function()
+	["AppWillEnterBackground"]: function()
+	["AppDidEnterBackground"]: function()
+	["AppWillEnterForeground"]: function()
+	["AppDidEnterForeground"]: function()
+	["AppSizeChanged"]: function()
 end
 local record NodeClass
 	type Type = Node
 	metamethod __call: function(cls: Node): Node
 end
+print(Node.position)
+print(Node.anchor)
+print(Node.size)
+print(Node.color)
+print(Node.color3)
+print(Node.transformTarget)
+print(Node.scheduler)
+print(Node.children)
+print(Node.parent)
+print(Node.boundingBox)
+print(Node.data)
+print(Node:addTo())
+print(Node:getChildByTag())
+print(Node:convertToNodeSpace())
+print(Node:convertToWorldSpace())
+print(Node:alignItemsVertically())
+print(Node:alignItemsHorizontally())
+print(Node:alignItems())
+print(Node:slot())
+print(Node:gslot())
 local nodeClass: NodeClass
 return nodeClass

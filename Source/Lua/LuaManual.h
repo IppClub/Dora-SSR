@@ -268,12 +268,13 @@ namespace ImGui { namespace Binding
 	void SetColorEditOptions(String colorEditMode);
 	bool InputText(const char* label, Buffer* buffer, Slice* inputTextFlags = nullptr, int flagCount = 0);
 	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size = Vec2::zero, Slice* inputTextFlags = nullptr, int flagCount = 0);
-	bool TreeNodeEx(const char* label, String treeNodeFlags = nullptr);
+	bool TreeNodeEx(const char* label, Slice* treeNodeFlags = nullptr, int flagCount = 0);
+	bool TreeNodeEx(const char* str_id, const char* text, Slice* treeNodeFlags = nullptr, int flagCount = 0);
 	void SetNextItemOpen(bool is_open, String setCond = nullptr);
-	bool CollapsingHeader(const char* label, String treeNodeFlags = nullptr);
-	bool CollapsingHeader(const char* label, bool* p_open, String treeNodeFlags = nullptr);
-	bool Selectable(const char* label, bool selected = false, String selectableFlags = nullptr, const Vec2& size = Vec2::zero);
-	bool Selectable(const char* label, bool* p_selected, String selectableFlags = nullptr, const Vec2& size = Vec2::zero);
+	bool CollapsingHeader(const char* label, Slice* treeNodeFlags = nullptr, int flagCount = 0);
+	bool CollapsingHeader(const char* label, bool* p_open, Slice* treeNodeFlags = nullptr, int flagCount = 0);
+	bool Selectable(const char* label, bool selected = false, const Vec2& size = Vec2::zero, Slice* selectableFlags = nullptr, int flagCount = 0);
+	bool Selectable(const char* label, bool* p_selected, const Vec2& size = Vec2::zero, Slice* selectableFlags = nullptr, int flagCount = 0);
 	bool BeginPopupModal(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
 	bool BeginPopupModal(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
 	bool BeginChildFrame(ImGuiID id, const Vec2& size, Slice* windowsFlags = nullptr, int flagCount = 0);
@@ -284,8 +285,6 @@ namespace ImGui { namespace Binding
 	void PushStyleColor(String name, Color color);
 	void PushStyleVar(String name, float val);
 	void PushStyleVar(String name, const Vec2& val);
-
-	bool TreeNodeEx(const char* str_id, String treeNodeFlags, const char* text);
 
 	void Text(String text);
 	void TextColored(Color color, String text);
@@ -327,7 +326,7 @@ namespace ImGui { namespace Binding
 	void Columns(int count, bool border, const char* id);
 
 	bool BeginTable(const char* str_id, int column, const Vec2& outer_size = Vec2::zero, float inner_width = 0.0f, Slice* flags = nullptr, int flagCount = 0);
-	void TableNextRow(float min_row_height = 0.0f, Slice* row_flags = nullptr, int flagCount = 0);
+	void TableNextRow(float min_row_height = 0.0f, String row_flag = nullptr);
 	void TableSetupColumn(const char* label, float init_width_or_weight = 0.0f, ImU32 user_id = 0, Slice* flags = nullptr, int flagCount = 0);
 
 	void SetStyleVar(String name, bool var);
@@ -335,14 +334,16 @@ namespace ImGui { namespace Binding
 	void SetStyleVar(String name, const Vec2& var);
 	void SetStyleColor(String name, Color color);
 
-	ImGuiWindowFlags_ getWindowFlags(String flag);
+	ImGuiWindowFlags_ getWindowFlag(String flag);
 	uint32_t getWindowCombinedFlags(Slice* flags, int count);
 	ImGuiSliderFlags_ getSliderFlag(String flag);
 	uint32_t getSliderCombinedFlags(Slice* flags, int count);
 	ImGuiInputTextFlags_ getInputTextFlag(String flag);
 	uint32_t getInputTextCombinedFlags(Slice* flags, int count);
-	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag);
-	ImGuiSelectableFlags_ getSelectableFlags(String flag);
+	ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag);
+	uint32_t getTreeNodeCombinedFlags(Slice* flags, int count);
+	ImGuiSelectableFlags_ getSelectableFlag(String flag);
+	uint32_t getSelectableCombinedFlags(Slice* flags, int count);
 	ImGuiCol_ getColorIndex(String col);
 	ImGuiColorEditFlags_ getColorEditFlags(String mode);
 	ImGuiCond_ getSetCond(String cond);
@@ -350,8 +351,7 @@ namespace ImGui { namespace Binding
 	uint32_t getPopupCombinedFlags(Slice* flags, int count);
 	ImGuiTableFlags_ getTableFlags(String flag);
 	uint32_t getTableCombinedFlags(Slice* flags, int count);
-	ImGuiTableRowFlags_ getTableRowFlags(String flag);
-	uint32_t getTableRowCombinedFlags(Slice* flags, int count);
+	ImGuiTableRowFlags_ getTableRowFlag(String flag);
 	ImGuiTableColumnFlags_ getTableColumnFlags(String flag);
 	uint32_t getTableColumnCombinedFlags(Slice* flags, int count);
 } }

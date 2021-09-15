@@ -26,5 +26,8 @@ local record LabelClass
 	const AutomaticWidth: number
 	metamethod __call: function(cls: LabelClass, fontName: string, fontSize: integer): Label
 end
+print(Label.blendFunc)
+print(Label.effect)
+print(Label:getCharacter())
 local labelClass: LabelClass
 return labelClass

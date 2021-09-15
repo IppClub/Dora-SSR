@@ -15,5 +15,7 @@ local record RenderTargetClass
 	type Type = RenderTarget
 	metamethod __call: function(cls: RenderTargetClass, width: integer, height: integer): RenderTarget
 end
+print(RenderTarget.camera)
+print(RenderTarget.surface)
 local renderTarget: RenderTarget
 return renderTarget

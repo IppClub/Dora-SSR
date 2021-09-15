@@ -3134,9 +3134,9 @@ namespace ImGui { namespace Binding
 		return ImGui::InputTextMultiline(label, buffer->get(), buffer->size(), size, getInputTextCombinedFlags(inputTextFlags, flagCount));
 	}
 
-	bool TreeNodeEx(const char* label, String treeNodeFlags)
+	bool TreeNodeEx(const char* label, Slice* treeNodeFlags, int flagCount)
 	{
-		return ImGui::TreeNodeEx(label, getTreeNodeFlags(treeNodeFlags));
+		return ImGui::TreeNodeEx(label, getTreeNodeCombinedFlags(treeNodeFlags, flagCount));
 	}
 
 	void SetNextItemOpen(bool is_open, String setCond)
@@ -3144,24 +3144,24 @@ namespace ImGui { namespace Binding
 		ImGui::SetNextItemOpen(is_open, getSetCond(setCond));
 	}
 
-	bool CollapsingHeader(const char* label, String treeNodeFlags)
+	bool CollapsingHeader(const char* label, Slice* treeNodeFlags, int flagCount)
 	{
-		return ImGui::CollapsingHeader(label, getTreeNodeFlags(treeNodeFlags));
+		return ImGui::CollapsingHeader(label, getTreeNodeCombinedFlags(treeNodeFlags, flagCount));
 	}
 
-	bool CollapsingHeader(const char* label, bool* p_open, String treeNodeFlags)
+	bool CollapsingHeader(const char* label, bool* p_open, Slice* treeNodeFlags, int flagCount)
 	{
-		return ImGui::CollapsingHeader(label, p_open, getTreeNodeFlags(treeNodeFlags));
+		return ImGui::CollapsingHeader(label, p_open, getTreeNodeCombinedFlags(treeNodeFlags, flagCount));
 	}
 
-	bool Selectable(const char* label, bool selected, String selectableFlags, const Vec2& size)
+	bool Selectable(const char* label, bool selected, const Vec2& size, Slice* selectableFlags, int flagCount)
 	{
-		return ImGui::Selectable(label, selected, getSelectableFlags(selectableFlags), size);
+		return ImGui::Selectable(label, selected, getSelectableCombinedFlags(selectableFlags, flagCount), size);
 	}
 
-	bool Selectable(const char* label, bool* p_selected, String selectableFlags, const Vec2& size)
+	bool Selectable(const char* label, bool* p_selected, const Vec2& size, Slice* selectableFlags, int flagCount)
 	{
-		return ImGui::Selectable(label, p_selected, getSelectableFlags(selectableFlags), size);
+		return ImGui::Selectable(label, p_selected, getSelectableCombinedFlags(selectableFlags, flagCount), size);
 	}
 
 	bool BeginPopupModal(const char* name, Slice* windowsFlags, int flagCount)
@@ -3206,10 +3206,13 @@ namespace ImGui { namespace Binding
 		{
 			case "WindowPadding"_hash: styleVar = ImGuiStyleVar_WindowPadding; break;
 			case "WindowMinSize"_hash: styleVar = ImGuiStyleVar_WindowMinSize; break;
+			case "WindowTitleAlign"_hash: styleVar = ImGuiStyleVar_WindowTitleAlign; break;
 			case "FramePadding"_hash: styleVar = ImGuiStyleVar_FramePadding; break;
 			case "ItemSpacing"_hash: styleVar = ImGuiStyleVar_ItemSpacing; break;
 			case "ItemInnerSpacing"_hash: styleVar = ImGuiStyleVar_ItemInnerSpacing; break;
+			case "CellPadding"_hash: styleVar = ImGuiStyleVar_CellPadding; break;
 			case "ButtonTextAlign"_hash: styleVar = ImGuiStyleVar_ButtonTextAlign; break;
+			case "SelectableTextAlign"_hash: styleVar = ImGuiStyleVar_SelectableTextAlign; break;
 			default:
 				Issue("ImGui style var name \"{}\" is invalid.", name);
 				break;
@@ -3224,10 +3227,19 @@ namespace ImGui { namespace Binding
 		{
 			case "Alpha"_hash: styleVar = ImGuiStyleVar_Alpha; break;
 			case "WindowRounding"_hash: styleVar = ImGuiStyleVar_WindowRounding; break;
+			case "WindowBorderSize"_hash: styleVar = ImGuiStyleVar_WindowBorderSize; break;
+			case "ChildRounding"_hash: styleVar = ImGuiStyleVar_ChildRounding; break;
+			case "ChildBorderSize"_hash: styleVar = ImGuiStyleVar_ChildBorderSize; break;
+			case "PopupRounding"_hash: styleVar = ImGuiStyleVar_PopupRounding; break;
+			case "PopupBorderSize"_hash: styleVar = ImGuiStyleVar_PopupBorderSize; break;
 			case "FrameRounding"_hash: styleVar = ImGuiStyleVar_FrameRounding; break;
 			case "FrameBorderSize"_hash: styleVar = ImGuiStyleVar_FrameBorderSize; break;
 			case "IndentSpacing"_hash: styleVar = ImGuiStyleVar_IndentSpacing; break;
+			case "ScrollbarSize"_hash: styleVar = ImGuiStyleVar_ScrollbarSize; break;
+			case "ScrollbarRounding"_hash: styleVar = ImGuiStyleVar_ScrollbarRounding; break;
 			case "GrabMinSize"_hash: styleVar = ImGuiStyleVar_GrabMinSize; break;
+			case "GrabRounding"_hash: styleVar = ImGuiStyleVar_GrabRounding; break;
+			case "TabRounding"_hash: styleVar = ImGuiStyleVar_TabRounding; break;
 			default:
 				Issue("ImGui style var name \"{}\" is invalid.", name);
 				break;
@@ -3235,9 +3247,9 @@ namespace ImGui { namespace Binding
 		ImGui::PushStyleVar(styleVar, val);
 	}
 
-	bool TreeNodeEx(const char* str_id, String treeNodeFlags, const char* text)
+	bool TreeNodeEx(const char* str_id, const char* text, Slice* treeNodeFlags, int flagCount)
 	{
-		return ImGui::TreeNodeEx(str_id, getTreeNodeFlags(treeNodeFlags), "%s", text);
+		return ImGui::TreeNodeEx(str_id, getTreeNodeCombinedFlags(treeNodeFlags, flagCount), "%s", text);
 	}
 
 	void Text(String text)
@@ -3466,9 +3478,9 @@ namespace ImGui { namespace Binding
 		return ImGui::BeginTable(str_id, column, getTableCombinedFlags(flags, flagCount), outer_size, inner_width);
 	}
 
-	void TableNextRow(float min_row_height, Slice* row_flags, int flagCount)
+	void TableNextRow(float min_row_height, String row_flag)
 	{
-		ImGui::TableNextRow(getTableRowCombinedFlags(row_flags, flagCount), min_row_height);
+		ImGui::TableNextRow(getTableRowFlag(row_flag), min_row_height);
 	}
 
 	void TableSetupColumn(const char* label, float init_width_or_weight, ImU32 user_id, Slice* flags, int flagCount)
@@ -3504,6 +3516,11 @@ namespace ImGui { namespace Binding
 		{
 			case "Alpha"_hash: style.Alpha = var; break;
 			case "WindowRounding"_hash: style.WindowRounding = var; break;
+			case "WindowBorderSize"_hash: style.WindowBorderSize = var; break;
+			case "ChildRounding"_hash: style.ChildRounding = var; break;
+			case "ChildBorderSize"_hash: style.ChildBorderSize = var; break;
+			case "PopupRounding"_hash: style.PopupRounding = var; break;
+			case "PopupBorderSize"_hash: style.PopupBorderSize = var; break;
 			case "FrameRounding"_hash: style.FrameRounding = var; break;
 			case "FrameBorderSize"_hash: style.FrameBorderSize = var; break;
 			case "IndentSpacing"_hash: style.IndentSpacing = var; break;
@@ -3512,6 +3529,8 @@ namespace ImGui { namespace Binding
 			case "ScrollbarRounding"_hash: style.ScrollbarRounding = var; break;
 			case "GrabMinSize"_hash: style.GrabMinSize = var; break;
 			case "GrabRounding"_hash: style.GrabRounding = var; break;
+			case "TabRounding"_hash: style.TabRounding = var; break;
+			case "TabBorderSize"_hash: style.TabBorderSize = var; break;
 			case "CurveTessellationTol"_hash: style.CurveTessellationTol = var; break;
 			default:
 				Issue("ImGui style var name \"{}\" is invalid.", name);
@@ -3525,6 +3544,7 @@ namespace ImGui { namespace Binding
 		switch (Switch::hash(name))
 		{
 			case "AntiAliasedLines"_hash: style.AntiAliasedLines = var; break;
+			case "AntiAliasedLinesUseTex"_hash: style.AntiAliasedLinesUseTex = var; break;
 			case "AntiAliasedFill"_hash: style.AntiAliasedFill = var; break;
 			default:
 				Issue("ImGui style var name \"{}\" is invalid.", name);
@@ -3543,8 +3563,6 @@ namespace ImGui { namespace Binding
 	{
 		switch (Switch::hash(flag))
 		{
-		case "None"_hash:
-			return ImGuiSliderFlags_None;
 		case "AlwaysClamp"_hash:
 			return ImGuiSliderFlags_AlwaysClamp;
 		case "Logarithmic"_hash:
@@ -3571,7 +3589,7 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	ImGuiWindowFlags_ getWindowFlags(String style)
+	ImGuiWindowFlags_ getWindowFlag(String style)
 	{
 		switch (Switch::hash(style))
 		{
@@ -3604,7 +3622,7 @@ namespace ImGui { namespace Binding
 		uint32_t result = 0;
 		for (int i = 0; i < count; i++)
 		{
-			result |= getWindowFlags(flags[i]);
+			result |= getWindowFlag(flags[i]);
 		}
 		return result;
 	}
@@ -3646,7 +3664,7 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	ImGuiTreeNodeFlags_ getTreeNodeFlags(String flag)
+	ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag)
 	{
 		switch (Switch::hash(flag))
 		{
@@ -3668,18 +3686,40 @@ namespace ImGui { namespace Binding
 		}
 	}
 
-	ImGuiSelectableFlags_ getSelectableFlags(String flag)
+	uint32_t getTreeNodeCombinedFlags(Slice* flags, int count)
+	{
+		uint32_t result = 0;
+		for (int i = 0; i < count; i++)
+		{
+			result |= getTreeNodeFlag(flags[i]);
+		}
+		return result;
+	}
+
+	ImGuiSelectableFlags_ getSelectableFlag(String flag)
 	{
 		switch (Switch::hash(flag))
 		{
 			case "DontClosePopups"_hash: return ImGuiSelectableFlags_DontClosePopups;
 			case "SpanAllColumns"_hash: return ImGuiSelectableFlags_SpanAllColumns;
 			case "AllowDoubleClick"_hash: return ImGuiSelectableFlags_AllowDoubleClick;
-			case ""_hash: return ImGuiSelectableFlags_(0);
+			case "Disabled"_hash: return ImGuiSelectableFlags_Disabled;
+			case "AllowItemOverlap"_hash: return ImGuiSelectableFlags_AllowItemOverlap;
+			case ""_hash: return ImGuiSelectableFlags_None;
 			default:
 				Issue("ImGui selectable flag named \"{}\" is invalid.", flag);
-				return ImGuiSelectableFlags_(0);
+				return ImGuiSelectableFlags_None;
 		}
+	}
+
+	uint32_t getSelectableCombinedFlags(Slice* flags, int count)
+	{
+		uint32_t result = 0;
+		for (int i = 0; i < count; i++)
+		{
+			result |= getSelectableFlag(flags[i]);
+		}
+		return result;
 	}
 
 	ImGuiCol_ getColorIndex(String col)
@@ -3689,6 +3729,7 @@ namespace ImGui { namespace Binding
 			case "Text"_hash: return ImGuiCol_Text;
 			case "TextDisabled"_hash: return ImGuiCol_TextDisabled;
 			case "WindowBg"_hash: return ImGuiCol_WindowBg;
+			case "ChildBg"_hash: return ImGuiCol_ChildBg;
 			case "PopupBg"_hash: return ImGuiCol_PopupBg;
 			case "Border"_hash: return ImGuiCol_Border;
 			case "BorderShadow"_hash: return ImGuiCol_BorderShadow;
@@ -3696,8 +3737,8 @@ namespace ImGui { namespace Binding
 			case "FrameBgHovered"_hash: return ImGuiCol_FrameBgHovered;
 			case "FrameBgActive"_hash: return ImGuiCol_FrameBgActive;
 			case "TitleBg"_hash: return ImGuiCol_TitleBg;
-			case "TitleBgCollapsed"_hash: return ImGuiCol_TitleBgCollapsed;
 			case "TitleBgActive"_hash: return ImGuiCol_TitleBgActive;
+			case "TitleBgCollapsed"_hash: return ImGuiCol_TitleBgCollapsed;
 			case "MenuBarBg"_hash: return ImGuiCol_MenuBarBg;
 			case "ScrollbarBg"_hash: return ImGuiCol_ScrollbarBg;
 			case "ScrollbarGrab"_hash: return ImGuiCol_ScrollbarGrab;
@@ -3717,11 +3758,25 @@ namespace ImGui { namespace Binding
 			case "ResizeGrip"_hash: return ImGuiCol_ResizeGrip;
 			case "ResizeGripHovered"_hash: return ImGuiCol_ResizeGripHovered;
 			case "ResizeGripActive"_hash: return ImGuiCol_ResizeGripActive;
+			case "Tab"_hash: return ImGuiCol_Tab;
+			case "TabHovered"_hash: return ImGuiCol_TabHovered;
+			case "TabActive"_hash: return ImGuiCol_TabActive;
+			case "TabUnfocused"_hash: return ImGuiCol_TabUnfocused;
+			case "TabUnfocusedActive"_hash: return ImGuiCol_TabUnfocusedActive;
 			case "PlotLines"_hash: return ImGuiCol_PlotLines;
 			case "PlotLinesHovered"_hash: return ImGuiCol_PlotLinesHovered;
 			case "PlotHistogram"_hash: return ImGuiCol_PlotHistogram;
 			case "PlotHistogramHovered"_hash: return ImGuiCol_PlotHistogramHovered;
+			case "TableHeaderBg"_hash: return ImGuiCol_TableHeaderBg;
+			case "TableBorderStrong"_hash: return ImGuiCol_TableBorderStrong;
+			case "TableBorderLight"_hash: return ImGuiCol_TableBorderLight;
+			case "TableRowBg"_hash: return ImGuiCol_TableRowBg;
+			case "TableRowBgAlt"_hash: return ImGuiCol_TableRowBgAlt;
 			case "TextSelectedBg"_hash: return ImGuiCol_TextSelectedBg;
+			case "DragDropTarget"_hash: return ImGuiCol_DragDropTarget;
+			case "NavHighlight"_hash: return ImGuiCol_NavHighlight;
+			case "NavWindowingHighlight"_hash: return ImGuiCol_NavWindowingHighlight;
+			case "NavWindowingDimBg"_hash: return ImGuiCol_NavWindowingDimBg;
 			case "ModalWindowDimBg"_hash: return ImGuiCol_ModalWindowDimBg;
 			default:
 				Issue("ImGui color index named \"{}\" is invalid.", col);
@@ -3762,7 +3817,6 @@ namespace ImGui { namespace Binding
 	{
 		switch (Switch::hash(flag))
 		{
-			case "None"_hash: return ImGuiPopupFlags_None;
 			case "MouseButtonLeft"_hash: return ImGuiPopupFlags_MouseButtonLeft;
 			case "MouseButtonRight"_hash: return ImGuiPopupFlags_MouseButtonRight;
 			case "MouseButtonMiddle"_hash: return ImGuiPopupFlags_MouseButtonMiddle;
@@ -3771,7 +3825,7 @@ namespace ImGui { namespace Binding
 			case "AnyPopupId"_hash: return ImGuiPopupFlags_AnyPopupId;
 			case "AnyPopupLevel"_hash: return ImGuiPopupFlags_AnyPopupLevel;
 			case "AnyPopup"_hash: return ImGuiPopupFlags_AnyPopup;
-			case ""_hash: return ImGuiPopupFlags_MouseButtonRight;
+			case ""_hash: return ImGuiPopupFlags_None;
 			default:
 				Issue("ImGui popup flag named \"{}\" is invalid.", flag);
 				return ImGuiPopupFlags_None;
@@ -3843,7 +3897,7 @@ namespace ImGui { namespace Binding
 		return result;
 	}
 
-	ImGuiTableRowFlags_ getTableRowFlags(String flag)
+	ImGuiTableRowFlags_ getTableRowFlag(String flag)
 	{
 		switch (Switch::hash(flag))
 		{
@@ -3854,16 +3908,6 @@ namespace ImGui { namespace Binding
 				return ImGuiTableRowFlags_None;
 		}
 		return ImGuiTableRowFlags_None;
-	}
-
-	uint32_t getTableRowCombinedFlags(Slice* flags, int count)
-	{
-		uint32_t result = 0;
-		for (int i = 0; i < count; i++)
-		{
-			result |= getTableRowFlags(flags[i]);
-		}
-		return result;
 	}
 
 	ImGuiTableColumnFlags_ getTableColumnFlags(String flag)

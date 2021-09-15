@@ -90,5 +90,7 @@ local record JointDefClass
 		frequency: number --[[2]],
 		damping: number --[[0.7]]): JointDef
 end
+print(JointDef.center)
+print(JointDef.position)
 local jointDefClass: JointDefClass
 return jointDefClass

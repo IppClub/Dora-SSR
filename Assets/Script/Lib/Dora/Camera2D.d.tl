@@ -10,5 +10,6 @@ local record Camera2DClass
 	type Type = Camera2D
 	metamethod __call: function(cls: Camera2DClass, name: string --[[""]]): Camera2D
 end
+print(Camera2D.position)
 local camera2DClass: Camera2DClass
 return camera2DClass

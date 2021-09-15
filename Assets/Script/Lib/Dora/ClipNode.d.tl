@@ -9,5 +9,6 @@ local record ClipNodeClass
 	type Type = ClipNode
 	metamethod __call: function(cls: ClipNodeClass, stencil: Node --[[nil]]): ClipNode
 end
+print(ClipNode.stencil)
 local clipNodeClass: ClipNodeClass
 return clipNodeClass

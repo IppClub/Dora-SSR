@@ -6553,6 +6553,16 @@ tl.type_check = function(ast, opts)
       elseif t2.typename == "array" then
          if is_array_type(t1) then
             if is_a(t1.elements, t2.elements) then
+               local t1e = resolve_tuple_and_nominal(t1.elements)
+               local t2e = resolve_tuple_and_nominal(t2.elements)
+               if t2e.typename == "enum" and t1e.typename == "string" and #t1.types > 1 then
+                  for i = 2, #t1.types do
+                     local t = t1.types[i]
+                     if not is_a(t, t2e) then
+                        return false, terr(t, "got %s, expected %s", t, t2e)
+                     end
+                  end
+               end
                return true
             end
          elseif t1.typename == "tupletable" then
@@ -6968,6 +6978,11 @@ tl.type_check = function(ast, opts)
          if key.kind == "string" or key.kind == "identifier" then
             if tbl.fields[key.tk] then
                return tbl.fields[key.tk]
+            elseif tbl.meta_fields and tbl.meta_fields["__index"] then
+               local ft = tbl.meta_fields["__index"]
+               if ft.typename == "function" then
+                  return type_check_function_call(node, ft, { tbl, key.type }, false, 0)
+               end
             end
          end
       else
@@ -7236,6 +7251,11 @@ tl.type_check = function(ast, opts)
             "cannot index, not all enum values map to record fields of the same type")
          elseif is_a(b, STRING) then
             return node_error(idxnode, "cannot index object of type %s with a string, consider using an enum", orig_a)
+         elseif a.meta_fields and a.meta_fields["__index"] then
+            local ft = a.meta_fields["__index"]
+            if ft.typename == "function" then
+               return type_check_function_call(node, ft, { a, b }, false, 0)
+            end
          end
       end
       if lax and is_unknown(a) then

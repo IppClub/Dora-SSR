@@ -129,5 +129,8 @@ local record nvg
 	DorothySSRHappy: function()
 	DorothySSRHappyWhite: function()
 end
+print(nvg.TouchPos)
+print(nvg.TextBoxBounds())
+print(nvg.ImageSize())
 local nvg_: nvg
 return nvg_
