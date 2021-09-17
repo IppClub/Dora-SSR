@@ -5849,6 +5849,9 @@ tl.type_check = function(ast, opts)
    end
 
    local function match_fields_to_record(t1, t2, cmp)
+      if t1.is_userdata ~= t2.is_userdata then
+         return false, { error_in_type(t1, "userdata record doesn't match: ", t2) }
+      end
       local ok, fielderrs = match_record_fields(t1, function(k) return t2.fields[k] end, cmp)
       if not ok then
          local errs = {}
@@ -6152,14 +6155,16 @@ tl.type_check = function(ast, opts)
       end
    end
 
-   local function is_embedded(t1, t2, eq)
+   local function is_embedded(t1, t2)
       t2 = resolve_tuple_and_nominal(t2)
       t1 = resolve_tuple_and_nominal(t1)
       local embeds = t1.embeds
       if embeds and #embeds > 0 then
          for i = 1, #embeds do
-            if is_a(embeds[i], t2, eq) then
+            if embeds[i].typeid == t2.typeid then
                return true
+            elseif embeds[i].embeds then
+               return is_embedded(embeds[i], t2)
             end
          end
       end
@@ -6167,7 +6172,7 @@ tl.type_check = function(ast, opts)
    end
 
    local function are_same_nominals(t1, t2)
-      if is_embedded(t1, t2, false) then
+      if is_embedded(t1, t2) then
          return true
       end
 
@@ -6233,7 +6238,7 @@ tl.type_check = function(ast, opts)
          return compare_and_infer_typevars(t1, t2, same_type)
       end
 
-      if t1.typename == "emptytable" and is_known_table_type(resolve_tuple_and_nominal(t2)) then
+      if t1.typename == "emptytable" and is_known_table_type(resolve_tuple_and_nominal(t2)) and not t2.is_userdata then
          return true
       end
 
@@ -6241,7 +6246,7 @@ tl.type_check = function(ast, opts)
          return false, terr(t1, "got %s, expected %s", t1, t2)
       end
 
-      if is_embedded(t1, t2, false) then
+      if is_embedded(t1, t2) then
          return true
       end
 
@@ -6497,7 +6502,7 @@ tl.type_check = function(ast, opts)
             end
          end
          return false, terr(t1, "cannot match against any alternatives of the polymorphic type")
-      elseif is_embedded(t1, t2, for_equality) then
+      elseif is_embedded(t1, t2) then
          return true
       elseif t1.typename == "nominal" and t2.typename == "nominal" then
          local same, err = are_same_nominals(t1, t2)
@@ -6548,7 +6553,7 @@ tl.type_check = function(ast, opts)
             end
          end
          return ok, errs
-      elseif t1.typename == "emptytable" and is_known_table_type(t2) then
+      elseif t1.typename == "emptytable" and is_known_table_type(t2) and not t2.is_userdata then
          return true
       elseif t2.typename == "array" then
          if is_array_type(t1) then
@@ -6739,7 +6744,7 @@ tl.type_check = function(ast, opts)
          end
          return true
       elseif t2.typename == "emptytable" then
-         if is_known_table_type(t1) then
+         if is_known_table_type(t1) and not t1.is_userdata then
             infer_var(t2, shallow_copy(t1), node)
          elseif t1.typename ~= "emptytable" then
             node_error(node, context .. ": " .. (name and (name .. ": ") or "") .. "assigning %s to a variable declared with {}", t1)
@@ -8793,7 +8798,7 @@ node.exps[3] and node.exps[3].type, }
             elseif node.op.op == "and" then
                node.known = facts_and(node.e1.known, node.e2.known, node)
                node.type = resolve_tuple(b)
-            elseif node.op.op == "or" and is_known_table_type(ra) and b.typename == "emptytable" then
+            elseif node.op.op == "or" and is_known_table_type(ra) and b.typename == "emptytable" and not ra.is_userdata then
                node.known = nil
                node.type = resolve_tuple(a)
             elseif node.op.op == "or" and is_a(rb, ra) then
