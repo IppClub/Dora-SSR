@@ -1,4 +1,6 @@
-local record BlendFunc end
+local record BlendFunc
+	userdata
+end
 local record BlendFuncClass
 	type Type = BlendFunc
 	enum Func
