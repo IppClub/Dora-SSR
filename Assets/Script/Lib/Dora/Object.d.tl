@@ -1,5 +1,6 @@
+local ContainerItem = require("ContainerItemBase")
 local record Object
-	userdata
+	embed ContainerItem
 	const id: integer
 	const ref: integer
 end
