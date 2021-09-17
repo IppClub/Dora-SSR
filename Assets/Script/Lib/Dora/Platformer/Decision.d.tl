@@ -4,6 +4,7 @@ local Unit = require("Platformer.Unit").Type
 local Behavior = require("Platformer.Behavior")
 local Relation = require("Platformer.Data").Relation
 local record AI
+	userdata
 	getUnitsByRelation: function(self: AI, relation: Relation): Array
 	getDetectedUnits: function(self: AI): Array
 	getDetectedBodies: function(self: AI): Array

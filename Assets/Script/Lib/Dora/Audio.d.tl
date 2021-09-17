@@ -1,4 +1,5 @@
 local record Audio
+	userdata
 	play: function(self: Audio, filename: string, loop: boolean --[[false]]): integer
 	stop: function(self: Audio, handler: integer)
 	playStream: function(self: Audio, filename: string, loop: boolean --[[false]], crossFadeTime: number --[[0]])

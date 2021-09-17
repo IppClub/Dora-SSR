@@ -1,5 +1,6 @@
 local Vec2 = require("Vec2").Type
 local record Keyboard
+	userdata
 	enum KeyName
 		"Return"
 		"Escape"

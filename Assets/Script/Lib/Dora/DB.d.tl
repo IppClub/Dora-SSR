@@ -1,4 +1,5 @@
 local record DB
+	userdata
 	type Column = integer | number | string | boolean
 	type Row = {Column}
 	exist: function(self: DB, tableName: string): boolean

@@ -1,7 +1,6 @@
 local Object = require("Object").Type
 local Item = require("ItemBase")
 local record Array
-	userdata
 	embed Object
 	const count: integer
 	const capacity: integer
@@ -32,8 +31,8 @@ local record Array
 end
 local record ArrayClass
 	type Type = Array
-	metamethod __call: function(cls: Array): Array
-	metamethod __call: function(cls: Array, items: {Item}): Array
+	metamethod __call: function(cls: ArrayClass): Array
+	metamethod __call: function(cls: ArrayClass, items: {Item}): Array
 end
 local arrayClass: ArrayClass
 return arrayClass

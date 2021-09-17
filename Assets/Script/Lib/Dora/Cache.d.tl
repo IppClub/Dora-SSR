@@ -1,5 +1,6 @@
 local Texture2D = require("Texture2D").Type
 local record Cache
+	userdata
 	enum ResourceType
 		"Bone"
 		"Spine"

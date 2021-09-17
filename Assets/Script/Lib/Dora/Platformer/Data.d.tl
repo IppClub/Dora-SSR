@@ -1,6 +1,7 @@
 local Dictionary = require("Dictionary").Type
 local Body = require("Body").Type
 local record Data
+	userdata
 	enum Relation
 		"Enemy"
 		"Friend"

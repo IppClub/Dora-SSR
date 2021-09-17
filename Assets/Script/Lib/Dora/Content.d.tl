@@ -1,4 +1,5 @@
 local record Content
+	userdata
 	searchPaths: {string}
 	const assetPath: string
 	const writablePath: string
