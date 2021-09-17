@@ -1,4 +1,5 @@
+local ContainerItem = require("ContainerItemBase")
 local record Vec2Base
-	userdata
+	embed ContainerItem
 end
 return Vec2Base

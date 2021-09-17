@@ -1,6 +1,8 @@
+local ContainerItem = require("ContainerItemBase")
 local Vec2 = require("Vec2").Type
 local Size = require("Size").Type
 local record Rect
+	embed ContainerItem
 	origin: Vec2
 	size: Size
 	x: number

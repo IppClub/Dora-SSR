@@ -1,6 +1,7 @@
+local ContainerItem = require("ContainerItemBase")
 local Vec2 = require("Vec2Base")
 local record Size
-	userdata
+	embed ContainerItem
 	width: number
 	height: number
 	set: function(self: Size, width: number, height: number)

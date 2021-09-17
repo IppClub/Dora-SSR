@@ -145,7 +145,7 @@ local record __GSLOT__
 end
 local record NodeClass
 	type Type = Node
-	metamethod __call: function(cls: Node): Node
+	metamethod __call: function(cls: NodeClass): Node
 end
 print(Node.position)
 print(Node.anchor)
