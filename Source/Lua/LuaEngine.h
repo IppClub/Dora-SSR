@@ -26,12 +26,14 @@ public:
 	PROPERTY_READONLY_REF(yue::YueCompiler, Yue);
 	PROPERTY_READONLY_BOOL(InLua);
 
+	std::pair<std::string, std::string> tealToLua(const std::string& tlCodes, String moduleName);
+
 	void insertLuaLoader(lua_CFunction func);
 
 	void removeScriptHandler(int handler);
 	void removePeer(Object* object);
 
-	bool executeString(String codes);
+	bool executeString(const std::string& codes);
 	bool executeScriptFile(String filename);
 	bool executeFunction(int handler, int paramCount = 0);
 	int executeReturnFunction(int handler, int paramCount = 0);
@@ -135,6 +137,7 @@ protected:
 	LuaEngine();
 	static int _callFromLua;
 	lua_State* L;
+	lua_State* _tlState;
 	Own<yue::YueCompiler> _yueCompiler;
 	SINGLETON_REF(LuaEngine, AsyncThread);
 };
