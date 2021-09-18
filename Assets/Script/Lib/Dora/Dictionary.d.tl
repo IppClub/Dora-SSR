@@ -11,6 +11,7 @@ local record Dictionary
 	metamethod __newindex: function(self: Dictionary, key: string, item: Item)
 end
 local record DictionaryClass
+	type Item = Item
 	type Type = Dictionary
 	metamethod __call: function(cls: DictionaryClass): Dictionary
 end

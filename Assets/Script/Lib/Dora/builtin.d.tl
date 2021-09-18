@@ -106,7 +106,7 @@ local VGNode = require("VGNode")
 local VGPaint = require("VGPaint")
 local nvg = require("nvg")
 local ImGui = require("ImGui")
---local Platformer = require("Platformer")
+local Platformer = require("Platformer")
 --Dorothy
 --property
 --Class
@@ -219,5 +219,6 @@ global builtin = {
 	VGNode = VGNode,
 	VGPaint = VGPaint,
 	nvg = nvg,
-	ImGui = ImGui
+	ImGui = ImGui,
+	Platformer = Platformer
 }

@@ -273,7 +273,7 @@ namespace ImGui { namespace Binding
 	void SetNextItemOpen(bool is_open, String setCond = nullptr);
 	bool CollapsingHeader(const char* label, Slice* treeNodeFlags = nullptr, int flagCount = 0);
 	bool CollapsingHeader(const char* label, bool* p_open, Slice* treeNodeFlags = nullptr, int flagCount = 0);
-	bool Selectable(const char* label, bool selected = false, const Vec2& size = Vec2::zero, Slice* selectableFlags = nullptr, int flagCount = 0);
+	bool Selectable(const char* label, Slice* selectableFlags = nullptr, int flagCount = 0);
 	bool Selectable(const char* label, bool* p_selected, const Vec2& size = Vec2::zero, Slice* selectableFlags = nullptr, int flagCount = 0);
 	bool BeginPopupModal(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
 	bool BeginPopupModal(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);

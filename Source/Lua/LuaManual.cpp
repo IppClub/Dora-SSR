@@ -3154,9 +3154,9 @@ namespace ImGui { namespace Binding
 		return ImGui::CollapsingHeader(label, p_open, getTreeNodeCombinedFlags(treeNodeFlags, flagCount));
 	}
 
-	bool Selectable(const char* label, bool selected, const Vec2& size, Slice* selectableFlags, int flagCount)
+	bool Selectable(const char* label, Slice* selectableFlags, int flagCount)
 	{
-		return ImGui::Selectable(label, selected, getSelectableCombinedFlags(selectableFlags, flagCount), size);
+		return ImGui::Selectable(label, false, getSelectableCombinedFlags(selectableFlags, flagCount), Vec2::zero);
 	}
 
 	bool Selectable(const char* label, bool* p_selected, const Vec2& size, Slice* selectableFlags, int flagCount)
