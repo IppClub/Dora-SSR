@@ -379,6 +379,10 @@ local record ImGui
 	): boolean, boolean
 	Selectable: function(
 		label: string,
+		selectableFlags: {SelectableFlag} --[[nil]]
+	): boolean
+	Selectable: function(
+		label: string,
 		p_selected: boolean,
 		size: Vec2 --[[Vec2.zero]],
 		selectableFlags: {SelectableFlag} --[[nil]]

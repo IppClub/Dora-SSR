@@ -1,4 +1,4 @@
-local Content = require("Content")
+
 local VERSION = "0.13.2+dora"
 
 local tl = {TypeCheckOptions = {}, Env = {}, Symbol = {}, Result = {}, Error = {}, TypeInfo = {}, TypeReport = {}, TypeReportEnv = {}, }
@@ -4481,7 +4481,7 @@ local function search_for(module_name, suffix, path, tried)
       local slash_name = module_name:gsub("%.", "/")
       local filename = entry:gsub("?", slash_name)
       local tl_filename = filename:gsub("%.lua$", suffix)
-      local found = Content:exist(tl_filename)
+      local found = tl.file_exist(tl_filename)
       if found then
          return tl_filename, tried
       end
@@ -9509,7 +9509,7 @@ tl.process = function(filename, env)
       return env.loaded[filename]
    end
 
-   local input = Content:load(filename)
+   local input = tl.read_file(filename)
    if not input then
       return nil, "could not read " .. filename
    end
@@ -9592,7 +9592,7 @@ end
 local function tl_package_loader(module_name)
    local found_filename, tried = tl.search_module(module_name, false)
    if found_filename then
-      local input = Content:load(found_filename)
+      local input = tl.read_file(found_filename)
       if not input then
          return table.concat(tried, "\n\t")
       end

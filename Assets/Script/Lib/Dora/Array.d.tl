@@ -31,6 +31,7 @@ local record Array
 end
 local record ArrayClass
 	type Type = Array
+	type Item = Item
 	metamethod __call: function(cls: ArrayClass): Array
 	metamethod __call: function(cls: ArrayClass, items: {Item}): Array
 end

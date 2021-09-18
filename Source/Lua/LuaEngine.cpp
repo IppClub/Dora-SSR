@@ -282,15 +282,6 @@ static void dora_open_compiler(void* state)
 	lua_pushglobaltable(L);
 	luaL_setfuncs(L, global_functions, 0);
 	lua_pop(L, 1);
-
-	lua_getglobal(L, "package"); // package
-	lua_getfield(L, -1, "loaded"); // package loaded
-	lua_getfield(L, -1, "yue"); // package loaded yue
-	lua_pushcfunction(L, dora_file_exist);
-	lua_setfield(L, -2, "file_exist");
-	lua_pushcfunction(L, dora_read_file);
-	lua_setfield(L, -2, "read_file");
-	lua_pop(L, 3);
 }
 
 static int dora_yuecompile(lua_State* L)

@@ -45,6 +45,8 @@ namespace ImGui
 	bool Binding::CollapsingHeader @ CollapsingHeader(CString label, String treeNodeFlags[tolua_len]);
 	bool Binding::CollapsingHeader @ CollapsingHeader(CString label, bool* p_open);
 	bool Binding::CollapsingHeader @ CollapsingHeader(CString label, bool* p_open, String treeNodeFlags[tolua_len]);
+	bool Binding::Selectable @ Selectable(CString label);
+	bool Binding::Selectable @ Selectable(CString label, String selectableFlags[tolua_len]);
 	bool Binding::Selectable @ Selectable(CString label, bool* p_selected, Vec2 size = Vec2::zero);
 	bool Binding::Selectable @ Selectable(CString label, bool* p_selected, Vec2 size, String selectableFlags[tolua_len]);
 	bool Binding::BeginPopupModal @ BeginPopupModal(CString name);
