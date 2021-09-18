@@ -132,6 +132,10 @@ doCompile = (minify)->
 					print "Minify: #{file}"
 				else
 					table.insert errors,"Minify errors in #{file}.\n#{err}"
+			package.loaded["luaminify.FormatMini"] = nil
+			package.loaded["luaminify.ParseLua"] = nil
+			package.loaded["luaminify.Scope"] = nil
+			package.loaded["luaminify.Util"] = nil
 		print err for err in *errors
 		print "Build complete! Cost #{string.format '%.2f', App.runningTime - startTime}s"
 		building = false

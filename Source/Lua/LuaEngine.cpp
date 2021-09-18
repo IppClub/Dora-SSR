@@ -59,34 +59,42 @@ static int dora_traceback(lua_State* L)
 	return 0;
 }
 
-static int dora_loadfile(lua_State* L, String filename)
+static int dora_loadfile(lua_State* L, String filename, String moduleName = nullptr)
 {
 	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
 	std::string extension = Path::getExt(filename);
 	std::string targetFile = filename;
 	if (extension.empty() && targetFile.back() != '.')
 	{
-		std::string fullPath = SharedContent.getFullPath(targetFile + ".lua");
-		if (SharedContent.exist(fullPath))
+		std::string fullPath;
+		BLOCK_START
 		{
-			targetFile = fullPath;
-			extension = "lua";
-		}
-		else
-		{
+			fullPath = SharedContent.getFullPath(targetFile + ".lua");
+			if (SharedContent.exist(fullPath))
+			{
+				targetFile = fullPath;
+				extension = "lua";
+				break;
+			}
 			fullPath = SharedContent.getFullPath(targetFile + ".xml");
 			if (SharedContent.exist(fullPath))
 			{
 				targetFile = fullPath;
 				extension = "xml";
+				break;
 			}
-			else
+			fullPath = SharedContent.getFullPath(targetFile + ".tl");
+			if (SharedContent.exist(fullPath))
 			{
-				lua_pushnil(L);
-				lua_pushfstring(L, "xml or lua file not found for filename \"%s\"", filename.toString().c_str());
-				return 2;
+				targetFile = fullPath;
+				extension = "tl";
+				break;
 			}
+			lua_pushnil(L);
+			lua_pushfstring(L, "xml or lua file not found for filename \"%s\"", filename.toString().c_str());
+			return 2;
 		}
+		BLOCK_END
 	}
 
 	const char* codeBuffer = nullptr;
@@ -101,6 +109,23 @@ static int dora_loadfile(lua_State* L, String filename)
 			if (codes.empty())
 			{
 				luaL_error(L, "error parsing xml file: %s\n%s", filename.toString().c_str(), SharedXmlLoader.getLastError().c_str());
+			}
+			else
+			{
+				codeBuffer = codes.c_str();
+				codeBufferSize = codes.size();
+			}
+			break;
+		}
+		case "tl"_hash:
+		{
+			auto data = SharedContent.load(targetFile);
+			auto str = Slice(r_cast<char*>(data.first.get()), data.second).toString();
+			std::string err;
+			std::tie(codes, err) = SharedLuaEngine.tealToLua(str, moduleName);
+			if (codes.empty())
+			{
+				luaL_error(L, "%s", err.c_str());
 			}
 			else
 			{
@@ -130,7 +155,6 @@ static int dora_loadfile(lua_State* L, String filename)
 	else
 	{
 		luaL_error(L, "can not get data from file \"%s\"", filename.toString().c_str());
-		return 2;
 	}
 	return 1;
 }
@@ -177,9 +201,9 @@ static int dora_loader(lua_State* L)
 	{
 		auto tokens = filename.split("."_slice);
 		auto file = Path::concat(tokens);
-		return dora_loadfile(L, file);
+		return dora_loadfile(L, file, filename);
 	}
-	return dora_loadfile(L, filename);
+	return dora_loadfile(L, filename, filename);
 }
 
 static int dora_doxml(lua_State* L)
@@ -234,7 +258,7 @@ static int dora_read_file(lua_State* L)
 	return 1;
 }
 
-static int dora_loadlibs(lua_State* L)
+static int dora_loadbase(lua_State* L)
 {
 	const luaL_Reg lualibs[] =
 	{
@@ -253,6 +277,12 @@ static int dora_loadlibs(lua_State* L)
 		luaL_requiref(L, lib->name, lib->func, 1);
 		lua_pop(L, 1);
 	}
+	return 0;
+}
+
+static int dora_loadlibs(lua_State* L)
+{
+	dora_loadbase(L);
 	lua_pushcfunction(L, luaopen_yue);
 	if (lua_pcall(L, 0, 0, 0) != 0) {
 		std::string err = lua_tostring(L, -1);
@@ -396,9 +426,10 @@ yue::YueCompiler& LuaEngine::getYue()
 	return *_yueCompiler;
 }
 
-LuaEngine::LuaEngine()
+LuaEngine::LuaEngine():
+L(luaL_newstate()),
+_tlState(nullptr)
 {
-	L = luaL_newstate();
 	dora_loadlibs(L);
 	tolua_open(L);
 
@@ -537,6 +568,64 @@ LuaEngine::LuaEngine()
 LuaEngine::~LuaEngine()
 {
 	lua_close(L);
+	L = nullptr;
+	if (_tlState)
+	{
+		lua_close(_tlState);
+		_tlState = nullptr;
+	}
+}
+
+std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCodes, String moduleName)
+{
+	if (!_tlState)
+	{
+		_tlState = luaL_newstate();
+		dora_loadbase(_tlState);
+		const luaL_Reg global_functions[] =
+		{
+			{ "print", dora_print },
+			{ NULL, NULL }
+		};
+		lua_pushglobaltable(_tlState);
+		luaL_setfuncs(_tlState, global_functions, 0);
+		lua_pop(_tlState, 1);
+		lua_getglobal(_tlState, "package"); // package
+		lua_getfield(_tlState, -1, "searchers"); // package, searchers
+		lua_pushcfunction(_tlState, dora_loader); // package, searchers, loader
+		lua_rawseti(_tlState, -2, 1); // searchers[1] = loader, package, searchers
+		lua_pop(_tlState, 2); // clear
+		luaL_loadstring(_tlState, "require('tl')");
+		LuaEngine::execute(_tlState, 0);
+		lua_getglobal(_tlState, "package"); // package
+		lua_pushliteral(_tlState, "path"); // package "path"
+		lua_pushliteral(_tlState, "?.lua"); // package "path" "?.lua"
+		lua_rawset(_tlState, -3); // package.path = "?.lua", package
+		lua_getfield(_tlState, -1, "loaded"); // package loaded
+		lua_getfield(_tlState, -1, "tl"); // package loaded tl
+		lua_pushcfunction(_tlState, dora_file_exist);
+		lua_setfield(_tlState, -2, "file_exist");
+		lua_pushcfunction(_tlState, dora_read_file);
+		lua_setfield(_tlState, -2, "read_file");
+		lua_pop(_tlState, 3);
+	}
+	int top = lua_gettop(_tlState);
+	DEFER(lua_settop(_tlState, top));
+	lua_getglobal(_tlState, "package"); // package
+	lua_getfield(_tlState, -1, "loaded"); // package loaded
+	lua_getfield(_tlState, -1, "tl"); // package loaded tl
+	lua_getfield(_tlState, -1, "tolua"); // package loaded tl tolua
+	lua_pushlstring(_tlState, tlCodes.c_str(), tlCodes.size()); // package loaded tl tolua codes
+	tolua_pushslice(_tlState, moduleName);
+	LuaEngine::call(_tlState, 2, 2); // tolua(codes), package loaded tl res err
+	if (lua_isnil(_tlState, -2) != 0)
+	{
+		return {Slice::Empty, tolua_toslice(_tlState, -1, nullptr)};
+	}
+	else
+	{
+		return {tolua_toslice(_tlState, -2, nullptr), Slice::Empty};
+	}
 }
 
 void LuaEngine::insertLuaLoader(lua_CFunction func)
@@ -577,9 +666,9 @@ void LuaEngine::removePeer(Object* object)
 	}
 }
 
-bool LuaEngine::executeString(String codes)
+bool LuaEngine::executeString(const std::string& codes)
 {
-	luaL_loadstring(L, codes.toString().c_str());
+	luaL_loadstring(L, codes.c_str());
 	return LuaEngine::execute(L, 0);
 }
 

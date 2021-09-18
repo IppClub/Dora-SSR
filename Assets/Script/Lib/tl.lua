@@ -9606,20 +9606,12 @@ local function tl_package_loader(module_name)
          tl.package_loader_env = tl.init_env(lax)
       end
 
-      local res = tl.type_check(program, {
+      tl.type_check(program, {
          lax = lax,
          filename = found_filename,
          env = tl.package_loader_env,
          run_internal_compiler_checks = false,
       })
-      if res.syntax_errors and #res.syntax_errors > 0 then
-         local err = res.syntax_errors[1]
-         error(err.filename .. ": " .. tostring(err.y) .. ": " .. err.msg)
-      end
-      if res.type_errors and #res.type_errors > 0 then
-         local err = res.type_errors[1]
-         error(err.filename .. ": " .. tostring(err.y) .. ": " .. err.msg)
-      end
 
       local code = tl.pretty_print_ast(program, true)
       local chunk, err = load(code, module_name, "t")
@@ -9653,6 +9645,46 @@ tl.load = function(input, chunkname, mode, ...)
    end
    local code = tl.pretty_print_ast(program, true)
    return load(code, chunkname, mode, ...)
+end
+
+tl.tolua = function(input, filename)
+   local errs = {}
+   if not filename then
+      filename = ""
+   else
+      local found = tl.search_module(filename)
+      filename = found or filename
+   end
+   local _, program = tl.parse_program(tl.lex(input), errs, module_name)
+   if #errs > 0 then
+      return nil, filename .. " :" .. errs[1].y .. ":" .. errs[1].x .. ": " .. errs[1].msg
+   end
+   if not tl.package_loader_env then
+      tl.package_loader_env = tl.init_env()
+   end
+   local res = tl.type_check(program, {
+      lax = false,
+      filename = filename,
+      env = tl.package_loader_env,
+      run_internal_compiler_checks = false,
+   })
+   if res.syntax_errors and #res.syntax_errors > 0 then
+      for i = 1, #res.syntax_errors do
+         local err = res.syntax_errors[i]
+         table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
+      end
+   end
+   if res.type_errors and #res.type_errors > 0 then
+      for i = 1, #res.type_errors do
+         local err = res.type_errors[i]
+         table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
+      end
+   end
+   if #errs > 0 then
+      return nil, table.concat(errs, "\n")
+   end
+   local code = tl.pretty_print_ast(program, true)
+   return code
 end
 
 return tl
