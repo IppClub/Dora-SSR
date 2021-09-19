@@ -283,12 +283,8 @@ static int dora_loadbase(lua_State* L)
 static int dora_loadlibs(lua_State* L)
 {
 	dora_loadbase(L);
-	lua_pushcfunction(L, luaopen_yue);
-	if (lua_pcall(L, 0, 0, 0) != 0) {
-		std::string err = lua_tostring(L, -1);
-		lua_pop(L, 1);
-		Error("failed to open lib yue.\n{}", err);
-	}
+	luaL_requiref(L, "yue", luaopen_yue, 0);
+	lua_pop(L, 1);
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "yue"); // package loaded yue
