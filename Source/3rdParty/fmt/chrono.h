@@ -308,7 +308,17 @@ inline auto do_write(const std::tm& time, const std::locale& loc, char format,
 #else
   using code_unit = char32_t;
 #endif
-  auto& f = std::use_facet<std::codecvt<code_unit, char, std::mbstate_t>>(loc);
+
+  using codecvt = std::codecvt<code_unit, char, std::mbstate_t>;
+#if FMT_CLANG_VERSION
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated"
+  auto& f = std::use_facet<codecvt>(loc);
+#  pragma clang diagnostic pop
+#else
+  auto& f = std::use_facet<codecvt>(loc);
+#endif
+
   auto mb = std::mbstate_t();
   const char* from_next = nullptr;
   code_unit* to_next = nullptr;
@@ -472,6 +482,32 @@ inline size_t strftime(wchar_t* str, size_t count, const wchar_t* format,
   return wcsftime(str, count, format, time);
 }
 
+// Writes two-digit numbers a, b and c separated by sep to buf.
+// The method by Pavel Novikov based on
+// https://johnnylee-sde.github.io/Fast-unsigned-integer-to-time-string/.
+inline void write_digit2_separated(char* buf, unsigned a, unsigned b,
+                                   unsigned c, char sep) {
+  unsigned long long digits =
+      a | (b << 24) | (static_cast<unsigned long long>(c) << 48);
+  // Convert each value to BCD.
+  // We have x = a * 10 + b and we want to convert it to BCD y = a * 16 + b.
+  // The difference is
+  //   y - x = a * 6
+  // a can be found from x:
+  //   a = floor(x / 10)
+  // then
+  //   y = x + a * 6 = x + floor(x / 10) * 6
+  // floor(x / 10) is (x * 205) >> 11 (needs 16 bits).
+  digits += (((digits * 205) >> 11) & 0x000f00000f00000f) * 6;
+  // Put low nibbles to high bytes and high nibbles to low bytes.
+  digits = ((digits & 0x00f00000f00000f0) >> 4) |
+           ((digits & 0x000f00000f00000f) << 8);
+  auto usep = static_cast<unsigned long long>(sep);
+  // Add ASCII '0' to each digit byte and insert separators.
+  digits |= 0x3030003030003030 | (usep << 16) | (usep << 40);
+  memcpy(buf, &digits, 8);
+}
+
 FMT_END_DETAIL_NAMESPACE
 
 template <typename Char, typename Duration>
@@ -509,19 +545,53 @@ constexpr Char
               Char>::default_specs[];
 
 template <typename Char> struct formatter<std::tm, Char> {
+ private:
+  enum class spec {
+    unknown,
+    year_month_day,
+    hh_mm_ss,
+  };
+  spec spec_ = spec::unknown;
+
+ public:
+  basic_string_view<Char> specs;
+
   template <typename ParseContext>
   FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
     auto it = ctx.begin();
     if (it != ctx.end() && *it == ':') ++it;
     auto end = it;
     while (end != ctx.end() && *end != '}') ++end;
-    specs = {it, detail::to_unsigned(end - it)};
+    auto size = detail::to_unsigned(end - it);
+    specs = {it, size};
+    // basic_string_view<>::compare isn't constexpr before C++17
+    if (specs.size() == 2 && specs[0] == Char('%')) {
+      if (specs[1] == Char('F'))
+        spec_ = spec::year_month_day;
+      else if (specs[1] == Char('T'))
+        spec_ = spec::hh_mm_ss;
+    }
     return end;
   }
 
   template <typename FormatContext>
   auto format(const std::tm& tm, FormatContext& ctx) const
       -> decltype(ctx.out()) {
+    auto year = 1900 + tm.tm_year;
+    if (spec_ == spec::year_month_day && year >= 0 && year < 10000) {
+      char buf[10];
+      detail::copy2(buf, detail::digits2(detail::to_unsigned(year / 100)));
+      detail::write_digit2_separated(buf + 2, year % 100,
+                                     detail::to_unsigned(tm.tm_mon + 1),
+                                     detail::to_unsigned(tm.tm_mday), '-');
+      return std::copy_n(buf, sizeof(buf), ctx.out());
+    } else if (spec_ == spec::hh_mm_ss) {
+      char buf[8];
+      detail::write_digit2_separated(buf, detail::to_unsigned(tm.tm_hour),
+                                     detail::to_unsigned(tm.tm_min),
+                                     detail::to_unsigned(tm.tm_sec), ':');
+      return std::copy_n(buf, sizeof(buf), ctx.out());
+    }
     basic_memory_buffer<Char> tm_format;
     tm_format.append(specs.begin(), specs.end());
     // By appending an extra space we can distinguish an empty result that
@@ -544,8 +614,6 @@ template <typename Char> struct formatter<std::tm, Char> {
     // Remove the extra space.
     return std::copy(buf.begin(), buf.end() - 1, ctx.out());
   }
-
-  basic_string_view<Char> specs;
 };
 
 FMT_BEGIN_DETAIL_NAMESPACE
@@ -796,10 +864,6 @@ template <typename T, FMT_ENABLE_IF(std::is_integral<T>::value)>
 inline bool isfinite(T) {
   return true;
 }
-template <typename T, FMT_ENABLE_IF(std::is_floating_point<T>::value)>
-inline bool isfinite(T value) {
-  return std::isfinite(value);
-}
 
 // Converts value to int and checks that it's in the range [0, upper).
 template <typename T, FMT_ENABLE_IF(std::is_integral<T>::value)>
@@ -894,7 +958,8 @@ template <typename Char, typename Rep, typename OutputIt,
 OutputIt format_duration_value(OutputIt out, Rep val, int precision) {
   auto specs = basic_format_specs<Char>();
   specs.precision = precision;
-  specs.type = precision > 0 ? 'f' : 'g';
+  specs.type = precision > 0 ? presentation_type::fixed_lower
+                             : presentation_type::general_lower;
   return write<Char>(out, val, specs);
 }
 
@@ -1159,6 +1224,8 @@ class weekday {
       : value(static_cast<unsigned char>(wd != 7 ? wd : 0)) {}
   constexpr unsigned c_encoding() const noexcept { return value; }
 };
+
+class year_month_day {};
 #endif
 
 // A rudimentary weekday formatter.
