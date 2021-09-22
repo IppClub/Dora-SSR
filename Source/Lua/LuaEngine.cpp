@@ -241,6 +241,22 @@ static int dora_xmltolua(lua_State* L)
 	return 1;
 }
 
+static int dora_tealtolua(lua_State* L)
+{
+	std::string codes(luaL_checkstring(L, 1));
+	std::string moduleName(luaL_checkstring(L, 2));
+	std::string res, err;
+	std::tie(res, err) = SharedLuaEngine.tealToLua(codes, moduleName);
+	if (res.empty() && !err.empty())
+	{
+		lua_pushnil(L);
+		lua_pushlstring(L, err.c_str(), err.size());
+		return 2;
+	}
+	lua_pushlstring(L, res.c_str(), res.size());
+	return 1;
+}
+
 static int dora_file_exist(lua_State* L)
 {
 	size_t size = 0;
@@ -437,6 +453,7 @@ _tlState(nullptr)
 		{ "dofile", dora_dofile },
 		{ "doxml", dora_doxml },
 		{ "xmltolua", dora_xmltolua },
+		{ "tealtolua", dora_tealtolua },
 		{ "yuecompile", dora_yuecompile },
 		{ "ubox", dora_ubox },
 		{ "emit", dora_emit },
@@ -578,6 +595,7 @@ std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCo
 	{
 		_tlState = luaL_newstate();
 		dora_loadbase(_tlState);
+		lua_gc(_tlState, LUA_GCGEN, 0, 0);
 		const luaL_Reg global_functions[] =
 		{
 			{ "print", dora_print },
@@ -591,8 +609,8 @@ std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCo
 		lua_pushcfunction(_tlState, dora_loader); // package, searchers, loader
 		lua_rawseti(_tlState, -2, 1); // searchers[1] = loader, package, searchers
 		lua_pop(_tlState, 2); // clear
-		luaL_loadstring(_tlState, "require('tl')");
-		LuaEngine::execute(_tlState, 0);
+		luaL_loadstring(_tlState, "require('tl')"); // func
+		LuaEngine::execute(_tlState, 0); // func()
 		lua_getglobal(_tlState, "package"); // package
 		lua_pushliteral(_tlState, "path"); // package "path"
 		lua_pushliteral(_tlState, "?.lua"); // package "path" "?.lua"

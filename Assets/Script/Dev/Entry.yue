@@ -83,9 +83,11 @@ doCompile = (minify)->
 	outputPath = Path Content.writablePath,"Script"
 	yueFiles = getAllFiles inputPath,{yueext}
 	xmlFiles = getAllFiles inputPath,{"xml"}
+	tlFiles = getAllFiles inputPath,{"tl"}
+	tlFiles = [file for file in *tlFiles when not file\match ".*%.d%.tl$"]
 	paths = {Path\getPath(file),true for file in *yueFiles}
 	Content\mkdir Path outputPath,path for path in pairs paths
-	totalFiles = #yueFiles+#xmlFiles
+	totalFiles = #yueFiles + #xmlFiles + #tlFiles
 	fileCount = 0
 	errors = {}
 	for file in *yueFiles
@@ -112,6 +114,20 @@ doCompile = (minify)->
 			else
 				Content\saveAsync dest,codes
 				print "Xml compiled: #{file}"
+			fileCount += 1
+	paths = {Path\getPath(file),true for file in *tlFiles}
+	Content\mkdir Path outputPath,path for path in pairs paths
+	thread ->
+		for file in *tlFiles
+			dest = Path\replaceExt Path(outputPath,file),"lua"
+			sourceCodes = Content\loadAsync file
+			moduleName = file\gsub("%.tl$", "")\gsub "[\\/]", "."
+			codes, err = tealtolua sourceCodes, moduleName
+			if not codes
+				table.insert errors,"Compile errors in #{file}.\n#{err}"
+			else
+				Content\saveAsync dest,codes
+				print "Teal compiled: #{file}"
 			fileCount += 1
 	thread ->
 		wait -> fileCount == totalFiles
@@ -176,9 +192,9 @@ allClear = ->
 
 games = [Path\getName item for item in *Content\getDirs Path Content.assetPath,"Script","Game"]
 table.sort games
-examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Example"), {"xml","lua",yueext}]
+examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Example"), {"xml","lua",yueext,"tl"}]
 table.sort examples
-tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Test"), {"xml","lua",yueext}]
+tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Test"), {"xml","lua",yueext,"tl"}]
 table.sort tests
 allNames = [Path "Game",game,"init" for game in *games]
 for example in *examples do table.insert allNames,Path "Example",example
@@ -192,7 +208,7 @@ for file in *Content\getAllFiles Path Content.assetPath, "Production"
 		Content\addSearchPath productionAssets
 		Content\insertSearchPath 1, Path productionAssets, "Spine"
 		Content\insertSearchPath 1, Path productionAssets, "Image"
-		package.yuepath ..= ";" .. Path scriptFolder, "?.yue"
+		package.path ..= ";" .. Path scriptFolder, "?.lua"
 		productionEntry = Path Path\getPath(file), "init"
 		break
 

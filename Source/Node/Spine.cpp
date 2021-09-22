@@ -236,10 +236,11 @@ Vec2 Spine::getKeyPoint(String name) const
 	if (tokens.size() == 1)
 	{
 		auto slotName = spine::String{name.begin(),name.size(),false};
-		auto slotIndex = _skeleton->findSlotIndex(slotName);
-		if (slotIndex < 0) return Vec2::zero;
+		auto slot = _skeletonData->getSkel()->findSlot(slotName);
+		if (!slot) return Vec2::zero;
 		if (auto skin = _skeleton->getSkin())
 		{
+			auto slotIndex = slot->getIndex();
 			spine::Vector<spine::Attachment*> attachments;
 			skin->findAttachmentsForSlot(slotIndex, attachments);
 			for (size_t i = 0; i < attachments.size(); ++i)
@@ -258,7 +259,7 @@ Vec2 Spine::getKeyPoint(String name) const
 		else if (tokens.size() == 2)
 		{
 			auto slotName = spine::String{tokens.front().begin(), tokens.front().size(), false};
-			int slotIndex = _skeleton->findSlotIndex(slotName);
+			int slotIndex = slot->getIndex();
 			if (slotIndex < 0) return Vec2::zero;
 			auto attachmentName = spine::String{tokens.back().begin(),tokens.back().size(),false};
 			auto attachment = _skeleton->getAttachment(slotIndex, attachmentName);
