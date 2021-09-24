@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,19 +24,6 @@
 #include "PlayRho/Dynamics/WorldImpl.hpp"
 #include "PlayRho/Dynamics/Body.hpp"
 #include "PlayRho/Dynamics/BodyConf.hpp"
-#include "PlayRho/Dynamics/StepConf.hpp"
-#include "PlayRho/Dynamics/MovementConf.hpp"
-
-#include "PlayRho/Dynamics/Contacts/Contact.hpp"
-
-#include "PlayRho/Common/DynamicMemory.hpp"
-
-#include <algorithm>
-#include <new>
-#include <functional>
-#include <type_traits>
-#include <memory>
-#include <vector>
 
 namespace playrho {
 namespace d2 {

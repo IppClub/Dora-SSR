@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,7 +29,7 @@ namespace d2 {
 
 class VelocityConstraint;
 
-/// Contact Impulse.
+/// The contact impulse.
 /// @details
 /// Used for reporting. Impulses are used instead of forces because
 /// sub-step forces may approach infinity for rigid body collisions. These
@@ -37,19 +37,19 @@ class VelocityConstraint;
 class ContactImpulsesList
 {
 public:
-
+    
     /// @brief Counter type.
     using Counter = std::remove_const<decltype(MaxManifoldPoints)>::type;
-
+    
     /// @brief Gets the count.
     Counter GetCount() const noexcept { return count; }
-
+    
     /// @brief Gets the given indexed entry normal.
     Momentum GetEntryNormal(Counter index) const noexcept { return normalImpulses[index]; }
-
+    
     /// @brief Gets the given indexed entry tangent.
     Momentum GetEntryTanget(Counter index) const noexcept { return tangentImpulses[index]; }
-
+    
     /// @brief Adds an entry of the given data.
     void AddEntry(Momentum normal, Momentum tangent) noexcept
     {
@@ -58,7 +58,7 @@ public:
         tangentImpulses[count] = tangent;
         ++count;
     }
-
+    
 private:
     Momentum normalImpulses[MaxManifoldPoints]; ///< Normal impulses.
     Momentum tangentImpulses[MaxManifoldPoints]; ///< Tangent impulses.

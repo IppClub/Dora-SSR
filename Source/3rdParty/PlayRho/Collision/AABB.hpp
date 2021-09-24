@@ -36,6 +36,8 @@
 
 namespace playrho {
 
+class Contact;
+
 namespace detail {
 
 template <std::size_t N>
@@ -378,7 +380,6 @@ inline ::std::ostream& operator<<(::std::ostream& os, const AABB<N>& value)
 namespace d2 {
 
 class Shape;
-class Contact;
 class DistanceProxy;
 struct Transformation;
 class World;

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -56,11 +56,11 @@ namespace playrho {
 
 struct StepConf;
 enum class BodyType;
+class Contact;
 
 namespace d2 {
 
 class Body;
-class Contact;
 class Joint;
 class Shape;
 class Manifold;
@@ -277,6 +277,9 @@ public:
     ///   during the next call to the world step method.
     /// @see Step.
     std::vector<std::pair<BodyID, ShapeID>> GetFixturesForProxies() const noexcept;
+
+    /// @brief Determines whether this world has new fixtures.
+    bool HasNewFixtures() const noexcept;
 
     /// @}
 
@@ -570,7 +573,7 @@ private:
     /// @return Island solver results.
     ///
     IslandStats SolveRegIslandViaGS(const StepConf& conf, const Island& island);
-
+    
     /// @brief Adds to the island based off of a given "seed" body.
     /// @post Contacts are listed in the island in the order that bodies provide those contacts.
     /// @post Joints are listed the island in the order that bodies provide those joints.
@@ -578,28 +581,28 @@ private:
                      BodyCounter& remNumBodies,
                      ContactCounter& remNumContacts,
                      JointCounter& remNumJoints);
-
+    
     /// @brief Body stack.
     using BodyStack = std::stack<BodyID, std::vector<BodyID>>;
-
+    
     /// @brief Adds to the island.
     void AddToIsland(Island& island, BodyStack& stack,
                      BodyCounter& remNumBodies,
                      ContactCounter& remNumContacts,
                      JointCounter& remNumJoints);
-
+    
     /// @brief Adds contacts to the island.
     void AddContactsToIsland(Island& island, BodyStack& stack, const Contacts& contacts,
                              BodyID bodyID);
 
     /// @brief Adds joints to the island.
     void AddJointsToIsland(Island& island, BodyStack& stack, const BodyJoints& joints);
-
+    
     /// @brief Removes <em>unspeedables</em> from the is <em>is-in-island</em> state.
     static Bodies::size_type RemoveUnspeedablesFromIslanded(const std::vector<BodyID>& bodies,
                                                             const ArrayAllocator<Body>& buffer,
                                                             std::vector<bool>& islanded);
-
+    
     /// @brief Solves the step using successive time of impact (TOI) events.
     /// @details Used for continuous physics.
     /// @note This is intended to detect and prevent the tunneling that the faster Solve method
@@ -744,9 +747,6 @@ private:
     static ContactToiData GetSoonestContact(const Contacts& contacts,
                                             const ArrayAllocator<Contact>& buffer) noexcept;
 
-    /// @brief Determines whether this world has new fixtures.
-    bool HasNewFixtures() const noexcept;
-
     /// @brief Unsets the new fixtures state.
     void UnsetNewFixtures() noexcept;
 
@@ -758,7 +758,7 @@ private:
     /// contact listener as its argument.
     /// Essentially this really just purges contacts that are no longer relevant.
     DestroyContactsStats DestroyContacts(Contacts& contacts);
-
+    
     /// @brief Update contacts.
     UpdateContactsStats UpdateContacts(const StepConf& conf);
 
@@ -833,7 +833,7 @@ private:
     Bodies m_bodies; ///< Body collection.
 
     Joints m_joints; ///< Joint collection.
-
+    
     /// @brief Container of contacts.
     /// @note In the <em>add pair</em> stress-test, 401 bodies can have some 31000 contacts
     ///   during a given time step.
@@ -853,16 +853,16 @@ private:
     ImpulsesContactListener m_postSolveContactListener; ///< Listener for post-solving contacts.
 
     FlagsType m_flags = e_stepComplete; ///< Flags.
-
+    
     /// Inverse delta-t from previous step.
     /// @details Used to compute time step ratio to support a variable time step.
     /// @note 4-bytes large.
     /// @see Step.
     Frequency m_inv_dt0 = 0;
-
+    
     /// @brief Minimum vertex radius.
     Positive<Length> m_minVertexRadius;
-
+    
     /// @brief Maximum vertex radius.
     /// @details
     /// This is the maximum shape vertex radius that any bodies' of this world should create
@@ -925,7 +925,7 @@ inline void WorldImpl::SetStepComplete(bool value) noexcept
         m_flags |= e_stepComplete;
     }
     else {
-        m_flags &= ~e_stepComplete;
+        m_flags &= ~e_stepComplete;        
     }
 }
 

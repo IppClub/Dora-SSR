@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -40,10 +40,10 @@ struct MassData
 {
     /// @brief Position of the shape's centroid relative to the shape's origin.
     Vector<Length, N> center = Vector<Length, N>{};
-
+    
     /// @brief Mass of the shape in kilograms.
     NonNegative<Mass> mass = NonNegative<Mass>{0_kg};
-
+    
     /// @brief Rotational inertia, a.k.a. moment of inertia.
     /// @details This is the rotational inertia of the shape about the local origin.
     /// @see https://en.wikipedia.org/wiki/Moment_of_inertia

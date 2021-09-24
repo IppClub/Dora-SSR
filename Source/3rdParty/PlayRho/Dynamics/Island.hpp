@@ -1,19 +1,21 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
+ * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
+ *
  * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
@@ -30,14 +32,13 @@
 #include <vector>
 
 namespace playrho {
-namespace d2 {
 
 /// @brief Definition of a self-contained constraint "island".
 /// @details A container of bodies contacts and joints relevant to handling world dynamics.
 /// @note This is an internal class.
 /// @note This data structure is 72-bytes large (on at least one 64-bit platform).
 struct Island
-{
+{   
     /// @brief Container type for body identifiers.
     using Bodies = std::vector<BodyID>;
 
@@ -90,7 +91,6 @@ std::size_t Count(const Island& island, ContactID entry);
 /// @relatedalso Island
 std::size_t Count(const Island& island, JointID entry);
 
-} // namespace d2
 } // namespace playrho
 
 #endif // PLAYRHO_DYNAMICS_ISLAND_HPP

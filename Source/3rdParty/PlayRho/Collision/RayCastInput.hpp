@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@ struct RayCastInput
 {
     Vector<Length, N> p1; ///< Point 1.
     Vector<Length, N> p2; ///< Point 2.
-
+    
     /// @brief Max fraction.
     /// @details Unit interval value - a value between 0 and 1 inclusive.
     UnitInterval<Real> maxFraction = UnitInterval<Real>{0};

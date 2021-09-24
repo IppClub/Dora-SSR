@@ -1,19 +1,21 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
+ * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
+ *
  * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
@@ -80,66 +82,66 @@ public:
                        BodyID bB,
                        const std::vector<BodyConstraint>& bodies,
                        const Conf& conf = GetDefaultConf());
-
+    
     /// Gets the normal of the contact in world coordinates.
     /// @note This value is set on construction.
-    /// @return Contact normal (in world coordinates) if previously set, an invalid value
+    /// @return The contact normal (in world coordinates) if previously set, an invalid value
     ///   otherwise.
     UnitVec GetNormal() const noexcept { return m_normal; }
-
+    
     /// @brief Gets the tangent.
     UnitVec GetTangent() const noexcept { return GetFwdPerpendicular(m_normal); }
-
+    
     /// Gets the count of points added to this object.
     /// @return Value between 0 and <code>MaxManifoldPoints</code>.
     /// @see MaxManifoldPoints.
     /// @see AddPoint.
     size_type GetPointCount() const noexcept { return m_pointCount; }
-
+    
     /// Gets the "K" value.
     /// @note This value is only valid if previously set to a valid value.
     /// @return "K" value previously set or the zero initialized value.
     InvMass22 GetK() const noexcept;
-
+    
     /// Gets the normal mass.
     /// @note This value is only valid if previously set.
     /// @return normal mass previously set or the zero initialized value.
     Mass22 GetNormalMass() const noexcept;
-
+    
     /// Gets the combined friction of the associated contact.
     Real GetFriction() const noexcept { return m_friction; }
-
+    
     /// Gets the combined restitution of the associated contact.
     Real GetRestitution() const noexcept { return m_restitution; }
-
+    
     /// Gets the tangent speed of the associated contact.
     LinearVelocity GetTangentSpeed() const noexcept { return m_tangentSpeed; }
-
+    
     /// @brief Gets identifier of body A.
     BodyID GetBodyA() const noexcept { return m_bodyA; }
-
+    
     /// @brief Gets identifier of body B.
     BodyID GetBodyB() const noexcept { return m_bodyB; }
-
+    
     /// Gets the normal impulse at the given point.
     /// @note Call the <code>AddPoint</code> or <code>SetNormalImpulseAtPoint</code> method
     ///   to set this value.
     /// @return Value previously set, or an invalid value.
     /// @see SetNormalImpulseAtPoint.
     Momentum GetNormalImpulseAtPoint(size_type index) const noexcept;
-
+    
     /// Gets the tangent impulse at the given point.
     /// @note Call the <code>AddPoint</code> or <code>SetTangentImpulseAtPoint</code> method
     ///   to set this value.
     /// @return Value previously set, or an invalid value.
     /// @see SetTangentImpulseAtPoint.
     Momentum GetTangentImpulseAtPoint(size_type index) const noexcept;
-
+    
     /// Gets the velocity bias at the given point.
     /// @note The <code>AddPoint</code> method sets this value.
     /// @return Previously set value or an invalid value.
     LinearVelocity GetVelocityBiasAtPoint(size_type index) const noexcept;
-
+    
     /// Gets the normal mass at the given point.
     /// @note This value depends on the values of:
     ///   the sum of the inverse-masses of the two bodies,
@@ -148,7 +150,7 @@ public:
     ///   the normal.
     /// @note The <code>AddPoint</code> method sets this value.
     Mass GetNormalMassAtPoint(size_type index) const noexcept;
-
+    
     /// Gets the tangent mass at the given point.
     /// @note This value depends on the values of:
     ///   the sum of the inverse-masses of the two bodies,
@@ -157,23 +159,23 @@ public:
     ///   the tangent.
     /// @note The <code>AddPoint</code> method sets this value.
     Mass GetTangentMassAtPoint(size_type index) const noexcept;
-
+    
     /// Gets the point relative position of A.
     /// @note The <code>AddPoint</code> method sets this value.
     /// @return Previously set value or an invalid value.
     Length2 GetPointRelPosA(size_type index) const noexcept;
-
+    
     /// Gets the point relative position of B.
     /// @note The <code>AddPoint</code> method sets this value.
     /// @return Previously set value or an invalid value.
     Length2 GetPointRelPosB(size_type index) const noexcept;
-
+    
     /// @brief Sets the normal impulse at the given point.
     void SetNormalImpulseAtPoint(size_type index, Momentum value);
-
+    
     /// @brief Sets the tangent impulse at the given point.
     void SetTangentImpulseAtPoint(size_type index, Momentum value);
-
+    
     /// @brief Velocity constraint point.
     ///
     /// @note Default initialized to values that make this point ineffective if it got
@@ -187,31 +189,31 @@ public:
     {
         /// Position of body A relative to world manifold point.
         Length2 relA = Length2{};
-
+        
         /// Position of body B relative to world manifold point.
         Length2 relB = Length2{};
-
+        
         /// Normal impulse.
         Momentum normalImpulse = 0_Ns;
-
+        
         /// Tangent impulse.
         Momentum tangentImpulse = 0_Ns;
-
+        
         /// Normal mass.
         /// @note 0 or greater.
         /// @note Dependent on <code>relA</code> and <code>relB</code>.
         Mass normalMass = 0_kg;
-
+        
         /// Tangent mass.
         /// @note 0 or greater.
         /// @note Dependent on <code>relA</code> and <code>relB</code>.
         Mass tangentMass = 0_kg;
-
+        
         /// Velocity bias.
         /// @note A product of the contact restitution.
         LinearVelocity velocityBias = 0_mps;
     };
-
+    
     /// @brief Accesses the point identified by the given index.
     /// @warning Behavior is undefined if given index is not less than
     ///   <code>MaxManifoldPoints</code>.
@@ -225,9 +227,9 @@ public:
         assert(index < MaxManifoldPoints);
         return m_points[index];
     }
-
+    
 private:
-
+    
     /// @brief Adds the given point to this contact velocity constraint object.
     /// @details Adds up to <code>MaxManifoldPoints</code> points. To find out how many points
     ///   have already been added, call <code>GetPointCount</code>.
@@ -237,15 +239,15 @@ private:
     void AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
                   Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
                   Conf conf);
-
+    
     /// Removes the last point added.
     void RemovePoint() noexcept;
-
+    
     /// @brief Gets a point instance for the given parameters.
     Point GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
                    Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
                    Conf conf) const noexcept;
-
+    
     /// Accesses the point identified by the given index.
     /// @warning Behavior is undefined if given index is not less than
     ///   <code>MaxManifoldPoints</code>.
@@ -259,36 +261,36 @@ private:
         assert(index < MaxManifoldPoints);
         return m_points[index];
     }
-
+    
     Point m_points[MaxManifoldPoints]; ///< Velocity constraint points array (at least 72-bytes).
-
+    
     // K and normalMass fields are only used for the block solver.
-
+    
     /// Block solver "K" info.
     /// @note Depends on the total inverse mass, the normal, and the point relative positions.
     /// @note Only used by block solver.
     /// @note This field is 12-bytes (on at least one 64-bit platform).
     InvMass3 m_K = InvMass3{};
-
+    
     /// Normal mass information.
     /// @details This is the cached inverse of the K value or the zero initialized value.
     /// @note Depends on the K value.
     /// @note Only used by block solver.
     /// @note This field is 12-bytes (on at least one 64-bit platform).
     Mass3 m_normalMass = Mass3{};
-
+    
     BodyID m_bodyA = InvalidBodyID; ///< Identifier for body-A.
     BodyID m_bodyB = InvalidBodyID; ///< Identifier for body-B.
-
+    
     UnitVec m_normal = GetInvalid<UnitVec>(); ///< Normal of the world manifold. 8-bytes.
-
+    
     /// Friction coefficient (4-bytes). Usually in the range of [0,1].
     Real m_friction = GetInvalid<Real>();
-
+    
     Real m_restitution = GetInvalid<Real>(); ///< Restitution coefficient (4-bytes).
-
+    
     LinearVelocity m_tangentSpeed = GetInvalid<decltype(m_tangentSpeed)>(); ///< Tangent speed (4-bytes).
-
+    
     size_type m_pointCount = 0; ///< Point count (at least 1-byte).
 };
 
@@ -372,7 +374,7 @@ VelocityConstraint::Conf GetToiVelocityConstraintConf(const StepConf& conf) noex
 
 /// Gets the normal of the velocity constraint contact in world coordinates.
 /// @note This value is set via the velocity constraint's <code>SetNormal</code> method.
-/// @return Contact normal (in world coordinates) if previously set, an invalid value
+/// @return The contact normal (in world coordinates) if previously set, an invalid value
 ///   otherwise.
 inline UnitVec GetNormal(const VelocityConstraint& vc) noexcept
 {

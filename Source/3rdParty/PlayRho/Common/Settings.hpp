@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -52,7 +52,7 @@ struct Defaults
         // Return the value used by Box2D 2.3.2 b2_linearSlop define....
         return 0.005_m;
     }
-
+    
     /// @brief Gets the max vertex radius.
     static constexpr auto GetMaxVertexRadius() noexcept
     {
@@ -73,7 +73,7 @@ struct Defaults<Fixed<std::int32_t,FRACTION_BITS>>
         // ex: FRACTION_BITS==10, then divisor==256
         return Length{1_m / Real{(1u << (FRACTION_BITS - 2))}};
     }
-
+    
     /// @brief Gets the max vertex radius.
     static constexpr auto GetMaxVertexRadius() noexcept
     {
@@ -108,7 +108,7 @@ constexpr auto MaxFloat = std::numeric_limits<Real>::max(); // FLT_MAX
 /// Maximum manifold points.
 /// This is the maximum number of contact points between two convex shapes.
 /// Do not change this value.
-/// @note For memory efficiency, uses the smallest integral type that can hold the value.
+/// @note For memory efficiency, uses the smallest integral type that can hold the value. 
 constexpr auto MaxManifoldPoints = std::uint8_t{2};
 
 /// @brief Maximum number of vertices for any shape type.
@@ -186,7 +186,7 @@ constexpr auto DefaultMaxDistanceIters = std::uint8_t{20};
 /// have continuous collision resolution done for it.
 /// @note Used in the TOI phase of step processing.
 constexpr auto DefaultMaxSubSteps = std::uint8_t{8};
-
+    
 // Dynamics
 
 /// @brief Default velocity threshold.
@@ -219,6 +219,9 @@ constexpr auto InvalidContactIndex = static_cast<ContactCounter>(-1);
 ///   <code>MaxBodies</code> nodes.
 /// This occurs when every possible body is connected to every other body.
 constexpr auto MaxContacts = ContactCounter{MaxBodies} * ContactCounter{MaxBodies - 1} / ContactCounter{2};
+
+/// @brief Dynamic tree size type.
+using DynamicTreeSize = ContactCounter;
 
 /// @brief Maximum number of joints in a world.
 /// @note This is 65534 based off <code>std::uint16_t</code> and eliminating one value for invalid.

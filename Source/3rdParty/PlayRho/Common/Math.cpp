@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -341,7 +341,7 @@ LinearVelocity2 GetContactRelVelocity(const Velocity velA, const Length2 relA, c
     const auto yLinVelB = StripUnit(velB.linear.y);
     const auto xFmaB = std::fma(xRevPerpRelB, angVelB, xLinVelB);
     const auto yFmaB = std::fma(yRevPerpRelB, angVelB, yLinVelB);
-
+    
     const auto revPerpRelA = GetRevPerpendicular(relA);
     const auto xRevPerpRelA = StripUnit(revPerpRelA.x);
     const auto yRevPerpRelA = StripUnit(revPerpRelA.y);
@@ -350,10 +350,10 @@ LinearVelocity2 GetContactRelVelocity(const Velocity velA, const Length2 relA, c
     const auto yLinVelA = StripUnit(velA.linear.y);
     const auto xFmaA = std::fma(xRevPerpRelA, angVelA, xLinVelA);
     const auto yFmaA = std::fma(yRevPerpRelA, angVelA, yLinVelA);
-
+    
     const auto deltaFmaX = xFmaB - xFmaA;
     const auto deltaFmaY = yFmaB - yFmaA;
-
+    
     return Vec2{deltaFmaX, deltaFmaY} * MeterPerSecond;
 #else
     const auto velBrot = GetRevPerpendicular(relB) * (velB.angular / Radian);

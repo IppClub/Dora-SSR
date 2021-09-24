@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,7 +29,7 @@
 
 Hello and welcome to PlayRho's API documentation!
 
-PlayRho is an interactive, real-time oriented, C++ based, physics engine and library
+PlayRho is an interactive, real-time oriented, C++17 based, physics engine and library
  currently best suited for 2-dimensional games. To view its source code, please
  see: https://github.com/louis-langholtz/PlayRho. For issues,
  visit: https://github.com/louis-langholtz/PlayRho/issues.
@@ -49,8 +49,8 @@ For coding, purists may want to begin by just including the
  int main()
  {
      auto world = playrho::d2::World{};
-     const auto body = world.CreateBody();
-     // do more things with the world instance and body identifier.
+     const auto bodyID = world.CreateBody();
+     // do more things with the world instance and body identifier (bodyID).
      return 0; // world and associated resources go away automatically
  }
  @endcode
@@ -92,6 +92,9 @@ For a more elaborate example, that's of an entire application, see
 
 /// @namespace playrho::d2
 /// Name space for 2-dimensionally related PlayRho names.
+
+/// @namespace playrho::part
+/// Name space for parts attached to bodies and support for those parts.
 
 /// @namespace playrho::detail
 /// Name space for internal/detail related PlayRho names.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -25,10 +25,10 @@
 /// Declaration of the <code>ContactKey</code> class.
 
 #include "PlayRho/Common/Settings.hpp"
-#include <utility>
+
 #include <algorithm>
 #include <functional>
-#include <cassert>
+#include <utility>
 
 namespace playrho {
 
@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    /// @brief Contact counter ID pair.
+    /// @brief The contact counter ID pair.
     /// @note Uses <code>std::pair</code> given that <code>std::minmax</code> returns
     ///   this type making it the most natural type for this class.
     std::pair<ContactCounter, ContactCounter> m_ids{static_cast<ContactCounter>(-1),

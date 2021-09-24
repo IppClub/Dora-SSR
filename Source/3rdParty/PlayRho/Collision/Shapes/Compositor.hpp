@@ -41,13 +41,16 @@ namespace playrho::part {
 /// @note "[This allows] the various setter types to be identical. (You cannot have multiple direct
 ///   base classes of the same type. Indirect base classes, on the other hand, can have types that
 ///   are identical to those of other bases.)"
+/// @note This class is not intended for standalone use.
 /// @see https://flylib.com/books/en/3.401.1.126/1/
 template <class Base, int D>
 struct Discriminator : Base {
 };
 
-/// @brief Policy selector for named template arguments.
-/// @see https://flylib.com/books/en/3.401.1.126/1/
+/// @brief Policy selector for named template arguments for the <code>Compositor</code> host class
+/// template.
+/// @note This class is not intended for standalone use.
+/// @see Compositor.
 template <class Set1, class Set2, class Set3, class Set4, class Set5, class Set6>
 struct PolicySelector : Discriminator<Set1, 1>, //
                         Discriminator<Set2, 2>, //
@@ -59,9 +62,14 @@ struct PolicySelector : Discriminator<Set1, 1>, //
 };
 
 /// @brief Static rectangle.
-/// @note This is meant to be used as a compile-time constant geometry policy class of a
-///   <code>Compositor</code> class.
-/// @see DynamicRectangle.
+/// @details Provides a rectangular compile-time static class implementation of the geometry policy
+/// of the <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @code
+/// // Here's an example use of this class for a 3m-wide by 2m-high rectangular part...
+/// auto comp = Compositor<GeometryIs<StaticRectangle<3, 2>>>{};
+/// @endcode
+/// @see DynamicRectangle, Compositor.
 template <int W = 1, int H = 1, int V = 2>
 class StaticRectangle
 {
@@ -174,9 +182,16 @@ public:
 };
 
 /// @brief Dynamic rectangle.
-/// @note This is meant to be used as a run-time changable geometry policy class of a
-///   <code>Compositor</code> class.
-/// @see StaticRectangle.
+/// @details Provides a rectangular runtime-time configurable class implementation of the geometry
+/// policy of the <code>Compositor</code> host class template. Unlike the
+/// <code>StaticRectangle</code>, this class can have width, height, vertex-radius, and offset
+/// set at runtime.
+/// @note This class is not intended for standalone use.
+/// @code
+/// // Here's an example use of this class for a 3m-wide by 2m-high rectangular part...
+/// auto comp = Compositor<GeometryIs<DynamicRectangle<3, 2>>>{};
+/// @endcode
+/// @see StaticRectangle, Compositor.
 template <int W = 1, int H = 1, int V = 2>
 class DynamicRectangle
 {
@@ -314,6 +329,10 @@ public:
 };
 
 /// @brief Static friction.
+/// @details Provides a compile-time static class implementation of the friction policy of the
+///   <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see DynamicFriction, Compositor.
 template <int F = 0>
 struct StaticFriction {
     /// @brief Friction of the shape.
@@ -321,6 +340,10 @@ struct StaticFriction {
 };
 
 /// @brief Dynamic friction.
+/// @details Provides a runtime-time configurable class implementation of the friction policy of the
+///   <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see StaticFriction, Compositor.
 template <int F = 0>
 struct DynamicFriction {
     /// @brief Friction of the shape.
@@ -328,8 +351,12 @@ struct DynamicFriction {
 };
 
 /// @brief Static tenths friction.
+/// @details Provides a compile-time static class implementation of the friction policy of the
+///   <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
 /// @note This is a special template class for achieving fractional frictions with pre C++20
 ///   versions of C++ that don't yet support float and double template parameters.
+/// @see StaticFriction, DynamicFriction, Compositor.
 template <int F = 2>
 struct StaticTenthsFriction {
     /// @brief Friction of the shape.
@@ -337,6 +364,10 @@ struct StaticTenthsFriction {
 };
 
 /// @brief Static restitution policy class.
+/// @details Provides a compile-time static class implementation of the restitution policy of the
+///   <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see DynamicRestitution, Compositor.
 template <int R = 0>
 struct StaticRestitution {
     /// @brief Restitution of the shape.
@@ -344,6 +375,10 @@ struct StaticRestitution {
 };
 
 /// @brief Dynamic restitution policy class.
+/// @details Provides a runtime-time configurable class implementation of the restitution policy of
+/// the <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see StaticRestitution, Compositor.
 template <int R = 0>
 struct DynamicRestitution {
     /// @brief Restitution of the shape.
@@ -351,6 +386,10 @@ struct DynamicRestitution {
 };
 
 /// @brief Static area density policy class.
+/// @details Provides a compile-time static class implementation of the density policy of the
+/// <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see DynamicAreaDensity, Compositor.
 template <int D = 0>
 struct StaticAreaDensity {
     /// @brief Areal density of the shape (for use with 2D shapes).
@@ -358,6 +397,10 @@ struct StaticAreaDensity {
 };
 
 /// @brief Dynamic area density policy class.
+/// @details Provides a runtime-time configurable class implementation of the density policy of
+/// the <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see StaticAreaDensity, Compositor.
 template <int D = 0>
 struct DynamicAreaDensity {
     /// @brief Areal density of the shape (for use with 2D shapes).
@@ -365,6 +408,10 @@ struct DynamicAreaDensity {
 };
 
 /// @brief Static filter policy class.
+/// @details Provides a compile-time static class implementation of the filter policy of the
+/// <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see DynamicFilter, Compositor.
 template <Filter::bits_type CategoryBits = 1, Filter::bits_type MaskBits = 0xFFFF,
           Filter::index_type GroupIndex = 0>
 struct StaticFilter {
@@ -373,6 +420,10 @@ struct StaticFilter {
 };
 
 /// @brief Dynamic filter policy class.
+/// @details Provides a runtime-time configurable class implementation of the filter policy of the
+/// <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see StaticFilter, Compositor.
 template <Filter::bits_type CategoryBits = 1, Filter::bits_type MaskBits = 0xFFFF,
           Filter::index_type GroupIndex = 0>
 struct DynamicFilter {
@@ -381,6 +432,10 @@ struct DynamicFilter {
 };
 
 /// @brief Static sensor policy class.
+/// @details Provides a compile-time static class implementation of the sensor policy of the
+/// <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see DynamicSensor, Compositor.
 template <bool V = false>
 struct StaticSensor {
     /// @brief Sensor property of the shape.
@@ -388,70 +443,99 @@ struct StaticSensor {
 };
 
 /// @brief Dynamic sensor policy class.
+/// @details Provides a runtime-time configurable class implementation of the sensor policy of the
+/// <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
+/// @see StaticSensor, Compositor.
 template <bool V = false>
 struct DynamicSensor {
     /// @brief Sensor property of the shape.
     bool sensor = V;
 };
 
-/// @brief Default policies for the <code>Compositor</code> template class.
+/// @brief Default policy class implementations for the <code>Compositor</code> host class template.
+/// @note This class is not intended for standalone use.
 /// @see Compositor.
 struct DefaultPolicies {
-    /// @brief Alias of the geometry policy.
+    /// @brief Alias to the implementing class for the geometry policy.
     using Geometry = StaticRectangle<>;
 
-    /// @brief Alias of the density policy.
+    /// @brief Alias to the implementing class for the density policy.
     using Density = StaticAreaDensity<>;
 
-    /// @brief Alias of the friction policy.
+    /// @brief Alias for the friction policy.
     using Friction = StaticTenthsFriction<>;
 
-    /// @brief Alias of the restitution policy.
+    /// @brief Alias to the implementing class for the restitution policy.
     using Restitution = StaticRestitution<>;
 
-    /// @brief Alias of the filter policy.
+    /// @brief Alias to the implementing class for the filter policy.
     using Filter = StaticFilter<>;
 
-    /// @brief Alias of the sensor policy.
+    /// @brief Alias to the implementing class for the sensor policy.
     using Sensor = StaticSensor<>;
 };
 
-/// @brief Sets the alias for the geometry policy.
+/// @brief Sets the implementing class of the <code>Compositor</code> geometry policy.
+/// @note This class is not intended for standalone use.
+/// @note Deliberately uses virtual inheritance of the <code>DefaultPolicies</code> base class in
+/// order to properly ensure the intended override of the alias.
+/// @see Compositor.
 template <class Policy>
 struct GeometryIs : virtual DefaultPolicies {
     /// @copydoc DefaultPolicies::Geometry
     using Geometry = Policy;
 };
 
-/// @brief Sets the alias for the density policy.
+/// @brief Sets the implementing class of the <code>Compositor</code> density policy.
+/// @note This class is not intended for standalone use.
+/// @note Deliberately uses virtual inheritance of the <code>DefaultPolicies</code> base class in
+/// order to properly ensure the intended override of the alias.
+/// @see Compositor.
 template <class Policy>
 struct DensityIs : virtual DefaultPolicies {
     /// @copydoc DefaultPolicies::Density
     using Density = Policy;
 };
 
-/// @brief Sets the alias for the friction policy.
+/// @brief Sets the implementing class of the <code>Compositor</code> friction policy.
+/// @note This class is not intended for standalone use.
+/// @note Deliberately uses virtual inheritance of the <code>DefaultPolicies</code> base class in
+/// order to properly ensure the intended override of the alias.
+/// @see Compositor.
 template <class Policy>
 struct FrictionIs : virtual DefaultPolicies {
     /// @copydoc DefaultPolicies::Friction
     using Friction = Policy;
 };
 
-/// @brief Sets the alias for the restitution policy.
+/// @brief Sets the implementing class of the <code>Compositor</code> restitution policy.
+/// @note This class is not intended for standalone use.
+/// @note Deliberately uses virtual inheritance of the <code>DefaultPolicies</code> base class in
+/// order to properly ensure the intended override of the alias.
+/// @see Compositor.
 template <class Policy>
 struct RestitutionIs : virtual DefaultPolicies {
     /// @copydoc DefaultPolicies::Restitution
     using Restitution = Policy;
 };
 
-/// @brief Sets the alias for the filter policy.
+/// @brief Sets the implementing class of the <code>Compositor</code> filter policy.
+/// @note This class is not intended for standalone use.
+/// @note Deliberately uses virtual inheritance of the <code>DefaultPolicies</code> base class in
+/// order to properly ensure the intended override of the alias.
+/// @see Compositor.
 template <class Policy>
 struct FilterIs : virtual DefaultPolicies {
     /// @copydoc DefaultPolicies::Filter
     using Filter = Policy;
 };
 
-/// @brief Sets the alias for the sensor policy.
+/// @brief Sets the implementing class of the <code>Compositor</code> sensor policy.
+/// @note This class is not intended for standalone use.
+/// @note Deliberately uses virtual inheritance of the <code>DefaultPolicies</code> base class in
+/// order to properly ensure the intended override of the alias.
+/// @see Compositor.
 template <class Policy>
 struct SensorIs : virtual DefaultPolicies {
     /// @copydoc DefaultPolicies::Sensor
@@ -459,10 +543,42 @@ struct SensorIs : virtual DefaultPolicies {
 };
 
 /// @brief Default policy arguments for the <code>Compositor</code> template class.
+/// @note This class is not intended for standalone use.
+/// @note Deliberately uses virtual inheritance of the <code>DefaultPolicies</code> base class in
+/// order to properly ensure the intended behavior.
+/// @see Compositor.
 struct DefaultPolicyArgs : virtual DefaultPolicies {
 };
 
-/// @brief A template class for compositing eligible shape types.
+/// @example Compositor.cpp
+/// This is the <code>googletest</code> based unit testing file for uses of the
+///   <code>playrho::part::Compositor</code> class template.
+
+/// @brief A class template for compositing shaped part types eligible for use with classes like
+/// the <code>::playrho::d2::Shape</code> class.
+/// @note This is a host class template that defines geometry, density, friction, restitution,
+/// filter, and sensor policies and that is setup to use default implementations of these per the
+/// <code>DefaultPolicies</code> class. Use any number of the six policy setter classes -
+/// <code>GeometryIs</code>, <code>DensityIs</code>, <code>RestitutionIs</code>,
+/// <code>FrictionIs</code>, <code>SensorIs</code>, <code>FilterIs</code> (as a named template class
+/// argument) - to override these defaults that you'd like to change.
+/// @ingroup PartsGroup
+/// @code
+/// // Here's an example use of this class for a defaulted, enitrely static, rectangular part...
+/// auto comp0 = Compositor<>{};
+///
+/// // Here's an example use of this class for a fully runtime settable rectangular part...
+/// auto comp1 = Compositor<GeometryIs<DynamicRectangle<>>, //
+///                         DensityIs<DynamicAreaDensity<>>, //
+///                         RestitutionIs<DynamicRestitution<>>, //
+///                         FrictionIs<DynamicFriction<>>, //
+///                         SensorIs<DynamicSensor<>>, //
+///                         FilterIs<DynamicFilter<>>>{};
+/// @endcode
+/// @see ::playrho::d2::Shape, DefaultPolicies, GeometryIs, DensityIs, FrictionIs, RestitutionIs,
+/// FilterIs, SensorIs.
+/// @see https://en.wikipedia.org/wiki/Modern_C%2B%2B_Design#Policy-based_design
+/// @see https://flylib.com/books/en/3.401.1.126/1/
 template <class P1 = DefaultPolicyArgs, //
           class P2 = DefaultPolicyArgs, //
           class P3 = DefaultPolicyArgs, //
@@ -480,6 +596,8 @@ class Compositor : // break
 };
 
 /// @brief Gets the rectangle's width and height dimensions.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetDimensions(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -489,6 +607,8 @@ constexpr auto GetDimensions(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noex
 }
 
 /// @brief Sets the rectangle's width and height dimensions.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetDimensions(Compositor<P1, P2, P3, P4, P5, P6>& arg, decltype(arg.GetDimensions()) value)
@@ -498,6 +618,8 @@ auto SetDimensions(Compositor<P1, P2, P3, P4, P5, P6>& arg, decltype(arg.GetDime
 }
 
 /// @brief Gets the rectangle's x and y offset.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetOffset(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -507,6 +629,8 @@ constexpr auto GetOffset(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
 }
 
 /// @brief Sets the rectangle's x and y offset.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetOffset(Compositor<P1, P2, P3, P4, P5, P6>& arg, decltype(arg.GetOffset()) value)
@@ -516,7 +640,8 @@ auto SetOffset(Compositor<P1, P2, P3, P4, P5, P6>& arg, decltype(arg.GetOffset()
 }
 
 /// @brief Gets the "child" count for the given shape configuration.
-/// @return 1.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetChildCount(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -526,6 +651,8 @@ constexpr auto GetChildCount(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noex
 }
 
 /// @brief Gets the "child" shape for the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto GetChild(const Compositor<P1, P2, P3, P4, P5, P6>& arg,
@@ -536,6 +663,8 @@ auto GetChild(const Compositor<P1, P2, P3, P4, P5, P6>& arg,
 }
 
 /// @brief Gets the density of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetDensity(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -545,6 +674,8 @@ constexpr auto GetDensity(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcep
 }
 
 /// @brief Gets the restitution of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetRestitution(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -554,6 +685,8 @@ constexpr auto GetRestitution(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noe
 }
 
 /// @brief Gets the friction of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetFriction(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -563,6 +696,8 @@ constexpr auto GetFriction(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexce
 }
 
 /// @brief Gets the filter of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetFilter(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -572,6 +707,8 @@ constexpr auto GetFilter(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
 }
 
 /// @brief Gets the is-sensor state of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto IsSensor(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -581,6 +718,8 @@ constexpr auto IsSensor(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
 }
 
 /// @brief Gets the vertex radius of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 constexpr auto GetVertexRadius(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept(
@@ -590,6 +729,8 @@ constexpr auto GetVertexRadius(const Compositor<P1, P2, P3, P4, P5, P6>& arg) no
 }
 
 /// @brief Gets the vertex radius of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto GetVertexRadius(const Compositor<P1, P2, P3, P4, P5, P6>& arg,
@@ -600,6 +741,8 @@ auto GetVertexRadius(const Compositor<P1, P2, P3, P4, P5, P6>& arg,
 }
 
 /// @brief Gets the mass data for the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto GetMassData(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
@@ -609,6 +752,8 @@ auto GetMassData(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
 }
 
 /// @brief Translates the given compositor's vertices by the given value.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6, std::size_t N>
 auto Translate(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vector<Length, N>& value)
@@ -618,6 +763,8 @@ auto Translate(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vector<Length, N>&
 }
 
 /// @brief Scales the given compositor's vertices by the given value.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6, std::size_t N>
 auto Scale(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vector<Real, N>& value)
@@ -627,6 +774,8 @@ auto Scale(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vector<Real, N>& value
 }
 
 /// @brief Rotates the given compositor's vertices by the given value.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto Rotate(Compositor<P1, P2, P3, P4, P5, P6>& arg, ::playrho::d2::UnitVec value)
@@ -636,6 +785,8 @@ auto Rotate(Compositor<P1, P2, P3, P4, P5, P6>& arg, ::playrho::d2::UnitVec valu
 }
 
 /// @brief Gets the vertex radius of the given shape configuration.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member function of this same name and accepting the given index and value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetVertexRadius(Compositor<P1, P2, P3, P4, P5, P6>& arg, ChildCounter index,
@@ -646,6 +797,8 @@ auto SetVertexRadius(Compositor<P1, P2, P3, P4, P5, P6>& arg, ChildCounter index
 }
 
 /// @brief Density setter.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetDensity(Compositor<P1, P2, P3, P4, P5, P6>& arg, NonNegative<AreaDensity> value)
@@ -655,6 +808,8 @@ auto SetDensity(Compositor<P1, P2, P3, P4, P5, P6>& arg, NonNegative<AreaDensity
 }
 
 /// @brief Filter setter.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetFilter(Compositor<P1, P2, P3, P4, P5, P6>& arg, Filter value)
@@ -664,6 +819,8 @@ auto SetFilter(Compositor<P1, P2, P3, P4, P5, P6>& arg, Filter value)
 }
 
 /// @brief Sensor setter.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetSensor(Compositor<P1, P2, P3, P4, P5, P6>& arg, bool value)
@@ -673,6 +830,8 @@ auto SetSensor(Compositor<P1, P2, P3, P4, P5, P6>& arg, bool value)
 }
 
 /// @brief Sets friction.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetFriction(Compositor<P1, P2, P3, P4, P5, P6>& arg, Real value)
@@ -682,6 +841,8 @@ auto SetFriction(Compositor<P1, P2, P3, P4, P5, P6>& arg, Real value)
 }
 
 /// @brief Sets restitution.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+/// having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetRestitution(Compositor<P1, P2, P3, P4, P5, P6>& arg, Real value)

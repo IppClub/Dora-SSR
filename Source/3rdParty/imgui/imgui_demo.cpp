@@ -7647,6 +7647,8 @@ void ImGui::ShowAboutWindow(bool*) {}
 void ImGui::ShowDemoWindow(bool*) {}
 void ImGui::ShowUserGuide() {}
 void ImGui::ShowStyleEditor(ImGuiStyle*) {}
+bool ImGui::ShowStyleSelector(char const*) { return false; }
+void ImGui::ShowFontSelector(char const*) {}
 
 #endif
 
