@@ -1,19 +1,21 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
+ * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
+ *
  * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
@@ -41,7 +43,7 @@ inline InvMass3 ComputeK(const VelocityConstraint& vc, const std::vector<BodyCon
     const auto relB0 = vc.GetPointRelPosB(0);
     const auto relA1 = vc.GetPointRelPosA(1);
     const auto relB1 = vc.GetPointRelPosB(1);
-
+    
     const auto rnA0 = Length{Cross(relA0, normal)};
     const auto rnB0 = Length{Cross(relB0, normal)};
     const auto rnA1 = Length{Cross(relA1, normal)};
@@ -49,24 +51,24 @@ inline InvMass3 ComputeK(const VelocityConstraint& vc, const std::vector<BodyCon
 
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();
-
+    
     const auto invRotInertiaB = bodyB->GetInvRotInertia();
     const auto invMassB = bodyB->GetInvMass();
-
+    
     const auto invMass = invMassA + invMassB;
     assert(invMass > InvMass{0});
-
+    
     const auto invRotMassA0 = InvMass{(invRotInertiaA * Square(rnA0)) / SquareRadian};
     const auto invRotMassA1 = InvMass{(invRotInertiaA * Square(rnA1)) / SquareRadian};
     const auto invRotMassB0 = InvMass{(invRotInertiaB * Square(rnB0)) / SquareRadian};
     const auto invRotMassB1 = InvMass{(invRotInertiaB * Square(rnB1)) / SquareRadian};
     const auto invRotMassA = InvMass{(invRotInertiaA * rnA0 * rnA1) / SquareRadian};
     const auto invRotMassB = InvMass{(invRotInertiaB * rnB0 * rnB1) / SquareRadian};
-
+    
     const auto k00 = invMass + invRotMassA0 + invRotMassB0;
     const auto k11 = invMass + invRotMassA1 + invRotMassB1;
     const auto k01 = invMass + invRotMassA + invRotMassB;
-
+    
     return InvMass3{k00, k11, k01};
 }
 
@@ -87,7 +89,7 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
     assert(IsValid(restitution));
     assert(IsValid(tangentSpeed));
     assert(IsValid(m_normal));
-
+    
     const auto pointCount = worldManifold.GetPointCount();
     assert(pointCount > 0);
     for (auto j = decltype(pointCount){0}; j < pointCount; ++j)
@@ -98,11 +100,11 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
         const auto relB = worldPoint - bodies[to_underlying(bB)].GetPosition().linear;
         AddPoint(get<0>(ci), get<1>(ci), relA, relB, bodies, conf);
     }
-
+    
     if (conf.blockSolve && (pointCount == 2))
     {
         const auto k = ComputeK(*this, bodies);
-
+        
         // Ensure a reasonable condition number.
         const auto k00_squared = Square(get<0>(k));
         const auto k00_times_k11 = get<0>(k) * get<1>(k);
@@ -135,10 +137,10 @@ VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
     assert(IsValid(tangentImpulse));
     assert(IsValid(relA));
     assert(IsValid(relB));
-
+    
     const auto bodyA = &bodies[to_underlying(GetBodyA())];
     const auto bodyB = &bodies[to_underlying(GetBodyB())];
-
+    
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();
     const auto invRotInertiaB = bodyB->GetInvRotInertia();

@@ -1,19 +1,21 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
+ * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
+ *
  * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
@@ -59,16 +61,16 @@ inline WorldManifold GetForFaceA(const Manifold& manifold,
         const auto cB = clipPoint - (radiusB * normal);
         return WorldManifold::PointData{(cA + cB) / Real{2}, impulses, Dot(cB - cA, normal)};
     };
-
+    
     assert(manifold.GetPointCount() <= 2);
-
+    
     switch (manifold.GetPointCount())
     {
         case 1: return WorldManifold{normal, pointFn(0)};
         case 2: return WorldManifold{normal, pointFn(0), pointFn(1)};
         default: break; // should never be reached
     }
-
+    
     // should never be reached
     return WorldManifold{normal};
 }
@@ -86,9 +88,9 @@ inline WorldManifold GetForFaceB(const Manifold& manifold,
         const auto cA = clipPoint - (radiusA * normal);
         return WorldManifold::PointData{(cA + cB) / Real{2}, impulses, Dot(cA - cB, normal)};
     };
-
+    
     assert(manifold.GetPointCount() <= 2);
-
+    
     // Negate normal given to world manifold constructor to ensure it points from A to B.
     switch (manifold.GetPointCount())
     {
@@ -96,11 +98,11 @@ inline WorldManifold GetForFaceB(const Manifold& manifold,
         case 2: return WorldManifold{-normal, pointFn(0), pointFn(1)};
         default: break; // should never be reached
     }
-
+    
     // should never be reached
     return WorldManifold{-normal};
 }
-
+    
 } // anonymous namespace
 
 WorldManifold GetWorldManifold(const Manifold& manifold,
@@ -111,7 +113,7 @@ WorldManifold GetWorldManifold(const Manifold& manifold,
 
     assert((type == Manifold::e_circles) || (type == Manifold::e_faceA) ||
            (type == Manifold::e_faceB) || (type == Manifold::e_unset));
-
+    
     switch (type)
     {
         case Manifold::e_circles: return GetForCircles(manifold, xfA, radiusA, xfB, radiusB);
@@ -119,7 +121,7 @@ WorldManifold GetWorldManifold(const Manifold& manifold,
         case Manifold::e_faceB: return GetForFaceB(manifold, xfA, radiusA, xfB, radiusB);
         default: break;
     }
-
+    
     // When type == Manifold::e_unset (or is an undefined value & NDEBUG is defined)...
     return WorldManifold{};
 }

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -57,7 +57,7 @@ struct BaseShapeConf {
     ///
     NonNegative<AreaDensity> density = NonNegative<AreaDensity>{0_kgpm2};
 
-    /// Contact filtering data.
+    /// Filtering data for contacts.
     Filter filter;
 
     /// A sensor shape collects contact information but never generates a collision response.

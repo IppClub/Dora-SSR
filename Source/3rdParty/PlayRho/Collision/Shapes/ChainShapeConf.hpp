@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2010 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -111,6 +111,12 @@ public:
         return m_normals[index];
     }
 
+    /// @brief Gets a copy of all the vertices of the shape in one call.
+    std::vector<Length2> GetVertices() const
+    {
+        return m_vertices;
+    }
+
     /// @brief Equality operator.
     friend bool operator==(const ChainShapeConf& lhs, const ChainShapeConf& rhs) noexcept
     {
@@ -196,10 +202,16 @@ inline NonNegative<Length> GetVertexRadius(const ChainShapeConf& arg, ChildCount
     return GetVertexRadius(arg);
 }
 
-/// @brief Sets the vertex radius of shape for the given index.
-inline void SetVertexRadius(ChainShapeConf& arg, ChildCounter, NonNegative<Length> value)
+/// @brief Sets the vertex radius of the shape.
+inline void SetVertexRadius(ChainShapeConf& arg, NonNegative<Length> value)
 {
     arg.vertexRadius = value;
+}
+
+/// @brief Sets the vertex radius of the shape for the given index.
+inline void SetVertexRadius(ChainShapeConf& arg, ChildCounter, NonNegative<Length> value)
+{
+    SetVertexRadius(arg, value);
 }
 
 /// @brief Translates the given shape's vertices by the given amount.

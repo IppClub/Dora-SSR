@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -27,6 +27,7 @@
 
 #include "PlayRho/Common/UnitInterval.hpp"
 #include "PlayRho/Collision/RayCastInput.hpp"
+#include "PlayRho/Collision/RayCastOpcode.hpp"
 #include "PlayRho/Collision/Shapes/ShapeID.hpp"
 
 #include "PlayRho/Dynamics/BodyID.hpp"
@@ -40,29 +41,6 @@ template <std::size_t N>
 struct AABB;
 
 } // namespace detail
-
-/// @brief Ray cast opcode enumeration.
-/// @details Instructs some ray casting methods on what to do next.
-enum class RayCastOpcode
-{
-    /// @brief End the ray-cast search for fixtures.
-    /// @details Use this to stop searching for fixtures.
-    Terminate,
-
-    /// @brief Ignore the current fixture.
-    /// @details Use this to continue searching for fixtures along the ray.
-    IgnoreFixture,
-
-    /// @brief Clip the ray end to the current point.
-    /// @details Use this shorten the ray to the current point and to continue searching
-    ///   for fixtures now along the newly shortened ray.
-    ClipRay,
-
-    /// @brief Reset the ray end back to the second point.
-    /// @details Use this to restore the ray to its full length and to continue searching
-    ///    for fixtures now along the restored full length ray.
-    ResetRay
-};
 
 namespace d2 {
 
@@ -78,7 +56,7 @@ struct RayCastHit
 {
     /// @brief Surface normal in world coordinates at the point of contact.
     UnitVec normal;
-
+    
     /// @brief Fraction.
     /// @note This is a unit interval value - a value between 0 and 1 - or it's invalid.
     UnitInterval<Real> fraction = UnitInterval<Real>{0};

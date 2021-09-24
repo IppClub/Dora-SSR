@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2010 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -34,7 +34,7 @@ template <typename T, std::size_t N>
 class GrowableStack
 {
 public:
-
+    
     /// @brief Element type.
     using ElementType = T;
 
@@ -46,7 +46,7 @@ public:
     {
         return CountType(N);
     }
-
+    
     /// @brief Gets the buffer growth rate.
     static constexpr CountType GetBufferGrowthRate() noexcept
     {
@@ -54,7 +54,7 @@ public:
     }
 
     GrowableStack() = default;
-
+    
     GrowableStack(const GrowableStack& other) = delete;
 
     GrowableStack(GrowableStack&& other) = delete;
@@ -71,7 +71,7 @@ public:
     GrowableStack& operator= (const GrowableStack& copy) = delete;
 
     GrowableStack& operator= (GrowableStack&& copy) = delete;
-
+    
     /// @brief Pushes the given elements onto this stack.
     void push(const ElementType& element)
     {
@@ -112,7 +112,7 @@ public:
     {
         return m_count;
     }
-
+    
     /// @brief Gets the capacity in number of elements.
     constexpr CountType capacity() const noexcept
     {

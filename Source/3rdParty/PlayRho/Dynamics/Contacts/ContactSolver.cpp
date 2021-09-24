@@ -1,19 +1,21 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
+ * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
+ *
  * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
@@ -173,7 +175,7 @@ std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc,
 
         // Postconditions
         const auto dv1 = GetContactRelVelocity(velA, vcp1.relA, velB, vcp1.relB);
-
+        
         // Compute normal velocity
         const auto vn1 = Dot(dv1, vc.GetNormal());
 
@@ -276,35 +278,35 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc,
     //    = A * x + b - A * a
     //    = A * x + b'
     // b' = b - A * a;
-
+    
     const auto b_prime = [&bodies,&vc]() {
         const auto normal = vc.GetNormal();
-
+        
         const auto velA = bodies[to_underlying(vc.GetBodyA())].GetVelocity();
         const auto velB = bodies[to_underlying(vc.GetBodyB())].GetVelocity();
         const auto ra0 = vc.GetPointRelPosA(0);
         const auto rb0 = vc.GetPointRelPosB(0);
         const auto ra1 = vc.GetPointRelPosA(1);
         const auto rb1 = vc.GetPointRelPosB(1);
-
+        
         const auto dv0 = GetContactRelVelocity(velA, ra0, velB, rb0);
         const auto dv1 = GetContactRelVelocity(velA, ra1, velB, rb1);
-
+        
         // Compute normal velocities
         const auto vn0 = Dot(dv0, normal);
         const auto vn1 = Dot(dv1, normal);
-
+        
         // Compute b
         const auto b = LinearVelocity2{
             vn0 - vc.GetVelocityBiasAtPoint(0),
             vn1 - vc.GetVelocityBiasAtPoint(1)
         };
-
+        
         // Return b'
         const auto K = vc.GetK();
         return b - Transform(GetNormalImpulses(vc), K);
     }();
-
+    
     auto maxIncImpulse = std::optional<Momentum>{};
     maxIncImpulse = BlockSolveNormalCase1(vc, bodies, b_prime);
     if (maxIncImpulse.has_value())
@@ -326,7 +328,7 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc,
     {
         return *maxIncImpulse;
     }
-
+    
     // No solution, give up. This is hit sometimes, but it doesn't seem to matter.
     return 0;
 }
@@ -335,23 +337,23 @@ inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc,
                                          std::vector<BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
-
+    
     const auto direction = vc.GetNormal();
     const auto count = vc.GetPointCount();
     const auto bodyA = &bodies[to_underlying(vc.GetBodyA())];
     const auto bodyB = &bodies[to_underlying(vc.GetBodyB())];
-
+    
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();
     const auto oldVelA = bodyA->GetVelocity();
-
+    
     const auto invRotInertiaB = bodyB->GetInvRotInertia();
     const auto invMassB = bodyB->GetInvMass();
     const auto oldVelB = bodyB->GetVelocity();
-
+    
     auto newVelA = oldVelA;
     auto newVelB = oldVelB;
-
+    
     auto solverProc = [&](VelocityConstraint::size_type index) {
         const auto vcp = vc.GetPointAt(index);
         const auto closingVel = GetContactRelVelocity(newVelA, vcp.relA, newVelB, vcp.relB);
@@ -382,10 +384,10 @@ inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc,
         solverProc(1);
     }
     solverProc(0);
-
+    
     bodyA->SetVelocity(newVelA);
     bodyB->SetVelocity(newVelB);
-
+    
     return maxIncImpulse;
 }
 
@@ -393,25 +395,25 @@ inline Momentum SolveTangentConstraint(VelocityConstraint& vc,
                                        std::vector<BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
-
+    
     const auto direction = vc.GetTangent();
     const auto friction = vc.GetFriction();
     const auto tangentSpeed = vc.GetTangentSpeed();
     const auto count = vc.GetPointCount();
     const auto bodyA = &bodies[to_underlying(vc.GetBodyA())];
     const auto bodyB = &bodies[to_underlying(vc.GetBodyB())];
-
+    
     const auto invRotInertiaA = bodyA->GetInvRotInertia();
     const auto invMassA = bodyA->GetInvMass();
     const auto oldVelA = bodyA->GetVelocity();
-
+    
     const auto invRotInertiaB = bodyB->GetInvRotInertia();
     const auto invMassB = bodyB->GetInvMass();
     const auto oldVelB = bodyB->GetVelocity();
-
+    
     auto newVelA = oldVelA;
     auto newVelB = oldVelB;
-
+    
     auto solverProc = [&](VelocityConstraint::size_type index) {
         const auto vcp = vc.GetPointAt(index);
         const auto closingVel = GetContactRelVelocity(newVelA, vcp.relA, newVelB, vcp.relB);
@@ -432,7 +434,7 @@ inline Momentum SolveTangentConstraint(VelocityConstraint& vc,
         newVelA -= Velocity{invMassA * P, invRotInertiaA * LA};
         newVelB += Velocity{invMassB * P, invRotInertiaB * LB};
         maxIncImpulse = std::max(maxIncImpulse, abs(incImpulse));
-
+        
         // Note: using newImpulse, instead of oldImpulse + incImpulse, results in
         //   iteration count increases for the World.TilesComesToRest unit test.
         vc.SetTangentImpulseAtPoint(index, oldImpulse + incImpulse);
@@ -446,7 +448,7 @@ inline Momentum SolveTangentConstraint(VelocityConstraint& vc,
 
     bodyA->SetVelocity(newVelA);
     bodyB->SetVelocity(newVelB);
-
+    
     return maxIncImpulse;
 }
 
@@ -470,7 +472,7 @@ inline Momentum SolveNormalConstraint(VelocityConstraint& vc,
 }
 
 }; // anonymous namespace
-
+    
 } // namespace d2
 
 namespace GaussSeidel {
@@ -479,13 +481,13 @@ Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc,
                                  std::vector<d2::BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
-
+    
     // Applies frictional changes to velocity.
     maxIncImpulse = std::max(maxIncImpulse, d2::SolveTangentConstraint(vc, bodies));
-
+    
     // Applies restitutional changes to velocity.
     maxIncImpulse = std::max(maxIncImpulse, d2::SolveNormalConstraint(vc, bodies));
-
+    
     return maxIncImpulse;
 }
 
@@ -497,50 +499,50 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
     assert(IsValid(conf.resolutionRate));
     assert(IsValid(conf.linearSlop));
     assert(IsValid(conf.maxLinearCorrection));
-
+    
     const auto bodyA = &bodies[to_underlying(pc.GetBodyA())];
     const auto bodyB = &bodies[to_underlying(pc.GetBodyB())];
-
+    
     const auto invMassA = moveA? bodyA->GetInvMass(): InvMass{0};
     const auto invRotInertiaA = moveA? bodyA->GetInvRotInertia(): InvRotInertia{0};
     const auto localCenterA = bodyA->GetLocalCenter();
-
+    
     const auto invMassB = moveB? bodyB->GetInvMass(): InvMass{0};
     const auto invRotInertiaB = moveB? bodyB->GetInvRotInertia(): InvRotInertia{0};
     const auto localCenterB = bodyB->GetLocalCenter();
-
+    
     // Compute inverse mass total.
     // This must be > 0 unless doing TOI solving and neither bodies were the bodies specified.
     const auto invMassTotal = invMassA + invMassB;
     assert(invMassTotal >= InvMass{0});
-
+    
     const auto totalRadius = pc.GetTotalRadius();
-
+    
     const auto solver_fn = [&](const d2::PositionSolverManifold psm,
                                const Length2 pA, const Length2 pB) {
         const auto separation = psm.m_separation - totalRadius;
         // Positive separation means shapes not overlapping and not touching.
         // Zero separation means shapes are touching.
         // Negative separation means shapes are overlapping.
-
+        
         const auto rA = Length2{psm.m_point - pA};
         const auto rB = Length2{psm.m_point - pB};
-
+        
         // Compute the total effective inverse mass.
         const auto K = invMassTotal + GetEffectiveInvMass(invRotInertiaA, rA, psm.m_normal) +
             GetEffectiveInvMass(invRotInertiaB, rB, psm.m_normal);
-
+        
         assert(K >= InvMass{0});
-
+        
         // Prevent large corrections & don't push separation above -conf.linearSlop.
         const auto C = -std::clamp(conf.resolutionRate * (separation + conf.linearSlop),
                                    -conf.maxLinearCorrection, 0_m);
-
+        
         // Compute response factors...
         const auto P = Length2{psm.m_normal * C} / K; // L M
         const auto LA = Cross(rA, P) / Radian; // L^2 M QP^-1
         const auto LB = Cross(rB, P) / Radian; // L^2 M QP^-1
-
+        
         // InvMass is M^-1, and InvRotInertia is L^-2 M^-1 QP^2.
         // Product of InvMass * P is: L
         // Product of InvRotInertia * L{A,B} is: QP
@@ -550,10 +552,10 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
             separation
         };
     };
-
+    
     auto posA = bodyA->GetPosition();
     auto posB = bodyB->GetPosition();
-
+    
     // Solve normal constraints
     const auto pointCount = pc.manifold.GetPointCount();
     switch (pointCount)
@@ -574,25 +576,25 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
             const auto s0 = solver_fn(psm0, posA.linear, posB.linear);
             posA += s0.pos_a;
             posB += s0.pos_b;
-
+            
             const auto psm1 = GetPSM(pc.manifold, 1,
                                      GetTransformation(posA, localCenterA),
                                      GetTransformation(posB, localCenterB));
             const auto s1 = solver_fn(psm1, posA.linear, posB.linear);
             posA += s1.pos_a;
             posB += s1.pos_b;
-
+            
             return PositionSolution{posA, posB, std::min(s0.min_separation, s1.min_separation)};
 #else
             const auto xfA = GetTransformation(posA, localCenterA);
             const auto xfB = GetTransformation(posB, localCenterB);
-
+            
             // solve most penatrating point first or solve simultaneously if about the same penetration
             const auto psm0 = GetPSM(pc.manifold, 0, xfA, xfB);
             const auto psm1 = GetPSM(pc.manifold, 1, xfA, xfB);
-
+            
             assert(IsValid(psm0.m_separation) && IsValid(psm1.m_separation));
-
+            
             if (AlmostEqual(StripUnit(psm0.m_separation), StripUnit(psm1.m_separation)))
             {
                 const auto s0 = solver_fn(psm0, posA.linear, posB.linear);

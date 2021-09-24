@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -27,7 +27,7 @@
 
 namespace playrho {
 
-/// @brief Contact Feature.
+/// @brief The contact feature.
 /// @details The features that intersect to form the contact point.
 /// @note This structure is designed to be compact and passed-by-value.
 /// @note This data structure is 4-bytes large.
@@ -110,7 +110,7 @@ constexpr bool operator!=(ContactFeature lhs, ContactFeature rhs) noexcept
 }
 
 /// @brief Gets the human readable name for the given contact feature type.
-inline const char* GetName(ContactFeature::Type type) noexcept
+constexpr const char* GetName(ContactFeature::Type type) noexcept
 {
     switch (type)
     {

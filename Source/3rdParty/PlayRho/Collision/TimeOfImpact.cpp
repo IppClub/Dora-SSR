@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -20,63 +20,20 @@
  */
 
 #include "PlayRho/Collision/TimeOfImpact.hpp"
+
 #include "PlayRho/Collision/Distance.hpp"
 #include "PlayRho/Collision/DistanceProxy.hpp"
 #include "PlayRho/Collision/SeparationScenario.hpp"
-#include "PlayRho/Dynamics/StepConf.hpp"
+#include "PlayRho/Common/Sweep.hpp"
+
 #include <algorithm>
+#include <cassert> // for assert
 
-namespace playrho {
+namespace playrho::d2 {
 
-const char* GetName(TOIOutput::State state) noexcept
-{
-    switch (state) {
-    case TOIOutput::e_unknown:
-        break;
-    case TOIOutput::e_touching:
-        return "touching";
-    case TOIOutput::e_separated:
-        return "separated";
-    case TOIOutput::e_overlapped:
-        return "overlapped";
-    case TOIOutput::e_nextAfter:
-        return "next-after";
-    case TOIOutput::e_maxRootIters:
-        return "max-root-iters";
-    case TOIOutput::e_maxToiIters:
-        return "max-toi-iters";
-    case TOIOutput::e_belowMinTarget:
-        return "below-min-target";
-    case TOIOutput::e_maxDistIters:
-        return "max-dist-iters";
-    case TOIOutput::e_targetDepthExceedsTotalRadius:
-        return "target-depth-exceeds-total-radius";
-    case TOIOutput::e_minTargetSquaredOverflow:
-        return "min-target-squared-overflow";
-    case TOIOutput::e_maxTargetSquaredOverflow:
-        return "max-target-squared-overflow";
-    case TOIOutput::e_notFinite:
-        return "not-finite";
-    }
-    assert(state == TOIOutput::e_unknown);
-    return "unknown";
-}
-
-ToiConf GetToiConf(const StepConf& conf) noexcept
-{
-    return ToiConf{}
-        .UseTimeMax(1)
-        .UseTargetDepth(conf.targetDepth)
-        .UseTolerance(conf.tolerance)
-        .UseMaxRootIters(conf.maxToiRootIters)
-        .UseMaxToiIters(conf.maxToiIters)
-        .UseMaxDistIters(conf.maxDistanceIters);
-}
-
-namespace d2 {
-
-TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
-                       const DistanceProxy& proxyB, const Sweep& sweepB, ToiConf conf)
+ToiOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA, // force line-break
+                       const DistanceProxy& proxyB, const Sweep& sweepB, // force line-break
+                       const ToiConf& conf)
 {
     assert(IsValid(sweepA));
     assert(IsValid(sweepB));
@@ -86,11 +43,11 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
     // CCD via the local separating axis method. This seeks progression
     // by computing the largest time at which separation is maintained.
 
-    auto stats = TOIOutput::Statistics{};
+    auto stats = ToiOutput::Statistics{};
 
     const auto totalRadius = proxyA.GetVertexRadius() + proxyB.GetVertexRadius();
     if (conf.targetDepth > totalRadius) {
-        return TOIOutput{0, stats, TOIOutput::e_targetDepthExceedsTotalRadius};
+        return ToiOutput{0, stats, ToiOutput::e_targetDepthExceedsTotalRadius};
     }
 
     const auto target = totalRadius - conf.targetDepth;
@@ -99,12 +56,12 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
 
     const auto minTargetSquared = Square(minTarget);
     if (!isfinite(minTargetSquared) && isfinite(minTarget)) {
-        return TOIOutput{0, stats, TOIOutput::e_minTargetSquaredOverflow};
+        return ToiOutput{0, stats, ToiOutput::e_minTargetSquaredOverflow};
     }
 
     const auto maxTargetSquared = Square(maxTarget);
     if (!isfinite(maxTargetSquared) && isfinite(maxTarget)) {
-        return TOIOutput{0, stats, TOIOutput::e_maxTargetSquaredOverflow};
+        return ToiOutput{0, stats, ToiOutput::e_maxTargetSquaredOverflow};
     }
 
     auto timeLo = Real{0}; // Will be set to value of timeHi
@@ -125,7 +82,7 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
         stats.max_dist_iters = std::max(stats.max_dist_iters, dinfo.iterations);
 
         if (dinfo.state == DistanceOutput::HitMaxIters) {
-            return TOIOutput{timeLo, stats, TOIOutput::e_maxDistIters};
+            return ToiOutput{timeLo, stats, ToiOutput::e_maxDistIters};
         }
         assert(dinfo.state != DistanceOutput::Unknown);
         distanceConf.cache = Simplex::GetCache(dinfo.simplex.GetEdges());
@@ -135,19 +92,19 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
 #if 0
         if (!isfinite(distSquared))
         {
-            return TOIOutput{timeLo, stats, TOIOutput::e_notFinite};
+            return ToiOutput{timeLo, stats, ToiOutput::e_notFinite};
         }
 #endif
         // If shapes closer at time timeLo than min-target squared, bail as overlapped.
         if (distSquared < minTargetSquared) {
-            /// XXX maybe should return TOIOutput{timeLo, stats, TOIOutput::e_belowMinTarget}?
-            return TOIOutput{timeLo, stats, TOIOutput::e_overlapped};
+            /// XXX maybe should return ToiOutput{timeLo, stats, ToiOutput::e_belowMinTarget}?
+            return ToiOutput{timeLo, stats, ToiOutput::e_overlapped};
         }
 
         if (distSquared <= maxTargetSquared) // Victory!
         {
             // The two convex polygons are within the target range of each other at time timeLo!
-            return TOIOutput{timeLo, stats, TOIOutput::e_touching};
+            return ToiOutput{timeLo, stats, ToiOutput::e_touching};
         }
 
         // From here on, the real distance squared at time timeLo is > than maxTargetSquared
@@ -172,11 +129,11 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
                 // Victory! No collision occurs within time span.
                 assert(timeHi == conf.tMax);
                 // Formerly this used tMax as in...
-                // return TOIOutput{TOIOutput::e_separated, tMax};
+                // return ToiOutput{ToiOutput::e_separated, tMax};
                 // timeHi seems more appropriate however given s2 was derived from it.
                 // Meanwhile timeHi always seems equal to input.tMax at this point.
                 stats.sum_finder_iters += pbIter;
-                return TOIOutput{timeHi, stats, TOIOutput::e_separated};
+                return ToiOutput{timeHi, stats, ToiOutput::e_separated};
             }
 
             // From here on, timeHiMinSep.distance <= maxTarget
@@ -195,7 +152,7 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
                     // distance is separated, this function can return the separated state.
                     //
                     stats.sum_finder_iters += pbIter;
-                    return TOIOutput{timeHi, stats, TOIOutput::e_separated};
+                    return ToiOutput{timeHi, stats, ToiOutput::e_separated};
                 }
 
                 // Advance the sweeps
@@ -217,11 +174,11 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
             if (timeLoEvalDistance <= maxTarget) {
                 if (timeLoEvalDistance < minTarget) {
                     stats.sum_finder_iters += pbIter;
-                    return TOIOutput{timeLo, stats, TOIOutput::e_belowMinTarget};
+                    return ToiOutput{timeLo, stats, ToiOutput::e_belowMinTarget};
                 }
                 // Victory! timeLo should hold the TOI (could be 0.0).
                 stats.sum_finder_iters += pbIter;
-                return TOIOutput{timeLo, stats, TOIOutput::e_touching};
+                return ToiOutput{timeLo, stats, ToiOutput::e_touching};
             }
 
             // Now: timeLoEvalDistance > maxTarget
@@ -241,13 +198,13 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
                     stats.sum_finder_iters += pbIter;
                     stats.sum_root_iters += roots;
                     stats.max_root_iters = std::max(stats.max_root_iters, roots);
-                    return TOIOutput{t, stats, TOIOutput::e_maxRootIters};
+                    return ToiOutput{t, stats, ToiOutput::e_maxRootIters};
                 }
                 if (nextafter(a1, a2) >= a2) {
                     stats.sum_finder_iters += pbIter;
                     stats.sum_root_iters += roots;
                     stats.max_root_iters = std::max(stats.max_root_iters, roots);
-                    return TOIOutput{t, stats, TOIOutput::e_nextAfter};
+                    return ToiOutput{t, stats, ToiOutput::e_nextAfter};
                 }
 
                 // Uses secant to improve convergence & bisection to guarantee progress.
@@ -294,8 +251,7 @@ TOIOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA,
     // stats.toi_iters == conf.maxToiIters
     // Root finder got stuck.
     // This can happen if the two shapes never actually collide within their sweeps.
-    return TOIOutput{timeLo, stats, TOIOutput::e_maxToiIters};
+    return ToiOutput{timeLo, stats, ToiOutput::e_maxToiIters};
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

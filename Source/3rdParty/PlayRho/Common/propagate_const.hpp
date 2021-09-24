@@ -1,7 +1,7 @@
 /*
 
 Original work Copyright (c) 2014-2018 Jonathan B. Coe
-Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

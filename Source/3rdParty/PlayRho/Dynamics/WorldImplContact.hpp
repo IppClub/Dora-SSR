@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -31,10 +31,12 @@
 #include "PlayRho/Dynamics/Contacts/ContactID.hpp"
 
 namespace playrho {
+
+class Contact;
+
 namespace d2 {
 
 class WorldImpl;
-class Contact;
 class Manifold;
 
 /// @brief Gets the extent of the currently valid contact range.

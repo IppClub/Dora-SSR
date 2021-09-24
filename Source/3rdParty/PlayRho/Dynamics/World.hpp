@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -51,13 +51,13 @@ namespace playrho {
 
 struct StepConf;
 struct Filter;
+class Contact;
 
 namespace d2 {
 
 class WorldImpl;
 class Body;
 class Joint;
-class Contact;
 class Manifold;
 class ContactImpulsesList;
 class DynamicTree;

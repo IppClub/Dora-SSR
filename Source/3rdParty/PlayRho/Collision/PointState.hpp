@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
+ * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -18,16 +19,21 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "PlayRho/Dynamics/Joints/JointKey.hpp"
-#include "PlayRho/Dynamics/Joints/Joint.hpp"
+#ifndef PLAYRHO_COLLISION_POINTSTATE_HPP
+#define PLAYRHO_COLLISION_POINTSTATE_HPP
 
 namespace playrho {
-namespace d2 {
 
-JointKey GetJointKey(const Joint& joint) noexcept
+/// @brief Point state enumeration.
+/// @note This is used for determining the state of contact points.
+enum class PointState
 {
-    return JointKey::Get(GetBodyA(joint), GetBodyB(joint));
-}
+    NullState, ///< Point does not exist.
+    AddState, ///< Point was added in the update.
+    PersistState, ///< Point persisted across the update.
+    RemoveState ///< Point was removed in the update.
+};
 
-} // namespace d2
 } // namespace playrho
+
+#endif // PLAYRHO_COLLISION_POINTSTATE_HPP

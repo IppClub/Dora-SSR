@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
+ * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
+ *
  * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
@@ -35,7 +37,7 @@ namespace d2 {
 class VertexSet
 {
 public:
-
+    
     /// @brief Constant pointer type.
     using const_pointer = const Length2*;
 
@@ -44,7 +46,7 @@ public:
     {
         return sqrt(std::numeric_limits<Vec2::value_type>::min()) * SquareMeter;
     }
-
+    
     /// @brief Initializing constructor.
     explicit VertexSet(Area minSepSquared = GetDefaultMinSeparationSquared()):
         m_minSepSquared{minSepSquared}
@@ -65,7 +67,7 @@ public:
         m_elements.push_back(value);
         return true;
     }
-
+    
     /// @brief Clear this set.
     void clear() noexcept
     {
@@ -77,13 +79,13 @@ public:
     {
         return ::playrho::detail::Size(m_elements);
     }
-
+    
     /// @brief Gets the pointer to the data buffer.
     const_pointer data() const { return ::playrho::detail::Data(m_elements); }
-
+    
     /// @brief Gets the "begin" iterator value.
     const_pointer begin() const { return data(); }
-
+    
     /// @brief Gets the "end" iterator value.
     const_pointer end() const { return data() + size(); }
 

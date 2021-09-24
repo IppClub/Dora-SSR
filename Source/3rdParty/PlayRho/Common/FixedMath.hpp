@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -90,19 +90,19 @@ constexpr Fixed<BT, FB> pow(Fixed<BT, FB> value, int n)
     {
         return (n < 0)? Fixed<BT, FB>{0}: Fixed<BT, FB>::GetInfinity();
     }
-
+    
     const auto doReciprocal = (n < 0);
     if (doReciprocal)
     {
         n = -n;
     }
-
+    
     auto res = value;
     for (; n > 1; --n)
     {
         res *= value;
     }
-
+    
     return (doReciprocal)? 1 / res: res;
 }
 
@@ -197,7 +197,7 @@ Fixed<BT, FB> log(Fixed<BT, FB> arg)
         }
         return res;
     }
-
+    
     // The following algorithm isn't as accurate as desired.
     // Is there a better one?
     // ln(x) = ((x - 1) / x) + ((x - 1) / x)^2/2 + ((x - 1) / x)^3/3 + ...
@@ -296,7 +296,7 @@ constexpr Fixed<BT, FB> atan(Fixed<BT, FB> arg)
         res += sgn * term;
         sgn = -sgn;
     }
-
+    
     if (doReciprocal)
     {
         return (arg > 0)? FixedPi<BT, FB> / 2 - res: -FixedPi<BT, FB> / 2 - res;
@@ -523,7 +523,7 @@ inline Fixed<BT, FB> pow(Fixed<BT, FB> base, Fixed<BT, FB> exponent)
             return pow(base, intExp);
         }
     }
-
+    
     if (base < 0)
     {
         return Fixed<BT, FB>::GetNaN();
