@@ -503,14 +503,17 @@ void Director::displayStats()
 	const bgfx::Stats* stats = bgfx::getStats();
 	const char* rendererNames[] = {
 		"Noop", //!< No rendering.
+		"Agc", //!< AGC
 		"Direct3D9", //!< Direct3D 9.0
 		"Direct3D11", //!< Direct3D 11.0
 		"Direct3D12", //!< Direct3D 12.0
 		"Gnm", //!< GNM
 		"Metal", //!< Metal
+		"Nvn", //!< NVN
 		"OpenGLES", //!< OpenGL ES 2.0+
 		"OpenGL", //!< OpenGL 2.1+
 		"Vulkan", //!< Vulkan
+		"WebGPU", //!< WebGPU
 	};
 	bgfx::ViewId dbgViewId = SharedView.getId();
 	int row = 0;

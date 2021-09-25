@@ -233,7 +233,7 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 		bx::mtxMul(MVP, _target->getWorld(), SharedDirector.getViewProjection());
 		bx::mtxInverse(invMVP, MVP);
 	}
-	bx::Plane plane;
+	bx::Plane plane(bx::init::None);
 	bx::calcPlane(plane, bx::Vec3{0,0,0}, bx::Vec3{1,0,0}, bx::Vec3{0,1,0});
 
 	Vec3 posTarget{pos[0], pos[1], 1.0f};
