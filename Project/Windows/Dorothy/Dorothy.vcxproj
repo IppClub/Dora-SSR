@@ -1390,7 +1390,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;zlib.lib;luad.lib;soloud_static.lib;sqlite3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;zlib.lib;luad.lib;soloudd.lib;sqlite3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
