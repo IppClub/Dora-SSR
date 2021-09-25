@@ -321,7 +321,11 @@ void Application::updateDeltaTime()
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 void Application::updateWindowSize()
 {
+#if BX_PLATFORM_OSX
+	SDL_Metal_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
+#else // BX_PLATFORM_OSX
 	SDL_GL_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
+#endif // BX_PLATFORM_OSX
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
 	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};

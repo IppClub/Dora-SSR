@@ -165,6 +165,8 @@
 		3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D781E55957500205094 /* atlas.cpp */; };
 		3C9CCD022689BDD00086757D /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9CCCF52689BDD00086757D /* os.cpp */; };
 		3C9CCD042689BDD00086757D /* format.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9CCCF92689BDD00086757D /* format.cpp */; };
+		3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CE826FEE8440046C13D /* GameController.framework */; };
+		3CA32CEB26FEE89E0046C13D /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */; };
 		3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA718A61FCCF11000B6AC80 /* lodepng.cpp */; };
 		3CB2115125C2984900CEA033 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115025C2984900CEA033 /* imgui_tables.cpp */; };
 		3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2487D1E4DB41500B6BF26 /* utf8.cpp */; };
@@ -767,6 +769,8 @@
 		3C9CCCFF2689BDD00086757D /* ostream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ostream.h; path = ../../../Source/3rdParty/fmt/ostream.h; sourceTree = "<group>"; };
 		3C9CCD002689BDD00086757D /* xchar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xchar.h; path = ../../../Source/3rdParty/fmt/xchar.h; sourceTree = "<group>"; };
 		3C9CCD012689BDD00086757D /* ranges.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ranges.h; path = ../../../Source/3rdParty/fmt/ranges.h; sourceTree = "<group>"; };
+		3CA32CE826FEE8440046C13D /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
+		3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
 		3CA718A61FCCF11000B6AC80 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../../Source/3rdParty/lodepng/lodepng.cpp; sourceTree = "<group>"; };
 		3CB2115025C2984900CEA033 /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = ../../../Source/3rdParty/imgui/imgui_tables.cpp; sourceTree = "<group>"; };
@@ -1130,6 +1134,8 @@
 				3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */,
 				3CC54E9D1E03C0B100462FD7 /* libz.1.2.8.tbd in Frameworks */,
 				3CC7A0EE1E8D56E8003188D6 /* libsoloud.a in Frameworks */,
+				3CA32CEB26FEE89E0046C13D /* CoreHaptics.framework in Frameworks */,
+				3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */,
 				3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */,
 				3CE331571D96D30100F9C3F6 /* Metal.framework in Frameworks */,
 				3CE331531D96D12200F9C3F6 /* Carbon.framework in Frameworks */,
@@ -1350,6 +1356,8 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */,
+				3CA32CE826FEE8440046C13D /* GameController.framework */,
 				3C46E81B2614090300DC9D4F /* libsqlite3.a */,
 				3C8E77E0248F954700546BCB /* liblua.a */,
 				3CE7D3731EADF594008EADB3 /* libbimg_decode.a */,
