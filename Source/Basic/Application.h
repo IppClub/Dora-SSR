@@ -43,6 +43,7 @@ public:
 	PROPERTY_READONLY(double, TotalTime);
 	PROPERTY_READONLY(const Slice, Platform);
 	PROPERTY_READONLY(const Slice, Version);
+	PROPERTY_READONLY(std::string, Deps);
 	PROPERTY_READONLY_CALL(uint32_t, Rand);
 	PROPERTY_READONLY(uint32_t, RandMin);
 	PROPERTY_READONLY(uint32_t, RandMax);

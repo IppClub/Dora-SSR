@@ -1,9 +1,8 @@
 _ENV = Dorothy builtin.ImGui
 import "Utils" as :Set
-import "yue" as options:{extension:yueext}, version:yueVersion
+import "yue" as options:{extension:yueext}
 
-print "Dorothy SSR version: #{App.version}#{App.debugging and ', debugging' or ''}"
-print "Yuescript version: #{yueVersion}"
+print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
 
 LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 18, "Chinese"
 

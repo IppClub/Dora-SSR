@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "SDL_syswm.h"
 #include "SDL.h"
 
-#define DORA_VERSION "1.0.2"_slice
+#define DORA_VERSION "1.0.3"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -667,3 +667,32 @@ int CALLBACK WinMain(
 	return SharedApplication.run();
 }
 #endif // BX_PLATFORM_WINDOWS
+
+#include "yuescript/yue_compiler.h"
+#include "PlayRho/Defines.hpp"
+#include "soloud.h"
+#include "imgui.h"
+#include "sqlite3.h"
+
+std::string Dorothy::Application::getDeps() const
+{
+	return fmt::format(
+		"- SDL2 {}.{}.{}\n"
+		"- bgfx {}\n"
+		"- Lua {}.{}.{}\n"
+		"- Yuescript {}\n"
+		"- PlayRho {}.{}.{}\n"
+		"- soloud {}\n"
+		"- DragonBones 5.6.3\n"
+		"- Spine 4.1.4\n"
+		"- imgui {}\n"
+		"- sqlite3 {}",
+		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
+		BGFX_API_VERSION,
+		LUA_VERSION_MAJOR, LUA_VERSION_MINOR, LUA_VERSION_RELEASE,
+		yue::version,
+		PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH,
+		SOLOUD_VERSION,
+		IMGUI_VERSION_NUM,
+		SQLITE_VERSION);
+}
