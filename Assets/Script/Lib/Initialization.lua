@@ -1,7 +1,5 @@
 package.path = "?.lua"
-package.cpath = ""
 local yue = require("yue")
-package.yuepath = "?." .. yue.options.extension
 
 local App = builtin.Application()
 local Director = builtin.Director()
@@ -12,6 +10,8 @@ local Keyboard = builtin.Keyboard()
 local DB = builtin.DB()
 local AI = builtin.Platformer.Decision.AI()
 local Data = builtin.Platformer.Data()
+
+package.cpath = App.platform == "Windows" and "?.dll" or "?.so"
 
 builtin.Application = nil
 builtin.App = App

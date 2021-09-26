@@ -30,7 +30,7 @@ ui:schedule(function(): boolean
 	local size = App.visualSize
 	ImGui.SetNextWindowPos(Vec2(size.width - 250, 10), "FirstUseEver")
 	ImGui.SetNextWindowSize(Vec2(240, 120), "FirstUseEver")
-	ImGui.Begin("Hello World", {"NoResize","NoSavedSettings"}, function()
+	ImGui.Begin("Hello World", {"NoResize", "NoSavedSettings"}, function()
 		ImGui.TextWrapped("Basic Dorothy schedule and signal function usage. View outputs in log window!")
 	end)
 end)
