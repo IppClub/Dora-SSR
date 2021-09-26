@@ -103,6 +103,7 @@ class Application
 	tolua_readonly tolua_property__common float deviceRatio;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common String version;
+	tolua_readonly tolua_property__common String deps;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_readonly tolua_property__common double totalTime;
 	tolua_readonly tolua_property__common double runningTime;
