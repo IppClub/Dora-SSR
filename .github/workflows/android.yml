@@ -11,7 +11,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v2
       - name: Generate Lua bindings
         run: |
           sudo apt-get install lua5.1
@@ -24,7 +25,5 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
-      - name: Android build
-        uses: vgaidarji/android-github-actions-build@v1.0.1
-        with:
-          args: "cd Project/Android && ./gradlew assembleDebug"
+      - name: Build Android
+        run: cd Project/Android && ./gradlew assembleDebug
