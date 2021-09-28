@@ -1047,6 +1047,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\VelocityConstraint.cpp">
       <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\TealCompiler.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">

@@ -21,6 +21,7 @@
 		3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EBE341E2E1D840066450A /* ShaderCache.cpp */; };
 		3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1984742100656700B6F370 /* PlatformWorld.cpp */; };
 		3C1984792100656800B6F370 /* PlatformCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1984752100656700B6F370 /* PlatformCamera.cpp */; };
+		3C1D40EC2702FC8A00202534 /* TealCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1D40EB2702FC8A00202534 /* TealCompiler.cpp */; };
 		3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2DFE121E95C4AF0077B67D /* SoundCache.cpp */; };
 		3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2DFE181E95C58A0077B67D /* Sound.cpp */; };
 		3C2F9C871E7AE8CA00B98D39 /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C851E7AE8CA00B98D39 /* Animation.cpp */; };
@@ -36,7 +37,6 @@
 		3C3B981226FDAD5000BD9F3E /* Sweep.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B97DE26FDAD4F00BD9F3E /* Sweep.cpp */; };
 		3C3B981326FDAD5000BD9F3E /* Velocity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B97DF26FDAD4F00BD9F3E /* Velocity.cpp */; };
 		3C3B981426FDAD5000BD9F3E /* DynamicMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B97F726FDAD4F00BD9F3E /* DynamicMemory.cpp */; };
-		3C3B981526FDAD5000BD9F3E /* Real.hpp.in in Resources */ = {isa = PBXBuildFile; fileRef = 3C3B980026FDAD5000BD9F3E /* Real.hpp.in */; };
 		3C3B981626FDAD5000BD9F3E /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B980126FDAD5000BD9F3E /* Math.cpp */; };
 		3C3B981726FDAD5000BD9F3E /* BlockAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B980526FDAD5000BD9F3E /* BlockAllocator.cpp */; };
 		3C3B981826FDAD5000BD9F3E /* Version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B980A26FDAD5000BD9F3E /* Version.cpp */; };
@@ -369,6 +369,10 @@
 		3C1984752100656700B6F370 /* PlatformCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlatformCamera.cpp; path = ../../../Source/Platformer/PlatformCamera.cpp; sourceTree = "<group>"; };
 		3C1984762100656800B6F370 /* PlatformWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlatformWorld.h; path = ../../../Source/Platformer/PlatformWorld.h; sourceTree = "<group>"; };
 		3C1984772100656800B6F370 /* PlatformCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlatformCamera.h; path = ../../../Source/Platformer/PlatformCamera.h; sourceTree = "<group>"; };
+		3C1D40EB2702FC8A00202534 /* TealCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TealCompiler.cpp; path = ../../../Source/Lua/TealCompiler.cpp; sourceTree = "<group>"; };
+		3C1D40EE2702FD7C00202534 /* Class.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Class.lua; path = ../../../Source/Lua/Builtin/Class.lua; sourceTree = "<group>"; };
+		3C1D40EF2702FD7C00202534 /* Initialization.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Initialization.lua; path = ../../../Source/Lua/Builtin/Initialization.lua; sourceTree = "<group>"; };
+		3C1D40F02702FD7C00202534 /* tl.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = tl.lua; path = ../../../Source/Lua/Builtin/tl.lua; sourceTree = "<group>"; };
 		3C2DFE121E95C4AF0077B67D /* SoundCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoundCache.cpp; path = ../../../Source/Cache/SoundCache.cpp; sourceTree = "<group>"; };
 		3C2DFE131E95C4AF0077B67D /* SoundCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoundCache.h; path = ../../../Source/Cache/SoundCache.h; sourceTree = "<group>"; };
 		3C2DFE181E95C58A0077B67D /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
@@ -1388,6 +1392,16 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		3C1D40ED2702FD6800202534 /* Builtin */ = {
+			isa = PBXGroup;
+			children = (
+				3C1D40EE2702FD7C00202534 /* Class.lua */,
+				3C1D40EF2702FD7C00202534 /* Initialization.lua */,
+				3C1D40F02702FD7C00202534 /* tl.lua */,
+			);
+			name = Builtin;
+			sourceTree = "<group>";
+		};
 		3C291D341E0264380098C860 /* silly */ = {
 			isa = PBXGroup;
 			children = (
@@ -2398,7 +2412,9 @@
 		3CFF5F221E012874004E3CA6 /* Lua */ = {
 			isa = PBXGroup;
 			children = (
+				3C1D40ED2702FD6800202534 /* Builtin */,
 				3C7708341E08D98F00B38C2A /* ToLua */,
+				3C1D40EB2702FC8A00202534 /* TealCompiler.cpp */,
 				3C7708301E08CB4300B38C2A /* LuaBinding.cpp */,
 				3C77082F1E08CA0900B38C2A /* LuaBinding.h */,
 				3C7708311E08CB4300B38C2A /* LuaCode.cpp */,
@@ -2481,7 +2497,6 @@
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
 				3CBC785124CE7528003C9E83 /* Model in Resources */,
-				3C3B981526FDAD5000BD9F3E /* Real.hpp.in in Resources */,
 				3CBC785024CE7528003C9E83 /* Spine in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2563,6 +2578,7 @@
 				3CFB4FDF2697DE1800181CB4 /* ClippingAttachment.cpp in Sources */,
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
 				3CE9D7F81E7FC2A6003AAECB /* Sensor.cpp in Sources */,
+				3C1D40EC2702FC8A00202534 /* TealCompiler.cpp in Sources */,
 				3CE9D7F71E7FC2A6003AAECB /* JointDef.cpp in Sources */,
 				3CFB4FC02697DE1800181CB4 /* Skeleton.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
