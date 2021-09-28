@@ -9,6 +9,7 @@ end
 for _,v in ipairs({
 		{t=true,D=true,L="basic.lua",o="../../Source/Lua/LuaBinding.cpp",f="LuaBinding.pkg",lua_entry=true},
 		{t=true,D=true,L="basic.lua",o="../../Source/Lua/LuaCode.cpp",f="LuaCode.pkg",lua_entry=true}
+		{t=true,D=true,L="basic.lua",o="../../Source/Lua/TealCompiler.cpp",f="TealCompiler.pkg",lua_entry=true}
 	}) do
 
 	keys = {}

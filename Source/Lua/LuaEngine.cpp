@@ -609,8 +609,7 @@ std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCo
 		lua_pushcfunction(_tlState, dora_loader); // package, searchers, loader
 		lua_rawseti(_tlState, -2, 1); // searchers[1] = loader, package, searchers
 		lua_pop(_tlState, 2); // clear
-		luaL_loadstring(_tlState, "require('tl')"); // func
-		LuaEngine::execute(_tlState, 0); // func()
+		tolua_TealCompiler_open(_tlState);
 		lua_getglobal(_tlState, "package"); // package
 		lua_pushliteral(_tlState, "path"); // package "path"
 		lua_pushliteral(_tlState, "?.lua"); // package "path" "?.lua"

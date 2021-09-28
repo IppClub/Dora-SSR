@@ -607,6 +607,15 @@ void ImGuiDora::showStats()
 			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Drawcall:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Tri:");
+			ImGui::SameLine();
+			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] +
+				bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
+			ImGui::SameLine();
+			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Line:");
+			ImGui::SameLine();
+			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] +
+				bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
 			bool vsync = SharedView.isVSync();
 			if (ImGui::Checkbox("VSync", &vsync))
 			{

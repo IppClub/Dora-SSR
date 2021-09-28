@@ -863,6 +863,7 @@
     <ClCompile Include="..\..\..\Source\Lua\LuaFromXml.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaHandler.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaManual.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\TealCompiler.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_event.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_fix.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_is.cpp" />

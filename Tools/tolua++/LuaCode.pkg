@@ -2,5 +2,5 @@ $#include "Const/Header.h"
 $#include "Lua/LuaBinding.h"
 $using namespace Dorothy;
 
-$lfile "../../Assets/Script/Lib/Class.lua"
-$lfile "../../Assets/Script/Lib/Initialization.lua"
+$lfile "../../Source/Lua/Builtin/Class.lua"
+$lfile "../../Source/Lua/Builtin/Initialization.lua"
