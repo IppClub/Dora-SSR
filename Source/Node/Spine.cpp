@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Support/Common.h"
 #include "Basic/Director.h"
+#include "Support/Dictionary.h"
 
 NS_DOROTHY_BEGIN
 
@@ -305,6 +306,39 @@ void Spine::stop()
 	_animationState->clearTrack(0);
 }
 
+void Spine::setSlot(String name, Node* item)
+{
+	if (!_slots)
+	{
+		_slots = New<std::unordered_map<std::string, Ref<Node>>>();
+	}
+	auto it = _slots->find(name);
+	if (it != _slots->end())
+	{
+		it->second->removeFromParent();
+		_slots->erase(it);
+	}
+	if (item)
+	{
+		(*_slots)[name] = item;
+		item->setVisible(false);
+		addChild(item);
+	}
+}
+
+Node* Spine::getSlot(String name)
+{
+	if (_slots)
+	{
+		auto it = _slots->find(name);
+		if (it != _slots->end())
+		{
+			return it->second;
+		}
+	}
+	return nullptr;
+}
+
 std::string Spine::containsPoint(float x, float y)
 {
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
@@ -421,6 +455,7 @@ void Spine::render()
 			SharedSpriteRenderer.push(
 				vertices.data(), vertices.size(),
 				_effect, texture, renderState);
+			vertices.clear();
 		}
 		else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti))
 		{
@@ -454,19 +489,49 @@ void Spine::render()
 				spine::BoundingBoxAttachment* boundingBox = s_cast<spine::BoundingBoxAttachment*>(attachment);
 				auto polygon = _bounds->getPolygon(boundingBox);
 				int vertSize = polygon->_count / 2;
-				std::vector<Vec2> vertices(vertSize + 1);
+				std::vector<Vec2> verts(vertSize + 1);
 				for (int i = 0; i < vertSize; i++)
 				{
 					float x = polygon->_vertices[i * 2];
 					float y = polygon->_vertices[i * 2 + 1];
-					vertices[i] = {x, y};
+					verts[i] = {x, y};
 				}
-				vertices[vertSize] = vertices[0];
-				_debugLine->add(vertices, Color(0xff00ffff));
+				verts[vertSize] = verts[0];
+				_debugLine->add(verts, Color(0xff00ffff));
 			}
 		}
-		vertices.clear();
+		else if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti))
+		{
+			spine::PointAttachment* pointAttachment = s_cast<spine::PointAttachment*>(attachment);
+			const auto& str = pointAttachment->getName();
+			Slice name = {str.buffer(), str.length()};
+			if (name.left(2) == "s:"_slice)
+			{
+				float x = 0, y = 0;
+				pointAttachment->computeWorldPosition(slot->getBone(), x, y);
+				float angle = -pointAttachment->computeWorldRotation(slot->getBone());
+				name.skip(2);
+				if (auto node = getSlot(name))
+				{
+					float scaleY = node->getScaleY();
+					node->setScaleY(isFliped() ? -scaleY : scaleY);
+					node->setPosition({x, y});
+					node->setAngle(angle);
+					node->setVisible(true);
+					node->visit();
+					node->render();
+					node->setVisible(false);
+					node->setScaleY(scaleY);
+				}
+			}
+		}
 	}
+}
+
+void Spine::cleanup()
+{
+	_slots = nullptr;
+	Node::cleanup();
 }
 
 NS_DOROTHY_END

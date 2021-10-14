@@ -575,6 +575,8 @@ class Playable : public Node
 	Vec2 getKeyPoint @ getKey(String name);
 	float play(String name, bool loop = false);
 	void stop();
+	void setSlot(String name, Node* item);
+	Node* getSlot(String name);
 	static Playable* create(String filename);
 };
 

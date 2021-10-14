@@ -593,6 +593,23 @@ void DragonBone::stop()
 	_armatureProxy->getAnimation()->stop(Slice::Empty);
 }
 
+void DragonBone::setSlot(String name, Node* item)
+{
+	if (auto slot = getChildByTag(name))
+	{
+		slot->addChild(item, 0, name);
+	}
+}
+
+Node* DragonBone::getSlot(String name)
+{
+	if (auto slot = getChildByTag(name))
+	{
+		return slot->getChildByTag(name);
+	}
+	return nullptr;
+}
+
 std::string DragonBone::containsPoint(float x, float y)
 {
 	if (!isHitTestEnabled()) return Slice::Empty;

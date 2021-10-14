@@ -109,6 +109,8 @@ public:
 	virtual Vec2 getKeyPoint(String name) const override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
+	virtual void setSlot(String name, Node* item) override;
+	virtual Node* getSlot(String name) override;
 	bool hasAnimation(String name) const;
 	void pause();
 	void resume();

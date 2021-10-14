@@ -107,6 +107,7 @@ local VGPaint = require("VGPaint")
 local nvg = require("nvg")
 local ImGui = require("ImGui")
 local Platformer = require("Platformer")
+local tealtolua = require("tealtolua")
 --Dorothy
 --property
 --Class
@@ -220,5 +221,6 @@ global builtin = {
 	VGPaint = VGPaint,
 	nvg = nvg,
 	ImGui = ImGui,
-	Platformer = Platformer
+	Platformer = Platformer,
+	tealtolua = tealtolua,
 }
