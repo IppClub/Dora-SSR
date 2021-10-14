@@ -25,6 +25,8 @@ public:
 	virtual Vec2 getKeyPoint(String name) const = 0;
 	virtual float play(String name, bool loop = false) = 0;
 	virtual void stop() = 0;
+	virtual void setSlot(String name, Node* item) = 0;
+	virtual Node* getSlot(String name) = 0;
 	static Playable* create(String filename);
 protected:
 	bool _fliped;

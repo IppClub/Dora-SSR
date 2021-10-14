@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   A Transaction is way to group multiple SQL statements into an atomic secured operation.
  *
- * Copyright (c) 2012-2020 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2021 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -19,6 +19,16 @@ namespace SQLite
 
 // Forward declaration
 class Database;
+
+/**
+ * @brief Transaction behaviors when opening an SQLite transaction.
+ * Names correspond directly to the behavior.
+ */
+enum class TransactionBehavior {
+    DEFERRED,
+    IMMEDIATE,
+    EXCLUSIVE,
+};
 
 /**
  * @brief RAII encapsulation of a SQLite Transaction.
@@ -44,13 +54,23 @@ class Transaction
 {
 public:
     /**
-     * @brief Begins the SQLite transaction
+     * @brief Begins the SQLite transaction using the default transaction behavior.
      *
      * @param[in] aDatabase the SQLite Database Connection
      *
      * Exception is thrown in case of error, then the Transaction is NOT initiated.
      */
     explicit Transaction(Database& aDatabase);
+
+    /**
+     * @brief Begins the SQLite transaction with the specified behavior.
+     *
+     * @param[in] aDatabase the SQLite Database Connection
+     * @param[in] behavior the requested transaction behavior
+     *
+     * Exception is thrown in case of error, then the Transaction is NOT initiated.
+     */
+    explicit Transaction(Database& aDatabase, TransactionBehavior behavior);
 
     // Transaction is non-copyable
     Transaction(const Transaction&) = delete;

@@ -200,6 +200,23 @@ void Model::stop()
 	}
 }
 
+void Model::setSlot(String name, Node* item)
+{
+	if (auto slot = getNodeByName(name))
+	{
+		slot->addChild(item, 0, name);
+	}
+}
+
+Node* Model::getSlot(String name)
+{
+	if (auto slot = getNodeByName(name))
+	{
+		return slot->getChildByTag(name);
+	}
+	return nullptr;
+}
+
 bool Model::isPlaying() const
 {
 	return _isPlaying;

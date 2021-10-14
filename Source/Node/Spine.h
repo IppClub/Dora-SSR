@@ -27,6 +27,7 @@ public:
 	virtual bool init() override;
 	virtual void visit() override;
 	virtual void render() override;
+	virtual void cleanup() override;
 	virtual void setSpeed(float var) override;
 	virtual void setRecovery(float var) override;
 	virtual void setFliped(bool var) override;
@@ -36,6 +37,8 @@ public:
 	virtual Vec2 getKeyPoint(String name) const override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
+	virtual void setSlot(String name, Node* item) override;
+	virtual Node* getSlot(String name) override;
 	std::string containsPoint(float x, float y);
 	std::string intersectsSegment(float x1, float y1, float x2, float y2);
 	CREATE_FUNC(Spine);
@@ -61,6 +64,7 @@ private:
 	Own<spine::Skin> _newSkin;
 	Own<spine::SkeletonBounds> _bounds;
 	Ref<Line> _debugLine;
+	Own<std::unordered_map<std::string, Ref<Node>>> _slots;
 	enum
 	{
 		DepthWrite = Node::UserFlag,

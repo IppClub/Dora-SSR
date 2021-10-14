@@ -107,6 +107,8 @@ public:
 	virtual Vec2 getKeyPoint(String name) const override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
+	virtual void setSlot(String name, Node* item) override;
+	virtual Node* getSlot(String name) override;
 	std::string containsPoint(float x, float y);
 	std::string intersectsSegment(float x1, float y1, float x2, float y2);
 	static DragonBone* create(String boneFile, String atlasFile);
