@@ -247,7 +247,7 @@ local record ImGui
 	LoadFontTTF: function(
 		ttfFontFile: string,
 		fontSize: number,
-		glyphRanges: string --[["Default"]]
+		glyphRanges?: string --[["Default"]]
 	)
 	ShowStats: function()
 	ShowConsole: function()
@@ -317,75 +317,77 @@ local record ImGui
 	): boolean
 	SetNextWindowPos: function(
 		pos: Vec2,
-		setCond: SetCond --[[""]]
+		setCond?: SetCond --[[""]]
 	)
-	SetNextWindowPosCenter: function(setCond: SetCond --[[""]])
+	SetNextWindowPosCenter: function(
+		setCond?: SetCond --[[""]]
+	)
 	SetNextWindowSize: function(
 		size: Vec2,
-		setCond: SetCond --[[""]]
+		setCond?: SetCond --[[""]]
 	)
 	SetNextWindowCollapsed: function(
 		collapsed: boolean,
-		setCond: SetCond --[[""]]
+		setCond?: SetCond --[[""]]
 	)
 	SetWindowPos: function(
 		name: string,
 		pos: Vec2,
-		setCond: SetCond --[[""]]
+		setCond?: SetCond --[[""]]
 	)
 	SetWindowSize: function(
 		name: string,
 		size: Vec2,
-		setCond: SetCond --[[""]]
+		setCond?: SetCond --[[""]]
 	)
 	SetWindowCollapsed: function(
 		name: string,
 		collapsed: boolean,
-		setCond: SetCond --[[""]]
+		setCond?: SetCond --[[""]]
 	)
 	SetColorEditOptions: function(colorEditMode: ColorEditMode)
 	InputText: function(
 		label: string,
 		buffer: Buffer,
-		inputTextFlags: {InputTextFlag} --[[nil]]
+		inputTextFlags?: {InputTextFlag} --[[nil]]
 	): boolean
 	InputTextMultiline: function(
 		label: string,
 		buffer: Buffer,
-		size: Vec2 --[[Vec2.zero]],
-		inputTextFlags: {InputTextFlag} --[[nil]]
+		size?: Vec2 --[[Vec2.zero]],
+		inputTextFlags?: {InputTextFlag} --[[nil]]
 	): boolean
 	TreeNodeEx: function(
 		label: string,
-		treeNodeFlags: {TreeNodeFlag} --[[nil]]
+		treeNodeFlags?: {TreeNodeFlag} --[[nil]]
 	): boolean
 	TreeNodeEx: function(
 		str_id: string,
 		text: string,
-		treeNodeFlags: {TreeNodeFlag} --[[nil]]
+		treeNodeFlags?: {TreeNodeFlag} --[[nil]]
 	): boolean
 	SetNextItemOpen: function(
 		is_open: boolean,
-		setCond: SetCond --[[""]]
+		setCond?: SetCond --[[""]]
 	): boolean
 	CollapsingHeader: function(
 		label: string,
-		treeNodeFlags: {TreeNodeFlag} --[[nil]]
+		treeNodeFlags?: {TreeNodeFlag} --[[nil]]
 	): boolean
 	CollapsingHeader: function(
 		label: string,
 		p_open: boolean,
-		treeNodeFlags: {TreeNodeFlag} --[[nil]]
+		treeNodeFlags?: {TreeNodeFlag} --[[nil]]
 	): boolean, boolean
 	Selectable: function(
 		label: string,
-		selectableFlags: {SelectableFlag} --[[nil]]
+		selectableFlags?: {SelectableFlag} --[[nil]]
 	): boolean
 	Selectable: function(
 		label: string,
 		p_selected: boolean,
-		size: Vec2 --[[Vec2.zero]],
-		selectableFlags: {SelectableFlag} --[[nil]]
+		size?: Vec2 --[[Vec2.zero]],
+		selectableFlags?: {SelectableFlag} --[[nil]]
 	): boolean, boolean
 	BeginPopupModal: function(
 		name: string,
@@ -436,42 +438,42 @@ local record ImGui
 	ColorEdit4: function(
 		label: string,
 		color: Color,
-		show_alpha: boolean --[[true]]
+		show_alpha?: boolean --[[true]]
 	): boolean
 
 	Image: function(
 		clipStr: string,
 		size: Vec2,
-		tint_col: Color --[[0xffffffff]],
-		border_col: Color --[[0x0]]
+		tint_col?: Color --[[0xffffffff]],
+		border_col?: Color --[[0x0]]
 	)
 	ImageButton: function(
 		clipStr: string,
 		size: Vec2,
-		frame_padding: integer --[[-1]],
-		bg_col: Color --[[0x0]],
-		tint_col: Color --[[0xffffffff]]
+		frame_padding?: integer --[[-1]],
+		bg_col?: Color --[[0x0]],
+		tint_col?: Color --[[0xffffffff]]
 	): boolean
 
 	ColorButton: function(
 		desc_id: string,
 		col: Color,
-		flags: ColorEditMode --[[""]],
-		size: Vec2 --[[Vec2.zero]]
+		flags?: ColorEditMode --[[""]],
+		size?: Vec2 --[[Vec2.zero]]
 	): boolean
 
 	Columns: function(
-		count: integer --[[1]],
-		border: boolean --[[true]]
+		count?: integer --[[1]],
+		border?: boolean --[[true]]
 	)
 	Columns: function(count: integer, border: boolean, id: string)
 
 	BeginTable: function(
 		str_id: string,
 		column: integer,
-		outer_size: Vec2 --[[Vec2.zero]],
-		inner_width: number --[[0.0]],
-		flags: {TableFlag} --[[nil]],
+		outer_size?: Vec2 --[[Vec2.zero]],
+		inner_width?: number --[[0.0]],
+		flags?: {TableFlag} --[[nil]],
 		inside: function()
 	): boolean
 	BeginTable: function(
@@ -493,14 +495,14 @@ local record ImGui
 		inside: function()
 	): boolean
 	TableNextRow: function(
-		min_row_height: number --[[0.0]],
-		row_flags: {TableRowFlag} --[[nil]]
+		min_row_height?: number --[[0.0]],
+		row_flags?: {TableRowFlag} --[[nil]]
 	)
 	TableSetupColumn: function(
 		label: string,
-		init_width_or_weight: number --[[0.0]],
-		user_id: integer --[[0]],
-		flags: {TableColumnFlag} --[[nil]]
+		init_width_or_weight?: number --[[0.0]],
+		user_id?: integer --[[0]],
+		flags?: {TableColumnFlag} --[[nil]]
 	)
 
 	SetStyleVar: function(name: StyleVarBool, var: boolean)
@@ -512,7 +514,7 @@ local record ImGui
 		label: string,
 		p_current_item: integer,
 		items: {string},
-		height_in_items: integer --[[-1]]
+		height_in_items?: integer --[[-1]]
 	): boolean, integer
 
 	DragFloat: function(
@@ -521,18 +523,18 @@ local record ImGui
 		v_speed: number,
 		v_min: number,
 		v_max: number,
-		display_format: string --[["%.3f"]],
-		flags: {SliderFlag} --[[nil]]
+		display_format?: string --[["%.3f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number
 	DragFloat2: function(
 		label: string,
 		p_v1: number,
 		p_v2: number,
-		v_speed: number --[[1.0]],
-		v_min: number --[[0.0]],
-		v_max: number --[[0.0]],
-		display_format: string --[["%.3f"]],
-		flags: {SliderFlag} --[[nil]]
+		v_speed?: number --[[1.0]],
+		v_min?: number --[[0.0]],
+		v_max?: number --[[0.0]],
+		display_format?: string --[["%.3f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number, number
 	DragInt: function(
 		label: string,
@@ -540,54 +542,54 @@ local record ImGui
 		v_speed: number,
 		v_min: integer,
 		v_max: integer,
-		display_format: string --[["%d"]],
-		flags: {SliderFlag} --[[nil]]
+		display_format?: string --[["%d"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer, integer
 	DragInt2: function(
 		label: string,
 		v1: integer,
 		v2: integer,
-		v_speed: number --[[1.0]],
-		v_min: integer --[[0]],
-		v_max: integer --[[0]],
-		display_format: string --[["%.0f"]],
-		flags: {SliderFlag} --[[nil]]
+		v_speed?: number --[[1.0]],
+		v_min?: integer --[[0]],
+		v_max?: integer --[[0]],
+		display_format?: string --[["%.0f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer, integer
 	InputFloat: function(
 		label: string,
 		p_v: number,
-		step: number --[[0.0]],
-		step_fast: number --[[0.0]],
-		format: string --[["%.3f"]],
-		flags: {SliderFlag} --[[nil]]
+		step?: number --[[0.0]],
+		step_fast?: number --[[0.0]],
+		format?: string --[["%.3f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number
 	InputFloat2: function(
 		label: string,
 		p_v1: number,
 		p_v2: number,
-		format: string --[["%.1f"]],
-		flags: {SliderFlag} --[[nil]]
+		format?: string --[["%.1f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number, number
 	InputInt: function(
 		label: string,
 		p_v: integer,
-		step: integer --[[1]],
-		step_fast: integer --[[100]],
-		flags: {SliderFlag} --[[nil]]
+		step?: integer --[[1]],
+		step_fast?: integer --[[100]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer
 	InputInt2: function(
 		label: string,
 		p_v1: integer,
 		p_v2: integer,
-		flags: {SliderFlag} --[[nil]]
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer, integer
 	SliderFloat: function(
 		label: string,
 		p_v: number,
 		v_min: number,
 		v_max: number,
-		format: string --[["%.3f"]],
-		flags: {SliderFlag} --[[nil]]
+		format?: string --[["%.3f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number
 	SliderFloat2: function(
 		label: string,
@@ -595,16 +597,16 @@ local record ImGui
 		p_v2: number,
 		v_min: number,
 		v_max: number,
-		display_format: string --[["%.3f"]],
-		flags: {SliderFlag} --[[nil]]
+		display_format?: string --[["%.3f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number, number
 	SliderInt: function(
 		label: string,
 		p_v: integer,
 		v_min: integer,
 		v_max: integer,
-		format: string --[["%d"]],
-		flags: {SliderFlag} --[[nil]]
+		format?: string --[["%d"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer
 	SliderInt2: function(
 		label: string,
@@ -612,30 +614,30 @@ local record ImGui
 		p_v2: integer,
 		v_min: integer,
 		v_max: integer,
-		display_format: string --[["%.0f"]],
-		flags: {SliderFlag} --[[nil]]
+		display_format?: string --[["%.0f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer, integer
 	DragFloatRange2: function(
 		label: string,
 		p_current_min: number,
 		p_current_max: number,
-		v_speed: number --[[1.0]],
-		v_min: number --[[0.0]],
-		v_max: number --[[0.0]],
-		format: string --[["%.3f"]],
-		format_max: string --[[""]],
-		flags: {SliderFlag} --[[nil]]
+		v_speed?: number --[[1.0]],
+		v_min?: number --[[0.0]],
+		v_max?: number --[[0.0]],
+		format?: string --[["%.3f"]],
+		format_max?: string --[[""]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number, number
 	DragIntRange2: function(
 		label: string,
 		p_current_min: integer,
 		p_current_max: integer,
-		v_speed: number --[[1.0]],
-		v_min: integer --[[0]],
-		v_max: integer --[[0]],
-		format: string --[["%d"]],
-		format_max: string --[[""]],
-		flags: {SliderFlag} --[[nil]]
+		v_speed?: number --[[1.0]],
+		v_min?: integer --[[0]],
+		v_max?: integer --[[0]],
+		format?: string --[["%d"]],
+		format_max?: string --[[""]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer, integer
 	VSliderFloat: function(
 		label: string,
@@ -643,8 +645,8 @@ local record ImGui
 		p_v: number,
 		v_min: number,
 		v_max: number,
-		format: string --[["%.3f"]],
-		flags: {SliderFlag} --[[nil]]
+		format?: string --[["%.3f"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, number
 	VSliderInt: function(
 		label: string,
@@ -652,8 +654,8 @@ local record ImGui
 		p_v: integer,
 		v_min: integer,
 		v_max: integer,
-		format: string --[["%d"]],
-		flags: {SliderFlag} --[[nil]]
+		format?: string --[["%d"]],
+		flags?: {SliderFlag} --[[nil]]
 	): boolean, integer
 
 	ShowDemoWindow: function()
@@ -678,12 +680,12 @@ local record ImGui
 	GetScrollMaxY: function(): number
 	SetScrollX: function(scroll_x: number)
 	SetScrollY: function(scroll_y: number)
-	SetScrollHereY: function(center_y_ratio: number --[[0.5]])
+	SetScrollHereY: function(center_y_ratio?: number --[[0.5]])
 	SetScrollFromPosY: function(
 		pos_y: number,
-		center_y_ratio: number --[[0.5]]
+		center_y_ratio?: number --[[0.5]]
 	)
-	SetKeyboardFocusHere: function(offset: integer --[[0]])
+	SetKeyboardFocusHere: function(offset?: integer --[[0]])
 
 	PushItemWidth: function(item_width: number, inside: function())
 	CalcItemWidth: function(): number
@@ -694,14 +696,14 @@ local record ImGui
 
 	Separator: function()
 	SameLine: function(
-		pos_x: number --[[0.0]],
-		spacing_w: number --[[-1.0]]
+		pos_x?: number --[[0.0]],
+		spacing_w?: number --[[-1.0]]
 	)
 	NewLine: function()
 	Spacing: function()
 	Dummy: function(size: Vec2)
-	Indent: function(indent_w: number --[[0.0]])
-	Unindent: function(indent_w: number --[[0.0]])
+	Indent: function(indent_w?: number --[[0.0]])
+	Unindent: function(indent_w?: number --[[0.0]])
 	BeginGroup: function(inside: function())
 	GetCursorPos: function(): Vec2
 	GetCursorPosX: function(): number
@@ -718,9 +720,9 @@ local record ImGui
 
 	NextColumn: function()
 	GetColumnIndex: function(): integer
-	GetColumnOffset: function(column_index: integer --[[-1]]): number
+	GetColumnOffset: function(column_index?: integer --[[-1]]): number
 	SetColumnOffset: function(column_index: integer, offset_x: number)
-	GetColumnWidth: function(column_index: integer --[[-1]]): number
+	GetColumnWidth: function(column_index?: integer --[[-1]]): number
 	GetColumnsCount: function(): integer
 
 	TableNextColumn: function(): boolean
@@ -736,7 +738,7 @@ local record ImGui
 	BulletItem: function()
 	Button: function(
 		label: string,
-		size: Vec2 --[[Vec2.zero]]
+		size?: Vec2 --[[Vec2.zero]]
 	): boolean
 	SmallButton: function(label: string): boolean
 	InvisibleButton: function(str_id: string, size: Vec2): boolean
@@ -746,39 +748,39 @@ local record ImGui
 	PlotLines: function(
 		label: string,
 		values: {number},
-		values_offset: integer --[[0]],
-		overlay_text: string --[[""]],
-		scale_min: number --[[min]],
-		scale_max: number --[[[max]],
-		graph_size: Vec2 --[[Vec2.zero]]
+		values_offset?: integer --[[0]],
+		overlay_text?: string --[[""]],
+		scale_min?: number --[[min]],
+		scale_max?: number --[[[max]],
+		graph_size?: Vec2 --[[Vec2.zero]]
 	)
 	PlotHistogram: function(
 		label: string,
 		values: {number},
-		values_offset: integer --[[0]],
-		overlay_text: string --[[""]],
-		scale_min: number --[[min]],
-		scale_max: number --[[max]],
-		graph_size: Vec2 --[[Vec2.zero]]
+		values_offset?: integer --[[0]],
+		overlay_text?: string --[[""]],
+		scale_min?: number --[[min]],
+		scale_max?: number --[[max]],
+		graph_size?: Vec2 --[[Vec2.zero]]
 	)
 	ProgressBar: function(
 		fraction: number,
-		size_arg: Vec2 --[[Vec2(-1,0)]],
-		overlay: string --[[""]]
+		size_arg?: Vec2 --[[Vec2(-1,0)]],
+		overlay?: string --[[""]]
 	)
 
 	ListBox: function(
 		label: string,
 		current_item: integer,
 		items: {string},
-		height_in_items: integer --[[-1]]
+		height_in_items?: integer --[[-1]]
 	): boolean, integer
 
 	SliderAngle: function(
 		label: string,
 		p_rad: number,
-		v_degrees_min: number --[[-360.0]],
-		v_degrees_max: number --[[360.0]]
+		v_degrees_min?: number --[[-360.0]],
+		v_degrees_max?: number --[[360.0]]
 	): boolean, number
 
 	TreeNode: function(label: string): boolean
@@ -790,7 +792,7 @@ local record ImGui
 	GetTreeNodeToLabelSpacing: function(): number
 	BeginListBox: function(
 		label: string,
-		size: Vec2 --[[Vec2.zero]]
+		size?: Vec2 --[[Vec2.zero]]
 	): boolean
 	EndListBox: function()
 
@@ -799,7 +801,7 @@ local record ImGui
 	Value: function(
 		prefix: string,
 		v: number,
-		float_format: string --[[""]]
+		float_format?: string --[[""]]
 	)
 
 	BeginTooltip: function(inside: function())
@@ -817,15 +819,15 @@ local record ImGui
 	): boolean
 	MenuItem: function(
 		label: string,
-		shortcut: string --[[""]],
-		selected: boolean --[[false]],
-		enabled: boolean --[[true]]
+		shortcut?: string --[[""]],
+		selected?: boolean --[[false]],
+		enabled?: boolean --[[true]]
 	): boolean
 	MenuItemToggle: function(
 		label: string,
 		shortcut: string,
 		p_selected: boolean,
-		enabled: boolean --[[true]]
+		enabled?: boolean --[[true]]
 	): boolean, boolean
 
 	OpenPopup: function(str_id: string)
@@ -871,7 +873,9 @@ local record ImGui
 
 	IsItemHovered: function(): boolean
 	IsItemActive: function(): boolean
-	IsItemClicked: function(mouse_button: integer --[[0]]): boolean
+	IsItemClicked: function(
+		mouse_button?: integer --[[0]]
+	): boolean
 	IsItemVisible: function(): boolean
 	IsAnyItemHovered: function(): boolean
 	IsAnyItemActive: function(): boolean
@@ -884,24 +888,29 @@ local record ImGui
 	IsRectVisible: function(size: Vec2): boolean
 	IsRectVisible: function(rect_min: Vec2, rect_max: Vec2): boolean
 	IsMouseDown: function(button: integer): boolean
-	IsMouseClicked: function(button: integer, repeated: boolean --[[false]]): boolean
+	IsMouseClicked: function(
+		button: integer,
+		repeated?: boolean --[[false]]
+	): boolean
 	IsMouseDoubleClicked: function(button: integer): boolean
 	IsMouseReleased: function(button: integer): boolean
 	IsMouseHoveringRect: function(
 		r_min: Vec2,
 		r_max: Vec2,
-		clip: boolean --[[true]]): boolean
+		clip?: boolean --[[true]]): boolean
 	IsMouseDragging: function(
-		button: integer --[[0]],
-		lock_threshold: number --[[-1.0]]
+		button?: integer --[[0]],
+		lock_threshold?: number --[[-1.0]]
 	): boolean
 	GetMousePos: function(): Vec2
 	GetMousePosOnOpeningCurrentPopup: function(): Vec2
 	GetMouseDragDelta: function(
-		button: integer --[[0]],
-		lock_threshold: number --[[-1.0]]
+		button?: integer --[[0]],
+		lock_threshold?: number --[[-1.0]]
 	): Vec2
-	ResetMouseDragDelta: function(button: integer --[[0]])
+	ResetMouseDragDelta: function(
+		button?: integer --[[0]]
+	)
 end
 local imgui: ImGui
 return imgui

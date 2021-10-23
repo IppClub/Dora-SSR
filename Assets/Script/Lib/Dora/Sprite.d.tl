@@ -29,8 +29,7 @@ end
 local record SpriteClass
 	type Type = Sprite
 	metamethod __call: function(cls: SpriteClass): Sprite
-	metamethod __call: function(cls: SpriteClass, texture: Texture2D, textureRect: Rect): Sprite
-	metamethod __call: function(cls: SpriteClass, texture: Texture2D): Sprite
+	metamethod __call: function(cls: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
 	metamethod __call: function(cls: SpriteClass, clipStr: string): Sprite
 end
 print(Sprite.textureRect)

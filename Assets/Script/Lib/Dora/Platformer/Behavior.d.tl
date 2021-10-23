@@ -20,7 +20,6 @@ local record Behavior
 	Countdown: function(time: number, node: Leaf): Leaf
 	Timeout: function(time: number, node: Leaf): Leaf
 	Repeat: function(times: integer, node: Leaf): Leaf
-	Repeat: function(times: integer, node: Leaf): Leaf
 	Repeat: function(node: Leaf): Leaf
 	Retry: function(times: integer, node: Leaf): Leaf
 	Retry: function(node: Leaf): Leaf

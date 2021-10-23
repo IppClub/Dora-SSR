@@ -6,7 +6,10 @@ local record OthoCamera
 end
 local record OthoCameraClass
 	type Type = OthoCamera
-	metamethod __call: function(cls: OthoCameraClass, name: string --[[""]]): OthoCamera
+	metamethod __call: function(
+		cls: OthoCameraClass,
+		name?: string --[[""]]
+	): OthoCamera
 end
 print(OthoCamera.position)
 local othoCameraClass: OthoCameraClass

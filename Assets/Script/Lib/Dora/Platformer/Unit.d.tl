@@ -44,7 +44,7 @@ local record UnitClass
 		physicsworld: PhysicsWorld,
 		entity: Entity,
 		pos: Vec2,
-		rot: number --[[0.0]]
+		rot?: number --[[0.0]]
 	): Unit
 end
 print(Unit.playable)
@@ -55,7 +55,7 @@ print(Unit.attackSensor)
 print(Unit.unitDef)
 print(Unit.currentAction)
 print(Unit.entity)
-print(Unit:attachAction())
-print(Unit:getAction())
+print(Unit:attachAction(nil))
+print(Unit:getAction(nil))
 local unitClass: UnitClass
 return unitClass

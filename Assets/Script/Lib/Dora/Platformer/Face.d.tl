@@ -11,16 +11,16 @@ local record FaceClass
 	metamethod __call: function(
 		cls: FaceClass,
 		faceStr: string,
-		point: Vec2 --[[Vec2.zero]],
-		scale: number --[[1.0]],
-		angle: number --[[0.0]]
+		point?: Vec2 --[[Vec2.zero]],
+		scale?: number --[[1.0]],
+		angle?: number --[[0.0]]
 	): Face
 	metamethod __call: function(
 		cls: FaceClass,
 		createFunc: function(): (Node),
-		point: Vec2 --[[Vec2.zero]],
-		scale: number --[[1.0]],
-		angle: number --[[0.0]]
+		point?: Vec2 --[[Vec2.zero]],
+		scale?: number --[[1.0]],
+		angle?: number --[[0.0]]
 	): Face
 end
 local faceClass: FaceClass

@@ -382,7 +382,7 @@ do
    end
 
    local lex_any_char_kinds = {}
-   local single_char_kinds = { "[", "]", "(", ")", "{", "}", ",", "#", "`", ";" }
+   local single_char_kinds = { "[", "]", "(", ")", "{", "}", ",", "#", "`", ";", "?" }
    for _, c in ipairs(single_char_kinds) do
       lex_any_char_kinds[c] = c
    end
@@ -1037,6 +1037,10 @@ local Type = {}
 
 
 
+
+
+
+
 local Operator = {}
 
 
@@ -1121,6 +1125,7 @@ local KeyParsed = {}
 
 
 local Node = {ExpectedContext = {}, }
+
 
 
 
@@ -1301,7 +1306,7 @@ end
 
 local function verify_kind(ps, i, kind, node_kind)
    if ps.tokens[i].kind == kind then
-      return i + 1, new_node(ps.tokens, i, node_kind)
+      return i + 1, new_node(ps.tokens, i, node_kind or kind)
    end
    return fail(ps, i, "syntax error, expected " .. kind)
 end
@@ -1346,6 +1351,7 @@ local function parse_table_value(ps, i)
 end
 
 local function parse_table_item(ps, i, n)
+   n = n or 1
    local node = new_node(ps.tokens, i, "table_item")
    if ps.tokens[i].kind == "$EOF$" then
       return fail(ps, i, "unexpected eof")
@@ -1416,7 +1422,7 @@ local SeparatorMode = {}
 
 
 local function parse_list(ps, i, list, close, sep, parse_item)
-   local n = 1
+   local n
    while ps.tokens[i].kind ~= "$EOF$" do
       if close[ps.tokens[i].tk] then
          end_at(list, ps.tokens[i])
@@ -1477,7 +1483,7 @@ local function parse_trying_list(ps, i, list, parse_item)
       errs = {},
       required_modules = ps.required_modules,
    }
-   local tryi, item = parse_item(try_ps, i)
+   local tryi, item, n = parse_item(try_ps, i)
    if not item then
       return i, list
    end
@@ -1489,7 +1495,9 @@ local function parse_trying_list(ps, i, list, parse_item)
    if ps.tokens[i].tk == "," then
       while ps.tokens[i].tk == "," do
          i = i + 1
-         i, item = parse_item(ps, i)
+         local oldn = n
+         i, item = parse_item(ps, i, n)
+         n = n or oldn
          table.insert(list, item)
       end
    end
@@ -1578,10 +1586,17 @@ local simple_types = {
    ["integer"] = INTEGER,
 }
 
+local simple_opt_types
+
 local function parse_base_type(ps, i)
    local tk = ps.tokens[i].tk
    if ps.tokens[i].kind == "identifier" then
-      local st = simple_types[tk]
+      local st
+      if (i > 1 and ps.tokens[i - 1].kind == "?") or (i > 2 and ps.tokens[i - 2].kind == "?") then
+         st = simple_opt_types[tk]
+      else
+         st = simple_types[tk]
+      end
       if st then
          return i + 1, st
       end
@@ -1996,7 +2011,7 @@ do
             local args = new_node(ps.tokens, i, "expression_list")
             local argument
             if tkop.kind == "string" then
-               argument = new_node(ps.tokens, i)
+               argument = new_node(ps.tokens, i, "string")
                argument.conststr = unquote(tkop.tk)
                i = i + 1
             else
@@ -2141,6 +2156,10 @@ local function parse_argument(ps, i)
    else
       i, node = verify_kind(ps, i, "identifier", "argument")
    end
+   if ps.tokens[i].tk == "?" then
+      i = i + 1
+      node.opt = true
+   end
    if ps.tokens[i].tk == ":" then
       i = i + 1
       local decltype
@@ -2157,9 +2176,15 @@ end
 parse_argument_list = function(ps, i)
    local node = new_node(ps.tokens, i, "argument_list")
    i, node = parse_bracket_list(ps, i, node, "(", ")", "sep", parse_argument)
+   local opts = false
    for a, fnarg in ipairs(node) do
       if fnarg.tk == "..." and a ~= #node then
          fail(ps, i, "'...' can only be last argument")
+      end
+      if fnarg.opt then
+         opts = true
+      elseif opts then
+         return fail(ps, i, "non-optional arguments cannot follow optional arguments")
       end
    end
    return i, node
@@ -2167,8 +2192,19 @@ end
 
 local function parse_argument_type(ps, i)
    local is_va = false
-   if ps.tokens[i].kind == "identifier" and ps.tokens[i + 1].tk == ":" then
-      i = i + 2
+   local opt = false
+   if ps.tokens[i].kind == "identifier" then
+      if ps.tokens[i + 1].tk == "?" then
+         opt = true
+         if ps.tokens[i + 2].tk == ":" then
+            i = i + 3
+         end
+      elseif ps.tokens[i + 1].tk == ":" then
+         i = i + 2
+      end
+   elseif ps.tokens[i].kind == "?" then
+      opt = true
+      i = i + 1
    elseif ps.tokens[i].tk == "..." then
       if ps.tokens[i + 1].tk == ":" then
          i = i + 2
@@ -2180,11 +2216,12 @@ local function parse_argument_type(ps, i)
 
    local typ; i, typ = parse_type(ps, i)
    if typ then
+      typ.opt = opt
 
       typ.is_va = is_va
    end
 
-   return i, typ, 0
+   return i, typ
 end
 
 parse_argument_type_list = function(ps, i)
@@ -4412,7 +4449,7 @@ local function show_type_base(t, short, seen)
       end
       for i, v in ipairs(t.args) do
          if not t.is_method or i > 1 then
-            table.insert(args, (i == #t.args and t.args.is_va and "...: " or "") .. show(v))
+            table.insert(args, (i == #t.args and t.args.is_va and "...: " or "") .. (v.opt and "? " or "") .. show(v))
          end
       end
       table.insert(out, table.concat(args, ", "))
@@ -4742,18 +4779,32 @@ local function init_globals(lax)
       rets = TUPLE({}),
    })
 
-   local TABLE_SORT_FUNCTION = a_type({ typename = "function", typeargs = TUPLE({ ARG_ALPHA }), args = TUPLE({ ALPHA, ALPHA }), rets = TUPLE({ BOOLEAN }) })
+   local OPT_NIL = a_type({ opt = true, typename = "nil" })
+   local OPT_ANY = a_type({ opt = true, typename = "any" })
+   local OPT_TABLE = a_type({ opt = true, typename = "map", keys = ANY, values = ANY })
+   local OPT_NUMBER = a_type({ opt = true, typename = "number" })
+   local OPT_STRING = a_type({ opt = true, typename = "string" })
+   local OPT_THREAD = a_type({ opt = true, typename = "thread" })
+   local OPT_BOOLEAN = a_type({ opt = true, typename = "boolean" })
+   local OPT_INTEGER = a_type({ opt = true, typename = "integer" })
 
+   simple_opt_types = {
+      ["nil"] = OPT_NIL,
+      ["any"] = OPT_ANY,
+      ["table"] = OPT_TABLE,
+      ["number"] = OPT_NUMBER,
+      ["string"] = OPT_STRING,
+      ["thread"] = OPT_THREAD,
+      ["boolean"] = OPT_BOOLEAN,
+      ["integer"] = OPT_INTEGER,
+   }
 
-   local OPT_NUMBER = NUMBER
-   local OPT_STRING = STRING
-   local OPT_THREAD = THREAD
-   local OPT_ALPHA = ALPHA
-   local OPT_BETA = BETA
-   local OPT_TABLE = TABLE
-   local OPT_UNION = UNION
-   local OPT_BOOLEAN = BOOLEAN
-   local OPT_TABLE_SORT_FUNCTION = TABLE_SORT_FUNCTION
+   local OPT_ALPHA = a_type({ opt = true, typename = "typevar", typevar = "@a" })
+   local OPT_BETA = a_type({ opt = true, typename = "typevar", typevar = "@b" })
+   local OPT_TABLE_SORT_FUNCTION = a_type({ opt = true, typename = "function", args = { ALPHA, ALPHA }, rets = { BOOLEAN } })
+   local function OPT_UNION(t)
+      return a_type({ opt = true, typename = "union", types = t })
+   end
 
    local standard_library = {
       ["..."] = VARARG({ STRING }),
@@ -4770,7 +4821,7 @@ local function init_globals(lax)
          },
       }),
       ["dofile"] = a_type({ typename = "function", args = TUPLE({ OPT_STRING }), rets = VARARG({ ANY }) }),
-      ["error"] = a_type({ typename = "function", args = TUPLE({ ANY, NUMBER }), rets = TUPLE({}) }),
+      ["error"] = a_type({ typename = "function", args = TUPLE({ ANY, OPT_NUMBER }), rets = TUPLE({}) }),
       ["getmetatable"] = a_type({ typename = "function", typeargs = TUPLE({ ARG_ALPHA }), args = TUPLE({ ALPHA }), rets = TUPLE({ NOMINAL_METATABLE_OF_ALPHA }) }),
       ["ipairs"] = a_type({ typename = "function", typeargs = TUPLE({ ARG_ALPHA }), args = TUPLE({ ARRAY_OF_ALPHA }), rets = TUPLE({
          a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ INTEGER, ALPHA }) }),
@@ -4967,7 +5018,7 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
             ["frexp"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER, NUMBER }) }),
             ["huge"] = NUMBER,
             ["ldexp"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
-            ["log"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
+            ["log"] = a_type({ typename = "function", args = TUPLE({ NUMBER, OPT_NUMBER }), rets = TUPLE({ NUMBER }) }),
             ["log10"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
             ["max"] = a_type({
                typename = "poly",
@@ -4996,7 +5047,7 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
             ["random"] = a_type({
                typename = "poly",
                types = {
-                  a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ INTEGER }) }),
+                  a_type({ typename = "function", args = TUPLE({ NUMBER, OPT_NUMBER }), rets = TUPLE({ INTEGER }) }),
                   a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NUMBER }) }),
                },
             }),
@@ -5055,8 +5106,8 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
             ["gsub"] = a_type({
                typename = "poly",
                types = {
-                  a_type({ typename = "function", args = TUPLE({ STRING, STRING, STRING, NUMBER }), rets = TUPLE({ STRING, INTEGER }) }),
-                  a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "map", keys = STRING, values = STRING }), NUMBER }), rets = TUPLE({ STRING, INTEGER }) }),
+                  a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_STRING, OPT_NUMBER }), rets = TUPLE({ STRING, INTEGER }) }),
+                  a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "map", keys = STRING, values = STRING }), OPT_NUMBER }), rets = TUPLE({ STRING, INTEGER }) }),
                   a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ STRING }) }) }), rets = TUPLE({ STRING, INTEGER }) }),
                   a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ NUMBER }) }) }), rets = TUPLE({ STRING, INTEGER }) }),
                   a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ BOOLEAN }) }) }), rets = TUPLE({ STRING, INTEGER }) }),
@@ -5066,12 +5117,12 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
             }),
             ["len"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ INTEGER }) }),
             ["lower"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
-            ["match"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING, NUMBER }), rets = VARARG({ STRING }) }),
+            ["match"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING, OPT_NUMBER }), rets = VARARG({ STRING }) }),
             ["pack"] = a_type({ typename = "function", args = VARARG({ STRING, ANY }), rets = TUPLE({ STRING }) }),
             ["packsize"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ INTEGER }) }),
             ["rep"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER }), rets = TUPLE({ STRING }) }),
             ["reverse"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
-            ["sub"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, NUMBER }), rets = TUPLE({ STRING }) }),
+            ["sub"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_NUMBER }), rets = TUPLE({ STRING }) }),
             ["unpack"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_NUMBER }), rets = VARARG({ ANY }) }),
             ["upper"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
          },
@@ -5097,7 +5148,7 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
             ["pack"] = a_type({ typename = "function", args = VARARG({ ANY }), rets = TUPLE({ TABLE }) }),
             ["remove"] = a_type({ typename = "function", typeargs = TUPLE({ ARG_ALPHA }), args = TUPLE({ ARRAY_OF_ALPHA, OPT_NUMBER }), rets = TUPLE({ ALPHA }) }),
             ["sort"] = a_type({ typename = "function", typeargs = TUPLE({ ARG_ALPHA }), args = TUPLE({ ARRAY_OF_ALPHA, OPT_TABLE_SORT_FUNCTION }), rets = TUPLE({}) }),
-            ["unpack"] = a_type({ typename = "function", needs_compat = true, typeargs = TUPLE({ ARG_ALPHA }), args = TUPLE({ ARRAY_OF_ALPHA, NUMBER, NUMBER }), rets = VARARG({ ALPHA }) }),
+            ["unpack"] = a_type({ typename = "function", needs_compat = true, typeargs = TUPLE({ ARG_ALPHA }), args = TUPLE({ ARRAY_OF_ALPHA, OPT_NUMBER, OPT_NUMBER }), rets = VARARG({ ALPHA }) }),
          },
       }),
       ["utf8"] = a_type({
@@ -5425,6 +5476,7 @@ tl.type_check = function(ast, opts)
          local copy = {}
          seen[orig_t] = copy
 
+         copy.opt = orig_t.opt
          copy.typename = t.typename
          copy.filename = t.filename
          copy.typeid = t.typeid
@@ -5459,6 +5511,7 @@ tl.type_check = function(ast, opts)
             end
 
             copy.is_method = t.is_method
+            copy.min_arity = t.min_arity
             copy.args = resolve(t.args)
             copy.rets = resolve(t.rets)
          elseif t.typename == "record" or t.typename == "arrayrecord" then
@@ -6220,6 +6273,13 @@ tl.type_check = function(ast, opts)
          local all_errs = {}
          for i = 1, #t1.args do
             arg_check(same_type, t1.args[i], t2.args[i], t1, i, all_errs)
+            local t1opt = not not t1.args[i].opt
+            local t2opt = not not t2.args[i].opt
+            if t1opt ~= t2opt then
+               return false, terr(t1, "argument " .. i .. ": got " ..
+               (t1opt and "optional" or "non-optional") .. ", expected " ..
+               (t2opt and "optional" or "non-optional"))
+            end
          end
          for i = 1, #t1.rets do
             local _, errs = same_type(t1.rets[i], t2.rets[i])
@@ -6347,6 +6407,36 @@ tl.type_check = function(ast, opts)
          end
       end
       return arr_type
+   end
+
+   local function set_min_arity(t)
+      local min_arity = 0
+      for i, a in ipairs(t.args) do
+         if not a.opt then
+            min_arity = i
+         end
+      end
+      if t.args.is_va then
+         min_arity = min_arity - 1
+      end
+      t.min_arity = min_arity
+      return min_arity
+   end
+
+   local function function_args_arity_message(f, given)
+      local arity = #f.args
+      local min_arity = f.min_arity or set_min_arity(f)
+      if f.is_va then
+         return "at least " .. min_arity
+      elseif min_arity < arity then
+         if given > arity then
+            return "at most " .. arity
+         else
+            return "from " .. min_arity .. " to " .. arity
+         end
+      else
+         return tostring(arity)
+      end
    end
 
 
@@ -6617,11 +6707,25 @@ tl.type_check = function(ast, opts)
          end
       elseif t1.typename == "function" and t2.typename == "function" then
          local all_errs = {}
-         if (not t2.args.is_va) and #t1.args > #t2.args then
-            table.insert(all_errs, error_in_type(t1, "incompatible number of arguments: got " .. #t1.args .. " %s, expected " .. #t2.args .. " %s", t1.args, t2.args))
+         local t1_min_arity = t1.min_arity or set_min_arity(t1)
+         local t2_min_arity = t1.min_arity or set_min_arity(t2)
+
+         if (not t2.args.is_va) and t1_min_arity > t2_min_arity then
+            local expected = function_args_arity_message(t2, #t1.args)
+            table.insert(all_errs, error_in_type(t1, "incompatible number of arguments: got " .. #t1.args .. " %s, expected " .. expected .. " %s", t1.args, t2.args))
          else
-            for i = (t1.is_method and 2 or 1), #t1.args do
-               arg_check(is_a, t1.args[i], t2.args[i] or ANY, nil, i, all_errs)
+            local t1nargs = #t1.args
+            local t2nargs = #t2.args
+            for i = (t1.is_method and 2 or 1), t1nargs do
+               local t1a = t1.args[i]
+               local t2a = t2.args[i] or (t2.args.is_va and t2.args[#t2.args])
+               local t1aopt = t1a and (t1a.opt or (t1.args.is_va and i >= t1nargs))
+               local t2aopt = t2a and (t2a.opt or (t2.args.is_va and i >= t2nargs))
+               if not t1aopt and t2aopt then
+                  table.insert(all_errs, error_in_type(t1, "argument " .. i .. " is non-optional, but is optional in expected type %s", t2))
+               else
+                  arg_check(is_a, t1a, t2a or ANY, nil, i, all_errs)
+               end
             end
          end
          local diff_by_va = #t2.rets - #t1.rets == 1 and t2.rets.is_va
@@ -6790,7 +6894,7 @@ tl.type_check = function(ast, opts)
             local expects = {}
             if func.typename == "poly" then
                for _, f in ipairs(func.types) do
-                  table.insert(expects, tostring(#f.args or 0))
+                  table.insert(expects, function_args_arity_message(f, nargs))
                end
                table.sort(expects)
                for i = #expects, 1, -1 do
@@ -6799,7 +6903,7 @@ tl.type_check = function(ast, opts)
                   end
                end
             else
-               table.insert(expects, tostring(#func.args or 0))
+               table.insert(expects, function_args_arity_message(func, nargs))
             end
             node_error(node, "wrong number of arguments (given " .. nargs .. ", expects " .. table.concat(expects, " or ") .. ")")
          end
@@ -6841,13 +6945,14 @@ tl.type_check = function(ast, opts)
                      return node_error(node, "invoked method as a regular function: use ':' instead of '.'")
                   end
                   local expected = #f.args
+                  local min_arity = f.min_arity or set_min_arity(f)
 
 
-                  if (is_func and (given <= expected or (f.args.is_va and given > expected))) or
+                  if (is_func and ((given >= min_arity and given <= expected) or (f.args.is_va and given > expected))) or
 
                      (is_poly and ((pass == 1 and given == expected) or
 
-                     (pass == 2 and given < expected) or
+                     (pass == 2 and given < expected and (lax or given >= min_arity)) or
 
                      (pass == 3 and f.args.is_va and given > expected))) then
 
@@ -7676,7 +7781,6 @@ tl.type_check = function(ast, opts)
    }
 
    type_check_funcall = function(node, a, b, argdelta)
-      argdelta = argdelta or 0
       if node.e1.kind == "variable" then
          local special = special_functions[node.e1.tk]
          if special then
@@ -8699,7 +8803,7 @@ node.exps[3] and node.exps[3].type, }
                   end
                end
             elseif node.op.op == "@funcall" then
-               node.type = type_check_funcall(node, a, b)
+               node.type = type_check_funcall(node, a, b, 0)
             elseif node.op.op == "@index" then
                node.type = type_check_index(node, node.e2, a, b)
             elseif node.op.op == "as" then
@@ -8913,6 +9017,7 @@ node.exps[3] and node.exps[3].type, }
                t = a_type({ typename = "tuple", is_va = true, t })
             end
             add_var(node, node.tk, t).is_func_arg = true
+            node.type.opt = node.opt
             return node.type
          end,
       },

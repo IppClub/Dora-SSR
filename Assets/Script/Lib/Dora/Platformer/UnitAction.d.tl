@@ -24,7 +24,7 @@ local record UnitActionClass
 			function(owner: Unit, action: UnitAction, deltaTime: number): (boolean)
 			| Routine.Job
 		),
-		stop: function(owner: Unit) --[[nil]]
+		stop?: function(owner: Unit) --[[nil]]
 	)
 	clear: function(cls: UnitActionClass)
 end

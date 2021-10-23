@@ -23,7 +23,11 @@ end
 local record Vec2Class
 	type Type = Vec2
 	metamethod __call: function(cls: Vec2Class, other: Vec2): Vec2
-	metamethod __call: function(cls: Vec2Class, x: number --[[0]], y: number --[[0]]): Vec2
+	metamethod __call: function(
+		cls: Vec2Class,
+		x?: number --[[0]],
+		y?: number --[[0]]
+	): Vec2
 	metamethod __call: function(cls: Vec2Class, size: Size): Vec2
 	const zero: Vec2
 end
