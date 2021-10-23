@@ -56,18 +56,38 @@ local record Node
 	renderGroup: boolean
 	renderOrder: integer
 
-	addChild: function(self: Node, child: Node, order: integer, tag: string)
-	addChild: function(self: Node, child: Node, order: integer)
-	addChild: function(self: Node, child: Node)
+	addChild: function(
+		self: Node,
+		child: Node,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	)
 
-	addTo: function(self: Node, parent: Node, order: integer, tag: string): Node
-	addTo: function(self: Node, parent: Node, order: integer): Node
-	addTo: function(self: Node, parent: Node): Node
+	addTo: function(
+		self: Node,
+		parent: Node,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	): Node
 
-	removeChild: function(self: Node, child: Node, cleanup: boolean --[[true]])
-	removeChildByTag: function(self: Node, tag: string, cleanup: boolean --[[true]])
-	removeAllChildren: function(self: Node, cleanup: boolean --[[true]])
-	removeFromParent: function(self: Node, cleanup: boolean --[[true]])
+	removeChild: function(
+		self: Node,
+		child: Node,
+		cleanup?: boolean --[[true]]
+	)
+	removeChildByTag: function(
+		self: Node,
+		tag: string,
+		cleanup?: boolean --[[true]]
+	)
+	removeAllChildren: function(
+		self: Node,
+		cleanup?: boolean --[[true]]
+	)
+	removeFromParent: function(
+		self: Node,
+		cleanup?: boolean --[[true]]
+	)
 
 	cleanup: function(self: Node)
 
@@ -92,21 +112,42 @@ local record Node
 	perform: function(self: Node, actionDef: ActionDef)
 	stopAction: function(self: Node, action: Action)
 
-	alignItemsVertically: function(self: Node, padding: number --[[10]]): Size
-	alignItemsVertically: function(self: Node, size: Size, padding: number --[[10]]): Size
-	alignItemsHorizontally: function(self: Node, padding: number --[[10]]): Size
-	alignItemsHorizontally: function(self: Node, size: Size, padding: number --[[10]]): Size
-	alignItems: function(self: Node, padding: number --[[10]]): Size
-	alignItems: function(self: Node, size: Size, padding: number --[[10]]): Size
+	alignItemsVertically: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+	alignItemsVertically: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+	alignItemsHorizontally: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+	alignItemsHorizontally: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+	alignItems: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+	alignItems: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
 	moveAndCullItems: function(self: Node, delta: Vec2)
 
 	attachIME: function(self: Node)
 	detachIME: function(self: Node)
 
 	gslot: function(self: Node, eventName: string): GSlot
-	gslot: function(self: Node, eventName: string, handler: function(...: any))
+	gslot: function(self: Node, eventName: string, handler: function())
 	slot: function(self: Node, eventName: string): Slot
-	slot: function(self: Node, eventName: string, handler: function(...: any))
+	slot: function(self: Node, eventName: string, handler: function())
 	emit: function(self: Node, eventName: string, ...: any)
 end
 local record __SLOT__
@@ -158,14 +199,14 @@ print(Node.children)
 print(Node.parent)
 print(Node.boundingBox)
 print(Node.data)
-print(Node:addTo())
-print(Node:getChildByTag())
-print(Node:convertToNodeSpace())
-print(Node:convertToWorldSpace())
+print(Node:addTo(nil))
+print(Node:getChildByTag(nil))
+print(Node:convertToNodeSpace(nil))
+print(Node:convertToWorldSpace(nil))
 print(Node:alignItemsVertically())
 print(Node:alignItemsHorizontally())
 print(Node:alignItems())
-print(Node:slot())
-print(Node:gslot())
+print(Node:slot(nil))
+print(Node:gslot(nil))
 local nodeClass: NodeClass
 return nodeClass

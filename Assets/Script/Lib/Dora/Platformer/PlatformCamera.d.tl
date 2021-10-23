@@ -15,7 +15,7 @@ local record PlatformCameraClass
 	type Type = PlatformCamera
 	metamethod __call: function(
 		cls: PlatformCameraClass,
-		name: string --[[""]]
+		name?: string --[[""]]
 	): PlatformCamera
 end
 print(PlatformCamera.position)

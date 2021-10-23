@@ -28,6 +28,6 @@ local record LabelClass
 end
 print(Label.blendFunc)
 print(Label.effect)
-print(Label:getCharacter())
+print(Label:getCharacter(nil))
 local labelClass: LabelClass
 return labelClass

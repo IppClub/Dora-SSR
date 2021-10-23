@@ -11,6 +11,6 @@ local record EffectClass
 	metamethod __call: function(cls: EffectClass, vertShader: string, fragShader: string): Effect
 	metamethod __call: function(cls: EffectClass): Effect
 end
-print(Effect:get())
+print(Effect:get(nil))
 local effectClass: EffectClass
 return effectClass

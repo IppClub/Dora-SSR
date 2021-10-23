@@ -6,13 +6,25 @@ local record Line
 	embed Node
 	is3D: boolean
 	blendFunc: BlendFunc
-	add: function(self: Line, verts: {Vec2}, color: Color --[[0xffffffff]])
-	set: function(self: Line, verts: {Vec2}, color: Color --[[0xffffffff]])
+	add: function(
+		self: Line,
+		verts: {Vec2},
+		color?: Color --[[0xffffffff]]
+	)
+	set: function(
+		self: Line,
+		verts: {Vec2},
+		color?: Color --[[0xffffffff]]
+	)
 	clear: function(self: Line)
 end
 local record LineClass
 	type Type = Line
-	metamethod __call: function(cls: LineClass, verts: {Vec2}, color: Color --[[0xffffffff]]): Line
+	metamethod __call: function(
+		cls: LineClass,
+		verts: {Vec2},
+		color?: Color --[[0xffffffff]]
+	): Line
 	metamethod __call: function(cls: LineClass): Line
 end
 print(Line.blendFunc)
