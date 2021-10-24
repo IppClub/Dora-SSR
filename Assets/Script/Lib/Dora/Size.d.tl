@@ -10,8 +10,12 @@ local record Size
 end
 local record SizeClass
 	type Type = Size
+	metamethod __call: function(
+		cls: SizeClass,
+		width?: number --[[0]],
+		height?: number --[[0]]
+	): Size
 	metamethod __call: function(cls: SizeClass, other: Size): Size
-	metamethod __call: function(cls: SizeClass, width: number --[[0]], height: number --[[0]]): Size
 	metamethod __call: function(cls: SizeClass, vec: Vec2): Size
 end
 local sizeClass: SizeClass

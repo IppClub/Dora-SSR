@@ -10,7 +10,12 @@ local record QLearnerClass
 	type Type = QLearner
 	pack: function(cls: QLearnerClass, hints: {integer}, values: {integer}): integer
 	unpack: function(cls: QLearnerClass, hints: {integer}, state: integer): {integer}
-	metamethod __call: function(cls: QLearnerClass, gamma: number --[[0.5]], alpha: number --[[0.5]], maxQ: number --[[100.0]]): QLearner
+	metamethod __call: function(
+		cls: QLearnerClass,
+		gamma?: number --[[0.5]],
+		alpha?: number --[[0.5]],
+		maxQ?: number --[[100.0]]
+	): QLearner
 end
 local qLearnerClass: QLearnerClass
 return qLearnerClass

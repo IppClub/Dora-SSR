@@ -14,8 +14,8 @@ local record JointDefClass
 		bodyB: string,
 		anchorA: Vec2,
 		anchorB: Vec2,
-		frequency: number --[[0]],
-		damping: number --[[0]]): JointDef
+		frequency?: number --[[0.0]],
+		damping?: number --[[0.0]]): JointDef
 	friction: function(cls: JointDefClass,
 		collision: boolean,
 		bodyA: string,
@@ -27,7 +27,7 @@ local record JointDefClass
 		collision: boolean,
 		jointA: string,
 		jointB: string,
-		ratio: number --[[1]]): JointDef
+		ratio?: number --[[1.0]]): JointDef
 	spring: function(cls: JointDefClass,
 		collision: boolean,
 		bodyA: string,
@@ -36,17 +36,17 @@ local record JointDefClass
 		angularOffset: number,
 		maxForce: number,
 		maxTorque: number,
-		correctionFactor: number --[[1]]): JointDef
+		correctionFactor?: number --[[1.0]]): JointDef
 	prismatic: function(cls: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
 		worldPos: Vec2,
 		axisAngle: number,
-		lowerTranslation: number --[[0]],
-		upperTranslation: number --[[0]],
-		maxMotorForce: number --[[0]],
-		motorSpeed: number --[[0]]): JointDef
+		lowerTranslation?: number --[[0.0]],
+		upperTranslation?: number --[[0.0]],
+		maxMotorForce?: number --[[0.0]],
+		motorSpeed?: number --[[0.0]]): JointDef
 	pulley: function(cls: JointDefClass,
 		collision: boolean,
 		bodyA: string,
@@ -55,16 +55,16 @@ local record JointDefClass
 		anchorB: Vec2,
 		groundAnchorA: Vec2,
 		groundAnchorB: Vec2,
-		ratio: number --[[1]]): JointDef
+		ratio?: number --[[1.0]]): JointDef
 	revolute: function(cls: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
 		worldPos: Vec2,
-		lowerAngle: number --[[0]],
-		upperAngle: number --[[0]],
-		maxMotorTorque: number --[[0]],
-		motorSpeed: number --[[0]]): JointDef
+		lowerAngle?: number --[[0.0]],
+		upperAngle?: number --[[0.0]],
+		maxMotorTorque?: number --[[0.0]],
+		motorSpeed?: number --[[0.0]]): JointDef
 	rope: function(cls: JointDefClass,
 		collision: boolean,
 		bodyA: string,
@@ -77,18 +77,18 @@ local record JointDefClass
 		bodyA: string,
 		bodyB: string,
 		worldPos: Vec2,
-		frequency: number --[[0]],
-		damping: number --[[0]]): JointDef
+		frequency?: number --[[0.0]],
+		damping?: number --[[0.0]]): JointDef
 	wheel: function(cls: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
 		worldPos: Vec2,
 		axisAngle: number,
-		maxMotorTorque: number --[[0]],
-		motorSpeed: number --[[0]],
-		frequency: number --[[2]],
-		damping: number --[[0.7]]): JointDef
+		maxMotorTorque?: number --[[0.0]],
+		motorSpeed?: number --[[0.0]],
+		frequency?: number --[[2.0]],
+		damping?: number --[[0.7]]): JointDef
 end
 print(JointDef.center)
 print(JointDef.position)

@@ -65,8 +65,7 @@ local record nvg
 	Save: function()
 	Restore: function()
 	Reset: function()
-	CreateImage: function(w: integer, h: integer, filename: string, imageFlags: {ImageFlag}): integer
-	CreateImage: function(w: integer, h: integer, filename: string): integer
+	CreateImage: function(w: integer, h: integer, filename: string, imageFlags?: {ImageFlag}): integer
 	CreateFont: function(name: string): integer
 	TextBounds: function(x: number, y: number, text: string, bounds: Rect): number
 	TextBoxBounds: function(x: number, y: number, breakRowWidth: number, text: string): Rect
@@ -130,7 +129,7 @@ local record nvg
 	DorothySSRHappyWhite: function()
 end
 print(nvg.TouchPos)
-print(nvg.TextBoxBounds())
-print(nvg.ImageSize())
+print(nvg.TextBoxBounds(nil, nil, nil, nil))
+print(nvg.ImageSize(nil))
 local nvg_: nvg
 return nvg_

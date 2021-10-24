@@ -21,48 +21,48 @@ local record BodyDef
 	polygon: function(cls: BodyDef,
 		width: number,
 		height: number,
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]]): FixtureDef
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
 	attachPolygon: function(self: BodyDef,
 		center: Vec2,
 		width: number,
 		height: number,
-		angle: number --[[0]],
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]])
+		angle?: number --[[0.0]],
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
 	attachPolygon: function(self: BodyDef,
 		width: number,
 		height: number,
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]])
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
 	attachPolygon: function(self: BodyDef,
 		vertices: {Vec2},
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]])
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
 	attachMulti: function(self: BodyDef,
 		vertices: {Vec2},
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]])
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
 	attachDisk: function(self: BodyDef,
 		center: Vec2,
 		radius: number,
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]])
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
 	attachDisk: function(self: BodyDef,
 		radius: number,
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]])
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
 	attachChain: function(self: BodyDef,
 		vertices: {Vec2},
-		friction: number --[[0.4]],
-		restitution: number --[[0]])
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
 	attachPolygonSensor: function(self: BodyDef,
 		tag: integer,
 		width: number,
@@ -72,7 +72,7 @@ local record BodyDef
 		width: number,
 		height: number,
 		center: Vec2,
-		angle: number --[[0]])
+		angle?: number --[[0.0]])
 	attachPolygonSensor: function(self: BodyDef,
 		tag: integer,
 		vertices: {Vec2})
@@ -90,35 +90,35 @@ local record BodyDefClass
 		center: Vec2,
 		width: number,
 		height: number,
-		angle: number --[[0]],
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]]): FixtureDef
+		angle?: number --[[0.0]],
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
 	polygon: function(cls: BodyDefClass,
 		vertices: {Vec2},
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]]): FixtureDef
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
 	multi: function(cls: BodyDefClass,
 		vertices: {Vec2},
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]]): FixtureDef
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
 	disk: function(cls: BodyDefClass,
 		center: Vec2,
 		radius: number,
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]]): FixtureDef
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
 	disk: function(cls: BodyDefClass,
 		radius: number,
-		density: number --[[0.]],
-		friction: number --[[0.4]],
-		restitution: number --[[0]]): FixtureDef
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
 	chain: function(cls: BodyDefClass,
 		vertices: {Vec2},
-		friction: number --[[0.4]],
-		restitution: number --[[0]]): FixtureDef
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
 	metamethod __call: function(cls: BodyDefClass): BodyDef
 end
 print(BodyDef.position)

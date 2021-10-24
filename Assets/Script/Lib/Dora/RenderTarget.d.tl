@@ -7,8 +7,19 @@ local record RenderTarget
 	camera: Camera
 	const surface: Sprite
 	render: function(self: RenderTarget, target: Node)
-	renderWithClear: function(self: RenderTarget, color: Color, depth: number --[[1]], stencil: number --[[0]])
-	renderWithClear: function(self: RenderTarget, target: Node, color: Color, depth: number --[[1]], stencil: integer --[[0]])
+	renderWithClear: function(
+		self: RenderTarget,
+		color: Color,
+		depth?: number --[[1]],
+		stencil?: number --[[0]]
+	)
+	renderWithClear: function(
+		self: RenderTarget,
+		target: Node,
+		color: Color,
+		depth?: number --[[1]],
+		stencil?: integer --[[0]]
+	)
 	saveAsync: function(self: RenderTarget, filename: string)
 end
 local record RenderTargetClass
