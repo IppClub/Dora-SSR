@@ -4,10 +4,10 @@ local record Pass
 	rtNeeded: boolean
 	set: function(self: Pass,
 		name: string,
-		var1: number --[[0]],
-		var2: number --[[0]],
-		var3: number --[[0]],
-		var4: number --[[0]])
+		var1: number,
+		var2?: number --[[0]],
+		var3?: number --[[0]],
+		var4?: number --[[0]])
 end
 local record PassClass
 	type Type = Pass

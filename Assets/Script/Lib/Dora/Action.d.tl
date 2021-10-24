@@ -9,7 +9,11 @@ local record Action
 	speed: number
 	pause: function(self: Action)
 	resume: function(self: Action)
-	updateTo: function(self: Action, eclapsed: number, reversed: boolean --[[false]])
+	updateTo: function(
+		self: Action,
+		eclapsed: number,
+		reversed?: boolean --[[false]]
+	)
 end
 local record ActionClass
 	type Type = Action

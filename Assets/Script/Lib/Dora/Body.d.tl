@@ -38,13 +38,19 @@ local record __SLOT__
 end
 local record BodyClass
 	type Type = Body
-	metamethod __call: function(cls: BodyClass, def: BodyDef, world: PhysicsWorld, pos: Vec2 --[[Vec2.zero]], rot: number --[[0]]): Body -- class
+	metamethod __call: function(
+		cls: BodyClass,
+		def: BodyDef,
+		world: PhysicsWorld,
+		pos?: Vec2 --[[Vec2.zero]],
+		rot?: number --[[0]]
+	): Body -- class
 end
 print(Body.world)
 print(Body.bodyDef)
 print(Body.velocity)
 print(Body.owner)
-print(Body:getSensorByTag())
-print(Body:attachSensor())
+print(Body:getSensorByTag(nil))
+print(Body:attachSensor(nil, nil))
 local bodyClass: BodyClass
 return bodyClass

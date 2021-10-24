@@ -9,7 +9,11 @@ local record Playable
 	const current: string
 	const lastCompleted: string
 	getKey: function(self: Playable, name: string): Vec2
-	play: function(self: Playable, name: string, loop: boolean --[[false]]): number
+	play: function(
+		self: Playable,
+		name: string,
+		loop?: boolean --[[false]]
+	): number
 	stop: function(self: Playable)
 end
 local record __SLOT__
@@ -20,6 +24,6 @@ local record PlayableClass
 	type Type = Playable
 	metamethod __call: function(cls: PlayableClass, filename: string): Playable
 end
-print(Playable:getKey())
+print(Playable:getKey(nil))
 local playableClass: PlayableClass
 return playableClass
