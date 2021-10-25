@@ -19,6 +19,7 @@ NS_DOROTHY_BEGIN
 
 class Scheduler;
 class Node;
+class Sprite;
 class Camera;
 class RenderTarget;
 class UITouchHandler;
@@ -79,7 +80,7 @@ private:
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
-	RefVector<RenderTarget> _renderTargets;
+	std::vector<std::pair<Ref<RenderTarget>, Ref<Sprite>>> _renderTargets;
 	Own<UITouchHandler> _uiTouchHandler;
 	std::stack<Own<Matrix>> _viewProjs;
 	Matrix _defaultViewProj;

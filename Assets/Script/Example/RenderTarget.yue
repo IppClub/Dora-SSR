@@ -16,6 +16,9 @@ node = with Node!
 		\slot "Turn", -> .fliped = not .fliped
 
 renderTarget = with RenderTarget 300, 400
+	\renderWithClear Color 0xff8a8a8a
+
+surface = with Sprite renderTarget.texture
 	.z = 300
 	.angleY = 25
 	\addChild Line {
@@ -24,15 +27,14 @@ renderTarget = with RenderTarget 300, 400
 		Vec2 300, 400
 		Vec2 0, 400
 		Vec2.zero
-	},Color 0xff00ffff
-	\renderWithClear Color 0xff8a8a8a
+	}, Color 0xff00ffff
 	\schedule ->
 		node.y = 200
-		\renderWithClear node, Color 0xff8a8a8a
+		renderTarget\renderWithClear node, Color 0xff8a8a8a
 		node.y = 0
 
 Director.entry\addChild with Node!
-	\addChild renderTarget
+	\addChild surface
 	\addChild node
 
 -- example codes ends here, some test ui below --

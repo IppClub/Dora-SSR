@@ -825,6 +825,7 @@
     <ClCompile Include="..\..\..\Source\Basic\Director.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Renderer.cpp" />
+    <ClCompile Include="..\..\..\Source\Basic\RenderTarget.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\VGRender.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
@@ -880,7 +881,6 @@
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Playable.cpp" />
-    <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Spine.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
@@ -1236,6 +1236,7 @@
     <ClInclude Include="..\..\..\Source\Basic\Director.h" />
     <ClInclude Include="..\..\..\Source\Basic\Object.h" />
     <ClInclude Include="..\..\..\Source\Basic\Renderer.h" />
+    <ClInclude Include="..\..\..\Source\Basic\RenderTarget.h" />
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
     <ClInclude Include="..\..\..\Source\Basic\VGRender.h" />
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
@@ -1289,7 +1290,6 @@
     <ClInclude Include="..\..\..\Source\Node\Node.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h" />
     <ClInclude Include="..\..\..\Source\Node\Playable.h" />
-    <ClInclude Include="..\..\..\Source\Node\RenderTarget.h" />
     <ClInclude Include="..\..\..\Source\Node\Spine.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
     <ClInclude Include="..\..\..\Source\Node\VGNode.h" />

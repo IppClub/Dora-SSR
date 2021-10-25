@@ -312,9 +312,6 @@
     <ClCompile Include="..\..\..\Source\Basic\Renderer.cpp">
       <Filter>Basic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Node\RenderTarget.cpp">
-      <Filter>Node</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp">
       <Filter>Node</Filter>
     </ClCompile>
@@ -1050,6 +1047,9 @@
     <ClCompile Include="..\..\..\Source\Lua\TealCompiler.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\RenderTarget.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
@@ -1217,9 +1217,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Basic\Renderer.h">
       <Filter>Basic</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Node\RenderTarget.h">
-      <Filter>Node</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h">
       <Filter>Node</Filter>
@@ -2273,6 +2270,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\VelocityConstraint.hpp">
       <Filter>3rdParty\PlayRho\Dynamics\Contacts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\RenderTarget.h">
+      <Filter>Basic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

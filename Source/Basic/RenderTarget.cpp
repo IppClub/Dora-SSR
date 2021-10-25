@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Node/RenderTarget.h"
+#include "Basic/RenderTarget.h"
 #include "Cache/TextureCache.h"
 #include "Node/Sprite.h"
 #include "Basic/Camera.h"
@@ -39,6 +39,16 @@ RenderTarget::~RenderTarget()
 	}
 }
 
+uint16_t RenderTarget::getWidth() const
+{
+	return _textureWidth;
+}
+
+uint16_t RenderTarget::getHeight() const
+{
+	return _textureHeight;
+}
+
 void RenderTarget::setCamera(Camera* camera)
 {
 	_camera = camera;
@@ -49,37 +59,39 @@ Camera* RenderTarget::getCamera() const
 	return _camera;
 }
 
-Sprite* RenderTarget::getSurface() const
+Texture2D* RenderTarget::getTexture() const
 {
-	return _surface;
+	return _texture;
 }
 
 bool RenderTarget::init()
 {
-	if (!Node::init()) return false;
+	if (!Object::init()) return false;
 	const uint64_t textureFlags = (
 		BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
 		BGFX_TEXTURE_RT);
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags);
+
+	if (!bgfx::isValid(textureHandle)) return false;
+
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
 		_textureWidth, _textureHeight,
 		0, false, false, 1, _format);
 	_texture = Texture2D::create(textureHandle, info, textureFlags);
 
-	setSize(Size{s_cast<float>(_textureWidth), s_cast<float>(_textureHeight)});
-
-	_surface = Sprite::create(_texture);
-	_surface->setPosition(Vec2{getWidth() / 2.0f, getHeight() / 2.0f});
-	addChild(_surface);
-
 	bgfx::TextureHandle depthTextureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, bgfx::TextureFormat::D24S8, BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY);
+
+	if (!bgfx::isValid(depthTextureHandle)) return false;
+
 	bgfx::calcTextureSize(info,
 		_textureWidth, _textureHeight,
 		0, false, false, 1, bgfx::TextureFormat::D24S8);
 	_depthTexture = Texture2D::create(depthTextureHandle, info, BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY);
 	bgfx::TextureHandle texHandles[] = { textureHandle, depthTextureHandle };
 	_frameBufferHandle = bgfx::createFrameBuffer(2, texHandles);
+
+	if (!bgfx::isValid(_frameBufferHandle)) return false;
 
 	return true;
 }

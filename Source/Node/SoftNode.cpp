@@ -45,10 +45,6 @@ bool SoftNode::init()
 			{
 				par->setMaterial(_originMaterial.get());
 			}
-			else if (y == _step - 1)
-			{
-				par->ApplyForce(Vec2{Math::rand0to1() * 500.0f, 500.0f});
-			}
 		}
 	}
 	// add horizontal constraints

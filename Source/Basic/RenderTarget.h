@@ -8,19 +8,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node.h"
+#include "Basic/Object.h"
+#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
 
 class Camera;
-class Sprite;
+class Node;
 class Texture2D;
 
-class RenderTarget : public Node
+class RenderTarget : public Object
 {
 public:
+	PROPERTY_READONLY(uint16_t, Width);
+	PROPERTY_READONLY(uint16_t, Height);
 	PROPERTY(Camera*, Camera);
-	PROPERTY_READONLY(Sprite*, Surface);
+	PROPERTY_READONLY(Texture2D*, Texture);
 	virtual ~RenderTarget();
 	virtual bool init() override;
 	void render(Node* target);
@@ -39,14 +42,9 @@ private:
 	bgfx::TextureFormat::Enum _format;
 	Ref<Texture2D> _texture;
 	Ref<Texture2D> _depthTexture;
-	Ref<Sprite> _surface;
 	Ref<Camera> _camera;
 	Ref<Node> _dummy;
 	bgfx::FrameBufferHandle _frameBufferHandle;
-	enum
-	{
-		ViewCleared = Node::UserFlag,
-	};
 	DORA_TYPE_OVERRIDE(RenderTarget);
 };
 

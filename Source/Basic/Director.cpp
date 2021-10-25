@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/View.h"
 #include "GUI/ImGuiDora.h"
 #include "Audio/Sound.h"
-#include "Node/RenderTarget.h"
+#include "Basic/RenderTarget.h"
 #include "Input/Keyboard.h"
 #include "bx/timer.h"
 #include "Entity/Entity.h"
@@ -346,45 +346,49 @@ void Director::doRender()
 					auto renderTarget = RenderTarget::create(
 						s_cast<uint16_t>(viewSize.width),
 						s_cast<uint16_t>(viewSize.height));
-					renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
-					renderTarget->getSurface()->setEffect(SpriteEffect::create());
-					_renderTargets.push_back(renderTarget);
+					auto surface = Sprite::create(renderTarget->getTexture());
+					surface->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
+					surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+					surface->setEffect(SpriteEffect::create());
+					_renderTargets.push_back({MakeRef(renderTarget), MakeRef(surface)});
 				}
 			}
 			for (size_t i = 0; i < _renderTargets.size(); i++)
 			{
-				RenderTarget* rt = _renderTargets[i];
-				if (rt->getWidth() != viewSize.width ||
-					rt->getHeight() != viewSize.height)
+				const auto& rt = _renderTargets[i];
+				if (rt.second->getWidth() != viewSize.width ||
+					rt.second->getHeight() != viewSize.height)
 				{
 					auto renderTarget = RenderTarget::create(
 						s_cast<uint16_t>(viewSize.width),
 						s_cast<uint16_t>(viewSize.height));
-					renderTarget->getSurface()->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
-					renderTarget->getSurface()->setEffect(SpriteEffect::create());
-					_renderTargets[i] = renderTarget;
+					auto surface = Sprite::create(renderTarget->getTexture());
+					surface->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
+					surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+					surface->setEffect(SpriteEffect::create());
+					_renderTargets[i] = {MakeRef(renderTarget), MakeRef(surface)};
 				}
-				_renderTargets[i]->getSurface()->getEffect()->clear();
+				_renderTargets[i].second->getEffect()->clear();
 			}
 			/* render scene tree to RT */
-			_renderTargets[0]->setCamera(getCurrentCamera());
-			_renderTargets[0]->renderWithClear(_entry, _clearColor);
-			_renderTargets[0]->setCamera(nullptr);
+			_renderTargets[0].first->setCamera(getCurrentCamera());
+			_renderTargets[0].first->renderWithClear(_entry, _clearColor);
+			_renderTargets[0].first->setCamera(nullptr);
 			size_t rtIndex = 0;
 			if (postEffect)
 			{
 				for (Pass* pass : postEffect->getPasses())
 				{
-					Effect* effect = _renderTargets[rtIndex]->getSurface()->getEffect();
+					Effect* effect = _renderTargets[rtIndex].second->getEffect();
 					effect->add(pass);
 					if (pass->isRTNeeded())
 					{
-						RenderTarget* rt = _renderTargets[rtIndex];
+						Sprite* rt = _renderTargets[rtIndex].second;
 						rtIndex = (rtIndex + 1) % 2;
 						rt->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
-						_renderTargets[rtIndex]->render(rt);
-						rt->getSurface()->getEffect()->clear();
-						_renderTargets[rtIndex]->getSurface()->getEffect()->clear();
+						_renderTargets[rtIndex].first->render(rt);
+						rt->getEffect()->clear();
+						_renderTargets[rtIndex].second->getEffect()->clear();
 					}
 				}
 			}
@@ -398,8 +402,8 @@ void Director::doRender()
 				pushViewProjection(ortho, [&]()
 				{
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					_renderTargets[rtIndex]->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
-					_renderTargets[rtIndex]->visit();
+					_renderTargets[rtIndex].second->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
+					_renderTargets[rtIndex].second->visit();
 					SharedRendererManager.flush();
 				});
 				/* post node */
