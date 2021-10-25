@@ -515,10 +515,12 @@ class Label : public Node
 	static Label* create(String fontName, uint32_t fontSize);
 };
 
-class RenderTarget : public Node
+class RenderTarget : public Object
 {
+	tolua_readonly tolua_property__common uint16_t width;
+	tolua_readonly tolua_property__common uint16_t height;
 	tolua_property__common Camera* camera;
-	tolua_readonly tolua_property__common Sprite* surface;
+	tolua_readonly tolua_property__common Texture2D* texture;
 	void render(Node* target);
 	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);

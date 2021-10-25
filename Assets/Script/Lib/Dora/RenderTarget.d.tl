@@ -1,11 +1,14 @@
 local Node = require("Node").Type
+local Object = require("Object").Type
 local Camera = require("Camera").Type
-local Sprite = require("Sprite").Type
+local Texture2D = require("Texture2D").Type
 local Color = require("Color").Type
 local record RenderTarget
-	embed Node
+	embed Object
+	width: integer
+	height: integer
 	camera: Camera
-	const surface: Sprite
+	texture: Texture2D
 	render: function(self: RenderTarget, target: Node)
 	renderWithClear: function(
 		self: RenderTarget,
@@ -27,6 +30,6 @@ local record RenderTargetClass
 	metamethod __call: function(cls: RenderTargetClass, width: integer, height: integer): RenderTarget
 end
 print(RenderTarget.camera)
-print(RenderTarget.surface)
-local renderTarget: RenderTarget
-return renderTarget
+print(RenderTarget.texture)
+local renderTargetClass: RenderTargetClass
+return renderTargetClass

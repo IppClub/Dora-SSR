@@ -9281,6 +9281,7 @@ local typename_to_typecode = {
    ["any"] = tl.typecodes.ANY,
    ["unknown"] = tl.typecodes.UNKNOWN,
    ["invalid"] = tl.typecodes.INVALID,
+   ["bad_nominal"] = tl.typecodes.INVALID,
 }
 
 function tl.get_types(result, trenv)
