@@ -13,6 +13,9 @@ local Slot = require("Slot").Type
 local GSlot = require("GSlot").Type
 local Touch = require("Touch").Type
 local Routine = require("Routine")
+local Camera = require("Camera").Type
+local SpriteEffect = require("SpriteEffect").Type
+local BlendFunc = require("BlendFunc").Type
 local record Node
 	embed Object
 	order: integer
@@ -149,6 +152,18 @@ local record Node
 	slot: function(self: Node, eventName: string): Slot
 	slot: function(self: Node, eventName: string, handler: function())
 	emit: function(self: Node, eventName: string, ...: any)
+
+	record Grabber
+		embed Object
+		camera: Camera
+		effect: SpriteEffect
+		blendFunc: BlendFunc
+		clearColor: Color
+	end
+
+	grab: function(
+		enabled?: boolean --[[true]]
+	): Grabber
 end
 local record __SLOT__
 	-- Node:runAction() | Node:perform()

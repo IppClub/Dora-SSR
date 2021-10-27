@@ -28,7 +28,9 @@ _textureHeight(height),
 _format(format),
 _frameBufferHandle(BGFX_INVALID_HANDLE),
 _dummy(Node::create())
-{ }
+{
+	//_dummy->setPosition({-width/2.0f, -height/2.0f});
+}
 
 RenderTarget::~RenderTarget()
 {
@@ -163,7 +165,7 @@ void RenderTarget::renderOnly(Node* target)
 	Node* transformTarget = target->getTransformTarget();
 	target->setTransformTarget(_dummy);
 	target->markDirty();
-	target->visit();
+	target->visitInner();
 	SharedRendererManager.flush();
 	target->setTransformTarget(transformTarget);
 }

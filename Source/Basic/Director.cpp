@@ -76,8 +76,12 @@ Node* Director::getEntry()
 {
 	if (!_entry)
 	{
+		_root = Node::create();
+		_root->setAnchor(Vec2::zero);
+		_root->onEnter();
 		_entry = Node::create();
-		_entry->onEnter();
+		_root->addChild(_entry);
+		markDirty();
 	}
 	return _entry;
 }
@@ -319,93 +323,36 @@ void Director::doRender()
 		if (SharedView.isPostProcessNeeded())
 		{
 			/* initialize RT */
-			SpriteEffect* postEffect = SharedView.getPostEffect();
-			size_t rtCount = 1;
-			if (postEffect)
+			if (_root)
 			{
-				for (Pass* pass : postEffect->getPasses())
-				{
-					if (pass->isRTNeeded())
-					{
-						rtCount = 2;
-						break;
-					}
-				}
-			}
-			if (rtCount < _renderTargets.size())
-			{
-				for (size_t i = rtCount; i < _renderTargets.size(); i++)
-				{
-					_renderTargets.pop_back();
-				}
-			}
-			else
-			{
-				for (size_t i = _renderTargets.size(); i < rtCount; i++)
-				{
-					auto renderTarget = RenderTarget::create(
-						s_cast<uint16_t>(viewSize.width),
-						s_cast<uint16_t>(viewSize.height));
-					auto surface = Sprite::create(renderTarget->getTexture());
-					surface->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
-					surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
-					surface->setEffect(SpriteEffect::create());
-					_renderTargets.push_back({MakeRef(renderTarget), MakeRef(surface)});
-				}
-			}
-			for (size_t i = 0; i < _renderTargets.size(); i++)
-			{
-				const auto& rt = _renderTargets[i];
-				if (rt.second->getWidth() != viewSize.width ||
-					rt.second->getHeight() != viewSize.height)
-				{
-					auto renderTarget = RenderTarget::create(
-						s_cast<uint16_t>(viewSize.width),
-						s_cast<uint16_t>(viewSize.height));
-					auto surface = Sprite::create(renderTarget->getTexture());
-					surface->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
-					surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
-					surface->setEffect(SpriteEffect::create());
-					_renderTargets[i] = {MakeRef(renderTarget), MakeRef(surface)};
-				}
-				_renderTargets[i].second->getEffect()->clear();
-			}
-			/* render scene tree to RT */
-			_renderTargets[0].first->setCamera(getCurrentCamera());
-			_renderTargets[0].first->renderWithClear(_entry, _clearColor);
-			_renderTargets[0].first->setCamera(nullptr);
-			size_t rtIndex = 0;
-			if (postEffect)
-			{
-				for (Pass* pass : postEffect->getPasses())
-				{
-					Effect* effect = _renderTargets[rtIndex].second->getEffect();
-					effect->add(pass);
-					if (pass->isRTNeeded())
-					{
-						Sprite* rt = _renderTargets[rtIndex].second;
-						rtIndex = (rtIndex + 1) % 2;
-						rt->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
-						_renderTargets[rtIndex].first->render(rt);
-						rt->getEffect()->clear();
-						_renderTargets[rtIndex].second->getEffect()->clear();
-					}
-				}
+				auto grabber = _root->grab();
+				grabber->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+				grabber->setEffect(SharedView.getPostEffect());
+				grabber->setCamera(getCurrentCamera());
+				grabber->setClearColor(_clearColor);
 			}
 
 			/* render RT, post node and ui node */
 			SharedView.pushName("Main"_slice, [&]()
 			{
 				bgfx::ViewId viewId = SharedView.getId();
-				bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
 				/* RT */
-				pushViewProjection(ortho, [&]()
+				if (_root)
 				{
-					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
-					_renderTargets[rtIndex].second->setPosition({viewSize.width / 2.0f, viewSize.height / 2.0f});
-					_renderTargets[rtIndex].second->visit();
-					SharedRendererManager.flush();
-				});
+					bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
+					pushViewProjection(ortho, [&]()
+					{
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						_root->visit();
+						SharedRendererManager.flush();
+					});
+				}
+				else
+				{
+					bgfx::setViewClear(viewId,
+						BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+						_clearColor.toRGBA());
+				}
 				/* post node */
 				if (_postNode)
 				{
@@ -433,10 +380,7 @@ void Director::doRender()
 		else
 		{
 			/* release unused RT */
-			if (!_renderTargets.empty())
-			{
-				_renderTargets.clear();
-			}
+			if (_root) _root->grab(false);
 
 			/* render scene tree and post node */
 			SharedView.pushName("Main"_slice, [&]()
@@ -447,7 +391,7 @@ void Director::doRender()
 					_clearColor.toRGBA());
 				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 				/* scene tree */
-				if (_entry) _entry->visit();
+				if (_root) _root->visit();
 				/* post node */
 				if (_postNode) _postNode->visit();
 				SharedRendererManager.flush();
@@ -571,10 +515,11 @@ void Director::clear()
 		_ui->cleanup();
 		_ui = nullptr;
 	}
-	if (_entry)
+	if (_root)
 	{
-		_entry->onExit();
-		_entry->cleanup();
+		_root->onExit();
+		_root->cleanup();
+		_root = nullptr;
 		_entry = nullptr;
 	}
 	if (_postNode)
@@ -593,7 +538,11 @@ void Director::clear()
 void Director::markDirty()
 {
 	if (_ui) _ui->markDirty();
-	if (_entry) _entry->markDirty();
+	if (_entry)
+	{
+		auto viewSize = SharedView.getSize();
+		_root->setSize(viewSize);
+	}
 	if (_postNode) _postNode->markDirty();
 }
 

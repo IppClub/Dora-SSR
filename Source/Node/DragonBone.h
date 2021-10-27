@@ -26,13 +26,13 @@ protected:
 	DBSlotNode();
 private:
 	Ref<SpriteEffect> _effect;
-	BlendFunc _blendFunc = BlendFunc::Default;
+	BlendFunc _blendFunc;
 	Ref<Texture2D> _texture;
 	std::vector<Vec4> _points;
 	std::vector<SpriteVertex> _vertices;
 	std::vector<SpriteRenderer::IndexType> _indices;
-	Matrix _matrix = Matrix::Indentity;
-	AffineTransform _transform = AffineTransform::Indentity;
+	Matrix _matrix;
+	AffineTransform _transform;
 	enum
 	{
 		TransformDirty = Node::UserFlag,

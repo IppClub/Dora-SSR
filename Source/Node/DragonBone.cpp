@@ -23,7 +23,10 @@ NS_DOROTHY_BEGIN
 /* DBSlotNode */
 
 DBSlotNode::DBSlotNode():
-_effect(SharedSpriteRenderer.getDefaultEffect())
+_blendFunc(BlendFunc::Default),
+_effect(SharedSpriteRenderer.getDefaultEffect()),
+_matrix(Matrix::Indentity),
+_transform(AffineTransform::Indentity)
 { }
 
 void DBSlotNode::render()
