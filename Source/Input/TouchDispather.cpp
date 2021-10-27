@@ -25,7 +25,7 @@ uint32_t Touch::_source =
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	Touch::FromTouch;
 #elif BX_PLATFORM_WINDOWS
-	Touch::FromMouse;
+	Touch::FromMouseAndTouch;
 #endif
 
 Touch::Touch(int id):

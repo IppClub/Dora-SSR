@@ -145,6 +145,7 @@ private:
 		DepthWrite = Node::UserFlag << 2,
 		Finished = Node::UserFlag << 3
 	};
+	DORA_TYPE_OVERRIDE(ParticleNode);
 };
 
 NS_DOROTHY_END

@@ -76,11 +76,11 @@ private:
 	Ref<Node> _ui;
 	Ref<Node> _postNode;
 	Ref<Node> _entry;
+	Ref<Node> _root;
 	Ref<Array> _camStack;
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
-	std::vector<std::pair<Ref<RenderTarget>, Ref<Sprite>>> _renderTargets;
 	Own<UITouchHandler> _uiTouchHandler;
 	std::stack<Own<Matrix>> _viewProjs;
 	Matrix _defaultViewProj;

@@ -385,6 +385,16 @@ class Node : public Object
 
 	void attachIME();
 	void detachIME();
+
+	class Grabber : public Object
+	{
+		tolua_property__common Camera* camera;
+		tolua_property__common SpriteEffect* effect;
+		tolua_property__common BlendFunc blendFunc;
+		tolua_property__common Color clearColor;
+	};
+	Grabber* grab(bool enabled = true);
+
 	static Node* create();
 };
 

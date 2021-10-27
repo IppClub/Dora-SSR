@@ -24,6 +24,10 @@ class TouchHandler;
 class NodeTouchHandler;
 class Action;
 class Dictionary;
+class RenderTarget;
+class SpriteEffect;
+class Sprite;
+class Camera;
 
 typedef Acf::Delegate<void (Event* event)> EventHandler;
 
@@ -113,6 +117,8 @@ public:
 	void scheduleUpdate();
 	void scheduleUpdateFixed();
 	void unscheduleUpdate();
+
+	void visitInner();
 
 	virtual void visit();
 	virtual void render();
@@ -235,6 +241,36 @@ public:
 
 	void attachIME();
 	void detachIME();
+public:
+	class Grabber : public Object
+	{
+	public:
+		PROPERTY(Color, ClearColor);
+		PROPERTY(Camera*, Camera);
+		PROPERTY(SpriteEffect*, Effect);
+		PROPERTY_CREF(BlendFunc, BlendFunc);
+		void grab(Node* target);
+		void visit();
+		virtual void cleanup() override;
+		CREATE_FUNC(Grabber);
+	protected:
+		Grabber();
+	private:
+		struct RenderPair
+		{
+			Ref<RenderTarget> rt;
+			Ref<Sprite> surface;
+		};
+		RenderPair newRenderPair(float width, float height);
+		Color _clearColor;
+		Ref<Camera> _camera;
+		Ref<SpriteEffect> _effect;
+		std::vector<RenderPair> _renderTargets;
+		Ref<Sprite> _display;
+		BlendFunc _blendFunc;
+		DORA_TYPE_OVERRIDE(Grabber);
+	};
+	Grabber* grab(bool enabled = true);
 protected:
 	Node();
 	virtual ~Node();
@@ -272,6 +308,7 @@ protected:
 	Ref<Array> _children;
 	Ref<Scheduler> _scheduler;
 	Ref<Action> _action;
+	Ref<Grabber> _grabber;
 	Own<Signal> _signal;
 	std::string _tag;
 	Own<NodeTouchHandler> _touchHandler;
@@ -297,7 +334,8 @@ protected:
 		TraverseEnabled = 1 << 16,
 		RenderGrouped = 1 << 17,
 		FixedUpdating = 1 << 18,
-		UserFlag = 1 << 19
+		IgnoreTransform = 1 << 19,
+		UserFlag = 1 << 20
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

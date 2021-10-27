@@ -18,14 +18,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/View.h"
 #include "Basic/Application.h"
 #include "Support/Dictionary.h"
+#include "Node/Sprite.h"
+#include "Effect/Effect.h"
+#include "Basic/RenderTarget.h"
+#include "Basic/Camera.h"
 
 NS_DOROTHY_BEGIN
 
 Node::Node():
 _flags(
-	Node::Visible|
-	Node::SelfVisible|Node::ChildrenVisible|
-	Node::PassOpacity|Node::PassColor3|
+	Node::Visible |
+	Node::SelfVisible | Node::ChildrenVisible |
+	Node::PassOpacity | Node::PassColor3 |
 	Node::TraverseEnabled),
 _order(0),
 _renderOrder(0),
@@ -815,7 +819,7 @@ bool Node::update(double deltaTime)
 	return result && !isUpdating();
 }
 
-void Node::visit()
+void Node::visitInner()
 {
 	if (_flags.isOff(Node::Visible))
 	{
@@ -874,6 +878,16 @@ void Node::visit()
 		}
 		else render();
 	}
+}
+
+void Node::visit()
+{
+	if (_grabber)
+	{
+		_grabber->grab(this);
+		_grabber->visit();
+	}
+	else visitInner();
 }
 
 void Node::render()
@@ -984,8 +998,6 @@ const Matrix& Node::getWorld()
 	if (_flags.isOn(Node::WorldDirty))
 	{
 		_flags.setOff(WorldDirty);
-		Matrix localWorld;
-		getLocalWorld(localWorld);
 		const Matrix* parentWorld = &Matrix::Indentity;
 		if (_transformTarget)
 		{
@@ -996,7 +1008,16 @@ const Matrix& Node::getWorld()
 		{
 			parentWorld = &_parent->getWorld();
 		}
-		bx::mtxMul(_world, localWorld, *parentWorld);
+		if (_flags.isOn(Node::IgnoreTransform))
+		{
+			bx::mtxMul(_world, Matrix::Indentity, *parentWorld);
+		}
+		else
+		{
+			Matrix localWorld;
+			getLocalWorld(localWorld);
+			bx::mtxMul(_world, localWorld, *parentWorld);
+		}
 		ARRAY_START(Node, child, _children)
 		{
 			child->_flags.setOn(Node::WorldDirty);
@@ -1496,6 +1517,191 @@ private:
 void Node::convertToWindowSpace(const Vec2& nodePoint, const std::function<void(const Vec2&)>& callback)
 {
 	addChild(ProjectNode::create(nodePoint, callback));
+}
+
+Node::Grabber::Grabber():
+_clearColor(0x0),
+_blendFunc(BlendFunc::Default)
+{ }
+
+void Node::Grabber::setClearColor(Color var)
+{
+	_clearColor = var;
+}
+
+Color Node::Grabber::getClearColor() const
+{
+	return _clearColor;
+}
+
+void Node::Grabber::setCamera(Camera* var)
+{
+	_camera = var;
+}
+
+Camera* Node::Grabber::getCamera() const
+{
+	return _camera;
+}
+
+void Node::Grabber::setBlendFunc(const BlendFunc& var)
+{
+	_blendFunc = var;
+}
+
+const BlendFunc& Node::Grabber::getBlendFunc() const
+{
+	return _blendFunc;
+}
+
+void Node::Grabber::setEffect(SpriteEffect* var)
+{
+	_effect = var;
+}
+
+SpriteEffect* Node::Grabber::getEffect() const
+{
+	return _effect;
+}
+
+Node::Grabber::RenderPair Node::Grabber::newRenderPair(float width, float height)
+{
+	auto renderTarget = RenderTarget::create(
+		s_cast<uint16_t>(width),
+		s_cast<uint16_t>(height));
+	auto surface = Sprite::create(renderTarget->getTexture());
+	surface->setPosition({width / 2.0f, height / 2.0f});
+	surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+	surface->setEffect(SpriteEffect::create());
+	return {MakeRef(renderTarget), MakeRef(surface)};
+}
+
+void Node::Grabber::grab(Node* target)
+{
+	float width = target->getWidth();
+	float height = target->getHeight();
+
+	AssertIf(width <= 0.0f || height <= 0.0f, "can not grab a invalid sized node.");
+
+	if (_display)
+	{
+		_display->_parent = nullptr;
+		s_cast<Node*>(_display.get())->updateRealColor3();
+		s_cast<Node*>(_display.get())->updateRealOpacity();
+		_display = nullptr;
+	}
+
+	size_t rtCount = 1;
+	if (_effect)
+	{
+		for (Pass* pass : _effect->getPasses())
+		{
+			if (pass->isRTNeeded())
+			{
+				rtCount = 2;
+				break;
+			}
+		}
+	}
+	if (rtCount < _renderTargets.size())
+	{
+		for (size_t i = rtCount; i < _renderTargets.size(); i++)
+		{
+			_renderTargets.pop_back();
+		}
+	}
+	else
+	{
+		for (size_t i = _renderTargets.size(); i < rtCount; i++)
+		{
+			_renderTargets.push_back(newRenderPair(width, height));
+		}
+	}
+	for (size_t i = 0; i < _renderTargets.size(); i++)
+	{
+		const auto& rt = _renderTargets[i];
+		if (rt.surface->getWidth() != width ||
+			rt.surface->getHeight() != height)
+		{
+			_renderTargets[i] = newRenderPair(width, height);
+		}
+		_renderTargets[i].surface->getEffect()->clear();
+	}
+
+	target->markDirty();
+	target->_flags.setOn(Node::IgnoreTransform);
+	_renderTargets[0].rt->setCamera(_camera);
+	_renderTargets[0].rt->renderWithClear(target, _clearColor);
+	_renderTargets[0].rt->setCamera(nullptr);
+	target->_flags.setOff(Node::IgnoreTransform);
+	target->markDirty();
+
+	size_t rtIndex = 0;
+	if (_effect)
+	{
+		for (Pass* pass : _effect->getPasses())
+		{
+			Effect* effect = _renderTargets[rtIndex].surface->getEffect();
+			effect->add(pass);
+			if (pass->isRTNeeded())
+			{
+				Sprite* surface = _renderTargets[rtIndex].surface;
+				rtIndex = (rtIndex + 1) % 2;
+				surface->setPosition({width / 2.0f, height / 2.0f});
+				surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+				_renderTargets[rtIndex].rt->render(surface);
+				surface->getEffect()->clear();
+				_renderTargets[rtIndex].surface->getEffect()->clear();
+			}
+		}
+	}
+
+	_display = _renderTargets[rtIndex].surface;
+	if (_display->_parent != target)
+	{
+		_display->_parent = target;
+		s_cast<Node*>(_display.get())->updateRealColor3();
+		s_cast<Node*>(_display.get())->updateRealOpacity();
+	}
+	_display->setPosition({width / 2.0f, height / 2.0f});
+	_display->setBlendFunc(_blendFunc);
+}
+
+void Node::Grabber::visit()
+{
+	if (_display)
+	{
+		_display->visit();
+	}
+}
+
+void Node::Grabber::cleanup()
+{
+	if (_display)
+	{
+		_display = nullptr;
+	}
+	if (_effect)
+	{
+		_effect = nullptr;
+	}
+	_renderTargets.clear();
+}
+
+Node::Grabber* Node::grab(bool enabled)
+{
+	AssertIf(_size.width <= 0.0f || _size.height <= 0.0f, "can not grab a invalid sized node.");
+	if (enabled)
+	{
+		if (!_grabber) _grabber = Grabber::create();
+		return _grabber;
+	}
+	if (_grabber)
+	{
+		_grabber->cleanup();
+		_grabber = nullptr;
+	}
+	return nullptr;
 }
 
 /* Slot */
