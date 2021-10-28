@@ -4085,6 +4085,7 @@ local ARRAY_OF_STRING_OR_NUMBER = a_type({ typename = "array", elements = UNION(
 
 local FUNCTION = a_type({ typename = "function", args = VARARG({ ANY }), rets = VARARG({ ANY }) })
 
+local NOMINAL_FILE = a_type({ typename = "nominal", names = { "FILE" } })
 local XPCALL_MSGH_FUNCTION = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({}) })
 
 local USERDATA = ANY
@@ -4657,11 +4658,13 @@ local function get_stdlib_compat(lax)
       }
    else
       return {
+         ["io"] = true,
          ["math"] = true,
          ["string"] = true,
          ["table"] = true,
          ["utf8"] = true,
          ["coroutine"] = true,
+         ["os"] = true,
          ["package"] = true,
          ["debug"] = true,
          ["load"] = true,
@@ -4801,6 +4804,7 @@ local function init_globals(lax)
 
    local OPT_ALPHA = a_type({ opt = true, typename = "typevar", typevar = "@a" })
    local OPT_BETA = a_type({ opt = true, typename = "typevar", typevar = "@b" })
+   local OPT_NOMINAL_FILE = a_type({ opt = true, typename = "nominal", names = { "FILE" } })
    local OPT_TABLE_SORT_FUNCTION = a_type({ opt = true, typename = "function", args = { ALPHA, ALPHA }, rets = { BOOLEAN } })
    local function OPT_UNION(t)
       return a_type({ opt = true, typename = "union", types = t })
@@ -4871,13 +4875,32 @@ local function init_globals(lax)
       }),
       ["tostring"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
       ["type"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
+      ["FILE"] = a_type({
+         typename = "typetype",
+         def = a_type({
+            typename = "record",
+            is_userdata = true,
+            fields = {
+               ["close"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE }), rets = TUPLE({ BOOLEAN, STRING }) }),
+               ["flush"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE }), rets = TUPLE({}) }),
+               ["lines"] = a_type({ typename = "function", args = VARARG({ NOMINAL_FILE, a_type({ opt = true, typename = "union", types = { STRING, NUMBER } }) }), rets = TUPLE({
+                  a_type({ typename = "function", args = TUPLE({}), rets = VARARG({ STRING }) }),
+               }), }),
+               ["read"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, OPT_UNION({ STRING, NUMBER }) }), rets = TUPLE({ STRING, STRING }) }),
+               ["seek"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, OPT_STRING, OPT_NUMBER }), rets = TUPLE({ INTEGER, STRING }) }),
+               ["setvbuf"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, STRING, OPT_NUMBER }), rets = TUPLE({}) }),
+               ["write"] = a_type({ typename = "function", args = VARARG({ NOMINAL_FILE, STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
+
+            },
+         }),
+      }),
       ["metatable"] = a_type({
          typename = "typetype",
          def = a_type({
             typename = "record",
             typeargs = TUPLE({ ARG_ALPHA }),
             fields = {
-               ["__call"] = a_type({ typename = "function", args = VARARG({ ALPHA, ANY }), rets = VARARG({ ANY }) }),
+               ["__call"] = a_type({ typename = "function", args = TUPLE({ ALPHA }), rets = VARARG({ ANY }) }),
                ["__gc"] = a_type({ typename = "function", args = TUPLE({ ALPHA }), rets = TUPLE({}) }),
                ["__index"] = ANY,
                ["__len"] = a_type({ typename = "function", args = TUPLE({ ALPHA }), rets = TUPLE({ ANY }) }),
@@ -4988,6 +5011,27 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
             }),
          },
       }),
+      ["io"] = a_type({
+         typename = "record",
+         fields = {
+            ["close"] = a_type({ typename = "function", args = TUPLE({ OPT_NOMINAL_FILE }), rets = TUPLE({ BOOLEAN, STRING }) }),
+            ["flush"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({}) }),
+            ["input"] = a_type({ typename = "function", args = TUPLE({ OPT_UNION({ STRING, NOMINAL_FILE }) }), rets = TUPLE({ NOMINAL_FILE }) }),
+            ["lines"] = a_type({ typename = "function", args = VARARG({ OPT_STRING, a_type({ opt = true, typename = "union", types = { STRING, NUMBER } }) }), rets = TUPLE({
+               a_type({ typename = "function", args = TUPLE({}), rets = VARARG({ STRING }) }),
+            }), }),
+            ["open"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
+            ["output"] = a_type({ typename = "function", args = TUPLE({ OPT_UNION({ STRING, NOMINAL_FILE }) }), rets = TUPLE({ NOMINAL_FILE }) }),
+            ["popen"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
+            ["read"] = a_type({ typename = "function", args = TUPLE({ OPT_UNION({ STRING, NUMBER }) }), rets = TUPLE({ STRING, STRING }) }),
+            ["stderr"] = NOMINAL_FILE,
+            ["stdin"] = NOMINAL_FILE,
+            ["stdout"] = NOMINAL_FILE,
+            ["tmpfile"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NOMINAL_FILE }) }),
+            ["type"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
+            ["write"] = a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
+         },
+      }),
       ["math"] = a_type({
          typename = "record",
          fields = {
@@ -5060,6 +5104,34 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
             ["tointeger"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ INTEGER }) }),
             ["type"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
             ["ult"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ BOOLEAN }) }),
+         },
+      }),
+      ["os"] = a_type({
+         typename = "record",
+         fields = {
+            ["clock"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NUMBER }) }),
+            ["date"] = a_type({
+               typename = "poly",
+               types = {
+                  a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ STRING }) }),
+                  a_type({ typename = "function", args = TUPLE({ OS_DATE_TABLE_FORMAT, OPT_NUMBER }), rets = TUPLE({ OS_DATE_TABLE }) }),
+                  a_type({ typename = "function", args = TUPLE({ OPT_STRING, OPT_NUMBER }), rets = TUPLE({ STRING }) }),
+               },
+            }),
+            ["difftime"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
+            ["exit"] = a_type({ typename = "function", args = TUPLE({ OPT_UNION({ NUMBER, BOOLEAN }), OPT_BOOLEAN }), rets = TUPLE({}) }),
+            ["getenv"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
+            ["remove"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ BOOLEAN, STRING }) }),
+            ["rename"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING }), rets = TUPLE({ BOOLEAN, STRING }) }),
+            ["setlocale"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING }), rets = TUPLE({ STRING }) }),
+            ["time"] = a_type({
+               typename = "poly",
+               types = {
+                  a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ INTEGER }) }),
+                  a_type({ typename = "function", args = TUPLE({ OS_DATE_TABLE }), rets = TUPLE({ INTEGER }) }),
+               },
+            }),
+            ["tmpname"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ STRING }) }),
          },
       }),
       ["package"] = a_type({
@@ -5176,6 +5248,7 @@ rets = TUPLE({ a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ 
    fill_field_order(OS_DATE_TABLE)
    fill_field_order(DEBUG_GETINFO_TABLE)
 
+   NOMINAL_FILE.found = standard_library["FILE"]
    NOMINAL_METATABLE_OF_ALPHA.found = standard_library["metatable"]
 
    for name, typ in pairs(standard_library) do
