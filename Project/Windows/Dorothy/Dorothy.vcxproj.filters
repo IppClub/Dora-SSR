@@ -163,6 +163,54 @@
     <Filter Include="3rdParty\dragonBones\parser">
       <UniqueIdentifier>{029a64c8-23b0-44ea-9db8-e1eac2233cb2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\soloud">
+      <UniqueIdentifier>{507c4c51-40c8-4622-a7f3-e6e48583e881}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource">
+      <UniqueIdentifier>{4418763c-bdc7-42f7-b524-40420b06dbac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\backend">
+      <UniqueIdentifier>{040d94e7-033a-41a0-976c-cec9598bc099}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\core">
+      <UniqueIdentifier>{0183c6e0-7f79-4311-b9c6-2ead1d1e092a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\filter">
+      <UniqueIdentifier>{da4f2b1c-b868-41aa-8335-f31182b5be8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\backend\sdl">
+      <UniqueIdentifier>{bfac9d3c-7064-4134-9bee-f8c3de3a7dc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\ay">
+      <UniqueIdentifier>{49baa19a-74d4-43a4-b369-f2bcbeb0403a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\monotone">
+      <UniqueIdentifier>{82138d64-c7e3-456e-a10e-4aa4a1b5f9fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\noise">
+      <UniqueIdentifier>{b8ae18ea-7564-4e3e-b0a8-f8c3b54a2b30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\openmpt">
+      <UniqueIdentifier>{85e9d029-2684-42f7-ac24-abb3db5e1c8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\sfxr">
+      <UniqueIdentifier>{7eb243ce-a261-4356-a62a-35789f1c592e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\speech">
+      <UniqueIdentifier>{fcc00b82-95e6-4685-94c6-94a2536316e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\tedsid">
+      <UniqueIdentifier>{e59e9003-6813-45a8-9855-80092c93c188}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\vic">
+      <UniqueIdentifier>{f9333332-f28f-4a61-ac4b-ddd1e0a49bf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\vizsn">
+      <UniqueIdentifier>{01165967-1e63-4937-9efa-e95ffe5b2beb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\wav">
+      <UniqueIdentifier>{a1cc48e2-5ad5-458d-912e-ad3baa191c4d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
@@ -1050,6 +1098,273 @@
     <ClCompile Include="..\..\..\Source\Basic\RenderTarget.cpp">
       <Filter>Basic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\sqlite3.c">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_bassboostfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_biquadresonantfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_dcremovalfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_echofilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_eqfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_fftfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_flangerfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_freeverbfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_lofifilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_robotizefilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_waveshaperfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_audiosource.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_bus.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_3d.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_basicops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_faderops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_filterops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_getters.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_setters.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_voicegroup.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_voiceops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_fader.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_fft.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_fft_lut.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_file.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_filter.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_misc.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_queue.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_thread.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl\soloud_sdl2.cpp">
+      <Filter>3rdParty\soloud\backend\sdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl\soloud_sdl2_dll.c">
+      <Filter>3rdParty\soloud\backend\sdl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.cpp">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndbuffer.cpp">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndchip.cpp">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndrender.cpp">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\soloud_ay.cpp">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\monotone\soloud_monotone.cpp">
+      <Filter>3rdParty\soloud\audiosource\monotone</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_impl.cpp">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\soloud_wav.cpp">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\soloud_wavstream.cpp">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\stb_vorbis.c">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\vizsn\soloud_vizsn.cpp">
+      <Filter>3rdParty\soloud\audiosource\vizsn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\vic\soloud_vic.cpp">
+      <Filter>3rdParty\soloud\audiosource\vic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\sid.cpp">
+      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\soloud_tedsid.cpp">
+      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\ted.cpp">
+      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\darray.cpp">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\klatt.cpp">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\resonator.cpp">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\soloud_speech.cpp">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\tts.cpp">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\sfxr\soloud_sfxr.cpp">
+      <Filter>3rdParty\soloud\audiosource\sfxr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\noise\soloud_noise.cpp">
+      <Filter>3rdParty\soloud\audiosource\noise</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\openmpt\soloud_openmpt.cpp">
+      <Filter>3rdParty\soloud\audiosource\openmpt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\openmpt\soloud_openmpt_dll.c">
+      <Filter>3rdParty\soloud\audiosource\openmpt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lapi.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lauxlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lbaselib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lcode.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lcorolib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lctype.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldblib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldebug.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldo.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldump.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lfunc.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lgc.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\linit.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\liolib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\llex.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lmathlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lmem.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\loadlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lobject.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lopcodes.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\loslib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lparser.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lstate.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lstring.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lstrlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ltable.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ltablib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ltm.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lundump.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lutf8lib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lvm.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lzio.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
@@ -1069,21 +1384,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
       <Filter>3rdParty\silly</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lauxlib.h">
-      <Filter>3rdParty\Lua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.h">
-      <Filter>3rdParty\Lua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lua.hpp">
-      <Filter>3rdParty\Lua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\luaconf.h">
-      <Filter>3rdParty\Lua</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Lua\Header\lualib.h">
-      <Filter>3rdParty\Lua</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Basic\Application.h">
       <Filter>Basic</Filter>
@@ -2273,6 +2573,249 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Basic\RenderTarget.h">
       <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\sqlite3.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_audiosource.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_ay.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_bassboostfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_biquadresonantfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_bus.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_c.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_dcremovalfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_echofilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_eqfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_error.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_fader.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_fft.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_fftfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_file.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_file_hack_off.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_file_hack_on.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_filter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_flangerfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_freeverbfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_internal.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_lofifilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_misc.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_monotone.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_noise.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_openmpt.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_queue.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_robotizefilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_sfxr.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_speech.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_tedsid.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_thread.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_vic.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_vizsn.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_wav.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_waveshaperfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_wavstream.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\zx7decompress.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.h">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndbuffer.h">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndchip.h">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndrender.h">
+      <Filter>3rdParty\soloud\audiosource\ay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_flac.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_mp3.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_wav.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\stb_vorbis.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\sid.h">
+      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\ted.h">
+      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\darray.h">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\klatt.h">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\resonator.h">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\tts.h">
+      <Filter>3rdParty\soloud\audiosource\speech</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lapi.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lauxlib.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lcode.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lctype.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ldebug.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ldo.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lfunc.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lgc.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ljumptab.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\llex.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\llimits.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lmem.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lobject.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lopcodes.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lopnames.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lparser.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lprefix.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lstate.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lstring.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ltable.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ltm.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lua.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lua.hpp">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\luaconf.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lualib.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lundump.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lvm.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lzio.h">
+      <Filter>3rdParty\Lua</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
