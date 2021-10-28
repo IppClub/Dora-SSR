@@ -1,6 +1,0 @@
-#ifndef PrefixHeader_pch
-#define PrefixHeader_pch
-
-#include "Const/Header.h"
-
-#endif /* PrefixHeader_pch */

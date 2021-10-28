@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.4.1)
 project(Dorothy-SSR)
 
-file(GLOB_RECURSE src-files FOLLOW_SYMLINKS *.cpp)
+file(GLOB_RECURSE src-files src/main/cpp/3rdParty FOLLOW_SYMLINKS *.cpp *.c)
+list(FILTER src-files EXCLUDE REGEX .*feature_tests.c)
 
 include_directories(
 	src/main/cpp
@@ -10,13 +11,12 @@ include_directories(
 	src/main/cpp/3rdParty/bgfx/Header
 	src/main/cpp/3rdParty/Lua/Header
 	src/main/cpp/3rdParty/Zip/Header
-	src/main/cpp/3rdParty/soloud/Header
+	src/main/cpp/3rdParty/soloud
 	src/main/cpp/3rdParty/lodepng
 	src/main/cpp/3rdParty/imgui
 	src/main/cpp/3rdParty/implot
 	src/main/cpp/3rdParty/font
 	src/main/cpp/3rdParty/sqlite
-	src/main/cpp/3rdParty/sqlite/Header
 	src/main/cpp/3rdParty/dragonBones
 )
 
@@ -56,19 +56,7 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/Lua/Lib/Android/${ANDROID_ABI}/liblua.a
 )
 
-add_library( soloud-lib STATIC IMPORTED )
-set_target_properties(
-	soloud-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/soloud/Lib/Android/${ANDROID_ABI}/libsoloud.a
-)
-
-add_library( sqlite3-lib SHARED IMPORTED )
-set_target_properties(
-	sqlite3-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/sqlite/Lib/Android/${ANDROID_ABI}/libsqlite3.so
-)
-
 add_library( main SHARED ${src-files} )
 
-target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib lua-lib soloud-lib sqlite3-lib )
+target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib lua-lib )
 
