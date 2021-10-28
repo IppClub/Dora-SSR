@@ -4,12 +4,14 @@ project(Dorothy-SSR)
 file(GLOB_RECURSE src-files src/main/cpp/3rdParty FOLLOW_SYMLINKS *.cpp *.c)
 list(FILTER src-files EXCLUDE REGEX .*feature_tests.c)
 
+add_definitions(-DWITH_SDL2)
+
 include_directories(
 	src/main/cpp
 	src/main/cpp/3rdParty
 	src/main/cpp/3rdParty/SDL2/Header
 	src/main/cpp/3rdParty/bgfx/Header
-	src/main/cpp/3rdParty/Lua/Header
+	src/main/cpp/3rdParty/Lua
 	src/main/cpp/3rdParty/Zip/Header
 	src/main/cpp/3rdParty/soloud
 	src/main/cpp/3rdParty/lodepng
@@ -50,13 +52,6 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
 )
 
-add_library( lua-lib STATIC IMPORTED )
-set_target_properties(
-	lua-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/Lua/Lib/Android/${ANDROID_ABI}/liblua.a
-)
-
 add_library( main SHARED ${src-files} )
 
-target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib lua-lib )
-
+target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib )
