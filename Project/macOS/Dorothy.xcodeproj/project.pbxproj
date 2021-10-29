@@ -3531,7 +3531,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
 					"-Wno-unreachable-code",
@@ -3571,7 +3571,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
 					"-Wno-unreachable-code",
