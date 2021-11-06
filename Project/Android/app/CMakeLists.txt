@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1)
 project(Dorothy-SSR)
 
-file(GLOB_RECURSE src-files src/main/cpp/3rdParty FOLLOW_SYMLINKS *.cpp *.c)
-list(FILTER src-files EXCLUDE REGEX .*feature_tests.c)
-
-add_definitions(-DWITH_SDL2)
-
 include_directories(
 	src/main/cpp
 	src/main/cpp/3rdParty
@@ -22,36 +17,429 @@ include_directories(
 	src/main/cpp/3rdParty/dragonBones
 )
 
-add_library( SDL2-lib SHARED IMPORTED )
+add_library(SDL2-lib SHARED IMPORTED)
 set_target_properties(
 	SDL2-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/SDL2/Lib/Android/${ANDROID_ABI}/libSDL2.so
+	src/main/cpp/3rdParty/SDL2/Lib/Android/${ANDROID_ABI}/libSDL2.so
 )
 
-add_library( BGFX-lib STATIC IMPORTED )
+add_library(BGFX-lib STATIC IMPORTED)
 set_target_properties(
 	BGFX-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbgfx.a
+	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbgfx.a
 )
 
-add_library( BX-lib STATIC IMPORTED )
+add_library(BX-lib STATIC IMPORTED)
 set_target_properties(
 	BX-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbx.a
+	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbx.a
 )
 
-add_library( BIMG-lib STATIC IMPORTED )
+add_library(BIMG-lib STATIC IMPORTED)
 set_target_properties(
 	BIMG-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg.a
+	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg.a
 )
 
-add_library( BIMGDE-lib STATIC IMPORTED )
+add_library(BIMGDE-lib STATIC IMPORTED)
 set_target_properties(
 	BIMGDE-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
+	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
 )
 
-add_library( main SHARED ${src-files} )
+add_definitions(-DWITH_SDL2)
 
-target_link_libraries( main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib )
+add_library(main SHARED
+	src/main/cpp/Platformer/AINode.cpp
+	src/main/cpp/Platformer/Define.cpp
+	src/main/cpp/Platformer/AI.cpp
+	src/main/cpp/Platformer/Data.cpp
+	src/main/cpp/Platformer/VisualCache.cpp
+	src/main/cpp/Platformer/PlatformCamera.cpp
+	src/main/cpp/Platformer/Unit.cpp
+	src/main/cpp/Platformer/Face.cpp
+	src/main/cpp/Platformer/PlatformWorld.cpp
+	src/main/cpp/Platformer/BulletDef.cpp
+	src/main/cpp/Platformer/Bullet.cpp
+	src/main/cpp/Platformer/UnitAction.cpp
+	src/main/cpp/Cache/AtlasCache.cpp
+	src/main/cpp/Cache/ClipCache.cpp
+	src/main/cpp/Cache/ShaderCache.cpp
+	src/main/cpp/Cache/ParticleCache.cpp
+	src/main/cpp/Cache/TextureCache.cpp
+	src/main/cpp/Cache/SkeletonCache.cpp
+	src/main/cpp/Cache/ModelCache.cpp
+	src/main/cpp/Cache/DragonBoneCache.cpp
+	src/main/cpp/Cache/SoundCache.cpp
+	src/main/cpp/Cache/FrameCache.cpp
+	src/main/cpp/Cache/SVGCache.cpp
+	src/main/cpp/Input/Keyboard.cpp
+	src/main/cpp/Input/TouchDispather.cpp
+	src/main/cpp/Entity/Entity.cpp
+	src/main/cpp/Basic/Director.cpp
+	src/main/cpp/Basic/AutoreleasePool.cpp
+	src/main/cpp/Basic/VGRender.cpp
+	src/main/cpp/Basic/Camera.cpp
+	src/main/cpp/Basic/Object.cpp
+	src/main/cpp/Basic/RenderTarget.cpp
+	src/main/cpp/Basic/View.cpp
+	src/main/cpp/Basic/Scheduler.cpp
+	src/main/cpp/Basic/Database.cpp
+	src/main/cpp/Basic/Content.cpp
+	src/main/cpp/Basic/Application.cpp
+	src/main/cpp/Basic/Renderer.cpp
+	src/main/cpp/Effect/Effect.cpp
+	src/main/cpp/Animation/ModelDef.cpp
+	src/main/cpp/Animation/Animation.cpp
+	src/main/cpp/Animation/Action.cpp
+	src/main/cpp/Lua/LuaFromXml.cpp
+	src/main/cpp/Lua/LuaBinding.cpp
+	src/main/cpp/Lua/LuaManual.cpp
+	src/main/cpp/Lua/LuaCode.cpp
+	src/main/cpp/Lua/LuaHandler.cpp
+	src/main/cpp/Lua/TealCompiler.cpp
+	src/main/cpp/Lua/LuaEngine.cpp
+	src/main/cpp/Const/Header.cpp
+	src/main/cpp/Common/Utils.cpp
+	src/main/cpp/Common/Singleton.cpp
+	src/main/cpp/Common/Async.cpp
+	src/main/cpp/Common/Debug.cpp
+	src/main/cpp/Common/MemoryPool.cpp
+	src/main/cpp/Audio/Sound.cpp
+	src/main/cpp/Support/Common.cpp
+	src/main/cpp/Support/Geometry.cpp
+	src/main/cpp/Support/Array.cpp
+	src/main/cpp/Support/Value.cpp
+	src/main/cpp/Support/Dictionary.cpp
+	src/main/cpp/ML/ML.cpp
+	src/main/cpp/GUI/ImGuiDora.cpp
+	src/main/cpp/Shader/Builtin.cpp
+	src/main/cpp/Physics/Joint.cpp
+	src/main/cpp/Physics/BodyDef.cpp
+	src/main/cpp/Physics/JointDef.cpp
+	src/main/cpp/Physics/Body.cpp
+	src/main/cpp/Physics/Sensor.cpp
+	src/main/cpp/Physics/PhysicsWorld.cpp
+	src/main/cpp/Physics/DebugDraw.cpp
+	src/main/cpp/Node/Particle.cpp
+	src/main/cpp/Node/VGNode.cpp
+	src/main/cpp/Node/Spine.cpp
+	src/main/cpp/Node/Menu.cpp
+	src/main/cpp/Node/Sprite.cpp
+	src/main/cpp/Node/Node.cpp
+	src/main/cpp/Node/Label.cpp
+	src/main/cpp/Node/ClipNode.cpp
+	src/main/cpp/Node/SoftNode.cpp
+	src/main/cpp/Node/Model.cpp
+	src/main/cpp/Node/Playable.cpp
+	src/main/cpp/Node/DragonBone.cpp
+	src/main/cpp/Node/DrawNode.cpp
+	src/main/cpp/Event/EventType.cpp
+	src/main/cpp/Event/EventQueue.cpp
+	src/main/cpp/Event/Listener.cpp
+	src/main/cpp/Event/Event.cpp
+	src/main/cpp/Lua/ToLua/tolua_event.cpp
+	src/main/cpp/Lua/ToLua/tolua_map.cpp
+	src/main/cpp/Lua/ToLua/tolua_push.cpp
+	src/main/cpp/Lua/ToLua/tolua_fix.cpp
+	src/main/cpp/Lua/ToLua/tolua_to.cpp
+	src/main/cpp/Lua/ToLua/tolua_is.cpp
+	src/main/cpp/3rdParty/yuescript/yue_compiler.cpp
+	src/main/cpp/3rdParty/yuescript/ast.cpp
+	src/main/cpp/3rdParty/yuescript/yue_parser.cpp
+	src/main/cpp/3rdParty/yuescript/yuescript.cpp
+	src/main/cpp/3rdParty/yuescript/parser.cpp
+	src/main/cpp/3rdParty/implot/implot.cpp
+	src/main/cpp/3rdParty/implot/implot_items.cpp
+	src/main/cpp/3rdParty/implot/implot_demo.cpp
+	src/main/cpp/3rdParty/silly/Slice.cpp
+	src/main/cpp/3rdParty/spine/Attachment.cpp
+	src/main/cpp/3rdParty/spine/Skeleton.cpp
+	src/main/cpp/3rdParty/spine/TranslateTimeline.cpp
+	src/main/cpp/3rdParty/spine/Extension.cpp
+	src/main/cpp/3rdParty/spine/Updatable.cpp
+	src/main/cpp/3rdParty/spine/Bone.cpp
+	src/main/cpp/3rdParty/spine/AtlasAttachmentLoader.cpp
+	src/main/cpp/3rdParty/spine/EventTimeline.cpp
+	src/main/cpp/3rdParty/spine/PathConstraint.cpp
+	src/main/cpp/3rdParty/spine/Log.cpp
+	src/main/cpp/3rdParty/spine/VertexAttachment.cpp
+	src/main/cpp/3rdParty/spine/TextureLoader.cpp
+	src/main/cpp/3rdParty/spine/SkeletonData.cpp
+	src/main/cpp/3rdParty/spine/TransformConstraintTimeline.cpp
+	src/main/cpp/3rdParty/spine/ConstraintData.cpp
+	src/main/cpp/3rdParty/spine/IkConstraint.cpp
+	src/main/cpp/3rdParty/spine/CurveTimeline.cpp
+	src/main/cpp/3rdParty/spine/AnimationStateData.cpp
+	src/main/cpp/3rdParty/spine/BoundingBoxAttachment.cpp
+	src/main/cpp/3rdParty/spine/PathAttachment.cpp
+	src/main/cpp/3rdParty/spine/MeshAttachment.cpp
+	src/main/cpp/3rdParty/spine/TransformConstraint.cpp
+	src/main/cpp/3rdParty/spine/Skin.cpp
+	src/main/cpp/3rdParty/spine/RTTI.cpp
+	src/main/cpp/3rdParty/spine/MathUtil.cpp
+	src/main/cpp/3rdParty/spine/IkConstraintData.cpp
+	src/main/cpp/3rdParty/spine/Atlas.cpp
+	src/main/cpp/3rdParty/spine/ClippingAttachment.cpp
+	src/main/cpp/3rdParty/spine/PathConstraintData.cpp
+	src/main/cpp/3rdParty/spine/Timeline.cpp
+	src/main/cpp/3rdParty/spine/SkeletonBinary.cpp
+	src/main/cpp/3rdParty/spine/ScaleTimeline.cpp
+	src/main/cpp/3rdParty/spine/LinkedMesh.cpp
+	src/main/cpp/3rdParty/spine/PointAttachment.cpp
+	src/main/cpp/3rdParty/spine/RegionAttachment.cpp
+	src/main/cpp/3rdParty/spine/DeformTimeline.cpp
+	src/main/cpp/3rdParty/spine/Animation.cpp
+	src/main/cpp/3rdParty/spine/AttachmentLoader.cpp
+	src/main/cpp/3rdParty/spine/DrawOrderTimeline.cpp
+	src/main/cpp/3rdParty/spine/AttachmentTimeline.cpp
+	src/main/cpp/3rdParty/spine/EventData.cpp
+	src/main/cpp/3rdParty/spine/PathConstraintSpacingTimeline.cpp
+	src/main/cpp/3rdParty/spine/PathConstraintPositionTimeline.cpp
+	src/main/cpp/3rdParty/spine/TransformConstraintData.cpp
+	src/main/cpp/3rdParty/spine/SkeletonClipping.cpp
+	src/main/cpp/3rdParty/spine/Slot.cpp
+	src/main/cpp/3rdParty/spine/AnimationState.cpp
+	src/main/cpp/3rdParty/spine/SkeletonJson.cpp
+	src/main/cpp/3rdParty/spine/BoneData.cpp
+	src/main/cpp/3rdParty/spine/IkConstraintTimeline.cpp
+	src/main/cpp/3rdParty/spine/SpineObject.cpp
+	src/main/cpp/3rdParty/spine/Event.cpp
+	src/main/cpp/3rdParty/spine/RotateTimeline.cpp
+	src/main/cpp/3rdParty/spine/PathConstraintMixTimeline.cpp
+	src/main/cpp/3rdParty/spine/Triangulator.cpp
+	src/main/cpp/3rdParty/spine/Json.cpp
+	src/main/cpp/3rdParty/spine/SkeletonBounds.cpp
+	src/main/cpp/3rdParty/spine/SlotData.cpp
+	src/main/cpp/3rdParty/spine/ShearTimeline.cpp
+	src/main/cpp/3rdParty/spine/ColorTimeline.cpp
+	src/main/cpp/3rdParty/spine/VertexEffect.cpp
+	src/main/cpp/3rdParty/fmt/os.cpp
+	src/main/cpp/3rdParty/fmt/format.cpp
+	src/main/cpp/3rdParty/imgui/imgui_widgets.cpp
+	src/main/cpp/3rdParty/imgui/imgui.cpp
+	src/main/cpp/3rdParty/imgui/imgui_tables.cpp
+	src/main/cpp/3rdParty/imgui/imgui_demo.cpp
+	src/main/cpp/3rdParty/imgui/imgui_draw.cpp
+	src/main/cpp/3rdParty/Other/atlas.cpp
+	src/main/cpp/3rdParty/Other/utf8.cpp
+	src/main/cpp/3rdParty/sqlite/sqlite3.c
+	src/main/cpp/3rdParty/stb/stb.cpp
+	src/main/cpp/3rdParty/Lua/lauxlib.c
+	src/main/cpp/3rdParty/Lua/liolib.c
+	src/main/cpp/3rdParty/Lua/lopcodes.c
+	src/main/cpp/3rdParty/Lua/lstate.c
+	src/main/cpp/3rdParty/Lua/lobject.c
+	src/main/cpp/3rdParty/Lua/lmathlib.c
+	src/main/cpp/3rdParty/Lua/loadlib.c
+	src/main/cpp/3rdParty/Lua/lvm.c
+	src/main/cpp/3rdParty/Lua/lfunc.c
+	src/main/cpp/3rdParty/Lua/lstrlib.c
+	src/main/cpp/3rdParty/Lua/linit.c
+	src/main/cpp/3rdParty/Lua/lstring.c
+	src/main/cpp/3rdParty/Lua/lundump.c
+	src/main/cpp/3rdParty/Lua/lctype.c
+	src/main/cpp/3rdParty/Lua/ltable.c
+	src/main/cpp/3rdParty/Lua/ldump.c
+	src/main/cpp/3rdParty/Lua/loslib.c
+	src/main/cpp/3rdParty/Lua/lgc.c
+	src/main/cpp/3rdParty/Lua/lzio.c
+	src/main/cpp/3rdParty/Lua/ldblib.c
+	src/main/cpp/3rdParty/Lua/lutf8lib.c
+	src/main/cpp/3rdParty/Lua/lmem.c
+	src/main/cpp/3rdParty/Lua/lcorolib.c
+	src/main/cpp/3rdParty/Lua/lcode.c
+	src/main/cpp/3rdParty/Lua/ltablib.c
+	src/main/cpp/3rdParty/Lua/lapi.c
+	src/main/cpp/3rdParty/Lua/lbaselib.c
+	src/main/cpp/3rdParty/Lua/ldebug.c
+	src/main/cpp/3rdParty/Lua/lparser.c
+	src/main/cpp/3rdParty/Lua/llex.c
+	src/main/cpp/3rdParty/Lua/ltm.c
+	src/main/cpp/3rdParty/Lua/ldo.c
+	src/main/cpp/3rdParty/ml/DecisionTree.cpp
+	src/main/cpp/3rdParty/tinyxml2/tinyxml2.cpp
+	src/main/cpp/3rdParty/tinyxml2/SAXParser.cpp
+	src/main/cpp/3rdParty/lodepng/lodepng.cpp
+	src/main/cpp/3rdParty/font/font_manager.cpp
+	src/main/cpp/3rdParty/nanovg/nanovg.cpp
+	src/main/cpp/3rdParty/nanovg/nanovg_bgfx.cpp
+	src/main/cpp/Physics/Soft/Particle.cpp
+	src/main/cpp/Physics/Soft/Constraint.cpp
+	src/main/cpp/Physics/Soft/World.cpp
+	src/main/cpp/3rdParty/dragonBones/core/BaseObject.cpp
+	src/main/cpp/3rdParty/dragonBones/core/DragonBones.cpp
+	src/main/cpp/3rdParty/dragonBones/armature/Bone.cpp
+	src/main/cpp/3rdParty/dragonBones/armature/DeformVertices.cpp
+	src/main/cpp/3rdParty/dragonBones/armature/Constraint.cpp
+	src/main/cpp/3rdParty/dragonBones/armature/Armature.cpp
+	src/main/cpp/3rdParty/dragonBones/armature/Slot.cpp
+	src/main/cpp/3rdParty/dragonBones/armature/TransformObject.cpp
+	src/main/cpp/3rdParty/dragonBones/animation/WorldClock.cpp
+	src/main/cpp/3rdParty/dragonBones/animation/TimelineState.cpp
+	src/main/cpp/3rdParty/dragonBones/animation/BaseTimelineState.cpp
+	src/main/cpp/3rdParty/dragonBones/animation/Animation.cpp
+	src/main/cpp/3rdParty/dragonBones/animation/AnimationState.cpp
+	src/main/cpp/3rdParty/dragonBones/parser/BinaryDataParser.cpp
+	src/main/cpp/3rdParty/dragonBones/parser/JSONDataParser.cpp
+	src/main/cpp/3rdParty/dragonBones/parser/DataParser.cpp
+	src/main/cpp/3rdParty/dragonBones/geom/Transform.cpp
+	src/main/cpp/3rdParty/dragonBones/geom/Point.cpp
+	src/main/cpp/3rdParty/dragonBones/model/DragonBonesData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/BoundingBoxData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/DisplayData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/ConstraintData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/AnimationConfig.cpp
+	src/main/cpp/3rdParty/dragonBones/model/SkinData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/AnimationData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/CanvasData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/ArmatureData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/UserData.cpp
+	src/main/cpp/3rdParty/dragonBones/model/TextureAtlasData.cpp
+	src/main/cpp/3rdParty/dragonBones/event/EventObject.cpp
+	src/main/cpp/3rdParty/dragonBones/factory/BaseFactory.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/StepStats.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldJoint.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/MovementConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldImplMisc.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldImplContact.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/BodyConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/ContactImpulsesList.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldContact.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldImplJoint.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldBody.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldSpecial.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldImpl.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Body.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldShape.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldImplBody.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Island.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldImplShape.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/StepConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/WorldMisc.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/World.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/BlockAllocator.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/Version.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/Sweep.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/Math.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/UnitVec.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/DynamicMemory.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/Velocity.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/StackAllocator.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/CodeDumper.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/RayCastOutput.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Manifold.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Simplex.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/SeparationScenario.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/AABB.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/DynamicTree.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/DistanceProxy.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/TimeOfImpact.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/DynamicTreeData.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/WorldManifold.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Distance.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/ToiOutput.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/MassData.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/ToiConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/ShapeSeparation.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Collision.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/DistanceConf.cpp
+	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Column.cpp
+	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Savepoint.cpp
+	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Exception.cpp
+	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Statement.cpp
+	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Database.cpp
+	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Backup.cpp
+	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Transaction.cpp
+	src/main/cpp/3rdParty/Zip/Support/ioapi.cpp
+	src/main/cpp/3rdParty/Zip/Support/ZipUtils.cpp
+	src/main/cpp/3rdParty/Zip/Support/unzip.cpp
+	src/main/cpp/3rdParty/Zip/Support/zip.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_filterops.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_fft_lut.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_voicegroup.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_bus.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_fader.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_file.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_audiosource.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_fft.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_setters.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_voiceops.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_filter.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_queue.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_faderops.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_basicops.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_thread.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_getters.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_core_3d.cpp
+	src/main/cpp/3rdParty/soloud/core/soloud_misc.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_eqfilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_bassboostfilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_echofilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_fftfilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_robotizefilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_dcremovalfilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_lofifilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_flangerfilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_freeverbfilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_biquadresonantfilter.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_waveshaperfilter.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Contacts/ConstraintSolverConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Contacts/ContactSolver.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Contacts/Contact.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Contacts/PositionSolverManifold.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Contacts/ContactKey.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Contacts/VelocityConstraint.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/MotorJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/Joint.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/FrictionJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/TargetJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/JointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/LimitState.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/RopeJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/GearJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/WheelJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/WeldJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/PulleyJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/RevoluteJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/PrismaticJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Dynamics/Joints/DistanceJointConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/EdgeShapeConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/MultiShapeConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/DiskShapeConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/Shape.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/PolygonShapeConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/ChainShapeConf.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/Compositor.cpp
+	src/main/cpp/3rdParty/soloud/backend/sdl/soloud_sdl2.cpp
+	src/main/cpp/3rdParty/soloud/backend/sdl/soloud_sdl2_dll.c
+	src/main/cpp/3rdParty/soloud/backend/sdl2_static/soloud_sdl2_static.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/vic/soloud_vic.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/wav/stb_vorbis.c
+	src/main/cpp/3rdParty/soloud/audiosource/wav/soloud_wavstream.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/wav/dr_impl.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/wav/soloud_wav.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/ay/sndchip.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/ay/chipplayer.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/ay/sndbuffer.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/ay/soloud_ay.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/ay/sndrender.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/sfxr/soloud_sfxr.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/speech/tts.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/speech/resonator.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/speech/klatt.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/speech/darray.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/speech/soloud_speech.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/tedsid/ted.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/tedsid/soloud_tedsid.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/tedsid/sid.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/noise/soloud_noise.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/monotone/soloud_monotone.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/vizsn/soloud_vizsn.cpp
+	src/main/cpp/3rdParty/soloud/audiosource/openmpt/soloud_openmpt_dll.c
+	src/main/cpp/3rdParty/soloud/audiosource/openmpt/soloud_openmpt.cpp
+)
+
+target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib)
+

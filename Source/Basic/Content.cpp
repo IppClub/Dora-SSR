@@ -11,10 +11,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Common/Async.h"
 #include "Basic/VGRender.h"
-#include <filesystem>
-namespace fs = std::filesystem;
 #include <fstream>
 using std::ofstream;
+
+#if BX_PLATFORM_LINUX
+#include "ghc/fs_impl.hpp"
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif // BX_PLATFORM_LINUX
 
 #include "SDL.h"
 #include "bgfx/bgfx.h"
@@ -568,7 +575,9 @@ bool Content::isPathFolder(String path)
 {
 	return g_apkFile->isFolder(path);
 }
+#endif // BX_PLATFORM_ANDROID
 
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 bool Content::isAbsolutePath(String strPath)
 {
 	// On Android, there are two situations for full path.
@@ -581,10 +590,9 @@ bool Content::isAbsolutePath(String strPath)
 	}
 	return false;
 }
-#endif // BX_PLATFORM_ANDROID
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
-
 Content::Content()
 {
 	_assetPath = fs::current_path().string();
@@ -592,16 +600,6 @@ Content::Content()
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
 	SDL_free(prefPath);
-}
-
-bool Content::isFileExist(String filePath)
-{
-	std::string strPath = filePath;
-	if (!Content::isAbsolutePath(strPath))
-	{
-		strPath.insert(0, _assetPath);
-	}
-	return fs::exists(strPath);
 }
 
 bool Content::isAbsolutePath(String strPath)
@@ -616,7 +614,19 @@ bool Content::isAbsolutePath(String strPath)
 }
 #endif // BX_PLATFORM_WINDOWS
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_IOS
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+bool Content::isFileExist(String filePath)
+{
+	std::string strPath = filePath;
+	if (!Content::isAbsolutePath(strPath))
+	{
+		strPath.insert(0, _assetPath);
+	}
+	return fs::exists(strPath);
+}
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+
+#if BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 Content::Content()
 {
 	char* currentPath = SDL_GetBasePath();
@@ -627,9 +637,9 @@ Content::Content()
 	_writablePath = prefPath;
 	SDL_free(prefPath);
 }
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
 #ifndef WIN32_LEAN_AND_MEAN
@@ -697,9 +707,9 @@ bool Content::isPathFolder(String path)
 {
 	return fs::is_directory(path.toString());
 }
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 std::string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
 {
 	auto rootPath = fs::path(Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
@@ -710,6 +720,6 @@ std::string Content::getFullPathForDirectoryAndFilename(String directory, String
 	}
 	return fullPath;
 }
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
 NS_DOROTHY_END

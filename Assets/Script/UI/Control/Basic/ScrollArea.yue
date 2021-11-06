@@ -180,7 +180,7 @@ export default Class ScrollArea,
 					@emit "ScrollStart"
 
 		switch App.platform
-			when "macOS", "Windows"
+			when "macOS", "Windows","Linux"
 				getScrollBarX = ->
 					return @barX if @barX
 					barX = SolidRect width:50,height:10,color:0x6600ffff

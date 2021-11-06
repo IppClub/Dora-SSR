@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <memory>
 #include <unordered_map>
 #include <cassert>
+#include <cmath>
 #include <functional>
 #include "ml/DecisionTree.h"
 

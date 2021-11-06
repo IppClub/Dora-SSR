@@ -69,7 +69,7 @@ namespace nvg
 	void ClosePath();
 	void PathWinding(String dir);
 	void Arc(float cx, float cy, float r, float a0, float a1, String dir);
-	void Rect(float x, float y, float w, float h);
+	void Rectangle @ Rect(float x, float y, float w, float h);
 	void RoundedRect(float x, float y, float w, float h, float r);
 	void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
 	void Ellipse(float cx, float cy, float rx, float ry);

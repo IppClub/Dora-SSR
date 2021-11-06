@@ -87,7 +87,7 @@ struct nvg
 	static void ClosePath();
 	static void PathWinding(String dir);
 	static void Arc(float cx, float cy, float r, float a0, float a1, String dir = nullptr);
-	static void Rect(float x, float y, float w, float h);
+	static void Rectangle(float x, float y, float w, float h);
 	static void RoundedRect(float x, float y, float w, float h, float r);
 	static void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
 	static void Ellipse(float cx, float cy, float rx, float ry);

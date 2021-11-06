@@ -361,7 +361,7 @@ void nvg::Arc(float cx, float cy, float r, float a0, float a1, String dir)
 	nvgArc(Context(), cx, cy, r, a0, a1, value);
 }
 
-void nvg::Rect(float x, float y, float w, float h)
+void nvg::Rectangle(float x, float y, float w, float h)
 {
 	nvgRect(Context(), x, y, w, h);
 }
