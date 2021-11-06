@@ -1,0 +1,20 @@
+name: Linux
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: install deps
+      run: sudo apt-get install -y libsdl2-2.0 libgl1-mesa-dev x11proto-core-dev libx11-dev
+    - name: make
+      run: |
+        cd Project/Linux
+        make x86_64
