@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
+find_package(X11 REQUIRED)
 
 include_directories(
 	${SDL2_INCLUDE_DIRS}
@@ -442,5 +443,5 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/soloud/audiosource/openmpt/soloud_openmpt.cpp
 )
 
-target_link_libraries(dorothy-ssr z GL X11 dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib)
+target_link_libraries(dorothy-ssr z GL dl pthread rt ${X11_LIBRARIES} ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib)
 
