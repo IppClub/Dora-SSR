@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install deps
-      run: sudo apt-get install -y libsdl2-2.0 libgl1-mesa-dev x11proto-core-dev libx11-dev
+      run: sudo apt-get install -y libsdl2-dev libgl1-mesa-dev x11proto-core-dev libx11-dev
     - name: make
       run: |
         cd Project/Linux
