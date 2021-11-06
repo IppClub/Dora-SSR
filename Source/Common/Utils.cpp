@@ -10,8 +10,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 #include "Basic/Application.h"
 #include "Lua/ToLua/tolua++.h"
+
+#if BX_PLATFORM_LINUX
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
+#else
 #include <filesystem>
 namespace fs = std::filesystem;
+#endif // BX_PLATFORM_LINUX
 
 NS_DOROTHY_BEGIN
 

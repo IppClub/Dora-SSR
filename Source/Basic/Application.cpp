@@ -185,11 +185,14 @@ int Application::run()
 		Error("SDL failed to initialize! {}", SDL_GetError());
 		return 1;
 	}
+
+#if !BX_PLATFORM_LINUX
 	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
+#endif
 
 	uint32_t windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 	windowFlags |= SDL_WINDOW_HIDDEN;
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN;
@@ -318,14 +321,14 @@ void Application::updateDeltaTime()
 	}
 }
 
-#if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 void Application::updateWindowSize()
 {
 #if BX_PLATFORM_OSX
 	SDL_Metal_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
-#else // BX_PLATFORM_OSX
+#else
 	SDL_GL_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
-#endif // BX_PLATFORM_OSX
+#endif
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
 	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
@@ -345,9 +348,9 @@ void Application::updateWindowSize()
 #else
 	_visualWidth = _winWidth;
 	_visualHeight = _winHeight;
-#endif // BX_PLATFORM_WINDOWS
+#endif
 }
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_ANDROID
 const std::string& Application::getAPKPath() const
@@ -420,6 +423,7 @@ void Application::shutdown()
 	{
 		case "Windows"_hash:
 		case "macOS"_hash:
+		case "Linux"_hash:
 			_renderEvent.post("Quit"_slice);
 			break;
 	}
@@ -454,12 +458,12 @@ int Application::mainLogic(Application* app)
 	app->makeTimeNow();
 	app->_startTime = app->_lastTime;
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 	app->invokeInRender([app]()
 	{
 		SDL_ShowWindow(app->_sdlWindow);
 	});
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+#endif
 	SharedPoolManager.pop();
 
 	while (app->_logicRunning)
@@ -561,8 +565,10 @@ const Slice Application::getPlatform() const
 	return "macOS"_slice;
 #elif BX_PLATFORM_IOS
 	return "iOS"_slice;
+#elif BX_PLATFORM_LINUX
+	return "Linux"_slice;
 #else
-	return "Unknown"_slice;
+	return "Unsupported"_slice;
 #endif
 }
 
@@ -576,7 +582,7 @@ bool Application::isDebugging() const
 	return DORA_DEBUG ? true : false;
 }
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 void Application::setupSdlWindow()
 {
 	SDL_SysWMinfo wmi;
@@ -589,6 +595,9 @@ void Application::setupSdlWindow()
 	pd.nwh = wmi.info.win.window;
 #elif BX_PLATFORM_ANDROID
 	pd.nwh = wmi.info.android.window;
+#elif BX_PLATFORM_LINUX
+	pd.ndt = wmi.info.x11.display;
+	pd.nwh = r_cast<void*>(wmi.info.x11.window);
 #endif // BX_PLATFORM
 #if BX_PLATFORM_WINDOWS
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
@@ -611,17 +620,17 @@ void Application::setupSdlWindow()
 	bgfx::setPlatformData(pd);
 	updateWindowSize();
 }
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
 NS_DOROTHY_END
 
 // Entry functions needed by SDL2
-#if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+#if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 extern "C" int main(int argc, char* argv[])
 {
 	return SharedApplication.run();
 }
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
 

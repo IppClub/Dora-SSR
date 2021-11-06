@@ -122,7 +122,7 @@ export default Class Ruler,
 		_min = 0
 
 		switch App.platform
-			when "macOS", "Windows"
+			when "macOS", "Windows","Linux"
 				@addChild with Node!
 					.size = Size width,height
 					.touchEnabled = true

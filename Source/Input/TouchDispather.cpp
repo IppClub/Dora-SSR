@@ -20,7 +20,7 @@ NS_DOROTHY_BEGIN
 /* Touch */
 
 uint32_t Touch::_source =
-#if BX_PLATFORM_OSX
+#if BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 	Touch::FromMouse;
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	Touch::FromTouch;

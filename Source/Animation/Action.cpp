@@ -150,8 +150,8 @@ bool PropertyAction::update(Node* target, float eclapsed)
 Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::Enum easing)
 {
 	Roll* action = new Roll();
-	if (start > 0) start = std::fmodf(start, 360.0f);
-	else start = std::fmodf(start, -360.0f);
+	if (start > 0) start = std::fmod(start, 360.0f);
+	else start = std::fmod(start, -360.0f);
 	float delta = stop - start;
 	if (delta > 180) delta -= 360;
 	else if (delta < -180) delta += 360;

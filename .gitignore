@@ -70,3 +70,6 @@ imgui.ini
 # Ignore production files
 Assets/Production/
 
+# Ignore Linux lib files
+Project/Linux/3rdParty/
+

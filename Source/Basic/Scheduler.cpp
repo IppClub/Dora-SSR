@@ -177,10 +177,13 @@ bool Scheduler::update(double deltaTime)
 			_actionList->fastRemoveAt(i);
 			if (i < s_cast<int>(_actionList->getCount()))
 			{
-				Action* action = _actionList->get(i)->as<Action>();
-				if (action)
+				const auto& item = _actionList->get(i);
+				if (item)
 				{
-					action->_order = i;
+					if (Action* action = item->as<Action>())
+					{
+						action->_order = i;
+					}
 				}
 			}
 			i--;
