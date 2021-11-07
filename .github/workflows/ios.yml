@@ -2,14 +2,15 @@ name: iOS
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
+    if: "contains(github.event.head_commit.message, '@CI')"
     steps:
       - uses: actions/checkout@v2
       - name: iOS build
