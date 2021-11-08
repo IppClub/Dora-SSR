@@ -516,6 +516,14 @@ _tlState(nullptr)
 			tolua_function(L, "getOld", Entity_getOld);
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "Group");
+			tolua_function(L, "every", EntityGroup_every);
+		tolua_endmodule(L);
+
+		tolua_beginmodule(L, "Observer");
+			tolua_function(L, "every", EntityObserver_every);
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "BodyDef");
 			tolua_variable(L, "type", BodyDef_GetType, BodyDef_SetType);
 		tolua_endmodule(L);

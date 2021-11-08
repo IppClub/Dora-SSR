@@ -116,13 +116,16 @@ void Scheduler::schedule(Action* action)
 
 void Scheduler::unschedule(Action* action)
 {
+	BLOCK_START
+	BREAK_UNLESS(action && action->_target && action->isRunning());
+	BREAK_UNLESS(action->_order < _actionList->getCount());
+	auto temp = _actionList->get(action->_order).get();
+	BREAK_UNLESS(temp);
+	BREAK_UNLESS(temp->as<Action>() == action);
 	Ref<> ref(action);
-	if (action && action->_target && action->isRunning()
-		&& _actionList->get(action->_order)->as<Action>() == action)
-	{
-		_actionList->set(action->_order, nullptr);
-		action->_order = Action::InvalidOrder;
-	}
+	_actionList->set(action->_order, nullptr);
+	action->_order = Action::InvalidOrder;
+	BLOCK_END
 }
 
 bool Scheduler::update(double deltaTime)
@@ -153,9 +156,10 @@ bool Scheduler::update(double deltaTime)
 	int i = 0, count = s_cast<int>(_actionList->getCount());
 	while (i < count)
 	{
-		Ref<Action> action(_actionList->get(i)->as<Action>());
-		if (action)
+		auto temp = _actionList->get(i).get();
+		if (temp)
 		{
+			Ref<Action> action(temp->as<Action>());
 			if (!action->isPaused())
 			{
 				int lastIndex = action->_order;

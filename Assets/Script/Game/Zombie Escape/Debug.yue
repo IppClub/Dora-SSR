@@ -164,9 +164,8 @@ world\schedule ->
 		Begin "Decision Trace (#{lastDecisionTree})", "NoSavedSettings", ->
 			Text table.concat decisions,"\n"
 
-with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight","stared"}
-	\every =>
-		{:group,:unit} = @
+with Observer "Add", {"group","unit","unitDef","position","order","isPlayer","faceRight","stared"}
+	\every (group,unit)=>
 		unit\addChild Star {
 			y: 100
 			size: 18
@@ -176,5 +175,5 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 			lineOrder: 2
 		}
 
-with Observer "Add", {"player"}
-	\every => @unit.receivingDecisionTrace = true
+with Observer "Add", {"unit", "player"}
+	\every (unit)=> unit.receivingDecisionTrace = true

@@ -108,10 +108,16 @@ _entity(entity),
 _size(unitDef->get(Def::Size, Size::zero))
 { }
 
+static Value* assertNotNull(Value* value)
+{
+	AssertUnless(value, "Value expected, got null");
+	return value;
+}
+
 Unit::Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot):
 Unit(
-	&SharedData.getStore()->get(defName)->to<Dictionary>(),
-	&SharedData.getStore()->get(worldName)->to<PhysicsWorld>(),
+	&assertNotNull(SharedData.getStore()->get(defName).get())->to<Dictionary>(),
+	&assertNotNull(SharedData.getStore()->get(worldName).get())->to<PhysicsWorld>(),
 	entity, pos, rot)
 { }
 

@@ -6,9 +6,8 @@ import "UI.View.Shape.Star"
 store:Store = Data
 
 with Observer "Add", {"obstacleDef","size","position","color"}
-	\every =>
-		{:obstacleDef,:size,:position,:color} = @
-		{:world,:TerrainLayer} = Store
+	\every (obstacleDef,size,position,color)=>
+		:world,:TerrainLayer = Store
 		color = Color3 color
 		with Body Store[obstacleDef],world,position
 			.tag = "Obstacle"
@@ -51,9 +50,8 @@ mutables =
 	* "attackSpeed"
 
 with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight"}
-	\every =>
-		{:unitDef,:position,:order,:group,:isPlayer,:faceRight} = @
-		{:world} = Store
+	\every (unitDef,position,order,group,isPlayer,faceRight)=>
+		:world = Store
 		def = Store[unitDef]
 		for var in *mutables
 			@[var] = def[var]
@@ -67,9 +65,8 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 		world.camera.followTarget = unit if isPlayer and unit.decisionTree == "AI_KidSearch"
 
 with Observer "Change", {"hp","unit"}
-	\every =>
-		{:hp,:unit} = @
-		{hp:lastHp} = @oldValues
+	\every (hp,unit)=>
+		hp:lastHp = @oldValues
 		if hp < lastHp
 			if hp > 0
 				unit\start "hit"
@@ -88,7 +85,7 @@ with Observer "Change", {"hp","unit"}
 
 Store.zombieKilled = 0
 with Observer "Change", {"hp","zombie"}
-	\every => Store.zombieKilled += 1 if @hp <= 0
+	\every (hp)=> Store.zombieKilled += 1 if hp <= 0
 
 zombieGroup = Group {"zombie"}
 spawnZombies = ->

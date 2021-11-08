@@ -23,8 +23,7 @@ store:Store = Data
 heroes = Group {"hero"}
 
 with Observer "Add",{"world"}
-	\every =>
-		{:world} = @
+	\every (world)=>
 		Store.world = with world
 			with .camera
 				.followRatio = Vec2 0.03,0.03
@@ -93,9 +92,8 @@ mutables = {
 }
 
 with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
-	\every =>
-		{:hero,:group,:layer,:position,:faceRight,:AI} = @
-		{:world} = Store
+	\every (hero,group,layer,position,faceRight,AI)=>
+		:world = Store
 		def = Store[hero]
 		for var in *mutables
 			@[var] = def[var]
@@ -119,9 +117,8 @@ with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
 		emit "HPChange",@group,@hp
 
 with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
-	\every =>
-		{:bunny,:group,:layer,:position,:faceRight,:AI} = @
-		{:world} = Store
+	\every (bunny,group,layer,position,faceRight,AI)=>
+		:world = Store
 		def = Store[bunny]
 		for var in *mutables
 			if var == "hp" and @[var] ~= nil
@@ -137,9 +134,8 @@ with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
 			@hp -= 1.0 if @hp == 0.0
 
 with Observer "Add",{"switch","group","layer","look","position"}
-	\every =>
-		{switch:switchType,:group,:layer,:look,:position} = @
-		{:world} = Store
+	\every (switchType,group,layer,look,position)=>
+		:world = Store
 		unit = with Unit Store[switchType],world,@,position
 			.group = group
 			.order = layer
@@ -179,9 +175,8 @@ with Observer "Add",{"switch","group","layer","look","position"}
 						@entity.tip = nil
 
 with Observer "Add",{"block","group","layer","look","position"}
-	\every =>
-		{:block,:group,:layer,:look,:position} = @
-		{:world} = Store
+	\every (block,group,layer,look,position)=>
+		:world = Store
 		def = Store[block]
 		@hp = def.hp
 		@defenceType = 0
@@ -192,9 +187,8 @@ with Observer "Add",{"block","group","layer","look","position"}
 			\addTo world
 
 with Observer "Add",{"poke","group","layer","position"}
-	\every =>
-		{:poke,:group,:layer,:position} = @
-		{:world} = Store
+	\every (poke,group,layer,position)=>
+		:world = Store
 		pokeDef = with BodyDef!
 			.linearAcceleration = Vec2 0,-10
 			.type = "Dynamic"
@@ -255,9 +249,8 @@ with Observer "Add",{"poke","group","layer","position"}
 		Audio\play "Audio/quake.wav"
 
 with Observer "Change", {"hp","unit","block"}
-	\every =>
-		{:hp,:unit} = @
-		{hp:lastHp} = @oldValues
+	\every (hp,unit)=>
+		hp:lastHp = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if unit\isDoing "hit"
 			if hp > 0
@@ -284,9 +277,9 @@ with Observer "Change", {"hp","unit","block"}
 			emit "BlockChange",group,math.max(hp,0)-lastHp
 
 with Observer "Change", {"hp","bunny"}
-	\every =>
-		{:hp,:unit} = @
-		{hp:lastHp} = @oldValues
+	\every (hp)=>
+		:unit = @
+		hp:lastHp = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if unit\isDoing "hit"
 			if hp > 0
@@ -304,10 +297,10 @@ with Observer "Change", {"hp","bunny"}
 					unit\removeFromParent!
 
 with Observer "Change", {"hp","hero"}
-	\every =>
-		{:hp,:unit} = @
-		{hp:lastHp} = @oldValues
-		{:world} = Store
+	\every (hp)=>
+		:unit = @
+		hp:lastHp = @oldValues
+		:world = Store
 		if hp < lastHp
 			unit\start "cancel" if unit\isDoing "hit"
 			if hp > 0
@@ -366,10 +359,9 @@ with Observer "Change", {"hp","hero"}
 		emit "HPChange",@group,math.max(hp,0)-lastHp
 
 with Observer "Change", {"blocks","group"}
-	\every =>
-		{:world} = Store
+	\every (blocks,group)=>
+		:world = Store
 		return unless world.playing
-		{:blocks,:group} = @
 		if blocks == 0
 			world.playing = false
 			Audio\playStream "Audio/LOOP11.ogg",true

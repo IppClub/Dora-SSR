@@ -4,46 +4,44 @@ sceneGroup = Group {"scene"}
 positionGroup = Group {"position"}
 
 with Observer "Add", {"scene"}
-	\every (entity)->
-		Director.entry\addChild with entity.scene
+	\every (scene)=>
+		Director.entry\addChild with scene
 			.touchEnabled = true
 			\slot "TapEnded", (touch)->
 				positionGroup\each (entity)->
 					entity.target = touch.location
 
 with Observer "Add", {"sprite"}
-	\every (entity)->
+	\every (sprite)=>
 		sceneGroup\each (e)->
-			e.scene\addChild with entity.sprite
+			e.scene\addChild with sprite
 				\runAction Scale 0.5,0,1,Ease.OutBack
 
 with Observer "Remove", {"sprite"}
-	\every (entity)->
+	\every =>
 		sceneGroup\each (e)->
-			e.scene\removeChild entity.oldValues.sprite
+			e.scene\removeChild @oldValues.sprite
 
 with Observer "Remove", {"target"}
-	\every (entity)->
-		print "remove target from entity #{entity.index}"
+	\every =>
+		print "remove target from entity #{@index}"
 
 with Group {"position","direction","speed","target"}
-	\every (entity)->
-		{:position, :target, :speed} = entity
+	\every (position,direction,speed,target)=>
 		return if target == position
 		dir = target - position
 		dir\normalize!
 		angle = math.deg math.atan dir.x,dir.y
 		newPos = position + dir * speed
 		newPos\clamp position, target
-		entity.position = newPos
-		entity.direction = angle
-		entity\setNext "target", nil if newPos == target
+		@position = newPos
+		@direction = angle
+		@setNext "target", nil if newPos == target
 
 with Observer "AddOrChange", {"position","direction","sprite"}
-	\every (entity)->
-		{:position, :direction, :sprite} = entity
+	\every (position,direction,sprite)=>
 		sprite.position = position
-		lastDirection = entity.oldValues.direction or sprite.angle
+		lastDirection = @oldValues.direction or sprite.angle
 		if math.abs(direction - lastDirection) > 1
 			sprite\runAction Roll 0.3, lastDirection, direction
 

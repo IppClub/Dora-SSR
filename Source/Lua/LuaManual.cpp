@@ -2175,7 +2175,46 @@ tolua_lerror :
 #endif
 }
 
-/* EntityWorld */
+/* EntityGroup */
+
+int EntityGroup_every(lua_State* L)
+{
+	/* 1 self, 2 handler */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "EntityGroup"_slice, 0, &tolua_err)
+		|| !tolua_isfunction(L, 2, &tolua_err)
+		|| !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		EntityGroup* self = r_cast<EntityGroup*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'EntityGroup_every'", nullptr);
+#endif
+#ifndef TOLUA_RELEASE
+		try {
+#endif
+		auto handler = LuaHandler::create(tolua_ref_function(L, 2));
+		self->every(handler);
+		tolua_pushobject(L, self);
+		return 1;
+#ifndef TOLUA_RELEASE
+		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
+#endif
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'EntityGroup_every'.", &tolua_err);
+	return 0;
+#endif
+	return 0;
+}
+
+/* EntityObserver */
 
 EntityObserver* EntityObserver_create(String option, Slice components[], int count)
 {
@@ -2191,6 +2230,43 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 			break;
 	}
 	return EntityObserver::create(optionVal, components, count);
+}
+
+int EntityObserver_every(lua_State* L)
+{
+	/* 1 self, 2 handler */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "EntityObserver"_slice, 0, &tolua_err)
+		|| !tolua_isfunction(L, 2, &tolua_err)
+		|| !tolua_isnoobj(L, 3, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		EntityObserver* self = r_cast<EntityObserver*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'EntityObserver_every'", nullptr);
+#endif
+#ifndef TOLUA_RELEASE
+		try {
+#endif
+		auto handler = LuaHandler::create(tolua_ref_function(L, 2));
+		self->every(handler);
+		tolua_pushobject(L, self);
+		return 1;
+#ifndef TOLUA_RELEASE
+		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
+#endif
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'EntityObserver_every'.", &tolua_err);
+	return 0;
+#endif
+	return 0;
 }
 
 /* SVGDef */

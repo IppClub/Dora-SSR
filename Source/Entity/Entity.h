@@ -91,6 +91,7 @@ public:
 	template<typename Func>
 	Entity* find(const Func& func);
 	EntityGroup* every(const EntityHandler& handler);
+	EntityGroup* every(LuaHandler* handler);
 public:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
@@ -112,6 +113,7 @@ public:
 	template<typename Func>
 	bool each(const Func& func);
 	EntityObserver* every(const EntityHandler& handler);
+	EntityObserver* every(LuaHandler* handler);
 public:
 	void onEvent(Entity* entity);
 	void clear();
