@@ -20,31 +20,31 @@ include_directories(
 add_library(SDL2-lib SHARED IMPORTED)
 set_target_properties(
 	SDL2-lib PROPERTIES IMPORTED_LOCATION
-	src/main/cpp/3rdParty/SDL2/Lib/Android/${ANDROID_ABI}/libSDL2.so
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/SDL2/Lib/Android/${ANDROID_ABI}/libSDL2.so
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
 set_target_properties(
 	BGFX-lib PROPERTIES IMPORTED_LOCATION
-	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbgfx.a
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbgfx.a
 )
 
 add_library(BX-lib STATIC IMPORTED)
 set_target_properties(
 	BX-lib PROPERTIES IMPORTED_LOCATION
-	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbx.a
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbx.a
 )
 
 add_library(BIMG-lib STATIC IMPORTED)
 set_target_properties(
 	BIMG-lib PROPERTIES IMPORTED_LOCATION
-	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg.a
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg.a
 )
 
 add_library(BIMGDE-lib STATIC IMPORTED)
 set_target_properties(
 	BIMGDE-lib PROPERTIES IMPORTED_LOCATION
-	src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
 )
 
 add_definitions(-DWITH_SDL2)
