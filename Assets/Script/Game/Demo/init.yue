@@ -1200,8 +1200,8 @@ mutables = {
 }
 
 with Observer "Add", {"unitDef","position","order","group","faceRight"}
-	\every =>
-		{:unitDef,:position,:order,:group,:player,:faceRight,:charSet,:decisionTree} = @
+	\every (unitDef,position,order,group)=>
+		{:player,:faceRight,:charSet,:decisionTree} = @
 		{:world} = Store
 		func = UnitDefFuncs[unitDef]
 		def = func!
@@ -1230,8 +1230,8 @@ with Observer "Add", {"unitDef","position","order","group","faceRight"}
 			world.camera.followTarget = unit
 
 with Observer "Change", {"hp","unit"}
-	\every =>
-		{:hp,:unit,:boss} = @
+	\every (hp,unit)=>
+		:boss = @
 		{hp:lastHp} = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if not boss and unit\isDoing "hit"

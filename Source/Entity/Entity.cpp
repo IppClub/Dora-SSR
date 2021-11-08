@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Basic/Application.h"
+#include "Lua/LuaHandler.h"
 
 NS_DOROTHY_BEGIN
 
@@ -439,6 +440,30 @@ EntityGroup* EntityGroup::every(const EntityHandler& handler)
 	return this;
 }
 
+EntityGroup* EntityGroup::every(LuaHandler* handler)
+{
+	WRef<EntityGroup> self(this);
+	Ref<LuaHandler> hRef(handler);
+	SharedEntityPool.triggers.push_back([self,hRef]()
+	{
+		if (!self) return;
+		self->each([&](Entity* entity)
+		{
+			auto L = SharedLuaEngine.getState();
+			tolua_pushobject(L, entity);
+			for (int i : self->_components)
+			{
+				auto com = entity->getComponent(i);
+				if (com) com->pushToLua(L);
+				else lua_pushnil(L);
+			}
+			LuaEngine::execute(L, hRef->get(), self->_components.size() + 1);
+			return false;
+		});
+	});
+	return this;
+}
+
 EntityGroup* EntityGroup::create(const std::vector<std::string>& components)
 {
 	std::vector<std::string> coms = components;
@@ -567,6 +592,30 @@ EntityObserver* EntityObserver::every(const EntityHandler& handler)
 	return this;
 }
 
+EntityObserver* EntityObserver::every(LuaHandler* handler)
+{
+	WRef<EntityObserver> self(this);
+	Ref<LuaHandler> hRef(handler);
+	SharedEntityPool.triggers.push_back([self,hRef]()
+	{
+		if (!self) return;
+		self->each([&](Entity* entity)
+		{
+			auto L = SharedLuaEngine.getState();
+			tolua_pushobject(L, entity);
+			for (int i : self->_components)
+			{
+				auto com = entity->getComponent(i);
+				if (com) com->pushToLua(L);
+				else lua_pushnil(L);
+			}
+			LuaEngine::execute(L, hRef->get(), self->_components.size() + 1);
+			return false;
+		});
+	});
+	return this;
+}
+
 void EntityObserver::clear()
 {
 	_entities.clear();
@@ -574,11 +623,9 @@ void EntityObserver::clear()
 
 EntityObserver* EntityObserver::create(int option, const std::vector<std::string>& components)
 {
-	std::vector<std::string> coms = components;
-	std::sort(coms.begin(), coms.end());
 	fmt::memory_buffer out;
 	fmt::format_to(std::back_inserter(out), "{}"sv, option);
-	for (const auto& com : coms)
+	for (const auto& com : components)
 	{
 		fmt::format_to(std::back_inserter(out), "{}"sv, com);
 	}
@@ -589,7 +636,7 @@ EntityObserver* EntityObserver::create(int option, const std::vector<std::string
 	{
 		return it->second;
 	}
-	EntityObserver* entityObserver = new EntityObserver(option, coms);
+	EntityObserver* entityObserver = new EntityObserver(option, components);
 	if (!entityObserver->init())
 	{
 		delete entityObserver;

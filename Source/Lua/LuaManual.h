@@ -192,8 +192,12 @@ int Entity_getOld(lua_State* L);
 int Entity_set(lua_State* L);
 int Entity_setNext(lua_State* L);
 
-/* EntityWorld */
+/* EntityGroup */
+int EntityGroup_every(lua_State* L);
+
+/* EntityObserver */
 EntityObserver* EntityObserver_create(String option, Slice components[], int count);
+int EntityObserver_every(lua_State* L);
 
 /* SVGDef */
 SVGDef* SVGDef_create(String filename);

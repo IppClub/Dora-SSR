@@ -166,14 +166,12 @@ class EntityGroup @ Group
 	tolua_readonly tolua_property__common int count;
 	bool each(tolua_function_bool func);
 	Entity* find(tolua_function_bool func);
-	EntityGroup* every(tolua_function_void func);
 	static EntityGroup* create(String components[tolua_len]);
 };
 
 class EntityObserver @ Observer
 {
 	bool each(tolua_function_bool func);
-	EntityObserver* every(tolua_function_void func);
 	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
 };
 

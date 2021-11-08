@@ -724,6 +724,7 @@ BodyID WorldImpl::CreateBody(Body body)
     }
     const auto id = static_cast<BodyID>(
         static_cast<BodyID::underlying_type>(m_bodyBuffer.Allocate(body)));
+    m_islandedBodies.resize(size(m_bodyBuffer));
     m_bodyContacts.Allocate();
     m_bodyJoints.Allocate();
     m_bodyProxies.Allocate();
@@ -845,6 +846,7 @@ JointID WorldImpl::CreateJoint(Joint def)
     }
     const auto id = static_cast<JointID>(
         static_cast<JointID::underlying_type>(m_jointBuffer.Allocate(def)));
+    m_islandedJoints.resize(size(m_jointBuffer));
     m_joints.push_back(id);
     // Note: creating a joint doesn't wake the bodies.
     Add(id, !GetCollideConnected(def));
@@ -2214,7 +2216,6 @@ ContactCounter WorldImpl::FindNewContacts()
         Add(key);
     });
     const auto numContactsAfter = size(m_contacts);
-    m_islandedContacts.resize(numContactsAfter);
     const auto numContactsAdded = numContactsAfter - numContactsBefore;
 #if DO_SORT_ID_LISTS
     if (numContactsAdded > 0u) {
@@ -2300,6 +2301,7 @@ bool WorldImpl::Add(ContactKey key)
 
     const auto contactID = static_cast<ContactID>(static_cast<ContactID::underlying_type>(
         m_contactBuffer.Allocate(bodyIdA, shapeIdA, indexA, bodyIdB, shapeIdB, indexB)));
+    m_islandedContacts.resize(size(m_contactBuffer));
     m_manifoldBuffer.Allocate();
     auto& contact = m_contactBuffer[to_underlying(contactID)];
     if (bodyA.IsImpenetrable() || bodyB.IsImpenetrable()) {
