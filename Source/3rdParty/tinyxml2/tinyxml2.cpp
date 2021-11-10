@@ -499,13 +499,12 @@ char* XMLDocument::Identify( char* p, XMLNode** node )
 {
     XMLNode* returnNode = 0;
     char* start = p;
-	if (!g_cdataHeader)
-	{
-		p = XMLUtil::SkipWhiteSpace(p);
-		if (!p || !*p) {
-			return p;
-		}
-	}
+    if (!g_cdataHeader) {
+        p = XMLUtil::SkipWhiteSpace(p);
+        if (!p || !*p) {
+            return p;
+        }
+    }
     // What is this thing?
     // - Elements start with a letter or underscore, but xml is reserved.
     // - Comments: <!--
@@ -550,18 +549,17 @@ char* XMLDocument::Identify( char* p, XMLNode** node )
         returnNode->_memPool = &_textPool;
         p += cdataHeaderLen;
         text->SetCData( true );
-		// clear temporary used cdata header
-		if (g_cdataHeader)
-		{
-			g_cdataHeader = NULL;
-		}
+        // clear temporary used cdata header
+        if ( g_cdataHeader ) {
+            g_cdataHeader = NULL;
+        }
     }
-	else if (g_cdataHeader) {
-		XMLText* text = new (_textPool.Alloc()) XMLText(this);
-		returnNode = text;
-		returnNode->_memPool = &_textPool;
-		text->SetCData(true);
-	}
+    else if ( g_cdataHeader ) {
+        XMLText* text = new (_textPool.Alloc()) XMLText(this);
+        returnNode = text;
+        returnNode->_memPool = &_textPool;
+        text->SetCData(true);
+    }
     else if ( XMLUtil::StringEqual( p, dtdHeader, dtdHeaderLen ) ) {
         returnNode = new (_commentPool.Alloc()) XMLUnknown( this );
         returnNode->_memPool = &_commentPool;
@@ -818,7 +816,7 @@ char* XMLNode::ParseDeep( char* p, StrPair* parentEnd )
         }
 
         StrPair endTag;
-		char* tmp = p;
+        char* tmp = p;
         p = node->ParseDeep( p, &endTag );
         if ( !p ) {
             DELETE_NODE( node );
@@ -834,7 +832,7 @@ char* XMLNode::ParseDeep( char* p, StrPair* parentEnd )
             if ( parentEnd ) {
                 *parentEnd = static_cast<XMLElement*>(node)->_value;
             }
-			node->_memPool->SetTracked();	// created and then immediately deleted.
+            node->_memPool->SetTracked();	// created and then immediately deleted.
             DELETE_NODE( node );
             return p;
         }
@@ -873,31 +871,31 @@ char* XMLNode::ParseDeep( char* p, StrPair* parentEnd )
 char* XMLText::ParseDeep( char* p, StrPair* )
 {
     const char* start = p;
-	if (g_cdataHeader) {
-		p = _value.ParseText(p, g_cdataHeader, StrPair::NEEDS_NEWLINE_NORMALIZATION);
-		if (!p) {
-			_document->SetError(start, XML_ERROR_PARSING_CDATA, start, 0);
-		}
-		if (p && *p) {
-			size_t len = strlen(g_cdataHeader);
-			g_cdataHeader = NULL;
-			return p - len;
-		}
-	}
-	else if ( this->CData() ) {
+    if (g_cdataHeader) {
+        p = _value.ParseText(p, g_cdataHeader, StrPair::NEEDS_NEWLINE_NORMALIZATION);
+        if (!p) {
+            _document->SetError(start, XML_ERROR_PARSING_CDATA, start, 0);
+        }
+        if (p && *p) {
+            size_t len = strlen(g_cdataHeader);
+            g_cdataHeader = NULL;
+            return p - len;
+        }
+    }
+    else if ( this->CData() ) {
         p = _value.ParseText( p, "]]>", StrPair::NEEDS_NEWLINE_NORMALIZATION );
         if ( !p ) {
             _document->SetError(start, XML_ERROR_PARSING_CDATA, start, 0);
         }
         return p;
     }
-	else {
+    else {
         int flags = _document->ProcessEntities() ? StrPair::TEXT_ELEMENT : StrPair::TEXT_ELEMENT_LEAVE_ENTITIES;
         if ( _document->WhitespaceMode() == COLLAPSE_WHITESPACE ) {
             flags |= StrPair::COLLAPSE_WHITESPACE;
         }
 
-		char* tmp = p;
+        char* tmp = p;
         p = _value.ParseText( p, "<", flags );
         if ( !p ) {
             _document->SetError(tmp, XML_ERROR_PARSING_TEXT, start, 0);
@@ -1389,8 +1387,8 @@ char* XMLElement::ParseAttributes( char* p )
         if ( XMLUtil::IsAlpha( *p ) ) {
             XMLAttribute* attrib = new (_document->_attributePool.Alloc() ) XMLAttribute();
             attrib->_memPool = &_document->_attributePool;
-			attrib->_memPool->SetTracked();
-			const char* tmp = p;
+            attrib->_memPool->SetTracked();
+            const char* tmp = p;
             p = attrib->ParseDeep( p, _document->ProcessEntities() );
             if ( !p || Attribute( attrib->Name() ) ) {
                 DELETE_ATTRIBUTE( attrib );
@@ -1451,10 +1449,9 @@ char* XMLElement::ParseDeep( char* p, StrPair* strPair )
 
     p = _value.ParseName( p );
 
-	if (g_headerHandler)
-	{
-		g_headerHandler(_value.GetStart(), _value.GetEnd());
-	}
+    if ( g_headerHandler ) {
+        g_headerHandler(_value.GetStart(), _value.GetEnd());
+    }
 
     if ( _value.Empty() ) {
         return 0;
@@ -1462,9 +1459,9 @@ char* XMLElement::ParseDeep( char* p, StrPair* strPair )
 
     p = ParseAttributes( p );
     if ( !p || !*p || _closingType ) {
-		if (_closingType == CLOSED && g_cdataHeader) {
-			g_cdataHeader = nullptr;
-		}
+        if ( _closingType == CLOSED && g_cdataHeader ) {
+            g_cdataHeader = nullptr;
+        }
         return p;
     }
 
@@ -1554,12 +1551,12 @@ XMLDocument::~XMLDocument()
 #endif
 
 #ifdef DEBUG
-	if ( HasError() == false ) {
-		TIXMLASSERT( _elementPool.CurrentAllocs()   == _elementPool.Untracked() );
-		TIXMLASSERT( _attributePool.CurrentAllocs() == _attributePool.Untracked() );
-		TIXMLASSERT( _textPool.CurrentAllocs()      == _textPool.Untracked() );
-		TIXMLASSERT( _commentPool.CurrentAllocs()   == _commentPool.Untracked() );
-	}
+    if ( HasError() == false ) {
+        TIXMLASSERT( _elementPool.CurrentAllocs()   == _elementPool.Untracked() );
+        TIXMLASSERT( _attributePool.CurrentAllocs() == _attributePool.Untracked() );
+        TIXMLASSERT( _textPool.CurrentAllocs()      == _textPool.Untracked() );
+        TIXMLASSERT( _commentPool.CurrentAllocs()   == _commentPool.Untracked() );
+    }
 #endif
 }
 
@@ -1748,17 +1745,14 @@ void XMLDocument::SetError( const char* p, XMLError error, const char* str1, con
     _errorID = error;
     _errorStr1 = str1;
     _errorStr2 = str2;
-	if (_charBuffer && p)
-	{
-		_errorLine = 1;
-		for (char* c = _charBuffer; c != p; c++)
-		{
-			if (*c == '\n')
-			{
-				_errorLine++;
-			}
-		}
-	}
+    if (_charBuffer && p) {
+        _errorLine = 1;
+        for (char* c = _charBuffer; c != p; c++) {
+            if (*c == '\n') {
+                _errorLine++;
+            }
+        }
+    }
 }
 
 

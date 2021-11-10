@@ -112,8 +112,18 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 			}
 			else
 			{
+				codes.insert(0, "-- [xml]: "s + filename + '\n');
 				codeBuffer = codes.c_str();
 				codeBufferSize = codes.size();
+				std::string name = "@"s + filename;
+				lua_getglobal(L, "package"); // package
+				lua_getfield(L, -1, "loaded"); // package loaded
+				lua_getfield(L, -1, "yue"); // package loaded yue
+				lua_getfield(L, -1, "yue_compiled"); // package loaded yue compiled
+				lua_pushlstring(L, name.c_str(), name.size()); // package loaded yue compiled name
+				lua_pushlstring(L, codeBuffer, codeBufferSize); // package loaded yue compiled name buffer
+				lua_rawset(L, -3); // compiled[name] = buffer, package loaded yue compiled
+				lua_pop(L, 4); // clear
 			}
 			break;
 		}

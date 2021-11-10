@@ -136,8 +136,8 @@ public:
     }
 
     const char* GetStr();
-	const char* GetStart() { return _start; }
-	const char* GetEnd() { return _end; }
+    const char* GetStart() { return _start; }
+    const char* GetEnd() { return _end; }
 
     bool Empty() const {
         return _start == _end;

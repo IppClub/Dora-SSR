@@ -111,7 +111,7 @@ doCompile = (minify)->
 			if not codes
 				table.insert errors,"Compile errors in #{file}.\n#{err}"
 			else
-				Content\saveAsync dest,codes
+				Content\saveAsync dest,"-- [xml]: #{file}\n#{codes}"
 				print "Xml compiled: #{file}"
 			fileCount += 1
 	paths = {Path\getPath(file),true for file in *tlFiles}

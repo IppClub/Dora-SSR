@@ -31,7 +31,7 @@ bool XmlSaxHander::VisitEnter( const tinyxml2::XMLElement& element, const tinyxm
 		attsVector.push_back(attrib->Name());
 		attsVector.push_back(attrib->Value());
 	}
-    attsVector.push_back(nullptr);
+	attsVector.push_back(nullptr);
 
 	SAXParser::startElement(_saxParser, (const XML_CHAR *)element.Value(), (const XML_CHAR **)(&attsVector[0]));
 	return true;
@@ -66,7 +66,7 @@ bool SAXParser::parseXml(const std::string& xmlData)
 	tinyxml2::XMLError error;
 	if (xmlData.empty())
 	{
-		 error = _tinyDoc.Parse(xmlData.c_str());
+		error = _tinyDoc.Parse(xmlData.c_str());
 	}
 	else
 	{
@@ -120,27 +120,27 @@ bool SAXParser::parseXml(const std::string& xmlData)
 bool SAXParser::parse(const std::string& filename)
 {
 	auto data = SharedContent.load(filename);
-    return parseXml(Slice(r_cast<char*>(data.first.get()), data.second));
+	return parseXml(Slice(r_cast<char*>(data.first.get()), data.second));
 }
 
 void SAXParser::startElement(void* ctx, const XML_CHAR* name, const XML_CHAR** atts)
 {
-    ((SAXParser*)(ctx))->_delegator->startElement((char*)name, (const char**)atts);
+	((SAXParser*)(ctx))->_delegator->startElement((char*)name, (const char**)atts);
 }
 
 void SAXParser::endElement(void* ctx, const XML_CHAR* name)
 {
-    ((SAXParser*)(ctx))->_delegator->endElement((char*)name);
+	((SAXParser*)(ctx))->_delegator->endElement((char*)name);
 }
 
 void SAXParser::textHandler(void* ctx, const XML_CHAR* name, int len)
 {
-    ((SAXParser*)(ctx))->_delegator->textHandler((char*)name, len);
+	((SAXParser*)(ctx))->_delegator->textHandler((char*)name, len);
 }
 
 void SAXParser::setDelegator(SAXDelegator* delegator)
 {
-    _delegator = delegator;
+	_delegator = delegator;
 }
 
 void SAXParser::placeCDataHeader(const char* cdataHeader)
@@ -153,10 +153,11 @@ void SAXParser::setHeaderHandler(void(*handler)(const char* start, const char* e
 	tinyxml2::XMLUtil::PlaceHeaderHandler(handler);
 }
 
-int SAXParser::getLineNumber(const char* name)
+int SAXParser::getLineNumber(const char* name, const char* start)
 {
+	if (!start) start = _tinyDoc.GetCharBuffer();
 	int line = 1;
-	for (const char* c = _tinyDoc.GetCharBuffer(); c != name; c++)
+	for (const char* c = start; c != name; c++)
 	{
 		if (*c == '\n')
 		{
