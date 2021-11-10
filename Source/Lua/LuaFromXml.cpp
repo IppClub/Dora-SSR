@@ -1232,6 +1232,16 @@ void XmlDelegator::endElement(const char *name)
 				{
 					Slice luaCodes(codes);
 					luaCodes.trimSpace();
+					std::string_view lcodes(luaCodes.begin(), luaCodes.size());
+					auto pos = lcodes.find("[["sv);
+					if (pos == std::string::npos)
+					{
+						pos = lcodes.find("[="sv);
+					}
+					if (pos != std::string::npos)
+					{
+						lastError += fmt::format("Lua multiline string is not supported at line {}.\n", parser->getLineNumber(luaCodes.begin() + pos));
+					}
 					auto lines = luaCodes.split("\n");
 					fmt::memory_buffer buf;
 					std::string codeStr;
@@ -1239,18 +1249,23 @@ void XmlDelegator::endElement(const char *name)
 					{
 						if (lines.size() == 1)
 						{
-							updateLineNumber(lines.front().begin());
+							updateLineNumber(lines.begin()->begin());
 							codeStr = lines.front() + nl();
 						}
 						else
 						{
-							updateLineNumber(lines.begin()->begin());
-							auto begin = ++lines.begin();
-							fmt::format_to(std::back_inserter(buf), "{}{}"sv, lines.front().toString(), nl());
-							for (auto it = begin; it != lines.end(); ++it)
+							if (!lines.begin()->empty())
 							{
-								updateLineNumber(it->begin());
-								fmt::format_to(std::back_inserter(buf), "{}{}"sv, it->toString(), nl());
+								updateLineNumber(lines.begin()->begin());
+								fmt::format_to(std::back_inserter(buf), "{}{}"sv, lines.front().toString(), nl());
+							}
+							for (auto it = ++lines.begin(); it != lines.end(); ++it)
+							{
+								if (!it->empty())
+								{
+									updateLineNumber(it->begin());
+									fmt::format_to(std::back_inserter(buf), "{}{}"sv, it->toString(), nl());
+								}
 							}
 							codeStr = fmt::to_string(buf);
 						}

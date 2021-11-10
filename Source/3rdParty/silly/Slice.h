@@ -96,7 +96,7 @@ class Slice {
   }
 
   Slice &trimSpace() {
-    assert(len_ > 0);
+    if (empty()) return *this;
     size_t start = 0, end = len_ - 1;
     while (start < end && std::isspace(static_cast<unsigned char>(str_[start]))) {
       start++;
