@@ -50,6 +50,10 @@ set_target_properties(
 
 add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_definitions(-Wno-psabi)
+endif()
+
 add_executable(dorothy-ssr
 	../../../Source/Platformer/AINode.cpp
 	../../../Source/Platformer/Define.cpp
