@@ -28,7 +28,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+#if BX_PLATFORM_LINUX
+#define MAX_FONT_TEXTURE_WIDTH 4096
+#else
 #define MAX_FONT_TEXTURE_WIDTH 8192
+#endif
 
 void pushYue(lua_State* L, String name) {
 	lua_getglobal(L, "package"); // package

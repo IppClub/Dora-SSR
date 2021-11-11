@@ -3,9 +3,10 @@
 # Project created by QtCreator 2015-04-15T10:34:14
 #
 #-------------------------------------------------
-QT += core gui core5compat
+QT += core gui
 CONFIG += c++11
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 5): QT += core5compat
 
 TARGET = DoraXml
 TEMPLATE = app
