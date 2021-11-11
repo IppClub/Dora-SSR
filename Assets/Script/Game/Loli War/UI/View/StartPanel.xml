@@ -37,9 +37,11 @@
 			</Sequence>
 		</Action>
 		<Slot Name="Enter" Target="node" Perform="scaleIn">
-			fButton:perform(fadeIn)
-			vButton:perform(fadeIn)
-			dButton:perform(fadeIn)
+			<Lua>
+				fButton:perform(fadeIn)
+				vButton:perform(fadeIn)
+				dButton:perform(fadeIn)
+			</Lua>
 		</Slot>
 	</AlignNode>
 </Dorothy>

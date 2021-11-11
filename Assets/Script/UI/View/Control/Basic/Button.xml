@@ -22,13 +22,13 @@
 				<SolidRect Width="{ width }" Height="{ height }" Color="{ backColor or 0x66000000 }" RenderOrder="1"/>
 			</Node>
 
-			<Script>if text then</Script>
+			<Lua>if text then</Lua>
 				<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'NotoSansHans-Regular'}" FontSize="{ fontSize or 18 }" RenderOrder="2" TextAlign="Center" Ref="True"/>
-			<Script>end</Script>
+			<Lua>end</Lua>
 
 			<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>
 			<SolidRect Name="light" Width="{ width }" Height="{ height }" Color="0xff00ffff" RenderOrder="4"/>
-			<Script>light.visible = false</Script>
+			<Lua>light.visible = false</Lua>
 		</Item>
 
 		<Slot Name="TapEnded" Target="light" Perform="hide"/>

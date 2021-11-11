@@ -6,8 +6,10 @@
 		<Menu Name="menu" AnchorX="1" AnchorY="1" Width="52" Height="52" ScaleX="2" ScaleY="2">
 			<Button ImageUp="{ 'esc_up' }" ImageDown="{ 'esc_down' }" Width="52" Height="52">
 				<Slot Name="Tapped">
-					pad:emit("Tapped")
-					Audio:play("Audio/choose.wav")
+					<Lua>
+						pad:emit("Tapped")
+						Audio:play("Audio/choose.wav")
+					</Lua>
 				</Slot>
 			</Button>
 		</Menu>

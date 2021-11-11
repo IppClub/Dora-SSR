@@ -29,9 +29,8 @@ static void Handler(const char* begin, const char* end)
 	}
 	if (begin < end && *(begin-1) != '/')
 	{
-		CHECK_CDATA(Call)
-		CHECK_CDATA(Script)
-		CHECK_CDATA(Slot)
+		CHECK_CDATA(Lua)
+		CHECK_CDATA(Yue)
 	}
 }
 
@@ -102,7 +101,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Time) { time = atts[++i]; break; }
 #define Delay_Create
 #define Delay_Handle \
-	oFunc func = {std::string("Delay(")+toVal(time,"0")+")","",def};\
+	oFunc func = {std::string("Delay(")+toVal(time,"0")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Delay_Finish
 
@@ -121,7 +120,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Scale_Create
 #define Scale_Handle \
-	oFunc func = {std::string("Scale(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Scale(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Scale_Finish
 
@@ -144,7 +143,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Move_Create
 #define Move_Handle \
-	oFunc func = {std::string("Move(")+toVal(time,"0")+",Vec2("+Val(startX)+","+Val(startY)+"),Vec2("+Val(stopX)+","+Val(stopY)+")"+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Move(")+toVal(time,"0")+",Vec2("+Val(startX)+","+Val(startY)+"),Vec2("+Val(stopX)+","+Val(stopY)+")"+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Move_Finish
 
@@ -163,7 +162,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Angle_Create
 #define Angle_Handle \
-	oFunc func = {std::string("Angle(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Angle(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Angle_Finish
 
@@ -182,7 +181,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleX_Create
 #define AngleX_Handle \
-	oFunc func = {std::string("AngleX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("AngleX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define AngleX_Finish
 
@@ -201,7 +200,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleY_Create
 #define AngleY_Handle \
-	oFunc func = {std::string("AngleY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("AngleY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define AngleY_Finish
 
@@ -220,7 +219,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Opacity_Create
 #define Opacity_Handle \
-	oFunc func = {std::string("Opacity(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("Opacity(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Opacity_Finish
 
@@ -239,7 +238,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewX_Create
 #define SkewX_Handle \
-	oFunc func = {std::string("SkewX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("SkewX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define SkewX_Finish
 
@@ -258,7 +257,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewY_Create
 #define SkewY_Handle \
-	oFunc func = {std::string("SkewY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def};\
+	oFunc func = {std::string("SkewY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define SkewY_Finish
 
@@ -269,7 +268,7 @@ static const char* _toBoolean(const char* str)
 	ActionBase_Check
 #define Show_Create
 #define Show_Handle \
-	oFunc func = {"Show()","",def};\
+	oFunc func = {"Show()","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Show_Finish
 
@@ -280,7 +279,7 @@ static const char* _toBoolean(const char* str)
 	ActionBase_Check
 #define Hide_Create
 #define Hide_Handle \
-	oFunc func = {"Hide()","",def};\
+	oFunc func = {"Hide()","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Hide_Finish
 
@@ -293,7 +292,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Type) { type = atts[++i]; break; }
 #define Event_Create
 #define Event_Handle \
-	oFunc func = {"Event(\""+(type ? std::string(type) : Slice::Empty)+"\")",")",def};\
+	oFunc func = {"Event(\""+(type ? std::string(type) : Slice::Empty)+"\")",")",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Event_Finish
 
@@ -305,7 +304,7 @@ static const char* _toBoolean(const char* str)
 #define Sequence_Create
 #define Sequence_Handle \
 	items.push("Sequence");\
-	funcs.push({"","",def})
+	funcs.push({"","",def ? oFuncType::ActionDef : oFuncType::Action})
 #define Sequence_Finish
 
 // Spawn
@@ -316,7 +315,7 @@ static const char* _toBoolean(const char* str)
 #define Spawn_Create
 #define Spawn_Handle \
 	items.push("Spawn");\
-	funcs.push({"","",def})
+	funcs.push({"","",def ? oFuncType::ActionDef : oFuncType::Action})
 #define Spawn_Finish
 
 #define Add_To_Parent \
@@ -480,7 +479,7 @@ static const char* _toBoolean(const char* str)
 	if (!elementStack.empty())\
 	{\
 		oFunc func = {elementStack.top().name+":drawPolygon({"s,\
-		"},Color("s+Val(fillColor)+"),"s+toVal(borderWidth,"0")+",Color("s+toVal(borderColor,"")+"))"s+nl()};\
+		"},Color("s+Val(fillColor)+"),"s+toVal(borderWidth,"0")+",Color("s+toVal(borderColor,"")+"))"s+nl(), oFuncType::Polygon};\
 		funcs.push(func);\
 		items.push("Polygon");\
 	}
@@ -521,7 +520,7 @@ static const char* _toBoolean(const char* str)
 	Node_Handle
 #define Line_Finish \
 	Add_To_Parent\
-	oFunc func = {std::string(self)+":set({"s, "},Color(0xffffffff))"s+nl()};\
+	oFunc func = {std::string(self)+":set({"s, "},Color(0xffffffff))"s+nl(), oFuncType::Line};\
 	funcs.push(func);\
 	items.push("Line");
 
@@ -721,26 +720,15 @@ static const char* _toBoolean(const char* str)
 	const char* name = nullptr;\
 	const char* args = nullptr;\
 	const char* perform = nullptr;\
-	const char* target = nullptr;\
-	const char* type = nullptr;
+	const char* target = nullptr;
 #define Slot_Check \
 	CASE_STR(Name) { name = atts[++i]; break; }\
 	CASE_STR(Args) { args = atts[++i]; break; }\
 	CASE_STR(Target) { target = atts[++i]; break; }\
-	CASE_STR(Perform) { perform = atts[++i]; break; }\
-	CASE_STR(Type) { type = atts[++i]; break; }
+	CASE_STR(Perform) { perform = atts[++i]; break; }
 #define Slot_Create \
-	isYue = type && std::string(type) == "Yue"sv;\
-	oFunc func = {elementStack.top().name+":slot("s+toText(name)+",function("s+(args ? args : "")+')'+(perform ? nl()+(target ? std::string(target) : elementStack.top().name)+":perform("s+perform+")"s+nl() : Slice::Empty), "end)"s};\
+	oFunc func = {elementStack.top().name+":slot("s+toText(name)+",function("s+(args ? args : "")+')'+nl()+(perform ? (target ? std::string(target) : elementStack.top().name)+":perform("s+perform+")"s+nl() : Slice::Empty), "end)"s,oFuncType::Slot};\
 	funcs.push(func);
-
-// Script
-#define Script_Define \
-	const char* type = nullptr;
-#define Script_Check \
-	CASE_STR(Type) { type = atts[++i]; break; }
-#define Script_Create \
-	isYue = type && std::string(type) == "Yue"sv;
 
 #define Item_Define(name) name##_Define
 #define Item_Loop(name) \
@@ -785,7 +773,6 @@ class XmlDelegator : public SAXDelegator
 {
 public:
 	XmlDelegator(SAXParser* parser):
-	isYue(false),
 	codes(nullptr),
 	currentLine(1),
 	currentLinePos(nullptr),
@@ -863,18 +850,25 @@ private:
 		std::string name;
 		bool ref;
 	};
+	enum class oFuncType
+	{
+		Action,
+		ActionDef,
+		Polygon,
+		Line,
+		Slot
+	};
 	struct oFunc
 	{
 		std::string begin;
 		std::string end;
-		bool flag;
+		oFuncType type;
 	};
 	SAXParser* parser;
 	int currentLine;
 	const char* currentLinePos;
 	std::string currentLineStr;
 	// Script
-	bool isYue;
 	const char* codes;
 	// Loader
 	std::string firstItem;
@@ -1174,11 +1168,9 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 			Item_Create(Slot)
 			break;
 		}
-		CASE_STR(Script)
+		CASE_STR(Lua)
+		CASE_STR(Yue)
 		{
-			Item_Define(Script)
-			Item_Loop(Script)
-			Item_Create(Script)
 			break;
 		}
 		default:
@@ -1220,70 +1212,82 @@ void XmlDelegator::endElement(const char *name)
 
 	SWITCH_STR_START(name)
 	{
-		CASE_STR(Script)
+		CASE_STR(Yue)
+		{
+			std::string codeStr;
+			if (codes) codeStr = compileYueCodes(codes);
+			codes = nullptr;
+			if (!funcs.empty() && funcs.top().type == oFuncType::Slot)
+			{
+				funcs.top().begin += codeStr;
+			}
+			else
+			{
+				fmt::format_to(std::back_inserter(stream), "{}"sv, codeStr);
+			}
+			break;
+		}
+		CASE_STR(Lua)
 		{
 			if (codes)
 			{
-				if (isYue)
+				Slice luaCodes(codes);
+				luaCodes.trimSpace();
+				std::string_view lcodes(luaCodes.begin(), luaCodes.size());
+				auto pos = lcodes.find("[["sv);
+				if (pos == std::string::npos)
 				{
-					fmt::format_to(std::back_inserter(stream), "{}"sv, compileYueCodes(codes));
+					pos = lcodes.find("[="sv);
+				}
+				if (pos != std::string::npos)
+				{
+					lastError += fmt::format("Lua multiline string is not supported at line {}.\n", parser->getLineNumber(luaCodes.begin() + pos));
+				}
+				auto lines = luaCodes.split("\n");
+				fmt::memory_buffer buf;
+				std::string codeStr;
+				if (!lines.empty())
+				{
+					if (lines.size() == 1)
+					{
+						updateLineNumber(lines.begin()->begin());
+						codeStr = lines.front() + nl();
+					}
+					else
+					{
+						if (!lines.begin()->empty())
+						{
+							updateLineNumber(lines.begin()->begin());
+							fmt::format_to(std::back_inserter(buf), "{}{}"sv, lines.front().toString(), nl());
+						}
+						for (auto it = ++lines.begin(); it != lines.end(); ++it)
+						{
+							if (!it->empty())
+							{
+								updateLineNumber(it->begin());
+								fmt::format_to(std::back_inserter(buf), "{}{}"sv, it->toString(), nl());
+							}
+						}
+						codeStr = fmt::to_string(buf);
+					}
+				}
+				if (!funcs.empty() && funcs.top().type == oFuncType::Slot)
+				{
+					funcs.top().begin += codeStr;
 				}
 				else
 				{
-					Slice luaCodes(codes);
-					luaCodes.trimSpace();
-					std::string_view lcodes(luaCodes.begin(), luaCodes.size());
-					auto pos = lcodes.find("[["sv);
-					if (pos == std::string::npos)
-					{
-						pos = lcodes.find("[="sv);
-					}
-					if (pos != std::string::npos)
-					{
-						lastError += fmt::format("Lua multiline string is not supported at line {}.\n", parser->getLineNumber(luaCodes.begin() + pos));
-					}
-					auto lines = luaCodes.split("\n");
-					fmt::memory_buffer buf;
-					std::string codeStr;
-					if (!lines.empty())
-					{
-						if (lines.size() == 1)
-						{
-							updateLineNumber(lines.begin()->begin());
-							codeStr = lines.front() + nl();
-						}
-						else
-						{
-							if (!lines.begin()->empty())
-							{
-								updateLineNumber(lines.begin()->begin());
-								fmt::format_to(std::back_inserter(buf), "{}{}"sv, lines.front().toString(), nl());
-							}
-							for (auto it = ++lines.begin(); it != lines.end(); ++it)
-							{
-								if (!it->empty())
-								{
-									updateLineNumber(it->begin());
-									fmt::format_to(std::back_inserter(buf), "{}{}"sv, it->toString(), nl());
-								}
-							}
-							codeStr = fmt::to_string(buf);
-						}
-					}
 					fmt::format_to(std::back_inserter(stream), "{}"sv, codeStr);
 				}
 			}
 			codes = nullptr;
-			isYue = false;
 			break;
 		}
 		CASE_STR(Slot)
 		{
 			oFunc func = funcs.top();
 			funcs.pop();
-			fmt::format_to(std::back_inserter(stream), "{}{}{}{}"sv, func.begin, (codes ? (isYue ? compileYueCodes(codes) : std::string(codes)) : Slice::Empty), func.end, nl());
-			codes = nullptr;
-			isYue = false;
+			fmt::format_to(std::back_inserter(stream), "{}{}{}"sv, func.begin, func.end, nl());
 			break;
 		}
 		// Action
@@ -1302,7 +1306,7 @@ void XmlDelegator::endElement(const char *name)
 			funcs.pop();
 			if (parentIsAction)
 			{
-				fmt::format_to(std::back_inserter(stream), func.flag ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, func.begin, nl());
+				fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, func.begin, nl());
 			}
 			else
 			{
@@ -1334,7 +1338,7 @@ void XmlDelegator::endElement(const char *name)
 			tempItem += ")";
 			if (parentIsAction)
 			{
-				fmt::format_to(std::back_inserter(stream), func.flag ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, tempItem, nl());
+				fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, tempItem, nl());
 			}
 			else
 			{
