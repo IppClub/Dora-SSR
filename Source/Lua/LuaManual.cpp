@@ -3158,9 +3158,9 @@ namespace ImGui { namespace Binding
 		return ImGui::BeginChild(id, size, border, getWindowCombinedFlags(windowsFlags, flagCount));
 	}
 
-	void SetNextWindowPos(const Vec2& pos, String setCond)
+	void SetNextWindowPos(const Vec2& pos, String setCond, const Vec2& pivot)
 	{
-		ImGui::SetNextWindowPos(pos, getSetCond(setCond));
+		ImGui::SetNextWindowPos(pos, getSetCond(setCond), pivot);
 	}
 
 	void SetNextWindowPosCenter(String setCond)

@@ -262,7 +262,7 @@ namespace ImGui { namespace Binding
 	bool Begin(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
 	bool BeginChild(const char* str_id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
 	bool BeginChild(ImGuiID id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
-	void SetNextWindowPos(const Vec2& pos, String setCond = nullptr);
+	void SetNextWindowPos(const Vec2& pos, String setCond = nullptr, const Vec2& pivot = Vec2::zero);
 	void SetNextWindowPosCenter(String setCond = nullptr);
 	void SetNextWindowSize(const Vec2& size, String setCond = nullptr);
 	void SetNextWindowCollapsed(bool collapsed, String setCond = nullptr);
