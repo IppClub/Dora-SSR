@@ -21,11 +21,12 @@ animations = {""} if #animations == 0
 currentLook = #looks
 currentAnim = #animations
 loop = true
+windowFlags = {"NoResize","NoSavedSettings"}
 model\schedule ->
 	:width, :height = App.visualSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,325), "FirstUseEver"
-	Begin "Model", {"NoResize","NoSavedSettings"}, ->
+	Begin "Model", windowFlags, ->
 		changed, currentLook = Combo "Look", currentLook, looks
 		model.look = looks[currentLook] if changed
 		changed, currentAnim = Combo "Anim", currentAnim, animations

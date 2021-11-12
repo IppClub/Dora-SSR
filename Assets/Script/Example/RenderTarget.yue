@@ -42,9 +42,19 @@ Director.entry\addChild with Node!
 _ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
+	windowFlags =
+		* "NoDecoration"
+		* "AlwaysAutoResize"
+		* "NoSavedSettings"
+		* "NoFocusOnAppearing"
+		* "NoNav"
+		* "NoMove"
 	\schedule ->
 		:width,:height = App.visualSize
-		SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
-		SetNextWindowSize Vec2(240, 120), "FirstUseEver"
-		Begin "Render Target", {"NoResize","NoSavedSettings"}, ->
+		SetNextWindowBgAlpha 0.35
+		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+		Begin "Render Target", windowFlags, ->
+			Text "Render Target"
+			Separator!
 			TextWrapped "Use render target node as a mirror!"

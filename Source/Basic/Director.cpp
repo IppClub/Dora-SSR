@@ -589,9 +589,8 @@ void Director::handleSDLEvent(const SDL_Event& event)
 			break;
 		case SDL_APP_DIDENTERFOREGROUND:
 			_paused = false;
-			Event::send("AppDidEnterForeground"_slice);
 			SharedView.reset();
-			markDirty();
+			Event::send("AppDidEnterForeground"_slice);
 			Event::send("AppSizeChanged"_slice);
 			break;
 		case SDL_WINDOWEVENT:
@@ -607,7 +606,6 @@ void Director::handleSDLEvent(const SDL_Event& event)
 					case SDL_WINDOWEVENT_RESIZED:
 					case SDL_WINDOWEVENT_SIZE_CHANGED:
 						SharedView.reset();
-						markDirty();
 						Event::send("AppSizeChanged"_slice);
 						break;
 				}

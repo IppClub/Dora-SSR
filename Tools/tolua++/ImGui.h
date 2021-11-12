@@ -126,6 +126,7 @@ namespace ImGui
 	bool Binding::VSliderInt @ VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString format = "%d");
 	bool Binding::VSliderInt @ VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString format, String flags[tolua_len]);
 
+	void SetNextWindowBgAlpha(float alpha);
 	void ShowDemoWindow();
 	void End();
 	void EndChild();

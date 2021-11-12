@@ -245,11 +245,12 @@ records = {
 }
 decisionStr = nil
 Director.entry\addChild with Node!
+	windowFlags = {"NoResize","NoSavedSettings"}
 	\schedule ->
 		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(width/2-300,height/2-300), "FirstUseEver"
 		SetNextWindowSize Vec2(600,600), "FirstUseEver"
-		Begin "Fairy", {"NoResize","NoSavedSettings"}, ->
+		Begin "Fairy", windowFlags, ->
 			if training
 				TextWrapped "生物: #{training.name}"
 				TextWrapped "执行动作: #{actions[training.action]}"

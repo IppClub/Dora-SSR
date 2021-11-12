@@ -13,7 +13,7 @@
 			<Scale Time="0.2" Start="1.3" Stop="1" Ease="OutQuad"/>
 		</Sequence>
 	</Action>
-	<Sprite  File="Image/logo.png" TouchEnabled="True">
+	<Sprite File="Image/logo.png" TouchEnabled="True">
 		<Slot Name="TapBegan" Perform="scale"/>
 	</Sprite>
 	<Slot Name="Enter" Perform="rotate"/>
@@ -24,11 +24,21 @@
 		xmlCodes = Content\load "Example/Dorothy Xml.xml"
 		luaCodes = xmltolua xmlCodes
 		print "[Xml Codes]\n\n#{xmlCodes}\n[Compiled Lua Codes]\n\n#{luaCodes}"
+		windowFlags =
+			* "NoDecoration"
+			* "AlwaysAutoResize"
+			* "NoSavedSettings"
+			* "NoFocusOnAppearing"
+			* "NoNav"
+			* "NoMove"
 		entry\schedule ->
-			{:width} = App.visualSize
-			SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-			SetNextWindowSize Vec2(240,120), "FirstUseEver"
-			Begin "Dorothy Xml", {"NoResize","NoSavedSettings"}, ->
+			:width = App.visualSize
+			SetNextWindowBgAlpha 0.35
+			SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+			SetNextWindowSize Vec2(240,0), "FirstUseEver"
+			Begin "Dorothy Xml", windowFlags, ->
+				Text "Dorothy Xml"
+				Separator!
 				TextWrapped "View related codes in log window!"
 	</Yue>
 </Node>
