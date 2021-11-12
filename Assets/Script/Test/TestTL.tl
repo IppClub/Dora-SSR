@@ -26,11 +26,22 @@ local ImGui = require("ImGui")
 local Vec2 = require("Vec2")
 local App = require("App")
 local ui = Node()
+local windowFlags = {
+	"NoDecoration",
+	"AlwaysAutoResize",
+	"NoSavedSettings",
+	"NoFocusOnAppearing",
+	"NoNav",
+	"NoMove"
+}
 ui:schedule(function(): boolean
 	local size = App.visualSize
-	ImGui.SetNextWindowPos(Vec2(size.width - 250, 10), "FirstUseEver")
-	ImGui.SetNextWindowSize(Vec2(240, 120), "FirstUseEver")
-	ImGui.Begin("Hello World", {"NoResize", "NoSavedSettings"}, function()
+	ImGui.SetNextWindowBgAlpha(0.35)
+	ImGui.SetNextWindowPos(Vec2(size.width-10,10), "Always", Vec2(1,0))
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
+	ImGui.Begin("Hello World", windowFlags, function()
+		ImGui.Text("Hello World")
+		ImGui.Separator()
 		ImGui.TextWrapped("Basic Dorothy schedule and signal function usage. View outputs in log window!")
 	end)
 end)

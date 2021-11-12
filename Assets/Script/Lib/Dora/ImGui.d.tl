@@ -92,6 +92,8 @@ local record ImGui
 	end
 	enum WindowFlag
 		""
+		"NoNav"
+		"NoDecoration"
 		"NoTitleBar"
 		"NoResize"
 		"NoMove"
@@ -253,7 +255,7 @@ local record ImGui
 	ShowConsole: function()
 	Begin: function(
 		name: string,
-		windowsFlags: {WindowFlag} --[[nil]],
+		windowsFlags: {WindowFlag},
 		inside: function()
 	): boolean
 	Begin: function(
@@ -263,7 +265,7 @@ local record ImGui
 	Begin: function(
 		name: string,
 		p_open: boolean,
-		windowsFlags: {WindowFlag} --[[nil]],
+		windowsFlags: {WindowFlag},
 		inside: function()
 	): boolean, boolean
 	Begin: function(
@@ -273,9 +275,9 @@ local record ImGui
 	): boolean, boolean
 	BeginChild: function(
 		str_id: string,
-		size: Vec2 --[[Vec2.zero]],
-		border: boolean --[[false]],
-		windowsFlags: {WindowFlag} --[[nil]],
+		size: Vec2,
+		border: boolean,
+		windowsFlags: {WindowFlag},
 		inside: function()
 	): boolean
 	BeginChild: function(
@@ -295,9 +297,9 @@ local record ImGui
 	): boolean
 	BeginChild: function(
 		id: integer,
-		size: Vec2 --[[Vec2.zero]],
-		border: boolean --[[false]],
-		windowsFlags: {WindowFlag} --[[nil]],
+		size: Vec2,
+		border: boolean,
+		windowsFlags: {WindowFlag},
 		inside: function()
 	): boolean
 	BeginChild: function(
@@ -315,9 +317,11 @@ local record ImGui
 		id: integer,
 		inside: function()
 	): boolean
+	SetNextWindowBgAlpha: function(alpha: number)
 	SetNextWindowPos: function(
 		pos: Vec2,
-		setCond?: SetCond --[[""]]
+		setCond?: SetCond --[[""]],
+		pivot?: Vec2 --[[Vec2.zero]]
 	)
 	SetNextWindowPosCenter: function(
 		setCond?: SetCond --[[""]]

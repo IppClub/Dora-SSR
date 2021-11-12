@@ -3669,6 +3669,8 @@ namespace ImGui { namespace Binding
 	{
 		switch (Switch::hash(style))
 		{
+			case "NoNav"_hash: return ImGuiWindowFlags_NoNav;
+			case "NoDecoration"_hash: return ImGuiWindowFlags_NoDecoration;
 			case "NoTitleBar"_hash: return ImGuiWindowFlags_NoTitleBar;
 			case "NoResize"_hash: return ImGuiWindowFlags_NoResize;
 			case "NoMove"_hash: return ImGuiWindowFlags_NoMove;

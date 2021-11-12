@@ -67,11 +67,20 @@ _ENV = Dorothy builtin.ImGui
 inverted = true
 withAlphaThreshold = true
 Director.entry\addChild with Node!
+	windowFlags =
+		* "NoDecoration"
+		* "AlwaysAutoResize"
+		* "NoSavedSettings"
+		* "NoFocusOnAppearing"
+		* "NoNav"
+		* "NoMove"
 	\schedule ->
 		:width, :height = App.visualSize
-		SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
-		SetNextWindowSize Vec2(240, 180), "FirstUseEver"
-		Begin "Clip Node", {"NoResize","NoSavedSettings"}, ->
+		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+		Begin "Clip Node", windowFlags, ->
+			Text "Clip Node"
+			Separator!
 			TextWrapped "Render children nodes with mask!"
 			changed, inverted = Checkbox "Inverted", inverted
 			if changed

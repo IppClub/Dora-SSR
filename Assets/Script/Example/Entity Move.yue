@@ -65,11 +65,21 @@ with Entity!
 _ENV = Dorothy builtin.ImGui
 
 with Observer "Add", {"scene"}
+	windowFlags =
+		* "NoDecoration"
+		* "AlwaysAutoResize"
+		* "NoSavedSettings"
+		* "NoFocusOnAppearing"
+		* "NoNav"
+		* "NoMove"
 	\every (entity)-> entity.scene\schedule ->
 		:width,:height = App.visualSize
-		SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-		SetNextWindowSize Vec2(240,160), "FirstUseEver"
-		Begin "ECS System", {"NoResize","NoSavedSettings"}, ->
+		SetNextWindowBgAlpha 0.35
+		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+		Begin "ECS System", windowFlags, ->
+			Text "ECS System"
+			Separator!
 			TextWrapped "Tap any place to move entities."
 			if Button "Create Random Entity"
 				with Entity!

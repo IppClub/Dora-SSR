@@ -35,10 +35,20 @@ Director.entry\addChild spine
 _ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
+	windowFlags =
+		* "NoDecoration"
+		* "AlwaysAutoResize"
+		* "NoSavedSettings"
+		* "NoFocusOnAppearing"
+		* "NoNav"
+		* "NoMove"
 	\schedule ->
 		:width,:height = App.visualSize
-		SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
-		SetNextWindowSize Vec2(240, 140), "FirstUseEver"
-		Begin "DragonBones", {"NoResize","NoSavedSettings"}, ->
+		SetNextWindowBgAlpha 0.35
+		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+		Begin "Spine", windowFlags, ->
+			Text "Spine"
+			Separator!
 			TextWrapped "Basic usage to create spine! Tap it for a hit test."
 			_, spine.showDebug = Checkbox "BoundingBox", spine.showDebug

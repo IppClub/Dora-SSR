@@ -471,7 +471,6 @@ int Application::mainLogic(Application* app)
 		auto startTime = app->getEclapsedTime();
 
 		SharedPoolManager.push();
-		SharedDirector.doLogic();
 
 		// poll events from render thread
 		for (Own<QEvent> event = app->_logicEvent.poll();
@@ -511,6 +510,9 @@ int Application::mainLogic(Application* app)
 					break;
 			}
 		}
+
+		SharedDirector.doLogic();
+
 		app->_logicTime = app->getEclapsedTime() - startTime;
 
 		SharedDirector.doRender();
