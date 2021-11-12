@@ -157,7 +157,7 @@ Texture2D* TextureCache::update(String filename, const uint8_t* data, int64_t si
 			s_cast<uint16_t>(imageContainer->m_depth),
 			imageContainer->m_cubeMap,
 			imageContainer->m_numMips > 1,
-			imageContainer->m_numMips,
+			imageContainer->m_numLayers,
 			s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
 		Texture2D* texture = Texture2D::create(handle, info, flags);
 		std::string fullPath = SharedContent.getFullPath(filename);
@@ -229,7 +229,7 @@ void TextureCache::loadAsync(String filename, const std::function<void(Texture2D
 					s_cast<uint16_t>(imageContainer->m_depth),
 					imageContainer->m_cubeMap,
 					imageContainer->m_numMips > 1,
-					imageContainer->m_numMips,
+					imageContainer->m_numLayers,
 					s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
 				Texture2D* texture = Texture2D::create(handle, info, flags);
 				std::string fullPath = SharedContent.getFullPath(file);
