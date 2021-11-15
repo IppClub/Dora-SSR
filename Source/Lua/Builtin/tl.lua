@@ -7090,7 +7090,7 @@ tl.type_check = function(ast, opts)
             elseif tbl.meta_fields and tbl.meta_fields["__index"] then
                local ft = tbl.meta_fields["__index"]
                if ft.typename == "function" then
-                  return type_check_function_call(node, ft, { tbl, key.type }, false, 0)
+                  return type_check_function_call(node, ft, { tbl, key.type or simple_types[key.kind] }, false, 0)
                end
             end
          end
@@ -7358,13 +7358,13 @@ tl.type_check = function(ast, opts)
             end
             return match_all_record_field_names(idxnode, a, field_names,
             "cannot index, not all enum values map to record fields of the same type")
-         elseif is_a(b, STRING) then
-            return node_error(idxnode, "cannot index object of type %s with a string, consider using an enum", orig_a)
          elseif a.meta_fields and a.meta_fields["__index"] then
             local ft = a.meta_fields["__index"]
             if ft.typename == "function" then
                return type_check_function_call(node, ft, { a, b }, false, 0)
             end
+         elseif is_a(b, STRING) then
+            return node_error(idxnode, "cannot index object of type %s with a string, consider using an enum", orig_a)
          end
       end
       if lax and is_unknown(a) then
