@@ -66,14 +66,14 @@ Pass::Pass(Shader* vertShader, Shader* fragShader):
 _program(BGFX_INVALID_HANDLE),
 _vertShader(vertShader),
 _fragShader(fragShader),
-_rtNeeded(false)
+_grabPass(false)
 { }
 
 Pass::Pass(String vertShader, String fragShader):
 _program(BGFX_INVALID_HANDLE),
 _vertShader(SharedShaderCache.load(vertShader)),
 _fragShader(SharedShaderCache.load(fragShader)),
-_rtNeeded(false)
+_grabPass(false)
 { }
 
 Pass::~Pass()
@@ -91,14 +91,14 @@ bool Pass::init()
 	return bgfx::isValid(_program);
 }
 
-void Pass::setRTNeeded(bool var)
+void Pass::setGrabPass(bool var)
 {
-	_rtNeeded = var;
+	_grabPass = var;
 }
 
-bool Pass::isRTNeeded() const
+bool Pass::isGrabPass() const
 {
-	return _rtNeeded;
+	return _grabPass;
 }
 
 void Pass::set(String name, float var)

@@ -1581,7 +1581,7 @@ void Node::Grabber::grab(Node* target)
 	float width = target->getWidth();
 	float height = target->getHeight();
 
-	AssertIf(width <= 0.0f || height <= 0.0f, "can not grab a invalid sized node.");
+	AssertIf(width <= 0.0f || height <= 0.0f, "can not grab a node with size [{}x{}].", width, height);
 
 	if (_display)
 	{
@@ -1596,7 +1596,7 @@ void Node::Grabber::grab(Node* target)
 	{
 		for (Pass* pass : _effect->getPasses())
 		{
-			if (pass->isRTNeeded())
+			if (pass->isGrabPass())
 			{
 				rtCount = 2;
 				break;
@@ -1643,7 +1643,7 @@ void Node::Grabber::grab(Node* target)
 		{
 			Effect* effect = _renderTargets[rtIndex].surface->getEffect();
 			effect->add(pass);
-			if (pass->isRTNeeded())
+			if (pass->isGrabPass())
 			{
 				Sprite* surface = _renderTargets[rtIndex].surface;
 				rtIndex = (rtIndex + 1) % 2;

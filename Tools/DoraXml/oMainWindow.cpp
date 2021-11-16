@@ -5,6 +5,8 @@
 #include "oXmlResolver.h"
 #include "oSyntaxHighlighter.h"
 
+#define SETTING_NAMES "DorothySSR","DoraXml"
+
 oMainWindow::oMainWindow(QWidget *parent)
 : QMainWindow(parent)
 , _closingTabIndex(-1)
@@ -20,7 +22,7 @@ oMainWindow::oMainWindow(QWidget *parent)
     QObject::connect(ui->actionColorPicker,SIGNAL(triggered()),this,SLOT(colorPickerEvent()));
     QObject::connect(ui->tabWidget,SIGNAL(tabCloseRequested(int)),this,SLOT(tabCloseEvent(int)));
 
-	QSettings settings(QSettings::IniFormat,QSettings::UserScope, "Dorothy", "CodeEditor");
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, SETTING_NAMES);
 
 	_defaultFont = settings.value("Font",_defaultFont).value<QFont>();
 
@@ -113,7 +115,7 @@ void oMainWindow::fontSettingEvent()
             oEditor* editor = static_cast<oEditor*>(ui->tabWidget->widget(i));
 			editor->setFont(_defaultFont);
 		}
-		QSettings settings(QSettings::IniFormat,QSettings::UserScope, "Dorothy", "CodeEditor");
+        QSettings settings(QSettings::IniFormat, QSettings::UserScope, SETTING_NAMES);
 		settings.setValue("Font", _defaultFont);
 	}
 }
@@ -242,7 +244,7 @@ void oMainWindow::closeEvent(QCloseEvent* event)
 		}
 		else event->accept();
 	}
-	QSettings settings(QSettings::IniFormat,QSettings::UserScope, "Dorothy", "CodeEditor");
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, SETTING_NAMES);
 	QString paths;
 	for (int i = 0;i < tabBar->count();i++)
 	{

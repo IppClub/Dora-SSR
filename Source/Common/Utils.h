@@ -92,12 +92,7 @@ public: virtual void set##funName(String var)
 #define BLOCK_END } while (false);
 
 /** @brief Compiler compact macros */
-#ifdef __GNUC__
-	#define DORA_UNUSED __attribute__ ((unused))
-#else
-	#define DORA_UNUSED
-#endif
-
+#define DORA_UNUSED [[maybe_unused]]
 #define DORA_UNUSED_PARAM(unusedparam) (void)unusedparam
 #define DORA_DUMMY do {} while (0)
 

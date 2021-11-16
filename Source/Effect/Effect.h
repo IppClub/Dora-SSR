@@ -19,7 +19,7 @@ class Shader;
 class Pass : public Object
 {
 public:
-	PROPERTY_BOOL(RTNeeded);
+	PROPERTY_BOOL(GrabPass);
 	virtual ~Pass();
 	virtual bool init() override;
 	void set(String name, float var);
@@ -47,7 +47,7 @@ private:
 		bgfx::UniformHandle _handle;
 		Own<Value> _value;
 	};
-	bool _rtNeeded;
+	bool _grabPass;
 	Ref<Shader> _fragShader;
 	Ref<Shader> _vertShader;
 	bgfx::ProgramHandle _program;
