@@ -1,7 +1,7 @@
 local Object = require("Object").Type
 local record Pass
 	embed Object
-	rtNeeded: boolean
+	grabPass: boolean
 	set: function(self: Pass,
 		name: string,
 		var1: number,

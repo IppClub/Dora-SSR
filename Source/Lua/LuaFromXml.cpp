@@ -591,35 +591,32 @@ static const char* _toBoolean(const char* str)
 #define Sprite_Finish \
 	Add_To_Parent
 
-// Model
-#define Model_Define \
+// Playable
+#define Playable_Define \
 	Node_Define\
 	const char* filename = nullptr;\
 	const char* look = nullptr;\
 	const char* loop = nullptr;\
-	const char* reversed = nullptr;\
 	const char* play = nullptr;\
-	const char* faceRight = nullptr;\
+	const char* fliped = nullptr;\
 	const char* speed = nullptr;
-#define Model_Check \
+#define Playable_Check \
 	Node_Check\
 	CASE_STR(File) { filename = atts[++i]; break; }\
 	CASE_STR(Look) { look = atts[++i]; break; }\
 	CASE_STR(Loop) { loop = atts[++i]; break; }\
-	CASE_STR(Reversed) { reversed = atts[++i]; break; }\
 	CASE_STR(Play) { play = atts[++i]; break; }\
-	CASE_STR(FaceRight) { faceRight = atts[++i]; break; }\
+	CASE_STR(Fliped) { fliped = atts[++i]; break; }\
 	CASE_STR(Speed) { speed = atts[++i]; break; }
-#define Model_Create \
-	fmt::format_to(std::back_inserter(stream), "local {} = Model({}){}"sv, self, toText(filename), nl());
-#define Model_Handle \
+#define Playable_Create \
+	fmt::format_to(std::back_inserter(stream), "local {} = Playable({}){}"sv, self, toText(filename), nl());
+#define Playable_Handle \
 	Node_Handle\
 	if (look) fmt::format_to(std::back_inserter(stream), "{}.look = \"{}\"{}"sv, self, Val(look), nl());\
-	if (reversed) fmt::format_to(std::back_inserter(stream), "{}.reversed = {}{}"sv, self, toBoolean(reversed), nl());\
-	if (faceRight) fmt::format_to(std::back_inserter(stream), "{}.faceRight = {}{}"sv, self, toBoolean(faceRight), nl());\
+	if (fliped) fmt::format_to(std::back_inserter(stream), "{}.fliped = {}{}"sv, self, toBoolean(fliped), nl());\
 	if (speed) fmt::format_to(std::back_inserter(stream), "{}.speed = {}{}"sv, self, Val(speed), nl());\
 	if (play) fmt::format_to(std::back_inserter(stream), "{}:play(\"{}\"{}){}"sv, self, Val(play), loop ? std::string(",") + toBoolean(loop) : std::string(), nl());
-#define Model_Finish \
+#define Playable_Finish \
 	Add_To_Parent
 
 // Menu
@@ -1089,7 +1086,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 		Item(ClipNode, clipNode)
 		Item(Label, label)
 
-		Item(Model, model)
+		Item(Playable, playable)
 		Item(Menu, menu)
 
 		Item(Delay, delay)
@@ -1377,7 +1374,7 @@ void XmlDelegator::endElement(const char *name)
 		CASE_STR(Sprite)
 		CASE_STR(ClipNode)
 		CASE_STR(Label)
-		CASE_STR(Model)
+		CASE_STR(Playable)
 		CASE_STR(Menu)
 		CASE_STR(Vec2)
 		CASE_STR(Dot)

@@ -14,19 +14,19 @@ Boolean:True,False
 
 LayerParent:Menu
 
-BuiltInSlots:TapBegan,TapEnded,Tapped,Enter,Exit,Cleanup,AnimationEnd,ActionEnd
+BuiltInSlots:AnimationEnd,ActionEnd,TapFilter,TapBegan,TapEnded,Tapped,TapMoved,MouseWheel,Gesture,Enter,Exit,Cleanup,KeyDown,KeyUp,KeyPressed,AttachIME,DetachIME,TextInput,TextEditing
 
 Import
 	Base:No
 	Parent:NodeParent
 	Module
-        Name
+	Name
 Lua
 	Base:No
-        Parent:ScriptParent
+	Parent:ScriptParent
 Yue
-        Base:No
-        Parent:ScriptParent
+	Base:No
+	Parent:ScriptParent
 Slot
 	Base:No
 	Parent:NodeParent
@@ -52,7 +52,7 @@ Delay
 	Base:Object
 	Parent:ActionParent
 	Time
-        Def:Boolean
+	Def:Boolean
 Scale
 	Base:Object
 	Parent:ActionParent
@@ -60,7 +60,7 @@ Scale
 	Start
 	Stop
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 Move
 	Base:Object
 	Parent:ActionParent
@@ -70,7 +70,7 @@ Move
 	StopX
 	StopY
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 Angle
 	Base:Object
 	Parent:ActionParent
@@ -78,7 +78,7 @@ Angle
 	Start
 	Stop
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 AngleX
 	Base:Object
 	Parent:ActionParent
@@ -86,7 +86,7 @@ AngleX
 	Start
 	Stop
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 AngleY
 	Base:Object
 	Parent:ActionParent
@@ -94,7 +94,7 @@ AngleY
 	Start
 	Stop
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 Opacity
 	Base:Object
 	Parent:ActionParent
@@ -102,7 +102,7 @@ Opacity
 	Start
 	Stop
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 SkewX
 	Base:Object
 	Parent:ActionParent
@@ -110,7 +110,7 @@ SkewX
 	Start
 	Stop
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 SkewY
 	Base:Object
 	Parent:ActionParent
@@ -118,28 +118,28 @@ SkewY
 	Start
 	Stop
 	Ease:Ease
-        Def:Boolean
+	Def:Boolean
 Show
 	Base:Object
 	Parent:ActionParent
-        Def:Boolean
+	Def:Boolean
 Hide
 	Base:Object
 	Parent:ActionParent
-        Def:Boolean
+	Def:Boolean
 Event
 	Base:Object
 	Parent:ActionParent
-        Type
-        Def:Boolean
+	Type
+	Def:Boolean
 Sequence
 	Base:Object
 	Parent:ActionParent
-        Def:Boolean
+	Def:Boolean
 Spawn
 	Base:Object
 	Parent:ActionParent
-        Def:Boolean
+	Def:Boolean
 Action
 	Base:Object
 	Parent:NodeParent
@@ -155,7 +155,7 @@ Node
 	AnchorY
 	PassColor:Boolean
 	PassOpacity:Boolean
-        Color3
+	Color3
 	Opacity
 	Angle
 	AngleX
@@ -174,8 +174,8 @@ Node
 	RenderGroup:Boolean
 	RenderOrder
 Dorothy
-        Base:Node
-        Parent:No
+	Base:Node
+	Parent:No
 DrawNode
 	Base:Node
 	Parent:BaseParent
@@ -231,14 +231,13 @@ Menu
 	Base:Node
 	Parent:BaseParent
 	Enabled:Boolean
-Model
+Playable
 	Base:Node
 	Parent:BaseParent
 	File
 	Look
 	Loop:Boolean
-	Reversed:Boolean
 	Play
-	FaceRight:Boolean
+	Fliped:Boolean
 	Speed
 

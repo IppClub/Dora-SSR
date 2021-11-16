@@ -413,7 +413,7 @@ struct BlendFunc
 
 class Pass : public Object
 {
-	tolua_property__bool bool rTNeeded @ rtNeeded;
+	tolua_property__bool bool grabPass;
 	void set(String name, float var1, float var2 = 0.0f, float var3 = 0.0f, float var4 = 0.0f);
 	static Pass* create(String vertShader, String fragShader);
 };
