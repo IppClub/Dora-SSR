@@ -366,12 +366,13 @@ static int dora_yuecompile(lua_State* L)
 				auto input = std::make_shared<std::tuple<
 					std::string, std::string, OwnArray<uint8_t>, size_t>>(
 					src, dest, std::move(codes), size);
-				SharedAsyncThread.run([input]()
+				SharedAsyncThread.run([input, src]()
 				{
 					yue::YueConfig config;
 					config.implicitReturnRoot = true;
 					config.reserveLineNumber = true;
 					config.lintGlobalVariable = true;
+					config.module = src;
 					size_t size = std::get<3>(*input);
 					const auto& codes = std::get<2>(*input);
 					auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);

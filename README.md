@@ -4,7 +4,9 @@
 
 # Dorothy SSR
 
-[![Windows](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml) [![Linux](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml) [![macOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml) [![iOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml) [![Android](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml)
+|Windows|Linux|macOS|iOS|Android|
+|:-:|:-:|:-:|:-:|:-:|
+|[![Windows](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml)|[![Linux](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml)|[![macOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml)|[![Android](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml)|
 
 ## 功能展示  
 
@@ -29,6 +31,7 @@
 &emsp;&emsp;这个前身项目Dorothy中，已经尝试实现了2D骨骼动画编辑器、物理对象编辑器、游戏对象动作编辑器、触发器编辑器、AI编辑器和游戏场景编辑器等等的基本功能，部分子编辑器功能都甚至可以独立使用了。这正是绝好的时机交给强迫症患者重头再开发一遍了（并不）。实际是因为对更好的技术的追求，决心总结好这个项目过往的经验，使用更先进的底层技术从第一行代码开始重写一遍，并脱离Cocos框架的限制。于是有了这个叫Dorothy SSR的超级升级版项目（后续在本文档中将用SSR代指这个新项目，并称老项目为原Dorothy）。
 
 ## Dorothy游戏框架的特色
+
 &emsp;&emsp;新的游戏框架是基于跨平台的bgfx图形库和SDL系统环境库进行开发的。bgfx带来的特性包括多线程渲染，draw call合并，使用多种render back end（如OpenGL，Metal，DX9~12，Vulkan等等）。SDL带来了对平台相关系统接口的封装和简化。其他SSR项目自己的特色如下：
 * **内置2D平台游戏功能**  
 &emsp;&emsp;整合动画、物理和ECS组件，在C++层实现了一系列基础的2D平台游戏的功能。如：游戏镜头跟踪，场景分层移动，游戏人物的静止、行走、跳跃、近战远程攻击等等动作，游戏单位与地形碰撞，游戏单位之间的感知检测，游戏AI决策树等等功能。
@@ -59,6 +62,7 @@
 &emsp;&emsp;SSR框架渲染部分的API大部分与Cocos2D-X 2.x相似，比如Node，Sprite的接口基本保持原样。重写的时候API设计大部分都参考借鉴了Cocos并做了很多精简。所以对于Cocos的用户，使用起来只会更加简单。
 
 ## 相关知识的介绍
+
 * **bgfx**  
 &emsp;&emsp;是一个跨平台，对各种图形API做wrapper的一套新的图形API。它的backend底层可以对接各版本的OpenGL，各版本的Direct3D，Metal甚至WebGL等等。使用C++编写统一的图形渲染代码通过使用不同的编译配置来切换底层对接的backend。同时自带sort-based draw call bucketing，简单说就是相同状态的draw call自动合并功能。API自带多线程渲染支持，可以自由地开多线程直接调API各自发送渲染指令。总之投入之前单平台底层图形编码的工作量，并且不用做复杂的设计就能完成多平台的图形开发并自动获得很多性能优化上的支持。  
 
@@ -69,9 +73,11 @@
 &emsp;&emsp;是一个玩具项目，目标是制作一个用来制作玩具的玩具。制作这个玩具的过程曾经让作者玩得很开心。因为底层技术框架的落后，预计有一天会再也无法兼容或是稳定运行在新的硬件或是系统上，所以不得不打算进行彻底重构。这个重构项目预计大量的老代码的核心逻辑是可以复用的，尤其是Dorothy自身框架以及Lua绑定的部分，用作图形渲染的Cocos2D的底层则是需要进行完全重写的。Dorothy的目标是提供一套完善的2D游戏制作工具，带有全图形化的动画、物理、场景、地形、游戏逻辑、AI、游戏单位等等的全套编辑器，并且可以在各类PC和移动设备上运行，让大家能随时随地不受限制地在各式设备上，使用易用的图形工具，自由制作自己的游戏玩具。并告诉大家，想抽SSR也就是在自己的玩具上调一个数字就能实现的事，充钱是不会强身健体树立精神的。  
 
 ## 如何使用该项目
+
 &emsp;&emsp;在Windows或是macOS系统下运行`Tools/tolua++/build.bat`或是`Tools/tolua++/build.sh`文件生成Lua绑定的代码文件，然后在Project目录下选择要使用的工程目录，并在相应Code IDE中打开相应的工程文件来进行编译运行。
 
-## 更新日志  
+## 更新日志
+
 * **2016-12-8**  
 &emsp;&emsp;目前该项目的Basic分支上传了一个整合bgfx和SDL2带一小段渲染测试代码的基础示例，提供xCode，Android Studio，VS2015工程，并且在Win、OSX、iOS和Android上编译运行测试通过。接下来就要进入SSR项目的开发，各位希望参与这个框架设计和开发可以联系我，QQ：dragon-fly@qq.com，我的博客是：www.luvfight.me ，请说明来意，谢谢啦。真诚欢迎各位的加入。  
 
@@ -87,7 +93,8 @@
 * **2018-7-20**  
 &emsp;&emsp;把Dorothy的Platformer Game的框架又移植回来，同时也增加了ECS的功能。因为发现ECS对减少游戏逻辑实现的工作量并无太大帮助，所以发现过去编写的功能框架并非完全不可取。
 
-## 当前进度  
+## 当前进度
+
 &emsp;**Step 1**
 ```
 Redo: 232/256 90.62%
@@ -100,4 +107,5 @@ Total: [ ##############  ] 94.98%
 ```
 
 ## License
+
 MIT
