@@ -67,7 +67,7 @@ static int zx7_read_offset(struct zx7_io *io) {
         i = i << 1 | zx7_read_bit(io);
         i = i << 1 | zx7_read_bit(io);
         i = i << 1 | zx7_read_bit(io);
-		 return ((value & 127) | i << 7) + 128;
+        return ((value & 127) | i << 7) + 128;
     }
 }
 

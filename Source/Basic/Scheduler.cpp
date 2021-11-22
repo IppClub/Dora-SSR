@@ -118,7 +118,7 @@ void Scheduler::unschedule(Action* action)
 {
 	BLOCK_START
 	BREAK_UNLESS(action && action->_target && action->isRunning());
-	BREAK_UNLESS(action->_order < _actionList->getCount());
+	BREAK_UNLESS(s_cast<size_t>(action->_order) < _actionList->getCount());
 	auto temp = _actionList->get(action->_order).get();
 	BREAK_UNLESS(temp);
 	BREAK_UNLESS(temp->as<Action>() == action);
