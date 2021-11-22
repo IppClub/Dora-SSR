@@ -18,21 +18,31 @@
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
 #define FMT_VERSION 80001
 
-#ifdef __clang__
+#if defined (__clang__ ) && !defined(__ibmxl__)
 #  define FMT_CLANG_VERSION (__clang_major__ * 100 + __clang_minor__)
 #else
 #  define FMT_CLANG_VERSION 0
 #endif
 
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) && \
+    !defined(__NVCOMPILER)
 #  define FMT_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
-#  define FMT_GCC_PRAGMA(arg) _Pragma(arg)
 #else
 #  define FMT_GCC_VERSION 0
-#  define FMT_GCC_PRAGMA(arg)
 #endif
 
-#if defined(__INTEL_COMPILER)
+#ifndef FMT_GCC_PRAGMA
+// Workaround _Pragma bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59884.
+#  if FMT_GCC_VERSION >= 504
+#    define FMT_GCC_PRAGMA(arg) _Pragma(arg)
+#  else
+#    define FMT_GCC_PRAGMA(arg)
+#  endif
+#endif
+
+#ifdef __ICL
+#  define FMT_ICC_VERSION __ICL
+#elif defined(__INTEL_COMPILER)
 #  define FMT_ICC_VERSION __INTEL_COMPILER
 #else
 #  define FMT_ICC_VERSION 0
@@ -247,10 +257,10 @@
 #endif
 
 #ifndef FMT_CONSTEVAL
-#  if ((FMT_GCC_VERSION >= 1000 || FMT_CLANG_VERSION >= 1101) && \
-       __cplusplus > 201703L) ||                                 \
-      (defined(__cpp_consteval) &&                               \
-       !FMT_MSC_VER)  // consteval is broken in MSVC.
+#  if ((FMT_GCC_VERSION >= 1000 || FMT_CLANG_VERSION >= 1101) &&      \
+       __cplusplus > 201703L && !defined(__apple_build_version__)) || \
+      (defined(__cpp_consteval) && (!FMT_MSC_VER || _MSC_FULL_VER >= 193030704))
+  // consteval is broken in MSVC before VS2022 and Apple clang 13.
 #    define FMT_CONSTEVAL consteval
 #    define FMT_HAS_CONSTEVAL
 #  else
@@ -312,11 +322,13 @@ FMT_BEGIN_DETAIL_NAMESPACE
 // (void)var does not work on many Intel compilers.
 template <typename... T> FMT_CONSTEXPR void ignore_unused(const T&...) {}
 
-constexpr FMT_INLINE auto is_constant_evaluated() FMT_NOEXCEPT -> bool {
+constexpr FMT_INLINE auto is_constant_evaluated(bool default_value = false)
+    FMT_NOEXCEPT -> bool {
 #ifdef __cpp_lib_is_constant_evaluated
+  ignore_unused(default_value);
   return std::is_constant_evaluated();
 #else
-  return false;
+  return default_value;
 #endif
 }
 
@@ -422,13 +434,12 @@ template <typename Char> class basic_string_view {
    */
   FMT_CONSTEXPR_CHAR_TRAITS
   FMT_INLINE
-  basic_string_view(const Char* s) : data_(s) {
-    if (detail::const_check(std::is_same<Char, char>::value &&
-                            !detail::is_constant_evaluated()))
-      size_ = std::strlen(reinterpret_cast<const char*>(s));
-    else
-      size_ = std::char_traits<Char>::length(s);
-  }
+  basic_string_view(const Char* s)
+      : data_(s),
+        size_(detail::const_check(std::is_same<Char, char>::value &&
+                                  !detail::is_constant_evaluated(true))
+                  ? std::strlen(reinterpret_cast<const char*>(s))
+                  : std::char_traits<Char>::length(s)) {}
 
   /** Constructs a string reference from a ``std::basic_string`` object. */
   template <typename Traits, typename Alloc>
@@ -872,7 +883,9 @@ class iterator_buffer final : public Traits, public buffer<T> {
 };
 
 template <typename T>
-class iterator_buffer<T*, T, fixed_buffer_traits> final : public fixed_buffer_traits, public buffer<T> {
+class iterator_buffer<T*, T, fixed_buffer_traits> final
+    : public fixed_buffer_traits,
+      public buffer<T> {
  private:
   T* out_;
   enum { buffer_size = 256 };
@@ -896,7 +909,9 @@ class iterator_buffer<T*, T, fixed_buffer_traits> final : public fixed_buffer_tr
   explicit iterator_buffer(T* out, size_t n = buffer_size)
       : fixed_buffer_traits(n), buffer<T>(out, 0, n), out_(out) {}
   iterator_buffer(iterator_buffer&& other)
-      : fixed_buffer_traits(other), buffer<T>(std::move(other)), out_(other.out_) {
+      : fixed_buffer_traits(other),
+        buffer<T>(std::move(other)),
+        out_(other.out_) {
     if (this->data() != out_) {
       this->set(data_, buffer_size);
       this->clear();
@@ -908,7 +923,9 @@ class iterator_buffer<T*, T, fixed_buffer_traits> final : public fixed_buffer_tr
     flush();
     return out_;
   }
-  auto count() const -> size_t { return fixed_buffer_traits::count() + this->size(); }
+  auto count() const -> size_t {
+    return fixed_buffer_traits::count() + this->size();
+  }
 };
 
 template <typename T> class iterator_buffer<T*, T> final : public buffer<T> {
@@ -1269,8 +1286,14 @@ template <typename Context> struct arg_mapper {
   FMT_CONSTEXPR FMT_INLINE auto map(T val) -> char_type {
     return val;
   }
-  template <typename T, FMT_ENABLE_IF(std::is_same<T, wchar_t>::value &&
-                                      !std::is_same<wchar_t, char_type>::value)>
+  template <typename T, enable_if_t<(std::is_same<T, wchar_t>::value ||
+#ifdef __cpp_char8_t
+                                     std::is_same<T, char8_t>::value ||
+#endif
+                                     std::is_same<T, char16_t>::value ||
+                                     std::is_same<T, char32_t>::value) &&
+                                        !std::is_same<T, char_type>::value,
+                                    int> = 0>
   FMT_CONSTEXPR FMT_INLINE auto map(T) -> unformattable_char {
     return {};
   }
@@ -1347,8 +1370,11 @@ template <typename Context> struct arg_mapper {
 
   // We use SFINAE instead of a const T* parameter to avoid conflicting with
   // the C array overload.
-  template <typename T, FMT_ENABLE_IF(std::is_pointer<T>::value)>
-  FMT_CONSTEXPR auto map(T) -> unformattable_pointer {
+  template <
+      typename T,
+      FMT_ENABLE_IF(std::is_convertible<const T&, const void*>::value &&
+                    !std::is_convertible<const T&, const char_type*>::value)>
+  FMT_CONSTEXPR auto map(const T&) -> unformattable_pointer {
     return {};
   }
 
@@ -2670,7 +2696,7 @@ struct float_specs {
   bool upper : 1;
   bool locale : 1;
   bool binary32 : 1;
-  bool use_grisu : 1;
+  bool fallback : 1;
   bool showpoint : 1;
 };
 

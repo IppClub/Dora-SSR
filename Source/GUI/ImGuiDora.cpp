@@ -769,13 +769,14 @@ void ImGuiDora::showStats()
 		ImGui::SetNextWindowPos(Vec2{size.width/2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
 		if (ImGui::Begin("Frame Time Peaks(ms) in Seconds", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			ImPlot::SetNextPlotLimits(0, PlotCount, 0, std::max(_yLimit, targetTime) + 1.0, ImGuiCond_Always);
+			ImPlot::SetNextAxesLimits(0, PlotCount, 0, std::max(_yLimit, targetTime) + 1.0, ImGuiCond_Always);
 			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0,0,0,0));
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0,0,0,0));
-			if (ImPlot::BeginPlot("Time Profiler", nullptr, nullptr, Vec2{300.0f, 130.0f},
-				ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle, ImPlotAxisFlags_NoTickLabels))
+			if (ImPlot::BeginPlot("Time Profiler", Vec2{300.0f, 130.0f},
+				ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs))
 			{
-				ImPlot::SetLegendLocation(ImPlotLocation_South, ImPlotOrientation_Horizontal, true);
+				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
+				ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
 				ImPlot::PlotHLines("Base", &targetTime, 1);
 				ImPlot::PlotLine("CPU", _times.data(), _cpuValues.data(),
 					s_cast<int>(_cpuValues.size()));
@@ -789,13 +790,13 @@ void ImGuiDora::showStats()
 		}
 		ImGui::End();
 		ImGui::SetNextWindowPos(Vec2{size.width/2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("CPU Time", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::Begin("CPU Time(ms)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0,0,0,0));
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0,0,0,0));
 			ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0,0,0,0.3f));
-			ImPlot::SetNextPlotLimits(0, 1, 0, 1, ImGuiCond_Always);
-			if (_updateCosts.size() > 0 && ImPlot::BeginPlot("Update Pie", nullptr, nullptr, ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoMousePos | ImPlotFlags_NoChild, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations)) {
+			ImPlot::SetNextAxesLimits(0, 1, 0, 1, ImGuiCond_Always);
+			if (_updateCosts.size() > 0 && ImPlot::BeginPlot("Update Pie", ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoInputs | ImPlotFlags_NoChild)) {
 				std::vector<const char*> pieLabels(_updateCosts.size());
 				std::vector<double> pieValues(_updateCosts.size());
 				int i = 0;
@@ -805,7 +806,9 @@ void ImGuiDora::showStats()
 					pieValues[i] = item.second;
 					i++;
 				}
-				ImPlot::SetLegendLocation(ImPlotLocation_SouthEast, ImPlotOrientation_Vertical, false);
+				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoDecorations);
+				ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoDecorations);
+				ImPlot::SetupLegend(ImPlotLocation_SouthEast);
 				ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 0.5, 0.5, 0.45, true, "%.1f");
 				ImPlot::EndPlot();
 			}
