@@ -20,15 +20,15 @@ _transformDirty(true),
 _rotation(0.0f),
 _zoom(1.0f),
 _ratio{1.0f, 1.0f},
-_viewSize(SharedView.getSize())
+_viewSize()
 { }
 
 void PlatformCamera::setPosition(const Vec2& position)
 {
 	Vec2 newPos = position;
+	Vec2 pos = _position;
 	if (_boundary != Rect::zero)
 	{
-		_viewSize = SharedView.getSize();
 		Size viewSize = Size{_viewSize.width/_zoom, _viewSize.height/_zoom};
 		float xOffset = viewSize.width/2.0f;
 		float yOffset = viewSize.height/2.0f;
@@ -36,8 +36,11 @@ void PlatformCamera::setPosition(const Vec2& position)
 			Math::clamp(position.x, _boundary.getLeft() + xOffset, _boundary.getRight() - xOffset),
 			Math::clamp(position.y, _boundary.getBottom() + yOffset, _boundary.getTop() - yOffset)
 		};
+		pos = {
+			Math::clamp(pos.x, _boundary.getLeft() + xOffset, _boundary.getRight() - xOffset),
+			Math::clamp(pos.y, _boundary.getBottom() + yOffset, _boundary.getTop() - yOffset)
+		};
 	}
-	Vec2 pos = _position;
 	_position.x = _target.x = newPos.x;
 	_position.y = _target.y = newPos.y;
 	_transformDirty = true;
@@ -80,18 +83,20 @@ const Matrix& PlatformCamera::getView()
 
 void PlatformCamera::updateView()
 {
+	if (SharedView.getSize() != _viewSize)
+	{
+		setPosition(Vec2::zero);
+		_viewSize = SharedView.getSize();
+		reset();
+		setPosition(_position);
+		_transformDirty = true;
+	}
 	if (_followTarget)
 	{
 		Vec2 targetPos = _followTarget->convertToWorldSpace(Vec2::zero);
 		Vec2 pos = Vec2{_position.x,_position.y};
 		Vec2 delta = targetPos - pos;
 		setPosition(pos + delta * _ratio);
-		_transformDirty = true;
-	}
-	if (SharedView.getSize() != _viewSize)
-	{
-		_viewSize = SharedView.getSize();
-		setPosition(_position);
 		_transformDirty = true;
 	}
 	float z = -SharedView.getStandardDistance() / _zoom;

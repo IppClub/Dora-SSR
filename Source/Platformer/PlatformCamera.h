@@ -16,7 +16,8 @@ NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-typedef Acf::Delegate<void (float deltaX, float deltaY)> CameraHandler;
+typedef Acf::Delegate<void (float deltaX, float deltaY)> CameraMoveHandler;
+typedef Acf::Delegate<void ()> CameraResetHandler;
 
 class PlatformCamera : public Camera
 {
@@ -31,7 +32,8 @@ public:
 	virtual bool init() override;
 	virtual const Vec3& getUp() override;
 	virtual const Matrix& getView() override;
-	CameraHandler moved;
+	CameraMoveHandler moved;
+	CameraResetHandler reset;
 	CREATE_FUNC(PlatformCamera);
 protected:
 	PlatformCamera(String name);

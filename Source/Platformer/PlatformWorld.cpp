@@ -129,6 +129,7 @@ bool PlatformWorld::init()
 	}
 	_camera = PlatformCamera::create("Platformer"_slice);
 	_camera->moved += std::make_pair(this, &PlatformWorld::onCameraMoved);
+	_camera->reset += std::make_pair(this, &PlatformWorld::onCameraReset);
 	return true;
 }
 
@@ -185,6 +186,15 @@ void PlatformWorld::onCameraMoved(float deltaX, float deltaY)
 			deltaY * layer->ratio.y + layer->getY()
 		};
 		layer->setPosition(pos);
+	}
+}
+
+void PlatformWorld::onCameraReset()
+{
+	for (auto it : _layers)
+	{
+		Layer* layer = it.second;
+		layer->setPosition(layer->getOffset());
 	}
 }
 

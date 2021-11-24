@@ -34,6 +34,7 @@ public:
 	void removeLayer(int order);
 	void removeAllLayers();
 	void onCameraMoved(float deltaX, float deltaY);
+	void onCameraReset();
 	CREATE_FUNC(PlatformWorld);
 protected:
 	virtual void sortAllChildren() override;
