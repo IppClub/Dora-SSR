@@ -3,6 +3,8 @@ local record Content
 	searchPaths: {string}
 	const assetPath: string
 	const writablePath: string
+	load: function(self: Content, filename: string): string
+	loadExcel: function(self: Content, filename: string, sheetNames?: {string}): table | nil
 	save: function(self: Content, filename: string, content: string)
 	exist: function(self: Content, filename: string)
 	mkdir: function(self: Content, path: string): boolean
@@ -13,12 +15,12 @@ local record Content
 	addSearchPath: function(self: Content, path: string)
 	removeSearchPath: function(self: Content, path: string)
 	loadAsync: function(self: Content, filename: string): string
+	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): table | nil
 	saveAsync: function(self: Content, filename: string, content: string)
 	copyAsync: function(self: Content, src: string, dst: string)
 	getDirs: function(self: Content, path: string): {string}
 	getFiles: function(self: Content, path: string): {string}
 	getAllFiles: function(self: Content, path: string): {string}
-	load: function(self: Content, filename: string): string
 end
 local content: Content
 return content

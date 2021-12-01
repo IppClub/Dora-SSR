@@ -177,6 +177,28 @@ Content.loadAsync = function(self, filename)
 	return loadedData
 end
 
+local Content_loadExcelAsync = Content.loadExcelAsync
+Content.loadExcelAsync = function(self, filename, sheets)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "Content.loadExcelAsync should be run in a thread")
+	local loadedData
+	if sheets then
+		Content_loadExcelAsync(self, filename, sheets, function(data)
+			loadedData = data
+		end)
+	else
+		Content_loadExcelAsync(self, filename, function(data)
+			loadedData = data
+		end)
+	end
+	wait(function() return loadedData ~= nil end)
+	if loadedData then
+		return loadedData
+	else
+		return nil
+	end
+end
+
 local Content_saveAsync = Content.saveAsync
 Content.saveAsync = function(self, filename, content)
 	local _, mainThread = coroutine.running()

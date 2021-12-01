@@ -328,7 +328,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 	auto attrs = selfAttrs;
 	if (!_attrStack.empty())
 	{
-		attrs.insert(attrs.end(),
+		attrs.insert(--attrs.end(),
 			_attrStack.top().begin(), _attrStack.top().end());
 	}
 	switch (Switch::hash(name))

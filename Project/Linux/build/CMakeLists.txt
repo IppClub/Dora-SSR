@@ -14,7 +14,7 @@ include_directories(
 	../../../Source
 	../../../Source/3rdParty
 	../../../Source/3rdParty/Lua
-	../../../Source/3rdParty/Zip/Header
+	../../../Source/3rdParty/Zip
 	../../../Source/3rdParty/soloud
 	../../../Source/3rdParty/lodepng
 	../../../Source/3rdParty/imgui
@@ -356,10 +356,8 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Database.cpp
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Backup.cpp
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Transaction.cpp
-	../../../Source/3rdParty/Zip/Support/ioapi.cpp
-	../../../Source/3rdParty/Zip/Support/ZipUtils.cpp
-	../../../Source/3rdParty/Zip/Support/unzip.cpp
-	../../../Source/3rdParty/Zip/Support/zip.cpp
+	../../../Source/3rdParty/Zip/miniz.c
+	../../../Source/3rdParty/Zip/ZipUtils.cpp
 	../../../Source/3rdParty/soloud/core/soloud_core_filterops.cpp
 	../../../Source/3rdParty/soloud/core/soloud_fft_lut.cpp
 	../../../Source/3rdParty/soloud/core/soloud_core_voicegroup.cpp

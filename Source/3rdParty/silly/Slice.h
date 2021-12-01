@@ -140,13 +140,19 @@ class Slice {
   }
 
   Slice left(size_t n) const {
-    assert(n <= len_);
-    return Slice(str_, n);
+    if (n <= len_) {
+        return Slice(str_, n);
+    } else {
+        return *this;
+    }
   }
 
   Slice right(size_t n) const {
-    assert(n <= len_);
-    return Slice(str_ + len_ - n, n);
+    if (n <= len_) {
+        return Slice(str_ + len_ - n, n);
+    } else {
+        return *this;
+    }
   }
 
   std::string toLower() const;

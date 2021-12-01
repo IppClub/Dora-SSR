@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/ToLua/tolua++.h"
 #include "LuaManual.h"
 #include "Lua/LuaEngine.h"
+#include "Other/xlsxtext.hpp"
 
 NS_DOROTHY_BEGIN
 
@@ -189,6 +190,251 @@ int Content_SetSearchPaths(lua_State* L)
 void Content_insertSearchPath(Content* self, int index, String path)
 {
 	self->insertSearchPath(index-1, path);
+}
+
+void pushExcelData(lua_State* L, const xlsxtext::workbook& workbook, const std::list<std::string>& sheets)
+{
+		const auto& strs = workbook.shared_strings();
+		lua_createtable(L, strs.size(), 0); // sharedStrings
+		for (int i = 0; i < strs.size(); i++)
+		{
+			tolua_pushslice(L, strs[i]);
+			lua_rawseti(L, -2, i + 1);
+		}
+		int strIndex = lua_gettop(L);
+		lua_createtable(L, 0, 0); // sharedStrings res
+		for (const auto& worksheet : workbook)
+		{
+			if (!sheets.empty())
+			{
+				if (std::find(sheets.begin(), sheets.end(), worksheet.name()) == sheets.end())
+				{
+					continue;
+				}
+			}
+			unsigned maxRow = worksheet.max_row();
+			unsigned maxCol = worksheet.max_col();
+			lua_createtable(L, maxRow, 0); // sheet
+			lua_pushvalue(L, -1); // sheet sheet
+			tolua_pushslice(L, worksheet.name()); // sheet sheet name
+			lua_insert(L, -2); // sheet name sheet
+			lua_rawset(L, -4); // tb[name] = sheet, sheet
+			for (unsigned i = 0; i < maxRow; i++)
+			{
+				lua_pushboolean(L, 0);
+				lua_rawseti(L, -2, i + 1); // sheet[i + 1] = false
+			}
+			for (const auto& row : worksheet)
+			{
+				bool rowCreated = false;
+				for (const auto& cell : row)
+				{
+					if (!rowCreated)
+					{
+						rowCreated = true;
+						lua_createtable(L, maxCol, 0); // sheet row
+						lua_pushvalue(L, -1); // sheet row row
+						lua_rawseti(L, -3, cell.refer.row); // sheet[cell.refer.row] = row, sheet row
+						for (unsigned i = 0; i < maxCol; i++)
+						{
+							lua_pushboolean(L, 0);
+							lua_rawseti(L, -2, i + 1); // row[i + 1] = false, sheet row
+						}
+					}
+					if (cell.value.empty() && cell.string_id >= 0)
+					{
+						lua_rawgeti(L, strIndex, cell.string_id + 1);
+					}
+					else
+					{
+						char* endptr = nullptr;
+						double d = std::strtod(cell.value.c_str(), &endptr);
+						if(*endptr != '\0' || endptr == cell.value.c_str())
+						{
+							tolua_pushslice(L, cell.value);
+						}
+						else
+						{
+							lua_pushnumber(L, d);
+						}
+					}
+					lua_rawseti(L, -2, cell.refer.col); // row[cell.refer.col] = cell.value, sheet row
+				}
+				if (rowCreated)
+				{
+					lua_pop(L, 1); // sheet
+				}
+			}
+			lua_pop(L, 1); // sharedStrings res
+		}
+		lua_remove(L, -2); // res
+}
+
+int Content_loadExcel(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Content"_slice, 0, &tolua_err) ||
+		!tolua_isstring(L, 2, 0, &tolua_err) ||
+		!tolua_istable(L, 3, 1, &tolua_err) ||
+		!tolua_isnoobj(L, 4, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+#ifndef TOLUA_RELEASE
+		Content* self = r_cast<Content*>(tolua_tousertype(L, 1, 0));
+		if (!self) tolua_error(L, "invalid 'self' in function 'Node_emit'", nullptr);
+#endif
+		Slice filename = tolua_toslice(L, 2, 0);
+		std::list<std::string> sheets;
+		if (lua_istable(L, 3) != 0)
+		{
+			int length = s_cast<int>(lua_rawlen(L, 3));
+#ifndef TOLUA_RELEASE
+			if (!tolua_isstringarray(L, 3, length, 0, &tolua_err))
+			{
+				goto tolua_lerror;
+			}
+#endif
+			for (int i = 0; i < length; i++)
+			{
+				lua_geti(L, 3, i + 1);
+				sheets.push_back(tolua_toslice(L, -1, nullptr));
+				lua_pop(L, 1);
+			}
+		}
+		xlsxtext::workbook workbook(filename);
+		if (workbook.read())
+		{
+			for (auto& worksheet : workbook)
+			{
+				if (!sheets.empty())
+				{
+					if (std::find(sheets.begin(), sheets.end(), worksheet.name()) == sheets.end())
+					{
+						continue;
+					}
+				}
+				auto errors = worksheet.read();
+				if (!errors.empty())
+				{
+					Error("fail to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
+					for (auto [refer, msg] : errors)
+					{
+						Error("{}: {}", refer, msg);
+					}
+					lua_pushnil(L);
+					return 1;
+				}
+			}
+			pushExcelData(L, workbook, sheets);
+		}
+		else lua_pushnil(L);
+	}
+	return 1;
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Content_loadExcel'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int Content_loadExcelAsync(lua_State* L)
+{
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Content"_slice, 0, &tolua_err) ||
+		!tolua_isstring(L, 2, 0, &tolua_err) ||
+		!((tolua_istable(L, 3, 0, &tolua_err) && tolua_isfunction(L, 4, &tolua_err) && tolua_isnoobj(L, 5, &tolua_err)) ||
+		(tolua_isfunction(L, 3, &tolua_err) && tolua_isnoobj(L, 4, &tolua_err))))
+	{
+		goto tolua_lerror;
+	}
+	else
+#endif
+	{
+#ifndef TOLUA_RELEASE
+		Content* self = r_cast<Content*>(tolua_tousertype(L, 1, 0));
+		if (!self) tolua_error(L, "invalid 'self' in function 'Node_emit'", nullptr);
+#endif
+		std::string filename = tolua_toslice(L, 2, 0);
+		std::list<std::string> sheets;
+		if (lua_istable(L, 3) != 0)
+		{
+			int length = s_cast<int>(lua_rawlen(L, 3));
+#ifndef TOLUA_RELEASE
+			if (!tolua_isstringarray(L, 3, length, 0, &tolua_err))
+			{
+				goto tolua_lerror;
+			}
+#endif
+			for (int i = 0; i < length; i++)
+			{
+				lua_geti(L, 3, i + 1);
+				sheets.push_back(tolua_toslice(L, -1, nullptr));
+				lua_pop(L, 1);
+			}
+		}
+		int funcIndex = lua_isfunction(L, 3) != 0 ? 3 : 4;
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, funcIndex)));
+		SharedContent.loadAsyncData(filename, [filename, sheets = std::move(sheets), handler](OwnArray<uint8_t>&& data, size_t size)
+		{
+			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
+			SharedAsyncThread.run([filename, sheets, excelData, size]()
+			{
+				auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
+				if (workbook->read())
+				{
+					for (auto& worksheet : *workbook)
+					{
+						if (!sheets.empty())
+						{
+							if (std::find(sheets.begin(), sheets.end(), worksheet.name()) == sheets.end())
+							{
+								continue;
+							}
+						}
+						auto errors = worksheet.read();
+						if (!errors.empty())
+						{
+							Error("fail to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
+							for (auto [refer, msg] : errors)
+							{
+								Error("{}: {}", refer, msg);
+							}
+						}
+					}
+					return Values::alloc(true, std::move(workbook));
+				}
+				return Values::alloc(false, std::move(workbook));
+			}, [handler, sheets](Own<Values>&& values)
+			{
+				bool success = false;
+				Own<xlsxtext::workbook> workbook;
+				values->get(success, workbook);
+				auto L = SharedLuaEngine.getState();
+				if (success)
+				{
+					pushExcelData(L, *workbook, sheets);
+					SharedLuaEngine.executeFunction(handler->get(), 1);
+				}
+				else
+				{
+					lua_pushboolean(L, 0);
+					SharedLuaEngine.executeFunction(handler->get(), 1);
+				}
+			});
+		});
+	}
+	return 0;
+#ifndef TOLUA_RELEASE
+tolua_lerror :
+	tolua_error(L, "#ferror in function 'Content_loadExcel'.", &tolua_err);
+	return 0;
+#endif
 }
 
 /* Node */

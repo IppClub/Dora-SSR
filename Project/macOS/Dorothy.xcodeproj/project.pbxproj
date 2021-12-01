@@ -12,6 +12,9 @@
 		3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030C9F24CABDFD0074786E /* DecisionTree.cpp */; };
 		3C030CA424CAC02E0074786E /* Playable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CA324CAC02E0074786E /* Playable.cpp */; };
 		3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */; };
+		3C0C77132753343D0030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C77062753343D0030BDCD /* ZipUtils.cpp */; };
+		3C0C774727535A520030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774627535A520030BDCD /* miniz.c */; };
+		3C0C774B27573F350030BDCD /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 3C0C774A27573F350030BDCD /* Data */; };
 		3C0D3116245681D2009C592B /* Spine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D3115245681D2009C592B /* Spine.cpp */; };
 		3C0D31192456C7F6009C592B /* AtlasCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D31182456C7F5009C592B /* AtlasCache.cpp */; };
 		3C0D311C2456E23F009C592B /* SkeletonCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D311B2456E23F009C592B /* SkeletonCache.cpp */; };
@@ -275,11 +278,6 @@
 		3CBC785224CE7528003C9E83 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784A24CE7527003C9E83 /* Font */; };
 		3CC05B641E71229A00F2BA1B /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC05B621E71229A00F2BA1B /* DrawNode.cpp */; };
 		3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC098681E262F85006F4B76 /* Sprite.cpp */; };
-		3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E911E03C09F00462FD7 /* ioapi.cpp */; };
-		3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E931E03C09F00462FD7 /* unzip.cpp */; };
-		3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E951E03C09F00462FD7 /* zip.cpp */; };
-		3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54E971E03C09F00462FD7 /* ZipUtils.cpp */; };
-		3CC54E9D1E03C0B100462FD7 /* libz.1.2.8.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */; };
 		3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54EA01E03CA6C00462FD7 /* Slice.cpp */; };
 		3CC7945D2579F9B000042394 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC794512579F9AF00042394 /* parser.cpp */; };
 		3CC7945E2579F9B000042394 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC794522579F9AF00042394 /* ast.cpp */; };
@@ -437,6 +435,12 @@
 		3C030CA324CAC02E0074786E /* Playable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Playable.cpp; path = ../../../Source/Node/Playable.cpp; sourceTree = "<group>"; };
 		3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
 		3C05BCA31E3594C500CC6986 /* TouchDispather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchDispather.h; path = ../../Source/Input/TouchDispather.h; sourceTree = "<group>"; };
+		3C0C77062753343D0030BDCD /* ZipUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZipUtils.cpp; path = ../../../Source/3rdParty/Zip/ZipUtils.cpp; sourceTree = "<group>"; };
+		3C0C770F2753343D0030BDCD /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZipUtils.h; path = ../../../Source/3rdParty/Zip/ZipUtils.h; sourceTree = "<group>"; };
+		3C0C774527535A520030BDCD /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = ../../../Source/3rdParty/Zip/miniz.h; sourceTree = "<group>"; };
+		3C0C774627535A520030BDCD /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = ../../../Source/3rdParty/Zip/miniz.c; sourceTree = "<group>"; };
+		3C0C774827545DD20030BDCD /* xlsxtext.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = xlsxtext.hpp; path = ../../../Source/3rdParty/Other/xlsxtext.hpp; sourceTree = "<group>"; };
+		3C0C774A27573F350030BDCD /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Data; sourceTree = "<group>"; };
 		3C0D3114245681D1009C592B /* Spine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Spine.h; path = ../../../Source/Node/Spine.h; sourceTree = "<group>"; };
 		3C0D3115245681D2009C592B /* Spine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Spine.cpp; path = ../../../Source/Node/Spine.cpp; sourceTree = "<group>"; };
 		3C0D31172456C7F5009C592B /* AtlasCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtlasCache.h; path = ../../../Source/Cache/AtlasCache.h; sourceTree = "<group>"; };
@@ -1030,15 +1034,6 @@
 		3CC098691E262F85006F4B76 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
 		3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.8.tbd; path = usr/lib/libz.1.2.8.tbd; sourceTree = SDKROOT; };
-		3CC54E901E03C09F00462FD7 /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypt.h; path = ../../../Source/3rdParty/Zip/Support/crypt.h; sourceTree = "<group>"; };
-		3CC54E911E03C09F00462FD7 /* ioapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ioapi.cpp; path = ../../../Source/3rdParty/Zip/Support/ioapi.cpp; sourceTree = "<group>"; };
-		3CC54E921E03C09F00462FD7 /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ioapi.h; path = ../../../Source/3rdParty/Zip/Support/ioapi.h; sourceTree = "<group>"; };
-		3CC54E931E03C09F00462FD7 /* unzip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = unzip.cpp; path = ../../../Source/3rdParty/Zip/Support/unzip.cpp; sourceTree = "<group>"; };
-		3CC54E941E03C09F00462FD7 /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unzip.h; path = ../../../Source/3rdParty/Zip/Support/unzip.h; sourceTree = "<group>"; };
-		3CC54E951E03C09F00462FD7 /* zip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = zip.cpp; path = ../../../Source/3rdParty/Zip/Support/zip.cpp; sourceTree = "<group>"; };
-		3CC54E961E03C09F00462FD7 /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zip.h; path = ../../../Source/3rdParty/Zip/Support/zip.h; sourceTree = "<group>"; };
-		3CC54E971E03C09F00462FD7 /* ZipUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZipUtils.cpp; path = ../../../Source/3rdParty/Zip/Support/ZipUtils.cpp; sourceTree = "<group>"; };
-		3CC54E981E03C09F00462FD7 /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZipUtils.h; path = ../../../Source/3rdParty/Zip/Support/ZipUtils.h; sourceTree = "<group>"; };
 		3CC54EA01E03CA6C00462FD7 /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CC54EA11E03CA6C00462FD7 /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
 		3CC794512579F9AF00042394 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parser.cpp; path = ../../../Source/3rdParty/yuescript/parser.cpp; sourceTree = "<group>"; };
@@ -1355,7 +1350,6 @@
 				3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */,
 				3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */,
 				3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */,
-				3CC54E9D1E03C0B100462FD7 /* libz.1.2.8.tbd in Frameworks */,
 				3CA32CEB26FEE89E0046C13D /* CoreHaptics.framework in Frameworks */,
 				3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */,
 				3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */,
@@ -1400,6 +1394,7 @@
 		3C030CD824CAD9670074786E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3C0C774A27573F350030BDCD /* Data */,
 				3CBC784424CE7527003C9E83 /* Audio */,
 				3CFEBDAA268EFC62006D9974 /* DragonBones */,
 				3CBC784A24CE7527003C9E83 /* Font */,
@@ -2271,6 +2266,7 @@
 		3CC54E5E1E039E1300462FD7 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				3C0C774827545DD20030BDCD /* xlsxtext.hpp */,
 				3CF89B5624332C5000A195C7 /* concurrentqueue.h */,
 				3CD1D4BC1E78F0350003A7FD /* rapidxml_sax3.hpp */,
 				3C9A7D781E55957500205094 /* atlas.cpp */,
@@ -2285,25 +2281,12 @@
 		3CC54E8E1E03C08200462FD7 /* Zip */ = {
 			isa = PBXGroup;
 			children = (
-				3CC54E8F1E03C08700462FD7 /* Support */,
+				3C0C774627535A520030BDCD /* miniz.c */,
+				3C0C774527535A520030BDCD /* miniz.h */,
+				3C0C77062753343D0030BDCD /* ZipUtils.cpp */,
+				3C0C770F2753343D0030BDCD /* ZipUtils.h */,
 			);
 			name = Zip;
-			sourceTree = "<group>";
-		};
-		3CC54E8F1E03C08700462FD7 /* Support */ = {
-			isa = PBXGroup;
-			children = (
-				3CC54E901E03C09F00462FD7 /* crypt.h */,
-				3CC54E911E03C09F00462FD7 /* ioapi.cpp */,
-				3CC54E921E03C09F00462FD7 /* ioapi.h */,
-				3CC54E931E03C09F00462FD7 /* unzip.cpp */,
-				3CC54E941E03C09F00462FD7 /* unzip.h */,
-				3CC54E951E03C09F00462FD7 /* zip.cpp */,
-				3CC54E961E03C09F00462FD7 /* zip.h */,
-				3CC54E971E03C09F00462FD7 /* ZipUtils.cpp */,
-				3CC54E981E03C09F00462FD7 /* ZipUtils.h */,
-			);
-			name = Support;
 			sourceTree = "<group>";
 		};
 		3CC7943D2579F94600042394 /* yuescript */ = {
@@ -2964,6 +2947,7 @@
 			files = (
 				3CBC784F24CE7528003C9E83 /* Particle in Resources */,
 				3CBC784E24CE7528003C9E83 /* Production in Resources */,
+				3C0C774B27573F350030BDCD /* Data in Resources */,
 				3CBC784C24CE7528003C9E83 /* Audio in Resources */,
 				3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */,
 				3CBC784B24CE7528003C9E83 /* Image in Resources */,
@@ -3107,7 +3091,6 @@
 				3C1A3AFD272A850F003A2829 /* liolib.c in Sources */,
 				3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */,
 				3C3598321E1254D600E62C16 /* Async.cpp in Sources */,
-				3CC54E9B1E03C09F00462FD7 /* zip.cpp in Sources */,
 				3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */,
 				3CFEB82D268DA599006D9974 /* DragonBone.cpp in Sources */,
 				3C6E7F23272A30E700E9F115 /* soloud_core_3d.cpp in Sources */,
@@ -3118,7 +3101,6 @@
 				3C6E7F38272A30E700E9F115 /* darray.cpp in Sources */,
 				3C40555320FD93AA0057B0E4 /* Define.cpp in Sources */,
 				3CFB4FCD2697DE1800181CB4 /* LinkedMesh.cpp in Sources */,
-				3CC54E9A1E03C09F00462FD7 /* unzip.cpp in Sources */,
 				3C9CCD042689BDD00086757D /* format.cpp in Sources */,
 				3CD497FE1E7EF3DF00C06CA2 /* FrameCache.cpp in Sources */,
 				3CB487171E16398700D51749 /* tolua_push.cpp in Sources */,
@@ -3256,6 +3238,7 @@
 				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,
 				3C3B989326FDADBB00BD9F3E /* LimitState.cpp in Sources */,
 				3C3B982A26FDAD7600BD9F3E /* MultiShapeConf.cpp in Sources */,
+				3C0C77132753343D0030BDCD /* ZipUtils.cpp in Sources */,
 				3CE9D8001E7FF7A7003AAECB /* DebugDraw.cpp in Sources */,
 				3CFEBD63268DA6D5006D9974 /* Slot.cpp in Sources */,
 				3CFB4FE92697DE1800181CB4 /* Log.cpp in Sources */,
@@ -3307,7 +3290,6 @@
 				3C1A3AF8272A850F003A2829 /* ltable.c in Sources */,
 				3C46E83526140A8F00DC9D4F /* Backup.cpp in Sources */,
 				3C6E7F0C272A30E700E9F115 /* soloud_dcremovalfilter.cpp in Sources */,
-				3CC54E9C1E03C09F00462FD7 /* ZipUtils.cpp in Sources */,
 				3C6E7F1E272A30E700E9F115 /* soloud_queue.cpp in Sources */,
 				3C1A3AEF272A850F003A2829 /* lbaselib.c in Sources */,
 				3C46E8622614227300DC9D4F /* VGRender.cpp in Sources */,
@@ -3315,6 +3297,7 @@
 				3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
 				3C3B986226FDAD8E00BD9F3E /* DistanceConf.cpp in Sources */,
+				3C0C774727535A520030BDCD /* miniz.c in Sources */,
 				3C3B98A526FDADC500BD9F3E /* ContactKey.cpp in Sources */,
 				3C1A3B07272A850F003A2829 /* ldebug.c in Sources */,
 				3C0044EB1E6682A000369672 /* Particle.cpp in Sources */,
@@ -3345,7 +3328,6 @@
 				3CE9D7F41E7FC2A6003AAECB /* Body.cpp in Sources */,
 				3C3B983026FDAD7600BD9F3E /* EdgeShapeConf.cpp in Sources */,
 				3C6E7F3E272A30E700E9F115 /* soloud_noise.cpp in Sources */,
-				3CC54E991E03C09F00462FD7 /* ioapi.cpp in Sources */,
 				3CFB4FE42697DE1800181CB4 /* ColorTimeline.cpp in Sources */,
 				3C46E85A2614227300DC9D4F /* Scheduler.cpp in Sources */,
 				3CFEBD76268DA6E4006D9974 /* WorldClock.cpp in Sources */,
