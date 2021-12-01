@@ -488,6 +488,8 @@ _tlState(nullptr)
 
 		tolua_beginmodule(L, "Content");
 			tolua_variable(L, "searchPaths", Content_GetSearchPaths, Content_SetSearchPaths);
+			tolua_function(L, "loadExcel", Content_loadExcel);
+			tolua_function(L, "loadExcelAsync", Content_loadExcelAsync);
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "Node");

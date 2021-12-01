@@ -37,6 +37,12 @@
 		3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C31E0CE9990033AD59 /* LuaCode.cpp */; };
 		3C0AD7CC1E0CE9990033AD59 /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C41E0CE9990033AD59 /* LuaEngine.cpp */; };
 		3C0AD7CE1E0CE9990033AD59 /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C81E0CE9990033AD59 /* LuaManual.cpp */; };
+		3C0C7751275742990030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
+		3C0C7752275742990030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C7750275742990030BDCD /* ZipUtils.cpp */; };
+		3C0C77552757437E0030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
+		3C0C77562757437E0030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C7750275742990030BDCD /* ZipUtils.cpp */; };
+		3C0C775C275744690030BDCD /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 3C0C775B275744690030BDCD /* Data */; };
+		3C0C775D275744690030BDCD /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 3C0C775B275744690030BDCD /* Data */; };
 		3C0EBE321E2DB9E10066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE311E2DB9E10066450A /* libbx.a */; };
 		3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1070681E13A2D800EB8C7A /* Async.cpp */; };
 		3C12E4AA269BE32B00E1475A /* SkeletonBinary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C12E41C269BE32800E1475A /* SkeletonBinary.cpp */; };
@@ -579,10 +585,6 @@
 		3CABB25A21199C0000737278 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CABB25821199C0000737278 /* PhysicsWorld.cpp */; };
 		3CB2116325C63C3A00CEA033 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */; };
 		3CB410291E05B0C500A8804D /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410261E05B0C500A8804D /* Slice.cpp */; };
-		3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410381E05B19A00A8804D /* ioapi.cpp */; };
-		3CB410411E05B19A00A8804D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103A1E05B19A00A8804D /* unzip.cpp */; };
-		3CB410421E05B19A00A8804D /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103C1E05B19A00A8804D /* zip.cpp */; };
-		3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103E1E05B19A00A8804D /* ZipUtils.cpp */; };
 		3CB410481E05B28B00A8804D /* libz.1.2.8.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CB410471E05B28B00A8804D /* libz.1.2.8.tbd */; };
 		3CB730791E80343E006DFA18 /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB7306B1E80343E006DFA18 /* Body.cpp */; };
 		3CB7307A1E80343E006DFA18 /* BodyDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB7306D1E80343E006DFA18 /* BodyDef.cpp */; };
@@ -605,7 +607,6 @@
 		3CBE0E1026087F7B003F4F45 /* yue_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B868257A7F8A002DD8E1 /* yue_compiler.cpp */; };
 		3CBE0E1126087F7B003F4F45 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6621E17F1B500292200 /* tolua_to.cpp */; };
 		3CBE0E1326087F7B003F4F45 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805701E5ED18F00B52D4B /* atlas.cpp */; };
-		3CBE0E1526087F7B003F4F45 /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103C1E05B19A00A8804D /* zip.cpp */; };
 		3CBE0E1626087F7B003F4F45 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */; };
 		3CBE0E1726087F7B003F4F45 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509B20F33DA9002FFC18 /* stb.cpp */; };
 		3CBE0E1826087F7B003F4F45 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */; };
@@ -641,8 +642,6 @@
 		3CBE0E5526087F7B003F4F45 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */; };
 		3CBE0E5826087F7B003F4F45 /* DecisionTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CA624CAC1DC0074786E /* DecisionTree.cpp */; };
 		3CBE0E5A26087F7B003F4F45 /* font_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C88056D1E5ED13800B52D4B /* font_manager.cpp */; };
-		3CBE0E5B26087F7B003F4F45 /* ioapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB410381E05B19A00A8804D /* ioapi.cpp */; };
-		3CBE0E6126087F7B003F4F45 /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103E1E05B19A00A8804D /* ZipUtils.cpp */; };
 		3CBE0E6326087F7B003F4F45 /* LuaHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE355601E1B7A6300268A19 /* LuaHandler.cpp */; };
 		3CBE0E6426087F7B003F4F45 /* Action.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C15202A1E762A59001BC057 /* Action.cpp */; };
 		3CBE0E6626087F7B003F4F45 /* Unit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FF121011BB50087154A /* Unit.cpp */; };
@@ -668,7 +667,6 @@
 		3CBE0E9426087F7B003F4F45 /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973021E7F74E900BFD00F /* ClipCache.cpp */; };
 		3CBE0E9526087F7B003F4F45 /* Playable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CB624CAC2B80074786E /* Playable.cpp */; };
 		3CBE0E9726087F7B003F4F45 /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
-		3CBE0E9826087F7B003F4F45 /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4103A1E05B19A00A8804D /* unzip.cpp */; };
 		3CBE0E9B26087F7B003F4F45 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FDB991E6041C800F38A26 /* Debug.cpp */; };
 		3CBE0E9C26087F7B003F4F45 /* PlatformWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FDE21011BB40087154A /* PlatformWorld.cpp */; };
 		3CBE0E9D26087F7B003F4F45 /* LuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C11E0CE9990033AD59 /* LuaBinding.cpp */; };
@@ -895,6 +893,12 @@
 		3C0AD7D31E0CE9B10033AD59 /* Own.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Own.h; path = ../../../Source/Common/Own.h; sourceTree = "<group>"; };
 		3C0AD7D51E0CE9B10033AD59 /* Ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ref.h; path = ../../../Source/Common/Ref.h; sourceTree = "<group>"; };
 		3C0AD7D71E0CE9B10033AD59 /* WRef.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WRef.h; path = ../../../Source/Common/WRef.h; sourceTree = "<group>"; };
+		3C0C774D275742990030BDCD /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = ../../../Source/3rdParty/Zip/miniz.c; sourceTree = "<group>"; };
+		3C0C774E275742990030BDCD /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZipUtils.h; path = ../../../Source/3rdParty/Zip/ZipUtils.h; sourceTree = "<group>"; };
+		3C0C774F275742990030BDCD /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = ../../../Source/3rdParty/Zip/miniz.h; sourceTree = "<group>"; };
+		3C0C7750275742990030BDCD /* ZipUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZipUtils.cpp; path = ../../../Source/3rdParty/Zip/ZipUtils.cpp; sourceTree = "<group>"; };
+		3C0C7754275743420030BDCD /* xlsxtext.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = xlsxtext.hpp; path = ../../../Source/3rdParty/Other/xlsxtext.hpp; sourceTree = "<group>"; };
+		3C0C775B275744690030BDCD /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Data; path = ../../Assets/Data; sourceTree = "<group>"; };
 		3C0EBE311E2DB9E10066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/iOS/libbx.a; sourceTree = "<group>"; };
 		3C1070681E13A2D800EB8C7A /* Async.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Async.cpp; path = ../../../Source/Common/Async.cpp; sourceTree = "<group>"; };
 		3C1070691E13A2D800EB8C7A /* Async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Async.h; path = ../../../Source/Common/Async.h; sourceTree = "<group>"; };
@@ -1598,15 +1602,6 @@
 		3CB410271E05B0C500A8804D /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
 		3CB4102B1E05B0F800A8804D /* mkdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkdir.h; path = ../../../Source/3rdParty/FileSystem/mkdir.h; sourceTree = "<group>"; };
 		3CB4102C1E05B0F800A8804D /* tinydir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinydir.h; path = ../../../Source/3rdParty/FileSystem/tinydir.h; sourceTree = "<group>"; };
-		3CB410371E05B19A00A8804D /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypt.h; path = ../../../Source/3rdParty/Zip/Support/crypt.h; sourceTree = "<group>"; };
-		3CB410381E05B19A00A8804D /* ioapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ioapi.cpp; path = ../../../Source/3rdParty/Zip/Support/ioapi.cpp; sourceTree = "<group>"; };
-		3CB410391E05B19A00A8804D /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ioapi.h; path = ../../../Source/3rdParty/Zip/Support/ioapi.h; sourceTree = "<group>"; };
-		3CB4103A1E05B19A00A8804D /* unzip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = unzip.cpp; path = ../../../Source/3rdParty/Zip/Support/unzip.cpp; sourceTree = "<group>"; };
-		3CB4103B1E05B19A00A8804D /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unzip.h; path = ../../../Source/3rdParty/Zip/Support/unzip.h; sourceTree = "<group>"; };
-		3CB4103C1E05B19A00A8804D /* zip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = zip.cpp; path = ../../../Source/3rdParty/Zip/Support/zip.cpp; sourceTree = "<group>"; };
-		3CB4103D1E05B19A00A8804D /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zip.h; path = ../../../Source/3rdParty/Zip/Support/zip.h; sourceTree = "<group>"; };
-		3CB4103E1E05B19A00A8804D /* ZipUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZipUtils.cpp; path = ../../../Source/3rdParty/Zip/Support/ZipUtils.cpp; sourceTree = "<group>"; };
-		3CB4103F1E05B19A00A8804D /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZipUtils.h; path = ../../../Source/3rdParty/Zip/Support/ZipUtils.h; sourceTree = "<group>"; };
 		3CB410471E05B28B00A8804D /* libz.1.2.8.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.8.tbd; path = usr/lib/libz.1.2.8.tbd; sourceTree = SDKROOT; };
 		3CB7306B1E80343E006DFA18 /* Body.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Body.cpp; path = ../../../Source/Physics/Body.cpp; sourceTree = "<group>"; };
 		3CB7306C1E80343E006DFA18 /* Body.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Body.h; path = ../../../Source/Physics/Body.h; sourceTree = "<group>"; };
@@ -2257,6 +2252,7 @@
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3C0C775B275744690030BDCD /* Data */,
 				3C030CF124CAE6570074786E /* Audio */,
 				3CFEBE4226930B91006D9974 /* DragonBones */,
 				3C030CF324CAE6570074786E /* Font */,
@@ -2958,25 +2954,12 @@
 		3CB410351E05B17F00A8804D /* Zip */ = {
 			isa = PBXGroup;
 			children = (
-				3CB410361E05B18600A8804D /* Support */,
+				3C0C774D275742990030BDCD /* miniz.c */,
+				3C0C774F275742990030BDCD /* miniz.h */,
+				3C0C7750275742990030BDCD /* ZipUtils.cpp */,
+				3C0C774E275742990030BDCD /* ZipUtils.h */,
 			);
 			name = Zip;
-			sourceTree = "<group>";
-		};
-		3CB410361E05B18600A8804D /* Support */ = {
-			isa = PBXGroup;
-			children = (
-				3CB410371E05B19A00A8804D /* crypt.h */,
-				3CB410381E05B19A00A8804D /* ioapi.cpp */,
-				3CB410391E05B19A00A8804D /* ioapi.h */,
-				3CB4103A1E05B19A00A8804D /* unzip.cpp */,
-				3CB4103B1E05B19A00A8804D /* unzip.h */,
-				3CB4103C1E05B19A00A8804D /* zip.cpp */,
-				3CB4103D1E05B19A00A8804D /* zip.h */,
-				3CB4103E1E05B19A00A8804D /* ZipUtils.cpp */,
-				3CB4103F1E05B19A00A8804D /* ZipUtils.h */,
-			);
-			name = Support;
 			sourceTree = "<group>";
 		};
 		3CB410441E05B1F300A8804D /* Const */ = {
@@ -3119,6 +3102,7 @@
 		3CDED0311E52A2D300B5E578 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				3C0C7754275743420030BDCD /* xlsxtext.hpp */,
 				3CF89B5724332CC900A195C7 /* concurrentqueue.h */,
 				3C5973011E7F74DC00BFD00F /* rapidxml_sax3.hpp */,
 				3C8805701E5ED18F00B52D4B /* atlas.cpp */,
@@ -3430,6 +3414,7 @@
 			files = (
 				3C59DA7E2703037C0096813A /* Launch Screen.storyboard in Resources */,
 				3C59DA7F2703037C0096813A /* Main.storyboard in Resources */,
+				3C0C775D275744690030BDCD /* Data in Resources */,
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
 				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
 				3CBE0F0426087F7B003F4F45 /* Production in Resources */,
@@ -3449,6 +3434,7 @@
 			files = (
 				3C59DA7B270303750096813A /* Launch Screen.storyboard in Resources */,
 				3C59DA7C270303750096813A /* Main.storyboard in Resources */,
+				3C0C775C275744690030BDCD /* Data in Resources */,
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
 				3C030CF724CAE6580074786E /* Model in Resources */,
 				3C030CF624CAE6580074786E /* Production in Resources */,
@@ -3506,6 +3492,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C0C77552757437E0030BDCD /* miniz.c in Sources */,
+				3C0C77562757437E0030BDCD /* ZipUtils.cpp in Sources */,
 				3C8CD74D27268B2D0045B362 /* RenderTarget.cpp in Sources */,
 				3C1D40FD2703004300202534 /* TealCompiler.cpp in Sources */,
 				3C3B9A0426FDB25D00BD9F3E /* Body.cpp in Sources */,
@@ -3770,7 +3758,6 @@
 				3C1A3BE5272A8820003A2829 /* loadlib.c in Sources */,
 				3CBE0E1126087F7B003F4F45 /* tolua_to.cpp in Sources */,
 				3CBE0E1326087F7B003F4F45 /* atlas.cpp in Sources */,
-				3CBE0E1526087F7B003F4F45 /* zip.cpp in Sources */,
 				3C6E8014272A404A00E9F115 /* ted.cpp in Sources */,
 				3CBE0E1626087F7B003F4F45 /* Keyboard.cpp in Sources */,
 				3CBE0E1726087F7B003F4F45 /* stb.cpp in Sources */,
@@ -3817,8 +3804,6 @@
 				3CBE0E5526087F7B003F4F45 /* imgui_draw.cpp in Sources */,
 				3CBE0E5826087F7B003F4F45 /* DecisionTree.cpp in Sources */,
 				3CBE0E5A26087F7B003F4F45 /* font_manager.cpp in Sources */,
-				3CBE0E5B26087F7B003F4F45 /* ioapi.cpp in Sources */,
-				3CBE0E6126087F7B003F4F45 /* ZipUtils.cpp in Sources */,
 				3CBE0E6326087F7B003F4F45 /* LuaHandler.cpp in Sources */,
 				3CBE0E6426087F7B003F4F45 /* Action.cpp in Sources */,
 				3CBE0E6626087F7B003F4F45 /* Unit.cpp in Sources */,
@@ -3846,7 +3831,6 @@
 				3CBE0E9426087F7B003F4F45 /* ClipCache.cpp in Sources */,
 				3CBE0E9526087F7B003F4F45 /* Playable.cpp in Sources */,
 				3CBE0E9726087F7B003F4F45 /* Singleton.cpp in Sources */,
-				3CBE0E9826087F7B003F4F45 /* unzip.cpp in Sources */,
 				3C1A3BED272A8820003A2829 /* lstrlib.c in Sources */,
 				3CBE0E9B26087F7B003F4F45 /* Debug.cpp in Sources */,
 				3CBE0E9C26087F7B003F4F45 /* PlatformWorld.cpp in Sources */,
@@ -3924,6 +3908,7 @@
 				3C3B99FB26FDB08000BD9F3E /* AABB.cpp in Sources */,
 				3CBFB70B264376D4006348C8 /* implot.cpp in Sources */,
 				3C13200421011BB60087154A /* Data.cpp in Sources */,
+				3C0C7752275742990030BDCD /* ZipUtils.cpp in Sources */,
 				3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */,
 				3C6E8037272A404A00E9F115 /* soloud_core_setters.cpp in Sources */,
 				3C12E4C2269BE32B00E1475A /* Extension.cpp in Sources */,
@@ -3948,7 +3933,6 @@
 				3C3B995D26FDB00E00BD9F3E /* Island.cpp in Sources */,
 				3C3B99F826FDB08000BD9F3E /* MassData.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
-				3CB410421E05B19A00A8804D /* zip.cpp in Sources */,
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,
 				3C3B996D26FDB00E00BD9F3E /* WorldImplContact.cpp in Sources */,
 				3C12E4E2269BE32B00E1475A /* Atlas.cpp in Sources */,
@@ -3976,6 +3960,7 @@
 				3C12E4DE269BE32B00E1475A /* EventData.cpp in Sources */,
 				3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */,
 				3CD3284A1E4C431B0036906C /* TouchDispather.cpp in Sources */,
+				3C0C7751275742990030BDCD /* miniz.c in Sources */,
 				3C3B99B026FDB05000BD9F3E /* Version.cpp in Sources */,
 				3C3B996826FDB00E00BD9F3E /* World.cpp in Sources */,
 				3C1A3BE6272A8820003A2829 /* lfunc.c in Sources */,
@@ -4040,10 +4025,8 @@
 				3C030CA824CAC1DC0074786E /* DecisionTree.cpp in Sources */,
 				3C88056F1E5ED13800B52D4B /* font_manager.cpp in Sources */,
 				3C3B992B26FDAFF600BD9F3E /* ContactSolver.cpp in Sources */,
-				3CB410401E05B19A00A8804D /* ioapi.cpp in Sources */,
 				3C3B992D26FDAFF600BD9F3E /* Contact.cpp in Sources */,
 				3C6E8045272A404A00E9F115 /* soloud_core_getters.cpp in Sources */,
-				3CB410431E05B19A00A8804D /* ZipUtils.cpp in Sources */,
 				3C6E7FDD272A404900E9F115 /* soloud_flangerfilter.cpp in Sources */,
 				3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */,
 				3C6E7FF3272A404900E9F115 /* dr_impl.cpp in Sources */,
@@ -4136,7 +4119,6 @@
 				3C6E8043272A404A00E9F115 /* soloud_thread.cpp in Sources */,
 				3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */,
 				3C12E4CE269BE32B00E1475A /* Updatable.cpp in Sources */,
-				3CB410411E05B19A00A8804D /* unzip.cpp in Sources */,
 				3C6E7FEB272A404900E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C6E7FCF272A404900E9F115 /* soloud_eqfilter.cpp in Sources */,
 				3C6E803D272A404A00E9F115 /* soloud_queue.cpp in Sources */,
@@ -4346,7 +4328,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -4390,7 +4372,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
@@ -4547,7 +4529,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -4591,7 +4573,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;

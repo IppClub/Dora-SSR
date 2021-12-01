@@ -7,7 +7,7 @@ include_directories(
 	src/main/cpp/3rdParty/SDL2/Header
 	src/main/cpp/3rdParty/bgfx/Header
 	src/main/cpp/3rdParty/Lua
-	src/main/cpp/3rdParty/Zip/Header
+	src/main/cpp/3rdParty/Zip
 	src/main/cpp/3rdParty/soloud
 	src/main/cpp/3rdParty/lodepng
 	src/main/cpp/3rdParty/imgui
@@ -351,10 +351,8 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Database.cpp
 	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Backup.cpp
 	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Transaction.cpp
-	src/main/cpp/3rdParty/Zip/Support/ioapi.cpp
-	src/main/cpp/3rdParty/Zip/Support/ZipUtils.cpp
-	src/main/cpp/3rdParty/Zip/Support/unzip.cpp
-	src/main/cpp/3rdParty/Zip/Support/zip.cpp
+	src/main/cpp/3rdParty/Zip/miniz.c
+	src/main/cpp/3rdParty/Zip/ZipUtils.cpp
 	src/main/cpp/3rdParty/soloud/core/soloud_core_filterops.cpp
 	src/main/cpp/3rdParty/soloud/core/soloud_fft_lut.cpp
 	src/main/cpp/3rdParty/soloud/core/soloud_core_voicegroup.cpp

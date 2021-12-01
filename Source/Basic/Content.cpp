@@ -27,7 +27,7 @@ namespace fs = std::filesystem;
 #include "bgfx/bgfx.h"
 
 #if BX_PLATFORM_ANDROID
-#include "Zip/Support/ZipUtils.h"
+#include "ZipUtils.h"
 static Dorothy::Own<ZipFile> g_apkFile;
 #endif // BX_PLATFORM_ANDROID
 
@@ -476,7 +476,7 @@ uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size)
 	std::string fullPath = Content::getFullPath(filename);
 	if (fullPath[0] != '/')
 	{
-		data = g_apkFile->getFileData(fullPath, r_cast<unsigned long*>(&size));
+		data = g_apkFile->getFileDataUnsafe(fullPath, r_cast<size_t*>(&size));
 	}
 	else
 	{
