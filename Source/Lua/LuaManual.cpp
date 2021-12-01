@@ -196,7 +196,7 @@ void pushExcelData(lua_State* L, const xlsxtext::workbook& workbook, const std::
 {
 		const auto& strs = workbook.shared_strings();
 		lua_createtable(L, strs.size(), 0); // sharedStrings
-		for (int i = 0; i < strs.size(); i++)
+		for (int i = 0; i < s_cast<int>(strs.size()); i++)
 		{
 			tolua_pushslice(L, strs[i]);
 			lua_rawseti(L, -2, i + 1);
