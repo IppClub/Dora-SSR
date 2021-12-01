@@ -125,7 +125,7 @@ namespace xlsxtext
 			if (t == "s"sv)
 			{
 				long index = std::stol(v);
-				if (index < _package->shared_strings.size())
+				if (index < s_cast<long>(_package->shared_strings.size()))
 					return index;
 				else
 					return "";

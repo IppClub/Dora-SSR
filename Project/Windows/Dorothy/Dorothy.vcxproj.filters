@@ -22,9 +22,6 @@
     <Filter Include="3rdParty\Zip">
       <UniqueIdentifier>{c5c729d4-c12c-4299-bc2f-ad1309722d81}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\Zip\Support">
-      <UniqueIdentifier>{d1511dd1-faf5-49b1-b057-d66d058bb6e2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParty\Lua">
       <UniqueIdentifier>{b778508f-d7cd-45bd-9891-0fe5c526fa3a}</UniqueIdentifier>
     </Filter>
@@ -213,18 +210,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.cpp">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\unzip.cpp">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\zip.cpp">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.cpp">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
       <Filter>3rdParty\silly</Filter>
     </ClCompile>
@@ -1365,23 +1350,14 @@
     <ClCompile Include="..\..\..\Source\3rdParty\Lua\lzio.c">
       <Filter>3rdParty\Lua</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\miniz.c">
+      <Filter>3rdParty\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\ZipUtils.cpp">
+      <Filter>3rdParty\Zip</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\crypt.h">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ioapi.h">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\unzip.h">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\zip.h">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Zip\Support\ZipUtils.h">
-      <Filter>3rdParty\Zip\Support</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
       <Filter>3rdParty\silly</Filter>
     </ClInclude>
@@ -2816,6 +2792,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\lzio.h">
       <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\miniz.h">
+      <Filter>3rdParty\Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\ZipUtils.h">
+      <Filter>3rdParty\Zip</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
