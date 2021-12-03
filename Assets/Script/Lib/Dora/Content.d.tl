@@ -4,7 +4,7 @@ local record Content
 	const assetPath: string
 	const writablePath: string
 	load: function(self: Content, filename: string): string
-	loadExcel: function(self: Content, filename: string, sheetNames?: {string}): table | nil
+	loadExcel: function(self: Content, filename: string, sheetNames?: {string}): {string:{{string|number}}} | nil
 	save: function(self: Content, filename: string, content: string)
 	exist: function(self: Content, filename: string)
 	mkdir: function(self: Content, path: string): boolean
@@ -15,7 +15,7 @@ local record Content
 	addSearchPath: function(self: Content, path: string)
 	removeSearchPath: function(self: Content, path: string)
 	loadAsync: function(self: Content, filename: string): string
-	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): table | nil
+	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): {string:{{string|number}}} | nil
 	saveAsync: function(self: Content, filename: string, content: string)
 	copyAsync: function(self: Content, src: string, dst: string)
 	getDirs: function(self: Content, path: string): {string}

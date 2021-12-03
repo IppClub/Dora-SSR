@@ -1,8 +1,8 @@
 import "Utils" as :Struct
 
 -- 定义Struct
-Unit = Struct.Unit "name", "group", "tag", "actions"
-Action = Struct.Action "name", "id"
+Unit = Struct.Unit{"name", "group", "tag", "actions"}
+Action = Struct.Action{"name", "id"}
 Array = Struct.Array!
 
 -- 创建实例
@@ -37,7 +37,14 @@ unit.actions.__notify = (event, index, item)->
 
 unit.name = "pig"
 unit.actions\insert Action name:"idle", id:"a4"
-unit.actions\remove 1
+unit.actions\removeAt 1
+
+structStr = tostring unit
+print structStr
+
+loadedUnit = Struct\load structStr
+for i = 1, loadedUnit.actions\count!
+	print loadedUnit.actions\get i
 
 print Struct
 

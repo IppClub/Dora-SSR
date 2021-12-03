@@ -1,0 +1,19 @@
+local Node = require("Node").Type
+local record Param
+	text: string
+	x: number
+	y: number
+	radius: number
+	fontName: string
+	fontSize: number
+end
+local record CircleButton
+	embed Node
+	text: string
+end
+local record CircleButtonClass
+	type Type = CircleButton
+	metamethod __call: function(cls: CircleButtonClass, param: Param): CircleButton
+end
+local circleButtonClass: CircleButtonClass
+return circleButtonClass

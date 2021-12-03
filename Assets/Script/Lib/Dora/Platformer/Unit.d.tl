@@ -57,5 +57,6 @@ print(Unit.currentAction)
 print(Unit.entity)
 print(Unit:attachAction(nil))
 print(Unit:getAction(nil))
+print(UnitClass.Type)
 local unitClass: UnitClass
 return unitClass

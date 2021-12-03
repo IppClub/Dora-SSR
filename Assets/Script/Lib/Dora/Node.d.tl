@@ -27,7 +27,7 @@ local record Node
 	x: number
 	y: number
 	z: number
-	const position: Vec2
+	position: Vec2
 	skewX: number
 	skewY: number
 	visible: boolean

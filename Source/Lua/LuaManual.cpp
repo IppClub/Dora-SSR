@@ -306,7 +306,7 @@ int Content_loadExcel(lua_State* L)
 				lua_pop(L, 1);
 			}
 		}
-		xlsxtext::workbook workbook(filename);
+		xlsxtext::workbook workbook(SharedContent.load(filename));
 		if (workbook.read())
 		{
 			for (auto& worksheet : workbook)

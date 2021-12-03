@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 #include "Const/Header.h"
-#include "Basic/Content.h"
 using namespace Dorothy;
 #include "ZipUtils.h"
 #include "miniz.h"
@@ -37,9 +36,8 @@ public:
 
 ZipFile::ZipFile(const std::string& zipFile, const std::string& filter)
 {
-	auto fullPath = SharedContent.getFullPath(zipFile);
 	_file = new ZipFilePrivate();
-	if (mz_zip_reader_init_file(&_file->archive, fullPath.c_str(), 0))
+	if (mz_zip_reader_init_file(&_file->archive, zipFile.c_str(), 0))
 	{
 		setFilter(filter);
 	}
@@ -56,6 +54,11 @@ ZipFile::ZipFile(const std::string& zipFile, const std::string& filter)
 ZipFile::ZipFile(std::pair<OwnArray<uint8_t>,size_t>&& data, const std::string& filter):
 _data(std::move(data))
 {
+	if (!_data.first)
+	{
+		Error("invalid zip data.");
+		return;
+	}
 	_file = new ZipFilePrivate();
 	if (mz_zip_reader_init_mem(&_file->archive, _data.first.get(), _data.second, 0))
 	{
