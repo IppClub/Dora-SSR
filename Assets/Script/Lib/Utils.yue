@@ -28,7 +28,7 @@ StructToString = =>
 				insert content,"[#{i}]=#{value}"
 	"{"..(concat content,',').."}"
 StructDefMeta = {
-	set:(index,item)=>
+	set: (index,item)=>
 		index += 1
 		if 1 <= index and index <= #@
 			@[index] = item
@@ -38,12 +38,12 @@ StructDefMeta = {
 				StructUpdated @
 		else
 			error "Access index out of range."
-	get:(index)=>
+	get: (index)=>
 		if 1 <= index and index < #@
 			@[index+1]
 		else
 			nil
-	insert:(argA,argB)=>
+	insert: (argA,argB)=>
 		local item
 		local index
 		if argB
@@ -62,7 +62,7 @@ StructDefMeta = {
 			notify "Added",index-1,item
 			StructUpdated @
 		item
-	removefor:(arg)=>
+	remove: (arg)=>
 		local item,index
 		for i = 2,#@
 			if @[i] == arg
@@ -76,7 +76,7 @@ StructDefMeta = {
 				notify "Removed",index-1,item
 				StructUpdated @
 		item
-	remove:(index)=>
+	removeAt: (index)=>
 		length = #@
 		item = if index
 			if 0 < index and index < length
@@ -96,34 +96,27 @@ StructDefMeta = {
 				notify "Removed",index-1,item
 				StructUpdated @
 		item
-	clear:=>
-		notify = rawget @,"__notify"
-		for index = #@,2,-1
+	clear: =>
+		notify = rawget @, "__notify"
+		for index = #@, 2, -1
 			item = remove @
 			if notify
-				notify "Removed",index-1,item
+				notify "Removed", index - 1, item
 				StructUpdated @
-	copy:(other)=>
-		notify = rawget @,"__notify"
-		for index = 2,#other
-			item = other[index]
-			rawset @,index,item
-			if notify
-				notify "Added",index-1,item
-				StructUpdated @
-	each:(handler)=>
-		for index = 2,#@
-			if true == handler @[index],index-1
-				break
-	eachPair:(handler)=>
-		for i,v in ipairs getmetatable @
-			if true == handler v,@[i+1]
-				break
-	contains:(item)=>
-		for index = 2,#@
+	each: (handler)=>
+		for index = 2, #@
+			if true == handler @[index], index - 1
+				return true
+		false
+	eachAttr: (handler)=>
+		for i, v in ipairs getmetatable @
+			handler v, @[i + 1]
+	contains: (item)=>
+		for index = 2, #@
 			if item == @[index]
 				return true
 		false
+	count:=> #@-1
 	sort:(comparer)=>
 		sort @,comparer
 	__call:(data)=>
@@ -160,8 +153,6 @@ StructHelper = {
 				item = tupleDef[key]
 				if item
 					rawget @,item
-				elseif key == "count"
-					#@-1
 				else
 					StructDefMeta[key]
 			__newindex:(key,value)=>
@@ -219,11 +210,13 @@ setmetatable StructHelper,StructHelper
 local Struct
 StructLoad = (data)->
 	if "table" == type data
-		setmetatable data,Struct[data[1]]
+		mt = StructDefs[data[1]]
+		assert mt, "Struct \"#{data[1]}\" is not defined."
+		setmetatable data, mt
 		for item in *data
 			StructLoad item
 export Struct = setmetatable {
-	load:(arg)=>
+	load: (arg)=>
 		data = switch type arg
 			when "string"
 				if arg\sub(1,6) ~= "return"
@@ -233,7 +226,7 @@ export Struct = setmetatable {
 				arg
 		StructLoad data
 		data
-	loadfile:(filename)=>
+	loadfile: (filename)=>
 		Struct\load Content\load filename
 	clear:=>
 		StructDefs = {}

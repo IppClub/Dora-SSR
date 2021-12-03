@@ -10,21 +10,24 @@ local record UnitAction
 	const eclapsedTime: number
 	const owner: Unit
 end
+local record UnitActionParam
+	priority: integer
+	reaction: number
+	recovery: number
+	queued: boolean
+	available: function(owner: Unit, action: UnitAction): boolean
+	create: function(owner: Unit, action: UnitAction): (
+		function(owner: Unit, action: UnitAction, deltaTime: number): (boolean)
+		| Routine.Job
+	)
+	stop: function(owner: Unit) --[[nil]]
+end
 local record UnitActionClass
 	type Type = UnitAction
 	add: function(
 		cls: UnitActionClass,
 		name: string,
-		priority: integer,
-		reaction: number,
-		recovery: number,
-		queued: boolean,
-		available: function(owner: Unit, action: UnitAction): (boolean),
-		create: function(owner: Unit, action: UnitAction): (
-			function(owner: Unit, action: UnitAction, deltaTime: number): (boolean)
-			| Routine.Job
-		),
-		stop?: function(owner: Unit) --[[nil]]
+		param: UnitActionParam
 	)
 	clear: function(cls: UnitActionClass)
 end

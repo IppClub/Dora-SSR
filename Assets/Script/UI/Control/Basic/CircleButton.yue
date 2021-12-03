@@ -4,7 +4,7 @@ import "UI.View.Control.Basic.CircleButton"
 -- [signals]
 -- "Tapped",(button)->
 -- [params]
--- text, x, y, radius, fontName=18, fontSize=NotoSansHans-Regular
+-- text, x, y, radius, fontName=NotoSansHans-Regular, fontSize=18
 export default Class CircleButton,
 	__init:(args)=>
 		@_text = @label.text if @label
