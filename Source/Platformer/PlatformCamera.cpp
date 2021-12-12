@@ -85,10 +85,11 @@ void PlatformCamera::updateView()
 {
 	if (SharedView.getSize() != _viewSize)
 	{
+		auto pos = _position;
 		setPosition(Vec2::zero);
 		_viewSize = SharedView.getSize();
 		reset();
-		setPosition(_position);
+		setPosition(pos);
 		_transformDirty = true;
 	}
 	if (_followTarget)

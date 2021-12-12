@@ -354,6 +354,11 @@ _defaultEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_spr
 _alphaTestEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_spritealphatest"_slice))
 { }
 
+const SpriteRenderer::IndexType* SpriteRenderer::getIndices() const
+{
+	return _spriteIndices;
+}
+
 SpriteEffect* SpriteRenderer::getDefaultEffect() const
 {
 	return _defaultEffect;

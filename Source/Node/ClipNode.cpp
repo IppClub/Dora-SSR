@@ -165,8 +165,7 @@ void ClipNode::setupAlphaTest()
 {
 	if (_stencil)
 	{
-		bool setup = _alphaThreshold < 1.0f;
-		SpriteEffect* effect = setup ? SharedSpriteRenderer.getAlphaTestEffect() : SharedSpriteRenderer.getDefaultEffect();
+		SpriteEffect* effect = SharedSpriteRenderer.getAlphaTestEffect();
 		_stencil->traverseAll([effect, this](Node* node)
 		{
 			Sprite* sprite = DoraAs<Sprite>(node);

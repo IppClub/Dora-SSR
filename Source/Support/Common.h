@@ -49,10 +49,9 @@ struct Color
 	static Color Black;
 };
 
-struct BlendFunc
+class BlendFunc
 {
-	uint32_t src;
-	uint32_t dst;
+public:
 	enum
 	{
 		One = uint32_t(BGFX_STATE_BLEND_ONE),
@@ -66,8 +65,12 @@ struct BlendFunc
 		InvDstColor = uint32_t(BGFX_STATE_BLEND_INV_DST_COLOR),
 		InvDstAlpha = uint32_t(BGFX_STATE_BLEND_INV_DST_ALPHA)
 	};
-	uint64_t toValue();
+	BlendFunc(uint32_t src, uint32_t dst);
+	BlendFunc(uint32_t srcC, uint32_t dstC, uint32_t srcA, uint32_t dstA);
+	uint64_t toValue() const;
 	static const BlendFunc Default;
+private:
+	uint64_t _value;
 };
 
 NS_DOROTHY_END

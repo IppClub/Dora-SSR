@@ -135,12 +135,13 @@ bool Scheduler::update(double deltaTime)
 	_leftTime += deltaTime;
 
 	double fixedDelta = 1.0 / _fixedFPS;
+	double fixedDeltaTime = fixedDelta * _timeScale;
 	while (_leftTime > fixedDelta)
 	{
 		std::list<Object*> stopedItems;
 		for (Object* item : _fixedUpdate)
 		{
-			if (item->fixedUpdate(fixedDelta * _timeScale))
+			if (item->fixedUpdate(fixedDeltaTime))
 			{
 				stopedItems.push_back(item);
 			}

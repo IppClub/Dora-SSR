@@ -119,6 +119,7 @@ class SpriteRenderer : public Renderer
 {
 public:
 	using IndexType = uint16_t;
+	PROPERTY_READONLY(const IndexType*, Indices);
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(SpriteEffect*, AlphaTestEffect);
 	virtual ~SpriteRenderer() { }

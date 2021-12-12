@@ -63,6 +63,7 @@ private:
 	Own<spine::AnimationStateData> _animationStateData;
 	Own<spine::Skin> _newSkin;
 	Own<spine::SkeletonBounds> _bounds;
+	Own<spine::SkeletonClipping> _clipper;
 	Ref<Line> _debugLine;
 	Own<std::unordered_map<std::string, Ref<Node>>> _slots;
 	enum
