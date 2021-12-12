@@ -648,6 +648,10 @@ end
 _G.Dorothy = Dorothy
 builtin.Dorothy = Dorothy
 
+local globals = {}
+_G.globals = globals
+builtin.globals = globals
+
 for k,v in pairs(_G) do
 	builtin[k] = v
 end

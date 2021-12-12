@@ -88,6 +88,7 @@ bool Spine::init()
 		_animationStateData = New<spine::AnimationStateData>(_skeletonData->getSkel());
 		_animationState = New<spine::AnimationState>(_animationStateData.get());
 		_skeleton = New<spine::Skeleton>(_skeletonData->getSkel());
+		_clipper = New<spine::SkeletonClipping>();
 		auto& slots = _skeleton->getSlots();
 		for (size_t i = 0; i < slots.size(); i++)
 		{
@@ -396,6 +397,11 @@ void Spine::render()
 	for (size_t i = 0, n = _skeleton->getSlots().size(); i < n; ++i)
 	{
 		spine::Slot* slot = _skeleton->getDrawOrder()[i];
+		if (!slot->getBone().isActive())
+		{
+			_clipper->clipEnd(*slot);
+			continue;
+		}
 		spine::Attachment* attachment = slot->getAttachment();
 		if (!attachment) continue;
 
@@ -409,10 +415,10 @@ void Spine::render()
 				blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One};
 				break;
 			case spine::BlendMode_Multiply:
-				blendFunc = {BlendFunc::DstColor, BlendFunc::InvSrcAlpha};
+				blendFunc = {BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 				break;
 			case spine::BlendMode_Screen:
-				blendFunc = {BlendFunc::One, BlendFunc::InvSrcColor};
+				blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One, BlendFunc::InvSrcAlpha, BlendFunc::InvSrcColor};
 				break;
 			default:
 				break;
@@ -437,24 +443,54 @@ void Spine::render()
 		Texture2D* texture = nullptr;
 		if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti))
 		{
-			spine::RegionAttachment* regionAttachment = s_cast<spine::RegionAttachment*>(attachment);
-			texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(regionAttachment->getRendererObject())->page->getRendererObject());
+			spine::RegionAttachment* region = s_cast<spine::RegionAttachment*>(attachment);
+			texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(region->getRendererObject())->page->getRendererObject());
 			vertices.assign(4, {0, 0, 0, 1});
-			regionAttachment->computeWorldVertices(slot->getBone(), &vertices.front().x, 0, sizeof(SpriteVertex) / sizeof(float));
-
-			for (size_t j = 0, l = 0; j < 4; j++, l+=2)
+			region->computeWorldVertices(slot->getBone(), &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
+			if (_clipper->isClipping())
 			{
-				SpriteVertex& vertex = vertices[j];
-				SpriteVertex oldVert = vertex;
-				bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
-				vertex.abgr = abgr;
-				vertex.u = regionAttachment->getUVs()[l];
-				vertex.v = regionAttachment->getUVs()[l + 1];
+				for (size_t j = 0, l = 0; j < 4; j++, l += 2)
+				{
+					SpriteVertex& vertex = vertices[j];
+					vertex.u = region->getUVs()[l];
+					vertex.v = region->getUVs()[l + 1];
+				}
+				unsigned short triangles[6]{0, 1, 2, 2, 3, 0};
+				_clipper->clipTriangles(&vertices[0].x, triangles, 6, &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
+				auto& verts = _clipper->getClippedVertices();
+				auto& uvs = _clipper->getClippedUVs();
+				auto vertSize = verts.size() / 2;
+				vertices.resize(vertSize);
+				for (size_t j = 0, l = 0; j < vertSize; j++, l += 2)
+				{
+					Vec4 vec{verts[l], verts[l + 1], 0, 1};
+					SpriteVertex& vertex = vertices[j];
+					bx::vec4MulMtx(&vertex.x, vec, transform);
+					vertex.abgr = abgr;
+					vertex.u = uvs[l];
+					vertex.v = uvs[l + 1];
+				}
+				auto& clippedIndices = _clipper->getClippedTriangles();
+				SharedSpriteRenderer.push(
+					vertices.data(), vertices.size(),
+					clippedIndices.buffer(), clippedIndices.size(),
+					_effect, texture, renderState);
 			}
-
-			SharedSpriteRenderer.push(
-				vertices.data(), vertices.size(),
-				_effect, texture, renderState);
+			else
+			{
+				for (size_t j = 0, l = 0; j < 4; j++, l += 2)
+				{
+					SpriteVertex& vertex = vertices[j];
+					SpriteVertex oldVert = vertex;
+					bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
+					vertex.abgr = abgr;
+					vertex.u = region->getUVs()[l];
+					vertex.v = region->getUVs()[l + 1];
+				}
+				SharedSpriteRenderer.push(
+					vertices.data(), vertices.size(),
+					_effect, texture, renderState);
+			}
 			vertices.clear();
 		}
 		else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti))
@@ -464,26 +500,58 @@ void Spine::render()
 			size_t verticeLength = mesh->getWorldVerticesLength();
 			size_t numVertices = verticeLength / 2;
 			vertices.assign(numVertices, {0, 0, 0, 1});
-			mesh->computeWorldVertices(*slot, 0, verticeLength, &vertices.front().x, 0, sizeof(SpriteVertex) / sizeof(float));
-
-			for (size_t j = 0, l = 0; j < numVertices; j++, l+=2)
+			mesh->computeWorldVertices(*slot, 0, verticeLength, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
+			if (_clipper->isClipping())
 			{
-				SpriteVertex& vertex = vertices[j];
-				SpriteVertex oldVert = vertex;
-				bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
-				vertex.abgr = abgr;
-				vertex.u = mesh->getUVs()[l];
-				vertex.v = mesh->getUVs()[l + 1];
+				for (size_t j = 0, l = 0; j < numVertices; j++, l += 2)
+				{
+					SpriteVertex& vertex = vertices[j];
+					vertex.u = mesh->getUVs()[l];
+					vertex.v = mesh->getUVs()[l + 1];
+				}
+				auto& meshIndices = mesh->getTriangles();
+				_clipper->clipTriangles(&vertices[0].x, meshIndices.buffer(), meshIndices.size(), &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
+				auto& verts = _clipper->getClippedVertices();
+				auto& uvs = _clipper->getClippedUVs();
+				auto vertSize = _clipper->getClippedVertices().size() / 2;
+				vertices.resize(vertSize);
+				for (size_t j = 0, l = 0; j < vertSize; j++, l += 2)
+				{
+					Vec4 vec{verts[l], verts[l + 1], 0, 1};
+					SpriteVertex& vertex = vertices[j];
+					bx::vec4MulMtx(&vertex.x, vec, transform);
+					vertex.abgr = abgr;
+					vertex.u = uvs[l];
+					vertex.v = uvs[l + 1];
+				}
+				auto& clippedIndices = _clipper->getClippedTriangles();
+				SharedSpriteRenderer.push(
+					vertices.data(), vertices.size(),
+					clippedIndices.buffer(), clippedIndices.size(),
+					_effect, texture, renderState);
 			}
-
-			auto& meshIndices = mesh->getTriangles();
-			SharedSpriteRenderer.push(
-				vertices.data(), vertices.size(),
-				meshIndices.buffer(), meshIndices.size(),
-				_effect, texture, renderState);
+			else
+			{
+				for (size_t j = 0, l = 0; j < numVertices; j++, l += 2)
+				{
+					SpriteVertex& vertex = vertices[j];
+					SpriteVertex oldVert = vertex;
+					bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
+					vertex.abgr = abgr;
+					vertex.u = mesh->getUVs()[l];
+					vertex.v = mesh->getUVs()[l + 1];
+				}
+				auto& meshIndices = mesh->getTriangles();
+				SharedSpriteRenderer.push(
+					vertices.data(), vertices.size(),
+					meshIndices.buffer(), meshIndices.size(),
+					_effect, texture, renderState);
+			}
+			vertices.clear();
 		}
 		else if (attachment->getRTTI().isExactly(spine::BoundingBoxAttachment::rtti))
 		{
+			_clipper->clipEnd(*slot);
 			if (isShowDebug() && isHitTestEnabled())
 			{
 				spine::BoundingBoxAttachment* boundingBox = s_cast<spine::BoundingBoxAttachment*>(attachment);
@@ -500,8 +568,14 @@ void Spine::render()
 				_debugLine->add(verts, Color(0xff00ffff));
 			}
 		}
+		else if (attachment->getRTTI().isExactly(spine::ClippingAttachment::rtti))
+		{
+			spine::ClippingAttachment* clippingAttachment = s_cast<spine::ClippingAttachment*>(attachment);
+			_clipper->clipStart(*slot, clippingAttachment);
+		}
 		else if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti))
 		{
+			_clipper->clipEnd(*slot);
 			spine::PointAttachment* pointAttachment = s_cast<spine::PointAttachment*>(attachment);
 			const auto& str = pointAttachment->getName();
 			Slice name = {str.buffer(), str.length()};
@@ -525,7 +599,12 @@ void Spine::render()
 				}
 			}
 		}
+		else
+		{
+			_clipper->clipEnd(*slot);
+		}
 	}
+	_clipper->clipEnd();
 }
 
 void Spine::cleanup()

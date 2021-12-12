@@ -442,11 +442,11 @@ bool Emit::update(Node* target, float eclapsed)
 	{
 		if (_argument.empty())
 		{
-			target->emit(_event);
+			target->emit(_event, target);
 		}
 		else
 		{
-			target->emit(_event, _argument);
+			target->emit(_event, target, _argument);
 		}
 	}
 	_ended = eclapsed > 0.0f;

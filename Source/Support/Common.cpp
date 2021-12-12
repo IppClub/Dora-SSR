@@ -142,9 +142,17 @@ Color Color::Black(0x0);
 
 const BlendFunc BlendFunc::Default{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 
-uint64_t BlendFunc::toValue()
+BlendFunc::BlendFunc(uint32_t src, uint32_t dst):
+_value(BGFX_STATE_BLEND_FUNC(src, dst))
+{ }
+
+BlendFunc::BlendFunc(uint32_t srcC, uint32_t dstC, uint32_t srcA, uint32_t dstA):
+_value(BGFX_STATE_BLEND_FUNC_SEPARATE(srcC, dstC, srcA, dstA))
+{ }
+
+uint64_t BlendFunc::toValue() const
 {
-	return BGFX_STATE_BLEND_FUNC(src, dst);
+	return _value;
 }
 
 NS_DOROTHY_END
