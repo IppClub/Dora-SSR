@@ -10,11 +10,6 @@ export default Class Node,
 		} = args or {}
 		@inUI = inUI or true
 		@_isRoot = isRoot or false
-		@hAlign = hAlign or "Center"
-		@vAlign = vAlign or "Center"
-		@alignOffset = alignOffset or Vec2.zero
-		@alignWidth = alignWidth
-		@alignHeight = alignHeight
 		if @_isRoot
 			viewSize = View.size
 			@size = viewSize
@@ -32,14 +27,19 @@ export default Class Node,
 				@eachChild (child)->
 					child\emit "AlignLayout", viewSize.width, viewSize.height
 		else
+			@hAlign = hAlign or "Center"
+			@vAlign = vAlign or "Center"
+			@alignOffset = alignOffset or Vec2.zero
+			@alignWidth = alignWidth
+			@alignHeight = alignHeight
 			@slot "AlignLayout", (w, h)->
 				env = :w,:h
 				oldSize = @size
 				if @alignWidth
-					widthFunc = load "_ENV = ...\nreturn #{@alignWidth}"
+					widthFunc = load "_ENV = Dorothy(...)\nreturn #{@alignWidth}"
 					@width = widthFunc env
 				if @alignHeight
-					heightFunc = load "_ENV = ...\nreturn #{@alignHeight}"
+					heightFunc = load "_ENV = Dorothy(...)\nreturn #{@alignHeight}"
 					@height = heightFunc env
 				@x = switch @hAlign
 					when "Left" then @width/2 + @alignOffset.x

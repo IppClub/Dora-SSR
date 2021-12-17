@@ -44,6 +44,10 @@ HEADERS  += \
     oDefine.h \
     oMainWindow.h
 
+RC_ICONS = DorothySSR.ico
+
+ICON = AppIcon.icns
+
 RESOURCES += \
     resourses.qrc
 

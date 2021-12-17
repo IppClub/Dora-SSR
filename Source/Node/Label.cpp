@@ -338,6 +338,7 @@ const float Label::AutomaticWidth = -1.0f;
 
 Label::Label(String fontName, uint32_t fontSize):
 _alphaRef(0),
+_spacing(0),
 _textWidth(Label::AutomaticWidth),
 _alignment(TextAlign::Center),
 _font(SharedFontCache.load(fontName, fontSize)),
@@ -351,6 +352,7 @@ _effect(SharedFontCache.getDefaultEffect())
 
 Label::Label(String fontStr):
 _alphaRef(0),
+_spacing(0),
 _textWidth(Label::AutomaticWidth),
 _alignment(TextAlign::Center),
 _font(SharedFontCache.load(fontStr)),
@@ -387,6 +389,20 @@ void Label::setTextWidth(float var)
 float Label::getTextWidth() const
 {
 	return _textWidth;
+}
+
+void Label::setSpacing(float var)
+{
+	if (_spacing != var)
+	{
+		_spacing = var;
+		updateLabel();
+	}
+}
+
+float Label::getSpacing() const
+{
+	return _spacing;
 }
 
 void Label::setLineGap(float var)
@@ -609,7 +625,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars)
 			continue;
 		}
 
-		kerningAmount = s_cast<float>(SharedFontManager.getKerning(_font->getHandle(), prev, ch));
+		kerningAmount = s_cast<float>(SharedFontManager.getKerning(_font->getHandle(), prev, ch)) + _spacing;
 
 		fontDef = SharedFontCache.getGlyphInfo(_font, ch);
 		if (!fontDef)

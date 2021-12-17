@@ -382,10 +382,10 @@ void DBSlot::_updateBlendMode()
 				_node->_blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One};
 				break;
 			case db::BlendMode::Multiply:
-				_node->_blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One};
+				_node->_blendFunc = {BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
 				break;
 			case db::BlendMode::Screen:
-				_node->_blendFunc = {BlendFunc::One, BlendFunc::InvSrcColor};
+				_node->_blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One, BlendFunc::InvSrcAlpha, BlendFunc::InvSrcColor};
 				break;
 			default:
 				break;

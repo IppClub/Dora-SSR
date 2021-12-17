@@ -98,6 +98,7 @@ public:
 	virtual ~Label();
 	PROPERTY(TextAlign, Alignment);
 	PROPERTY(float, TextWidth);
+	PROPERTY(float, Spacing);
 	PROPERTY(float, LineGap);
 	PROPERTY_STRING(Text);
 	PROPERTY(SpriteEffect*, Effect);
@@ -138,6 +139,7 @@ protected:
 	virtual void updateRealOpacity() override;
 private:
 	uint8_t _alphaRef;
+	float _spacing;
 	float _textWidth;
 	float _lineGap;
 	Ref<Font> _font;

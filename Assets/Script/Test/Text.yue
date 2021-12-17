@@ -25,7 +25,7 @@ Director.entry\addChild with AlignNode isRoot:true,inUI:false
 			w -= 200
 			h -= 20
 			.view.children.first.textWidth = w-fontSize
-			\adjustSizeWithAlign "auto",10,Size(w,h)
+			\adjustSizeWithAlign "Auto",10,Size(w,h)
 			.area\removeChild .border
 			.border = LineRect width:w, height:h, color:0xffffffff
 			.area\addChild .border

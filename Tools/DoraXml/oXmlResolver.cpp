@@ -613,10 +613,10 @@ namespace dorothy_xml_grammar
 			Star<
 				Seq<
 					Or<
-						Element,
-						Reference,
                         CDLua,
                         CDYue,
+						Element,
+                        Reference,
 						Or<
 						CDSect,
 						PI,

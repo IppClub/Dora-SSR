@@ -404,7 +404,7 @@ static const char* _toBoolean(const char* str)
 #define Node_Handle \
 	if (anchorX && anchorY) fmt::format_to(std::back_inserter(stream), "{}.anchor = Vec2({},{}){}"sv, self, Val(anchorX), Val(anchorY), nl());\
 	else if (anchorX && !anchorY) fmt::format_to(std::back_inserter(stream), "{}.anchor = Vec2({},{}.anchor.y){}"sv, self, Val(anchorX), self, nl());\
-	else if (!anchorX && anchorY) fmt::format_to(std::back_inserter(stream), "{}.anchor = Vec2({}.anchor.x,{}){}"sv, self, Val(anchorY), self, nl());\
+	else if (!anchorX && anchorY) fmt::format_to(std::back_inserter(stream), "{}.anchor = Vec2({}.anchor.x,{}){}"sv, self, self, Val(anchorY), nl());\
 	if (x) fmt::format_to(std::back_inserter(stream), "{}.x = {}{}"sv, self, Val(x), nl());\
 	if (y) fmt::format_to(std::back_inserter(stream), "{}.y = {}{}"sv, self, Val(y), nl());\
 	if (z) fmt::format_to(std::back_inserter(stream), "{}.z = {}{}"sv, self, Val(z), nl());\
@@ -549,6 +549,7 @@ static const char* _toBoolean(const char* str)
 	const char* fontName = nullptr;\
 	const char* fontSize = nullptr;\
 	const char* textWidth = nullptr;\
+	const char* spacing = nullptr;\
 	const char* lineGap = nullptr;\
 	const char* alignment = nullptr;
 #define Label_Check \
@@ -558,15 +559,17 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(FontSize) { fontSize = atts[++i]; break; }\
 	CASE_STR(TextAlign) { alignment = atts[++i]; break; }\
 	CASE_STR(TextWidth) { textWidth = atts[++i]; break; }\
+	CASE_STR(Spacing) { spacing = atts[++i]; break; }\
 	CASE_STR(LineGap) { lineGap = atts[++i]; break; }
 #define Label_Create \
 	fmt::format_to(std::back_inserter(stream), "local {} = Label({},{}){}"sv, self, toText(fontName), Val(fontSize), nl());
 #define Label_Handle \
 	Node_Handle\
-	if (text && text[0]) fmt::format_to(std::back_inserter(stream), "{}.text = {}{}"sv, self, toText(text), nl());\
 	if (alignment) fmt::format_to(std::back_inserter(stream), "{}.alignment = {}{}"sv, self, toTextAlign(alignment), nl());\
 	if (textWidth) fmt::format_to(std::back_inserter(stream), "{}.textWidth = {}{}"sv,self, strcmp(textWidth,"Auto") == 0 ? "Label.AutomaticWidth"s : Val(textWidth), nl());\
-	if (lineGap) fmt::format_to(std::back_inserter(stream), "{}.lineGap = {}{}"sv, self, Val(lineGap), nl());
+	if (lineGap) fmt::format_to(std::back_inserter(stream), "{}.lineGap = {}{}"sv, self, Val(lineGap), nl());\
+	if (spacing) fmt::format_to(std::back_inserter(stream), "{}.spacing = {}{}"sv, self, Val(spacing), nl());\
+	if (text && text[0]) fmt::format_to(std::back_inserter(stream), "{}.text = {}{}"sv, self, toText(text), nl());
 #define Label_Finish \
 	Add_To_Parent
 
@@ -639,7 +642,7 @@ static const char* _toBoolean(const char* str)
 	Object_Define
 #define ModuleNode_Check \
 	Object_Check\
-	default: { int index = i;attributes[atts[index]] = atts[++i]; break; }
+	default: { int index = i;attributes[atts[index]] = Slice(atts[++i]).trimSpace(); break; }
 #define ModuleNode_Create \
 	fmt::format_to(std::back_inserter(stream), "local {} = {}{{"sv, self, element);
 #define ModuleNode_Handle \
@@ -650,7 +653,12 @@ static const char* _toBoolean(const char* str)
 		char* p;\
 		strtod(it->second.c_str(), &p);\
 		if (*p == 0) str += it->second;\
-		else str += toText(it->second.c_str());\
+		else\
+		{\
+			if (it->second == "True"_slice) str += "true"s;\
+			else if (it->second == "False"_slice) str += "false"s;\
+			else str += toText(it->second.c_str());\
+		}\
 		++it;\
 		if (it != attributes.end())\
 		{\
@@ -717,14 +725,28 @@ static const char* _toBoolean(const char* str)
 	const char* name = nullptr;\
 	const char* args = nullptr;\
 	const char* perform = nullptr;\
+	const char* loop = nullptr;\
 	const char* target = nullptr;
 #define Slot_Check \
 	CASE_STR(Name) { name = atts[++i]; break; }\
 	CASE_STR(Args) { args = atts[++i]; break; }\
 	CASE_STR(Target) { target = atts[++i]; break; }\
-	CASE_STR(Perform) { perform = atts[++i]; break; }
+	CASE_STR(Perform) { perform = atts[++i]; break; }\
+	CASE_STR(Loop) { loop = atts[++i]; break; }
 #define Slot_Create \
-	oFunc func = {elementStack.top().name+":slot("s+toText(name)+",function("s+(args ? args : "")+')'+nl()+(perform ? (target ? std::string(target) : elementStack.top().name)+":perform("s+perform+")"s+nl() : Slice::Empty), "end)"s,oFuncType::Slot};\
+	std::string targetName;\
+	std::string performAction;\
+	if (perform)\
+	{\
+		targetName = target ? std::string(target) : elementStack.top().name;\
+		performAction = targetName + ":perform("s + perform + ')' + nl();\
+	}\
+	std::string loopAction;\
+	if ("True"_slice == loop)\
+	{\
+		loopAction = fmt::format("{}:slot(\"ActionEnd\",function(_action_) if _action_ == {} then {}:perform({}) end end){}", targetName, Val(perform), targetName, Val(perform), nl());\
+	}\
+	oFunc func = {elementStack.top().name + ":slot("s + toText(name) + ",function("s + (args ? args : "") + ')' + nl() + performAction + loopAction, "end)"s, oFuncType::Slot};\
 	funcs.push(func);
 
 #define Item_Define(name) name##_Define
@@ -1202,11 +1224,6 @@ std::string XmlDelegator::compileYueCodes(const char* codes)
 
 void XmlDelegator::endElement(const char *name)
 {
-	if (elementStack.empty()) return;
-	oItem currentData = elementStack.top();
-	if (strcmp(name, elementStack.top().type) == 0) elementStack.pop();
-	bool parentIsAction = !elementStack.empty() && strcmp(elementStack.top().type, "Action") == 0;
-
 	SWITCH_STR_START(name)
 	{
 		CASE_STR(Yue)
@@ -1222,7 +1239,7 @@ void XmlDelegator::endElement(const char *name)
 			{
 				fmt::format_to(std::back_inserter(stream), "{}"sv, codeStr);
 			}
-			break;
+			return;
 		}
 		CASE_STR(Lua)
 		{
@@ -1278,8 +1295,18 @@ void XmlDelegator::endElement(const char *name)
 				}
 			}
 			codes = nullptr;
-			break;
+			return;
 		}
+	}
+	SWITCH_STR_END
+
+	if (elementStack.empty()) return;
+	oItem currentData = elementStack.top();
+	if (strcmp(name, elementStack.top().type) == 0) elementStack.pop();
+	bool parentIsAction = !elementStack.empty() && strcmp(elementStack.top().type, "Action") == 0;
+
+	SWITCH_STR_START(name)
+	{
 		CASE_STR(Slot)
 		{
 			oFunc func = funcs.top();
