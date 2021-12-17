@@ -633,7 +633,7 @@ local function Dorothy(...)
 			__index = function(_,key)
 				for i = 1, #envs do
 					local item = rawget(envs, i)[key]
-					if item then
+					if item ~= nil then
 						return item
 					end
 				end

@@ -2,11 +2,11 @@ Ease:Linear,InQuad,OutQuad,InOutQuad,OutInQuad,InCubic,OutCubic,InOutCubic,OutIn
 
 ActionParent:Action,Sequence,Spawn
 
-NodeParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Model,Item,Dorothy
+NodeParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item,Dorothy
 
-BaseParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Model,Item,Dorothy,Stencil
+BaseParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item,Dorothy,Stencil
 
-ScriptParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Model,Item,Dorothy,Slot
+ScriptParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item,Dorothy,Slot
 
 Blend:One,Zero,SrcColor,SrcAlpha,DstColor,DstAlpha,InvSrcColor,InvSrcAlpha,InvDstColor,InvDstAlpha
 
@@ -34,6 +34,7 @@ Slot
 	Args
 	Target
 	Perform
+        Loop:Boolean
 Item
 	Base:No
 	Parent:No
@@ -220,7 +221,8 @@ Label
 	FontSize
 	TextAlign:Center,Left,Right
 	TextWidth
-	LineGap
+        Spacing
+        LineGap
 Sprite
 	Base:Node
 	Parent:BaseParent

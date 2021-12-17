@@ -230,8 +230,8 @@ void oTextEdit::insertCompletion(const QString& completion)
 			if (text.at(0) == '>' ||
 				text.at(0) == '/' ||
 				text.at(0) == '\"' ||
-				text.at(0) == ' ' ||
-				text.at(0) == '\t')
+                text.at(0) == ' ' ||
+                text.at(0) == '\t')
 			{
 				cursor = textCursor();
 				cursor.setPosition(std::max(cursor.position()-1, 0));
@@ -295,8 +295,8 @@ void oTextEdit::keyPressEvent(QKeyEvent* e)
 	if (!completionPrefix.isEmpty())
 	{
 		if (completionPrefix.at(0) == '=' ||
-						 e->text() == " " ||
-						 e->text() == "\t")
+                         e->text() == " " ||
+                         e->text() == "\t")
 		{
 			completionPrefix = "";
 		}
@@ -317,8 +317,8 @@ void oTextEdit::keyPressEvent(QKeyEvent* e)
 		 (completionPrefix.isEmpty() &&
 		  e->text() != "<" &&
 		  e->text() != "=" &&
-		  e->text() != " " &&
-		  e->text() != "\t")
+          e->text() != " " &&
+          e->text() != "\t")
 		))
 	{
 		_completer->popup()->hide();

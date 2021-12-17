@@ -511,6 +511,7 @@ class Label : public Node
 {
 	tolua_property__common float alphaRef;
 	tolua_property__common float textWidth;
+	tolua_property__common float spacing;
 	tolua_property__common float lineGap;
 	tolua_property__common string text;
 	tolua_property__common BlendFunc blendFunc;

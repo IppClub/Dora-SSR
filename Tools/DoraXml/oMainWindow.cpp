@@ -32,7 +32,7 @@ oMainWindow::oMainWindow(QWidget *parent)
         QStringList paths = pathStr.split(";",Qt::SkipEmptyParts);
 		foreach (QString path, paths)
 		{
-			if (QFileInfo(path).exists())
+            if (QFileInfo::exists(path))
 			{
 				this->addTab(path);
 			}

@@ -26,7 +26,7 @@ Panel = (width, height, viewWidth, viewHeight)->
 				\slot "Tapped", -> print "clicked #{i}"
 		.view\alignItems Size viewWidth,height
 
-Director.ui\addChild with AlignNode isRoot:true
+Director.ui\addChild with AlignNode isRoot:true, inUI:true
 	\addChild with AlignNode!
 		.hAlign = "Left"
 		.vAlign = "Top"
@@ -36,7 +36,7 @@ Director.ui\addChild with AlignNode isRoot:true
 		\addChild with Panel 200,300,430,640
 			.position = Vec2 100,150
 			\slot "AlignLayout",(w,h)->
-				\adjustSizeWithAlign "auto",10,Size(w,h),Size(400,h)
+				\adjustSizeWithAlign "Auto",10,Size(w,h),Size(400,h)
 				.position = Vec2 w/2,h/2
 				.area\removeChild .border
 				.border = LineRect width:w, height:h, color:0xffffffff

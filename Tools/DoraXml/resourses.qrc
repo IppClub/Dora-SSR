@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>DorothyTag.txt</file>
+        <file>DorothySSR.ico</file>
+        <file>AppIcon.icns</file>
     </qresource>
 </RCC>
