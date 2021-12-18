@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 using std::ofstream;
 
 #if BX_PLATFORM_LINUX
+#include <unistd.h>
+#include <limits.h>
 #include "ghc/fs_impl.hpp"
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
@@ -626,7 +628,7 @@ bool Content::isFileExist(String filePath)
 }
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
+#if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 Content::Content()
 {
 	char* currentPath = SDL_GetBasePath();
@@ -637,7 +639,20 @@ Content::Content()
 	_writablePath = prefPath;
 	SDL_free(prefPath);
 }
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
+
+#if BX_PLATFORM_LINUX
+Content::Content()
+{
+	auto currentPath = NewArray<char>(PATH_MAX);
+	::getcwd(currentPath.get(), PATH_MAX);
+	_assetPath = currentPath.get();
+
+	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
+	_writablePath = prefPath;
+	SDL_free(prefPath);
+}
+#endif // BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
