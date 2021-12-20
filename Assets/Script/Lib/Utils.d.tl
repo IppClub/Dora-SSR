@@ -35,6 +35,7 @@ local record StructHelper
 	metamethod __index: function(self: StructClass, ...: string): function(...: string): StructClass
 	load: function(cls: StructHelper, input: string): Struct
 	load: function(cls: StructHelper, input: table): Struct
+	load: function(cls: StructHelper, name: string, input: table): Struct
 	loadfile: function(cls: StructHelper, filename: string): Struct
 	clear: function(cls: StructHelper)
 end

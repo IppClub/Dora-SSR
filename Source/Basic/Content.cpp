@@ -354,7 +354,6 @@ void Content::loadAsyncData(String filename, const std::function<void(OwnArray<u
 	});
 }
 
-
 void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback)
 {
 	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size)
@@ -624,7 +623,8 @@ bool Content::isFileExist(String filePath)
 	{
 		strPath.insert(0, _assetPath);
 	}
-	return fs::exists(strPath);
+	std::error_code err;
+	return fs::exists(strPath, err);
 }
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 

@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-Content\insertSearchPath 1,"Script/Game/Loli War"
+Content\insertSearchPath 1, "Script/Game/Loli War"
 ns = "Game.Loli War"
 require "#{ns}.Constant"
 require "#{ns}.Bullet"
