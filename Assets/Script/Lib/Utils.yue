@@ -144,69 +144,70 @@ StructDefMeta = {
 }
 StructDefs = {}
 StructHelper = {
-	__call:(...)=>
-		structName = @path..@name
+	__call: (...)=>
+		structName = @path .. @name
 		local tupleDef
 		tupleDef = setmetatable {
 			__name:structName
-			__index:(key)=>
+			__index: (key)=>
 				item = tupleDef[key]
 				if item
-					rawget @,item
+					rawget @, item
 				else
 					StructDefMeta[key]
-			__newindex:(key,value)=>
+			__newindex: (key, value)=>
 				index = tupleDef[key]
 				if index
-					rawset @,index,value
-					notify = rawget @,"__notify"
+					rawset @, index, value
+					notify = rawget @, "__notify"
 					if notify
-						notify "Modified",key,value
+						notify "Modified", key, value
 						StructUpdated @
 				elseif "number" == type key
-					rawset @,key,value
+					rawset @, key, value
 				elseif key ~= "__notify"
 					error "Access invalid key \"#{ key }\" for #{ tupleDef }"
 				elseif value
-					rawset @,"__notify",value
+					rawset @, "__notify", value
 					if #tupleDef == 0
-						for i = 2,#@
-							value "Added",i-1,@[i]
+						for i = 2, #@
+							value "Added", i - 1, @[i]
 					else
 						for key in *tupleDef
-							value "Modified",key,@[key]
+							value "Modified", key, @[key]
 					StructUpdated @
-			__tostring:StructToString
-		},StructDefMeta
-		count = select "#",...
+			__tostring: StructToString
+		}, StructDefMeta
+		count = select "#", ...
 		if count > 0
-			if "table" == type select(1,...)
-				for i,name in ipairs select(1,...)
+			arg = select 1, ...
+			if "table" == type arg
+				for i,name in ipairs arg
 					tupleDef[i] = name
-					tupleDef[name] = i+1
+					tupleDef[name] = i + 1
 			else
-				for i = 1,count
-					name = select i,...
+				for i = 1, count
+					name = select i, ...
 					tupleDef[i] = name
-					tupleDef[name] = i+1
+					tupleDef[name] = i + 1
 		StructDefs[structName] = tupleDef
 		tupleDef
-	__index:(key)=>
+	__index: (key)=>
 		@path ..= @name
 		@path ..= "."
 		@name = key
 		@
-	__tostring:=>
+	__tostring: =>
 		content = {}
-		path = @path..@name.."."
+		path = @path .. @name .. "."
 		i = 1
-		for k,v in pairs StructDefs
-			if k\find path,1,true
+		for k, v in pairs StructDefs
+			if k\find path, 1, true
 				content[i] = tostring v
 				i += 1
-		concat content,"\n"
+		concat content, "\n"
 }
-setmetatable StructHelper,StructHelper
+setmetatable StructHelper, StructHelper
 local Struct
 StructLoad = (data)->
 	if "table" == type data
@@ -216,52 +217,63 @@ StructLoad = (data)->
 		for item in *data
 			StructLoad item
 export Struct = setmetatable {
-	load: (arg)=>
-		data = switch type arg
-			when "string"
-				if arg\sub(1,6) ~= "return"
-					arg = "return "..arg
-				(load arg)!
-			when "table"
-				arg
-		StructLoad data
-		data
+	load: (...)=>
+		count = select "#", ...
+		if count > 1
+			name = select 1, ...
+			data = select 2, ...
+			table.insert data, 1, name
+			StructLoad data
+			data
+		else
+			arg = select 1, ...
+			data = switch type arg
+				when "string"
+					if arg\sub(1,6) ~= "return"
+						arg = "return " .. arg
+					(load arg)!
+				when "table"
+					arg
+			StructLoad data
+			data
 	loadfile: (filename)=>
 		Struct\load Content\load filename
-	clear:=>
+	clear: =>
 		StructDefs = {}
-},{
-	__index:(name)=>
+}, {
+	__index: (name)=>
 		def = StructDefs[name]
 		if not def
 			StructHelper.name = name
 			StructHelper.path = ""
 			def = StructHelper
 		def
-	__tostring:=>
-		concat [tostring v for _,v in pairs StructDefs], "\n"
+	__tostring: =>
+		concat [tostring v for _, v in pairs StructDefs], "\n"
 }
 
 export Set = (list)-> {item,true for item in *list}
 
-export CompareTable = (olds,news)->
+export CompareTable = (olds, news)->
 	itemsToDel = {}
 	itemSet = Set news
 	for item in *olds
 		if not itemSet[item]
-			insert itemsToDel,item
+			insert itemsToDel, item
 	itemsToAdd = {}
 	itemSet = Set olds
 	for item in *news
 		if not itemSet[item]
-			insert itemsToAdd,item
-	return itemsToAdd,itemsToDel
+			insert itemsToAdd, item
+	return itemsToAdd, itemsToDel
 
 export Round = (val)->
 	if type(val) == "number"
-		val > 0 and floor(val+0.5) or ceil(val-0.5)
+		val > 0 and floor(val + 0.5) or ceil(val - 0.5)
 	else
-		Vec2 val.x > 0 and floor(val.x+0.5) or ceil(val.x-0.5),
-			val.y > 0 and floor(val.y+0.5) or ceil(val.y-0.5)
+		Vec2(
+			val.x > 0 and floor(val.x + 0.5) or ceil(val.x - 0.5)
+			val.y > 0 and floor(val.y + 0.5) or ceil(val.y - 0.5)
+		)
 
 export IsValidPath = (filename)-> not filename\match "[\\/|:*?<>\"]"

@@ -95,7 +95,7 @@ bool ZipFile::setFilter(const std::string& filter)
 		_file->folderList.clear();
 
 		// Get and print information about each file in the archive.
-		for (int i = 0; i < mz_zip_reader_get_num_files(archive); i++)
+		for (int i = 0; i < s_cast<int>(mz_zip_reader_get_num_files(archive)); i++)
 		{
 			mz_zip_archive_file_stat file_stat;
 			if (!mz_zip_reader_file_stat(archive, i, &file_stat))
@@ -245,7 +245,7 @@ uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size)
 		auto it = _file->fileList.find(filename);
 		BREAK_IF(it == _file->fileList.end());
 		auto archive = &_file->archive;
-		size_t bufSize = it->second;
+		size_t bufSize = s_cast<size_t>(it->second);
 		if (size) *size = bufSize;
 		buffer = new uint8_t[bufSize];
 		if (!mz_zip_reader_extract_file_to_mem(archive, filename.c_str(), buffer, bufSize, 0))
