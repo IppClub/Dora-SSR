@@ -201,6 +201,7 @@ class Content
 	void loadAsync(String filename, tolua_function_void handler);
 	void saveAsync(String filename, String content, tolua_function_void handler);
 	void copyAsync(String src, String dst, tolua_function_void handler);
+	void clearPathCache();
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
 	tolua_outside void Content_getAllFiles @ getAllFiles(String path);

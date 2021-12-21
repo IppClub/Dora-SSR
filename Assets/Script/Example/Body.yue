@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-gravity = Vec2 0,-10
+gravity = Vec2 0, -10
 
 groupZero = 0
 groupOne = 1
@@ -8,40 +8,40 @@ groupTwo = 2
 
 terrainDef = with BodyDef!
 	.type = "Static"
-	\attachPolygon 800,10,1,0.8,0.2
+	\attachPolygon 800, 10, 1, 0.8, 0.2
 
 polygonDef = with BodyDef!
 	.type = "Dynamic"
 	.linearAcceleration = gravity
 	\attachPolygon {
-		Vec2 60,0
-		Vec2 30,-30
-		Vec2 -30,-30
-		Vec2 -60,0
-		Vec2 -30,30
-		Vec2 30,30
-	},1,0.4,0.4
+		Vec2 60, 0
+		Vec2 30, -30
+		Vec2 -30, -30
+		Vec2 -60, 0
+		Vec2 -30, 30
+		Vec2 30, 30
+	}, 1, 0.4, 0.4
 
 diskDef = with BodyDef!
 	.type = "Dynamic"
 	.linearAcceleration = gravity
-	\attachDisk 60,1,0.4,0.4
+	\attachDisk 60, 1, 0.4, 0.4
 
 world = with PhysicsWorld!
 	.y = -200
-	\setShouldContact groupZero,groupOne,false
-	\setShouldContact groupZero,groupTwo,true
-	\setShouldContact groupOne,groupTwo,true
+	\setShouldContact groupZero, groupOne, false
+	\setShouldContact groupZero, groupTwo, true
+	\setShouldContact groupOne, groupTwo, true
 	.showDebug = true
 
 Director.entry\addChild with world
-	\addChild with Body terrainDef,world,Vec2.zero
+	\addChild with Body terrainDef, world, Vec2.zero
 		.group = groupTwo
 
-	\addChild with Body polygonDef,world,Vec2(0,500),15
+	\addChild with Body polygonDef, world, Vec2(0,500), 15
 		.group = groupOne
 
-	\addChild with Body diskDef,world,Vec2(50,800)
+	\addChild with Body diskDef, world, Vec2(50,800)
 		.group = groupZero
 		.angularRate = 90
 
@@ -60,7 +60,7 @@ Director.entry\addChild with Node!
 	\schedule ->
 		:width,:height = App.visualSize
 		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 		Begin "Body", windowFlags, ->
 			Text "Body"

@@ -21,6 +21,7 @@ local record Content
 	getDirs: function(self: Content, path: string): {string}
 	getFiles: function(self: Content, path: string): {string}
 	getAllFiles: function(self: Content, path: string): {string}
+	clearPathCache: function(self: Content)
 end
 local content: Content
 return content
