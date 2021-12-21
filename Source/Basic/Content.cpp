@@ -456,6 +456,11 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size)
 	return data;
 }
 
+void Content::clearPathCache()
+{
+	_fullPathCache.clear();
+}
+
 #if BX_PLATFORM_ANDROID
 Content::Content()
 {

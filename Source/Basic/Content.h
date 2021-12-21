@@ -41,6 +41,7 @@ public:
 	void copyAsync(String src, String dst, const std::function<void()>& callback);
 	void saveAsync(String filename, String content, const std::function<void()>& callback);
 	void saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback);
+	void clearPathCache();
 public:
 	void loadAsyncUnsafe(String filename, const std::function<void (uint8_t*, int64_t)>& callback);
 	uint8_t* loadUnsafe(String filename, int64_t& size);

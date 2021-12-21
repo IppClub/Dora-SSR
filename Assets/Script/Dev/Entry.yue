@@ -1,6 +1,6 @@
 _ENV = Dorothy builtin.ImGui
 import "Utils" as :Set
-import "yue" as options:{extension:yueext}
+import "yue" as options: {extension: yueext}
 
 print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
 
@@ -21,7 +21,7 @@ allowedUseOfGlobals = Set
 	* "Dorothy"
 	* "builtin"
 
-LintYueGlobals = (yueCodes,globals,file)->
+LintYueGlobals = (yueCodes, globals, file)->
 	requireModules = {}
 	withImGui = false
 	withPlatformer = false
@@ -29,7 +29,7 @@ LintYueGlobals = (yueCodes,globals,file)->
 		for importLine in yueCodes\gmatch "Dorothy%s*%(?([^%)!\r\n]*)%s*[%)!]?"
 			continue if importLine == ""
 			importLine
-		), ","
+	), ","
 	importItems = if importCodes
 		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
 			getImport = load "return #{item}"
@@ -68,7 +68,7 @@ LintYueGlobals = (yueCodes,globals,file)->
 
 building = false
 
-getAllFiles = (path,exts)->
+getAllFiles = (path, exts)->
 	filters = Set exts
 	return for file in *Content\getAllFiles path
 		continue if not filters[Path\getExt file]
@@ -102,7 +102,7 @@ doCompile = (minify)->
 		print "Yue compiled: #{file}"
 		fileCount += 1
 	paths = {Path\getPath(file), true for file in *xmlFiles}
-	Content\mkdir Path outputPath,path for path in pairs paths
+	Content\mkdir Path outputPath, path for path in pairs paths
 	thread ->
 		for file in *xmlFiles
 			dest = Path\replaceExt Path(outputPath, file), "lua"
@@ -134,14 +134,17 @@ doCompile = (minify)->
 			inputPath = Path Content.assetPath
 			outputPath = Path Content.writablePath
 			luaFiles = getAllFiles inputPath, {"lua"}
+			luaFullPaths = [Path inputPath, file for file in *luaFiles]
 			for file in *getAllFiles outputPath, {"lua"}
 				table.insert luaFiles, file
+				table.insert luaFullPaths, Path outputPath, file
 			paths = {Path\getPath(file), true for file in *luaFiles}
 			Content\mkdir Path outputPath, path for path in pairs paths
 			import "luaminify.FormatMini"
-			for file in *luaFiles
-				sourceCodes = Content\loadAsync Path(inputPath, file)
-				res,err = FormatMini sourceCodes
+			for i = 1, #luaFullPaths
+				sourceCodes = Content\loadAsync luaFullPaths[i]
+				res, err = FormatMini sourceCodes
+				file = luaFiles[i]
 				if res
 					Content\saveAsync Path(outputPath, file), res
 					print "Minify: #{file}"
@@ -153,6 +156,7 @@ doCompile = (minify)->
 			package.loaded["luaminify.Util"] = nil
 		print err for err in *errors
 		print "Build complete! Cost #{string.format '%.2f', App.runningTime - startTime}s"
+		Content\clearPathCache!
 		building = false
 
 doClean = ->
@@ -195,15 +199,15 @@ allClear = ->
 	Audio\stopStream 0.2
 	collectgarbage!
 
-games = [Path\getName item for item in *Content\getDirs Path Content.assetPath,"Script","Game"]
+games = [Path\getName item for item in *Content\getDirs Path Content.assetPath, "Script", "Game"]
 table.sort games
-examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Example"), {"xml","lua",yueext,"tl"}]
+examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath, "Script", "Example"), {"xml", "lua", yueext, "tl"}]
 table.sort examples
-tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath,"Script","Test"), {"xml","lua",yueext,"tl"}]
+tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath, "Script", "Test"), {"xml", "lua", yueext, "tl"}]
 table.sort tests
-allNames = [Path "Game",game,"init" for game in *games]
-for example in *examples do table.insert allNames,Path "Example",example
-for test in *tests do table.insert allNames,Path "Test",test
+allNames = [Path "Game", game, "init" for game in *games]
+for example in *examples do table.insert allNames, Path "Example", example
+for test in *tests do table.insert allNames, Path "Test", test
 
 productionEntry = nil
 for file in *Content\getAllFiles Path Content.assetPath, "Production"
@@ -242,12 +246,14 @@ enterDemoEntry = (name)->
 	print debug.traceback msg
 	allClear!
 
+enterDemoEntry productionEntry
+
 showEntry = false
 
 thread ->
-	:width,:height = App.visualSize
-	scale = App.deviceRatio*0.7*math.min(width,height)/760
 	unless App.debugging
+		:width, :height = App.visualSize
+		scale = App.deviceRatio * 0.7 * math.min(width, height) / 760
 		with Sprite GetDorothySSRHappyWhite scale
 			\addTo Director.entry
 			sleep 1.0
@@ -261,44 +267,81 @@ showFooter = false
 scaleContent = false
 footerFocus = false
 screenScale = 2 -- App.deviceRatio
+windowFlags =
+	* "NoTitleBar"
+	* "NoResize"
+	* "NoMove"
+	* "NoCollapse"
+	* "NoSavedSettings"
+	* "NoBringToFrontOnFocus"
+footerFlags =
+	* "NoTitleBar"
+	* "NoResize"
+	* "NoMove"
+	* "NoCollapse"
+	* "NoSavedSettings"
 threadLoop ->
-	return unless showEntry
-	ctrl = Keyboard\isKeyPressed "LCtrl"
-	left = ctrl and Keyboard\isKeyDown "Left"
-	right = ctrl and Keyboard\isKeyDown "Right"
 	App\shutdown! if Keyboard\isKeyDown "Escape"
-	:width,:height = App.visualSize
-	SetNextWindowSize Vec2(190,50)
-	SetNextWindowPos Vec2(width-190,height-50)
+	allClear! if Keyboard\isKeyDown "Q"
+	if Keyboard\isKeyDown ","
+		showFooter = true
+		showStats = not showStats
+	if Keyboard\isKeyDown "."
+		showFooter = true
+		showConsole = not showConsole
+	if Keyboard\isKeyDown "/"
+		showFooter = not showFooter
+		footerFocus = false if showFooter
+	do
+		ctrl = Keyboard\isKeyPressed "LCtrl"
+		left = ctrl and Keyboard\isKeyDown "Left"
+		right = ctrl and Keyboard\isKeyDown "Right"
+		currentIndex = nil
+		for i, name in ipairs allNames
+			if currentEntryName == name
+				currentIndex = i
+		if left
+			allClear!
+			currentIndex ??= #allNames + 1
+			if currentIndex > 1
+				isInEntry = false
+				enterDemoEntry allNames[currentIndex - 1]
+		if right
+			allClear!
+			currentIndex ??= 0
+			if currentIndex < #allNames
+				isInEntry = false
+				enterDemoEntry allNames[currentIndex + 1]
+	return unless showEntry
+	:width, :height = App.visualSize
+	SetNextWindowSize Vec2 190, 50
+	SetNextWindowPos Vec2 width - 190, height - 50
 	if width >= 600
-		if not footerFocus
-			footerFocus = true
-			SetNextWindowFocus!
-		PushStyleColor "WindowBg", Color(0x0), ->
-			Begin "Show", {"NoTitleBar","NoResize","NoMove","NoCollapse","NoSavedSettings"}, ->
-				Columns 2,false
-				if showFooter
-					changed, scaleContent = Checkbox string.format("%.1fx",screenScale), scaleContent
-					View.scale = scaleContent and screenScale or 1 if changed
-				else
-					Dummy Vec2 10,30
-				SameLine!
-				NextColumn!
-				_, showFooter = Checkbox "Footer", showFooter
-	elseif footerFocus
-		footerFocus = false
+		PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", footerFlags, ->
+			Columns 2, false
+			if showFooter
+				changed, scaleContent = Checkbox string.format("%.1fx", screenScale), scaleContent
+				View.scale = scaleContent and screenScale or 1 if changed
+			else
+				Dummy Vec2 10, 30
+			SameLine!
+			NextColumn!
+			changed, showFooter = Checkbox "Footer", showFooter
+			if changed and showFooter
+				footerFocus = false
 	return unless showFooter
-	SetNextWindowSize Vec2(width,60)
-	SetNextWindowPos Vec2(0,height-60)
-	Begin "Footer", {"NoTitleBar","NoResize","NoMove","NoCollapse","NoBringToFrontOnFocus","NoSavedSettings"}, ->
+	SetNextWindowSize Vec2 width, 50
+	SetNextWindowPos Vec2 0, height - 50
+	SetNextWindowBgAlpha 0.35
+	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", footerFlags, ->
 		Separator!
 		_, showStats = Checkbox "Stats", showStats
 		SameLine!
 		_, showConsole = Checkbox "Log", showConsole
 		SameLine!
 		if isInEntry
-			OpenPopup "build" if Button "Build", Vec2(70,30)
-			BeginPopup "build", ->
+			OpenPopup "build" if Button "Build", Vec2 70, 30
+			PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
 				doCompile false if Selectable "Compile"
 				Separator!
 				doCompile true if Selectable "Minify"
@@ -306,69 +349,79 @@ threadLoop ->
 				doClean! if Selectable "Clean"
 		else
 			SameLine!
-			allClear! if Button "Home", Vec2 70,30
+			allClear! if Button "Home", Vec2 70, 30
 			currentIndex = nil
-			for i,name in ipairs allNames
+			for i, name in ipairs allNames
 				if currentEntryName == name
 					currentIndex = i
 			SameLine!
 			if currentIndex and currentIndex > 1
-				if Button("Prev", Vec2 70,30) or left
+				if Button("Prev", Vec2 70, 30)
 					allClear!
 					isInEntry = false
-					enterDemoEntry allNames[currentIndex-1]
-			else Dummy Vec2 70,30
+					enterDemoEntry allNames[currentIndex - 1]
+			else Dummy Vec2 70, 30
 			SameLine!
 			if currentIndex and currentIndex < #allNames
-				if Button("Next", Vec2 70,30) or right
+				if Button("Next", Vec2 70, 30)
 					allClear!
 					isInEntry = false
-					enterDemoEntry allNames[currentIndex+1]
-			else Dummy Vec2 70,30
-		if showStats
-			SetNextWindowPos Vec2(10,10), "FirstUseEver"
-			ShowStats!
-		if showConsole
-			SetNextWindowPos Vec2(width-400,height-65-300), "FirstUseEver"
-			ShowConsole!
+					enterDemoEntry allNames[currentIndex + 1]
+			else Dummy Vec2 70, 30
+		PushStyleVar "WindowPadding", Vec2(10, 10), ->
+			if showStats
+				SetNextWindowPos Vec2(10, 10), "FirstUseEver"
+				ShowStats!
+			if showConsole
+				SetNextWindowPos Vec2(width - 400, height - 365), "FirstUseEver"
+				ShowConsole!
+		if not footerFocus
+			footerFocus = true
+			SetWindowFocus "Show"
 
 threadLoop ->
 	return unless showEntry
 	return unless isInEntry
-	:width,:height = App.visualSize
+	:width, :height = App.visualSize
 	SetNextWindowPos Vec2.zero
-	SetNextWindowSize Vec2(width,53)
-	PushStyleColor "TitleBgActive", Color(0xcc000000), ->
-		Begin "Dorothy Dev", {"NoResize","NoMove","NoCollapse","NoBringToFrontOnFocus","NoSavedSettings"}, ->
+	SetNextWindowSize Vec2 width, 45
+	SetNextWindowBgAlpha 0.35
+	PushStyleVar "WindowPadding", Vec2(10, 0), ->
+		Begin "Dorothy Dev", windowFlags, ->
+			Dummy Vec2 width, 5
+			Text "Dorothy Dev"
 			Separator!
-	SetNextWindowPos Vec2(0,53)
-	SetNextWindowSize Vec2(width,height-107)
-	PushStyleColor "WindowBg",Color(0x0), ->
-		Begin "Content", {"NoTitleBar","NoResize","NoMove","NoCollapse","NoBringToFrontOnFocus","NoSavedSettings"}, ->
+	SetNextWindowPos Vec2 0, 0
+	SetNextWindowSize Vec2 width, height
+	PushStyleColor "WindowBg", Color(0x0), ->
+		Begin "Content", windowFlags, ->
+			Dummy Vec2 width, 35
 			TextColored Color(0xff00ffff), "Game Demos"
-			Columns math.max(math.floor(width/200),1), false
+			Columns math.max(math.floor(width / 200), 1), false
 			for game in *games
-				if Button game, Vec2(-1,40)
-					enterDemoEntry Path "Game",game,"init"
+				if Button game, Vec2 -1, 40
+					enterDemoEntry Path "Game", game, "init"
 				NextColumn!
 			Columns 1, false
 			TextColored Color(0xff00ffff), "Examples"
-			Columns math.max(math.floor(width/200),1), false
+			Columns math.max(math.floor(width / 200), 1), false
 			for example in *examples
-				if Button example, Vec2(-1,40)
-					enterDemoEntry Path "Example",example
+				if Button example, Vec2 -1, 40
+					enterDemoEntry Path "Example", example
 				NextColumn!
 			Columns 1, false
 			TextColored Color(0xff00ffff), "Tests"
-			Columns math.max(math.floor(width/200),1), false
+			Columns math.max(math.floor(width / 200), 1), false
 			for test in *tests
-				if Button test, Vec2(-1,40)
-					enterDemoEntry Path "Test",test
+				if Button test, Vec2 -1, 40
+					enterDemoEntry Path "Test", test
 				NextColumn!
 			if productionEntry
 				Columns 1, false
 				TextColored Color(0xff00ffff), "Product"
-				Columns math.max(math.floor(width/200),1), false
-				if Button "Enter", Vec2(-1,40)
+				Columns math.max(math.floor(width / 200), 1), false
+				if Button "Enter", Vec2 -1, 40
 					enterDemoEntry productionEntry
 				NextColumn!
+			Columns 1, false
+			Dummy Vec2 width, 40
