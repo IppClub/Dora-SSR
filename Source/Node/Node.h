@@ -28,6 +28,7 @@ class RenderTarget;
 class SpriteEffect;
 class Sprite;
 class Camera;
+class Grid;
 
 typedef Acf::Delegate<void (Event* event)> EventHandler;
 
@@ -249,12 +250,18 @@ public:
 		PROPERTY(Camera*, Camera);
 		PROPERTY(SpriteEffect*, Effect);
 		PROPERTY_CREF(BlendFunc, BlendFunc);
+		PROPERTY_READONLY(uint32_t, GridX);
+		PROPERTY_READONLY(uint32_t, GridY);
+		void setPos(uint32_t x, uint32_t y, Vec2 pos);
+		Vec2 getPos(uint32_t x, uint32_t y) const;
+		Color getColor(uint32_t x, uint32_t y) const;
+		void setColor(uint32_t x, uint32_t y, Color color);
+	protected:
+		Grabber(const Size& size, uint32_t gridX, uint32_t gridY);
 		void grab(Node* target);
 		void visit();
 		virtual void cleanup() override;
 		CREATE_FUNC(Grabber);
-	protected:
-		Grabber();
 	private:
 		struct RenderPair
 		{
@@ -266,11 +273,13 @@ public:
 		Ref<Camera> _camera;
 		Ref<SpriteEffect> _effect;
 		std::vector<RenderPair> _renderTargets;
-		Ref<Sprite> _display;
+		Ref<Grid> _grid;
 		BlendFunc _blendFunc;
 		DORA_TYPE_OVERRIDE(Grabber);
+		friend class Node;
 	};
 	Grabber* grab(bool enabled = true);
+	Grabber* grab(uint32_t gridX, uint32_t gridY);
 protected:
 	Node();
 	virtual ~Node();

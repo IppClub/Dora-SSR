@@ -31,10 +31,9 @@ _transform(AffineTransform::Indentity)
 
 void DBSlotNode::render()
 {
-	if (_vertices.empty()) return;
+	if (!_texture || !_effect || _vertices.empty()) return;
 	Matrix transform;
 	bx::mtxMul(transform, getWorld(), SharedDirector.getViewProjection());
-	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	auto parent = s_cast<DragonBone*>(getParent());
 	uint64_t renderState = (
 		BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
@@ -47,6 +46,7 @@ void DBSlotNode::render()
 	{
 		bx::vec4MulMtx(&_vertices[i].x, &_points[i].x, transform);
 	}
+	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	SharedSpriteRenderer.push(
 		_vertices.data(), _vertices.size(),
 		_indices.data(), _indices.size(),

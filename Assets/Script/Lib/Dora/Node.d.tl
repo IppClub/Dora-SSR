@@ -159,11 +159,16 @@ local record Node
 		effect: SpriteEffect
 		blendFunc: BlendFunc
 		clearColor: Color
+		setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2)
+		getPos: function(self: Grabber, x: integer, y: integer)
+		getColor: function(self: Grabber, x: integer, y: integer): Color
+		setColor: function(self: Grabber, x: integer, y: integer, color: Color)
 	end
 
 	grab: function(
 		enabled?: boolean --[[true]]
 	): Grabber
+	grab: function(gridX: number, gridY: number): Grabber
 end
 local record __SLOT__
 	-- Node:runAction() | Node:perform()

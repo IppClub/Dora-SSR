@@ -246,7 +246,8 @@ enterDemoEntry = (name)->
 	print debug.traceback msg
 	allClear!
 
-enterDemoEntry productionEntry
+if productionEntry
+	enterDemoEntry productionEntry
 
 showEntry = false
 
@@ -261,11 +262,10 @@ thread ->
 	showEntry = true
 	Director.clearColor = Color 0xff1a1a1a
 
-showStats = false
-showConsole = false
+showStats = true
+showConsole = true
 showFooter = false
 scaleContent = false
-footerFocus = false
 screenScale = 2 -- App.deviceRatio
 windowFlags =
 	* "NoTitleBar"
@@ -274,26 +274,20 @@ windowFlags =
 	* "NoCollapse"
 	* "NoSavedSettings"
 	* "NoBringToFrontOnFocus"
-footerFlags =
-	* "NoTitleBar"
-	* "NoResize"
-	* "NoMove"
-	* "NoCollapse"
-	* "NoSavedSettings"
+initFooter = true
 threadLoop ->
 	App\shutdown! if Keyboard\isKeyDown "Escape"
-	allClear! if Keyboard\isKeyDown "Q"
-	if Keyboard\isKeyDown ","
-		showFooter = true
-		showStats = not showStats
-	if Keyboard\isKeyDown "."
-		showFooter = true
-		showConsole = not showConsole
-	if Keyboard\isKeyDown "/"
-		showFooter = not showFooter
-		footerFocus = false if showFooter
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
+		allClear! if ctrl and Keyboard\isKeyDown "Q"
+		if ctrl and Keyboard\isKeyDown ","
+			showFooter = true
+			showStats = not showStats
+		if ctrl and Keyboard\isKeyDown "."
+			showFooter = true
+			showConsole = not showConsole
+		if ctrl and Keyboard\isKeyDown "/"
+			showFooter = not showFooter
 		left = ctrl and Keyboard\isKeyDown "Left"
 		right = ctrl and Keyboard\isKeyDown "Right"
 		currentIndex = nil
@@ -317,7 +311,7 @@ threadLoop ->
 	SetNextWindowSize Vec2 190, 50
 	SetNextWindowPos Vec2 width - 190, height - 50
 	if width >= 600
-		PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", footerFlags, ->
+		PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", windowFlags, ->
 			Columns 2, false
 			if showFooter
 				changed, scaleContent = Checkbox string.format("%.1fx", screenScale), scaleContent
@@ -326,14 +320,15 @@ threadLoop ->
 				Dummy Vec2 10, 30
 			SameLine!
 			NextColumn!
-			changed, showFooter = Checkbox "Footer", showFooter
-			if changed and showFooter
-				footerFocus = false
-	return unless showFooter
+			_, showFooter = Checkbox "Footer", showFooter
+	if initFooter
+		initFooter = false
+	else
+		return unless showFooter
 	SetNextWindowSize Vec2 width, 50
 	SetNextWindowPos Vec2 0, height - 50
 	SetNextWindowBgAlpha 0.35
-	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", footerFlags, ->
+	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", windowFlags, ->
 		Separator!
 		_, showStats = Checkbox "Stats", showStats
 		SameLine!
@@ -375,9 +370,6 @@ threadLoop ->
 			if showConsole
 				SetNextWindowPos Vec2(width - 400, height - 365), "FirstUseEver"
 				ShowConsole!
-		if not footerFocus
-			footerFocus = true
-			SetWindowFocus "Show"
 
 threadLoop ->
 	return unless showEntry
@@ -389,13 +381,12 @@ threadLoop ->
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dorothy Dev", windowFlags, ->
 			Dummy Vec2 width, 5
-			Text "Dorothy Dev"
+			TextColored Color(0xff00ffff), "DOROTHY SSR DEV"
 			Separator!
-	SetNextWindowPos Vec2 0, 0
-	SetNextWindowSize Vec2 width, height
+	SetNextWindowPos Vec2 0, 45
+	SetNextWindowSize Vec2 width, height - 95
 	PushStyleColor "WindowBg", Color(0x0), ->
 		Begin "Content", windowFlags, ->
-			Dummy Vec2 width, 35
 			TextColored Color(0xff00ffff), "Game Demos"
 			Columns math.max(math.floor(width / 200), 1), false
 			for game in *games

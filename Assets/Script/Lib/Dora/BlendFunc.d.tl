@@ -18,6 +18,7 @@ local record BlendFuncClass
 	get: function(func: Func): integer
 	const default: BlendFunc
 	metamethod __call: function(cls: BlendFuncClass, src: Func, dst: Func): BlendFunc
+	metamethod __call: function(cls: BlendFuncClass, srcColor: Func, dstColor: Func, srcAlpha: Func, dstAlpha: Func): BlendFunc
 end
 local blendFuncClass: BlendFuncClass
 return blendFuncClass

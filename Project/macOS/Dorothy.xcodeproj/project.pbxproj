@@ -57,6 +57,7 @@
 		3C1A3B09272A850F003A2829 /* lmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1A3AE3272A850F003A2829 /* lmem.c */; };
 		3C1A3B0A272A850F003A2829 /* lmathlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1A3AE4272A850F003A2829 /* lmathlib.c */; };
 		3C1D40EC2702FC8A00202534 /* TealCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1D40EB2702FC8A00202534 /* TealCompiler.cpp */; };
+		3C28C09F2771D846007FC76E /* Grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C28C09E2771D846007FC76E /* Grid.cpp */; };
 		3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2DFE121E95C4AF0077B67D /* SoundCache.cpp */; };
 		3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2DFE181E95C58A0077B67D /* Sound.cpp */; };
 		3C2F9C871E7AE8CA00B98D39 /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C851E7AE8CA00B98D39 /* Animation.cpp */; };
@@ -522,6 +523,8 @@
 		3C1D40EE2702FD7C00202534 /* Class.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Class.lua; path = ../../../Source/Lua/Builtin/Class.lua; sourceTree = "<group>"; };
 		3C1D40EF2702FD7C00202534 /* Initialization.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Initialization.lua; path = ../../../Source/Lua/Builtin/Initialization.lua; sourceTree = "<group>"; };
 		3C1D40F02702FD7C00202534 /* tl.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = tl.lua; path = ../../../Source/Lua/Builtin/tl.lua; sourceTree = "<group>"; };
+		3C28C09D2771D846007FC76E /* Grid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Grid.h; path = ../../../Source/Node/Grid.h; sourceTree = "<group>"; };
+		3C28C09E2771D846007FC76E /* Grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Grid.cpp; path = ../../../Source/Node/Grid.cpp; sourceTree = "<group>"; };
 		3C2DFE121E95C4AF0077B67D /* SoundCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoundCache.cpp; path = ../../../Source/Cache/SoundCache.cpp; sourceTree = "<group>"; };
 		3C2DFE131E95C4AF0077B67D /* SoundCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoundCache.h; path = ../../../Source/Cache/SoundCache.h; sourceTree = "<group>"; };
 		3C2DFE181E95C58A0077B67D /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
@@ -2370,16 +2373,18 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CCB0C771E6DB0590088C118 /* ClipNode.cpp */,
+				3CCB0C781E6DB0590088C118 /* ClipNode.h */,
 				3CFEB82B268DA599006D9974 /* DragonBone.cpp */,
 				3CFEB82C268DA599006D9974 /* DragonBone.h */,
+				3CC05B621E71229A00F2BA1B /* DrawNode.cpp */,
+				3CC05B631E71229A00F2BA1B /* DrawNode.h */,
+				3C28C09E2771D846007FC76E /* Grid.cpp */,
+				3C28C09D2771D846007FC76E /* Grid.h */,
 				3C3A5E1C24DA5E1700E59288 /* SoftNode.cpp */,
 				3C3A5E1B24DA5E1700E59288 /* SoftNode.h */,
 				3C65B5B41EC010CA0039DA1D /* Menu.cpp */,
 				3C65B5B51EC010CA0039DA1D /* Menu.h */,
-				3CC05B621E71229A00F2BA1B /* DrawNode.cpp */,
-				3CC05B631E71229A00F2BA1B /* DrawNode.h */,
-				3CCB0C771E6DB0590088C118 /* ClipNode.cpp */,
-				3CCB0C781E6DB0590088C118 /* ClipNode.h */,
 				3C0044E91E6682A000369672 /* Particle.cpp */,
 				3C0044EA1E6682A000369672 /* Particle.h */,
 				3C9A7D711E5428A200205094 /* Label.cpp */,
@@ -2995,6 +3000,7 @@
 				3C1A3B00272A850F003A2829 /* lgc.c in Sources */,
 				3CC7945D2579F9B000042394 /* parser.cpp in Sources */,
 				3CFEBD64268DA6D5006D9974 /* DeformVertices.cpp in Sources */,
+				3C28C09F2771D846007FC76E /* Grid.cpp in Sources */,
 				3C6DA20C1EAEF8EC006EEE32 /* LuaFromXml.cpp in Sources */,
 				3C3B982F26FDAD7600BD9F3E /* Compositor.cpp in Sources */,
 				3CFB4FE12697DE1800181CB4 /* IkConstraintTimeline.cpp in Sources */,

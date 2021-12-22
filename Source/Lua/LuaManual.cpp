@@ -1017,6 +1017,19 @@ int Sprite_SetTextureFilter(lua_State* L)
 	return 0;
 }
 
+/* Grid */
+Grid* Grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
+{
+	Texture2D* tex = nullptr;
+	Rect rect;
+	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
+	if (tex)
+	{
+		return Grid::create(tex, rect, gridX, gridY);
+	}
+	return nullptr;
+}
+
 /* Label */
 
 Sprite* Label_getCharacter(Label* self, int index)
@@ -1173,6 +1186,11 @@ uint32_t getBlendFuncVal(String name)
 BlendFunc* BlendFunc_create(String src, String dst)
 {
 	return Mtolua_new((BlendFunc)({getBlendFuncVal(src), getBlendFuncVal(dst)}));
+}
+
+BlendFunc* BlendFunc_create(String srcC, String dstC, String srcA, String dstA)
+{
+	return Mtolua_new((BlendFunc)({getBlendFuncVal(srcC), getBlendFuncVal(dstC), getBlendFuncVal(srcA), getBlendFuncVal(dstA)}));
 }
 
 uint32_t BlendFunc_get(String func)

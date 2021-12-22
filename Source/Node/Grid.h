@@ -1,0 +1,56 @@
+/* Copyright (c) 2021 Jin Li, http://www.luvfight.me
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#pragma once
+
+#include "Node/Sprite.h"
+
+NS_DOROTHY_BEGIN
+
+class Grid : public Node
+{
+public:
+	PROPERTY_CREF(Rect, TextureRect);
+	PROPERTY(Texture2D*, Texture);
+	PROPERTY(SpriteEffect*, Effect);
+	PROPERTY_CREF(BlendFunc, BlendFunc);
+	PROPERTY_BOOL(DepthWrite);
+	PROPERTY_READONLY(uint32_t, GridX);
+	PROPERTY_READONLY(uint32_t, GridY);
+	void setPos(uint32_t x, uint32_t y, Vec2 pos);
+	Vec2 getPos(uint32_t x, uint32_t y) const;
+	Color getColor(uint32_t x, uint32_t y) const;
+	void setColor(uint32_t x, uint32_t y, Color color);
+	virtual bool init() override;
+	virtual void render() override;
+	CREATE_FUNC(Grid);
+protected:
+	Grid(const Rect& textureRect, uint32_t gridX, uint32_t gridY);
+	Grid(Texture2D* texture, uint32_t gridX, uint32_t gridY);
+	Grid(Texture2D* texture, const Rect& textureRect, uint32_t gridX, uint32_t gridY);
+private:
+	void setupVertices();
+	void updateUV();
+	uint32_t _gridX;
+	uint32_t _gridY;
+	Rect _textureRect;
+	Ref<SpriteEffect> _effect;
+	BlendFunc _blendFunc;
+	Ref<Texture2D> _texture;
+	std::vector<Vec4> _points;
+	std::vector<SpriteVertex> _vertices;
+	std::vector<SpriteRenderer::IndexType> _indices;
+	enum
+	{
+		VertexPosDirty = Node::UserFlag,
+		DepthWrite = Node::UserFlag << 1,
+	};
+	DORA_TYPE_OVERRIDE(Grid);
+};
+
+NS_DOROTHY_END

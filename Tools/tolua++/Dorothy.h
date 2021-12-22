@@ -391,8 +391,13 @@ class Node : public Object
 		tolua_property__common SpriteEffect* effect;
 		tolua_property__common BlendFunc blendFunc;
 		tolua_property__common Color clearColor;
+		void setPos(uint32_t x, uint32_t y, Vec2 pos);
+		Vec2 getPos(uint32_t x, uint32_t y);
+		Color getColor(uint32_t x, uint32_t y);
+		void setColor(uint32_t x, uint32_t y, Color color);
 	};
 	Grabber* grab(bool enabled = true);
+	Grabber* grab(uint32_t gridX, uint32_t gridY);
 
 	static Node* create();
 };
@@ -408,6 +413,7 @@ struct BlendFunc
 	BlendFunc(BlendFunc other);
 	~BlendFunc();
 	static tolua_outside BlendFunc* BlendFunc_create @ create(String src, String dst);
+	static tolua_outside BlendFunc* BlendFunc_create @ create(String srcColor, String dstColor, String srcAlpha, String dstAlpha);
 	static tolua_outside uint32_t BlendFunc_get @ get(String func);
 	static const BlendFunc Default;
 };
@@ -439,13 +445,30 @@ class Sprite : public Node
 	tolua_property__bool bool depthWrite @ is3D;
 	tolua_property__common float alphaRef;
 	tolua_property__common Rect textureRect;
+	tolua_readonly tolua_property__common Texture2D* texture;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_property__common SpriteEffect* effect;
-	tolua_readonly tolua_property__common Texture2D* texture;
 	static Sprite* create();
 	static Sprite* create(Texture2D* texture, Rect textureRect);
 	static Sprite* create(Texture2D* texture);
 	static tolua_outside Sprite* Sprite_create @ create(String clipStr);
+};
+
+class Grid : public Node
+{
+	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__common BlendFunc blendFunc;
+	tolua_property__common SpriteEffect* effect;
+	tolua_property__common Rect textureRect;
+	tolua_property__common Texture2D* texture;
+	void setPos(uint32_t x, uint32_t y, Vec2 pos);
+	Vec2 getPos(uint32_t x, uint32_t y);
+	Color getColor(uint32_t x, uint32_t y);
+	void setColor(uint32_t x, uint32_t y, Color color);
+	static Grid* create(Rect textureRect, uint32_t gridX, uint32_t gridY);
+	static Grid* create(Texture2D* texture, Rect textureRect, uint32_t gridX, uint32_t gridY);
+	static Grid* create(Texture2D* texture, uint32_t gridX, uint32_t gridY);
+	static tolua_outside Grid* Grid_create @ create(String clipStr, uint32_t gridX, uint32_t gridY);
 };
 
 class Touch : public Object

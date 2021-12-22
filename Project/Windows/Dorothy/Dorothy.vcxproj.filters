@@ -1356,6 +1356,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\ZipUtils.cpp">
       <Filter>3rdParty\Zip</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Grid.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -2798,6 +2801,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\ZipUtils.h">
       <Filter>3rdParty\Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Grid.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

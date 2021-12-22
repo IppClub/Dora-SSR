@@ -86,7 +86,6 @@ public:
 	CREATE_FUNC(Sprite);
 protected:
 	Sprite();
-	Sprite(String filename);
 	Sprite(Texture2D* texture);
 	Sprite(Texture2D* texture, const Rect& textureRect);
 	void updateVertTexCoord();

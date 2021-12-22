@@ -10,7 +10,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Sprite.h"
 #include "Effect/Effect.h"
 #include "Cache/ShaderCache.h"
-#include "Cache/TextureCache.h"
 #include "Basic/Director.h"
 #include "Basic/View.h"
 
@@ -49,10 +48,6 @@ Sprite()
 	_texture = texture;
 	_textureRect = textureRect;
 }
-
-Sprite::Sprite(String filename):
-Sprite(SharedTextureCache.load(filename))
-{ }
 
 Sprite::~Sprite()
 { }
@@ -258,33 +253,27 @@ void Sprite::updateVertTexCoord()
 
 void Sprite::updateVertPosition()
 {
-	if (_texture)
-	{
-		float width = _textureRect.getWidth();
-		float height = _textureRect.getHeight();
-		float left = 0, right = width, top = height, bottom = 0;
-		_quadPos.rb.x = right;
-		_quadPos.rb.y = bottom;
-		_quadPos.lb.x = left;
-		_quadPos.lb.y = bottom;
-		_quadPos.lt.x = left;
-		_quadPos.lt.y = top;
-		_quadPos.rt.x = right;
-		_quadPos.rt.y = top;
-		_flags.setOn(Sprite::VertexPosDirty);
-	}
+	float width = _textureRect.getWidth();
+	float height = _textureRect.getHeight();
+	float left = 0, right = width, top = height, bottom = 0;
+	_quadPos.rb.x = right;
+	_quadPos.rb.y = bottom;
+	_quadPos.lb.x = left;
+	_quadPos.lb.y = bottom;
+	_quadPos.lt.x = left;
+	_quadPos.lt.y = top;
+	_quadPos.rt.x = right;
+	_quadPos.rt.y = top;
+	_flags.setOn(Sprite::VertexPosDirty);
 }
 
 void Sprite::updateVertColor()
 {
-	if (_texture)
-	{
-		uint32_t abgr = _realColor.toABGR();
-		_quad.rb.abgr = abgr;
-		_quad.lb.abgr = abgr;
-		_quad.lt.abgr = abgr;
-		_quad.rt.abgr = abgr;
-	}
+	uint32_t abgr = _realColor.toABGR();
+	_quad.rb.abgr = abgr;
+	_quad.lb.abgr = abgr;
+	_quad.lt.abgr = abgr;
+	_quad.rt.abgr = abgr;
 }
 
 void Sprite::updateRealColor3()
