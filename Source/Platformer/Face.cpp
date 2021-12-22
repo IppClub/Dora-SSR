@@ -91,7 +91,7 @@ Node* Face::toNode() const
 			node = SharedClipCache.loadSprite(_file);
 			break;
 		case Face::Image:
-			node = Sprite::create(_file);
+			node = Sprite::create(SharedTextureCache.load(_file));
 			break;
 		case Face::Particle:
 			node = ParticleNode::create(_file);

@@ -78,6 +78,9 @@ int Sprite_SetVWrap(lua_State* L);
 int Sprite_GetTextureFilter(lua_State* L);
 int Sprite_SetTextureFilter(lua_State* L);
 
+/* Grid */
+Grid* Grid_create(String clipStr, uint32_t gridX, uint32_t gridY);
+
 /* Label */
 Sprite* Label_getCharacter(Label* self, int index);
 int Label_GetTextAlign(lua_State* L);
@@ -96,6 +99,7 @@ Size* Size_create(const Vec2& vec);
 
 /* BlendFunc */
 BlendFunc* BlendFunc_create(String src, String dst);
+BlendFunc* BlendFunc_create(String srcC, String dstC, String srcA, String dstA);
 uint32_t BlendFunc_get(String func);
 
 /* Action */

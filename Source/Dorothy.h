@@ -34,6 +34,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/VGRender.h"
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
+#include "Node/Grid.h"
 #include "Input/TouchDispather.h"
 #include "GUI/ImGuiDora.h"
 #include "Node/Label.h"

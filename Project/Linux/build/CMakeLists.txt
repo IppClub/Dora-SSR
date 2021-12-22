@@ -131,6 +131,7 @@ add_executable(dorothy-ssr
 	../../../Source/Node/Spine.cpp
 	../../../Source/Node/Menu.cpp
 	../../../Source/Node/Sprite.cpp
+	../../../Source/Node/Grid.cpp
 	../../../Source/Node/Node.cpp
 	../../../Source/Node/Label.cpp
 	../../../Source/Node/ClipNode.cpp

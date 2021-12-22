@@ -22,6 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Basic/RenderTarget.h"
 #include "Basic/Camera.h"
+#include "Node/Grid.h"
 
 NS_DOROTHY_BEGIN
 
@@ -1519,10 +1520,21 @@ void Node::convertToWindowSpace(const Vec2& nodePoint, const std::function<void(
 	addChild(ProjectNode::create(nodePoint, callback));
 }
 
-Node::Grabber::Grabber():
+Node::Grabber::Grabber(const Size& size, uint32_t gridX, uint32_t gridY):
 _clearColor(0x0),
-_blendFunc(BlendFunc::Default)
+_blendFunc(BlendFunc::Default),
+_grid(Grid::create(Rect(Vec2::zero, size), gridX, gridY))
 { }
+
+uint32_t Node::Grabber::getGridX() const
+{
+	return _grid->getGridX();
+}
+
+uint32_t Node::Grabber::getGridY() const
+{
+	return _grid->getGridY();
+}
 
 void Node::Grabber::setClearColor(Color var)
 {
@@ -1582,14 +1594,6 @@ void Node::Grabber::grab(Node* target)
 	float height = target->getHeight();
 
 	AssertIf(width <= 0.0f || height <= 0.0f, "can not grab a node with size [{}x{}].", width, height);
-
-	if (_display)
-	{
-		_display->_parent = nullptr;
-		s_cast<Node*>(_display.get())->updateRealColor3();
-		s_cast<Node*>(_display.get())->updateRealOpacity();
-		_display = nullptr;
-	}
 
 	size_t rtCount = 1;
 	if (_effect)
@@ -1656,34 +1660,54 @@ void Node::Grabber::grab(Node* target)
 		}
 	}
 
-	_display = _renderTargets[rtIndex].surface;
-	if (_display->_parent != target)
-	{
-		_display->_parent = target;
-		s_cast<Node*>(_display.get())->updateRealColor3();
-		s_cast<Node*>(_display.get())->updateRealOpacity();
-	}
-	_display->setPosition({width / 2.0f, height / 2.0f});
-	_display->setBlendFunc(_blendFunc);
+	Sprite* display = _renderTargets[rtIndex].surface;
+	_grid->_parent = target;
+	s_cast<Node*>(_grid.get())->updateRealColor3();
+	s_cast<Node*>(_grid.get())->updateRealOpacity();
+	_grid->setTextureRect(display->getTextureRect());
+	_grid->setTexture(display->getTexture());
+	_grid->setPosition({width / 2.0f, height / 2.0f});
+	_grid->setBlendFunc(_blendFunc);
+}
+
+void Node::Grabber::setPos(uint32_t x, uint32_t y, Vec2 pos)
+{
+	_grid->setPos(x, y, pos);
+}
+
+Vec2 Node::Grabber::getPos(uint32_t x, uint32_t y) const
+{
+	return _grid->getPos(x, y);
+}
+
+Color Node::Grabber::getColor(uint32_t x, uint32_t y) const
+{
+	return _grid->getColor(x, y);
+}
+
+void Node::Grabber::setColor(uint32_t x, uint32_t y, Color color)
+{
+	_grid->setColor(x, y, color);
 }
 
 void Node::Grabber::visit()
 {
-	if (_display)
+	if (_grid)
 	{
-		_display->visit();
+		_grid->visit();
 	}
 }
 
 void Node::Grabber::cleanup()
 {
-	if (_display)
-	{
-		_display = nullptr;
-	}
 	if (_effect)
 	{
 		_effect = nullptr;
+	}
+	if (_grid)
+	{
+		_grid->cleanup();
+		_grid = nullptr;
 	}
 	_renderTargets.clear();
 }
@@ -1693,7 +1717,7 @@ Node::Grabber* Node::grab(bool enabled)
 	AssertIf(_size.width <= 0.0f || _size.height <= 0.0f, "can not grab a invalid sized node.");
 	if (enabled)
 	{
-		if (!_grabber) _grabber = Grabber::create();
+		if (!_grabber) _grabber = Grabber::create(_size, 1, 1);
 		return _grabber;
 	}
 	if (_grabber)
@@ -1702,6 +1726,21 @@ Node::Grabber* Node::grab(bool enabled)
 		_grabber = nullptr;
 	}
 	return nullptr;
+}
+
+Node::Grabber* Node::grab(uint32_t gridX, uint32_t gridY)
+{
+	AssertIf(_size.width <= 0.0f || _size.height <= 0.0f, "can not grab a invalid sized node.");
+	if (!_grabber)
+	{
+		_grabber = Grabber::create(_size, gridX, gridY);
+	}
+	else if (_grabber->getGridX() != gridX || _grabber->getGridY() != gridY)
+	{
+		_grabber->cleanup();
+		_grabber = Grabber::create(_size, gridX, gridY);
+	}
+	return _grabber;
 }
 
 /* Slot */

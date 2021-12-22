@@ -1223,6 +1223,7 @@
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DragonBone.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Grid.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Menu.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Model.cpp" />
@@ -1705,6 +1706,7 @@
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DragonBone.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />
+    <ClInclude Include="..\..\..\Source\Node\Grid.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
     <ClInclude Include="..\..\..\Source\Node\Menu.h" />
     <ClInclude Include="..\..\..\Source\Node\Model.h" />
