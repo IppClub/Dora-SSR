@@ -343,7 +343,7 @@ protected:
 		TraverseEnabled = 1 << 16,
 		RenderGrouped = 1 << 17,
 		FixedUpdating = 1 << 18,
-		IgnoreTransform = 1 << 19,
+		IgnoreLocalTransform = 1 << 19,
 		UserFlag = 1 << 20
 	};
 	DORA_TYPE_OVERRIDE(Node);

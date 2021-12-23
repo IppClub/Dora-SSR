@@ -28,6 +28,7 @@ public:
 	void setColor(uint32_t x, uint32_t y, Color color);
 	virtual bool init() override;
 	virtual void render() override;
+	virtual const Matrix& getWorld() override;
 	CREATE_FUNC(Grid);
 protected:
 	Grid(const Rect& textureRect, uint32_t gridX, uint32_t gridY);

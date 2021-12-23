@@ -1237,7 +1237,7 @@ void XmlDelegator::endElement(const char *name)
 			}
 			else
 			{
-				fmt::format_to(std::back_inserter(stream), "{}"sv, codeStr);
+				fmt::format_to(std::back_inserter(elementStack.empty() ? requires : stream), "{}"sv, codeStr);
 			}
 			return;
 		}
@@ -1291,7 +1291,7 @@ void XmlDelegator::endElement(const char *name)
 				}
 				else
 				{
-					fmt::format_to(std::back_inserter(stream), "{}"sv, codeStr);
+					fmt::format_to(std::back_inserter(elementStack.empty() ? requires : stream), "{}"sv, codeStr);
 				}
 			}
 			codes = nullptr;
