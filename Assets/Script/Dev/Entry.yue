@@ -246,9 +246,6 @@ enterDemoEntry = (name)->
 	print debug.traceback msg
 	allClear!
 
-if productionEntry
-	enterDemoEntry productionEntry
-
 showEntry = false
 
 thread ->
@@ -280,6 +277,10 @@ threadLoop ->
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
 		allClear! if ctrl and Keyboard\isKeyDown "Q"
+		if currentEntryName and ctrl and Keyboard\isKeyDown "Z"
+			targetName = currentEntryName
+			allClear!
+			enterDemoEntry targetName
 		if ctrl and Keyboard\isKeyDown ","
 			showFooter = true
 			showStats = not showStats

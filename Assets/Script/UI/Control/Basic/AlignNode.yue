@@ -1,15 +1,18 @@
 _ENV = Dorothy!
 
 export default Class Node,
-	__init:(args)=>
+	__init: (args)=>
 		{
-			:isRoot, :inUI,
-			:hAlign, :vAlign,
-			:alignOffset,
-			:alignWidth, :alignHeight
+			:isRoot = false
+			:inUI = true
+			:hAlign = "Center"
+			:vAlign = "Center"
+			:alignOffset = Vec2.zero
+			:alignWidth
+			:alignHeight
 		} = args or {}
-		@inUI = inUI or true
-		@_isRoot = isRoot or false
+		@inUI = inUI
+		@_isRoot = isRoot
 		if @_isRoot
 			viewSize = View.size
 			@size = viewSize
@@ -27,9 +30,9 @@ export default Class Node,
 				@eachChild (child)->
 					child\emit "AlignLayout", viewSize.width, viewSize.height
 		else
-			@hAlign = hAlign or "Center"
-			@vAlign = vAlign or "Center"
-			@alignOffset = alignOffset or Vec2.zero
+			@hAlign = hAlign
+			@vAlign = vAlign
+			@alignOffset = alignOffset
 			@alignWidth = alignWidth
 			@alignHeight = alignHeight
 			@slot "AlignLayout", (w, h)->

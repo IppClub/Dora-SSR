@@ -18,7 +18,7 @@ Grid(nullptr, textureRect, gridX, gridY)
 { }
 
 Grid::Grid(Texture2D* texture, uint32_t gridX, uint32_t gridY):
-Grid(texture, Rect(0, 0, texture->getWidth(), texture->getHeight()), gridX, gridY)
+Grid(texture, Rect(0, 0, s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())), gridX, gridY)
 { }
 
 Grid::Grid(Texture2D* texture, const Rect& textureRect, uint32_t gridX, uint32_t gridY):
@@ -191,6 +191,15 @@ void Grid::updateUV()
 			_vertices[index].v = v;
 		}
 	}
+}
+
+const Matrix& Grid::getWorld()
+{
+	if (_flags.isOn(Node::WorldDirty))
+	{
+		_flags.setOn(Grid::VertexPosDirty);
+	}
+	return Node::getWorld();
 }
 
 void Grid::render()

@@ -1009,9 +1009,9 @@ const Matrix& Node::getWorld()
 		{
 			parentWorld = &_parent->getWorld();
 		}
-		if (_flags.isOn(Node::IgnoreTransform))
+		if (_flags.isOn(Node::IgnoreLocalTransform))
 		{
-			bx::mtxMul(_world, Matrix::Indentity, *parentWorld);
+			_world = *parentWorld;
 		}
 		else
 		{
@@ -1633,11 +1633,11 @@ void Node::Grabber::grab(Node* target)
 	}
 
 	target->markDirty();
-	target->_flags.setOn(Node::IgnoreTransform);
+	target->_flags.setOn(Node::IgnoreLocalTransform);
 	_renderTargets[0].rt->setCamera(_camera);
 	_renderTargets[0].rt->renderWithClear(target, _clearColor);
 	_renderTargets[0].rt->setCamera(nullptr);
-	target->_flags.setOff(Node::IgnoreTransform);
+	target->_flags.setOff(Node::IgnoreLocalTransform);
 	target->markDirty();
 
 	size_t rtIndex = 0;
@@ -1662,6 +1662,8 @@ void Node::Grabber::grab(Node* target)
 
 	Sprite* display = _renderTargets[rtIndex].surface;
 	_grid->_parent = target;
+	_grid->setTransformTarget(target);
+	_grid->markDirty();
 	s_cast<Node*>(_grid.get())->updateRealColor3();
 	s_cast<Node*>(_grid.get())->updateRealOpacity();
 	_grid->setTextureRect(display->getTextureRect());
@@ -1694,7 +1696,7 @@ void Node::Grabber::visit()
 {
 	if (_grid)
 	{
-		_grid->visit();
+		_grid->visitInner();
 	}
 }
 

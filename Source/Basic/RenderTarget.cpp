@@ -100,6 +100,7 @@ bool RenderTarget::init()
 
 void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float depth, uint8_t stencil)
 {
+	SharedRendererManager.flush();
 	SharedView.pushName("RenderTarget"_slice, [&]()
 	{
 		bgfx::ViewId viewId = SharedView.getId();
