@@ -1590,8 +1590,8 @@ Node::Grabber::RenderPair Node::Grabber::newRenderPair(float width, float height
 
 void Node::Grabber::grab(Node* target)
 {
-	float width = target->getWidth();
-	float height = target->getHeight();
+	float width = std::floor(target->getWidth()); // init RT with integer size
+	float height = std::floor(target->getHeight());
 
 	AssertIf(width <= 0.0f || height <= 0.0f, "can not grab a node with size [{}x{}].", width, height);
 
@@ -1666,6 +1666,7 @@ void Node::Grabber::grab(Node* target)
 	_grid->markDirty();
 	s_cast<Node*>(_grid.get())->updateRealColor3();
 	s_cast<Node*>(_grid.get())->updateRealOpacity();
+	_grid->setEffect(display->getEffect());
 	_grid->setTextureRect(display->getTextureRect());
 	_grid->setTexture(display->getTexture());
 	_grid->setPosition({width / 2.0f, height / 2.0f});
