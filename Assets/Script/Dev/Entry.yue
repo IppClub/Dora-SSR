@@ -372,6 +372,7 @@ threadLoop ->
 				SetNextWindowPos Vec2(width - 400, height - 365), "FirstUseEver"
 				ShowConsole!
 
+cyan = Color 0xff00ffff
 threadLoop ->
 	return unless showEntry
 	return unless isInEntry
@@ -382,27 +383,27 @@ threadLoop ->
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dorothy Dev", windowFlags, ->
 			Dummy Vec2 width, 5
-			TextColored Color(0xff00ffff), "DOROTHY SSR DEV"
+			TextColored cyan, "DOROTHY SSR DEV"
 			Separator!
 	SetNextWindowPos Vec2 0, 45
 	SetNextWindowSize Vec2 width, height - 95
 	PushStyleColor "WindowBg", Color(0x0), ->
 		Begin "Content", windowFlags, ->
-			TextColored Color(0xff00ffff), "Game Demos"
+			TextColored cyan, "Game Demos"
 			Columns math.max(math.floor(width / 200), 1), false
 			for game in *games
 				if Button game, Vec2 -1, 40
 					enterDemoEntry Path "Game", game, "init"
 				NextColumn!
 			Columns 1, false
-			TextColored Color(0xff00ffff), "Examples"
+			TextColored cyan, "Examples"
 			Columns math.max(math.floor(width / 200), 1), false
 			for example in *examples
 				if Button example, Vec2 -1, 40
 					enterDemoEntry Path "Example", example
 				NextColumn!
 			Columns 1, false
-			TextColored Color(0xff00ffff), "Tests"
+			TextColored cyan, "Tests"
 			Columns math.max(math.floor(width / 200), 1), false
 			for test in *tests
 				if Button test, Vec2 -1, 40
@@ -410,7 +411,7 @@ threadLoop ->
 				NextColumn!
 			if productionEntry
 				Columns 1, false
-				TextColored Color(0xff00ffff), "Product"
+				TextColored cyan, "Product"
 				Columns math.max(math.floor(width / 200), 1), false
 				if Button "Enter", Vec2 -1, 40
 					enterDemoEntry productionEntry

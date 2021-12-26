@@ -198,7 +198,7 @@ QStringList oDorothyTag::getSubElements(const QString& elementName)
 		it = _elements.find("Node");
 		if (it != _elements.end())
         {
-            return QStringList(it.value()->subElements) << "Item";
+            return QStringList(it.value()->subElements);
 		}
 	}
 	return QStringList();

@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 #include "Support/Value.h"
-#include "bgfx/bgfx.h"
+#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
 
@@ -25,6 +25,7 @@ public:
 	void set(String name, float var);
 	void set(String name, float var1, float var2, float var3, float var4);
 	void set(String name, const Vec4& var);
+	void set(String name, Color var);
 	void set(String name, const Matrix& var);
 	Value* get(String name) const;
 	bgfx::ProgramHandle apply();

@@ -136,6 +136,11 @@ void Pass::set(String name, const Vec4& var)
 	}
 }
 
+void Pass::set(String name, Color var)
+{
+	set(name, var.toVec4());
+}
+
 void Pass::set(String name, const Matrix& var)
 {
 	std::string uname(name);

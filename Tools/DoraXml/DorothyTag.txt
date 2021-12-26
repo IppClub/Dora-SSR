@@ -37,7 +37,7 @@ Slot
         Loop:Boolean
 Item
 	Base:No
-	Parent:No
+        Parent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item
 	Name
 Vec2
 	Base:No
