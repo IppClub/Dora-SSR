@@ -3,6 +3,7 @@
 
 #include "oDefine.h"
 #include <QMainWindow>
+#include "oCommandDialog.h"
 
 namespace Ui {
 class oMainWindow;
@@ -25,7 +26,10 @@ private slots:
 	void openFileEvent();
 	void fontSettingEvent();
     void colorPickerEvent();
+    void commandSettingEvent();
 	void saveCurrentTab();
+    void saveRunCommand();
+    void runCommand();
 	void tabChanged(oEditor* editor, bool modified);
 	void tabCloseEvent(int index);
 	void closeModifiedTabEvent(QAbstractButton* button);
@@ -33,8 +37,11 @@ private slots:
 private:
     int _closingTabIndex;
     QFont _defaultFont;
+    QString _runCommand;
     unsigned int _colorPickerOptions;
     Ui::oMainWindow *ui;
+    oCommandDialog _commandDialog;
+    QProcess _process;
 };
 
 #endif // OMAINWINDOW_H

@@ -84,6 +84,7 @@
      <string>Setting</string>
     </property>
     <addaction name="actionFont"/>
+    <addaction name="actionRun_Command"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -91,9 +92,16 @@
     </property>
     <addaction name="actionColorPicker"/>
    </widget>
+   <widget class="QMenu" name="menuBuild">
+    <property name="title">
+     <string>Build</string>
+    </property>
+    <addaction name="actionRun"/>
+   </widget>
    <addaction name="menu"/>
    <addaction name="menuTools"/>
    <addaction name="menuSetting"/>
+   <addaction name="menuBuild"/>
   </widget>
   <action name="action_New">
    <property name="text">
@@ -146,6 +154,19 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="text">
+    <string>Run</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionRun_Command">
+   <property name="text">
+    <string>Command</string>
    </property>
   </action>
  </widget>

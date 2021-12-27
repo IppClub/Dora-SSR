@@ -39,6 +39,34 @@ Item
 	Base:No
         Parent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item
 	Name
+        Width
+        Height
+        X
+        Y
+        Z
+        AnchorX
+        AnchorY
+        PassColor:Boolean
+        PassOpacity:Boolean
+        Color3
+        Opacity
+        Angle
+        AngleX
+        AngleY
+        ScaleX
+        ScaleY
+        SkewX
+        SkewY
+        Order
+        Tag
+        TransformTarget
+        Visible:Boolean
+        TouchEnabled:Boolean
+        SwallowTouches:Boolean
+        SwallowMouseWheel:Boolean
+        RenderGroup:Boolean
+        RenderOrder
+        Ref:Boolean
 Vec2
 	Base:No
 	Parent:Polygon,Line
