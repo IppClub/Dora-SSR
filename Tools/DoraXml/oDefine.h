@@ -11,5 +11,7 @@ using std::unordered_map;
 #include <string>
 using std::string;
 
+#define SETTING_NAMES "DorothySSR","DoraXml"
+
 #endif // ODEFINE_H
 

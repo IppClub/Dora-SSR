@@ -709,16 +709,113 @@ static const char* _toBoolean(const char* str)
 
 // Item
 #define NodeItem_Define \
-	const char* name = nullptr;
+	bool ref = false;\
+	const char* self = nullptr;\
+	const char* width = nullptr;\
+	const char* height = nullptr;\
+	const char* x = nullptr;\
+	const char* y = nullptr;\
+	const char* z = nullptr;\
+	const char* anchorX = nullptr;\
+	const char* anchorY = nullptr;\
+	const char* passColor = nullptr;\
+	const char* passOpacity = nullptr;\
+	const char* color3 = nullptr;\
+	const char* opacity = nullptr;\
+	const char* angle = nullptr;\
+	const char* angleX = nullptr;\
+	const char* angleY = nullptr;\
+	const char* scaleX = nullptr;\
+	const char* scaleY = nullptr;\
+	const char* skewX = nullptr;\
+	const char* skewY = nullptr;\
+	const char* order = nullptr;\
+	const char* tag = nullptr;\
+	const char* transformTarget = nullptr;\
+	const char* visible = nullptr;\
+	const char* touchEnabled = nullptr;\
+	const char* swallowTouches = nullptr;\
+	const char* swallowMouseWheel = nullptr;\
+	const char* renderGroup = nullptr;\
+	const char* renderOrder = nullptr;
 #define NodeItem_Check \
-	CASE_STR(Name) { name = atts[++i]; break; }
+	CASE_STR(Ref) { ref = strcmp(atts[++i],"True") == 0; break; }\
+	CASE_STR(Name) { self = atts[++i]; break; }\
+	CASE_STR(Width) { width = atts[++i]; break; }\
+	CASE_STR(Height) { height = atts[++i]; break; }\
+	CASE_STR(X) { x = atts[++i]; break; }\
+	CASE_STR(Y) { y = atts[++i]; break; }\
+	CASE_STR(Z) { z = atts[++i]; break; }\
+	CASE_STR(AnchorX) { anchorX = atts[++i]; break; }\
+	CASE_STR(AnchorY) { anchorY = atts[++i]; break; }\
+	CASE_STR(PassColor) { passColor = atts[++i]; break; }\
+	CASE_STR(PassOpacity) { passOpacity = atts[++i]; break; }\
+	CASE_STR(Color3) { color3 = atts[++i]; break; }\
+	CASE_STR(Opacity) { opacity = atts[++i]; break; }\
+	CASE_STR(Angle) { angle = atts[++i]; break; }\
+	CASE_STR(AngleX) { angleX = atts[++i]; break; }\
+	CASE_STR(AngleY) { angleY = atts[++i]; break; }\
+	CASE_STR(ScaleX) { scaleX = atts[++i]; break; }\
+	CASE_STR(ScaleY) { scaleY = atts[++i]; break; }\
+	CASE_STR(SkewX) { skewX = atts[++i]; break; }\
+	CASE_STR(SkewY) { skewY = atts[++i]; break; }\
+	CASE_STR(Order) { order = atts[++i]; break; }\
+	CASE_STR(Tag) { tag = atts[++i]; break; }\
+	CASE_STR(TransformTarget) { transformTarget = atts[++i]; break; }\
+	CASE_STR(Visible) { visible = atts[++i]; break; }\
+	CASE_STR(TouchEnabled) { touchEnabled = atts[++i]; break; }\
+	CASE_STR(SwallowTouches) { swallowTouches = atts[++i]; break; }\
+	CASE_STR(SwallowMouseWheel) { swallowMouseWheel = atts[++i]; break; }\
+	CASE_STR(RenderGroup) { renderGroup = atts[++i]; break; }\
+	CASE_STR(RenderOrder) { renderOrder = atts[++i]; break; }
 #define NodeItem_Create \
-	fmt::format_to(std::back_inserter(stream), "local {} = {}.{}{}"sv, Val(name), elementStack.top().name, Val(name), nl());\
-	if (name && name[0])\
+	if (tag)\
 	{\
-		oItem item = { "Item", name };\
+		if (!self) self = tag;\
+		fmt::format_to(std::back_inserter(stream), "local {} = {}:getChildByTag(\"{}\"){}"sv, Val(self), elementStack.top().name, Val(tag), nl());\
+	}\
+	else\
+	{\
+		fmt::format_to(std::back_inserter(stream), "local {} = {}.{}{}"sv, Val(self), elementStack.top().name, Val(self), nl());\
+	}\
+	if (self && self[0])\
+	{\
+		if (ref)\
+		{\
+			fmt::format_to(std::back_inserter(stream), "{}.{} = {}{}"sv, firstItem, self, self, nl());\
+		}\
+		oItem item = { "Item", self };\
 		elementStack.push(item);\
 	}
+#define NodeItem_Handle \
+	if (anchorX && anchorY) fmt::format_to(std::back_inserter(stream), "{}.anchor = Vec2({},{}){}"sv, self, Val(anchorX), Val(anchorY), nl());\
+	else if (anchorX && !anchorY) fmt::format_to(std::back_inserter(stream), "{}.anchor = Vec2({},{}.anchor.y){}"sv, self, Val(anchorX), self, nl());\
+	else if (!anchorX && anchorY) fmt::format_to(std::back_inserter(stream), "{}.anchor = Vec2({}.anchor.x,{}){}"sv, self, self, Val(anchorY), nl());\
+	if (x) fmt::format_to(std::back_inserter(stream), "{}.x = {}{}"sv, self, Val(x), nl());\
+	if (y) fmt::format_to(std::back_inserter(stream), "{}.y = {}{}"sv, self, Val(y), nl());\
+	if (z) fmt::format_to(std::back_inserter(stream), "{}.z = {}{}"sv, self, Val(z), nl());\
+	if (passColor) fmt::format_to(std::back_inserter(stream), "{}.passColor = {}{}"sv, self, toBoolean(passColor), nl());\
+	if (passOpacity) fmt::format_to(std::back_inserter(stream), "{}.passOpacity = {}{}"sv, self, toBoolean(passOpacity), nl());\
+	if (color3) fmt::format_to(std::back_inserter(stream), "{}.color3 = Color3({}){}"sv, self, Val(color3), nl());\
+	if (opacity) fmt::format_to(std::back_inserter(stream), "{}.opacity = {}{}"sv, self, Val(opacity), nl());\
+	if (angle) fmt::format_to(std::back_inserter(stream), "{}.angle = {}{}"sv, self, Val(angle), nl());\
+	if (angleX) fmt::format_to(std::back_inserter(stream), "{}.angleX = {}{}"sv, self, Val(angleX), nl());\
+	if (angleY) fmt::format_to(std::back_inserter(stream), "{}.angleY = {}{}"sv, self, Val(angleY), nl());\
+	if (scaleX) fmt::format_to(std::back_inserter(stream), "{}.scaleX = {}{}"sv, self, Val(scaleX), nl());\
+	if (scaleY) fmt::format_to(std::back_inserter(stream), "{}.scaleY = {}{}"sv, self, Val(scaleY), nl());\
+	if (skewX) fmt::format_to(std::back_inserter(stream), "{}.skewX = {}{}"sv, self, Val(skewX), nl());\
+	if (skewY) fmt::format_to(std::back_inserter(stream), "{}.skewY = {}{}"sv, self, Val(skewY), nl());\
+	if (transformTarget) fmt::format_to(std::back_inserter(stream), "{}.transformTarget = {}{}"sv, self, Val(transformTarget), nl());\
+	if (visible) fmt::format_to(std::back_inserter(stream), "{}.visible = {}{}"sv, self, toBoolean(visible), nl());\
+	if (order) fmt::format_to(std::back_inserter(stream), "{}.order = {}{}"sv, self, Val(order), nl());\
+	if (width && height) fmt::format_to(std::back_inserter(stream), "{}.size = Size({},{}){}"sv, self, Val(width), Val(height), nl());\
+	else if (width && !height) fmt::format_to(std::back_inserter(stream), "{}.width = {}{}"sv, self, Val(width), nl());\
+	else if (!width && height) fmt::format_to(std::back_inserter(stream), "{}.height = {}{}"sv, self, Val(height), nl());\
+	if (touchEnabled) fmt::format_to(std::back_inserter(stream), "{}.touchEnabled = {}{}"sv, self, toBoolean(touchEnabled), nl());\
+	if (swallowTouches) fmt::format_to(std::back_inserter(stream), "{}.swallowTouches = {}{}"sv, self, toBoolean(swallowTouches), nl());\
+	if (swallowMouseWheel) fmt::format_to(std::back_inserter(stream), "{}.swallowMouseWheel = {}{}"sv, self, toBoolean(swallowMouseWheel), nl());\
+	if (renderGroup) fmt::format_to(std::back_inserter(stream), "{}.renderGroup = {}{}"sv, self, toBoolean(renderGroup), nl());\
+	if (renderOrder) fmt::format_to(std::back_inserter(stream), "{}.renderOrder = {}{}"sv, self, Val(renderOrder), nl());
 
 // Slot
 #define Slot_Define \
@@ -1178,6 +1275,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 			Item_Define(NodeItem)
 			Item_Loop(NodeItem)
 			Item_Create(NodeItem)
+			Item_Handle(NodeItem)
 			break;
 		}
 		CASE_STR(Slot)

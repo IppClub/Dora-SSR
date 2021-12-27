@@ -12,6 +12,7 @@ TARGET = DoraXml
 TEMPLATE = app
 
 SOURCES += main.cpp\
+    oCommandDialog.cpp \
     oSyntaxHighlighter.cpp \
     oEditor.cpp \
     oNumberBar.cpp \
@@ -21,6 +22,7 @@ SOURCES += main.cpp\
     oMainWindow.cpp
 
 HEADERS  += \
+    oCommandDialog.h \
     oEditor.h \
     oSyntaxHighlighter.h \
     oNumberBar.h \
@@ -54,4 +56,5 @@ RESOURCES += \
 DISTFILES +=
 
 FORMS += \
+    oCommandDialog.ui \
     oMainWindow.ui

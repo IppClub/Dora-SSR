@@ -5,12 +5,11 @@
 #include "oXmlResolver.h"
 #include "oSyntaxHighlighter.h"
 
-#define SETTING_NAMES "DorothySSR","DoraXml"
-
 oMainWindow::oMainWindow(QWidget *parent)
 : QMainWindow(parent)
 , _closingTabIndex(-1)
 , ui(new Ui::oMainWindow)
+, _process(this)
 {
     ui->setupUi(this);
     QObject::connect(ui->action_Open,SIGNAL(triggered()),this,SLOT(openFileEvent()));
@@ -20,11 +19,16 @@ oMainWindow::oMainWindow(QWidget *parent)
 	QObject::connect(ui->action_New,SIGNAL(triggered()),this,SLOT(newFileEvent()));
 	QObject::connect(ui->actionFont,SIGNAL(triggered()),this,SLOT(fontSettingEvent()));
     QObject::connect(ui->actionColorPicker,SIGNAL(triggered()),this,SLOT(colorPickerEvent()));
+    QObject::connect(ui->actionRun_Command,SIGNAL(triggered()),this,SLOT(commandSettingEvent()));
+    QObject::connect(ui->actionRun,SIGNAL(triggered()),this,SLOT(runCommand()));
+
     QObject::connect(ui->tabWidget,SIGNAL(tabCloseRequested(int)),this,SLOT(tabCloseEvent(int)));
+    QObject::connect(&_commandDialog,SIGNAL(accepted()),this,SLOT(saveRunCommand()));
 
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, SETTING_NAMES);
 
 	_defaultFont = settings.value("Font",_defaultFont).value<QFont>();
+    _runCommand = settings.value("RunCommand", "").value<QString>();
 
 	QString pathStr = settings.value("LastOpened").toString();
 	if (!pathStr.isEmpty())
@@ -251,4 +255,25 @@ void oMainWindow::closeEvent(QCloseEvent* event)
 		paths += (tabBar->tabToolTip(i) + ";");
 	}
 	settings.setValue("LastOpened", paths);
+}
+
+void oMainWindow::commandSettingEvent()
+{
+    _commandDialog.setCommand(_runCommand);
+    _commandDialog.show();
+}
+
+void oMainWindow::saveRunCommand()
+{
+    _runCommand = _commandDialog.command();
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, SETTING_NAMES);
+    settings.setValue("RunCommand", _runCommand);
+}
+
+void oMainWindow::runCommand()
+{
+    if (_runCommand.length() > 0)
+    {
+        _process.start(_runCommand);
+    }
 }
