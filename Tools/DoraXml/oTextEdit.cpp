@@ -271,15 +271,77 @@ void oTextEdit::keyPressEvent(QKeyEvent* e)
 		{
 			case Qt::Key_Enter:
 			case Qt::Key_Return:
-			case Qt::Key_Escape:
-			case Qt::Key_Tab:
-			//case Qt::Key_Backtab:
-				e->ignore();
+            case Qt::Key_Escape:
+            case Qt::Key_Tab:
+                e->ignore();
 				return; // let the _completer do default behavior
 			default:
 				break;
 		}
 	}
+    else
+    {
+        switch (e->key())
+        {
+            case Qt::Key_Tab:
+            {
+                QTextCursor cursor = textCursor();
+                if (!cursor.hasSelection()) break;
+                int start = cursor.selectionStart();
+                int end = cursor.selectionEnd();
+                if (start > end) std::swap(start, end);
+                cursor.setPosition(end);
+                cursor.setPosition(start, QTextCursor::KeepAnchor);
+                cursor.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
+                QString text = cursor.selectedText();
+                QStringList lines = text.split(QChar(8233));
+                for (QString& line : lines)
+                {
+                    line.insert(0, "\t");
+                }
+                QString inserted = lines.join(QChar(8233));
+                cursor.insertText(inserted);
+                cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, inserted.size());
+                setTextCursor(cursor);
+                return;
+            }
+            case Qt::Key_Backtab:
+            {
+                QTextCursor cursor = textCursor();
+                if (!cursor.hasSelection()) break;
+                int start = cursor.selectionStart();
+                int end = cursor.selectionEnd();
+                if (start > end) std::swap(start, end);
+                cursor.setPosition(end);
+                cursor.setPosition(start, QTextCursor::KeepAnchor);
+                cursor.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
+                QString text = cursor.selectedText();
+                QStringList lines = text.split(QChar(8233));
+                for (QString& line : lines)
+                {
+                    qsizetype start = line.indexOf(QRegularExpression("[^ \t]"));
+                    QString whitespace;
+                    QString rest;
+                    if (start > 0)
+                    {
+                        whitespace = line.sliced(0, start);
+                        rest = line.sliced(start);
+                    }
+                    else whitespace = line;
+                    whitespace.replace("   ", "\t");
+                    if (whitespace.size() > 0 && whitespace.at(0) == '\t') whitespace.remove(0, 1);
+                    line = whitespace + rest;
+                }
+                QString inserted = lines.join(QChar(8233));
+                cursor.insertText(inserted);
+                cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, inserted.size());
+                setTextCursor(cursor);
+                return;
+            }
+            default:
+                break;
+        }
+    }
 
 	bool isShortcut = ((e->modifiers() & Qt::ControlModifier) && e->key() == Qt::Key_E); // CTRL+E
 	if (!_completer || !isShortcut) // do not process the shortcut when we have a completer
@@ -303,7 +365,7 @@ void oTextEdit::keyPressEvent(QKeyEvent* e)
 		else if (completionPrefix.at(0) == '>' ||
 			completionPrefix.at(0) == '/' ||
 			completionPrefix.at(0) == '\"')
-		{
+        {
 			QTextCursor cursor = textCursor();
 			cursor.setPosition(std::max(cursor.position()-1, 0));
 			cursor.select(QTextCursor::WordUnderCursor);

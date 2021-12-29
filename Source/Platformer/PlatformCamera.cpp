@@ -25,6 +25,7 @@ _viewSize()
 
 void PlatformCamera::setPosition(const Vec2& position)
 {
+	_camPos = position;
 	Vec2 newPos = position;
 	Vec2 pos = _position;
 	if (_boundary != Rect::zero)
@@ -60,8 +61,12 @@ float PlatformCamera::getRotation() const
 
 void PlatformCamera::setZoom(float var)
 {
+	auto pos = _camPos;
+	setPosition(Vec2::zero);
+	_viewSize = SharedView.getSize();
+	reset();
 	_zoom = var;
-	setPosition(_position);
+	setPosition(pos);
 }
 
 float PlatformCamera::getZoom() const
@@ -85,7 +90,7 @@ void PlatformCamera::updateView()
 {
 	if (SharedView.getSize() != _viewSize)
 	{
-		auto pos = _position;
+		auto pos = _camPos;
 		setPosition(Vec2::zero);
 		_viewSize = SharedView.getSize();
 		reset();

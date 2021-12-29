@@ -9,7 +9,7 @@ _filePath(filePath)
 {
 	_view = new oTextEdit(QFont(), this);
     _view->setAcceptRichText(false);
-    _view->setTabStopDistance(fontMetrics().boundingRect(QString("0000")).width());
+    _view->setTabStopDistance(fontMetrics().boundingRect(QString("000")).width());
     _view->setLineWrapMode(QTextEdit::WidgetWidth);
     _view->setFrameStyle(QFrame::NoFrame);
 

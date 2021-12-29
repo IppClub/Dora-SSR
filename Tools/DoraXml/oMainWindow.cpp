@@ -274,6 +274,17 @@ void oMainWindow::runCommand()
 {
     if (_runCommand.length() > 0)
     {
+        QTabBar* tabBar = ui->tabWidget->tabBar();
+        for (int i = 0;i < tabBar->count();i++)
+        {
+            oEditor* editor = static_cast<oEditor*>(ui->tabWidget->widget(i));
+            editor->save();
+        }
         _process.start(_runCommand);
+    }
+    else
+    {
+        _commandDialog.setCommand(_runCommand);
+        _commandDialog.show();
     }
 }

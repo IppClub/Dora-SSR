@@ -304,7 +304,7 @@ namespace bx
 	///
 	BX_CONSTEXPR_FUNC float fract(float _a);
 
-	/// Returns result of negated multiply-sub operation -(_a * _b - _c).
+	/// Returns result of negated multiply-sub operation -(_a * _b - _c) -> _c - _a * _b.
 	///
 	BX_CONSTEXPR_FUNC float nms(float _a, float _b, float _c);
 
@@ -333,10 +333,10 @@ namespace bx
 	BX_CONST_FUNC float mod(float _a, float _b);
 
 	///
-	BX_CONSTEXPR_FUNC bool equal(float _a, float _b, float _epsilon);
+	BX_CONSTEXPR_FUNC bool isEqual(float _a, float _b, float _epsilon);
 
 	///
-	BX_CONST_FUNC bool equal(const float* _a, const float* _b, uint32_t _num, float _epsilon);
+	BX_CONST_FUNC bool isEqual(const float* _a, const float* _b, uint32_t _num, float _epsilon);
 
 	///
 	BX_CONST_FUNC float wrap(float _a, float _wrap);
@@ -407,6 +407,14 @@ namespace bx
 	///
 	BX_CONSTEXPR_FUNC Vec3 div(const Vec3 _a, float _b);
 
+	/// Returns result of negated multiply-sub operation -(_a * _b - _c) -> _c - _a * _b.
+	///
+	BX_CONSTEXPR_FUNC Vec3 nms(const Vec3 _a, const float _b, const Vec3 _c);
+
+	/// Returns result of negated multiply-sub operation -(_a * _b - _c) -> _c - _a * _b.
+	///
+	BX_CONSTEXPR_FUNC Vec3 nms(const Vec3 _a, const Vec3 _b, const Vec3 _c);
+
 	///
 	BX_CONSTEXPR_FUNC Vec3 mad(const Vec3 _a, const float _b, const Vec3 _c);
 
@@ -446,6 +454,9 @@ namespace bx
 	/// Returns component wise reciprocal of _a.
 	///
 	BX_CONSTEXPR_FUNC Vec3 rcp(const Vec3 _a);
+
+	///
+	BX_CONSTEXPR_FUNC bool isEqual(const Vec3 _a, const Vec3 _b, float _epsilon);
 
 	///
 	void calcTangentFrame(Vec3& _outT, Vec3& _outB, const Vec3 _n);
@@ -490,10 +501,25 @@ namespace bx
 	BX_CONSTEXPR_FUNC Quaternion lerp(const Quaternion _a, const Quaternion _b, float _t);
 
 	///
+	BX_CONST_FUNC Quaternion fromEuler(const Vec3 _euler);
+
+	///
 	BX_CONST_FUNC Vec3 toEuler(const Quaternion _a);
 
 	///
-	BX_CONST_FUNC Quaternion rotateAxis(const Vec3 _axis, float _angle);
+	BX_CONST_FUNC Vec3 toXAxis(const Quaternion _a);
+
+	///
+	BX_CONST_FUNC Vec3 toYAxis(const Quaternion _a);
+
+	///
+	BX_CONST_FUNC Vec3 toZAxis(const Quaternion _a);
+
+	///
+	BX_CONST_FUNC Quaternion fromAxisAngle(const Vec3 _axis, float _angle);
+
+	///
+	void toAxisAngle(Vec3& _outAxis, float& _outAngle, const Quaternion _a);
 
 	///
 	BX_CONST_FUNC Quaternion rotateX(float _ax);
@@ -503,6 +529,9 @@ namespace bx
 
 	///
 	BX_CONST_FUNC Quaternion rotateZ(float _az);
+
+	///
+	BX_CONSTEXPR_FUNC bool isEqual(const Quaternion _a, const Quaternion _b, float _epsilon);
 
 	///
 	void mtxIdentity(float* _result);
@@ -534,13 +563,10 @@ namespace bx
 		);
 
 	///
-	void mtxQuat(float* _result, const Quaternion& _quat);
+	void mtxFromQuaternion(float* _result, const Quaternion& _rotation);
 
 	///
-	void mtxQuatTranslation(float* _result, const Quaternion& _quat, const Vec3& _translation);
-
-	///
-	void mtxQuatTranslationHMD(float* _result, const Quaternion& _quat, const Vec3& _translation);
+	void mtxFromQuaternion(float* _result, const Quaternion& _rotation, const Vec3& _translation);
 
 	///
 	void mtxLookAt(
@@ -705,7 +731,10 @@ namespace bx
 	void calcPlane(Plane& _outPlane, const Vec3& _normal, const Vec3& _pos);
 
 	///
-	float distance(const Plane& _plane, const Vec3& _pos);
+	BX_CONSTEXPR_FUNC float distance(const Plane& _plane, const Vec3& _pos);
+
+	///
+	BX_CONSTEXPR_FUNC bool isEqual(const Plane& _a, const Plane& _b, float _epsilon);
 
 	///
 	void calcLinearFit2D(float _result[2], const void* _points, uint32_t _stride, uint32_t _numPoints);
