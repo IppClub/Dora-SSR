@@ -17,18 +17,22 @@ export default Class Node,
 			viewSize = View.size
 			@size = viewSize
 			@_viewSize = viewSize
-			@position = Vec2(0.5,0.5) * viewSize if @inUI
+			@position = Vec2(0.5, 0.5) * viewSize if @inUI
 			@gslot "AppSizeChanged", ->
 				viewSize = View.size
 				if @_viewSize ~= viewSize
 					@_viewSize = viewSize
 					@size = viewSize
-					@position = Vec2(0.5,0.5) * viewSize if @inUI
+					@position = Vec2(0.5, 0.5) * viewSize if @inUI
+					:width, :height = viewSize
+					@emit "AlignLayout", width, height
 					@eachChild (child)->
-						child\emit "AlignLayout", viewSize.width, viewSize.height
+						child\emit "AlignLayout", width, height
 			@slot "Enter", ->
+				:width, :height = View.size
+				@emit "AlignLayout", width, height
 				@eachChild (child)->
-					child\emit "AlignLayout", viewSize.width, viewSize.height
+					child\emit "AlignLayout", width, height
 		else
 			@hAlign = hAlign
 			@vAlign = vAlign
@@ -45,24 +49,26 @@ export default Class Node,
 					heightFunc = load "_ENV = Dorothy(...)\nreturn #{@alignHeight}"
 					@height = heightFunc env
 				@x = switch @hAlign
-					when "Left" then @width/2 + @alignOffset.x
-					when "Center" then w/2 + @alignOffset.x
-					when "Right" then w - @width/2 - @alignOffset.x
+					when "Left" then @width / 2 + @alignOffset.x
+					when "Center" then w / 2 + @alignOffset.x
+					when "Right" then w - @width / 2 - @alignOffset.x
 				@y = switch @vAlign
-					when "Bottom" then @height/2 + @alignOffset.y
-					when "Center" then h/2 + @alignOffset.y
-					when "Top" then h - @height/2 - @alignOffset.y
+					when "Bottom" then @height / 2 + @alignOffset.y
+					when "Center" then h / 2 + @alignOffset.y
+					when "Top" then h - @height / 2 - @alignOffset.y
 				newSize = @size
 				if oldSize ~= newSize
+					:width, :height = newSize
 					@eachChild (child)->
-						child\emit "AlignLayout", newSize.width, newSize.height
+						child\emit "AlignLayout", width, height
 
 	alignLayout:=>
 		if @_isRoot
-			viewSize = View.size
+			:width, :height = View.size
+			@emit "AlignLayout", width, height
 			@eachChild (child)->
-				child\emit "AlignLayout", viewSize.width, viewSize.height
+				child\emit "AlignLayout", width, height
 		else
-			size = @size
+			:width, :height = @size
 			@eachChild (child)->
-				child\emit "AlignLayout", size.width, size.height
+				child\emit "AlignLayout", width, height

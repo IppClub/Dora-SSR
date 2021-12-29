@@ -330,6 +330,12 @@ void Director::doRender()
 				grabber->setEffect(SharedView.getPostEffect());
 				grabber->setCamera(getCurrentCamera());
 				grabber->setClearColor(_clearColor);
+				float w = viewSize.width / 2.0f;
+				float h = viewSize.height / 2.0f;
+				grabber->setPos(0, 0, {-w, h});
+				grabber->setPos(1, 0, {w, h});
+				grabber->setPos(0, 1, {-w, -h});
+				grabber->setPos(1, 1, {w, -h});
 			}
 
 			/* render RT, post node and ui node */
