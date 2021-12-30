@@ -48,7 +48,7 @@ set_target_properties(
 	../3rdParty/libs/libbimg_decodeRelease.a
 )
 
-add_definitions(-DWITH_SDL2)
+add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wno-psabi)
