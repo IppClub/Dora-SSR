@@ -4317,6 +4317,7 @@
 					"$(inherited)",
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
+					"BX_CONFIG_DEBUG=0",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4361,6 +4362,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
+					"BX_CONFIG_DEBUG=0",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4518,6 +4520,7 @@
 					"$(inherited)",
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
+					"BX_CONFIG_DEBUG=0",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4562,6 +4565,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
+					"BX_CONFIG_DEBUG=0",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;

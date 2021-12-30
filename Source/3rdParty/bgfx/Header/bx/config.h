@@ -6,12 +6,6 @@
 #ifndef BX_CONFIG_H_HEADER_GUARD
 #define BX_CONFIG_H_HEADER_GUARD
 
-#if NDEBUG
-#	define BX_CONFIG_DEBUG 0
-#else
-#	define BX_CONFIG_DEBUG 1
-#endif // NDEBUG
-
 #ifndef BX_CONFIG_DEBUG
 #	error "BX_CONFIG_DEBUG must be defined in build script!"
 #endif // BX_CONFIG_DEBUG
