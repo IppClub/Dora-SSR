@@ -3,9 +3,6 @@
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
-#include "Const/Header.h"
-using namespace Dorothy;
-
 #define STBTT_DEF extern
 #include "stb/stb_truetype.h"
 
@@ -14,6 +11,9 @@ using namespace Dorothy;
 #include "tinystl/allocator.h"
 #include "tinystl/unordered_map.h"
 namespace stl = tinystl;
+
+#include "Const/Header.h"
+using namespace Dorothy;
 
 #include "font/font_manager.h"
 #include "Other/atlas.h"
@@ -112,7 +112,7 @@ struct FontManager::CachedFont
 
 	FontInfo fontInfo;
 	GlyphHashMap cachedGlyphs;
-	TrueTypeFont* trueTypeFont;
+	Own<TrueTypeFont> trueTypeFont;
 };
 
 FontManager::FontManager(uint16_t _textureSideWidth)
@@ -151,9 +151,9 @@ TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size)
 {
 	uint16_t id = m_filesHandles.alloc();
 	AssertUnless(id != bx::kInvalidHandle, "Invalid handle used");
-	m_cachedFiles.get()[id].buffer = new uint8_t[_size];
+	m_cachedFiles.get()[id].buffer = NewArray<uint8_t>(_size);
 	m_cachedFiles.get()[id].bufferSize = _size;
-	memcpy(m_cachedFiles.get()[id].buffer, _buffer, _size);
+	memcpy(m_cachedFiles.get()[id].buffer.get(), _buffer, _size);
 
 	TrueTypeHandle ret = { id };
 	return ret;
@@ -162,9 +162,9 @@ TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size)
 void FontManager::destroyTtf(TrueTypeHandle _handle)
 {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
-	delete m_cachedFiles.get()[_handle.idx].buffer;
+	m_cachedFiles.get()[_handle.idx].buffer = nullptr;
 	m_cachedFiles.get()[_handle.idx].bufferSize = 0;
-	m_cachedFiles.get()[_handle.idx].buffer = NULL;
+	m_cachedFiles.get()[_handle.idx].buffer = nullptr;
 	m_filesHandles.free(_handle.idx);
 }
 
@@ -172,10 +172,9 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 {
 	AssertUnless(bgfx::isValid(_ttfHandle), "Invalid handle used");
 
-	TrueTypeFont* ttf = new TrueTypeFont();
-	if (!ttf->init(m_cachedFiles.get()[_ttfHandle.idx].buffer, m_cachedFiles.get()[_ttfHandle.idx].bufferSize, _pixelSize))
+	auto ttf = New<TrueTypeFont>();
+	if (!ttf->init(m_cachedFiles.get()[_ttfHandle.idx].buffer.get(), m_cachedFiles.get()[_ttfHandle.idx].bufferSize, _pixelSize))
 	{
-		delete ttf;
 		FontHandle invalid = BGFX_INVALID_HANDLE;
 		return invalid;
 	}
@@ -184,8 +183,8 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 	AssertUnless(fontIdx != bx::kInvalidHandle, "Invalid handle used");
 
 	CachedFont& font = m_cachedFonts.get()[fontIdx];
-	font.trueTypeFont = ttf;
 	font.fontInfo = ttf->getFontInfo();
+	font.trueTypeFont = std::move(ttf);
 	font.fontInfo.pixelSize = uint16_t(_pixelSize);
 	font.cachedGlyphs.clear();
 
@@ -199,10 +198,9 @@ void FontManager::destroyFont(FontHandle _handle)
 
 	CachedFont& font = m_cachedFonts.get()[_handle.idx];
 
-	if (font.trueTypeFont != NULL)
+	if (font.trueTypeFont != nullptr)
 	{
-		delete font.trueTypeFont;
-		font.trueTypeFont = NULL;
+		font.trueTypeFont = nullptr;
 	}
 
 	font.cachedGlyphs.clear();
@@ -282,7 +280,7 @@ bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data)
 float FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight)
 {
 	const CachedFont& font = m_cachedFonts.get()[_handle.idx];
-	TrueTypeFont* trueTypeFont = font.trueTypeFont;
+	TrueTypeFont* trueTypeFont = font.trueTypeFont.get();
 	const GlyphHashMap& cachedGlyphs = font.cachedGlyphs;
 	GlyphHashMap::const_iterator left = cachedGlyphs.find(_codeLeft);
 	GlyphHashMap::const_iterator right = cachedGlyphs.find(_codeRight);

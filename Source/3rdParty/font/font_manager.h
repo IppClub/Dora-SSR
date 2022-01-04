@@ -144,7 +144,7 @@ private:
 	struct CachedFont;
 	struct CachedFile
 	{
-		uint8_t* buffer;
+		Dorothy::OwnArray<uint8_t> buffer;
 		uint32_t bufferSize;
 	};
 
