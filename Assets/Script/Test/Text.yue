@@ -3,36 +3,37 @@ import "UI.View.Shape.LineRect"
 import "UI.Control.Basic.ScrollArea"
 import "UI.Control.Basic.AlignNode"
 
-{width:viewWidth,height:viewHeight} = View.size
+width: viewWidth, height: viewHeight = View.size
 
-width,height = viewWidth-200,viewHeight-20
+width, height = viewWidth - 200, viewHeight - 20
 
 fontSize = math.floor 20 * App.deviceRatio
 
-Director.entry\addChild with AlignNode isRoot:true,inUI:false
-	\addChild with ScrollArea {
-			width:width
-			height:height
-			paddingX:0
-			paddingY:50
-			viewWidth:height
-			viewHeight:height
-		}
-		.border = LineRect width:width, height:height, color:0xffffffff
-		.area\addChild .border
-		\slot "AlignLayout",(w,h)->
-			.position = Vec2.zero
-			w -= 200
-			h -= 20
-			.view.children.first.textWidth = w-fontSize
-			\adjustSizeWithAlign "Auto",10,Size(w,h)
-			.area\removeChild .border
-			.border = LineRect width:w, height:h, color:0xffffffff
+Director.entry\addChild with AlignNode isRoot: true, inUI: false
+	\addChild with AlignNode!
+		\addChild with ScrollArea {
+				width: width
+				height: height
+				paddingX: 0
+				paddingY: 50
+				viewWidth: height
+				viewHeight: height
+			}
+			.border = LineRect width: width, height: height, color: 0xffffffff
 			.area\addChild .border
-		.view\addChild with Label "NotoSansHans-Regular",fontSize
-			.alignment = "Left"
-			.textWidth = width-fontSize
-			.text = [[# Dorothy SSR
+			\slot "AlignLayout", (w, h)->
+				.position = Vec2.zero
+				w -= 200
+				h -= 20
+				.view.children.first.textWidth = w - fontSize
+				\adjustSizeWithAlign "Auto", 10, Size w, h
+				.area\removeChild .border
+				.border = LineRect width: w, height: h, color: 0xffffffff
+				.area\addChild .border
+			.view\addChild with Label "NotoSansHans-Regular", fontSize
+				.alignment = "Left"
+				.textWidth = width - fontSize
+				.text = [[# Dorothy SSR
 ## 项目目标
 &emsp;&emsp;Dorothy SSR项目的最终目标是制作一款跨平台的，专门用于制作2D游戏的“魔兽争霸3世界编辑器”。这个目标由三个子目标组成：
 * **Step 1**
@@ -115,4 +116,4 @@ Total: [ ##############  ] 94.98%
 ## License
 MIT
 ]]
-		\adjustSizeWithAlign!
+			\adjustSizeWithAlign!
