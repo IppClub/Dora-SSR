@@ -215,15 +215,17 @@ bool Director::init()
 	SharedView.reset();
 	if (!SharedImGui.init())
 	{
+		Error("fail to initialize ImGui.");
 		return false;
 	}
 	if (!SharedKeyboard.init())
 	{
+		Error("fail to initialize Keyboard.");
 		return false;
 	}
 	if (!SharedAudio.init())
 	{
-		return false;
+		Warn("audio function is not available.");
 	}
 	_nvgContext = nvgCreate(1, 0);
 	if (!_nvgContext)
@@ -231,16 +233,19 @@ bool Director::init()
 		Error("failed to init NanoVG context!");
 		return false;
 	}
-	SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
-	{
-		auto name = file.toLower();
-		if (name == "init.lua"_slice)
+	if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 		{
-			SharedLuaEngine.executeScriptFile(Path::concat({path,file}));
-			return true;
-		}
-		return false;
-	});
+			auto name = file.toLower();
+			if (name == "init.lua"_slice)
+			{
+				SharedLuaEngine.executeScriptFile(Path::concat({path,file}));
+				return true;
+			}
+			return false;
+		}))
+	{
+		Warn("Dorothy SSR started without script entry.");
+	}
 	return true;
 }
 
