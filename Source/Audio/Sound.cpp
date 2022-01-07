@@ -19,30 +19,36 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 /* SoundFile */
-SoLoud::Wav& SoundFile::getWav()
+SoLoud::Wav* SoundFile::getWav()
 {
-	return *_wav;
+	return _wav;
 }
 
 SoundFile::SoundFile(OwnArray<uint8_t>&& data, size_t size):
-_wav(new SoLoud::Wav),
+_wav(nullptr),
 _data(std::move(data)),
 _size(size)
 { }
 
 SoundFile::~SoundFile()
 {
-	delete _wav;
-	_wav = nullptr;
+	if (_wav)
+	{
+		delete _wav;
+		_wav = nullptr;
+	}
 }
 
 bool SoundFile::init()
 {
+	_wav = new SoLoud::Wav();
 	SoLoud::result result = _wav->loadMem(_data.get(), s_cast<uint32_t>(_size), false, false);
 	_data.reset();
 	if (result)
 	{
-		Warn("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
+		delete _wav;
+		_wav = nullptr;
+		Error("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud() ? SharedAudio.getSoLoud()->getErrorString(result) : "soloud is not initialized");
 		return false;
 	}
 	return true;
@@ -50,60 +56,72 @@ bool SoundFile::init()
 
 /* SoundStream */
 
-SoLoud::WavStream& SoundStream::getStream()
+SoLoud::WavStream* SoundStream::getStream()
 {
-	return *_stream;
+	return _stream;
 }
 
 bool SoundStream::init()
 {
+	_stream = new SoLoud::WavStream();
 	SoLoud::result result = _stream->loadMem(_data.get(), s_cast<uint32_t>(_size), false, false);
 	if (result)
 	{
-		Error("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud().getErrorString(result));
+		delete _stream;
+		_stream = nullptr;
+		Error("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud() ? SharedAudio.getSoLoud()->getErrorString(result) : "soloud is not initialized");
 		return false;
 	}
 	return true;
 }
 
 SoundStream::SoundStream(OwnArray<uint8_t>&& data, size_t size):
-_stream(new SoLoud::WavStream()),
+_stream(nullptr),
 _data(std::move(data)),
 _size(size)
 { }
 
 SoundStream::~SoundStream()
 {
-	delete _stream;
-	_stream = nullptr;
+	if (_stream)
+	{
+		delete _stream;
+		_stream = nullptr;
+	}
 }
 
 /* Audio */
 
 Audio::Audio():
-_soloud(new SoLoud::Soloud()),
+_soloud(nullptr),
 _currentVoice(0),
 _timer(Timer::create())
 { }
 
-SoLoud::Soloud& Audio::getSoLoud()
+SoLoud::Soloud* Audio::getSoLoud()
 {
-	return *_soloud;
+	return _soloud;
 }
 
 Audio::~Audio()
 {
-	_soloud->deinit();
-	delete _soloud;
-	_soloud = nullptr;
+	if (_soloud)
+	{
+		_soloud->deinit();
+		delete _soloud;
+		_soloud = nullptr;
+	}
 }
 
 bool Audio::init()
 {
+	_soloud = new SoLoud::Soloud();
 	SoLoud::result result = _soloud->init();
 	if (result)
 	{
 		Error("failed to init soloud engine deal to reason: {}.", _soloud->getErrorString(result));
+		delete _soloud;
+		_soloud = nullptr;
 		return false;
 	}
 	return true;
@@ -111,27 +129,35 @@ bool Audio::init()
 
 uint32_t Audio::play(String filename, bool loop)
 {
-	SoundFile* file = SharedSoundCache.load(filename);
-	if (file)
+	if (!_soloud) return 0;
+	if (SoundFile* file = SharedSoundCache.load(filename))
 	{
-		SoLoud::handle handle = _soloud->play(file->getWav());
-		_soloud->setLooping(handle, loop);
-		_soloud->setInaudibleBehavior(handle, true, true);
-		return handle;
+		if (auto wav = file->getWav())
+		{
+			SoLoud::handle handle = _soloud->play(*wav);
+			_soloud->setLooping(handle, loop);
+			_soloud->setInaudibleBehavior(handle, true, true);
+			return handle;
+		}
 	}
 	return 0;
 }
 
 void Audio::stop(uint32_t handle)
 {
+	if (!_soloud) return;
 	_soloud->stop(handle);
 }
 
 void Audio::playStream(String filename, bool loop, float crossFadeTime)
 {
+	if (!_soloud) return;
 	if (_lastStream)
 	{
-		_lastStream->getStream().stop();
+		if (auto stream = _lastStream->getStream())
+		{
+			stream->stop();
+		}
 		_lastStream = nullptr;
 	}
 	stopStream(crossFadeTime);
@@ -139,10 +165,13 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime)
 	{
 		if (_currentStream)
 		{
-			_currentStream->getStream().stop();
+			if (auto stream = _currentStream->getStream())
+			{
+				stream->stop();
+			}
 		}
 		_currentStream = SoundStream::create(MakeOwnArray(data), s_cast<size_t>(size));
-		_currentVoice = _soloud->play(_currentStream->getStream(), 0.0f);
+		_currentVoice = _soloud->play(*_currentStream->getStream(), 0.0f);
 		_soloud->setLooping(_currentVoice, loop);
 		_soloud->setProtectVoice(_currentVoice, true);
 		_soloud->fadeVolume(_currentVoice, 1.0f, crossFadeTime);
@@ -151,6 +180,7 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime)
 
 void Audio::stopStream(float fadeTime)
 {
+	if (!_soloud) return;
 	if (fadeTime > 0.0f)
 	{
 		if (_currentVoice && _soloud->isValidVoiceHandle(_currentVoice))
@@ -162,7 +192,10 @@ void Audio::stopStream(float fadeTime)
 			{
 				if (_lastStream)
 				{
-					_lastStream->getStream().stop();
+					if (auto stream = _lastStream->getStream())
+					{
+						stream->stop();
+					}
 					_lastStream = nullptr;
 				}
 			});
@@ -170,7 +203,10 @@ void Audio::stopStream(float fadeTime)
 	}
 	else if (_currentStream)
 	{
-		_currentStream->getStream().stop();
+		if (auto stream = _currentStream->getStream())
+		{
+			stream->stop();
+		}
 	}
 	_currentVoice = 0;
 	_currentStream = nullptr;

@@ -24,7 +24,7 @@ class SoundFile : public Object
 {
 public:
 	virtual ~SoundFile();
-	PROPERTY_READONLY_CALL(SoLoud::Wav&, Wav);
+	PROPERTY_READONLY_CALL(SoLoud::Wav*, Wav);
 	virtual bool init() override;
 	CREATE_FUNC(SoundFile);
 protected:
@@ -40,7 +40,7 @@ class SoundStream : public Object
 {
 public:
 	virtual ~SoundStream();
-	PROPERTY_READONLY_CALL(SoLoud::WavStream&, Stream);
+	PROPERTY_READONLY_CALL(SoLoud::WavStream*, Stream);
 	virtual bool init() override;
 	CREATE_FUNC(SoundStream);
 protected:
@@ -55,7 +55,7 @@ private:
 class Audio
 {
 public:
-	PROPERTY_READONLY_CALL(SoLoud::Soloud&, SoLoud);
+	PROPERTY_READONLY_CALL(SoLoud::Soloud*, SoLoud);
 	virtual ~Audio();
 	bool init();
 	uint32_t play(String filename, bool loop = false);
@@ -64,11 +64,6 @@ public:
 	void stopStream(float fadeTime = 0.0f);
 protected:
 	Audio();
-	bool _init();
-	uint32_t _play(String filename, bool);
-	void _stop(uint32_t handle);
-	void _playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
-	void _stopStream(float fadeTime = 0.0f);
 private:
 	Ref<Timer> _timer;
 	uint32_t _currentVoice;

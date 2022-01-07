@@ -3,6 +3,9 @@
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
+#include "Const/Header.h"
+using namespace Dorothy;
+
 #define STBTT_DEF extern
 #include "stb/stb_truetype.h"
 
@@ -11,9 +14,6 @@
 #include "tinystl/allocator.h"
 #include "tinystl/unordered_map.h"
 namespace stl = tinystl;
-
-#include "Const/Header.h"
-using namespace Dorothy;
 
 #include "font/font_manager.h"
 #include "Other/atlas.h"
