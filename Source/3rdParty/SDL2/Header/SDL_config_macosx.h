@@ -209,11 +209,11 @@
 #endif
 
 #ifndef SDL_VIDEO_RENDER_OGL
-#define SDL_VIDEO_RENDER_OGL    1
+#define SDL_VIDEO_RENDER_OGL    0
 #endif
 
 #ifndef SDL_VIDEO_RENDER_OGL_ES2
-#define SDL_VIDEO_RENDER_OGL_ES2 1
+#define SDL_VIDEO_RENDER_OGL_ES2 0
 #endif
 
 /* Metal only supported on 64-bit architectures with 10.11+ */
@@ -224,11 +224,7 @@
 #endif
 
 #ifndef SDL_VIDEO_RENDER_METAL
-#if SDL_PLATFORM_SUPPORTS_METAL
-#define SDL_VIDEO_RENDER_METAL    1
-#else
 #define SDL_VIDEO_RENDER_METAL    0
-#endif
 #endif
 
 /* Enable OpenGL support */
