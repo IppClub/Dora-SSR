@@ -2,7 +2,7 @@
 <Dorothy>
 	<Import Module="UI.View.Shape.SolidRect"/>
 
-	<Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" TouchEnabled="True" SwallowTouches="True">
+	<Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" TouchEnabled="True" SwallowTouches="True" Visible="{ visible == nil or visible }">
 		<Lua>if clipping or clipping == nil then</Lua>
 			<ClipNode Name="area" Width="{ width or 0 }" Height="{ height or 0 }" TouchEnabled="True" SwallowMouseWheel="True" Ref="True">
 				<Stencil>

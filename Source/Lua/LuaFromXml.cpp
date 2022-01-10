@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaFromXml.h"
 #include "tinyxml2/SAXParser.h"
 #include "Lua/LuaEngine.h"
+#include "Basic/Content.h"
 #include "yuescript/yue_compiler.h"
 
 NS_DOROTHY_BEGIN
@@ -408,7 +409,7 @@ static const char* _toBoolean(const char* str)
 	if (x) fmt::format_to(std::back_inserter(stream), "{}.x = {}{}"sv, self, Val(x), nl());\
 	if (y) fmt::format_to(std::back_inserter(stream), "{}.y = {}{}"sv, self, Val(y), nl());\
 	if (z) fmt::format_to(std::back_inserter(stream), "{}.z = {}{}"sv, self, Val(z), nl());\
-	if (passColor) fmt::format_to(std::back_inserter(stream), "{}.passColor = {}{}"sv, self, toBoolean(passColor), nl());\
+	if (passColor) fmt::format_to(std::back_inserter(stream), "{}.passColor3 = {}{}"sv, self, toBoolean(passColor), nl());\
 	if (passOpacity) fmt::format_to(std::back_inserter(stream), "{}.passOpacity = {}{}"sv, self, toBoolean(passOpacity), nl());\
 	if (color3) fmt::format_to(std::back_inserter(stream), "{}.color3 = Color3({}){}"sv, self, Val(color3), nl());\
 	if (opacity) fmt::format_to(std::back_inserter(stream), "{}.opacity = {}{}"sv, self, Val(opacity), nl());\
@@ -592,6 +593,31 @@ static const char* _toBoolean(const char* str)
 	else if (blendSrc && !blendDst) fmt::format_to(std::back_inserter(stream), "{}.blendFunc = BlendFunc(\"{}\",\"Zero\"){}"sv, self, toBlendFunc(blendSrc), nl());\
 	else if (!blendSrc && blendDst) fmt::format_to(std::back_inserter(stream), "{}.blendFunc = BlendFunc(\"Zero\",\"{}\"){}"sv, self, toBlendFunc(blendDst), nl());
 #define Sprite_Finish \
+	Add_To_Parent
+
+// Grid
+#define Grid_Define \
+	Node_Define\
+	const char* file = nullptr;\
+	const char* blendSrc = nullptr;\
+	const char* blendDst = nullptr;\
+	const char* gridX = nullptr;\
+	const char* gridY = nullptr;
+#define Grid_Check \
+	Node_Check\
+	CASE_STR(File) { file = atts[++i]; break; }\
+	CASE_STR(BlendSrc) { blendSrc = atts[++i]; break; }\
+	CASE_STR(BlendDst) { blendDst = atts[++i]; break; }\
+	CASE_STR(GridX) { gridX = atts[++i]; break; }\
+	CASE_STR(GridY) { gridY = atts[++i]; break; }
+#define Grid_Create \
+	fmt::format_to(std::back_inserter(stream), "local {} = Grid({}, {}, {}){}"sv, self, file ? toText(file) : std::string(), Val(gridX), Val(gridY), nl());
+#define Grid_Handle \
+	Node_Handle\
+	if (blendSrc && blendDst) fmt::format_to(std::back_inserter(stream), "{}.blendFunc = BlendFunc(\"{}\",\"{}\"){}"sv, self, toBlendFunc(blendSrc), toBlendFunc(blendDst), nl());\
+	else if (blendSrc && !blendDst) fmt::format_to(std::back_inserter(stream), "{}.blendFunc = BlendFunc(\"{}\",\"Zero\"){}"sv, self, toBlendFunc(blendSrc), nl());\
+	else if (!blendSrc && blendDst) fmt::format_to(std::back_inserter(stream), "{}.blendFunc = BlendFunc(\"Zero\",\"{}\"){}"sv, self, toBlendFunc(blendDst), nl());
+#define Grid_Finish \
 	Add_To_Parent
 
 // Playable
@@ -901,6 +927,8 @@ public:
 	std::string oVal(const char* value, const char* def = nullptr, const char* element = nullptr, const char* attr = nullptr);
 	std::string compileYueCodes(const char* codes);
 public:
+	std::string originalXml;
+	int getLineNumber(const char* name, const char* start = nullptr);
 	void updateLineNumber(const char* pos);
 	std::string nl();
 	void clear()
@@ -917,11 +945,11 @@ public:
 		names.clear();
 		imported.clear();
 		firstItem.clear();
-		lastError.clear();
+		originalXml.clear();
 	}
 	void begin()
 	{
-		XmlDelegator::clear();
+		lastError.clear();
 		fmt::format_to(std::back_inserter(stream),
 			"return function(args)"s + nl() +
 			"local _ENV = Dorothy(args)"s + nl());
@@ -999,6 +1027,23 @@ private:
 	fmt::memory_buffer requires;
 };
 
+int XmlDelegator::getLineNumber(const char* name, const char* start)
+{
+	const char* xml = parser->getBuffer();
+	int startIndex = start ? start - xml : 0;
+	int stopIndex = name - xml;
+	int line = 1;
+	const char* str = originalXml.c_str();
+	for (int i = startIndex; i < stopIndex; i++)
+	{
+		if (str[i] == '\n')
+		{
+			line++;
+		}
+	}
+	return line;
+}
+
 std::string XmlDelegator::oVal(const char* value, const char* def, const char* element, const char* attr)
 {
 	if (!value || !value[0])
@@ -1006,7 +1051,7 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 		if (def) return std::string(def);
 		else if (attr && element)
 		{
-			std::string num = fmt::format("{}", parser->getLineNumber(element));
+			std::string num = fmt::format("{}", getLineNumber(element));
 			lastError += std::string("Missing attribute ") + (char)toupper(attr[0]) + std::string(attr).substr(1) + " for <" + element + ">, at line " + num + "\n";
 		}
 		return std::string();
@@ -1023,7 +1068,7 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 		{
 			if (attr && element)
 			{
-				std::string num = fmt::format("{}", parser->getLineNumber(element));
+				std::string num = fmt::format("{}", getLineNumber(element));
 				lastError += std::string("Missing attribute ") + (char)toupper(attr[0]) + std::string(attr).substr(1) + " for <" + element + ">, at line " + num + "\n";
 			}
 			return std::string();
@@ -1059,7 +1104,7 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 					}
 					if (parent.empty() && element)
 					{
-						std::string num = fmt::format("{}", parser->getLineNumber(element));
+						std::string num = fmt::format("{}", getLineNumber(element));
 						lastError += std::string("The $ expression can`t be used in tag at line ") + num + "\n";
 					}
 					newStr += valStr.substr(start, i - start);
@@ -1090,7 +1135,7 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 					default:
 						if (element)
 						{
-							std::string num = fmt::format("{}", parser->getLineNumber(element));
+							std::string num = fmt::format("{}", getLineNumber(element));
 							lastError += std::string("Invalid expression $") + valStr[i] + " at line " + num + "\n";
 						}
 						break;
@@ -1126,7 +1171,7 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 					default:
 						if (element)
 						{
-							std::string num = fmt::format("{}", parser->getLineNumber(element));
+							std::string num = fmt::format("{}", getLineNumber(element));
 							lastError += std::string("Invalid expression @") + valStr[i] + " at line " + num + "\n";
 						}
 						break;
@@ -1149,9 +1194,13 @@ void XmlDelegator::updateLineNumber(const char* pos)
 {
 	if (pos > currentLinePos)
 	{
-		currentLine += parser->getLineNumber(pos, currentLinePos) - 1;
+		int line = getLineNumber(pos, currentLinePos);
+		if (line > 1)
+		{
+			currentLine += line - 1;
+			currentLineStr = " -- "s + std::to_string(currentLine) + '\n';
+		}
 		currentLinePos = pos;
-		currentLineStr = " -- "s + std::to_string(currentLine) + '\n';
 	}
 }
 
@@ -1202,6 +1251,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 		Item(DrawNode, drawNode)
 		Item(Line, line)
 		Item(Sprite, sprite)
+		Item(Grid, grid)
 		Item(ClipNode, clipNode)
 		Item(Label, label)
 
@@ -1315,7 +1365,7 @@ std::string XmlDelegator::compileYueCodes(const char* codes)
 	auto result = yue::YueCompiler{}.compile(fmt::format("do{}{}", nl(), codes), config);
 	if (result.codes.empty())
 	{
-		lastError += fmt::format("failed to compile yue codes started at line {}\n{}", parser->getLineNumber(codes), result.error);
+		lastError += fmt::format("failed to compile yue codes started at line {}\n{}", getLineNumber(codes), result.error);
 	}
 	return std::move(result.codes);
 }
@@ -1353,7 +1403,7 @@ void XmlDelegator::endElement(const char *name)
 				}
 				if (pos != std::string::npos)
 				{
-					lastError += fmt::format("Lua multiline string is not supported at line {}.\n", parser->getLineNumber(luaCodes.begin() + pos));
+					lastError += fmt::format("Lua multiline string is not supported at line {}.\n", getLineNumber(luaCodes.begin() + pos));
 				}
 				auto lines = luaCodes.split("\n");
 				fmt::memory_buffer buf;
@@ -1497,6 +1547,7 @@ void XmlDelegator::endElement(const char *name)
 		CASE_STR(Node)
 		CASE_STR(DrawNode)
 		CASE_STR(Sprite)
+		CASE_STR(Grid)
 		CASE_STR(ClipNode)
 		CASE_STR(Label)
 		CASE_STR(Playable)
@@ -1515,7 +1566,7 @@ void XmlDelegator::endElement(const char *name)
 			auto it = imported.find(name);
 			if (it == imported.end())
 			{
-				lastError += fmt::format("Tag <{}> not imported, closed at line {}.\n", name, parser->getLineNumber(name));
+				lastError += fmt::format("Tag <{}> not imported, closed at line {}.\n", name, getLineNumber(name));
 			}
 			break;
 		}
@@ -1544,22 +1595,29 @@ XmlLoader::~XmlLoader()
 
 std::string XmlLoader::load(String filename)
 {
+	auto data = SharedContent.load(filename);
+	_delegator->originalXml = Slice(r_cast<char*>(data.first.get()), data.second).toString();
 	_delegator->begin();
 	SAXParser::setHeaderHandler(Handler);
-	bool result = _parser.parse(filename);
+	bool result = _parser.parseXml(_delegator->originalXml);
 	SAXParser::setHeaderHandler(nullptr);
 	_delegator->end();
-	return result ? _delegator->getResult() : std::string();
+	std::string codes = result ? _delegator->getResult() : std::string();
+	_delegator->clear();
+	return codes;
 }
 
 std::string XmlLoader::loadXml(String xml)
 {
+	_delegator->originalXml = xml.toString();
 	_delegator->begin();
 	SAXParser::setHeaderHandler(Handler);
-	bool result = _parser.parseXml(xml);
+	bool result = _parser.parseXml(_delegator->originalXml);
 	SAXParser::setHeaderHandler(nullptr);
 	_delegator->end();
-	return result ? _delegator->getResult() : std::string();
+	std::string codes = result ? _delegator->getResult() : std::string();
+	_delegator->clear();
+	return codes;
 }
 
 std::string XmlLoader::getLastError()

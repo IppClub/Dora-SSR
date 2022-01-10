@@ -1,10 +1,13 @@
 local Size = require("Size").Type
 local Node = require("Node").Type
 local record Param
+	x: number
+	y: number
 	width: number
 	height: number
 	viewWidth: number
 	viewHeight: number
+	visible: boolean
 	scrollBar: boolean
 	scrollBarColor3: boolean
 	clipping: boolean

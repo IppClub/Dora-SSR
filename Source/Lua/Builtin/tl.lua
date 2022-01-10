@@ -6804,6 +6804,7 @@ tl.type_check = function(ast, opts)
 					else
 						arg_check(is_a, t1a, t2a or ANY, nil, i, all_errs)
 					end
+					f2 = f2 + 1
 				end
 			end
 			local diff_by_va = #t2.rets - #t1.rets == 1 and t2.rets.is_va

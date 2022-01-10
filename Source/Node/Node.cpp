@@ -1523,7 +1523,7 @@ void Node::convertToWindowSpace(const Vec2& nodePoint, const std::function<void(
 Node::Grabber::Grabber(const Size& size, uint32_t gridX, uint32_t gridY):
 _clearColor(0x0),
 _blendFunc(BlendFunc::Default),
-_grid(Grid::create(Rect(Vec2::zero, size), gridX, gridY))
+_grid(Grid::create(size.width, size.height, gridX, gridY))
 { }
 
 uint32_t Node::Grabber::getGridX() const

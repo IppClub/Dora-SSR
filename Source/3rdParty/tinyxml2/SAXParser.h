@@ -29,6 +29,7 @@ public:
 
 	bool parseXml(const std::string& xmlData);
 	bool parse(const std::string& filename);
+	const char* getBuffer() const;
 	const std::string& getLastError() const;
 
 	void setDelegator(SAXDelegator* delegator);
@@ -39,7 +40,6 @@ public:
 
 	static void placeCDataHeader(const char* cdataHeader);
 	static void setHeaderHandler(void(*handler)(const char* start, const char* end));
-	int getLineNumber(const char* name, const char* start = nullptr);
 private:
 	SAXDelegator* _delegator;
 	std::string _lastError;
