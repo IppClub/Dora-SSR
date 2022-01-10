@@ -257,6 +257,14 @@ Sprite
 	File
 	BlendSrc:Blend
 	BlendDst:Blend
+Grid
+        Base:Node
+        Parent:BaseParent
+        File
+        GridX
+        GridY
+        BlendSrc:Blend
+        BlendDst:Blend
 Menu
 	Base:Node
 	Parent:BaseParent

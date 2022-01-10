@@ -131,6 +131,11 @@ bool SAXParser::parse(const std::string& filename)
 	return parseXml(Slice(r_cast<char*>(data.first.get()), data.second));
 }
 
+const char* SAXParser::getBuffer() const
+{
+	return _tinyDoc.GetCharBuffer();
+}
+
 void SAXParser::startElement(void* ctx, const XML_CHAR* name, const XML_CHAR** atts)
 {
 	((SAXParser*)(ctx))->_delegator->startElement((char*)name, (const char**)atts);
@@ -159,18 +164,4 @@ void SAXParser::placeCDataHeader(const char* cdataHeader)
 void SAXParser::setHeaderHandler(void(*handler)(const char* start, const char* end))
 {
 	tinyxml2::XMLUtil::PlaceHeaderHandler(handler);
-}
-
-int SAXParser::getLineNumber(const char* name, const char* start)
-{
-	if (!start) start = _tinyDoc.GetCharBuffer();
-	int line = 1;
-	for (const char* c = start; c != name; c++)
-	{
-		if (*c == '\n')
-		{
-			line++;
-		}
-	}
-	return line;
 }

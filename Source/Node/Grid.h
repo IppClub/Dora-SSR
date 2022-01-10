@@ -31,14 +31,16 @@ public:
 	virtual const Matrix& getWorld() override;
 	CREATE_FUNC(Grid);
 protected:
-	Grid(const Rect& textureRect, uint32_t gridX, uint32_t gridY);
+	Grid(float width, float height, uint32_t gridX, uint32_t gridY);
 	Grid(Texture2D* texture, uint32_t gridX, uint32_t gridY);
 	Grid(Texture2D* texture, const Rect& textureRect, uint32_t gridX, uint32_t gridY);
 private:
+	Grid(Texture2D* texture, const Size& texSize, const Rect& textureRect, uint32_t gridX, uint32_t gridY);
 	void setupVertices();
 	void updateUV();
 	uint32_t _gridX;
 	uint32_t _gridY;
+	Size _texSize;
 	Rect _textureRect;
 	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;

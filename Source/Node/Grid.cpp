@@ -13,19 +13,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Grid::Grid(const Rect& textureRect, uint32_t gridX, uint32_t gridY):
-Grid(nullptr, textureRect, gridX, gridY)
+Grid::Grid(float width, float height, uint32_t gridX, uint32_t gridY):
+Grid(nullptr, {width, height}, Rect(0, 0, width, height), gridX, gridY)
 { }
 
 Grid::Grid(Texture2D* texture, uint32_t gridX, uint32_t gridY):
-Grid(texture, Rect(0, 0, s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())), gridX, gridY)
+Grid(
+	texture,
+	Size{s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())},
+	Rect(0, 0, s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())),
+	gridX, gridY)
 { }
 
 Grid::Grid(Texture2D* texture, const Rect& textureRect, uint32_t gridX, uint32_t gridY):
+Grid(
+	texture,
+	Size{s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())},
+	textureRect, gridX, gridY)
+{ }
+
+Grid::Grid(Texture2D* texture, const Size& texSize, const Rect& textureRect, uint32_t gridX, uint32_t gridY):
 _gridX(gridX),
 _gridY(gridY),
 _effect(SharedSpriteRenderer.getDefaultEffect()),
 _texture(texture),
+_texSize(texSize),
 _textureRect(textureRect),
 _blendFunc(BlendFunc::Default)
 { }
@@ -141,6 +153,8 @@ void Grid::setupVertices()
 	float vStart = _textureRect.getY();
 	float width = _textureRect.getWidth();
 	float height = _textureRect.getHeight();
+	float texWidth = _texSize.width;
+	float texHeight = _texSize.height;
 	float xStart = -width / 2.0f;
 	float yStart = height / 2.0f;
 	float yOffset = height / _gridY;
@@ -149,11 +163,11 @@ void Grid::setupVertices()
 	for (uint32_t y = 0; y <= _gridY; y++)
 	{
 		float posY = yStart - y * yOffset;
-		float v = (vStart + y * yOffset) / height;
+		float v = (vStart + y * yOffset) / texHeight;
 		for (uint32_t x = 0; x <= _gridX; x++)
 		{
 			float posX = xStart + x * xOffset;
-			float u = (uStart + x * xOffset) / width;
+			float u = (uStart + x * xOffset) / texWidth;
 			_points.push_back({posX, posY, 0, 1.0f});
 			_vertices.push_back({0, 0, 0, 0, u, v, Color::White.toABGR()});
 			if (x < _gridX && y < _gridY)
