@@ -325,10 +325,6 @@ static const char* _toBoolean(const char* str)
 		if (!parent.name.empty())\
 		{\
 			fmt::format_to(std::back_inserter(stream), "{}:addChild({}){}"sv, parent.name, self, nl());\
-			if (hasSelf && ref)\
-			{\
-				fmt::format_to(std::back_inserter(stream), "{}.{} = {}{}"sv, firstItem, self, self, nl());\
-			}\
 		}\
 		else if (strcmp(parent.type,"Stencil") == 0)\
 		{\
@@ -338,6 +334,10 @@ static const char* _toBoolean(const char* str)
 				const oItem& newParent = elementStack.top();\
 				fmt::format_to(std::back_inserter(stream), "{}.stencil = {}{}"sv, newParent.name, self, nl());\
 			}\
+		}\
+		if (hasSelf && ref)\
+		{\
+			fmt::format_to(std::back_inserter(stream), "{}.{} = {}{}"sv, firstItem, self, self, nl());\
 		}\
 	}
 

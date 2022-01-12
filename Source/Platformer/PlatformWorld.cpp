@@ -44,11 +44,6 @@ const Vec2& PlatformWorld::Layer::getOffset() const
 	return _offset;
 }
 
-void PlatformWorld::Layer::sortAllChildren()
-{
-	Node::sortAllChildren();
-}
-
 /* PlatformWorld */
 
 void PlatformWorld::addChild(Node* child, int order, String tag)

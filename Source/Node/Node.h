@@ -68,7 +68,7 @@ public:
 	PROPERTY_READONLY_CALL(Dictionary*, UserData);
 	PROPERTY_READONLY(Node*, Parent);
 	PROPERTY_READONLY(Node*, TargetParent);
-	PROPERTY_READONLY(Array*, Children);
+	PROPERTY_READONLY_CALL(Array*, Children);
 	PROPERTY_READONLY_HAS(Children);
 	PROPERTY_READONLY_BOOL(Running);
 	PROPERTY_READONLY_BOOL(Updating);
@@ -162,6 +162,7 @@ public:
 	{
 		if (_children && !_children->isEmpty())
 		{
+			sortAllChildren();
 			return _children->each([&](Value* value)
 			{
 				return func(&value->to<Node>());
@@ -177,6 +178,7 @@ public:
 		if (func(this)) return true;
 		if (_children && _flags.isOn(Node::TraverseEnabled))
 		{
+			sortAllChildren();
 			for (const auto& child : _children->data())
 			{
 				if (child->to<Node>().traverse(func))
@@ -195,6 +197,7 @@ public:
 		if (func(this)) return true;
 		if (_children)
 		{
+			sortAllChildren();
 			for (const auto& child : _children->data())
 			{
 				if (child->to<Node>().traverseAll(func))
@@ -208,20 +211,20 @@ public:
 
 	/** @brief traverse node tree, return true to stop. */
 	template <class Func>
-	bool traverseVisible(const Func& func)
+	void traverseVisible(const Func& func)
 	{
-		if (!isVisible() || func(this)) return true;
-		if (_children && _flags.isOn(Node::TraverseEnabled))
+		if (isVisible())
 		{
-			for (const auto& child : _children->data())
+			func(this);
+			if (_children && _flags.isOn(Node::TraverseEnabled))
 			{
-				if (child->to<Node>().traverse(func))
+				sortAllChildren();
+				for (const auto& child : _children->data())
 				{
-					return true;
+					child->to<Node>().traverseVisible(func);
 				}
 			}
 		}
-		return false;
 	}
 
 	PROPERTY_READONLY(int, ActionCount);
