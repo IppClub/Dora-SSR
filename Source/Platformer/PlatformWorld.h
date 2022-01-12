@@ -46,8 +46,7 @@ protected:
 		PROPERTY(int, Index);
 		CREATE_FUNC(Layer);
 	protected:
-		Layer():_offset{},ratio{} { }
-		virtual void sortAllChildren() override;
+		Layer():_offset{}, ratio{} { }
 	private:
 		int _index;
 		Vec2 _offset;

@@ -479,8 +479,9 @@ void Node::onExit()
 	emit("Exit"_slice);
 }
 
-Array* Node::getChildren() const
+Array* Node::getChildren()
 {
+	sortAllChildren();
 	return _children;
 }
 
@@ -1298,18 +1299,21 @@ Size Node::alignItemsVertically(float padding)
 
 Size Node::alignItemsVertically(const Size& size, float padding)
 {
+	sortAllChildren();
 	float width = size.width;
 	float y = size.height - padding;
 	ARRAY_START(Node, child, _children)
 	{
-		float realWidth = child->getWidth() * child->getScaleX();
-		float realHeight = child->getHeight() * child->getScaleY();
+		float realWidth = child->getWidth() * std::abs(child->getScaleX());
+		float realHeight = child->getHeight() * std::abs(child->getScaleY());
+		float anchorX = child->getScaleX() > 0 ? child->getAnchor().x : 1.0f - child->getAnchor().x;
+		float anchorY = child->getScaleY() > 0 ? child->getAnchor().y : 1.0f - child->getAnchor().y;
 		if (realWidth == 0.0f || realHeight == 0.0f) continue;
-		float realPosY = (1.0f - child->getAnchor().y) * realHeight;
+		float realPosY = (1.0f - anchorY) * realHeight;
 		y -= realPosY;
-		child->setX(width * 0.5f - (0.5f - child->getAnchor().x) * realWidth);
+		child->setX(width * 0.5f - (0.5f - anchorX) * realWidth);
 		child->setY(y);
-		y -= child->getAnchor().y * realHeight;
+		y -= anchorY * realHeight;
 		y -= padding;
 	}
 	ARRAY_END
@@ -1323,18 +1327,21 @@ Size Node::alignItemsHorizontally(float padding)
 
 Size Node::alignItemsHorizontally(const Size& size, float padding)
 {
+	sortAllChildren();
 	float height = size.height;
 	float x = padding;
 	ARRAY_START(Node, child, _children)
 	{
-		float realWidth = child->getWidth() * child->getScaleX();
-		float realHeight = child->getHeight() * child->getScaleY();
+		float realWidth = child->getWidth() * std::abs(child->getScaleX());
+		float realHeight = child->getHeight() * std::abs(child->getScaleY());
+		float anchorX = child->getScaleX() > 0 ? child->getAnchor().x : 1.0f - child->getAnchor().x;
+		float anchorY = child->getScaleY() > 0 ? child->getAnchor().y : 1.0f - child->getAnchor().y;
 		if (realWidth == 0.0f || realHeight == 0.0f) continue;
-		float realPosX = child->getAnchor().x * realWidth;
+		float realPosX = anchorX * realWidth;
 		x += realPosX;
 		child->setX(x);
-		child->setY(height * 0.5f - (0.5f - child->getAnchor().y) * realHeight);
-		x += (1.0f - child->getAnchor().x) * realWidth;
+		child->setY(height * 0.5f - (0.5f - anchorY) * realHeight);
+		x += (1.0f - anchorX) * realWidth;
 		x += padding;
 	}
 	ARRAY_END
@@ -1348,6 +1355,7 @@ Size Node::alignItems(float padding)
 
 Size Node::alignItems(const Size& size, float padding)
 {
+	sortAllChildren();
 	float height = size.height;
 	float width = size.width;
 	float x = padding;
@@ -1357,8 +1365,11 @@ Size Node::alignItems(const Size& size, float padding)
 	float maxX = 0;
 	ARRAY_START(Node, child, _children)
 	{
-		float realWidth = child->getWidth() * child->getScaleX();
-		float realHeight = child->getHeight() * child->getScaleY();
+		float realWidth = child->getWidth() * std::abs(child->getScaleX());
+		float realHeight = child->getHeight() * std::abs(child->getScaleY());
+
+		float anchorX = child->getScaleX() > 0 ? child->getAnchor().x : 1.0f - child->getAnchor().x;
+		float anchorY = child->getScaleY() > 0 ? child->getAnchor().y : 1.0f - child->getAnchor().y;
 
 		if (realWidth == 0.0f || realHeight == 0.0f) continue;
 
@@ -1368,15 +1379,15 @@ Size Node::alignItems(const Size& size, float padding)
 			rows++;
 			y = curY - padding;
 		}
-		float realPosX = child->getAnchor().x * realWidth;
+		float realPosX = anchorX * realWidth;
 		x += realPosX;
 
-		float realPosY = (1.0f - child->getAnchor().y) * realHeight;
+		float realPosY = (1.0f - anchorY) * realHeight;
 
 		child->setX(x);
 		child->setY(y - realPosY);
 
-		x += (1.0f - child->getAnchor().x) * realWidth;
+		x += (1.0f - anchorX) * realWidth;
 		x += padding;
 		
 		maxX = std::max(maxX, x);
@@ -1392,6 +1403,7 @@ Size Node::alignItems(const Size& size, float padding)
 
 void Node::moveAndCullItems(const Vec2& delta)
 {
+	sortAllChildren();
 	Rect contentRect(Vec2::zero, getSize());
 	ARRAY_START(Node, child, _children)
 	{
