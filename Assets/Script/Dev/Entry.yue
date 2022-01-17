@@ -210,6 +210,7 @@ for example in *examples do table.insert allNames, Path "Example", example
 for test in *tests do table.insert allNames, Path "Test", test
 
 productionEntry = nil
+productionTests = nil
 for file in *Content\getAllFiles Path Content.assetPath, "Production"
 	if "init" == Path\getName file
 		scriptFolder = Path\getPath Path Content.assetPath, "Production", file
@@ -218,6 +219,7 @@ for file in *Content\getAllFiles Path Content.assetPath, "Production"
 		Content\insertSearchPath 1, Path productionAssets, "Spine"
 		Content\insertSearchPath 1, Path productionAssets, "Image"
 		Content\insertSearchPath 1, Path productionAssets, "Font"
+		productionTests = [Path\getName f for f in *Content\getAllFiles Path productionAssets, "Test"]
 		package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
 		productionEntry = Path scriptFolder, "init"
 		scriptFolder = Path\getPath Path Content.writablePath, "Production", file
@@ -415,5 +417,13 @@ threadLoop ->
 				if Button "Enter", Vec2 -1, 40
 					enterDemoEntry productionEntry
 				NextColumn!
+				if #productionTests > 0
+					Columns 1, false
+					TextColored cyan, "Product Test"
+					Columns math.max(math.floor(width / 200), 1), false
+					for test in *productionTests
+						if Button test, Vec2 -1, 40
+							enterDemoEntry Path "Test", test
+						NextColumn!
 			Columns 1, false
 			Dummy Vec2 width, 40
