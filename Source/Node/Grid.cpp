@@ -147,6 +147,17 @@ void Grid::setColor(uint32_t x, uint32_t y, Color color)
 	_vertices[index].abgr = color.toABGR();
 }
 
+void Grid::moveUV(uint32_t x, uint32_t y, Vec2 offset)
+{
+	AssertIf(x > _gridX || y > _gridY, "Grid index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
+	auto index = y * (_gridX + 1) + x;
+	_vertices[index].u += offset.x / _texSize.width;
+	_vertices[index].v += offset.y / _texSize.height;
+	_points[index].x += offset.x;
+	_points[index].y -= offset.y;
+	_flags.setOn(Grid::VertexPosDirty);
+}
+
 void Grid::setupVertices()
 {
 	float uStart = _textureRect.getX();
@@ -196,10 +207,10 @@ void Grid::updateUV()
 	uint32_t xCount = _gridX + 1;
 	for (uint32_t y = 0; y <= _gridY; y++)
 	{
-		float v = (vStart + y * yOffset) / height;
+		float v = (vStart + y * yOffset) / _texSize.height;
 		for (uint32_t x = 0; x <= _gridX; x++)
 		{
-			float u = (uStart + x * xOffset) / width;
+			float u = (uStart + x * xOffset) / _texSize.width;
 			auto index = y * xCount + x;
 			_vertices[index].u = u;
 			_vertices[index].v = v;

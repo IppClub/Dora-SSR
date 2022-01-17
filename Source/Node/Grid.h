@@ -26,6 +26,7 @@ public:
 	Vec2 getPos(uint32_t x, uint32_t y) const;
 	Color getColor(uint32_t x, uint32_t y) const;
 	void setColor(uint32_t x, uint32_t y, Color color);
+	void moveUV(uint32_t x, uint32_t y, Vec2 offset);
 	virtual bool init() override;
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;

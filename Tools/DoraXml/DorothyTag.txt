@@ -2,11 +2,11 @@ Ease:Linear,InQuad,OutQuad,InOutQuad,OutInQuad,InCubic,OutCubic,InOutCubic,OutIn
 
 ActionParent:Action,Sequence,Spawn
 
-NodeParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item,Dorothy
+NodeParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dorothy
 
-BaseParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item,Dorothy,Stencil
+BaseParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dorothy,Stencil
 
-ScriptParent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item,Dorothy,Slot
+ScriptParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dorothy,Slot
 
 Blend:One,Zero,SrcColor,SrcAlpha,DstColor,DstAlpha,InvSrcColor,InvSrcAlpha,InvDstColor,InvDstAlpha
 

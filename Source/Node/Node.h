@@ -259,6 +259,7 @@ public:
 		Vec2 getPos(uint32_t x, uint32_t y) const;
 		Color getColor(uint32_t x, uint32_t y) const;
 		void setColor(uint32_t x, uint32_t y, Color color);
+		void moveUV(uint32_t x, uint32_t y, Vec2 offset);
 	protected:
 		Grabber(const Size& size, uint32_t gridX, uint32_t gridY);
 		void grab(Node* target);
