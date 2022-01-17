@@ -1705,6 +1705,11 @@ void Node::Grabber::setColor(uint32_t x, uint32_t y, Color color)
 	_grid->setColor(x, y, color);
 }
 
+void Node::Grabber::moveUV(uint32_t x, uint32_t y, Vec2 offset)
+{
+	_grid->moveUV(x, y, offset);
+}
+
 void Node::Grabber::visit()
 {
 	if (_grid)

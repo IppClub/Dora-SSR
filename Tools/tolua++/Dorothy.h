@@ -395,6 +395,7 @@ class Node : public Object
 		Vec2 getPos(uint32_t x, uint32_t y);
 		Color getColor(uint32_t x, uint32_t y);
 		void setColor(uint32_t x, uint32_t y, Color color);
+		void moveUV(uint32_t x, uint32_t y, Vec2 offset);
 	};
 	Grabber* grab(bool enabled = true);
 	Grabber* grab(uint32_t gridX, uint32_t gridY);
@@ -466,6 +467,7 @@ class Grid : public Node
 	Vec2 getPos(uint32_t x, uint32_t y);
 	Color getColor(uint32_t x, uint32_t y);
 	void setColor(uint32_t x, uint32_t y, Color color);
+	void moveUV(uint32_t x, uint32_t y, Vec2 offset);
 	static Grid* create(float width, float height, uint32_t gridX, uint32_t gridY);
 	static Grid* create(Texture2D* texture, Rect textureRect, uint32_t gridX, uint32_t gridY);
 	static Grid* create(Texture2D* texture, uint32_t gridX, uint32_t gridY);

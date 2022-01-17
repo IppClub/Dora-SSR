@@ -217,7 +217,6 @@ for file in *Content\getAllFiles Path Content.assetPath, "Production"
 		Content\insertSearchPath 1, productionAssets
 		Content\insertSearchPath 1, Path productionAssets, "Spine"
 		Content\insertSearchPath 1, Path productionAssets, "Image"
-		Content\insertSearchPath 1, Path productionAssets, "DragonBones"
 		Content\insertSearchPath 1, Path productionAssets, "Font"
 		package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
 		productionEntry = Path scriptFolder, "init"
