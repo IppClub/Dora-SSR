@@ -72,6 +72,17 @@ Node* Director::getUI()
 	return _ui;
 }
 
+Node* Director::getUI3D()
+{
+	if (!_ui3D)
+	{
+		_ui3D = Node::create();
+		_ui3D->onEnter();
+		_uiCamera = Camera2D::create("UI3D"_slice);
+	}
+	return _ui3D;
+}
+
 Node* Director::getEntry()
 {
 	if (!_entry)
@@ -285,6 +296,18 @@ void Director::doLogic()
 		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0,
 			bgfx::getCaps()->homogeneousDepth);
 
+		/* handle ui3D touch */
+		if (_ui3D)
+		{
+			Matrix viewProj;
+			bx::mtxMul(viewProj, _uiCamera->getView(), SharedView.getProjection());
+			registerTouchHandler(_ui3D);
+			pushViewProjection(viewProj, []()
+			{
+				SharedTouchDispatcher.dispatch();
+			});
+		}
+
 		/* handle ui touch */
 		if (_ui)
 		{
@@ -371,6 +394,18 @@ void Director::doRender()
 					_postNode->visit();
 					SharedRendererManager.flush();
 				}
+				/* ui 3D node */
+				if (_ui3D)
+				{
+					Matrix viewProj;
+					bx::mtxMul(viewProj, _uiCamera->getView(), SharedView.getProjection());
+					pushViewProjection(viewProj, [&]()
+					{
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						_ui3D->visit();
+						SharedRendererManager.flush();
+					});
+				}
 				/* ui node */
 				if (_ui)
 				{
@@ -407,7 +442,22 @@ void Director::doRender()
 				if (_postNode) _postNode->visit();
 				SharedRendererManager.flush();
 			});
-
+			/* ui 3D node */
+			if (_ui3D)
+			{
+				SharedView.pushName("UI3D"_slice, [&]()
+				{
+					Matrix viewProj;
+					bx::mtxMul(viewProj, _uiCamera->getView(), SharedView.getProjection());
+					bgfx::ViewId viewId = SharedView.getId();
+					pushViewProjection(viewProj, [&]()
+					{
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						_ui3D->visit();
+						SharedRendererManager.flush();
+					});
+				});
+			}
 			/* render ui node */
 			if (_ui || _displayStats)
 			{
@@ -520,6 +570,13 @@ void Director::popViewProjection()
 
 void Director::clear()
 {
+	if (_ui3D)
+	{
+		_ui3D->onExit();
+		_ui3D->cleanup();
+		_ui3D = nullptr;
+		_uiCamera = nullptr;
+	}
 	if (_ui)
 	{
 		_ui->onExit();

@@ -249,6 +249,7 @@ class Director
 	tolua_property__common Color clearColor;
 	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common Node* uI @ ui;
+	tolua_readonly tolua_property__common Node* uI3D @ ui3D;
 	tolua_readonly tolua_property__common Node* entry;
 	tolua_readonly tolua_property__common Node* postNode;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;

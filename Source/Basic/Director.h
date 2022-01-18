@@ -32,6 +32,7 @@ public:
 	PROPERTY(Color, ClearColor);
 	PROPERTY_BOOL(DisplayStats);
 	PROPERTY_READONLY_CALL(Node*, UI);
+	PROPERTY_READONLY_CALL(Node*, UI3D);
 	PROPERTY_READONLY_CALL(Node*, Entry);
 	PROPERTY_READONLY_CALL(Node*, PostNode);
 	PROPERTY_READONLY_CALL(UITouchHandler*, UITouchHandler);
@@ -74,6 +75,8 @@ private:
 	bool _stoped;
 	Color _clearColor;
 	Ref<Node> _ui;
+	Ref<Node> _ui3D;
+	Ref<Camera> _uiCamera;
 	Ref<Node> _postNode;
 	Ref<Node> _entry;
 	Ref<Node> _root;
