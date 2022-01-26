@@ -606,6 +606,28 @@ end
 
 Blackboard.__newindex = Blackboard.set
 
+-- To String
+
+builtin.Vec2.__tostring = function(self)
+	return "Vec2(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ")"
+end
+
+builtin.Rect.__tostring = function(self)
+	return "Rect(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ", " .. tostring(self.width) .. ", " .. tostring(self.height) .. ")"
+end
+
+builtin.Size.__tostring = function(self)
+	return "Size(" .. tostring(self.width) .. ", " .. tostring(self.height) .. ")"
+end
+
+builtin.Color.__tostring = function(self)
+	return "Color(" .. string.format("0x%x", self:toARGB()) .. ")"
+end
+
+builtin.Color3.__tostring = function(self)
+	return "Color3(" .. string.format("0x%x", self:toRGB()) .. ")"
+end
+
 -- Helpers
 
 debug.traceback = function(err, level)

@@ -1,8 +1,8 @@
 import "Utils" as :Struct
 
 -- 定义Struct
-Unit = Struct.Unit{"name", "group", "tag", "actions"}
-Action = Struct.Action{"name", "id"}
+Unit = Struct.My.Name.Space.Unit "name", "group", "tag", "actions"
+Action = Struct.Action "name", "id"
 Array = Struct.Array!
 
 -- 创建实例
@@ -11,9 +11,9 @@ unit = Unit
 	group: 123
 	tag: "tagX"
 	actions: Array
-		* Action name:"walk", id:"a1"
-		* Action name:"run", id:"a2"
-		* Action name:"sleep", id:"a3"
+		* Action name: "walk", id: "a1"
+		* Action name: "run", id: "a2"
+		* Action name: "sleep", id: "a3"
 
 -- 监听属性变化
 unit.__notify = (event, key, value)->
@@ -36,7 +36,7 @@ unit.actions.__notify = (event, index, item)->
 			print "Items updated."
 
 unit.name = "pig"
-unit.actions\insert Action name:"idle", id:"a4"
+unit.actions\insert Action name: "idle", id: "a4"
 unit.actions\removeAt 1
 
 structStr = tostring unit

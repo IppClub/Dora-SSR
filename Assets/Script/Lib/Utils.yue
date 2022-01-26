@@ -1,21 +1,21 @@
 _ENV = Dorothy!
-import insert,remove,concat,sort from table
-import floor,ceil from math
-import type,tostring,setmetatable,table,rawset,rawget from _G
+import insert, remove, concat, sort from table
+import floor, ceil from math
+import type, tostring, setmetatable, table, rawset, rawget from _G
 
 StructUpdated = =>
-	update = rawget @,"__update"
+	update = rawget @, "__update"
 	if not update
-		rawset @,"__update",thread ->
-			notify = rawget @,"__notify"
+		rawset @, "__update", thread ->
+			notify = rawget @, "__notify"
 			notify "Updated"
-			rawset @,"__update",nil
+			rawset @, "__update", nil
 StructToString = =>
 	structDef = getmetatable @
 	content = {}
 	ordered = true
-	count = if #structDef == 0 then #@ else #structDef+1
-	for i = 1,count
+	count = if #structDef == 0 then #@ else #structDef + 1
+	for i = 1, count
 		value = @[i]
 		if value == nil
 			ordered = false
@@ -23,57 +23,56 @@ StructToString = =>
 		else
 			value = (type(value) == 'string' and "\"#{value}\"" or tostring value)
 			if ordered
-				insert content,value
+				insert content, value
 			else
-				insert content,"[#{i}]=#{value}"
-	"{"..(concat content,',').."}"
+				insert content, "[#{i}]=#{value}"
+	"{" .. (concat content, ',') .. "}"
 StructDefMeta = {
-	set: (index,item)=>
+	set: (index, item)=>
 		index += 1
 		if 1 <= index and index <= #@
 			@[index] = item
-			notify = rawget @,"__notify"
+			notify = rawget @, "__notify"
 			if notify
-				notify "Changed",index-1,item
+				notify "Changed", index - 1, item
 				StructUpdated @
 		else
 			error "Access index out of range."
 	get: (index)=>
 		if 1 <= index and index < #@
-			@[index+1]
+			@[index + 1]
 		else
 			nil
-	insert: (argA,argB)=>
-		local item
-		local index
+	insert: (argA, argB)=>
+		local item, index
 		if argB
 			item = argB
-			index = argA+1
+			index = argA + 1
 			if index > #@
-				index = #@+1
+				index = #@ + 1
 			elseif index < 1
 				index = 1
 		else
 			item = argA
-			index = #@+1
-		insert @,index,item
-		notify = rawget @,"__notify"
+			index = #@ + 1
+		insert @, index, item
+		notify = rawget @, "__notify"
 		if notify
-			notify "Added",index-1,item
+			notify "Added", index - 1, item
 			StructUpdated @
 		item
 	remove: (arg)=>
-		local item,index
-		for i = 2,#@
+		local item, index
+		for i = 2, #@
 			if @[i] == arg
 				item = arg
 				index = i
-				remove @,index
+				remove @, index
 				break
 		if index
-			notify = rawget @,"__notify"
+			notify = rawget @, "__notify"
 			if notify
-				notify "Removed",index-1,item
+				notify "Removed", index - 1, item
 				StructUpdated @
 		item
 	removeAt: (index)=>
@@ -87,13 +86,13 @@ StructDefMeta = {
 		else
 			if length > 1
 				index = length
-				remove @,index
+				remove @, index
 			else
 				nil
 		if item
-			notify = rawget @,"__notify"
+			notify = rawget @, "__notify"
 			if notify
-				notify "Removed",index-1,item
+				notify "Removed", index - 1, item
 				StructUpdated @
 		item
 	clear: =>
@@ -116,31 +115,22 @@ StructDefMeta = {
 			if item == @[index]
 				return true
 		false
-	count:=> #@-1
-	sort:(comparer)=>
-		sort @,comparer
-	__call:(data)=>
-		item = {@__name}
-		if data
-			for k,v in pairs data
-				key = @[k]
-				if key
-					item[key] = v
-				elseif type(k) == "number"
-					item[k+1] = v
-				else
-					error "Initialize to an invalid field named \"#{k}\" for \"#{@}\"."
-		setmetatable item,@
-		item
+	toArray: => [item for item in *@[2,]]
+	count: => #@ - 1
+	sort: (comparer)=>
+		arr = @toArray!
+		sort arr, comparer
+		for i = 1, #arr
+			@set i, arr[i]
 	__tostring:=>
 		content = {}
-		for k,v in pairs @
+		for k, v in pairs @
 			if "number" == type v
-				content[v-1] = k
+				content[v - 1] = k
 		if #content > 1
-			concat {"Struct.",@__name,"{\"",concat(content,"\",\""),"\"}"}
+			concat {"Struct.", @__name, "{\"", concat(content, "\",\""), "\"}"}
 		else
-			"Struct.#{ @__name }()"
+			"Struct.#{@__name}()"
 }
 StructDefs = {}
 StructHelper = {
@@ -148,7 +138,7 @@ StructHelper = {
 		structName = @path .. @name
 		local tupleDef
 		tupleDef = setmetatable {
-			__name:structName
+			__name: structName
 			__index: (key)=>
 				item = tupleDef[key]
 				if item
@@ -182,7 +172,7 @@ StructHelper = {
 		if count > 0
 			arg = select 1, ...
 			if "table" == type arg
-				for i,name in ipairs arg
+				for i, name in ipairs arg
 					tupleDef[i] = name
 					tupleDef[name] = i + 1
 			else
@@ -212,7 +202,7 @@ local Struct
 StructLoad = (data)->
 	if "table" == type data
 		mt = StructDefs[data[1]]
-		assert mt, "Struct \"#{data[1]}\" is not defined."
+		assert mt, "Struct started with \"#{data[1]}\" is not defined."
 		setmetatable data, mt
 		for item in *data
 			StructLoad item
@@ -229,15 +219,13 @@ export Struct = setmetatable {
 			arg = select 1, ...
 			data = switch type arg
 				when "string"
-					if arg\sub(1,6) ~= "return"
+					if arg\sub(1, 6) ~= "return"
 						arg = "return " .. arg
 					(load arg)!
 				when "table"
 					arg
 			StructLoad data
 			data
-	loadfile: (filename)=>
-		Struct\load Content\load filename
 	clear: =>
 		StructDefs = {}
 }, {
@@ -252,7 +240,7 @@ export Struct = setmetatable {
 		concat [tostring v for _, v in pairs StructDefs], "\n"
 }
 
-export Set = (list)-> {item,true for item in *list}
+export Set = (list)-> {item, true for item in *list}
 
 export CompareTable = (olds, news)->
 	itemsToDel = {}

@@ -122,7 +122,7 @@ void Grid::setPos(uint32_t x, uint32_t y, Vec2 pos)
 {
 	AssertIf(x > _gridX || y > _gridY, "Grid vertex index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
 	auto index = y * (_gridX + 1) + x;
-	_points[index] = {pos.x, pos.y, 0, 1.0f};
+	_points[index].position = {pos.x, pos.y, 0, 1.0f};
 	_flags.setOn(Grid::VertexPosDirty);
 }
 
@@ -130,7 +130,7 @@ Vec2 Grid::getPos(uint32_t x, uint32_t y) const
 {
 	AssertIf(x > _gridX || y > _gridY, "Grid index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
 	auto index = y * (_gridX + 1) + x;
-	return {_points[index].x, _points[index].y};
+	return {_points[index].position.x, _points[index].position.y};
 }
 
 Color Grid::getColor(uint32_t x, uint32_t y) const
@@ -144,7 +144,8 @@ void Grid::setColor(uint32_t x, uint32_t y, Color color)
 {
 	AssertIf(x > _gridX || y > _gridY, "Grid index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
 	auto index = y * (_gridX + 1) + x;
-	_vertices[index].abgr = color.toABGR();
+	_points[index].color = color.toVec4();
+	_flags.setOn(Grid::VertexColorDirty);
 }
 
 void Grid::moveUV(uint32_t x, uint32_t y, Vec2 offset)
@@ -153,8 +154,8 @@ void Grid::moveUV(uint32_t x, uint32_t y, Vec2 offset)
 	auto index = y * (_gridX + 1) + x;
 	_vertices[index].u += offset.x / _texSize.width;
 	_vertices[index].v += offset.y / _texSize.height;
-	_points[index].x += offset.x;
-	_points[index].y -= offset.y;
+	_points[index].position.x += offset.x;
+	_points[index].position.y -= offset.y;
 	_flags.setOn(Grid::VertexPosDirty);
 }
 
@@ -179,8 +180,8 @@ void Grid::setupVertices()
 		{
 			float posX = xStart + x * xOffset;
 			float u = (uStart + x * xOffset) / texWidth;
-			_points.push_back({posX, posY, 0, 1.0f});
-			_vertices.push_back({0, 0, 0, 0, u, v, Color::White.toABGR()});
+			_points.push_back({{posX, posY, 0, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}});
+			_vertices.push_back({0, 0, 0, 0, u, v, 0xffffffff});
 			if (x < _gridX && y < _gridY)
 			{
 				_indices.push_back(y * xCount + x);
@@ -193,6 +194,7 @@ void Grid::setupVertices()
 			}
 		}
 	}
+	_flags.setOn(Grid::VertexColorDirty);
 	_flags.setOn(Grid::VertexPosDirty);
 }
 
@@ -231,6 +233,22 @@ void Grid::render()
 {
 	if (!_texture || !_effect || _vertices.empty()) return;
 
+	if (_flags.isOn(Grid::VertexColorDirty))
+	{
+		_flags.setOff(Grid::VertexColorDirty);
+		for (size_t i = 0; i < _points.size(); i++)
+		{
+			auto rc = _realColor.toVec4();
+			const auto& c = _points[i].color;
+			_vertices[i].abgr = Color(Vec4{
+					c.x * rc.x,
+					c.y * rc.y,
+					c.z * rc.z,
+					c.w * rc.w
+				}).toABGR();
+		}
+	}
+
 	if (_flags.isOn(Grid::VertexPosDirty))
 	{
 		_flags.setOff(Grid::VertexPosDirty);
@@ -238,7 +256,7 @@ void Grid::render()
 		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
 		for (size_t i = 0; i < _points.size(); i++)
 		{
-			bx::vec4MulMtx(&_vertices[i].x, &_points[i].x, transform);
+			bx::vec4MulMtx(&_vertices[i].x, &_points[i].position.x, transform);
 		}
 	}
 
@@ -255,6 +273,18 @@ void Grid::render()
 		_vertices.data(), _vertices.size(),
 		_indices.data(), _indices.size(),
 		_effect, _texture, renderState);
+}
+
+void Grid::updateRealColor3()
+{
+	Node::updateRealColor3();
+	_flags.setOn(Grid::VertexColorDirty);
+}
+
+void Grid::updateRealOpacity()
+{
+	Node::updateRealOpacity();
+	_flags.setOn(Grid::VertexColorDirty);
 }
 
 NS_DOROTHY_END

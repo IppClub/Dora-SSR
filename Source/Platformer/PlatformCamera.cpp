@@ -17,6 +17,7 @@ NS_DOROTHY_PLATFORMER_BEGIN
 PlatformCamera::PlatformCamera(String name):
 Camera(name),
 _transformDirty(true),
+_camPos{0,0},
 _rotation(0.0f),
 _zoom(1.0f),
 _ratio{1.0f, 1.0f},

@@ -1,0 +1,490 @@
+_ENV = Dorothy!
+import "Utils" as :Struct
+
+Struct\clear!
+
+Struct.Array!
+
+Struct.Phyx.Rect(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"center"
+	"size"
+	"density"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"sensor"
+	"sensorTag"
+	"subShapes"
+	"face"
+	"facePos"
+)
+Struct.Phyx.Disk(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"center"
+	"radius"
+	"density"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"sensor"
+	"sensorTag"
+	"subShapes"
+	"face"
+	"facePos"
+)
+Struct.Phyx.Poly(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"vertices"
+	"density"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"sensor"
+	"sensorTag"
+	"subShapes"
+	"face"
+	"facePos"
+)
+Struct.Phyx.Chain(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"vertices"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"subShapes"
+	"face"
+	"facePos"
+)
+Struct.Phyx.SubRect(
+	"center"
+	"angle"
+	"size"
+	"density"
+	"friction"
+	"restitution"
+	"sensor"
+	"sensorTag"
+)
+Struct.Phyx.SubDisk(
+	"center"
+	"radius"
+	"density"
+	"friction"
+	"restitution"
+	"sensor"
+	"sensorTag"
+)
+Struct.Phyx.SubPoly(
+	"vertices"
+	"density"
+	"friction"
+	"restitution"
+	"sensor"
+	"sensorTag"
+)
+Struct.Phyx.SubChain(
+	"vertices"
+	"friction"
+	"restitution"
+)
+Struct.Phyx.Distance(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"anchorA"
+	"anchorB"
+	"frequency"
+	"damping"
+)
+Struct.Phyx.Friction(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"maxForce"
+	"maxTorque"
+)
+Struct.Phyx.Gear(
+	"name"
+	"collision"
+	"jointA"
+	"jointB"
+	"ratio"
+)
+Struct.Phyx.Spring(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"linearOffset"
+	"angularOffset"
+	"maxForce"
+	"maxTorque"
+	"correctionFactor"
+)
+Struct.Phyx.Prismatic(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"axis"
+	"lowerTranslation"
+	"upperTranslation"
+	"maxMotorForce"
+	"motorSpeed"
+)
+Struct.Phyx.Pulley(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"anchorA"
+	"anchorB"
+	"groundAnchorA"
+	"groundAnchorB"
+	"ratio"
+)
+Struct.Phyx.Revolute(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"lowerAngle"
+	"upperAngle"
+	"maxMotorTorque"
+	"motorSpeed"
+)
+Struct.Phyx.Rope(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"anchorA"
+	"anchorB"
+	"maxLength"
+)
+Struct.Phyx.Weld(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"frequency"
+	"damping"
+)
+Struct.Phyx.Wheel(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"axis"
+	"maxMotorTorque"
+	"motorSpeed"
+	"frequency"
+	"damping"
+)
+
+loadFuncs = nil
+loadData = (data, item)->
+	loadFuncs[data[1]] data, item
+
+loadFuncs =
+	"Array": (data, itemDict)->
+		for i = 1, data\count!
+			loadData data\get(i), itemDict
+
+	"Phyx.Rect": (data, itemDict)->
+		bodyDef = with BodyDef!
+			.type = data.type
+			.bullet = data.bullet
+			.linearAcceleration = data.linearAcceleration
+			.fixedRotation = data.fixedRotation
+			.linearDamping = data.linearDamping
+			.angularDamping = data.angularDamping
+			.position = data.position
+			.angle = data.angle
+			.face = data.face
+			.facePos = data.facePos
+		:width, :height = data.size
+		if data.sensor
+			bodyDef\attachPolygonSensor data.sensorTag, width, height, data.center
+		else
+			bodyDef\attachPolygon(
+				data.center, width, height, 0
+				data.density, data.friction, data.restitution
+			)
+		if subShapes = data.subShapes
+			for i = 1, subShapes\count!
+				loadData subShapes\get(i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.Disk": (data, itemDict)->
+		bodyDef = with BodyDef!
+			.type = data.type
+			.bullet = data.bullet
+			.linearAcceleration = data.linearAcceleration
+			.fixedRotation = data.fixedRotation
+			.linearDamping = data.linearDamping
+			.angularDamping = data.angularDamping
+			.position = data.position
+			.angle = data.angle
+			.face = data.face
+			.facePos = data.facePos
+		if data.sensor
+			bodyDef\attachDiskSensor data.sensorTag, data.center, data.radius
+		else
+			bodyDef\attachDisk(
+				data.center, data.radius,
+				data.density, data.friction, data.restitution
+			)
+		if subShapes = data.subShapes
+			for i = 1, subShapes\count!
+				loadData subShapes\get(i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.Poly": (data, itemDict)->
+		bodyDef = with BodyDef!
+			.type = data.type
+			.bullet = data.bullet
+			.linearAcceleration = data.linearAcceleration
+			.fixedRotation = data.fixedRotation
+			.linearDamping = data.linearDamping
+			.angularDamping = data.angularDamping
+			.position = data.position
+			.angle = data.angle
+			.face = data.face
+			.facePos = data.facePos
+		if data.sensor
+			bodyDef\attachPolygonSensor data.sensorTag, data.vertices\toArray!
+		else
+			bodyDef\attachPolygon(
+				data.vertices\toArray!,
+				data.density, data.friction, data.restitution
+			)
+		if subShapes = data.subShapes
+			for i = 1, subShapes\count!
+				loadData subShapes\get(i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.Chain": (data, itemDict)->
+		bodyDef = with BodyDef!
+			.type = data.type
+			.bullet = data.bullet
+			.linearAcceleration = data.linearAcceleration
+			.fixedRotation = data.fixedRotation
+			.linearDamping = data.linearDamping
+			.angularDamping = data.angularDamping
+			.position = data.position
+			.angle = data.angle
+			.face = data.face
+			.facePos = data.facePos
+		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
+		if subShapes = data.subShapes
+			for i = 1, subShapes\count!
+				loadData subShapes\get(i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.SubRect": (data, bodyDef)->
+		:width, :height = data.size
+		if data.sensor
+			bodyDef\attachPolygonSensor data.sensorTag, width, height, data.center
+		else
+			bodyDef\attachPolygon(
+				data.center, width, height,
+				data.angle, data.density, data.friction, data.restitution
+			)
+
+	"Phyx.SubDisk": (data, bodyDef)->
+		if data.sensor
+			bodyDef\attachDiskSensor data.sensorTag, data.center, data.radius
+		else
+			bodyDef\attachDisk(
+				data.center, data.radius,
+				data.density, data.friction, data.restitution
+			)
+
+	"Phyx.SubPoly": (data, bodyDef)->
+		if data.sensor
+			bodyDef\attachPolygonSensor data.sensorTag, data.vertices\toArray!
+		else
+			bodyDef\attachPolygon(
+				data.vertices\toArray!,
+				data.density, data.friction, data.restitution
+			)
+
+	"Phyx.SubChain": (data, bodyDef)->
+		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
+
+	"Phyx.Distance": (data, itemDict)->
+		itemDict[data.name] = JointDef\distance(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.anchorA
+			data.anchorB
+			data.frequency
+			data.damping
+		)
+	"Phyx.Friction": (data, itemDict)->
+		itemDict[data.name] = JointDef\friction(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.worldPos
+			data.maxForce
+			data.maxTorque
+		)
+
+	"Phyx.Gear": (data, itemDict)->
+		itemDict[data.name] = JointDef\gear(
+			data.collision
+			data.jointA
+			data.jointB
+			data.ratio
+		)
+
+	"Phyx.Spring": (data, itemDict)->
+		itemDict[data.name] = JointDef\spring(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.linearOffset
+			data.angularOffset
+			data.maxForce
+			data.maxTorque
+			data.correctionFactor
+		)
+
+	"Phyx.Prismatic": (data, itemDict)->
+		itemDict[data.name] = JointDef\prismatic(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.worldPos
+			data.axis
+			data.lowerTranslation
+			data.upperTranslation
+			data.maxMotorForce
+			data.motorSpeed
+		)
+
+	"Phyx.Pulley": (data, itemDict)->
+		itemDict[data.name] = JointDef\pulley(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.anchorA
+			data.anchorB
+			data.groundAnchorA
+			data.groundAnchorB
+			data.ratio
+		)
+
+	"Phyx.Revolute": (data, itemDict)->
+		itemDict[data.name] = JointDef\revolute(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.worldPos
+			data.lowerAngle
+			data.upperAngle
+			data.maxMotorTorque
+			data.motorSpeed
+		)
+
+	"Phyx.Rope": (data, itemDict)->
+		itemDict[data.name] = JointDef\rope(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.anchorA
+			data.anchorB
+			data.maxLength
+		)
+
+	"Phyx.Weld": (data, itemDict)->
+		itemDict[data.name] = JointDef\weld(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.worldPos
+			data.frequency
+			data.damping
+		)
+
+	"Phyx.Wheel": (data, itemDict)->
+		itemDict[data.name] = JointDef\wheel(
+			data.collision
+			data.bodyA
+			data.bodyB
+			data.worldPos
+			data.axis
+			data.maxMotorTorque
+			data.motorSpeed
+			data.frequency
+			data.damping
+		)
+
+export default (bodyData, world, pos, angle)->
+	itemDict = Dictionary!
+	loadData Struct\load(bodyData), itemDict
+	root = Node!
+	items = root.data
+	center = Vec2.zero
+	itemDict\each (itemDef, key)->
+		if "BodyDef" == tolua.type itemDef
+			body = Body itemDef, world, pos, angle
+			body.owner = root
+			root\addChild body
+			faceStr = itemDef.face
+			if faceStr ~= ""
+				face = if faceStr\match ":"
+					Playable faceStr
+				else
+					Sprite faceStr
+				if face
+					face.position = itemDef.facePos
+					body\addChild face
+			items[key] = body
+		else
+			if center
+				itemDef.center = center
+				itemDef.position = pos
+				itemDef.angle = angle
+			if joint = Joint itemDef, items
+				items[key] = joint
+	root
