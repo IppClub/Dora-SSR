@@ -9,6 +9,7 @@ struct Color3
 	Color3(uint32_t rgb);
 	Color3(uint8_t r, uint8_t g, uint8_t b);
 	~Color3();
+	uint32_t toRGB();
 };
 
 struct Color

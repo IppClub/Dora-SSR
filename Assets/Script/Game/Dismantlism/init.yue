@@ -1,0 +1,330 @@
+_ENV = Dorothy!
+import "BodyEx"
+import "UI.View.Shape.SolidRect"
+import "UI.Control.Basic.AlignNode"
+import "Utils" as :Struct, :Set
+
+ns = "Game.Dismantlism"
+
+root = Node!
+ui = with Node!
+	.x = -100
+	.y = -50
+	\addChild Sprite "duality.clip|stat"
+score = 0
+scoreTxt = with Label "SourceHanSansCN-Regular", 40
+	.textAlign = "Center"
+	.color3 = Color3 0x0
+	.text = "0"
+	\addTo ui
+
+world = with PhysicsWorld!
+	.y = 405
+	\setShouldContact 0, 0, true
+	\setShouldContact 0, 1, false
+	--.showDebug = true
+	\addTo root
+
+isSpace = true
+switchScene = nil
+
+spaceBack = nil
+dailyBack = nil
+center = AlignNode hAlign: "Center", vAlign: "Center"
+Director.entry\addChild with AlignNode isRoot: true, inUI: false
+	\slot "AlignLayout", (w, h)->
+		worldScale = w / 2970
+		root.scaleX = worldScale
+		root.scaleY = worldScale
+		ui.scaleX = worldScale
+		ui.scaleY = worldScale
+		spaceBack\removeFromParent! if spaceBack
+		spaceBack = with Node!
+			.visible = isSpace
+			.order = -1
+			\addChild with Grid "duality.clip|space", 1, 1
+				\moveUV 0, 0, Vec2 1, 1
+				\moveUV 1, 0, Vec2 -1, 1
+				\moveUV 0, 1, Vec2 1, -1
+				\moveUV 1, 1, Vec2 -1, -1
+				.scaleX = w / 8
+				.scaleY = h / 1078
+			\addTo Director.entry
+			\addChild with Node!
+				.scaleX = worldScale
+				.scaleY = worldScale
+				for y = 1, 8 do for x = 1, 8
+					\addChild with Sprite "duality.clip|stary"
+						.anchorX = 0
+						.x = -3000 + (x - 1) * 1000
+						.y = 3000 - (y - 1) * 1000
+				\perform X 10, 0, -1000 * worldScale
+				\slot "ActionEnd", -> \perform X 10, 0, -1000 * worldScale
+		dailyBack\removeFromParent! if dailyBack
+		dailyBack = with Grid "duality.clip|day", 1, 1
+			.visible = not isSpace
+			.order = -1
+			\moveUV 0, 0, Vec2 1, 1
+			\moveUV 1, 0, Vec2 -1, 1
+			\moveUV 0, 1, Vec2 1, -1
+			\moveUV 1, 1, Vec2 -1, -1
+			.scaleX = w / 8
+			.scaleY = h / 1078
+			\addTo Director.entry
+	\addChild with AlignNode hAlign: "Center", vAlign: "Bottom"
+		\addChild root
+	\addChild with AlignNode hAlign: "Right", vAlign: "Top"
+		\addChild ui
+	\addChild with center
+		\addChild with Node!
+			.touchEnabled = true
+			.swallowTouches = true
+			\addChild Sprite "duality.clip|dismantlism"
+			\perform Sequence(Delay(1), Spawn(
+				Opacity 1, 1, 0, Ease.OutQuad
+				Y 1, 0, 100, Ease.InQuad
+			), Event "Start")
+			\slot "Start", ->
+				isSpace = false
+				switchScene!
+				\removeFromParent!
+	\alignLayout!
+
+moveJoint = nil
+movingBody = nil
+Director.entry\addChild with Node!
+	.touchEnabled = true
+	\slot "TapBegan", (touch)->
+		worldPos = \convertToWorldSpace touch.location
+		pos = world\convertToNodeSpace worldPos
+		world\query Rect(pos - Vec2(1, 1), Size 2, 2), (body)->
+			return false if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily")
+			moveJoint\destroy! if moveJoint
+			moveJoint = Joint\move true, body, pos, 400
+			movingBody = body
+			true
+	\slot "TapMoved", (touch)->
+		if moveJoint
+			worldPos = \convertToWorldSpace touch.location
+			pos = world\convertToNodeSpace worldPos
+			moveJoint.position = pos
+	\slot "TapEnded", ->
+		if moveJoint
+			moveJoint\destroy!
+			moveJoint = nil
+			movingBody = nil
+
+scene = require "#{ns}.scene"
+Struct.Body "name", "file", "position", "angle"
+Struct\load scene
+
+spaceItems = Set
+	* "rocket"
+	* "satlite"
+	* "spacestation"
+	* "star1"
+	* "star2"
+	* "ufo"
+	* "get"
+
+dailyItems = Set
+	* "baseball"
+	* "burger"
+	* "donut"
+	* "fish"
+	* "radio"
+	* "tv"
+	* "pizza"
+
+spaceBodies = {}
+dailyBodies = {}
+
+switchScene = ->
+	if isSpace
+		Audio\playStream "Audio/Dismantlism Space.ogg", true, 0.2
+		dailyBack\perform Sequence(
+			Show!
+			Opacity 0.5, 1, 0
+			Hide!
+		)
+		spaceBack\perform Sequence(
+			Show!
+			Opacity 0.5, 0, 1
+		)
+		for body in *dailyBodies
+			with body.children[1]
+				if .actionCount == 0
+					\perform Sequence(
+						Show!
+						Scale 0.5, 1, 0, Ease.OutBack
+						Hide!
+					)
+		for body in *spaceBodies
+			with body.children[1]
+				if .actionCount == 0
+					\perform Sequence(
+						Show!
+						Scale 0.5, 0, 1, Ease.OutBack
+					)
+	else
+		Audio\playStream "Audio/Dismantlism Daily.ogg", true, 0.2
+		spaceBack\perform Sequence(
+			Show!
+			Opacity 0.5, 1, 0
+			Hide!
+		)
+		dailyBack\perform Sequence(
+			Show!
+			Opacity 0.5, 0, 1
+		)
+		for body in *spaceBodies
+			with body.children[1]
+				if .actionCount == 0
+					\perform Sequence(
+						Show!
+						Scale 0.5, 1, 0, Ease.OutBack
+						Hide!
+					)
+		for body in *dailyBodies
+			with body.children[1]
+				if .actionCount == 0
+					\perform Sequence(
+						Show!
+						Scale 0.5, 0, 1, Ease.OutBack
+					)
+
+restartScene = nil
+gameEnded = false
+buildScene = ->
+	for i = 1, scene\count!
+		{
+			:name
+			:file
+			:position = Vec2.zero
+			:angle = 0
+		} = scene\get i
+		node = BodyEx require("#{ns}.Physics.#{file}"), world, position, angle
+		world\addChild node
+		if spaceItems[file]
+			node.data\each =>
+				@tag = "space"
+				@children[1].tag = file
+				table.insert spaceBodies, @
+		elseif dailyItems[file]
+			node.data\each =>
+				@tag = "daily"
+				@children[1].tag = file
+				table.insert dailyBodies, @
+		else
+			node.data\each =>
+				@children[1].tag = file if @children and #@children > 0
+		switch file
+			when "removearea"
+				with node.data.rect
+					\addChild SolidRect x: -200, y: -200, width: 400, height: 400, color: 0x66000000
+					\addChild with Label "SourceHanSansCN-Regular", 80
+						.textAlign = "Center"
+						.color = Color 0x66ffffff
+						.text = "Drag It\nHere"
+					\slot "BodyEnter", (body)->
+						return if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily")
+						return if body.group == 1
+						body.group = 1
+						with body.children[1]
+							\perform Sequence Spawn(
+								Opacity 0.5, 1, 0
+								Scale 0.5, 1, 1.5, Ease.OutBack
+							), Event "Destroy"
+							\slot "Destroy", ->
+								switch .tag
+									when "star2", "pizza"
+										score += 10
+										isSpace = not isSpace
+										switchScene!
+									when "get", "fish"
+										score += 100
+									when "credit"
+										score += 50
+										world\addChild with Node!
+											\addChild Sprite "duality.clip|window"
+											\addChild Sprite "duality.clip|credits1"
+											.position = body.position
+											\perform Sequence(
+												Spawn(
+													Scale 0.5, 0, 1, Ease.OutBack
+													Opacity 0.5, 0, 1
+												)
+												Delay 3
+												Scale 0.5, 1, 0, Ease.InBack
+												Event "End"
+											)
+											\slot "End", -> \removeFromParent!
+									else
+										score += 10
+								scoreTxt.text = tostring score
+								if score > 100
+									center\addChild with Node!
+										\addChild Sprite "duality.clip|window"
+										\addChild Sprite "duality.clip|win"
+										\perform Sequence(
+											Spawn(
+												Scale 0.5, 0, 1, Ease.OutBack
+												Opacity 0.5, 0, 1
+											)
+											Delay 3
+											Scale 0.5, 1, 0, Ease.InBack
+											Event "End"
+										)
+										\slot "End", ->
+											\removeFromParent!
+											restartScene!
+								if movingBody == body and moveJoint
+									moveJoint\destroy!
+									moveJoint = nil
+									movingBody = nil
+								body\removeFromParent!
+			when "safearea"
+				with node.data.rect
+					\slot "BodyEnter", (body)->
+						return if body == movingBody
+						:tag = body.children[1]
+						if (name == "safe1" and tag == "get") or
+							(name == "safe2" and tag == "fish")
+								if not gameEnded
+									gameEnded = true
+									world\addChild with Node!
+										\addChild Sprite "duality.clip|window"
+										\addChild Sprite "duality.clip|lose"
+										.position = body.position
+										\perform Sequence(
+											Spawn(
+												Scale 0.5, 0, 1, Ease.OutBack
+												Opacity 0.5, 0, 1
+											)
+											Delay 2
+											Scale 0.5, 1, 0, Ease.InBack
+											Event "End"
+										)
+										\slot "End", -> restartScene!
+
+buildScene!
+switchScene!
+
+restartScene = ->
+	score = 0
+	scoreTxt.text = "0"
+	isSpace = false
+	gameEnded = false
+	if moveJoint
+		moveJoint\destroy!
+		moveJoint = nil
+		movingBody = nil
+	world\removeFromParent!
+	world = with PhysicsWorld!
+		.y = 405
+		\setShouldContact 0, 0, true
+		\setShouldContact 0, 1, false
+		--.showDebug = true
+		\addTo root
+	buildScene!
+	switchScene!

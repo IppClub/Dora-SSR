@@ -30,6 +30,8 @@ public:
 	virtual bool init() override;
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
+	virtual void updateRealColor3() override;
+	virtual void updateRealOpacity() override;
 	CREATE_FUNC(Grid);
 protected:
 	Grid(float width, float height, uint32_t gridX, uint32_t gridY);
@@ -46,13 +48,19 @@ private:
 	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;
 	Ref<Texture2D> _texture;
-	std::vector<Vec4> _points;
+	struct Point
+	{
+		Vec4 position;
+		Vec4 color;
+	};
+	std::vector<Point> _points;
 	std::vector<SpriteVertex> _vertices;
 	std::vector<SpriteRenderer::IndexType> _indices;
 	enum
 	{
 		VertexPosDirty = Node::UserFlag,
-		DepthWrite = Node::UserFlag << 1,
+		VertexColorDirty = Node::UserFlag << 1,
+		DepthWrite = Node::UserFlag << 2,
 	};
 	DORA_TYPE_OVERRIDE(Grid);
 };

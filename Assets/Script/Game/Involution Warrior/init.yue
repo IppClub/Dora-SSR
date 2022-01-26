@@ -1,3 +1,4 @@
+-- GGJ2021
 _ENV = Dorothy(
 	builtin.ImGui
 	builtin.Platformer
@@ -520,12 +521,12 @@ GetBoss = (entity, pos, black)->
 GetUnit = (entity, pos, black)->
 	characterType = characterTypes[math.random 1, #characterTypes]
 	characterColor = characterColors[math.random 1, #characterColors]
-	character = 
+	character =
 		body: "character_#{characterType}#{characterColor}"
 		lhand: "character_hand#{characterColor}"
 		rhand: "character_hand#{characterColor}"
 		mask: masks[math.random 1, #masks]
-	items = 
+	items =
 		head: headItems[math.random 1, #headItems]
 		lhand: lhandItems[math.random 1, #lhandItems]
 		rhand: rhandItems[math.random 1, #rhandItems]

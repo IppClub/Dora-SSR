@@ -253,6 +253,11 @@ static void Draw(DebugDraw* drawer, const pd::World& world, pr::JointID joint)
 		drawer->DrawSegment(s2, p2, jointColor);
 		drawer->DrawSegment(s1, s2, jointColor);
 	}
+	else if (jointType == pr::GetTypeID<pd::TargetJointConf>())
+	{
+		const auto x2 = pd::GetTarget(world, joint);
+		drawer->DrawSegment(x2, p2, jointColor);
+	}
 	else
 	{
 		const auto bodyA = pd::GetBodyA(world, joint);
