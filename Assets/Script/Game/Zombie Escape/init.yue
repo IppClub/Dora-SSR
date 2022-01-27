@@ -1,4 +1,4 @@
--- GGJ2020
+-- Ludum Dare 42
 _ENV = Dorothy!
 ns = "Game.Zombie Escape"
 require "#{ns}.Constant"
