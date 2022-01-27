@@ -11,7 +11,7 @@ oldRequire = _G.require
 require = (path)->
 	loaded = package.loaded[path]
 	if loaded == nil
-		table.insert moduleCache,path
+		table.insert moduleCache, path
 		return oldRequire path
 	loaded
 _G.require = require
@@ -96,7 +96,7 @@ doCompile = (minify)->
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 				fileCount += 1
 				return
-			requires = LintYueGlobals(codes, globals, file)
+			requires = LintYueGlobals codes, globals, file
 			requires ..= "\n" unless requires == ""
 			"-- [yue]: #{file}\n#{requires}" .. codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
 		print "Yue compiled: #{file}"

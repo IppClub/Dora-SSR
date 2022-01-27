@@ -25,7 +25,7 @@ struct FixtureDef;
 
 typedef Acf::Delegate<bool(Body* body)> ContactFilterHandler;
 typedef Acf::Delegate<void(Body* body,const Vec2& point,const Vec2& normal)> ContactHandler;
-typedef Acf::Delegate<void(Sensor* sensor,Body* body)> SensorHandler;
+typedef Acf::Delegate<void(Sensor* sensor)> SensorHandler;
 
 class Body : public Node
 {
@@ -48,11 +48,9 @@ public:
 	PROPERTY(float, VelocityY);
 	PROPERTY_VIRTUAL(uint8_t, Group);
 	PROPERTY_BOOL(ReceivingContact);
-	PROPERTY_BOOL(EmittingEvent);
 	ContactHandler contactStart;
 	ContactHandler contactEnd;
 	ContactFilterHandler filterContact;
-	SensorHandler sensorAdded;
 	void applyLinearImpulse(const Vec2& impulse, const Vec2& pos);
 	void applyAngularImpulse(float impulse);
 	void setVelocity(float x, float y);
@@ -61,7 +59,6 @@ public:
 	virtual void setPosition(const Vec2& var) override;
 	virtual Rect getBoundingBox() override;
 	Sensor* getSensorByTag(int tag);
-	void eachSensor(const SensorHandler& func);
 	bool removeSensorByTag(int tag);
 	bool removeSensor(Sensor* sensor);
 	pr::ShapeID attach(FixtureDef* fixtureDef);
@@ -81,9 +78,8 @@ protected:
 		EmittingEvent = UserFlag << 1,
 		BodyUserFlag = UserFlag << 2
 	};
-	void onSensorAdded(Sensor* sensor, Body* body);
-	void onBodyEnter(Sensor* sensor, Body* other);
-	void onBodyLeave(Sensor* sensor, Body* other);
+	void onBodyEnter(Body* other, int sensorTag);
+	void onBodyLeave(Body* other, int sensorTag);
 	void onContactStart(Body* other, const Vec2& point, const Vec2& normal);
 	void onContactEnd(Body* other, const Vec2& point, const Vec2& normal);
 private:

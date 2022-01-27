@@ -145,8 +145,8 @@ with Observer "Add",{"switch","group","layer","look","position"}
 				.scaleY = 2
 			\addTo world
 			.emittingEvent = true
-			\slot "BodyEnter",(sensor)=>
-				if .attackSensor == sensor and @entity and Data\isFriend @,unit
+			\slot "BodyEnter",(sensorTag)=>
+				if .attackSensor.tag == sensorTag and @entity and Data\isFriend @,unit
 					if @group == GroupPlayer and @entity.hero and not @entity.tip
 						floating = Action Sequence(
 							Y 0.5,140,150,Ease.OutQuad
@@ -210,8 +210,8 @@ with Observer "Add",{"poke","group","layer","position"}
 				.filter = "Point"
 				.visible = false
 			\addChild glow
-			\slot "BodyEnter",(sensor)=>
-				if sensor.tag == 0 and switch @group
+			\slot "BodyEnter",(sensorTag)=>
+				if sensorTag == 0 and switch @group
 						when GroupPlayer,GroupEnemy then Data\isEnemy @group,.group
 						else false
 					if (.x < @x) == (.velocityX > 0)

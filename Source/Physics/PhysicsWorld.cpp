@@ -121,17 +121,16 @@ void PhysicsWorld::setupBeginContact()
 		{
 			pd::WorldManifold worldManifold = pd::GetWorldManifold(_world, contact);
 			Vec2 point = PhysicsWorld::oVal(worldManifold.GetPoint(0));
+			pd::UnitVec normal = worldManifold.GetNormal();
 			if (bodyA->isReceivingContact())
 			{
-				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair{ bodyA, bodyB, point, {normal[0], normal[1]} };
+				ContactPair pair{bodyA, bodyB};
 				pair.retain();
 				_contactStarts.push_back(pair);
 			}
 			if (bodyB->isReceivingContact())
 			{
-				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair{ bodyB, bodyA, point, {normal[0], normal[1]} };
+				ContactPair pair{bodyB, bodyA, point, {normal[0], normal[1]}};
 				pair.retain();
 				_contactStarts.push_back(pair);
 			}
@@ -176,14 +175,14 @@ void PhysicsWorld::setupEndContact()
 			if (bodyA->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair{ bodyA, bodyB, point, {normal[0], normal[1]} };
+				ContactPair pair{bodyA, bodyB, point, {normal[0], normal[1]}};
 				pair.retain();
 				_contactEnds.push_back(pair);
 			}
 			if (bodyB->isReceivingContact())
 			{
 				pd::UnitVec normal = worldManifold.GetNormal();
-				ContactPair pair{ bodyB, bodyA, point, {normal[0], normal[1]} };
+				ContactPair pair{bodyB, bodyA, point, {normal[0], normal[1]}};
 				pair.retain();
 				_contactEnds.push_back(pair);
 			}

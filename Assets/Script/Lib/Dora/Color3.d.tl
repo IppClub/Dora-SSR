@@ -3,6 +3,7 @@ local record Color3
 	r: integer
 	g: integer
 	b: integer
+	toRGB: function(self: Color3): integer
 end
 local record Color3Class
 	type Type = Color3

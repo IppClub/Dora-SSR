@@ -60,6 +60,8 @@ bool Body::init()
 			Body::attachFixture(&fixtureDef);
 		}
 	}
+	contactStart += std::make_pair(this, &Body::onContactStart);
+	contactEnd += std::make_pair(this, &Body::onContactEnd);
 	return true;
 }
 
@@ -278,24 +280,16 @@ Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef)
 	pd::Attach(world, _prBody, fixture);
 	Sensor* sensor = Sensor::create(this, tag, fixture);
 	_pWorld->setFixtureData(fixture, sensor);
+	sensor->bodyEnter += std::make_pair(this, &Body::onBodyEnter);
+	sensor->bodyLeave += std::make_pair(this, &Body::onBodyLeave);
 	if (!_sensors) _sensors = Array::create();
 	_sensors->add(Value::alloc(sensor));
-	sensorAdded(sensor, this);
 	return sensor;
 }
 
 bool Body::isSensor() const
 {
 	return _sensors && _sensors->getCount() > 0;
-}
-
-void Body::eachSensor(const SensorHandler& func)
-{
-	ARRAY_START(Sensor, sensor, _sensors)
-	{
-		func(sensor, this);
-	}
-	ARRAY_END
 }
 
 void Body::setVelocityX(float x)
@@ -363,25 +357,14 @@ bool Body::isReceivingContact() const
 	return _flags.isOn(Body::ReceivingContact);
 }
 
-bool Body::isEmittingEvent() const
+void Body::onBodyEnter(Body* other, int sensorTag)
 {
-	return _flags.isOn(Body::EmittingEvent);
+	emit("BodyEnter"_slice, other, sensorTag);
 }
 
-void Body::onSensorAdded(Sensor* sensor, Body* body)
+void Body::onBodyLeave(Body* other, int sensorTag)
 {
-	sensor->bodyEnter += std::make_pair(this, &Body::onBodyEnter);
-	sensor->bodyLeave += std::make_pair(this, &Body::onBodyLeave);
-}
-
-void Body::onBodyEnter(Sensor* sensor, Body* other)
-{
-	emit("BodyEnter"_slice, other, sensor);
-}
-
-void Body::onBodyLeave(Sensor* sensor, Body* other)
-{
-	emit("BodyLeave"_slice, other, sensor);
+	emit("BodyLeave"_slice, other, sensorTag);
 }
 
 void Body::onContactStart(Body* other, const Vec2& point, const Vec2& normal)
@@ -392,36 +375,6 @@ void Body::onContactStart(Body* other, const Vec2& point, const Vec2& normal)
 void Body::onContactEnd(Body* other, const Vec2& point, const Vec2& normal)
 {
 	emit("ContactEnd"_slice, other, point, normal);
-}
-
-void Body::setEmittingEvent(bool var)
-{
-	if (isEmittingEvent() == var) return;
-	_flags.set(Body::EmittingEvent, var);
-	if (var)
-	{
-		ARRAY_START(Sensor, sensor, _sensors)
-		{
-			sensor->bodyEnter += std::make_pair(this, &Body::onBodyEnter);
-			sensor->bodyLeave += std::make_pair(this, &Body::onBodyLeave);
-		}
-		ARRAY_END
-		sensorAdded += std::make_pair(this, &Body::onSensorAdded);
-		contactStart += std::make_pair(this, &Body::onContactStart);
-		contactEnd += std::make_pair(this, &Body::onContactEnd);
-	}
-	else
-	{
-		ARRAY_START(Sensor, sensor, _sensors)
-		{
-			sensor->bodyEnter -= std::make_pair(this, &Body::onBodyEnter);
-			sensor->bodyLeave -= std::make_pair(this, &Body::onBodyLeave);
-		}
-		ARRAY_END
-		sensorAdded -= std::make_pair(this, &Body::onSensorAdded);
-		contactStart -= std::make_pair(this, &Body::onContactStart);
-		contactEnd -= std::make_pair(this, &Body::onContactEnd);
-	}
 }
 
 void Body::updatePhysics()

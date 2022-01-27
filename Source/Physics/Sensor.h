@@ -20,7 +20,7 @@ class Body;
 class Sensor;
 class Array;
 
-typedef Acf::Delegate<void(Sensor*,Body*)> SensorHandler;
+typedef Acf::Delegate<void(Body*, int)> SensorEventHandler;
 
 class Sensor : public Object
 {
@@ -41,12 +41,12 @@ public:
 	 Set the callback function which is called every time
 	 there is a detectable body that entered the sensor`s area.
 	 */
-	SensorHandler bodyEnter;
+	SensorEventHandler bodyEnter;
 	/**
 	 Set the callback function which is called every time
 	 there is a detectable body that left the sensor`s area.
 	 */
-	SensorHandler bodyLeave;
+	SensorEventHandler bodyLeave;
 
 	CREATE_FUNC(Sensor);
 protected:
@@ -62,6 +62,7 @@ private:
 	void clear();
 	bool _enabled;
 	Ref<Array> _sensedBodies;
+	std::unordered_set<Body*> _uniqueBodies;
 	friend class PhysicsWorld;
 	DORA_TYPE_OVERRIDE(Sensor);
 };

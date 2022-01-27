@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-gravity = Vec2 0,-10
+gravity = Vec2 0, -10
 
 world = with PhysicsWorld!
 	\setShouldContact 0, 0, true
