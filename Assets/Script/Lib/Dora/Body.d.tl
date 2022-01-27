@@ -20,7 +20,6 @@ local record Body
 	angularDamping: number
 	owner: Object
 	receivingContact: boolean
-	emittingEvent: boolean
 	applyLinearImpulse: function(self: Body, impulse: Vec2, pos: Vec2)
 	applyAngularImpulse: function(self: Body, impulse: number)
 	removeSensorByTag: function(self: Body, tag: integer): boolean
@@ -31,8 +30,8 @@ local record Body
 end
 local record __SLOT__
 	-- Body.receivingContact = true
-	["BodyEnter"]: function(other: Body, sensor: Sensor)
-	["BodyLeave"]: function(other: Body, sensor: Sensor)
+	["BodyEnter"]: function(other: Body, sensorTag: integer)
+	["BodyLeave"]: function(other: Body, sensorTag: integer)
 	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)
 	["ContactEnd"]: function(other: Body, point: Vec2, normal: Vec2)
 end

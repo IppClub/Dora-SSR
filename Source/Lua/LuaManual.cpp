@@ -1711,15 +1711,6 @@ int BodyDef_SetType(lua_State* L)
 	return 0;
 }
 
-/* Body */
-
-Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot)
-{
-	Body* body = Body::create(def, world, pos, rot);
-	body->setEmittingEvent(true);
-	return body;
-}
-
 /* Dictionary */
 
 Array* __Dictionary_getKeys(Dictionary* self)

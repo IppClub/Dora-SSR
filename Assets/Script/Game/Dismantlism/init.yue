@@ -7,7 +7,8 @@ import "Utils" as :Struct, :Set
 
 ns = "Game.Dismantlism"
 
-root = Node!
+root = with Node!
+	\slot "Cleanup", -> Audio\stopStream 0.2
 ui = with Node!
 	.x = -100
 	.y = -50
@@ -80,10 +81,14 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 			.touchEnabled = true
 			.swallowTouches = true
 			\addChild Sprite "duality.clip|dismantlism"
-			\perform Sequence(Delay(1), Spawn(
-				Opacity 1, 1, 0, Ease.OutQuad
-				Y 1, 0, 100, Ease.InQuad
-			), Event "Start")
+			\perform Sequence(
+				Delay 1
+				Spawn(
+					Opacity 1, 1, 0, Ease.OutQuad
+					Y 1, 0, 100, Ease.InQuad
+				)
+				Event "Start"
+			)
 			\slot "Start", ->
 				isSpace = false
 				switchScene!

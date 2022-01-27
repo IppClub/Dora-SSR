@@ -141,9 +141,6 @@ int DragonBone_intersectsSegment(lua_State* L);
 int BodyDef_GetType(lua_State* L);
 int BodyDef_SetType(lua_State* L);
 
-/* Body */
-Body* Body_create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
-
 /* Dictionary */
 Array* __Dictionary_getKeys(Dictionary* self);
 #define Dictionary_getKeys() __Dictionary_getKeys(self)

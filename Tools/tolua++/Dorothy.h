@@ -813,7 +813,6 @@ class Body : public Node
 	tolua_property__common float angularDamping;
 	tolua_property__common Object* owner;
 	tolua_property__bool bool receivingContact;
-	tolua_property__bool bool emittingEvent;
 	void applyLinearImpulse(Vec2 impulse, Vec2 pos);
 	void applyAngularImpulse(float impulse);
 	Sensor* getSensorByTag(int tag);
@@ -821,7 +820,7 @@ class Body : public Node
 	bool removeSensor(Sensor* sensor);
 	void attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
-	static tolua_outside Body* Body_create @ create(BodyDef* def, PhysicsWorld* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
+	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
 };
 
 class JointDef : public Object

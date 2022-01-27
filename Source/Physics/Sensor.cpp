@@ -30,19 +30,27 @@ Sensor::~Sensor()
 
 void Sensor::add(Body* body)
 {
-	_sensedBodies->add(Value::alloc(body));
-	if (bodyEnter)
+	bool success;
+	std::tie(std::ignore, success) = _uniqueBodies.insert(body);
+	if (success)
 	{
-		bodyEnter(this, body);
+		_sensedBodies->add(Value::alloc(body));
+		if (bodyEnter)
+		{
+			bodyEnter(body, _tag);
+		}
 	}
 }
 
 void Sensor::remove(Body* body)
 {
-	auto value = Value::alloc(body);
-	if (_sensedBodies->fastRemove(value.get()) && bodyLeave)
+	if (_uniqueBodies.erase(body) > 0)
 	{
-		bodyLeave(this, body);
+		auto value = Value::alloc(body);
+		if (_sensedBodies->fastRemove(value.get()) && bodyLeave)
+		{
+			bodyLeave(body, _tag);
+		}
 	}
 }
 
@@ -61,6 +69,7 @@ bool Sensor::contains(Body* body)
 
 void Sensor::clear()
 {
+	_uniqueBodies.clear();
 	_sensedBodies->clear();
 }
 
