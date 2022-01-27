@@ -1,3 +1,4 @@
+-- GGJ2022
 _ENV = Dorothy!
 import "BodyEx"
 import "UI.View.Shape.SolidRect"
@@ -22,7 +23,6 @@ world = with PhysicsWorld!
 	.y = 405
 	\setShouldContact 0, 0, true
 	\setShouldContact 0, 1, false
-	--.showDebug = true
 	\addTo root
 
 isSpace = true
@@ -327,7 +327,6 @@ restartScene = ->
 		.y = 405
 		\setShouldContact 0, 0, true
 		\setShouldContact 0, 1, false
-		--.showDebug = true
 		\addTo root
 	buildScene!
 	switchScene!
