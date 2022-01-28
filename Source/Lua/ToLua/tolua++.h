@@ -50,9 +50,9 @@ typedef int lua_Object;
 
 struct tolua_Error
 {
-    int index;
-    int array;
-    Slice type;
+	int index;
+	int array;
+	Slice type;
 };
 typedef struct tolua_Error tolua_Error;
 
@@ -129,7 +129,7 @@ const char* tolua_tofieldstring(lua_State* L, int lo, int index, const char* def
 void* tolua_tofielduserdata(lua_State* L, int lo, int index, void* def);
 void* tolua_tofieldusertype(lua_State* L, int lo, int index, void* def);
 int tolua_tofieldvalue(lua_State* L, int lo, int index, int def);
-int tolua_getfieldboolean(lua_State* L, int lo, int index, int def);
+int tolua_tofieldboolean(lua_State* L, int lo, int index, int def);
 
 void tolua_dobuffer(lua_State* L, char* B, unsigned int size, const char* name);
 
@@ -137,14 +137,14 @@ int tolua_collect_object(lua_State* tolua_S);
 
 inline const char* tolua_tocppstring(lua_State* L, int narg, const char* def)
 {
-    const char* s = tolua_tostring(L, narg, def);
-    return s ? s : "";
+	const char* s = tolua_tostring(L, narg, def);
+	return s ? s : "";
 }
 
 inline const char* tolua_tofieldcppstring(lua_State* L, int lo, int index, const char* def)
 {
-    const char* s = tolua_tofieldstring(L, lo, index, def);
-    return s ? s : "";
+	const char* s = tolua_tofieldstring(L, lo, index, def);
+	return s ? s : "";
 }
 
 int tolua_fast_isa(lua_State *L, int mt_indexa, int mt_indexb);
