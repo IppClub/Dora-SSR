@@ -16,6 +16,8 @@
 
 #include "lua.hpp"
 
+#include "Support/Common.h"
+
 NS_DOROTHY_BEGIN
 
 #ifndef TEMPLATE_BIND
@@ -196,5 +198,40 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 
 #define TOLUA_API
 #define _cstring const char*
+
+union LightValue
+{
+	void* p;
+	Vec2 vec2;
+	Size size;
+	Color color;
+	Color3 color3;
+	explicit LightValue(void* v): p(v) { }
+	LightValue(const Vec2& v): vec2(v) { }
+	LightValue(const Size& v): size(v) { }
+	LightValue(Color v): color(v) { }
+	LightValue(Color3 v): color3(v) { }
+	operator Vec2() const { return vec2; }
+	operator Size() const { return size; }
+	operator Color() const { return color; }
+	operator Color3() const { return color3; }
+};
+
+static_assert(sizeof(void*) >= sizeof(Vec2), "Vec2 can not be stored in Lua lightuserdata.");
+static_assert(sizeof(void*) >= sizeof(Size), "Size can not be stored in Lua lightuserdata.");
+static_assert(sizeof(void*) >= sizeof(Color), "Color can not be stored in Lua lightuserdata.");
+static_assert(sizeof(void*) >= sizeof(Color3), "Color3 can not be stored in Lua lightuserdata.");
+static_assert(sizeof(void*) >= sizeof(LightValue), "LightValue can not be stored in Lua lightuserdata.");
+
+void tolua_pushlight(lua_State* L, LightValue var, int typeId);
+template <class T>
+void tolua_pushlight(lua_State* L, const T& var)
+{
+	tolua_pushlight(L, var, LuaType<T>());
+}
+LightValue tolua_tolight(lua_State* L, int narg, LightValue def);
+LightValue tolua_tolight(lua_State* L, int narg);
+LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def);
+LightValue tolua_tofieldlight(lua_State* L, int lo, int index);
 
 NS_DOROTHY_END

@@ -252,4 +252,54 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def)
 	return slice;
 }
 
+void tolua_pushlight(lua_State* L, LightValue var, int typeId)
+{
+	lua_rawgeti(L, LUA_REGISTRYINDEX, typeId); // mt
+	if (lua_isnil(L, -1)) // mt == nil
+	{
+		Error("[Lua] object pushed to lua is not registered with class!");
+		lua_pop(L, 1);
+		lua_pushnil(L);
+		return;
+	}
+	lua_pushlightuserdata(L, var.p); // mt newud
+	lua_insert(L, -2); // newud mt
+	lua_setmetatable(L, -2); // newud<mt>, newud
+}
+
+LightValue tolua_tolight(lua_State* L, int narg, LightValue def)
+{
+	if (lua_gettop(L) < abs(narg))
+	{
+		return def;
+	}
+	else
+	{
+		return LightValue(lua_touserdata(L, narg));
+	}
+}
+
+LightValue tolua_tolight(lua_State* L, int narg)
+{
+	return LightValue(lua_touserdata(L, narg));
+}
+
+LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def)
+{
+	lua_pushnumber(L, index);
+	lua_gettable(L, lo);
+	LightValue v = lua_isnil(L, -1) ? def : LightValue(lua_touserdata(L, -1));
+	lua_pop(L, 1);
+	return v;
+}
+
+LightValue tolua_tofieldlight(lua_State* L, int lo, int index)
+{
+	lua_pushnumber(L, index);
+	lua_gettable(L, lo);
+	LightValue v = LightValue(lua_touserdata(L, -1));
+	lua_pop(L, 1);
+	return v;
+}
+
 NS_DOROTHY_END

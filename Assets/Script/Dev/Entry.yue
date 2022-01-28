@@ -377,7 +377,9 @@ threadLoop ->
 				ShowConsole!
 
 cyan = Color 0xff00ffff
+
 threadLoop ->
+	setmetatable(cyan, Color)
 	return unless showEntry
 	return unless isInEntry
 	:width, :height = App.visualSize

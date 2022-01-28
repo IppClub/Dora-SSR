@@ -2,27 +2,25 @@ typedef Slice String;
 
 struct Color3
 {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
+	tolua_readonly uint8_t r;
+	tolua_readonly uint8_t g;
+	tolua_readonly uint8_t b;
 	Color3();
 	Color3(uint32_t rgb);
 	Color3(uint8_t r, uint8_t g, uint8_t b);
-	~Color3();
 	uint32_t toRGB();
 };
 
 struct Color
 {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
+	tolua_readonly uint8_t r;
+	tolua_readonly uint8_t g;
+	tolua_readonly uint8_t b;
+	tolua_readonly uint8_t a;
 	tolua_property__common float opacity;
 	Color();
 	Color(Color3 color, uint8_t a = 0);
 	Color(uint32_t argb);
-	~Color();
 	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 	Color3 toColor3();
 	uint32_t toARGB();
@@ -30,13 +28,13 @@ struct Color
 
 struct Vec2
 {
-	float x;
-	float y;
+	tolua_readonly float x;
+	tolua_readonly float y;
 	tolua_readonly tolua_property__qt float length;
 	tolua_readonly tolua_property__qt float lengthSquared;
 	tolua_readonly tolua_property__qt float angle;
 	Vec2(Vec2 vec);
-	~Vec2();
+	Vec2(float x, float y);
 	void set(float x, float y);
 	Vec2 operator+(Vec2 vec);
 	Vec2 operator-(Vec2 vec);
@@ -49,22 +47,20 @@ struct Vec2
 	float distanceSquared(Vec2 vec);
 	void normalize();
 	void clamp(Vec2 from, Vec2 to);
-	static tolua_outside Vec2* Vec2_create @ create(float x = 0, float y = 0);
-	static tolua_outside Vec2* Vec2_create @ create(Size size);
+	static tolua_outside Vec2 Vec2_create @ create(Size size);
 	static tolua_readonly Vec2 zero;
 };
 
 struct Size
 {
-	float width;
-	float height;
+	tolua_readonly float width;
+	tolua_readonly float height;
 	Size(Size other);
-	~Size();
+	Size(float width, float height);
 	void set(float width, float height);
 	bool operator==(Size other);
 	Size operator*(Vec2 vec);
 	static tolua_readonly Size zero;
-	static tolua_outside Size* Size_create @ create(float width = 0, float height = 0);
 	static tolua_outside Size* Size_create @ create(Vec2 vec);
 };
 

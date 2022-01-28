@@ -213,7 +213,7 @@ void tolua_open(lua_State* L)
 	lua_rawset(L, -3);
 	lua_setmetatable(L, -2);
 	lua_rawseti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX);
-    lua_newtable(L);
+	lua_newtable(L);
 	lua_rawseti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK);
 
 	lua_settop(L, top);
