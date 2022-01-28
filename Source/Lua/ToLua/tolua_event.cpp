@@ -109,17 +109,20 @@ static int class_index_event(lua_State* L)
 {
 	/* 1 ud 2 key */
 	int t = lua_type(L, 1);
-	if (t == LUA_TUSERDATA) // __index for ud
+	if (t == LUA_TUSERDATA || t == LUA_TLIGHTUSERDATA) // __index for ud
 	{
-		/* try peer table */
-		lua_getuservalue(L, 1); // peer
-		if (!lua_rawequal(L, -1, TOLUA_NOPEER))
+		if (t == LUA_TUSERDATA)
 		{
-			lua_pushvalue(L, 2); // peer key
-			lua_gettable(L, -2); // peer[key], peer value
-			if (!lua_isnil(L, -1)) // value != nil
+			/* try peer table */
+			lua_getuservalue(L, 1); // peer
+			if (!lua_rawequal(L, -1, TOLUA_NOPEER))
 			{
-				return 1;
+				lua_pushvalue(L, 2); // peer key
+				lua_gettable(L, -2); // peer[key], peer value
+				if (!lua_isnil(L, -1)) // value != nil
+				{
+					return 1;
+				}
 			}
 		}
 		lua_settop(L, 2); // ud key

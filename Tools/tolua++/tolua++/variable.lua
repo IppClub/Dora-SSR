@@ -9,325 +9,385 @@
 -- the author has no obligation to provide maintenance, support, updates,
 -- enhancements, or modifications.
 
-
 -- Variable class
 -- Represents a extern variable or a public member of a class.
 -- Stores all fields present in a declaration.
 classVariable = {
- _get = {},   -- mapped get functions
- _set = {},   -- mapped set functions
+	_get = {}, -- mapped get functions
+	_set = {} -- mapped set functions
 }
 classVariable.__index = classVariable
-setmetatable(classVariable,classDeclaration)
+setmetatable(classVariable, classDeclaration)
 
 -- Print method
-function classVariable:print (ident,close)
- print(ident.."Variable{")
- print(ident.." mod  = '"..self.mod.."',")
- print(ident.." type = '"..self.type.."',")
- print(ident.." ptr  = '"..self.ptr.."',")
- print(ident.." name = '"..self.name.."',")
- if self.dim then print(ident.." dim = '"..self.dim.."',") end
- print(ident.." def  = '"..self.def.."',")
- print(ident.." ret  = '"..self.ret.."',")
- print(ident.."}"..close)
+function classVariable:print(ident, close)
+	print(ident .. "Variable{")
+	print(ident .. " mod  = '" .. self.mod .. "',")
+	print(ident .. " type = '" .. self.type .. "',")
+	print(ident .. " ptr  = '" .. self.ptr .. "',")
+	print(ident .. " name = '" .. self.name .. "',")
+	if self.dim then
+		print(ident .. " dim = '" .. self.dim .. "',")
+	end
+	print(ident .. " def  = '" .. self.def .. "',")
+	print(ident .. " ret  = '" .. self.ret .. "',")
+	print(ident .. "}" .. close)
 end
 
 -- Generates C function name
-function classVariable:cfuncname (prefix)
- local parent = ""
- local unsigned = ""
- local ptr = ""
+function classVariable:cfuncname(prefix)
+	local parent = ""
+	local unsigned = ""
+	local ptr = ""
 
- local p = self:inmodule() or self:innamespace() or self:inclass()
+	local p = self:inmodule() or self:innamespace() or self:inclass()
 
- if p then
-  if self.parent.classtype == 'class' then
-  parent = "_" .. self.parent.type
- else
-   parent = "_" .. p
- end
- end
+	if p then
+		if self.parent.classtype == "class" then
+			parent = "_" .. self.parent.type
+		else
+			parent = "_" .. p
+		end
+	end
 
- if strfind(self.mod,"(unsigned)") then
-  unsigned = "_unsigned"
- end
+	if strfind(self.mod, "(unsigned)") then
+		unsigned = "_unsigned"
+	end
 
- if self.ptr == "*" then ptr = "_ptr"
- elseif self.ptr == "&" then ptr = "_ref"
- end
+	if self.ptr == "*" then
+		ptr = "_ptr"
+	elseif self.ptr == "&" then
+		ptr = "_ref"
+	end
 
- local name =  prefix .. parent .. unsigned .. "_" .. gsub(self.lname or self.name,".*::","") .. ptr
+	local name = prefix .. parent .. unsigned .. "_" .. gsub(self.lname or self.name, ".*::", "") .. ptr
 
- name = clean_template(name)
- return name
-
+	name = clean_template(name)
+	return name
 end
 
 -- check if it is a variable
-function classVariable:isvariable ()
- return true
+function classVariable:isvariable()
+	return true
 end
 
 -- get variable value
-function classVariable:getvalue (class,static, prop_get)
+function classVariable:getvalue(class, static, prop_get)
+	local name
+	if prop_get then
+		name = prop_get .. "()"
+	else
+		name = self.name
+	end
 
- local name
- if prop_get then
-
-  name = prop_get.."()"
- else
-  name = self.name
- end
-
- if class and static then
-  return self.parent.type..'::'..name
- elseif class then
-  return 'self->'..name
- else
-  return name
- end
+	if class and static then
+		return self.parent.type .. "::" .. name
+	elseif class then
+		local light = _light_objects[self.parent.type]
+		local access = light and "self." or "self->"
+		return access .. name
+	else
+		return name
+	end
 end
 
 -- get variable pointer value
-function classVariable:getpointervalue (class,static)
- if class and static then
-  return class..'::p'
- elseif class then
-  return 'self->p'
- else
-  return 'p'
- end
+function classVariable:getpointervalue(class, static)
+	if class and static then
+		return class .. "::p"
+	elseif class then
+		return "self->p"
+	else
+		return "p"
+	end
 end
 
 -- Write binding functions
-function classVariable:supcode ()
+function classVariable:supcode()
+	local class = self:inclass()
+	local out = string.find(self.mod, "tolua_outside")
+	if out then
+		class = false
+	end
+	local prop_get, prop_set
+	if string.find(self.mod, "tolua_property") then
+		local _, _, type = string.find(self.mod, "tolua_property__([^%s]*)")
+		type = type or "default"
+		prop_get, prop_set = get_property_methods(type, self.name)
+		self.mod = string.gsub(self.mod, "tolua_property[^%s]*", "")
+	end
 
- local class = self:inclass()
- local out = string.find(self.mod, "tolua_outside")
- if out then class = false end
- local prop_get,prop_set
- if string.find(self.mod, 'tolua_property') then
+	local light = _light_objects[self.parent.type]
+	local access = light and "self." or "self->"
 
-  local _,_,type = string.find(self.mod, "tolua_property__([^%s]*)")
-  type = type or "default"
-  prop_get,prop_set = get_property_methods(type, self.name)
-  self.mod = string.gsub(self.mod, "tolua_property[^%s]*", "")
- end
+	-- get function ------------------------------------------------
+	if class then
+		output("/* get function:", self.name, " of class ", class, " */")
+	else
+		output("/* get function:", self.name, " */")
+	end
+	self.cgetname = self:cfuncname("tolua_get")
+	output("#ifndef TOLUA_DISABLE_" .. self.cgetname)
+	output("\nstatic int", self.cgetname, "(lua_State* tolua_S)")
+	output("{")
 
- -- get function ------------------------------------------------
- if class then
-  output("/* get function:",self.name," of class ",class," */")
- else
-  output("/* get function:",self.name," */")
- end
- self.cgetname = self:cfuncname("tolua_get")
- output("#ifndef TOLUA_DISABLE_"..self.cgetname)
- output("\nstatic int",self.cgetname,"(lua_State* tolua_S)")
- output("{")
+	-- declare self, if the case
+	local _, _, static = strfind(self.mod, "^%s*(static)")
+	if (class or out) and static == nil then
+		if light then
+			output(" ", self.parent.type, "self =")
+			local to_func = get_to_function(self.parent.type)
+			output(to_func, "(tolua_S,1);")
+		else
+			output(" ", self.parent.type, "*", "self = ")
+			output("(", self.parent.type, "*) ")
+			local to_func = get_to_function(self.parent.type)
+			output(to_func, "(tolua_S,1,0);")
+		end
+	elseif static then
+		_, _, self.mod = strfind(self.mod, "^%s*static%s%s*(.*)")
+	end
 
- -- declare self, if the case
- local _,_,static = strfind(self.mod,'^%s*(static)')
- if (class or out) and static==nil then
-  output(' ',self.parent.type,'*','self = ')
-  output('(',self.parent.type,'*) ')
-  local to_func = get_to_function(self.parent.type)
-  output(to_func,'(tolua_S,1,0);')
- elseif static then
-  _,_,self.mod = strfind(self.mod,'^%s*static%s%s*(.*)')
- end
+	-- check self value
+	if not light and class and static == nil then
+		output("#ifndef TOLUA_RELEASE\n")
+		output(
+			'  if (!self) tolua_error(tolua_S,"' ..
+				output_error_hook("invalid 'self' in accessing variable '%s'", self.name) .. '",NULL);'
+		)
+		output("#endif\n")
+	end
 
+	local is_function = self.type:match("^tolua_function.*$") ~= nil or self.type == "tolua_handler"
+	-- return value
+	local t, ct = isbasic(self.type)
+	if is_function then
+		output("  int handler = " .. self:getvalue(class, static, prop_get) .. ";")
+		output("  if (handler) toluafix_get_function_by_refid(tolua_S, handler);")
+		output("  else lua_pushnil(tolua_S);")
+	elseif t == "" and out then -- type void
+		output("  ", prop_get .. "(self);")
+	elseif t then
+		output("  tolua_push" .. t .. "(tolua_S,(", ct, ")" .. self:getvalue(class, static, prop_get) .. ");")
+	else
+		local push_func = get_push_function(self.type)
+		t = self.type
+		local new_t = string.gsub(t, "const%s+", "")
+		-- t = _userltype[t] -- convert to renamed type
+		if self.ptr == "" then
+			if push_func == _push_object_func_name then
+				output(" ", push_func, "(tolua_S,tolua_obj);")
+			elseif push_func == _push_light_func_name then
+				output(
+					" ", new_t, " tolua_obj = ",
+					self:getvalue(class, static, prop_get) .. ";"
+				)
+				output(" ", push_func, "(tolua_S,tolua_obj);")
+			elseif push_func == "tolua_pushusertype" then
+				output(
+					"	void* tolua_obj = Mtolua_new((",
+					new_t,
+					")(" .. self:getvalue(class, static, prop_get) .. "));"
+				)
+				output(" ", push_func, "(tolua_S,tolua_obj,LuaType<" .. t .. ">());")
+			else
+				output(" ", push_func, '(tolua_S,tolua_obj,"', t, '");')
+			end
+		else
+			local ref = self.ptr == "&" and "&" or ""
+			local value = self:getvalue(class, static, prop_get)
+			if push_func == _push_object_func_name then
+				output(" ", push_func, "(tolua_S," .. ref .. value .. ");")
+			elseif push_func == _push_light_func_name then
+				output(" ", push_func, "(tolua_S," .. ref .. value .. ");")
+			elseif push_func == "tolua_pushusertype" then
+				output(" ", push_func, "(tolua_S,(void*)" .. ref .. value .. ",LuaType<" .. t .. ">());")
+			else
+				output(" ", push_func, "(tolua_S,(void*)" .. ref .. value .. ',"', t, '");')
+			end
+		end
+	end
 
- -- check self value
- if class and static==nil then
-  output('#ifndef TOLUA_RELEASE\n')
-  output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in accessing variable \'%s\'", self.name)..'",NULL);');
-  output('#endif\n')
- end
+	output(" return 1;")
+	output("}")
+	output("#endif //#ifndef TOLUA_DISABLE\n")
+	output("\n")
 
-local is_function = self.type:match("^tolua_function.*$") ~= nil or self.type == "tolua_handler"
- -- return value
-local t,ct = isbasic(self.type)
-if is_function then
- output('  int handler = '..self:getvalue(class,static,prop_get)..';')
- output('  if (handler) toluafix_get_function_by_refid(tolua_S, handler);')
- output('  else lua_pushnil(tolua_S);')
-elseif t == "" and out then-- type void
- output('  ',prop_get..'(self);')
-elseif t then
- output('  tolua_push'..t..'(tolua_S,(',ct,')'..self:getvalue(class,static,prop_get)..');')
-else
- local push_func = get_push_function(self.type)
- t = self.type
- local new_t = string.gsub(t, "const%s+", "")
- -- t = _userltype[t] -- convert to renamed type
- if self.ptr == '' then
-  if push_func == _push_object_func_name then
-   output(' ',push_func,"(tolua_S,tolua_obj);")
-  elseif push_func == "tolua_pushusertype" then
-   output('    void* tolua_obj = Mtolua_new((',new_t,')('..self:getvalue(class,static,prop_get)..'));')
-   output(' ',push_func,"(tolua_S,tolua_obj,LuaType<"..t..">());")
-  else
-   output(' ',push_func,'(tolua_S,tolua_obj,"',t,'");')
-  end
- else
-  local ref = self.ptr == '&' and "&" or ""
-  local value = self:getvalue(class,static,prop_get)
-  if push_func == _push_object_func_name then
-   output(' ',push_func,'(tolua_S,'..ref..value..");")
-  elseif push_func == "tolua_pushusertype" then
-   output(' ',push_func,'(tolua_S,(void*)'..ref..value..",LuaType<"..t..">());")
-  else
-   output(' ',push_func,'(tolua_S,(void*)'..ref..value..',"',t,'");')
-  end
- end
+	-- set function ------------------------------------------------
+	if
+		not (strfind(self.type, "const%s+") or string.find(self.mod, "tolua_readonly") or
+			string.find(self.mod, "tolua_inherits"))
+	 then
+		if class then
+			output("/* set function:", self.name, " of class ", class, " */")
+		else
+			output("/* set function:", self.name, " */")
+		end
+		self.csetname = self:cfuncname("tolua_set")
+		output("#ifndef TOLUA_DISABLE_" .. self.csetname)
+		output("\nstatic int", self.csetname, "(lua_State* tolua_S)")
+		output("{")
+
+		-- declare self, if the case
+		if class and static == nil then
+			if light then
+				output(" ", self.parent.type, "self =")
+				local to_func = get_to_function(self.parent.type)
+				output(to_func, "(tolua_S,1);")
+			else
+				output(" ", self.parent.type, "*", "self = ")
+				output("(", self.parent.type, "*) ")
+				local to_func = get_to_function(self.parent.type)
+				output(to_func, "(tolua_S,1,0);")
+			end
+			-- check self value
+		end
+		-- check types
+		output("#ifndef TOLUA_RELEASE\n")
+		output("  tolua_Error tolua_err;")
+		if not light and class and static == nil then
+			output(
+				'  if (!self) tolua_error(tolua_S,"' ..
+					output_error_hook("invalid 'self' in accessing variable '%s'", class .. "." .. self.name) ..
+						'",NULL);'
+			)
+		elseif static then
+			_, _, self.mod = strfind(self.mod, "^%s*static%s%s*(.*)")
+		end
+
+		-- check variable type
+		local var_index = static and 3 or 2
+		if is_function then
+			output(
+				"  if (!(tolua_isfunction(tolua_S," .. tostring(var_index) .. ",&tolua_err) || lua_isnil(tolua_S, 2)))"
+			)
+		else
+			output("  if (" .. self:outchecktype(var_index) .. ")")
+		end
+		output(
+			'   tolua_error(tolua_S,"#vinvalid type in variable assignment for \'' ..
+				(class and class .. "." or "") .. self.name .. '\'",&tolua_err);'
+		)
+		output("#endif\n")
+		output("#ifndef TOLUA_RELEASE\n")
+		output("  try {\n")
+		output("#endif\n")
+		-- assign value
+		local def = 0
+		if self.def ~= "" then
+			def = self.def
+		end
+		if is_function then
+			local name = prop_set or self.name
+			if self.type:match("^tolua_function_") then
+				output(
+					"  LuaFunction<" ..
+						self.type:match("^tolua_function_([^ ]+)") ..
+							"> " .. name .. "(tolua_ref_function(tolua_S," .. tostring(var_index) .. "));"
+				)
+			elseif self.type == "tolua_handler" then
+				output(
+					"  " .. access ..
+						name .. "(LuaHandler::create(tolua_ref_function(tolua_S," .. tostring(var_index) .. ")));"
+				)
+			end
+		elseif self.type == "char*" and self.dim ~= "" then -- is string
+			output(" strncpy((char*)")
+			if class and static then
+				output(self.parent.type .. "::" .. self.name)
+			elseif class then
+				output(access .. self.name)
+			else
+				output(self.name)
+			end
+			output(",(const char*)tolua_tostring(tolua_S," .. tostring(var_index) .. ",", def, "),", self.dim, "-1);")
+		else
+			local ptr = ""
+			if self.ptr ~= "" then
+				ptr = "*"
+			end
+			output(" ")
+			local name = prop_set or self.name
+			if class and static then
+				output(self.parent.type .. "::" .. name)
+			elseif class then
+				output(access .. name)
+			else
+				output(name)
+			end
+			local t = isbasic(self.type)
+			if prop_set then
+				output("(")
+			else
+				output(" = ")
+			end
+			if not _light_objects[self.type] then
+				if not t and ptr == "" then
+					output("*")
+				end
+				output("static_cast<", self.mod, self.type)
+				if not t then
+					output("*")
+				end
+				output(">(")
+				if t then
+					local ise = isenum(self.type)
+					if ise then
+						output("static_cast<int>(")
+					end
+					output("tolua_to" .. t, "(tolua_S," .. tostring(var_index) .. ",", def, "))")
+					if ise then
+						output(")")
+					end
+				else
+					local to_func = get_to_function(self.type)
+					output(to_func, "(tolua_S," .. tostring(var_index) .. ",", def, "))")
+				end
+			else
+				local to_func = get_to_function(self.type)
+				output(to_func, "(tolua_S," .. tostring(var_index) .. (def ~= 0 and "," .. def or ""), ")")
+			end
+			output(prop_set and ");" or ";")
+		end
+		output("#ifndef TOLUA_RELEASE\n")
+		output("  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n")
+		output("#endif\n")
+		output(" return 0;")
+		output("}")
+		output("#endif //#ifndef TOLUA_DISABLE\n")
+		output("\n")
+	end
 end
 
- output(' return 1;')
- output('}')
- output('#endif //#ifndef TOLUA_DISABLE\n')
- output('\n')
-
- -- set function ------------------------------------------------
- if not (strfind(self.type,'const%s+') or string.find(self.mod, 'tolua_readonly') or string.find(self.mod, 'tolua_inherits'))  then
-  if class then
-   output("/* set function:",self.name," of class ",class," */")
-  else
-   output("/* set function:",self.name," */")
-  end
-  self.csetname = self:cfuncname("tolua_set")
-  output("#ifndef TOLUA_DISABLE_"..self.csetname)
-  output("\nstatic int",self.csetname,"(lua_State* tolua_S)")
-  output("{")
-
-  -- declare self, if the case
-  if class and static==nil then
-   output(' ',self.parent.type,'*','self = ')
-   output('(',self.parent.type,'*) ')
-   local to_func = get_to_function(self.parent.type)
-   output(to_func,'(tolua_S,1,0);')
-   -- check self value
-  end
-  -- check types
-  output('#ifndef TOLUA_RELEASE\n')
-  output('  tolua_Error tolua_err;')
-  if class and static==nil then
-   output('  if (!self) tolua_error(tolua_S,"'..output_error_hook("invalid \'self\' in accessing variable \'%s\'", class..'.'..self.name)..'",NULL);');
-  elseif static then
-   _,_,self.mod = strfind(self.mod,'^%s*static%s%s*(.*)')
-  end
-
-  -- check variable type
-  local var_index = static and 3 or 2
-  if is_function then
-    output('  if (!(tolua_isfunction(tolua_S,'..tostring(var_index)..',&tolua_err) || lua_isnil(tolua_S, 2)))')
-  else
-    output('  if ('..self:outchecktype(var_index)..')')
-  end
-  output('   tolua_error(tolua_S,"#vinvalid type in variable assignment for \''..(class and class..'.' or '')..self.name..'\'",&tolua_err);')
-  output('#endif\n')
-  output('#ifndef TOLUA_RELEASE\n')
-  output('  try {\n')
-  output('#endif\n')
-  -- assign value
-  local def = 0
-  if self.def ~= '' then def = self.def end
-  if is_function then
-   local name = prop_set or self.name
-   if self.type:match("^tolua_function_") then
-    output("  LuaFunction<"..self.type:match("^tolua_function_([^ ]+)").."> "..name.."(tolua_ref_function(tolua_S,"..tostring(var_index).."));")
-   elseif self.type == 'tolua_handler' then
-    output('  self->'..name..'(LuaHandler::create(tolua_ref_function(tolua_S,'..tostring(var_index)..')));')
-   end
-  elseif self.type == 'char*' and self.dim ~= '' then -- is string
-   output(' strncpy((char*)')
-   if class and static then
-    output(self.parent.type..'::'..self.name)
-   elseif class then
-    output('self->'..self.name)
-   else
-    output(self.name)
-   end
-   output(',(const char*)tolua_tostring(tolua_S,'..tostring(var_index)..',',def,'),',self.dim,'-1);')
-  else
-   local ptr = ''
-   if self.ptr~='' then ptr = '*' end
-   output(' ')
-   local name = prop_set or self.name
-   if class and static then
-    output(self.parent.type..'::'..name)
-   elseif class then
-    output('self->'..name)
-   else
-    output(name)
-   end
-   local t = isbasic(self.type)
-   if prop_set then
-    output('(')
-   else
-    output(' = ')
-   end
-   if not t and ptr=='' then output('*') end
-   output('static_cast<',self.mod,self.type)
-   if not t then
-    output('*')
-   end
-   output('>(')
-   if t then
-    local ise = isenum(self.type)
-    if ise then
-     output('static_cast<int>(')
-    end
-    output('tolua_to'..t,'(tolua_S,'..tostring(var_index)..',',def,'))')
-    if ise then
-     output(')')
-    end
-   else
-    local to_func = get_to_function(self.type)
-    output(to_func,'(tolua_S,'..tostring(var_index)..',',def,'))')
-   end
-   output(prop_set and ");" or ";")
-  end
-  output('#ifndef TOLUA_RELEASE\n')
-  output('  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n')
-  output('#endif\n')
-  output(' return 0;')
-  output('}')
-  output('#endif //#ifndef TOLUA_DISABLE\n')
-  output('\n')
- end
-
-end
-
-function classVariable:register (pre)
-
- if not self:check_public_access() then
-  return
- end
- pre = pre or ''
- local parent = self:inmodule() or self:innamespace() or self:inclass()
- if not parent then
-  if classVariable._warning==nil then
-   warning("Mapping variable to global may degrade performance")
-   classVariable._warning = 1
-  end
- end
- if self.csetname then
-  output(pre..'tolua_variable(tolua_S,"'..self.lname..'",'..self.cgetname..','..self.csetname..');')
- else
-  output(pre..'tolua_variable(tolua_S,"'..self.lname..'",'..self.cgetname..',NULL);')
- end
+function classVariable:register(pre)
+	if not self:check_public_access() then
+		return
+	end
+	pre = pre or ""
+	local parent = self:inmodule() or self:innamespace() or self:inclass()
+	if not parent then
+		if classVariable._warning == nil then
+			warning("Mapping variable to global may degrade performance")
+			classVariable._warning = 1
+		end
+	end
+	if self.csetname then
+		output(pre .. 'tolua_variable(tolua_S,"' .. self.lname .. '",' .. self.cgetname .. "," .. self.csetname .. ");")
+	else
+		output(pre .. 'tolua_variable(tolua_S,"' .. self.lname .. '",' .. self.cgetname .. ",NULL);")
+	end
 end
 
 -- Internal constructor
-function _Variable (t)
- setmetatable(t,classVariable)
- append(t)
- return t
+function _Variable(t)
+	setmetatable(t, classVariable)
+	append(t)
+	return t
 end
 
 -- Constructor
 -- Expects a string representing the variable declaration.
-function Variable (s)
- return _Variable (Declaration(s,'var'))
+function Variable(s)
+	return _Variable(Declaration(s, "var"))
 end
+

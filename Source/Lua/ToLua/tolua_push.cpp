@@ -39,19 +39,19 @@ void tolua_pushinteger(lua_State* L, lua_Integer value)
 
 void tolua_pushstring(lua_State* L, const char* value)
 {
-	if (value == NULL) lua_pushnil(L);
+	if (value == nullptr) lua_pushnil(L);
 	else lua_pushstring(L, value);
 }
 
 void tolua_pushstring(lua_State* L, const char* value, size_t len)
 {
-	if (value == NULL || len == 0) lua_pushnil(L);
+	if (value == nullptr || len == 0) lua_pushnil(L);
 	else lua_pushlstring(L, value, len);
 }
 
 void tolua_pushusertype(lua_State* L, void* value, int typeId)
 {
-	if (value == NULL)
+	if (value == nullptr)
 	{
 		lua_pushnil(L);
 		return;
