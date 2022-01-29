@@ -261,7 +261,7 @@ function classDeclaration:builddeclaration(narg, cplusplus)
 	elseif self.type == "tolua_handler" then
 		return "  LuaHandler* " ..
 			self.name .. " = LuaHandler::create(tolua_ref_function(tolua_S," .. tostring(narg) .. "));"
-	elseif self.dim == "" and _light_objects[self.type] then
+	elseif self.dim == "" and _light_object == self.type then
 		local def = ""
 		if self.def ~= "" then
 			def = self.def
@@ -384,7 +384,7 @@ function classDeclaration:getarray(narg)
 		output("   {")
 		output("	for (int i=0;i<(int)" .. self.dim .. ";i++)")
 		local t = isbasic(type)
-		if not _light_objects[type] then
+		if _light_object ~= type then
 			local ptr = ""
 			if self.ptr ~= "" then
 				ptr = "*"

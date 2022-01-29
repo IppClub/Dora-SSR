@@ -1134,6 +1134,18 @@ tolua_lerror:
 #endif
 }
 
+/* Size */
+
+Size* Size_create(float width, float height)
+{
+	return Mtolua_new((Size)({width, height}));
+}
+
+Size* Size_create(const Vec2& vec)
+{
+	return Mtolua_new((Size)({vec.x, vec.y}));
+}
+
 /* BlendFunc */
 
 uint32_t getBlendFuncVal(String name)
@@ -1763,7 +1775,7 @@ static Own<Value> Dora_getValue(lua_State* L, int loc)
 			switch (Switch::hash(name))
 			{
 				case "Vec2"_hash:
-					return Value::alloc(*r_cast<Vec2*>(tolua_tousertype(L, loc, 0)));
+					return Value::alloc(tolua_tolight(L, loc).value);
 				case "Size"_hash:
 					return Value::alloc(*r_cast<Size*>(tolua_tousertype(L, loc, 0)));
 				case "Rect"_hash:
@@ -2292,7 +2304,7 @@ int Entity_set(lua_State* L)
 				switch (Switch::hash(name))
 				{
 					case "Vec2"_hash:
-						self->set(key, *r_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
+						self->set(key, tolua_tolight(L, 3).value);
 						break;
 					case "Size"_hash:
 						self->set(key, *r_cast<Size*>(tolua_tousertype(L, 3, 0)));
@@ -2375,7 +2387,7 @@ int Entity_setNext(lua_State* L)
 				switch (Switch::hash(name))
 				{
 					case "Vec2"_hash:
-						self->setNext(key, *r_cast<Vec2*>(tolua_tousertype(L, 3, 0)));
+						self->setNext(key, tolua_tolight(L, 3).value);
 						break;
 					case "Size"_hash:
 						self->setNext(key, *r_cast<Size*>(tolua_tousertype(L, 3, 0)));

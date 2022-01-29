@@ -788,6 +788,11 @@ void LuaEngine::push(const std::string& value)
 	lua_pushlstring(L, value.c_str(), value.size());
 }
 
+void LuaEngine::push(const Vec2& value)
+{
+	tolua_pushlight(L, value);
+}
+
 void LuaEngine::push(std::nullptr_t)
 {
 	lua_pushnil(L);
@@ -858,6 +863,11 @@ void LuaEngine::push(lua_State* L, String value)
 void LuaEngine::push(lua_State* L, const std::string& value)
 {
 	lua_pushlstring(L, value.c_str(), value.size());
+}
+
+void LuaEngine::push(lua_State* L, const Vec2& value)
+{
+	tolua_pushlight(L, value);
 }
 
 void LuaEngine::push(lua_State* L, std::nullptr_t)

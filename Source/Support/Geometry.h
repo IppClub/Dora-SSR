@@ -52,8 +52,8 @@ struct Vec2
 	static const Vec2 zero;
 	static Vec2 normalize(const Vec2& vec);
 	static Vec2 perp(const Vec2& vec);
+	static Vec2 clamp(const Vec2& vec, const Vec2& from, const Vec2& to);
 	static Vec2 from(const pr::Vec2& vec);
-	USE_MEMORY_POOL(Vec2);
 };
 
 struct Size

@@ -53,6 +53,7 @@ public:
 	void push(Object* value);
 	void push(String value);
 	void push(const std::string& value);
+	void push(const Vec2& value);
 	void push(std::nullptr_t);
 	template<typename T>
 	typename std::enable_if<!std::is_pointer_v<T> && std::is_class_v<T>>::type push(const T& t)
@@ -77,6 +78,7 @@ public:
 	static void push(lua_State* L, Object* value);
 	static void push(lua_State* L, String value);
 	static void push(lua_State* L, const std::string& value);
+	static void push(lua_State* L, const Vec2& value);
 	static void push(lua_State* L, std::nullptr_t);
 	template<typename T>
 	static typename std::enable_if<!std::is_pointer_v<T>>::type push(lua_State* L, const T& t)

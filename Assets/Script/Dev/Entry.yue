@@ -1,5 +1,5 @@
 _ENV = Dorothy builtin.ImGui
-import "Utils" as :Set
+import "Utils" as :Set, :Struct
 import "yue" as options: {extension: yueext}
 
 print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
@@ -200,6 +200,7 @@ allClear = ->
 	currentEntryName = nil
 	isInEntry = true
 	Audio\stopStream 0.2
+	Struct\clear!
 	collectgarbage!
 
 games = [Path\getName item for item in *Content\getDirs Path Content.assetPath, "Script", "Game"]
@@ -377,9 +378,7 @@ threadLoop ->
 				ShowConsole!
 
 cyan = Color 0xff00ffff
-
 threadLoop ->
-	setmetatable(cyan, Color)
 	return unless showEntry
 	return unless isInEntry
 	:width, :height = App.visualSize

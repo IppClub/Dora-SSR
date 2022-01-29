@@ -83,7 +83,7 @@ function classVariable:getvalue(class, static, prop_get)
 	if class and static then
 		return self.parent.type .. "::" .. name
 	elseif class then
-		local light = _light_objects[self.parent.type]
+		local light = _light_object == self.parent.type
 		local access = light and "self." or "self->"
 		return access .. name
 	else
@@ -117,7 +117,7 @@ function classVariable:supcode()
 		self.mod = string.gsub(self.mod, "tolua_property[^%s]*", "")
 	end
 
-	local light = _light_objects[self.parent.type]
+	local light = _light_object == self.parent.type
 	local access = light and "self." or "self->"
 
 	-- get function ------------------------------------------------
@@ -321,7 +321,7 @@ function classVariable:supcode()
 			else
 				output(" = ")
 			end
-			if not _light_objects[self.type] then
+			if _light_object ~= self.type then
 				if not t and ptr == "" then
 					output("*")
 				end
@@ -352,7 +352,7 @@ function classVariable:supcode()
 		output("#ifndef TOLUA_RELEASE\n")
 		output("  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n")
 		output("#endif\n")
-		output(" return 0;")
+		output("  return 0;")
 		output("}")
 		output("#endif //#ifndef TOLUA_DISABLE\n")
 		output("\n")

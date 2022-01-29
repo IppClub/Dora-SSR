@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-MEMORY_POOL(Vec2);
 const Vec2 Vec2::zero{0.0f, 0.0f};
 
 void Vec2::set(float x, float y)
@@ -180,6 +179,14 @@ Vec2 Vec2::normalize(const Vec2& vec)
 Vec2 Vec2::perp(const Vec2& vec)
 {
 	return {-vec.y, vec.x};
+}
+
+Vec2 Vec2::clamp(const Vec2& vec, const Vec2& from, const Vec2& to)
+{
+	return {
+		Math::clamp(vec.x, from.x, to.x),
+		Math::clamp(vec.y, from.y, to.y)
+	};
 }
 
 Vec2 Vec2::from(const pr::Vec2& vec)

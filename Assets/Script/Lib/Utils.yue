@@ -122,7 +122,7 @@ StructDefMeta = {
 		sort arr, comparer
 		for i = 1, #arr
 			@set i, arr[i]
-	__tostring:=>
+	__tostring: =>
 		content = {}
 		for k, v in pairs @
 			if "number" == type v
@@ -131,6 +131,19 @@ StructDefMeta = {
 			concat {"Struct.", @__name, "{\"", concat(content, "\",\""), "\"}"}
 		else
 			"Struct.#{@__name}()"
+	__call: (data)=>
+		item = {@__name}
+		if data
+			for k, v in pairs data
+				key = @[k]
+				if key
+					item[key] = v
+				elseif type(k) == "number"
+					item[k + 1] = v
+				else
+					error "Initialize to an invalid field named \"#{k}\" for \"#{@}\"."
+		setmetatable item, @
+		item
 }
 StructDefs = {}
 StructHelper = {
@@ -228,6 +241,7 @@ export Struct = setmetatable {
 			data
 	clear: =>
 		StructDefs = {}
+	has: (name)=> StructDefs[name]?
 }, {
 	__index: (name)=>
 		def = StructDefs[name]
