@@ -130,14 +130,14 @@ export default Class ScrollArea,
 		updateSpeed = (dt)->
 			V = S / dt
 			if V.length > accel
-				V\normalize!
+				V = V\normalize!
 				V = V * accel
 			S = Vec2.zero
 			false
 
 		updatePos = (dt)->
 			dir = Vec2 V.x,V.y
-			dir\normalize!
+			dir = dir\normalize!
 			A = dir * -accel
 			incX = V.x > 0
 			incY = V.y > 0

@@ -145,7 +145,7 @@ function classFunction:supcode(local_constructor)
 		narg = 1
 	end
 
-	local light = _light_objects[self.parent.type]
+	local light = _light_object == self.parent.type
 	local access = light and "self." or "self->"
 
 	if class and self.name ~= "new" and static == nil then

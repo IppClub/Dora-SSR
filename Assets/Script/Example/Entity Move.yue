@@ -15,7 +15,7 @@ with Observer "Add", {"sprite"}
 	\every (sprite)=>
 		sceneGroup\each (e)->
 			e.scene\addChild with sprite
-				\runAction Scale 0.5,0,1,Ease.OutBack
+				\runAction Scale 0.5, 0, 1, Ease.OutBack
 
 with Observer "Remove", {"sprite"}
 	\every =>
@@ -26,20 +26,20 @@ with Observer "Remove", {"target"}
 	\every =>
 		print "remove target from entity #{@index}"
 
-with Group {"position","direction","speed","target"}
-	\every (position,direction,speed,target)=>
+with Group {"position", "direction", "speed", "target"}
+	\every (position, direction, speed, target)=>
 		return if target == position
 		dir = target - position
-		dir\normalize!
-		angle = math.deg math.atan dir.x,dir.y
+		dir = dir\normalize!
+		angle = math.deg math.atan dir.x, dir.y
 		newPos = position + dir * speed
-		newPos\clamp position, target
+		newPos = newPos\clamp position, target
 		@position = newPos
 		@direction = angle
 		@setNext "target", nil if newPos == target
 
-with Observer "AddOrChange", {"position","direction","sprite"}
-	\every (position,direction,sprite)=>
+with Observer "AddOrChange", {"position", "direction", "sprite"}
+	\every (position, direction, sprite)=>
 		sprite.position = position
 		lastDirection = @oldValues.direction or sprite.angle
 		if math.abs(direction - lastDirection) > 1
@@ -47,13 +47,13 @@ with Observer "AddOrChange", {"position","direction","sprite"}
 
 with Entity!
 	.sprite = Sprite "Image/logo.png"
-	.position = Vec2 0,0
+	.position = Vec2.zero
 	.direction = 45.0
 	.speed = 4.0
 
 with Entity!
 	.sprite = Sprite "Image/logo.png"
-	.position = Vec2 -100,200
+	.position = Vec2 -100, 200
 	.direction = 90.0
 	.speed = 10.0
 
@@ -75,7 +75,7 @@ with Observer "Add", {"scene"}
 	\every (entity)-> entity.scene\schedule ->
 		:width,:height = App.visualSize
 		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 		Begin "ECS System", windowFlags, ->
 			Text "ECS System"
@@ -84,13 +84,13 @@ with Observer "Add", {"scene"}
 			if Button "Create Random Entity"
 				with Entity!
 					.sprite = Sprite "Image/logo.png"
-					.position = Vec2 6*math.random(1,100),6*math.random(1,100)
-					.direction = 1.0 * math.random 0,360
-					.speed = 1.0 * math.random 1,20
+					.position = Vec2 6 * math.random(1, 100), 6 * math.random(1, 100)
+					.direction = 1.0 * math.random 0, 360
+					.speed = 1.0 * math.random 1, 20
 			if Button "Destroy An Entity"
-				Group({"sprite","position"})\each (entity)->
+				Group({"sprite", "position"})\each (entity)->
 					entity.position = nil
 					with entity.sprite
-						\runAction Sequence Scale(0.5,1,0,Ease.InBack), Event("Destroy")
+						\runAction Sequence Scale(0.5, 1, 0, Ease.InBack), Event("Destroy")
 						\slot "Destroy", -> entity\destroy!
 					true

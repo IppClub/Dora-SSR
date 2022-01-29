@@ -8,6 +8,7 @@ struct Color3
 	Color3();
 	Color3(uint32_t rgb);
 	Color3(uint8_t r, uint8_t g, uint8_t b);
+	~Color3();
 	uint32_t toRGB();
 };
 
@@ -22,6 +23,7 @@ struct Color
 	Color(Color3 color, uint8_t a = 0);
 	Color(uint32_t argb);
 	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+	~Color();
 	Color3 toColor3();
 	uint32_t toARGB();
 };
@@ -33,9 +35,8 @@ struct Vec2
 	tolua_readonly tolua_property__qt float length;
 	tolua_readonly tolua_property__qt float lengthSquared;
 	tolua_readonly tolua_property__qt float angle;
-	Vec2(Vec2 vec);
 	Vec2(float x, float y);
-	void set(float x, float y);
+	Vec2(Vec2 vec);
 	Vec2 operator+(Vec2 vec);
 	Vec2 operator-(Vec2 vec);
 	Vec2 operator*(float value);
@@ -45,8 +46,9 @@ struct Vec2
 	bool operator==(Vec2 vec);
 	float distance(Vec2 vec);
 	float distanceSquared(Vec2 vec);
-	void normalize();
-	void clamp(Vec2 from, Vec2 to);
+	tolua_outside Vec2 Vec2::normalize @ normalize();
+	tolua_outside Vec2 Vec2::perp @ perp();
+	tolua_outside Vec2 Vec2::clamp @ clamp(Vec2 from, Vec2 to);
 	static tolua_outside Vec2 Vec2_create @ create(Size size);
 	static tolua_readonly Vec2 zero;
 };
@@ -56,12 +58,13 @@ struct Size
 	tolua_readonly float width;
 	tolua_readonly float height;
 	Size(Size other);
-	Size(float width, float height);
+	~Size();
 	void set(float width, float height);
 	bool operator==(Size other);
 	Size operator*(Vec2 vec);
 	static tolua_readonly Size zero;
 	static tolua_outside Size* Size_create @ create(Vec2 vec);
+	static tolua_outside Size* Size_create @ create(float width, float height);
 };
 
 struct Rect

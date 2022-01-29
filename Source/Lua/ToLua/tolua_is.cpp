@@ -42,11 +42,11 @@ Slice tolua_typename(lua_State* L, int lo)
 	{
 		tolua_pushslice(L, "[no object]"_slice);
 	}
-	else if (tag != LUA_TUSERDATA && tag != LUA_TTABLE)
+	else if (tag != LUA_TUSERDATA && tag != LUA_TLIGHTUSERDATA && tag != LUA_TTABLE)
 	{
 		lua_pushstring(L, lua_typename(L, tag));
 	}
-	else if (tag == LUA_TUSERDATA)
+	else if (tag == LUA_TUSERDATA || tag == LUA_TLIGHTUSERDATA)
 	{
 		if (!lua_getmetatable(L, lo))// mt
 		{

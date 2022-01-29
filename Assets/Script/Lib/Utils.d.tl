@@ -38,6 +38,7 @@ local record StructHelper
 	load: function(cls: StructHelper, name: string, input: table): Struct
 	loadfile: function(cls: StructHelper, filename: string): Struct
 	clear: function(cls: StructHelper)
+	has: function(cls: StructHelper, name: string): boolean
 end
 local record Utils
 	Struct: StructHelper

@@ -90,10 +90,12 @@ int Label_SetTextAlign(lua_State* L);
 int DrawNode_drawVertices(lua_State* L);
 
 /* Vec2 */
+inline Vec2 Vec2_create(float x, float y)  { return {x, y}; }
 inline Vec2 Vec2_create(const Size& size) { return {size.width, size.height}; }
 
 /* Size */
-inline Size Size_create(const Vec2& vec) { return {vec.x, vec.y}; }
+Size* Size_create(float width, float height);
+Size* Size_create(const Vec2& vec);
 
 /* BlendFunc */
 BlendFunc* BlendFunc_create(String src, String dst);

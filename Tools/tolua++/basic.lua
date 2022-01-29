@@ -119,17 +119,10 @@ for i = 1, #objects do
 	_collect_functions[objects[i]] = "tolua_collect_object"
 end
 
-_light_objects = {
-	Vec2 = true,
-	Size = true,
-	Color = true,
-	Color3 = true
-}
+_light_object = "Vec2"
 _push_light_func_name = "tolua_pushlight"
-for k in pairs(_light_objects) do
-	_push_functions[k] = _push_light_func_name
-	_to_functions[k] = "tolua_tolight"
-end
+_push_functions[_light_object] = _push_light_func_name
+_to_functions[_light_object] = "tolua_tolight"
 
 -- Name -> push'name'
 _basic["Slice"] = "slice"
