@@ -463,6 +463,15 @@ LUA_API void *lua_touserdata (lua_State *L, int idx) {
 }
 
 
+LUA_API lua_Integer lua_tolightuserinteger (lua_State *L, int idx) {
+  const TValue *o = index2value(L, idx);
+  switch (ttype(o)) {
+    case LUA_TLIGHTUSERDATA: return check_exp(ttislightuserdata(o), val_(o).i);
+    default: return 0;
+  }
+}
+
+
 LUA_API lua_State *lua_tothread (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   return (!ttisthread(o)) ? NULL : thvalue(o);
@@ -620,6 +629,14 @@ LUA_API void lua_pushboolean (lua_State *L, int b) {
 LUA_API void lua_pushlightuserdata (lua_State *L, void *p) {
   lua_lock(L);
   setpvalue(s2v(L->top), p);
+  api_incr_top(L);
+  lua_unlock(L);
+}
+
+
+LUA_API void lua_pushlightuserinteger (lua_State *L, lua_Integer n) {
+  lua_lock(L);
+  { TValue* io = s2v(L->top); val_(io).i = n; settt_(io, LUA_VLIGHTUSERDATA); }
   api_incr_top(L);
   lua_unlock(L);
 }

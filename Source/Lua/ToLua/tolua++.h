@@ -202,15 +202,15 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 union LightValue
 {
 	using ValueType = Vec2;
-	void* p;
+	lua_Integer i;
 	ValueType value;
-	explicit LightValue(void* v): p(v) { }
+	explicit LightValue(lua_Integer v): i(v) { }
 	LightValue(const ValueType& v): value(v) { }
 	operator ValueType() const { return value; }
 };
 
-static_assert(sizeof(void*) >= sizeof(LightValue::ValueType), "Vec2 can not be stored in Lua lightuserdata.");
-static_assert(sizeof(void*) >= sizeof(LightValue), "LightValue can not be stored in Lua lightuserdata.");
+static_assert(sizeof(lua_Integer) >= sizeof(LightValue::ValueType), "Vec2 can not be stored in Lua lightuserdata.");
+static_assert(sizeof(lua_Integer) >= sizeof(LightValue), "LightValue can not be stored in Lua lightuserdata.");
 
 void tolua_pushlight(lua_State* L, LightValue var, int typeId);
 template <class T>
