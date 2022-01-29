@@ -262,7 +262,7 @@ void tolua_pushlight(lua_State* L, LightValue var, int typeId)
 		lua_pushnil(L);
 		return;
 	}
-	lua_pushlightuserdata(L, var.p); // mt newud
+	lua_pushlightuserinteger(L, var.i); // mt newud
 	lua_insert(L, -2); // newud mt
 	lua_setmetatable(L, -2); // newud<mt>, newud
 }
@@ -275,20 +275,20 @@ LightValue tolua_tolight(lua_State* L, int narg, LightValue def)
 	}
 	else
 	{
-		return LightValue(lua_touserdata(L, narg));
+		return LightValue(lua_tolightuserinteger(L, narg));
 	}
 }
 
 LightValue tolua_tolight(lua_State* L, int narg)
 {
-	return LightValue(lua_touserdata(L, narg));
+	return LightValue(lua_tolightuserinteger(L, narg));
 }
 
 LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def)
 {
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	LightValue v = lua_isnil(L, -1) ? def : LightValue(lua_touserdata(L, -1));
+	LightValue v = lua_isnil(L, -1) ? def : LightValue(lua_tolightuserinteger(L, -1));
 	lua_pop(L, 1);
 	return v;
 }
@@ -297,7 +297,7 @@ LightValue tolua_tofieldlight(lua_State* L, int lo, int index)
 {
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	LightValue v = LightValue(lua_touserdata(L, -1));
+	LightValue v = LightValue(lua_tolightuserinteger(L, -1));
 	lua_pop(L, 1);
 	return v;
 }

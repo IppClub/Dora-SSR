@@ -78,21 +78,21 @@ export default Class Ruler,
 			for i = min,max
 				posX = i*interval
 				v = vsCache[count]
-				if v then v\set posX,halfH
+				if v then v = Vec2 posX, halfH
 				else
 					v = Vec2 posX,halfH
 					vsCache[count] = v
 				vs[count] = v
 				count += 1
 				v = vsCache[count]
-				if v then v\set posX,halfH-(i%10 == 0 and fontSize+6 or fontSize-2)
+				if v then v = Vec2 posX, halfH-(i%10 == 0 and fontSize+6 or fontSize-2)
 				else
 					v = Vec2 posX,halfH-(i%10 == 0 and fontSize+6 or fontSize-2)
 					vsCache[count] = v
 				vs[count] = v
 				count += 1
 				v = vsCache[count]
-				if v then v\set posX,halfH
+				if v then v = Vec2 posX,halfH
 				else
 					v = Vec2 posX,halfH
 					vsCache[count] = v
