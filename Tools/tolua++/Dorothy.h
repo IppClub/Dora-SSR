@@ -35,8 +35,6 @@ struct Vec2
 	tolua_readonly tolua_property__qt float length;
 	tolua_readonly tolua_property__qt float lengthSquared;
 	tolua_readonly tolua_property__qt float angle;
-	Vec2(float x, float y);
-	Vec2(Vec2 vec);
 	Vec2 operator+(Vec2 vec);
 	Vec2 operator-(Vec2 vec);
 	Vec2 operator*(float value);
@@ -49,6 +47,7 @@ struct Vec2
 	tolua_outside Vec2 Vec2::normalize @ normalize();
 	tolua_outside Vec2 Vec2::perp @ perp();
 	tolua_outside Vec2 Vec2::clamp @ clamp(Vec2 from, Vec2 to);
+	static tolua_outside Vec2 Vec2_create @ create(float x, float y);
 	static tolua_outside Vec2 Vec2_create @ create(Size size);
 	static tolua_readonly Vec2 zero;
 };
