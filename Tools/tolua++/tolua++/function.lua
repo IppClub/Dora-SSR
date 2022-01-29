@@ -467,7 +467,7 @@ end
 -- check if it returns an object by value
 function classFunction:requirecollection(t)
 	local r = false
-	if self.type ~= "" and not isbasic(self.type) and self.ptr == "" then
+	if self.type ~= "" and not isbasic(self.type) and self.ptr == "" and self.type ~= _light_object then
 		local type = gsub(self.type, "%s*const%s+", "")
 		t[type] = "tolua_collect_" .. clean_template(type)
 		r = true

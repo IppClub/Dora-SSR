@@ -170,9 +170,9 @@ function classPackage:preamble()
 		for i, v in pairs(_collect) do
 			output("\nstatic int " .. v .. " (lua_State* tolua_S)")
 			output("{")
-			output(" " .. i .. "* self = (" .. i .. "*) tolua_tousertype(tolua_S,1,0);")
-			output("	Mtolua_delete(self);")
-			output("	return 0;")
+			output("  " .. i .. "* self = (" .. i .. "*) tolua_tousertype(tolua_S,1,0);")
+			output("  Mtolua_delete(self);")
+			output("  return 0;")
 			output("}")
 		end
 	end
