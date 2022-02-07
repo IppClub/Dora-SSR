@@ -1,0 +1,58 @@
+_ENV = Dorothy!
+import "utf-8" as utf8
+
+Class Node,
+	__init:(args)=>
+		{
+			:x = 0
+			:y = 0
+			:width = 0
+			:height = 0
+			:text = ""
+			:fontName = "NotoSansHans-Regular"
+			:fontSize = 16
+			:textAlign = "Left"
+			:color3 = Color 0xffffff
+			:renderOrder = 0
+		} = args
+		@position = Vec2 x, y
+		@size = Size width, height
+		label = with Label fontName, fontSize
+			.batched = false
+			.alignment = textAlign
+			.renderOrder = renderOrder
+			.textWidth = width
+			switch textAlign
+				when "Center"
+					.position = Vec2(0.5, 0.5) * @size
+				when "Left"
+					.y = height / 2
+					.anchor = Vec2 0, 0.5
+				when "Right"
+					.x = width
+					.y = height / 2
+					.anchor = Vec2 1, 0.5
+		@addChild label
+		@_label = label
+		@text = text
+
+	text: property (=> @_text),
+		(value)=>
+			@_text = value
+			@_label.text = value
+			:width, :height = @
+			charCount = @_label.characterCount
+			if charCount > 0
+				char = @_label\getCharacter 1
+				left = char.x - char.width / 2
+				top = char.y + char.height / 2
+				for i = 2, charCount
+					char = @_label\getCharacter i
+					continue unless (char and char.visible)
+					right = char.x + char.width / 2
+					bottom = char.y - char.height / 2
+					if (right - left) > width or (top - bottom) > height
+						displayText = utf8.sub value, 1, i - 3
+						displayText ..= "..."
+						@_label.text = displayText
+						break

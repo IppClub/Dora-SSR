@@ -302,12 +302,12 @@ export default Class ScrollArea,
 		@offset = Vec2.zero
 		viewSize = switch alignMode
 			when "Auto"
-				@view\alignItems Size(viewSize.width,size.height), padding
+				@view\alignItems Size(viewSize.width, size.height), padding
 			when "Vertical"
 				@view\alignItemsVertically size, padding
 			when "Horizontal"
 				@view\alignItemsHorizontally size, padding
-		@resetSize size.width,size.height,viewSize.width,viewSize.height
+		@resetSize size.width, size.height, viewSize.width, viewSize.height
 		@offset = offset
 
 	scrollToPosY:(posY,time=0.3)=>
