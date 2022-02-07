@@ -1398,7 +1398,7 @@ Size Node::alignItems(const Size& size, float padding)
 		}
 	}
 	ARRAY_END
-	return _children && !_children->isEmpty() ? Size{maxX, height - curY + 10.0f} : Size::zero;
+	return _children && !_children->isEmpty() ? Size{maxX, height - curY} : Size::zero;
 }
 
 void Node::moveAndCullItems(const Vec2& delta)
