@@ -199,7 +199,7 @@ static int class_newindex_event(lua_State* L)
 {
 	/* 1 ud, 2 key, 3 value */
 	int t = lua_type(L, 1);
-	if (t == LUA_TUSERDATA) // __newindex for ud
+	if (t == LUA_TUSERDATA || t == LUA_TLIGHTUSERDATA) // __newindex for ud
 	{
 		int loop = 0;
 		lua_getmetatable(L, 1); // ud key value mt
@@ -247,7 +247,10 @@ static int class_newindex_event(lua_State* L)
 		lua_settop(L, 3); /* stack: t k v */
 
 		/* then, store as a new field */
-		storeatubox(L, 1);
+		if (t == LUA_TUSERDATA)
+		{
+			storeatubox(L, 1);
+		}
 	}
 	else if (t == LUA_TTABLE) // __newindex for ud`s class
 	{

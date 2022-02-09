@@ -60,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.9.6"sv;
+const std::string_view version = "0.9.8"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -800,6 +800,11 @@ private:
 				return true;
 			}
 		} else {
+			if (std::find_if(chainItems.begin(), chainItems.end(), [](ast_node* node) {
+				return ast_is<existential_op_t>(node);
+			}) != chainItems.end()) {
+				return false;
+			}
 			auto lastItem = chainItems.back();
 			switch (lastItem->getId()) {
 				case id<DotChainItem_t>():
@@ -1207,48 +1212,49 @@ private:
 			BREAK_IF(!value);
 			auto chainValue = value->item.as<ChainValue_t>();
 			BREAK_IF(!chainValue);
-			if (specialChainValue(chainValue) == ChainType::Metatable) {
-				str_list args;
-				chainValue->items.pop_back();
-				if (chainValue->items.empty()) {
-					if (_withVars.empty()) {
-						throw std::logic_error(_info.errorMessage("short dot/colon syntax must be called within a with block"sv, x));
-					} else {
-						args.push_back(_withVars.top());
-					}
+			auto dot = ast_cast<DotChainItem_t>(chainValue->items.back());
+			BREAK_IF(!dot);
+			BREAK_IF(!dot->name.is<Metatable_t>());
+			str_list args;
+			chainValue->items.pop_back();
+			if (chainValue->items.empty()) {
+				if (_withVars.empty()) {
+					throw std::logic_error(_info.errorMessage("short dot/colon syntax must be called within a with block"sv, x));
 				} else {
-					transformExp(static_cast<Exp_t*>(*it), args, ExpUsage::Closure);
+					args.push_back(_withVars.top());
 				}
-				if (vit != values.end()) transformAssignItem(*vit, args);
-				else args.push_back("nil"s);
-				_buf << indent() << globalVar("setmetatable"sv, x) << '(' << join(args, ", "sv) << ')' << nll(x);
-				str_list temp;
-				temp.push_back(clearBuf());
-				auto newExpList = x->new_ptr<ExpList_t>();
-				auto newAssign = x->new_ptr<Assign_t>();
-				auto newAssignment = x->new_ptr<ExpListAssign_t>();
-				newAssignment->expList.set(newExpList);
-				newAssignment->action.set(newAssign);
-				for (auto exp : exprs) {
-					if (exp != *it) newExpList->exprs.push_back(exp);
-				}
-				for (auto value : values) {
-					if (value != *vit) newAssign->values.push_back(value);
-				}
-				if (newExpList->exprs.empty() && newAssign->values.empty()) {
-					out.push_back(temp.back());
-					return;
-				}
-				if (newExpList->exprs.size() < newAssign->values.size()) {
-					auto exp = toAst<Exp_t>("_"sv, x);
-					while (newExpList->exprs.size() < newAssign->values.size()) {
-						newExpList->exprs.push_back(exp);
-					}
-				}
-				transformAssignment(newAssignment, temp);
-				out.push_back(join(temp));
+			} else {
+				transformExp(static_cast<Exp_t*>(*it), args, ExpUsage::Closure);
+			}
+			if (vit != values.end()) transformAssignItem(*vit, args);
+			else args.push_back("nil"s);
+			_buf << indent() << globalVar("setmetatable"sv, x) << '(' << join(args, ", "sv) << ')' << nll(x);
+			str_list temp;
+			temp.push_back(clearBuf());
+			auto newExpList = x->new_ptr<ExpList_t>();
+			auto newAssign = x->new_ptr<Assign_t>();
+			auto newAssignment = x->new_ptr<ExpListAssign_t>();
+			newAssignment->expList.set(newExpList);
+			newAssignment->action.set(newAssign);
+			for (auto exp : exprs) {
+				if (exp != *it) newExpList->exprs.push_back(exp);
+			}
+			for (auto value : values) {
+				if (value != *vit) newAssign->values.push_back(value);
+			}
+			if (newExpList->exprs.empty() && newAssign->values.empty()) {
+				out.push_back(temp.back());
 				return;
 			}
+			if (newExpList->exprs.size() < newAssign->values.size()) {
+				auto exp = toAst<Exp_t>("_"sv, x);
+				while (newExpList->exprs.size() < newAssign->values.size()) {
+					newExpList->exprs.push_back(exp);
+				}
+			}
+			transformAssignment(newAssignment, temp);
+			out.push_back(join(temp));
+			return;
 			BLOCK_END
 			if (vit != values.end()) ++vit;
 		}
@@ -2009,9 +2015,42 @@ private:
 				auto leftValue = singleValueFrom(leftExp);
 				if (!leftValue) throw std::logic_error(_info.errorMessage("left hand expression is not assignable"sv, leftExp));
 				if (auto chain = leftValue->item.as<ChainValue_t>()) {
-					if (specialChainValue(chain) == ChainType::Metatable) {
+					auto dot = ast_cast<DotChainItem_t>(chain->items.back());
+					if (dot && dot->name.is<Metatable_t>()) {
 						throw std::logic_error(_info.errorMessage("can not apply update to a metatable"sv, leftExp));
 					}
+					BLOCK_START
+					BREAK_IF(chain->items.size() < 2);
+					if (chain->items.size() == 2) {
+						if (auto callable = ast_cast<Callable_t>(chain->items.front())) {
+							ast_node* var = callable->item.as<Variable_t>();
+							if (auto self = callable->item.as<SelfName_t>()) {
+								var = self->name.as<self_t>();
+							}
+							BREAK_IF(var);
+						}
+					}
+					auto tmpChain = x->new_ptr<ChainValue_t>();
+					ast_ptr<false, ast_node> ptr(chain->items.back());
+					for (auto item : chain->items.objects()) {
+						if (item != ptr) {
+							tmpChain->items.push_back(item);
+						}
+					}
+					auto value = x->new_ptr<Value_t>();
+					value->item.set(tmpChain);
+					auto exp = newExp(value, x);
+					auto objVar = getUnusedName("_obj_"sv);
+					auto newAssignment = x->new_ptr<ExpListAssign_t>();
+					newAssignment->expList.set(toAst<ExpList_t>(objVar, x));
+					auto assign = x->new_ptr<Assign_t>();
+					assign->values.push_back(exp);
+					newAssignment->action.set(assign);
+					transformAssignment(newAssignment, temp);
+					chain->items.clear();
+					chain->items.push_back(toAst<Callable_t>(objVar, x));
+					chain->items.push_back(ptr);
+					BLOCK_END
 					auto tmpChain = x->new_ptr<ChainValue_t>();
 					for (auto item : chain->items.objects()) {
 						bool itemAdded = false;
@@ -2042,8 +2081,9 @@ private:
 					rightExp->pipeExprs.dup(leftExp->pipeExprs);
 					rightExp->opValues.dup(leftExp->opValues);
 					rightExp->nilCoalesed.set(update->value);
-					transformNilCoalesedExp(rightExp, out, ExpUsage::Assignment, assignment->expList, true);
-					if (!defs.empty()) out.back().insert(0, defs + nll(x));
+					transformNilCoalesedExp(rightExp, temp, ExpUsage::Assignment, assignment->expList, true);
+					if (!defs.empty()) temp.back().insert(0, defs + nll(x));
+					out.push_back(join(temp));
 					return;
 				}
 				auto defs = getPredefine(assignment);
@@ -2456,7 +2496,7 @@ private:
 				assignment->expList.set(expList);
 				assignment->action.set(assign);
 				transformAssignment(assignment, temp);
-				return true;
+				return forAssignment;
 			}
 			return false;
 		};
@@ -2513,8 +2553,9 @@ private:
 					assign->values.push_back(exp->nilCoalesed);
 					auto defs = getPredefine(assignment);
 					if (!defs.empty()) temp.push_back(defs + nll(x));
-					prepareValue();
-					_buf << indent() << "if "sv << objVar << " == nil then"sv << nll(x);
+					transformExp(left, temp, ExpUsage::Closure);
+					_buf << indent() << "if "sv << temp.back() << " == nil then"sv << nll(x);
+					temp.pop_back();
 					temp.push_back(clearBuf());
 				}
 				pushScope();
@@ -4287,13 +4328,13 @@ private:
 #endif // YUE_NO_MACRO
 		}
 		const auto& chainList = chainValue->items.objects();
-		if (transformChainWithMetatable(chainList, out, usage, assignList)) {
-			return;
-		}
 		if (transformChainEndWithEOP(chainList, out, usage, assignList)) {
 			return;
 		}
 		if (transformChainWithEOP(chainList, out, usage, assignList)) {
+			return;
+		}
+		if (transformChainWithMetatable(chainList, out, usage, assignList)) {
 			return;
 		}
 		if (transformChainEndWithColonItem(chainList, out, usage, assignList)) {

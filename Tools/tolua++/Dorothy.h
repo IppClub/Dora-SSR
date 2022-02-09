@@ -2,9 +2,9 @@ typedef Slice String;
 
 struct Color3
 {
-	tolua_readonly uint8_t r;
-	tolua_readonly uint8_t g;
-	tolua_readonly uint8_t b;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
 	Color3();
 	Color3(uint32_t rgb);
 	Color3(uint8_t r, uint8_t g, uint8_t b);
@@ -14,10 +14,10 @@ struct Color3
 
 struct Color
 {
-	tolua_readonly uint8_t r;
-	tolua_readonly uint8_t g;
-	tolua_readonly uint8_t b;
-	tolua_readonly uint8_t a;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
 	tolua_property__common float opacity;
 	Color();
 	Color(Color3 color, uint8_t a = 0);
@@ -54,8 +54,8 @@ struct Vec2
 
 struct Size
 {
-	tolua_readonly float width;
-	tolua_readonly float height;
+	float width;
+	float height;
 	Size(Size other);
 	~Size();
 	void set(float width, float height);
