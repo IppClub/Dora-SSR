@@ -703,7 +703,7 @@ void ImGuiDora::showStats()
 		if (ImGui::CollapsingHeader("Memory"))
 		{
 			_memFrames++;
-			_memPoolSize += (MemoryPool::getCapacity() / 1024);
+			_memPoolSize += (MemoryPool::getTotalCapacity() / 1024);
 			int k = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNT);
 			int b = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNTB);
 			_memLua += (k + b / 1024);
