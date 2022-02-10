@@ -15,7 +15,7 @@ export default Class StartPanel,
 					when @dButton then "Dorothy"
 		@node\schedule ->
 			pos = nvg.TouchPos!*(View.size.width/App.visualSize.width)
-			pos.y = View.size.height - pos.y
+			pos = Vec2 pos.x, View.size.height - pos.y
 			for _,button in ipairs buttons
 				localPos = button\convertToNodeSpace pos
 				if Rect(Vec2.zero,button.size)\containsPoint localPos

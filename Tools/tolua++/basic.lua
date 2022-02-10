@@ -76,6 +76,7 @@ local objects = {
 	"Buffer",
 	"Camera2D",
 	"Sprite",
+	"Grid",
 	"MotorJoint",
 	"Menu",
 	"Action",

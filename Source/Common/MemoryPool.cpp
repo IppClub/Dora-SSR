@@ -11,33 +11,174 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-static std::list<IMemoryPool*>& getMemoryPools()
+MemoryPool::MemoryPool(int itemSize, int chunkCapacity):
+_itemSize(itemSize),
+_chunkCapacity(chunkCapacity),
+_chunk(new Chunk(chunkCapacity)),
+_freeList(nullptr)
+{ }
+
+MemoryPool::~MemoryPool()
 {
-	static std::list<IMemoryPool*> pools;
-	return pools;
+	deleteChunk(_chunk);
 }
 
-void MemoryPool::push(IMemoryPool* pool)
+void* MemoryPool::alloc()
 {
-	getMemoryPools().push_back(pool);
-}
-
-int MemoryPool::getCapacity()
-{
-	int capacity = 0;
-	for (auto* pool : getMemoryPools())
+	if (_freeList)
 	{
-		capacity += pool->getCapacity();
+		FreeList* head = _freeList;
+		_freeList = _freeList->next;
+		return r_cast<void*>(head);
 	}
-	return capacity;
+	else
+	{
+		if (_chunk->size + _itemSize > _chunkCapacity)
+		{
+			_chunk = new Chunk(_chunkCapacity, _chunk);
+			int consumption = getCapacity();
+			if (consumption > DEFAULT_WARNING_SIZE * 1024)
+			{
+				static bool warned = false;
+				if (!warned)
+				{
+					warned = true;
+					Warn("MemoryPool consumes %d KB memory larger than {} KB for item size {}",
+						consumption / 1024, DEFAULT_WARNING_SIZE, _itemSize);
+				}
+			}
+		}
+		char* addr = _chunk->buffer + _chunk->size;
+		_chunk->size += _itemSize;
+		return r_cast<void*>(addr);
+	}
+}
+
+void MemoryPool::free(void* addr)
+{
+	FreeList* freeItem = r_cast<FreeList*>(addr);
+	freeItem->next = _freeList;
+	_freeList = freeItem;
 }
 
 int MemoryPool::collect()
 {
-	int collected = 0;
-	for (auto* pool : getMemoryPools())
+	int oldSize = getCapacity();
+	Chunk* prevChunk = nullptr;
+	FreeList* sortedChunkList = nullptr;
+	FreeList* sortedChunkListTail = nullptr;
+	FreeList* prev = nullptr;
+	for (Chunk* chunk = _chunk->next; chunk;)
 	{
-		collected += pool->collect();
+		size_t begin = (size_t)chunk->buffer;
+		size_t end = begin + _chunkCapacity;
+		int count = 0;
+		FreeList* chunkList = nullptr;
+		FreeList* chunkListTail = nullptr;
+		prev = nullptr;
+		for (FreeList* list = _freeList; list;)
+		{
+			size_t loc = (size_t)list;
+			if (begin <= loc && loc < end)
+			{
+				++count;
+				FreeList* temp = list;
+				if (prev) prev->next = list->next;
+				else _freeList = list->next;
+				list = list->next;
+				temp->next = chunkList;
+				chunkList = temp;
+				if (!chunkListTail) chunkListTail = chunkList;
+			}
+			else
+			{
+				prev = list;
+				list = list->next;
+			}
+		}
+		if (count == int(_chunkCapacity / _itemSize))
+		{
+			Chunk* temp = chunk;
+			if (prevChunk) prevChunk->next = chunk->next;
+			else _chunk->next = chunk->next;
+			chunk = chunk->next;
+			delete temp;
+		}
+		else
+		{
+			if (sortedChunkListTail)
+			{
+				sortedChunkListTail->next = chunkList;
+			}
+			else sortedChunkList = chunkList;
+			sortedChunkListTail = chunkListTail;
+			prevChunk = chunk;
+			chunk = chunk->next;
+		}
+	}
+	if (prev) prev->next = sortedChunkList;
+	else _freeList = sortedChunkList;
+	int newSize = getCapacity();
+	return oldSize - newSize;
+}
+
+void MemoryPool::deleteChunk(Chunk* chunk)
+{
+	if (chunk)
+	{
+		deleteChunk(chunk->next);
+		delete chunk;
+	}
+}
+
+int MemoryPool::getCapacity() const
+{
+	int chunkCount = 0;
+	for (Chunk* chunk = _chunk; chunk; chunk = chunk->next)
+	{
+		++chunkCount;
+	}
+	return chunkCount * _chunkCapacity;
+}
+
+static std::vector<Own<MemoryPool>>& getMemoryPools()
+{
+	static std::vector<Own<MemoryPool>> pools;
+	return pools;
+}
+
+MemoryPool* MemoryPool::get(int itemSize)
+{
+	auto& pools = getMemoryPools();
+	if (itemSize >= s_cast<int>(pools.size()))
+	{
+		pools.resize(itemSize + 1);
+	}
+	if (!pools[itemSize])
+	{
+		pools[itemSize] = New<MemoryPool>(itemSize, DEFAULT_CHUNK_CAPACITY);
+	}
+	return pools[itemSize].get();
+}
+
+int MemoryPool::getTotalCapacity()
+{
+	int capacity = 0;
+	auto& pools = getMemoryPools();
+	for (const auto& pool : pools)
+	{
+		if (pool) capacity += pool->getCapacity();
+	}
+	return capacity;
+}
+
+int MemoryPool::collectAll()
+{
+	int collected = 0;
+	auto& pools = getMemoryPools();
+	for (const auto& pool : pools)
+	{
+		if (pool) collected += pool->collect();
 	}
 	return collected;
 }
