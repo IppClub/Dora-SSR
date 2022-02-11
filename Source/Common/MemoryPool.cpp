@@ -43,8 +43,7 @@ void* MemoryPool::alloc()
 				if (!warned)
 				{
 					warned = true;
-					Warn("MemoryPool consumes %d KB memory larger than {} KB for item size {}",
-						consumption / 1024, DEFAULT_WARNING_SIZE, _itemSize);
+					Warn("MemoryPool consumes memory larger than {} KB for item of size {} B", DEFAULT_WARNING_SIZE, _itemSize);
 				}
 			}
 		}
@@ -131,6 +130,11 @@ void MemoryPool::deleteChunk(Chunk* chunk)
 	}
 }
 
+int MemoryPool::getItemSize() const
+{
+	return _itemSize;
+}
+
 int MemoryPool::getCapacity() const
 {
 	int chunkCount = 0;
@@ -141,24 +145,23 @@ int MemoryPool::getCapacity() const
 	return chunkCount * _chunkCapacity;
 }
 
-static std::vector<Own<MemoryPool>>& getMemoryPools()
+static std::list<Own<MemoryPool>>& getMemoryPools()
 {
-	static std::vector<Own<MemoryPool>> pools;
+	static std::list<Own<MemoryPool>> pools;
 	return pools;
 }
 
 MemoryPool* MemoryPool::get(int itemSize)
 {
 	auto& pools = getMemoryPools();
-	if (itemSize >= s_cast<int>(pools.size()))
+	for (const auto& pool : pools)
 	{
-		pools.resize(itemSize + 1);
+		if (pool->getItemSize() == itemSize)
+		{
+			return pool.get();
+		}
 	}
-	if (!pools[itemSize])
-	{
-		pools[itemSize] = New<MemoryPool>(itemSize, DEFAULT_CHUNK_CAPACITY);
-	}
-	return pools[itemSize].get();
+	return pools.emplace_back(New<MemoryPool>(itemSize, DEFAULT_CHUNK_CAPACITY)).get();
 }
 
 int MemoryPool::getTotalCapacity()
@@ -167,7 +170,7 @@ int MemoryPool::getTotalCapacity()
 	auto& pools = getMemoryPools();
 	for (const auto& pool : pools)
 	{
-		if (pool) capacity += pool->getCapacity();
+		capacity += pool->getCapacity();
 	}
 	return capacity;
 }
@@ -178,7 +181,7 @@ int MemoryPool::collectAll()
 	auto& pools = getMemoryPools();
 	for (const auto& pool : pools)
 	{
-		if (pool) collected += pool->collect();
+		collected += pool->collect();
 	}
 	return collected;
 }
