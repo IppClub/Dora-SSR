@@ -28,6 +28,7 @@ public:
 	~MemoryPool();
 	void* alloc();
 	void free(void* addr);
+	int getItemSize() const;
 	int getCapacity() const;
 	int collect();
 	static MemoryPool* get(int itemSize);
