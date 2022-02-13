@@ -324,8 +324,8 @@ void oTextEdit::keyPressEvent(QKeyEvent* e)
                     QString rest;
                     if (start > 0)
                     {
-                        whitespace = line.sliced(0, start);
-                        rest = line.sliced(start);
+                        whitespace = line.mid(0, start);
+                        rest = line.mid(start);
                     }
                     else whitespace = line;
                     whitespace.replace("   ", "\t");
