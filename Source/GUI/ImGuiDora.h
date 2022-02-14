@@ -35,12 +35,13 @@ public:
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(uint8_t* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
+public:
+	static void setImePositionHint(int x, int y);
 protected:
 	ImGuiDora();
 	void sendKey(int key, int count);
 	static const char* getClipboardText(void*);
 	static void setClipboardText(void*, const char* text);
-	static void setImePositionHint(int x, int y);
 	static int _lastIMEPosX, _lastIMEPosY;
 private:
 	bool _showPlot;
@@ -90,6 +91,7 @@ private:
 	Own<ImFontAtlas> _fonts;
 	std::unordered_map<std::string, double> _timeCosts;
 	std::unordered_map<std::string, double> _updateCosts;
+	std::unordered_map<int, int> _keymap;
 	SINGLETON_REF(ImGuiDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGui
 	SINGLETON_REF(AsyncThread, ImGuiDora);
