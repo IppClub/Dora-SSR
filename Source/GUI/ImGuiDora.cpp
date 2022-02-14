@@ -823,6 +823,11 @@ void ImGuiDora::showConsole()
 	_console->Draw("Dorothy Console");
 }
 
+static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data)
+{
+	ImGuiDora::setImePositionHint(data->InputPos.x, data->InputPos.y + data->InputLineHeight);
+}
+
 bool ImGuiDora::init()
 {
 	ImGui::CreateContext(_defaultFonts.get());
@@ -908,29 +913,29 @@ bool ImGuiDora::init()
 	style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 
 	ImGuiIO& io = ImGui::GetIO();
-	io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;
-	io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
-	io.KeyMap[ImGuiKey_RightArrow] = SDL_SCANCODE_RIGHT;
-	io.KeyMap[ImGuiKey_UpArrow] = SDL_SCANCODE_UP;
-	io.KeyMap[ImGuiKey_DownArrow] = SDL_SCANCODE_DOWN;
-	io.KeyMap[ImGuiKey_PageUp] = SDL_SCANCODE_PAGEUP;
-	io.KeyMap[ImGuiKey_PageDown] = SDL_SCANCODE_PAGEDOWN;
-	io.KeyMap[ImGuiKey_Home] = SDL_SCANCODE_HOME;
-	io.KeyMap[ImGuiKey_End] = SDL_SCANCODE_END;
-	io.KeyMap[ImGuiKey_Delete] = SDLK_DELETE;
-	io.KeyMap[ImGuiKey_Backspace] = SDLK_BACKSPACE;
-	io.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
-	io.KeyMap[ImGuiKey_Escape] = SDLK_ESCAPE;
-	io.KeyMap[ImGuiKey_A] = SDLK_a;
-	io.KeyMap[ImGuiKey_C] = SDLK_c;
-	io.KeyMap[ImGuiKey_V] = SDLK_v;
-	io.KeyMap[ImGuiKey_X] = SDLK_x;
-	io.KeyMap[ImGuiKey_Y] = SDLK_y;
-	io.KeyMap[ImGuiKey_Z] = SDLK_z;
+	_keymap[SDLK_TAB] = ImGuiKey_Tab;
+	_keymap[SDLK_z] = ImGuiKey_Z;
+	_keymap[SDLK_y] = ImGuiKey_Y;
+	_keymap[SDLK_x] = ImGuiKey_X;
+	_keymap[SDLK_v] = ImGuiKey_V;
+	_keymap[SDLK_c] = ImGuiKey_C;
+	_keymap[SDLK_a] = ImGuiKey_A;
+	_keymap[SDLK_ESCAPE] = ImGuiKey_Escape;
+	_keymap[SDLK_RETURN] = ImGuiKey_Enter;
+	_keymap[SDLK_BACKSPACE] = ImGuiKey_Backspace;
+	_keymap[SDLK_DELETE] = ImGuiKey_Delete;
+	_keymap[SDL_SCANCODE_END] = ImGuiKey_End;
+	_keymap[SDL_SCANCODE_HOME] = ImGuiKey_Home;
+	_keymap[SDL_SCANCODE_PAGEDOWN] = ImGuiKey_PageDown;
+	_keymap[SDL_SCANCODE_PAGEUP] = ImGuiKey_PageUp;
+	_keymap[SDL_SCANCODE_DOWN] = ImGuiKey_DownArrow;
+	_keymap[SDL_SCANCODE_UP] = ImGuiKey_UpArrow;
+	_keymap[SDL_SCANCODE_RIGHT] = ImGuiKey_RightArrow;
+	_keymap[SDL_SCANCODE_LEFT] = ImGuiKey_LeftArrow;
 
 	io.SetClipboardTextFn = ImGuiDora::setClipboardText;
 	io.GetClipboardTextFn = ImGuiDora::getClipboardText;
-	io.ImeSetInputScreenPosFn = ImGuiDora::setImePositionHint;
+	io.SetPlatformImeDataFn = SetPlatformImeDataFn;
 	io.ClipboardUserData = nullptr;
 
 	_iniFilePath = SharedContent.getWritablePath() + "imgui.ini";
@@ -989,7 +994,10 @@ bool ImGuiDora::init()
 					io.KeySuper = ((mod & KMOD_GUI) != 0);
 					if (_textEditing.empty() || code == SDLK_BACKSPACE || code == SDLK_LEFT || code == SDLK_RIGHT)
 					{
-						io.KeysDown[key] = (event.type == SDL_KEYDOWN);
+						if (auto it = _keymap.find(key); it != _keymap.end())
+						{
+							io.AddKeyEvent(it->second, event.type == SDL_KEYDOWN);
+						}
 					}
 					break;
 				}
