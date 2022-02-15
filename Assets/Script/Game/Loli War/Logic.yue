@@ -162,8 +162,8 @@ with Observer "Add",{"switch","group","layer","look","position"}
 							\slot "ActionEnd", => \runAction floating
 							\addTo @
 					@entity.atSwitch = unit
-			\slot "BodyLeave",(sensor)=>
-				if .attackSensor == sensor and @entity and Data\isFriend @,unit
+			\slot "BodyLeave",(sensorTag)=>
+				if .attackSensor.tag == sensorTag and @entity and Data\isFriend @,unit
 					@entity.atSwitch = nil
 					if @entity.tip
 						with @entity.tip
