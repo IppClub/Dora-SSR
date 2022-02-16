@@ -145,6 +145,41 @@ bool PropertyAction::update(Node* target, float eclapsed)
 	return _ended;
 }
 
+/* Tint */
+
+Own<ActionDuration> Tint::alloc(float duration, Color3 start, Color3 stop, Ease::Enum easing)
+{
+	Tint* action = new Tint();
+	auto v1 = start.toVec3();
+	auto v2 = stop.toVec3();
+	action->_start = v1;
+	action->_delta = Vec3{v2.x - v1.x, v2.y - v1.y, v2.z - v1.z};
+	action->_duration = std::max(FLT_EPSILON, duration);
+	action->_ease = Ease::getFunc(easing);
+	action->_ended = false;
+	return Own<ActionDuration>(action);
+}
+
+Action* Tint::create(float duration, Color3 start, Color3 stop, Ease::Enum easing)
+{
+	return Action::create(Tint::alloc(duration, start, stop, easing));
+}
+
+float Tint::getDuration() const
+{
+	return _duration;
+}
+
+bool Tint::update(Node* target, float eclapsed)
+{
+	if (_ended && eclapsed > _duration) return true;
+	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
+	_ended = time == 1.0f;
+	float change = _ended ? 1.0f : _ease(time);
+	target->setColor3(Color3(Vec3{_start.x + _delta.x * change, _start.y + _delta.y * change, _start.z + _delta.z * change}));
+	return _ended;
+}
+
 /* Roll */
 
 Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::Enum easing)

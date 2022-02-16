@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "bx/easing.h"
-#include "Support/Geometry.h"
+#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
 
@@ -119,6 +119,24 @@ private:
 	float _duration;
 	bx::EaseFn _ease;
 	SetFunc _setFunc;
+};
+
+class Tint : public ActionDuration
+{
+public:
+	virtual float getDuration() const override;
+	virtual bool update(Node* target, float eclapsed) override;
+	static Own<ActionDuration> alloc(float duration, Color3 start, Color3 stop, Ease::Enum easing = Ease::Linear);
+	static Action* create(float duration, Color3 start, Color3 stop,
+		Ease::Enum easing = Ease::Linear);
+protected:
+	Tint() { }
+private:
+	bool _ended;
+	Vec3 _start;
+	Vec3 _delta;
+	float _duration;
+	bx::EaseFn _ease;
 };
 
 class Roll : public ActionDuration

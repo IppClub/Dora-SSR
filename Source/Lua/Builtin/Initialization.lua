@@ -336,6 +336,7 @@ for _,actionName in ipairs{
 	"AnchorX",
 	"AnchorY",
 	"Opacity",
+	"Tint",
 	"Roll",
 	"Hide",
 	"Show",
