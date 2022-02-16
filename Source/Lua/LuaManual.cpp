@@ -1188,6 +1188,31 @@ uint32_t BlendFunc_get(String func)
 
 namespace LuaAction
 {
+	static uint32_t toInteger(lua_State* L, int location, int index, bool useDefault = false)
+	{
+		lua_rawgeti(L, location, index);
+		if (useDefault)
+		{
+			uint32_t number = s_cast<uint32_t>(tolua_tointeger(L, -1, 0));
+			lua_pop(L, 1);
+			return number;
+		}
+		else
+		{
+#ifndef TOLUA_RELEASE
+			tolua_Error tolua_err;
+			if (!tolua_isinteger(L, -1, 0, &tolua_err))
+			{
+				tolua_error(L, "#ferror when reading action definition params.", &tolua_err);
+				return 0.0f;
+			}
+#endif
+			uint32_t number = s_cast<uint32_t>(lua_tointeger(L, -1));
+			lua_pop(L, 1);
+			return number;
+		}
+	}
+
 	static float toNumber(lua_State* L, int location, int index, bool useDefault = false)
 	{
 		lua_rawgeti(L, location, index);
@@ -1277,6 +1302,14 @@ namespace LuaAction
 								case "Opacity"_hash: prop = Property::Opacity; break;
 							}
 							return PropertyAction::alloc(duration, start, stop, prop, ease);
+						}
+						case "Tint"_hash:
+						{
+							float duration = toNumber(L, location, 2);
+							uint32_t start = toInteger(L, location, 3);
+							uint32_t stop = toInteger(L, location, 4);
+							Ease::Enum ease = s_cast<Ease::Enum>(s_cast<int>(toNumber(L, location, 5, true)));
+							return Tint::alloc(duration, Color3(start), Color3(stop), ease);
 						}
 						case "Roll"_hash:
 						{

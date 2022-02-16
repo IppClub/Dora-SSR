@@ -262,6 +262,26 @@ static const char* _toBoolean(const char* str)
 	funcs.push(func);
 #define SkewY_Finish
 
+// Tint
+#define Tint_Define \
+	ActionBase_Define\
+	const char* time = nullptr;\
+	const char* start = nullptr;\
+	const char* stop = nullptr;\
+	const char* ease = nullptr;
+#define Tint_Check \
+	ActionBase_Check\
+	CASE_STR(Time) { time = atts[++i]; break; }\
+	CASE_STR(Start) { start = atts[++i]; break; }\
+	CASE_STR(Stop) { stop = atts[++i]; break; }\
+	CASE_STR(Ease) { ease = atts[++i]; break; }
+#define Tint_Create
+#define Tint_Handle \
+	if (!start) start = stop;\
+	oFunc func = {std::string("Tint(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
+	funcs.push(func);
+#define Tint_Finish
+
 // Show
 #define Show_Define \
 	ActionBase_Define
@@ -1220,6 +1240,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 		CASE_STR(Opacity)
 		CASE_STR(SkewX)
 		CASE_STR(SkewY)
+		CASE_STR(Tint)
 		CASE_STR(Show)
 		CASE_STR(Hide)
 		CASE_STR(Event)
@@ -1265,6 +1286,7 @@ void XmlDelegator::startElement(const char* element, const char** atts)
 		Item(Opacity, opacity)
 		Item(SkewX, skewX)
 		Item(SkewY, skewY)
+		Item(Tint, tint)
 
 		Item(Show, show)
 		Item(Hide, hide)
@@ -1470,6 +1492,7 @@ void XmlDelegator::endElement(const char *name)
 		CASE_STR(Opacity)
 		CASE_STR(SkewX)
 		CASE_STR(SkewY)
+		CASE_STR(Tint)
 		CASE_STR(Show)
 		CASE_STR(Hide)
 		CASE_STR(Event)

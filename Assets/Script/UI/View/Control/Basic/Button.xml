@@ -9,7 +9,7 @@
 			<Action>
 				<Spawn Name="show" Ref="True">
 					<Show/>
-					<Opacity Time="0" Start="0" Stop="0.6"/>
+					<Opacity Stop="0.6"/>
 				</Spawn>
 				<Sequence Name="hide" Ref="True">
 					<Show/>
