@@ -121,6 +121,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Scale_Create
 #define Scale_Handle \
+	if (!stop) stop = start;\
 	oFunc func = {std::string("Scale(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Scale_Finish
@@ -163,6 +164,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Angle_Create
 #define Angle_Handle \
+	if (!stop) stop = start;\
 	oFunc func = {std::string("Angle(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Angle_Finish
@@ -182,6 +184,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleX_Create
 #define AngleX_Handle \
+	if (!stop) stop = start;\
 	oFunc func = {std::string("AngleX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define AngleX_Finish
@@ -201,6 +204,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define AngleY_Create
 #define AngleY_Handle \
+	if (!stop) stop = start;\
 	oFunc func = {std::string("AngleY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define AngleY_Finish
@@ -220,6 +224,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Opacity_Create
 #define Opacity_Handle \
+	if (!stop) stop = start;\
 	oFunc func = {std::string("Opacity(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Opacity_Finish
@@ -239,6 +244,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewX_Create
 #define SkewX_Handle \
+	if (!stop) stop = start;\
 	oFunc func = {std::string("SkewX(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define SkewX_Finish
@@ -258,6 +264,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define SkewY_Create
 #define SkewY_Handle \
+	if (!stop) stop = start;\
 	oFunc func = {std::string("SkewY(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define SkewY_Finish
@@ -277,7 +284,7 @@ static const char* _toBoolean(const char* str)
 	CASE_STR(Ease) { ease = atts[++i]; break; }
 #define Tint_Create
 #define Tint_Handle \
-	if (!start) start = stop;\
+	if (!stop) stop = start;\
 	oFunc func = {std::string("Tint(")+toVal(time,"0")+","+Val(start)+","+Val(stop)+(ease ? std::string(",")+toEase(ease) : "")+")","",def ? oFuncType::ActionDef : oFuncType::Action};\
 	funcs.push(func);
 #define Tint_Finish
