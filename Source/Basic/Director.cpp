@@ -650,6 +650,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 			Event::send("AppWillEnterBackground"_slice);
 			break;
 		case SDL_APP_DIDENTERBACKGROUND:
+			SharedView.reset();
 			Event::send("AppDidEnterBackground"_slice);
 			break;
 		case SDL_APP_WILLENTERFOREGROUND:

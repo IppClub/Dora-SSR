@@ -195,7 +195,7 @@ int Application::run()
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 	windowFlags |= SDL_WINDOW_HIDDEN;
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
-	windowFlags |= SDL_WINDOW_FULLSCREEN;
+	windowFlags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
 #endif // BX_PLATFORM
 
 	_sdlWindow = SDL_CreateWindow("Dorothy SSR",
