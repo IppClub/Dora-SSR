@@ -60,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.9.11"sv;
+const std::string_view version = "0.10.2"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -576,8 +576,8 @@ private:
 		return exp;
 	}
 
-	SimpleValue_t* simpleSingleValueFrom(ast_node* expList) const {
-		auto value = singleValueFrom(expList);
+	SimpleValue_t* simpleSingleValueFrom(ast_node* node) const {
+		auto value = singleValueFrom(node);
 		if (value && value->item.is<SimpleValue_t>()) {
 			return static_cast<SimpleValue_t*>(value->item.get());
 		}
@@ -922,13 +922,8 @@ private:
 				case id<if_line_t>(): {
 					auto if_line = static_cast<if_line_t*>(appendix->item.get());
 					auto ifNode = x->new_ptr<If_t>();
-					auto ifType = toAst<IfType_t>("if"sv, x);
-					ifNode->type.set(ifType);
-
-					auto ifCond = x->new_ptr<IfCond_t>();
-					ifCond->condition.set(if_line->condition);
-					ifCond->assign.set(if_line->assign);
-					ifNode->nodes.push_back(ifCond);
+					ifNode->type.set(if_line->type);
+					ifNode->nodes.push_back(if_line->condition);
 
 					auto stmt = x->new_ptr<Statement_t>();
 					stmt->content.set(statement->content);
@@ -944,33 +939,6 @@ private:
 					expList->exprs.push_back(exp);
 					auto expListAssign = x->new_ptr<ExpListAssign_t>();
 					expListAssign->expList.set(expList);
-					statement->content.set(expListAssign);
-					break;
-				}
-				case id<unless_line_t>(): {
-					auto unless_line = static_cast<unless_line_t*>(appendix->item.get());
-					auto ifNode = x->new_ptr<If_t>();
-					auto ifType = toAst<IfType_t>("unless"sv, x);
-					ifNode->type.set(ifType);
-
-					auto ifCond = x->new_ptr<IfCond_t>();
-					ifCond->condition.set(unless_line->condition);
-					ifNode->nodes.push_back(ifCond);
-
-					auto stmt = x->new_ptr<Statement_t>();
-					stmt->content.set(statement->content);
-					ifNode->nodes.push_back(stmt);
-
-					statement->appendix.set(nullptr);
-					auto simpleValue = x->new_ptr<SimpleValue_t>();
-					simpleValue->value.set(ifNode);
-					auto value = x->new_ptr<Value_t>();
-					value->item.set(simpleValue);
-					auto exp = newExp(value, x);
-					auto exprList = x->new_ptr<ExpList_t>();
-					exprList->exprs.push_back(exp);
-					auto expListAssign = x->new_ptr<ExpListAssign_t>();
-					expListAssign->expList.set(exprList);
 					statement->content.set(expListAssign);
 					break;
 				}
@@ -1042,6 +1010,7 @@ private:
 								case id<For_t>(): transformFor(static_cast<For_t*>(value), out); break;
 								case id<While_t>(): transformWhile(static_cast<While_t*>(value), out); break;
 								case id<Do_t>(): transformDo(static_cast<Do_t*>(value), out, ExpUsage::Common); break;
+								case id<Try_t>(): transformTry(static_cast<Try_t*>(value), out, ExpUsage::Common); break;
 								case id<Comprehension_t>(): transformCompCommon(static_cast<Comprehension_t*>(value), out); break;
 								default: specialSingleValue = false; break;
 							}
@@ -2184,11 +2153,11 @@ private:
 	}
 
 	void transformCond(const node_container& nodes, str_list& out, ExpUsage usage, bool unless, ExpList_t* assignList) {
-		std::vector<ast_ptr<false, ast_node>> ns(false);
+		std::vector<ast_ptr<false, ast_node>> ns;
 		for (auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
 			ns.push_back(*it);
 			if (auto cond = ast_cast<IfCond_t>(*it)) {
-				if (*it != nodes.front() && cond->assign) {
+				if (*it != nodes.front() && cond->condition.is<assignment_t>()) {
 					auto x = *it;
 					auto newIf = x->new_ptr<If_t>();
 					newIf->type.set(toAst<IfType_t>("if"sv, x));
@@ -2244,11 +2213,11 @@ private:
 				default: YUEE("AST node mismatch", node); break;
 			}
 		}
-		auto assign = ifCondPairs.front().first->assign.get();
+		auto asmt = ifCondPairs.front().first->condition.as<assignment_t>();
 		bool storingValue = false;
 		ast_ptr<false, ExpListAssign_t> extraAssignment;
-		if (assign) {
-			auto exp = ifCondPairs.front().first->condition.get();
+		if (asmt) {
+			ast_ptr<false, ast_node> exp = asmt->expList->exprs.front();
 			auto x = exp;
 			bool lintGlobal = _config.lintGlobalVariable;
 			_config.lintGlobalVariable = false;
@@ -2257,8 +2226,8 @@ private:
 			if (var.empty()) {
 				storingValue = true;
 				auto desVar = getUnusedName("_des_"sv);
-				if (assign->values.objects().size() == 1) {
-					auto var = singleVariableFrom(assign->values.objects().front());
+				if (asmt->assign->values.objects().size() == 1) {
+					auto var = singleVariableFrom(asmt->assign->values.objects().front());
 					if (!var.empty() && isLocal(var)) {
 						desVar = var;
 						storingValue = false;
@@ -2266,13 +2235,17 @@ private:
 				}
 				if (storingValue) {
 					if (usage != ExpUsage::Closure) {
-						temp.push_back(indent() + "do"s + nll(assign));
+						temp.push_back(indent() + "do"s + nll(asmt));
 						pushScope();
 					}
+					asmt->expList->exprs.pop_front();
 					auto expList = toAst<ExpList_t>(desVar, x);
 					auto assignment = x->new_ptr<ExpListAssign_t>();
+					for (auto expr : asmt->expList->exprs.objects()) {
+						expList->exprs.push_back(expr);
+					}
 					assignment->expList.set(expList);
-					assignment->action.set(assign);
+					assignment->action.set(asmt->assign);
 					transformAssignment(assignment, temp);
 				}
 				{
@@ -2291,22 +2264,27 @@ private:
 				if (!isDefined(var)) {
 					storingValue = true;
 					if (usage != ExpUsage::Closure) {
-						temp.push_back(indent() + "do"s + nll(assign));
+						temp.push_back(indent() + "do"s + nll(asmt));
 						pushScope();
 					}
 				}
 				auto expList = x->new_ptr<ExpList_t>();
 				expList->exprs.push_back(exp);
+				asmt->expList->exprs.pop_front();
+				for (auto expr : asmt->expList->exprs.objects()) {
+					expList->exprs.push_back(expr);
+				}
 				auto assignment = x->new_ptr<ExpListAssign_t>();
 				assignment->expList.set(expList);
-				assignment->action.set(assign);
+				assignment->action.set(asmt->assign);
 				transformAssignment(assignment, temp);
+				ifCondPairs.front().first->condition.set(exp);
 			}
 		}
 		for (const auto& pair : ifCondPairs) {
 			if (pair.first) {
 				str_list tmp;
-				auto condition = pair.first->condition.get();
+				auto condition = pair.first->condition.to<Exp_t>();
 				auto condStr = transformCondExp(condition, unless);
 				if (unless) unless = false;
 				_buf << indent();
@@ -2660,6 +2638,7 @@ private:
 			case id<For_t>(): transformForClosure(static_cast<For_t*>(value), out); break;
 			case id<While_t>(): transformWhileClosure(static_cast<While_t*>(value), out); break;
 			case id<Do_t>(): transformDo(static_cast<Do_t*>(value), out, ExpUsage::Closure); break;
+			case id<Try_t>(): transformTry(static_cast<Try_t*>(value), out, ExpUsage::Closure); break;
 			case id<unary_value_t>(): transform_unary_value(static_cast<unary_value_t*>(value), out); break;
 			case id<TblComprehension_t>(): transformTblComprehension(static_cast<TblComprehension_t*>(value), out, ExpUsage::Closure); break;
 			case id<TableLit_t>(): transformTableLit(static_cast<TableLit_t*>(value), out); break;
@@ -6085,6 +6064,93 @@ private:
 			temp.push_back(indent() + "end"s + nlr(doNode));
 		}
 		out.push_back(join(temp));
+	}
+
+	void transformTry(Try_t* tryNode, str_list& out, ExpUsage usage) {
+		auto x = tryNode;
+		ast_ptr<true, Exp_t> errHandler;
+		if (tryNode->catchBlock) {
+			auto errHandleStr = "("s + _parser.toString(tryNode->catchBlock->err) + ")->"s;
+			errHandler.set(toAst<Exp_t>(errHandleStr, x->func));
+			auto funLit = simpleSingleValueFrom(errHandler)->value.to<FunLit_t>();
+			auto body = x->new_ptr<Body_t>();
+			body->content.set(tryNode->catchBlock->body);
+			funLit->body.set(body);
+		}
+		if (auto tryBlock = tryNode->func.as<Block_t>()) {
+			auto tryExp = toAst<Exp_t>("->"sv, x);
+			auto funLit = simpleSingleValueFrom(tryExp)->value.to<FunLit_t>();
+			auto body = x->new_ptr<Body_t>();
+			body->content.set(tryBlock);
+			funLit->body.set(body);
+			if (errHandler) {
+				auto xpcall = toAst<ChainValue_t>("xpcall()", x);
+				auto invoke = ast_to<Invoke_t>(xpcall->items.back());
+				invoke->args.push_back(tryExp);
+				invoke->args.push_back(errHandler);
+				transformChainValue(xpcall, out, ExpUsage::Closure);
+			} else {
+				auto pcall = toAst<ChainValue_t>("pcall()", x);
+				auto invoke = ast_to<Invoke_t>(pcall->items.back());
+				invoke->args.push_back(tryExp);
+				transformChainValue(pcall, out, ExpUsage::Closure);
+			}
+			if (usage == ExpUsage::Common) {
+				out.back().append(nlr(x));
+			}
+			return;
+		} else if (auto value = singleValueFrom(tryNode->func)) {
+			BLOCK_START
+			auto chainValue = value->item.as<ChainValue_t>();
+			BREAK_IF(!chainValue);
+			BREAK_IF(!isChainValueCall(chainValue));
+			ast_ptr<true, ast_node> last = chainValue->items.back();
+			chainValue->items.pop_back();
+			_ast_list* args = nullptr;
+			if (auto invoke = ast_cast<InvokeArgs_t>(last)) {
+				args = &invoke->args;
+			} else {
+				args = &(ast_to<Invoke_t>(last)->args);
+			}
+			if (errHandler) {
+				auto xpcall = toAst<ChainValue_t>("xpcall()", x);
+				auto invoke = ast_to<Invoke_t>(xpcall->items.back());
+				invoke->args.push_back(tryNode->func);
+				invoke->args.push_back(errHandler);
+				for (auto arg : args->objects()) {
+					invoke->args.push_back(arg);
+				}
+				transformChainValue(xpcall, out, ExpUsage::Closure);
+			} else {
+				auto pcall = toAst<ChainValue_t>("pcall()", x);
+				auto invoke = ast_to<Invoke_t>(pcall->items.back());
+				invoke->args.push_back(tryNode->func);
+				for (auto arg : args->objects()) {
+					invoke->args.push_back(arg);
+				}
+				transformChainValue(pcall, out, ExpUsage::Closure);
+			}
+			if (usage == ExpUsage::Common) {
+				out.back().append(nlr(x));
+			}
+			return;
+			BLOCK_END
+		}
+		if (errHandler) {
+			auto xpcall = toAst<ChainValue_t>("xpcall()", x);
+			auto invoke = ast_to<Invoke_t>(xpcall->items.back());
+			invoke->args.push_back(tryNode->func);
+			invoke->args.push_back(errHandler);
+			transformChainValue(xpcall, out, ExpUsage::Closure);
+		} else {
+			auto pcall = toAst<ChainValue_t>("pcall()", x);
+			auto invoke = ast_to<Invoke_t>(pcall->items.back());
+			invoke->args.push_back(tryNode->func);
+			transformChainValue(pcall, out, ExpUsage::Closure);
+		}
+		if (usage == ExpUsage::Common) {
+			out.back().append(nlr(x));
+		}
 	}
 
 	void transformImportFrom(ImportFrom_t* import, str_list& out) {

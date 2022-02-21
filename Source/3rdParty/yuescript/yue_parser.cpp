@@ -29,7 +29,8 @@ std::unordered_set<std::string> Keywords = {
 	"until", "while", // Lua keywords
 	"as", "class", "continue", "export", "extends",
 	"from", "global", "import", "is", "macro",
-	"switch", "unless", "using", "when", "with" // Yue keywords
+	"switch", "try", "unless", "using", "when",
+	"with" // Yue keywords
 };
 
 YueParser::YueParser() {
@@ -229,14 +230,15 @@ YueParser::YueParser() {
 	SwitchBlock = *EmptyLine >>
 		Advance >> Seperator >>
 		SwitchCase >>
-		*(+SpaceBreak >> SwitchCase) >>
-		-(+SpaceBreak >> SwitchElse) >>
+		*(Break >> *EmptyLine >> CheckIndent >> SwitchCase) >>
+		-(Break >> *EmptyLine >> CheckIndent >> SwitchElse) >>
 		PopIndent;
 
 	Switch = Space >> key("switch") >> disable_do(Exp) >> -(Space >> key("do"))
 		>> -Space >> Break >> SwitchBlock;
 
-	IfCond = disable_do_chain(disable_arg_table_block(Exp >> -Assign));
+	assignment = ExpList >> Assign;
+	IfCond = disable_do_chain(disable_arg_table_block(assignment | Exp));
 	IfElseIf = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("elseif") >> IfCond >> plain_body_with("then");
 	IfElse = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("else") >> plain_body;
 	IfType = (expr("if") | expr("unless")) >> not_(AlphaNum);
@@ -298,6 +300,9 @@ YueParser::YueParser() {
 		st->noTableBlockStack.pop();
 		return true;
 	});
+
+	catch_block = Break >> *EmptyLine >> CheckIndent >> Space >> key("catch") >> Space >> Variable >> InBlock;
+	Try = Space >> key("try") >> (InBlock | Exp) >> -catch_block;
 
 	Comprehension = sym('[') >> Exp >> Space >> CompInner >> sym(']');
 	comp_value = sym(',') >> Exp;
@@ -609,16 +614,15 @@ YueParser::YueParser() {
 	const_value = (expr("nil") | expr("true") | expr("false")) >> not_(AlphaNum);
 
 	SimpleValue = Space >> (const_value |
-		If | Switch | With | ClassDecl | ForEach | For | While | Do |
+		If | Switch | Try | With | ClassDecl | ForEach | For | While | Do |
 		unary_value | TblComprehension | TableLit | Comprehension |
 		FunLit | Num);
 
 	ExpListAssign = ExpList >> -(Update | Assign);
 
-	if_line = Space >> key("if") >> Exp >> -Assign;
-	unless_line = Space >> key("unless") >> Exp;
+	if_line = Space >> IfType >> IfCond;
 
-	statement_appendix = (if_line | unless_line | CompInner) >> Space;
+	statement_appendix = (if_line | CompInner) >> Space;
 	statement_sep = and_(*SpaceBreak >> CheckIndent >> Space >> (set("($'\"") | expr("[[") | expr("[=")));
 	Statement = Space >> (
 		Import | While | Repeat | For | ForEach |

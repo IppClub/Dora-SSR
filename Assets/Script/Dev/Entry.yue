@@ -237,7 +237,7 @@ for file in *Content\getAllFiles Path Content.assetPath, "Production"
 enterDemoEntry = (name)->
 	isInEntry = false
 	<- thread
-	(msg)<- xpcall ->
+	try
 		result = require name
 		if "function" == type result
 			result = result!
@@ -248,8 +248,9 @@ enterDemoEntry = (name)->
 		else
 			Director.entry\addChild Node!
 		currentEntryName = name
-	print debug.traceback msg
-	allClear!
+	catch msg
+		print debug.traceback msg
+		allClear!
 
 showEntry = false
 
