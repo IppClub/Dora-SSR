@@ -10,7 +10,7 @@ Class Node,
 			:height = 0
 			:text = ""
 			:fontName = "sarasa-mono-sc-regular"
-			:fontSize = 16
+			:fontSize = 25
 			:textAlign = "Left"
 			:color3 = Color 0xffffff
 			:renderOrder = 0
@@ -44,6 +44,7 @@ Class Node,
 			charCount = @_label.characterCount
 			if charCount > 0
 				char = @_label\getCharacter 1
+				return unless char
 				left = char.x - char.width / 2
 				top = char.y + char.height / 2
 				for i = 2, charCount
@@ -52,7 +53,7 @@ Class Node,
 					right = char.x + char.width / 2
 					bottom = char.y - char.height / 2
 					if (right - left) > width or (top - bottom) > height
-						displayText = utf8.sub value, 1, i - 3
+						displayText = utf8.sub value, 1, i - 4
 						displayText ..= "..."
 						@_label.text = displayText
 						break

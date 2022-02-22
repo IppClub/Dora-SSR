@@ -78,20 +78,58 @@ doCompile = (minify)->
 	return if building
 	building = true
 	startTime = App.runningTime
-	inputPath = Path Content.assetPath
-	outputPath = Path Content.writablePath
-	yueFiles = getAllFiles inputPath, {yueext}
-	xmlFiles = getAllFiles inputPath, {"xml"}
-	tlFiles = getAllFiles inputPath, {"tl"}
-	tlFiles = [file for file in *tlFiles when not file\match ".*%.d%.tl$"]
-	paths = {Path\getPath(file), true for file in *yueFiles}
-	Content\mkdir Path outputPath, path for path in pairs paths
+	luaFiles = {}
+	yueFiles = {}
+	xmlFiles = {}
+	tlFiles = {}
+	for {inputPath, outputPath, prefix} in *{
+			{
+				Path Content.assetPath
+				Path Content.writablePath, "Build"
+			}
+			{
+				Path Content.writablePath, "Production"
+				Path Content.writablePath, "Build", "Production"
+				"Production"
+			}
+		}
+		for file in *getAllFiles inputPath, {"lua"}
+			luaFiles[] =
+				* prefix and Path(prefix, file) or file
+				* Path inputPath, file
+				* Path outputPath, file
+
+		for file in *getAllFiles inputPath, {yueext}
+			yueFiles[] =
+				* prefix and Path(prefix, file) or file
+				* Path inputPath, file
+				* Path outputPath, Path\replaceExt file, "lua"
+
+		for file in *getAllFiles inputPath, {"xml"}
+			xmlFiles[] =
+				* prefix and Path(prefix, file) or file
+				* Path inputPath, file
+				* Path outputPath, Path\replaceExt file, "lua"
+
+		for file in *getAllFiles inputPath, {"tl"}
+			if not file\match ".*%.d%.tl$"
+				tlFiles[] =
+					* prefix and Path(prefix, file) or file
+					* Path inputPath, file
+					* Path outputPath, Path\replaceExt file, "lua"
+
+	paths = {}
+	paths[Path\getPath file[3]] = true for file in *luaFiles
+	paths[Path\getPath file[3]] = true for file in *yueFiles
+	paths[Path\getPath file[3]] = true for file in *xmlFiles
+	paths[Path\getPath file[3]] = true for file in *tlFiles
+	Content\mkdir path for path in pairs paths
+
 	totalFiles = #yueFiles + #xmlFiles + #tlFiles
 	fileCount = 0
 	errors = {}
-	for file in *yueFiles
-		dest = Path\replaceExt Path(outputPath, file), "lua"
-		<- yuecompile Path(inputPath, file), dest, (codes, err, globals)->
+	for {file, input, output} in *yueFiles
+		<- yuecompile input, output, (codes, err, globals)->
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 				fileCount += 1
@@ -101,52 +139,46 @@ doCompile = (minify)->
 			"-- [yue]: #{file}\n#{requires}" .. codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
 		print "Yue compiled: #{file}"
 		fileCount += 1
-	paths = {Path\getPath(file), true for file in *xmlFiles}
-	Content\mkdir Path outputPath, path for path in pairs paths
+
 	thread ->
-		for file in *xmlFiles
-			dest = Path\replaceExt Path(outputPath, file), "lua"
-			sourceCodes = Content\loadAsync Path(inputPath, file)
+		for {file, input, output} in *xmlFiles
+			sourceCodes = Content\loadAsync input
 			codes, err = xmltolua sourceCodes
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 			else
-				Content\saveAsync dest, "-- [xml]: #{file}\n#{codes}"
+				Content\saveAsync output, "-- [xml]: #{file}\n#{codes}"
 				print "Xml compiled: #{file}"
 			fileCount += 1
-	paths = {Path\getPath(file), true for file in *tlFiles}
-	Content\mkdir Path outputPath, path for path in pairs paths
+
 	thread ->
-		for file in *tlFiles
-			dest = Path\replaceExt Path(outputPath, file), "lua"
-			sourceCodes = Content\loadAsync Path(inputPath, file)
+		for {file, input, output} in *tlFiles
+			sourceCodes = Content\loadAsync input
 			moduleName = file\gsub("%.tl$", "")\gsub "[\\/]", "."
 			codes, err = tealtolua sourceCodes, moduleName
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 			else
-				Content\saveAsync dest, codes
+				Content\saveAsync output, codes
 				print "Teal compiled: #{file}"
 			fileCount += 1
+
 	thread ->
 		wait -> fileCount == totalFiles
 		if minify
-			inputPath = Path Content.assetPath
-			outputPath = Path Content.writablePath
-			luaFiles = getAllFiles inputPath, {"lua"}
-			luaFullPaths = [Path inputPath, file for file in *luaFiles]
-			for file in *getAllFiles outputPath, {"lua"}
-				table.insert luaFiles, file
-				table.insert luaFullPaths, Path outputPath, file
-			paths = {Path\getPath(file), true for file in *luaFiles}
-			Content\mkdir Path outputPath, path for path in pairs paths
+			for files in *{yueFiles, xmlFiles, tlFiles} do for file in *files
+				output = Path\replaceExt file[3], "lua"
+				luaFiles[] =
+					* Path\replaceExt file[1], "lua"
+					* output
+					* output
+
 			import "luaminify.FormatMini"
-			for i = 1, #luaFullPaths
-				sourceCodes = Content\loadAsync luaFullPaths[i]
+			for {file, input, output} in *luaFiles
+				sourceCodes = Content\loadAsync input
 				res, err = FormatMini sourceCodes
-				file = luaFiles[i]
 				if res
-					Content\saveAsync Path(outputPath, file), res
+					Content\saveAsync output, res
 					print "Minify: #{file}"
 				else
 					table.insert errors, "Minify errors in #{file}.\n#{err}"
@@ -155,18 +187,15 @@ doCompile = (minify)->
 			package.loaded["luaminify.Scope"] = nil
 			package.loaded["luaminify.Util"] = nil
 		print err for err in *errors
-		print "Build complete! Cost #{string.format '%.2f', App.runningTime - startTime}s"
+		print "#{totalFiles + (minify and #luaFiles or 0)} files built! Cost #{string.format '%.2f', App.runningTime - startTime}s"
 		Content\clearPathCache!
 		building = false
 
 doClean = ->
 	return if building
-	targetDir = Path Content.writablePath, "Script"
+	targetDir = Path Content.writablePath, "Build"
 	cleaned = false
-	if Content\remove targetDir
-		cleaned = true
-		print "Cleaned: #{targetDir}"
-	targetDir = Path Content.writablePath, "Production"
+	Content\clearPathCache!
 	if Content\remove targetDir
 		cleaned = true
 		print "Cleaned: #{targetDir}"
@@ -215,24 +244,32 @@ for test in *tests do table.insert allNames, Path "Test", test
 
 productionEntry = nil
 productionTests = nil
-for file in *Content\getAllFiles Path Content.assetPath, "Production"
-	if "init" == Path\getName file
-		scriptFolder = Path\getPath Path Content.assetPath, "Production", file
-		productionAssets = Path\getPath scriptFolder
-		Content\insertSearchPath 1, productionAssets
-		Content\insertSearchPath 1, Path productionAssets, "Spine"
-		Content\insertSearchPath 1, Path productionAssets, "Image"
-		Content\insertSearchPath 1, Path productionAssets, "Font"
-		productionTests = [Path\getName f for f in *Content\getAllFiles Path productionAssets, "Test"]
-		package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
-		productionEntry = Path scriptFolder, "init"
-		scriptFolder = Path\getPath Path Content.writablePath, "Production", file
-		productionAssets = Path\getPath scriptFolder
-		Content\insertSearchPath 1, productionAssets
-		package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
-		if Content\exist Path scriptFolder, "init.lua"
-			productionEntry = Path scriptFolder, "init.lua"
-		break
+locateProduction = (searchPath)->
+	return false unless Content\exist Path searchPath, "Production"
+	for file in *Content\getAllFiles Path searchPath, "Production"
+		if "init" == Path\getName file
+			scriptFolder = Path\getPath Path searchPath, "Production", file
+			productionAssets = Path\getPath scriptFolder
+			Content\insertSearchPath 1, productionAssets
+			Content\insertSearchPath 1, Path productionAssets, "Script"
+			Content\insertSearchPath 1, Path productionAssets, "Spine"
+			Content\insertSearchPath 1, Path productionAssets, "Image"
+			Content\insertSearchPath 1, Path productionAssets, "Font"
+			productionTests = [Path\getName f for f in *Content\getAllFiles Path productionAssets, "Test"]
+			package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
+			productionEntry = Path scriptFolder, "init"
+			scriptFolder = Path\getPath Path Content.writablePath, "Build", "Production", file
+			productionAssets = Path\getPath scriptFolder
+			Content\insertSearchPath 1, productionAssets
+			Content\insertSearchPath 1, scriptFolder
+			package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
+			if Content\exist Path scriptFolder, "init.lua"
+				productionEntry = Path scriptFolder, "init.lua"
+			return true
+	false
+
+unless locateProduction Content.writablePath
+	locateProduction Content.assetPath
 
 enterDemoEntry = (name)->
 	isInEntry = false
