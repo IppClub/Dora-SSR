@@ -575,14 +575,11 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars)
 	float totalHeight = 0;
 	uint32_t quantityOfLines = 1;
 
-	if (_characters.size() > chars.size())
+	for (size_t i = 0; i < _characters.size(); i++)
 	{
-		for (size_t i = chars.size(); i < _characters.size(); i++)
+		if (_characters[i] && _characters[i]->sprite)
 		{
-			if (_characters[i] && _characters[i]->sprite)
-			{
-				_characters[i]->sprite->setVisible(false);
-			}
+			_characters[i]->sprite->setVisible(false);
 		}
 	}
 
