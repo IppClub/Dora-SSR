@@ -9,7 +9,7 @@ Class Node,
 			:width = 0
 			:height = 0
 			:text = ""
-			:fontName = "NotoSansHans-Regular"
+			:fontName = "sarasa-mono-sc-regular"
 			:fontSize = 16
 			:textAlign = "Left"
 			:color3 = Color 0xffffff

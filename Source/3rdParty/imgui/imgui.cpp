@@ -1250,7 +1250,7 @@ void ImGuiIO::ClearInputKeys()
         KeysData[n].DownDurationPrev = -1.0f;
     }
     KeyCtrl = KeyShift = KeyAlt = KeySuper = false;
-    KeyMods = KeyModsPrev = ImGuiKeyModFlags_None;
+    KeyMods = ImGuiKeyModFlags_None;
     for (int n = 0; n < IM_ARRAYSIZE(NavInputsDownDuration); n++)
         NavInputsDownDuration[n] = NavInputsDownDurationPrev[n] = -1.0f;
 }
@@ -1321,8 +1321,10 @@ void ImGuiIO::SetKeyEventNativeData(ImGuiKey key, int native_keycode, int native
     // Build native->imgui map so old user code can still call key functions with native 0..511 values.
 #ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
     const int legacy_key = (native_legacy_index != -1) ? native_legacy_index : native_keycode;
-    if (ImGui::IsLegacyKey(legacy_key))
-        KeyMap[legacy_key] = key;
+    if (!ImGui::IsLegacyKey(legacy_key))
+        return;
+    KeyMap[legacy_key] = key;
+    KeyMap[key] = legacy_key;
 #else
     IM_UNUSED(key);
     IM_UNUSED(native_legacy_index);
@@ -2565,15 +2567,14 @@ void ImGuiListClipper::Begin(int items_count, float items_height)
 
 void ImGuiListClipper::End()
 {
-    // In theory here we should assert that we are already at the right position, but it seems saner to just seek at the end and not assert/crash the user.
     ImGuiContext& g = *GImGui;
-    if (ItemsCount >= 0 && ItemsCount < INT_MAX && DisplayStart >= 0)
-        ImGuiListClipper_SeekCursorForItem(this, ItemsCount);
-    ItemsCount = -1;
-
-    // Restore temporary buffer and fix back pointers which may be invalidated when nesting
     if (ImGuiListClipperData* data = (ImGuiListClipperData*)TempData)
     {
+        // In theory here we should assert that we are already at the right position, but it seems saner to just seek at the end and not assert/crash the user.
+        if (ItemsCount >= 0 && ItemsCount < INT_MAX && DisplayStart >= 0)
+            ImGuiListClipper_SeekCursorForItem(this, ItemsCount);
+
+        // Restore temporary buffer and fix back pointers which may be invalidated when nesting
         IM_ASSERT(data->ListClipper == this);
         data->StepNo = data->Ranges.Size;
         if (--g.ClipperTempDataStacked > 0)
@@ -2583,6 +2584,7 @@ void ImGuiListClipper::End()
         }
         TempData = NULL;
     }
+    ItemsCount = -1;
 }
 
 void ImGuiListClipper::ForceDisplayRangeByIndices(int item_min, int item_max)
@@ -2599,6 +2601,7 @@ bool ImGuiListClipper::Step()
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
     ImGuiListClipperData* data = (ImGuiListClipperData*)TempData;
+    IM_ASSERT(data != NULL && "Called ImGuiListClipper::Step() too many times, or before ImGuiListClipper::Begin() ?");
 
     ImGuiTable* table = g.CurrentTable;
     if (table && table->IsInsideRow)
@@ -2715,8 +2718,8 @@ bool ImGuiListClipper::Step()
     // Advance the cursor to the end of the list and then returns 'false' to end the loop.
     if (ItemsCount < INT_MAX)
         ImGuiListClipper_SeekCursorForItem(this, ItemsCount);
-    ItemsCount = -1;
 
+    End();
     return false;
 }
 
@@ -3474,7 +3477,7 @@ bool ImGui::IsItemHovered(ImGuiHoveredFlags flags)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
-    if (g.NavDisableMouseHover && !g.NavDisableHighlight)
+    if (g.NavDisableMouseHover && !g.NavDisableHighlight && !(flags & ImGuiHoveredFlags_NoNavOverride))
     {
         if ((g.LastItemData.InFlags & ImGuiItemFlags_Disabled) && !(flags & ImGuiHoveredFlags_AllowWhenDisabled))
             return false;
@@ -3535,8 +3538,6 @@ bool ImGui::ItemHoverable(const ImRect& bb, ImGuiID id)
         return false;
     if (!IsMouseHoveringRect(bb.Min, bb.Max))
         return false;
-    if (g.NavDisableMouseHover)
-        return false;
     if (!IsWindowContentHoverable(window, ImGuiHoveredFlags_None))
     {
         g.HoveredIdDisabled = true;
@@ -3571,6 +3572,9 @@ bool ImGui::ItemHoverable(const ImRect& bb, ImGuiID id)
         if (g.DebugItemPickerBreakId == id)
             IM_DEBUG_BREAK();
     }
+
+    if (g.NavDisableMouseHover)
+        return false;
 
     return true;
 }
@@ -3938,16 +3942,13 @@ static void ImGui::UpdateKeyboardInputs()
     ImGuiContext& g = *GImGui;
     ImGuiIO& io = g.IO;
 
-    // Synchronize io.KeyMods with individual modifiers io.KeyXXX bools
-    io.KeyMods = GetMergedKeyModFlags();
-
     // Import legacy keys or verify they are not used
 #ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
     if (io.BackendUsingLegacyKeyArrays == 0)
     {
-        // Backend used new io.AddKeyEvent() API: Good! Verify that old arrays are never written too.
-        for (int n = 0; n < IM_ARRAYSIZE(io.KeysDown); n++)
-            IM_ASSERT(io.KeysDown[n] == false && "Backend needs to either only use io.AddKeyEvent(), either only fill legacy io.KeysDown[] + io.KeyMap[]. Not both!");
+        // Backend used new io.AddKeyEvent() API: Good! Verify that old arrays are never written to externally.
+        for (int n = 0; n < ImGuiKey_LegacyNativeKey_END; n++)
+            IM_ASSERT((io.KeysDown[n] == false || IsKeyDown(n)) && "Backend needs to either only use io.AddKeyEvent(), either only fill legacy io.KeysDown[] + io.KeyMap[]. Not both!");
     }
     else
     {
@@ -3970,6 +3971,8 @@ static void ImGui::UpdateKeyboardInputs()
                 const ImGuiKey key = (ImGuiKey)(io.KeyMap[n] != -1 ? io.KeyMap[n] : n);
                 IM_ASSERT(io.KeyMap[n] == -1 || IsNamedKey(key));
                 io.KeysData[key].Down = io.KeysDown[n];
+                if (key != n)
+                    io.KeysDown[key] = io.KeysDown[n]; // Allow legacy code using io.KeysDown[GetKeyIndex()] with old backends
                 io.BackendUsingLegacyKeyArrays = 1;
             }
         if (io.BackendUsingLegacyKeyArrays == 1)
@@ -3981,6 +3984,9 @@ static void ImGui::UpdateKeyboardInputs()
         }
     }
 #endif
+
+    // Synchronize io.KeyMods with individual modifiers io.KeyXXX bools
+    io.KeyMods = GetMergedKeyModFlags();
 
     // Clear gamepad data if disabled
     if ((io.BackendFlags & ImGuiBackendFlags_HasGamepad) == 0)
@@ -4864,7 +4870,6 @@ void ImGui::EndFrame()
     // Clear Input data for next frame
     g.IO.MouseWheel = g.IO.MouseWheelH = 0.0f;
     g.IO.InputQueueCharacters.resize(0);
-    g.IO.KeyModsPrev = g.IO.KeyMods; // doing it here is better than in NewFrame() as we'll tolerate backend writing to KeyMods. If we want to firmly disallow it we should detect it.
     memset(g.IO.NavInputs, 0, sizeof(g.IO.NavInputs));
 
     CallContextHooks(&g, ImGuiContextHookType_EndFramePost);
@@ -7657,14 +7662,8 @@ bool ImGui::IsMouseClicked(ImGuiMouseButton button, bool repeat)
     const float t = g.IO.MouseDownDuration[button];
     if (t == 0.0f)
         return true;
-
     if (repeat && t > g.IO.KeyRepeatDelay)
-    {
-        // FIXME: 2019/05/03: Our old repeat code was wrong here and led to doubling the repeat rate, which made it an ok rate for repeat on mouse hold.
-        int amount = CalcTypematicRepeatAmount(t - g.IO.DeltaTime, t, g.IO.KeyRepeatDelay, g.IO.KeyRepeatRate * 0.50f);
-        if (amount > 0)
-            return true;
-    }
+        return CalcTypematicRepeatAmount(t - g.IO.DeltaTime, t, g.IO.KeyRepeatDelay, g.IO.KeyRepeatRate) > 0;
     return false;
 }
 
@@ -7880,6 +7879,13 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
                     if (key == ImGuiKey_ModSuper) { io.KeySuper = keydata->Down; }
                     io.KeyMods = GetMergedKeyModFlags();
                 }
+
+                // Allow legacy code using io.KeysDown[GetKeyIndex()] with new backends
+#ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
+                io.KeysDown[key] = keydata->Down;
+                if (io.KeyMap[key] != -1)
+                    io.KeysDown[io.KeyMap[key]] = keydata->Down;
+#endif
             }
         }
         else if (e->Type == ImGuiInputEventType_Text)
@@ -7972,7 +7978,7 @@ static void ImGui::ErrorCheckNewFrameSanityChecks()
     IM_ASSERT(g.Style.WindowMenuButtonPosition == ImGuiDir_None || g.Style.WindowMenuButtonPosition == ImGuiDir_Left || g.Style.WindowMenuButtonPosition == ImGuiDir_Right);
 #ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
     for (int n = ImGuiKey_NamedKey_BEGIN; n < ImGuiKey_COUNT; n++)
-        IM_ASSERT(g.IO.KeyMap[n] >= -1 && g.IO.KeyMap[n] < IM_ARRAYSIZE(g.IO.KeysDown) && "io.KeyMap[] contains an out of bound value (need to be 0..511, or -1 for unmapped key)");
+        IM_ASSERT(g.IO.KeyMap[n] >= -1 && g.IO.KeyMap[n] < ImGuiKey_LegacyNativeKey_END && "io.KeyMap[] contains an out of bound value (need to be 0..511, or -1 for unmapped key)");
 
     // Check: required key mapping (we intentionally do NOT check all keys to not pressure user into setting up everything, but Space is required and was only added in 1.60 WIP)
     if ((g.IO.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard) && g.IO.BackendUsingLegacyKeyArrays == 1)
@@ -10796,7 +10802,7 @@ static void ImGui::NavUpdateWindowing()
     // - Testing that only Alt is tested prevents Alt+Shift or AltGR from toggling menu layer.
     // - AltGR is normally Alt+Ctrl but we can't reliably detect it (not all backends/systems/layout emit it as Alt+Ctrl). But even on keyboards without AltGR we don't want Alt+Ctrl to open menu anyway.
 	const bool nav_keyboard_active = (io.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard) != 0;
-    if (nav_keyboard_active && io.KeyMods == ImGuiKeyModFlags_Alt && (io.KeyModsPrev & ImGuiKeyModFlags_Alt) == 0)
+    if (nav_keyboard_active && IsKeyPressed(ImGuiKey_ModAlt))
     {
         g.NavWindowingToggleLayer = true;
         g.NavInputSource = ImGuiInputSource_Keyboard;
@@ -10809,13 +10815,12 @@ static void ImGui::NavUpdateWindowing()
             g.NavWindowingToggleLayer = false;
 
         // Apply layer toggle on release
-        // Important: we don't assume that Alt was previously held in order to handle loss of focus when backend calls io.AddFocusEvent(false)
         // Important: as before version <18314 we lacked an explicit IO event for focus gain/loss, we also compare mouse validity to detect old backends clearing mouse pos on focus loss.
-        if (!(io.KeyMods & ImGuiKeyModFlags_Alt) && (io.KeyModsPrev & ImGuiKeyModFlags_Alt) && g.NavWindowingToggleLayer)
+        if (IsKeyReleased(ImGuiKey_ModAlt) && g.NavWindowingToggleLayer)
             if (g.ActiveId == 0 || g.ActiveIdAllowOverlap)
                 if (IsMousePosValid(&io.MousePos) == IsMousePosValid(&io.MousePosPrev))
                     apply_toggle_layer = true;
-        if (!io.KeyAlt)
+        if (!IsKeyDown(ImGuiKey_ModAlt))
             g.NavWindowingToggleLayer = false;
     }
 
@@ -12426,7 +12431,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         Text("ActiveIdWindow: '%s'", g.ActiveIdWindow ? g.ActiveIdWindow->Name : "NULL");
 
         int active_id_using_key_input_count = 0;
-        for (int n = 0; n < ImGuiKey_NamedKey_COUNT; n++)
+        for (int n = ImGuiKey_NamedKey_BEGIN; n < ImGuiKey_NamedKey_END; n++)
             active_id_using_key_input_count += g.ActiveIdUsingKeyInputMask[n] ? 1 : 0;
         Text("ActiveIdUsing: Wheel: %d, NavDirMask: %X, NavInputMask: %X, KeyInputMask: %d key(s)", g.ActiveIdUsingMouseWheel, g.ActiveIdUsingNavDirMask, g.ActiveIdUsingNavInputMask, active_id_using_key_input_count);
         Text("HoveredId: 0x%08X (%.2f sec), AllowOverlap: %d", g.HoveredIdPreviousFrame, g.HoveredIdTimer, g.HoveredIdAllowOverlap); // Not displaying g.HoveredId as it is update mid-frame

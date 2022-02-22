@@ -6,7 +6,7 @@ world = with PhysicsWorld!
 	\setShouldContact 0, 0, true
 	.showDebug = true
 
-label = with Label "NotoSansHans-Regular", 30
+label = with Label "sarasa-mono-sc-regular", 30
 	\addTo world
 
 terrainDef = with BodyDef!

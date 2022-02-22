@@ -7,7 +7,7 @@ ruler = Ruler {
 	y:0
 	width:400
 	height:60
-	fontName:"NotoSansHans-Regular"
+	fontName:"sarasa-mono-sc-regular"
 	fontSize:12
 }
 

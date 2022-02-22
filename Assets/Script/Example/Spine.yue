@@ -15,7 +15,7 @@ spine = with Spine spineStr
 	\slot "TapBegan", (touch)->
 		:x, :y = touch.location
 		if name = \containsPoint x, y
-			\addChild with Label "NotoSansHans-Regular", 30
+			\addChild with Label "sarasa-mono-sc-regular", 30
 				.text = name
 				.color = Color 0xff00ffff
 				\perform Sequence(Spawn(

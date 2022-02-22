@@ -845,14 +845,14 @@ Director.ui\addChild with AlignNode isRoot:true
 						text:"训练\n结束！"
 						y:-300
 						radius:80
-						fontName:"NotoSansHans-Regular"
+						fontName:"sarasa-mono-sc-regular"
 						fontSize:48
 					}
 					\slot "Tapped", ->
 						emit "ShowTraining", false
 						Group({"player"})\each (e)->
 							if e.charSet
-								emit "TrainAI", e.charSet 
+								emit "TrainAI", e.charSet
 								e.unit\removeFromParent!
 						Group({"boss"})\each (e)->
 							e.unit\removeFromParent!
@@ -866,7 +866,7 @@ Director.ui\addChild with AlignNode isRoot:true
 						text:"离开\n战斗"
 						y:-300
 						radius:80
-						fontName:"NotoSansHans-Regular"
+						fontName:"sarasa-mono-sc-regular"
 						fontSize:48
 					}
 					\slot "Tapped", ->
@@ -898,7 +898,7 @@ Director.ui\addChild with AlignNode isRoot:true
 				text:"开战！"
 				y:-300
 				radius:80
-				fontName:"NotoSansHans-Regular"
+				fontName:"sarasa-mono-sc-regular"
 				fontSize:48
 			}
 			showItems = (show)->
