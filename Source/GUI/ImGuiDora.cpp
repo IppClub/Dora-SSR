@@ -1082,8 +1082,8 @@ void ImGuiDora::render()
 		bgfx::ViewId viewId = SharedView.getId();
 
 		float scale = SharedApplication.getDeviceRatio();
-		_defaultPass->set("u_scale"_slice,  scale);
-		_imagePass->set("u_scale"_slice,  scale);
+		_defaultPass->set("u_scale"_slice, scale);
+		_imagePass->set("u_scale"_slice, scale);
 
 		// Render command lists
 		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)
@@ -1110,7 +1110,6 @@ void ImGuiDora::render()
 			ImDrawIdx* indices = r_cast<ImDrawIdx*>(tib.data);
 			std::memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(drawList->IdxBuffer[0]));
 
-			uint32_t offset = 0;
 			for (const ImDrawCmd* cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end(); cmd != cmdEnd; ++cmd)
 			{
 				if (cmd->UserCallback)
@@ -1143,19 +1142,17 @@ void ImGuiDora::render()
 						| BGFX_STATE_MSAA
 						| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 
-					const uint16_t xx = uint16_t(bx::max(cmd->ClipRect.x*scale, 0.0f));
-					const uint16_t yy = uint16_t(bx::max(cmd->ClipRect.y*scale, 0.0f));
+					const uint16_t xx = uint16_t(bx::max(cmd->ClipRect.x * scale, 0.0f));
+					const uint16_t yy = uint16_t(bx::max(cmd->ClipRect.y * scale, 0.0f));
 					bgfx::setScissor(xx, yy,
-						uint16_t(bx::min(cmd->ClipRect.z*scale, 65535.0f) - xx),
-						uint16_t(bx::min(cmd->ClipRect.w*scale, 65535.0f) - yy));
+						uint16_t(bx::min(cmd->ClipRect.z * scale, 65535.0f) - xx),
+						uint16_t(bx::min(cmd->ClipRect.w * scale, 65535.0f) - yy));
 					bgfx::setState(state);
 					bgfx::setTexture(0, _sampler, textureHandle);
 					bgfx::setVertexBuffer(0, &tvb, 0, numVertices);
-					bgfx::setIndexBuffer(&tib, offset, cmd->ElemCount);
+					bgfx::setIndexBuffer(&tib, cmd->IdxOffset, cmd->ElemCount);
 					bgfx::submit(viewId, program);
 				}
-
-				offset += cmd->ElemCount;
 			}
 		}
 	});

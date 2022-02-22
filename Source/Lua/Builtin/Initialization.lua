@@ -41,11 +41,7 @@ local function wait(cond)
 end
 
 local function traceback(err)
-	local stp = yue.stp
-	stp.dump_locals = false
-	stp.simplified = true
-	local msg = stp.stacktrace(err, 2)
-	print(msg)
+	print(yue.traceback(err))
 end
 
 local function once(work)
@@ -632,12 +628,7 @@ end
 -- Helpers
 
 debug.traceback = function(err, level)
-	level = level or 1
-	local stp = yue.stp
-	stp.dump_locals = false
-	stp.simplified = true
-	local msg = stp.stacktrace(err, level + 1)
-	return msg
+	return yue.traceback(err, (level or 1) + 1)
 end
 
 _G.p = yue.p

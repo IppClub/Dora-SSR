@@ -30,7 +30,7 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 				.area\removeChild .border
 				.border = LineRect width: w, height: h, color: 0xffffffff
 				.area\addChild .border
-			.view\addChild with Label "NotoSansHans-Regular", fontSize
+			.view\addChild with Label "sarasa-mono-sc-regular", fontSize
 				.alignment = "Left"
 				.textWidth = width - fontSize
 				.text = [[# Dorothy SSR

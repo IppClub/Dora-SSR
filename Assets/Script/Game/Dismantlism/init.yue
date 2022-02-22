@@ -14,7 +14,7 @@ ui = with Node!
 	.y = -50
 	\addChild Sprite "duality.clip|stat"
 score = 0
-scoreTxt = with Label "NotoSansHans-Regular", 40
+scoreTxt = with Label "sarasa-mono-sc-regular", 40
 	.textAlign = "Center"
 	.color3 = Color3 0x0
 	.text = "0"
@@ -227,7 +227,7 @@ buildScene = ->
 			when "removearea"
 				with node.data.rect
 					\addChild SolidRect x: -200, y: -200, width: 400, height: 400, color: 0x66000000
-					\addChild with Label "NotoSansHans-Regular", 80
+					\addChild with Label "sarasa-mono-sc-regular", 80
 						.textAlign = "Center"
 						.color = Color 0x66ffffff
 						.text = "Drag It\nHere"

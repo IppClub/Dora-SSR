@@ -1,7 +1,7 @@
 _ENV = Dorothy!
 
 Director.entry\addChild with Node!
-	\addChild with Label "NotoSansHans-Regular",40
+	\addChild with Label "sarasa-mono-sc-regular",40
 		.batched = false
 		.text = "你好，Dorothy！"
 		for i = 1, .characterCount
@@ -12,7 +12,7 @@ Director.entry\addChild with Node!
 				Scale 0.2, 2, 1
 			)
 
-	\addChild with Label "DroidSansFallback",30
+	\addChild with Label "sarasa-mono-sc-regular",30
 		.text = "-- from Jin."
 		.color = Color 0x0000ffff
 		.position = Vec2 120, -70
