@@ -624,6 +624,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars)
 			}
 			continue;
 		}
+		else if (ch == '\0') continue;
 
 		kerningAmount = s_cast<float>(SharedFontManager.getKerning(_font->getHandle(), prev, ch)) + _spacing;
 
