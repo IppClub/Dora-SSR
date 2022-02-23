@@ -4,7 +4,7 @@ import "yue" as options: {extension: yueext}
 
 print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
 
-LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 18, "Chinese"
+LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -93,6 +93,8 @@ doCompile = (minify)->
 				"Production"
 			}
 		}
+		continue unless Content\exist inputPath
+
 		for file in *getAllFiles inputPath, {"lua"}
 			luaFiles[] =
 				* prefix and Path(prefix, file) or file

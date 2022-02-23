@@ -28,7 +28,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-#if BX_PLATFORM_LINUX
+#if BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 #define MAX_FONT_TEXTURE_WIDTH 4096
 #else
 #define MAX_FONT_TEXTURE_WIDTH 8192
@@ -500,8 +500,13 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	AssertIf(isLoadingFont, "font is loading.");
 	isLoadingFont = true;
 
-	float scale = SharedApplication.getDeviceRatio();
-	fontSize *= scale;
+	float scale =
+#if BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+		1.0f;
+#else
+		SharedApplication.getDeviceRatio();
+		fontSize *= scale;
+#endif
 
 	int64_t size;
 	uint8_t* fileData = SharedContent.loadUnsafe(ttfFontFile, size);
