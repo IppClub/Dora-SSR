@@ -252,11 +252,19 @@ locateProduction = (searchPath)->
 		if "init" == Path\getName file
 			scriptFolder = Path\getPath Path searchPath, "Production", file
 			productionAssets = Path\getPath scriptFolder
-			Content\insertSearchPath 1, productionAssets
-			Content\insertSearchPath 1, Path productionAssets, "Script"
-			Content\insertSearchPath 1, Path productionAssets, "Spine"
-			Content\insertSearchPath 1, Path productionAssets, "Image"
-			Content\insertSearchPath 1, Path productionAssets, "Font"
+			for path in *{
+					productionAssets
+					Path productionAssets, "Script"
+					Path productionAssets, "Spine"
+					Path productionAssets, "Image"
+					Path productionAssets, "Font"
+					productionAssets
+					Path productionAssets, "Script"
+					Path productionAssets, "Spine"
+					Path productionAssets, "Image"
+					Path productionAssets, "Font"
+				}
+				Content\insertSearchPath 1, path
 			productionTests = [Path\getName f for f in *Content\getAllFiles Path productionAssets, "Test"]
 			package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
 			productionEntry = Path scriptFolder, "init"
@@ -275,6 +283,7 @@ unless locateProduction Content.writablePath
 
 enterDemoEntry = (name)->
 	isInEntry = false
+	currentEntryName = name
 	<- thread
 	try
 		result = require name
@@ -286,10 +295,15 @@ enterDemoEntry = (name)->
 				Node!
 		else
 			Director.entry\addChild Node!
-		currentEntryName = name
 	catch msg
 		print debug.traceback msg
 		allClear!
+
+reloadCurrentEntry = ->
+	if currentEntryName
+		targetName = currentEntryName
+		allClear!
+		enterDemoEntry targetName
 
 showEntry = false
 
@@ -322,10 +336,8 @@ threadLoop ->
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
 		allClear! if ctrl and Keyboard\isKeyDown "Q"
-		if currentEntryName and ctrl and Keyboard\isKeyDown "Z"
-			targetName = currentEntryName
-			allClear!
-			enterDemoEntry targetName
+		if ctrl and Keyboard\isKeyDown "Z"
+			reloadCurrentEntry!
 		if ctrl and Keyboard\isKeyDown ","
 			showFooter = true
 			showStats = not showStats
@@ -344,13 +356,11 @@ threadLoop ->
 			allClear!
 			currentIndex ??= #allNames + 1
 			if currentIndex > 1
-				isInEntry = false
 				enterDemoEntry allNames[currentIndex - 1]
 		if right
 			allClear!
 			currentIndex ??= 0
 			if currentIndex < #allNames
-				isInEntry = false
 				enterDemoEntry allNames[currentIndex + 1]
 	return unless showEntry
 	:width, :height = App.visualSize
@@ -396,20 +406,20 @@ threadLoop ->
 			for i, name in ipairs allNames
 				if currentEntryName == name
 					currentIndex = i
+			if currentIndex
+				if currentIndex > 1
+					SameLine!
+					if Button("Prev", Vec2 70, 30)
+						allClear!
+						enterDemoEntry allNames[currentIndex - 1]
+				if currentIndex < #allNames
+					SameLine!
+					if Button("Next", Vec2 70, 30)
+						allClear!
+						enterDemoEntry allNames[currentIndex + 1]
 			SameLine!
-			if currentIndex and currentIndex > 1
-				if Button("Prev", Vec2 70, 30)
-					allClear!
-					isInEntry = false
-					enterDemoEntry allNames[currentIndex - 1]
-			else Dummy Vec2 70, 30
-			SameLine!
-			if currentIndex and currentIndex < #allNames
-				if Button("Next", Vec2 70, 30)
-					allClear!
-					isInEntry = false
-					enterDemoEntry allNames[currentIndex + 1]
-			else Dummy Vec2 70, 30
+			if Button "Reload", Vec2 70, 30
+				reloadCurrentEntry!
 		PushStyleVar "WindowPadding", Vec2(10, 10), ->
 			if showStats
 				SetNextWindowPos Vec2(10, 10), "FirstUseEver"
