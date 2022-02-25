@@ -354,8 +354,8 @@ threadLoop ->
 				enterDemoEntry allNames[currentIndex + 1]
 	return unless showEntry
 	:width, :height = App.visualSize
-	SetNextWindowSize Vec2 190, 50
-	SetNextWindowPos Vec2 width - 190, height - 50
+	SetNextWindowSize Vec2 200, 50
+	SetNextWindowPos Vec2 width - 200, height - 50
 	if width >= 600
 		PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", windowFlags, ->
 			Columns 2, false
@@ -371,6 +371,7 @@ threadLoop ->
 		initFooter = false
 	else
 		return unless showFooter
+
 	SetNextWindowSize Vec2 width, 50
 	SetNextWindowPos Vec2 0, height - 50
 	SetNextWindowBgAlpha 0.35
