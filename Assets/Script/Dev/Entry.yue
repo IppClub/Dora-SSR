@@ -244,12 +244,12 @@ allNames = [Path "Game", game, "init" for game in *games]
 for example in *examples do table.insert allNames, Path "Example", example
 for test in *tests do table.insert allNames, Path "Test", test
 
-productionEntry = nil
+productionEntries = {}
 productionTests = nil
 locateProduction = (searchPath)->
 	return false unless Content\exist Path searchPath, "Production"
 	for file in *Content\getAllFiles Path searchPath, "Production"
-		if "init" == Path\getName file
+		if "yue" == Path\getExt(file) and "init" == Path\getName file
 			scriptFolder = Path\getPath Path searchPath, "Production", file
 			productionAssets = Path\getPath scriptFolder
 			for path in *{
@@ -267,14 +267,13 @@ locateProduction = (searchPath)->
 				Content\insertSearchPath 1, path
 			productionTests = [Path\getName f for f in *Content\getAllFiles Path productionAssets, "Test"]
 			package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
-			productionEntry = Path scriptFolder, "init"
+			productionEntries[] = Path scriptFolder, "init.yue"
 			scriptFolder = Path\getPath Path Content.writablePath, "Build", "Production", file
 			productionAssets = Path\getPath scriptFolder
 			Content\insertSearchPath 1, productionAssets
 			Content\insertSearchPath 1, scriptFolder
 			package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
-			if Content\exist Path scriptFolder, "init.lua"
-				productionEntry = Path scriptFolder, "init.lua"
+			productionEntries[] = Path scriptFolder, "init.lua"
 			return true
 	false
 
@@ -465,14 +464,18 @@ threadLoop ->
 				if Button test, Vec2 -1, 40
 					enterDemoEntry Path "Test", test
 				NextColumn!
-			if productionEntry
+			if #productionEntries > 0
 				Columns 1, false
 				TextColored cyan, "Product"
 				Columns math.max(math.floor(width / 200), 1), false
 				if Button "Enter", Vec2 -1, 40
-					enterDemoEntry productionEntry
+					for i = #productionEntries, 1, -1
+						entry = productionEntries[i]
+						if Content\exist entry
+							enterDemoEntry Path\replaceExt entry, ""
+							break
 				NextColumn!
-				if #productionTests > 0
+				if productionTests and #productionTests > 0
 					Columns 1, false
 					TextColored cyan, "Product Test"
 					Columns math.max(math.floor(width / 200), 1), false
