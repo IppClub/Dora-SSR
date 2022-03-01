@@ -114,7 +114,12 @@ std::string Path::getFilename(const std::string& path)
 
 std::string Path::replaceExt(const std::string& path, const std::string& newExt)
 {
-	return fs::path(path).replace_extension('.' + newExt).string();
+	std::string ext;
+	if (!newExt.empty())
+	{
+		ext = newExt.front() != '.' ? '.' + newExt : newExt;
+	}
+	return fs::path(path).replace_extension(ext).string();
 }
 
 std::string Path::replaceFilename(const std::string& path, const std::string& newFile)
