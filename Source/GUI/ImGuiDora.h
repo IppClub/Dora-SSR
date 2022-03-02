@@ -74,7 +74,7 @@ private:
 	bool _mouseVisible;
 	bool _mousePressed[3];
 	bool _rejectAllEvents;
-	float _mouseWheel;
+	Vec2 _mouseWheel;
 	int _lastCursor;
 	UITouchHandler* _touchHandler;
 	Ref<Texture2D> _fontTexture;
