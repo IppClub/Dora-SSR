@@ -413,7 +413,7 @@ _mouseVisible(true),
 _lastCursor(0),
 _backSpaceIgnore(false),
 _mousePressed{false, false, false},
-_mouseWheel(0.0f),
+_mouseWheel{0.0f, 0.0f},
 _console(New<ConsolePanel>()),
 _defaultFonts(New<ImFontAtlas>()),
 _fonts(New<ImFontAtlas>()),
@@ -974,9 +974,12 @@ bool ImGuiDora::init()
 			{
 				case SDL_MOUSEBUTTONUP:
 				{
-					if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = false;
-					if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = false;
-					if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = false;
+					switch (event.button.button)
+					{
+						case SDL_BUTTON_LEFT: _mousePressed[0] = false; break;
+						case SDL_BUTTON_RIGHT: _mousePressed[1] = false; break;
+						case SDL_BUTTON_MIDDLE: _mousePressed[2] = false; break;
+					}
 					break;
 				}
 				case SDL_TEXTINPUT:
@@ -1042,12 +1045,11 @@ void ImGuiDora::begin()
 		}
 	}
 
-	io.MouseDown[0] = _mousePressed[0];
-	io.MouseDown[1] = _mousePressed[1];
-	io.MouseDown[2] = _mousePressed[2];
-
-	io.MouseWheel = _mouseWheel;
-	_mouseWheel = 0.0f;
+	io.AddMouseButtonEvent(0, _mousePressed[0]);
+	io.AddMouseButtonEvent(1, _mousePressed[1]);
+	io.AddMouseButtonEvent(2, _mousePressed[2]);
+	io.AddMouseWheelEvent(_mouseWheel.x, _mouseWheel.y);
+	_mouseWheel = Vec2::zero;
 
 	if (_mouseVisible != io.MouseDrawCursor)
 	{
@@ -1201,19 +1203,30 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 		{
 			if (event.wheel.y > 0)
 			{
-				_mouseWheel = 1;
+				_mouseWheel.y = 1;
 			}
-			if (event.wheel.y < 0)
+			else if (event.wheel.y < 0)
 			{
-				_mouseWheel = -1;
+				_mouseWheel.y = -1;
+			}
+			if (event.wheel.x > 0)
+			{
+				_mouseWheel.x = 1;
+			}
+			else if (event.wheel.x < 0)
+			{
+				_mouseWheel.x = -1;
 			}
 			break;
 		}
 		case SDL_MOUSEBUTTONDOWN:
 		{
-			if (event.button.button == SDL_BUTTON_LEFT) _mousePressed[0] = true;
-			if (event.button.button == SDL_BUTTON_RIGHT) _mousePressed[1] = true;
-			if (event.button.button == SDL_BUTTON_MIDDLE) _mousePressed[2] = true;
+			switch (event.button.button)
+			{
+				case SDL_BUTTON_LEFT: _mousePressed[0] = true; break;
+				case SDL_BUTTON_RIGHT: _mousePressed[1] = true; break;
+				case SDL_BUTTON_MIDDLE: _mousePressed[2] = true; break;
+			}
 			break;
 		}
 		case SDL_MOUSEBUTTONUP:
