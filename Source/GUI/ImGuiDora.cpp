@@ -996,10 +996,10 @@ bool ImGuiDora::init()
 					SDL_Keycode code = event.key.keysym.sym;
 					int key = code & ~SDLK_SCANCODE_MASK;
 					uint16_t mod = event.key.keysym.mod;
-					io.KeyShift = ((mod & KMOD_SHIFT) != 0);
-					io.KeyCtrl = ((mod & KMOD_CTRL) != 0);
-					io.KeyAlt = ((mod & KMOD_ALT) != 0);
-					io.KeySuper = ((mod & KMOD_GUI) != 0);
+					io.AddKeyEvent(ImGuiKey_ModShift, (mod & KMOD_SHIFT) != 0);
+					io.AddKeyEvent(ImGuiKey_ModCtrl, (mod & KMOD_CTRL) != 0);
+					io.AddKeyEvent(ImGuiKey_ModAlt, (mod & KMOD_ALT) != 0);
+					io.AddKeyEvent(ImGuiKey_ModSuper, (mod & KMOD_GUI) != 0);
 					if (_textEditing.empty() || code == SDLK_BACKSPACE || code == SDLK_LEFT || code == SDLK_RIGHT)
 					{
 						if (auto it = _keymap.find(key); it != _keymap.end())
