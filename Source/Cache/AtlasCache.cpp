@@ -30,9 +30,12 @@ public:
 
 	virtual void unload(void* texture)
 	{
-		auto tex = r_cast<Texture2D*>(texture);
-		SharedTextureCache.unload(tex);
-		tex->release();
+		if (texture)
+		{
+			auto tex = r_cast<Texture2D*>(texture);
+			SharedTextureCache.unload(tex);
+			tex->release();
+		}
 	}
 };
 
@@ -99,7 +102,7 @@ void AtlasCache::loadAsync(String filename, const std::function<void(Atlas*)>& h
 		{
 			const auto& path = pages[i]->texturePath;
 			std::string texFile(path.buffer(), path.length());
-			SharedTextureCache.loadAsync(file, [texFile, file, atlasData, i, handler, this](Texture2D* texture)
+			SharedTextureCache.loadAsync(texFile, [texFile, file, atlasData, i, handler, this](Texture2D* texture)
 			{
 				auto& data = *atlasData.get();
 				auto& atlas = std::get<0>(data);
