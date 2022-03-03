@@ -130,7 +130,7 @@ local function yue_dofile(...)
 end
 local function insert_loader(pos)
 	if pos == nil then
-		pos = 2
+		pos = 3
 	end
 	local loaders = package.loaders or package.searchers
 	for i = 1, #loaders do

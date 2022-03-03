@@ -243,7 +243,7 @@ public:
 			_fullScreen = !_fullScreen;
 		}
 		ImGui::SameLine();
-		_filter.Draw("Filter", -55.0f);
+		_filter.Draw("Filter", -60.0f);
 		ImGui::Separator();
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 		ImGui::BeginChild(_fullScreen ? "scrolling_full" : "scrolling", ImVec2(0, -footer_height_to_reserve), false);
