@@ -67,34 +67,46 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 	if (extension.empty() && targetFile.back() != '.')
 	{
 		std::string fullPath;
-		BLOCK_START
+		for (auto ext : {"lua"s, "xml"s, "tl"s})
 		{
-			fullPath = SharedContent.getFullPath(targetFile + ".lua");
+			fullPath = SharedContent.getFullPath(targetFile + '.' + ext);
 			if (SharedContent.exist(fullPath))
 			{
 				targetFile = fullPath;
-				extension = "lua";
+				extension = ext;
 				break;
 			}
-			fullPath = SharedContent.getFullPath(targetFile + ".xml");
-			if (SharedContent.exist(fullPath))
-			{
-				targetFile = fullPath;
-				extension = "xml";
-				break;
-			}
-			fullPath = SharedContent.getFullPath(targetFile + ".tl");
-			if (SharedContent.exist(fullPath))
-			{
-				targetFile = fullPath;
-				extension = "tl";
-				break;
-			}
-			lua_pushnil(L);
-			lua_pushfstring(L, "xml or lua file not found for filename \"%s\"", filename.toString().c_str());
-			return 2;
 		}
-		BLOCK_END
+		if (extension.empty())
+		{
+			std::stringstream ss;
+			bool first = true;
+			for (auto ext : {"lua"s, "xml"s, "tl"s})
+			{
+				auto triedPaths = SharedContent.getFullPathsToTry(targetFile + '.' + ext);
+				for (auto it = triedPaths.begin(); it != triedPaths.end(); ++it)
+				{
+					if (first) first = false; else ss << "\n\t"sv;
+					ss << "no file '"sv << *it << '\'';
+				}
+			}
+			auto msg = ss.str();
+			lua_pushlstring(L, msg.c_str(), msg.size());
+			return 1;
+		}
+	}
+	else if (!SharedContent.exist(targetFile))
+	{
+		std::stringstream ss;
+		auto triedPaths = SharedContent.getFullPathsToTry(targetFile);
+		for (auto it = triedPaths.begin(); it != triedPaths.end(); ++it)
+		{
+			if (it != triedPaths.begin()) ss << "\n\t"sv;
+			ss << "no file '"sv << *it << '\'';
+		}
+		auto msg = ss.str();
+		lua_pushlstring(L, msg.c_str(), msg.size());
+		return 1;
 	}
 
 	const char* codeBuffer = nullptr;
@@ -475,7 +487,7 @@ _tlState(nullptr)
 	lua_pop(L, 1);
 
 	// add dorothy loader
-	LuaEngine::insertLuaLoader(dora_loader);
+	LuaEngine::insertLuaLoader(dora_loader, 2);
 
 	// load cpp binding
 	tolua_LuaBinding_open(L);
@@ -662,20 +674,20 @@ std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCo
 	}
 }
 
-void LuaEngine::insertLuaLoader(lua_CFunction func)
+void LuaEngine::insertLuaLoader(lua_CFunction func, int index)
 {
 	if (!func) return;
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "searchers"); // package, searchers
 	// insert searcher into index 1
 	lua_pushcfunction(L, func); // package, searchers, func
-	for (int i = s_cast<int>(lua_rawlen(L, -2)) + 1; i > 1; --i)
+	for (int i = s_cast<int>(lua_rawlen(L, -2)) + 1; i > index; --i)
 	{
 		lua_rawgeti(L, -2, i - 1); // package, searchers, func, function
 		// we call lua_rawgeti, so the searchers table now is at -3
 		lua_rawseti(L, -3, i); // package, searchers, func
 	}
-	lua_rawseti(L, -2, 1); // searchers[1] = func, package searchers
+	lua_rawseti(L, -2, index); // searchers[1] = func, package searchers
 	lua_pop(L, 2); // stack empty
 }
 

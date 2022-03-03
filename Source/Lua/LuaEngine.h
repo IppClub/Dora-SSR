@@ -28,7 +28,7 @@ public:
 
 	std::pair<std::string, std::string> tealToLua(const std::string& tlCodes, String moduleName);
 
-	void insertLuaLoader(lua_CFunction func);
+	void insertLuaLoader(lua_CFunction func, int index);
 
 	void removeScriptHandler(int handler);
 	void removePeer(Object* object);

@@ -50,7 +50,7 @@ class Slice {
   constexpr Slice(std::nullptr_t p = nullptr) : str_(nullptr), len_(0) {}
 
   operator std::string() const {
-  	return std::string(str_, len_);
+    return std::string(str_, len_);
   }
 
   const char &operator[](size_t n) const {
@@ -135,32 +135,36 @@ class Slice {
   }
 
   char back() const {
-  	 assert(!empty());
+    assert(!empty());
     return *(end() - 1);
   }
 
   Slice left(size_t n) const {
     if (n <= len_) {
-        return Slice(str_, n);
+      return Slice(str_, n);
     } else {
-        return *this;
+      return *this;
     }
   }
 
   Slice right(size_t n) const {
     if (n <= len_) {
-        return Slice(str_ + len_ - n, n);
+      return Slice(str_ + len_ - n, n);
     } else {
-        return *this;
+      return *this;
     }
   }
 
   std::string toLower() const;
+
   std::string toUpper() const;
+
   std::list<Slice> split(const Slice& delimer) const;
 
   static const std::string Empty;
+
   static float stof(const Slice& str);
+
   static int stoi(const Slice& str, int base = 10);
 
   constexpr friend Slice operator"" _slice(const char* s, size_t n);
