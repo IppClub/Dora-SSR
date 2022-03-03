@@ -12,6 +12,5 @@ Content.searchPaths = {
 	"DragonBones",
 }
 
-local yue = require("yue")
-yue("Dev.Entry")
+require("Dev.Entry")
 

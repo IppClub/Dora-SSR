@@ -10,7 +10,7 @@ width, height = viewWidth - 200, viewHeight - 20
 fontSize = math.floor 20 * App.deviceRatio
 
 Director.entry\addChild with AlignNode isRoot: true, inUI: false
-	\addChild with AlignNode!
+	\addChild with AlignNode alignWidth: "w", alignHeight: "h"
 		\addChild with ScrollArea {
 				width: width
 				height: height
@@ -22,7 +22,7 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 			.border = LineRect width: width, height: height, color: 0xffffffff
 			.area\addChild .border
 			\slot "AlignLayout", (w, h)->
-				.position = Vec2.zero
+				.position = Vec2 w / 2, h / 2
 				w -= 200
 				h -= 20
 				.view.children.first.textWidth = w - fontSize

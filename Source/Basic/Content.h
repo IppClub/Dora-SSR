@@ -21,6 +21,7 @@ public:
 	bool isFolder(String path);
 	bool isAbsolutePath(String strPath);
 	std::string getFullPath(String filename);
+	std::list<std::string> getFullPathsToTry(String filename);
 	std::pair<OwnArray<uint8_t>,size_t> load(String filename);
 	const bgfx::Memory* loadBX(String filename);
 	void copy(String src, String dst);

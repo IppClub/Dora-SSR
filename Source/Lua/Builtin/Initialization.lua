@@ -1,5 +1,7 @@
 package.path = "?.lua"
 local yue = require("yue")
+yue.insert_loader(3)
+debug.traceback = yue.traceback
 
 local App = builtin.Application()
 local Director = builtin.Director()

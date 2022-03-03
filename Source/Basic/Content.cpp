@@ -187,15 +187,15 @@ std::string Content::getFullPath(String filename)
 	Slice targetFile = filename;
 	targetFile.trimSpace();
 
+	if (Content::isAbsolutePath(targetFile))
+	{
+		return targetFile;
+	}
+
 	while (targetFile.size() > 1 &&
 		(targetFile.back() == '\\' || targetFile.back() == '/'))
 	{
 		targetFile.skipRight(1);
-	}
-
-	if (Content::isAbsolutePath(targetFile))
-	{
-		return targetFile;
 	}
 
 	auto it  = _fullPathCache.find(targetFile);
@@ -226,6 +226,34 @@ std::string Content::getFullPath(String filename)
 	}
 
 	return targetFile;
+}
+
+std::list<std::string> Content::getFullPathsToTry(String filename)
+{
+	AssertIf(filename.empty(), "invalid filename for full path.");
+
+	Slice targetFile = filename;
+	targetFile.trimSpace();
+
+	while (targetFile.size() > 1 &&
+		(targetFile.back() == '\\' || targetFile.back() == '/'))
+	{
+		targetFile.skipRight(1);
+	}
+
+	if (Content::isAbsolutePath(targetFile))
+	{
+		return {targetFile};
+	}
+
+	std::list<std::string> paths;
+	std::string path, file, fullPath;
+	auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
+	for (const auto& searchPath : _searchPaths)
+	{
+		paths.push_back((fs::path(searchPath) / fname).string());
+	}
+	return paths;
 }
 
 void Content::insertSearchPath(int index, String path)
