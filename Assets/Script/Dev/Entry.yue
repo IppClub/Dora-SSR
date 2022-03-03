@@ -437,7 +437,7 @@ threadLoop ->
 	SetNextWindowBgAlpha 0.35
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dorothy Dev", windowFlags, ->
-			Dummy Vec2 width, 5
+			Dummy Vec2 width - 20, 5
 			TextColored cyan, "DOROTHY SSR DEV"
 			Separator!
 	SetNextWindowPos Vec2 0, 45
@@ -484,4 +484,4 @@ threadLoop ->
 							enterDemoEntry Path "Test", test
 						NextColumn!
 			Columns 1, false
-			Dummy Vec2 width, 40
+			Dummy Vec2 100, 40
