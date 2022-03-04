@@ -115,7 +115,11 @@ void View::setVSync(bool var)
 			_flag &= ~BGFX_RESET_VSYNC;
 		}
 		Size bufferSize = SharedApplication.getBufferSize();
-		bgfx::reset(s_cast<uint32_t>(bufferSize.width), s_cast<uint32_t>(bufferSize.height), _flag);
+		bgfx::reset(
+			s_cast<uint32_t>(bufferSize.width),
+			s_cast<uint32_t>(bufferSize.height),
+			_flag
+		);
 	}
 }
 
@@ -174,7 +178,14 @@ float View::getFieldOfView() const
 
 void View::updateProjection()
 {
-	bx::mtxProj(_projection, _fieldOfView, getAspectRatio(), _nearPlaneDistance, _farPlaneDistance, bgfx::getCaps()->homogeneousDepth);
+	bx::mtxProj(
+		_projection,
+		_fieldOfView,
+		getAspectRatio(),
+		_nearPlaneDistance,
+		_farPlaneDistance,
+		bgfx::getCaps()->homogeneousDepth
+	);
 	SharedDirector.markDirty();
 }
 
@@ -196,11 +207,15 @@ SpriteEffect* View::getPostEffect() const
 void View::reset()
 {
 	Size bufferSize = SharedApplication.getBufferSize();
-	_size = {bufferSize.width / _scale, bufferSize.height / _scale};
 	bgfx::reset(
 		s_cast<uint32_t>(bufferSize.width),
 		s_cast<uint32_t>(bufferSize.height),
-		_flag);
+		_flag
+	);
+	_size = {
+		std::floor(bufferSize.width / _scale),
+		std::floor(bufferSize.height / _scale)
+	};
 	updateProjection();
 }
 

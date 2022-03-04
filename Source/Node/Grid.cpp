@@ -62,6 +62,9 @@ uint32_t Grid::getGridY() const
 void Grid::setTexture(Texture2D* var)
 {
 	_texture = var;
+	_texSize = Size{
+		s_cast<float>(_texture->getWidth()),
+		s_cast<float>(_texture->getHeight())};
 	if (_textureRect == Rect::zero)
 	{
 		_textureRect.set(0, 0, s_cast<float>(var->getWidth()), s_cast<float>(var->getHeight()));

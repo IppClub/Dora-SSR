@@ -1679,8 +1679,8 @@ void Node::Grabber::grab(Node* target)
 	s_cast<Node*>(_grid.get())->updateRealColor3();
 	s_cast<Node*>(_grid.get())->updateRealOpacity();
 	_grid->setEffect(display->getEffect());
-	_grid->setTextureRect(display->getTextureRect());
 	_grid->setTexture(display->getTexture());
+	_grid->setTextureRect(display->getTextureRect());
 	_grid->setPosition({width / 2.0f, height / 2.0f});
 	_grid->setBlendFunc(_blendFunc);
 }
