@@ -43,14 +43,12 @@ protected:
 	public:
 		Vec2 ratio;
 		PROPERTY_CREF(Vec2, Offset);
-		PROPERTY(int, Index);
 		CREATE_FUNC(Layer);
 	protected:
 		Layer():_offset{}, ratio{} { }
+		virtual void sortAllChildren() override;
 	private:
-		int _index;
 		Vec2 _offset;
-		friend class PlatformWorld;
 	};
 private:
 	Ref<PlatformCamera> _camera;
