@@ -224,6 +224,7 @@ Font* FontCache::load(String fontName, uint32_t fontSize)
 				return nullptr;
 			}
 			auto data = SharedContent.load(fontFile);
+			AssertUnless(data.first, "fail to load font \"{}\".", fontName);
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<uint32_t>(data.second));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontName] = file;
