@@ -96,6 +96,8 @@ public:
 	void removeAllChildren(bool cleanup = true);
 	void removeFromParent(bool cleanup = true);
 
+	void moveToParent(Node* parent);
+
 	virtual Rect getBoundingBox();
 
 	virtual void onEnter();

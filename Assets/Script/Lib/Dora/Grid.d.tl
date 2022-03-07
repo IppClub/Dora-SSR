@@ -16,13 +16,14 @@ local record Grid
 	getPos: function(self: Grid, x: integer, y: integer)
 	getColor: function(self: Grid, x: integer, y: integer): Color
 	setColor: function(self: Grid, x: integer, y: integer, color: Color)
+	moveUV: function(self: Grid, x: integer, y: integer, offset: Vec2)
 end
 local record GridClass
 	type Type = Grid
-	metamethod __call: function(cls: GridClass, textureRect: Rect, gridX: number, gridY: number): Grid
-	metamethod __call: function(cls: GridClass, texture: Texture2D, textureRect: Rect, gridX: number, gridY: number): Grid
-	metamethod __call: function(cls: GridClass, texture: Texture2D, gridX: number, gridY: number): Grid
-	metamethod __call: function(cls: GridClass, clipStr: string, gridX: number, gridY: number): Grid
+	metamethod __call: function(cls: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(cls: GridClass, texture: Texture2D, textureRect: Rect, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(cls: GridClass, texture: Texture2D, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(cls: GridClass, clipStr: string, gridX: integer, gridY: integer): Grid
 end
 print(Grid.textureRect)
 print(Grid.blendFunc)

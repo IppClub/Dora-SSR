@@ -556,7 +556,7 @@ Node* Node::addTo(Node* parent)
 void Node::removeChild(Node* child, bool cleanup)
 {
 	AssertIf(child == nullptr, "remove invalid child (nullptr) from node.");
-	AssertIf(child->_parent != this, "can`t remove child node from different parent.");
+	AssertIf(child->_parent != this, "can't remove child node from different parent.");
 	if (!_children)
 	{
 		return;
@@ -605,6 +605,41 @@ void Node::removeAllChildren(bool cleanup)
 void Node::removeFromParent(bool cleanup)
 {
 	if (_parent) _parent->removeChild(this, cleanup);
+}
+
+void Node::moveToParent(Node* parent)
+{
+	AssertIf(parent == nullptr, "can not move node to an invalid parent (nullptr).");
+	if (_parent == parent) return;
+	if (_parent)
+	{
+		auto childRef = Value::alloc(this);
+		if (_parent->_children->remove(childRef.get()))
+		{
+			if (!parent->_children)
+			{
+				parent->_children = Array::create();
+			}
+			Node* last = nullptr;
+			if (!parent->_children->isEmpty())
+			{
+				last = &parent->_children->getLast()->to<Node>();
+			}
+			parent->_children->add(Value::alloc(this));
+			if (last && last->getOrder() > getOrder())
+			{
+				parent->_flags.setOn(Node::Reorder);
+			}
+			_parent = parent;
+			updateRealColor3();
+			updateRealOpacity();
+			markDirty();
+		}
+	}
+	else
+	{
+		parent->addChild(this);
+	}
 }
 
 void Node::cleanup()

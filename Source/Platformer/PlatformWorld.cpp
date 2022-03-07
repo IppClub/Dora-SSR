@@ -17,20 +17,6 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
 /* Layer */
 
-void PlatformWorld::Layer::setIndex(int var)
-{
-	if (_index != var)
-	{
-		_index = var;
-		markParentReorder();
-	}
-}
-
-int PlatformWorld::Layer::getIndex() const
-{
-	return _index;
-}
-
 void PlatformWorld::Layer::setOffset(const Vec2& offset)
 {
 	float deltaX = Node::getPosition().x - _offset.x;
@@ -42,6 +28,15 @@ void PlatformWorld::Layer::setOffset(const Vec2& offset)
 const Vec2& PlatformWorld::Layer::getOffset() const
 {
 	return _offset;
+}
+
+void PlatformWorld::Layer::sortAllChildren()
+{
+	if (_flags.isOn(Node::Reorder))
+	{
+		Node::sortAllChildren();
+		markParentReorder();
+	}
 }
 
 /* PlatformWorld */
@@ -56,7 +51,7 @@ void PlatformWorld::removeChild(Node* child, bool cleanup)
 {
 	Node* layer = PlatformWorld::getLayer(child->getOrder());
 	if (layer == child) PhysicsWorld::removeChild(child, cleanup);
-	else layer->removeChild(child);
+	else layer->removeChild(child, cleanup);
 }
 
 Node* PlatformWorld::getLayer(int order)
@@ -69,7 +64,6 @@ Node* PlatformWorld::getLayer(int order)
 	else
 	{
 		Layer* newLayer = Layer::create();
-		newLayer->setIndex(order);
 		Node::addChild(newLayer, order, newLayer->getTag());
 		_layers[order] = newLayer;
 		return newLayer;
@@ -102,13 +96,13 @@ void PlatformWorld::swapLayer(int orderA, int orderB)
 	Layer* layerB = s_cast<Layer*>(PlatformWorld::getLayer(orderB));
 	_layers[orderA] = layerB;
 	_layers[orderB] = layerA;
-	layerA->setIndex(orderB);
+	layerA->setOrder(orderB);
 	layerA->eachChild([orderB](Node* child)
 	{
 		child->setOrder(orderB);
 		return false;
 	});
-	layerB->setIndex(orderA);
+	layerB->setOrder(orderA);
 	layerB->eachChild([orderA](Node* child)
 	{
 		child->setOrder(orderA);
@@ -145,24 +139,34 @@ void PlatformWorld::sortAllChildren()
 {
 	if (_flags.isOn(Node::Reorder))
 	{
-		auto& data = _children->data();
-		std::stable_sort(data.begin(), data.end(), [](const Own<Value>& a, const Own<Value>& b)
+		Node::sortAllChildren();
+		ARRAY_START(Layer, layer, _children)
 		{
-			int orderA = a->as<Layer>() ? a->as<Layer>()->getIndex() : a->to<Node>().getOrder();
-			int orderB = b->as<Layer>() ? b->as<Layer>()->getIndex() : b->to<Node>().getOrder();
-			return orderA < orderB;
-		});
-		_flags.setOff(Node::Reorder);
+			std::vector<Node*> nodes;
+			ARRAY_START(Node, child, layer->getChildren())
+			{
+				if (child->getOrder() != layer->getOrder())
+				{
+					nodes.push_back(child);
+				}
+			}
+			ARRAY_END
+			for (Node* node : nodes)
+			{
+				moveChild(node, node->getOrder());
+			}
+		}
+		ARRAY_END
 	}
 }
 
 void PlatformWorld::moveChild(Node* child, int newOrder)
 {
-	Layer* layer = DoraAs<Layer>(child->getParent());
-	if (layer && layer->getIndex() != newOrder)
+	Node* layer = child->getParent();
+	if (layer && layer->getOrder() != newOrder)
 	{
-		layer->removeChild(child);
-		getLayer(newOrder)->addChild(child, newOrder);
+		Node* newLayer = getLayer(newOrder);
+		child->moveToParent(newLayer);
 	}
 }
 
