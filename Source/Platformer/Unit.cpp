@@ -108,7 +108,7 @@ _entity(entity),
 _size(unitDef->get(Def::Size, Size::zero))
 { }
 
-static Value* assertNotNull(Value* value)
+static inline Value* assertNotNull(Value* value)
 {
 	AssertUnless(value, "Value expected, got null");
 	return value;
@@ -288,10 +288,13 @@ void Unit::setGroup(uint8_t group)
 	{
 		if (pd::IsSensor(world, f))
 		{
-			Sensor* sensor = _pWorld->getFixtureData(f);
-			if (sensor && sensor->getTag() != Unit::GroundSensorTag)
+			if (Sensor* sensor = _pWorld->getFixtureData(f))
 			{
-				continue;
+				if (sensor->getTag() == Unit::GroundSensorTag ||
+					sensor->getTag() == Unit::DetectSensorTag)
+				{
+					continue;
+				}
 			}
 		}
 		pd::SetFilterData(world, f, _pWorld->getFilter(group));
