@@ -140,14 +140,25 @@ Color Color::convert(uint32_t abgr)
 Color Color::White;
 Color Color::Black(0x0);
 
-const BlendFunc BlendFunc::Default{BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
+const BlendFunc BlendFunc::Default{
+	BGFX_STATE_BLEND_FUNC_SEPARATE(
+		BGFX_STATE_BLEND_SRC_ALPHA,
+		BGFX_STATE_BLEND_INV_SRC_ALPHA,
+		BGFX_STATE_BLEND_ONE,
+		BGFX_STATE_BLEND_INV_SRC_ALPHA
+	)
+};
 
-BlendFunc::BlendFunc(uint32_t src, uint32_t dst):
+BlendFunc::BlendFunc(uint64_t src, uint64_t dst):
 _value(BGFX_STATE_BLEND_FUNC(src, dst))
 { }
 
-BlendFunc::BlendFunc(uint32_t srcC, uint32_t dstC, uint32_t srcA, uint32_t dstA):
+BlendFunc::BlendFunc(uint64_t srcC, uint64_t dstC, uint64_t srcA, uint64_t dstA):
 _value(BGFX_STATE_BLEND_FUNC_SEPARATE(srcC, dstC, srcA, dstA))
+{ }
+
+BlendFunc::BlendFunc(uint64_t blendState):
+_value(blendState)
 { }
 
 uint64_t BlendFunc::toValue() const

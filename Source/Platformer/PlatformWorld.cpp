@@ -135,6 +135,12 @@ void PlatformWorld::onExit()
 	Node::onExit();
 }
 
+void PlatformWorld::cleanup()
+{
+	_camera = nullptr;
+	Node::cleanup();
+}
+
 void PlatformWorld::sortAllChildren()
 {
 	if (_flags.isOn(Node::Reorder))
@@ -179,12 +185,14 @@ void PlatformWorld::onCameraMoved(float deltaX, float deltaY)
 {
 	for (auto it : _layers)
 	{
-		Layer* layer = it.second;
-		Vec2 pos = {
-			deltaX * layer->ratio.x + layer->getX(),
-			deltaY * layer->ratio.y + layer->getY()
-		};
-		layer->setPosition(pos);
+		if (Layer* layer = it.second)
+		{
+			Vec2 pos = {
+				deltaX * layer->ratio.x + layer->getX(),
+				deltaY * layer->ratio.y + layer->getY()
+			};
+			layer->setPosition(pos);
+		}
 	}
 }
 

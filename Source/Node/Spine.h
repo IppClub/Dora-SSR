@@ -25,7 +25,7 @@ public:
 	PROPERTY_BOOL(HitTestEnabled);
 	PROPERTY_BOOL(ShowDebug);
 	virtual bool init() override;
-	virtual void visit() override;
+	virtual bool update(double deltaTime) override;
 	virtual void render() override;
 	virtual void cleanup() override;
 	virtual void setSpeed(float var) override;

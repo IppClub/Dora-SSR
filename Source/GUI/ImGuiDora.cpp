@@ -830,7 +830,7 @@ void ImGuiDora::showConsole()
 
 static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data)
 {
-	ImGuiDora::setImePositionHint(data->InputPos.x, data->InputPos.y + data->InputLineHeight);
+	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
 bool ImGuiDora::init()

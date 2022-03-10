@@ -353,6 +353,7 @@ class Node : public Object
 	void removeChildByTag(String tag, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
 	void removeFromParent(bool cleanup = true);
+	void moveToParent(Node* parent);
 
 	void cleanup();
 
@@ -362,7 +363,9 @@ class Node : public Object
 	void unschedule();
 
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
+	Vec2 convertToNodeSpace(Vec2 worldPoint, float& zInOut);
 	Vec2 convertToWorldSpace(Vec2 nodePoint);
+	Vec2 convertToWorldSpace(Vec2 nodePoint, float& zInOut);
 	void convertToWindowSpace(Vec2 nodePoint, tolua_function_void callback);
 
 	tolua_outside bool Node_eachChild @ eachChild(tolua_function_bool func);

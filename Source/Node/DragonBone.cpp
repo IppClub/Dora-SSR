@@ -376,7 +376,7 @@ void DBSlot::_updateBlendMode()
 		switch (_blendMode)
 		{
 			case db::BlendMode::Normal:
-				_node->_blendFunc = {BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
+				_node->_blendFunc = BlendFunc::Default;
 				break;
 			case db::BlendMode::Add:
 				_node->_blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One};

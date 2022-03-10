@@ -54,19 +54,20 @@ class BlendFunc
 public:
 	enum
 	{
-		One = uint32_t(BGFX_STATE_BLEND_ONE),
-		Zero = uint32_t(BGFX_STATE_BLEND_ZERO),
-		SrcColor = uint32_t(BGFX_STATE_BLEND_SRC_COLOR),
-		SrcAlpha = uint32_t(BGFX_STATE_BLEND_SRC_ALPHA),
-		DstColor = uint32_t(BGFX_STATE_BLEND_DST_COLOR),
-		DstAlpha = uint32_t(BGFX_STATE_BLEND_DST_ALPHA),
-		InvSrcColor = uint32_t(BGFX_STATE_BLEND_INV_SRC_COLOR),
-		InvSrcAlpha = uint32_t(BGFX_STATE_BLEND_INV_SRC_ALPHA),
-		InvDstColor = uint32_t(BGFX_STATE_BLEND_INV_DST_COLOR),
-		InvDstAlpha = uint32_t(BGFX_STATE_BLEND_INV_DST_ALPHA)
+		One = uint64_t(BGFX_STATE_BLEND_ONE),
+		Zero = uint64_t(BGFX_STATE_BLEND_ZERO),
+		SrcColor = uint64_t(BGFX_STATE_BLEND_SRC_COLOR),
+		SrcAlpha = uint64_t(BGFX_STATE_BLEND_SRC_ALPHA),
+		DstColor = uint64_t(BGFX_STATE_BLEND_DST_COLOR),
+		DstAlpha = uint64_t(BGFX_STATE_BLEND_DST_ALPHA),
+		InvSrcColor = uint64_t(BGFX_STATE_BLEND_INV_SRC_COLOR),
+		InvSrcAlpha = uint64_t(BGFX_STATE_BLEND_INV_SRC_ALPHA),
+		InvDstColor = uint64_t(BGFX_STATE_BLEND_INV_DST_COLOR),
+		InvDstAlpha = uint64_t(BGFX_STATE_BLEND_INV_DST_ALPHA)
 	};
-	BlendFunc(uint32_t src, uint32_t dst);
-	BlendFunc(uint32_t srcC, uint32_t dstC, uint32_t srcA, uint32_t dstA);
+	BlendFunc(uint64_t src, uint64_t dst);
+	BlendFunc(uint64_t srcC, uint64_t dstC, uint64_t srcA, uint64_t dstA);
+	BlendFunc(uint64_t blendState);
 	uint64_t toValue() const;
 	static const BlendFunc Default;
 private:
