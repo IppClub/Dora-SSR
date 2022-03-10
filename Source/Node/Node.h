@@ -112,6 +112,9 @@ public:
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
 	Vec2 convertToWorldSpace(const Vec2& nodePoint);
 
+	Vec2 convertToNodeSpace(const Vec2& worldPoint, float& zInOut);
+	Vec2 convertToWorldSpace(const Vec2& nodePoint, float& zInOut);
+
 	Vec3 convertToNodeSpace3(const Vec3& worldPoint);
 	Vec3 convertToWorldSpace3(const Vec3& nodePoint);
 
@@ -350,7 +353,8 @@ protected:
 		RenderGrouped = 1 << 17,
 		FixedUpdating = 1 << 18,
 		IgnoreLocalTransform = 1 << 19,
-		UserFlag = 1 << 20
+		WaitGrabTexture = 1 << 20,
+		UserFlag = 1 << 21
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

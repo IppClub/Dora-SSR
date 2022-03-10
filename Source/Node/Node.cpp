@@ -665,6 +665,7 @@ void Node::cleanup()
 		{
 			setKeyboardEnabled(false);
 		}
+		_parent = nullptr;
 		Object::cleanup();
 	}
 }
@@ -697,6 +698,20 @@ Vec2 Node::convertToWorldSpace(const Vec2& nodePoint)
 {
 	Vec3 point = Vec3::from(bx::mul(bx::Vec3{nodePoint.x, nodePoint.y, 0.0f}, getWorld()));
 	return point.toVec2();
+}
+
+Vec2 Node::convertToWorldSpace(const Vec2& nodePoint, float& zInOut)
+{
+	auto pos = convertToWorldSpace3({nodePoint.x, nodePoint.y, zInOut});
+	zInOut = pos.z;
+	return {pos.x, pos.y};
+}
+
+Vec2 Node::convertToNodeSpace(const Vec2& worldPoint, float& zInOut)
+{
+	auto pos = convertToNodeSpace3({worldPoint.x, worldPoint.y, zInOut});
+	zInOut = pos.z;
+	return {pos.x, pos.y};
 }
 
 Vec3 Node::convertToNodeSpace3(const Vec3& worldPoint)
@@ -919,7 +934,14 @@ void Node::visitInner()
 
 void Node::visit()
 {
-	if (_grabber)
+	if (_flags.isOn(Node::WaitGrabTexture))
+	{
+		_flags.setOff(Node::WaitGrabTexture);
+		_grabber->grab(this);
+		_grabber->visit();
+		visitInner();
+	}
+	else if (_grabber)
 	{
 		_grabber->grab(this);
 		_grabber->visit();
@@ -1772,7 +1794,11 @@ Node::Grabber* Node::grab(bool enabled)
 	AssertIf(_size.width <= 0.0f || _size.height <= 0.0f, "can not grab a invalid sized node.");
 	if (enabled)
 	{
-		if (!_grabber) _grabber = Grabber::create(_size, 1, 1);
+		if (!_grabber)
+		{
+			_grabber = Grabber::create(_size, 1, 1);
+			_flags.setOn(Node::WaitGrabTexture);
+		}
 		return _grabber;
 	}
 	if (_grabber)

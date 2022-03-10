@@ -69,12 +69,21 @@ Texture2D* RenderTarget::getTexture() const
 bool RenderTarget::init()
 {
 	if (!Object::init()) return false;
-	const uint64_t textureFlags = (
-		BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
-		BGFX_TEXTURE_RT);
-	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags);
 
+	const uint64_t textureFlags =
+		BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+		BGFX_TEXTURE_RT;
+	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags);
 	if (!bgfx::isValid(textureHandle)) return false;
+
+	const uint64_t depthTextureFlags = BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY;
+	const auto depthTextureFormat = bgfx::TextureFormat::D24S8;
+	bgfx::TextureHandle depthTextureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, depthTextureFormat, depthTextureFlags);
+	if (!bgfx::isValid(depthTextureHandle)) return false;
+
+	bgfx::TextureHandle texHandles[] = {textureHandle, depthTextureHandle};
+	_frameBufferHandle = bgfx::createFrameBuffer(2, texHandles);
+	if (!bgfx::isValid(_frameBufferHandle)) return false;
 
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
@@ -82,18 +91,10 @@ bool RenderTarget::init()
 		0, false, false, 1, _format);
 	_texture = Texture2D::create(textureHandle, info, textureFlags);
 
-	bgfx::TextureHandle depthTextureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, bgfx::TextureFormat::D24S8, BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY);
-
-	if (!bgfx::isValid(depthTextureHandle)) return false;
-
 	bgfx::calcTextureSize(info,
 		_textureWidth, _textureHeight,
-		0, false, false, 1, bgfx::TextureFormat::D24S8);
-	_depthTexture = Texture2D::create(depthTextureHandle, info, BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY);
-	bgfx::TextureHandle texHandles[] = { textureHandle, depthTextureHandle };
-	_frameBufferHandle = bgfx::createFrameBuffer(2, texHandles);
-
-	if (!bgfx::isValid(_frameBufferHandle)) return false;
+		0, false, false, 1, depthTextureFormat);
+	_depthTexture = Texture2D::create(depthTextureHandle, info, depthTextureFlags);
 
 	return true;
 }

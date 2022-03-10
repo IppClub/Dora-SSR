@@ -370,16 +370,19 @@ std::string Spine::intersectsSegment(float x1, float y1, float x2, float y2)
 	return Slice::Empty;
 }
 
-void Spine::visit()
+bool Spine::update(double deltaTime)
 {
-	_animationState->update(s_cast<float>(getScheduler()->getDeltaTime()));
-	_animationState->apply(*_skeleton);
-	_skeleton->updateWorldTransform();
-	if (_bounds && isHitTestEnabled())
+	if (isUpdating())
 	{
-		_bounds->update(*_skeleton, true);
+		_animationState->update(s_cast<float>(deltaTime));
+		_animationState->apply(*_skeleton);
+		_skeleton->updateWorldTransform();
+		if (_bounds && isHitTestEnabled())
+		{
+			_bounds->update(*_skeleton, true);
+		}
 	}
-	Node::visit();
+	return Node::update(deltaTime);
 }
 
 void Spine::render()
@@ -409,7 +412,7 @@ void Spine::render()
 		switch (slot->getData().getBlendMode())
 		{
 			case spine::BlendMode_Normal:
-				blendFunc = {BlendFunc::SrcAlpha, BlendFunc::InvSrcAlpha};
+				blendFunc = BlendFunc::Default;
 				break;
 			case spine::BlendMode_Additive:
 				blendFunc = {BlendFunc::SrcAlpha, BlendFunc::One};

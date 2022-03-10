@@ -92,6 +92,8 @@ local record Node
 		cleanup?: boolean --[[true]]
 	)
 
+	moveToParent: function(self: Node, parent: Node)
+
 	cleanup: function(self: Node)
 
 	getChildByTag: function(self: Node, tag: string): Node
@@ -101,7 +103,9 @@ local record Node
 	unschedule: function(self: Node)
 
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2): Vec2
+	convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2): Vec2
+	convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
 	eachChild: function(self: Node, func: function(Node): boolean): boolean

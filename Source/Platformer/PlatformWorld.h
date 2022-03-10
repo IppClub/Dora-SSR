@@ -24,6 +24,7 @@ public:
 	virtual void removeChild(Node* child, bool cleanup = true) override;
 	virtual void onEnter() override;
 	virtual void onExit() override;
+	virtual void cleanup() override;
 	void moveChild(Node* child, int newOrder);
 	Node* getLayer(int order);
 	void setLayerRatio(int order, const Vec2& ratio);
