@@ -52,7 +52,7 @@ public:
 		pop();
 	}
 	template <typename Func>
-	inline void pushInsetionMode(bool inserting, const Func& workHere)
+	inline void pushInsertionMode(bool inserting, const Func& workHere)
 	{
 		pushInsertionMode(inserting);
 		workHere();

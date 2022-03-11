@@ -1694,7 +1694,7 @@ void Node::Grabber::grab(Node* target)
 		_renderTargets[i].surface->getEffect()->clear();
 	}
 
-	SharedView.pushInsetionMode(true, [&]()
+	SharedView.pushInsertionMode(true, [&]()
 	{
 		target->markDirty();
 		target->_flags.setOn(Node::IgnoreLocalTransform);
