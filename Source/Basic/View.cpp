@@ -262,7 +262,12 @@ std::pair<bgfx::ViewId*, uint16_t> View::getOrders()
 		_idOrders[index] = s_cast<bgfx::ViewId>(order);
 		index++;
 	}
-	return {_idOrders, s_cast<uint16_t>(_orders.size())};
+	while (index < MaxViews)
+	{
+		_idOrders[index] = index;
+		index++;
+	}
+	return {_idOrders, s_cast<uint16_t>(MaxViews)};
 }
 
 NS_DOROTHY_END
