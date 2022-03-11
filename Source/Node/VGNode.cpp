@@ -56,7 +56,7 @@ void VGNode::render(const std::function<void()>& func)
 	VGTexture* texture = s_cast<VGTexture*>(_surface->getTexture());
 	NVGLUframebuffer* framebuffer = texture->getFramebuffer();
 	NVGcontext* context = texture->getContext();
-	SharedView.pushName(Slice::Empty, [&]()
+	SharedView.pushFront("VGNode"_slice, [&]()
 	{
 		bgfx::ViewId viewId = SharedView.getId();
 		bgfx::setViewClear(viewId,

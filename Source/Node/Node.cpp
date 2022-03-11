@@ -304,7 +304,7 @@ float Node::getRealOpacity() const
 
 void Node::setColor(Color var)
 {
-	_realColor = _color = var;
+	_color = var;
 	updateRealColor3();
 	updateRealOpacity();
 }
@@ -316,7 +316,7 @@ Color Node::getColor() const
 
 void Node::setColor3(Color3 var)
 {
-	_realColor = _color = var;
+	_color = var;
 	updateRealColor3();
 }
 
@@ -934,14 +934,7 @@ void Node::visitInner()
 
 void Node::visit()
 {
-	if (_flags.isOn(Node::WaitGrabTexture))
-	{
-		_flags.setOff(Node::WaitGrabTexture);
-		_grabber->grab(this);
-		_grabber->visit();
-		visitInner();
-	}
-	else if (_grabber)
+	if (_grabber)
 	{
 		_grabber->grab(this);
 		_grabber->visit();
@@ -1701,45 +1694,48 @@ void Node::Grabber::grab(Node* target)
 		_renderTargets[i].surface->getEffect()->clear();
 	}
 
-	target->markDirty();
-	target->_flags.setOn(Node::IgnoreLocalTransform);
-	_renderTargets[0].rt->setCamera(_camera);
-	_renderTargets[0].rt->renderWithClear(target, _clearColor);
-	_renderTargets[0].rt->setCamera(nullptr);
-	target->_flags.setOff(Node::IgnoreLocalTransform);
-	target->markDirty();
-
-	size_t rtIndex = 0;
-	if (_effect)
+	SharedView.pushInsetionMode(true, [&]()
 	{
-		for (Pass* pass : _effect->getPasses())
+		target->markDirty();
+		target->_flags.setOn(Node::IgnoreLocalTransform);
+		_renderTargets[0].rt->setCamera(_camera);
+		_renderTargets[0].rt->renderWithClear(target, _clearColor);
+		_renderTargets[0].rt->setCamera(nullptr);
+		target->_flags.setOff(Node::IgnoreLocalTransform);
+		target->markDirty();
+
+		size_t rtIndex = 0;
+		if (_effect)
 		{
-			Effect* effect = _renderTargets[rtIndex].surface->getEffect();
-			effect->add(pass);
-			if (pass->isGrabPass())
+			for (Pass* pass : _effect->getPasses())
 			{
-				Sprite* surface = _renderTargets[rtIndex].surface;
-				rtIndex = (rtIndex + 1) % 2;
-				surface->setPosition({width / 2.0f, height / 2.0f});
-				surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
-				_renderTargets[rtIndex].rt->render(surface);
-				surface->getEffect()->clear();
-				_renderTargets[rtIndex].surface->getEffect()->clear();
+				Effect* effect = _renderTargets[rtIndex].surface->getEffect();
+				effect->add(pass);
+				if (pass->isGrabPass())
+				{
+					Sprite* surface = _renderTargets[rtIndex].surface;
+					rtIndex = (rtIndex + 1) % 2;
+					surface->setPosition({width / 2.0f, height / 2.0f});
+					surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
+					_renderTargets[rtIndex].rt->render(surface);
+					surface->getEffect()->clear();
+					_renderTargets[rtIndex].surface->getEffect()->clear();
+				}
 			}
 		}
-	}
 
-	Sprite* display = _renderTargets[rtIndex].surface;
-	_grid->_parent = target;
-	_grid->setTransformTarget(target);
-	_grid->markDirty();
-	s_cast<Node*>(_grid.get())->updateRealColor3();
-	s_cast<Node*>(_grid.get())->updateRealOpacity();
-	_grid->setEffect(display->getEffect());
-	_grid->setTexture(display->getTexture());
-	_grid->setTextureRect(display->getTextureRect());
-	_grid->setPosition({width / 2.0f, height / 2.0f});
-	_grid->setBlendFunc(_blendFunc);
+		Sprite* display = _renderTargets[rtIndex].surface;
+		_grid->_parent = target;
+		_grid->setTransformTarget(target);
+		_grid->markDirty();
+		s_cast<Node*>(_grid.get())->updateRealColor3();
+		s_cast<Node*>(_grid.get())->updateRealOpacity();
+		_grid->setEffect(display->getEffect());
+		_grid->setTexture(display->getTexture());
+		_grid->setTextureRect(display->getTextureRect());
+		_grid->setPosition({width / 2.0f, height / 2.0f});
+		_grid->setBlendFunc(_blendFunc);
+	});
 }
 
 void Node::Grabber::setPos(uint32_t x, uint32_t y, Vec2 pos)
@@ -1794,11 +1790,7 @@ Node::Grabber* Node::grab(bool enabled)
 	AssertIf(_size.width <= 0.0f || _size.height <= 0.0f, "can not grab a invalid sized node.");
 	if (enabled)
 	{
-		if (!_grabber)
-		{
-			_grabber = Grabber::create(_size, 1, 1);
-			_flags.setOn(Node::WaitGrabTexture);
-		}
+		if (!_grabber) _grabber = Grabber::create(_size, 1, 1);
 		return _grabber;
 	}
 	if (_grabber)

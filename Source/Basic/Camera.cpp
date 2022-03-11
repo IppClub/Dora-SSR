@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Camera.h"
 #include "Basic/View.h"
 #include "Basic/Director.h"
+#include "Basic/Application.h"
 #include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
@@ -49,7 +50,7 @@ const Matrix& Camera::getView()
 	return _view;
 }
 
-bool Camera::isOtho() const
+bool Camera::hasProjection() const
 {
 	return false;
 }
@@ -227,8 +228,8 @@ const Matrix& OthoCamera::getView()
 		{
 			Matrix move;
 			Matrix temp = view;
-			bx::mtxTranslate(move, -_position.x*2/viewSize.width, -_position.y*2/viewSize.height, 0);
-			bx::mtxMul(view, temp, move);
+			bx::mtxTranslate(move, _position.x, _position.y, 0);
+			bx::mtxMul(view, move, temp);
 		}
 		_view = view;
 		Updated();
@@ -236,7 +237,78 @@ const Matrix& OthoCamera::getView()
 	return Camera::getView();
 }
 
-bool OthoCamera::isOtho() const
+bool OthoCamera::hasProjection() const
+{
+	return true;
+}
+
+/* CameraUI */
+
+CameraUI::CameraUI(String name):
+Camera(name),
+_viewSize{Size::zero}
+{ }
+
+const Matrix& CameraUI::getView()
+{
+	auto size = SharedApplication.getBufferSize();
+	if (_viewSize != size)
+	{
+		_viewSize = size;
+		_position.x = size.width / 2;
+		_position.y = size.height / 2;
+		Matrix move;
+		bx::mtxTranslate(move, _position.x, _position.y, 0);
+		Matrix tmp;
+		bx::mtxOrtho(tmp, 0, size.width, 0, size.height, -1000.0f, 1000.0f, 0,
+		bgfx::getCaps()->homogeneousDepth);
+		bx::mtxMul(_view, move, tmp);
+		Updated();
+	}
+	return Camera::getView();
+}
+
+bool CameraUI::hasProjection() const
+{
+	return true;
+}
+
+/* CameraUI3D */
+
+CameraUI3D::CameraUI3D(String name):
+Camera(name),
+_viewSize{Size::zero}
+{ }
+
+const Matrix& CameraUI3D::getView()
+{
+	auto size = SharedApplication.getBufferSize();
+	if (_viewSize != size)
+	{
+		_viewSize = size;
+		const float fieldOfView = 45.0f;
+		const float aspectRatio = size.width / size.height;
+		const float nearPlaneDistance = 0.1f;
+		const float farPlaneDistance = 10000.0f;
+		_position.z = -size.height * 0.5f / std::tan(bx::toRad(fieldOfView) * 0.5f);
+		Matrix view;
+		bx::mtxLookAt(view, _position, _target, _up);
+		Matrix projection;
+		bx::mtxProj(
+			projection,
+			fieldOfView,
+			aspectRatio,
+			nearPlaneDistance,
+			farPlaneDistance,
+			bgfx::getCaps()->homogeneousDepth
+		);
+		bx::mtxMul(_view, view, projection);
+		Updated();
+	}
+	return Camera::getView();
+}
+
+bool CameraUI3D::hasProjection() const
 {
 	return true;
 }

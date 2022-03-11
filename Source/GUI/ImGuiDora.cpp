@@ -1084,7 +1084,7 @@ void ImGuiDora::render()
 		return;
 	}
 
-	SharedView.pushName("ImGui"_slice, [&]()
+	SharedView.pushBack("ImGui"_slice, [&]()
 	{
 		bgfx::ViewId viewId = SharedView.getId();
 

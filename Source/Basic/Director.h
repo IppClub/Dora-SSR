@@ -77,6 +77,7 @@ private:
 	Ref<Node> _ui;
 	Ref<Node> _ui3D;
 	Ref<Camera> _uiCamera;
+	Ref<Camera> _ui3DCamera;
 	Ref<Node> _postNode;
 	Ref<Node> _entry;
 	Ref<Node> _root;

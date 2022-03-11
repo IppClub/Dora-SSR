@@ -17,6 +17,10 @@ class SpriteEffect;
 class View
 {
 public:
+	enum
+	{
+		MaxViews = 256
+	};
 	PROPERTY_READONLY(Size, Size);
 	PROPERTY_READONLY(float, StandardDistance);
 	PROPERTY_READONLY(float, AspectRatio);
@@ -34,21 +38,40 @@ public:
 	void reset();
 
 	template <typename Func>
-	void pushName(String viewName, const Func& workHere)
+	inline void pushFront(String viewName, const Func& workHere)
 	{
-		push(viewName);
+		pushFront(viewName);
 		workHere();
 		pop();
 	}
+	template <typename Func>
+	inline void pushBack(String viewName, const Func& workHere)
+	{
+		pushBack(viewName);
+		workHere();
+		pop();
+	}
+	template <typename Func>
+	inline void pushInsetionMode(bool inserting, const Func& workHere)
+	{
+		pushInsertionMode(inserting);
+		workHere();
+		popInsertionMode();
+	}
+
+	std::pair<bgfx::ViewId*, uint16_t> getOrders();
 protected:
 	View();
 	void updateProjection();
-	void push(String viewName);
+	void pushFront(String viewName);
+	void pushBack(String viewName);
 	void pop();
-	bool empty();
+	void pushInsertionMode(bool inserting);
+	void popInsertionMode();
 private:
-	int32_t _id;
-	std::stack<std::pair<bgfx::ViewId,std::string>> _views;
+	void pushInner(String viewName);
+	int _id;
+	std::stack<std::pair<bgfx::ViewId, std::string>> _views;
 	uint32_t _flag;
 	float _nearPlaneDistance;
 	float _farPlaneDistance;
@@ -56,7 +79,16 @@ private:
 	float _scale;
 	Size _size;
 	Matrix _projection;
+	std::list<int> _orders;
+	struct InsertionMode
+	{
+		bool inserting;
+		std::list<int>::iterator front;
+		std::list<int>::iterator back;
+	};
+	std::stack<InsertionMode> _insertionModes;
 	Ref<SpriteEffect> _effect;
+	bgfx::ViewId _idOrders[MaxViews];
 	SINGLETON_REF(View, Director);
 };
 

@@ -68,6 +68,7 @@ Node* Director::getUI()
 	{
 		_ui = Node::create();
 		_ui->onEnter();
+		_uiCamera = CameraUI::create("UI"_slice);
 	}
 	return _ui;
 }
@@ -78,7 +79,7 @@ Node* Director::getUI3D()
 	{
 		_ui3D = Node::create();
 		_ui3D->onEnter();
-		_uiCamera = Camera2D::create("UI3D"_slice);
+		_ui3DCamera = CameraUI3D::create("UI3D"_slice);
 	}
 	return _ui3D;
 }
@@ -266,7 +267,7 @@ void Director::doLogic()
 
 	/* push default view projection */
 	Camera* camera = getCurrentCamera();
-	if (camera->isOtho())
+	if (camera->hasProjection())
 	{
 		_defaultViewProj = camera->getView();
 	}
@@ -291,18 +292,11 @@ void Director::doLogic()
 		SharedTouchDispatcher.add(SharedImGui.getTarget());
 		SharedTouchDispatcher.dispatch();
 
-		Size viewSize = SharedView.getSize();
-		Matrix ortho;
-		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0,
-			bgfx::getCaps()->homogeneousDepth);
-
 		/* handle ui3D touch */
 		if (_ui3D)
 		{
-			Matrix viewProj;
-			bx::mtxMul(viewProj, _uiCamera->getView(), SharedView.getProjection());
 			registerTouchHandler(_ui3D);
-			pushViewProjection(viewProj, []()
+			pushViewProjection(_ui3DCamera->getView(), []()
 			{
 				SharedTouchDispatcher.dispatch();
 			});
@@ -312,7 +306,7 @@ void Director::doLogic()
 		if (_ui)
 		{
 			registerTouchHandler(_ui);
-			pushViewProjection(ortho, []()
+			pushViewProjection(_uiCamera->getView(), []()
 			{
 				SharedTouchDispatcher.dispatch();
 			});
@@ -342,11 +336,6 @@ void Director::doRender()
 	/* push default view projection */
 	pushViewProjection(_defaultViewProj, [&]()
 	{
-		Size viewSize = SharedView.getSize();
-		Matrix ortho;
-		bx::mtxOrtho(ortho, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0,
-		bgfx::getCaps()->homogeneousDepth);
-
 		/* do render */
 		if (SharedView.isPostProcessNeeded())
 		{
@@ -358,6 +347,7 @@ void Director::doRender()
 				grabber->setEffect(SharedView.getPostEffect());
 				grabber->setCamera(getCurrentCamera());
 				grabber->setClearColor(_clearColor);
+				Size viewSize = SharedView.getSize();
 				float w = viewSize.width / 2.0f;
 				float h = viewSize.height / 2.0f;
 				grabber->setPos(0, 0, {-w, h});
@@ -367,13 +357,19 @@ void Director::doRender()
 			}
 
 			/* render RT, post node and ui node */
-			SharedView.pushName("Main"_slice, [&]()
+			SharedView.pushBack("Main"_slice, [&]()
 			{
 				bgfx::ViewId viewId = SharedView.getId();
 				/* RT */
 				if (_root)
 				{
 					bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
+					Size viewSize = SharedView.getSize();
+					Matrix ortho;
+					bx::mtxOrtho(ortho,
+						0, viewSize.width, 0, viewSize.height,
+						-1000.0f, 1000.0f, 0,
+						bgfx::getCaps()->homogeneousDepth);
 					pushViewProjection(ortho, [&]()
 					{
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
@@ -397,9 +393,7 @@ void Director::doRender()
 				/* ui 3D node */
 				if (_ui3D)
 				{
-					Matrix viewProj;
-					bx::mtxMul(viewProj, _uiCamera->getView(), SharedView.getProjection());
-					pushViewProjection(viewProj, [&]()
+					pushViewProjection(_ui3DCamera->getView(), [&]()
 					{
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_ui3D->visit();
@@ -409,7 +403,7 @@ void Director::doRender()
 				/* ui node */
 				if (_ui)
 				{
-					pushViewProjection(ortho, [&]()
+					pushViewProjection(_uiCamera->getView(), [&]()
 					{
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_ui->visit();
@@ -429,7 +423,7 @@ void Director::doRender()
 			if (_root) _root->grab(false);
 
 			/* render scene tree and post node */
-			SharedView.pushName("Main"_slice, [&]()
+			SharedView.pushBack("Main"_slice, [&]()
 			{
 				bgfx::ViewId viewId = SharedView.getId();
 				bgfx::setViewClear(viewId,
@@ -445,12 +439,10 @@ void Director::doRender()
 			/* ui 3D node */
 			if (_ui3D)
 			{
-				SharedView.pushName("UI3D"_slice, [&]()
+				SharedView.pushBack("UI3D"_slice, [&]()
 				{
-					Matrix viewProj;
-					bx::mtxMul(viewProj, _uiCamera->getView(), SharedView.getProjection());
 					bgfx::ViewId viewId = SharedView.getId();
-					pushViewProjection(viewProj, [&]()
+					pushViewProjection(_ui3DCamera->getView(), [&]()
 					{
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_ui3D->visit();
@@ -461,13 +453,13 @@ void Director::doRender()
 			/* render ui node */
 			if (_ui || _displayStats)
 			{
-				SharedView.pushName("UI"_slice, [&]()
+				SharedView.pushBack("UI"_slice, [&]()
 				{
 					bgfx::ViewId viewId = SharedView.getId();
 					/* ui node */
 					if (_ui)
 					{
-						pushViewProjection(ortho, [&]()
+						pushViewProjection(_uiCamera->getView(), [&]()
 						{
 							bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 							_ui->visit();
@@ -487,7 +479,7 @@ void Director::doRender()
 		if (_nvgContext && _nvgDirty)
 		{
 			_nvgDirty = false;
-			SharedView.pushName("NanoVG"_slice, [&]()
+			SharedView.pushBack("NanoVG"_slice, [&]()
 			{
 				nvgSetViewId(_nvgContext, SharedView.getId());
 				nvgEndFrame(_nvgContext);
@@ -496,7 +488,12 @@ void Director::doRender()
 
 		/* render imgui */
 		SharedImGui.render();
+
+		/* remap view orders */
+		auto [remap, num] = SharedView.getOrders();
+		bgfx::setViewOrder(0, num, remap);
 		SharedView.clear();
+
 		if (_uiTouchHandler)
 		{
 			_uiTouchHandler->clear();
@@ -575,13 +572,14 @@ void Director::clear()
 		_ui3D->onExit();
 		_ui3D->cleanup();
 		_ui3D = nullptr;
-		_uiCamera = nullptr;
+		_ui3DCamera = nullptr;
 	}
 	if (_ui)
 	{
 		_ui->onExit();
 		_ui->cleanup();
 		_ui = nullptr;
+		_uiCamera = nullptr;
 	}
 	if (_root)
 	{
