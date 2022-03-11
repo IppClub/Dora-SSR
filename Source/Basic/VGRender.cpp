@@ -5058,7 +5058,7 @@ static VGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int 
 {
 	const float size = 1111.0f;
 	VGTexture* texture = nullptr;
-	SharedView.pushName(Slice::Empty, [&]()
+	SharedView.pushFront("DorothySSRTex"_slice, [&]()
 	{
 		bgfx::ViewId viewId = SharedView.getId();
 		bgfx::setViewClear(viewId,

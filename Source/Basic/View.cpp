@@ -28,7 +28,19 @@ _flag(BGFX_RESET_HIDPI | BGFX_RESET_VSYNC),
 _size(SharedApplication.getBufferSize()),
 _scale(1.0f),
 _projection(Matrix::Indentity)
-{ }
+{
+	pushInsertionMode(false);
+}
+
+void View::pushInsertionMode(bool inserting)
+{
+	_insertionModes.push({inserting, _orders.begin(), _orders.end()});
+}
+
+void View::popInsertionMode()
+{
+	_insertionModes.pop();
+}
 
 bgfx::ViewId View::getId() const
 {
@@ -45,16 +57,17 @@ const std::string& View::getName() const
 void View::clear()
 {
 	_id = -1;
-	if (!empty())
+	if (!_views.empty())
 	{
 		decltype(_views) dummy;
 		_views.swap(dummy);
 	}
+	_orders.clear();
 }
 
-void View::push(String viewName)
+void View::pushInner(String viewName)
 {
-	AssertIf(_id > 255, "running views exceeded 256.");
+	AssertIf(_id > MaxViews - 1, "running views exceeded max view number {}.", MaxViews);
 	bgfx::ViewId viewId = s_cast<bgfx::ViewId>(++_id);
 	bgfx::resetView(viewId);
 	std::string name = viewName.toString();
@@ -68,15 +81,37 @@ void View::push(String viewName)
 	_views.push(std::make_pair(viewId, name));
 }
 
+void View::pushFront(String viewName)
+{
+	pushInner(viewName);
+	auto id = getId();
+	auto& mode = _insertionModes.top();
+	if (mode.inserting && !_orders.empty())
+	{
+		mode.front = ++_orders.insert(mode.front, id);
+	}
+	else _orders.push_front(id);
+	pushInsertionMode(false);
+}
+
+void View::pushBack(String viewName)
+{
+	pushInner(viewName);
+	auto id = getId();
+	auto& mode = _insertionModes.top();
+	if (mode.inserting && !_orders.empty())
+	{
+		mode.back = _orders.insert(mode.back, id);
+	}
+	else _orders.push_back(id);
+	pushInsertionMode(false);
+}
+
 void View::pop()
 {
 	AssertIf(_views.empty(), "already pop to the last view, no more views to pop.");
 	_views.pop();
-}
-
-bool View::empty()
-{
-	return _views.empty();
+	popInsertionMode();
 }
 
 Size View::getSize() const
@@ -217,6 +252,17 @@ void View::reset()
 		std::floor(bufferSize.height / _scale)
 	};
 	updateProjection();
+}
+
+std::pair<bgfx::ViewId*, uint16_t> View::getOrders()
+{
+	int index = 0;
+	for (auto order: _orders)
+	{
+		_idOrders[index] = s_cast<bgfx::ViewId>(order);
+		index++;
+	}
+	return {_idOrders, s_cast<uint16_t>(_orders.size())};
 }
 
 NS_DOROTHY_END

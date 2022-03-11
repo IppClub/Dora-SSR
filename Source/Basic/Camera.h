@@ -20,7 +20,7 @@ public:
 	virtual const Vec3& getTarget();
 	virtual const Vec3& getUp();
 	virtual const Matrix& getView();
-	virtual bool isOtho() const;
+	virtual bool hasProjection() const;
 	Acf::Delegate<void()> Updated;
 protected:
 	Camera(String name);
@@ -75,7 +75,7 @@ class OthoCamera : public Camera
 public:
 	void setPosition(const Vec2& position);
 	virtual const Matrix& getView() override;
-	virtual bool isOtho() const override;
+	virtual bool hasProjection() const override;
 	CREATE_FUNC(OthoCamera);
 protected:
 	OthoCamera(String name);
@@ -83,6 +83,32 @@ private:
 	float _zoom;
 	bool _transformDirty;
 	DORA_TYPE_OVERRIDE(OthoCamera);
+};
+
+class CameraUI : public Camera
+{
+public:
+	virtual const Matrix& getView() override;
+	virtual bool hasProjection() const override;
+	CREATE_FUNC(CameraUI);
+protected:
+	CameraUI(String name);
+	void updateView();
+private:
+	Size _viewSize;
+};
+
+class CameraUI3D : public Camera
+{
+public:
+	virtual const Matrix& getView() override;
+	virtual bool hasProjection() const override;
+	CREATE_FUNC(CameraUI3D);
+protected:
+	CameraUI3D(String name);
+	void updateView();
+private:
+	Size _viewSize;
 };
 
 NS_DOROTHY_END

@@ -291,7 +291,8 @@ void Unit::setGroup(uint8_t group)
 			if (Sensor* sensor = _pWorld->getFixtureData(f))
 			{
 				if (sensor->getTag() == Unit::GroundSensorTag ||
-					sensor->getTag() == Unit::DetectSensorTag)
+					sensor->getTag() == Unit::DetectSensorTag ||
+					sensor->getTag() == Unit::AttackSensorTag)
 				{
 					continue;
 				}

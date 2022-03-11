@@ -102,7 +102,7 @@ bool RenderTarget::init()
 void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float depth, uint8_t stencil)
 {
 	SharedRendererManager.flush();
-	SharedView.pushName("RenderTarget"_slice, [&]()
+	SharedView.pushFront("RenderTarget"_slice, [&]()
 	{
 		bgfx::ViewId viewId = SharedView.getId();
 		bgfx::setViewFrameBuffer(viewId, _frameBufferHandle);
@@ -126,7 +126,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 			{
 				if (_camera)
 				{
-					if (_camera->isOtho()) viewProj = _camera->getView();
+					if (_camera->hasProjection()) viewProj = _camera->getView();
 					else bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
 				}
 				else
@@ -142,7 +142,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 					Matrix tmpVP;
 					Matrix revertY;
 					bx::mtxScale(revertY, 1.0f, -1.0f, 1.0f);
-					if (_camera->isOtho()) tmpVP = _camera->getView();
+					if (_camera->hasProjection()) tmpVP = _camera->getView();
 					else bx::mtxMul(tmpVP, _camera->getView(), SharedView.getProjection());
 					bx::mtxMul(viewProj, tmpVP, revertY);
 				}
@@ -208,7 +208,7 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 	{
 		const uint64_t textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_READ_BACK;
 		textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags | extraFlags);
-		SharedView.pushName("SaveTarget"_slice, [&]()
+		SharedView.pushBack("SaveTarget"_slice, [&]()
 		{
 			bgfx::blit(SharedView.getId(), textureHandle, 0, 0, _texture->getHandle());
 		});

@@ -353,8 +353,7 @@ protected:
 		RenderGrouped = 1 << 17,
 		FixedUpdating = 1 << 18,
 		IgnoreLocalTransform = 1 << 19,
-		WaitGrabTexture = 1 << 20,
-		UserFlag = 1 << 21
+		UserFlag = 1 << 20
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

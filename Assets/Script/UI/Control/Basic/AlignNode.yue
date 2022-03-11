@@ -14,22 +14,20 @@ export default Class Node,
 		@inUI = inUI
 		@_isRoot = isRoot
 		if @_isRoot
-			viewSize = View.size
+			viewSize = inUI and App.bufferSize or View.size
 			@size = viewSize
 			@_viewSize = viewSize
-			@position = Vec2(0.5, 0.5) * viewSize if @inUI
 			@gslot "AppSizeChanged", ->
-				viewSize = View.size
+				viewSize = @inUI and App.bufferSize or View.size
 				if @_viewSize ~= viewSize
 					@_viewSize = viewSize
 					@size = viewSize
-					@position = Vec2(0.5, 0.5) * viewSize if @inUI
 					:width, :height = viewSize
 					@emit "AlignLayout", width, height
 					@eachChild (child)->
 						child\emit "AlignLayout", width, height
 			@slot "Enter", ->
-				:width, :height = View.size
+				:width, :height = @inUI and App.bufferSize or View.size
 				@emit "AlignLayout", width, height
 				@eachChild (child)->
 					child\emit "AlignLayout", width, height
@@ -64,7 +62,7 @@ export default Class Node,
 
 	alignLayout:=>
 		if @_isRoot
-			:width, :height = View.size
+			:width, :height = @inUI and App.bufferSize or View.size
 			@emit "AlignLayout", width, height
 			@eachChild (child)->
 				child\emit "AlignLayout", width, height
