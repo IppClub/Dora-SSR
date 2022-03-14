@@ -6,6 +6,7 @@ local record App
 		"Android"
 		"macOS"
 		"iOS"
+		"Linux"
 		"Unknown"
 	end
 	const frame: integer
