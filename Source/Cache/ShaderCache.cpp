@@ -49,26 +49,26 @@ std::string ShaderCache::getShaderPath() const
 	switch (bgfx::getRendererType())
 	{
 		case bgfx::RendererType::Direct3D9:
-			shaderPath = "dx9/";
+			shaderPath = "dx9";
 			break;
 		case bgfx::RendererType::Direct3D11:
 		case bgfx::RendererType::Direct3D12:
-			shaderPath = "dx11/";
+			shaderPath = "dx11";
 			break;
 		case bgfx::RendererType::Gnm:
-			shaderPath = "pssl/";
+			shaderPath = "pssl";
 			break;
 		case bgfx::RendererType::Metal:
-			shaderPath = "metal/";
+			shaderPath = "metal";
 			break;
 		case bgfx::RendererType::OpenGL:
-			shaderPath = "glsl/";
+			shaderPath = "glsl";
 			break;
 		case bgfx::RendererType::OpenGLES:
-			shaderPath = "essl/";
+			shaderPath = "essl";
 			break;
 		case bgfx::RendererType::Vulkan:
-			shaderPath = "spirv/";
+			shaderPath = "spirv";
 			break;
 		default:
 			break;
@@ -78,7 +78,7 @@ std::string ShaderCache::getShaderPath() const
 
 Shader* ShaderCache::load(String filename)
 {
-	auto items = filename.split("::"_slice);
+	auto items = filename.split(":"_slice);
 	if (!items.empty() && items.front() == "builtin"_slice)
 	{
 		auto it = _shaders.find(filename);
@@ -93,7 +93,20 @@ Shader* ShaderCache::load(String filename)
 		_shaders[filename] = shader;
 		return shader;
 	}
-	std::string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
+	std::string shaderFile;
+	if (SharedContent.exist(filename))
+	{
+		shaderFile = SharedContent.getFullPath(filename);
+	}
+	else
+	{
+		auto path = Path::concat({getShaderPath(), filename});
+		if (SharedContent.exist(path))
+		{
+			shaderFile = SharedContent.getFullPath(path);
+		}
+	}
+	AssertIf(shaderFile.empty(), "shader file \"{}\" not exist.", filename);
 	auto it = _shaders.find(shaderFile);
 	if (it != _shaders.end())
 	{
