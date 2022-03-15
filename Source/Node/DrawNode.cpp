@@ -356,7 +356,7 @@ void DrawNode::clear()
 /* DrawRenderer */
 
 DrawRenderer::DrawRenderer():
-_defaultPass(Pass::create("builtin::vs_draw"_slice, "builtin::fs_draw"_slice)),
+_defaultPass(Pass::create("builtin:vs_draw"_slice, "builtin:fs_draw"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 
@@ -621,7 +621,7 @@ void Line::render()
 /* LineRenderer */
 
 LineRenderer::LineRenderer():
-_defaultPass(Pass::create("builtin::vs_poscolor"_slice, "builtin::fs_poscolor"_slice)),
+_defaultPass(Pass::create("builtin:vs_poscolor"_slice, "builtin:fs_poscolor"_slice)),
 _lastState(BGFX_STATE_NONE)
 { }
 

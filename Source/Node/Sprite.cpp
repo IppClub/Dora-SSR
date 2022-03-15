@@ -339,8 +339,8 @@ _lastEffect(nullptr),
 _lastTexture(nullptr),
 _lastState(0),
 _lastFlags(UINT32_MAX),
-_defaultEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_sprite"_slice)),
-_alphaTestEffect(SpriteEffect::create("builtin::vs_sprite"_slice, "builtin::fs_spritealphatest"_slice))
+_defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_sprite"_slice)),
+_alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice))
 { }
 
 const SpriteRenderer::IndexType* SpriteRenderer::getIndices() const

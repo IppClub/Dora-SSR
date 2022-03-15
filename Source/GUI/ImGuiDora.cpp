@@ -949,12 +949,12 @@ bool ImGuiDora::init()
 	_sampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
 	_defaultPass = Pass::create(
-		"builtin::vs_ocornut_imgui"_slice,
-		"builtin::fs_ocornut_imgui"_slice);
+		"builtin:vs_ocornut_imgui"_slice,
+		"builtin:fs_ocornut_imgui"_slice);
 
 	_imagePass = Pass::create(
-		"builtin::vs_ocornut_imgui"_slice,
-		"builtin::fs_ocornut_imgui_image"_slice);
+		"builtin:vs_ocornut_imgui"_slice,
+		"builtin:fs_ocornut_imgui_image"_slice);
 
 	uint8_t* texData;
 	int width;
