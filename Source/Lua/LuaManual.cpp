@@ -321,7 +321,7 @@ int Content_loadExcel(lua_State* L)
 				auto errors = worksheet.read();
 				if (!errors.empty())
 				{
-					Error("fail to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
+					Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
 					for (auto [refer, msg] : errors)
 					{
 						Error("{}: {}", refer, msg);
@@ -400,7 +400,7 @@ int Content_loadExcelAsync(lua_State* L)
 						auto errors = worksheet.read();
 						if (!errors.empty())
 						{
-							Error("fail to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
+							Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
 							for (auto [refer, msg] : errors)
 							{
 								Error("{}: {}", refer, msg);
@@ -1204,7 +1204,7 @@ namespace LuaAction
 			if (!tolua_isinteger(L, -1, 0, &tolua_err))
 			{
 				tolua_error(L, "#ferror when reading action definition params.", &tolua_err);
-				return 0.0f;
+				return 0;
 			}
 #endif
 			uint32_t number = s_cast<uint32_t>(lua_tointeger(L, -1));

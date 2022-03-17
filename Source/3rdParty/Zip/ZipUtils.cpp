@@ -53,7 +53,7 @@ ZipFile::ZipFile(const std::string& zipFile, const std::string& filter)
 		mz_zip_reader_end(&_file->archive);
 		delete _file;
 		_file = nullptr;
-		Error("fail to open zip file \"{}\": {}.", zipFile, err);
+		Error("failed to open zip file \"{}\": {}.", zipFile, err);
 	}
 }
 
@@ -76,7 +76,7 @@ _data(std::move(data))
 		mz_zip_reader_end(&_file->archive);
 		delete _file;
 		_file = nullptr;
-		Error("fail to open zip from data: {}.", err);
+		Error("failed to open zip from data: {}.", err);
 	}
 }
 
@@ -107,7 +107,7 @@ bool ZipFile::setFilter(const std::string& filter)
 			if (!mz_zip_reader_file_stat(archive, i, &file_stat))
 			{
 				auto err = mz_zip_get_error_string(mz_zip_get_last_error(archive));
-				Error("fail to read a zip entry: {}.", err);
+				Error("failed to read a zip entry: {}.", err);
 				return false;
 			}
 			Slice filename(file_stat.m_filename);
@@ -255,7 +255,7 @@ uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size)
 		if (!mz_zip_reader_extract_file_to_mem(archive, it->second.name.c_str(), buffer, bufSize, 0))
 		{
 			auto err = mz_zip_get_error_string(mz_zip_get_last_error(archive));
-			Error("fail to extract file \"{}\" from zip: {}.", it->second.name, err);
+			Error("failed to extract file \"{}\" from zip: {}.", it->second.name, err);
 		}
 	}
 	BLOCK_END

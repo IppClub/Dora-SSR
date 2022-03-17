@@ -227,12 +227,12 @@ bool Director::init()
 	SharedView.reset();
 	if (!SharedImGui.init())
 	{
-		Error("fail to initialize ImGui.");
+		Error("failed to initialize ImGui.");
 		return false;
 	}
 	if (!SharedKeyboard.init())
 	{
-		Error("fail to initialize Keyboard.");
+		Error("failed to initialize Keyboard.");
 		return false;
 	}
 	if (!SharedAudio.init())

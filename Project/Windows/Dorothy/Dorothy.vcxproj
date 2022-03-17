@@ -1844,7 +1844,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(O
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WITH_SDL2;BX_CONFIG_DEBUG=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WITH_SDL2;BX_CONFIG_DEBUG=0;DORA_DEBUG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
