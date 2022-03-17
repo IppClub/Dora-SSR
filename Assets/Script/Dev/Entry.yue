@@ -82,7 +82,7 @@ doCompile = (minify)->
 	yueFiles = {}
 	xmlFiles = {}
 	tlFiles = {}
-	for {inputPath, outputPath, prefix} in *{
+	for {inputPath, outputPath} in *{
 			{
 				Path Content.assetPath
 				Path Content.writablePath, "Build"
@@ -90,56 +90,53 @@ doCompile = (minify)->
 			{
 				Path Content.writablePath, "Production"
 				Path Content.writablePath, "Build", "Production"
-				"Production"
 			}
 		}
 		continue unless Content\exist inputPath
 
 		for file in *getAllFiles inputPath, {"lua"}
 			luaFiles[] =
-				* prefix and Path(prefix, file) or file
+				* file
 				* Path inputPath, file
 				* Path outputPath, file
 
 		for file in *getAllFiles inputPath, {yueext}
 			yueFiles[] =
-				* prefix and Path(prefix, file) or file
+				* file
 				* Path inputPath, file
 				* Path outputPath, Path\replaceExt file, "lua"
 
 		for file in *getAllFiles inputPath, {"xml"}
 			xmlFiles[] =
-				* prefix and Path(prefix, file) or file
+				* file
 				* Path inputPath, file
 				* Path outputPath, Path\replaceExt file, "lua"
 
 		for file in *getAllFiles inputPath, {"tl"}
 			if not file\match ".*%.d%.tl$"
 				tlFiles[] =
-					* prefix and Path(prefix, file) or file
+					* file
 					* Path inputPath, file
 					* Path outputPath, Path\replaceExt file, "lua"
 
-	paths = {}
-	paths[Path\getPath file[3]] = true for file in *luaFiles
-	paths[Path\getPath file[3]] = true for file in *yueFiles
-	paths[Path\getPath file[3]] = true for file in *xmlFiles
-	paths[Path\getPath file[3]] = true for file in *tlFiles
+	paths = {Path\getPath(file[3]), true \
+		for files in *{luaFiles, yueFiles, xmlFiles, tlFiles} \
+		for file in *files}
+
 	Content\mkdir path for path in pairs paths
 
 	totalFiles = #yueFiles + #xmlFiles + #tlFiles
 	fileCount = 0
 	errors = {}
 	for {file, input, output} in *yueFiles
-		<- yuecompile input, output, (codes, err, globals)->
+		(success) <- yuecompile input, output, (codes, err, globals)->
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
-				fileCount += 1
 				return
 			requires = LintYueGlobals codes, globals, file
 			requires ..= "\n" unless requires == ""
 			"-- [yue]: #{file}\n#{requires}" .. codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
-		print "Yue compiled: #{file}"
+		print "Yue compiled: #{file}" if success
 		fileCount += 1
 
 	thread ->
@@ -177,19 +174,24 @@ doCompile = (minify)->
 
 			import "luaminify.FormatMini"
 			for {file, input, output} in *luaFiles
-				sourceCodes = Content\loadAsync input
-				res, err = FormatMini sourceCodes
-				if res
-					Content\saveAsync output, res
-					print "Minify: #{file}"
+				if Content\exist input
+					sourceCodes = Content\loadAsync input
+					res, err = FormatMini sourceCodes
+					if res
+						Content\saveAsync output, res
+						print "Minify: #{file}"
+					else
+						table.insert errors, "Minify errors in #{file}.\n#{err}"
 				else
-					table.insert errors, "Minify errors in #{file}.\n#{err}"
+					table.insert errors, "Minify errors in #{file}.\nTarget file is not exist!"
 			package.loaded["luaminify.FormatMini"] = nil
 			package.loaded["luaminify.ParseLua"] = nil
 			package.loaded["luaminify.Scope"] = nil
 			package.loaded["luaminify.Util"] = nil
 		print err for err in *errors
-		print "#{totalFiles + (minify and #luaFiles or 0)} files built! Cost #{string.format '%.2f', App.runningTime - startTime}s"
+		builtFiles = totalFiles + (minify and #luaFiles or 0) - #errors
+		print "\n#{builtFiles} #{builtFiles == 1 and 'file' or 'files'} built! Cost #{string.format '%.2f', App.runningTime - startTime}s"
+		print "#{#errors} #{#errors == 1 and 'file fails' or 'files fail'} to build."
 		Content\clearPathCache!
 		building = false
 
@@ -204,6 +206,8 @@ doClean = ->
 	if not cleaned
 		print "Nothing to clean."
 
+screenScale = 2 -- App.deviceRatio
+scaleContent = false
 isInEntry = true
 currentEntryName = nil
 
@@ -232,6 +236,8 @@ allClear = ->
 	isInEntry = true
 	Audio\stopStream 0.2
 	Struct\clear!
+	View.postEffect = nil
+	View.scale = scaleContent and screenScale or 1
 	collectgarbage!
 
 games = [Path\getName item for item in *Content\getDirs Path Content.assetPath, "Script", "Game"]
@@ -320,8 +326,6 @@ thread ->
 showStats = true
 showConsole = true
 showFooter = false
-scaleContent = false
-screenScale = 2 -- App.deviceRatio
 windowFlags =
 	* "NoTitleBar"
 	* "NoResize"

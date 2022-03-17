@@ -35,7 +35,7 @@ DB::DB()
 	try
 	{
 		_database = New<SQLite::Database>(dbFile,
-			SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+			SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE|SQLite::OPEN_NOMUTEX);
 	}
 	catch (std::exception&)
 	{
@@ -46,12 +46,12 @@ DB::DB()
 		try
 		{
 			_database = New<SQLite::Database>(dbFile,
-				SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+				SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE|SQLite::OPEN_NOMUTEX);
 		}
 		catch (std::exception& e)
 		{
 			Dorothy::LogError(
-				fmt::format("[Dorothy Error] fail to open database: {}", e.what()));
+				fmt::format("[Dorothy Error] failed to open database: {}", e.what()));
 			std::abort();
 		}
 	}
@@ -84,7 +84,7 @@ bool DB::transaction(const std::function<void()>& sqls)
 	}
 	catch (std::exception& e)
 	{
-		LogError(fmt::format("[Dorothy Warning] fail to execute SQL transaction: {}", e.what()));
+		LogError(fmt::format("[Dorothy Warning] failed to execute SQL transaction: {}", e.what()));
 		return false;
 	}
 }
@@ -209,7 +209,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 		}
 		catch (std::exception& e)
 		{
-			LogError(fmt::format("[Dorothy Warning] fail to execute SQL transaction: {}", e.what()));
+			LogError(fmt::format("[Dorothy Warning] failed to execute SQL transaction: {}", e.what()));
 			return Values::alloc(std::deque<std::vector<Own<Value>>>());
 		}
 	}, [callback](Own<Values> values)
@@ -252,7 +252,7 @@ void DB::execAsync(String sql, std::vector<Own<Value>>&& values, const std::func
 		}
 		catch (std::exception& e)
 		{
-			LogError(fmt::format("[Dorothy Warning] fail to execute SQL transaction: {}", e.what()));
+			LogError(fmt::format("[Dorothy Warning] failed to execute SQL transaction: {}", e.what()));
 		}
 		return Values::alloc(result);
 	}, [callback](Own<Values> values)

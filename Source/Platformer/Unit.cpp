@@ -139,7 +139,7 @@ bool Unit::init()
 	Playable* playable = Playable::create(playableStr);
 	if (!playable)
 	{
-		Warn("fail to load playable \"{}\" for an new unit.", playableStr);
+		Warn("failed to load playable \"{}\" for an new unit.", playableStr);
 		Unit::cleanup();
 		return false;
 	}

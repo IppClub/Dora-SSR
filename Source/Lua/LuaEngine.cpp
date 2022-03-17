@@ -371,7 +371,16 @@ static int dora_yuecompile(lua_State* L)
 		{
 			if (!codes)
 			{
-				Warn("failed to get yue source codes from \"{}\".", src);
+				lua_State* L = SharedLuaEngine.getState();
+				int top = lua_gettop(L);
+				DEFER(lua_settop(L, top));
+				auto err = fmt::format("failed to get yue source codes from \"{}\".", src);
+				lua_pushnil(L);
+				lua_pushlstring(L, err.c_str(), err.size());
+				lua_pushnil(L);
+				std::string finalCodes;
+				SharedLuaEngine.executeReturn(finalCodes, handler->get(), 3);
+				callback(false);
 			}
 			else
 			{
@@ -393,42 +402,46 @@ static int dora_yuecompile(lua_State* L)
 				{
 					yue::CompileInfo result;
 					values->get(result);
-					lua_State* L = SharedLuaEngine.getState();
-					int top = lua_gettop(L);
-					if (result.codes.empty())
+					std::string finalCodes;
 					{
-						lua_pushnil(L);
-						lua_pushlstring(L, result.error.c_str(), result.error.size());
-					}
-					else
-					{
-						lua_pushlstring(L, result.codes.c_str(), result.codes.size());
-						lua_pushnil(L);
-					}
-					if (result.globals)
-					{
-						lua_createtable(L, s_cast<int>(result.globals->size()), 0);
-						int i = 1;
-						for (const auto& var : *result.globals)
+						lua_State* L = SharedLuaEngine.getState();
+						int top = lua_gettop(L);
+						DEFER(lua_settop(L, top));
+						if (result.codes.empty() && !result.error.empty())
 						{
-							lua_createtable(L, 3, 0);
-							lua_pushlstring(L, var.name.c_str(), var.name.size());
-							lua_rawseti(L, -2, 1);
-							lua_pushinteger(L, var.line);
-							lua_rawseti(L, -2, 2);
-							lua_pushinteger(L, var.col);
-							lua_rawseti(L, -2, 3);
-							lua_rawseti(L, -2, i);
-							i++;
+							lua_pushnil(L);
+							lua_pushlstring(L, result.error.c_str(), result.error.size());
 						}
+						else
+						{
+							lua_pushlstring(L, result.codes.c_str(), result.codes.size());
+							lua_pushnil(L);
+						}
+						if (result.globals)
+						{
+							lua_createtable(L, s_cast<int>(result.globals->size()), 0);
+							int i = 1;
+							for (const auto& var : *result.globals)
+							{
+								lua_createtable(L, 3, 0);
+								lua_pushlstring(L, var.name.c_str(), var.name.size());
+								lua_rawseti(L, -2, 1);
+								lua_pushinteger(L, var.line);
+								lua_rawseti(L, -2, 2);
+								lua_pushinteger(L, var.col);
+								lua_rawseti(L, -2, 3);
+								lua_rawseti(L, -2, i);
+								i++;
+							}
+						}
+						else lua_pushnil(L);
+						SharedLuaEngine.executeReturn(finalCodes, handler->get(), 3);
 					}
-					else lua_pushnil(L);
-					std::string ret;
-					SharedLuaEngine.executeReturn(ret, handler->get(), 3);
-					lua_settop(L, top);
-					if (!ret.empty()) {
-						SharedContent.saveAsync(std::get<1>(*input), ret, callback);
-					}
+					if (finalCodes.empty()) callback(false);
+					else SharedContent.saveAsync(std::get<1>(*input), finalCodes, [callback]()
+					{
+						callback(true);
+					});
 				});
 			}
 		});
