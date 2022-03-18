@@ -371,15 +371,15 @@ static int dora_yuecompile(lua_State* L)
 		{
 			if (!codes)
 			{
-				lua_State* L = SharedLuaEngine.getState();
-				int top = lua_gettop(L);
-				DEFER(lua_settop(L, top));
-				auto err = fmt::format("failed to get yue source codes from \"{}\".", src);
-				lua_pushnil(L);
-				lua_pushlstring(L, err.c_str(), err.size());
-				lua_pushnil(L);
-				std::string finalCodes;
-				SharedLuaEngine.executeReturn(finalCodes, handler->get(), 3);
+				{
+					lua_State* L = SharedLuaEngine.getState();
+					int top = lua_gettop(L);
+					DEFER(lua_settop(L, top));
+					auto err = fmt::format("failed to get yue source codes from \"{}\".", src);
+					lua_pushnil(L);
+					lua_pushlstring(L, err.c_str(), err.size());
+					LuaEngine::invoke(L, handler->get(), 2, 0);
+				}
 				callback(false);
 			}
 			else
