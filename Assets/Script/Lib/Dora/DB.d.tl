@@ -19,6 +19,8 @@ local record DB
 	exec: function(self: DB, sql: string, args: Row): integer
 	exec: function(self: DB, sql: string): integer
 	insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
+	insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startRow: integer): boolean
+	insertAsync: function(self: DB, tableSheets: {{string, string}}, excelFile: string, startRow: integer): boolean
 	queryAsync: function(
 		self: DB,
 		sql: string,

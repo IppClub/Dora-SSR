@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "LuaManual.h"
 #include "Lua/LuaEngine.h"
 #include "Other/xlsxtext.hpp"
+#include "SQLiteCpp/SQLiteCpp.h"
 
 NS_DOROTHY_BEGIN
 
@@ -3080,7 +3081,10 @@ int DB_query(lua_State* L)
 			}
 			withColumns = tolua_toboolean(L, 4, 0);
 		}
-		else withColumns = tolua_toboolean(L, 3, 0);
+		else withColumns = tolua_toboolean(L, 3, 0) != 0;
+#ifndef TOLUA_RELEASE
+		try {
+#endif
 		auto result = self->query(sql, args, withColumns);
 		lua_createtable(L, s_cast<int>(result.size()), 0);
 		int i = 0;
@@ -3096,6 +3100,9 @@ int DB_query(lua_State* L)
 			lua_rawseti(L, -2, ++i);
 		}
 		return 1;
+#ifndef TOLUA_RELEASE
+		} catch (std::exception& e) { luaL_error(L, e.what()); }
+#endif
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
@@ -3146,8 +3153,14 @@ int DB_insert(lua_State* L)
 			}
 			lua_pop(L, 1);
 		}
+#ifndef TOLUA_RELEASE
+		try {
+#endif
 		self->insert(tableName, values);
 		return 0;
+#ifndef TOLUA_RELEASE
+		} catch (std::exception& e) { luaL_error(L, e.what()); }
+#endif
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
@@ -3193,9 +3206,15 @@ int DB_exec(lua_State* L)
 				lua_pop(L, 1);
 			}
 		}
+#ifndef TOLUA_RELEASE
+		try {
+#endif
 		int result = self->exec(sql, values);
 		lua_pushinteger(L, result);
 		return 1;
+#ifndef TOLUA_RELEASE
+		} catch (std::exception& e) { luaL_error(L, e.what()); }
+#endif
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
@@ -3281,7 +3300,6 @@ tolua_lerror:
 int DB_insertAsync(lua_State* L)
 {
 	/* 1 self, 2 tableName, 3 values, 4 func */
-#ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
 	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
 		|| !tolua_isslice(L, 2, 0, &tolua_err)
@@ -3291,7 +3309,6 @@ int DB_insertAsync(lua_State* L)
 	{
 		goto tolua_lerror;
 	}
-#endif
 	{
 		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
@@ -3325,9 +3342,148 @@ int DB_insertAsync(lua_State* L)
 		self->insertAsync(tableName, std::move(values), callback);
 		return 0;
 	}
+tolua_lerror:
+	return DB_insertAsync01(L);
+}
+
+int DB_insertAsync01(lua_State* L)
+{
+	/* 1 self, 2 {{tableName, sheetName}}, 3 excelFile */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+		|| !tolua_istable(L, 2, 0, &tolua_err)
+		|| !tolua_isslice(L, 3, 0, &tolua_err)
+		|| !tolua_isinteger(L, 4, 0, &tolua_err)
+		|| !tolua_isfunction(L, 5, &tolua_err)
+		|| !tolua_isnoobj(L, 6, &tolua_err))
+	{
+		goto tolua_lerror;
+	}
+#endif
+	{
+		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
+#endif
+		int size = s_cast<int>(lua_rawlen(L, 2));
+		auto names = std::make_shared<std::vector<std::pair<std::string, std::string>>>();
+		for (int i = 0; i < size; i++)
+		{
+			lua_geti(L, 2, i + 1);
+			int loc = lua_gettop(L);
+			if (lua_istable(L, loc))
+			{
+#ifndef TOLUA_RELEASE
+				if (!tolua_isstringarray(L, loc, 2, 0, &tolua_err)) goto tolua_lerror;
+#endif
+				lua_geti(L, loc, 1);
+				auto tableName = tolua_toslice(L, -1, nullptr);
+				lua_geti(L, loc, 2);
+				auto sheetName = tolua_toslice(L, -1, nullptr);
+				names->emplace_back(tableName, sheetName);
+				lua_pop(L, 3);
+			}
+			else
+			{
+#ifndef TOLUA_RELEASE
+				if (!tolua_isstring(L, loc, 0, &tolua_err)) goto tolua_lerror;
+#endif
+				auto tableName = tolua_toslice(L, loc, nullptr);
+				names->emplace_back(tableName, tableName);
+				lua_pop(L, 1);
+			}
+		}
+		std::string excelFile = tolua_toslice(L, 3, nullptr);
+		int startRow = s_cast<int>(lua_tointeger(L, 4));
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 5)));
+		SharedContent.loadAsyncData(excelFile, [excelFile, names, startRow, handler](OwnArray<uint8_t>&& data, size_t size)
+		{
+			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
+			SharedAsyncThread.run([excelFile, names, startRow, excelData, size]()
+			{
+				auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
+				if (workbook->read())
+				{
+					bool result = SharedDB.transaction([&]()
+					{
+						const auto& strs = workbook->shared_strings();
+						for (auto& worksheet : *workbook)
+						{
+							if (auto it = std::find_if(names->begin(), names->end(),
+								[&](const std::pair<std::string, std::string>& pair)
+								{
+									return pair.second == worksheet.name();
+								}); it != names->end())
+							{
+								auto errors = worksheet.read();
+								if (!errors.empty())
+								{
+									Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), excelFile);
+									for (auto [refer, msg] : errors)
+									{
+										Error("{}: {}", refer, msg);
+									}
+								}
+								std::string valueHolder;
+								for (size_t i = 0; i < worksheet.max_col(); i++)
+								{
+									valueHolder += '?';
+									if (i != worksheet.max_col() - 1) valueHolder += ',';
+								}
+								SQLite::Statement query(*SharedDB.getPtr(), fmt::format("INSERT INTO {} VALUES ({})", it->first, valueHolder));
+								int rowIndex = 0;
+								for (const auto& row : worksheet)
+								{
+									if (rowIndex < startRow)
+									{
+										rowIndex++;
+										continue;
+									}
+									for (const auto& cell : row)
+									{
+										if (cell.value.empty() && cell.string_id >= 0)
+										{
+											query.bind(cell.refer.col, strs[cell.string_id]);
+										}
+										else
+										{
+											char* endptr = nullptr;
+											double d = std::strtod(cell.value.c_str(), &endptr);
+											if (*endptr != '\0' || endptr == cell.value.c_str())
+											{
+												query.bind(cell.refer.col, cell.value);
+											}
+											else
+											{
+												query.bind(cell.refer.col, d);
+											}
+										}
+									}
+									query.exec();
+									query.reset();
+									rowIndex++;
+								}
+							}
+						}
+					});
+					return Values::alloc(result);
+				}
+				return Values::alloc(false);
+			}, [handler](Own<Values>&& values)
+			{
+				bool success = false;
+				values->get(success);
+				auto L = SharedLuaEngine.getState();
+				lua_pushboolean(L, success ? 1 : 0);
+				SharedLuaEngine.executeFunction(handler->get(), 1);
+			});
+		});
+	}
+	return 0;
 #ifndef TOLUA_RELEASE
 tolua_lerror:
-	tolua_error(L, "#ferror in function 'DB_insertAsync'.", &tolua_err);
+	tolua_error(L, "#ferror in function 'DB_insertAsync01'.", &tolua_err);
 	return 0;
 #endif
 }

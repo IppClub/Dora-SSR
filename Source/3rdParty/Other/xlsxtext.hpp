@@ -142,7 +142,7 @@ namespace xlsxtext
 		}
 
 	public:
-		std::string name() const noexcept { return _name; }
+		const std::string& name() const noexcept { return _name; }
 		std::map<std::string, std::string> read()
 		{
 			_rows.clear();
