@@ -60,17 +60,30 @@ DB::DB()
 DB::~DB()
 { }
 
+SQLite::Database* DB::getPtr() const
+{
+	return _database.get();
+}
+
 bool DB::exist(String tableName) const
 {
-	int result = 0;
-	SQLite::Statement query(*_database,
-			"SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?");
-	query.bind(1, tableName);
-	if (query.executeStep())
+	try
 	{
-		result = query.getColumn(0);
+		int result = 0;
+		SQLite::Statement query(*_database,
+				"SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?");
+		query.bind(1, tableName);
+		if (query.executeStep())
+		{
+			result = query.getColumn(0);
+		}
+		return result == 0 ? false : true;
 	}
-	return result == 0 ? false : true;
+	catch (std::exception& e)
+	{
+		Warn("failed to execute DB transaction: {}", e.what());
+		return false;
+	}
 }
 
 bool DB::transaction(const std::function<void()>& sqls)
@@ -84,7 +97,7 @@ bool DB::transaction(const std::function<void()>& sqls)
 	}
 	catch (std::exception& e)
 	{
-		LogError(fmt::format("[Dorothy Warning] failed to execute SQL transaction: {}", e.what()));
+		Warn("failed to execute DB transaction: {}", e.what());
 		return false;
 	}
 }
@@ -209,7 +222,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 		}
 		catch (std::exception& e)
 		{
-			LogError(fmt::format("[Dorothy Warning] failed to execute SQL transaction: {}", e.what()));
+			Warn("failed to execute DB transaction: {}", e.what());
 			return Values::alloc(std::deque<std::vector<Own<Value>>>());
 		}
 	}, [callback](Own<Values> values)
@@ -252,7 +265,7 @@ void DB::execAsync(String sql, std::vector<Own<Value>>&& values, const std::func
 		}
 		catch (std::exception& e)
 		{
-			LogError(fmt::format("[Dorothy Warning] failed to execute SQL transaction: {}", e.what()));
+			Warn("failed to execute DB transaction: {}", e.what());
 		}
 		return Values::alloc(result);
 	}, [callback](Own<Values> values)

@@ -246,6 +246,7 @@ int DB_insert(lua_State* L);
 int DB_exec(lua_State* L);
 int DB_queryAsync(lua_State* L);
 int DB_insertAsync(lua_State* L);
+int DB_insertAsync01(lua_State* L);
 int DB_execAsync(lua_State* L);
 
 /* Effect */

@@ -21,6 +21,7 @@ class Value;
 class DB
 {
 public:
+	PROPERTY_READONLY(SQLite::Database*, Ptr);
 	virtual ~DB();
 	bool exist(String tableName) const;
 	bool transaction(const std::function<void()>& func);
