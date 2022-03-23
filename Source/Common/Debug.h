@@ -78,7 +78,7 @@ bool IsInLua();
 				} \
 				else \
 				{ \
-					Dorothy::LogError(msg); \
+					Dorothy::LogError(msg + '\n'); \
 					std::abort(); \
 				} \
 			} \
@@ -96,7 +96,7 @@ bool IsInLua();
 				} \
 				else \
 				{ \
-					Dorothy::LogError(msg); \
+					Dorothy::LogError(msg + '\n'); \
 					std::abort(); \
 				} \
 			} \
@@ -112,7 +112,7 @@ bool IsInLua();
 			} \
 			else \
 			{ \
-				Dorothy::LogError(msg); \
+				Dorothy::LogError(msg + '\n'); \
 				std::abort(); \
 			} \
 		} while (false)

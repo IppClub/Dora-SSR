@@ -51,7 +51,7 @@ DB::DB()
 		catch (std::exception& e)
 		{
 			Dorothy::LogError(
-				fmt::format("[Dorothy Error] failed to open database: {}", e.what()));
+				fmt::format("[Dorothy Error] failed to open database: {}\n", e.what()));
 			std::abort();
 		}
 	}
