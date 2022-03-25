@@ -4,7 +4,7 @@ local Vec2 = require("Vec2").Type
 local Color = require("Color").Type
 local record DrawNode
 	embed Node
-	is3D: boolean
+	depthWrite: boolean
 	blendFunc: BlendFunc
 	drawDot: function(
 		self: DrawNode,

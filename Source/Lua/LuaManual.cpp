@@ -603,6 +603,8 @@ bool Node_eachChild(Node* self, const LuaFunction<bool>& func)
 	});
 }
 
+/* Cache */
+
 bool Cache::load(String filename)
 {
 	auto tokens = filename.split(":"_slice);
@@ -1032,11 +1034,6 @@ Grid* Grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
 }
 
 /* Label */
-
-Sprite* Label_getCharacter(Label* self, int index)
-{
-	return self->getCharacter(index - 1);
-}
 
 int Label_GetTextAlign(lua_State* L)
 {
@@ -2099,30 +2096,6 @@ tolua_lerror:
 	tolua_error(L, "#ferror in function 'Array_removeLast'.", &tolua_err);
 	return 0;
 #endif
-}
-
-void Array_swap(Array* self, int indexA, int indexB)
-{
-	self->swap(indexA - 1, indexB - 1);
-}
-
-bool Array_removeAt(Array* self, int index)
-{
-	return self->removeAt(index - 1);
-}
-
-bool Array_fastRemoveAt(Array* self, int index)
-{
-	return self->fastRemoveAt(index - 1);
-}
-
-bool Array_each(Array* self, const LuaFunction<bool>& handler)
-{
-	int index = 0;
-	return self->each([&](Value* item)
-	{
-		return handler(item, ++index);
-	});
 }
 
 int Array_create(lua_State* L)
@@ -3538,13 +3511,6 @@ tolua_lerror:
 	tolua_error(L, "#ferror in function 'DB_execAsync'.", &tolua_err);
 	return 0;
 #endif
-}
-
-/* Pass */
-
-Pass* Effect_get(Effect* self, size_t index)
-{
-	return self->get(index - 1);
 }
 
 NS_DOROTHY_PLATFORMER_END

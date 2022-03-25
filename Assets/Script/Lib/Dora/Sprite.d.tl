@@ -16,7 +16,7 @@ local record Sprite
 		"Point"
 		"Anisotropic"
 	end
-	is3D: boolean
+	depthWrite: boolean
 	alphaRef: number
 	textureRect: Rect
 	blendFunc: BlendFunc

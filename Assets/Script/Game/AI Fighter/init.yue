@@ -649,7 +649,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 size,grid = 1500,150
 
 background = -> with DrawNode!
-	.is3D = true
+	.depthWrite = true
 	\drawPolygon {
 		Vec2 -size,size
 		Vec2 size,size
@@ -657,7 +657,7 @@ background = -> with DrawNode!
 		Vec2 -size,-size
 	}, Color 0xff888888
 	\addChild with Line!
-		.is3D = true
+		.depthWrite = true
 		.z = -10
 		for i = -size/grid,size/grid
 			\add {

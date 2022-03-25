@@ -4,7 +4,7 @@ local Color = require("Color").Type
 local Vec2 = require("Vec2").Type
 local record Line
 	embed Node
-	is3D: boolean
+	depthWrite: boolean
 	blendFunc: BlendFunc
 	add: function(
 		self: Line,

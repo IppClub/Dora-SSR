@@ -44,10 +44,10 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 			.visible = isSpace
 			.order = -1
 			\addChild with Grid "duality.clip|space", 1, 1
-				\moveUV 0, 0, Vec2 1, 1
-				\moveUV 1, 0, Vec2 -1, 1
-				\moveUV 0, 1, Vec2 1, -1
-				\moveUV 1, 1, Vec2 -1, -1
+				\moveUV 1, 1, Vec2 1, 1
+				\moveUV 2, 1, Vec2 -1, 1
+				\moveUV 1, 2, Vec2 1, -1
+				\moveUV 2, 2, Vec2 -1, -1
 				.scaleX = w / 8
 				.scaleY = h / 1078
 			\addTo Director.entry
@@ -65,10 +65,10 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 		dailyBack = with Grid "duality.clip|day", 1, 1
 			.visible = not isSpace
 			.order = -1
-			\moveUV 0, 0, Vec2 1, 1
-			\moveUV 1, 0, Vec2 -1, 1
-			\moveUV 0, 1, Vec2 1, -1
-			\moveUV 1, 1, Vec2 -1, -1
+			\moveUV 1, 1, Vec2 1, 1
+			\moveUV 2, 1, Vec2 -1, 1
+			\moveUV 1, 2, Vec2 1, -1
+			\moveUV 2, 2, Vec2 -1, -1
 			.scaleX = w / 8
 			.scaleY = h / 1078
 			\addTo Director.entry

@@ -56,6 +56,18 @@ int Node_slot(lua_State* L);
 int Node_gslot(lua_State* L);
 bool Node_eachChild(Node* self, const LuaFunction<bool>& func);
 
+/* Node.Grabber */
+inline void Grabber_setPos(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 pos, float z)
+	{ self->setPos(x - 1, y - 1, pos, z); }
+inline Vec2 Grabber_getPos(Node::Grabber* self, uint32_t x, uint32_t y)
+	{ return self->getPos(x - 1, y - 1); }
+inline Color Grabber_getColor(Node::Grabber* self, uint32_t x, uint32_t y)
+	{ return self->getColor(x - 1, y - 1); }
+inline void Grabber_setColor(Node::Grabber* self, uint32_t x, uint32_t y, Color color)
+	{ self->setColor(x - 1, y - 1, color); }
+inline void Grabber_moveUV(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 offset)
+	{ self->moveUV(x - 1, y - 1, offset); }
+
 /* Cache */
 struct Cache
 {
@@ -80,9 +92,20 @@ int Sprite_SetTextureFilter(lua_State* L);
 
 /* Grid */
 Grid* Grid_create(String clipStr, uint32_t gridX, uint32_t gridY);
+inline void Grid_setPos(Grid* self, uint32_t x, uint32_t y, Vec2 pos, float z)
+	{ self->setPos(x - 1, y - 1, pos, z); }
+inline Vec2 Grid_getPos(Grid* self, uint32_t x, uint32_t y)
+	{ return self->getPos(x - 1, y - 1); }
+inline Color Grid_getColor(Grid* self, uint32_t x, uint32_t y)
+	{ return self->getColor(x - 1, y - 1); }
+inline void Grid_setColor(Grid* self, uint32_t x, uint32_t y, Color color)
+	{ self->setColor(x - 1, y - 1, color); }
+inline void Grid_moveUV(Grid* self, uint32_t x, uint32_t y, Vec2 offset)
+	{ self->moveUV(x - 1, y - 1, offset); }
 
 /* Label */
-Sprite* Label_getCharacter(Label* self, int index);
+inline Sprite* Label_getCharacter(Label* self, int index)
+	{ return self->getCharacter(index - 1); }
 int Label_GetTextAlign(lua_State* L);
 int Label_SetTextAlign(lua_State* L);
 
@@ -160,10 +183,20 @@ int Array_contains(lua_State* L);
 int Array_fastRemove(lua_State* L);
 int Array_removeLast(lua_State* L);
 int Array_create(lua_State* L);
-void Array_swap(Array* self, int indexA, int indexB);
-bool Array_removeAt(Array* self, int index);
-bool Array_fastRemoveAt(Array* self, int index);
-bool Array_each(Array* self, const LuaFunction<bool>& handler);
+inline void Array_swap(Array* self, int indexA, int indexB)
+	{ self->swap(indexA - 1, indexB - 1); }
+inline bool Array_removeAt(Array* self, int index)
+	{ return self->removeAt(index - 1); }
+inline bool Array_fastRemoveAt(Array* self, int index)
+	{ return self->fastRemoveAt(index - 1); }
+inline bool Array_each(Array* self, const LuaFunction<bool>& handler)
+{
+	int index = 0;
+	return self->each([&](Value* item)
+	{
+		return handler(item, ++index);
+	});
+}
 
 /* Buffer */
 class Buffer : public Object
@@ -250,7 +283,8 @@ int DB_insertAsync01(lua_State* L);
 int DB_execAsync(lua_State* L);
 
 /* Effect */
-Pass* Effect_get(Effect* self, size_t index);
+inline Pass* Effect_get(Effect* self, size_t index)
+	{ return self->get(index - 1); }
 
 NS_DOROTHY_PLATFORMER_END
 
