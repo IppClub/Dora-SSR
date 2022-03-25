@@ -1738,27 +1738,27 @@ void Node::Grabber::grab(Node* target)
 	});
 }
 
-void Node::Grabber::setPos(uint32_t x, uint32_t y, Vec2 pos, float z)
+void Node::Grabber::setPos(int x, int y, Vec2 pos, float z)
 {
 	_grid->setPos(x, y, pos, z);
 }
 
-Vec2 Node::Grabber::getPos(uint32_t x, uint32_t y) const
+Vec2 Node::Grabber::getPos(int x, int y) const
 {
 	return _grid->getPos(x, y);
 }
 
-Color Node::Grabber::getColor(uint32_t x, uint32_t y) const
+Color Node::Grabber::getColor(int x, int y) const
 {
 	return _grid->getColor(x, y);
 }
 
-void Node::Grabber::setColor(uint32_t x, uint32_t y, Color color)
+void Node::Grabber::setColor(int x, int y, Color color)
 {
 	_grid->setColor(x, y, color);
 }
 
-void Node::Grabber::moveUV(uint32_t x, uint32_t y, Vec2 offset)
+void Node::Grabber::moveUV(int x, int y, Vec2 offset)
 {
 	_grid->moveUV(x, y, offset);
 }

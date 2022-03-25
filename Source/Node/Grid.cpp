@@ -121,39 +121,39 @@ bool Grid::isDepthWrite() const
 	return _flags.isOn(Grid::DepthWrite);
 }
 
-void Grid::setPos(uint32_t x, uint32_t y, Vec2 pos, float z)
+void Grid::setPos(int x, int y, Vec2 pos, float z)
 {
-	AssertIf(x > _gridX || y > _gridY, "Grid vertex index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
+	AssertIf(x < 0 || x > s_cast<int>(_gridX) || y < 0 || y > s_cast<int>(_gridY), "Grid vertex index {}, {} is out of bounds [0, {}], [0, {}]", x, y, _gridX , _gridY);
 	auto index = y * (_gridX + 1) + x;
 	_points[index].position = {pos.x, pos.y, z, 1.0f};
 	_flags.setOn(Grid::VertexPosDirty);
 }
 
-Vec2 Grid::getPos(uint32_t x, uint32_t y) const
+Vec2 Grid::getPos(int x, int y) const
 {
-	AssertIf(x > _gridX || y > _gridY, "Grid index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
+	AssertIf(x < 0 || x > s_cast<int>(_gridX) || y < 0 || y > s_cast<int>(_gridY), "Grid vertex index {}, {} is out of bounds [0, {}], [0, {}]", x, y, _gridX , _gridY);
 	auto index = y * (_gridX + 1) + x;
 	return {_points[index].position.x, _points[index].position.y};
 }
 
-Color Grid::getColor(uint32_t x, uint32_t y) const
+Color Grid::getColor(int x, int y) const
 {
-	AssertIf(x > _gridX || y > _gridY, "Grid index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
+	AssertIf(x < 0 || x > s_cast<int>(_gridX) || y < 0 || y > s_cast<int>(_gridY), "Grid vertex index {}, {} is out of bounds [0, {}], [0, {}]", x, y, _gridX , _gridY);
 	auto index = y * (_gridX + 1) + x;
 	return Color(_vertices[index].abgr);
 }
 
-void Grid::setColor(uint32_t x, uint32_t y, Color color)
+void Grid::setColor(int x, int y, Color color)
 {
-	AssertIf(x > _gridX || y > _gridY, "Grid index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
+	AssertIf(x < 0 || x > s_cast<int>(_gridX) || y < 0 || y > s_cast<int>(_gridY), "Grid vertex index {}, {} is out of bounds [0, {}], [0, {}]", x, y, _gridX , _gridY);
 	auto index = y * (_gridX + 1) + x;
 	_points[index].color = color.toVec4();
 	_flags.setOn(Grid::VertexColorDirty);
 }
 
-void Grid::moveUV(uint32_t x, uint32_t y, Vec2 offset)
+void Grid::moveUV(int x, int y, Vec2 offset)
 {
-	AssertIf(x > _gridX || y > _gridY, "Grid index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
+	AssertIf(x < 0 || x > s_cast<int>(_gridX) || y < 0 || y > s_cast<int>(_gridY), "Grid vertex index {}, {} is out of bounds [0, {}], [0, {}]", x, y, _gridX , _gridY);
 	auto index = y * (_gridX + 1) + x;
 	_vertices[index].u += offset.x / _texSize.width;
 	_vertices[index].v += offset.y / _texSize.height;
