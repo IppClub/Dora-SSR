@@ -121,11 +121,11 @@ bool Grid::isDepthWrite() const
 	return _flags.isOn(Grid::DepthWrite);
 }
 
-void Grid::setPos(uint32_t x, uint32_t y, Vec2 pos)
+void Grid::setPos(uint32_t x, uint32_t y, Vec2 pos, float z)
 {
 	AssertIf(x > _gridX || y > _gridY, "Grid vertex index ({},{}) out of bounds [{},{}]", x, y, _gridX, _gridY);
 	auto index = y * (_gridX + 1) + x;
-	_points[index].position = {pos.x, pos.y, 0, 1.0f};
+	_points[index].position = {pos.x, pos.y, z, 1.0f};
 	_flags.setOn(Grid::VertexPosDirty);
 }
 

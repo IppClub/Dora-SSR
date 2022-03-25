@@ -215,19 +215,7 @@ allClear = ->
 	for module in *moduleCache
 		package.loaded[module] = nil
 	moduleCache = {}
-	with Director.ui3D
-		\removeAllChildren!
-		.data\clear!
-	with Director.ui
-		\removeAllChildren!
-		.data\clear!
-	with Director.entry
-		\removeAllChildren!
-		.data\clear!
-	with Director.postNode
-		\removeAllChildren!
-		.data\clear!
-	Director\popCamera!
+	Director\cleanup!
 	Cache\unload!
 	Entity\clear!
 	Platformer.Data\clear!
