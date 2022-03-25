@@ -260,11 +260,11 @@ public:
 		PROPERTY_CREF(BlendFunc, BlendFunc);
 		PROPERTY_READONLY(uint32_t, GridX);
 		PROPERTY_READONLY(uint32_t, GridY);
-		void setPos(uint32_t x, uint32_t y, Vec2 pos, float z = 0.0f);
-		Vec2 getPos(uint32_t x, uint32_t y) const;
-		Color getColor(uint32_t x, uint32_t y) const;
-		void setColor(uint32_t x, uint32_t y, Color color);
-		void moveUV(uint32_t x, uint32_t y, Vec2 offset);
+		void setPos(int x, int y, Vec2 pos, float z = 0.0f);
+		Vec2 getPos(int x, int y) const;
+		Color getColor(int x, int y) const;
+		void setColor(int x, int y, Color color);
+		void moveUV(int x, int y, Vec2 offset);
 	protected:
 		Grabber(const Size& size, uint32_t gridX, uint32_t gridY);
 		void grab(Node* target);
