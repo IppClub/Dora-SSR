@@ -1738,9 +1738,9 @@ void Node::Grabber::grab(Node* target)
 	});
 }
 
-void Node::Grabber::setPos(uint32_t x, uint32_t y, Vec2 pos)
+void Node::Grabber::setPos(uint32_t x, uint32_t y, Vec2 pos, float z)
 {
-	_grid->setPos(x, y, pos);
+	_grid->setPos(x, y, pos, z);
 }
 
 Vec2 Node::Grabber::getPos(uint32_t x, uint32_t y) const

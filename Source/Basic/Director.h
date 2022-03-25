@@ -36,7 +36,7 @@ public:
 	PROPERTY_READONLY_CALL(Node*, Entry);
 	PROPERTY_READONLY_CALL(Node*, PostNode);
 	PROPERTY_READONLY_CALL(UITouchHandler*, UITouchHandler);
-	PROPERTY_READONLY(Camera*, CurrentCamera);
+	PROPERTY_READONLY_CALL(Camera*, CurrentCamera);
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
@@ -55,6 +55,8 @@ public:
 	void markDirty();
 	NVGcontext* markNVGDirty();
 
+	void cleanup();
+
 	template <typename Func>
 	void pushViewProjection(const Matrix& viewProj, const Func& workHere)
 	{
@@ -64,7 +66,6 @@ public:
 	}
 protected:
 	Director();
-	void clear();
 	void displayStats();
 	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();

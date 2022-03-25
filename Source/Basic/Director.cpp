@@ -41,15 +41,11 @@ _nvgDirty(false),
 _paused(false),
 _stoped(false),
 _nvgContext(nullptr)
-{
-	Camera* defaultCamera = Camera2D::create("Default"_slice);
-	defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
-	_camStack->add(Value::alloc(defaultCamera));
-}
+{ }
 
 Director::~Director()
 {
-	clear();
+	cleanup();
 }
 
 void Director::setScheduler(Scheduler* scheduler)
@@ -194,14 +190,17 @@ void Director::clearCamera()
 	Camera* lastCamera = getCurrentCamera();
 	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
 	_camStack->clear();
-	Camera2D* defaultCamera = Camera2D::create("Default"_slice);
-	defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
-	_camStack->add(Value::alloc(defaultCamera));
 	markDirty();
 }
 
-Camera* Director::getCurrentCamera() const
+Camera* Director::getCurrentCamera()
 {
+	if (_camStack->isEmpty())
+	{
+		Camera* defaultCamera = Camera2D::create("Default"_slice);
+		defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
+		_camStack->add(Value::alloc(defaultCamera));
+	}
 	return &_camStack->getLast()->to<Camera>();
 }
 
@@ -238,12 +237,6 @@ bool Director::init()
 	if (!SharedAudio.init())
 	{
 		Warn("audio function is not available.");
-	}
-	_nvgContext = nvgCreate(1, 0);
-	if (!_nvgContext)
-	{
-		Error("failed to init NanoVG context!");
-		return false;
 	}
 	if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 		{
@@ -342,7 +335,7 @@ void Director::doRender()
 			/* initialize RT */
 			if (_root)
 			{
-				auto grabber = _root->grab();
+				auto grabber = _root->grab(1, 1);
 				grabber->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
 				grabber->setEffect(SharedView.getPostEffect());
 				grabber->setCamera(getCurrentCamera());
@@ -565,10 +558,11 @@ void Director::popViewProjection()
 	_viewProjs.pop();
 }
 
-void Director::clear()
+void Director::cleanup()
 {
 	if (_ui3D)
 	{
+		_ui3D->removeAllChildren();
 		_ui3D->onExit();
 		_ui3D->cleanup();
 		_ui3D = nullptr;
@@ -576,6 +570,7 @@ void Director::clear()
 	}
 	if (_ui)
 	{
+		_ui->removeAllChildren();
 		_ui->onExit();
 		_ui->cleanup();
 		_ui = nullptr;
@@ -583,6 +578,7 @@ void Director::clear()
 	}
 	if (_root)
 	{
+		_root->removeAllChildren();
 		_root->onExit();
 		_root->cleanup();
 		_root = nullptr;
@@ -590,6 +586,7 @@ void Director::clear()
 	}
 	if (_postNode)
 	{
+		_postNode->removeAllChildren();
 		_postNode->onExit();
 		_postNode->cleanup();
 		_postNode = nullptr;
@@ -599,6 +596,7 @@ void Director::clear()
 		nvgDelete(_nvgContext);
 		_nvgContext = nullptr;
 	}
+	_camStack->clear();
 }
 
 void Director::markDirty()
@@ -614,7 +612,12 @@ void Director::markDirty()
 
 NVGcontext* Director::markNVGDirty()
 {
-	if (!_nvgDirty && _nvgContext)
+	if (!_nvgContext)
+	{
+		_nvgContext = nvgCreate(1, 0);
+		AssertUnless(_nvgContext, "failed to init NanoVG context!");
+	}
+	if (!_nvgDirty)
 	{
 		_nvgDirty = true;
 		Size visualSize = SharedApplication.getVisualSize();
@@ -632,7 +635,7 @@ void Director::handleSDLEvent(const SDL_Event& event)
 		case SDL_QUIT:
 			_stoped = true;
 			Event::send("AppQuit"_slice);
-			clear();
+			cleanup();
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:

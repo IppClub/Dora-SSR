@@ -259,6 +259,7 @@ class Director
 	void popCamera();
 	bool removeCamera(Camera* camera);
 	void clearCamera();
+	void cleanup();
 	static tolua_outside Director* Director_shared @ create();
 };
 
@@ -394,7 +395,7 @@ class Node : public Object
 		tolua_property__common SpriteEffect* effect;
 		tolua_property__common BlendFunc blendFunc;
 		tolua_property__common Color clearColor;
-		void setPos(uint32_t x, uint32_t y, Vec2 pos);
+		void setPos(uint32_t x, uint32_t y, Vec2 pos, float z = 0.0f);
 		Vec2 getPos(uint32_t x, uint32_t y);
 		Color getColor(uint32_t x, uint32_t y);
 		void setColor(uint32_t x, uint32_t y, Color color);
@@ -466,7 +467,7 @@ class Grid : public Node
 	tolua_property__common SpriteEffect* effect;
 	tolua_property__common Rect textureRect;
 	tolua_property__common Texture2D* texture;
-	void setPos(uint32_t x, uint32_t y, Vec2 pos);
+	void setPos(uint32_t x, uint32_t y, Vec2 pos, float z = 0.0f);
 	Vec2 getPos(uint32_t x, uint32_t y);
 	Color getColor(uint32_t x, uint32_t y);
 	void setColor(uint32_t x, uint32_t y, Color color);
