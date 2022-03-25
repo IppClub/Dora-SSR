@@ -395,11 +395,11 @@ class Node : public Object
 		tolua_property__common SpriteEffect* effect;
 		tolua_property__common BlendFunc blendFunc;
 		tolua_property__common Color clearColor;
-		void setPos(uint32_t x, uint32_t y, Vec2 pos, float z = 0.0f);
-		Vec2 getPos(uint32_t x, uint32_t y);
-		Color getColor(uint32_t x, uint32_t y);
-		void setColor(uint32_t x, uint32_t y, Color color);
-		void moveUV(uint32_t x, uint32_t y, Vec2 offset);
+		tolua_outside void Grabber_setPos @ setPos(uint32_t x, uint32_t y, Vec2 pos, float z = 0.0f);
+		tolua_outside Vec2 Grabber_getPos @ getPos(uint32_t x, uint32_t y);
+		tolua_outside Color Grabber_getColor @ getColor(uint32_t x, uint32_t y);
+		tolua_outside void Grabber_setColor @ setColor(uint32_t x, uint32_t y, Color color);
+		tolua_outside void Grabber_moveUV @ moveUV(uint32_t x, uint32_t y, Vec2 offset);
 	};
 	Grabber* grab(bool enabled = true);
 	Grabber* grab(uint32_t gridX, uint32_t gridY);
@@ -448,7 +448,7 @@ class SpriteEffect : public Effect
 
 class Sprite : public Node
 {
-	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__bool bool depthWrite;
 	tolua_property__common float alphaRef;
 	tolua_property__common Rect textureRect;
 	tolua_readonly tolua_property__common Texture2D* texture;
@@ -462,16 +462,16 @@ class Sprite : public Node
 
 class Grid : public Node
 {
-	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__bool bool depthWrite;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_property__common SpriteEffect* effect;
 	tolua_property__common Rect textureRect;
 	tolua_property__common Texture2D* texture;
-	void setPos(uint32_t x, uint32_t y, Vec2 pos, float z = 0.0f);
-	Vec2 getPos(uint32_t x, uint32_t y);
-	Color getColor(uint32_t x, uint32_t y);
-	void setColor(uint32_t x, uint32_t y, Color color);
-	void moveUV(uint32_t x, uint32_t y, Vec2 offset);
+	tolua_outside void Grid_setPos @ setPos(uint32_t x, uint32_t y, Vec2 pos, float z = 0.0f);
+	tolua_outside Vec2 Grid_getPos @ getPos(uint32_t x, uint32_t y);
+	tolua_outside Color Grid_getColor @ getColor(uint32_t x, uint32_t y);
+	tolua_outside void Grid_setColor @ setColor(uint32_t x, uint32_t y, Color color);
+	tolua_outside void Grid_moveUV @ moveUV(uint32_t x, uint32_t y, Vec2 offset);
 	static Grid* create(float width, float height, uint32_t gridX, uint32_t gridY);
 	static Grid* create(Texture2D* texture, Rect textureRect, uint32_t gridX, uint32_t gridY);
 	static Grid* create(Texture2D* texture, uint32_t gridX, uint32_t gridY);
@@ -546,7 +546,7 @@ class Label : public Node
 	tolua_property__common float lineGap;
 	tolua_property__common string text;
 	tolua_property__common BlendFunc blendFunc;
-	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__bool bool depthWrite;
 	tolua_property__bool bool batched;
 	tolua_property__common SpriteEffect* effect;
 	tolua_readonly tolua_property__common int characterCount;
@@ -578,7 +578,7 @@ class ClipNode : public Node
 
 class DrawNode : public Node
 {
-	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__bool bool depthWrite;
 	tolua_property__common BlendFunc blendFunc;
 	void drawDot(Vec2 pos, float radius, Color color = Color::White);
 	void drawSegment(Vec2 from, Vec2 to, float radius, Color color = Color::White);
@@ -589,7 +589,7 @@ class DrawNode : public Node
 
 class Line : public Node
 {
-	tolua_property__bool bool depthWrite @ is3D;
+	tolua_property__bool bool depthWrite;
 	tolua_property__common BlendFunc blendFunc;
 	void add(Vec2 verts[tolua_len], Color color = Color::White);
 	void set(Vec2 verts[tolua_len], Color color = Color::White);

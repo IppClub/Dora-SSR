@@ -14,7 +14,7 @@ local record Label
 	lineGap: number
 	text: string
 	blendFunc: BlendFunc
-	is3D: boolean
+	depthWrite: boolean
 	batched: boolean
 	effect: SpriteEffect
 	alignment: TextAlign

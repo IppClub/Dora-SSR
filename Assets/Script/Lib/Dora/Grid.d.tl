@@ -7,7 +7,7 @@ local BlendFunc = require("BlendFunc").Type
 local Node = require("Node").Type
 local record Grid
 	embed Node
-	is3D: boolean
+	depthWrite: boolean
 	texture: Texture2D
 	textureRect: Rect
 	blendFunc: BlendFunc
