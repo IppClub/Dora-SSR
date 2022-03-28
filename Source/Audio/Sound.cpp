@@ -161,7 +161,8 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime)
 		_lastStream = nullptr;
 	}
 	stopStream(crossFadeTime);
-	SharedContent.loadAsyncUnsafe(filename, [this, crossFadeTime, loop](uint8_t* data, int64_t size)
+	std::string file(filename);
+	SharedContent.loadAsyncUnsafe(filename, [file, this, crossFadeTime, loop](uint8_t* data, int64_t size)
 	{
 		if (_currentStream)
 		{
@@ -169,6 +170,12 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime)
 			{
 				stream->stop();
 			}
+			_currentStream = nullptr;
+		}
+		if (size == 0)
+		{
+			Error("failed to play audio stream: {}", file);
+			return;
 		}
 		_currentStream = SoundStream::create(MakeOwnArray(data), s_cast<size_t>(size));
 		_currentVoice = _soloud->play(*_currentStream->getStream(), 0.0f);

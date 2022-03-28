@@ -652,6 +652,8 @@ bool Cache::load(String filename)
 				return SharedShaderCache.load(filename) != nullptr;
 			case "wav"_hash:
 			case "ogg"_hash:
+			case "mp3"_hash:
+			case "flac"_hash:
 				return SharedSoundCache.load(filename) != nullptr;
 			default:
 			{
@@ -719,6 +721,8 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback)
 				break;
 			case "wav"_hash:
 			case "ogg"_hash:
+			case "mp3"_hash:
+			case "flac"_hash:
 				SharedSoundCache.loadAsync(filename, [callback](SoundFile*) { callback(); });
 				break;
 			default:
@@ -793,6 +797,8 @@ bool Cache::unload(String name)
 				return SharedShaderCache.unload(name);
 			case "wav"_hash:
 			case "ogg"_hash:
+			case "mp3"_hash:
+			case "flac"_hash:
 				return SharedSoundCache.unload(name);
 			default:
 				Warn("failed to unload resource \"{}\".", name);

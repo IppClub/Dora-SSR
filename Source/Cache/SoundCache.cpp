@@ -39,65 +39,38 @@ SoundFile* SoundCache::load(String filename)
 	{
 		return it->second;
 	}
-	std::string ext = Path::getExt(filename);
-	switch (Switch::hash(ext))
+	auto data = SharedContent.load(fullPath);
+	SoundFile* soundFile = SoundFile::create(std::move(data.first), data.second);
+	if (soundFile)
 	{
-		case "wav"_hash:
-		case "ogg"_hash:
-		{
-			auto data = SharedContent.load(fullPath);
-			SoundFile* soundFile = SoundFile::create(std::move(data.first), data.second);
-			if (soundFile)
-			{
-				_soundFiles[fullPath] = soundFile;
-				return soundFile;
-			}
-			else
-			{
-				Warn("failed to load sound file \"{}\".", filename);
-				return nullptr;
-			}
-		}
-		default:
-		{
-			Warn("file named \"{}\" is not soundFile file.", filename);
-			return nullptr;
-		}
+		_soundFiles[fullPath] = soundFile;
+		return soundFile;
+	}
+	else
+	{
+		Error("failed to load sound file \"{}\".", filename);
+		return nullptr;
 	}
 }
 
 void SoundCache::loadAsync(String filename, const std::function<void(SoundFile*)>& handler)
 {
-	std::string ext = Path::getExt(filename);
-	switch (Switch::hash(ext))
+	std::string fullPath = SharedContent.getFullPath(filename);
+	std::string file(filename);
+	SharedContent.loadAsyncUnsafe(fullPath, [this, file, fullPath, handler](uint8_t* data, int64_t size)
 	{
-		case "wav"_hash:
-		case "ogg"_hash:
+		SoundFile* soundFile = SoundFile::create(MakeOwnArray(data), s_cast<size_t>(size));
+		if (soundFile)
 		{
-			std::string fullPath = SharedContent.getFullPath(filename);
-			SharedContent.loadAsyncUnsafe(fullPath, [this, fullPath, handler](uint8_t* data, int64_t size)
-			{
-				SoundFile* soundFile = SoundFile::create(MakeOwnArray(data), s_cast<size_t>(size));
-				if (soundFile)
-				{
-					_soundFiles[fullPath] = soundFile;
-					handler(soundFile);
-				}
-				else
-				{
-					Warn("failed to load sound file \"{}\".", fullPath);
-					handler(nullptr);
-				}
-			});
-			break;
+			_soundFiles[fullPath] = soundFile;
+			handler(soundFile);
 		}
-		default:
+		else
 		{
-			Error("file named \"{}\" is not soundFile file.", filename);
+			Error("failed to load sound file \"{}\".", file);
 			handler(nullptr);
-			break;
 		}
-	}
+	});
 }
 
 bool SoundCache::unload(SoundFile* soundFile)
