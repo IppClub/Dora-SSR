@@ -119,11 +119,11 @@ static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& 
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (auto v = arg->as<unsigned>())
+		else if (auto v = arg->as<uint32_t>())
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (auto v = arg->as<long long>())
+		else if (auto v = arg->as<int64_t>())
 		{
 			query.bind(++argCount, *v);
 		}
@@ -159,11 +159,11 @@ std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<
 			auto col = query.getColumn(i);
 			if (col.isInteger())
 			{
-				values[i] = Value::alloc(col.getInt());
+				values[i] = Value::alloc(s_cast<int64_t>(col.getInt64()));
 			}
 			else if (col.isFloat())
 			{
-				values[i] = Value::alloc(col.getDouble());
+				values[i] = Value::alloc(s_cast<double>(col.getDouble()));
 			}
 			else if (col.isText() || col.isBlob())
 			{

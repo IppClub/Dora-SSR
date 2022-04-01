@@ -2889,11 +2889,11 @@ static Own<Value> Dora_getDBValue(lua_State* L, int loc)
 	{
 		if (lua_isinteger(L, loc))
 		{
-			return Value::alloc(lua_tointeger(L, loc));
+			return Value::alloc(s_cast<int64_t>(lua_tointeger(L, loc)));
 		}
 		else if (lua_isnumber(L, loc))
 		{
-			return Value::alloc(lua_tonumber(L, loc));
+			return Value::alloc(s_cast<double>(lua_tonumber(L, loc)));
 		}
 		else if (lua_isboolean(L, loc))
 		{
