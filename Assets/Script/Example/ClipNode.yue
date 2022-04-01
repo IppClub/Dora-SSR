@@ -76,18 +76,16 @@ Director.entry\addChild with Node!
 		* "NoMove"
 	\schedule ->
 		:width, :height = App.visualSize
-		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 		Begin "Clip Node", windowFlags, ->
 			Text "Clip Node"
 			Separator!
 			TextWrapped "Render children nodes with mask!"
-			changed, inverted = Checkbox "Inverted", inverted
-			if changed
+			if changed, inverted = Checkbox "Inverted", inverted
 				exampleA.children.first.inverted = inverted
 				exampleB.children.first.inverted = inverted
 				exampleA.children.last.visible = not inverted
-			changed, withAlphaThreshold = Checkbox "With alphaThreshold", withAlphaThreshold
-			if changed
+			if changed, withAlphaThreshold = Checkbox "With alphaThreshold", withAlphaThreshold
 				exampleB.visible = withAlphaThreshold
 				exampleA.visible = not withAlphaThreshold

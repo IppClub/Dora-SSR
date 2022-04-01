@@ -58,8 +58,9 @@ Director.entry\addChild with Node!
 		* "NoFocusOnAppearing"
 		* "NoNav"
 		* "NoMove"
+	:receivingContact = disk
 	\schedule ->
-		:width,:height = App.visualSize
+		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.35
 		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
@@ -67,5 +68,6 @@ Director.entry\addChild with Node!
 			Text "Contact"
 			Separator!
 			TextWrapped "Recieve events when physics bodies contact."
-			changed, disk.receivingContact = Checkbox "Receiving Contact", disk.receivingContact
-			label.text = "" if changed
+			if changed, receivingContact = Checkbox "Receiving Contact", receivingContact
+				disk.receivingContact = receivingContact
+				label.text = ""

@@ -32,18 +32,19 @@ Item = Class Node,
 		@runAction Angle 5,0,360
 		@slot "ActionEnd", (action)-> @runAction action
 
-Director.entry\addChild with Node!
+currentEntry = with Node!
 	.renderGroup = true
 	.size = Size 750,750
 	\addChild Item! for i = 1, 16
 	\alignItems!
+	\addTo Director.entry
 
 -- example codes ends here, some test ui below --
 
 _ENV = Dorothy builtin.ImGui
 
-currentEntry = Director.entry.children.first
 Director.entry\addChild with Node!
+	:renderGroup = currentEntry
 	windowFlags =
 		* "NoDecoration"
 		* "AlwaysAutoResize"
@@ -52,12 +53,13 @@ Director.entry\addChild with Node!
 		* "NoNav"
 		* "NoMove"
 	\schedule ->
-		:width,:height = App.visualSize
+		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width-10,10), "Always", Vec2 1,0
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 		Begin "Render Group", windowFlags, ->
 			Text "Render Group"
 			Separator!
 			TextWrapped "When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window."
-			_, currentEntry.renderGroup = Checkbox "Grouped", currentEntry.renderGroup
+			if changed, renderGroup = Checkbox "Grouped", renderGroup
+				currentEntry.renderGroup = renderGroup

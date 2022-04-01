@@ -38,10 +38,10 @@ Director.entry\addChild with world
 	\addChild with Body terrainDef, world, Vec2.zero
 		.group = groupTwo
 
-	\addChild with Body polygonDef, world, Vec2(0,500), 15
+	\addChild with Body polygonDef, world, Vec2(0, 500), 15
 		.group = groupOne
 
-	\addChild with Body diskDef, world, Vec2(50,800)
+	\addChild with Body diskDef, world, Vec2(50, 800)
 		.group = groupZero
 		.angularRate = 90
 
@@ -58,7 +58,7 @@ Director.entry\addChild with Node!
 		* "NoNav"
 		* "NoMove"
 	\schedule ->
-		:width,:height = App.visualSize
+		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.35
 		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
