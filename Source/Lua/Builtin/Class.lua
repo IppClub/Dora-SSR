@@ -22,7 +22,7 @@ local type = type
 
 	-- Inherit a lua table class
 	local Base = Class({ ... })
-	local MyClass = Class(Base,{ ... })
+	local MyClass = Class(Base, { ... })
 
 	-- Inherit a C++ instance class
 	local MyClass = Class({
@@ -73,49 +73,49 @@ local type = type
 	print(inst.__base == BaseClass) -- true
 ]]
 
-local CppInst = 0
-local Getter = 1
-local Setter = 2
+local CppInst <const> = 0
+local Getter <const> = 1
+local Setter <const> = 2
 
-local ClassField = 1
-local ObjectField = 2
+local ClassField <const> = 1
+local ObjectField <const> = 2
 
-local function __call(cls,...)
+local function __call(cls, ...)
 	local inst = {}
-	setmetatable(inst,cls)
+	setmetatable(inst, cls)
 	if cls.__partial then
-		local c_inst = cls.__partial(inst,...)
+		local c_inst = cls.__partial(inst, ...)
 		if c_inst then
 			local peer = tolua.getpeer(c_inst)
 			if peer then
-				for k,v in pairs(peer) do
+				for k, v in pairs(peer) do
 					inst[k] = v
 				end
 				local peerClass = getmetatable(peer)
 				if peerClass then
 					local baseClass = getmetatable(cls)
-					setmetatable(baseClass,peerClass) -- chaining partial class`s metatable
+					setmetatable(baseClass, peerClass) -- chaining partial class`s metatable
 				end
 			end
-			tolua.setpeer(c_inst,inst)
+			tolua.setpeer(c_inst, inst)
 			inst[CppInst] = c_inst
 		end
 		inst = c_inst or inst
 	end
 	if cls.__init then
-		cls.__init(inst,...)
+		cls.__init(inst, ...)
 	end
 	return inst
 end
 
-local function __index(self,name)
+local function __index(self, name)
 	local cls = getmetatable(self)
 	local item = cls[Getter][name] -- access properties
 	if item then
-		return item(rawget(self,CppInst) or self)
+		return item(rawget(self, CppInst) or self)
 	else
-		item = rawget(cls,name) -- access member functions
-		if item then
+		item = rawget(cls, name) -- access member functions
+		if item ~= nil then
 			return item
 		else
 			local c = getmetatable(cls)
@@ -123,11 +123,11 @@ local function __index(self,name)
 				item = c[Getter][name]
 				if item then
 					cls[Getter][name] = item -- cache super properties to class
-					return item(rawget(self,CppInst) or self)
+					return item(rawget(self, CppInst) or self)
 				else
-					item = rawget(c,name)
-					if item then
-						rawset(cls,name,item) -- cache super member to class
+					item = rawget(c, name)
+					if item ~= nil then
+						rawset(cls, name, item) -- cache super member to class
 						return item
 					end
 				end
@@ -138,23 +138,23 @@ local function __index(self,name)
 	end
 end
 
-local function __newindex(self,name,value)
+local function __newindex(self, name, value)
 	local cls = getmetatable(self)
 	local item = cls[Setter][name] -- access properties
 	if item then
-		item(rawget(self,CppInst) or self,value)
+		item(rawget(self, CppInst) or self, value)
 	else
 		local c = getmetatable(cls)
 		while c do -- recursive to access super properties
 			item = c[Setter][name]
 			if item then
 				cls[Setter][name] = item -- cache super property to class
-				item(rawget(self,CppInst) or self,value)
+				item(rawget(self, CppInst) or self, value)
 				return
 			end
 			c = getmetatable(c)
 		end
-		rawset(self,name,value) -- assign field to self
+		rawset(self, name, value) -- assign field to self
 	end
 end
 
@@ -162,14 +162,14 @@ local function assignReadOnly()
 	error("Try to assign to a readonly property!")
 end
 
-local function Class(arg1,arg2)
+local function Class(arg1, arg2)
 	-- check params
-	local __partial,classDef,base
+	local __partial, classDef, base
 	local argType = tolua.type(arg1)
 	-- case 1
 	-- arg1:function(__partial), arg2:table(ClassDef)
 	if argType == "function" then
-		__partial = function(self,...)
+		__partial = function(self, ...)
 			return arg1(...)
 		end
 		classDef = arg2
@@ -178,7 +178,7 @@ local function Class(arg1,arg2)
 	-- arg1:table(ClassDef), arg2:nil
 	elseif argType == "table" then
 		if arg2 then
-			base,classDef = arg1,arg2
+			base, classDef = arg1, arg2
 		elseif arg1.__class then
 			base = arg1
 		else
@@ -229,7 +229,7 @@ local function Class(arg1,arg2)
 
 	-- copy class def
 	if classDef then
-		for k,v in pairs(classDef) do
+		for k, v in pairs(classDef) do
 			if type(v) == "table" then
 				if v.__fieldlevel == ClassField then
 					base[Getter][k] = v[1]
@@ -247,23 +247,23 @@ local function Class(arg1,arg2)
 	end
 
 	-- make class derived from base
-	setmetatable(cls,base)
+	setmetatable(cls, base)
 
 	-- invoke the class init function
-	local __initc = rawget(cls,"__initc")
+	local __initc = rawget(cls, "__initc")
 	if __initc then
 		__initc(cls)
-		rawset(cls,__initc,nil) -- run once and dispose this method
+		rawset(cls, __initc, nil) -- run once and dispose this method
 	end
 	return cls
 end
 
-local function property(getter,setter)
-	return {getter,setter or assignReadOnly,__fieldlevel=ObjectField}
+local function property(getter, setter)
+	return {getter, setter or assignReadOnly, __fieldlevel = ObjectField}
 end
 
-local function classfield(getter,setter)
-	return {getter,setter or assignReadOnly,__fieldlevel=ClassField}
+local function classfield(getter, setter)
+	return {getter, setter or assignReadOnly, __fieldlevel = ClassField}
 end
 
 local function classmethod(method)
