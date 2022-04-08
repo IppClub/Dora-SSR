@@ -1,6 +1,6 @@
 /*
- * Copyright 2010-2021 Branimir Karadzic. All rights reserved.
- * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
+ * Copyright 2010-2022 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
 #ifndef BX_H_HEADER_GUARD
@@ -182,7 +182,7 @@ namespace bx
 	///
 	int32_t memCmp(const void* _lhs, const void* _rhs, size_t _numBytes);
 
-	/// Gather data scattered throught memory into linear memory block.
+	/// Gather data scattered through memory into linear memory block.
 	///
 	/// @param _dst Destination pointer.
 	/// @param _src Source pointer.

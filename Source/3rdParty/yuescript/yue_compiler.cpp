@@ -60,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.10.8"sv;
+const std::string_view version = "0.10.11"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -5268,7 +5268,7 @@ private:
 					if (clsDecl) {
 						std::string clsName;
 						bool newDefined = false;
-						std::tie(clsName,newDefined) = defineClassVariable(clsDecl->name);
+						std::tie(clsName, newDefined) = defineClassVariable(clsDecl->name);
 						if (newDefined) varDefs.push_back(clsName);
 					}
 				}
@@ -5338,16 +5338,19 @@ private:
 			temp.back() += "{ }"s + nll(classDecl);
 		}
 		if (classDecl->mixes) {
-			auto mixin = getUnusedName("_mixin_");
-			auto key = getUnusedName("_key_");
-			auto val = getUnusedName("_val_");
+			auto item = getUnusedName("_item_"sv);
+			auto cls = getUnusedName("_cls_"sv);
+			auto mixin = getUnusedName("_mixin_"sv);
+			auto key = getUnusedName("_key_"sv);
+			auto val = getUnusedName("_val_"sv);
 			auto mixins = _parser.toString(classDecl->mixes);
-			_buf << "for "sv << mixin << " in *{"sv << mixins << "}\n"sv;
-			_buf << "\tfor "sv << key << ',' << val << " in pairs "sv << mixin << ".__base\n"sv;
-			_buf << "\t\t"sv << baseVar << '[' << key << "]="sv << val << " if not "sv << key << "\\match\"^__\""sv;
+			_buf << "for "sv << item << " in *{"sv << mixins << "}\n"sv;
+			_buf << '\t' << cls << ',' << mixin << '=' << item << ".__base?,"sv << item << ".__base or "sv << item << '\n';
+			_buf << "\tfor "sv << key << ',' << val << " in pairs "sv << mixin << '\n';
+			_buf << "\t\t"sv << baseVar << '[' << key << "]="sv << val << " if "sv << baseVar << '[' << key << "]==nil and (not "sv << cls << " or not "sv << key << "\\match \"^__\")"sv;
 			transformBlock(toAst<Block_t>(clearBuf(), x), temp, ExpUsage::Common);
 		}
-		temp.push_back(indent() + baseVar + ".__index = "s + baseVar + nll(classDecl));
+		transformAssignment(toAst<ExpListAssign_t>(baseVar + ".__index ?\?= "s + baseVar, classDecl), temp);
 		str_list tmp;
 		if (usage == ExpUsage::Assignment) {
 			auto assign = x->new_ptr<Assign_t>();
@@ -5366,7 +5369,7 @@ private:
 		} else {
 			if (extend) {
 				_buf << indent(1) << "__init = function(self, ...)"sv << nll(classDecl);
-				_buf << indent(2) << "return _class_0.__parent.__init(self, ...)"sv << nll(classDecl);
+				_buf << indent(2) << "return "sv << classVar << ".__parent.__init(self, ...)"sv << nll(classDecl);
 				_buf << indent(1) << "end,"sv << nll(classDecl);
 			} else {
 				_buf << indent(1) << "__init = function() end,"sv << nll(classDecl);
