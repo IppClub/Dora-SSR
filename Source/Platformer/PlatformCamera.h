@@ -25,6 +25,7 @@ public:
 	PlatformCamera();
 	PROPERTY_CREF(Rect, Boundary);
 	PROPERTY_CREF(Vec2, FollowRatio);
+	PROPERTY_CREF(Vec2, FollowOffset);
 	PROPERTY(Node*, FollowTarget);
 	PROPERTY(float, Rotation);
 	PROPERTY(float, Zoom);
@@ -43,6 +44,7 @@ private:
 	Rect _boundary;
 	Size _viewSize;
 	Vec2 _ratio;
+	Vec2 _offset;
 	WRef<Node> _followTarget;
 	bool _transformDirty;
 	float _rotation;

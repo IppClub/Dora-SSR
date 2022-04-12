@@ -30,27 +30,22 @@ Sensor::~Sensor()
 
 void Sensor::add(Body* body)
 {
+	_sensedBodies->add(Value::alloc(body));
 	bool success;
 	std::tie(std::ignore, success) = _uniqueBodies.insert(body);
-	if (success)
+	if (success && bodyEnter)
 	{
-		_sensedBodies->add(Value::alloc(body));
-		if (bodyEnter)
-		{
-			bodyEnter(body, _tag);
-		}
+		bodyEnter(body, _tag);
 	}
 }
 
 void Sensor::remove(Body* body)
 {
-	if (_uniqueBodies.erase(body) > 0)
+	auto value = Value::alloc(body);
+	_sensedBodies->fastRemove(value.get());
+	if (_uniqueBodies.erase(body) > 0 && bodyLeave)
 	{
-		auto value = Value::alloc(body);
-		if (_sensedBodies->fastRemove(value.get()) && bodyLeave)
-		{
-			bodyLeave(body, _tag);
-		}
+		bodyLeave(body, _tag);
 	}
 }
 

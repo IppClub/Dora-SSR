@@ -17,10 +17,11 @@ NS_DOROTHY_PLATFORMER_BEGIN
 PlatformCamera::PlatformCamera(String name):
 Camera(name),
 _transformDirty(true),
-_camPos{0,0},
+_camPos{Vec2::zero},
 _rotation(0.0f),
 _zoom(1.0f),
 _ratio{1.0f, 1.0f},
+_offset{Vec2::zero},
 _viewSize()
 { }
 
@@ -100,8 +101,8 @@ void PlatformCamera::updateView()
 	}
 	if (_followTarget)
 	{
-		Vec2 targetPos = _followTarget->convertToWorldSpace(Vec2::zero);
-		Vec2 pos = Vec2{_position.x,_position.y};
+		Vec2 targetPos = _followTarget->convertToWorldSpace(Vec2::zero) + _offset;
+		Vec2 pos = Vec2{_position.x, _position.y};
 		Vec2 delta = targetPos - pos;
 		setPosition(pos + delta * _ratio);
 		_transformDirty = true;
@@ -149,6 +150,16 @@ void PlatformCamera::setFollowRatio(const Vec2& var)
 const Vec2& PlatformCamera::getFollowRatio() const
 {
 	return _ratio;
+}
+
+void PlatformCamera::setFollowOffset(const Vec2& var)
+{
+	_offset = var;
+}
+
+const Vec2& PlatformCamera::getFollowOffset() const
+{
+	return _offset;
 }
 
 void PlatformCamera::setFollowTarget(Node* target)
