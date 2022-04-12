@@ -63,16 +63,14 @@ BodyDef* Unit::getBodyDef(Dictionary* def) const
 		Vec2 vertices[] =
 		{
 			Vec2{-hw, hh},
-			Vec2{-hw, BOTTOM_OFFSET - hh},
 			Vec2{-hw + BOTTOM_OFFSET, -hh},
 			Vec2{hw - BOTTOM_OFFSET, -hh},
-			Vec2{hw, BOTTOM_OFFSET - hh},
 			Vec2{hw, hh}
 		};
 		auto density = def->get(Def::Density, 0.0f);
 		auto friction = def->get(Def::Friction, 0.2f);
 		auto restitution = def->get(Def::Restitution, 0.0f);
-		bodyDef->attachPolygon(vertices, 6, density, friction, restitution);
+		bodyDef->attachPolygon(vertices, 4, density, friction, restitution);
 		bodyDef->attachPolygonSensor(
 			Unit::GroundSensorTag,
 			size.width - BOTTOM_OFFSET * 2,

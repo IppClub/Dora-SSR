@@ -1257,6 +1257,7 @@ class PlatformCamera : public Camera
 	tolua_property__common float zoom;
 	tolua_property__common Rect boundary;
 	tolua_property__common Vec2 followRatio;
+	tolua_property__common Vec2 followOffset;
 	tolua_property__common Node* followTarget;
 	static PlatformCamera* create(String name = nullptr);
 };
