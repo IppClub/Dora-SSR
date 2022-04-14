@@ -38,8 +38,12 @@ android {
 		}
 	}
 	packagingOptions {
-		exclude 'classes.dex'
-		pickFirst '**/*.so'
+		jniLibs {
+			pickFirsts += ['**/*.so']
+		}
+		resources {
+			excludes += ['classes.dex']
+		}
 	}
 	compileOptions {
 		sourceCompatibility '1.8'
