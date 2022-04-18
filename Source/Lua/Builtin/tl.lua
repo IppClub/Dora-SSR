@@ -866,13 +866,13 @@ do
 end
 
 local function binary_search(list, item, cmp)
-	local len = #list
+	local len <const> = #list
 	local mid
 	local s, e = 1, len
 	while s <= e do
 		mid = math.floor((s + e) / 2)
-		local val = list[mid]
-		local res = cmp(val, item)
+		local val <const> = list[mid]
+		local res <const> = cmp(val, item)
 		if res then
 			if mid == len then
 				return mid, val
@@ -889,7 +889,7 @@ local function binary_search(list, item, cmp)
 end
 
 function tl.get_token_at(tks, y, x)
-	local _, found = binary_search(
+	local _, found <const> = binary_search(
 	tks, nil,
 	function(tk)
 		return tk.y < y or
@@ -1135,7 +1135,7 @@ local Attribute = {}
 
 
 
-local is_attribute = {
+local is_attribute <const> = {
 	["const"] = true,
 	["close"] = true,
 }
@@ -5459,6 +5459,9 @@ tl.type_check = function(ast, opts)
 	end
 
 	local function find_type(names, accept_typearg)
+		if not names then
+			return nil
+		end
 		local typ = find_var_type(names[1])
 		if not typ then
 			return nil
@@ -5775,14 +5778,14 @@ tl.type_check = function(ast, opts)
 	end
 
 	local function check_if_redeclaration(new_name, at)
-		local old = find_var(new_name, true)
+		local old <const> = find_var(new_name, true)
 		if old then
 			redeclaration_warning(at, old)
 		end
 	end
 
 	local function unused_warning(name, var)
-		local prefix = name:sub(1, 1)
+		local prefix <const> = name:sub(1, 1)
 		if var.declared_at and
 			not var.is_narrowed and
 			prefix ~= "_" and
@@ -5823,8 +5826,8 @@ tl.type_check = function(ast, opts)
 		if lax and node and is_unknown(valtype) and (var ~= "self" and var ~= "...") and not is_narrowing then
 			add_unknown(node, var)
 		end
-		local scope = st[#st]
-		local old_var = scope[var]
+		local scope <const> = st[#st]
+		local old_var <const> = scope[var]
 		if not attribute then
 			valtype = shallow_copy(valtype)
 			valtype.tk = nil
@@ -6929,7 +6932,7 @@ tl.type_check = function(ast, opts)
 		return t.meta_fields and t.meta_fields["__close"] ~= nil
 	end
 
-	local definitely_not_closable_exprs = {
+	local definitely_not_closable_exprs <const> = {
 		["string"] = true,
 		["number"] = true,
 		["integer"] = true,
