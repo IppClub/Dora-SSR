@@ -56,18 +56,18 @@ public:
 	using OwnV::OwnV;
 	using OwnV::insert;
 
-	bool remove(T* item)
+	bool remove(const Own<T>& item)
 	{
 		auto it = std::remove(OwnV::begin(), OwnV::end(), item);
 		if (it == OwnV::end()) return false;
 		OwnV::erase(it);
 		return true;
 	}
-	typename OwnV::iterator index(T* item)
+	typename OwnV::iterator index(const Own<T>& item)
 	{
 		return std::find(OwnV::begin(), OwnV::end(), item);
 	}
-	bool fast_remove(T* item)
+	bool fast_remove(const Own<T>& item)
 	{
 		size_t index = std::distance(OwnV::begin(), OwnVector::index(item));
 		if (index < OwnV::size())
