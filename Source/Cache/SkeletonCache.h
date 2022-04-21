@@ -37,11 +37,12 @@ public:
 	SkeletonData* load(String skelFile, String atlasFile);
 	void loadAsync(String spineStr, const std::function<void(SkeletonData*)>& handler);
 	void loadAsync(String skelFile, String atlasFile, const std::function<void(SkeletonData*)>& handler);
-	bool unload(String filename);
+	bool unload(String spineStr);
+	bool unload(String skelFile, String atlasFile);
 	bool unload();
 	void removeUnused();
 private:
-	std::pair<std::string, std::string> getFileFromStr(String spineStr);
+	static std::pair<std::string, std::string> getFileFromStr(String spineStr);
 	std::unordered_map<std::string, Ref<SkeletonData>> _skeletons;
 	SINGLETON_REF(SkeletonCache, Director, AsyncThread);
 };

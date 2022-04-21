@@ -266,16 +266,19 @@ bool Unit::update(double deltaTime)
 
 void Unit::cleanup()
 {
-	if (_entity)
+	if (_flags.isOff(Node::Cleanup))
 	{
-		_entity->destroy();
-		_entity = nullptr;
+		if (_entity)
+		{
+			_entity->destroy();
+			_entity = nullptr;
+		}
+		_currentAction = nullptr;
+		_decisionTree = nullptr;
+		_unitDef = nullptr;
+		_actions.clear();
+		Body::cleanup();
 	}
-	_currentAction = nullptr;
-	_decisionTree = nullptr;
-	_unitDef = nullptr;
-	_actions.clear();
-	Body::cleanup();
 }
 
 void Unit::setGroup(uint8_t group)

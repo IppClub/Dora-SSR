@@ -122,8 +122,9 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 {
 	std::string skelPath = SharedContent.getFullPath(skelFile);
 	std::string atlasPath = SharedContent.getFullPath(atlasFile);
+	std::string cacheKey = skelPath + atlasPath;
 	std::string file = skelFile.toString();
-	SharedAtlasCache.loadAsync(atlasFile, [file, handler, this](Atlas* atlas)
+	SharedAtlasCache.loadAsync(atlasFile, [file, cacheKey, handler, this](Atlas* atlas)
 	{
 		if (!atlas)
 		{
@@ -132,7 +133,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 			return;
 		}
 		Ref<Atlas> at(atlas);
-		SharedContent.loadAsyncData(file, [file, handler, at, this](OwnArray<uint8_t>&& data, size_t size)
+		SharedContent.loadAsyncData(file, [file, cacheKey, handler, at, this](OwnArray<uint8_t>&& data, size_t size)
 		{
 			if (!data)
 			{
@@ -167,15 +168,14 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 						break;
 				}
 				return Values::alloc(skelData);
-			}, [file, handler, at, this](Own<Values> result)
+			}, [file, cacheKey, handler, at, this](Own<Values> result)
 			{
 				spine::SkeletonData* skelData = nullptr;
 				result->get(skelData);
 				if (skelData)
 				{
 					SkeletonData* data = SkeletonData::create(skelData, at);
-					auto fullPath = SharedContent.getFullPath(file);
-					_skeletons[fullPath] = data;
+					_skeletons[cacheKey] = data;
 					handler(data);
 					return;
 				}
@@ -187,10 +187,28 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 	});
 }
 
-bool SkeletonCache::unload(String filename)
+bool SkeletonCache::unload(String spineStr)
 {
-	std::string fullPath = SharedContent.getFullPath(filename);
-	auto it = _skeletons.find(fullPath);
+	std::string skelFile, atlasFile;
+	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
+	std::string skelPath = SharedContent.getFullPath(skelFile);
+	std::string atlasPath = SharedContent.getFullPath(atlasFile);
+	std::string cacheKey = skelPath + atlasPath;
+	auto it = _skeletons.find(cacheKey);
+	if (it != _skeletons.end())
+	{
+		_skeletons.erase(it);
+		return true;
+	}
+	return false;
+}
+
+bool SkeletonCache::unload(String skelFile, String atlasFile)
+{
+	std::string skelPath = SharedContent.getFullPath(skelFile);
+	std::string atlasPath = SharedContent.getFullPath(atlasFile);
+	std::string cacheKey = skelPath + atlasPath;
+	auto it = _skeletons.find(cacheKey);
 	if (it != _skeletons.end())
 	{
 		_skeletons.erase(it);

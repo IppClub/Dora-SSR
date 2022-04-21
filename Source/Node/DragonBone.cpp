@@ -684,12 +684,15 @@ void DragonBone::render()
 
 void DragonBone::cleanup()
 {
-	if (_armatureProxy)
+	if (_flags.isOff(Node::Cleanup))
 	{
-		_armatureProxy->dispose();
-		_armatureProxy = nullptr;
+		if (_armatureProxy)
+		{
+			_armatureProxy->dispose();
+			_armatureProxy = nullptr;
+		}
+		Node::cleanup();
 	}
-	Node::cleanup();
 }
 
 DragonBone* DragonBone::create(String boneFile, String atlasFile)

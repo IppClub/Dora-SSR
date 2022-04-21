@@ -985,8 +985,11 @@ void Label::updateLabel()
 
 void Label::cleanup()
 {
-	_font = nullptr;
-	Node::cleanup();
+	if (_flags.isOff(Node::Cleanup))
+	{
+		_font = nullptr;
+		Node::cleanup();
+	}
 }
 
 void Label::updateVertTexCoord()

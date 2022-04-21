@@ -102,10 +102,13 @@ void ClipNode::onExit()
 
 void ClipNode::cleanup()
 {
-	Node::cleanup();
-	if (_stencil)
+	if (_flags.isOff(Node::Cleanup))
 	{
-		_stencil->cleanup();
+		if (_stencil)
+		{
+			_stencil->cleanup();
+		}
+		Node::cleanup();
 	}
 }
 
