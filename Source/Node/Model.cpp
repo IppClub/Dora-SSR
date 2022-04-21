@@ -398,10 +398,13 @@ float Model::getDuration() const
 
 void Model::cleanup()
 {
-	Node::cleanup();
-	for (const auto& animationGroup : _animationGroups)
+	if (_flags.isOff(Node::Cleanup))
 	{
-		animationGroup->animationEnd.Clear();
+		for (const auto& animationGroup : _animationGroups)
+		{
+			animationGroup->animationEnd.Clear();
+		}
+		Node::cleanup();
 	}
 }
 

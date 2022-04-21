@@ -47,8 +47,11 @@ bool VGNode::init()
 
 void VGNode::cleanup()
 {
-	_surface = nullptr;
-	Node::cleanup();
+	if (_flags.isOff(Node::Cleanup))
+	{
+		_surface = nullptr;
+		Node::cleanup();
+	}
 }
 
 void VGNode::render(const std::function<void()>& func)

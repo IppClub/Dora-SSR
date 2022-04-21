@@ -137,8 +137,11 @@ void PlatformWorld::onExit()
 
 void PlatformWorld::cleanup()
 {
-	_camera = nullptr;
-	Node::cleanup();
+	if (_flags.isOff(Node::Cleanup))
+	{
+		_camera = nullptr;
+		Node::cleanup();
+	}
 }
 
 void PlatformWorld::sortAllChildren()

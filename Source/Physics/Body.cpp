@@ -79,28 +79,31 @@ void Body::onExit()
 
 void Body::cleanup()
 {
-	Node::cleanup();
-	if (_prBody != pr::InvalidBodyID)
+	if (_flags.isOff(Node::Cleanup))
 	{
-		_pWorld->getPrWorld().Destroy(_prBody);
-		_pWorld->setBodyData(_prBody, nullptr);
-		_prBody = pr::InvalidBodyID;
-	}
-	if (_sensors)
-	{
-		ARRAY_START(Sensor, sensor, _sensors)
+		if (_prBody != pr::InvalidBodyID)
 		{
-			_pWorld->setFixtureData(sensor->getFixture(), nullptr);
-			sensor->bodyEnter.Clear();
-			sensor->bodyLeave.Clear();
-			sensor->setEnabled(false);
-			sensor->getSensedBodies()->clear();
+			_pWorld->getPrWorld().Destroy(_prBody);
+			_pWorld->setBodyData(_prBody, nullptr);
+			_prBody = pr::InvalidBodyID;
 		}
-		ARRAY_END
-		_sensors->clear();
+		if (_sensors)
+		{
+			ARRAY_START(Sensor, sensor, _sensors)
+			{
+				_pWorld->setFixtureData(sensor->getFixture(), nullptr);
+				sensor->bodyEnter.Clear();
+				sensor->bodyLeave.Clear();
+				sensor->setEnabled(false);
+				sensor->getSensedBodies()->clear();
+			}
+			ARRAY_END
+			_sensors->clear();
+		}
+		contactStart.Clear();
+		contactEnd.Clear();
+		Node::cleanup();
 	}
-	contactStart.Clear();
-	contactEnd.Clear();
 }
 
 BodyDef* Body::getBodyDef() const

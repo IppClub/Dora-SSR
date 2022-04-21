@@ -768,6 +768,15 @@ void Cache::update(String filename, Texture2D* texture)
 
 bool Cache::unload(String name)
 {
+	auto tokens = name.split(":"_slice);
+	if (tokens.size() == 2)
+	{
+		switch (Switch::hash(tokens.front()))
+		{
+			case "spine"_hash:
+				return SharedSkeletonCache.unload(tokens.back());
+		}
+	}
 	std::string ext = Path::getExt(name);
 	if (!ext.empty())
 	{
@@ -775,8 +784,6 @@ bool Cache::unload(String name)
 		{
 			case "atlas"_hash:
 				return SharedAtlasCache.unload(name);
-			case "skel"_hash:
-				return SharedSkeletonCache.unload(name);
 			case "clip"_hash:
 				return SharedClipCache.unload(name);
 			case "frame"_hash:
