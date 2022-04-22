@@ -10,7 +10,3 @@ Content.searchPaths = {
 }
 
 require("Dev.Entry")
-
-print(require("yue").to_lua[[
-newtb = {...tb.123, ...tb2}
-]])

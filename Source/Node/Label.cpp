@@ -642,7 +642,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars)
 			if (fontChar->sprite)
 			{
 				SharedFontCache.updateCharacter(fontChar->sprite, _font, ch);
-				fontChar->sprite->setVisible(true);
+				fontChar->sprite->setVisible(ch != '\0');
 			}
 		}
 		else
@@ -656,6 +656,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars)
 				sprite->setRenderOrder(getRenderOrder());
 				sprite->setDepthWrite(isDepthWrite());
 				sprite->setEffect(_effect);
+				sprite->setVisible(ch != '\0');
 				addChild(sprite);
 				fontChar->sprite = sprite;
 			}
@@ -711,6 +712,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars)
 void Label::updateLabel()
 {
 	_text = utf8_get_characters(_textUTF8.c_str());
+	_text.push_back('\0');
 
 	if (_flags.isOn(Label::TextBatched))
 	{
@@ -908,11 +910,12 @@ void Label::updateLabel()
 			last_word.end());
 
 		size_t size = multiline_string.size();
-		std::vector<uint32_t> str_new(size);
+		std::vector<uint32_t> str_new(size + 1);
 		for (size_t i = 0; i < size; ++i)
 		{
 			str_new[i] = multiline_string[i];
 		}
+		str_new[str_new.size() - 1] = '\0';
 		updateCharacters(str_new);
 		_text = std::move(str_new);
 	}
@@ -925,7 +928,7 @@ void Label::updateLabel()
 		std::vector<uint32_t> last_line;
 		for (size_t ctr = 0; ctr < _text.size(); ++ctr)
 		{
-			if (_text[ctr] == '\n')
+			if (_text[ctr] == '\n' || _text[ctr] == '\0')
 			{
 				float lineWidth = 0.0f;
 				int line_length = s_cast<int>(last_line.size());
@@ -998,7 +1001,7 @@ void Label::updateVertTexCoord()
 	for (size_t i = 0; i < _text.size(); i++)
 	{
 		CharItem* item = _characters[i].get();
-		if (item && item->code != '\n')
+		if (item && _text[i] != '\n' && _text[i] != '\0')
 		{
 			const bgfx::TextureInfo& info = item->texture->getInfo();
 			const Rect& rect = item->rect;
@@ -1031,7 +1034,7 @@ void Label::updateVertPosition()
 	for (size_t i = 0; i < _text.size(); i++)
 	{
 		CharItem* item = _characters[i].get();
-		if (item && item->code != '\n')
+		if (item && _text[i] != '\n' && _text[i] != '\0')
 		{
 			const Vec2& pos = item->pos;
 			const Rect& rect = item->rect;
@@ -1055,9 +1058,9 @@ void Label::updateVertPosition()
 
 void Label::updateVertColor()
 {
+	uint32_t abgr = _realColor.toABGR();
 	for (auto& quad : _quads)
 	{
-		uint32_t abgr = _realColor.toABGR();
 		quad.lt.abgr = abgr;
 		quad.rt.abgr = abgr;
 		quad.lb.abgr = abgr;
@@ -1137,7 +1140,7 @@ void Label::render()
 	for (size_t i = 0; i < _text.size(); i++)
 	{
 		CharItem* item = _characters[i].get();
-		if (item && item->code != '\n')
+		if (item && _text[i] != '\n' && _text[i] != '\0')
 		{
 			if (!lastTexture) lastTexture = item->texture;
 			if (lastTexture != item->texture)
