@@ -60,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.10.12"sv;
+const std::string_view version = "0.10.13"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -3834,6 +3834,12 @@ private:
 
 	void transformChainList(const node_container& chainList, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		auto x = chainList.front();
+		if (chainList.size() > 1) {
+			auto callable = ast_cast<Callable_t>(x);
+			if (callable && callable->item.is<VarArg_t>()) {
+				throw std::logic_error(_info.errorMessage("can not access variadic arguments directly"sv, x));
+			}
+		}
 		str_list temp;
 		switch (x->getId()) {
 			case id<DotChainItem_t>():

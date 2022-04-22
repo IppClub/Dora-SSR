@@ -152,7 +152,7 @@ with Observer "Add",{"switch","group","layer","look","position"}
 							Y 0.5,140,150,Ease.OutQuad
 							Y 0.3,150,140,Ease.InQuad
 						)
-						@entity.tip = with Sprite "Image/items.clip|keyf_down"
+						@entity.tip = with Sprite "Model/items.clip|keyf_down"
 							.y = 140
 							scaleOut = Action Spawn(
 								Opacity 0.3,0,1
@@ -199,12 +199,12 @@ with Observer "Add",{"poke","group","layer","position"}
 			.velocityX = switch group
 				when GroupPlayerPoke then 400
 				when GroupEnemyPoke then -400
-			normal = with Sprite "Image/poke.clip|#{poke}"
+			normal = with Sprite "Model/poke.clip|#{poke}"
 				.scaleX = 4
 				.scaleY = 4
 				.filter = "Point"
 			\addChild normal
-			glow = with Sprite "Image/poke.clip|#{poke}l"
+			glow = with Sprite "Model/poke.clip|#{poke}l"
 				.scaleX = 4
 				.scaleY = 4
 				.filter = "Point"
@@ -369,7 +369,7 @@ with Observer "Change", {"blocks","group"}
 				when GroupPlayer then GroupEnemy,"lose","hero_lose"
 				when GroupEnemy then GroupPlayer,"win","hero_win"
 			Audio\play "Audio/#{sound}.wav"
-			sp = with Sprite "Image/misc.clip|#{clip}"
+			sp = with Sprite "Model/misc.clip|#{clip}"
 				.scaleX = 2
 				.scaleY = 2
 				.filter = "Point"

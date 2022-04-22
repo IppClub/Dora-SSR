@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-spineStr = "dragon-ess"
+spineStr = "Spine/dragon-ess"
 
 animations = Spine\getAnimations spineStr
 looks = Spine\getLooks spineStr

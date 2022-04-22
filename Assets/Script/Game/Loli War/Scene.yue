@@ -39,7 +39,7 @@ GameWorld = Class PlatformWorld,
 			.order = LayerBackground
 			.group = GroupTerrain
 
-		@addChild with Sprite "Image/items.clip|background"
+		@addChild with Sprite "Model/items.clip|background"
 			.order = LayerBackground
 			.anchor = Vec2.zero
 			.scaleX = 4146/.width
@@ -50,7 +50,7 @@ GameWorld = Class PlatformWorld,
 			.order = LayerBackground
 			.y = -44
 			for i = 0,32
-				\addChild with Sprite "Image/misc.clip|floor"
+				\addChild with Sprite "Model/misc.clip|floor"
 					.scaleX = 8
 					.scaleY = 8
 					.x = i*128
@@ -91,7 +91,7 @@ GameWorld = Class PlatformWorld,
 				{"pushSwitch",Vec2(pos.x-512+494,1004-631-200)}
 				{"attack",Vec2(pos.x-512+630,1004-631-200)}
 			}
-			sp = with Sprite "Image/misc.clip|#{item[1]}"
+			sp = with Sprite "Model/misc.clip|#{item[1]}"
 				.scaleX = 2
 				.scaleY = 2
 				.filter = "Point"

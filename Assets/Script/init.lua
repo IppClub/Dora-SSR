@@ -7,10 +7,10 @@ Content.searchPaths = {
 	"Script",
 	Path("Script", "Lib"),
 	Path("Script", "Lib", "Dora"),
-	"Image",
-	"Spine",
-	"DragonBones",
 }
 
 require("Dev.Entry")
 
+print(require("yue").to_lua[[
+newtb = {...tb.123, ...tb2}
+]])

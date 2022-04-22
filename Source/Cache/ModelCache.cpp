@@ -28,7 +28,6 @@ _currentAnimationDef(nullptr)
 
 KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation()
 {
-	// lazy alloc
 	if (!_currentAnimationDef)
 	{
 		_currentAnimationDef.reset(new KeyAnimationDef());

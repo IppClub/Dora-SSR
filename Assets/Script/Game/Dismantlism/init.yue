@@ -12,7 +12,7 @@ root = with Node!
 ui = with Node!
 	.x = -100
 	.y = -50
-	\addChild Sprite "duality.clip|stat"
+	\addChild Sprite "Model/duality.clip|stat"
 score = 0
 scoreTxt = with Label "sarasa-mono-sc-regular", 40
 	.textAlign = "Center"
@@ -43,7 +43,7 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 		spaceBack = with Node!
 			.visible = isSpace
 			.order = -1
-			\addChild with Grid "duality.clip|space", 1, 1
+			\addChild with Grid "Model/duality.clip|space", 1, 1
 				\moveUV 1, 1, Vec2 1, 1
 				\moveUV 2, 1, Vec2 -1, 1
 				\moveUV 1, 2, Vec2 1, -1
@@ -55,14 +55,14 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 				.scaleX = worldScale
 				.scaleY = worldScale
 				for y = 1, 8 do for x = 1, 8
-					\addChild with Sprite "duality.clip|stary"
+					\addChild with Sprite "Model/duality.clip|stary"
 						.anchorX = 0
 						.x = -3000 + (x - 1) * 1000
 						.y = 3000 - (y - 1) * 1000
 				\perform X 10, 0, -1000 * worldScale
 				\slot "ActionEnd", -> \perform X 10, 0, -1000 * worldScale
 		dailyBack\removeFromParent! if dailyBack
-		dailyBack = with Grid "duality.clip|day", 1, 1
+		dailyBack = with Grid "Model/duality.clip|day", 1, 1
 			.visible = not isSpace
 			.order = -1
 			\moveUV 1, 1, Vec2 1, 1
@@ -80,7 +80,7 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 		\addChild with Node!
 			.touchEnabled = true
 			.swallowTouches = true
-			\addChild Sprite "duality.clip|dismantlism"
+			\addChild Sprite "Model/duality.clip|dismantlism"
 			\perform Sequence(
 				Delay 1
 				Spawn(
@@ -253,8 +253,8 @@ buildScene = ->
 									when "credit"
 										score += 50
 										world\addChild with Node!
-											\addChild Sprite "duality.clip|window"
-											\addChild Sprite "duality.clip|credits1"
+											\addChild Sprite "Model/duality.clip|window"
+											\addChild Sprite "Model/duality.clip|credits1"
 											.position = body.position
 											\perform Sequence(
 												Spawn(
@@ -272,8 +272,8 @@ buildScene = ->
 								if score > 600
 									gameEnded = true
 									center\addChild with Node!
-										\addChild Sprite "duality.clip|window"
-										\addChild Sprite "duality.clip|win"
+										\addChild Sprite "Model/duality.clip|window"
+										\addChild Sprite "Model/duality.clip|win"
 										\perform Sequence(
 											Spawn(
 												Scale 0.5, 0, 1, Ease.OutBack
@@ -301,8 +301,8 @@ buildScene = ->
 								if not gameEnded
 									gameEnded = true
 									world\addChild with Node!
-										\addChild Sprite "duality.clip|window"
-										\addChild Sprite "duality.clip|lose"
+										\addChild Sprite "Model/duality.clip|window"
+										\addChild Sprite "Model/duality.clip|lose"
 										.position = body.position
 										\perform Sequence(
 											Spawn(
