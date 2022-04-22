@@ -1,5 +1,5 @@
 <Node X="{ 55+(index-1)*25 }" Visible="False">
-	<Sprite File="{ 'Image/misc.clip|'..clip }" AnchorX="0"/>
+	<Sprite File="{ 'Model/misc.clip|'..clip }" AnchorX="0"/>
 	<Action>
 		<Sequence Name="show">
 			<Show/>

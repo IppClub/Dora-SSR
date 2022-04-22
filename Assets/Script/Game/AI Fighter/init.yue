@@ -405,7 +405,7 @@ Store["Bullet_Arrow"] = with BulletDef!
 	.damageRadius = 0
 	.highSpeedFix = false
 	.gravity = Vec2 0,-10
-	.face = Face "Image/patreon.clip|item_arrow", Vec2(0,0)
+	.face = Face "Model/patreon.clip|item_arrow", Vec2(0,0)
 	\setAsCircle 10
 	\setVelocity 25,800
 
@@ -620,7 +620,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 			for i = 1, #itemOptions
 				item = itemOptions[i]
 				PushID "#{itemName}#{i}", ->
-					if ImageButton "Image/patreon.clip|#{item}", Vec2(itemSize,itemSize), 5
+					if ImageButton "Model/patreon.clip|#{item}", Vec2(itemSize,itemSize), 5
 						currentSet[itemName] = item
 						selectItems = false
 				NextColumn!
@@ -635,7 +635,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 				Columns 3, false
 				item = currentSet[itemName]
 				PushID "#{itemName}c2", ->
-					selectItems = true if ImageButton "Image/patreon.clip|#{item}", Vec2(itemSize,itemSize)
+					selectItems = true if ImageButton "Model/patreon.clip|#{item}", Vec2(itemSize,itemSize)
 				NextColumn!
 				TextColored Color(0xfffffa0a), itemSettings[item].name
 				TextWrapped itemSettings[item].desc
@@ -710,20 +710,20 @@ updateModel = (model, currentSet)->
 	node\removeAllChildren!
 	charType = characterTypes[currentSet.type]
 	charColor = characterColors[currentSet.color]
-	node\addChild Sprite "Image/patreon.clip|character_#{charType}#{charColor}"
+	node\addChild Sprite "Model/patreon.clip|character_#{charType}#{charColor}"
 	node = model\getNodeByName "lhand"
 	node\removeAllChildren!
-	node\addChild Sprite "Image/patreon.clip|character_hand#{charColor}"
+	node\addChild Sprite "Model/patreon.clip|character_hand#{charColor}"
 	node = model\getNodeByName "rhand"
 	node\removeAllChildren!
-	node\addChild Sprite "Image/patreon.clip|character_hand#{charColor}"
+	node\addChild Sprite "Model/patreon.clip|character_hand#{charColor}"
 	model\getNodeByName("head")\removeAllChildren!
 	for slot in *itemSlots
 		node = model\getNodeByName slot
 		item = currentSet[slot]
 		if item
 			offset = itemSettings[item].offset
-			node\addChild with Sprite "Image/patreon.clip|#{item}"
+			node\addChild with Sprite "Model/patreon.clip|#{item}"
 				.position = offset
 
 NewFighter = (name, currentSet)->
@@ -738,7 +738,7 @@ NewFighter = (name, currentSet)->
 				touch.enabled = false
 		\slot "Tapped", ->
 			if not fighter\getChildByTag "select"
-				selectFrame = with Sprite "Image/patreon.clip|ui_select"
+				selectFrame = with Sprite "Model/patreon.clip|ui_select"
 					\addTo fighter, 0, "select"
 					\runAction Scale 0.3,0,1.8,Ease.OutBack
 					assembleFighter = true
@@ -1055,7 +1055,7 @@ BigArrow = with BulletDef!
 	.damageRadius = 0
 	.highSpeedFix = false
 	.gravity = Vec2 0,-10
-	.face = Face "Image/patreon.clip|item_arrow", Vec2(-100,0), 2
+	.face = Face "Model/patreon.clip|item_arrow", Vec2(-100,0), 2
 	\setAsCircle 10
 	\setVelocity 25,800
 

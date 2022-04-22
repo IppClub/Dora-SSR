@@ -266,7 +266,8 @@ std::pair<db::DragonBonesData*, std::string> DragonBoneCache::load(String boneFi
 	auto atlasData = loadTextureAtlasData(atlasFilename);
 	if (boneData && atlasData)
 	{
-		Texture2D* texture = SharedTextureCache.load(atlasData->imagePath);
+		auto imagePath = Path::concat({Path::getPath(atlasFilename), atlasData->imagePath});
+		Texture2D* texture = SharedTextureCache.load(imagePath);
 		atlasData->setTexture(texture);
 		return {boneData, boneData->getArmatureNames().front()};
 	}

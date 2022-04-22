@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-boneStr = "NewDragon"
+boneStr = "DragonBones/NewDragon"
 
 animations = DragonBone\getAnimations boneStr
 looks = DragonBone\getLooks boneStr

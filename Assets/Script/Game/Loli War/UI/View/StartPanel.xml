@@ -5,7 +5,7 @@
 	<AlignNode VAlign="{ 'Center' }" HAlign="{ 'Center' }">
 		<Node ScaleX="2" ScaleY="2">
 			<Node Name="node" TouchEnabled="True" SwallowTouches="True" Ref="True">
-				<Sprite File="Image/misc.clip|startboard">
+				<Sprite File="Model/misc.clip|startboard">
 					<Action>
 						<Sequence Name="scaleOut">
 							<Spawn>

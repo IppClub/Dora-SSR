@@ -226,6 +226,7 @@ allClear = ->
 	Struct\clear!
 	View.postEffect = nil
 	View.scale = scaleContent and screenScale or 1
+	Director.clearColor = Color 0xff1a1a1a
 	collectgarbage!
 
 games = [Path\getName item for item in *Content\getDirs Path Content.assetPath, "Script", "Game"]
