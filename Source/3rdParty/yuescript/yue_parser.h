@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <list>
 #include <sstream>
 #include <string_view>
+#include <memory>
 
 #include "yuescript/ast.hpp"
 #include "yuescript/yue_ast.h"
@@ -281,6 +282,7 @@ private:
 	AST_RULE(Invoke)
 	AST_RULE(existential_op)
 	AST_RULE(table_appending_op)
+	AST_RULE(SpreadExp)
 	AST_RULE(TableLit)
 	AST_RULE(TableBlock)
 	AST_RULE(TableBlockIndent)
