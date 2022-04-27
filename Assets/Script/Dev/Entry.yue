@@ -22,6 +22,7 @@ allowedUseOfGlobals = Set
 	* "builtin"
 
 LintYueGlobals = (yueCodes, globals, file)->
+	errors = {}
 	requireModules = {}
 	withImGui = false
 	withPlatformer = false
@@ -42,7 +43,7 @@ LintYueGlobals = (yueCodes, globals, file)->
 		{name, line, col} = var
 		if not allowedUseOfGlobals[name]
 			if builtin[name]
-				table.insert requireModules, "local #{name} = require(\"#{name}\") -- 1"
+				requireModules[] = "local #{name} = require(\"#{name}\") -- 1"
 			else
 				findModule = false
 				for i, importItem in ipairs importItems
@@ -50,8 +51,8 @@ LintYueGlobals = (yueCodes, globals, file)->
 						moduleName = "_module_#{i-1}"
 						if not importSet[importItem[1]]
 							importSet[importItem[1]] = true
-							table.insert requireModules, "local #{moduleName} = #{importItem[2]} -- 1"
-						table.insert requireModules, "local #{name} = #{moduleName}.#{name} -- 1"
+							requireModules[] = "local #{moduleName} = #{importItem[2]} -- 1"
+						requireModules[] = "local #{name} = #{moduleName}.#{name} -- 1"
 						findModule = true
 						break
 				if not findModule
@@ -63,8 +64,11 @@ LintYueGlobals = (yueCodes, globals, file)->
 							code = lineCode
 							break
 						countLine += 1
-					print "Used invalid global value \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. string.rep(" ", col - 1) .. "^"}"
-	table.concat requireModules, "\n"
+					errors[] = "Used invalid global variable \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. string.rep(" ", col - 1) .. "^"}"
+	if #errors > 0
+		false, table.concat errors, "\n"
+	else
+		true, table.concat requireModules, "\n"
 
 building = false
 
@@ -133,9 +137,13 @@ doCompile = (minify)->
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 				return
-			requires = LintYueGlobals codes, globals, file
-			requires ..= "\n" unless requires == ""
-			"-- [yue]: #{file}\n#{requires}" .. codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
+			success, result = LintYueGlobals codes, globals, file
+			if success
+				result ..= "\n" unless result == ""
+				"-- [yue]: #{file}\n#{result}" .. codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
+			else
+				table.insert errors, result
+				return
 		print "Yue compiled: #{file}" if success
 		fileCount += 1
 
