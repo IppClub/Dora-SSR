@@ -128,18 +128,3 @@ std::string Path::replaceFilename(const std::string& path, const std::string& ne
 }
 
 NS_DOROTHY_END
-
-// fix issue caused by bx lib from bgfx
-#if BX_PLATFORM_ANDROID
-#if __ANDROID_API__ < __ANDROID_API_N__
-
-#include <stdio.h>
-#undef stdin
-#undef stdout
-#undef stderr
-FILE* stdin = &__sF[0];
-FILE* stdout = &__sF[1];
-FILE* stderr = &__sF[2];
-
-#endif
-#endif // BX_PLATFORM_ANDROID

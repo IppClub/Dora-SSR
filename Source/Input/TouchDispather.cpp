@@ -211,7 +211,7 @@ static int unProject(float winx, float winy, float winz, const float* invTransfo
 	in[3] = 1.0f;
 	//Objects coordinates
 	bx::vec4MulMtx(out, in, invTransform);
-	if(out[3] == 0.0f)
+	if (out[3] == 0.0f)
 	{
 		return 0;
 	}
@@ -249,7 +249,7 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos)
 	if (std::abs(denom) >= FLT_EPSILON)
 	{
 		float nom = bx::dot(origin, plane.normal) + plane.dist;
-		float t = -(nom/denom);
+		float t = -(nom / denom);
 		if (t >= 0)
 		{
 			bx::Vec3 offset = bx::mul(dirNorm, t);
