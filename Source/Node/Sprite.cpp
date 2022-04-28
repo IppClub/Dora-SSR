@@ -431,10 +431,14 @@ void SpriteRenderer::push(SpriteVertex* verts, size_t size,
 	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags)
 {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
-	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	if (effect != _lastEffect
+		|| texture != _lastTexture
+		|| state != _lastState
+		|| flags != _lastFlags)
 	{
 		render();
 	}
+
 	_lastEffect = effect;
 	_lastTexture = texture;
 	_lastState = state;
@@ -464,10 +468,14 @@ void SpriteRenderer::push(
 	SpriteEffect* effect, Texture2D* texture,
 	uint64_t state, uint32_t flags)
 {
-	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
+	if (effect != _lastEffect
+		|| texture != _lastTexture
+		|| state != _lastState
+		|| flags != _lastFlags)
 	{
 		render();
 	}
+
 	_lastEffect = effect;
 	_lastTexture = texture;
 	_lastState = state;
