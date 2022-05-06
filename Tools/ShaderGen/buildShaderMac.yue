@@ -1,0 +1,48 @@
+#!yue -e
+
+bgfx = "/Users/Jin/Workspace/bgfx"
+dorothy = "/Users/Jin/Workspace/Dorothy-SSR"
+tool = "#{bgfx}/tools/bin/darwin/shaderc"
+path = "#{dorothy}/Source/Shader"
+
+essl = "100_es"
+glsl = "120"
+spirv = "spirv"
+metal = "metal"
+
+for stage in *{"v", "f"}
+	pathStr = io.popen("fselect dir,name from #{path} where name like '#{stage}s_%.sc'")\read "a"
+	for dir, file in pathStr\gmatch "([^\t]+)\t([^\n]+)\n?"
+		sname = file\match "[^%.]+"
+		target = "#{dir}/#{sname}.bin.h"
+		with io.popen ": > #{dir}/#{sname}.bin.h" --"printf \"extern const uint8_t* #{sname}_pssl;\\nextern const uint32_t #{sname}_pssl_size;\\n\" > #{dir}/#{sname}.bin.h"
+			result = \read "a"
+			\close!
+			if result ~= ""
+				print result
+				return
+		for {cmd, t} in *{
+				{"#{tool} -i #{bgfx}/src --type #{stage} --platform android -f #{dir}/#{file} -o #{dir}/tmp -p #{essl} -O 3 --bin2c #{sname}_essl --varyingdef #{dir}/varying.def.sc", "OpenGLES"}
+				{"#{tool} -i #{bgfx}/src --type #{stage} --platform osx -f #{dir}/#{file} -o #{dir}/tmp -p #{glsl} -O 3 --bin2c #{sname}_glsl --varyingdef #{dir}/varying.def.sc", "OpenGL"}
+				{"#{tool} -i #{bgfx}/src --type #{stage} --platform linux -f #{dir}/#{file} -o #{dir}/tmp -p #{spirv} -O 3 --bin2c #{sname}_spv --varyingdef #{dir}/varying.def.sc", "Spirv"}
+				{"#{tool} -i #{bgfx}/src --type #{stage} --platform osx -f #{dir}/#{file} -o #{dir}/tmp -p #{metal} -O 3 --bin2c #{sname}_mtl --varyingdef #{dir}/varying.def.sc", "Metal"}
+			}
+			with io.popen cmd
+				result = \read "a"
+				\close!
+				if result == ""
+					print "#{dir}/#{file} #{t} Built."
+				else
+					print result
+					print "#{dir}/#{file} #{t} Failed."
+					return
+			with io.popen "cat #{dir}/tmp >> #{target}"
+				result = \read "a"
+				\close!
+				if result ~= ""
+					print result
+					return
+			with io.popen "rm -f #{dir}/tmp"
+				\close!
+
+
