@@ -1,0 +1,37 @@
+#!yue -e
+
+bgfx = "Y:\\Workspace\\bgfx"
+dorothy = "Y:\\Workspace\\Dorothy-SSR"
+tool = "#{bgfx}\\.build\\win64_vs2022\\bin\\shadercRelease.exe"
+path = "#{dorothy}\\Source\\Shader"
+
+for stage in *{"v", "f"}
+	pathStr = io.popen("dir #{path}\\#{stage}s_*.sc /s /b")\read "a"
+	for line in pathStr\gmatch "[^\n]+"
+		dir, file = line\match "(.-)([^\\]*)$"
+		dir = dir\sub 1, -2
+		sname = file\match "[^%.]+"
+		target = "#{dir}\\#{sname}.bin.h"
+		for {cmd, t} in *{
+				{"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p #{stage == 'f' and 'p' or stage}s_3_0 --bin2c #{sname}_dx9 --varyingdef #{dir}\\varying.def.sc", "DirectX9"}
+				{"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p #{stage == 'f' and 'p' or stage}s_4_0 -O 3 --bin2c #{sname}_dx11 --varyingdef #{dir}\\varying.def.sc", "DirectX11"}
+			}
+			with io.popen cmd
+				result = \read "a"
+				\close!
+				if result == ""
+					print "#{dir}\\#{file} #{t} Built."
+				else
+					print result
+					print "#{dir}\\#{file} #{t} Failed."
+					return
+			with io.popen "type #{dir}\\tmp >> #{target}"
+				result = \read "a"
+				\close!
+				if result ~= ""
+					print result
+					return
+			with io.popen "del #{dir}\\tmp"
+				\close!
+
+
