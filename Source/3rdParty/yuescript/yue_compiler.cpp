@@ -60,7 +60,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.10.17"sv;
+const std::string_view version = "0.10.23"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -202,7 +202,12 @@ private:
 	std::stack<VarArgState> _varArgs;
 	std::stack<bool> _enableReturn;
 	std::stack<std::string> _withVars;
-	std::stack<std::string> _continueVars;
+	struct ContinueVar
+	{
+		std::string var;
+		ast_ptr<false, ExpListAssign_t> condAssign;
+	};
+	std::stack<ContinueVar> _continueVars;
 	std::list<std::unique_ptr<input>> _codeCache;
 	std::unordered_map<std::string,std::pair<int,int>> _globals;
 	std::ostringstream _buf;
@@ -924,6 +929,66 @@ private:
 				if (!local->defined) {
 					local->defined = true;
 					transformLocalDef(local, out);
+				}
+			} else if (auto attrib = statement->content.as<LocalAttrib_t>()) {
+				auto appendix = statement->appendix.get();
+				switch (appendix->item->getId()) {
+					case id<if_line_t>(): {
+						auto if_line = static_cast<if_line_t*>(appendix->item.get());
+						auto ifNode = x->new_ptr<If_t>();
+						ifNode->type.set(if_line->type);
+						ifNode->nodes.push_back(if_line->condition);
+
+						auto expList = x->new_ptr<ExpList_t>();
+						for (auto val : attrib->assign->values.objects()) {
+							switch (val->getId()) {
+								case id<If_t>():
+								case id<Switch_t>():
+								case id<With_t>(): {
+									auto simpleValue = x->new_ptr<SimpleValue_t>();
+									simpleValue->value.set(val);
+									auto value = x->new_ptr<Value_t>();
+									value->item.set(simpleValue);
+									auto exp = newExp(value, x);
+									expList->exprs.push_back(exp);
+									break;
+								}
+								case id<TableBlock_t>(): {
+									auto tableBlock = static_cast<TableBlock_t*>(val);
+									auto tabLit = x->new_ptr<TableLit_t>();
+									tabLit->values.dup(tableBlock->values);
+									auto simpleValue = x->new_ptr<SimpleValue_t>();
+									simpleValue->value.set(tabLit);
+									auto value = x->new_ptr<Value_t>();
+									value->item.set(simpleValue);
+									auto exp = newExp(value, x);
+									expList->exprs.push_back(exp);
+									break;
+								}
+								case id<Exp_t>(): {
+									expList->exprs.push_back(val);
+									break;
+								}
+								default: YUEE("AST node mismatch", val); break;
+							}
+						}
+						auto expListAssign = x->new_ptr<ExpListAssign_t>();
+						expListAssign->expList.set(expList);
+						auto stmt = x->new_ptr<Statement_t>();
+						stmt->content.set(expListAssign);
+						ifNode->nodes.push_back(stmt);
+
+						statement->appendix.set(nullptr);
+						attrib->assign->values.clear();
+						attrib->assign->values.push_back(ifNode);
+						transformStatement(statement, out);
+						return;
+					}
+					case id<CompInner_t>(): {
+						throw std::logic_error(_info.errorMessage("for-loop line decorator is not supported here"sv, appendix->item.get()));
+						break;
+					}
+					default: YUEE("AST node mismatch", appendix->item.get()); break;
 				}
 			}
 			auto appendix = statement->appendix.get();
@@ -2005,6 +2070,9 @@ private:
 						auto value = tab->new_ptr<Value_t>();
 						value->item.set(simpleValue);
 						auto pairs = destructFromExp(newExp(value, expr));
+						if (pairs.empty()) {
+							throw std::logic_error(_info.errorMessage("expect items to be destructured"sv, tab));
+						}
 						destruct.items = std::move(pairs);
 						if (!varDefOnly) {
 							if (*j == nullNode) {
@@ -5254,9 +5322,8 @@ private:
 		}
 	}
 
-	void transformLoopBody(ast_node* body, str_list& out, const std::string& appendContent, ExpUsage usage, ExpList_t* assignList = nullptr) {
-		str_list temp;
-		bool withContinue = traversal::Stop == body->traverse([&](ast_node* node) {
+	bool hasContinueStatement(ast_node* body) {
+		return traversal::Stop == body->traverse([&](ast_node* node) {
 			if (auto stmt = ast_cast<Statement_t>(node)) {
 				if (stmt->content.is<BreakLoop_t>()) {
 					return _parser.toString(stmt->content) == "continue"sv ?
@@ -5265,10 +5332,20 @@ private:
 					return traversal::Continue;
 				}
 				return traversal::Return;
+			} else switch (node->getId()) {
+				case id<FunLit_t>():
+				case id<Invoke_t>():
+				case id<InvokeArgs_t>():
+					return traversal::Return;
 			}
 			return traversal::Continue;
 		});
+	}
+
+	void transformLoopBody(ast_node* body, str_list& out, const std::string& appendContent, ExpUsage usage, ExpList_t* assignList = nullptr) {
+		str_list temp;
 		bool extraDo = false;
+		bool withContinue = hasContinueStatement(body);
 		if (withContinue) {
 			if (auto block = ast_cast<Block_t>(body)) {
 				if (!block->statements.empty()) {
@@ -5280,7 +5357,7 @@ private:
 			}
 			auto continueVar = getUnusedName("_continue_"sv);
 			addToScope(continueVar);
-			_continueVars.push(continueVar);
+			_continueVars.push({continueVar, nullptr});
 			_buf << indent() << "local "sv << continueVar << " = false"sv << nll(body);
 			_buf << indent() << "repeat"sv << nll(body);
 			pushScope();
@@ -5299,10 +5376,10 @@ private:
 			if (!appendContent.empty()) {
 				_buf << indent() << appendContent;
 			}
-			_buf << indent() << _continueVars.top() << " = true"sv << nll(body);
+			_buf << indent() << _continueVars.top().var << " = true"sv << nll(body);
 			popScope();
 			_buf << indent() << "until true"sv << nlr(body);
-			_buf << indent() << "if not "sv << _continueVars.top() << " then"sv << nlr(body);
+			_buf << indent() << "if not "sv << _continueVars.top().var << " then"sv << nlr(body);
 			_buf << indent(1) << "break"sv << nlr(body);
 			_buf << indent() << "end"sv << nlr(body);
 			temp.push_back(clearBuf());
@@ -5311,6 +5388,67 @@ private:
 			temp.back().append(indent() + appendContent);
 		}
 		out.push_back(join(temp));
+	}
+
+	std::string transformRepeatBody(Repeat_t* repeatNode, str_list& out) {
+		str_list temp;
+		bool extraDo = false;
+		auto body = repeatNode->body->content.get();
+		bool withContinue = hasContinueStatement(body);
+		std::string conditionVar;
+		if (withContinue) {
+			if (auto block = ast_cast<Block_t>(body)) {
+				if (!block->statements.empty()) {
+					auto stmt = static_cast<Statement_t*>(block->statements.back());
+					if (auto breakLoop = ast_cast<BreakLoop_t>(stmt->content)) {
+						extraDo = _parser.toString(breakLoop) == "break"sv;
+					}
+				}
+			}
+			conditionVar = getUnusedName("_cond_");
+			forceAddToScope(conditionVar);
+			auto continueVar = getUnusedName("_continue_"sv);
+			forceAddToScope(continueVar);
+			{
+				auto assignment = toAst<ExpListAssign_t>(conditionVar + "=nil"s, repeatNode->condition);
+				auto assign = assignment->action.to<Assign_t>();
+				assign->values.clear();
+				assign->values.push_back(repeatNode->condition);
+				_continueVars.push({continueVar, assignment.get()});
+			}
+			_buf << indent() << "local "sv << conditionVar << " = false"sv << nll(body);
+			_buf << indent() << "local "sv << continueVar << " = false"sv << nll(body);
+			_buf << indent() << "repeat"sv << nll(body);
+			pushScope();
+			if (extraDo) {
+				_buf << indent() << "do"sv << nll(body);
+				pushScope();
+			}
+			temp.push_back(clearBuf());
+		}
+		transform_plain_body(body, temp, ExpUsage::Common);
+		if (withContinue) {
+			{
+				transformAssignment(_continueVars.top().condAssign, temp);
+				auto assignCond = std::move(temp.back());
+				temp.pop_back();
+				temp.back().append(assignCond);
+			}
+			if (extraDo) {
+				popScope();
+				_buf << indent() << "end"sv << nll(body);
+			}
+			_buf << indent() << _continueVars.top().var << " = true"sv << nll(body);
+			popScope();
+			_buf << indent() << "until true"sv << nlr(body);
+			_buf << indent() << "if not "sv << _continueVars.top().var << " then"sv << nlr(body);
+			_buf << indent(1) << "break"sv << nlr(body);
+			_buf << indent() << "end"sv << nlr(body);
+			temp.push_back(clearBuf());
+			_continueVars.pop();
+		}
+		out.push_back(join(temp));
+		return conditionVar;
 	}
 
 	void transformFor(For_t* forNode, str_list& out) {
@@ -5854,6 +5992,30 @@ private:
 		size_t count = 0;
 		for (auto keyValue : class_member_list->values.objects()) {
 			MemType type = MemType::Common;
+			ast_ptr<false, ast_node> ref;
+			switch (keyValue->getId()) {
+				case id<meta_variable_pair_t>(): {
+					auto mtPair = static_cast<meta_variable_pair_t*>(keyValue);
+					auto nameStr = _parser.toString(mtPair->name);
+					ref.set(toAst<normal_pair_t>("__"s + nameStr + ':' + nameStr, keyValue));
+					keyValue = ref.get();
+					break;
+				}
+				case id<meta_normal_pair_t>(): {
+					auto mtPair = static_cast<meta_normal_pair_t*>(keyValue);
+					auto normal_pair = keyValue->new_ptr<normal_pair_t>();
+					if (auto name = mtPair->key.as<Name_t>()) {
+						auto nameStr = _parser.toString(name);
+						normal_pair->key.set(toAst<KeyName_t>("__"s + nameStr, keyValue));
+					} else {
+						normal_pair->key.set(mtPair->key);
+					}
+					normal_pair->value.set(mtPair->value);
+					ref.set(normal_pair);
+					keyValue = ref.get();
+					break;
+				}
+			}
 			BLOCK_START
 			auto normal_pair = ast_cast<normal_pair_t>(keyValue);
 			BREAK_IF(!normal_pair);
@@ -6589,12 +6751,13 @@ private:
 	}
 
 	void transformImportAs(ImportAs_t* import, str_list& out) {
-		auto x = import;
+		ast_node* x = import;
 		if (!import->target) {
 			auto name = moduleNameFrom(import->literal);
 			import->target.set(toAst<Variable_t>(name, x));
 		}
 		if (ast_is<import_all_macro_t, ImportTabLit_t>(import->target)) {
+			x = import->target.get();
 			bool importAllMacro = import->target.is<import_all_macro_t>();
 			std::list<std::pair<std::string,std::string>> macroPairs;
 			auto newTab = x->new_ptr<ImportTabLit_t>();
@@ -6834,8 +6997,12 @@ private:
 	void transformRepeat(Repeat_t* repeat, str_list& out) {
 		str_list temp;
 		pushScope();
-		transformLoopBody(repeat->body->content, temp, Empty, ExpUsage::Common);
-		transformExp(repeat->condition, temp, ExpUsage::Closure);
+		auto condVar = transformRepeatBody(repeat, temp);
+		if (condVar.empty()) {
+			transformExp(repeat->condition, temp, ExpUsage::Closure);
+		} else {
+			temp.push_back(condVar);
+		}
 		popScope();
 		_buf << indent() << "repeat"sv << nll(repeat);
 		_buf << temp.front();
@@ -7016,7 +7183,13 @@ private:
 			return;
 		}
 		if (_continueVars.empty()) throw std::logic_error(_info.errorMessage("continue is not inside a loop"sv, breakLoop));
-		_buf << indent() << _continueVars.top() << " = true"sv << nll(breakLoop);
+		auto& item = _continueVars.top();
+		if (item.condAssign) {
+			str_list temp;
+			transformAssignment(item.condAssign, temp);
+			_buf << temp.back();
+		}
+		_buf << indent() << item.var << " = true"sv << nll(breakLoop);
 		_buf << indent() << "break"sv << nll(breakLoop);
 		out.push_back(clearBuf());
 	}
