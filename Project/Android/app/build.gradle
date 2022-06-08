@@ -51,6 +51,7 @@ android {
 	}
 	buildToolsVersion '32.0.0'
 	ndkVersion '23.1.7779620'
+	namespace 'com.luvfight.dorothy'
 }
 
 dependencies {

@@ -23,7 +23,9 @@
 // ImPlot v0.13 WIP
 
 // We define this so that the demo does not accidentally use deprecated API
+#ifndef IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
 #define IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
+#endif
 
 #include "implot.h"
 #include <math.h>
@@ -226,16 +228,16 @@ void ButtonSelector(const char* label, ImGuiMouseButton* b) {
     ImGui::PopID();
 }
 
-void ModSelector(const char* label, ImGuiKeyModFlags* k) {
+void ModSelector(const char* label, ImGuiModFlags* k) {
     ImGui::PushID(label);
-    ImGui::CheckboxFlags("Ctrl", (unsigned int*)k, ImGuiKeyModFlags_Ctrl); ImGui::SameLine();
-    ImGui::CheckboxFlags("Shift", (unsigned int*)k, ImGuiKeyModFlags_Shift); ImGui::SameLine();
-    ImGui::CheckboxFlags("Alt", (unsigned int*)k, ImGuiKeyModFlags_Alt); ImGui::SameLine();
-    ImGui::CheckboxFlags("Super", (unsigned int*)k, ImGuiKeyModFlags_Super);
+    ImGui::CheckboxFlags("Ctrl", (unsigned int*)k, ImGuiModFlags_Ctrl); ImGui::SameLine();
+    ImGui::CheckboxFlags("Shift", (unsigned int*)k, ImGuiModFlags_Shift); ImGui::SameLine();
+    ImGui::CheckboxFlags("Alt", (unsigned int*)k, ImGuiModFlags_Alt); ImGui::SameLine();
+    ImGui::CheckboxFlags("Super", (unsigned int*)k, ImGuiModFlags_Super);
     ImGui::PopID();
 }
 
-void InputMapping(const char* label, ImGuiMouseButton* b, ImGuiKeyModFlags* k) {
+void InputMapping(const char* label, ImGuiMouseButton* b, ImGuiModFlags* k) {
     ImGui::LabelText("##","%s",label);
     if (b != NULL) {
         ImGui::SameLine(100);
@@ -663,7 +665,7 @@ void ShowDemo_Heatmaps() {
 
     ImGui::SameLine();
 
-    const int size = 200;
+    const int size = 80;
     static double values2[size*size];
     srand((unsigned int)(ImGui::GetTime()*1000000));
     for (int i = 0; i < size*size; ++i)
@@ -749,15 +751,15 @@ void ShowDemo_Histogram() {
 }
 
 void ShowDemo_Histogram2D() {
-    static int count     = 500000;
-    static int xybins[2] = {200,200};
+    static int count     = 50000;
+    static int xybins[2] = {100,100};
     static bool density2 = false;
-    ImGui::SliderInt("Count",&count,100,500000);
+    ImGui::SliderInt("Count",&count,100,100000);
     ImGui::SliderInt2("Bins",xybins,1,500);
     ImGui::SameLine();
     ImGui::Checkbox("Density##2",&density2);
-    static NormalDistribution<500000> dist1(1, 2);
-    static NormalDistribution<500000> dist2(1, 1);
+    static NormalDistribution<100000> dist1(1, 2);
+    static NormalDistribution<100000> dist2(1, 1);
     double max_count = 0;
     ImPlotAxisFlags flags = ImPlotAxisFlags_AutoFit|ImPlotAxisFlags_Foreground;
     ImPlot::PushColormap("Hot");
