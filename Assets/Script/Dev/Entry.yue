@@ -1,10 +1,4 @@
 _ENV = Dorothy builtin.ImGui
-import "Utils" as :Set, :Struct
-import "yue" as options: {extension: yueext}
-
-print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
-
-LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 moduleCache = {}
 oldRequire = _G.require
@@ -16,6 +10,13 @@ require = (path)->
 	loaded
 _G.require = require
 builtin.require = require
+
+import "Utils" as :Set, :Struct
+import "yue" as options: {extension: yueext}
+
+print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
+
+LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 allowedUseOfGlobals = Set
 	* "Dorothy"
@@ -399,6 +400,23 @@ threadLoop ->
 				doCompile true if Selectable "Minify"
 				Separator!
 				doClean! if Selectable "Clean"
+			SameLine!
+			if Button "Reload", Vec2 70, 30
+				doClean!
+				Routine\clear!
+				allClear!
+				_G.require = oldRequire
+				builtin.require = oldRequire
+				package.loaded["Dev.Entry"] = nil
+				Content.searchPaths =
+					* Path Content.writablePath, "Build", "Script"
+					* Path Content.writablePath, "Build", "Script", "Lib"
+					* "Script"
+					* Path "Script", "Lib"
+					* Path "Script", "Lib", "Dora"
+				Director.systemScheduler\schedule ->
+					oldRequire "Dev.Entry"
+					true
 		else
 			SameLine!
 			allClear! if Button "Home", Vec2 70, 30

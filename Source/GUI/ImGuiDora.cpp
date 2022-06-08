@@ -516,9 +516,10 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 		Warn("failed to load ttf file for ImGui!");
 		return;
 	}
-	
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.FontGlobalScale = 1.0f / scale;
+	io.Fonts = _defaultFonts.get();
 	io.Fonts->Clear();
 	ImFontConfig fontConfig;
 	fontConfig.FontDataOwnedByAtlas = false;
@@ -555,6 +556,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 
 	if (targetGlyphRanges)
 	{
+		_fonts->Clear();
 		_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
 		SharedAsyncThread.run([this]()
 		{
