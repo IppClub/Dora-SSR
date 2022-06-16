@@ -22,6 +22,7 @@ include_directories(
 	../../../Source/3rdParty/font
 	../../../Source/3rdParty/sqlite
 	../../../Source/3rdParty/dragonBones
+	../../../Source/3rdParty/wasm3
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
@@ -48,7 +49,7 @@ set_target_properties(
 	../3rdParty/libs/libbimg_decodeRelease.a
 )
 
-add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0)
+add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wno-psabi)
@@ -104,6 +105,7 @@ add_executable(dorothy-ssr
 	../../../Source/Lua/LuaHandler.cpp
 	../../../Source/Lua/TealCompiler.cpp
 	../../../Source/Lua/LuaEngine.cpp
+	../../../Source/Wasm/WasmRuntime.cpp
 	../../../Source/Const/Header.cpp
 	../../../Source/Common/Utils.cpp
 	../../../Source/Common/Singleton.cpp
@@ -263,6 +265,21 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/Lua/llex.c
 	../../../Source/3rdParty/Lua/ltm.c
 	../../../Source/3rdParty/Lua/ldo.c
+	../../../Source/3rdParty/wasm3/m3_compile.c
+	../../../Source/3rdParty/wasm3/m3_api_libc.c
+	../../../Source/3rdParty/wasm3/m3_env.c
+	../../../Source/3rdParty/wasm3/m3_exec.c
+	../../../Source/3rdParty/wasm3/m3_bind.c
+	../../../Source/3rdParty/wasm3/m3_info.c
+	../../../Source/3rdParty/wasm3/m3_parse.c
+	../../../Source/3rdParty/wasm3/m3_module.c
+	../../../Source/3rdParty/wasm3/m3_api_tracer.c
+	../../../Source/3rdParty/wasm3/m3_core.c
+	../../../Source/3rdParty/wasm3/m3_api_wasi.c
+	../../../Source/3rdParty/wasm3/m3_code.c
+	../../../Source/3rdParty/wasm3/m3_function.c
+	../../../Source/3rdParty/wasm3/m3_api_meta_wasi.c
+	../../../Source/3rdParty/wasm3/m3_api_uvwasi.c
 	../../../Source/3rdParty/ml/DecisionTree.cpp
 	../../../Source/3rdParty/tinyxml2/tinyxml2.cpp
 	../../../Source/3rdParty/tinyxml2/SAXParser.cpp

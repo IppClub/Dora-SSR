@@ -41,78 +41,114 @@ public:
 
 	void pop(int count = 1);
 
-	void push(bool value);
-	void push(int value);
-	void push(uint16_t value);
-	void push(uint32_t value);
-	void push(uint64_t value);
-	void push(lua_Integer value);
-	void push(float value);
-	void push(lua_Number value);
-	void push(Value* value);
-	void push(Object* value);
-	void push(String value);
-	void push(const std::string& value);
-	void push(const Vec2& value);
-	void push(std::nullptr_t);
+	template <class T>
+	typename std::enable_if_t<std::is_integral_v<T>> push(T value)
+	{
+		lua_pushinteger(L, s_cast<lua_Integer>(value));
+	}
+
+	template <class T>
+	typename std::enable_if_t<std::is_floating_point_v<T>> push(T value)
+	{
+		lua_pushnumber(L, s_cast<lua_Number>(value));
+	}
+
 	template<typename T>
-	typename std::enable_if<!std::is_pointer_v<T> && std::is_class_v<T>>::type push(const T& t)
+	typename std::enable_if_t<std::is_base_of_v<Object, T>> push(T* value)
+	{
+		tolua_pushobject(L, value);
+	}
+
+	template<typename T>
+	typename std::enable_if_t<!std::is_pointer_v<T> && std::is_class_v<T> && !std::is_same_v<std::string, T>> push(const T& t)
 	{
 		tolua_pushusertype(L, new T(t), LuaType<T>());
 	}
+
 	template<typename T>
 	typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
 
-	static void push(lua_State* L, bool value);
-	static void push(lua_State* L, int value);
-	static void push(lua_State* L, uint16_t value);
-	static void push(lua_State* L, uint32_t value);
-	static void push(lua_State* L, uint64_t value);
-	static void push(lua_State* L, lua_Integer value);
-	static void push(lua_State* L, float value);
-	static void push(lua_State* L, lua_Number value);
-	static void push(lua_State* L, Value* value);
-	static void push(lua_State* L, Object* value);
-	static void push(lua_State* L, String value);
-	static void push(lua_State* L, const std::string& value);
-	static void push(lua_State* L, const Vec2& value);
-	static void push(lua_State* L, std::nullptr_t);
+	void push(bool value);
+	void push(Value* value);
+	void push(String value);
+	void push(const Vec2& value);
+
+	template <class T>
+	static typename std::enable_if_t<std::is_integral_v<T>> push(lua_State* L, T value)
+	{
+		lua_pushinteger(L, s_cast<lua_Integer>(value));
+	}
+
+	template <class T>
+	static typename std::enable_if_t<std::is_floating_point_v<T>> push(lua_State* L, T value)
+	{
+		lua_pushnumber(L, s_cast<lua_Number>(value));
+	}
+
 	template<typename T>
-	static typename std::enable_if<!std::is_pointer_v<T>>::type push(lua_State* L, const T& t)
+	static typename std::enable_if_t<std::is_base_of_v<Object, T>> push(lua_State* L, T* value)
+	{
+		tolua_pushobject(L, value);
+	}
+
+	template<typename T>
+	static typename std::enable_if_t<!std::is_pointer_v<T> && std::is_class_v<T> && !std::is_same_v<std::string, T>> push(lua_State* L, const T& t)
 	{
 		tolua_pushusertype(L, new T(t), LuaType<T>());
 	}
+
 	template<typename T>
 	static typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(lua_State* L, T* t)
 	{
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
 
+	static void push(lua_State* L, bool value);
+	static void push(lua_State* L, Value* value);
+	static void push(lua_State* L, String value);
+	static void push(lua_State* L, const Vec2& value);
+
 	bool to(bool& value, int index);
-	bool to(int& value, int index);
-	bool to(uint16_t& value, int index);
-	bool to(uint32_t& value, int index);
-	bool to(uint64_t& value, int index);
-	bool to(int64_t& value, int index);
-	bool to(float& value, int index);
-	bool to(double& value, int index);
 	bool to(Object*& value, int index);
 	bool to(std::string& value, int index);
 
-	template<typename T>
-	typename std::enable_if<std::is_base_of<Object, T>::value, bool>::type to(T*& t, int index)
+	template <class T>
+	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index)
 	{
-		t = dynamic_cast<T*>(r_cast<Object*>(tolua_tousertype(L, index, nullptr)));
+		if (lua_isinteger(L, index))
+		{
+			value = s_cast<T>(lua_tointeger(L, index));
+			return true;
+		}
 		return false;
+	}
+
+	template <class T>
+	typename std::enable_if_t<std::is_floating_point_v<T>, bool> to(T& value, int index)
+	{
+		if (lua_isnumber(L, index))
+		{
+			value = s_cast<T>(lua_tonumber(L, index));
+			return true;
+		}
+		return false;
+	}
+
+	template<typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>, bool> to(T*& t, int index)
+	{
+		Object* obj = r_cast<Object*>(tolua_tousertype(L, index, nullptr));
+		t = dynamic_cast<T*>(obj);
+		return t == obj;
 	}
 
 	void executeReturn(LuaHandler*& luaHandler, int handler, int paramCount);
 
 	template<typename T>
-	typename std::enable_if<!std::is_base_of<Object, T>::value>::type executeReturn(T& value, int handler, int paramCount)
+	typename std::enable_if_t<!std::is_base_of_v<Object, T>> executeReturn(T& value, int handler, int paramCount)
 	{
 		LuaEngine::invoke(L, handler, paramCount, 1);
 		to(value, -1);
@@ -120,7 +156,7 @@ public:
 	}
 
 	template<typename T>
-	typename std::enable_if<std::is_base_of<Object, T>::value>::type executeReturn(T*& value, int handler, int paramCount)
+	typename std::enable_if_t<std::is_base_of_v<Object, T>> executeReturn(T*& value, int handler, int paramCount)
 	{
 		LuaEngine::invoke(L, handler, paramCount, 1);
 		Object* obj = nullptr;

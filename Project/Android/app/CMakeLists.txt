@@ -15,6 +15,7 @@ include_directories(
 	src/main/cpp/3rdParty/font
 	src/main/cpp/3rdParty/sqlite
 	src/main/cpp/3rdParty/dragonBones
+	src/main/cpp/3rdParty/wasm3
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
@@ -47,7 +48,7 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
 )
 
-add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -DDORA_DEBUG=1)
+add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -DDORA_DEBUG=1 -Dd_m3HasWASI)
 
 add_library(main SHARED
 	src/main/cpp/Platformer/AINode.cpp
@@ -99,6 +100,7 @@ add_library(main SHARED
 	src/main/cpp/Lua/LuaHandler.cpp
 	src/main/cpp/Lua/TealCompiler.cpp
 	src/main/cpp/Lua/LuaEngine.cpp
+	src/main/cpp/Wasm/WasmRuntime.cpp
 	src/main/cpp/Const/Header.cpp
 	src/main/cpp/Common/Utils.cpp
 	src/main/cpp/Common/Singleton.cpp
@@ -258,6 +260,21 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/Lua/llex.c
 	src/main/cpp/3rdParty/Lua/ltm.c
 	src/main/cpp/3rdParty/Lua/ldo.c
+	src/main/cpp/3rdParty/wasm3/m3_compile.c
+	src/main/cpp/3rdParty/wasm3/m3_api_libc.c
+	src/main/cpp/3rdParty/wasm3/m3_env.c
+	src/main/cpp/3rdParty/wasm3/m3_exec.c
+	src/main/cpp/3rdParty/wasm3/m3_bind.c
+	src/main/cpp/3rdParty/wasm3/m3_info.c
+	src/main/cpp/3rdParty/wasm3/m3_parse.c
+	src/main/cpp/3rdParty/wasm3/m3_module.c
+	src/main/cpp/3rdParty/wasm3/m3_api_tracer.c
+	src/main/cpp/3rdParty/wasm3/m3_core.c
+	src/main/cpp/3rdParty/wasm3/m3_api_wasi.c
+	src/main/cpp/3rdParty/wasm3/m3_code.c
+	src/main/cpp/3rdParty/wasm3/m3_function.c
+	src/main/cpp/3rdParty/wasm3/m3_api_meta_wasi.c
+	src/main/cpp/3rdParty/wasm3/m3_api_uvwasi.c
 	src/main/cpp/3rdParty/ml/DecisionTree.cpp
 	src/main/cpp/3rdParty/tinyxml2/tinyxml2.cpp
 	src/main/cpp/3rdParty/tinyxml2/SAXParser.cpp

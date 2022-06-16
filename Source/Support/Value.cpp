@@ -14,6 +14,92 @@ NS_DOROTHY_BEGIN
 
 const Own<Value> Value::None;
 
+/* ValueInt */
+
+Own<Value> ValueInt::clone() const
+{
+	return Value::alloc(_value);
+}
+
+void ValueInt::pushToLua(lua_State* L) const
+{
+	LuaEngine::push(L, _value);
+}
+
+ValueType ValueInt::getType() const
+{
+	return ValueType::Integral;
+}
+
+bool ValueInt::equals(Value* other) const
+{
+	if (auto value = DoraAs<ValueInt>(other))
+	{
+		return _value == value->get();
+	}
+	return false;
+}
+
+MEMORY_POOL(ValueInt);
+
+/* ValueFloat */
+
+Own<Value> ValueFloat::clone() const
+{
+	return Value::alloc(_value);
+}
+
+void ValueFloat::pushToLua(lua_State* L) const
+{
+	LuaEngine::push(L, _value);
+}
+
+ValueType ValueFloat::getType() const
+{
+	return ValueType::Integral;
+}
+
+bool ValueFloat::equals(Value* other) const
+{
+	if (auto value = DoraAs<ValueFloat>(other))
+	{
+		return _value == value->get();
+	}
+	return false;
+}
+
+MEMORY_POOL(ValueFloat);
+
+/* ValueBool */
+
+Own<Value> ValueBool::clone() const
+{
+	return Value::alloc(_value);
+}
+
+void ValueBool::pushToLua(lua_State* L) const
+{
+	LuaEngine::push(L, _value);
+}
+
+ValueType ValueBool::getType() const
+{
+	return ValueType::Integral;
+}
+
+bool ValueBool::equals(Value* other) const
+{
+	if (auto value = DoraAs<ValueBool>(other))
+	{
+		return _value == value->get();
+	}
+	return false;
+}
+
+MEMORY_POOL(ValueBool);
+
+/* ValueObject */
+
 Own<Value> ValueObject::clone() const
 {
 	return Value::alloc(_value.get());
@@ -28,14 +114,9 @@ void ValueObject::pushToLua(lua_State* L) const
 	else LuaEngine::push(L, _value.get());
 }
 
-bool ValueObject::isNumeric() const
+ValueType ValueObject::getType() const
 {
-	return false;
-}
-
-float ValueObject::toFloat() const
-{
-	return 0.0f;
+	return ValueType::Object;
 }
 
 bool ValueObject::equals(Value* other) const

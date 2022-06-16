@@ -250,7 +250,7 @@ Joint* DistanceDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::distance(collision, &targetA->to<Body>(), &targetB->to<Body>(), anchorA, anchorB, frequency, damping);
+	return Joint::distance(collision, targetA->to<Body>(), targetB->to<Body>(), anchorA, anchorB, frequency, damping);
 }
 
 Joint* FrictionDef::toJoint(Dictionary* itemDict)
@@ -258,7 +258,7 @@ Joint* FrictionDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::friction(collision, &targetA->to<Body>(), &targetB->to<Body>(), t(worldPos), maxForce, maxTorque);
+	return Joint::friction(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), maxForce, maxTorque);
 }
 
 Joint* GearDef::toJoint(Dictionary* itemDict)
@@ -266,7 +266,7 @@ Joint* GearDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(jointA).get();
 	Value* targetB = itemDict->get(jointB).get();
 	AssertUnless(targetA && targetB, "failed to get joints for joint creation");
-	return Joint::gear(collision, &targetA->to<Joint>(), &targetB->to<Joint>(), ratio);
+	return Joint::gear(collision, targetA->to<Joint>(), targetB->to<Joint>(), ratio);
 }
 
 Joint* SpringDef::toJoint(Dictionary* itemDict)
@@ -274,7 +274,7 @@ Joint* SpringDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::spring(collision, &targetA->to<Body>(), &targetB->to<Body>(), linearOffset, angularOffset, maxForce, maxTorque, correctionFactor);
+	return Joint::spring(collision, targetA->to<Body>(), targetB->to<Body>(), linearOffset, angularOffset, maxForce, maxTorque, correctionFactor);
 }
 
 Joint* PrismaticDef::toJoint(Dictionary* itemDict)
@@ -282,7 +282,7 @@ Joint* PrismaticDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::prismatic(collision, &targetA->to<Body>(), &targetB->to<Body>(), t(worldPos), axisAngle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed);
+	return Joint::prismatic(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), axisAngle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed);
 }
 
 Joint* PulleyDef::toJoint(Dictionary* itemDict)
@@ -290,7 +290,7 @@ Joint* PulleyDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::pulley(collision, &targetA->to<Body>(), &targetB->to<Body>(), anchorA, anchorB, t(groundAnchorA), t(groundAnchorB), ratio);
+	return Joint::pulley(collision, targetA->to<Body>(), targetB->to<Body>(), anchorA, anchorB, t(groundAnchorA), t(groundAnchorB), ratio);
 }
 
 Joint* RevoluteDef::toJoint(Dictionary* itemDict)
@@ -298,7 +298,7 @@ Joint* RevoluteDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::revolute(collision, &targetA->to<Body>(), &targetB->to<Body>(), t(worldPos), lowerAngle + angle, upperAngle + angle, maxMotorTorque, motorSpeed);
+	return Joint::revolute(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), lowerAngle + angle, upperAngle + angle, maxMotorTorque, motorSpeed);
 }
 
 Joint* RopeDef::toJoint(Dictionary* itemDict)
@@ -306,7 +306,7 @@ Joint* RopeDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::rope(collision, &targetA->to<Body>(), &targetB->to<Body>(), anchorA, anchorB, maxLength);
+	return Joint::rope(collision, targetA->to<Body>(), targetB->to<Body>(), anchorA, anchorB, maxLength);
 }
 
 Joint* WeldDef::toJoint(Dictionary* itemDict)
@@ -314,7 +314,7 @@ Joint* WeldDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::weld(collision, &targetA->to<Body>(), &targetB->to<Body>(), t(worldPos), frequency, damping);
+	return Joint::weld(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), frequency, damping);
 }
 
 Joint* WheelDef::toJoint(Dictionary* itemDict)
@@ -322,7 +322,7 @@ Joint* WheelDef::toJoint(Dictionary* itemDict)
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::wheel(collision, &targetA->to<Body>(), &targetB->to<Body>(), t(worldPos), axisAngle, maxMotorTorque, motorSpeed, frequency, damping);
+	return Joint::wheel(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), axisAngle, maxMotorTorque, motorSpeed, frequency, damping);
 }
 
 NS_DOROTHY_END

@@ -48,16 +48,6 @@ const Own<Value>& Dictionary::get(String key) const
 	return Value::None;
 }
 
-float Dictionary::get(String key, float def) const
-{
-	const auto& value = get(key);
-	if (value && value->isNumeric())
-	{
-		return value->toFloat();
-	}
-	return def;
-}
-
 void Dictionary::set(String key, Own<Value>&& value)
 {
 	if (value)

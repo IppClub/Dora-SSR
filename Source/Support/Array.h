@@ -66,12 +66,19 @@ private:
 	DORA_TYPE_OVERRIDE(Array);
 };
 
-#define ARRAY_START(type,varName,array) \
+#define ARRAY_START_VAL(type, varName, array) \
 	if (array && !array->isEmpty()) \
 	{ \
 		for (const auto& _item_ : array->data()) \
 		{ \
-			type* varName = &_item_->to<type>();
+			type varName = _item_->toVal<type>();
+
+#define ARRAY_START(type, varName, array) \
+	if (array && !array->isEmpty()) \
+	{ \
+		for (const auto& _item_ : array->data()) \
+		{ \
+			type* varName = _item_->to<type>();
 
 #define ARRAY_END }}
 

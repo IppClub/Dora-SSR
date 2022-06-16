@@ -508,7 +508,7 @@ void Node::addChild(Node* child, int order, String tag)
 	Node* last = nullptr;
 	if (!_children->isEmpty())
 	{
-		last = &_children->getLast()->to<Node>();
+		last = _children->getLast()->to<Node>();
 	}
 	_children->add(Value::alloc(child));
 	if (last && last->getOrder() > child->getOrder())
@@ -623,7 +623,7 @@ void Node::moveToParent(Node* parent)
 			Node* last = nullptr;
 			if (!parent->_children->isEmpty())
 			{
-				last = &parent->_children->getLast()->to<Node>();
+				last = parent->_children->getLast()->to<Node>();
 			}
 			parent->_children->add(Value::alloc(this));
 			if (last && last->getOrder() > getOrder())
@@ -893,7 +893,7 @@ void Node::visitInner()
 			auto& data = _children->data();
 			for (index = 0; index < data.size(); index++)
 			{
-				Node* node = &data[index]->to<Node>();
+				Node* node = data[index]->to<Node>();
 				if (node->getOrder() >= 0) break;
 				node->visit();
 			}
@@ -911,7 +911,7 @@ void Node::visitInner()
 			/* visit and render child whose order is greater equal than 0 */
 			for (; index < data.size(); index++)
 			{
-				Node* node = &data[index]->to<Node>();
+				Node* node = data[index]->to<Node>();
 				node->visit();
 			}
 		};
@@ -1160,7 +1160,7 @@ void Node::sortAllChildren()
 		auto& data = _children->data();
 		std::stable_sort(data.begin(), data.end(), [](const Own<Value>& a, const Own<Value>& b)
 		{
-			return a->to<Node>().getOrder() < b->to<Node>().getOrder();
+			return a->to<Node>()->getOrder() < b->to<Node>()->getOrder();
 		});
 		_flags.setOff(Node::Reorder);
 	}

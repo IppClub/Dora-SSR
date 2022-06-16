@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Lua/LuaHandler.h"
+#include "Wasm/WasmRuntime.h"
 
 NS_DOROTHY_BEGIN
 
@@ -41,6 +42,7 @@ public:
 	Event(String name);
 	inline String getName() const { return _name; }
 	virtual int pushArgsToLua() { return 0; }
+	virtual void pushArgsToWasm(CallInfo*) { }
 public:
 	static Listener* addListener(String name, const EventHandler& handler);
 	static void clear();
@@ -66,6 +68,49 @@ private:
 	DORA_TYPE_BASE(Event);
 };
 
+struct WasmArgsPusher
+{
+	CallInfo* info;
+
+	inline void operator()(bool value)
+	{
+		info->push(value);
+	}
+
+	inline void operator()(Object* value)
+	{
+		info->push(value);
+	}
+
+	inline void operator()(const std::string& value)
+	{
+		info->push(value);
+	}
+
+	inline void operator()(const Vec2& value)
+	{
+		info->push(value);
+	}
+
+	template <class T>
+	typename std::enable_if_t<std::is_integral_v<T>, void> operator()(T value)
+	{
+		info->push(value);
+	}
+
+	template <class T>
+	typename std::enable_if_t<std::is_floating_point_v<T>, void> operator()(T value)
+	{
+		info->push(value);
+	}
+
+	template<typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>, void> operator()(T* value)
+	{
+		info->push(value);
+	}
+};
+
 template<class... Fields>
 class EventArgs : public Event
 {
@@ -78,6 +123,10 @@ public:
 	{
 		return Tuple::foreach(arguments, LuaArgsPusher());
 	}
+	virtual void pushArgsToWasm(CallInfo* info) override
+	{
+		Tuple::foreach(arguments, WasmArgsPusher{info});
+	}
 	std::tuple<Fields...> arguments;
 	DORA_TYPE_OVERRIDE(EventArgs<Fields...>);
 };
@@ -87,11 +136,82 @@ class LuaEventArgs : public Event
 public:
 	LuaEventArgs(String name, int paramCount);
 	virtual int pushArgsToLua() override;
+	virtual void pushArgsToWasm(CallInfo* info) override
+	{
+
+	}
 	int getParamCount() const;
 	static void send(String name, int paramCount);
 private:
 	int _paramCount;
 	DORA_TYPE_OVERRIDE(LuaEventArgs);
+};
+
+class WasmEventArgs : public Event
+{
+public:
+	WasmEventArgs(String name, CallInfo* info);
+	virtual int pushArgsToLua() override;
+	virtual void pushArgsToWasm(CallInfo* info) override;
+	const std::vector<CallInfo::var_t>& values() const;
+	static void send(String name, CallInfo* info);
+public:
+	bool to(bool& value, int index);
+	bool to(Object*& value, int index);
+	bool to(std::string& value, int index);
+
+	template <class T>
+	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index)
+	{
+		if (index < s_cast<int>(_values.size()))
+		{
+			if (std::holds_alternative<int32_t>(_values[index]))
+			{
+				value = s_cast<T>(std::get<int32_t>(_values[index]));
+				return true;
+			}
+			else if (std::holds_alternative<int64_t>(_values[index]))
+			{
+				value = s_cast<T>(std::get<int64_t>(_values[index]));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	template <class T>
+	typename std::enable_if_t<std::is_floating_point_v<T>, bool> to(T& value, int index)
+	{
+		if (index < s_cast<int>(_values.size()))
+		{
+			if (std::holds_alternative<float>(_values[index]))
+			{
+				value = s_cast<T>(std::get<float>(_values[index]));
+				return true;
+			}
+			else if (std::holds_alternative<double>(_values[index]))
+			{
+				value = s_cast<T>(std::get<double>(_values[index]));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	template<typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>, bool> to(T*& value, int index)
+	{
+		if (index < s_cast<int>(_values.size()) && std::holds_alternative<Object*>(_values[index]))
+		{
+			Object* obj = std::get<Object*>(_values[index]);
+			value = dynamic_cast<T*>(obj);
+			return value == obj;
+		}
+		return false;
+	}
+private:
+	std::vector<CallInfo::var_t> _values;
+	DORA_TYPE_OVERRIDE(WasmEventArgs);
 };
 
 template<class... Args>
@@ -101,30 +221,38 @@ void Event::send(String name, const Args&... args)
 	Event::send(&event);
 }
 
+inline bool logicAnd(std::initializer_list<bool> values)
+{
+	return std::accumulate(values.begin(), values.end(), true, std::logical_and<bool>());
+}
+
 template<class... Args>
 void Event::get(Args&... args)
 {
-	LuaEventArgs* luaEvent = DoraAs<LuaEventArgs>(this);
-	if (luaEvent)
+	if (auto event = DoraAs<LuaEventArgs>(this))
 	{
 		lua_State* L = SharedLuaEngine.getState();
-		int i = lua_gettop(L) - luaEvent->getParamCount();
-		bool results[] = {SharedLuaEngine.to(args, ++i)...};
-#if DORA_DEBUG
-		for (bool result : results)
+		int i = lua_gettop(L) - event->getParamCount();
+		if (!logicAnd({SharedLuaEngine.to(args, ++i)...}))
 		{
-			AssertUnless(result, "lua event arguments mismatch.");
-			if (!result) return;
+			Issue("lua event arguments mismatch.");
 		}
-#else
-		DORA_UNUSED_PARAM(results);
-#endif // DORA_DEBUG
+	}
+	else if (auto event = DoraAs<EventArgs<Args...>>(this))
+	{
+		std::tie(args...) = event->arguments;
+	}
+	else if (auto event = DoraAs<WasmEventArgs>(this))
+	{
+		int i = -1;
+		if (!logicAnd({event->to(args, ++i)...}))
+		{
+			Issue("wasm event arguments mismatch.");
+		}
 	}
 	else
 	{
-		auto targetEvent = DoraAs<EventArgs<Args...>>(this);
-		AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
-		std::tie(args...) = targetEvent->arguments;
+		Issue("no required event argument type can be retrieved.");
 	}
 }
 

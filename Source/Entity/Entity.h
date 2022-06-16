@@ -44,10 +44,9 @@ public:
 	template<typename T>
 	void setNext(String name, const T& value);
 	template<typename T>
-	const T& get(String name) const;
-	float get(String key, float def) const;
+	T get(String name) const;
 	template<typename T>
-	const T& get(String name, const T& def) const;
+	T get(String name, const T& def) const;
 public:
 	int getIndex(String name);
 	bool has(int index) const;
@@ -140,7 +139,7 @@ void Entity::set(String name, const T& value, bool rawFlag)
 		}
 		else
 		{
-			com->to<T>() = value;
+			com->set(value);
 		}
 		return;
 	}
@@ -156,7 +155,7 @@ void Entity::set(String name, const T& value, bool rawFlag)
 		else
 		{
 			updateComponent(index, com->clone(), false);
-			com->to<T>() = value;
+			com->set(value);
 		}
 	}
 	else
@@ -165,27 +164,48 @@ void Entity::set(String name, const T& value, bool rawFlag)
 	}
 }
 
+template <typename T>
+T Entity::get(String key) const
+{
+	auto com = getComponent(key);
+	AssertIf(com == nullptr, "access non-exist component \"{}\".", key);
+	using Type = std::remove_pointer_t<T>;
+	if constexpr (std::is_base_of_v<Object, Type>)
+	{
+		return com->to<std::remove_pointer_t<special_decay_t<T>>>();
+	}
+	else
+	{
+		return com->toVal<Type>();
+	}
+
+}
+
+template <typename T>
+T Entity::get(String key, const T& def) const
+{
+	auto com = getComponent(key);
+	if (!com) return def;
+	using Type = std::remove_pointer_t<T>;
+	if constexpr (std::is_base_of_v<Object, Type>)
+	{
+		return com->as<std::remove_pointer_t<special_decay_t<T>>>();
+	}
+	else
+	{
+		if (auto item = com->asVal<Type>())
+		{
+			return *item;
+		}
+	}
+	return def;
+}
+
 template<typename T>
 void Entity::setNext(String name, const T& value)
 {
 	int index = getIndex(name);
 	setNext(index, Value::alloc(value));
-}
-
-template<typename T>
-const T& Entity::get(String name) const
-{
-	Value* com = getComponent(name);
-	AssertIf(com == nullptr, "access non-exist component \"{}\".", name);
-	return com->to<T>();
-}
-
-template<typename T>
-const T& Entity::get(String name, const T& def) const
-{
-	Value* com = getComponent(name);
-	if (com) return com->to<T>();
-	else return def;
 }
 
 template<typename Func>

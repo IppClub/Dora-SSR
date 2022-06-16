@@ -170,7 +170,7 @@ public:
 			sortAllChildren();
 			return _children->each([&](Value* value)
 			{
-				return func(&value->to<Node>());
+				return func(value->to<Node>());
 			});
 		}
 		return false;
@@ -186,7 +186,7 @@ public:
 			sortAllChildren();
 			for (const auto& child : _children->data())
 			{
-				if (child->to<Node>().traverse(func))
+				if (child->to<Node>()->traverse(func))
 				{
 					return true;
 				}
@@ -205,7 +205,7 @@ public:
 			sortAllChildren();
 			for (const auto& child : _children->data())
 			{
-				if (child->to<Node>().traverseAll(func))
+				if (child->to<Node>()->traverseAll(func))
 				{
 					return true;
 				}
@@ -226,7 +226,7 @@ public:
 				sortAllChildren();
 				for (const auto& child : _children->data())
 				{
-					child->to<Node>().traverseVisible(func);
+					child->to<Node>()->traverseVisible(func);
 				}
 			}
 		}

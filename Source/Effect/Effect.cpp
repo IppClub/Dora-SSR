@@ -39,15 +39,15 @@ Value* Pass::Uniform::getValue() const
 
 void Pass::Uniform::apply()
 {
-	if (auto value = _value->as<float>())
+	if (auto value = _value->asVal<float>())
 	{
 		bgfx::setUniform(_handle, Vec4{*value});
 	}
-	else if (auto value = _value->as<Vec4>())
+	else if (auto value = _value->asVal<Vec4>())
 	{
 		bgfx::setUniform(_handle, *value);
 	}
-	else if (auto value = _value->as<Matrix>())
+	else if (auto value = _value->asVal<Matrix>())
 	{
 		bgfx::setUniform(_handle, *value);
 	}
@@ -107,7 +107,7 @@ void Pass::set(String name, float var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		it->second->getValue()->to<float>() = var;
+		it->second->getValue()->set(var);
 	}
 	else
 	{
@@ -127,7 +127,7 @@ void Pass::set(String name, const Vec4& var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		it->second->getValue()->to<Vec4>() = var;
+		it->second->getValue()->set(var);
 	}
 	else
 	{
@@ -147,7 +147,7 @@ void Pass::set(String name, const Matrix& var)
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end())
 	{
-		it->second->getValue()->to<Matrix>() = var;
+		it->second->getValue()->set(var);
 	}
 	else
 	{

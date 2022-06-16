@@ -389,6 +389,22 @@
 		3CFB4FF72697DE1800181CB4 /* Json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFB4FB82697DE1800181CB4 /* Json.cpp */; };
 		3CFB4FF82697DE1800181CB4 /* SkeletonBinary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFB4FBA2697DE1800181CB4 /* SkeletonBinary.cpp */; };
 		3CFB4FF92697DE1800181CB4 /* TranslateTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFB4FBB2697DE1800181CB4 /* TranslateTimeline.cpp */; };
+		3CFEA11A285B857B002D106F /* m3_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0F2285B857A002D106F /* m3_core.c */; };
+		3CFEA11B285B857B002D106F /* m3_api_wasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0F6285B857A002D106F /* m3_api_wasi.c */; };
+		3CFEA11C285B857B002D106F /* m3_code.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0F7285B857A002D106F /* m3_code.c */; };
+		3CFEA11D285B857B002D106F /* m3_api_meta_wasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0F9285B857A002D106F /* m3_api_meta_wasi.c */; };
+		3CFEA11E285B857B002D106F /* m3_api_uvwasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0FA285B857A002D106F /* m3_api_uvwasi.c */; };
+		3CFEA11F285B857B002D106F /* m3_env.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0FC285B857A002D106F /* m3_env.c */; };
+		3CFEA120285B857B002D106F /* m3_bind.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0FD285B857A002D106F /* m3_bind.c */; };
+		3CFEA121285B857B002D106F /* m3_api_tracer.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0FE285B857A002D106F /* m3_api_tracer.c */; };
+		3CFEA122285B857B002D106F /* m3_info.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA108285B857A002D106F /* m3_info.c */; };
+		3CFEA123285B857B002D106F /* m3_compile.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA10C285B857B002D106F /* m3_compile.c */; };
+		3CFEA124285B857B002D106F /* m3_parse.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA111285B857B002D106F /* m3_parse.c */; };
+		3CFEA125285B857B002D106F /* m3_api_libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA112285B857B002D106F /* m3_api_libc.c */; };
+		3CFEA126285B857B002D106F /* m3_exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA113285B857B002D106F /* m3_exec.c */; };
+		3CFEA127285B857B002D106F /* m3_function.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA114285B857B002D106F /* m3_function.c */; };
+		3CFEA128285B857B002D106F /* m3_module.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA116285B857B002D106F /* m3_module.c */; };
+		3CFEA12C285B860B002D106F /* WasmRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA12B285B860B002D106F /* WasmRuntime.cpp */; };
 		3CFEB82D268DA599006D9974 /* DragonBone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEB82B268DA599006D9974 /* DragonBone.cpp */; };
 		3CFEB83E268DA64B006D9974 /* DataParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEB839268DA64B006D9974 /* DataParser.cpp */; };
 		3CFEB83F268DA64B006D9974 /* BinaryDataParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEB83B268DA64B006D9974 /* BinaryDataParser.cpp */; };
@@ -1267,6 +1283,47 @@
 		3CFB4FBA2697DE1800181CB4 /* SkeletonBinary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonBinary.cpp; path = ../../../Source/3rdParty/spine/SkeletonBinary.cpp; sourceTree = "<group>"; };
 		3CFB4FBB2697DE1800181CB4 /* TranslateTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TranslateTimeline.cpp; path = ../../../Source/3rdParty/spine/TranslateTimeline.cpp; sourceTree = "<group>"; };
 		3CFB4FBC2697DE1800181CB4 /* TranslateTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TranslateTimeline.h; path = ../../../Source/3rdParty/spine/TranslateTimeline.h; sourceTree = "<group>"; };
+		3CFEA0F2285B857A002D106F /* m3_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_core.c; path = ../../../Source/3rdParty/wasm3/m3_core.c; sourceTree = "<group>"; };
+		3CFEA0F3285B857A002D106F /* m3_math_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_math_utils.h; path = ../../../Source/3rdParty/wasm3/m3_math_utils.h; sourceTree = "<group>"; };
+		3CFEA0F4285B857A002D106F /* m3_code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_code.h; path = ../../../Source/3rdParty/wasm3/m3_code.h; sourceTree = "<group>"; };
+		3CFEA0F5285B857A002D106F /* wasm3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wasm3.h; path = ../../../Source/3rdParty/wasm3/wasm3.h; sourceTree = "<group>"; };
+		3CFEA0F6285B857A002D106F /* m3_api_wasi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_wasi.c; path = ../../../Source/3rdParty/wasm3/m3_api_wasi.c; sourceTree = "<group>"; };
+		3CFEA0F7285B857A002D106F /* m3_code.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_code.c; path = ../../../Source/3rdParty/wasm3/m3_code.c; sourceTree = "<group>"; };
+		3CFEA0F8285B857A002D106F /* m3_config_platforms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_config_platforms.h; path = ../../../Source/3rdParty/wasm3/m3_config_platforms.h; sourceTree = "<group>"; };
+		3CFEA0F9285B857A002D106F /* m3_api_meta_wasi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_meta_wasi.c; path = ../../../Source/3rdParty/wasm3/m3_api_meta_wasi.c; sourceTree = "<group>"; };
+		3CFEA0FA285B857A002D106F /* m3_api_uvwasi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_uvwasi.c; path = ../../../Source/3rdParty/wasm3/m3_api_uvwasi.c; sourceTree = "<group>"; };
+		3CFEA0FB285B857A002D106F /* m3_env.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_env.h; path = ../../../Source/3rdParty/wasm3/m3_env.h; sourceTree = "<group>"; };
+		3CFEA0FC285B857A002D106F /* m3_env.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_env.c; path = ../../../Source/3rdParty/wasm3/m3_env.c; sourceTree = "<group>"; };
+		3CFEA0FD285B857A002D106F /* m3_bind.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_bind.c; path = ../../../Source/3rdParty/wasm3/m3_bind.c; sourceTree = "<group>"; };
+		3CFEA0FE285B857A002D106F /* m3_api_tracer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_tracer.c; path = ../../../Source/3rdParty/wasm3/m3_api_tracer.c; sourceTree = "<group>"; };
+		3CFEA0FF285B857A002D106F /* m3_exec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_exec.h; path = ../../../Source/3rdParty/wasm3/m3_exec.h; sourceTree = "<group>"; };
+		3CFEA100285B857A002D106F /* m3_info.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_info.h; path = ../../../Source/3rdParty/wasm3/m3_info.h; sourceTree = "<group>"; };
+		3CFEA101285B857A002D106F /* wasm3_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wasm3_defs.h; path = ../../../Source/3rdParty/wasm3/wasm3_defs.h; sourceTree = "<group>"; };
+		3CFEA103285B857A002D106F /* fib64.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib64.wasm.h; sourceTree = "<group>"; };
+		3CFEA104285B857A002D106F /* coremark_minimal.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = coremark_minimal.wasm.h; sourceTree = "<group>"; };
+		3CFEA105285B857A002D106F /* fib32_tail.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib32_tail.wasm.h; sourceTree = "<group>"; };
+		3CFEA106285B857A002D106F /* fib32.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib32.wasm.h; sourceTree = "<group>"; };
+		3CFEA107285B857A002D106F /* wasi_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wasi_core.h; sourceTree = "<group>"; };
+		3CFEA108285B857A002D106F /* m3_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_info.c; path = ../../../Source/3rdParty/wasm3/m3_info.c; sourceTree = "<group>"; };
+		3CFEA109285B857A002D106F /* m3_api_wasi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_api_wasi.h; path = ../../../Source/3rdParty/wasm3/m3_api_wasi.h; sourceTree = "<group>"; };
+		3CFEA10A285B857A002D106F /* m3_bind.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_bind.h; path = ../../../Source/3rdParty/wasm3/m3_bind.h; sourceTree = "<group>"; };
+		3CFEA10B285B857A002D106F /* m3_exec_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_exec_defs.h; path = ../../../Source/3rdParty/wasm3/m3_exec_defs.h; sourceTree = "<group>"; };
+		3CFEA10C285B857B002D106F /* m3_compile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_compile.c; path = ../../../Source/3rdParty/wasm3/m3_compile.c; sourceTree = "<group>"; };
+		3CFEA10D285B857B002D106F /* m3_function.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_function.h; path = ../../../Source/3rdParty/wasm3/m3_function.h; sourceTree = "<group>"; };
+		3CFEA10E285B857B002D106F /* wasm3_cpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wasm3_cpp.h; path = ../../../Source/3rdParty/wasm3/wasm3_cpp.h; sourceTree = "<group>"; };
+		3CFEA10F285B857B002D106F /* m3_api_tracer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_api_tracer.h; path = ../../../Source/3rdParty/wasm3/m3_api_tracer.h; sourceTree = "<group>"; };
+		3CFEA110285B857B002D106F /* m3_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_core.h; path = ../../../Source/3rdParty/wasm3/m3_core.h; sourceTree = "<group>"; };
+		3CFEA111285B857B002D106F /* m3_parse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_parse.c; path = ../../../Source/3rdParty/wasm3/m3_parse.c; sourceTree = "<group>"; };
+		3CFEA112285B857B002D106F /* m3_api_libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_libc.c; path = ../../../Source/3rdParty/wasm3/m3_api_libc.c; sourceTree = "<group>"; };
+		3CFEA113285B857B002D106F /* m3_exec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_exec.c; path = ../../../Source/3rdParty/wasm3/m3_exec.c; sourceTree = "<group>"; };
+		3CFEA114285B857B002D106F /* m3_function.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_function.c; path = ../../../Source/3rdParty/wasm3/m3_function.c; sourceTree = "<group>"; };
+		3CFEA115285B857B002D106F /* m3_api_libc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_api_libc.h; path = ../../../Source/3rdParty/wasm3/m3_api_libc.h; sourceTree = "<group>"; };
+		3CFEA116285B857B002D106F /* m3_module.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_module.c; path = ../../../Source/3rdParty/wasm3/m3_module.c; sourceTree = "<group>"; };
+		3CFEA117285B857B002D106F /* m3_compile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_compile.h; path = ../../../Source/3rdParty/wasm3/m3_compile.h; sourceTree = "<group>"; };
+		3CFEA118285B857B002D106F /* m3_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_config.h; path = ../../../Source/3rdParty/wasm3/m3_config.h; sourceTree = "<group>"; };
+		3CFEA119285B857B002D106F /* m3_exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_exception.h; path = ../../../Source/3rdParty/wasm3/m3_exception.h; sourceTree = "<group>"; };
+		3CFEA12A285B860B002D106F /* WasmRuntime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WasmRuntime.h; path = ../../../Source/Wasm/WasmRuntime.h; sourceTree = "<group>"; };
+		3CFEA12B285B860B002D106F /* WasmRuntime.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WasmRuntime.cpp; path = ../../../Source/Wasm/WasmRuntime.cpp; sourceTree = "<group>"; };
 		3CFEB82B268DA599006D9974 /* DragonBone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragonBone.cpp; path = ../../../Source/Node/DragonBone.cpp; sourceTree = "<group>"; };
 		3CFEB82C268DA599006D9974 /* DragonBone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DragonBone.h; path = ../../../Source/Node/DragonBone.h; sourceTree = "<group>"; };
 		3CFEB82F268DA5E2006D9974 /* DragonBonesHeaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DragonBonesHeaders.h; path = ../../../Source/3rdParty/dragonBones/DragonBonesHeaders.h; sourceTree = "<group>"; };
@@ -1699,6 +1756,7 @@
 				3C49FFE020EF607900E775D7 /* nanovg */,
 				3CA718A41FCCF0FA00B6AC80 /* lodepng */,
 				3C1A3A50272A8460003A2829 /* Lua */,
+				3CFEA0F1285B8544002D106F /* wasm3 */,
 				3C6DA20D1EAF070D006EEE32 /* tinyxml2 */,
 				3C2DFE1D1E95C6DE0077B67D /* soloud */,
 				3C6C07631E5E857B00BAA745 /* fmt */,
@@ -2346,6 +2404,7 @@
 				3CD3282E1E4B0B3C0036906C /* GUI */,
 				3C05BCA11E35948200CC6986 /* Input */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
+				3CFEA129285B85EE002D106F /* Wasm */,
 				3CDA2E0D24C20ADD009B0AA5 /* ML */,
 				3CCBBA381E14B50B00C0416B /* Node */,
 				3CE9D7C31E7FC073003AAECB /* Physics */,
@@ -2731,6 +2790,70 @@
 			path = Shapes;
 			sourceTree = "<group>";
 		};
+		3CFEA0F1285B8544002D106F /* wasm3 */ = {
+			isa = PBXGroup;
+			children = (
+				3CFEA102285B857A002D106F /* extra */,
+				3CFEA112285B857B002D106F /* m3_api_libc.c */,
+				3CFEA115285B857B002D106F /* m3_api_libc.h */,
+				3CFEA0F9285B857A002D106F /* m3_api_meta_wasi.c */,
+				3CFEA0FE285B857A002D106F /* m3_api_tracer.c */,
+				3CFEA10F285B857B002D106F /* m3_api_tracer.h */,
+				3CFEA0FA285B857A002D106F /* m3_api_uvwasi.c */,
+				3CFEA0F6285B857A002D106F /* m3_api_wasi.c */,
+				3CFEA109285B857A002D106F /* m3_api_wasi.h */,
+				3CFEA0FD285B857A002D106F /* m3_bind.c */,
+				3CFEA10A285B857A002D106F /* m3_bind.h */,
+				3CFEA0F7285B857A002D106F /* m3_code.c */,
+				3CFEA0F4285B857A002D106F /* m3_code.h */,
+				3CFEA10C285B857B002D106F /* m3_compile.c */,
+				3CFEA117285B857B002D106F /* m3_compile.h */,
+				3CFEA0F8285B857A002D106F /* m3_config_platforms.h */,
+				3CFEA118285B857B002D106F /* m3_config.h */,
+				3CFEA0F2285B857A002D106F /* m3_core.c */,
+				3CFEA110285B857B002D106F /* m3_core.h */,
+				3CFEA0FC285B857A002D106F /* m3_env.c */,
+				3CFEA0FB285B857A002D106F /* m3_env.h */,
+				3CFEA119285B857B002D106F /* m3_exception.h */,
+				3CFEA10B285B857A002D106F /* m3_exec_defs.h */,
+				3CFEA113285B857B002D106F /* m3_exec.c */,
+				3CFEA0FF285B857A002D106F /* m3_exec.h */,
+				3CFEA114285B857B002D106F /* m3_function.c */,
+				3CFEA10D285B857B002D106F /* m3_function.h */,
+				3CFEA108285B857A002D106F /* m3_info.c */,
+				3CFEA100285B857A002D106F /* m3_info.h */,
+				3CFEA0F3285B857A002D106F /* m3_math_utils.h */,
+				3CFEA116285B857B002D106F /* m3_module.c */,
+				3CFEA111285B857B002D106F /* m3_parse.c */,
+				3CFEA10E285B857B002D106F /* wasm3_cpp.h */,
+				3CFEA101285B857A002D106F /* wasm3_defs.h */,
+				3CFEA0F5285B857A002D106F /* wasm3.h */,
+			);
+			name = wasm3;
+			sourceTree = "<group>";
+		};
+		3CFEA102285B857A002D106F /* extra */ = {
+			isa = PBXGroup;
+			children = (
+				3CFEA103285B857A002D106F /* fib64.wasm.h */,
+				3CFEA104285B857A002D106F /* coremark_minimal.wasm.h */,
+				3CFEA105285B857A002D106F /* fib32_tail.wasm.h */,
+				3CFEA106285B857A002D106F /* fib32.wasm.h */,
+				3CFEA107285B857A002D106F /* wasi_core.h */,
+			);
+			name = extra;
+			path = ../../../Source/3rdParty/wasm3/extra;
+			sourceTree = "<group>";
+		};
+		3CFEA129285B85EE002D106F /* Wasm */ = {
+			isa = PBXGroup;
+			children = (
+				3CFEA12B285B860B002D106F /* WasmRuntime.cpp */,
+				3CFEA12A285B860B002D106F /* WasmRuntime.h */,
+			);
+			name = Wasm;
+			sourceTree = "<group>";
+		};
 		3CFEB82E268DA5B6006D9974 /* dragonBones */ = {
 			isa = PBXGroup;
 			children = (
@@ -3012,6 +3135,7 @@
 				3C3B986826FDAD8E00BD9F3E /* SeparationScenario.cpp in Sources */,
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3CFEBD74268DA6E4006D9974 /* BaseTimelineState.cpp in Sources */,
+				3CFEA125285B857B002D106F /* m3_api_libc.c in Sources */,
 				3CFB4FCE2697DE1800181CB4 /* BoneData.cpp in Sources */,
 				3C46E8612614227300DC9D4F /* Object.cpp in Sources */,
 				3C6E7F35272A30E700E9F115 /* resonator.cpp in Sources */,
@@ -3022,6 +3146,7 @@
 				3C1A3AEE272A850F003A2829 /* lparser.c in Sources */,
 				3CEDF77E1E839DE6008839A3 /* ParticleCache.cpp in Sources */,
 				3C3B986626FDAD8E00BD9F3E /* Manifold.cpp in Sources */,
+				3CFEA11B285B857B002D106F /* m3_api_wasi.c in Sources */,
 				3CFB4FEF2697DE1800181CB4 /* Bone.cpp in Sources */,
 				3C3B988F26FDADBB00BD9F3E /* Joint.cpp in Sources */,
 				3C3B985B26FDAD8E00BD9F3E /* DistanceProxy.cpp in Sources */,
@@ -3037,6 +3162,7 @@
 				3C3B986026FDAD8E00BD9F3E /* AABB.cpp in Sources */,
 				3C6E7F2A272A30E700E9F115 /* dr_impl.cpp in Sources */,
 				3CFB4FCB2697DE1800181CB4 /* SlotData.cpp in Sources */,
+				3CFEA11A285B857B002D106F /* m3_core.c in Sources */,
 				3C0D31192456C7F6009C592B /* AtlasCache.cpp in Sources */,
 				3CFB4FD32697DE1800181CB4 /* RegionAttachment.cpp in Sources */,
 				3C6E7F34272A30E700E9F115 /* tts.cpp in Sources */,
@@ -3061,6 +3187,7 @@
 				3C1D40EC2702FC8A00202534 /* TealCompiler.cpp in Sources */,
 				3CE9D7F71E7FC2A6003AAECB /* JointDef.cpp in Sources */,
 				3CFB4FC02697DE1800181CB4 /* Skeleton.cpp in Sources */,
+				3CFEA120285B857B002D106F /* m3_bind.c in Sources */,
 				3C1A3B02272A850F003A2829 /* linit.c in Sources */,
 				3C6E7F48272A340C00E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
@@ -3070,6 +3197,7 @@
 				3CFB4FF72697DE1800181CB4 /* Json.cpp in Sources */,
 				3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */,
 				3C3B988926FDADBB00BD9F3E /* JointConf.cpp in Sources */,
+				3CFEA12C285B860B002D106F /* WasmRuntime.cpp in Sources */,
 				3C3B981926FDAD5000BD9F3E /* UnitVec.cpp in Sources */,
 				3CFEB85C268DA65C006D9974 /* UserData.cpp in Sources */,
 				3C46E83226140A8F00DC9D4F /* Column.cpp in Sources */,
@@ -3121,6 +3249,7 @@
 				3C6E7F13272A30E700E9F115 /* soloud_fft_lut.cpp in Sources */,
 				3C1A3AF5272A850F003A2829 /* lctype.c in Sources */,
 				3C3B988A26FDADBB00BD9F3E /* WeldJointConf.cpp in Sources */,
+				3CFEA122285B857B002D106F /* m3_info.c in Sources */,
 				3CFEB857268DA65C006D9974 /* ArmatureData.cpp in Sources */,
 				3CFEB85D268DA65C006D9974 /* AnimationConfig.cpp in Sources */,
 				3C6E7F1F272A30E700E9F115 /* soloud_core_faderops.cpp in Sources */,
@@ -3139,6 +3268,7 @@
 				3C46E8592614227300DC9D4F /* Database.cpp in Sources */,
 				3C3B98E726FDADDC00BD9F3E /* WorldImplShape.cpp in Sources */,
 				3CFEB876268DA6A3006D9974 /* BaseObject.cpp in Sources */,
+				3CFEA128285B857B002D106F /* m3_module.c in Sources */,
 				3CCEDD471E1D55BF00F32295 /* Utils.cpp in Sources */,
 				3CFB4FD62697DE1800181CB4 /* IkConstraintData.cpp in Sources */,
 				3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */,
@@ -3174,6 +3304,7 @@
 				3CFEB85F268DA65C006D9974 /* DisplayData.cpp in Sources */,
 				3C3B982C26FDAD7600BD9F3E /* ChainShapeConf.cpp in Sources */,
 				3CFB4FE52697DE1800181CB4 /* Event.cpp in Sources */,
+				3CFEA123285B857B002D106F /* m3_compile.c in Sources */,
 				3CFEB859268DA65C006D9974 /* DragonBonesData.cpp in Sources */,
 				3C6E7F0A272A30E700E9F115 /* soloud_fftfilter.cpp in Sources */,
 				3CFB4FF02697DE1800181CB4 /* TextureLoader.cpp in Sources */,
@@ -3208,6 +3339,7 @@
 				3CFB4FE22697DE1800181CB4 /* TransformConstraint.cpp in Sources */,
 				3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */,
 				3C6E7F1A272A30E700E9F115 /* soloud_fft.cpp in Sources */,
+				3CFEA11F285B857B002D106F /* m3_env.c in Sources */,
 				3C1A3AEB272A850F003A2829 /* lundump.c in Sources */,
 				3C6E7F18272A30E700E9F115 /* soloud.cpp in Sources */,
 				3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */,
@@ -3218,6 +3350,7 @@
 				3C1A3AED272A850F003A2829 /* ldump.c in Sources */,
 				3C3B985A26FDAD8E00BD9F3E /* ShapeSeparation.cpp in Sources */,
 				3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */,
+				3CFEA124285B857B002D106F /* m3_parse.c in Sources */,
 				3C1A3AEC272A850F003A2829 /* ltm.c in Sources */,
 				3C3B982E26FDAD7600BD9F3E /* PolygonShapeConf.cpp in Sources */,
 				3CFB4FBE2697DE1800181CB4 /* PathConstraintSpacingTimeline.cpp in Sources */,
@@ -3255,9 +3388,11 @@
 				3C1A3AEA272A850F003A2829 /* lfunc.c in Sources */,
 				3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */,
 				3C3B985D26FDAD8E00BD9F3E /* TimeOfImpact.cpp in Sources */,
+				3CFEA121285B857B002D106F /* m3_api_tracer.c in Sources */,
 				3CFB4FDA2697DE1800181CB4 /* IkConstraint.cpp in Sources */,
 				3C6E7F17272A30E700E9F115 /* soloud_file.cpp in Sources */,
 				3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */,
+				3CFEA127285B857B002D106F /* m3_function.c in Sources */,
 				3C1A3AF2272A850F003A2829 /* lzio.c in Sources */,
 				3C3B98E926FDADDC00BD9F3E /* WorldJoint.cpp in Sources */,
 				3C46E83426140A8F00DC9D4F /* Savepoint.cpp in Sources */,
@@ -3275,6 +3410,7 @@
 				3CFB4FCC2697DE1800181CB4 /* EventTimeline.cpp in Sources */,
 				3C8805771E5EDCE100B52D4B /* Debug.cpp in Sources */,
 				3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */,
+				3CFEA11C285B857B002D106F /* m3_code.c in Sources */,
 				3C3A5E1124D9A3D000E59288 /* Particle.cpp in Sources */,
 				3C3B98A826FDADC500BD9F3E /* PositionSolverManifold.cpp in Sources */,
 				3C1A3AFF272A850F003A2829 /* loadlib.c in Sources */,
@@ -3299,6 +3435,7 @@
 				3C6E7F1E272A30E700E9F115 /* soloud_queue.cpp in Sources */,
 				3C1A3AEF272A850F003A2829 /* lbaselib.c in Sources */,
 				3C46E8622614227300DC9D4F /* VGRender.cpp in Sources */,
+				3CFEA11D285B857B002D106F /* m3_api_meta_wasi.c in Sources */,
 				3CC794602579F9B000042394 /* yuescript.cpp in Sources */,
 				3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
@@ -3370,6 +3507,7 @@
 				3C6E7F12272A30E700E9F115 /* soloud_core_filterops.cpp in Sources */,
 				3CFEB861268DA65C006D9974 /* ConstraintData.cpp in Sources */,
 				3CFEB858268DA65C006D9974 /* CanvasData.cpp in Sources */,
+				3CFEA11E285B857B002D106F /* m3_api_uvwasi.c in Sources */,
 				3C3B98DE26FDADDC00BD9F3E /* StepConf.cpp in Sources */,
 				3CFB4FDB2697DE1800181CB4 /* Animation.cpp in Sources */,
 				3C6E7F08272A30E700E9F115 /* soloud_bassboostfilter.cpp in Sources */,
@@ -3377,6 +3515,7 @@
 				3CFB4FEC2697DE1800181CB4 /* TransformConstraintTimeline.cpp in Sources */,
 				3C42B0A620FEFEA800186F9C /* UnitAction.cpp in Sources */,
 				3C6E7F40272A30E700E9F115 /* soloud_vizsn.cpp in Sources */,
+				3CFEA126285B857B002D106F /* m3_exec.c in Sources */,
 				3CFB4FC12697DE1800181CB4 /* AtlasAttachmentLoader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3511,6 +3650,7 @@
 					"$(inherited)",
 					WITH_SDL2_STATIC,
 					"BX_CONFIG_DEBUG=0",
+					d_m3HasWASI,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
@@ -3532,7 +3672,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua $(SRCROOT)/../../Source/3rdParty/soloud $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/dragonBones";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua $(SRCROOT)/../../Source/3rdParty/soloud $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/dragonBones $(SRCROOT)/../../Source/3rdParty/wasm3";
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
@@ -3554,6 +3694,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					WITH_SDL2_STATIC,
 					"BX_CONFIG_DEBUG=0",
+					d_m3HasWASI,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
@@ -3575,7 +3716,7 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua $(SRCROOT)/../../Source/3rdParty/soloud $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/dragonBones";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua $(SRCROOT)/../../Source/3rdParty/soloud $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/dragonBones $(SRCROOT)/../../Source/3rdParty/wasm3";
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;

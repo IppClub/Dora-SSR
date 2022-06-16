@@ -114,8 +114,8 @@ static inline Value* assertNotNull(Value* value)
 
 Unit::Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot):
 Unit(
-	&assertNotNull(SharedData.getStore()->get(defName).get())->to<Dictionary>(),
-	&assertNotNull(SharedData.getStore()->get(worldName).get())->to<PhysicsWorld>(),
+	assertNotNull(SharedData.getStore()->get(defName).get())->to<Dictionary>(),
+	assertNotNull(SharedData.getStore()->get(worldName).get())->to<PhysicsWorld>(),
 	entity, pos, rot)
 { }
 
@@ -146,9 +146,9 @@ bool Unit::init()
 	Unit::setPlayable(playable);
 	Unit::setFaceRight(true);
 	Body::setOwner(this);
-	ARRAY_START(std::string, action, actions)
+	ARRAY_START_VAL(std::string, action, actions)
 	{
-		Unit::attachAction(*action);
+		Unit::attachAction(action);
 	}
 	ARRAY_END
 	_entity->set("unit"_slice, s_cast<Object*>(this));
@@ -491,7 +491,7 @@ void Unit::setDecisionTreeName(String name)
 	_decisionTreeName = name;
 	if (const auto& item = SharedData.getStore()->get(name))
 	{
-		Decision::Leaf* leaf = &item->to<Decision::Leaf>();
+		Decision::Leaf* leaf = item->to<Decision::Leaf>();
 		_decisionTree = leaf;
 		SharedAI.runDecisionTree(this);
 	}

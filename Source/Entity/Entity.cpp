@@ -264,16 +264,6 @@ void Entity::setNext(int index, Own<Value>&& value)
 	SharedEntityPool.nextValues.push_back({id,index,std::move(value)});
 }
 
-float Entity::get(String key, float def) const
-{
-	Value* com = getComponent(key);
-	if (com)
-	{
-		return com->toFloat();
-	}
-	return def;
-}
-
 void Entity::updateComponent(int index, Own<Value>&& com, bool add)
 {
 	EntityHandler* handler;

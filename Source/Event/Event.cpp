@@ -98,4 +98,69 @@ int LuaEventArgs::getParamCount() const
 	return _paramCount;
 }
 
+WasmEventArgs::WasmEventArgs(String name, CallInfo* info):
+Event(name)
+{
+	while (!info->empty())
+	{
+		_values.push_back(info->pop());
+	}
+}
+
+int WasmEventArgs::pushArgsToLua()
+{
+	for (const auto& val : _values)
+	{
+		std::visit([](auto&& arg)
+		{
+			SharedLuaEngine.push(arg);
+		}, val);
+	}
+	return s_cast<int>(_values.size());
+}
+
+void WasmEventArgs::pushArgsToWasm(CallInfo* info)
+{
+	for (const auto& value : _values)
+	{
+		info->push_v(value);
+	}
+}
+
+bool WasmEventArgs::to(bool& value, int index)
+{
+	if (index < s_cast<int>(_values.size()) && std::holds_alternative<bool>(_values[index]))
+	{
+		value = std::get<bool>(_values[index]);
+		return true;
+	}
+	return false;
+}
+
+bool WasmEventArgs::to(Object*& value, int index)
+{
+	if (index < s_cast<int>(_values.size()) && std::holds_alternative<Object*>(_values[index]))
+	{
+		value = std::get<Object*>(_values[index]);
+		return true;
+	}
+	return false;
+}
+
+bool WasmEventArgs::to(std::string& value, int index)
+{
+	if (index < s_cast<int>(_values.size()) && std::holds_alternative<std::string>(_values[index]))
+	{
+		value = std::get<std::string>(_values[index]);
+		return true;
+	}
+	return false;
+}
+
+void WasmEventArgs::send(String name, CallInfo* info)
+{
+	WasmEventArgs event(name, info);
+	Event::send(&event);
+}
+
 NS_DOROTHY_END

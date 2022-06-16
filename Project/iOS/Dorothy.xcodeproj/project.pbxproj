@@ -766,6 +766,38 @@
 		3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509F20F33DD5002FFC18 /* Builtin.cpp */; };
 		3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */; };
 		3CF00E39258B475A00898F4B /* SVGCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF00E37258B475A00898F4B /* SVGCache.cpp */; };
+		3CFEA156285B873B002D106F /* m3_compile.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA12E285B873A002D106F /* m3_compile.c */; };
+		3CFEA157285B873B002D106F /* m3_compile.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA12E285B873A002D106F /* m3_compile.c */; };
+		3CFEA158285B873B002D106F /* m3_code.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA12F285B873A002D106F /* m3_code.c */; };
+		3CFEA159285B873B002D106F /* m3_code.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA12F285B873A002D106F /* m3_code.c */; };
+		3CFEA15A285B873B002D106F /* m3_api_uvwasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA132285B873A002D106F /* m3_api_uvwasi.c */; };
+		3CFEA15B285B873B002D106F /* m3_api_uvwasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA132285B873A002D106F /* m3_api_uvwasi.c */; };
+		3CFEA15C285B873B002D106F /* m3_module.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA133285B873A002D106F /* m3_module.c */; };
+		3CFEA15D285B873B002D106F /* m3_module.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA133285B873A002D106F /* m3_module.c */; };
+		3CFEA15E285B873B002D106F /* m3_function.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA134285B873A002D106F /* m3_function.c */; };
+		3CFEA15F285B873B002D106F /* m3_function.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA134285B873A002D106F /* m3_function.c */; };
+		3CFEA160285B873B002D106F /* m3_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA136285B873A002D106F /* m3_core.c */; };
+		3CFEA161285B873B002D106F /* m3_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA136285B873A002D106F /* m3_core.c */; };
+		3CFEA162285B873B002D106F /* m3_api_libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA13F285B873A002D106F /* m3_api_libc.c */; };
+		3CFEA163285B873B002D106F /* m3_api_libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA13F285B873A002D106F /* m3_api_libc.c */; };
+		3CFEA164285B873B002D106F /* m3_info.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA140285B873A002D106F /* m3_info.c */; };
+		3CFEA165285B873B002D106F /* m3_info.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA140285B873A002D106F /* m3_info.c */; };
+		3CFEA166285B873B002D106F /* m3_api_tracer.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA144285B873A002D106F /* m3_api_tracer.c */; };
+		3CFEA167285B873B002D106F /* m3_api_tracer.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA144285B873A002D106F /* m3_api_tracer.c */; };
+		3CFEA168285B873B002D106F /* m3_api_meta_wasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA145285B873A002D106F /* m3_api_meta_wasi.c */; };
+		3CFEA169285B873B002D106F /* m3_api_meta_wasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA145285B873A002D106F /* m3_api_meta_wasi.c */; };
+		3CFEA16A285B873B002D106F /* m3_env.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA147285B873A002D106F /* m3_env.c */; };
+		3CFEA16B285B873B002D106F /* m3_env.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA147285B873A002D106F /* m3_env.c */; };
+		3CFEA16C285B873B002D106F /* m3_bind.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA14A285B873A002D106F /* m3_bind.c */; };
+		3CFEA16D285B873B002D106F /* m3_bind.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA14A285B873A002D106F /* m3_bind.c */; };
+		3CFEA16E285B873B002D106F /* m3_api_wasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA14B285B873A002D106F /* m3_api_wasi.c */; };
+		3CFEA16F285B873B002D106F /* m3_api_wasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA14B285B873A002D106F /* m3_api_wasi.c */; };
+		3CFEA170285B873B002D106F /* m3_parse.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA14C285B873A002D106F /* m3_parse.c */; };
+		3CFEA171285B873B002D106F /* m3_parse.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA14C285B873A002D106F /* m3_parse.c */; };
+		3CFEA172285B873B002D106F /* m3_exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA155285B873B002D106F /* m3_exec.c */; };
+		3CFEA173285B873B002D106F /* m3_exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA155285B873B002D106F /* m3_exec.c */; };
+		3CFEA177285B87B8002D106F /* WasmRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA175285B87B8002D106F /* WasmRuntime.cpp */; };
+		3CFEA178285B87B8002D106F /* WasmRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA175285B87B8002D106F /* WasmRuntime.cpp */; };
 		3CFEBDC1269309C7006D9974 /* TimelineState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEBDB6269309C6006D9974 /* TimelineState.cpp */; };
 		3CFEBDC2269309C7006D9974 /* WorldClock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEBDB7269309C6006D9974 /* WorldClock.cpp */; };
 		3CFEBDC3269309C7006D9974 /* BaseTimelineState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEBDB9269309C7006D9974 /* BaseTimelineState.cpp */; };
@@ -1683,6 +1715,47 @@
 		3CF00E37258B475A00898F4B /* SVGCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SVGCache.cpp; path = ../../../Source/Cache/SVGCache.cpp; sourceTree = "<group>"; };
 		3CF00E38258B475A00898F4B /* SVGCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SVGCache.h; path = ../../../Source/Cache/SVGCache.h; sourceTree = "<group>"; };
 		3CF89B5724332CC900A195C7 /* concurrentqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = concurrentqueue.h; path = ../../../Source/3rdParty/Other/concurrentqueue.h; sourceTree = "<group>"; };
+		3CFEA12E285B873A002D106F /* m3_compile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_compile.c; path = ../../../Source/3rdParty/wasm3/m3_compile.c; sourceTree = "<group>"; };
+		3CFEA12F285B873A002D106F /* m3_code.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_code.c; path = ../../../Source/3rdParty/wasm3/m3_code.c; sourceTree = "<group>"; };
+		3CFEA130285B873A002D106F /* m3_env.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_env.h; path = ../../../Source/3rdParty/wasm3/m3_env.h; sourceTree = "<group>"; };
+		3CFEA131285B873A002D106F /* wasm3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wasm3.h; path = ../../../Source/3rdParty/wasm3/wasm3.h; sourceTree = "<group>"; };
+		3CFEA132285B873A002D106F /* m3_api_uvwasi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_uvwasi.c; path = ../../../Source/3rdParty/wasm3/m3_api_uvwasi.c; sourceTree = "<group>"; };
+		3CFEA133285B873A002D106F /* m3_module.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_module.c; path = ../../../Source/3rdParty/wasm3/m3_module.c; sourceTree = "<group>"; };
+		3CFEA134285B873A002D106F /* m3_function.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_function.c; path = ../../../Source/3rdParty/wasm3/m3_function.c; sourceTree = "<group>"; };
+		3CFEA135285B873A002D106F /* m3_exec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_exec.h; path = ../../../Source/3rdParty/wasm3/m3_exec.h; sourceTree = "<group>"; };
+		3CFEA136285B873A002D106F /* m3_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_core.c; path = ../../../Source/3rdParty/wasm3/m3_core.c; sourceTree = "<group>"; };
+		3CFEA138285B873A002D106F /* fib64.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib64.wasm.h; sourceTree = "<group>"; };
+		3CFEA139285B873A002D106F /* coremark_minimal.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = coremark_minimal.wasm.h; sourceTree = "<group>"; };
+		3CFEA13A285B873A002D106F /* fib32_tail.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib32_tail.wasm.h; sourceTree = "<group>"; };
+		3CFEA13B285B873A002D106F /* fib32.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib32.wasm.h; sourceTree = "<group>"; };
+		3CFEA13C285B873A002D106F /* wasi_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wasi_core.h; sourceTree = "<group>"; };
+		3CFEA13D285B873A002D106F /* m3_exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_exception.h; path = ../../../Source/3rdParty/wasm3/m3_exception.h; sourceTree = "<group>"; };
+		3CFEA13E285B873A002D106F /* m3_code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_code.h; path = ../../../Source/3rdParty/wasm3/m3_code.h; sourceTree = "<group>"; };
+		3CFEA13F285B873A002D106F /* m3_api_libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_libc.c; path = ../../../Source/3rdParty/wasm3/m3_api_libc.c; sourceTree = "<group>"; };
+		3CFEA140285B873A002D106F /* m3_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_info.c; path = ../../../Source/3rdParty/wasm3/m3_info.c; sourceTree = "<group>"; };
+		3CFEA141285B873A002D106F /* m3_api_tracer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_api_tracer.h; path = ../../../Source/3rdParty/wasm3/m3_api_tracer.h; sourceTree = "<group>"; };
+		3CFEA142285B873A002D106F /* m3_info.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_info.h; path = ../../../Source/3rdParty/wasm3/m3_info.h; sourceTree = "<group>"; };
+		3CFEA143285B873A002D106F /* m3_bind.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_bind.h; path = ../../../Source/3rdParty/wasm3/m3_bind.h; sourceTree = "<group>"; };
+		3CFEA144285B873A002D106F /* m3_api_tracer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_tracer.c; path = ../../../Source/3rdParty/wasm3/m3_api_tracer.c; sourceTree = "<group>"; };
+		3CFEA145285B873A002D106F /* m3_api_meta_wasi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_meta_wasi.c; path = ../../../Source/3rdParty/wasm3/m3_api_meta_wasi.c; sourceTree = "<group>"; };
+		3CFEA146285B873A002D106F /* m3_function.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_function.h; path = ../../../Source/3rdParty/wasm3/m3_function.h; sourceTree = "<group>"; };
+		3CFEA147285B873A002D106F /* m3_env.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_env.c; path = ../../../Source/3rdParty/wasm3/m3_env.c; sourceTree = "<group>"; };
+		3CFEA148285B873A002D106F /* m3_api_wasi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_api_wasi.h; path = ../../../Source/3rdParty/wasm3/m3_api_wasi.h; sourceTree = "<group>"; };
+		3CFEA149285B873A002D106F /* m3_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_config.h; path = ../../../Source/3rdParty/wasm3/m3_config.h; sourceTree = "<group>"; };
+		3CFEA14A285B873A002D106F /* m3_bind.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_bind.c; path = ../../../Source/3rdParty/wasm3/m3_bind.c; sourceTree = "<group>"; };
+		3CFEA14B285B873A002D106F /* m3_api_wasi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_api_wasi.c; path = ../../../Source/3rdParty/wasm3/m3_api_wasi.c; sourceTree = "<group>"; };
+		3CFEA14C285B873A002D106F /* m3_parse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_parse.c; path = ../../../Source/3rdParty/wasm3/m3_parse.c; sourceTree = "<group>"; };
+		3CFEA14D285B873B002D106F /* m3_math_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_math_utils.h; path = ../../../Source/3rdParty/wasm3/m3_math_utils.h; sourceTree = "<group>"; };
+		3CFEA14E285B873B002D106F /* wasm3_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wasm3_defs.h; path = ../../../Source/3rdParty/wasm3/wasm3_defs.h; sourceTree = "<group>"; };
+		3CFEA14F285B873B002D106F /* m3_compile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_compile.h; path = ../../../Source/3rdParty/wasm3/m3_compile.h; sourceTree = "<group>"; };
+		3CFEA150285B873B002D106F /* m3_api_libc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_api_libc.h; path = ../../../Source/3rdParty/wasm3/m3_api_libc.h; sourceTree = "<group>"; };
+		3CFEA151285B873B002D106F /* wasm3_cpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wasm3_cpp.h; path = ../../../Source/3rdParty/wasm3/wasm3_cpp.h; sourceTree = "<group>"; };
+		3CFEA152285B873B002D106F /* m3_config_platforms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_config_platforms.h; path = ../../../Source/3rdParty/wasm3/m3_config_platforms.h; sourceTree = "<group>"; };
+		3CFEA153285B873B002D106F /* m3_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_core.h; path = ../../../Source/3rdParty/wasm3/m3_core.h; sourceTree = "<group>"; };
+		3CFEA154285B873B002D106F /* m3_exec_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_exec_defs.h; path = ../../../Source/3rdParty/wasm3/m3_exec_defs.h; sourceTree = "<group>"; };
+		3CFEA155285B873B002D106F /* m3_exec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_exec.c; path = ../../../Source/3rdParty/wasm3/m3_exec.c; sourceTree = "<group>"; };
+		3CFEA175285B87B8002D106F /* WasmRuntime.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WasmRuntime.cpp; path = ../../../Source/Wasm/WasmRuntime.cpp; sourceTree = "<group>"; };
+		3CFEA176285B87B8002D106F /* WasmRuntime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WasmRuntime.h; path = ../../../Source/Wasm/WasmRuntime.h; sourceTree = "<group>"; };
 		3CFEBDB6269309C6006D9974 /* TimelineState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimelineState.cpp; path = ../../../Source/3rdParty/dragonBones/animation/TimelineState.cpp; sourceTree = "<group>"; };
 		3CFEBDB7269309C6006D9974 /* WorldClock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WorldClock.cpp; path = ../../../Source/3rdParty/dragonBones/animation/WorldClock.cpp; sourceTree = "<group>"; };
 		3CFEBDB8269309C6006D9974 /* WorldClock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WorldClock.h; path = ../../../Source/3rdParty/dragonBones/animation/WorldClock.h; sourceTree = "<group>"; };
@@ -2930,6 +3003,7 @@
 				3CBFB703264376AE006348C8 /* implot */,
 				3C6D37261E27D9F6008C92E8 /* lodepng */,
 				3C1A3B0C272A86FA003A2829 /* Lua */,
+				3CFEA12D285B8706002D106F /* wasm3 */,
 				3C41D60721490CCD003FDDFE /* nanovg */,
 				3C25B863257A7F71002DD8E1 /* yuescript */,
 				3CB410351E05B17F00A8804D /* Zip */,
@@ -3050,6 +3124,7 @@
 				3CD328411E4C42E80036906C /* GUI */,
 				3CD328471E4C43040036906C /* Input */,
 				3CFF5F351E013708004E3CA6 /* Lua */,
+				3CFEA174285B8797002D106F /* Wasm */,
 				3C030CA924CAC1FD0074786E /* ML */,
 				3C1038511E15103600D37A60 /* Node */,
 				3CB7306A1E803417006DFA18 /* Physics */,
@@ -3152,6 +3227,70 @@
 				3C0AD7BA1E0CE95F0033AD59 /* Listener.h */,
 			);
 			name = Event;
+			sourceTree = "<group>";
+		};
+		3CFEA12D285B8706002D106F /* wasm3 */ = {
+			isa = PBXGroup;
+			children = (
+				3CFEA137285B873A002D106F /* extra */,
+				3CFEA13F285B873A002D106F /* m3_api_libc.c */,
+				3CFEA150285B873B002D106F /* m3_api_libc.h */,
+				3CFEA145285B873A002D106F /* m3_api_meta_wasi.c */,
+				3CFEA144285B873A002D106F /* m3_api_tracer.c */,
+				3CFEA141285B873A002D106F /* m3_api_tracer.h */,
+				3CFEA132285B873A002D106F /* m3_api_uvwasi.c */,
+				3CFEA14B285B873A002D106F /* m3_api_wasi.c */,
+				3CFEA148285B873A002D106F /* m3_api_wasi.h */,
+				3CFEA14A285B873A002D106F /* m3_bind.c */,
+				3CFEA143285B873A002D106F /* m3_bind.h */,
+				3CFEA12F285B873A002D106F /* m3_code.c */,
+				3CFEA13E285B873A002D106F /* m3_code.h */,
+				3CFEA12E285B873A002D106F /* m3_compile.c */,
+				3CFEA14F285B873B002D106F /* m3_compile.h */,
+				3CFEA152285B873B002D106F /* m3_config_platforms.h */,
+				3CFEA149285B873A002D106F /* m3_config.h */,
+				3CFEA136285B873A002D106F /* m3_core.c */,
+				3CFEA153285B873B002D106F /* m3_core.h */,
+				3CFEA147285B873A002D106F /* m3_env.c */,
+				3CFEA130285B873A002D106F /* m3_env.h */,
+				3CFEA13D285B873A002D106F /* m3_exception.h */,
+				3CFEA154285B873B002D106F /* m3_exec_defs.h */,
+				3CFEA155285B873B002D106F /* m3_exec.c */,
+				3CFEA135285B873A002D106F /* m3_exec.h */,
+				3CFEA134285B873A002D106F /* m3_function.c */,
+				3CFEA146285B873A002D106F /* m3_function.h */,
+				3CFEA140285B873A002D106F /* m3_info.c */,
+				3CFEA142285B873A002D106F /* m3_info.h */,
+				3CFEA14D285B873B002D106F /* m3_math_utils.h */,
+				3CFEA133285B873A002D106F /* m3_module.c */,
+				3CFEA14C285B873A002D106F /* m3_parse.c */,
+				3CFEA151285B873B002D106F /* wasm3_cpp.h */,
+				3CFEA14E285B873B002D106F /* wasm3_defs.h */,
+				3CFEA131285B873A002D106F /* wasm3.h */,
+			);
+			name = wasm3;
+			sourceTree = "<group>";
+		};
+		3CFEA137285B873A002D106F /* extra */ = {
+			isa = PBXGroup;
+			children = (
+				3CFEA138285B873A002D106F /* fib64.wasm.h */,
+				3CFEA139285B873A002D106F /* coremark_minimal.wasm.h */,
+				3CFEA13A285B873A002D106F /* fib32_tail.wasm.h */,
+				3CFEA13B285B873A002D106F /* fib32.wasm.h */,
+				3CFEA13C285B873A002D106F /* wasi_core.h */,
+			);
+			name = extra;
+			path = ../../../Source/3rdParty/wasm3/extra;
+			sourceTree = "<group>";
+		};
+		3CFEA174285B8797002D106F /* Wasm */ = {
+			isa = PBXGroup;
+			children = (
+				3CFEA175285B87B8002D106F /* WasmRuntime.cpp */,
+				3CFEA176285B87B8002D106F /* WasmRuntime.h */,
+			);
+			name = Wasm;
 			sourceTree = "<group>";
 		};
 		3CFEBDAC269308CB006D9974 /* dragonBones */ = {
@@ -3504,19 +3643,24 @@
 				3C1D40FD2703004300202534 /* TealCompiler.cpp in Sources */,
 				3C3B9A0426FDB25D00BD9F3E /* Body.cpp in Sources */,
 				3C3B9A0526FDB25D00BD9F3E /* BodyConf.cpp in Sources */,
+				3CFEA16F285B873B002D106F /* m3_api_wasi.c in Sources */,
 				3C6E8036272A404A00E9F115 /* soloud_fft.cpp in Sources */,
 				3C3B9A0626FDB25D00BD9F3E /* ContactImpulsesList.cpp in Sources */,
 				3C6E8012272A404A00E9F115 /* soloud_speech.cpp in Sources */,
 				3C6E804A272A404A00E9F115 /* soloud_misc.cpp in Sources */,
+				3CFEA171285B873B002D106F /* m3_parse.c in Sources */,
 				3C3B9A0726FDB25D00BD9F3E /* Island.cpp in Sources */,
 				3C3B9A0826FDB25D00BD9F3E /* MovementConf.cpp in Sources */,
 				3C3B9A0926FDB25D00BD9F3E /* StepConf.cpp in Sources */,
+				3CFEA165285B873B002D106F /* m3_info.c in Sources */,
+				3CFEA173285B873B002D106F /* m3_exec.c in Sources */,
 				3C1A3C0D272A8820003A2829 /* lauxlib.c in Sources */,
 				3C3B9A0A26FDB25D00BD9F3E /* StepStats.cpp in Sources */,
 				3C1A3BE3272A8820003A2829 /* lopcodes.c in Sources */,
 				3C3B9A0B26FDB25D00BD9F3E /* World.cpp in Sources */,
 				3C1A3BDB272A8820003A2829 /* lobject.c in Sources */,
 				3C3B9A0C26FDB25D00BD9F3E /* WorldBody.cpp in Sources */,
+				3CFEA178285B87B8002D106F /* WasmRuntime.cpp in Sources */,
 				3C3B9A0D26FDB25D00BD9F3E /* WorldContact.cpp in Sources */,
 				3C3B9A0E26FDB25D00BD9F3E /* WorldImpl.cpp in Sources */,
 				3C6E8040272A404A00E9F115 /* soloud_core_faderops.cpp in Sources */,
@@ -3530,11 +3674,14 @@
 				3C3B9A1626FDB25D00BD9F3E /* WorldShape.cpp in Sources */,
 				3C6E8038272A404A00E9F115 /* soloud_core_setters.cpp in Sources */,
 				3C3B9A1726FDB25D00BD9F3E /* WorldSpecial.cpp in Sources */,
+				3CFEA167285B873B002D106F /* m3_api_tracer.c in Sources */,
 				3C3B9A1826FDB25D00BD9F3E /* ConstraintSolverConf.cpp in Sources */,
 				3C1A3BD3272A8820003A2829 /* llex.c in Sources */,
 				3C3B9A1926FDB25D00BD9F3E /* Contact.cpp in Sources */,
 				3C1A3BD7272A8820003A2829 /* lstate.c in Sources */,
 				3C3B9A1A26FDB25D00BD9F3E /* ContactKey.cpp in Sources */,
+				3CFEA169285B873B002D106F /* m3_api_meta_wasi.c in Sources */,
+				3CFEA15B285B873B002D106F /* m3_api_uvwasi.c in Sources */,
 				3C3B9A1B26FDB25D00BD9F3E /* ContactSolver.cpp in Sources */,
 				3C6E8004272A404900E9F115 /* soloud_sfxr.cpp in Sources */,
 				3C3B9A1C26FDB25D00BD9F3E /* PositionSolverManifold.cpp in Sources */,
@@ -3548,6 +3695,7 @@
 				3C3B9A2226FDB25D00BD9F3E /* JointConf.cpp in Sources */,
 				3C6E800A272A404900E9F115 /* resonator.cpp in Sources */,
 				3C3B9A2326FDB25D00BD9F3E /* LimitState.cpp in Sources */,
+				3CFEA15F285B873B002D106F /* m3_function.c in Sources */,
 				3C3B9A2426FDB25D00BD9F3E /* MotorJointConf.cpp in Sources */,
 				3C3B9A2526FDB25D00BD9F3E /* PrismaticJointConf.cpp in Sources */,
 				3C3B9A2626FDB25D00BD9F3E /* PulleyJointConf.cpp in Sources */,
@@ -3631,6 +3779,7 @@
 				3C12E500269BE35000E1475A /* LinkedMesh.cpp in Sources */,
 				3C12E501269BE35000E1475A /* Log.cpp in Sources */,
 				3C12E502269BE35000E1475A /* MathUtil.cpp in Sources */,
+				3CFEA157285B873B002D106F /* m3_compile.c in Sources */,
 				3C12E503269BE35000E1475A /* MeshAttachment.cpp in Sources */,
 				3C12E504269BE35000E1475A /* PathAttachment.cpp in Sources */,
 				3C12E505269BE35000E1475A /* PathConstraint.cpp in Sources */,
@@ -3673,8 +3822,10 @@
 				3C12E51D269BE35000E1475A /* TransformConstraintData.cpp in Sources */,
 				3C6E8024272A404A00E9F115 /* soloud_openmpt.cpp in Sources */,
 				3C12E51E269BE35000E1475A /* TransformConstraintTimeline.cpp in Sources */,
+				3CFEA159285B873B002D106F /* m3_code.c in Sources */,
 				3C12E51F269BE35000E1475A /* TranslateTimeline.cpp in Sources */,
 				3C12E520269BE35000E1475A /* Triangulator.cpp in Sources */,
+				3CFEA15D285B873B002D106F /* m3_module.c in Sources */,
 				3C12E521269BE35000E1475A /* Updatable.cpp in Sources */,
 				3C12E522269BE35000E1475A /* VertexAttachment.cpp in Sources */,
 				3C1A3C03272A8820003A2829 /* lparser.c in Sources */,
@@ -3739,6 +3890,7 @@
 				3C6E8044272A404A00E9F115 /* soloud_thread.cpp in Sources */,
 				3CAA2D382615605A004443A6 /* Statement.cpp in Sources */,
 				3CAA2D392615605A004443A6 /* Transaction.cpp in Sources */,
+				3CFEA163285B873B002D106F /* m3_api_libc.c in Sources */,
 				3CAA2D312615603A004443A6 /* Database.cpp in Sources */,
 				3C6E7FEC272A404900E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C6E7FD0272A404900E9F115 /* soloud_eqfilter.cpp in Sources */,
@@ -3788,6 +3940,7 @@
 				3CBE0E3326087F7B003F4F45 /* tolua_is.cpp in Sources */,
 				3C1A3BD5272A8820003A2829 /* lmem.c in Sources */,
 				3CBE0E3426087F7B003F4F45 /* Joint.cpp in Sources */,
+				3CFEA16B285B873B002D106F /* m3_env.c in Sources */,
 				3CBE0E3626087F7B003F4F45 /* yue_parser.cpp in Sources */,
 				3CBE0E3B26087F7B003F4F45 /* SVGCache.cpp in Sources */,
 				3CBE0E3C26087F7B003F4F45 /* Bullet.cpp in Sources */,
@@ -3824,6 +3977,7 @@
 				3CBE0E7326087F7B003F4F45 /* EventQueue.cpp in Sources */,
 				3CBE0E7626087F7B003F4F45 /* Event.cpp in Sources */,
 				3CBE0E7726087F7B003F4F45 /* JointDef.cpp in Sources */,
+				3CFEA16D285B873B002D106F /* m3_bind.c in Sources */,
 				3C6E7FF8272A404900E9F115 /* sndchip.cpp in Sources */,
 				3CBE0E7826087F7B003F4F45 /* imgui.cpp in Sources */,
 				3CBE0E7B26087F7B003F4F45 /* Common.cpp in Sources */,
@@ -3874,6 +4028,7 @@
 				3CBE0ED826087F7B003F4F45 /* PhysicsWorld.cpp in Sources */,
 				3CBE0EDA26087F7B003F4F45 /* AutoreleasePool.cpp in Sources */,
 				3CBE0EDE26087F7B003F4F45 /* AINode.cpp in Sources */,
+				3CFEA161285B873B002D106F /* m3_core.c in Sources */,
 				3CBE0EDF26087F7B003F4F45 /* tolua_fix.cpp in Sources */,
 				3CBE0EE126087F7B003F4F45 /* Array.cpp in Sources */,
 				3CBE0EE726087F7B003F4F45 /* Particle.cpp in Sources */,
@@ -3894,19 +4049,24 @@
 				3C12E4D5269BE32B00E1475A /* ScaleTimeline.cpp in Sources */,
 				3C6E8035272A404A00E9F115 /* soloud_fft.cpp in Sources */,
 				3C3B990C26FDAFE700BD9F3E /* LimitState.cpp in Sources */,
+				3CFEA16E285B873B002D106F /* m3_api_wasi.c in Sources */,
 				3C6E8011272A404A00E9F115 /* soloud_speech.cpp in Sources */,
 				3C6E8049272A404A00E9F115 /* soloud_misc.cpp in Sources */,
 				3C131FFC21011BB60087154A /* BulletDef.cpp in Sources */,
 				3C3B99AE26FDB05000BD9F3E /* CodeDumper.cpp in Sources */,
+				3CFEA170285B873B002D106F /* m3_parse.c in Sources */,
 				3C12E4AE269BE32B00E1475A /* SkeletonJson.cpp in Sources */,
 				3C1A3C0C272A8820003A2829 /* lauxlib.c in Sources */,
 				3C12E4DA269BE32B00E1475A /* VertexAttachment.cpp in Sources */,
+				3CFEA164285B873B002D106F /* m3_info.c in Sources */,
+				3CFEA172285B873B002D106F /* m3_exec.c in Sources */,
 				3C1A3BE2272A8820003A2829 /* lopcodes.c in Sources */,
 				3C883B1421E338F500BFD758 /* Content.cpp in Sources */,
 				3C1A3BDA272A8820003A2829 /* lobject.c in Sources */,
 				3C12E4DB269BE32B00E1475A /* Event.cpp in Sources */,
 				3CFEBDD5269309D5006D9974 /* Bone.cpp in Sources */,
 				3C030CC924CAC2B90074786E /* Node.cpp in Sources */,
+				3CFEA177285B87B8002D106F /* WasmRuntime.cpp in Sources */,
 				3C6E803F272A404A00E9F115 /* soloud_core_faderops.cpp in Sources */,
 				3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */,
 				3CFEBDC3269309C7006D9974 /* BaseTimelineState.cpp in Sources */,
@@ -3920,11 +4080,14 @@
 				3C6E8037272A404A00E9F115 /* soloud_core_setters.cpp in Sources */,
 				3C12E4C2269BE32B00E1475A /* Extension.cpp in Sources */,
 				3CFEBE0826930A26006D9974 /* AnimationConfig.cpp in Sources */,
+				3CFEA166285B873B002D106F /* m3_api_tracer.c in Sources */,
 				3C1A3BD2272A8820003A2829 /* llex.c in Sources */,
 				3C883B1721E338F500BFD758 /* Application.mm in Sources */,
 				3C1A3BD6272A8820003A2829 /* lstate.c in Sources */,
 				3CFEBDED26930A16006D9974 /* Transform.cpp in Sources */,
 				3C3B995A26FDB00E00BD9F3E /* WorldContact.cpp in Sources */,
+				3CFEA168285B873B002D106F /* m3_api_meta_wasi.c in Sources */,
+				3CFEA15A285B873B002D106F /* m3_api_uvwasi.c in Sources */,
 				3C6E8003272A404900E9F115 /* soloud_sfxr.cpp in Sources */,
 				3C3B991626FDAFE700BD9F3E /* FrictionJointConf.cpp in Sources */,
 				3C6E8027272A404A00E9F115 /* soloud_fft_lut.cpp in Sources */,
@@ -3938,6 +4101,7 @@
 				3C6E8009272A404900E9F115 /* resonator.cpp in Sources */,
 				3CFEBDD4269309D5006D9974 /* Slot.cpp in Sources */,
 				3C3B995D26FDB00E00BD9F3E /* Island.cpp in Sources */,
+				3CFEA15E285B873B002D106F /* m3_function.c in Sources */,
 				3C3B99F826FDB08000BD9F3E /* MassData.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,
@@ -4021,6 +4185,7 @@
 				3C12E4D9269BE32B00E1475A /* Json.cpp in Sources */,
 				3CFEBDC5269309C7006D9974 /* Animation.cpp in Sources */,
 				3CD6C2A51E30C1F500B36FFC /* Effect.cpp in Sources */,
+				3CFEA156285B873B002D106F /* m3_compile.c in Sources */,
 				3C41D60421490BE6003FDDFE /* imgui_draw.cpp in Sources */,
 				3CFEBE0526930A26006D9974 /* CanvasData.cpp in Sources */,
 				3C6E8047272A404A00E9F115 /* soloud_core_3d.cpp in Sources */,
@@ -4063,8 +4228,10 @@
 				3C3B995B26FDB00E00BD9F3E /* WorldJoint.cpp in Sources */,
 				3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */,
 				3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */,
+				3CFEA158285B873B002D106F /* m3_code.c in Sources */,
 				3CB7307A1E80343E006DFA18 /* BodyDef.cpp in Sources */,
 				3C1A3C02272A8820003A2829 /* lparser.c in Sources */,
+				3CFEA15C285B873B002D106F /* m3_module.c in Sources */,
 				3C6E7FF9272A404900E9F115 /* chipplayer.cpp in Sources */,
 				3C131FFD21011BB60087154A /* UnitAction.cpp in Sources */,
 				3C1A3BEE272A8820003A2829 /* ldblib.c in Sources */,
@@ -4129,6 +4296,7 @@
 				3C6E7FEB272A404900E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C6E7FCF272A404900E9F115 /* soloud_eqfilter.cpp in Sources */,
 				3C6E803D272A404A00E9F115 /* soloud_queue.cpp in Sources */,
+				3CFEA162285B873B002D106F /* m3_api_libc.c in Sources */,
 				3C1FDB9A1E6041C800F38A26 /* Debug.cpp in Sources */,
 				3C1A3BE0272A8820003A2829 /* lgc.c in Sources */,
 				3C6E7FD7272A404900E9F115 /* soloud_robotizefilter.cpp in Sources */,
@@ -4178,6 +4346,7 @@
 				3C3B99C326FDB06E00BD9F3E /* PolygonShapeConf.cpp in Sources */,
 				3C3B99C626FDB06E00BD9F3E /* MultiShapeConf.cpp in Sources */,
 				3C0AD7CB1E0CE9990033AD59 /* LuaCode.cpp in Sources */,
+				3CFEA16A285B873B002D106F /* m3_env.c in Sources */,
 				3C3B992826FDAFF600BD9F3E /* ContactKey.cpp in Sources */,
 				3C6E801D272A404A00E9F115 /* soloud_monotone.cpp in Sources */,
 				3C6E8015272A404A00E9F115 /* soloud_tedsid.cpp in Sources */,
@@ -4214,6 +4383,7 @@
 				3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */,
 				3C030CD024CAC2BA0074786E /* VGNode.cpp in Sources */,
 				3C6E7FF7272A404900E9F115 /* sndchip.cpp in Sources */,
+				3CFEA16C285B873B002D106F /* m3_bind.c in Sources */,
 				3CFEBDC4269309C7006D9974 /* AnimationState.cpp in Sources */,
 				3C12E4C0269BE32B00E1475A /* PathAttachment.cpp in Sources */,
 				3C12E4D4269BE32B00E1475A /* IkConstraintData.cpp in Sources */,
@@ -4264,6 +4434,7 @@
 				3C12E4C6269BE32B00E1475A /* RegionAttachment.cpp in Sources */,
 				3CB730821E80344C006DFA18 /* Dictionary.cpp in Sources */,
 				3CFEBE0A26930A26006D9974 /* ArmatureData.cpp in Sources */,
+				3CFEA160285B873B002D106F /* m3_core.c in Sources */,
 				3CFEBDC1269309C7006D9974 /* TimelineState.cpp in Sources */,
 				3CFEBDD7269309D5006D9974 /* TransformObject.cpp in Sources */,
 				3CFEBE0626930A26006D9974 /* ConstraintData.cpp in Sources */,
@@ -4318,6 +4489,7 @@
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
+					d_m3HasWASI,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4337,7 +4509,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones ../../Source/3rdParty/wasm3";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -4363,6 +4535,7 @@
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
+					d_m3HasWASI,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4382,7 +4555,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones ../../Source/3rdParty/wasm3";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
@@ -4521,6 +4694,7 @@
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
+					d_m3HasWASI,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4540,7 +4714,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones ../../Source/3rdParty/wasm3";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
@@ -4566,6 +4740,7 @@
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
+					d_m3HasWASI,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4585,7 +4760,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones";
+				USER_HEADER_SEARCH_PATHS = "../../Source ../../Source/3rdParty ../../Source/3rdParty/SDL2/Header ../../Source/3rdParty/bgfx/Header ../../Source/3rdParty/bgfx/Header/compat/ios ../../Source/3rdParty/Lua ../../Source/3rdParty/soloud ../../Source/3rdParty/lodepng ../../Source/3rdParty/sqlite ../../Source/3rdParty/imgui ../../Source/3rdParty/implot ../../Source/3rdParty/Zip ../../Source/3rdParty/dragonBones ../../Source/3rdParty/wasm3";
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
