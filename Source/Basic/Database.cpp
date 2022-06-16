@@ -107,27 +107,27 @@ static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& 
 	int argCount = 0;
 	for (auto& arg : args)
 	{
-		if (auto v = arg->as<int>())
+		if (auto v = arg->asVal<int>())
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (auto v = arg->as<double>())
+		else if (auto v = arg->asVal<double>())
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (auto v = arg->as<std::string>())
+		else if (auto v = arg->asVal<std::string>())
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (auto v = arg->as<uint32_t>())
+		else if (auto v = arg->asVal<uint32_t>())
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (auto v = arg->as<int64_t>())
+		else if (auto v = arg->asVal<int64_t>())
 		{
 			query.bind(++argCount, *v);
 		}
-		else if (arg->as<bool>() && *arg->as<bool>() == false)
+		else if (arg->asVal<bool>() && *arg->asVal<bool>() == false)
 		{
 			query.bind(++argCount);
 		}

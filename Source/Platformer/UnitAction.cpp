@@ -350,7 +350,7 @@ void Jump::run()
 	Sensor* sensor = _owner->getGroundSensor();
 	auto& world = _owner->getPhysicsWorld()->getPrWorld();
 	pr::BodyID self = _owner->getPrBody();
-	pr::BodyID target = sensor->getSensedBodies()->get(0)->to<Body>().getPrBody();
+	pr::BodyID target = sensor->getSensedBodies()->get(0)->to<Body>()->getPrBody();
 	const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetShapes(world, self)));
 	const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetShapes(world, target)));
 	const auto proxyA = pd::GetChild(shapeA, 0);

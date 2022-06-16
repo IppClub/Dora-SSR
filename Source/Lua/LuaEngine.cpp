@@ -751,41 +751,6 @@ void LuaEngine::push(bool value)
 	lua_pushboolean(L, value ? 1 : 0);
 }
 
-void LuaEngine::push(int value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(uint16_t value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(uint32_t value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(uint64_t value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(lua_Integer value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(float value)
-{
-	lua_pushnumber(L, s_cast<lua_Number>(value));
-}
-
-void LuaEngine::push(lua_Number value)
-{
-	lua_pushnumber(L, s_cast<lua_Number>(value));
-}
-
 void LuaEngine::push(Value* value)
 {
 	if (value)
@@ -798,19 +763,9 @@ void LuaEngine::push(Value* value)
 	}
 }
 
-void LuaEngine::push(Object* value)
-{
-	tolua_pushobject(L, value);
-}
-
 void LuaEngine::push(String value)
 {
 	lua_pushlstring(L, value.begin(), value.size());
-}
-
-void LuaEngine::push(const std::string& value)
-{
-	lua_pushlstring(L, value.c_str(), value.size());
 }
 
 void LuaEngine::push(const Vec2& value)
@@ -818,49 +773,9 @@ void LuaEngine::push(const Vec2& value)
 	tolua_pushlight(L, value);
 }
 
-void LuaEngine::push(std::nullptr_t)
-{
-	lua_pushnil(L);
-}
-
 void LuaEngine::push(lua_State* L, bool value)
 {
 	lua_pushboolean(L, value ? 1 : 0);
-}
-
-void LuaEngine::push(lua_State* L, int value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(lua_State* L, uint16_t value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(lua_State* L, uint32_t value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(lua_State* L, uint64_t value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(lua_State* L, lua_Integer value)
-{
-	lua_pushinteger(L, s_cast<lua_Integer>(value));
-}
-
-void LuaEngine::push(lua_State* L, float value)
-{
-	lua_pushnumber(L, s_cast<lua_Number>(value));
-}
-
-void LuaEngine::push(lua_State* L, lua_Number value)
-{
-	lua_pushnumber(L, s_cast<lua_Number>(value));
 }
 
 void LuaEngine::push(lua_State* L, Value* value)
@@ -875,19 +790,9 @@ void LuaEngine::push(lua_State* L, Value* value)
 	}
 }
 
-void LuaEngine::push(lua_State* L, Object* value)
-{
-	tolua_pushobject(L, value);
-}
-
 void LuaEngine::push(lua_State* L, String value)
 {
 	lua_pushlstring(L, value.begin(), value.size());
-}
-
-void LuaEngine::push(lua_State* L, const std::string& value)
-{
-	lua_pushlstring(L, value.c_str(), value.size());
 }
 
 void LuaEngine::push(lua_State* L, const Vec2& value)
@@ -895,86 +800,11 @@ void LuaEngine::push(lua_State* L, const Vec2& value)
 	tolua_pushlight(L, value);
 }
 
-void LuaEngine::push(lua_State* L, std::nullptr_t)
-{
-	lua_pushnil(L);
-}
-
 bool LuaEngine::to(bool& value, int index)
 {
 	if (lua_isboolean(L, index))
 	{
 		value = lua_toboolean(L, index) != 0;
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(int& value, int index)
-{
-	if (lua_isnumber(L, index))
-	{
-		value = s_cast<int>(lua_tonumber(L, index));
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(uint16_t& value, int index)
-{
-	if (lua_isinteger(L, index))
-	{
-		value = s_cast<uint16_t>(lua_tointeger(L, index));
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(uint32_t& value, int index)
-{
-	if (lua_isinteger(L, index))
-	{
-		value = s_cast<uint32_t>(lua_tointeger(L, index));
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(uint64_t& value, int index)
-{
-	if (lua_isinteger(L, index))
-	{
-		value = s_cast<uint64_t>(lua_tointeger(L, index));
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(int64_t& value, int index)
-{
-	if (lua_isinteger(L, index))
-	{
-		value = s_cast<int64_t>(lua_tointeger(L, index));
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(float& value, int index)
-{
-	if (lua_isnumber(L, index))
-	{
-		value = s_cast<float>(lua_tonumber(L, index));
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(double& value, int index)
-{
-	if (lua_isnumber(L, index))
-	{
-		value = lua_tonumber(L, index);
 		return true;
 	}
 	return false;

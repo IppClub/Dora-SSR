@@ -26,8 +26,6 @@ public:
 	bool remove(String key);
 	void clear();
 
-	float get(String key, float def) const;
-
 	template <typename T>
 	T get(String key, const T& def) const
 	{
@@ -36,14 +34,11 @@ public:
 		using Type = std::remove_pointer_t<T>;
 		if constexpr (std::is_base_of_v<Object, Type>)
 		{
-			if (auto item = DoraAs<ValueObject>(val.get()))
-			{
-				return d_cast<T>(item->get());
-			}
+			return val->as<std::remove_pointer_t<special_decay_t<T>>>();
 		}
 		else
 		{
-			if (auto item = val->as<Type>())
+			if (auto item = val->asVal<Type>())
 			{
 				return *item;
 			}

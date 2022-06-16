@@ -208,6 +208,15 @@
     <Filter Include="3rdParty\soloud\audiosource\wav">
       <UniqueIdentifier>{a1cc48e2-5ad5-458d-912e-ad3baa191c4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\wasm3">
+      <UniqueIdentifier>{8a43bcf5-c303-4afc-a150-41d9663e69f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\wasm3\extra">
+      <UniqueIdentifier>{b5891070-2b94-4dd6-addb-b511f322338e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Wasm">
+      <UniqueIdentifier>{4bf58821-88b6-45c6-8ccd-f032ecc82259}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1358,6 +1367,54 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\Grid.cpp">
       <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_libc.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_meta_wasi.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_tracer.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_uvwasi.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_wasi.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_bind.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_code.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_compile.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_core.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_env.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_exec.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_function.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_info.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_module.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_parse.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp">
+      <Filter>Wasm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2804,6 +2861,81 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\Grid.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_libc.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_tracer.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_wasi.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_bind.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_code.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_compile.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_config.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_config_platforms.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_core.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_env.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_exception.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_exec.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_exec_defs.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_function.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_info.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_math_utils.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_cpp.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_defs.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\coremark_minimal.wasm.h">
+      <Filter>3rdParty\wasm3\extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32.wasm.h">
+      <Filter>3rdParty\wasm3\extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32_tail.wasm.h">
+      <Filter>3rdParty\wasm3\extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib64.wasm.h">
+      <Filter>3rdParty\wasm3\extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\wasi_core.h">
+      <Filter>3rdParty\wasm3\extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Wasm\WasmRuntime.h">
+      <Filter>Wasm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

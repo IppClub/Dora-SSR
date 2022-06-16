@@ -201,7 +201,7 @@ Camera* Director::getCurrentCamera()
 		defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
 		_camStack->add(Value::alloc(defaultCamera));
 	}
-	return &_camStack->getLast()->to<Camera>();
+	return _camStack->getLast()->to<Camera>();
 }
 
 const Matrix& Director::getViewProjection() const

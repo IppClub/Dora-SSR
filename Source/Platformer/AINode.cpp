@@ -405,7 +405,7 @@ Status SeqNode::tick(Blackboard* board)
 	uint32_t key = getId();
 	if (auto value = board->get(key))
 	{
-		index = value->to<int>();
+		index = value->toVal<int>();
 	}
 	else board->set(key, Value::alloc(index));
 	auto status = Status::Running;
@@ -445,7 +445,7 @@ Status SelNode::tick(Blackboard* board)
 	uint32_t key = getId();
 	if (auto value = board->get(key))
 	{
-		index = value->to<int>();
+		index = value->toVal<int>();
 	}
 	else board->set(key, Value::alloc(index));
 	auto status = Status::Running;
@@ -543,7 +543,7 @@ Status CountdownNode::tick(Blackboard* board)
 	}
 	if (auto value = board->get(key))
 	{
-		auto time = value->to<double>();
+		auto time = value->toVal<double>();
 		time += board->getDeltaTime();
 		if (time >= _time)
 		{
@@ -578,7 +578,7 @@ Status TimeoutNode::tick(Blackboard* board)
 	}
 	if (auto value = board->get(key))
 	{
-		auto time = value->to<double>();
+		auto time = value->toVal<double>();
 		time += board->getDeltaTime();
 		if (time >= _time)
 		{
@@ -607,7 +607,7 @@ Status WaitNode::tick(Blackboard* board)
 	uint32_t key = getId();
 	if (auto value = board->get(key))
 	{
-		auto time = value->to<double>();
+		auto time = value->toVal<double>();
 		time += board->getDeltaTime();
 		if (time >= _duration)
 		{
@@ -643,7 +643,7 @@ Status RepeatNode::tick(Blackboard* board)
 	{
 		case Status::Success:
 		{
-			auto value = board->get(key)->to<std::pair<int, std::shared_ptr<Blackboard>>>();
+			auto value = board->get(key)->toVal<std::pair<int, std::shared_ptr<Blackboard>>>();
 			if (_times > 0) value.first++;
 			if (value.first > _times)
 			{
@@ -690,7 +690,7 @@ Status RetryNode::tick(Blackboard* board)
 	{
 		case Status::Failure:
 		{
-			auto value = board->get(key)->to<std::pair<int, std::shared_ptr<Blackboard>>>();
+			auto value = board->get(key)->toVal<std::pair<int, std::shared_ptr<Blackboard>>>();
 			if (_times > 0) value.first++;
 			if (value.first > _times)
 			{
