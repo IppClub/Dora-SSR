@@ -261,10 +261,7 @@ namespace wasm3 {
 
         inline void link_default()
         {
-            M3Result ret = m3_LinkSpecTest(m_module.get());
-            detail::check_error(ret);
-
-            ret = m3_LinkLibC(m_module.get());
+            M3Result ret = m3_LinkLibC(m_module.get());
             detail::check_error(ret);
 
             ret = m3_LinkWASI(m_module.get());
@@ -283,8 +280,8 @@ namespace wasm3 {
             IM3Module p;
             M3Result err = m3_ParseModule(env, &p, data, size);
             detail::check_error(err);
-            m_module.reset(p, [this](IM3Module module) {
-                if (!m_loaded) {
+            m_module.reset(p, [loaded = m_loaded](IM3Module module) {
+                if (!*loaded) {
                     m3_FreeModule(module);
                 }
             });
@@ -293,12 +290,12 @@ namespace wasm3 {
         void load_into(IM3Runtime runtime) {
             M3Result err = m3_LoadModule(runtime, m_module.get());
             detail::check_error(err);
-            m_loaded = true;
+            *m_loaded = true;
         }
 
         std::shared_ptr<M3Environment> m_env;
         std::shared_ptr<M3Module> m_module;
-        bool m_loaded = false;
+        std::shared_ptr<bool> m_loaded = std::make_shared<bool>(false);
     };
 
 
