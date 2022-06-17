@@ -350,7 +350,7 @@ bool WasmRuntime::executeMainFile(String filename)
 	try
 	{
 		_wasm = SharedContent.load(filename);
-		wasm3::module mod = _env.parse_module(_wasm.first.get(), _wasm.second);
+		auto mod = _env.parse_module(_wasm.first.get(), _wasm.second);
 		_runtime.load(mod);
 		mod.link_default();
 		linkDoraModule(mod);
@@ -394,22 +394,27 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 				linkDoraModule(*mod);
 				_callFunc = New<wasm3::function>(_runtime.find_function("call_function"));
 				_derefFunc = New<wasm3::function>(_runtime.find_function("deref_function"));
-				return Values::alloc(std::move(mod));
+				auto mainFn = New<wasm3::function>(_runtime.find_function("_start"));
+				return Values::alloc(std::move(mod), std::move(mainFn));
 			}
 			catch (std::runtime_error& e)
 			{
 				Error("failed to load wasm module: {}, due to: {}", file, e.what());
-				return Values::alloc(Own<wasm3::module>());
+				return Values::alloc(Own<wasm3::module>(), Own<wasm3::function>());
 			}
 		}, [file, handler, this](Own<Values> values)
 		{
 			try
 			{
 				Own<wasm3::module> mod;
-				values->get(mod);
-				wasm3::function mainFn = _runtime.find_function("_start");
-				mainFn.call_argv();
-				handler(true);
+				Own<wasm3::function> mainFn;
+				values->get(mod, mainFn);
+				if (mod)
+				{
+					mainFn->call_argv();
+					handler(true);
+				}
+				else handler(false);
 			}
 			catch (std::runtime_error& e)
 			{
