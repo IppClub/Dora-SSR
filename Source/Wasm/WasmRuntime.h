@@ -50,7 +50,8 @@ class WasmRuntime
 {
 public:
 	~WasmRuntime();
-	bool executeWasmFile(String filename);
+	bool executeMainFile(String filename);
+	void executeMainFileAsync(String filename, const std::function<void(bool)>& handler);
 	void invoke(int32_t funcId);
 	void deref(int32_t funcId);
 protected:
@@ -61,7 +62,7 @@ private:
 	Own<wasm3::function> _callFunc;
 	Own<wasm3::function> _derefFunc;
 	std::pair<OwnArray<uint8_t>, size_t> _wasm;
-	SINGLETON_REF(WasmRuntime, Director);
+	SINGLETON_REF(WasmRuntime, AsyncThread);
 };
 
 #define SharedWasmRuntime \

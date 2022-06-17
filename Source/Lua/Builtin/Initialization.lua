@@ -1,30 +1,45 @@
+-- setup Yuescript loader
+
 package.path = "?.lua"
 local yue = require("yue")
 yue.insert_loader(3)
 debug.traceback = yue.traceback
-
 local App = builtin.Application()
-local Director = builtin.Director()
-local Content = builtin.Content()
-local View = builtin.View()
-local Audio = builtin.Audio()
-local Keyboard = builtin.Keyboard()
-local DB = builtin.DB()
-local AI = builtin.Platformer.Decision.AI()
-local Data = builtin.Platformer.Data()
-
 package.cpath = App.platform == "Windows" and "?.dll" or "?.so"
 
-builtin.Application = nil
+-- prepare singletons
+
 builtin.App = App
+builtin.Application = nil
+
+local Content = builtin.Content()
 builtin.Content = Content
+
+local Director = builtin.Director()
 builtin.Director = Director
+
+local View = builtin.View()
 builtin.View = View
+
+local Audio = builtin.Audio()
 builtin.Audio = Audio
+
+local Keyboard = builtin.Keyboard()
 builtin.Keyboard = Keyboard
+
+local DB = builtin.DB()
 builtin.DB = DB
+
+local AI = builtin.Platformer.Decision.AI()
 builtin.Platformer.Decision.AI = AI
+
+local Data = builtin.Platformer.Data()
 builtin.Platformer.Data = Data
+
+local Wasm = builtin.Wasm()
+builtin.Wasm = Wasm
+
+-- coroutine wrapper
 
 local coroutine_yield = coroutine.yield
 local coroutine_create = coroutine.create
@@ -161,7 +176,7 @@ builtin.sleep = function(duration)
 	end
 end
 
--- Async functions
+-- async functions
 
 local Content_loadAsync = Content.loadAsync
 Content.loadAsync = function(self, filename)
@@ -297,7 +312,19 @@ DB.execAsync = function(self, ...)
 	return result
 end
 
--- Action
+local Wasm_executeMainFileAsync = Wasm.executeMainFileAsync
+Wasm.executeMainFileAsync = function(self, filename)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "Wasm.executeMainFileAsync should be run in a thread")
+	local result
+	Wasm_executeMainFileAsync(self, filename, function(res)
+		result = res
+	end)
+	wait(function() return result ~= nil end)
+	return result
+end
+
+-- node actions
 
 local Action = builtin.Action
 local Node = builtin.Node
@@ -366,7 +393,7 @@ builtin.Scale = function(duration, start, stop, ease)
 		ScaleY(duration, start, stop, ease))
 end
 
--- Array
+-- fix array indicing
 
 local Array = builtin.Array
 local Array_index = Array.__index
@@ -391,7 +418,7 @@ Array.__len = function(self)
 	return self.count
 end
 
--- Dictionary
+-- mock dictionary as Lua table
 
 local Dictionary = builtin.Dictionary
 local Dictionary_index = Dictionary.__index
@@ -408,7 +435,7 @@ Dictionary.__len = function(self)
 	return self.count
 end
 
--- Entity
+-- entity cache and old value accessing sugar
 
 local Entity = builtin.Entity
 
@@ -457,7 +484,7 @@ Entity.setRaw = function(self,key,value)
 	Entity_set(self,key,value,true)
 end
 
--- UnitAction
+-- unit action creation
 
 local UnitAction = builtin.Platformer.UnitAction
 local UnitAction_add = UnitAction.add
@@ -473,7 +500,7 @@ UnitAction.add = function(self, name, params)
 		params.stop or dummy)
 end
 
--- ImGui
+-- ImGui pair call wrappers
 
 local ImGui = builtin.ImGui
 
@@ -574,8 +601,8 @@ ImGui.EndTable = nil
 
 -- ML
 
-local BuildDecisionTreeAsync = builtin.BuildDecisionTreeAsync
-builtin.BuildDecisionTreeAsync = function(data,maxDepth,handler)
+local BuildDecisionTreeAsync = builtin.ML.BuildDecisionTreeAsync
+builtin.ML.BuildDecisionTreeAsync = function(data,maxDepth,handler)
 	local accuracy, err
 	BuildDecisionTreeAsync(data,maxDepth,function(...)
 		if not accuracy then
@@ -592,7 +619,7 @@ builtin.BuildDecisionTreeAsync = function(data,maxDepth,handler)
 	return accuracy, err
 end
 
--- Blackboard
+-- blackboard accessing sugar
 
 local Blackboard = builtin.Platformer.Behavior.Blackboard
 local Blackboard_index = Blackboard.__index
@@ -605,7 +632,7 @@ end
 
 Blackboard.__newindex = Blackboard.set
 
--- To String
+-- to string debugging helper
 
 builtin.Vec2.__tostring = function(self)
 	return "Vec2(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ")"
@@ -627,7 +654,7 @@ builtin.Color3.__tostring = function(self)
 	return "Color3(" .. string.format("0x%x", self:toRGB()) .. ")"
 end
 
--- Helpers
+-- dora helpers
 
 debug.traceback = function(err, level)
 	return yue.traceback(err, (level or 1) + 1)
@@ -664,18 +691,20 @@ end
 _G.Dorothy = Dorothy
 builtin.Dorothy = Dorothy
 
-local globals = {}
-_G.globals = globals
-builtin.globals = globals
-
 for k,v in pairs(_G) do
 	builtin[k] = v
 end
 setmetatable(package.loaded,{__index=builtin})
 
+local globals = {} -- available global value storage
+_G.globals = globals
+builtin.globals = globals
+
 local builtinEnvMeta = {__newindex = disallowAssignGlobal}
 setmetatable(_G,builtinEnvMeta)
 setmetatable(builtin,builtinEnvMeta)
+
+-- default GC setting
 
 --collectgarbage("incremental", 100, 5000)
 collectgarbage("generational", 20, 100)

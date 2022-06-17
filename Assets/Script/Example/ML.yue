@@ -185,7 +185,7 @@ newCreature = ->
 		:record
 	}
 
-ql = QLearner!
+ql = ML.QLearner!
 
 getEffect = (tags, action)->
 	effects = actionEffects[actions[action]]
@@ -214,7 +214,7 @@ newRoundTraining = ->
 	result = {}
 	while #result == 0
 		unit = newCreature!
-		state = QLearner\pack unit.hints, unit.values
+		state = ML.QLearner\pack unit.hints, unit.values
 		action = ql\getBestAction state
 		randomAction = false
 		if action == 0
@@ -300,7 +300,7 @@ Director.entry\addChild with Node!
 				TextWrapped "已完成自我训练, 目标: #{target}"
 				if Button "遗忘"
 					selfTrained = false
-					ql = QLearner!
+					ql = ML.QLearner!
 			else
 				TextWrapped "选择训练目标"
 				for i = 1, #effectFlags
@@ -308,7 +308,7 @@ Director.entry\addChild with Node!
 				doSelfTraining = Button "进行自我训练"
 			if doSelfTraining
 				selfTrained = true
-				ql = QLearner!
+				ql = ML.QLearner!
 				targetEffects = {effectNames[i], true for i = 1, #effectFlags when effectFlags[i]}
 				hints = {}
 				table.insert hints, #relationTags
@@ -337,7 +337,7 @@ Director.entry\addChild with Node!
 							table.insert tags, unitTags[4] if i7 ~= 0
 							table.insert tags, unitTags[5] if i8 ~= 0
 							table.insert tags, unitTags[6] if i9 ~= 0
-							state = QLearner\pack hints,{i1,i2,i3,i4,i5,i6,i7,i8,i9}
+							state = ML.QLearner\pack hints,{i1,i2,i3,i4,i5,i6,i7,i8,i9}
 							for action = 1, #actions
 								result = getEffect tags, action
 								r = 0
@@ -351,7 +351,7 @@ Director.entry\addChild with Node!
 				dataStr = table.concat [table.concat r, "," for r in *records], "\n"
 				thread ->
 					lines = {}
-					BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
+					ML.BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
 						line = string.rep("\t",depth) .. if name ~= "" then
 							"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
 						else

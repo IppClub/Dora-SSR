@@ -2545,7 +2545,7 @@ int QLearner_pack(lua_State* L)
 	/* 1 class, 2 table, 3 table */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertable(L, 1, "QLearner"_slice, 0, &tolua_err)
+	if (!tolua_isusertable(L, 1, "ML::QLearner"_slice, 0, &tolua_err)
 		|| !tolua_istable(L, 2, 0, &tolua_err)
 		|| !tolua_istable(L, 3, 0, &tolua_err)
 		|| !tolua_isnoobj(L, 4, &tolua_err))
@@ -2581,11 +2581,11 @@ int QLearner_pack(lua_State* L)
 		{
 			values[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 3, i + 1, 0));
 		}
-		QLearner::QState state = 0;
+		ML::QLearner::QState state = 0;
 #ifndef TOLUA_RELEASE
 		try {
 #endif
-			state = QLearner::pack(hints, values);
+			state = ML::QLearner::pack(hints, values);
 #ifndef TOLUA_RELEASE
 		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
 #endif
@@ -2604,7 +2604,7 @@ int QLearner_unpack(lua_State* L)
 	/* 1 class, 2 table, 3 integer */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertable(L, 1, "QLearner"_slice, 0, &tolua_err)
+	if (!tolua_isusertable(L, 1, "ML::QLearner"_slice, 0, &tolua_err)
 		|| !tolua_istable(L, 2, 0, &tolua_err)
 		|| !tolua_isinteger(L, 3, 0, &tolua_err)
 		|| !tolua_isnoobj(L, 4, &tolua_err))
@@ -2626,8 +2626,8 @@ int QLearner_unpack(lua_State* L)
 		{
 			hints[i] = s_cast<uint32_t>(tolua_tofieldinteger(L, 2, i + 1, 0));
 		}
-		QLearner::QState state = s_cast<QLearner::QState>(lua_tointeger(L, 3));
-		std::vector<uint32_t> values = QLearner::unpack(hints, state);
+		ML::QLearner::QState state = s_cast<ML::QLearner::QState>(lua_tointeger(L, 3));
+		std::vector<uint32_t> values = ML::QLearner::unpack(hints, state);
 		lua_createtable(L, hintsCount, 0);
 		for (size_t i = 0; i < values.size(); i++)
 		{
@@ -2648,7 +2648,7 @@ int QLearner_load(lua_State* L)
 	/* 1 self, 2 table */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "QLearner"_slice, 0, &tolua_err)
+	if (!tolua_isusertype(L, 1, "ML::QLearner"_slice, 0, &tolua_err)
 		|| !tolua_istable(L, 2, 0, &tolua_err)
 		|| !tolua_isnoobj(L, 3, &tolua_err))
 	{
@@ -2656,7 +2656,7 @@ int QLearner_load(lua_State* L)
 	}
 #endif
 	{
-		QLearner* self = r_cast<QLearner*>(tolua_tousertype(L, 1, 0));
+		ML::QLearner* self = r_cast<ML::QLearner*>(tolua_tousertype(L, 1, 0));
 		int size = s_cast<int>(lua_rawlen(L, 2));
 #ifndef TOLUA_RELEASE
 		if (!tolua_istablearray(L, 2, size, 0, &tolua_err))
@@ -2675,10 +2675,10 @@ int QLearner_load(lua_State* L)
 			}
 #endif
 			lua_rawgeti(L, -1, 1);
-			QLearner::QState state = s_cast<QLearner::QState>(lua_tointeger(L, -1));
+			ML::QLearner::QState state = s_cast<ML::QLearner::QState>(lua_tointeger(L, -1));
 			lua_pop(L, 1);
 			lua_rawgeti(L, -1, 2);
-			QLearner::QAction action = s_cast<QLearner::QAction>(lua_tointeger(L, -1));
+			ML::QLearner::QAction action = s_cast<ML::QLearner::QAction>(lua_tointeger(L, -1));
 			lua_pop(L, 1);
 			lua_rawgeti(L, -1, 3);
 			double q = lua_tonumber(L, -1);
@@ -2700,24 +2700,24 @@ int QLearner_getMatrix(lua_State* L)
 	/* 1 self */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "QLearner"_slice, 0, &tolua_err)
+	if (!tolua_isusertype(L, 1, "ML::QLearner"_slice, 0, &tolua_err)
 		|| !tolua_isnoobj(L, 2, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
 #endif
 	{
-		QLearner* self = r_cast<QLearner*>(tolua_tousertype(L, 1, 0));
+		ML::QLearner* self = r_cast<ML::QLearner*>(tolua_tousertype(L, 1, 0));
 		const auto& matrix = self->getMatrix();
 		int i = 0;
 		lua_createtable(L, s_cast<int>(matrix.size()), 0);
 		for (const auto& row : matrix)
 		{
 			lua_createtable(L, 3, 0);
-			QLearner::QState state = row.first;
+			ML::QLearner::QState state = row.first;
 			for (const auto& col : row.second)
 			{
-				QLearner::QAction action = col.first;
+				ML::QLearner::QAction action = col.first;
 				double q = col.second;
 				lua_pushinteger(L, s_cast<lua_Integer>(state));
 				lua_rawseti(L, -2, 1);

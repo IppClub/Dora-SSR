@@ -283,7 +283,7 @@ Director.entry\addChild with Node!
 		data = {}
 		thread ->
 			lines = {"(_ENV)->"}
-			accuracy = BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
+			accuracy = ML.BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
 				line = string.rep("\t",depth+1) .. if name ~= "" then
 					"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
 				else

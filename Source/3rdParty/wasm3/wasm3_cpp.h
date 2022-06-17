@@ -259,7 +259,7 @@ namespace wasm3 {
         template<typename Func>
         void link_optional(const char *module, const char *function_name, Func *function);
 
-        inline void link_all()
+        inline void link_default()
         {
             M3Result ret = m3_LinkSpecTest(m_module.get());
             detail::check_error(ret);

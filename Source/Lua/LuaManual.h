@@ -286,6 +286,9 @@ int DB_execAsync(lua_State* L);
 inline Pass* Effect_get(Effect* self, size_t index)
 	{ return self->get(index - 1); }
 
+/* Wasm */
+inline WasmRuntime* WasmRuntime_shared() { return &SharedWasmRuntime; }
+
 NS_DOROTHY_PLATFORMER_END
 
 using namespace Dorothy;

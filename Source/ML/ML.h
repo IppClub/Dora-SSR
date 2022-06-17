@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <map>
 
 NS_DOROTHY_BEGIN
+namespace ML {
 
 void BuildDecisionTreeAsync(String data, int maxDepth,
 	const std::function<void(double,String,String,String)>& handleTree);
@@ -42,4 +43,5 @@ private:
 	DORA_TYPE_OVERRIDE(QLearner);
 };
 
+} // namespace ML
 NS_DOROTHY_END
