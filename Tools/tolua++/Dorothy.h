@@ -1076,11 +1076,24 @@ class DB
 	static tolua_outside DB* DB_shared @ create();
 };
 
+namespace ML {
+
 class QLearner : public Object
 {
 	void update(uint64_t state, uint32_t action, double reward);
 	uint32_t getBestAction(uint64_t state);
 	static QLearner* create(double gamma = 0.5, double alpha = 0.5, double maxQ = 100.0);
+};
+
+void BuildDecisionTreeAsync(String data, int maxDepth, tolua_function_void handleTree);
+
+} // namespace ML
+
+class WasmRuntime @ Wasm
+{
+	bool executeMainFile(String filename);
+	void executeMainFileAsync(String filename, tolua_function_void handler);
+	static tolua_outside WasmRuntime* WasmRuntime_shared @ create();
 };
 
 namespace Platformer {
@@ -1305,5 +1318,4 @@ class Data
 
 } // namespace Platformer
 
-void BuildDecisionTreeAsync(String data, int maxDepth, tolua_function_void handleTree);
 

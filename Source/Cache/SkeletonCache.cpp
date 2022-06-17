@@ -138,6 +138,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 			if (!data)
 			{
 				Warn("failed to load skeleton data \"{}\".", file);
+				handler(nullptr);
 				return;
 			}
 			auto skelData = std::make_shared<std::tuple<std::string, OwnArray<uint8_t>, size_t>>(std::move(file), std::move(data), size);
