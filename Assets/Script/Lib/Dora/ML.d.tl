@@ -17,5 +17,16 @@ local record QLearnerClass
 		maxQ?: number --[[100.0]]
 	): QLearner
 end
-local qLearnerClass: QLearnerClass
-return qLearnerClass
+
+local record ML
+	BuildDecisionTreeAsync: function(
+		self: ML,
+		csvData: string,
+		maxDepth: integer,
+		handler: function(depth: integer, name: string, op: string, value: string)
+	): number, string
+	QLearner: QLearnerClass
+end
+
+local ml: ML
+return ml
