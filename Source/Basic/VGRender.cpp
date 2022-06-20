@@ -490,6 +490,72 @@ void nvg::DorothySSRHappyWhite()
 	RenderDorothySSRHappyWhite(Context());
 }
 
+static VGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int width, int height, float scale)
+{
+	const float size = 1111.0f;
+	VGTexture* texture = nullptr;
+	SharedView.pushFront("DorothySSRTex"_slice, [&]()
+	{
+		bgfx::ViewId viewId = SharedView.getId();
+		bgfx::setViewClear(viewId,
+			BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+			Color::Black.toRGBA());
+		NVGcontext* context = nvgCreate(2, viewId);
+		NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
+			s_cast<int32_t>(width * scale),
+			s_cast<int32_t>(height * scale), 0);
+		nvgluSetViewFramebuffer(viewId, framebuffer);
+		nvgluBindFramebuffer(framebuffer);
+		nvgBeginFrame(context, s_cast<float>(width), s_cast<float>(height), scale);
+		switch (bgfx::getCaps()->rendererType)
+		{
+			case bgfx::RendererType::OpenGL:
+			case bgfx::RendererType::OpenGLES:
+				nvgScale(context, 1.0f, -1.0f);
+				nvgTranslate(context, 0.0f, -s_cast<float>(height));
+				break;
+			default:
+				break;
+		}
+		nvgTranslate(context, -(size-width)/2.0f, -(size-height)/2.0f);
+		render(context);
+		nvgEndFrame(context);
+		nvgluBindFramebuffer(nullptr);
+		bgfx::TextureInfo info;
+		bgfx::calcTextureSize(info,
+			s_cast<uint16_t>(width * scale),
+			s_cast<uint16_t>(height * scale),
+			0, false, false, 1, bgfx::TextureFormat::RGBA8);
+		uint64_t flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+		texture = VGTexture::create(context, framebuffer, info, flags);
+	});
+	return texture;
+}
+
+Texture2D* nvg::GetDorothySSR(float scale)
+{
+	const int width = 580, height = 760;
+	return GetDorothySSRTexture(RenderDorothySSR, width, height, scale);
+}
+
+Texture2D* nvg::GetDorothySSRWhite(float scale)
+{
+	const int width = 580, height = 760;
+	return GetDorothySSRTexture(RenderDorothySSRWhite, width, height, scale);
+}
+
+Texture2D* nvg::GetDorothySSRHappy(float scale)
+{
+	const int width = 580, height = 760;
+	return GetDorothySSRTexture(RenderDorothySSRHappy, width, height, scale);
+}
+
+Texture2D* nvg::GetDorothySSRHappyWhite(float scale)
+{
+	const int width = 580, height = 760;
+	return GetDorothySSRTexture(RenderDorothySSRHappyWhite, width, height, scale);
+}
+
 void RenderDorothySSRHappyWhite(NVGcontext* context)
 {
 	nvgBeginPath(context);
@@ -5052,72 +5118,6 @@ NVGcontext* VGTexture::getContext() const
 NVGLUframebuffer* VGTexture::getFramebuffer() const
 {
 	return _framebuffer;
-}
-
-static VGTexture* GetDorothySSRTexture(void (*render)(NVGcontext* context), int width, int height, float scale)
-{
-	const float size = 1111.0f;
-	VGTexture* texture = nullptr;
-	SharedView.pushFront("DorothySSRTex"_slice, [&]()
-	{
-		bgfx::ViewId viewId = SharedView.getId();
-		bgfx::setViewClear(viewId,
-			BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
-			Color::Black.toRGBA());
-		NVGcontext* context = nvgCreate(2, viewId);
-		NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
-			s_cast<int32_t>(width * scale),
-			s_cast<int32_t>(height * scale), 0);
-		nvgluSetViewFramebuffer(viewId, framebuffer);
-		nvgluBindFramebuffer(framebuffer);
-		nvgBeginFrame(context, s_cast<float>(width), s_cast<float>(height), scale);
-		switch (bgfx::getCaps()->rendererType)
-		{
-			case bgfx::RendererType::OpenGL:
-			case bgfx::RendererType::OpenGLES:
-				nvgScale(context, 1.0f, -1.0f);
-				nvgTranslate(context, 0.0f, -s_cast<float>(height));
-				break;
-			default:
-				break;
-		}
-		nvgTranslate(context, -(size-width)/2.0f, -(size-height)/2.0f);
-		render(context);
-		nvgEndFrame(context);
-		nvgluBindFramebuffer(nullptr);
-		bgfx::TextureInfo info;
-		bgfx::calcTextureSize(info,
-			s_cast<uint16_t>(width * scale),
-			s_cast<uint16_t>(height * scale),
-			0, false, false, 1, bgfx::TextureFormat::RGBA8);
-		uint64_t flags = BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-		texture = VGTexture::create(context, framebuffer, info, flags);
-	});
-	return texture;
-}
-
-VGTexture* GetDorothySSR(float scale)
-{
-	const int width = 580, height = 760;
-	return GetDorothySSRTexture(RenderDorothySSR, width, height, scale);
-}
-
-VGTexture* GetDorothySSRWhite(float scale)
-{
-	const int width = 580, height = 760;
-	return GetDorothySSRTexture(RenderDorothySSRWhite, width, height, scale);
-}
-
-VGTexture* GetDorothySSRHappy(float scale)
-{
-	const int width = 580, height = 760;
-	return GetDorothySSRTexture(RenderDorothySSRHappy, width, height, scale);
-}
-
-VGTexture* GetDorothySSRHappyWhite(float scale)
-{
-	const int width = 580, height = 760;
-	return GetDorothySSRTexture(RenderDorothySSRHappyWhite, width, height, scale);
 }
 
 NS_DOROTHY_END
