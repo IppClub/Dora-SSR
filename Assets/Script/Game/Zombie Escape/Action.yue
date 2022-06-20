@@ -1,6 +1,6 @@
 _ENV = Dorothy builtin.Platformer
 
-groundEntranceEnd = (name,playable)->
+groundEntranceEnd = (name, playable)->
 	return unless name == "groundEntrance"
 	playable.parent\stop!
 
@@ -15,7 +15,7 @@ UnitAction\add "groundEntrance",
 		@group = 0
 		with @playable
 			.speed = 1
-			\slot "AnimationEnd",groundEntranceEnd
+			\slot "AnimationEnd", groundEntranceEnd
 			\play "groundEntrance"
 		-> false
 	stop: =>

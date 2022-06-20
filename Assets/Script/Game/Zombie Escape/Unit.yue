@@ -3,14 +3,14 @@ _ENV = Dorothy builtin.Platformer
 store:Store = Data
 
 Store["Unit_KidW"] = with Dictionary!
-	.linearAcceleration = Vec2 0,-10
+	.linearAcceleration = Vec2 0, -10
 	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
 	.restitution = 0.0
 	.playable = "model:Model/KidW"
-	.size = Size 30,110
+	.size = Size 30, 110
 	.tag = "KidW"
 	.sensity = 0.1
 	.move = 250
@@ -21,12 +21,12 @@ Store["Unit_KidW"] = with Dictionary!
 	.attackBase = 2.5
 	.attackDelay = 0.1
 	.attackEffectDelay = 0.1
-	.attackRange = Size 350,150
-	.attackPower = Vec2 100,100
+	.attackRange = Size 350, 150
+	.attackPower = Vec2 100, 100
 	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow "Enemy",true)
+		\allow "Enemy", true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_KidW"
@@ -48,14 +48,14 @@ Store["Unit_KidW"] = with Dictionary!
 		* "fallOff"
 
 Store["Unit_KidM"] = with Dictionary!
-	.linearAcceleration = Vec2 0,-10
+	.linearAcceleration = Vec2 0, -10
 	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
 	.restitution = 0.0
 	.playable = "model:Model/KidM"
-	.size = Size 30,110
+	.size = Size 30, 110
 	.tag = "KidM"
 	.sensity = 0.1
 	.move = 250
@@ -66,12 +66,12 @@ Store["Unit_KidM"] = with Dictionary!
 	.attackBase = 1.0
 	.attackDelay = 0.1
 	.attackEffectDelay = 0.1
-	.attackRange = Size 400,100
-	.attackPower = Vec2 100,0
+	.attackRange = Size 400, 100
+	.attackPower = Vec2 100, 0
 	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow "Enemy",true)
+		\allow "Enemy", true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_KidM"
@@ -93,14 +93,14 @@ Store["Unit_KidM"] = with Dictionary!
 		* "fallOff"
 
 Store["Unit_Zombie1"] = with Dictionary!
-	.linearAcceleration = Vec2 0,-10
+	.linearAcceleration = Vec2 0, -10
 	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
 	.restitution = 0.0
 	.playable = "model:Model/Zombie1"
-	.size = Size 40,110
+	.size = Size 40, 110
 	.tag = "Zombie1"
 	.sensity = 0.2
 	.move = 120
@@ -111,8 +111,8 @@ Store["Unit_Zombie1"] = with Dictionary!
 	.attackBase = 1
 	.attackDelay = 0.25
 	.attackEffectDelay = 0.1
-	.attackRange = Size 80,50
-	.attackPower = Vec2 150,100
+	.attackRange = Size 80, 50
+	.attackPower = Vec2 150, 100
 	.attackTarget = "Single"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
@@ -139,14 +139,14 @@ Store["Unit_Zombie1"] = with Dictionary!
 		* "fallOff"
 
 Store["Unit_Zombie2"] = with Dictionary!
-	.linearAcceleration = Vec2 0,-10
+	.linearAcceleration = Vec2 0, -10
 	.bodyType = "Dynamic"
 	.scale = 5
 	.density = 1.0
 	.friction = 1.0
 	.restitution = 0.0
 	.playable = "model:Model/Zombie2"
-	.size = Size 40,110
+	.size = Size 40, 110
 	.tag = "Zombie2"
 	.sensity = 0.2
 	.move = 60
@@ -157,12 +157,12 @@ Store["Unit_Zombie2"] = with Dictionary!
 	.attackBase = 1
 	.attackDelay = 0.4
 	.attackEffectDelay = 0.1
-	.attackRange = Size 150,80
-	.attackPower = Vec2 150,100
+	.attackRange = Size 150, 80
+	.attackPower = Vec2 150, 100
 	.attackTarget = "Multi"
 	.targetAllow = (with TargetAllow!
 		.terrainAllowed = true
-		\allow "Enemy",true)
+		\allow "Enemy", true)
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""

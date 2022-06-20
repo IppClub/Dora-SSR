@@ -20,7 +20,7 @@ Store["Bullet_KidM"] = with BulletDef!
 		lineOrder: 2
 	}
 	\setAsCircle 6
-	\setVelocity 0,600
+	\setVelocity 0, 600
 
 Store["Bullet_KidW"] = with BulletDef!
 	.tag = ""
@@ -28,7 +28,7 @@ Store["Bullet_KidW"] = with BulletDef!
 	.lifeTime = 5
 	.damageRadius = 0
 	.highSpeedFix = false
-	.gravity = Vec2 0,-10
+	.gravity = Vec2 0, -10
 	.face = Face -> Star {
 		size: 15
 		borderColor: 0xffff0088
@@ -37,4 +37,4 @@ Store["Bullet_KidW"] = with BulletDef!
 		lineOrder: 2
 	}
 	\setAsCircle 10
-	\setVelocity 60,600
+	\setVelocity 60, 600
