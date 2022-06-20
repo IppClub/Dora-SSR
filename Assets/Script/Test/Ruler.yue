@@ -3,26 +3,26 @@ import "UI.Control.Basic.Ruler"
 import "UI.Control.Basic.CircleButton"
 
 ruler = Ruler {
-	x:0
-	y:0
-	width:400
-	height:60
-	fontName:"sarasa-mono-sc-regular"
-	fontSize:12
+	x: 0
+	y: 0
+	width: 600
+	height: 100
+	fontName: "sarasa-mono-sc-regular"
+	fontSize: 30
 }
 
 Director.entry\addChild with Node!
 	\addChild ruler
 	\addChild with CircleButton {
-			text:"显示"
-			y:-100
-			radius:30
-			fontSize:18
+			text: "显示"
+			y: -150
+			radius: 60
+			fontSize: 40
 		}
 		\slot "Tapped", ->
 			if .text == "显示"
 				.text = "隐藏"
-				ruler\show 0,0,100,10,(value)->
+				ruler\show 0, 0, 100, 10, (value)->
 					print value
 			else
 				.text = "显示"
