@@ -49,8 +49,8 @@ mutables =
 	* "attackPower"
 	* "attackSpeed"
 
-with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight"}
-	\every (unitDef,position,order,group,isPlayer,faceRight)=>
+with Observer "Add", {"unitDef","position","order","group","faceRight"}
+	\every (unitDef,position,order,group,faceRight)=>
 		:world = Store
 		def = Store[unitDef]
 		for var in *mutables
@@ -62,7 +62,7 @@ with Observer "Add", {"unitDef","position","order","group","isPlayer","faceRight
 			\addTo world
 			\eachAction => @recovery = 0
 			.playable\eachNode (sp)-> sp.filter = "Point"
-		world.camera.followTarget = unit if isPlayer and unit.decisionTree == "AI_KidSearch"
+		world.camera.followTarget = unit if @player and unit.decisionTree == "AI_KidSearch"
 
 with Observer "Change", {"hp","unit"}
 	\every (hp,unit)=>
@@ -79,7 +79,7 @@ with Observer "Change", {"hp","unit"}
 					unit\runAction Opacity 0.5,1,0,Ease.OutQuad
 					sleep 0.5
 					if Store.world.camera.followTarget == unit
-						if player = Group({"isPlayer","unit"})\find => @isPlayer
+						if player = Group({"player","unit"})\find => @player
 							Store.world.camera.followTarget = player.unit
 					unit\removeFromParent!
 
@@ -108,7 +108,6 @@ spawnZombies = ->
 				.order = ZombieLayer
 				.position = pos
 				.group = ZombieGroup
-				.isPlayer = false
 				.faceRight = App.rand%2 == 0
 				.zombie = true
 			sleep 0.1*App.rand%5
