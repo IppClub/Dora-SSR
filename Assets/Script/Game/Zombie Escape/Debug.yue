@@ -13,7 +13,7 @@ zombieGroup = Group {"zombie", "unit"}
 userControl = false
 playerChoice = 1
 controlChoice = switch App.platform
-	when "iOS","Android" then 0
+	when "iOS", "Android" then 0
 	else 1
 camZoom = world.camera.zoom
 decisions = {}
@@ -21,9 +21,9 @@ showDecisionTrace = false
 lastDecisionTree = ""
 world\schedule ->
 	:width,:height = App.visualSize
-	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,userControl and 500 or 300)
-	Begin "Zombie Game Demo", {"NoResize","NoSavedSettings"}, ->
+	SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
+	SetNextWindowSize Vec2(240, userControl and 500 or 300)
+	Begin "Zombie Game Demo", {"NoResize", "NoSavedSettings"}, ->
 		TextWrapped "Zombie Killed: #{Store.zombieKilled}"
 		SameLine!
 		if Button "Army"
@@ -31,24 +31,24 @@ world\schedule ->
 				available = false
 				pos = Vec2.zero
 				while not available
-					pos = Vec2 App.rand%2400-1200,-430
-					available = not world\query Rect(pos,Size(5,5)), => @group == Data.groupTerrain
+					pos = Vec2 App.rand % 2400 - 1200, -430
+					available = not world\query Rect(pos,Size(5, 5)), => @group == Data.groupTerrain
 				with Entity!
-					.unitDef = "Unit_Zombie#{App.rand%2 + 1}"
+					.unitDef = "Unit_Zombie#{App.rand % 2 + 1}"
 					.order = ZombieLayer
 					.position = pos
 					.group = PlayerGroup
-					.faceRight = App.rand%2 == 0
+					.faceRight = App.rand % 2 == 0
 					.stared = true
 		changed,camZoom = DragFloat "Zoom", camZoom, 0.01, 0.5, 2, "%.2f"
 		world.camera.zoom = camZoom if changed
 		playerGroup\each => TextWrapped "#{@unit.tag} HP: #{@hp}"
-		changed,result = Checkbox "Physics Debug",world.showDebug
+		changed, result = Checkbox "Physics Debug", world.showDebug
 		world.showDebug = result if changed
-		changed,showDecisionTrace = Checkbox "AI Debug",showDecisionTrace
+		changed, showDecisionTrace = Checkbox "AI Debug", showDecisionTrace
 		if changed
 			playerGroup\each => @unit.receivingDecisionTrace = showDecisionTrace
-		changed,userControl = Checkbox "Take Control",userControl
+		changed, userControl = Checkbox "Take Control", userControl
 		if userControl
 			if Store.controlPlayer == "Zombie" and
 				not playerGroup\each =>
@@ -80,11 +80,11 @@ world\schedule ->
 						}
 					true
 			Separator!
-			pressedA,choice = RadioButton "Male",playerChoice,0
+			pressedA, choice = RadioButton "Male", playerChoice, 0
 			playerChoice = choice if pressedA
-			pressedB,choice = RadioButton "Female",playerChoice,1
+			pressedB, choice = RadioButton "Female", playerChoice, 1
 			playerChoice = choice if pressedB
-			pressedC,choice = RadioButton "Zombie",playerChoice,2
+			pressedC, choice = RadioButton "Zombie", playerChoice, 2
 			playerChoice = choice if pressedC
 			if pressedA or pressedB or pressedC or changed
 				Store.controlPlayer = switch playerChoice
@@ -127,12 +127,12 @@ world\schedule ->
 				"Keyboard: Left(A), Right(D), Shoot(J), Jump(K)"
 			else "TouchPad: Use buttons in lower screen to control unit."
 			Separator!
-			pressedA,choice = RadioButton "TouchPad",controlChoice,0
+			pressedA, choice = RadioButton "TouchPad", controlChoice, 0
 			if pressedA
 				controlChoice = choice
 				Store.keyboardEnabled = false
 				Director.ui\eachChild => @visible = true
-			pressedB,choice = RadioButton "Keyboard",controlChoice,1
+			pressedB, choice = RadioButton "Keyboard", controlChoice, 1
 			if pressedB
 				controlChoice = choice
 				Store.keyboardEnabled = true
@@ -158,13 +158,13 @@ world\schedule ->
 		lastDecisionTree = target.decisionTree
 
 	if showDecisionTrace
-		SetNextWindowPos Vec2(width/2-200,10), "FirstUseEver"
-		SetNextWindowSize Vec2(400,160), "FirstUseEver"
+		SetNextWindowPos Vec2(width / 2 - 200, 10), "FirstUseEver"
+		SetNextWindowSize Vec2(400, 160), "FirstUseEver"
 		Begin "Decision Trace (#{lastDecisionTree})", {"NoSavedSettings"}, ->
-			Text table.concat decisions,"\n"
+			Text table.concat decisions, "\n"
 
-with Observer "Add", {"group","unit","player","stared"}
-	\every (group,unit)=>
+with Observer "Add", {"group", "unit", "player", "stared"}
+	\every (group, unit)=>
 		unit\addChild Star {
 			y: 100
 			size: 18

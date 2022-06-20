@@ -9,12 +9,12 @@ store:Store = Data
 
 Store.controlPlayer = "KidW"
 playerGroup = Group {"player"}
-updatePlayerControl = (key,flag)->
+updatePlayerControl = (key, flag)->
 	if player = playerGroup\find => @unit.tag == Store.controlPlayer
 		player[key] = flag
 uiScale = App.deviceRatio
 
-with AlignNode isRoot:true
+with AlignNode isRoot: true
 	.visible = false
 	\addChild with AlignNode!
 		.hAlign = "Left"
@@ -22,48 +22,48 @@ with AlignNode isRoot:true
 		\addChild with Menu!
 			\addChild with CircleButton {
 					text: "Left"
-					x: 20*uiScale
-					y: 60*uiScale
-					radius: 30*uiScale
-					fontSize: math.floor 18*uiScale
+					x: 20 * uiScale
+					y: 60 * uiScale
+					radius: 30 * uiScale
+					fontSize: math.floor 18 * uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyLeft",true
-				\slot "TapEnded", -> updatePlayerControl "keyLeft",false
+				\slot "TapBegan", -> updatePlayerControl "keyLeft", true
+				\slot "TapEnded", -> updatePlayerControl "keyLeft", false
 			\addChild with CircleButton {
 					text: "Right"
-					x: 90*uiScale
-					y: 60*uiScale
-					radius: 30*uiScale
-					fontSize: math.floor 18*uiScale
+					x: 90 * uiScale
+					y: 60 * uiScale
+					radius: 30 * uiScale
+					fontSize: math.floor 18 * uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyRight",true
-				\slot "TapEnded", -> updatePlayerControl "keyRight",false
+				\slot "TapBegan", -> updatePlayerControl "keyRight", true
+				\slot "TapEnded", -> updatePlayerControl "keyRight", false
 	\addChild with AlignNode!
 		.hAlign = "Right"
 		.vAlign = "Bottom"
 		\addChild with Menu!
 			\addChild with CircleButton {
 					text: "Jump"
-					x: -80*uiScale
-					y: 60*uiScale
-					radius: 30*uiScale
-					fontSize: math.floor 18*uiScale
+					x: -80 * uiScale
+					y: 60 * uiScale
+					radius: 30 * uiScale
+					fontSize: math.floor 18 * uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyUp",true
-				\slot "TapEnded", -> updatePlayerControl "keyUp",false
+				\slot "TapBegan", -> updatePlayerControl "keyUp", true
+				\slot "TapEnded", -> updatePlayerControl "keyUp", false
 			\addChild with CircleButton {
 					text: "Shoot"
-					x: -150*uiScale
-					y: 60*uiScale
-					radius: 30*uiScale
-					fontSize: math.floor 18*uiScale
+					x: -150 * uiScale
+					y: 60 * uiScale
+					radius: 30 * uiScale
+					fontSize: math.floor 18 * uiScale
 				}
 				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyShoot",true
-				\slot "TapEnded", -> updatePlayerControl "keyShoot",false
+				\slot "TapBegan", -> updatePlayerControl "keyShoot", true
+				\slot "TapEnded", -> updatePlayerControl "keyShoot", false
 	\addTo with Director.ui
 		.renderGroup = true
 
