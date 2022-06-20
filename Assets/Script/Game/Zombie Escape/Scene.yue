@@ -69,7 +69,6 @@ with Entity!
 	.order = PlayerLayer
 	.position = Vec2 -50,-430
 	.group = PlayerGroup
-	.isPlayer = true
 	.faceRight = false
 	.player = true
 
@@ -78,6 +77,5 @@ with Entity!
 	.order = PlayerLayer
 	.position = Vec2 0,-430
 	.group = PlayerGroup
-	.isPlayer = true
 	.faceRight = true
 	.player = true

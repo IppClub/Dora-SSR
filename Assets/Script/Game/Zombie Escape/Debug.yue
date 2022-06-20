@@ -38,7 +38,6 @@ world\schedule ->
 					.order = ZombieLayer
 					.position = pos
 					.group = PlayerGroup
-					.isPlayer = false
 					.faceRight = App.rand%2 == 0
 					.stared = true
 		changed,camZoom = DragFloat "Zoom", camZoom, 0.01, 0.5, 2, "%.2f"
@@ -164,7 +163,7 @@ world\schedule ->
 		Begin "Decision Trace (#{lastDecisionTree})", {"NoSavedSettings"}, ->
 			Text table.concat decisions,"\n"
 
-with Observer "Add", {"group","unit","unitDef","position","order","isPlayer","faceRight","stared"}
+with Observer "Add", {"group","unit","player","stared"}
 	\every (group,unit)=>
 		unit\addChild Star {
 			y: 100
