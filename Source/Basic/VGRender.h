@@ -109,6 +109,10 @@ struct nvg
 	static void DorothySSRWhite();
 	static void DorothySSRHappy();
 	static void DorothySSRHappyWhite();
+	static Texture2D* GetDorothySSR(float scale = 1.0f);
+	static Texture2D* GetDorothySSRWhite(float scale = 1.0f);
+	static Texture2D* GetDorothySSRHappy(float scale = 1.0f);
+	static Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
 	static NVGcontext* Context();
 private:
 	static NVGcontext* _currentContext;
@@ -132,10 +136,5 @@ protected:
 	NVGLUframebuffer* _framebuffer;
 	NVGcontext* _context;
 };
-
-VGTexture* GetDorothySSR(float scale = 1.0f);
-VGTexture* GetDorothySSRWhite(float scale = 1.0f);
-VGTexture* GetDorothySSRHappy(float scale = 1.0f);
-VGTexture* GetDorothySSRHappyWhite(float scale = 1.0f);
 
 NS_DOROTHY_END

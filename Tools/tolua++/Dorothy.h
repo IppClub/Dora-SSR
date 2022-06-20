@@ -1057,11 +1057,6 @@ class Keyboard
 	static tolua_outside Keyboard* Keyboard_shared @ create();
 };
 
-Texture2D* GetDorothySSR(float scale = 1.0f);
-Texture2D* GetDorothySSRWhite(float scale = 1.0f);
-Texture2D* GetDorothySSRHappy(float scale = 1.0f);
-Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
-
 class SVGDef @ SVG : public Object
 {
 	tolua_readonly tolua_property__common float width;

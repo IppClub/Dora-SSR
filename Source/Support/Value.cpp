@@ -21,6 +21,11 @@ Own<Value> ValueInt::clone() const
 	return Value::alloc(_value);
 }
 
+Value* ValueInt::cloneUnsafe() const
+{
+	return Value::allocUnsafe(_value);
+}
+
 void ValueInt::pushToLua(lua_State* L) const
 {
 	LuaEngine::push(L, _value);
@@ -47,6 +52,11 @@ MEMORY_POOL(ValueInt);
 Own<Value> ValueFloat::clone() const
 {
 	return Value::alloc(_value);
+}
+
+Value* ValueFloat::cloneUnsafe() const
+{
+	return Value::allocUnsafe(_value);
 }
 
 void ValueFloat::pushToLua(lua_State* L) const
@@ -77,6 +87,11 @@ Own<Value> ValueBool::clone() const
 	return Value::alloc(_value);
 }
 
+Value* ValueBool::cloneUnsafe() const
+{
+	return Value::allocUnsafe(_value);
+}
+
 void ValueBool::pushToLua(lua_State* L) const
 {
 	LuaEngine::push(L, _value);
@@ -103,6 +118,11 @@ MEMORY_POOL(ValueBool);
 Own<Value> ValueObject::clone() const
 {
 	return Value::alloc(_value.get());
+}
+
+Value* ValueObject::cloneUnsafe() const
+{
+	return Value::allocUnsafe(_value.get());
 }
 
 void ValueObject::pushToLua(lua_State* L) const

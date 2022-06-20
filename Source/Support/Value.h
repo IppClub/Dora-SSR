@@ -52,17 +52,108 @@ public:
 	template <class T>
 	void set(const T& value);
 	template <class T>
-	T get();
+	T get() const;
 	virtual Own<Value> clone() const = 0;
+	virtual Value* cloneUnsafe() const = 0;
 	virtual void pushToLua(lua_State* L) const = 0;
 	virtual ValueType getType() const = 0;
 	virtual bool equals(Value* other) const = 0;
 	template <class T>
 	static Own<Value> alloc(const T& value);
+	template <class T>
+	static Value* allocUnsafe(const T& value);
 	static const Own<Value> None;
 protected:
 	Value() { }
 	DORA_TYPE_BASE(Value);
+};
+
+class ValueInt : public Value
+{
+public:
+	virtual ~ValueInt() { }
+	inline void set(int64_t value) { _value = value; }
+	inline int64_t get() const { return _value; }
+	virtual Own<Value> clone() const override;
+	virtual Value* cloneUnsafe() const override;
+	virtual void pushToLua(lua_State* L) const override;
+	virtual ValueType getType() const override;
+	virtual bool equals(Value* other) const override;
+protected:
+	ValueInt(int64_t value):
+	_value(value)
+	{ }
+private:
+	int64_t _value;
+	friend class Value;
+	USE_MEMORY_POOL(ValueInt);
+	DORA_TYPE_OVERRIDE(ValueInt);
+};
+
+class ValueFloat : public Value
+{
+public:
+	virtual ~ValueFloat() { }
+	inline void set(double value) { _value = value; }
+	inline double get() const { return _value; }
+	virtual Own<Value> clone() const override;
+	virtual Value* cloneUnsafe() const override;
+	virtual void pushToLua(lua_State* L) const override;
+	virtual ValueType getType() const override;
+	virtual bool equals(Value* other) const override;
+protected:
+	ValueFloat(double value):
+	_value(value)
+	{ }
+private:
+	double _value;
+	friend class Value;
+	USE_MEMORY_POOL(ValueFloat);
+	DORA_TYPE_OVERRIDE(ValueFloat);
+};
+
+class ValueBool : public Value
+{
+public:
+	virtual ~ValueBool() { }
+	inline void set(bool value) { _value = value; }
+	inline bool get() const { return _value; }
+	virtual Own<Value> clone() const override;
+	virtual Value* cloneUnsafe() const override;
+	virtual void pushToLua(lua_State* L) const override;
+	virtual ValueType getType() const override;
+	virtual bool equals(Value* other) const override;
+protected:
+	ValueBool(bool value):
+	_value(value)
+	{ }
+private:
+	bool _value;
+	friend class Value;
+	USE_MEMORY_POOL(ValueBool);
+	DORA_TYPE_OVERRIDE(ValueBool);
+};
+
+class ValueObject : public Value
+{
+public:
+	virtual ~ValueObject() { }
+	inline void set(Object* value) { _value = value; }
+	inline Object* get() const { return _value.get(); }
+	virtual Own<Value> clone() const override;
+	virtual Value* cloneUnsafe() const override;
+	virtual void pushToLua(lua_State* L) const override;
+	virtual ValueType getType() const override;
+	virtual bool equals(Value* other) const override;
+protected:
+	ValueObject(Object* value):
+	_value(value)
+	{ }
+private:
+	Ref<> _value;
+	friend class Value;
+	USE_MEMORY_POOL(ValueObject);
+	DORA_TYPE_OVERRIDE(ValueObject);
 };
 
 template <class T, class Enable = void>
@@ -88,6 +179,10 @@ public:
 	virtual Own<Value> clone() const override
 	{
 		return Value::alloc(_value);
+	}
+	virtual Value* cloneUnsafe() const override
+	{
+		return Value::allocUnsafe(_value);
 	}
 	virtual void pushToLua(lua_State* L) const override
 	{
@@ -122,90 +217,6 @@ MemoryPoolImpl<ValueStruct<T>> ValueStruct<T,
 		!std::is_pointer_v<T> &&
 		std::is_class_v<T>
 	>::type>::_memory;
-
-class ValueObject : public Value
-{
-public:
-	virtual ~ValueObject() { }
-	inline void set(Object* value) { _value = value; }
-	inline Object* get() const { return _value.get(); }
-	virtual Own<Value> clone() const override;
-	virtual void pushToLua(lua_State* L) const override;
-	virtual ValueType getType() const override;
-	virtual bool equals(Value* other) const override;
-protected:
-	ValueObject(Object* value):
-	_value(value)
-	{ }
-private:
-	Ref<> _value;
-	friend class Value;
-	USE_MEMORY_POOL(ValueObject);
-	DORA_TYPE_OVERRIDE(ValueObject);
-};
-
-class ValueInt : public Value
-{
-public:
-	virtual ~ValueInt() { }
-	inline void set(int64_t value) { _value = value; }
-	inline int64_t get() const { return _value; }
-	virtual Own<Value> clone() const override;
-	virtual void pushToLua(lua_State* L) const override;
-	virtual ValueType getType() const override;
-	virtual bool equals(Value* other) const override;
-protected:
-	ValueInt(int64_t value):
-	_value(value)
-	{ }
-private:
-	int64_t _value;
-	friend class Value;
-	USE_MEMORY_POOL(ValueInt);
-	DORA_TYPE_OVERRIDE(ValueInt);
-};
-
-class ValueFloat : public Value
-{
-public:
-	virtual ~ValueFloat() { }
-	inline void set(double value) { _value = value; }
-	inline double get() const { return _value; }
-	virtual Own<Value> clone() const override;
-	virtual void pushToLua(lua_State* L) const override;
-	virtual ValueType getType() const override;
-	virtual bool equals(Value* other) const override;
-protected:
-	ValueFloat(double value):
-	_value(value)
-	{ }
-private:
-	double _value;
-	friend class Value;
-	USE_MEMORY_POOL(ValueFloat);
-	DORA_TYPE_OVERRIDE(ValueFloat);
-};
-
-class ValueBool : public Value
-{
-public:
-	virtual ~ValueBool() { }
-	inline void set(bool value) { _value = value; }
-	inline bool get() const { return _value; }
-	virtual Own<Value> clone() const override;
-	virtual void pushToLua(lua_State* L) const override;
-	virtual ValueType getType() const override;
-	virtual bool equals(Value* other) const override;
-protected:
-	ValueBool(bool value):
-	_value(value)
-	{ }
-private:
-	bool _value;
-	friend class Value;
-	USE_MEMORY_POOL(ValueBool);
-	DORA_TYPE_OVERRIDE(ValueBool);
-};
 
 template <class T>
 T Value::toVal()
@@ -370,7 +381,7 @@ void Value::set(const T& value)
 }
 
 template <class T>
-T Value::get()
+T Value::get() const
 {
 	if constexpr (std::is_same_v<bool, T>)
 	{
@@ -435,6 +446,31 @@ Own<Value> Value::alloc(const T& value)
 	else if constexpr (!std::is_pointer_v<T> && std::is_class_v<T>)
 	{
 		return Own<Value>(new ValueStruct<special_decay_t<T>>(value));
+	}
+}
+
+template <class T>
+Value* Value::allocUnsafe(const T& value)
+{
+	if constexpr (std::is_same_v<bool, T>)
+	{
+		return new ValueBool(value);
+	}
+	else if constexpr (std::is_integral_v<T>)
+	{
+		return new ValueInt(s_cast<int64_t>(value));
+	}
+	else if constexpr (std::is_floating_point_v<T>)
+	{
+		return new ValueFloat(s_cast<double>(value));
+	}
+	else if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<special_decay_t<T>>>)
+	{
+		return new ValueObject(value);
+	}
+	else if constexpr (!std::is_pointer_v<T> && std::is_class_v<T>)
+	{
+		return new ValueStruct<special_decay_t<T>>(value);
 	}
 }
 

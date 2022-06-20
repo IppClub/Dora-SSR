@@ -90,6 +90,10 @@ namespace nvg
 	void DorothySSRWhite();
 	void DorothySSRHappy();
 	void DorothySSRHappyWhite();
+	Texture2D* GetDorothySSR(float scale = 1.0f);
+	Texture2D* GetDorothySSRWhite(float scale = 1.0f);
+	Texture2D* GetDorothySSRHappy(float scale = 1.0f);
+	Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
 };
 
 class VGNode : public Node

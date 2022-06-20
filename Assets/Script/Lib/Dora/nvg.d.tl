@@ -3,6 +3,7 @@ local Rect = require("Rect").Type
 local Size = require("Size").Type
 local Color = require("Color").Type
 local VGPaint = require("VGPaint").Type
+local Texture2D = require("Texture2D").Type
 local record Transform
 	indentity: function(self: Transform)
 	translate: function(self: Transform, tx: number, ty: number)
@@ -127,6 +128,10 @@ local record nvg
 	DorothySSRWhite: function()
 	DorothySSRHappy: function()
 	DorothySSRHappyWhite: function()
+	GetDorothySSR: function(scale?: number --[[1.0]]): Texture2D
+	GetDorothySSRWhite: function(scale?: number --[[1.0]]): Texture2D
+	GetDorothySSRHappy: function(scale?: number --[[1.0]]): Texture2D
+	GetDorothySSRHappyWhite: function(scale?: number --[[1.0]]): Texture2D
 end
 print(nvg.TouchPos)
 print(nvg.TextBoxBounds(nil, nil, nil, nil))

@@ -314,7 +314,7 @@ thread ->
 	unless App.debugging
 		:width, :height = App.visualSize
 		scale = App.deviceRatio * 0.7 * math.min(width, height) / 760
-		with Sprite GetDorothySSRHappyWhite scale
+		with Sprite nvg.GetDorothySSRHappyWhite scale
 			\addTo Director.entry
 			sleep 1.0
 			\removeFromParent!
