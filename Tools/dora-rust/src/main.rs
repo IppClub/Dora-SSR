@@ -1,11 +1,9 @@
 #[macro_use] pub mod dora;
-use crate::dora::{Object, Node, INode, Director, CallInfo, Arg};
+use crate::dora::{Object, Node, INode, Director, CallInfo, Value};
 
 fn main() {
 	dora::init();
-
 	println!("Hello, world!");
-
 	let mut node = Node::new();
 	println!("id: {}", node.get_id());
 	println!("x: {}", node.get_x());

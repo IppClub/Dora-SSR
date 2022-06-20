@@ -116,7 +116,7 @@ pub struct CallInfo {
 	raw: i64,
 }
 
-pub enum Arg<'a> {
+pub enum Value<'a> {
 	I32(i32),
 	I64(i64),
 	F32(f32),
@@ -126,69 +126,69 @@ pub enum Arg<'a> {
 	Object(&'a dyn Object),
 }
 
-pub trait IntoArg<'a> {
-	fn into(self) -> Arg<'a>;
+pub trait IntoValue<'a> {
+	fn val(self) -> Value<'a>;
 }
 
-impl<'a> Arg<'a> {
-	pub fn new<A>(args: A) -> Arg<'a>
-		where A: IntoArg<'a>
+impl<'a> Value<'a> {
+	pub fn new<A>(value: A) -> Value<'a>
+		where A: IntoValue<'a>
 	{
-		args.into()
+		value.val()
 	}
 
 	pub fn push(self, info: &mut CallInfo) {
 		match self {
-			Arg::I32(x) => { info.push_i32(x); },
-			Arg::I64(x) => { info.push_i64(x); },
-			Arg::F32(x) => { info.push_f32(x); },
-			Arg::F64(x) => { info.push_f64(x); },
-			Arg::Bool(x) => { info.push_bool(x); },
-			Arg::Str(x) => { info.push_str(x); },
-			Arg::Object(x) => { info.push_object(x); },
+			Value::I32(x) => { info.push_i32(x); },
+			Value::I64(x) => { info.push_i64(x); },
+			Value::F32(x) => { info.push_f32(x); },
+			Value::F64(x) => { info.push_f64(x); },
+			Value::Bool(x) => { info.push_bool(x); },
+			Value::Str(x) => { info.push_str(x); },
+			Value::Object(x) => { info.push_object(x); },
 		}
 	}
 }
 
-impl<'a> IntoArg<'a> for i32 {
-	fn into(self) -> Arg<'a> {
-		Arg::I32(self)
+impl<'a> IntoValue<'a> for i32 {
+	fn val(self) -> Value<'a> {
+		Value::I32(self)
 	}
 }
 
-impl<'a> IntoArg<'a> for i64 {
-	fn into(self) -> Arg<'a> {
-		Arg::I64(self)
+impl<'a> IntoValue<'a> for i64 {
+	fn val(self) -> Value<'a> {
+		Value::I64(self)
 	}
 }
 
-impl<'a> IntoArg<'a> for f32 {
-	fn into(self) -> Arg<'a> {
-		Arg::F32(self)
+impl<'a> IntoValue<'a> for f32 {
+	fn val(self) -> Value<'a> {
+		Value::F32(self)
 	}
 }
 
-impl<'a> IntoArg<'a> for f64 {
-	fn into(self) -> Arg<'a> {
-		Arg::F64(self)
+impl<'a> IntoValue<'a> for f64 {
+	fn val(self) -> Value<'a> {
+		Value::F64(self)
 	}
 }
 
-impl<'a> IntoArg<'a> for bool {
-	fn into(self) -> Arg<'a> {
-		Arg::Bool(self)
+impl<'a> IntoValue<'a> for bool {
+	fn val(self) -> Value<'a> {
+		Value::Bool(self)
 	}
 }
 
-impl<'a> IntoArg<'a> for &'a str {
-	fn into(self) -> Arg<'a> {
-		Arg::Str(self)
+impl<'a> IntoValue<'a> for &'a str {
+	fn val(self) -> Value<'a> {
+		Value::Str(self)
 	}
 }
 
-impl<'a> IntoArg<'a> for &'a dyn Object {
-	fn into(self) -> Arg<'a> {
-		Arg::Object(self)
+impl<'a> IntoValue<'a> for &'a dyn Object {
+	fn val(self) -> Value<'a> {
+		Value::Object(self)
 	}
 }
 
@@ -198,7 +198,7 @@ macro_rules! args {
 		{
 			let mut stack = CallInfo::new();
 			$(
-				Arg::new($x).push(&mut stack);
+				Value::new($x).push(&mut stack);
 			)*
 			stack
 		}
@@ -386,14 +386,12 @@ impl Drop for Node {
 pub struct Director {}
 
 impl Director {
-	pub fn get_entry() -> Box<dyn INode> {
-		Box::new(Node::from(unsafe { director_get_entry() }).unwrap())
+	pub fn get_entry() -> Node {
+		Node::from(unsafe { director_get_entry() }).unwrap()
 	}
 }
 
-fn none_type(_: i64) -> Option<Box<dyn Object>> {
-	None
-}
+fn none_type(_: i64) -> Option<Box<dyn Object>> { None }
 
 pub fn init() {
 	unsafe {

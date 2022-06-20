@@ -161,7 +161,7 @@ world\schedule ->
 	if showDecisionTrace
 		SetNextWindowPos Vec2(width/2-200,10), "FirstUseEver"
 		SetNextWindowSize Vec2(400,160), "FirstUseEver"
-		Begin "Decision Trace (#{lastDecisionTree})", "NoSavedSettings", ->
+		Begin "Decision Trace (#{lastDecisionTree})", {"NoSavedSettings"}, ->
 			Text table.concat decisions,"\n"
 
 with Observer "Add", {"group","unit","unitDef","position","order","isPlayer","faceRight","stared"}

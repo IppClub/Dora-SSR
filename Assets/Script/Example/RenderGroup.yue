@@ -7,24 +7,26 @@ Item = Class Node,
 		@anchor = Vec2.zero
 
 		@addChild with Sprite "Image/logo.png"
+			.scaleX = 0.3
+			.scaleY = 0.3
 			.renderOrder = 1
 
 		@addChild with DrawNode!
 			\drawPolygon {
-				Vec2 -50,-50
-				Vec2 50,-50
-				Vec2 50,50
-				Vec2 -50,50
+				Vec2 -60, -60
+				Vec2 60, -60
+				Vec2 60, 60
+				Vec2 -60, 60
 			},Color 0x3000ffff
 			.renderOrder = 2
 			.angle = 45
 
 		@addChild with Line {
-				Vec2 -50,-50
-				Vec2 50,-50
-				Vec2 50,50
-				Vec2 -50,50
-				Vec2 -50,-50
+				Vec2 -60, -60
+				Vec2 60, -60
+				Vec2 60, 60
+				Vec2 -60, 60
+				Vec2 -60, -60
 			},Color 0xffff0080
 			.renderOrder = 3
 			.angle = 45

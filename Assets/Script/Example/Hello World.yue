@@ -25,7 +25,7 @@ Director.entry\addChild with Node!
 	\schedule ->
 		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 		Begin "Hello World", windowFlags, ->
 			Text "Hello World"
