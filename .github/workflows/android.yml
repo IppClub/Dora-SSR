@@ -3,6 +3,7 @@ name: Android
 on:
   push:
     branches: [ main ]
+    tags: 'v*.*.*'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -27,4 +28,22 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
       - name: Build Android
+        if: "!startsWith(github.ref, 'refs/tags/')"
         run: cd Project/Android && ./gradlew assembleDebug
+      - name: Pack Android
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sudo apt-get install -y p7zip-full
+          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
+          cd Project/Android
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+          cd app/build/outputs/apk/release
+          7z a $GITHUB_WORKSPACE/dorothy-ssr-android.7z app-release.apk
+      - name: release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dorothy-ssr-android.7z
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
