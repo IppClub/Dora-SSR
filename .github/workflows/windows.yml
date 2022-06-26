@@ -3,6 +3,7 @@ name: Windows
 on:
   push:
     branches: [ main ]
+    tags: 'v*.*.*'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -14,6 +15,28 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v1.0.2
       - name: Windows build
-        run: msbuild Project\Windows\Dorothy.sln -p:Configuration=debug
+        run: msbuild Project\Windows\Dorothy.sln -p:Configuration=release
+      - name: pack
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Audio && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z DragonBones && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Font && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Image\Dorothy.svg && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Image\logo.png && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Model && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Particle && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Script && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Spine && cd ..)
+          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
+          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z SDL2.dll && cd ..\..\..\..)
+      - name: release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dorothy-ssr-windows-x86.7z
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
