@@ -21,7 +21,7 @@ Class Node,
 			.batched = false
 			.alignment = textAlign
 			.renderOrder = renderOrder
-			.textWidth = width
+			.textWidth = width + 5
 			switch textAlign
 				when "Center"
 					.position = Vec2(0.5, 0.5) * @size
