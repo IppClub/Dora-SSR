@@ -268,6 +268,14 @@ private:
 	double _duration;
 };
 
+class RepeatInfo : public Object
+{
+public:
+	int count = 0;
+	Own<Blackboard> boardCache;
+	CREATE_FUNC(RepeatInfo);
+};
+
 class RepeatNode : public Leaf
 {
 public:

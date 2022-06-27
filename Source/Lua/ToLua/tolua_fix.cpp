@@ -252,19 +252,22 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def)
 	return slice;
 }
 
-void tolua_pushlight(lua_State* L, LightValue var, int typeId)
+void tolua_pushlight(lua_State* L, LightValue var)
 {
-	lua_rawgeti(L, LUA_REGISTRYINDEX, typeId); // mt
+	lua_pushlightuserinteger(L, var.i);
+}
+
+void tolua_setlightmetatable(lua_State* L)
+{
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<LightValue::ValueType>()); // mt
 	if (lua_isnil(L, -1)) // mt == nil
 	{
-		Error("[Lua] object pushed to lua is not registered with class!");
+		Error("[Lua] Type of light value is not registered!");
 		lua_pop(L, 1);
 		lua_pushnil(L);
 		return;
 	}
-	lua_pushlightuserinteger(L, var.i); // mt newud
-	lua_insert(L, -2); // newud mt
-	lua_setmetatable(L, -2); // newud<mt>, newud
+	lua_setlightusermetatable(L);
 }
 
 LightValue tolua_tolight(lua_State* L, int narg, LightValue def)

@@ -59,22 +59,11 @@ public:
 		tolua_pushobject(L, value);
 	}
 
-	template<typename T>
-	typename std::enable_if_t<!std::is_pointer_v<T> && std::is_class_v<T> && !std::is_same_v<std::string, T>> push(const T& t)
-	{
-		tolua_pushusertype(L, new T(t), LuaType<T>());
-	}
-
-	template<typename T>
-	typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(T* t)
-	{
-		tolua_pushusertype(L, t, LuaType<T>());
-	}
-
 	void push(bool value);
 	void push(Value* value);
 	void push(String value);
 	void push(const Vec2& value);
+	void push(const Size& value);
 
 	template <class T>
 	static typename std::enable_if_t<std::is_integral_v<T>> push(lua_State* L, T value)
@@ -94,26 +83,11 @@ public:
 		tolua_pushobject(L, value);
 	}
 
-	template<typename T>
-	static typename std::enable_if_t<!std::is_pointer_v<T> && std::is_class_v<T> && !std::is_same_v<std::string, T>> push(lua_State* L, const T& t)
-	{
-		tolua_pushusertype(L, new T(t), LuaType<T>());
-	}
-
-	template<typename T>
-	static typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(lua_State* L, T* t)
-	{
-		tolua_pushusertype(L, t, LuaType<T>());
-	}
-
 	static void push(lua_State* L, bool value);
 	static void push(lua_State* L, Value* value);
 	static void push(lua_State* L, String value);
 	static void push(lua_State* L, const Vec2& value);
-
-	bool to(bool& value, int index);
-	bool to(Object*& value, int index);
-	bool to(std::string& value, int index);
+	static void push(lua_State* L, const Size& value);
 
 	template <class T>
 	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index)
@@ -145,6 +119,9 @@ public:
 		return t == obj;
 	}
 
+	bool to(bool& value, int index);
+	bool to(std::string& value, int index);
+
 	void executeReturn(LuaHandler*& luaHandler, int handler, int paramCount);
 
 	template<typename T>
@@ -161,7 +138,7 @@ public:
 		LuaEngine::invoke(L, handler, paramCount, 1);
 		Object* obj = nullptr;
 		LuaEngine::to(obj, -1);
-		value =  dynamic_cast<T*>(obj);
+		value = dynamic_cast<T*>(obj);
 		LuaEngine::pop();
 	}
 

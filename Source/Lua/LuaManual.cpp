@@ -1822,13 +1822,9 @@ static Own<Value> Dora_getValue(lua_State* L, int loc)
 					return Value::alloc(tolua_tolight(L, loc).value);
 				case "Size"_hash:
 					return Value::alloc(*r_cast<Size*>(tolua_tousertype(L, loc, 0)));
-				case "Rect"_hash:
-					return Value::alloc(*r_cast<Rect*>(tolua_tousertype(L, loc, 0)));
-				case "Platformer::TargetAllow"_hash:
-					return Value::alloc(*r_cast<Platformer::TargetAllow*>(tolua_tousertype(L, loc, 0)));
 				default:
 #ifndef TOLUA_RELEASE
-					tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size, Rect and TargetAllow in containers.", nullptr);
+					tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size in containers.", nullptr);
 #endif // TOLUA_RELEASE
 					break;
 			}
@@ -2329,15 +2325,9 @@ int Entity_set(lua_State* L)
 					case "Size"_hash:
 						self->set(key, *r_cast<Size*>(tolua_tousertype(L, 3, 0)));
 						break;
-					case "Rect"_hash:
-						self->set(key, *r_cast<Rect*>(tolua_tousertype(L, 3, 0)));
-						break;
-					case "Platformer::TargetAllow"_hash:
-						self->set(key, *r_cast<Platformer::TargetAllow*>(tolua_tousertype(L, 3, 0)));
-						break;
 					default:
 #ifndef TOLUA_RELEASE
-						tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size, Rect and TargetAllow in containers.", nullptr);
+						tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size, Rect in containers.", nullptr);
 #endif // TOLUA_RELEASE
 						break;
 				}
@@ -2412,15 +2402,9 @@ int Entity_setNext(lua_State* L)
 					case "Size"_hash:
 						self->setNext(key, *r_cast<Size*>(tolua_tousertype(L, 3, 0)));
 						break;
-					case "Rect"_hash:
-						self->setNext(key, *r_cast<Rect*>(tolua_tousertype(L, 3, 0)));
-						break;
-					case "Platformer::TargetAllow"_hash:
-						self->setNext(key, *r_cast<Platformer::TargetAllow*>(tolua_tousertype(L, 3, 0)));
-						break;
 					default:
 #ifndef TOLUA_RELEASE
-						tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size, Rect and TargetAllow in containers.", nullptr);
+						tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size, Rect in containers.", nullptr);
 #endif // TOLUA_RELEASE
 						break;
 				}

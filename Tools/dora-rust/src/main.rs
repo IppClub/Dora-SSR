@@ -9,7 +9,7 @@ fn main() {
 	println!("x: {}", node.get_x());
 	node.set_x(100.5);
 	node.set_tag("电风扇");
-	println!("x: {}, tag: {}", node.get_x(), node.get_tag());
+	println!("x: {}, tag: {}", node.get_position().x, node.get_tag());
 	let mut i = 0;
 	node.schedule(Box::new(move |dt| {
 		i = i + 1;

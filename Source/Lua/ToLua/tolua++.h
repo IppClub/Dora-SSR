@@ -209,15 +209,11 @@ union LightValue
 	operator ValueType() const { return value; }
 };
 
-static_assert(sizeof(lua_Integer) >= sizeof(LightValue::ValueType), "Vec2 can not be stored in Lua lightuserdata.");
 static_assert(sizeof(lua_Integer) >= sizeof(LightValue), "LightValue can not be stored in Lua lightuserdata.");
 
-void tolua_pushlight(lua_State* L, LightValue var, int typeId);
-template <class T>
-void tolua_pushlight(lua_State* L, const T& var)
-{
-	tolua_pushlight(L, var, LuaType<T>());
-}
+void tolua_pushlight(lua_State* L, LightValue var);
+void tolua_setlightmetatable(lua_State* L);
+
 LightValue tolua_tolight(lua_State* L, int narg, LightValue def);
 LightValue tolua_tolight(lua_State* L, int narg);
 LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def);

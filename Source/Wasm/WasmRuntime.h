@@ -12,24 +12,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-union WasmValue
+union LightWasmValue
 {
-	void* ptr;
 	Vec2 vec2;
-	int64_t num;
+	Size size;
+	int64_t value;
+	explicit LightWasmValue(const Size& v): size(v) { }
+	explicit LightWasmValue(const Vec2& v): vec2(v) { }
+	explicit LightWasmValue(int64_t v): value(v) { }
 };
 
-static_assert(sizeof(WasmValue) <= sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
+static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
+
+using dora_val_t = std::variant<
+	int32_t, int64_t,
+	float, double,
+	bool, std::string,
+	Object*,
+	Vec2,
+	Size
+>;
 
 class CallInfo
 {
 public:
-	using var_t = std::variant<
-		int32_t, int64_t,
-		float, double,
-		bool, std::string,
-		Object*, Vec2
-	>;
 	void push(int32_t value);
 	void push(int64_t value);
 	void push(float value);
@@ -38,12 +44,13 @@ public:
 	void push(String value);
 	void push(Object* value);
 	void push(const Vec2& value);
-	void push_v(var_t value);
+	void push(const Size& value);
+	void push_v(dora_val_t value);
 	bool empty() const;
-	var_t pop();
-	var_t& front();
+	dora_val_t pop();
+	dora_val_t& front();
 private:
-	std::queue<var_t> _queue;
+	std::queue<dora_val_t> _queue;
 };
 
 class WasmRuntime
@@ -62,7 +69,7 @@ private:
 	Own<wasm3::function> _callFunc;
 	Own<wasm3::function> _derefFunc;
 	std::pair<OwnArray<uint8_t>, size_t> _wasm;
-	SINGLETON_REF(WasmRuntime, AsyncThread);
+	SINGLETON_REF(WasmRuntime, LuaEngine);
 };
 
 #define SharedWasmRuntime \

@@ -620,6 +620,8 @@ _tlState(nullptr)
 
 	tolua_endmodule(L);
 
+	tolua_setlightmetatable(L);
+
 	// load binding codes
 	tolua_LuaCode_open(L);
 
@@ -775,6 +777,11 @@ void LuaEngine::push(const Vec2& value)
 	tolua_pushlight(L, value);
 }
 
+void LuaEngine::push(const Size& value)
+{
+	tolua_pushusertype(L, new Size(value), LuaType<Size>());
+}
+
 void LuaEngine::push(lua_State* L, bool value)
 {
 	lua_pushboolean(L, value ? 1 : 0);
@@ -802,21 +809,16 @@ void LuaEngine::push(lua_State* L, const Vec2& value)
 	tolua_pushlight(L, value);
 }
 
+void LuaEngine::push(lua_State* L, const Size& value)
+{
+	tolua_pushusertype(L, new Size(value), LuaType<Size>());
+}
+
 bool LuaEngine::to(bool& value, int index)
 {
 	if (lua_isboolean(L, index))
 	{
 		value = lua_toboolean(L, index) != 0;
-		return true;
-	}
-	return false;
-}
-
-bool LuaEngine::to(Object*& value, int index)
-{
-	if (tolua_isobject(L, index))
-	{
-		value = r_cast<Object*>(tolua_tousertype(L, index, nullptr));
 		return true;
 	}
 	return false;

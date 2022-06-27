@@ -484,9 +484,11 @@ GetBoss = (entity, pos, black)->
 		.attackRange = Size 780,300
 		.attackPower = Vec2 200,200
 		.attackTarget = "Multi"
-		.targetAllow = (with TargetAllow!
-			.terrainAllowed = true
-			\allow "Enemy",true)
+		.targetAllow = do
+			conf = with TargetAllow!
+				.terrainAllowed = true
+				\allow "Enemy", true
+			conf\toValue!
 		.damageType = elementTypes.Purple
 		.defenceType = elementTypes.Purple
 		.bulletType = "Bullet_Arrow"
@@ -574,9 +576,11 @@ GetUnit = (entity, pos, black)->
 		.attackRange = attackRange
 		.attackPower = attackPower
 		.attackTarget = "Single"
-		.targetAllow = (with TargetAllow!
-			.terrainAllowed = true
-			\allow "Enemy",true)
+		.targetAllow = do
+			conf = with TargetAllow!
+				.terrainAllowed = true
+				\allow "Enemy", true
+			conf\toValue!
 		.damageType = elementTypes[characterColor]
 		.defenceType = elementTypes[characterColor]
 		.bulletType = "Bullet_Arrow"

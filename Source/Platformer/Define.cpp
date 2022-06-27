@@ -11,8 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-TargetAllow::TargetAllow():
-_flag(0)
+TargetAllow::TargetAllow(uint32_t flag):
+_flag(flag)
 { }
 
 bool TargetAllow::operator==(const TargetAllow& other) const
@@ -46,17 +46,22 @@ void TargetAllow::setTerrainAllowed(bool var)
 {
 	if (var)
 	{
-		_flag |= (1<<3);
+		_flag |= (1 << 3);
 	}
 	else
 	{
-		_flag &= ~(1<<3);
+		_flag &= ~(1 << 3);
 	}
 }
 
 bool TargetAllow::isTerrainAllowed() const
 {
-	return (_flag & (1<<3)) != 0;
+	return (_flag & (1 << 3)) != 0;
+}
+
+uint32_t TargetAllow::toValue() const
+{
+	return _flag;
 }
 
 NS_DOROTHY_PLATFORMER_END

@@ -26,9 +26,11 @@ Store["Flandre"] = with Dictionary!
 	.attackBonus = 0
 	.attackFactor = 1.0
 	.attackTarget = "Multi"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = false
-		\allow "Enemy",true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = false
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""
@@ -77,9 +79,11 @@ Store["Dorothy"] = with Dictionary!
 	.attackBonus = 0
 	.attackFactor = 1.0
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy",true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Arrow"
@@ -128,9 +132,11 @@ Store["Villy"] = with Dictionary!
 	.attackBonus = 0
 	.attackFactor = 1.0
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy",true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bubble"
@@ -179,9 +185,11 @@ Store["BunnyP"] = with Dictionary!
 	.attackBonus = 0
 	.attackFactor = 1.0
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = false
-		\allow "Enemy",true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = false
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""
@@ -230,9 +238,11 @@ Store["BunnyG"] = with Dictionary!
 	.attackBonus = 0
 	.attackFactor = 1.0
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = false
-		\allow "Enemy",true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = false
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""

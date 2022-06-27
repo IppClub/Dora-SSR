@@ -635,23 +635,24 @@ Status RepeatNode::tick(Blackboard* board)
 	uint32_t key = getId();
 	if (!board->get(key))
 	{
-		std::shared_ptr<Blackboard> cloneBoard = board->clone();
-		board->set(key, Value::alloc(std::make_pair(int(0), cloneBoard)));
+		auto info = RepeatInfo::create();
+		info->boardCache = board->clone();
+		board->set(key, Value::alloc(info));
 	}
 	Status status = _node->tick(board);
 	switch (status)
 	{
 		case Status::Success:
 		{
-			auto value = board->get(key)->toVal<std::pair<int, std::shared_ptr<Blackboard>>>();
-			if (_times > 0) value.first++;
-			if (value.first > _times)
+			auto value = board->get(key)->to<RepeatInfo>();
+			if (_times > 0) value->count++;
+			if (value->count > _times)
 			{
 				return Status::Success;
 			}
 			else
 			{
-				board->copy(value.second.get());
+				board->copy(value->boardCache.get());
 				board->set(key, Value::alloc(value));
 				return Status::Running;
 			}
@@ -682,23 +683,24 @@ Status RetryNode::tick(Blackboard* board)
 	uint32_t key = getId();
 	if (!board->get(key))
 	{
-		std::shared_ptr<Blackboard> cloneBoard = board->clone();
-		board->set(key, Value::alloc(std::make_pair(int(0), cloneBoard)));
+		auto info = RepeatInfo::create();
+		info->boardCache = board->clone();
+		board->set(key, Value::alloc(info));
 	}
 	Status status = _node->tick(board);
 	switch (status)
 	{
 		case Status::Failure:
 		{
-			auto value = board->get(key)->toVal<std::pair<int, std::shared_ptr<Blackboard>>>();
-			if (_times > 0) value.first++;
-			if (value.first > _times)
+			auto value = board->get(key)->to<RepeatInfo>();
+			if (_times > 0) value->count++;
+			if (value->count > _times)
 			{
 				return Status::Failure;
 			}
 			else
 			{
-				board->copy(value.second.get());
+				board->copy(value->boardCache.get());
 				board->set(key, Value::alloc(value));
 				return Status::Running;
 			}
