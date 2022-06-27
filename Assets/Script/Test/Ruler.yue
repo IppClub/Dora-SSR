@@ -6,7 +6,7 @@ ruler = Ruler {
 	x: 0
 	y: 0
 	width: 600
-	height: 100
+	height: 150
 	fontName: "sarasa-mono-sc-regular"
 	fontSize: 30
 }
@@ -15,7 +15,7 @@ Director.entry\addChild with Node!
 	\addChild ruler
 	\addChild with CircleButton {
 			text: "显示"
-			y: -150
+			y: -200
 			radius: 60
 			fontSize: 40
 		}
