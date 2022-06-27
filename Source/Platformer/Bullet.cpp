@@ -116,6 +116,16 @@ bool Bullet::isHitStop() const
 	return _flags.isOn(Bullet::HitStop);
 }
 
+void Bullet::setTargetAllow(uint32_t var)
+{
+	targetAllow = TargetAllow(var);
+}
+
+uint32_t Bullet::getTargetAllow() const
+{
+	return targetAllow.toValue();
+}
+
 void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal)
 {
 	if (body == _owner)

@@ -61,16 +61,16 @@ void Data::apply(PhysicsWorld* world)
 
 void Data::setRelation(uint8_t groupA, uint8_t groupB, Relation relation)
 {
-	uint16_t key = groupA<<8 | groupB;
+	uint16_t key = groupA << 8 | groupB;
 	_relationMap[key] = relation;
-	key = groupA | groupB<<8;
+	key = groupA | groupB << 8;
 	_relationMap[key] = relation;
 }
 
 Relation Data::getRelation(uint8_t groupA, uint8_t groupB) const
 {
 	if (groupA == groupB) return Relation::Friend;
-	uint16_t key = groupA<<8 | groupB;
+	uint16_t key = groupA << 8 | groupB;
 	auto it = _relationMap.find(key);
 	return it != _relationMap.end() ? it->second : Relation::Unknown;
 }
@@ -113,15 +113,15 @@ bool Data::isNeutral(Body* bodyA, Body* bodyB) const
 
 void Data::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact)
 {
-	uint16_t key = groupA<<8 | groupB;
+	uint16_t key = groupA << 8 | groupB;
 	_contactMap[key] = contact;
-	key = groupA | groupB<<8;
+	key = groupA | groupB << 8;
 	_contactMap[key] = contact;
 }
 
 bool Data::getShouldContact(uint8_t groupA, uint8_t groupB) const
 {
-	uint16_t key = groupA<<8 | groupB;
+	uint16_t key = groupA << 8 | groupB;
 	auto it = _contactMap.find(key);
 	return it != _contactMap.end() ? it->second : false;
 }
@@ -148,13 +148,13 @@ uint8_t Data::getGroupHide() const
 
 void Data::setDamageFactor(uint16_t damageType, uint16_t defenceType, float bounus)
 {
-	uint32_t key = damageType | defenceType<<16;
+	uint32_t key = damageType | defenceType << 16;
 	_damageBounusMap[key] = bounus;
 }
 
 float Data::getDamageFactor(uint16_t damageType, uint16_t defenceType) const
 {
-	uint32_t key = damageType | defenceType<<16;
+	uint32_t key = damageType | defenceType << 16;
 	std::unordered_map<uint32_t, float>::const_iterator it = _damageBounusMap.find(key);
 	if (it != _damageBounusMap.end())
 	{

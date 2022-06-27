@@ -9,6 +9,9 @@ extern "C" {
 	fn node_create()-> i64;
 	fn node_set_x(node: i64, var: f32);
 	fn node_get_x(node: i64)-> f32;
+	fn node_set_position(node: i64, var: i64);
+	fn node_get_position(node: i64) -> i64;
+
 	fn node_set_tag(node: i64, var: i64);
 	fn node_get_tag(node: i64)-> i64;
 	fn node_add_child(node: i64, child: i64);
@@ -22,6 +25,35 @@ extern "C" {
 	fn str_write(dest: i64, src: *const c_void);
 	fn str_release(str: i64);
 
+	fn value_create_i32(value: i32) -> i64;
+	fn value_create_i64(value: i64) -> i64;
+	fn value_create_f32(value: f32) -> i64;
+	fn value_create_f64(value: f64) -> i64;
+	fn value_create_str(value: i64) -> i64;
+	fn value_create_bool(value: i32) -> i64;
+	fn value_create_object(value: i64) -> i64;
+	fn value_create_vec2(value: i64) -> i64;
+	fn value_create_size(value: i64) -> i64;
+	fn value_release(value: i64);
+	fn value_into_i32(value: i64) -> i32;
+	fn value_into_i64(value: i64) -> i64;
+	fn value_into_f32(value: i64) -> f32;
+	fn value_into_f64(value: i64) -> f64;
+	fn value_into_str(value: i64) -> i64;
+	fn value_into_bool(value: i64) -> i32;
+	fn value_into_object(value: i64) -> i64;
+	fn value_into_vec2(value: i64) -> i64;
+	fn value_into_size(value: i64) -> i64;
+	fn value_is_i32(value: i64) -> i32;
+	fn value_is_i64(value: i64) -> i32;
+	fn value_is_f32(value: i64) -> i32;
+	fn value_is_f64(value: i64) -> i32;
+	fn value_is_str(value: i64) -> i32;
+	fn value_is_bool(value: i64) -> i32;
+	fn value_is_object(value: i64) -> i32;
+	fn value_is_vec2(value: i64) -> i32;
+	fn value_is_size(value: i64) -> i32;
+
 	fn call_info_create() -> i64;
 	fn call_info_release(info: i64);
 	fn call_info_push_i32(info: i64, value: i32);
@@ -31,6 +63,8 @@ extern "C" {
 	fn call_info_push_str(info: i64, value: i64);
 	fn call_info_push_bool(info: i64, value: i32);
 	fn call_info_push_object(info: i64, value: i64);
+	fn call_info_push_vec2(info: i64, value: i64);
+	fn call_info_push_size(info: i64, value: i64);
 	fn call_info_pop_i32(info: i64) -> i32;
 	fn call_info_pop_i64(info: i64) -> i64;
 	fn call_info_pop_f32(info: i64) -> f32;
@@ -38,6 +72,8 @@ extern "C" {
 	fn call_info_pop_str(info: i64) -> i64;
 	fn call_info_pop_bool(info: i64) -> i32;
 	fn call_info_pop_object(info: i64) -> i64;
+	fn call_info_pop_vec2(info: i64) -> i64;
+	fn call_info_pop_size(info: i64) -> i64;
 	fn call_info_front_i32(info: i64) -> i32;
 	fn call_info_front_i64(info: i64) -> i32;
 	fn call_info_front_f32(info: i64) -> i32;
@@ -45,8 +81,31 @@ extern "C" {
 	fn call_info_front_str(info: i64) -> i32;
 	fn call_info_front_bool(info: i64) -> i32;
 	fn call_info_front_object(info: i64) -> i32;
+	fn call_info_front_vec2(info: i64) -> i32;
+	fn call_info_front_size(info: i64) -> i32;
 
 	fn director_get_entry() -> i64;
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Vec2 {
+	pub x: f32,
+	pub y: f32
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Size {
+	pub width: f32,
+	pub height: f32
+}
+
+#[repr(C)]
+union LightValue {
+	vec2: Vec2,
+	size: Size,
+	value: i64,
 }
 
 fn to_string(str: i64) -> String {
@@ -124,10 +183,13 @@ pub enum Value<'a> {
 	Bool(bool),
 	Str(&'a str),
 	Object(&'a dyn Object),
+	Vec2(Vec2),
+	Size(Size),
 }
 
 pub trait IntoValue<'a> {
 	fn val(self) -> Value<'a>;
+	fn dora_val(self) -> DoraValue;
 }
 
 impl<'a> Value<'a> {
@@ -146,6 +208,8 @@ impl<'a> Value<'a> {
 			Value::Bool(x) => { info.push_bool(x); },
 			Value::Str(x) => { info.push_str(x); },
 			Value::Object(x) => { info.push_object(x); },
+			Value::Vec2(x) => { info.push_vec2(&x); },
+			Value::Size(x) => { info.push_size(&x); },
 		}
 	}
 }
@@ -154,11 +218,17 @@ impl<'a> IntoValue<'a> for i32 {
 	fn val(self) -> Value<'a> {
 		Value::I32(self)
 	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_i32(self)) }
+	}
 }
 
 impl<'a> IntoValue<'a> for i64 {
 	fn val(self) -> Value<'a> {
 		Value::I64(self)
+	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_i64(self)) }
 	}
 }
 
@@ -166,11 +236,17 @@ impl<'a> IntoValue<'a> for f32 {
 	fn val(self) -> Value<'a> {
 		Value::F32(self)
 	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_f32(self)) }
+	}
 }
 
 impl<'a> IntoValue<'a> for f64 {
 	fn val(self) -> Value<'a> {
 		Value::F64(self)
+	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_f64(self)) }
 	}
 }
 
@@ -178,17 +254,44 @@ impl<'a> IntoValue<'a> for bool {
 	fn val(self) -> Value<'a> {
 		Value::Bool(self)
 	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_bool(if self { 1 } else { 0 })) }
+	}
 }
 
 impl<'a> IntoValue<'a> for &'a str {
 	fn val(self) -> Value<'a> {
 		Value::Str(self)
 	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_str(from_string(self))) }
+	}
 }
 
 impl<'a> IntoValue<'a> for &'a dyn Object {
 	fn val(self) -> Value<'a> {
 		Value::Object(self)
+	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_object(self.raw())) }
+	}
+}
+
+impl<'a> IntoValue<'a> for Vec2 {
+	fn val(self) -> Value<'a> {
+		Value::Vec2(self)
+	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_vec2(LightValue{ vec2: self }.value)) }
+	}
+}
+
+impl<'a> IntoValue<'a> for Size {
+	fn val(self) -> Value<'a> {
+		Value::Size(self)
+	}
+	fn dora_val(self) -> DoraValue {
+		unsafe { DoraValue::new(value_create_size(LightValue{ size: self }.value)) }
 	}
 }
 
@@ -204,6 +307,90 @@ macro_rules! args {
 		}
 	};
 }
+
+pub struct DoraValue {
+	raw: i64
+}
+
+impl DoraValue {
+	fn new(raw: i64) -> DoraValue {
+		DoraValue { raw: raw }
+	}
+	pub fn raw(&self) -> i64 {
+		self.raw
+	}
+	pub fn get_i32(&self) -> Option<i32> {
+		unsafe {
+			if value_is_i32(self.raw) > 0 {
+				Some(value_into_i32(self.raw))
+			} else { None }
+		}
+	}
+	pub fn get_i64(&self) -> Option<i64> {
+		unsafe {
+			if value_is_i64(self.raw) > 0 {
+				Some(value_into_i64(self.raw))
+			} else { None }
+		}
+	}
+	pub fn get_f32(&self) -> Option<f32> {
+		unsafe {
+			if value_is_f32(self.raw) > 0 {
+				Some(value_into_f32(self.raw))
+			} else { None }
+		}
+	}
+	pub fn get_f64(&self) -> Option<f64> {
+		unsafe {
+			if value_is_f64(self.raw) > 0 {
+				Some(value_into_f64(self.raw))
+			} else { None }
+		}
+	}
+	pub fn get_bool(&self) -> Option<bool> {
+		unsafe {
+			if value_is_bool(self.raw) > 0 {
+				Some(value_into_bool(self.raw) > 0)
+			} else { None }
+		}
+	}
+	pub fn get_str(&self) -> Option<String> {
+		unsafe {
+			if value_is_str(self.raw) > 0 {
+				Some(to_string(value_into_str(self.raw)))
+			} else { None }
+		}
+	}
+	pub fn get_object(&self) -> Option<Box<dyn Object>> {
+		unsafe {
+			if value_is_object(self.raw) > 0 {
+				let raw = value_into_object(self.raw);
+				OBJECT_MAP[object_get_type(raw) as usize](raw)
+			} else { None }
+		}
+	}
+	pub fn get_vec2(&self) -> Option<Vec2> {
+		unsafe {
+			if value_is_vec2(self.raw) > 0 {
+				Some(LightValue{ value: value_into_vec2(self.raw) }.vec2)
+			} else { None }
+		}
+	}
+	pub fn get_size(&self) -> Option<Size> {
+		unsafe {
+			if value_is_size(self.raw) > 0 {
+				Some(LightValue{ value: value_into_size(self.raw) }.size)
+			} else { None }
+		}
+	}
+}
+
+impl Drop for DoraValue {
+	fn drop(&mut self) {
+		unsafe { value_release(self.raw); }
+	}
+}
+
 
 impl CallInfo {
 	fn raw(&self) -> i64 {
@@ -240,6 +427,14 @@ impl CallInfo {
 
 	pub fn push_object(&mut self, value: &dyn Object) {
 		unsafe { call_info_push_object(self.raw, value.raw()); }
+	}
+
+	pub fn push_vec2(&mut self, value: &Vec2) {
+		unsafe { call_info_push_vec2(self.raw, LightValue{ vec2: *value }.value); }
+	}
+
+	pub fn push_size(&mut self, value: &Size) {
+		unsafe { call_info_push_size(self.raw, LightValue{ size: *value }.value); }
 	}
 
 	pub fn pop_i32(&mut self) -> Option<i32> {
@@ -298,6 +493,22 @@ impl CallInfo {
 			} else { None }
 		}
 	}
+
+	pub fn pop_vec2(&mut self) -> Option<Vec2> {
+		unsafe {
+			if call_info_front_vec2(self.raw) > 0 {
+				Some(LightValue{ value: call_info_pop_vec2(self.raw) }.vec2)
+			} else { None }
+		}
+	}
+
+	pub fn pop_size(&mut self) -> Option<Size> {
+		unsafe {
+			if call_info_front_size(self.raw) > 0 {
+				Some(LightValue{ value: call_info_pop_size(self.raw) }.size)
+			} else { None }
+		}
+	}
 }
 
 impl Drop for CallInfo {
@@ -315,6 +526,14 @@ pub trait INode {
 
 	fn get_x(&self)-> f32 {
 		unsafe { node_get_x(self.raw()) }
+	}
+
+	fn set_position(&mut self, var: &Vec2) {
+		unsafe { node_set_position(self.raw(), LightValue{ vec2: *var }.value); }
+	}
+
+	fn get_position(&self)-> Vec2 {
+		unsafe { LightValue{ value: node_get_position(self.raw()) }.vec2 }
 	}
 
 	fn set_tag(&mut self, var: &str) {

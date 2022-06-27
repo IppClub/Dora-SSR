@@ -59,7 +59,7 @@ void tolua_pushusertype(lua_State* L, void* value, int typeId)
 	lua_rawgeti(L, LUA_REGISTRYINDEX, typeId);// mt
 	if (lua_isnil(L, -1))// mt == nil
 	{
-		Error("[Lua] object pushed to lua is not registered with class!");
+		Error("[Lua] object pushed to lua is not registered!");
 		lua_pop(L, 1);
 		lua_pushnil(L);
 		return;

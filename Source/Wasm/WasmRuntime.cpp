@@ -68,21 +68,22 @@ void CallInfo::push(bool value) { _queue.push(value); }
 void CallInfo::push(String value) { _queue.push(value.toString()); }
 void CallInfo::push(Object* value) { _queue.push(value); }
 void CallInfo::push(const Vec2& value) { _queue.push(value); }
-void CallInfo::push_v(var_t value) { _queue.push(value); }
+void CallInfo::push(const Size& value) { _queue.push(value); }
+void CallInfo::push_v(dora_val_t value) { _queue.push(value); }
 
 bool CallInfo::empty() const
 {
 	return _queue.empty();
 }
 
-CallInfo::var_t CallInfo::pop()
+dora_val_t CallInfo::pop()
 {
 	auto var = _queue.front();
 	_queue.pop();
 	return var;
 }
 
-CallInfo::var_t& CallInfo::front()
+dora_val_t& CallInfo::front()
 {
 	return _queue.front();
 }
@@ -133,6 +134,16 @@ static void call_info_push_object(int64_t info, int64_t value)
 	r_cast<CallInfo*>(info)->push(r_cast<Object*>(value));
 }
 
+static void call_info_push_vec2(int64_t info, int64_t value)
+{
+	r_cast<CallInfo*>(info)->push(LightWasmValue{value}.vec2);
+}
+
+static void call_info_push_size(int64_t info, int64_t value)
+{
+	r_cast<CallInfo*>(info)->push(LightWasmValue{value}.size);
+}
+
 static int32_t call_info_pop_i32(int64_t info)
 {
 	return std::get<int32_t>(r_cast<CallInfo*>(info)->pop());
@@ -166,6 +177,16 @@ static int32_t call_info_pop_bool(int64_t call_info)
 static int64_t call_info_pop_object(int64_t call_info)
 {
 	return r_cast<int64_t>(std::get<Object*>(r_cast<CallInfo*>(call_info)->pop()));
+}
+
+static int64_t call_info_pop_vec2(int64_t call_info)
+{
+	return LightWasmValue{std::get<Vec2>(r_cast<CallInfo*>(call_info)->pop())}.value;
+}
+
+static int64_t call_info_pop_size(int64_t call_info)
+{
+	return LightWasmValue{std::get<Size>(r_cast<CallInfo*>(call_info)->pop())}.value;
 }
 
 static int32_t call_info_front_i32(int64_t info)
@@ -203,6 +224,16 @@ static int32_t call_info_front_object(int64_t info)
 	return std::holds_alternative<Object*>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
 }
 
+static int32_t call_info_front_vec2(int64_t info)
+{
+	return std::holds_alternative<Vec2>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+}
+
+static int32_t call_info_front_size(int64_t info)
+{
+	return std::holds_alternative<Size>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+}
+
 static int32_t node_type()
 {
 	return DoraType<Node>();
@@ -223,6 +254,16 @@ static void node_set_x(int64_t node, float var)
 static float node_get_x(int64_t node)
 {
 	return r_cast<Node*>(node)->getX();
+}
+
+static void node_set_position(int64_t node, int64_t var)
+{
+	r_cast<Node*>(node)->setPosition(LightWasmValue{var}.vec2);
+}
+
+static int64_t node_get_position(int64_t node)
+{
+	return LightWasmValue{r_cast<Node*>(node)->getPosition()}.value;
 }
 
 static void node_set_tag(int64_t node, int64_t var)
@@ -280,7 +321,9 @@ static void node_slot(int64_t node, int64_t name, int32_t func, int64_t stack)
 
 static int64_t director_get_entry()
 {
-	return r_cast<int64_t>(SharedDirector.getEntry());
+	auto entry = SharedDirector.getEntry();
+	entry->retain();
+	return r_cast<int64_t>(entry);
 }
 
 static void linkDoraModule(wasm3::module& mod)
@@ -304,6 +347,8 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "call_info_push_str", call_info_push_str);
 	mod.link_optional("*", "call_info_push_bool", call_info_push_bool);
 	mod.link_optional("*", "call_info_push_object", call_info_push_object);
+	mod.link_optional("*", "call_info_push_vec2", call_info_push_vec2);
+	mod.link_optional("*", "call_info_push_size", call_info_push_size);
 	mod.link_optional("*", "call_info_pop_i32", call_info_pop_i32);
 	mod.link_optional("*", "call_info_pop_i64", call_info_pop_i64);
 	mod.link_optional("*", "call_info_pop_f32", call_info_pop_f32);
@@ -311,6 +356,8 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "call_info_pop_str", call_info_pop_str);
 	mod.link_optional("*", "call_info_pop_bool", call_info_pop_bool);
 	mod.link_optional("*", "call_info_pop_object", call_info_pop_object);
+	mod.link_optional("*", "call_info_pop_vec2", call_info_pop_vec2);
+	mod.link_optional("*", "call_info_pop_size", call_info_pop_size);
 	mod.link_optional("*", "call_info_front_i32", call_info_front_i32);
 	mod.link_optional("*", "call_info_front_i64", call_info_front_i64);
 	mod.link_optional("*", "call_info_front_f32", call_info_front_f32);
@@ -318,11 +365,16 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "call_info_front_str", call_info_front_str);
 	mod.link_optional("*", "call_info_front_bool", call_info_front_bool);
 	mod.link_optional("*", "call_info_front_object", call_info_front_object);
+	mod.link_optional("*", "call_info_front_vec2", call_info_front_vec2);
+	mod.link_optional("*", "call_info_front_size", call_info_front_size);
 
 	mod.link_optional("*", "node_type", node_type);
 	mod.link_optional("*", "node_create", node_create);
 	mod.link_optional("*", "node_set_x", node_set_x);
 	mod.link_optional("*", "node_get_x", node_get_x);
+	mod.link_optional("*", "node_set_position", node_set_position);
+	mod.link_optional("*", "node_get_position", node_get_position);
+
 	mod.link_optional("*", "node_set_tag", node_set_tag);
 	mod.link_optional("*", "node_get_tag", node_get_tag);
 	mod.link_optional("*", "node_add_child", node_add_child);

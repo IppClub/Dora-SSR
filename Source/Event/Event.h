@@ -153,7 +153,7 @@ public:
 	WasmEventArgs(String name, CallInfo* info);
 	virtual int pushArgsToLua() override;
 	virtual void pushArgsToWasm(CallInfo* info) override;
-	const std::vector<CallInfo::var_t>& values() const;
+	const std::vector<dora_val_t>& values() const;
 	static void send(String name, CallInfo* info);
 public:
 	bool to(bool& value, int index);
@@ -210,7 +210,7 @@ public:
 		return false;
 	}
 private:
-	std::vector<CallInfo::var_t> _values;
+	std::vector<dora_val_t> _values;
 	DORA_TYPE_OVERRIDE(WasmEventArgs);
 };
 

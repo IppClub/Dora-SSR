@@ -22,32 +22,33 @@ NS_DOROTHY_PLATFORMER_BEGIN
 enum struct Relation
 {
 	Unknown = 0,
-	Friend = 1<<0,
-	Neutral = 1<<1,
-	Enemy = 1<<2,
-	Any = Friend|Neutral|Enemy
+	Friend = 1 << 0,
+	Neutral = 1 << 1,
+	Enemy = 1 << 2,
+	Any = Friend | Neutral | Enemy
 };
 
 /*
 Target Allow
 	Relation
 		Unkown 0
-		Friend 1<<0
-		Neutral 1<<1
-		Enemy 1<<2
+		Friend 1 << 0
+		Neutral 1 << 1
+		Enemy 1 << 2
 	Group
-		SharedData.getTerrainGroup() 1<<3
+		SharedData.getTerrainGroup() 1 << 3
 */
 class TargetAllow
 {
 public:
-	TargetAllow();
+	TargetAllow(uint32_t flag = 0);
 	bool operator==(const TargetAllow& other) const;
 	bool operator!=(const TargetAllow& other) const;
 	void setTerrainAllowed(bool var);
 	bool isTerrainAllowed() const;
 	void allow(Relation relation, bool allow);
 	bool isAllow(Relation relation);
+	uint32_t toValue() const;
 protected:
 	uint32_t _flag;
 };

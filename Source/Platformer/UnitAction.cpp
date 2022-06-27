@@ -559,7 +559,7 @@ void MeleeAttack::onAttack()
 				bool faceRight = _owner->isFaceRight();
 				BREAK_IF(attackRight != faceRight); // !(hitRight == faceRight || hitLeft == faceLeft)
 				Relation relation = SharedData.getRelation(_owner, target);
-				auto targetAllow = _owner->getEntity()->get(ActionSetting::TargetAllow, TargetAllow());
+				auto targetAllow = TargetAllow(_owner->getEntity()->get(ActionSetting::TargetAllow, 0u));
 				BREAK_IF(!targetAllow.isAllow(relation));
 				/* Get hit point */
 				Entity* entity = target->getEntity();
@@ -606,7 +606,7 @@ void RangeAttack::onAttack()
 	if (bulletDef)
 	{
 		Bullet* bullet = Bullet::create(bulletDef, _owner);
-		auto targetAllow = _owner->getEntity()->get(ActionSetting::TargetAllow, TargetAllow());
+		auto targetAllow = TargetAllow(_owner->getEntity()->get(ActionSetting::TargetAllow, 0u));
 		bullet->targetAllow = targetAllow;
 		bullet->hitTarget = std::make_pair(this, &RangeAttack::onHitTarget);
 		_owner->getPhysicsWorld()->addChild(bullet, _owner->getOrder());

@@ -24,9 +24,11 @@ Store["Unit_KidW"] = with Dictionary!
 	.attackRange = Size 350, 150
 	.attackPower = Vec2 100, 100
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy", true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_KidW"
@@ -69,9 +71,11 @@ Store["Unit_KidM"] = with Dictionary!
 	.attackRange = Size 400, 100
 	.attackPower = Vec2 100, 0
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy", true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_KidM"
@@ -114,9 +118,11 @@ Store["Unit_Zombie1"] = with Dictionary!
 	.attackRange = Size 80, 50
 	.attackPower = Vec2 150, 100
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy",true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""
@@ -160,9 +166,11 @@ Store["Unit_Zombie2"] = with Dictionary!
 	.attackRange = Size 150, 80
 	.attackPower = Vec2 150, 100
 	.attackTarget = "Multi"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy", true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = ""

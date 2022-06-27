@@ -524,9 +524,11 @@ NewFighterDef = -> with Dictionary!
 	.attackRange = Size 350,150
 	.attackPower = Vec2 100,100
 	.attackTarget = "Single"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy", true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_Arrow"
@@ -573,9 +575,11 @@ NewBossDef = -> with Dictionary!
 	.attackRange = Size 780,300
 	.attackPower = Vec2 200,200
 	.attackTarget = "Multi"
-	.targetAllow = (with TargetAllow!
-		.terrainAllowed = true
-		\allow "Enemy",true)
+	.targetAllow = do
+		conf = with TargetAllow!
+			.terrainAllowed = true
+			\allow "Enemy", true
+		conf\toValue!
 	.damageType = 0
 	.defenceType = 0
 	.bulletType = "Bullet_Arrow"

@@ -1095,11 +1095,12 @@ namespace Platformer {
 
 class TargetAllow
 {
-	TargetAllow();
+	TargetAllow(uint32_t flag = 0);
 	~TargetAllow();
 	tolua_property__bool bool terrainAllowed;
 	tolua_outside void TargetAllow_allow @ allow(String relation, bool allow);
 	tolua_outside bool TargetAllow_isAllow @ isAllow(String relation);
+	uint32_t toValue();
 };
 
 class Face : public Object
@@ -1130,7 +1131,7 @@ class Unit;
 
 class Bullet : public Body
 {
-	TargetAllow targetAllow;
+	tolua_property__common uint32_t targetAllow;
 	tolua_readonly tolua_property__bool bool faceRight;
 	tolua_property__bool bool hitStop;
 	tolua_readonly tolua_property__common Unit* owner;

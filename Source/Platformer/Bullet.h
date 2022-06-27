@@ -25,6 +25,7 @@ class Bullet : public Body
 {
 public:
 	PROPERTY_READONLY(Unit*, Owner);
+	PROPERTY(uint32_t, TargetAllow);
 	PROPERTY_BOOL(FaceRight);
 	PROPERTY_BOOL(HitStop);
 	PROPERTY(Node*, Face);
