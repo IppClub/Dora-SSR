@@ -1824,7 +1824,7 @@ static Own<Value> Dora_getValue(lua_State* L, int loc)
 					return Value::alloc(*r_cast<Size*>(tolua_tousertype(L, loc, 0)));
 				default:
 #ifndef TOLUA_RELEASE
-					tolua_error(L, "Can only store number, boolean, string, Object, Vec2, Size in containers.", nullptr);
+					tolua_error(L, "Can only store number, boolean, string, thread, Object, Vec2, Size in containers.", nullptr);
 #endif // TOLUA_RELEASE
 					break;
 			}
@@ -2018,8 +2018,9 @@ int Array_fastRemove(lua_State* L)
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_fastRemove'", nullptr);
 #endif
 		auto value = Dora_getValue(L, 2);
-		self->fastRemove(value.get());
-		return 0;
+		bool result = self->fastRemove(value.get());
+		lua_pushboolean(L, result ? 1 : 0);
+		return 1;
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror :

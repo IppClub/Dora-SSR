@@ -54,14 +54,11 @@ public:
 	template <class T>
 	T get() const;
 	virtual Own<Value> clone() const = 0;
-	virtual Value* cloneUnsafe() const = 0;
 	virtual void pushToLua(lua_State* L) const = 0;
 	virtual ValueType getType() const = 0;
 	virtual bool equals(Value* other) const = 0;
 	template <class T>
 	static Own<Value> alloc(const T& value);
-	template <class T>
-	static Value* allocUnsafe(const T& value);
 	static const Own<Value> None;
 protected:
 	Value() { }
@@ -75,7 +72,6 @@ public:
 	inline void set(int64_t value) { _value = value; }
 	inline int64_t get() const { return _value; }
 	virtual Own<Value> clone() const override;
-	virtual Value* cloneUnsafe() const override;
 	virtual void pushToLua(lua_State* L) const override;
 	virtual ValueType getType() const override;
 	virtual bool equals(Value* other) const override;
@@ -97,7 +93,6 @@ public:
 	inline void set(double value) { _value = value; }
 	inline double get() const { return _value; }
 	virtual Own<Value> clone() const override;
-	virtual Value* cloneUnsafe() const override;
 	virtual void pushToLua(lua_State* L) const override;
 	virtual ValueType getType() const override;
 	virtual bool equals(Value* other) const override;
@@ -119,7 +114,6 @@ public:
 	inline void set(bool value) { _value = value; }
 	inline bool get() const { return _value; }
 	virtual Own<Value> clone() const override;
-	virtual Value* cloneUnsafe() const override;
 	virtual void pushToLua(lua_State* L) const override;
 	virtual ValueType getType() const override;
 	virtual bool equals(Value* other) const override;
@@ -141,7 +135,6 @@ public:
 	inline void set(Object* value) { _value = value; }
 	inline Object* get() const { return _value.get(); }
 	virtual Own<Value> clone() const override;
-	virtual Value* cloneUnsafe() const override;
 	virtual void pushToLua(lua_State* L) const override;
 	virtual ValueType getType() const override;
 	virtual bool equals(Value* other) const override;
@@ -179,10 +172,6 @@ public:
 	virtual Own<Value> clone() const override
 	{
 		return Value::alloc(_value);
-	}
-	virtual Value* cloneUnsafe() const override
-	{
-		return Value::allocUnsafe(_value);
 	}
 	virtual void pushToLua(lua_State* L) const override
 	{
@@ -446,31 +435,6 @@ Own<Value> Value::alloc(const T& value)
 	else if constexpr (!std::is_pointer_v<T> && std::is_class_v<T>)
 	{
 		return Own<Value>(new ValueStruct<special_decay_t<T>>(value));
-	}
-}
-
-template <class T>
-Value* Value::allocUnsafe(const T& value)
-{
-	if constexpr (std::is_same_v<bool, T>)
-	{
-		return new ValueBool(value);
-	}
-	else if constexpr (std::is_integral_v<T>)
-	{
-		return new ValueInt(s_cast<int64_t>(value));
-	}
-	else if constexpr (std::is_floating_point_v<T>)
-	{
-		return new ValueFloat(s_cast<double>(value));
-	}
-	else if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<special_decay_t<T>>>)
-	{
-		return new ValueObject(value);
-	}
-	else if constexpr (!std::is_pointer_v<T> && std::is_class_v<T>)
-	{
-		return new ValueStruct<special_decay_t<T>>(value);
 	}
 }
 

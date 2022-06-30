@@ -60,6 +60,147 @@ static void object_release(int64_t obj)
 	r_cast<Object*>(obj)->release();
 }
 
+static int64_t value_create_i32(int32_t value)
+{
+	return r_cast<int64_t>(new dora_val_t(value));
+}
+
+static int64_t value_create_i64(int64_t value)
+{
+	return r_cast<int64_t>(new dora_val_t(value));
+}
+
+static int64_t value_create_f32(float value)
+{
+	return r_cast<int64_t>(new dora_val_t(value));
+}
+
+static int64_t value_create_f64(double value)
+{
+	return r_cast<int64_t>(new dora_val_t(value));
+}
+
+static int64_t value_create_str(int64_t value)
+{
+	return r_cast<int64_t>(new dora_val_t(value));
+}
+
+static int64_t value_create_bool(int32_t value)
+{
+	return r_cast<int64_t>(new dora_val_t(value));
+}
+
+static int64_t value_create_object(int64_t value)
+{
+	return r_cast<int64_t>(new dora_val_t(r_cast<Object*>(value)));
+}
+
+static int64_t value_create_vec2(int64_t value)
+{
+	return r_cast<int64_t>(new dora_val_t(LightWasmValue{value}.vec2));
+}
+
+static int64_t value_create_size(int64_t value)
+{
+	return r_cast<int64_t>(new dora_val_t(LightWasmValue{value}.size));
+}
+
+static void value_release(int64_t value)
+{
+	delete r_cast<dora_val_t*>(value);
+}
+
+static int32_t value_into_i32(int64_t value)
+{
+	return std::get<int32_t>(*r_cast<dora_val_t*>(value));
+}
+
+static int64_t value_into_i64(int64_t value)
+{
+	return std::get<int64_t>(*r_cast<dora_val_t*>(value));
+}
+
+static float value_into_f32(int64_t value)
+{
+	return std::get<float>(*r_cast<dora_val_t*>(value));
+}
+
+static double value_into_f64(int64_t value)
+{
+	return std::get<double>(*r_cast<dora_val_t*>(value));
+}
+
+static int64_t value_into_str(int64_t value)
+{
+	auto str = std::get<std::string>(*r_cast<dora_val_t*>(value));
+	return r_cast<int64_t>(new std::string(str));
+}
+
+static int32_t value_into_bool(int64_t value)
+{
+	return std::get<bool>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int64_t value_into_object(int64_t value)
+{
+	return r_cast<int64_t>(std::get<Object*>(*r_cast<dora_val_t*>(value)));
+}
+
+static int64_t value_into_vec2(int64_t value)
+{
+	return LightWasmValue{std::get<Vec2>(*r_cast<dora_val_t*>(value))}.value;
+}
+
+static int64_t value_into_size(int64_t value)
+{
+	return LightWasmValue{std::get<Size>(*r_cast<dora_val_t*>(value))}.value;
+}
+
+static int32_t value_is_i32(int64_t value)
+{
+	return std::holds_alternative<int32_t>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_i64(int64_t value)
+{
+	return std::holds_alternative<int64_t>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_f32(int64_t value)
+{
+	return std::holds_alternative<float>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_f64(int64_t value)
+{
+	return std::holds_alternative<double>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_str(int64_t value)
+{
+	return std::holds_alternative<std::string>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_bool(int64_t value)
+{
+	return std::holds_alternative<bool>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_object(int64_t value)
+{
+	return std::holds_alternative<Object*>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_vec2(int64_t value)
+{
+	return std::holds_alternative<Vec2>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
+static int32_t value_is_size(int64_t value)
+{
+	return std::holds_alternative<Size>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+}
+
 void CallInfo::push(int32_t value) { _queue.push(value); }
 void CallInfo::push(int64_t value) { _queue.push(value); }
 void CallInfo::push(float value) { _queue.push(value); }
@@ -319,6 +460,60 @@ static void node_slot(int64_t node, int64_t name, int32_t func, int64_t stack)
 	});
 }
 
+static Own<Value> to_value(const dora_val_t& v)
+{
+	Own<Value> ov;
+	std::visit([&](auto&& arg)
+	{
+		ov = Value::alloc(arg);
+	}, v);
+	return ov;
+}
+
+static int32_t array_type()
+{
+	return DoraType<Array>();
+}
+
+static int64_t array_create()
+{
+	auto array = Array::create();
+	array->retain();
+	return r_cast<int64_t>(array);
+}
+
+static int32_t array_set(int64_t array, int32_t index, int64_t v)
+{
+	auto arr = r_cast<Array*>(array);
+	if (0 <= index && index < s_cast<int32_t>(arr->getCount()))
+	{
+		arr->set(index, to_value(*r_cast<dora_val_t*>(v)));
+		return 1;
+	}
+	return 0;
+}
+//	fn array_get(array: i64, index: i32) -> i64;
+//	fn array_len(array: i64) -> i32;
+//	fn array_capacity(array: i64) -> i32;
+//	fn array_is_empty(array: i64) -> i32;
+//	fn array_add_range(array: i64, other: i64);
+//	fn array_remove_from(array: i64, other: i64);
+//	fn array_clear(array: i64);
+//	fn array_reverse(array: i64);
+//	fn array_shrink(array: i64);
+//	fn array_swap(array: i64, indexA: i32, indexB: i32);
+//	fn array_remove_at(array: i64, index: i32) -> i32;
+//	fn array_fast_remove_at(array: i64, index: i32) -> i32;
+//	fn array_first(array: i64) -> i64;
+//	fn array_last(array: i64) -> i64;
+//	fn array_random_object(array: i64) -> i64;
+//	fn array_add(array: i64, item: i64);
+//	fn array_insert(array: i64, index: i32, item: i64);
+//	fn array_contains(array: i64, item: i64) -> i32;
+//	fn array_index(array: i64, item: i64) -> i32;
+//	fn array_remove_last(array: i64) -> i64;
+//	fn array_fast_remove(array: i64, item: i64) -> i32;
+
 static int64_t director_get_entry()
 {
 	auto entry = SharedDirector.getEntry();
@@ -337,6 +532,35 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "object_get_id", object_get_id);
 	mod.link_optional("*", "object_get_type", object_get_type);
 	mod.link_optional("*", "object_release", object_release);
+
+	mod.link_optional("*", "value_create_i32", value_create_i32);
+	mod.link_optional("*", "value_create_i64", value_create_i64);
+	mod.link_optional("*", "value_create_f32", value_create_f32);
+	mod.link_optional("*", "value_create_f64", value_create_f64);
+	mod.link_optional("*", "value_create_str", value_create_str);
+	mod.link_optional("*", "value_create_bool", value_create_bool);
+	mod.link_optional("*", "value_create_object", value_create_object);
+	mod.link_optional("*", "value_create_vec2", value_create_vec2);
+	mod.link_optional("*", "value_create_size", value_create_size);
+	mod.link_optional("*", "value_release", value_release);
+	mod.link_optional("*", "value_into_i32", value_into_i32);
+	mod.link_optional("*", "value_into_i64", value_into_i64);
+	mod.link_optional("*", "value_into_f32", value_into_f32);
+	mod.link_optional("*", "value_into_f64", value_into_f64);
+	mod.link_optional("*", "value_into_str", value_into_str);
+	mod.link_optional("*", "value_into_bool", value_into_bool);
+	mod.link_optional("*", "value_into_object", value_into_object);
+	mod.link_optional("*", "value_into_vec2", value_into_vec2);
+	mod.link_optional("*", "value_into_size", value_into_size);
+	mod.link_optional("*", "value_is_i32", value_is_i32);
+	mod.link_optional("*", "value_is_i64", value_is_i64);
+	mod.link_optional("*", "value_is_f32", value_is_f32);
+	mod.link_optional("*", "value_is_f64", value_is_f64);
+	mod.link_optional("*", "value_is_str", value_is_str);
+	mod.link_optional("*", "value_is_bool", value_is_bool);
+	mod.link_optional("*", "value_is_object", value_is_object);
+	mod.link_optional("*", "value_is_vec2", value_is_vec2);
+	mod.link_optional("*", "value_is_size", value_is_size);
 
 	mod.link_optional("*", "call_info_create", call_info_create);
 	mod.link_optional("*", "call_info_release", call_info_release);
