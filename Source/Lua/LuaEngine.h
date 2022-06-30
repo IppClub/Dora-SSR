@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Lua/ToLua/tolua++.h"
-#include "Common/Ref.h"
 #include "yuescript/yue_compiler.h"
 
 NS_DOROTHY_BEGIN
@@ -17,6 +16,13 @@ NS_DOROTHY_BEGIN
 class Value;
 class Node;
 class LuaHandler;
+
+namespace Platformer {
+class UnitAction;
+namespace Behavior {
+class Blackboard;
+} // namespace Behavior
+} // namespace Platformer
 
 class LuaEngine
 {
@@ -42,7 +48,7 @@ public:
 	void pop(int count = 1);
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T>> push(T value)
+	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>> push(T value)
 	{
 		lua_pushinteger(L, s_cast<lua_Integer>(value));
 	}
@@ -59,14 +65,37 @@ public:
 		tolua_pushobject(L, value);
 	}
 
-	void push(bool value);
+	template<typename T>
+	typename std::enable_if<std::is_same_v<T, bool>>::type push(T value)
+	{
+		lua_pushboolean(L, value ? 1 : 0);
+	}
+
+	template<typename T>
+	typename std::enable_if<
+			std::is_same_v<T, Platformer::UnitAction> ||
+			std::is_same_v<T, Platformer::Behavior::Blackboard>
+		>::type push(T* value)
+	{
+		tolua_pushusertype(L, value, LuaType<T>());
+	}
+
+	template<typename T>
+	typename std::enable_if<
+			std::is_same_v<T, Vec2> ||
+			std::is_same_v<T, Size> ||
+			std::is_same_v<T, Vec4> ||
+			std::is_same_v<T, Matrix>
+		>::type push(const T& value)
+	{
+		tolua_pushusertype(L, new T(value), LuaType<T>());
+	}
+
 	void push(Value* value);
 	void push(String value);
-	void push(const Vec2& value);
-	void push(const Size& value);
 
 	template <class T>
-	static typename std::enable_if_t<std::is_integral_v<T>> push(lua_State* L, T value)
+	static typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>> push(lua_State* L, T value)
 	{
 		lua_pushinteger(L, s_cast<lua_Integer>(value));
 	}
@@ -83,11 +112,40 @@ public:
 		tolua_pushobject(L, value);
 	}
 
-	static void push(lua_State* L, bool value);
+	template<typename T>
+	static typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(lua_State* L, T* t)
+	{
+		tolua_pushusertype(L, t, LuaType<T>());
+	}
+
+	template<typename T>
+	static typename std::enable_if<std::is_same_v<T, bool>>::type push(lua_State* L, T value)
+	{
+		lua_pushboolean(L, value ? 1 : 0);
+	}
+
+	template<typename T>
+	static typename std::enable_if<
+			std::is_same_v<T, Vec2> ||
+			std::is_same_v<T, Size> ||
+			std::is_same_v<T, Vec4> ||
+			std::is_same_v<T, Matrix>
+		>::type push(lua_State* L, const T& value)
+	{
+		tolua_pushusertype(L, new T{value}, LuaType<T>());
+	}
+
+	template<typename T>
+	static typename std::enable_if<
+			std::is_same_v<T, Platformer::UnitAction> ||
+			std::is_same_v<T, Platformer::Behavior::Blackboard>
+		>::type push(lua_State* L, T* value)
+	{
+		tolua_pushusertype(L, value, LuaType<T>());
+	}
+
 	static void push(lua_State* L, Value* value);
 	static void push(lua_State* L, String value);
-	static void push(lua_State* L, const Vec2& value);
-	static void push(lua_State* L, const Size& value);
 
 	template <class T>
 	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index)
