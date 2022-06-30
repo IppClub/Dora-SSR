@@ -750,11 +750,6 @@ void LuaEngine::pop(int count)
 	lua_pop(L, count);
 }
 
-void LuaEngine::push(bool value)
-{
-	lua_pushboolean(L, value ? 1 : 0);
-}
-
 void LuaEngine::push(Value* value)
 {
 	if (value)
@@ -772,21 +767,6 @@ void LuaEngine::push(String value)
 	lua_pushlstring(L, value.begin(), value.size());
 }
 
-void LuaEngine::push(const Vec2& value)
-{
-	tolua_pushlight(L, value);
-}
-
-void LuaEngine::push(const Size& value)
-{
-	tolua_pushusertype(L, new Size(value), LuaType<Size>());
-}
-
-void LuaEngine::push(lua_State* L, bool value)
-{
-	lua_pushboolean(L, value ? 1 : 0);
-}
-
 void LuaEngine::push(lua_State* L, Value* value)
 {
 	if (value)
@@ -802,16 +782,6 @@ void LuaEngine::push(lua_State* L, Value* value)
 void LuaEngine::push(lua_State* L, String value)
 {
 	lua_pushlstring(L, value.begin(), value.size());
-}
-
-void LuaEngine::push(lua_State* L, const Vec2& value)
-{
-	tolua_pushlight(L, value);
-}
-
-void LuaEngine::push(lua_State* L, const Size& value)
-{
-	tolua_pushusertype(L, new Size(value), LuaType<Size>());
 }
 
 bool LuaEngine::to(bool& value, int index)
