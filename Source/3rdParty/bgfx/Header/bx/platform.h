@@ -37,10 +37,6 @@
 #define BX_CRT_MSVC   0
 #define BX_CRT_NEWLIB 0
 
-#ifndef BX_CRT_MUSL
-#	define BX_CRT_MUSL 0
-#endif // BX_CRT_MUSL
-
 #ifndef BX_CRT_NONE
 #	define BX_CRT_NONE 0
 #endif // BX_CRT_NONE
@@ -253,7 +249,6 @@
 	&& !BX_CRT_LIBCXX \
 	&& !BX_CRT_MINGW  \
 	&& !BX_CRT_MSVC   \
-	&& !BX_CRT_MUSL   \
 	&& !BX_CRT_NEWLIB
 #		undef  BX_CRT_NONE
 #		define BX_CRT_NONE 1
@@ -342,7 +337,9 @@
 		BX_STRINGIZE(__clang_minor__) "." \
 		BX_STRINGIZE(__clang_patchlevel__)
 #elif BX_COMPILER_MSVC
-#	if BX_COMPILER_MSVC >= 1920 // Visual Studio 2019
+#	if BX_COMPILER_MSVC >= 1930 // Visual Studio 2022
+#		define BX_COMPILER_NAME "MSVC 17.0"
+#	elif BX_COMPILER_MSVC >= 1920 // Visual Studio 2019
 #		define BX_COMPILER_NAME "MSVC 16.0"
 #	elif BX_COMPILER_MSVC >= 1910 // Visual Studio 2017
 #		define BX_COMPILER_NAME "MSVC 15.0"
@@ -429,8 +426,6 @@
 #	define BX_CRT_NAME "Clang C Library"
 #elif BX_CRT_NEWLIB
 #	define BX_CRT_NAME "Newlib"
-#elif BX_CRT_MUSL
-#	define BX_CRT_NAME "musl libc"
 #elif BX_CRT_NONE
 #	define BX_CRT_NAME "None"
 #else
@@ -443,13 +438,9 @@
 #	define BX_ARCH_NAME "64-bit"
 #endif // BX_ARCH_
 
-#if BX_COMPILER_MSVC
-#	define BX_CPP_NAME "C++MsvcUnknown"
-#elif defined(__cplusplus)
-#	if __cplusplus < 201103L
-#		error "Pre-C++11 compiler is not supported!"
-#	elif __cplusplus < 201402L
-#		define BX_CPP_NAME "C++11"
+#if defined(__cplusplus)
+#	if __cplusplus < 201402L
+#		error "C++14 standard support is required to build."
 #	elif __cplusplus < 201703L
 #		define BX_CPP_NAME "C++14"
 #	elif __cplusplus < 201704L
