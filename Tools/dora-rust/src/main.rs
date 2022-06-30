@@ -1,5 +1,6 @@
 #[macro_use] pub mod dora;
-use crate::dora::{Object, Node, INode, Director, CallInfo, Value};
+
+use crate::dora::{Object, Node, INode, Director, CallInfo, Value, Array};
 
 fn main() {
 	dora::init();
@@ -27,4 +28,11 @@ fn main() {
 	entry.add_child(&node);
 
 	node.emit("Event", &args!(1, "dsd", true));
+
+	let mut arr = Array::new();
+	arr.set(0, node.obj());
+	if let Some(a) = arr.get(0).unwrap().into_object().unwrap().as_any_mut().downcast_mut::<Node>() {
+		a.emit("name", &args!(1, 2, 3));
+		entry.add_child(a);
+	}
 }
