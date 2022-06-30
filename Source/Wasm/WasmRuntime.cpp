@@ -470,6 +470,37 @@ static Own<Value> to_value(const dora_val_t& v)
 	return ov;
 }
 
+static int64_t from_value(Value* v)
+{
+	switch (v->getType())
+	{
+		case ValueType::Integral:
+			return r_cast<int64_t>(new dora_val_t(v->toVal<int64_t>()));
+		case ValueType::FloatingPoint:
+			return r_cast<int64_t>(new dora_val_t(v->toVal<double>()));
+		case ValueType::Boolean:
+			return r_cast<int64_t>(new dora_val_t(v->toVal<bool>()));
+		case ValueType::Object:
+			return r_cast<int64_t>(new dora_val_t(v->to<Object>()));
+		case ValueType::Struct:
+		{
+			if (auto str = v->asVal<std::string>())
+			{
+				return r_cast<int64_t>(new dora_val_t(*str));
+			}
+			else if (auto vec2 = v->asVal<Vec2>())
+			{
+				return r_cast<int64_t>(new dora_val_t(*vec2));
+			}
+			else if (auto size = v->asVal<Size>())
+			{
+				return r_cast<int64_t>(new dora_val_t(*size));
+			}
+		}
+	}
+	return 0;
+}
+
 static int32_t array_type()
 {
 	return DoraType<Array>();
@@ -492,11 +523,37 @@ static int32_t array_set(int64_t array, int32_t index, int64_t v)
 	}
 	return 0;
 }
-//	fn array_get(array: i64, index: i32) -> i64;
-//	fn array_len(array: i64) -> i32;
-//	fn array_capacity(array: i64) -> i32;
-//	fn array_is_empty(array: i64) -> i32;
-//	fn array_add_range(array: i64, other: i64);
+
+static int64_t array_get(int64_t array, int32_t index)
+{
+	auto arr = r_cast<Array*>(array);
+	if (0 <= index && index < s_cast<int32_t>(arr->getCount()))
+	{
+		return from_value(arr->get(index).get());
+	}
+	return 0;
+}
+
+static int32_t array_len(int64_t array)
+{
+	return s_cast<int32_t>(r_cast<Array*>(array)->getCount());
+}
+
+static int32_t array_capacity(int64_t array)
+{
+	return s_cast<int32_t>(r_cast<Array*>(array)->getCapacity());
+}
+
+static int32_t array_is_empty(int64_t array)
+{
+	return r_cast<Array*>(array)->isEmpty() ? 1 : 0;
+}
+
+static void array_add_range(int64_t array, int64_t other)
+{
+	r_cast<Array*>(array)->addRange(r_cast<Array*>(other));
+}
+
 //	fn array_remove_from(array: i64, other: i64);
 //	fn array_clear(array: i64);
 //	fn array_reverse(array: i64);
@@ -591,6 +648,15 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "call_info_front_object", call_info_front_object);
 	mod.link_optional("*", "call_info_front_vec2", call_info_front_vec2);
 	mod.link_optional("*", "call_info_front_size", call_info_front_size);
+
+	mod.link_optional("*", "array_type", array_type);
+	mod.link_optional("*", "array_create", array_create);
+	mod.link_optional("*", "array_set", array_set);
+	mod.link_optional("*", "array_get", array_get);
+	mod.link_optional("*", "array_len", array_len);
+	mod.link_optional("*", "array_capacity", array_capacity);
+	mod.link_optional("*", "array_is_empty", array_is_empty);
+	mod.link_optional("*", "array_add_range", array_add_range);
 
 	mod.link_optional("*", "node_type", node_type);
 	mod.link_optional("*", "node_create", node_create);

@@ -767,6 +767,11 @@ void LuaEngine::push(String value)
 	lua_pushlstring(L, value.begin(), value.size());
 }
 
+void LuaEngine::push(const Vec2& value)
+{
+	tolua_pushlight(L, value);
+}
+
 void LuaEngine::push(lua_State* L, Value* value)
 {
 	if (value)
@@ -782,6 +787,11 @@ void LuaEngine::push(lua_State* L, Value* value)
 void LuaEngine::push(lua_State* L, String value)
 {
 	lua_pushlstring(L, value.begin(), value.size());
+}
+
+void LuaEngine::push(lua_State* L, const Vec2& value)
+{
+	tolua_pushlight(L, value);
 }
 
 bool LuaEngine::to(bool& value, int index)

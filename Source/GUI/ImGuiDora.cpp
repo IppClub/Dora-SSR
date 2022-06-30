@@ -1414,6 +1414,7 @@ bool ImGuiDora::handle(const SDL_Event& event)
 	switch (event.type)
 	{
 		case SDL_MOUSEBUTTONDOWN:
+		case SDL_FINGERDOWN:
 			if (ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() ||
 				ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel))
 			{
