@@ -82,7 +82,6 @@ public:
 
 	template<typename T>
 	typename std::enable_if<
-			std::is_same_v<T, Vec2> ||
 			std::is_same_v<T, Size> ||
 			std::is_same_v<T, Vec4> ||
 			std::is_same_v<T, Matrix>
@@ -93,6 +92,7 @@ public:
 
 	void push(Value* value);
 	void push(String value);
+	void push(const Vec2& value);
 
 	template <class T>
 	static typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>> push(lua_State* L, T value)
@@ -126,13 +126,12 @@ public:
 
 	template<typename T>
 	static typename std::enable_if<
-			std::is_same_v<T, Vec2> ||
 			std::is_same_v<T, Size> ||
 			std::is_same_v<T, Vec4> ||
 			std::is_same_v<T, Matrix>
 		>::type push(lua_State* L, const T& value)
 	{
-		tolua_pushusertype(L, new T{value}, LuaType<T>());
+		tolua_pushusertype(L, new T(value), LuaType<T>());
 	}
 
 	template<typename T>
@@ -146,6 +145,7 @@ public:
 
 	static void push(lua_State* L, Value* value);
 	static void push(lua_State* L, String value);
+	static void push(lua_State* L, const Vec2& value);
 
 	template <class T>
 	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index)
