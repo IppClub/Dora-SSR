@@ -6,6 +6,8 @@
 #ifndef BX_MATH_H_HEADER_GUARD
 #define BX_MATH_H_HEADER_GUARD
 
+#include <cmath>
+
 #include "bx.h"
 #include "uint32_t.h"
 
@@ -163,27 +165,27 @@ namespace bx
 
 	/// Returns true if _f is a number that is NaN.
 	///
-	BX_CONST_FUNC bool isNan(float _f);
+	inline bool isNan(float _f) { return std::isnan(_f); }
 
 	/// Returns true if _f is a number that is NaN.
 	///
-	BX_CONST_FUNC bool isNan(double _f);
+	inline bool isNan(double _f) { return std::isnan(_f); }
 
 	/// Returns true if _f is not infinite and is not a NaN.
 	///
-	BX_CONST_FUNC bool isFinite(float _f);
+	inline bool isFinite(float _f) { return std::isfinite(_f); }
 
 	/// Returns true if _f is not infinite and is not a NaN.
 	///
-	BX_CONST_FUNC bool isFinite(double _f);
+	inline bool isFinite(double _f) { return std::isfinite(_f); }
 
 	/// Returns true if _f is infinite and is not a NaN.
 	///
-	BX_CONST_FUNC bool isInfinite(float _f);
+	inline bool isInfinite(float _f) { return std::isinf(_f); }
 
 	/// Returns true if _f is infinite and is not a NaN.
 	///
-	BX_CONST_FUNC bool isInfinite(double _f);
+	inline bool isInfinite(double _f) { return std::isinf(_f); }
 
 	/// Returns the largest integer value not greater than _f.
 	///
@@ -219,7 +221,7 @@ namespace bx
 
 	/// Returns the cosine of the argument _a.
 	///
-	BX_CONST_FUNC float sin(float _a);
+	inline float sin(float _a) { return std::sin(_a); }
 
 	/// Returns hyperbolic sine of the argument _a.
 	///
@@ -231,7 +233,7 @@ namespace bx
 
 	/// Returns the cosine of the argument _a.
 	///
-	BX_CONST_FUNC float cos(float _a);
+	inline float cos(float _a) { return std::cos(_a); }
 
 	/// Returns hyperbolic cosine of the argument _a.
 	///
@@ -239,7 +241,7 @@ namespace bx
 
 	/// Returns radian angle between 0 and pi whose cosine is _a.
 	///
-	BX_CONST_FUNC float acos(float _a);
+	inline float acos(float _a) { return std::acos(_a); }
 
 	/// Returns the circular tangent of the radian argument _a.
 	///
@@ -255,7 +257,7 @@ namespace bx
 
 	/// Returns the inverse tangent of _y/_x.
 	///
-	BX_CONST_FUNC float atan2(float _y, float _x);
+	inline float atan2(float _y, float _x) { return std::atan2(_y, _x); }
 
 	/// Computes _a raised to the _b power.
 	///
@@ -263,16 +265,16 @@ namespace bx
 
 	/// Returns the result of multiplying _a by 2 raised to the power of the exponent.
 	///
-	BX_CONST_FUNC float ldexp(float _a, int32_t _b);
+	inline float ldexp(float _a, int32_t _b) { return std::ldexp(_a, _b); }
 
 	/// Returns decomposed given floating point value _a into a normalized fraction and
 	/// an integral power of two.
 	///
-	float frexp(float _a, int32_t* _outExp);
+	inline float frexp(float _a, int32_t* _outExp) { return std::frexp(_a, _outExp); }
 
 	/// Returns e (2.71828...) raised to the _a power.
 	///
-	BX_CONST_FUNC float exp(float _a);
+	inline float exp(float _a) { return std::exp(_a); }
 
 	/// Returns 2 raised to the _a power.
 	///
@@ -280,7 +282,7 @@ namespace bx
 
 	/// Returns the base e (2.71828...) logarithm of _a.
 	///
-	BX_CONST_FUNC float log(float _a);
+	inline float log(float _a) { return std::log(_a); }
 
 	/// Returns the base 2 logarithm of _a.
 	///

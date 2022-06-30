@@ -60,42 +60,6 @@ namespace bx
 		return result;
 	}
 
-	inline BX_CONST_FUNC bool isNan(float _f)
-	{
-		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
-		return tmp > UINT32_C(0x7f800000);
-	}
-
-	inline BX_CONST_FUNC bool isNan(double _f)
-	{
-		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
-		return tmp > UINT64_C(0x7ff0000000000000);
-	}
-
-	inline BX_CONST_FUNC bool isFinite(float _f)
-	{
-		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
-		return tmp < UINT32_C(0x7f800000);
-	}
-
-	inline BX_CONST_FUNC bool isFinite(double _f)
-	{
-		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
-		return tmp < UINT64_C(0x7ff0000000000000);
-	}
-
-	inline BX_CONST_FUNC bool isInfinite(float _f)
-	{
-		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
-		return tmp == UINT32_C(0x7f800000);
-	}
-
-	inline BX_CONST_FUNC bool isInfinite(double _f)
-	{
-		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
-		return tmp == UINT64_C(0x7ff0000000000000);
-	}
-
 	inline BX_CONSTEXPR_FUNC float floor(float _a)
 	{
 		if (_a < 0.0f)
@@ -149,11 +113,6 @@ namespace bx
 	inline BX_CONSTEXPR_FUNC float square(float _a)
 	{
 		return _a * _a;
-	}
-
-	inline BX_CONST_FUNC float sin(float _a)
-	{
-		return cos(_a - kPiHalf);
 	}
 
 	inline BX_CONST_FUNC float sinh(float _a)
