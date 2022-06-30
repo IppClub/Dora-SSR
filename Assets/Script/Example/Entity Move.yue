@@ -8,8 +8,9 @@ with Observer "Add", {"scene"}
 		Director.entry\addChild with scene
 			.touchEnabled = true
 			\slot "TapEnded", (touch)->
+				:location = touch
 				positionGroup\each (entity)->
-					entity.target = touch.location
+					entity.target = location
 
 with Observer "Add", {"sprite"}
 	\every (sprite)=>
