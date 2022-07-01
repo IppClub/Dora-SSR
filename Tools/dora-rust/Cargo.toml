@@ -3,6 +3,12 @@ name = "dora"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+path = "src/dora/object_macro.rs"
+proc-macro = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+syn = "1.0"
+quote = "1.0"
