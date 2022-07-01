@@ -1,12 +1,13 @@
 use std::{ffi::c_void, any::Any};
+use dora::object_macro;
 
 extern "C" {
 	fn object_get_id(obj: i64) -> i32;
 	fn object_get_type(obj: i64) -> i32;
 	fn object_release(obj: i64);
 
-	fn str_new(len: i32)-> i64;
-	fn str_len(str: i64)-> i32;
+	fn str_new(len: i32) -> i64;
+	fn str_len(str: i64) -> i32;
 	fn str_read(dest: *mut c_void, src: i64);
 	fn str_write(dest: i64, src: *const c_void);
 	fn str_release(str: i64);
@@ -71,14 +72,15 @@ extern "C" {
 	fn call_info_front_size(info: i64) -> i32;
 
 	fn node_type() -> i32;
-	fn node_create()-> i64;
+	fn node_create() -> i64;
 	fn node_set_x(node: i64, var: f32);
-	fn node_get_x(node: i64)-> f32;
+	fn node_get_x(node: i64) -> f32;
 	fn node_set_position(node: i64, var: i64);
 	fn node_get_position(node: i64) -> i64;
-
 	fn node_set_tag(node: i64, var: i64);
-	fn node_get_tag(node: i64)-> i64;
+	fn node_get_tag(node: i64) -> i64;
+	fn node_get_children(node: i64) -> i64;
+	fn node_get_userdata(node: i64) -> i64;
 	fn node_add_child(node: i64, child: i64);
 	fn node_schedule(node: i64, func: i32, stack: i64);
 	fn node_emit(node: i64, name: i64, stack: i64);
@@ -108,6 +110,14 @@ extern "C" {
 	fn array_index(array: i64, item: i64) -> i32;
 	fn array_remove_last(array: i64) -> i64;
 	fn array_fast_remove(array: i64, item: i64) -> i32;
+
+	fn dictionary_type() -> i32;
+	fn dictionary_create() -> i64;
+	fn dictionary_set(dict: i64, key: i64, value: i64);
+	fn dictionary_get(dict: i64, key: i64) -> i64;
+	fn dictionary_len(dict: i64) -> i32;
+	fn dictionary_get_keys(dict: i64) -> i64;
+	fn dictionary_clear(dict: i64);
 
 	fn director_get_entry() -> i64;
 }
@@ -321,9 +331,7 @@ impl DoraValue {
 			_ => { Some(DoraValue { raw: raw }) }
 		}
 	}
-	pub fn raw(&self) -> i64 {
-		self.raw
-	}
+	pub fn raw(&self) -> i64 { self.raw }
 	pub fn into_i32(&self) -> Option<i32> {
 		unsafe {
 			if value_is_i32(self.raw) > 0 {
@@ -498,6 +506,7 @@ impl Drop for CallInfo {
 	fn drop(&mut self) { unsafe { call_info_release(self.raw); } }
 }
 
+#[derive(object_macro)]
 pub struct Array { raw: i64 }
 
 impl Array {
@@ -574,15 +583,28 @@ impl Array {
 	}
 }
 
-impl Object for Array {
-	fn raw(&self) -> i64 { self.raw }
-	fn obj(&self) -> &dyn Object { self }
-	fn as_any(&self) -> &dyn Any { self }
-	fn as_any_mut(&mut self) -> &mut dyn Any { self }
-}
+#[derive(object_macro)]
+pub struct Dictionary { raw: i64 }
 
-impl Drop for Array {
-	fn drop(&mut self) { unsafe { object_release(self.raw); } }
+impl Dictionary {
+	pub fn new() -> Dictionary {
+		Dictionary { raw: unsafe { dictionary_create() } }
+	}
+	pub fn set<'a, T>(&mut self, key: &str, v: T) where T: IntoValue<'a> {
+		unsafe { dictionary_set(self.raw, from_string(key), v.dora_val().raw()); }
+	}
+	pub fn get(&self, key: &str) -> Option<DoraValue> {
+		DoraValue::from(unsafe { dictionary_get(self.raw, from_string(key)) })
+	}
+	pub fn len(&self) -> i32 {
+		unsafe { dictionary_len(self.raw) }
+	}
+	pub fn get_keys(&self) -> Array {
+		Array::from(unsafe { dictionary_get_keys(self.raw) }).unwrap()
+	}
+	pub fn clear(&mut self) {
+		unsafe { dictionary_clear(self.raw); }
+	}
 }
 
 pub trait INode: Object {
@@ -602,7 +624,13 @@ pub trait INode: Object {
 		unsafe { node_set_tag(self.raw(), from_string(var)); }
 	}
 	fn get_tag(&self)-> String {
-		unsafe { to_string(node_get_tag(self.raw())) }
+		to_string(unsafe { node_get_tag(self.raw()) })
+	}
+	fn get_children(&self) -> Option<Array> {
+		Array::from(unsafe { node_get_children(self.raw()) } )
+	}
+	fn get_userdata(&self) -> Dictionary {
+		Dictionary::from(unsafe { node_get_userdata(self.raw()) } ).unwrap()
 	}
 	fn add_child(&mut self, child: &dyn INode) {
 		unsafe { node_add_child(self.raw(), child.raw()); }
@@ -628,32 +656,16 @@ pub trait INode: Object {
 	}
 }
 
+#[derive(object_macro)]
 pub struct Node { raw: i64 }
 
 impl Node {
 	pub fn new() -> Node {
 		Node { raw: unsafe { node_create() } }
 	}
-	pub fn from(raw: i64) -> Option<Node> {
-		match raw {
-			0 => None,
-			_ => Some(Node { raw: raw })
-		}
-	}
-}
-
-impl Object for Node {
-	fn raw(&self) -> i64 { self.raw }
-	fn obj(&self) -> &dyn Object { self }
-	fn as_any(&self) -> &dyn Any { self }
-	fn as_any_mut(&mut self) -> &mut dyn Any { self }
 }
 
 impl INode for Node { }
-
-impl Drop for Node {
-	fn drop(&mut self) { unsafe { object_release(self.raw); } }
-}
 
 pub struct Director { }
 
@@ -673,6 +685,9 @@ pub fn init() {
 			} as fn(i64) -> Option<Box<dyn Object>>),
 			(array_type(), |raw: i64| -> Option<Box<dyn Object>> {
 				match raw { 0 => None, _ => Some(Box::new(Array { raw: raw })), }
+			}),
+			(dictionary_type(), |raw: i64| -> Option<Box<dyn Object>> {
+				match raw { 0 => None, _ => Some(Box::new(Dictionary { raw: raw })), }
 			}),
 		];
 		for pair in type_funcs.iter() {

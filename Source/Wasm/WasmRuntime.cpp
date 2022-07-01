@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Dorothy.h"
 #include "Wasm/WasmRuntime.h"
+#include "Lua/LuaManual.h"
 
 NS_DOROTHY_BEGIN
 
@@ -418,6 +419,23 @@ static int64_t node_get_tag(int64_t node)
 	return str_retain(r_cast<Node*>(node)->getTag());
 }
 
+static int64_t node_get_children(int64_t node)
+{
+	if (auto children = r_cast<Node*>(node)->getChildren())
+	{
+		children->retain();
+		return r_cast<int64_t>(children);
+	}
+	return 0;
+}
+
+static int64_t node_get_userdata(int64_t node)
+{
+	auto userData = r_cast<Node*>(node)->getUserData();
+	userData->retain();
+	return r_cast<int64_t>(userData);
+}
+
 static void node_add_child(int64_t node, int64_t child)
 {
 	r_cast<Node*>(node)->addChild(r_cast<Node*>(child));
@@ -481,7 +499,11 @@ static int64_t from_value(Value* v)
 		case ValueType::Boolean:
 			return r_cast<int64_t>(new dora_val_t(v->toVal<bool>()));
 		case ValueType::Object:
-			return r_cast<int64_t>(new dora_val_t(v->to<Object>()));
+		{
+			auto obj = v->to<Object>();
+			obj->retain();
+			return r_cast<int64_t>(new dora_val_t(obj));
+		}
 		case ValueType::Struct:
 		{
 			if (auto str = v->asVal<std::string>())
@@ -554,22 +576,145 @@ static void array_add_range(int64_t array, int64_t other)
 	r_cast<Array*>(array)->addRange(r_cast<Array*>(other));
 }
 
-//	fn array_remove_from(array: i64, other: i64);
-//	fn array_clear(array: i64);
-//	fn array_reverse(array: i64);
-//	fn array_shrink(array: i64);
-//	fn array_swap(array: i64, indexA: i32, indexB: i32);
-//	fn array_remove_at(array: i64, index: i32) -> i32;
-//	fn array_fast_remove_at(array: i64, index: i32) -> i32;
-//	fn array_first(array: i64) -> i64;
-//	fn array_last(array: i64) -> i64;
-//	fn array_random_object(array: i64) -> i64;
-//	fn array_add(array: i64, item: i64);
-//	fn array_insert(array: i64, index: i32, item: i64);
-//	fn array_contains(array: i64, item: i64) -> i32;
-//	fn array_index(array: i64, item: i64) -> i32;
-//	fn array_remove_last(array: i64) -> i64;
-//	fn array_fast_remove(array: i64, item: i64) -> i32;
+static void array_remove_from(int64_t array, int64_t other)
+{
+	r_cast<Array*>(array)->removeFrom(r_cast<Array*>(other));
+}
+
+static void array_clear(int64_t array)
+{
+	r_cast<Array*>(array)->clear();
+}
+
+static void array_reverse(int64_t array)
+{
+	r_cast<Array*>(array)->reverse();
+}
+
+static void array_shrink(int64_t array)
+{
+	r_cast<Array*>(array)->shrink();
+}
+
+static void array_swap(int64_t array, int32_t indexA, int32_t indexB)
+{
+	r_cast<Array*>(array)->swap(indexA, indexB);
+}
+
+static int32_t array_remove_at(int64_t array, int32_t index)
+{
+	return r_cast<Array*>(array)->removeAt(index) ? 1 : 0;
+}
+
+static int32_t array_fast_remove_at(int64_t array, int32_t index)
+{
+	return r_cast<Array*>(array)->fastRemoveAt(index) ? 1 : 0;
+}
+
+static int64_t array_first(int64_t array)
+{
+	auto arr = r_cast<Array*>(array);
+	if (!arr->isEmpty())
+	{
+		return from_value(arr->getFirst().get());
+	}
+	return 0;
+}
+
+static int64_t array_last(int64_t array)
+{
+	auto arr = r_cast<Array*>(array);
+	if (!arr->isEmpty())
+	{
+		return from_value(arr->getLast().get());
+	}
+	return 0;
+}
+
+static int64_t array_random_object(int64_t array)
+{
+	auto arr = r_cast<Array*>(array);
+	if (!arr->isEmpty())
+	{
+		return from_value(arr->getRandomObject().get());
+	}
+	return 0;
+}
+
+static void array_add(int64_t array, int64_t item)
+{
+	r_cast<Array*>(array)->add(to_value(*r_cast<dora_val_t*>(item)));
+}
+
+static void array_insert(int64_t array, int32_t index, int64_t item)
+{
+	r_cast<Array*>(array)->insert(index, to_value(*r_cast<dora_val_t*>(item)));
+}
+
+static int32_t array_contains(int64_t array, int64_t item)
+{
+	return r_cast<Array*>(array)->contains(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
+}
+
+static int32_t array_index(int64_t array, int64_t item)
+{
+	return r_cast<Array*>(array)->index(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
+}
+
+static int64_t array_remove_last(int64_t array)
+{
+	auto arr = r_cast<Array*>(array);
+	if (arr->isEmpty()) return 0;
+	return from_value(r_cast<Array*>(array)->removeLast().get());
+}
+
+static int32_t array_fast_remove(int64_t array, int64_t item)
+{
+	return r_cast<Array*>(array)->fastRemove(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
+}
+
+static int32_t dictionary_type()
+{
+	return DoraType<Dictionary>();
+}
+
+static int64_t dictionary_create()
+{
+	auto dict = Dictionary::create();
+	dict->retain();
+	return r_cast<int64_t>(dict);
+}
+
+static void dictionary_set(int64_t dict, int64_t key, int64_t value)
+{
+	std::unique_ptr<std::string> k(r_cast<std::string*>(key));
+	auto d = r_cast<Dictionary*>(dict);
+	d->set(*k, to_value(*r_cast<dora_val_t*>(value)));
+}
+
+static int64_t dictionary_get(int64_t dict, int64_t key)
+{
+	std::unique_ptr<std::string> k(r_cast<std::string*>(key));
+	auto d = r_cast<Dictionary*>(dict);
+	return from_value(d->get(*k).get());
+}
+
+static int32_t dictionary_len(int64_t dict)
+{
+	return r_cast<Dictionary*>(dict)->getCount();
+}
+
+static int64_t dictionary_get_keys(int64_t dict)
+{
+	auto keys = __Dictionary_getKeys(r_cast<Dictionary*>(dict));
+	keys->retain();
+	return r_cast<int64_t>(keys);
+}
+
+void dictionary_clear(int64_t dict)
+{
+	r_cast<Dictionary*>(dict)->clear();
+}
 
 static int64_t director_get_entry()
 {
@@ -657,6 +802,30 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "array_capacity", array_capacity);
 	mod.link_optional("*", "array_is_empty", array_is_empty);
 	mod.link_optional("*", "array_add_range", array_add_range);
+	mod.link_optional("*", "array_remove_from", array_remove_from);
+	mod.link_optional("*", "array_clear", array_clear);
+	mod.link_optional("*", "array_reverse", array_reverse);
+	mod.link_optional("*", "array_shrink", array_shrink);
+	mod.link_optional("*", "array_swap", array_swap);
+	mod.link_optional("*", "array_remove_at", array_remove_at);
+	mod.link_optional("*", "array_fast_remove_at", array_fast_remove_at);
+	mod.link_optional("*", "array_first", array_first);
+	mod.link_optional("*", "array_last", array_last);
+	mod.link_optional("*", "array_random_object", array_random_object);
+	mod.link_optional("*", "array_add", array_add);
+	mod.link_optional("*", "array_insert", array_insert);
+	mod.link_optional("*", "array_contains", array_contains);
+	mod.link_optional("*", "array_index", array_index);
+	mod.link_optional("*", "array_remove_last", array_remove_last);
+	mod.link_optional("*", "array_fast_remove", array_fast_remove);
+
+	mod.link_optional("*", "dictionary_type", dictionary_type);
+	mod.link_optional("*", "dictionary_create", dictionary_create);
+	mod.link_optional("*", "dictionary_set", dictionary_set);
+	mod.link_optional("*", "dictionary_get", dictionary_get);
+	mod.link_optional("*", "dictionary_len", dictionary_len);
+	mod.link_optional("*", "dictionary_get_keys", dictionary_get_keys);
+	mod.link_optional("*", "dictionary_clear", dictionary_clear);
 
 	mod.link_optional("*", "node_type", node_type);
 	mod.link_optional("*", "node_create", node_create);
@@ -664,9 +833,10 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "node_get_x", node_get_x);
 	mod.link_optional("*", "node_set_position", node_set_position);
 	mod.link_optional("*", "node_get_position", node_get_position);
-
 	mod.link_optional("*", "node_set_tag", node_set_tag);
 	mod.link_optional("*", "node_get_tag", node_get_tag);
+	mod.link_optional("*", "node_get_children", node_get_children);
+	mod.link_optional("*", "node_get_userdata", node_get_userdata);
 	mod.link_optional("*", "node_add_child", node_add_child);
 	mod.link_optional("*", "node_schedule", node_schedule);
 	mod.link_optional("*", "node_emit", node_emit);
