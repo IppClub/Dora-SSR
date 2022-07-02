@@ -1,11 +1,12 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn;
+use syn::{self, Expr};
 
 #[proc_macro_derive(object_macro)]
 pub fn derive_object(input: TokenStream) -> TokenStream {
 	let ast: syn::DeriveInput = syn::parse(input).unwrap();
 	let name = ast.ident;
+	let expr = syn::parse_str::<Expr>(format!("{}_type()", name.to_string().to_lowercase()).as_str()).unwrap();
 	let gen = quote! {
 		impl Object for #name {
 			fn raw(&self) -> i64 { self.raw }
@@ -17,11 +18,19 @@ pub fn derive_object(input: TokenStream) -> TokenStream {
 			fn drop(&mut self) { unsafe { object_release(self.raw); } }
 		}
 		impl #name {
-			fn from(raw: i64) -> Option<#name> {
+			pub fn from(raw: i64) -> Option<#name> {
 				match raw {
 					0 => None,
 					_ => Some(#name { raw: raw })
 				}
+			}
+			pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn Object>>) {
+				(unsafe { #expr }, |raw: i64| -> Option<Box<dyn Object>> {
+					match raw {
+						0 => None,
+						_ => Some(Box::new(#name { raw: raw }))
+					}
+				})
 			}
 		}
 	};
