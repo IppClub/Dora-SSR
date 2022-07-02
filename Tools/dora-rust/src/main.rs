@@ -2,7 +2,6 @@
 use crate::dora::{Object, Node, INode, Director, CallInfo, Value, Array};
 
 fn main() {
-	dora::init();
 	println!("Hello, world!");
 	let mut node = Node::new();
 	println!("id: {}", node.get_id());
