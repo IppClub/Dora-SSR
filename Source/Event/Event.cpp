@@ -86,11 +86,60 @@ int LuaEventArgs::pushArgsToLua()
 {
 	lua_State* L = SharedLuaEngine.getState();
 	int top = lua_gettop(L);
-	for (int index = top-_paramCount+1; index <= top; index++)
+	for (int index = top - _paramCount + 1; index <= top; index++)
 	{
 		lua_pushvalue(L, index);
 	}
 	return _paramCount;
+}
+
+void LuaEventArgs::pushArgsToWasm(CallStack* stack)
+{
+	lua_State* L = SharedLuaEngine.getState();
+	int top = lua_gettop(L);
+	for (int index = top - _paramCount + 1; index <= top; index++)
+	{
+		if (!lua_isnil(L, index))
+		{
+			if (lua_isinteger(L, index))
+			{
+				stack->push(lua_tointeger(L, index));
+			}
+			else if (lua_isnumber(L, index))
+			{
+				stack->push(lua_tonumber(L, index));
+			}
+			else if (lua_isboolean(L, index))
+			{
+				stack->push(lua_toboolean(L, index) > 0);
+			}
+			else if (lua_isstring(L, index))
+			{
+				stack->push(tolua_toslice(L, index, nullptr).toString());
+			}
+			else if (tolua_isobject(L, index))
+			{
+				stack->push(r_cast<Object*>(tolua_tousertype(L, index, 0)));
+			}
+			else
+			{
+				auto name = tolua_typename(L, index);
+				lua_pop(L, 1);
+				switch (Switch::hash(name))
+				{
+					case "Vec2"_hash:
+						stack->push(tolua_tolight(L, index).value);
+					case "Size"_hash:
+						stack->push(*r_cast<Size*>(tolua_tousertype(L, index, 0)));
+					default:
+	#ifndef TOLUA_RELEASE
+						tolua_error(L, "Can only pass number, boolean, string, Object, Vec2, Size from Lua to Wasm.", nullptr);
+	#endif // TOLUA_RELEASE
+						break;
+				}
+			}
+		}
+	}
 }
 
 int LuaEventArgs::getParamCount() const
@@ -98,12 +147,12 @@ int LuaEventArgs::getParamCount() const
 	return _paramCount;
 }
 
-WasmEventArgs::WasmEventArgs(String name, CallInfo* info):
+WasmEventArgs::WasmEventArgs(String name, CallStack* stack):
 Event(name)
 {
-	while (!info->empty())
+	while (!stack->empty())
 	{
-		_values.push_back(info->pop());
+		_values.push_back(stack->pop());
 	}
 }
 
@@ -119,11 +168,11 @@ int WasmEventArgs::pushArgsToLua()
 	return s_cast<int>(_values.size());
 }
 
-void WasmEventArgs::pushArgsToWasm(CallInfo* info)
+void WasmEventArgs::pushArgsToWasm(CallStack* stack)
 {
 	for (const auto& value : _values)
 	{
-		info->push_v(value);
+		stack->push_v(value);
 	}
 }
 
@@ -157,9 +206,9 @@ bool WasmEventArgs::to(std::string& value, int index)
 	return false;
 }
 
-void WasmEventArgs::send(String name, CallInfo* info)
+void WasmEventArgs::send(String name, CallStack* stack)
 {
-	WasmEventArgs event(name, info);
+	WasmEventArgs event(name, stack);
 	Event::send(&event);
 }
 

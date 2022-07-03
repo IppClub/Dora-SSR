@@ -42,7 +42,7 @@ public:
 	Event(String name);
 	inline String getName() const { return _name; }
 	virtual int pushArgsToLua() { return 0; }
-	virtual void pushArgsToWasm(CallInfo*) { }
+	virtual void pushArgsToWasm(CallStack*) { }
 public:
 	static Listener* addListener(String name, const EventHandler& handler);
 	static void clear();
@@ -70,44 +70,44 @@ private:
 
 struct WasmArgsPusher
 {
-	CallInfo* info;
+	CallStack* stack;
 
 	inline void operator()(bool value)
 	{
-		info->push(value);
+		stack->push(value);
 	}
 
 	inline void operator()(Object* value)
 	{
-		info->push(value);
+		stack->push(value);
 	}
 
 	inline void operator()(const std::string& value)
 	{
-		info->push(value);
+		stack->push(value);
 	}
 
 	inline void operator()(const Vec2& value)
 	{
-		info->push(value);
+		stack->push(value);
 	}
 
 	template <class T>
 	typename std::enable_if_t<std::is_integral_v<T>, void> operator()(T value)
 	{
-		info->push(value);
+		stack->push(value);
 	}
 
 	template <class T>
 	typename std::enable_if_t<std::is_floating_point_v<T>, void> operator()(T value)
 	{
-		info->push(value);
+		stack->push(value);
 	}
 
 	template<typename T>
 	typename std::enable_if_t<std::is_base_of_v<Object, T>, void> operator()(T* value)
 	{
-		info->push(value);
+		stack->push(value);
 	}
 };
 
@@ -123,9 +123,9 @@ public:
 	{
 		return Tuple::foreach(arguments, LuaArgsPusher());
 	}
-	virtual void pushArgsToWasm(CallInfo* info) override
+	virtual void pushArgsToWasm(CallStack* stack) override
 	{
-		Tuple::foreach(arguments, WasmArgsPusher{info});
+		Tuple::foreach(arguments, WasmArgsPusher{stack});
 	}
 	std::tuple<Fields...> arguments;
 	DORA_TYPE_OVERRIDE(EventArgs<Fields...>);
@@ -136,10 +136,7 @@ class LuaEventArgs : public Event
 public:
 	LuaEventArgs(String name, int paramCount);
 	virtual int pushArgsToLua() override;
-	virtual void pushArgsToWasm(CallInfo* info) override
-	{
-
-	}
+	virtual void pushArgsToWasm(CallStack* stack) override;
 	int getParamCount() const;
 	static void send(String name, int paramCount);
 private:
@@ -150,11 +147,11 @@ private:
 class WasmEventArgs : public Event
 {
 public:
-	WasmEventArgs(String name, CallInfo* info);
+	WasmEventArgs(String name, CallStack* stack);
 	virtual int pushArgsToLua() override;
-	virtual void pushArgsToWasm(CallInfo* info) override;
+	virtual void pushArgsToWasm(CallStack* stack) override;
 	const std::vector<dora_val_t>& values() const;
-	static void send(String name, CallInfo* info);
+	static void send(String name, CallStack* stack);
 public:
 	bool to(bool& value, int index);
 	bool to(Object*& value, int index);
