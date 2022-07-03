@@ -33,7 +33,7 @@ using dora_val_t = std::variant<
 	Size
 >;
 
-class CallInfo
+class CallStack
 {
 public:
 	void push(int32_t value);
@@ -50,7 +50,7 @@ public:
 	dora_val_t pop();
 	dora_val_t& front();
 private:
-	std::queue<dora_val_t> _queue;
+	std::deque<dora_val_t> _stack;
 };
 
 class WasmRuntime
