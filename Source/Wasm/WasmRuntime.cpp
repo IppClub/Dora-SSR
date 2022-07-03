@@ -202,178 +202,178 @@ static int32_t value_is_size(int64_t value)
 	return std::holds_alternative<Size>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-void CallInfo::push(int32_t value) { _queue.push(value); }
-void CallInfo::push(int64_t value) { _queue.push(value); }
-void CallInfo::push(float value) { _queue.push(value); }
-void CallInfo::push(double value) { _queue.push(value); }
-void CallInfo::push(bool value) { _queue.push(value); }
-void CallInfo::push(String value) { _queue.push(value.toString()); }
-void CallInfo::push(Object* value) { _queue.push(value); }
-void CallInfo::push(const Vec2& value) { _queue.push(value); }
-void CallInfo::push(const Size& value) { _queue.push(value); }
-void CallInfo::push_v(dora_val_t value) { _queue.push(value); }
+void CallStack::push(int32_t value) { _stack.push_back(value); }
+void CallStack::push(int64_t value) { _stack.push_back(value); }
+void CallStack::push(float value) { _stack.push_back(value); }
+void CallStack::push(double value) { _stack.push_back(value); }
+void CallStack::push(bool value) { _stack.push_back(value); }
+void CallStack::push(String value) { _stack.push_back(value.toString()); }
+void CallStack::push(Object* value) { _stack.push_back(value); }
+void CallStack::push(const Vec2& value) { _stack.push_back(value); }
+void CallStack::push(const Size& value) { _stack.push_back(value); }
+void CallStack::push_v(dora_val_t value) { _stack.push_back(value); }
 
-bool CallInfo::empty() const
+bool CallStack::empty() const
 {
-	return _queue.empty();
+	return _stack.empty();
 }
 
-dora_val_t CallInfo::pop()
+dora_val_t CallStack::pop()
 {
-	auto var = _queue.front();
-	_queue.pop();
+	auto var = _stack.front();
+	_stack.pop_front();
 	return var;
 }
 
-dora_val_t& CallInfo::front()
+dora_val_t& CallStack::front()
 {
-	return _queue.front();
+	return _stack.front();
 }
 
-static int64_t call_info_create()
+static int64_t call_stack_create()
 {
-	return r_cast<int64_t>(new CallInfo());
+	return r_cast<int64_t>(new CallStack());
 }
 
-static void call_info_release(int64_t stack)
+static void call_stack_release(int64_t stack)
 {
-	delete r_cast<CallInfo*>(stack);
+	delete r_cast<CallStack*>(stack);
 }
 
-static void call_info_push_i32(int64_t info, int32_t value)
+static void call_stack_push_i32(int64_t info, int32_t value)
 {
-	r_cast<CallInfo*>(info)->push(value);
+	r_cast<CallStack*>(info)->push(value);
 }
 
-static void call_info_push_i64(int64_t info, int64_t value)
+static void call_stack_push_i64(int64_t info, int64_t value)
 {
-	r_cast<CallInfo*>(info)->push(value);
+	r_cast<CallStack*>(info)->push(value);
 }
 
-static void call_info_push_f32(int64_t info, float value)
+static void call_stack_push_f32(int64_t info, float value)
 {
-	r_cast<CallInfo*>(info)->push(value);
+	r_cast<CallStack*>(info)->push(value);
 }
 
-static void call_info_push_f64(int64_t info, double value)
+static void call_stack_push_f64(int64_t info, double value)
 {
-	r_cast<CallInfo*>(info)->push(value);
+	r_cast<CallStack*>(info)->push(value);
 }
 
-static void call_info_push_str(int64_t info, int64_t value)
+static void call_stack_push_str(int64_t info, int64_t value)
 {
 	std::unique_ptr<std::string> ptr(r_cast<std::string*>(value));
-	r_cast<CallInfo*>(info)->push(*ptr);
+	r_cast<CallStack*>(info)->push(*ptr);
 }
 
-static void call_info_push_bool(int64_t info, int32_t value)
+static void call_stack_push_bool(int64_t info, int32_t value)
 {
-	r_cast<CallInfo*>(info)->push(value > 0);
+	r_cast<CallStack*>(info)->push(value > 0);
 }
 
-static void call_info_push_object(int64_t info, int64_t value)
+static void call_stack_push_object(int64_t info, int64_t value)
 {
-	r_cast<CallInfo*>(info)->push(r_cast<Object*>(value));
+	r_cast<CallStack*>(info)->push(r_cast<Object*>(value));
 }
 
-static void call_info_push_vec2(int64_t info, int64_t value)
+static void call_stack_push_vec2(int64_t info, int64_t value)
 {
-	r_cast<CallInfo*>(info)->push(LightWasmValue{value}.vec2);
+	r_cast<CallStack*>(info)->push(LightWasmValue{value}.vec2);
 }
 
-static void call_info_push_size(int64_t info, int64_t value)
+static void call_stack_push_size(int64_t info, int64_t value)
 {
-	r_cast<CallInfo*>(info)->push(LightWasmValue{value}.size);
+	r_cast<CallStack*>(info)->push(LightWasmValue{value}.size);
 }
 
-static int32_t call_info_pop_i32(int64_t info)
+static int32_t call_stack_pop_i32(int64_t info)
 {
-	return std::get<int32_t>(r_cast<CallInfo*>(info)->pop());
+	return std::get<int32_t>(r_cast<CallStack*>(info)->pop());
 }
 
-static int64_t call_info_pop_i64(int64_t call_info)
+static int64_t call_stack_pop_i64(int64_t call_stack)
 {
-	return std::get<int64_t>(r_cast<CallInfo*>(call_info)->pop());
+	return std::get<int64_t>(r_cast<CallStack*>(call_stack)->pop());
 }
 
-static float call_info_pop_f32(int64_t call_info)
+static float call_stack_pop_f32(int64_t call_stack)
 {
-	return std::get<float>(r_cast<CallInfo*>(call_info)->pop());
+	return std::get<float>(r_cast<CallStack*>(call_stack)->pop());
 }
 
-static double call_info_pop_f64(int64_t call_info)
+static double call_stack_pop_f64(int64_t call_stack)
 {
-	return std::get<double>(r_cast<CallInfo*>(call_info)->pop());
+	return std::get<double>(r_cast<CallStack*>(call_stack)->pop());
 }
 
-static int64_t call_info_pop_str(int64_t call_info)
+static int64_t call_stack_pop_str(int64_t call_stack)
 {
-	return r_cast<int64_t>(new std::string(std::get<std::string>(r_cast<CallInfo*>(call_info)->pop())));
+	return r_cast<int64_t>(new std::string(std::get<std::string>(r_cast<CallStack*>(call_stack)->pop())));
 }
 
-static int32_t call_info_pop_bool(int64_t call_info)
+static int32_t call_stack_pop_bool(int64_t call_stack)
 {
-	return std::get<bool>(r_cast<CallInfo*>(call_info)->pop()) ? 1 : 0;
+	return std::get<bool>(r_cast<CallStack*>(call_stack)->pop()) ? 1 : 0;
 }
 
-static int64_t call_info_pop_object(int64_t call_info)
+static int64_t call_stack_pop_object(int64_t call_stack)
 {
-	return r_cast<int64_t>(std::get<Object*>(r_cast<CallInfo*>(call_info)->pop()));
+	return r_cast<int64_t>(std::get<Object*>(r_cast<CallStack*>(call_stack)->pop()));
 }
 
-static int64_t call_info_pop_vec2(int64_t call_info)
+static int64_t call_stack_pop_vec2(int64_t call_stack)
 {
-	return LightWasmValue{std::get<Vec2>(r_cast<CallInfo*>(call_info)->pop())}.value;
+	return LightWasmValue{std::get<Vec2>(r_cast<CallStack*>(call_stack)->pop())}.value;
 }
 
-static int64_t call_info_pop_size(int64_t call_info)
+static int64_t call_stack_pop_size(int64_t call_stack)
 {
-	return LightWasmValue{std::get<Size>(r_cast<CallInfo*>(call_info)->pop())}.value;
+	return LightWasmValue{std::get<Size>(r_cast<CallStack*>(call_stack)->pop())}.value;
 }
 
-static int32_t call_info_front_i32(int64_t info)
+static int32_t call_stack_front_i32(int64_t info)
 {
-	return std::holds_alternative<int32_t>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<int32_t>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_i64(int64_t info)
+static int32_t call_stack_front_i64(int64_t info)
 {
-	return std::holds_alternative<int64_t>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<int64_t>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_f32(int64_t info)
+static int32_t call_stack_front_f32(int64_t info)
 {
-	return std::holds_alternative<float>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<float>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_f64(int64_t info)
+static int32_t call_stack_front_f64(int64_t info)
 {
-	return std::holds_alternative<double>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<double>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_bool(int64_t info)
+static int32_t call_stack_front_bool(int64_t info)
 {
-	return std::holds_alternative<bool>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<bool>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_str(int64_t info)
+static int32_t call_stack_front_str(int64_t info)
 {
-	return std::holds_alternative<std::string>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<std::string>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_object(int64_t info)
+static int32_t call_stack_front_object(int64_t info)
 {
-	return std::holds_alternative<Object*>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<Object*>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_vec2(int64_t info)
+static int32_t call_stack_front_vec2(int64_t info)
 {
-	return std::holds_alternative<Vec2>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<Vec2>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
-static int32_t call_info_front_size(int64_t info)
+static int32_t call_stack_front_size(int64_t info)
 {
-	return std::holds_alternative<Size>(r_cast<CallInfo*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<Size>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
 }
 
 static int32_t node_type()
@@ -449,7 +449,7 @@ static void node_schedule(int64_t node, int32_t func, int64_t stack)
 	});
 	r_cast<Node*>(node)->schedule([func, stack, deref](double deltaTime)
 	{
-		auto info = r_cast<CallInfo*>(stack);
+		auto info = r_cast<CallStack*>(stack);
 		info->push(deltaTime);
 		SharedWasmRuntime.invoke(func);
 		return std::get<bool>(info->pop());
@@ -459,7 +459,7 @@ static void node_schedule(int64_t node, int32_t func, int64_t stack)
 static void node_emit(int64_t node, int64_t name, int64_t stack)
 {
 	std::unique_ptr<std::string> ptr(r_cast<std::string*>(name));
-	WasmEventArgs event(*ptr, r_cast<CallInfo*>(stack));
+	WasmEventArgs event(*ptr, r_cast<CallStack*>(stack));
 	r_cast<Node*>(node)->emit(&event);
 }
 
@@ -472,8 +472,21 @@ static void node_slot(int64_t node, int64_t name, int32_t func, int64_t stack)
 	});
 	r_cast<Node*>(node)->slot(*ptr, [func, stack, deref](Event* e)
 	{
-		auto info = r_cast<CallInfo*>(stack);
-		e->pushArgsToWasm(info);
+		e->pushArgsToWasm(r_cast<CallStack*>(stack));
+		SharedWasmRuntime.invoke(func);
+	});
+}
+
+static void node_gslot(int64_t node, int64_t name, int32_t func, int64_t stack)
+{
+	std::unique_ptr<std::string> ptr(r_cast<std::string*>(name));
+	std::shared_ptr<void> deref(nullptr, [func](auto)
+	{
+		SharedWasmRuntime.deref(func);
+	});
+	r_cast<Node*>(node)->gslot(*ptr, [func, stack, deref](Event* e)
+	{
+		e->pushArgsToWasm(r_cast<CallStack*>(stack));
 		SharedWasmRuntime.invoke(func);
 	});
 }
@@ -764,35 +777,35 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "value_is_vec2", value_is_vec2);
 	mod.link_optional("*", "value_is_size", value_is_size);
 
-	mod.link_optional("*", "call_info_create", call_info_create);
-	mod.link_optional("*", "call_info_release", call_info_release);
-	mod.link_optional("*", "call_info_push_i32", call_info_push_i32);
-	mod.link_optional("*", "call_info_push_i64", call_info_push_i64);
-	mod.link_optional("*", "call_info_push_f32", call_info_push_f32);
-	mod.link_optional("*", "call_info_push_f64", call_info_push_f64);
-	mod.link_optional("*", "call_info_push_str", call_info_push_str);
-	mod.link_optional("*", "call_info_push_bool", call_info_push_bool);
-	mod.link_optional("*", "call_info_push_object", call_info_push_object);
-	mod.link_optional("*", "call_info_push_vec2", call_info_push_vec2);
-	mod.link_optional("*", "call_info_push_size", call_info_push_size);
-	mod.link_optional("*", "call_info_pop_i32", call_info_pop_i32);
-	mod.link_optional("*", "call_info_pop_i64", call_info_pop_i64);
-	mod.link_optional("*", "call_info_pop_f32", call_info_pop_f32);
-	mod.link_optional("*", "call_info_pop_f64", call_info_pop_f64);
-	mod.link_optional("*", "call_info_pop_str", call_info_pop_str);
-	mod.link_optional("*", "call_info_pop_bool", call_info_pop_bool);
-	mod.link_optional("*", "call_info_pop_object", call_info_pop_object);
-	mod.link_optional("*", "call_info_pop_vec2", call_info_pop_vec2);
-	mod.link_optional("*", "call_info_pop_size", call_info_pop_size);
-	mod.link_optional("*", "call_info_front_i32", call_info_front_i32);
-	mod.link_optional("*", "call_info_front_i64", call_info_front_i64);
-	mod.link_optional("*", "call_info_front_f32", call_info_front_f32);
-	mod.link_optional("*", "call_info_front_f64", call_info_front_f64);
-	mod.link_optional("*", "call_info_front_str", call_info_front_str);
-	mod.link_optional("*", "call_info_front_bool", call_info_front_bool);
-	mod.link_optional("*", "call_info_front_object", call_info_front_object);
-	mod.link_optional("*", "call_info_front_vec2", call_info_front_vec2);
-	mod.link_optional("*", "call_info_front_size", call_info_front_size);
+	mod.link_optional("*", "call_stack_create", call_stack_create);
+	mod.link_optional("*", "call_stack_release", call_stack_release);
+	mod.link_optional("*", "call_stack_push_i32", call_stack_push_i32);
+	mod.link_optional("*", "call_stack_push_i64", call_stack_push_i64);
+	mod.link_optional("*", "call_stack_push_f32", call_stack_push_f32);
+	mod.link_optional("*", "call_stack_push_f64", call_stack_push_f64);
+	mod.link_optional("*", "call_stack_push_str", call_stack_push_str);
+	mod.link_optional("*", "call_stack_push_bool", call_stack_push_bool);
+	mod.link_optional("*", "call_stack_push_object", call_stack_push_object);
+	mod.link_optional("*", "call_stack_push_vec2", call_stack_push_vec2);
+	mod.link_optional("*", "call_stack_push_size", call_stack_push_size);
+	mod.link_optional("*", "call_stack_pop_i32", call_stack_pop_i32);
+	mod.link_optional("*", "call_stack_pop_i64", call_stack_pop_i64);
+	mod.link_optional("*", "call_stack_pop_f32", call_stack_pop_f32);
+	mod.link_optional("*", "call_stack_pop_f64", call_stack_pop_f64);
+	mod.link_optional("*", "call_stack_pop_str", call_stack_pop_str);
+	mod.link_optional("*", "call_stack_pop_bool", call_stack_pop_bool);
+	mod.link_optional("*", "call_stack_pop_object", call_stack_pop_object);
+	mod.link_optional("*", "call_stack_pop_vec2", call_stack_pop_vec2);
+	mod.link_optional("*", "call_stack_pop_size", call_stack_pop_size);
+	mod.link_optional("*", "call_stack_front_i32", call_stack_front_i32);
+	mod.link_optional("*", "call_stack_front_i64", call_stack_front_i64);
+	mod.link_optional("*", "call_stack_front_f32", call_stack_front_f32);
+	mod.link_optional("*", "call_stack_front_f64", call_stack_front_f64);
+	mod.link_optional("*", "call_stack_front_str", call_stack_front_str);
+	mod.link_optional("*", "call_stack_front_bool", call_stack_front_bool);
+	mod.link_optional("*", "call_stack_front_object", call_stack_front_object);
+	mod.link_optional("*", "call_stack_front_vec2", call_stack_front_vec2);
+	mod.link_optional("*", "call_stack_front_size", call_stack_front_size);
 
 	mod.link_optional("*", "array_type", array_type);
 	mod.link_optional("*", "array_create", array_create);
@@ -841,6 +854,7 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "node_schedule", node_schedule);
 	mod.link_optional("*", "node_emit", node_emit);
 	mod.link_optional("*", "node_slot", node_slot);
+	mod.link_optional("*", "node_gslot", node_gslot);
 
 	mod.link_optional("*", "director_get_entry", director_get_entry);
 }

@@ -49,35 +49,35 @@ extern "C" {
 	fn value_is_vec2(value: i64) -> i32;
 	fn value_is_size(value: i64) -> i32;
 
-	fn call_info_create() -> i64;
-	fn call_info_release(info: i64);
-	fn call_info_push_i32(info: i64, value: i32);
-	fn call_info_push_i64(info: i64, value: i64);
-	fn call_info_push_f32(info: i64, value: f32);
-	fn call_info_push_f64(info: i64, value: f64);
-	fn call_info_push_str(info: i64, value: i64);
-	fn call_info_push_bool(info: i64, value: i32);
-	fn call_info_push_object(info: i64, value: i64);
-	fn call_info_push_vec2(info: i64, value: i64);
-	fn call_info_push_size(info: i64, value: i64);
-	fn call_info_pop_i32(info: i64) -> i32;
-	fn call_info_pop_i64(info: i64) -> i64;
-	fn call_info_pop_f32(info: i64) -> f32;
-	fn call_info_pop_f64(info: i64) -> f64;
-	fn call_info_pop_str(info: i64) -> i64;
-	fn call_info_pop_bool(info: i64) -> i32;
-	fn call_info_pop_object(info: i64) -> i64;
-	fn call_info_pop_vec2(info: i64) -> i64;
-	fn call_info_pop_size(info: i64) -> i64;
-	fn call_info_front_i32(info: i64) -> i32;
-	fn call_info_front_i64(info: i64) -> i32;
-	fn call_info_front_f32(info: i64) -> i32;
-	fn call_info_front_f64(info: i64) -> i32;
-	fn call_info_front_str(info: i64) -> i32;
-	fn call_info_front_bool(info: i64) -> i32;
-	fn call_info_front_object(info: i64) -> i32;
-	fn call_info_front_vec2(info: i64) -> i32;
-	fn call_info_front_size(info: i64) -> i32;
+	fn call_stack_create() -> i64;
+	fn call_stack_release(info: i64);
+	fn call_stack_push_i32(info: i64, value: i32);
+	fn call_stack_push_i64(info: i64, value: i64);
+	fn call_stack_push_f32(info: i64, value: f32);
+	fn call_stack_push_f64(info: i64, value: f64);
+	fn call_stack_push_str(info: i64, value: i64);
+	fn call_stack_push_bool(info: i64, value: i32);
+	fn call_stack_push_object(info: i64, value: i64);
+	fn call_stack_push_vec2(info: i64, value: i64);
+	fn call_stack_push_size(info: i64, value: i64);
+	fn call_stack_pop_i32(info: i64) -> i32;
+	fn call_stack_pop_i64(info: i64) -> i64;
+	fn call_stack_pop_f32(info: i64) -> f32;
+	fn call_stack_pop_f64(info: i64) -> f64;
+	fn call_stack_pop_str(info: i64) -> i64;
+	fn call_stack_pop_bool(info: i64) -> i32;
+	fn call_stack_pop_object(info: i64) -> i64;
+	fn call_stack_pop_vec2(info: i64) -> i64;
+	fn call_stack_pop_size(info: i64) -> i64;
+	fn call_stack_front_i32(info: i64) -> i32;
+	fn call_stack_front_i64(info: i64) -> i32;
+	fn call_stack_front_f32(info: i64) -> i32;
+	fn call_stack_front_f64(info: i64) -> i32;
+	fn call_stack_front_str(info: i64) -> i32;
+	fn call_stack_front_bool(info: i64) -> i32;
+	fn call_stack_front_object(info: i64) -> i32;
+	fn call_stack_front_vec2(info: i64) -> i32;
+	fn call_stack_front_size(info: i64) -> i32;
 }
 
 #[repr(C)]
@@ -199,7 +199,7 @@ pub trait Object {
 	fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
-pub struct CallInfo { raw: i64 }
+pub struct CallStack { raw: i64 }
 
 pub enum Value<'a> {
 	I32(i32),
@@ -224,7 +224,7 @@ impl<'a> Value<'a> {
 		value.val()
 	}
 
-	pub fn push(self, info: &mut CallInfo) {
+	pub fn push(self, info: &mut CallStack) {
 		match self {
 			Value::I32(x) => { info.push_i32(x); },
 			Value::I64(x) => { info.push_i64(x); },
@@ -306,7 +306,7 @@ impl<'a> IntoValue<'a> for Size {
 macro_rules! args {
 	( $( $x:expr ),* ) => {
 		{
-			let mut stack = CallInfo::new();
+			let mut stack = CallStack::new();
 			$(
 				Value::new($x).push(&mut stack);
 			)*
@@ -395,106 +395,106 @@ impl Drop for DoraValue {
 	fn drop(&mut self) { unsafe { value_release(self.raw); } }
 }
 
-impl CallInfo {
+impl CallStack {
 	fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn new() -> CallInfo {
-		CallInfo { raw: unsafe { call_info_create() } }
+	pub fn new() -> CallStack {
+		CallStack { raw: unsafe { call_stack_create() } }
 	}
 	pub fn push_i32(&mut self, value: i32) {
-		unsafe { call_info_push_i32(self.raw, value); }
+		unsafe { call_stack_push_i32(self.raw, value); }
 	}
 	pub fn push_i64(&mut self, value: i64) {
-		unsafe { call_info_push_i64(self.raw, value); }
+		unsafe { call_stack_push_i64(self.raw, value); }
 	}
 	pub fn push_f32(&mut self, value: f32) {
-		unsafe { call_info_push_f32(self.raw, value); }
+		unsafe { call_stack_push_f32(self.raw, value); }
 	}
 	pub fn push_f64(&mut self, value: f64) {
-		unsafe { call_info_push_f64(self.raw, value); }
+		unsafe { call_stack_push_f64(self.raw, value); }
 	}
 	pub fn push_str(&mut self, value: &str) {
-		unsafe { call_info_push_str(self.raw, from_string(value)); }
+		unsafe { call_stack_push_str(self.raw, from_string(value)); }
 	}
 	pub fn push_bool(&mut self, value: bool) {
-		unsafe { call_info_push_bool(self.raw, if value { 1 } else { 0 }); }
+		unsafe { call_stack_push_bool(self.raw, if value { 1 } else { 0 }); }
 	}
 	pub fn push_object(&mut self, value: &dyn Object) {
-		unsafe { call_info_push_object(self.raw, value.raw()); }
+		unsafe { call_stack_push_object(self.raw, value.raw()); }
 	}
 	pub fn push_vec2(&mut self, value: &Vec2) {
-		unsafe { call_info_push_vec2(self.raw, value.into_i64()); }
+		unsafe { call_stack_push_vec2(self.raw, value.into_i64()); }
 	}
 	pub fn push_size(&mut self, value: &Size) {
-		unsafe { call_info_push_size(self.raw, value.into_i64()); }
+		unsafe { call_stack_push_size(self.raw, value.into_i64()); }
 	}
 	pub fn pop_i32(&mut self) -> Option<i32> {
 		unsafe {
-			if call_info_front_i32(self.raw) > 0 {
-				Some(call_info_pop_i32(self.raw))
+			if call_stack_front_i32(self.raw) > 0 {
+				Some(call_stack_pop_i32(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_i64(&mut self) -> Option<i64> {
 		unsafe {
-			if call_info_front_i64(self.raw) > 0 {
-				Some(call_info_pop_i64(self.raw))
+			if call_stack_front_i64(self.raw) > 0 {
+				Some(call_stack_pop_i64(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_f32(&mut self) -> Option<f32> {
 		unsafe {
-			if call_info_front_f32(self.raw) > 0 {
-				Some(call_info_pop_f32(self.raw))
+			if call_stack_front_f32(self.raw) > 0 {
+				Some(call_stack_pop_f32(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_f64(&mut self) -> Option<f64> {
 		unsafe {
-			if call_info_front_f64(self.raw) > 0 {
-				Some(call_info_pop_f64(self.raw))
+			if call_stack_front_f64(self.raw) > 0 {
+				Some(call_stack_pop_f64(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_str(&mut self) -> Option<String> {
 		unsafe {
-			if call_info_front_str(self.raw) > 0 {
-				Some(to_string(call_info_pop_str(self.raw)))
+			if call_stack_front_str(self.raw) > 0 {
+				Some(to_string(call_stack_pop_str(self.raw)))
 			} else { None }
 		}
 	}
 	pub fn pop_bool(&mut self) -> Option<bool> {
 		unsafe {
-			if call_info_front_bool(self.raw) > 0 {
-				Some(call_info_pop_bool(self.raw) > 0)
+			if call_stack_front_bool(self.raw) > 0 {
+				Some(call_stack_pop_bool(self.raw) > 0)
 			} else { None }
 		}
 	}
 	pub fn pop_object(&mut self) -> Option<Box<dyn Object>> {
 		unsafe {
-			if call_info_front_object(self.raw) > 0 {
-				let raw = call_info_pop_object(self.raw);
+			if call_stack_front_object(self.raw) > 0 {
+				let raw = call_stack_pop_object(self.raw);
 				OBJECT_MAP[object_get_type(raw) as usize](raw)
 			} else { None }
 		}
 	}
 	pub fn pop_vec2(&mut self) -> Option<Vec2> {
 		unsafe {
-			if call_info_front_vec2(self.raw) > 0 {
-				Some(Vec2::from(call_info_pop_vec2(self.raw)))
+			if call_stack_front_vec2(self.raw) > 0 {
+				Some(Vec2::from(call_stack_pop_vec2(self.raw)))
 			} else { None }
 		}
 	}
 	pub fn pop_size(&mut self) -> Option<Size> {
 		unsafe {
-			if call_info_front_size(self.raw) > 0 {
-				Some(Size::from(call_info_pop_size(self.raw)))
+			if call_stack_front_size(self.raw) > 0 {
+				Some(Size::from(call_stack_pop_size(self.raw)))
 			} else { None }
 		}
 	}
 }
 
-impl Drop for CallInfo {
-	fn drop(&mut self) { unsafe { call_info_release(self.raw); } }
+impl Drop for CallStack {
+	fn drop(&mut self) { unsafe { call_stack_release(self.raw); } }
 }
