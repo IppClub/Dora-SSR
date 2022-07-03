@@ -103,7 +103,7 @@ void LuaEventArgs::pushArgsToWasm(CallStack* stack)
 		{
 			if (lua_isinteger(L, index))
 			{
-				stack->push(lua_tointeger(L, index));
+				stack->push(s_cast<int64_t>(lua_tointeger(L, index)));
 			}
 			else if (lua_isnumber(L, index))
 			{
