@@ -1,6 +1,6 @@
 use std::any::Any;
 use dora::object_macro;
-use crate::dora::{Object, IntoValue, DoraValue, object_release};
+use crate::dora::{Object, IntoValue, Value, object_release};
 
 extern "C" {
 	fn array_type() -> i32;
@@ -37,39 +37,39 @@ impl Array {
 		Array { raw: unsafe { array_create() } }
 	}
 	pub fn set<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
-		if unsafe { array_set(self.raw, index, v.dora_val().raw()) == 0 } {
+		if unsafe { array_set(self.raw, index, v.val().raw()) == 0 } {
 			panic!("Out of bounds, expecting [0, {}), got {}", self.len(), index);
 		}
 	}
-	pub fn get(&self, index: i32) -> Option<DoraValue> {
-		DoraValue::from(unsafe { array_get(self.raw, index) })
+	pub fn get(&self, index: i32) -> Option<Value> {
+		Value::from(unsafe { array_get(self.raw, index) })
 	}
-	pub fn first(&self) -> Option<DoraValue> {
-		DoraValue::from(unsafe { array_first(self.raw) })
+	pub fn first(&self) -> Option<Value> {
+		Value::from(unsafe { array_first(self.raw) })
 	}
-	pub fn last(&self) -> Option<DoraValue> {
-		DoraValue::from(unsafe { array_last(self.raw) })
+	pub fn last(&self) -> Option<Value> {
+		Value::from(unsafe { array_last(self.raw) })
 	}
-	pub fn random_object(&self) -> Option<DoraValue> {
-		DoraValue::from(unsafe { array_random_object(self.raw) })
+	pub fn random_object(&self) -> Option<Value> {
+		Value::from(unsafe { array_random_object(self.raw) })
 	}
 	pub fn add<'a, T>(&mut self, v: T) where T: IntoValue<'a> {
-		unsafe { array_add(self.raw, v.dora_val().raw()); }
+		unsafe { array_add(self.raw, v.val().raw()); }
 	}
 	pub fn insert<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
-		unsafe { array_insert(self.raw, index, v.dora_val().raw()); }
+		unsafe { array_insert(self.raw, index, v.val().raw()); }
 	}
 	pub fn contains<'a, T>(&self, v: T) -> bool where T: IntoValue<'a> {
-		unsafe { array_contains(self.raw, v.dora_val().raw()) > 0 }
+		unsafe { array_contains(self.raw, v.val().raw()) > 0 }
 	}
 	pub fn index<'a, T>(&self, v: T) -> i32 where T: IntoValue<'a> {
-		unsafe { array_index(self.raw, v.dora_val().raw()) }
+		unsafe { array_index(self.raw, v.val().raw()) }
 	}
-	pub fn remove_last(&mut self) -> Option<DoraValue> {
-		DoraValue::from(unsafe { array_remove_last(self.raw) })
+	pub fn remove_last(&mut self) -> Option<Value> {
+		Value::from(unsafe { array_remove_last(self.raw) })
 	}
 	pub fn fast_remove<'a, T>(&mut self, v: T) -> bool where T: IntoValue<'a> {
-		unsafe { array_fast_remove(self.raw, v.dora_val().raw()) > 0 }
+		unsafe { array_fast_remove(self.raw, v.val().raw()) > 0 }
 	}
 	pub fn len(&self) -> i32 {
 		unsafe { array_len(self.raw) }

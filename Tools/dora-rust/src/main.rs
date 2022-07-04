@@ -40,6 +40,6 @@ fn main() {
 	userdata.set("key123", arr.obj());
 	let keys = userdata.get_keys();
 	for i in 0 .. keys.len() {
-		println!("k: {}", keys.get(i).unwrap().into_str().unwrap());
+		println!("k: {}", keys[i]);
 	}
 }
