@@ -9,9 +9,40 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Dorothy.h"
 #include "Wasm/WasmRuntime.h"
-#include "Lua/LuaManual.h"
 
 NS_DOROTHY_BEGIN
+
+union LightWasmValue
+{
+	Vec2 vec2;
+	Size size;
+	int64_t value;
+	explicit LightWasmValue(const Size& v): size(v) { }
+	explicit LightWasmValue(const Vec2& v): vec2(v) { }
+	explicit LightWasmValue(int64_t v): value(v) { }
+};
+
+static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
+
+static inline int64_t from_vec2(const Vec2& vec2)
+{
+	return LightWasmValue{vec2}.value;
+}
+
+static inline Vec2 into_vec2(int64_t value)
+{
+	return LightWasmValue{value}.vec2;
+}
+
+static inline int64_t from_size(const Size& size)
+{
+	return LightWasmValue{size}.value;
+}
+
+static inline Size into_size(int64_t value)
+{
+	return LightWasmValue{value}.size;
+}
 
 static int64_t str_retain(String str)
 {
@@ -43,6 +74,77 @@ static void str_write(int64_t dest, const void* src)
 static void str_release(int64_t str)
 {
 	delete r_cast<std::string*>(str);
+}
+
+using dora_vec_t = std::variant<
+	std::vector<int32_t>,
+	std::vector<int64_t>,
+	std::vector<float>,
+	std::vector<double>
+>;
+
+static int64_t buf_retain(dora_vec_t&& vec)
+{
+	auto new_vec = new dora_vec_t(std::move(vec));
+	return r_cast<int64_t>(new_vec);
+}
+
+static int64_t buf_new_i32(int32_t len)
+{
+	auto new_vec = new dora_vec_t(std::vector<int32_t>(len));
+	return r_cast<int64_t>(new_vec);
+}
+
+static int64_t buf_new_i64(int32_t len)
+{
+	auto new_vec = new dora_vec_t(std::vector<int64_t>(len));
+	return r_cast<int64_t>(new_vec);
+}
+
+static int64_t buf_new_f32(int32_t len)
+{
+	auto new_vec = new dora_vec_t(std::vector<float>(len));
+	return r_cast<int64_t>(new_vec);
+}
+
+static int64_t buf_new_f64(int32_t len)
+{
+	auto new_vec = new dora_vec_t(std::vector<double>(len));
+	return r_cast<int64_t>(new_vec);
+}
+
+static int32_t buf_len(int64_t v)
+{
+	auto vec = r_cast<dora_vec_t*>(v);
+	int32_t size = 0;
+	std::visit([&](const auto& arg)
+	{
+		size = s_cast<int32_t>(arg.size());
+	}, *vec);
+	return size;
+}
+
+static void buf_read(void* dest, int64_t src)
+{
+	auto vec = r_cast<dora_vec_t*>(src);
+	std::visit([&](const auto& arg)
+	{
+		std::memcpy(dest, arg.data(), arg.size() * sizeof(arg[0]));
+	}, *vec);
+}
+
+static void buf_write(int64_t dest, const void* src)
+{
+	auto vec = r_cast<dora_vec_t*>(dest);
+	std::visit([&](auto& arg)
+	{
+		std::memcpy(&arg.front(), src, arg.size() * sizeof(arg[0]));
+	}, *vec);
+}
+
+static void buf_release(int64_t v)
+{
+	delete r_cast<dora_vec_t*>(v);
 }
 
 static int32_t object_get_id(int64_t obj)
@@ -98,12 +200,12 @@ static int64_t value_create_object(int64_t value)
 
 static int64_t value_create_vec2(int64_t value)
 {
-	return r_cast<int64_t>(new dora_val_t(LightWasmValue{value}.vec2));
+	return r_cast<int64_t>(new dora_val_t(into_vec2(value)));
 }
 
 static int64_t value_create_size(int64_t value)
 {
-	return r_cast<int64_t>(new dora_val_t(LightWasmValue{value}.size));
+	return r_cast<int64_t>(new dora_val_t(into_size(value)));
 }
 
 static void value_release(int64_t value)
@@ -149,12 +251,12 @@ static int64_t value_into_object(int64_t value)
 
 static int64_t value_into_vec2(int64_t value)
 {
-	return LightWasmValue{std::get<Vec2>(*r_cast<dora_val_t*>(value))}.value;
+	return from_vec2(std::get<Vec2>(*r_cast<dora_val_t*>(value)));
 }
 
 static int64_t value_into_size(int64_t value)
 {
-	return LightWasmValue{std::get<Size>(*r_cast<dora_val_t*>(value))}.value;
+	return from_size(std::get<Size>(*r_cast<dora_val_t*>(value)));
 }
 
 static int32_t value_is_i32(int64_t value)
@@ -268,7 +370,7 @@ static void call_stack_push_str(int64_t info, int64_t value)
 
 static void call_stack_push_bool(int64_t info, int32_t value)
 {
-	r_cast<CallStack*>(info)->push(value > 0);
+	r_cast<CallStack*>(info)->push(value != 0);
 }
 
 static void call_stack_push_object(int64_t info, int64_t value)
@@ -278,12 +380,12 @@ static void call_stack_push_object(int64_t info, int64_t value)
 
 static void call_stack_push_vec2(int64_t info, int64_t value)
 {
-	r_cast<CallStack*>(info)->push(LightWasmValue{value}.vec2);
+	r_cast<CallStack*>(info)->push(into_vec2(value));
 }
 
 static void call_stack_push_size(int64_t info, int64_t value)
 {
-	r_cast<CallStack*>(info)->push(LightWasmValue{value}.size);
+	r_cast<CallStack*>(info)->push(into_size(value));
 }
 
 static int32_t call_stack_pop_i32(int64_t info)
@@ -323,12 +425,12 @@ static int64_t call_stack_pop_object(int64_t call_stack)
 
 static int64_t call_stack_pop_vec2(int64_t call_stack)
 {
-	return LightWasmValue{std::get<Vec2>(r_cast<CallStack*>(call_stack)->pop())}.value;
+	return from_vec2(std::get<Vec2>(r_cast<CallStack*>(call_stack)->pop()));
 }
 
 static int64_t call_stack_pop_size(int64_t call_stack)
 {
-	return LightWasmValue{std::get<Size>(r_cast<CallStack*>(call_stack)->pop())}.value;
+	return from_size(std::get<Size>(r_cast<CallStack*>(call_stack)->pop()));
 }
 
 static int32_t call_stack_front_i32(int64_t info)
@@ -400,12 +502,12 @@ static float node_get_x(int64_t node)
 
 static void node_set_position(int64_t node, int64_t var)
 {
-	r_cast<Node*>(node)->setPosition(LightWasmValue{var}.vec2);
+	r_cast<Node*>(node)->setPosition(into_vec2(var));
 }
 
 static int64_t node_get_position(int64_t node)
 {
-	return LightWasmValue{r_cast<Node*>(node)->getPosition()}.value;
+	return from_vec2(r_cast<Node*>(node)->getPosition());
 }
 
 static void node_set_tag(int64_t node, int64_t var)
@@ -719,9 +821,14 @@ static int32_t dictionary_len(int64_t dict)
 
 static int64_t dictionary_get_keys(int64_t dict)
 {
-	auto keys = __Dictionary_getKeys(r_cast<Dictionary*>(dict));
-	keys->retain();
-	return r_cast<int64_t>(keys);
+	auto dict_ptr = r_cast<Dictionary*>(dict);
+	std::vector<Slice> keys = dict_ptr->getKeys();
+	std::vector<int64_t> buf(keys.size());
+	for (size_t i = 0; i < keys.size(); i++)
+	{
+		buf[i] = str_retain(keys[i]);
+	}
+	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
 void dictionary_clear(int64_t dict)
@@ -743,6 +850,15 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "str_read", str_read);
 	mod.link_optional("*", "str_write", str_write);
 	mod.link_optional("*", "str_release", str_release);
+
+	mod.link_optional("*", "buf_new_i32", buf_new_i32);
+	mod.link_optional("*", "buf_new_i64", buf_new_i64);
+	mod.link_optional("*", "buf_new_f32", buf_new_f32);
+	mod.link_optional("*", "buf_new_f64", buf_new_f64);
+	mod.link_optional("*", "buf_len", buf_len);
+	mod.link_optional("*", "buf_read", buf_read);
+	mod.link_optional("*", "buf_write", buf_write);
+	mod.link_optional("*", "buf_release", buf_release);
 
 	mod.link_optional("*", "object_get_id", object_get_id);
 	mod.link_optional("*", "object_get_type", object_get_type);

@@ -12,18 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-union LightWasmValue
-{
-	Vec2 vec2;
-	Size size;
-	int64_t value;
-	explicit LightWasmValue(const Size& v): size(v) { }
-	explicit LightWasmValue(const Vec2& v): vec2(v) { }
-	explicit LightWasmValue(int64_t v): value(v) { }
-};
-
-static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
-
 using dora_val_t = std::variant<
 	int32_t, int64_t,
 	float, double,
