@@ -1,6 +1,6 @@
 use std::any::Any;
 use dora::object_macro;
-use crate::dora::{Object, Array, IntoValue, DoraValue, from_string, object_release};
+use crate::dora::{Object, IntoValue, Value, Vector, from_string, object_release};
 
 extern "C" {
 	fn dictionary_type() -> i32;
@@ -20,16 +20,16 @@ impl Dictionary {
 		Dictionary { raw: unsafe { dictionary_create() } }
 	}
 	pub fn set<'a, T>(&mut self, key: &str, v: T) where T: IntoValue<'a> {
-		unsafe { dictionary_set(self.raw, from_string(key), v.dora_val().raw()); }
+		unsafe { dictionary_set(self.raw, from_string(key), v.val().raw()); }
 	}
-	pub fn get(&self, key: &str) -> Option<DoraValue> {
-		DoraValue::from(unsafe { dictionary_get(self.raw, from_string(key)) })
+	pub fn get(&self, key: &str) -> Option<Value> {
+		Value::from(unsafe { dictionary_get(self.raw, from_string(key)) })
 	}
 	pub fn len(&self) -> i32 {
 		unsafe { dictionary_len(self.raw) }
 	}
-	pub fn get_keys(&self) -> Array {
-		Array::from(unsafe { dictionary_get_keys(self.raw) }).unwrap()
+	pub fn get_keys(&self) -> Vec<String> {
+		Vector::to_str(unsafe { dictionary_get_keys(self.raw) })
 	}
 	pub fn clear(&mut self) {
 		unsafe { dictionary_clear(self.raw); }

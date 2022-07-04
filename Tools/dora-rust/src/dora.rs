@@ -20,6 +20,15 @@ extern "C" {
 	fn str_write(dest: i64, src: *const c_void);
 	fn str_release(str: i64);
 
+	fn buf_new_i32(len: i32) -> i64;
+	fn buf_new_i64(len: i32) -> i64;
+	fn buf_new_f32(len: i32) -> i64;
+	fn buf_new_f64(len: i32) -> i64;
+	fn buf_len(v: i64) -> i32;
+	fn buf_read(dest: *mut c_void, src: i64);
+	fn buf_write(dest: i64, src: *const c_void);
+	fn buf_release(v: i64);
+
 	fn value_create_i32(value: i32) -> i64;
 	fn value_create_i64(value: i64) -> i64;
 	fn value_create_f32(value: f32) -> i64;
@@ -141,6 +150,132 @@ fn from_string(s: &str) -> i64 {
 	}
 }
 
+pub struct Vector;
+
+impl Vector {
+	pub fn to_i32(v: i64) -> Vec<i32> {
+		unsafe {
+			let len = buf_len(v) as usize;
+			let mut vec: Vec<i32> = Vec::with_capacity(len as usize);
+			vec.resize(len, Default::default());
+			let data = vec.as_mut_ptr() as *mut c_void;
+			buf_read(data, v);
+			buf_release(v);
+			return vec;
+		}
+	}
+	pub fn to_i64(v: i64) -> Vec<i64> {
+		unsafe {
+			let len = buf_len(v) as usize;
+			let mut vec: Vec<i64> = Vec::with_capacity(len as usize);
+			vec.resize(len, Default::default());
+			let data = vec.as_mut_ptr() as *mut c_void;
+			buf_read(data, v);
+			buf_release(v);
+			return vec;
+		}
+	}
+	pub fn to_f32(v: i64) -> Vec<f32> {
+		unsafe {
+			let len = buf_len(v) as usize;
+			let mut vec: Vec<f32> = Vec::with_capacity(len as usize);
+			vec.resize(len, Default::default());
+			let data = vec.as_mut_ptr() as *mut c_void;
+			buf_read(data, v);
+			buf_release(v);
+			return vec;
+		}
+	}
+	pub fn to_f64(v: i64) -> Vec<f64> {
+		unsafe {
+			let len = buf_len(v) as usize;
+			let mut vec: Vec<f64> = Vec::with_capacity(len as usize);
+			vec.resize(len, Default::default());
+			let data = vec.as_mut_ptr() as *mut c_void;
+			buf_read(data, v);
+			buf_release(v);
+			return vec;
+		}
+	}
+	pub fn to_str(v: i64) -> Vec<String> {
+		unsafe {
+			let len = buf_len(v) as usize;
+			let mut vec: Vec<i64> = Vec::with_capacity(len as usize);
+			vec.resize(len, Default::default());
+			let data = vec.as_mut_ptr() as *mut c_void;
+			buf_read(data, v);
+			let mut strs = Vec::with_capacity(vec.len());
+			for i in 0..vec.len() {
+				strs.push(to_string(vec[i]));
+			}
+			buf_release(v);
+			strs
+		}
+	}
+	pub fn from_i32(s: &Vec<i32>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let ptr = s.as_ptr();
+			let new_vec = buf_new_i32(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_i64(s: &Vec<i64>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let ptr = s.as_ptr();
+			let new_vec = buf_new_i64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_f32(s: &Vec<f32>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let ptr = s.as_ptr();
+			let new_vec = buf_new_f32(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_f64(s: &Vec<f64>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let ptr = s.as_ptr();
+			let new_vec = buf_new_f64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_str(s: &Vec<&str>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let mut strs: Vec<i64> = Vec::with_capacity(s.len());
+			for i in 0..s.len() {
+				strs.push(from_string(s[i]));
+			}
+			let ptr = strs.as_ptr();
+			let new_vec = buf_new_i64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_bool(s: &Vec<bool>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let mut bools: Vec<i32> = Vec::with_capacity(s.len());
+			for i in 0..s.len() {
+				bools.push(if s[i] { 1 } else { 0 });
+			}
+			let ptr = bools.as_ptr();
+			let new_vec = buf_new_i32(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+}
+
 fn none_type(_: i64) -> Option<Box<dyn Object>> { None }
 
 static mut OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| {
@@ -201,7 +336,7 @@ pub trait Object {
 
 pub struct CallStack { raw: i64 }
 
-pub enum Value<'a> {
+pub enum DoraValue<'a> {
 	I32(i32),
 	I64(i64),
 	F32(f32),
@@ -214,91 +349,86 @@ pub enum Value<'a> {
 }
 
 pub trait IntoValue<'a> {
-	fn val(self) -> Value<'a>;
-	fn dora_val(self) -> DoraValue;
+	fn dora_val(self) -> DoraValue<'a>;
+	fn val(self) -> Value;
 }
 
-impl<'a> Value<'a> {
-	pub fn new<A>(value: A) -> Value<'a>
-		where A: IntoValue<'a> {
-		value.val()
-	}
-
+impl<'a> DoraValue<'a> {
 	pub fn push(self, info: &mut CallStack) {
 		match self {
-			Value::I32(x) => { info.push_i32(x); },
-			Value::I64(x) => { info.push_i64(x); },
-			Value::F32(x) => { info.push_f32(x); },
-			Value::F64(x) => { info.push_f64(x); },
-			Value::Bool(x) => { info.push_bool(x); },
-			Value::Str(x) => { info.push_str(x); },
-			Value::Object(x) => { info.push_object(x); },
-			Value::Vec2(x) => { info.push_vec2(&x); },
-			Value::Size(x) => { info.push_size(&x); },
+			DoraValue::I32(x) => { info.push_i32(x); },
+			DoraValue::I64(x) => { info.push_i64(x); },
+			DoraValue::F32(x) => { info.push_f32(x); },
+			DoraValue::F64(x) => { info.push_f64(x); },
+			DoraValue::Bool(x) => { info.push_bool(x); },
+			DoraValue::Str(x) => { info.push_str(x); },
+			DoraValue::Object(x) => { info.push_object(x); },
+			DoraValue::Vec2(x) => { info.push_vec2(&x); },
+			DoraValue::Size(x) => { info.push_size(&x); },
 		}
 	}
 }
 
 impl<'a> IntoValue<'a> for i32 {
-	fn val(self) -> Value<'a> { Value::I32(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_i32(self) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::I32(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_i32(self) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for i64 {
-	fn val(self) -> Value<'a> { Value::I64(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_i64(self) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::I64(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_i64(self) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for f32 {
-	fn val(self) -> Value<'a> { Value::F32(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_f32(self) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::F32(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_f32(self) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for f64 {
-	fn val(self) -> Value<'a> { Value::F64(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_f64(self) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::F64(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_f64(self) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for bool {
-	fn val(self) -> Value<'a> { Value::Bool(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_bool(if self { 1 } else { 0 }) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::Bool(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_bool(if self { 1 } else { 0 }) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for &'a str {
-	fn val(self) -> Value<'a> { Value::Str(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_str(from_string(self)) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::Str(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_str(from_string(self)) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for &'a dyn Object {
-	fn val(self) -> Value<'a> { Value::Object(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_object(self.raw()) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::Object(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_object(self.raw()) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for Vec2 {
-	fn val(self) -> Value<'a> { Value::Vec2(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_vec2(self.into_i64()) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::Vec2(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_vec2(self.into_i64()) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for Size {
-	fn val(self) -> Value<'a> { Value::Size(self) }
-	fn dora_val(self) -> DoraValue {
-		unsafe { DoraValue{ raw: value_create_size(self.into_i64()) } }
+	fn dora_val(self) -> DoraValue<'a> { DoraValue::Size(self) }
+	fn val(self) -> Value {
+		unsafe { Value{ raw: value_create_size(self.into_i64()) } }
 	}
 }
 
@@ -315,61 +445,65 @@ macro_rules! args {
 	};
 }
 
-pub struct DoraValue { raw: i64 }
+pub struct Value { raw: i64 }
 
-impl DoraValue {
-	fn from(raw: i64) -> Option<DoraValue> {
+impl Value {
+	pub fn new<'a, A>(value: A) -> DoraValue<'a>
+		where A: IntoValue<'a> {
+		value.dora_val()
+	}
+	fn from(raw: i64) -> Option<Value> {
 		match raw {
 			0 => { None },
-			_ => { Some(DoraValue { raw: raw }) }
+			_ => { Some(Value { raw: raw }) }
 		}
 	}
 	pub fn raw(&self) -> i64 { self.raw }
 	pub fn into_i32(&self) -> Option<i32> {
 		unsafe {
-			if value_is_i32(self.raw) > 0 {
+			if value_is_i32(self.raw) != 0 {
 				Some(value_into_i32(self.raw))
 			} else { None }
 		}
 	}
 	pub fn into_i64(&self) -> Option<i64> {
 		unsafe {
-			if value_is_i64(self.raw) > 0 {
+			if value_is_i64(self.raw) != 0 {
 				Some(value_into_i64(self.raw))
 			} else { None }
 		}
 	}
 	pub fn into_f32(&self) -> Option<f32> {
 		unsafe {
-			if value_is_f32(self.raw) > 0 {
+			if value_is_f32(self.raw) != 0 {
 				Some(value_into_f32(self.raw))
 			} else { None }
 		}
 	}
 	pub fn into_f64(&self) -> Option<f64> {
 		unsafe {
-			if value_is_f64(self.raw) > 0 {
+			if value_is_f64(self.raw) != 0 {
 				Some(value_into_f64(self.raw))
 			} else { None }
 		}
 	}
 	pub fn into_bool(&self) -> Option<bool> {
 		unsafe {
-			if value_is_bool(self.raw) > 0 {
-				Some(value_into_bool(self.raw) > 0)
+			if value_is_bool(self.raw) != 0 {
+				Some(value_into_bool(self.raw) != 0)
 			} else { None }
 		}
 	}
 	pub fn into_str(&self) -> Option<String> {
 		unsafe {
-			if value_is_str(self.raw) > 0 {
+			if value_is_str(self.raw) != 0 {
 				Some(to_string(value_into_str(self.raw)))
 			} else { None }
 		}
 	}
 	pub fn into_object(&self) -> Option<Box<dyn Object>> {
 		unsafe {
-			if value_is_object(self.raw) > 0 {
+			if value_is_object(self.raw) != 0 {
 				let raw = value_into_object(self.raw);
 				OBJECT_MAP[object_get_type(raw) as usize](raw)
 			} else { None }
@@ -377,21 +511,21 @@ impl DoraValue {
 	}
 	pub fn into_vec2(&self) -> Option<Vec2> {
 		unsafe {
-			if value_is_vec2(self.raw) > 0 {
+			if value_is_vec2(self.raw) != 0 {
 				Some(Vec2::from(value_into_vec2(self.raw)))
 			} else { None }
 		}
 	}
 	pub fn into_size(&self) -> Option<Size> {
 		unsafe {
-			if value_is_size(self.raw) > 0 {
+			if value_is_size(self.raw) != 0 {
 				Some(Size::from(value_into_size(self.raw)))
 			} else { None }
 		}
 	}
 }
 
-impl Drop for DoraValue {
+impl Drop for Value {
 	fn drop(&mut self) { unsafe { value_release(self.raw); } }
 }
 
@@ -431,49 +565,49 @@ impl CallStack {
 	}
 	pub fn pop_i32(&mut self) -> Option<i32> {
 		unsafe {
-			if call_stack_front_i32(self.raw) > 0 {
+			if call_stack_front_i32(self.raw) != 0 {
 				Some(call_stack_pop_i32(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_i64(&mut self) -> Option<i64> {
 		unsafe {
-			if call_stack_front_i64(self.raw) > 0 {
+			if call_stack_front_i64(self.raw) != 0 {
 				Some(call_stack_pop_i64(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_f32(&mut self) -> Option<f32> {
 		unsafe {
-			if call_stack_front_f32(self.raw) > 0 {
+			if call_stack_front_f32(self.raw) != 0 {
 				Some(call_stack_pop_f32(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_f64(&mut self) -> Option<f64> {
 		unsafe {
-			if call_stack_front_f64(self.raw) > 0 {
+			if call_stack_front_f64(self.raw) != 0 {
 				Some(call_stack_pop_f64(self.raw))
 			} else { None }
 		}
 	}
 	pub fn pop_str(&mut self) -> Option<String> {
 		unsafe {
-			if call_stack_front_str(self.raw) > 0 {
+			if call_stack_front_str(self.raw) != 0 {
 				Some(to_string(call_stack_pop_str(self.raw)))
 			} else { None }
 		}
 	}
 	pub fn pop_bool(&mut self) -> Option<bool> {
 		unsafe {
-			if call_stack_front_bool(self.raw) > 0 {
-				Some(call_stack_pop_bool(self.raw) > 0)
+			if call_stack_front_bool(self.raw) != 0 {
+				Some(call_stack_pop_bool(self.raw) != 0)
 			} else { None }
 		}
 	}
 	pub fn pop_object(&mut self) -> Option<Box<dyn Object>> {
 		unsafe {
-			if call_stack_front_object(self.raw) > 0 {
+			if call_stack_front_object(self.raw) != 0 {
 				let raw = call_stack_pop_object(self.raw);
 				OBJECT_MAP[object_get_type(raw) as usize](raw)
 			} else { None }
@@ -481,14 +615,14 @@ impl CallStack {
 	}
 	pub fn pop_vec2(&mut self) -> Option<Vec2> {
 		unsafe {
-			if call_stack_front_vec2(self.raw) > 0 {
+			if call_stack_front_vec2(self.raw) != 0 {
 				Some(Vec2::from(call_stack_pop_vec2(self.raw)))
 			} else { None }
 		}
 	}
 	pub fn pop_size(&mut self) -> Option<Size> {
 		unsafe {
-			if call_stack_front_size(self.raw) > 0 {
+			if call_stack_front_size(self.raw) != 0 {
 				Some(Size::from(call_stack_pop_size(self.raw)))
 			} else { None }
 		}

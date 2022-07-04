@@ -160,7 +160,7 @@ int WasmEventArgs::pushArgsToLua()
 {
 	for (const auto& val : _values)
 	{
-		std::visit([](auto&& arg)
+		std::visit([](const auto& arg)
 		{
 			SharedLuaEngine.push(arg);
 		}, val);
