@@ -60,7 +60,7 @@ impl Array {
 		unsafe { array_insert(self.raw, index, v.val().raw()); }
 	}
 	pub fn contains<'a, T>(&self, v: T) -> bool where T: IntoValue<'a> {
-		unsafe { array_contains(self.raw, v.val().raw()) > 0 }
+		unsafe { array_contains(self.raw, v.val().raw()) != 0 }
 	}
 	pub fn index<'a, T>(&self, v: T) -> i32 where T: IntoValue<'a> {
 		unsafe { array_index(self.raw, v.val().raw()) }
@@ -69,7 +69,7 @@ impl Array {
 		Value::from(unsafe { array_remove_last(self.raw) })
 	}
 	pub fn fast_remove<'a, T>(&mut self, v: T) -> bool where T: IntoValue<'a> {
-		unsafe { array_fast_remove(self.raw, v.val().raw()) > 0 }
+		unsafe { array_fast_remove(self.raw, v.val().raw()) != 0 }
 	}
 	pub fn len(&self) -> i32 {
 		unsafe { array_len(self.raw) }
@@ -78,7 +78,7 @@ impl Array {
 		unsafe { array_capacity(self.raw) }
 	}
 	pub fn is_empty(&self) -> bool {
-		unsafe { array_is_empty(self.raw) > 0 }
+		unsafe { array_is_empty(self.raw) != 0 }
 	}
 	pub fn add_range(&mut self, other: &Array) {
 		unsafe { array_add_range(self.raw, other.raw); }
@@ -99,9 +99,9 @@ impl Array {
 		unsafe { array_swap(self.raw, index_a, index_b); }
 	}
 	pub fn remove_at(&mut self, index: i32) -> bool {
-		unsafe { array_remove_at(self.raw, index) > 0 }
+		unsafe { array_remove_at(self.raw, index) != 0 }
 	}
 	pub fn fast_remove_at(&mut self, index: i32) -> bool {
-		unsafe { array_fast_remove_at(self.raw, index) > 0 }
+		unsafe { array_fast_remove_at(self.raw, index) != 0 }
 	}
 }
