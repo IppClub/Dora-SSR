@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -26,10 +26,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
 
 #include "spine/SkeletonClipping.h"
 
@@ -107,15 +103,15 @@ void SkeletonClipping::clipTriangles(float *vertices, unsigned short *triangles,
 	size_t i = 0;
 continue_outer:
 	for (; i < trianglesLength; i += 3) {
-		int vertexOffset = (int) (triangles[i] * stride);
+		int vertexOffset = triangles[i] * (int) stride;
 		float x1 = vertices[vertexOffset], y1 = vertices[vertexOffset + 1];
 		float u1 = uvs[vertexOffset], v1 = uvs[vertexOffset + 1];
 
-		vertexOffset = (int) (triangles[i + 1] * stride);
+		vertexOffset = triangles[i + 1] * (int) stride;
 		float x2 = vertices[vertexOffset], y2 = vertices[vertexOffset + 1];
 		float u2 = uvs[vertexOffset], v2 = uvs[vertexOffset + 1];
 
-		vertexOffset = (int) (triangles[i + 2] * stride);
+		vertexOffset = triangles[i + 2] * (int) stride;
 		float x3 = vertices[vertexOffset], y3 = vertices[vertexOffset + 1];
 		float u3 = uvs[vertexOffset], v3 = uvs[vertexOffset + 1];
 

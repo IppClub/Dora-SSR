@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -26,10 +26,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
 
 #include "spine/DeformTimeline.h"
 
@@ -76,7 +72,7 @@ void DeformTimeline::apply(Skeleton &skeleton, float lastTime, float time, Vecto
 	}
 
 	VertexAttachment *attachment = static_cast<VertexAttachment *>(slotAttachment);
-	if (attachment->_deformAttachment != _attachment) {
+	if (attachment->_timelineAttachment != _attachment) {
 		return;
 	}
 
@@ -266,11 +262,11 @@ void DeformTimeline::setBezier(size_t bezier, size_t frame, float value, float t
 	SP_UNUSED(value1);
 	SP_UNUSED(value2);
 	size_t i = getFrameCount() + bezier * DeformTimeline::BEZIER_SIZE;
-	if (value == 0) _curves[frame] = (float) (DeformTimeline::BEZIER + i);
-	float tmpx = (time1 - cx1 * 2 + cx2) * 0.03f, tmpy = cy2 * 0.03f - cy1 * 0.06f;
-	float dddx = ((cx1 - cx2) * 3 - time1 + time2) * 0.006f, dddy = (cy1 - cy2 + 0.33333333f) * 0.018f;
+	if (value == 0) _curves[frame] = DeformTimeline::BEZIER + i;
+	float tmpx = (time1 - cx1 * 2 + cx2) * 0.03, tmpy = cy2 * 0.03 - cy1 * 0.06;
+	float dddx = ((cx1 - cx2) * 3 - time1 + time2) * 0.006, dddy = (cy1 - cy2 + 0.33333333) * 0.018;
 	float ddx = tmpx * 2 + dddx, ddy = tmpy * 2 + dddy;
-	float dx = (cx1 - time1) * 0.3f + tmpx + dddx * 0.16666667f, dy = cy1 * 0.3f + tmpy + dddy * 0.16666667f;
+	float dx = (cx1 - time1) * 0.3 + tmpx + dddx * 0.16666667, dy = cy1 * 0.3 + tmpy + dddy * 0.16666667;
 	float x = time1 + dx, y = dy;
 	for (size_t n = i + DeformTimeline::BEZIER_SIZE; i < n; i += 2) {
 		_curves[i] = x;

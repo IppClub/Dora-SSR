@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -26,10 +26,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
 
 #include "spine/Atlas.h"
 #include "spine/ContainerUtil.h"
@@ -112,21 +108,21 @@ struct SimpleString {
 		while (isspace((unsigned char) *start) && start < end)
 			start++;
 		if (start == end) {
-			length = (int) (end - start);
+			length = end - start;
 			return *this;
 		}
 		end--;
 		while (((unsigned char) *end == '\r') && end >= start)
 			end--;
 		end++;
-		length = (int) (end - start);
+		length = end - start;
 		return *this;
 	}
 
 	int indexOf(char needle) {
 		char *c = start;
 		while (c < end) {
-			if (*c == needle) return (int) (c - start);
+			if (*c == needle) return c - start;
 			c++;
 		}
 		return -1;
@@ -135,7 +131,7 @@ struct SimpleString {
 	int indexOf(char needle, int at) {
 		char *c = start + at;
 		while (c < end) {
-			if (*c == needle) return (int) (c - start);
+			if (*c == needle) return c - start;
 			c++;
 		}
 		return -1;
@@ -154,7 +150,7 @@ struct SimpleString {
 		SimpleString result;
 		result.start = start + s;
 		result.end = end;
-		result.length = (int) (result.end - result.start);
+		result.length = result.end - result.start;
 		return result;
 	}
 
@@ -196,7 +192,7 @@ struct AtlasInput {
 		line.end = index;
 		if (index != end) index++;
 		line = line.trim();
-		line.length = (int) (end - start);
+		line.length = end - start;
 		return &line;
 	}
 
@@ -272,8 +268,8 @@ void Atlas::load(const char *begin, int length, const char *dir, bool createText
 				} else if (entry[0].equals("format")) {
 					page->format = (Format) indexOf(formatNames, 8, &entry[1]);
 				} else if (entry[0].equals("filter")) {
-					page->minFilter = (TextureFilter) indexOf(textureFilterNames, 8, &entry[1]);
-					page->magFilter = (TextureFilter) indexOf(textureFilterNames, 8, &entry[2]);
+					page->minFilter = (TEXTURE_FILTER_ENUM) indexOf(textureFilterNames, 8, &entry[1]);
+					page->magFilter = (TEXTURE_FILTER_ENUM) indexOf(textureFilterNames, 8, &entry[2]);
 				} else if (entry[0].equals("repeat")) {
 					page->uWrap = TextureWrap_ClampToEdge;
 					page->vWrap = TextureWrap_ClampToEdge;
@@ -311,14 +307,14 @@ void Atlas::load(const char *begin, int length, const char *dir, bool createText
 					region->width = entry[3].toInt();
 					region->height = entry[4].toInt();
 				} else if (entry[0].equals("offset")) {
-					region->offsetX = (float) entry[1].toInt();
-					region->offsetY = (float) entry[2].toInt();
+					region->offsetX = entry[1].toInt();
+					region->offsetY = entry[2].toInt();
 				} else if (entry[0].equals("orig")) {
 					region->originalWidth = entry[1].toInt();
 					region->originalHeight = entry[2].toInt();
 				} else if (entry[0].equals("offsets")) {
-					region->offsetX = (float) entry[1].toInt();
-					region->offsetY = (float) entry[2].toInt();
+					region->offsetX = entry[1].toInt();
+					region->offsetY = entry[2].toInt();
 					region->originalWidth = entry[3].toInt();
 					region->originalHeight = entry[4].toInt();
 				} else if (entry[0].equals("rotate")) {
@@ -332,7 +328,7 @@ void Atlas::load(const char *begin, int length, const char *dir, bool createText
 				} else {
 					region->names.add(String(entry[0].copy()));
 					for (int i = 0; i < count; i++) {
-						region->values.add((float) entry[i + 1].toInt());
+						region->values.add(entry[i + 1].toInt());
 					}
 				}
 			}

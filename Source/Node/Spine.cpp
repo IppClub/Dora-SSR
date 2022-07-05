@@ -453,7 +453,7 @@ void Spine::render()
 			spine::RegionAttachment* region = s_cast<spine::RegionAttachment*>(attachment);
 			texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(region->getRendererObject())->page->getRendererObject());
 			vertices.assign(4, {0, 0, 0, 1});
-			region->computeWorldVertices(slot->getBone(), &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
+			region->computeWorldVertices(*slot, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
 			if (_clipper->isClipping())
 			{
 				for (size_t j = 0, l = 0; j < 4; j++, l += 2)

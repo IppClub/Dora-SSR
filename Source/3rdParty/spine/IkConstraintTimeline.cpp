@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -26,10 +26,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
 
 #include "spine/IkConstraintTimeline.h"
 
@@ -118,7 +114,7 @@ void IkConstraintTimeline::apply(Skeleton &skeleton, float lastTime, float time,
 			constraint._compress = constraint._data._compress;
 			constraint._stretch = constraint._data._stretch;
 		} else {
-			constraint._bendDirection = (int) _frames[i + IkConstraintTimeline::BEND_DIRECTION];
+			constraint._bendDirection = _frames[i + IkConstraintTimeline::BEND_DIRECTION];
 			constraint._compress = _frames[i + IkConstraintTimeline::COMPRESS] != 0;
 			constraint._stretch = _frames[i + IkConstraintTimeline::STRETCH] != 0;
 		}
@@ -126,7 +122,7 @@ void IkConstraintTimeline::apply(Skeleton &skeleton, float lastTime, float time,
 		constraint._mix += (mix - constraint._mix) * alpha;
 		constraint._softness += (softness - constraint._softness) * alpha;
 		if (direction == MixDirection_In) {
-			constraint._bendDirection = (int) _frames[i + IkConstraintTimeline::BEND_DIRECTION];
+			constraint._bendDirection = _frames[i + IkConstraintTimeline::BEND_DIRECTION];
 			constraint._compress = _frames[i + IkConstraintTimeline::COMPRESS] != 0;
 			constraint._stretch = _frames[i + IkConstraintTimeline::STRETCH] != 0;
 		}
@@ -140,6 +136,6 @@ void IkConstraintTimeline::setFrame(int frame, float time, float mix, float soft
 	_frames[frame + MIX] = mix;
 	_frames[frame + SOFTNESS] = softness;
 	_frames[frame + BEND_DIRECTION] = (float) bendDirection;
-	_frames[frame + COMPRESS] = compress ? 1.0f : 0.0f;
-	_frames[frame + STRETCH] = stretch ? 1.0f : 0.0f;
+	_frames[frame + COMPRESS] = compress ? 1 : 0;
+	_frames[frame + STRETCH] = stretch ? 1 : 0;
 }

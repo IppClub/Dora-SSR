@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -26,10 +26,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
 
 #include "spine/Animation.h"
 #include "spine/Event.h"
@@ -98,9 +94,9 @@ void Animation::setDuration(float inValue) {
 int Animation::search(Vector<float> &frames, float target) {
 	size_t n = (int) frames.size();
 	for (size_t i = 1; i < n; i++) {
-		if (frames[i] > target) return (int) i - 1;
+		if (frames[i] > target) return (int) (i - 1);
 	}
-	return (int) n - 1;
+	return (int) (n - 1);
 }
 
 int Animation::search(Vector<float> &frames, float target, int step) {
