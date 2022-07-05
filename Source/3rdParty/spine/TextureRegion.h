@@ -27,64 +27,24 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#include "spine/Event.h"
+#ifndef Spine_TextureRegion_h
+#define Spine_TextureRegion_h
 
-#include "spine/EventData.h"
+#include "spine/Vector.h"
 
-spine::Event::Event(float time, const spine::EventData &data) : _data(data),
-																_time(time),
-																_intValue(0),
-																_floatValue(0),
-																_stringValue(),
-																_volume(1),
-																_balance(0) {
+namespace spine {
+	class SP_API TextureRegion : public SpineObject {
+	public:
+		void *rendererObject;
+		float u, v, u2, v2;
+		int degrees;
+		float offsetX, offsetY;
+		int width, height;
+		int originalWidth, originalHeight;
+
+		TextureRegion(): rendererObject(NULL), u(0), v(0), u2(0), v2(0), degrees(0), offsetX(0), offsetY(0), width(0), height(0), originalWidth(0), originalHeight(0) {};
+		~TextureRegion() {};
+	};
 }
 
-const spine::EventData &spine::Event::getData() {
-	return _data;
-}
-
-float spine::Event::getTime() {
-	return _time;
-}
-
-int spine::Event::getIntValue() {
-	return _intValue;
-}
-
-void spine::Event::setIntValue(int inValue) {
-	_intValue = inValue;
-}
-
-float spine::Event::getFloatValue() {
-	return _floatValue;
-}
-
-void spine::Event::setFloatValue(float inValue) {
-	_floatValue = inValue;
-}
-
-const spine::String &spine::Event::getStringValue() {
-	return _stringValue;
-}
-
-void spine::Event::setStringValue(const spine::String &inValue) {
-	_stringValue = inValue;
-}
-
-
-float spine::Event::getVolume() {
-	return _volume;
-}
-
-void spine::Event::setVolume(float inValue) {
-	_volume = inValue;
-}
-
-float spine::Event::getBalance() {
-	return _balance;
-}
-
-void spine::Event::setBalance(float inValue) {
-	_balance = inValue;
-}
+#endif

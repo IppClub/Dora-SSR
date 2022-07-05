@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -26,10 +26,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
 
 #include "spine/SkeletonBinary.h"
 
@@ -72,6 +68,8 @@
 #include "spine/TransformConstraintData.h"
 #include "spine/TransformConstraintTimeline.h"
 #include "spine/TranslateTimeline.h"
+#include "spine/SequenceTimeline.h"
+#include "spine/Version.h"
 
 using namespace spine;
 
@@ -119,6 +117,13 @@ SkeletonData *SkeletonBinary::readSkeletonData(const unsigned char *binary, cons
 
 	char *skeletonDataVersion = readString(input);
 	skeletonData->_version.own(skeletonDataVersion);
+
+	if (!skeletonData->_version.startsWith(SPINE_VERSION_STRING)) {
+		char errorMsg[255];
+		sprintf(errorMsg, "Skeleton version %s does not match runtime version %s", skeletonData->_version.buffer(), SPINE_VERSION_STRING);
+		setError(errorMsg, "");
+		return NULL;
+	}
 
 	skeletonData->_x = readFloat(input);
 	skeletonData->_y = readFloat(input);
@@ -298,10 +303,10 @@ SkeletonData *SkeletonBinary::readSkeletonData(const unsigned char *binary, cons
 			setError("Parent mesh not found: ", linkedMesh->_parent.buffer());
 			return NULL;
 		}
-		linkedMesh->_mesh->_deformAttachment = linkedMesh->_inheritDeform ? static_cast<VertexAttachment *>(parent)
-																		  : linkedMesh->_mesh;
+		linkedMesh->_mesh->_timelineAttachment = linkedMesh->_inheritTimeline ? static_cast<VertexAttachment *>(parent)
+																			  : linkedMesh->_mesh;
 		linkedMesh->_mesh->setParentMesh(static_cast<MeshAttachment *>(parent));
-		linkedMesh->_mesh->updateUVs();
+		if (linkedMesh->_mesh->_region) linkedMesh->_mesh->updateRegion();
 		_attachmentLoader->configureAttachment(linkedMesh->_mesh);
 	}
 	ContainerUtil::cleanUpVectorOfPointers(_linkedMeshes);
@@ -478,6 +483,15 @@ Skin *SkeletonBinary::readSkin(DataInput *input, bool defaultSkin, SkeletonData 
 	return skin;
 }
 
+Sequence *SkeletonBinary::readSequence(DataInput *input) {
+	if (!readBoolean(input)) return NULL;
+	Sequence *sequence = new (__FILE__, __LINE__) Sequence(readVarint(input, true));
+	sequence->_start = readVarint(input, true);
+	sequence->_digits = readVarint(input, true);
+	sequence->_setupIndex = readVarint(input, true);
+	return sequence;
+}
+
 Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slotIndex, const String &attachmentName,
 										   SkeletonData *skeletonData, bool nonessential) {
 	String name(readStringRef(input, skeletonData));
@@ -488,21 +502,32 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 		case AttachmentType_Region: {
 			String path(readStringRef(input, skeletonData));
 			if (path.isEmpty()) path = name;
-			RegionAttachment *region = _attachmentLoader->newRegionAttachment(*skin, String(name), String(path));
+			float rotation = readFloat(input);
+			float x = readFloat(input) * _scale;
+			float y = readFloat(input) * _scale;
+			float scaleX = readFloat(input);
+			float scaleY = readFloat(input);
+			float width = readFloat(input) * _scale;
+			float height = readFloat(input) * _scale;
+			Color color;
+			readColor(input, color);
+			Sequence *sequence = readSequence(input);
+			RegionAttachment *region = _attachmentLoader->newRegionAttachment(*skin, String(name), String(path), sequence);
 			if (!region) {
 				setError("Error reading attachment: ", name.buffer());
 				return nullptr;
 			}
 			region->_path = path;
-			region->_rotation = readFloat(input);
-			region->_x = readFloat(input) * _scale;
-			region->_y = readFloat(input) * _scale;
-			region->_scaleX = readFloat(input);
-			region->_scaleY = readFloat(input);
-			region->_width = readFloat(input) * _scale;
-			region->_height = readFloat(input) * _scale;
-			readColor(input, region->getColor());
-			region->updateOffset();
+			region->_rotation = rotation;
+			region->_x = x;
+			region->_y = y;
+			region->_scaleX = scaleX;
+			region->_scaleY = scaleY;
+			region->_width = width;
+			region->_height = height;
+			region->getColor().set(color);
+			region->_sequence = sequence;
+			if (sequence == NULL) region->updateRegion();
 			_attachmentLoader->configureAttachment(region);
 			return region;
 		}
@@ -513,7 +538,8 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 				setError("Error reading attachment: ", name.buffer());
 				return nullptr;
 			}
-			readVertices(input, static_cast<VertexAttachment *>(box), vertexCount);
+			readVertices(input, box->getVertices(), box->getBones(), vertexCount);
+			box->setWorldVerticesLength(vertexCount << 1);
 			if (nonessential) {
 				readColor(input, box->getColor());
 			}
@@ -521,31 +547,52 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 			return box;
 		}
 		case AttachmentType_Mesh: {
+			Color color;
 			int vertexCount;
-			MeshAttachment *mesh;
+			Vector<float> uvs;
+			Vector<unsigned short> triangles;
+			Vector<float> vertices;
+			Vector<size_t> bones;
+			int hullLength;
+			Sequence *sequence;
+			float width = 0;
+			float height = 0;
+			Vector<unsigned short> edges;
+
 			String path(readStringRef(input, skeletonData));
 			if (path.isEmpty()) path = name;
+			readColor(input, color);
+			vertexCount = readVarint(input, true);
+			readFloatArray(input, vertexCount << 1, 1, uvs);
+			readShortArray(input, triangles);
+			readVertices(input, vertices, bones, vertexCount);
+			hullLength = readVarint(input, true) << 1;
+			sequence = readSequence(input);
+			if (nonessential) {
+				readShortArray(input, edges);
+				width = readFloat(input) * _scale;
+				height = readFloat(input) * _scale;
+			}
 
-			mesh = _attachmentLoader->newMeshAttachment(*skin, String(name), String(path));
+			MeshAttachment *mesh = _attachmentLoader->newMeshAttachment(*skin, String(name), String(path), sequence);
 			if (!mesh) {
 				setError("Error reading attachment: ", name.buffer());
 				return nullptr;
 			}
 			mesh->_path = path;
-			readColor(input, mesh->getColor());
-			vertexCount = readVarint(input, true);
-			readFloatArray(input, vertexCount << 1, 1, mesh->getRegionUVs());
-			readShortArray(input, mesh->getTriangles());
-			readVertices(input, static_cast<VertexAttachment *>(mesh), vertexCount);
-			mesh->updateUVs();
-			mesh->_hullLength = readVarint(input, true) << 1;
+			mesh->_color.set(color);
+			mesh->_bones.addAll(bones);
+			mesh->_vertices.addAll(vertices);
+			mesh->setWorldVerticesLength(vertexCount << 1);
+			mesh->_triangles.addAll(triangles);
+			mesh->_regionUVs.addAll(uvs);
+			if (sequence == NULL) mesh->updateRegion();
+			mesh->_hullLength = hullLength;
+			mesh->_sequence = sequence;
 			if (nonessential) {
-				readShortArray(input, mesh->getEdges());
-				mesh->_width = readFloat(input) * _scale;
-				mesh->_height = readFloat(input) * _scale;
-			} else {
-				mesh->_width = 0;
-				mesh->_height = 0;
+				mesh->_edges.addAll(edges);
+				mesh->_width = width;
+				mesh->_height = height;
 			}
 			_attachmentLoader->configureAttachment(mesh);
 			return mesh;
@@ -554,23 +601,33 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 			String path(readStringRef(input, skeletonData));
 			if (path.isEmpty()) path = name;
 
-			MeshAttachment *mesh = _attachmentLoader->newMeshAttachment(*skin, String(name), String(path));
+			Color color;
+			float width = 0, height = 0;
+			readColor(input, color);
+			String skinName(readStringRef(input, skeletonData));
+			String parent(readStringRef(input, skeletonData));
+			bool inheritTimelines = readBoolean(input);
+			Sequence *sequence = readSequence(input);
+			if (nonessential) {
+				width = readFloat(input) * _scale;
+				height = readFloat(input) * _scale;
+			}
+
+			MeshAttachment *mesh = _attachmentLoader->newMeshAttachment(*skin, String(name), String(path), sequence);
 			if (!mesh) {
 				setError("Error reading attachment: ", name.buffer());
 				return nullptr;
 			}
 			mesh->_path = path;
-			readColor(input, mesh->getColor());
-			String skinName(readStringRef(input, skeletonData));
-			String parent(readStringRef(input, skeletonData));
-			bool inheritDeform = readBoolean(input);
+			mesh->_color.set(color);
+			mesh->_sequence = sequence;
 			if (nonessential) {
-				mesh->_width = readFloat(input) * _scale;
-				mesh->_height = readFloat(input) * _scale;
+				mesh->_width = width;
+				mesh->_height = height;
 			}
 
 			LinkedMesh *linkedMesh = new (__FILE__, __LINE__) LinkedMesh(mesh, String(skinName), slotIndex,
-																		 String(parent), inheritDeform);
+																		 String(parent), inheritTimelines);
 			_linkedMeshes.add(linkedMesh);
 			return mesh;
 		}
@@ -583,7 +640,8 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 			path->_closed = readBoolean(input);
 			path->_constantSpeed = readBoolean(input);
 			int vertexCount = readVarint(input, true);
-			readVertices(input, static_cast<VertexAttachment *>(path), vertexCount);
+			readVertices(input, path->getVertices(), path->getBones(), vertexCount);
+			path->setWorldVerticesLength(vertexCount << 1);
 			int lengthsLength = vertexCount / 3;
 			path->_lengths.setSize(lengthsLength, 0);
 			for (int i = 0; i < lengthsLength; ++i) {
@@ -619,7 +677,8 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 				setError("Error reading attachment: ", name.buffer());
 				return nullptr;
 			}
-			readVertices(input, static_cast<VertexAttachment *>(clip), vertexCount);
+			readVertices(input, clip->getVertices(), clip->getBones(), vertexCount);
+			clip->setWorldVerticesLength(vertexCount << 1);
 			clip->_endSlot = skeletonData->_slots[endSlotIndex];
 			if (nonessential) {
 				readColor(input, clip->getColor());
@@ -631,18 +690,15 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 	return nullptr;
 }
 
-void SkeletonBinary::readVertices(DataInput *input, VertexAttachment *attachment, int vertexCount) {
+void SkeletonBinary::readVertices(DataInput *input, Vector<float> &vertices, Vector<size_t> &bones, int vertexCount) {
 	float scale = _scale;
 	int verticesLength = vertexCount << 1;
-	attachment->setWorldVerticesLength(vertexCount << 1);
 
 	if (!readBoolean(input)) {
-		readFloatArray(input, verticesLength, scale, attachment->getVertices());
+		readFloatArray(input, verticesLength, scale, vertices);
 		return;
 	}
 
-	Vector<float> &vertices = attachment->getVertices();
-	Vector<size_t> &bones = attachment->getBones();
 	vertices.ensureCapacity(verticesLength * 3 * 3);
 	bones.ensureCapacity(verticesLength * 3);
 
@@ -691,7 +747,7 @@ void SkeletonBinary::setBezier(DataInput *input, CurveTimeline *timeline, int be
 	float cy1 = readFloat(input);
 	float cx2 = readFloat(input);
 	float cy2 = readFloat(input);
-	timeline->setBezier(bezier, frame, (float) value, time1, value1, cx1, cy1 * scale, cx2, cy2 * scale, time2, value2);
+	timeline->setBezier(bezier, frame, value, time1, value1, cx1, cy1 * scale, cx2, cy2 * scale, time2, value2);
 }
 
 Timeline *SkeletonBinary::readTimeline(DataInput *input, CurveTimeline1 *timeline, float scale) {
@@ -768,20 +824,20 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 					RGBATimeline *timeline = new (__FILE__, __LINE__) RGBATimeline(frameCount, bezierCount, slotIndex);
 
 					float time = readFloat(input);
-					float r = readByte(input) / 255.0f;
-					float g = readByte(input) / 255.0f;
-					float b = readByte(input) / 255.0f;
-					float a = readByte(input) / 255.0f;
+					float r = readByte(input) / 255.0;
+					float g = readByte(input) / 255.0;
+					float b = readByte(input) / 255.0;
+					float a = readByte(input) / 255.0;
 
 					for (int frame = 0, bezier = 0;; frame++) {
 						timeline->setFrame(frame, time, r, g, b, a);
 						if (frame == frameLast) break;
 
 						float time2 = readFloat(input);
-						float r2 = readByte(input) / 255.0f;
-						float g2 = readByte(input) / 255.0f;
-						float b2 = readByte(input) / 255.0f;
-						float a2 = readByte(input) / 255.0f;
+						float r2 = readByte(input) / 255.0;
+						float g2 = readByte(input) / 255.0;
+						float b2 = readByte(input) / 255.0;
+						float a2 = readByte(input) / 255.0;
 
 						switch (readSByte(input)) {
 							case CURVE_STEPPED:
@@ -807,18 +863,18 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 					RGBTimeline *timeline = new (__FILE__, __LINE__) RGBTimeline(frameCount, bezierCount, slotIndex);
 
 					float time = readFloat(input);
-					float r = readByte(input) / 255.0f;
-					float g = readByte(input) / 255.0f;
-					float b = readByte(input) / 255.0f;
+					float r = readByte(input) / 255.0;
+					float g = readByte(input) / 255.0;
+					float b = readByte(input) / 255.0;
 
 					for (int frame = 0, bezier = 0;; frame++) {
 						timeline->setFrame(frame, time, r, g, b);
 						if (frame == frameLast) break;
 
 						float time2 = readFloat(input);
-						float r2 = readByte(input) / 255.0f;
-						float g2 = readByte(input) / 255.0f;
-						float b2 = readByte(input) / 255.0f;
+						float r2 = readByte(input) / 255.0;
+						float g2 = readByte(input) / 255.0;
+						float b2 = readByte(input) / 255.0;
 
 						switch (readSByte(input)) {
 							case CURVE_STEPPED:
@@ -842,25 +898,25 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 					RGBA2Timeline *timeline = new (__FILE__, __LINE__) RGBA2Timeline(frameCount, bezierCount, slotIndex);
 
 					float time = readFloat(input);
-					float r = readByte(input) / 255.0f;
-					float g = readByte(input) / 255.0f;
-					float b = readByte(input) / 255.0f;
-					float a = readByte(input) / 255.0f;
-					float r2 = readByte(input) / 255.0f;
-					float g2 = readByte(input) / 255.0f;
-					float b2 = readByte(input) / 255.0f;
+					float r = readByte(input) / 255.0;
+					float g = readByte(input) / 255.0;
+					float b = readByte(input) / 255.0;
+					float a = readByte(input) / 255.0;
+					float r2 = readByte(input) / 255.0;
+					float g2 = readByte(input) / 255.0;
+					float b2 = readByte(input) / 255.0;
 
 					for (int frame = 0, bezier = 0;; frame++) {
 						timeline->setFrame(frame, time, r, g, b, a, r2, g2, b2);
 						if (frame == frameLast) break;
 						float time2 = readFloat(input);
-						float nr = readByte(input) / 255.0f;
-						float ng = readByte(input) / 255.0f;
-						float nb = readByte(input) / 255.0f;
-						float na = readByte(input) / 255.0f;
-						float nr2 = readByte(input) / 255.0f;
-						float ng2 = readByte(input) / 255.0f;
-						float nb2 = readByte(input) / 255.0f;
+						float nr = readByte(input) / 255.0;
+						float ng = readByte(input) / 255.0;
+						float nb = readByte(input) / 255.0;
+						float na = readByte(input) / 255.0;
+						float nr2 = readByte(input) / 255.0;
+						float ng2 = readByte(input) / 255.0;
+						float nb2 = readByte(input) / 255.0;
 
 						switch (readSByte(input)) {
 							case CURVE_STEPPED:
@@ -892,23 +948,23 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 					RGB2Timeline *timeline = new (__FILE__, __LINE__) RGB2Timeline(frameCount, bezierCount, slotIndex);
 
 					float time = readFloat(input);
-					float r = readByte(input) / 255.0f;
-					float g = readByte(input) / 255.0f;
-					float b = readByte(input) / 255.0f;
-					float r2 = readByte(input) / 255.0f;
-					float g2 = readByte(input) / 255.0f;
-					float b2 = readByte(input) / 255.0f;
+					float r = readByte(input) / 255.0;
+					float g = readByte(input) / 255.0;
+					float b = readByte(input) / 255.0;
+					float r2 = readByte(input) / 255.0;
+					float g2 = readByte(input) / 255.0;
+					float b2 = readByte(input) / 255.0;
 
 					for (int frame = 0, bezier = 0;; frame++) {
 						timeline->setFrame(frame, time, r, g, b, r2, g2, b2);
 						if (frame == frameLast) break;
 						float time2 = readFloat(input);
-						float nr = readByte(input) / 255.0f;
-						float ng = readByte(input) / 255.0f;
-						float nb = readByte(input) / 255.0f;
-						float nr2 = readByte(input) / 255.0f;
-						float ng2 = readByte(input) / 255.0f;
-						float nb2 = readByte(input) / 255.0f;
+						float nr = readByte(input) / 255.0;
+						float ng = readByte(input) / 255.0;
+						float nb = readByte(input) / 255.0;
+						float nr2 = readByte(input) / 255.0;
+						float ng2 = readByte(input) / 255.0;
+						float nb2 = readByte(input) / 255.0;
 
 						switch (readSByte(input)) {
 							case CURVE_STEPPED:
@@ -937,12 +993,12 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 					int bezierCount = readVarint(input, true);
 					AlphaTimeline *timeline = new (__FILE__, __LINE__) AlphaTimeline(frameCount, bezierCount, slotIndex);
 					float time = readFloat(input);
-					float a = readByte(input) / 255.0f;
+					float a = readByte(input) / 255.0;
 					for (int frame = 0, bezier = 0;; frame++) {
 						timeline->setFrame(frame, time, a);
 						if (frame == frameLast) break;
 						float time2 = readFloat(input);
-						float a2 = readByte(input) / 255.0f;
+						float a2 = readByte(input) / 255;
 						switch (readSByte(input)) {
 							case CURVE_STEPPED:
 								timeline->setStepped(frame);
@@ -1176,69 +1232,84 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 			for (int iii = 0, nnn = readVarint(input, true); iii < nnn; iii++) {
 				const char *attachmentName = readStringRef(input, skeletonData);
 				Attachment *baseAttachment = skin->getAttachment(slotIndex, String(attachmentName));
-
 				if (!baseAttachment) {
 					ContainerUtil::cleanUpVectorOfPointers(timelines);
 					setError("Attachment not found: ", attachmentName);
 					return NULL;
 				}
-
 				VertexAttachment *attachment = static_cast<VertexAttachment *>(baseAttachment);
-
-				bool weighted = attachment->_bones.size() > 0;
-				Vector<float> &vertices = attachment->_vertices;
-				int deformLength = (int) (weighted ? vertices.size() / 3 * 2 : vertices.size());
-
+				unsigned int timelineType = readByte(input);
 				int frameCount = readVarint(input, true);
 				int frameLast = frameCount - 1;
-				int bezierCount = readVarint(input, true);
-				DeformTimeline *timeline = new (__FILE__, __LINE__) DeformTimeline(frameCount, bezierCount, slotIndex,
-																				   attachment);
 
-				float time = readFloat(input);
-				for (int frame = 0, bezier = 0;; ++frame) {
-					Vector<float> deform;
-					size_t end = (size_t) readVarint(input, true);
-					if (end == 0) {
-						if (weighted) {
-							deform.setSize(deformLength, 0);
-							for (int iiii = 0; iiii < deformLength; ++iiii)
-								deform[iiii] = 0;
-						} else {
-							deform.clearAndAddAll(vertices);
-						}
-					} else {
-						deform.setSize(deformLength, 0);
-						size_t start = (size_t) readVarint(input, true);
-						end += start;
-						if (scale == 1) {
-							for (size_t v = start; v < end; ++v)
-								deform[v] = readFloat(input);
-						} else {
-							for (size_t v = start; v < end; ++v)
-								deform[v] = readFloat(input) * scale;
+				switch (timelineType) {
+					case ATTACHMENT_DEFORM: {
+						bool weighted = attachment->_bones.size() > 0;
+						Vector<float> &vertices = attachment->_vertices;
+						int deformLength = weighted ? (int) vertices.size() / 3 * 2 : (int) vertices.size();
+
+						int bezierCount = readVarint(input, true);
+						DeformTimeline *timeline = new (__FILE__, __LINE__) DeformTimeline(frameCount, bezierCount, slotIndex,
+																						   attachment);
+
+						float time = readFloat(input);
+						for (int frame = 0, bezier = 0;; ++frame) {
+							Vector<float> deform;
+							size_t end = (size_t) readVarint(input, true);
+							if (end == 0) {
+								if (weighted) {
+									deform.setSize(deformLength, 0);
+									for (int iiii = 0; iiii < deformLength; ++iiii)
+										deform[iiii] = 0;
+								} else {
+									deform.clearAndAddAll(vertices);
+								}
+							} else {
+								deform.setSize(deformLength, 0);
+								size_t start = (size_t) readVarint(input, true);
+								end += start;
+								if (scale == 1) {
+									for (size_t v = start; v < end; ++v)
+										deform[v] = readFloat(input);
+								} else {
+									for (size_t v = start; v < end; ++v)
+										deform[v] = readFloat(input) * scale;
+								}
+
+								if (!weighted) {
+									for (size_t v = 0, vn = deform.size(); v < vn; ++v)
+										deform[v] += vertices[v];
+								}
+							}
+
+							timeline->setFrame(frame, time, deform);
+							if (frame == frameLast) break;
+							float time2 = readFloat(input);
+							switch (readSByte(input)) {
+								case CURVE_STEPPED:
+									timeline->setStepped(frame);
+									break;
+								case CURVE_BEZIER:
+									setBezier(input, timeline, bezier++, frame, 0, time, time2, 0, 1, 1);
+							}
+							time = time2;
 						}
 
-						if (!weighted) {
-							for (size_t v = 0, vn = deform.size(); v < vn; ++v)
-								deform[v] += vertices[v];
-						}
+						timelines.add(timeline);
+						break;
 					}
-
-					timeline->setFrame(frame, time, deform);
-					if (frame == frameLast) break;
-					float time2 = readFloat(input);
-					switch (readSByte(input)) {
-						case CURVE_STEPPED:
-							timeline->setStepped(frame);
-							break;
-						case CURVE_BEZIER:
-							setBezier(input, timeline, bezier++, frame, 0, time, time2, 0, 1, 1);
+					case ATTACHMENT_SEQUENCE: {
+						SequenceTimeline *timeline = new (__FILE__, __LINE__) SequenceTimeline(frameCount, slotIndex, attachment);
+						for (int frame = 0; frame < frameCount; frame++) {
+							float time = readFloat(input);
+							int modeAndIndex = readInt(input);
+							float delay = readFloat(input);
+							timeline->setFrame(frame, time, (spine::SequenceMode)(modeAndIndex & 0xf), modeAndIndex >> 4, delay);
+						}
+						timelines.add(timeline);
+						break;
 					}
-					time = time2;
 				}
-
-				timelines.add(timeline);
 			}
 		}
 	}
@@ -1265,15 +1336,15 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 				size_t slotIndex = (size_t) readVarint(input, true);
 				// Collect unchanged items.
 				while (originalIndex != slotIndex)
-					unchanged[unchangedIndex++] = (int) (originalIndex++);
+					unchanged[unchangedIndex++] = (int) originalIndex++;
 				// Set changed items.
 				size_t index = originalIndex;
-				drawOrder[index + (size_t) readVarint(input, true)] = (int) (originalIndex++);
+				drawOrder[index + (size_t) readVarint(input, true)] = (int) originalIndex++;
 			}
 
 			// Collect remaining unchanged items.
 			while (originalIndex < slotCount) {
-				unchanged[unchangedIndex++] = (int) (originalIndex++);
+				unchanged[unchangedIndex++] = (int) originalIndex++;
 			}
 
 			// Fill in unchanged items.

@@ -27,64 +27,72 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#include "spine/Event.h"
+#ifndef Spine_Sequence_h
+#define Spine_Sequence_h
 
-#include "spine/EventData.h"
+#include "spine/Vector.h"
+#include "spine/SpineString.h"
+#include "spine/TextureRegion.h"
 
-spine::Event::Event(float time, const spine::EventData &data) : _data(data),
-																_time(time),
-																_intValue(0),
-																_floatValue(0),
-																_stringValue(),
-																_volume(1),
-																_balance(0) {
+namespace spine {
+	class Slot;
+
+	class Attachment;
+
+	class SkeletonBinary;
+	class SkeletonJson;
+
+	class SP_API Sequence : public SpineObject {
+		friend class SkeletonBinary;
+		friend class SkeletonJson;
+	public:
+		Sequence(int count);
+
+		~Sequence();
+
+		Sequence *copy();
+
+		void apply(Slot *slot, Attachment *attachment);
+
+		String getPath(const String &basePath, int index);
+
+		int getId() { return _id; }
+
+		void setId(int id) { _id = id; }
+
+		int getStart() { return _start; }
+
+		void setStart(int start) { _start = start; }
+
+		int getDigits() { return _digits; }
+
+		void setDigits(int digits) { _digits = digits; }
+
+		int getSetupIndex() { return _setupIndex; }
+
+		void setSetupIndex(int setupIndex) { _setupIndex = setupIndex; }
+
+		Vector<TextureRegion *> &getRegions() { return _regions; }
+
+	private:
+		int _id;
+		Vector<TextureRegion *> _regions;
+		int _start;
+		int _digits;
+		int _setupIndex;
+
+		int getNextID();
+	};
+
+	enum SequenceMode {
+		hold = 0,
+		once = 1,
+		loop = 2,
+		pingpong = 3,
+		onceReverse = 4,
+		loopReverse = 5,
+		pingpongReverse = 6
+	};
 }
 
-const spine::EventData &spine::Event::getData() {
-	return _data;
-}
-
-float spine::Event::getTime() {
-	return _time;
-}
-
-int spine::Event::getIntValue() {
-	return _intValue;
-}
-
-void spine::Event::setIntValue(int inValue) {
-	_intValue = inValue;
-}
-
-float spine::Event::getFloatValue() {
-	return _floatValue;
-}
-
-void spine::Event::setFloatValue(float inValue) {
-	_floatValue = inValue;
-}
-
-const spine::String &spine::Event::getStringValue() {
-	return _stringValue;
-}
-
-void spine::Event::setStringValue(const spine::String &inValue) {
-	_stringValue = inValue;
-}
-
-
-float spine::Event::getVolume() {
-	return _volume;
-}
-
-void spine::Event::setVolume(float inValue) {
-	_volume = inValue;
-}
-
-float spine::Event::getBalance() {
-	return _balance;
-}
-
-void spine::Event::setBalance(float inValue) {
-	_balance = inValue;
-}
+#endif

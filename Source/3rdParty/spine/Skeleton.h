@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -172,8 +172,6 @@ namespace spine {
 		/// @return May be NULL.
 		PathConstraint *findPathConstraint(const String &constraintName);
 
-		void update(float delta);
-
 		/// Returns the axis aligned bounding box (AABB) of the region and mesh attachments for the current pose.
 		/// @param outX The horizontal distance between the skeleton origin and the left side of the AABB.
 		/// @param outY The vertical distance between the skeleton origin and the bottom side of the AABB.
@@ -204,10 +202,6 @@ namespace spine {
 
 		Color &getColor();
 
-		float getTime();
-
-		void setTime(float inValue);
-
 		void setPosition(float x, float y);
 
 		float getX();
@@ -237,7 +231,6 @@ namespace spine {
 		Vector<Updatable *> _updateCache;
 		Skin *_skin;
 		Color _color;
-		float _time;
 		float _scaleX, _scaleY;
 		float _x, _y;
 

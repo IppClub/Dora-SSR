@@ -816,9 +816,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexAttachment.cpp">
       <Filter>3rdParty\spine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexEffect.cpp">
-      <Filter>3rdParty\spine</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\spine\ClippingAttachment.cpp">
       <Filter>3rdParty\spine</Filter>
     </ClCompile>
@@ -1415,6 +1412,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp">
       <Filter>Wasm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Sequence.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SequenceTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2211,9 +2214,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\spine\VertexAttachment.h">
       <Filter>3rdParty\spine</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\spine\VertexEffect.h">
-      <Filter>3rdParty\spine</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Vertices.h">
       <Filter>3rdParty\spine</Filter>
     </ClInclude>
@@ -2936,6 +2936,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Wasm\WasmRuntime.h">
       <Filter>Wasm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Sequence.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SequenceTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TextureRegion.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Version.h">
+      <Filter>3rdParty\spine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

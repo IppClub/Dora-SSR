@@ -1005,6 +1005,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Sequence.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SequenceTimeline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\spine\ShearTimeline.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -1082,10 +1090,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexAttachment.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexEffect.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -1654,6 +1658,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\spine\RotateTimeline.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\RTTI.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\ScaleTimeline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Sequence.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SequenceTimeline.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\ShearTimeline.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Skeleton.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonBinary.h" />
@@ -1669,6 +1675,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\spine\SpineObject.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\SpineString.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\TextureLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TextureRegion.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Timeline.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraint.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraintData.h" />
@@ -1678,8 +1685,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Triangulator.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Updatable.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Vector.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Version.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\VertexAttachment.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\spine\VertexEffect.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Vertices.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\sqlite\sqlite3.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Assertion.h" />

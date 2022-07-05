@@ -27,64 +27,47 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#include "spine/Event.h"
+#ifndef Spine_SequenceTimeline_h
+#define Spine_SequenceTimeline_h
 
-#include "spine/EventData.h"
+#include "spine/Timeline.h"
+#include "spine/Sequence.h"
 
-spine::Event::Event(float time, const spine::EventData &data) : _data(data),
-																_time(time),
-																_intValue(0),
-																_floatValue(0),
-																_stringValue(),
-																_volume(1),
-																_balance(0) {
+namespace spine {
+	class Attachment;
+
+	class SP_API SequenceTimeline : public Timeline {
+		friend class SkeletonBinary;
+
+		friend class SkeletonJson;
+
+	RTTI_DECL
+
+	public:
+		explicit SequenceTimeline(size_t frameCount, int slotIndex, spine::Attachment *attachment);
+
+		virtual ~SequenceTimeline();
+
+		virtual void
+		apply(Skeleton &skeleton, float lastTime, float time, Vector<Event *> *pEvents, float alpha, MixBlend blend,
+			  MixDirection direction);
+
+		void setFrame(int frame, float time, SequenceMode mode, int index, float delay);
+
+		int getSlotIndex() { return _slotIndex; };
+
+		void setSlotIndex(int inValue) { _slotIndex = inValue; }
+
+		Attachment *getAttachment() { return _attachment; }
+
+	protected:
+		int _slotIndex;
+		Attachment *_attachment;
+
+		static const int ENTRIES = 3;
+		static const int MODE = 1;
+		static const int DELAY = 2;
+	};
 }
 
-const spine::EventData &spine::Event::getData() {
-	return _data;
-}
-
-float spine::Event::getTime() {
-	return _time;
-}
-
-int spine::Event::getIntValue() {
-	return _intValue;
-}
-
-void spine::Event::setIntValue(int inValue) {
-	_intValue = inValue;
-}
-
-float spine::Event::getFloatValue() {
-	return _floatValue;
-}
-
-void spine::Event::setFloatValue(float inValue) {
-	_floatValue = inValue;
-}
-
-const spine::String &spine::Event::getStringValue() {
-	return _stringValue;
-}
-
-void spine::Event::setStringValue(const spine::String &inValue) {
-	_stringValue = inValue;
-}
-
-
-float spine::Event::getVolume() {
-	return _volume;
-}
-
-void spine::Event::setVolume(float inValue) {
-	_volume = inValue;
-}
-
-float spine::Event::getBalance() {
-	return _balance;
-}
-
-void spine::Event::setBalance(float inValue) {
-	_balance = inValue;
-}
+#endif /* Spine_SequenceTimeline_h */
