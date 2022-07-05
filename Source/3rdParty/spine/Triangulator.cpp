@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -27,10 +27,6 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifdef SPINE_UE4
-#include "SpinePluginPrivatePCH.h"
-#endif
-
 #include "spine/Triangulator.h"
 
 #include "spine/MathUtil.h"
@@ -49,15 +45,15 @@ Vector<int> &Triangulator::triangulate(Vector<float> &vertices) {
 	indices.clear();
 	indices.ensureCapacity(vertexCount);
 	indices.setSize(vertexCount, 0);
-	for (size_t i = 0; i < vertexCount; ++i) {
-		indices[i] = (int) i;
+	for (int i = 0; i < (int) vertexCount; ++i) {
+		indices[i] = i;
 	}
 
 	Vector<bool> &isConcaveArray = _isConcaveArray;
 	isConcaveArray.ensureCapacity(vertexCount);
 	isConcaveArray.setSize(vertexCount, 0);
-	for (size_t i = 0, n = vertexCount; i < n; ++i) {
-		isConcaveArray[i] = isConcave((int) i, (int) vertexCount, vertices, indices);
+	for (int i = 0, n = (int) vertexCount; i < n; ++i) {
+		isConcaveArray[i] = isConcave(i, (int) vertexCount, vertices, indices);
 	}
 
 	Vector<int> &triangles = _triangles;
@@ -113,8 +109,8 @@ Vector<int> &Triangulator::triangulate(Vector<float> &vertices) {
 		isConcaveArray.removeAt(i);
 		vertexCount--;
 
-		int previousIndex = (int) (vertexCount + i - 1) % vertexCount;
-		int nextIndex = i == vertexCount ? 0 : (int) i;
+		int previousIndex = (int) ((vertexCount + i - 1) % vertexCount);
+		int nextIndex = (int) (i == vertexCount ? 0 : i);
 		isConcaveArray[previousIndex] = isConcave(previousIndex, (int) vertexCount, vertices, indices);
 		isConcaveArray[nextIndex] = isConcave(nextIndex, (int) vertexCount, vertices, indices);
 	}

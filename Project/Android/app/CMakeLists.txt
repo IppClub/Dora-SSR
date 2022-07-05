@@ -188,6 +188,8 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/spine/Timeline.cpp
 	src/main/cpp/3rdParty/spine/SkeletonBinary.cpp
 	src/main/cpp/3rdParty/spine/ScaleTimeline.cpp
+	src/main/cpp/3rdParty/spine/Sequence.cpp
+	src/main/cpp/3rdParty/spine/SequenceTimeline.cpp
 	src/main/cpp/3rdParty/spine/LinkedMesh.cpp
 	src/main/cpp/3rdParty/spine/PointAttachment.cpp
 	src/main/cpp/3rdParty/spine/RegionAttachment.cpp
@@ -216,7 +218,6 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/spine/SlotData.cpp
 	src/main/cpp/3rdParty/spine/ShearTimeline.cpp
 	src/main/cpp/3rdParty/spine/ColorTimeline.cpp
-	src/main/cpp/3rdParty/spine/VertexEffect.cpp
 	src/main/cpp/3rdParty/fmt/os.cpp
 	src/main/cpp/3rdParty/fmt/format.cpp
 	src/main/cpp/3rdParty/imgui/imgui_widgets.cpp

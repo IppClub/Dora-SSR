@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -59,6 +59,8 @@ namespace spine {
 
 	class String;
 
+	class Sequence;
+
 	class SP_API SkeletonJson : public SpineObject {
 	public:
 		explicit SkeletonJson(Atlas *atlas);
@@ -81,6 +83,8 @@ namespace spine {
 		float _scale;
 		const bool _ownsLoader;
 		String _error;
+
+		static Sequence *readSequence(Json *sequence);
 
 		static void
 		setBezier(CurveTimeline *timeline, int frame, int value, int bezier, float time1, float value1, float cx1,

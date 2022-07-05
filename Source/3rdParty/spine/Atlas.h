@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Last updated September 24, 2021. Replaces all prior versions.
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2021, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -35,6 +35,7 @@
 #include "spine/SpineObject.h"
 #include "spine/SpineString.h"
 #include "spine/HasRendererObject.h"
+#include "TextureRegion.h"
 
 namespace spine {
 	enum Format {
@@ -47,7 +48,15 @@ namespace spine {
 		Format_RGBA8888
 	};
 
-	enum TextureFilter {
+	// Our TextureFilter collides with UE4's TextureFilter in unity builds. We rename
+	// TextureFilter to SpineTextureFilter in UE4.
+#ifdef SPINE_UE4
+	#define TEXTURE_FILTER_ENUM SpineTextureFilter
+#else
+	#define TEXTURE_FILTER_ENUM TextureFilter
+#endif
+
+	enum TEXTURE_FILTER_ENUM {
 		TextureFilter_Unknown,
 		TextureFilter_Nearest,
 		TextureFilter_Linear,
@@ -69,8 +78,8 @@ namespace spine {
 		String name;
 		String texturePath;
 		Format format;
-		TextureFilter minFilter;
-		TextureFilter magFilter;
+		TEXTURE_FILTER_ENUM minFilter;
+		TEXTURE_FILTER_ENUM magFilter;
 		TextureWrap uWrap;
 		TextureWrap vWrap;
 		int width, height;
@@ -83,16 +92,12 @@ namespace spine {
 		}
 	};
 
-	class SP_API AtlasRegion : public SpineObject {
+	class SP_API AtlasRegion : public TextureRegion {
 	public:
 		AtlasPage *page;
 		String name;
-		int x, y, width, height;
-		float u, v, u2, v2;
-		float offsetX, offsetY;
-		int originalWidth, originalHeight;
 		int index;
-		int degrees;
+		int x, y;
 		Vector<int> splits;
 		Vector<int> pads;
 		Vector <String> names;

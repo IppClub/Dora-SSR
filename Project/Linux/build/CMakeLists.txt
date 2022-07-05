@@ -193,6 +193,8 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/spine/Timeline.cpp
 	../../../Source/3rdParty/spine/SkeletonBinary.cpp
 	../../../Source/3rdParty/spine/ScaleTimeline.cpp
+	../../../Source/3rdParty/spine/Sequence.cpp
+	../../../Source/3rdParty/spine/SequenceTimeline.cpp	
 	../../../Source/3rdParty/spine/LinkedMesh.cpp
 	../../../Source/3rdParty/spine/PointAttachment.cpp
 	../../../Source/3rdParty/spine/RegionAttachment.cpp
@@ -221,7 +223,6 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/spine/SlotData.cpp
 	../../../Source/3rdParty/spine/ShearTimeline.cpp
 	../../../Source/3rdParty/spine/ColorTimeline.cpp
-	../../../Source/3rdParty/spine/VertexEffect.cpp
 	../../../Source/3rdParty/fmt/os.cpp
 	../../../Source/3rdParty/fmt/format.cpp
 	../../../Source/3rdParty/imgui/imgui_widgets.cpp
