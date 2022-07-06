@@ -8,6 +8,11 @@
 #ifndef m3_exec_h
 #define m3_exec_h
 
+#if defined(_MSC_VER)
+#pragma warning(disable : 4002)
+#pragma warning(disable : 4003)
+#endif /* defined(_MSC_VER) */
+
 // TODO: all these functions could move over to the .c at some point. normally, I'd say screw it,
 // but it might prove useful to be able to compile m3_exec alone w/ optimizations while the remaining
 // code is at debug O0

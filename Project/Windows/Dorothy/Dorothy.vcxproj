@@ -1903,7 +1903,7 @@
       <ObjectFileName>$(IntDir)\_1\_2\_3\%(RelativeDir)\</ObjectFileName>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:__cplusplus /wd4244 /wd4996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1948,7 +1948,7 @@ xcopy /Y /Q "$(SolutionDir)..\..\Source\3rdParty\SDL2\Lib\Windows\SDL2.dll" "$(O
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ObjectFileName>$(IntDir)\_1\_2\_3\%(RelativeDir)\</ObjectFileName>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:__cplusplus /wd4244 /wd4996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
