@@ -220,23 +220,25 @@ loadFuncs = nil
 loadData = (data, item)->
 	loadFuncs[data[1]] data, item
 
+toDef = (data)-> with BodyDef!
+	.type = data.type
+	.bullet = data.bullet
+	.linearAcceleration = data.linearAcceleration
+	.fixedRotation = data.fixedRotation
+	.linearDamping = data.linearDamping
+	.angularDamping = data.angularDamping
+	.position = data.position
+	.angle = data.angle
+	.face = data.face
+	.facePos = data.facePos
+
 loadFuncs =
 	"Array": (data, itemDict)->
 		for i = 1, data\count!
 			loadData data\get(i), itemDict
 
 	"Phyx.Rect": (data, itemDict)->
-		bodyDef = with BodyDef!
-			.type = data.type
-			.bullet = data.bullet
-			.linearAcceleration = data.linearAcceleration
-			.fixedRotation = data.fixedRotation
-			.linearDamping = data.linearDamping
-			.angularDamping = data.angularDamping
-			.position = data.position
-			.angle = data.angle
-			.face = data.face
-			.facePos = data.facePos
+		bodyDef = toDef data
 		:width, :height = data.size
 		if data.sensor
 			bodyDef\attachPolygonSensor data.sensorTag, width, height, data.center
@@ -251,17 +253,7 @@ loadFuncs =
 		itemDict[data.name] = bodyDef
 
 	"Phyx.Disk": (data, itemDict)->
-		bodyDef = with BodyDef!
-			.type = data.type
-			.bullet = data.bullet
-			.linearAcceleration = data.linearAcceleration
-			.fixedRotation = data.fixedRotation
-			.linearDamping = data.linearDamping
-			.angularDamping = data.angularDamping
-			.position = data.position
-			.angle = data.angle
-			.face = data.face
-			.facePos = data.facePos
+		bodyDef = toDef data
 		if data.sensor
 			bodyDef\attachDiskSensor data.sensorTag, data.center, data.radius
 		else
@@ -275,22 +267,12 @@ loadFuncs =
 		itemDict[data.name] = bodyDef
 
 	"Phyx.Poly": (data, itemDict)->
-		bodyDef = with BodyDef!
-			.type = data.type
-			.bullet = data.bullet
-			.linearAcceleration = data.linearAcceleration
-			.fixedRotation = data.fixedRotation
-			.linearDamping = data.linearDamping
-			.angularDamping = data.angularDamping
-			.position = data.position
-			.angle = data.angle
-			.face = data.face
-			.facePos = data.facePos
+		bodyDef = toDef data
 		if data.sensor
 			bodyDef\attachPolygonSensor data.sensorTag, data.vertices\toArray!
 		else
 			bodyDef\attachPolygon(
-				data.vertices\toArray!,
+				data.vertices\toArray!
 				data.density, data.friction, data.restitution
 			)
 		if subShapes = data.subShapes
@@ -299,17 +281,7 @@ loadFuncs =
 		itemDict[data.name] = bodyDef
 
 	"Phyx.Chain": (data, itemDict)->
-		bodyDef = with BodyDef!
-			.type = data.type
-			.bullet = data.bullet
-			.linearAcceleration = data.linearAcceleration
-			.fixedRotation = data.fixedRotation
-			.linearDamping = data.linearDamping
-			.angularDamping = data.angularDamping
-			.position = data.position
-			.angle = data.angle
-			.face = data.face
-			.facePos = data.facePos
+		bodyDef = toDef data
 		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
 		if subShapes = data.subShapes
 			for i = 1, subShapes\count!
