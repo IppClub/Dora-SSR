@@ -278,7 +278,7 @@ impl Vector {
 
 fn none_type(_: i64) -> Option<Box<dyn Object>> { None }
 
-static mut OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| {
+static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| {
 	let mut map: Vec<fn(i64) -> Option<Box<dyn Object>>> = Vec::new();
 	let type_funcs = [
 		Node::type_info(),
