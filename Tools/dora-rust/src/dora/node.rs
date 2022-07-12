@@ -1,6 +1,6 @@
 use std::any::Any;
 use dora::object_macro;
-use crate::dora::{Object, Vec2, Array, Dictionary, CallStack, from_string, to_string, push_function, object_release};
+use crate::dora::{Object, Vec2, Array, Dictionary, CallStack, from_string, to_string, push_function, object_retain, object_release};
 
 extern "C" {
 	fn node_type() -> i32;
@@ -58,7 +58,7 @@ pub trait INode: Object {
 		}));
 		unsafe { node_schedule(self.raw(), func_id, stack_raw); }
 	}
-	fn emit(&mut self, name: &str, stack: &CallStack) {
+	fn emit(&mut self, name: &str, stack: CallStack) {
 		unsafe { node_emit(self.raw(), from_string(name), stack.raw()); }
 	}
 	fn slot(&mut self, name: &str, mut func: Box<dyn FnMut(&mut CallStack)>) {
