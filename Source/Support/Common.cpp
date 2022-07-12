@@ -18,9 +18,9 @@ b(255)
 { }
 
 Color3::Color3(uint32_t rgb):
-r((rgb & 0x00FF0000) >> 16),
-g((rgb & 0x0000FF00) >> 8),
-b(rgb & 0x000000FF)
+r((rgb & 0x00ff0000) >> 16),
+g((rgb & 0x0000ff00) >> 8),
+b(rgb & 0x000000ff)
 { }
 
 Color3::Color3(uint8_t r, uint8_t g, uint8_t b):

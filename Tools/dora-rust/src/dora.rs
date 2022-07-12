@@ -12,6 +12,7 @@ pub use director::Director;
 extern "C" {
 	fn object_get_id(obj: i64) -> i32;
 	fn object_get_type(obj: i64) -> i32;
+	fn object_retain(obj: i64);
 	fn object_release(obj: i64);
 
 	fn str_new(len: i32) -> i64;
@@ -91,6 +92,7 @@ extern "C" {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[derive(PartialEq)]
 pub struct Vec2 {
 	pub x: f32,
 	pub y: f32
@@ -100,13 +102,20 @@ impl Vec2 {
 	pub fn from(value: i64) -> Vec2 {
 		unsafe { LightValue { value: value }.vec2 }
 	}
+	pub fn zero() -> Vec2 {
+		Vec2 { x: 0.0, y: 0.0 }
+	}
 	pub fn into_i64(&self) -> i64 {
 		unsafe { LightValue { vec2: *self }.value }
+	}
+	pub fn is_zero(&self) -> bool {
+		self.x == 0.0 && self.y == 0.0
 	}
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[derive(PartialEq)]
 pub struct Size {
 	pub width: f32,
 	pub height: f32
@@ -116,8 +125,14 @@ impl Size {
 	pub fn from(value: i64) -> Size {
 		unsafe { LightValue { value: value }.size }
 	}
+	pub fn zero() -> Size {
+		Size { width: 0.0, height: 0.0 }
+	}
 	pub fn into_i64(&self) -> i64 {
 		unsafe { LightValue { size: *self }.value }
+	}
+	pub fn is_zero(&self) -> bool {
+		self.width == 0.0 && self.height == 0.0
 	}
 }
 
@@ -126,6 +141,76 @@ union LightValue {
 	vec2: Vec2,
 	size: Size,
 	value: i64,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Color {
+	pub r: u8,
+	pub g: u8,
+	pub b: u8,
+	pub a: u8
+}
+
+#[repr(C)]
+union ColorValue {
+	color: Color,
+	value: i32,
+}
+
+impl Color {
+	pub fn new(argb: u32) -> Color {
+		let a = argb >> 24;
+		let r = (argb & 0x00ff0000) >> 16;
+		let g = (argb & 0x0000ff00) >> 8;
+		let b = argb & 0x000000ff;
+		Color { r: r as u8, g: g as u8, b: b as u8, a: a as u8 }
+	}
+	pub fn from(agbr: i32) -> Color {
+		unsafe { ColorValue{ value: agbr }.color }
+	}
+	pub fn to_argb(&self) -> u32 {
+		(self.a as u32) << 24 | (self.r as u32) << 16 | (self.g as u32) << 8 | self.b as u32
+	}
+	pub fn to_color3(&self) -> Color3 {
+		Color3 { r: self.r, g: self.g, b: self.b }
+	}
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Color3 {
+	pub r: u8,
+	pub g: u8,
+	pub b: u8
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct Color3a {
+	color3: Color3,
+	a: u8
+}
+
+#[repr(C)]
+union Color3Value {
+	color3a: Color3a,
+	value: i32,
+}
+
+impl Color3 {
+	pub fn new(rgb: u32) -> Color3 {
+		let r = (rgb & 0x00ff0000) >> 16;
+		let g = (rgb & 0x0000ff00) >> 8;
+		let b = rgb & 0x000000ff;
+		Color3 { r: r as u8, g: g as u8, b: b as u8 }
+	}
+	pub fn from(gbr: i32) -> Color3 {
+		unsafe { Color3Value { value: gbr }.color3a.color3 }
+	}
+	pub fn to_rgb(&self) -> u32 {
+		(self.r as u32) << 16 | (self.g as u32) << 8 | self.b as u32
+	}
 }
 
 fn to_string(str: i64) -> String {
@@ -522,6 +607,9 @@ impl Value {
 				Some(Size::from(value_into_size(self.raw)))
 			} else { None }
 		}
+	}
+	pub fn cast<T: Clone + 'static>(&self) -> Option<T> {
+		Some(self.into_object()?.as_any().downcast_ref::<T>()?.clone())
 	}
 }
 

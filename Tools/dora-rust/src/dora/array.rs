@@ -1,6 +1,6 @@
 use std::any::Any;
 use dora::object_macro;
-use crate::dora::{Object, IntoValue, Value, object_release};
+use crate::dora::{Object, IntoValue, Value, object_retain, object_release};
 
 extern "C" {
 	fn array_type() -> i32;

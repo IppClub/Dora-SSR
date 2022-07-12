@@ -158,6 +158,11 @@ static int32_t object_get_type(int64_t obj)
 	return 0;
 }
 
+static void object_retain(int64_t obj)
+{
+	r_cast<Object*>(obj)->retain();
+}
+
 static void object_release(int64_t obj)
 {
 	r_cast<Object*>(obj)->release();
@@ -862,6 +867,7 @@ static void linkDoraModule(wasm3::module& mod)
 
 	mod.link_optional("*", "object_get_id", object_get_id);
 	mod.link_optional("*", "object_get_type", object_get_type);
+	mod.link_optional("*", "object_retain", object_retain);
 	mod.link_optional("*", "object_release", object_release);
 
 	mod.link_optional("*", "value_create_i32", value_create_i32);

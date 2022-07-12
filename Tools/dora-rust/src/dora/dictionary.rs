@@ -1,6 +1,6 @@
 use std::any::Any;
 use dora::object_macro;
-use crate::dora::{Object, IntoValue, Value, Vector, from_string, object_release};
+use crate::dora::{Object, IntoValue, Value, Vector, from_string, object_retain, object_release};
 
 extern "C" {
 	fn dictionary_type() -> i32;
