@@ -28,18 +28,18 @@ fn main() {
 	let children = entry.get_children().unwrap();
 	println!("children len: {}", children.len());
 
-	node.emit("Event", &args!(1, "dsd", true));
+	node.emit("Event", args!(1, "dsd", true));
 
 	let mut arr = Array::new();
 	arr.add(node.obj());
-	if let Some(a) = arr.get(0).unwrap().into_object().unwrap().as_any_mut().downcast_mut::<Node>() {
-		a.emit("Event", &args!(2, "xyz", false));
+	if let Some(mut a) = arr.get(0).unwrap().cast::<Node>() {
+		a.emit("Event", args!(2, "xyz", false));
 	}
 
 	let mut userdata = node.get_userdata();
 	userdata.set("key123", arr.obj());
 	let keys = userdata.get_keys();
 	for i in 0 .. keys.len() {
-		println!("k: {}", keys[i]);
+		println!("k: {}, v: {}", keys[i], userdata.get("key123").unwrap().cast::<Array>().unwrap().raw());
 	}
 }

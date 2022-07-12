@@ -92,7 +92,7 @@ struct Rect
 	void setUpperBound(const Vec2& upperBound);
 	Vec2 getUpperBound() const;
 	void set(float x, float y, float width, float height);
-    bool containsPoint(const Vec2& point) const;
+	bool containsPoint(const Vec2& point) const;
 	bool intersectsRect(const Rect& rect) const;
 	static const Rect zero;
 };

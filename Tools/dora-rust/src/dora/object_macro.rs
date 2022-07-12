@@ -17,6 +17,12 @@ pub fn derive_object(input: TokenStream) -> TokenStream {
 		impl Drop for #name {
 			fn drop(&mut self) { unsafe { object_release(self.raw); } }
 		}
+		impl Clone for #name {
+			fn clone(&self) -> #name {
+				unsafe { object_retain(self.raw); }
+				#name { raw: self.raw }
+			}
+		}
 		impl #name {
 			pub fn from(raw: i64) -> Option<#name> {
 				match raw {
