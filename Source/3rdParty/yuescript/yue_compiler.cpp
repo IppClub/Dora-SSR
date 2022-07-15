@@ -56,7 +56,7 @@ using namespace parserlib;
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.13.4"sv;
+const std::string_view version = "0.13.6"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -2012,7 +2012,7 @@ private:
 				pairs.push_back({
 					p.target,
 					p.targetVar,
-					".#"s + sep + p.structure,
+					".#"s + (p.structure.empty() ? Empty : sep + p.structure),
 					p.defVal
 				});
 			}
@@ -7169,7 +7169,7 @@ private:
 					temp.push_back(indent() + "local "s + tabCheckVar + " = \"table\" == "s + globalVar("type", branch) + '(' + objVar + ')' + nll(branch));
 				}
 				std::string matchVar;
-				bool lastBranch = branches.back() == branch_;
+				bool lastBranch = branches.back() == branch_ && !switchNode->lastBranch;
 				if (!lastBranch) {
 					matchVar = getUnusedName("_match_");
 					forceAddToScope(matchVar);
@@ -7232,8 +7232,12 @@ private:
 			}
 		}
 		if (switchNode->lastBranch) {
-			temp.push_back(indent() + "else"s + nll(switchNode->lastBranch));
-			pushScope();
+			if (!firstBranch) {
+				temp.push_back(indent() + "else"s + nll(switchNode->lastBranch));
+				pushScope();
+			} else {
+				addScope--;
+			}
 			transform_plain_body(switchNode->lastBranch, temp, usage, assignList);
 			popScope();
 		}
