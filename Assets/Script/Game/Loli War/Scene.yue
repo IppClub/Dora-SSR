@@ -20,11 +20,10 @@ store:Store = Data
 
 GameWorld = Class PlatformWorld,
 	__init:=>
-		@entity = with Entity!
-			.world = @
+		Entity world: @
 
 		@slot "Cleanup", ->
-			@entity\destroy!
+			Group{"world"}\each => @destroy!
 			Content\removeSearchPath "Script/Game/Loli War"
 
 	buildBackground: =>
@@ -107,12 +106,12 @@ GameWorld = Class PlatformWorld,
 
 	buildCastles: =>
 		Block = (block,group,look,x,y)->
-			with Entity!
-				.block = "Block#{block}"
-				.group = group
-				.layer = LayerBlock
-				.look = look
-				.position = Vec2 x,y
+			Entity
+				block: "Block#{block}"
+				:group
+				layer: LayerBlock
+				:look
+				position: Vec2 x,y
 
 		-- Player's castle 1
 		Block "C",GroupPlayerBlock,"gray",419,1004-280
@@ -183,12 +182,12 @@ GameWorld = Class PlatformWorld,
 
 	buildSwitches: =>
 		Switch = (switchType,group,look,x,y)->
-			with Entity!
-				.switch = switchType
-				.group = group
-				.look = look
-				.layer = LayerSwitch
-				.position = Vec2 x,y
+			Entity
+				switch: switchType
+				:group
+				:look
+				layer: LayerSwitch
+				position: Vec2 x,y
 
 		Switch "Switch",GroupPlayer,"normal",777,1004-923
 		Switch "SwitchG",GroupPlayer,"gold",116,1004-923
@@ -205,7 +204,7 @@ GameWorld = Class PlatformWorld,
 					when "SwitchG" then switchGExist = true
 					when "Switch" then switchNExist = true
 		if not switchGExist
-			with Entity!
+			Entity with {}
 				.group = group
 				.bunny,.faceRight,.position = switch group
 					when GroupPlayer then "BunnyG",false,Vec2 216,500
@@ -214,7 +213,7 @@ GameWorld = Class PlatformWorld,
 				.layer = LayerBunny
 				.targetSwitch = "SwitchG"
 		if not switchNExist
-			with Entity!
+			Entity with {}
 				.group = group
 				.bunny,.faceRight,.position = switch group
 					when GroupPlayer then "BunnyG",true,Vec2 677,500

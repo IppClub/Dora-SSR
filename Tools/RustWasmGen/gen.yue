@@ -1,0 +1,306 @@
+#!yue -e
+import "lulpeg"
+import "yue" as :p
+
+lulpeg\global _G
+
+cppTypes =
+	i32: "int32_t"
+	i64: "int64_t"
+	f32: "float"
+	f64: "double"
+
+basicTypes =
+	uint32_t:
+		* "i32"
+		* (name)-> "s_cast<uint32_t>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+	int32_t:
+		* "i32"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+	int:
+		* "i32"
+		* (name)-> "s_cast<int>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+	uint64_t:
+		* "i64"
+		* (name)-> "s_cast<uint64_t>(#{name})"
+		* (name)-> "s_cast<int64_t>(#{name})"
+	int64_t:
+		* "i64"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* (name)-> "s_cast<int64_t>(#{name})"
+	bool:
+		* "i32"
+		* (name)-> "#{name} != 0"
+		* (name)-> "#{name} ? 1 : 0"
+		* "bool"
+		* "bool"
+		* (name)-> "if #{name} { 1 } else { 0 }"
+		* (name)-> "#{name} != 0"
+	float:
+		* "f32"
+		* (name)-> "s_cast<float>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+	double:
+		* "f64"
+		* (name)-> "s_cast<double>(#{name})"
+		* (name)-> "s_cast<double>(#{name})"
+	string:
+		* "i64"
+		* (name)-> "*str_from(#{name}))"
+		* (name)-> "str_retain(#{name})"
+		* "&str"
+		* "String"
+		* (name)-> "to_string(#{name})"
+		* (name)-> "from_string(#{name})"
+	Vec2:
+		* "i64"
+		* (name)-> "into_vec2(#{name})"
+		* (name)-> "from_vec2(#{name})"
+		* "&Vec2"
+		* "Vec2"
+		* (name)-> "#{name}.into_i64()"
+		* (name)-> "Vec2::from(#{name})"
+	Size:
+		* "i64"
+		* (name)-> "into_size(#{name})"
+		* (name)-> "from_size(#{name})"
+		* "&Size"
+		* "Size"
+		* (name)-> "#{name}.into_i64()"
+		* (name)-> "Size::from(#{name})"
+	void: {}
+
+lastPos = 1
+
+Newline = Cmt P"\n", (str, pos)->
+	lastPos = pos
+	true
+
+White = (S" \t" + Newline)^0
+
+AlphaNum = R "az", "AZ", "09", "__"
+
+Name = C R("az", "AZ", "__") * AlphaNum^0
+
+ClassLabel = C P"singleton"
+
+FieldLabel = C P"readonly" + P"common" + P"boolean" + P"static"
+
+MethodLabel = C P"outside"
+
+Type = C R("az", "AZ", "__") * AlphaNum^0 * (White * P"*")^-1
+
+mark = (name) -> (...) -> {name, ...}
+
+Param = P {
+	"Param"
+	Param: V"Func" * White * Name / mark"callback" + Type * White * Name / mark"variable"
+	Func: Ct P"function<" * White * Type * White * P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
+}
+
+Method = (Ct((White * MethodLabel)^1) + Cc false) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")" * White * P";") / mark"method"
+
+Field = (Ct((White * FieldLabel)^1) + Cc false) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * P";" / mark"field"
+
+Class = Ct (Ct(ClassLabel) + Cc false) * White * P"class" * White * Ct(Name * White * (P"@" * White * Name + Cc false) * White * (P":" * White * (P"public")^-1 * White * Name * White + Cc false)) *
+	P"{" *
+		Ct (White * (Method + Field))^0 * White *
+	P"}" * White * P";"
+
+File = Ct (White * Class)^1 * White
+
+codes = ""
+with io.open "Dorothy.h", "r"
+	codes = \read "*a"
+	\close!
+
+result = match File, codes
+
+if not result
+	if lastPos > #codes
+		lastPos = #codes - 1
+
+	line = 1
+	begin = 0
+	for i = 1, #codes
+		break if i > lastPos
+		if codes\sub(i, i) == '\n'
+			line += 1
+			begin = i
+
+	following = codes\sub begin + 1
+	lineStr = following\match("(.-)\n") or following\match ".*$"
+
+	print "#{line}: syntax error:"
+	print lineStr
+else
+	cppBinding = {}
+	cppLink = {}
+	rustExtern = {}
+	rustBinding = {}
+	for cls in *result
+		{clsLabels, clsNames, clsBody} = cls
+		{clsName, clsNewName, clsParent} = clsNames
+		isSingleton = false
+		singletonName = nil
+		if clsLabels
+			for label in *clsLabels
+				switch label
+					when "singleton"
+						isSingleton = true
+						singletonName = "Shared#{clsName}"
+		clsNameL = clsName\lower!
+		cppLink[] = "static void linkDoraModule(wasm3::module& mod)\n{"
+		rustBinding[] = "pub struct #{clsNewName} {"
+		rustBinding[] = if isSingleton
+			"}"
+		else
+			"\traw: i64\n};"
+		rustBinding[] = "impl #{clsNewName} {"
+		rustExtern[] = "extern \"C\" {"
+		for clsItem in *clsBody
+			{itemType} = clsItem
+			switch itemType
+				when "field"
+					{_, labels, dataType, name, newName} = clsItem
+					funcName = table.concat [sub\lower! for sub in name\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					funcNewName = if newName
+						table.concat [sub\lower! for sub in newName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					else
+						funcName
+					isReadonly = false
+					fieldType = "primitive"
+					for label in *labels
+						switch label
+							when "readonly"
+								isReadonly = true
+							when "common", "boolean"
+								fieldType = label
+					if rustType = basicTypes[dataType]
+						{rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom} = rustType
+						cppType = cppTypes[rt]
+						if not isReadonly
+							setFunc = switch fieldType
+								when "primitive"
+									"#{name} = #{cast 'var'}"
+								when "common", "boolean"
+									if dataType == cppType
+										"set#{name\sub(1, 1)\upper!}#{name\sub 2}(var)"
+									else
+										"set#{name\sub(1, 1)\upper!}#{name\sub 2}(#{cast 'var'})"
+							cppSetterName = "#{clsNameL}_set_#{funcName}"
+							rustSetterName = "set_#{funcNewName}"
+							cppLink[] = "\tmod.link_optional(\"*\", \"#{cppSetterName}\", #{cppSetterName});"
+							cppBinding[] = if isSingleton
+								"static void #{cppSetterName}(#{cppType} var)\n{\n\t#{singletonName}.#{setFunc};\n}"
+							else
+								"static void #{cppSetterName}(int64_t self, #{cppType} var)\n{\n\tr_cast<#{clsName}*>(self)->#{setFunc};\n}"
+							rustExtern[] = if isSingleton
+								"\tfn #{cppSetterName}(var: #{rt});"
+							else
+								"\tfn #{cppSetterName}(slf: i64, var: #{rt});"
+							rustBinding[] = if isSingleton
+								"\tfn #{rustSetterName}(var: #{rtTypeIn or rt}) {\n\t\tunsafe { #{clsNameL}_set_#{funcName}(#{rtCast and rtCast('var') or 'var'}) };\n\t}"
+							else
+								"\tfn #{rustSetterName}(&mut self, var: #{rtTypeIn or rt}) {\n\t\tunsafe { #{clsNameL}_set_#{funcName}(self.raw(), #{rtCast and rtCast('var') or 'var'}) };\n\t}"
+						getFunc, prefix = switch fieldType
+							when "primitive"
+								"#{name}", "get"
+							when "common"
+								"get#{name\sub(1, 1)\upper!}#{name\sub 2}()", "get"
+							when "boolean"
+								"is#{name\sub(1, 1)\upper!}#{name\sub 2}()", "is"
+						if dataType == cppType
+							castFrom = (name)-> name
+						cppGetterName = "#{clsNameL}_#{prefix}_#{funcName}"
+						rustGetterName = "#{prefix}_#{funcNewName}"
+						cppLink[] = "\tmod.link_optional(\"*\", \"#{cppGetterName}\", #{cppGetterName});"
+						cppBinding[] = if isSingleton
+							item = castFrom "#{singletonName}.#{getFunc}"
+							"static #{cppType} #{cppGetterName}()\n{\n\treturn #{item};\n}"
+						else
+							item = castFrom "r_cast<#{clsName}*>(self)->#{getFunc}"
+							"static #{cppType} #{cppGetterName}(int64_t self)\n{\n\treturn #{item};\n}"
+						rustExtern[] = if isSingleton
+							"\tfn #{cppGetterName}() -> #{rt};"
+						else
+							"\tfn #{cppGetterName}(slf: i64) -> #{rt};"
+						rustBinding[] = if isSingleton
+							item = "unsafe { #{cppGetterName}() }"
+							"\tfn #{rustGetterName}() -> #{rtTypeOut or rt} {\n\t\treturn #{rtCastFrom and rtCastFrom(item) or item};\n\t}"
+						else
+							item = "unsafe { #{cppGetterName}(self.raw()) }"
+							"\tfn #{rustGetterName}(&self) -> #{rtTypeOut or rt} {\n\t\treturn #{rtCastFrom and rtCastFrom(item) or item};\n\t}"
+					else
+						error "\"#{dataType}\" is not supported."
+				when "method"
+					{_, labels, dataType, name, newName, args} = clsItem
+					funcName = table.concat [sub\lower! for sub in name\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					funcNewName = if newName
+						table.concat [sub\lower! for sub in newName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					else
+						funcName
+					if rustType = basicTypes[dataType]
+						{rt, cast, castFrom, _, rtTypeOut, _, rtCastFrom} = rustType
+						cppType = cppTypes[rt] ?? "void"
+						argItems = for arg in *args
+							{argKind, argType, argName} = arg
+							switch argKind
+								when "variable"
+									if rustTypeA = basicTypes[argType]
+										{rtA, castA, _, rtTypeInA, _, rtCastA} = rustTypeA
+										cppTypeA = cppTypes[rtA]
+										{
+											"#{cppTypeA} #{argName}"
+											(argType == cppTypeA and argName or castA argName)
+											"#{argName}: #{rtA}"
+											"#{argName}: #{rtTypeInA or rtA}"
+											"#{rtCastA and rtCastA(argName) or argName}"
+										}
+									else
+										error "\"#{argType}\" is not supported."
+						argDefs = table.concat [item[1] for item in *argItems], ", "
+						argPass = table.concat [item[2] for item in *argItems], ", "
+						argRtDefs = table.concat [item[3] for item in *argItems], ", "
+						argRtInDefs = table.concat [item[4] for item in *argItems], ", "
+						argRtPass = table.concat [item[5] for item in *argItems], ", "
+						if dataType == cppType
+							castFrom = (name)-> name
+						prefix = if cppType == "void" then "" else "return "
+						cppFuncName = "#{clsNameL}_#{funcName}"
+						rustFuncName = funcNewName
+						cppLink[] = "\tmod.link_optional(\"*\", \"#{cppFuncName}\", #{cppFuncName});"
+						cppBinding[] = if isSingleton
+							item = castFrom "#{singletonName}.#{name}(#{argPass})"
+							"static #{cppType} #{cppFuncName}(#{argDefs})\n{\n\t#{prefix}#{item};\n}"
+						else
+							argDefs = "int64_t self" .. (argDefs ~= "" and ", " or "") .. argDefs
+							item = castFrom "r_cast<#{clsName}*>(self)->#{name}(#{argPass})"
+							"static #{cppType} #{cppFuncName}(#{argDefs})\n{\n\t#{prefix}#{item};\n}"
+						rustExtern[] = if isSingleton
+							"\tfn #{cppFuncName}(#{argRtDefs})#{rt and ' -> ' .. rt or ''};"
+						else
+							argRtDefs = "slf: i64" .. (argRtDefs ~= "" and ", " or "") .. argRtDefs
+							"\tfn #{cppFuncName}(#{argRtDefs})#{rt and ' -> ' .. rt or ''};"
+						rustBinding[] = if isSingleton
+							rtOut = rtTypeOut or rt
+							item = "unsafe { #{cppFuncName}(#{argRtPass}) }"
+							"\tfn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n\t\t#{prefix}#{rtCastFrom and rtCastFrom(item) or item};\n\t}"
+						else
+							rtOut = rtTypeOut or rt
+							argRtInDefs = "&mut self" .. (argRtInDefs ~= "" and ", " or "") .. argRtInDefs
+							argRtPass = "self.raw()" .. (argRtPass ~= "" and ", " or "") .. argRtPass
+							item = "unsafe { #{cppFuncName}(#{argRtPass}) }"
+							"\tfn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n\t\t#{prefix}#{rtCastFrom and rtCastFrom(item) or item};\n\t}"
+					else
+						error "\"#{dataType}\" is not supported."
+		rustExtern[] = "}"
+		rustBinding[] = "}"
+		cppLink[] = "}"
+	print table.concat cppBinding, "\n"
+	print table.concat cppLink, "\n"
+	print table.concat rustExtern, "\n"
+	print table.concat rustBinding, "\n"

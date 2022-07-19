@@ -258,6 +258,12 @@ void Entity::set(int index, Own<Value>&& value)
 	}
 }
 
+void Entity::set(String name, Own<Value>&& value)
+{
+	int index = getIndex(name);
+	Entity::set(index, std::move(value));
+}
+
 void Entity::setNext(int index, Own<Value>&& value)
 {
 	int id = getIndex();

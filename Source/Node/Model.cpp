@@ -400,11 +400,11 @@ void Model::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
+		Node::cleanup();
 		for (const auto& animationGroup : _animationGroups)
 		{
 			animationGroup->animationEnd.Clear();
 		}
-		Node::cleanup();
 	}
 }
 

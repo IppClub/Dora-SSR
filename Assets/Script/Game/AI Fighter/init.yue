@@ -785,22 +785,22 @@ NewFighter = (name, currentSet)->
 					if currentSet == characters[i]
 						charSet = i
 						break
-				with Entity!
-					.unitDef = "fighter"
-					.charSet = charSet
-					.order = PlayerLayer
-					.position = Vec2 -400,400
-					.group = PlayerGroup
-					.faceRight = true
-					.player = true
-					.decisionTree = "AI_PlayerControl"
-				with Entity!
-					.unitDef = "boss"
-					.order = EnemyLayer
-					.position = Vec2 400,400
-					.group = EnemyGroup
-					.faceRight = false
-					.boss = true
+				Entity
+					unitDef: "fighter"
+					charSet: charSet
+					order: PlayerLayer
+					position: Vec2 -400,400
+					group: PlayerGroup
+					faceRight: true
+					player: true
+					decisionTree: "AI_PlayerControl"
+				Entity
+					unitDef: "boss"
+					order: EnemyLayer
+					position: Vec2 400,400
+					group: EnemyGroup
+					faceRight: false
+					boss: true
 				emit "ShowTraining", true
 			NextColumn!
 			if Button "装备完成！", Vec2(200,80)
@@ -915,22 +915,22 @@ Director.ui\addChild with AlignNode isRoot:true
 				return if not .visible
 				for i = 1,#characters
 					char = characters[i]
-					with Entity!
-						.unitDef = "fighter"
-						.charSet = i
-						.order = PlayerLayer
-						.position = Vec2 -600+(i-1)*200,400
-						.group = PlayerGroup
-						.faceRight = true
-						.decisionTree = "AI_Learned"
-						.player = true
-				with Entity!
-					.unitDef = "boss"
-					.order = EnemyLayer
-					.position = Vec2 400,400
-					.group = EnemyGroup
-					.faceRight = false
-					.boss = true
+					Entity
+						unitDef: "fighter"
+						charSet: i
+						order: PlayerLayer
+						position: Vec2 -600 + (i - 1) * 200, 400
+						group: PlayerGroup
+						faceRight: true
+						decisionTree: "AI_Learned"
+						player: true
+				Entity
+					unitDef: "boss"
+					order: EnemyLayer
+					position: Vec2 400,400
+					group: EnemyGroup
+					faceRight: false
+					boss: true
 				emit "ShowSetting", false
 				emit "ShowFight", true
 	switch App.platform

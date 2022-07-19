@@ -151,8 +151,8 @@ local record Node
 	attachIME: function(self: Node)
 	detachIME: function(self: Node)
 
-	gslot: function(self: Node, eventName: string): GSlot
-	gslot: function(self: Node, eventName: string, handler: function())
+	gslot: function(self: Node, eventName: string): {GSlot}
+	gslot: function(self: Node, eventName: string, handler: function()): GSlot
 	slot: function(self: Node, eventName: string): Slot
 	slot: function(self: Node, eventName: string, handler: function())
 	emit: function(self: Node, eventName: string, ...: any)

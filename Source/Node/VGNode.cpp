@@ -49,8 +49,8 @@ void VGNode::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
-		_surface = nullptr;
 		Node::cleanup();
+		_surface = nullptr;
 	}
 }
 

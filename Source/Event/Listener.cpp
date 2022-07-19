@@ -19,7 +19,7 @@ bool Listener::init()
 	return true;
 }
 
-void Listener::setEnabled( bool enable )
+void Listener::setEnabled(bool enable)
 {
 	if (enable)
 	{
@@ -36,7 +36,7 @@ bool Listener::isEnabled() const
 	return _enabled;
 }
 
-void Listener::setHandler( const EventHandler& handler )
+void Listener::setHandler(const EventHandler& handler)
 {
 	_handler = handler;
 }
@@ -51,7 +51,7 @@ void Listener::clearHandler()
 	_handler.Clear();
 }
 
-void Listener::handle( Event* e )
+void Listener::handle(Event* e)
 {
 	if (_handler)
 	{

@@ -441,10 +441,9 @@ local Entity = builtin.Entity
 
 local Entity_create = Entity[2]
 local Entity_cache = {}
-Entity[2] = function(cls)
-	local entity = Entity_create(cls)
-	Entity_cache[entity.index+1] = entity
-	return entity
+Entity[2] = function(cls, coms)
+	local entity = Entity_create(cls, coms)
+	Entity_cache[entity.index + 1] = entity
 end
 
 local Entity_clear = Entity.clear
