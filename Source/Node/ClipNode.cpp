@@ -104,11 +104,12 @@ void ClipNode::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
+		Node::cleanup();
 		if (_stencil)
 		{
 			_stencil->cleanup();
+			_stencil = nullptr;
 		}
-		Node::cleanup();
 	}
 }
 

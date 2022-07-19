@@ -916,34 +916,34 @@ Director.ui\addChild with AlignNode isRoot:true
 				1 + math.min(2,math.floor math.max(0,GameScore-20)/5)
 			else
 				3 + math.min(3,math.floor GameScore/35)
-			if math.random(1,100) == 1
-				with Entity!
-					.position = Vec2 -200,100
-					.order = PlayerLayer
-					.group = PlayerGroup
-					.boss = true
-					.faceRight = true
+			if math.random(1, 100) == 1
+				Entity
+					position: Vec2 -200, 100
+					order: PlayerLayer
+					group: PlayerGroup
+					boss: true
+					faceRight: true
 			else
 				for i = 1, unitCount
-					with Entity!
-						.position = Vec2 -100*i,100
-						.order = PlayerLayer
-						.group = PlayerGroup
-						.faceRight = true
-			if math.random(1,100) == 1
-				with Entity!
-					.position = Vec2 200,100
-					.order = EnemyLayer
-					.group = EnemyGroup
-					.boss = true
-					.faceRight = false
+					Entity
+						position: Vec2 -100 * i, 100
+						order: PlayerLayer
+						group: PlayerGroup
+						faceRight: true
+			if math.random(1, 100) == 1
+				Entity
+					position: Vec2 200, 100
+					order: EnemyLayer
+					group: EnemyGroup
+					boss: true
+					faceRight: false
 			else
 				for i = 1, unitCount
-					with Entity!
-						.position = Vec2 100*i,100
-						.order = EnemyLayer
-						.group = EnemyGroup
-						.faceRight = false
+					Entity
+						position: Vec2 100 * i, 100
+						order: EnemyLayer
+						group: EnemyGroup
+						faceRight: false
 			\schedule once ->
 				time = 2
 				cycle time, (dt)->

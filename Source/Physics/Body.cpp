@@ -81,6 +81,7 @@ void Body::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
+		Node::cleanup();
 		if (_prBody != pr::InvalidBodyID)
 		{
 			_pWorld->getPrWorld().Destroy(_prBody);
@@ -102,7 +103,6 @@ void Body::cleanup()
 		}
 		contactStart.Clear();
 		contactEnd.Clear();
-		Node::cleanup();
 	}
 }
 

@@ -84,7 +84,7 @@ UnitAction\add "pushed",
 				when "Switch"
 					heroes\each (hero)->
 						if @group == hero.group and hero.ep >= 1
-							with Entity!
+							Entity with {}
 								.bunny,.group,.faceRight,.position = switch @group
 									when GroupPlayer
 										"BunnyG",GroupPlayer,true,Vec2 1000,1004-500
@@ -101,7 +101,7 @@ UnitAction\add "pushed",
 				when "SwitchG"
 					heroes\each (hero)->
 						if @group == hero.group and hero.ep >= 2
-							with Entity!
+							Entity with {}
 								.layer = LayerBlock
 								.poke,.group,.position = switch @group
 									when GroupPlayer

@@ -618,6 +618,7 @@ void Spine::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
+		Node::cleanup();
 		_slots = nullptr;
 		_effect = nullptr;
 		_skeletonData = nullptr;
@@ -627,7 +628,6 @@ void Spine::cleanup()
 		_newSkin = nullptr;
 		_bounds = nullptr;
 		_clipper = nullptr;
-		Node::cleanup();
 	}
 }
 

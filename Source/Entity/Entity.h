@@ -54,6 +54,7 @@ public:
 	void remove(int index);
 	void removeNext(int index);
 	void set(int index, Own<Value>&& value);
+	void set(String name, Own<Value>&& value);
 	void setNext(int index, Own<Value>&& value);
 	Value* getComponent(int index) const;
 	Value* getOldCom(int index) const;

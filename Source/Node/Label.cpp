@@ -988,8 +988,8 @@ void Label::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
-		_font = nullptr;
 		Node::cleanup();
+		_font = nullptr;
 	}
 }
 

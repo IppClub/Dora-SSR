@@ -100,7 +100,6 @@ local objects = {
 	"Line",
 	"Touch",
 	"Label",
-	"Slot",
 	"ML::QLearner",
 	"SVGDef",
 	"Platformer::Unit",

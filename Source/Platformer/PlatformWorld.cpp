@@ -139,8 +139,8 @@ void PlatformWorld::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
-		_camera = nullptr;
 		Node::cleanup();
+		_camera = nullptr;
 	}
 }
 
