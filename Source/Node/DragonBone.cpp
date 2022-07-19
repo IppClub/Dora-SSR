@@ -686,12 +686,12 @@ void DragonBone::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
+		Node::cleanup();
 		if (_armatureProxy)
 		{
 			_armatureProxy->dispose();
 			_armatureProxy = nullptr;
 		}
-		Node::cleanup();
 	}
 }
 

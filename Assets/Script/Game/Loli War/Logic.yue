@@ -50,22 +50,22 @@ with Observer "Add",{"world"}
 				Audio\playStream "Audio/LOOP14.ogg",true
 				names = [n for n in *{"Flandre","Dorothy","Villy"} when n ~= hero]
 				enemyHero = names[(App.rand%2)+1]
-				with Entity!
-					.hero = hero
-					.group = GroupPlayer
-					.faceRight = true
-					.AI = "PlayerControlAI"
-					.layer = LayerPlayerHero
-					.position = Vec2 512,1004-712
-					.ep = MaxEP
-				with Entity!
-					.hero = enemyHero
-					.group = GroupEnemy
-					.faceRight = false
-					.AI = "HeroAI"
-					.layer = LayerEnemyHero
-					.position = Vec2 3584,1004-712
-					.ep = MaxEP
+				Entity
+					hero: hero
+					group: GroupPlayer
+					faceRight: true
+					AI: "PlayerControlAI"
+					layer: LayerPlayerHero
+					position: Vec2 512, 1004 - 712
+					ep: MaxEP
+				Entity
+					hero: enemyHero
+					group: GroupEnemy
+					faceRight: false
+					AI: "HeroAI"
+					layer: LayerEnemyHero
+					position: Vec2 3584, 1004 - 712
+					ep: MaxEP
 				world\buildCastles!
 				world\addBunnySwither GroupPlayer
 				world\addBunnySwither GroupEnemy

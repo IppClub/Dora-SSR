@@ -358,7 +358,7 @@ protected:
 	DORA_TYPE_OVERRIDE(Node);
 };
 
-class Slot : public Object
+class Slot
 {
 public:
 	void add(const EventHandler& handler);
@@ -366,18 +366,20 @@ public:
 	void remove(const EventHandler& handler);
 	void clear();
 	void handle(Event* event);
-	CREATE_FUNC(Slot);
+	static Own<Slot> alloc(const EventHandler& handler);
+	static Own<Slot> alloc();
 protected:
 	Slot(const EventHandler& handler);
 	Slot();
 private:
 	EventHandler _handler;
-	DORA_TYPE_OVERRIDE(Slot);
+	DORA_TYPE(Slot);
 };
 
 class Signal
 {
 public:
+	~Signal();
 	Slot* addSlot(String name);
 	Slot* addSlot(String name, const EventHandler& handler);
 	Listener* addGSlot(String name, const EventHandler& handler);
@@ -389,8 +391,8 @@ public:
 	void emit(Event* event);
 	static const size_t MaxSlotArraySize;
 private:
-	Own<std::unordered_map<std::string, Ref<Slot>>> _slots;
-	Own<std::vector<std::pair<std::string, Ref<Slot>>>> _slotsArray;
+	Own<std::unordered_map<std::string, Own<Slot>>> _slots;
+	Own<std::vector<std::pair<std::string, Own<Slot>>>> _slotsArray;
 	RefVector<Listener> _gslots;
 };
 

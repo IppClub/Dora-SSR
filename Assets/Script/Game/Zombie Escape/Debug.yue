@@ -33,13 +33,13 @@ world\schedule ->
 				while not available
 					pos = Vec2 App.rand % 2400 - 1200, -430
 					available = not world\query Rect(pos,Size(5, 5)), => @group == Data.groupTerrain
-				with Entity!
-					.unitDef = "Unit_Zombie#{App.rand % 2 + 1}"
-					.order = ZombieLayer
-					.position = pos
-					.group = PlayerGroup
-					.faceRight = App.rand % 2 == 0
-					.stared = true
+				Entity
+					unitDef: "Unit_Zombie#{App.rand % 2 + 1}"
+					order: ZombieLayer
+					position: pos
+					group: PlayerGroup
+					faceRight: App.rand % 2 == 0
+					stared: true
 		changed,camZoom = DragFloat "Zoom", camZoom, 0.01, 0.5, 2, "%.2f"
 		world.camera.zoom = camZoom if changed
 		playerGroup\each => TextWrapped "#{@unit.tag} HP: #{@hp}"

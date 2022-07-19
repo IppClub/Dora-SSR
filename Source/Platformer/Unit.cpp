@@ -268,6 +268,7 @@ void Unit::cleanup()
 {
 	if (_flags.isOff(Node::Cleanup))
 	{
+		Body::cleanup();
 		if (_entity)
 		{
 			_entity->destroy();
@@ -277,7 +278,6 @@ void Unit::cleanup()
 		_decisionTree = nullptr;
 		_unitDef = nullptr;
 		_actions.clear();
-		Body::cleanup();
 	}
 }
 

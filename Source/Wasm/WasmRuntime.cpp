@@ -49,6 +49,11 @@ static int64_t str_retain(String str)
 	return r_cast<int64_t>(new std::string(str.rawData(), str.size()));
 }
 
+static std::unique_ptr<std::string> str_from(int64_t var)
+{
+	return std::unique_ptr<std::string>(r_cast<std::string*>(var));
+}
+
 static int64_t str_new(int32_t len)
 {
 	return r_cast<int64_t>(new std::string(len, 0));
@@ -369,8 +374,7 @@ static void call_stack_push_f64(int64_t info, double value)
 
 static void call_stack_push_str(int64_t info, int64_t value)
 {
-	std::unique_ptr<std::string> value_ptr(r_cast<std::string*>(value));
-	r_cast<CallStack*>(info)->push(*value_ptr);
+	r_cast<CallStack*>(info)->push(*str_from(value));
 }
 
 static void call_stack_push_bool(int64_t info, int32_t value)
@@ -415,7 +419,7 @@ static double call_stack_pop_f64(int64_t call_stack)
 
 static int64_t call_stack_pop_str(int64_t call_stack)
 {
-	return r_cast<int64_t>(new std::string(std::get<std::string>(r_cast<CallStack*>(call_stack)->pop())));
+	return str_retain(std::get<std::string>(r_cast<CallStack*>(call_stack)->pop()));
 }
 
 static int32_t call_stack_pop_bool(int64_t call_stack)
@@ -517,8 +521,7 @@ static int64_t node_get_position(int64_t node)
 
 static void node_set_tag(int64_t node, int64_t var)
 {
-	std::unique_ptr<std::string> var_ptr(r_cast<std::string*>(var));
-	r_cast<Node*>(node)->setTag(*var_ptr);
+	r_cast<Node*>(node)->setTag(*str_from(var));
 }
 
 static int64_t node_get_tag(int64_t node)
@@ -565,19 +568,17 @@ static void node_schedule(int64_t node, int32_t func, int64_t stack)
 
 static void node_emit(int64_t node, int64_t name, int64_t stack)
 {
-	std::unique_ptr<std::string> name_ptr(r_cast<std::string*>(name));
-	WasmEventArgs event(*name_ptr, r_cast<CallStack*>(stack));
+	WasmEventArgs event(*str_from(name), r_cast<CallStack*>(stack));
 	r_cast<Node*>(node)->emit(&event);
 }
 
 static void node_slot(int64_t node, int64_t name, int32_t func, int64_t stack)
 {
-	std::unique_ptr<std::string> name_ptr(r_cast<std::string*>(name));
 	std::shared_ptr<void> deref(nullptr, [func](auto)
 	{
 		SharedWasmRuntime.deref(func);
 	});
-	r_cast<Node*>(node)->slot(*name_ptr, [func, stack, deref](Event* e)
+	r_cast<Node*>(node)->slot(*str_from(name), [func, stack, deref](Event* e)
 	{
 		e->pushArgsToWasm(r_cast<CallStack*>(stack));
 		SharedWasmRuntime.invoke(func);
@@ -586,12 +587,11 @@ static void node_slot(int64_t node, int64_t name, int32_t func, int64_t stack)
 
 static void node_gslot(int64_t node, int64_t name, int32_t func, int64_t stack)
 {
-	std::unique_ptr<std::string> name_ptr(r_cast<std::string*>(name));
 	std::shared_ptr<void> deref(nullptr, [func](auto)
 	{
 		SharedWasmRuntime.deref(func);
 	});
-	r_cast<Node*>(node)->gslot(*name_ptr, [func, stack, deref](Event* e)
+	r_cast<Node*>(node)->gslot(*str_from(name), [func, stack, deref](Event* e)
 	{
 		e->pushArgsToWasm(r_cast<CallStack*>(stack));
 		SharedWasmRuntime.invoke(func);
@@ -807,16 +807,12 @@ static int64_t dictionary_create()
 
 static void dictionary_set(int64_t dict, int64_t key, int64_t value)
 {
-	std::unique_ptr<std::string> key_ptr(r_cast<std::string*>(key));
-	auto d = r_cast<Dictionary*>(dict);
-	d->set(*key_ptr, to_value(*r_cast<dora_val_t*>(value)));
+	r_cast<Dictionary*>(dict)->set(*str_from(key), to_value(*r_cast<dora_val_t*>(value)));
 }
 
 static int64_t dictionary_get(int64_t dict, int64_t key)
 {
-	std::unique_ptr<std::string> key_ptr(r_cast<std::string*>(key));
-	auto d = r_cast<Dictionary*>(dict);
-	return from_value(d->get(*key_ptr).get());
+	return from_value(r_cast<Dictionary*>(dict)->get(*str_from(key)).get());
 }
 
 static int32_t dictionary_len(int64_t dict)

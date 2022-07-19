@@ -151,13 +151,12 @@ class Dictionary : public Object
 	static Dictionary* create();
 };
 
-class Entity
+class Entity : public Object
 {
 	static tolua_readonly tolua_property__common uint32_t count;
 	tolua_readonly tolua_property__common int index;
 	static void clear();
 	void destroy();
-	static Entity* create();
 };
 
 class EntityGroup @ Group
@@ -279,7 +278,7 @@ class View
 
 void Dora_Log @ Log(String msg);
 
-class Slot : public Object
+class Slot
 {
 	void add(tolua_function_void handler);
 	void set(tolua_function_void handler);

@@ -5,13 +5,19 @@ spGroup = Group {"sp"}
 
 observer = Observer "Change", {"hp","mp"}
 
-entity0 = with Entity!
-	.hp = 100
-	.mp = 998
+Entity
+	hp: 100
+	mp: 998
+	id: 0
 
-entity1 = with Entity!
-	.hp = 119
-	.sp = 233
+entity0 = hpGroup\find => @id == 0
+
+Entity
+	hp: 119
+	sp: 233
+	id: 1
+
+entity1 = hpGroup\find => @id == 1
 
 print "-- {hp} group"
 hpGroup\each (e)-> print "entity", e.index
