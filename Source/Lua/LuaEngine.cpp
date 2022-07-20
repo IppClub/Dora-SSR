@@ -549,7 +549,6 @@ _tlState(nullptr)
 
 		tolua_beginmodule(L, "Entity");
 			tolua_function(L, "set", Entity_set);
-			tolua_function(L, "setNext", Entity_setNext);
 			tolua_function(L, "get", Entity_get);
 			tolua_function(L, "getOld", Entity_getOld);
 			tolua_call(L, MT_CALL, Entity_create);

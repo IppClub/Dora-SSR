@@ -310,14 +310,14 @@ Store["AI_Learned"] = Sel {
 	}
 	Seq {
 		Con "run learned AI", =>
-			@entity.lastActionTime or= 0.0
+			@data.lastActionTime or= 0.0
 
 			return false unless AI\getNearestUnit("Enemy")?
 
-			if App.totalTime - @entity.lastActionTime < 0.1
+			if App.totalTime - @data.lastActionTime < 0.1
 				return false
 			else
-				@entity.lastActionTime = App.totalTime
+				@data.lastActionTime = App.totalTime
 
 			attack_ready = do
 				attackUnits = AI\getUnitsInAttackRange!
@@ -462,21 +462,21 @@ Store["AI_PlayerControl"] = Sel {
 	Seq {
 		Seq {
 			Con "move key down", =>
-				not (@entity.keyLeft and @entity.keyRight) and
+				not (@data.keyLeft and @data.keyRight) and
 				(
-					(@entity.keyLeft and @faceRight) or
-					(@entity.keyRight and not @faceRight)
+					(@data.keyLeft and @faceRight) or
+					(@data.keyRight and not @faceRight)
 				)
 			Act "turn"
 		}
 		Reject!
 	}
 	Seq {
-		Con "evade key down", => @entity.keyE
+		Con "evade key down", => @data.keyE
 		Do "evade"
 	}
 	Seq {
-		Con "attack key down", => @entity.keyF
+		Con "attack key down", => @data.keyF
 		Sel {
 			Do "meleeAttack"
 			Do "range"
@@ -488,12 +488,12 @@ Store["AI_PlayerControl"] = Sel {
 			Act "fallOff"
 		}
 		Seq {
-			Con "jump key down", => @entity.keyUp
+			Con "jump key down", => @data.keyUp
 			Do "jump"
 		}
 	}
 	Seq {
-		Con "move key down", => @entity.keyLeft or @entity.keyRight
+		Con "move key down", => @data.keyLeft or @data.keyRight
 		Do "walk"
 	}
 	Act "idle"
@@ -821,8 +821,8 @@ for i = 1, #characters
 	table.insert fighterFigures, fighter
 	table.insert fighterPanels, fighterPanel
 
-playerGroup = Group {"player"}
-updatePlayerControl = (key,flag)-> playerGroup\each => @[key] = flag
+playerGroup = Group {"player","unit"}
+updatePlayerControl = (key,flag)-> playerGroup\each => @unit.data[key] = flag
 
 uiScale = App.deviceRatio
 
@@ -1037,11 +1037,12 @@ UnitAction\add "range",
 				with Bullet bulletDef,@
 					.targetAllow = targetAllow
 					\slot "HitTarget",(bullet,target,pos)->
-						entity = target.entity
-						entity.hitPoint = pos
-						entity.hitPower = attackPower
-						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						with target.data
+							.hitPoint = pos
+							.hitPower = attackPower
+							.hitFromRight = bullet.velocityX < 0
+						:entity = target
+						factor = Data\getDamageFactor damageType, entity.defenceType
 						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true
@@ -1086,11 +1087,12 @@ UnitAction\add "multiArrow",
 				with Bullet BigArrow,@
 					.targetAllow = targetAllow
 					\slot "HitTarget",(bullet,target,pos)->
-						entity = target.entity
-						entity.hitPoint = pos
-						entity.hitPower = attackPower
-						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						with target.data
+							.hitPoint = pos
+							.hitPower = attackPower
+							.hitFromRight = bullet.velocityX < 0
+						:entity = target
+						factor = Data\getDamageFactor damageType, entity.defenceType
 						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true
@@ -1112,15 +1114,15 @@ UnitAction\add "fallOff",
 	available: => not @onSurface
 	create: =>
 		if @velocityY <= 0
-			@entity.fallDown = true
+			@data.fallDown = true
 			with @playable
 				.speed = 2.5
 				\play "idle"
-		else @entity.fallDown = false
+		else @data.fallDown = false
 		(action)=>
 			return true if @onSurface
-			if not @entity.fallDown and @velocityY <= 0
-				@entity.fallDown = true
+			if not @data.fallDown and @velocityY <= 0
+				@data.fallDown = true
 				with @playable
 					.speed = 2.5
 					\play "idle"
@@ -1175,12 +1177,13 @@ UnitAction\add "spearAttack",
 			origin = @position - Vec2(0,205) + Vec2(dir,0)
 			size = Size 900,40
 			world\query Rect(origin,size), (body)->
-				if body.entity and Data\isEnemy body,@
-					entity = body.entity
-					entity.hitPoint = body.position
-					entity.hitPower = attackPower
-					entity.hitFromRight = not @faceRight
-					factor = Data\getDamageFactor damageType, body.entity.defenceType
+				:entity = body
+				if entity and Data\isEnemy body,@
+					with body.data
+						.hitPoint = body.position
+						.hitPower = attackPower
+						.hitFromRight = not @faceRight
+					factor = Data\getDamageFactor damageType, entity.defenceType
 					damage = (attackBase + attackBonus) * (attackFactor + factor)
 					entity.hp -= damage
 				false

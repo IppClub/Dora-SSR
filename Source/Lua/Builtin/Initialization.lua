@@ -454,12 +454,12 @@ end
 
 local Entity_getOld = Entity.getOld
 local Entity_oldValues
-Entity_oldValues = setmetatable({false},{
+Entity_oldValues = setmetatable({false}, {
 	__mode = "v",
-	__index = function(_,key)
-		return Entity_getOld(Entity_oldValues[1],key)
+	__index = function(_, key)
+		return Entity_getOld(Entity_oldValues[1], key)
 	end,
-	__newindex = function(_,_)
+	__newindex = function()
 		error("Can not assign value cache.")
 	end
 })
@@ -467,21 +467,17 @@ Entity_oldValues = setmetatable({false},{
 local Entity_index = Entity.__index
 local Entity_get = Entity.get
 local rawset = rawset
-Entity.__index = function(self,key)
+Entity.__index = function(self, key)
 	if key == "oldValues" then
-		rawset(Entity_oldValues,1,self)
+		rawset(Entity_oldValues, 1, self)
 		return Entity_oldValues
 	end
-	local item = Entity_get(self,key)
+	local item = Entity_get(self, key)
 	if item ~= nil then return item end
-	return Entity_index(self,key)
+	return Entity_index(self, key)
 end
 
 Entity.__newindex = Entity.set
-
-Entity.setRaw = function(self,key,value)
-	Entity_set(self,key,value,true)
-end
 
 -- unit action creation
 

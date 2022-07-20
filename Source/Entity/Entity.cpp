@@ -25,16 +25,23 @@ public:
 			DORA_UNUSED_PARAM(deltaTime);
 			for (auto& nextValue : nextValues)
 			{
-				Entity* entity = entities[nextValue.entity];
+				NextId nid;
+				nid.value = nextValue.first;
+				NextEvent event = s_cast<NextEvent>(nid.id.event);
+				Entity* entity = entities[nid.id.entity];
 				if (entity)
 				{
-					if (!nextValue.value)
+					switch (event)
 					{
-						entity->remove(nextValue.component);
-					}
-					else
-					{
-						entity->set(nextValue.component, std::move(nextValue.value));
+						case NextEvent::Add:
+							entity->registerAddEvent(nid.id.component);
+							break;
+						case NextEvent::Update:
+							entity->registerUpdateEvent(nid.id.component, std::move(nextValue.second));
+							break;
+						case NextEvent::Remove:
+							entity->registerRemoveEvent(nid.id.component, std::move(nextValue.second));
+							break;
 					}
 				}
 			}
@@ -76,12 +83,23 @@ public:
 		}
 		return it->second;
 	}
-	struct NextValue
+	union NextId
 	{
-		int entity;
-		int component;
-		Own<Value> value;
+		struct Id
+		{
+			int32_t entity;
+			int16_t component;
+			int16_t event;
+		} id;
+		uint64_t value;
 	};
+	enum class NextEvent
+	{
+		Add,
+		Update,
+		Remove
+	};
+	static_assert(sizeof(NextId) == sizeof(uint64_t), "invalid updated entity id size");
 	std::stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
 	std::vector<Acf::Delegate<void()>> triggers;
@@ -91,7 +109,9 @@ public:
 	std::vector<EntityHandler> addHandlers;
 	std::vector<EntityHandler> changeHandlers;
 	std::vector<EntityHandler> removeHandlers;
-	std::vector<NextValue> nextValues;
+	std::vector<EntityHandler> groupAddHandlers;
+	std::vector<EntityHandler> groupRemoveHandlers;
+	std::unordered_map<uint64_t, Own<Value>> nextValues;
 	std::unordered_map<std::string, Ref<EntityGroup>> groups;
 	std::unordered_map<std::string, Ref<EntityObserver>> observers;
 	EntityHandler& getAddHandler(int index)
@@ -99,10 +119,20 @@ public:
 		while (s_cast<int>(addHandlers.size()) <= index) addHandlers.emplace_back();
 		return addHandlers[index];
 	}
+	EntityHandler& getGroupAddHandler(int index)
+	{
+		while (s_cast<int>(groupAddHandlers.size()) <= index) groupAddHandlers.emplace_back();
+		return groupAddHandlers[index];
+	}
 	EntityHandler& getChangeHandler(int index)
 	{
 		while (s_cast<int>(changeHandlers.size()) <= index) changeHandlers.emplace_back();
 		return changeHandlers[index];
+	}
+	EntityHandler& getGroupRemoveHandler(int index)
+	{
+		while (s_cast<int>(groupRemoveHandlers.size()) <= index) groupRemoveHandlers.emplace_back();
+		return groupRemoveHandlers[index];
 	}
 	EntityHandler& getRemoveHandler(int index)
 	{
@@ -193,40 +223,31 @@ bool Entity::has(String name) const
 
 bool Entity::has(int index) const
 {
-	return 0 <= index && index < s_cast<int>(_components.size()) && _components[index] != nullptr;
+	if (0 <= index && index < s_cast<int>(_components.size()))
+	{
+		return _components[index] != nullptr;
+	}
+	return false;
 }
 
 bool Entity::hasOld(int index) const
 {
-	return 0 <= index && index < s_cast<int>(_oldComs.size()) && _oldComs[index] != nullptr;
+	if (0 <= index && index < s_cast<int>(_oldComs.size()))
+	{
+		return _oldComs[index] != nullptr;
+	}
+	return false;
 }
 
 void Entity::remove(String name)
 {
 	int index = SharedEntityPool.tryGetIndex(name);
-	remove(index);
+	if (index > 0) set(index, nullptr);
 }
 
 void Entity::remove(int index)
 {
-	if (!has(index)) return;
-	auto& removeHandler = SharedEntityPool.getRemoveHandler(index);
-	if (!removeHandler.IsEmpty())
-	{
-		if (!_oldComs[index])
-		{
-			_oldComs[index] = _components[index]->clone();
-			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
-		}
-		removeHandler(this);
-	}
-	_components[index] = nullptr;
-}
-
-void Entity::removeNext(int index)
-{
-	if (!has(index)) return;
-	setNext(index, Own<Value>());
+	set(index, nullptr);
 }
 
 bool Entity::each(const std::function<bool(Entity*)>& func)
@@ -246,15 +267,65 @@ uint32_t Entity::getCount()
 
 void Entity::set(int index, Own<Value>&& value)
 {
+	EntityPool::NextEvent event;
+	Own<Value> old;
 	Value* com = getComponent(index);
 	if (com)
 	{
-		updateComponent(index, com->clone(), false);
-		_components[index] = std::move(value);
+		old = com->clone();
+		if (value)
+		{
+			_components[index] = value->clone();
+			event = EntityPool::NextEvent::Update;
+		}
+		else
+		{
+			_components[index] = nullptr;
+			event = EntityPool::NextEvent::Remove;
+			auto& handler = SharedEntityPool.getGroupRemoveHandler(index);
+			if (!handler.IsEmpty()) handler(this);
+		}
 	}
 	else
 	{
-		updateComponent(index, std::move(value), true);
+		if (!value) return;
+		while (s_cast<int>(_components.size()) <= index) _components.emplace_back();
+		while (s_cast<int>(_oldComs.size()) <= index) _oldComs.emplace_back();
+		_components[index] = value->clone();
+		event = EntityPool::NextEvent::Add;
+		auto& handler = SharedEntityPool.getGroupAddHandler(index);
+		if (!handler.IsEmpty()) handler(this);
+	}
+	int id = getIndex();
+	EntityPool::NextId nid;
+	nid.id.entity = id;
+	nid.id.component = s_cast<int16_t>(index);
+	nid.id.event = s_cast<int16_t>(event);
+	auto& nextValues = SharedEntityPool.nextValues;
+	if (value)
+	{
+		auto it = nextValues.find(nid.value);
+		if (it == nextValues.end())
+		{
+			nextValues[nid.value] = std::move(old);
+		}
+	}
+	else
+	{
+		EntityPool::NextId uid;
+		uid.id.entity = id;
+		uid.id.component = s_cast<int16_t>(index);
+		uid.id.event = s_cast<int16_t>(EntityPool::NextEvent::Add);
+		if (auto it = nextValues.find(uid.value); it != nextValues.end())
+		{
+			nextValues.erase(it);
+		}
+		uid.id.event = s_cast<int16_t>(EntityPool::NextEvent::Update);
+		if (auto it = nextValues.find(uid.value); it != nextValues.end())
+		{
+			nextValues.erase(it);
+		}
+		nextValues[nid.value] = std::move(old);
 	}
 }
 
@@ -264,41 +335,42 @@ void Entity::set(String name, Own<Value>&& value)
 	Entity::set(index, std::move(value));
 }
 
-void Entity::setNext(int index, Own<Value>&& value)
+void Entity::registerAddEvent(int index)
 {
-	int id = getIndex();
-	SharedEntityPool.nextValues.push_back({id,index,std::move(value)});
+	auto& handler = SharedEntityPool.getAddHandler(index);
+	if (!handler.IsEmpty())
+	{
+		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		handler(this);
+	}
 }
 
-void Entity::updateComponent(int index, Own<Value>&& com, bool add)
+void Entity::registerUpdateEvent(int index, Own<Value>&& old)
 {
-	EntityHandler* handler;
-	if (add)
+	auto& handler = SharedEntityPool.getChangeHandler(index);
+	if (!handler.IsEmpty())
 	{
-		while (s_cast<int>(_components.size()) <= index) _components.emplace_back();
-		while (s_cast<int>(_oldComs.size()) <= index) _oldComs.emplace_back();
-		_components[index] = std::move(com);
-		handler = &SharedEntityPool.getAddHandler(index);
+		_oldComs[index] = std::move(old);
+		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		handler(this);
 	}
-	else
+}
+
+void Entity::registerRemoveEvent(int index, Own<Value>&& old)
+{
+	auto& handler = SharedEntityPool.getRemoveHandler(index);
+	if (!handler.IsEmpty())
 	{
-		handler = &SharedEntityPool.getChangeHandler(index);
-	}
-	if (!handler->IsEmpty())
-	{
-		if (!_oldComs[index])
-		{
-			_oldComs[index] = add ? nullptr : std::move(com);
-			SharedEntityPool.updatedEntities.insert(MakeWRef(this));
-		}
-		(*handler)(this);
+		_oldComs[index] = std::move(old);
+		SharedEntityPool.updatedEntities.insert(MakeWRef(this));
+		handler(this);
 	}
 }
 
 Value* Entity::getComponent(String name) const
 {
 	int index = SharedEntityPool.tryGetIndex(name);
-	return has(index) ? _components[index].get() : nullptr;
+	return getComponent(index);
 }
 
 Value* Entity::getComponent(int index) const
@@ -309,12 +381,12 @@ Value* Entity::getComponent(int index) const
 Value* Entity::getOldCom(String name) const
 {
 	int index = SharedEntityPool.tryGetIndex(name);
-	return hasOld(index) ? _oldComs[index].get() : nullptr;
+	return getOldCom(index);
 }
 
 Value* Entity::getOldCom(int index) const
 {
-	return has(index) ? _oldComs[index].get() : nullptr;
+	return hasOld(index) ? _oldComs[index].get() : nullptr;
 }
 
 void Entity::clearOldComs()
@@ -361,8 +433,8 @@ EntityGroup::~EntityGroup()
 	if (Singleton<EntityPool>::isDisposed()) return;
 	for (const auto& index : _components)
 	{
-		SharedEntityPool.getAddHandler(index) -= std::make_pair(this, &EntityGroup::onAdd);
-		SharedEntityPool.getRemoveHandler(index) -= std::make_pair(this, &EntityGroup::onRemove);
+		SharedEntityPool.getGroupAddHandler(index) -= std::make_pair(this, &EntityGroup::onAdd);
+		SharedEntityPool.getGroupRemoveHandler(index) -= std::make_pair(this, &EntityGroup::onRemove);
 	}
 }
 
@@ -393,8 +465,8 @@ bool EntityGroup::init()
 	});
 	for (int index : _components)
 	{
-		SharedEntityPool.getAddHandler(index) += std::make_pair(this, &EntityGroup::onAdd);
-		SharedEntityPool.getRemoveHandler(index) += std::make_pair(this, &EntityGroup::onRemove);
+		SharedEntityPool.getGroupAddHandler(index) += std::make_pair(this, &EntityGroup::onAdd);
+		SharedEntityPool.getGroupRemoveHandler(index) += std::make_pair(this, &EntityGroup::onRemove);
 	}
 	return true;
 }
@@ -559,12 +631,26 @@ bool EntityObserver::init()
 void EntityObserver::onEvent(Entity* entity)
 {
 	bool match = true;
-	for (int index : _components)
+	if (_option == Entity::Remove)
 	{
-		if (!entity->has(index))
+		for (int index : _components)
 		{
-			match = false;
-			break;
+			if (!entity->has(index) && !entity->hasOld(index))
+			{
+				match = false;
+				break;
+			}
+		}
+	}
+	else
+	{
+		for (int index : _components)
+		{
+			if (!entity->has(index))
+			{
+				match = false;
+				break;
+			}
 		}
 	}
 	if (match)

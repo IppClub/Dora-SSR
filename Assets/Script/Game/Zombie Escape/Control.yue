@@ -11,7 +11,7 @@ Store.controlPlayer = "KidW"
 playerGroup = Group {"player"}
 updatePlayerControl = (key, flag)->
 	if player = playerGroup\find => @unit.tag == Store.controlPlayer
-		player[key] = flag
+		player.unit.data[key] = flag
 uiScale = App.deviceRatio
 
 with AlignNode isRoot: true

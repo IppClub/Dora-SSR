@@ -566,9 +566,10 @@ void MeleeAttack::onAttack()
 				auto usePreciseHit = _owner->getUnitDef()->get(ActionSetting::UsePreciseHit, false);
 				auto attackPower = _owner->getEntity()->get(ActionSetting::AttackPower, Vec2::zero);
 				Vec2 hitPoint = usePreciseHit ? Attack::getHitPoint(_owner, target, _polygon) : Vec2(target->getPosition());
-				entity->set(ActionSetting::HitPoint, hitPoint);
-				entity->set(ActionSetting::HitPower, attackPower);
-				entity->set(ActionSetting::HitFromRight, !attackRight);
+				auto data = target->getUserData();
+				data->set(ActionSetting::HitPoint, Value::alloc(hitPoint));
+				data->set(ActionSetting::HitPower, Value::alloc(attackPower));
+				data->set(ActionSetting::HitFromRight, Value::alloc(!attackRight));
 				/* Make damage */
 				float damage = Attack::getDamage(target);
 				entity->set(ActionSetting::HP, entity->get<double>(ActionSetting::HP) - damage);
@@ -627,9 +628,10 @@ bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint)
 	}
 	Entity* entity = target->getEntity();
 	auto attackPower = _owner->getEntity()->get(ActionSetting::AttackPower, Vec2::zero);
-	entity->set(ActionSetting::HitPoint, hitPoint);
-	entity->set(ActionSetting::HitPower, attackPower);
-	entity->set(ActionSetting::HitFromRight, attackFromRight);
+	auto data = target->getUserData();
+	data->set(ActionSetting::HitPoint, Value::alloc(hitPoint));
+	data->set(ActionSetting::HitPower, Value::alloc(attackPower));
+	data->set(ActionSetting::HitFromRight, Value::alloc(attackFromRight));
 	/* Make damage */
 	float damage = Attack::getDamage(target);
 	entity->set(ActionSetting::HP, entity->get<double>(ActionSetting::HP) - damage);
@@ -654,8 +656,8 @@ Hit::~Hit()
 
 void Hit::run()
 {
-	Entity* entity = _owner->getEntity();
-	Vec2 hitPoint = entity->get(ActionSetting::HitPoint, Vec2::zero);
+	auto data = _owner->getUserData();
+	Vec2 hitPoint = data->get(ActionSetting::HitPoint, Vec2::zero);
 	Vec2 key = _owner->convertToNodeSpace(hitPoint);
 	if (_effect)
 	{
@@ -663,8 +665,8 @@ void Hit::run()
 		_effect->start();
 	}
 	float mass = _owner->getMass();
-	bool hitFromRight = entity->get(ActionSetting::HitFromRight, false);
-	Vec2 hitPower = entity->get(ActionSetting::HitPower, Vec2::zero);
+	bool hitFromRight = data->get(ActionSetting::HitFromRight, false);
+	Vec2 hitPower = data->get(ActionSetting::HitPower, Vec2::zero);
 	_owner->setVelocity(Vec2{hitFromRight ? -hitPower.x : hitPower.x, hitPower.y} / mass);
 	_owner->setFaceRight(hitFromRight);
 	UnitAction::run();

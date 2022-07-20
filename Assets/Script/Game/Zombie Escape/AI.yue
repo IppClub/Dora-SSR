@@ -36,12 +36,12 @@ walk = Sel {
 			stop = Vec2 start.x + (@faceRight and 140 or -140), start.y
 			Store.world\raycast start, stop, false, (b, p)->
 				if b.group == Data.groupTerrain and b.tag == "Obstacle"
-					@entity.obstacleDistance = math.abs p.x - start.x
+					@data.obstacleDistance = math.abs p.x - start.x
 					true
 				else false
 		Sel {
 			Seq {
-				Con "obstacle distance <= 80", => @entity.obstacleDistance <= 80
+				Con "obstacle distance <= 80", => @data.obstacleDistance <= 80
 				Behave "backJump", BT.Seq {
 					BT.Act "turn"
 					BT.Countdown 0.3, BT.Act "walk"
@@ -79,11 +79,11 @@ fightDecision = Seq {
 							evadeRightEnemy = true if body.x > @x
 							evadeLeftEnemy = true if body.x <= @x
 				needEvade = not (evadeLeftEnemy == evadeRightEnemy) and math.abs(@x) < 1000
-				@entity.evadeRight = evadeRightEnemy if needEvade
+				@data.evadeRight = evadeRightEnemy if needEvade
 				needEvade
 			Sel {
 				Seq {
-					Con "face enemy", => @entity.evadeRight == @faceRight
+					Con "face enemy", => @data.evadeRight == @faceRight
 					Act "turn"
 					walk
 				}
@@ -120,7 +120,7 @@ Store["AI_Zombie"] = Sel {
 		Accept!
 	}
 	Seq {
-		Con "not entered", => not @entity.entered
+		Con "not entered", => not @data.entered
 		Act "groundEntrance"
 	}
 	fightDecision
@@ -146,11 +146,11 @@ Store["AI_KidFollow"] = Sel {
 	Seq {
 		Con "follow target is away", =>
 			target = playerGroup\find (e)-> e.unit ~= @
-			@entity.followTarget = target.unit
+			@data.followTarget = target.unit
 			target? and math.abs(@x - target.unit.x) > 50
 		Sel {
 			Seq {
-				Con "not facing target", => (@x > @entity.followTarget.x) == @faceRight
+				Con "not facing target", => (@x > @data.followTarget.x) == @faceRight
 				Act "turn"
 			}
 			Accept!
@@ -192,17 +192,17 @@ Store["AI_PlayerControl"] = Sel {
 	Seq {
 		Seq {
 			Con "move key down", =>
-				not (@entity.keyLeft and @entity.keyRight) and
+				not (@data.keyLeft and @data.keyRight) and
 				(
-					(@entity.keyLeft and @faceRight) or
-					(@entity.keyRight and not @faceRight)
+					(@data.keyLeft and @faceRight) or
+					(@data.keyRight and not @faceRight)
 				)
 			Act "turn"
 		}
 		Reject!
 	}
 	Seq {
-		Con "attack key down", => @entity.keyShoot
+		Con "attack key down", => @data.keyShoot
 		Sel {
 			Act "meleeAttack"
 			Act "rangeAttack"
@@ -214,12 +214,12 @@ Store["AI_PlayerControl"] = Sel {
 			Act "fallOff"
 		}
 		Seq {
-			Con "jump key down", => @entity.keyUp
+			Con "jump key down", => @data.keyUp
 			Act "jump"
 		}
 	}
 	Seq {
-		Con "move key down", => @entity.keyLeft or @entity.keyRight
+		Con "move key down", => @data.keyLeft or @data.keyRight
 		Act "walk"
 	}
 	Seq {

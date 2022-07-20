@@ -11,7 +11,7 @@ UnitAction\add "groundEntrance",
 	queued: true
 	available: -> true
 	create: =>
-		@entity.lastGroup = @group
+		@data.lastGroup = @group
 		@group = 0
 		with @playable
 			.speed = 1
@@ -20,9 +20,9 @@ UnitAction\add "groundEntrance",
 		-> false
 	stop: =>
 		@playable\slot("AnimationEnd")\remove groundEntranceEnd
-		@group = @entity.lastGroup
-		@entity.lastGroup = nil
-		@entity.entered = true
+		@group = @data.lastGroup
+		@data.lastGroup = nil
+		@data.entered = true
 
 UnitAction\add "fallOff",
 	priority: 1
@@ -31,17 +31,17 @@ UnitAction\add "fallOff",
 	available: => not @onSurface
 	create: =>
 		if @velocityY <= 0
-			@entity.fallDown = true
+			@data.fallDown = true
 			with @playable
 				.speed = 1
 				\play "fallOff"
-		else @entity.fallDown = false
+		else @data.fallDown = false
 		(action)=>
 			return true if @onSurface
-			if not @entity.fallDown and
+			if not @data.fallDown and
 				@playable.current ~= "fallOff" and
 				@velocityY <= 0
-				@entity.fallDown = true
+				@data.fallDown = true
 				with @playable
 					.speed = 1
 					\play "fallOff"

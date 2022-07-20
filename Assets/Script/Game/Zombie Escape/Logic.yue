@@ -55,7 +55,7 @@ with Observer "Add", {"unitDef", "position", "order", "group", "faceRight"}
 		def = Store[unitDef]
 		for var in *mutables
 			@[var] = def[var]
-		unit = with Unit def,world, @, position
+		unit = with Unit def, world, @, position
 			.group = group
 			.order = order
 			.faceRight = faceRight
