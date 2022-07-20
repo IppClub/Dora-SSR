@@ -6,7 +6,6 @@ local record Entity
 	const oldValues: {string: Item}
 	destroy: function(self: Entity)
 	set: function(self: Entity, key: string, item: Item)
-	setNext: function(self: Entity, key: string, item: Item)
 	get: function(self: Entity, key: string): Item
 	getOld: function(self: Entity, key: string): Item
 	metamethod __index: function(self: Entity, key: string): Item
