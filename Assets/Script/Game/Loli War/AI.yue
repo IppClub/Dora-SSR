@@ -36,22 +36,22 @@ Store["PlayerControlAI"] = Sel {
 	Seq {
 		Seq {
 			Con "move key down", =>
-				not (@entity.keyLeft and @entity.keyRight) and
+				not (@data.keyLeft and @data.keyRight) and
 				(
-					(@entity.keyLeft and @faceRight) or
-					(@entity.keyRight and not @faceRight)
+					(@data.keyLeft and @faceRight) or
+					(@data.keyRight and not @faceRight)
 				)
 			Act "turn"
 		}
 		Reject!
 	}
 	Seq {
-		Con "attack key down", => Store.winner == nil and @entity.keyF
+		Con "attack key down", => Store.winner == nil and @data.keyF
 		Sel {
 			Seq {
 				Con "at switch", =>
-					theSwitch = @entity.atSwitch
-					theSwitch? and not theSwitch.entity.pushed and
+					theSwitch = @data.atSwitch
+					theSwitch? and not theSwitch.data.pushed and
 					(@x < theSwitch.x == @faceRight)
 				Act "pushSwitch"
 			}
@@ -66,12 +66,12 @@ Store["PlayerControlAI"] = Sel {
 			Act "fallOff"
 		}
 		Seq {
-			Con "jump key down", => @entity.keyUp
+			Con "jump key down", => @data.keyUp
 			Act "jump"
 		}
 	}
 	Seq {
-		Con "move key down", => @entity.keyLeft or @entity.keyRight
+		Con "move key down", => @data.keyLeft or @data.keyRight
 		Act "walk"
 	}
 	Act "idle"
@@ -159,7 +159,7 @@ Store["BunnyForwardReturnAI"] = Sel {
 
 Store["SwitchAI"] = Sel {
 	Seq {
-		Con "is pushed", => @entity.pushed
+		Con "is pushed", => @data.pushed
 		Act "pushed"
 	}
 	Act "waitUser"
@@ -168,7 +168,7 @@ Store["SwitchAI"] = Sel {
 switches = Group {"switch"}
 turnToSwitch = Seq {
 	Con "go to switch", => switches\each (item)->
-		if item.group == @group and @entity.targetSwitch == item.switch
+		if item.group == @group and @entity and @entity.targetSwitch == item.switch
 			return (@x > item.unit.x) == @faceRight
 	Act "turn"
 	Reject!
@@ -194,8 +194,8 @@ Store["BunnySwitcherAI"] = Sel {
 		Act "meleeAttack"
 	}
 	Seq {
-		Con "at switch", => with @entity
-			return .atSwitch? and .atSwitch.entity.switch == .targetSwitch
+		Con "at switch", => with @data
+			return .atSwitch? and .atSwitch.entity.switch == @entity.targetSwitch
 		Sel {
 			Seq {
 				Con "switch available", => heroes\each (hero)->
@@ -209,7 +209,7 @@ Store["BunnySwitcherAI"] = Sel {
 						when "SwitchG"
 							2,hero.defending
 					if hero.ep >= needEP and available
-						if not @entity.atSwitch\isDoing "pushed"
+						if not @data.atSwitch\isDoing "pushed"
 							hero.defending = false if @entity.targetSwitch == "SwitchG"
 							return true
 					false

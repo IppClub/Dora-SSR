@@ -40,9 +40,7 @@ public:
 	void clearOldComs();
 public:
 	template<typename T>
-	void set(String name, const T& value, bool rawFlag = false);
-	template<typename T>
-	void setNext(String name, const T& value);
+	void set(String name, const T& value);
 	template<typename T>
 	T get(String name) const;
 	template<typename T>
@@ -52,18 +50,19 @@ public:
 	bool has(int index) const;
 	bool hasOld(int index) const;
 	void remove(int index);
-	void removeNext(int index);
 	void set(int index, Own<Value>&& value);
 	void set(String name, Own<Value>&& value);
-	void setNext(int index, Own<Value>&& value);
 	Value* getComponent(int index) const;
 	Value* getOldCom(int index) const;
 protected:
-	void updateComponent(int index, Own<Value>&& com, bool add);
+	void registerAddEvent(int index);
+	void registerUpdateEvent(int index, Own<Value>&& old);
+	void registerRemoveEvent(int index, Own<Value>&& old);
 private:
 	int _index;
 	std::vector<Own<Value>> _components;
 	std::vector<Own<Value>> _oldComs;
+	friend class EntityPool;
 	DORA_TYPE_OVERRIDE(Entity);
 };
 
@@ -125,44 +124,9 @@ private:
 };
 
 template<typename T>
-void Entity::set(String name, const T& value, bool rawFlag)
+void Entity::set(String name, const T& value)
 {
-	int index = getIndex(name);
-	Value* com = getComponent(index);
-	if (rawFlag)
-	{
-		AssertIf(com == nullptr, "raw set non-exist component \"{}\".", name);
-		if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<T>>)
-		{
-			auto objVal = DoraAs<ValueObject>(com);
-			AssertIf(objVal == nullptr, "assign non-exist component \"{}\".", name);
-			objVal->set(value);
-		}
-		else
-		{
-			com->set(value);
-		}
-		return;
-	}
-	if (com)
-	{
-		if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<T>>)
-		{
-			auto object = DoraAs<ValueObject>(com);
-			AssertIf(object == nullptr, "component value type mismatch\"{}\".", name);
-			updateComponent(index, object->clone(), false);
-			object->set(value);
-		}
-		else
-		{
-			updateComponent(index, com->clone(), false);
-			com->set(value);
-		}
-	}
-	else
-	{
-		updateComponent(index, Value::alloc(value), true);
-	}
+	Entity::set(name, Value::alloc(value));
 }
 
 template <typename T>
@@ -200,13 +164,6 @@ T Entity::get(String key, const T& def) const
 		}
 	}
 	return def;
-}
-
-template<typename T>
-void Entity::setNext(String name, const T& value)
-{
-	int index = getIndex(name);
-	setNext(index, Value::alloc(value));
 }
 
 template<typename Func>

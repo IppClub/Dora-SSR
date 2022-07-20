@@ -37,7 +37,7 @@ with Group {"position", "direction", "speed", "target"}
 		newPos = newPos\clamp position, target
 		@position = newPos
 		@direction = angle
-		@setNext "target", nil if newPos == target
+		@target = nil if newPos == target
 
 with Observer "AddOrChange", {"position", "direction", "sprite"}
 	\every (position, direction, sprite)=>

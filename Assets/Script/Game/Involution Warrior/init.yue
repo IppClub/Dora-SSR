@@ -270,11 +270,12 @@ UnitAction\add "range",
 					.color = Color 0xff666666 if @group == EnemyGroup
 					.targetAllow = targetAllow
 					\slot "HitTarget", (bullet,target,pos)->
-						entity = target.entity
-						entity.hitPoint = pos
-						entity.hitPower = attackPower
-						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						with target.data
+							.hitPoint = pos
+							.hitPower = attackPower
+							.hitFromRight = bullet.velocityX < 0
+						:entity = target
+						factor = Data\getDamageFactor damageType, entity.defenceType
 						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true
@@ -320,11 +321,12 @@ UnitAction\add "multiArrow",
 					.color = Color 0xff666666 if @group == EnemyGroup
 					.targetAllow = targetAllow
 					\slot "HitTarget", (bullet,target,pos)->
-						entity = target.entity
-						entity.hitPoint = pos
-						entity.hitPower = attackPower
-						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						with target.data
+							.hitPoint = pos
+							.hitPower = attackPower
+							.hitFromRight = bullet.velocityX < 0
+						:entity = target
+						factor = Data\getDamageFactor damageType, entity.defenceType
 						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true
@@ -347,15 +349,15 @@ UnitAction\add "fallOff",
 	available: => not @onSurface
 	create: =>
 		if @velocityY <= 0
-			@entity.fallDown = true
+			@data.fallDown = true
 			with @playable
 				.speed = 2.5
 				\play "idle"
-		else @entity.fallDown = false
+		else @data.fallDown = false
 		(action)=>
 			return true if @onSurface
-			if not @entity.fallDown and @velocityY <= 0
-				@entity.fallDown = true
+			if not @data.fallDown and @velocityY <= 0
+				@data.fallDown = true
 				with @playable
 					.speed = 2.5
 					\play "idle"
@@ -436,12 +438,13 @@ UnitAction\add "spearAttack",
 			origin = @position - Vec2(0,205) + Vec2(dir,0)
 			size = Size 900,40
 			world\query Rect(origin,size), (body)->
-				if body.entity and Data\isEnemy body,@
-					entity = body.entity
-					entity.hitPoint = body.position
-					entity.hitPower = attackPower
-					entity.hitFromRight = not @faceRight
-					factor = Data\getDamageFactor damageType, body.entity.defenceType
+				:entity = body
+				if entity and Data\isEnemy body,@
+					with body.data
+						.hitPoint = body.position
+						.hitPower = attackPower
+						.hitFromRight = not @faceRight
+					factor = Data\getDamageFactor damageType, entity.defenceType
 					damage = (attackBase + attackBonus) * (attackFactor + factor)
 					entity.hp -= damage
 				false
@@ -763,7 +766,7 @@ with Observer "Change", {"hp","unit"}
 				\addTo world
 			if boss
 				with Visual "Particle/bloodp.par"
-					.position = @hitPoint
+					.position = unit.data.hitPoint
 					\addTo world,unit.order
 					\autoRemove!
 					\start!
@@ -864,6 +867,7 @@ Director.ui\addChild with AlignNode isRoot:true
 				fontSize:48
 			}
 			\slot "Tapped", ->
+				return if GameScore <= 0
 				GamePaused = false
 				\schedule once ->
 					emit "Fight"
