@@ -738,11 +738,21 @@ bool LuaEngine::executeString(const std::string& codes)
 bool LuaEngine::executeScriptFile(String filename)
 {
 	int top = lua_gettop(L);
+	DEFER(lua_settop(L, top));
 	lua_getglobal(L, "dofile"); // file, dofile
 	lua_pushlstring(L, filename.toString().c_str(), filename.size());
-	int result = LuaEngine::call(L, 1, LUA_MULTRET); // dofile(file)
-	lua_settop(L, top);
-	return result;
+	int result = LuaEngine::call(L, 1, 0); // dofile(file)
+	return result != 0;
+}
+
+bool LuaEngine::executeModule(String module)
+{
+	int top = lua_gettop(L);
+	DEFER(lua_settop(L, top));
+	lua_getglobal(L, "require"); // file, require
+	lua_pushlstring(L, module.toString().c_str(), module.size());
+	int result = LuaEngine::call(L, 1, 0); // require(module)
+	return result != 0;
 }
 
 void LuaEngine::pop(int count)

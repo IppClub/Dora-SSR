@@ -238,7 +238,15 @@ bool Director::init()
 	{
 		Warn("audio function is not available.");
 	}
-	if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
+	if (SharedContent.exist("init.yue"))
+	{
+		SharedLuaEngine.executeModule("init");
+	}
+	else if (SharedContent.exist(Path::concat({"Script", "init.yue"})))
+	{
+		SharedLuaEngine.executeModule("Script.init");
+	}
+	else if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 		{
 			auto name = file.toLower();
 			if (name == "init.lua"_slice)
