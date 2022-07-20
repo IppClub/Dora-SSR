@@ -23,7 +23,7 @@ store:Store = Data
 heroes = Group {"hero"}
 
 with Observer "Add",{"world"}
-	\every (world)=>
+	\watch (world)=>
 		Store.world = with world
 			with .camera
 				.followRatio = Vec2 0.03,0.03
@@ -92,7 +92,7 @@ mutables = {
 }
 
 with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
-	\every (hero,group,layer,position,faceRight,AI)=>
+	\watch (hero,group,layer,position,faceRight,AI)=>
 		:world = Store
 		def = Store[hero]
 		for var in *mutables
@@ -117,7 +117,7 @@ with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
 		emit "HPChange",@group,@hp
 
 with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
-	\every (bunny,group,layer,position,faceRight,AI)=>
+	\watch (bunny,group,layer,position,faceRight,AI)=>
 		:world = Store
 		def = Store[bunny]
 		for var in *mutables
@@ -134,7 +134,7 @@ with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
 			@hp -= 1.0 if @hp == 0.0
 
 with Observer "Add",{"switch","group","layer","look","position"}
-	\every (switchType,group,layer,look,position)=>
+	\watch (switchType,group,layer,look,position)=>
 		:world = Store
 		unit = with Unit Store[switchType],world,@,position
 			.group = group
@@ -175,7 +175,7 @@ with Observer "Add",{"switch","group","layer","look","position"}
 						@data.tip = nil
 
 with Observer "Add",{"block","group","layer","look","position"}
-	\every (block,group,layer,look,position)=>
+	\watch (block,group,layer,look,position)=>
 		:world = Store
 		def = Store[block]
 		@hp = def.hp
@@ -187,7 +187,7 @@ with Observer "Add",{"block","group","layer","look","position"}
 			\addTo world
 
 with Observer "Add",{"poke","group","layer","position"}
-	\every (poke,group,layer,position)=>
+	\watch (poke,group,layer,position)=>
 		:world = Store
 		pokeDef = with BodyDef!
 			.linearAcceleration = Vec2 0,-10
@@ -251,7 +251,7 @@ with Observer "Add",{"poke","group","layer","position"}
 		Audio\play "Audio/quake.wav"
 
 with Observer "Change", {"hp","unit","block"}
-	\every (hp,unit)=>
+	\watch (hp,unit)=>
 		hp:lastHp = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if unit\isDoing "hit"
@@ -279,7 +279,7 @@ with Observer "Change", {"hp","unit","block"}
 			emit "BlockChange",group,math.max(hp,0)-lastHp
 
 with Observer "Change", {"hp","bunny"}
-	\every (hp)=>
+	\watch (hp)=>
 		:unit = @
 		hp:lastHp = @oldValues
 		if hp < lastHp
@@ -299,7 +299,7 @@ with Observer "Change", {"hp","bunny"}
 					unit\removeFromParent!
 
 with Observer "Change", {"hp","hero"}
-	\every (hp)=>
+	\watch (hp)=>
 		:unit = @
 		hp:lastHp = @oldValues
 		:world = Store
@@ -361,7 +361,7 @@ with Observer "Change", {"hp","hero"}
 		emit "HPChange",@group,math.max(hp,0)-lastHp
 
 with Observer "Change", {"blocks","group"}
-	\every (blocks,group)=>
+	\watch (blocks,group)=>
 		:world = Store
 		return unless world.playing
 		if blocks == 0

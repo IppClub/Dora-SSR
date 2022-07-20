@@ -4,7 +4,7 @@ sceneGroup = Group {"scene"}
 positionGroup = Group {"position"}
 
 with Observer "Add", {"scene"}
-	\every (scene)=>
+	\watch (scene)=>
 		Director.entry\addChild with scene
 			.touchEnabled = true
 			\slot "TapEnded", (touch)->
@@ -13,22 +13,22 @@ with Observer "Add", {"scene"}
 					entity.target = location
 
 with Observer "Add", {"sprite"}
-	\every (sprite)=>
+	\watch (sprite)=>
 		sceneGroup\each (e)->
 			e.scene\addChild with sprite
 				\runAction Scale 0.5, 0, 0.5, Ease.OutBack
 
 with Observer "Remove", {"sprite"}
-	\every =>
+	\watch =>
 		sceneGroup\each (e)->
 			e.scene\removeChild @oldValues.sprite
 
 with Observer "Remove", {"target"}
-	\every =>
+	\watch =>
 		print "remove target from entity #{@index}"
 
 with Group {"position", "direction", "speed", "target"}
-	\every (position, direction, speed, target)=>
+	\watch (position, direction, speed, target)=>
 		return if target == position
 		dir = target - position
 		dir = dir\normalize!
@@ -40,7 +40,7 @@ with Group {"position", "direction", "speed", "target"}
 		@target = nil if newPos == target
 
 with Observer "AddOrChange", {"position", "direction", "sprite"}
-	\every (position, direction, sprite)=>
+	\watch (position, direction, sprite)=>
 		sprite.position = position
 		lastDirection = @oldValues.direction or sprite.angle
 		if math.abs(direction - lastDirection) > 1
@@ -73,7 +73,7 @@ with Observer "Add", {"scene"}
 		* "NoFocusOnAppearing"
 		* "NoNav"
 		* "NoMove"
-	\every (entity)-> entity.scene\schedule ->
+	\watch (entity)-> entity.scene\schedule ->
 		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.35
 		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
