@@ -169,7 +169,6 @@ class EntityGroup @ Group
 
 class EntityObserver @ Observer
 {
-	bool each(tolua_function_bool func);
 	static tolua_outside EntityObserver* EntityObserver_create @ create(String option, String components[tolua_len]);
 };
 

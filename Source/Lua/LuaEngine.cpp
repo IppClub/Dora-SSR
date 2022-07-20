@@ -555,11 +555,11 @@ _tlState(nullptr)
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "Group");
-			tolua_function(L, "every", EntityGroup_every);
+			tolua_function(L, "watch", EntityGroup_watch);
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "Observer");
-			tolua_function(L, "every", EntityObserver_every);
+			tolua_function(L, "watch", EntityObserver_watch);
 		tolua_endmodule(L);
 
 		tolua_beginmodule(L, "BodyDef");

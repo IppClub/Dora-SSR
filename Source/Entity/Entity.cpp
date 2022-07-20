@@ -312,6 +312,7 @@ void Entity::set(int index, Own<Value>&& value)
 	}
 	else
 	{
+		/* replace Add and Update events with Remove event */
 		EntityPool::NextId uid;
 		uid.id.entity = id;
 		uid.id.component = s_cast<int16_t>(index);
@@ -323,6 +324,7 @@ void Entity::set(int index, Own<Value>&& value)
 		uid.id.event = s_cast<int16_t>(EntityPool::NextEvent::Update);
 		if (auto it = nextValues.find(uid.value); it != nextValues.end())
 		{
+			old = std::move(it->second);
 			nextValues.erase(it);
 		}
 		nextValues[nid.value] = std::move(old);
@@ -493,7 +495,7 @@ void EntityGroup::onRemove(Entity* entity)
 	_entities.erase(MakeWRef(entity));
 }
 
-EntityGroup* EntityGroup::every(const EntityHandler& handler)
+EntityGroup* EntityGroup::watch(const EntityHandler& handler)
 {
 	WRef<EntityGroup> self(this);
 	SharedEntityPool.triggers.push_back([self,handler]()
@@ -508,7 +510,7 @@ EntityGroup* EntityGroup::every(const EntityHandler& handler)
 	return this;
 }
 
-EntityGroup* EntityGroup::every(LuaHandler* handler)
+EntityGroup* EntityGroup::watch(LuaHandler* handler)
 {
 	WRef<EntityGroup> self(this);
 	Ref<LuaHandler> hRef(handler);
@@ -659,7 +661,7 @@ void EntityObserver::onEvent(Entity* entity)
 	}
 }
 
-EntityObserver* EntityObserver::every(const EntityHandler& handler)
+EntityObserver* EntityObserver::watch(const EntityHandler& handler)
 {
 	WRef<EntityObserver> self(this);
 	SharedEntityPool.triggers.push_back([self,handler]()
@@ -674,7 +676,7 @@ EntityObserver* EntityObserver::every(const EntityHandler& handler)
 	return this;
 }
 
-EntityObserver* EntityObserver::every(LuaHandler* handler)
+EntityObserver* EntityObserver::watch(LuaHandler* handler)
 {
 	WRef<EntityObserver> self(this);
 	Ref<LuaHandler> hRef(handler);

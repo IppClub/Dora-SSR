@@ -2384,7 +2384,7 @@ tolua_lerror:
 
 /* EntityGroup */
 
-int EntityGroup_every(lua_State* L)
+int EntityGroup_watch(lua_State* L)
 {
 	/* 1 self, 2 handler */
 #ifndef TOLUA_RELEASE
@@ -2405,7 +2405,7 @@ int EntityGroup_every(lua_State* L)
 		try {
 #endif
 		auto handler = LuaHandler::create(tolua_ref_function(L, 2));
-		self->every(handler);
+		self->watch(handler);
 		tolua_pushobject(L, self);
 		return 1;
 #ifndef TOLUA_RELEASE
@@ -2439,7 +2439,7 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 	return EntityObserver::create(optionVal, components, count);
 }
 
-int EntityObserver_every(lua_State* L)
+int EntityObserver_watch(lua_State* L)
 {
 	/* 1 self, 2 handler */
 #ifndef TOLUA_RELEASE
@@ -2460,7 +2460,7 @@ int EntityObserver_every(lua_State* L)
 		try {
 #endif
 		auto handler = LuaHandler::create(tolua_ref_function(L, 2));
-		self->every(handler);
+		self->watch(handler);
 		tolua_pushobject(L, self);
 		return 1;
 #ifndef TOLUA_RELEASE
