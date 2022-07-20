@@ -9,9 +9,9 @@ import "UI.Control.StartPanel"
 store:Store = Data
 :GroupPlayer = Store
 
-playerGroup = Group {"hero"}
+playerGroup = Group {"hero", "unit"}
 updatePlayerControl = (key,flag)->
-	playerGroup\each => @[key] = flag if @group == GroupPlayer
+	playerGroup\each => @unit.data[key] = flag if @group == GroupPlayer
 
 root = with AlignNode isRoot:true
 	\addChild HPWheel!

@@ -146,13 +146,13 @@ with Observer "Add",{"switch","group","layer","look","position"}
 			\addTo world
 			.emittingEvent = true
 			\slot "BodyEnter",(sensorTag)=>
-				if .attackSensor.tag == sensorTag and @entity and Data\isFriend @,unit
-					if @group == GroupPlayer and @entity.hero and not @entity.tip
+				if .attackSensor.tag == sensorTag and @entity and Data\isFriend @, unit
+					if @group == GroupPlayer and @entity.hero and not @data.tip
 						floating = Action Sequence(
 							Y 0.5,140,150,Ease.OutQuad
 							Y 0.3,150,140,Ease.InQuad
 						)
-						@entity.tip = with Sprite "Model/items.clip|keyf_down"
+						@data.tip = with Sprite "Model/items.clip|keyf_down"
 							.y = 140
 							scaleOut = Action Spawn(
 								Opacity 0.3,0,1
@@ -161,18 +161,18 @@ with Observer "Add",{"switch","group","layer","look","position"}
 							\runAction scaleOut
 							\slot "ActionEnd", => \runAction floating
 							\addTo @
-					@entity.atSwitch = unit
+					@data.atSwitch = unit
 			\slot "BodyLeave",(sensorTag)=>
-				if .attackSensor.tag == sensorTag and @entity and Data\isFriend @,unit
-					@entity.atSwitch = nil
-					if @entity.tip
-						with @entity.tip
+				if .attackSensor.tag == sensorTag and Data\isFriend @, unit
+					@data.atSwitch = nil
+					if @data.tip
+						with @data.tip
 							\perform Spawn(
 								Scale 0.3,.scaleX,0
 								Opacity 0.3,1,0
 							)
 							\slot("ActionEnd")\set -> \removeFromParent!
-						@entity.tip = nil
+						@data.tip = nil
 
 with Observer "Add",{"block","group","layer","look","position"}
 	\every (block,group,layer,look,position)=>
@@ -229,11 +229,13 @@ with Observer "Add",{"poke","group","layer","position"}
 				sleep!
 				for body in *sensor.sensedBodies
 					if Data\isEnemy body.group,.group
-						entity = body.entity
+						:entity = body
 						if entity and entity.hp > 0
-							entity.hitPoint = body\convertToWorldSpace Vec2.zero
-							entity.hitPower = Vec2 2000,2400
-							entity.hitFromRight = body.x < .x
+							x = .x
+							with body.data
+								.hitPoint = body\convertToWorldSpace Vec2.zero
+								.hitPower = Vec2 2000,2400
+								.hitFromRight = body.x < x
 							entity.hp -= 1
 				pos = \convertToWorldSpace Vec2.zero
 				with Visual "Particle/boom.par"
@@ -310,9 +312,9 @@ with Observer "Change", {"hp","hero"}
 				unit\start "fall"
 				lastGroup = unit.group
 				unit.group = Data.groupHide
-				if unit.entity.tip
-					unit.entity.tip\removeFromParent!
-					unit.entity.tip = nil
+				if unit.data.tip
+					unit.data.tip\removeFromParent!
+					unit.data.tip = nil
 				emit "EPChange",lastGroup,6
 				switch lastGroup
 					when GroupPlayer

@@ -41,9 +41,9 @@ UnitAction\add "pushSwitch",
 			if not .playing
 				\play "attack"
 			\slot "AnimationEnd",pushSwitchEnd
-		with @entity.atSwitch
-			.entity.pushed = true
-			.entity.fromRight = @x > .x
+		with @data.atSwitch
+			.data.pushed = true
+			.data.fromRight = @x > .x
 		-> false
 	stop: =>
 		@playable\slot("AnimationEnd")\remove pushSwitchEnd
@@ -74,7 +74,7 @@ UnitAction\add "pushed",
 		with @playable
 			.recovery = 0.2
 			.speed = 1.5
-			\play @entity.fromRight and "pushLeft" or "pushRight"
+			\play @data.fromRight and "pushLeft" or "pushRight"
 			\slot "AnimationEnd",switchPushed
 		once =>
 			sleep 0.5
@@ -96,7 +96,7 @@ UnitAction\add "pushed",
 								Group({"bunny"})\each (bunny)->
 									bunnyCount += 1 if bunny.group == @group
 								.hp = 0.0 if bunnyCount > MaxBunnies
-							emit "EPChange",@group,-1
+							emit "EPChange", @group, -1
 							return true
 				when "SwitchG"
 					heroes\each (hero)->
@@ -113,7 +113,7 @@ UnitAction\add "pushed",
 			while true
 				sleep!
 	stop: =>
-		@entity.pushed = false
+		@data.pushed = false
 		@playable\slot("AnimationEnd")\remove pushSwitchEnd
 
 strikeEnd = (name,playable)->
@@ -164,11 +164,12 @@ UnitAction\add "villyAttack",
 				with Bullet bulletDef,@
 					.targetAllow = targetAllow
 					\slot "HitTarget",(bullet,target,pos)->
-						entity = target.entity
-						entity.hitPoint = pos
-						entity.hitPower = attackPower
-						entity.hitFromRight = bullet.velocityX < 0
-						factor = Data\getDamageFactor damageType, target.entity.defenceType
+						with target.data
+							.hitPoint = pos
+							.hitPower = attackPower
+							.hitFromRight = bullet.velocityX < 0
+						:entity = target
+						factor = Data\getDamageFactor damageType, entity.defenceType
 						damage = (attackBase + attackBonus) * (attackFactor + factor)
 						entity.hp -= damage
 						bullet.hitStop = true

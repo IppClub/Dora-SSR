@@ -2268,27 +2268,27 @@ tolua_lerror:
 #endif
 }
 
-static void entity_set(Entity* self, String key, lua_State* L, int loc, bool raw_flag)
+static void entitySet(Entity* self, String key, lua_State* L, int loc)
 {
 	if (lua_isinteger(L, loc))
 	{
-		self->set(key, lua_tointeger(L, loc), raw_flag);
+		self->set(key, lua_tointeger(L, loc));
 	}
 	else if (lua_isnumber(L, loc))
 	{
-		self->set(key, lua_tonumber(L, loc), raw_flag);
+		self->set(key, lua_tonumber(L, loc));
 	}
 	else if (lua_isboolean(L, loc))
 	{
-		self->set(key, lua_toboolean(L, loc) != 0, raw_flag);
+		self->set(key, lua_toboolean(L, loc) != 0);
 	}
 	else if (lua_isstring(L, loc))
 	{
-		self->set(key, tolua_toslice(L, loc, nullptr).toString(), raw_flag);
+		self->set(key, tolua_toslice(L, loc, nullptr).toString());
 	}
 	else if (tolua_isobject(L, loc))
 	{
-		self->set(key, s_cast<Object*>(tolua_tousertype(L, loc, 0)), raw_flag);
+		self->set(key, s_cast<Object*>(tolua_tousertype(L, loc, 0)));
 	}
 	else
 	{
@@ -2313,46 +2313,6 @@ static void entity_set(Entity* self, String key, lua_State* L, int loc, bool raw
 
 int Entity_set(lua_State* L)
 {
-	/* 1 self, 2 name, 3 value, 4 raw_flag */
-#ifndef TOLUA_RELEASE
-	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
-	{
-		goto tolua_lerror;
-	}
-#endif
-	{
-		Entity* self = r_cast<Entity*>(tolua_tousertype(L, 1, 0));
-#ifndef TOLUA_RELEASE
-		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_set'", nullptr);
-#endif
-		bool raw_flag = lua_toboolean(L, 4) != 0;
-		Slice key = tolua_toslice(L, 2, nullptr);
-#ifndef TOLUA_RELEASE
-		try {
-#endif
-		if (lua_isnil(L, 3))
-		{
-			self->remove(key);
-		}
-		else
-		{
-			entity_set(self, key, L, 3, raw_flag);
-		}
-#ifndef TOLUA_RELEASE
-		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
-#endif
-		return 0;
-	}
-#ifndef TOLUA_RELEASE
-tolua_lerror :
-	tolua_error(L, "#ferror in function 'Entity_set'.", &tolua_err);
-	return 0;
-#endif
-}
-
-int Entity_setNext(lua_State* L)
-{
 	/* 1 self, 2 name, 3 value */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
@@ -2372,50 +2332,9 @@ int Entity_setNext(lua_State* L)
 #endif
 		if (lua_isnil(L, 3))
 		{
-			self->removeNext(self->getIndex(key));
+			self->remove(self->getIndex(key));
 		}
-		else
-		{
-			if (lua_isinteger(L, 3))
-			{
-				self->setNext(key, lua_tointeger(L, 3));
-			}
-			else if (lua_isnumber(L, 3))
-			{
-				self->setNext(key, lua_tonumber(L, 3));
-			}
-			else if (lua_isboolean(L, 3))
-			{
-				self->setNext(key, lua_toboolean(L, 3) != 0);
-			}
-			else if (lua_isstring(L, 3))
-			{
-				self->setNext(key, tolua_toslice(L, 3, nullptr).toString());
-			}
-			else if (tolua_isobject(L, 3))
-			{
-				self->setNext(key, s_cast<Object*>(tolua_tousertype(L, 3, 0)));
-			}
-			else
-			{
-				auto name = tolua_typename(L, 3);
-				lua_pop(L, 1);
-				switch (Switch::hash(name))
-				{
-					case "Vec2"_hash:
-						self->setNext(key, tolua_tolight(L, 3).value);
-						break;
-					case "Size"_hash:
-						self->setNext(key, *r_cast<Size*>(tolua_tousertype(L, 3, 0)));
-						break;
-					default:
-#ifndef TOLUA_RELEASE
-						tolua_error(L, "Entity can only store number, boolean, string, Object, Vec2, Size, Rect in containers.", nullptr);
-#endif // TOLUA_RELEASE
-						break;
-				}
-			}
-		}
+		else entitySet(self, key, L, 3);
 #ifndef TOLUA_RELEASE
 		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
 #endif
@@ -2441,7 +2360,7 @@ int Entity_create(lua_State* L)
 	else
 #endif
 	{
-		Entity* entity = Entity::create();
+		Entity* self = Entity::create();
 		lua_pushnil(L);
 		while (lua_next(L, 2))
 		{
@@ -2449,11 +2368,11 @@ int Entity_create(lua_State* L)
 			if (lua_isstring(L, -1))
 			{
 				auto key = tolua_toslice(L, -1, nullptr);
-				entity_set(entity, key, L, -2, false);
+				entitySet(self, key, L, -2);
 			}
 			lua_pop(L, 2);
 		}
-		tolua_pushobject(L, entity);
+		tolua_pushobject(L, self);
 	}
 	return 1;
 #ifndef TOLUA_RELEASE

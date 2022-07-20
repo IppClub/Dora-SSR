@@ -15,7 +15,6 @@ store:Store = Data
 	:LayerPlayerHero
 	:LayerEnemyHero
 	:LayerBackground
-	:MaxEP
 } = Store
 
 GameWorld = Class PlatformWorld,
