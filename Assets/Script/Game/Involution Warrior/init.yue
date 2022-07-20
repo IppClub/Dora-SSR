@@ -732,7 +732,7 @@ Store["AI_Boss"] = Sel {
 }
 
 with Observer "Add", {"position","order","group","faceRight"}
-	\every (position,order,group,faceRight)=>
+	\watch (position,order,group,faceRight)=>
 		:world = Store
 		@player = true if group == PlayerGroup
 		@enemy = true if group == EnemyGroup
@@ -747,7 +747,7 @@ with Observer "Add", {"position","order","group","faceRight"}
 			\addTo world
 
 with Observer "Change", {"hp","unit"}
-	\every (hp,unit)=>
+	\watch (hp,unit)=>
 		:boss = @
 		hp:lastHp = @oldValues
 		if hp < lastHp

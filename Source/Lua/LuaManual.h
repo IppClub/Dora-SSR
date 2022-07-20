@@ -229,11 +229,11 @@ int Entity_set(lua_State* L);
 int Entity_create(lua_State* L);
 
 /* EntityGroup */
-int EntityGroup_every(lua_State* L);
+int EntityGroup_watch(lua_State* L);
 
 /* EntityObserver */
 EntityObserver* EntityObserver_create(String option, Slice components[], int count);
-int EntityObserver_every(lua_State* L);
+int EntityObserver_watch(lua_State* L);
 
 /* SVGDef */
 SVGDef* SVGDef_create(String filename);

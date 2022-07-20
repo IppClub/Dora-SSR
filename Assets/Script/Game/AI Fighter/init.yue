@@ -1208,7 +1208,7 @@ mutables = {
 }
 
 with Observer "Add", {"unitDef","position","order","group","faceRight"}
-	\every (unitDef,position,order,group)=>
+	\watch (unitDef,position,order,group)=>
 		{:player,:faceRight,:charSet,:decisionTree} = @
 		{:world} = Store
 		func = UnitDefFuncs[unitDef]
@@ -1238,7 +1238,7 @@ with Observer "Add", {"unitDef","position","order","group","faceRight"}
 			world.camera.followTarget = unit
 
 with Observer "Change", {"hp","unit"}
-	\every (hp,unit)=>
+	\watch (hp,unit)=>
 		:boss = @
 		{hp:lastHp} = @oldValues
 		if hp < lastHp

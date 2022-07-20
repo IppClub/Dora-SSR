@@ -3,7 +3,8 @@ _ENV = Dorothy!
 hpGroup = Group {"hp"}
 spGroup = Group {"sp"}
 
-observer = Observer "Change", {"hp","mp"}
+observer = Observer "Change", {"hp", "mp"}
+observer1 = Observer "Remove", {"hp", "sp"}
 
 Entity
 	hp: 100
@@ -20,25 +21,52 @@ Entity
 entity1 = hpGroup\find => @id == 1
 
 print "-- {hp} group"
-hpGroup\each (e)-> print "entity", e.index
+hpGroup\each =>
+	print "entity", @id
 
 print "-- {sp} group"
-spGroup\each (e)-> print "entity", e.index
+spGroup\each =>
+	print "entity", @id
 
 print "-- {hp mp} observer"
-entity0.hp = 1
+entity0.hp += 20
+entity0.hp -= 34
+
 entity1.hp -= 1
 entity1.hp -= 99
-observer\each (e)-> print "hp or mp change: entity", e.index
+
+observer
+	\watch (hp, mp)=>
+		if oldHP = @oldValues.hp
+			assert @oldValues.hp == 100
+			assert hp == 86
+			print "hp change [from #{oldHP} to #{hp}]: entity #{@id}"
+		if oldMP = @oldValues.mp
+			print "mp change [from #{oldMP} to #{mp}]: entity #{@id}"
+
+observer1
+	\watch (hp, sp)=>
+		if hp == nil
+			assert @oldValues.hp == 119
+			print "hp removed from entity #{@id}, old value: #{@oldValues.hp}"
+		if sp == nil
+			print "sp removed from entity #{@id}, old value: #{@oldValues.sp}"
 
 print "-- {hp} group"
-hpGroup\each (e)-> print "entity", e.index,e.oldValues.hp,e.hp
+hpGroup\each =>
+	print "entity", @id, @hp
 
-print "remove hp from entity", entity1.index
+print "remove hp from entity", entity1.id
 entity1.hp = nil
 
 print "-- {hp} group"
-hpGroup\each (e)-> print "entity", e.index,e.oldValues.hp,e.hp
+hpGroup\each =>
+	print "entity", @index, @hp
+
+assert hpGroup.count == 1
 
 print "-- {sp} group"
-spGroup\each (e)-> print "entity", e.index,e.oldValues.sp,e.sp
+spGroup\each =>
+	print "entity", @index, @sp
+
+assert spGroup.count == 1

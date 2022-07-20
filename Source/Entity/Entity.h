@@ -89,9 +89,9 @@ public:
 	bool each(const Func& func);
 	template<typename Func>
 	Entity* find(const Func& func);
-	EntityGroup* every(const EntityHandler& handler);
-	EntityGroup* every(LuaHandler* handler);
-public:
+	EntityGroup* watch(const EntityHandler& handler);
+	EntityGroup* watch(LuaHandler* handler);
+protected:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
 private:
@@ -109,13 +109,13 @@ public:
 	static EntityObserver* create(int option, const std::vector<std::string>& components);
 	static EntityObserver* create(int option, Slice components[], int count);
 public:
+	void clear();
+	EntityObserver* watch(const EntityHandler& handler);
+	EntityObserver* watch(LuaHandler* handler);
+protected:
+	void onEvent(Entity* entity);
 	template<typename Func>
 	bool each(const Func& func);
-	EntityObserver* every(const EntityHandler& handler);
-	EntityObserver* every(LuaHandler* handler);
-public:
-	void onEvent(Entity* entity);
-	void clear();
 private:
 	int _option;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
@@ -143,7 +143,6 @@ T Entity::get(String key) const
 	{
 		return com->toVal<Type>();
 	}
-
 }
 
 template <typename T>

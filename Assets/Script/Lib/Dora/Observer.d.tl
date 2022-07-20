@@ -1,7 +1,6 @@
 local Entity = require("Entity").Type
 local record Observer
-	each: function(self: Observer, func: function(Entity): boolean): boolean
-	every: function(self: Observer, func: function(Entity)): Observer
+	watch: function(self: Observer, func: function(Entity)): Observer
 end
 local record ObserverClass
 	type Type = Observer
