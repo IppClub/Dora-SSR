@@ -133,6 +133,8 @@ local tl = {TypeCheckOptions = {}, Env = {}, Symbol = {}, Result = {}, Error = {
 
 
 
+
+
 tl.version = function()
 	return VERSION
 end
@@ -209,6 +211,68 @@ local TypeInfo = tl.TypeInfo
 local TypeReport = tl.TypeReport
 local TypeReportEnv = tl.TypeReportEnv
 local Symbol = tl.Symbol
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function tl.canonicalize_path(filename, sep)
+	if not filename then
+		return nil
+	end
+
+	sep = sep or package.config:sub(1, 1)
+	if sep ~= "/" then
+		filename = filename:gsub(sep, "/")
+	end
+
+	filename = filename:gsub("/*$", ""):gsub("/+", "/")
+	local pieces = {}
+	local drive = ""
+	if sep == "\\" and filename:match("^.:") then
+		drive, filename = filename:match("^(.:)(.*)$")
+	end
+	for piece in filename:gmatch("[^/]*") do
+		if piece == ".." then
+			local prev = pieces[#pieces]
+			if not prev or prev == ".." then
+				table.insert(pieces, "..")
+			elseif prev ~= "" then
+				table.remove(pieces)
+			end
+		elseif piece ~= "." then
+			table.insert(pieces, piece)
+		end
+	end
+	filename = drive .. table.concat(pieces, "/")
+
+	if sep ~= "/" then
+		filename = filename:gsub("/", sep)
+	end
+
+	return filename
+end
 
 
 
@@ -2973,6 +3037,8 @@ local function clear_redundant_errors(errors)
 end
 
 function tl.parse_program(tokens, errs, filename)
+	filename = tl.canonicalize_path(filename, nil)
+
 	errs = errs or {}
 	local ps = {
 		tokens = tokens,
@@ -4548,7 +4614,7 @@ function tl.search_module(module_name, search_dtl)
 	end
 	found, tried = search_for(module_name, ".lua", path, tried)
 	if found then
-		return found
+		return tl.canonicalize_path(found, nil)
 	end
 	return nil, tried
 end
@@ -7180,7 +7246,7 @@ tl.type_check = function(ast, opts)
 							local matched, errs = try_match_func_args(node, f, args, argdelta)
 							if matched then
 
-								return matched
+								return matched, f
 							end
 							first_errs = first_errs or errs
 
@@ -7199,9 +7265,9 @@ tl.type_check = function(ast, opts)
 
 		type_check_function_call = function(node, func, args, is_method, argdelta)
 			begin_scope()
-			local ret = check_call(node, func, args, is_method, argdelta)
+			local ret, f = check_call(node, func, args, is_method, argdelta)
 			end_scope()
-			return ret
+			return ret, f
 		end
 	end
 
@@ -7238,7 +7304,7 @@ tl.type_check = function(ast, opts)
 				elseif tbl.meta_fields and tbl.meta_fields["__index"] then
 					local ft = tbl.meta_fields["__index"]
 					if ft.typename == "function" then
-						return type_check_function_call(node, ft, { tbl, key.type or simple_types[key.kind] }, false, 0)
+						return (type_check_function_call(node, ft, { tbl, key.type or simple_types[key.kind] }, false, 0))
 					end
 				end
 			end
@@ -7509,7 +7575,7 @@ tl.type_check = function(ast, opts)
 			elseif a.meta_fields and a.meta_fields["__index"] then
 				local ft = a.meta_fields["__index"]
 				if ft.typename == "function" then
-					return type_check_function_call(node, ft, { a, b }, false, 0)
+					return (type_check_function_call(node, ft, { a, b }, false, 0))
 				end
 			elseif is_a(b, STRING) then
 				return node_error(idxnode, "cannot index object of type %s with a string, consider using an enum", orig_a)
@@ -7997,7 +8063,7 @@ tl.type_check = function(ast, opts)
 
 		["assert"] = function(node, a, b, argdelta)
 			node.known = FACT_TRUTHY
-			return type_check_function_call(node, a, b, false, argdelta)
+			return (type_check_function_call(node, a, b, false, argdelta))
 		end,
 	}
 
@@ -8007,13 +8073,13 @@ tl.type_check = function(ast, opts)
 			if special then
 				return special(node, a, b, argdelta)
 			else
-				return type_check_function_call(node, a, b, false, argdelta)
+				return (type_check_function_call(node, a, b, false, argdelta))
 			end
 		elseif node.e1.op and node.e1.op.op == ":" then
 			table.insert(b, 1, node.e1.e1.type)
-			return type_check_function_call(node, a, b, true)
+			return (type_check_function_call(node, a, b, true))
 		else
-			return type_check_function_call(node, a, b, false, argdelta)
+			return (type_check_function_call(node, a, b, false, argdelta))
 		end
 	end
 
@@ -8559,6 +8625,13 @@ tl.type_check = function(ast, opts)
 				local args = { node.exps[2] and node.exps[2].type,
 node.exps[3] and node.exps[3].type, }
 				local exp1type = resolve_for_call(exp1, exp1.type, args)
+
+				if exp1type.typename == "poly" then
+					local _, matched = type_check_function_call(node, exp1type, args, false, 0)
+					if matched then
+						exp1type = matched
+					end
+				end
 
 				if exp1type.typename == "function" then
 
@@ -9130,7 +9203,7 @@ node.exps[3] and node.exps[3].type, }
 					else
 						metamethod = a.meta_fields and a.meta_fields[unop_to_metamethod[node.op.op] or ""]
 						if metamethod then
-							node.type = resolve_tuple_and_nominal(type_check_function_call(node, metamethod, { a }, false, 0))
+							node.type = resolve_tuple_and_nominal((type_check_function_call(node, metamethod, { a }, false, 0)))
 						elseif lax and is_unknown(a) then
 							node.type = UNKNOWN
 						else
@@ -9178,7 +9251,7 @@ node.exps[3] and node.exps[3].type, }
 							meta_self = 2
 						end
 						if metamethod then
-							node.type = resolve_tuple_and_nominal(type_check_function_call(node, metamethod, { a, b }, false, 0))
+							node.type = resolve_tuple_and_nominal((type_check_function_call(node, metamethod, { a, b }, false, 0)))
 						elseif lax and (is_unknown(a) or is_unknown(b)) then
 							node.type = UNKNOWN
 						else
@@ -9588,7 +9661,7 @@ function tl.get_types(result, trenv)
 		n = trenv.next_num
 
 		local rt = t
-		if rt.typename == "typetype" or rt.typename == "nestedtype" then
+		if is_typetype(rt) then
 			rt = rt.def
 		elseif rt.typename == "tuple" and #rt == 1 then
 			rt = rt[1]
@@ -9611,7 +9684,7 @@ function tl.get_types(result, trenv)
 		if t.resolved then
 			rt = t
 		end
-		assert(rt.typename ~= "typetype")
+		assert(not is_typetype(rt))
 
 		if is_record_type(rt) then
 
@@ -9788,6 +9861,8 @@ end
 
 
 tl.process = function(filename, env)
+	filename = tl.canonicalize_path(filename, nil)
+
 	if env and env.loaded and env.loaded[filename] then
 		return env.loaded[filename]
 	end
@@ -9813,6 +9888,7 @@ tl.process = function(filename, env)
 end
 
 function tl.process_string(input, is_lua, env, filename)
+	filename = tl.canonicalize_path(filename, nil)
 
 	env = env or tl.init_env(is_lua)
 	if env.loaded and env.loaded[filename] then

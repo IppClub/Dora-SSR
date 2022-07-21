@@ -257,7 +257,7 @@ bool Director::init()
 			return false;
 		}))
 	{
-		Warn("Dorothy SSR started without script entry.");
+		Info("Dorothy SSR started without script entry.");
 	}
 	return true;
 }
