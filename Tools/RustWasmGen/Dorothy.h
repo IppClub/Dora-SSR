@@ -35,6 +35,5 @@ class EntityGroup @ Group
 
 class EntityObserver @ Observer
 {
-	bool each(function<bool (Entity* e)> func);
 	static outside EntityObserver* EntityObserver_create @ create(String option, vector<string> components);
 };

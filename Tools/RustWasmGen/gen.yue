@@ -87,7 +87,7 @@ Name = C R("az", "AZ", "__") * AlphaNum^0
 
 ClassLabel = C P"singleton"
 
-FieldLabel = C P"readonly" + P"common" + P"boolean" + P"static"
+FieldLabel = C(P"static")^-1 * White * C(P"readonly")^-1 * White * C(P"common" + P"boolean")
 
 MethodLabel = C P"outside"
 
@@ -103,7 +103,7 @@ Param = P {
 
 Method = (Ct((White * MethodLabel)^1) + Cc false) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")" * White * P";") / mark"method"
 
-Field = (Ct((White * FieldLabel)^1) + Cc false) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * P";" / mark"field"
+Field = (Ct((White * FieldLabel)^-1) + Cc false) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * P";" / mark"field"
 
 Class = Ct (Ct(ClassLabel) + Cc false) * White * P"class" * White * Ct(Name * White * (P"@" * White * Name + Cc false) * White * (P":" * White * (P"public")^-1 * White * Name * White + Cc false)) *
 	P"{" *
