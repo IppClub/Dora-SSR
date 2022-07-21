@@ -238,24 +238,30 @@ bool Director::init()
 	{
 		Warn("audio function is not available.");
 	}
-	if (SharedContent.exist("init.yue"))
+	bool foundEntry = SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 	{
-		SharedLuaEngine.executeModule("init");
-	}
-	else if (SharedContent.exist(Path::concat({"Script", "init.yue"})))
+		auto name = file.toLower();
+		if (name == "init.yue"_slice)
+		{
+			SharedLuaEngine.executeModule(Path::concat({path, Path::getName(file)}));
+			return true;
+		}
+		return false;
+	});
+	if (!foundEntry)
 	{
-		SharedLuaEngine.executeModule("Script.init");
-	}
-	else if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
+		foundEntry = SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
 		{
 			auto name = file.toLower();
 			if (name == "init.lua"_slice)
 			{
-				SharedLuaEngine.executeScriptFile(Path::concat({path,file}));
+				SharedLuaEngine.executeScriptFile(Path::concat({path, file}));
 				return true;
 			}
 			return false;
-		}))
+		});
+	}
+	if (!foundEntry)
 	{
 		Info("Dorothy SSR started without script entry.");
 	}
