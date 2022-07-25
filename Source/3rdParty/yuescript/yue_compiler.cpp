@@ -1336,9 +1336,11 @@ private:
 		BREAK_IF(!assign);
 		if (assignment->expList->exprs.size() < assign->values.size()) {
 			auto num = assignment->expList->exprs.size();
-			_buf << "no more than "sv << num << " right value"sv;
-			if (num > 1) _buf << 's';
-			_buf << " required"sv;
+			if (num > 1) {
+				_buf << "no more than "sv << num << " right values expected, got "sv << assign->values.size();
+			} else {
+				_buf << "only one right value expected, got "sv << assign->values.size();
+			}
 			throw std::logic_error(_info.errorMessage(clearBuf(), assign->values.front()));
 		}
 		auto x = assignment;
@@ -7400,7 +7402,13 @@ private:
 	void transformLocalAttrib(LocalAttrib_t* localAttrib, str_list& out) {
 		auto x = localAttrib;
 		if (x->leftList.size() < x->assign->values.size()) {
-			throw std::logic_error(_info.errorMessage("number of right values should not be greater than left values"sv, x->assign->values.front()));
+			auto num = x->leftList.size();
+			if (num > 1) {
+				_buf << "no more than "sv << num << " right values expected, got "sv << x->assign->values.size();
+			} else {
+				_buf << "only one right value expected, got "sv << x->assign->values.size();
+			}
+			throw std::logic_error(_info.errorMessage(clearBuf(), x->assign->values.front()));
 		}
 		auto listA = x->new_ptr<NameList_t>();
 		auto assignA = x->new_ptr<Assign_t>();
@@ -7458,7 +7466,7 @@ private:
 				}
 			} else {
 				if (localAttrib->attrib.is<close_attrib_t>()) {
-					throw std::logic_error(_info.errorMessage("close attribute is not available when not targeting Lua 5.4 or higher version"sv, x));
+					throw std::logic_error(_info.errorMessage("close attribute is not available when not targeting Lua version 5.4 or higher"sv, x));
 				}
 				for (auto& var : vars) {
 					markVarConst(var);
@@ -7499,14 +7507,14 @@ private:
 
 	void transformLabel(Label_t* label, str_list& out) {
 		if (getLuaTarget(label) < 502) {
-			throw std::logic_error(_info.errorMessage("label statement is not available when not targeting Lua 5.2 or higher version"sv, label));
+			throw std::logic_error(_info.errorMessage("label statement is not available when not targeting Lua version 5.2 or higher"sv, label));
 		}
 		out.push_back(indent() + "::"s + _parser.toString(label->label) + "::"s + nll(label));
 	}
 
 	void transformGoto(Goto_t* gotoNode, str_list& out) {
 		if (getLuaTarget(gotoNode) < 502) {
-			throw std::logic_error(_info.errorMessage("goto statement is not available when not targeting Lua 5.2 or higher version"sv, gotoNode));
+			throw std::logic_error(_info.errorMessage("goto statement is not available when not targeting Lua version 5.2 or higher"sv, gotoNode));
 		}
 		out.push_back(indent() + "goto "s + _parser.toString(gotoNode->label) + nll(gotoNode));
 	}
