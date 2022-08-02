@@ -1,5 +1,5 @@
 #[macro_use] pub mod dora;
-use crate::dora::{Object, Node, INode, Director, CallStack, Value, Array};
+use crate::dora::{Object, Node, INode, Director, Array, App, Group, Entity};
 
 fn main() {
 	println!("Hello, world!");
@@ -42,4 +42,25 @@ fn main() {
 	for i in 0 .. keys.len() {
 		println!("k: {}, v: {}", keys[i], userdata.get("key123").unwrap().cast::<Array>().unwrap().raw());
 	}
+	print!("platform: {}\n", App::get_platform());
+
+	let mut entity = Entity::new();
+	entity.set("a", 123);
+	entity.set("b", false);
+	entity.set("c", 1.2);
+	let mut group = Group::new(&vec!["a", "b", "c"]);
+	if let Some(mut target) = group.find(Box::new(|e| {
+		!e.get("b").unwrap().into_bool().unwrap()
+	})) {
+		target.set("d", "value");
+	}
+	group.watch(Box::new(|args| {
+		let mut e = args.pop_cast::<Entity>().unwrap();
+		let a = args.pop_i32().unwrap();
+		let b = args.pop_bool().unwrap();
+		let c = args.pop_f64().unwrap();
+		print!("entity: {}, {}, {}\n", a, b, c);
+		e.remove("a");
+		e.remove("d");
+	}));
 }

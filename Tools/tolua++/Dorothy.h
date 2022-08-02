@@ -156,6 +156,8 @@ class Entity : public Object
 	static tolua_readonly tolua_property__common uint32_t count;
 	tolua_readonly tolua_property__common int index;
 	static void clear();
+	static int getComIndex(String name);
+	static int tryGetComIndex(String name);
 	void destroy();
 };
 

@@ -1,6 +1,5 @@
-use std::any::Any;
-use dora::object_macro;
-use crate::dora::{Object, Vec2, Array, Dictionary, CallStack, from_string, to_string, push_function, object_retain, object_release};
+use crate::dora_object;
+use crate::dora::{Object, Vec2, Array, Dictionary, CallStack, from_string, to_string, push_function};
 
 extern "C" {
 	fn node_type() -> i32;
@@ -75,8 +74,8 @@ pub trait INode: Object {
 	}
 }
 
-#[derive(object_macro)]
 pub struct Node { raw: i64 }
+dora_object!(Node);
 
 impl Node {
 	pub fn new() -> Node {

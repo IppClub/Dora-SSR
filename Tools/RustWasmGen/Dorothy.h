@@ -1,3 +1,27 @@
+value struct Rect
+{
+	Vec2 origin;
+	Size size;
+	common float x;
+	common float y;
+	common float width;
+	common float height;
+	common float left;
+	common float right;
+	common float centerX;
+	common float centerY;
+	common float bottom;
+	common float top;
+	common Vec2 lowerBound;
+	common Vec2 upperBound;
+	void set(float x, float y, float width, float height);
+	bool containsPoint(Vec2 point) const;
+	bool intersectsRect(Rect rect) const;
+	bool operator== @ equals(Rect other) const;
+	static Rect create(Vec2 origin, Size size);
+	static readonly qt Rect zero;
+};
+
 singleton class Application @ App
 {
 	readonly common uint32_t frame;
@@ -16,24 +40,41 @@ singleton class Application @ App
 	void shutdown();
 };
 
-class Entity
+object class Entity
 {
 	static readonly common uint32_t count;
 	readonly common int index;
 	static void clear();
+	void remove(string key);
 	void destroy();
 	static Entity* create();
 };
 
-class EntityGroup @ Group
+object class EntityGroup @ Group
 {
 	readonly common int count;
-	bool each(function<bool (Entity* e)> func);
-	Entity* find(function<bool (Entity* e)> func);
-	static EntityGroup* create(vector<string> components);
+	static EntityGroup* create(VecStr components);
 };
 
-class EntityObserver @ Observer
+object class EntityObserver @ Observer
 {
-	static outside EntityObserver* EntityObserver_create @ create(String option, vector<string> components);
 };
+
+singleton class Director
+{
+	boolean bool displayStats @ statsDisplay;
+	readonly common Node* uI @ ui;
+	readonly common Node* uI3D @ ui3d;
+	readonly common Node* entry;
+	readonly common Node* postNode;
+	readonly common double deltaTime;
+	void popCamera();
+	void clearCamera();
+	void cleanup();
+};
+
+singleton class Content
+{
+	common VecStr searchPaths;
+};
+
