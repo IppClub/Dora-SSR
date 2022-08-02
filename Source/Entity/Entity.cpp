@@ -242,7 +242,7 @@ bool Entity::hasOld(int index) const
 void Entity::remove(String name)
 {
 	int index = SharedEntityPool.tryGetIndex(name);
-	if (index > 0) set(index, nullptr);
+	if (index >= 0) set(index, nullptr);
 }
 
 void Entity::remove(int index)
@@ -421,6 +421,16 @@ Entity* Entity::create()
 	return entity;
 }
 
+int Entity::getComIndex(String name)
+{
+	return SharedEntityPool.getIndex(name);
+}
+
+int Entity::tryGetComIndex(String name)
+{
+	return SharedEntityPool.tryGetIndex(name);
+}
+
 EntityGroup::EntityGroup(const std::vector<std::string>& components)
 {
 	_components.resize(components.size());
@@ -438,6 +448,11 @@ EntityGroup::~EntityGroup()
 		SharedEntityPool.getGroupAddHandler(index) -= std::make_pair(this, &EntityGroup::onAdd);
 		SharedEntityPool.getGroupRemoveHandler(index) -= std::make_pair(this, &EntityGroup::onRemove);
 	}
+}
+
+const std::vector<int>& EntityGroup::getComponents() const
+{
+	return _components;
 }
 
 int EntityGroup::getCount() const

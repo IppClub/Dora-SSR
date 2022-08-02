@@ -441,7 +441,32 @@ local Entity = builtin.Entity
 
 local Entity_create = Entity[2]
 local Entity_cache = {}
-Entity[2] = function(cls, coms)
+local Entity_coms = {}
+local function Entity_getComIndex(key)
+	local index = Entity_coms[key]
+	if index == nil then
+		index = Entity:getComIndex(key)
+		Entity_coms[key] = index
+	end
+	return index
+end
+local function Entity_tryGetComIndex(key)
+	local index = Entity_coms[key]
+	if index == nil then
+		index = Entity:tryGetComIndex(key)
+		if index > 0 then
+			Entity_coms[key] = index
+		end
+	end
+	return index
+end
+
+Entity[2] = function(cls, tab)
+	local coms = {}
+	for key, value in pairs(tab) do
+		local index = Entity_getComIndex(key)
+		coms[index] = value
+	end
 	local entity = Entity_create(cls, coms)
 	Entity_cache[entity.index + 1] = entity
 end
@@ -449,6 +474,7 @@ end
 local Entity_clear = Entity.clear
 Entity.clear = function(cls)
 	Entity_cache = {}
+	Entity_coms = {}
 	Entity_clear(cls)
 end
 
@@ -457,7 +483,8 @@ local Entity_oldValues
 Entity_oldValues = setmetatable({false}, {
 	__mode = "v",
 	__index = function(_, key)
-		return Entity_getOld(Entity_oldValues[1], key)
+		local index = Entity_tryGetComIndex(key)
+		return Entity_getOld(Entity_oldValues[1], index)
 	end,
 	__newindex = function()
 		error("Can not assign value cache.")
@@ -472,12 +499,17 @@ Entity.__index = function(self, key)
 		rawset(Entity_oldValues, 1, self)
 		return Entity_oldValues
 	end
-	local item = Entity_get(self, key)
+	local index = Entity_tryGetComIndex(key)
+	local item = Entity_get(self, index)
 	if item ~= nil then return item end
 	return Entity_index(self, key)
 end
 
-Entity.__newindex = Entity.set
+local Entity_set = Entity.set
+Entity.__newindex = function(self, key, value)
+	local index = Entity_getComIndex(key)
+	Entity_set(self, index, value)
+end
 
 -- unit action creation
 

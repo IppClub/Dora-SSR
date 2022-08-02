@@ -93,15 +93,15 @@ struct WasmArgsPusher
 	}
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T>, void> operator()(T value)
+	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, void> operator()(T value)
 	{
-		stack->push(value);
+		stack->push(s_cast<int64_t>(value));
 	}
 
 	template <class T>
 	typename std::enable_if_t<std::is_floating_point_v<T>, void> operator()(T value)
 	{
-		stack->push(value);
+		stack->push(s_cast<double>(value));
 	}
 
 	template<typename T>
@@ -158,16 +158,11 @@ public:
 	bool to(std::string& value, int index);
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index)
+	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, bool> to(T& value, int index)
 	{
 		if (index < s_cast<int>(_values.size()))
 		{
-			if (std::holds_alternative<int32_t>(_values[index]))
-			{
-				value = s_cast<T>(std::get<int32_t>(_values[index]));
-				return true;
-			}
-			else if (std::holds_alternative<int64_t>(_values[index]))
+			if (std::holds_alternative<int64_t>(_values[index]))
 			{
 				value = s_cast<T>(std::get<int64_t>(_values[index]));
 				return true;
@@ -181,12 +176,7 @@ public:
 	{
 		if (index < s_cast<int>(_values.size()))
 		{
-			if (std::holds_alternative<float>(_values[index]))
-			{
-				value = s_cast<T>(std::get<float>(_values[index]));
-				return true;
-			}
-			else if (std::holds_alternative<double>(_values[index]))
+			if (std::holds_alternative<double>(_values[index]))
 			{
 				value = s_cast<T>(std::get<double>(_values[index]));
 				return true;

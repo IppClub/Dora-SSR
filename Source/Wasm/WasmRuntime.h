@@ -13,9 +13,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 using dora_val_t = std::variant<
-	int32_t, int64_t,
-	float, double,
-	bool, std::string,
+	int64_t,
+	double,
+	bool,
+	std::string,
 	Object*,
 	Vec2,
 	Size
@@ -24,9 +25,7 @@ using dora_val_t = std::variant<
 class CallStack
 {
 public:
-	void push(int32_t value);
 	void push(int64_t value);
-	void push(float value);
 	void push(double value);
 	void push(bool value);
 	void push(String value);
@@ -37,6 +36,7 @@ public:
 	bool empty() const;
 	dora_val_t pop();
 	dora_val_t& front();
+	void clear();
 private:
 	std::deque<dora_val_t> _stack;
 };
