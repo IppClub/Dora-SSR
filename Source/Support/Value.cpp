@@ -56,7 +56,7 @@ void ValueFloat::pushToLua(lua_State* L) const
 
 ValueType ValueFloat::getType() const
 {
-	return ValueType::Integral;
+	return ValueType::FloatingPoint;
 }
 
 bool ValueFloat::equals(Value* other) const
@@ -84,7 +84,7 @@ void ValueBool::pushToLua(lua_State* L) const
 
 ValueType ValueBool::getType() const
 {
-	return ValueType::Integral;
+	return ValueType::Boolean;
 }
 
 bool ValueBool::equals(Value* other) const

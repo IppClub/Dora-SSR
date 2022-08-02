@@ -1,5 +1,8 @@
 use std::{ffi::c_void, any::Any};
 use once_cell::sync::Lazy;
+
+mod rect;
+pub use rect::Rect;
 mod node;
 pub use node::{INode, Node};
 mod array;
@@ -8,6 +11,14 @@ mod dictionary;
 pub use dictionary::Dictionary;
 mod director;
 pub use director::Director;
+mod app;
+pub use app::App;
+mod entity;
+pub use entity::Entity;
+mod group;
+pub use group::Group;
+mod observer;
+pub use observer::Observer;
 
 extern "C" {
 	fn object_get_id(obj: i64) -> i32;
@@ -30,9 +41,7 @@ extern "C" {
 	fn buf_write(dest: i64, src: *const c_void);
 	fn buf_release(v: i64);
 
-	fn value_create_i32(value: i32) -> i64;
 	fn value_create_i64(value: i64) -> i64;
-	fn value_create_f32(value: f32) -> i64;
 	fn value_create_f64(value: f64) -> i64;
 	fn value_create_str(value: i64) -> i64;
 	fn value_create_bool(value: i32) -> i64;
@@ -40,18 +49,14 @@ extern "C" {
 	fn value_create_vec2(value: i64) -> i64;
 	fn value_create_size(value: i64) -> i64;
 	fn value_release(value: i64);
-	fn value_into_i32(value: i64) -> i32;
 	fn value_into_i64(value: i64) -> i64;
-	fn value_into_f32(value: i64) -> f32;
 	fn value_into_f64(value: i64) -> f64;
 	fn value_into_str(value: i64) -> i64;
 	fn value_into_bool(value: i64) -> i32;
 	fn value_into_object(value: i64) -> i64;
 	fn value_into_vec2(value: i64) -> i64;
 	fn value_into_size(value: i64) -> i64;
-	fn value_is_i32(value: i64) -> i32;
 	fn value_is_i64(value: i64) -> i32;
-	fn value_is_f32(value: i64) -> i32;
 	fn value_is_f64(value: i64) -> i32;
 	fn value_is_str(value: i64) -> i32;
 	fn value_is_bool(value: i64) -> i32;
@@ -61,27 +66,21 @@ extern "C" {
 
 	fn call_stack_create() -> i64;
 	fn call_stack_release(info: i64);
-	fn call_stack_push_i32(info: i64, value: i32);
 	fn call_stack_push_i64(info: i64, value: i64);
-	fn call_stack_push_f32(info: i64, value: f32);
 	fn call_stack_push_f64(info: i64, value: f64);
 	fn call_stack_push_str(info: i64, value: i64);
 	fn call_stack_push_bool(info: i64, value: i32);
 	fn call_stack_push_object(info: i64, value: i64);
 	fn call_stack_push_vec2(info: i64, value: i64);
 	fn call_stack_push_size(info: i64, value: i64);
-	fn call_stack_pop_i32(info: i64) -> i32;
 	fn call_stack_pop_i64(info: i64) -> i64;
-	fn call_stack_pop_f32(info: i64) -> f32;
 	fn call_stack_pop_f64(info: i64) -> f64;
 	fn call_stack_pop_str(info: i64) -> i64;
 	fn call_stack_pop_bool(info: i64) -> i32;
 	fn call_stack_pop_object(info: i64) -> i64;
 	fn call_stack_pop_vec2(info: i64) -> i64;
 	fn call_stack_pop_size(info: i64) -> i64;
-	fn call_stack_front_i32(info: i64) -> i32;
 	fn call_stack_front_i64(info: i64) -> i32;
-	fn call_stack_front_f32(info: i64) -> i32;
 	fn call_stack_front_f64(info: i64) -> i32;
 	fn call_stack_front_str(info: i64) -> i32;
 	fn call_stack_front_bool(info: i64) -> i32;
@@ -369,6 +368,8 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| 
 		Node::type_info(),
 		Array::type_info(),
 		Dictionary::type_info(),
+		Entity::type_info(),
+		Group::type_info(),
 	];
 	for pair in type_funcs.iter() {
 		let t = pair.0 as usize;
@@ -457,7 +458,7 @@ impl<'a> DoraValue<'a> {
 impl<'a> IntoValue<'a> for i32 {
 	fn dora_val(self) -> DoraValue<'a> { DoraValue::I32(self) }
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_i32(self) } }
+		unsafe { Value{ raw: value_create_i64(self as i64) } }
 	}
 }
 
@@ -471,7 +472,7 @@ impl<'a> IntoValue<'a> for i64 {
 impl<'a> IntoValue<'a> for f32 {
 	fn dora_val(self) -> DoraValue<'a> { DoraValue::F32(self) }
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_f32(self) } }
+		unsafe { Value{ raw: value_create_f64(self as f64) } }
 	}
 }
 
@@ -521,14 +522,55 @@ impl<'a> IntoValue<'a> for Size {
 macro_rules! args {
 	( $( $x:expr ),* ) => {
 		{
-			let mut stack = CallStack::new();
+			let mut stack = crate::dora::CallStack::new();
 			$(
-				Value::new($x).push(&mut stack);
+				crate::dora::Value::new($x).push(&mut stack);
 			)*
 			stack
 		}
 	};
 }
+
+#[macro_export]
+macro_rules! dora_object {
+	($name: ident) => {
+		paste::paste! {
+			 impl crate::dora::Object for $name {
+				fn raw(&self) -> i64 { self.raw }
+				fn obj(&self) -> &dyn crate::dora::Object { self }
+				fn as_any(&self) -> &dyn std::any::Any { self }
+				fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
+			}
+			impl Drop for $name {
+				fn drop(&mut self) { unsafe { crate::dora::object_release(self.raw); } }
+			}
+			impl Clone for $name {
+				fn clone(&self) -> $name {
+					unsafe { crate::dora::object_retain(self.raw); }
+					$name { raw: self.raw }
+				}
+			}
+			impl $name {
+				pub fn from(raw: i64) -> Option<$name> {
+					match raw {
+						0 => None,
+						_ => Some($name { raw: raw })
+					}
+				}
+				pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn crate::dora::Object>>) {
+					(unsafe { [<$name:lower _type>]() }, |raw: i64| -> Option<Box<dyn crate::dora::Object>> {
+						match raw {
+							0 => None,
+							_ => Some(Box::new($name { raw: raw }))
+						}
+					})
+				}
+			}
+		}
+	};
+}
+
+// Value
 
 pub struct Value { raw: i64 }
 
@@ -546,8 +588,8 @@ impl Value {
 	pub fn raw(&self) -> i64 { self.raw }
 	pub fn into_i32(&self) -> Option<i32> {
 		unsafe {
-			if value_is_i32(self.raw) != 0 {
-				Some(value_into_i32(self.raw))
+			if value_is_i64(self.raw) != 0 {
+				Some(value_into_i64(self.raw) as i32)
 			} else { None }
 		}
 	}
@@ -560,8 +602,8 @@ impl Value {
 	}
 	pub fn into_f32(&self) -> Option<f32> {
 		unsafe {
-			if value_is_f32(self.raw) != 0 {
-				Some(value_into_f32(self.raw))
+			if value_is_f64(self.raw) != 0 {
+				Some(value_into_f64(self.raw) as f32)
 			} else { None }
 		}
 	}
@@ -617,6 +659,8 @@ impl Drop for Value {
 	fn drop(&mut self) { unsafe { value_release(self.raw); } }
 }
 
+// CallStack
+
 impl CallStack {
 	fn raw(&self) -> i64 {
 		self.raw
@@ -625,13 +669,13 @@ impl CallStack {
 		CallStack { raw: unsafe { call_stack_create() } }
 	}
 	pub fn push_i32(&mut self, value: i32) {
-		unsafe { call_stack_push_i32(self.raw, value); }
+		unsafe { call_stack_push_i64(self.raw, value as i64); }
 	}
 	pub fn push_i64(&mut self, value: i64) {
 		unsafe { call_stack_push_i64(self.raw, value); }
 	}
 	pub fn push_f32(&mut self, value: f32) {
-		unsafe { call_stack_push_f32(self.raw, value); }
+		unsafe { call_stack_push_f64(self.raw, value as f64); }
 	}
 	pub fn push_f64(&mut self, value: f64) {
 		unsafe { call_stack_push_f64(self.raw, value); }
@@ -653,8 +697,8 @@ impl CallStack {
 	}
 	pub fn pop_i32(&mut self) -> Option<i32> {
 		unsafe {
-			if call_stack_front_i32(self.raw) != 0 {
-				Some(call_stack_pop_i32(self.raw))
+			if call_stack_front_i64(self.raw) != 0 {
+				Some(call_stack_pop_i64(self.raw) as i32)
 			} else { None }
 		}
 	}
@@ -667,8 +711,8 @@ impl CallStack {
 	}
 	pub fn pop_f32(&mut self) -> Option<f32> {
 		unsafe {
-			if call_stack_front_f32(self.raw) != 0 {
-				Some(call_stack_pop_f32(self.raw))
+			if call_stack_front_f64(self.raw) != 0 {
+				Some(call_stack_pop_f64(self.raw) as f32)
 			} else { None }
 		}
 	}
@@ -701,6 +745,15 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	pub fn pop_cast<T: Clone + 'static>(&mut self) -> Option<T> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				let obj = OBJECT_MAP[object_get_type(raw) as usize](raw);
+				Some(obj?.as_any().downcast_ref::<T>()?.clone())
+			} else { None }
+		}
+	}
 	pub fn pop_vec2(&mut self) -> Option<Vec2> {
 		unsafe {
 			if call_stack_front_vec2(self.raw) != 0 {
@@ -719,4 +772,82 @@ impl CallStack {
 
 impl Drop for CallStack {
 	fn drop(&mut self) { unsafe { call_stack_release(self.raw); } }
+}
+
+// Entity
+
+extern "C" {
+	fn entity_set(e: i64, k: i64, v: i64);
+	fn entity_get(e: i64, k: i64) -> i64;
+	fn entity_get_old(e: i64, k: i64) -> i64;
+}
+
+impl Entity {
+	pub fn set<'a, T>(&mut self, key: &str, value: T) where T: IntoValue<'a> {
+		unsafe { entity_set(self.raw(), from_string(key), value.val().raw()); }
+	}
+	pub fn get(&self, key: &str) -> Option<Value> {
+		Value::from(unsafe { entity_get(self.raw(), from_string(key)) })
+	}
+	pub fn get_old(&self, key: &str) -> Option<Value> {
+		Value::from(unsafe { entity_get_old(self.raw(), from_string(key)) })
+	}
+}
+
+// EntityGroup
+
+extern "C" {
+	fn group_watch(group: i64, func: i32, stack: i64);
+	fn group_find(group: i64, func: i32, stack: i64) -> i64;
+}
+
+impl Group {
+	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack)>) {
+		let mut stack = CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = push_function(Box::new(move || { func(&mut stack); }));
+		unsafe { group_watch(self.raw(), func_id, stack_raw); }
+	}
+	pub fn each(&self, func: Box<dyn Fn(&Entity) -> bool>) -> bool {
+		match self.find(func) {
+			Some(_) => true,
+			None => false
+		}
+	}
+	pub fn find(&self, func: Box<dyn Fn(&Entity) -> bool>) -> Option<Entity> {
+		let mut stack = CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = push_function(Box::new(move || {
+			let result = if let Some(entity) = stack.pop_cast::<Entity>() {
+				func(&entity)
+			} else { false };
+			stack.push_bool(result);
+		}));
+		Entity::from(unsafe { group_find(self.raw(), func_id, stack_raw) })
+	}
+}
+
+// EntityObserver
+
+extern "C" {
+	fn observer_create(option: i32, coms: i64) -> i64;
+}
+
+pub enum EntityEvent {
+	Add,
+	Change,
+	AddOrChange,
+	Remove
+}
+
+impl Observer {
+	pub fn new(event: EntityEvent, components: &Vec<&str>) -> Observer {
+		let option = match event {
+			EntityEvent::Add => 1,
+			EntityEvent::Change => 2,
+			EntityEvent::AddOrChange => 3,
+			EntityEvent::Remove => 4,
+		};
+		Observer::from(unsafe { observer_create(option, Vector::from_str(components)) }).unwrap()
+	}
 }

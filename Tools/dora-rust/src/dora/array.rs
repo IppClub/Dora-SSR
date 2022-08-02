@@ -1,6 +1,5 @@
-use std::any::Any;
-use dora::object_macro;
-use crate::dora::{Object, IntoValue, Value, object_retain, object_release};
+use crate::dora_object;
+use crate::dora::{IntoValue, Value};
 
 extern "C" {
 	fn array_type() -> i32;
@@ -29,8 +28,8 @@ extern "C" {
 	fn array_fast_remove(array: i64, item: i64) -> i32;
 }
 
-#[derive(object_macro)]
 pub struct Array { raw: i64 }
+dora_object!(Array);
 
 impl Array {
 	pub fn new() -> Array {

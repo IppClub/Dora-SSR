@@ -2217,7 +2217,8 @@ int Entity_get(lua_State* L)
 	/* 1 self, 2 name */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) ||
+		!tolua_isinteger(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -2227,8 +2228,8 @@ int Entity_get(lua_State* L)
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_get'", nullptr);
 #endif
-		Slice name = tolua_toslice(L, 2, nullptr);
-		Value* com = self->getComponent(name);
+		int index = s_cast<int>(lua_tointeger(L, 2));
+		Value* com = self->getComponent(index);
 		if (com) com->pushToLua(L);
 		else lua_pushnil(L);
 		return 1;
@@ -2245,7 +2246,8 @@ int Entity_getOld(lua_State* L)
 	/* 1 self, 2 name */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) ||
+		!tolua_isinteger(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -2255,8 +2257,8 @@ int Entity_getOld(lua_State* L)
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_getOld'", nullptr);
 #endif
-		Slice name = tolua_toslice(L, 2, nullptr);
-		Value* com = self->getOldCom(name);
+		int index = s_cast<int>(lua_tointeger(L, 2));
+		Value* com = self->getOldCom(index);
 		if (com) com->pushToLua(L);
 		else lua_pushnil(L);
 		return 1;
@@ -2268,27 +2270,27 @@ tolua_lerror:
 #endif
 }
 
-static void entitySet(Entity* self, String key, lua_State* L, int loc)
+static void entitySet(Entity* self, int index, lua_State* L, int loc)
 {
 	if (lua_isinteger(L, loc))
 	{
-		self->set(key, lua_tointeger(L, loc));
+		self->set(index, lua_tointeger(L, loc));
 	}
 	else if (lua_isnumber(L, loc))
 	{
-		self->set(key, lua_tonumber(L, loc));
+		self->set(index, lua_tonumber(L, loc));
 	}
 	else if (lua_isboolean(L, loc))
 	{
-		self->set(key, lua_toboolean(L, loc) != 0);
+		self->set(index, lua_toboolean(L, loc) != 0);
 	}
 	else if (lua_isstring(L, loc))
 	{
-		self->set(key, tolua_toslice(L, loc, nullptr).toString());
+		self->set(index, tolua_toslice(L, loc, nullptr).toString());
 	}
 	else if (tolua_isobject(L, loc))
 	{
-		self->set(key, s_cast<Object*>(tolua_tousertype(L, loc, 0)));
+		self->set(index, s_cast<Object*>(tolua_tousertype(L, loc, 0)));
 	}
 	else
 	{
@@ -2297,10 +2299,10 @@ static void entitySet(Entity* self, String key, lua_State* L, int loc)
 		switch (Switch::hash(name))
 		{
 			case "Vec2"_hash:
-				self->set(key, tolua_tolight(L, loc).value);
+				self->set(index, tolua_tolight(L, loc).value);
 				break;
 			case "Size"_hash:
-				self->set(key, *r_cast<Size*>(tolua_tousertype(L, loc, 0)));
+				self->set(index, *r_cast<Size*>(tolua_tousertype(L, loc, 0)));
 				break;
 			default:
 #ifndef TOLUA_RELEASE
@@ -2316,7 +2318,8 @@ int Entity_set(lua_State* L)
 	/* 1 self, 2 name, 3 value */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err))
+	if (!tolua_isusertype(L, 1, "Entity"_slice, 0, &tolua_err) ||
+		!tolua_isinteger(L, 2, 0, &tolua_err))
 	{
 		goto tolua_lerror;
 	}
@@ -2326,15 +2329,15 @@ int Entity_set(lua_State* L)
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Entity_setNext'", nullptr);
 #endif
-		Slice key = tolua_toslice(L, 2, nullptr);
+		int comIndex = s_cast<int>(lua_tointeger(L, 2));
 #ifndef TOLUA_RELEASE
 		try {
 #endif
 		if (lua_isnil(L, 3))
 		{
-			self->remove(self->getIndex(key));
+			self->remove(comIndex);
 		}
-		else entitySet(self, key, L, 3);
+		else entitySet(self, comIndex, L, 3);
 #ifndef TOLUA_RELEASE
 		} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
 #endif
@@ -2365,10 +2368,10 @@ int Entity_create(lua_State* L)
 		while (lua_next(L, 2))
 		{
 			lua_pushvalue(L, -2);
-			if (lua_isstring(L, -1))
+			if (lua_isinteger(L, -1))
 			{
-				auto key = tolua_toslice(L, -1, nullptr);
-				entitySet(self, key, L, -2);
+				auto index = lua_tointeger(L, -1);
+				entitySet(self, index, L, -2);
 			}
 			lua_pop(L, 2);
 		}

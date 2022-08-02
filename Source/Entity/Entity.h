@@ -21,10 +21,10 @@ class Entity : public Object
 public:
 	enum
 	{
-		Add,
-		Change,
-		AddOrChange,
-		Remove
+		Add = 1,
+		Change = 2,
+		AddOrChange = 3,
+		Remove = 4
 	};
 	Entity(int index);
 	PROPERTY_READONLY(int, Index);
@@ -33,6 +33,8 @@ public:
 	bool has(String name) const;
 	void remove(String name);
 	static Entity* create();
+	static int getComIndex(String name);
+	static int tryGetComIndex(String name);
 	static bool each(const std::function<bool(Entity*)>& func);
 	static void clear();
 	Value* getComponent(String name) const;
@@ -41,6 +43,8 @@ public:
 public:
 	template<typename T>
 	void set(String name, const T& value);
+	template<typename T>
+	std::enable_if_t<!std::is_null_pointer_v<T>> set(int name, const T& value);
 	template<typename T>
 	T get(String name) const;
 	template<typename T>
@@ -78,6 +82,7 @@ struct WRefEntityHasher
 class EntityGroup : public Object
 {
 public:
+	PROPERTY_READONLY_CREF(std::vector<int>, Components);
 	PROPERTY_READONLY(int, Count);
 	EntityGroup(const std::vector<std::string>& components);
 	virtual ~EntityGroup();
@@ -127,6 +132,12 @@ template<typename T>
 void Entity::set(String name, const T& value)
 {
 	Entity::set(name, Value::alloc(value));
+}
+
+template<typename T>
+std::enable_if_t<!std::is_null_pointer_v<T>> Entity::set(int index, const T& value)
+{
+	Entity::set(index, Value::alloc(value));
 }
 
 template <typename T>

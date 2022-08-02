@@ -1,6 +1,5 @@
-use std::any::Any;
-use dora::object_macro;
-use crate::dora::{Object, IntoValue, Value, Vector, from_string, object_retain, object_release};
+use crate::dora_object;
+use crate::dora::{IntoValue, Value, Vector, from_string};
 
 extern "C" {
 	fn dictionary_type() -> i32;
@@ -12,8 +11,8 @@ extern "C" {
 	fn dictionary_clear(dict: i64);
 }
 
-#[derive(object_macro)]
 pub struct Dictionary { raw: i64 }
+dora_object!(Dictionary);
 
 impl Dictionary {
 	pub fn new() -> Dictionary {

@@ -152,6 +152,39 @@ static void buf_release(int64_t v)
 	delete r_cast<dora_vec_t*>(v);
 }
 
+static int64_t to_vec(const std::vector<Slice>& vec)
+{
+	std::vector<int64_t> buf(vec.size());
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		buf[i] = str_retain(vec[i]);
+	}
+	return buf_retain(dora_vec_t(std::move(buf)));
+}
+
+static int64_t to_vec(const std::vector<std::string>& vec)
+{
+	std::vector<int64_t> buf(vec.size());
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		buf[i] = str_retain(vec[i]);
+	}
+	return buf_retain(dora_vec_t(std::move(buf)));
+}
+
+static std::vector<std::string> from_str_vec(int64_t var)
+{
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	auto vecInt = std::get<std::vector<int64_t>>(*vec);
+	std::vector<std::string> strs;
+	strs.reserve(vecInt.size());
+	for (auto item : vecInt)
+	{
+		strs.push_back(*str_from(item));
+	}
+	return strs;
+}
+
 static int32_t object_get_id(int64_t obj)
 {
 	return s_cast<int32_t>(r_cast<Object*>(obj)->getId());
@@ -173,17 +206,13 @@ static void object_release(int64_t obj)
 	r_cast<Object*>(obj)->release();
 }
 
-static int64_t value_create_i32(int32_t value)
+static int64_t from_object(Object* obj)
 {
-	return r_cast<int64_t>(new dora_val_t(value));
+	if (obj) obj->retain();
+	return r_cast<int64_t>(obj);
 }
 
 static int64_t value_create_i64(int64_t value)
-{
-	return r_cast<int64_t>(new dora_val_t(value));
-}
-
-static int64_t value_create_f32(float value)
 {
 	return r_cast<int64_t>(new dora_val_t(value));
 }
@@ -200,7 +229,7 @@ static int64_t value_create_str(int64_t value)
 
 static int64_t value_create_bool(int32_t value)
 {
-	return r_cast<int64_t>(new dora_val_t(value));
+	return r_cast<int64_t>(new dora_val_t(value != 0));
 }
 
 static int64_t value_create_object(int64_t value)
@@ -223,24 +252,19 @@ static void value_release(int64_t value)
 	delete r_cast<dora_val_t*>(value);
 }
 
-static int32_t value_into_i32(int64_t value)
-{
-	return std::get<int32_t>(*r_cast<dora_val_t*>(value));
-}
-
 static int64_t value_into_i64(int64_t value)
 {
 	return std::get<int64_t>(*r_cast<dora_val_t*>(value));
 }
 
-static float value_into_f32(int64_t value)
-{
-	return std::get<float>(*r_cast<dora_val_t*>(value));
-}
-
 static double value_into_f64(int64_t value)
 {
-	return std::get<double>(*r_cast<dora_val_t*>(value));
+	const auto& v = *r_cast<dora_val_t*>(value);
+	if (std::holds_alternative<int64_t>(v))
+	{
+		return s_cast<double>(std::get<int64_t>(v));
+	}
+	return std::get<double>(v);
 }
 
 static int64_t value_into_str(int64_t value)
@@ -269,24 +293,17 @@ static int64_t value_into_size(int64_t value)
 	return from_size(std::get<Size>(*r_cast<dora_val_t*>(value)));
 }
 
-static int32_t value_is_i32(int64_t value)
-{
-	return std::holds_alternative<int32_t>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
-}
-
 static int32_t value_is_i64(int64_t value)
 {
 	return std::holds_alternative<int64_t>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-static int32_t value_is_f32(int64_t value)
-{
-	return std::holds_alternative<float>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
-}
-
 static int32_t value_is_f64(int64_t value)
 {
-	return std::holds_alternative<double>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
+	const auto& v = *r_cast<dora_val_t*>(value);
+	return
+		std::holds_alternative<double>(v) ||
+		std::holds_alternative<int64_t>(v) ? 1 : 0;
 }
 
 static int32_t value_is_str(int64_t value)
@@ -314,9 +331,7 @@ static int32_t value_is_size(int64_t value)
 	return std::holds_alternative<Size>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-void CallStack::push(int32_t value) { _stack.push_back(value); }
 void CallStack::push(int64_t value) { _stack.push_back(value); }
-void CallStack::push(float value) { _stack.push_back(value); }
 void CallStack::push(double value) { _stack.push_back(value); }
 void CallStack::push(bool value) { _stack.push_back(value); }
 void CallStack::push(String value) { _stack.push_back(value.toString()); }
@@ -342,6 +357,11 @@ dora_val_t& CallStack::front()
 	return _stack.front();
 }
 
+void CallStack::clear()
+{
+	_stack.clear();
+}
+
 static int64_t call_stack_create()
 {
 	return r_cast<int64_t>(new CallStack());
@@ -352,139 +372,116 @@ static void call_stack_release(int64_t stack)
 	delete r_cast<CallStack*>(stack);
 }
 
-static void call_stack_push_i32(int64_t info, int32_t value)
+static void call_stack_push_i64(int64_t stack, int64_t value)
 {
-	r_cast<CallStack*>(info)->push(value);
+	r_cast<CallStack*>(stack)->push(value);
 }
 
-static void call_stack_push_i64(int64_t info, int64_t value)
+static void call_stack_push_f64(int64_t stack, double value)
 {
-	r_cast<CallStack*>(info)->push(value);
+	r_cast<CallStack*>(stack)->push(value);
 }
 
-static void call_stack_push_f32(int64_t info, float value)
+static void call_stack_push_str(int64_t stack, int64_t value)
 {
-	r_cast<CallStack*>(info)->push(value);
+	r_cast<CallStack*>(stack)->push(*str_from(value));
 }
 
-static void call_stack_push_f64(int64_t info, double value)
+static void call_stack_push_bool(int64_t stack, int32_t value)
 {
-	r_cast<CallStack*>(info)->push(value);
+	r_cast<CallStack*>(stack)->push(value != 0);
 }
 
-static void call_stack_push_str(int64_t info, int64_t value)
+static void call_stack_push_object(int64_t stack, int64_t value)
 {
-	r_cast<CallStack*>(info)->push(*str_from(value));
+	r_cast<CallStack*>(stack)->push(r_cast<Object*>(value));
 }
 
-static void call_stack_push_bool(int64_t info, int32_t value)
+static void call_stack_push_vec2(int64_t stack, int64_t value)
 {
-	r_cast<CallStack*>(info)->push(value != 0);
+	r_cast<CallStack*>(stack)->push(into_vec2(value));
 }
 
-static void call_stack_push_object(int64_t info, int64_t value)
+static void call_stack_push_size(int64_t stack, int64_t value)
 {
-	r_cast<CallStack*>(info)->push(r_cast<Object*>(value));
+	r_cast<CallStack*>(stack)->push(into_size(value));
 }
 
-static void call_stack_push_vec2(int64_t info, int64_t value)
+static int64_t call_stack_pop_i64(int64_t stack)
 {
-	r_cast<CallStack*>(info)->push(into_vec2(value));
+	return std::get<int64_t>(r_cast<CallStack*>(stack)->pop());
 }
 
-static void call_stack_push_size(int64_t info, int64_t value)
+static double call_stack_pop_f64(int64_t stack)
 {
-	r_cast<CallStack*>(info)->push(into_size(value));
+	auto v = r_cast<CallStack*>(stack)->pop();
+	if (std::holds_alternative<int64_t>(v))
+	{
+		return s_cast<double>(std::get<int64_t>(v));
+	}
+	return std::get<double>(v);
 }
 
-static int32_t call_stack_pop_i32(int64_t info)
+static int64_t call_stack_pop_str(int64_t stack)
 {
-	return std::get<int32_t>(r_cast<CallStack*>(info)->pop());
+	return str_retain(std::get<std::string>(r_cast<CallStack*>(stack)->pop()));
 }
 
-static int64_t call_stack_pop_i64(int64_t call_stack)
+static int32_t call_stack_pop_bool(int64_t stack)
 {
-	return std::get<int64_t>(r_cast<CallStack*>(call_stack)->pop());
+	return std::get<bool>(r_cast<CallStack*>(stack)->pop()) ? 1 : 0;
 }
 
-static float call_stack_pop_f32(int64_t call_stack)
+static int64_t call_stack_pop_object(int64_t stack)
 {
-	return std::get<float>(r_cast<CallStack*>(call_stack)->pop());
+	return r_cast<int64_t>(from_object(std::get<Object*>(r_cast<CallStack*>(stack)->pop())));
 }
 
-static double call_stack_pop_f64(int64_t call_stack)
+static int64_t call_stack_pop_vec2(int64_t stack)
 {
-	return std::get<double>(r_cast<CallStack*>(call_stack)->pop());
+	return from_vec2(std::get<Vec2>(r_cast<CallStack*>(stack)->pop()));
 }
 
-static int64_t call_stack_pop_str(int64_t call_stack)
+static int64_t call_stack_pop_size(int64_t stack)
 {
-	return str_retain(std::get<std::string>(r_cast<CallStack*>(call_stack)->pop()));
+	return from_size(std::get<Size>(r_cast<CallStack*>(stack)->pop()));
 }
 
-static int32_t call_stack_pop_bool(int64_t call_stack)
+static int32_t call_stack_front_i64(int64_t stack)
 {
-	return std::get<bool>(r_cast<CallStack*>(call_stack)->pop()) ? 1 : 0;
+	return std::holds_alternative<int64_t>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int64_t call_stack_pop_object(int64_t call_stack)
+static int32_t call_stack_front_f64(int64_t stack)
 {
-	return r_cast<int64_t>(std::get<Object*>(r_cast<CallStack*>(call_stack)->pop()));
+	const auto& v = r_cast<CallStack*>(stack)->front();
+	return std::holds_alternative<int64_t>(v) ||
+		std::holds_alternative<double>(v) ? 1 : 0;
 }
 
-static int64_t call_stack_pop_vec2(int64_t call_stack)
+static int32_t call_stack_front_bool(int64_t stack)
 {
-	return from_vec2(std::get<Vec2>(r_cast<CallStack*>(call_stack)->pop()));
+	return std::holds_alternative<bool>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int64_t call_stack_pop_size(int64_t call_stack)
+static int32_t call_stack_front_str(int64_t stack)
 {
-	return from_size(std::get<Size>(r_cast<CallStack*>(call_stack)->pop()));
+	return std::holds_alternative<std::string>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_i32(int64_t info)
+static int32_t call_stack_front_object(int64_t stack)
 {
-	return std::holds_alternative<int32_t>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<Object*>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_i64(int64_t info)
+static int32_t call_stack_front_vec2(int64_t stack)
 {
-	return std::holds_alternative<int64_t>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<Vec2>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_f32(int64_t info)
+static int32_t call_stack_front_size(int64_t stack)
 {
-	return std::holds_alternative<float>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
-}
-
-static int32_t call_stack_front_f64(int64_t info)
-{
-	return std::holds_alternative<double>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
-}
-
-static int32_t call_stack_front_bool(int64_t info)
-{
-	return std::holds_alternative<bool>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
-}
-
-static int32_t call_stack_front_str(int64_t info)
-{
-	return std::holds_alternative<std::string>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
-}
-
-static int32_t call_stack_front_object(int64_t info)
-{
-	return std::holds_alternative<Object*>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
-}
-
-static int32_t call_stack_front_vec2(int64_t info)
-{
-	return std::holds_alternative<Vec2>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
-}
-
-static int32_t call_stack_front_size(int64_t info)
-{
-	return std::holds_alternative<Size>(r_cast<CallStack*>(info)->front()) ? 1 : 0;
+	return std::holds_alternative<Size>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
 static int32_t node_type()
@@ -494,9 +491,7 @@ static int32_t node_type()
 
 static int64_t node_create()
 {
-	auto node = Node::create();
-	node->retain();
-	return r_cast<int64_t>(node);
+	return from_object(Node::create());
 }
 
 static void node_set_x(int64_t node, float var)
@@ -533,8 +528,7 @@ static int64_t node_get_children(int64_t node)
 {
 	if (auto children = r_cast<Node*>(node)->getChildren())
 	{
-		children->retain();
-		return r_cast<int64_t>(children);
+		return from_object(children);
 	}
 	return 0;
 }
@@ -542,8 +536,7 @@ static int64_t node_get_children(int64_t node)
 static int64_t node_get_userdata(int64_t node)
 {
 	auto userData = r_cast<Node*>(node)->getUserData();
-	userData->retain();
-	return r_cast<int64_t>(userData);
+	return from_object(userData);
 }
 
 static void node_add_child(int64_t node, int64_t child)
@@ -557,12 +550,13 @@ static void node_schedule(int64_t node, int32_t func, int64_t stack)
 	{
 		SharedWasmRuntime.deref(func);
 	});
-	r_cast<Node*>(node)->schedule([func, stack, deref](double deltaTime)
+	auto args = r_cast<CallStack*>(stack);
+	r_cast<Node*>(node)->schedule([func, args, deref](double deltaTime)
 	{
-		auto info = r_cast<CallStack*>(stack);
-		info->push(deltaTime);
+		args->clear();
+		args->push(deltaTime);
 		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(info->pop());
+		return std::get<bool>(args->pop());
 	});
 }
 
@@ -578,9 +572,11 @@ static void node_slot(int64_t node, int64_t name, int32_t func, int64_t stack)
 	{
 		SharedWasmRuntime.deref(func);
 	});
-	r_cast<Node*>(node)->slot(*str_from(name), [func, stack, deref](Event* e)
+	auto args = r_cast<CallStack*>(stack);
+	r_cast<Node*>(node)->slot(*str_from(name), [func, args, deref](Event* e)
 	{
-		e->pushArgsToWasm(r_cast<CallStack*>(stack));
+		args->clear();
+		e->pushArgsToWasm(args);
 		SharedWasmRuntime.invoke(func);
 	});
 }
@@ -591,9 +587,11 @@ static void node_gslot(int64_t node, int64_t name, int32_t func, int64_t stack)
 	{
 		SharedWasmRuntime.deref(func);
 	});
-	r_cast<Node*>(node)->gslot(*str_from(name), [func, stack, deref](Event* e)
+	auto args = r_cast<CallStack*>(stack);
+	r_cast<Node*>(node)->gslot(*str_from(name), [func, args, deref](Event* e)
 	{
-		e->pushArgsToWasm(r_cast<CallStack*>(stack));
+		args->clear();
+		e->pushArgsToWasm(args);
 		SharedWasmRuntime.invoke(func);
 	});
 }
@@ -643,18 +641,54 @@ static int64_t from_value(Value* v)
 	return 0;
 }
 
+static void push_value(CallStack* stack, Value* v)
+{
+	switch (v->getType())
+	{
+		case ValueType::Integral:
+			stack->push(v->toVal<int64_t>());
+			break;
+		case ValueType::FloatingPoint:
+			stack->push(v->toVal<double>());
+			break;
+		case ValueType::Boolean:
+			stack->push(v->toVal<bool>());
+			break;
+		case ValueType::Object:
+			stack->push(v->to<Object>());
+			break;
+		case ValueType::Struct:
+		{
+			if (auto str = v->asVal<std::string>())
+			{
+				stack->push(*str);
+				break;
+			}
+			else if (auto vec2 = v->asVal<Vec2>())
+			{
+				stack->push(*vec2);
+				break;
+			}
+			else if (auto size = v->asVal<Size>())
+			{
+				stack->push(*size);
+				break;
+			}
+			else stack->push_v(dora_val_t());
+		}
+	}
+}
+
+/* Array */
+
 static int32_t array_type()
 {
 	return DoraType<Array>();
 }
-
 static int64_t array_create()
 {
-	auto array = Array::create();
-	array->retain();
-	return r_cast<int64_t>(array);
+	return from_object(Array::create());
 }
-
 static int32_t array_set(int64_t array, int32_t index, int64_t v)
 {
 	auto arr = r_cast<Array*>(array);
@@ -665,7 +699,6 @@ static int32_t array_set(int64_t array, int32_t index, int64_t v)
 	}
 	return 0;
 }
-
 static int64_t array_get(int64_t array, int32_t index)
 {
 	auto arr = r_cast<Array*>(array);
@@ -675,62 +708,50 @@ static int64_t array_get(int64_t array, int32_t index)
 	}
 	return 0;
 }
-
 static int32_t array_len(int64_t array)
 {
 	return s_cast<int32_t>(r_cast<Array*>(array)->getCount());
 }
-
 static int32_t array_capacity(int64_t array)
 {
 	return s_cast<int32_t>(r_cast<Array*>(array)->getCapacity());
 }
-
 static int32_t array_is_empty(int64_t array)
 {
 	return r_cast<Array*>(array)->isEmpty() ? 1 : 0;
 }
-
 static void array_add_range(int64_t array, int64_t other)
 {
 	r_cast<Array*>(array)->addRange(r_cast<Array*>(other));
 }
-
 static void array_remove_from(int64_t array, int64_t other)
 {
 	r_cast<Array*>(array)->removeFrom(r_cast<Array*>(other));
 }
-
 static void array_clear(int64_t array)
 {
 	r_cast<Array*>(array)->clear();
 }
-
 static void array_reverse(int64_t array)
 {
 	r_cast<Array*>(array)->reverse();
 }
-
 static void array_shrink(int64_t array)
 {
 	r_cast<Array*>(array)->shrink();
 }
-
 static void array_swap(int64_t array, int32_t indexA, int32_t indexB)
 {
 	r_cast<Array*>(array)->swap(indexA, indexB);
 }
-
 static int32_t array_remove_at(int64_t array, int32_t index)
 {
 	return r_cast<Array*>(array)->removeAt(index) ? 1 : 0;
 }
-
 static int32_t array_fast_remove_at(int64_t array, int32_t index)
 {
 	return r_cast<Array*>(array)->fastRemoveAt(index) ? 1 : 0;
 }
-
 static int64_t array_first(int64_t array)
 {
 	auto arr = r_cast<Array*>(array);
@@ -740,7 +761,6 @@ static int64_t array_first(int64_t array)
 	}
 	return 0;
 }
-
 static int64_t array_last(int64_t array)
 {
 	auto arr = r_cast<Array*>(array);
@@ -750,7 +770,6 @@ static int64_t array_last(int64_t array)
 	}
 	return 0;
 }
-
 static int64_t array_random_object(int64_t array)
 {
 	auto arr = r_cast<Array*>(array);
@@ -760,89 +779,138 @@ static int64_t array_random_object(int64_t array)
 	}
 	return 0;
 }
-
 static void array_add(int64_t array, int64_t item)
 {
 	r_cast<Array*>(array)->add(to_value(*r_cast<dora_val_t*>(item)));
 }
-
 static void array_insert(int64_t array, int32_t index, int64_t item)
 {
 	r_cast<Array*>(array)->insert(index, to_value(*r_cast<dora_val_t*>(item)));
 }
-
 static int32_t array_contains(int64_t array, int64_t item)
 {
 	return r_cast<Array*>(array)->contains(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
-
 static int32_t array_index(int64_t array, int64_t item)
 {
 	return r_cast<Array*>(array)->index(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
-
 static int64_t array_remove_last(int64_t array)
 {
 	auto arr = r_cast<Array*>(array);
 	if (arr->isEmpty()) return 0;
 	return from_value(r_cast<Array*>(array)->removeLast().get());
 }
-
 static int32_t array_fast_remove(int64_t array, int64_t item)
 {
 	return r_cast<Array*>(array)->fastRemove(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
 
+/* Dictionary */
+
 static int32_t dictionary_type()
 {
 	return DoraType<Dictionary>();
 }
-
 static int64_t dictionary_create()
 {
-	auto dict = Dictionary::create();
-	dict->retain();
-	return r_cast<int64_t>(dict);
+	return from_object(Dictionary::create());
 }
-
 static void dictionary_set(int64_t dict, int64_t key, int64_t value)
 {
 	r_cast<Dictionary*>(dict)->set(*str_from(key), to_value(*r_cast<dora_val_t*>(value)));
 }
-
 static int64_t dictionary_get(int64_t dict, int64_t key)
 {
 	return from_value(r_cast<Dictionary*>(dict)->get(*str_from(key)).get());
 }
-
 static int32_t dictionary_len(int64_t dict)
 {
 	return r_cast<Dictionary*>(dict)->getCount();
 }
-
 static int64_t dictionary_get_keys(int64_t dict)
 {
-	auto dict_ptr = r_cast<Dictionary*>(dict);
-	std::vector<Slice> keys = dict_ptr->getKeys();
-	std::vector<int64_t> buf(keys.size());
-	for (size_t i = 0; i < keys.size(); i++)
-	{
-		buf[i] = str_retain(keys[i]);
-	}
-	return buf_retain(dora_vec_t(std::move(buf)));
+	return to_vec(r_cast<Dictionary*>(dict)->getKeys());
 }
-
 void dictionary_clear(int64_t dict)
 {
 	r_cast<Dictionary*>(dict)->clear();
 }
 
-static int64_t director_get_entry()
+/* Entity */
+
+static void entity_set(int64_t e, int64_t k, int64_t v)
 {
-	auto entry = SharedDirector.getEntry();
-	entry->retain();
-	return r_cast<int64_t>(entry);
+	r_cast<Entity*>(e)->set(*str_from(k), to_value(*r_cast<dora_val_t*>(v)));
 }
+static int64_t entity_get(int64_t e, int64_t k)
+{
+	if (auto com = r_cast<Entity*>(e)->getComponent(*str_from(k))) {
+		return from_value(com);
+	} else {
+		return 0;
+	}
+}
+static int64_t entity_get_old(int64_t e, int64_t k)
+{
+	if (auto com = r_cast<Entity*>(e)->getOldCom(*str_from(k))) {
+		return from_value(com);
+	} else {
+		return 0;
+	}
+}
+
+// EntityGroup
+
+static void group_watch(int64_t group, int32_t func, int64_t stack)
+{
+	std::shared_ptr<void> deref(nullptr, [func](auto)
+	{
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	auto entityGroup = r_cast<EntityGroup*>(group);
+	entityGroup->watch([entityGroup, func, args, deref](Entity* e)
+	{
+		args->clear();
+		args->push(e);
+		for (int index : entityGroup->getComponents()) {
+			push_value(args, e->getComponent(index));
+		}
+		SharedWasmRuntime.invoke(func);
+	});
+}
+
+static int64_t group_find(int64_t group, int32_t func, int64_t stack)
+{
+	std::shared_ptr<void> deref(nullptr, [func](auto)
+	{
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	Entity* entity = r_cast<EntityGroup*>(group)->find([func, args, deref](Entity* e)
+	{
+		args->clear();
+		args->push(e);
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	});
+	return from_object(entity);
+}
+
+// EntityObserver
+
+static int64_t observer_create(int32_t option, int64_t coms)
+{
+	return from_object(EntityObserver::create(option, from_str_vec(coms)));
+}
+
+#include "Dora/RectWasm.hpp"
+#include "Dora/ApplicationWasm.hpp"
+#include "Dora/DirectorWasm.hpp"
+#include "Dora/EntityWasm.hpp"
+#include "Dora/EntityGroupWasm.hpp"
+#include "Dora/ContentWasm.hpp"
 
 static void linkDoraModule(wasm3::module& mod)
 {
@@ -866,9 +934,7 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "object_retain", object_retain);
 	mod.link_optional("*", "object_release", object_release);
 
-	mod.link_optional("*", "value_create_i32", value_create_i32);
 	mod.link_optional("*", "value_create_i64", value_create_i64);
-	mod.link_optional("*", "value_create_f32", value_create_f32);
 	mod.link_optional("*", "value_create_f64", value_create_f64);
 	mod.link_optional("*", "value_create_str", value_create_str);
 	mod.link_optional("*", "value_create_bool", value_create_bool);
@@ -876,18 +942,14 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "value_create_vec2", value_create_vec2);
 	mod.link_optional("*", "value_create_size", value_create_size);
 	mod.link_optional("*", "value_release", value_release);
-	mod.link_optional("*", "value_into_i32", value_into_i32);
 	mod.link_optional("*", "value_into_i64", value_into_i64);
-	mod.link_optional("*", "value_into_f32", value_into_f32);
 	mod.link_optional("*", "value_into_f64", value_into_f64);
 	mod.link_optional("*", "value_into_str", value_into_str);
 	mod.link_optional("*", "value_into_bool", value_into_bool);
 	mod.link_optional("*", "value_into_object", value_into_object);
 	mod.link_optional("*", "value_into_vec2", value_into_vec2);
 	mod.link_optional("*", "value_into_size", value_into_size);
-	mod.link_optional("*", "value_is_i32", value_is_i32);
 	mod.link_optional("*", "value_is_i64", value_is_i64);
-	mod.link_optional("*", "value_is_f32", value_is_f32);
 	mod.link_optional("*", "value_is_f64", value_is_f64);
 	mod.link_optional("*", "value_is_str", value_is_str);
 	mod.link_optional("*", "value_is_bool", value_is_bool);
@@ -897,27 +959,21 @@ static void linkDoraModule(wasm3::module& mod)
 
 	mod.link_optional("*", "call_stack_create", call_stack_create);
 	mod.link_optional("*", "call_stack_release", call_stack_release);
-	mod.link_optional("*", "call_stack_push_i32", call_stack_push_i32);
 	mod.link_optional("*", "call_stack_push_i64", call_stack_push_i64);
-	mod.link_optional("*", "call_stack_push_f32", call_stack_push_f32);
 	mod.link_optional("*", "call_stack_push_f64", call_stack_push_f64);
 	mod.link_optional("*", "call_stack_push_str", call_stack_push_str);
 	mod.link_optional("*", "call_stack_push_bool", call_stack_push_bool);
 	mod.link_optional("*", "call_stack_push_object", call_stack_push_object);
 	mod.link_optional("*", "call_stack_push_vec2", call_stack_push_vec2);
 	mod.link_optional("*", "call_stack_push_size", call_stack_push_size);
-	mod.link_optional("*", "call_stack_pop_i32", call_stack_pop_i32);
 	mod.link_optional("*", "call_stack_pop_i64", call_stack_pop_i64);
-	mod.link_optional("*", "call_stack_pop_f32", call_stack_pop_f32);
 	mod.link_optional("*", "call_stack_pop_f64", call_stack_pop_f64);
 	mod.link_optional("*", "call_stack_pop_str", call_stack_pop_str);
 	mod.link_optional("*", "call_stack_pop_bool", call_stack_pop_bool);
 	mod.link_optional("*", "call_stack_pop_object", call_stack_pop_object);
 	mod.link_optional("*", "call_stack_pop_vec2", call_stack_pop_vec2);
 	mod.link_optional("*", "call_stack_pop_size", call_stack_pop_size);
-	mod.link_optional("*", "call_stack_front_i32", call_stack_front_i32);
 	mod.link_optional("*", "call_stack_front_i64", call_stack_front_i64);
-	mod.link_optional("*", "call_stack_front_f32", call_stack_front_f32);
 	mod.link_optional("*", "call_stack_front_f64", call_stack_front_f64);
 	mod.link_optional("*", "call_stack_front_str", call_stack_front_str);
 	mod.link_optional("*", "call_stack_front_bool", call_stack_front_bool);
@@ -974,7 +1030,21 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "node_slot", node_slot);
 	mod.link_optional("*", "node_gslot", node_gslot);
 
-	mod.link_optional("*", "director_get_entry", director_get_entry);
+	mod.link_optional("*", "entity_set", entity_set);
+	mod.link_optional("*", "entity_get", entity_get);
+	mod.link_optional("*", "entity_get_old", entity_get_old);
+
+	mod.link_optional("*", "group_watch", group_watch);
+	mod.link_optional("*", "group_find", group_find);
+
+	mod.link_optional("*", "observer_create", observer_create);
+
+	linkRect(mod);
+	linkApplication(mod);
+	linkDirector(mod);
+	linkEntity(mod);
+	linkEntityGroup(mod);
+	linkContent(mod);
 }
 
 WasmRuntime::WasmRuntime():
