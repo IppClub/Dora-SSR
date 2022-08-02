@@ -434,7 +434,7 @@ static int32_t call_stack_pop_bool(int64_t stack)
 
 static int64_t call_stack_pop_object(int64_t stack)
 {
-	return r_cast<int64_t>(from_object(std::get<Object*>(r_cast<CallStack*>(stack)->pop())));
+	return from_object(std::get<Object*>(r_cast<CallStack*>(stack)->pop()));
 }
 
 static int64_t call_stack_pop_vec2(int64_t stack)
