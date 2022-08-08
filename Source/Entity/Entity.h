@@ -108,6 +108,7 @@ private:
 class EntityObserver : public Object
 {
 public:
+	PROPERTY_READONLY_CREF(std::vector<int>, Components);
 	EntityObserver(int option, const std::vector<std::string>& components);
 	virtual ~EntityObserver();
 	virtual bool init() override;

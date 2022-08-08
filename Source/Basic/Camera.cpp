@@ -55,44 +55,44 @@ bool Camera::hasProjection() const
 	return false;
 }
 
-/* BasicCamera */
+/* CameraBasic */
 
-BasicCamera::BasicCamera(String name):
+CameraBasic::CameraBasic(String name):
 Camera(name),
 _transformDirty(true),
 _rotation(0.0f)
 { }
 
-void BasicCamera::setRotation(float var)
+void CameraBasic::setRotation(float var)
 {
 	_rotation = var;
 	_transformDirty = true;
 }
 
-float BasicCamera::getRotation() const
+float CameraBasic::getRotation() const
 {
 	return _rotation;
 }
 
-void BasicCamera::setPosition(const Vec3& position)
+void CameraBasic::setPosition(const Vec3& position)
 {
 	_position = position;
 	_transformDirty = true;
 }
 
-void BasicCamera::setTarget(const Vec3& target)
+void CameraBasic::setTarget(const Vec3& target)
 {
 	_target = target;
 	_transformDirty = true;
 }
 
-const Vec3& BasicCamera::getUp()
+const Vec3& CameraBasic::getUp()
 {
 	updateView();
 	return _up;
 }
 
-void BasicCamera::updateView()
+void CameraBasic::updateView()
 {
 	if (_transformDirty)
 	{
@@ -121,7 +121,7 @@ void BasicCamera::updateView()
 	}
 }
 
-const Matrix& BasicCamera::getView()
+const Matrix& CameraBasic::getView()
 {
 	updateView();
 	return Camera::getView();
@@ -196,21 +196,21 @@ void Camera2D::updateView()
 	}
 }
 
-/* OthoCamera */
+/* CameraOtho */
 
-OthoCamera::OthoCamera(String name):
+CameraOtho::CameraOtho(String name):
 Camera(name),
 _transformDirty(true)
 { }
 
-void OthoCamera::setPosition(const Vec2& position)
+void CameraOtho::setPosition(const Vec2& position)
 {
 	_position.x = _target.x = position.x;
 	_position.y = _target.y = position.y;
 	_transformDirty = true;
 }
 
-const Matrix& OthoCamera::getView()
+const Matrix& CameraOtho::getView()
 {
 	float z = SharedView.getStandardDistance();
 	if (_position.z != z)
@@ -237,7 +237,7 @@ const Matrix& OthoCamera::getView()
 	return Camera::getView();
 }
 
-bool OthoCamera::hasProjection() const
+bool CameraOtho::hasProjection() const
 {
 	return true;
 }

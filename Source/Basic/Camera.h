@@ -33,7 +33,7 @@ protected:
 	DORA_TYPE_OVERRIDE(Camera);
 };
 
-class BasicCamera : public Camera
+class CameraBasic : public Camera
 {
 public:
 	PROPERTY(float, Rotation);
@@ -41,14 +41,14 @@ public:
 	void setTarget(const Vec3& position);
 	virtual const Vec3& getUp() override;
 	virtual const Matrix& getView() override;
-	CREATE_FUNC(BasicCamera);
+	CREATE_FUNC(CameraBasic);
 protected:
-	BasicCamera(String name);
+	CameraBasic(String name);
 	void updateView();
 private:
 	bool _transformDirty;
 	float _rotation;
-	DORA_TYPE_OVERRIDE(BasicCamera);
+	DORA_TYPE_OVERRIDE(CameraBasic);
 };
 
 class Camera2D : public Camera
@@ -70,19 +70,19 @@ private:
 	DORA_TYPE_OVERRIDE(Camera2D);
 };
 
-class OthoCamera : public Camera
+class CameraOtho : public Camera
 {
 public:
 	void setPosition(const Vec2& position);
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;
-	CREATE_FUNC(OthoCamera);
+	CREATE_FUNC(CameraOtho);
 protected:
-	OthoCamera(String name);
+	CameraOtho(String name);
 private:
 	float _zoom;
 	bool _transformDirty;
-	DORA_TYPE_OVERRIDE(OthoCamera);
+	DORA_TYPE_OVERRIDE(CameraOtho);
 };
 
 class CameraUI : public Camera
