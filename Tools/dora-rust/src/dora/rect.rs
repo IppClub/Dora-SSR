@@ -33,7 +33,7 @@ extern "C" {
 	fn rect_intersects_rect(slf: i64, rect: i64) -> i32;
 	fn rect_equals(slf: i64, other: i64) -> i32;
 	fn rect_new(origin: i64, size: i64) -> i64;
-	fn rect_get_zero() -> i64;
+	fn rect_zero() -> i64;
 }
 impl PartialEq for Rect {
 	fn eq(&self, other: &Self) -> bool {
@@ -55,13 +55,13 @@ impl Rect {
 		unsafe { rect_set_origin(self.raw(), var.into_i64()) };
 	}
 	pub fn get_origin(&self) -> crate::dora::Vec2 {
-		return crate::dora::Vec2::from(unsafe { rect_get_origin(self.raw()) });
+		return unsafe { crate::dora::Vec2::from(rect_get_origin(self.raw())) };
 	}
 	pub fn set_size(&mut self, var: &crate::dora::Size) {
 		unsafe { rect_set_size(self.raw(), var.into_i64()) };
 	}
 	pub fn get_size(&self) -> crate::dora::Size {
-		return crate::dora::Size::from(unsafe { rect_get_size(self.raw()) });
+		return unsafe { crate::dora::Size::from(rect_get_size(self.raw())) };
 	}
 	pub fn set_x(&mut self, var: f32) {
 		unsafe { rect_set_x(self.raw(), var) };
@@ -127,13 +127,13 @@ impl Rect {
 		unsafe { rect_set_lower_bound(self.raw(), var.into_i64()) };
 	}
 	pub fn get_lower_bound(&self) -> crate::dora::Vec2 {
-		return crate::dora::Vec2::from(unsafe { rect_get_lower_bound(self.raw()) });
+		return unsafe { crate::dora::Vec2::from(rect_get_lower_bound(self.raw())) };
 	}
 	pub fn set_upper_bound(&mut self, var: &crate::dora::Vec2) {
 		unsafe { rect_set_upper_bound(self.raw(), var.into_i64()) };
 	}
 	pub fn get_upper_bound(&self) -> crate::dora::Vec2 {
-		return crate::dora::Vec2::from(unsafe { rect_get_upper_bound(self.raw()) });
+		return unsafe { crate::dora::Vec2::from(rect_get_upper_bound(self.raw())) };
 	}
 	pub fn set(&mut self, x: f32, y: f32, width: f32, height: f32) {
 		unsafe { rect_set(self.raw(), x, y, width, height) };
@@ -147,7 +147,7 @@ impl Rect {
 	pub fn new(origin: &crate::dora::Vec2, size: &crate::dora::Size) -> crate::dora::Rect {
 		return crate::dora::Rect::from(unsafe { rect_new(origin.into_i64(), size.into_i64()) });
 	}
-	pub fn get_zero() -> crate::dora::Rect {
-		return crate::dora::Rect::from(unsafe { rect_get_zero() });
+	pub fn zero() -> crate::dora::Rect {
+		return crate::dora::Rect::from(unsafe { rect_zero() });
 	}
 }

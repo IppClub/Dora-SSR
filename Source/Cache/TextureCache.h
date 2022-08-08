@@ -14,17 +14,17 @@ NS_DOROTHY_BEGIN
 
 enum struct TextureWrap
 {
-	None,
-	Mirror,
-	Clamp,
-	Border
+	None = 0,
+	Mirror = 1,
+	Clamp = 2,
+	Border = 3
 };
 
 enum struct TextureFilter
 {
-	None,
-	Point,
-	Anisotropic
+	None = 0,
+	Point = 1,
+	Anisotropic = 2
 };
 
 class Texture2D : public Object
