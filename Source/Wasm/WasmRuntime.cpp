@@ -172,6 +172,17 @@ static int64_t to_vec(const std::vector<std::string>& vec)
 	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
+static int64_t to_vec(const std::list<std::string>& vec)
+{
+	std::vector<int64_t> buf;
+	buf.reserve(vec.size());
+	for (const auto& item : vec)
+	{
+		buf.push_back(str_retain(item));
+	}
+	return buf_retain(dora_vec_t(std::move(buf)));
+}
+
 static std::vector<std::string> from_str_vec(int64_t var)
 {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
@@ -234,7 +245,9 @@ static int64_t value_create_bool(int32_t value)
 
 static int64_t value_create_object(int64_t value)
 {
-	return r_cast<int64_t>(new dora_val_t(r_cast<Object*>(value)));
+	auto obj = r_cast<Object*>(value);
+	obj->retain();
+	return r_cast<int64_t>(new dora_val_t(obj));
 }
 
 static int64_t value_create_vec2(int64_t value)
@@ -249,7 +262,12 @@ static int64_t value_create_size(int64_t value)
 
 static void value_release(int64_t value)
 {
-	delete r_cast<dora_val_t*>(value);
+	auto v = r_cast<dora_val_t*>(value);
+	if (std::holds_alternative<Object*>(*v))
+	{
+		std::get<Object*>(*v)->release();
+	}
+	delete v;
 }
 
 static int64_t value_into_i64(int64_t value)
@@ -484,118 +502,6 @@ static int32_t call_stack_front_size(int64_t stack)
 	return std::holds_alternative<Size>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t node_type()
-{
-	return DoraType<Node>();
-}
-
-static int64_t node_create()
-{
-	return from_object(Node::create());
-}
-
-static void node_set_x(int64_t node, float var)
-{
-	r_cast<Node*>(node)->setX(var);
-}
-
-static float node_get_x(int64_t node)
-{
-	return r_cast<Node*>(node)->getX();
-}
-
-static void node_set_position(int64_t node, int64_t var)
-{
-	r_cast<Node*>(node)->setPosition(into_vec2(var));
-}
-
-static int64_t node_get_position(int64_t node)
-{
-	return from_vec2(r_cast<Node*>(node)->getPosition());
-}
-
-static void node_set_tag(int64_t node, int64_t var)
-{
-	r_cast<Node*>(node)->setTag(*str_from(var));
-}
-
-static int64_t node_get_tag(int64_t node)
-{
-	return str_retain(r_cast<Node*>(node)->getTag());
-}
-
-static int64_t node_get_children(int64_t node)
-{
-	if (auto children = r_cast<Node*>(node)->getChildren())
-	{
-		return from_object(children);
-	}
-	return 0;
-}
-
-static int64_t node_get_userdata(int64_t node)
-{
-	auto userData = r_cast<Node*>(node)->getUserData();
-	return from_object(userData);
-}
-
-static void node_add_child(int64_t node, int64_t child)
-{
-	r_cast<Node*>(node)->addChild(r_cast<Node*>(child));
-}
-
-static void node_schedule(int64_t node, int32_t func, int64_t stack)
-{
-	std::shared_ptr<void> deref(nullptr, [func](auto)
-	{
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(node)->schedule([func, args, deref](double deltaTime)
-	{
-		args->clear();
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
-	});
-}
-
-static void node_emit(int64_t node, int64_t name, int64_t stack)
-{
-	WasmEventArgs event(*str_from(name), r_cast<CallStack*>(stack));
-	r_cast<Node*>(node)->emit(&event);
-}
-
-static void node_slot(int64_t node, int64_t name, int32_t func, int64_t stack)
-{
-	std::shared_ptr<void> deref(nullptr, [func](auto)
-	{
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(node)->slot(*str_from(name), [func, args, deref](Event* e)
-	{
-		args->clear();
-		e->pushArgsToWasm(args);
-		SharedWasmRuntime.invoke(func);
-	});
-}
-
-static void node_gslot(int64_t node, int64_t name, int32_t func, int64_t stack)
-{
-	std::shared_ptr<void> deref(nullptr, [func](auto)
-	{
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(node)->gslot(*str_from(name), [func, args, deref](Event* e)
-	{
-		args->clear();
-		e->pushArgsToWasm(args);
-		SharedWasmRuntime.invoke(func);
-	});
-}
-
 static Own<Value> to_value(const dora_val_t& v)
 {
 	Own<Value> ov;
@@ -681,14 +587,6 @@ static void push_value(CallStack* stack, Value* v)
 
 /* Array */
 
-static int32_t array_type()
-{
-	return DoraType<Array>();
-}
-static int64_t array_create()
-{
-	return from_object(Array::create());
-}
 static int32_t array_set(int64_t array, int32_t index, int64_t v)
 {
 	auto arr = r_cast<Array*>(array);
@@ -707,50 +605,6 @@ static int64_t array_get(int64_t array, int32_t index)
 		return from_value(arr->get(index).get());
 	}
 	return 0;
-}
-static int32_t array_len(int64_t array)
-{
-	return s_cast<int32_t>(r_cast<Array*>(array)->getCount());
-}
-static int32_t array_capacity(int64_t array)
-{
-	return s_cast<int32_t>(r_cast<Array*>(array)->getCapacity());
-}
-static int32_t array_is_empty(int64_t array)
-{
-	return r_cast<Array*>(array)->isEmpty() ? 1 : 0;
-}
-static void array_add_range(int64_t array, int64_t other)
-{
-	r_cast<Array*>(array)->addRange(r_cast<Array*>(other));
-}
-static void array_remove_from(int64_t array, int64_t other)
-{
-	r_cast<Array*>(array)->removeFrom(r_cast<Array*>(other));
-}
-static void array_clear(int64_t array)
-{
-	r_cast<Array*>(array)->clear();
-}
-static void array_reverse(int64_t array)
-{
-	r_cast<Array*>(array)->reverse();
-}
-static void array_shrink(int64_t array)
-{
-	r_cast<Array*>(array)->shrink();
-}
-static void array_swap(int64_t array, int32_t indexA, int32_t indexB)
-{
-	r_cast<Array*>(array)->swap(indexA, indexB);
-}
-static int32_t array_remove_at(int64_t array, int32_t index)
-{
-	return r_cast<Array*>(array)->removeAt(index) ? 1 : 0;
-}
-static int32_t array_fast_remove_at(int64_t array, int32_t index)
-{
-	return r_cast<Array*>(array)->fastRemoveAt(index) ? 1 : 0;
 }
 static int64_t array_first(int64_t array)
 {
@@ -808,14 +662,6 @@ static int32_t array_fast_remove(int64_t array, int64_t item)
 
 /* Dictionary */
 
-static int32_t dictionary_type()
-{
-	return DoraType<Dictionary>();
-}
-static int64_t dictionary_create()
-{
-	return from_object(Dictionary::create());
-}
 static void dictionary_set(int64_t dict, int64_t key, int64_t value)
 {
 	r_cast<Dictionary*>(dict)->set(*str_from(key), to_value(*r_cast<dora_val_t*>(value)));
@@ -824,18 +670,10 @@ static int64_t dictionary_get(int64_t dict, int64_t key)
 {
 	return from_value(r_cast<Dictionary*>(dict)->get(*str_from(key)).get());
 }
-static int32_t dictionary_len(int64_t dict)
-{
-	return r_cast<Dictionary*>(dict)->getCount();
-}
-static int64_t dictionary_get_keys(int64_t dict)
-{
-	return to_vec(r_cast<Dictionary*>(dict)->getKeys());
-}
-void dictionary_clear(int64_t dict)
-{
-	r_cast<Dictionary*>(dict)->clear();
-}
+
+/* Rect */
+
+inline const Rect& rect_get_zero() { return Rect::zero; }
 
 /* Entity */
 
@@ -880,7 +718,6 @@ static void group_watch(int64_t group, int32_t func, int64_t stack)
 		SharedWasmRuntime.invoke(func);
 	});
 }
-
 static int64_t group_find(int64_t group, int32_t func, int64_t stack)
 {
 	std::shared_ptr<void> deref(nullptr, [func](auto)
@@ -888,32 +725,146 @@ static int64_t group_find(int64_t group, int32_t func, int64_t stack)
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	Entity* entity = r_cast<EntityGroup*>(group)->find([func, args, deref](Entity* e)
+	return from_object(r_cast<EntityGroup*>(group)->find([func, args, deref](Entity* e)
 	{
 		args->clear();
 		args->push(e);
 		SharedWasmRuntime.invoke(func);
 		return std::get<bool>(args->pop());
-	});
-	return from_object(entity);
+	}));
 }
 
 // EntityObserver
 
-static int64_t observer_create(int32_t option, int64_t coms)
+static void observer_watch(int64_t observer, int32_t func, int64_t stack)
 {
-	return from_object(EntityObserver::create(option, from_str_vec(coms)));
+	std::shared_ptr<void> deref(nullptr, [func](auto)
+	{
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	auto entityObserver = r_cast<EntityObserver*>(observer);
+	entityObserver->watch([entityObserver, func, args, deref](Entity* e)
+	{
+		args->clear();
+		args->push(e);
+		for (int index : entityObserver->getComponents()) {
+			push_value(args, e->getComponent(index));
+		}
+		SharedWasmRuntime.invoke(func);
+	});
 }
 
+// Node
+
+using Grabber = Node::Grabber;
+static void node_emit(int64_t node, int64_t name, int64_t stack)
+{
+	WasmEventArgs event(*str_from(name), r_cast<CallStack*>(stack));
+	r_cast<Node*>(node)->emit(&event);
+}
+static Grabber* node_start_grabbing(Node* node)
+{
+	return node->grab(true);
+}
+static void node_stop_grabbing(Node* node)
+{
+	node->grab(false);
+}
+
+// Effect
+
+static Pass* effect_get_pass(Effect* self, size_t index)
+{
+	const auto& passes = self->getPasses();
+	if (index < passes.size()) {
+		return self->get(index);
+	}
+	return nullptr;
+}
+
+// Sprite
+
+static Sprite* sprite_create(String clipStr)
+{
+	return SharedClipCache.loadSprite(clipStr);
+}
+
+// Grid
+
+static Grid* grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
+{
+	Texture2D* tex = nullptr;
+	Rect rect;
+	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
+	if (tex)
+	{
+		return Grid::create(tex, rect, gridX, gridY);
+	}
+	return nullptr;
+}
+
+#include "Dora/ArrayWasm.hpp"
+#include "Dora/DictionaryWasm.hpp"
 #include "Dora/RectWasm.hpp"
 #include "Dora/ApplicationWasm.hpp"
 #include "Dora/DirectorWasm.hpp"
 #include "Dora/EntityWasm.hpp"
 #include "Dora/EntityGroupWasm.hpp"
+#include "Dora/EntityObserverWasm.hpp"
 #include "Dora/ContentWasm.hpp"
+#include "Dora/PathWasm.hpp"
+#include "Dora/SchedulerWasm.hpp"
+#include "Dora/CameraWasm.hpp"
+#include "Dora/Camera2DWasm.hpp"
+#include "Dora/CameraOthoWasm.hpp"
+#include "Dora/PassWasm.hpp"
+#include "Dora/EffectWasm.hpp"
+#include "Dora/SpriteEffectWasm.hpp"
+#include "Dora/ViewWasm.hpp"
+#include "Dora/ActionWasm.hpp"
+#include "Dora/GrabberWasm.hpp"
+#include "Dora/NodeWasm.hpp"
+#include "Dora/Texture2DWasm.hpp"
+#include "Dora/SpriteWasm.hpp"
+#include "Dora/GridWasm.hpp"
+#include "Dora/TouchWasm.hpp"
+#include "Dora/LabelWasm.hpp"
+
+static void linkAutoModule(wasm3::module& mod)
+{
+	linkArray(mod);
+	linkDictionary(mod);
+	linkRect(mod);
+	linkApplication(mod);
+	linkDirector(mod);
+	linkEntity(mod);
+	linkEntityGroup(mod);
+	linkEntityObserver(mod);
+	linkPath(mod);
+	linkContent(mod);
+	linkScheduler(mod);
+	linkCamera(mod);
+	linkCamera2D(mod);
+	linkCameraOtho(mod);
+	linkPass(mod);
+	linkEffect(mod);
+	linkSpriteEffect(mod);
+	linkView(mod);
+	linkAction(mod);
+	linkGrabber(mod);
+	linkNode(mod);
+	linkTexture2D(mod);
+	linkSprite(mod);
+	linkGrid(mod);
+	linkTouch(mod);
+	linkLabel(mod);
+}
 
 static void linkDoraModule(wasm3::module& mod)
 {
+	linkAutoModule(mod);
+
 	mod.link_optional("*", "str_new", str_new);
 	mod.link_optional("*", "str_len", str_len);
 	mod.link_optional("*", "str_read", str_read);
@@ -981,21 +932,8 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "call_stack_front_vec2", call_stack_front_vec2);
 	mod.link_optional("*", "call_stack_front_size", call_stack_front_size);
 
-	mod.link_optional("*", "array_type", array_type);
-	mod.link_optional("*", "array_create", array_create);
 	mod.link_optional("*", "array_set", array_set);
 	mod.link_optional("*", "array_get", array_get);
-	mod.link_optional("*", "array_len", array_len);
-	mod.link_optional("*", "array_capacity", array_capacity);
-	mod.link_optional("*", "array_is_empty", array_is_empty);
-	mod.link_optional("*", "array_add_range", array_add_range);
-	mod.link_optional("*", "array_remove_from", array_remove_from);
-	mod.link_optional("*", "array_clear", array_clear);
-	mod.link_optional("*", "array_reverse", array_reverse);
-	mod.link_optional("*", "array_shrink", array_shrink);
-	mod.link_optional("*", "array_swap", array_swap);
-	mod.link_optional("*", "array_remove_at", array_remove_at);
-	mod.link_optional("*", "array_fast_remove_at", array_fast_remove_at);
 	mod.link_optional("*", "array_first", array_first);
 	mod.link_optional("*", "array_last", array_last);
 	mod.link_optional("*", "array_random_object", array_random_object);
@@ -1006,29 +944,8 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "array_remove_last", array_remove_last);
 	mod.link_optional("*", "array_fast_remove", array_fast_remove);
 
-	mod.link_optional("*", "dictionary_type", dictionary_type);
-	mod.link_optional("*", "dictionary_create", dictionary_create);
 	mod.link_optional("*", "dictionary_set", dictionary_set);
 	mod.link_optional("*", "dictionary_get", dictionary_get);
-	mod.link_optional("*", "dictionary_len", dictionary_len);
-	mod.link_optional("*", "dictionary_get_keys", dictionary_get_keys);
-	mod.link_optional("*", "dictionary_clear", dictionary_clear);
-
-	mod.link_optional("*", "node_type", node_type);
-	mod.link_optional("*", "node_create", node_create);
-	mod.link_optional("*", "node_set_x", node_set_x);
-	mod.link_optional("*", "node_get_x", node_get_x);
-	mod.link_optional("*", "node_set_position", node_set_position);
-	mod.link_optional("*", "node_get_position", node_get_position);
-	mod.link_optional("*", "node_set_tag", node_set_tag);
-	mod.link_optional("*", "node_get_tag", node_get_tag);
-	mod.link_optional("*", "node_get_children", node_get_children);
-	mod.link_optional("*", "node_get_userdata", node_get_userdata);
-	mod.link_optional("*", "node_add_child", node_add_child);
-	mod.link_optional("*", "node_schedule", node_schedule);
-	mod.link_optional("*", "node_emit", node_emit);
-	mod.link_optional("*", "node_slot", node_slot);
-	mod.link_optional("*", "node_gslot", node_gslot);
 
 	mod.link_optional("*", "entity_set", entity_set);
 	mod.link_optional("*", "entity_get", entity_get);
@@ -1037,14 +954,9 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "group_watch", group_watch);
 	mod.link_optional("*", "group_find", group_find);
 
-	mod.link_optional("*", "observer_create", observer_create);
+	mod.link_optional("*", "observer_watch", observer_watch);
 
-	linkRect(mod);
-	linkApplication(mod);
-	linkDirector(mod);
-	linkEntity(mod);
-	linkEntityGroup(mod);
-	linkContent(mod);
+	mod.link_optional("*", "node_emit", node_emit);
 }
 
 WasmRuntime::WasmRuntime():

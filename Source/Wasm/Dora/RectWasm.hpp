@@ -134,9 +134,9 @@ static int64_t rect_new(int64_t origin, int64_t size)
 {
 	return r_cast<int64_t>(new Rect{into_vec2(origin), into_size(size)});
 }
-static int64_t rect_get_zero(int64_t self)
+static int64_t rect_zero()
 {
-	return r_cast<int64_t>(new Rect{Rect::zero});
+	return r_cast<int64_t>(new Rect{rect_get_zero()});
 }
 static void linkRect(wasm3::module& mod)
 {
@@ -174,5 +174,5 @@ static void linkRect(wasm3::module& mod)
 	mod.link_optional("*", "rect_intersects_rect", rect_intersects_rect);
 	mod.link_optional("*", "rect_equals", rect_equals);
 	mod.link_optional("*", "rect_new", rect_new);
-	mod.link_optional("*", "rect_get_zero", rect_get_zero);
+	mod.link_optional("*", "rect_zero", rect_zero);
 }

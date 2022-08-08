@@ -365,6 +365,7 @@ Node* Node::getTransformTarget() const
 
 void Node::setScheduler(Scheduler* var)
 {
+	AssertUnless(var, "set invalid scheduler(nullptr) to node.");
 	if (isUpdating())
 	{
 		_scheduler->unschedule(this);

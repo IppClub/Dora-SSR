@@ -87,9 +87,9 @@ private:
 
 enum struct TextAlign
 {
-	Left,
-	Center,
-	Right
+	Left = 0,
+	Center = 1,
+	Right = 2
 };
 
 class Label : public Node

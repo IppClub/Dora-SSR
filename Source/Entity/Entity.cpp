@@ -586,6 +586,13 @@ EntityGroup* EntityGroup::create(Slice components[], int count)
 	return EntityGroup::create(coms);
 }
 
+/* EntityObserver */
+
+const std::vector<int>& EntityObserver::getComponents() const
+{
+	return _components;
+}
+
 EntityObserver::EntityObserver(int option, const std::vector<std::string>& components):
 _option(option)
 {

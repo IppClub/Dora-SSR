@@ -3,8 +3,6 @@ use once_cell::sync::Lazy;
 
 mod rect;
 pub use rect::Rect;
-mod node;
-pub use node::{INode, Node};
 mod array;
 pub use array::Array;
 mod dictionary;
@@ -19,6 +17,79 @@ mod group;
 pub use group::Group;
 mod observer;
 pub use observer::Observer;
+mod content;
+pub use content::Content;
+mod scheduler;
+pub use scheduler::Scheduler;
+mod camera;
+pub use camera::{ICamera, Camera};
+mod camera_2d;
+pub use camera_2d::Camera2D;
+mod camera_otho;
+pub use camera_otho::CameraOtho;
+mod pass;
+pub use pass::Pass;
+mod effect;
+pub use effect::{IEffect, Effect};
+mod sprite_effect;
+pub use sprite_effect::SpriteEffect;
+mod view;
+pub use view::View;
+mod action;
+pub use action::Action;
+mod grabber;
+pub use grabber::Grabber;
+mod node;
+pub use node::{INode, Node};
+mod texture_2d;
+pub use texture_2d::Texture2D;
+mod sprite;
+pub use sprite::Sprite;
+mod grid;
+pub use grid::Grid;
+mod touch;
+pub use touch::Touch;
+mod ease;
+pub use ease::Ease;
+mod label;
+pub use label::Label;
+
+fn none_type(_: i64) -> Option<Box<dyn Object>> { None }
+
+static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| {
+	let mut map: Vec<fn(i64) -> Option<Box<dyn Object>>> = Vec::new();
+	let type_funcs = [
+		Array::type_info(),
+		Dictionary::type_info(),
+		Entity::type_info(),
+		Group::type_info(),
+		Observer::type_info(),
+		Scheduler::type_info(),
+		Camera::type_info(),
+		Camera2D::type_info(),
+		CameraOtho::type_info(),
+		Pass::type_info(),
+		Effect::type_info(),
+		SpriteEffect::type_info(),
+		Grabber::type_info(),
+		Node::type_info(),
+		Texture2D::type_info(),
+		Sprite::type_info(),
+		Grid::type_info(),
+		Touch::type_info(),
+		Label::type_info(),
+	];
+	for pair in type_funcs.iter() {
+		let t = pair.0 as usize;
+		if map.len() < t + 1 {
+			map.resize(t + 1, none_type);
+			map[t] = pair.1;
+		}
+	}
+	map
+});
+static mut FUNC_MAP: Vec<Box<dyn FnMut()>> = Vec::new();
+static mut FUNC_AVAILABLE: Vec<i32> = Vec::new();
 
 extern "C" {
 	fn object_get_id(obj: i64) -> i32;
@@ -360,28 +431,9 @@ impl Vector {
 	}
 }
 
-fn none_type(_: i64) -> Option<Box<dyn Object>> { None }
-
-static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| {
-	let mut map: Vec<fn(i64) -> Option<Box<dyn Object>>> = Vec::new();
-	let type_funcs = [
-		Node::type_info(),
-		Array::type_info(),
-		Dictionary::type_info(),
-		Entity::type_info(),
-		Group::type_info(),
-	];
-	for pair in type_funcs.iter() {
-		let t = pair.0 as usize;
-		if map.len() < t + 1 {
-			map.resize(t + 1, none_type);
-			map[t] = pair.1;
-		}
-	}
-	map
-});
-static mut FUNC_MAP: Vec<Box<dyn FnMut()>> = Vec::new();
-static mut FUNC_AVAILABLE: Vec<i32> = Vec::new();
+fn get_object(raw: i64) -> Option<Box<dyn Object>> {
+	unsafe { OBJECT_MAP[object_get_type(raw) as usize](raw) }
+}
 
 fn push_function(func: Box<dyn FnMut()>) -> i32 {
 	unsafe {
@@ -535,9 +587,9 @@ macro_rules! args {
 macro_rules! dora_object {
 	($name: ident) => {
 		paste::paste! {
-			 impl crate::dora::Object for $name {
+			 impl Object for $name {
 				fn raw(&self) -> i64 { self.raw }
-				fn obj(&self) -> &dyn crate::dora::Object { self }
+				fn obj(&self) -> &dyn Object { self }
 				fn as_any(&self) -> &dyn std::any::Any { self }
 				fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
 			}
@@ -557,8 +609,8 @@ macro_rules! dora_object {
 						_ => Some($name { raw: raw })
 					}
 				}
-				pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn crate::dora::Object>>) {
-					(unsafe { [<$name:lower _type>]() }, |raw: i64| -> Option<Box<dyn crate::dora::Object>> {
+				pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn Object>>) {
+					(unsafe { [<$name:lower _type>]() }, |raw: i64| -> Option<Box<dyn Object>> {
 						match raw {
 							0 => None,
 							_ => Some(Box::new($name { raw: raw }))
@@ -632,7 +684,7 @@ impl Value {
 		unsafe {
 			if value_is_object(self.raw) != 0 {
 				let raw = value_into_object(self.raw);
-				OBJECT_MAP[object_get_type(raw) as usize](raw)
+				get_object(raw)
 			} else { None }
 		}
 	}
@@ -741,7 +793,7 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_object(self.raw) != 0 {
 				let raw = call_stack_pop_object(self.raw);
-				OBJECT_MAP[object_get_type(raw) as usize](raw)
+				get_object(raw)
 			} else { None }
 		}
 	}
@@ -749,7 +801,7 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_object(self.raw) != 0 {
 				let raw = call_stack_pop_object(self.raw);
-				let obj = OBJECT_MAP[object_get_type(raw) as usize](raw);
+				let obj = get_object(raw);
 				Some(obj?.as_any().downcast_ref::<T>()?.clone())
 			} else { None }
 		}
@@ -772,6 +824,76 @@ impl CallStack {
 
 impl Drop for CallStack {
 	fn drop(&mut self) { unsafe { call_stack_release(self.raw); } }
+}
+
+// Array
+
+extern "C" {
+	fn array_set(array: i64, index: i32, item: i64) -> i32;
+	fn array_get(array: i64, index: i32) -> i64;
+	fn array_first(array: i64) -> i64;
+	fn array_last(array: i64) -> i64;
+	fn array_random_object(array: i64) -> i64;
+	fn array_add(array: i64, item: i64);
+	fn array_insert(array: i64, index: i32, item: i64);
+	fn array_contains(array: i64, item: i64) -> i32;
+	fn array_index(array: i64, item: i64) -> i32;
+	fn array_remove_last(array: i64) -> i64;
+	fn array_fast_remove(array: i64, item: i64) -> i32;
+}
+
+impl Array {
+	pub fn set<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
+		if unsafe { array_set(self.raw(), index, v.val().raw()) == 0 } {
+			panic!("Out of bounds, expecting [0, {}), got {}", self.get_count(), index);
+		}
+	}
+	pub fn get(&self, index: i32) -> Option<Value> {
+		Value::from(unsafe { array_get(self.raw(), index) })
+	}
+	pub fn first(&self) -> Option<Value> {
+		Value::from(unsafe { array_first(self.raw()) })
+	}
+	pub fn last(&self) -> Option<Value> {
+		Value::from(unsafe { array_last(self.raw()) })
+	}
+	pub fn random_object(&self) -> Option<Value> {
+		Value::from(unsafe { array_random_object(self.raw()) })
+	}
+	pub fn add<'a, T>(&mut self, v: T) where T: IntoValue<'a> {
+		unsafe { array_add(self.raw(), v.val().raw()); }
+	}
+	pub fn insert<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
+		unsafe { array_insert(self.raw(), index, v.val().raw()); }
+	}
+	pub fn contains<'a, T>(&self, v: T) -> bool where T: IntoValue<'a> {
+		unsafe { array_contains(self.raw(), v.val().raw()) != 0 }
+	}
+	pub fn index<'a, T>(&self, v: T) -> i32 where T: IntoValue<'a> {
+		unsafe { array_index(self.raw(), v.val().raw()) }
+	}
+	pub fn remove_last(&mut self) -> Option<Value> {
+		Value::from(unsafe { array_remove_last(self.raw()) })
+	}
+	pub fn fast_remove<'a, T>(&mut self, v: T) -> bool where T: IntoValue<'a> {
+		unsafe { array_fast_remove(self.raw(), v.val().raw()) != 0 }
+	}
+}
+
+// Dictionary
+
+extern "C" {
+	fn dictionary_set(dict: i64, key: i64, value: i64);
+	fn dictionary_get(dict: i64, key: i64) -> i64;
+}
+
+impl Dictionary {
+	pub fn set<'a, T>(&mut self, key: &str, v: T) where T: IntoValue<'a> {
+		unsafe { dictionary_set(self.raw(), from_string(key), v.val().raw()); }
+	}
+	pub fn get(&self, key: &str) -> Option<Value> {
+		Value::from(unsafe { dictionary_get(self.raw(), from_string(key)) })
+	}
 }
 
 // Entity
@@ -798,7 +920,6 @@ impl Entity {
 
 extern "C" {
 	fn group_watch(group: i64, func: i32, stack: i64);
-	fn group_find(group: i64, func: i32, stack: i64) -> i64;
 }
 
 impl Group {
@@ -808,46 +929,117 @@ impl Group {
 		let func_id = push_function(Box::new(move || { func(&mut stack); }));
 		unsafe { group_watch(self.raw(), func_id, stack_raw); }
 	}
-	pub fn each(&self, func: Box<dyn Fn(&Entity) -> bool>) -> bool {
+	pub fn each(&self, func: Box<dyn FnMut(&Entity) -> bool>) -> bool {
 		match self.find(func) {
 			Some(_) => true,
 			None => false
 		}
 	}
-	pub fn find(&self, func: Box<dyn Fn(&Entity) -> bool>) -> Option<Entity> {
-		let mut stack = CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = push_function(Box::new(move || {
-			let result = if let Some(entity) = stack.pop_cast::<Entity>() {
-				func(&entity)
-			} else { false };
-			stack.push_bool(result);
-		}));
-		Entity::from(unsafe { group_find(self.raw(), func_id, stack_raw) })
-	}
 }
 
-// EntityObserver
+// Observer
 
 extern "C" {
-	fn observer_create(option: i32, coms: i64) -> i64;
+	fn observer_watch(observer: i64, func: i32, stack: i64);
 }
 
+#[repr(i32)]
 pub enum EntityEvent {
-	Add,
-	Change,
-	AddOrChange,
-	Remove
+	Add = 1,
+	Change = 2,
+	AddOrChange = 3,
+	Remove = 4
 }
 
 impl Observer {
-	pub fn new(event: EntityEvent, components: &Vec<&str>) -> Observer {
-		let option = match event {
-			EntityEvent::Add => 1,
-			EntityEvent::Change => 2,
-			EntityEvent::AddOrChange => 3,
-			EntityEvent::Remove => 4,
-		};
-		Observer::from(unsafe { observer_create(option, Vector::from_str(components)) }).unwrap()
+	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack)>) {
+		let mut stack = CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = push_function(Box::new(move || { func(&mut stack); }));
+		unsafe { observer_watch(self.raw(), func_id, stack_raw); }
 	}
+}
+
+// Node
+
+extern "C" {
+	fn node_emit(node: i64, name: i64, stack: i64);
+}
+
+impl Node {
+	pub fn emit(&mut self, name: &str, stack: CallStack) {
+		unsafe { node_emit(self.raw(), from_string(name), stack.raw()); }
+	}
+}
+
+// Sprite
+#[repr(i32)]
+pub enum TextureWrap {
+	None = 0,
+	Mirror = 1,
+	Clamp = 2,
+	Border = 3,
+}
+
+#[repr(i32)]
+pub enum TextureFilter {
+	None = 0,
+	Point = 1,
+	Anisotropic = 2,
+}
+
+// Ease
+
+#[repr(i32)]
+pub enum EaseType {
+	Linear = 0,
+	InQuad = 1,
+	OutQuad = 2,
+	InOutQuad = 3,
+	InCubic = 4,
+	OutCubic = 5,
+	InOutCubic = 6,
+	InQuart = 7,
+	OutQuart = 8,
+	InOutQuart = 9,
+	InQuint = 10,
+	OutQuint = 11,
+	InOutQuint = 12,
+	InSine = 13,
+	OutSine = 14,
+	InOutSine = 15,
+	InExpo = 16,
+	OutExpo = 17,
+	InOutExpo = 18,
+	InCirc = 19,
+	OutCirc = 20,
+	InOutCirc = 21,
+	InElastic = 22,
+	OutElastic = 23,
+	InOutElastic = 24,
+	InBack = 25,
+	OutBack = 26,
+	InOutBack = 27,
+	InBounce = 28,
+	OutBounce = 29,
+	InOutBounce = 30,
+	OutInQuad = 31,
+	OutInCubic = 32,
+	OutInQuart = 33,
+	OutInQuint = 34,
+	OutInSine = 35,
+	OutInExpo = 36,
+	OutInCirc = 37,
+	OutInElastic = 38,
+	OutInBack = 39,
+	OutInBounce = 40,
+}
+
+// Label
+
+#[repr(i32)]
+pub enum TextAlign {
+	Left = 0,
+	Center = 1,
+	Right = 2,
 }

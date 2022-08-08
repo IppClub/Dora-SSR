@@ -26,7 +26,7 @@ fn main() {
 	entry.add_child(&node);
 
 	let children = entry.get_children().unwrap();
-	println!("children len: {}", children.len());
+	println!("children len: {}", children.get_count());
 
 	node.emit("Event", args!(1, "dsd", true));
 
@@ -36,7 +36,7 @@ fn main() {
 		a.emit("Event", args!(2, "xyz", false));
 	}
 
-	let mut userdata = node.get_userdata();
+	let mut userdata = node.get_data();
 	userdata.set("key123", arr.obj());
 	let keys = userdata.get_keys();
 	for i in 0 .. keys.len() {

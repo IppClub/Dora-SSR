@@ -106,7 +106,7 @@ Sprite* ClipCache::loadSprite(String clipStr)
 	{
 		return Sprite::create(tex, rect);
 	}
-	return Sprite::create();
+	return nullptr;
 }
 
 bool ClipCache::isFileExist(String clipStr) const

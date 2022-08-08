@@ -217,9 +217,7 @@ class Listener @ GSlot : public Object
 class Scheduler : public Object
 {
 	tolua_property__common float timeScale;
-	void schedule(Object* object);
 	void schedule(tolua_handler handler);
-	void unschedule(Object* object);
 	static Scheduler* create();
 };
 
@@ -236,10 +234,10 @@ class Camera2D : public Camera
 	Camera2D* create(String name = nullptr);
 };
 
-class OthoCamera : public Camera
+class CameraOtho : public Camera
 {
 	tolua_property__common Vec2 position;
-	OthoCamera* create(String name = nullptr);
+	CameraOtho* create(String name = nullptr);
 };
 
 class Director
