@@ -4,19 +4,19 @@ static void rect_release(int64_t raw)
 }
 static void rect_set_origin(int64_t self, int64_t var)
 {
-	r_cast<Rect*>(self)->origin = into_vec2(var);
+	r_cast<Rect*>(self)->origin = vec2_from(var);
 }
 static int64_t rect_get_origin(int64_t self)
 {
-	return from_vec2(r_cast<Rect*>(self)->origin);
+	return vec2_retain(r_cast<Rect*>(self)->origin);
 }
 static void rect_set_size(int64_t self, int64_t var)
 {
-	r_cast<Rect*>(self)->size = into_size(var);
+	r_cast<Rect*>(self)->size = size_from(var);
 }
 static int64_t rect_get_size(int64_t self)
 {
-	return from_size(r_cast<Rect*>(self)->size);
+	return size_retain(r_cast<Rect*>(self)->size);
 }
 static void rect_set_x(int64_t self, float var)
 {
@@ -100,19 +100,19 @@ static float rect_get_top(int64_t self)
 }
 static void rect_set_lower_bound(int64_t self, int64_t var)
 {
-	r_cast<Rect*>(self)->setLowerBound(into_vec2(var));
+	r_cast<Rect*>(self)->setLowerBound(vec2_from(var));
 }
 static int64_t rect_get_lower_bound(int64_t self)
 {
-	return from_vec2(r_cast<Rect*>(self)->getLowerBound());
+	return vec2_retain(r_cast<Rect*>(self)->getLowerBound());
 }
 static void rect_set_upper_bound(int64_t self, int64_t var)
 {
-	r_cast<Rect*>(self)->setUpperBound(into_vec2(var));
+	r_cast<Rect*>(self)->setUpperBound(vec2_from(var));
 }
 static int64_t rect_get_upper_bound(int64_t self)
 {
-	return from_vec2(r_cast<Rect*>(self)->getUpperBound());
+	return vec2_retain(r_cast<Rect*>(self)->getUpperBound());
 }
 static void rect_set(int64_t self, float x, float y, float width, float height)
 {
@@ -120,7 +120,7 @@ static void rect_set(int64_t self, float x, float y, float width, float height)
 }
 static int32_t rect_contains_point(int64_t self, int64_t point)
 {
-	return r_cast<Rect*>(self)->containsPoint(into_vec2(point)) ? 1 : 0;
+	return r_cast<Rect*>(self)->containsPoint(vec2_from(point)) ? 1 : 0;
 }
 static int32_t rect_intersects_rect(int64_t self, int64_t rect)
 {
@@ -132,7 +132,7 @@ static int32_t rect_equals(int64_t self, int64_t other)
 }
 static int64_t rect_new(int64_t origin, int64_t size)
 {
-	return r_cast<int64_t>(new Rect{into_vec2(origin), into_size(size)});
+	return r_cast<int64_t>(new Rect{vec2_from(origin), size_from(size)});
 }
 static int64_t rect_zero()
 {

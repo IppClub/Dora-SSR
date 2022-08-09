@@ -215,6 +215,8 @@ namespace wasm3 {
          */
         function find_function(const char *name);
 
+        const char* get_error_message() const;
+
     protected:
         friend class environment;
 
@@ -259,14 +261,7 @@ namespace wasm3 {
         template<typename Func>
         void link_optional(const char *module, const char *function_name, Func *function);
 
-        inline void link_default()
-        {
-            M3Result ret = m3_LinkLibC(m_module.get());
-            detail::check_error(ret);
-
-            ret = m3_LinkWASI(m_module.get());
-            detail::check_error(ret);
-        }
+        void link_default();
 
     protected:
         friend class environment;
@@ -395,6 +390,12 @@ namespace wasm3 {
         return function(m_runtime, name);
     }
 
+    inline const char* runtime::get_error_message() const {
+        M3ErrorInfo info;
+        m3_GetErrorInfo(m_runtime.get(), &info);
+        return info.message;
+    }
+
     template<typename Func>
     void module::link(const char *module, const char *function_name, Func *function) {
         M3Result ret = detail::m3_wrapper<Func>::link(m_module.get(), module, function_name, function);
@@ -410,4 +411,12 @@ namespace wasm3 {
         detail::check_error(ret);
     }
 
+    inline void module::link_default()
+    {
+        M3Result ret = m3_LinkLibC(m_module.get());
+        detail::check_error(ret);
+
+        ret = m3_LinkWASI(m_module.get());
+        detail::check_error(ret);
+    }
 } // namespace wasm3

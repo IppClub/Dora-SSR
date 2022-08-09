@@ -4,11 +4,11 @@ static int32_t application_get_frame()
 }
 static int64_t application_get_buffer_size()
 {
-	return from_size(SharedApplication.getBufferSize());
+	return size_retain(SharedApplication.getBufferSize());
 }
 static int64_t application_get_visual_size()
 {
-	return from_size(SharedApplication.getVisualSize());
+	return size_retain(SharedApplication.getVisualSize());
 }
 static float application_get_device_ratio()
 {

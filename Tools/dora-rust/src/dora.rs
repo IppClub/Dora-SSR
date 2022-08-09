@@ -35,6 +35,8 @@ mod sprite_effect;
 pub use sprite_effect::SpriteEffect;
 mod view;
 pub use view::View;
+mod action_def;
+pub use action_def::ActionDef;
 mod action;
 pub use action::Action;
 mod grabber;
@@ -53,8 +55,26 @@ mod ease;
 pub use ease::Ease;
 mod label;
 pub use label::Label;
+mod draw_node;
+pub use draw_node::DrawNode;
+mod vertex_color;
+pub use vertex_color::VertexColor;
+mod line;
+pub use line::Line;
+mod particle;
+pub use particle::Particle;
+mod playable;
+pub use playable::{IPlayable, Playable};
+pub mod model;
+pub use model::Model;
+pub mod spine;
+pub use spine::Spine;
+pub mod dragon_bone;
+pub use dragon_bone::DragonBone;
 
-fn none_type(_: i64) -> Option<Box<dyn Object>> { None }
+fn none_type(_: i64) -> Option<Box<dyn Object>> {
+	panic!("'none_type' should not be called!");
+}
 
 static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| {
 	let mut map: Vec<fn(i64) -> Option<Box<dyn Object>>> = Vec::new();
@@ -78,13 +98,23 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| 
 		Grid::type_info(),
 		Touch::type_info(),
 		Label::type_info(),
+		DrawNode::type_info(),
+		Line::type_info(),
+		Particle::type_info(),
+		Playable::type_info(),
+		Model::type_info(),
+		Spine::type_info(),
+		DragonBone::type_info(),
 	];
 	for pair in type_funcs.iter() {
 		let t = pair.0 as usize;
 		if map.len() < t + 1 {
 			map.resize(t + 1, none_type);
-			map[t] = pair.1;
 		}
+		if map[t] != none_type {
+			panic!("cpp object type id {} duplicated!", t);
+		}
+		map[t] = pair.1;
 	}
 	map
 });
@@ -151,6 +181,7 @@ extern "C" {
 	fn call_stack_pop_object(info: i64) -> i64;
 	fn call_stack_pop_vec2(info: i64) -> i64;
 	fn call_stack_pop_size(info: i64) -> i64;
+	fn call_stack_pop(info: i64) -> i32;
 	fn call_stack_front_i64(info: i64) -> i32;
 	fn call_stack_front_f64(info: i64) -> i32;
 	fn call_stack_front_str(info: i64) -> i32;
@@ -416,15 +447,41 @@ impl Vector {
 			return new_vec;
 		}
 	}
-	pub fn from_bool(s: &Vec<bool>) -> i64 {
+	pub fn from_vec2(s: &Vec<Vec2>) -> i64 {
 		unsafe {
 			let len = s.len() as i32;
-			let mut bools: Vec<i32> = Vec::with_capacity(s.len());
+			let mut vs: Vec<i64> = Vec::with_capacity(s.len());
 			for i in 0..s.len() {
-				bools.push(if s[i] { 1 } else { 0 });
+				vs.push(LightValue { vec2: s[i] }.value);
 			}
-			let ptr = bools.as_ptr();
-			let new_vec = buf_new_i32(len);
+			let ptr = vs.as_ptr();
+			let new_vec = buf_new_i64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_vertex_color(s: &Vec<VertexColor>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let mut vs: Vec<i64> = Vec::with_capacity(s.len());
+			for i in 0..s.len() {
+				vs.push(s[i].raw());
+			}
+			let ptr = vs.as_ptr();
+			let new_vec = buf_new_i64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_action_def(s: &Vec<ActionDef>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let mut vs: Vec<i64> = Vec::with_capacity(s.len());
+			for i in 0..s.len() {
+				vs.push(s[i].raw());
+			}
+			let ptr = vs.as_ptr();
+			let new_vec = buf_new_i64(len);
 			buf_write(new_vec, ptr as *const c_void);
 			return new_vec;
 		}
@@ -469,7 +526,10 @@ pub trait Object {
 	fn obj(&self) -> &dyn Object;
 	fn get_id(&self) -> i32 { unsafe { object_get_id(self.raw()) } }
 	fn as_any(&self) -> &dyn Any;
-	fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+pub fn cast<T: Clone + 'static>(obj: &dyn Object) -> Option<T> {
+	Some(obj.as_any().downcast_ref::<T>()?.clone())
 }
 
 pub struct CallStack { raw: i64 }
@@ -591,7 +651,6 @@ macro_rules! dora_object {
 				fn raw(&self) -> i64 { self.raw }
 				fn obj(&self) -> &dyn Object { self }
 				fn as_any(&self) -> &dyn std::any::Any { self }
-				fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
 			}
 			impl Drop for $name {
 				fn drop(&mut self) { unsafe { crate::dora::object_release(self.raw); } }
@@ -683,8 +742,7 @@ impl Value {
 	pub fn into_object(&self) -> Option<Box<dyn Object>> {
 		unsafe {
 			if value_is_object(self.raw) != 0 {
-				let raw = value_into_object(self.raw);
-				get_object(raw)
+				get_object(value_into_object(self.raw))
 			} else { None }
 		}
 	}
@@ -703,7 +761,7 @@ impl Value {
 		}
 	}
 	pub fn cast<T: Clone + 'static>(&self) -> Option<T> {
-		Some(self.into_object()?.as_any().downcast_ref::<T>()?.clone())
+		cast::<T>(self.into_object()?.as_ref())
 	}
 }
 
@@ -801,8 +859,7 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_object(self.raw) != 0 {
 				let raw = call_stack_pop_object(self.raw);
-				let obj = get_object(raw);
-				Some(obj?.as_any().downcast_ref::<T>()?.clone())
+				cast::<T>(get_object(raw)?.as_ref())
 			} else { None }
 		}
 	}
@@ -818,6 +875,11 @@ impl CallStack {
 			if call_stack_front_size(self.raw) != 0 {
 				Some(Size::from(call_stack_pop_size(self.raw)))
 			} else { None }
+		}
+	}
+	pub fn pop(&mut self) {
+		if unsafe { call_stack_pop(self.raw) } == 0 {
+			panic!("pop from empty call stack!");
 		}
 	}
 }
@@ -1033,6 +1095,25 @@ pub enum EaseType {
 	OutInElastic = 38,
 	OutInBack = 39,
 	OutInBounce = 40,
+}
+
+#[repr(i32)]
+pub enum Property {
+	X = 0,
+	Y = 1,
+	Z = 2,
+	Angle = 3,
+	AngleX = 4,
+	AngleY = 5,
+	ScaleX = 6,
+	ScaleY = 7,
+	SkewX = 8,
+	SkewY = 9,
+	Width = 10,
+	Height = 11,
+	AnchorX = 12,
+	AnchorY = 13,
+	Opacity = 14,
 }
 
 // Label

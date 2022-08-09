@@ -1,5 +1,5 @@
 #[macro_use] pub mod dora;
-use crate::dora::{Object, Node, INode, Director, Array, App, Group, Entity};
+use crate::dora::{Object, Node, INode, Director, Array, App, Group, Entity, Action};
 
 fn main() {
 	println!("Hello, world!");
@@ -20,6 +20,17 @@ fn main() {
 	}));
 	node.slot("Event", Box::new(|args| {
 		println!("MyEvent! {}, {}, {}", args.pop_i32().unwrap(), args.pop_str().unwrap(), args.pop_bool().unwrap());
+	}));
+	node.perform(&Action::spawn(&vec![
+		Action::sequence(&vec![
+			Action::delay(3.0),
+			Action::emit("End", "3 seconds later!")
+		]),
+		Action::prop(1.0, 0.0, 233.0, dora::Property::X, dora::EaseType::InBack)
+	]));
+	node.slot("End", Box::new(|args| {
+		let n = args.pop_cast::<Node>().unwrap();
+		println!("{} {}", args.pop_str().unwrap(), n.get_x());
 	}));
 
 	let mut entry = Director::get_entry();

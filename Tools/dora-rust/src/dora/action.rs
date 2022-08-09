@@ -10,6 +10,17 @@ extern "C" {
 	fn action_pause(slf: i64);
 	fn action_resume(slf: i64);
 	fn action_update_to(slf: i64, eclapsed: f32, reversed: i32);
+	fn action_prop(duration: f32, start: f32, stop: f32, prop: i32, easing: i32) -> i64;
+	fn action_tint(duration: f32, start: i32, stop: i32, easing: i32) -> i64;
+	fn action_roll(duration: f32, start: f32, stop: f32, easing: i32) -> i64;
+	fn action_spawn(defs: i64) -> i64;
+	fn action_sequence(defs: i64) -> i64;
+	fn action_delay(duration: f32) -> i64;
+	fn action_show() -> i64;
+	fn action_hide() -> i64;
+	fn action_emit(event_name: i64, msg: i64) -> i64;
+	fn action_move_to(duration: f32, start: i64, stop: i64, easing: i32) -> i64;
+	fn action_scale(duration: f32, start: f32, stop: f32, easing: i32) -> i64;
 }
 use crate::dora::Object;
 pub struct Action { raw: i64 }
@@ -44,5 +55,38 @@ impl Action {
 	}
 	pub fn update_to(&mut self, eclapsed: f32, reversed: bool) {
 		unsafe { action_update_to(self.raw(), eclapsed, if reversed { 1 } else { 0 }) };
+	}
+	pub fn prop(duration: f32, start: f32, stop: f32, prop: crate::dora::Property, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_prop(duration, start, stop, prop as i32, easing as i32) });
+	}
+	pub fn tint(duration: f32, start: &crate::dora::Color3, stop: &crate::dora::Color3, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_tint(duration, start.to_rgb() as i32, stop.to_rgb() as i32, easing as i32) });
+	}
+	pub fn roll(duration: f32, start: f32, stop: f32, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_roll(duration, start, stop, easing as i32) });
+	}
+	pub fn spawn(defs: &Vec<crate::dora::ActionDef>) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_spawn(crate::dora::Vector::from_action_def(defs)) });
+	}
+	pub fn sequence(defs: &Vec<crate::dora::ActionDef>) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_sequence(crate::dora::Vector::from_action_def(defs)) });
+	}
+	pub fn delay(duration: f32) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_delay(duration) });
+	}
+	pub fn show() -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_show() });
+	}
+	pub fn hide() -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_hide() });
+	}
+	pub fn emit(event_name: &str, msg: &str) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_emit(crate::dora::from_string(event_name), crate::dora::from_string(msg)) });
+	}
+	pub fn move_to(duration: f32, start: &crate::dora::Vec2, stop: &crate::dora::Vec2, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_move_to(duration, start.into_i64(), stop.into_i64(), easing as i32) });
+	}
+	pub fn scale(duration: f32, start: f32, stop: f32, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
+		return crate::dora::ActionDef::from(unsafe { action_scale(duration, start, stop, easing as i32) });
 	}
 }

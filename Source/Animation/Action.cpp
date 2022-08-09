@@ -16,7 +16,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-static void SetNone(Node*, float) { }
 static void SetX(Node* target, float value) { target->setX(value); }
 static void SetY(Node* target, float value) { target->setY(value); }
 static void SetZ(Node* target, float value) { target->setZ(value); }
@@ -34,7 +33,6 @@ static void SetAnchorY(Node* target, float value) { target->setAnchor(Vec2{targe
 static void SetOpacity(Node* target, float value) { target->setOpacity(value); }
 
 static SetFunc setFuncs[] = {
-	SetNone,
 	SetX,
 	SetY,
 	SetZ,

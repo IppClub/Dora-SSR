@@ -15,6 +15,10 @@ callbackDefs =
 interfaces =
 	Node: true
 	Camera: true
+	Playable: true
+
+inheritances =
+	IPlayable: "INode"
 
 basicTypes =
 	uint8_t:
@@ -139,8 +143,8 @@ basicTypes =
 		* (name)-> "stack.push_i64(#{name});"
 	Vec2:
 		* "i64"
-		* (name)-> "into_vec2(#{name})"
-		* (name)-> "from_vec2(#{name})"
+		* (name)-> "vec2_from(#{name})"
+		* (name)-> "vec2_retain(#{name})"
 		* "&crate::dora::Vec2"
 		* "crate::dora::Vec2"
 		* (name)-> "#{name}.into_i64()"
@@ -149,8 +153,8 @@ basicTypes =
 		* (name)-> "stack.push_vec2(#{name});"
 	Size:
 		* "i64"
-		* (name)-> "into_size(#{name})"
-		* (name)-> "from_size(#{name})"
+		* (name)-> "size_from(#{name})"
+		* (name)-> "size_retain(#{name})"
 		* "&crate::dora::Size"
 		* "crate::dora::Size"
 		* (name)-> "#{name}.into_i64()"
@@ -197,14 +201,54 @@ basicTypes =
 		* (name)-> "crate::dora::Vector::to_str(#{name})"
 		* (name)-> error "unsupported"
 		* (name)-> error "unsupported"
-	ListStr:
+	VecVec2:
 		* "i64"
-		* (name)-> "from_str_vec(#{name})"
+		* (name)-> "from_vec2_vec(#{name})"
 		* (name)-> "to_vec(#{name})"
-		* "&Vec<&str>"
-		* "Vec<String>"
-		* (name)-> "crate::dora::Vector::from_str(#{name})"
-		* (name)-> "crate::dora::Vector::to_str(#{name})"
+		* "&Vec<crate::dora::Vec2>"
+		* "Vec<crate::dora::Vec2>"
+		* (name)-> "crate::dora::Vector::from_vec2(#{name})"
+		* (name)-> "crate::dora::Vector::to_vec2(#{name})"
+		* (name)-> error "unsupported"
+		* (name)-> error "unsupported"
+	VertexColor:
+		* "i64"
+		* (name)-> "*r_cast<VertexColor*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new VertexColor{#{name}})"
+		* "&crate::dora::VertexColor"
+		* "crate::dora::VertexColor"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::VertexColor::from(#{name})"
+		* (name)-> error "unsupported"
+		* (name)-> error "unsupported"
+	VecVertexColor:
+		* "i64"
+		* (name)-> "from_vertex_color_vec(#{name})"
+		* (name)-> "to_vec(#{name})"
+		* "&Vec<crate::dora::VertexColor>"
+		* "Vec<crate::dora::VertexColor>"
+		* (name)-> "crate::dora::Vector::from_vertex_color(#{name})"
+		* (name)-> "crate::dora::Vector::to_vertex_color(#{name})"
+		* (name)-> error "unsupported"
+		* (name)-> error "unsupported"
+	ActionDef:
+		* "i64"
+		* (name)-> "std::move(*r_cast<ActionDef*>(#{name}))"
+		* (name)-> "r_cast<int64_t>(new ActionDef{#{name}})"
+		* "&crate::dora::ActionDef"
+		* "crate::dora::ActionDef"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::ActionDef::from(#{name})"
+		* (name)-> error "unsupported"
+		* (name)-> error "unsupported"
+	VecActionDef:
+		* "i64"
+		* (name)-> "from_action_def_vec(#{name})"
+		* (name)-> "to_vec(#{name})"
+		* "&Vec<crate::dora::ActionDef>"
+		* "Vec<crate::dora::ActionDef>"
+		* (name)-> "crate::dora::Vector::from_action_def(#{name})"
+		* (name)-> "crate::dora::Vector::to_action_def(#{name})"
 		* (name)-> error "unsupported"
 		* (name)-> error "unsupported"
 	BlendFunc:
@@ -253,6 +297,16 @@ basicTypes =
 		* (name)-> "s_cast<int32_t>(#{name})"
 		* "crate::dora::EaseType"
 		* "crate::dora::EaseType"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* (name)-> error "unsupported"
+		* (name)-> error "unsupported"
+	Property:
+		* "i32"
+		* (name)-> "s_cast<Property::Enum>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::Property"
+		* "crate::dora::Property"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
 		* (name)-> error "unsupported"
@@ -340,8 +394,6 @@ else
 	nameMap = {}
 	toCamelCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
 	getObjectType = (dataType, rustName, isCreate, isOptional)->
-		if rustName == "Camera"
-			print "Camera", interfaces[rustName] and "&dyn crate::dora::I#{rustName}" or "&crate::dora::#{rustName}"
 		if isCreate
 			return
 				* "i64"
@@ -412,6 +464,12 @@ else
 		if clsParent
 			rustBinding[] = "use crate::dora::#{clsParent};"
 			rustBinding[] = "impl #{clsParent} for #{clsNewName} { }"
+		elseif isObject
+			clsParent = "Object"
+		if clsParent
+			if inherit = inheritances[clsParent]
+				rustBinding[] = "use crate::dora::#{inherit};"
+				rustBinding[] = "impl #{inherit} for #{clsNewName} { }"
 		cppLink[] = "static void link#{clsName}(wasm3::module& mod)\n{"
 		rustBinding[] = if isTrait
 			if isObject
@@ -419,7 +477,7 @@ else
 crate::dora_object!(#{clsNewName});
 impl I#{clsNewName} for #{clsNewName} { }"
 				cppLink[] = "\tmod.link_optional(\"*\", \"#{clsNewNameL}_type\", #{clsNewNameL}_type);"
-			"pub trait I#{clsNewName}#{isObject and ': Object' or ''} {"
+			"pub trait I#{clsNewName}#{clsParent and ': ' .. clsParent or ''} {"
 		else
 			"pub struct #{clsNewName} { #{isSingleton and '' or 'raw: i64 '}}"
 		if isValue
