@@ -1,6 +1,6 @@
 static int64_t view_get_size()
 {
-	return from_size(SharedView.getSize());
+	return size_retain(SharedView.getSize());
 }
 static float view_get_standard_distance()
 {

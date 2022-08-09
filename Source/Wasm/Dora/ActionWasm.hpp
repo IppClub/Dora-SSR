@@ -42,6 +42,50 @@ static void action_update_to(int64_t self, float eclapsed, int32_t reversed)
 {
 	r_cast<Action*>(self)->updateTo(eclapsed, reversed != 0);
 }
+static int64_t action_prop(float duration, float start, float stop, int32_t prop, int32_t easing)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_prop(duration, start, stop, s_cast<Property::Enum>(prop), s_cast<Ease::Enum>(easing))});
+}
+static int64_t action_tint(float duration, int32_t start, int32_t stop, int32_t easing)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_tint(duration, Color3(s_cast<uint32_t>(start)), Color3(s_cast<uint32_t>(stop)), s_cast<Ease::Enum>(easing))});
+}
+static int64_t action_roll(float duration, float start, float stop, int32_t easing)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_roll(duration, start, stop, s_cast<Ease::Enum>(easing))});
+}
+static int64_t action_spawn(int64_t defs)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_spawn(from_action_def_vec(defs))});
+}
+static int64_t action_sequence(int64_t defs)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_sequence(from_action_def_vec(defs))});
+}
+static int64_t action_delay(float duration)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_delay(duration)});
+}
+static int64_t action_show()
+{
+	return r_cast<int64_t>(new ActionDef{action_def_show()});
+}
+static int64_t action_hide()
+{
+	return r_cast<int64_t>(new ActionDef{action_def_hide()});
+}
+static int64_t action_emit(int64_t event_name, int64_t msg)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_emit(*str_from(event_name), *str_from(msg))});
+}
+static int64_t action_move_to(float duration, int64_t start, int64_t stop, int32_t easing)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_move(duration, vec2_from(start), vec2_from(stop), s_cast<Ease::Enum>(easing))});
+}
+static int64_t action_scale(float duration, float start, float stop, int32_t easing)
+{
+	return r_cast<int64_t>(new ActionDef{action_def_scale(duration, start, stop, s_cast<Ease::Enum>(easing))});
+}
 static void linkAction(wasm3::module& mod)
 {
 	mod.link_optional("*", "action_type", action_type);
@@ -55,4 +99,15 @@ static void linkAction(wasm3::module& mod)
 	mod.link_optional("*", "action_pause", action_pause);
 	mod.link_optional("*", "action_resume", action_resume);
 	mod.link_optional("*", "action_update_to", action_update_to);
+	mod.link_optional("*", "action_prop", action_prop);
+	mod.link_optional("*", "action_tint", action_tint);
+	mod.link_optional("*", "action_roll", action_roll);
+	mod.link_optional("*", "action_spawn", action_spawn);
+	mod.link_optional("*", "action_sequence", action_sequence);
+	mod.link_optional("*", "action_delay", action_delay);
+	mod.link_optional("*", "action_show", action_show);
+	mod.link_optional("*", "action_hide", action_hide);
+	mod.link_optional("*", "action_emit", action_emit);
+	mod.link_optional("*", "action_move_to", action_move_to);
+	mod.link_optional("*", "action_scale", action_scale);
 }

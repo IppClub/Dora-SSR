@@ -20,22 +20,21 @@ struct Property
 {
 	enum Enum
 	{
-		None,
-		X,
-		Y,
-		Z,
-		Angle,
-		AngleX,
-		AngleY,
-		ScaleX,
-		ScaleY,
-		SkewX,
-		SkewY,
-		Width,
-		Height,
-		AnchorX,
-		AnchorY,
-		Opacity
+		X = 0,
+		Y = 1,
+		Z = 2,
+		Angle = 3,
+		AngleX = 4,
+		AngleY = 5,
+		ScaleX = 6,
+		ScaleY = 7,
+		SkewX = 8,
+		SkewY = 9,
+		Width = 10,
+		Height = 11,
+		AnchorX = 12,
+		AnchorY = 13,
+		Opacity = 14
 	};
 	static SetFunc getFunc(Property::Enum attr);
 };
