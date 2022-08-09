@@ -24,15 +24,15 @@ static int32_t touch_get_id(int64_t self)
 }
 static int64_t touch_get_delta(int64_t self)
 {
-	return from_vec2(r_cast<Touch*>(self)->getDelta());
+	return vec2_retain(r_cast<Touch*>(self)->getDelta());
 }
 static int64_t touch_get_location(int64_t self)
 {
-	return from_vec2(r_cast<Touch*>(self)->getLocation());
+	return vec2_retain(r_cast<Touch*>(self)->getLocation());
 }
 static int64_t touch_get_world_location(int64_t self)
 {
-	return from_vec2(r_cast<Touch*>(self)->getWorldLocation());
+	return vec2_retain(r_cast<Touch*>(self)->getWorldLocation());
 }
 static void linkTouch(wasm3::module& mod)
 {

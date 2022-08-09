@@ -76,11 +76,11 @@ static float node_get_z(int64_t self)
 }
 static void node_set_position(int64_t self, int64_t var)
 {
-	r_cast<Node*>(self)->setPosition(into_vec2(var));
+	r_cast<Node*>(self)->setPosition(vec2_from(var));
 }
 static int64_t node_get_position(int64_t self)
 {
-	return from_vec2(r_cast<Node*>(self)->getPosition());
+	return vec2_retain(r_cast<Node*>(self)->getPosition());
 }
 static void node_set_skew_x(int64_t self, float var)
 {
@@ -108,11 +108,11 @@ static int32_t node_is_visible(int64_t self)
 }
 static void node_set_anchor(int64_t self, int64_t var)
 {
-	r_cast<Node*>(self)->setAnchor(into_vec2(var));
+	r_cast<Node*>(self)->setAnchor(vec2_from(var));
 }
 static int64_t node_get_anchor(int64_t self)
 {
-	return from_vec2(r_cast<Node*>(self)->getAnchor());
+	return vec2_retain(r_cast<Node*>(self)->getAnchor());
 }
 static void node_set_width(int64_t self, float var)
 {
@@ -132,11 +132,11 @@ static float node_get_height(int64_t self)
 }
 static void node_set_size(int64_t self, int64_t var)
 {
-	r_cast<Node*>(self)->setSize(into_size(var));
+	r_cast<Node*>(self)->setSize(size_from(var));
 }
 static int64_t node_get_size(int64_t self)
 {
-	return from_size(r_cast<Node*>(self)->getSize());
+	return size_retain(r_cast<Node*>(self)->getSize());
 }
 static void node_set_tag(int64_t self, int64_t var)
 {
@@ -355,11 +355,11 @@ static void node_unschedule(int64_t self)
 }
 static int64_t node_convert_to_node_space(int64_t self, int64_t world_point)
 {
-	return from_vec2(r_cast<Node*>(self)->convertToNodeSpace(into_vec2(world_point)));
+	return vec2_retain(r_cast<Node*>(self)->convertToNodeSpace(vec2_from(world_point)));
 }
 static int64_t node_convert_to_world_space(int64_t self, int64_t node_point)
 {
-	return from_vec2(r_cast<Node*>(self)->convertToWorldSpace(into_vec2(node_point)));
+	return vec2_retain(r_cast<Node*>(self)->convertToWorldSpace(vec2_from(node_point)));
 }
 static void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func, int64_t stack)
 {
@@ -368,7 +368,7 @@ static void node_convert_to_window_space(int64_t self, int64_t node_point, int32
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->convertToWindowSpace(into_vec2(node_point), [func, args, deref](Vec2 result)
+	r_cast<Node*>(self)->convertToWindowSpace(vec2_from(node_point), [func, args, deref](Vec2 result)
 	{
 		args->clear();
 		args->push(result);
@@ -420,17 +420,17 @@ static int32_t node_traverse_all(int64_t self, int32_t func, int64_t stack)
 		return std::get<bool>(args->pop());
 	}) ? 1 : 0;
 }
-static void node_run_action(int64_t self, int64_t action)
+static int64_t node_run_action(int64_t self, int64_t def)
 {
-	r_cast<Node*>(self)->runAction(r_cast<Action*>(action));
+	return from_object(node_run_action_def(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def))));
 }
 static void node_stop_all_actions(int64_t self)
 {
 	r_cast<Node*>(self)->stopAllActions();
 }
-static void node_perform(int64_t self, int64_t action)
+static int64_t node_perform(int64_t self, int64_t def)
 {
-	r_cast<Node*>(self)->perform(r_cast<Action*>(action));
+	return from_object(node_perform_def(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def))));
 }
 static void node_stop_action(int64_t self, int64_t action)
 {
@@ -438,31 +438,31 @@ static void node_stop_action(int64_t self, int64_t action)
 }
 static int64_t node_align_items_vertically(int64_t self, float padding)
 {
-	return from_size(r_cast<Node*>(self)->alignItemsVertically(padding));
+	return size_retain(r_cast<Node*>(self)->alignItemsVertically(padding));
 }
 static int64_t node_align_items_vertically_with_size(int64_t self, int64_t size, float padding)
 {
-	return from_size(r_cast<Node*>(self)->alignItemsVertically(into_size(size), padding));
+	return size_retain(r_cast<Node*>(self)->alignItemsVertically(size_from(size), padding));
 }
 static int64_t node_align_items_horizontally(int64_t self, float padding)
 {
-	return from_size(r_cast<Node*>(self)->alignItemsHorizontally(padding));
+	return size_retain(r_cast<Node*>(self)->alignItemsHorizontally(padding));
 }
 static int64_t node_align_items_horizontally_with_size(int64_t self, int64_t size, float padding)
 {
-	return from_size(r_cast<Node*>(self)->alignItemsHorizontally(into_size(size), padding));
+	return size_retain(r_cast<Node*>(self)->alignItemsHorizontally(size_from(size), padding));
 }
 static int64_t node_align_items(int64_t self, float padding)
 {
-	return from_size(r_cast<Node*>(self)->alignItems(padding));
+	return size_retain(r_cast<Node*>(self)->alignItems(padding));
 }
 static int64_t node_align_items_with_size(int64_t self, int64_t size, float padding)
 {
-	return from_size(r_cast<Node*>(self)->alignItems(into_size(size), padding));
+	return size_retain(r_cast<Node*>(self)->alignItems(size_from(size), padding));
 }
 static void node_move_and_cull_items(int64_t self, int64_t delta)
 {
-	r_cast<Node*>(self)->moveAndCullItems(into_vec2(delta));
+	r_cast<Node*>(self)->moveAndCullItems(vec2_from(delta));
 }
 static void node_attach_ime(int64_t self)
 {

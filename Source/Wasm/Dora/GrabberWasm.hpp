@@ -36,11 +36,11 @@ static int32_t grabber_get_clear_color(int64_t self)
 }
 static void grabber_set_pos(int64_t self, int32_t x, int32_t y, int64_t pos, float z)
 {
-	r_cast<Grabber*>(self)->setPos(s_cast<int>(x), s_cast<int>(y), into_vec2(pos), z);
+	r_cast<Grabber*>(self)->setPos(s_cast<int>(x), s_cast<int>(y), vec2_from(pos), z);
 }
 static int64_t grabber_get_pos(int64_t self, int32_t x, int32_t y)
 {
-	return from_vec2(r_cast<Grabber*>(self)->getPos(s_cast<int>(x), s_cast<int>(y)));
+	return vec2_retain(r_cast<Grabber*>(self)->getPos(s_cast<int>(x), s_cast<int>(y)));
 }
 static void grabber_set_color(int64_t self, int32_t x, int32_t y, int32_t color)
 {
@@ -52,7 +52,7 @@ static int32_t grabber_get_color(int64_t self, int32_t x, int32_t y)
 }
 static void grabber_move_uv(int64_t self, int32_t x, int32_t y, int64_t offset)
 {
-	r_cast<Grabber*>(self)->moveUV(s_cast<int>(x), s_cast<int>(y), into_vec2(offset));
+	r_cast<Grabber*>(self)->moveUV(s_cast<int>(x), s_cast<int>(y), vec2_from(offset));
 }
 static void linkGrabber(wasm3::module& mod)
 {

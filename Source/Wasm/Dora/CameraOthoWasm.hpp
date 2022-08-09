@@ -4,11 +4,11 @@ static int32_t cameraotho_type()
 }
 static void cameraotho_set_position(int64_t self, int64_t var)
 {
-	r_cast<CameraOtho*>(self)->setPosition(into_vec2(var));
+	r_cast<CameraOtho*>(self)->setPosition(vec2_from(var));
 }
 static int64_t cameraotho_get_position(int64_t self)
 {
-	return from_vec2(r_cast<CameraOtho*>(self)->getPosition());
+	return vec2_retain(r_cast<CameraOtho*>(self)->getPosition());
 }
 static int64_t cameraotho_new(int64_t name)
 {

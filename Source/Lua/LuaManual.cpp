@@ -1293,7 +1293,7 @@ namespace LuaAction
 							float start = toNumber(L, location, 3);
 							float stop = toNumber(L, location, 4);
 							Ease::Enum ease = s_cast<Ease::Enum>(s_cast<int>(toNumber(L, location, 5, true)));
-							Property::Enum prop = Property::None;
+							Property::Enum prop = Property::X;
 							switch (nameHash)
 							{
 								case "X"_hash: prop = Property::X; break;
@@ -1428,15 +1428,17 @@ tolua_lerror:
 
 void __Model_getClipFile(lua_State* L, String filename)
 {
-	ModelDef* modelDef = SharedModelCache.load(filename);
-	const std::string& clipFile = modelDef->getClipFile();
-	lua_pushlstring(L, clipFile.c_str(), clipFile.size());
+	if (ModelDef* modelDef = SharedModelCache.load(filename))
+	{
+		const std::string& clipFile = modelDef->getClipFile();
+		lua_pushlstring(L, clipFile.c_str(), clipFile.size());
+	}
+	else lua_pushnil(L);
 }
 
 void __Model_getLookNames(lua_State* L, String filename)
 {
-	ModelDef* modelDef = SharedModelCache.load(filename);
-	if (modelDef)
+	if (ModelDef* modelDef = SharedModelCache.load(filename))
 	{
 		auto names = modelDef->getLookNames();
 		int size = s_cast<int>(names.size());
@@ -1455,8 +1457,7 @@ void __Model_getLookNames(lua_State* L, String filename)
 
 void __Model_getAnimationNames(lua_State* L, String filename)
 {
-	ModelDef* modelDef = SharedModelCache.load(filename);
-	if (modelDef)
+	if (ModelDef* modelDef = SharedModelCache.load(filename))
 	{
 		auto names = modelDef->getAnimationNames();
 		int size = s_cast<int>(names.size());

@@ -91,9 +91,9 @@ extern "C" {
 	fn node_each_child(slf: i64, func: i32, stack: i64) -> i32;
 	fn node_traverse(slf: i64, func: i32, stack: i64) -> i32;
 	fn node_traverse_all(slf: i64, func: i32, stack: i64) -> i32;
-	fn node_run_action(slf: i64, action: i64);
+	fn node_run_action(slf: i64, def: i64) -> i64;
 	fn node_stop_all_actions(slf: i64);
-	fn node_perform(slf: i64, action: i64);
+	fn node_perform(slf: i64, def: i64) -> i64;
 	fn node_stop_action(slf: i64, action: i64);
 	fn node_align_items_vertically(slf: i64, padding: f32) -> i64;
 	fn node_align_items_vertically_with_size(slf: i64, size: i64, padding: f32) -> i64;
@@ -418,14 +418,14 @@ pub trait INode: Object {
 		}));
 		return unsafe { node_traverse_all(self.raw(), func_id, stack_raw) } != 0;
 	}
-	fn run_action(&mut self, action: &crate::dora::Action) {
-		unsafe { node_run_action(self.raw(), action.raw()) };
+	fn run_action(&mut self, def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
+		return crate::dora::Action::from(unsafe { node_run_action(self.raw(), def.raw()) });
 	}
 	fn stop_all_actions(&mut self) {
 		unsafe { node_stop_all_actions(self.raw()) };
 	}
-	fn perform(&mut self, action: &crate::dora::Action) {
-		unsafe { node_perform(self.raw(), action.raw()) };
+	fn perform(&mut self, def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
+		return crate::dora::Action::from(unsafe { node_perform(self.raw(), def.raw()) });
 	}
 	fn stop_action(&mut self, action: &crate::dora::Action) {
 		unsafe { node_stop_action(self.raw(), action.raw()) };

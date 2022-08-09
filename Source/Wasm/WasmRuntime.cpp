@@ -24,22 +24,22 @@ union LightWasmValue
 
 static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
 
-static inline int64_t from_vec2(const Vec2& vec2)
+static inline int64_t vec2_retain(const Vec2& vec2)
 {
 	return LightWasmValue{vec2}.value;
 }
 
-static inline Vec2 into_vec2(int64_t value)
+static inline Vec2 vec2_from(int64_t value)
 {
 	return LightWasmValue{value}.vec2;
 }
 
-static inline int64_t from_size(const Size& size)
+static inline int64_t size_retain(const Size& size)
 {
 	return LightWasmValue{size}.value;
 }
 
-static inline Size into_size(int64_t value)
+static inline Size size_from(int64_t value)
 {
 	return LightWasmValue{value}.size;
 }
@@ -196,6 +196,46 @@ static std::vector<std::string> from_str_vec(int64_t var)
 	return strs;
 }
 
+static std::vector<Vec2> from_vec2_vec(int64_t var)
+{
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	auto vecInt = std::get<std::vector<int64_t>>(*vec);
+	std::vector<Vec2> vs;
+	vs.reserve(vecInt.size());
+	for (auto item : vecInt)
+	{
+		vs.push_back(vec2_from(item));
+	}
+	return vs;
+}
+
+static std::vector<VertexColor> from_vertex_color_vec(int64_t var)
+{
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	auto vecInt = std::get<std::vector<int64_t>>(*vec);
+	std::vector<VertexColor> vs;
+	vs.reserve(vecInt.size());
+	for (auto item : vecInt)
+	{
+		vs.push_back(*r_cast<VertexColor*>(item));
+	}
+	return vs;
+}
+
+using ActionDef = Own<ActionDuration>;
+static std::vector<ActionDef> from_action_def_vec(int64_t var)
+{
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	auto vecInt = std::get<std::vector<int64_t>>(*vec);
+	std::vector<ActionDef> vs;
+	vs.reserve(vecInt.size());
+	for (auto item : vecInt)
+	{
+		vs.push_back(std::move(*r_cast<ActionDef*>(item)));
+	}
+	return vs;
+}
+
 static int32_t object_get_id(int64_t obj)
 {
 	return s_cast<int32_t>(r_cast<Object*>(obj)->getId());
@@ -252,12 +292,12 @@ static int64_t value_create_object(int64_t value)
 
 static int64_t value_create_vec2(int64_t value)
 {
-	return r_cast<int64_t>(new dora_val_t(into_vec2(value)));
+	return r_cast<int64_t>(new dora_val_t(vec2_from(value)));
 }
 
 static int64_t value_create_size(int64_t value)
 {
-	return r_cast<int64_t>(new dora_val_t(into_size(value)));
+	return r_cast<int64_t>(new dora_val_t(size_from(value)));
 }
 
 static void value_release(int64_t value)
@@ -298,17 +338,17 @@ static int32_t value_into_bool(int64_t value)
 
 static int64_t value_into_object(int64_t value)
 {
-	return r_cast<int64_t>(std::get<Object*>(*r_cast<dora_val_t*>(value)));
+	return from_object(std::get<Object*>(*r_cast<dora_val_t*>(value)));
 }
 
 static int64_t value_into_vec2(int64_t value)
 {
-	return from_vec2(std::get<Vec2>(*r_cast<dora_val_t*>(value)));
+	return vec2_retain(std::get<Vec2>(*r_cast<dora_val_t*>(value)));
 }
 
 static int64_t value_into_size(int64_t value)
 {
-	return from_size(std::get<Size>(*r_cast<dora_val_t*>(value)));
+	return size_retain(std::get<Size>(*r_cast<dora_val_t*>(value)));
 }
 
 static int32_t value_is_i64(int64_t value)
@@ -417,12 +457,12 @@ static void call_stack_push_object(int64_t stack, int64_t value)
 
 static void call_stack_push_vec2(int64_t stack, int64_t value)
 {
-	r_cast<CallStack*>(stack)->push(into_vec2(value));
+	r_cast<CallStack*>(stack)->push(vec2_from(value));
 }
 
 static void call_stack_push_size(int64_t stack, int64_t value)
 {
-	r_cast<CallStack*>(stack)->push(into_size(value));
+	r_cast<CallStack*>(stack)->push(size_from(value));
 }
 
 static int64_t call_stack_pop_i64(int64_t stack)
@@ -457,12 +497,20 @@ static int64_t call_stack_pop_object(int64_t stack)
 
 static int64_t call_stack_pop_vec2(int64_t stack)
 {
-	return from_vec2(std::get<Vec2>(r_cast<CallStack*>(stack)->pop()));
+	return vec2_retain(std::get<Vec2>(r_cast<CallStack*>(stack)->pop()));
 }
 
 static int64_t call_stack_pop_size(int64_t stack)
 {
-	return from_size(std::get<Size>(r_cast<CallStack*>(stack)->pop()));
+	return size_retain(std::get<Size>(r_cast<CallStack*>(stack)->pop()));
+}
+
+static int32_t call_stack_pop(int64_t stack)
+{
+	auto cs = r_cast<CallStack*>(stack);
+	if (cs->empty()) return 0;
+	cs->pop();
+	return 1;
 }
 
 static int32_t call_stack_front_i64(int64_t stack)
@@ -771,6 +819,26 @@ static void node_stop_grabbing(Node* node)
 {
 	node->grab(false);
 }
+static Action* node_run_action_def(Node* node, ActionDef def)
+{
+	if (def)
+	{
+		auto action = Action::create(std::move(def));
+		node->runAction(action);
+		return action;
+	}
+	return nullptr;
+}
+static Action* node_perform_def(Node* node, ActionDef def)
+{
+	if (def)
+	{
+		auto action = Action::create(std::move(def));
+		node->perform(action);
+		return action;
+	}
+	return nullptr;
+}
 
 // Effect
 
@@ -790,6 +858,20 @@ static Sprite* sprite_create(String clipStr)
 	return SharedClipCache.loadSprite(clipStr);
 }
 
+// Action
+
+#define action_def_prop PropertyAction::alloc
+#define action_def_tint Tint::alloc
+#define action_def_roll Roll::alloc
+#define action_def_spawn Spawn::alloc
+#define action_def_sequence Sequence::alloc
+#define action_def_delay Delay::alloc
+#define action_def_show Show::alloc
+#define action_def_hide Hide::alloc
+#define action_def_emit Emit::alloc
+#define action_def_move Move::alloc
+#define action_def_scale Scale::alloc
+
 // Grid
 
 static Grid* grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
@@ -802,6 +884,104 @@ static Grid* grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
 		return Grid::create(tex, rect, gridX, gridY);
 	}
 	return nullptr;
+}
+
+// Model
+
+std::string model_get_clip_filename(String filename)
+{
+	if (ModelDef* modelDef = SharedModelCache.load(filename))
+	{
+		return modelDef->getClipFile();
+	}
+	return Slice::Empty;
+}
+static std::vector<std::string> model_get_look_names(String filename)
+{
+	if (ModelDef* modelDef = SharedModelCache.load(filename))
+	{
+		return modelDef->getLookNames();
+	}
+	return std::vector<std::string>();
+}
+static std::vector<std::string> model_get_animation_names(String filename)
+{
+	if (ModelDef* modelDef = SharedModelCache.load(filename))
+	{
+		return modelDef->getAnimationNames();
+	}
+	return std::vector<std::string>();
+}
+
+// Spine
+
+std::vector<std::string> spine_get_look_names(String spineStr)
+{
+	if (auto skelData = SharedSkeletonCache.load(spineStr))
+	{
+		auto& skins = skelData->getSkel()->getSkins();
+		std::vector<std::string> res;
+		res.reserve(skins.size());
+		for (size_t i = 0; i < skins.size(); i++)
+		{
+			const auto& name = skins[i]->getName();
+			res.push_back(std::string(name.buffer(), name.length()));
+		}
+		return res;
+	}
+	return std::vector<std::string>();
+}
+std::vector<std::string> spine_get_animation_names(String spineStr)
+{
+	if (auto skelData = SharedSkeletonCache.load(spineStr))
+	{
+		auto& anims = skelData->getSkel()->getAnimations();
+		std::vector<std::string> res;
+		res.reserve(anims.size());
+		for (size_t i = 0; i < anims.size(); i++)
+		{
+			const auto& name = anims[i]->getName();
+			res.push_back(std::string(name.buffer(), name.length()));
+		}
+		return res;
+	}
+	return std::vector<std::string>();
+}
+
+// DragonBones
+
+std::vector<std::string> dragon_bone_get_look_names(String boneStr)
+{
+	auto boneData = SharedDragonBoneCache.load(boneStr);
+	if (boneData.first)
+	{
+		if (boneData.second.empty())
+		{
+			boneData.second = boneData.first->getArmatureNames().front();
+		}
+		const auto& skins = boneData.first->getArmature(boneData.second)->skins;
+		std::vector<std::string> res;
+		res.reserve(skins.size());
+		for (const auto& item : skins)
+		{
+			res.push_back(item.first);
+		}
+		return res;
+	}
+	return std::vector<std::string>();
+}
+std::vector<std::string> dragon_bone_get_animation_names(String boneStr)
+{
+	auto boneData = SharedDragonBoneCache.load(boneStr);
+	if (boneData.first)
+	{
+		if (boneData.second.empty())
+		{
+			boneData.second = boneData.first->getArmatureNames().front();
+		}
+		return boneData.first->getArmature(boneData.second)->animationNames;
+	}
+	return std::vector<std::string>();
 }
 
 #include "Dora/ArrayWasm.hpp"
@@ -822,6 +1002,7 @@ static Grid* grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
 #include "Dora/EffectWasm.hpp"
 #include "Dora/SpriteEffectWasm.hpp"
 #include "Dora/ViewWasm.hpp"
+#include "Dora/ActionDefWasm.hpp"
 #include "Dora/ActionWasm.hpp"
 #include "Dora/GrabberWasm.hpp"
 #include "Dora/NodeWasm.hpp"
@@ -830,6 +1011,14 @@ static Grid* grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
 #include "Dora/GridWasm.hpp"
 #include "Dora/TouchWasm.hpp"
 #include "Dora/LabelWasm.hpp"
+#include "Dora/VertexColorWasm.hpp"
+#include "Dora/DrawNodeWasm.hpp"
+#include "Dora/LineWasm.hpp"
+#include "Dora/ParticleNodeWasm.hpp"
+#include "Dora/PlayableWasm.hpp"
+#include "Dora/ModelWasm.hpp"
+#include "Dora/SpineWasm.hpp"
+#include "Dora/DragonBoneWasm.hpp"
 
 static void linkAutoModule(wasm3::module& mod)
 {
@@ -851,6 +1040,7 @@ static void linkAutoModule(wasm3::module& mod)
 	linkEffect(mod);
 	linkSpriteEffect(mod);
 	linkView(mod);
+	linkActionDef(mod);
 	linkAction(mod);
 	linkGrabber(mod);
 	linkNode(mod);
@@ -859,6 +1049,14 @@ static void linkAutoModule(wasm3::module& mod)
 	linkGrid(mod);
 	linkTouch(mod);
 	linkLabel(mod);
+	linkVertexColor(mod);
+	linkDrawNode(mod);
+	linkLine(mod);
+	linkParticleNode(mod);
+	linkPlayable(mod);
+	linkModel(mod);
+	linkSpine(mod);
+	linkDragonBone(mod);
 }
 
 static void linkDoraModule(wasm3::module& mod)
@@ -924,6 +1122,7 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "call_stack_pop_object", call_stack_pop_object);
 	mod.link_optional("*", "call_stack_pop_vec2", call_stack_pop_vec2);
 	mod.link_optional("*", "call_stack_pop_size", call_stack_pop_size);
+	mod.link_optional("*", "call_stack_pop", call_stack_pop);
 	mod.link_optional("*", "call_stack_front_i64", call_stack_front_i64);
 	mod.link_optional("*", "call_stack_front_f64", call_stack_front_f64);
 	mod.link_optional("*", "call_stack_front_str", call_stack_front_str);
@@ -988,7 +1187,7 @@ bool WasmRuntime::executeMainFile(String filename)
 	}
 	catch (std::runtime_error& e)
 	{
-		Error("failed to load wasm module: {}", e.what());
+		Error("failed to load wasm module: {}, due to: {}{}", filename, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
 		return false;
 	}
 }
@@ -1025,7 +1224,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			}
 			catch (std::runtime_error& e)
 			{
-				Error("failed to load wasm module: {}, due to: {}", file, e.what());
+				Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
 				return Values::alloc(Own<wasm3::module>(), Own<wasm3::function>());
 			}
 		}, [file, handler, this](Own<Values> values)
@@ -1044,7 +1243,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			}
 			catch (std::runtime_error& e)
 			{
-				Error("failed to execute wasm module: {}, due to: {}", file, e.what());
+				Error("failed to execute wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
 				handler(false);
 			}
 		});
@@ -1053,7 +1252,14 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 
 void WasmRuntime::invoke(int32_t funcId)
 {
-	_callFunc->call(funcId);
+	try
+	{
+		_callFunc->call(funcId);
+	}
+	catch (std::runtime_error& e)
+	{
+		Error("failed to execute wasm module due to: {}{}", e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
+	}
 }
 
 void WasmRuntime::deref(int32_t funcId)

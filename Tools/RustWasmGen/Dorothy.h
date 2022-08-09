@@ -111,9 +111,9 @@ singleton class Content
 	void insertSearchPath(int index, string path);
 	void removeSearchPath(string path);
 	void clearPathCache();
-	ListStr getDirs(string path);
-	ListStr getFiles(string path);
-	ListStr getAllFiles(string path);
+	VecStr getDirs(string path);
+	VecStr getFiles(string path);
+	VecStr getAllFiles(string path);
 	void loadAsync(string filename, function<void(string content)> callback);
 	void copyAsync(string srcFile, string targetFile, function<void()> callback);
 	void saveAsync(string filename, string content, function<void()> callback);
@@ -200,6 +200,10 @@ singleton class View
 	boolean bool vSync @ vsync;
 };
 
+value class ActionDef
+{
+};
+
 object class Action
 {
 	readonly common float duration;
@@ -210,6 +214,22 @@ object class Action
 	void pause();
 	void resume();
 	void updateTo(float eclapsed, bool reversed);
+	static outside ActionDef action_def_prop @ prop(float duration, float start, float stop,
+		Property prop, EaseType easing);
+	static outside ActionDef action_def_tint @ tint(float duration, Color3 start, Color3 stop,
+		EaseType easing);
+	static outside ActionDef action_def_roll @ roll(float duration, float start, float stop,
+		EaseType easing);
+	static outside ActionDef action_def_spawn @ spawn(VecActionDef defs);
+	static outside ActionDef action_def_sequence @ sequence(VecActionDef defs);
+	static outside ActionDef action_def_delay @ delay(float duration);
+	static outside ActionDef action_def_show @ show();
+	static outside ActionDef action_def_hide @ hide();
+	static outside ActionDef action_def_emit @ emit(string eventName, string msg);
+	static outside ActionDef action_def_move @ move_to(float duration, Vec2 start, Vec2 stop,
+		EaseType easing);
+	static outside ActionDef action_def_scale @ scale(float duration, float start, float stop,
+		EaseType easing);
 };
 
 object class Grabber
@@ -296,9 +316,9 @@ interface object class Node
 	bool traverse(function<bool(Node* child)> func);
 	bool traverseAll(function<bool(Node* child)> func);
 
-	void runAction(Action* action);
+	outside optional Action* node_run_action_def @ run_action(ActionDef def);
 	void stopAllActions();
-	void perform(Action* action);
+	outside optional Action* node_perform_def @ perform(ActionDef def);
 	void stopAction(Action* action);
 
 	Size alignItemsVertically(float padding);
@@ -416,5 +436,103 @@ object class ClipNode : public INode
 	common float alphaThreshold;
 	boolean bool inverted;
 	static ClipNode* create(Node* stencil);
+};
+
+value struct VertexColor
+{
+	Vec2 vertex;
+	Color color;
+	static VertexColor create(Vec2 vec, Color color);
+};
+
+object class DrawNode : public INode
+{
+	boolean bool depthWrite;
+	common BlendFunc blendFunc;
+	void drawDot(Vec2 pos, float radius, Color color);
+	void drawSegment(Vec2 from, Vec2 to, float radius, Color color);
+	void drawPolygon(VecVec2 verts, Color fillColor, float borderWidth, Color borderColor);
+	void drawVertices(VecVertexColor verts);
+	void clear();
+	static DrawNode* create();
+};
+
+object class Line : public INode
+{
+	boolean bool depthWrite;
+	common BlendFunc blendFunc;
+	void add(VecVec2 verts, Color color);
+	void set(VecVec2 verts, Color color);
+	void clear();
+	static Line* create();
+	static Line* create @ createVecColor(VecVec2 verts, Color color);
+};
+
+object class ParticleNode @ Particle : public INode
+{
+	readonly boolean bool active;
+	void start();
+	void stop();
+	static optional ParticleNode* create(string filename);
+};
+
+interface object class Playable : public INode
+{
+	common string look;
+	common float speed;
+	common float recovery;
+	boolean bool fliped;
+	readonly common string current;
+	readonly common string lastCompleted;
+	Vec2 getKeyPoint @ getKey(string name);
+	float play(string name, bool looping);
+	void stop();
+	void setSlot(string name, Node* item);
+	optional Node* getSlot(string name);
+	static optional Playable* create(string filename);
+};
+
+object class Model : public IPlayable
+{
+	readonly common float duration;
+	boolean bool reversed;
+	readonly boolean bool playing;
+	readonly boolean bool paused;
+	bool hasAnimation(string name);
+	void pause();
+	void resume();
+	void resume @ resumeAnimation(string name, bool looping);
+	void reset();
+	void updateTo(float eclapsed, bool reversed);
+	Node* getNodeByName(string name);
+	bool eachNode(function<bool(Node* node)> func);
+	static Model* create(string filename);
+	static outside string model_get_clip_filename @ getClipFile(string filename);	
+	static outside VecStr model_get_look_names @ getLooks(string filename);
+	static outside VecStr model_get_animation_names @ getAnimations(string filename);
+};
+
+object class Spine : public IPlayable
+{
+	boolean bool showDebug;
+	boolean bool hitTestEnabled;
+	string containsPoint(float x, float y);
+	string intersectsSegment(float x1, float y1, float x2, float y2);
+	static Spine* create @ createFiles(string skelFile, string atlasFile);
+	static Spine* create(string spineStr);
+	static outside void spine_get_look_names @ getLooks(string spineStr);
+	static outside void spine_get_animation_names @ getAnimations(string spineStr);
+};
+
+object class DragonBone : public IPlayable
+{
+	boolean bool showDebug;
+	boolean bool hitTestEnabled;
+	string containsPoint(float x, float y);
+	string intersectsSegment(float x1, float y1, float x2, float y2);
+	static DragonBone* create @ createFiles(string boneFile, string atlasFile);
+	static DragonBone* create(string boneStr);
+	static outside void dragon_bone_get_look_names @ getLooks(string boneStr);
+	static outside void dragon_bone_get_animation_names @ getAnimations(string boneStr);
 };
 

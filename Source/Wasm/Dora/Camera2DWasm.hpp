@@ -20,11 +20,11 @@ static float camera2d_get_zoom(int64_t self)
 }
 static void camera2d_set_position(int64_t self, int64_t var)
 {
-	r_cast<Camera2D*>(self)->setPosition(into_vec2(var));
+	r_cast<Camera2D*>(self)->setPosition(vec2_from(var));
 }
 static int64_t camera2d_get_position(int64_t self)
 {
-	return from_vec2(r_cast<Camera2D*>(self)->getPosition());
+	return vec2_retain(r_cast<Camera2D*>(self)->getPosition());
 }
 static int64_t camera2d_new(int64_t name)
 {
