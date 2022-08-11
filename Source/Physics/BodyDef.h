@@ -106,9 +106,9 @@ public:
 		float height);
 	void attachPolygonSensor(
 		int tag,
+		const Vec2& center,
 		float width,
 		float height,
-		const Vec2& center,
 		float angle = 0.0f);
 	void attachPolygonSensor(
 		int tag,

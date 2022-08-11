@@ -17,6 +17,8 @@ mod group;
 pub use group::Group;
 mod observer;
 pub use observer::Observer;
+mod path;
+pub use path::Path;
 mod content;
 pub use content::Content;
 mod scheduler;
@@ -55,6 +57,10 @@ mod ease;
 pub use ease::Ease;
 mod label;
 pub use label::Label;
+mod render_target;
+pub use render_target::RenderTarget;
+mod clip_node;
+pub use clip_node::ClipNode;
 mod draw_node;
 pub use draw_node::DrawNode;
 mod vertex_color;
@@ -65,19 +71,58 @@ mod particle;
 pub use particle::Particle;
 mod playable;
 pub use playable::{IPlayable, Playable};
-pub mod model;
+mod model;
 pub use model::Model;
-pub mod spine;
+mod spine;
 pub use spine::Spine;
-pub mod dragon_bone;
+mod dragon_bone;
 pub use dragon_bone::DragonBone;
+mod physics_world;
+pub use physics_world::{IPhysicsWorld, PhysicsWorld};
+mod fixture_def;
+pub use fixture_def::FixtureDef;
+mod body_def;
+pub use body_def::BodyDef;
+mod sensor;
+pub use sensor::Sensor;
+mod body;
+pub use body::{IBody, Body};
+mod joint_def;
+pub use joint_def::JointDef;
+mod joint;
+pub use joint::{IJoint, Joint};
+mod motor_joint;
+pub use motor_joint::MotorJoint;
+mod move_joint;
+pub use move_joint::MoveJoint;
+mod cache;
+pub use cache::Cache;
+mod audio;
+pub use audio::Audio;
+mod keyboard;
+pub use keyboard::Keyboard;
+mod svg;
+pub use svg::SVG;
+mod dbquery;
+pub use dbquery::DBQuery;
+mod dbrecord;
+pub use dbrecord::DBRecord;
+mod db;
+pub use db::DB;
+mod c_45;
+mod q_learner;
+pub mod ml {
+	pub use super::c_45::C45;
+	pub use super::q_learner::QLearner;
+}
+pub mod platformer;
 
-fn none_type(_: i64) -> Option<Box<dyn Object>> {
+fn none_type(_: i64) -> Option<Box<dyn IObject>> {
 	panic!("'none_type' should not be called!");
 }
 
-static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| {
-	let mut map: Vec<fn(i64) -> Option<Box<dyn Object>>> = Vec::new();
+static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(|| {
+	let mut map: Vec<fn(i64) -> Option<Box<dyn IObject>>> = Vec::new();
 	let type_funcs = [
 		Array::type_info(),
 		Dictionary::type_info(),
@@ -98,6 +143,8 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| 
 		Grid::type_info(),
 		Touch::type_info(),
 		Label::type_info(),
+		RenderTarget::type_info(),
+		ClipNode::type_info(),
 		DrawNode::type_info(),
 		Line::type_info(),
 		Particle::type_info(),
@@ -105,6 +152,21 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn Object>>>> = Lazy::new(|| 
 		Model::type_info(),
 		Spine::type_info(),
 		DragonBone::type_info(),
+		PhysicsWorld::type_info(),
+		BodyDef::type_info(),
+		Sensor::type_info(),
+		Body::type_info(),
+		JointDef::type_info(),
+		Joint::type_info(),
+		MotorJoint::type_info(),
+		MoveJoint::type_info(),
+		SVG::type_info(),
+		ml::QLearner::type_info(),
+		platformer::BulletDef::type_info(),
+		platformer::Bullet::type_info(),
+		platformer::Visual::type_info(),
+		platformer::behavior::Tree::type_info(),
+		platformer::decision::Tree::type_info(),
 	];
 	for pair in type_funcs.iter() {
 		let t = pair.0 as usize;
@@ -486,9 +548,35 @@ impl Vector {
 			return new_vec;
 		}
 	}
+	pub fn from_btree(s: &Vec<platformer::behavior::Tree>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let mut vs: Vec<i64> = Vec::with_capacity(s.len());
+			for i in 0..s.len() {
+				vs.push(s[i].raw());
+			}
+			let ptr = vs.as_ptr();
+			let new_vec = buf_new_i64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+	pub fn from_dtree(s: &Vec<platformer::decision::Tree>) -> i64 {
+		unsafe {
+			let len = s.len() as i32;
+			let mut vs: Vec<i64> = Vec::with_capacity(s.len());
+			for i in 0..s.len() {
+				vs.push(s[i].raw());
+			}
+			let ptr = vs.as_ptr();
+			let new_vec = buf_new_i64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
 }
 
-fn get_object(raw: i64) -> Option<Box<dyn Object>> {
+fn get_object(raw: i64) -> Option<Box<dyn IObject>> {
 	unsafe { OBJECT_MAP[object_get_type(raw) as usize](raw) }
 }
 
@@ -521,14 +609,38 @@ pub extern fn deref_function(func_id: i32) {
 	}
 }
 
-pub trait Object {
+pub trait IObject {
 	fn raw(&self) -> i64;
-	fn obj(&self) -> &dyn Object;
+	fn obj(&self) -> &dyn IObject;
 	fn get_id(&self) -> i32 { unsafe { object_get_id(self.raw()) } }
 	fn as_any(&self) -> &dyn Any;
 }
 
-pub fn cast<T: Clone + 'static>(obj: &dyn Object) -> Option<T> {
+pub struct Object { raw: i64 }
+impl IObject for Object {
+	fn raw(&self) -> i64 { self.raw }
+	fn obj(&self) -> &dyn IObject { self }
+	fn as_any(&self) -> &dyn std::any::Any { self }
+}
+impl Drop for Object {
+	fn drop(&mut self) { unsafe { crate::dora::object_release(self.raw); } }
+}
+impl Clone for Object {
+	fn clone(&self) -> Object {
+		unsafe { crate::dora::object_retain(self.raw); }
+		Object { raw: self.raw }
+	}
+}
+impl Object {
+	pub fn from(raw: i64) -> Option<Object> {
+		match raw {
+			0 => None,
+			_ => Some(Object { raw: raw })
+		}
+	}
+}
+
+pub fn cast<T: Clone + 'static>(obj: &dyn IObject) -> Option<T> {
 	Some(obj.as_any().downcast_ref::<T>()?.clone())
 }
 
@@ -541,7 +653,7 @@ pub enum DoraValue<'a> {
 	F64(f64),
 	Bool(bool),
 	Str(&'a str),
-	Object(&'a dyn Object),
+	Object(&'a dyn IObject),
 	Vec2(Vec2),
 	Size(Size),
 }
@@ -609,7 +721,7 @@ impl<'a> IntoValue<'a> for &'a str {
 	}
 }
 
-impl<'a> IntoValue<'a> for &'a dyn Object {
+impl<'a> IntoValue<'a> for &'a dyn IObject {
 	fn dora_val(self) -> DoraValue<'a> { DoraValue::Object(self) }
 	fn val(self) -> Value {
 		unsafe { Value{ raw: value_create_object(self.raw()) } }
@@ -647,9 +759,9 @@ macro_rules! args {
 macro_rules! dora_object {
 	($name: ident) => {
 		paste::paste! {
-			 impl Object for $name {
+			 impl IObject for $name {
 				fn raw(&self) -> i64 { self.raw }
-				fn obj(&self) -> &dyn Object { self }
+				fn obj(&self) -> &dyn IObject { self }
 				fn as_any(&self) -> &dyn std::any::Any { self }
 			}
 			impl Drop for $name {
@@ -667,14 +779,6 @@ macro_rules! dora_object {
 						0 => None,
 						_ => Some($name { raw: raw })
 					}
-				}
-				pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn Object>>) {
-					(unsafe { [<$name:lower _type>]() }, |raw: i64| -> Option<Box<dyn Object>> {
-						match raw {
-							0 => None,
-							_ => Some(Box::new($name { raw: raw }))
-						}
-					})
 				}
 			}
 		}
@@ -739,7 +843,7 @@ impl Value {
 			} else { None }
 		}
 	}
-	pub fn into_object(&self) -> Option<Box<dyn Object>> {
+	pub fn into_object(&self) -> Option<Box<dyn IObject>> {
 		unsafe {
 			if value_is_object(self.raw) != 0 {
 				get_object(value_into_object(self.raw))
@@ -796,7 +900,7 @@ impl CallStack {
 	pub fn push_bool(&mut self, value: bool) {
 		unsafe { call_stack_push_bool(self.raw, if value { 1 } else { 0 }); }
 	}
-	pub fn push_object(&mut self, value: &dyn Object) {
+	pub fn push_object(&mut self, value: &dyn IObject) {
 		unsafe { call_stack_push_object(self.raw, value.raw()); }
 	}
 	pub fn push_vec2(&mut self, value: &Vec2) {
@@ -847,7 +951,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
-	pub fn pop_object(&mut self) -> Option<Box<dyn Object>> {
+	pub fn pop_object(&mut self) -> Option<Box<dyn IObject>> {
 		unsafe {
 			if call_stack_front_object(self.raw) != 0 {
 				let raw = call_stack_pop_object(self.raw);

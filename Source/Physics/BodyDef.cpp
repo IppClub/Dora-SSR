@@ -204,10 +204,10 @@ void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, floa
 
 void BodyDef::attachPolygonSensor(int tag, float width, float height)
 {
-	BodyDef::attachPolygonSensor(tag, width, height, Vec2::zero, 0);
+	BodyDef::attachPolygonSensor(tag, Vec2::zero, width, height, 0);
 }
 
-void BodyDef::attachPolygonSensor(int tag, float width, float height, const Vec2& center, float angle)
+void BodyDef::attachPolygonSensor(int tag, const Vec2& center, float width, float height, float angle)
 {
 	_fixtureConfs.emplace_back(
 		tag,

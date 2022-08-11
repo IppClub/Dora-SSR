@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ShaderCache.h"
 #include "Basic/Director.h"
 #include "Basic/View.h"
+#include "Cache/ClipCache.h"
 
 NS_DOROTHY_BEGIN
 
@@ -329,6 +330,11 @@ void Sprite::render()
 
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	SharedSpriteRenderer.push(this);
+}
+
+Sprite* Sprite::from(String clipStr)
+{
+	return SharedClipCache.loadSprite(clipStr);
 }
 
 /* SpriteRenderer */

@@ -84,7 +84,7 @@ static int64_t sprite_with_texture(int64_t texture)
 }
 static int64_t sprite_with_file(int64_t clip_str)
 {
-	return from_object(sprite_create(*str_from(clip_str)));
+	return from_object(Sprite::from(*str_from(clip_str)));
 }
 static void linkSprite(wasm3::module& mod)
 {

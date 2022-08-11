@@ -83,6 +83,7 @@ public:
 	virtual bool init() override;
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
+	static Sprite* from(String clipStr);
 	CREATE_FUNC(Sprite);
 protected:
 	Sprite();

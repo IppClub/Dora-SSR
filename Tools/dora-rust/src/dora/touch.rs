@@ -9,10 +9,18 @@ extern "C" {
 	fn touch_get_location(slf: i64) -> i64;
 	fn touch_get_world_location(slf: i64) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 pub struct Touch { raw: i64 }
 crate::dora_object!(Touch);
 impl Touch {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { touch_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Touch { raw: raw }))
+			}
+		})
+	}
 	pub fn set_enabled(&mut self, var: bool) {
 		unsafe { touch_set_enabled(self.raw(), if var { 1 } else { 0 }) };
 	}

@@ -73,9 +73,9 @@ BodyDef* Unit::getBodyDef(Dictionary* def) const
 		bodyDef->attachPolygon(vertices, 4, density, friction, restitution);
 		bodyDef->attachPolygonSensor(
 			Unit::GroundSensorTag,
+			Vec2{0, -hh},
 			size.width - BOTTOM_OFFSET * 2,
 			GROUND_SENSOR_HEIGHT,
-			Vec2{0, -hh},
 			0);
 		auto linearAcceleration = def->get(Def::LinearAcceleration, Vec2{0.0f, -10.0f});
 		bodyDef->setLinearAcceleration(linearAcceleration);

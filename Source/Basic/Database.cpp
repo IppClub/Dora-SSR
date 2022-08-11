@@ -178,7 +178,7 @@ std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<
 	return result;
 }
 
-void DB::insert(String tableName, const std::vector<std::vector<Own<Value>>>& values)
+void DB::insert(String tableName, const std::deque<std::vector<Own<Value>>>& values)
 {
 	if (values.empty() || values.front().empty()) return;
 	std::string valueHolder;
@@ -209,7 +209,7 @@ int DB::exec(String sql, const std::vector<Own<Value>>& values)
 	return query.exec();
 }
 
-void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(const std::deque<std::vector<Own<Value>>>&)>& callback)
+void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<Own<Value>>>&)>& callback)
 {
 	std::string sqlStr(sql);
 	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
@@ -233,10 +233,10 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 	});
 }
 
-void DB::insertAsync(String tableName, std::vector<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback)
+void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback)
 {
 	std::string tableStr(tableName);
-	auto valuesPtr = std::make_shared<std::vector<std::vector<Own<Value>>>>(std::move(values));
+	auto valuesPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(values));
 	SharedAsyncThread.run([tableStr, valuesPtr]()
 	{
 		bool result = SharedDB.transaction([&]()

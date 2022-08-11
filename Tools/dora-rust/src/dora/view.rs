@@ -15,7 +15,7 @@ extern "C" {
 	fn view_set_vsync(var: i32);
 	fn view_is_vsync() -> i32;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 pub struct View { }
 impl View {
 	pub fn get_size() -> crate::dora::Size {

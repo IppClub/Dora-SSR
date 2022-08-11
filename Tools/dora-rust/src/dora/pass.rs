@@ -7,10 +7,18 @@ extern "C" {
 	fn pass_set_color(slf: i64, name: i64, var: i32);
 	fn pass_new(vert_shader: i64, frag_shader: i64) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 pub struct Pass { raw: i64 }
 crate::dora_object!(Pass);
 impl Pass {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { pass_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Pass { raw: raw }))
+			}
+		})
+	}
 	pub fn set_grab_pass(&mut self, var: bool) {
 		unsafe { pass_set_grab_pass(self.raw(), if var { 1 } else { 0 }) };
 	}
@@ -18,15 +26,15 @@ impl Pass {
 		return unsafe { pass_is_grab_pass(self.raw()) != 0 };
 	}
 	pub fn set(&mut self, name: &str, var: f32) {
-		unsafe { pass_set(self.raw(), crate::dora::from_string(name), var) };
+		unsafe { pass_set(self.raw(), crate::dora::from_string(name), var); }
 	}
 	pub fn set_vec4(&mut self, name: &str, var_1: f32, var_2: f32, var_3: f32, var_4: f32) {
-		unsafe { pass_set_vec4(self.raw(), crate::dora::from_string(name), var_1, var_2, var_3, var_4) };
+		unsafe { pass_set_vec4(self.raw(), crate::dora::from_string(name), var_1, var_2, var_3, var_4); }
 	}
 	pub fn set_color(&mut self, name: &str, var: &crate::dora::Color) {
-		unsafe { pass_set_color(self.raw(), crate::dora::from_string(name), var.to_argb() as i32) };
+		unsafe { pass_set_color(self.raw(), crate::dora::from_string(name), var.to_argb() as i32); }
 	}
 	pub fn new(vert_shader: &str, frag_shader: &str) -> Pass {
-		return Pass { raw: unsafe { pass_new(crate::dora::from_string(vert_shader), crate::dora::from_string(frag_shader)) } };
+		unsafe { return Pass { raw: pass_new(crate::dora::from_string(vert_shader), crate::dora::from_string(frag_shader)) }; }
 	}
 }

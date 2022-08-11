@@ -232,12 +232,32 @@ Leaf* Sel(Leaf* nodes[], int count)
 	return sel;
 }
 
+Leaf* Sel(const std::vector<Leaf*>& nodes)
+{
+	SelNode* sel = SelNode::create();
+	for (auto node : nodes)
+	{
+		sel->add(node);
+	}
+	return sel;
+}
+
 Leaf* Seq(Leaf* nodes[], int count)
 {
 	SeqNode* seq = SeqNode::create();
 	for (int i = 0; i < count; i++)
 	{
 		seq->add(nodes[i]);
+	}
+	return seq;
+}
+
+Leaf* Seq(const std::vector<Leaf*>& nodes)
+{
+	SeqNode* seq = SeqNode::create();
+	for (auto node : nodes)
+	{
+		seq->add(node);
 	}
 	return seq;
 }
@@ -734,12 +754,32 @@ Leaf* Sel(Leaf* nodes[], int count)
 	return sel;
 }
 
+Leaf* Sel(const std::vector<Leaf*>& nodes)
+{
+	SelNode* sel = SelNode::create();
+	for (auto node : nodes)
+	{
+		sel->add(node);
+	}
+	return sel;
+}
+
 Leaf* Seq(Leaf* nodes[], int count)
 {
 	SeqNode* seq = SeqNode::create();
 	for (int i = 0; i < count; i++)
 	{
 		seq->add(nodes[i]);
+	}
+	return seq;
+}
+
+Leaf* Seq(const std::vector<Leaf*>& nodes)
+{
+	SeqNode* seq = SeqNode::create();
+	for (auto node : nodes)
+	{
+		seq->add(node);
 	}
 	return seq;
 }

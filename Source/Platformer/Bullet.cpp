@@ -58,6 +58,11 @@ bool Bullet::init()
 	{
 		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _owner->isFaceRight() ? v.x : -v.x)));
 	}
+	hitTarget += [](Bullet* bullet, Unit* target, Vec2 point)
+	{
+		bullet->emit("HitTarget"_slice, bullet, target, point);
+		return bullet->isHitStop();
+	};
 	this->scheduleUpdate();
 	return true;
 }

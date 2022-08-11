@@ -69,9 +69,9 @@ local record BodyDef
 		height: number)
 	attachPolygonSensor: function(self: BodyDef,
 		tag: integer,
+		center: Vec2,
 		width: number,
 		height: number,
-		center: Vec2,
 		angle?: number --[[0.0]])
 	attachPolygonSensor: function(self: BodyDef,
 		tag: integer,

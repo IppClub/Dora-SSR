@@ -88,7 +88,6 @@ static void content_copy_async(int64_t src_file, int64_t target_file, int32_t fu
 	});
 	SharedContent.copyAsync(*str_from(src_file), *str_from(target_file), [func, deref]()
 	{
-
 		SharedWasmRuntime.invoke(func);
 	});
 }
@@ -100,7 +99,6 @@ static void content_save_async(int64_t filename, int64_t content, int32_t func)
 	});
 	SharedContent.saveAsync(*str_from(filename), *str_from(content), [func, deref]()
 	{
-
 		SharedWasmRuntime.invoke(func);
 	});
 }

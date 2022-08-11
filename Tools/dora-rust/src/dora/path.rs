@@ -8,22 +8,29 @@ extern "C" {
 }
 pub struct Path { raw: i64 }
 impl Path {
+	pub fn from(raw: i64) -> Option<Path> {
+		match raw {
+			0 => None,
+			_ => Some(Path { raw: raw })
+		}
+	}
+	pub fn raw(&self) -> i64 { self.raw }
 	pub fn get_ext(path: &str) -> String {
-		return crate::dora::to_string(unsafe { path_get_ext(crate::dora::from_string(path)) });
+		unsafe { return crate::dora::to_string(path_get_ext(crate::dora::from_string(path))); }
 	}
 	pub fn get_path(path: &str) -> String {
-		return crate::dora::to_string(unsafe { path_get_path(crate::dora::from_string(path)) });
+		unsafe { return crate::dora::to_string(path_get_path(crate::dora::from_string(path))); }
 	}
 	pub fn get_name(path: &str) -> String {
-		return crate::dora::to_string(unsafe { path_get_name(crate::dora::from_string(path)) });
+		unsafe { return crate::dora::to_string(path_get_name(crate::dora::from_string(path))); }
 	}
 	pub fn get_filename(path: &str) -> String {
-		return crate::dora::to_string(unsafe { path_get_filename(crate::dora::from_string(path)) });
+		unsafe { return crate::dora::to_string(path_get_filename(crate::dora::from_string(path))); }
 	}
 	pub fn replace_ext(path: &str, new_ext: &str) -> String {
-		return crate::dora::to_string(unsafe { path_replace_ext(crate::dora::from_string(path), crate::dora::from_string(new_ext)) });
+		unsafe { return crate::dora::to_string(path_replace_ext(crate::dora::from_string(path), crate::dora::from_string(new_ext))); }
 	}
 	pub fn replace_filename(path: &str, new_file: &str) -> String {
-		return crate::dora::to_string(unsafe { path_replace_filename(crate::dora::from_string(path), crate::dora::from_string(new_file)) });
+		unsafe { return crate::dora::to_string(path_replace_filename(crate::dora::from_string(path), crate::dora::from_string(new_file))); }
 	}
 }

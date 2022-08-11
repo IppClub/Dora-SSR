@@ -22,12 +22,20 @@ extern "C" {
 	fn sprite_with_texture(texture: i64) -> i64;
 	fn sprite_with_file(clip_str: i64) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for Sprite { }
 pub struct Sprite { raw: i64 }
 crate::dora_object!(Sprite);
 impl Sprite {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { sprite_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Sprite { raw: raw }))
+			}
+		})
+	}
 	pub fn set_depth_write(&mut self, var: bool) {
 		unsafe { sprite_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
 	}
@@ -80,15 +88,15 @@ impl Sprite {
 		return unsafe { core::mem::transmute(sprite_get_filter(self.raw())) };
 	}
 	pub fn new() -> Sprite {
-		return Sprite { raw: unsafe { sprite_new() } };
+		unsafe { return Sprite { raw: sprite_new() }; }
 	}
 	pub fn with_texture_rect(texture: &crate::dora::Texture2D, texture_rect: &crate::dora::Rect) -> Sprite {
-		return Sprite { raw: unsafe { sprite_with_texture_rect(texture.raw(), texture_rect.raw()) } };
+		unsafe { return Sprite { raw: sprite_with_texture_rect(texture.raw(), texture_rect.raw()) }; }
 	}
 	pub fn with_texture(texture: &crate::dora::Texture2D) -> Sprite {
-		return Sprite { raw: unsafe { sprite_with_texture(texture.raw()) } };
+		unsafe { return Sprite { raw: sprite_with_texture(texture.raw()) }; }
 	}
 	pub fn with_file(clip_str: &str) -> Option<Sprite> {
-		return Sprite::from(unsafe { sprite_with_file(crate::dora::from_string(clip_str)) });
+		unsafe { return Sprite::from(sprite_with_file(crate::dora::from_string(clip_str))); }
 	}
 }

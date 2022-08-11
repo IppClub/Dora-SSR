@@ -25,12 +25,20 @@ extern "C" {
 	fn label_get_automatic_width() -> f32;
 	fn label_new(font_name: i64, font_size: i32) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for Label { }
 pub struct Label { raw: i64 }
 crate::dora_object!(Label);
 impl Label {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { label_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Label { raw: raw }))
+			}
+		})
+	}
 	pub fn set_alignment(&mut self, var: crate::dora::TextAlign) {
 		unsafe { label_set_alignment(self.raw(), var as i32) };
 	}
@@ -95,12 +103,12 @@ impl Label {
 		return unsafe { label_get_character_count(self.raw()) };
 	}
 	pub fn get_character(&mut self, index: i32) -> Option<crate::dora::Sprite> {
-		return crate::dora::Sprite::from(unsafe { label_get_character(self.raw(), index) });
+		unsafe { return crate::dora::Sprite::from(label_get_character(self.raw(), index)); }
 	}
 	pub fn get_automatic_width() -> f32 {
 		return unsafe { label_get_automatic_width() };
 	}
 	pub fn new(font_name: &str, font_size: i32) -> Label {
-		return Label { raw: unsafe { label_new(crate::dora::from_string(font_name), font_size) } };
+		unsafe { return Label { raw: label_new(crate::dora::from_string(font_name), font_size) }; }
 	}
 }

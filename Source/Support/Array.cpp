@@ -165,6 +165,11 @@ void Array::set(size_t index, Own<Value>&& value)
 	}
 }
 
+Own<Value>& Array::get(size_t index)
+{
+	return _data[index];
+}
+
 const Own<Value>& Array::get(size_t index) const
 {
 	return _data[index];

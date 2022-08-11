@@ -5,10 +5,18 @@ extern "C" {
 	fn scheduler_schedule(slf: i64, func: i32, stack: i64);
 	fn scheduler_new() -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 pub struct Scheduler { raw: i64 }
 crate::dora_object!(Scheduler);
 impl Scheduler {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { scheduler_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Scheduler { raw: raw }))
+			}
+		})
+	}
 	pub fn set_time_scale(&mut self, var: f32) {
 		unsafe { scheduler_set_time_scale(self.raw(), var) };
 	}
@@ -22,9 +30,9 @@ impl Scheduler {
 			let result = func(stack.pop_f64().unwrap());
 			stack.push_bool(result);
 		}));
-		unsafe { scheduler_schedule(self.raw(), func_id, stack_raw) };
+		unsafe { scheduler_schedule(self.raw(), func_id, stack_raw); }
 	}
 	pub fn new() -> Scheduler {
-		return Scheduler { raw: unsafe { scheduler_new() } };
+		unsafe { return Scheduler { raw: scheduler_new() }; }
 	}
 }
