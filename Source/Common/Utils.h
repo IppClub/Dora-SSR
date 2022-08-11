@@ -127,16 +127,16 @@ typedef Slice String;
 template<class... Args> \
 static type* create(Args&&... args) \
 { \
-    type* item = new type(std::forward<Args>(args)...); \
-    if (item && item->init()) \
-    { \
-        item->autorelease(); \
-    } \
-    else \
-    { \
-        delete item; \
-        item = nullptr; \
-    } \
+	type* item = new type(std::forward<Args>(args)...); \
+	if (item && item->init()) \
+	{ \
+		item->autorelease(); \
+	} \
+	else \
+	{ \
+		delete item; \
+		item = nullptr; \
+	} \
 	return item; \
 }
 

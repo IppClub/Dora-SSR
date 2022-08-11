@@ -288,6 +288,8 @@
 		3C41D60621490BE6003FDDFE /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60221490BE5003FDDFE /* imgui_demo.cpp */; };
 		3C41D60F21490CFB003FDDFE /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60821490CFB003FDDFE /* nanovg.cpp */; };
 		3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60E21490CFB003FDDFE /* nanovg_bgfx.cpp */; };
+		3C47CF1428A38C910011F3E1 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C47CF1228A38C910011F3E1 /* Cache.cpp */; };
+		3C47CF1528A38C910011F3E1 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C47CF1228A38C910011F3E1 /* Cache.cpp */; };
 		3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6551E17F17100292200 /* Geometry.cpp */; };
 		3C4BC6641E17F1B500292200 /* tolua_event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC65B1E17F1B500292200 /* tolua_event.cpp */; };
 		3C4BC6651E17F1B500292200 /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC65D1E17F1B500292200 /* tolua_fix.cpp */; };
@@ -1277,6 +1279,8 @@
 		3C41D60C21490CFB003FDDFE /* nanovg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanovg.h; path = ../../../Source/3rdParty/nanovg/nanovg.h; sourceTree = "<group>"; };
 		3C41D60D21490CFB003FDDFE /* nanovg_bgfx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nanovg_bgfx.h; path = ../../../Source/3rdParty/nanovg/nanovg_bgfx.h; sourceTree = "<group>"; };
 		3C41D60E21490CFB003FDDFE /* nanovg_bgfx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = nanovg_bgfx.cpp; path = ../../../Source/3rdParty/nanovg/nanovg_bgfx.cpp; sourceTree = "<group>"; };
+		3C47CF1228A38C910011F3E1 /* Cache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cache.cpp; path = ../../../Source/Cache/Cache.cpp; sourceTree = "<group>"; };
+		3C47CF1328A38C910011F3E1 /* Cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cache.h; path = ../../../Source/Cache/Cache.h; sourceTree = "<group>"; };
 		3C4BC6551E17F17100292200 /* Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Geometry.cpp; path = ../../../Source/Support/Geometry.cpp; sourceTree = "<group>"; };
 		3C4BC6561E17F17100292200 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Geometry.h; path = ../../../Source/Support/Geometry.h; sourceTree = "<group>"; };
 		3C4BC65B1E17F1B500292200 /* tolua_event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_event.cpp; path = ../../../Source/Lua/ToLua/tolua_event.cpp; sourceTree = "<group>"; };
@@ -2639,6 +2643,8 @@
 		3C6D37221E27D9BE008C92E8 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C47CF1228A38C910011F3E1 /* Cache.cpp */,
+				3C47CF1328A38C910011F3E1 /* Cache.h */,
 				3C20F3E2248F774600BBA830 /* AtlasCache.cpp */,
 				3C20F3E0248F774600BBA830 /* AtlasCache.h */,
 				3CFEBE3A26930AF8006D9974 /* DragonBoneCache.cpp */,
@@ -3713,6 +3719,7 @@
 				3C3B9A1F26FDB25D00BD9F3E /* FrictionJointConf.cpp in Sources */,
 				3C3B9A2026FDB25D00BD9F3E /* GearJointConf.cpp in Sources */,
 				3C6E7FFC272A404900E9F115 /* sndbuffer.cpp in Sources */,
+				3C47CF1528A38C910011F3E1 /* Cache.cpp in Sources */,
 				3CF10FEF2874C81C00940268 /* IkConstraint.cpp in Sources */,
 				3C3B9A2126FDB25D00BD9F3E /* Joint.cpp in Sources */,
 				3C3B9A2226FDB25D00BD9F3E /* JointConf.cpp in Sources */,
@@ -4120,6 +4127,7 @@
 				3C3B995D26FDB00E00BD9F3E /* Island.cpp in Sources */,
 				3CFEA15E285B873B002D106F /* m3_function.c in Sources */,
 				3C3B99F826FDB08000BD9F3E /* MassData.cpp in Sources */,
+				3C47CF1428A38C910011F3E1 /* Cache.cpp in Sources */,
 				3CF10FEE2874C81C00940268 /* IkConstraint.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,

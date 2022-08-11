@@ -60,6 +60,6 @@ impl App {
 		return unsafe { application_get_seed() };
 	}
 	pub fn shutdown() {
-		unsafe { application_shutdown() };
+		unsafe { application_shutdown(); }
 	}
 }

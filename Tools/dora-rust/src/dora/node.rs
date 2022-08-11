@@ -111,11 +111,11 @@ extern "C" {
 	fn node_gslot(slf: i64, name: i64, func: i32, stack: i64) -> i32;
 	fn node_new() -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 pub struct Node { raw: i64 }
 crate::dora_object!(Node);
 impl INode for Node { }
-pub trait INode: Object {
+pub trait INode: IObject {
 	fn set_order(&mut self, var: i32) {
 		unsafe { node_set_order(self.raw(), var) };
 	}
@@ -327,43 +327,43 @@ pub trait INode: Object {
 		return unsafe { node_get_render_order(self.raw()) };
 	}
 	fn add_child_with_order_tag(&mut self, child: &dyn crate::dora::INode, order: i32, tag: &str) {
-		unsafe { node_add_child_with_order_tag(self.raw(), child.raw(), order, crate::dora::from_string(tag)) };
+		unsafe { node_add_child_with_order_tag(self.raw(), child.raw(), order, crate::dora::from_string(tag)); }
 	}
 	fn add_child_with_order(&mut self, child: &dyn crate::dora::INode, order: i32) {
-		unsafe { node_add_child_with_order(self.raw(), child.raw(), order) };
+		unsafe { node_add_child_with_order(self.raw(), child.raw(), order); }
 	}
 	fn add_child(&mut self, child: &dyn crate::dora::INode) {
-		unsafe { node_add_child(self.raw(), child.raw()) };
+		unsafe { node_add_child(self.raw(), child.raw()); }
 	}
 	fn add_to_with_order_tag(&mut self, parent: &dyn crate::dora::INode, order: i32, tag: &str) -> crate::dora::Node {
-		return crate::dora::Node::from(unsafe { node_add_to_with_order_tag(self.raw(), parent.raw(), order, crate::dora::from_string(tag)) }).unwrap();
+		unsafe { return crate::dora::Node::from(node_add_to_with_order_tag(self.raw(), parent.raw(), order, crate::dora::from_string(tag))).unwrap(); }
 	}
 	fn add_to_with_order(&mut self, parent: &dyn crate::dora::INode, order: i32) -> crate::dora::Node {
-		return crate::dora::Node::from(unsafe { node_add_to_with_order(self.raw(), parent.raw(), order) }).unwrap();
+		unsafe { return crate::dora::Node::from(node_add_to_with_order(self.raw(), parent.raw(), order)).unwrap(); }
 	}
 	fn add_to(&mut self, parent: &dyn crate::dora::INode) -> crate::dora::Node {
-		return crate::dora::Node::from(unsafe { node_add_to(self.raw(), parent.raw()) }).unwrap();
+		unsafe { return crate::dora::Node::from(node_add_to(self.raw(), parent.raw())).unwrap(); }
 	}
 	fn remove_child(&mut self, child: &dyn crate::dora::INode, cleanup: bool) {
-		unsafe { node_remove_child(self.raw(), child.raw(), if cleanup { 1 } else { 0 }) };
+		unsafe { node_remove_child(self.raw(), child.raw(), if cleanup { 1 } else { 0 }); }
 	}
 	fn remove_child_by_tag(&mut self, tag: &str, cleanup: bool) {
-		unsafe { node_remove_child_by_tag(self.raw(), crate::dora::from_string(tag), if cleanup { 1 } else { 0 }) };
+		unsafe { node_remove_child_by_tag(self.raw(), crate::dora::from_string(tag), if cleanup { 1 } else { 0 }); }
 	}
 	fn remove_all_children(&mut self, cleanup: bool) {
-		unsafe { node_remove_all_children(self.raw(), if cleanup { 1 } else { 0 }) };
+		unsafe { node_remove_all_children(self.raw(), if cleanup { 1 } else { 0 }); }
 	}
 	fn remove_from_parent(&mut self, cleanup: bool) {
-		unsafe { node_remove_from_parent(self.raw(), if cleanup { 1 } else { 0 }) };
+		unsafe { node_remove_from_parent(self.raw(), if cleanup { 1 } else { 0 }); }
 	}
 	fn move_to_parent(&mut self, parent: &dyn crate::dora::INode) {
-		unsafe { node_move_to_parent(self.raw(), parent.raw()) };
+		unsafe { node_move_to_parent(self.raw(), parent.raw()); }
 	}
 	fn cleanup(&mut self) {
-		unsafe { node_cleanup(self.raw()) };
+		unsafe { node_cleanup(self.raw()); }
 	}
 	fn get_child_by_tag(&mut self, tag: &str) -> Option<crate::dora::Node> {
-		return crate::dora::Node::from(unsafe { node_get_child_by_tag(self.raw(), crate::dora::from_string(tag)) });
+		unsafe { return crate::dora::Node::from(node_get_child_by_tag(self.raw(), crate::dora::from_string(tag))); }
 	}
 	fn schedule(&mut self, mut func: Box<dyn FnMut(f64) -> bool>) {
 		let mut stack = crate::dora::CallStack::new();
@@ -372,16 +372,16 @@ pub trait INode: Object {
 			let result = func(stack.pop_f64().unwrap());
 			stack.push_bool(result);
 		}));
-		unsafe { node_schedule(self.raw(), func_id, stack_raw) };
+		unsafe { node_schedule(self.raw(), func_id, stack_raw); }
 	}
 	fn unschedule(&mut self) {
-		unsafe { node_unschedule(self.raw()) };
+		unsafe { node_unschedule(self.raw()); }
 	}
 	fn convert_to_node_space(&mut self, world_point: &crate::dora::Vec2) -> crate::dora::Vec2 {
-		return crate::dora::Vec2::from(unsafe { node_convert_to_node_space(self.raw(), world_point.into_i64()) });
+		unsafe { return crate::dora::Vec2::from(node_convert_to_node_space(self.raw(), world_point.into_i64())); }
 	}
 	fn convert_to_world_space(&mut self, node_point: &crate::dora::Vec2) -> crate::dora::Vec2 {
-		return crate::dora::Vec2::from(unsafe { node_convert_to_world_space(self.raw(), node_point.into_i64()) });
+		unsafe { return crate::dora::Vec2::from(node_convert_to_world_space(self.raw(), node_point.into_i64())); }
 	}
 	fn convert_to_window_space(&mut self, node_point: &crate::dora::Vec2, mut callback: Box<dyn FnMut(&crate::dora::Vec2)>) {
 		let mut stack = crate::dora::CallStack::new();
@@ -389,7 +389,7 @@ pub trait INode: Object {
 		let func_id = crate::dora::push_function(Box::new(move || {
 			callback(&stack.pop_vec2().unwrap())
 		}));
-		unsafe { node_convert_to_window_space(self.raw(), node_point.into_i64(), func_id, stack_raw) };
+		unsafe { node_convert_to_window_space(self.raw(), node_point.into_i64(), func_id, stack_raw); }
 	}
 	fn each_child(&mut self, mut func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
@@ -398,7 +398,7 @@ pub trait INode: Object {
 			let result = func(&stack.pop_cast::<crate::dora::Node>().unwrap());
 			stack.push_bool(result);
 		}));
-		return unsafe { node_each_child(self.raw(), func_id, stack_raw) } != 0;
+		unsafe { return node_each_child(self.raw(), func_id, stack_raw) != 0; }
 	}
 	fn traverse(&mut self, mut func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
@@ -407,7 +407,7 @@ pub trait INode: Object {
 			let result = func(&stack.pop_cast::<crate::dora::Node>().unwrap());
 			stack.push_bool(result);
 		}));
-		return unsafe { node_traverse(self.raw(), func_id, stack_raw) } != 0;
+		unsafe { return node_traverse(self.raw(), func_id, stack_raw) != 0; }
 	}
 	fn traverse_all(&mut self, mut func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
@@ -416,55 +416,55 @@ pub trait INode: Object {
 			let result = func(&stack.pop_cast::<crate::dora::Node>().unwrap());
 			stack.push_bool(result);
 		}));
-		return unsafe { node_traverse_all(self.raw(), func_id, stack_raw) } != 0;
+		unsafe { return node_traverse_all(self.raw(), func_id, stack_raw) != 0; }
 	}
 	fn run_action(&mut self, def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
-		return crate::dora::Action::from(unsafe { node_run_action(self.raw(), def.raw()) });
+		unsafe { return crate::dora::Action::from(node_run_action(self.raw(), def.raw())); }
 	}
 	fn stop_all_actions(&mut self) {
-		unsafe { node_stop_all_actions(self.raw()) };
+		unsafe { node_stop_all_actions(self.raw()); }
 	}
 	fn perform(&mut self, def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
-		return crate::dora::Action::from(unsafe { node_perform(self.raw(), def.raw()) });
+		unsafe { return crate::dora::Action::from(node_perform(self.raw(), def.raw())); }
 	}
 	fn stop_action(&mut self, action: &crate::dora::Action) {
-		unsafe { node_stop_action(self.raw(), action.raw()) };
+		unsafe { node_stop_action(self.raw(), action.raw()); }
 	}
 	fn align_items_vertically(&mut self, padding: f32) -> crate::dora::Size {
-		return crate::dora::Size::from(unsafe { node_align_items_vertically(self.raw(), padding) });
+		unsafe { return crate::dora::Size::from(node_align_items_vertically(self.raw(), padding)); }
 	}
 	fn align_items_vertically_with_size(&mut self, size: &crate::dora::Size, padding: f32) -> crate::dora::Size {
-		return crate::dora::Size::from(unsafe { node_align_items_vertically_with_size(self.raw(), size.into_i64(), padding) });
+		unsafe { return crate::dora::Size::from(node_align_items_vertically_with_size(self.raw(), size.into_i64(), padding)); }
 	}
 	fn align_items_horizontally(&mut self, padding: f32) -> crate::dora::Size {
-		return crate::dora::Size::from(unsafe { node_align_items_horizontally(self.raw(), padding) });
+		unsafe { return crate::dora::Size::from(node_align_items_horizontally(self.raw(), padding)); }
 	}
 	fn align_items_horizontally_with_size(&mut self, size: &crate::dora::Size, padding: f32) -> crate::dora::Size {
-		return crate::dora::Size::from(unsafe { node_align_items_horizontally_with_size(self.raw(), size.into_i64(), padding) });
+		unsafe { return crate::dora::Size::from(node_align_items_horizontally_with_size(self.raw(), size.into_i64(), padding)); }
 	}
 	fn align_items(&mut self, padding: f32) -> crate::dora::Size {
-		return crate::dora::Size::from(unsafe { node_align_items(self.raw(), padding) });
+		unsafe { return crate::dora::Size::from(node_align_items(self.raw(), padding)); }
 	}
 	fn align_items_with_size(&mut self, size: &crate::dora::Size, padding: f32) -> crate::dora::Size {
-		return crate::dora::Size::from(unsafe { node_align_items_with_size(self.raw(), size.into_i64(), padding) });
+		unsafe { return crate::dora::Size::from(node_align_items_with_size(self.raw(), size.into_i64(), padding)); }
 	}
 	fn move_and_cull_items(&mut self, delta: &crate::dora::Vec2) {
-		unsafe { node_move_and_cull_items(self.raw(), delta.into_i64()) };
+		unsafe { node_move_and_cull_items(self.raw(), delta.into_i64()); }
 	}
 	fn attach_ime(&mut self) {
-		unsafe { node_attach_ime(self.raw()) };
+		unsafe { node_attach_ime(self.raw()); }
 	}
 	fn detach_ime(&mut self) {
-		unsafe { node_detach_ime(self.raw()) };
+		unsafe { node_detach_ime(self.raw()); }
 	}
 	fn grab(&mut self) -> crate::dora::Grabber {
-		return crate::dora::Grabber::from(unsafe { node_grab(self.raw()) }).unwrap();
+		unsafe { return crate::dora::Grabber::from(node_grab(self.raw())).unwrap(); }
 	}
 	fn grab_with_size(&mut self, grid_x: i32, grid_y: i32) -> crate::dora::Grabber {
-		return crate::dora::Grabber::from(unsafe { node_grab_with_size(self.raw(), grid_x, grid_y) }).unwrap();
+		unsafe { return crate::dora::Grabber::from(node_grab_with_size(self.raw(), grid_x, grid_y)).unwrap(); }
 	}
 	fn stop_grab(&mut self) {
-		unsafe { node_stop_grab(self.raw()) };
+		unsafe { node_stop_grab(self.raw()); }
 	}
 	fn slot(&mut self, name: &str, mut func: Box<dyn FnMut(&mut crate::dora::CallStack)>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
@@ -472,7 +472,7 @@ pub trait INode: Object {
 		let func_id = crate::dora::push_function(Box::new(move || {
 			func(&mut stack)
 		}));
-		return unsafe { node_slot(self.raw(), crate::dora::from_string(name), func_id, stack_raw) } != 0;
+		unsafe { return node_slot(self.raw(), crate::dora::from_string(name), func_id, stack_raw) != 0; }
 	}
 	fn gslot(&mut self, name: &str, mut func: Box<dyn FnMut(&mut crate::dora::CallStack)>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
@@ -480,11 +480,19 @@ pub trait INode: Object {
 		let func_id = crate::dora::push_function(Box::new(move || {
 			func(&mut stack)
 		}));
-		return unsafe { node_gslot(self.raw(), crate::dora::from_string(name), func_id, stack_raw) } != 0;
+		unsafe { return node_gslot(self.raw(), crate::dora::from_string(name), func_id, stack_raw) != 0; }
 	}
 }
 impl Node {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { node_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Node { raw: raw }))
+			}
+		})
+	}
 	pub fn new() -> Node {
-		return Node { raw: unsafe { node_new() } };
+		unsafe { return Node { raw: node_new() }; }
 	}
 }

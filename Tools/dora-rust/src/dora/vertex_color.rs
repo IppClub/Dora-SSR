@@ -30,6 +30,6 @@ impl VertexColor {
 		return unsafe { crate::dora::Color::from(vertexcolor_get_color(self.raw())) };
 	}
 	pub fn new(vec: &crate::dora::Vec2, color: &crate::dora::Color) -> crate::dora::VertexColor {
-		return crate::dora::VertexColor::from(unsafe { vertexcolor_new(vec.into_i64(), color.to_argb() as i32) });
+		unsafe { return crate::dora::VertexColor::from(vertexcolor_new(vec.into_i64(), color.to_argb() as i32)); }
 	}
 }

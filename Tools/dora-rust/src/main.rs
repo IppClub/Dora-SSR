@@ -1,5 +1,5 @@
 #[macro_use] pub mod dora;
-use crate::dora::{Object, Node, INode, Director, Array, App, Group, Entity, Action};
+use crate::dora::{IObject, Node, INode, Director, Array, App, Group, Entity, Action};
 
 fn main() {
 	println!("Hello, world!");

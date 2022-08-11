@@ -4,6 +4,6 @@ extern "C" {
 pub struct Ease { }
 impl Ease {
 	pub fn func(easing: crate::dora::EaseType, time: f32) -> f32 {
-		return unsafe { ease_func(easing as i32, time) };
+		unsafe { return ease_func(easing as i32, time); }
 	}
 }

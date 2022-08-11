@@ -10,12 +10,20 @@ extern "C" {
 	fn line_new() -> i64;
 	fn line_with_vec_color(verts: i64, color: i32) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for Line { }
 pub struct Line { raw: i64 }
 crate::dora_object!(Line);
 impl Line {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { line_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Line { raw: raw }))
+			}
+		})
+	}
 	pub fn set_depth_write(&mut self, var: bool) {
 		unsafe { line_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
 	}
@@ -29,18 +37,18 @@ impl Line {
 		return unsafe { line_get_blend_func(self.raw()) as u64 };
 	}
 	pub fn add(&mut self, verts: &Vec<crate::dora::Vec2>, color: &crate::dora::Color) {
-		unsafe { line_add(self.raw(), crate::dora::Vector::from_vec2(verts), color.to_argb() as i32) };
+		unsafe { line_add(self.raw(), crate::dora::Vector::from_vec2(verts), color.to_argb() as i32); }
 	}
 	pub fn set(&mut self, verts: &Vec<crate::dora::Vec2>, color: &crate::dora::Color) {
-		unsafe { line_set(self.raw(), crate::dora::Vector::from_vec2(verts), color.to_argb() as i32) };
+		unsafe { line_set(self.raw(), crate::dora::Vector::from_vec2(verts), color.to_argb() as i32); }
 	}
 	pub fn clear(&mut self) {
-		unsafe { line_clear(self.raw()) };
+		unsafe { line_clear(self.raw()); }
 	}
 	pub fn new() -> Line {
-		return Line { raw: unsafe { line_new() } };
+		unsafe { return Line { raw: line_new() }; }
 	}
 	pub fn with_vec_color(verts: &Vec<crate::dora::Vec2>, color: &crate::dora::Color) -> Line {
-		return Line { raw: unsafe { line_with_vec_color(crate::dora::Vector::from_vec2(verts), color.to_argb() as i32) } };
+		unsafe { return Line { raw: line_with_vec_color(crate::dora::Vector::from_vec2(verts), color.to_argb() as i32) }; }
 	}
 }

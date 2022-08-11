@@ -3,6 +3,9 @@ import "lulpeg"
 
 lulpeg\global _G
 
+nonObjectTypes =
+	FixtureDef: true
+
 cppTypes =
 	i32: "int32_t"
 	i64: "int64_t"
@@ -13,12 +16,18 @@ callbackDefs =
 	string: "String"
 
 interfaces =
+	Object: true
 	Node: true
+	Joint: true
 	Camera: true
 	Playable: true
+	PhysicsWorld: true
+	Body: true
 
 inheritances =
-	IPlayable: "INode"
+	IPlayable: {"INode"}
+	IPhysicsWorld: {"INode"}
+	IBody: {"INode"}
 
 basicTypes =
 	uint8_t:
@@ -140,7 +149,7 @@ basicTypes =
 		* (name)-> "crate::dora::from_string(#{name})"
 		* (name)-> "crate::dora::to_string(#{name})"
 		* "stack.pop_str().unwrap().as_str()"
-		* (name)-> "stack.push_i64(#{name});"
+		* (name)-> "stack.push_str(#{name}.as_str());"
 	Vec2:
 		* "i64"
 		* (name)-> "vec2_from(#{name})"
@@ -169,7 +178,7 @@ basicTypes =
 		* "crate::dora::Color"
 		* (name)-> "#{name}.to_argb() as i32"
 		* (name)-> "crate::dora::Color::from(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	Color3:
 		* "i32"
@@ -179,7 +188,7 @@ basicTypes =
 		* "crate::dora::Color3"
 		* (name)-> "#{name}.to_rgb() as i32"
 		* (name)-> "crate::dora::Color3::from(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	Rect:
 		* "i64"
@@ -189,7 +198,27 @@ basicTypes =
 		* "crate::dora::Rect"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::Rect::from(#{name})"
+		* false
 		* (name)-> error "unsupported"
+	DBRecord:
+		* "i64"
+		* (name)-> "*r_cast<DBRecord*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new DBRecord{#{name}})"
+		* "crate::dora::DBRecord"
+		* "crate::dora::DBRecord"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::DBRecord::from(#{name})"
+		* "crate::dora::DBRecord::from(stack.pop_i64().unwrap())"
+		* (name)-> error "unsupported"
+	DBQuery:
+		* "i64"
+		* (name)-> "*r_cast<DBQuery*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new DBQuery{std::move(#{name}}))"
+		* "crate::dora::DBQuery"
+		* "crate::dora::DBQuery"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::DBQuery::from(#{name})"
+		* false
 		* (name)-> error "unsupported"
 	VecStr:
 		* "i64"
@@ -199,7 +228,7 @@ basicTypes =
 		* "Vec<String>"
 		* (name)-> "crate::dora::Vector::from_str(#{name})"
 		* (name)-> "crate::dora::Vector::to_str(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	VecVec2:
 		* "i64"
@@ -209,7 +238,7 @@ basicTypes =
 		* "Vec<crate::dora::Vec2>"
 		* (name)-> "crate::dora::Vector::from_vec2(#{name})"
 		* (name)-> "crate::dora::Vector::to_vec2(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	VertexColor:
 		* "i64"
@@ -219,7 +248,7 @@ basicTypes =
 		* "crate::dora::VertexColor"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::VertexColor::from(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	VecVertexColor:
 		* "i64"
@@ -229,7 +258,7 @@ basicTypes =
 		* "Vec<crate::dora::VertexColor>"
 		* (name)-> "crate::dora::Vector::from_vertex_color(#{name})"
 		* (name)-> "crate::dora::Vector::to_vertex_color(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	ActionDef:
 		* "i64"
@@ -239,7 +268,7 @@ basicTypes =
 		* "crate::dora::ActionDef"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::ActionDef::from(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	VecActionDef:
 		* "i64"
@@ -248,8 +277,28 @@ basicTypes =
 		* "&Vec<crate::dora::ActionDef>"
 		* "Vec<crate::dora::ActionDef>"
 		* (name)-> "crate::dora::Vector::from_action_def(#{name})"
-		* (name)-> "crate::dora::Vector::to_action_def(#{name})"
 		* (name)-> error "unsupported"
+		* false
+		* (name)-> error "unsupported"
+	VecBTree:
+		* "i64"
+		* (name)-> "from_btree_vec(#{name})"
+		* (name)-> "to_vec(#{name})"
+		* "&Vec<crate::dora::platformer::behavior::Tree>"
+		* "Vec<crate::dora::platformer::behavior::Tree>"
+		* (name)-> "crate::dora::Vector::from_btree(#{name})"
+		* (name)-> error "unsupported"
+		* false
+		* (name)-> error "unsupported"
+	VecDTree:
+		* "i64"
+		* (name)-> "from_dtree_vec(#{name})"
+		* (name)-> "to_vec(#{name})"
+		* "&Vec<crate::dora::platformer::decision::Tree>"
+		* "Vec<crate::dora::platformer::decision::Tree>"
+		* (name)-> "crate::dora::Vector::from_dtree(#{name})"
+		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	BlendFunc:
 		* "i64"
@@ -259,7 +308,17 @@ basicTypes =
 		* "u64"
 		* (name)-> "#{name} as i64"
 		* (name)-> "#{name} as u64"
+		* false
 		* (name)-> error "unsupported"
+	"Platformer::TargetAllow":
+		* "i64"
+		* (name)-> "*r_cast<Platformer::TargetAllow*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new Platformer::TargetAllow{#{name}})"
+		* "&crate::dora::platformer::TargetAllow"
+		* "crate::dora::platformer::TargetAllow"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::platformer::TargetAllow::from(#{name})"
+		* false
 		* (name)-> error "unsupported"
 	EntityEvent:
 		* "i32"
@@ -269,7 +328,7 @@ basicTypes =
 		* "crate::dora::EntityEvent"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	TextureWrap:
 		* "i32"
@@ -279,7 +338,7 @@ basicTypes =
 		* "crate::dora::TextureWrap"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	TextureFilter:
 		* "i32"
@@ -289,7 +348,7 @@ basicTypes =
 		* "crate::dora::TextureFilter"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	EaseType:
 		* "i32"
@@ -299,7 +358,7 @@ basicTypes =
 		* "crate::dora::EaseType"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	Property:
 		* "i32"
@@ -309,7 +368,7 @@ basicTypes =
 		* "crate::dora::Property"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* (name)-> error "unsupported"
+		* false
 		* (name)-> error "unsupported"
 	TextAlign:
 		* "i32"
@@ -319,7 +378,37 @@ basicTypes =
 		* "crate::dora::TextAlign"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
+		* false
 		* (name)-> error "unsupported"
+	"Platformer::Relation":
+		* "i32"
+		* (name)-> "s_cast<Platformer::Relation>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::platformer::Relation"
+		* "crate::dora::platformer::Relation"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* false
+		* (name)-> error "unsupported"
+	"Platformer::Behavior::Blackboard":
+		* "i64"
+		* (name)-> "*r_cast<Platformer::Behavior::Blackboard*>(#{name})"
+		* (name)-> "r_cast<int64_t>(#{name})"
+		* "&crate::dora::platformer::behavior::Blackboard"
+		* "crate::dora::platformer::behavior::Blackboard"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::platformer::behavior::Blackboard::from(#{name})"
+		* "&crate::dora::platformer::behavior::Blackboard::from(stack.pop_i64().unwrap()).unwrap()"
+		* (name)-> error "unsupported"
+	"Platformer::UnitAction":
+		* "i64"
+		* (name)-> "*r_cast<Platformer::UnitAction*>(#{name})"
+		* (name)-> "r_cast<int64_t>(#{name})"
+		* "&crate::dora::platformer::UnitAction"
+		* "crate::dora::platformer::UnitAction"
+		* (name)-> "#{name}.raw()"
+		* (name, isOptional)-> "crate::dora::platformer::UnitAction::from(#{name})#{isOptional and '' or '.unwrap()'}"
+		* "&crate::dora::platformer::UnitAction::from(stack.pop_i64().unwrap()).unwrap()"
 		* (name)-> error "unsupported"
 	void: {}
 
@@ -333,7 +422,11 @@ White = (S" \t" + Newline)^0
 
 AlphaNum = R "az", "AZ", "09", "__"
 
+Indent = R("az", "AZ", "__") * AlphaNum^0
+
 Name = C R("az", "AZ", "__") * AlphaNum^0
+
+ClassName = C (Indent * White * P"::" * White)^0 * Indent
 
 ClassLabel = C(P"singleton") + (C(P"interface")^-1 * White * C(P"object")) + C(P"value") + P""
 
@@ -341,7 +434,7 @@ FieldLabel = C(P"static")^-1 * White * C(P"optional")^-1 * White * C(P"readonly"
 
 MethodLabel = C(P"static")^-1 * White * C(P"outside")^-1 * White * C(P"optional")^-1
 
-Type = C R("az", "AZ", "__") * AlphaNum^0 * (White * P"*")^-1
+Type = C (Indent * White * P"::" * White)^0 * Indent * (White * P"*")^-1
 
 mark = (name) -> (...) -> {name, ...}
 
@@ -355,12 +448,15 @@ Method = Ct(White * MethodLabel) * White * Type * White * (C(P"operator==") + Na
 
 Field = Ct(White * FieldLabel) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * P";" / mark"field"
 
-Class = Ct Ct(White * ClassLabel) * White * (P"class" + P"struct") * White * Ct(Name * White * (P"@" * White * Name + Cc false) * White * (P":" * White * (P"public")^-1 * White * Name * White + Cc false)) *
+Class = White * Ct Ct(White * ClassLabel) * White * (P"class" + P"struct") * White * Ct(Name * White * (P"@" * White * Name + Cc false) * White * (P":" * White * (P"public")^-1 * White * ClassName * White + Cc false)) *
 	P"{" *
 		Ct (White * (Method + Field))^0 * White *
 	P"}" * White * P";"
 
-File = Ct (White * Class)^1 * White * -1
+ModStart = White * P"namespace" * White * Name * White * P"{"
+ModStop = White * P"}" * Cc false
+
+File = Ct (ModStart + Class + ModStop)^1 * White * -1
 
 codes = ""
 with io.open "Dorothy.h", "r"
@@ -398,39 +494,73 @@ else
 			return
 				* "i64"
 				* (name)-> "r_cast<#{dataType}*>(#{name})"
-				* (name)-> "from_object(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "from_object(#{name})"
 				* "&#{rustName}"
 				* isOptional and "Option<#{rustName}>" or rustName
 				* (name)-> "#{name}.raw()"
 				* (name)-> isOptional and "#{rustName}::from(#{name})" or "#{rustName} { raw: #{name} }"
-				* (name)-> error "unsupported"
+				* false
 				* (name)-> error "unsupported"
 		elseif isOptional
 			return
 				* "i64"
 				* (name)-> "r_cast<#{dataType}*>(#{name})"
-				* (name)-> "from_object(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "from_object(#{name})"
 				* interfaces[rustName] and "&dyn crate::dora::I#{rustName}" or "&crate::dora::#{rustName}"
 				* "Option<crate::dora::#{rustName}>"
 				* (name)-> "#{name}.raw()"
 				* (name)-> "crate::dora::#{rustName}::from(#{name})"
 				* "&stack.pop_cast::<crate::dora::#{rustName}>()"
-				* (name)-> "stack.push_object(#{name});"
+				* (name)-> "stack.push_object(&#{name});"
 		else
 			return
 				* "i64"
 				* (name)-> "r_cast<#{dataType}*>(#{name})"
-				* (name)-> "from_object(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "from_object(#{name})"
 				* interfaces[rustName] and "&dyn crate::dora::I#{rustName}" or "&crate::dora::#{rustName}"
 				* "crate::dora::#{rustName}"
 				* (name)-> "#{name}.raw()"
 				* (name)-> "crate::dora::#{rustName}::from(#{name}).unwrap()"
 				* "&stack.pop_cast::<crate::dora::#{rustName}>().unwrap()"
-				* (name)-> "stack.push_object(#{name});"
+				* (name)-> "stack.push_object(&#{name});"
+	moduleScopes = {}
 	for cls in *result
+		if "string" == type cls
+			moduleScopes[] = cls
+			continue
+		elseif not cls
+			table.remove moduleScopes, #moduleScopes
+			continue
+		{_, clsNames} = cls
+		{clsName, clsNewName} = clsNames
+		clsNewName or= clsName
+		if #moduleScopes > 0
+			moduleScope = table.concat moduleScopes, "::"
+			rustModuleScope = table.concat [toCamelCase(mod) for mod in *moduleScopes], "::"
+			nameMap[moduleScope .. "::" .. clsName] = rustModuleScope .. "::" .. clsNewName
+		else
+			nameMap[clsName] = clsNewName
+	moduleScopes = {}
+	clsCount = 0
+	funcCount = 0
+	for cls in *result
+		if "string" == type cls
+			moduleScopes[] = cls
+			continue
+		elseif not cls
+			table.remove moduleScopes, #moduleScopes
+			continue
+		clsCount += 1
+		namespace = if #moduleScopes > 0
+			table.concat([toCamelCase(mod) for mod in *moduleScopes], "_") .. "_"
+		else
+			""
+		cppNamespace = if #moduleScopes > 0
+			table.concat(moduleScopes, "::") .. "::"
+		else
+			""
 		{clsLabels, clsNames, clsBody} = cls
 		{clsName, clsNewName, clsParent} = clsNames
-		nameMap[clsName] = clsNewName
 		if clsParent
 			clsParent = nameMap[clsParent] or clsParent
 		clsNewName or= clsName
@@ -450,14 +580,16 @@ else
 					isValue = true
 				when "interface"
 					isTrait = true
-		moduleName = toCamelCase clsNewName
+		moduleName = toCamelCase(clsNewName)\gsub("_(%l)_", "%1")\gsub "_(%l)$", "%1"
 		clsNameL = clsName\lower!
 		clsNewNameL = clsNewName\lower!
-		rustBinding[] = "use crate::dora::Object;"
+		cppModuleName = clsName
+		clsName = cppNamespace .. clsName
+		rustBinding[] = "use crate::dora::IObject;"
 		objectUsed = #rustBinding
 		if isObject
 			objectUsed = nil
-			cppBinding[] = "static int32_t #{clsNewNameL}_type()
+			cppBinding[] = "static int32_t #{namespace}#{clsNewNameL}_type()
 {
 	return DoraType<#{clsName}>();
 }"
@@ -465,46 +597,63 @@ else
 			rustBinding[] = "use crate::dora::#{clsParent};"
 			rustBinding[] = "impl #{clsParent} for #{clsNewName} { }"
 		elseif isObject
-			clsParent = "Object"
+			clsParent = "IObject"
 		if clsParent
-			if inherit = inheritances[clsParent]
-				rustBinding[] = "use crate::dora::#{inherit};"
-				rustBinding[] = "impl #{inherit} for #{clsNewName} { }"
-		cppLink[] = "static void link#{clsName}(wasm3::module& mod)\n{"
+			if inherits = inheritances[clsParent]
+				for inherit in *inherits
+					rustBinding[] = "use crate::dora::#{inherit};"
+					rustBinding[] = "impl #{inherit} for #{clsNewName} { }"
+		cppLink[] = "static void link#{table.concat moduleScopes}#{cppModuleName}(wasm3::module& mod)\n{"
 		rustBinding[] = if isTrait
 			if isObject
 				rustBinding[] = "pub struct #{clsNewName} { raw: i64 }
 crate::dora_object!(#{clsNewName});
 impl I#{clsNewName} for #{clsNewName} { }"
-				cppLink[] = "\tmod.link_optional(\"*\", \"#{clsNewNameL}_type\", #{clsNewNameL}_type);"
+				cppLink[] = "\tmod.link_optional(\"*\", \"#{namespace}#{clsNewNameL}_type\", #{namespace}#{clsNewNameL}_type);"
 			"pub trait I#{clsNewName}#{clsParent and ': ' .. clsParent or ''} {"
 		else
 			"pub struct #{clsNewName} { #{isSingleton and '' or 'raw: i64 '}}"
 		if isValue
 			rustBinding[] = "impl Drop for #{clsNewName} {
-	fn drop(&mut self) { unsafe { #{clsNewNameL}_release(self.raw); } }
+	fn drop(&mut self) { unsafe { #{namespace}#{clsNewNameL}_release(self.raw); } }
 }"
 		if isObject and not isTrait
 			rustBinding[] = "crate::dora_object!(#{clsNewName});"
-			cppLink[] = "\tmod.link_optional(\"*\", \"#{clsNewNameL}_type\", #{clsNewNameL}_type);"
+			cppLink[] = "\tmod.link_optional(\"*\", \"#{namespace}#{clsNewNameL}_type\", #{namespace}#{clsNewNameL}_type);"
 		unless isTrait
 			rustBinding[] = "impl #{clsNewName} {"
 		rustExtern[] = "extern \"C\" {"
 		if isObject
-			rustExtern[] = "\tfn #{clsNewNameL}_type() -> i32;"
+			rustExtern[] = "\tfn #{namespace}#{clsNewNameL}_type() -> i32;"
+			rustBinding[] = "\tpub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { #{namespace}#{clsNewNameL}_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(#{clsNewName} { raw: raw }))
+			}
+		})
+	}"
 		if isValue
-			cppBinding[] = "static void #{clsNewNameL}_release(int64_t raw)
+			cppBinding[] = "static void #{namespace}#{clsNewNameL}_release(int64_t raw)
 {
 	delete r_cast<#{clsName}*>(raw);
 }"
-			rustExtern[] = "\tfn #{clsNewNameL}_release(raw: i64);"
+			rustExtern[] = "\tfn #{namespace}#{clsNewNameL}_release(raw: i64);"
 			rustBinding[] = "\tpub fn raw(&self) -> i64 {
 		self.raw
 	}
 	pub fn from(raw: i64) -> #{clsNewName} {
 		#{clsNewName} { raw: raw }
 	}"
-			cppLink[] = "\tmod.link_optional(\"*\", \"#{clsNewNameL}_release\", #{clsNewNameL}_release);"
+			cppLink[] = "\tmod.link_optional(\"*\", \"#{namespace}#{clsNewNameL}_release\", #{namespace}#{clsNewNameL}_release);"
+		if #clsLabels == 0
+			rustBinding[] = "\tpub fn from(raw: i64) -> Option<#{clsNewName}> {
+		match raw {
+			0 => None,
+			_ => Some(#{clsNewName} { raw: raw })
+		}
+	}
+	pub fn raw(&self) -> i64 { self.raw }"
 		for clsItem in *clsBody
 			pub = isTrait and "" or "pub "
 			{itemType} = clsItem
@@ -528,12 +677,17 @@ impl I#{clsNewName} for #{clsNewName} { }"
 								isStatic = true
 							when "optional"
 								isOptional = true
+					funcCount += if isReadonly
+						1
+					else
+						2
+					pub = "pub " if isStatic
 					rustType = basicTypes[dataType]
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
 						rustName = nameMap[dataTypeName] or dataTypeName
 						rustType = getObjectType dataTypeName, rustName, false, isOptional
-						if not isReadonly
+						if not isReadonly and not interfaces[rustName]
 							objectUsed = nil
 					if rustType
 						{rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom} = rustType
@@ -547,7 +701,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 										"set#{name\sub(1, 1)\upper!}#{name\sub 2}(var)"
 									else
 										"set#{name\sub(1, 1)\upper!}#{name\sub 2}(#{cast 'var'})"
-							cppSetterName = "#{clsNameL}_set_#{funcNewName}"
+							cppSetterName = "#{namespace}#{clsNameL}_set_#{funcNewName}"
 							rustSetterName = "set_#{funcNewName}"
 							cppLink[] = "\tmod.link_optional(\"*\", \"#{cppSetterName}\", #{cppSetterName});"
 							cppBinding[] = if isSingleton
@@ -575,7 +729,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 								"is#{name\sub(1, 1)\upper!}#{name\sub 2}()", "is"
 						if dataType == cppType
 							castFrom = (name)-> name
-						cppGetterName = "#{clsNameL}_#{prefix}_#{funcNewName}"
+						cppGetterName = "#{namespace}#{clsNameL}_#{prefix}_#{funcNewName}"
 						rustGetterName = "#{prefix}_#{funcNewName}"
 						cppLink[] = "\tmod.link_optional(\"*\", \"#{cppGetterName}\", #{cppGetterName});"
 						cppBinding[] = if isSingleton
@@ -602,6 +756,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 					else
 						error "\"#{dataType}\" is not supported."
 				when "method"
+					funcCount += 1
 					{_, labels, dataType, name, newName, args, constFlag} = clsItem
 					funcNewName = newName or name
 					funcName = table.concat [sub\lower! for sub in name\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
@@ -626,14 +781,16 @@ impl I#{clsNewName} for #{clsNewName} { }"
 								isStatic = true
 							when "optional"
 								isOptional = true
+					pub = "pub " if isStatic
 					rustType = basicTypes[dataType]
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
 						rustName = nameMap[dataTypeName] or dataTypeName
 						rustType = getObjectType dataTypeName, rustName, isCreate, isOptional
-						objectUsed = nil
 					if rustType
 						{rt, cast, castFrom, _, rtTypeOut, _, rtCastFrom} = rustType
+						if isOptional and not rtTypeOut\match "^Option<"
+							rtTypeOut = "Option<#{rtTypeOut}>"
 						cppType = cppTypes[rt] ?? "void"
 						argItems = for arg in *args
 							{argKind, argType, argName} = arg
@@ -645,7 +802,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 										argTypeName = argType\match "[^ \t*]+"
 										rustName = nameMap[argTypeName] or argTypeName
 										rustTypeA = getObjectType argTypeName, rustName
-										objectUsed = nil
+										objectUsed = nil unless interfaces[rustName]
 									if rustTypeA
 										{rtA, castA, _, rtTypeInA, _, rtCastA} = rustTypeA
 										cppTypeA = cppTypes[rtA]
@@ -660,6 +817,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 										error "\"#{argType}\" is not supported."
 								when "callback"
 									{_, func, fname} = arg
+									fname = toCamelCase fname
 									{freturnType, fargs} = func
 									items = for farg in *fargs
 										{fargKind, fargType, fargName} = farg
@@ -673,27 +831,42 @@ impl I#{clsNewName} for #{clsNewName} { }"
 										if frustType
 											{frt, _2, _3, frtTypeIn, _5, _6, _7, fpopArg} = frustType
 											fcppType = callbackDefs[fargType] or fargType
-											if "Event" == fargType\match "[^ \t*]+"
-												{
-													"Event* #{fargName}"
-													"\t\t#{fargName}->pushArgsToWasm(args);"
-													"&mut crate::dora::CallStack"
-													"&mut stack"
-												}
-											else
-												{
-													"#{fcppType} #{fargName}"
-													"\t\targs->push(#{fargName});"
-													frtTypeIn
-													fpopArg
-												}
-										else
-											error "\"#{fargType}\" is not supported."
+											switch fargType\match "[^ \t*]+"
+												when "Event"
+													{
+														"Event* #{fargName}"
+														"\t\t#{fargName}->pushArgsToWasm(args);"
+														"&mut crate::dora::CallStack"
+														"&mut stack"
+													}
+												when "Platformer::Behavior::Blackboard", "Platformer::UnitAction"
+													{
+														"#{fcppType}* #{fargName}"
+														"\t\targs->push(r_cast<int64_t>(#{fargName}));"
+														frtTypeIn
+														fpopArg
+													}
+												when "DBRecord"
+													{
+														"#{fcppType}& #{fargName}"
+														"\t\targs->push(r_cast<int64_t>(new DBRecord{std::move(#{fargName})}));"
+														frtTypeIn
+														fpopArg
+													}
+												when nil
+													error "\"#{fargType}\" is not supported."
+												else
+													{
+														"#{fcppType} #{fargName}"
+														"\t\targs->push(#{fargName});"
+														frtTypeIn
+														fpopArg
+													}
 									argPassed = #items > 0
 									cppArgDef = table.concat [item[1] for item in *items], ", "
 									cppArgPass = table.concat [item[2] for item in *items], "\n"
 									if cppArgPass ~= ""
-										cppArgPass = "\n#{cppArgPass}"
+										cppArgPass = "#{cppArgPass}\n"
 									callbackType = "dyn FnMut(#{table.concat [item[3] for item in *items], ', '})"
 									callback = "#{fname}(#{table.concat [item[4] for item in *items], ', '})"
 									callbackReturn = ""
@@ -709,15 +882,20 @@ impl I#{clsNewName} for #{clsNewName} { }"
 										else
 											"Box<#{callbackType}>"
 										if frCppType = cppTypes[frt]
-											callbackReturn = "\t\treturn std::get<#{freturnType}>(args->pop());\n"
+											callbackReturn = switch freturnType
+												when "Node"
+													"\t\treturn s_cast<Node*>(std::get<Object*>(args->pop()));\n"
+												when "string"
+													"\t\treturn std::get<std::string>(args->pop());\n"
+												else
+													"\t\treturn std::get<#{freturnType}>(args->pop());\n"
 											callback = "let result = #{callback};\n\t\t\t#{frPush 'result'}"
 											argPassed = true
 									{
 										"int32_t func#{argPassed and ', int64_t stack' or ''}"
 										"[func, #{argPassed and 'args, ' or ''}deref](#{cppArgDef})
 	{
-#{argPassed and '\t\targs->clear();' or ''}#{cppArgPass}
-		SharedWasmRuntime.invoke(func);
+#{argPassed and '\t\targs->clear();\n' .. cppArgPass or ''}\t\tSharedWasmRuntime.invoke(func);
 #{callbackReturn}	}"
 										"func: i32#{argPassed and ', stack: i64' or ''}"
 										"mut #{fname}: #{callbackType}"
@@ -743,7 +921,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						if dataType == cppType
 							castFrom = (name)-> name
 						prefix = if cppType == "void" then "" else "return "
-						cppFuncName = "#{clsNameL}_#{funcNewName}"
+						cppFuncName = "#{namespace}#{clsNameL}_#{funcNewName}"
 						rustFuncName = funcNewName
 						cppLink[] = "\tmod.link_optional(\"*\", \"#{cppFuncName}\", #{cppFuncName});"
 						cppBinding[] = if isSingleton
@@ -775,8 +953,8 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							"\tfn #{cppFuncName}(#{argRtDefs})#{rt and ' -> ' .. rt or ''};"
 						rustBinding[] = if isSingleton
 							rtOut = rtTypeOut or rt
-							item = "unsafe { #{cppFuncName}(#{argRtPass}) }"
-							"\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\t#{prefix}#{rtCastFrom and rtCastFrom(item) or item};\n\t}"
+							item = "#{cppFuncName}(#{argRtPass})"
+							"\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item}; }\n\t}"
 						else
 							rtOut = rtTypeOut or rt
 							slfParam = isConst and "&self" or "&mut self"
@@ -784,22 +962,23 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							if slfDecl ~= "" then argRtInDefs = slfDecl .. (argRtInDefs ~= "" and ", " or "") .. argRtInDefs
 							slf = isStatic and "" or "self.raw()"
 							if slf ~= "" then argRtPass = slf .. (argRtPass ~= "" and ", " or "") .. argRtPass
-							item = "unsafe { #{cppFuncName}(#{argRtPass}) }"
+							item = "#{cppFuncName}(#{argRtPass})"
 							if funcNewName == "equals"
 								table.insert rustBinding, objectUsed and objectUsed + 1 or 2, "impl PartialEq for Rect {
-	fn eq(&self, other: &Self) -> bool {\n#{argRtPrepare}\t\t#{prefix}#{rtCastFrom and rtCastFrom(item) or item}\n\t}
+	fn eq(&self, other: &Self) -> bool {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item} }\n\t}
 }"
 								nil
 							else
-								"\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\t#{prefix}#{rtCastFrom and rtCastFrom(item) or item};\n\t}"
+								"\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item}; }\n\t}"
 					else
 						error "\"#{dataType}\" is not supported."
 		if objectUsed
 			table.remove rustBinding, objectUsed
 		rustExtern[] = "}"
 		if isTrait
-			createFuncs = [item for item in *rustBinding when item\match("fn new") or item\match("fn with")]
-			rustBinding = [item for item in *rustBinding when not item\match("fn new") and not item\match("fn with")]
+			isStaticFunc = (item)-> item\match("fn ") and not item\match("&self") and not item\match("&mut self")
+			createFuncs = [item for item in *rustBinding when isStaticFunc item]
+			rustBinding = [item for item in *rustBinding when not isStaticFunc item]
 			if #createFuncs > 0
 				rustBinding[] = "}"
 				rustBinding[] = "impl #{clsNewName} {"
@@ -807,11 +986,13 @@ impl I#{clsNewName} for #{clsNewName} { }"
 					rustBinding[] = func
 		rustBinding[] = "}"
 		cppLink[] = "}"
-		close _f1 = with io.open "../../Source/Wasm/Dora/#{clsName}Wasm.hpp", "w"
+		moduleScope = table.concat moduleScopes, "/"
+		close _f1 = with io.open "../../Source/Wasm/Dora/#{moduleScope ~= '' and moduleScope .. "/" .. cppModuleName or cppModuleName}Wasm.hpp", "w"
 			\write table.concat cppBinding, "\n"
 			\write "\n"
 			\write table.concat cppLink, "\n"
-		close _f2 = with io.open "../dora-rust/src/dora/#{moduleName}.rs", "w"
+		moduleScope = table.concat [toCamelCase(mod) for mod in *moduleScopes], "/"
+		close _f2 = with io.open "../dora-rust/src/dora/#{moduleScope ~= '' and moduleScope .. "/" .. moduleName or moduleName}.rs", "w"
 			\write table.concat rustExtern, "\n"
 			\write "\n"
 			\write table.concat rustBinding, "\n"
@@ -819,5 +1000,5 @@ impl I#{clsNewName} for #{clsNewName} { }"
 		rustBinding = {}
 		cppBinding = {}
 		cppLink = {}
-	print "Done!"
+	print "#{clsCount} classes, #{funcCount} functions Done!"
 

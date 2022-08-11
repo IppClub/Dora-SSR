@@ -35,43 +35,43 @@ impl Content {
 		return unsafe { crate::dora::to_string(content_get_writable_path()) };
 	}
 	pub fn save(filename: &str, content: &str) {
-		unsafe { content_save(crate::dora::from_string(filename), crate::dora::from_string(content)) };
+		unsafe { content_save(crate::dora::from_string(filename), crate::dora::from_string(content)); }
 	}
 	pub fn exist(filename: &str) -> bool {
-		return unsafe { content_exist(crate::dora::from_string(filename)) } != 0;
+		unsafe { return content_exist(crate::dora::from_string(filename)) != 0; }
 	}
 	pub fn mkdir(path: &str) -> bool {
-		return unsafe { content_mkdir(crate::dora::from_string(path)) } != 0;
+		unsafe { return content_mkdir(crate::dora::from_string(path)) != 0; }
 	}
 	pub fn isdir(path: &str) -> bool {
-		return unsafe { content_isdir(crate::dora::from_string(path)) } != 0;
+		unsafe { return content_isdir(crate::dora::from_string(path)) != 0; }
 	}
 	pub fn remove(path: &str) -> bool {
-		return unsafe { content_remove(crate::dora::from_string(path)) } != 0;
+		unsafe { return content_remove(crate::dora::from_string(path)) != 0; }
 	}
 	pub fn get_full_path(filename: &str) -> String {
-		return crate::dora::to_string(unsafe { content_get_full_path(crate::dora::from_string(filename)) });
+		unsafe { return crate::dora::to_string(content_get_full_path(crate::dora::from_string(filename))); }
 	}
 	pub fn add_search_path(path: &str) {
-		unsafe { content_add_search_path(crate::dora::from_string(path)) };
+		unsafe { content_add_search_path(crate::dora::from_string(path)); }
 	}
 	pub fn insert_search_path(index: i32, path: &str) {
-		unsafe { content_insert_search_path(index, crate::dora::from_string(path)) };
+		unsafe { content_insert_search_path(index, crate::dora::from_string(path)); }
 	}
 	pub fn remove_search_path(path: &str) {
-		unsafe { content_remove_search_path(crate::dora::from_string(path)) };
+		unsafe { content_remove_search_path(crate::dora::from_string(path)); }
 	}
 	pub fn clear_path_cache() {
-		unsafe { content_clear_path_cache() };
+		unsafe { content_clear_path_cache(); }
 	}
 	pub fn get_dirs(path: &str) -> Vec<String> {
-		return crate::dora::Vector::to_str(unsafe { content_get_dirs(crate::dora::from_string(path)) });
+		unsafe { return crate::dora::Vector::to_str(content_get_dirs(crate::dora::from_string(path))); }
 	}
 	pub fn get_files(path: &str) -> Vec<String> {
-		return crate::dora::Vector::to_str(unsafe { content_get_files(crate::dora::from_string(path)) });
+		unsafe { return crate::dora::Vector::to_str(content_get_files(crate::dora::from_string(path))); }
 	}
 	pub fn get_all_files(path: &str) -> Vec<String> {
-		return crate::dora::Vector::to_str(unsafe { content_get_all_files(crate::dora::from_string(path)) });
+		unsafe { return crate::dora::Vector::to_str(content_get_all_files(crate::dora::from_string(path))); }
 	}
 	pub fn load_async(filename: &str, mut callback: Box<dyn FnMut(&str)>) {
 		let mut stack = crate::dora::CallStack::new();
@@ -79,18 +79,18 @@ impl Content {
 		let func_id = crate::dora::push_function(Box::new(move || {
 			callback(stack.pop_str().unwrap().as_str())
 		}));
-		unsafe { content_load_async(crate::dora::from_string(filename), func_id, stack_raw) };
+		unsafe { content_load_async(crate::dora::from_string(filename), func_id, stack_raw); }
 	}
 	pub fn copy_async(src_file: &str, target_file: &str, mut callback: Box<dyn FnMut()>) {
 		let func_id = crate::dora::push_function(Box::new(move || {
 			callback()
 		}));
-		unsafe { content_copy_async(crate::dora::from_string(src_file), crate::dora::from_string(target_file), func_id) };
+		unsafe { content_copy_async(crate::dora::from_string(src_file), crate::dora::from_string(target_file), func_id); }
 	}
 	pub fn save_async(filename: &str, content: &str, mut callback: Box<dyn FnMut()>) {
 		let func_id = crate::dora::push_function(Box::new(move || {
 			callback()
 		}));
-		unsafe { content_save_async(crate::dora::from_string(filename), crate::dora::from_string(content), func_id) };
+		unsafe { content_save_async(crate::dora::from_string(filename), crate::dora::from_string(content), func_id); }
 	}
 }

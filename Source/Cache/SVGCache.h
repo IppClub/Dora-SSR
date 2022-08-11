@@ -34,6 +34,9 @@ public:
 	PROPERTY_READONLY(float, Width);
 	PROPERTY_READONLY(float, Height);
 	void render();
+	static SVGDef* from(String filename);
+protected:
+	SVGDef() { }
 	CREATE_FUNC(SVGDef);
 private:
 	float _width = 0.0f;

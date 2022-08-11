@@ -8,12 +8,20 @@ extern "C" {
 	fn camera2d_get_position(slf: i64) -> i64;
 	fn camera2d_new(name: i64) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 use crate::dora::ICamera;
 impl ICamera for Camera2D { }
 pub struct Camera2D { raw: i64 }
 crate::dora_object!(Camera2D);
 impl Camera2D {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { camera2d_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Camera2D { raw: raw }))
+			}
+		})
+	}
 	pub fn set_rotation(&mut self, var: f32) {
 		unsafe { camera2d_set_rotation(self.raw(), var) };
 	}
@@ -33,6 +41,6 @@ impl Camera2D {
 		return unsafe { crate::dora::Vec2::from(camera2d_get_position(self.raw())) };
 	}
 	pub fn new(name: &str) -> Camera2D {
-		return Camera2D { raw: unsafe { camera2d_new(crate::dora::from_string(name)) } };
+		unsafe { return Camera2D { raw: camera2d_new(crate::dora::from_string(name)) }; }
 	}
 }

@@ -4,10 +4,18 @@ extern "C" {
 	fn entitygroup_find(slf: i64, func: i32, stack: i64) -> i64;
 	fn entitygroup_new(components: i64) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 pub struct Group { raw: i64 }
 crate::dora_object!(Group);
 impl Group {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { group_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Group { raw: raw }))
+			}
+		})
+	}
 	pub fn get_count(&self) -> i32 {
 		return unsafe { entitygroup_get_count(self.raw()) };
 	}
@@ -18,9 +26,9 @@ impl Group {
 			let result = func(&stack.pop_cast::<crate::dora::Entity>().unwrap());
 			stack.push_bool(result);
 		}));
-		return crate::dora::Entity::from(unsafe { entitygroup_find(self.raw(), func_id, stack_raw) });
+		unsafe { return crate::dora::Entity::from(entitygroup_find(self.raw(), func_id, stack_raw)); }
 	}
 	pub fn new(components: &Vec<&str>) -> Group {
-		return Group { raw: unsafe { entitygroup_new(crate::dora::Vector::from_str(components)) } };
+		unsafe { return Group { raw: entitygroup_new(crate::dora::Vector::from_str(components)) }; }
 	}
 }

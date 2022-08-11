@@ -32,6 +32,7 @@ public:
 	virtual const Matrix& getWorld() override;
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
+	static Grid* from(String clipStr, uint32_t gridX, uint32_t gridY);
 	CREATE_FUNC(Grid);
 protected:
 	Grid(float width, float height, uint32_t gridX, uint32_t gridY);

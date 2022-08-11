@@ -236,6 +236,32 @@ static std::vector<ActionDef> from_action_def_vec(int64_t var)
 	return vs;
 }
 
+static std::vector<Platformer::Behavior::Leaf*> from_btree_vec(int64_t var)
+{
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	auto vecInt = std::get<std::vector<int64_t>>(*vec);
+	std::vector<Platformer::Behavior::Leaf*> vs;
+	vs.reserve(vecInt.size());
+	for (auto item : vecInt)
+	{
+		vs.push_back(r_cast<Platformer::Behavior::Leaf*>(item));
+	}
+	return vs;
+}
+
+static std::vector<Platformer::Decision::Leaf*> from_dtree_vec(int64_t var)
+{
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	auto vecInt = std::get<std::vector<int64_t>>(*vec);
+	std::vector<Platformer::Decision::Leaf*> vs;
+	vs.reserve(vecInt.size());
+	for (auto item : vecInt)
+	{
+		vs.push_back(r_cast<Platformer::Decision::Leaf*>(item));
+	}
+	return vs;
+}
+
 static int32_t object_get_id(int64_t obj)
 {
 	return s_cast<int32_t>(r_cast<Object*>(obj)->getId());
@@ -851,13 +877,6 @@ static Pass* effect_get_pass(Effect* self, size_t index)
 	return nullptr;
 }
 
-// Sprite
-
-static Sprite* sprite_create(String clipStr)
-{
-	return SharedClipCache.loadSprite(clipStr);
-}
-
 // Action
 
 #define action_def_prop PropertyAction::alloc
@@ -871,20 +890,6 @@ static Sprite* sprite_create(String clipStr)
 #define action_def_emit Emit::alloc
 #define action_def_move Move::alloc
 #define action_def_scale Scale::alloc
-
-// Grid
-
-static Grid* grid_create(String clipStr, uint32_t gridX, uint32_t gridY)
-{
-	Texture2D* tex = nullptr;
-	Rect rect;
-	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
-	if (tex)
-	{
-		return Grid::create(tex, rect, gridX, gridY);
-	}
-	return nullptr;
-}
 
 // Model
 
@@ -984,6 +989,159 @@ std::vector<std::string> dragon_bone_get_animation_names(String boneStr)
 	return std::vector<std::string>();
 }
 
+// QLearner
+
+#define MLBuildDecisionTreeAsync ML::BuildDecisionTreeAsync
+using MLQLearner = ML::QLearner;
+
+// Behavior
+
+#define BSeq Platformer::Behavior::Seq
+#define BSel Platformer::Behavior::Sel
+#define BCon Platformer::Behavior::Con
+#define BAct Platformer::Behavior::Act
+#define BCommand Platformer::Behavior::Command
+#define BWait Platformer::Behavior::Wait
+#define BCountdown Platformer::Behavior::Countdown
+#define BTimeout Platformer::Behavior::Timeout
+#define BRepeat Platformer::Behavior::Repeat
+#define BRetry Platformer::Behavior::Retry
+
+// Decision
+
+#define DSeq Platformer::Decision::Sel
+#define DSel Platformer::Decision::Seq
+#define DCon Platformer::Decision::Con
+#define DAct Platformer::Decision::Act
+#define DAccept Platformer::Decision::Accept
+#define DReject Platformer::Decision::Reject
+#define DBehave Platformer::Decision::Behave
+
+// DB
+
+struct DBRecord
+{
+	void add(Array* params)
+	{
+		auto& record = records.emplace_back();
+		for (size_t i = 0; i < params->getCount(); ++i)
+		{
+			record.emplace_back(params->get(i)->clone());
+		}
+	}
+	bool read(Array* record)
+	{
+		if (records.empty()) return false;
+		for (auto& value : records.front())
+		{
+			record->add(std::move(value));
+		}
+		records.pop_front();
+		return true;
+	}
+	std::deque<std::vector<Own<Value>>> records;
+};
+struct DBQuery
+{
+	void addWithParams(String sql, DBRecord& record)
+	{
+		auto& query = queries.emplace_back();
+		query.first = sql;
+		for (auto& rec : record.records)
+		{
+			query.second.emplace_back(std::move(rec));
+		}
+	}
+	void add(String sql)
+	{
+		auto& query = queries.emplace_back();
+		query.first = sql;
+	}
+	std::list<std::pair<std::string, std::vector<std::vector<Own<Value>>>>> queries;
+};
+static bool db_do_transaction(DBQuery& query)
+{
+	return SharedDB.transaction([&]()
+	{
+		for (const auto& sql : query.queries)
+		{
+			if (sql.second.empty())
+			{
+				SharedDB.exec(sql.first);
+			}
+			else
+			{
+				for (const auto& arg : sql.second)
+				{
+					SharedDB.exec(sql.first, arg);
+				}
+			}
+		}
+	});
+}
+static DBRecord db_do_query(String sql, bool withColumns)
+{
+	std::vector<Own<Value>> args;
+	auto result = SharedDB.query(sql, args, withColumns);
+	DBRecord record;
+	record.records = std::move(result);
+	return record;
+}
+static DBRecord db_do_query_with_params(String sql, Array* param, bool withColumns)
+{
+	std::vector<Own<Value>> args;
+	for (size_t i = 0; i < param->getCount(); ++i)
+	{
+		args.emplace_back(param->get(i)->clone());
+	}
+	auto result = SharedDB.query(sql, args, withColumns);
+	DBRecord record;
+	record.records = std::move(result);
+	return record;
+}
+static void db_do_insert(String tableName, const DBRecord& record)
+{
+	SharedDB.insert(tableName, record.records);
+}
+static int32_t db_do_exec_with_params(String sql, Array* param)
+{
+	std::vector<Own<Value>> args;
+	for (size_t i = 0; i < param->getCount(); ++i)
+	{
+		args.emplace_back(param->get(i)->clone());
+	}
+	return SharedDB.exec(sql, args);
+}
+static void db_do_query_with_params_async(String sql, Array* param, bool withColumns, const std::function<void(DBRecord& result)>& callback)
+{
+	std::vector<Own<Value>> args;
+	for (size_t i = 0; i < param->getCount(); ++i)
+	{
+		args.emplace_back(param->get(i)->clone());
+	}
+	SharedDB.queryAsync(sql, std::move(args), withColumns, [callback](std::deque<std::vector<Own<Value>>>& result)
+	{
+		DBRecord record{std::move(result)};
+		callback(record);
+	});
+}
+static void db_do_insert_async(String tableName, DBRecord& record, const std::function<void(bool)>& callback)
+{
+	SharedDB.insertAsync(tableName, std::move(record.records), callback);
+}
+static void db_do_exec_async(String sql, Array* param, const std::function<void(int64_t)>& callback)
+{
+	std::vector<Own<Value>> args;
+	for (size_t i = 0; i < param->getCount(); ++i)
+	{
+		args.emplace_back(param->get(i)->clone());
+	}
+	SharedDB.execAsync(sql, std::move(args), [callback](int rows)
+	{
+		callback(s_cast<int64_t>(rows));
+	});
+}
+
 #include "Dora/ArrayWasm.hpp"
 #include "Dora/DictionaryWasm.hpp"
 #include "Dora/RectWasm.hpp"
@@ -1010,7 +1168,10 @@ std::vector<std::string> dragon_bone_get_animation_names(String boneStr)
 #include "Dora/SpriteWasm.hpp"
 #include "Dora/GridWasm.hpp"
 #include "Dora/TouchWasm.hpp"
+#include "Dora/EaseWasm.hpp"
 #include "Dora/LabelWasm.hpp"
+#include "Dora/RenderTargetWasm.hpp"
+#include "Dora/ClipNodeWasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/DrawNodeWasm.hpp"
 #include "Dora/LineWasm.hpp"
@@ -1019,6 +1180,36 @@ std::vector<std::string> dragon_bone_get_animation_names(String boneStr)
 #include "Dora/ModelWasm.hpp"
 #include "Dora/SpineWasm.hpp"
 #include "Dora/DragonBoneWasm.hpp"
+#include "Dora/PhysicsWorldWasm.hpp"
+#include "Dora/FixtureDefWasm.hpp"
+#include "Dora/BodyDefWasm.hpp"
+#include "Dora/SensorWasm.hpp"
+#include "Dora/BodyWasm.hpp"
+#include "Dora/JointDefWasm.hpp"
+#include "Dora/JointWasm.hpp"
+#include "Dora/MotorJointWasm.hpp"
+#include "Dora/MoveJointWasm.hpp"
+#include "Dora/CacheWasm.hpp"
+#include "Dora/AudioWasm.hpp"
+#include "Dora/KeyboardWasm.hpp"
+#include "Dora/SVGDefWasm.hpp"
+#include "Dora/DBWasm.hpp"
+#include "Dora/C45Wasm.hpp"
+#include "Dora/MLQLearnerWasm.hpp"
+#include "Dora/Platformer/TargetAllowWasm.hpp"
+#include "Dora/Platformer/FaceWasm.hpp"
+#include "Dora/Platformer/BulletDefWasm.hpp"
+#include "Dora/Platformer/BulletWasm.hpp"
+#include "Dora/Platformer/VisualWasm.hpp"
+#include "Dora/Platformer/Behavior/BlackboardWasm.hpp"
+#include "Dora/Platformer/Behavior/LeafWasm.hpp"
+#include "Dora/Platformer/Decision/AIWasm.hpp"
+#include "Dora/Platformer/Decision/LeafWasm.hpp"
+#include "Dora/Platformer/UnitActionWasm.hpp"
+#include "Dora/Platformer/UnitWasm.hpp"
+#include "Dora/Platformer/PlatformCameraWasm.hpp"
+#include "Dora/Platformer/PlatformWorldWasm.hpp"
+#include "Dora/Platformer/DataWasm.hpp"
 
 static void linkAutoModule(wasm3::module& mod)
 {
@@ -1030,8 +1221,8 @@ static void linkAutoModule(wasm3::module& mod)
 	linkEntity(mod);
 	linkEntityGroup(mod);
 	linkEntityObserver(mod);
-	linkPath(mod);
 	linkContent(mod);
+	linkPath(mod);
 	linkScheduler(mod);
 	linkCamera(mod);
 	linkCamera2D(mod);
@@ -1048,7 +1239,10 @@ static void linkAutoModule(wasm3::module& mod)
 	linkSprite(mod);
 	linkGrid(mod);
 	linkTouch(mod);
+	linkEase(mod);
 	linkLabel(mod);
+	linkRenderTarget(mod);
+	linkClipNode(mod);
 	linkVertexColor(mod);
 	linkDrawNode(mod);
 	linkLine(mod);
@@ -1057,6 +1251,36 @@ static void linkAutoModule(wasm3::module& mod)
 	linkModel(mod);
 	linkSpine(mod);
 	linkDragonBone(mod);
+	linkPhysicsWorld(mod);
+	linkFixtureDef(mod);
+	linkBodyDef(mod);
+	linkSensor(mod);
+	linkBody(mod);
+	linkJointDef(mod);
+	linkJoint(mod);
+	linkMoveJoint(mod);
+	linkMotorJoint(mod);
+	linkCache(mod);
+	linkAudio(mod);
+	linkKeyboard(mod);
+	linkSVGDef(mod);
+	linkDB(mod);
+	linkC45(mod);
+	linkMLQLearner(mod);
+	linkPlatformerTargetAllow(mod);
+	linkPlatformerFace(mod);
+	linkPlatformerBulletDef(mod);
+	linkPlatformerBullet(mod);
+	linkPlatformerVisual(mod);
+	linkPlatformerBehaviorBlackboard(mod);
+	linkPlatformerBehaviorLeaf(mod);
+	linkPlatformerDecisionAI(mod);
+	linkPlatformerDecisionLeaf(mod);
+	linkPlatformerUnitAction(mod);
+	linkPlatformerUnit(mod);
+	linkPlatformerPlatformCamera(mod);
+	linkPlatformerPlatformWorld(mod);
+	linkPlatformerData(mod);
 }
 
 static void linkDoraModule(wasm3::module& mod)

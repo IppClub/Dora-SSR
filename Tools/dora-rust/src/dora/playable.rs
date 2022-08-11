@@ -17,7 +17,7 @@ extern "C" {
 	fn playable_get_slot(slf: i64, name: i64) -> i64;
 	fn playable_new(filename: i64) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for Playable { }
 pub struct Playable { raw: i64 }
@@ -55,23 +55,31 @@ pub trait IPlayable: INode {
 		return unsafe { crate::dora::to_string(playable_get_last_completed(self.raw())) };
 	}
 	fn get_key(&mut self, name: &str) -> crate::dora::Vec2 {
-		return crate::dora::Vec2::from(unsafe { playable_get_key(self.raw(), crate::dora::from_string(name)) });
+		unsafe { return crate::dora::Vec2::from(playable_get_key(self.raw(), crate::dora::from_string(name))); }
 	}
 	fn play(&mut self, name: &str, looping: bool) -> f32 {
-		return unsafe { playable_play(self.raw(), crate::dora::from_string(name), if looping { 1 } else { 0 }) };
+		unsafe { return playable_play(self.raw(), crate::dora::from_string(name), if looping { 1 } else { 0 }); }
 	}
 	fn stop(&mut self) {
-		unsafe { playable_stop(self.raw()) };
+		unsafe { playable_stop(self.raw()); }
 	}
 	fn set_slot(&mut self, name: &str, item: &dyn crate::dora::INode) {
-		unsafe { playable_set_slot(self.raw(), crate::dora::from_string(name), item.raw()) };
+		unsafe { playable_set_slot(self.raw(), crate::dora::from_string(name), item.raw()); }
 	}
 	fn get_slot(&mut self, name: &str) -> Option<crate::dora::Node> {
-		return crate::dora::Node::from(unsafe { playable_get_slot(self.raw(), crate::dora::from_string(name)) });
+		unsafe { return crate::dora::Node::from(playable_get_slot(self.raw(), crate::dora::from_string(name))); }
 	}
 }
 impl Playable {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { playable_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(Playable { raw: raw }))
+			}
+		})
+	}
 	pub fn new(filename: &str) -> Option<Playable> {
-		return Playable::from(unsafe { playable_new(crate::dora::from_string(filename)) });
+		unsafe { return Playable::from(playable_new(crate::dora::from_string(filename))); }
 	}
 }
