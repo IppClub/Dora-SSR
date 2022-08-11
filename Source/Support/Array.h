@@ -36,6 +36,7 @@ public:
 	void shrink();
 	size_t index(Value* value);
 	void set(size_t index, Own<Value>&& value);
+	Own<Value>& get(size_t index);
 	const Own<Value>& get(size_t index) const;
 	void insert(size_t index, Own<Value>&& value);
 	bool removeAt(size_t index);

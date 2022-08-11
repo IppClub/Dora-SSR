@@ -19,7 +19,7 @@ extern "C" {
 	fn director_clear_camera();
 	fn director_cleanup();
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 pub struct Director { }
 impl Director {
 	pub fn set_stat_display(var: bool) {
@@ -65,18 +65,18 @@ impl Director {
 		return unsafe { director_get_delta_time() };
 	}
 	pub fn push_camera(camera: &dyn crate::dora::ICamera) {
-		unsafe { director_push_camera(camera.raw()) };
+		unsafe { director_push_camera(camera.raw()); }
 	}
 	pub fn pop_camera() {
-		unsafe { director_pop_camera() };
+		unsafe { director_pop_camera(); }
 	}
 	pub fn remove_camera(camera: &dyn crate::dora::ICamera) -> bool {
-		return unsafe { director_remove_camera(camera.raw()) } != 0;
+		unsafe { return director_remove_camera(camera.raw()) != 0; }
 	}
 	pub fn clear_camera() {
-		unsafe { director_clear_camera() };
+		unsafe { director_clear_camera(); }
 	}
 	pub fn cleanup() {
-		unsafe { director_cleanup() };
+		unsafe { director_cleanup(); }
 	}
 }

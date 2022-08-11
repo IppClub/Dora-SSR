@@ -120,7 +120,9 @@ private:
 };
 
 Leaf* Sel(Leaf* nodes[], int count);
+Leaf* Sel(const std::vector<Leaf*>& nodes);
 Leaf* Seq(Leaf* nodes[], int count);
+Leaf* Seq(const std::vector<Leaf*>& nodes);
 Leaf* Con(String name, const std::function<bool(Unit*)>& handler);
 Leaf* Act(String actionName);
 Leaf* Act(const std::function<std::string(Unit*)>& handler);
@@ -303,7 +305,9 @@ private:
 };
 
 Leaf* Sel(Leaf* nodes[], int count);
+Leaf* Sel(const std::vector<Leaf*>& nodes);
 Leaf* Seq(Leaf* nodes[], int count);
+Leaf* Seq(const std::vector<Leaf*>& nodes);
 Leaf* Con(String name, const std::function<bool(Blackboard*)>& handler);
 Leaf* Act(String actionName);
 Leaf* Countdown(double time, Leaf* node);

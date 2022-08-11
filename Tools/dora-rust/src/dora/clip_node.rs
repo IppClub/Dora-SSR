@@ -8,12 +8,20 @@ extern "C" {
 	fn clipnode_is_inverted(slf: i64) -> i32;
 	fn clipnode_new(stencil: i64) -> i64;
 }
-use crate::dora::Object;
+use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for ClipNode { }
 pub struct ClipNode { raw: i64 }
 crate::dora_object!(ClipNode);
 impl ClipNode {
+	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { clipnode_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(ClipNode { raw: raw }))
+			}
+		})
+	}
 	pub fn set_stencil(&mut self, var: &dyn crate::dora::INode) {
 		unsafe { clipnode_set_stencil(self.raw(), var.raw()) };
 	}
@@ -33,6 +41,6 @@ impl ClipNode {
 		return unsafe { clipnode_is_inverted(self.raw()) != 0 };
 	}
 	pub fn new(stencil: &dyn crate::dora::INode) -> ClipNode {
-		return ClipNode { raw: unsafe { clipnode_new(stencil.raw()) } };
+		unsafe { return ClipNode { raw: clipnode_new(stencil.raw()) }; }
 	}
 }

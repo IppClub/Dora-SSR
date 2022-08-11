@@ -241,7 +241,7 @@ loadFuncs =
 		bodyDef = toDef data
 		:width, :height = data.size
 		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, width, height, data.center
+			bodyDef\attachPolygonSensor data.sensorTag, data.center, width, height
 		else
 			bodyDef\attachPolygon(
 				data.center, width, height, 0,
@@ -291,7 +291,7 @@ loadFuncs =
 	"Phyx.SubRect": (data, bodyDef)->
 		:width, :height = data.size
 		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, width, height, data.center
+			bodyDef\attachPolygonSensor data.sensorTag, data.center, width, height
 		else
 			bodyDef\attachPolygon(
 				data.center, width, height,

@@ -42,7 +42,6 @@ static void rendertarget_save_async(int64_t self, int64_t filename, int32_t func
 	});
 	r_cast<RenderTarget*>(self)->saveAsync(*str_from(filename), [func, deref]()
 	{
-
 		SharedWasmRuntime.invoke(func);
 	});
 }

@@ -455,7 +455,7 @@ class Sprite : public Node
 	static Sprite* create();
 	static Sprite* create(Texture2D* texture, Rect textureRect);
 	static Sprite* create(Texture2D* texture);
-	static tolua_outside Sprite* Sprite_create @ create(String clipStr);
+	static Sprite* from @ create(String clipStr);
 };
 
 class Grid : public Node
@@ -473,7 +473,7 @@ class Grid : public Node
 	static Grid* create(float width, float height, uint32_t gridX, uint32_t gridY);
 	static Grid* create(Texture2D* texture, Rect textureRect, uint32_t gridX, uint32_t gridY);
 	static Grid* create(Texture2D* texture, uint32_t gridX, uint32_t gridY);
-	static tolua_outside Grid* Grid_create @ create(String clipStr, uint32_t gridX, uint32_t gridY);
+	static Grid* from @ create(String clipStr, uint32_t gridX, uint32_t gridY);
 };
 
 class Touch : public Object
@@ -771,9 +771,9 @@ class BodyDef : public Object
 		float height);
 	void attachPolygonSensor(
 		int tag,
+		Vec2 center,
 		float width,
 		float height,
-		Vec2 center,
 		float angle = 0.0f);
 	void attachPolygonSensor(
 		int tag,
@@ -1060,7 +1060,7 @@ class SVGDef @ SVG : public Object
 	tolua_readonly tolua_property__common float width;
 	tolua_readonly tolua_property__common float height;
 	void render();
-	static tolua_outside SVGDef* SVGDef_create @ create(String filename);
+	static SVGDef* from @ create(String filename);
 };
 
 class DB
@@ -1136,7 +1136,7 @@ class Bullet : public Body
 	tolua_readonly tolua_property__common BulletDef* bulletDef;
 	tolua_property__common Node* face;
 	void destroy();
-	static tolua_outside Bullet* Bullet_create @ create(BulletDef* def, Unit* owner);
+	static Bullet* create(BulletDef* def, Unit* owner);
 };
 
 class Visual : public Node
@@ -1275,9 +1275,9 @@ class PlatformWorld : public PhysicsWorld
 	void moveChild(Node* child, int newOrder);
 	Node* getLayer(int order);
 	void setLayerRatio(int order, Vec2 ratio);
-	const Vec2& getLayerRatio(int order);
+	Vec2 getLayerRatio(int order);
 	void setLayerOffset(int order, Vec2 offset);
-	const Vec2& getLayerOffset(int order);
+	Vec2 getLayerOffset(int order);
 	void swapLayer(int orderA, int orderB);
 	void removeLayer(int order);
 	void removeAllLayers();

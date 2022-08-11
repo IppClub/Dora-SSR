@@ -37,7 +37,7 @@ extern "C" {
 }
 impl PartialEq for Rect {
 	fn eq(&self, other: &Self) -> bool {
-		return unsafe { rect_equals(self.raw(), other.raw()) } != 0
+		unsafe { return rect_equals(self.raw(), other.raw()) != 0 }
 	}
 }
 pub struct Rect { raw: i64 }
@@ -136,18 +136,18 @@ impl Rect {
 		return unsafe { crate::dora::Vec2::from(rect_get_upper_bound(self.raw())) };
 	}
 	pub fn set(&mut self, x: f32, y: f32, width: f32, height: f32) {
-		unsafe { rect_set(self.raw(), x, y, width, height) };
+		unsafe { rect_set(self.raw(), x, y, width, height); }
 	}
 	pub fn contains_point(&self, point: &crate::dora::Vec2) -> bool {
-		return unsafe { rect_contains_point(self.raw(), point.into_i64()) } != 0;
+		unsafe { return rect_contains_point(self.raw(), point.into_i64()) != 0; }
 	}
 	pub fn intersects_rect(&self, rect: &crate::dora::Rect) -> bool {
-		return unsafe { rect_intersects_rect(self.raw(), rect.raw()) } != 0;
+		unsafe { return rect_intersects_rect(self.raw(), rect.raw()) != 0; }
 	}
 	pub fn new(origin: &crate::dora::Vec2, size: &crate::dora::Size) -> crate::dora::Rect {
-		return crate::dora::Rect::from(unsafe { rect_new(origin.into_i64(), size.into_i64()) });
+		unsafe { return crate::dora::Rect::from(rect_new(origin.into_i64(), size.into_i64())); }
 	}
 	pub fn zero() -> crate::dora::Rect {
-		return crate::dora::Rect::from(unsafe { rect_zero() });
+		unsafe { return crate::dora::Rect::from(rect_zero()); }
 	}
 }

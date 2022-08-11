@@ -40,6 +40,11 @@ void SVGDef::render()
 	}
 }
 
+SVGDef* SVGDef::from(String filename)
+{
+	return SharedSVGCache.load(filename);
+}
+
 static void get(String value, Rect& rect)
 {
 	auto tokens = value.split(" ");

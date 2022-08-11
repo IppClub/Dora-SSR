@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Grid.h"
 #include "Effect/Effect.h"
 #include "Basic/Director.h"
+#include "Cache/ClipCache.h"
 
 NS_DOROTHY_BEGIN
 
@@ -288,6 +289,18 @@ void Grid::updateRealOpacity()
 {
 	Node::updateRealOpacity();
 	_flags.setOn(Grid::VertexColorDirty);
+}
+
+Grid* Grid::from(String clipStr, uint32_t gridX, uint32_t gridY)
+{
+	Texture2D* tex = nullptr;
+	Rect rect;
+	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
+	if (tex)
+	{
+		return Grid::create(tex, rect, gridX, gridY);
+	}
+	return nullptr;
 }
 
 NS_DOROTHY_END

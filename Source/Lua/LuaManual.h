@@ -68,21 +68,7 @@ inline void Grabber_setColor(Node::Grabber* self, uint32_t x, uint32_t y, Color 
 inline void Grabber_moveUV(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 offset)
 	{ self->moveUV(x - 1, y - 1, offset); }
 
-/* Cache */
-struct Cache
-{
-	static bool load(String filename);
-	static void loadAsync(String filename, const std::function<void()>& callback);
-	static void update(String filename, String content);
-	static void update(String filename, Texture2D* texture);
-	static void unload();
-	static bool unload(String name);
-	static void removeUnused();
-	static void removeUnused(String type);
-};
-
 /* Sprite */
-Sprite* Sprite_create(String clipStr);
 int Sprite_GetUWrap(lua_State* L);
 int Sprite_SetUWrap(lua_State* L);
 int Sprite_GetVWrap(lua_State* L);
@@ -91,7 +77,6 @@ int Sprite_GetTextureFilter(lua_State* L);
 int Sprite_SetTextureFilter(lua_State* L);
 
 /* Grid */
-Grid* Grid_create(String clipStr, uint32_t gridX, uint32_t gridY);
 inline void Grid_setPos(Grid* self, uint32_t x, uint32_t y, Vec2 pos, float z)
 	{ self->setPos(x - 1, y - 1, pos, z); }
 inline Vec2 Grid_getPos(Grid* self, uint32_t x, uint32_t y)
@@ -235,9 +220,6 @@ int EntityGroup_watch(lua_State* L);
 EntityObserver* EntityObserver_create(String option, Slice components[], int count);
 int EntityObserver_watch(lua_State* L);
 
-/* SVGDef */
-SVGDef* SVGDef_create(String filename);
-
 /* QLearner */
 int QLearner_pack(lua_State* L);
 int QLearner_unpack(lua_State* L);
@@ -261,9 +243,6 @@ float AI_getNearestUnitDistance(Decision::AI* self, String relation);
 /* Blackboard */
 int Blackboard_get(lua_State* L);
 int Blackboard_set(lua_State* L);
-
-/* Bullet */
-Bullet* Bullet_create(BulletDef* def, Unit* unit);
 
 /* Data */
 inline Data* Data_shared() { return &SharedData; }

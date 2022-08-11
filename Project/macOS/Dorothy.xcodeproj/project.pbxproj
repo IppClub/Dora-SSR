@@ -175,6 +175,7 @@
 		3C46E8612614227300DC9D4F /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C46E8502614227200DC9D4F /* Object.cpp */; };
 		3C46E8622614227300DC9D4F /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C46E8512614227200DC9D4F /* VGRender.cpp */; };
 		3C46E8632614227300DC9D4F /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C46E8562614227300DC9D4F /* Content.mm */; };
+		3C47CF1128A356B40011F3E1 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C47CF1028A356B40011F3E1 /* Cache.cpp */; };
 		3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE120EF609600E775D7 /* nanovg.cpp */; };
 		3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE720EF609700E775D7 /* nanovg_bgfx.cpp */; };
 		3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFEE20EF644900E775D7 /* stb.cpp */; };
@@ -841,6 +842,8 @@
 		3C46E8542614227300DC9D4F /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Basic/Renderer.h; sourceTree = "<group>"; };
 		3C46E8552614227300DC9D4F /* Scheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Scheduler.h; path = ../../../Source/Basic/Scheduler.h; sourceTree = "<group>"; };
 		3C46E8562614227300DC9D4F /* Content.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Content.mm; path = ../../../Source/Basic/Content.mm; sourceTree = "<group>"; };
+		3C47CF0F28A356B30011F3E1 /* Cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cache.h; path = ../../../Source/Cache/Cache.h; sourceTree = "<group>"; };
+		3C47CF1028A356B40011F3E1 /* Cache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cache.cpp; path = ../../../Source/Cache/Cache.cpp; sourceTree = "<group>"; };
 		3C49FFE120EF609600E775D7 /* nanovg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = nanovg.cpp; path = ../../../Source/3rdParty/nanovg/nanovg.cpp; sourceTree = "<group>"; };
 		3C49FFE220EF609600E775D7 /* vs_nanovg_fill.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vs_nanovg_fill.bin.h; path = ../../../Source/3rdParty/nanovg/vs_nanovg_fill.bin.h; sourceTree = "<group>"; };
 		3C49FFE320EF609700E775D7 /* fontstash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fontstash.h; path = ../../../Source/3rdParty/nanovg/fontstash.h; sourceTree = "<group>"; };
@@ -2306,6 +2309,8 @@
 		3CC0986B1E2630D5006F4B76 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C47CF1028A356B40011F3E1 /* Cache.cpp */,
+				3C47CF0F28A356B30011F3E1 /* Cache.h */,
 				3CFEBDA1268DB403006D9974 /* DragonBoneCache.cpp */,
 				3CFEBDA0268DB403006D9974 /* DragonBoneCache.h */,
 				3C0D31182456C7F5009C592B /* AtlasCache.cpp */,
@@ -3407,6 +3412,7 @@
 				3C1A3AF2272A850F003A2829 /* lzio.c in Sources */,
 				3C3B98E926FDADDC00BD9F3E /* WorldJoint.cpp in Sources */,
 				3C46E83426140A8F00DC9D4F /* Savepoint.cpp in Sources */,
+				3C47CF1128A356B40011F3E1 /* Cache.cpp in Sources */,
 				3C3B981026FDAD5000BD9F3E /* CodeDumper.cpp in Sources */,
 				3C6E7F15272A30E700E9F115 /* soloud_bus.cpp in Sources */,
 				3CFEBD66268DA6D5006D9974 /* Constraint.cpp in Sources */,
