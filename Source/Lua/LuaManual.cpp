@@ -2385,6 +2385,82 @@ bool TargetAllow_isAllow(TargetAllow* self, String relation)
 	return self->isAllow(toRelation(relation));
 }
 
+/* UnitAction */
+
+LuaActionDef::LuaActionDef(
+	LuaFunction<bool> available,
+	LuaFunction<LuaFunction<bool>> create,
+	LuaFunction<void> stop):
+available(available),
+create(create),
+stop(stop)
+{ }
+
+Own<UnitAction> LuaActionDef::toAction(Unit* unit)
+{
+	LuaUnitAction* action = new LuaUnitAction(name, priority, queued, unit);
+	action->reaction = reaction;
+	action->recovery = recovery;
+	action->_available = available;
+	action->_create = create;
+	action->_stop = stop;
+	return MakeOwn(s_cast<UnitAction*>(action));
+}
+
+LuaUnitAction::LuaUnitAction(String name, int priority, bool queued, Unit* owner):
+UnitAction(name, priority, queued, owner)
+{ }
+
+bool LuaUnitAction::isAvailable()
+{
+	return _available(_owner, s_cast<UnitAction*>(this));
+}
+
+void LuaUnitAction::run()
+{
+	UnitAction::run();
+	if (auto playable = _owner->getPlayable())
+	{
+		playable->setRecovery(recovery);
+	}
+	_update = _create(_owner, s_cast<UnitAction*>(this));
+	if (_update(_owner, s_cast<UnitAction*>(this), 0.0f))
+	{
+		LuaUnitAction::stop();
+	}
+}
+
+void LuaUnitAction::update(float dt)
+{
+	if (_update && _update(_owner, s_cast<UnitAction*>(this), dt))
+	{
+		LuaUnitAction::stop();
+	}
+	UnitAction::update(dt);
+}
+
+void LuaUnitAction::stop()
+{
+	_update = nullptr;
+	_stop(_owner, s_cast<UnitAction*>(this));
+	UnitAction::stop();
+}
+
+void LuaUnitAction_add(
+	String name, int priority, float reaction, float recovery, bool queued,
+	LuaFunction<bool> available,
+	LuaFunction<LuaFunction<bool>> create,
+	LuaFunction<void> stop)
+{
+	UnitActionDef* actionDef = new LuaActionDef(available, create, stop);
+	actionDef->name = name;
+	actionDef->priority = priority;
+	actionDef->reaction = reaction;
+	actionDef->recovery = recovery;
+	actionDef->queued = queued;
+	UnitAction::add(name, MakeOwn(actionDef));
+}
+
 /* AI */
 
 Array* AI_getUnitsByRelation(Decision::AI* self, String relation)

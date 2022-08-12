@@ -10,6 +10,8 @@ mod visual;
 pub use visual::Visual;
 pub mod behavior;
 pub mod decision;
+mod action_update;
+pub use action_update::ActionUpdate;
 mod unit_action;
 pub use unit_action::UnitAction;
 mod unit;

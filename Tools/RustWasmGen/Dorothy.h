@@ -954,8 +954,11 @@ singleton class DB
 
 object class MLQLearner @ QLearner
 {
-	void update(uint64_t state, uint32_t action, double reward);
-	uint32_t getBestAction(uint64_t state);
+	void update(MLQState state, MLQAction action, double reward);
+	uint32_t getBestAction(MLQState state);
+	outside void ml_qlearner_visit_state_action_q @ visitMatrix(function<void(MLQState state, MLQAction action, double q)> handler);
+	static MLQState pack(VecUint32 hints, VecUint32 values);
+	static VecUint32 unpack(VecUint32 hints, MLQState state);
 	static QLearner* create(double gamma, double alpha, double maxQ);
 };
 
@@ -1074,6 +1077,11 @@ singleton class AI
 
 }
 
+value class WasmActionUpdate @ ActionUpdate
+{
+	static WasmActionUpdate create(function<bool(Platformer::Unit* owner, Platformer::UnitAction action, float deltaTime)> update);
+};
+
 class UnitAction
 {
 	float reaction;
@@ -1083,6 +1091,11 @@ class UnitAction
 	readonly common Platformer::Unit* owner;
 	readonly common float eclapsedTime;
 	static void clear();
+	static outside void platformer_wasm_unit_action_add @ add(
+		string name, int priority, float reaction, float recovery, bool queued,
+		function<bool(Platformer::Unit* owner, Platformer::UnitAction action)> available,
+		function<Platformer::WasmActionUpdate(Platformer::Unit* owner, Platformer::UnitAction action)> create,
+		function<void(Platformer::Unit* owner, Platformer::UnitAction action)> stop);
 };
 
 object class Unit : public IBody

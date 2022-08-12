@@ -8,11 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Lua/LuaHandler.h"
-
 NS_DOROTHY_BEGIN
 class Model;
 class Body;
+class Event;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -32,19 +31,13 @@ typedef Acf::Delegate<void (Unit* source, Unit* target, float damage)> DamageHan
 class UnitActionDef
 {
 public:
-	UnitActionDef(
-		LuaFunction<bool> available,
-		LuaFunction<LuaFunction<bool>> create,
-		LuaFunction<void> stop);
+	virtual ~UnitActionDef() { }
 	std::string name;
 	int priority = 0;
 	float reaction = 0;
 	float recovery = 0;
 	bool queued = false;
-	LuaFunction<bool> available;
-	LuaFunction<LuaFunction<bool>> create;
-	LuaFunction<void> stop;
-	Own<UnitAction> toAction(Unit* unit);
+	virtual Own<UnitAction> toAction(Unit* unit) = 0;
 };
 
 class UnitAction
@@ -65,15 +58,7 @@ public:
 	virtual void update(float dt);
 	virtual void stop();
 	static Own<UnitAction> alloc(String name, Unit* unit);
-	static void add(
-		String name,
-		int priority,
-		float reaction,
-		float recovery,
-		bool queued,
-		LuaFunction<bool> available,
-		LuaFunction<LuaFunction<bool>> create,
-		LuaFunction<void> stop);
+	static void add(String name, Own<UnitActionDef>&& actionDef);
 	static void clear();
 protected:
 	UnitAction(String name, int priority, bool queued, Unit* owner);
@@ -89,22 +74,6 @@ private:
 	std::string _name;
 	static std::unordered_map<std::string, Own<UnitActionDef>> _actionDefs;
 	friend class Unit;
-};
-
-class ScriptUnitAction : public UnitAction
-{
-public:
-	ScriptUnitAction(String name, int priority, bool queued, Unit* owner);
-	virtual bool isAvailable() override;
-	virtual void run() override;
-	virtual void update(float dt) override;
-	virtual void stop() override;
-private:
-	std::function<bool(Unit*,UnitAction*)> _available;
-	std::function<LuaFunction<bool>(Unit*,UnitAction*)> _create;
-	std::function<bool(Unit*,UnitAction*,float)> _update;
-	std::function<void(Unit*,UnitAction*)> _stop;
-	friend class UnitActionDef;
 };
 
 struct ActionSetting

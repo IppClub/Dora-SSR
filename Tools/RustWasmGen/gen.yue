@@ -38,8 +38,8 @@ basicTypes =
 		* "i32"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i32().unwrap()"
-		* (name)-> "stack.push_i32(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i32().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i32(#{name});"
 	uint16_t:
 		* "i32"
 		* (name)-> "s_cast<uint16_t>(#{name})"
@@ -48,8 +48,8 @@ basicTypes =
 		* "i32"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i32().unwrap()"
-		* (name)-> "stack.push_i32(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i32().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i32(#{name});"
 	uint32_t:
 		* "i32"
 		* (name)-> "s_cast<uint32_t>(#{name})"
@@ -58,8 +58,8 @@ basicTypes =
 		* "i32"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i32().unwrap()"
-		* (name)-> "stack.push_i32(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i32().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i32(#{name});"
 	int32_t:
 		* "i32"
 		* (name)-> "s_cast<int32_t>(#{name})"
@@ -68,8 +68,8 @@ basicTypes =
 		* "i32"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i32().unwrap()"
-		* (name)-> "stack.push_i32(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i32().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i32(#{name});"
 	int:
 		* "i32"
 		* (name)-> "s_cast<int>(#{name})"
@@ -78,8 +78,8 @@ basicTypes =
 		* "i32"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i32().unwrap()"
-		* (name)-> "stack.push_i32(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i32().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i32(#{name});"
 	uint64_t:
 		* "i64"
 		* (name)-> "s_cast<uint64_t>(#{name})"
@@ -88,8 +88,8 @@ basicTypes =
 		* "i64"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i64().unwrap()"
-		* (name)-> "stack.push_i64(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i64().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name});"
 	int64_t:
 		* "i64"
 		* (name)-> "s_cast<int64_t>(#{name})"
@@ -98,8 +98,8 @@ basicTypes =
 		* "i64"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i64().unwrap()"
-		* (name)-> "stack.push_i64(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i64().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name});"
 	size_t:
 		* "i64"
 		* (name)-> "s_cast<int64_t>(#{name})"
@@ -108,8 +108,8 @@ basicTypes =
 		* "i64"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_i64().unwrap()"
-		* (name)-> "stack.push_i64(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i64().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name});"
 	bool:
 		* "i32" -- passing type
 		* (name)-> "#{name} != 0" -- convert from cpp
@@ -118,8 +118,8 @@ basicTypes =
 		* "bool" -- function return type
 		* (name)-> "if #{name} { 1 } else { 0 }" -- convert from rust
 		* (name)-> "#{name} != 0" -- convert to rust
-		* "stack.pop_bool().unwrap()" -- callback return
-		* (name)-> "stack.push_bool(#{name});" -- callback pass in
+		* (fnArgId)-> "stack#{fnArgId}.pop_bool().unwrap()" -- callback return
+		* (name, fnArgId)-> "stack#{fnArgId}.push_bool(#{name});" -- callback pass in
 	float:
 		* "f32"
 		* (name)-> "s_cast<float>(#{name})"
@@ -128,8 +128,8 @@ basicTypes =
 		* "f32"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_f32().unwrap()"
-		* (name)-> "stack.push_f32(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_f32().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_f32(#{name});"
 	double:
 		* "f64"
 		* (name)-> "s_cast<double>(#{name})"
@@ -138,8 +138,8 @@ basicTypes =
 		* "f64"
 		* (name)-> name
 		* (name)-> name
-		* "stack.pop_f64().unwrap()"
-		* (name)-> "stack.push_f64(#{name});"
+		* (fnArgId)-> "stack#{fnArgId}.pop_f64().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_f64(#{name});"
 	string:
 		* "i64"
 		* (name)-> "*str_from(#{name})"
@@ -148,8 +148,8 @@ basicTypes =
 		* "String"
 		* (name)-> "crate::dora::from_string(#{name})"
 		* (name)-> "crate::dora::to_string(#{name})"
-		* "stack.pop_str().unwrap().as_str()"
-		* (name)-> "stack.push_str(#{name}.as_str());"
+		* (fnArgId)-> "stack#{fnArgId}.pop_str().unwrap().as_str()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_str(#{name}.as_str());"
 	Vec2:
 		* "i64"
 		* (name)-> "vec2_from(#{name})"
@@ -158,8 +158,8 @@ basicTypes =
 		* "crate::dora::Vec2"
 		* (name)-> "#{name}.into_i64()"
 		* (name)-> "crate::dora::Vec2::from(#{name})"
-		* "&stack.pop_vec2().unwrap()"
-		* (name)-> "stack.push_vec2(#{name});"
+		* (fnArgId)-> "&stack#{fnArgId}.pop_vec2().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_vec2(#{name});"
 	Size:
 		* "i64"
 		* (name)-> "size_from(#{name})"
@@ -168,8 +168,8 @@ basicTypes =
 		* "crate::dora::Size"
 		* (name)-> "#{name}.into_i64()"
 		* (name)-> "crate::dora::Size::from(#{name})"
-		* "&stack.pop_size().unwrap()"
-		* (name)-> "stack.push_size(#{name});"
+		* (fnArgId)-> "&stack#{fnArgId}.pop_size().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_size(#{name});"
 	Color:
 		* "i32"
 		* (name)-> "Color(s_cast<uint32_t>(#{name}))"
@@ -178,8 +178,8 @@ basicTypes =
 		* "crate::dora::Color"
 		* (name)-> "#{name}.to_argb() as i32"
 		* (name)-> "crate::dora::Color::from(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	Color3:
 		* "i32"
 		* (name)-> "Color3(s_cast<uint32_t>(#{name}))"
@@ -188,8 +188,8 @@ basicTypes =
 		* "crate::dora::Color3"
 		* (name)-> "#{name}.to_rgb() as i32"
 		* (name)-> "crate::dora::Color3::from(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	Rect:
 		* "i64"
 		* (name)-> "*r_cast<Rect*>(#{name})"
@@ -198,8 +198,28 @@ basicTypes =
 		* "crate::dora::Rect"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::Rect::from(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+	WasmActionUpdate:
+		* "i64"
+		* (name)-> "*r_cast<WasmActionUpdate*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new Platformer::WasmActionUpdate{#{name}})"
+		* "&crate::dora::platformer::ActionUpdate"
+		* "crate::dora::platformer::ActionUpdate"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::platformer::ActionUpdate::from(#{name})"
+		* (fnArgId)-> "crate::dora::platformer::ActionUpdate::from(stack#{fnArgId}.pop_i64().unwrap())"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name}.raw());"
+	"Platformer::WasmActionUpdate":
+		* "i64"
+		* (name)-> "*r_cast<WasmActionUpdate*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new Platformer::WasmActionUpdate{#{name}})"
+		* "&crate::dora::platformer::ActionUpdate"
+		* "crate::dora::platformer::ActionUpdate"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::platformer::ActionUpdate::from(#{name})"
+		* (fnArgId)-> "crate::dora::platformer::ActionUpdate::from(stack#{fnArgId}.pop_i64().unwrap())"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name}.raw());"
 	DBRecord:
 		* "i64"
 		* (name)-> "*r_cast<DBRecord*>(#{name})"
@@ -208,8 +228,8 @@ basicTypes =
 		* "crate::dora::DBRecord"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::DBRecord::from(#{name})"
-		* "crate::dora::DBRecord::from(stack.pop_i64().unwrap())"
-		* (name)-> error "unsupported"
+		* (fnArgId)-> "crate::dora::DBRecord::from(stack#{fnArgId}.pop_i64().unwrap())"
+		* -> error "unsupported"
 	DBQuery:
 		* "i64"
 		* (name)-> "*r_cast<DBQuery*>(#{name})"
@@ -218,8 +238,8 @@ basicTypes =
 		* "crate::dora::DBQuery"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::DBQuery::from(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VecStr:
 		* "i64"
 		* (name)-> "from_str_vec(#{name})"
@@ -228,8 +248,8 @@ basicTypes =
 		* "Vec<String>"
 		* (name)-> "crate::dora::Vector::from_str(#{name})"
 		* (name)-> "crate::dora::Vector::to_str(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VecVec2:
 		* "i64"
 		* (name)-> "from_vec2_vec(#{name})"
@@ -238,8 +258,18 @@ basicTypes =
 		* "Vec<crate::dora::Vec2>"
 		* (name)-> "crate::dora::Vector::from_vec2(#{name})"
 		* (name)-> "crate::dora::Vector::to_vec2(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+	VecUint32:
+		* "i64"
+		* (name)-> "from_uint32_vec(#{name})"
+		* (name)-> "to_vec(#{name})"
+		* "&Vec<i32>"
+		* "Vec<i32>"
+		* (name)-> "crate::dora::Vector::from_i32(#{name})"
+		* (name)-> "crate::dora::Vector::to_i32(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VertexColor:
 		* "i64"
 		* (name)-> "*r_cast<VertexColor*>(#{name})"
@@ -248,8 +278,8 @@ basicTypes =
 		* "crate::dora::VertexColor"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::VertexColor::from(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VecVertexColor:
 		* "i64"
 		* (name)-> "from_vertex_color_vec(#{name})"
@@ -258,8 +288,8 @@ basicTypes =
 		* "Vec<crate::dora::VertexColor>"
 		* (name)-> "crate::dora::Vector::from_vertex_color(#{name})"
 		* (name)-> "crate::dora::Vector::to_vertex_color(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	ActionDef:
 		* "i64"
 		* (name)-> "std::move(*r_cast<ActionDef*>(#{name}))"
@@ -268,8 +298,8 @@ basicTypes =
 		* "crate::dora::ActionDef"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::ActionDef::from(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VecActionDef:
 		* "i64"
 		* (name)-> "from_action_def_vec(#{name})"
@@ -277,9 +307,9 @@ basicTypes =
 		* "&Vec<crate::dora::ActionDef>"
 		* "Vec<crate::dora::ActionDef>"
 		* (name)-> "crate::dora::Vector::from_action_def(#{name})"
-		* (name)-> error "unsupported"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VecBTree:
 		* "i64"
 		* (name)-> "from_btree_vec(#{name})"
@@ -287,9 +317,9 @@ basicTypes =
 		* "&Vec<crate::dora::platformer::behavior::Tree>"
 		* "Vec<crate::dora::platformer::behavior::Tree>"
 		* (name)-> "crate::dora::Vector::from_btree(#{name})"
-		* (name)-> error "unsupported"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VecDTree:
 		* "i64"
 		* (name)-> "from_dtree_vec(#{name})"
@@ -297,9 +327,9 @@ basicTypes =
 		* "&Vec<crate::dora::platformer::decision::Tree>"
 		* "Vec<crate::dora::platformer::decision::Tree>"
 		* (name)-> "crate::dora::Vector::from_dtree(#{name})"
-		* (name)-> error "unsupported"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	BlendFunc:
 		* "i64"
 		* (name)-> "BlendFunc(s_cast<uint64_t>(#{name}))"
@@ -308,8 +338,28 @@ basicTypes =
 		* "u64"
 		* (name)-> "#{name} as i64"
 		* (name)-> "#{name} as u64"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+	MLQState:
+		* "i64"
+		* (name)-> "s_cast<MLQState>(#{name})"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* "u64"
+		* "u64"
+		* (name)-> "#{name} as i64"
+		* (name)-> "#{name} as u64"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i64().unwrap() as u64"
+		* -> error "unsupported"
+	MLQAction:
+		* "i32"
+		* (name)-> "s_cast<MLQAction>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "u32"
+		* "u32"
+		* (name)-> "#{name} as i32"
+		* (name)-> "#{name} as u32"
+		* (fnArgId)-> "stack#{fnArgId}.pop_i32().unwrap() as u32"
+		* -> error "unsupported"
 	"Platformer::TargetAllow":
 		* "i64"
 		* (name)-> "*r_cast<Platformer::TargetAllow*>(#{name})"
@@ -318,8 +368,8 @@ basicTypes =
 		* "crate::dora::platformer::TargetAllow"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::platformer::TargetAllow::from(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	EntityEvent:
 		* "i32"
 		* (name)-> "s_cast<int>(#{name})"
@@ -328,8 +378,8 @@ basicTypes =
 		* "crate::dora::EntityEvent"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	TextureWrap:
 		* "i32"
 		* (name)-> "s_cast<TextureWrap>(#{name})"
@@ -338,8 +388,8 @@ basicTypes =
 		* "crate::dora::TextureWrap"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	TextureFilter:
 		* "i32"
 		* (name)-> "s_cast<TextureFilter>(#{name})"
@@ -348,8 +398,8 @@ basicTypes =
 		* "crate::dora::TextureFilter"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	EaseType:
 		* "i32"
 		* (name)-> "s_cast<Ease::Enum>(#{name})"
@@ -358,8 +408,8 @@ basicTypes =
 		* "crate::dora::EaseType"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	Property:
 		* "i32"
 		* (name)-> "s_cast<Property::Enum>(#{name})"
@@ -368,8 +418,8 @@ basicTypes =
 		* "crate::dora::Property"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	TextAlign:
 		* "i32"
 		* (name)-> "s_cast<TextAlign>(#{name})"
@@ -378,8 +428,8 @@ basicTypes =
 		* "crate::dora::TextAlign"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	"Platformer::Relation":
 		* "i32"
 		* (name)-> "s_cast<Platformer::Relation>(#{name})"
@@ -388,8 +438,8 @@ basicTypes =
 		* "crate::dora::platformer::Relation"
 		* (name)-> "#{name} as i32"
 		* (name)-> "core::mem::transmute(#{name})"
-		* false
-		* (name)-> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	"Platformer::Behavior::Blackboard":
 		* "i64"
 		* (name)-> "*r_cast<Platformer::Behavior::Blackboard*>(#{name})"
@@ -398,8 +448,8 @@ basicTypes =
 		* "crate::dora::platformer::behavior::Blackboard"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::platformer::behavior::Blackboard::from(#{name})"
-		* "&crate::dora::platformer::behavior::Blackboard::from(stack.pop_i64().unwrap()).unwrap()"
-		* (name)-> error "unsupported"
+		* (fnArgId)-> "&crate::dora::platformer::behavior::Blackboard::from(stack#{fnArgId}.pop_i64().unwrap()).unwrap()"
+		* -> error "unsupported"
 	"Platformer::UnitAction":
 		* "i64"
 		* (name)-> "*r_cast<Platformer::UnitAction*>(#{name})"
@@ -408,8 +458,8 @@ basicTypes =
 		* "crate::dora::platformer::UnitAction"
 		* (name)-> "#{name}.raw()"
 		* (name, isOptional)-> "crate::dora::platformer::UnitAction::from(#{name})#{isOptional and '' or '.unwrap()'}"
-		* "&crate::dora::platformer::UnitAction::from(stack.pop_i64().unwrap()).unwrap()"
-		* (name)-> error "unsupported"
+		* (fnArgId)-> "&crate::dora::platformer::UnitAction::from(stack#{fnArgId}.pop_i64().unwrap()).unwrap()"
+		* -> error "unsupported"
 	void: {}
 
 lastPos = 1
@@ -499,8 +549,8 @@ else
 				* isOptional and "Option<#{rustName}>" or rustName
 				* (name)-> "#{name}.raw()"
 				* (name)-> isOptional and "#{rustName}::from(#{name})" or "#{rustName} { raw: #{name} }"
-				* false
-				* (name)-> error "unsupported"
+				* -> error "unsupported"
+				* -> error "unsupported"
 		elseif isOptional
 			return
 				* "i64"
@@ -510,8 +560,8 @@ else
 				* "Option<crate::dora::#{rustName}>"
 				* (name)-> "#{name}.raw()"
 				* (name)-> "crate::dora::#{rustName}::from(#{name})"
-				* "&stack.pop_cast::<crate::dora::#{rustName}>()"
-				* (name)-> "stack.push_object(&#{name});"
+				* (fnArgId)-> "&stack#{fnArgId}.pop_cast::<crate::dora::#{rustName}>()"
+				* (name, fnArgId)-> "stack#{fnArgId}.push_object(&#{name});"
 		else
 			return
 				* "i64"
@@ -521,8 +571,8 @@ else
 				* "crate::dora::#{rustName}"
 				* (name)-> "#{name}.raw()"
 				* (name)-> "crate::dora::#{rustName}::from(#{name}).unwrap()"
-				* "&stack.pop_cast::<crate::dora::#{rustName}>().unwrap()"
-				* (name)-> "stack.push_object(&#{name});"
+				* (fnArgId)-> "&stack#{fnArgId}.pop_cast::<crate::dora::#{rustName}>().unwrap()"
+				* (name, fnArgId)-> "stack#{fnArgId}.push_object(&#{name});"
 	moduleScopes = {}
 	for cls in *result
 		if "string" == type cls
@@ -792,6 +842,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						if isOptional and not rtTypeOut\match "^Option<"
 							rtTypeOut = "Option<#{rtTypeOut}>"
 						cppType = cppTypes[rt] ?? "void"
+						funcArgCount = -1
 						argItems = for arg in *args
 							{argKind, argType, argName} = arg
 							argName = toCamelCase argName
@@ -816,6 +867,8 @@ impl I#{clsNewName} for #{clsNewName} { }"
 									else
 										error "\"#{argType}\" is not supported."
 								when "callback"
+									funcArgCount += 1
+									fnArgId = funcArgCount == 0 and '' or tostring funcArgCount
 									{_, func, fname} = arg
 									fname = toCamelCase fname
 									{freturnType, fargs} = func
@@ -835,32 +888,39 @@ impl I#{clsNewName} for #{clsNewName} { }"
 												when "Event"
 													{
 														"Event* #{fargName}"
-														"\t\t#{fargName}->pushArgsToWasm(args);"
+														"\t\t#{fargName}->pushArgsToWasm(args#{fnArgId});"
 														"&mut crate::dora::CallStack"
-														"&mut stack"
+														"&mut stack#{fnArgId}"
 													}
 												when "Platformer::Behavior::Blackboard", "Platformer::UnitAction"
 													{
 														"#{fcppType}* #{fargName}"
-														"\t\targs->push(r_cast<int64_t>(#{fargName}));"
+														"\t\targs#{fnArgId}->push(r_cast<int64_t>(#{fargName}));"
 														frtTypeIn
-														fpopArg
+														fpopArg fnArgId
 													}
 												when "DBRecord"
 													{
 														"#{fcppType}& #{fargName}"
-														"\t\targs->push(r_cast<int64_t>(new DBRecord{std::move(#{fargName})}));"
+														"\t\targs#{fnArgId}->push(r_cast<int64_t>(new DBRecord{std::move(#{fargName})}));"
 														frtTypeIn
-														fpopArg
+														fpopArg fnArgId
+													}
+												when "MLQState", "MLQAction"
+													{
+														"#{fcppType} #{fargName}"
+														"\t\targs#{fnArgId}->push(s_cast<int64_t>(#{fargName}));"
+														frtTypeIn
+														fpopArg fnArgId
 													}
 												when nil
 													error "\"#{fargType}\" is not supported."
 												else
 													{
 														"#{fcppType} #{fargName}"
-														"\t\targs->push(#{fargName});"
+														"\t\targs#{fnArgId}->push(#{fargName});"
 														frtTypeIn
-														fpopArg
+														fpopArg fnArgId
 													}
 									argPassed = #items > 0
 									cppArgDef = table.concat [item[1] for item in *items], ", "
@@ -884,29 +944,31 @@ impl I#{clsNewName} for #{clsNewName} { }"
 										if frCppType = cppTypes[frt]
 											callbackReturn = switch freturnType
 												when "Node"
-													"\t\treturn s_cast<Node*>(std::get<Object*>(args->pop()));\n"
+													"\t\treturn s_cast<Node*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
 												when "string"
-													"\t\treturn std::get<std::string>(args->pop());\n"
+													"\t\treturn std::get<std::string>(args#{fnArgId}->pop());\n"
+												when "Platformer::WasmActionUpdate"
+													"\t\treturn *r_cast<Platformer::WasmActionUpdate*>(std::get<int64_t>(args#{fnArgId}->pop()));\n"
 												else
-													"\t\treturn std::get<#{freturnType}>(args->pop());\n"
-											callback = "let result = #{callback};\n\t\t\t#{frPush 'result'}"
+													"\t\treturn std::get<#{freturnType}>(args#{fnArgId}->pop());\n"
+											callback = "let result = #{callback};\n\t\t\t#{frPush 'result', fnArgId}"
 											argPassed = true
 									{
-										"int32_t func#{argPassed and ', int64_t stack' or ''}"
-										"[func, #{argPassed and 'args, ' or ''}deref](#{cppArgDef})
+										"int32_t func#{fnArgId}#{argPassed and ', int64_t stack' .. fnArgId or ''}"
+										"[func#{fnArgId}, #{argPassed and 'args' .. fnArgId .. ', ' or ''}deref#{fnArgId}](#{cppArgDef})
 	{
-#{argPassed and '\t\targs->clear();\n' .. cppArgPass or ''}\t\tSharedWasmRuntime.invoke(func);
+#{argPassed and '\t\targs' .. fnArgId .. '->clear();\n' .. cppArgPass or ''}\t\tSharedWasmRuntime.invoke(func#{fnArgId});
 #{callbackReturn}	}"
-										"func: i32#{argPassed and ', stack: i64' or ''}"
+										"func#{fnArgId}: i32#{argPassed and ', stack' .. fnArgId .. ': i64' or ''}"
 										"mut #{fname}: #{callbackType}"
-										"func_id#{argPassed and ', stack_raw' or ''}"
+										"func_id#{fnArgId}#{argPassed and ', stack_raw' .. fnArgId or ''}"
 										"
-	std::shared_ptr<void> deref(nullptr, [func](auto)
+	std::shared_ptr<void> deref#{fnArgId}(nullptr, [func#{fnArgId}](auto)
 	{
-		SharedWasmRuntime.deref(func);
-	});#{argPassed and '\n\tauto args = r_cast<CallStack*>(stack);' or ''}"
-										(argPassed and "\t\tlet mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();\n" or '') .. "\t\tlet func_id = crate::dora::push_function(Box::new(move || {
+		SharedWasmRuntime.deref(func#{fnArgId});
+	});#{argPassed and '\n\tauto args' .. fnArgId .. ' = r_cast<CallStack*>(stack' .. fnArgId .. ');' or ''}"
+										(argPassed and "\t\tlet mut stack#{fnArgId} = crate::dora::CallStack::new();
+		let stack_raw#{fnArgId} = stack#{fnArgId}.raw();\n" or '') .. "\t\tlet func_id#{fnArgId} = crate::dora::push_function(Box::new(move || {
 			#{callback}
 		}));
 "

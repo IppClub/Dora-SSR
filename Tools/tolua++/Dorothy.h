@@ -1208,7 +1208,7 @@ class UnitAction
 	tolua_readonly tolua_property__bool bool doing;
 	tolua_readonly tolua_property__common Unit* owner;
 	tolua_readonly tolua_property__common float eclapsedTime;
-	static void add(
+	static tolua_outside void LuaUnitAction_add @ add(
 		String name,
 		int priority,
 		float reaction,

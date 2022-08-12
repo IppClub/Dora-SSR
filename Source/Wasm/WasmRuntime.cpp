@@ -183,6 +183,17 @@ static int64_t to_vec(const std::list<std::string>& vec)
 	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
+static int64_t to_vec(const std::vector<uint32_t>& vec)
+{
+	std::vector<int32_t> buf;
+	buf.reserve(vec.size());
+	for (const auto& item : vec)
+	{
+		buf.push_back(s_cast<int32_t>(item));
+	}
+	return buf_retain(dora_vec_t(std::move(buf)));
+}
+
 static std::vector<std::string> from_str_vec(int64_t var)
 {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
@@ -205,6 +216,19 @@ static std::vector<Vec2> from_vec2_vec(int64_t var)
 	for (auto item : vecInt)
 	{
 		vs.push_back(vec2_from(item));
+	}
+	return vs;
+}
+
+static std::vector<uint32_t> from_uint32_vec(int64_t var)
+{
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	auto vecInt = std::get<std::vector<int32_t>>(*vec);
+	std::vector<uint32_t> vs;
+	vs.reserve(vecInt.size());
+	for (auto item : vecInt)
+	{
+		vs.push_back(s_cast<uint32_t>(item));
 	}
 	return vs;
 }
@@ -659,6 +683,11 @@ static void push_value(CallStack* stack, Value* v)
 	}
 }
 
+static void dora_print(int64_t var)
+{
+	LogPrint(*str_from(var));
+}
+
 /* Array */
 
 static int32_t array_set(int64_t array, int32_t index, int64_t v)
@@ -993,6 +1022,37 @@ std::vector<std::string> dragon_bone_get_animation_names(String boneStr)
 
 #define MLBuildDecisionTreeAsync ML::BuildDecisionTreeAsync
 using MLQLearner = ML::QLearner;
+using MLQState = ML::QLearner::QState;
+using MLQAction = ML::QLearner::QAction;
+static void ml_qlearner_visit_state_action_q(MLQLearner* qlearner, const std::function<void(MLQState, MLQAction, double)>& handler)
+{
+	const auto& matrix = qlearner->getMatrix();
+	for (const auto& row : matrix)
+	{
+		ML::QLearner::QState state = row.first;
+		for (const auto& col : row.second)
+		{
+			ML::QLearner::QAction action = col.first;
+			double q = col.second;
+			handler(state, action, q);
+		}
+	}
+}
+
+// Blackboard
+
+static void blackboard_set(int64_t b, int64_t k, int64_t v)
+{
+	r_cast<Platformer::Behavior::Blackboard*>(b)->set(*str_from(k), to_value(*r_cast<dora_val_t*>(v)));
+}
+static int64_t blackboard_get(int64_t b, int64_t k)
+{
+	if (auto value = r_cast<Platformer::Behavior::Blackboard*>(b)->get(*str_from(k))) {
+		return from_value(value);
+	} else {
+		return 0;
+	}
+}
 
 // Behavior
 
@@ -1016,6 +1076,105 @@ using MLQLearner = ML::QLearner;
 #define DAccept Platformer::Decision::Accept
 #define DReject Platformer::Decision::Reject
 #define DBehave Platformer::Decision::Behave
+
+// UnitAction
+
+namespace Platformer {
+class WasmActionUpdate
+{
+public:
+	WasmActionUpdate(const std::function<bool(Unit*, UnitAction*, float)>& update):
+	_update(update)
+	{ }
+	bool operator()(Unit* owner, UnitAction* action, float deltaTime)
+	{
+		return _update(owner, action, deltaTime);
+	}
+private:
+	std::function<bool(Unit*, UnitAction*, float)> _update;
+};
+class WasmUnitAction : public UnitAction
+{
+public:
+	WasmUnitAction(String name, int priority, bool queued, Unit* owner):
+	UnitAction(name, priority, queued, owner) { }
+	virtual bool isAvailable() override
+	{
+		return _available(_owner, s_cast<UnitAction*>(this));
+	}
+	virtual void run() override
+	{
+		UnitAction::run();
+		if (auto playable = _owner->getPlayable())
+		{
+			playable->setRecovery(recovery);
+		}
+		_update = _create(_owner, s_cast<UnitAction*>(this));
+		if (_update(_owner, s_cast<UnitAction*>(this), 0.0f))
+		{
+			WasmUnitAction::stop();
+		}
+	}
+	virtual void update(float dt) override
+	{
+		if (_update && _update(_owner, s_cast<UnitAction*>(this), dt))
+		{
+			WasmUnitAction::stop();
+		}
+		UnitAction::update(dt);
+	}
+	virtual void stop() override
+	{
+		_update = nullptr;
+		_stop(_owner, s_cast<UnitAction*>(this));
+		UnitAction::stop();
+	}
+private:
+	std::function<bool(Unit*, UnitAction*)> _available;
+	std::function<WasmActionUpdate(Unit*, UnitAction*)> _create;
+	std::function<bool(Unit*, UnitAction*,float)> _update;
+	std::function<void(Unit*, UnitAction*)> _stop;
+	friend class WasmActionDef;
+};
+class WasmActionDef : public UnitActionDef
+{
+public:
+	WasmActionDef(
+		const std::function<bool(Unit*, UnitAction*)>& available,
+		const std::function<WasmActionUpdate(Unit*, UnitAction*)>& create,
+		const std::function<void(Unit*, UnitAction*)>& stop):
+		available(available), create(create), stop(stop)
+	{ }
+	std::function<bool(Unit*, UnitAction*)> available;
+	std::function<WasmActionUpdate(Unit*, UnitAction*)> create;
+	std::function<void(Unit*, UnitAction*)> stop;
+	virtual Own<UnitAction> toAction(Unit* unit) override
+	{
+		WasmUnitAction* action = new WasmUnitAction(name, priority, queued, unit);
+		action->reaction = reaction;
+		action->recovery = recovery;
+		action->_available = available;
+		action->_create = create;
+		action->_stop = stop;
+		return MakeOwn(s_cast<UnitAction*>(action));
+	}
+};
+static void wasm_unit_action_add(
+	String name, int priority, float reaction, float recovery, bool queued,
+	const std::function<bool(Unit*, UnitAction*)>& available,
+	const std::function<WasmActionUpdate(Unit*, UnitAction*)>& create,
+	const std::function<void(Unit*, UnitAction*)>& stop)
+{
+	UnitActionDef* actionDef = new WasmActionDef(available, create, stop);
+	actionDef->name = name;
+	actionDef->priority = priority;
+	actionDef->reaction = reaction;
+	actionDef->recovery = recovery;
+	actionDef->queued = queued;
+	UnitAction::add(name, MakeOwn(actionDef));
+}
+} // namespace Platformer
+#define platformer_wasm_unit_action_add Platformer::wasm_unit_action_add
 
 // DB
 
@@ -1193,6 +1352,8 @@ static void db_do_exec_async(String sql, Array* param, const std::function<void(
 #include "Dora/AudioWasm.hpp"
 #include "Dora/KeyboardWasm.hpp"
 #include "Dora/SVGDefWasm.hpp"
+#include "Dora/DBQueryWasm.hpp"
+#include "Dora/DBRecordWasm.hpp"
 #include "Dora/DBWasm.hpp"
 #include "Dora/C45Wasm.hpp"
 #include "Dora/MLQLearnerWasm.hpp"
@@ -1205,6 +1366,7 @@ static void db_do_exec_async(String sql, Array* param, const std::function<void(
 #include "Dora/Platformer/Behavior/LeafWasm.hpp"
 #include "Dora/Platformer/Decision/AIWasm.hpp"
 #include "Dora/Platformer/Decision/LeafWasm.hpp"
+#include "Dora/Platformer/WasmActionUpdateWasm.hpp"
 #include "Dora/Platformer/UnitActionWasm.hpp"
 #include "Dora/Platformer/UnitWasm.hpp"
 #include "Dora/Platformer/PlatformCameraWasm.hpp"
@@ -1264,6 +1426,8 @@ static void linkAutoModule(wasm3::module& mod)
 	linkAudio(mod);
 	linkKeyboard(mod);
 	linkSVGDef(mod);
+	linkDBQuery(mod);
+	linkDBRecord(mod);
 	linkDB(mod);
 	linkC45(mod);
 	linkMLQLearner(mod);
@@ -1276,6 +1440,7 @@ static void linkAutoModule(wasm3::module& mod)
 	linkPlatformerBehaviorLeaf(mod);
 	linkPlatformerDecisionAI(mod);
 	linkPlatformerDecisionLeaf(mod);
+	linkPlatformerWasmActionUpdate(mod);
 	linkPlatformerUnitAction(mod);
 	linkPlatformerUnit(mod);
 	linkPlatformerPlatformCamera(mod);
@@ -1355,6 +1520,8 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "call_stack_front_vec2", call_stack_front_vec2);
 	mod.link_optional("*", "call_stack_front_size", call_stack_front_size);
 
+	mod.link_optional("*", "dora_print", dora_print);
+
 	mod.link_optional("*", "array_set", array_set);
 	mod.link_optional("*", "array_get", array_get);
 	mod.link_optional("*", "array_first", array_first);
@@ -1380,6 +1547,9 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "observer_watch", observer_watch);
 
 	mod.link_optional("*", "node_emit", node_emit);
+
+	mod.link_optional("*", "blackboard_set", blackboard_set);
+	mod.link_optional("*", "blackboard_get", blackboard_get);
 }
 
 WasmRuntime::WasmRuntime():

@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "SDL_syswm.h"
 #include "SDL.h"
 
-#define DORA_VERSION "1.0.8"_slice
+#define DORA_VERSION "1.0.9"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -648,7 +648,7 @@ public:
 	~Console()
 	{
 		system("pause");
-		exit(0); // or FreeConsole();
+		FreeConsole();
 	}
 	inline void init()
 	{
@@ -684,6 +684,7 @@ int CALLBACK WinMain(
 #include "soloud.h"
 #include "imgui.h"
 #include "sqlite3.h"
+#include "wasm3.h"
 
 std::string Dorothy::Application::getDeps() const
 {
@@ -697,7 +698,8 @@ std::string Dorothy::Application::getDeps() const
 		"- DragonBones 5.6.3\n"
 		"- Spine 4.1.4\n"
 		"- imgui {}\n"
-		"- sqlite3 {}",
+		"- sqlite3 {}\n"
+		"- wasm3 {}",
 		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
 		BGFX_API_VERSION,
 		LUA_VERSION_MAJOR, LUA_VERSION_MINOR, LUA_VERSION_RELEASE,
@@ -705,5 +707,7 @@ std::string Dorothy::Application::getDeps() const
 		PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH,
 		SOLOUD_VERSION,
 		IMGUI_VERSION_NUM,
-		SQLITE_VERSION);
+		SQLITE_VERSION,
+		M3_VERSION
+	);
 }

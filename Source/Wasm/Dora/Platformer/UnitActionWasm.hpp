@@ -34,6 +34,45 @@ static void platformer_unitaction_clear()
 {
 	Platformer::UnitAction::clear();
 }
+static void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, float recovery, int32_t queued, int32_t func, int64_t stack, int32_t func1, int64_t stack1, int32_t func2, int64_t stack2)
+{
+	std::shared_ptr<void> deref(nullptr, [func](auto)
+	{
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	std::shared_ptr<void> deref1(nullptr, [func1](auto)
+	{
+		SharedWasmRuntime.deref(func1);
+	});
+	auto args1 = r_cast<CallStack*>(stack1);
+	std::shared_ptr<void> deref2(nullptr, [func2](auto)
+	{
+		SharedWasmRuntime.deref(func2);
+	});
+	auto args2 = r_cast<CallStack*>(stack2);
+	platformer_wasm_unit_action_add(*str_from(name), s_cast<int>(priority), reaction, recovery, queued != 0, [func, args, deref](Platformer::Unit* owner, Platformer::UnitAction* action)
+	{
+		args->clear();
+		args->push(owner);
+		args->push(r_cast<int64_t>(action));
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	}, [func1, args1, deref1](Platformer::Unit* owner, Platformer::UnitAction* action)
+	{
+		args1->clear();
+		args1->push(owner);
+		args1->push(r_cast<int64_t>(action));
+		SharedWasmRuntime.invoke(func1);
+		return *r_cast<Platformer::WasmActionUpdate*>(std::get<int64_t>(args1->pop()));
+	}, [func2, args2, deref2](Platformer::Unit* owner, Platformer::UnitAction* action)
+	{
+		args2->clear();
+		args2->push(owner);
+		args2->push(r_cast<int64_t>(action));
+		SharedWasmRuntime.invoke(func2);
+	});
+}
 static void linkPlatformerUnitAction(wasm3::module& mod)
 {
 	mod.link_optional("*", "platformer_unitaction_set_reaction", platformer_unitaction_set_reaction);
@@ -45,4 +84,5 @@ static void linkPlatformerUnitAction(wasm3::module& mod)
 	mod.link_optional("*", "platformer_unitaction_get_owner", platformer_unitaction_get_owner);
 	mod.link_optional("*", "platformer_unitaction_get_eclapsed_time", platformer_unitaction_get_eclapsed_time);
 	mod.link_optional("*", "platformer_unitaction_clear", platformer_unitaction_clear);
+	mod.link_optional("*", "platformer_unitaction_add", platformer_unitaction_add);
 }
