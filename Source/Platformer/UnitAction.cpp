@@ -30,26 +30,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-UnitActionDef::UnitActionDef(
-	LuaFunction<bool> available,
-	LuaFunction<LuaFunction<bool>> create,
-	LuaFunction<void> stop):
-available(available),
-create(create),
-stop(stop)
-{ }
-
-Own<UnitAction> UnitActionDef::toAction(Unit* unit)
-{
-	ScriptUnitAction* action = new ScriptUnitAction(name, priority, queued, unit);
-	action->reaction = reaction;
-	action->recovery = recovery;
-	action->_available = available;
-	action->_create = create;
-	action->_stop = stop;
-	return MakeOwn(s_cast<UnitAction*>(action));
-}
-
 // UnitAction
 
 std::unordered_map<std::string, Own<UnitActionDef>> UnitAction::_actionDefs;
@@ -141,63 +121,14 @@ void UnitAction::stop()
 	_decisionDelay = 0.0f;
 }
 
-void UnitAction::add(
-	String name, int priority, float reaction, float recovery, bool queued,
-	LuaFunction<bool> available,
-	LuaFunction<LuaFunction<bool>> create,
-	LuaFunction<void> stop)
+void UnitAction::add(String name, Own<UnitActionDef>&& actionDef)
 {
-	UnitActionDef* actionDef = new UnitActionDef(available, create, stop);
-	actionDef->name = name;
-	actionDef->priority = priority;
-	actionDef->reaction = reaction;
-	actionDef->recovery = recovery;
-	actionDef->queued = queued;
-	_actionDefs[name] = MakeOwn(actionDef);
+	_actionDefs[name] = std::move(actionDef);
 }
 
 void UnitAction::clear()
 {
 	_actionDefs.clear();
-}
-
-ScriptUnitAction::ScriptUnitAction(String name, int priority, bool queued, Unit* owner):
-UnitAction(name, priority, queued, owner)
-{ }
-
-bool ScriptUnitAction::isAvailable()
-{
-	return _available(_owner, s_cast<UnitAction*>(this));
-}
-
-void ScriptUnitAction::run()
-{
-	UnitAction::run();
-	if (auto playable = _owner->getPlayable())
-	{
-		playable->setRecovery(recovery);
-	}
-	_update = _create(_owner, s_cast<UnitAction*>(this));
-	if (_update(_owner, s_cast<UnitAction*>(this), 0.0f))
-	{
-		ScriptUnitAction::stop();
-	}
-}
-
-void ScriptUnitAction::update(float dt)
-{
-	if (_update && _update(_owner, s_cast<UnitAction*>(this), dt))
-	{
-		ScriptUnitAction::stop();
-	}
-	UnitAction::update(dt);
-}
-
-void ScriptUnitAction::stop()
-{
-	_update = nullptr;
-	_stop(_owner, s_cast<UnitAction*>(this));
-	UnitAction::stop();
 }
 
 // Walk

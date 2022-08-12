@@ -162,11 +162,15 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		MoveJoint::type_info(),
 		SVG::type_info(),
 		ml::QLearner::type_info(),
+		platformer::Face::type_info(),
 		platformer::BulletDef::type_info(),
 		platformer::Bullet::type_info(),
 		platformer::Visual::type_info(),
 		platformer::behavior::Tree::type_info(),
 		platformer::decision::Tree::type_info(),
+		platformer::Unit::type_info(),
+		platformer::PlatformCamera::type_info(),
+		platformer::PlatformWorld::type_info(),
 	];
 	for pair in type_funcs.iter() {
 		let t = pair.0 as usize;
@@ -251,6 +255,22 @@ extern "C" {
 	fn call_stack_front_object(info: i64) -> i32;
 	fn call_stack_front_vec2(info: i64) -> i32;
 	fn call_stack_front_size(info: i64) -> i32;
+
+	fn dora_print(msg: i64);
+}
+
+pub fn print(msg: &str) {
+	unsafe { dora_print(from_string(msg)); }
+}
+
+#[macro_export]
+macro_rules! p {
+	() => {
+		dora::print("\n")
+	};
+	($($arg:tt)*) => {{
+		dora::print((format!($($arg)*) + "\n").as_str());
+	}};
 }
 
 #[repr(C)]
@@ -1227,4 +1247,20 @@ pub enum TextAlign {
 	Left = 0,
 	Center = 1,
 	Right = 2,
+}
+
+// Blackboard
+
+extern "C" {
+	fn blackboard_set(b: i64, k: i64, v: i64);
+	fn blackboard_get(b: i64, k: i64) -> i64;
+}
+
+impl platformer::behavior::Blackboard {
+	pub fn set<'a, T>(&mut self, key: &str, value: T) where T: IntoValue<'a> {
+		unsafe { blackboard_set(self.raw(), from_string(key), value.val().raw()); }
+	}
+	pub fn get(&self, key: &str) -> Option<Value> {
+		Value::from(unsafe { blackboard_get(self.raw(), from_string(key)) })
+	}
 }

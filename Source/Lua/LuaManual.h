@@ -234,6 +234,46 @@ NS_DOROTHY_PLATFORMER_BEGIN
 void TargetAllow_allow(TargetAllow* self, String flag, bool allow);
 bool TargetAllow_isAllow(TargetAllow* self, String flag);
 
+/* UnitAction */
+class LuaActionDef : public UnitActionDef
+{
+public:
+	LuaActionDef(
+		LuaFunction<bool> available,
+		LuaFunction<LuaFunction<bool>> create,
+		LuaFunction<void> stop);
+	LuaFunction<bool> available;
+	LuaFunction<LuaFunction<bool>> create;
+	LuaFunction<void> stop;
+	virtual Own<UnitAction> toAction(Unit* unit) override;
+};
+
+class LuaUnitAction : public UnitAction
+{
+public:
+	LuaUnitAction(String name, int priority, bool queued, Unit* owner);
+	virtual bool isAvailable() override;
+	virtual void run() override;
+	virtual void update(float dt) override;
+	virtual void stop() override;
+private:
+	std::function<bool(Unit*,UnitAction*)> _available;
+	std::function<LuaFunction<bool>(Unit*,UnitAction*)> _create;
+	std::function<bool(Unit*,UnitAction*,float)> _update;
+	std::function<void(Unit*,UnitAction*)> _stop;
+	friend class LuaActionDef;
+};
+
+void LuaUnitAction_add(
+	String name,
+	int priority,
+	float reaction,
+	float recovery,
+	bool queued,
+	LuaFunction<bool> available,
+	LuaFunction<LuaFunction<bool>> create,
+	LuaFunction<void> stop);
+
 /* AI */
 inline Decision::AI* AI_shared() { return &SharedAI; }
 Array* AI_getUnitsByRelation(Decision::AI* self, String relation);

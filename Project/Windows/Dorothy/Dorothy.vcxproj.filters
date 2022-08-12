@@ -1419,6 +1419,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\spine\SequenceTimeline.cpp">
       <Filter>3rdParty\spine</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\Cache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -2948,6 +2951,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Version.h">
       <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\Cache.h">
+      <Filter>Cache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

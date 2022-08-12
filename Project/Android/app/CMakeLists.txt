@@ -64,6 +64,7 @@ add_library(main SHARED
 	src/main/cpp/Platformer/Bullet.cpp
 	src/main/cpp/Platformer/UnitAction.cpp
 	src/main/cpp/Cache/AtlasCache.cpp
+	src/main/cpp/Cache/Cache.cpp
 	src/main/cpp/Cache/ClipCache.cpp
 	src/main/cpp/Cache/ShaderCache.cpp
 	src/main/cpp/Cache/ParticleCache.cpp
