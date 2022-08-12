@@ -67,7 +67,7 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 	if (extension.empty() && targetFile.back() != '.')
 	{
 		std::string fullPath;
-		for (auto ext : {"lua"s, "xml"s, "tl"s})
+		for (auto ext : {"lua"s, "xml"s, "tl"s, "wasm"s})
 		{
 			fullPath = SharedContent.getFullPath(targetFile + '.' + ext);
 			if (SharedContent.exist(fullPath))
@@ -81,7 +81,7 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 		{
 			std::stringstream ss;
 			bool first = true;
-			for (auto ext : {"lua"s, "xml"s, "tl"s})
+			for (auto ext : {"lua"s, "xml"s, "tl"s, "wasm"s})
 			{
 				auto triedPaths = SharedContent.getFullPathsToTry(targetFile + '.' + ext);
 				for (auto it = triedPaths.begin(); it != triedPaths.end(); ++it)
@@ -154,6 +154,13 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 				codeBuffer = codes.c_str();
 				codeBufferSize = codes.size();
 			}
+			break;
+		}
+		case "wasm"_hash:
+		{
+			codes = "builtin.Wasm:executeMainFile(\""s + targetFile + "\")"s;
+			codeBuffer = codes.c_str();
+			codeBufferSize = codes.size();
 			break;
 		}
 		default:
