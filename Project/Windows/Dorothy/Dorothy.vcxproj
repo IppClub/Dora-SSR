@@ -1242,6 +1242,7 @@
     <ClCompile Include="..\..\..\Source\Basic\VGRender.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\View.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\AtlasCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\Cache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\DragonBoneCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
@@ -1755,6 +1756,7 @@
     <ClInclude Include="..\..\..\Source\Basic\VGRender.h" />
     <ClInclude Include="..\..\..\Source\Basic\View.h" />
     <ClInclude Include="..\..\..\Source\Cache\AtlasCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\Cache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ClipCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\DragonBoneCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\FrameCache.h" />

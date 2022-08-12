@@ -1,37 +1,37 @@
-local output_change = lfs.attributes(flags.o, "change")
+local output_change = lfs.attributes(flags.o, "modification")
 local rebuild = output_change == nil
 
 if not rebuild then
 	local input_changes = {
-		lfs.attributes(flags.f, "change"),
-		lfs.attributes("basic.lua", "change"),
-		lfs.attributes("tolua++/compat.lua", "change"),
-		lfs.attributes("tolua++/basic.lua", "change"),
-		lfs.attributes("tolua++/feature.lua", "change"),
-		lfs.attributes("tolua++/verbatim.lua", "change"),
-		lfs.attributes("tolua++/code.lua", "change"),
-		lfs.attributes("tolua++/typedef.lua", "change"),
-		lfs.attributes("tolua++/container.lua", "change"),
-		lfs.attributes("tolua++/package.lua", "change"),
-		lfs.attributes("tolua++/module.lua", "change"),
-		lfs.attributes("tolua++/namespace.lua", "change"),
-		lfs.attributes("tolua++/define.lua", "change"),
-		lfs.attributes("tolua++/enumerate.lua", "change"),
-		lfs.attributes("tolua++/declaration.lua", "change"),
-		lfs.attributes("tolua++/variable.lua", "change"),
-		lfs.attributes("tolua++/array.lua", "change"),
-		lfs.attributes("tolua++/function.lua", "change"),
-		lfs.attributes("tolua++/operator.lua", "change"),
-		lfs.attributes("tolua++/template_class.lua", "change"),
-		lfs.attributes("tolua++/class.lua", "change"),
-		lfs.attributes("tolua++/clean.lua", "change"),
-		lfs.attributes("tolua++/doit.lua", "change")
+		lfs.attributes(flags.f, "modification"),
+		lfs.attributes("basic.lua", "modification"),
+		lfs.attributes("tolua++/compat.lua", "modification"),
+		lfs.attributes("tolua++/basic.lua", "modification"),
+		lfs.attributes("tolua++/feature.lua", "modification"),
+		lfs.attributes("tolua++/verbatim.lua", "modification"),
+		lfs.attributes("tolua++/code.lua", "modification"),
+		lfs.attributes("tolua++/typedef.lua", "modification"),
+		lfs.attributes("tolua++/container.lua", "modification"),
+		lfs.attributes("tolua++/package.lua", "modification"),
+		lfs.attributes("tolua++/module.lua", "modification"),
+		lfs.attributes("tolua++/namespace.lua", "modification"),
+		lfs.attributes("tolua++/define.lua", "modification"),
+		lfs.attributes("tolua++/enumerate.lua", "modification"),
+		lfs.attributes("tolua++/declaration.lua", "modification"),
+		lfs.attributes("tolua++/variable.lua", "modification"),
+		lfs.attributes("tolua++/array.lua", "modification"),
+		lfs.attributes("tolua++/function.lua", "modification"),
+		lfs.attributes("tolua++/operator.lua", "modification"),
+		lfs.attributes("tolua++/template_class.lua", "modification"),
+		lfs.attributes("tolua++/class.lua", "modification"),
+		lfs.attributes("tolua++/clean.lua", "modification"),
+		lfs.attributes("tolua++/doit.lua", "modification")
 	}
 	local inputFile = io.open(flags.f, "r")
 	local content = inputFile:read("*a")
 	inputFile:close()
 	for file in content:gmatch('file%s*"([^"]+)') do
-		input_changes[#input_changes + 1] = lfs.attributes(file, "change")
+		input_changes[#input_changes + 1] = lfs.attributes(file, "modification")
 	end
 	for _, change in ipairs(input_changes) do
 		if output_change < change then

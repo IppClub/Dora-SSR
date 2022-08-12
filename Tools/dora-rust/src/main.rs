@@ -1,25 +1,41 @@
-#[macro_use] pub mod dora;
-use crate::dora::{IObject, Node, INode, Director, Array, App, Group, Entity, Action};
+pub mod dora;
+use dora::{IObject, Node, INode, Director, Array, App, Group, Entity, Action, platformer};
 
 fn main() {
-	println!("Hello, world!");
+	platformer::UnitAction::add(
+		"action",
+		1,
+		0.1,
+		0.2,
+		true,
+		Box::new(|_unit, _action| {
+			true
+		}),
+		Box::new(|_unit, _action| {
+			platformer::ActionUpdate::new(Box::new(|_unit, _action, _dt| {
+				true
+			})) }),
+		Box::new(|_unit, _action| {
+		})
+	);
+	p!("Hello, world!");
 	let mut node = Node::new();
-	println!("id: {}", node.get_id());
-	println!("x: {}", node.get_x());
+	p!("id: {}", node.get_id());
+	p!("x: {}", node.get_x());
 	node.set_x(100.5);
 	node.set_tag("电风扇");
-	println!("x: {}, tag: {}", node.get_position().x, node.get_tag());
+	p!("x: {}, tag: {}", node.get_position().x, node.get_tag());
 	let mut i = 0;
 	node.schedule(Box::new(move |dt| {
 		i = i + 1;
-		println!("{} {}", i, dt);
+		p!("{} {}", i, dt);
 		i > 30
 	}));
 	node.slot("Enter", Box::new(|_| {
-		println!("Entered!");
+		p!("Entered!");
 	}));
 	node.slot("Event", Box::new(|args| {
-		println!("MyEvent! {}, {}, {}", args.pop_i32().unwrap(), args.pop_str().unwrap(), args.pop_bool().unwrap());
+		p!("MyEvent! {}, {}, {}", args.pop_i32().unwrap(), args.pop_str().unwrap(), args.pop_bool().unwrap());
 	}));
 	node.perform(&Action::spawn(&vec![
 		Action::sequence(&vec![
@@ -30,14 +46,14 @@ fn main() {
 	]));
 	node.slot("End", Box::new(|args| {
 		let n = args.pop_cast::<Node>().unwrap();
-		println!("{} {}", args.pop_str().unwrap(), n.get_x());
+		p!("{} {}", args.pop_str().unwrap(), n.get_x());
 	}));
 
 	let mut entry = Director::get_entry();
 	entry.add_child(&node);
 
 	let children = entry.get_children().unwrap();
-	println!("children len: {}", children.get_count());
+	p!("children len: {}", children.get_count());
 
 	node.emit("Event", args!(1, "dsd", true));
 
@@ -51,9 +67,9 @@ fn main() {
 	userdata.set("key123", arr.obj());
 	let keys = userdata.get_keys();
 	for i in 0 .. keys.len() {
-		println!("k: {}, v: {}", keys[i], userdata.get("key123").unwrap().cast::<Array>().unwrap().raw());
+		p!("k: {}, v: {}", keys[i], userdata.get("key123").unwrap().cast::<Array>().unwrap().raw());
 	}
-	print!("platform: {}\n", App::get_platform());
+	p!("platform: {}", App::get_platform());
 
 	let mut entity = Entity::new();
 	entity.set("a", 123);
@@ -70,7 +86,7 @@ fn main() {
 		let a = args.pop_i32().unwrap();
 		let b = args.pop_bool().unwrap();
 		let c = args.pop_f64().unwrap();
-		print!("entity: {}, {}, {}\n", a, b, c);
+		p!("entity: {}, {}, {}", a, b, c);
 		e.remove("a");
 		e.remove("d");
 	}));

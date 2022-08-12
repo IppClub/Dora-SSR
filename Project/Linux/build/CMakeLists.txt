@@ -69,6 +69,7 @@ add_executable(dorothy-ssr
 	../../../Source/Platformer/Bullet.cpp
 	../../../Source/Platformer/UnitAction.cpp
 	../../../Source/Cache/AtlasCache.cpp
+	../../../Source/Cache/Cache.cpp
 	../../../Source/Cache/ClipCache.cpp
 	../../../Source/Cache/ShaderCache.cpp
 	../../../Source/Cache/ParticleCache.cpp
