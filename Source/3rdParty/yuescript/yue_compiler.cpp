@@ -54,7 +54,7 @@ namespace yue {
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.14.4"sv;
+const std::string_view version = "0.14.5"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -1366,7 +1366,10 @@ private:
 			}
 			BREAK_IF(checkValuesLater);
 			auto value = singleValueFrom(values.back());
-			BREAK_IF(!value);
+			if (!value) {
+				_buf << exprs.size() << " right values expected, got "sv << values.size();
+				throw std::logic_error(_info.errorMessage(clearBuf(), values.front()));
+			}
 			if (auto val = value->item.as<SimpleValue_t>()) {
 				switch (val->value->getId()) {
 					case id<If_t>():

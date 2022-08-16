@@ -1490,7 +1490,7 @@ end
 
 
 local function parse_list(ps, i, list, close, sep, parse_item)
-	local n
+	local n = 1
 	while ps.tokens[i].kind ~= "$EOF$" do
 		if close[ps.tokens[i].tk] then
 			end_at(list, ps.tokens[i])
@@ -1572,7 +1572,25 @@ local function parse_trying_list(ps, i, list, parse_item)
 	return i, list
 end
 
-local function parse_typearg_type(ps, i)
+local function parse_anglebracket_list(ps, i, parse_item)
+	if ps.tokens[i + 1].tk == ">" then
+		return fail(ps, i + 1, "type argument list cannot be empty")
+	end
+	local typ = new_type(ps, i, "tuple")
+	i = verify_tk(ps, i, "<")
+	i = parse_list(ps, i, typ, { [">"] = true, [">>"] = true }, "sep", parse_item)
+	if ps.tokens[i].tk == ">" then
+		i = i + 1
+	elseif ps.tokens[i].tk == ">>" then
+
+		ps.tokens[i].tk = ">"
+	else
+		return fail(ps, i, "syntax error, expected '>'")
+	end
+	return i, typ
+end
+
+local function parse_typearg(ps, i)
 	i = verify_kind(ps, i, "identifier")
 	return i, a_type({
 		y = ps.tokens[i - 2].y,
@@ -1580,22 +1598,6 @@ local function parse_typearg_type(ps, i)
 		typename = "typearg",
 		typearg = ps.tokens[i - 1].tk,
 	})
-end
-
-local function parse_typearg_list(ps, i)
-	if ps.tokens[i + 1].tk == ">" then
-		return fail(ps, i + 1, "type argument list cannot be empty")
-	end
-	local typ = new_type(ps, i, "tuple")
-	return parse_bracket_list(ps, i, typ, "<", ">", "sep", parse_typearg_type)
-end
-
-local function parse_typeval_list(ps, i)
-	if ps.tokens[i + 1].tk == ">" then
-		return fail(ps, i + 1, "type argument list cannot be empty")
-	end
-	local typ = new_type(ps, i, "tuple")
-	return parse_bracket_list(ps, i, typ, "<", ">", "sep", parse_type)
 end
 
 local function parse_return_types(ps, i)
@@ -1606,7 +1608,7 @@ local function parse_function_type(ps, i)
 	local typ = new_type(ps, i, "function")
 	i = i + 1
 	if ps.tokens[i].tk == "<" then
-		i, typ.typeargs = parse_typearg_list(ps, i)
+		i, typ.typeargs = parse_anglebracket_list(ps, i, parse_typearg)
 	end
 	if ps.tokens[i].tk == "(" then
 		i, typ.args = parse_argument_type_list(ps, i)
@@ -1666,7 +1668,7 @@ local function parse_base_type(ps, i)
 		end
 
 		if ps.tokens[i].tk == "<" then
-			i, typ.typevals = parse_typeval_list(ps, i)
+			i, typ.typevals = parse_anglebracket_list(ps, i, parse_type)
 		end
 		return i, typ
 	elseif tk == "{" then
@@ -1797,7 +1799,7 @@ end
 local function parse_function_args_rets_body(ps, i, node)
 	local istart = i - 1
 	if ps.tokens[i].tk == "<" then
-		i, node.typeargs = parse_typearg_list(ps, i)
+		i, node.typeargs = parse_anglebracket_list(ps, i, parse_typearg)
 	end
 	i, node.args = parse_argument_list(ps, i)
 	i, node.rets = parse_return_types(ps, i)
@@ -2618,7 +2620,7 @@ parse_record_body = function(ps, i, def, node)
 	def.fields = {}
 	def.field_order = {}
 	if ps.tokens[i].tk == "<" then
-		i, def.typeargs = parse_typearg_list(ps, i)
+		i, def.typeargs = parse_anglebracket_list(ps, i, parse_typearg)
 	end
 	while not (ps.tokens[i].kind == "$EOF$" or ps.tokens[i].tk == "end") do
 		if ps.tokens[i].tk == "userdata" and ps.tokens[i + 1].tk ~= ":" then
