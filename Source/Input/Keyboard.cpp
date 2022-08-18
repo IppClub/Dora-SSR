@@ -7,34 +7,33 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Input/Keyboard.h"
-#include "Event/Event.h"
+
 #include "Basic/Application.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
+#include "Event/Event.h"
 
 #include "SDL.h"
 
 NS_DOROTHY_BEGIN
 
-Keyboard::Keyboard():
-_oldCodeStates(SDL_NUM_SCANCODES, false),
-_newCodeStates(SDL_NUM_SCANCODES, false),
-_oldKeyStates(SDL_NUM_SCANCODES, false),
-_newKeyStates(SDL_NUM_SCANCODES, false),
-_keyNames(SDL_NUM_SCANCODES),
-_codeNames(SDL_NUM_SCANCODES)
-{
+Keyboard::Keyboard()
+	: _oldCodeStates(SDL_NUM_SCANCODES, false)
+	, _newCodeStates(SDL_NUM_SCANCODES, false)
+	, _oldKeyStates(SDL_NUM_SCANCODES, false)
+	, _newKeyStates(SDL_NUM_SCANCODES, false)
+	, _keyNames(SDL_NUM_SCANCODES)
+	, _codeNames(SDL_NUM_SCANCODES) {
 	SharedApplication.eventHandler += std::make_pair(this, &Keyboard::handleEvent);
 }
 
-Keyboard::~Keyboard()
-{
+Keyboard::~Keyboard() {
 	SharedApplication.eventHandler -= std::make_pair(this, &Keyboard::handleEvent);
 }
 
-bool Keyboard::init()
-{
+bool Keyboard::init() {
 	_keyNames[SDLK_RETURN] = "Return"_slice;
 	_keyNames[SDLK_ESCAPE] = "Escape"_slice;
 	_keyNames[SDLK_BACKSPACE] = "BackSpace"_slice;
@@ -109,10 +108,8 @@ bool Keyboard::init()
 
 	_keyNames[SDLK_DELETE] = "Delete"_slice;
 
-	for (int i = 0; i < SDL_NUM_SCANCODES; i++)
-	{
-		if (!_keyNames[i].empty())
-		{
+	for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
+		if (!_keyNames[i].empty()) {
 			_keyMap[_keyNames[i]] = i;
 		}
 	}
@@ -175,29 +172,21 @@ bool Keyboard::init()
 	_codeNames[SDL_SCANCODE_RALT] = "RAlt"_slice;
 	_codeNames[SDL_SCANCODE_RGUI] = "RGui"_slice;
 
-	for (int i = 0; i < SDL_NUM_SCANCODES; i++)
-	{
-		if (!_codeNames[i].empty())
-		{
+	for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
+		if (!_codeNames[i].empty()) {
 			_codeMap[_codeNames[i]] = i;
 		}
 	}
 	return true;
 }
 
-void Keyboard::clearChanges()
-{
-	if (!_changedKeys.empty())
-	{
-		for (auto symKey : _changedKeys)
-		{
-			if ((symKey & SDLK_SCANCODE_MASK) != 0)
-			{
+void Keyboard::clearChanges() {
+	if (!_changedKeys.empty()) {
+		for (auto symKey : _changedKeys) {
+			if ((symKey & SDLK_SCANCODE_MASK) != 0) {
 				uint32_t code = s_cast<uint32_t>(symKey) & ~SDLK_SCANCODE_MASK;
 				_oldCodeStates[code] = _newCodeStates[code];
-			}
-			else
-			{
+			} else {
 				_oldKeyStates[symKey] = _newKeyStates[symKey];
 			}
 		}
@@ -205,15 +194,11 @@ void Keyboard::clearChanges()
 	}
 }
 
-void Keyboard::attachIME(const KeyboardHandler& handler)
-{
-	if (_imeHandler)
-	{
+void Keyboard::attachIME(const KeyboardHandler& handler) {
+	if (_imeHandler) {
 		Event detachEvent("DetachIME"_slice);
 		_imeHandler(&detachEvent);
-	}
-	else
-	{
+	} else {
 		SharedApplication.invokeInRender(SDL_StartTextInput);
 	}
 	_imeHandler = handler;
@@ -221,10 +206,8 @@ void Keyboard::attachIME(const KeyboardHandler& handler)
 	_imeHandler(&attachEvent);
 }
 
-void Keyboard::detachIME()
-{
-	if (_imeHandler)
-	{
+void Keyboard::detachIME() {
+	if (_imeHandler) {
 		Event detachEvent("DetachIME"_slice);
 		_imeHandler(&detachEvent);
 		_imeHandler = nullptr;
@@ -232,58 +215,47 @@ void Keyboard::detachIME()
 	}
 }
 
-bool Keyboard::isIMEAttached() const
-{
+bool Keyboard::isIMEAttached() const {
 	return !_imeHandler.IsEmpty();
 }
 
-void Keyboard::updateIMEPosHint(const Vec2& winPos)
-{
+void Keyboard::updateIMEPosHint(const Vec2& winPos) {
 	int offsetY =
 #if BX_PLATFORM_IOS
 		45;
 #else
 		0;
 #endif
-	SDL_Rect rc = { s_cast<int>(winPos.x), s_cast<int>(winPos.y) + offsetY, 0, 0 };
-	SharedApplication.invokeInRender([rc]()
-	{
+	SDL_Rect rc = {s_cast<int>(winPos.x), s_cast<int>(winPos.y) + offsetY, 0, 0};
+	SharedApplication.invokeInRender([rc]() {
 		SDL_SetTextInputRect(c_cast<SDL_Rect*>(&rc));
 	});
 }
 
-void Keyboard::handleEvent(const SDL_Event& event)
-{
-	switch (event.type)
-	{
+void Keyboard::handleEvent(const SDL_Event& event) {
+	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
-		case SDL_FINGERDOWN:
-		{
+		case SDL_FINGERDOWN: {
 			detachIME();
 			break;
 		}
-		case SDL_KEYDOWN:
-		{
+		case SDL_KEYDOWN: {
 			Slice name;
 			bool oldDown;
-			if ((event.key.keysym.sym & SDLK_SCANCODE_MASK) != 0)
-			{
+			if ((event.key.keysym.sym & SDLK_SCANCODE_MASK) != 0) {
 				int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
 				name = _codeNames[key];
 				if (name.empty()) break;
 				oldDown = _oldCodeStates[key];
 				_newCodeStates[key] = true;
-			}
-			else
-			{
+			} else {
 				int key = event.key.keysym.sym;
 				name = _keyNames[key];
 				if (name.empty()) break;
 				oldDown = _oldKeyStates[key];
 				_newKeyStates[key] = true;
 			}
-			if (!oldDown)
-			{
+			if (!oldDown) {
 				_changedKeys.push_back(event.key.keysym.sym);
 				EventArgs<Slice> keyDown("KeyDown"_slice, name);
 				KeyHandler(&keyDown);
@@ -292,45 +264,38 @@ void Keyboard::handleEvent(const SDL_Event& event)
 			KeyHandler(&keyPressed);
 			break;
 		}
-		case SDL_KEYUP:
-		{
+		case SDL_KEYUP: {
 			Slice name;
 			bool oldDown;
-			if ((event.key.keysym.sym & SDLK_SCANCODE_MASK) != 0)
-			{
+			if ((event.key.keysym.sym & SDLK_SCANCODE_MASK) != 0) {
 				int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
 				name = _codeNames[key];
 				if (name.empty()) break;
 				oldDown = _oldCodeStates[key];
 				_newCodeStates[key] = false;
-			}
-			else
-			{
+			} else {
 				int key = event.key.keysym.sym;
 				name = _keyNames[key];
 				if (name.empty()) break;
 				oldDown = _oldKeyStates[key];
 				_newKeyStates[key] = false;
 			}
-			if (oldDown)
-			{
+			if (oldDown) {
 				_changedKeys.push_back(event.key.keysym.sym);
 				EventArgs<Slice> keyUp("KeyUp"_slice, name);
 				KeyHandler(&keyUp);
 			}
 			break;
 		}
-		case SDL_TEXTINPUT:
-		{
+		case SDL_TEXTINPUT: {
 			Slice text(event.text.text);
 			EventArgs<Slice> textInput("TextInput"_slice, text);
 			_imeHandler(&textInput);
 			break;
 		}
-		case SDL_TEXTEDITING:
-		{
+		case SDL_TEXTEDITING: {
 			Slice text(event.edit.text);
-			EventArgs<Slice,int> textEditing("TextEditing"_slice, text, event.edit.start);
+			EventArgs<Slice, int> textEditing("TextEditing"_slice, text, event.edit.start);
 			_imeHandler(&textEditing);
 			break;
 		}
@@ -339,48 +304,39 @@ void Keyboard::handleEvent(const SDL_Event& event)
 	}
 }
 
-bool Keyboard::isKeyDown(String name) const
-{
+bool Keyboard::isKeyDown(String name) const {
 	auto it = _keyMap.find(name);
-	if (it != _keyMap.end())
-	{
+	if (it != _keyMap.end()) {
 		return !_oldKeyStates[it->second] && _newKeyStates[it->second];
 	}
 	it = _codeMap.find(name);
-	if (it != _codeMap.end())
-	{
+	if (it != _codeMap.end()) {
 		return !_oldCodeStates[it->second] && _newCodeStates[it->second];
 	}
 	Warn("invalid keyboard button name for \"{}\"", name);
 	return false;
 }
 
-bool Keyboard::isKeyUp(String name)  const
-{
+bool Keyboard::isKeyUp(String name) const {
 	auto it = _keyMap.find(name);
-	if (it != _keyMap.end())
-	{
+	if (it != _keyMap.end()) {
 		return _oldKeyStates[it->second] && !_newKeyStates[it->second];
 	}
 	it = _codeMap.find(name);
-	if (it != _codeMap.end())
-	{
+	if (it != _codeMap.end()) {
 		return _oldCodeStates[it->second] && !_newCodeStates[it->second];
 	}
 	Warn("invalid keyboard button name for \"{}\"", name);
 	return false;
 }
 
-bool Keyboard::isKeyPressed(String name) const
-{
+bool Keyboard::isKeyPressed(String name) const {
 	auto it = _keyMap.find(name);
-	if (it != _keyMap.end())
-	{
+	if (it != _keyMap.end()) {
 		return _newKeyStates[it->second];
 	}
 	it = _codeMap.find(name);
-	if (it != _codeMap.end())
-	{
+	if (it != _codeMap.end()) {
 		return _newCodeStates[it->second];
 	}
 	Warn("invalid keyboard button name for \"{}\"", name);

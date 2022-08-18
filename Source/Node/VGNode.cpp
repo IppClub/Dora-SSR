@@ -7,28 +7,27 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Node/VGNode.h"
-#include "Node/Sprite.h"
+
 #include "Basic/VGRender.h"
 #include "Basic/View.h"
+#include "Node/Sprite.h"
 #include "nanovg/nanovg_bgfx.h"
 
 NS_DOROTHY_BEGIN
 
-VGNode::VGNode(float width, float height, float scale, int edgeAA):
-_frameWidth(width),
-_frameHeight(height),
-_frameScale(scale),
-_edgeAA(edgeAA)
-{ }
+VGNode::VGNode(float width, float height, float scale, int edgeAA)
+	: _frameWidth(width)
+	, _frameHeight(height)
+	, _frameScale(scale)
+	, _edgeAA(edgeAA) { }
 
-Sprite* VGNode::getSurface() const
-{
+Sprite* VGNode::getSurface() const {
 	return _surface;
 }
 
-bool VGNode::init()
-{
+bool VGNode::init() {
 	if (!Node::init()) return false;
 	NVGcontext* context = nvgCreate(_edgeAA, 0);
 	NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
@@ -45,22 +44,18 @@ bool VGNode::init()
 	return true;
 }
 
-void VGNode::cleanup()
-{
-	if (_flags.isOff(Node::Cleanup))
-	{
+void VGNode::cleanup() {
+	if (_flags.isOff(Node::Cleanup)) {
 		Node::cleanup();
 		_surface = nullptr;
 	}
 }
 
-void VGNode::render(const std::function<void()>& func)
-{
+void VGNode::render(const std::function<void()>& func) {
 	VGTexture* texture = s_cast<VGTexture*>(_surface->getTexture());
 	NVGLUframebuffer* framebuffer = texture->getFramebuffer();
 	NVGcontext* context = texture->getContext();
-	SharedView.pushFront("VGNode"_slice, [&]()
-	{
+	SharedView.pushFront("VGNode"_slice, [&]() {
 		bgfx::ViewId viewId = SharedView.getId();
 		bgfx::setViewClear(viewId,
 			BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
@@ -69,8 +64,7 @@ void VGNode::render(const std::function<void()>& func)
 		nvgluBindFramebuffer(framebuffer);
 		nvgBeginFrame(context, _frameWidth, _frameHeight, _frameScale);
 		nvg::BindContext(context);
-		switch (bgfx::getCaps()->rendererType)
-		{
+		switch (bgfx::getCaps()->rendererType) {
 			case bgfx::RendererType::OpenGL:
 			case bgfx::RendererType::OpenGLES:
 				nvgScale(context, 1.0f, -1.0f);

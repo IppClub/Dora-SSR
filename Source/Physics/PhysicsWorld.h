@@ -21,8 +21,7 @@ class Sensor;
 class Joint;
 class DebugDraw;
 
-class PhysicsWorld : public Node
-{
+class PhysicsWorld : public Node {
 public:
 	virtual ~PhysicsWorld();
 	PROPERTY_READONLY_REF(pd::World, PrWorld);
@@ -73,8 +72,10 @@ public:
 	static float b2Factor;
 	enum { TotalGroups = sizeof(pr::Filter::bits_type) * 8 };
 	CREATE_FUNC(PhysicsWorld);
+
 protected:
 	PhysicsWorld();
+
 private:
 	void setupBeginContact();
 	void setupEndContact();
@@ -82,31 +83,34 @@ private:
 	void solveContacts();
 	std::vector<Body*> _queryResultsOfCommonShapes;
 	std::vector<Body*> _queryResultsOfChainsAndEdges;
+
 private:
-	struct RayCastData
-	{
-		RayCastData():body(nullptr),point{},normal{} {}
+	struct RayCastData {
+		RayCastData()
+			: body(nullptr)
+			, point{}
+			, normal{} { }
 		Body* body;
 		Vec2 point;
 		Vec2 normal;
 	} _rayCastResult;
 	std::vector<RayCastData> _rayCastResults;
+
 protected:
 	Own<DebugDraw> _debugDraw;
+
 private:
 	pr::Filter _filters[TotalGroups];
 	pd::World _world;
 	pr::StepConf _stepConf;
 
-	struct SensorPair
-	{
+	struct SensorPair {
 		Sensor* sensor;
 		Body* body;
 		void retain();
 		void release();
 	};
-	struct ContactPair
-	{
+	struct ContactPair {
 		Body* bodyA;
 		Body* bodyB;
 		Vec2 point;

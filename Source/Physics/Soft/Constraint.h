@@ -14,8 +14,7 @@ NS_BEGIN(Soft)
 
 class Particle;
 
-class Constraint
-{
+class Constraint {
 public:
 	PROPERTY_READONLY(Particle*, NodeA);
 	PROPERTY_READONLY(Particle*, NodeB);
@@ -49,4 +48,3 @@ private:
 
 NS_END(Soft)
 NS_DOROTHY_END
-

@@ -8,52 +8,53 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "font/font_manager.h"
-#include "Support/Geometry.h"
 #include "Node/Node.h"
 #include "Node/Sprite.h"
+#include "Support/Geometry.h"
+#include "font/font_manager.h"
 
 NS_DOROTHY_BEGIN
 
-class TrueTypeFile : public Object
-{
+class TrueTypeFile : public Object {
 public:
 	PROPERTY_READONLY(bgfx::TrueTypeHandle, Handle);
 	CREATE_FUNC(TrueTypeFile);
 	virtual ~TrueTypeFile();
+
 protected:
 	TrueTypeFile(bgfx::TrueTypeHandle handle);
+
 private:
 	bgfx::TrueTypeHandle _handle;
 };
 
-class Font : public Object
-{
+class Font : public Object {
 public:
 	PROPERTY_READONLY(bgfx::FontHandle, Handle);
 	PROPERTY_READONLY_CREF(bgfx::FontInfo, Info);
 	PROPERTY_READONLY(TrueTypeFile*, File);
 	CREATE_FUNC(Font);
 	virtual ~Font();
+
 protected:
 	Font(TrueTypeFile* file, bgfx::FontHandle handle);
+
 private:
 	bgfx::FontHandle _handle;
 	Ref<TrueTypeFile> _file;
 };
 
-class FontManager : public bgfx::FontManager
-{
+class FontManager : public bgfx::FontManager {
 protected:
-	FontManager():bgfx::FontManager(DORA_FONT_TEXTURE_SIZE) { }
+	FontManager()
+		: bgfx::FontManager(DORA_FONT_TEXTURE_SIZE) { }
 	SINGLETON_REF(FontManager, BGFXDora);
 };
 
 #define SharedFontManager \
 	Dorothy::Singleton<Dorothy::FontManager>::shared()
 
-class FontCache
-{
+class FontCache {
 public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
 	PROPERTY_READONLY(bgfx::FontManager*, Manager);
@@ -72,8 +73,10 @@ public:
 	std::tuple<Texture2D*, Rect> getCharacterInfo(Font* font, bgfx::CodePoint character);
 	const bgfx::GlyphInfo* getGlyphInfo(Font* font, bgfx::CodePoint character);
 	const bgfx::GlyphInfo* updateCharacter(Sprite* sp, Font* font, bgfx::CodePoint character);
+
 protected:
 	FontCache();
+
 private:
 	std::pair<std::string, int> getArgsFromStr(String fontStr);
 	Ref<SpriteEffect> _defaultEffect;
@@ -85,15 +88,13 @@ private:
 #define SharedFontCache \
 	Dorothy::Singleton<Dorothy::FontCache>::shared()
 
-enum struct TextAlign
-{
+enum struct TextAlign {
 	Left = 0,
 	Center = 1,
 	Right = 2
 };
 
-class Label : public Node
-{
+class Label : public Node {
 public:
 	virtual ~Label();
 	PROPERTY(TextAlign, Alignment);
@@ -115,15 +116,19 @@ public:
 	virtual const Matrix& getWorld() override;
 	static const float AutomaticWidth;
 	CREATE_FUNC(Label);
+
 protected:
 	Label(String fontStr);
 	Label(String fontName, uint32_t fontSize);
 	void updateCharacters(const std::vector<uint32_t>& chars);
 	void updateLabel();
-	struct CharItem
-	{
-		CharItem():
-		code(0),texture(nullptr),rect{},pos{},sprite(nullptr) { }
+	struct CharItem {
+		CharItem()
+			: code(0)
+			, texture(nullptr)
+			, rect{}
+			, pos{}
+			, sprite(nullptr) { }
 		uint32_t code;
 		Texture2D* texture;
 		Rect rect;
@@ -137,6 +142,7 @@ protected:
 	void updateVertColor();
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
+
 private:
 	uint8_t _alphaRef;
 	float _spacing;
@@ -151,8 +157,7 @@ private:
 	OwnVector<CharItem> _characters;
 	std::vector<SpriteQuad::Position> _quadPos;
 	std::vector<SpriteQuad> _quads;
-	enum
-	{
+	enum {
 		DepthWrite = Node::UserFlag,
 		TextBatched = Node::UserFlag << 1,
 		QuadDirty = Node::UserFlag << 2,

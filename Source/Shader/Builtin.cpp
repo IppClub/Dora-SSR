@@ -7,31 +7,31 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Shader/Builtin.h"
 
-#include "Shader/Draw/vs_draw.bin.h"
 #include "Shader/Draw/fs_draw.bin.h"
+#include "Shader/Draw/vs_draw.bin.h"
 
-#include "Shader/ImGui/vs_ocornut_imgui.bin.h"
 #include "Shader/ImGui/fs_ocornut_imgui.bin.h"
 #include "Shader/ImGui/fs_ocornut_imgui_image.bin.h"
+#include "Shader/ImGui/vs_ocornut_imgui.bin.h"
 
-#include "Shader/Simple/vs_poscolor.bin.h"
 #include "Shader/Simple/fs_poscolor.bin.h"
+#include "Shader/Simple/vs_poscolor.bin.h"
 
-#include "Shader/Sprite/vs_sprite.bin.h"
 #include "Shader/Sprite/fs_sprite.bin.h"
+#include "Shader/Sprite/fs_spritealphatest.bin.h"
 #include "Shader/Sprite/fs_spriteblurh.bin.h"
 #include "Shader/Sprite/fs_spriteblurv.bin.h"
-#include "Shader/Sprite/fs_spritewhite.bin.h"
-#include "Shader/Sprite/fs_spritealphatest.bin.h"
-#include "Shader/Sprite/fs_spritesaturation.bin.h"
 #include "Shader/Sprite/fs_spriteoutlinecolor.bin.h"
+#include "Shader/Sprite/fs_spritesaturation.bin.h"
+#include "Shader/Sprite/fs_spritewhite.bin.h"
+#include "Shader/Sprite/vs_sprite.bin.h"
 
 NS_DOROTHY_BEGIN
 
-static const bgfx::EmbeddedShader doraShaders[] =
-{
+static const bgfx::EmbeddedShader doraShaders[] = {
 	BGFX_EMBEDDED_SHADER(vs_draw),
 	BGFX_EMBEDDED_SHADER(fs_draw),
 	BGFX_EMBEDDED_SHADER(vs_ocornut_imgui),
@@ -47,8 +47,7 @@ static const bgfx::EmbeddedShader doraShaders[] =
 	BGFX_EMBEDDED_SHADER(fs_spritealphatest),
 	BGFX_EMBEDDED_SHADER(fs_spritesaturation),
 	BGFX_EMBEDDED_SHADER(fs_spriteoutlinecolor),
-	BGFX_EMBEDDED_SHADER_END()
-};
+	BGFX_EMBEDDED_SHADER_END()};
 
 const bgfx::EmbeddedShader* DoraShaders = doraShaders;
 

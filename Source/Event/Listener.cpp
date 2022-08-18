@@ -7,71 +7,59 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Event/Event.h"
+
 #include "Event/Listener.h"
+
+#include "Event/Event.h"
 
 NS_DOROTHY_BEGIN
 
-bool Listener::init()
-{
+bool Listener::init() {
 	if (!Object::init()) return false;
 	Listener::setEnabled(true);
 	return true;
 }
 
-void Listener::setEnabled(bool enable)
-{
-	if (enable)
-	{
+void Listener::setEnabled(bool enable) {
+	if (enable) {
 		Event::reg(this);
-	}
-	else
-	{
+	} else {
 		Event::unreg(this);
 	}
 }
 
-bool Listener::isEnabled() const
-{
+bool Listener::isEnabled() const {
 	return _enabled;
 }
 
-void Listener::setHandler(const EventHandler& handler)
-{
+void Listener::setHandler(const EventHandler& handler) {
 	_handler = handler;
 }
 
-const EventHandler& Listener::getHandler() const
-{
+const EventHandler& Listener::getHandler() const {
 	return _handler;
 }
 
-void Listener::clearHandler()
-{
+void Listener::clearHandler() {
 	_handler.Clear();
 }
 
-void Listener::handle(Event* e)
-{
-	if (_handler)
-	{
+void Listener::handle(Event* e) {
+	if (_handler) {
 		_handler(e);
 	}
 }
 
-Listener::Listener(const std::string& name, const EventHandler& handler):
-_name(name),
-_handler(handler),
-_enabled(false)
-{ }
+Listener::Listener(const std::string& name, const EventHandler& handler)
+	: _name(name)
+	, _handler(handler)
+	, _enabled(false) { }
 
-const std::string& Listener::getName() const
-{
+const std::string& Listener::getName() const {
 	return _name;
 }
 
-Listener::~Listener()
-{
+Listener::~Listener() {
 	Listener::setEnabled(false);
 }
 

@@ -7,14 +7,16 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Node/Particle.h"
-#include "Cache/TextureCache.h"
-#include "Cache/ClipCache.h"
-#include "Cache/ParticleCache.h"
-#include "Effect/Effect.h"
+
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
+#include "Cache/ClipCache.h"
+#include "Cache/ParticleCache.h"
+#include "Cache/TextureCache.h"
 #include "Const/XmlTag.h"
+#include "Effect/Effect.h"
 
 NS_DOROTHY_BEGIN
 
@@ -64,42 +66,38 @@ static const uint8_t __defaultParticleTexturePng[] = {
 	0xC1, 0x00, 0x47, 0x9F, 0x0B, 0x7C, 0xCA, 0x73, 0xC1, 0xDB, 0x9F, 0x8C, 0xF2, 0x17, 0x1E, 0x4E,
 	0xDF, 0xF2, 0x6C, 0xF8, 0x67, 0xAF, 0x22, 0x7B, 0xF3, 0xEB, 0x4B, 0x80, 0x01, 0x00, 0xB8, 0x21,
 	0x72, 0x89, 0x08, 0x10, 0x07, 0x7D, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
-	0x60, 0x82
-};
+	0x60, 0x82};
 
-ParticleDef::ParticleDef() :
-angle(),
-angleVariance(),
-blendFuncDestination(),
-blendFuncSource(),
-duration(),
-emissionRate(),
-finishColor{},
-finishColorVariance{},
-rotationStart(),
-rotationStartVariance(),
-rotationEnd(),
-rotationEndVariance(),
-finishParticleSize(),
-finishParticleSizeVariance(),
-maxParticles(),
-particleLifespan(),
-particleLifespanVariance(),
-startPosition(),
-startPositionVariance(),
-startColor(),
-startColorVariance(),
-startParticleSize(),
-startParticleSizeVariance(),
-emitterMode(),
-mode(),
-textureName(),
-textureRect()
-{ }
+ParticleDef::ParticleDef()
+	: angle()
+	, angleVariance()
+	, blendFuncDestination()
+	, blendFuncSource()
+	, duration()
+	, emissionRate()
+	, finishColor{}
+	, finishColorVariance{}
+	, rotationStart()
+	, rotationStartVariance()
+	, rotationEnd()
+	, rotationEndVariance()
+	, finishParticleSize()
+	, finishParticleSizeVariance()
+	, maxParticles()
+	, particleLifespan()
+	, particleLifespanVariance()
+	, startPosition()
+	, startPositionVariance()
+	, startColor()
+	, startColorVariance()
+	, startParticleSize()
+	, startParticleSizeVariance()
+	, emitterMode()
+	, mode()
+	, textureName()
+	, textureRect() { }
 
-
-std::string ParticleDef::toXml() const
-{
+std::string ParticleDef::toXml() const {
 	fmt::memory_buffer out;
 	fmt::format_to(std::back_inserter(out), "<{}>"sv, char(Xml::Particle::Dorothy));
 	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::Angle), angle);
@@ -128,8 +126,7 @@ std::string ParticleDef::toXml() const
 	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::EmitterMode), s_cast<int>(emitterMode));
 	fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::TextureName), textureName);
 	fmt::format_to(std::back_inserter(out), "<{} A=\"{},{},{},{}\"/>"sv, char(Xml::Particle::TextureRect), textureRect.getX(), textureRect.getY(), textureRect.getWidth(), textureRect.getHeight());
-	switch (emitterMode)
-	{
+	switch (emitterMode) {
 		case EmitterMode::Gravity:
 			fmt::format_to(std::back_inserter(out), "<{} A=\"{}\"/>"sv, char(Xml::Particle::RotationIsDir), mode.gravity.rotationIsDir ? 1 : 0);
 			fmt::format_to(std::back_inserter(out), "<{} A=\"{},{}\"/>"sv, char(Xml::Particle::Gravity), mode.gravity.gravity.x, mode.gravity.gravity.y);
@@ -153,8 +150,7 @@ std::string ParticleDef::toXml() const
 	return fmt::to_string(out);
 }
 
-ParticleDef* ParticleDef::fire()
-{
+ParticleDef* ParticleDef::fire() {
 	ParticleDef* def = ParticleDef::create();
 	def->duration = -1;
 
@@ -181,8 +177,8 @@ ParticleDef* ParticleDef::fire()
 	def->maxParticles = 100;
 	def->emissionRate = 350;
 
-	def->startColor = { 0.76f, 0.25f, 0.12f, 1.0f };
-	def->finishColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	def->startColor = {0.76f, 0.25f, 0.12f, 1.0f};
+	def->finishColor = {0.0f, 0.0f, 0.0f, 1.0f};
 
 	def->blendFuncSource = BlendFunc::SrcAlpha;
 	def->blendFuncDestination = BlendFunc::One;
@@ -190,103 +186,81 @@ ParticleDef* ParticleDef::fire()
 	return def;
 }
 
-ParticleNode::ParticleNode(ParticleDef* def) :
-_particleDef(def),
-_elapsed(0),
-_emitCounter(0),
-_texLeft(0),
-_texTop(0),
-_texRight(0),
-_texBottom(0),
-_renderState(BGFX_STATE_NONE),
-_effect(SharedSpriteRenderer.getDefaultEffect())
-{ }
+ParticleNode::ParticleNode(ParticleDef* def)
+	: _particleDef(def)
+	, _elapsed(0)
+	, _emitCounter(0)
+	, _texLeft(0)
+	, _texTop(0)
+	, _texRight(0)
+	, _texBottom(0)
+	, _renderState(BGFX_STATE_NONE)
+	, _effect(SharedSpriteRenderer.getDefaultEffect()) { }
 
-ParticleNode::ParticleNode(String filename) :
-ParticleNode(SharedParticleCache.load(filename))
-{ }
+ParticleNode::ParticleNode(String filename)
+	: ParticleNode(SharedParticleCache.load(filename)) { }
 
-ParticleNode::~ParticleNode()
-{ }
+ParticleNode::~ParticleNode() { }
 
-bool ParticleNode::init()
-{
+bool ParticleNode::init() {
 	if (!Node::init()) return false;
 	_particles.reserve(_particleDef->maxParticles);
 	_quads.reserve(_particleDef->maxParticles);
 	Rect textureRect = _particleDef->textureRect;
-	if (!_particleDef->textureName.empty())
-	{
-		if (SharedClipCache.isClip(_particleDef->textureName) &&
-			SharedClipCache.isFileExist(_particleDef->textureName))
-		{
+	if (!_particleDef->textureName.empty()) {
+		if (SharedClipCache.isClip(_particleDef->textureName) && SharedClipCache.isFileExist(_particleDef->textureName)) {
 			Texture2D* tex = nullptr;
 			Rect rect;
 			std::tie(tex, rect) = SharedClipCache.loadTexture(_particleDef->textureName);
-			if (tex)
-			{
+			if (tex) {
 				_texture = tex;
 				textureRect = rect;
 			}
-		}
-		else if (SharedContent.exist(_particleDef->textureName) &&
-				!SharedContent.isFolder(_particleDef->textureName))
-		{
+		} else if (SharedContent.exist(_particleDef->textureName) && !SharedContent.isFolder(_particleDef->textureName)) {
 			_texture = SharedTextureCache.load(_particleDef->textureName);
 		}
 	}
-	if (!_texture)
-	{
+	if (!_texture) {
 		textureRect = Rect::zero;
 		_texture = SharedTextureCache.get("__defaultParticleTexture.png");
-		if (!_texture)
-		{
+		if (!_texture) {
 			_texture = SharedTextureCache.update(
 				"__defaultParticleTexture.png",
 				__defaultParticleTexturePng,
 				sizeof(__defaultParticleTexturePng));
 		}
 	}
-	if (textureRect != Rect::zero)
-	{
+	if (textureRect != Rect::zero) {
 		const bgfx::TextureInfo& info = _texture->getInfo();
 		_texLeft = textureRect.getX() / info.width;
 		_texTop = textureRect.getY() / info.height;
 		_texRight = (textureRect.getX() + textureRect.getWidth()) / info.width;
 		_texBottom = (textureRect.getY() + textureRect.getHeight()) / info.height;
-	}
-	else
-	{
+	} else {
 		_texRight = 1.0f;
 		_texBottom = 1.0f;
 	}
 	return true;
 }
 
-bool ParticleNode::isActive() const
-{
+bool ParticleNode::isActive() const {
 	return _flags.isOn(ParticleNode::Active);
 }
 
-Texture2D* ParticleNode::getTexture() const
-{
+Texture2D* ParticleNode::getTexture() const {
 	return _texture;
 }
 
-void ParticleNode::setDepthWrite(bool var)
-{
+void ParticleNode::setDepthWrite(bool var) {
 	_flags.set(ParticleNode::DepthWrite, var);
 }
 
-bool ParticleNode::isDepthWrite() const
-{
+bool ParticleNode::isDepthWrite() const {
 	return _flags.isOn(ParticleNode::DepthWrite);
 }
 
-void ParticleNode::addParticle()
-{
-	if (s_cast<uint32_t>(_particles.size()) >= _particleDef->maxParticles)
-	{
+void ParticleNode::addParticle() {
+	if (s_cast<uint32_t>(_particles.size()) >= _particleDef->maxParticles) {
 		return;
 	}
 
@@ -297,40 +271,33 @@ void ParticleNode::addParticle()
 	particle.timeToLive = std::max(FLT_EPSILON, particle.timeToLive);
 
 	Vec3 worldPos = convertToWorldSpace3(Vec3{});
-	Vec2 pos = worldPos.toVec2() + def.startPosition +
-		def.startPositionVariance * Vec2{Math::rand1to1(),Math::rand1to1()};
-	particle.pos = {pos.x,pos.y,worldPos.z};
+	Vec2 pos = worldPos.toVec2() + def.startPosition + def.startPositionVariance * Vec2{Math::rand1to1(), Math::rand1to1()};
+	particle.pos = {pos.x, pos.y, worldPos.z};
 
 	Vec4 start{
 		Math::clamp(def.startColor.x + def.startColorVariance.x * Math::rand1to1(), 0.0f, 1.0f),
 		Math::clamp(def.startColor.y + def.startColorVariance.y * Math::rand1to1(), 0.0f, 1.0f),
 		Math::clamp(def.startColor.z + def.startColorVariance.z * Math::rand1to1(), 0.0f, 1.0f),
-		Math::clamp(def.startColor.w + def.startColorVariance.w * Math::rand1to1(), 0.0f, 1.0f)
-	};
+		Math::clamp(def.startColor.w + def.startColorVariance.w * Math::rand1to1(), 0.0f, 1.0f)};
 	Vec4 end{
 		Math::clamp(def.finishColor.x + def.finishColorVariance.x * Math::rand1to1(), 0.0f, 1.0f),
 		Math::clamp(def.finishColor.y + def.finishColorVariance.y * Math::rand1to1(), 0.0f, 1.0f),
 		Math::clamp(def.finishColor.z + def.finishColorVariance.z * Math::rand1to1(), 0.0f, 1.0f),
-		Math::clamp(def.finishColor.w + def.finishColorVariance.w * Math::rand1to1(), 0.0f, 1.0f)
-	};
+		Math::clamp(def.finishColor.w + def.finishColorVariance.w * Math::rand1to1(), 0.0f, 1.0f)};
 	particle.color = start;
 	particle.deltaColor = {
 		(end.x - start.x) / particle.timeToLive,
 		(end.y - start.y) / particle.timeToLive,
 		(end.z - start.z) / particle.timeToLive,
-		(end.w - start.w) / particle.timeToLive
-	};
+		(end.w - start.w) / particle.timeToLive};
 
 	float startSize = def.startParticleSize + def.startParticleSizeVariance * Math::rand1to1();
 	startSize = std::max(0.0f, startSize);
 	particle.size = startSize;
 
-	if (def.finishParticleSize < 0)
-	{
+	if (def.finishParticleSize < 0) {
 		particle.deltaSize = 0;
-	}
-	else
-	{
+	} else {
 		float endSize = def.finishParticleSize + def.finishParticleSizeVariance * Math::rand1to1();
 		endSize = std::max(0.0f, endSize);
 		particle.deltaSize = (endSize - startSize) / particle.timeToLive;
@@ -343,31 +310,24 @@ void ParticleNode::addParticle()
 
 	float angle = bx::toRad(def.angle + def.angleVariance * Math::rand1to1());
 
-	switch (def.emitterMode)
-	{
-		case EmitterMode::Gravity:
-		{
-			Vec2 dir{ std::cos(angle), std::sin(angle) };
+	switch (def.emitterMode) {
+		case EmitterMode::Gravity: {
+			Vec2 dir{std::cos(angle), std::sin(angle)};
 			float speed = def.mode.gravity.speed + def.mode.gravity.speedVariance * Math::rand1to1();
 			particle.mode.gravity.dir = dir * speed;
 			particle.mode.gravity.radialAccel = def.mode.gravity.radialAcceleration + def.mode.gravity.radialAccelVariance * Math::rand1to1();
 			particle.mode.gravity.tangentialAccel = def.mode.gravity.tangentialAcceleration + def.mode.gravity.tangentialAccelVariance * Math::rand1to1();
-			if (def.mode.gravity.rotationIsDir)
-			{
+			if (def.mode.gravity.rotationIsDir) {
 				particle.rotation = -bx::toDeg(particle.mode.gravity.dir.angle());
 			}
 			break;
 		}
-		case EmitterMode::Radius:
-		{
+		case EmitterMode::Radius: {
 			float startRadius = def.mode.radius.startRadius + def.mode.radius.startRadiusVariance * Math::rand1to1();
 			particle.mode.radius.radius = startRadius;
-			if (def.mode.radius.finishRadius < 0)
-			{
+			if (def.mode.radius.finishRadius < 0) {
 				particle.mode.radius.deltaRadius = 0;
-			}
-			else
-			{
+			} else {
 				float endRadius = def.mode.radius.finishRadius + def.mode.radius.finishRadiusVariance * Math::rand1to1();
 				particle.mode.radius.deltaRadius = (endRadius - startRadius) / particle.timeToLive;
 			}
@@ -379,30 +339,26 @@ void ParticleNode::addParticle()
 	_particles.push_back(particle);
 }
 
-void ParticleNode::start()
-{
+void ParticleNode::start() {
 	_flags.setOn(ParticleNode::Active);
 	_flags.setOn(ParticleNode::Emitting);
 	_elapsed = 0;
 	_particles.clear();
 }
 
-void ParticleNode::stop()
-{
+void ParticleNode::stop() {
 	_flags.setOff(ParticleNode::Active);
 	_elapsed = _particleDef->duration;
 	_emitCounter = 0;
 }
 
-void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, float angleY)
-{
+void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, float angleY) {
 	const Vec3& pos = particle.pos;
 	SpriteQuad quad = {
 		{0, 0, 0, 0, _texRight, _texBottom},
 		{0, 0, 0, 0, _texLeft, _texBottom},
 		{0, 0, 0, 0, _texLeft, _texTop},
-		{0, 0, 0, 0, _texRight, _texTop}
-	};
+		{0, 0, 0, 0, _texRight, _texTop}};
 	quad.rb.abgr = Color(particle.color).toABGR();
 	quad.lb.abgr = Color(particle.color).toABGR();
 	quad.lt.abgr = Color(particle.color).toABGR();
@@ -411,11 +367,9 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		{0, 0, 0, 1},
 		{0, 0, 0, 1},
 		{0, 0, 0, 1},
-		{0, 0, 0, 1}
-	};
+		{0, 0, 0, 1}};
 	float halfSize = particle.size * 0.5f * scale;
-	if (particle.rotation)
-	{
+	if (particle.rotation) {
 		float x1 = -halfSize;
 		float y1 = -halfSize;
 		float x2 = halfSize;
@@ -439,9 +393,7 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		quadPos.lt.y = pos.y + dy;
 		quadPos.rt.x = pos.x + cx;
 		quadPos.rt.y = pos.y + cy;
-	}
-	else
-	{
+	} else {
 		quadPos.rb.x = pos.x + halfSize;
 		quadPos.rb.y = pos.y - halfSize;
 		quadPos.lb.x = pos.x - halfSize;
@@ -451,8 +403,7 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		quadPos.rt.x = pos.x + halfSize;
 		quadPos.rt.y = pos.y + halfSize;
 	}
-	if (angleX || angleY)
-	{
+	if (angleX || angleY) {
 		Matrix rotate;
 		bx::mtxRotateXY(rotate, -bx::toRad(angleX), -bx::toRad(angleY));
 		Matrix transform;
@@ -461,9 +412,7 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
 		bx::vec4MulMtx(&quad.lt.x, &quadPos.lt.x, transform);
 		bx::vec4MulMtx(&quad.rt.x, &quadPos.rt.x, transform);
-	}
-	else
-	{
+	} else {
 		const Matrix& transform = SharedDirector.getViewProjection();
 		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
 		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
@@ -473,36 +422,29 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 	_quads.push_back(quad);
 }
 
-void ParticleNode::visit()
-{
-	if (_flags.isOff(ParticleNode::Emitting))
-	{
+void ParticleNode::visit() {
+	if (_flags.isOff(ParticleNode::Emitting)) {
 		Node::visit();
 		return;
 	}
 	float deltaTime = s_cast<float>(getScheduler()->getDeltaTime());
-	if (_flags.isOn(ParticleNode::Active) && _particleDef->emissionRate)
-	{
+	if (_flags.isOn(ParticleNode::Active) && _particleDef->emissionRate) {
 		float rate = 1.0f / _particleDef->emissionRate;
-		if (s_cast<uint32_t>(_particles.size()) < _particleDef->maxParticles)
-		{
+		if (s_cast<uint32_t>(_particles.size()) < _particleDef->maxParticles) {
 			_emitCounter += deltaTime;
 		}
-		while (s_cast<uint32_t>(_particles.size()) < _particleDef->maxParticles && _emitCounter > rate)
-		{
+		while (s_cast<uint32_t>(_particles.size()) < _particleDef->maxParticles && _emitCounter > rate) {
 			addParticle();
 			_emitCounter -= rate;
 		}
 		_elapsed += deltaTime;
-		if (_particleDef->duration >= 0 && _particleDef->duration < _elapsed)
-		{
+		if (_particleDef->duration >= 0 && _particleDef->duration < _elapsed) {
 			stop();
 		}
 	}
 
 	float scaleX = getScaleX(), scaleY = getScaleY(), angleX = getAngleX(), angleY = getAngleY();
-	for (Node* parent = Node::getParent();parent;parent = parent->getParent())
-	{
+	for (Node* parent = Node::getParent(); parent; parent = parent->getParent()) {
 		scaleX *= parent->getScaleX();
 		scaleY *= parent->getScaleY();
 		angleX += parent->getAngleX();
@@ -510,25 +452,20 @@ void ParticleNode::visit()
 	}
 	scaleX = std::abs(scaleX);
 	scaleY = std::abs(scaleY);
-	float scale = Vec2{scaleX,scaleY}.length()/std::sqrt(2.0f);
+	float scale = Vec2{scaleX, scaleY}.length() / std::sqrt(2.0f);
 
 	_quads.clear();
 	int index = 0;
-	while (index < s_cast<int>(_particles.size()))
-	{
+	while (index < s_cast<int>(_particles.size())) {
 		Particle& p = _particles[index];
 		p.timeToLive -= deltaTime;
-		if (p.timeToLive > 0)
-		{
-			switch (_particleDef->emitterMode)
-			{
-				case EmitterMode::Gravity:
-				{
+		if (p.timeToLive > 0) {
+			switch (_particleDef->emitterMode) {
+				case EmitterMode::Gravity: {
 					Vec2 tmp, radial, tangential;
 					radial = Vec2::zero;
 
-					if (p.pos.x || p.pos.y)
-					{
+					if (p.pos.x || p.pos.y) {
 						radial = p.pos;
 						radial.normalize();
 					}
@@ -548,8 +485,7 @@ void ParticleNode::visit()
 					p.pos = {pos.x, pos.y, p.pos.z};
 					break;
 				}
-				case EmitterMode::Radius:
-				{
+				case EmitterMode::Radius: {
 					p.mode.radius.angle += p.mode.radius.degreesPerSecond * deltaTime;
 					p.mode.radius.radius += p.mode.radius.deltaRadius * deltaTime * scale;
 					p.pos.x = -std::cos(p.mode.radius.angle) * p.mode.radius.radius;
@@ -571,16 +507,13 @@ void ParticleNode::visit()
 			addQuad(p, scale, angleX, angleY);
 
 			++index;
-		}
-		else // if (life <= 0)
+		} else // if (life <= 0)
 		{
-			if (index < s_cast<int>(_particles.size()))
-			{
+			if (index < s_cast<int>(_particles.size())) {
 				_particles[index] = _particles.back();
 				_particles.pop_back();
 			}
-			if (_particles.empty())
-			{
+			if (_particles.empty()) {
 				_flags.setOff(ParticleNode::Emitting);
 				_flags.setOn(ParticleNode::Finished);
 				scheduleUpdate();
@@ -590,10 +523,8 @@ void ParticleNode::visit()
 	Node::visit();
 }
 
-bool ParticleNode::update(double deltaTime)
-{
-	if (_flags.isOn(ParticleNode::Finished))
-	{
+bool ParticleNode::update(double deltaTime) {
+	if (_flags.isOn(ParticleNode::Finished)) {
 		_flags.setOff(ParticleNode::Finished);
 		unscheduleUpdate();
 		emit("Finished"_slice);
@@ -601,19 +532,14 @@ bool ParticleNode::update(double deltaTime)
 	return Node::update(deltaTime);
 }
 
-void ParticleNode::render()
-{
-	if (_quads.empty())
-	{
+void ParticleNode::render() {
+	if (_quads.empty()) {
 		return;
 	}
 
-	BlendFunc blendFunc{ _particleDef->blendFuncSource, _particleDef->blendFuncDestination };
-	_renderState = (
-		BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
-		BGFX_STATE_MSAA | blendFunc.toValue());
-	if (_flags.isOn(ParticleNode::DepthWrite))
-	{
+	BlendFunc blendFunc{_particleDef->blendFuncSource, _particleDef->blendFuncDestination};
+	_renderState = (BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | blendFunc.toValue());
+	if (_flags.isOn(ParticleNode::DepthWrite)) {
 		_renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());

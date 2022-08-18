@@ -18,8 +18,7 @@ NS_DOROTHY_PLATFORMER_BEGIN
 class Unit;
 
 NS_DECISION_BEGIN
-class AI
-{
+class AI {
 public:
 	PROPERTY_READONLY_CALL(std::vector<Slice>&, DecisionNodes);
 	bool runDecisionTree(Unit* unit);
@@ -32,8 +31,10 @@ public:
 	Array* getBodiesInAttackRange() const;
 	float getNearestUnitDistance(Relation relation) const;
 	SINGLETON_REF(AI, Data, Director);
+
 protected:
 	AI();
+
 private:
 	Ref<Unit> _self;
 	Unit* _nearestUnit;

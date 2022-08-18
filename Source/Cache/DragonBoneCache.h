@@ -19,30 +19,31 @@ NS_DOROTHY_BEGIN
 class Texture2D;
 class DragonBone;
 
-class DBTextureData : public db::TextureData
-{
+class DBTextureData : public db::TextureData {
 	BIND_CLASS_TYPE_B(DBTextureData);
+
 public:
 	DBTextureData() { }
 	virtual ~DBTextureData() { _onClear(); }
 };
 
-class DBTextureAtlasData : public db::TextureAtlasData
-{
+class DBTextureAtlasData : public db::TextureAtlasData {
 	BIND_CLASS_TYPE_B(DBTextureAtlasData);
+
 public:
 	PROPERTY(Texture2D*, Texture);
 	DBTextureAtlasData() { }
 	virtual ~DBTextureAtlasData() { _onClear(); }
 	virtual DBTextureData* createTexture() const override;
+
 protected:
 	virtual void _onClear() override;
+
 private:
 	Ref<Texture2D> _texture;
 };
 
-class DragonBoneCache : public db::BaseFactory
-{
+class DragonBoneCache : public db::BaseFactory {
 public:
 	std::pair<db::DragonBonesData*, std::string> load(String boneStr);
 	std::pair<db::DragonBonesData*, std::string> load(String boneFile, String atlasFile);
@@ -53,18 +54,20 @@ public:
 	bool removeUnusedBone(String boneFile);
 	bool removeUnusedAtlas(String atlasFile);
 	void removeUnused();
+
 protected:
 	db::DragonBonesData* loadDragonBonesData(String filePath);
 	DBTextureAtlasData* loadTextureAtlasData(String filePath);
 	DragonBone* buildDragonBoneNode(String boneFile, String atlasFile, String armatureName);
+
 protected:
 	DragonBoneCache();
 	virtual db::TextureAtlasData* _buildTextureAtlasData(db::TextureAtlasData* textureAtlasData, void* textureAtlas) const override;
 	virtual db::Armature* _buildArmature(const db::BuildArmaturePackage& dataPackage) const override;
 	virtual db::Slot* _buildSlot(const db::BuildArmaturePackage& dataPackage, const db::SlotData* slotData, db::Armature* armature) const override;
+
 private:
-	class EventManager : public db::IEventDispatcher
-	{
+	class EventManager : public db::IEventDispatcher {
 		virtual bool hasDBEventListener(const std::string& type) const override;
 		virtual void dispatchDBEvent(const std::string& type, db::EventObject* value) override;
 	} _eventManager;

@@ -8,15 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Physics/PhysicsWorld.h"
 #include "Node/Node.h"
+#include "Physics/PhysicsWorld.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
 class PlatformCamera;
 
-class PlatformWorld : public PhysicsWorld
-{
+class PlatformWorld : public PhysicsWorld {
 public:
 	PROPERTY_READONLY(PlatformCamera*, Camera);
 	virtual bool init() override;
@@ -37,20 +36,25 @@ public:
 	void onCameraMoved(float deltaX, float deltaY);
 	void onCameraReset();
 	CREATE_FUNC(PlatformWorld);
+
 protected:
 	virtual void sortAllChildren() override;
-	class Layer : public Node
-	{
+	class Layer : public Node {
 	public:
 		Vec2 ratio;
 		PROPERTY_CREF(Vec2, Offset);
 		CREATE_FUNC(Layer);
+
 	protected:
-		Layer():_offset{}, ratio{} { }
+		Layer()
+			: _offset{}
+			, ratio{} { }
 		virtual void sortAllChildren() override;
+
 	private:
 		Vec2 _offset;
 	};
+
 private:
 	Ref<PlatformCamera> _camera;
 	std::unordered_map<int, WRef<Layer>> _layers;

@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Geometry.h"
+
 NS_DOROTHY_BEGIN
 class Node;
 NS_DOROTHY_END
@@ -16,7 +18,7 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
 /** @brief A face is a combination of sprites and particles.
  When a face is removing, its particles stop emitting and its sprites are all hide.
- And later the entire face is truly removed from memory once it gets totally invisible.  
+ And later the entire face is truly removed from memory once it gets totally invisible.
 
  Faces can attach to each other just as nodes.
 
@@ -30,10 +32,14 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
  Face is just data define, use toNode() method to get visible instance.
 */
-class Face : public Object
-{
+class Face : public Object {
 public:
-	enum {Unknown, Clip, Image, Frame, Particle, Custom};
+	enum { Unknown,
+		Clip,
+		Image,
+		Frame,
+		Particle,
+		Custom };
 	void addChild(Face* face);
 	bool removeChild(Face* face);
 	/** Get a new instance of the face. */
@@ -41,13 +47,14 @@ public:
 	/** Type of face, Unknown, Clip, Image, Frame, Particle, User. */
 	uint32_t getType() const;
 	/** Different type has different faceStr:
-	     type             faceStr
-          Clip            "loli.clip|0"
-          Image        "loli.png"
-          Frame        "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
-          Particle      "loli.par"
+		 type             faceStr
+		  Clip            "loli.clip|0"
+		  Image        "loli.png"
+		  Frame        "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
+		  Particle      "loli.par"
 	*/
 	CREATE_FUNC(Face);
+
 private:
 	Face(String file, const Vec2& point, float scale, float angle);
 	Face(const std::function<Node*()>& func, const Vec2& point, float scale, float angle);

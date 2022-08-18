@@ -8,18 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "bx/easing.h"
 #include "Support/Common.h"
+#include "bx/easing.h"
 
 NS_DOROTHY_BEGIN
 
 class Node;
 
 typedef void (*SetFunc)(Node* target, float value);
-struct Property
-{
-	enum Enum
-	{
+struct Property {
+	enum Enum {
 		X = 0,
 		Y = 1,
 		Z = 2,
@@ -39,10 +37,8 @@ struct Property
 	static SetFunc getFunc(Property::Enum attr);
 };
 
-struct Ease
-{
-	enum Enum
-	{
+struct Ease {
+	enum Enum {
 		Linear = 0,
 		InQuad = 1,
 		OutQuad = 2,
@@ -89,8 +85,7 @@ struct Ease
 	static float func(Ease::Enum easing, float time);
 };
 
-class ActionDuration
-{
+class ActionDuration {
 public:
 	virtual ~ActionDuration() { }
 	virtual float getDuration() const = 0;
@@ -100,8 +95,7 @@ public:
 
 class Action;
 
-class PropertyAction : public ActionDuration
-{
+class PropertyAction : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
@@ -109,8 +103,10 @@ public:
 		Property::Enum prop, Ease::Enum easing = Ease::Linear);
 	static Action* create(float duration, float start, float stop,
 		Property::Enum prop, Ease::Enum easing = Ease::Linear);
+
 protected:
 	PropertyAction() { }
+
 private:
 	bool _ended;
 	float _start;
@@ -120,16 +116,17 @@ private:
 	SetFunc _setFunc;
 };
 
-class Tint : public ActionDuration
-{
+class Tint : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(float duration, Color3 start, Color3 stop, Ease::Enum easing = Ease::Linear);
 	static Action* create(float duration, Color3 start, Color3 stop,
 		Ease::Enum easing = Ease::Linear);
+
 protected:
 	Tint() { }
+
 private:
 	bool _ended;
 	Vec3 _start;
@@ -138,15 +135,16 @@ private:
 	bx::EaseFn _ease;
 };
 
-class Roll : public ActionDuration
-{
+class Roll : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
 	static Action* create(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
+
 protected:
 	Roll() { }
+
 private:
 	bool _ended;
 	float _start;
@@ -155,8 +153,7 @@ private:
 	bx::EaseFn _ease;
 };
 
-class Spawn : public ActionDuration
-{
+class Spawn : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
@@ -166,8 +163,10 @@ public:
 	static Action* create(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Action* create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
 	static Action* create(const std::vector<Own<ActionDuration>>& actions);
+
 protected:
 	Spawn() { }
+
 private:
 	bool _ended;
 	float _duration;
@@ -175,8 +174,7 @@ private:
 	Own<ActionDuration> _second;
 };
 
-class Sequence : public ActionDuration
-{
+class Sequence : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
@@ -186,8 +184,10 @@ public:
 	static Action* create(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Action* create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
 	static Action* create(std::vector<Own<ActionDuration>>&& actions);
+
 protected:
 	Sequence() { }
+
 private:
 	bool _ended;
 	float _duration;
@@ -195,55 +195,59 @@ private:
 	Own<ActionDuration> _second;
 };
 
-class Delay : public ActionDuration
-{
+class Delay : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(float duration);
 	static Action* create(float duration);
+
 protected:
 	Delay() { }
+
 private:
 	float _duration;
 };
 
-class Show : public ActionDuration
-{
+class Show : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc();
 	static Action* create();
+
 protected:
 	Show() { }
+
 private:
 	bool _ended;
 };
 
-class Hide : public ActionDuration
-{
+class Hide : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc();
 	static Action* create();
+
 protected:
 	Hide() { }
+
 private:
 	bool _ended;
 };
 
-class Emit : public ActionDuration
-{
+class Emit : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(String event, String arg = Slice::Empty);
 	static Action* create(String event, String arg = Slice::Empty);
 	static bool available;
+
 protected:
 	Emit() { }
+
 private:
 	bool _ended;
 	std::string _event;
@@ -253,61 +257,53 @@ private:
 class Texture2D;
 class FrameActionDef;
 
-class FrameAction : public ActionDuration
-{
+class FrameAction : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(FrameActionDef* def);
 	static Action* create(FrameActionDef* def);
+
 protected:
 	FrameAction() { }
+
 private:
 	bool _ended;
 	Ref<Texture2D> _texture;
 	Ref<FrameActionDef> _def;
 };
 
-struct Move
-{
-	static inline Own<ActionDuration> alloc(float duration, const Vec2& startPos, const Vec2& endPos, Ease::Enum ease)
-	{
+struct Move {
+	static inline Own<ActionDuration> alloc(float duration, const Vec2& startPos, const Vec2& endPos, Ease::Enum ease) {
 		return Spawn::alloc(PropertyAction::alloc(duration, startPos.x, endPos.x, Property::X, ease),
 			PropertyAction::alloc(duration, startPos.y, endPos.y, Property::Y, ease));
 	}
-	static inline Action* create(float duration, const Vec2& startPos, const Vec2& endPos, Ease::Enum ease)
-	{
+	static inline Action* create(float duration, const Vec2& startPos, const Vec2& endPos, Ease::Enum ease) {
 		return Spawn::create(PropertyAction::alloc(duration, startPos.x, endPos.x, Property::X, ease),
 			PropertyAction::alloc(duration, startPos.y, endPos.y, Property::Y, ease));
 	}
 };
 
-struct Scale
-{
-	static inline Own<ActionDuration> alloc(float duration, const Vec2& startScale, const Vec2& endScale, Ease::Enum ease)
-	{
+struct Scale {
+	static inline Own<ActionDuration> alloc(float duration, const Vec2& startScale, const Vec2& endScale, Ease::Enum ease) {
 		return Spawn::alloc(PropertyAction::alloc(duration, startScale.x, endScale.x, Property::ScaleX, ease),
 			PropertyAction::alloc(duration, startScale.y, endScale.y, Property::ScaleY, ease));
 	}
-	static inline Own<ActionDuration> alloc(float duration, float startScale, float endScale, Ease::Enum ease)
-	{
+	static inline Own<ActionDuration> alloc(float duration, float startScale, float endScale, Ease::Enum ease) {
 		return Spawn::alloc(PropertyAction::alloc(duration, startScale, endScale, Property::ScaleX, ease),
 			PropertyAction::alloc(duration, startScale, endScale, Property::ScaleY, ease));
 	}
-	static inline Action* create(float duration, const Vec2& startScale, const Vec2& endScale, Ease::Enum ease)
-	{
+	static inline Action* create(float duration, const Vec2& startScale, const Vec2& endScale, Ease::Enum ease) {
 		return Spawn::create(PropertyAction::alloc(duration, startScale.x, endScale.x, Property::ScaleX, ease),
 			PropertyAction::alloc(duration, startScale.y, endScale.y, Property::ScaleY, ease));
 	}
-	static inline Action* create(float duration, float startScale, float endScale, Ease::Enum ease)
-	{
+	static inline Action* create(float duration, float startScale, float endScale, Ease::Enum ease) {
 		return Spawn::create(PropertyAction::alloc(duration, startScale, endScale, Property::ScaleX, ease),
 			PropertyAction::alloc(duration, startScale, endScale, Property::ScaleY, ease));
 	}
 };
 
-class Action : public Object
-{
+class Action : public Object {
 public:
 	PROPERTY_READONLY(float, Eclapsed);
 	PROPERTY_READONLY(float, Duration);
@@ -320,8 +316,10 @@ public:
 	void resume();
 	void updateTo(float eclapsed, bool reversed = false);
 	CREATE_FUNC(Action);
+
 protected:
 	Action(Own<ActionDuration>&& actionDuration);
+
 private:
 	bool updateProgress();
 	Ref<Action> _prev;

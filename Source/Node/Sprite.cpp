@@ -7,12 +7,14 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Node/Sprite.h"
-#include "Effect/Effect.h"
-#include "Cache/ShaderCache.h"
+
 #include "Basic/Director.h"
 #include "Basic/View.h"
 #include "Cache/ClipCache.h"
+#include "Cache/ShaderCache.h"
+#include "Effect/Effect.h"
 
 NS_DOROTHY_BEGIN
 
@@ -21,40 +23,35 @@ NS_DOROTHY_BEGIN
 bgfx::VertexLayout SpriteVertex::ms_layout;
 SpriteVertex::Init SpriteVertex::init;
 
-Sprite::Sprite():
-_filter(TextureFilter::None),
-_uwrap(TextureWrap::None),
-_vwrap(TextureWrap::None),
-_effect(SharedSpriteRenderer.getDefaultEffect()),
-_quadPos{{0,0,0,1},{0,0,0,1},{0,0,0,1},{0,0,0,1}},
-_blendFunc(BlendFunc::Default),
-_alphaRef(0),
-_renderState(BGFX_STATE_NONE)
-{ }
+Sprite::Sprite()
+	: _filter(TextureFilter::None)
+	, _uwrap(TextureWrap::None)
+	, _vwrap(TextureWrap::None)
+	, _effect(SharedSpriteRenderer.getDefaultEffect())
+	, _quadPos{{0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}}
+	, _blendFunc(BlendFunc::Default)
+	, _alphaRef(0)
+	, _renderState(BGFX_STATE_NONE) { }
 
-Sprite::Sprite(Texture2D* texture):
-Sprite()
-{
+Sprite::Sprite(Texture2D* texture)
+	: Sprite() {
 	_texture = texture;
 	_textureRect = texture ? Rect{
-		0.0f, 0.0f,
-		float(texture->getInfo().width),
-		float(texture->getInfo().height)
-	} : Rect::zero;
+					   0.0f, 0.0f,
+					   float(texture->getInfo().width),
+					   float(texture->getInfo().height)}
+						   : Rect::zero;
 }
 
-Sprite::Sprite(Texture2D* texture, const Rect& textureRect):
-Sprite()
-{
+Sprite::Sprite(Texture2D* texture, const Rect& textureRect)
+	: Sprite() {
 	_texture = texture;
 	_textureRect = textureRect;
 }
 
-Sprite::~Sprite()
-{ }
+Sprite::~Sprite() { }
 
-bool Sprite::init()
-{
+bool Sprite::init() {
 	if (!Node::init()) return false;
 	setDepthWrite(false);
 	setSize(_textureRect.size);
@@ -64,97 +61,77 @@ bool Sprite::init()
 	return true;
 }
 
-void Sprite::setEffect(SpriteEffect* var)
-{
+void Sprite::setEffect(SpriteEffect* var) {
 	_effect = var ? var : SharedSpriteRenderer.getDefaultEffect();
 }
 
-SpriteEffect* Sprite::getEffect() const
-{
+SpriteEffect* Sprite::getEffect() const {
 	return _effect;
 }
 
-void Sprite::setTextureRect(const Rect& var)
-{
+void Sprite::setTextureRect(const Rect& var) {
 	_textureRect = var;
 	updateVertPosition();
 	updateVertTexCoord();
 }
 
-const Rect& Sprite::getTextureRect() const
-{
+const Rect& Sprite::getTextureRect() const {
 	return _textureRect;
 }
 
-void Sprite::setTexture(Texture2D* var)
-{
+void Sprite::setTexture(Texture2D* var) {
 	_texture = var;
 	updateVertTexCoord();
 }
 
-Texture2D* Sprite::getTexture() const
-{
+Texture2D* Sprite::getTexture() const {
 	return _texture;
 }
 
-void Sprite::setAlphaRef(float var)
-{
+void Sprite::setAlphaRef(float var) {
 	_alphaRef = s_cast<uint8_t>(255.0f * Math::clamp(var, 0.0f, 1.0f));
 }
 
-float Sprite::getAlphaRef() const
-{
+float Sprite::getAlphaRef() const {
 	return _alphaRef / 255.0f;
 }
 
-void Sprite::setBlendFunc(const BlendFunc& var)
-{
+void Sprite::setBlendFunc(const BlendFunc& var) {
 	_blendFunc = var;
 }
 
-const BlendFunc& Sprite::getBlendFunc() const
-{
+const BlendFunc& Sprite::getBlendFunc() const {
 	return _blendFunc;
 }
 
-void Sprite::setDepthWrite(bool var)
-{
+void Sprite::setDepthWrite(bool var) {
 	_flags.set(Sprite::DepthWrite, var);
 }
 
-bool Sprite::isDepthWrite() const
-{
+bool Sprite::isDepthWrite() const {
 	return _flags.isOn(Sprite::DepthWrite);
 }
 
-uint64_t Sprite::getRenderState() const
-{
+uint64_t Sprite::getRenderState() const {
 	return _renderState;
 }
 
-const SpriteQuad& Sprite::getQuad() const
-{
+const SpriteQuad& Sprite::getQuad() const {
 	return _quad;
 }
 
-uint32_t Sprite::getSamplerFlags() const
-{
+uint32_t Sprite::getSamplerFlags() const {
 	return getTextureFlags() & UINT32_MAX;
 }
 
-uint64_t Sprite::getTextureFlags() const
-{
+uint64_t Sprite::getTextureFlags() const {
 	uint64_t textureFlags = _texture->getFlags();
-	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None)
-	{
+	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None) {
 		return UINT32_MAX;
 	}
-	const uint64_t mask = (
-		BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK |
-		BGFX_SAMPLER_U_MASK | BGFX_SAMPLER_V_MASK);
+	const uint64_t mask = (BGFX_SAMPLER_MIN_MASK | BGFX_SAMPLER_MAG_MASK | BGFX_SAMPLER_U_MASK | BGFX_SAMPLER_V_MASK);
 	uint64_t flags = 0;
-	switch (_filter)
-	{
+	switch (_filter) {
 		case TextureFilter::Point:
 			flags |= (BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
 			break;
@@ -164,8 +141,7 @@ uint64_t Sprite::getTextureFlags() const
 		default:
 			break;
 	}
-	switch (_uwrap)
-	{
+	switch (_uwrap) {
 		case TextureWrap::Mirror:
 			flags |= BGFX_SAMPLER_U_MIRROR;
 			break;
@@ -178,8 +154,7 @@ uint64_t Sprite::getTextureFlags() const
 		default:
 			break;
 	}
-	switch (_vwrap)
-	{
+	switch (_vwrap) {
 		case TextureWrap::Mirror:
 			flags |= BGFX_SAMPLER_V_MIRROR;
 			break;
@@ -192,50 +167,39 @@ uint64_t Sprite::getTextureFlags() const
 		default:
 			break;
 	}
-	if (flags == (textureFlags & mask))
-	{
+	if (flags == (textureFlags & mask)) {
 		return UINT32_MAX;
-	}
-	else
-	{
+	} else {
 		return (textureFlags & (~mask)) | flags;
 	}
 }
 
-void Sprite::setFilter(TextureFilter var)
-{
+void Sprite::setFilter(TextureFilter var) {
 	_filter = var;
 }
 
-TextureFilter Sprite::getFilter() const
-{
+TextureFilter Sprite::getFilter() const {
 	return _filter;
 }
 
-void Sprite::setUWrap(TextureWrap var)
-{
+void Sprite::setUWrap(TextureWrap var) {
 	_uwrap = var;
 }
 
-TextureWrap Sprite::getUWrap() const
-{
+TextureWrap Sprite::getUWrap() const {
 	return _uwrap;
 }
 
-void Sprite::setVWrap(TextureWrap var)
-{
+void Sprite::setVWrap(TextureWrap var) {
 	_vwrap = var;
 }
 
-TextureWrap Sprite::getVWrap() const
-{
+TextureWrap Sprite::getVWrap() const {
 	return _vwrap;
 }
 
-void Sprite::updateVertTexCoord()
-{
-	if (_texture)
-	{
+void Sprite::updateVertTexCoord() {
+	if (_texture) {
 		const bgfx::TextureInfo& info = _texture->getInfo();
 		float left = _textureRect.getX() / info.width;
 		float top = _textureRect.getY() / info.height;
@@ -252,8 +216,7 @@ void Sprite::updateVertTexCoord()
 	}
 }
 
-void Sprite::updateVertPosition()
-{
+void Sprite::updateVertPosition() {
 	float width = _textureRect.getWidth();
 	float height = _textureRect.getHeight();
 	float left = 0, right = width, top = height, bottom = 0;
@@ -268,8 +231,7 @@ void Sprite::updateVertPosition()
 	_flags.setOn(Sprite::VertexPosDirty);
 }
 
-void Sprite::updateVertColor()
-{
+void Sprite::updateVertColor() {
 	uint32_t abgr = _realColor.toABGR();
 	_quad.rb.abgr = abgr;
 	_quad.lb.abgr = abgr;
@@ -277,39 +239,32 @@ void Sprite::updateVertColor()
 	_quad.rt.abgr = abgr;
 }
 
-void Sprite::updateRealColor3()
-{
+void Sprite::updateRealColor3() {
 	Node::updateRealColor3();
 	_flags.setOn(Sprite::VertexColorDirty);
 }
 
-void Sprite::updateRealOpacity()
-{
+void Sprite::updateRealOpacity() {
 	Node::updateRealOpacity();
 	_flags.setOn(Sprite::VertexColorDirty);
 }
 
-const Matrix& Sprite::getWorld()
-{
-	if (_flags.isOn(Node::WorldDirty))
-	{
+const Matrix& Sprite::getWorld() {
+	if (_flags.isOn(Node::WorldDirty)) {
 		_flags.setOn(Sprite::VertexPosDirty);
 	}
 	return Node::getWorld();
 }
 
-void Sprite::render()
-{
+void Sprite::render() {
 	if (!_texture || !_effect || _textureRect.size == Size::zero) return;
 
-	if (_flags.isOn(Sprite::VertexColorDirty))
-	{
+	if (_flags.isOn(Sprite::VertexColorDirty)) {
 		_flags.setOff(Sprite::VertexColorDirty);
 		updateVertColor();
 	}
 
-	if (_flags.isOn(Sprite::VertexPosDirty))
-	{
+	if (_flags.isOn(Sprite::VertexPosDirty)) {
 		_flags.setOff(Sprite::VertexPosDirty);
 		Matrix transform;
 		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
@@ -319,12 +274,8 @@ void Sprite::render()
 		bx::vec4MulMtx(&_quad.rt.x, _quadPos.rt, transform);
 	}
 
-	_renderState = (
-		BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
-		BGFX_STATE_ALPHA_REF(_alphaRef) |
-		BGFX_STATE_MSAA | _blendFunc.toValue());
-	if (_flags.isOn(Sprite::DepthWrite))
-	{
+	_renderState = (BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_ALPHA_REF(_alphaRef) | BGFX_STATE_MSAA | _blendFunc.toValue());
+	if (_flags.isOn(Sprite::DepthWrite)) {
 		_renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 
@@ -332,50 +283,42 @@ void Sprite::render()
 	SharedSpriteRenderer.push(this);
 }
 
-Sprite* Sprite::from(String clipStr)
-{
+Sprite* Sprite::from(String clipStr) {
 	return SharedClipCache.loadSprite(clipStr);
 }
 
 /* SpriteRenderer */
 
-SpriteRenderer::SpriteRenderer():
-_spriteIndices{0, 1, 2, 2, 3, 0},
-_lastEffect(nullptr),
-_lastTexture(nullptr),
-_lastState(0),
-_lastFlags(UINT32_MAX),
-_defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_sprite"_slice)),
-_alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice))
-{ }
+SpriteRenderer::SpriteRenderer()
+	: _spriteIndices{0, 1, 2, 2, 3, 0}
+	, _lastEffect(nullptr)
+	, _lastTexture(nullptr)
+	, _lastState(0)
+	, _lastFlags(UINT32_MAX)
+	, _defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_sprite"_slice))
+	, _alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice)) { }
 
-const SpriteRenderer::IndexType* SpriteRenderer::getIndices() const
-{
+const SpriteRenderer::IndexType* SpriteRenderer::getIndices() const {
 	return _spriteIndices;
 }
 
-SpriteEffect* SpriteRenderer::getDefaultEffect() const
-{
+SpriteEffect* SpriteRenderer::getDefaultEffect() const {
 	return _defaultEffect;
 }
 
-SpriteEffect* SpriteRenderer::getAlphaTestEffect() const
-{
+SpriteEffect* SpriteRenderer::getAlphaTestEffect() const {
 	return _alphaTestEffect;
 }
 
-void SpriteRenderer::render()
-{
-	if (!_vertices.empty())
-	{
+void SpriteRenderer::render() {
+	if (!_vertices.empty()) {
 		bgfx::TransientVertexBuffer vertexBuffer;
 		bgfx::TransientIndexBuffer indexBuffer;
 		uint32_t vertexCount = s_cast<uint32_t>(_vertices.size());
 		uint32_t indexCount = s_cast<uint32_t>(_indices.size());
 		if (bgfx::allocTransientBuffers(
-			&vertexBuffer, SpriteVertex::ms_layout, vertexCount,
-			&indexBuffer, indexCount))
-		{
+				&vertexBuffer, SpriteVertex::ms_layout, vertexCount,
+				&indexBuffer, indexCount)) {
 			Renderer::render();
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
 			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(_indices[0]));
@@ -386,13 +329,10 @@ void SpriteRenderer::render()
 			bgfx::setTexture(0, _lastEffect->getSampler(), _lastTexture->getHandle(), _lastFlags);
 			SpriteEffect* effect = _lastEffect->getPasses().empty() ? _defaultEffect : _lastEffect;
 			Pass* lastPass = effect->getPasses().back().get();
-			for (Pass* pass : effect->getPasses())
-			{
+			for (Pass* pass : effect->getPasses()) {
 				bgfx::submit(viewId, pass->apply(), 0, pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
 			}
-		}
-		else
-		{
+		} else {
 			Warn("not enough transient buffer for {} vertices, {} indices.", vertexCount, indexCount);
 		}
 		_vertices.clear();
@@ -404,14 +344,12 @@ void SpriteRenderer::render()
 	}
 }
 
-void SpriteRenderer::push(Sprite* sprite)
-{
+void SpriteRenderer::push(Sprite* sprite) {
 	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
 	uint64_t state = sprite->getRenderState();
 	uint32_t flags = sprite->getSamplerFlags();
-	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags)
-	{
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags) {
 		render();
 	}
 
@@ -427,21 +365,18 @@ void SpriteRenderer::push(Sprite* sprite)
 	size_t indSize = _indices.size();
 	_indices.resize(indSize + 6);
 	auto indPtr = _indices.data() + indSize;
-	for (size_t i = 0; i < 6; ++i)
-	{
+	for (size_t i = 0; i < 6; ++i) {
 		indPtr[i] = _spriteIndices[i] + s_cast<IndexType>(vertSize);
 	}
 }
 
 void SpriteRenderer::push(SpriteVertex* verts, size_t size,
-	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags)
-{
+	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags) {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
 	if (effect != _lastEffect
 		|| texture != _lastTexture
 		|| state != _lastState
-		|| flags != _lastFlags)
-	{
+		|| flags != _lastFlags) {
 		render();
 	}
 
@@ -459,10 +394,8 @@ void SpriteRenderer::push(SpriteVertex* verts, size_t size,
 	size_t added = 6 * spriteCount;
 	_indices.resize(indSize + added);
 	auto indices = _indices.data() + indSize;
-	for (size_t i = 0; i < spriteCount; i++)
-	{
-		for (size_t j = 0; j < 6; j++)
-		{
+	for (size_t i = 0; i < spriteCount; i++) {
+		for (size_t j = 0; j < 6; j++) {
 			indices[i * 6 + j] = s_cast<IndexType>(_spriteIndices[j] + i * 4 + vertSize);
 		}
 	}
@@ -472,13 +405,11 @@ void SpriteRenderer::push(
 	SpriteVertex* verts, size_t vsize,
 	IndexType* inds, size_t isize,
 	SpriteEffect* effect, Texture2D* texture,
-	uint64_t state, uint32_t flags)
-{
+	uint64_t state, uint32_t flags) {
 	if (effect != _lastEffect
 		|| texture != _lastTexture
 		|| state != _lastState
-		|| flags != _lastFlags)
-	{
+		|| flags != _lastFlags) {
 		render();
 	}
 
@@ -494,8 +425,7 @@ void SpriteRenderer::push(
 	size_t indSize = _indices.size();
 	_indices.resize(indSize + isize);
 	auto indices = _indices.data() + indSize;
-	for (size_t i = 0; i < isize; ++i)
-	{
+	for (size_t i = 0; i < isize; ++i) {
 		indices[i] = inds[i] + s_cast<IndexType>(vertSize);
 	}
 }

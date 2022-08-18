@@ -18,8 +18,7 @@ NS_DOROTHY_BEGIN
 class Joint;
 class Dictionary;
 
-class JointDef : public Object
-{
+class JointDef : public Object {
 public:
 	Vec2 center;
 	Vec2 position;
@@ -107,14 +106,14 @@ public:
 		float frequency = 2.0f,
 		float damping = 0.7f);
 	virtual Joint* toJoint(Dictionary* itemDict) = 0;
+
 protected:
 	Vec2 r(const Vec2& target);
 	Vec2 t(const Vec2& target);
 	DORA_TYPE_OVERRIDE(JointDef);
 };
 
-class DistanceDef : public JointDef
-{
+class DistanceDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -126,8 +125,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class FrictionDef : public JointDef
-{
+class FrictionDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -138,8 +136,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class GearDef : public JointDef
-{
+class GearDef : public JointDef {
 public:
 	bool collision;
 	std::string jointA;
@@ -148,8 +145,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class SpringDef : public JointDef
-{
+class SpringDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -162,8 +158,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class PrismaticDef : public JointDef
-{
+class PrismaticDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -177,8 +172,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class PulleyDef : public JointDef
-{
+class PulleyDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -191,8 +185,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class RevoluteDef : public JointDef
-{
+class RevoluteDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -205,8 +198,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class RopeDef : public JointDef
-{
+class RopeDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -217,8 +209,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class WeldDef : public JointDef
-{
+class WeldDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;
@@ -229,8 +220,7 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-class WheelDef : public JointDef
-{
+class WheelDef : public JointDef {
 public:
 	bool collision;
 	std::string bodyA;

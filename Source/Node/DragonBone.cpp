@@ -7,43 +7,39 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Node/DragonBone.h"
+
 #include "Basic/Content.h"
-#include "Cache/TextureCache.h"
-#include "Cache/DragonBoneCache.h"
-#include "Basic/Scheduler.h"
-#include "Node/Sprite.h"
-#include "Node/DrawNode.h"
-#include "Effect/Effect.h"
-#include "Support/Common.h"
 #include "Basic/Director.h"
+#include "Basic/Scheduler.h"
+#include "Cache/DragonBoneCache.h"
+#include "Cache/TextureCache.h"
+#include "Effect/Effect.h"
+#include "Node/DrawNode.h"
+#include "Node/Sprite.h"
+#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
 
 /* DBSlotNode */
 
-DBSlotNode::DBSlotNode():
-_blendFunc(BlendFunc::Default),
-_effect(SharedSpriteRenderer.getDefaultEffect()),
-_matrix(Matrix::Indentity),
-_transform(AffineTransform::Indentity)
-{ }
+DBSlotNode::DBSlotNode()
+	: _blendFunc(BlendFunc::Default)
+	, _effect(SharedSpriteRenderer.getDefaultEffect())
+	, _matrix(Matrix::Indentity)
+	, _transform(AffineTransform::Indentity) { }
 
-void DBSlotNode::render()
-{
+void DBSlotNode::render() {
 	if (!_texture || !_effect || _vertices.empty()) return;
 	Matrix transform;
 	bx::mtxMul(transform, getWorld(), SharedDirector.getViewProjection());
 	auto parent = s_cast<DragonBone*>(getParent());
-	uint64_t renderState = (
-		BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
-		BGFX_STATE_MSAA | _blendFunc.toValue());
-	if (parent->isDepthWrite())
-	{
+	uint64_t renderState = (BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | _blendFunc.toValue());
+	if (parent->isDepthWrite()) {
 		renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
-	for (size_t i = 0; i < _points.size(); i++)
-	{
+	for (size_t i = 0; i < _points.size(); i++) {
 		bx::vec4MulMtx(&_vertices[i].x, &_points[i].x, transform);
 	}
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
@@ -53,10 +49,8 @@ void DBSlotNode::render()
 		_effect, _texture, renderState);
 }
 
-const Matrix& DBSlotNode::getWorld()
-{
-	if (_flags.isOn(DBSlotNode::TransformDirty) || _flags.isOn(Node::WorldDirty))
-	{
+const Matrix& DBSlotNode::getWorld() {
+	if (_flags.isOn(DBSlotNode::TransformDirty) || _flags.isOn(Node::WorldDirty)) {
 		_flags.setOff(DBSlotNode::TransformDirty);
 		Matrix mat;
 		AffineTransform::toMatrix(_transform, mat);
@@ -67,45 +61,38 @@ const Matrix& DBSlotNode::getWorld()
 
 /* DBSlot */
 
-float DBSlot::getTextureScale() const
-{
+float DBSlot::getTextureScale() const {
 	return _textureScale;
 }
 
-void DBSlot::_onClear()
-{
+void DBSlot::_onClear() {
 	db::Slot::_onClear();
 	_textureScale = 1.0f;
 	_node = nullptr;
 }
 
-void DBSlot::_initDisplay(void* value, bool isRetain)
-{
+void DBSlot::_initDisplay(void* value, bool isRetain) {
 	DORA_UNUSED_PARAM(isRetain);
 	_node = s_cast<DBSlotNode*>(value);
 	_node->setTag(getName());
 }
 
-void DBSlot::_disposeDisplay(void* value, bool isRelease)
-{
+void DBSlot::_disposeDisplay(void* value, bool isRelease) {
 	DORA_UNUSED_PARAM(value);
 	DORA_UNUSED_PARAM(isRelease);
 	_node = nullptr;
 }
 
-void DBSlot::_onUpdateDisplay()
-{
+void DBSlot::_onUpdateDisplay() {
 	_node = s_cast<DBSlotNode*>(_display != nullptr ? _display : _rawDisplay);
 }
 
-void DBSlot::_addDisplay()
-{
+void DBSlot::_addDisplay() {
 	const auto container = s_cast<DragonBone*>(_armature->getDisplay());
 	container->addChild(_node);
 }
 
-void DBSlot::_replaceDisplay(void* value, bool isArmatureDisplay)
-{
+void DBSlot::_replaceDisplay(void* value, bool isArmatureDisplay) {
 	const auto container = s_cast<DragonBone*>(_armature->getDisplay());
 	const auto prevNode = s_cast<DBSlotNode*>(value);
 	container->addChild(_node, prevNode->getOrder());
@@ -113,26 +100,21 @@ void DBSlot::_replaceDisplay(void* value, bool isArmatureDisplay)
 	_textureScale = 1.0f;
 }
 
-void DBSlot::_removeDisplay()
-{
+void DBSlot::_removeDisplay() {
 	_node->removeFromParent();
 }
 
-void DBSlot::_updateZOrder()
-{
-	if (_node->getOrder() == _zOrder)
-	{
+void DBSlot::_updateZOrder() {
+	if (_node->getOrder() == _zOrder) {
 		return;
 	}
 	_node->setOrder(_zOrder);
 }
 
-void DBSlot::_updateFrame()
-{
+void DBSlot::_updateFrame() {
 	const auto currentVerticesData = (_deformVertices != nullptr && _display == _meshDisplay) ? _deformVertices->verticesData : nullptr;
 	const auto currentTextureData = s_cast<DBTextureData*>(_textureData);
-	if (_displayIndex >= 0 && _display != nullptr && currentTextureData != nullptr)
-	{
+	if (_displayIndex >= 0 && _display != nullptr && currentTextureData != nullptr) {
 		if (currentVerticesData != nullptr) // Mesh.
 		{
 			const auto data = currentVerticesData->data;
@@ -141,8 +123,7 @@ void DBSlot::_updateFrame()
 			const unsigned vertexCount = intArray[currentVerticesData->offset + s_cast<unsigned>(db::BinaryOffset::MeshVertexCount)];
 			const unsigned triangleCount = intArray[currentVerticesData->offset + s_cast<unsigned>(db::BinaryOffset::MeshTriangleCount)];
 			int vertexOffset = intArray[currentVerticesData->offset + s_cast<unsigned>(db::BinaryOffset::MeshFloatOffset)];
-			if (vertexOffset < 0)
-			{
+			if (vertexOffset < 0) {
 				vertexOffset += 65536; // Fixed out of bouds bug.
 			}
 			const unsigned uvOffset = vertexOffset + vertexCount * 2;
@@ -152,8 +133,7 @@ void DBSlot::_updateFrame()
 			_node->_points.resize(vertexCount);
 			_node->_vertices.resize(vertexCount);
 			_node->_indices.resize(triangleCount * 3);
-			for (std::size_t i = 0, l = vertexCount * 2; i < l; i += 2)
-			{
+			for (std::size_t i = 0, l = vertexCount * 2; i < l; i += 2) {
 				const auto iH = i / 2;
 				const auto x = floatArray[vertexOffset + i];
 				const auto y = floatArray[vertexOffset + i + 1];
@@ -161,31 +141,24 @@ void DBSlot::_updateFrame()
 				auto v = floatArray[uvOffset + i + 1];
 				_node->_points[iH] = {x, -y, 0.0f, 1.0f};
 				SpriteVertex& vertex = _node->_vertices[iH];
-				if (currentTextureData->rotated)
-				{
+				if (currentTextureData->rotated) {
 					vertex.u = (region.x + (1.0f - v) * region.width) / texture->getWidth();
 					vertex.v = (region.y + u * region.height) / texture->getHeight();
-				}
-				else
-				{
+				} else {
 					vertex.u = (region.x + u * region.width) / texture->getWidth();
 					vertex.v = (region.y + v * region.height) / texture->getHeight();
 				}
 				vertex.abgr = 0xffffffff;
 			}
-			for (std::size_t i = 0; i < triangleCount * 3; ++i)
-			{
+			for (std::size_t i = 0; i < triangleCount * 3; ++i) {
 				_node->_indices[i] = intArray[currentVerticesData->offset + s_cast<unsigned>(db::BinaryOffset::MeshVertexIndices) + i];
 			}
 			_textureScale = 1.0f;
 			const auto isSkinned = currentVerticesData->weight != nullptr;
-			if (isSkinned)
-			{
+			if (isSkinned) {
 				_identityTransform();
 			}
-		}
-		else
-		{
+		} else {
 			_textureScale = currentTextureData->parent->scale * _armature->_armatureData->scale;
 			Texture2D* texture = s_cast<DBTextureAtlasData*>(currentTextureData->parent)->getTexture();
 			_node->_texture = texture;
@@ -238,11 +211,9 @@ void DBSlot::_updateFrame()
 	_node->setVisible(false);
 }
 
-void DBSlot::_updateMesh()
-{
+void DBSlot::_updateMesh() {
 	const auto textureData = s_cast<DBTextureData*>(_textureData);
-	if (!textureData)
-	{
+	if (!textureData) {
 		return;
 	}
 	const auto scale = _armature->_armatureData->scale;
@@ -252,39 +223,32 @@ void DBSlot::_updateMesh()
 	const auto weightData = verticesData->weight;
 	const auto hasFFD = !deformVertices.empty();
 	auto& points = _node->_points;
-	if (weightData != nullptr)
-	{
+	if (weightData != nullptr) {
 		const auto data = verticesData->data;
 		const auto intArray = data->intArray;
 		const auto floatArray = data->floatArray;
 		const auto vertexCount = (std::size_t)intArray[verticesData->offset + s_cast<unsigned>(db::BinaryOffset::MeshVertexCount)];
 		int weightFloatOffset = intArray[weightData->offset + s_cast<unsigned>(db::BinaryOffset::WeigthFloatOffset)];
-		if (weightFloatOffset < 0)
-		{
+		if (weightFloatOffset < 0) {
 			weightFloatOffset += 65536; // Fixed out of bouds bug.
 		}
 		for (std::size_t i = 0,
-			iB = weightData->offset + s_cast<unsigned>(db::BinaryOffset::WeigthBoneIndices) + bones.size(),
-			iV = s_cast<std::size_t>(weightFloatOffset),
-			iF = 0;
-			i < vertexCount;
-			++i
-		)
-		{
+						 iB = weightData->offset + s_cast<unsigned>(db::BinaryOffset::WeigthBoneIndices) + bones.size(),
+						 iV = s_cast<std::size_t>(weightFloatOffset),
+						 iF = 0;
+			 i < vertexCount;
+			 ++i) {
 			const auto boneCount = s_cast<std::size_t>(intArray[iB++]);
 			auto xG = 0.0f, yG = 0.0f;
-			for (std::size_t j = 0; j < boneCount; ++j)
-			{
+			for (std::size_t j = 0; j < boneCount; ++j) {
 				const auto boneIndex = s_cast<unsigned>(intArray[iB++]);
 				const auto bone = bones[boneIndex];
-				if (bone != nullptr)
-				{
+				if (bone != nullptr) {
 					const auto& matrix = bone->globalTransformMatrix;
 					const auto weight = floatArray[iV++];
 					auto xL = floatArray[iV++] * scale;
 					auto yL = floatArray[iV++] * scale;
-					if (hasFFD)
-					{
+					if (hasFFD) {
 						xL += deformVertices[iF++];
 						yL += deformVertices[iF++];
 					}
@@ -297,20 +261,16 @@ void DBSlot::_updateMesh()
 			point.y = -yG;
 			point.z = 0.0f;
 		}
-	}
-	else if (hasFFD)
-	{
+	} else if (hasFFD) {
 		const auto data = verticesData->data;
 		const auto intArray = data->intArray;
 		const auto floatArray = data->floatArray;
 		const auto vertexCount = s_cast<std::size_t>(intArray[verticesData->offset + s_cast<unsigned>(db::BinaryOffset::MeshVertexCount)]);
 		int vertexOffset = s_cast<int>(intArray[verticesData->offset + s_cast<unsigned>(db::BinaryOffset::MeshFloatOffset)]);
-		if (vertexOffset < 0)
-		{
+		if (vertexOffset < 0) {
 			vertexOffset += 65536; // Fixed out of bouds bug.
 		}
-		for (std::size_t i = 0, l = vertexCount * 2; i < l; i += 2)
-		{
+		for (std::size_t i = 0, l = vertexCount * 2; i < l; i += 2) {
 			const auto iH = i / 2;
 			const auto xG = floatArray[vertexOffset + i] * scale + deformVertices[i];
 			const auto yG = floatArray[vertexOffset + i + 1] * scale + deformVertices[i + 1];
@@ -320,36 +280,28 @@ void DBSlot::_updateMesh()
 			point.z = 0.0f;
 		}
 	}
-	if (weightData != nullptr)
-	{
+	if (weightData != nullptr) {
 		_identityTransform();
 	}
 }
 
-void DBSlot::_updateTransform()
-{
+void DBSlot::_updateTransform() {
 	AffineTransform& transform = _node->_transform;
-	if (_node == _rawDisplay || _node == _meshDisplay)
-	{
-		transform =
-		{
+	if (_node == _rawDisplay || _node == _meshDisplay) {
+		transform = {
 			globalTransformMatrix.a,
 			globalTransformMatrix.b,
 			-globalTransformMatrix.c,
 			-globalTransformMatrix.d,
 			globalTransformMatrix.tx - (globalTransformMatrix.a * _pivotX - globalTransformMatrix.c * _pivotY),
-			globalTransformMatrix.ty - (globalTransformMatrix.b * _pivotX - globalTransformMatrix.d * _pivotY)
-		};
-		if (_textureScale != 1.0f)
-		{
+			globalTransformMatrix.ty - (globalTransformMatrix.b * _pivotX - globalTransformMatrix.d * _pivotY)};
+		if (_textureScale != 1.0f) {
 			transform.a *= _textureScale;
 			transform.b *= _textureScale;
 			transform.c *= _textureScale;
 			transform.d *= _textureScale;
 		}
-	}
-	else if (_childArmature)
-	{
+	} else if (_childArmature) {
 		transform = AffineTransform::Indentity;
 		transform.tx = globalTransformMatrix.tx;
 		transform.ty = globalTransformMatrix.ty;
@@ -357,24 +309,19 @@ void DBSlot::_updateTransform()
 	_node->_flags.setOn(DBSlotNode::TransformDirty);
 }
 
-void DBSlot::_identityTransform()
-{
+void DBSlot::_identityTransform() {
 	AffineTransform& transform = _node->_transform;
 	transform = AffineTransform::Indentity;
 	transform.d = -1.0f;
 }
 
-void DBSlot::_updateVisible()
-{
+void DBSlot::_updateVisible() {
 	_node->setVisible(_parent->getVisible());
 }
 
-void DBSlot::_updateBlendMode()
-{
-	if (_node)
-	{
-		switch (_blendMode)
-		{
+void DBSlot::_updateBlendMode() {
+	if (_node) {
+		switch (_blendMode) {
 			case db::BlendMode::Normal:
 				_node->_blendFunc = BlendFunc::Default;
 				break;
@@ -390,282 +337,218 @@ void DBSlot::_updateBlendMode()
 			default:
 				break;
 		}
-	}
-	else if (_childArmature != nullptr)
-	{
-		for (const auto slot : _childArmature->getSlots())
-		{
+	} else if (_childArmature != nullptr) {
+		for (const auto slot : _childArmature->getSlots()) {
 			slot->_blendMode = _blendMode;
 			slot->_updateBlendMode();
 		}
 	}
 }
 
-void DBSlot::_updateColor()
-{
+void DBSlot::_updateColor() {
 	auto abgr = Color(Vec4{
-		_colorTransform.redMultiplier,
-		_colorTransform.greenMultiplier,
-		_colorTransform.blueMultiplier,
-		_colorTransform.alphaMultiplier
-	}).toABGR();
-	for (auto& vert : _node->_vertices)
-	{
+						  _colorTransform.redMultiplier,
+						  _colorTransform.greenMultiplier,
+						  _colorTransform.blueMultiplier,
+						  _colorTransform.alphaMultiplier})
+					.toABGR();
+	for (auto& vert : _node->_vertices) {
 		vert.abgr = abgr;
 	}
 }
 
 /* DragonBone */
 
-DragonBone::DBArmatureProxy::DBArmatureProxy(DragonBone* parent):
-_parent(parent)
-{ }
+DragonBone::DBArmatureProxy::DBArmatureProxy(DragonBone* parent)
+	: _parent(parent) { }
 
-void DragonBone::DBArmatureProxy::dbInit(db::Armature* armature)
-{
+void DragonBone::DBArmatureProxy::dbInit(db::Armature* armature) {
 	_armature = armature;
 }
 
-void DragonBone::DBArmatureProxy::dbClear()
-{
+void DragonBone::DBArmatureProxy::dbClear() {
 	_parent = nullptr;
 }
 
-void DragonBone::DBArmatureProxy::dbUpdate()
-{ }
+void DragonBone::DBArmatureProxy::dbUpdate() { }
 
-void DragonBone::DBArmatureProxy::dispose(bool disposeProxy)
-{
+void DragonBone::DBArmatureProxy::dispose(bool disposeProxy) {
 	DORA_UNUSED_PARAM(disposeProxy);
-	if (_armature != nullptr)
-	{
+	if (_armature != nullptr) {
 		_armature->dispose();
 		_armature = nullptr;
 	}
 }
 
-bool DragonBone::DBArmatureProxy::hasDBEventListener(const std::string& type) const
-{
-	return type == db::EventObject::COMPLETE ||
-		type == db::EventObject::LOOP_COMPLETE ||
-		type == db::EventObject::FRAME_EVENT;
+bool DragonBone::DBArmatureProxy::hasDBEventListener(const std::string& type) const {
+	return type == db::EventObject::COMPLETE || type == db::EventObject::LOOP_COMPLETE || type == db::EventObject::FRAME_EVENT;
 }
 
-void DragonBone::DBArmatureProxy::dispatchDBEvent(const std::string& type, db::EventObject* value)
-{
-	if (type == db::EventObject::COMPLETE)
-	{
+void DragonBone::DBArmatureProxy::dispatchDBEvent(const std::string& type, db::EventObject* value) {
+	if (type == db::EventObject::COMPLETE) {
 		auto animationName = value->animationState->getName();
 		_parent->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_parent));
 		_parent->_lastCompletedAnimationName = animationName;
-	}
-	else if (type == db::EventObject::LOOP_COMPLETE)
-	{
+	} else if (type == db::EventObject::LOOP_COMPLETE) {
 		auto animationName = value->animationState->getName();
 		_parent->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_parent));
 		_parent->_lastCompletedAnimationName = animationName;
-	}
-	else if (type == db::EventObject::FRAME_EVENT)
-	{
+	} else if (type == db::EventObject::FRAME_EVENT) {
 		_parent->emit(value->name, s_cast<Playable*>(_parent));
 	}
 }
 
-db::Armature* DragonBone::DBArmatureProxy::getArmature() const
-{
+db::Armature* DragonBone::DBArmatureProxy::getArmature() const {
 	return _armature;
 }
 
-db::Animation* DragonBone::DBArmatureProxy::getAnimation() const
-{
+db::Animation* DragonBone::DBArmatureProxy::getAnimation() const {
 	return _armature->getAnimation();
 }
 
-DragonBone* DragonBone::DBArmatureProxy::getParent() const
-{
+DragonBone* DragonBone::DBArmatureProxy::getParent() const {
 	return _parent;
 }
 
-DragonBone::DragonBone():
-_armatureProxy(New<DBArmatureProxy>(this))
-{
+DragonBone::DragonBone()
+	: _armatureProxy(New<DBArmatureProxy>(this)) {
 	_flags.setOff(Node::TraverseEnabled);
 }
 
-void DragonBone::setSpeed(float var)
-{
+void DragonBone::setSpeed(float var) {
 	Playable::setSpeed(var);
 	_armatureProxy->getAnimation()->timeScale = var;
 }
 
-void DragonBone::setRecovery(float var)
-{
+void DragonBone::setRecovery(float var) {
 	Playable::setRecovery(var);
 }
 
-void DragonBone::setDepthWrite(bool var)
-{
+void DragonBone::setDepthWrite(bool var) {
 	_flags.set(DragonBone::DepthWrite, var);
 }
 
-bool DragonBone::isDepthWrite() const
-{
+bool DragonBone::isDepthWrite() const {
 	return _flags.isOn(DragonBone::DepthWrite);
 }
 
-void DragonBone::setHitTestEnabled(bool var)
-{
+void DragonBone::setHitTestEnabled(bool var) {
 	_flags.set(DragonBone::HitTest, var);
 }
 
-bool DragonBone::isHitTestEnabled() const
-{
+bool DragonBone::isHitTestEnabled() const {
 	return _flags.isOn(DragonBone::HitTest);
 }
 
-void DragonBone::setShowDebug(bool var)
-{
-	if (var)
-	{
-		if (!_debugLine)
-		{
+void DragonBone::setShowDebug(bool var) {
+	if (var) {
+		if (!_debugLine) {
 			_debugLine = Line::create();
 			_debugLine->setOrder(std::numeric_limits<int>::max());
 			addChild(_debugLine);
 		}
-	}
-	else
-	{
-		if (_debugLine)
-		{
+	} else {
+		if (_debugLine) {
 			_debugLine->removeFromParent();
 			_debugLine = nullptr;
 		}
 	}
 }
 
-bool DragonBone::isShowDebug() const
-{
+bool DragonBone::isShowDebug() const {
 	return _debugLine != nullptr;
 }
 
-DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const
-{
+DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const {
 	return _armatureProxy.get();
 }
 
-void DragonBone::setLook(String name)
-{
+void DragonBone::setLook(String name) {
 	db::SkinData* skin = _armatureProxy->getArmature()->getArmatureData()->getSkin(name);
 	SharedDragonBoneCache.replaceSkin(_armatureProxy->getArmature(), skin);
 }
 
-void DragonBone::setFliped(bool var)
-{
+void DragonBone::setFliped(bool var) {
 	Playable::setFliped(var);
 	_armatureProxy->getArmature()->setFlipX(var);
 }
 
-const std::string& DragonBone::getCurrent() const
-{
+const std::string& DragonBone::getCurrent() const {
 	return _currentAnimationName;
 }
 
-const std::string& DragonBone::getLastCompleted() const
-{
+const std::string& DragonBone::getLastCompleted() const {
 	return _lastCompletedAnimationName;
 }
 
-Vec2 DragonBone::getKeyPoint(String name) const
-{
+Vec2 DragonBone::getKeyPoint(String name) const {
 	return Vec2::zero;
 }
 
-float DragonBone::play(String name, bool loop)
-{
-	if (_armatureProxy->getAnimation()->isPlaying())
-	{
+float DragonBone::play(String name, bool loop) {
+	if (_armatureProxy->getAnimation()->isPlaying()) {
 		_lastCompletedAnimationName.clear();
 	}
 	db::AnimationState* state = _armatureProxy->getAnimation()->fadeIn(name, _recoveryTime, loop ? 0 : 1);
 	return (state->getTotalTime() + _recoveryTime) / std::max(_speed, FLT_EPSILON);
 }
 
-void DragonBone::stop()
-{
+void DragonBone::stop() {
 	_armatureProxy->getAnimation()->stop(Slice::Empty);
 }
 
-void DragonBone::setSlot(String name, Node* item)
-{
-	if (auto slot = getChildByTag(name))
-	{
+void DragonBone::setSlot(String name, Node* item) {
+	if (auto slot = getChildByTag(name)) {
 		slot->addChild(item, 0, name);
 	}
 }
 
-Node* DragonBone::getSlot(String name)
-{
-	if (auto slot = getChildByTag(name))
-	{
+Node* DragonBone::getSlot(String name) {
+	if (auto slot = getChildByTag(name)) {
 		return slot->getChildByTag(name);
 	}
 	return nullptr;
 }
 
-std::string DragonBone::containsPoint(float x, float y)
-{
+std::string DragonBone::containsPoint(float x, float y) {
 	if (!isHitTestEnabled()) return Slice::Empty;
-	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots())
-	{
-		if (slot->containsPoint(x, y))
-		{
+	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
+		if (slot->containsPoint(x, y)) {
 			return slot->getName();
 		}
 	}
 	return Slice::Empty;
 }
 
-std::string DragonBone::intersectsSegment(float x1, float y1, float x2, float y2)
-{
+std::string DragonBone::intersectsSegment(float x1, float y1, float x2, float y2) {
 	if (!isHitTestEnabled()) return Slice::Empty;
-	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots())
-	{
-		if (slot->intersectsSegment(x1, y1, x2, y2))
-		{
+	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
+		if (slot->intersectsSegment(x1, y1, x2, y2)) {
 			return slot->getName();
 		}
 	}
 	return Slice::Empty;
 }
 
-void DragonBone::visit()
-{
+void DragonBone::visit() {
 	_armatureProxy->getArmature()->advanceTime(s_cast<float>(getScheduler()->getDeltaTime()));
 	Node::visit();
 }
 
-void DragonBone::render()
-{
-	if (isShowDebug())
-	{
+void DragonBone::render() {
+	if (isShowDebug()) {
 		_debugLine->clear();
-		for (db::Slot* slot : _armatureProxy->getArmature()->getSlots())
-		{
-			if (auto boxData = slot->getBoundingBoxData())
-			{
-				switch (boxData->type)
-				{
-					case db::BoundingBoxType::Polygon:
-					{
+		for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
+			if (auto boxData = slot->getBoundingBoxData()) {
+				switch (boxData->type) {
+					case db::BoundingBoxType::Polygon: {
 						auto polygon = s_cast<db::PolygonBoundingBoxData*>(boxData);
 						const auto& verts = *polygon->getVertices();
 						int vertSize = s_cast<int>(verts.size()) / 2;
 						std::vector<Vec2> vertices(vertSize + 1);
 						auto transform = r_cast<AffineTransform*>(&slot->getParent()->globalTransformMatrix);
 						float scale = s_cast<DBSlot*>(slot)->getTextureScale();
-						for (int i = 0; i < vertSize; i++)
-						{
+						for (int i = 0; i < vertSize; i++) {
 							float x = verts[i * 2] * scale;
 							float y = verts[i * 2 + 1] * scale;
 							vertices[i] = AffineTransform::applyPoint(*transform, {x, y});
@@ -682,38 +565,29 @@ void DragonBone::render()
 	}
 }
 
-void DragonBone::cleanup()
-{
-	if (_flags.isOff(Node::Cleanup))
-	{
+void DragonBone::cleanup() {
+	if (_flags.isOff(Node::Cleanup)) {
 		Node::cleanup();
-		if (_armatureProxy)
-		{
+		if (_armatureProxy) {
 			_armatureProxy->dispose();
 			_armatureProxy = nullptr;
 		}
 	}
 }
 
-DragonBone* DragonBone::create(String boneFile, String atlasFile)
-{
+DragonBone* DragonBone::create(String boneFile, String atlasFile) {
 	return SharedDragonBoneCache.loadDragonBone(boneFile, atlasFile);
 }
 
-DragonBone* DragonBone::create(String boneStr)
-{
+DragonBone* DragonBone::create(String boneStr) {
 	return SharedDragonBoneCache.loadDragonBone(boneStr);
 }
 
-DragonBone* DragonBone::create()
-{
+DragonBone* DragonBone::create() {
 	DragonBone* item = new DragonBone();
-	if (item && item->init())
-	{
+	if (item && item->init()) {
 		item->autorelease();
-	}
-	else
-	{
+	} else {
 		delete item;
 		item = nullptr;
 	}

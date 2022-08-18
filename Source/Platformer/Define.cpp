@@ -7,60 +7,47 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Platformer/Define.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-TargetAllow::TargetAllow(uint32_t flag):
-_flag(flag)
-{ }
+TargetAllow::TargetAllow(uint32_t flag)
+	: _flag(flag) { }
 
-bool TargetAllow::operator==(const TargetAllow& other) const
-{
+bool TargetAllow::operator==(const TargetAllow& other) const {
 	return _flag == other._flag;
 }
 
-bool TargetAllow::operator!=(const TargetAllow& other) const
-{
+bool TargetAllow::operator!=(const TargetAllow& other) const {
 	return _flag != other._flag;
 }
 
-void TargetAllow::allow(Relation relation, bool allow)
-{
-	if (allow)
-	{
+void TargetAllow::allow(Relation relation, bool allow) {
+	if (allow) {
 		_flag |= s_cast<uint32_t>(relation);
-	}
-	else
-	{
+	} else {
 		_flag &= ~s_cast<uint32_t>(relation);
 	}
 }
 
-bool TargetAllow::isAllow(Relation relation)
-{
+bool TargetAllow::isAllow(Relation relation) {
 	return (_flag & s_cast<uint32_t>(relation)) != 0;
 }
 
-void TargetAllow::setTerrainAllowed(bool var)
-{
-	if (var)
-	{
+void TargetAllow::setTerrainAllowed(bool var) {
+	if (var) {
 		_flag |= (1 << 3);
-	}
-	else
-	{
+	} else {
 		_flag &= ~(1 << 3);
 	}
 }
 
-bool TargetAllow::isTerrainAllowed() const
-{
+bool TargetAllow::isTerrainAllowed() const {
 	return (_flag & (1 << 3)) != 0;
 }
 
-uint32_t TargetAllow::toValue() const
-{
+uint32_t TargetAllow::toValue() const {
 	return _flag;
 }
 

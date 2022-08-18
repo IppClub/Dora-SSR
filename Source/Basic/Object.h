@@ -11,19 +11,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 class Object;
-class Weak
-{
+class Weak {
 public:
 	Weak(Object* target);
 	void release();
 	void retain();
 	Object* target;
+
 private:
 	int _refCount;
 };
 
-class Object
-{
+class Object {
 public:
 	PROPERTY_READONLY(uint32_t, Id);
 	PROPERTY_READONLY_CALL(uint32_t, LuaRef);
@@ -50,8 +49,10 @@ public:
 	void retain();
 	void autorelease();
 	void autoretain();
+
 protected:
 	Object();
+
 private:
 	bool _managed;
 	uint32_t _id; // object id, each object has unique one

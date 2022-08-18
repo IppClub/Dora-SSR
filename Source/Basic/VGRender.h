@@ -9,22 +9,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Cache/TextureCache.h"
-#include "nanovg/nanovg.h"
 #include "Support/Common.h"
+#include "nanovg/nanovg.h"
 
 struct NVGLUframebuffer;
 
 NS_DOROTHY_BEGIN
 
-inline NVGcolor nvgColor(Color color)
-{
+inline NVGcolor nvgColor(Color color) {
 	return nvgRGBA(color.r, color.g, color.b, color.a);
 }
 
-struct nvg
-{
-	struct Transform
-	{
+struct nvg {
+	struct Transform {
 		float t[6] = {};
 		inline operator float*() { return t; }
 		inline operator const float*() const { return t; }
@@ -36,7 +33,11 @@ struct nvg
 		inline void skewY(float a) { nvgTransformSkewY(t, bx::toRad(a)); }
 		inline void multiply(const Transform& src) { nvgTransformMultiply(t, src); }
 		inline bool inverseFrom(const Transform& src) { return nvgTransformInverse(t, src) != 0; }
-		inline Vec2 applyPoint(Vec2 src) { Vec2 p; nvgTransformPoint(&p.x, &p.y, t, src.x, src.y); return p; }
+		inline Vec2 applyPoint(Vec2 src) {
+			Vec2 p;
+			nvgTransformPoint(&p.x, &p.y, t, src.x, src.y);
+			return p;
+		}
 	};
 	static Vec2 TouchPos();
 	static bool LeftButtonPressed();
@@ -114,6 +115,7 @@ struct nvg
 	static Texture2D* GetDorothySSRHappy(float scale = 1.0f);
 	static Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
 	static NVGcontext* Context();
+
 private:
 	static NVGcontext* _currentContext;
 };
@@ -124,13 +126,13 @@ void RenderDorothySSRWhite(NVGcontext* context);
 void RenderDorothySSRHappy(NVGcontext* context);
 void RenderDorothySSRHappyWhite(NVGcontext* context);
 
-class VGTexture : public Texture2D
-{
+class VGTexture : public Texture2D {
 public:
 	PROPERTY_READONLY(NVGcontext*, Context);
 	PROPERTY_READONLY(NVGLUframebuffer*, Framebuffer);
 	virtual ~VGTexture();
 	CREATE_FUNC(VGTexture);
+
 protected:
 	VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, uint64_t flags);
 	NVGLUframebuffer* _framebuffer;

@@ -25,22 +25,21 @@ class ClipDef;
  For example you can change a character`s face by different look.
  It`s component class of Model. Do not use it alone.
 */
-class Look
-{
+class Look {
 public:
-	enum {None = -1};
+	enum { None = -1 };
 	void add(Node* node);
 	void apply();
 	void unApply();
+
 private:
 	std::vector<Node*> _nodes;
 };
 
 /** @brief It`s component class of oModelDef. Do not use it alone. */
-class Animation
-{
+class Animation {
 public:
-	enum {None = -1};
+	enum { None = -1 };
 	PROPERTY(float, Speed);
 	PROPERTY(Action*, Action);
 	PROPERTY_READONLY(float, Duration);
@@ -53,15 +52,15 @@ public:
 	void resume();
 	void stop();
 	void updateTo(float eclapsed, bool reversed = false);
+
 private:
 	Node* _node;
 	Ref<Action> _action;
 };
 
-typedef Acf::Delegate<void (Model* model)> AnimationHandler;
+typedef Acf::Delegate<void(Model* model)> AnimationHandler;
 
-class AnimationGroup
-{
+class AnimationGroup {
 public:
 	float duration;
 	OwnVector<Animation> animations;
@@ -70,8 +69,7 @@ public:
 
 class ActionDuration;
 
-class ResetAnimation : public Object
-{
+class ResetAnimation : public Object {
 public:
 	void add(
 		SpriteDef* spriteDef,
@@ -81,10 +79,10 @@ public:
 	void run(float duration, int index);
 	void stop();
 	Acf::Delegate<void()> end;
+
 private:
 	void onActionEnd();
-	struct AnimationData
-	{
+	struct AnimationData {
 		SpriteDef* spriteDef;
 		Node* node; // weak reference
 		Ref<Action> action;
@@ -93,8 +91,7 @@ private:
 	OwnVector<AnimationData> _group;
 };
 
-class Model : public Playable
-{
+class Model : public Playable {
 public:
 	PROPERTY_BOOL(Reversed);
 	PROPERTY_READONLY(float, Duration);
@@ -121,12 +118,12 @@ public:
 	ModelDef* getModelDef() const;
 	Node* getNodeByName(String name) const;
 	bool eachNode(std::function<bool(Node* node)>) const;
-	class AnimationHandlerGroup
-	{
+	class AnimationHandlerGroup {
 	public:
 		void operator()(Model* owner);
 		AnimationHandler& operator[](int index);
 		AnimationHandler& operator[](String name);
+
 	private:
 		Model* _owner;
 		AnimationHandler _unavailableHandler;
@@ -137,14 +134,16 @@ public:
 	virtual Rect getBoundingBox() override;
 	static Model* dummy();
 	CREATE_FUNC(Model);
+
 protected:
 	Model(ModelDef* def);
 	Model(String filename);
+
 private:
 	void setLook(int index);
 	float play(uint32_t index, bool loop);
 	void resume(uint32_t index, bool loop);
-	typedef std::unordered_map<std::string,Node*> NodeMap;
+	typedef std::unordered_map<std::string, Node*> NodeMap;
 	void visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef);
 	void onResetAnimationEnd();
 	void addLook(int index, Node* node);
@@ -153,6 +152,7 @@ private:
 	void setupCallback();
 	void onActionEnd();
 	NodeMap& nodeMap();
+
 private:
 	bool _loop;
 	bool _reversed;
@@ -168,7 +168,7 @@ private:
 	OwnVector<Look> _looks;
 	OwnVector<AnimationGroup> _animationGroups;
 	ResetAnimation _resetAnimation;
-	std::list<std::pair<Sprite*,SpriteDef*>> _spritePairs;
+	std::list<std::pair<Sprite*, SpriteDef*>> _spritePairs;
 	std::string _lastCompletedAnimationName;
 	DORA_TYPE_OVERRIDE(Model);
 };

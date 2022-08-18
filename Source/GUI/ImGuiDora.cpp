@@ -7,22 +7,24 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "GUI/ImGuiDora.h"
+
 #include "Basic/Application.h"
-#include "Cache/ShaderCache.h"
-#include "Effect/Effect.h"
 #include "Basic/Content.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Basic/View.h"
+#include "Cache/ShaderCache.h"
 #include "Cache/TextureCache.h"
+#include "Effect/Effect.h"
+#include "Event/Event.h"
+#include "Event/Listener.h"
+#include "Input/Keyboard.h"
+#include "Lua/LuaEngine.h"
 #include "Other/utf8.h"
 #include "imgui.h"
 #include "implot.h"
-#include "Input/Keyboard.h"
-#include "Lua/LuaEngine.h"
-#include "Event/Event.h"
-#include "Event/Listener.h"
 
 #include "SDL.h"
 
@@ -69,134 +71,104 @@ void pushOptions(lua_State* L, int lineOffset) {
 	lua_rawset(L, -3);
 }
 
-class ConsolePanel
-{
+class ConsolePanel {
 public:
-	ConsolePanel():
-	_forceScroll(0),
-	_historyPos(-1),
-	_fullScreen(false),
-	_scrollToBottom(false),
-	_commands({
-		"print",
-		"import"
-	})
-	{
+	ConsolePanel()
+		: _forceScroll(0)
+		, _historyPos(-1)
+		, _fullScreen(false)
+		, _scrollToBottom(false)
+		, _commands({"print",
+			  "import"}) {
 		_buf.fill('\0');
 		LogHandler += std::make_pair(this, &ConsolePanel::addLog);
 	}
 
-	~ConsolePanel()
-	{
+	~ConsolePanel() {
 		LogHandler -= std::make_pair(this, &ConsolePanel::addLog);
 	}
 
-	void clear()
-	{
+	void clear() {
 		_logs.clear();
 	}
 
-	void addLog(const std::string& text)
-	{
+	void addLog(const std::string& text) {
 		size_t start = 0, end = 0;
 		std::list<Slice> lines;
 		const char* str = text.c_str();
-		while ((end = text.find_first_of("\n", start)) != std::string::npos)
-		{
+		while ((end = text.find_first_of("\n", start)) != std::string::npos) {
 			lines.push_back(Slice(str + start, end - start));
-			start = end+1;
+			start = end + 1;
 		}
-		for (auto line : lines)
-		{
+		for (auto line : lines) {
 			_logs.push_back(line);
 		}
 		_scrollToBottom = true;
 	}
 
-	static int TextEditCallbackStub(ImGuiInputTextCallbackData* data)
-	{
+	static int TextEditCallbackStub(ImGuiInputTextCallbackData* data) {
 		ConsolePanel* panel = r_cast<ConsolePanel*>(data->UserData);
 		return panel->TextEditCallback(data);
 	}
 
-	int TextEditCallback(ImGuiInputTextCallbackData* data)
-	{
-		switch (data->EventFlag)
-		{
-			case ImGuiInputTextFlags_CallbackCompletion:
-			{
+	int TextEditCallback(ImGuiInputTextCallbackData* data) {
+		switch (data->EventFlag) {
+			case ImGuiInputTextFlags_CallbackCompletion: {
 				const char* word_end = data->Buf + data->CursorPos;
 				const char* word_start = word_end;
-				while (word_start > data->Buf)
-				{
+				while (word_start > data->Buf) {
 					const char c = word_start[-1];
-					if (c == ' ' || c == '\t' || c == ',' || c == ';')
-					{
+					if (c == ' ' || c == '\t' || c == ',' || c == ';') {
 						break;
 					}
 					word_start--;
 				}
 				ImVector<const char*> candidates;
-				for (size_t i = 0; i < _commands.size(); i++)
-				{
-					if (std::strncmp(_commands[i], word_start, (int)(word_end - word_start)) == 0)
-					{
+				for (size_t i = 0; i < _commands.size(); i++) {
+					if (std::strncmp(_commands[i], word_start, (int)(word_end - word_start)) == 0) {
 						candidates.push_back(_commands[i]);
 					}
 				}
-				if (candidates.Size == 1)
-				{
+				if (candidates.Size == 1) {
 					data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
 					data->InsertChars(data->CursorPos, candidates[0]);
 					data->InsertChars(data->CursorPos, " ");
-				}
-				else if (candidates.Size > 1)
-				{
+				} else if (candidates.Size > 1) {
 					int match_len = (int)(word_end - word_start);
-					for (;;)
-					{
+					for (;;) {
 						int c = 0;
 						bool all_candidates_matches = true;
-						for (int i = 0; i < candidates.Size && all_candidates_matches; i++)
-						{
-							if (i == 0)
-							{
+						for (int i = 0; i < candidates.Size && all_candidates_matches; i++) {
+							if (i == 0) {
 								c = toupper(candidates[i][match_len]);
-							}
-							else if (c == 0 || c != toupper(candidates[i][match_len]))
-							{
+							} else if (c == 0 || c != toupper(candidates[i][match_len])) {
 								all_candidates_matches = false;
 							}
 						}
 						if (!all_candidates_matches) break;
 						match_len++;
 					}
-					if (match_len > 0)
-					{
+					if (match_len > 0) {
 						data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
 						data->InsertChars(data->CursorPos, candidates[0], candidates[0] + match_len);
 					}
 				}
 				break;
 			}
-			case ImGuiInputTextFlags_CallbackHistory:
-			{
+			case ImGuiInputTextFlags_CallbackHistory: {
 				const int prev_history_pos = _historyPos;
-				if (data->EventKey == ImGuiKey_UpArrow)
-				{
-					if (_historyPos == -1) _historyPos = s_cast<int>(_history.size()) - 1;
-					else if (_historyPos > 0) _historyPos--;
-				}
-				else if (data->EventKey == ImGuiKey_DownArrow)
-				{
+				if (data->EventKey == ImGuiKey_UpArrow) {
+					if (_historyPos == -1)
+						_historyPos = s_cast<int>(_history.size()) - 1;
+					else if (_historyPos > 0)
+						_historyPos--;
+				} else if (data->EventKey == ImGuiKey_DownArrow) {
 					if (_historyPos != -1)
-					if (++_historyPos >= s_cast<int>(_history.size()))
-					{
-						_historyPos = -1;
-					}
+						if (++_historyPos >= s_cast<int>(_history.size())) {
+							_historyPos = -1;
+						}
 				}
-				if (prev_history_pos != _historyPos)
-				{
+				if (prev_history_pos != _historyPos) {
 					const char* history_str = (_historyPos >= 0) ? _history[_historyPos].c_str() : "";
 					data->DeleteChars(0, data->BufTextLen);
 					data->InsertChars(0, history_str);
@@ -207,37 +179,29 @@ public:
 		return 0;
 	}
 
-	void Draw(const char* title, bool* p_open = nullptr)
-	{
-		if (_fullScreen)
-		{
+	void Draw(const char* title, bool* p_open = nullptr) {
+		if (_fullScreen) {
 			ImGui::SetNextWindowPos(Vec2::zero);
-			ImGui::SetNextWindowSize(Vec2{1,1}*SharedApplication.getVisualSize(), ImGuiCond_Always);
-			ImGui::Begin((std::string(title)+"_full").c_str(), nullptr, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings);
-		}
-		else
-		{
-			ImGui::SetNextWindowSize(ImVec2(400,300), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(Vec2{1, 1} * SharedApplication.getVisualSize(), ImGuiCond_Always);
+			ImGui::Begin((std::string(title) + "_full").c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+		} else {
+			ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 			ImGui::Begin(title, p_open);
 		}
 		if (ImGui::Button("Clear")) clear();
 		ImGui::SameLine();
-		if (ImGui::Button("Copy") && !_logs.empty())
-		{
+		if (ImGui::Button("Copy") && !_logs.empty()) {
 			std::string logText;
-			for (const auto& line : _logs)
-			{
+			for (const auto& line : _logs) {
 				logText.append(line);
-				if (line != _logs.back())
-				{
+				if (line != _logs.back()) {
 					logText.append("\n");
 				}
 			}
 			SDL_SetClipboardText(logText.c_str());
 		}
 		ImGui::SameLine();
-		if (ImGui::Button(_fullScreen ? "]  [" : "[  ]"))
-		{
+		if (ImGui::Button(_fullScreen ? "]  [" : "[  ]")) {
 			_forceScroll = 2;
 			_scrollToBottom = true;
 			_fullScreen = !_fullScreen;
@@ -247,54 +211,42 @@ public:
 		ImGui::Separator();
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 		ImGui::BeginChild(_fullScreen ? "scrolling_full" : "scrolling", ImVec2(0, -footer_height_to_reserve), false);
-		if (_forceScroll == 0 && _scrollToBottom && ImGui::GetScrollY()+footer_height_to_reserve < ImGui::GetScrollMaxY())
-		{
+		if (_forceScroll == 0 && _scrollToBottom && ImGui::GetScrollY() + footer_height_to_reserve < ImGui::GetScrollMaxY()) {
 			_scrollToBottom = false;
 		}
-		if (!_filter.IsActive())
-		{
+		if (!_filter.IsActive()) {
 			ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0));
 			ImGuiListClipper clipper;
 			clipper.Begin(s_cast<int>(_logs.size()));
-			while (clipper.Step())
-			{
-				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-				{
-					ImGui::TextUnformatted(&_logs.at(i).front(), &_logs.at(i).back()+1);
+			while (clipper.Step()) {
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+					ImGui::TextUnformatted(&_logs.at(i).front(), &_logs.at(i).back() + 1);
 				}
 			}
 			clipper.End();
 			ImGui::PopStyleVar();
-		}
-		else
-		{
+		} else {
 			_filteredLogs.clear();
-			for (const auto& line : _logs)
-			{
-				if (_filter.PassFilter(line.c_str()))
-				{
+			for (const auto& line : _logs) {
+				if (_filter.PassFilter(line.c_str())) {
 					_filteredLogs.push_back(line);
 				}
 			}
 			ImGuiListClipper clipper;
 			clipper.Begin(s_cast<int>(_filteredLogs.size()));
-			while (clipper.Step())
-			{
-				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-				{
+			while (clipper.Step()) {
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
 					ImGui::TextUnformatted(_filteredLogs.at(i).begin(), _filteredLogs.at(i).end());
 				}
 			}
 			clipper.End();
 		}
-		if (_scrollToBottom)
-		{
+		if (_scrollToBottom) {
 			_scrollToBottom = false;
 			ImGui::SetScrollHereY();
 		}
-		if (_forceScroll > 0)
-		{
+		if (_forceScroll > 0) {
 			_forceScroll--;
 			ImGui::SetScrollHereY();
 		}
@@ -304,13 +256,10 @@ public:
 		bool reclaimFocus = false;
 		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
 		ImGui::PushItemWidth(-55);
-		if (ImGui::InputText("Input", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this)))
-		{
+		if (ImGui::InputText("Input", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
 			_historyPos = -1;
-			for (int i = s_cast<int>(_history.size()) - 1; i >= 0; i--)
-			{
-				if (_history[i] == _buf.data())
-				{
+			for (int i = s_cast<int>(_history.size()) - 1; i >= 0; i--) {
+				if (_history[i] == _buf.data()) {
 					_history.erase(_history.begin() + i);
 					break;
 				}
@@ -331,22 +280,18 @@ public:
 			lua_pushliteral(L, "=(repl)");
 			pushOptions(L, -3);
 			BLOCK_START
-			if (lua_pcall(L, 3, 2, 0) != 0)
-			{
+			if (lua_pcall(L, 3, 2, 0) != 0) {
 				LogPrint("{}\n", lua_tostring(L, -1));
 				break;
 			}
-			if (lua_isnil(L, -2) != 0)
-			{
+			if (lua_isnil(L, -2) != 0) {
 				std::string err = lua_tostring(L, -1);
 				auto modName = "(repl):"_slice;
-				if (err.substr(0, modName.size()) == modName)
-				{
+				if (err.substr(0, modName.size()) == modName) {
 					err = err.substr(modName.size());
 				}
 				auto pos = err.find(':');
-				if (pos != std::string::npos)
-				{
+				if (pos != std::string::npos) {
 					int lineNum = std::stoi(err.substr(0, pos));
 					err = std::to_string(lineNum - 1) + err.substr(pos);
 				}
@@ -357,27 +302,21 @@ public:
 			pushYue(L, "pcall"_slice);
 			lua_insert(L, -2);
 			int last = lua_gettop(L) - 2;
-			if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0)
-			{
+			if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0) {
 				LogPrint("{}\n", lua_tostring(L, -1));
 				break;
 			}
 			int cur = lua_gettop(L);
 			int retCount = cur - last;
 			bool success = lua_toboolean(L, -retCount) != 0;
-			if (success)
-			{
-				if (retCount > 1)
-				{
-					for (int i = 1; i < retCount; ++i)
-					{
+			if (success) {
+				if (retCount > 1) {
+					for (int i = 1; i < retCount; ++i) {
 						LogPrint("{}\n", luaL_tolstring(L, -retCount + i, nullptr));
 						lua_pop(L, 1);
 					}
 				}
-			}
-			else
-			{
+			} else {
 				LogPrint("{}\n", lua_tostring(L, -1));
 			}
 			BLOCK_END
@@ -389,6 +328,7 @@ public:
 		if (reclaimFocus) ImGui::SetKeyboardFocusHere(-1);
 		ImGui::End();
 	}
+
 private:
 	bool _fullScreen;
 	int _forceScroll;
@@ -405,63 +345,58 @@ private:
 int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
-ImGuiDora::ImGuiDora():
-_touchHandler(nullptr),
-_rejectAllEvents(false),
-_textInputing(false),
-_mouseVisible(true),
-_lastCursor(0),
-_backSpaceIgnore(false),
-_mousePressed{false, false, false},
-_mouseWheel{0.0f, 0.0f},
-_console(New<ConsolePanel>()),
-_defaultFonts(New<ImFontAtlas>()),
-_fonts(New<ImFontAtlas>()),
-_showPlot(false),
-_timeFrames(0),
-_memFrames(0),
-_profileFrames(0),
-_cpuTime(0),
-_gpuTime(0),
-_deltaTime(0),
-_logicTime(0),
-_renderTime(0),
-_avgCPUTime(0),
-_avgGPUTime(0),
-_avgDeltaTime(1000.0 / SharedApplication.getTargetFPS()),
-_memPoolSize(0),
-_memLua(0),
-_lastMemPoolSize(0),
-_lastMemLua(0),
-_maxCPU(0),
-_maxGPU(0),
-_maxDelta(0),
-_yLimit(0),
-_sampler(BGFX_INVALID_HANDLE)
-{
+ImGuiDora::ImGuiDora()
+	: _touchHandler(nullptr)
+	, _rejectAllEvents(false)
+	, _textInputing(false)
+	, _mouseVisible(true)
+	, _lastCursor(0)
+	, _backSpaceIgnore(false)
+	, _mousePressed{false, false, false}
+	, _mouseWheel{0.0f, 0.0f}
+	, _console(New<ConsolePanel>())
+	, _defaultFonts(New<ImFontAtlas>())
+	, _fonts(New<ImFontAtlas>())
+	, _showPlot(false)
+	, _timeFrames(0)
+	, _memFrames(0)
+	, _profileFrames(0)
+	, _cpuTime(0)
+	, _gpuTime(0)
+	, _deltaTime(0)
+	, _logicTime(0)
+	, _renderTime(0)
+	, _avgCPUTime(0)
+	, _avgGPUTime(0)
+	, _avgDeltaTime(1000.0 / SharedApplication.getTargetFPS())
+	, _memPoolSize(0)
+	, _memLua(0)
+	, _lastMemPoolSize(0)
+	, _lastMemLua(0)
+	, _maxCPU(0)
+	, _maxGPU(0)
+	, _maxDelta(0)
+	, _yLimit(0)
+	, _sampler(BGFX_INVALID_HANDLE) {
 	_vertexLayout
 		.begin()
-			.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
 	SharedApplication.eventHandler += std::make_pair(this, &ImGuiDora::handleEvent);
-	_costListener = Listener::create("_TIMECOST_"_slice, [&](Event* e)
-	{
+	_costListener = Listener::create("_TIMECOST_"_slice, [&](Event* e) {
 		std::string name;
 		double cost;
 		e->get(name, cost);
-		if (!_timeCosts.insert({name, cost}).second)
-		{
+		if (!_timeCosts.insert({name, cost}).second) {
 			_timeCosts[name] += cost;
 		}
 	});
 }
 
-ImGuiDora::~ImGuiDora()
-{
-	if (bgfx::isValid(_sampler))
-	{
+ImGuiDora::~ImGuiDora() {
+	if (bgfx::isValid(_sampler)) {
 		bgfx::destroy(_sampler);
 		_sampler = BGFX_INVALID_HANDLE;
 	}
@@ -470,18 +405,15 @@ ImGuiDora::~ImGuiDora()
 	ImGui::DestroyContext();
 }
 
-const char* ImGuiDora::getClipboardText(void*)
-{
+const char* ImGuiDora::getClipboardText(void*) {
 	return SDL_GetClipboardText();
 }
 
-void ImGuiDora::setClipboardText(void*, const char* text)
-{
+void ImGuiDora::setClipboardText(void*, const char* text) {
 	SDL_SetClipboardText(text);
 }
 
-void ImGuiDora::setImePositionHint(int x, int y)
-{
+void ImGuiDora::setImePositionHint(int x, int y) {
 	if (x <= 1 && y <= 1) return;
 	_lastIMEPosX = x;
 	_lastIMEPosY = y;
@@ -494,8 +426,7 @@ void ImGuiDora::setImePositionHint(int x, int y)
 	SharedKeyboard.updateIMEPosHint({s_cast<float>(x) * scale, s_cast<float>(y) * scale});
 }
 
-void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges)
-{
+void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges) {
 	static bool isLoadingFont = false;
 	AssertIf(isLoadingFont, "font is loading.");
 	isLoadingFont = true;
@@ -505,14 +436,13 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 		1.0f;
 #else
 		SharedApplication.getDeviceRatio();
-		fontSize *= scale;
+	fontSize *= scale;
 #endif
 
 	int64_t size;
 	uint8_t* fileData = SharedContent.loadUnsafe(ttfFontFile, size);
 
-	if (!fileData)
-	{
+	if (!fileData) {
 		Warn("failed to load ttf file for ImGui!");
 		return;
 	}
@@ -535,8 +465,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	io.Fonts->ClearTexData();
 
 	const ImWchar* targetGlyphRanges = nullptr;
-	switch (Switch::hash(glyphRanges))
-	{
+	switch (Switch::hash(glyphRanges)) {
 		case "Chinese"_hash:
 			targetGlyphRanges = io.Fonts->GetGlyphRangesChineseFull();
 			break;
@@ -554,43 +483,31 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 			break;
 	}
 
-	if (targetGlyphRanges)
-	{
+	if (targetGlyphRanges) {
 		_fonts->Clear();
 		_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
-		SharedAsyncThread.run([this]()
-		{
+		SharedAsyncThread.run([this]() {
 			_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
 			_fonts->TexDesiredWidth = MAX_FONT_TEXTURE_WIDTH;
 			_fonts->Build();
-			return nullptr;
-		}, [this, fileData, size](Own<Values> result)
-		{
+			return nullptr; }, [this, fileData, size](Own<Values> result) {
 			ImGuiIO& io = ImGui::GetIO();
 			io.Fonts->Clear();
 			io.Fonts = _fonts.get();
 			updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
 			MakeOwnArray(fileData);
-			isLoadingFont = false;
-		});
-	}
-	else
-	{
+			isLoadingFont = false; });
+	} else {
 		MakeOwnArray(fileData);
 		isLoadingFont = false;
 	}
 }
 
-void ImGuiDora::showStats()
-{
+void ImGuiDora::showStats() {
 	/* print debug text */
 	if (ImGui::Begin("Dorothy Stats", nullptr,
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoSavedSettings |
-		ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		if (ImGui::CollapsingHeader("Basic"))
-		{
+			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+		if (ImGui::CollapsingHeader("Basic")) {
 			const char* rendererNames[] = {
 				"Noop", //!< No rendering.
 				"Agc", //!< AGC
@@ -620,62 +537,51 @@ void ImGuiDora::showStats()
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
 			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Tri:");
 			ImGui::SameLine();
-			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] +
-				bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
+			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
 			ImGui::SameLine();
 			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Line:");
 			ImGui::SameLine();
-			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] +
-				bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
+			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
 			bool vsync = SharedView.isVSync();
-			if (ImGui::Checkbox("VSync", &vsync))
-			{
+			if (ImGui::Checkbox("VSync", &vsync)) {
 				SharedView.setVSync(vsync);
 			}
 			ImGui::SameLine();
 			bool fpsLimited = SharedApplication.isFPSLimited();
-			if (ImGui::Checkbox("FPS Limited", &fpsLimited))
-			{
+			if (ImGui::Checkbox("FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
 			ImGui::TextColored(Color(0xff00ffff).toVec4(), "FPS:");
 			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
-			if (ImGui::RadioButton("30", &targetFPS, 30))
-			{
+			if (ImGui::RadioButton("30", &targetFPS, 30)) {
 				SharedApplication.setTargetFPS(targetFPS);
 			}
 			ImGui::SameLine();
-			if (ImGui::RadioButton("60", &targetFPS, 60))
-			{
+			if (ImGui::RadioButton("60", &targetFPS, 60)) {
 				SharedApplication.setTargetFPS(targetFPS);
 			}
-			if (SharedApplication.getMaxFPS() > 60)
-			{
+			if (SharedApplication.getMaxFPS() > 60) {
 				ImGui::SameLine();
 				int maxFPS = SharedApplication.getMaxFPS();
 				std::string fpsStr = std::to_string(maxFPS);
-				if (ImGui::RadioButton(fpsStr.c_str(), &targetFPS, maxFPS))
-				{
+				if (ImGui::RadioButton(fpsStr.c_str(), &targetFPS, maxFPS)) {
 					SharedApplication.setTargetFPS(targetFPS);
 				}
 			}
 			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
 			ImGui::PushItemWidth(100.0f);
-			if (ImGui::DragInt("Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS()))
-			{
+			if (ImGui::DragInt("Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
 				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
 			}
 			ImGui::PopItemWidth();
 		}
-		if (ImGui::CollapsingHeader("Time"))
-		{
+		if (ImGui::CollapsingHeader("Time")) {
 			_timeFrames++;
 			_cpuTime += SharedApplication.getCPUTime();
 			_gpuTime += SharedApplication.getGPUTime();
 			_deltaTime += SharedApplication.getDeltaTime();
-			if (_timeFrames >= SharedApplication.getTargetFPS())
-			{
+			if (_timeFrames >= SharedApplication.getTargetFPS()) {
 				_avgCPUTime = 1000.0 * _cpuTime / _timeFrames;
 				_avgGPUTime = 1000.0 * _gpuTime / _timeFrames;
 				_avgDeltaTime = 1000.0 * _deltaTime / _timeFrames;
@@ -688,15 +594,18 @@ void ImGuiDora::showStats()
 			ImGui::Text("%.1f", 1000.0f / _avgDeltaTime);
 			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG CPU:");
 			ImGui::SameLine();
-			if (_avgCPUTime == 0) ImGui::Text("-");
-			else ImGui::Text("%.1f ms", _avgCPUTime);
+			if (_avgCPUTime == 0)
+				ImGui::Text("-");
+			else
+				ImGui::Text("%.1f ms", _avgCPUTime);
 			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG GPU:");
 			ImGui::SameLine();
-			if (_avgGPUTime == 0) ImGui::Text("-");
-			else ImGui::Text("%.1f ms", _avgGPUTime);
+			if (_avgGPUTime == 0)
+				ImGui::Text("-");
+			else
+				ImGui::Text("%.1f ms", _avgGPUTime);
 		}
-		if (ImGui::CollapsingHeader("Object"))
-		{
+		if (ImGui::CollapsingHeader("Object")) {
 			ImGui::TextColored(Color(0xff00ffff).toVec4(), "C++ Object:");
 			ImGui::SameLine();
 			ImGui::Text("%d", Object::getCount());
@@ -707,15 +616,13 @@ void ImGuiDora::showStats()
 			ImGui::SameLine();
 			ImGui::Text("%d", Object::getLuaCallbackCount());
 		}
-		if (ImGui::CollapsingHeader("Memory"))
-		{
+		if (ImGui::CollapsingHeader("Memory")) {
 			_memFrames++;
 			_memPoolSize += (MemoryPool::getTotalCapacity() / 1024);
 			int k = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNT);
 			int b = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNTB);
 			_memLua += (k + b / 1024);
-			if (_memFrames >= SharedApplication.getTargetFPS())
-			{
+			if (_memFrames >= SharedApplication.getTargetFPS()) {
 				_lastMemPoolSize = _memPoolSize / _memFrames;
 				_lastMemLua = _memLua / _memFrames;
 				_memPoolSize = _memLua = 0;
@@ -735,8 +642,7 @@ void ImGuiDora::showStats()
 	}
 	ImGui::End();
 
-	if (_showPlot)
-	{
+	if (_showPlot) {
 		const int PlotCount = 30;
 		_profileFrames++;
 		_maxCPU = std::max(_maxCPU, SharedApplication.getCPUTime());
@@ -745,24 +651,27 @@ void ImGuiDora::showStats()
 		double targetTime = 1000.0 / SharedApplication.getTargetFPS();
 		_logicTime += SharedApplication.getLogicTime();
 		_renderTime += SharedApplication.getRenderTime();
-		if (_profileFrames >= SharedApplication.getTargetFPS())
-		{
+		if (_profileFrames >= SharedApplication.getTargetFPS()) {
 			_cpuValues.push_back(_maxCPU * 1000.0);
 			_gpuValues.push_back(_maxGPU * 1000.0);
 			_dtValues.push_back(_maxDelta * 1000.0);
 			_maxCPU = _maxGPU = _maxDelta = 0;
 			if (_cpuValues.size() > PlotCount + 1) _cpuValues.erase(_cpuValues.begin());
 			if (_gpuValues.size() > PlotCount + 1) _gpuValues.erase(_gpuValues.begin());
-			if (_dtValues.size() > PlotCount + 1) _dtValues.erase(_dtValues.begin());
-			else _times.push_back(_dtValues.size() - 1);
+			if (_dtValues.size() > PlotCount + 1)
+				_dtValues.erase(_dtValues.begin());
+			else
+				_times.push_back(_dtValues.size() - 1);
 			_yLimit = 0;
-			for (auto v : _cpuValues) if (v > _yLimit) _yLimit = v;
-			for (auto v : _gpuValues) if (v > _yLimit) _yLimit = v;
-			for (auto v : _dtValues) if (v > _yLimit) _yLimit = v;
+			for (auto v : _cpuValues)
+				if (v > _yLimit) _yLimit = v;
+			for (auto v : _gpuValues)
+				if (v > _yLimit) _yLimit = v;
+			for (auto v : _dtValues)
+				if (v > _yLimit) _yLimit = v;
 			_updateCosts.clear();
 			double time = 0;
-			for (const auto& item : _timeCosts)
-			{
+			for (const auto& item : _timeCosts) {
 				time += item.second;
 				_updateCosts[item.first] = item.second * 1000.0 / _profileFrames;
 			}
@@ -773,15 +682,13 @@ void ImGuiDora::showStats()
 			_profileFrames = 0;
 		}
 		Size size = SharedApplication.getVisualSize();
-		ImGui::SetNextWindowPos(Vec2{size.width/2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("Frame Time Peaks(ms) in Seconds", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
-		{
+		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
+		if (ImGui::Begin("Frame Time Peaks(ms) in Seconds", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 			ImPlot::SetNextAxesLimits(0, PlotCount, 0, std::max(_yLimit, targetTime) + 1.0, ImGuiCond_Always);
-			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0,0,0,0));
-			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0,0,0,0));
+			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
+			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
 			if (ImPlot::BeginPlot("Time Profiler", Vec2{300.0f, 130.0f},
-				ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs))
-			{
+					ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs)) {
 				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
 				ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
 				ImPlot::PlotHLines("Base", &targetTime, 1);
@@ -796,19 +703,17 @@ void ImGuiDora::showStats()
 			ImPlot::PopStyleColor(2);
 		}
 		ImGui::End();
-		ImGui::SetNextWindowPos(Vec2{size.width/2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("CPU Time(ms)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
-		{
-			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0,0,0,0));
-			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0,0,0,0));
-			ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0,0,0,0.3f));
+		ImGui::SetNextWindowPos(Vec2{size.width / 2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
+		if (ImGui::Begin("CPU Time(ms)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
+			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
+			ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0, 0, 0, 0.3f));
 			ImPlot::SetNextAxesLimits(0, 1, 0, 1, ImGuiCond_Always);
 			if (_updateCosts.size() > 0 && ImPlot::BeginPlot("Update Pie", ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoInputs | ImPlotFlags_NoChild)) {
 				std::vector<const char*> pieLabels(_updateCosts.size());
 				std::vector<double> pieValues(_updateCosts.size());
 				int i = 0;
-				for (const auto& item : _updateCosts)
-				{
+				for (const auto& item : _updateCosts) {
 					pieLabels[i] = item.first.c_str();
 					pieValues[i] = item.second;
 					i++;
@@ -825,18 +730,15 @@ void ImGuiDora::showStats()
 	}
 }
 
-void ImGuiDora::showConsole()
-{
+void ImGuiDora::showConsole() {
 	_console->Draw("Dorothy Console");
 }
 
-static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data)
-{
+static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
-bool ImGuiDora::init()
-{
+bool ImGuiDora::init() {
 	ImGui::CreateContext(_defaultFonts.get());
 	ImPlot::CreateContext();
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -965,36 +867,28 @@ bool ImGuiDora::init()
 	updateTexture(texData, width, height);
 	io.Fonts->ClearTexData();
 
-	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime)
-	{
+	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
 		if (_backSpaceIgnore) _backSpaceIgnore = false;
-		if (!_inputs.empty())
-		{
+		if (!_inputs.empty()) {
 			auto& event = *std::any_cast<SDL_Event>(&_inputs.front());
 			ImGuiIO& io = ImGui::GetIO();
-			switch (event.type)
-			{
-				case SDL_MOUSEBUTTONUP:
-				{
-					switch (event.button.button)
-					{
+			switch (event.type) {
+				case SDL_MOUSEBUTTONUP: {
+					switch (event.button.button) {
 						case SDL_BUTTON_LEFT: _mousePressed[0] = false; break;
 						case SDL_BUTTON_RIGHT: _mousePressed[1] = false; break;
 						case SDL_BUTTON_MIDDLE: _mousePressed[2] = false; break;
 					}
 					break;
 				}
-				case SDL_TEXTINPUT:
-				{
-					if (event.text.text[0] != '\0')
-					{
+				case SDL_TEXTINPUT: {
+					if (event.text.text[0] != '\0') {
 						io.AddInputCharactersUTF8(event.text.text);
 					}
 					break;
 				}
 				case SDL_KEYDOWN:
-				case SDL_KEYUP:
-				{
+				case SDL_KEYUP: {
 					SDL_Keycode code = event.key.keysym.sym;
 					int key = code & ~SDLK_SCANCODE_MASK;
 					uint16_t mod = event.key.keysym.mod;
@@ -1002,10 +896,8 @@ bool ImGuiDora::init()
 					io.AddKeyEvent(ImGuiKey_ModCtrl, (mod & KMOD_CTRL) != 0);
 					io.AddKeyEvent(ImGuiKey_ModAlt, (mod & KMOD_ALT) != 0);
 					io.AddKeyEvent(ImGuiKey_ModSuper, (mod & KMOD_GUI) != 0);
-					if (_textEditing.empty() || code == SDLK_BACKSPACE || code == SDLK_LEFT || code == SDLK_RIGHT)
-					{
-						if (auto it = _keymap.find(key); it != _keymap.end())
-						{
+					if (_textEditing.empty() || code == SDLK_BACKSPACE || code == SDLK_LEFT || code == SDLK_RIGHT) {
+						if (auto it = _keymap.find(key); it != _keymap.end()) {
 							io.AddKeyEvent(it->second, event.type == SDL_KEYDOWN);
 						}
 					}
@@ -1020,28 +912,23 @@ bool ImGuiDora::init()
 	return true;
 }
 
-void ImGuiDora::begin()
-{
+void ImGuiDora::begin() {
 	ImGuiIO& io = ImGui::GetIO();
 	Size visualSize = SharedApplication.getVisualSize();
 	io.DisplaySize.x = visualSize.width;
 	io.DisplaySize.y = visualSize.height;
 	io.DeltaTime = s_cast<float>(SharedApplication.getDeltaTime());
 
-	if (_textInputing != io.WantTextInput)
-	{
+	if (_textInputing != io.WantTextInput) {
 		_textInputing = io.WantTextInput;
-		if (_textInputing || !SharedKeyboard.isIMEAttached())
-		{
-			if (_textInputing)
-			{
+		if (_textInputing || !SharedKeyboard.isIMEAttached()) {
+			if (_textInputing) {
 				_textEditing.clear();
 				_lastCursor = 0;
 				SharedKeyboard.detachIME();
 			}
 			SharedApplication.invokeInRender(_textInputing ? SDL_StartTextInput : SDL_StopTextInput);
-			if (_textInputing)
-			{
+			if (_textInputing) {
 				setImePositionHint(_lastIMEPosX, _lastIMEPosY);
 			}
 		}
@@ -1053,11 +940,9 @@ void ImGuiDora::begin()
 	io.AddMouseWheelEvent(_mouseWheel.x, _mouseWheel.y);
 	_mouseWheel = Vec2::zero;
 
-	if (_mouseVisible != io.MouseDrawCursor)
-	{
+	if (_mouseVisible != io.MouseDrawCursor) {
 		_mouseVisible = io.MouseDrawCursor;
-		SharedApplication.invokeInRender([this]()
-		{
+		SharedApplication.invokeInRender([this]() {
 			// Hide OS mouse cursor if ImGui is drawing it
 			SDL_ShowCursor(_mouseVisible ? SDL_FALSE : SDL_TRUE);
 		});
@@ -1067,27 +952,22 @@ void ImGuiDora::begin()
 	ImGui::NewFrame();
 }
 
-void ImGuiDora::end()
-{
+void ImGuiDora::end() {
 	ImGui::Render();
 }
 
-inline bool checkAvailTransientBuffers(uint32_t _numVertices, const bgfx::VertexLayout& _decl, uint32_t _numIndices)
-{
+inline bool checkAvailTransientBuffers(uint32_t _numVertices, const bgfx::VertexLayout& _decl, uint32_t _numIndices) {
 	return _numVertices == bgfx::getAvailTransientVertexBuffer(_numVertices, _decl)
 		&& _numIndices == bgfx::getAvailTransientIndexBuffer(_numIndices);
 }
 
-void ImGuiDora::render()
-{
+void ImGuiDora::render() {
 	ImDrawData* drawData = ImGui::GetDrawData();
-	if (drawData->CmdListsCount == 0)
-	{
+	if (drawData->CmdListsCount == 0) {
 		return;
 	}
 
-	SharedView.pushBack("ImGui"_slice, [&]()
-	{
+	SharedView.pushBack("ImGui"_slice, [&]() {
 		bgfx::ViewId viewId = SharedView.getId();
 
 		float scale = SharedApplication.getDeviceRatio();
@@ -1095,8 +975,7 @@ void ImGuiDora::render()
 		_imagePass->set("u_scale"_slice, scale);
 
 		// Render command lists
-		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii)
-		{
+		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii) {
 			bgfx::TransientVertexBuffer tvb;
 			bgfx::TransientIndexBuffer tib;
 
@@ -1104,8 +983,7 @@ void ImGuiDora::render()
 			uint32_t numVertices = s_cast<uint32_t>(drawList->VtxBuffer.size());
 			uint32_t numIndices = s_cast<uint32_t>(drawList->IdxBuffer.size());
 
-			if (!checkAvailTransientBuffers(numVertices, _vertexLayout, numIndices))
-			{
+			if (!checkAvailTransientBuffers(numVertices, _vertexLayout, numIndices)) {
 				Warn("not enough space in transient buffer just quit drawing the rest.");
 				break;
 			}
@@ -1119,28 +997,22 @@ void ImGuiDora::render()
 			ImDrawIdx* indices = r_cast<ImDrawIdx*>(tib.data);
 			std::memcpy(indices, drawList->IdxBuffer.begin(), numIndices * sizeof(drawList->IdxBuffer[0]));
 
-			for (const ImDrawCmd* cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end(); cmd != cmdEnd; ++cmd)
-			{
-				if (cmd->UserCallback)
-				{
+			for (const ImDrawCmd *cmd = drawList->CmdBuffer.begin(), *cmdEnd = drawList->CmdBuffer.end(); cmd != cmdEnd; ++cmd) {
+				if (cmd->UserCallback) {
 					cmd->UserCallback(drawList, cmd);
-				}
-				else if (0 != cmd->ElemCount)
-				{
+				} else if (0 != cmd->ElemCount) {
 					bgfx::TextureHandle textureHandle;
 					bgfx::ProgramHandle program;
-					if (nullptr != cmd->TextureId)
-					{
-						union
-						{
+					if (nullptr != cmd->TextureId) {
+						union {
 							ImTextureID ptr;
-							struct { bgfx::TextureHandle handle; } s;
-						} texture = { cmd->TextureId };
+							struct {
+								bgfx::TextureHandle handle;
+							} s;
+						} texture = {cmd->TextureId};
 						textureHandle = texture.s.handle;
 						program = _imagePass->apply();
-					}
-					else
-					{
+					} else {
 						textureHandle = _fontTexture->getHandle();
 						program = _defaultPass->apply();
 					}
@@ -1167,10 +1039,8 @@ void ImGuiDora::render()
 	});
 }
 
-void ImGuiDora::sendKey(int key, int count)
-{
-	for (int i = 0; i < count; i++)
-	{
+void ImGuiDora::sendKey(int key, int count) {
+	for (int i = 0; i < count; i++) {
 		SDL_Event e = {};
 		e.type = SDL_KEYDOWN;
 		e.key.keysym.sym = key;
@@ -1180,14 +1050,13 @@ void ImGuiDora::sendKey(int key, int count)
 	}
 }
 
-void ImGuiDora::updateTexture(uint8_t* data, int width, int height)
-{
+void ImGuiDora::updateTexture(uint8_t* data, int width, int height) {
 	const uint64_t textureFlags = BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
 		false, 1, bgfx::TextureFormat::A8, textureFlags,
-		bgfx::copy(data, width*height * 1));
+		bgfx::copy(data, width * height * 1));
 
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
@@ -1197,87 +1066,65 @@ void ImGuiDora::updateTexture(uint8_t* data, int width, int height)
 	_fontTexture = Texture2D::create(textureHandle, info, textureFlags);
 }
 
-void ImGuiDora::handleEvent(const SDL_Event& event)
-{
-	switch (event.type)
-	{
-		case SDL_MOUSEWHEEL:
-		{
-			if (event.wheel.y > 0)
-			{
+void ImGuiDora::handleEvent(const SDL_Event& event) {
+	switch (event.type) {
+		case SDL_MOUSEWHEEL: {
+			if (event.wheel.y > 0) {
 				_mouseWheel.y = 1;
-			}
-			else if (event.wheel.y < 0)
-			{
+			} else if (event.wheel.y < 0) {
 				_mouseWheel.y = -1;
 			}
-			if (event.wheel.x > 0)
-			{
+			if (event.wheel.x > 0) {
 				_mouseWheel.x = 1;
-			}
-			else if (event.wheel.x < 0)
-			{
+			} else if (event.wheel.x < 0) {
 				_mouseWheel.x = -1;
 			}
 			break;
 		}
-		case SDL_MOUSEBUTTONDOWN:
-		{
-			switch (event.button.button)
-			{
+		case SDL_MOUSEBUTTONDOWN: {
+			switch (event.button.button) {
 				case SDL_BUTTON_LEFT: _mousePressed[0] = true; break;
 				case SDL_BUTTON_RIGHT: _mousePressed[1] = true; break;
 				case SDL_BUTTON_MIDDLE: _mousePressed[2] = true; break;
 			}
 			break;
 		}
-		case SDL_MOUSEBUTTONUP:
-		{
-			SharedDirector.getSystemScheduler()->schedule([this,event](double deltaTime)
-			{
+		case SDL_MOUSEBUTTONUP: {
+			SharedDirector.getSystemScheduler()->schedule([this, event](double deltaTime) {
 				DORA_UNUSED_PARAM(deltaTime);
 				_inputs.push_back(event);
 				return true;
 			});
 			break;
 		}
-		case SDL_MOUSEMOTION:
-		{
+		case SDL_MOUSEMOTION: {
 			Size visualSize = SharedApplication.getVisualSize();
 			Size winSize = SharedApplication.getWinSize();
 			ImGui::GetIO().MousePos = Vec2{
 				s_cast<float>(event.motion.x) * visualSize.width / winSize.width,
-				s_cast<float>(event.motion.y) * visualSize.height / winSize.height
-			};
+				s_cast<float>(event.motion.y) * visualSize.height / winSize.height};
 			break;
 		}
 		case SDL_KEYDOWN:
-		case SDL_KEYUP:
-		{
-			if (_textEditing.empty())
-			{
+		case SDL_KEYUP: {
+			if (_textEditing.empty()) {
 				int key = event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
-				if (key != SDLK_BACKSPACE || !_backSpaceIgnore)
-				{
+				if (key != SDLK_BACKSPACE || !_backSpaceIgnore) {
 					_inputs.push_back(event);
 				}
 			}
 			break;
 		}
-		case SDL_TEXTINPUT:
-		{
+		case SDL_TEXTINPUT: {
 			int size = s_cast<int>(_textEditing.size());
-			if (_lastCursor < size)
-			{
+			if (_lastCursor < size) {
 				sendKey(SDLK_RIGHT, size - _lastCursor);
 			}
-			
+
 			auto newText = utf8_get_characters(event.text.text);
 			size_t start = _textEditing.size();
-			for (size_t i = 0; i < _textEditing.size(); i++)
-			{
-				if (i >= newText.size() || newText[i] != _textEditing[i])
-				{
+			for (size_t i = 0; i < _textEditing.size(); i++) {
+				if (i >= newText.size() || newText[i] != _textEditing[i]) {
 					start = i;
 					break;
 				}
@@ -1289,10 +1136,8 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			start = length;
 			count = 0;
 			int lastPos = -1;
-			utf8_each_character(event.edit.text, [&](int stop, uint32_t code)
-			{
-				if (count >= s_cast<int>(_textEditing.size()) || _textEditing[count] != code)
-				{
+			utf8_each_character(event.edit.text, [&](int stop, uint32_t code) {
+				if (count >= s_cast<int>(_textEditing.size()) || _textEditing[count] != code) {
 					start = lastPos + 1;
 					return true;
 				}
@@ -1309,28 +1154,20 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			_lastCursor = 0;
 			break;
 		}
-		case SDL_TEXTEDITING:
-		{
+		case SDL_TEXTEDITING: {
 			auto newText = utf8_get_characters(event.edit.text);
-			if (newText.size() == _textEditing.size())
-			{
+			if (newText.size() == _textEditing.size()) {
 				bool changed = false;
-				for (size_t i = 0; i < newText.size(); i++)
-				{
-					if (newText[i] != _textEditing[i])
-					{
+				for (size_t i = 0; i < newText.size(); i++) {
+					if (newText[i] != _textEditing[i]) {
 						changed = true;
 					}
 				}
-				if (!changed)
-				{
+				if (!changed) {
 					int32_t cursor = event.edit.start;
-					if (cursor > _lastCursor)
-					{
+					if (cursor > _lastCursor) {
 						sendKey(SDLK_RIGHT, cursor - _lastCursor);
-					}
-					else if (cursor < _lastCursor)
-					{
+					} else if (cursor < _lastCursor) {
 						sendKey(SDLK_LEFT, _lastCursor - cursor);
 					}
 					_lastCursor = cursor;
@@ -1338,13 +1175,10 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 				}
 			}
 
-			if (_lastCursor == _textEditing.size())
-			{
+			if (_lastCursor == _textEditing.size()) {
 				size_t start = _textEditing.size();
-				for (size_t i = 0; i < _textEditing.size(); i++)
-				{
-					if (i >= newText.size() || newText[i] != _textEditing[i])
-					{
+				for (size_t i = 0; i < _textEditing.size(); i++) {
+					if (i >= newText.size() || newText[i] != _textEditing[i]) {
 						start = i;
 						break;
 					}
@@ -1352,17 +1186,13 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 				int count = s_cast<int>(_textEditing.size() - start);
 				sendKey(SDLK_BACKSPACE, count);
 				_lastCursor -= count;
-			}
-			else
-			{
+			} else {
 				sendKey(SDLK_RIGHT, s_cast<int>(_textEditing.size()) - _lastCursor);
 				_lastCursor += (_textEditing.size() - _lastCursor);
 				int count = 0;
 				bool different = false;
-				for (size_t i = 0; i < _textEditing.size(); i++)
-				{
-					if (different || (i >= newText.size() || newText[i] != _textEditing[i]))
-					{
+				for (size_t i = 0; i < _textEditing.size(); i++) {
+					if (different || (i >= newText.size() || newText[i] != _textEditing[i])) {
 						count++;
 						different = true;
 					}
@@ -1374,10 +1204,8 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			size_t start = length;
 			size_t count = 0;
 			int lastPos = -1;
-			utf8_each_character(event.edit.text, [&](int stop, uint32_t code)
-			{
-				if (count >= _textEditing.size() || _textEditing[count] != code)
-				{
+			utf8_each_character(event.edit.text, [&](int stop, uint32_t code) {
+				if (count >= _textEditing.size() || _textEditing[count] != code) {
 					start = lastPos + 1;
 					return true;
 				}
@@ -1392,12 +1220,9 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 			int addCount = utf8_count_characters(e.text.text);
 			_lastCursor += addCount;
 			int32_t cursor = event.edit.start;
-			if (cursor > _lastCursor)
-			{
+			if (cursor > _lastCursor) {
 				sendKey(SDLK_RIGHT, cursor - _lastCursor);
-			}
-			else if (cursor < _lastCursor)
-			{
+			} else if (cursor < _lastCursor) {
 				sendKey(SDLK_LEFT, _lastCursor - cursor);
 			}
 			_lastCursor = cursor;
@@ -1409,36 +1234,29 @@ void ImGuiDora::handleEvent(const SDL_Event& event)
 	}
 }
 
-bool ImGuiDora::handle(const SDL_Event& event)
-{
-	switch (event.type)
-	{
+bool ImGuiDora::handle(const SDL_Event& event) {
+	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_FINGERDOWN:
-			if (ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() ||
-				ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel))
-			{
+			if (ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() || ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)) {
 				_rejectAllEvents = true;
 			}
 			break;
 		case SDL_MOUSEBUTTONUP:
-			if (_rejectAllEvents)
-			{
+			if (_rejectAllEvents) {
 				_rejectAllEvents = false;
 			}
 			break;
 		default:
 			break;
 	}
-	switch (event.type)
-	{
+	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_FINGERDOWN:
 		case SDL_MULTIGESTURE:
 			return _rejectAllEvents;
 		case SDL_MOUSEWHEEL:
-			return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() ||
-				ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
+			return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() || ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
 	}
 	return false;
 }

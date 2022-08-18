@@ -9,8 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Support/Array.h"
-#include "Support/Geometry.h"
 #include "Support/Common.h"
+#include "Support/Geometry.h"
 
 union SDL_Event;
 struct NVGcontext;
@@ -24,8 +24,7 @@ class Camera;
 class RenderTarget;
 class UITouchHandler;
 
-class Director
-{
+class Director {
 public:
 	virtual ~Director();
 	PROPERTY(Scheduler*, Scheduler);
@@ -58,17 +57,18 @@ public:
 	void cleanup();
 
 	template <typename Func>
-	void pushViewProjection(const Matrix& viewProj, const Func& workHere)
-	{
+	void pushViewProjection(const Matrix& viewProj, const Func& workHere) {
 		pushViewProjection(viewProj);
 		workHere();
 		popViewProjection();
 	}
+
 protected:
 	Director();
 	void displayStats();
 	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();
+
 private:
 	bool _displayStats;
 	bool _nvgDirty;

@@ -16,8 +16,7 @@ class Object;
 class Node;
 class ResetAction;
 
-class AnimationDef
-{
+class AnimationDef {
 public:
 	virtual ~AnimationDef() { }
 	virtual Action* toAction() = 0;
@@ -25,8 +24,7 @@ public:
 	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) = 0;
 };
 
-class KeyFrameDef
-{
+class KeyFrameDef {
 public:
 	KeyFrameDef();
 	Ease::Enum easePos;
@@ -48,13 +46,13 @@ public:
 	std::string toXml(KeyFrameDef* lastDef);
 };
 
-class KeyReset : public ActionDuration
-{
+class KeyReset : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(KeyFrameDef* def);
 	static Action* create(KeyFrameDef* def);
+
 private:
 	bool _ended;
 	bool _visible;
@@ -70,8 +68,7 @@ private:
 
 class SpriteDef;
 
-class ResetAction : public ActionDuration
-{
+class ResetAction : public ActionDuration {
 public:
 	virtual float getDuration() const override;
 	void prepareWith(Node* target);
@@ -80,6 +77,7 @@ public:
 	virtual bool update(Node* target, float eclapsed) override;
 	static Own<ActionDuration> alloc(float duration, SpriteDef* def, Ease::Enum easing);
 	static Action* create(float duration, SpriteDef* def, Ease::Enum easing);
+
 private:
 	bool _ended;
 	float _opacityStart;
@@ -103,8 +101,7 @@ private:
 	DORA_TYPE_OVERRIDE(ResetAction);
 };
 
-class KeyAnimationDef : public AnimationDef
-{
+class KeyAnimationDef : public AnimationDef {
 public:
 	void add(Own<KeyFrameDef>&& def);
 	KeyFrameDef* getLastFrameDef() const;
@@ -112,19 +109,21 @@ public:
 	virtual Action* toAction() override;
 	virtual std::string toXml() override;
 	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override;
+
 private:
 	OwnVector<KeyFrameDef> _keyFrameDefs;
 };
 
-class FrameAnimationDef : public AnimationDef
-{
+class FrameAnimationDef : public AnimationDef {
 public:
 	PROPERTY_STRING(File);
-	FrameAnimationDef():delay(0) { }
+	FrameAnimationDef()
+		: delay(0) { }
 	float delay;
 	virtual Action* toAction() override;
 	virtual std::string toXml() override;
 	virtual void restoreResetAnimation(Node* target, ActionDuration* resetTarget) override { }
+
 private:
 	Ref<FrameActionDef> _def;
 	std::string _file;

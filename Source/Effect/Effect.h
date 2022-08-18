@@ -8,16 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Common.h"
 #include "Support/Geometry.h"
 #include "Support/Value.h"
-#include "Support/Common.h"
 
 NS_DOROTHY_BEGIN
 
 class Shader;
 
-class Pass : public Object
-{
+class Pass : public Object {
 public:
 	PROPERTY_BOOL(GrabPass);
 	virtual ~Pass();
@@ -30,20 +29,23 @@ public:
 	Value* get(String name) const;
 	bgfx::ProgramHandle apply();
 	CREATE_FUNC(Pass);
+
 protected:
 	Pass(Shader* vertShader, Shader* fragShader);
 	Pass(String vertShader, String fragShader);
+
 private:
-	class Uniform : public Object
-	{
+	class Uniform : public Object {
 	public:
 		PROPERTY_READONLY(bgfx::UniformHandle, Handle);
 		PROPERTY_READONLY(Value*, Value);
 		virtual ~Uniform();
 		void apply();
 		CREATE_FUNC(Uniform);
+
 	protected:
 		Uniform(bgfx::UniformHandle handle, Own<Value>&& value);
+
 	private:
 		bgfx::UniformHandle _handle;
 		Own<Value> _value;
@@ -56,33 +58,35 @@ private:
 	DORA_TYPE_OVERRIDE(Pass);
 };
 
-class Effect : public Object
-{
+class Effect : public Object {
 public:
 	PROPERTY_CREF(RefVector<Pass>, Passes);
 	void add(Pass* pass);
 	Pass* get(size_t index) const;
 	void clear();
 	CREATE_FUNC(Effect);
+
 protected:
 	Effect();
 	Effect(Shader* vertShader, Shader* fragShader);
 	Effect(String vertShader, String fragShader);
+
 private:
 	RefVector<Pass> _passes;
 	DORA_TYPE_OVERRIDE(Effect);
 };
 
-class SpriteEffect : public Effect
-{
+class SpriteEffect : public Effect {
 public:
 	virtual ~SpriteEffect();
 	PROPERTY_READONLY(bgfx::UniformHandle, Sampler);
 	CREATE_FUNC(SpriteEffect);
+
 protected:
 	SpriteEffect();
 	SpriteEffect(Shader* vertShader, Shader* fragShader);
 	SpriteEffect(String vertShader, String fragShader);
+
 private:
 	bgfx::UniformHandle _sampler;
 	DORA_TYPE_OVERRIDE(SpriteEffect);

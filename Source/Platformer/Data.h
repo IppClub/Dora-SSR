@@ -11,14 +11,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 class PhysicsWorld;
 class Dictionary;
+class Body;
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
 class Unit;
 
-class Data
-{
+class Data {
 public:
 	PROPERTY_READONLY(uint8_t, GroupHide);
 	PROPERTY_READONLY(uint8_t, GroupDetectPlayer);
@@ -43,8 +43,10 @@ public:
 	bool isTerrain(Body* body);
 	void clear();
 	SINGLETON_REF(Data, Director);
+
 protected:
 	Data();
+
 private:
 	std::unordered_map<uint16_t, bool> _contactMap;
 	std::unordered_map<uint16_t, Relation> _relationMap;

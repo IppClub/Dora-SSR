@@ -13,11 +13,10 @@ NS_DOROTHY_BEGIN
 class Event;
 class EventType;
 
-typedef Acf::Delegate<void (Event* event)> EventHandler;
+typedef Acf::Delegate<void(Event* event)> EventHandler;
 
 /** @brief Use event listener to handle event. */
-class Listener : public Object
-{
+class Listener : public Object {
 public:
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_CREF(EventHandler, Handler);
@@ -27,8 +26,10 @@ public:
 	void clearHandler();
 	void handle(Event* e);
 	CREATE_FUNC(Listener);
+
 protected:
 	Listener(const std::string& name, const EventHandler& handler);
+
 private:
 	bool _enabled;
 	std::string _name;

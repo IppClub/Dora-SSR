@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Support/Geometry.h"
-#include "Support/Common.h"
 #include "Event/Event.h"
 #include "Support/Array.h"
+#include "Support/Common.h"
+#include "Support/Geometry.h"
 
 NS_DOROTHY_BEGIN
 
@@ -30,10 +30,9 @@ class Sprite;
 class Camera;
 class Grid;
 
-typedef Acf::Delegate<void (Event* event)> EventHandler;
+typedef Acf::Delegate<void(Event* event)> EventHandler;
 
-class Node : public Object
-{
+class Node : public Object {
 public:
 	PROPERTY(int, Order);
 	PROPERTY_VIRTUAL(float, Angle);
@@ -150,12 +149,11 @@ public:
 	RefVector<Listener> gslot(String name);
 
 	CREATE_FUNC(Node);
+
 public:
-	template <class ...Args>
-	void emit(String name, Args ...args)
-	{
-		if (_signal)
-		{
+	template <class... Args>
+	void emit(String name, Args... args) {
+		if (_signal) {
 			EventArgs<Args...> event(name, args...);
 			emit(&event);
 		}
@@ -163,13 +161,10 @@ public:
 
 	/** @brief traverse children, return true to stop. */
 	template <class Func>
-	bool eachChild(const Func& func)
-	{
-		if (_children && !_children->isEmpty())
-		{
+	bool eachChild(const Func& func) {
+		if (_children && !_children->isEmpty()) {
 			sortAllChildren();
-			return _children->each([&](Value* value)
-			{
+			return _children->each([&](Value* value) {
 				return func(value->to<Node>());
 			});
 		}
@@ -178,16 +173,12 @@ public:
 
 	/** @brief traverse available node tree, return true to stop. */
 	template <class Func>
-	bool traverse(const Func& func)
-	{
+	bool traverse(const Func& func) {
 		if (func(this)) return true;
-		if (_children && _flags.isOn(Node::TraverseEnabled))
-		{
+		if (_children && _flags.isOn(Node::TraverseEnabled)) {
 			sortAllChildren();
-			for (const auto& child : _children->data())
-			{
-				if (child->to<Node>()->traverse(func))
-				{
+			for (const auto& child : _children->data()) {
+				if (child->to<Node>()->traverse(func)) {
 					return true;
 				}
 			}
@@ -197,16 +188,12 @@ public:
 
 	/** @brief traverse all node tree, return true to stop. */
 	template <class Func>
-	bool traverseAll(const Func& func)
-	{
+	bool traverseAll(const Func& func) {
 		if (func(this)) return true;
-		if (_children)
-		{
+		if (_children) {
 			sortAllChildren();
-			for (const auto& child : _children->data())
-			{
-				if (child->to<Node>()->traverseAll(func))
-				{
+			for (const auto& child : _children->data()) {
+				if (child->to<Node>()->traverseAll(func)) {
 					return true;
 				}
 			}
@@ -216,16 +203,12 @@ public:
 
 	/** @brief traverse node tree, return true to stop. */
 	template <class Func>
-	void traverseVisible(const Func& func)
-	{
-		if (isVisible())
-		{
+	void traverseVisible(const Func& func) {
+		if (isVisible()) {
 			func(this);
-			if (_children && _flags.isOn(Node::TraverseEnabled))
-			{
+			if (_children && _flags.isOn(Node::TraverseEnabled)) {
 				sortAllChildren();
-				for (const auto& child : _children->data())
-				{
+				for (const auto& child : _children->data()) {
 					child->to<Node>()->traverseVisible(func);
 				}
 			}
@@ -250,9 +233,9 @@ public:
 
 	void attachIME();
 	void detachIME();
+
 public:
-	class Grabber : public Object
-	{
+	class Grabber : public Object {
 	public:
 		PROPERTY(Color, ClearColor);
 		PROPERTY(Camera*, Camera);
@@ -265,15 +248,16 @@ public:
 		Color getColor(int x, int y) const;
 		void setColor(int x, int y, Color color);
 		void moveUV(int x, int y, Vec2 offset);
+
 	protected:
 		Grabber(const Size& size, uint32_t gridX, uint32_t gridY);
 		void grab(Node* target);
 		void visit();
 		virtual void cleanup() override;
 		CREATE_FUNC(Grabber);
+
 	private:
-		struct RenderPair
-		{
+		struct RenderPair {
 			Ref<RenderTarget> rt;
 			Ref<Sprite> surface;
 		};
@@ -289,6 +273,7 @@ public:
 	};
 	Grabber* grab(bool enabled = true);
 	Grabber* grab(uint32_t gridX, uint32_t gridY);
+
 protected:
 	Node();
 	virtual ~Node();
@@ -300,6 +285,7 @@ protected:
 	void resumeActionInList(Action* action);
 	void stopActionInList(Action* action);
 	void handleKeyboard(Event* event);
+
 protected:
 	Flag _flags;
 	int _order;
@@ -331,8 +317,7 @@ protected:
 	std::string _tag;
 	Own<NodeTouchHandler> _touchHandler;
 	std::function<bool(double)> _scheduleFunc;
-	enum
-	{
+	enum {
 		Visible = 1,
 		SelfVisible = 1 << 1,
 		ChildrenVisible = 1 << 2,
@@ -358,8 +343,7 @@ protected:
 	DORA_TYPE_OVERRIDE(Node);
 };
 
-class Slot
-{
+class Slot {
 public:
 	void add(const EventHandler& handler);
 	void set(const EventHandler& handler);
@@ -368,16 +352,17 @@ public:
 	void handle(Event* event);
 	static Own<Slot> alloc(const EventHandler& handler);
 	static Own<Slot> alloc();
+
 protected:
 	Slot(const EventHandler& handler);
 	Slot();
+
 private:
 	EventHandler _handler;
 	DORA_TYPE(Slot);
 };
 
-class Signal
-{
+class Signal {
 public:
 	~Signal();
 	Slot* addSlot(String name);
@@ -390,6 +375,7 @@ public:
 	RefVector<Listener> getGSlots(String name) const;
 	void emit(Event* event);
 	static const size_t MaxSlotArraySize;
+
 private:
 	Own<std::unordered_map<std::string, Own<Slot>>> _slots;
 	Own<std::vector<std::pair<std::string, Own<Slot>>>> _slotsArray;

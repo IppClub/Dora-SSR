@@ -8,13 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node.h"
 #include "Node/DrawNode.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
-class ClipNode : public Node
-{
+class ClipNode : public Node {
 public:
 	PROPERTY(Node*, Stencil);
 	PROPERTY(float, AlphaThreshold);
@@ -26,17 +25,18 @@ public:
 	virtual void cleanup() override;
 	virtual void visit() override;
 	CREATE_FUNC(ClipNode);
+
 protected:
 	ClipNode(Node* stencil = nullptr);
 	void drawFullScreenStencil(uint8_t maskLayer, bool value);
 	void drawStencil(uint8_t maskLayer, bool value);
 	void setupAlphaTest();
+
 private:
 	float _alphaThreshold;
 	Ref<Node> _stencil;
 	static int _layer;
-	enum
-	{
+	enum {
 		Inverted = Node::UserFlag
 	};
 	DORA_TYPE_OVERRIDE(ClipNode);

@@ -10,8 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class PoolManager
-{
+class PoolManager {
 public:
 	virtual ~PoolManager();
 	void push();
@@ -19,14 +18,15 @@ public:
 	void clear();
 	void removeObject(Object* object);
 	void addObject(Object* object);
+
 private:
-	class AutoreleasePool : public Object
-	{
+	class AutoreleasePool : public Object {
 	public:
 		virtual ~AutoreleasePool();
 		void addObject(Object* object);
 		void removeObject(Object* object);
 		void clear();
+
 	private:
 		RefVector<Object> _managedObjects;
 	};

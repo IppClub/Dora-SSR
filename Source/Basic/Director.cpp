@@ -7,61 +7,57 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Basic/Director.h"
+
+#include "Audio/Sound.h"
+#include "Basic/Application.h"
 #include "Basic/Camera.h"
+#include "Basic/Content.h"
+#include "Basic/RenderTarget.h"
+#include "Basic/Renderer.h"
 #include "Basic/Scheduler.h"
+#include "Basic/VGRender.h"
+#include "Basic/View.h"
+#include "Effect/Effect.h"
+#include "Entity/Entity.h"
+#include "GUI/ImGuiDora.h"
+#include "Input/Keyboard.h"
+#include "Input/TouchDispather.h"
 #include "Node/Node.h"
 #include "Node/Sprite.h"
-#include "Basic/Application.h"
-#include "Basic/Content.h"
-#include "Basic/Renderer.h"
-#include "Input/TouchDispather.h"
-#include "Basic/View.h"
-#include "GUI/ImGuiDora.h"
-#include "Audio/Sound.h"
-#include "Basic/RenderTarget.h"
-#include "Input/Keyboard.h"
 #include "bx/timer.h"
-#include "Entity/Entity.h"
-#include "Basic/VGRender.h"
-#include "Effect/Effect.h"
 
 #include "SDL.h"
 
 NS_DOROTHY_BEGIN
 
-Director::Director():
-_systemScheduler(Scheduler::create()),
-_scheduler(Scheduler::create()),
-_postScheduler(Scheduler::create()),
-_camStack(Array::create()),
-_clearColor(0xff1a1a1a),
-_displayStats(false),
-_nvgDirty(false),
-_paused(false),
-_stoped(false),
-_nvgContext(nullptr)
-{ }
+Director::Director()
+	: _systemScheduler(Scheduler::create())
+	, _scheduler(Scheduler::create())
+	, _postScheduler(Scheduler::create())
+	, _camStack(Array::create())
+	, _clearColor(0xff1a1a1a)
+	, _displayStats(false)
+	, _nvgDirty(false)
+	, _paused(false)
+	, _stoped(false)
+	, _nvgContext(nullptr) { }
 
-Director::~Director()
-{
+Director::~Director() {
 	cleanup();
 }
 
-void Director::setScheduler(Scheduler* scheduler)
-{
+void Director::setScheduler(Scheduler* scheduler) {
 	_scheduler = scheduler ? scheduler : Scheduler::create();
 }
 
-Scheduler* Director::getScheduler() const
-{
+Scheduler* Director::getScheduler() const {
 	return _scheduler;
 }
 
-Node* Director::getUI()
-{
-	if (!_ui)
-	{
+Node* Director::getUI() {
+	if (!_ui) {
 		_ui = Node::create();
 		_ui->onEnter();
 		_uiCamera = CameraUI::create("UI"_slice);
@@ -69,10 +65,8 @@ Node* Director::getUI()
 	return _ui;
 }
 
-Node* Director::getUI3D()
-{
-	if (!_ui3D)
-	{
+Node* Director::getUI3D() {
+	if (!_ui3D) {
 		_ui3D = Node::create();
 		_ui3D->onEnter();
 		_ui3DCamera = CameraUI3D::create("UI3D"_slice);
@@ -80,10 +74,8 @@ Node* Director::getUI3D()
 	return _ui3D;
 }
 
-Node* Director::getEntry()
-{
-	if (!_entry)
-	{
+Node* Director::getEntry() {
+	if (!_entry) {
 		_root = Node::create();
 		_root->setAnchor(Vec2::zero);
 		_root->onEnter();
@@ -94,62 +86,50 @@ Node* Director::getEntry()
 	return _entry;
 }
 
-Node* Director::getPostNode()
-{
-	if (!_postNode)
-	{
+Node* Director::getPostNode() {
+	if (!_postNode) {
 		_postNode = Node::create();
 		_postNode->onEnter();
 	}
 	return _postNode;
 }
 
-UITouchHandler* Director::getUITouchHandler()
-{
-	if (!_uiTouchHandler)
-	{
+UITouchHandler* Director::getUITouchHandler() {
+	if (!_uiTouchHandler) {
 		_uiTouchHandler = New<UITouchHandler>();
 	}
 	return _uiTouchHandler.get();
 }
 
-void Director::setClearColor(Color var)
-{
+void Director::setClearColor(Color var) {
 	_clearColor = var;
 }
 
-Color Director::getClearColor() const
-{
+Color Director::getClearColor() const {
 	return _clearColor;
 }
 
-void Director::setDisplayStats(bool var)
-{
+void Director::setDisplayStats(bool var) {
 	_displayStats = var;
 }
 
-bool Director::isDisplayStats() const
-{
+bool Director::isDisplayStats() const {
 	return _displayStats;
 }
 
-Scheduler* Director::getSystemScheduler() const
-{
+Scheduler* Director::getSystemScheduler() const {
 	return _systemScheduler;
 }
 
-Scheduler* Director::getPostScheduler() const
-{
+Scheduler* Director::getPostScheduler() const {
 	return _postScheduler;
 }
 
-double Director::getDeltaTime() const
-{
+double Director::getDeltaTime() const {
 	return SharedApplication.getDeltaTime();
 }
 
-void Director::pushCamera(Camera* var)
-{
+void Director::pushCamera(Camera* var) {
 	Camera* lastCamera = getCurrentCamera();
 	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
 	var->Updated += std::make_pair(this, &Director::markDirty);
@@ -157,46 +137,37 @@ void Director::pushCamera(Camera* var)
 	markDirty();
 }
 
-void Director::popCamera()
-{
+void Director::popCamera() {
 	Camera* lastCamera = getCurrentCamera();
 	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
 	_camStack->removeLast();
-	if (_camStack->isEmpty())
-	{
+	if (_camStack->isEmpty()) {
 		_camStack->add(Value::alloc(Camera2D::create("Default"_slice)));
 	}
 	getCurrentCamera()->Updated += std::make_pair(this, &Director::markDirty);
 	markDirty();
 }
 
-bool Director::removeCamera(Camera* camera)
-{
+bool Director::removeCamera(Camera* camera) {
 	Camera* lastCamera = getCurrentCamera();
-	if (camera == lastCamera)
-	{
+	if (camera == lastCamera) {
 		popCamera();
 		return true;
-	}
-	else
-	{
+	} else {
 		auto cam = Value::alloc(camera);
 		return _camStack->remove(cam.get());
 	}
 }
 
-void Director::clearCamera()
-{
+void Director::clearCamera() {
 	Camera* lastCamera = getCurrentCamera();
 	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
 	_camStack->clear();
 	markDirty();
 }
 
-Camera* Director::getCurrentCamera()
-{
-	if (_camStack->isEmpty())
-	{
+Camera* Director::getCurrentCamera() {
+	if (_camStack->isEmpty()) {
 		Camera* defaultCamera = Camera2D::create("Default"_slice);
 		defaultCamera->Updated += std::make_pair(this, &Director::markDirty);
 		_camStack->add(Value::alloc(defaultCamera));
@@ -204,44 +175,34 @@ Camera* Director::getCurrentCamera()
 	return _camStack->getLast()->to<Camera>();
 }
 
-const Matrix& Director::getViewProjection() const
-{
+const Matrix& Director::getViewProjection() const {
 	return *_viewProjs.top();
 }
 
-static void registerTouchHandler(Node* target)
-{
-	target->traverseVisible([](Node* node)
-	{
-		if (node->isTouchEnabled())
-		{
+static void registerTouchHandler(Node* target) {
+	target->traverseVisible([](Node* node) {
+		if (node->isTouchEnabled()) {
 			SharedTouchDispatcher.add(node->getTouchHandler());
 		}
 		return false;
 	});
 }
 
-bool Director::init()
-{
+bool Director::init() {
 	SharedView.reset();
-	if (!SharedImGui.init())
-	{
+	if (!SharedImGui.init()) {
 		Error("failed to initialize ImGui.");
 		return false;
 	}
-	if (!SharedKeyboard.init())
-	{
+	if (!SharedKeyboard.init()) {
 		Error("failed to initialize Keyboard.");
 		return false;
 	}
-	if (!SharedAudio.init())
-	{
+	if (!SharedAudio.init()) {
 		Warn("audio function is not available.");
 	}
-	if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path)
-		{
-			switch (Switch::hash(file.toLower()))
-			{
+	if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path) {
+			switch (Switch::hash(file.toLower())) {
 				case "init.yue"_hash:
 				case "init.tl"_hash:
 				case "init.lua"_hash:
@@ -250,29 +211,23 @@ bool Director::init()
 					return true;
 			}
 			return false;
-		}))
-	{
+		})) {
 		Info("Dorothy SSR started without script entry.");
 	}
 	return true;
 }
 
-void Director::doLogic()
-{
+void Director::doLogic() {
 	if (_paused || _stoped) return;
 
 	/* push default view projection */
 	Camera* camera = getCurrentCamera();
-	if (camera->hasProjection())
-	{
+	if (camera->hasProjection()) {
 		_defaultViewProj = camera->getView();
-	}
-	else
-	{
+	} else {
 		bx::mtxMul(_defaultViewProj, camera->getView(), SharedView.getProjection());
 	}
-	pushViewProjection(_defaultViewProj, [&]()
-	{
+	pushViewProjection(_defaultViewProj, [&]() {
 		/* update system logic */
 		_systemScheduler->update(getDeltaTime());
 
@@ -289,35 +244,29 @@ void Director::doLogic()
 		SharedTouchDispatcher.dispatch();
 
 		/* handle ui3D touch */
-		if (_ui3D)
-		{
+		if (_ui3D) {
 			registerTouchHandler(_ui3D);
-			pushViewProjection(_ui3DCamera->getView(), []()
-			{
+			pushViewProjection(_ui3DCamera->getView(), []() {
 				SharedTouchDispatcher.dispatch();
 			});
 		}
 
 		/* handle ui touch */
-		if (_ui)
-		{
+		if (_ui) {
 			registerTouchHandler(_ui);
-			pushViewProjection(_uiCamera->getView(), []()
-			{
+			pushViewProjection(_uiCamera->getView(), []() {
 				SharedTouchDispatcher.dispatch();
 			});
 		}
 
 		/* handle post node touch */
-		if (_postNode)
-		{
+		if (_postNode) {
 			registerTouchHandler(_postNode);
 			SharedTouchDispatcher.dispatch();
 		}
 
 		/* handle scene tree touch */
-		if (_entry)
-		{
+		if (_entry) {
 			registerTouchHandler(_entry);
 			SharedTouchDispatcher.dispatch();
 			SharedTouchDispatcher.clearEvents();
@@ -325,19 +274,15 @@ void Director::doLogic()
 	});
 }
 
-void Director::doRender()
-{
+void Director::doRender() {
 	if (_paused || _stoped) return;
 
 	/* push default view projection */
-	pushViewProjection(_defaultViewProj, [&]()
-	{
+	pushViewProjection(_defaultViewProj, [&]() {
 		/* do render */
-		if (SharedView.isPostProcessNeeded())
-		{
+		if (SharedView.isPostProcessNeeded()) {
 			/* initialize RT */
-			if (_root)
-			{
+			if (_root) {
 				auto grabber = _root->grab(1, 1);
 				grabber->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
 				grabber->setEffect(SharedView.getPostEffect());
@@ -353,12 +298,10 @@ void Director::doRender()
 			}
 
 			/* render RT, post node and ui node */
-			SharedView.pushBack("Main"_slice, [&]()
-			{
+			SharedView.pushBack("Main"_slice, [&]() {
 				bgfx::ViewId viewId = SharedView.getId();
 				/* RT */
-				if (_root)
-				{
+				if (_root) {
 					bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
 					Size viewSize = SharedView.getSize();
 					Matrix ortho;
@@ -366,61 +309,49 @@ void Director::doRender()
 						0, viewSize.width, 0, viewSize.height,
 						-1000.0f, 1000.0f, 0,
 						bgfx::getCaps()->homogeneousDepth);
-					pushViewProjection(ortho, [&]()
-					{
+					pushViewProjection(ortho, [&]() {
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_root->visit();
 						SharedRendererManager.flush();
 					});
-				}
-				else
-				{
+				} else {
 					bgfx::setViewClear(viewId,
 						BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
 						_clearColor.toRGBA());
 				}
 				/* post node */
-				if (_postNode)
-				{
+				if (_postNode) {
 					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 					_postNode->visit();
 					SharedRendererManager.flush();
 				}
 				/* ui 3D node */
-				if (_ui3D)
-				{
-					pushViewProjection(_ui3DCamera->getView(), [&]()
-					{
+				if (_ui3D) {
+					pushViewProjection(_ui3DCamera->getView(), [&]() {
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_ui3D->visit();
 						SharedRendererManager.flush();
 					});
 				}
 				/* ui node */
-				if (_ui)
-				{
-					pushViewProjection(_uiCamera->getView(), [&]()
-					{
+				if (_ui) {
+					pushViewProjection(_uiCamera->getView(), [&]() {
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_ui->visit();
 						SharedRendererManager.flush();
 					});
 				}
 				/* profile info */
-				if (_displayStats)
-				{
+				if (_displayStats) {
 					displayStats();
 				}
 			});
-		}
-		else
-		{
+		} else {
 			/* release unused RT */
 			if (_root) _root->grab(false);
 
 			/* render scene tree and post node */
-			SharedView.pushBack("Main"_slice, [&]()
-			{
+			SharedView.pushBack("Main"_slice, [&]() {
 				bgfx::ViewId viewId = SharedView.getId();
 				bgfx::setViewClear(viewId,
 					BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
@@ -433,13 +364,10 @@ void Director::doRender()
 				SharedRendererManager.flush();
 			});
 			/* ui 3D node */
-			if (_ui3D)
-			{
-				SharedView.pushBack("UI3D"_slice, [&]()
-				{
+			if (_ui3D) {
+				SharedView.pushBack("UI3D"_slice, [&]() {
 					bgfx::ViewId viewId = SharedView.getId();
-					pushViewProjection(_ui3DCamera->getView(), [&]()
-					{
+					pushViewProjection(_ui3DCamera->getView(), [&]() {
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 						_ui3D->visit();
 						SharedRendererManager.flush();
@@ -447,24 +375,19 @@ void Director::doRender()
 				});
 			}
 			/* render ui node */
-			if (_ui || _displayStats)
-			{
-				SharedView.pushBack("UI"_slice, [&]()
-				{
+			if (_ui || _displayStats) {
+				SharedView.pushBack("UI"_slice, [&]() {
 					bgfx::ViewId viewId = SharedView.getId();
 					/* ui node */
-					if (_ui)
-					{
-						pushViewProjection(_uiCamera->getView(), [&]()
-						{
+					if (_ui) {
+						pushViewProjection(_uiCamera->getView(), [&]() {
 							bgfx::setViewTransform(viewId, nullptr, getViewProjection());
 							_ui->visit();
 							SharedRendererManager.flush();
 						});
 					}
 					/* profile info */
-					if (_displayStats)
-					{
+					if (_displayStats) {
 						displayStats();
 					}
 				});
@@ -472,11 +395,9 @@ void Director::doRender()
 		}
 
 		/* render NanoVG */
-		if (_nvgContext && _nvgDirty)
-		{
+		if (_nvgContext && _nvgDirty) {
 			_nvgDirty = false;
-			SharedView.pushBack("NanoVG"_slice, [&]()
-			{
+			SharedView.pushBack("NanoVG"_slice, [&]() {
 				nvgSetViewId(_nvgContext, SharedView.getId());
 				nvgEndFrame(_nvgContext);
 			});
@@ -490,15 +411,13 @@ void Director::doRender()
 		bgfx::setViewOrder(0, num, remap);
 		SharedView.clear();
 
-		if (_uiTouchHandler)
-		{
+		if (_uiTouchHandler) {
 			_uiTouchHandler->clear();
 		}
 	});
 }
 
-void Director::displayStats()
-{
+void Director::displayStats() {
 	/* print debug text */
 	bgfx::setDebug(BGFX_DEBUG_TEXT);
 	bgfx::dbgTextClear();
@@ -532,13 +451,11 @@ void Director::displayStats()
 	frames++;
 	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getTargetFPS();
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mCPU time: \x1b[15;m%.1f ms", lastCpuTime);
-	if (lastGpuTime > 0.0)
-	{
+	if (lastGpuTime > 0.0) {
 		bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mGPU time: \x1b[15;m%.1f ms", lastGpuTime);
 	}
 	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mDelta time: \x1b[15;m%.1f ms", lastDeltaTime);
-	if (frames == SharedApplication.getTargetFPS())
-	{
+	if (frames == SharedApplication.getTargetFPS()) {
 		lastCpuTime = 1000.0 * cpuTime / frames;
 		lastGpuTime = 1000.0 * gpuTime / frames;
 		lastDeltaTime = 1000.0 * deltaTime / frames;
@@ -551,77 +468,64 @@ void Director::displayStats()
 	// bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMemory Pool: \x1b[15;m%d kb", MemoryPool::getCapacity()/1024);
 }
 
-void Director::pushViewProjection(const Matrix& viewProj)
-{
+void Director::pushViewProjection(const Matrix& viewProj) {
 	_viewProjs.push(New<Matrix>(viewProj));
 }
 
-void Director::popViewProjection()
-{
+void Director::popViewProjection() {
 	_viewProjs.pop();
 }
 
-void Director::cleanup()
-{
-	if (_ui3D)
-	{
+void Director::cleanup() {
+	if (_ui3D) {
 		_ui3D->removeAllChildren();
 		_ui3D->onExit();
 		_ui3D->cleanup();
 		_ui3D = nullptr;
 		_ui3DCamera = nullptr;
 	}
-	if (_ui)
-	{
+	if (_ui) {
 		_ui->removeAllChildren();
 		_ui->onExit();
 		_ui->cleanup();
 		_ui = nullptr;
 		_uiCamera = nullptr;
 	}
-	if (_root)
-	{
+	if (_root) {
 		_root->removeAllChildren();
 		_root->onExit();
 		_root->cleanup();
 		_root = nullptr;
 		_entry = nullptr;
 	}
-	if (_postNode)
-	{
+	if (_postNode) {
 		_postNode->removeAllChildren();
 		_postNode->onExit();
 		_postNode->cleanup();
 		_postNode = nullptr;
 	}
-	if (_nvgContext)
-	{
+	if (_nvgContext) {
 		nvgDelete(_nvgContext);
 		_nvgContext = nullptr;
 	}
 	_camStack->clear();
 }
 
-void Director::markDirty()
-{
+void Director::markDirty() {
 	if (_ui) _ui->markDirty();
-	if (_entry)
-	{
+	if (_entry) {
 		auto viewSize = SharedView.getSize();
 		_root->setSize(viewSize);
 	}
 	if (_postNode) _postNode->markDirty();
 }
 
-NVGcontext* Director::markNVGDirty()
-{
-	if (!_nvgContext)
-	{
+NVGcontext* Director::markNVGDirty() {
+	if (!_nvgContext) {
 		_nvgContext = nvgCreate(1, 0);
 		AssertUnless(_nvgContext, "failed to init NanoVG context!");
 	}
-	if (!_nvgDirty)
-	{
+	if (!_nvgDirty) {
 		_nvgDirty = true;
 		Size visualSize = SharedApplication.getVisualSize();
 		float deviceRatio = SharedApplication.getDeviceRatio();
@@ -630,10 +534,8 @@ NVGcontext* Director::markNVGDirty()
 	return _nvgContext;
 }
 
-void Director::handleSDLEvent(const SDL_Event& event)
-{
-	switch (event.type)
-	{
+void Director::handleSDLEvent(const SDL_Event& event) {
+	switch (event.type) {
 		// User-requested quit
 		case SDL_QUIT:
 			_stoped = true;
@@ -666,24 +568,21 @@ void Director::handleSDLEvent(const SDL_Event& event)
 			Event::send("AppDidEnterForeground"_slice);
 			Event::send("AppSizeChanged"_slice);
 			break;
-		case SDL_WINDOWEVENT:
-			{
-				switch (event.window.event)
-				{
-					case SDL_WINDOWEVENT_HIDDEN:
-						_paused = true;
-						break;
-					case SDL_WINDOWEVENT_SHOWN:
-						_paused = false;
-						break;
-					case SDL_WINDOWEVENT_RESIZED:
-					case SDL_WINDOWEVENT_SIZE_CHANGED:
-						SharedView.reset();
-						Event::send("AppSizeChanged"_slice);
-						break;
-				}
+		case SDL_WINDOWEVENT: {
+			switch (event.window.event) {
+				case SDL_WINDOWEVENT_HIDDEN:
+					_paused = true;
+					break;
+				case SDL_WINDOWEVENT_SHOWN:
+					_paused = false;
+					break;
+				case SDL_WINDOWEVENT_RESIZED:
+				case SDL_WINDOWEVENT_SIZE_CHANGED:
+					SharedView.reset();
+					Event::send("AppSizeChanged"_slice);
+					break;
 			}
-			break;
+		} break;
 		case SDL_MOUSEMOTION:
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:

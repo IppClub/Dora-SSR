@@ -8,17 +8,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 #include "Basic/Content.h"
+
 #include "Basic/Application.h"
-#include "Common/Async.h"
 #include "Basic/VGRender.h"
+#include "Common/Async.h"
 #include <fstream>
 using std::ofstream;
 
 #if BX_PLATFORM_LINUX
-#include <unistd.h>
-#include <limits.h>
-#include "ghc/fs_impl.hpp"
 #include "ghc/fs_fwd.hpp"
+#include "ghc/fs_impl.hpp"
+#include <limits.h>
+#include <unistd.h>
 namespace fs = ghc::filesystem;
 #else
 #include <filesystem>
@@ -33,23 +34,19 @@ namespace fs = std::filesystem;
 static Dorothy::Own<ZipFile> g_apkFile;
 #endif // BX_PLATFORM_ANDROID
 
-static void releaseFileData(void* _ptr, void* _userData)
-{
+static void releaseFileData(void* _ptr, void* _userData) {
 	DORA_UNUSED_PARAM(_userData);
-	if (_ptr)
-	{
+	if (_ptr) {
 		uint8_t* data = r_cast<uint8_t*>(_ptr);
-		delete [] data;
+		delete[] data;
 	}
 }
 
 NS_DOROTHY_BEGIN
 
-Content::~Content()
-{ }
+Content::~Content() { }
 
-std::pair<OwnArray<uint8_t>,size_t> Content::load(String filename)
-{
+std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
 	SharedAsyncThread.FileIO.pause();
 	int64_t size = 0;
 	uint8_t* data = Content::_loadFileUnsafe(filename, size);
@@ -57,8 +54,7 @@ std::pair<OwnArray<uint8_t>,size_t> Content::load(String filename)
 	return {OwnArray<uint8_t>(data), s_cast<size_t>(size)};
 }
 
-const bgfx::Memory* Content::loadBX(String filename)
-{
+const bgfx::Memory* Content::loadBX(String filename) {
 	SharedAsyncThread.FileIO.pause();
 	int64_t size = 0;
 	uint8_t* data = Content::_loadFileUnsafe(filename, size);
@@ -66,90 +62,72 @@ const bgfx::Memory* Content::loadBX(String filename)
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
 
-void Content::copy(String src, String dst)
-{
+void Content::copy(String src, String dst) {
 	SharedAsyncThread.FileIO.pause();
 	Content::copyUnsafe(src, dst);
 	SharedAsyncThread.FileIO.resume();
 }
 
-void Content::save(String filename, String content)
-{
+void Content::save(String filename, String content) {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
 	stream.write(content.rawData(), content.size());
 }
 
-void Content::save(String filename, uint8_t* content, int64_t size)
-{
+void Content::save(String filename, uint8_t* content, int64_t size) {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
 	stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size));
 }
 
-bool Content::remove(String filename)
-{
+bool Content::remove(String filename) {
 	std::string fullpath = Content::getFullPath(filename);
 	return fs::remove_all(fullpath) > 0;
 }
 
-bool Content::createFolder(String folder)
-{
+bool Content::createFolder(String folder) {
 	fs::path path = folder.toString();
 	return fs::create_directories(path);
 }
 
-std::list<std::string> Content::getDirs(String path)
-{
+std::list<std::string> Content::getDirs(String path) {
 	return Content::getDirEntries(path, true);
 }
 
-std::list<std::string> Content::getFiles(String path)
-{
+std::list<std::string> Content::getFiles(String path) {
 	return Content::getDirEntries(path, false);
 }
 
-std::list<std::string> Content::getAllFiles(String path)
-{
+std::list<std::string> Content::getAllFiles(String path) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
 	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
-	if (fullPath[0] != '/')
-	{
+	if (fullPath[0] != '/') {
 		return g_apkFile->getAllFiles(fullPath);
 	}
 #endif // BX_PLATFORM_ANDROID
 	std::list<std::string> files;
-	if (Content::isFileExist(fullPath))
-	{
+	if (Content::isFileExist(fullPath)) {
 		fs::path parentPath = fullPath;
-		for (const auto& item : fs::recursive_directory_iterator(parentPath))
-		{
-			if (!item.is_directory())
-			{
+		for (const auto& item : fs::recursive_directory_iterator(parentPath)) {
+			if (!item.is_directory()) {
 				files.push_back(item.path().lexically_relative(parentPath).string());
 			}
 		}
-	}
-	else
-	{
+	} else {
 		Error("Content failed to get entry of \"{}\"", fullPath);
 	}
 	return files;
 }
 
-bool Content::visitDir(String path, const std::function<bool(String,String)>& func)
-{
+bool Content::visitDir(String path, const std::function<bool(String, String)>& func) {
 	std::function<bool(String)> visit;
-	visit = [&visit,&func,this](String path)
-	{
+	visit = [&visit, &func, this](String path) {
 		auto files = getFiles(path);
-		for (const auto& file : files)
-		{
+		for (const auto& file : files) {
 			if (func(file, path)) return true;
 		}
 		auto dirs = getDirs(path);
 		auto parent = fs::path(path.begin(), path.end());
-		for (const auto& dir : dirs)
-		{
+		for (const auto& dir : dirs) {
 			if (visit((parent / dir).string())) return true;
 		}
 		return false;
@@ -157,61 +135,50 @@ bool Content::visitDir(String path, const std::function<bool(String,String)>& fu
 	return visit(path);
 }
 
-const std::string& Content::getAssetPath() const
-{
+const std::string& Content::getAssetPath() const {
 	return _assetPath;
 }
 
-const std::string& Content::getWritablePath() const
-{
+const std::string& Content::getWritablePath() const {
 	return _writablePath;
 }
 
-static std::tuple<std::string,std::string> splitDirectoryAndFilename(const std::string& filePath)
-{
+static std::tuple<std::string, std::string> splitDirectoryAndFilename(const std::string& filePath) {
 	std::string file = filePath;
 	std::string path;
 	size_t pos = filePath.find_last_of("/\\");
-	if (pos != std::string::npos)
-	{
+	if (pos != std::string::npos) {
 		path = filePath.substr(0, pos + 1);
 		file = filePath.substr(pos + 1);
 	}
 	return std::make_tuple(path, file);
 }
 
-std::string Content::getFullPath(String filename)
-{
+std::string Content::getFullPath(String filename) {
 	AssertIf(filename.empty(), "invalid filename for full path.");
 
 	Slice targetFile = filename;
 	targetFile.trimSpace();
 
-	if (Content::isAbsolutePath(targetFile))
-	{
+	if (Content::isAbsolutePath(targetFile)) {
 		return targetFile;
 	}
 
-	while (targetFile.size() > 1 &&
-		(targetFile.back() == '\\' || targetFile.back() == '/'))
-	{
+	while (targetFile.size() > 1 && (targetFile.back() == '\\' || targetFile.back() == '/')) {
 		targetFile.skipRight(1);
 	}
 
-	auto it  = _fullPathCache.find(targetFile);
-	if (it != _fullPathCache.end())
-	{
+	auto it = _fullPathCache.find(targetFile);
+	if (it != _fullPathCache.end()) {
 		return it->second;
 	}
 
 	std::string path, file, fullPath;
 	auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
-	for (const auto& searchPath : _searchPaths)
-	{
+	for (const auto& searchPath : _searchPaths) {
 		std::tie(path, file) = splitDirectoryAndFilename((fs::path(searchPath) / fname).string());
 		fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
-		if (!fullPath.empty())
-		{
+		if (!fullPath.empty()) {
 			_fullPathCache[fname.string()] = fullPath;
 			return fullPath;
 		}
@@ -219,8 +186,7 @@ std::string Content::getFullPath(String filename)
 
 	std::tie(path, file) = splitDirectoryAndFilename(targetFile);
 	fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
-	if (!fullPath.empty())
-	{
+	if (!fullPath.empty()) {
 		_fullPathCache[targetFile] = fullPath;
 		return fullPath;
 	}
@@ -228,54 +194,44 @@ std::string Content::getFullPath(String filename)
 	return targetFile;
 }
 
-std::list<std::string> Content::getFullPathsToTry(String filename)
-{
+std::list<std::string> Content::getFullPathsToTry(String filename) {
 	AssertIf(filename.empty(), "invalid filename for full path.");
 
 	Slice targetFile = filename;
 	targetFile.trimSpace();
 
-	while (targetFile.size() > 1 &&
-		(targetFile.back() == '\\' || targetFile.back() == '/'))
-	{
+	while (targetFile.size() > 1 && (targetFile.back() == '\\' || targetFile.back() == '/')) {
 		targetFile.skipRight(1);
 	}
 
-	if (Content::isAbsolutePath(targetFile))
-	{
+	if (Content::isAbsolutePath(targetFile)) {
 		return {targetFile};
 	}
 
 	std::list<std::string> paths;
 	std::string path, file, fullPath;
 	auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
-	for (const auto& searchPath : _searchPaths)
-	{
+	for (const auto& searchPath : _searchPaths) {
 		paths.push_back((fs::path(searchPath) / fname).string());
 	}
 	return paths;
 }
 
-void Content::insertSearchPath(int index, String path)
-{
+void Content::insertSearchPath(int index, String path) {
 	std::string searchPath = Content::getFullPath(path);
 	_searchPaths.insert(_searchPaths.begin() + index, searchPath);
 	_fullPathCache.clear();
 }
 
-void Content::addSearchPath(String path)
-{
+void Content::addSearchPath(String path) {
 	std::string searchPath = Content::getFullPath(path);
 	_searchPaths.push_back(searchPath);
 }
 
-void Content::removeSearchPath(String path)
-{
+void Content::removeSearchPath(String path) {
 	std::string realPath = Content::getFullPath(path);
-	for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it)
-	{
-		if (*it == realPath)
-		{
+	for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it) {
+		if (*it == realPath) {
 			_searchPaths.erase(it);
 			_fullPathCache.clear();
 			break;
@@ -283,37 +239,29 @@ void Content::removeSearchPath(String path)
 	}
 }
 
-void Content::setSearchPaths(const std::vector<std::string>& searchPaths)
-{
+void Content::setSearchPaths(const std::vector<std::string>& searchPaths) {
 	_searchPaths.clear();
 	_fullPathCache.clear();
-	for (const std::string& searchPath : searchPaths)
-	{
+	for (const std::string& searchPath : searchPaths) {
 		Content::addSearchPath(searchPath);
 	}
 }
 
-const std::vector<std::string>& Content::getSearchPaths() const
-{
+const std::vector<std::string>& Content::getSearchPaths() const {
 	return _searchPaths;
 }
 
-void Content::copyUnsafe(String src, String dst)
-{
+void Content::copyUnsafe(String src, String dst) {
 	std::string srcPath = Content::getFullPath(src);
 	// Info("copy file from {}", srcPath);
 	// Info("copy file to {}", dst);
-	if (Content::isPathFolder(srcPath))
-	{
+	if (Content::isPathFolder(srcPath)) {
 		std::string dstPath = dst;
 		auto folders = Content::getDirEntries(src, true);
-		for (const std::string& folder : folders)
-		{
+		for (const std::string& folder : folders) {
 			std::string dstFolder = (fs::path(dstPath) / folder).string();
-			if (!Content::isFileExist(dstFolder))
-			{
-				if (!Content::createFolder(dstFolder))
-				{
+			if (!Content::isFileExist(dstFolder)) {
+				if (!Content::createFolder(dstFolder)) {
 					Error("Create folder failed! {}", dstFolder);
 				}
 			}
@@ -321,177 +269,136 @@ void Content::copyUnsafe(String src, String dst)
 			Content::copyUnsafe(srcFolder, dstFolder);
 		}
 		auto files = Content::getDirEntries(src, false);
-		for (const std::string& file : files)
-		{
+		for (const std::string& file : files) {
 			// Info("now copy file {}",file);
 			ofstream stream(fs::path(dstPath) / file, std::ios::out | std::ios::trunc | std::ios::binary);
-			Content::loadByChunks((fs::path(srcPath) / file).string(), [&](uint8_t* buffer, int size)
-			{
-				if (!stream.write(r_cast<char*>(buffer), size))
-				{
+			Content::loadByChunks((fs::path(srcPath) / file).string(), [&](uint8_t* buffer, int size) {
+				if (!stream.write(r_cast<char*>(buffer), size)) {
 					Error("write file failed! {}", (fs::path(dstPath) / file).string());
 				}
 			});
 		}
-	}
-	else
-	{
+	} else {
 		ofstream stream(dst, std::ios::out | std::ios::trunc | std::ios::binary);
-		Content::loadByChunks(src, [&](uint8_t* buffer, int size)
-		{
-			if (!stream.write(r_cast<char*>(buffer), size))
-			{
+		Content::loadByChunks(src, [&](uint8_t* buffer, int size) {
+			if (!stream.write(r_cast<char*>(buffer), size)) {
 				Error("write file failed! {}", dst);
 			}
 		});
 	}
 }
 
-void Content::loadAsyncUnsafe(String filename, const std::function<void (uint8_t*, int64_t)>& callback)
-{
+void Content::loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback) {
 	std::string fileStr = filename;
-	SharedAsyncThread.FileIO.run([fileStr, this]()
-	{
+	SharedAsyncThread.FileIO.run([fileStr, this]() {
 		int64_t size = 0;
 		uint8_t* buffer = this->_loadFileUnsafe(fileStr, size);
-		return Values::alloc(buffer, size);
-	},
-	[callback](Own<Values> result)
-	{
-		uint8_t* buffer;
-		int64_t size;
-		result->get(buffer, size);
-		callback(buffer,size);
-	});
+		return Values::alloc(buffer, size); },
+		[callback](Own<Values> result) {
+			uint8_t* buffer;
+			int64_t size;
+			result->get(buffer, size);
+			callback(buffer, size);
+		});
 }
 
-void Content::loadAsync(String filename, const std::function<void(String)>& callback)
-{
-	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size)
-	{
+void Content::loadAsync(String filename, const std::function<void(String)>& callback) {
+	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size) {
 		auto data = MakeOwnArray(buffer);
 		callback(Slice(r_cast<char*>(data.get()), s_cast<size_t>(size)));
 	});
 }
 
-void Content::loadAsyncData(String filename, const std::function<void(OwnArray<uint8_t>&&,size_t)>& callback)
-{
-	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size)
-	{
+void Content::loadAsyncData(String filename, const std::function<void(OwnArray<uint8_t>&&, size_t)>& callback) {
+	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size) {
 		callback(MakeOwnArray(buffer), s_cast<size_t>(size));
 	});
 }
 
-void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback)
-{
-	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size)
-	{
+void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback) {
+	Content::loadAsyncUnsafe(filename, [callback](uint8_t* buffer, int64_t size) {
 		callback(bgfx::makeRef(buffer, s_cast<uint32_t>(size), releaseFileData));
 	});
 }
 
-void Content::copyAsync(String src, String dst, const std::function<void()>& callback)
-{
+void Content::copyAsync(String src, String dst, const std::function<void()>& callback) {
 	std::string srcFile(src), dstFile(dst);
-	SharedAsyncThread.FileIO.run([srcFile,dstFile,this]()
-	{
+	SharedAsyncThread.FileIO.run([srcFile, dstFile, this]() {
 		Content::copyUnsafe(srcFile, dstFile);
-		return nullptr;
-	},
-	[callback](Own<Values> result)
-	{
-		DORA_UNUSED_PARAM(result);
-		callback();
-	});
+		return nullptr; },
+		[callback](Own<Values> result) {
+			DORA_UNUSED_PARAM(result);
+			callback();
+		});
 }
 
-void Content::saveAsync(String filename, String content, const std::function<void()>& callback)
-{
+void Content::saveAsync(String filename, String content, const std::function<void()>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<std::string>(content);
-	SharedAsyncThread.FileIO.run([file,data,this]()
-	{
+	SharedAsyncThread.FileIO.run([file, data, this]() {
 		Content::save(file, *data);
-		return nullptr;
-	},
-	[callback](Own<Values> result)
-	{
-		DORA_UNUSED_PARAM(result);
-		callback();
-	});
+		return nullptr; },
+		[callback](Own<Values> result) {
+			DORA_UNUSED_PARAM(result);
+			callback();
+		});
 }
 
-void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback)
-{
+void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<OwnArray<uint8_t>>(std::move(content));
-	SharedAsyncThread.FileIO.run([file,data,size,this]()
-	{
+	SharedAsyncThread.FileIO.run([file, data, size, this]() {
 		Content::save(file, Slice(r_cast<char*>((*data).get()), size));
-		return nullptr;
-	},
-	[callback](Own<Values> result)
-	{
-		DORA_UNUSED_PARAM(result);
-		callback();
-	});
+		return nullptr; },
+		[callback](Own<Values> result) {
+			DORA_UNUSED_PARAM(result);
+			callback();
+		});
 }
 
-bool Content::exist(String filename)
-{
+bool Content::exist(String filename) {
 	return Content::isFileExist(Content::getFullPath(filename));
 }
 
-bool Content::isFolder(String path)
-{
+bool Content::isFolder(String path) {
 	return Content::isPathFolder(Content::getFullPath(path));
 }
 
-std::list<std::string> Content::getDirEntries(String path, bool isFolder)
-{
+std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
 	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
-	if (fullPath[0] != '/')
-	{
+	if (fullPath[0] != '/') {
 		return g_apkFile->getDirEntries(fullPath, isFolder);
 	}
 #endif // BX_PLATFORM_ANDROID
 	std::list<std::string> files;
-	if (Content::isFileExist(fullPath))
-	{
+	if (Content::isFileExist(fullPath)) {
 		fs::path parentPath = fullPath;
-		for (const auto& item : fs::directory_iterator(parentPath))
-		{
-			if (isFolder == item.is_directory())
-			{
+		for (const auto& item : fs::directory_iterator(parentPath)) {
+			if (isFolder == item.is_directory()) {
 				files.push_back(item.path().lexically_relative(parentPath).string());
 			}
 		}
-	}
-	else
-	{
+	} else {
 		Error("Content failed to get entry of \"{}\"", fullPath);
 	}
 	return files;
 }
 
-uint8_t* Content::loadUnsafe(String filename, int64_t& size)
-{
+uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	SharedAsyncThread.FileIO.pause();
 	uint8_t* data = Content::_loadFileUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return data;
 }
 
-void Content::clearPathCache()
-{
+void Content::clearPathCache() {
 	_fullPathCache.clear();
 }
 
 #if BX_PLATFORM_ANDROID
-Content::Content()
-{
+Content::Content() {
 	_assetPath = "assets/";
 	g_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _assetPath);
 
@@ -500,104 +407,79 @@ Content::Content()
 	SDL_free(prefPath);
 }
 
-uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size)
-{
+uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size) {
 	uint8_t* data = nullptr;
-	if (filename.empty())
-	{
+	if (filename.empty()) {
 		return data;
 	}
 	std::string fullPath = Content::getFullPath(filename);
-	if (fullPath[0] != '/')
-	{
+	if (fullPath[0] != '/') {
 		data = g_apkFile->getFileDataUnsafe(fullPath, r_cast<size_t*>(&size));
-	}
-	else
-	{
-		BLOCK_START
-		{
+	} else {
+		BLOCK_START {
 			FILE* fp = fopen(fullPath.c_str(), "rb");
 			BREAK_IF(!fp);
 			fseek(fp, 0, SEEK_END);
 			unsigned long dataSize = ftell(fp);
 			fseek(fp, 0, SEEK_SET);
 			data = new unsigned char[dataSize];
-			dataSize = fread(data, sizeof(data[0]), dataSize,fp);
+			dataSize = fread(data, sizeof(data[0]), dataSize, fp);
 			fclose(fp);
-			if (dataSize)
-			{
+			if (dataSize) {
 				size = dataSize;
 			}
 		}
 		BLOCK_END
 	}
-	if (!data)
-	{
+	if (!data) {
 		Error("failed to load file: {}", fullPath);
 	}
 	return data;
 }
 
-void Content::loadByChunks(String filename, const std::function<void(uint8_t*,int)>& handler)
-{
-	if (filename.empty())
-	{
+void Content::loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler) {
+	if (filename.empty()) {
 		return;
 	}
 	std::string fullPath = Content::getFullPath(filename);
-	if (fullPath[0] != '/')
-	{
+	if (fullPath[0] != '/') {
 		g_apkFile->getFileDataByChunks(fullPath, handler);
-	}
-	else
-	{
-		BLOCK_START
-		{
+	} else {
+		BLOCK_START {
 			FILE* file = fopen(fullPath.c_str(), "rb");
 			BREAK_IF(!file);
 			uint8_t buffer[DORA_COPY_BUFFER_SIZE];
 			int size = 0;
-			do
-			{
+			do {
 				size = s_cast<int>(fread(buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE, file));
-				if (size > 0)
-				{
+				if (size > 0) {
 					handler(buffer, size);
 				}
-			}
-			while (size > 0);
+			} while (size > 0);
 			fclose(file);
 		}
 		BLOCK_END
 	}
 }
 
-bool Content::isFileExist(String strFilePath)
-{
-	if (strFilePath.empty())
-	{
+bool Content::isFileExist(String strFilePath) {
+	if (strFilePath.empty()) {
 		return false;
 	}
 	bool found = false;
 	// Check whether file exists in apk.
-	if (strFilePath[0] != '/')
-	{
+	if (strFilePath[0] != '/') {
 		std::string strPath = strFilePath;
-		if (strPath.find(_assetPath) != 0)
-		{
+		if (strPath.find(_assetPath) != 0) {
 			// Didn't find "assets/" at the beginning of the path, adding it.
 			strPath.insert(0, _assetPath);
 		}
-		if (g_apkFile->fileExists(strPath))
-		{
+		if (g_apkFile->fileExists(strPath)) {
 			found = true;
 		}
-	}
-	else
-	{
+	} else {
 		FILE* file = fopen(strFilePath.toString().c_str(), "r");
-		if (file)
-		{
+		if (file) {
 			found = true;
 			fclose(file);
 		}
@@ -605,21 +487,18 @@ bool Content::isFileExist(String strFilePath)
 	return found;
 }
 
-bool Content::isPathFolder(String path)
-{
+bool Content::isPathFolder(String path) {
 	return g_apkFile->isFolder(path);
 }
 #endif // BX_PLATFORM_ANDROID
 
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
-bool Content::isAbsolutePath(String strPath)
-{
+bool Content::isAbsolutePath(String strPath) {
 	// On Android, there are two situations for full path.
 	// 1) Files in APK, e.g. assets/path/path/file.png
 	// 2) Files not in APK, e.g. /data/data/org.luvfight.dorothy/cache/path/path/file.png, or /sdcard/path/path/file.png.
 	// So these two situations need to be checked on Android.
-	if (strPath[0] == '/' || std::string(strPath).find(_assetPath) == 0)
-	{
+	if (strPath[0] == '/' || std::string(strPath).find(_assetPath) == 0) {
 		return true;
 	}
 	return false;
@@ -627,8 +506,7 @@ bool Content::isAbsolutePath(String strPath)
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
-Content::Content()
-{
+Content::Content() {
 	_assetPath = fs::current_path().string();
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
@@ -636,12 +514,10 @@ Content::Content()
 	SDL_free(prefPath);
 }
 
-bool Content::isAbsolutePath(String strPath)
-{
+bool Content::isAbsolutePath(String strPath) {
 	if (strPath.size() > 2
 		&& ((strPath[0] >= 'a' && strPath[0] <= 'z') || (strPath[0] >= 'A' && strPath[0] <= 'Z'))
-		&& strPath[1] == ':')
-	{
+		&& strPath[1] == ':') {
 		return true;
 	}
 	return false;
@@ -649,11 +525,9 @@ bool Content::isAbsolutePath(String strPath)
 #endif // BX_PLATFORM_WINDOWS
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
-bool Content::isFileExist(String filePath)
-{
+bool Content::isFileExist(String filePath) {
 	std::string strPath = filePath;
-	if (!Content::isAbsolutePath(strPath))
-	{
+	if (!Content::isAbsolutePath(strPath)) {
 		strPath.insert(0, _assetPath);
 	}
 	std::error_code err;
@@ -662,8 +536,7 @@ bool Content::isFileExist(String filePath)
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
-Content::Content()
-{
+Content::Content() {
 	char* currentPath = SDL_GetBasePath();
 	_assetPath = currentPath;
 	SDL_free(currentPath);
@@ -675,8 +548,7 @@ Content::Content()
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_LINUX
-Content::Content()
-{
+Content::Content() {
 	auto currentPath = NewArray<char>(PATH_MAX);
 	::getcwd(currentPath.get(), PATH_MAX);
 	_assetPath = currentPath.get();
@@ -694,8 +566,7 @@ Content::Content()
 #define WIN32_LEAN_AND_MEAN
 #endif // WIN32_LEAN_AND_MEAN
 #include <windows.h>
-static std::string toUTF8String(const std::string& str)
-{
+static std::string toUTF8String(const std::string& str) {
 	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), 0, 0);
 	std::wstring wstr(wsize, 0);
 	MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), &wstr[0], wsize);
@@ -710,8 +581,7 @@ static std::string toUTF8String(const std::string& str)
 }
 #endif // BX_PLATFORM_WINDOWS
 
-uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size)
-{
+uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size) {
 	if (filename.empty()) return nullptr;
 	std::string fullPath =
 #if BX_PLATFORM_WINDOWS
@@ -720,8 +590,7 @@ uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size)
 		Content::getFullPath(filename);
 #endif // BX_PLATFORM_WINDOWS
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
-	if (io == nullptr)
-	{
+	if (io == nullptr) {
 		Error("failed to load file: {}", filename);
 		return nullptr;
 	}
@@ -732,38 +601,32 @@ uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size)
 	return buffer;
 }
 
-void Content::loadByChunks(String filename, const std::function<void(uint8_t*,int)>& handler)
-{
+void Content::loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler) {
 	if (filename.empty()) return;
 	std::string fullPath = Content::getFullPath(filename);
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
-	if (io == nullptr)
-	{
+	if (io == nullptr) {
 		Error("failed to load file: {}", fullPath);
 		return;
 	}
 	uint8_t buffer[DORA_COPY_BUFFER_SIZE];
 	int size = 0;
-	while ((size = s_cast<int>(SDL_RWread(io, buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE))))
-	{
+	while ((size = s_cast<int>(SDL_RWread(io, buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE)))) {
 		handler(buffer, size);
 	}
 	SDL_RWclose(io);
 }
 
-bool Content::isPathFolder(String path)
-{
+bool Content::isPathFolder(String path) {
 	return fs::is_directory(path.toString());
 }
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
-std::string Content::getFullPathForDirectoryAndFilename(String directory, String filename)
-{
+std::string Content::getFullPathForDirectoryAndFilename(String directory, String filename) {
 	auto rootPath = fs::path(Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
 	std::string fullPath = (rootPath / directory.toString() / filename.toString()).string();
-	if (!Content::isFileExist(fullPath))
-	{
+	if (!Content::isFileExist(fullPath)) {
 		fullPath.clear();
 	}
 	return fullPath;

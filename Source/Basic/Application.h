@@ -22,8 +22,7 @@ NS_DOROTHY_BEGIN
 typedef Acf::Delegate<void(const SDL_Event&)> SDLEventHandler;
 typedef Acf::Delegate<void()> QuitHandler;
 
-class Application
-{
+class Application {
 public:
 	virtual ~Application() { }
 	PROPERTY_READONLY(uint32_t, Frame);
@@ -64,12 +63,10 @@ public:
 	static int mainLogic(bx::Thread* thread, void* userData);
 	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS
-	inline void* operator new(size_t i)
-	{
+	inline void* operator new(size_t i) {
 		return _mm_malloc(i, 16);
 	}
-	inline void operator delete(void* p)
-	{
+	inline void operator delete(void* p) {
 		_mm_free(p);
 	}
 #elif BX_PLATFORM_ANDROID
@@ -81,6 +78,7 @@ protected:
 	void updateWindowSize();
 	void makeTimeNow();
 	void setupSdlWindow();
+
 private:
 	bool _fpsLimited;
 	bool _renderRunning;
@@ -114,8 +112,7 @@ private:
 #define SharedApplication \
 	Dorothy::Singleton<Dorothy::Application>::shared()
 
-class BGFXDora
-{
+class BGFXDora {
 public:
 	bool init();
 	virtual ~BGFXDora();

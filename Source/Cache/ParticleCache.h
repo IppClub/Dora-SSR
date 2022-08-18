@@ -18,24 +18,26 @@ NS_DOROTHY_BEGIN
 class ParticleNode;
 class ParticleDef;
 
-class ParticleCache : public XmlItemCache<ParticleDef>
-{
+class ParticleCache : public XmlItemCache<ParticleDef> {
 protected:
 	ParticleCache() { }
 	virtual std::shared_ptr<XmlParser<ParticleDef>> prepareParser(String filename) override;
+
 private:
-	class Parser : public XmlParser<ParticleDef>, public rapidxml::xml_sax2_handler
-	{
+	class Parser : public XmlParser<ParticleDef>, public rapidxml::xml_sax2_handler {
 	public:
-		Parser(ParticleDef* def):XmlParser<ParticleDef>(this, def) { }
+		Parser(ParticleDef* def)
+			: XmlParser<ParticleDef>(this, def) { }
 		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
+
 	private:
 		void get(String value, Vec4& vec);
 		void get(String value, Vec2& vec);
 		void get(String value, Rect& rect);
 	};
+
 private:
 	SINGLETON_REF(ParticleCache, Director, AsyncThread);
 };

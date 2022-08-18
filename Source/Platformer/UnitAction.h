@@ -8,6 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Geometry.h"
+#include "PlayRho/Collision/Shapes/Shape.hpp"
+
 NS_DOROTHY_BEGIN
 class Model;
 class Body;
@@ -26,10 +29,9 @@ class Unit;
 class UnitAction;
 class Bullet;
 class Visual;
-typedef Acf::Delegate<void (Unit* source, Unit* target, float damage)> DamageHandler;
+typedef Acf::Delegate<void(Unit* source, Unit* target, float damage)> DamageHandler;
 
-class UnitActionDef
-{
+class UnitActionDef {
 public:
 	virtual ~UnitActionDef() { }
 	std::string name;
@@ -40,8 +42,7 @@ public:
 	virtual Own<UnitAction> toAction(Unit* unit) = 0;
 };
 
-class UnitAction
-{
+class UnitAction {
 public:
 	PROPERTY_READONLY(Behavior::Status, Status);
 	PROPERTY_READONLY_CREF(std::string, Name);
@@ -60,11 +61,13 @@ public:
 	static Own<UnitAction> alloc(String name, Unit* unit);
 	static void add(String name, Own<UnitActionDef>&& actionDef);
 	static void clear();
+
 protected:
 	UnitAction(String name, int priority, bool queued, Unit* owner);
 	Unit* _owner;
 	float _sensity;
 	float _eclapsedTime;
+
 private:
 	bool _doing;
 	bool _queued;
@@ -76,8 +79,7 @@ private:
 	friend class Unit;
 };
 
-struct ActionSetting
-{
+struct ActionSetting {
 	static const Slice AnimationWalk;
 	static const Slice AnimationAttack;
 	static const Slice AnimationIdle;
@@ -150,28 +152,26 @@ struct ActionSetting
 	static const Slice AttackTarget;
 };
 
-class Walk : public UnitAction
-{
+class Walk : public UnitAction {
 public:
 	virtual bool isAvailable() override;
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
 	static Own<UnitAction> alloc(Unit* unit);
+
 protected:
 	Walk(Unit* unit);
 };
 
-class Turn : public UnitAction
-{
+class Turn : public UnitAction {
 public:
 	Turn(Unit* unit);
 	virtual void run();
 	static Own<UnitAction> alloc(Unit* unit);
 };
 
-class Attack : public UnitAction
-{
+class Attack : public UnitAction {
 public:
 	virtual ~Attack();
 	virtual void run() override;
@@ -181,46 +181,46 @@ public:
 	float getDamage(Unit* target);
 	virtual void onAttack() = 0;
 	static Vec2 getHitPoint(Body* self, Body* target, const pd::Shape& selfShape);
+
 protected:
 	Attack(String name, Unit* unit);
 	float _attackDelay;
 	float _attackEffectDelay;
 };
 
-class MeleeAttack : public Attack
-{
+class MeleeAttack : public Attack {
 public:
 	static Own<UnitAction> alloc(Unit* unit);
+
 protected:
 	MeleeAttack(Unit* unit);
 	virtual void onAttack();
 	pd::Shape _polygon;
 };
 
-class RangeAttack : public Attack
-{
+class RangeAttack : public Attack {
 public:
 	static Own<UnitAction> alloc(Unit* unit);
 	bool onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint);
+
 protected:
 	RangeAttack(Unit* unit);
 	virtual void onAttack();
 };
 
-class Idle : public UnitAction
-{
+class Idle : public UnitAction {
 public:
 	virtual bool isAvailable() override;
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
 	static Own<UnitAction> alloc(Unit* unit);
+
 protected:
 	Idle(Unit* unit);
 };
 
-class Jump : public UnitAction
-{
+class Jump : public UnitAction {
 public:
 	virtual bool isAvailable() override;
 	virtual void run() override;
@@ -228,22 +228,22 @@ public:
 	virtual void stop() override;
 	void onAnimationEnd(Event* event);
 	static Own<UnitAction> alloc(Unit* unit);
+
 private:
 	Jump(Unit* unit);
 	float _duration;
 };
 
-class Cancel : public UnitAction
-{
+class Cancel : public UnitAction {
 public:
 	virtual void run() override;
 	static Own<UnitAction> alloc(Unit* unit);
+
 protected:
 	Cancel(Unit* unit);
 };
 
-class Hit : public UnitAction
-{
+class Hit : public UnitAction {
 public:
 	virtual ~Hit();
 	virtual void run() override;
@@ -251,13 +251,13 @@ public:
 	virtual void stop() override;
 	void onAnimationEnd(Event* e);
 	static Own<UnitAction> alloc(Unit* unit);
+
 protected:
 	Hit(Unit* unit);
 	Ref<Visual> _effect;
 };
 
-class Fall : public UnitAction
-{
+class Fall : public UnitAction {
 public:
 	virtual ~Fall();
 	virtual void run() override;
@@ -265,6 +265,7 @@ public:
 	virtual void stop() override;
 	static Own<UnitAction> alloc(Unit* unit);
 	void onAnimationEnd(Event* e);
+
 protected:
 	Fall(Unit* unit);
 };

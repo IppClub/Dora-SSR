@@ -24,11 +24,10 @@ class Contact;
 struct FixtureDef;
 
 typedef Acf::Delegate<bool(Body* body)> ContactFilterHandler;
-typedef Acf::Delegate<void(Body* body,const Vec2& point,const Vec2& normal)> ContactHandler;
+typedef Acf::Delegate<void(Body* body, const Vec2& point, const Vec2& normal)> ContactHandler;
 typedef Acf::Delegate<void(Sensor* sensor)> SensorHandler;
 
-class Body : public Node
-{
+class Body : public Node {
 public:
 	virtual ~Body();
 	virtual bool init() override;
@@ -65,6 +64,7 @@ public:
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
 	bool isSensor() const;
 	CREATE_FUNC(Body);
+
 protected:
 	Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0);
 	pr::ShapeID attachFixture(FixtureDef* fixtureDef);
@@ -72,8 +72,7 @@ protected:
 	pr::BodyID _prBody; // weak reference
 	PhysicsWorld* _pWorld;
 	uint8_t _group;
-	enum
-	{
+	enum {
 		ReceivingContact = UserFlag,
 		EmittingEvent = UserFlag << 1,
 		BodyUserFlag = UserFlag << 2
@@ -82,6 +81,7 @@ protected:
 	void onBodyLeave(Body* other, int sensorTag);
 	void onContactStart(Body* other, const Vec2& point, const Vec2& normal);
 	void onContactEnd(Body* other, const Vec2& point, const Vec2& normal);
+
 private:
 	Ref<BodyDef> _bodyDef;
 	Ref<Array> _sensors;

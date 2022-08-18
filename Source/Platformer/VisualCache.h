@@ -19,8 +19,7 @@ NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-class Visual : public Node
-{
+class Visual : public Node {
 public:
 	virtual void start() = 0;
 	virtual bool isPlaying() = 0;
@@ -30,8 +29,7 @@ public:
 	DORA_TYPE_OVERRIDE(Visual);
 };
 
-class ParticleVisual : public Visual
-{
+class ParticleVisual : public Visual {
 public:
 	virtual void start() override;
 	virtual bool isPlaying() override;
@@ -40,14 +38,15 @@ public:
 	virtual bool init() override;
 	ParticleNode* getParticle() const;
 	CREATE_FUNC(ParticleVisual);
+
 protected:
 	ParticleVisual(String filename);
+
 private:
 	WRef<ParticleNode> _particle;
 };
 
-class SpriteVisual : public Visual
-{
+class SpriteVisual : public Visual {
 public:
 	virtual void start() override;
 	virtual bool isPlaying() override;
@@ -56,8 +55,10 @@ public:
 	virtual bool init() override;
 	Sprite* getSprite() const;
 	CREATE_FUNC(SpriteVisual);
+
 protected:
 	SpriteVisual(String filename);
+
 private:
 	bool _isAutoRemoved;
 	Ref<Sprite> _sprite;
@@ -65,14 +66,16 @@ private:
 };
 
 /** @brief Data define type for visual item. */
-class VisualType : public Object
-{
+class VisualType : public Object {
 public:
-	enum {Unkown = 0, Particle = 1, Frame = 2};
+	enum { Unkown = 0,
+		Particle = 1,
+		Frame = 2 };
 	VisualType(String filename);
 	/** Get a running effect instance of this effect type. */
 	Visual* toVisual() const;
 	const std::string& getFilename() const;
+
 private:
 	std::string _file;
 	uint32_t _type;
@@ -82,8 +85,7 @@ private:
  There are two types of visuals, particle and frame animation which is a sequence of image changes in a row.
  The particle file ends with ".par" and the frame animation file ends with ".frame".
 */
-class VisualCache : public rapidxml::xml_sax2_handler
-{
+class VisualCache : public rapidxml::xml_sax2_handler {
 public:
 	~VisualCache();
 	/** Load an visual item file into memory. */
@@ -94,8 +96,10 @@ public:
 	/** Create a new visual item instance. */
 	Visual* create(String name);
 	const std::string& getFileByName(String name);
+
 protected:
 	VisualCache();
+
 private:
 	virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 	virtual void xmlSAX2EndElement(const char* name, size_t len) override;
