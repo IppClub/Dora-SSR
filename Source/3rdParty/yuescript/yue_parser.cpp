@@ -55,14 +55,14 @@ YueParser::YueParser() {
 		+(range('0', '9') | range('a', 'f') | range('A', 'F')) >>
 		-(-set("uU") >> set("lL") >> set("lL"))
 	) | (
-		+range('0', '9') >> -set("uU") >> set("lL") >> set("lL")
-	) | (
-		(
-			+range('0', '9') >> -('.' >> +range('0', '9'))
-		) | (
-			'.' >> +range('0', '9')
+		+range('0', '9') >> (
+			'.' >> +range('0', '9') >> -(set("eE") >> -expr('-') >> +range('0', '9')) |
+			-set("uU") >> set("lL") >> set("lL") |
+			true_()
 		)
-	) >> -(set("eE") >> -expr('-') >> +range('0', '9'));
+	) | (
+		'.' >> +range('0', '9') >> -(set("eE") >> -expr('-') >> +range('0', '9'))
+	);
 
 	Cut = false_();
 	Seperator = true_();
