@@ -21,19 +21,19 @@ class PlayTrackDef;
 class ModelDef;
 class Model;
 
-class ModelCache : public XmlItemCache<ModelDef>
-{
+class ModelCache : public XmlItemCache<ModelDef> {
 protected:
 	ModelCache() { }
 	virtual std::shared_ptr<XmlParser<ModelDef>> prepareParser(String filename) override;
+
 private:
-	class Parser : public XmlParser<ModelDef>, public rapidxml::xml_sax2_handler
-	{
+	class Parser : public XmlParser<ModelDef>, public rapidxml::xml_sax2_handler {
 	public:
 		Parser(ModelDef* def, String path);
 		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
+
 	private:
 		std::string _path;
 		void getPosFromStr(String str, float& x, float& y);

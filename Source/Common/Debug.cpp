@@ -7,14 +7,16 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Common/Debug.h"
-#include "Common/Singleton.h"
-#include "Common/Async.h"
+
 #include "Basic/Application.h"
+#include "Common/Async.h"
+#include "Common/Singleton.h"
 
 #if BX_PLATFORM_ANDROID
-#include <jni.h>
 #include <android/log.h>
+#include <jni.h>
 #endif // BX_PLATFORM_ANDROID
 
 #if !DORA_DISABLE_ASSERT_IN_LUA
@@ -23,31 +25,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Acf::Delegate<void (const std::string&)> LogHandler;
+Acf::Delegate<void(const std::string&)> LogHandler;
 
-void LogError(const std::string& str)
-{
+void LogError(const std::string& str) {
 #if BX_PLATFORM_ANDROID
 	__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
 #else
 	fmt::print(stderr, "{}", str);
 #endif // BX_PLATFORM_ANDROID
-	if (!Singleton<Dorothy::Application>::isDisposed() &&
-		SharedApplication.isLogicRunning())
-	{
-		SharedApplication.invokeInLogic([str]()
-		{
+	if (!Singleton<Dorothy::Application>::isDisposed() && SharedApplication.isLogicRunning()) {
+		SharedApplication.invokeInLogic([str]() {
 			LogHandler(str);
 		});
 	}
 }
 
-void LogPrintInThread(const std::string& str)
-{
-	if (Singleton<Dorothy::Application>::isDisposed() ||
-		Singleton<Dorothy::AsyncLogThread>::isDisposed() ||
-		!SharedApplication.isLogicRunning())
-	{
+void LogPrintInThread(const std::string& str) {
+	if (Singleton<Dorothy::Application>::isDisposed() || Singleton<Dorothy::AsyncLogThread>::isDisposed() || !SharedApplication.isLogicRunning()) {
 #if DORA_DEBUG
 #if BX_PLATFORM_ANDROID
 		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
@@ -57,11 +51,9 @@ void LogPrintInThread(const std::string& str)
 #endif // DORA_DEBUG
 		return;
 	}
-	SharedApplication.invokeInLogic([str]()
-	{
+	SharedApplication.invokeInLogic([str]() {
 		LogHandler(str);
-		SharedAsyncLogThread.run([str]
-		{
+		SharedAsyncLogThread.run([str] {
 #if DORA_DEBUG
 #if BX_PLATFORM_ANDROID
 			__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
@@ -73,8 +65,7 @@ void LogPrintInThread(const std::string& str)
 	});
 }
 
-bool IsInLua()
-{
+bool IsInLua() {
 	return !Dorothy::Singleton<Dorothy::LuaEngine>::isDisposed() && SharedLuaEngine.isInLua();
 }
 

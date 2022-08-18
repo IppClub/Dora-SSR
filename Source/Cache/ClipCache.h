@@ -21,8 +21,7 @@ struct Rect;
 /** @brief Clips are different rectangle areas on textures.
  This is the data for clips from a single texture.
 */
-class ClipDef : public Object
-{
+class ClipDef : public Object {
 public:
 	/** Name of the texture file. Name only, not file path. */
 	std::string textureFile;
@@ -32,33 +31,37 @@ public:
 	Sprite* toSprite(String name);
 	std::string toXml();
 	CREATE_FUNC(ClipDef);
+
 protected:
 	ClipDef();
 };
 
 /** @brief Load texture clip from ".clip" files and cache them. */
-class ClipCache : public XmlItemCache<ClipDef>
-{
+class ClipCache : public XmlItemCache<ClipDef> {
 public:
 	/** A clip str is like "loli.clip|0", file name + "|" + clip index.
 	 Load a new clip file or get it from cache,
 	 then create a new sprite instance with certain clip.
 	*/
 	Sprite* loadSprite(String clipStr);
-	std::pair<Texture2D*,Rect> loadTexture(String clipStr);
+	std::pair<Texture2D*, Rect> loadTexture(String clipStr);
 	bool isFileExist(String clipStr) const;
 	bool isClip(String clipStr) const;
+
 protected:
 	ClipCache() { }
 	virtual std::shared_ptr<XmlParser<ClipDef>> prepareParser(String filename) override;
+
 private:
-	class Parser : public XmlParser<ClipDef>, public rapidxml::xml_sax2_handler
-	{
+	class Parser : public XmlParser<ClipDef>, public rapidxml::xml_sax2_handler {
 	public:
-		Parser(ClipDef* def, String path):XmlParser<ClipDef>(this, def),_path(path) { }
+		Parser(ClipDef* def, String path)
+			: XmlParser<ClipDef>(this, def)
+			, _path(path) { }
 		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
+
 	private:
 		std::string _path;
 	};

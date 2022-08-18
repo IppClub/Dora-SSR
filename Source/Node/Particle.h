@@ -13,14 +13,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-enum struct EmitterMode
-{
+enum struct EmitterMode {
 	Gravity,
 	Radius
 };
 
-class ParticleDef : public Object
-{
+class ParticleDef : public Object {
 public:
 	float angle;
 	float angleVariance;
@@ -46,8 +44,7 @@ public:
 	float startParticleSize;
 	float startParticleSizeVariance;
 	EmitterMode emitterMode;
-	union
-	{
+	union {
 		struct
 		{
 			bool rotationIsDir;
@@ -74,12 +71,12 @@ public:
 	std::string toXml() const;
 	static ParticleDef* fire();
 	CREATE_FUNC(ParticleDef);
+
 protected:
 	ParticleDef();
 };
 
-struct Particle
-{
+struct Particle {
 	Vec3 pos;
 	Vec4 color;
 	Vec4 deltaColor;
@@ -88,8 +85,7 @@ struct Particle
 	float rotation;
 	float deltaRotation;
 	float timeToLive;
-	union
-	{
+	union {
 		struct
 		{
 			Vec2 dir;
@@ -106,8 +102,7 @@ struct Particle
 	} mode;
 };
 
-class ParticleNode : public Node
-{
+class ParticleNode : public Node {
 public:
 	PROPERTY_READONLY_BOOL(Active);
 	PROPERTY_READONLY(Texture2D*, Texture);
@@ -120,11 +115,13 @@ public:
 	void start();
 	void stop();
 	CREATE_FUNC(ParticleNode);
+
 protected:
 	ParticleNode(ParticleDef* def);
 	ParticleNode(String filename);
 	void addParticle();
 	void addQuad(const Particle& particle, float scale, float angleX, float angleY);
+
 private:
 	double _elapsed;
 	float _emitCounter;
@@ -138,8 +135,7 @@ private:
 	Ref<ParticleDef> _particleDef;
 	std::vector<SpriteQuad> _quads;
 	std::vector<Particle> _particles;
-	enum
-	{
+	enum {
 		Active = Node::UserFlag,
 		Emitting = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,

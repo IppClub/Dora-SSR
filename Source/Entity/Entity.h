@@ -16,11 +16,9 @@ class Entity;
 
 typedef Acf::Delegate<void(Entity*)> EntityHandler;
 
-class Entity : public Object
-{
+class Entity : public Object {
 public:
-	enum
-	{
+	enum {
 		Add = 1,
 		Change = 2,
 		AddOrChange = 3,
@@ -40,15 +38,17 @@ public:
 	Value* getComponent(String name) const;
 	Value* getOldCom(String name) const;
 	void clearOldComs();
+
 public:
-	template<typename T>
+	template <typename T>
 	void set(String name, const T& value);
-	template<typename T>
+	template <typename T>
 	std::enable_if_t<!std::is_null_pointer_v<T>> set(int name, const T& value);
-	template<typename T>
+	template <typename T>
 	T get(String name) const;
-	template<typename T>
+	template <typename T>
 	T get(String name, const T& def) const;
+
 public:
 	int getIndex(String name);
 	bool has(int index) const;
@@ -58,10 +58,12 @@ public:
 	void set(String name, Own<Value>&& value);
 	Value* getComponent(int index) const;
 	Value* getOldCom(int index) const;
+
 protected:
 	void registerAddEvent(int index);
 	void registerUpdateEvent(int index, Own<Value>&& old);
 	void registerRemoveEvent(int index, Own<Value>&& old);
+
 private:
 	int _index;
 	std::vector<Own<Value>> _components;
@@ -70,17 +72,14 @@ private:
 	DORA_TYPE_OVERRIDE(Entity);
 };
 
-struct WRefEntityHasher
-{
+struct WRefEntityHasher {
 	std::hash<Entity*> hash;
-	inline size_t operator () (const WRef<Entity>& entity) const
-	{
+	inline size_t operator()(const WRef<Entity>& entity) const {
 		return hash(entity.get());
 	}
 };
 
-class EntityGroup : public Object
-{
+class EntityGroup : public Object {
 public:
 	PROPERTY_READONLY_CREF(std::vector<int>, Components);
 	PROPERTY_READONLY(int, Count);
@@ -89,24 +88,26 @@ public:
 	virtual bool init() override;
 	static EntityGroup* create(const std::vector<std::string>& components);
 	static EntityGroup* create(Slice components[], int count);
+
 public:
-	template<typename Func>
+	template <typename Func>
 	bool each(const Func& func);
-	template<typename Func>
+	template <typename Func>
 	Entity* find(const Func& func);
 	EntityGroup* watch(const EntityHandler& handler);
 	EntityGroup* watch(LuaHandler* handler);
+
 protected:
 	void onAdd(Entity* entity);
 	void onRemove(Entity* entity);
+
 private:
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	std::vector<int> _components;
 	DORA_TYPE_OVERRIDE(EntityGroup);
 };
 
-class EntityObserver : public Object
-{
+class EntityObserver : public Object {
 public:
 	PROPERTY_READONLY_CREF(std::vector<int>, Components);
 	EntityObserver(int option, const std::vector<std::string>& components);
@@ -114,14 +115,17 @@ public:
 	virtual bool init() override;
 	static EntityObserver* create(int option, const std::vector<std::string>& components);
 	static EntityObserver* create(int option, Slice components[], int count);
+
 public:
 	void clear();
 	EntityObserver* watch(const EntityHandler& handler);
 	EntityObserver* watch(LuaHandler* handler);
+
 protected:
 	void onEvent(Entity* entity);
-	template<typename Func>
+	template <typename Func>
 	bool each(const Func& func);
+
 private:
 	int _option;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
@@ -129,82 +133,65 @@ private:
 	DORA_TYPE_OVERRIDE(EntityObserver);
 };
 
-template<typename T>
-void Entity::set(String name, const T& value)
-{
+template <typename T>
+void Entity::set(String name, const T& value) {
 	Entity::set(name, Value::alloc(value));
 }
 
-template<typename T>
-std::enable_if_t<!std::is_null_pointer_v<T>> Entity::set(int index, const T& value)
-{
+template <typename T>
+std::enable_if_t<!std::is_null_pointer_v<T>> Entity::set(int index, const T& value) {
 	Entity::set(index, Value::alloc(value));
 }
 
 template <typename T>
-T Entity::get(String key) const
-{
+T Entity::get(String key) const {
 	auto com = getComponent(key);
 	AssertIf(com == nullptr, "access non-exist component \"{}\".", key);
 	using Type = std::remove_pointer_t<T>;
-	if constexpr (std::is_base_of_v<Object, Type>)
-	{
+	if constexpr (std::is_base_of_v<Object, Type>) {
 		return com->to<std::remove_pointer_t<special_decay_t<T>>>();
-	}
-	else
-	{
+	} else {
 		return com->toVal<Type>();
 	}
 }
 
 template <typename T>
-T Entity::get(String key, const T& def) const
-{
+T Entity::get(String key, const T& def) const {
 	auto com = getComponent(key);
 	if (!com) return def;
 	using Type = std::remove_pointer_t<T>;
-	if constexpr (std::is_base_of_v<Object, Type>)
-	{
+	if constexpr (std::is_base_of_v<Object, Type>) {
 		return com->as<std::remove_pointer_t<special_decay_t<T>>>();
-	}
-	else
-	{
-		if (auto item = com->asVal<Type>())
-		{
+	} else {
+		if (auto item = com->asVal<Type>()) {
 			return *item;
 		}
 	}
 	return def;
 }
 
-template<typename Func>
-bool EntityGroup::each(const Func& func)
-{
+template <typename Func>
+bool EntityGroup::each(const Func& func) {
 	decltype(_entities) entities = _entities;
-	for (Entity* entity : entities)
-	{
+	for (Entity* entity : entities) {
 		if (entity && func(entity)) return true;
 	}
 	return false;
 }
 
-template<typename Func>
-Entity* EntityGroup::find(const Func& func)
-{
-	for (Entity* entity : _entities)
-	{
+template <typename Func>
+Entity* EntityGroup::find(const Func& func) {
+	for (Entity* entity : _entities) {
 		if (entity && func(entity)) return entity;
 	}
 	return nullptr;
 }
 
-template<typename Func>
-bool EntityObserver::each(const Func& func)
-{
+template <typename Func>
+bool EntityObserver::each(const Func& func) {
 	static decltype(_entities) entities;
 	entities = _entities;
-	for (Entity* entity : entities)
-	{
+	for (Entity* entity : entities) {
 		if (entity && func(entity)) return true;
 	}
 	return false;

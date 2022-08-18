@@ -10,8 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Content
-{
+class Content {
 public:
 	PROPERTY_READONLY_CREF(std::string, AssetPath);
 	PROPERTY_READONLY_CREF(std::string, WritablePath);
@@ -22,7 +21,7 @@ public:
 	bool isAbsolutePath(String strPath);
 	std::string getFullPath(String filename);
 	std::list<std::string> getFullPathsToTry(String filename);
-	std::pair<OwnArray<uint8_t>,size_t> load(String filename);
+	std::pair<OwnArray<uint8_t>, size_t> load(String filename);
 	const bgfx::Memory* loadBX(String filename);
 	void copy(String src, String dst);
 	bool remove(String filename);
@@ -32,30 +31,33 @@ public:
 	std::list<std::string> getDirs(String path);
 	std::list<std::string> getFiles(String path);
 	std::list<std::string> getAllFiles(String path);
-	bool visitDir(String path, const std::function<bool(String,String)>& func);
+	bool visitDir(String path, const std::function<bool(String, String)>& func);
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);
 	void removeSearchPath(String path);
 	void loadAsync(String filename, const std::function<void(String)>& callback);
 	void loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback);
-	void loadAsyncData(String filename, const std::function<void(OwnArray<uint8_t>&&,size_t)>& callback);
+	void loadAsyncData(String filename, const std::function<void(OwnArray<uint8_t>&&, size_t)>& callback);
 	void copyAsync(String src, String dst, const std::function<void()>& callback);
 	void saveAsync(String filename, String content, const std::function<void()>& callback);
 	void saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback);
 	void clearPathCache();
+
 public:
-	void loadAsyncUnsafe(String filename, const std::function<void (uint8_t*, int64_t)>& callback);
+	void loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback);
 	uint8_t* loadUnsafe(String filename, int64_t& size);
+
 protected:
 	Content();
 	std::string getFullPathForDirectoryAndFilename(String directory, String filename);
 	void copyUnsafe(String srcFile, String dstFile);
-	void loadByChunks(String filename, const std::function<void(uint8_t*,int)>& handler);
+	void loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler);
 	void saveUnsafe(String filename, String content);
 	void saveUnsafe(String filename, uint8_t* content, int64_t size);
 	bool isFileExist(String filePath);
 	bool isPathFolder(String filePath);
 	std::list<std::string> getDirEntries(String path, bool isFolder);
+
 private:
 	uint8_t* _loadFileUnsafe(String filename, int64_t& size);
 	std::string _assetPath;

@@ -24,16 +24,23 @@ class UnitAction;
 class Property;
 class Instinct;
 
-namespace Decision { class Leaf; }
-namespace Behavior { class Leaf; class Blackboard; }
+namespace Decision {
+class Leaf;
+}
+namespace Behavior {
+class Leaf;
+class Blackboard;
+}
 
-typedef Acf::Delegate<void (UnitAction* action)> UnitActionHandler;
+typedef Acf::Delegate<void(UnitAction* action)> UnitActionHandler;
 
-class Unit : public Body
-{
+class Unit : public Body {
 	typedef std::unordered_map<std::string, Own<UnitAction>> ActionMap;
+
 public:
-	enum {GroundSensorTag = 0, DetectSensorTag = 1, AttackSensorTag = 2};
+	enum { GroundSensorTag = 0,
+		DetectSensorTag = 1,
+		AttackSensorTag = 2 };
 	// Class properties
 	PROPERTY(Playable*, Playable);
 	PROPERTY(float, DetectDistance);
@@ -69,8 +76,7 @@ public:
 	PROPERTY_STRING(DecisionTreeName);
 	PROPERTY_READONLY(Decision::Leaf*, DecisionTree);
 	PROPERTY(Behavior::Leaf*, BehaviorTree);
-	struct Def
-	{
+	struct Def {
 		static const Slice Size;
 		static const Slice Density;
 		static const Slice Friction;
@@ -90,9 +96,11 @@ public:
 		static const Slice DefaultFaceRight;
 	};
 	CREATE_FUNC(Unit);
+
 protected:
 	Unit(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot);
 	Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot);
+
 private:
 	BodyDef* getBodyDef(Dictionary* def) const;
 	WRef<Entity> _entity;
@@ -110,8 +118,7 @@ private:
 	Sensor* _attackSensor;
 	UnitAction* _currentAction;
 	ActionMap _actions;
-	enum
-	{
+	enum {
 		FaceRight = BodyUserFlag,
 		DefaultFaceRight = BodyUserFlag << 1,
 		ReceivingDecisionTrace = BodyUserFlag << 2

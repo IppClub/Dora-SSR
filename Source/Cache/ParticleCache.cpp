@@ -7,29 +7,26 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Cache/ParticleCache.h"
-#include "Const/XmlTag.h"
+
 #include "Cache/TextureCache.h"
+#include "Const/XmlTag.h"
 #include "Node/Particle.h"
 
 NS_DOROTHY_BEGIN
 
-std::shared_ptr<XmlParser<ParticleDef>> ParticleCache::prepareParser(String filename)
-{
+std::shared_ptr<XmlParser<ParticleDef>> ParticleCache::prepareParser(String filename) {
 	return std::shared_ptr<XmlParser<ParticleDef>>(new Parser(ParticleDef::create()));
 }
 
-void ParticleCache::Parser::xmlSAX2Text(const char *s, size_t len)
-{ }
+void ParticleCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
 
-void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
-{
-	if (Xml::Particle(name[0]) != Xml::Particle::Dorothy && attrs.size() <= 1)
-	{
+void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+	if (Xml::Particle(name[0]) != Xml::Particle::Dorothy && attrs.size() <= 1) {
 		throw rapidxml::parse_error("invalid particle file", r_cast<void*>(c_cast<char*>(name)));
 	}
-	switch (Xml::Particle(name[0]))
-	{
+	switch (Xml::Particle(name[0])) {
 		case Xml::Particle::Dorothy:
 			break;
 		case Xml::Particle::Angle:
@@ -155,11 +152,9 @@ void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, co
 	}
 }
 
-void ParticleCache::Parser::xmlSAX2EndElement(const char *name, size_t len)
-{ }
+void ParticleCache::Parser::xmlSAX2EndElement(const char* name, size_t len) { }
 
-void ParticleCache::Parser::get(String value, Vec4& vec)
-{
+void ParticleCache::Parser::get(String value, Vec4& vec) {
 	auto tokens = value.split(",");
 	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value);
 	auto it = tokens.begin();
@@ -169,8 +164,7 @@ void ParticleCache::Parser::get(String value, Vec4& vec)
 	vec.w = Slice::stof(*++it);
 }
 
-void ParticleCache::Parser::get(String value, Vec2& vec)
-{
+void ParticleCache::Parser::get(String value, Vec2& vec) {
 	auto tokens = value.split(",");
 	AssertUnless(tokens.size() == 2, "invalid vec2 str for: \"{}\"", value);
 	auto it = tokens.begin();
@@ -178,8 +172,7 @@ void ParticleCache::Parser::get(String value, Vec2& vec)
 	vec.y = Slice::stof(*++it);
 }
 
-void ParticleCache::Parser::get(String value, Rect& rect)
-{
+void ParticleCache::Parser::get(String value, Rect& rect) {
 	auto tokens = value.split(",");
 	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value);
 	auto it = tokens.begin();

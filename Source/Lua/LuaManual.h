@@ -23,17 +23,29 @@ int Path_create(lua_State* L);
 
 /* Content */
 void __Content_loadFile(lua_State* L, Content* self, String filename);
-#define Content_loadFile(self,filename) \
-	{__Content_loadFile(tolua_S,self,filename);return 1;}
+#define Content_loadFile(self, filename)             \
+	{                                                \
+		__Content_loadFile(tolua_S, self, filename); \
+		return 1;                                    \
+	}
 void __Content_getDirs(lua_State* L, Content* self, String path);
-#define Content_getDirs(self,path) \
-	{__Content_getDirs(tolua_S,self,path);return 1;}
+#define Content_getDirs(self, path)             \
+	{                                           \
+		__Content_getDirs(tolua_S, self, path); \
+		return 1;                               \
+	}
 void __Content_getFiles(lua_State* L, Content* self, String path);
-#define Content_getFiles(self,path) \
-	{__Content_getFiles(tolua_S,self,path);return 1;}
+#define Content_getFiles(self, path)             \
+	{                                            \
+		__Content_getFiles(tolua_S, self, path); \
+		return 1;                                \
+	}
 void __Content_getAllFiles(lua_State* L, Content* self, String path);
-#define Content_getAllFiles(self,path) \
-	{__Content_getAllFiles(tolua_S,self,path);return 1;}
+#define Content_getAllFiles(self, path)             \
+	{                                               \
+		__Content_getAllFiles(tolua_S, self, path); \
+		return 1;                                   \
+	}
 int Content_GetSearchPaths(lua_State* L);
 int Content_SetSearchPaths(lua_State* L);
 void Content_insertSearchPath(Content* self, int index, String path);
@@ -57,16 +69,11 @@ int Node_gslot(lua_State* L);
 bool Node_eachChild(Node* self, const LuaFunction<bool>& func);
 
 /* Node.Grabber */
-inline void Grabber_setPos(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 pos, float z)
-	{ self->setPos(x - 1, y - 1, pos, z); }
-inline Vec2 Grabber_getPos(Node::Grabber* self, uint32_t x, uint32_t y)
-	{ return self->getPos(x - 1, y - 1); }
-inline Color Grabber_getColor(Node::Grabber* self, uint32_t x, uint32_t y)
-	{ return self->getColor(x - 1, y - 1); }
-inline void Grabber_setColor(Node::Grabber* self, uint32_t x, uint32_t y, Color color)
-	{ self->setColor(x - 1, y - 1, color); }
-inline void Grabber_moveUV(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 offset)
-	{ self->moveUV(x - 1, y - 1, offset); }
+inline void Grabber_setPos(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 pos, float z) { self->setPos(x - 1, y - 1, pos, z); }
+inline Vec2 Grabber_getPos(Node::Grabber* self, uint32_t x, uint32_t y) { return self->getPos(x - 1, y - 1); }
+inline Color Grabber_getColor(Node::Grabber* self, uint32_t x, uint32_t y) { return self->getColor(x - 1, y - 1); }
+inline void Grabber_setColor(Node::Grabber* self, uint32_t x, uint32_t y, Color color) { self->setColor(x - 1, y - 1, color); }
+inline void Grabber_moveUV(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 offset) { self->moveUV(x - 1, y - 1, offset); }
 
 /* Sprite */
 int Sprite_GetUWrap(lua_State* L);
@@ -77,20 +84,14 @@ int Sprite_GetTextureFilter(lua_State* L);
 int Sprite_SetTextureFilter(lua_State* L);
 
 /* Grid */
-inline void Grid_setPos(Grid* self, uint32_t x, uint32_t y, Vec2 pos, float z)
-	{ self->setPos(x - 1, y - 1, pos, z); }
-inline Vec2 Grid_getPos(Grid* self, uint32_t x, uint32_t y)
-	{ return self->getPos(x - 1, y - 1); }
-inline Color Grid_getColor(Grid* self, uint32_t x, uint32_t y)
-	{ return self->getColor(x - 1, y - 1); }
-inline void Grid_setColor(Grid* self, uint32_t x, uint32_t y, Color color)
-	{ self->setColor(x - 1, y - 1, color); }
-inline void Grid_moveUV(Grid* self, uint32_t x, uint32_t y, Vec2 offset)
-	{ self->moveUV(x - 1, y - 1, offset); }
+inline void Grid_setPos(Grid* self, uint32_t x, uint32_t y, Vec2 pos, float z) { self->setPos(x - 1, y - 1, pos, z); }
+inline Vec2 Grid_getPos(Grid* self, uint32_t x, uint32_t y) { return self->getPos(x - 1, y - 1); }
+inline Color Grid_getColor(Grid* self, uint32_t x, uint32_t y) { return self->getColor(x - 1, y - 1); }
+inline void Grid_setColor(Grid* self, uint32_t x, uint32_t y, Color color) { self->setColor(x - 1, y - 1, color); }
+inline void Grid_moveUV(Grid* self, uint32_t x, uint32_t y, Vec2 offset) { self->moveUV(x - 1, y - 1, offset); }
 
 /* Label */
-inline Sprite* Label_getCharacter(Label* self, int index)
-	{ return self->getCharacter(index - 1); }
+inline Sprite* Label_getCharacter(Label* self, int index) { return self->getCharacter(index - 1); }
 int Label_GetTextAlign(lua_State* L);
 int Label_SetTextAlign(lua_State* L);
 
@@ -98,7 +99,7 @@ int Label_SetTextAlign(lua_State* L);
 int DrawNode_drawVertices(lua_State* L);
 
 /* Vec2 */
-inline Vec2 Vec2_create(float x, float y)  { return {x, y}; }
+inline Vec2 Vec2_create(float x, float y) { return {x, y}; }
 inline Vec2 Vec2_create(const Size& size) { return {size.width, size.height}; }
 
 /* Size */
@@ -115,32 +116,53 @@ int Action_create(lua_State* L);
 
 /* Model */
 void __Model_getClipFile(lua_State* L, String filename);
-#define Model_getClipFile(filename) \
-	{__Model_getClipFile(tolua_S,filename);return 1;}
+#define Model_getClipFile(filename)             \
+	{                                           \
+		__Model_getClipFile(tolua_S, filename); \
+		return 1;                               \
+	}
 void __Model_getLookNames(lua_State* L, String filename);
-#define Model_getLookNames(filename) \
-	{__Model_getLookNames(tolua_S,filename);return 1;}
+#define Model_getLookNames(filename)             \
+	{                                            \
+		__Model_getLookNames(tolua_S, filename); \
+		return 1;                                \
+	}
 void __Model_getAnimationNames(lua_State* L, String filename);
-#define Model_getAnimationNames(filename) \
-	{__Model_getAnimationNames(tolua_S, filename);return 1;}
+#define Model_getAnimationNames(filename)             \
+	{                                                 \
+		__Model_getAnimationNames(tolua_S, filename); \
+		return 1;                                     \
+	}
 
 /* Spine */
 void __Spine_getLookNames(lua_State* L, String spineStr);
-#define Spine_getLookNames(spineStr) \
-	{__Spine_getLookNames(tolua_S,spineStr);return 1;}
+#define Spine_getLookNames(spineStr)             \
+	{                                            \
+		__Spine_getLookNames(tolua_S, spineStr); \
+		return 1;                                \
+	}
 void __Spine_getAnimationNames(lua_State* L, String spineStr);
-#define Spine_getAnimationNames(spineStr) \
-	{__Spine_getAnimationNames(tolua_S, spineStr);return 1;}
+#define Spine_getAnimationNames(spineStr)             \
+	{                                                 \
+		__Spine_getAnimationNames(tolua_S, spineStr); \
+		return 1;                                     \
+	}
 int Spine_containsPoint(lua_State* L);
 int Spine_intersectsSegment(lua_State* L);
 
 /* DragonBone */
 void __DragonBone_getLookNames(lua_State* L, String boneStr);
-#define DragonBone_getLookNames(boneStr) \
-	{__DragonBone_getLookNames(tolua_S,boneStr);return 1;}
+#define DragonBone_getLookNames(boneStr)             \
+	{                                                \
+		__DragonBone_getLookNames(tolua_S, boneStr); \
+		return 1;                                    \
+	}
 void __DragonBone_getAnimationNames(lua_State* L, String boneStr);
-#define DragonBone_getAnimationNames(boneStr) \
-	{__DragonBone_getAnimationNames(tolua_S, boneStr);return 1;}
+#define DragonBone_getAnimationNames(boneStr)             \
+	{                                                     \
+		__DragonBone_getAnimationNames(tolua_S, boneStr); \
+		return 1;                                         \
+	}
 int DragonBone_containsPoint(lua_State* L);
 int DragonBone_intersectsSegment(lua_State* L);
 
@@ -168,24 +190,18 @@ int Array_contains(lua_State* L);
 int Array_fastRemove(lua_State* L);
 int Array_removeLast(lua_State* L);
 int Array_create(lua_State* L);
-inline void Array_swap(Array* self, int indexA, int indexB)
-	{ self->swap(indexA - 1, indexB - 1); }
-inline bool Array_removeAt(Array* self, int index)
-	{ return self->removeAt(index - 1); }
-inline bool Array_fastRemoveAt(Array* self, int index)
-	{ return self->fastRemoveAt(index - 1); }
-inline bool Array_each(Array* self, const LuaFunction<bool>& handler)
-{
+inline void Array_swap(Array* self, int indexA, int indexB) { self->swap(indexA - 1, indexB - 1); }
+inline bool Array_removeAt(Array* self, int index) { return self->removeAt(index - 1); }
+inline bool Array_fastRemoveAt(Array* self, int index) { return self->fastRemoveAt(index - 1); }
+inline bool Array_each(Array* self, const LuaFunction<bool>& handler) {
 	int index = 0;
-	return self->each([&](Value* item)
-	{
+	return self->each([&](Value* item) {
 		return handler(item, ++index);
 	});
 }
 
 /* Buffer */
-class Buffer : public Object
-{
+class Buffer : public Object {
 public:
 	void resize(uint32_t size);
 	void zeroMemory();
@@ -194,8 +210,10 @@ public:
 	void setString(String str);
 	Slice toString();
 	CREATE_FUNC(Buffer);
+
 protected:
 	Buffer(uint32_t size = 0);
+
 private:
 	std::vector<char> _data;
 	DORA_TYPE_OVERRIDE(Buffer);
@@ -226,6 +244,23 @@ int QLearner_unpack(lua_State* L);
 int QLearner_load(lua_State* L);
 int QLearner_getMatrix(lua_State* L);
 
+/* DB */
+inline DB* DB_shared() { return &SharedDB; }
+int DB_transaction(lua_State* L);
+int DB_query(lua_State* L);
+int DB_insert(lua_State* L);
+int DB_exec(lua_State* L);
+int DB_queryAsync(lua_State* L);
+int DB_insertAsync(lua_State* L);
+int DB_insertAsync01(lua_State* L);
+int DB_execAsync(lua_State* L);
+
+/* Effect */
+inline Pass* Effect_get(Effect* self, size_t index) { return self->get(index - 1); }
+
+/* Wasm */
+inline WasmRuntime* WasmRuntime_shared() { return &SharedWasmRuntime; }
+
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
@@ -235,8 +270,7 @@ void TargetAllow_allow(TargetAllow* self, String flag, bool allow);
 bool TargetAllow_isAllow(TargetAllow* self, String flag);
 
 /* UnitAction */
-class LuaActionDef : public UnitActionDef
-{
+class LuaActionDef : public UnitActionDef {
 public:
 	LuaActionDef(
 		LuaFunction<bool> available,
@@ -248,19 +282,19 @@ public:
 	virtual Own<UnitAction> toAction(Unit* unit) override;
 };
 
-class LuaUnitAction : public UnitAction
-{
+class LuaUnitAction : public UnitAction {
 public:
 	LuaUnitAction(String name, int priority, bool queued, Unit* owner);
 	virtual bool isAvailable() override;
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
+
 private:
-	std::function<bool(Unit*,UnitAction*)> _available;
-	std::function<LuaFunction<bool>(Unit*,UnitAction*)> _create;
-	std::function<bool(Unit*,UnitAction*,float)> _update;
-	std::function<void(Unit*,UnitAction*)> _stop;
+	std::function<bool(Unit*, UnitAction*)> _available;
+	std::function<LuaFunction<bool>(Unit*, UnitAction*)> _create;
+	std::function<bool(Unit*, UnitAction*, float)> _update;
+	std::function<void(Unit*, UnitAction*)> _stop;
 	friend class LuaActionDef;
 };
 
@@ -290,132 +324,115 @@ void Data_setRelation(Data* self, uint8_t groupA, uint8_t groupB, String relatio
 Slice Data_getRelation(Data* self, uint8_t groupA, uint8_t groupB);
 Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB);
 
-/* DB */
-inline DB* DB_shared() { return &SharedDB; }
-int DB_transaction(lua_State* L);
-int DB_query(lua_State* L);
-int DB_insert(lua_State* L);
-int DB_exec(lua_State* L);
-int DB_queryAsync(lua_State* L);
-int DB_insertAsync(lua_State* L);
-int DB_insertAsync01(lua_State* L);
-int DB_execAsync(lua_State* L);
-
-/* Effect */
-inline Pass* Effect_get(Effect* self, size_t index)
-	{ return self->get(index - 1); }
-
-/* Wasm */
-inline WasmRuntime* WasmRuntime_shared() { return &SharedWasmRuntime; }
-
 NS_DOROTHY_PLATFORMER_END
 
 using namespace Dorothy;
 
 /* ImGui */
-namespace ImGui { namespace Binding
-{
-	void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default"_slice);
-	void ShowStats();
-	void ShowConsole();
-	bool Begin(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
-	bool Begin(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
-	bool BeginChild(const char* str_id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
-	bool BeginChild(ImGuiID id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
-	void SetNextWindowPos(const Vec2& pos, String setCond = nullptr, const Vec2& pivot = Vec2::zero);
-	void SetNextWindowPosCenter(String setCond = nullptr);
-	void SetNextWindowSize(const Vec2& size, String setCond = nullptr);
-	void SetNextWindowCollapsed(bool collapsed, String setCond = nullptr);
-	void SetWindowPos(const char* name, const Vec2& pos, String setCond = nullptr);
-	void SetWindowSize(const char* name, const Vec2& size, String setCond = nullptr);
-	void SetWindowCollapsed(const char* name, bool collapsed, String setCond = nullptr);
-	void SetColorEditOptions(String colorEditMode);
-	bool InputText(const char* label, Buffer* buffer, Slice* inputTextFlags = nullptr, int flagCount = 0);
-	bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size = Vec2::zero, Slice* inputTextFlags = nullptr, int flagCount = 0);
-	bool TreeNodeEx(const char* label, Slice* treeNodeFlags = nullptr, int flagCount = 0);
-	bool TreeNodeEx(const char* str_id, const char* text, Slice* treeNodeFlags = nullptr, int flagCount = 0);
-	void SetNextItemOpen(bool is_open, String setCond = nullptr);
-	bool CollapsingHeader(const char* label, Slice* treeNodeFlags = nullptr, int flagCount = 0);
-	bool CollapsingHeader(const char* label, bool* p_open, Slice* treeNodeFlags = nullptr, int flagCount = 0);
-	bool Selectable(const char* label, Slice* selectableFlags = nullptr, int flagCount = 0);
-	bool Selectable(const char* label, bool* p_selected, const Vec2& size = Vec2::zero, Slice* selectableFlags = nullptr, int flagCount = 0);
-	bool BeginPopupModal(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
-	bool BeginPopupModal(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
-	bool BeginChildFrame(ImGuiID id, const Vec2& size, Slice* windowsFlags = nullptr, int flagCount = 0);
-	bool BeginPopupContextItem(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
-	bool BeginPopupContextWindow(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
-	bool BeginPopupContextVoid(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
+namespace ImGui {
+namespace Binding {
+void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default"_slice);
+void ShowStats();
+void ShowConsole();
+bool Begin(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
+bool Begin(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
+bool BeginChild(const char* str_id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
+bool BeginChild(ImGuiID id, const Vec2& size = Vec2::zero, bool border = false, Slice* windowsFlags = nullptr, int flagCount = 0);
+void SetNextWindowPos(const Vec2& pos, String setCond = nullptr, const Vec2& pivot = Vec2::zero);
+void SetNextWindowPosCenter(String setCond = nullptr);
+void SetNextWindowSize(const Vec2& size, String setCond = nullptr);
+void SetNextWindowCollapsed(bool collapsed, String setCond = nullptr);
+void SetWindowPos(const char* name, const Vec2& pos, String setCond = nullptr);
+void SetWindowSize(const char* name, const Vec2& size, String setCond = nullptr);
+void SetWindowCollapsed(const char* name, bool collapsed, String setCond = nullptr);
+void SetColorEditOptions(String colorEditMode);
+bool InputText(const char* label, Buffer* buffer, Slice* inputTextFlags = nullptr, int flagCount = 0);
+bool InputTextMultiline(const char* label, Buffer* buffer, const Vec2& size = Vec2::zero, Slice* inputTextFlags = nullptr, int flagCount = 0);
+bool TreeNodeEx(const char* label, Slice* treeNodeFlags = nullptr, int flagCount = 0);
+bool TreeNodeEx(const char* str_id, const char* text, Slice* treeNodeFlags = nullptr, int flagCount = 0);
+void SetNextItemOpen(bool is_open, String setCond = nullptr);
+bool CollapsingHeader(const char* label, Slice* treeNodeFlags = nullptr, int flagCount = 0);
+bool CollapsingHeader(const char* label, bool* p_open, Slice* treeNodeFlags = nullptr, int flagCount = 0);
+bool Selectable(const char* label, Slice* selectableFlags = nullptr, int flagCount = 0);
+bool Selectable(const char* label, bool* p_selected, const Vec2& size = Vec2::zero, Slice* selectableFlags = nullptr, int flagCount = 0);
+bool BeginPopupModal(const char* name, Slice* windowsFlags = nullptr, int flagCount = 0);
+bool BeginPopupModal(const char* name, bool* p_open, Slice* windowsFlags = nullptr, int flagCount = 0);
+bool BeginChildFrame(ImGuiID id, const Vec2& size, Slice* windowsFlags = nullptr, int flagCount = 0);
+bool BeginPopupContextItem(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
+bool BeginPopupContextWindow(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
+bool BeginPopupContextVoid(const char* name, Slice* popupFlags = nullptr, int flagCount = 0);
 
-	void PushStyleColor(String name, Color color);
-	void PushStyleVar(String name, float val);
-	void PushStyleVar(String name, const Vec2& val);
+void PushStyleColor(String name, Color color);
+void PushStyleVar(String name, float val);
+void PushStyleVar(String name, const Vec2& val);
 
-	void Text(String text);
-	void TextColored(Color color, String text);
-	void TextDisabled(String text);
-	void TextWrapped(String text);
-	void LabelText(const char* label, const char* text);
-	void BulletText(const char* text);
-	bool TreeNode(const char* str_id, const char* text);
-	void SetTooltip(const char* text);
+void Text(String text);
+void TextColored(Color color, String text);
+void TextDisabled(String text);
+void TextWrapped(String text);
+void LabelText(const char* label, const char* text);
+void BulletText(const char* text);
+bool TreeNode(const char* str_id, const char* text);
+void SetTooltip(const char* text);
 
-	bool Combo(const char* label, int* current_item, const char* const* items, int items_count, int height_in_items = -1);
+bool Combo(const char* label, int* current_item, const char* const* items, int items_count, int height_in_items = -1);
 
-	bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
-	bool DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
-	bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format = "%d", Slice* flags = nullptr, int flagCount = 0);
-	bool DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f", Slice* flags = nullptr, int flagCount = 0);
-	bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
-	bool InputFloat2(const char* label, float* v1, float* v2, const char* format = "%.1f", Slice* flags = nullptr, int flagCount = 0);
-	bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100, Slice* flags = nullptr, int flagCount = 0);
-	bool InputInt2(const char* label, int* v1, int* v2, Slice* flags = nullptr, int flagCount = 0);
-	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
-	bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
-	bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d", Slice* flags = nullptr, int flagCount = 0);
-	bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f", Slice* flags = nullptr, int flagCount = 0);
-	bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", const char* format_max = nullptr, Slice* flags = nullptr, int flagCount = 0);
-	bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* format = "%d", const char* format_max = nullptr, Slice* flags = nullptr, int flagCount = 0);
-	bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
-	bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", Slice* flags = nullptr, int flagCount = 0);
+bool DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+bool DragFloat2(const char* label, float* v1, float* v2, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+bool DragInt(const char* label, int* v, float v_speed, int v_min, int v_max, const char* display_format = "%d", Slice* flags = nullptr, int flagCount = 0);
+bool DragInt2(const char* label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* display_format = "%.0f", Slice* flags = nullptr, int flagCount = 0);
+bool InputFloat(const char* label, float* v, float step = 0.0f, float step_fast = 0.0f, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+bool InputFloat2(const char* label, float* v1, float* v2, const char* format = "%.1f", Slice* flags = nullptr, int flagCount = 0);
+bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100, Slice* flags = nullptr, int flagCount = 0);
+bool InputInt2(const char* label, int* v1, int* v2, Slice* flags = nullptr, int flagCount = 0);
+bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+bool SliderFloat2(const char* label, float* v1, float* v2, float v_min, float v_max, const char* display_format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+bool SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d", Slice* flags = nullptr, int flagCount = 0);
+bool SliderInt2(const char* label, int* v1, int* v2, int v_min, int v_max, const char* display_format = "%.0f", Slice* flags = nullptr, int flagCount = 0);
+bool DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* format = "%.3f", const char* format_max = nullptr, Slice* flags = nullptr, int flagCount = 0);
+bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const char* format = "%d", const char* format_max = nullptr, Slice* flags = nullptr, int flagCount = 0);
+bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
+bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", Slice* flags = nullptr, int flagCount = 0);
 
-	bool ColorEdit3(const char* label, Color3& color3);
-	bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
+bool ColorEdit3(const char* label, Color3& color3);
+bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
 
-	void Image(String clipStr, const Vec2& size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
-	bool ImageButton(String clipStr, const Vec2& size, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
+void Image(String clipStr, const Vec2& size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
+bool ImageButton(String clipStr, const Vec2& size, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
-	bool ColorButton(const char* desc_id, Color col, String flags = nullptr, const Vec2& size = Vec2::zero);
+bool ColorButton(const char* desc_id, Color col, String flags = nullptr, const Vec2& size = Vec2::zero);
 
-	void Columns(int count = 1, bool border = true);
-	void Columns(int count, bool border, const char* id);
+void Columns(int count = 1, bool border = true);
+void Columns(int count, bool border, const char* id);
 
-	bool BeginTable(const char* str_id, int column, const Vec2& outer_size = Vec2::zero, float inner_width = 0.0f, Slice* flags = nullptr, int flagCount = 0);
-	void TableNextRow(float min_row_height = 0.0f, String row_flag = nullptr);
-	void TableSetupColumn(const char* label, float init_width_or_weight = 0.0f, ImU32 user_id = 0, Slice* flags = nullptr, int flagCount = 0);
+bool BeginTable(const char* str_id, int column, const Vec2& outer_size = Vec2::zero, float inner_width = 0.0f, Slice* flags = nullptr, int flagCount = 0);
+void TableNextRow(float min_row_height = 0.0f, String row_flag = nullptr);
+void TableSetupColumn(const char* label, float init_width_or_weight = 0.0f, ImU32 user_id = 0, Slice* flags = nullptr, int flagCount = 0);
 
-	void SetStyleVar(String name, bool var);
-	void SetStyleVar(String name, float var);
-	void SetStyleVar(String name, const Vec2& var);
-	void SetStyleColor(String name, Color color);
+void SetStyleVar(String name, bool var);
+void SetStyleVar(String name, float var);
+void SetStyleVar(String name, const Vec2& var);
+void SetStyleColor(String name, Color color);
 
-	ImGuiWindowFlags_ getWindowFlag(String flag);
-	uint32_t getWindowCombinedFlags(Slice* flags, int count);
-	ImGuiSliderFlags_ getSliderFlag(String flag);
-	uint32_t getSliderCombinedFlags(Slice* flags, int count);
-	ImGuiInputTextFlags_ getInputTextFlag(String flag);
-	uint32_t getInputTextCombinedFlags(Slice* flags, int count);
-	ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag);
-	uint32_t getTreeNodeCombinedFlags(Slice* flags, int count);
-	ImGuiSelectableFlags_ getSelectableFlag(String flag);
-	uint32_t getSelectableCombinedFlags(Slice* flags, int count);
-	ImGuiCol_ getColorIndex(String col);
-	ImGuiColorEditFlags_ getColorEditFlags(String mode);
-	ImGuiCond_ getSetCond(String cond);
-	ImGuiPopupFlags getPopupFlag(String flag);
-	uint32_t getPopupCombinedFlags(Slice* flags, int count);
-	ImGuiTableFlags_ getTableFlags(String flag);
-	uint32_t getTableCombinedFlags(Slice* flags, int count);
-	ImGuiTableRowFlags_ getTableRowFlag(String flag);
-	ImGuiTableColumnFlags_ getTableColumnFlags(String flag);
-	uint32_t getTableColumnCombinedFlags(Slice* flags, int count);
-} }
+ImGuiWindowFlags_ getWindowFlag(String flag);
+uint32_t getWindowCombinedFlags(Slice* flags, int count);
+ImGuiSliderFlags_ getSliderFlag(String flag);
+uint32_t getSliderCombinedFlags(Slice* flags, int count);
+ImGuiInputTextFlags_ getInputTextFlag(String flag);
+uint32_t getInputTextCombinedFlags(Slice* flags, int count);
+ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag);
+uint32_t getTreeNodeCombinedFlags(Slice* flags, int count);
+ImGuiSelectableFlags_ getSelectableFlag(String flag);
+uint32_t getSelectableCombinedFlags(Slice* flags, int count);
+ImGuiCol_ getColorIndex(String col);
+ImGuiColorEditFlags_ getColorEditFlags(String mode);
+ImGuiCond_ getSetCond(String cond);
+ImGuiPopupFlags getPopupFlag(String flag);
+uint32_t getPopupCombinedFlags(Slice* flags, int count);
+ImGuiTableFlags_ getTableFlags(String flag);
+uint32_t getTableCombinedFlags(Slice* flags, int count);
+ImGuiTableRowFlags_ getTableRowFlag(String flag);
+ImGuiTableColumnFlags_ getTableColumnFlags(String flag);
+uint32_t getTableColumnCombinedFlags(Slice* flags, int count);
+}
+}

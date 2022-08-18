@@ -19,18 +19,18 @@ namespace pd = playrho::d2;
 class Body;
 class World;
 
-struct FixtureDef
-{
-	FixtureDef(): tag(0) { }
+struct FixtureDef {
+	FixtureDef()
+		: tag(0) { }
 	FixtureDef(int tag,
-		const pd::Shape& shape):
-		tag(tag), shape(shape) { }
+		const pd::Shape& shape)
+		: tag(tag)
+		, shape(shape) { }
 	int tag;
 	pd::Shape shape;
 };
 
-class BodyDef : public Object
-{
+class BodyDef : public Object {
 public:
 	Vec2 offset;
 	float angleOffset;
@@ -183,10 +183,12 @@ public:
 	std::list<FixtureDef>& getFixtureConfs();
 	void clearFixtures();
 	CREATE_FUNC(BodyDef);
+
 protected:
 	BodyDef();
 	pd::BodyConf _conf;
 	static FixtureDef _tempConf;
+
 private:
 	std::list<FixtureDef> _fixtureConfs;
 	DORA_TYPE_OVERRIDE(BodyDef);

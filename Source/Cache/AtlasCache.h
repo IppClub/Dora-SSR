@@ -14,20 +14,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Atlas : public Object
-{
+class Atlas : public Object {
 public:
 	spine::Atlas* get() const;
 	CREATE_FUNC(Atlas);
+
 protected:
 	Atlas(spine::Atlas* atlas);
+
 private:
 	Own<spine::Atlas> _atlas;
 	DORA_TYPE_OVERRIDE(Atlas)
 };
 
-class AtlasCache
-{
+class AtlasCache {
 public:
 	Atlas* load(String filename);
 	void loadAsync(String filename, const std::function<void(Atlas*)>& handler);
@@ -35,6 +35,7 @@ public:
 	bool unload(Atlas* atlas);
 	bool unload();
 	void removeUnused();
+
 private:
 	std::unordered_map<std::string, Ref<Atlas>> _atlas;
 	SINGLETON_REF(AtlasCache, Director, AsyncThread);

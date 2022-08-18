@@ -17,34 +17,38 @@ NS_DOROTHY_BEGIN
 class FrameAction;
 struct Rect;
 
-class FrameActionDef : public Object
-{
+class FrameActionDef : public Object {
 public:
 	std::string clipStr;
 	float duration;
 	OwnVector<Rect> rects;
 	CREATE_FUNC(FrameActionDef);
+
 protected:
-	FrameActionDef():duration(0) { }
+	FrameActionDef()
+		: duration(0) { }
 };
 
 /** @brief Load frame animations from ".frame" files and cache them. */
-class FrameCache : public XmlItemCache<FrameActionDef>
-{
+class FrameCache : public XmlItemCache<FrameActionDef> {
 public:
 	FrameActionDef* loadFrame(String frameStr);
 	bool isFrame(String frameStr) const;
+
 protected:
 	FrameCache() { }
 	virtual std::shared_ptr<XmlParser<FrameActionDef>> prepareParser(String filename) override;
+
 private:
-	class Parser : public XmlParser<FrameActionDef>, public rapidxml::xml_sax2_handler
-	{
+	class Parser : public XmlParser<FrameActionDef>, public rapidxml::xml_sax2_handler {
 	public:
-		Parser(FrameActionDef* def, String path):XmlParser<FrameActionDef>(this, def),_path(path) { }
+		Parser(FrameActionDef* def, String path)
+			: XmlParser<FrameActionDef>(this, def)
+			, _path(path) { }
 		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;
+
 	private:
 		std::string _path;
 	};

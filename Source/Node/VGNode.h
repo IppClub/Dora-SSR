@@ -14,16 +14,17 @@ NS_DOROTHY_BEGIN
 
 class Sprite;
 
-class VGNode : public Node
-{
+class VGNode : public Node {
 public:
 	PROPERTY_READONLY(Sprite*, Surface);
 	virtual bool init() override;
 	virtual void cleanup() override;
 	void render(const std::function<void()>& func);
 	CREATE_FUNC(VGNode);
+
 protected:
 	VGNode(float width, float height, float scale = 1.0f, int edgeAA = 1);
+
 private:
 	float _frameWidth;
 	float _frameHeight;

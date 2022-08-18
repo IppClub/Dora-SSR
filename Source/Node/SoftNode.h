@@ -9,21 +9,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Node/Node.h"
-#include "Physics/Soft/World.h"
 #include "Physics/Soft/Particle.h"
+#include "Physics/Soft/World.h"
 
 NS_DOROTHY_BEGIN
 
 class Line;
 
-class SoftNode : public Node
-{
+class SoftNode : public Node {
 public:
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;
 	CREATE_FUNC(SoftNode);
+
 protected:
 	SoftNode(float minX, float maxX, float minY, float maxY, float step);
+
 private:
 	float _minX;
 	float _maxX;

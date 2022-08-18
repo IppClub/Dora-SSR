@@ -7,34 +7,31 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Physics/Joint.h"
-#include "Physics/JointDef.h"
+
 #include "Physics/Body.h"
+#include "Physics/JointDef.h"
 #include "Physics/PhysicsWorld.h"
 #include "Physics/Sensor.h"
 #include "PlayRho/Dynamics/Joints/Joint.hpp"
 
 NS_DOROTHY_BEGIN
 
-Joint::~Joint()
-{
+Joint::~Joint() {
 	Joint::destroy();
 }
 
-pr::JointID Joint::getPrJoint()
-{
+pr::JointID Joint::getPrJoint() {
 	return _joint;
 }
 
-PhysicsWorld* Joint::getPhysicsWorld()
-{
+PhysicsWorld* Joint::getPhysicsWorld() {
 	return _world;
 }
 
-void Joint::destroy()
-{
-	if (_world && _joint != pr::InvalidJointID)
-	{
+void Joint::destroy() {
+	if (_world && _joint != pr::InvalidJointID) {
 		_world->getPrWorld().Destroy(_joint);
 		_world->setJointData(_joint, nullptr);
 		_world = nullptr;
@@ -42,8 +39,7 @@ void Joint::destroy()
 	}
 }
 
-Joint* Joint::create(JointDef* def, Dictionary* itemDict)
-{
+Joint* Joint::create(JointDef* def, Dictionary* itemDict) {
 	return def->toJoint(itemDict);
 }
 
@@ -51,10 +47,8 @@ Joint* Joint::distance(
 	bool collideConnected,
 	Body* bodyA, Body* bodyB,
 	const Vec2& anchorA, const Vec2& anchorB,
-	float frequency, float damping)
-{
-	if (bodyA->getWorld() != bodyB->getWorld())
-	{
+	float frequency, float damping) {
+	if (bodyA->getWorld() != bodyB->getWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -69,12 +63,10 @@ Joint* Joint::distance(
 		pd::DistanceJointConf{
 			bA, bB,
 			pd::GetWorldPoint(world->getPrWorld(), bA, aA),
-			pd::GetWorldPoint(world->getPrWorld(), bB, aB)
-		}
-		.UseCollideConnected(collideConnected)
-		.UseFrequency(frequency)
-		.UseDampingRatio(damping)
-	);
+			pd::GetWorldPoint(world->getPrWorld(), bB, aB)}
+			.UseCollideConnected(collideConnected)
+			.UseFrequency(frequency)
+			.UseDampingRatio(damping));
 	joint->_world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -85,10 +77,8 @@ Joint* Joint::friction(
 	Body* bodyB,
 	const Vec2& worldAnchor,
 	float maxForce,
-	float maxTorque)
-{
-	if (bodyA->getWorld() != bodyB->getWorld())
-	{
+	float maxTorque) {
+	if (bodyA->getWorld() != bodyB->getWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -102,8 +92,7 @@ Joint* Joint::friction(
 		pd::FrictionJointConf{bA, bB, a}
 			.UseMaxForce(maxForce)
 			.UseMaxTorque(maxTorque)
-			.UseCollideConnected(collideConnected)
-	);
+			.UseCollideConnected(collideConnected));
 	joint->_world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -112,10 +101,8 @@ Joint* Joint::gear(
 	bool collideConnected,
 	Joint* jointA,
 	Joint* jointB,
-	float ratio)
-{
-	if (jointA->getPhysicsWorld() != jointA->getPhysicsWorld())
-	{
+	float ratio) {
+	if (jointA->getPhysicsWorld() != jointA->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::JointID jA = jointA->getPrJoint();
@@ -126,8 +113,7 @@ Joint* Joint::gear(
 	joint->_world = world;
 	joint->_joint = pd::CreateJoint(prWorld,
 		pd::GetGearJointConf(prWorld, jA, jB, ratio)
-			.UseCollideConnected(collideConnected)
-	);
+			.UseCollideConnected(collideConnected));
 	joint->_world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -140,10 +126,8 @@ Joint* Joint::spring(
 	float angularOffset,
 	float maxForce,
 	float maxTorque,
-	float correctionFactor)
-{
-	if (bodyA->getWorld() != bodyB->getWorld())
-	{
+	float correctionFactor) {
+	if (bodyA->getWorld() != bodyB->getWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -159,8 +143,7 @@ Joint* Joint::spring(
 			.UseMaxForce(maxForce)
 			.UseMaxTorque(maxTorque)
 			.UseCorrectionFactor(correctionFactor)
-			.UseCollideConnected(collideConnected)
-	);
+			.UseCollideConnected(collideConnected));
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -171,8 +154,7 @@ MoveJoint* Joint::move(
 	const Vec2& target,
 	float maxForce,
 	float frequency,
-	float damping)
-{
+	float damping) {
 	pr::BodyID b = body->getPrBody();
 	MoveJoint* joint = MoveJoint::create();
 	auto world = body->getPhysicsWorld();
@@ -184,8 +166,7 @@ MoveJoint* Joint::move(
 			.UseFrequency(frequency)
 			.UseMaxForce(maxForce)
 			.UseDampingRatio(damping)
-			.UseCollideConnected(collideConnected)
-	);
+			.UseCollideConnected(collideConnected));
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -199,10 +180,8 @@ MotorJoint* Joint::prismatic(
 	float lowerTranslation,
 	float upperTranslation,
 	float maxMotorForce,
-	float motorSpeed)
-{
-	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld())
-	{
+	float motorSpeed) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -212,10 +191,10 @@ MotorJoint* Joint::prismatic(
 	pr::Vec2 a = PhysicsWorld::b2Val(worldAnchor);
 	pd::PrismaticJointConf conf = pd::GetPrismaticJointConf(prWorld,
 		bA, bB, a, pd::UnitVec::Get(-bx::toRad(axisAngle)))
-		.UseLowerLength(PhysicsWorld::b2Val(lowerTranslation))
-		.UseUpperLength(PhysicsWorld::b2Val(upperTranslation))
-		.UseEnableLimit((lowerTranslation || upperTranslation) && (lowerTranslation <= upperTranslation))
-		.UseCollideConnected(collideConnected);
+									  .UseLowerLength(PhysicsWorld::b2Val(lowerTranslation))
+									  .UseUpperLength(PhysicsWorld::b2Val(upperTranslation))
+									  .UseEnableLimit((lowerTranslation || upperTranslation) && (lowerTranslation <= upperTranslation))
+									  .UseCollideConnected(collideConnected);
 	conf.maxMotorForce = maxMotorForce;
 	conf.motorSpeed = motorSpeed;
 	MotorJoint* joint = MotorJoint::create();
@@ -233,10 +212,8 @@ Joint* Joint::pulley(
 	const Vec2& anchorB,
 	const Vec2& groundAnchorA,
 	const Vec2& groundAnchorB,
-	float ratio)
-{
-	if (bodyA->getWorld() != bodyB->getWorld())
-	{
+	float ratio) {
+	if (bodyA->getWorld() != bodyB->getWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -252,8 +229,7 @@ Joint* Joint::pulley(
 	joint->_joint = pd::CreateJoint(prWorld,
 		pd::PulleyJointConf{bA, bB, gA, gB, aA, aB}
 			.UseRatio(ratio)
-			.UseCollideConnected(collideConnected)
-	);
+			.UseCollideConnected(collideConnected));
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -266,10 +242,8 @@ MotorJoint* Joint::revolute(
 	float lowerAngle,
 	float upperAngle,
 	float maxMotorTorque,
-	float motorSpeed)
-{
-	if (bodyA->getWorld() != bodyB->getWorld())
-	{
+	float motorSpeed) {
+	if (bodyA->getWorld() != bodyB->getWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -281,10 +255,10 @@ MotorJoint* Joint::revolute(
 	auto world = bodyA->getPhysicsWorld();
 	auto& prWorld = world->getPrWorld();
 	pd::RevoluteJointConf conf = pd::RevoluteJointConf{bA, bB, a}
-		.UseLowerAngle(-bx::toRad(lowerAngle))
-		.UseUpperAngle(-bx::toRad(upperAngle))
-		.UseEnableLimit((lowerAngle || upperAngle) && (lowerAngle >= upperAngle))
-		.UseCollideConnected(collideConnected);
+									 .UseLowerAngle(-bx::toRad(lowerAngle))
+									 .UseUpperAngle(-bx::toRad(upperAngle))
+									 .UseEnableLimit((lowerAngle || upperAngle) && (lowerAngle >= upperAngle))
+									 .UseCollideConnected(collideConnected);
 	conf.maxMotorTorque = maxMotorTorque;
 	conf.motorSpeed = motorSpeed;
 	MotorJoint* joint = MotorJoint::create();
@@ -300,10 +274,8 @@ Joint* Joint::rope(
 	Body* bodyB,
 	const Vec2& anchorA,
 	const Vec2& anchorB,
-	float maxLength)
-{
-	if (bodyA->getWorld() != bodyB->getWorld())
-	{
+	float maxLength) {
+	if (bodyA->getWorld() != bodyB->getWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -330,10 +302,8 @@ Joint* Joint::weld(
 	Body* bodyB,
 	const Vec2& worldPos,
 	float frequency,
-	float damping)
-{
-	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld())
-	{
+	float damping) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -347,8 +317,7 @@ Joint* Joint::weld(
 		pd::WeldJointConf{bA, bB, a}
 			.UseFrequency(frequency)
 			.UseDampingRatio(damping)
-			.UseCollideConnected(collideConnected)
-	);
+			.UseCollideConnected(collideConnected));
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
@@ -362,10 +331,8 @@ MotorJoint* Joint::wheel(
 	float maxMotorTorque,
 	float motorSpeed,
 	float frequency,
-	float damping)
-{
-	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld())
-	{
+	float damping) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -381,38 +348,32 @@ MotorJoint* Joint::wheel(
 			.UseFrequency(frequency)
 			.UseMotorSpeed(PhysicsWorld::b2Val(motorSpeed))
 			.UseMaxMotorTorque(maxMotorTorque)
-			.UseCollideConnected(collideConnected)
-	);
+			.UseCollideConnected(collideConnected));
 	world->setJointData(joint->_joint, joint);
 	return joint;
 }
 
-void MoveJoint::setPosition(const Vec2& targetPos)
-{
+void MoveJoint::setPosition(const Vec2& targetPos) {
 	if (_joint == pr::InvalidJointID) return;
 	_position = targetPos;
 	pd::SetTarget(_world->getPrWorld(), _joint, PhysicsWorld::b2Val(targetPos));
 }
 
-const Vec2& MoveJoint::getPosition() const
-{
+const Vec2& MoveJoint::getPosition() const {
 	return _position;
 }
 
-void MotorJoint::setEnabled(bool var)
-{
+void MotorJoint::setEnabled(bool var) {
 	if (_joint == pr::InvalidJointID) return;
 	pd::EnableMotor(_world->getPrWorld(), _joint, var);
 }
 
-bool MotorJoint::isEnabled() const
-{
+bool MotorJoint::isEnabled() const {
 	if (_joint == pr::InvalidJointID) return false;
 	return pd::IsMotorEnabled(_world->getPrWorld(), _joint);
 }
 
-void MotorJoint::setForce(float var)
-{
+void MotorJoint::setForce(float var) {
 	if (_joint == pr::InvalidJointID) return;
 	var = std::max(var, 0.0f);
 	auto& world = _world->getPrWorld();
@@ -421,27 +382,23 @@ void MotorJoint::setForce(float var)
 	pd::SetJoint(world, _joint, joint);
 }
 
-float MotorJoint::getForce() const
-{
+float MotorJoint::getForce() const {
 	if (_joint == pr::InvalidJointID) return 0.0f;
 	auto& world = _world->getPrWorld();
 	return pd::GetMaxMotorForce(pd::GetJoint(world, _joint));
 }
 
-void MotorJoint::setSpeed(float var)
-{
+void MotorJoint::setSpeed(float var) {
 	if (_joint == pr::InvalidJointID) return;
 	pd::SetMotorSpeed(_world->getPrWorld(), _joint, var);
 }
 
-float MotorJoint::getSpeed() const
-{
+float MotorJoint::getSpeed() const {
 	if (_joint == pr::InvalidJointID) return 0.0f;
 	return pd::GetMotorSpeed(_world->getPrWorld(), _joint);
 }
 
-void MotorJoint::reversePower()
-{
+void MotorJoint::reversePower() {
 	MotorJoint::setSpeed(-MotorJoint::getSpeed());
 }
 

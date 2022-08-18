@@ -7,108 +7,91 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Basic/Camera.h"
-#include "Basic/View.h"
-#include "Basic/Director.h"
+
 #include "Basic/Application.h"
+#include "Basic/Director.h"
+#include "Basic/View.h"
 #include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
 /* Camera */
 
-Camera::Camera(String name):
-_name(name),
-_view{},
-_position{0, 0, 0},
-_target{0, 0, 1},
-_up{0, 1, 0}
-{ }
+Camera::Camera(String name)
+	: _name(name)
+	, _view{}
+	, _position{0, 0, 0}
+	, _target{0, 0, 1}
+	, _up{0, 1, 0} { }
 
-const std::string& Camera::getName() const
-{
+const std::string& Camera::getName() const {
 	return _name;
 }
 
-const Vec3& Camera::getPosition()
-{
+const Vec3& Camera::getPosition() {
 	return _position;
 }
 
-const Vec3& Camera::getTarget()
-{
+const Vec3& Camera::getTarget() {
 	return _target;
 }
 
-const Vec3& Camera::getUp()
-{
+const Vec3& Camera::getUp() {
 	return _up;
 }
 
-const Matrix& Camera::getView()
-{
+const Matrix& Camera::getView() {
 	return _view;
 }
 
-bool Camera::hasProjection() const
-{
+bool Camera::hasProjection() const {
 	return false;
 }
 
 /* CameraBasic */
 
-CameraBasic::CameraBasic(String name):
-Camera(name),
-_transformDirty(true),
-_rotation(0.0f)
-{ }
+CameraBasic::CameraBasic(String name)
+	: Camera(name)
+	, _transformDirty(true)
+	, _rotation(0.0f) { }
 
-void CameraBasic::setRotation(float var)
-{
+void CameraBasic::setRotation(float var) {
 	_rotation = var;
 	_transformDirty = true;
 }
 
-float CameraBasic::getRotation() const
-{
+float CameraBasic::getRotation() const {
 	return _rotation;
 }
 
-void CameraBasic::setPosition(const Vec3& position)
-{
+void CameraBasic::setPosition(const Vec3& position) {
 	_position = position;
 	_transformDirty = true;
 }
 
-void CameraBasic::setTarget(const Vec3& target)
-{
+void CameraBasic::setTarget(const Vec3& target) {
 	_target = target;
 	_transformDirty = true;
 }
 
-const Vec3& CameraBasic::getUp()
-{
+const Vec3& CameraBasic::getUp() {
 	updateView();
 	return _up;
 }
 
-void CameraBasic::updateView()
-{
-	if (_transformDirty)
-	{
+void CameraBasic::updateView() {
+	if (_transformDirty) {
 		_transformDirty = false;
 		bx::Vec3 dest = bx::sub(_target, _position);
 		float distance = bx::length(dest);
-		if (distance == 0.0f)
-		{
+		if (distance == 0.0f) {
 			bx::mtxIdentity(_view);
-		}
-		else
-		{
+		} else {
 			float rotateX = std::asin(dest.y / distance);
 			float rotateY = 0.0f;
-			if (dest.x != 0.0f)
-			{
+			if (dest.x != 0.0f) {
 				rotateY = -std::atan(dest.z / dest.x);
 			}
 			Matrix transform;
@@ -121,71 +104,59 @@ void CameraBasic::updateView()
 	}
 }
 
-const Matrix& CameraBasic::getView()
-{
+const Matrix& CameraBasic::getView() {
 	updateView();
 	return Camera::getView();
 }
 
 /* Camera2D */
 
-Camera2D::Camera2D(String name):
-Camera(name),
-_transformDirty(true),
-_rotation(0.0f),
-_zoom(1.0f)
-{ }
+Camera2D::Camera2D(String name)
+	: Camera(name)
+	, _transformDirty(true)
+	, _rotation(0.0f)
+	, _zoom(1.0f) { }
 
-void Camera2D::setPosition(const Vec2& position)
-{
+void Camera2D::setPosition(const Vec2& position) {
 	_position.x = _target.x = position.x;
 	_position.y = _target.y = position.y;
 	_transformDirty = true;
 }
 
-void Camera2D::setRotation(float var)
-{
+void Camera2D::setRotation(float var) {
 	_rotation = var;
 	_transformDirty = true;
 }
 
-float Camera2D::getRotation() const
-{
+float Camera2D::getRotation() const {
 	return _rotation;
 }
 
-void Camera2D::setZoom(float var)
-{
+void Camera2D::setZoom(float var) {
 	_zoom = var;
 }
 
-float Camera2D::getZoom() const
-{
+float Camera2D::getZoom() const {
 	return _zoom;
 }
 
-const Vec3& Camera2D::getUp()
-{
+const Vec3& Camera2D::getUp() {
 	updateView();
 	return _up;
 }
 
-const Matrix& Camera2D::getView()
-{
+const Matrix& Camera2D::getView() {
 	updateView();
 	return Camera::getView();
 }
 
-void Camera2D::updateView()
-{
+void Camera2D::updateView() {
 	float z = -SharedView.getStandardDistance() / _zoom;
-	if (_position.z != z)
-	{
+	if (_position.z != z) {
 		_position.z = z;
 		_transformDirty = true;
 	}
-	if (_transformDirty)
-	{
+	if (_transformDirty) {
 		_transformDirty = false;
 		Matrix rotateZ;
 		bx::mtxRotateZ(rotateZ, -bx::toRad(_rotation));
@@ -198,34 +169,28 @@ void Camera2D::updateView()
 
 /* CameraOtho */
 
-CameraOtho::CameraOtho(String name):
-Camera(name),
-_transformDirty(true)
-{ }
+CameraOtho::CameraOtho(String name)
+	: Camera(name)
+	, _transformDirty(true) { }
 
-void CameraOtho::setPosition(const Vec2& position)
-{
+void CameraOtho::setPosition(const Vec2& position) {
 	_position.x = _target.x = position.x;
 	_position.y = _target.y = position.y;
 	_transformDirty = true;
 }
 
-const Matrix& CameraOtho::getView()
-{
+const Matrix& CameraOtho::getView() {
 	float z = SharedView.getStandardDistance();
-	if (_position.z != z)
-	{
+	if (_position.z != z) {
 		_position.z = z;
 		_transformDirty = true;
 	}
-	if (_transformDirty)
-	{
+	if (_transformDirty) {
 		_transformDirty = false;
 		Size viewSize = SharedView.getSize();
 		Matrix view;
 		bx::mtxOrtho(view, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
-		if (_position.toVec2() != Vec2::zero)
-		{
+		if (_position.toVec2() != Vec2::zero) {
 			Matrix move;
 			Matrix temp = view;
 			bx::mtxTranslate(move, _position.x, _position.y, 0);
@@ -237,23 +202,19 @@ const Matrix& CameraOtho::getView()
 	return Camera::getView();
 }
 
-bool CameraOtho::hasProjection() const
-{
+bool CameraOtho::hasProjection() const {
 	return true;
 }
 
 /* CameraUI */
 
-CameraUI::CameraUI(String name):
-Camera(name),
-_viewSize{Size::zero}
-{ }
+CameraUI::CameraUI(String name)
+	: Camera(name)
+	, _viewSize{Size::zero} { }
 
-const Matrix& CameraUI::getView()
-{
+const Matrix& CameraUI::getView() {
 	auto size = SharedApplication.getBufferSize();
-	if (_viewSize != size)
-	{
+	if (_viewSize != size) {
 		_viewSize = size;
 		_position.x = size.width / 2;
 		_position.y = size.height / 2;
@@ -261,30 +222,26 @@ const Matrix& CameraUI::getView()
 		bx::mtxTranslate(move, _position.x, _position.y, 0);
 		Matrix tmp;
 		bx::mtxOrtho(tmp, 0, size.width, 0, size.height, -1000.0f, 1000.0f, 0,
-		bgfx::getCaps()->homogeneousDepth);
+			bgfx::getCaps()->homogeneousDepth);
 		bx::mtxMul(_view, move, tmp);
 		Updated();
 	}
 	return Camera::getView();
 }
 
-bool CameraUI::hasProjection() const
-{
+bool CameraUI::hasProjection() const {
 	return true;
 }
 
 /* CameraUI3D */
 
-CameraUI3D::CameraUI3D(String name):
-Camera(name),
-_viewSize{Size::zero}
-{ }
+CameraUI3D::CameraUI3D(String name)
+	: Camera(name)
+	, _viewSize{Size::zero} { }
 
-const Matrix& CameraUI3D::getView()
-{
+const Matrix& CameraUI3D::getView() {
 	auto size = SharedApplication.getBufferSize();
-	if (_viewSize != size)
-	{
+	if (_viewSize != size) {
 		_viewSize = size;
 		const float fieldOfView = 45.0f;
 		const float aspectRatio = size.width / size.height;
@@ -300,16 +257,14 @@ const Matrix& CameraUI3D::getView()
 			aspectRatio,
 			nearPlaneDistance,
 			farPlaneDistance,
-			bgfx::getCaps()->homogeneousDepth
-		);
+			bgfx::getCaps()->homogeneousDepth);
 		bx::mtxMul(_view, view, projection);
 		Updated();
 	}
 	return Camera::getView();
 }
 
-bool CameraUI3D::hasProjection() const
-{
+bool CameraUI3D::hasProjection() const {
 	return true;
 }
 

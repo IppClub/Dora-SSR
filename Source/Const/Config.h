@@ -19,45 +19,45 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 /** @brief Debug flag, set with the compilar flag by default. */
 #ifndef DORA_DEBUG
-	#if NDEBUG
-		#define DORA_DEBUG 0
-	#else
-		#define DORA_DEBUG 1
-	#endif
+#if NDEBUG
+#define DORA_DEBUG 0
+#else
+#define DORA_DEBUG 1
+#endif
 #endif
 
 /** @brief Disable log function, set with the debug flag. */
 #ifndef DORA_DISABLE_LOG
-	#if DORA_DEBUG
-		#define DORA_DISABLE_LOG 0
-	#else
-		#define DORA_DISABLE_LOG 1
-	#endif
+#if DORA_DEBUG
+#define DORA_DISABLE_LOG 0
+#else
+#define DORA_DISABLE_LOG 1
+#endif
 #endif
 
 /** @brief Disable assert function, set with the debug flag. */
 #ifndef DORA_DISABLE_ASSERTION
-	#if DORA_DEBUG
-		#define DORA_DISABLE_ASSERTION 0
-	#else
-		#define DORA_DISABLE_ASSERTION 1
-	#endif
+#if DORA_DEBUG
+#define DORA_DISABLE_ASSERTION 0
+#else
+#define DORA_DISABLE_ASSERTION 1
+#endif
 #endif
 
 /** @brief The buffer size for content copy function.
-*/
+ */
 #ifndef DORA_COPY_BUFFER_SIZE
-	#define DORA_COPY_BUFFER_SIZE 4096
+#define DORA_COPY_BUFFER_SIZE 4096
 #endif
 
 /** @brief Flag to disable lua binding debug codes.
-*/
+ */
 #if !DORA_DEBUG
-	#define TOLUA_RELEASE
+#define TOLUA_RELEASE
 #endif
 
 /** @brief The single squared texture size for baking fonts.
-*/
+ */
 #ifndef DORA_FONT_TEXTURE_SIZE
-	#define DORA_FONT_TEXTURE_SIZE 2048
+#define DORA_FONT_TEXTURE_SIZE 2048
 #endif

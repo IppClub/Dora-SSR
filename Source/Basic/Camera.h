@@ -12,8 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Camera : public Object
-{
+class Camera : public Object {
 public:
 	PROPERTY_READONLY_CREF(std::string, Name);
 	virtual const Vec3& getPosition();
@@ -22,8 +21,10 @@ public:
 	virtual const Matrix& getView();
 	virtual bool hasProjection() const;
 	Acf::Delegate<void()> Updated;
+
 protected:
 	Camera(String name);
+
 protected:
 	std::string _name;
 	Vec3 _position;
@@ -33,8 +34,7 @@ protected:
 	DORA_TYPE_OVERRIDE(Camera);
 };
 
-class CameraBasic : public Camera
-{
+class CameraBasic : public Camera {
 public:
 	PROPERTY(float, Rotation);
 	void setPosition(const Vec3& position);
@@ -42,17 +42,18 @@ public:
 	virtual const Vec3& getUp() override;
 	virtual const Matrix& getView() override;
 	CREATE_FUNC(CameraBasic);
+
 protected:
 	CameraBasic(String name);
 	void updateView();
+
 private:
 	bool _transformDirty;
 	float _rotation;
 	DORA_TYPE_OVERRIDE(CameraBasic);
 };
 
-class Camera2D : public Camera
-{
+class Camera2D : public Camera {
 public:
 	PROPERTY(float, Rotation);
 	PROPERTY(float, Zoom);
@@ -60,9 +61,11 @@ public:
 	virtual const Vec3& getUp() override;
 	virtual const Matrix& getView() override;
 	CREATE_FUNC(Camera2D);
+
 protected:
 	Camera2D(String name);
 	void updateView();
+
 private:
 	bool _transformDirty;
 	float _rotation;
@@ -70,43 +73,46 @@ private:
 	DORA_TYPE_OVERRIDE(Camera2D);
 };
 
-class CameraOtho : public Camera
-{
+class CameraOtho : public Camera {
 public:
 	void setPosition(const Vec2& position);
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;
 	CREATE_FUNC(CameraOtho);
+
 protected:
 	CameraOtho(String name);
+
 private:
 	float _zoom;
 	bool _transformDirty;
 	DORA_TYPE_OVERRIDE(CameraOtho);
 };
 
-class CameraUI : public Camera
-{
+class CameraUI : public Camera {
 public:
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;
 	CREATE_FUNC(CameraUI);
+
 protected:
 	CameraUI(String name);
 	void updateView();
+
 private:
 	Size _viewSize;
 };
 
-class CameraUI3D : public Camera
-{
+class CameraUI3D : public Camera {
 public:
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;
 	CREATE_FUNC(CameraUI3D);
+
 protected:
 	CameraUI3D(String name);
 	void updateView();
+
 private:
 	Size _viewSize;
 };

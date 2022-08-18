@@ -7,72 +7,68 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Basic/View.h"
+
 #include "Basic/Application.h"
 #include "Basic/Director.h"
-#include "Node/Node.h"
 #include "Effect/Effect.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
-View::View():
-_id(-1),
-_nearPlaneDistance(0.1f),
-_farPlaneDistance(10000.0f),
-_fieldOfView(45.0f),
+View::View()
+	: _id(-1)
+	, _nearPlaneDistance(0.1f)
+	, _farPlaneDistance(10000.0f)
+	, _fieldOfView(45.0f)
+	,
 #if BX_PLATFORM_WINDOWS
-_flag(BGFX_RESET_HIDPI),
+	_flag(BGFX_RESET_HIDPI)
+	,
 #else // BX_PLATFORM_WINDOWS
-_flag(BGFX_RESET_HIDPI | BGFX_RESET_VSYNC),
+	_flag(BGFX_RESET_HIDPI | BGFX_RESET_VSYNC)
+	,
 #endif // BX_PLATFORM_WINDOWS
-_size(SharedApplication.getBufferSize()),
-_scale(1.0f),
-_projection(Matrix::Indentity)
-{
+	_size(SharedApplication.getBufferSize())
+	, _scale(1.0f)
+	, _projection(Matrix::Indentity) {
 	pushInsertionMode(false);
 }
 
-void View::pushInsertionMode(bool inserting)
-{
+void View::pushInsertionMode(bool inserting) {
 	_insertionModes.push({inserting, _orders.begin(), _orders.end()});
 }
 
-void View::popInsertionMode()
-{
+void View::popInsertionMode() {
 	_insertionModes.pop();
 }
 
-bgfx::ViewId View::getId() const
-{
+bgfx::ViewId View::getId() const {
 	AssertIf(_views.empty(), "invalid view id.");
 	return _views.top().first;
 }
 
-const std::string& View::getName() const
-{
+const std::string& View::getName() const {
 	AssertIf(_views.empty(), "invalid view id.");
 	return _views.top().second;
 }
 
-void View::clear()
-{
+void View::clear() {
 	_id = -1;
-	if (!_views.empty())
-	{
+	if (!_views.empty()) {
 		decltype(_views) dummy;
 		_views.swap(dummy);
 	}
 	_orders.clear();
 }
 
-void View::pushInner(String viewName)
-{
+void View::pushInner(String viewName) {
 	AssertIf(_id > MaxViews - 1, "running views exceeded max view number {}.", MaxViews);
 	bgfx::ViewId viewId = s_cast<bgfx::ViewId>(++_id);
 	bgfx::resetView(viewId);
 	std::string name = viewName.toString();
-	if (!name.empty())
-	{
+	if (!name.empty()) {
 		bgfx::setViewName(viewId, name.c_str());
 	}
 	bgfx::setViewRect(viewId, 0, 0, bgfx::BackbufferRatio::Equal);
@@ -81,189 +77,153 @@ void View::pushInner(String viewName)
 	_views.push(std::make_pair(viewId, name));
 }
 
-void View::pushFront(String viewName)
-{
+void View::pushFront(String viewName) {
 	pushInner(viewName);
 	auto id = getId();
 	auto& mode = _insertionModes.top();
-	if (mode.inserting && !_orders.empty())
-	{
+	if (mode.inserting && !_orders.empty()) {
 		mode.front = ++_orders.insert(mode.front, id);
-	}
-	else _orders.push_front(id);
+	} else
+		_orders.push_front(id);
 	pushInsertionMode(false);
 }
 
-void View::pushBack(String viewName)
-{
+void View::pushBack(String viewName) {
 	pushInner(viewName);
 	auto id = getId();
 	auto& mode = _insertionModes.top();
-	if (mode.inserting && !_orders.empty())
-	{
+	if (mode.inserting && !_orders.empty()) {
 		mode.back = _orders.insert(mode.back, id);
-	}
-	else _orders.push_back(id);
+	} else
+		_orders.push_back(id);
 	pushInsertionMode(false);
 }
 
-void View::pop()
-{
+void View::pop() {
 	AssertIf(_views.empty(), "already pop to the last view, no more views to pop.");
 	_views.pop();
 	popInsertionMode();
 }
 
-Size View::getSize() const
-{
+Size View::getSize() const {
 	return _size;
 }
 
-void View::setScale(float var)
-{
+void View::setScale(float var) {
 	_scale = var;
 	Size bufferSize = SharedApplication.getBufferSize();
 	_size = {
 		// Metal Complained about non-integer size
 		std::floor(bufferSize.width / _scale),
-		std::floor(bufferSize.height / _scale)
-	};
+		std::floor(bufferSize.height / _scale)};
 	View::updateProjection();
 	Event::send("AppSizeChanged"_slice);
 }
 
-float View::getScale() const
-{
+float View::getScale() const {
 	return _scale;
 }
 
-void View::setVSync(bool var)
-{
-	if (var != isVSync())
-	{
-		if (var)
-		{
+void View::setVSync(bool var) {
+	if (var != isVSync()) {
+		if (var) {
 			_flag |= BGFX_RESET_VSYNC;
-		}
-		else
-		{
+		} else {
 			_flag &= ~BGFX_RESET_VSYNC;
 		}
 		Size bufferSize = SharedApplication.getBufferSize();
 		bgfx::reset(
 			s_cast<uint32_t>(bufferSize.width),
 			s_cast<uint32_t>(bufferSize.height),
-			_flag
-		);
+			_flag);
 	}
 }
 
-bool View::isVSync() const
-{
+bool View::isVSync() const {
 	return (_flag & BGFX_RESET_VSYNC) != 0;
 }
 
-bool View::isPostProcessNeeded() const
-{
+bool View::isPostProcessNeeded() const {
 	return _scale != 1.0f || _effect != nullptr;
 }
 
-float View::getStandardDistance() const
-{
+float View::getStandardDistance() const {
 	return _size.height * 0.5f / std::tan(bx::toRad(_fieldOfView) * 0.5f);
 }
 
-float View::getAspectRatio() const
-{
+float View::getAspectRatio() const {
 	return _size.width / _size.height;
 }
 
-void View::setNearPlaneDistance(float var)
-{
+void View::setNearPlaneDistance(float var) {
 	_nearPlaneDistance = var;
 	updateProjection();
 }
 
-float View::getNearPlaneDistance() const
-{
+float View::getNearPlaneDistance() const {
 	return _nearPlaneDistance;
 }
 
-void View::setFarPlaneDistance(float var)
-{
+void View::setFarPlaneDistance(float var) {
 	_farPlaneDistance = var;
 	updateProjection();
 }
 
-float View::getFarPlaneDistance() const
-{
+float View::getFarPlaneDistance() const {
 	return _farPlaneDistance;
 }
 
-void View::setFieldOfView(float var)
-{
+void View::setFieldOfView(float var) {
 	_fieldOfView = var;
 	updateProjection();
 }
 
-float View::getFieldOfView() const
-{
+float View::getFieldOfView() const {
 	return _fieldOfView;
 }
 
-void View::updateProjection()
-{
+void View::updateProjection() {
 	bx::mtxProj(
 		_projection,
 		_fieldOfView,
 		getAspectRatio(),
 		_nearPlaneDistance,
 		_farPlaneDistance,
-		bgfx::getCaps()->homogeneousDepth
-	);
+		bgfx::getCaps()->homogeneousDepth);
 	SharedDirector.markDirty();
 }
 
-const Matrix& View::getProjection() const
-{
+const Matrix& View::getProjection() const {
 	return _projection;
 }
 
-void View::setPostEffect(SpriteEffect* var)
-{
+void View::setPostEffect(SpriteEffect* var) {
 	_effect = var;
 }
 
-SpriteEffect* View::getPostEffect() const
-{
+SpriteEffect* View::getPostEffect() const {
 	return _effect;
 }
 
-void View::reset()
-{
+void View::reset() {
 	Size bufferSize = SharedApplication.getBufferSize();
 	bgfx::reset(
 		s_cast<uint32_t>(bufferSize.width),
 		s_cast<uint32_t>(bufferSize.height),
-		_flag
-	);
+		_flag);
 	_size = {
 		std::floor(bufferSize.width / _scale),
-		std::floor(bufferSize.height / _scale)
-	};
+		std::floor(bufferSize.height / _scale)};
 	updateProjection();
 }
 
-std::pair<bgfx::ViewId*, uint16_t> View::getOrders()
-{
+std::pair<bgfx::ViewId*, uint16_t> View::getOrders() {
 	int index = 0;
-	for (auto order: _orders)
-	{
+	for (auto order : _orders) {
 		_idOrders[index] = s_cast<bgfx::ViewId>(order);
 		index++;
 	}
-	while (index < MaxViews)
-	{
+	while (index < MaxViews) {
 		_idOrders[index] = index;
 		index++;
 	}

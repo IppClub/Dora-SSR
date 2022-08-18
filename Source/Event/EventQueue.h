@@ -13,38 +13,35 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class QEvent
-{
+class QEvent {
 public:
 	QEvent(String name);
 	virtual ~QEvent();
 	inline const std::string& getName() const { return _name; }
-	
+
 	/** @brief Helper function to retrieve the passed event arguments.
 	 */
-	template<class... Args>
+	template <class... Args>
 	void get(Args&... args);
+
 protected:
 	std::string _name;
 	DORA_TYPE_BASE(QEvent);
 };
 
-template<class... Fields>
-class QEventArgs : public QEvent
-{
+template <class... Fields>
+class QEventArgs : public QEvent {
 public:
-	template<class... Args>
-	QEventArgs(String name, Args&&... args):
-	QEvent(name),
-	arguments{std::forward<Args>(args)...}
-	{ }
+	template <class... Args>
+	QEventArgs(String name, Args&&... args)
+		: QEvent(name)
+		, arguments{std::forward<Args>(args)...} { }
 	std::tuple<Fields...> arguments;
 	DORA_TYPE_OVERRIDE(QEventArgs<Fields...>);
 };
 
-template<class... Args>
-void QEvent::get(Args&... args)
-{
+template <class... Args>
+void QEvent::get(Args&... args) {
 	auto targetEvent = DoraAs<QEventArgs<special_decay_t<Args>...>>(this);
 	AssertIf(targetEvent == nullptr, "no required event argument type can be retrieved.");
 	std::tie(args...) = std::move(targetEvent->arguments);
@@ -60,7 +57,7 @@ void QEvent::get(Args&... args)
  // Define worker functions.
  int threadOneFunc(void* userData)
  {
- 	while (true)
+	while (true)
 	{
 		for (Own<QEvent> event = _eventForOne.poll();
 			event != nullptr;
@@ -79,23 +76,22 @@ void QEvent::get(Args&... args)
 			}
 		}
 	}
- 	return 0;
+	return 0;
  }
  int threadTwoFunc(void* userData)
  {
- 	while (true)
+	while (true)
 	{
 		_eventForOne.post("Whatever"_slice, 998, 233, "msg"_slice);
 	}
- 	return 0;
+	return 0;
  }
- 
+
  // execute threads
  threadOne.init(threadOneFunc);
  threadTwo.init(threadTwoFunc);
  */
-class EventQueue
-{
+class EventQueue {
 public:
 	EventQueue();
 	~EventQueue();
@@ -103,9 +99,8 @@ public:
 	/** @brief Post a new event,
 	 for producer thread use.
 	 */
-	template<class... Args>
-	void post(String name, Args&& ...args)
-	{
+	template <class... Args>
+	void post(String name, Args&&... args) {
 		auto event = new QEventArgs<special_decay_t<Args>...>(name, std::forward<Args>(args)...);
 		_queue.enqueue(event);
 	}

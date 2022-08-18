@@ -17,9 +17,9 @@ NS_DOROTHY_BEGIN
 
 /** @brief get a worker runs in another thread and returns a result,
  get a finisher receives the result and runs in main thread. */
-class Async
-{
+class Async {
 	typedef std::pair<std::function<Own<Values>()>, std::function<void(Own<Values>)>> Package;
+
 public:
 	Async();
 	virtual ~Async();
@@ -30,6 +30,7 @@ public:
 	void cancel();
 	void stop();
 	static int work(bx::Thread* thread, void* userData);
+
 private:
 	bool _scheduled;
 	std::atomic_bool _paused;
@@ -42,20 +43,17 @@ private:
 	EventQueue _finisherEvent;
 };
 
-class AsyncThread
-{
+class AsyncThread {
 public:
 	Async FileIO;
 	AsyncThread();
 	Async& getProcess(int index);
 	void run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher);
 #if BX_PLATFORM_WINDOWS
-	inline void* operator new(size_t i)
-	{
+	inline void* operator new(size_t i) {
 		return _mm_malloc(i, 16);
 	}
-	inline void operator delete(void* p)
-	{
+	inline void operator delete(void* p) {
 		_mm_free(p);
 	}
 #endif // BX_PLATFORM_WINDOWS
@@ -68,20 +66,16 @@ private:
 #define SharedAsyncThread \
 	Dorothy::Singleton<Dorothy::AsyncThread>::shared()
 
-class AsyncLogThread : public Async
-{
+class AsyncLogThread : public Async {
 public:
-	virtual ~AsyncLogThread()
-	{
+	virtual ~AsyncLogThread() {
 		Async::stop();
 	}
 #if BX_PLATFORM_WINDOWS
-	inline void* operator new(size_t i)
-	{
+	inline void* operator new(size_t i) {
 		return _mm_malloc(i, 16);
 	}
-	inline void operator delete(void* p)
-	{
+	inline void operator delete(void* p) {
 		_mm_free(p);
 	}
 #endif // BX_PLATFORM_WINDOWS

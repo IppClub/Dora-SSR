@@ -8,39 +8,47 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include <cstdint>
-#include <vector>
-#include <functional>
-#include <unordered_map>
-#include <stack>
-#include <queue>
-#include <unordered_set>
-#include <list>
-#include <memory>
-#include <tuple>
-#include <optional>
 #include <algorithm>
+#include <any>
 #include <cctype>
 #include <cmath>
-#include <any>
+#include <cstdint>
+#include <functional>
+#include <list>
+#include <memory>
+#include <optional>
+#include <queue>
+#include <stack>
 #include <string>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 using namespace std::string_literals;
 #include <string_view>
 using namespace std::string_view_literals;
 
-#include "bgfx/platform.h"
 #include "Other/AcfDelegate.h"
+#include "bgfx/platform.h"
 #include "fmt/format.h"
 #include "silly/Slice.h"
 using namespace silly::slice;
 
 #include "Const/Config.h"
+
 #include "Common/Debug.h"
+
 #include "Common/Utils.h"
 using namespace Dorothy::Switch::Literals;
+
 #include "Common/Singleton.h"
+
 #include "Common/MemoryPool.h"
+
 #include "Common/Own.h"
+
 #include "Basic/Object.h"
+
 #include "Common/Ref.h"
+
 #include "Common/WRef.h"

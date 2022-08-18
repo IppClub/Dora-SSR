@@ -7,12 +7,14 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Animation/Action.h"
+
+#include "Audio/Sound.h"
+#include "Cache/ClipCache.h"
+#include "Cache/FrameCache.h"
 #include "Node/Node.h"
 #include "Node/Sprite.h"
-#include "Cache/FrameCache.h"
-#include "Cache/ClipCache.h"
-#include "Audio/Sound.h"
 
 NS_DOROTHY_BEGIN
 
@@ -47,16 +49,13 @@ static SetFunc setFuncs[] = {
 	SetHeight,
 	SetAnchorX,
 	SetAnchorY,
-	SetOpacity
-};
+	SetOpacity};
 
-SetFunc Property::getFunc(Property::Enum prop)
-{
+SetFunc Property::getFunc(Property::Enum prop) {
 	return setFuncs[prop];
 }
 
-static bx::EaseFn easeFuncs[] =
-{
+static bx::EaseFn easeFuncs[] = {
 	bx::easeLinear,
 	bx::easeInQuad,
 	bx::easeOutQuad,
@@ -97,23 +96,19 @@ static bx::EaseFn easeFuncs[] =
 	bx::easeOutInCirc,
 	bx::easeOutInElastic,
 	bx::easeOutInBack,
-	bx::easeOutInBounce
-};
+	bx::easeOutInBounce};
 
-bx::EaseFn Ease::getFunc(Ease::Enum easing)
-{
+bx::EaseFn Ease::getFunc(Ease::Enum easing) {
 	return easeFuncs[easing];
 }
 
-float Ease::func(Ease::Enum easing, float time)
-{
+float Ease::func(Ease::Enum easing, float time) {
 	return easeFuncs[easing](time);
 }
 
 /* ActionProperty */
 
-Own<ActionDuration> PropertyAction::alloc(float duration, float start, float stop, Property::Enum prop, Ease::Enum easing)
-{
+Own<ActionDuration> PropertyAction::alloc(float duration, float start, float stop, Property::Enum prop, Ease::Enum easing) {
 	PropertyAction* action = new PropertyAction();
 	action->_start = start;
 	action->_delta = stop - start;
@@ -124,18 +119,15 @@ Own<ActionDuration> PropertyAction::alloc(float duration, float start, float sto
 	return Own<ActionDuration>(action);
 }
 
-Action* PropertyAction::create(float duration, float start, float stop, Property::Enum prop, Ease::Enum easing)
-{
+Action* PropertyAction::create(float duration, float start, float stop, Property::Enum prop, Ease::Enum easing) {
 	return Action::create(PropertyAction::alloc(duration, start, stop, prop, easing));
 }
 
-float PropertyAction::getDuration() const
-{
+float PropertyAction::getDuration() const {
 	return _duration;
 }
 
-bool PropertyAction::update(Node* target, float eclapsed)
-{
+bool PropertyAction::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > _duration) return true;
 	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
@@ -145,8 +137,7 @@ bool PropertyAction::update(Node* target, float eclapsed)
 
 /* Tint */
 
-Own<ActionDuration> Tint::alloc(float duration, Color3 start, Color3 stop, Ease::Enum easing)
-{
+Own<ActionDuration> Tint::alloc(float duration, Color3 start, Color3 stop, Ease::Enum easing) {
 	Tint* action = new Tint();
 	auto v1 = start.toVec3();
 	auto v2 = stop.toVec3();
@@ -158,18 +149,15 @@ Own<ActionDuration> Tint::alloc(float duration, Color3 start, Color3 stop, Ease:
 	return Own<ActionDuration>(action);
 }
 
-Action* Tint::create(float duration, Color3 start, Color3 stop, Ease::Enum easing)
-{
+Action* Tint::create(float duration, Color3 start, Color3 stop, Ease::Enum easing) {
 	return Action::create(Tint::alloc(duration, start, stop, easing));
 }
 
-float Tint::getDuration() const
-{
+float Tint::getDuration() const {
 	return _duration;
 }
 
-bool Tint::update(Node* target, float eclapsed)
-{
+bool Tint::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > _duration) return true;
 	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
@@ -180,14 +168,17 @@ bool Tint::update(Node* target, float eclapsed)
 
 /* Roll */
 
-Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::Enum easing)
-{
+Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::Enum easing) {
 	Roll* action = new Roll();
-	if (start > 0) start = std::fmod(start, 360.0f);
-	else start = std::fmod(start, -360.0f);
+	if (start > 0)
+		start = std::fmod(start, 360.0f);
+	else
+		start = std::fmod(start, -360.0f);
 	float delta = stop - start;
-	if (delta > 180) delta -= 360;
-	else if (delta < -180) delta += 360;
+	if (delta > 180)
+		delta -= 360;
+	else if (delta < -180)
+		delta += 360;
 	action->_start = start;
 	action->_delta = delta;
 	action->_duration = std::max(FLT_EPSILON, duration);
@@ -196,18 +187,15 @@ Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::E
 	return Own<ActionDuration>(action);
 }
 
-Action* Roll::create(float duration, float start, float stop, Ease::Enum easing)
-{
+Action* Roll::create(float duration, float start, float stop, Ease::Enum easing) {
 	return Action::create(Roll::alloc(duration, start, stop, easing));
 }
 
-float Roll::getDuration() const
-{
+float Roll::getDuration() const {
 	return _duration;
 }
 
-bool Roll::update(Node* target, float eclapsed)
-{
+bool Roll::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > _duration) return true;
 	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
@@ -217,13 +205,11 @@ bool Roll::update(Node* target, float eclapsed)
 
 /* Spawn */
 
-float Spawn::getDuration() const
-{
+float Spawn::getDuration() const {
 	return _duration;
 }
 
-bool Spawn::update(Node* target, float eclapsed)
-{
+bool Spawn::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > _duration) return true;
 	bool resultA = !_first || _first->update(target, eclapsed);
 	bool resultB = !_second || _second->update(target, eclapsed);
@@ -231,8 +217,7 @@ bool Spawn::update(Node* target, float eclapsed)
 	return _ended;
 }
 
-Own<ActionDuration> Spawn::alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second)
-{
+Own<ActionDuration> Spawn::alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second) {
 	Spawn* action = new Spawn();
 	float durationA = first ? first->getDuration() : 0.0f;
 	float durationB = second ? second->getDuration() : 0.0f;
@@ -243,73 +228,60 @@ Own<ActionDuration> Spawn::alloc(Own<ActionDuration>&& first, Own<ActionDuration
 	return Own<ActionDuration>(action);
 }
 
-Own<ActionDuration> Spawn::alloc(const std::vector<Own<ActionDuration>>& actions)
-{
-	if (actions.begin() == actions.end())
-	{
+Own<ActionDuration> Spawn::alloc(const std::vector<Own<ActionDuration>>& actions) {
+	if (actions.begin() == actions.end()) {
 		return Spawn::alloc(Own<ActionDuration>(), Own<ActionDuration>());
 	}
 	auto it = actions.begin();
 	Own<ActionDuration> first = std::move(c_cast<Own<ActionDuration>&>(*it));
 	Own<ActionDuration> second;
 	++it;
-	for (; it != actions.end(); ++it)
-	{
+	for (; it != actions.end(); ++it) {
 		second = std::move(c_cast<Own<ActionDuration>&>(*it));
 		first = Spawn::alloc(std::move(first), std::move(second));
 	}
 	return first;
 }
 
-Own<ActionDuration> Spawn::alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions)
-{
-	if (actions.begin() == actions.end())
-	{
+Own<ActionDuration> Spawn::alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions) {
+	if (actions.begin() == actions.end()) {
 		return Spawn::alloc(Own<ActionDuration>(), Own<ActionDuration>());
 	}
 	auto it = actions.begin();
 	Own<ActionDuration> first = std::move(*it);
 	Own<ActionDuration> second;
 	++it;
-	for (; it != actions.end(); ++it)
-	{
+	for (; it != actions.end(); ++it) {
 		second = std::move(*it);
 		first = Spawn::alloc(std::move(first), std::move(second));
 	}
 	return first;
 }
 
-Action* Spawn::create(Own<ActionDuration>&& first, Own<ActionDuration>&& second)
-{
+Action* Spawn::create(Own<ActionDuration>&& first, Own<ActionDuration>&& second) {
 	return Action::create(Spawn::alloc(std::move(first), std::move(second)));
 }
 
-Action* Spawn::create(const std::vector<Own<ActionDuration>>& actions)
-{
+Action* Spawn::create(const std::vector<Own<ActionDuration>>& actions) {
 	return Action::create(Spawn::alloc(actions));
 }
 
-Action* Spawn::create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions)
-{
+Action* Spawn::create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions) {
 	return Action::create(Spawn::alloc(actions));
 }
 
 /* Sequence */
 
-float Sequence::getDuration() const
-{
+float Sequence::getDuration() const {
 	return _duration;
 }
 
-bool Sequence::update(Node* target, float eclapsed)
-{
+bool Sequence::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > _duration) return true;
-	if (_ended && _second && _first && eclapsed < _first->getDuration())
-	{
+	if (_ended && _second && _first && eclapsed < _first->getDuration()) {
 		_second->update(target, 0.0f);
 	}
-	if (!_first || _first->update(target, eclapsed))
-	{
+	if (!_first || _first->update(target, eclapsed)) {
 		_ended = !_second || _second->update(target, eclapsed - _first->getDuration());
 		return _ended;
 	}
@@ -317,8 +289,7 @@ bool Sequence::update(Node* target, float eclapsed)
 	return false;
 }
 
-Own<ActionDuration> Sequence::alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second)
-{
+Own<ActionDuration> Sequence::alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second) {
 	Sequence* action = new Sequence();
 	float durationA = first ? first->getDuration() : 0.0f;
 	float durationB = second ? second->getDuration() : 0.0f;
@@ -329,133 +300,112 @@ Own<ActionDuration> Sequence::alloc(Own<ActionDuration>&& first, Own<ActionDurat
 	return Own<ActionDuration>(action);
 }
 
-Own<ActionDuration> Sequence::alloc(std::vector<Own<ActionDuration>>&& actions)
-{
-	if (actions.begin() == actions.end())
-	{
+Own<ActionDuration> Sequence::alloc(std::vector<Own<ActionDuration>>&& actions) {
+	if (actions.begin() == actions.end()) {
 		return Sequence::alloc(Own<ActionDuration>(), Own<ActionDuration>());
 	}
 	auto it = actions.begin();
 	Own<ActionDuration> first = std::move(*it);
 	Own<ActionDuration> second;
 	++it;
-	for (; it != actions.end(); ++it)
-	{
+	for (; it != actions.end(); ++it) {
 		second = std::move(c_cast<Own<ActionDuration>&>(*it));
 		first = Sequence::alloc(std::move(first), std::move(second));
 	}
 	return first;
 }
 
-Own<ActionDuration> Sequence::alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions)
-{
-	if (actions.begin() == actions.end())
-	{
+Own<ActionDuration> Sequence::alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions) {
+	if (actions.begin() == actions.end()) {
 		return Sequence::alloc(Own<ActionDuration>(), Own<ActionDuration>());
 	}
 	auto it = actions.begin();
 	Own<ActionDuration> first = std::move(*it);
 	Own<ActionDuration> second;
 	++it;
-	for (; it != actions.end(); ++it)
-	{
+	for (; it != actions.end(); ++it) {
 		second = std::move(*it);
 		first = Sequence::alloc(std::move(first), std::move(second));
 	}
 	return first;
 }
 
-Action* Sequence::create(Own<ActionDuration>&& first, Own<ActionDuration>&& second)
-{
+Action* Sequence::create(Own<ActionDuration>&& first, Own<ActionDuration>&& second) {
 	return Action::create(Sequence::alloc(std::move(first), std::move(second)));
 }
 
-Action* Sequence::create(std::vector<Own<ActionDuration>>&& actions)
-{
+Action* Sequence::create(std::vector<Own<ActionDuration>>&& actions) {
 	return Action::create(Sequence::alloc(std::move(actions)));
 }
 
-Action* Sequence::create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions)
-{
+Action* Sequence::create(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions) {
 	return Action::create(Sequence::alloc(actions));
 }
 
 /* Delay */
 
-float Delay::getDuration() const
-{
+float Delay::getDuration() const {
 	return _duration;
 }
 
-bool Delay::update(Node* target, float eclapsed)
-{
+bool Delay::update(Node* target, float eclapsed) {
 	DORA_UNUSED_PARAM(target);
 	return eclapsed >= _duration;
 }
 
-Own<ActionDuration> Delay::alloc(float duration)
-{
+Own<ActionDuration> Delay::alloc(float duration) {
 	Delay* action = new Delay();
 	action->_duration = duration;
 	return Own<ActionDuration>(action);
 }
 
-Action* Delay::create(float duration)
-{
+Action* Delay::create(float duration) {
 	return Action::create(Delay::alloc(duration));
 }
 
 /* Show */
 
-float Show::getDuration() const
-{
+float Show::getDuration() const {
 	return 0.0f;
 }
 
-bool Show::update(Node* target, float eclapsed)
-{
+bool Show::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > 0.0f) return true;
 	target->setVisible(true);
 	_ended = eclapsed > 0.0f;
 	return true;
 }
 
-Own<ActionDuration> Show::alloc()
-{
+Own<ActionDuration> Show::alloc() {
 	Show* show = new Show();
 	show->_ended = false;
 	return Own<ActionDuration>(show);
 }
 
-Action* Show::create()
-{
+Action* Show::create() {
 	return Action::create(Show::alloc());
 }
 
 /* Hide */
 
-float Hide::getDuration() const
-{
+float Hide::getDuration() const {
 	return 0.0f;
 }
 
-bool Hide::update(Node* target, float eclapsed)
-{
+bool Hide::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > 0.0f) return true;
 	target->setVisible(false);
 	_ended = eclapsed > 0.0f;
 	return true;
 }
 
-Own<ActionDuration> Hide::alloc()
-{
+Own<ActionDuration> Hide::alloc() {
 	Hide* hide = new Hide();
 	hide->_ended = false;
 	return Own<ActionDuration>(hide);
 }
 
-Action* Hide::create()
-{
+Action* Hide::create() {
 	return Action::create(Hide::alloc());
 }
 
@@ -463,22 +413,16 @@ Action* Hide::create()
 
 bool Emit::available = true;
 
-float Emit::getDuration() const
-{
+float Emit::getDuration() const {
 	return 0.0f;
 }
 
-bool Emit::update(Node* target, float eclapsed)
-{
+bool Emit::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > 0.0f) return true;
-	if (Emit::available)
-	{
-		if (_argument.empty())
-		{
+	if (Emit::available) {
+		if (_argument.empty()) {
 			target->emit(_event, target);
-		}
-		else
-		{
+		} else {
 			target->emit(_event, target, _argument);
 		}
 	}
@@ -486,8 +430,7 @@ bool Emit::update(Node* target, float eclapsed)
 	return true;
 }
 
-Own<ActionDuration> Emit::alloc(String event, String arg)
-{
+Own<ActionDuration> Emit::alloc(String event, String arg) {
 	Emit* emit = new Emit();
 	emit->_ended = false;
 	emit->_event = event;
@@ -495,35 +438,28 @@ Own<ActionDuration> Emit::alloc(String event, String arg)
 	return Own<ActionDuration>(emit);
 }
 
-Action* Emit::create(String event, String arg)
-{
+Action* Emit::create(String event, String arg) {
 	return Action::create(Emit::alloc(event, arg));
 }
 
 /* FrameAction */
 
-float FrameAction::getDuration() const
-{
+float FrameAction::getDuration() const {
 	return _def->duration;
 }
 
-bool FrameAction::update(Node* target, float eclapsed)
-{
+bool FrameAction::update(Node* target, float eclapsed) {
 	if (_ended && eclapsed > _def->duration) return true;
 	Sprite* sprite = DoraAs<Sprite>(target);
-	if (sprite)
-	{
+	if (sprite) {
 		int frames = s_cast<int>(_def->rects.size());
 		float time = std::max(0.0f, eclapsed / std::max(_def->duration, FLT_EPSILON));
 		int current = s_cast<int>(time * frames + 0.5f);
-		if (current < frames)
-		{
-			if (sprite->getTexture() != _texture)
-			{
+		if (current < frames) {
+			if (sprite->getTexture() != _texture) {
 				sprite->setTexture(_texture);
 			}
-			if (sprite->getTextureRect() != *_def->rects[current])
-			{
+			if (sprite->getTextureRect() != *_def->rects[current]) {
 				sprite->setTextureRect(*_def->rects[current]);
 			}
 		}
@@ -532,8 +468,7 @@ bool FrameAction::update(Node* target, float eclapsed)
 	return _ended;
 }
 
-Own<ActionDuration> FrameAction::alloc(FrameActionDef* def)
-{
+Own<ActionDuration> FrameAction::alloc(FrameActionDef* def) {
 	FrameAction* action = new FrameAction();
 	action->_def = def;
 	action->_ended = false;
@@ -541,8 +476,7 @@ Own<ActionDuration> FrameAction::alloc(FrameActionDef* def)
 	return Own<ActionDuration>(action);
 }
 
-Action* FrameAction::create(FrameActionDef* def)
-{
+Action* FrameAction::create(FrameActionDef* def) {
 	return Action::create(FrameAction::alloc(def));
 }
 
@@ -550,111 +484,90 @@ Action* FrameAction::create(FrameActionDef* def)
 
 const int Action::InvalidOrder = -1;
 
-Action::Action(Own<ActionDuration>&& actionDuration):
-_order(Action::InvalidOrder),
-_speed(1.0f),
-_eclapsed(0),
-_target(nullptr),
-_action(std::move(actionDuration)),
-_reversed(false),
-_paused(false)
-{ }
+Action::Action(Own<ActionDuration>&& actionDuration)
+	: _order(Action::InvalidOrder)
+	, _speed(1.0f)
+	, _eclapsed(0)
+	, _target(nullptr)
+	, _action(std::move(actionDuration))
+	, _reversed(false)
+	, _paused(false) { }
 
-void Action::updateTo(float eclapsed, bool reversed)
-{
+void Action::updateTo(float eclapsed, bool reversed) {
 	float oldEclapsed = _eclapsed;
 	bool oldReversed = _reversed;
 	_eclapsed = eclapsed;
 	_reversed = reversed;
-	if (_target)
-	{
+	if (_target) {
 		updateProgress();
 	}
 	_eclapsed = oldEclapsed;
 	_reversed = oldReversed;
 }
 
-float Action::getDuration() const
-{
+float Action::getDuration() const {
 	return _action->getDuration();
 }
 
-float Action::getEclapsed() const
-{
+float Action::getEclapsed() const {
 	return _eclapsed;
 }
 
-bool Action::isPaused() const
-{
+bool Action::isPaused() const {
 	return _paused;
 }
 
-bool Action::isRunning() const
-{
+bool Action::isRunning() const {
 	return _order != Action::InvalidOrder;
 }
 
-void Action::setReversed(bool var)
-{
+void Action::setReversed(bool var) {
 	_reversed = var;
 }
 
-bool Action::isReversed() const
-{
+bool Action::isReversed() const {
 	return _reversed;
 }
 
-void Action::setSpeed(float var)
-{
+void Action::setSpeed(float var) {
 	_speed = var;
 }
 
-float Action::getSpeed() const
-{
+float Action::getSpeed() const {
 	return _speed;
 }
 
-Own<ActionDuration>& Action::getAction()
-{
+Own<ActionDuration>& Action::getAction() {
 	return _action;
 }
 
-void Action::pause()
-{
+void Action::pause() {
 	_paused = true;
 }
 
-void Action::resume()
-{
+void Action::resume() {
 	_paused = false;
 }
 
-bool Action::updateProgress()
-{
+bool Action::updateProgress() {
 	if (!_action) return true;
-	if (_eclapsed == 0.0f)
-	{
+	if (_eclapsed == 0.0f) {
 		float start = _reversed ? _action->getDuration() : 0.0f;
 		/* reset actions to initial state */
 		Emit::available = false; // disable event callbacks while reseting
 		_action->update(_target, start);
 		Emit::available = true;
 		/* execute action right here */
-		if (0.0f == _action->getDuration())
-		{
+		if (0.0f == _action->getDuration()) {
 			_action->update(_target, start);
 			return true;
 		}
 		return false;
-	}
-	else if (_eclapsed >= _action->getDuration())
-	{
+	} else if (_eclapsed >= _action->getDuration()) {
 		float stop = _reversed ? 0.0f : _eclapsed;
 		_action->update(_target, stop);
 		return true;
-	}
-	else
-	{
+	} else {
 		float current = _reversed ? _action->getDuration() - _eclapsed : _eclapsed;
 		_action->update(_target, current);
 		return false;

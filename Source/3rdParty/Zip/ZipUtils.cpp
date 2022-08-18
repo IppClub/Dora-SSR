@@ -23,32 +23,27 @@ THE SOFTWARE.
 ****************************************************************************/
 #include "Const/Header.h"
 using namespace Dorothy;
+
 #include "ZipUtils.h"
 #include "miniz.h"
 
-struct ZipEntry
-{
+struct ZipEntry {
 	std::string name;
 	uint64_t size;
 };
 
-class ZipFilePrivate
-{
+class ZipFilePrivate {
 public:
 	mz_zip_archive archive;
 	std::unordered_map<std::string, ZipEntry> fileList;
 	std::unordered_map<std::string, std::string> folderList;
 };
 
-ZipFile::ZipFile(const std::string& zipFile, const std::string& filter)
-{
+ZipFile::ZipFile(const std::string& zipFile, const std::string& filter) {
 	_file = new ZipFilePrivate();
-	if (mz_zip_reader_init_file(&_file->archive, zipFile.c_str(), 0))
-	{
+	if (mz_zip_reader_init_file(&_file->archive, zipFile.c_str(), 0)) {
 		setFilter(filter);
-	}
-	else
-	{
+	} else {
 		auto err = mz_zip_get_error_string(mz_zip_get_last_error(&_file->archive));
 		mz_zip_reader_end(&_file->archive);
 		delete _file;
@@ -57,21 +52,16 @@ ZipFile::ZipFile(const std::string& zipFile, const std::string& filter)
 	}
 }
 
-ZipFile::ZipFile(std::pair<OwnArray<uint8_t>,size_t>&& data, const std::string& filter):
-_data(std::move(data))
-{
-	if (!_data.first)
-	{
+ZipFile::ZipFile(std::pair<OwnArray<uint8_t>, size_t>&& data, const std::string& filter)
+	: _data(std::move(data)) {
+	if (!_data.first) {
 		Error("invalid zip data.");
 		return;
 	}
 	_file = new ZipFilePrivate();
-	if (mz_zip_reader_init_mem(&_file->archive, _data.first.get(), _data.second, 0))
-	{
+	if (mz_zip_reader_init_mem(&_file->archive, _data.first.get(), _data.second, 0)) {
 		setFilter(filter);
-	}
-	else
-	{
+	} else {
 		auto err = mz_zip_get_error_string(mz_zip_get_last_error(&_file->archive));
 		mz_zip_reader_end(&_file->archive);
 		delete _file;
@@ -80,20 +70,16 @@ _data(std::move(data))
 	}
 }
 
-ZipFile::~ZipFile()
-{
-	if (_file)
-	{
+ZipFile::~ZipFile() {
+	if (_file) {
 		mz_zip_reader_end(&_file->archive);
 		delete _file;
 		_file = nullptr;
 	}
 }
 
-bool ZipFile::setFilter(const std::string& filter)
-{
-	if (_file)
-	{
+bool ZipFile::setFilter(const std::string& filter) {
+	if (_file) {
 		mz_zip_archive* archive = &_file->archive;
 
 		// clear existing file list
@@ -101,27 +87,21 @@ bool ZipFile::setFilter(const std::string& filter)
 		_file->folderList.clear();
 
 		// Get and print information about each file in the archive.
-		for (int i = 0; i < s_cast<int>(mz_zip_reader_get_num_files(archive)); i++)
-		{
+		for (int i = 0; i < s_cast<int>(mz_zip_reader_get_num_files(archive)); i++) {
 			mz_zip_archive_file_stat file_stat;
-			if (!mz_zip_reader_file_stat(archive, i, &file_stat))
-			{
+			if (!mz_zip_reader_file_stat(archive, i, &file_stat)) {
 				auto err = mz_zip_get_error_string(mz_zip_get_last_error(archive));
 				Error("failed to read a zip entry: {}.", err);
 				return false;
 			}
 			Slice filename(file_stat.m_filename);
-			if (!mz_zip_reader_is_file_a_directory(archive, i) &&
-				(filter.empty() || filename.left(filter.length()) == filter))
-			{
+			if (!mz_zip_reader_is_file_a_directory(archive, i) && (filter.empty() || filename.left(filter.length()) == filter)) {
 				std::string currentFileName = filename.toString();
 				_file->fileList[filename.toLower()] = {
 					currentFileName,
-					file_stat.m_uncomp_size
-				};
+					file_stat.m_uncomp_size};
 				size_t pos = currentFileName.rfind('/');
-				while (pos != std::string::npos)
-				{
+				while (pos != std::string::npos) {
 					currentFileName = currentFileName.substr(0, pos);
 					_file->folderList[Slice(currentFileName).toLower()] = currentFileName;
 					pos = currentFileName.rfind('/');
@@ -132,18 +112,14 @@ bool ZipFile::setFilter(const std::string& filter)
 	return true;
 }
 
-static std::string getCleanedPath(const std::string& path)
-{
+static std::string getCleanedPath(const std::string& path) {
 	std::string cleaned = Slice(path).toLower();
-	if (!cleaned.empty())
-	{
+	if (!cleaned.empty()) {
 		size_t pos = 0;
-		while ((pos = cleaned.find("\\", pos)) != std::string::npos)
-		{
+		while ((pos = cleaned.find("\\", pos)) != std::string::npos) {
 			cleaned[pos] = '/';
 		}
-		while (!cleaned.empty() && cleaned.back() == '/')
-		{
+		while (!cleaned.empty() && cleaned.back() == '/') {
 			cleaned.erase(--cleaned.end());
 		}
 		if (cleaned == "."sv) cleaned.clear();
@@ -151,45 +127,32 @@ static std::string getCleanedPath(const std::string& path)
 	return cleaned;
 }
 
-std::list<std::string> ZipFile::getDirEntries(const std::string& path, bool isFolder)
-{
+std::list<std::string> ZipFile::getDirEntries(const std::string& path, bool isFolder) {
 	if (!_file) return {};
 	std::string searchName = getCleanedPath(path);
 	std::list<std::string> results;
-	if (isFolder)
-	{
-		for (const auto& folder : _file->folderList)
-		{
+	if (isFolder) {
+		for (const auto& folder : _file->folderList) {
 			auto left = Slice(folder.first).left(searchName.length());
-			if (left == searchName)
-			{
+			if (left == searchName) {
 				size_t pos = folder.first.find('/', searchName.length() + 1);
-				if (pos == std::string::npos)
-				{
-					if (searchName.length() < folder.first.length())
-					{
+				if (pos == std::string::npos) {
+					if (searchName.length() < folder.first.length()) {
 						std::string name = folder.second.substr(searchName.length() + 1);
-						if (name != "." && name != "..")
-						{
+						if (name != "." && name != "..") {
 							results.push_back(name);
 						}
 					}
 				}
 			}
 		}
-	}
-	else
-	{
-		for (const auto& file : _file->fileList)
-		{
+	} else {
+		for (const auto& file : _file->fileList) {
 			auto left = Slice(file.first).left(searchName.length());
-			if (left == searchName)
-			{
+			if (left == searchName) {
 				size_t pos = file.first.find('/', searchName.length() + 1);
-				if (pos == std::string::npos)
-				{
-					if (searchName.length() < file.first.length())
-					{
+				if (pos == std::string::npos) {
+					if (searchName.length() < file.first.length()) {
 						results.push_back(file.second.name.substr(searchName.length() + 1));
 					}
 				}
@@ -199,18 +162,14 @@ std::list<std::string> ZipFile::getDirEntries(const std::string& path, bool isFo
 	return results;
 }
 
-std::list<std::string> ZipFile::getAllFiles(const std::string& path)
-{
+std::list<std::string> ZipFile::getAllFiles(const std::string& path) {
 	if (!_file) return {};
 	std::string searchName = getCleanedPath(path);
 	std::list<std::string> results;
-	for (const auto& file : _file->fileList)
-	{
+	for (const auto& file : _file->fileList) {
 		auto left = Slice(file.first).left(searchName.length());
-		if (left == searchName)
-		{
-			if (searchName.length() < file.first.length())
-			{
+		if (left == searchName) {
+			if (searchName.length() < file.first.length()) {
 				results.push_back(file.second.name.substr(searchName.length() + 1));
 			}
 		}
@@ -218,31 +177,26 @@ std::list<std::string> ZipFile::getAllFiles(const std::string& path)
 	return results;
 }
 
-bool ZipFile::fileExists(const std::string& fileName) const
-{
+bool ZipFile::fileExists(const std::string& fileName) const {
 	if (!_file) return false;
 	std::string searchName = getCleanedPath(fileName);
 	return _file->fileList.find(searchName) != _file->fileList.end() || _file->folderList.find(searchName) != _file->folderList.end();
 }
 
-bool ZipFile::isFolder(const std::string& path) const
-{
+bool ZipFile::isFolder(const std::string& path) const {
 	if (!_file) return false;
 	std::string searchName = getCleanedPath(path);
 	return _file->folderList.find(searchName) != _file->folderList.end();
 }
 
-bool ZipFile::isOK() const
-{
+bool ZipFile::isOK() const {
 	return _file != nullptr;
 }
 
-uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size)
-{
+uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size) {
 	uint8_t* buffer = nullptr;
 	if (size) *size = 0;
-	BLOCK_START
-	{
+	BLOCK_START {
 		BREAK_IF(!_file);
 		BREAK_IF(filename.empty());
 		std::string searchName = getCleanedPath(filename);
@@ -252,8 +206,7 @@ uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size)
 		size_t bufSize = s_cast<size_t>(it->second.size);
 		if (size) *size = bufSize;
 		buffer = new uint8_t[bufSize];
-		if (!mz_zip_reader_extract_file_to_mem(archive, it->second.name.c_str(), buffer, bufSize, 0))
-		{
+		if (!mz_zip_reader_extract_file_to_mem(archive, it->second.name.c_str(), buffer, bufSize, 0)) {
 			auto err = mz_zip_get_error_string(mz_zip_get_last_error(archive));
 			Error("failed to extract file \"{}\" from zip: {}.", it->second.name, err);
 		}
@@ -262,17 +215,14 @@ uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size)
 	return buffer;
 }
 
-std::pair<Dorothy::OwnArray<uint8_t>,size_t> ZipFile::getFileData(const std::string& filename)
-{
+std::pair<Dorothy::OwnArray<uint8_t>, size_t> ZipFile::getFileData(const std::string& filename) {
 	size_t size = 0;
 	uint8_t* buf = getFileDataUnsafe(filename, &size);
 	return {MakeOwnArray(buf), size};
 }
 
-void ZipFile::getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*, int)>& handler)
-{
-	BLOCK_START
-	{
+void ZipFile::getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*, int)>& handler) {
+	BLOCK_START {
 		BREAK_IF(!_file);
 		BREAK_IF(fileName.empty());
 		auto archive = &_file->archive;
@@ -282,16 +232,13 @@ void ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 		auto zipIter = mz_zip_reader_extract_file_iter_new(archive, it->second.name.c_str(), 0);
 		uint8_t buf[DORA_COPY_BUFFER_SIZE];
 		int nSize = 0, total = 0;
-		do
-		{
+		do {
 			nSize = mz_zip_reader_extract_iter_read(zipIter, buf, DORA_COPY_BUFFER_SIZE);
-			if (nSize > 0)
-			{
+			if (nSize > 0) {
 				handler(buf, nSize);
 			}
 			total += nSize;
-		}
-		while (nSize != 0);
+		} while (nSize != 0);
 		mz_zip_reader_extract_iter_free(zipIter);
 		AssertUnless(total == 0 || total == (int)it->second.size, "ZipUtils: the file size is wrong.");
 	}

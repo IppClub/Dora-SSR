@@ -18,8 +18,7 @@ NS_DOROTHY_BEGIN
 
 class Value;
 
-class DB
-{
+class DB {
 public:
 	PROPERTY_READONLY(SQLite::Database*, Ptr);
 	virtual ~DB();
@@ -32,8 +31,10 @@ public:
 	void queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<Own<Value>>>& result)>& callback);
 	void insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback);
 	void execAsync(String sql, std::vector<Own<Value>>&& values, const std::function<void(int)>& callback);
+
 protected:
 	DB();
+
 private:
 	Own<SQLite::Database> _database;
 	SINGLETON_REF(DB, Application);

@@ -22,8 +22,7 @@ class Array;
 
 typedef Acf::Delegate<void(Body*, int)> SensorEventHandler;
 
-class Sensor : public Object
-{
+class Sensor : public Object {
 public:
 	virtual ~Sensor();
 	/**
@@ -49,11 +48,13 @@ public:
 	SensorEventHandler bodyLeave;
 
 	CREATE_FUNC(Sensor);
+
 protected:
 	Sensor(Body* owner, int tag, pr::ShapeID fixture);
 	int _tag;
 	Body* _owner;
 	pr::ShapeID _fixture;
+
 private:
 	void executeEnterHandler();
 	void executeLeaveHandler();

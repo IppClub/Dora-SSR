@@ -7,38 +7,33 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Cache/SkeletonCache.h"
+
 #include "Basic/Content.h"
 #include "Cache/AtlasCache.h"
 #include "Common/Async.h"
 
 NS_DOROTHY_BEGIN
 
-SkeletonData::SkeletonData(spine::SkeletonData* skeletonData, Atlas* atlas):
-_atlas(atlas),
-_skeletonData(skeletonData)
-{}
+SkeletonData::SkeletonData(spine::SkeletonData* skeletonData, Atlas* atlas)
+	: _atlas(atlas)
+	, _skeletonData(skeletonData) { }
 
-spine::SkeletonData* SkeletonData::getSkel() const
-{
+spine::SkeletonData* SkeletonData::getSkel() const {
 	return _skeletonData.get();
 }
 
-Atlas* SkeletonData::getAtlas() const
-{
+Atlas* SkeletonData::getAtlas() const {
 	return _atlas;
 }
 
-std::pair<std::string, std::string> SkeletonCache::getFileFromStr(String spineStr)
-{
+std::pair<std::string, std::string> SkeletonCache::getFileFromStr(String spineStr) {
 	auto items = spineStr.split("|"_slice);
-	if (items.size() == 2)
-	{
+	if (items.size() == 2) {
 		Slice skelFile, atlasFile;
-		for (auto item : items)
-		{
-			switch (Switch::hash(Path::getExt(item)))
-			{
+		for (auto item : items) {
+			switch (Switch::hash(Path::getExt(item))) {
 				case "skel"_hash:
 				case "json"_hash:
 					skelFile = item;
@@ -52,48 +47,40 @@ std::pair<std::string, std::string> SkeletonCache::getFileFromStr(String spineSt
 	}
 	auto str = spineStr.toString();
 	std::string skelFile = str + ".skel"_slice;
-	if (!SharedContent.exist(str + ".skel"_slice))
-	{
+	if (!SharedContent.exist(str + ".skel"_slice)) {
 		skelFile = str + ".json"_slice;
 	}
 	return {skelFile, str + ".atlas"_slice};
 }
 
-SkeletonData* SkeletonCache::load(String spineStr)
-{
+SkeletonData* SkeletonCache::load(String spineStr) {
 	std::string skelFile, atlasFile;
 	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
 	return load(skelFile, atlasFile);
 }
 
-SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
-{
+SkeletonData* SkeletonCache::load(String skelFile, String atlasFile) {
 	std::string skelPath = SharedContent.getFullPath(skelFile);
 	std::string atlasPath = SharedContent.getFullPath(atlasFile);
 	std::string cacheKey = skelPath + atlasPath;
 	auto it = _skeletons.find(cacheKey);
-	if (it != _skeletons.end())
-	{
+	if (it != _skeletons.end()) {
 		return it->second;
 	}
 	auto atlas = SharedAtlasCache.load(atlasFile);
-	if (!atlas)
-	{
+	if (!atlas) {
 		Warn("failed to load atlas \"{}\"", atlasFile);
 		return nullptr;
 	}
 	SkeletonData* skeletonData = nullptr;
 	auto ext = Path::getExt(skelPath);
-	switch (Switch::hash(ext))
-	{
-		case "skel"_hash:
-		{
+	switch (Switch::hash(ext)) {
+		case "skel"_hash: {
 			spine::SkeletonBinary bin(atlas->get());
 			skeletonData = SkeletonData::create(bin.readSkeletonDataFile(skelPath.c_str()), atlas);
 			break;
 		}
-		case "json"_hash:
-		{
+		case "json"_hash: {
 			spine::SkeletonJson json(atlas->get());
 			skeletonData = SkeletonData::create(json.readSkeletonDataFile(skelPath.c_str()), atlas);
 			break;
@@ -102,8 +89,7 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 			Warn("can not load skeleton format of \"{}\"", ext);
 			return nullptr;
 	}
-	if (skeletonData && skeletonData->getSkel())
-	{
+	if (skeletonData && skeletonData->getSkel()) {
 		_skeletons[cacheKey] = skeletonData;
 		return skeletonData;
 	}
@@ -111,39 +97,32 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile)
 	return nullptr;
 }
 
-void SkeletonCache::loadAsync(String spineStr, const std::function<void(SkeletonData*)>& handler)
-{
+void SkeletonCache::loadAsync(String spineStr, const std::function<void(SkeletonData*)>& handler) {
 	std::string skelFile, atlasFile;
 	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
 	loadAsync(skelFile, atlasFile, handler);
 }
 
-void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::function<void(SkeletonData*)>& handler)
-{
+void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::function<void(SkeletonData*)>& handler) {
 	std::string skelPath = SharedContent.getFullPath(skelFile);
 	std::string atlasPath = SharedContent.getFullPath(atlasFile);
 	std::string cacheKey = skelPath + atlasPath;
 	std::string file = skelFile.toString();
-	SharedAtlasCache.loadAsync(atlasFile, [file, cacheKey, handler, this](Atlas* atlas)
-	{
-		if (!atlas)
-		{
+	SharedAtlasCache.loadAsync(atlasFile, [file, cacheKey, handler, this](Atlas* atlas) {
+		if (!atlas) {
 			Warn("failed to load skeleton data \"{}\".", file);
 			handler(nullptr);
 			return;
 		}
 		Ref<Atlas> at(atlas);
-		SharedContent.loadAsyncData(file, [file, cacheKey, handler, at, this](OwnArray<uint8_t>&& data, size_t size)
-		{
-			if (!data)
-			{
+		SharedContent.loadAsyncData(file, [file, cacheKey, handler, at, this](OwnArray<uint8_t>&& data, size_t size) {
+			if (!data) {
 				Warn("failed to load skeleton data \"{}\".", file);
 				handler(nullptr);
 				return;
 			}
 			auto skelData = std::make_shared<std::tuple<std::string, OwnArray<uint8_t>, size_t>>(std::move(file), std::move(data), size);
-			SharedAsyncThread.run([skelData, at]()
-			{
+			SharedAsyncThread.run([skelData, at]() {
 				std::string file;
 				OwnArray<uint8_t> data;
 				size_t size = 0;
@@ -168,9 +147,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 						Warn("can not load skeleton format of \"{}\" from \"{}\"", ext, file);
 						break;
 				}
-				return Values::alloc(skelData);
-			}, [file, cacheKey, handler, at, this](Own<Values> result)
-			{
+				return Values::alloc(skelData); }, [file, cacheKey, handler, at, this](Own<Values> result) {
 				spine::SkeletonData* skelData = nullptr;
 				result->get(skelData);
 				if (skelData)
@@ -182,64 +159,53 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 				}
 				Warn("failed to load skeleton data \"{}\".", file);
 				handler(nullptr);
-				return;
-			});
+				return; });
 		});
 	});
 }
 
-bool SkeletonCache::unload(String spineStr)
-{
+bool SkeletonCache::unload(String spineStr) {
 	std::string skelFile, atlasFile;
 	std::tie(skelFile, atlasFile) = getFileFromStr(spineStr);
 	std::string skelPath = SharedContent.getFullPath(skelFile);
 	std::string atlasPath = SharedContent.getFullPath(atlasFile);
 	std::string cacheKey = skelPath + atlasPath;
 	auto it = _skeletons.find(cacheKey);
-	if (it != _skeletons.end())
-	{
+	if (it != _skeletons.end()) {
 		_skeletons.erase(it);
 		return true;
 	}
 	return false;
 }
 
-bool SkeletonCache::unload(String skelFile, String atlasFile)
-{
+bool SkeletonCache::unload(String skelFile, String atlasFile) {
 	std::string skelPath = SharedContent.getFullPath(skelFile);
 	std::string atlasPath = SharedContent.getFullPath(atlasFile);
 	std::string cacheKey = skelPath + atlasPath;
 	auto it = _skeletons.find(cacheKey);
-	if (it != _skeletons.end())
-	{
+	if (it != _skeletons.end()) {
 		_skeletons.erase(it);
 		return true;
 	}
 	return false;
 }
 
-bool SkeletonCache::unload()
-{
-	if (_skeletons.empty())
-	{
+bool SkeletonCache::unload() {
+	if (_skeletons.empty()) {
 		return false;
 	}
 	_skeletons.clear();
 	return true;
 }
 
-void SkeletonCache::removeUnused()
-{
-	std::vector<std::unordered_map<std::string,Ref<SkeletonData>>::iterator> targets;
-	for (auto it = _skeletons.begin(); it != _skeletons.end(); ++it)
-	{
-		if (it->second->isSingleReferenced())
-		{
+void SkeletonCache::removeUnused() {
+	std::vector<std::unordered_map<std::string, Ref<SkeletonData>>::iterator> targets;
+	for (auto it = _skeletons.begin(); it != _skeletons.end(); ++it) {
+		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);
 		}
 	}
-	for (const auto& it : targets)
-	{
+	for (const auto& it : targets) {
 		_skeletons.erase(it);
 	}
 }

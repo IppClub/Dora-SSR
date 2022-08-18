@@ -22,8 +22,7 @@ class MoveJoint;
 class MotorJoint;
 class Dictionary;
 
-class Joint : public Object
-{
+class Joint : public Object {
 public:
 	virtual ~Joint();
 	static Joint* distance(
@@ -101,7 +100,7 @@ public:
 		bool collideConnected,
 		Body* bodyA,
 		Body* bodyB,
-		const Vec2& worldPos, 
+		const Vec2& worldPos,
 		float frequency = 0.0f,
 		float damping = 0.0f);
 	static MotorJoint* wheel(
@@ -119,8 +118,11 @@ public:
 	void destroy();
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 	CREATE_FUNC(Joint);
+
 protected:
-	Joint():_joint(pr::InvalidJointID) {}
+	Joint()
+		: _joint(pr::InvalidJointID) { }
+
 protected:
 	WRef<PhysicsWorld> _world;
 	pr::JointID _joint;
@@ -128,20 +130,21 @@ protected:
 	DORA_TYPE_OVERRIDE(Joint);
 };
 
-class MoveJoint : public Joint
-{
+class MoveJoint : public Joint {
 public:
 	PROPERTY_CREF(Vec2, Position);
 	CREATE_FUNC(MoveJoint);
+
 protected:
-	MoveJoint():_position(Vec2::zero) { }
+	MoveJoint()
+		: _position(Vec2::zero) { }
+
 private:
 	Vec2 _position;
 	DORA_TYPE_OVERRIDE(MoveJoint);
 };
 
-class MotorJoint : public Joint
-{
+class MotorJoint : public Joint {
 public:
 	PROPERTY(float, Force);
 	PROPERTY(float, Speed);

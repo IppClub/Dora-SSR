@@ -12,23 +12,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-enum struct TextureWrap
-{
+enum struct TextureWrap {
 	None = 0,
 	Mirror = 1,
 	Clamp = 2,
 	Border = 3
 };
 
-enum struct TextureFilter
-{
+enum struct TextureFilter {
 	None = 0,
 	Point = 1,
 	Anisotropic = 2
 };
 
-class Texture2D : public Object
-{
+class Texture2D : public Object {
 public:
 	PROPERTY_READONLY(bgfx::TextureHandle, Handle);
 	PROPERTY_READONLY(int, Width);
@@ -42,9 +39,11 @@ public:
 	PROPERTY_READONLY_CLASS(uint32_t, Count);
 	virtual ~Texture2D();
 	CREATE_FUNC(Texture2D);
+
 protected:
 	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, uint64_t flags);
 	bgfx::TextureHandle _handle;
+
 private:
 	uint64_t _flags;
 	bgfx::TextureInfo _info;
@@ -53,8 +52,7 @@ private:
 	DORA_TYPE_OVERRIDE(Texture2D);
 };
 
-class TextureCache
-{
+class TextureCache {
 public:
 	virtual ~TextureCache() { }
 	Texture2D* update(String name, Texture2D* texture);
@@ -67,8 +65,10 @@ public:
 	bool unload(String filename);
 	bool unload();
 	void removeUnused();
+
 protected:
 	TextureCache() { }
+
 private:
 	bx::DefaultAllocator _allocator;
 	std::unordered_map<std::string, Ref<Texture2D>> _textures;

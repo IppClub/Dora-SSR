@@ -7,26 +7,28 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Platformer/Define.h"
-#include "Support/Geometry.h"
-#include "Support/Dictionary.h"
+
 #include "Platformer/UnitAction.h"
-#include "Platformer/Unit.h"
-#include "Platformer/Data.h"
-#include "Platformer/BulletDef.h"
-#include "Platformer/Bullet.h"
-#include "Platformer/AI.h"
-#include "Platformer/AINode.h"
+
 #include "Animation/ModelDef.h"
-#include "Node/Model.h"
-#include "Node/Spine.h"
-#include "Physics/Sensor.h"
-#include "Physics/PhysicsWorld.h"
-#include "Platformer/VisualCache.h"
-#include "Lua/LuaHandler.h"
 #include "Audio/Sound.h"
 #include "Entity/Entity.h"
+#include "Lua/LuaHandler.h"
+#include "Node/Model.h"
+#include "Node/Spine.h"
+#include "Physics/PhysicsWorld.h"
+#include "Physics/Sensor.h"
+#include "Platformer/AI.h"
+#include "Platformer/AINode.h"
+#include "Platformer/Bullet.h"
+#include "Platformer/BulletDef.h"
+#include "Platformer/Data.h"
+#include "Platformer/Unit.h"
+#include "Platformer/VisualCache.h"
 #include "PlayRho/Collision/Distance.hpp"
+#include "Support/Dictionary.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
@@ -34,79 +36,65 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
 std::unordered_map<std::string, Own<UnitActionDef>> UnitAction::_actionDefs;
 
-UnitAction::UnitAction(String name, int priority, bool queued, Unit* owner):
-_name(name),
-_priority(priority),
-_queued(queued),
-_doing(false),
-_status(Behavior::Status::Failure),
-_owner(owner),
-reaction(0.0f),
-_eclapsedTime(0.0f),
-_sensity(_owner->getUnitDef()->get(ActionSetting::Sensity, 0.0f))
-{ }
+UnitAction::UnitAction(String name, int priority, bool queued, Unit* owner)
+	: _name(name)
+	, _priority(priority)
+	, _queued(queued)
+	, _doing(false)
+	, _status(Behavior::Status::Failure)
+	, _owner(owner)
+	, reaction(0.0f)
+	, _eclapsedTime(0.0f)
+	, _sensity(_owner->getUnitDef()->get(ActionSetting::Sensity, 0.0f)) { }
 
-UnitAction::~UnitAction()
-{
+UnitAction::~UnitAction() {
 	_owner = nullptr;
 }
 
-const std::string& UnitAction::getName() const
-{
+const std::string& UnitAction::getName() const {
 	return _name;
 }
 
-int UnitAction::getPriority() const
-{
+int UnitAction::getPriority() const {
 	return _priority;
 }
 
-bool UnitAction::isDoing() const
-{
+bool UnitAction::isDoing() const {
 	return _doing;
 }
 
-bool UnitAction::isQueued() const
-{
+bool UnitAction::isQueued() const {
 	return _queued;
 }
 
-Unit* UnitAction::getOwner() const
-{
+Unit* UnitAction::getOwner() const {
 	return _owner;
 }
 
-bool UnitAction::isAvailable()
-{
+bool UnitAction::isAvailable() {
 	return true;
 }
 
-float UnitAction::getEclapsedTime() const
-{
+float UnitAction::getEclapsedTime() const {
 	return _eclapsedTime;
 }
 
-Behavior::Status UnitAction::getStatus() const
-{
+Behavior::Status UnitAction::getStatus() const {
 	return _status;
 }
 
-void UnitAction::run()
-{
+void UnitAction::run() {
 	_doing = true;
 	_decisionDelay = 0.0f;
 	_eclapsedTime = 0.0f;
 }
 
-void UnitAction::update(float dt)
-{
+void UnitAction::update(float dt) {
 	_eclapsedTime += dt;
 	float reactionTime = _sensity * UnitAction::reaction;
-	if (reactionTime >= 0)
-	{
+	if (reactionTime >= 0) {
 		_decisionDelay += dt;
-		if (_decisionDelay >= reactionTime)
-		{
+		if (_decisionDelay >= reactionTime) {
 			_decisionDelay = 0.0f;
 			// Check AI here
 			SharedAI.runDecisionTree(_owner);
@@ -114,39 +102,33 @@ void UnitAction::update(float dt)
 	}
 }
 
-void UnitAction::stop()
-{
+void UnitAction::stop() {
 	_doing = false;
 	_eclapsedTime = 0.0f;
 	_decisionDelay = 0.0f;
 }
 
-void UnitAction::add(String name, Own<UnitActionDef>&& actionDef)
-{
+void UnitAction::add(String name, Own<UnitActionDef>&& actionDef) {
 	_actionDefs[name] = std::move(actionDef);
 }
 
-void UnitAction::clear()
-{
+void UnitAction::clear() {
 	_actionDefs.clear();
 }
 
 // Walk
 
-Walk::Walk(Unit* unit):
-UnitAction(ActionSetting::UnitActionWalk, ActionSetting::PriorityWalk, false, unit)
-{
+Walk::Walk(Unit* unit)
+	: UnitAction(ActionSetting::UnitActionWalk, ActionSetting::PriorityWalk, false, unit) {
 	UnitAction::reaction = ActionSetting::ReactionWalk;
 	UnitAction::recovery = ActionSetting::RecoveryWalk;
 }
 
-bool Walk::isAvailable()
-{
+bool Walk::isAvailable() {
 	return _owner->isOnSurface();
 }
 
-void Walk::run()
-{
+void Walk::run() {
 	Playable* playable = _owner->getPlayable();
 	auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
 	playable->setSpeed(moveSpeed);
@@ -156,68 +138,55 @@ void Walk::run()
 	UnitAction::run();
 }
 
-void Walk::update(float dt)
-{
-	if (_owner->isOnSurface())
-	{
+void Walk::update(float dt) {
+	if (_owner->isOnSurface()) {
 		auto move = _owner->getEntity()->get(ActionSetting::Move, 0.0f);
 		auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
 		move *= moveSpeed;
-		if (_eclapsedTime < UnitAction::recovery)
-		{
+		if (_eclapsedTime < UnitAction::recovery) {
 			move *= std::min(_eclapsedTime / UnitAction::recovery, 1.0f);
 		}
 		_owner->setVelocityX(_owner->isFaceRight() ? move : -move);
-	}
-	else
-	{
+	} else {
 		Walk::stop();
 	}
 	UnitAction::update(dt);
 }
 
-void Walk::stop()
-{
+void Walk::stop() {
 	UnitAction::stop();
 }
 
-Own<UnitAction> Walk::alloc(Unit* unit)
-{
+Own<UnitAction> Walk::alloc(Unit* unit) {
 	UnitAction* action = new Walk(unit);
 	return MakeOwn(action);
 }
 
 // Turn
 
-Turn::Turn(Unit* unit):
-UnitAction(ActionSetting::UnitActionTurn, ActionSetting::PriorityTurn, true, unit)
-{ }
+Turn::Turn(Unit* unit)
+	: UnitAction(ActionSetting::UnitActionTurn, ActionSetting::PriorityTurn, true, unit) { }
 
-void Turn::run()
-{
+void Turn::run() {
 	_owner->setFaceRight(!_owner->isFaceRight());
 }
 
-Own<UnitAction> Turn::alloc(Unit* unit)
-{
+Own<UnitAction> Turn::alloc(Unit* unit) {
 	UnitAction* action = new Turn(unit);
 	return MakeOwn(action);
 }
 
-Idle::Idle(Unit* unit):
-UnitAction(ActionSetting::UnitActionIdle, ActionSetting::PriorityIdle, false, unit)
-{
+Idle::Idle(Unit* unit)
+	: UnitAction(ActionSetting::UnitActionIdle, ActionSetting::PriorityIdle, false, unit) {
 	UnitAction::reaction = ActionSetting::ReactionIdle;
 	UnitAction::recovery = ActionSetting::RecoveryIdle;
 }
 
-bool Idle::isAvailable()
-{
+bool Idle::isAvailable() {
 	return _owner->isOnSurface();
 }
 
-void Idle::run()
-{
+void Idle::run() {
 	UnitAction::run();
 	Playable* playable = _owner->getPlayable();
 	playable->setSpeed(1.0f);
@@ -226,49 +195,39 @@ void Idle::run()
 	playable->play(ActionSetting::AnimationIdle, true);
 }
 
-void Idle::update(float dt)
-{
+void Idle::update(float dt) {
 	Playable* playable = _owner->getPlayable();
-	if (_owner->isOnSurface())
-	{
-		if (_owner->getPlayable()->getCurrent() != ActionSetting::AnimationIdle)
-		{
+	if (_owner->isOnSurface()) {
+		if (_owner->getPlayable()->getCurrent() != ActionSetting::AnimationIdle) {
 			playable->play(ActionSetting::AnimationIdle);
 		}
-	}
-	else
-	{
+	} else {
 		Idle::stop();
 	}
 	UnitAction::update(dt);
 }
 
-void Idle::stop()
-{
+void Idle::stop() {
 	UnitAction::stop();
 }
 
-Own<UnitAction> Idle::alloc(Unit* unit)
-{
+Own<UnitAction> Idle::alloc(Unit* unit) {
 	UnitAction* action = new Idle(unit);
 	return MakeOwn(action);
 }
 
-Jump::Jump(Unit* unit):
-_duration(0.0f),
-UnitAction(ActionSetting::UnitActionJump, ActionSetting::PriorityJump, true, unit)
-{
+Jump::Jump(Unit* unit)
+	: _duration(0.0f)
+	, UnitAction(ActionSetting::UnitActionJump, ActionSetting::PriorityJump, true, unit) {
 	UnitAction::reaction = ActionSetting::ReactionJump;
 	UnitAction::recovery = ActionSetting::RecoveryJump;
 }
 
-bool Jump::isAvailable()
-{
+bool Jump::isAvailable() {
 	return _owner->isOnSurface();
 }
 
-void Jump::run()
-{
+void Jump::run() {
 	Playable* playable = _owner->getPlayable();
 	auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
 	auto jump = _owner->getEntity()->get(ActionSetting::Jump, 0.0f);
@@ -294,74 +253,62 @@ void Jump::run()
 	auto invMass = pd::GetInvMass(world, self);
 	pd::ApplyLinearImpulse(world, target,
 		pr::Vec2{-velocity[0] / invMass,
-		-velocity[1] / invMass},
+			-velocity[1] / invMass},
 		std::get<1>(witnessPoints));
 	UnitAction::run();
 }
 
-void Jump::update(float dt)
-{
-	if (_duration == 0.0f)
-	{
+void Jump::update(float dt) {
+	if (_duration == 0.0f) {
 		if (_eclapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
 		{
 			Jump::stop();
-		}
-		else UnitAction::update(dt);
-	}
-	else UnitAction::update(dt);
+		} else
+			UnitAction::update(dt);
+	} else
+		UnitAction::update(dt);
 }
 
-void Jump::stop()
-{
+void Jump::stop() {
 	Playable* playable = _owner->getPlayable();
 	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Jump::onAnimationEnd));
 	UnitAction::stop();
 }
 
-void Jump::onAnimationEnd(Event* e)
-{
+void Jump::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
-	if (name == ActionSetting::AnimationJump)
-	{
+	if (name == ActionSetting::AnimationJump) {
 		Jump::stop();
 	}
 }
 
-Own<UnitAction> Jump::alloc(Unit* unit)
-{
+Own<UnitAction> Jump::alloc(Unit* unit) {
 	UnitAction* action = new Jump(unit);
 	return MakeOwn(action);
 }
 
-Cancel::Cancel(Unit* unit):
-UnitAction(ActionSetting::UnitActionCancel, ActionSetting::PriorityCancel, true, unit)
-{ }
+Cancel::Cancel(Unit* unit)
+	: UnitAction(ActionSetting::UnitActionCancel, ActionSetting::PriorityCancel, true, unit) { }
 
-void Cancel::run()
-{ }
+void Cancel::run() { }
 
-Own<UnitAction> Cancel::alloc(Unit* unit)
-{
+Own<UnitAction> Cancel::alloc(Unit* unit) {
 	UnitAction* action = new Cancel(unit);
 	return MakeOwn(action);
 }
 
 // Attack
 
-Attack::Attack(String name, Unit* unit ):
-UnitAction(name, ActionSetting::PriorityAttack, true, unit)
-{
+Attack::Attack(String name, Unit* unit)
+	: UnitAction(name, ActionSetting::PriorityAttack, true, unit) {
 	UnitAction::recovery = ActionSetting::RecoveryAttack;
 }
 
-Attack::~Attack()
-{ }
+Attack::~Attack() { }
 
-void Attack::run()
-{
+void Attack::run() {
 	auto attackDelay = _owner->getUnitDef()->get(ActionSetting::AttackDelay, 0.0f);
 	auto attackSpeed = _owner->getEntity()->get(ActionSetting::AttackSpeed, 1.0f);
 	auto attackEffectDelay = _owner->getUnitDef()->get(ActionSetting::AttackEffectDelay, 0.0f);
@@ -376,25 +323,20 @@ void Attack::run()
 	UnitAction::run();
 }
 
-void Attack::update(float dt)
-{
+void Attack::update(float dt) {
 	_eclapsedTime += dt;
-	if (_attackDelay >= 0 && _eclapsedTime >= _attackDelay)
-	{
+	if (_attackDelay >= 0 && _eclapsedTime >= _attackDelay) {
 		_attackDelay = -1;
 		auto sndAttack = _owner->getUnitDef()->get(ActionSetting::SndAttack, Slice::Empty);
-		if (!sndAttack.empty())
-		{
+		if (!sndAttack.empty()) {
 			SharedAudio.play(sndAttack);
 		}
 		this->onAttack();
 	}
-	if (_attackEffectDelay >= 0 && _eclapsedTime >= _attackEffectDelay)
-	{
+	if (_attackEffectDelay >= 0 && _eclapsedTime >= _attackEffectDelay) {
 		_attackEffectDelay = -1;
 		auto attackEffect = _owner->getUnitDef()->get(ActionSetting::AttackEffect, Slice::Empty);
-		if (!attackEffect.empty())
-		{
+		if (!attackEffect.empty()) {
 			Vec2 key = _owner->getPlayable()->getKeyPoint(ActionSetting::AttackKey);
 			Visual* effect = Visual::create(attackEffect);
 			effect->setPosition(key);
@@ -405,29 +347,24 @@ void Attack::update(float dt)
 	}
 }
 
-void Attack::stop()
-{
+void Attack::stop() {
 	Playable* playable = _owner->getPlayable();
 	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Attack::onAnimationEnd));
 	UnitAction::stop();
 }
 
-void Attack::onAnimationEnd(Event* e)
-{
+void Attack::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
-	if (name == ActionSetting::AnimationAttack)
-	{
-		if (UnitAction::isDoing())
-		{
+	if (name == ActionSetting::AnimationAttack) {
+		if (UnitAction::isDoing()) {
 			this->stop();
 		}
 	}
 }
 
-float Attack::getDamage(Unit* target)
-{
+float Attack::getDamage(Unit* target) {
 	auto damageType = _owner->getUnitDef()->get(ActionSetting::DamageType, 0.0f);
 	auto defenceType = target->getUnitDef()->get(ActionSetting::DefenceType, 0.0f);
 	auto attackBase = _owner->getUnitDef()->get(ActionSetting::AttackBase, 0.0f);
@@ -438,26 +375,22 @@ float Attack::getDamage(Unit* target)
 	return damage;
 }
 
-Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape)
-{
+Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape) {
 	Vec2 hitPoint{};
 	float distance = -1;
 	auto selfB = self->getPrBody();
 	auto targetB = target->getPrBody();
 	auto& world = target->getPhysicsWorld()->getPrWorld();
 	const auto transformA = pd::GetTransformation(world, selfB);
-	for (pr::ShapeID f : pd::GetShapes(world, targetB))
-	{
-		if (!pd::IsSensor(world, f))
-		{
+	for (pr::ShapeID f : pd::GetShapes(world, targetB)) {
+		if (!pd::IsSensor(world, f)) {
 			const auto proxyA = pd::GetChild(selfShape, 0);
 			const auto proxyB = pd::GetChild(pd::GetShape(world, f), 0);
 			const auto transformB = pd::GetTransformation(world, targetB);
 			pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
 			const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
 			const auto outputDistance = pr::GetMagnitude(std::get<0>(witnessPoints) - std::get<1>(witnessPoints));
-			if (distance == -1 || distance > outputDistance)
-			{
+			if (distance == -1 || distance > outputDistance) {
 				distance = outputDistance;
 				hitPoint = PhysicsWorld::oVal(std::get<1>(witnessPoints));
 			}
@@ -468,23 +401,18 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape)
 
 // MeleeAttack
 
-MeleeAttack::MeleeAttack(Unit* unit):
-Attack(ActionSetting::UnitActionMeleeAttack, unit)
-{
+MeleeAttack::MeleeAttack(Unit* unit)
+	: Attack(ActionSetting::UnitActionMeleeAttack, unit) {
 	pd::PolygonShapeConf conf{PhysicsWorld::b2Val(std::max(_owner->getWidth(), 10.0f) * 0.5f), 0.0005f};
 	_polygon = pd::Shape{conf};
 }
 
-void MeleeAttack::onAttack()
-{
+void MeleeAttack::onAttack() {
 	Sensor* sensor = _owner->getAttackSensor();
-	if (sensor)
-	{
-		ARRAY_START(Body, body, sensor->getSensedBodies())
-		{
+	if (sensor) {
+		ARRAY_START(Body, body, sensor->getSensedBodies()) {
 			Unit* target = DoraAs<Unit>(body->getOwner());
-			BLOCK_START
-			{
+			BLOCK_START {
 				BREAK_UNLESS(target);
 				bool attackRight = _owner->getPosition().x < target->getPosition().x;
 				bool faceRight = _owner->isFaceRight();
@@ -513,30 +441,25 @@ void MeleeAttack::onAttack()
 	}
 }
 
-Own<UnitAction> MeleeAttack::alloc(Unit* unit)
-{
+Own<UnitAction> MeleeAttack::alloc(Unit* unit) {
 	UnitAction* action = new MeleeAttack(unit);
 	return MakeOwn(action);
 }
 
 // RangeAttack
 
-RangeAttack::RangeAttack(Unit* unit):
-Attack(ActionSetting::UnitActionRangeAttack, unit)
-{ }
+RangeAttack::RangeAttack(Unit* unit)
+	: Attack(ActionSetting::UnitActionRangeAttack, unit) { }
 
-Own<UnitAction> RangeAttack::alloc(Unit* unit)
-{
+Own<UnitAction> RangeAttack::alloc(Unit* unit) {
 	UnitAction* action = new RangeAttack(unit);
 	return MakeOwn(action);
 }
 
-void RangeAttack::onAttack()
-{
+void RangeAttack::onAttack() {
 	auto bulletType = _owner->getUnitDef()->get(ActionSetting::BulletType, Slice::Empty);
 	BulletDef* bulletDef = SharedData.getStore()->get(bulletType, (BulletDef*)nullptr);
-	if (bulletDef)
-	{
+	if (bulletDef) {
 		Bullet* bullet = Bullet::create(bulletDef, _owner);
 		auto targetAllow = TargetAllow(_owner->getEntity()->get(ActionSetting::TargetAllow, 0u));
 		bullet->targetAllow = targetAllow;
@@ -545,16 +468,12 @@ void RangeAttack::onAttack()
 	}
 }
 
-bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint)
-{
+bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint) {
 	/* Get hit point */
 	bool attackFromRight = false;
-	if (bullet->getBulletDef()->damageRadius > 0.0f)
-	{
+	if (bullet->getBulletDef()->damageRadius > 0.0f) {
 		attackFromRight = bullet->getX() < hitPoint.x;
-	}
-	else
-	{
+	} else {
 		attackFromRight = bullet->getVelocityX() < 0.0f;
 	}
 	Entity* entity = target->getEntity();
@@ -569,29 +488,24 @@ bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint)
 	return true;
 }
 
-Hit::Hit(Unit* unit):
-UnitAction(ActionSetting::UnitActionHit, ActionSetting::PriorityHit, true, unit),
-_effect(nullptr)
-{
+Hit::Hit(Unit* unit)
+	: UnitAction(ActionSetting::UnitActionHit, ActionSetting::PriorityHit, true, unit)
+	, _effect(nullptr) {
 	UnitAction::recovery = ActionSetting::RecoveryHit;
 	auto hitEffect = _owner->getUnitDef()->get(ActionSetting::HitEffect, Slice::Empty);
-	if (!hitEffect.empty())
-	{
+	if (!hitEffect.empty()) {
 		_effect = Visual::create(hitEffect);
 		_effect->addTo(_owner);
 	}
 }
 
-Hit::~Hit()
-{ }
+Hit::~Hit() { }
 
-void Hit::run()
-{
+void Hit::run() {
 	auto data = _owner->getUserData();
 	Vec2 hitPoint = data->get(ActionSetting::HitPoint, Vec2::zero);
 	Vec2 key = _owner->convertToNodeSpace(hitPoint);
-	if (_effect)
-	{
+	if (_effect) {
 		_effect->setPosition(key);
 		_effect->start();
 	}
@@ -607,53 +521,43 @@ void Hit::run()
 	playable->setRecovery(UnitAction::recovery);
 	playable->setSpeed(1.0f);
 	float duration = playable->play(ActionSetting::AnimationHit);
-	if (duration == 0.0f)
-	{
+	if (duration == 0.0f) {
 		Hit::stop();
 	}
 }
 
-void Hit::update(float dt)
-{ }
+void Hit::update(float dt) { }
 
-void Hit::onAnimationEnd(Event* e)
-{
+void Hit::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
-	if (name == ActionSetting::AnimationHit)
-	{
-		if (UnitAction::isDoing())
-		{
+	if (name == ActionSetting::AnimationHit) {
+		if (UnitAction::isDoing()) {
 			this->stop();
 		}
 	}
 }
 
-void Hit::stop()
-{
+void Hit::stop() {
 	Playable* playable = _owner->getPlayable();
 	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Hit::onAnimationEnd));
 	UnitAction::stop();
 }
 
-Own<UnitAction> Hit::alloc(Unit* unit)
-{
+Own<UnitAction> Hit::alloc(Unit* unit) {
 	UnitAction* action = new Hit(unit);
 	return MakeOwn(action);
 }
 
-Fall::Fall(Unit* unit):
-UnitAction(ActionSetting::UnitActionFall, ActionSetting::PriorityFall, true, unit)
-{
+Fall::Fall(Unit* unit)
+	: UnitAction(ActionSetting::UnitActionFall, ActionSetting::PriorityFall, true, unit) {
 	UnitAction::recovery = ActionSetting::RecoveryFall;
 }
 
-Fall::~Fall()
-{ }
+Fall::~Fall() { }
 
-void Fall::run()
-{
+void Fall::run() {
 	Playable* playable = _owner->getPlayable();
 	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Fall::onAnimationEnd));
 	playable->setLook(ActionSetting::LookFallen);
@@ -661,47 +565,39 @@ void Fall::run()
 	playable->setSpeed(1.0f);
 	playable->play(ActionSetting::AnimationFall);
 	auto hitEffect = _owner->getUnitDef()->get(ActionSetting::HitEffect, Slice::Empty);
-	if (!hitEffect.empty())
-	{
+	if (!hitEffect.empty()) {
 		Visual* effect = Visual::create(hitEffect);
 		effect->addTo(_owner);
 		effect->autoRemove();
 		effect->start();
 	}
 	auto sndFallen = _owner->getUnitDef()->get(ActionSetting::SndFallen, Slice::Empty);
-	if (!sndFallen.empty())
-	{
+	if (!sndFallen.empty()) {
 		SharedAudio.play(sndFallen);
 	}
 	UnitAction::run();
 }
 
-void Fall::update(float)
-{ }
+void Fall::update(float) { }
 
-void Fall::stop()
-{
+void Fall::stop() {
 	Playable* playable = _owner->getPlayable();
 	playable->slot("AnimationEnd"_slice)->remove(std::make_pair(this, &Fall::onAnimationEnd));
 	UnitAction::stop();
 }
 
-void Fall::onAnimationEnd(Event* e)
-{
+void Fall::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
 	e->get(name, playable);
-	if (name == ActionSetting::AnimationFall)
-	{
-		if (UnitAction::isDoing())
-		{
+	if (name == ActionSetting::AnimationFall) {
+		if (UnitAction::isDoing()) {
 			this->stop();
 		}
 	}
 }
 
-Own<UnitAction> Fall::alloc(Unit* unit)
-{
+Own<UnitAction> Fall::alloc(Unit* unit) {
 	UnitAction* action = new Fall(unit);
 	return MakeOwn(action);
 }
@@ -724,8 +620,7 @@ const Slice ActionSetting::UnitActionHit = "hit"_slice;
 const Slice ActionSetting::UnitActionFall = "fall"_slice;
 
 typedef Own<UnitAction> (*UnitActionFunc)(Unit* unit);
-static const std::unordered_map<std::string,UnitActionFunc> g_createFuncs =
-{
+static const std::unordered_map<std::string, UnitActionFunc> g_createFuncs = {
 	{ActionSetting::UnitActionWalk, &Walk::alloc},
 	{ActionSetting::UnitActionTurn, &Turn::alloc},
 	{ActionSetting::UnitActionMeleeAttack, &MeleeAttack::alloc},
@@ -734,21 +629,15 @@ static const std::unordered_map<std::string,UnitActionFunc> g_createFuncs =
 	{ActionSetting::UnitActionCancel, &Cancel::alloc},
 	{ActionSetting::UnitActionJump, &Jump::alloc},
 	{ActionSetting::UnitActionHit, &Hit::alloc},
-	{ActionSetting::UnitActionFall, &Fall::alloc}
-};
+	{ActionSetting::UnitActionFall, &Fall::alloc}};
 
-Own<UnitAction> UnitAction::alloc(String name, Unit* unit)
-{
+Own<UnitAction> UnitAction::alloc(String name, Unit* unit) {
 	auto it = _actionDefs.find(name);
-	if (it != _actionDefs.end())
-	{
+	if (it != _actionDefs.end()) {
 		return it->second->toAction(unit);
-	}
-	else
-	{
+	} else {
 		auto it = g_createFuncs.find(name);
-		if (it != g_createFuncs.end())
-		{
+		if (it != g_createFuncs.end()) {
 			return it->second(unit);
 		}
 	}

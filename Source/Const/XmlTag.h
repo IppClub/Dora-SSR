@@ -10,31 +10,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-namespace Xml
-{
+namespace Xml {
 
-namespace Clip
-{
-	enum struct Element
-	{
-		Dorothy = 'A',
-		Clip = 'B',
-	};
+namespace Clip {
+enum struct Element {
+	Dorothy = 'A',
+	Clip = 'B',
+};
 
-	enum struct Dorothy
-	{
-		File = 'A',
-	};
+enum struct Dorothy {
+	File = 'A',
+};
 
-	enum struct Clip
-	{
-		Name = 'A',
-		Rect = 'B',
-	};
+enum struct Clip {
+	Name = 'A',
+	Rect = 'B',
+};
 }
 
-enum struct Particle
-{
+enum struct Particle {
 	Dorothy = 'A',
 	Angle = 'B', // float
 	AngleVariance = 'C', // float
@@ -80,120 +74,103 @@ enum struct Particle
 	RotatePerSecondVariance = 'o', // float
 };
 
-namespace Visual
-{
-	enum struct Element
-	{
-		Dorothy = 'A',
-		Visual = 'B',
-	};
-
-	enum struct Visual
-	{
-		Name = 'A',
-		File = 'B',
-	};
-}
-
-namespace Frame
-{
-	enum struct Element
-	{
-		Dorothy = 'A',
-		Clip = 'B',
-	};
-
-	enum struct Dorothy
-	{
-		File = 'A',
-		Duration = 'B',
-	};
-
-	enum struct Clip
-	{
-		Rect = 'A',
-	};
+namespace Visual {
+enum struct Element {
+	Dorothy = 'A',
+	Visual = 'B',
 };
 
-namespace Model
-{
-	enum struct Element
-	{
-		Dorothy = 'A',
-		Sprite = 'B',
-		KeyAnimation = 'C',
-		KeyFrame = 'D',
-		FrameAnimation = 'E',
-		Look = 'F',
-		LookName = 'I',
-		AnimationName = 'J',
-		KeyPoint = 'K',
-	};
+enum struct Visual {
+	Name = 'A',
+	File = 'B',
+};
+}
 
-	enum struct Dorothy
-	{
-		File = 'A',
-		Size = 'D',
-	};
+namespace Frame {
+enum struct Element {
+	Dorothy = 'A',
+	Clip = 'B',
+};
 
-	enum struct Sprite
-	{
-		Key = 'A',
-		Opacity = 'C',
-		Position = 'D',
-		Scale = 'E',
-		Rotation = 'F',
-		Skew = 'G',
-		Name = 'H',
-		Clip = 'I',
-		Front = 'J',
-	};
+enum struct Dorothy {
+	File = 'A',
+	Duration = 'B',
+};
 
-	enum struct KeyFrame
-	{
-		Duration = 'A',
-		Visible = 'B',
-		Opacity = 'C',
-		Position = 'D',
-		Scale = 'E',
-		Rotation = 'F',
-		Skew = 'G',
-		EaseOpacity = 'H',
-		EasePos = 'I',
-		EaseScale = 'J',
-		EaseRotate = 'K',
-		EaseSkew = 'L',
-		Event = 'M',
-	};
+enum struct Clip {
+	Rect = 'A',
+};
+};
 
-	enum struct FrameAnimation
-	{
-		File = 'A',
-		Delay = 'B',
-	};
+namespace Model {
+enum struct Element {
+	Dorothy = 'A',
+	Sprite = 'B',
+	KeyAnimation = 'C',
+	KeyFrame = 'D',
+	FrameAnimation = 'E',
+	Look = 'F',
+	LookName = 'I',
+	AnimationName = 'J',
+	KeyPoint = 'K',
+};
 
-	enum struct Look
-	{
-		Name = 'H',
-	};
+enum struct Dorothy {
+	File = 'A',
+	Size = 'D',
+};
 
-	enum struct LookName
-	{
-		Index = 'C',
-		Name = 'H'
-	};
+enum struct Sprite {
+	Key = 'A',
+	Opacity = 'C',
+	Position = 'D',
+	Scale = 'E',
+	Rotation = 'F',
+	Skew = 'G',
+	Name = 'H',
+	Clip = 'I',
+	Front = 'J',
+};
 
-	enum struct AnimationName
-	{
-		Index = 'C',
-		Name = 'H'
-	};
+enum struct KeyFrame {
+	Duration = 'A',
+	Visible = 'B',
+	Opacity = 'C',
+	Position = 'D',
+	Scale = 'E',
+	Rotation = 'F',
+	Skew = 'G',
+	EaseOpacity = 'H',
+	EasePos = 'I',
+	EaseScale = 'J',
+	EaseRotate = 'K',
+	EaseSkew = 'L',
+	Event = 'M',
+};
 
-	enum struct KeyPoint
-	{
-		Key = 'A',
-		Position = 'B'
-	};
+enum struct FrameAnimation {
+	File = 'A',
+	Delay = 'B',
+};
+
+enum struct Look {
+	Name = 'H',
+};
+
+enum struct LookName {
+	Index = 'C',
+	Name = 'H'
+};
+
+enum struct AnimationName {
+	Index = 'C',
+	Name = 'H'
+};
+
+enum struct KeyPoint {
+	Key = 'A',
+	Position = 'B'
+};
 };
 
 } // namespace Xml

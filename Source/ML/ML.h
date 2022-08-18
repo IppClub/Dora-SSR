@@ -14,14 +14,14 @@ NS_DOROTHY_BEGIN
 namespace ML {
 
 void BuildDecisionTreeAsync(String data, int maxDepth,
-	const std::function<void(double,String,String,String)>& handleTree);
+	const std::function<void(double, String, String, String)>& handleTree);
 
-class QLearner : public Object
-{
+class QLearner : public Object {
 public:
 	using QState = uint64_t;
 	using QAction = uint32_t; // action must start with 1, 0 means invalid action
 	using QMatrix = std::map<QState, std::map<QAction, double>>;
+
 public:
 	void update(QState state, QAction action, double reward);
 	QAction getBestAction(QState state) const;
@@ -29,12 +29,15 @@ public:
 	static QState pack(const std::vector<uint32_t>& hints, const std::vector<uint32_t>& values);
 	static std::vector<uint32_t> unpack(const std::vector<uint32_t>& hints, QState state);
 	CREATE_FUNC(QLearner);
+
 public:
 	void setQ(QState s, QAction a, double q);
+
 protected:
 	QLearner(double gamma = 0.5, double alpha = 0.5, double maxQ = 100.0);
 	double getMaxQ(QState state) const;
 	double getQ(QState s, QAction a) const;
+
 private:
 	double _maxQ;
 	double _gamma;

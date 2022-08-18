@@ -7,31 +7,30 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Cache/Cache.h"
+
 #include "Animation/ModelDef.h"
-#include "Cache/ModelCache.h"
-#include "Cache/SkeletonCache.h"
-#include "Cache/DragonBoneCache.h"
-#include "Node/Label.h"
 #include "Cache/AtlasCache.h"
 #include "Cache/ClipCache.h"
+#include "Cache/DragonBoneCache.h"
 #include "Cache/FrameCache.h"
-#include "Node/Particle.h"
+#include "Cache/ModelCache.h"
 #include "Cache/ParticleCache.h"
 #include "Cache/SVGCache.h"
 #include "Cache/ShaderCache.h"
+#include "Cache/SkeletonCache.h"
 #include "Cache/SoundCache.h"
 #include "Cache/TextureCache.h"
+#include "Node/Label.h"
+#include "Node/Particle.h"
 
 NS_DOROTHY_BEGIN
 
-bool Cache::load(String filename)
-{
+bool Cache::load(String filename) {
 	auto tokens = filename.split(":"_slice);
-	if (tokens.size() == 2)
-	{
-		switch (Switch::hash(tokens.front()))
-		{
+	if (tokens.size() == 2) {
+		switch (Switch::hash(tokens.front())) {
 			case "model"_hash:
 				return SharedModelCache.load(tokens.back()) != nullptr;
 			case "spine"_hash:
@@ -46,10 +45,8 @@ bool Cache::load(String filename)
 		}
 	}
 	std::string ext = Path::getExt(filename);
-	if (!ext.empty())
-	{
-		switch (Switch::hash(ext))
-		{
+	if (!ext.empty()) {
+		switch (Switch::hash(ext)) {
 			case "atlas"_hash:
 				return SharedAtlasCache.load(filename) != nullptr;
 			case "clip"_hash:
@@ -75,8 +72,7 @@ bool Cache::load(String filename)
 			case "mp3"_hash:
 			case "flac"_hash:
 				return SharedSoundCache.load(filename) != nullptr;
-			default:
-			{
+			default: {
 				Error("failed to load unsupported resource \"{}\".", filename);
 				return false;
 			}
@@ -85,13 +81,10 @@ bool Cache::load(String filename)
 	return false;
 }
 
-void Cache::loadAsync(String filename, const std::function<void()>& callback)
-{
+void Cache::loadAsync(String filename, const std::function<void()>& callback) {
 	auto tokens = filename.split(":"_slice);
-	if (tokens.size() == 2)
-	{
-		switch (Switch::hash(tokens.front()))
-		{
+	if (tokens.size() == 2) {
+		switch (Switch::hash(tokens.front())) {
 			case "model"_hash:
 				SharedModelCache.loadAsync(tokens.back(), [callback](ModelDef*) { callback(); });
 				return;
@@ -110,10 +103,8 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback)
 		}
 	}
 	std::string ext = Path::getExt(filename);
-	if (!ext.empty())
-	{
-		switch (Switch::hash(ext))
-		{
+	if (!ext.empty()) {
+		switch (Switch::hash(ext)) {
 			case "clip"_hash:
 				SharedClipCache.loadAsync(filename, [callback](ClipDef*) { callback(); });
 				break;
@@ -152,13 +143,10 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback)
 	}
 }
 
-void Cache::update(String filename, String content)
-{
+void Cache::update(String filename, String content) {
 	std::string ext = Path::getExt(filename);
-	if (!ext.empty())
-	{
-		switch (Switch::hash(ext))
-		{
+	if (!ext.empty()) {
+		switch (Switch::hash(ext)) {
 			case "clip"_hash:
 				SharedClipCache.update(filename, content);
 				break;
@@ -181,27 +169,21 @@ void Cache::update(String filename, String content)
 	}
 }
 
-void Cache::update(String filename, Texture2D* texture)
-{
+void Cache::update(String filename, Texture2D* texture) {
 	SharedTextureCache.update(filename, texture);
 }
 
-bool Cache::unload(String name)
-{
+bool Cache::unload(String name) {
 	auto tokens = name.split(":"_slice);
-	if (tokens.size() == 2)
-	{
-		switch (Switch::hash(tokens.front()))
-		{
+	if (tokens.size() == 2) {
+		switch (Switch::hash(tokens.front())) {
 			case "spine"_hash:
 				return SharedSkeletonCache.unload(tokens.back());
 		}
 	}
 	std::string ext = Path::getExt(name);
-	if (!ext.empty())
-	{
-		switch (Switch::hash(ext))
-		{
+	if (!ext.empty()) {
+		switch (Switch::hash(ext)) {
 			case "atlas"_hash:
 				return SharedAtlasCache.unload(name);
 			case "clip"_hash:
@@ -231,11 +213,8 @@ bool Cache::unload(String name)
 				Warn("failed to unload resource \"{}\".", name);
 				break;
 		}
-	}
-	else
-	{
-		switch (Switch::hash(name))
-		{
+	} else {
+		switch (Switch::hash(name)) {
 			case "Texture"_hash:
 				return SharedTextureCache.unload();
 			case "SVG"_hash:
@@ -256,8 +235,7 @@ bool Cache::unload(String name)
 				return SharedSoundCache.unload();
 			case "Spine"_hash:
 				return SharedAtlasCache.unload() && SharedSkeletonCache.unload();
-			default:
-			{
+			default: {
 				Warn("failed to unload resources \"{}\".", name);
 				break;
 			}
@@ -266,8 +244,7 @@ bool Cache::unload(String name)
 	return false;
 }
 
-void Cache::unload()
-{
+void Cache::unload() {
 	SharedShaderCache.unload();
 	SharedModelCache.unload();
 	SharedFrameCache.unload();
@@ -282,8 +259,7 @@ void Cache::unload()
 	SharedDragonBoneCache.removeUnused();
 }
 
-void Cache::removeUnused()
-{
+void Cache::removeUnused() {
 	SharedDragonBoneCache.removeUnused();
 	SharedSkeletonCache.removeUnused();
 	SharedAtlasCache.removeUnused();
@@ -298,10 +274,8 @@ void Cache::removeUnused()
 	SharedSoundCache.removeUnused();
 }
 
-void Cache::removeUnused(String name)
-{
-	switch (Switch::hash(name))
-	{
+void Cache::removeUnused(String name) {
+	switch (Switch::hash(name)) {
 		case "Bone"_hash:
 			SharedDragonBoneCache.removeUnused();
 			break;

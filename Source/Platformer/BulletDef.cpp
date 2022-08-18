@@ -7,79 +7,70 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Platformer/Define.h"
-#include "Support/Geometry.h"
+
 #include "Platformer/BulletDef.h"
+
 #include "Physics/BodyDef.h"
 #include "Platformer/Face.h"
+#include "Support/Geometry.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-BulletDef::BulletDef():
-tag(),
-lifeTime(0),
-damageRadius(0),
-endEffect(),
-_bodyDef(BodyDef::create())
-{
+BulletDef::BulletDef()
+	: tag()
+	, lifeTime(0)
+	, damageRadius(0)
+	, endEffect()
+	, _bodyDef(BodyDef::create()) {
 	_bodyDef->setType(pr::BodyType::Dynamic);
 }
 
-BodyDef* BulletDef::getBodyDef() const
-{
+BodyDef* BulletDef::getBodyDef() const {
 	return _bodyDef;
 }
 
-void BulletDef::setVelocity(float angle, float speed)
-{
+void BulletDef::setVelocity(float angle, float speed) {
 	angle = bx::toRad(angle);
 	_velocity.x = std::cos(angle) * speed;
 	_velocity.y = std::sin(angle) * speed;
 }
 
-void BulletDef::setVelocity(const Vec2& velocity)
-{
+void BulletDef::setVelocity(const Vec2& velocity) {
 	_velocity = velocity;
 }
 
-const Vec2& BulletDef::getVelocity() const
-{
+const Vec2& BulletDef::getVelocity() const {
 	return _velocity;
 }
 
-void BulletDef::setHighSpeedFix(bool var)
-{
+void BulletDef::setHighSpeedFix(bool var) {
 	_bodyDef->setBullet(var);
 }
 
-bool BulletDef::isHighSpeedFix() const
-{
+bool BulletDef::isHighSpeedFix() const {
 	return _bodyDef->isBullet();
 }
 
-void BulletDef::setGravity(Vec2 var)
-{
+void BulletDef::setGravity(Vec2 var) {
 	_bodyDef->setLinearAcceleration(var);
 }
 
-Vec2 BulletDef::getGravity() const
-{
+Vec2 BulletDef::getGravity() const {
 	return _bodyDef->getLinearAcceleration();
 }
 
-void BulletDef::setAsCircle(float radius)
-{
+void BulletDef::setAsCircle(float radius) {
 	_bodyDef->clearFixtures();
 	_bodyDef->attachDisk(radius);
 }
 
-void BulletDef::setFace(Face* var)
-{
+void BulletDef::setFace(Face* var) {
 	_face = var;
 }
 
-Face* BulletDef::getFace() const
-{
+Face* BulletDef::getFace() const {
 	return _face;
 }
 

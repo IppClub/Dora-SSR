@@ -14,8 +14,7 @@ NS_DOROTHY_BEGIN
 
 class SoundFile;
 
-class SoundCache
-{
+class SoundCache {
 public:
 	SoundFile* update(String name, SoundFile* soundFile);
 	SoundFile* get(String filename);
@@ -25,9 +24,11 @@ public:
 	bool unload(SoundFile* soundFile);
 	bool unload(String filename);
 	bool unload();
-void removeUnused();
+	void removeUnused();
+
 protected:
 	SoundCache() { }
+
 private:
 	std::unordered_map<std::string, Ref<SoundFile>> _soundFiles;
 	SINGLETON_REF(SoundCache, Audio);

@@ -13,159 +13,134 @@ NS_DOROTHY_BEGIN
 /** @brief Used for weak reference.
  @param T Object
 */
-template<class T = Object>
-class WRef
-{
+template <class T = Object>
+class WRef {
 public:
-	WRef(): _weak(nullptr)
-	{ }
-	explicit WRef(T* item): _weak(nullptr)
-	{
-		if (item)
-		{
+	WRef()
+		: _weak(nullptr) { }
+	explicit WRef(T* item)
+		: _weak(nullptr) {
+		if (item) {
 			_weak = item->getWeakRef();
 			_weak->retain();
 		}
 	}
-	WRef(const Ref<T>& ref): _weak(nullptr)
-	{
-		if (ref)
-		{
+	WRef(const Ref<T>& ref)
+		: _weak(nullptr) {
+		if (ref) {
 			_weak = ref->getWeakRef();
 			_weak->retain();
 		}
 	}
-	WRef(const WRef& ref): _weak(ref._weak)
-	{
-		if (_weak)
-		{
+	WRef(const WRef& ref)
+		: _weak(ref._weak) {
+		if (_weak) {
 			_weak->retain();
 		}
 	}
-	WRef(WRef&& ref) noexcept: _weak(ref._weak)
-	{
+	WRef(WRef&& ref) noexcept
+		: _weak(ref._weak) {
 		ref._weak = nullptr;
 	}
-	~WRef()
-	{
-		if (_weak)
-		{
+	~WRef() {
+		if (_weak) {
 			_weak->release();
 		}
 	}
-	inline T* operator->() const
-	{
+	inline T* operator->() const {
 		return get();
 	}
-	T* operator=(T* item)
-	{
+	T* operator=(T* item) {
 		Weak* weak = nullptr;
-		if (item)
-		{
+		if (item) {
 			weak = item->getWeakRef();
 			weak->retain();
 		}
-		if (_weak)
-		{
+		if (_weak) {
 			_weak->release();
 		}
 		_weak = weak;
 		return item;
 	}
-	const WRef& operator=(const Ref<T>& ref)
-	{
+	const WRef& operator=(const Ref<T>& ref) {
 		operator=(ref.get());
 		return *this;
 	}
-	const WRef& operator=(const WRef& ref)
-	{
+	const WRef& operator=(const WRef& ref) {
 		operator=(ref.get());
 		return *this;
 	}
-	const WRef& operator=(WRef&& ref)
-	{
-		if (this == &ref)
-		{
+	const WRef& operator=(WRef&& ref) {
+		if (this == &ref) {
 			return *this;
 		}
-		if (_weak)
-		{
+		if (_weak) {
 			_weak->release();
 		}
 		_weak = ref._weak;
 		ref._weak = nullptr;
 		return *this;
 	}
-	bool operator==(const WRef& ref) const
-	{
+	bool operator==(const WRef& ref) const {
 		return get()->equals(ref.get());
 	}
-	bool operator!=(const WRef& ref) const
-	{
+	bool operator!=(const WRef& ref) const {
 		return !get()->equals(ref.get());
 	}
-	bool operator==(const Ref<T>& ref) const
-	{
+	bool operator==(const Ref<T>& ref) const {
 		return get()->equals(ref.get());
 	}
-	bool operator!=(const Ref<T>& ref) const
-	{
+	bool operator!=(const Ref<T>& ref) const {
 		return !get()->equals(ref.get());
 	}
-	inline operator T*() const
-	{
+	inline operator T*() const {
 		return get();
 	}
-	inline T* get() const
-	{
-		if (_weak) return s_cast<T*>(_weak->target);
-		else return nullptr;
+	inline T* get() const {
+		if (_weak)
+			return s_cast<T*>(_weak->target);
+		else
+			return nullptr;
 	}
+
 private:
 	Weak* _weak;
 };
 
 template <class T>
-inline WRef<T> MakeWRef(T* item)
-{
+inline WRef<T> MakeWRef(T* item) {
 	return WRef<T>(item);
 }
 
 /** @brief Used with Aggregation Relationship.
  @param T Object
 */
-template<class T = Object>
-class WRefVector : public std::vector<WRef<T>>
-{
+template <class T = Object>
+class WRefVector : public std::vector<WRef<T>> {
 	typedef std::vector<WRef<T>> WRefV;
-public:
-	using WRefV::WRefV;
-	using WRefV::insert;
 
-	inline void push_back(T* item)
-	{
+public:
+	using WRefV::insert;
+	using WRefV::WRefV;
+
+	inline void push_back(T* item) {
 		WRefV::push_back(MakeWRef(item));
 	}
-	typename WRefV::iterator insert(size_t where, T* item)
-	{
+	typename WRefV::iterator insert(size_t where, T* item) {
 		return WRefV::insert(WRefV::begin() + where, MakeWRef(item));
 	}
-	bool remove(T* item)
-	{
+	bool remove(T* item) {
 		auto it = std::remove(WRefV::begin(), WRefV::end(), MakeWRef(item));
 		if (it == WRefV::end()) return false;
 		WRefV::erase(it);
 		return true;
 	}
-	typename WRefV::iterator index(T* item)
-	{
+	typename WRefV::iterator index(T* item) {
 		return std::find(WRefV::begin(), WRefV::end(), MakeWRef(item));
 	}
-	bool fast_remove(T* item)
-	{
+	bool fast_remove(T* item) {
 		size_t index = std::distance(WRefV::begin(), WRefVector::index(item));
-		if (index < WRefV::size())
-		{
+		if (index < WRefV::size()) {
 			WRefV::at(index) = WRefV::back();
 			WRefV::pop_back();
 			return true;

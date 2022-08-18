@@ -14,25 +14,27 @@ class Node;
 class Action;
 class Array;
 
-class Scheduler : public Object
-{
+class Scheduler : public Object {
 	typedef std::list<Ref<Object>> UpdateList;
 	typedef std::unordered_map<Object*, UpdateList::iterator> UpdateMap;
 	typedef std::unordered_set<Object*> FixedUpdateSet;
+
 public:
 	PROPERTY(float, TimeScale);
 	PROPERTY(int, FixedFPS);
 	PROPERTY_READONLY(double, DeltaTime);
 	void schedule(Object* object);
 	void scheduleFixed(Object* object);
-	void schedule(const std::function<bool (double)>& handler);
+	void schedule(const std::function<bool(double)>& handler);
 	void schedule(Action* action);
 	void unschedule(Object* object);
 	void unschedule(Action* action);
 	virtual bool update(double deltaTime) override;
 	CREATE_FUNC(Scheduler);
+
 protected:
 	Scheduler();
+
 private:
 	int _fixedFPS;
 	float _timeScale;
@@ -42,21 +44,23 @@ private:
 	UpdateMap _updateMap;
 	FixedUpdateSet _fixedUpdate;
 	Ref<Array> _actionList;
+
 private:
 	static std::vector<Ref<Object>> _updateItems;
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 
-class Timer : public Object
-{
+class Timer : public Object {
 public:
 	PROPERTY_BOOL(Running);
 	virtual bool update(double deltaTime) override;
 	void start(float duration, const std::function<void()>& callback);
 	void stop();
 	CREATE_FUNC(Timer);
+
 protected:
 	Timer();
+
 private:
 	float _time;
 	float _duration;

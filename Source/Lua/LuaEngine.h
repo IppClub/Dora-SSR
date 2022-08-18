@@ -24,8 +24,7 @@ class Blackboard;
 } // namespace Behavior
 } // namespace Platformer
 
-class LuaEngine
-{
+class LuaEngine {
 public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
@@ -49,45 +48,36 @@ public:
 	void pop(int count = 1);
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>> push(T value)
-	{
+	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>> push(T value) {
 		lua_pushinteger(L, s_cast<lua_Integer>(value));
 	}
 
 	template <class T>
-	typename std::enable_if_t<std::is_floating_point_v<T>> push(T value)
-	{
+	typename std::enable_if_t<std::is_floating_point_v<T>> push(T value) {
 		lua_pushnumber(L, s_cast<lua_Number>(value));
 	}
 
-	template<typename T>
-	typename std::enable_if_t<std::is_base_of_v<Object, T>> push(T* value)
-	{
+	template <typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>> push(T* value) {
 		tolua_pushobject(L, value);
 	}
 
-	template<typename T>
-	typename std::enable_if<std::is_same_v<T, bool>>::type push(T value)
-	{
+	template <typename T>
+	typename std::enable_if<std::is_same_v<T, bool>>::type push(T value) {
 		lua_pushboolean(L, value ? 1 : 0);
 	}
 
-	template<typename T>
+	template <typename T>
 	typename std::enable_if<
-			std::is_same_v<T, Platformer::UnitAction> ||
-			std::is_same_v<T, Platformer::Behavior::Blackboard>
-		>::type push(T* value)
-	{
+		std::is_same_v<T, Platformer::UnitAction> || std::is_same_v<T, Platformer::Behavior::Blackboard>>::type
+	push(T* value) {
 		tolua_pushusertype(L, value, LuaType<T>());
 	}
 
-	template<typename T>
+	template <typename T>
 	typename std::enable_if<
-			std::is_same_v<T, Size> ||
-			std::is_same_v<T, Vec4> ||
-			std::is_same_v<T, Matrix>
-		>::type push(const T& value)
-	{
+		std::is_same_v<T, Size> || std::is_same_v<T, Vec4> || std::is_same_v<T, Matrix>>::type
+	push(const T& value) {
 		tolua_pushusertype(L, new T(value), LuaType<T>());
 	}
 
@@ -96,51 +86,41 @@ public:
 	void push(const Vec2& value);
 
 	template <class T>
-	static typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>> push(lua_State* L, T value)
-	{
+	static typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>> push(lua_State* L, T value) {
 		lua_pushinteger(L, s_cast<lua_Integer>(value));
 	}
 
 	template <class T>
-	static typename std::enable_if_t<std::is_floating_point_v<T>> push(lua_State* L, T value)
-	{
+	static typename std::enable_if_t<std::is_floating_point_v<T>> push(lua_State* L, T value) {
 		lua_pushnumber(L, s_cast<lua_Number>(value));
 	}
 
-	template<typename T>
-	static typename std::enable_if_t<std::is_base_of_v<Object, T>> push(lua_State* L, T* value)
-	{
+	template <typename T>
+	static typename std::enable_if_t<std::is_base_of_v<Object, T>> push(lua_State* L, T* value) {
 		tolua_pushobject(L, value);
 	}
 
-	template<typename T>
-	static typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(lua_State* L, T* t)
-	{
+	template <typename T>
+	static typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(lua_State* L, T* t) {
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
 
-	template<typename T>
-	static typename std::enable_if<std::is_same_v<T, bool>>::type push(lua_State* L, T value)
-	{
+	template <typename T>
+	static typename std::enable_if<std::is_same_v<T, bool>>::type push(lua_State* L, T value) {
 		lua_pushboolean(L, value ? 1 : 0);
 	}
 
-	template<typename T>
+	template <typename T>
 	static typename std::enable_if<
-			std::is_same_v<T, Size> ||
-			std::is_same_v<T, Vec4> ||
-			std::is_same_v<T, Matrix>
-		>::type push(lua_State* L, const T& value)
-	{
+		std::is_same_v<T, Size> || std::is_same_v<T, Vec4> || std::is_same_v<T, Matrix>>::type
+	push(lua_State* L, const T& value) {
 		tolua_pushusertype(L, new T(value), LuaType<T>());
 	}
 
-	template<typename T>
+	template <typename T>
 	static typename std::enable_if<
-			std::is_same_v<T, Platformer::UnitAction> ||
-			std::is_same_v<T, Platformer::Behavior::Blackboard>
-		>::type push(lua_State* L, T* value)
-	{
+		std::is_same_v<T, Platformer::UnitAction> || std::is_same_v<T, Platformer::Behavior::Blackboard>>::type
+	push(lua_State* L, T* value) {
 		tolua_pushusertype(L, value, LuaType<T>());
 	}
 
@@ -149,10 +129,8 @@ public:
 	static void push(lua_State* L, const Vec2& value);
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index)
-	{
-		if (lua_isinteger(L, index))
-		{
+	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index) {
+		if (lua_isinteger(L, index)) {
 			value = s_cast<T>(lua_tointeger(L, index));
 			return true;
 		}
@@ -160,19 +138,16 @@ public:
 	}
 
 	template <class T>
-	typename std::enable_if_t<std::is_floating_point_v<T>, bool> to(T& value, int index)
-	{
-		if (lua_isnumber(L, index))
-		{
+	typename std::enable_if_t<std::is_floating_point_v<T>, bool> to(T& value, int index) {
+		if (lua_isnumber(L, index)) {
 			value = s_cast<T>(lua_tonumber(L, index));
 			return true;
 		}
 		return false;
 	}
 
-	template<typename T>
-	typename std::enable_if_t<std::is_base_of_v<Object, T>, bool> to(T*& t, int index)
-	{
+	template <typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>, bool> to(T*& t, int index) {
 		Object* obj = r_cast<Object*>(tolua_tousertype(L, index, nullptr));
 		t = dynamic_cast<T*>(obj);
 		return t == obj;
@@ -183,17 +158,15 @@ public:
 
 	void executeReturn(LuaHandler*& luaHandler, int handler, int paramCount);
 
-	template<typename T>
-	typename std::enable_if_t<!std::is_base_of_v<Object, T>> executeReturn(T& value, int handler, int paramCount)
-	{
+	template <typename T>
+	typename std::enable_if_t<!std::is_base_of_v<Object, T>> executeReturn(T& value, int handler, int paramCount) {
 		LuaEngine::invoke(L, handler, paramCount, 1);
 		to(value, -1);
 		LuaEngine::pop();
 	}
 
-	template<typename T>
-	typename std::enable_if_t<std::is_base_of_v<Object, T>> executeReturn(T*& value, int handler, int paramCount)
-	{
+	template <typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>> executeReturn(T*& value, int handler, int paramCount) {
 		LuaEngine::invoke(L, handler, paramCount, 1);
 		Object* obj = nullptr;
 		LuaEngine::to(obj, -1);

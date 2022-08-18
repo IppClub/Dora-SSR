@@ -7,21 +7,20 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Cache/ClipCache.h"
-#include "Const/XmlTag.h"
+
 #include "Cache/TextureCache.h"
+#include "Const/XmlTag.h"
 #include "Node/Sprite.h"
 
 NS_DOROTHY_BEGIN
 
-ClipDef::ClipDef()
-{ }
+ClipDef::ClipDef() { }
 
-Sprite* ClipDef::toSprite(String name)
-{
+Sprite* ClipDef::toSprite(String name) {
 	auto it = rects.find(name);
-	if (it != rects.end())
-	{
+	if (it != rects.end()) {
 		Texture2D* texture = SharedTextureCache.load(textureFile);
 		Sprite* sprite = Sprite::create(texture, *it->second);
 		return sprite;
@@ -29,12 +28,10 @@ Sprite* ClipDef::toSprite(String name)
 	return nullptr;
 }
 
-std::string ClipDef::toXml()
-{
+std::string ClipDef::toXml() {
 	fmt::memory_buffer out;
 	fmt::format_to(std::back_inserter(out), "<{} =\"{}\">"sv, char(Xml::Clip::Element::Dorothy), char(Xml::Clip::Dorothy::File));
-	for (const auto& rect : rects)
-	{
+	for (const auto& rect : rects) {
 		fmt::format_to(std::back_inserter(out), "<{} {}=\"{}\" {}=\"{},{},{},{}\"/>"sv,
 			char(Xml::Clip::Element::Clip),
 			char(Xml::Clip::Clip::Name), rect.first,
@@ -48,47 +45,36 @@ std::string ClipDef::toXml()
 
 /* ClipCache */
 
-std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr)
-{
-	if (clipStr.toString().find('|') != std::string::npos)
-	{
+std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
+	if (clipStr.toString().find('|') != std::string::npos) {
 		auto tokens = clipStr.split("|");
 		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
 		ClipDef* clipDef = ClipCache::load(tokens.front());
 		AssertUnless(clipDef, "failed to load clip: \"{}\".", clipStr);
 		Slice name = tokens.back();
 		auto it = clipDef->rects.find(name);
-		if (it != clipDef->rects.end())
-		{
+		if (it != clipDef->rects.end()) {
 			Texture2D* texture = SharedTextureCache.load(clipDef->textureFile);
 			return {texture, *it->second};
-		}
-		else
-		{
+		} else {
 			Warn("no clip named \"{}\" in {}", name, tokens.front());
 			Texture2D* tex = SharedTextureCache.load(clipDef->textureFile);
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-	}
-	else if (Path::getExt(clipStr) == "clip"_slice)
-	{
+	} else if (Path::getExt(clipStr) == "clip"_slice) {
 		Texture2D* tex = nullptr;
 		ClipDef* clipDef = SharedClipCache.load(clipStr);
 		if (clipDef) tex = SharedTextureCache.load(clipDef->textureFile);
-		if (tex)
-		{
+		if (tex) {
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
 		Warn("failed to get clip from clipStr \"{}\".", clipStr);
 		return {};
-	}
-	else
-	{
+	} else {
 		Texture2D* tex = SharedTextureCache.load(clipStr);
-		if (tex)
-		{
+		if (tex) {
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
@@ -97,56 +83,42 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr)
 	}
 }
 
-Sprite* ClipCache::loadSprite(String clipStr)
-{
+Sprite* ClipCache::loadSprite(String clipStr) {
 	Texture2D* tex = nullptr;
 	Rect rect;
 	std::tie(tex, rect) = loadTexture(clipStr);
-	if (tex)
-	{
+	if (tex) {
 		return Sprite::create(tex, rect);
 	}
 	return nullptr;
 }
 
-bool ClipCache::isFileExist(String clipStr) const
-{
+bool ClipCache::isFileExist(String clipStr) const {
 	auto tokens = clipStr.split("|");
 	return SharedContent.exist(tokens.front());
 }
 
-bool ClipCache::isClip(String clipStr) const
-{
-	if (clipStr.toString().find('|') != std::string::npos)
-	{
+bool ClipCache::isClip(String clipStr) const {
+	if (clipStr.toString().find('|') != std::string::npos) {
 		auto tokens = clipStr.split("|");
 		return tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice;
-	}
-	else if (Path::getExt(clipStr) == "clip"_slice)
-	{
+	} else if (Path::getExt(clipStr) == "clip"_slice) {
 		return true;
 	}
 	return false;
 }
 
-std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename)
-{
+std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename) {
 	return std::shared_ptr<XmlParser<ClipDef>>(new Parser(ClipDef::create(), Path::getPath(filename)));
 }
 
-void ClipCache::Parser::xmlSAX2Text(const char *s, size_t len)
-{ }
+void ClipCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
 
-void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
-{
-	switch (Xml::Clip::Element(name[0]))
-	{
-		case Xml::Clip::Element::Dorothy:
-		{
-			for (int i = 0; attrs[i].first != nullptr; i++)
-			{
-				switch (Xml::Clip::Dorothy(attrs[i].first[0]))
-				{
+void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+	switch (Xml::Clip::Element(name[0])) {
+		case Xml::Clip::Element::Dorothy: {
+			for (int i = 0; attrs[i].first != nullptr; i++) {
+				switch (Xml::Clip::Dorothy(attrs[i].first[0])) {
 					case Xml::Clip::Dorothy::File:
 						_item->textureFile = Path::concat({_path, attrs[++i]});
 						break;
@@ -154,20 +126,15 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 			}
 			break;
 		}
-		case Xml::Clip::Element::Clip:
-		{
+		case Xml::Clip::Element::Clip: {
 			Slice name;
-			for (int i = 0; attrs[i].first != nullptr; i++)
-			{
-				switch (Xml::Clip::Clip(attrs[i].first[0]))
-				{
-					case Xml::Clip::Clip::Name:
-					{
+			for (int i = 0; attrs[i].first != nullptr; i++) {
+				switch (Xml::Clip::Clip(attrs[i].first[0])) {
+					case Xml::Clip::Clip::Name: {
 						name = attrs[++i];
 						break;
 					}
-					case Xml::Clip::Clip::Rect:
-					{
+					case Xml::Clip::Clip::Rect: {
 						Slice attr(attrs[++i]);
 						auto tokens = attr.split(",");
 						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr);
@@ -186,7 +153,6 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 	}
 }
 
-void ClipCache::Parser::xmlSAX2EndElement(const char *name, size_t len)
-{ }
+void ClipCache::Parser::xmlSAX2EndElement(const char* name, size_t len) { }
 
 NS_DOROTHY_END

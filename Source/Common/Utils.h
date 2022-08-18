@@ -12,68 +12,106 @@ NS_DOROTHY_BEGIN
 
 /** @brief Helper macros to define setters and getters */
 #define PROPERTY(varType, funName) \
-public: varType get##funName() const; \
-public: void set##funName(varType var)
+public:                            \
+	varType get##funName() const;  \
+                                   \
+public:                            \
+	void set##funName(varType var)
 
-#define PROPERTY_CREF(varType, funName) \
-public: const varType& get##funName() const; \
-public: void set##funName(const varType& var)
+#define PROPERTY_CREF(varType, funName)  \
+public:                                  \
+	const varType& get##funName() const; \
+                                         \
+public:                                  \
+	void set##funName(const varType& var)
 
 #define PROPERTY_CLASS(varType, funName) \
-public: static varType get##funName(); \
-public: static void set##funName(varType var)
+public:                                  \
+	static varType get##funName();       \
+                                         \
+public:                                  \
+	static void set##funName(varType var)
 
 #define PROPERTY(varType, funName) \
-public: varType get##funName() const; \
-public: void set##funName(varType var)
+public:                            \
+	varType get##funName() const;  \
+                                   \
+public:                            \
+	void set##funName(varType var)
 
 #define PROPERTY_VIRTUAL(varType, funName) \
-public: varType get##funName() const; \
-public: virtual void set##funName(varType var)
+public:                                    \
+	varType get##funName() const;          \
+                                           \
+public:                                    \
+	virtual void set##funName(varType var)
 
 #define PROPERTY_VIRTUAL_CREF(varType, funName) \
-public: const varType& get##funName() const; \
-public: virtual void set##funName(const varType& var)
+public:                                         \
+	const varType& get##funName() const;        \
+                                                \
+public:                                         \
+	virtual void set##funName(const varType& var)
 
 #define PROPERTY_READONLY_VIRTUAL(varType, funName) \
-public: virtual varType get##funName() const
+public:                                             \
+	virtual varType get##funName() const
 
 #define PROPERTY_READONLY(varType, funName) \
-public: varType get##funName() const
+public:                                     \
+	varType get##funName() const
 
 #define PROPERTY_READONLY_CREF(varType, funName) \
-public: const varType& get##funName() const
+public:                                          \
+	const varType& get##funName() const
 
 #define PROPERTY_READONLY_REF(varType, funName) \
-public: varType& get##funName()
+public:                                         \
+	varType& get##funName()
 
 #define PROPERTY_READONLY_BOOL(funName) \
-public: bool is##funName() const
+public:                                 \
+	bool is##funName() const
 
 #define PROPERTY_READONLY_HAS(funName) \
-public: bool has##funName() const
+public:                                \
+	bool has##funName() const
 
 #define PROPERTY_READONLY_CLASS(varType, funName) \
-public: static varType get##funName()
+public:                                           \
+	static varType get##funName()
 
 #define PROPERTY_READONLY_CALL(varType, funName) \
-public: varType get##funName()
+public:                                          \
+	varType get##funName()
 
 #define PROPERTY_BOOL(funName) \
-public: bool is##funName() const; \
-public: void set##funName(bool var)
+public:                        \
+	bool is##funName() const;  \
+                               \
+public:                        \
+	void set##funName(bool var)
 
 #define PROPERTY_VIRTUAL_BOOL(funName) \
-public: bool is##funName() const; \
-public: void virtual set##funName(bool var)
+public:                                \
+	bool is##funName() const;          \
+                                       \
+public:                                \
+	void virtual set##funName(bool var)
 
-#define PROPERTY_STRING(funName) \
-public: const std::string& get##funName() const; \
-public: void set##funName(String var)
+#define PROPERTY_STRING(funName)             \
+public:                                      \
+	const std::string& get##funName() const; \
+                                             \
+public:                                      \
+	void set##funName(String var)
 
-#define PROPERTY_VIRTUAL_STRING(funName) \
-public: const std::string& get##funName() const; \
-public: virtual void set##funName(String var)
+#define PROPERTY_VIRTUAL_STRING(funName)     \
+public:                                      \
+	const std::string& get##funName() const; \
+                                             \
+public:                                      \
+	virtual void set##funName(String var)
 
 /** @brief Code block for condition check.
 	@example Use it as below.
@@ -87,14 +125,21 @@ public: virtual void set##funName(String var)
 	BLOCK_END
 */
 #define BLOCK_START do {
-#define BREAK_IF(cond) if (cond) break
-#define BREAK_UNLESS(cond) if (!(cond)) break
-#define BLOCK_END } while (false);
+#define BREAK_IF(cond) \
+	if (cond) break
+#define BREAK_UNLESS(cond) \
+	if (!(cond)) break
+#define BLOCK_END \
+	}             \
+	while (false) \
+		;
 
 /** @brief Compiler compact macros */
 #define DORA_UNUSED [[maybe_unused]]
 #define DORA_UNUSED_PARAM(unusedparam) (void)unusedparam
-#define DORA_DUMMY do {} while (0)
+#define DORA_DUMMY \
+	do {           \
+	} while (0)
 
 /* Short names for C++ casts */
 #define s_cast static_cast
@@ -112,33 +157,29 @@ typedef Slice String;
  // Add the macro in subclass of Object
  class MyItem : public Object
  {
- 	public:
+	public:
 		MyItem();
 		MyItem(int value);
 		virtual bool init() override;
 		CREATE_FUNC(MyItem)
  };
- 
+
  // Use the create functions
  auto itemA = MyItem::create();
  auto itemB = MyItem::create(998);
  */
-#define CREATE_FUNC(type) \
-template<class... Args> \
-static type* create(Args&&... args) \
-{ \
-	type* item = new type(std::forward<Args>(args)...); \
-	if (item && item->init()) \
-	{ \
-		item->autorelease(); \
-	} \
-	else \
-	{ \
-		delete item; \
-		item = nullptr; \
-	} \
-	return item; \
-}
+#define CREATE_FUNC(type)                                   \
+	template <class... Args>                                \
+	static type* create(Args&&... args) {                   \
+		type* item = new type(std::forward<Args>(args)...); \
+		if (item && item->init()) {                         \
+			item->autorelease();                            \
+		} else {                                            \
+			delete item;                                    \
+			item = nullptr;                                 \
+		}                                                   \
+		return item;                                        \
+	}
 
 /** @brief Helper function to iterate a std::tuple.
  @example Use it as below.
@@ -149,45 +190,39 @@ static type* create(Args&&... args) \
  // I have a handler
  struct Handler
  {
- 	template<typename T>
- 	void operator()(const T& element)
- 	{
- 		cout << element << "\n";
- 	}
+	template<typename T>
+	void operator()(const T& element)
+	{
+		cout << element << "\n";
+	}
  };
 
  // Em, start iteration
  Tuple::foreach(item, Handler());
  */
-namespace Tuple
-{
-	template<typename TupleT, size_t Size>
-	struct TupleHelper
-	{
-		template<typename Func>
-		static void foreach(const TupleT& item, Func&& func)
-		{
-			TupleHelper<TupleT, Size - 1>::foreach(item, func);
-			func(std::get<Size - 1>(item));
-		}
-	};
-	template<typename TupleT>
-	struct TupleHelper<TupleT, 0>
-	{
-		template<typename Func>
-		static void foreach(const TupleT&, Func&&)
-		{ }
-	};
-	template<typename TupleT, typename Func>
-	inline int foreach(const TupleT& item, Func&& func)
-	{
-		TupleHelper<TupleT, std::tuple_size<TupleT>::value>::foreach(item, func);
-		return s_cast<int>(std::tuple_size<TupleT>::value);
+namespace Tuple {
+template <typename TupleT, size_t Size>
+struct TupleHelper {
+	template <typename Func>
+	static void foreach (const TupleT& item, Func && func) {
+		TupleHelper<TupleT, Size - 1>::foreach (item, func);
+		func(std::get<Size - 1>(item));
 	}
+};
+template <typename TupleT>
+struct TupleHelper<TupleT, 0> {
+	template <typename Func>
+	static void foreach (const TupleT&, Func &&) { }
+};
+template <typename TupleT, typename Func>
+inline int foreach (const TupleT& item, Func && func) {
+	TupleHelper<TupleT, std::tuple_size<TupleT>::value>::foreach (item, func);
+	return s_cast<int>(std::tuple_size<TupleT>::value);
+}
 } // namespace Tuple
 
 #ifndef FLT_EPSILON
-	#define FLT_EPSILON std::numeric_limits<float>::epsilon()
+#define FLT_EPSILON std::numeric_limits<float>::epsilon()
 #endif // FLT_EPSILON
 
 /** @brief Helper functions to hash string in compile time for use of
@@ -197,52 +232,44 @@ namespace Tuple
  string extension = "png";
  switch (Switch::hash(extension))
  {
- 	case "xml"_hash:
- 		// ...
- 		break;
- 	case "cpp"_hash:
- 		// ...
- 		break;
- 	default:
+	case "xml"_hash:
 		// ...
- 		break;
+		break;
+	case "cpp"_hash:
+		// ...
+		break;
+	default:
+		// ...
+		break;
  }
  */
-namespace Switch
-{
-	inline constexpr std::size_t hash(char const* input)
-	{
-		return *input ? *input + 33ull * hash(input + 1) : 5381;
-	}
-	inline std::size_t hash(const char* input, int size, int index)
-	{
-		return index < size ? input[index] + 33ull * hash(input, size, index + 1) : 5381;
-	}
-	inline std::size_t hash(String str)
-	{
-		return hash(str.rawData(), s_cast<int>(str.size()), 0);
-	}
-	namespace Literals
-	{
-		inline std::size_t constexpr operator"" _hash(const char* s, size_t)
-		{
-			return hash(s);
-		}
-	}
+namespace Switch {
+inline constexpr std::size_t hash(char const* input) {
+	return *input ? *input + 33ull * hash(input + 1) : 5381;
+}
+inline std::size_t hash(const char* input, int size, int index) {
+	return index < size ? input[index] + 33ull * hash(input, size, index + 1) : 5381;
+}
+inline std::size_t hash(String str) {
+	return hash(str.rawData(), s_cast<int>(str.size()), 0);
+}
+namespace Literals {
+inline std::size_t constexpr operator"" _hash(const char* s, size_t) {
+	return hash(s);
+}
+}
 } // namespace Switch
 
 /** @brief Helpers for number comparision */
-namespace Math
-{
-	template <class T>
-	inline T clamp(T value, T minVal, T maxVal)
-	{
-		auto pair = std::minmax(minVal, maxVal);
-		return std::max(std::min(value, pair.second), pair.first);
-	}
+namespace Math {
+template <class T>
+inline T clamp(T value, T minVal, T maxVal) {
+	auto pair = std::minmax(minVal, maxVal);
+	return std::max(std::min(value, pair.second), pair.first);
+}
 
-	float rand0to1();
-	float rand1to1();
+float rand0to1();
+float rand1to1();
 }
 
 /** @brief Dorothy`s type system for lua and
@@ -251,52 +278,48 @@ namespace Math
 extern int doraType;
 
 template <class T>
-int DoraType()
-{
+int DoraType() {
 	static int type = doraType++;
 	return type;
 }
 
-#define DORA_TYPE(type) \
-public: int getDoraType() const \
-{ \
-	return DoraType<type>(); \
-}
+#define DORA_TYPE(type)          \
+public:                          \
+	int getDoraType() const {    \
+		return DoraType<type>(); \
+	}
 
-#define DORA_TYPE_BASE(type) \
-public: virtual int getDoraType() const \
-{ \
-	return DoraType<type>(); \
-}
+#define DORA_TYPE_BASE(type)          \
+public:                               \
+	virtual int getDoraType() const { \
+		return DoraType<type>();      \
+	}
 
-#define DORA_TYPE_OVERRIDE(type) \
-public: virtual int getDoraType() const override \
-{ \
-	return DoraType<type>(); \
-}
+#define DORA_TYPE_OVERRIDE(type)               \
+public:                                        \
+	virtual int getDoraType() const override { \
+		return DoraType<type>();               \
+	}
 
 template <class OutT, class InT>
-OutT* DoraAs(InT* obj)
-{
+OutT* DoraAs(InT* obj) {
 	return (obj && obj->getDoraType() == DoraType<OutT>()) ? s_cast<OutT*>(obj) : nullptr;
 }
 
 template <class TargetT, class SelfT>
-bool DoraIs(SelfT* obj)
-{
+bool DoraIs(SelfT* obj) {
 	return obj->getDoraType() == DoraType<TargetT>();
 }
 
 template <class OutT, class InT>
-OutT* DoraTo(InT* obj)
-{
+OutT* DoraTo(InT* obj) {
 	AssertIf(obj && d_cast<OutT*>(obj) == nullptr, "failed to do Dora type convertion.");
 	return s_cast<OutT*>(obj);
 }
 
-class Flag
-{
+class Flag {
 	typedef uint32_t IntType;
+
 public:
 	Flag(IntType value);
 	void set(IntType type, bool value);
@@ -305,53 +328,51 @@ public:
 	inline void setOff(IntType type) { _flags &= ~type; }
 	inline bool isOn(IntType type) const { return (_flags & type) != 0; }
 	inline bool isOff(IntType type) const { return (_flags & type) == 0; }
+
 private:
 	IntType _flags;
 };
 
 #define LuaType DoraType
 
-template<typename T>
-class RRefCapture
-{
+template <typename T>
+class RRefCapture {
 public:
-	RRefCapture(T&& x):_ptr(&x) { }
-	operator T&& () const
-	{
+	RRefCapture(T&& x)
+		: _ptr(&x) { }
+	operator T&&() const {
 		return std::move(*_ptr);
 	}
+
 private:
 	T* _ptr;
 };
 
-class Profiler
-{
+class Profiler {
 public:
 	Profiler();
 	void start();
 	double stop(String logName = Slice::Empty);
 
 	template <typename Func>
-	static double run(const Func& func)
-	{
+	static double run(const Func& func) {
 		Profiler profiler;
 		func();
 		return profiler.stop();
 	}
 
 	template <typename Func>
-	static double run(String logName, const Func& func)
-	{
+	static double run(String logName, const Func& func) {
 		Profiler profiler;
 		func();
 		return profiler.stop(logName);
 	}
+
 private:
 	double _lastTime;
 };
 
-class Path
-{
+class Path {
 public:
 	static std::string concat(const std::list<Slice>& paths);
 	static std::string getExt(const std::string& path);
@@ -362,7 +383,7 @@ public:
 	static std::string replaceFilename(const std::string& path, const std::string& newFile);
 };
 
-#define _DEFER(code,line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto){code;})
-#define DEFER(code) _DEFER(code,__LINE__)
+#define _DEFER(code, line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto) { code; })
+#define DEFER(code) _DEFER(code, __LINE__)
 
 NS_DOROTHY_END

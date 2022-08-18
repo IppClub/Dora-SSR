@@ -15,14 +15,14 @@ union SDL_Event;
 
 NS_DOROTHY_BEGIN
 
-class TouchHandler
-{
+class TouchHandler {
 public:
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_BOOL(SwallowMouseWheel);
 	TouchHandler();
 	virtual ~TouchHandler();
 	virtual bool handle(const SDL_Event& event) = 0;
+
 private:
 	bool _swallowTouches;
 	bool _swallowMouseWheel;
@@ -30,11 +30,9 @@ private:
 
 class Node;
 
-class Touch : public Object
-{
+class Touch : public Object {
 public:
-	enum
-	{
+	enum {
 		FromMouse = 1,
 		FromTouch = 1 << 1,
 		FromMouseAndTouch = FromMouse | FromTouch,
@@ -50,8 +48,10 @@ public:
 	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
 	PROPERTY_READONLY_CLASS(uint32_t, Source);
 	CREATE_FUNC(Touch);
+
 protected:
 	Touch(int id);
+
 private:
 	Flag _flags;
 	int _id;
@@ -59,8 +59,7 @@ private:
 	Vec2 _preLocation;
 	Vec2 _worldLocation;
 	Vec2 _worldPreLocation;
-	enum
-	{
+	enum {
 		Enabled = 1,
 		Selected = 1 << 1,
 		IsMouse = 1 << 2,
@@ -71,11 +70,11 @@ private:
 	DORA_TYPE_OVERRIDE(Touch);
 };
 
-class NodeTouchHandler : public TouchHandler
-{
+class NodeTouchHandler : public TouchHandler {
 public:
 	NodeTouchHandler(Node* target);
 	virtual bool handle(const SDL_Event& event) override;
+
 protected:
 	Touch* alloc(int64_t fingerId);
 	Touch* get(int64_t fingerId);
@@ -87,14 +86,14 @@ protected:
 	bool move(const SDL_Event& event);
 	bool wheel(const SDL_Event& event);
 	bool gesture(const SDL_Event& event);
+
 private:
 	Node* _target;
 	std::stack<int> _availableTouchIds;
 	std::unordered_map<int64_t, Ref<Touch>> _touchMap;
 };
 
-class UITouchHandler : public TouchHandler
-{
+class UITouchHandler : public TouchHandler {
 public:
 	PROPERTY_BOOL(TouchSwallowed);
 	PROPERTY_BOOL(WheelSwallowed);
@@ -108,6 +107,7 @@ public:
 	void clear();
 	virtual bool handle(const SDL_Event& event) override;
 	void handleEvent(const SDL_Event& event);
+
 private:
 	bool _touchSwallowed;
 	bool _wheelSwallowed;
@@ -118,16 +118,17 @@ private:
 	Vec2 _mousePos;
 };
 
-class TouchDispatcher
-{
+class TouchDispatcher {
 public:
 	void add(const SDL_Event& event);
 	void add(TouchHandler* handler);
 	void dispatch();
 	void clearHandlers();
 	void clearEvents();
+
 protected:
 	TouchDispatcher() { }
+
 private:
 	std::vector<TouchHandler*> _handlers;
 	std::list<std::any> _events;

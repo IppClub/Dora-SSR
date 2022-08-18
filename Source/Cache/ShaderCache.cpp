@@ -7,7 +7,9 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Cache/ShaderCache.h"
+
 #include "Basic/Content.h"
 #include "Shader/Builtin.h"
 
@@ -15,39 +17,31 @@ NS_DOROTHY_BEGIN
 
 /* Shader */
 
-Shader::Shader(bgfx::ShaderHandle handle):
-_handle(handle)
-{ }
+Shader::Shader(bgfx::ShaderHandle handle)
+	: _handle(handle) { }
 
-Shader::~Shader()
-{
-	if (bgfx::isValid(_handle))
-	{
+Shader::~Shader() {
+	if (bgfx::isValid(_handle)) {
 		bgfx::destroy(_handle);
 	}
 }
 
-bgfx::ShaderHandle Shader::getHandle() const
-{
+bgfx::ShaderHandle Shader::getHandle() const {
 	return _handle;
 }
 
 /* ShaderCache */
 
-ShaderCache::ShaderCache()
-{ }
+ShaderCache::ShaderCache() { }
 
-void ShaderCache::update(String name, Shader* shader)
-{
+void ShaderCache::update(String name, Shader* shader) {
 	std::string shaderFile = SharedContent.getFullPath(getShaderPath() + name);
 	_shaders[shaderFile] = shader;
 }
 
-std::string ShaderCache::getShaderPath() const
-{
+std::string ShaderCache::getShaderPath() const {
 	std::string shaderPath;
-	switch (bgfx::getRendererType())
-	{
+	switch (bgfx::getRendererType()) {
 		case bgfx::RendererType::Direct3D9:
 			shaderPath = "dx9";
 			break;
@@ -76,14 +70,11 @@ std::string ShaderCache::getShaderPath() const
 	return shaderPath;
 }
 
-Shader* ShaderCache::load(String filename)
-{
+Shader* ShaderCache::load(String filename) {
 	auto items = filename.split(":"_slice);
-	if (!items.empty() && items.front() == "builtin"_slice)
-	{
+	if (!items.empty() && items.front() == "builtin"_slice) {
 		auto it = _shaders.find(filename);
-		if (it != _shaders.end())
-		{
+		if (it != _shaders.end()) {
 			return it->second;
 		}
 		bgfx::RendererType::Enum type = bgfx::getRendererType();
@@ -94,22 +85,17 @@ Shader* ShaderCache::load(String filename)
 		return shader;
 	}
 	std::string shaderFile;
-	if (SharedContent.exist(filename))
-	{
+	if (SharedContent.exist(filename)) {
 		shaderFile = SharedContent.getFullPath(filename);
-	}
-	else
-	{
+	} else {
 		auto path = Path::concat({getShaderPath(), filename});
-		if (SharedContent.exist(path))
-		{
+		if (SharedContent.exist(path)) {
 			shaderFile = SharedContent.getFullPath(path);
 		}
 	}
 	AssertIf(shaderFile.empty(), "shader file \"{}\" not exist.", filename);
 	auto it = _shaders.find(shaderFile);
-	if (it != _shaders.end())
-	{
+	if (it != _shaders.end()) {
 		return it->second;
 	}
 	const bgfx::Memory* mem = SharedContent.loadBX(shaderFile);
@@ -120,32 +106,24 @@ Shader* ShaderCache::load(String filename)
 	return shader;
 }
 
-void ShaderCache::loadAsync(String filename, const std::function<void(Shader*)>& handler)
-{
+void ShaderCache::loadAsync(String filename, const std::function<void(Shader*)>& handler) {
 	std::string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
-	SharedContent.loadAsyncBX(shaderFile, [this, shaderFile, handler](const bgfx::Memory* mem)
-	{
+	SharedContent.loadAsyncBX(shaderFile, [this, shaderFile, handler](const bgfx::Memory* mem) {
 		bgfx::ShaderHandle handle = bgfx::createShader(mem);
-		if (bgfx::isValid(handle))
-		{
+		if (bgfx::isValid(handle)) {
 			Shader* shader = Shader::create(handle);
 			_shaders[shaderFile] = shader;
 			handler(shader);
-		}
-		else
-		{
+		} else {
 			Warn("failed to load shader \"{}\".", shaderFile);
 			handler(nullptr);
 		}
 	});
 }
 
-bool ShaderCache::unload(Shader* shader)
-{
-	for (const auto& it : _shaders)
-	{
-		if (it.second == shader)
-		{
+bool ShaderCache::unload(Shader* shader) {
+	for (const auto& it : _shaders) {
+		if (it.second == shader) {
 			_shaders.erase(_shaders.find(it.first));
 			return true;
 		}
@@ -153,40 +131,32 @@ bool ShaderCache::unload(Shader* shader)
 	return false;
 }
 
-bool ShaderCache::unload(String filename)
-{
+bool ShaderCache::unload(String filename) {
 	std::string fullName = SharedContent.getFullPath(getShaderPath() + filename);
 	auto it = _shaders.find(fullName);
-	if (it != _shaders.end())
-	{
+	if (it != _shaders.end()) {
 		_shaders.erase(it);
 		return true;
 	}
 	return false;
 }
 
-bool ShaderCache::unload()
-{
-	if (_shaders.empty())
-	{
+bool ShaderCache::unload() {
+	if (_shaders.empty()) {
 		return false;
 	}
 	_shaders.clear();
 	return true;
 }
 
-void ShaderCache::removeUnused()
-{
-	std::vector<std::unordered_map<std::string,Ref<Shader>>::iterator> targets;
-	for (auto it = _shaders.begin(); it != _shaders.end(); ++it)
-	{
-		if (it->second->isSingleReferenced())
-		{
+void ShaderCache::removeUnused() {
+	std::vector<std::unordered_map<std::string, Ref<Shader>>::iterator> targets;
+	for (auto it = _shaders.begin(); it != _shaders.end(); ++it) {
+		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);
 		}
 	}
-	for (const auto& it : targets)
-	{
+	for (const auto& it : targets) {
 		_shaders.erase(it);
 	}
 }

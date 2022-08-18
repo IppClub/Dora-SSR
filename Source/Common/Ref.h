@@ -10,185 +10,153 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-/** @brief Used with Aggregation Relationship. 
+/** @brief Used with Aggregation Relationship.
  @param T Object
 */
-template<class T = Object>
-class Ref
-{
+template <class T = Object>
+class Ref {
 public:
-	Ref():_item(nullptr)
-	{ }
-	explicit Ref(T* item):_item(item)
-	{
-		if (item)
-		{
+	Ref()
+		: _item(nullptr) { }
+	explicit Ref(T* item)
+		: _item(item) {
+		if (item) {
 			item->retain();
 		}
 	}
-	Ref(const Ref& ref)
-	{
-		if (ref._item)
-		{
+	Ref(const Ref& ref) {
+		if (ref._item) {
 			ref._item->retain();
 		}
 		_item = ref._item;
 	}
-	Ref(Ref&& ref) noexcept
-	{
+	Ref(Ref&& ref) noexcept {
 		_item = ref._item;
 		ref._item = nullptr;
 	}
-	~Ref()
-	{
-		if (_item)
-		{
+	~Ref() {
+		if (_item) {
 			_item->release();
 			_item = nullptr;
 		}
 	}
-	inline T* operator->() const
-	{
+	inline T* operator->() const {
 		return s_cast<T*>(_item);
 	}
-	T* operator=(T* item)
-	{
+	T* operator=(T* item) {
 		/* ensure that assign same item is Ok
 		 so first retain new item then release old item
 		*/
-		if (item)
-		{
+		if (item) {
 			item->retain();
 		}
-		if (_item)
-		{
+		if (_item) {
 			_item->release();
 		}
 		_item = item;
 		return item;
 	}
-	const Ref& operator=(const Ref& ref)
-	{
+	const Ref& operator=(const Ref& ref) {
 		if (this == &ref) // handle self assign
 		{
 			return *this;
 		}
-		if (ref._item)
-		{
+		if (ref._item) {
 			ref._item->retain();
 		}
-		if (_item)
-		{
+		if (_item) {
 			_item->release();
 		}
 		_item = ref._item;
 		return *this;
 	}
-	const Ref& operator=(Ref&& ref) noexcept
-	{
+	const Ref& operator=(Ref&& ref) noexcept {
 		if (this == &ref) // handle self assign
 		{
 			return *this;
 		}
-		if (_item)
-		{
+		if (_item) {
 			_item->release();
 		}
 		_item = ref._item;
 		ref._item = nullptr;
 		return *this;
 	}
-	bool operator==(const Ref& ref) const
-	{
+	bool operator==(const Ref& ref) const {
 		return _item->equals(ref._item);
 	}
-	bool operator!=(const Ref& ref) const
-	{
+	bool operator!=(const Ref& ref) const {
 		return !_item->equals(ref._item);
 	}
-	inline operator T*() const
-	{
+	inline operator T*() const {
 		return r_cast<T*>(_item);
 	}
-	inline T* get() const
-	{
+	inline T* get() const {
 		return r_cast<T*>(_item);
 	}
-	template<class Type>
-	inline Type* as() const
-	{
+	template <class Type>
+	inline Type* as() const {
 		return DoraAs<Type>(_item);
 	}
-	template<class Type>
-	inline Type& to() const
-	{
+	template <class Type>
+	inline Type& to() const {
 		return DoraTo<Type>(_item);
 	}
-	template<class Type>
-	inline bool is() const
-	{
+	template <class Type>
+	inline bool is() const {
 		return DoraIs<Type>(_item);
 	}
+
 private:
 	Object* _item;
 };
 
 template <class T>
-inline Ref<T> MakeRef(T* item)
-{
+inline Ref<T> MakeRef(T* item) {
 	return Ref<T>(item);
 }
 
-template<class T, class... Args>
-inline Ref<T> NewRef(Args&&... args)
-{
+template <class T, class... Args>
+inline Ref<T> NewRef(Args&&... args) {
 	return Ref<T>(T::create(std::forward<Args>(args)...));
 }
 
 /** @brief Used with Aggregation Relationship.
  @param T Object
 */
-template<class T = Object>
-class RefVector : public std::vector<Ref<T>>
-{
+template <class T = Object>
+class RefVector : public std::vector<Ref<T>> {
 	typedef std::vector<Ref<T>> RefV;
+
 public:
-	using RefV::RefV;
 	using RefV::insert;
-	
-	inline void push_back(T* item)
-	{
+	using RefV::RefV;
+
+	inline void push_back(T* item) {
 		RefV::push_back(MakeRef(item));
 	}
-	typename RefV::iterator insert(size_t where, T* item)
-	{
+	typename RefV::iterator insert(size_t where, T* item) {
 		return RefV::insert(RefV::begin() + where, MakeRef(item));
 	}
-	bool remove(T* item)
-	{
+	bool remove(T* item) {
 		auto it = std::remove(RefV::begin(), RefV::end(), MakeRef(item));
 		if (it == RefV::end()) return false;
 		RefV::erase(it);
 		return true;
 	}
-	bool remove(size_t index)
-	{
-		if (index < RefV::size())
-		{
+	bool remove(size_t index) {
+		if (index < RefV::size()) {
 			RefV::erase(RefV::begin() + index);
 			return true;
 		}
 		return false;
 	}
-	typename RefV::iterator index(T* item)
-	{
+	typename RefV::iterator index(T* item) {
 		return std::find(RefV::begin(), RefV::end(), MakeRef(item));
 	}
-	bool fast_remove(T* item)
-	{
+	bool fast_remove(T* item) {
 		size_t index = std::distance(RefV::begin(), RefVector::index(item));
-		if (index < RefV::size())
-		{
+		if (index < RefV::size()) {
 			RefV::at(index) = RefV::back();
 			RefV::pop_back();
 			return true;
