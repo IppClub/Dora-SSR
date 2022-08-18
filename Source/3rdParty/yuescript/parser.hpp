@@ -11,22 +11,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-// gcc chokes without rule::rule(const rule &),
-// msvc complains when rule::rule(const rule &) is defined.
+
+//gcc chokes without rule::rule(const rule &),
+//msvc complains when rule::rule(const rule &) is defined.
 #ifdef _MSC_VER
-#pragma warning(disable : 4521)
+#pragma warning (disable: 4521)
 #endif
 
-#include <codecvt>
-#include <functional>
-#include <list>
-#include <locale>
-#include <string>
+
 #include <vector>
+#include <string>
+#include <list>
+#include <functional>
+#include <codecvt>
+#include <locale>
 
 namespace parserlib {
 
-/// type of the parser's input.
+///type of the parser's input.
 typedef std::basic_string<wchar_t> input;
 typedef input::iterator input_it;
 typedef std::wstring_convert<std::codecvt_utf8_utf16<input::value_type>> Converter;
@@ -36,6 +38,7 @@ class _expr;
 class _context;
 class rule;
 
+
 struct item_t {
 	input_it begin;
 	input_it end;
@@ -43,31 +46,31 @@ struct item_t {
 };
 typedef std::function<bool(const item_t&)> user_handler;
 
-/// position into the input.
+
+///position into the input.
 class pos {
 public:
-	/// interator into the input.
+	///interator into the input.
 	input::iterator m_it;
 
-	/// line.
+	///line.
 	int m_line;
 
-	/// column.
+	///column.
 	int m_col;
 
-	/// null constructor.
-	pos()
-		: m_line(0)
-		, m_col(0) { }
+	///null constructor.
+	pos():m_line(0),m_col(0) {}
 
 	/** constructor from input.
 		@param i input.
 	*/
-	pos(input& i);
+	pos(input &i);
 };
 
+
 /** a grammar expression.
- */
+*/
 class expr {
 public:
 	/** character terminal constructor.
@@ -111,18 +114,18 @@ public:
 	expr operator!() const;
 
 private:
-	// internal expression
+	//internal expression
 	_expr* m_expr;
 
-	// internal constructor from internal expression
-	expr(_expr* e)
-		: m_expr(e) { }
+	//internal constructor from internal expression
+	expr(_expr* e) : m_expr(e) {}
 
-	// assignment not allowed
+	//assignment not allowed
 	expr& operator=(expr&);
 
 	friend class _private;
 };
+
 
 /** type of procedure to invoke when a rule is successfully parsed.
 	@param b begin position of input.
@@ -131,19 +134,20 @@ private:
 */
 typedef void (*parse_proc)(const pos& b, const pos& e, void* d);
 
-/// input range.
+
+///input range.
 class input_range {
 public:
-	virtual ~input_range() { }
+	virtual ~input_range() {}
 
-	/// begin position.
+	///begin position.
 	pos m_begin;
 
-	/// end position.
+	///end position.
 	pos m_end;
 
-	/// empty constructor.
-	input_range() { }
+	///empty constructor.
+	input_range() {}
 
 	/** constructor.
 		@param b begin position.
@@ -152,22 +156,24 @@ public:
 	input_range(const pos& b, const pos& e);
 };
 
-/// enum with error types.
+
+///enum with error types.
 enum ERROR_TYPE {
-	/// syntax error
+	///syntax error
 	ERROR_SYNTAX_ERROR = 1,
 
-	/// invalid end of file
+	///invalid end of file
 	ERROR_INVALID_EOF,
 
-	/// first user error
+	///first user error
 	ERROR_USER = 100
 };
 
-/// error.
+
+///error.
 class error : public input_range {
 public:
-	/// type
+	///type
 	int m_type;
 
 	/** constructor.
@@ -184,11 +190,13 @@ public:
 	bool operator<(const error& e) const;
 };
 
-/// type of error list.
+
+///type of error list.
 typedef std::list<error> error_list;
 
+
 /** represents a rule.
- */
+*/
 class rule {
 public:
 	/** character terminal constructor.
@@ -219,7 +227,7 @@ public:
 	rule(const rule& r);
 
 	/** deletes the internal object that represents the expression.
-	 */
+	*/
 	~rule();
 
 	/** creates a zero-or-more loop out of this rule.
@@ -262,39 +270,39 @@ public:
 	rule& operator=(const expr&);
 
 private:
-	// mode
+	//mode
 	enum _MODE {
 		_PARSE,
 		_REJECT,
 		_ACCEPT
 	};
 
-	// state
+	//state
 	struct _state {
-		// position in source code, relative to start
+		//position in source code, relative to start
 		size_t m_pos;
 
-		// mode
+		//mode
 		_MODE m_mode;
 
-		// constructor
-		_state(size_t pos = -1, _MODE mode = _PARSE)
-			: m_pos(pos)
-			, m_mode(mode) { }
+		//constructor
+		_state(size_t pos = -1, _MODE mode = _PARSE) :
+			m_pos(pos), m_mode(mode) {}
 	};
 
-	// internal expression
+	//internal expression
 	_expr* m_expr;
 
-	// associated parse procedure.
+	//associated parse procedure.
 	parse_proc m_parse_proc;
 
-	// state
+	//state
 	_state m_state;
 
 	friend class _private;
 	friend class _context;
 };
+
 
 /** creates a sequence of expressions.
 	@param left left operand.
@@ -303,6 +311,7 @@ private:
 */
 expr operator>>(const expr& left, const expr& right);
 
+
 /** creates a choice of expressions.
 	@param left left operand.
 	@param right right operand.
@@ -310,11 +319,13 @@ expr operator>>(const expr& left, const expr& right);
 */
 expr operator|(const expr& left, const expr& right);
 
+
 /** converts a parser expression into a terminal.
 	@param e expression.
 	@return an expression which parses a terminal.
 */
 expr term(const expr& e);
+
 
 /** creates a set expression from a null-terminated string.
 	@param s null-terminated string with characters of the set.
@@ -322,12 +333,14 @@ expr term(const expr& e);
 */
 expr set(const char* s);
 
+
 /** creates a range expression.
 	@param min min character.
 	@param max max character.
 	@return an expression which parses a single character out of range.
 */
 expr range(int min, int max);
+
 
 /** creates an expression which increments the line counter
 	and resets the column counter when the given expression
@@ -337,10 +350,12 @@ expr range(int min, int max);
 */
 expr nl(const expr& e);
 
+
 /** creates an expression which tests for the end of input.
 	@return an expression that handles the end of input.
 */
 expr eof();
+
 
 /** creates a not expression.
 	@param e expression.
@@ -348,28 +363,34 @@ expr eof();
 */
 expr not_(const expr& e);
 
+
 /** creates an and expression.
 	@param e expression.
 	@return the appropriate expression.
 */
 expr and_(const expr& e);
 
+
 /** creates an expression that parses any character.
 	@return the appropriate expression.
 */
 expr any();
 
+
 /** parsing succeeds without consuming any input.
- */
+*/
 expr true_();
 
+
 /** parsing fails without consuming any input.
- */
+*/
 expr false_();
 
+
 /** parse with target expression and let user handle result.
- */
+*/
 expr user(const expr& e, const user_handler& handler);
+
 
 /** parses the given input.
 	The parse procedures of each rule parsed are executed
@@ -382,19 +403,20 @@ expr user(const expr& e, const user_handler& handler);
 */
 bool parse(input& i, rule& g, error_list& el, void* d, void* ud);
 
+
 /** output the specific input range to the specific stream.
 	@param stream stream.
 	@param ir input range.
 	@return the stream.
 */
-template <class T>
-T& operator<<(T& stream, const input_range& ir) {
-	for (input::const_iterator it = ir.m_begin.m_it;
-		 it != ir.m_end.m_it;
-		 ++it) {
-		stream << (typename T::char_type) * it;
+template <class T> T& operator<<(T& stream, const input_range& ir) {
+	for(input::const_iterator it = ir.m_begin.m_it;
+		it != ir.m_end.m_it;
+		++it) {
+		stream << (typename T::char_type)*it;
 	}
 	return stream;
 }
 
-} // namespace parserlib
+
+} //namespace parserlib
