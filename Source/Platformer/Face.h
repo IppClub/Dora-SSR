@@ -34,12 +34,14 @@ NS_DOROTHY_PLATFORMER_BEGIN
 */
 class Face : public Object {
 public:
-	enum { Unknown,
+	enum {
+		Unknown,
 		Clip,
 		Image,
 		Frame,
 		Particle,
-		Custom };
+		Custom
+	};
 	void addChild(Face* face);
 	bool removeChild(Face* face);
 	/** Get a new instance of the face. */
@@ -47,11 +49,11 @@ public:
 	/** Type of face, Unknown, Clip, Image, Frame, Particle, User. */
 	uint32_t getType() const;
 	/** Different type has different faceStr:
-		 type             faceStr
-		  Clip            "loli.clip|0"
-		  Image        "loli.png"
-		  Frame        "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
-		  Particle      "loli.par"
+		 type     faceStr
+		 Clip     "loli.clip|0"
+		 Image    "loli.png"
+		 Frame    "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
+		 Particle "loli.par"
 	*/
 	CREATE_FUNC(Face);
 
