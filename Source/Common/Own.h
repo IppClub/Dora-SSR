@@ -11,34 +11,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 /** @brief Used with Composition Relationship. */
-template<class Item, class Del = std::default_delete<Item>>
+template <class Item, class Del = std::default_delete<Item>>
 using Own = std::unique_ptr<Item, Del>;
 
-template<class Item>
+template <class Item>
 using OwnArray = std::unique_ptr<Item, std::default_delete<Item[]>>;
 
 /** Useless */
-template<class T>
-inline Own<T> MakeOwn(T* item)
-{
+template <class T>
+inline Own<T> MakeOwn(T* item) {
 	return Own<T>(item);
 }
 
-template<class T, class... Args>
-inline Own<T> New(Args&&... args)
-{
+template <class T, class... Args>
+inline Own<T> New(Args&&... args) {
 	return Own<T>(new T(std::forward<Args>(args)...));
 }
 
-template<class T>
-inline OwnArray<T> NewArray(size_t size)
-{
+template <class T>
+inline OwnArray<T> NewArray(size_t size) {
 	return OwnArray<T>(new T[size]);
 }
 
-template<class T>
-inline OwnArray<T> MakeOwnArray(T* item)
-{
+template <class T>
+inline OwnArray<T> MakeOwnArray(T* item) {
 	return OwnArray<T>(item);
 }
 
@@ -48,30 +44,26 @@ inline OwnArray<T> MakeOwnArray(T* item)
  or the vector is destroyed.
  Used with Composition Relationship.
 */
-template<class T>
-class OwnVector : public std::vector<Own<T>>
-{
+template <class T>
+class OwnVector : public std::vector<Own<T>> {
 	typedef std::vector<Own<T>> OwnV;
-public:
-	using OwnV::OwnV;
-	using OwnV::insert;
 
-	bool remove(const Own<T>& item)
-	{
+public:
+	using OwnV::insert;
+	using OwnV::OwnV;
+
+	bool remove(const Own<T>& item) {
 		auto it = std::remove(OwnV::begin(), OwnV::end(), item);
 		if (it == OwnV::end()) return false;
 		OwnV::erase(it);
 		return true;
 	}
-	typename OwnV::iterator index(const Own<T>& item)
-	{
+	typename OwnV::iterator index(const Own<T>& item) {
 		return std::find(OwnV::begin(), OwnV::end(), item);
 	}
-	bool fast_remove(const Own<T>& item)
-	{
+	bool fast_remove(const Own<T>& item) {
 		size_t index = std::distance(OwnV::begin(), OwnVector::index(item));
-		if (index < OwnV::size())
-		{
+		if (index < OwnV::size()) {
 			OwnV::at(index) = OwnV::back();
 			OwnV::pop_back();
 			return true;

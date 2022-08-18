@@ -19,10 +19,9 @@ class Unit;
 class BulletDef;
 class Bullet;
 
-typedef Acf::Delegate<bool (Bullet* bullet, Unit* target, Vec2 point)> BulletHandler;
+typedef Acf::Delegate<bool(Bullet* bullet, Unit* target, Vec2 point)> BulletHandler;
 
-class Bullet : public Body
-{
+class Bullet : public Body {
 public:
 	PROPERTY_READONLY(Unit*, Owner);
 	PROPERTY(uint32_t, TargetAllow);
@@ -37,16 +36,16 @@ public:
 	BulletHandler hitTarget;
 	void destroy();
 	CREATE_FUNC(Bullet);
-	struct Def
-	{
+	struct Def {
 		static const Slice BulletKey;
 	};
+
 protected:
 	Bullet(BulletDef* def, Unit* unit);
 	virtual void updatePhysics() override;
+
 private:
-	enum
-	{
+	enum {
 		FaceRight = BodyUserFlag,
 		HitStop = BodyUserFlag << 1,
 	};

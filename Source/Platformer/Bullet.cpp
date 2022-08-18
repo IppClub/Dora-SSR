@@ -7,35 +7,36 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Platformer/Define.h"
+
 #include "Platformer/Bullet.h"
-#include "Platformer/BulletDef.h"
-#include "Platformer/Unit.h"
-#include "Platformer/Data.h"
-#include "Platformer/VisualCache.h"
-#include "Platformer/Face.h"
-#include "Physics/Sensor.h"
-#include "Physics/PhysicsWorld.h"
-#include "Physics/BodyDef.h"
-#include "Node/Model.h"
+
 #include "Animation/ModelDef.h"
+#include "Node/Model.h"
+#include "Physics/BodyDef.h"
+#include "Physics/PhysicsWorld.h"
+#include "Physics/Sensor.h"
+#include "Platformer/BulletDef.h"
+#include "Platformer/Data.h"
+#include "Platformer/Face.h"
+#include "Platformer/Unit.h"
+#include "Platformer/VisualCache.h"
 #include "Support/Dictionary.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
 const Slice Bullet::Def::BulletKey = "bullet"_slice;
 
-Bullet::Bullet(BulletDef* bulletDef, Unit* unit) :
-Body(bulletDef->getBodyDef(), unit->getPhysicsWorld()),
-_bulletDef(bulletDef),
-_owner(unit),
-_current(0),
-_lifeTime(bulletDef->lifeTime),
-_face(nullptr)
-{ }
+Bullet::Bullet(BulletDef* bulletDef, Unit* unit)
+	: Body(bulletDef->getBodyDef(), unit->getPhysicsWorld())
+	, _bulletDef(bulletDef)
+	, _owner(unit)
+	, _current(0)
+	, _lifeTime(bulletDef->lifeTime)
+	, _face(nullptr) { }
 
-bool Bullet::init()
-{
+bool Bullet::init() {
 	if (!Body::init()) return false;
 	Bullet::setFaceRight(_owner->isFaceRight());
 	Bullet::setTag(_bulletDef->tag);
@@ -46,20 +47,17 @@ bool Bullet::init()
 	Body::setVelocity((isFaceRight() ? v.x : -v.x), v.y);
 	Body::setGroup(SharedData.getGroupDetection());
 	Face* face = _bulletDef->getFace();
-	if (face)
-	{
+	if (face) {
 		Node* node = face->toNode();
 		Bullet::setFace(node);
 	}
 	Playable* playable = _owner->getPlayable();
 	Vec2 offset = (playable ? playable->getKeyPoint(Def::BulletKey) : Vec2::zero);
 	Bullet::setPosition(_owner->getPosition() + offset);
-	if (Body::getBodyDef()->getLinearAcceleration() != Vec2::zero)
-	{
+	if (Body::getBodyDef()->getLinearAcceleration() != Vec2::zero) {
 		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _owner->isFaceRight() ? v.x : -v.x)));
 	}
-	hitTarget += [](Bullet* bullet, Unit* target, Vec2 point)
-	{
+	hitTarget += [](Bullet* bullet, Unit* target, Vec2 point) {
 		bullet->emit("HitTarget"_slice, bullet, target, point);
 		return bullet->isHitStop();
 	};
@@ -67,146 +65,118 @@ bool Bullet::init()
 	return true;
 }
 
-void Bullet::updatePhysics()
-{
+void Bullet::updatePhysics() {
 	auto& world = _pWorld->getPrWorld();
-	if (pd::IsAwake(world, _prBody))
-	{
+	if (pd::IsAwake(world, _prBody)) {
 		const pr::Vec2& pos = pd::GetLocation(world, _prBody);
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overridden by Body`s.
 		*/
 		Node::setPosition(Vec2{PhysicsWorld::oVal(pos[0]), PhysicsWorld::oVal(pos[1])});
-		if (pd::GetLinearAcceleration(world, _prBody) != pr::LinearAcceleration2{})
-		{
+		if (pd::GetLinearAcceleration(world, _prBody) != pr::LinearAcceleration2{}) {
 			pd::Velocity velocity = pd::GetVelocity(world, _prBody);
 			Node::setAngle(-bx::toDeg(std::atan2(velocity.linear[1], velocity.linear[0])));
 		}
 	}
 }
 
-bool Bullet::update(double deltaTime)
-{
+bool Bullet::update(double deltaTime) {
 	if (getGroup() == SharedData.getGroupHide()) return true;
 	_current += s_cast<float>(deltaTime);
-	if (_current >= _lifeTime)
-	{
+	if (_current >= _lifeTime) {
 		Bullet::destroy();
 	}
 	return Body::update(deltaTime);
 }
 
-Unit* Bullet::getOwner() const
-{
+Unit* Bullet::getOwner() const {
 	return _owner;
 }
 
-void Bullet::setFaceRight(bool var)
-{
+void Bullet::setFaceRight(bool var) {
 	_flags.set(Bullet::FaceRight, var);
 }
 
-bool Bullet::isFaceRight() const
-{
+bool Bullet::isFaceRight() const {
 	return _flags.isOn(Bullet::FaceRight);
 }
 
-void Bullet::setHitStop(bool var)
-{
+void Bullet::setHitStop(bool var) {
 	_flags.set(Bullet::HitStop, var);
 }
 
-bool Bullet::isHitStop() const
-{
+bool Bullet::isHitStop() const {
 	return _flags.isOn(Bullet::HitStop);
 }
 
-void Bullet::setTargetAllow(uint32_t var)
-{
+void Bullet::setTargetAllow(uint32_t var) {
 	targetAllow = TargetAllow(var);
 }
 
-uint32_t Bullet::getTargetAllow() const
-{
+uint32_t Bullet::getTargetAllow() const {
 	return targetAllow.toValue();
 }
 
-void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal)
-{
-	if (body == _owner)
-	{
+void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal) {
+	if (body == _owner) {
 		return;
 	}
 	Unit* unit = DoraAs<Unit>(body->getOwner());
 	bool isHitTerrain = SharedData.isTerrain(body) && targetAllow.isTerrainAllowed();
 	bool isHitUnit = unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit));
 	bool isHit = isHitTerrain || isHitUnit;
-	if (isHit && hitTarget)
-	{
+	if (isHit && hitTarget) {
 		bool isRangeDamage = _bulletDef->damageRadius > 0.0f;
-		if (isRangeDamage)
-		{
+		if (isRangeDamage) {
 			Vec2 pos = this->getPosition();
 			Rect rect(
 				pos.x - _bulletDef->damageRadius,
 				pos.y - _bulletDef->damageRadius,
 				_bulletDef->damageRadius * 2,
 				_bulletDef->damageRadius * 2);
-			_pWorld->query(rect, [&](Body* body)
-			{
+			_pWorld->query(rect, [&](Body* body) {
 				Unit* unit = DoraAs<Unit>(body->getOwner());
-				if (unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit)))
-				{
+				if (unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit))) {
 					hitTarget(this, unit, unit->getPosition());
 				}
 				return false;
 			});
-		}
-		else if (isHitUnit)
-		{
+		} else if (isHitUnit) {
 			/* hitTarget function may cancel this hit by returning false */
 			isHit = hitTarget(this, unit, point);
 		}
 	}
-	if (isHit)
-	{
+	if (isHit) {
 		Bullet::destroy();
 	}
 }
 
-BulletDef* Bullet::getBulletDef()
-{
+BulletDef* Bullet::getBulletDef() {
 	return _bulletDef;
 }
 
-void Bullet::setFace(Node* var)
-{
-	if (_face)
-	{
+void Bullet::setFace(Node* var) {
+	if (_face) {
 		_face->slot("Stoped"_slice, nullptr);
 		Node::removeChild(_face, true);
 	}
 	_face = var;
 	Node::addChild(var);
-	_face->slot("Stoped"_slice, [this](Event*)
-	{
+	_face->slot("Stoped"_slice, [this](Event*) {
 		_face = nullptr;
 		removeFromParent();
 	});
 }
 
-Node* Bullet::getFace() const
-{
+Node* Bullet::getFace() const {
 	return _face;
 }
 
-void Bullet::destroy()
-{
+void Bullet::destroy() {
 	AssertIf(getGroup() == SharedData.getGroupHide(), "can destroy bullet only once!");
 	setGroup(SharedData.getGroupHide());
 	Node::unscheduleUpdate();
-	if (!_bulletDef->endEffect.empty())
-	{
+	if (!_bulletDef->endEffect.empty()) {
 		Visual* effect = Visual::create(_bulletDef->endEffect);
 		effect->setPosition(this->getPosition());
 		effect->addTo(this->getParent());
@@ -215,12 +185,9 @@ void Bullet::destroy()
 	}
 	Body::setVelocity(0, 0);
 	hitTarget.Clear();
-	if (_face)
-	{
+	if (_face) {
 		_face->emit("Stop"_slice);
-	}
-	else
-	{
+	} else {
 		removeFromParent(true);
 	}
 }

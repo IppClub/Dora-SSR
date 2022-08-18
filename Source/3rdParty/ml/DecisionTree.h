@@ -1,4 +1,4 @@
-/* Copyright (c) 2017, 达达, modified by Li Jin, 2021
+/* Copyright (c) 2017, 达达, modified by Li Jin, 2022
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -11,17 +11,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #pragma once
 
-#include <string>
 #include <list>
+#include <string>
 #include <tuple>
 
 namespace GaGa {
 
-class DecisionTree
-{
+class DecisionTree {
 public:
-	struct Node
-	{
+	struct Node {
 		int depth;
 		std::string name;
 		std::string op;

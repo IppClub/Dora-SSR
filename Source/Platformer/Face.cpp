@@ -7,38 +7,32 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Platformer/Define.h"
-#include "Support/Geometry.h"
+
 #include "Platformer/Face.h"
-#include "Node/Particle.h"
+
 #include "Animation/Animation.h"
 #include "Cache/ClipCache.h"
 #include "Cache/FrameCache.h"
+#include "Node/Particle.h"
+#include "Support/Geometry.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-Face::Face(String file, const Vec2& point, float scale, float angle):
-_file(file),
-_pos(point),
-_scale(scale),
-_angle(angle)
-{
-	if (SharedClipCache.isClip(_file))
-	{
+Face::Face(String file, const Vec2& point, float scale, float angle)
+	: _file(file)
+	, _pos(point)
+	, _scale(scale)
+	, _angle(angle) {
+	if (SharedClipCache.isClip(_file)) {
 		_type = Face::Clip;
-	}
-	else if (SharedFrameCache.isFrame(_file))
-	{
+	} else if (SharedFrameCache.isFrame(_file)) {
 		_type = Face::Frame;
-	}
-	else if (Path::getExt(file) == "par"_slice)
-	{
+	} else if (Path::getExt(file) == "par"_slice) {
 		_type = Face::Particle;
-	}
-	else
-	{
-		switch (Switch::hash(Path::getExt(file)))
-		{
+	} else {
+		switch (Switch::hash(Path::getExt(file))) {
 			case "jpg"_hash:
 			case "png"_hash:
 			case "dds"_hash:
@@ -54,27 +48,22 @@ _angle(angle)
 	}
 }
 
-Face::Face(const std::function<Node*()>& func, const Vec2& point, float scale, float angle):
-_file(),
-_userCreateFunc(func),
-_pos(point),
-_scale(scale),
-_angle(angle),
-_type(Face::Custom)
-{ }
+Face::Face(const std::function<Node*()>& func, const Vec2& point, float scale, float angle)
+	: _file()
+	, _userCreateFunc(func)
+	, _pos(point)
+	, _scale(scale)
+	, _angle(angle)
+	, _type(Face::Custom) { }
 
-void Face::addChild(Face* face)
-{
+void Face::addChild(Face* face) {
 	_children.push_back(face);
 }
 
-bool Face::removeChild(Face* face)
-{
+bool Face::removeChild(Face* face) {
 	auto it = _children.begin();
-	for (;it != _children.end();it++)
-	{
-		if (*it == face)
-		{
+	for (; it != _children.end(); it++) {
+		if (*it == face) {
 			_children.erase(it);
 			return true;
 		}
@@ -82,11 +71,9 @@ bool Face::removeChild(Face* face)
 	return false;
 }
 
-Node* Face::toNode() const
-{
+Node* Face::toNode() const {
 	Node* node = nullptr;
-	switch (_type)
-	{
+	switch (_type) {
 		case Face::Clip:
 			node = SharedClipCache.loadSprite(_file);
 			break;
@@ -96,8 +83,7 @@ Node* Face::toNode() const
 		case Face::Particle:
 			node = ParticleNode::create(_file);
 			break;
-		case Face::Frame:
-		{
+		case Face::Frame: {
 			FrameActionDef* def = SharedFrameCache.load(_file);
 			Sprite* sprite = SharedClipCache.loadSprite(def->clipStr);
 			sprite->setTextureRect(*def->rects[0]);
@@ -119,30 +105,22 @@ Node* Face::toNode() const
 	node->setScaleY(_scale);
 	WRef<Node> self(node);
 	uint32_t total = 1 + s_cast<uint32_t>(_children.size());
-	for (Face* child : _children)
-	{
+	for (Face* child : _children) {
 		node->addChild(child->toNode());
 	}
-	node->slot("Stop"_slice, [self,total](Event* e)
-	{
-		if (self)
-		{
+	node->slot("Stop"_slice, [self, total](Event* e) {
+		if (self) {
 			auto count = std::make_shared<int>(0);
-			auto callback = [self,total,count](Event*)
-			{
+			auto callback = [self, total, count](Event*) {
 				(*count)++;
-				if (*count == total)
-				{
+				if (*count == total) {
 					self->emit("Stoped"_slice);
 				}
 			};
 			self->slot("__Stoped"_slice, callback);
-			if (self->getChildren() && !self->getChildren()->isEmpty())
-			{
-				ARRAY_START(Node, child, self->getChildren())
-				{
-					if (child->getTag() == "_F"_slice)
-					{
+			if (self->getChildren() && !self->getChildren()->isEmpty()) {
+				ARRAY_START(Node, child, self->getChildren()) {
+					if (child->getTag() == "_F"_slice) {
 						child->slot("Stoped"_slice, callback);
 						child->emit("Stop"_slice);
 					}
@@ -151,40 +129,31 @@ Node* Face::toNode() const
 			}
 		}
 	});
-	switch (_type)
-	{
+	switch (_type) {
 		case Face::Clip:
 		case Face::Image:
 		case Face::Frame:
-		case Face::Custom:
-		{
+		case Face::Custom: {
 			WRef<Node> self(node);
-			node->slot("Stop"_slice, [self](Event*)
-			{
-				if (self)
-				{
+			node->slot("Stop"_slice, [self](Event*) {
+				if (self) {
 					self->setSelfVisible(false);
 					self->emit("__Stoped"_slice);
 				}
 			});
 			break;
 		}
-		case Face::Particle:
-		{
+		case Face::Particle: {
 			WRef<ParticleNode> self(s_cast<ParticleNode*>(node));
-			node->slot("Stop"_slice, [self](Event*)
-			{
-				if (self)
-				{
-					if (self->isActive())
-					{
+			node->slot("Stop"_slice, [self](Event*) {
+				if (self) {
+					if (self->isActive()) {
 						self->stop();
-						self->slot("Finish"_slice, [self](Event*)
-						{
+						self->slot("Finish"_slice, [self](Event*) {
 							self->emit("__Stoped"_slice);
 						});
-					}
-					else self->emit("__Stoped"_slice);
+					} else
+						self->emit("__Stoped"_slice);
 				}
 			});
 			self->start();
@@ -194,8 +163,7 @@ Node* Face::toNode() const
 	return node;
 }
 
-uint32_t Face::getType() const
-{
+uint32_t Face::getType() const {
 	return _type;
 }
 

@@ -1,3 +1,4 @@
+TOLUA_VERSION = "1.0.92+dora"
 local output_change = lfs.attributes(flags.o, "modification")
 local rebuild = output_change == nil
 

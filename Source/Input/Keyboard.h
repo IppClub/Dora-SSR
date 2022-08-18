@@ -18,8 +18,7 @@ class Event;
 
 typedef Acf::Delegate<void(Event*)> KeyboardHandler;
 
-class Keyboard
-{
+class Keyboard {
 public:
 	virtual ~Keyboard();
 	bool init();
@@ -32,9 +31,11 @@ public:
 	bool isKeyPressed(String name) const;
 	KeyboardHandler KeyHandler;
 	void clearChanges();
+
 protected:
 	Keyboard();
 	void handleEvent(const SDL_Event& event);
+
 private:
 	std::vector<int> _changedKeys;
 	std::vector<bool> _oldKeyStates;
@@ -43,8 +44,8 @@ private:
 	std::vector<bool> _newCodeStates;
 	std::vector<Slice> _keyNames;
 	std::vector<Slice> _codeNames;
-	std::unordered_map<std::string,int> _keyMap;
-	std::unordered_map<std::string,int> _codeMap;
+	std::unordered_map<std::string, int> _keyMap;
+	std::unordered_map<std::string, int> _codeMap;
 	KeyboardHandler _imeHandler;
 	SINGLETON_REF(Keyboard, Director);
 };

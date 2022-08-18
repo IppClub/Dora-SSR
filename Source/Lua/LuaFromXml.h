@@ -14,15 +14,16 @@ NS_DOROTHY_BEGIN
 
 class XmlDelegator;
 
-class XmlLoader
-{
+class XmlLoader {
 public:
 	virtual ~XmlLoader();
 	std::string load(String filename);
 	std::string loadXml(String xml);
 	std::string getLastError();
+
 protected:
 	XmlLoader();
+
 private:
 	Own<XmlDelegator> _delegator;
 	SAXParser _parser;

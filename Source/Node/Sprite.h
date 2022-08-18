@@ -8,14 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node.h"
 #include "Basic/Renderer.h"
 #include "Cache/TextureCache.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
-struct SpriteVertex
-{
+struct SpriteVertex {
 	float x;
 	float y;
 	float z;
@@ -23,37 +22,31 @@ struct SpriteVertex
 	float u;
 	float v;
 	uint32_t abgr;
-	struct Init
-	{
-		Init()
-		{
+	struct Init {
+		Init() {
 			ms_layout.begin()
 				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-			.end();
+				.end();
 		}
 	};
 	static bgfx::VertexLayout ms_layout;
 	static Init init;
 };
 
-struct SpriteQuad
-{
+struct SpriteQuad {
 	SpriteVertex rb;
 	SpriteVertex lb;
 	SpriteVertex lt;
 	SpriteVertex rt;
-	inline operator SpriteVertex*()
-	{
+	inline operator SpriteVertex*() {
 		return r_cast<SpriteVertex*>(this);
 	}
-	inline operator const SpriteVertex*() const
-	{
+	inline operator const SpriteVertex*() const {
 		return r_cast<const SpriteVertex*>(this);
 	}
-	struct Position
-	{
+	struct Position {
 		Vec4 rb;
 		Vec4 lb;
 		Vec4 lt;
@@ -63,8 +56,7 @@ struct SpriteQuad
 
 class SpriteEffect;
 
-class Sprite : public Node
-{
+class Sprite : public Node {
 public:
 	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY(Texture2D*, Texture);
@@ -85,6 +77,7 @@ public:
 	virtual const Matrix& getWorld() override;
 	static Sprite* from(String clipStr);
 	CREATE_FUNC(Sprite);
+
 protected:
 	Sprite();
 	Sprite(Texture2D* texture);
@@ -94,6 +87,7 @@ protected:
 	void updateVertColor();
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
+
 private:
 	uint8_t _alphaRef;
 	TextureFilter _filter;
@@ -106,8 +100,7 @@ private:
 	SpriteQuad _quad;
 	BlendFunc _blendFunc;
 	uint64_t _renderState;
-	enum
-	{
+	enum {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,
@@ -115,8 +108,7 @@ private:
 	DORA_TYPE_OVERRIDE(Sprite);
 };
 
-class SpriteRenderer : public Renderer
-{
+class SpriteRenderer : public Renderer {
 public:
 	using IndexType = uint16_t;
 	PROPERTY_READONLY(const IndexType*, Indices);
@@ -129,8 +121,10 @@ public:
 		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX);
 	void push(SpriteVertex* verts, size_t vsize, IndexType* inds, size_t isize,
 		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX);
+
 protected:
 	SpriteRenderer();
+
 private:
 	Ref<SpriteEffect> _defaultEffect;
 	Ref<SpriteEffect> _alphaTestEffect;

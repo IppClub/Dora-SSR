@@ -10,20 +10,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Shader : public Object
-{
+class Shader : public Object {
 public:
 	PROPERTY_READONLY(bgfx::ShaderHandle, Handle);
 	virtual ~Shader();
 	CREATE_FUNC(Shader);
+
 protected:
 	Shader(bgfx::ShaderHandle handle);
+
 private:
 	bgfx::ShaderHandle _handle;
 };
 
-class ShaderCache
-{
+class ShaderCache {
 public:
 	virtual ~ShaderCache() { }
 	void update(String name, Shader* shader);
@@ -34,9 +34,11 @@ public:
 	bool unload(String filename);
 	bool unload();
 	void removeUnused();
+
 protected:
 	ShaderCache();
 	std::string getShaderPath() const;
+
 private:
 	std::unordered_map<std::string, Ref<Shader>> _shaders;
 	SINGLETON_REF(ShaderCache, BGFXDora);

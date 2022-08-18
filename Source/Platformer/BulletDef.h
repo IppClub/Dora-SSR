@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Support/Geometry.h"
+
 NS_DOROTHY_BEGIN
 class World;
 class BodyDef;
@@ -16,8 +18,7 @@ NS_DOROTHY_END
 NS_DOROTHY_PLATFORMER_BEGIN
 class Face;
 
-class BulletDef : public Object
-{
+class BulletDef : public Object {
 public:
 	void setVelocity(float angle, float speed);
 	PROPERTY_CREF(Vec2, Velocity);
@@ -32,10 +33,12 @@ public:
 	void setAsCircle(float radius);
 	BodyDef* getBodyDef() const;
 	CREATE_FUNC(BulletDef);
+
 protected:
 	BulletDef();
 	Ref<BodyDef> _bodyDef;
 	Ref<Face> _face;
+
 private:
 	Vec2 _velocity;
 	DORA_TYPE_OVERRIDE(BulletDef);

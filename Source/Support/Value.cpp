@@ -7,7 +7,9 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Support/Value.h"
+
 #include "Lua/LuaHandler.h"
 
 NS_DOROTHY_BEGIN
@@ -16,25 +18,20 @@ const Own<Value> Value::None;
 
 /* ValueInt */
 
-Own<Value> ValueInt::clone() const
-{
+Own<Value> ValueInt::clone() const {
 	return Value::alloc(_value);
 }
 
-void ValueInt::pushToLua(lua_State* L) const
-{
+void ValueInt::pushToLua(lua_State* L) const {
 	LuaEngine::push(L, _value);
 }
 
-ValueType ValueInt::getType() const
-{
+ValueType ValueInt::getType() const {
 	return ValueType::Integral;
 }
 
-bool ValueInt::equals(Value* other) const
-{
-	if (auto value = DoraAs<ValueInt>(other))
-	{
+bool ValueInt::equals(Value* other) const {
+	if (auto value = DoraAs<ValueInt>(other)) {
 		return _value == value->get();
 	}
 	return false;
@@ -44,25 +41,20 @@ MEMORY_POOL(ValueInt);
 
 /* ValueFloat */
 
-Own<Value> ValueFloat::clone() const
-{
+Own<Value> ValueFloat::clone() const {
 	return Value::alloc(_value);
 }
 
-void ValueFloat::pushToLua(lua_State* L) const
-{
+void ValueFloat::pushToLua(lua_State* L) const {
 	LuaEngine::push(L, _value);
 }
 
-ValueType ValueFloat::getType() const
-{
+ValueType ValueFloat::getType() const {
 	return ValueType::FloatingPoint;
 }
 
-bool ValueFloat::equals(Value* other) const
-{
-	if (auto value = DoraAs<ValueFloat>(other))
-	{
+bool ValueFloat::equals(Value* other) const {
+	if (auto value = DoraAs<ValueFloat>(other)) {
 		return _value == value->get();
 	}
 	return false;
@@ -72,25 +64,20 @@ MEMORY_POOL(ValueFloat);
 
 /* ValueBool */
 
-Own<Value> ValueBool::clone() const
-{
+Own<Value> ValueBool::clone() const {
 	return Value::alloc(_value);
 }
 
-void ValueBool::pushToLua(lua_State* L) const
-{
+void ValueBool::pushToLua(lua_State* L) const {
 	LuaEngine::push(L, _value);
 }
 
-ValueType ValueBool::getType() const
-{
+ValueType ValueBool::getType() const {
 	return ValueType::Boolean;
 }
 
-bool ValueBool::equals(Value* other) const
-{
-	if (auto value = DoraAs<ValueBool>(other))
-	{
+bool ValueBool::equals(Value* other) const {
+	if (auto value = DoraAs<ValueBool>(other)) {
 		return _value == value->get();
 	}
 	return false;
@@ -100,29 +87,23 @@ MEMORY_POOL(ValueBool);
 
 /* ValueObject */
 
-Own<Value> ValueObject::clone() const
-{
+Own<Value> ValueObject::clone() const {
 	return Value::alloc(_value.get());
 }
 
-void ValueObject::pushToLua(lua_State* L) const
-{
-	if (auto value = DoraAs<LuaHandler>(_value.get()))
-	{
+void ValueObject::pushToLua(lua_State* L) const {
+	if (auto value = DoraAs<LuaHandler>(_value.get())) {
 		tolua_get_function_by_refid(L, value->get());
-	}
-	else LuaEngine::push(L, _value.get());
+	} else
+		LuaEngine::push(L, _value.get());
 }
 
-ValueType ValueObject::getType() const
-{
+ValueType ValueObject::getType() const {
 	return ValueType::Object;
 }
 
-bool ValueObject::equals(Value* other) const
-{
-	if (auto value = DoraAs<ValueObject>(other))
-	{
+bool ValueObject::equals(Value* other) const {
+	if (auto value = DoraAs<ValueObject>(other)) {
 		BLOCK_START
 		auto handler = DoraAs<LuaHandler>(_value.get());
 		BREAK_IF(!handler);
@@ -138,4 +119,3 @@ bool ValueObject::equals(Value* other) const
 MEMORY_POOL(ValueObject);
 
 NS_DOROTHY_END
-

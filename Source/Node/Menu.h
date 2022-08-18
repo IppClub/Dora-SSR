@@ -14,15 +14,16 @@ NS_DOROTHY_BEGIN
 
 class Touch;
 
-class Menu : public Node
-{
+class Menu : public Node {
 public:
 	PROPERTY_BOOL(Enabled);
 	virtual bool init() override;
 	CREATE_FUNC(Menu);
+
 protected:
 	Menu();
 	Menu(float width, float height);
+
 private:
 	Node* itemForTouch(Touch* touch);
 	bool _enabled;

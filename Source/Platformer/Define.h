@@ -19,8 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-enum struct Relation
-{
+enum struct Relation {
 	Unknown = 0,
 	Friend = 1 << 0,
 	Neutral = 1 << 1,
@@ -38,8 +37,7 @@ Target Allow
 	Group
 		SharedData.getTerrainGroup() 1 << 3
 */
-class TargetAllow
-{
+class TargetAllow {
 public:
 	TargetAllow(uint32_t flag = 0);
 	bool operator==(const TargetAllow& other) const;
@@ -49,6 +47,7 @@ public:
 	void allow(Relation relation, bool allow);
 	bool isAllow(Relation relation);
 	uint32_t toValue() const;
+
 protected:
 	uint32_t _flag;
 };

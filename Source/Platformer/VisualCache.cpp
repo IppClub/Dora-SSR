@@ -7,38 +7,35 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Platformer/Define.h"
+
 #include "Platformer/VisualCache.h"
-#include "Node/Particle.h"
-#include "Cache/TextureCache.h"
-#include "Cache/ParticleCache.h"
-#include "Cache/FrameCache.h"
+
 #include "Animation/Animation.h"
+#include "Cache/FrameCache.h"
+#include "Cache/ParticleCache.h"
+#include "Cache/TextureCache.h"
 #include "Const/XmlTag.h"
+#include "Node/Particle.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
 // VisualType
 
-VisualType::VisualType(String filename):
-_file(filename),
-_type(VisualType::Unkown)
-{
-	if (SharedFrameCache.isFrame(filename))
-	{
+VisualType::VisualType(String filename)
+	: _file(filename)
+	, _type(VisualType::Unkown) {
+	if (SharedFrameCache.isFrame(filename)) {
 		_type = VisualType::Frame;
-	}
-	else if (Path::getExt(filename) == "par"_slice)
-	{
+	} else if (Path::getExt(filename) == "par"_slice) {
 		_type = VisualType::Particle;
-	}
-	else Warn("got invalid visual file str: \"{}\".", filename);
+	} else
+		Warn("got invalid visual file str: \"{}\".", filename);
 }
 
-Visual* VisualType::toVisual() const
-{
-	switch (_type)
-	{
+Visual* VisualType::toVisual() const {
+	switch (_type) {
 		case VisualType::Particle:
 			return ParticleVisual::create(_file);
 		case VisualType::Frame:
@@ -47,125 +44,94 @@ Visual* VisualType::toVisual() const
 	return nullptr;
 }
 
-const std::string& VisualType::getFilename() const
-{
+const std::string& VisualType::getFilename() const {
 	return _file;
 }
 
 // VisualCache
 
-VisualCache::VisualCache():
-_parser(this)
-{ }
+VisualCache::VisualCache()
+	: _parser(this) { }
 
-VisualCache::~VisualCache()
-{
+VisualCache::~VisualCache() {
 	VisualCache::unload();
 }
 
-bool VisualCache::load(String filename)
-{
-	if (!_visuals.empty())
-	{
+bool VisualCache::load(String filename) {
+	if (!_visuals.empty()) {
 		VisualCache::unload();
 	}
 	auto data = SharedContent.load(filename);
-	if (!data.first)
-	{
+	if (!data.first) {
 		return false;
 	}
 	std::string fullPath = SharedContent.getFullPath(filename);
 	_path = Path::getPath(fullPath);
-	try
-	{
+	try {
 		_parser.parse(r_cast<char*>(data.first.get()), s_cast<int>(data.second));
 		return true;
-	}
-	catch (rapidxml::parse_error error)
-	{
+	} catch (rapidxml::parse_error error) {
 		Warn("xml parse error: {}, at: {}, ", error.what(), error.where<char>() - r_cast<char*>(data.first.get()));
 		return false;
 	}
 }
 
-bool VisualCache::update(String content)
-{
-	if (!_visuals.empty())
-	{
+bool VisualCache::update(String content) {
+	if (!_visuals.empty()) {
 		VisualCache::unload();
 	}
 	size_t size = content.size() + 1;
 	auto data = MakeOwnArray(new char[size]);
 	content.copyTo(data.get());
-	try
-	{
+	try {
 		_parser.parse(r_cast<char*>(data.get()), s_cast<int>(size));
 		return true;
-	}
-	catch (rapidxml::parse_error error)
-	{
+	} catch (rapidxml::parse_error error) {
 		Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
 		return false;
 	}
 }
 
-bool VisualCache::unload()
-{
-	if (_visuals.empty())
-	{
+bool VisualCache::unload() {
+	if (_visuals.empty()) {
 		return false;
-	}
-	else
-	{
+	} else {
 		_visuals.clear();
 		return true;
 	}
 }
 
-Visual* VisualCache::create(String name)
-{
+Visual* VisualCache::create(String name) {
 	auto it = _visuals.find(name);
-	if (it != _visuals.end())
-	{
+	if (it != _visuals.end()) {
 		return it->second->toVisual();
 	}
-	if (SharedFrameCache.isFrame(name))
-	{
+	if (SharedFrameCache.isFrame(name)) {
 		return SpriteVisual::create(name);
-	}
-	else if (Path::getExt(name) == "par"_slice)
-	{
+	} else if (Path::getExt(name) == "par"_slice) {
 		return ParticleVisual::create(name);
 	}
 	return nullptr;
 }
 
-const std::string& VisualCache::getFileByName(String name)
-{
+const std::string& VisualCache::getFileByName(String name) {
 	auto it = _visuals.find(name);
-	if (it != _visuals.end())
-	{
+	if (it != _visuals.end()) {
 		return it->second->getFilename();
 	}
 	return Slice::Empty;
 }
 
-void VisualCache::xmlSAX2Text(const char* s, size_t len)
-{ }
+void VisualCache::xmlSAX2Text(const char* s, size_t len) { }
 
-void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs)
-{
-	switch (Xml::Visual::Element(name[0]))
-	{
+void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+	switch (Xml::Visual::Element(name[0])) {
 		case Xml::Visual::Element::Dorothy:
 			break;
-		case Xml::Visual::Element::Visual:
-		{
+		case Xml::Visual::Element::Visual: {
 			std::string name, file;
-			for (int i = 0; attrs[i].first != nullptr; i++)
-			{
-				switch (Xml::Visual::Visual(attrs[i].first[0]))
-				{
+			for (int i = 0; attrs[i].first != nullptr; i++) {
+				switch (Xml::Visual::Visual(attrs[i].first[0])) {
 					case Xml::Visual::Visual::Name:
 						name = Slice(attrs[++i]);
 						break;
@@ -175,114 +141,92 @@ void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const std::v
 				}
 			}
 			_visuals[name] = New<VisualType>(file);
-		}
-		break;
+		} break;
 	}
 }
 
-void VisualCache::xmlSAX2EndElement(const char* name, size_t len)
-{ }
+void VisualCache::xmlSAX2EndElement(const char* name, size_t len) { }
 
 // ParticleVisual
 
-void ParticleVisual::start()
-{
+void ParticleVisual::start() {
 	if (_particle) _particle->start();
 }
 
-void ParticleVisual::stop()
-{
+void ParticleVisual::stop() {
 	if (_particle) _particle->stop();
 }
 
-Visual* ParticleVisual::autoRemove()
-{
-	if (_particle)
-	{
+Visual* ParticleVisual::autoRemove() {
+	if (_particle) {
 		WRef<ParticleNode> par(_particle);
 		WRef<Node> self(this);
-		_particle->slot("Finished"_slice, [par, self](Event*)
-		{
+		_particle->slot("Finished"_slice, [par, self](Event*) {
 			if (self) self->removeFromParent(true);
 		});
 	}
 	return this;
 }
 
-ParticleVisual::ParticleVisual(String filename):
-_particle(ParticleNode::create(filename))
-{ }
+ParticleVisual::ParticleVisual(String filename)
+	: _particle(ParticleNode::create(filename)) { }
 
-bool ParticleVisual::init()
-{
+bool ParticleVisual::init() {
 	if (!Visual::init()) return false;
 	addChild(_particle);
 	return true;
 }
 
-bool ParticleVisual::isPlaying()
-{
+bool ParticleVisual::isPlaying() {
 	if (_particle) return _particle->isActive();
 	return false;
 }
 
-ParticleNode* ParticleVisual::getParticle() const
-{
+ParticleNode* ParticleVisual::getParticle() const {
 	return _particle;
 }
 
 // SpriteVisual
 
-void SpriteVisual::start()
-{
-	if (!_action->isRunning())
-	{
+void SpriteVisual::start() {
+	if (!_action->isRunning()) {
 		_sprite->setVisible(true);
 		_sprite->perform(_action);
 	}
 }
 
-void SpriteVisual::stop()
-{
-	if (_action->isRunning())
-	{	
+void SpriteVisual::stop() {
+	if (_action->isRunning()) {
 		_sprite->setVisible(false);
 		_sprite->stopAllActions();
 	}
-	if (_isAutoRemoved)
-	{
+	if (_isAutoRemoved) {
 		_sprite->stopAllActions();
 		removeFromParent(true);
 	}
 }
 
-Visual* SpriteVisual::autoRemove()
-{
+Visual* SpriteVisual::autoRemove() {
 	_isAutoRemoved = true;
 	return this;
 }
 
-SpriteVisual::SpriteVisual(String filename):
-_isAutoRemoved(false)
-{
+SpriteVisual::SpriteVisual(String filename)
+	: _isAutoRemoved(false) {
 	WRef<SpriteVisual> self(this);
 	FrameActionDef* frameActionDef = SharedFrameCache.loadFrame(filename);
 	_sprite = Sprite::create(
 		SharedTextureCache.load(frameActionDef->clipStr),
 		*frameActionDef->rects[0]);
 	Action* action = Action::create(FrameAction::alloc(frameActionDef));
-	_sprite->slot("ActionEnd"_slice, [self, action](Event* event)
-	{
+	_sprite->slot("ActionEnd"_slice, [self, action](Event* event) {
 		Action* eventAction;
 		Node* target;
 		event->get(eventAction, target);
-		if (action == eventAction)
-		{
-			if (self)
-			{
+		if (action == eventAction) {
+			if (self) {
 				self->_sprite->setVisible(false);
-				if (self->_isAutoRemoved)
-				{
+				if (self->_isAutoRemoved) {
 					self->removeFromParent(true);
 				}
 			}
@@ -291,58 +235,49 @@ _isAutoRemoved(false)
 	_action = action;
 }
 
-bool SpriteVisual::init()
-{
+bool SpriteVisual::init() {
 	if (!Visual::init()) return false;
 	addChild(_sprite);
 	return true;
 }
 
-bool SpriteVisual::isPlaying()
-{
+bool SpriteVisual::isPlaying() {
 	return _action->isRunning();
 }
 
-Sprite* SpriteVisual::getSprite() const
-{
+Sprite* SpriteVisual::getSprite() const {
 	return _sprite;
 }
 
-class DummyVisual : public Visual
-{
+class DummyVisual : public Visual {
 public:
 	DummyVisual()
-	: _node(Node::create())
-	, _isAutoRemoved(false)
-	{ }
+		: _node(Node::create())
+		, _isAutoRemoved(false) { }
 	virtual void start() override { stop(); }
 	virtual bool isPlaying() override { return false; }
-	virtual void stop() override
-	{
-		if (_isAutoRemoved)
-		{
+	virtual void stop() override {
+		if (_isAutoRemoved) {
 			Node* parent = Node::getParent();
 			if (parent) parent->removeChild(this, true);
 		}
 	}
-	virtual Visual* autoRemove() override
-	{
+	virtual Visual* autoRemove() override {
 		_isAutoRemoved = true;
 		return this;
 	}
-	static DummyVisual* create()
-	{
+	static DummyVisual* create() {
 		DummyVisual* visual = new DummyVisual();
 		visual->autorelease();
 		return visual;
 	}
+
 private:
 	bool _isAutoRemoved;
 	Ref<Node> _node;
 };
 
-Visual* Visual::create(String name)
-{
+Visual* Visual::create(String name) {
 	Visual* visual = SharedVisualCache.create(name);
 	if (!visual) visual = DummyVisual::create();
 	return visual;

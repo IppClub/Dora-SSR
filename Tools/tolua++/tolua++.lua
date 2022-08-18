@@ -1,6 +1,6 @@
 local globals = {lfs=true}
 lfs = require("lfs")
-TOLUA_VERSION = "1.0.92"
+TOLUA_VERSION = "1.0.92+dora"
 
 for k in pairs(_G) do
 	globals[k] = true

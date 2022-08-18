@@ -11,24 +11,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Object.h"
 
 namespace SoLoud {
-	class Wav;
-	class WavStream;
-	class Soloud;
+class Wav;
+class WavStream;
+class Soloud;
 } // namespace SoLoud
 
 NS_DOROTHY_BEGIN
 
 class Timer;
 
-class SoundFile : public Object
-{
+class SoundFile : public Object {
 public:
 	virtual ~SoundFile();
 	PROPERTY_READONLY_CALL(SoLoud::Wav*, Wav);
 	virtual bool init() override;
 	CREATE_FUNC(SoundFile);
+
 protected:
 	SoundFile(OwnArray<uint8_t>&& data, size_t size);
+
 private:
 	OwnArray<uint8_t> _data;
 	size_t _size;
@@ -36,15 +37,16 @@ private:
 	DORA_TYPE_OVERRIDE(SoundFile);
 };
 
-class SoundStream : public Object
-{
+class SoundStream : public Object {
 public:
 	virtual ~SoundStream();
 	PROPERTY_READONLY_CALL(SoLoud::WavStream*, Stream);
 	virtual bool init() override;
 	CREATE_FUNC(SoundStream);
+
 protected:
 	SoundStream(OwnArray<uint8_t>&& data, size_t size);
+
 private:
 	size_t _size;
 	OwnArray<uint8_t> _data;
@@ -52,8 +54,7 @@ private:
 	DORA_TYPE_OVERRIDE(SoundStream);
 };
 
-class Audio
-{
+class Audio {
 public:
 	PROPERTY_READONLY_CALL(SoLoud::Soloud*, SoLoud);
 	virtual ~Audio();
@@ -62,8 +63,10 @@ public:
 	void stop(uint32_t handle);
 	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
 	void stopStream(float fadeTime = 0.0f);
+
 protected:
 	Audio();
+
 private:
 	Ref<Timer> _timer;
 	uint32_t _currentVoice;

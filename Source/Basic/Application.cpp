@@ -7,20 +7,20 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Basic/Application.h"
+
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Director.h"
-#include "Basic/View.h"
 #include "Basic/Scheduler.h"
-#include "Other/utf8.h"
+#include "Basic/View.h"
 #include "Common/Async.h"
+#include "Other/utf8.h"
 #include "Physics/PhysicsWorld.h"
-
+#include "SDL.h"
+#include "SDL_syswm.h"
 #include "bx/timer.h"
 #include <ctime>
-
-#include "SDL_syswm.h"
-#include "SDL.h"
 
 #define DORA_VERSION "1.0.9"_slice
 
@@ -28,19 +28,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <jni.h>
 static std::string g_androidAPKPath;
 extern "C" {
-	JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath)
-	{
-		const char* pathString = env->GetStringUTFChars(apkPath, NULL);
-		g_androidAPKPath = pathString;
-		env->ReleaseStringUTFChars(apkPath, pathString);
-	}
+JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath) {
+	const char* pathString = env->GetStringUTFChars(apkPath, NULL);
+	g_androidAPKPath = pathString;
+	env->ReleaseStringUTFChars(apkPath, pathString);
+}
 }
 static float g_androidScreenDensity;
 extern "C" {
-	JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity)
-	{
-		g_androidScreenDensity = s_cast<float>(screenDensity);
-	}
+JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity) {
+	g_androidScreenDensity = s_cast<float>(screenDensity);
+}
 }
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 #endif // BX_PLATFORM_ANDROID
@@ -51,137 +49,114 @@ extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 
 NS_DOROTHY_BEGIN
 
-bool BGFXDora::init()
-{
+bool BGFXDora::init() {
 	return bgfx::init();
 }
 
-BGFXDora::~BGFXDora()
-{
+BGFXDora::~BGFXDora() {
 	bgfx::shutdown();
 }
 
-Application::Application():
-_seed(0),
-_fpsLimited(true),
-_renderRunning(true),
-_logicRunning(true),
-_frame(0),
-_visualWidth(1280),
-_visualHeight(720),
-_winWidth(_visualWidth),
-_winHeight(_visualHeight),
-_bufferWidth(0),
-_bufferHeight(0),
-_targetFPS(60),
-_maxFPS(60),
-_deltaTime(0),
-_cpuTime(0),
-_totalTime(0),
-_frequency(double(bx::getHPFrequency())),
-_sdlWindow(nullptr)
-{
+Application::Application()
+	: _seed(0)
+	, _fpsLimited(true)
+	, _renderRunning(true)
+	, _logicRunning(true)
+	, _frame(0)
+	, _visualWidth(1280)
+	, _visualHeight(720)
+	, _winWidth(_visualWidth)
+	, _winHeight(_visualHeight)
+	, _bufferWidth(0)
+	, _bufferHeight(0)
+	, _targetFPS(60)
+	, _maxFPS(60)
+	, _deltaTime(0)
+	, _cpuTime(0)
+	, _totalTime(0)
+	, _frequency(double(bx::getHPFrequency()))
+	, _sdlWindow(nullptr) {
 	_lastTime = bx::getHPCounter() / _frequency;
 }
 
-Size Application::getBufferSize() const
-{
+Size Application::getBufferSize() const {
 	return Size{s_cast<float>(_bufferWidth), s_cast<float>(_bufferHeight)};
 }
 
-Size Application::getVisualSize() const
-{
+Size Application::getVisualSize() const {
 	return Size{s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
 }
 
-Size Application::getWinSize() const
-{
+Size Application::getWinSize() const {
 	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
-float Application::getDeviceRatio() const
-{
+float Application::getDeviceRatio() const {
 	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
 
-void Application::setSeed(uint32_t var)
-{
+void Application::setSeed(uint32_t var) {
 	_seed = var;
 	_randomEngine.seed(var);
 }
 
-uint32_t Application::getSeed() const
-{
+uint32_t Application::getSeed() const {
 	return _seed;
 }
 
-uint32_t Application::getRand()
-{
+uint32_t Application::getRand() {
 	return _randomEngine();
 }
 
-uint32_t Application::getRandMin() const
-{
+uint32_t Application::getRandMin() const {
 	return std::mt19937::min();
 }
 
-uint32_t Application::getRandMax() const
-{
+uint32_t Application::getRandMax() const {
 	return std::mt19937::max();
 }
 
-void Application::setTargetFPS(uint32_t var)
-{
+void Application::setTargetFPS(uint32_t var) {
 	_targetFPS = var;
 }
 
-uint32_t Application::getTargetFPS() const
-{
+uint32_t Application::getTargetFPS() const {
 	return _targetFPS;
 }
 
-uint32_t Application::getMaxFPS() const
-{
+uint32_t Application::getMaxFPS() const {
 	return _maxFPS;
 }
 
-void Application::setFPSLimited(bool var)
-{
+void Application::setFPSLimited(bool var) {
 	_fpsLimited = var;
 }
 
-bool Application::isFPSLimited() const
-{
+bool Application::isFPSLimited() const {
 	return _fpsLimited;
 }
 
-uint32_t Application::getFrame() const
-{
+uint32_t Application::getFrame() const {
 	return _frame;
 }
 
-SDL_Window* Application::getSDLWindow() const
-{
+SDL_Window* Application::getSDLWindow() const {
 	return _sdlWindow;
 }
 
-bool Application::isRenderRunning() const
-{
+bool Application::isRenderRunning() const {
 	return _renderRunning;
 }
 
-bool Application::isLogicRunning() const
-{
+bool Application::isLogicRunning() const {
 	return _logicRunning;
 }
 
 // This function runs in main thread, and do render work
-int Application::run()
-{
+int Application::run() {
 	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
 
-	if (SDL_Init(SDL_INIT_TIMER) != 0)
-	{
+	if (SDL_Init(SDL_INIT_TIMER) != 0) {
 		Error("SDL failed to initialize! {}", SDL_GetError());
 		return 1;
 	}
@@ -201,8 +176,7 @@ int Application::run()
 	_sdlWindow = SDL_CreateWindow("Dorothy SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_winWidth, _winHeight, windowFlags);
-	if (!_sdlWindow)
-	{
+	if (!_sdlWindow) {
 		Error("SDL failed to create window! {}", SDL_GetError());
 		return 1;
 	}
@@ -215,79 +189,66 @@ int Application::run()
 	_logicThread.init(Application::mainLogic, this);
 
 	SDL_Event event;
-	while (_renderRunning)
-	{
+	while (_renderRunning) {
 		// do render staff and swap buffers
 		bgfx::renderFrame();
 
 		// handle SDL event in this main thread only
-		while (SDL_PollEvent(&event))
-		{
-			switch (event.type)
-			{
-			case SDL_QUIT:
-				_renderRunning = false;
-				break;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_QUIT:
+					_renderRunning = false;
+					break;
 #if BX_PLATFORM_ANDROID
-			case SDL_APP_DIDENTERFOREGROUND:
-			{
-				bgfx::PlatformData pd{};
-				pd.nwh = Android_JNI_GetNativeWindow();
-				if (pd.nwh)
-				{
-					bgfx::setPlatformData(pd);
+				case SDL_APP_DIDENTERFOREGROUND: {
+					bgfx::PlatformData pd{};
+					pd.nwh = Android_JNI_GetNativeWindow();
+					if (pd.nwh) {
+						bgfx::setPlatformData(pd);
+					}
+					break;
 				}
-				break;
-			}
 #endif // BX_PLATFORM_ANDROID
-			case SDL_WINDOWEVENT:
-			{
-				switch (event.window.event)
-				{
-					case SDL_WINDOWEVENT_RESIZED:
-					case SDL_WINDOWEVENT_SIZE_CHANGED:
+				case SDL_WINDOWEVENT: {
+					switch (event.window.event) {
+						case SDL_WINDOWEVENT_RESIZED:
+						case SDL_WINDOWEVENT_SIZE_CHANGED:
 #if BX_PLATFORM_ANDROID
-						bgfx::PlatformData pd{};
-						pd.nwh = Android_JNI_GetNativeWindow();
-						if (pd.nwh)
-						{
-							bgfx::setPlatformData(pd);
-						}
+							bgfx::PlatformData pd{};
+							pd.nwh = Android_JNI_GetNativeWindow();
+							if (pd.nwh) {
+								bgfx::setPlatformData(pd);
+							}
 #endif // BX_PLATFORM_ANDROID
-						updateWindowSize();
-						break;
+							updateWindowSize();
+							break;
+					}
+					break;
 				}
-				break;
-			}
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
-			case SDL_TEXTEDITING:
-			{
-				event.edit.start = utf8_count_characters(event.edit.text);
-				break;
-			}
+				case SDL_TEXTEDITING: {
+					event.edit.start = utf8_count_characters(event.edit.text);
+					break;
+				}
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
-			default:
-				break;
+				default:
+					break;
 			}
 			_logicEvent.post("SDLEvent"_slice, event);
 		}
 
 		// poll events from logic thread
 		for (Own<QEvent> event = _renderEvent.poll();
-			event != nullptr;
-			event = _renderEvent.poll())
-		{
-			switch (Switch::hash(event->getName()))
-			{
-				case "Quit"_hash:
-				{
+			 event != nullptr;
+			 event = _renderEvent.poll()) {
+			switch (Switch::hash(event->getName())) {
+				case "Quit"_hash: {
 					SDL_Event ev;
 					ev.quit.type = SDL_QUIT;
 					SDL_PushEvent(&ev);
 					break;
 				}
-				case "Invoke"_hash:
-				{
+				case "Invoke"_hash: {
 					std::function<void()> func;
 					event->get(func);
 					func();
@@ -300,7 +261,8 @@ int Application::run()
 	}
 
 	// wait for render process to stop
-	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
+	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame())
+		;
 	_logicThread.shutdown();
 
 	SDL_DestroyWindow(_sdlWindow);
@@ -309,21 +271,18 @@ int Application::run()
 	return _logicThread.getExitCode();
 }
 
-void Application::updateDeltaTime()
-{
+void Application::updateDeltaTime() {
 	double currentTime = getCurrentTime();
 	_deltaTime = currentTime - _lastTime;
 	// in case of system timer api error
-	if (_deltaTime < 0)
-	{
+	if (_deltaTime < 0) {
 		_deltaTime = 1.0 / _targetFPS;
 		_lastTime = currentTime;
 	}
 }
 
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
-void Application::updateWindowSize()
-{
+void Application::updateWindowSize() {
 #if BX_PLATFORM_OSX
 	SDL_Metal_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
 #else
@@ -333,8 +292,7 @@ void Application::updateWindowSize()
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
 	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
 	SDL_GetCurrentDisplayMode(displayIndex, &displayMode);
-	if (displayMode.refresh_rate > 0)
-	{
+	if (displayMode.refresh_rate > 0) {
 		_maxFPS = displayMode.refresh_rate;
 	}
 #if BX_PLATFORM_WINDOWS
@@ -353,74 +311,60 @@ void Application::updateWindowSize()
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_ANDROID
-const std::string& Application::getAPKPath() const
-{
+const std::string& Application::getAPKPath() const {
 	return g_androidAPKPath;
 }
 #endif // BX_PLATFORM_ANDROID
 
-double Application::getEclapsedTime() const
-{
+double Application::getEclapsedTime() const {
 	double currentTime = getCurrentTime();
 	return std::max(currentTime - _lastTime, 0.0);
 }
 
-double Application::getCurrentTime() const
-{
+double Application::getCurrentTime() const {
 	return bx::getHPCounter() / _frequency;
 }
 
-double Application::getRunningTime() const
-{
+double Application::getRunningTime() const {
 	return getCurrentTime() - _startTime;
 }
 
-double Application::getLastTime() const
-{
+double Application::getLastTime() const {
 	return _lastTime;
 }
 
-double Application::getDeltaTime() const
-{
+double Application::getDeltaTime() const {
 	return _deltaTime;
 }
 
-double Application::getCPUTime() const
-{
+double Application::getCPUTime() const {
 	return _cpuTime;
 }
 
-double Application::getGPUTime() const
-{
+double Application::getGPUTime() const {
 	const bgfx::Stats* stats = bgfx::getStats();
 	return std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
 }
 
-double Application::getLogicTime() const
-{
+double Application::getLogicTime() const {
 	return _logicTime;
 }
 
-double Application::getRenderTime() const
-{
+double Application::getRenderTime() const {
 	return _renderTime;
 }
 
-double Application::getTotalTime() const
-{
+double Application::getTotalTime() const {
 	return _totalTime;
 }
 
-void Application::makeTimeNow()
-{
+void Application::makeTimeNow() {
 	_totalTime += _deltaTime;
 	_lastTime = getCurrentTime();
 }
 
-void Application::shutdown()
-{
-	switch (Switch::hash(getPlatform()))
-	{
+void Application::shutdown() {
+	switch (Switch::hash(getPlatform())) {
 		case "Windows"_hash:
 		case "macOS"_hash:
 		case "Linux"_hash:
@@ -429,27 +373,22 @@ void Application::shutdown()
 	}
 }
 
-void Application::invokeInRender(const std::function<void()>& func)
-{
+void Application::invokeInRender(const std::function<void()>& func) {
 	_renderEvent.post("Invoke"_slice, func);
 }
 
-void Application::invokeInLogic(const std::function<void()>& func)
-{
+void Application::invokeInLogic(const std::function<void()>& func) {
 	_logicEvent.post("Invoke"_slice, func);
 }
 
-int Application::mainLogic(Application* app)
-{
-	if (!SharedBGFX.init())
-	{
+int Application::mainLogic(Application* app) {
+	if (!SharedBGFX.init()) {
 		Error("bgfx failed to initialize!");
 		return 1;
 	}
 
 	SharedPoolManager.push();
-	if (!SharedDirector.init())
-	{
+	if (!SharedDirector.init()) {
 		Error("Director failed to initialize!");
 		return 1;
 	}
@@ -459,34 +398,27 @@ int Application::mainLogic(Application* app)
 	app->_startTime = app->_lastTime;
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
-	app->invokeInRender([app]()
-	{
+	app->invokeInRender([app]() {
 		SDL_ShowWindow(app->_sdlWindow);
 	});
 #endif
 	SharedPoolManager.pop();
 
-	while (app->_logicRunning)
-	{
+	while (app->_logicRunning) {
 		auto startTime = app->getEclapsedTime();
 
 		SharedPoolManager.push();
 
 		// poll events from render thread
 		for (Own<QEvent> event = app->_logicEvent.poll();
-			event != nullptr;
-			event = app->_logicEvent.poll())
-		{
-			switch (Switch::hash(event->getName()))
-			{
-				case "SDLEvent"_hash:
-				{
+			 event != nullptr;
+			 event = app->_logicEvent.poll()) {
+			switch (Switch::hash(event->getName())) {
+				case "SDLEvent"_hash: {
 					SDL_Event sdlEvent;
 					event->get(sdlEvent);
-					switch (sdlEvent.type)
-					{
-						case SDL_QUIT:
-						{
+					switch (sdlEvent.type) {
+						case SDL_QUIT: {
 							app->_logicRunning = false;
 							app->quitHandler();
 							// Info("singleton reference tree:\n{}", Life::getRefTree());
@@ -499,8 +431,7 @@ int Application::mainLogic(Application* app)
 					app->eventHandler(sdlEvent);
 					break;
 				}
-				case "Invoke"_hash:
-				{
+				case "Invoke"_hash: {
 					std::function<void()> func;
 					event->get(func);
 					func();
@@ -526,15 +457,12 @@ int Application::mainLogic(Application* app)
 		app->_frame = bgfx::frame();
 
 		// limit for target FPS
-		if (app->_fpsLimited)
-		{
-			do
-			{
+		if (app->_fpsLimited) {
+			do {
 				app->updateDeltaTime();
-			}
-			while (app->getDeltaTime() < 1.0 / app->_targetFPS);
-		}
-		else app->updateDeltaTime();
+			} while (app->getDeltaTime() < 1.0 / app->_targetFPS);
+		} else
+			app->updateDeltaTime();
 		app->makeTimeNow();
 	}
 
@@ -542,23 +470,18 @@ int Application::mainLogic(Application* app)
 	return 0;
 }
 
-int Application::mainLogic(bx::Thread* thread, void* userData)
-{
+int Application::mainLogic(bx::Thread* thread, void* userData) {
 	DORA_UNUSED_PARAM(thread);
 	Application* app = r_cast<Application*>(userData);
-	try
-	{
+	try {
 		return mainLogic(app);
-	}
-	catch (const std::runtime_error& e)
-	{
+	} catch (const std::runtime_error& e) {
 		LogError(e.what());
 		std::abort();
 	}
 }
 
-const Slice Application::getPlatform() const
-{
+const Slice Application::getPlatform() const {
 #if BX_PLATFORM_WINDOWS
 	return "Windows"_slice;
 #elif BX_PLATFORM_ANDROID
@@ -574,19 +497,16 @@ const Slice Application::getPlatform() const
 #endif
 }
 
-const Slice Application::getVersion() const
-{
+const Slice Application::getVersion() const {
 	return DORA_VERSION;
 }
 
-bool Application::isDebugging() const
-{
+bool Application::isDebugging() const {
 	return DORA_DEBUG ? true : false;
 }
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
-void Application::setupSdlWindow()
-{
+void Application::setupSdlWindow() {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
 	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
@@ -611,8 +531,7 @@ void Application::setupSdlWindow()
 	int screenHeight = MulDiv(displayMode.h, DEFAULT_WIN_DPI, s_cast<int>(vdpi));
 	_visualWidth = Math::clamp(_visualWidth, 0, screenWidth);
 	_visualHeight = Math::clamp(_visualHeight, 0, screenHeight);
-	if (hdpi != DEFAULT_WIN_DPI || vdpi != DEFAULT_WIN_DPI)
-	{
+	if (hdpi != DEFAULT_WIN_DPI || vdpi != DEFAULT_WIN_DPI) {
 		_winWidth = MulDiv(_visualWidth, s_cast<int>(hdpi), DEFAULT_WIN_DPI);
 		_winHeight = MulDiv(_visualHeight, s_cast<int>(vdpi), DEFAULT_WIN_DPI);
 		SDL_SetWindowSize(_sdlWindow, _winWidth, _winHeight);
@@ -628,8 +547,7 @@ NS_DOROTHY_END
 
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
-extern "C" int main(int argc, char* argv[])
-{
+extern "C" int main(int argc, char* argv[]) {
 	return SharedApplication.run();
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
@@ -642,16 +560,13 @@ extern "C" int main(int argc, char* argv[])
 
 NS_DOROTHY_BEGIN
 
-class Console
-{
+class Console {
 public:
-	~Console()
-	{
+	~Console() {
 		system("pause");
 		FreeConsole();
 	}
-	inline void init()
-	{
+	inline void init() {
 		AllocConsole();
 		freopen("CONIN$", "r", stdin);
 		freopen("CONOUT$", "w", stdout);
@@ -670,8 +585,7 @@ int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine,
-	_In_ int nCmdShow)
-{
+	_In_ int nCmdShow) {
 #if DORA_DEBUG
 	SharedConsole.init();
 #endif
@@ -679,15 +593,14 @@ int CALLBACK WinMain(
 }
 #endif // BX_PLATFORM_WINDOWS
 
-#include "yuescript/yue_compiler.h"
 #include "PlayRho/Defines.hpp"
-#include "soloud.h"
 #include "imgui.h"
+#include "soloud.h"
 #include "sqlite3.h"
 #include "wasm3.h"
+#include "yuescript/yue_compiler.h"
 
-std::string Dorothy::Application::getDeps() const
-{
+std::string Dorothy::Application::getDeps() const {
 	return fmt::format(
 		"- SDL2 {}.{}.{}\n"
 		"- bgfx {}\n"
@@ -708,6 +621,5 @@ std::string Dorothy::Application::getDeps() const
 		SOLOUD_VERSION,
 		IMGUI_VERSION_NUM,
 		SQLITE_VERSION,
-		M3_VERSION
-	);
+		M3_VERSION);
 }

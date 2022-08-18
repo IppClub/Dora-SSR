@@ -16,22 +16,22 @@ NS_DOROTHY_BEGIN
 
 class Atlas;
 
-class SkeletonData : public Object
-{
+class SkeletonData : public Object {
 public:
 	PROPERTY_READONLY(spine::SkeletonData*, Skel);
 	PROPERTY_READONLY(Atlas*, Atlas);
 	CREATE_FUNC(SkeletonData);
+
 protected:
 	SkeletonData(spine::SkeletonData* skeletonData, Atlas* atlas);
+
 private:
 	Ref<Atlas> _atlas;
 	Own<spine::SkeletonData> _skeletonData;
 	DORA_TYPE_OVERRIDE(SkeletonData)
 };
 
-class SkeletonCache
-{
+class SkeletonCache {
 public:
 	SkeletonData* load(String spineStr);
 	SkeletonData* load(String skelFile, String atlasFile);
@@ -41,6 +41,7 @@ public:
 	bool unload(String skelFile, String atlasFile);
 	bool unload();
 	void removeUnused();
+
 private:
 	static std::pair<std::string, std::string> getFileFromStr(String spineStr);
 	std::unordered_map<std::string, Ref<SkeletonData>> _skeletons;

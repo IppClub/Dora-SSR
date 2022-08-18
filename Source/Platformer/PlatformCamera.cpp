@@ -7,42 +7,40 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Platformer/Define.h"
+
 #include "Platformer/PlatformCamera.h"
+
 #include "Basic/View.h"
 #include "Node/Node.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-PlatformCamera::PlatformCamera(String name):
-Camera(name),
-_transformDirty(true),
-_camPos{Vec2::zero},
-_rotation(0.0f),
-_zoom(1.0f),
-_ratio{1.0f, 1.0f},
-_offset{Vec2::zero},
-_viewSize()
-{ }
+PlatformCamera::PlatformCamera(String name)
+	: Camera(name)
+	, _transformDirty(true)
+	, _camPos{Vec2::zero}
+	, _rotation(0.0f)
+	, _zoom(1.0f)
+	, _ratio{1.0f, 1.0f}
+	, _offset{Vec2::zero}
+	, _viewSize() { }
 
-void PlatformCamera::setPosition(const Vec2& position)
-{
+void PlatformCamera::setPosition(const Vec2& position) {
 	_camPos = position;
 	Vec2 newPos = position;
 	Vec2 pos = _position;
-	if (_boundary != Rect::zero)
-	{
-		Size viewSize = Size{_viewSize.width/_zoom, _viewSize.height/_zoom};
-		float xOffset = viewSize.width/2.0f;
-		float yOffset = viewSize.height/2.0f;
+	if (_boundary != Rect::zero) {
+		Size viewSize = Size{_viewSize.width / _zoom, _viewSize.height / _zoom};
+		float xOffset = viewSize.width / 2.0f;
+		float yOffset = viewSize.height / 2.0f;
 		newPos = {
 			Math::clamp(position.x, _boundary.getLeft() + xOffset, _boundary.getRight() - xOffset),
-			Math::clamp(position.y, _boundary.getBottom() + yOffset, _boundary.getTop() - yOffset)
-		};
+			Math::clamp(position.y, _boundary.getBottom() + yOffset, _boundary.getTop() - yOffset)};
 		pos = {
 			Math::clamp(pos.x, _boundary.getLeft() + xOffset, _boundary.getRight() - xOffset),
-			Math::clamp(pos.y, _boundary.getBottom() + yOffset, _boundary.getTop() - yOffset)
-		};
+			Math::clamp(pos.y, _boundary.getBottom() + yOffset, _boundary.getTop() - yOffset)};
 	}
 	_position.x = _target.x = newPos.x;
 	_position.y = _target.y = newPos.y;
@@ -50,19 +48,16 @@ void PlatformCamera::setPosition(const Vec2& position)
 	moved(newPos.x - pos.x, newPos.y - pos.y);
 }
 
-void PlatformCamera::setRotation(float var)
-{
+void PlatformCamera::setRotation(float var) {
 	_rotation = var;
 	_transformDirty = true;
 }
 
-float PlatformCamera::getRotation() const
-{
+float PlatformCamera::getRotation() const {
 	return _rotation;
 }
 
-void PlatformCamera::setZoom(float var)
-{
+void PlatformCamera::setZoom(float var) {
 	auto pos = _camPos;
 	setPosition(Vec2::zero);
 	_viewSize = SharedView.getSize();
@@ -71,27 +66,22 @@ void PlatformCamera::setZoom(float var)
 	setPosition(pos);
 }
 
-float PlatformCamera::getZoom() const
-{
+float PlatformCamera::getZoom() const {
 	return _zoom;
 }
 
-const Vec3& PlatformCamera::getUp()
-{
+const Vec3& PlatformCamera::getUp() {
 	updateView();
 	return _up;
 }
 
-const Matrix& PlatformCamera::getView()
-{
+const Matrix& PlatformCamera::getView() {
 	updateView();
 	return Camera::getView();
 }
 
-void PlatformCamera::updateView()
-{
-	if (SharedView.getSize() != _viewSize)
-	{
+void PlatformCamera::updateView() {
+	if (SharedView.getSize() != _viewSize) {
 		auto pos = _camPos;
 		setPosition(Vec2::zero);
 		_viewSize = SharedView.getSize();
@@ -99,8 +89,7 @@ void PlatformCamera::updateView()
 		setPosition(pos);
 		_transformDirty = true;
 	}
-	if (_followTarget)
-	{
+	if (_followTarget) {
 		Vec2 targetPos = _followTarget->convertToWorldSpace(Vec2::zero) + _offset;
 		Vec2 pos = Vec2{_position.x, _position.y};
 		Vec2 delta = targetPos - pos;
@@ -108,13 +97,11 @@ void PlatformCamera::updateView()
 		_transformDirty = true;
 	}
 	float z = -SharedView.getStandardDistance() / _zoom;
-	if (_position.z != z)
-	{
+	if (_position.z != z) {
 		_position.z = z;
 		_transformDirty = true;
 	}
-	if (_transformDirty)
-	{
+	if (_transformDirty) {
 		_transformDirty = false;
 		Matrix rotateZ;
 		bx::mtxRotateZ(rotateZ, -bx::toRad(_rotation));
@@ -125,50 +112,41 @@ void PlatformCamera::updateView()
 	}
 }
 
-bool PlatformCamera::init()
-{
+bool PlatformCamera::init() {
 	if (!Camera::init()) return false;
 	return true;
 }
 
-void PlatformCamera::setBoundary(const Rect& var)
-{
+void PlatformCamera::setBoundary(const Rect& var) {
 	_boundary = var;
 	PlatformCamera::setPosition(_position);
 }
 
-const Rect& PlatformCamera::getBoundary() const
-{
+const Rect& PlatformCamera::getBoundary() const {
 	return _boundary;
 }
 
-void PlatformCamera::setFollowRatio(const Vec2& var)
-{
+void PlatformCamera::setFollowRatio(const Vec2& var) {
 	_ratio = var;
 }
 
-const Vec2& PlatformCamera::getFollowRatio() const
-{
+const Vec2& PlatformCamera::getFollowRatio() const {
 	return _ratio;
 }
 
-void PlatformCamera::setFollowOffset(const Vec2& var)
-{
+void PlatformCamera::setFollowOffset(const Vec2& var) {
 	_offset = var;
 }
 
-const Vec2& PlatformCamera::getFollowOffset() const
-{
+const Vec2& PlatformCamera::getFollowOffset() const {
 	return _offset;
 }
 
-void PlatformCamera::setFollowTarget(Node* target)
-{
+void PlatformCamera::setFollowTarget(Node* target) {
 	_followTarget = target;
 }
 
-Node* PlatformCamera::getFollowTarget() const
-{
+Node* PlatformCamera::getFollowTarget() const {
 	return _followTarget;
 }
 

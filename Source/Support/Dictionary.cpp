@@ -7,69 +7,59 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Support/Dictionary.h"
+
 #include "lua.hpp"
 
 NS_DOROTHY_BEGIN
 
-int Dictionary::getCount() const
-{
+int Dictionary::getCount() const {
 	return s_cast<int>(_dict.size());
 }
 
-std::vector<Slice> Dictionary::getKeys() const
-{
+std::vector<Slice> Dictionary::getKeys() const {
 	std::vector<Slice> keys;
 	keys.reserve(_dict.size());
-	for (const auto& item : _dict)
-	{
+	for (const auto& item : _dict) {
 		keys.push_back(item.first);
 	}
 	return keys;
 }
 
-const std::unordered_map<std::string,Own<Value>>& Dictionary::data() const
-{
+const std::unordered_map<std::string, Own<Value>>& Dictionary::data() const {
 	return _dict;
 }
 
-bool Dictionary::has(String key) const
-{
+bool Dictionary::has(String key) const {
 	return _dict.find(key) != _dict.end();
 }
 
-const Own<Value>& Dictionary::get(String key) const
-{
+const Own<Value>& Dictionary::get(String key) const {
 	auto it = _dict.find(key);
-	if (it != _dict.end())
-	{
+	if (it != _dict.end()) {
 		return it->second;
 	}
 	return Value::None;
 }
 
-void Dictionary::set(String key, Own<Value>&& value)
-{
-	if (value)
-	{
+void Dictionary::set(String key, Own<Value>&& value) {
+	if (value) {
 		_dict[key] = std::move(value);
-	}
-	else remove(key);
+	} else
+		remove(key);
 }
 
-bool Dictionary::remove(String key)
-{
+bool Dictionary::remove(String key) {
 	auto it = _dict.find(key);
-	if (it != _dict.end())
-	{
+	if (it != _dict.end()) {
 		_dict.erase(it);
 		return true;
 	}
 	return false;
 }
 
-void Dictionary::clear()
-{
+void Dictionary::clear() {
 	_dict.clear();
 }
 

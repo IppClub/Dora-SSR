@@ -21,8 +21,7 @@ class Texture2D;
 class Pass;
 class ConsolePanel;
 
-class ImGuiDora : public TouchHandler
-{
+class ImGuiDora : public TouchHandler {
 public:
 	virtual ~ImGuiDora();
 	bool init();
@@ -35,14 +34,17 @@ public:
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(uint8_t* data, int width, int height);
 	virtual bool handle(const SDL_Event& event) override;
+
 public:
 	static void setImePositionHint(int x, int y);
+
 protected:
 	ImGuiDora();
 	void sendKey(int key, int count);
 	static const char* getClipboardText(void*);
 	static void setClipboardText(void*, const char* text);
 	static int _lastIMEPosX, _lastIMEPosY;
+
 private:
 	bool _showPlot;
 	uint32_t _timeFrames;
@@ -68,6 +70,7 @@ private:
 	double _maxGPU;
 	double _maxDelta;
 	double _yLimit;
+
 private:
 	bool _textInputing;
 	bool _backSpaceIgnore;

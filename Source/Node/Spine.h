@@ -18,8 +18,7 @@ class SpriteEffect;
 class DrawNode;
 class Line;
 
-class Spine : public Playable
-{
+class Spine : public Playable {
 public:
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_BOOL(HitTestEnabled);
@@ -42,17 +41,19 @@ public:
 	std::string containsPoint(float x, float y);
 	std::string intersectsSegment(float x1, float y1, float x2, float y2);
 	CREATE_FUNC(Spine);
+
 protected:
 	Spine(String skelFile, String atlasFile);
 	Spine(String spineStr);
-	class SpineListener : public spine::AnimationStateListenerObject
-	{
+	class SpineListener : public spine::AnimationStateListenerObject {
 	public:
 		SpineListener(Spine* owner);
 		virtual void callback(spine::AnimationState* state, spine::EventType type, spine::TrackEntry* entry, spine::Event* event) override;
+
 	private:
 		Spine* _owner;
 	} _listener;
+
 private:
 	std::string _currentAnimationName;
 	std::string _lastCompletedAnimationName;
@@ -66,8 +67,7 @@ private:
 	Own<spine::SkeletonClipping> _clipper;
 	Ref<Line> _debugLine;
 	Own<std::unordered_map<std::string, Ref<Node>>> _slots;
-	enum
-	{
+	enum {
 		DepthWrite = Node::UserFlag,
 		HitTest = Node::UserFlag << 1,
 	};

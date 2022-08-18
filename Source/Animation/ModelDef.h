@@ -20,8 +20,7 @@ class Sprite;
 class ClipDef;
 class Node;
 
-class SpriteDef
-{
+class SpriteDef {
 public:
 	bool emittingEvent;
 	bool front;
@@ -50,19 +49,17 @@ public:
 	 [KeyPos,KeyScale,KeyRoll,KeySkew,KeyOpacity] instances that compose the Spawn instance.
 	 or returns an animation of Hide with nullptr.
 	*/
-	std::tuple<Action*,ResetAction*> toResetAction();
+	std::tuple<Action*, ResetAction*> toResetAction();
 	Sprite* toSprite(ClipDef* clipDef);
 	std::string toXml();
 
 	void restoreResetAnimation(Node* target, ActionDuration* action);
 
-	template<typename NodeFunc>
-	static void traverse(SpriteDef* root, const NodeFunc& func)
-	{
+	template <typename NodeFunc>
+	static void traverse(SpriteDef* root, const NodeFunc& func) {
 		func(root);
 		const OwnVector<SpriteDef>& childrenDef = root->children;
-		for (const auto& childDef : childrenDef)
-		{
+		for (const auto& childDef : childrenDef) {
 			SpriteDef::traverse(childDef.get(), func);
 		}
 	}
@@ -71,22 +68,21 @@ public:
 class Model;
 
 /** @brief Data define for a 2D model. */
-class ModelDef : public Object
-{
+class ModelDef : public Object {
 public:
 	ModelDef();
 	ModelDef(
 		const Size& size,
 		String clipFile,
 		Own<SpriteDef>&& root,
-		const std::unordered_map<std::string,Vec2>& keys,
-		const std::unordered_map<std::string,int>& animationIndex,
-		const std::unordered_map<std::string,int>& lookIndex);
+		const std::unordered_map<std::string, Vec2>& keys,
+		const std::unordered_map<std::string, int>& animationIndex,
+		const std::unordered_map<std::string, int>& lookIndex);
 	const std::string& getClipFile() const;
 	SpriteDef* getRoot();
 	void addKeyPoint(String key, const Vec2& point);
 	Vec2 getKeyPoint(String key) const;
-	std::unordered_map<std::string,Vec2>& getKeyPoints();
+	std::unordered_map<std::string, Vec2>& getKeyPoints();
 	const Size& getSize() const;
 	void setActionName(int index, String name);
 	void setLookName(int index, String name);
@@ -100,14 +96,15 @@ public:
 	std::string getTextureFile() const;
 	std::string toXml();
 	static ModelDef* create();
+
 private:
 	void setRoot(Own<SpriteDef>&& root);
 	Size _size;
 	Own<SpriteDef> _root;
 	std::string _clip;
-	std::unordered_map<std::string,int> _animationIndex;
-	std::unordered_map<std::string,int> _lookIndex;
-	std::unordered_map<std::string,Vec2> _keys;
+	std::unordered_map<std::string, int> _animationIndex;
+	std::unordered_map<std::string, int> _lookIndex;
+	std::unordered_map<std::string, Vec2> _keys;
 	friend class ModelCache;
 };
 

@@ -16,7 +16,7 @@ NS_DOROTHY_BEGIN
 class Listener;
 class EventType;
 class Event;
-typedef Acf::Delegate<void (Event* event)> EventHandler;
+typedef Acf::Delegate<void(Event* event)> EventHandler;
 
 /** @brief This event system is designed to be used in a single threaded
  environment and is associated with event, event type and event listener.
@@ -26,8 +26,8 @@ typedef Acf::Delegate<void (Event* event)> EventHandler;
  // Register callback function.
  Event::addListener("UserEvent", [](Event* event)
  {
- 	Slice msg;
- 	event->get(msg);
+	Slice msg;
+	event->get(msg);
 	Log("Recieved Event with msg: {}", msg);
  });
 
@@ -35,135 +35,122 @@ typedef Acf::Delegate<void (Event* event)> EventHandler;
  Event::send("UserEvent", Slice("info1"));
  Event::send("UserEvent", Slice("msg2"));
  */
-class Event
-{
+class Event {
 public:
 	virtual ~Event();
 	Event(String name);
 	inline String getName() const { return _name; }
 	virtual int pushArgsToLua() { return 0; }
 	virtual void pushArgsToWasm(CallStack*) { }
+
 public:
 	static Listener* addListener(String name, const EventHandler& handler);
 	static void clear();
 
-	template<class... Args>
+	template <class... Args>
 	static void send(String name, const Args&... args);
 
-	template<class... Args>
+	template <class... Args>
 	static void sendInternal(String name, const Args&... args);
 
 	/** @brief Helper function to retrieve the passed event arguments.
-	*/
-	template<class... Args>
+	 */
+	template <class... Args>
 	void get(Args&... args);
+
 protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
 	static void send(Event* event);
 	Slice _name;
+
 private:
 	static std::unordered_map<std::string, Own<EventType>> _eventMap;
 	friend class Listener;
 	DORA_TYPE_BASE(Event);
 };
 
-struct WasmArgsPusher
-{
+struct WasmArgsPusher {
 	CallStack* stack;
 
-	inline void operator()(bool value)
-	{
+	inline void operator()(bool value) {
 		stack->push(value);
 	}
 
-	inline void operator()(Object* value)
-	{
+	inline void operator()(Object* value) {
 		stack->push(value);
 	}
 
-	inline void operator()(const std::string& value)
-	{
+	inline void operator()(const std::string& value) {
 		stack->push(value);
 	}
 
-	inline void operator()(const Vec2& value)
-	{
+	inline void operator()(const Vec2& value) {
 		stack->push(value);
 	}
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, void> operator()(T value)
-	{
+	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, void> operator()(T value) {
 		stack->push(s_cast<int64_t>(value));
 	}
 
 	template <class T>
-	typename std::enable_if_t<std::is_floating_point_v<T>, void> operator()(T value)
-	{
+	typename std::enable_if_t<std::is_floating_point_v<T>, void> operator()(T value) {
 		stack->push(s_cast<double>(value));
 	}
 
-	template<typename T>
-	typename std::enable_if_t<std::is_base_of_v<Object, T>, void> operator()(T* value)
-	{
+	template <typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>, void> operator()(T* value) {
 		stack->push(value);
 	}
 };
 
-template<class... Fields>
-class EventArgs : public Event
-{
+template <class... Fields>
+class EventArgs : public Event {
 public:
-	EventArgs(String name, const Fields&... args):
-	Event(name),
-	arguments(std::make_tuple(args...))
-	{ }
-	virtual int pushArgsToLua() override
-	{
-		return Tuple::foreach(arguments, LuaArgsPusher());
+	EventArgs(String name, const Fields&... args)
+		: Event(name)
+		, arguments(std::make_tuple(args...)) { }
+	virtual int pushArgsToLua() override {
+		return Tuple::foreach (arguments, LuaArgsPusher());
 	}
-	virtual void pushArgsToWasm(CallStack* stack) override
-	{
-		Tuple::foreach(arguments, WasmArgsPusher{stack});
+	virtual void pushArgsToWasm(CallStack* stack) override {
+		Tuple::foreach (arguments, WasmArgsPusher{stack});
 	}
 	std::tuple<Fields...> arguments;
 	DORA_TYPE_OVERRIDE(EventArgs<Fields...>);
 };
 
-class LuaEventArgs : public Event
-{
+class LuaEventArgs : public Event {
 public:
 	LuaEventArgs(String name, int paramCount);
 	virtual int pushArgsToLua() override;
 	virtual void pushArgsToWasm(CallStack* stack) override;
 	int getParamCount() const;
 	static void send(String name, int paramCount);
+
 private:
 	int _paramCount;
 	DORA_TYPE_OVERRIDE(LuaEventArgs);
 };
 
-class WasmEventArgs : public Event
-{
+class WasmEventArgs : public Event {
 public:
 	WasmEventArgs(String name, CallStack* stack);
 	virtual int pushArgsToLua() override;
 	virtual void pushArgsToWasm(CallStack* stack) override;
 	const std::vector<dora_val_t>& values() const;
 	static void send(String name, CallStack* stack);
+
 public:
 	bool to(bool& value, int index);
 	bool to(Object*& value, int index);
 	bool to(std::string& value, int index);
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, bool> to(T& value, int index)
-	{
-		if (index < s_cast<int>(_values.size()))
-		{
-			if (std::holds_alternative<int64_t>(_values[index]))
-			{
+	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, bool> to(T& value, int index) {
+		if (index < s_cast<int>(_values.size())) {
+			if (std::holds_alternative<int64_t>(_values[index])) {
 				value = s_cast<T>(std::get<int64_t>(_values[index]));
 				return true;
 			}
@@ -172,12 +159,9 @@ public:
 	}
 
 	template <class T>
-	typename std::enable_if_t<std::is_floating_point_v<T>, bool> to(T& value, int index)
-	{
-		if (index < s_cast<int>(_values.size()))
-		{
-			if (std::holds_alternative<double>(_values[index]))
-			{
+	typename std::enable_if_t<std::is_floating_point_v<T>, bool> to(T& value, int index) {
+		if (index < s_cast<int>(_values.size())) {
+			if (std::holds_alternative<double>(_values[index])) {
 				value = s_cast<T>(std::get<double>(_values[index]));
 				return true;
 			}
@@ -185,60 +169,47 @@ public:
 		return false;
 	}
 
-	template<typename T>
-	typename std::enable_if_t<std::is_base_of_v<Object, T>, bool> to(T*& value, int index)
-	{
-		if (index < s_cast<int>(_values.size()) && std::holds_alternative<Object*>(_values[index]))
-		{
+	template <typename T>
+	typename std::enable_if_t<std::is_base_of_v<Object, T>, bool> to(T*& value, int index) {
+		if (index < s_cast<int>(_values.size()) && std::holds_alternative<Object*>(_values[index])) {
 			Object* obj = std::get<Object*>(_values[index]);
 			value = dynamic_cast<T*>(obj);
 			return value == obj;
 		}
 		return false;
 	}
+
 private:
 	std::vector<dora_val_t> _values;
 	DORA_TYPE_OVERRIDE(WasmEventArgs);
 };
 
-template<class... Args>
-void Event::send(String name, const Args&... args)
-{
+template <class... Args>
+void Event::send(String name, const Args&... args) {
 	EventArgs<Args...> event(name, args...);
 	Event::send(&event);
 }
 
-inline bool logicAnd(std::initializer_list<bool> values)
-{
+inline bool logicAnd(std::initializer_list<bool> values) {
 	return std::accumulate(values.begin(), values.end(), true, std::logical_and<bool>());
 }
 
-template<class... Args>
-void Event::get(Args&... args)
-{
-	if (auto event = DoraAs<LuaEventArgs>(this))
-	{
+template <class... Args>
+void Event::get(Args&... args) {
+	if (auto event = DoraAs<LuaEventArgs>(this)) {
 		lua_State* L = SharedLuaEngine.getState();
 		int i = lua_gettop(L) - event->getParamCount();
-		if (!logicAnd({SharedLuaEngine.to(args, ++i)...}))
-		{
+		if (!logicAnd({SharedLuaEngine.to(args, ++i)...})) {
 			Issue("lua event arguments mismatch.");
 		}
-	}
-	else if (auto event = DoraAs<EventArgs<Args...>>(this))
-	{
+	} else if (auto event = DoraAs<EventArgs<Args...>>(this)) {
 		std::tie(args...) = event->arguments;
-	}
-	else if (auto event = DoraAs<WasmEventArgs>(this))
-	{
+	} else if (auto event = DoraAs<WasmEventArgs>(this)) {
 		int i = -1;
-		if (!logicAnd({event->to(args, ++i)...}))
-		{
+		if (!logicAnd({event->to(args, ++i)...})) {
 			Issue("wasm event arguments mismatch.");
 		}
-	}
-	else
-	{
+	} else {
 		Issue("no required event argument type can be retrieved.");
 	}
 }

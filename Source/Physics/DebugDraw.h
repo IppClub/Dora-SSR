@@ -9,8 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Basic/Object.h"
-#include "Support/Geometry.h"
 #include "Support/Common.h"
+#include "Support/Geometry.h"
 
 NS_DOROTHY_BEGIN
 
@@ -22,13 +22,13 @@ class PhysicsWorld;
 class DrawNode;
 class Line;
 
-class DebugDraw
-{
+class DebugDraw {
 public:
 	PROPERTY_READONLY(DrawNode*, Renderer);
 	DebugDraw();
 	virtual ~DebugDraw();
 	void DrawWorld(PhysicsWorld* world);
+
 public:
 	static bool IsVisible(Body* body);
 	void DrawPolygon(const pr::Length2* vertices, int vertexCount, const Color& color);
@@ -36,6 +36,7 @@ public:
 	void DrawCircle(const pr::Length2& center, float radius, const Color& color);
 	void DrawSolidCircle(const pr::Length2& center, float radius, const Color& color);
 	void DrawSegment(const pr::Length2& p1, const pr::Length2& p2, const Color& color);
+
 private:
 	Ref<DrawNode> _drawNode;
 	Ref<Line> _line;

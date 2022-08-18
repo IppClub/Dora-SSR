@@ -8,22 +8,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Playable.h"
 #include "DragonBonesHeaders.h"
+#include "Node/Playable.h"
 #include "Node/Sprite.h"
 
 namespace db = dragonBones;
 
 NS_DOROTHY_BEGIN
 
-class DBSlotNode : public Node
-{
+class DBSlotNode : public Node {
 public:
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	CREATE_FUNC(DBSlotNode);
+
 protected:
 	DBSlotNode();
+
 private:
 	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;
@@ -33,21 +34,21 @@ private:
 	std::vector<SpriteRenderer::IndexType> _indices;
 	Matrix _matrix;
 	AffineTransform _transform;
-	enum
-	{
+	enum {
 		TransformDirty = Node::UserFlag,
 	};
 	friend class DBSlot;
 };
 
-class DBSlot : public db::Slot
-{
+class DBSlot : public db::Slot {
 	BIND_CLASS_TYPE_A(DBSlot);
+
 public:
 	PROPERTY_READONLY(float, TextureScale);
 	virtual void _updateVisible() override;
 	virtual void _updateBlendMode() override;
 	virtual void _updateColor() override;
+
 protected:
 	virtual void _onClear() override;
 	virtual void _initDisplay(void* value, bool isRetain) override;
@@ -61,6 +62,7 @@ protected:
 	virtual void _updateMesh() override;
 	virtual void _updateTransform() override;
 	virtual void _identityTransform() override;
+
 private:
 	float _textureScale;
 	Ref<DBSlotNode> _node;
@@ -70,11 +72,9 @@ class SpriteEffect;
 class DrawNode;
 class Line;
 
-class DragonBone : public Playable
-{
+class DragonBone : public Playable {
 private:
-	class DBArmatureProxy : public db::IArmatureProxy
-	{
+	class DBArmatureProxy : public db::IArmatureProxy {
 	public:
 		PROPERTY_READONLY(DragonBone*, Parent);
 		DBArmatureProxy(DragonBone* parent);
@@ -86,10 +86,12 @@ private:
 		virtual void dispatchDBEvent(const std::string& type, db::EventObject* value) override;
 		virtual db::Armature* getArmature() const override;
 		virtual db::Animation* getAnimation() const override;
+
 	private:
 		DragonBone* _parent;
 		db::Armature* _armature;
 	};
+
 public:
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_BOOL(HitTestEnabled);
@@ -113,17 +115,18 @@ public:
 	std::string intersectsSegment(float x1, float y1, float x2, float y2);
 	static DragonBone* create(String boneFile, String atlasFile);
 	static DragonBone* create(String boneStr);
+
 protected:
 	DragonBone();
 	static DragonBone* create();
+
 private:
 	std::string _currentAnimationName;
 	std::string _lastCompletedAnimationName;
 	Own<DBArmatureProxy> _armatureProxy;
 	Ref<SpriteEffect> _effect;
 	Ref<Line> _debugLine;
-	enum
-	{
+	enum {
 		DepthWrite = Node::UserFlag,
 		HitTest = Node::UserFlag << 1,
 	};

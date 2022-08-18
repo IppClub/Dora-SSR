@@ -13,16 +13,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 typedef unsigned char XML_CHAR;
 
-class SAXDelegator
-{
+class SAXDelegator {
 public:
 	virtual void startElement(const char* name, const char** atts) = 0;
 	virtual void endElement(const char* name) = 0;
 	virtual void textHandler(const char* s, int len) = 0;
 };
 
-class SAXParser
-{
+class SAXParser {
 public:
 	SAXParser();
 	~SAXParser();
@@ -39,7 +37,8 @@ public:
 	static void textHandler(void* ctx, const XML_CHAR* name, int len);
 
 	static void placeCDataHeader(const char* cdataHeader);
-	static void setHeaderHandler(void(*handler)(const char* start, const char* end));
+	static void setHeaderHandler(void (*handler)(const char* start, const char* end));
+
 private:
 	SAXDelegator* _delegator;
 	std::string _lastError;

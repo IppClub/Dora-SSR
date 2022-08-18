@@ -17,8 +17,7 @@ class Camera;
 class Node;
 class Texture2D;
 
-class RenderTarget : public Object
-{
+class RenderTarget : public Object {
 public:
 	PROPERTY_READONLY(uint16_t, Width);
 	PROPERTY_READONLY(uint16_t, Height);
@@ -31,11 +30,13 @@ public:
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void saveAsync(String filename, const std::function<void()>& callback);
 	CREATE_FUNC(RenderTarget);
+
 protected:
 	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
 	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();
+
 private:
 	uint16_t _textureWidth;
 	uint16_t _textureHeight;

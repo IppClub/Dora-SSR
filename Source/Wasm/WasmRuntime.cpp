@@ -7,77 +7,70 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Dorothy.h"
+
 #include "Wasm/WasmRuntime.h"
+
+#include "Dorothy.h"
 
 NS_DOROTHY_BEGIN
 
-union LightWasmValue
-{
+union LightWasmValue {
 	Vec2 vec2;
 	Size size;
 	int64_t value;
-	explicit LightWasmValue(const Size& v): size(v) { }
-	explicit LightWasmValue(const Vec2& v): vec2(v) { }
-	explicit LightWasmValue(int64_t v): value(v) { }
+	explicit LightWasmValue(const Size& v)
+		: size(v) { }
+	explicit LightWasmValue(const Vec2& v)
+		: vec2(v) { }
+	explicit LightWasmValue(int64_t v)
+		: value(v) { }
 };
 
 static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
 
-static inline int64_t vec2_retain(const Vec2& vec2)
-{
+static inline int64_t vec2_retain(const Vec2& vec2) {
 	return LightWasmValue{vec2}.value;
 }
 
-static inline Vec2 vec2_from(int64_t value)
-{
+static inline Vec2 vec2_from(int64_t value) {
 	return LightWasmValue{value}.vec2;
 }
 
-static inline int64_t size_retain(const Size& size)
-{
+static inline int64_t size_retain(const Size& size) {
 	return LightWasmValue{size}.value;
 }
 
-static inline Size size_from(int64_t value)
-{
+static inline Size size_from(int64_t value) {
 	return LightWasmValue{value}.size;
 }
 
-static int64_t str_retain(String str)
-{
+static int64_t str_retain(String str) {
 	return r_cast<int64_t>(new std::string(str.rawData(), str.size()));
 }
 
-static std::unique_ptr<std::string> str_from(int64_t var)
-{
+static std::unique_ptr<std::string> str_from(int64_t var) {
 	return std::unique_ptr<std::string>(r_cast<std::string*>(var));
 }
 
-static int64_t str_new(int32_t len)
-{
+static int64_t str_new(int32_t len) {
 	return r_cast<int64_t>(new std::string(len, 0));
 }
 
-static int32_t str_len(int64_t str)
-{
+static int32_t str_len(int64_t str) {
 	return s_cast<int32_t>(r_cast<std::string*>(str)->length());
 }
 
-static void str_read(void* dest, int64_t src)
-{
+static void str_read(void* dest, int64_t src) {
 	auto str = r_cast<std::string*>(src);
 	std::memcpy(dest, str->c_str(), str->length());
 }
 
-static void str_write(int64_t dest, const void* src)
-{
+static void str_write(int64_t dest, const void* src) {
 	auto str = r_cast<std::string*>(dest);
 	std::memcpy(&str->front(), src, str->length());
 }
 
-static void str_release(int64_t str)
-{
+static void str_release(int64_t str) {
 	delete r_cast<std::string*>(str);
 }
 
@@ -85,357 +78,294 @@ using dora_vec_t = std::variant<
 	std::vector<int32_t>,
 	std::vector<int64_t>,
 	std::vector<float>,
-	std::vector<double>
->;
+	std::vector<double>>;
 
-static int64_t buf_retain(dora_vec_t&& vec)
-{
+static int64_t buf_retain(dora_vec_t&& vec) {
 	auto new_vec = new dora_vec_t(std::move(vec));
 	return r_cast<int64_t>(new_vec);
 }
 
-static int64_t buf_new_i32(int32_t len)
-{
+static int64_t buf_new_i32(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<int32_t>(len));
 	return r_cast<int64_t>(new_vec);
 }
 
-static int64_t buf_new_i64(int32_t len)
-{
+static int64_t buf_new_i64(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<int64_t>(len));
 	return r_cast<int64_t>(new_vec);
 }
 
-static int64_t buf_new_f32(int32_t len)
-{
+static int64_t buf_new_f32(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<float>(len));
 	return r_cast<int64_t>(new_vec);
 }
 
-static int64_t buf_new_f64(int32_t len)
-{
+static int64_t buf_new_f64(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<double>(len));
 	return r_cast<int64_t>(new_vec);
 }
 
-static int32_t buf_len(int64_t v)
-{
+static int32_t buf_len(int64_t v) {
 	auto vec = r_cast<dora_vec_t*>(v);
 	int32_t size = 0;
-	std::visit([&](const auto& arg)
-	{
+	std::visit([&](const auto& arg) {
 		size = s_cast<int32_t>(arg.size());
-	}, *vec);
+	},
+		*vec);
 	return size;
 }
 
-static void buf_read(void* dest, int64_t src)
-{
+static void buf_read(void* dest, int64_t src) {
 	auto vec = r_cast<dora_vec_t*>(src);
-	std::visit([&](const auto& arg)
-	{
+	std::visit([&](const auto& arg) {
 		std::memcpy(dest, arg.data(), arg.size() * sizeof(arg[0]));
-	}, *vec);
+	},
+		*vec);
 }
 
-static void buf_write(int64_t dest, const void* src)
-{
+static void buf_write(int64_t dest, const void* src) {
 	auto vec = r_cast<dora_vec_t*>(dest);
-	std::visit([&](auto& arg)
-	{
+	std::visit([&](auto& arg) {
 		std::memcpy(&arg.front(), src, arg.size() * sizeof(arg[0]));
-	}, *vec);
+	},
+		*vec);
 }
 
-static void buf_release(int64_t v)
-{
+static void buf_release(int64_t v) {
 	delete r_cast<dora_vec_t*>(v);
 }
 
-static int64_t to_vec(const std::vector<Slice>& vec)
-{
+static int64_t to_vec(const std::vector<Slice>& vec) {
 	std::vector<int64_t> buf(vec.size());
-	for (size_t i = 0; i < vec.size(); i++)
-	{
+	for (size_t i = 0; i < vec.size(); i++) {
 		buf[i] = str_retain(vec[i]);
 	}
 	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
-static int64_t to_vec(const std::vector<std::string>& vec)
-{
+static int64_t to_vec(const std::vector<std::string>& vec) {
 	std::vector<int64_t> buf(vec.size());
-	for (size_t i = 0; i < vec.size(); i++)
-	{
+	for (size_t i = 0; i < vec.size(); i++) {
 		buf[i] = str_retain(vec[i]);
 	}
 	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
-static int64_t to_vec(const std::list<std::string>& vec)
-{
+static int64_t to_vec(const std::list<std::string>& vec) {
 	std::vector<int64_t> buf;
 	buf.reserve(vec.size());
-	for (const auto& item : vec)
-	{
+	for (const auto& item : vec) {
 		buf.push_back(str_retain(item));
 	}
 	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
-static int64_t to_vec(const std::vector<uint32_t>& vec)
-{
+static int64_t to_vec(const std::vector<uint32_t>& vec) {
 	std::vector<int32_t> buf;
 	buf.reserve(vec.size());
-	for (const auto& item : vec)
-	{
+	for (const auto& item : vec) {
 		buf.push_back(s_cast<int32_t>(item));
 	}
 	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
-static std::vector<std::string> from_str_vec(int64_t var)
-{
+static std::vector<std::string> from_str_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int64_t>>(*vec);
 	std::vector<std::string> strs;
 	strs.reserve(vecInt.size());
-	for (auto item : vecInt)
-	{
+	for (auto item : vecInt) {
 		strs.push_back(*str_from(item));
 	}
 	return strs;
 }
 
-static std::vector<Vec2> from_vec2_vec(int64_t var)
-{
+static std::vector<Vec2> from_vec2_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int64_t>>(*vec);
 	std::vector<Vec2> vs;
 	vs.reserve(vecInt.size());
-	for (auto item : vecInt)
-	{
+	for (auto item : vecInt) {
 		vs.push_back(vec2_from(item));
 	}
 	return vs;
 }
 
-static std::vector<uint32_t> from_uint32_vec(int64_t var)
-{
+static std::vector<uint32_t> from_uint32_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int32_t>>(*vec);
 	std::vector<uint32_t> vs;
 	vs.reserve(vecInt.size());
-	for (auto item : vecInt)
-	{
+	for (auto item : vecInt) {
 		vs.push_back(s_cast<uint32_t>(item));
 	}
 	return vs;
 }
 
-static std::vector<VertexColor> from_vertex_color_vec(int64_t var)
-{
+static std::vector<VertexColor> from_vertex_color_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int64_t>>(*vec);
 	std::vector<VertexColor> vs;
 	vs.reserve(vecInt.size());
-	for (auto item : vecInt)
-	{
+	for (auto item : vecInt) {
 		vs.push_back(*r_cast<VertexColor*>(item));
 	}
 	return vs;
 }
 
 using ActionDef = Own<ActionDuration>;
-static std::vector<ActionDef> from_action_def_vec(int64_t var)
-{
+static std::vector<ActionDef> from_action_def_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int64_t>>(*vec);
 	std::vector<ActionDef> vs;
 	vs.reserve(vecInt.size());
-	for (auto item : vecInt)
-	{
+	for (auto item : vecInt) {
 		vs.push_back(std::move(*r_cast<ActionDef*>(item)));
 	}
 	return vs;
 }
 
-static std::vector<Platformer::Behavior::Leaf*> from_btree_vec(int64_t var)
-{
+static std::vector<Platformer::Behavior::Leaf*> from_btree_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int64_t>>(*vec);
 	std::vector<Platformer::Behavior::Leaf*> vs;
 	vs.reserve(vecInt.size());
-	for (auto item : vecInt)
-	{
+	for (auto item : vecInt) {
 		vs.push_back(r_cast<Platformer::Behavior::Leaf*>(item));
 	}
 	return vs;
 }
 
-static std::vector<Platformer::Decision::Leaf*> from_dtree_vec(int64_t var)
-{
+static std::vector<Platformer::Decision::Leaf*> from_dtree_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int64_t>>(*vec);
 	std::vector<Platformer::Decision::Leaf*> vs;
 	vs.reserve(vecInt.size());
-	for (auto item : vecInt)
-	{
+	for (auto item : vecInt) {
 		vs.push_back(r_cast<Platformer::Decision::Leaf*>(item));
 	}
 	return vs;
 }
 
-static int32_t object_get_id(int64_t obj)
-{
+static int32_t object_get_id(int64_t obj) {
 	return s_cast<int32_t>(r_cast<Object*>(obj)->getId());
 }
 
-static int32_t object_get_type(int64_t obj)
-{
+static int32_t object_get_type(int64_t obj) {
 	if (obj) return r_cast<Object*>(obj)->getDoraType();
 	return 0;
 }
 
-static void object_retain(int64_t obj)
-{
+static void object_retain(int64_t obj) {
 	r_cast<Object*>(obj)->retain();
 }
 
-static void object_release(int64_t obj)
-{
+static void object_release(int64_t obj) {
 	r_cast<Object*>(obj)->release();
 }
 
-static int64_t from_object(Object* obj)
-{
+static int64_t from_object(Object* obj) {
 	if (obj) obj->retain();
 	return r_cast<int64_t>(obj);
 }
 
-static int64_t value_create_i64(int64_t value)
-{
+static int64_t value_create_i64(int64_t value) {
 	return r_cast<int64_t>(new dora_val_t(value));
 }
 
-static int64_t value_create_f64(double value)
-{
+static int64_t value_create_f64(double value) {
 	return r_cast<int64_t>(new dora_val_t(value));
 }
 
-static int64_t value_create_str(int64_t value)
-{
+static int64_t value_create_str(int64_t value) {
 	return r_cast<int64_t>(new dora_val_t(value));
 }
 
-static int64_t value_create_bool(int32_t value)
-{
+static int64_t value_create_bool(int32_t value) {
 	return r_cast<int64_t>(new dora_val_t(value != 0));
 }
 
-static int64_t value_create_object(int64_t value)
-{
+static int64_t value_create_object(int64_t value) {
 	auto obj = r_cast<Object*>(value);
 	obj->retain();
 	return r_cast<int64_t>(new dora_val_t(obj));
 }
 
-static int64_t value_create_vec2(int64_t value)
-{
+static int64_t value_create_vec2(int64_t value) {
 	return r_cast<int64_t>(new dora_val_t(vec2_from(value)));
 }
 
-static int64_t value_create_size(int64_t value)
-{
+static int64_t value_create_size(int64_t value) {
 	return r_cast<int64_t>(new dora_val_t(size_from(value)));
 }
 
-static void value_release(int64_t value)
-{
+static void value_release(int64_t value) {
 	auto v = r_cast<dora_val_t*>(value);
-	if (std::holds_alternative<Object*>(*v))
-	{
+	if (std::holds_alternative<Object*>(*v)) {
 		std::get<Object*>(*v)->release();
 	}
 	delete v;
 }
 
-static int64_t value_into_i64(int64_t value)
-{
+static int64_t value_into_i64(int64_t value) {
 	return std::get<int64_t>(*r_cast<dora_val_t*>(value));
 }
 
-static double value_into_f64(int64_t value)
-{
+static double value_into_f64(int64_t value) {
 	const auto& v = *r_cast<dora_val_t*>(value);
-	if (std::holds_alternative<int64_t>(v))
-	{
+	if (std::holds_alternative<int64_t>(v)) {
 		return s_cast<double>(std::get<int64_t>(v));
 	}
 	return std::get<double>(v);
 }
 
-static int64_t value_into_str(int64_t value)
-{
+static int64_t value_into_str(int64_t value) {
 	auto str = std::get<std::string>(*r_cast<dora_val_t*>(value));
 	return r_cast<int64_t>(new std::string(str));
 }
 
-static int32_t value_into_bool(int64_t value)
-{
+static int32_t value_into_bool(int64_t value) {
 	return std::get<bool>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-static int64_t value_into_object(int64_t value)
-{
+static int64_t value_into_object(int64_t value) {
 	return from_object(std::get<Object*>(*r_cast<dora_val_t*>(value)));
 }
 
-static int64_t value_into_vec2(int64_t value)
-{
+static int64_t value_into_vec2(int64_t value) {
 	return vec2_retain(std::get<Vec2>(*r_cast<dora_val_t*>(value)));
 }
 
-static int64_t value_into_size(int64_t value)
-{
+static int64_t value_into_size(int64_t value) {
 	return size_retain(std::get<Size>(*r_cast<dora_val_t*>(value)));
 }
 
-static int32_t value_is_i64(int64_t value)
-{
+static int32_t value_is_i64(int64_t value) {
 	return std::holds_alternative<int64_t>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-static int32_t value_is_f64(int64_t value)
-{
+static int32_t value_is_f64(int64_t value) {
 	const auto& v = *r_cast<dora_val_t*>(value);
-	return
-		std::holds_alternative<double>(v) ||
-		std::holds_alternative<int64_t>(v) ? 1 : 0;
+	return std::holds_alternative<double>(v) || std::holds_alternative<int64_t>(v) ? 1 : 0;
 }
 
-static int32_t value_is_str(int64_t value)
-{
+static int32_t value_is_str(int64_t value) {
 	return std::holds_alternative<std::string>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-static int32_t value_is_bool(int64_t value)
-{
+static int32_t value_is_bool(int64_t value) {
 	return std::holds_alternative<bool>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-static int32_t value_is_object(int64_t value)
-{
+static int32_t value_is_object(int64_t value) {
 	return std::holds_alternative<Object*>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-static int32_t value_is_vec2(int64_t value)
-{
+static int32_t value_is_vec2(int64_t value) {
 	return std::holds_alternative<Vec2>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
-static int32_t value_is_size(int64_t value)
-{
+static int32_t value_is_size(int64_t value) {
 	return std::holds_alternative<Size>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
@@ -448,196 +378,156 @@ void CallStack::push(const Vec2& value) { _stack.push_back(value); }
 void CallStack::push(const Size& value) { _stack.push_back(value); }
 void CallStack::push_v(dora_val_t value) { _stack.push_back(value); }
 
-bool CallStack::empty() const
-{
+bool CallStack::empty() const {
 	return _stack.empty();
 }
 
-dora_val_t CallStack::pop()
-{
+dora_val_t CallStack::pop() {
 	auto var = _stack.front();
 	_stack.pop_front();
 	return var;
 }
 
-dora_val_t& CallStack::front()
-{
+dora_val_t& CallStack::front() {
 	return _stack.front();
 }
 
-void CallStack::clear()
-{
+void CallStack::clear() {
 	_stack.clear();
 }
 
-static int64_t call_stack_create()
-{
+static int64_t call_stack_create() {
 	return r_cast<int64_t>(new CallStack());
 }
 
-static void call_stack_release(int64_t stack)
-{
+static void call_stack_release(int64_t stack) {
 	delete r_cast<CallStack*>(stack);
 }
 
-static void call_stack_push_i64(int64_t stack, int64_t value)
-{
+static void call_stack_push_i64(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(value);
 }
 
-static void call_stack_push_f64(int64_t stack, double value)
-{
+static void call_stack_push_f64(int64_t stack, double value) {
 	r_cast<CallStack*>(stack)->push(value);
 }
 
-static void call_stack_push_str(int64_t stack, int64_t value)
-{
+static void call_stack_push_str(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(*str_from(value));
 }
 
-static void call_stack_push_bool(int64_t stack, int32_t value)
-{
+static void call_stack_push_bool(int64_t stack, int32_t value) {
 	r_cast<CallStack*>(stack)->push(value != 0);
 }
 
-static void call_stack_push_object(int64_t stack, int64_t value)
-{
+static void call_stack_push_object(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(r_cast<Object*>(value));
 }
 
-static void call_stack_push_vec2(int64_t stack, int64_t value)
-{
+static void call_stack_push_vec2(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(vec2_from(value));
 }
 
-static void call_stack_push_size(int64_t stack, int64_t value)
-{
+static void call_stack_push_size(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(size_from(value));
 }
 
-static int64_t call_stack_pop_i64(int64_t stack)
-{
+static int64_t call_stack_pop_i64(int64_t stack) {
 	return std::get<int64_t>(r_cast<CallStack*>(stack)->pop());
 }
 
-static double call_stack_pop_f64(int64_t stack)
-{
+static double call_stack_pop_f64(int64_t stack) {
 	auto v = r_cast<CallStack*>(stack)->pop();
-	if (std::holds_alternative<int64_t>(v))
-	{
+	if (std::holds_alternative<int64_t>(v)) {
 		return s_cast<double>(std::get<int64_t>(v));
 	}
 	return std::get<double>(v);
 }
 
-static int64_t call_stack_pop_str(int64_t stack)
-{
+static int64_t call_stack_pop_str(int64_t stack) {
 	return str_retain(std::get<std::string>(r_cast<CallStack*>(stack)->pop()));
 }
 
-static int32_t call_stack_pop_bool(int64_t stack)
-{
+static int32_t call_stack_pop_bool(int64_t stack) {
 	return std::get<bool>(r_cast<CallStack*>(stack)->pop()) ? 1 : 0;
 }
 
-static int64_t call_stack_pop_object(int64_t stack)
-{
+static int64_t call_stack_pop_object(int64_t stack) {
 	return from_object(std::get<Object*>(r_cast<CallStack*>(stack)->pop()));
 }
 
-static int64_t call_stack_pop_vec2(int64_t stack)
-{
+static int64_t call_stack_pop_vec2(int64_t stack) {
 	return vec2_retain(std::get<Vec2>(r_cast<CallStack*>(stack)->pop()));
 }
 
-static int64_t call_stack_pop_size(int64_t stack)
-{
+static int64_t call_stack_pop_size(int64_t stack) {
 	return size_retain(std::get<Size>(r_cast<CallStack*>(stack)->pop()));
 }
 
-static int32_t call_stack_pop(int64_t stack)
-{
+static int32_t call_stack_pop(int64_t stack) {
 	auto cs = r_cast<CallStack*>(stack);
 	if (cs->empty()) return 0;
 	cs->pop();
 	return 1;
 }
 
-static int32_t call_stack_front_i64(int64_t stack)
-{
+static int32_t call_stack_front_i64(int64_t stack) {
 	return std::holds_alternative<int64_t>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_f64(int64_t stack)
-{
+static int32_t call_stack_front_f64(int64_t stack) {
 	const auto& v = r_cast<CallStack*>(stack)->front();
-	return std::holds_alternative<int64_t>(v) ||
-		std::holds_alternative<double>(v) ? 1 : 0;
+	return std::holds_alternative<int64_t>(v) || std::holds_alternative<double>(v) ? 1 : 0;
 }
 
-static int32_t call_stack_front_bool(int64_t stack)
-{
+static int32_t call_stack_front_bool(int64_t stack) {
 	return std::holds_alternative<bool>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_str(int64_t stack)
-{
+static int32_t call_stack_front_str(int64_t stack) {
 	return std::holds_alternative<std::string>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_object(int64_t stack)
-{
+static int32_t call_stack_front_object(int64_t stack) {
 	return std::holds_alternative<Object*>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_vec2(int64_t stack)
-{
+static int32_t call_stack_front_vec2(int64_t stack) {
 	return std::holds_alternative<Vec2>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static int32_t call_stack_front_size(int64_t stack)
-{
+static int32_t call_stack_front_size(int64_t stack) {
 	return std::holds_alternative<Size>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
-static Own<Value> to_value(const dora_val_t& v)
-{
+static Own<Value> to_value(const dora_val_t& v) {
 	Own<Value> ov;
-	std::visit([&](auto&& arg)
-	{
+	std::visit([&](auto&& arg) {
 		ov = Value::alloc(arg);
-	}, v);
+	},
+		v);
 	return ov;
 }
 
-static int64_t from_value(Value* v)
-{
-	switch (v->getType())
-	{
+static int64_t from_value(Value* v) {
+	switch (v->getType()) {
 		case ValueType::Integral:
 			return r_cast<int64_t>(new dora_val_t(v->toVal<int64_t>()));
 		case ValueType::FloatingPoint:
 			return r_cast<int64_t>(new dora_val_t(v->toVal<double>()));
 		case ValueType::Boolean:
 			return r_cast<int64_t>(new dora_val_t(v->toVal<bool>()));
-		case ValueType::Object:
-		{
+		case ValueType::Object: {
 			auto obj = v->to<Object>();
 			obj->retain();
 			return r_cast<int64_t>(new dora_val_t(obj));
 		}
-		case ValueType::Struct:
-		{
-			if (auto str = v->asVal<std::string>())
-			{
+		case ValueType::Struct: {
+			if (auto str = v->asVal<std::string>()) {
 				return r_cast<int64_t>(new dora_val_t(*str));
-			}
-			else if (auto vec2 = v->asVal<Vec2>())
-			{
+			} else if (auto vec2 = v->asVal<Vec2>()) {
 				return r_cast<int64_t>(new dora_val_t(*vec2));
-			}
-			else if (auto size = v->asVal<Size>())
-			{
+			} else if (auto size = v->asVal<Size>()) {
 				return r_cast<int64_t>(new dora_val_t(*size));
 			}
 		}
@@ -645,10 +535,8 @@ static int64_t from_value(Value* v)
 	return 0;
 }
 
-static void push_value(CallStack* stack, Value* v)
-{
-	switch (v->getType())
-	{
+static void push_value(CallStack* stack, Value* v) {
+	switch (v->getType()) {
 		case ValueType::Integral:
 			stack->push(v->toVal<int64_t>());
 			break;
@@ -661,116 +549,91 @@ static void push_value(CallStack* stack, Value* v)
 		case ValueType::Object:
 			stack->push(v->to<Object>());
 			break;
-		case ValueType::Struct:
-		{
-			if (auto str = v->asVal<std::string>())
-			{
+		case ValueType::Struct: {
+			if (auto str = v->asVal<std::string>()) {
 				stack->push(*str);
 				break;
-			}
-			else if (auto vec2 = v->asVal<Vec2>())
-			{
+			} else if (auto vec2 = v->asVal<Vec2>()) {
 				stack->push(*vec2);
 				break;
-			}
-			else if (auto size = v->asVal<Size>())
-			{
+			} else if (auto size = v->asVal<Size>()) {
 				stack->push(*size);
 				break;
-			}
-			else stack->push_v(dora_val_t());
+			} else
+				stack->push_v(dora_val_t());
 		}
 	}
 }
 
-static void dora_print(int64_t var)
-{
+static void dora_print(int64_t var) {
 	LogPrint(*str_from(var));
 }
 
 /* Array */
 
-static int32_t array_set(int64_t array, int32_t index, int64_t v)
-{
+static int32_t array_set(int64_t array, int32_t index, int64_t v) {
 	auto arr = r_cast<Array*>(array);
-	if (0 <= index && index < s_cast<int32_t>(arr->getCount()))
-	{
+	if (0 <= index && index < s_cast<int32_t>(arr->getCount())) {
 		arr->set(index, to_value(*r_cast<dora_val_t*>(v)));
 		return 1;
 	}
 	return 0;
 }
-static int64_t array_get(int64_t array, int32_t index)
-{
+static int64_t array_get(int64_t array, int32_t index) {
 	auto arr = r_cast<Array*>(array);
-	if (0 <= index && index < s_cast<int32_t>(arr->getCount()))
-	{
+	if (0 <= index && index < s_cast<int32_t>(arr->getCount())) {
 		return from_value(arr->get(index).get());
 	}
 	return 0;
 }
-static int64_t array_first(int64_t array)
-{
+static int64_t array_first(int64_t array) {
 	auto arr = r_cast<Array*>(array);
-	if (!arr->isEmpty())
-	{
+	if (!arr->isEmpty()) {
 		return from_value(arr->getFirst().get());
 	}
 	return 0;
 }
-static int64_t array_last(int64_t array)
-{
+static int64_t array_last(int64_t array) {
 	auto arr = r_cast<Array*>(array);
-	if (!arr->isEmpty())
-	{
+	if (!arr->isEmpty()) {
 		return from_value(arr->getLast().get());
 	}
 	return 0;
 }
-static int64_t array_random_object(int64_t array)
-{
+static int64_t array_random_object(int64_t array) {
 	auto arr = r_cast<Array*>(array);
-	if (!arr->isEmpty())
-	{
+	if (!arr->isEmpty()) {
 		return from_value(arr->getRandomObject().get());
 	}
 	return 0;
 }
-static void array_add(int64_t array, int64_t item)
-{
+static void array_add(int64_t array, int64_t item) {
 	r_cast<Array*>(array)->add(to_value(*r_cast<dora_val_t*>(item)));
 }
-static void array_insert(int64_t array, int32_t index, int64_t item)
-{
+static void array_insert(int64_t array, int32_t index, int64_t item) {
 	r_cast<Array*>(array)->insert(index, to_value(*r_cast<dora_val_t*>(item)));
 }
-static int32_t array_contains(int64_t array, int64_t item)
-{
+static int32_t array_contains(int64_t array, int64_t item) {
 	return r_cast<Array*>(array)->contains(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
-static int32_t array_index(int64_t array, int64_t item)
-{
+static int32_t array_index(int64_t array, int64_t item) {
 	return r_cast<Array*>(array)->index(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
-static int64_t array_remove_last(int64_t array)
-{
+static int64_t array_remove_last(int64_t array) {
 	auto arr = r_cast<Array*>(array);
 	if (arr->isEmpty()) return 0;
 	return from_value(r_cast<Array*>(array)->removeLast().get());
 }
-static int32_t array_fast_remove(int64_t array, int64_t item)
-{
+static int32_t array_fast_remove(int64_t array, int64_t item) {
 	return r_cast<Array*>(array)->fastRemove(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
 
 /* Dictionary */
 
-static void dictionary_set(int64_t dict, int64_t key, int64_t value)
-{
+static void dictionary_set(int64_t dict, int64_t key, int64_t value) {
 	r_cast<Dictionary*>(dict)->set(*str_from(key), to_value(*r_cast<dora_val_t*>(value)));
 }
-static int64_t dictionary_get(int64_t dict, int64_t key)
-{
+static int64_t dictionary_get(int64_t dict, int64_t key) {
 	return from_value(r_cast<Dictionary*>(dict)->get(*str_from(key)).get());
 }
 
@@ -780,20 +643,17 @@ inline const Rect& rect_get_zero() { return Rect::zero; }
 
 /* Entity */
 
-static void entity_set(int64_t e, int64_t k, int64_t v)
-{
+static void entity_set(int64_t e, int64_t k, int64_t v) {
 	r_cast<Entity*>(e)->set(*str_from(k), to_value(*r_cast<dora_val_t*>(v)));
 }
-static int64_t entity_get(int64_t e, int64_t k)
-{
+static int64_t entity_get(int64_t e, int64_t k) {
 	if (auto com = r_cast<Entity*>(e)->getComponent(*str_from(k))) {
 		return from_value(com);
 	} else {
 		return 0;
 	}
 }
-static int64_t entity_get_old(int64_t e, int64_t k)
-{
+static int64_t entity_get_old(int64_t e, int64_t k) {
 	if (auto com = r_cast<Entity*>(e)->getOldCom(*str_from(k))) {
 		return from_value(com);
 	} else {
@@ -803,16 +663,13 @@ static int64_t entity_get_old(int64_t e, int64_t k)
 
 // EntityGroup
 
-static void group_watch(int64_t group, int32_t func, int64_t stack)
-{
-	std::shared_ptr<void> deref(nullptr, [func](auto)
-	{
+static void group_watch(int64_t group, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
 	auto entityGroup = r_cast<EntityGroup*>(group);
-	entityGroup->watch([entityGroup, func, args, deref](Entity* e)
-	{
+	entityGroup->watch([entityGroup, func, args, deref](Entity* e) {
 		args->clear();
 		args->push(e);
 		for (int index : entityGroup->getComponents()) {
@@ -821,15 +678,12 @@ static void group_watch(int64_t group, int32_t func, int64_t stack)
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static int64_t group_find(int64_t group, int32_t func, int64_t stack)
-{
-	std::shared_ptr<void> deref(nullptr, [func](auto)
-	{
+static int64_t group_find(int64_t group, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	return from_object(r_cast<EntityGroup*>(group)->find([func, args, deref](Entity* e)
-	{
+	return from_object(r_cast<EntityGroup*>(group)->find([func, args, deref](Entity* e) {
 		args->clear();
 		args->push(e);
 		SharedWasmRuntime.invoke(func);
@@ -839,16 +693,13 @@ static int64_t group_find(int64_t group, int32_t func, int64_t stack)
 
 // EntityObserver
 
-static void observer_watch(int64_t observer, int32_t func, int64_t stack)
-{
-	std::shared_ptr<void> deref(nullptr, [func](auto)
-	{
+static void observer_watch(int64_t observer, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
 	auto entityObserver = r_cast<EntityObserver*>(observer);
-	entityObserver->watch([entityObserver, func, args, deref](Entity* e)
-	{
+	entityObserver->watch([entityObserver, func, args, deref](Entity* e) {
 		args->clear();
 		args->push(e);
 		for (int index : entityObserver->getComponents()) {
@@ -861,33 +712,26 @@ static void observer_watch(int64_t observer, int32_t func, int64_t stack)
 // Node
 
 using Grabber = Node::Grabber;
-static void node_emit(int64_t node, int64_t name, int64_t stack)
-{
+static void node_emit(int64_t node, int64_t name, int64_t stack) {
 	WasmEventArgs event(*str_from(name), r_cast<CallStack*>(stack));
 	r_cast<Node*>(node)->emit(&event);
 }
-static Grabber* node_start_grabbing(Node* node)
-{
+static Grabber* node_start_grabbing(Node* node) {
 	return node->grab(true);
 }
-static void node_stop_grabbing(Node* node)
-{
+static void node_stop_grabbing(Node* node) {
 	node->grab(false);
 }
-static Action* node_run_action_def(Node* node, ActionDef def)
-{
-	if (def)
-	{
+static Action* node_run_action_def(Node* node, ActionDef def) {
+	if (def) {
 		auto action = Action::create(std::move(def));
 		node->runAction(action);
 		return action;
 	}
 	return nullptr;
 }
-static Action* node_perform_def(Node* node, ActionDef def)
-{
-	if (def)
-	{
+static Action* node_perform_def(Node* node, ActionDef def) {
+	if (def) {
 		auto action = Action::create(std::move(def));
 		node->perform(action);
 		return action;
@@ -897,8 +741,7 @@ static Action* node_perform_def(Node* node, ActionDef def)
 
 // Effect
 
-static Pass* effect_get_pass(Effect* self, size_t index)
-{
+static Pass* effect_get_pass(Effect* self, size_t index) {
 	const auto& passes = self->getPasses();
 	if (index < passes.size()) {
 		return self->get(index);
@@ -922,26 +765,20 @@ static Pass* effect_get_pass(Effect* self, size_t index)
 
 // Model
 
-std::string model_get_clip_filename(String filename)
-{
-	if (ModelDef* modelDef = SharedModelCache.load(filename))
-	{
+std::string model_get_clip_filename(String filename) {
+	if (ModelDef* modelDef = SharedModelCache.load(filename)) {
 		return modelDef->getClipFile();
 	}
 	return Slice::Empty;
 }
-static std::vector<std::string> model_get_look_names(String filename)
-{
-	if (ModelDef* modelDef = SharedModelCache.load(filename))
-	{
+static std::vector<std::string> model_get_look_names(String filename) {
+	if (ModelDef* modelDef = SharedModelCache.load(filename)) {
 		return modelDef->getLookNames();
 	}
 	return std::vector<std::string>();
 }
-static std::vector<std::string> model_get_animation_names(String filename)
-{
-	if (ModelDef* modelDef = SharedModelCache.load(filename))
-	{
+static std::vector<std::string> model_get_animation_names(String filename) {
+	if (ModelDef* modelDef = SharedModelCache.load(filename)) {
 		return modelDef->getAnimationNames();
 	}
 	return std::vector<std::string>();
@@ -949,15 +786,12 @@ static std::vector<std::string> model_get_animation_names(String filename)
 
 // Spine
 
-std::vector<std::string> spine_get_look_names(String spineStr)
-{
-	if (auto skelData = SharedSkeletonCache.load(spineStr))
-	{
+std::vector<std::string> spine_get_look_names(String spineStr) {
+	if (auto skelData = SharedSkeletonCache.load(spineStr)) {
 		auto& skins = skelData->getSkel()->getSkins();
 		std::vector<std::string> res;
 		res.reserve(skins.size());
-		for (size_t i = 0; i < skins.size(); i++)
-		{
+		for (size_t i = 0; i < skins.size(); i++) {
 			const auto& name = skins[i]->getName();
 			res.push_back(std::string(name.buffer(), name.length()));
 		}
@@ -965,15 +799,12 @@ std::vector<std::string> spine_get_look_names(String spineStr)
 	}
 	return std::vector<std::string>();
 }
-std::vector<std::string> spine_get_animation_names(String spineStr)
-{
-	if (auto skelData = SharedSkeletonCache.load(spineStr))
-	{
+std::vector<std::string> spine_get_animation_names(String spineStr) {
+	if (auto skelData = SharedSkeletonCache.load(spineStr)) {
 		auto& anims = skelData->getSkel()->getAnimations();
 		std::vector<std::string> res;
 		res.reserve(anims.size());
-		for (size_t i = 0; i < anims.size(); i++)
-		{
+		for (size_t i = 0; i < anims.size(); i++) {
 			const auto& name = anims[i]->getName();
 			res.push_back(std::string(name.buffer(), name.length()));
 		}
@@ -984,33 +815,26 @@ std::vector<std::string> spine_get_animation_names(String spineStr)
 
 // DragonBones
 
-std::vector<std::string> dragon_bone_get_look_names(String boneStr)
-{
+std::vector<std::string> dragon_bone_get_look_names(String boneStr) {
 	auto boneData = SharedDragonBoneCache.load(boneStr);
-	if (boneData.first)
-	{
-		if (boneData.second.empty())
-		{
+	if (boneData.first) {
+		if (boneData.second.empty()) {
 			boneData.second = boneData.first->getArmatureNames().front();
 		}
 		const auto& skins = boneData.first->getArmature(boneData.second)->skins;
 		std::vector<std::string> res;
 		res.reserve(skins.size());
-		for (const auto& item : skins)
-		{
+		for (const auto& item : skins) {
 			res.push_back(item.first);
 		}
 		return res;
 	}
 	return std::vector<std::string>();
 }
-std::vector<std::string> dragon_bone_get_animation_names(String boneStr)
-{
+std::vector<std::string> dragon_bone_get_animation_names(String boneStr) {
 	auto boneData = SharedDragonBoneCache.load(boneStr);
-	if (boneData.first)
-	{
-		if (boneData.second.empty())
-		{
+	if (boneData.first) {
+		if (boneData.second.empty()) {
 			boneData.second = boneData.first->getArmatureNames().front();
 		}
 		return boneData.first->getArmature(boneData.second)->animationNames;
@@ -1024,14 +848,11 @@ std::vector<std::string> dragon_bone_get_animation_names(String boneStr)
 using MLQLearner = ML::QLearner;
 using MLQState = ML::QLearner::QState;
 using MLQAction = ML::QLearner::QAction;
-static void ml_qlearner_visit_state_action_q(MLQLearner* qlearner, const std::function<void(MLQState, MLQAction, double)>& handler)
-{
+static void ml_qlearner_visit_state_action_q(MLQLearner* qlearner, const std::function<void(MLQState, MLQAction, double)>& handler) {
 	const auto& matrix = qlearner->getMatrix();
-	for (const auto& row : matrix)
-	{
+	for (const auto& row : matrix) {
 		ML::QLearner::QState state = row.first;
-		for (const auto& col : row.second)
-		{
+		for (const auto& col : row.second) {
 			ML::QLearner::QAction action = col.first;
 			double q = col.second;
 			handler(state, action, q);
@@ -1041,12 +862,10 @@ static void ml_qlearner_visit_state_action_q(MLQLearner* qlearner, const std::fu
 
 // Blackboard
 
-static void blackboard_set(int64_t b, int64_t k, int64_t v)
-{
+static void blackboard_set(int64_t b, int64_t k, int64_t v) {
 	r_cast<Platformer::Behavior::Blackboard*>(b)->set(*str_from(k), to_value(*r_cast<dora_val_t*>(v)));
 }
-static int64_t blackboard_get(int64_t b, int64_t k)
-{
+static int64_t blackboard_get(int64_t b, int64_t k) {
 	if (auto value = r_cast<Platformer::Behavior::Blackboard*>(b)->get(*str_from(k))) {
 		return from_value(value);
 	} else {
@@ -1080,76 +899,66 @@ static int64_t blackboard_get(int64_t b, int64_t k)
 // UnitAction
 
 namespace Platformer {
-class WasmActionUpdate
-{
+class WasmActionUpdate {
 public:
-	WasmActionUpdate(const std::function<bool(Unit*, UnitAction*, float)>& update):
-	_update(update)
-	{ }
-	bool operator()(Unit* owner, UnitAction* action, float deltaTime)
-	{
+	WasmActionUpdate(const std::function<bool(Unit*, UnitAction*, float)>& update)
+		: _update(update) { }
+	bool operator()(Unit* owner, UnitAction* action, float deltaTime) {
 		return _update(owner, action, deltaTime);
 	}
+
 private:
 	std::function<bool(Unit*, UnitAction*, float)> _update;
 };
-class WasmUnitAction : public UnitAction
-{
+class WasmUnitAction : public UnitAction {
 public:
-	WasmUnitAction(String name, int priority, bool queued, Unit* owner):
-	UnitAction(name, priority, queued, owner) { }
-	virtual bool isAvailable() override
-	{
+	WasmUnitAction(String name, int priority, bool queued, Unit* owner)
+		: UnitAction(name, priority, queued, owner) { }
+	virtual bool isAvailable() override {
 		return _available(_owner, s_cast<UnitAction*>(this));
 	}
-	virtual void run() override
-	{
+	virtual void run() override {
 		UnitAction::run();
-		if (auto playable = _owner->getPlayable())
-		{
+		if (auto playable = _owner->getPlayable()) {
 			playable->setRecovery(recovery);
 		}
 		_update = _create(_owner, s_cast<UnitAction*>(this));
-		if (_update(_owner, s_cast<UnitAction*>(this), 0.0f))
-		{
+		if (_update(_owner, s_cast<UnitAction*>(this), 0.0f)) {
 			WasmUnitAction::stop();
 		}
 	}
-	virtual void update(float dt) override
-	{
-		if (_update && _update(_owner, s_cast<UnitAction*>(this), dt))
-		{
+	virtual void update(float dt) override {
+		if (_update && _update(_owner, s_cast<UnitAction*>(this), dt)) {
 			WasmUnitAction::stop();
 		}
 		UnitAction::update(dt);
 	}
-	virtual void stop() override
-	{
+	virtual void stop() override {
 		_update = nullptr;
 		_stop(_owner, s_cast<UnitAction*>(this));
 		UnitAction::stop();
 	}
+
 private:
 	std::function<bool(Unit*, UnitAction*)> _available;
 	std::function<WasmActionUpdate(Unit*, UnitAction*)> _create;
-	std::function<bool(Unit*, UnitAction*,float)> _update;
+	std::function<bool(Unit*, UnitAction*, float)> _update;
 	std::function<void(Unit*, UnitAction*)> _stop;
 	friend class WasmActionDef;
 };
-class WasmActionDef : public UnitActionDef
-{
+class WasmActionDef : public UnitActionDef {
 public:
 	WasmActionDef(
 		const std::function<bool(Unit*, UnitAction*)>& available,
 		const std::function<WasmActionUpdate(Unit*, UnitAction*)>& create,
-		const std::function<void(Unit*, UnitAction*)>& stop):
-		available(available), create(create), stop(stop)
-	{ }
+		const std::function<void(Unit*, UnitAction*)>& stop)
+		: available(available)
+		, create(create)
+		, stop(stop) { }
 	std::function<bool(Unit*, UnitAction*)> available;
 	std::function<WasmActionUpdate(Unit*, UnitAction*)> create;
 	std::function<void(Unit*, UnitAction*)> stop;
-	virtual Own<UnitAction> toAction(Unit* unit) override
-	{
+	virtual Own<UnitAction> toAction(Unit* unit) override {
 		WasmUnitAction* action = new WasmUnitAction(name, priority, queued, unit);
 		action->reaction = reaction;
 		action->recovery = recovery;
@@ -1163,8 +972,7 @@ static void wasm_unit_action_add(
 	String name, int priority, float reaction, float recovery, bool queued,
 	const std::function<bool(Unit*, UnitAction*)>& available,
 	const std::function<WasmActionUpdate(Unit*, UnitAction*)>& create,
-	const std::function<void(Unit*, UnitAction*)>& stop)
-{
+	const std::function<void(Unit*, UnitAction*)>& stop) {
 	UnitActionDef* actionDef = new WasmActionDef(available, create, stop);
 	actionDef->name = name;
 	actionDef->priority = priority;
@@ -1178,21 +986,16 @@ static void wasm_unit_action_add(
 
 // DB
 
-struct DBRecord
-{
-	void add(Array* params)
-	{
+struct DBRecord {
+	void add(Array* params) {
 		auto& record = records.emplace_back();
-		for (size_t i = 0; i < params->getCount(); ++i)
-		{
+		for (size_t i = 0; i < params->getCount(); ++i) {
 			record.emplace_back(params->get(i)->clone());
 		}
 	}
-	bool read(Array* record)
-	{
+	bool read(Array* record) {
 		if (records.empty()) return false;
-		for (auto& value : records.front())
-		{
+		for (auto& value : records.front()) {
 			record->add(std::move(value));
 		}
 		records.pop_front();
@@ -1200,57 +1003,43 @@ struct DBRecord
 	}
 	std::deque<std::vector<Own<Value>>> records;
 };
-struct DBQuery
-{
-	void addWithParams(String sql, DBRecord& record)
-	{
+struct DBQuery {
+	void addWithParams(String sql, DBRecord& record) {
 		auto& query = queries.emplace_back();
 		query.first = sql;
-		for (auto& rec : record.records)
-		{
+		for (auto& rec : record.records) {
 			query.second.emplace_back(std::move(rec));
 		}
 	}
-	void add(String sql)
-	{
+	void add(String sql) {
 		auto& query = queries.emplace_back();
 		query.first = sql;
 	}
 	std::list<std::pair<std::string, std::vector<std::vector<Own<Value>>>>> queries;
 };
-static bool db_do_transaction(DBQuery& query)
-{
-	return SharedDB.transaction([&]()
-	{
-		for (const auto& sql : query.queries)
-		{
-			if (sql.second.empty())
-			{
+static bool db_do_transaction(DBQuery& query) {
+	return SharedDB.transaction([&]() {
+		for (const auto& sql : query.queries) {
+			if (sql.second.empty()) {
 				SharedDB.exec(sql.first);
-			}
-			else
-			{
-				for (const auto& arg : sql.second)
-				{
+			} else {
+				for (const auto& arg : sql.second) {
 					SharedDB.exec(sql.first, arg);
 				}
 			}
 		}
 	});
 }
-static DBRecord db_do_query(String sql, bool withColumns)
-{
+static DBRecord db_do_query(String sql, bool withColumns) {
 	std::vector<Own<Value>> args;
 	auto result = SharedDB.query(sql, args, withColumns);
 	DBRecord record;
 	record.records = std::move(result);
 	return record;
 }
-static DBRecord db_do_query_with_params(String sql, Array* param, bool withColumns)
-{
+static DBRecord db_do_query_with_params(String sql, Array* param, bool withColumns) {
 	std::vector<Own<Value>> args;
-	for (size_t i = 0; i < param->getCount(); ++i)
-	{
+	for (size_t i = 0; i < param->getCount(); ++i) {
 		args.emplace_back(param->get(i)->clone());
 	}
 	auto result = SharedDB.query(sql, args, withColumns);
@@ -1258,123 +1047,112 @@ static DBRecord db_do_query_with_params(String sql, Array* param, bool withColum
 	record.records = std::move(result);
 	return record;
 }
-static void db_do_insert(String tableName, const DBRecord& record)
-{
+static void db_do_insert(String tableName, const DBRecord& record) {
 	SharedDB.insert(tableName, record.records);
 }
-static int32_t db_do_exec_with_params(String sql, Array* param)
-{
+static int32_t db_do_exec_with_params(String sql, Array* param) {
 	std::vector<Own<Value>> args;
-	for (size_t i = 0; i < param->getCount(); ++i)
-	{
+	for (size_t i = 0; i < param->getCount(); ++i) {
 		args.emplace_back(param->get(i)->clone());
 	}
 	return SharedDB.exec(sql, args);
 }
-static void db_do_query_with_params_async(String sql, Array* param, bool withColumns, const std::function<void(DBRecord& result)>& callback)
-{
+static void db_do_query_with_params_async(String sql, Array* param, bool withColumns, const std::function<void(DBRecord& result)>& callback) {
 	std::vector<Own<Value>> args;
-	for (size_t i = 0; i < param->getCount(); ++i)
-	{
+	for (size_t i = 0; i < param->getCount(); ++i) {
 		args.emplace_back(param->get(i)->clone());
 	}
-	SharedDB.queryAsync(sql, std::move(args), withColumns, [callback](std::deque<std::vector<Own<Value>>>& result)
-	{
+	SharedDB.queryAsync(sql, std::move(args), withColumns, [callback](std::deque<std::vector<Own<Value>>>& result) {
 		DBRecord record{std::move(result)};
 		callback(record);
 	});
 }
-static void db_do_insert_async(String tableName, DBRecord& record, const std::function<void(bool)>& callback)
-{
+static void db_do_insert_async(String tableName, DBRecord& record, const std::function<void(bool)>& callback) {
 	SharedDB.insertAsync(tableName, std::move(record.records), callback);
 }
-static void db_do_exec_async(String sql, Array* param, const std::function<void(int64_t)>& callback)
-{
+static void db_do_exec_async(String sql, Array* param, const std::function<void(int64_t)>& callback) {
 	std::vector<Own<Value>> args;
-	for (size_t i = 0; i < param->getCount(); ++i)
-	{
+	for (size_t i = 0; i < param->getCount(); ++i) {
 		args.emplace_back(param->get(i)->clone());
 	}
-	SharedDB.execAsync(sql, std::move(args), [callback](int rows)
-	{
+	SharedDB.execAsync(sql, std::move(args), [callback](int rows) {
 		callback(s_cast<int64_t>(rows));
 	});
 }
 
-#include "Dora/ArrayWasm.hpp"
-#include "Dora/DictionaryWasm.hpp"
-#include "Dora/RectWasm.hpp"
-#include "Dora/ApplicationWasm.hpp"
-#include "Dora/DirectorWasm.hpp"
-#include "Dora/EntityWasm.hpp"
-#include "Dora/EntityGroupWasm.hpp"
-#include "Dora/EntityObserverWasm.hpp"
-#include "Dora/ContentWasm.hpp"
-#include "Dora/PathWasm.hpp"
-#include "Dora/SchedulerWasm.hpp"
-#include "Dora/CameraWasm.hpp"
-#include "Dora/Camera2DWasm.hpp"
-#include "Dora/CameraOthoWasm.hpp"
-#include "Dora/PassWasm.hpp"
-#include "Dora/EffectWasm.hpp"
-#include "Dora/SpriteEffectWasm.hpp"
-#include "Dora/ViewWasm.hpp"
 #include "Dora/ActionDefWasm.hpp"
 #include "Dora/ActionWasm.hpp"
-#include "Dora/GrabberWasm.hpp"
-#include "Dora/NodeWasm.hpp"
-#include "Dora/Texture2DWasm.hpp"
-#include "Dora/SpriteWasm.hpp"
-#include "Dora/GridWasm.hpp"
-#include "Dora/TouchWasm.hpp"
-#include "Dora/EaseWasm.hpp"
-#include "Dora/LabelWasm.hpp"
-#include "Dora/RenderTargetWasm.hpp"
-#include "Dora/ClipNodeWasm.hpp"
-#include "Dora/VertexColorWasm.hpp"
-#include "Dora/DrawNodeWasm.hpp"
-#include "Dora/LineWasm.hpp"
-#include "Dora/ParticleNodeWasm.hpp"
-#include "Dora/PlayableWasm.hpp"
-#include "Dora/ModelWasm.hpp"
-#include "Dora/SpineWasm.hpp"
-#include "Dora/DragonBoneWasm.hpp"
-#include "Dora/PhysicsWorldWasm.hpp"
-#include "Dora/FixtureDefWasm.hpp"
-#include "Dora/BodyDefWasm.hpp"
-#include "Dora/SensorWasm.hpp"
-#include "Dora/BodyWasm.hpp"
-#include "Dora/JointDefWasm.hpp"
-#include "Dora/JointWasm.hpp"
-#include "Dora/MotorJointWasm.hpp"
-#include "Dora/MoveJointWasm.hpp"
-#include "Dora/CacheWasm.hpp"
+#include "Dora/ApplicationWasm.hpp"
+#include "Dora/ArrayWasm.hpp"
 #include "Dora/AudioWasm.hpp"
-#include "Dora/KeyboardWasm.hpp"
-#include "Dora/SVGDefWasm.hpp"
+#include "Dora/BodyDefWasm.hpp"
+#include "Dora/BodyWasm.hpp"
+#include "Dora/C45Wasm.hpp"
+#include "Dora/CacheWasm.hpp"
+#include "Dora/Camera2DWasm.hpp"
+#include "Dora/CameraOthoWasm.hpp"
+#include "Dora/CameraWasm.hpp"
+#include "Dora/ClipNodeWasm.hpp"
+#include "Dora/ContentWasm.hpp"
 #include "Dora/DBQueryWasm.hpp"
 #include "Dora/DBRecordWasm.hpp"
 #include "Dora/DBWasm.hpp"
-#include "Dora/C45Wasm.hpp"
+#include "Dora/DictionaryWasm.hpp"
+#include "Dora/DirectorWasm.hpp"
+#include "Dora/DragonBoneWasm.hpp"
+#include "Dora/DrawNodeWasm.hpp"
+#include "Dora/EaseWasm.hpp"
+#include "Dora/EffectWasm.hpp"
+#include "Dora/EntityGroupWasm.hpp"
+#include "Dora/EntityObserverWasm.hpp"
+#include "Dora/EntityWasm.hpp"
+#include "Dora/FixtureDefWasm.hpp"
+#include "Dora/GrabberWasm.hpp"
+#include "Dora/GridWasm.hpp"
+#include "Dora/JointDefWasm.hpp"
+#include "Dora/JointWasm.hpp"
+#include "Dora/KeyboardWasm.hpp"
+#include "Dora/LabelWasm.hpp"
+#include "Dora/LineWasm.hpp"
 #include "Dora/MLQLearnerWasm.hpp"
-#include "Dora/Platformer/TargetAllowWasm.hpp"
-#include "Dora/Platformer/FaceWasm.hpp"
-#include "Dora/Platformer/BulletDefWasm.hpp"
-#include "Dora/Platformer/BulletWasm.hpp"
-#include "Dora/Platformer/VisualWasm.hpp"
+#include "Dora/ModelWasm.hpp"
+#include "Dora/MotorJointWasm.hpp"
+#include "Dora/MoveJointWasm.hpp"
+#include "Dora/NodeWasm.hpp"
+#include "Dora/ParticleNodeWasm.hpp"
+#include "Dora/PassWasm.hpp"
+#include "Dora/PathWasm.hpp"
+#include "Dora/PhysicsWorldWasm.hpp"
 #include "Dora/Platformer/Behavior/BlackboardWasm.hpp"
 #include "Dora/Platformer/Behavior/LeafWasm.hpp"
+#include "Dora/Platformer/BulletDefWasm.hpp"
+#include "Dora/Platformer/BulletWasm.hpp"
+#include "Dora/Platformer/DataWasm.hpp"
 #include "Dora/Platformer/Decision/AIWasm.hpp"
 #include "Dora/Platformer/Decision/LeafWasm.hpp"
-#include "Dora/Platformer/WasmActionUpdateWasm.hpp"
-#include "Dora/Platformer/UnitActionWasm.hpp"
-#include "Dora/Platformer/UnitWasm.hpp"
+#include "Dora/Platformer/FaceWasm.hpp"
 #include "Dora/Platformer/PlatformCameraWasm.hpp"
 #include "Dora/Platformer/PlatformWorldWasm.hpp"
-#include "Dora/Platformer/DataWasm.hpp"
+#include "Dora/Platformer/TargetAllowWasm.hpp"
+#include "Dora/Platformer/UnitActionWasm.hpp"
+#include "Dora/Platformer/UnitWasm.hpp"
+#include "Dora/Platformer/VisualWasm.hpp"
+#include "Dora/Platformer/WasmActionUpdateWasm.hpp"
+#include "Dora/PlayableWasm.hpp"
+#include "Dora/RectWasm.hpp"
+#include "Dora/RenderTargetWasm.hpp"
+#include "Dora/SVGDefWasm.hpp"
+#include "Dora/SchedulerWasm.hpp"
+#include "Dora/SensorWasm.hpp"
+#include "Dora/SpineWasm.hpp"
+#include "Dora/SpriteEffectWasm.hpp"
+#include "Dora/SpriteWasm.hpp"
+#include "Dora/Texture2DWasm.hpp"
+#include "Dora/TouchWasm.hpp"
+#include "Dora/VertexColorWasm.hpp"
+#include "Dora/ViewWasm.hpp"
 
-static void linkAutoModule(wasm3::module& mod)
-{
+static void linkAutoModule(wasm3::module& mod) {
 	linkArray(mod);
 	linkDictionary(mod);
 	linkRect(mod);
@@ -1448,8 +1226,7 @@ static void linkAutoModule(wasm3::module& mod)
 	linkPlatformerData(mod);
 }
 
-static void linkDoraModule(wasm3::module& mod)
-{
+static void linkDoraModule(wasm3::module& mod) {
 	linkAutoModule(mod);
 
 	mod.link_optional("*", "str_new", str_new);
@@ -1552,22 +1329,17 @@ static void linkDoraModule(wasm3::module& mod)
 	mod.link_optional("*", "blackboard_get", blackboard_get);
 }
 
-WasmRuntime::WasmRuntime():
-_runtime(_env.new_runtime(1024 * 1024))
-{ }
+WasmRuntime::WasmRuntime()
+	: _runtime(_env.new_runtime(1024 * 1024)) { }
 
-WasmRuntime::~WasmRuntime()
-{ }
+WasmRuntime::~WasmRuntime() { }
 
-bool WasmRuntime::executeMainFile(String filename)
-{
-	if (_wasm.first)
-	{
+bool WasmRuntime::executeMainFile(String filename) {
+	if (_wasm.first) {
 		Warn("only one wasm module can be executed.");
 		return false;
 	}
-	try
-	{
+	try {
 		_wasm = SharedContent.load(filename);
 		auto mod = _env.parse_module(_wasm.first.get(), _wasm.second);
 		_runtime.load(mod);
@@ -1578,33 +1350,26 @@ bool WasmRuntime::executeMainFile(String filename)
 		wasm3::function mainFn = _runtime.find_function("_start");
 		mainFn.call_argv();
 		return true;
-	}
-	catch (std::runtime_error& e)
-	{
+	} catch (std::runtime_error& e) {
 		Error("failed to load wasm module: {}, due to: {}{}", filename, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
 		return false;
 	}
 }
 
-void WasmRuntime::executeMainFileAsync(String filename, const std::function<void(bool)>& handler)
-{
-	if (_wasm.first)
-	{
+void WasmRuntime::executeMainFileAsync(String filename, const std::function<void(bool)>& handler) {
+	if (_wasm.first) {
 		Warn("only one wasm module can be executed.");
 		return;
 	}
 	auto file = filename.toString();
-	SharedContent.loadAsyncData(filename, [file, handler, this](OwnArray<uint8_t>&& data, size_t size)
-	{
-		if (!data)
-		{
+	SharedContent.loadAsyncData(filename, [file, handler, this](OwnArray<uint8_t>&& data, size_t size) {
+		if (!data) {
 			Warn("failed to load wasm file \"{}\".", file);
 			handler(false);
 			return;
 		}
 		_wasm = {std::move(data), size};
-		SharedAsyncThread.run([file, this]
-		{
+		SharedAsyncThread.run([file, this] {
 			try
 			{
 				auto mod = New<wasm3::module>(_env.parse_module(_wasm.first.get(), _wasm.second));
@@ -1620,9 +1385,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			{
 				Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
 				return Values::alloc(Own<wasm3::module>(), Own<wasm3::function>());
-			}
-		}, [file, handler, this](Own<Values> values)
-		{
+			} }, [file, handler, this](Own<Values> values) {
 			try
 			{
 				Own<wasm3::module> mod;
@@ -1639,25 +1402,19 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			{
 				Error("failed to execute wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
 				handler(false);
-			}
-		});
+			} });
 	});
 }
 
-void WasmRuntime::invoke(int32_t funcId)
-{
-	try
-	{
+void WasmRuntime::invoke(int32_t funcId) {
+	try {
 		_callFunc->call(funcId);
-	}
-	catch (std::runtime_error& e)
-	{
+	} catch (std::runtime_error& e) {
 		Error("failed to execute wasm module due to: {}{}", e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
 	}
 }
 
-void WasmRuntime::deref(int32_t funcId)
-{
+void WasmRuntime::deref(int32_t funcId) {
 	_derefFunc->call(funcId);
 }
 

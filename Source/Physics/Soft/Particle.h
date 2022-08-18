@@ -16,8 +16,7 @@ NS_BEGIN(Soft)
  that particle, including it's coefficient of friction, it's coefficient of restitution, and it's
  physical mass.
  */
-struct Material
-{
+struct Material {
 	// coefficient of friction [0.0, 1.0] (0 = ice, 1 = glue)
 	float friction = 1.0f;
 	// coefficient of resitution [0.0, 1.0] (0 = inelastic, 1 = elastic)
@@ -33,8 +32,7 @@ class World;
  position relative to the last time step. Velocity is implicitly claculated with direction and
  magnitude as the difference between this particle's current and previous position.
  */
-class Particle
-{
+class Particle {
 public:
 	PROPERTY(Material*, Material);
 	PROPERTY_READONLY_CREF(Vec2, Position);
@@ -98,4 +96,3 @@ private:
 
 NS_END(Soft)
 NS_DOROTHY_END
-

@@ -18,42 +18,41 @@ NS_DOROTHY_BEGIN
 public:
 	// virtual destructor is required
 	virtual ~Application();
- 	// Application has no dependency
- 	SINGLETON_REF(Application);
+	// Application has no dependency
+	SINGLETON_REF(Application);
  };
  #define SharedApplication \
- 	Dorothy::Singleton<Dorothy::Application>::shared()
+	Dorothy::Singleton<Dorothy::Application>::shared()
 
  class Log
  {
 public:
 	virtual ~Log();
- 	// Log has a dependency of Application
- 	SINGLETON_REF(Log, Application);
+	// Log has a dependency of Application
+	SINGLETON_REF(Log, Application);
  };
  #define SharedLog \
- 	Dorothy::Singleton<Dorothy::Log>::shared()
+	Dorothy::Singleton<Dorothy::Log>::shared()
 
  class Console
  {
 public:
 	virtual ~Console();
- 	// Console has a dependency of Application
- 	SINGLETON_REF(Console, Application);
- 	// Add Console as additional dependency for Log
- 	SINGLETON_REF(Log, Console);
+	// Console has a dependency of Application
+	SINGLETON_REF(Console, Application);
+	// Add Console as additional dependency for Log
+	SINGLETON_REF(Log, Console);
  };
  #define SharedConsole \
- 	Dorothy::Singleton<Dorothy::Console>::shared()
+	Dorothy::Singleton<Dorothy::Console>::shared()
 
  Singleton instances will be destroyed in orders of:
- 	Log
- 	Console
- 	Application
+	Log
+	Console
+	Application
 */
 
-class Life
-{
+class Life {
 public:
 	virtual ~Life() { }
 	static void addDependency(String target, String dependency);
@@ -64,65 +63,53 @@ public:
 };
 
 template <class T>
-class Singleton : public T, public Life
-{
+class Singleton : public T, public Life {
 public:
-	enum class Status
-	{
+	enum class Status {
 		Uninitialized,
 		Available,
 		Disposed,
 	};
-	Singleton()
-	{
+	Singleton() {
 		_status = Status::Available;
 		Life::addItem(_name, getLife());
 	}
 
-	static Singleton& shared()
-	{
+	static Singleton& shared() {
 		static auto* _instance = new Singleton();
 		AssertIf(_status != Status::Available, "accessing disposed singleton instance named \"{}\".", _name);
 		return *_instance;
 	}
 
-	virtual ~Singleton()
-	{
+	virtual ~Singleton() {
 		_status = Status::Disposed;
 	}
 
-	const std::string& getName() const
-	{
+	const std::string& getName() const {
 		return _name;
 	}
 
-	T* getTarget() const
-	{
+	T* getTarget() const {
 		return s_cast<T*>(c_cast<Singleton*>(this));
 	}
 
-	Life* getLife() const
-	{
+	Life* getLife() const {
 		return s_cast<Life*>(c_cast<Singleton*>(this));
 	}
 
-	static bool isDisposed()
-	{
+	static bool isDisposed() {
 		return _status == Status::Disposed;
 	}
 
-	static bool isInitialized()
-	{
+	static bool isInitialized() {
 		return _status == Status::Available;
 	}
 
-	static void setDependencyInfo(String name, String dependencyStr)
-	{
+	static void setDependencyInfo(String name, String dependencyStr) {
 		_name = name;
 		Life::addName(name);
 		auto dependencies = dependencyStr.split(",");
-		for (auto& dependency : dependencies)
-		{
+		for (auto& dependency : dependencies) {
 			dependency.trimSpace();
 			Life::addDependency(name, dependency);
 		}
@@ -139,15 +126,13 @@ std::string Singleton<T>::_name;
 template <class T>
 typename Singleton<T>::Status Singleton<T>::_status = Singleton<T>::Status::Uninitialized;
 
-#define SINGLETON_REF(type, ...) \
-private: \
-	struct type##_ref_initializer \
-	{ \
-		type##_ref_initializer() \
-		{ \
-			const char* info[] = {nullptr, #__VA_ARGS__}; \
-			Singleton<type>::setDependencyInfo(#type, (sizeof(info)/sizeof(*info) == 1 ? "" : info[1])); \
-		} \
+#define SINGLETON_REF(type, ...)                                                                           \
+private:                                                                                                   \
+	struct type##_ref_initializer {                                                                        \
+		type##_ref_initializer() {                                                                         \
+			const char* info[] = {nullptr, #__VA_ARGS__};                                                  \
+			Singleton<type>::setDependencyInfo(#type, (sizeof(info) / sizeof(*info) == 1 ? "" : info[1])); \
+		}                                                                                                  \
 	} __##type##_initializer__
 
 NS_DOROTHY_END

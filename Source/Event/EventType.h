@@ -14,8 +14,7 @@ class Event;
 class Listener;
 
 /** @brief Inner class for event system. */
-class EventType
-{
+class EventType {
 public:
 	PROPERTY_READONLY_CREF(std::string, Name);
 	PROPERTY_READONLY_BOOL(Empty);
@@ -23,8 +22,10 @@ public:
 	void add(Listener* listener);
 	void remove(Listener* listener);
 	void handle(Event* event);
+
 protected:
 	void handle(Event* event, int index);
+
 private:
 	std::string _name;
 	std::vector<Listener*> _listeners;

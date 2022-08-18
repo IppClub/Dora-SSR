@@ -18,102 +18,105 @@ class Leaf;
 NS_BEHAVIOR_END
 
 NS_DECISION_BEGIN
-class Leaf : public Object
-{
+class Leaf : public Object {
 public:
 	virtual bool doAction(Unit* self) = 0;
 	DORA_TYPE_OVERRIDE(Leaf);
 };
 
-class BaseNode : public Leaf
-{
+class BaseNode : public Leaf {
 public:
 	BaseNode* add(Leaf* node);
 	bool remove(Leaf* node);
 	void clear();
 	const RefVector<Leaf>& getChildren() const;
+
 protected:
 	RefVector<Leaf> _children;
 };
 
-class SelNode : public BaseNode
-{
+class SelNode : public BaseNode {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(SelNode);
+
 protected:
 	SelNode() { }
 };
 
-class SeqNode : public BaseNode
-{
+class SeqNode : public BaseNode {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(SeqNode);
+
 protected:
 	SeqNode() { }
 };
 
-class ConNode : public Leaf
-{
+class ConNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ConNode);
+
 protected:
 	ConNode(String name, const std::function<bool(Unit*)>& handler);
+
 private:
 	std::string _name;
 	std::function<bool(Unit*)> _handler;
 };
 
-class ActNode : public Leaf
-{
+class ActNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(ActNode);
+
 protected:
 	ActNode(String actionName);
+
 private:
 	std::string _actionName;
 };
 
-class DynamicActNode : public Leaf
-{
+class DynamicActNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(DynamicActNode);
+
 protected:
 	DynamicActNode(const std::function<std::string(Unit*)>& handler);
+
 private:
 	std::string _actionName;
 	std::function<std::string(Unit*)> _handler;
 };
 
-class AcceptNode : public Leaf
-{
+class AcceptNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(AcceptNode);
+
 protected:
 	AcceptNode() { }
 };
 
-class RejectNode : public Leaf
-{
+class RejectNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(RejectNode);
+
 protected:
 	RejectNode() { }
 };
 
-class BehaviorNode : public Leaf
-{
+class BehaviorNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
 	CREATE_FUNC(BehaviorNode);
+
 protected:
 	BehaviorNode(String name, Behavior::Leaf* root);
+
 private:
 	Ref<Behavior::Leaf> _root;
 	std::string _name;
@@ -133,8 +136,7 @@ Leaf* Behave(String name, Behavior::Leaf* root);
 NS_DECISION_END
 
 NS_BEHAVIOR_BEGIN
-class Blackboard
-{
+class Blackboard {
 public:
 	PROPERTY(double, DeltaTime);
 	PROPERTY_READONLY(Unit*, Owner);
@@ -147,8 +149,10 @@ public:
 	void clear();
 	Own<Blackboard> clone() const;
 	void copy(const Blackboard* blackboard);
+
 public:
 	Blackboard(Unit* owner);
+
 private:
 	Unit* _owner;
 	double _deltaTime = 0.0;
@@ -157,148 +161,153 @@ private:
 	DORA_TYPE_BASE(Blackboard);
 };
 
-enum class Status
-{
+enum class Status {
 	Success,
 	Failure,
 	Running
 };
 
-class Leaf : public Object
-{
+class Leaf : public Object {
 public:
 	virtual ~Leaf() { }
 	virtual Status tick(Blackboard* board) = 0;
 	DORA_TYPE_OVERRIDE(Leaf);
 };
 
-class BaseNode : public Leaf
-{
+class BaseNode : public Leaf {
 public:
 	BaseNode* add(Leaf* node);
 	bool remove(Leaf* node);
 	void clear();
 	const RefVector<Leaf>& getChildren() const;
+
 protected:
 	RefVector<Leaf> _children;
 };
 
-class SeqNode : public BaseNode
-{
+class SeqNode : public BaseNode {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(SeqNode);
+
 protected:
 	SeqNode() { }
 };
 
-class SelNode : public BaseNode
-{
+class SelNode : public BaseNode {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(SelNode);
+
 protected:
 	SelNode() { }
 };
 
-class ConNode : public Leaf
-{
+class ConNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(ConNode);
+
 protected:
 	ConNode(String name, const std::function<bool(Blackboard*)>& handler);
+
 private:
 	std::string _name;
 	std::function<bool(Blackboard*)> _handler;
 };
 
-class ActNode : public Leaf
-{
+class ActNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(ActNode);
+
 protected:
 	ActNode(String actionName);
+
 private:
 	std::string _actionName;
 };
 
-class CommandNode : public Leaf
-{
+class CommandNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(CommandNode);
+
 protected:
 	CommandNode(String actionName);
+
 private:
 	std::string _actionName;
 };
 
-class CountdownNode : public Leaf
-{
+class CountdownNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(CountdownNode);
+
 protected:
 	CountdownNode(double time, Leaf* node);
+
 private:
 	double _time;
 	Ref<Leaf> _node;
 };
 
-class TimeoutNode : public Leaf
-{
+class TimeoutNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(TimeoutNode);
+
 protected:
 	TimeoutNode(double time, Leaf* node);
+
 private:
 	double _time;
 	Ref<Leaf> _node;
 };
 
-class WaitNode : public Leaf
-{
+class WaitNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(WaitNode);
+
 protected:
 	WaitNode(double duration);
+
 private:
 	double _duration;
 };
 
-class RepeatInfo : public Object
-{
+class RepeatInfo : public Object {
 public:
 	int count = 0;
 	Own<Blackboard> boardCache;
 	CREATE_FUNC(RepeatInfo);
 };
 
-class RepeatNode : public Leaf
-{
+class RepeatNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(RepeatNode);
+
 protected:
 	RepeatNode(int times, Leaf* node);
 	RepeatNode(Leaf* node);
+
 private:
 	int _times;
 	Ref<Leaf> _node;
 };
 
-class RetryNode : public Leaf
-{
+class RetryNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
 	CREATE_FUNC(RetryNode);
+
 protected:
 	RetryNode(int times, Leaf* node);
 	RetryNode(Leaf* node);
+
 private:
 	int _times;
 	Ref<Leaf> _node;

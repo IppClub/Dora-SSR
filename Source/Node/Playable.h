@@ -12,8 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Playable : public Node
-{
+class Playable : public Node {
 public:
 	Playable();
 	PROPERTY_VIRTUAL(float, Speed);
@@ -28,6 +27,7 @@ public:
 	virtual void setSlot(String name, Node* item) = 0;
 	virtual Node* getSlot(String name) = 0;
 	static Playable* create(String filename);
+
 protected:
 	bool _fliped;
 	float _speed;
@@ -37,4 +37,3 @@ protected:
 };
 
 NS_DOROTHY_END
-

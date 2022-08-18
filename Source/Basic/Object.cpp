@@ -7,26 +7,24 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Basic/Object.h"
+
 #include "Basic/AutoreleasePool.h"
 #include "Lua/ToLua/tolua++.h"
 
 NS_DOROTHY_BEGIN
 
-class ObjectBase
-{
+class ObjectBase {
 public:
-	ObjectBase():
-	maxIdCount(0),
-	maxLuaRefCount(0),
-	luaRefCount(0)
-	{ }
-	virtual ~ObjectBase()
-	{
+	ObjectBase()
+		: maxIdCount(0)
+		, maxLuaRefCount(0)
+		, luaRefCount(0) { }
+	virtual ~ObjectBase() {
 #if DORA_DEBUG
 		int count = s_cast<int>(maxIdCount) - s_cast<int>(availableIds.size());
-		if (count > 0)
-		{
+		if (count > 0) {
 			Warn("{} C++ objects leaks.", count);
 		}
 #endif // DORA_DEBUG
@@ -42,68 +40,54 @@ public:
 #define SharedObjectBase \
 	Singleton<ObjectBase>::shared()
 
-Weak::Weak(Object* target):
-target(target),
-_refCount(1)
-{ }
+Weak::Weak(Object* target)
+	: target(target)
+	, _refCount(1) { }
 
-void Weak::release()
-{
+void Weak::release() {
 	--_refCount;
-	if (_refCount == 0)
-	{
+	if (_refCount == 0) {
 		delete this;
 	}
 }
 
-void Weak::retain()
-{
+void Weak::retain() {
 	++_refCount;
 }
 
-Object::Object():
-_managed(false),
-_refCount(1),
-_luaRef(0),
-_weak(nullptr)
-{
+Object::Object()
+	: _managed(false)
+	, _refCount(1)
+	, _luaRef(0)
+	, _weak(nullptr) {
 	auto& info = SharedObjectBase;
-	if (info.availableIds.empty())
-	{
+	if (info.availableIds.empty()) {
 		_id = ++info.maxIdCount;
-	}
-	else
-	{
+	} else {
 		_id = info.availableIds.top();
 		info.availableIds.pop();
 	}
 }
 
-Object::~Object()
-{
+Object::~Object() {
 	auto& info = SharedObjectBase;
 	assert(!_managed); // object is still managed when destroyed
 	info.availableIds.push(_id);
-	if (_luaRef != 0)
-	{
+	if (_luaRef != 0) {
 		info.availableLuaRefs.push(_luaRef);
 	}
 }
 
-bool Object::init()
-{
+bool Object::init() {
 	// Info("{}", typeid(*this).name());
 	return true;
 }
 
-void Object::release()
-{
+void Object::release() {
 	AssertUnless(_refCount > 0, "reference count should be greater than 0.");
 	--_refCount;
-	if (_refCount == 0)
-	{
-		if (_weak)
-		{
+	if (_refCount == 0) {
+		if (_weak) {
 			_weak->target = nullptr;
 			_weak->release();
 		}
@@ -111,126 +95,100 @@ void Object::release()
 	}
 }
 
-void Object::retain()
-{
+void Object::retain() {
 	AssertUnless(_refCount > 0, "reference count should be greater than 0.");
 	++_refCount;
 }
 
-void Object::autorelease()
-{
+void Object::autorelease() {
 	AssertIf(_managed, "object is already managed.");
 	SharedPoolManager.addObject(this);
 }
 
-void Object::autoretain()
-{
-	if (!_managed)
-	{
+void Object::autoretain() {
+	if (!_managed) {
 		retain();
 		autorelease();
 	}
 }
 
-bool Object::isSingleReferenced() const
-{
+bool Object::isSingleReferenced() const {
 	return _refCount == 1;
 }
 
-uint32_t Object::getRefCount() const
-{
+uint32_t Object::getRefCount() const {
 	return _refCount;
 }
 
-bool Object::update(double deltaTime)
-{
+bool Object::update(double deltaTime) {
 	DORA_UNUSED_PARAM(deltaTime);
 	return true;
 }
 
-bool Object::fixedUpdate(double deltaTime)
-{
+bool Object::fixedUpdate(double deltaTime) {
 	DORA_UNUSED_PARAM(deltaTime);
 	return true;
 }
 
-bool Object::equals(Object* other) const
-{
+bool Object::equals(Object* other) const {
 	return this == other;
 }
 
-void Object::cleanup()
-{
+void Object::cleanup() {
 	if (_weak) _weak->target = nullptr;
 }
 
-uint32_t Object::getId() const
-{
+uint32_t Object::getId() const {
 	return _id;
 }
 
-uint32_t Object::getCount()
-{
+uint32_t Object::getCount() {
 	auto& info = SharedObjectBase;
 	return info.maxIdCount - s_cast<uint32_t>(info.availableIds.size());
 }
 
-uint32_t Object::getMaxCount()
-{
+uint32_t Object::getMaxCount() {
 	return SharedObjectBase.maxIdCount;
 }
 
-uint32_t Object::getLuaRefCount()
-{
+uint32_t Object::getLuaRefCount() {
 	return SharedObjectBase.luaRefCount;
 }
 
-uint32_t Object::getMaxLuaRefCount()
-{
+uint32_t Object::getMaxLuaRefCount() {
 	return SharedObjectBase.maxLuaRefCount;
 }
 
-uint32_t Object::getLuaCallbackCount()
-{
+uint32_t Object::getLuaCallbackCount() {
 	return tolua_get_callback_ref_count();
 }
 
-uint32_t Object::getMaxLuaCallbackCount()
-{
+uint32_t Object::getMaxLuaCallbackCount() {
 	return tolua_get_max_callback_ref_count();
 }
 
-Weak* Object::getWeakRef()
-{
-	if (!_weak)
-	{
+Weak* Object::getWeakRef() {
+	if (!_weak) {
 		_weak = new Weak(this);
 		return _weak;
 	}
 	return _weak;
 }
 
-void Object::addLuaRef()
-{
+void Object::addLuaRef() {
 	++SharedObjectBase.luaRefCount;
 }
 
-void Object::removeLuaRef()
-{
+void Object::removeLuaRef() {
 	--SharedObjectBase.luaRefCount;
 }
 
-uint32_t Object::getLuaRef()
-{
-	if (_luaRef == 0)
-	{
+uint32_t Object::getLuaRef() {
+	if (_luaRef == 0) {
 		auto& info = SharedObjectBase;
-		if (info.availableLuaRefs.empty())
-		{
+		if (info.availableLuaRefs.empty()) {
 			_luaRef = ++info.maxLuaRefCount;
-		}
-		else
-		{
+		} else {
 			_luaRef = info.availableLuaRefs.top();
 			info.availableLuaRefs.pop();
 		}
@@ -238,8 +196,7 @@ uint32_t Object::getLuaRef()
 	return _luaRef;
 }
 
-bool Object::isLuaReferenced() const
-{
+bool Object::isLuaReferenced() const {
 	return _luaRef != 0;
 }
 

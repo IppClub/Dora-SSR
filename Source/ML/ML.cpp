@@ -7,31 +7,26 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "ML/ML.h"
-#include "ml/DecisionTree.h"
+
 #include "Common/Async.h"
+#include "ml/DecisionTree.h"
 
 NS_DOROTHY_BEGIN
 namespace ML {
 
 void BuildDecisionTreeAsync(String data, int maxDepth,
-	const std::function<void(double, String,String,String)>& handleTree)
-{
+	const std::function<void(double, String, String, String)>& handleTree) {
 	auto dataStr = std::make_shared<std::string>(data.rawData(), data.size());
-	SharedAsyncThread.run([dataStr, maxDepth]()
-	{
-		try
-		{
+	SharedAsyncThread.run([dataStr, maxDepth]() {
+		try {
 			auto result = GaGa::DecisionTree::BuildTest(std::move(*dataStr), maxDepth);
 			return Values::alloc(std::move(result), std::string());
-		}
-		catch (const std::logic_error& e)
-		{
+		} catch (const std::logic_error& e) {
 			std::string msg = e.what();
 			return Values::alloc(std::pair<std::list<GaGa::DecisionTree::Node>,double>(), msg);
-		}
-	}, [handleTree](Own<Values> values)
-	{
+		} }, [handleTree](Own<Values> values) {
 		std::pair<std::list<GaGa::DecisionTree::Node>, double> result;
 		std::string err;
 		values->get(result, err);
@@ -43,19 +38,16 @@ void BuildDecisionTreeAsync(String data, int maxDepth,
 				handleTree(node.depth, node.name, node.op, node.value);
 			}
 		}
-		else handleTree(-1.0, err, Slice::Empty, Slice::Empty);
-	});
+		else handleTree(-1.0, err, Slice::Empty, Slice::Empty); });
 }
 
 /* QLearner */
 
-QLearner::QState QLearner::pack(const std::vector<uint32_t>& hints, const std::vector<uint32_t>& values)
-{
+QLearner::QState QLearner::pack(const std::vector<uint32_t>& hints, const std::vector<uint32_t>& values) {
 	AssertUnless(hints.size() == values.size(), "Q state must be packed with same number of categorical hints with values");
 	int currentBit = 0;
 	QLearner::QState state = 0;
-	for (size_t i = 0; i < hints.size(); i++)
-	{
+	for (size_t i = 0; i < hints.size(); i++) {
 		uint32_t kind = hints[i];
 		uint32_t value = values[i];
 		AssertIf(value >= kind, "categorical value {} of index {} is greater or equal than {}", value, i, kind);
@@ -68,15 +60,12 @@ QLearner::QState QLearner::pack(const std::vector<uint32_t>& hints, const std::v
 	return state;
 }
 
-std::vector<uint32_t> QLearner::unpack(const std::vector<uint32_t>& hints, QState state)
-{
+std::vector<uint32_t> QLearner::unpack(const std::vector<uint32_t>& hints, QState state) {
 	std::vector<uint32_t> values;
 	int currentBit = 0;
-	for (auto kind : hints)
-	{
+	for (auto kind : hints) {
 		uint32_t bit = 1, mask = 1;
-		while ((uint32_t(1) << bit) < kind)
-		{
+		while ((uint32_t(1) << bit) < kind) {
 			mask |= (1 << bit);
 			bit++;
 		}
@@ -86,23 +75,18 @@ std::vector<uint32_t> QLearner::unpack(const std::vector<uint32_t>& hints, QStat
 	return values;
 }
 
-QLearner::QLearner(double gamma, double alpha, double maxQ):
-_gamma(gamma),
-_alpha(alpha),
-_maxQ(maxQ)
-{ }
+QLearner::QLearner(double gamma, double alpha, double maxQ)
+	: _gamma(gamma)
+	, _alpha(alpha)
+	, _maxQ(maxQ) { }
 
-QLearner::QAction QLearner::getBestAction(QState state) const
-{
+QLearner::QAction QLearner::getBestAction(QState state) const {
 	QAction action = 0;
 	double q = _maxQ;
 	auto sit = _values.find(state);
-	if (sit != _values.end())
-	{
-		for (const auto& ait : sit->second)
-		{
-			if (ait.second > q)
-			{
+	if (sit != _values.end()) {
+		for (const auto& ait : sit->second) {
+			if (ait.second > q) {
 				q = ait.second;
 				action = ait.first;
 			}
@@ -111,49 +95,39 @@ QLearner::QAction QLearner::getBestAction(QState state) const
 	return action;
 }
 
-void QLearner::setQ(QState s, QAction a, double q)
-{
+void QLearner::setQ(QState s, QAction a, double q) {
 	auto result = _values.emplace(s, std::map<QAction, double>());
 	result.first->second[a] = q;
 }
 
-const QLearner::QMatrix& QLearner::getMatrix() const
-{
+const QLearner::QMatrix& QLearner::getMatrix() const {
 	return _values;
 }
 
-double QLearner::getQ(QState s, QAction a) const
-{
+double QLearner::getQ(QState s, QAction a) const {
 	auto sit = _values.find(s);
-	if (sit != _values.end())
-	{
+	if (sit != _values.end()) {
 		auto ait = sit->second.find(a);
-		if (ait != sit->second.end())
-		{
+		if (ait != sit->second.end()) {
 			return ait->second;
 		}
 	}
 	return _maxQ;
 }
 
-void QLearner::update(QState state, QAction action, double reward)
-{
+void QLearner::update(QState state, QAction action, double reward) {
 	double maxQ = getMaxQ(state);
 	double oldQ = getQ(state, action);
 	double newQ = (1.0 - _alpha) * oldQ + _alpha * reward + _gamma * maxQ;
 	setQ(state, action, newQ);
 }
 
-double QLearner::getMaxQ(QState state) const
-{
+double QLearner::getMaxQ(QState state) const {
 	double q = _maxQ;
 	auto sit = _values.find(state);
-	if (sit != _values.end())
-	{
-		for (const auto& ait : sit->second)
-		{
-			if (ait.second > q)
-			{
+	if (sit != _values.end()) {
+		for (const auto& ait : sit->second) {
+			if (ait.second > q) {
 				q = ait.second;
 			}
 		}

@@ -12,8 +12,7 @@ NS_DOROTHY_BEGIN
 
 class Texture2D;
 
-struct Cache
-{
+struct Cache {
 	static bool load(String filename);
 	static void loadAsync(String filename, const std::function<void()>& callback);
 	static void update(String filename, String content);

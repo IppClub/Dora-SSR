@@ -8,14 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node.h"
-#include "Common/Singleton.h"
 #include "Basic/Renderer.h"
+#include "Common/Singleton.h"
+#include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
-struct DrawVertex
-{
+struct DrawVertex {
 	float x;
 	float y;
 	float z;
@@ -23,15 +22,13 @@ struct DrawVertex
 	uint32_t abgr;
 	float u;
 	float v;
-	struct Init
-	{
-		Init()
-		{
+	struct Init {
+		Init() {
 			ms_layout.begin()
 				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 				.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-			.end();
+				.end();
 		}
 	};
 	static bgfx::VertexLayout ms_layout;
@@ -40,18 +37,16 @@ struct DrawVertex
 
 class Pass;
 
-struct VertexColor
-{
+struct VertexColor {
 	VertexColor() { }
-	VertexColor(const Vec2& vertex, Color color):
-	vertex(vertex),
-	color(color) { }
+	VertexColor(const Vec2& vertex, Color color)
+		: vertex(vertex)
+		, color(color) { }
 	Vec2 vertex;
 	Color color;
 };
 
-class DrawNode : public Node
-{
+class DrawNode : public Node {
 public:
 	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
@@ -67,14 +62,15 @@ public:
 	void drawVertices(const std::vector<VertexColor>& verts);
 	void clear();
 	CREATE_FUNC(DrawNode);
+
 protected:
 	DrawNode();
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
 	void pushVertex(const Vec2& pos, const Vec4& color, const Vec2& coord);
+
 private:
-	struct PosColor
-	{
+	struct PosColor {
 		Vec4 pos;
 		Vec4 color;
 	};
@@ -83,8 +79,7 @@ private:
 	std::vector<DrawVertex> _vertices;
 	std::vector<PosColor> _posColors;
 	std::vector<uint16_t> _indices;
-	enum
-	{
+	enum {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,
@@ -92,15 +87,16 @@ private:
 	DORA_TYPE_OVERRIDE(DrawNode);
 };
 
-class DrawRenderer : public Renderer
-{
+class DrawRenderer : public Renderer {
 public:
 	PROPERTY_READONLY(Pass*, DefaultPass);
 	virtual ~DrawRenderer() { }
 	virtual void render() override;
 	void push(DrawNode* node);
+
 protected:
 	DrawRenderer();
+
 private:
 	Ref<Pass> _defaultPass;
 	uint64_t _lastState;
@@ -112,29 +108,25 @@ private:
 #define SharedDrawRenderer \
 	Dorothy::Singleton<Dorothy::DrawRenderer>::shared()
 
-struct PosColorVertex
-{
+struct PosColorVertex {
 	float x;
 	float y;
 	float z;
 	float w;
 	uint32_t abgr;
-	struct Init
-	{
-		Init()
-		{
+	struct Init {
+		Init() {
 			ms_layout.begin()
 				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-			.end();
+				.end();
 		}
 	};
 	static bgfx::VertexLayout ms_layout;
 	static Init init;
 };
 
-class Line : public Node
-{
+class Line : public Node {
 public:
 	PROPERTY(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
@@ -148,15 +140,16 @@ public:
 	void set(const Vec2* verts, uint32_t size, Color color);
 	void clear();
 	CREATE_FUNC(Line);
+
 protected:
 	Line();
 	Line(const std::vector<Vec2>& verts, Color color);
 	Line(const Vec2* verts, uint32_t size, Color color);
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
+
 private:
-	struct PosColor
-	{
+	struct PosColor {
 		Vec4 pos;
 		Vec4 color;
 	};
@@ -164,8 +157,7 @@ private:
 	BlendFunc _blendFunc;
 	std::vector<PosColor> _posColors;
 	std::vector<PosColorVertex> _vertices;
-	enum
-	{
+	enum {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,
@@ -173,15 +165,16 @@ private:
 	DORA_TYPE_OVERRIDE(Line);
 };
 
-class LineRenderer : public Renderer
-{
+class LineRenderer : public Renderer {
 public:
 	PROPERTY_READONLY(Pass*, DefaultPass);
 	virtual ~LineRenderer() { }
 	virtual void render() override;
 	void push(Line* line);
+
 protected:
 	LineRenderer();
+
 private:
 	Ref<Pass> _defaultPass;
 	uint64_t _lastState;

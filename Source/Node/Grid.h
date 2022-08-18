@@ -12,8 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Grid : public Node
-{
+class Grid : public Node {
 public:
 	PROPERTY_CREF(Rect, TextureRect);
 	PROPERTY(Texture2D*, Texture);
@@ -34,10 +33,12 @@ public:
 	virtual void updateRealOpacity() override;
 	static Grid* from(String clipStr, uint32_t gridX, uint32_t gridY);
 	CREATE_FUNC(Grid);
+
 protected:
 	Grid(float width, float height, uint32_t gridX, uint32_t gridY);
 	Grid(Texture2D* texture, uint32_t gridX, uint32_t gridY);
 	Grid(Texture2D* texture, const Rect& textureRect, uint32_t gridX, uint32_t gridY);
+
 private:
 	Grid(Texture2D* texture, const Size& texSize, const Rect& textureRect, uint32_t gridX, uint32_t gridY);
 	void setupVertices();
@@ -49,16 +50,14 @@ private:
 	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;
 	Ref<Texture2D> _texture;
-	struct Point
-	{
+	struct Point {
 		Vec4 position;
 		Vec4 color;
 	};
 	std::vector<Point> _points;
 	std::vector<SpriteVertex> _vertices;
 	std::vector<SpriteRenderer::IndexType> _indices;
-	enum
-	{
+	enum {
 		VertexPosDirty = Node::UserFlag,
 		VertexColorDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,

@@ -7,160 +7,126 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Effect/Effect.h"
+
 #include "Cache/ShaderCache.h"
 
 NS_DOROTHY_BEGIN
 
 /* Effect */
 
-Pass::Uniform::~Uniform()
-{
-	if (bgfx::isValid(_handle))
-	{
+Pass::Uniform::~Uniform() {
+	if (bgfx::isValid(_handle)) {
 		bgfx::destroy(_handle);
 	}
 }
 
-Pass::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value):
-_handle(handle),
-_value(std::move(value))
-{ }
+Pass::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value)
+	: _handle(handle)
+	, _value(std::move(value)) { }
 
-bgfx::UniformHandle Pass::Uniform::getHandle() const
-{
+bgfx::UniformHandle Pass::Uniform::getHandle() const {
 	return _handle;
 }
 
-Value* Pass::Uniform::getValue() const
-{
+Value* Pass::Uniform::getValue() const {
 	return _value.get();
 }
 
-void Pass::Uniform::apply()
-{
-	if (auto value = _value->asVal<float>())
-	{
+void Pass::Uniform::apply() {
+	if (auto value = _value->asVal<float>()) {
 		bgfx::setUniform(_handle, Vec4{*value});
-	}
-	else if (auto value = _value->asVal<Vec4>())
-	{
+	} else if (auto value = _value->asVal<Vec4>()) {
 		bgfx::setUniform(_handle, *value);
-	}
-	else if (auto value = _value->asVal<Matrix>())
-	{
+	} else if (auto value = _value->asVal<Matrix>()) {
 		bgfx::setUniform(_handle, *value);
 	}
 }
 
-bgfx::ProgramHandle Pass::apply()
-{
-	for (const auto& pair : _uniforms)
-	{
+bgfx::ProgramHandle Pass::apply() {
+	for (const auto& pair : _uniforms) {
 		pair.second->apply();
 	}
 	return _program;
 }
 
-Pass::Pass(Shader* vertShader, Shader* fragShader):
-_program(BGFX_INVALID_HANDLE),
-_vertShader(vertShader),
-_fragShader(fragShader),
-_grabPass(false)
-{ }
+Pass::Pass(Shader* vertShader, Shader* fragShader)
+	: _program(BGFX_INVALID_HANDLE)
+	, _vertShader(vertShader)
+	, _fragShader(fragShader)
+	, _grabPass(false) { }
 
-Pass::Pass(String vertShader, String fragShader):
-_program(BGFX_INVALID_HANDLE),
-_vertShader(SharedShaderCache.load(vertShader)),
-_fragShader(SharedShaderCache.load(fragShader)),
-_grabPass(false)
-{ }
+Pass::Pass(String vertShader, String fragShader)
+	: _program(BGFX_INVALID_HANDLE)
+	, _vertShader(SharedShaderCache.load(vertShader))
+	, _fragShader(SharedShaderCache.load(fragShader))
+	, _grabPass(false) { }
 
-Pass::~Pass()
-{
-	if (bgfx::isValid(_program))
-	{
+Pass::~Pass() {
+	if (bgfx::isValid(_program)) {
 		bgfx::destroy(_program);
 	}
 }
 
-bool Pass::init()
-{
+bool Pass::init() {
 	if (!Object::init()) return false;
 	_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
 	return bgfx::isValid(_program);
 }
 
-void Pass::setGrabPass(bool var)
-{
+void Pass::setGrabPass(bool var) {
 	_grabPass = var;
 }
 
-bool Pass::isGrabPass() const
-{
+bool Pass::isGrabPass() const {
 	return _grabPass;
 }
 
-void Pass::set(String name, float var)
-{
+void Pass::set(String name, float var) {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
-	if (it != _uniforms.end())
-	{
+	if (it != _uniforms.end()) {
 		it->second->getValue()->set(var);
-	}
-	else
-	{
+	} else {
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
 		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
 }
 
-void Pass::set(String name, float var1, float var2, float var3, float var4)
-{
+void Pass::set(String name, float var1, float var2, float var3, float var4) {
 	set(name, Vec4{var1, var2, var3, var4});
 }
 
-void Pass::set(String name, const Vec4& var)
-{
+void Pass::set(String name, const Vec4& var) {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
-	if (it != _uniforms.end())
-	{
+	if (it != _uniforms.end()) {
 		it->second->getValue()->set(var);
-	}
-	else
-	{
+	} else {
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
 		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
 }
 
-void Pass::set(String name, Color var)
-{
+void Pass::set(String name, Color var) {
 	set(name, var.toVec4());
 }
 
-void Pass::set(String name, const Matrix& var)
-{
+void Pass::set(String name, const Matrix& var) {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
-	if (it != _uniforms.end())
-	{
+	if (it != _uniforms.end()) {
 		it->second->getValue()->set(var);
-	}
-	else
-	{
+	} else {
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Mat4);
 		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
 }
 
-Value* Pass::get(String name) const
-{
+Value* Pass::get(String name) const {
 	auto it = _uniforms.find(name);
-	if (it != _uniforms.end())
-	{
+	if (it != _uniforms.end()) {
 		return it->second->getValue();
 	}
 	return nullptr;
@@ -168,66 +134,53 @@ Value* Pass::get(String name) const
 
 /* Effect */
 
-Effect::Effect()
-{ }
+Effect::Effect() { }
 
-Effect::Effect(Shader* vertShader, Shader* fragShader)
-{
+Effect::Effect(Shader* vertShader, Shader* fragShader) {
 	_passes.push_back(Pass::create(vertShader, fragShader));
 }
 
-Effect::Effect(String vertShader, String fragShader)
-{
+Effect::Effect(String vertShader, String fragShader) {
 	_passes.push_back(Pass::create(vertShader, fragShader));
 }
 
-const RefVector<Pass>& Effect::getPasses() const
-{
+const RefVector<Pass>& Effect::getPasses() const {
 	return _passes;
 }
 
-void Effect::add(Pass* pass)
-{
+void Effect::add(Pass* pass) {
 	_passes.push_back(pass);
 }
 
-Pass* Effect::get(size_t index) const
-{
+Pass* Effect::get(size_t index) const {
 	AssertUnless(index < _passes.size(), "effect pass index out of range");
 	return _passes[index];
 }
 
-void Effect::clear()
-{
+void Effect::clear() {
 	_passes.clear();
 }
 
 /* SpriteEffect */
 
-SpriteEffect::SpriteEffect():
-_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler))
-{ }
+SpriteEffect::SpriteEffect()
+	: _sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler)) { }
 
-SpriteEffect::SpriteEffect(Shader* vertShader, Shader* fragShader):
-Effect(vertShader, fragShader),
-_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler))
-{ }
+SpriteEffect::SpriteEffect(Shader* vertShader, Shader* fragShader)
+	: Effect(vertShader, fragShader)
+	, _sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler)) { }
 
-SpriteEffect::SpriteEffect(String vertShader, String fragShader):
-Effect(vertShader, fragShader),
-_sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler))
-{ }
+SpriteEffect::SpriteEffect(String vertShader, String fragShader)
+	: Effect(vertShader, fragShader)
+	, _sampler(bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler)) { }
 
-SpriteEffect::~SpriteEffect()
-{
-	if (bgfx::isValid(_sampler))
-	{
+SpriteEffect::~SpriteEffect() {
+	if (bgfx::isValid(_sampler)) {
 		bgfx::destroy(_sampler);
 	}
 }
 
-bgfx::UniformHandle SpriteEffect::getSampler() const
-{
+bgfx::UniformHandle SpriteEffect::getSampler() const {
 	return _sampler;
 }
 

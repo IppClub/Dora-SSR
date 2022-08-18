@@ -14,11 +14,9 @@ NS_DOROTHY_BEGIN
 
 class SpriteEffect;
 
-class View
-{
+class View {
 public:
-	enum
-	{
+	enum {
 		MaxViews = 256
 	};
 	PROPERTY_READONLY(Size, Size);
@@ -38,28 +36,26 @@ public:
 	void reset();
 
 	template <typename Func>
-	inline void pushFront(String viewName, const Func& workHere)
-	{
+	inline void pushFront(String viewName, const Func& workHere) {
 		pushFront(viewName);
 		workHere();
 		pop();
 	}
 	template <typename Func>
-	inline void pushBack(String viewName, const Func& workHere)
-	{
+	inline void pushBack(String viewName, const Func& workHere) {
 		pushBack(viewName);
 		workHere();
 		pop();
 	}
 	template <typename Func>
-	inline void pushInsertionMode(bool inserting, const Func& workHere)
-	{
+	inline void pushInsertionMode(bool inserting, const Func& workHere) {
 		pushInsertionMode(inserting);
 		workHere();
 		popInsertionMode();
 	}
 
 	std::pair<bgfx::ViewId*, uint16_t> getOrders();
+
 protected:
 	View();
 	void updateProjection();
@@ -68,6 +64,7 @@ protected:
 	void pop();
 	void pushInsertionMode(bool inserting);
 	void popInsertionMode();
+
 private:
 	void pushInner(String viewName);
 	int _id;
@@ -80,8 +77,7 @@ private:
 	Size _size;
 	Matrix _projection;
 	std::list<int> _orders;
-	struct InsertionMode
-	{
+	struct InsertionMode {
 		bool inserting;
 		std::list<int>::iterator front;
 		std::list<int>::iterator back;

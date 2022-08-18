@@ -7,88 +7,73 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Basic/Renderer.h"
+
 #include "Node/Node.h"
 
 NS_DOROTHY_BEGIN
 
-void Renderer::render()
-{
+void Renderer::render() {
 	uint32_t stencilState = SharedRendererManager.getCurrentStencilState();
-	if (stencilState != BGFX_STENCIL_NONE)
-	{
+	if (stencilState != BGFX_STENCIL_NONE) {
 		bgfx::setStencil(stencilState);
 	}
 }
 
-RendererManager::RendererManager():
-_currentRenderer(nullptr)
-{ }
+RendererManager::RendererManager()
+	: _currentRenderer(nullptr) { }
 
-void RendererManager::setCurrent(Renderer* var)
-{
-	if (_currentRenderer && _currentRenderer != var)
-	{
+void RendererManager::setCurrent(Renderer* var) {
+	if (_currentRenderer && _currentRenderer != var) {
 		_currentRenderer->render();
 	}
 	_currentRenderer = var;
 }
 
-Renderer* RendererManager::getCurrent() const
-{
+Renderer* RendererManager::getCurrent() const {
 	return _currentRenderer;
 }
 
-uint32_t RendererManager::getCurrentStencilState() const
-{
+uint32_t RendererManager::getCurrentStencilState() const {
 	return _stencilStates.empty() ? BGFX_STENCIL_NONE : _stencilStates.top();
 }
 
-void RendererManager::flush()
-{
-	if (_currentRenderer)
-	{
+void RendererManager::flush() {
+	if (_currentRenderer) {
 		_currentRenderer->render();
 		_currentRenderer = nullptr;
 	}
 }
 
-void RendererManager::pushStencilState(uint32_t stencilState)
-{
+void RendererManager::pushStencilState(uint32_t stencilState) {
 	_stencilStates.push(stencilState);
 }
 
-void RendererManager::popStencilState()
-{
+void RendererManager::popStencilState() {
 	_stencilStates.pop();
 }
 
-bool RendererManager::isGrouping() const
-{
+bool RendererManager::isGrouping() const {
 	return !_renderGroups.empty();
 }
 
-void RendererManager::pushGroupItem(Node* item)
-{
+void RendererManager::pushGroupItem(Node* item) {
 	std::vector<Node*>* renderGroup = _renderGroups.top().get();
 	renderGroup->push_back(item);
 }
 
-void RendererManager::pushGroup(uint32_t capacity)
-{
+void RendererManager::pushGroup(uint32_t capacity) {
 	_renderGroups.push(New<std::vector<Node*>>());
 	_renderGroups.top()->reserve(s_cast<size_t>(capacity));
 }
 
-void RendererManager::popGroup()
-{
+void RendererManager::popGroup() {
 	std::vector<Node*>* renderGroup = _renderGroups.top().get();
-	std::stable_sort(renderGroup->begin(), renderGroup->end(), [](Node* nodeA, Node* nodeB)
-	{
+	std::stable_sort(renderGroup->begin(), renderGroup->end(), [](Node* nodeA, Node* nodeB) {
 		return nodeA->getRenderOrder() < nodeB->getRenderOrder();
 	});
-	for (Node* node : *renderGroup)
-	{
+	for (Node* node : *renderGroup) {
 		node->render();
 	}
 	_renderGroups.pop();

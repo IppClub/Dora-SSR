@@ -14,14 +14,12 @@ NS_DOROTHY_BEGIN
 
 class Node;
 
-class Renderer
-{
+class Renderer {
 public:
 	virtual void render();
 };
 
-class RendererManager
-{
+class RendererManager {
 public:
 	PROPERTY(Renderer*, Current);
 	PROPERTY_READONLY(uint32_t, CurrentStencilState);
@@ -29,8 +27,7 @@ public:
 	void flush();
 
 	template <typename Func>
-	void pushStencilState(uint32_t stencilState, const Func& workHere)
-	{
+	void pushStencilState(uint32_t stencilState, const Func& workHere) {
 		pushStencilState(stencilState);
 		workHere();
 		popStencilState();
@@ -39,18 +36,19 @@ public:
 	void pushGroupItem(Node* item);
 
 	template <typename Func>
-	void pushGroup(uint32_t capacity, const Func& workHere)
-	{
+	void pushGroup(uint32_t capacity, const Func& workHere) {
 		pushGroup(capacity);
 		workHere();
 		popGroup();
 	}
+
 protected:
 	RendererManager();
 	void pushStencilState(uint32_t stencilState);
 	void popStencilState();
 	void pushGroup(uint32_t capacity);
 	void popGroup();
+
 private:
 	std::stack<uint32_t> _stencilStates;
 	Renderer* _currentRenderer;

@@ -8,8 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include <utility>
 #include <new>
+#include <utility>
 
 NS_DOROTHY_BEGIN
 
@@ -21,8 +21,7 @@ NS_DOROTHY_BEGIN
 #define DEFAULT_WARNING_SIZE 1024 // 1MB
 #endif // DEFAULT_WARNING_SIZE
 
-class MemoryPool
-{
+class MemoryPool {
 public:
 	MemoryPool(int itemSize, int chunkCapacity);
 	~MemoryPool();
@@ -34,18 +33,16 @@ public:
 	static MemoryPool* get(int itemSize);
 	static int getTotalCapacity();
 	static int collectAll();
+
 private:
-	struct FreeList
-	{
+	struct FreeList {
 		FreeList* next;
 	};
-	struct Chunk
-	{
-		Chunk(int capacity, Chunk* next = nullptr):
-		buffer(new char[capacity]),
-		size(0),
-		next(next)
-		{ }
+	struct Chunk {
+		Chunk(int capacity, Chunk* next = nullptr)
+			: buffer(new char[capacity])
+			, size(0)
+			, next(next) { }
 		~Chunk() { delete[] buffer; }
 		int size;
 		char* buffer;
@@ -58,34 +55,32 @@ private:
 	void deleteChunk(Chunk* chunk);
 };
 
-template<class Item>
-class MemoryPoolImpl
-{
+template <class Item>
+class MemoryPoolImpl {
 #define ITEM_SIZE sizeof(Item)
 public:
-	MemoryPoolImpl()
-	{
+	MemoryPoolImpl() {
 		static_assert(ITEM_SIZE >= sizeof(intptr_t),
 			"Size of pool item must be greater or equal to the size of a pointer.");
 		_pool = MemoryPool::get(ITEM_SIZE);
 	}
-	inline void* alloc()
-	{
+	inline void* alloc() {
 		return _pool->alloc();
 	}
-	inline void free(void* addr)
-	{
+	inline void free(void* addr) {
 		_pool->free(addr);
 	}
+
 private:
 	MemoryPool* _pool;
 };
 
-#define USE_MEMORY_POOL(type) \
-public: \
-	inline void* operator new(size_t) { return _memory.alloc(); } \
+#define USE_MEMORY_POOL(type)                                             \
+public:                                                                   \
+	inline void* operator new(size_t) { return _memory.alloc(); }         \
 	inline void operator delete(void* ptr, size_t) { _memory.free(ptr); } \
-private: \
+                                                                          \
+private:                                                                  \
 	static MemoryPoolImpl<type> _memory
 
 #define MEMORY_POOL(type) \
