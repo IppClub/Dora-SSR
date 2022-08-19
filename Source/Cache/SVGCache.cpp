@@ -71,14 +71,14 @@ static void get(String value, Color& color) {
 	}
 }
 
-#define ATTR_START                                    \
+#define ATTR_START \
 	for (int i = 0; attrs[i].first != nullptr; i++) { \
-		Slice k = attrs[i];                           \
-		Slice v = attrs[++i];                         \
+		Slice k = attrs[i]; \
+		Slice v = attrs[++i]; \
 		switch (Switch::hash(k)) {
 
 #define ATTR_STOP \
-	}             \
+	} \
 	}
 
 std::shared_ptr<XmlParser<SVGDef>> SVGCache::prepareParser(String filename) {

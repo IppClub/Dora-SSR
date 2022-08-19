@@ -17,8 +17,7 @@ namespace pr = playrho;
 
 struct Size;
 
-struct Vec2
-{
+struct Vec2 {
 	float x;
 	float y;
 	inline operator pr::Vec2() { return pr::Vec2{x, y}; }
@@ -56,8 +55,7 @@ struct Vec2
 	static Vec2 from(const pr::Vec2& vec);
 };
 
-struct Size
-{
+struct Size {
 	float width;
 	float height;
 	void set(float width, float height);
@@ -67,8 +65,7 @@ struct Size
 	static const Size zero;
 };
 
-struct Rect
-{
+struct Rect {
 	Vec2 origin;
 	Size size;
 	PROPERTY(float, X);
@@ -97,8 +94,7 @@ struct Rect
 	static const Rect zero;
 };
 
-struct AffineTransform
-{
+struct AffineTransform {
 	float a, b, c, d;
 	float tx, ty;
 	static Vec2 applyPoint(const AffineTransform& t, const Vec2& point);
@@ -113,74 +109,58 @@ struct AffineTransform
 	static AffineTransform Indentity;
 };
 
-struct Vec3
-{
+struct Vec3 {
 	float x;
 	float y;
 	float z;
-	inline operator const bx::Vec3() const
-	{
+	inline operator const bx::Vec3() const {
 		return *r_cast<const bx::Vec3*>(&x);
 	}
-	inline operator bx::Vec3()
-	{
+	inline operator bx::Vec3() {
 		return *r_cast<bx::Vec3*>(&x);
 	}
-	inline operator float*()
-	{
+	inline operator float*() {
 		return &x;
 	}
-	inline operator const float*() const
-	{
+	inline operator const float*() const {
 		return &x;
 	}
-	inline Vec2 toVec2() const
-	{
+	inline Vec2 toVec2() const {
 		return Vec2{x, y};
 	}
-	inline operator Vec2() const
-	{
+	inline operator Vec2() const {
 		return Vec2{x, y};
 	}
-	static inline Vec3 from(const bx::Vec3& vec3)
-	{
+	static inline Vec3 from(const bx::Vec3& vec3) {
 		return {vec3.x, vec3.y, vec3.z};
 	}
 };
 
-struct Vec4
-{
+struct Vec4 {
 	float x;
 	float y;
 	float z;
 	float w;
-	inline operator float*()
-	{
+	inline operator float*() {
 		return &x;
 	}
-	inline operator const float*() const
-	{
+	inline operator const float*() const {
 		return &x;
 	}
-	inline Vec3 toVec3() const
-	{
+	inline Vec3 toVec3() const {
 		return Vec3{x, y, z};
 	}
-	static Vec4 from(const Vec3& vec3, float w)
-	{
+	static Vec4 from(const Vec3& vec3, float w) {
 		return {vec3.x, vec3.y, vec3.z, w};
 	}
 };
 
-struct Matrix
-{
+struct Matrix {
 	float m[16];
-	inline operator float*()
-	{
+	inline operator float*() {
 		return r_cast<float*>(this);
 	}
-	inline operator const float*() const
-	{
+	inline operator const float*() const {
 		return r_cast<const float*>(this);
 	}
 	static const Matrix Indentity;

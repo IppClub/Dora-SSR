@@ -74,20 +74,24 @@ public:
 			SharedContent.loadAsyncUnsafe(file, [this, file, handler](uint8_t* data, int64_t size) {
 				if (data) {
 					auto parser = prepareParser(file);
-					SharedAsyncThread.run([this, file, parser, data, size]() {
-						OwnArray<uint8_t> dataOwner = MakeOwnArray(data);
-						T* result;
-						try {
-							parser->parse(r_cast<char*>(data), s_cast<int>(size));
-							result = parser->getItem();
-						} catch (rapidxml::parse_error error) {
-							Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
-						}
-						return Values::alloc(result); }, [this, handler, file](Own<Values> values) {
-						T* item;
-						values->get(item);
-						_dict[file] = item;
-						handler(item); });
+					SharedAsyncThread.run(
+						[this, file, parser, data, size]() {
+							OwnArray<uint8_t> dataOwner = MakeOwnArray(data);
+							T* result;
+							try {
+								parser->parse(r_cast<char*>(data), s_cast<int>(size));
+								result = parser->getItem();
+							} catch (rapidxml::parse_error error) {
+								Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
+							}
+							return Values::alloc(result);
+						},
+						[this, handler, file](Own<Values> values) {
+							T* item;
+							values->get(item);
+							_dict[file] = item;
+							handler(item);
+						});
 				} else {
 					handler(nullptr);
 				}

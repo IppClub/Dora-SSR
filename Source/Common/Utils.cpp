@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 
 #include "Basic/Application.h"
+#include "Event/Event.h"
 #include "Lua/ToLua/tolua++.h"
 
 #if BX_PLATFORM_LINUX
@@ -51,20 +52,21 @@ void Flag::toggle(IntType type) {
 	set(type, !isOn(type));
 }
 
-Profiler::Profiler()
-	: _lastTime(SharedApplication.getCurrentTime()) { }
+Profiler::Profiler(String name)
+	: _lastTime(SharedApplication.getCurrentTime())
+	, _name(name) { }
 
-void Profiler::start() {
-	_lastTime = SharedApplication.getCurrentTime();
+void Profiler::setMessage(String var) {
+	_msg = var;
 }
 
-double Profiler::stop(String logName) {
+const std::string& Profiler::getMessage() const {
+	return _msg;
+}
+
+Profiler::~Profiler() {
 	double deltaTime = SharedApplication.getCurrentTime() - _lastTime;
-	if (!logName.empty()) {
-		Info("{} cost {:.3f}s.", logName, deltaTime);
-	}
-	_lastTime = SharedApplication.getCurrentTime();
-	return deltaTime;
+	Event::send("_TIMECOST_"_slice, _name, _msg, deltaTime);
 }
 
 std::string Path::concat(const std::list<Slice>& paths) {

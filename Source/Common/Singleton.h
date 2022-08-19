@@ -126,13 +126,13 @@ std::string Singleton<T>::_name;
 template <class T>
 typename Singleton<T>::Status Singleton<T>::_status = Singleton<T>::Status::Uninitialized;
 
-#define SINGLETON_REF(type, ...)                                                                           \
-private:                                                                                                   \
-	struct type##_ref_initializer {                                                                        \
-		type##_ref_initializer() {                                                                         \
-			const char* info[] = {nullptr, #__VA_ARGS__};                                                  \
+#define SINGLETON_REF(type, ...) \
+private: \
+	struct type##_ref_initializer { \
+		type##_ref_initializer() { \
+			const char* info[] = {nullptr, #__VA_ARGS__}; \
 			Singleton<type>::setDependencyInfo(#type, (sizeof(info) / sizeof(*info) == 1 ? "" : info[1])); \
-		}                                                                                                  \
+		} \
 	} __##type##_initializer__
 
 NS_DOROTHY_END

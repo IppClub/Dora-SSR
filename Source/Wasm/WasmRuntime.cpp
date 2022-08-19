@@ -1369,40 +1369,37 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			return;
 		}
 		_wasm = {std::move(data), size};
-		SharedAsyncThread.run([file, this] {
-			try
-			{
-				auto mod = New<wasm3::module>(_env.parse_module(_wasm.first.get(), _wasm.second));
-				_runtime.load(*mod);
-				mod->link_default();
-				linkDoraModule(*mod);
-				_callFunc = New<wasm3::function>(_runtime.find_function("call_function"));
-				_derefFunc = New<wasm3::function>(_runtime.find_function("deref_function"));
-				auto mainFn = New<wasm3::function>(_runtime.find_function("_start"));
-				return Values::alloc(std::move(mod), std::move(mainFn));
-			}
-			catch (std::runtime_error& e)
-			{
-				Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
-				return Values::alloc(Own<wasm3::module>(), Own<wasm3::function>());
-			} }, [file, handler, this](Own<Values> values) {
-			try
-			{
-				Own<wasm3::module> mod;
-				Own<wasm3::function> mainFn;
-				values->get(mod, mainFn);
-				if (mod)
-				{
-					mainFn->call_argv();
-					handler(true);
+		SharedAsyncThread.run(
+			[file, this] {
+				try {
+					auto mod = New<wasm3::module>(_env.parse_module(_wasm.first.get(), _wasm.second));
+					_runtime.load(*mod);
+					mod->link_default();
+					linkDoraModule(*mod);
+					_callFunc = New<wasm3::function>(_runtime.find_function("call_function"));
+					_derefFunc = New<wasm3::function>(_runtime.find_function("deref_function"));
+					auto mainFn = New<wasm3::function>(_runtime.find_function("_start"));
+					return Values::alloc(std::move(mod), std::move(mainFn));
+				} catch (std::runtime_error& e) {
+					Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
+					return Values::alloc(Own<wasm3::module>(), Own<wasm3::function>());
 				}
-				else handler(false);
-			}
-			catch (std::runtime_error& e)
-			{
-				Error("failed to execute wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
-				handler(false);
-			} });
+			},
+			[file, handler, this](Own<Values> values) {
+				try {
+					Own<wasm3::module> mod;
+					Own<wasm3::function> mainFn;
+					values->get(mod, mainFn);
+					if (mod) {
+						mainFn->call_argv();
+						handler(true);
+					} else
+						handler(false);
+				} catch (std::runtime_error& e) {
+					Error("failed to execute wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
+					handler(false);
+				}
+			});
 	});
 }
 

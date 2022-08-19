@@ -12,8 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-struct Color3
-{
+struct Color3 {
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
@@ -25,8 +24,7 @@ struct Color3
 	Vec3 toVec3() const;
 };
 
-struct Color
-{
+struct Color {
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
@@ -49,11 +47,9 @@ struct Color
 	static Color Black;
 };
 
-class BlendFunc
-{
+class BlendFunc {
 public:
-	enum
-	{
+	enum {
 		One = uint64_t(BGFX_STATE_BLEND_ONE),
 		Zero = uint64_t(BGFX_STATE_BLEND_ZERO),
 		SrcColor = uint64_t(BGFX_STATE_BLEND_SRC_COLOR),
@@ -70,6 +66,7 @@ public:
 	BlendFunc(uint64_t blendState);
 	uint64_t toValue() const;
 	static const BlendFunc Default;
+
 private:
 	uint64_t _value;
 };

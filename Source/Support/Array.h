@@ -13,8 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Array : public Object
-{
+class Array : public Object {
 public:
 	PROPERTY_READONLY(size_t, Count);
 	PROPERTY_READONLY(size_t, Capacity);
@@ -43,44 +42,42 @@ public:
 	bool fastRemoveAt(size_t index);
 	std::vector<Own<Value>>& data();
 	CREATE_FUNC(Array);
+
 public:
 	template <class Func>
-	bool each(const Func& handler)
-	{
-		for (const auto& item : _data)
-		{
+	bool each(const Func& handler) {
+		for (const auto& item : _data) {
 			if (handler(item.get())) return true;
 		}
 		return false;
 	}
 	template <class Cond>
-	void removeIf(const Cond& cond)
-	{
+	void removeIf(const Cond& cond) {
 		_data.erase(std::remove_if(_data.begin(), _data.end(), cond), _data.end());
 	}
+
 protected:
 	Array();
 	Array(Array* other);
 	Array(size_t capacity);
+
 private:
 	std::vector<Own<Value>> _data;
 	DORA_TYPE_OVERRIDE(Array);
 };
 
 #define ARRAY_START_VAL(type, varName, array) \
-	if (array && !array->isEmpty()) \
-	{ \
-		for (const auto& _item_ : array->data()) \
-		{ \
+	if (array && !array->isEmpty()) { \
+		for (const auto& _item_ : array->data()) { \
 			type varName = _item_->toVal<type>();
 
 #define ARRAY_START(type, varName, array) \
-	if (array && !array->isEmpty()) \
-	{ \
-		for (const auto& _item_ : array->data()) \
-		{ \
+	if (array && !array->isEmpty()) { \
+		for (const auto& _item_ : array->data()) { \
 			type* varName = _item_->to<type>();
 
-#define ARRAY_END }}
+#define ARRAY_END \
+	} \
+	}
 
 NS_DOROTHY_END

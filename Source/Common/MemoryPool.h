@@ -75,12 +75,12 @@ private:
 	MemoryPool* _pool;
 };
 
-#define USE_MEMORY_POOL(type)                                             \
-public:                                                                   \
-	inline void* operator new(size_t) { return _memory.alloc(); }         \
+#define USE_MEMORY_POOL(type) \
+public: \
+	inline void* operator new(size_t) { return _memory.alloc(); } \
 	inline void operator delete(void* ptr, size_t) { _memory.free(ptr); } \
-                                                                          \
-private:                                                                  \
+\
+private: \
 	static MemoryPoolImpl<type> _memory
 
 #define MEMORY_POOL(type) \

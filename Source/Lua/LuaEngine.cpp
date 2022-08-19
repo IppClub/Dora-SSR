@@ -59,6 +59,7 @@ static int dora_traceback(lua_State* L) {
 
 static int dora_loadfile(lua_State* L, String filename, String moduleName = nullptr) {
 	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
+	Profiler _("Loader"_slice);
 	std::string extension = Path::getExt(filename);
 	std::string targetFile = filename;
 	if (extension.empty() && targetFile.back() != '.') {
@@ -335,58 +336,58 @@ static int dora_yuecompile(lua_State* L) {
 				auto input = std::make_shared<std::tuple<
 					std::string, std::string, OwnArray<uint8_t>, size_t>>(
 					src, dest, std::move(codes), size);
-				SharedAsyncThread.run([input, src]() {
-					yue::YueConfig config;
-					config.implicitReturnRoot = true;
-					config.reserveLineNumber = true;
-					config.lintGlobalVariable = true;
-					config.module = src;
-					size_t size = std::get<3>(*input);
-					const auto& codes = std::get<2>(*input);
-					auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
-					return Values::alloc(std::move(result)); }, [input, handler, callback](Own<Values> values) {
-					yue::CompileInfo result;
-					values->get(result);
-					std::string finalCodes;
-					{
-						lua_State* L = SharedLuaEngine.getState();
-						int top = lua_gettop(L);
-						DEFER(lua_settop(L, top));
-						if (result.codes.empty() && !result.error.empty())
+				SharedAsyncThread.run(
+					[input, src]() {
+						yue::YueConfig config;
+						config.implicitReturnRoot = true;
+						config.reserveLineNumber = true;
+						config.lintGlobalVariable = true;
+						config.module = src;
+						size_t size = std::get<3>(*input);
+						const auto& codes = std::get<2>(*input);
+						auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
+						return Values::alloc(std::move(result));
+					},
+					[input, handler, callback](Own<Values> values) {
+						yue::CompileInfo result;
+						values->get(result);
+						std::string finalCodes;
 						{
-							lua_pushnil(L);
-							lua_pushlstring(L, result.error.c_str(), result.error.size());
-						}
-						else
-						{
-							lua_pushlstring(L, result.codes.c_str(), result.codes.size());
-							lua_pushnil(L);
-						}
-						if (result.globals)
-						{
-							lua_createtable(L, s_cast<int>(result.globals->size()), 0);
-							int i = 1;
-							for (const auto& var : *result.globals)
-							{
-								lua_createtable(L, 3, 0);
-								lua_pushlstring(L, var.name.c_str(), var.name.size());
-								lua_rawseti(L, -2, 1);
-								lua_pushinteger(L, var.line);
-								lua_rawseti(L, -2, 2);
-								lua_pushinteger(L, var.col);
-								lua_rawseti(L, -2, 3);
-								lua_rawseti(L, -2, i);
-								i++;
+							lua_State* L = SharedLuaEngine.getState();
+							int top = lua_gettop(L);
+							DEFER(lua_settop(L, top));
+							if (result.codes.empty() && !result.error.empty()) {
+								lua_pushnil(L);
+								lua_pushlstring(L, result.error.c_str(), result.error.size());
+							} else {
+								lua_pushlstring(L, result.codes.c_str(), result.codes.size());
+								lua_pushnil(L);
 							}
+							if (result.globals) {
+								lua_createtable(L, s_cast<int>(result.globals->size()), 0);
+								int i = 1;
+								for (const auto& var : *result.globals) {
+									lua_createtable(L, 3, 0);
+									lua_pushlstring(L, var.name.c_str(), var.name.size());
+									lua_rawseti(L, -2, 1);
+									lua_pushinteger(L, var.line);
+									lua_rawseti(L, -2, 2);
+									lua_pushinteger(L, var.col);
+									lua_rawseti(L, -2, 3);
+									lua_rawseti(L, -2, i);
+									i++;
+								}
+							} else
+								lua_pushnil(L);
+							SharedLuaEngine.executeReturn(finalCodes, handler->get(), 3);
 						}
-						else lua_pushnil(L);
-						SharedLuaEngine.executeReturn(finalCodes, handler->get(), 3);
-					}
-					if (finalCodes.empty()) callback(false);
-					else SharedContent.saveAsync(std::get<1>(*input), finalCodes, [callback]()
-					{
-						callback(true);
-					}); });
+						if (finalCodes.empty())
+							callback(false);
+						else
+							SharedContent.saveAsync(std::get<1>(*input), finalCodes, [callback]() {
+								callback(true);
+							});
+					});
 			}
 		});
 		return 0;

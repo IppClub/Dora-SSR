@@ -21,7 +21,7 @@
 NS_DOROTHY_BEGIN
 
 #ifndef TEMPLATE_BIND
-	#define TEMPLATE_BIND(p)
+#define TEMPLATE_BIND(p)
 #endif
 
 #define TOLUA_TEMPLATE_BIND(p)
@@ -42,16 +42,15 @@ NS_DOROTHY_BEGIN
 #define MT_LT 11
 #define MT_LE 12
 
-#define TOLUA_REG_INDEX_UBOX LUA_RIDX_LAST+1
-#define TOLUA_REG_INDEX_CALLBACK LUA_RIDX_LAST+2
-#define TOLUA_REG_INDEX_TYPE LUA_RIDX_LAST+3
+#define TOLUA_REG_INDEX_UBOX LUA_RIDX_LAST + 1
+#define TOLUA_REG_INDEX_CALLBACK LUA_RIDX_LAST + 2
+#define TOLUA_REG_INDEX_TYPE LUA_RIDX_LAST + 3
 
 #define TOLUA_UBOX_START_SIZE 4096
 
 typedef int lua_Object;
 
-struct tolua_Error
-{
+struct tolua_Error {
 	int index;
 	int array;
 	Slice type;
@@ -137,21 +136,19 @@ void tolua_dobuffer(lua_State* L, char* B, unsigned int size, const char* name);
 
 int tolua_collect_object(lua_State* tolua_S);
 
-inline const char* tolua_tocppstring(lua_State* L, int narg, const char* def)
-{
+inline const char* tolua_tocppstring(lua_State* L, int narg, const char* def) {
 	const char* s = tolua_tostring(L, narg, def);
 	return s ? s : "";
 }
 
-inline const char* tolua_tofieldcppstring(lua_State* L, int lo, int index, const char* def)
-{
+inline const char* tolua_tofieldcppstring(lua_State* L, int lo, int index, const char* def) {
 	const char* s = tolua_tofieldstring(L, lo, index, def);
 	return s ? s : "";
 }
 
-int tolua_fast_isa(lua_State *L, int mt_indexa, int mt_indexb);
+int tolua_fast_isa(lua_State* L, int mt_indexa, int mt_indexb);
 int tolua_isobject(lua_State* L, int mt_idx);
-void tolua_typeid(lua_State *L, int typeId, const char* className);
+void tolua_typeid(lua_State* L, int typeId, const char* className);
 
 /* tolua_fix */
 int tolua_ref_function(lua_State* L, int lo);
@@ -169,43 +166,44 @@ void tolua_pushslice(lua_State* L, String str);
 Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 
 #ifndef Mtolua_new
-	#define Mtolua_new(EXP) new EXP
+#define Mtolua_new(EXP) new EXP
 #endif
 
 #ifndef Mtolua_delete
-	#define Mtolua_delete(EXP) delete EXP
+#define Mtolua_delete(EXP) delete EXP
 #endif
 
 #ifndef Mtolua_new_dim
-	#define Mtolua_new_dim(EXP, len) r_cast<EXP*>(alloca(sizeof(EXP)*len)) // new EXP[len]
+#define Mtolua_new_dim(EXP, len) r_cast<EXP*>(alloca(sizeof(EXP) * len)) // new EXP[len]
 #endif
 
 #ifndef Mtolua_delete_dim
-	#define Mtolua_delete_dim(EXP) // delete [] EXP
+#define Mtolua_delete_dim(EXP) // delete [] EXP
 #endif
 
 #ifndef tolua_outside
-	#define tolua_outside
+#define tolua_outside
 #endif
 
 #ifndef tolua_owned
-	#define tolua_owned
+#define tolua_owned
 #endif
 
 #ifndef Mtolua_typeid
-	#define Mtolua_typeid(L,type,name) tolua_typeid(L,LuaType<type>(),name)
+#define Mtolua_typeid(L, type, name) tolua_typeid(L, LuaType<type>(), name)
 #endif
 
 #define TOLUA_API
 #define _cstring const char*
 
-union LightValue
-{
+union LightValue {
 	using ValueType = Vec2;
 	lua_Integer i;
 	ValueType value;
-	explicit LightValue(lua_Integer v): i(v) { }
-	LightValue(const ValueType& v): value(v) { }
+	explicit LightValue(lua_Integer v)
+		: i(v) { }
+	LightValue(const ValueType& v)
+		: value(v) { }
 	operator ValueType() const { return value; }
 };
 

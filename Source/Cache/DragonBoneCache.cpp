@@ -258,26 +258,26 @@ void DragonBoneCache::loadAsync(String boneFilename, String atlasFilename, const
 	_asyncLoadCount++;
 	auto parseData = [loaded, result, boneFile, atlasFile, handler, this]() {
 		// force parsing works run in the same thread
-		SharedAsyncThread.getProcess(0).run([=]() {
-			if (loaded->first && !loaded->first->empty())
-			{
-				result->first = this->parseDragonBonesData(loaded->first->c_str(), boneFile);
-			}
-			if (loaded->second && !loaded->second->empty())
-			{
-				result->second = this->parseTextureAtlasData(loaded->second->c_str(), nullptr, atlasFile);
-			}
-			return nullptr; }, [=](Own<Values>) {
-			if (result->first.value())
-			{
-				_boneRefs[boneFile] = 0;
-			}
-			if (result->second.value())
-			{
-				_atlasRefs[atlasFile] = 0;
-			}
-			handler(result->first.value() && result->second.value());
-			this->_asyncLoadCount--; });
+		SharedAsyncThread.getProcess(0).run(
+			[=]() {
+				if (loaded->first && !loaded->first->empty()) {
+					result->first = this->parseDragonBonesData(loaded->first->c_str(), boneFile);
+				}
+				if (loaded->second && !loaded->second->empty()) {
+					result->second = this->parseTextureAtlasData(loaded->second->c_str(), nullptr, atlasFile);
+				}
+				return nullptr;
+			},
+			[=](Own<Values>) {
+				if (result->first.value()) {
+					_boneRefs[boneFile] = 0;
+				}
+				if (result->second.value()) {
+					_atlasRefs[atlasFile] = 0;
+				}
+				handler(result->first.value() && result->second.value());
+				this->_asyncLoadCount--;
+			});
 	};
 	if (!boneData) {
 		SharedContent.loadAsync(boneFile, [loaded, boneFile, parseData](String data) {

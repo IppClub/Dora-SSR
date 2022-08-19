@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
+
 #include "Lua/LuaEngine.h"
 #include "Lua/ToLua/tolua++.h"
 
@@ -15,49 +16,38 @@ NS_DOROTHY_BEGIN
 static int g_ref_id = 0;
 static std::stack<int> g_available_ref_ids;
 
-int tolua_get_max_callback_ref_count()
-{
+int tolua_get_max_callback_ref_count() {
 	return g_ref_id;
 }
 
-int tolua_get_callback_ref_count()
-{
+int tolua_get_callback_ref_count() {
 	return g_ref_id - (unsigned int)g_available_ref_ids.size();
 }
 
-int tolua_alloc_callback_ref_id()
-{
-	if (g_available_ref_ids.empty())
-	{
+int tolua_alloc_callback_ref_id() {
+	if (g_available_ref_ids.empty()) {
 		return ++g_ref_id;
-	}
-	else
-	{
+	} else {
 		int id = g_available_ref_ids.top();
 		g_available_ref_ids.pop();
 		return id;
 	}
 }
 
-void tolua_collect_callback_ref_id(int refid)
-{
+void tolua_collect_callback_ref_id(int refid) {
 	g_available_ref_ids.push(refid);
 }
 
-int tolua_collect_object(lua_State* L)
-{
-	if (Object* object = r_cast<Object*>(tolua_tousertype(L, 1, 0)))
-	{
+int tolua_collect_object(lua_State* L) {
+	if (Object* object = r_cast<Object*>(tolua_tousertype(L, 1, 0))) {
 		object->removeLuaRef();
 		object->release();
 	}
 	return 0;
 }
 
-void tolua_pushobject(lua_State* L, Object* object)
-{
-	if (!object)
-	{
+void tolua_pushobject(lua_State* L, Object* object) {
+	if (!object) {
 		lua_pushnil(L);
 		return;
 	}
@@ -81,20 +71,17 @@ void tolua_pushobject(lua_State* L, Object* object)
 		// register oObject GC
 		object->addLuaRef();
 		object->retain();
-	}
-	else lua_remove(L, -2);// ud
+	} else
+		lua_remove(L, -2); // ud
 }
 
-void tolua_typeid(lua_State* L, int typeId, const char* className)
-{
+void tolua_typeid(lua_State* L, int typeId, const char* className) {
 	lua_getfield(L, LUA_REGISTRYINDEX, className); // mt
 	lua_rawseti(L, LUA_REGISTRYINDEX, typeId); // empty
 }
 
-int tolua_isobject(lua_State* L, int lo)
-{
-	if (lua_isuserdata(L, lo))
-	{
+int tolua_isobject(lua_State* L, int lo) {
+	if (lua_isuserdata(L, lo)) {
 		lua_getmetatable(L, lo); // mt
 		lua_rawgeti(L, -1, MT_SUPER); // mt super
 		lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<Object>()); // mt super objmt
@@ -107,22 +94,18 @@ int tolua_isobject(lua_State* L, int lo)
 	return 0;
 }
 
-void tolua_dobuffer(lua_State* L, char* codes, unsigned int size, const char* name)
-{
-	if (luaL_loadbuffer(L, codes, size, name) != 0)
-	{
+void tolua_dobuffer(lua_State* L, char* codes, unsigned int size, const char* name) {
+	if (luaL_loadbuffer(L, codes, size, name) != 0) {
 		Error("[Lua] error loading module \"{}\" from \"{}\" :\n\t{}",
 			Slice(lua_tostring(L, 1)), name, Slice(lua_tostring(L, -1)));
-	}
-	else LuaEngine::call(L, 0, 0);
+	} else
+		LuaEngine::call(L, 0, 0);
 }
 
-int tolua_ref_function(lua_State* L, int lo)
-{
+int tolua_ref_function(lua_State* L, int lo) {
 	/* function or thread at lo */
 	int type = lua_type(L, lo);
-	if (type == LUA_TFUNCTION || type == LUA_TTHREAD)
-	{
+	if (type == LUA_TFUNCTION || type == LUA_TTHREAD) {
 		int refid = tolua_alloc_callback_ref_id();
 		lua_pushvalue(L, lo); // fun
 		lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // fun, funcMap
@@ -134,27 +117,21 @@ int tolua_ref_function(lua_State* L, int lo)
 	return 0;
 }
 
-void tolua_get_function_by_refid(lua_State* L, int refid)
-{
+void tolua_get_function_by_refid(lua_State* L, int refid) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
 	lua_rawgeti(L, -1, refid); // funcMap fun
 	lua_remove(L, -2); // fun
 }
 
-void tolua_remove_function_by_refid(lua_State* L, int refid)
-{
+void tolua_remove_function_by_refid(lua_State* L, int refid) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_CALLBACK); // funcMap
 	lua_rawgeti(L, -1, refid); // funcMap func
-	if (lua_isthread(L, -1))
-	{
+	if (lua_isthread(L, -1)) {
 		lua_State* co = lua_tothread(L, -1);
-		switch (lua_status(co))
-		{
-			case LUA_YIELD:
-			{
+		switch (lua_status(co)) {
+			case LUA_YIELD: {
 				int state = lua_resetthread(co);
-				if (state != LUA_OK)
-				{
+				if (state != LUA_OK) {
 					Error("[Lua] failed to close a suspended coroutine, due to {}.", lua_tostring(co, -1));
 					lua_pop(L, 1);
 				}
@@ -169,11 +146,9 @@ void tolua_remove_function_by_refid(lua_State* L, int refid)
 	tolua_collect_callback_ref_id(refid);
 }
 
-int tolua_isfunction(lua_State* L, int lo, tolua_Error* err)
-{
+int tolua_isfunction(lua_State* L, int lo, tolua_Error* err) {
 	int type = lua_type(L, lo);
-	if (lua_gettop(L) >= abs(lo) && (type == LUA_TFUNCTION || type == LUA_TTHREAD))
-	{
+	if (lua_gettop(L) >= abs(lo) && (type == LUA_TFUNCTION || type == LUA_TTHREAD)) {
 		return 1;
 	}
 	err->index = lo;
@@ -182,25 +157,20 @@ int tolua_isfunction(lua_State* L, int lo, tolua_Error* err)
 	return 0;
 }
 
-int tolua_isfunction(lua_State* L, int lo)
-{
+int tolua_isfunction(lua_State* L, int lo) {
 	int type = lua_type(L, lo);
 	return type == LUA_TFUNCTION || type == LUA_TTHREAD;
 }
 
-void tolua_stack_dump(lua_State* L, int offset, const char* label)
-{
+void tolua_stack_dump(lua_State* L, int offset, const char* label) {
 	int top = lua_gettop(L) + offset;
-	if (top == 0)
-	{
+	if (top == 0) {
 		return;
 	}
 	LogError(fmt::format("Total [{}] in lua stack: {}\n", top, label != 0 ? label : ""));
-	for (int i = -1; i >= -top; i--)
-	{
+	for (int i = -1; i >= -top; i--) {
 		int t = lua_type(L, i);
-		switch (t)
-		{
+		switch (t) {
 			case LUA_TSTRING:
 				LogError(fmt::format("  [{}] [string] {}\n", i, lua_tostring(L, i)));
 				break;
@@ -217,10 +187,8 @@ void tolua_stack_dump(lua_State* L, int offset, const char* label)
 	}
 }
 
-Slice tolua_toslice(lua_State* L, int narg, const char* def)
-{
-	if (lua_gettop(L) < abs(narg))
-	{
+Slice tolua_toslice(lua_State* L, int narg, const char* def) {
+	if (lua_gettop(L) < abs(narg)) {
 		return Slice(def);
 	}
 	size_t size = 0;
@@ -228,22 +196,17 @@ Slice tolua_toslice(lua_State* L, int narg, const char* def)
 	return Slice(str, size);
 }
 
-void tolua_pushslice(lua_State* L, String str)
-{
+void tolua_pushslice(lua_State* L, String str) {
 	lua_pushlstring(L, str.rawData(), str.size());
 }
 
-Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def)
-{
+Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def) {
 	Slice slice;
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	if (lua_isnil(L, -1))
-	{
+	if (lua_isnil(L, -1)) {
 		slice = def;
-	}
-	else
-	{
+	} else {
 		size_t size = 0;
 		const char* str = lua_tolstring(L, -1, &size);
 		slice = Slice(str, size);
@@ -252,13 +215,11 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def)
 	return slice;
 }
 
-void tolua_pushlight(lua_State* L, LightValue var)
-{
+void tolua_pushlight(lua_State* L, LightValue var) {
 	lua_pushlightuserinteger(L, var.i);
 }
 
-void tolua_setlightmetatable(lua_State* L)
-{
+void tolua_setlightmetatable(lua_State* L) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<LightValue::ValueType>()); // mt
 	if (lua_isnil(L, -1)) // mt == nil
 	{
@@ -270,25 +231,19 @@ void tolua_setlightmetatable(lua_State* L)
 	lua_setlightusermetatable(L);
 }
 
-LightValue tolua_tolight(lua_State* L, int narg, LightValue def)
-{
-	if (lua_gettop(L) < abs(narg))
-	{
+LightValue tolua_tolight(lua_State* L, int narg, LightValue def) {
+	if (lua_gettop(L) < abs(narg)) {
 		return def;
-	}
-	else
-	{
+	} else {
 		return LightValue(lua_tolightuserinteger(L, narg));
 	}
 }
 
-LightValue tolua_tolight(lua_State* L, int narg)
-{
+LightValue tolua_tolight(lua_State* L, int narg) {
 	return LightValue(lua_tolightuserinteger(L, narg));
 }
 
-LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def)
-{
+LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def) {
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
 	LightValue v = lua_isnil(L, -1) ? def : LightValue(lua_tolightuserinteger(L, -1));
@@ -296,8 +251,7 @@ LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def)
 	return v;
 }
 
-LightValue tolua_tofieldlight(lua_State* L, int lo, int index)
-{
+LightValue tolua_tofieldlight(lua_State* L, int lo, int index) {
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
 	LightValue v = LightValue(lua_tolightuserinteger(L, -1));

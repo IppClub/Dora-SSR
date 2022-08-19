@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/PhysicsWorld.h"
 
 #include "Basic/Application.h"
-#include "Event/Event.h"
 #include "Node/DrawNode.h"
 #include "Physics/Body.h"
 #include "Physics/DebugDraw.h"
@@ -234,20 +233,19 @@ void PhysicsWorld::setIterations(int velocityIter, int positionIter) {
 }
 
 void PhysicsWorld::doUpdate(double deltaTime) {
-	double start = SharedApplication.getEclapsedTime();
-	_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
-	_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
-	_world.Step(_stepConf);
-	const auto& bodies = _world.GetBodies();
-	for (pr::BodyID b : bodies) {
-		if (pd::IsEnabled(_world, b)) {
-			Body* body = _bodyData[b.get()];
-			body->updatePhysics();
+	{
+		Profiler _("Physics"_slice);
+		_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
+		_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
+		_world.Step(_stepConf);
+		const auto& bodies = _world.GetBodies();
+		for (pr::BodyID b : bodies) {
+			if (pd::IsEnabled(_world, b)) {
+				Body* body = _bodyData[b.get()];
+				body->updatePhysics();
+			}
 		}
 	}
-	Event::send("_TIMECOST_"_slice,
-		"Physics"_slice.toString(),
-		SharedApplication.getEclapsedTime() - start);
 	solveContacts();
 }
 

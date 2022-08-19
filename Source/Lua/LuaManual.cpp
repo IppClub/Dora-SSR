@@ -319,46 +319,41 @@ int Content_loadExcelAsync(lua_State* L) {
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, funcIndex)));
 		SharedContent.loadAsyncData(filename, [filename, sheets = std::move(sheets), handler](OwnArray<uint8_t>&& data, size_t size) {
 			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
-			SharedAsyncThread.run([filename, sheets, excelData, size]() {
-				auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
-				if (workbook->read())
-				{
-					for (auto& worksheet : *workbook)
-					{
-						if (!sheets.empty())
-						{
-							if (std::find(sheets.begin(), sheets.end(), worksheet.name()) == sheets.end())
-							{
-								continue;
+			SharedAsyncThread.run(
+				[filename, sheets, excelData, size]() {
+					auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
+					if (workbook->read()) {
+						for (auto& worksheet : *workbook) {
+							if (!sheets.empty()) {
+								if (std::find(sheets.begin(), sheets.end(), worksheet.name()) == sheets.end()) {
+									continue;
+								}
+							}
+							auto errors = worksheet.read();
+							if (!errors.empty()) {
+								Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
+								for (auto [refer, msg] : errors) {
+									Error("{}: {}", refer, msg);
+								}
 							}
 						}
-						auto errors = worksheet.read();
-						if (!errors.empty())
-						{
-							Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
-							for (auto [refer, msg] : errors)
-							{
-								Error("{}: {}", refer, msg);
-							}
-						}
+						return Values::alloc(true, std::move(workbook));
 					}
-					return Values::alloc(true, std::move(workbook));
-				}
-				return Values::alloc(false, std::move(workbook)); }, [handler, sheets](Own<Values>&& values) {
-				bool success = false;
-				Own<xlsxtext::workbook> workbook;
-				values->get(success, workbook);
-				auto L = SharedLuaEngine.getState();
-				if (success)
-				{
-					pushExcelData(L, *workbook, sheets);
-					SharedLuaEngine.executeFunction(handler->get(), 1);
-				}
-				else
-				{
-					lua_pushboolean(L, 0);
-					SharedLuaEngine.executeFunction(handler->get(), 1);
-				} });
+					return Values::alloc(false, std::move(workbook));
+				},
+				[handler, sheets](Own<Values>&& values) {
+					bool success = false;
+					Own<xlsxtext::workbook> workbook;
+					values->get(success, workbook);
+					auto L = SharedLuaEngine.getState();
+					if (success) {
+						pushExcelData(L, *workbook, sheets);
+						SharedLuaEngine.executeFunction(handler->get(), 1);
+					} else {
+						lua_pushboolean(L, 0);
+						SharedLuaEngine.executeFunction(handler->get(), 1);
+					}
+				});
 		});
 	}
 	return 0;
@@ -704,9 +699,10 @@ uint32_t getBlendFuncVal(String name) {
 		case "InvDstColor"_hash: return BlendFunc::InvDstColor;
 		case "InvDstAlpha"_hash: return BlendFunc::InvDstAlpha;
 		default:
-			Issue("blendfunc name \"{}\" is invalid. use one of [One, Zero,\n"
-				  "SrcColor, SrcAlpha, DstColor, DstAlpha,\n"
-				  "InvSrcColor, InvSrcAlpha, InvDstColor, InvDstAlpha]",
+			Issue(
+				"blendfunc name \"{}\" is invalid. use one of [One, Zero,\n"
+				"SrcColor, SrcAlpha, DstColor, DstAlpha,\n"
+				"InvSrcColor, InvSrcAlpha, InvDstColor, InvDstAlpha]",
 				name);
 			break;
 	}
@@ -893,7 +889,7 @@ tolua_lerror:
 	return Own<ActionDuration>();
 #endif
 }
-}
+} // namespace LuaAction
 
 /* Action */
 
@@ -2441,80 +2437,68 @@ int DB_insertAsync01(lua_State* L) {
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 5)));
 		SharedContent.loadAsyncData(excelFile, [excelFile, names, startRow, handler](OwnArray<uint8_t>&& data, size_t size) {
 			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
-			SharedAsyncThread.run([excelFile, names, startRow, excelData, size]() {
-				auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
-				if (workbook->read())
-				{
-					bool result = SharedDB.transaction([&]()
-					{
-						const auto& strs = workbook->shared_strings();
-						for (auto& worksheet : *workbook)
-						{
-							if (auto it = std::find_if(names->begin(), names->end(),
-								[&](const std::pair<std::string, std::string>& pair)
-								{
-									return pair.second == worksheet.name();
-								}); it != names->end())
-							{
-								auto errors = worksheet.read();
-								if (!errors.empty())
-								{
-									Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), excelFile);
-									for (auto [refer, msg] : errors)
-									{
-										Error("{}: {}", refer, msg);
+			SharedAsyncThread.run(
+				[excelFile, names, startRow, excelData, size]() {
+					auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
+					if (workbook->read()) {
+						bool result = SharedDB.transaction([&]() {
+							const auto& strs = workbook->shared_strings();
+							for (auto& worksheet : *workbook) {
+								if (auto it = std::find_if(names->begin(), names->end(),
+										[&](const std::pair<std::string, std::string>& pair) {
+											return pair.second == worksheet.name();
+										});
+									it != names->end()) {
+									auto errors = worksheet.read();
+									if (!errors.empty()) {
+										Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), excelFile);
+										for (auto [refer, msg] : errors) {
+											Error("{}: {}", refer, msg);
+										}
 									}
-								}
-								std::string valueHolder;
-								for (size_t i = 0; i < worksheet.max_col(); i++)
-								{
-									valueHolder += '?';
-									if (i != worksheet.max_col() - 1) valueHolder += ',';
-								}
-								SQLite::Statement query(*SharedDB.getPtr(), fmt::format("INSERT INTO {} VALUES ({})", it->first, valueHolder));
-								int rowIndex = 0;
-								for (const auto& row : worksheet)
-								{
-									if (rowIndex < startRow)
-									{
+									std::string valueHolder;
+									for (size_t i = 0; i < worksheet.max_col(); i++) {
+										valueHolder += '?';
+										if (i != worksheet.max_col() - 1) valueHolder += ',';
+									}
+									SQLite::Statement query(*SharedDB.getPtr(), fmt::format("INSERT INTO {} VALUES ({})", it->first, valueHolder));
+									int rowIndex = 0;
+									for (const auto& row : worksheet) {
+										if (rowIndex < startRow) {
+											rowIndex++;
+											continue;
+										}
+										for (const auto& cell : row) {
+											if (cell.value.empty() && cell.string_id >= 0) {
+												query.bind(cell.refer.col, strs[cell.string_id]);
+											} else {
+												char* endptr = nullptr;
+												double d = std::strtod(cell.value.c_str(), &endptr);
+												if (*endptr != '\0' || endptr == cell.value.c_str()) {
+													query.bind(cell.refer.col, cell.value);
+												} else {
+													query.bind(cell.refer.col, d);
+												}
+											}
+										}
+										query.exec();
+										query.reset();
 										rowIndex++;
-										continue;
 									}
-									for (const auto& cell : row)
-									{
-										if (cell.value.empty() && cell.string_id >= 0)
-										{
-											query.bind(cell.refer.col, strs[cell.string_id]);
-										}
-										else
-										{
-											char* endptr = nullptr;
-											double d = std::strtod(cell.value.c_str(), &endptr);
-											if (*endptr != '\0' || endptr == cell.value.c_str())
-											{
-												query.bind(cell.refer.col, cell.value);
-											}
-											else
-											{
-												query.bind(cell.refer.col, d);
-											}
-										}
-									}
-									query.exec();
-									query.reset();
-									rowIndex++;
 								}
 							}
-						}
-					});
-					return Values::alloc(result);
-				}
-				return Values::alloc(false); }, [handler](Own<Values>&& values) {
-				bool success = false;
-				values->get(success);
-				auto L = SharedLuaEngine.getState();
-				lua_pushboolean(L, success ? 1 : 0);
-				SharedLuaEngine.executeFunction(handler->get(), 1); });
+						});
+						return Values::alloc(result);
+					}
+					return Values::alloc(false);
+				},
+				[handler](Own<Values>&& values) {
+					bool success = false;
+					values->get(success);
+					auto L = SharedLuaEngine.getState();
+					lua_pushboolean(L, success ? 1 : 0);
+					SharedLuaEngine.executeFunction(handler->get(), 1);
+				});
 		});
 	}
 	return 0;

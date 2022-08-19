@@ -50,7 +50,7 @@ Unit* AI::getSelf() const {
 }
 
 bool AI::runDecisionTree(Unit* unit) {
-	double start = SharedApplication.getEclapsedTime();
+	Profiler _("AI"_slice);
 	if (unit->getBehaviorTree()) {
 		return false;
 	}
@@ -150,10 +150,6 @@ bool AI::runDecisionTree(Unit* unit) {
 	_detectedUnits->clear();
 	_attackUnits->clear();
 	_self = nullptr;
-
-	Event::send("_TIMECOST_"_slice,
-		"AI"_slice.toString(),
-		SharedApplication.getEclapsedTime() - start);
 
 	return result;
 }

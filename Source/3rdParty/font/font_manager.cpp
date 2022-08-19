@@ -1,10 +1,12 @@
 /*
- * Copyright 2013 Jeremie Roy. All rights reserved.
+ * Copyright 2013 Jeremie Roy, modified by Jin Li 2022. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
 #include "Const/Header.h"
 using namespace Dorothy;
+
+#include "font/font_manager.h"
 
 #define STBTT_DEF extern
 #include "stb/stb_truetype.h"
@@ -15,13 +17,11 @@ using namespace Dorothy;
 #include "tinystl/unordered_map.h"
 namespace stl = tinystl;
 
-#include "font/font_manager.h"
 #include "Other/atlas.h"
 
 namespace bgfx {
 
-class TrueTypeFont
-{
+class TrueTypeFont {
 public:
 	TrueTypeFont();
 	~TrueTypeFont();
@@ -45,19 +45,16 @@ private:
 	FontInfo m_info;
 };
 
-TrueTypeFont::TrueTypeFont():m_fontInfo{}
-{ }
+TrueTypeFont::TrueTypeFont()
+	: m_fontInfo{} { }
 
-TrueTypeFont::~TrueTypeFont()
-{ }
+TrueTypeFont::~TrueTypeFont() { }
 
-bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight)
-{
+bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight) {
 	AssertUnless(m_fontInfo.data == nullptr, "TrueTypeFont already initialized");
 	_pixelHeight = Math::clamp(_pixelHeight, 5U, 127U);
 
-	if (!stbtt_InitFont(&m_fontInfo, _buffer, stbtt_GetFontOffsetForIndex(_buffer, 0)))
-	{
+	if (!stbtt_InitFont(&m_fontInfo, _buffer, stbtt_GetFontOffsetForIndex(_buffer, 0))) {
 		Error("stbtt_InitFont failed.");
 		return false;
 	}
@@ -74,18 +71,15 @@ bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _
 	return true;
 }
 
-const stbtt_fontinfo& TrueTypeFont::getSTBInfo() const
-{
+const stbtt_fontinfo& TrueTypeFont::getSTBInfo() const {
 	return m_fontInfo;
 }
 
-const FontInfo& TrueTypeFont::getFontInfo() const
-{
+const FontInfo& TrueTypeFont::getFontInfo() const {
 	return m_info;
 }
 
-bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, uint8_t* _outBuffer)
-{
+bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, uint8_t* _outBuffer) {
 	AssertUnless(m_fontInfo.data, "TrueTypeFont not initialized");
 	int left, top, right, bottom;
 	stbtt_GetCodepointBitmapBox(&m_fontInfo, _codePoint, m_info.scale, m_info.scale, &left, &top, &right, &bottom);
@@ -93,22 +87,20 @@ bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, u
 	stbtt_GetCodepointHMetrics(&m_fontInfo, _codePoint, &advanceWidth, nullptr);
 	_glyphInfo.offset_x = (float)left;
 	_glyphInfo.offset_y = (float)top;
-	_glyphInfo.width = (float)(right-left);
-	_glyphInfo.height = (float)(bottom-top);
+	_glyphInfo.width = (float)(right - left);
+	_glyphInfo.height = (float)(bottom - top);
 	_glyphInfo.advance_x = (float)(advanceWidth * m_info.scale);
 	_glyphInfo.glyphIndex = stbtt_FindGlyphIndex(&m_fontInfo, _codePoint);
-	stbtt_MakeCodepointBitmap(&m_fontInfo, _outBuffer, right-left, bottom-top, right-left, m_info.scale, m_info.scale, _codePoint);
+	stbtt_MakeCodepointBitmap(&m_fontInfo, _outBuffer, right - left, bottom - top, right - left, m_info.scale, m_info.scale, _codePoint);
 	return true;
 }
 
 typedef stl::unordered_map<CodePoint, GlyphInfo> GlyphHashMap;
 
 // cache font data
-struct FontManager::CachedFont
-{
+struct FontManager::CachedFont {
 	CachedFont()
-		: trueTypeFont(nullptr)
-	{ }
+		: trueTypeFont(nullptr) { }
 
 	FontInfo fontInfo;
 	GlyphHashMap cachedGlyphs;
@@ -117,13 +109,11 @@ struct FontManager::CachedFont
 
 FontManager::FontManager(uint16_t _textureSideWidth)
 	: m_currentAtlas(nullptr)
-	, m_textureWidth(_textureSideWidth)
-{
+	, m_textureWidth(_textureSideWidth) {
 	init();
 }
 
-void FontManager::init()
-{
+void FontManager::init() {
 	m_cachedFiles = NewArray<CachedFile>(MAX_OPENED_FILES);
 	m_cachedFonts = NewArray<CachedFont>(MAX_OPENED_FONT);
 	m_buffer = NewArray<uint8_t>(MAX_FONT_BUFFER_SIZE * MAX_FONT_BUFFER_SIZE * 1);
@@ -141,26 +131,23 @@ void FontManager::init()
 	m_fallbackGlyph.atlas = m_currentAtlas;
 }
 
-FontManager::~FontManager()
-{
+FontManager::~FontManager() {
 	assert(m_fontHandles.getNumHandles() == 0); // All the fonts must be destroyed before destroying the manager
 	assert(m_filesHandles.getNumHandles() == 0); // All the font files must be destroyed before destroying the manager
 }
 
-TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size)
-{
+TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size) {
 	uint16_t id = m_filesHandles.alloc();
 	AssertUnless(id != bx::kInvalidHandle, "Invalid handle used");
 	m_cachedFiles.get()[id].buffer = NewArray<uint8_t>(_size);
 	m_cachedFiles.get()[id].bufferSize = _size;
 	memcpy(m_cachedFiles.get()[id].buffer.get(), _buffer, _size);
 
-	TrueTypeHandle ret = { id };
+	TrueTypeHandle ret = {id};
 	return ret;
 }
 
-void FontManager::destroyTtf(TrueTypeHandle _handle)
-{
+void FontManager::destroyTtf(TrueTypeHandle _handle) {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
 	m_cachedFiles.get()[_handle.idx].buffer = nullptr;
 	m_cachedFiles.get()[_handle.idx].bufferSize = 0;
@@ -168,13 +155,11 @@ void FontManager::destroyTtf(TrueTypeHandle _handle)
 	m_filesHandles.free(_handle.idx);
 }
 
-FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_t _pixelSize)
-{
+FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_t _pixelSize) {
 	AssertUnless(bgfx::isValid(_ttfHandle), "Invalid handle used");
 
 	auto ttf = New<TrueTypeFont>();
-	if (!ttf->init(m_cachedFiles.get()[_ttfHandle.idx].buffer.get(), m_cachedFiles.get()[_ttfHandle.idx].bufferSize, _pixelSize))
-	{
+	if (!ttf->init(m_cachedFiles.get()[_ttfHandle.idx].buffer.get(), m_cachedFiles.get()[_ttfHandle.idx].bufferSize, _pixelSize)) {
 		FontHandle invalid = BGFX_INVALID_HANDLE;
 		return invalid;
 	}
@@ -188,18 +173,16 @@ FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_
 	font.fontInfo.pixelSize = uint16_t(_pixelSize);
 	font.cachedGlyphs.clear();
 
-	FontHandle handle = { fontIdx };
+	FontHandle handle = {fontIdx};
 	return handle;
 }
 
-void FontManager::destroyFont(FontHandle _handle)
-{
+void FontManager::destroyFont(FontHandle _handle) {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
 
 	CachedFont& font = m_cachedFonts.get()[_handle.idx];
 
-	if (font.trueTypeFont != nullptr)
-	{
+	if (font.trueTypeFont != nullptr) {
 		font.trueTypeFont = nullptr;
 	}
 
@@ -207,30 +190,24 @@ void FontManager::destroyFont(FontHandle _handle)
 	m_fontHandles.free(_handle.idx);
 }
 
-bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint)
-{
+bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint) {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
 	CachedFont& font = m_cachedFonts.get()[_handle.idx];
 
 	GlyphHashMap::iterator iter = font.cachedGlyphs.find(_codePoint);
-	if (iter != font.cachedGlyphs.end() )
-	{
+	if (iter != font.cachedGlyphs.end()) {
 		return true;
 	}
-	if (nullptr != font.trueTypeFont)
-	{
+	if (nullptr != font.trueTypeFont) {
 		GlyphInfo glyphInfo;
-		if (!font.trueTypeFont->bakeGlyphAlpha(_codePoint, glyphInfo, m_buffer.get()))
-		{
+		if (!font.trueTypeFont->bakeGlyphAlpha(_codePoint, glyphInfo, m_buffer.get())) {
 			return false;
 		}
-		if (!addBitmap(glyphInfo, m_buffer.get()))
-		{
+		if (!addBitmap(glyphInfo, m_buffer.get())) {
 			auto atlas = New<Atlas>(m_textureWidth, Atlas::Gray, true);
 			m_currentAtlas = atlas.get();
 			m_atlases.push_back(std::move(atlas));
-			if (!addBitmap(glyphInfo, m_buffer.get()))
-			{
+			if (!addBitmap(glyphInfo, m_buffer.get())) {
 				return false;
 			}
 		}
@@ -240,21 +217,17 @@ bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint)
 	return false;
 }
 
-const FontInfo& FontManager::getFontInfo(FontHandle _handle) const
-{
+const FontInfo& FontManager::getFontInfo(FontHandle _handle) const {
 	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
 	return m_cachedFonts.get()[_handle.idx].fontInfo;
 }
 
-const GlyphInfo* FontManager::getGlyphInfo(FontHandle _handle, CodePoint _codePoint)
-{
+const GlyphInfo* FontManager::getGlyphInfo(FontHandle _handle, CodePoint _codePoint) {
 	const GlyphHashMap& cachedGlyphs = m_cachedFonts.get()[_handle.idx].cachedGlyphs;
 	GlyphHashMap::const_iterator it = cachedGlyphs.find(_codePoint);
 
-	if (it == cachedGlyphs.end())
-	{
-		if (!preloadGlyph(_handle, _codePoint))
-		{
+	if (it == cachedGlyphs.end()) {
+		if (!preloadGlyph(_handle, _codePoint)) {
 			return &m_fallbackGlyph;
 		}
 
@@ -265,11 +238,9 @@ const GlyphInfo* FontManager::getGlyphInfo(FontHandle _handle, CodePoint _codePo
 	return &it->second;
 }
 
-bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data)
-{
+bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data) {
 	uint16_t regionIndex = m_currentAtlas->addRegion((uint16_t)ceil(_glyphInfo.width), (uint16_t)ceil(_glyphInfo.height), _data);
-	if (regionIndex == UINT16_MAX)
-	{
+	if (regionIndex == UINT16_MAX) {
 		return false;
 	}
 	_glyphInfo.regionIndex = regionIndex;
@@ -277,17 +248,15 @@ bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data)
 	return true;
 }
 
-float FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight)
-{
+float FontManager::getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight) {
 	const CachedFont& font = m_cachedFonts.get()[_handle.idx];
 	TrueTypeFont* trueTypeFont = font.trueTypeFont.get();
 	const GlyphHashMap& cachedGlyphs = font.cachedGlyphs;
 	GlyphHashMap::const_iterator left = cachedGlyphs.find(_codeLeft);
 	GlyphHashMap::const_iterator right = cachedGlyphs.find(_codeRight);
-	if (left != cachedGlyphs.end() && right != cachedGlyphs.end())
-	{
-		int32_t leftIndex= left->second.glyphIndex;
-		int32_t rightIndex= right->second.glyphIndex;
+	if (left != cachedGlyphs.end() && right != cachedGlyphs.end()) {
+		int32_t leftIndex = left->second.glyphIndex;
+		int32_t rightIndex = right->second.glyphIndex;
 		return stbtt_GetGlyphKernAdvance(&trueTypeFont->getSTBInfo(), leftIndex, rightIndex) * trueTypeFont->getFontInfo().scale;
 	}
 	return 0.0f;
