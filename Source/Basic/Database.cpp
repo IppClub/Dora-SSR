@@ -164,53 +164,58 @@ int DB::exec(String sql, const std::vector<Own<Value>>& values) {
 void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<Own<Value>>>&)>& callback) {
 	std::string sqlStr(sql);
 	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
-	SharedAsyncThread.run([sqlStr, argsPtr, withColumns]() {
-		try
-		{
-			auto result = SharedDB.query(sqlStr, *argsPtr, withColumns);
-			return Values::alloc(std::move(result));
-		}
-		catch (std::exception& e)
-		{
-			Warn("failed to execute DB transaction: {}", e.what());
-			return Values::alloc(std::deque<std::vector<Own<Value>>>());
-		} }, [callback](Own<Values> values) {
-		std::deque<std::vector<Own<Value>>> result;
-		values->get(result);
-		callback(result); });
+	SharedAsyncThread.run(
+		[sqlStr, argsPtr, withColumns]() {
+			try {
+				auto result = SharedDB.query(sqlStr, *argsPtr, withColumns);
+				return Values::alloc(std::move(result));
+			} catch (std::exception& e) {
+				Warn("failed to execute DB transaction: {}", e.what());
+				return Values::alloc(std::deque<std::vector<Own<Value>>>());
+			}
+		},
+		[callback](Own<Values> values) {
+			std::deque<std::vector<Own<Value>>> result;
+			values->get(result);
+			callback(result);
+		});
 }
 
 void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback) {
 	std::string tableStr(tableName);
 	auto valuesPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(values));
-	SharedAsyncThread.run([tableStr, valuesPtr]() {
-		bool result = SharedDB.transaction([&]()
-		{
-			SharedDB.insert(tableStr, *valuesPtr);
+	SharedAsyncThread.run(
+		[tableStr, valuesPtr]() {
+			bool result = SharedDB.transaction([&]() {
+				SharedDB.insert(tableStr, *valuesPtr);
+			});
+			return Values::alloc(result);
+		},
+		[callback](Own<Values> values) {
+			bool result = false;
+			values->get(result);
+			callback(result);
 		});
-		return Values::alloc(result); }, [callback](Own<Values> values) {
-		bool result = false;
-		values->get(result);
-		callback(result); });
 }
 
 void DB::execAsync(String sql, std::vector<Own<Value>>&& values, const std::function<void(int)>& callback) {
 	std::string sqlStr(sql);
 	auto valuesPtr = std::make_shared<std::vector<Own<Value>>>(std::move(values));
-	SharedAsyncThread.run([sqlStr, valuesPtr]() {
-		int result = 0;
-		try
-		{
-			result = SharedDB.exec(sqlStr, *valuesPtr);
-		}
-		catch (std::exception& e)
-		{
-			Warn("failed to execute DB transaction: {}", e.what());
-		}
-		return Values::alloc(result); }, [callback](Own<Values> values) {
-		int result = 0;
-		values->get(result);
-		callback(result); });
+	SharedAsyncThread.run(
+		[sqlStr, valuesPtr]() {
+			int result = 0;
+			try {
+				result = SharedDB.exec(sqlStr, *valuesPtr);
+			} catch (std::exception& e) {
+				Warn("failed to execute DB transaction: {}", e.what());
+			}
+			return Values::alloc(result);
+		},
+		[callback](Own<Values> values) {
+			int result = 0;
+			values->get(result);
+			callback(result);
+		});
 }
 
 NS_DOROTHY_END

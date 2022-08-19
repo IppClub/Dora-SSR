@@ -122,44 +122,44 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 				return;
 			}
 			auto skelData = std::make_shared<std::tuple<std::string, OwnArray<uint8_t>, size_t>>(std::move(file), std::move(data), size);
-			SharedAsyncThread.run([skelData, at]() {
-				std::string file;
-				OwnArray<uint8_t> data;
-				size_t size = 0;
-				std::tie(file, data, size) = std::move(*skelData);
-				auto ext = Path::getExt(file);
-				spine::SkeletonData* skelData = nullptr;
-				switch (Switch::hash(ext))
-				{
-					case "skel"_hash:
-					{
-						spine::SkeletonBinary bin(at->get());
-						skelData = bin.readSkeletonData(data.get(), s_cast<int>(size));
-						break;
+			SharedAsyncThread.run(
+				[skelData, at]() {
+					std::string file;
+					OwnArray<uint8_t> data;
+					size_t size = 0;
+					std::tie(file, data, size) = std::move(*skelData);
+					auto ext = Path::getExt(file);
+					spine::SkeletonData* skelData = nullptr;
+					switch (Switch::hash(ext)) {
+						case "skel"_hash: {
+							spine::SkeletonBinary bin(at->get());
+							skelData = bin.readSkeletonData(data.get(), s_cast<int>(size));
+							break;
+						}
+						case "json"_hash: {
+							spine::SkeletonJson json(at->get());
+							skelData = json.readSkeletonData(std::string(r_cast<char*>(data.get()), s_cast<int>(size)).c_str());
+							break;
+						}
+						default:
+							Warn("can not load skeleton format of \"{}\" from \"{}\"", ext, file);
+							break;
 					}
-					case "json"_hash:
-					{
-						spine::SkeletonJson json(at->get());
-						skelData = json.readSkeletonData(std::string(r_cast<char*>(data.get()), s_cast<int>(size)).c_str());
-						break;
+					return Values::alloc(skelData);
+				},
+				[file, cacheKey, handler, at, this](Own<Values> result) {
+					spine::SkeletonData* skelData = nullptr;
+					result->get(skelData);
+					if (skelData) {
+						SkeletonData* data = SkeletonData::create(skelData, at);
+						_skeletons[cacheKey] = data;
+						handler(data);
+						return;
 					}
-					default:
-						Warn("can not load skeleton format of \"{}\" from \"{}\"", ext, file);
-						break;
-				}
-				return Values::alloc(skelData); }, [file, cacheKey, handler, at, this](Own<Values> result) {
-				spine::SkeletonData* skelData = nullptr;
-				result->get(skelData);
-				if (skelData)
-				{
-					SkeletonData* data = SkeletonData::create(skelData, at);
-					_skeletons[cacheKey] = data;
-					handler(data);
+					Warn("failed to load skeleton data \"{}\".", file);
+					handler(nullptr);
 					return;
-				}
-				Warn("failed to load skeleton data \"{}\".", file);
-				handler(nullptr);
-				return; });
+				});
 		});
 	});
 }

@@ -75,7 +75,7 @@ Director.entry\addChild with Node!
 		* "NoNav"
 		* "NoMove"
 	\schedule ->
-		:width, :height = App.visualSize
+		const :width = App.visualSize
 		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 		Begin "Clip Node", windowFlags, ->

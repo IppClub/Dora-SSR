@@ -20,11 +20,9 @@ using dora_val_t = std::variant<
 	std::string,
 	Object*,
 	Vec2,
-	Size
->;
+	Size>;
 
-class CallStack
-{
+class CallStack {
 public:
 	void push(int64_t value);
 	void push(double value);
@@ -38,20 +36,22 @@ public:
 	dora_val_t pop();
 	dora_val_t& front();
 	void clear();
+
 private:
 	std::deque<dora_val_t> _stack;
 };
 
-class WasmRuntime
-{
+class WasmRuntime {
 public:
 	~WasmRuntime();
 	bool executeMainFile(String filename);
 	void executeMainFileAsync(String filename, const std::function<void(bool)>& handler);
 	void invoke(int32_t funcId);
 	void deref(int32_t funcId);
+
 protected:
 	WasmRuntime();
+
 private:
 	wasm3::environment _env;
 	wasm3::runtime _runtime;

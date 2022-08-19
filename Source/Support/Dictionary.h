@@ -13,12 +13,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-class Dictionary : public Object
-{
+class Dictionary : public Object {
 public:
 	PROPERTY_READONLY(int, Count);
 	PROPERTY_READONLY(std::vector<Slice>, Keys);
-	const std::unordered_map<std::string,Own<Value>>& data() const;
+	const std::unordered_map<std::string, Own<Value>>& data() const;
 
 	bool has(String key) const;
 	const Own<Value>& get(String key) const;
@@ -27,19 +26,14 @@ public:
 	void clear();
 
 	template <typename T>
-	T get(String key, const T& def) const
-	{
+	T get(String key, const T& def) const {
 		const auto& val = get(key);
 		if (!val) return def;
 		using Type = std::remove_pointer_t<T>;
-		if constexpr (std::is_base_of_v<Object, Type>)
-		{
+		if constexpr (std::is_base_of_v<Object, Type>) {
 			return val->as<std::remove_pointer_t<special_decay_t<T>>>();
-		}
-		else
-		{
-			if (auto item = val->asVal<Type>())
-			{
+		} else {
+			if (auto item = val->asVal<Type>()) {
 				return *item;
 			}
 		}
@@ -47,12 +41,9 @@ public:
 	}
 
 	template <typename Func>
-	bool each(const Func& func)
-	{
-		for (const auto& item : _dict)
-		{
-			if (func(item.second.get(), item.first))
-			{
+	bool each(const Func& func) {
+		for (const auto& item : _dict) {
+			if (func(item.second.get(), item.first)) {
 				return true;
 			}
 		}
@@ -60,8 +51,9 @@ public:
 	}
 
 	CREATE_FUNC(Dictionary);
+
 private:
-	std::unordered_map<std::string,Own<Value>> _dict;
+	std::unordered_map<std::string, Own<Value>> _dict;
 	DORA_TYPE_OVERRIDE(Dictionary);
 };
 

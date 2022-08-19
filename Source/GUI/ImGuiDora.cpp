@@ -387,8 +387,9 @@ ImGuiDora::ImGuiDora()
 	SharedApplication.eventHandler += std::make_pair(this, &ImGuiDora::handleEvent);
 	_costListener = Listener::create("_TIMECOST_"_slice, [&](Event* e) {
 		std::string name;
+		std::string msg;
 		double cost;
-		e->get(name, cost);
+		e->get(name, msg, cost);
 		if (!_timeCosts.insert({name, cost}).second) {
 			_timeCosts[name] += cost;
 		}
@@ -486,17 +487,21 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	if (targetGlyphRanges) {
 		_fonts->Clear();
 		_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
-		SharedAsyncThread.run([this]() {
-			_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
-			_fonts->TexDesiredWidth = MAX_FONT_TEXTURE_WIDTH;
-			_fonts->Build();
-			return nullptr; }, [this, fileData, size](Own<Values> result) {
-			ImGuiIO& io = ImGui::GetIO();
-			io.Fonts->Clear();
-			io.Fonts = _fonts.get();
-			updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
-			MakeOwnArray(fileData);
-			isLoadingFont = false; });
+		SharedAsyncThread.run(
+			[this]() {
+				_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
+				_fonts->TexDesiredWidth = MAX_FONT_TEXTURE_WIDTH;
+				_fonts->Build();
+				return nullptr;
+			},
+			[this, fileData, size](Own<Values> result) {
+				ImGuiIO& io = ImGui::GetIO();
+				io.Fonts->Clear();
+				io.Fonts = _fonts.get();
+				updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
+				MakeOwnArray(fileData);
+				isLoadingFont = false;
+			});
 	} else {
 		MakeOwnArray(fileData);
 		isLoadingFont = false;
@@ -703,30 +708,32 @@ void ImGuiDora::showStats() {
 			ImPlot::PopStyleColor(2);
 		}
 		ImGui::End();
-		ImGui::SetNextWindowPos(Vec2{size.width / 2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("CPU Time(ms)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
-			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
-			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
-			ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0, 0, 0, 0.3f));
-			ImPlot::SetNextAxesLimits(0, 1, 0, 1, ImGuiCond_Always);
-			if (_updateCosts.size() > 0 && ImPlot::BeginPlot("Update Pie", ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoInputs | ImPlotFlags_NoChild)) {
-				std::vector<const char*> pieLabels(_updateCosts.size());
-				std::vector<double> pieValues(_updateCosts.size());
-				int i = 0;
-				for (const auto& item : _updateCosts) {
-					pieLabels[i] = item.first.c_str();
-					pieValues[i] = item.second;
-					i++;
+		if (!_updateCosts.empty()) {
+			ImGui::SetNextWindowPos(Vec2{size.width / 2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
+			if (ImGui::Begin("CPU Time(ms)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+				ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
+				ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
+				ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0, 0, 0, 0.3f));
+				ImPlot::SetNextAxesLimits(0, 1, 0, 1, ImGuiCond_Always);
+				if (ImPlot::BeginPlot("Update Pie", ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoInputs | ImPlotFlags_NoChild)) {
+					std::vector<const char*> pieLabels(_updateCosts.size());
+					std::vector<double> pieValues(_updateCosts.size());
+					int i = 0;
+					for (const auto& item : _updateCosts) {
+						pieLabels[i] = item.first.c_str();
+						pieValues[i] = item.second;
+						i++;
+					}
+					ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoDecorations);
+					ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoDecorations);
+					ImPlot::SetupLegend(ImPlotLocation_SouthEast);
+					ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 0.5, 0.5, 0.45, true, nullptr);
+					ImPlot::EndPlot();
 				}
-				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoDecorations);
-				ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoDecorations);
-				ImPlot::SetupLegend(ImPlotLocation_SouthEast);
-				ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 0.5, 0.5, 0.45, true, "%.1f");
-				ImPlot::EndPlot();
+				ImPlot::PopStyleColor(3);
 			}
-			ImPlot::PopStyleColor(3);
+			ImGui::End();
 		}
-		ImGui::End();
 	}
 }
 

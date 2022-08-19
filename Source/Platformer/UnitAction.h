@@ -8,8 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Support/Geometry.h"
 #include "PlayRho/Collision/Shapes/Shape.hpp"
+#include "Support/Geometry.h"
 
 NS_DOROTHY_BEGIN
 class Model;

@@ -18,7 +18,7 @@ Director.entry\addChild with Node!
 		* "NoResize"
 		* "NoSavedSettings"
 	\schedule ->
-		:width, :height = App.visualSize
+		const :width = App.visualSize
 		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
 		SetNextWindowSize Vec2(240, 520), "FirstUseEver"
 		Begin "Sprite", windowFlags, ->
@@ -29,9 +29,9 @@ Director.entry\addChild with Node!
 				:x, :y = sprite.anchor
 				changed, x, y = DragFloat2 "Anchor", x, y, 0.01, 0, 1, "%.2f"
 				sprite.anchor = Vec2 x, y if changed
-				:width, :height = sprite.size
-				changed, width, height = DragFloat2 "Size", width, height, 0.1, 0, 1000, "%.f"
-				sprite.size = Size width, height if changed
+				width: spriteW, :height = sprite.size
+				changed, spriteW, height = DragFloat2 "Size", spriteW, height, 0.1, 0, 1000, "%.f"
+				sprite.size = Size spriteW, height if changed
 				:scaleX, :scaleY = sprite
 				changed, scaleX, scaleY = DragFloat2 "Scale", scaleX, scaleY, 0.01, -2, 2, "%.2f"
 				sprite.scaleX, sprite.scaleY = scaleX, scaleY if changed

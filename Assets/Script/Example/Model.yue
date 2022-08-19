@@ -23,7 +23,7 @@ currentAnim = #animations
 loop = true
 windowFlags = {"NoResize","NoSavedSettings"}
 model\schedule ->
-	:width, :height = App.visualSize
+	const :width = App.visualSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,325), "FirstUseEver"
 	Begin "Model", windowFlags, ->
