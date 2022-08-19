@@ -1,10 +1,10 @@
 _ENV = Dorothy!
 
-gravity = Vec2 0, -10
+const gravity = Vec2 0, -10
 
-groupZero = 0
-groupOne = 1
-groupTwo = 2
+const groupZero = 0
+const groupOne = 1
+const groupTwo = 2
 
 terrainDef = with BodyDef!
 	.type = "Static"
@@ -58,7 +58,7 @@ Director.entry\addChild with Node!
 		* "NoNav"
 		* "NoMove"
 	\schedule ->
-		:width, :height = App.visualSize
+		const :width = App.visualSize
 		SetNextWindowBgAlpha 0.35
 		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"

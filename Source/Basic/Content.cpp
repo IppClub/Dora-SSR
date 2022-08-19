@@ -293,10 +293,12 @@ void Content::copyUnsafe(String src, String dst) {
 
 void Content::loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback) {
 	std::string fileStr = filename;
-	SharedAsyncThread.FileIO.run([fileStr, this]() {
-		int64_t size = 0;
-		uint8_t* buffer = this->_loadFileUnsafe(fileStr, size);
-		return Values::alloc(buffer, size); },
+	SharedAsyncThread.FileIO.run(
+		[fileStr, this]() {
+			int64_t size = 0;
+			uint8_t* buffer = this->_loadFileUnsafe(fileStr, size);
+			return Values::alloc(buffer, size);
+		},
 		[callback](Own<Values> result) {
 			uint8_t* buffer;
 			int64_t size;
@@ -326,9 +328,11 @@ void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::
 
 void Content::copyAsync(String src, String dst, const std::function<void()>& callback) {
 	std::string srcFile(src), dstFile(dst);
-	SharedAsyncThread.FileIO.run([srcFile, dstFile, this]() {
-		Content::copyUnsafe(srcFile, dstFile);
-		return nullptr; },
+	SharedAsyncThread.FileIO.run(
+		[srcFile, dstFile, this]() {
+			Content::copyUnsafe(srcFile, dstFile);
+			return nullptr;
+		},
 		[callback](Own<Values> result) {
 			DORA_UNUSED_PARAM(result);
 			callback();
@@ -338,9 +342,11 @@ void Content::copyAsync(String src, String dst, const std::function<void()>& cal
 void Content::saveAsync(String filename, String content, const std::function<void()>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<std::string>(content);
-	SharedAsyncThread.FileIO.run([file, data, this]() {
-		Content::save(file, *data);
-		return nullptr; },
+	SharedAsyncThread.FileIO.run(
+		[file, data, this]() {
+			Content::save(file, *data);
+			return nullptr;
+		},
 		[callback](Own<Values> result) {
 			DORA_UNUSED_PARAM(result);
 			callback();
@@ -350,9 +356,11 @@ void Content::saveAsync(String filename, String content, const std::function<voi
 void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<OwnArray<uint8_t>>(std::move(content));
-	SharedAsyncThread.FileIO.run([file, data, size, this]() {
-		Content::save(file, Slice(r_cast<char*>((*data).get()), size));
-		return nullptr; },
+	SharedAsyncThread.FileIO.run(
+		[file, data, size, this]() {
+			Content::save(file, Slice(r_cast<char*>((*data).get()), size));
+			return nullptr;
+		},
 		[callback](Own<Values> result) {
 			DORA_UNUSED_PARAM(result);
 			callback();
@@ -573,13 +581,9 @@ static std::string toUTF8String(const std::string& str) {
 	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), 0, 0);
 	std::wstring wstr(wsize, 0);
 	MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), &wstr[0], wsize);
-	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(),
-		wstr.length(), nullptr, 0,
-		nullptr, nullptr);
+	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), nullptr, 0, nullptr, nullptr);
 	std::string u8str(u8size, '\0');
-	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(),
-		wstr.length(), &u8str[0], u8size,
-		nullptr, nullptr);
+	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), &u8str[0], u8size, nullptr, nullptr);
 	return u8str;
 }
 #endif // BX_PLATFORM_WINDOWS

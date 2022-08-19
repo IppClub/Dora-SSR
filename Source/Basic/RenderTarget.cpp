@@ -198,25 +198,28 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 			if (extraFlags) {
 				bgfx::destroy(textureHandle);
 			}
-			SharedAsyncThread.run([data, width, height]() {
-				unsigned error;
-				LodePNGState state;
-				lodepng_state_init(&state);
-				uint8_t* out = nullptr;
-				size_t outSize = 0;
-				error = lodepng_encode(&out, &outSize, data, width, height, &state);
-				lodepng_state_cleanup(&state);
-				delete [] data;
-				return Values::alloc(out, outSize); }, [callback, file](Own<Values> values) {
-				uint8_t* out;
-				size_t outSize;
-				values->get(out, outSize);
-				Slice content(r_cast<char*>(out), outSize);
-				SharedContent.saveAsync(file, content, [out, callback]()
-				{
-					::free(out);
-					callback();
-				}); });
+			SharedAsyncThread.run(
+				[data, width, height]() {
+					unsigned error;
+					LodePNGState state;
+					lodepng_state_init(&state);
+					uint8_t* out = nullptr;
+					size_t outSize = 0;
+					error = lodepng_encode(&out, &outSize, data, width, height, &state);
+					lodepng_state_cleanup(&state);
+					delete[] data;
+					return Values::alloc(out, outSize);
+				},
+				[callback, file](Own<Values> values) {
+					uint8_t* out;
+					size_t outSize;
+					values->get(out, outSize);
+					Slice content(r_cast<char*>(out), outSize);
+					SharedContent.saveAsync(file, content, [out, callback]() {
+						::free(out);
+						callback();
+					});
+				});
 			return true;
 		}
 		return false;

@@ -12,105 +12,105 @@ NS_DOROTHY_BEGIN
 
 /** @brief Helper macros to define setters and getters */
 #define PROPERTY(varType, funName) \
-public:                            \
-	varType get##funName() const;  \
-                                   \
-public:                            \
+public: \
+	varType get##funName() const; \
+\
+public: \
 	void set##funName(varType var)
 
-#define PROPERTY_CREF(varType, funName)  \
-public:                                  \
+#define PROPERTY_CREF(varType, funName) \
+public: \
 	const varType& get##funName() const; \
-                                         \
-public:                                  \
+\
+public: \
 	void set##funName(const varType& var)
 
 #define PROPERTY_CLASS(varType, funName) \
-public:                                  \
-	static varType get##funName();       \
-                                         \
-public:                                  \
+public: \
+	static varType get##funName(); \
+\
+public: \
 	static void set##funName(varType var)
 
 #define PROPERTY(varType, funName) \
-public:                            \
-	varType get##funName() const;  \
-                                   \
-public:                            \
+public: \
+	varType get##funName() const; \
+\
+public: \
 	void set##funName(varType var)
 
 #define PROPERTY_VIRTUAL(varType, funName) \
-public:                                    \
-	varType get##funName() const;          \
-                                           \
-public:                                    \
+public: \
+	varType get##funName() const; \
+\
+public: \
 	virtual void set##funName(varType var)
 
 #define PROPERTY_VIRTUAL_CREF(varType, funName) \
-public:                                         \
-	const varType& get##funName() const;        \
-                                                \
-public:                                         \
+public: \
+	const varType& get##funName() const; \
+\
+public: \
 	virtual void set##funName(const varType& var)
 
 #define PROPERTY_READONLY_VIRTUAL(varType, funName) \
-public:                                             \
+public: \
 	virtual varType get##funName() const
 
 #define PROPERTY_READONLY(varType, funName) \
-public:                                     \
+public: \
 	varType get##funName() const
 
 #define PROPERTY_READONLY_CREF(varType, funName) \
-public:                                          \
+public: \
 	const varType& get##funName() const
 
 #define PROPERTY_READONLY_REF(varType, funName) \
-public:                                         \
+public: \
 	varType& get##funName()
 
 #define PROPERTY_READONLY_BOOL(funName) \
-public:                                 \
+public: \
 	bool is##funName() const
 
 #define PROPERTY_READONLY_HAS(funName) \
-public:                                \
+public: \
 	bool has##funName() const
 
 #define PROPERTY_READONLY_CLASS(varType, funName) \
-public:                                           \
+public: \
 	static varType get##funName()
 
 #define PROPERTY_READONLY_CALL(varType, funName) \
-public:                                          \
+public: \
 	varType get##funName()
 
 #define PROPERTY_BOOL(funName) \
-public:                        \
-	bool is##funName() const;  \
-                               \
-public:                        \
+public: \
+	bool is##funName() const; \
+\
+public: \
 	void set##funName(bool var)
 
 #define PROPERTY_VIRTUAL_BOOL(funName) \
-public:                                \
-	bool is##funName() const;          \
-                                       \
-public:                                \
+public: \
+	bool is##funName() const; \
+\
+public: \
 	void virtual set##funName(bool var)
 
-#define PROPERTY_STRING(funName)             \
-public:                                      \
+#define PROPERTY_STRING(funName) \
+public: \
 	const std::string& get##funName() const; \
-                                             \
-public:                                      \
+\
+public: \
 	void set##funName(String var)
 
-#define PROPERTY_VIRTUAL_STRING(funName)     \
-public:                                      \
+#define PROPERTY_VIRTUAL_STRING(funName) \
+public: \
 	const std::string& get##funName() const; \
-                                             \
-public:                                      \
+\
+public: \
 	virtual void set##funName(String var)
 
 /** @brief Code block for condition check.
@@ -130,7 +130,7 @@ public:                                      \
 #define BREAK_UNLESS(cond) \
 	if (!(cond)) break
 #define BLOCK_END \
-	}             \
+	} \
 	while (false) \
 		;
 
@@ -138,7 +138,7 @@ public:                                      \
 #define DORA_UNUSED [[maybe_unused]]
 #define DORA_UNUSED_PARAM(unusedparam) (void)unusedparam
 #define DORA_DUMMY \
-	do {           \
+	do { \
 	} while (0)
 
 /* Short names for C++ casts */
@@ -168,17 +168,17 @@ typedef Slice String;
  auto itemA = MyItem::create();
  auto itemB = MyItem::create(998);
  */
-#define CREATE_FUNC(type)                                   \
-	template <class... Args>                                \
-	static type* create(Args&&... args) {                   \
+#define CREATE_FUNC(type) \
+	template <class... Args> \
+	static type* create(Args&&... args) { \
 		type* item = new type(std::forward<Args>(args)...); \
-		if (item && item->init()) {                         \
-			item->autorelease();                            \
-		} else {                                            \
-			delete item;                                    \
-			item = nullptr;                                 \
-		}                                                   \
-		return item;                                        \
+		if (item && item->init()) { \
+			item->autorelease(); \
+		} else { \
+			delete item; \
+			item = nullptr; \
+		} \
+		return item; \
 	}
 
 /** @brief Helper function to iterate a std::tuple.
@@ -283,22 +283,22 @@ int DoraType() {
 	return type;
 }
 
-#define DORA_TYPE(type)          \
-public:                          \
-	int getDoraType() const {    \
+#define DORA_TYPE(type) \
+public: \
+	int getDoraType() const { \
 		return DoraType<type>(); \
 	}
 
-#define DORA_TYPE_BASE(type)          \
-public:                               \
+#define DORA_TYPE_BASE(type) \
+public: \
 	virtual int getDoraType() const { \
-		return DoraType<type>();      \
+		return DoraType<type>(); \
 	}
 
-#define DORA_TYPE_OVERRIDE(type)               \
-public:                                        \
+#define DORA_TYPE_OVERRIDE(type) \
+public: \
 	virtual int getDoraType() const override { \
-		return DoraType<type>();               \
+		return DoraType<type>(); \
 	}
 
 template <class OutT, class InT>
@@ -350,26 +350,14 @@ private:
 
 class Profiler {
 public:
-	Profiler();
-	void start();
-	double stop(String logName = Slice::Empty);
-
-	template <typename Func>
-	static double run(const Func& func) {
-		Profiler profiler;
-		func();
-		return profiler.stop();
-	}
-
-	template <typename Func>
-	static double run(String logName, const Func& func) {
-		Profiler profiler;
-		func();
-		return profiler.stop(logName);
-	}
+	PROPERTY_STRING(Message);
+	Profiler(String name);
+	~Profiler();
 
 private:
 	double _lastTime;
+	std::string _name;
+	std::string _msg;
 };
 
 class Path {

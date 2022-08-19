@@ -23,28 +23,28 @@ int Path_create(lua_State* L);
 
 /* Content */
 void __Content_loadFile(lua_State* L, Content* self, String filename);
-#define Content_loadFile(self, filename)             \
-	{                                                \
+#define Content_loadFile(self, filename) \
+	{ \
 		__Content_loadFile(tolua_S, self, filename); \
-		return 1;                                    \
+		return 1; \
 	}
 void __Content_getDirs(lua_State* L, Content* self, String path);
-#define Content_getDirs(self, path)             \
-	{                                           \
+#define Content_getDirs(self, path) \
+	{ \
 		__Content_getDirs(tolua_S, self, path); \
-		return 1;                               \
+		return 1; \
 	}
 void __Content_getFiles(lua_State* L, Content* self, String path);
-#define Content_getFiles(self, path)             \
-	{                                            \
+#define Content_getFiles(self, path) \
+	{ \
 		__Content_getFiles(tolua_S, self, path); \
-		return 1;                                \
+		return 1; \
 	}
 void __Content_getAllFiles(lua_State* L, Content* self, String path);
-#define Content_getAllFiles(self, path)             \
-	{                                               \
+#define Content_getAllFiles(self, path) \
+	{ \
 		__Content_getAllFiles(tolua_S, self, path); \
-		return 1;                                   \
+		return 1; \
 	}
 int Content_GetSearchPaths(lua_State* L);
 int Content_SetSearchPaths(lua_State* L);
@@ -116,52 +116,52 @@ int Action_create(lua_State* L);
 
 /* Model */
 void __Model_getClipFile(lua_State* L, String filename);
-#define Model_getClipFile(filename)             \
-	{                                           \
+#define Model_getClipFile(filename) \
+	{ \
 		__Model_getClipFile(tolua_S, filename); \
-		return 1;                               \
+		return 1; \
 	}
 void __Model_getLookNames(lua_State* L, String filename);
-#define Model_getLookNames(filename)             \
-	{                                            \
+#define Model_getLookNames(filename) \
+	{ \
 		__Model_getLookNames(tolua_S, filename); \
-		return 1;                                \
+		return 1; \
 	}
 void __Model_getAnimationNames(lua_State* L, String filename);
-#define Model_getAnimationNames(filename)             \
-	{                                                 \
+#define Model_getAnimationNames(filename) \
+	{ \
 		__Model_getAnimationNames(tolua_S, filename); \
-		return 1;                                     \
+		return 1; \
 	}
 
 /* Spine */
 void __Spine_getLookNames(lua_State* L, String spineStr);
-#define Spine_getLookNames(spineStr)             \
-	{                                            \
+#define Spine_getLookNames(spineStr) \
+	{ \
 		__Spine_getLookNames(tolua_S, spineStr); \
-		return 1;                                \
+		return 1; \
 	}
 void __Spine_getAnimationNames(lua_State* L, String spineStr);
-#define Spine_getAnimationNames(spineStr)             \
-	{                                                 \
+#define Spine_getAnimationNames(spineStr) \
+	{ \
 		__Spine_getAnimationNames(tolua_S, spineStr); \
-		return 1;                                     \
+		return 1; \
 	}
 int Spine_containsPoint(lua_State* L);
 int Spine_intersectsSegment(lua_State* L);
 
 /* DragonBone */
 void __DragonBone_getLookNames(lua_State* L, String boneStr);
-#define DragonBone_getLookNames(boneStr)             \
-	{                                                \
+#define DragonBone_getLookNames(boneStr) \
+	{ \
 		__DragonBone_getLookNames(tolua_S, boneStr); \
-		return 1;                                    \
+		return 1; \
 	}
 void __DragonBone_getAnimationNames(lua_State* L, String boneStr);
-#define DragonBone_getAnimationNames(boneStr)             \
-	{                                                     \
+#define DragonBone_getAnimationNames(boneStr) \
+	{ \
 		__DragonBone_getAnimationNames(tolua_S, boneStr); \
-		return 1;                                         \
+		return 1; \
 	}
 int DragonBone_containsPoint(lua_State* L);
 int DragonBone_intersectsSegment(lua_State* L);
@@ -434,5 +434,5 @@ uint32_t getTableCombinedFlags(Slice* flags, int count);
 ImGuiTableRowFlags_ getTableRowFlag(String flag);
 ImGuiTableColumnFlags_ getTableColumnFlags(String flag);
 uint32_t getTableColumnCombinedFlags(Slice* flags, int count);
-}
-}
+} // namespace Binding
+} // namespace ImGui

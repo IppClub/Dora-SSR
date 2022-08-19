@@ -169,45 +169,46 @@ void TextureCache::loadAsync(String filename, const std::function<void(Texture2D
 			handler(nullptr);
 			return;
 		}
-		SharedAsyncThread.run([this, data, size]() {
-			bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
-			delete [] data;
-			return Values::alloc(imageContainer); }, [this, file, handler](Own<Values> result) {
-			bimg::ImageContainer* imageContainer;
-			result->get(imageContainer);
-			if (imageContainer)
-			{
-				uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-				const bgfx::Memory* mem = bgfx::makeRef(
-					imageContainer->m_data, imageContainer->m_size,
-					releaseImage, imageContainer);
-				bgfx::TextureHandle handle = bgfx::createTexture2D(
-					s_cast<uint16_t>(imageContainer->m_width),
-					s_cast<uint16_t>(imageContainer->m_height),
-					imageContainer->m_numMips > 1,
-					imageContainer->m_numLayers,
-					s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format),
-					flags,
-					mem);
-				bgfx::TextureInfo info;
-				bgfx::calcTextureSize(info,
-					s_cast<uint16_t>(imageContainer->m_width),
-					s_cast<uint16_t>(imageContainer->m_height),
-					s_cast<uint16_t>(imageContainer->m_depth),
-					imageContainer->m_cubeMap,
-					imageContainer->m_numMips > 1,
-					imageContainer->m_numLayers,
-					s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
-				Texture2D* texture = Texture2D::create(handle, info, flags);
-				std::string fullPath = SharedContent.getFullPath(file);
-				_textures[fullPath] = texture;
-				handler(texture);
-			}
-			else
-			{
-				Warn("texture format \"{}\" is not supported for \"{}\".", Path::getExt(file), file);
-				handler(nullptr);
-			} });
+		SharedAsyncThread.run(
+			[this, data, size]() {
+				bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
+				delete[] data;
+				return Values::alloc(imageContainer);
+			},
+			[this, file, handler](Own<Values> result) {
+				bimg::ImageContainer* imageContainer;
+				result->get(imageContainer);
+				if (imageContainer) {
+					uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+					const bgfx::Memory* mem = bgfx::makeRef(
+						imageContainer->m_data, imageContainer->m_size,
+						releaseImage, imageContainer);
+					bgfx::TextureHandle handle = bgfx::createTexture2D(
+						s_cast<uint16_t>(imageContainer->m_width),
+						s_cast<uint16_t>(imageContainer->m_height),
+						imageContainer->m_numMips > 1,
+						imageContainer->m_numLayers,
+						s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format),
+						flags,
+						mem);
+					bgfx::TextureInfo info;
+					bgfx::calcTextureSize(info,
+						s_cast<uint16_t>(imageContainer->m_width),
+						s_cast<uint16_t>(imageContainer->m_height),
+						s_cast<uint16_t>(imageContainer->m_depth),
+						imageContainer->m_cubeMap,
+						imageContainer->m_numMips > 1,
+						imageContainer->m_numLayers,
+						s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
+					Texture2D* texture = Texture2D::create(handle, info, flags);
+					std::string fullPath = SharedContent.getFullPath(file);
+					_textures[fullPath] = texture;
+					handler(texture);
+				} else {
+					Warn("texture format \"{}\" is not supported for \"{}\".", Path::getExt(file), file);
+					handler(nullptr);
+				}
+			});
 	});
 }
 

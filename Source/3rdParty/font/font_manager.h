@@ -1,13 +1,13 @@
 /*
- * Copyright 2013 Jeremie Roy. All rights reserved.
+ * Copyright 2013 Jeremie Roy, modified by Jin Li 2022. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
 #ifndef FONT_MANAGER_H_HEADER_GUARD
 #define FONT_MANAGER_H_HEADER_GUARD
 
-#include "bx/handlealloc.h"
 #include "bgfx/bgfx.h"
+#include "bx/handlealloc.h"
 
 namespace bgfx {
 
@@ -17,8 +17,7 @@ class Atlas;
 #define MAX_OPENED_FONT 64
 #define MAX_FONT_BUFFER_SIZE 128
 
-struct FontInfo
-{
+struct FontInfo {
 	/// The font height in pixel.
 	uint16_t pixelSize;
 
@@ -68,8 +67,7 @@ struct FontInfo
 typedef int32_t CodePoint;
 
 /// A structure that describe a glyph.
-struct GlyphInfo
-{
+struct GlyphInfo {
 	/// Index for faster retrieval.
 	uint32_t glyphIndex;
 
@@ -103,8 +101,7 @@ struct GlyphInfo
 BGFX_HANDLE(TrueTypeHandle);
 BGFX_HANDLE(FontHandle);
 
-class FontManager
-{
+class FontManager {
 public:
 	/// Create the font manager and create the texture cube as BGRA8 with
 	/// linear filtering.
@@ -140,10 +137,10 @@ public:
 	const GlyphInfo* getGlyphInfo(FontHandle _handle, CodePoint _codePoint);
 
 	float getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
+
 private:
 	struct CachedFont;
-	struct CachedFile
-	{
+	struct CachedFile {
 		Dorothy::OwnArray<uint8_t> buffer;
 		uint32_t bufferSize;
 	};
@@ -162,7 +159,7 @@ private:
 	bx::HandleAllocT<MAX_OPENED_FILES> m_filesHandles;
 	Dorothy::OwnArray<CachedFile> m_cachedFiles;
 
-	//temporary buffer to raster glyph
+	// temporary buffer to raster glyph
 	Dorothy::OwnArray<uint8_t> m_buffer;
 
 	GlyphInfo m_fallbackGlyph;
