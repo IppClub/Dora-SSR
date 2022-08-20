@@ -10,5 +10,8 @@ IndentCaseLabels: true
 NamespaceIndentation: None
 SpaceBeforeCpp11BracedList: false
 TabWidth: 4
-UseTab: true
+AlignEscapedNewlines: DontAlign
+AlwaysBreakBeforeMultilineStrings: true
+FixNamespaceComments: true
+UseTab: Always
 ...
