@@ -5644,7 +5644,7 @@ tl.type_check = function(ast, opts)
 		elseif t.typename == "nominal" then
 			local typetype = t.found or find_type(t.names)
 			if not typetype then
-				return "table"
+				return "invalid"
 			end
 			return union_type(typetype)
 		elseif t.typename == "record" then
@@ -5692,9 +5692,27 @@ tl.type_check = function(ast, opts)
 				if ut == "string" then
 					has_primitive_string_type = true
 				end
+			elseif ut == "invalid" then
+				return false, nil
 			end
 		end
 		return true
+	end
+
+	local function validate_union(where, u, store_errs, errs)
+		local valid, err = is_valid_union(u)
+		if err then
+			if store_errs then
+				errs = errs or {}
+			else
+				errs = errors
+			end
+			table.insert(errs, error_in_type(where, err, u))
+		end
+		if not valid then
+			u = INVALID
+		end
+		return u, store_errs and errs
 	end
 
 	local function resolve_typetype(t)
@@ -5746,7 +5764,6 @@ tl.type_check = function(ast, opts)
 				return t
 			end
 
-			seen = seen or {}
 			if seen[t] then
 				return seen[t]
 			end
@@ -5847,11 +5864,7 @@ tl.type_check = function(ast, opts)
 					copy.types[i] = resolve(tf)
 				end
 
-				local ok, err = is_valid_union(copy)
-				if not ok then
-					errs = errs or {}
-					table.insert(errs, error_in_type(t, err, t))
-				end
+				copy, errs = validate_union(t, copy, true, errs)
 			elseif t.typename == "poly" or t.typename == "tupletable" then
 				copy.types = {}
 				for i, tf in ipairs(t.types) do
@@ -6417,6 +6430,7 @@ tl.type_check = function(ast, opts)
 			local typetype = t.found or find_type(t.names)
 			if not typetype then
 				type_error(t, "unknown type %s", t)
+				return INVALID
 			elseif is_typetype(typetype) then
 				if typetype.is_alias then
 					typetype = typetype.def.found
@@ -6682,6 +6696,10 @@ tl.type_check = function(ast, opts)
 					end
 				end
 			end
+		end
+
+		if types_seen[INVALID.typeid] then
+			return INVALID
 		end
 
 		if #ts == 1 then
@@ -8350,14 +8368,14 @@ tl.type_check = function(ast, opts)
 		end
 	end
 
-	local function check_redeclared_key(where, ctx, seen_keys, ck, n)
+	local function check_redeclared_key(node, ctx, seen_keys, ck, n)
 		local key = ck or n
 		if key then
 			local s = seen_keys[key]
 			if s then
-				node_error(where, in_context(ctx, "redeclared key " .. tostring(key) .. " (previously declared at " .. filename .. ":" .. s.y .. ":" .. s.x .. ")"))
+				node_error(node, in_context(ctx, "redeclared key " .. tostring(key) .. " (previously declared at " .. filename .. ":" .. s.y .. ":" .. s.x .. ")"))
 			else
-				seen_keys[key] = where
+				seen_keys[key] = node
 			end
 		end
 	end
@@ -8885,6 +8903,14 @@ node.exps[3] and node.exps[3].type, }
 			after = end_scope_and_none_type,
 		},
 		["return"] = {
+			before = function(node)
+				local rets = find_var_type("@return")
+				if rets then
+					for i, exp in ipairs(node.exps) do
+						exp.expected = rets[i]
+					end
+				end
+			end,
 			after = function(node, children)
 				local rets = find_var_type("@return")
 				if not rets then
@@ -9244,6 +9270,9 @@ node.exps[3] and node.exps[3].type, }
 			end,
 		},
 		["paren"] = {
+			before = function(node)
+				node.e1.expected = node.expected
+			end,
 			after = function(node, children)
 				node.known = node.e1 and node.e1.known
 				node.type = resolve_tuple(children[1])
@@ -9251,8 +9280,18 @@ node.exps[3] and node.exps[3].type, }
 			end,
 		},
 		["op"] = {
-			before = function()
+			before = function(node)
 				begin_scope()
+				if node.expected then
+					if node.op.op == "and" then
+						node.e2.expected = node.expected
+					elseif node.op.op == "or" then
+						node.e1.expected = node.expected
+						if not (node.e2.kind == "table_literal" and #node.e2 == 0) then
+							node.e2.expected = node.expected
+						end
+					end
+				end
 			end,
 			before_e2 = function(node)
 				if node.op.op == "and" then
@@ -9359,10 +9398,7 @@ node.exps[3] and node.exps[3].type, }
 					node.known = facts_or(node, node.e1.known, node.e2.known)
 					local u = unite({ ra, rb }, true)
 					if u.typename == "union" then
-						local valid, err = is_valid_union(u)
-						if not valid then
-							u = node_error(node, err)
-						end
+						u = validate_union(node, u)
 					end
 					node.type = u
 				elseif node.op.op == "or" and is_a(rb, ra) then
@@ -9528,8 +9564,8 @@ node.exps[3] and node.exps[3].type, }
 			end,
 		},
 		["argument"] = {
-			after = function(node, _children)
-				local t = node.decltype
+			after = function(node, children)
+				local t = children[1]
 				if not t then
 					t = UNKNOWN
 				end
@@ -9561,31 +9597,35 @@ node.exps[3] and node.exps[3].type, }
 		},
 	}
 
+	local function after_literal(node)
+		node.type = a_type({
+			y = node.y,
+			x = node.x,
+			typename = node.kind,
+			tk = node.tk,
+		})
+		node.known = FACT_TRUTHY
+		return node.type
+	end
+
 	visit_node.cbs["string"] = {
 		after = function(node, _children)
-			node.type = a_type({
-				y = node.y,
-				x = node.x,
-				typename = node.kind,
-				tk = node.tk,
-			})
-			node.known = FACT_TRUTHY
+			after_literal(node)
+			if node.expected then
+				if node.expected.typename == "enum" and is_a(node.type, node.expected) then
+					node.type = node.expected
+				end
+			end
 			return node.type
 		end,
 	}
-	visit_node.cbs["number"] = visit_node.cbs["string"]
-	visit_node.cbs["integer"] = visit_node.cbs["string"]
+	visit_node.cbs["number"] = { after = after_literal }
+	visit_node.cbs["integer"] = { after = after_literal }
+
 	visit_node.cbs["boolean"] = {
 		after = function(node, _children)
-			node.type = a_type({
-				y = node.y,
-				x = node.x,
-				typename = node.kind,
-				tk = node.tk,
-			})
-			if node.tk == "true" then
-				node.known = FACT_TRUTHY
-			end
+			after_literal(node)
+			node.known = (node.tk == "true") and FACT_TRUTHY or nil
 			return node.type
 		end,
 	}
@@ -9694,11 +9734,7 @@ node.exps[3] and node.exps[3].type, }
 			},
 			["union"] = {
 				after = function(typ, _children)
-					local valid, err = is_valid_union(typ)
-					if not valid then
-						type_error(typ, err, typ)
-					end
-					return typ
+					return (validate_union(typ, typ))
 				end,
 			},
 		},
