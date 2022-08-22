@@ -10307,8 +10307,9 @@ tl.tolua = function(input, filename)
 	if #errs > 0 then
 		return nil, filename .. " :" .. errs[1].y .. ":" .. errs[1].x .. ": " .. errs[1].msg
 	end
+	local gen_target = tl.target_from_lua_version(_VERSION)
 	if not tl.package_loader_env then
-		tl.package_loader_env = tl.init_env()
+		tl.package_loader_env = tl.init_env(false, gen_target)
 	end
 	local res = tl.type_check(program, {
 		lax = false,
@@ -10331,7 +10332,7 @@ tl.tolua = function(input, filename)
 	if #errs > 0 then
 		return nil, table.concat(errs, "\n")
 	end
-	local code = tl.pretty_print_ast(program, true)
+	local code = tl.pretty_print_ast(program, gen_target, false)
 	return code
 end
 
