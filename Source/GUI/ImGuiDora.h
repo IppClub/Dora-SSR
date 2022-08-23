@@ -94,6 +94,13 @@ private:
 	Own<ImFontAtlas> _fonts;
 	std::unordered_map<std::string, double> _timeCosts;
 	std::unordered_map<std::string, double> _updateCosts;
+	struct LoaderCost {
+		int id;
+		std::string module;
+		double time;
+	};
+	double _loaderTotalTime;
+	std::vector<LoaderCost> _loaderCosts;
 	std::unordered_map<int, int> _keymap;
 	SINGLETON_REF(ImGuiDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGui

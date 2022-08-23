@@ -39,6 +39,27 @@ builtin.Platformer.Data = Data
 local Wasm = builtin.Wasm()
 builtin.Wasm = Wasm
 
+-- setup loader profilers
+
+local loaders = package.loaders or package.searchers
+for i = 1, #loaders do
+	local loader = loaders[i]
+	loaders[i] = function(name)
+		local lastTime = App.eclapsedTime
+		local loaded
+		local _ <close> = setmetatable({ }, {
+			__close = function()
+				local deltaTime = App.eclapsedTime - lastTime
+				if type(loaded) ~= "string" then
+					builtin.emit("_TIMECOST_", "Loader", name, deltaTime)
+				end
+			end
+		})
+		loaded = loader(name)
+		return loaded
+	end
+end
+
 -- coroutine wrapper
 
 local coroutine_yield = coroutine.yield

@@ -210,7 +210,7 @@ void Event::get(Args&... args) {
 			Issue("wasm event arguments mismatch.");
 		}
 	} else {
-		Issue("no required event argument type can be retrieved.");
+		Issue("event arguments mismatch.");
 	}
 }
 

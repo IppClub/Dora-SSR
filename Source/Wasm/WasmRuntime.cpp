@@ -1340,13 +1340,16 @@ bool WasmRuntime::executeMainFile(String filename) {
 		return false;
 	}
 	try {
-		_wasm = SharedContent.load(filename);
-		auto mod = _env.parse_module(_wasm.first.get(), _wasm.second);
-		_runtime.load(mod);
-		mod.link_default();
-		linkDoraModule(mod);
-		_callFunc = New<wasm3::function>(_runtime.find_function("call_function"));
-		_derefFunc = New<wasm3::function>(_runtime.find_function("deref_function"));
+		{
+			Profiler _("Loader"_slice, filename);
+			_wasm = SharedContent.load(filename);
+			auto mod = _env.parse_module(_wasm.first.get(), _wasm.second);
+			_runtime.load(mod);
+			mod.link_default();
+			linkDoraModule(mod);
+			_callFunc = New<wasm3::function>(_runtime.find_function("call_function"));
+			_derefFunc = New<wasm3::function>(_runtime.find_function("deref_function"));
+		}
 		wasm3::function mainFn = _runtime.find_function("_start");
 		mainFn.call_argv();
 		return true;

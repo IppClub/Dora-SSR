@@ -35,7 +35,7 @@ float rand0to1() {
 float rand1to1() {
 	return 2.0f * rand0to1() - 1.0f;
 }
-}
+} // namespace Math
 
 Flag::Flag(IntType flags)
 	: _flags(flags) { }
@@ -52,21 +52,16 @@ void Flag::toggle(IntType type) {
 	set(type, !isOn(type));
 }
 
-Profiler::Profiler(String name)
+Slice Profiler::EventName = "_TIMECOST_"_slice;
+
+Profiler::Profiler(String name, String msg)
 	: _lastTime(SharedApplication.getCurrentTime())
-	, _name(name) { }
-
-void Profiler::setMessage(String var) {
-	_msg = var;
-}
-
-const std::string& Profiler::getMessage() const {
-	return _msg;
-}
+	, _name(name)
+	, _msg(msg) { }
 
 Profiler::~Profiler() {
 	double deltaTime = SharedApplication.getCurrentTime() - _lastTime;
-	Event::send("_TIMECOST_"_slice, _name, _msg, deltaTime);
+	Event::send(Profiler::EventName, _name, _msg, deltaTime);
 }
 
 std::string Path::concat(const std::list<Slice>& paths) {

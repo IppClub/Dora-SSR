@@ -257,7 +257,7 @@ namespace Literals {
 inline std::size_t constexpr operator"" _hash(const char* s, size_t) {
 	return hash(s);
 }
-}
+} // namespace Literals
 } // namespace Switch
 
 /** @brief Helpers for number comparision */
@@ -270,7 +270,7 @@ inline T clamp(T value, T minVal, T maxVal) {
 
 float rand0to1();
 float rand1to1();
-}
+} // namespace Math
 
 /** @brief Dorothy`s type system for lua and
  it`s an alternative for dynamic_cast.
@@ -350,9 +350,9 @@ private:
 
 class Profiler {
 public:
-	PROPERTY_STRING(Message);
-	Profiler(String name);
+	Profiler(String name, String msg = Slice::Empty);
 	~Profiler();
+	static Slice EventName;
 
 private:
 	double _lastTime;

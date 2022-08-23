@@ -59,7 +59,6 @@ static int dora_traceback(lua_State* L) {
 
 static int dora_loadfile(lua_State* L, String filename, String moduleName = nullptr) {
 	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
-	Profiler _("Loader"_slice);
 	std::string extension = Path::getExt(filename);
 	std::string targetFile = filename;
 	if (extension.empty() && targetFile.back() != '.') {
@@ -153,7 +152,6 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 			break;
 		}
 	}
-
 	if (codeBuffer) {
 		if (luaL_loadbuffer(L, codeBuffer, codeBufferSize, filename.toString().c_str()) != 0) {
 			luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
