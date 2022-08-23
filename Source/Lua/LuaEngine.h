@@ -30,6 +30,7 @@ public:
 	PROPERTY_READONLY(lua_State*, State);
 	PROPERTY_READONLY_REF(yue::YueCompiler, Yue);
 	PROPERTY_READONLY_BOOL(InLua);
+	PROPERTY_READONLY(int, MemoryCount);
 
 	std::pair<std::string, std::string> tealToLua(const std::string& tlCodes, String moduleName);
 
