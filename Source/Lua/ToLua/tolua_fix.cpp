@@ -95,6 +95,7 @@ int tolua_isobject(lua_State* L, int lo) {
 }
 
 void tolua_dobuffer(lua_State* L, char* codes, unsigned int size, const char* name) {
+	Profiler _("Loader"_slice, name);
 	if (luaL_loadbuffer(L, codes, size, name) != 0) {
 		Error("[Lua] error loading module \"{}\" from \"{}\" :\n\t{}",
 			Slice(lua_tostring(L, 1)), name, Slice(lua_tostring(L, -1)));

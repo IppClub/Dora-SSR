@@ -129,7 +129,7 @@ public:
 	static void push(lua_State* L, const Vec2& value);
 
 	template <class T>
-	typename std::enable_if_t<std::is_integral_v<T>, bool> to(T& value, int index) {
+	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, bool> to(T& value, int index) {
 		if (lua_isinteger(L, index)) {
 			value = s_cast<T>(lua_tointeger(L, index));
 			return true;
