@@ -413,6 +413,18 @@ yue::YueCompiler& LuaEngine::getYue() {
 	return *_yueCompiler;
 }
 
+int LuaEngine::getMemoryCount() const {
+	int k = lua_gc(L, LUA_GCCOUNT);
+	int b = lua_gc(L, LUA_GCCOUNTB);
+	int memLua = (k * 1024 + b);
+	if (_tlState) {
+		k = lua_gc(_tlState, LUA_GCCOUNT);
+		b = lua_gc(_tlState, LUA_GCCOUNTB);
+		memLua += (k * 1024 + b);
+	}
+	return memLua;
+}
+
 LuaEngine::LuaEngine()
 	: L(luaL_newstate())
 	, _tlState(nullptr) {

@@ -634,9 +634,7 @@ void ImGuiDora::showStats() {
 		if (ImGui::CollapsingHeader("Memory")) {
 			_memFrames++;
 			_memPoolSize += (MemoryPool::getTotalCapacity() / 1024);
-			int k = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNT);
-			int b = lua_gc(SharedLuaEngine.getState(), LUA_GCCOUNTB);
-			_memLua += (k + b / 1024);
+			_memLua += (SharedLuaEngine.getMemoryCount() / 1024);
 			if (_memFrames >= SharedApplication.getTargetFPS()) {
 				_lastMemPoolSize = _memPoolSize / _memFrames;
 				_lastMemLua = _memLua / _memFrames;
@@ -1330,7 +1328,10 @@ bool ImGuiDora::handle(const SDL_Event& event) {
 	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_FINGERDOWN:
-			if (ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() || ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)) {
+			if (ImGui::IsAnyItemHovered()
+				|| ImGui::IsAnyItemActive()
+				|| ImGui::IsAnyItemFocused()
+				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)) {
 				_rejectAllEvents = true;
 			}
 			break;
@@ -1348,7 +1349,10 @@ bool ImGuiDora::handle(const SDL_Event& event) {
 		case SDL_MULTIGESTURE:
 			return _rejectAllEvents;
 		case SDL_MOUSEWHEEL:
-			return ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsAnyItemFocused() || ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
+			return ImGui::IsAnyItemHovered()
+				|| ImGui::IsAnyItemActive()
+				|| ImGui::IsAnyItemFocused()
+				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
 	}
 	return false;
 }
