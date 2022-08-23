@@ -368,6 +368,7 @@ ImGuiDora::ImGuiDora()
 	, _renderTime(0)
 	, _avgCPUTime(0)
 	, _avgGPUTime(0)
+	, _loaderTotalTime(0)
 	, _avgDeltaTime(1000.0 / SharedApplication.getTargetFPS())
 	, _memPoolSize(0)
 	, _memLua(0)
@@ -385,13 +386,21 @@ ImGuiDora::ImGuiDora()
 		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
 	SharedApplication.eventHandler += std::make_pair(this, &ImGuiDora::handleEvent);
-	_costListener = Listener::create("_TIMECOST_"_slice, [&](Event* e) {
+	_costListener = Listener::create(Profiler::EventName, [&](Event* e) {
 		std::string name;
 		std::string msg;
 		double cost;
 		e->get(name, msg, cost);
 		if (!_timeCosts.insert({name, cost}).second) {
 			_timeCosts[name] += cost;
+		}
+		if (name == "Loader"_slice) {
+			const auto& assetPath = SharedContent.getAssetPath();
+			if (Slice(msg).left(assetPath.size()) == assetPath) {
+				msg = Path::concat({"assets"_slice, msg.substr(assetPath.size())});
+			}
+			_loaderTotalTime += cost;
+			_loaderCosts.push_back({s_cast<int>(_loaderCosts.size()), msg + '\t', cost});
 		}
 	});
 }
@@ -510,6 +519,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 
 void ImGuiDora::showStats() {
 	/* print debug text */
+	static const auto labelColor = Color(0xff00ffff).toVec4();
 	if (ImGui::Begin("Dorothy Stats", nullptr,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 		if (ImGui::CollapsingHeader("Basic")) {
@@ -527,24 +537,24 @@ void ImGuiDora::showStats() {
 				"Vulkan", //!< Vulkan
 				"WebGPU", //!< WebGPU
 			};
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Renderer:");
+			ImGui::TextColored(labelColor, "Renderer:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Multithreaded:");
+			ImGui::TextColored(labelColor, "Multithreaded:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Backbuffer:");
+			ImGui::TextColored(labelColor, "Backbuffer:");
 			ImGui::SameLine();
 			Size size = SharedView.getSize();
 			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Drawcall:");
+			ImGui::TextColored(labelColor, "Drawcall:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Tri:");
+			ImGui::TextColored(labelColor, "Tri:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
 			ImGui::SameLine();
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Line:");
+			ImGui::TextColored(labelColor, "Line:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
 			bool vsync = SharedView.isVSync();
@@ -556,7 +566,7 @@ void ImGuiDora::showStats() {
 			if (ImGui::Checkbox("FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "FPS:");
+			ImGui::TextColored(labelColor, "FPS:");
 			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
 			if (ImGui::RadioButton("30", &targetFPS, 30)) {
@@ -594,16 +604,16 @@ void ImGuiDora::showStats() {
 				_timeFrames = 0;
 			}
 			ImGui::Checkbox("Show Plot", &_showPlot);
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG FPS:");
+			ImGui::TextColored(labelColor, "AVG FPS:");
 			ImGui::SameLine();
 			ImGui::Text("%.1f", 1000.0f / _avgDeltaTime);
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG CPU:");
+			ImGui::TextColored(labelColor, "AVG CPU:");
 			ImGui::SameLine();
 			if (_avgCPUTime == 0)
 				ImGui::Text("-");
 			else
 				ImGui::Text("%.1f ms", _avgCPUTime);
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "AVG GPU:");
+			ImGui::TextColored(labelColor, "AVG GPU:");
 			ImGui::SameLine();
 			if (_avgGPUTime == 0)
 				ImGui::Text("-");
@@ -611,13 +621,13 @@ void ImGuiDora::showStats() {
 				ImGui::Text("%.1f ms", _avgGPUTime);
 		}
 		if (ImGui::CollapsingHeader("Object")) {
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "C++ Object:");
+			ImGui::TextColored(labelColor, "C++ Object:");
 			ImGui::SameLine();
 			ImGui::Text("%d", Object::getCount());
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Object:");
+			ImGui::TextColored(labelColor, "Lua Object:");
 			ImGui::SameLine();
 			ImGui::Text("%d", Object::getLuaRefCount());
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Callback:");
+			ImGui::TextColored(labelColor, "Lua Callback:");
 			ImGui::SameLine();
 			ImGui::Text("%d", Object::getLuaCallbackCount());
 		}
@@ -633,15 +643,90 @@ void ImGuiDora::showStats() {
 				_memPoolSize = _memLua = 0;
 				_memFrames = 0;
 			}
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Memory Pool:");
+			ImGui::TextColored(labelColor, "Memory Pool:");
 			ImGui::SameLine();
 			ImGui::Text("%d kb", _lastMemPoolSize);
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Lua Memory:");
+			ImGui::TextColored(labelColor, "Lua Memory:");
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f);
-			ImGui::TextColored(Color(0xff00ffff).toVec4(), "Texture Size:");
+			ImGui::TextColored(labelColor, "Texture Size:");
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
+		}
+		if (ImGui::CollapsingHeader("Loader")) {
+			if (ImGui::Button("Clear")) {
+				_loaderCosts.clear();
+				_loaderTotalTime = 0;
+			}
+			ImGui::SameLine();
+			ImGui::TextColored(labelColor, "Time Cost:");
+			ImGui::SameLine();
+			ImGui::Text("%.4f s", _loaderTotalTime);
+			const ImGuiTableFlags flags = ImGuiTableFlags_Resizable
+				| ImGuiTableFlags_Sortable
+				| ImGuiTableFlags_RowBg
+				| ImGuiTableFlags_BordersOuter
+				| ImGuiTableFlags_BordersV
+				| ImGuiTableFlags_NoBordersInBody
+				| ImGuiTableFlags_ScrollY
+				| ImGuiTableFlags_SizingFixedFit;
+			if (ImGui::BeginTable("Loaders", 3, flags, ImVec2(0.0f, 400.0f))) {
+				ImGui::TableSetupColumn("ID",
+					ImGuiTableColumnFlags_DefaultSort
+						| ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupColumn("Time",
+					ImGuiTableColumnFlags_PreferSortDescending
+						| ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupColumn("Module",
+					ImGuiTableColumnFlags_NoSort
+						| ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableHeadersRow();
+
+				if (ImGuiTableSortSpecs* sortsSpecs = ImGui::TableGetSortSpecs())
+					if (sortsSpecs->SpecsDirty) {
+						sortsSpecs->SpecsDirty = false;
+						const auto& spec = sortsSpecs->Specs[0];
+						bool ascending = spec.SortDirection == ImGuiSortDirection_Ascending;
+						switch (spec.ColumnIndex) {
+							case 0:
+								std::sort(_loaderCosts.begin(), _loaderCosts.end(), [=](const auto& itemA, const auto& itemB) {
+									if (ascending) {
+										return itemA.id < itemB.id;
+									} else {
+										return itemA.id > itemB.id;
+									}
+								});
+								break;
+							case 1:
+								std::sort(_loaderCosts.begin(), _loaderCosts.end(), [=](const auto& itemA, const auto& itemB) {
+									if (ascending) {
+										return itemA.time < itemB.time;
+									} else {
+										return itemA.time > itemB.time;
+									}
+								});
+								break;
+						}
+					}
+
+				ImGuiListClipper clipper;
+				clipper.Begin(_loaderCosts.size());
+				while (clipper.Step())
+					for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++) {
+						const auto& item = _loaderCosts[row];
+						ImGui::PushID(item.id);
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", item.id);
+						ImGui::TableNextColumn();
+						ImGui::Text("%.2f ms", item.time * 1000.0);
+						ImGui::TableNextColumn();
+						ImGui::TextUnformatted(item.module.c_str());
+						ImGui::PopID();
+					}
+				ImGui::EndTable();
+			}
 		}
 		ImGui::Dummy(Vec2{200.0f, 0.0f});
 	}
