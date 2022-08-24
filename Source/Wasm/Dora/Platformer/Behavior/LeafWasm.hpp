@@ -1,68 +1,52 @@
-static int32_t platformer_behavior_tree_type()
-{
+static int32_t platformer_behavior_tree_type() {
 	return DoraType<Platformer::Behavior::Leaf>();
 }
-static int64_t platformer_behavior_leaf_seq(int64_t nodes)
-{
+static int64_t platformer_behavior_leaf_seq(int64_t nodes) {
 	return from_object(BSeq(from_btree_vec(nodes)));
 }
-static int64_t platformer_behavior_leaf_sel(int64_t nodes)
-{
+static int64_t platformer_behavior_leaf_sel(int64_t nodes) {
 	return from_object(BSel(from_btree_vec(nodes)));
 }
-static int64_t platformer_behavior_leaf_con(int64_t name, int32_t func, int64_t stack)
-{
-	std::shared_ptr<void> deref(nullptr, [func](auto)
-	{
+static int64_t platformer_behavior_leaf_con(int64_t name, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	return from_object(BCon(*str_from(name), [func, args, deref](Platformer::Behavior::Blackboard* blackboard)
-	{
+	return from_object(BCon(*str_from(name), [func, args, deref](Platformer::Behavior::Blackboard* blackboard) {
 		args->clear();
 		args->push(r_cast<int64_t>(blackboard));
 		SharedWasmRuntime.invoke(func);
 		return std::get<bool>(args->pop());
 	}));
 }
-static int64_t platformer_behavior_leaf_act(int64_t action)
-{
+static int64_t platformer_behavior_leaf_act(int64_t action) {
 	return from_object(BAct(*str_from(action)));
 }
-static int64_t platformer_behavior_leaf_command(int64_t action)
-{
+static int64_t platformer_behavior_leaf_command(int64_t action) {
 	return from_object(BCommand(*str_from(action)));
 }
-static int64_t platformer_behavior_leaf_wait(double duration)
-{
+static int64_t platformer_behavior_leaf_wait(double duration) {
 	return from_object(BWait(duration));
 }
-static int64_t platformer_behavior_leaf_countdown(double time, int64_t node)
-{
+static int64_t platformer_behavior_leaf_countdown(double time, int64_t node) {
 	return from_object(BCountdown(time, r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-static int64_t platformer_behavior_leaf_timeout(double time, int64_t node)
-{
+static int64_t platformer_behavior_leaf_timeout(double time, int64_t node) {
 	return from_object(BTimeout(time, r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-static int64_t platformer_behavior_leaf_repeat(int32_t times, int64_t node)
-{
+static int64_t platformer_behavior_leaf_repeat(int32_t times, int64_t node) {
 	return from_object(BRepeat(s_cast<int>(times), r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-static int64_t platformer_behavior_leaf_repeat_forever(int64_t node)
-{
+static int64_t platformer_behavior_leaf_repeat_forever(int64_t node) {
 	return from_object(BRepeat(r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-static int64_t platformer_behavior_leaf_retry(int32_t times, int64_t node)
-{
+static int64_t platformer_behavior_leaf_retry(int32_t times, int64_t node) {
 	return from_object(BRetry(s_cast<int>(times), r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-static int64_t platformer_behavior_leaf_retry_until_pass(int64_t node)
-{
+static int64_t platformer_behavior_leaf_retry_until_pass(int64_t node) {
 	return from_object(BRetry(r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-static void linkPlatformerBehaviorLeaf(wasm3::module& mod)
-{
+static void linkPlatformerBehaviorLeaf(wasm3::module& mod) {
 	mod.link_optional("*", "platformer_behavior_tree_type", platformer_behavior_tree_type);
 	mod.link_optional("*", "platformer_behavior_leaf_seq", platformer_behavior_leaf_seq);
 	mod.link_optional("*", "platformer_behavior_leaf_sel", platformer_behavior_leaf_sel);
