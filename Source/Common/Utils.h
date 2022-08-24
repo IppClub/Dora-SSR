@@ -352,7 +352,8 @@ class Profiler {
 public:
 	Profiler(String name, String msg = Slice::Empty);
 	~Profiler();
-	static Slice EventName;
+	static const Slice EventName;
+	static int level;
 
 private:
 	double _lastTime;

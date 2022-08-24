@@ -125,9 +125,10 @@ WasmEventArgs::WasmEventArgs(String name, CallStack* stack)
 
 int WasmEventArgs::pushArgsToLua() {
 	for (const auto& val : _values) {
-		std::visit([](const auto& arg) {
-			SharedLuaEngine.push(arg);
-		},
+		std::visit(
+			[](const auto& arg) {
+				SharedLuaEngine.push(arg);
+			},
 			val);
 	}
 	return s_cast<int>(_values.size());

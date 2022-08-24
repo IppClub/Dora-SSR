@@ -389,8 +389,9 @@ ImGuiDora::ImGuiDora()
 	_costListener = Listener::create(Profiler::EventName, [&](Event* e) {
 		std::string name;
 		std::string msg;
+		int level = 0;
 		double cost;
-		e->get(name, msg, cost);
+		e->get(name, msg, level, cost);
 		if (!_timeCosts.insert({name, cost}).second) {
 			_timeCosts[name] += cost;
 		}
@@ -399,8 +400,8 @@ ImGuiDora::ImGuiDora()
 			if (Slice(msg).left(assetPath.size()) == assetPath) {
 				msg = Path::concat({"assets"_slice, msg.substr(assetPath.size())});
 			}
-			_loaderTotalTime += cost;
-			_loaderCosts.push_back({s_cast<int>(_loaderCosts.size()), msg + '\t', cost});
+			if (level == 0) _loaderTotalTime += cost;
+			_loaderCosts.push_front({s_cast<int>(_loaderCosts.size()), level, msg + '\t', cost});
 		}
 	});
 }
@@ -662,52 +663,67 @@ void ImGuiDora::showStats() {
 			ImGui::Text("%.4f s", _loaderTotalTime);
 			const ImGuiTableFlags flags = ImGuiTableFlags_Resizable
 				| ImGuiTableFlags_Sortable
+				| ImGuiTableFlags_SortMulti
 				| ImGuiTableFlags_RowBg
 				| ImGuiTableFlags_BordersOuter
 				| ImGuiTableFlags_BordersV
 				| ImGuiTableFlags_NoBordersInBody
 				| ImGuiTableFlags_ScrollY
 				| ImGuiTableFlags_SizingFixedFit;
-			if (ImGui::BeginTable("Loaders", 3, flags, ImVec2(0.0f, 400.0f))) {
+			if (ImGui::BeginTable("Loaders", 4, flags, ImVec2(0.0f, 400.0f))) {
 				ImGui::TableSetupColumn("ID",
 					ImGuiTableColumnFlags_DefaultSort
+						| ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
 				ImGui::TableSetupColumn("Time",
 					ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupColumn("Level",
+					ImGuiTableColumnFlags_PreferSortAscending
+						| ImGuiTableColumnFlags_WidthFixed);
 				ImGui::TableSetupColumn("Module",
 					ImGuiTableColumnFlags_NoSort
-						| ImGuiTableColumnFlags_WidthFixed);
+						| ImGuiTableColumnFlags_WidthStretch);
 				ImGui::TableSetupScrollFreeze(0, 1);
 				ImGui::TableHeadersRow();
 
 				if (ImGuiTableSortSpecs* sortsSpecs = ImGui::TableGetSortSpecs())
 					if (sortsSpecs->SpecsDirty) {
 						sortsSpecs->SpecsDirty = false;
-						const auto& spec = sortsSpecs->Specs[0];
-						bool ascending = spec.SortDirection == ImGuiSortDirection_Ascending;
-						switch (spec.ColumnIndex) {
-							case 0:
-								std::sort(_loaderCosts.begin(), _loaderCosts.end(), [=](const auto& itemA, const auto& itemB) {
-									if (ascending) {
-										return itemA.id < itemB.id;
-									} else {
-										return itemA.id > itemB.id;
-									}
-								});
-								break;
-							case 1:
-								std::sort(_loaderCosts.begin(), _loaderCosts.end(), [=](const auto& itemA, const auto& itemB) {
-									if (ascending) {
-										return itemA.time < itemB.time;
-									} else {
-										return itemA.time > itemB.time;
-									}
-								});
-								break;
-						}
+						std::sort(_loaderCosts.begin(), _loaderCosts.end(), [&](const auto& itemA, const auto& itemB) {
+							for (int n = 0; n < sortsSpecs->SpecsCount; n++) {
+								const auto& spec = sortsSpecs->Specs[n];
+								bool ascending = spec.SortDirection == ImGuiSortDirection_Ascending;
+								switch (spec.ColumnIndex) {
+									case 0:
+										if (itemA.id == itemB.id) continue;
+										if (ascending) {
+											return itemA.id < itemB.id;
+										} else {
+											return itemA.id > itemB.id;
+										}
+									case 1:
+										if (itemA.time == itemB.time) continue;
+										if (ascending) {
+											return itemA.time < itemB.time;
+										} else {
+											return itemA.time > itemB.time;
+										}
+									case 2:
+										if (itemA.level == itemB.level) continue;
+										if (ascending) {
+											return itemA.level < itemB.level;
+										} else {
+											return itemA.level > itemB.level;
+										}
+								}
+							}
+							return false;
+						});
 					}
 
+				auto targetFPS = SharedApplication.getTargetFPS();
+				auto warningColor = Color(0xffff0080).toVec4();
 				ImGuiListClipper clipper;
 				clipper.Begin(_loaderCosts.size());
 				while (clipper.Step())
@@ -718,7 +734,13 @@ void ImGuiDora::showStats() {
 						ImGui::TableNextColumn();
 						ImGui::Text("%d", item.id);
 						ImGui::TableNextColumn();
-						ImGui::Text("%.2f ms", item.time * 1000.0);
+						if (item.time > 1.0 / targetFPS) {
+							ImGui::TextColored(warningColor, "%.2f ms", item.time * 1000.0);
+						} else {
+							ImGui::Text("%.2f ms", item.time * 1000.0);
+						}
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", item.level);
 						ImGui::TableNextColumn();
 						ImGui::TextUnformatted(item.module.c_str());
 						ImGui::PopID();
