@@ -639,8 +639,7 @@ else
 		objectUsed = #rustBinding
 		if isObject
 			objectUsed = nil
-			cppBinding[] = "static int32_t #{namespace}#{clsNewNameL}_type()
-{
+			cppBinding[] = "static int32_t #{namespace}#{clsNewNameL}_type() {
 	return DoraType<#{clsName}>();
 }"
 		if clsParent
@@ -653,7 +652,7 @@ else
 				for inherit in *inherits
 					rustBinding[] = "use crate::dora::#{inherit};"
 					rustBinding[] = "impl #{inherit} for #{clsNewName} { }"
-		cppLink[] = "static void link#{table.concat moduleScopes}#{cppModuleName}(wasm3::module& mod)\n{"
+		cppLink[] = "static void link#{table.concat moduleScopes}#{cppModuleName}(wasm3::module& mod) {"
 		rustBinding[] = if isTrait
 			if isObject
 				rustBinding[] = "pub struct #{clsNewName} { raw: i64 }
@@ -684,8 +683,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 		})
 	}"
 		if isValue
-			cppBinding[] = "static void #{namespace}#{clsNewNameL}_release(int64_t raw)
-{
+			cppBinding[] = "static void #{namespace}#{clsNewNameL}_release(int64_t raw) {
 	delete r_cast<#{clsName}*>(raw);
 }"
 			rustExtern[] = "\tfn #{namespace}#{clsNewNameL}_release(raw: i64);"
@@ -756,9 +754,9 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							cppLink[] = "\tmod.link_optional(\"*\", \"#{cppSetterName}\", #{cppSetterName});"
 							cppBinding[] = if isSingleton
 								callFunc = isStatic and "#{clsName}::#{setFunc};" or "#{singletonName}.#{setFunc};"
-								"static void #{cppSetterName}(#{cppType} var)\n{\n\t#{callFunc}\n}"
+								"static void #{cppSetterName}(#{cppType} var) {\n\t#{callFunc}\n}"
 							else
-								"static void #{cppSetterName}(int64_t self, #{cppType} var)\n{\n\tr_cast<#{clsName}*>(self)->#{setFunc};\n}"
+								"static void #{cppSetterName}(int64_t self, #{cppType} var) {\n\tr_cast<#{clsName}*>(self)->#{setFunc};\n}"
 							rustExtern[] = if isSingleton
 								"\tfn #{cppSetterName}(var: #{rt});"
 							else
@@ -785,11 +783,11 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						cppBinding[] = if isSingleton
 							callFunc = isStatic and "#{clsName}::#{getFunc}" or "#{singletonName}.#{getFunc}"
 							item = castFrom "#{callFunc}"
-							"static #{cppType} #{cppGetterName}()\n{\n\treturn #{item};\n}"
+							"static #{cppType} #{cppGetterName}() {\n\treturn #{item};\n}"
 						else
 							callFunc = isStatic and "#{clsName}::#{getFunc}" or "r_cast<#{clsName}*>(self)->#{getFunc}"
 							item = castFrom callFunc
-							"static #{cppType} #{cppGetterName}(int64_t self)\n{\n\treturn #{item};\n}"
+							"static #{cppType} #{cppGetterName}(int64_t self) {\n\treturn #{item};\n}"
 						rustExtern[] = if isSingleton
 							"\tfn #{cppGetterName}() -> #{rt};"
 						else
@@ -955,16 +953,14 @@ impl I#{clsNewName} for #{clsNewName} { }"
 											argPassed = true
 									{
 										"int32_t func#{fnArgId}#{argPassed and ', int64_t stack' .. fnArgId or ''}"
-										"[func#{fnArgId}, #{argPassed and 'args' .. fnArgId .. ', ' or ''}deref#{fnArgId}](#{cppArgDef})
-	{
+										"[func#{fnArgId}, #{argPassed and 'args' .. fnArgId .. ', ' or ''}deref#{fnArgId}](#{cppArgDef}) {
 #{argPassed and '\t\targs' .. fnArgId .. '->clear();\n' .. cppArgPass or ''}\t\tSharedWasmRuntime.invoke(func#{fnArgId});
 #{callbackReturn}	}"
 										"func#{fnArgId}: i32#{argPassed and ', stack' .. fnArgId .. ': i64' or ''}"
 										"mut #{fname}: #{callbackType}"
 										"func_id#{fnArgId}#{argPassed and ', stack_raw' .. fnArgId or ''}"
 										"
-	std::shared_ptr<void> deref#{fnArgId}(nullptr, [func#{fnArgId}](auto)
-	{
+	std::shared_ptr<void> deref#{fnArgId}(nullptr, [func#{fnArgId}](auto) {
 		SharedWasmRuntime.deref(func#{fnArgId});
 	});#{argPassed and '\n\tauto args' .. fnArgId .. ' = r_cast<CallStack*>(stack' .. fnArgId .. ');' or ''}"
 										(argPassed and "\t\tlet mut stack#{fnArgId} = crate::dora::CallStack::new();
@@ -990,7 +986,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							callFunc = isStatic and "#{clsName}::#{name}(#{argPass})" or "#{singletonName}.#{name}(#{argPass})"
 							callFunc = isOutside and "#{name}(#{argPass})" or callFunc
 							item = castFrom callFunc
-							"static #{cppType} #{cppFuncName}(#{argDefs})\n{#{argPrepare}\n\t#{prefix}#{item};\n}"
+							"static #{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
 						else
 							slf = isStatic and "" or "int64_t self"
 							if slf ~= "" then argDefs = slf .. (argDefs ~= "" and ", " or "") .. argDefs
@@ -1006,7 +1002,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 									"r_cast<#{clsName}*>(self)->#{name}(#{argPass})"
 							callFunc = isValue and argPass or callFunc if isCreate
 							item = castFrom callFunc
-							"static #{cppType} #{cppFuncName}(#{argDefs})\n{#{argPrepare}\n\t#{prefix}#{item};\n}"
+							"static #{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
 						rustExtern[] = if isSingleton
 							"\tfn #{cppFuncName}(#{argRtDefs})#{rt and ' -> ' .. rt or ''};"
 						else
