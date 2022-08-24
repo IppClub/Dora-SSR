@@ -96,11 +96,12 @@ private:
 	std::unordered_map<std::string, double> _updateCosts;
 	struct LoaderCost {
 		int id;
+		int level;
 		std::string module;
 		double time;
 	};
 	double _loaderTotalTime;
-	std::vector<LoaderCost> _loaderCosts;
+	std::deque<LoaderCost> _loaderCosts;
 	std::unordered_map<int, int> _keymap;
 	SINGLETON_REF(ImGuiDora, BGFXDora);
 	// font building is calling in thread, so make thread depend on ImGui

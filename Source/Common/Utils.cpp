@@ -52,16 +52,20 @@ void Flag::toggle(IntType type) {
 	set(type, !isOn(type));
 }
 
-Slice Profiler::EventName = "_TIMECOST_"_slice;
+const Slice Profiler::EventName = "_TIMECOST_"_slice;
+int Profiler::level = -1;
 
 Profiler::Profiler(String name, String msg)
 	: _lastTime(SharedApplication.getCurrentTime())
 	, _name(name)
-	, _msg(msg) { }
+	, _msg(msg) {
+	level++;
+}
 
 Profiler::~Profiler() {
 	double deltaTime = SharedApplication.getCurrentTime() - _lastTime;
-	Event::send(Profiler::EventName, _name, _msg, deltaTime);
+	Event::send(Profiler::EventName, _name, _msg, level, deltaTime);
+	level--;
 }
 
 std::string Path::concat(const std::list<Slice>& paths) {

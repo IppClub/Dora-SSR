@@ -1,5 +1,11 @@
 typedef Slice String;
 
+class Profiler
+{
+	static tolua_readonly string EventName;
+	static int level;
+};
+
 struct Color3
 {
 	uint8_t r;
