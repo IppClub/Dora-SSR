@@ -1,4 +1,3 @@
 
-static void linkFixtureDef(wasm3::module& mod)
-{
+static void linkFixtureDef(wasm3::module& mod) {
 }
