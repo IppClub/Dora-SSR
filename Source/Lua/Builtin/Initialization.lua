@@ -41,22 +41,42 @@ builtin.Wasm = Wasm
 
 -- setup loader profilers
 
-local loaders = package.loaders or package.searchers
-for i = 1, #loaders do
-	local loader = loaders[i]
-	loaders[i] = function(name)
+do
+	local Profiler = builtin.Profiler
+	local EventName = Profiler.EventName
+	local loaders = package.loaders or package.searchers
+	for i = 1, #loaders do
+		local loader = loaders[i]
+		loaders[i] = function(name)
+			local lastTime = App.eclapsedTime
+			local loaded
+			Profiler.level = Profiler.level + 1
+			local _ <close> = setmetatable({ }, {
+				__close = function()
+					if type(loaded) ~= "string" then
+						local deltaTime = App.eclapsedTime - lastTime
+						builtin.emit(EventName, "Loader", name .. " [Compile]", Profiler.level, deltaTime)
+					end
+					Profiler.level = Profiler.level - 1
+				end
+			})
+			loaded = loader(name)
+			return loaded
+		end
+	end
+
+	local require = _G.require
+	_G.require = function(name)
 		local lastTime = App.eclapsedTime
-		local loaded
+		Profiler.level = Profiler.level + 1
 		local _ <close> = setmetatable({ }, {
 			__close = function()
 				local deltaTime = App.eclapsedTime - lastTime
-				if type(loaded) ~= "string" then
-					builtin.emit("_TIMECOST_", "Loader", name, deltaTime)
-				end
+				builtin.emit(EventName, "Loader", name, Profiler.level, deltaTime)
+				Profiler.level = Profiler.level - 1
 			end
 		})
-		loaded = loader(name)
-		return loaded
+		return require(name)
 	end
 end
 

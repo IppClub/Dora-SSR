@@ -1340,8 +1340,9 @@ bool WasmRuntime::executeMainFile(String filename) {
 		return false;
 	}
 	try {
+		Profiler _("Loader"_slice, filename);
 		{
-			Profiler _("Loader"_slice, filename);
+			Profiler _("Loader"_slice, filename + " [Load]"s);
 			_wasm = SharedContent.load(filename);
 			auto mod = _env.parse_module(_wasm.first.get(), _wasm.second);
 			_runtime.load(mod);
@@ -1390,6 +1391,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			},
 			[file, handler, this](Own<Values> values) {
 				try {
+					Profiler _("Loader"_slice, file);
 					Own<wasm3::module> mod;
 					Own<wasm3::function> mainFn;
 					values->get(mod, mainFn);
