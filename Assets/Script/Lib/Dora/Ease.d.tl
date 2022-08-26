@@ -41,6 +41,6 @@ local record Ease
 	const OutBounce: EaseFunc
 	const InOutBounce: EaseFunc
 	const OutInBounce: EaseFunc
-	func: function(easing: EaseFunc, time: number): number
+	func: function(self: Ease, easing: EaseFunc, time: number): number
 end
 return Ease

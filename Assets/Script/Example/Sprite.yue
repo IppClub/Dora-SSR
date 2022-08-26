@@ -24,40 +24,41 @@ Director.entry\addChild with Node!
 		Begin "Sprite", windowFlags, ->
 			BeginChild "SpriteSetting", Vec2(-1, -40), ->
 				:z = sprite
-				changed, z = DragFloat "Z", z, 1, -1000, 1000, "%.2f"
-				sprite.z = z if changed
+				if changed, z = DragFloat "Z", z, 1, -1000, 1000, "%.2f"
+					sprite.z = z
 				:x, :y = sprite.anchor
-				changed, x, y = DragFloat2 "Anchor", x, y, 0.01, 0, 1, "%.2f"
-				sprite.anchor = Vec2 x, y if changed
+				if changed, x, y = DragFloat2 "Anchor", x, y, 0.01, 0, 1, "%.2f"
+					sprite.anchor = Vec2 x, y
 				width: spriteW, :height = sprite.size
-				changed, spriteW, height = DragFloat2 "Size", spriteW, height, 0.1, 0, 1000, "%.f"
-				sprite.size = Size spriteW, height if changed
+				if changed, spriteW, height = DragFloat2 "Size", spriteW, height, 0.1, 0, 1000, "%.f"
+					sprite.size = Size spriteW, height
 				:scaleX, :scaleY = sprite
-				changed, scaleX, scaleY = DragFloat2 "Scale", scaleX, scaleY, 0.01, -2, 2, "%.2f"
-				sprite.scaleX, sprite.scaleY = scaleX, scaleY if changed
+				if changed, scaleX, scaleY = DragFloat2 "Scale", scaleX, scaleY, 0.01, -2, 2, "%.2f"
+					sprite.scaleX, sprite.scaleY = scaleX, scaleY
 				PushItemWidth -60, ->
 					:angle = sprite
-					changed, angle = DragInt "Angle", math.floor(angle), 1, -360, 360
-					sprite.angle = angle if changed
+					if changed, angle = DragInt "Angle", math.floor(angle), 1, -360, 360
+						sprite.angle = angle
 				PushItemWidth -60, ->
 					:angleX = sprite
-					changed, angleX = DragInt "AngleX", math.floor(angleX), 1, -360, 360
-					sprite.angleX = angleX if changed
+					if changed, angleX = DragInt "AngleX", math.floor(angleX), 1, -360, 360
+						sprite.angleX = angleX
 				PushItemWidth -60, ->
 					:angleY = sprite
-					changed, angleY = DragInt "AngleY", math.floor(angleY), 1, -360, 360
-					sprite.angleY = angleY if changed
+					if changed, angleY = DragInt "AngleY", math.floor(angleY), 1, -360, 360
+						sprite.angleY = angleY
 				:skewX, :skewY = sprite
-				changed, skewX, skewY = DragInt2 "Skew", math.floor(skewX), math.floor(skewY), 1, -360, 360
-				sprite.skewX, sprite.skewY = skewX, skewY if changed
+				if changed, skewX, skewY = DragInt2 "Skew", math.floor(skewX), math.floor(skewY), 1, -360, 360
+					sprite.skewX, sprite.skewY = skewX, skewY
 				PushItemWidth -70, ->
 					:opacity = sprite
-					changed, opacity = DragFloat "Opacity", opacity, 0.01, 0, 1, "%.2f"
-					sprite.opacity = opacity if changed
+					if changed, opacity = DragFloat "Opacity", opacity, 0.01, 0, 1, "%.2f"
+						sprite.opacity = opacity
 				PushItemWidth -1, ->
 					:color3 = sprite
 					SetColorEditOptions "RGB"
-					sprite.color3 = color3 if ColorEdit3 "", color3
+					if ColorEdit3 "", color3
+						sprite.color3 = color3
 			if Button "Reset", Vec2 140, 30
 				with sprite.parent
 					\removeChild sprite

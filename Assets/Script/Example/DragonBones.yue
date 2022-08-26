@@ -54,4 +54,5 @@ Director.entry\addChild with Node!
 			Text "DragonBones"
 			Separator!
 			TextWrapped "Basic usage to create dragonBones! Tap it for a hit test."
-			bone.showDebug = showDebug if changed, showDebug = Checkbox "BoundingBox", showDebug
+			if changed, showDebug = Checkbox "BoundingBox", showDebug
+				bone.showDebug = showDebug

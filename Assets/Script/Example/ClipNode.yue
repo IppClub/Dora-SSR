@@ -29,12 +29,14 @@ targetA = with Model "Model/xiaoli.model"
 	\slot "ActionEnd", (action)-> \runAction action
 	\slot "Turn", -> .fliped = not .fliped
 
+clipNodeA = with ClipNode maskA
+	\addChild targetA
+	.inverted = true
+frame = with Line StarVertices(160, true), Color 0xff00ffff
+	.visible = false
 exampleA = with Node!
-	\addChild with ClipNode maskA
-		\addChild targetA
-		.inverted = true
-	\addChild with Line StarVertices(160, true), Color 0xff00ffff
-		.visible = false
+	\addChild clipNodeA
+	\addChild frame
 	\addTo Director.entry
 	.visible = false
 
@@ -53,11 +55,12 @@ targetB = with DrawNode!
 	)
 	\slot "ActionEnd", (action)-> \runAction action
 
+clipNodeB = with ClipNode maskB
+	\addChild targetB
+	.inverted = true
+	.alphaThreshold = 0.3
 exampleB = with Node!
-	\addChild with ClipNode maskB
-		\addChild targetB
-		.inverted = true
-		.alphaThreshold = 0.3
+	\addChild clipNodeB
 	\addTo Director.entry
 
 -- example codes ends here, some test ui below --
@@ -83,9 +86,9 @@ Director.entry\addChild with Node!
 			Separator!
 			TextWrapped "Render children nodes with mask!"
 			if changed, inverted = Checkbox "Inverted", inverted
-				exampleA.children.first.inverted = inverted
-				exampleB.children.first.inverted = inverted
-				exampleA.children.last.visible = not inverted
+				clipNodeA.inverted = inverted
+				clipNodeB.inverted = inverted
+				frame.visible = not inverted
 			if changed, withAlphaThreshold = Checkbox "With alphaThreshold", withAlphaThreshold
 				exampleB.visible = withAlphaThreshold
 				exampleA.visible = not withAlphaThreshold
