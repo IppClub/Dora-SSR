@@ -1,0 +1,1 @@
+return function(...: any) print(...) end

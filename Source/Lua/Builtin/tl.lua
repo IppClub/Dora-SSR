@@ -2228,11 +2228,11 @@ local function parse_variable_name(ps, i)
 			if not is_attribute[annotation.tk] then
 				fail(ps, i, "unknown variable annotation: " .. annotation.tk)
 			end
+			node.attribute = annotation.tk
 		else
 			fail(ps, i, "expected a variable annotation")
 		end
 		i = verify_tk(ps, i, ">")
-		node.attribute = annotation.tk
 	end
 	return i, node
 end
@@ -4056,6 +4056,9 @@ function tl.pretty_print_ast(ast, gen_target, mode)
 						table.insert(out, "math.type(")
 						add_child(out, children[1], "", indent)
 						table.insert(out, ") == \"integer\"")
+					elseif node.e2.casttype.typename == "nil" then
+						add_child(out, children[1], "", indent)
+						table.insert(out, " == nil")
 					else
 						table.insert(out, "type(")
 						add_child(out, children[1], "", indent)
@@ -5134,6 +5137,7 @@ local function init_globals(lax)
 					["__eq"] = a_type({ typename = "function", args = TUPLE({ ANY, ANY }), rets = TUPLE({ BOOLEAN }) }),
 					["__lt"] = a_type({ typename = "function", args = TUPLE({ ANY, ANY }), rets = TUPLE({ BOOLEAN }) }),
 					["__le"] = a_type({ typename = "function", args = TUPLE({ ANY, ANY }), rets = TUPLE({ BOOLEAN }) }),
+					["__close"] = a_type({ typename = "function", args = TUPLE({ a }), rets = TUPLE({}) }),
 				},
 			} end),
 		}),
@@ -7239,7 +7243,9 @@ tl.type_check = function(ast, opts)
 		if same_type(t, NIL) then
 			return true
 		end
-		t = resolve_nominal(t)
+		if t.typename ~= "function" then
+			t = resolve_nominal(t)
+		end
 		return t.meta_fields and t.meta_fields["__close"] ~= nil
 	end
 
@@ -10358,13 +10364,15 @@ tl.tolua = function(input, filename)
 	if #errs > 0 then
 		return nil, filename .. " :" .. errs[1].y .. ":" .. errs[1].x .. ": " .. errs[1].msg
 	end
-	local gen_target = tl.target_from_lua_version(_VERSION)
 	if not tl.package_loader_env then
-		tl.package_loader_env = tl.init_env(false, gen_target)
+		tl.package_loader_env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
 	end
+	local gen_target = tl.package_loader_env.gen_target
 	local res = tl.type_check(program, {
 		lax = false,
 		filename = filename,
+		gen_compat = "off",
+		gen_target = gen_target,
 		env = tl.package_loader_env,
 		run_internal_compiler_checks = false,
 	})
@@ -10374,10 +10382,10 @@ tl.tolua = function(input, filename)
 			table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
 		end
 	end
-	if res.type_errors and #res.type_errors > 0 then
-		for i = 1, #res.type_errors do
-			local err = res.type_errors[i]
-			table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
+	if res.warnings and #res.warnings > 0 then
+		for i = 1, #res.warnings do
+			local warning = res.warnings[i]
+			table.insert(errs, filename .. ":" .. tostring(warning.y) .. ":" .. tostring(warning.x) .. ": " .. warning.msg)
 		end
 	end
 	if #errs > 0 then

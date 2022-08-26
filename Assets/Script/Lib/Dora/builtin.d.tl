@@ -47,7 +47,6 @@ local Audio = require("Audio")
 local cycle = require("cycle")
 local App = require("App")
 local Texture2D = require("Texture2D")
-local p = require("yue").p
 local once = require("once")
 local MoveJoint = require("MoveJoint")
 local Buffer = require("Buffer")
@@ -103,6 +102,7 @@ local nvg = require("nvg")
 local ImGui = require("ImGui")
 local Platformer = require("Platformer")
 local tealtolua = require("tealtolua")
+local p = require("p")
 --Dorothy
 --property
 --Class

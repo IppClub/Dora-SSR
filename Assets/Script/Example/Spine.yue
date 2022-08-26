@@ -46,10 +46,11 @@ Director.entry\addChild with Node!
 	\schedule ->
 		const :width = App.visualSize
 		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 		Begin "Spine", windowFlags, ->
 			Text "Spine"
 			Separator!
 			TextWrapped "Basic usage to create spine! Tap it for a hit test."
-			spine.showDebug = showDebug if changed, showDebug = Checkbox "BoundingBox", showDebug
+			if changed, showDebug = Checkbox "BoundingBox", showDebug
+				spine.showDebug = showDebug
