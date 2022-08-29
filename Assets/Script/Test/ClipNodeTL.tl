@@ -9,8 +9,6 @@ local ClipNode <const> = require("ClipNode")
 local Line <const> = require("Line")
 local Color <const> = require("Color")
 local Director <const> = require("Director")
-local App <const> = require("App")
-local ImGui <const> = require("ImGui")
 local Action <const> = require("Action")
 
 local function StarVertices(radius: number, line: boolean): {Vec2.Type}
@@ -90,6 +88,9 @@ exampleB:addChild(clipNodeB)
 exampleB:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
+
+local App <const> = require("App")
+local ImGui <const> = require("ImGui")
 
 local inverted = true
 local withAlphaThreshold = true

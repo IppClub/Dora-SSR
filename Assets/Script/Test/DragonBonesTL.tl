@@ -1,4 +1,4 @@
-local DragonBone = require("DragonBone")
+local DragonBone <const> = require("DragonBone")
 local p <const> = require("p")
 local Label <const> = require("Label")
 local Color <const> = require("Color")
@@ -12,8 +12,6 @@ local Event <const> = require("Event")
 local Vec2 <const> = require("Vec2")
 local Director <const> = require("Director")
 local Node <const> = require("Node")
-local App <const> = require("App")
-local ImGui <const> = require("ImGui")
 local Touch <const> = require("Touch")
 
 local boneStr <const> = "DragonBones/NewDragon"
@@ -60,6 +58,11 @@ bone:slot("TapBegan", function(touch: Touch.Type)
 	end
 end)
 Director.entry:addChild(bone)
+
+-- example codes ends here, some test ui below --
+
+local App <const> = require("App")
+local ImGui <const> = require("ImGui")
 
 local ui = Node()
 local windowFlags = {

@@ -1,6 +1,7 @@
 local Object = require("Object").Type
 local Array = require("Array").Type
 local Item = require("ItemBase")
+local ContainerItem = require("ContainerItemBase")
 local record Dictionary
 	embed Object
 	const count: integer
@@ -11,8 +12,9 @@ local record Dictionary
 	metamethod __newindex: function(self: Dictionary, key: string, item: Item)
 end
 local record DictionaryClass
-	type Item = Item
 	type Type = Dictionary
+	type Item = Item
+	type ContainerItem = ContainerItem
 	metamethod __call: function(cls: DictionaryClass): Dictionary
 end
 print(Dictionary.keys)

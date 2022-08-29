@@ -1663,7 +1663,16 @@ local simple_types = {
 	["integer"] = INTEGER,
 }
 
-local simple_opt_types
+local simple_opt_types = {
+	["nil"] = a_type({ opt = true, typename = "nil" }),
+	["any"] = a_type({ opt = true, typename = "any" }),
+	["table"] = a_type({ opt = true, typename = "map", keys = ANY, values = ANY }),
+	["number"] = a_type({ opt = true, typename = "number" }),
+	["string"] = a_type({ opt = true, typename = "string" }),
+	["thread"] = a_type({ opt = true, typename = "thread" }),
+	["boolean"] = a_type({ opt = true, typename = "boolean" }),
+	["integer"] = a_type({ opt = true, typename = "integer" }),
+}
 
 local function parse_base_type(ps, i)
 	local tk = ps.tokens[i].tk
@@ -4989,26 +4998,11 @@ local function init_globals(lax)
 		return x
 	end
 
-	local OPT_NIL = a_type({ opt = true, typename = "nil" })
-	local OPT_ANY = a_type({ opt = true, typename = "any" })
-	local OPT_TABLE = a_type({ opt = true, typename = "map", keys = ANY, values = ANY })
-	local OPT_NUMBER = a_type({ opt = true, typename = "number" })
-	local OPT_STRING = a_type({ opt = true, typename = "string" })
-	local OPT_THREAD = a_type({ opt = true, typename = "thread" })
-	local OPT_BOOLEAN = a_type({ opt = true, typename = "boolean" })
-	local OPT_INTEGER = a_type({ opt = true, typename = "integer" })
-
-	simple_opt_types = {
-		["nil"] = OPT_NIL,
-		["any"] = OPT_ANY,
-		["table"] = OPT_TABLE,
-		["number"] = OPT_NUMBER,
-		["string"] = OPT_STRING,
-		["thread"] = OPT_THREAD,
-		["boolean"] = OPT_BOOLEAN,
-		["integer"] = OPT_INTEGER,
-	}
-
+	local OPT_TABLE = simple_opt_types["table"]
+	local OPT_NUMBER = simple_opt_types["number"]
+	local OPT_STRING = simple_opt_types["string"]
+	local OPT_THREAD = simple_opt_types["thread"]
+	local OPT_BOOLEAN = simple_opt_types["boolean"]
 	local OPT_NOMINAL_FILE = a_type({ opt = true, typename = "nominal", names = { "FILE" } })
 	local OPT_TABLE_SORT_FUNCTION = a_gfunction(1, function(a) return { args = TUPLE({ a, a }), rets = TUPLE({ BOOLEAN }) } end, true)
 
