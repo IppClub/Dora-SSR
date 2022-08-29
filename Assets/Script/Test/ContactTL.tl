@@ -7,8 +7,6 @@ local Line <const> = require("Line")
 local Color <const> = require("Color")
 local Director <const> = require("Director")
 local Node <const> = require("Node")
-local App <const> = require("App")
-local ImGui <const> = require("ImGui")
 
 local gravity <const> = Vec2(0, -10)
 
@@ -61,6 +59,9 @@ disk:slot("ContactStart", function(_: Body.Type, point: Vec2.Type)
 end)
 
 -- example codes ends here, some test ui below --
+
+local App <const> = require("App")
+local ImGui <const> = require("ImGui")
 
 local ui = Node()
 local windowFlags = {

@@ -1,7 +1,8 @@
-local Director = require("Director")
-local Node = require("Node")
-local once = require("once")
-local sleep = require("sleep")
+local Director <const> = require("Director")
+local Node <const> = require("Node")
+local once <const> = require("once")
+local sleep <const> = require("sleep")
+
 local node = Node()
 node:slot("Enter", function()
 	print("on enter event")
@@ -19,12 +20,14 @@ node:schedule(once(function(): boolean
 	end
 	print("Hello World!")
 end))
-Director.entry:addChild(node)
+node:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
+
 local ImGui = require("ImGui")
 local Vec2 = require("Vec2")
 local App = require("App")
+
 local ui = Node()
 local windowFlags = {
 	"NoDecoration",

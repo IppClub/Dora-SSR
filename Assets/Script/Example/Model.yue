@@ -15,9 +15,9 @@ Director.entry\addChild model
 _ENV = Dorothy builtin.ImGui
 
 looks = Model\getLooks modelFile
-looks = {""} if #looks == 0
+looks[] = "" if #looks == 0
 animations = Model\getAnimations modelFile
-animations = {""} if #animations == 0
+animations[] = "" if #animations == 0
 currentLook = #looks
 currentAnim = #animations
 loop = true
