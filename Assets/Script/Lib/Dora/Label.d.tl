@@ -19,7 +19,7 @@ local record Label
 	effect: SpriteEffect
 	alignment: TextAlign
 	const characterCount: integer
-	getCharacter: function(self: Label, index: integer): Sprite
+	getCharacter: function(self: Label, index: integer): Sprite | nil
 end
 local record LabelClass
 	type Type = Label

@@ -1,5 +1,6 @@
 local Object = require("Object").Type
-local type Item = integer | number | boolean | string | Object
+local ContainerItemBase = require("ContainerItemBase")
+local type Item = integer | number | boolean | string | ContainerItemBase
 local record Entity
 	embed Object
 	const index: integer
@@ -13,6 +14,8 @@ local record Entity
 end
 local record EntityClass
 	type Type = Entity
+	type Item = Item
+	type ContainerItem = ContainerItemBase
 	const count: integer
 	clear: function(cls: EntityClass)
 	metamethod __call: function(cls: EntityClass, coms: {string: Item})

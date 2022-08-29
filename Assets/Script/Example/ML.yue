@@ -359,4 +359,3 @@ Director.entry\addChild with Node!
 						lines[#lines+1] = line
 					decisionStr = table.concat lines,"\n"
 			TextWrapped decisionStr if decisionStr
-

@@ -1,10 +1,11 @@
-local Object = require("Object")
+local ContainerItem = require("ContainerItemBase")
+local Object = require("Object").Type
 local record tolua
 	type: function(item: any): string
-	cast: function(name: string, item: Object.Type): Object.Type | nil
+	cast: function<T>(item: ContainerItem, name: string): T | nil
 	class: function(className: string): table | nil
-	setpeer: function(obj: Object.Type, data: table)
-	getpeer: function(obj: Object.Type): table
+	setpeer: function(obj: Object, data: table)
+	getpeer: function(obj: Object): table
 end
-local tolua_: tolua
-return tolua_
+local _tolua: tolua
+return _tolua

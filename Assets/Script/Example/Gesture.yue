@@ -2,7 +2,7 @@ _ENV = Dorothy!
 
 texture = nvg.GetDorothySSRWhite!
 sprite = Sprite texture
-length = (Vec2 View.size).length
+length = Vec2(View.size).length
 :width, :height = sprite
 size = Vec2(width, height).length
 scaledSize = size
@@ -10,12 +10,12 @@ scaledSize = size
 Director.entry\addChild with Node!
 	\addChild sprite
 	.touchEnabled = true
-	\slot "Gesture", (center, touches, delta, theta)->
+	\slot "Gesture", (center, _numTouches, delta, angle)->
 		-- center: center of all touch positions
 		-- delta: changed motion ratio (compare to screen size) along the x-axes and y-axes
-		-- theta:  rotated angle along the touches` center
+		-- angle: rotated angle along the touches` center
 		sprite.position = center
-		sprite.angle += theta
+		sprite.angle += angle
 		scaledSize += delta * length
 		sprite.scaleX = scaledSize / size
 		sprite.scaleY = scaledSize / size
