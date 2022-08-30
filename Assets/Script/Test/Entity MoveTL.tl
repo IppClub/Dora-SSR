@@ -16,6 +16,7 @@ local tolua <const> = require("tolua")
 local sceneGroup = Group { "scene" }
 local positionGroup = Group { "position" }
 
+-- doing safe type conversions instead of using 'as' keyword
 local function toNode(item: Entity.Item): Node.Type | nil
 	if item is Entity.ContainerItem then
 		return tolua.cast(item, "Node")
