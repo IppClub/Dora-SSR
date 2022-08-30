@@ -73,7 +73,7 @@ namespace ImGui
 	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color color, bool show_alpha = true);
 
 	void Binding::Image @ Image(String clipStr, Vec2 size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
-	bool Binding::ImageButton @ ImageButton(String clipStr, Vec2 size, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
+	bool Binding::ImageButton @ ImageButton(const char* str_id, String clipStr, Vec2 size, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
 	bool Binding::ColorButton @ ColorButton(CString desc_id, Color col, String flags = nullptr, Vec2 size = Vec2::zero);
 	

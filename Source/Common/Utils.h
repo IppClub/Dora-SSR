@@ -357,8 +357,8 @@ public:
 
 private:
 	double _lastTime;
-	std::string _name;
-	std::string _msg;
+	Slice _name;
+	Slice _msg;
 };
 
 class Path {
