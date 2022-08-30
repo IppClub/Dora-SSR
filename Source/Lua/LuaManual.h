@@ -394,8 +394,8 @@ bool DragIntRange2(const char* label, int* v_current_min, int* v_current_max, fl
 bool VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", Slice* flags = nullptr, int flagCount = 0);
 bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", Slice* flags = nullptr, int flagCount = 0);
 
-bool ColorEdit3(const char* label, Color3& color3);
-bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
+bool ColorEdit3(const char* label, Color3* color3);
+bool ColorEdit4(const char* label, Color* color, bool show_alpha = true);
 
 void Image(String clipStr, const Vec2& size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
 bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));

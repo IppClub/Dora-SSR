@@ -387,7 +387,6 @@ ImGuiDora::ImGuiDora()
 		.end();
 	SharedApplication.eventHandler += std::make_pair(this, &ImGuiDora::handleEvent);
 	_costListener = Listener::create(Profiler::EventName, [&](Event* e) {
-		if (!_showPlot) return;
 		std::string name;
 		std::string msg;
 		int level = 0;

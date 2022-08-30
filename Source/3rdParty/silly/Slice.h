@@ -167,8 +167,6 @@ class Slice {
 
   static int stoi(Slice str, int base = 10);
 
-  static int stoi(const Slice& str, int base = 10);
-
   constexpr friend Slice operator"" _slice(const char* s, size_t n);
  private:
   const char *str_;
