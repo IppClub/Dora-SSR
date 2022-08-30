@@ -69,8 +69,8 @@ namespace ImGui
 	bool Binding::TreeNode @ TreeNode(CString str_id, CString text);
 	void Binding::SetTooltip @ SetTooltip(CString text);
 
-	bool Binding::ColorEdit3 @ ColorEdit3(CString label, Color3 color3);
-	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color color, bool show_alpha = true);
+	bool Binding::ColorEdit3 @ ColorEdit3(CString label, Color3* color3);
+	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color* color, bool show_alpha = true);
 
 	void Binding::Image @ Image(String clipStr, Vec2 size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
 	bool Binding::ImageButton @ ImageButton(const char* str_id, String clipStr, Vec2 size, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));

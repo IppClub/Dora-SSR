@@ -3050,17 +3050,17 @@ bool VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_
 	return ImGui::VSliderInt(label, size, v, v_min, v_max, format, getSliderCombinedFlags(flags, flagCount));
 }
 
-bool ColorEdit3(const char* label, Color3& color3) {
-	Vec3 vec3 = color3.toVec3();
+bool ColorEdit3(const char* label, Color3* color3) {
+	Vec3 vec3 = color3->toVec3();
 	bool result = ImGui::ColorEdit3(label, vec3);
-	color3 = vec3;
+	*color3 = vec3;
 	return result;
 }
 
-bool ColorEdit4(const char* label, Color& color, bool show_alpha) {
-	Vec4 vec4 = color.toVec4();
+bool ColorEdit4(const char* label, Color* color, bool show_alpha) {
+	Vec4 vec4 = color->toVec4();
 	bool result = ImGui::ColorEdit4(label, vec4);
-	color = vec4;
+	*color = vec4;
 	return result;
 }
 
