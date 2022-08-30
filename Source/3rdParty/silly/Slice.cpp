@@ -58,7 +58,7 @@ std::string Slice::toUpper() const {
   return tmp;
 }
 
-std::list<Slice> Slice::split(const Slice& delims) const {
+std::list<Slice> Slice::split(Slice delims) const {
   std::string text = toString();
   std::string delimers = delims.toString();
   std::list<Slice> tokens;
@@ -73,11 +73,11 @@ std::list<Slice> Slice::split(const Slice& delims) const {
   return tokens;
 }
 
-float Slice::stof(const Slice& str) {
+float Slice::stof(Slice str) {
   return static_cast<float>(std::atof(str.toString().c_str()));
 }
 
-int Slice::stoi(const Slice& str, int base) {
+int Slice::stoi(Slice str, int base) {
   return std::stoi(str.toString(), 0, base);
 }
 

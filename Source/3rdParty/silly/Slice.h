@@ -159,11 +159,13 @@ class Slice {
 
   std::string toUpper() const;
 
-  std::list<Slice> split(const Slice& delimer) const;
+  std::list<Slice> split(Slice delimer) const;
 
   static const std::string Empty;
 
-  static float stof(const Slice& str);
+  static float stof(Slice str);
+
+  static int stoi(Slice str, int base = 10);
 
   static int stoi(const Slice& str, int base = 10);
 
