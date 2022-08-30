@@ -398,7 +398,7 @@ bool ColorEdit3(const char* label, Color3& color3);
 bool ColorEdit4(const char* label, Color& color, bool show_alpha = true);
 
 void Image(String clipStr, const Vec2& size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
-bool ImageButton(String clipStr, const Vec2& size, int frame_padding = -1, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
+bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
 bool ColorButton(const char* desc_id, Color col, String flags = nullptr, const Vec2& size = Vec2::zero);
 

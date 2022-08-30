@@ -387,14 +387,12 @@ ImGuiDora::ImGuiDora()
 		.end();
 	SharedApplication.eventHandler += std::make_pair(this, &ImGuiDora::handleEvent);
 	_costListener = Listener::create(Profiler::EventName, [&](Event* e) {
+		if (!_showPlot) return;
 		std::string name;
 		std::string msg;
 		int level = 0;
 		double cost;
 		e->get(name, msg, level, cost);
-		if (!_timeCosts.insert({name, cost}).second) {
-			_timeCosts[name] += cost;
-		}
 		if (name == "Loader"_slice) {
 			const auto& assetPath = SharedContent.getAssetPath();
 			if (Slice(msg).left(assetPath.size()) == assetPath) {
@@ -402,6 +400,10 @@ ImGuiDora::ImGuiDora()
 			}
 			if (level == 0) _loaderTotalTime += cost;
 			_loaderCosts.push_front({s_cast<int>(_loaderCosts.size()), level, msg + '\t', cost});
+		} else {
+			if (!_timeCosts.insert({name, cost}).second) {
+				_timeCosts[name] += cost;
+			}
 		}
 	});
 }
@@ -783,11 +785,11 @@ void ImGuiDora::showStats() {
 			double time = 0;
 			for (const auto& item : _timeCosts) {
 				time += item.second;
-				_updateCosts[item.first] = item.second * 1000.0 / _profileFrames;
+				_updateCosts[item.first] = std::max(0.0, item.second * 1000.0 / _profileFrames);
 			}
 			_timeCosts.clear();
-			_updateCosts["Logic"_slice] = (_logicTime - time) * 1000.0 / _profileFrames;
-			_updateCosts["Render"_slice] = _renderTime * 1000.0 / _profileFrames;
+			_updateCosts["Logic"_slice] = std::max(0.0, (_logicTime - time) * 1000.0 / _profileFrames);
+			_updateCosts["Render"_slice] = std::max(0.0, _renderTime * 1000.0 / _profileFrames);
 			_logicTime = _renderTime = 0;
 			_profileFrames = 0;
 		}
@@ -801,7 +803,7 @@ void ImGuiDora::showStats() {
 					ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs)) {
 				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
 				ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-				ImPlot::PlotHLines("Base", &targetTime, 1);
+				ImPlot::PlotInfLines("Base", &targetTime, 1, ImPlotInfLinesFlags_Horizontal);
 				ImPlot::PlotLine("CPU", _times.data(), _cpuValues.data(),
 					s_cast<int>(_cpuValues.size()));
 				ImPlot::PlotLine("GPU", _times.data(), _gpuValues.data(),
@@ -832,7 +834,7 @@ void ImGuiDora::showStats() {
 					ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoDecorations);
 					ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoDecorations);
 					ImPlot::SetupLegend(ImPlotLocation_SouthEast);
-					ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 0.5, 0.5, 0.45, true, nullptr);
+					ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 0.5, 0.5, 0.45, "%.1f", 90.0, ImPlotPieChartFlags_Normalize);
 					ImPlot::EndPlot();
 				}
 				ImPlot::PopStyleColor(3);
