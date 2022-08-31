@@ -64,7 +64,7 @@ void View::clear() {
 }
 
 void View::pushInner(String viewName) {
-	AssertIf(_id > MaxViews - 1, "running views exceeded max view number {}.", MaxViews);
+	AssertIf(_id > MaxViews - 1, "running views exceeded max view number {}.", s_cast<int>(MaxViews));
 	bgfx::ViewId viewId = s_cast<bgfx::ViewId>(++_id);
 	bgfx::resetView(viewId);
 	std::string name = viewName.toString();

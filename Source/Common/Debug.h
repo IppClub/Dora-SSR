@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 template <typename T>
-inline typename std::enable_if<!std::is_same<T, Slice>::value, T>::type Argument(T value) {
+inline typename std::enable_if_t<!std::is_same<T, Slice>::value, T> Argument(T value) {
 	return value;
 }
 
