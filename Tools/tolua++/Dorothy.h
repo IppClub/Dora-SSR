@@ -1194,14 +1194,14 @@ Leaf* Behave(String name, Behavior::Leaf* root);
 
 class AI
 {
-	tolua_outside Array* AI_getUnitsByRelation @ getUnitsByRelation(String relation);
+	tolua_outside Array* Platformer::AI_getUnitsByRelation @ getUnitsByRelation(String relation);
 	Array* getDetectedUnits();
 	Array* getDetectedBodies();
-	tolua_outside Unit* AI_getNearestUnit @ getNearestUnit(String relation);
-	tolua_outside float AI_getNearestUnitDistance @ getNearestUnitDistance(String relation);
+	tolua_outside Unit* Platformer::AI_getNearestUnit @ getNearestUnit(String relation);
+	tolua_outside float Platformer::AI_getNearestUnitDistance @ getNearestUnitDistance(String relation);
 	Array* getUnitsInAttackRange();
 	Array* getBodiesInAttackRange();
-	static tolua_outside AI* AI_shared @ create();
+	static tolua_outside AI* Platformer::AI_shared @ create();
 };
 
 } // namespace Decision
@@ -1214,7 +1214,7 @@ class UnitAction
 	tolua_readonly tolua_property__bool bool doing;
 	tolua_readonly tolua_property__common Unit* owner;
 	tolua_readonly tolua_property__common float eclapsedTime;
-	static tolua_outside void LuaUnitAction_add @ add(
+	static tolua_outside void Platformer::LuaUnitAction_add @ add(
 		String name,
 		int priority,
 		float reaction,
@@ -1313,7 +1313,7 @@ class Data
 	bool isPlayer(Body* body);
 	bool isTerrain(Body* body);
 	void clear();
-	static tolua_outside Data* Data_shared @ create();
+	static tolua_outside Data* Platformer::Data_shared @ create();
 };
 
 } // namespace Platformer

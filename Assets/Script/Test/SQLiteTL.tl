@@ -2,7 +2,7 @@ local DB = require("DB")
 local p = require("p")
 local thread = require("thread")
 
-local sqls: {DB.SQL} = {
+local sqls = {
 	"DROP TABLE IF EXISTS test",
 	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
 	{
