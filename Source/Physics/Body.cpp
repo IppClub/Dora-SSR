@@ -188,7 +188,7 @@ float Body::getMass() const {
 }
 
 void Body::setGroup(uint8_t group) {
-	AssertIf(group >= PhysicsWorld::TotalGroups, "Body group should be less than {}.", PhysicsWorld::TotalGroups);
+	AssertIf(group >= PhysicsWorld::TotalGroups, "Body group should be less than {}.", s_cast<int>(PhysicsWorld::TotalGroups));
 	_group = group;
 	auto& world = _pWorld->getPrWorld();
 	const auto& filter = _pWorld->getFilter(group);
