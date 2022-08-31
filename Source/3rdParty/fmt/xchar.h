@@ -9,7 +9,6 @@
 #define FMT_XCHAR_H_
 
 #include <cwchar>
-#include <tuple>
 
 #include "format.h"
 
@@ -30,9 +29,11 @@ using wmemory_buffer = basic_memory_buffer<wchar_t>;
 #if FMT_GCC_VERSION && FMT_GCC_VERSION < 409
 // Workaround broken conversion on older gcc.
 template <typename... Args> using wformat_string = wstring_view;
+inline auto runtime(wstring_view s) -> wstring_view { return s; }
 #else
 template <typename... Args>
 using wformat_string = basic_format_string<wchar_t, type_identity_t<Args>...>;
+inline auto runtime(wstring_view s) -> basic_runtime<wchar_t> { return {{s}}; }
 #endif
 
 template <> struct is_char<wchar_t> : std::true_type {};
@@ -47,11 +48,6 @@ constexpr format_arg_store<wformat_context, Args...> make_wformat_args(
 }
 
 inline namespace literals {
-constexpr auto operator"" _format(const wchar_t* s, size_t n)
-    -> detail::udl_formatter<wchar_t> {
-  return {{s, n}};
-}
-
 #if FMT_USE_USER_DEFINED_LITERALS && !FMT_USE_NONTYPE_TEMPLATE_ARGS
 constexpr detail::udl_arg<wchar_t> operator"" _a(const wchar_t* s, size_t) {
   return {s};
@@ -87,10 +83,16 @@ auto vformat(basic_string_view<Char> format_str,
   return to_string(buffer);
 }
 
+template <typename... T>
+auto format(wformat_string<T...> fmt, T&&... args) -> std::wstring {
+  return vformat(fmt::wstring_view(fmt), fmt::make_wformat_args(args...));
+}
+
 // Pass char_t as a default template parameter instead of using
 // std::basic_string<char_t<S>> to reduce the symbol size.
 template <typename S, typename... Args, typename Char = char_t<S>,
-          FMT_ENABLE_IF(!std::is_same<Char, char>::value)>
+          FMT_ENABLE_IF(!std::is_same<Char, char>::value &&
+                        !std::is_same<Char, wchar_t>::value)>
 auto format(const S& format_str, Args&&... args) -> std::basic_string<Char> {
   return vformat(detail::to_string_view(format_str),
                  fmt::make_format_args<buffer_context<Char>>(args...));

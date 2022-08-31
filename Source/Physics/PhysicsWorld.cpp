@@ -377,7 +377,7 @@ bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, con
 }
 
 void PhysicsWorld::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact) {
-	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
+	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", s_cast<int>(TotalGroups));
 	pr::Filter& filterA = _filters[groupA];
 	pr::Filter& filterB = _filters[groupB];
 	if (contact) {
@@ -400,14 +400,14 @@ void PhysicsWorld::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact
 }
 
 bool PhysicsWorld::getShouldContact(uint8_t groupA, uint8_t groupB) const {
-	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", TotalGroups);
+	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", s_cast<int>(TotalGroups));
 	const pr::Filter& filterA = _filters[groupA];
 	const pr::Filter& filterB = _filters[groupB];
 	return (filterA.maskBits & filterB.categoryBits) && (filterA.categoryBits & filterB.maskBits);
 }
 
 const pr::Filter& PhysicsWorld::getFilter(uint8_t group) const {
-	AssertIf(group >= TotalGroups, "Body group should be less than {}.", TotalGroups);
+	AssertIf(group >= TotalGroups, "Body group should be less than {}.", s_cast<int>(TotalGroups));
 	return _filters[group];
 }
 
