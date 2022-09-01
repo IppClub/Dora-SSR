@@ -11,8 +11,6 @@
 local util = require'luaminify.Util'
 local lookupify = util.lookupify
 
-local WhiteChars = lookupify{' ', '\n', '\t', '\r'}
-local EscapeLookup = {['\r'] = '\\r', ['\n'] = '\\n', ['\t'] = '\\t', ['"'] = '\\"', ["'"] = "\\'"}
 local LowerChars = lookupify{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
 							 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
 							 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
@@ -67,8 +65,8 @@ local function LexLua(src)
 		end
 
 		--shared stuff
-		local function generateError(err)
-			return error(">> :"..line..":"..char..": "..err, 0)
+		local function generateError(err, level)
+			return error(">> :"..line..":"..char..": "..err, level)
 		end
 
 		local function tryGetLongString()
@@ -242,7 +240,6 @@ local function LexLua(src)
 			--get the initial char
 			local thisLine = line
 			local thisChar = char
-			local errorAt = ":"..line..":"..char..":> "
 			local c = peek()
 
 			--symbol to emit
@@ -514,10 +511,6 @@ local function ParseLua(src)
 		end
 		return err
 	end
-	--
-	local VarUid = 0
-	-- No longer needed: handled in Scopes now local GlobalVarGetMap = {}
-	local VarDigits = {'_', 'a', 'b', 'c', 'd'}
 	local function CreateScope(parent)
 		--[[
 		local scope = {}
