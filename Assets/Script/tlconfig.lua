@@ -5,5 +5,5 @@ return {
 	},
 	global_env_def = "builtin",
 	gen_compat = "off",
-	gen_target = "5.4",
+	gen_target = "5.4"
 }

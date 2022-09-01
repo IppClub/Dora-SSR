@@ -73,12 +73,12 @@ local type = type
 	print(inst.__base == BaseClass) -- true
 ]]
 
-local CppInst <const> = 0
-local Getter <const> = 1
-local Setter <const> = 2
+local CppInst<const> = 0
+local Getter<const> = 1
+local Setter<const> = 2
 
-local ClassField <const> = 1
-local ObjectField <const> = 2
+local ClassField<const> = 1
+local ObjectField<const> = 2
 
 local function __call(cls, ...)
 	local inst = {}
@@ -173,9 +173,9 @@ local function Class(arg1, arg2)
 			return arg1(...)
 		end
 		classDef = arg2
-	-- case 2
-	-- arg1:table(BaseClass), arg2:table(ClassDef)
-	-- arg1:table(ClassDef), arg2:nil
+		-- case 2
+		-- arg1:table(BaseClass), arg2:table(ClassDef)
+		-- arg1:table(ClassDef), arg2:nil
 	elseif argType == "table" then
 		if arg2 then
 			base, classDef = arg1, arg2
@@ -184,8 +184,8 @@ local function Class(arg1, arg2)
 		else
 			classDef = arg1
 		end
-	-- case 3
-	-- arg1:Object(C++ Inst), arg2:table(ClassDef)
+		-- case 3
+		-- arg1:Object(C++ Inst), arg2:table(ClassDef)
 	elseif argType ~= "nil" then
 		__partial = function(self)
 			return arg1()
@@ -197,16 +197,20 @@ local function Class(arg1, arg2)
 	if not base then
 		base = {
 			{
-				__class = function() return base end,
-				__base = function() return getmetatable(base) end,
+				__class = function()
+					return base
+				end,
+				__base = function()
+					return getmetatable(base)
+				end
 			},
 			{
 				__class = assignReadOnly,
-				__base = assignReadOnly,
+				__base = assignReadOnly
 			},
 			__index = __index,
 			__newindex = __newindex,
-			__call = __call,
+			__call = __call
 		}
 	end
 
@@ -214,17 +218,21 @@ local function Class(arg1, arg2)
 	local cls
 	cls = {
 		{
-			__class = function() return cls end,
-			__base = function() return base end,
+			__class = function()
+				return cls
+			end,
+			__base = function()
+				return base
+			end
 		},
 		{
 			__class = assignReadOnly,
-			__base = assignReadOnly,
+			__base = assignReadOnly
 		},
 		__index = __index,
 		__newindex = __newindex,
 		__call = __call,
-		__partial = __partial,
+		__partial = __partial
 	}
 
 	-- copy class def
@@ -259,11 +267,19 @@ local function Class(arg1, arg2)
 end
 
 local function property(getter, setter)
-	return {getter, setter or assignReadOnly, __fieldlevel = ObjectField}
+	return {
+		getter,
+		setter or assignReadOnly,
+		__fieldlevel = ObjectField
+	}
 end
 
 local function classfield(getter, setter)
-	return {getter, setter or assignReadOnly, __fieldlevel = ClassField}
+	return {
+		getter,
+		setter or assignReadOnly,
+		__fieldlevel = ClassField
+	}
 end
 
 local function classmethod(method)
