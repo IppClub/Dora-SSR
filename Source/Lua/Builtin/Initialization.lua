@@ -1,5 +1,4 @@
 -- setup Yuescript loader
-
 package.path = "?.lua"
 local yue = require("yue")
 yue.insert_loader(3)
@@ -51,7 +50,7 @@ do
 			local lastTime = App.eclapsedTime
 			local loaded
 			Profiler.level = Profiler.level + 1
-			local _ <close> = setmetatable({ }, {
+			local _<close> = setmetatable({}, {
 				__close = function()
 					if type(loaded) ~= "string" then
 						local deltaTime = App.eclapsedTime - lastTime
@@ -69,7 +68,7 @@ do
 	_G.require = function(name)
 		local lastTime = App.eclapsedTime
 		Profiler.level = Profiler.level + 1
-		local _ <close> = setmetatable({ }, {
+		local _<close> = setmetatable({}, {
 			__close = function()
 				local deltaTime = App.eclapsedTime - lastTime
 				builtin.emit(EventName, "Loader", name, Profiler.level, deltaTime)
@@ -122,13 +121,13 @@ local function loop(work)
 	end)
 end
 
-local function cycle(duration,work)
+local function cycle(duration, work)
 	local time = 0
 	local function worker()
 		local deltaTime = Director.deltaTime
 		time = time + deltaTime
 		if time < duration then
-			work(time/duration)
+			work(time / duration)
 			return true
 		else
 			work(1)
@@ -144,11 +143,12 @@ local function cycle(duration,work)
 	end
 end
 
-local function Routine_end() return true end
-local Routine =
-{
-	remove = function(self,routine)
-		for i = 1,#self do
+local function Routine_end()
+	return true
+end
+local Routine = {
+	remove = function(self, routine)
+		for i = 1, #self do
 			if self[i] == routine then
 				self[i] = Routine_end
 				return true
@@ -160,15 +160,14 @@ local Routine =
 		while #self > 0 do
 			table_remove(self)
 		end
-	end,
+	end
 }
 
-setmetatable(Routine,
-{
-	__call = function(self,routine)
-		table_insert(self,routine)
+setmetatable(Routine, {
+	__call = function(self, routine)
+		table_insert(self, routine)
 		return routine
-	end,
+	end
 })
 
 Director.postScheduler:schedule(function()
@@ -227,7 +226,9 @@ Content.loadAsync = function(self, filename)
 	Content_loadAsync(self, filename, function(data)
 		loadedData = data
 	end)
-	wait(function() return loadedData end)
+	wait(function()
+		return loadedData
+	end)
 	return loadedData
 end
 
@@ -245,7 +246,9 @@ Content.loadExcelAsync = function(self, filename, sheets)
 			loadedData = data
 		end)
 	end
-	wait(function() return loadedData ~= nil end)
+	wait(function()
+		return loadedData ~= nil
+	end)
 	if loadedData then
 		return loadedData
 	else
@@ -261,7 +264,9 @@ Content.saveAsync = function(self, filename, content)
 	Content_saveAsync(self, filename, content, function()
 		saved = true
 	end)
-	wait(function() return saved end)
+	wait(function()
+		return saved
+	end)
 end
 
 local Content_copyAsync = Content.copyAsync
@@ -272,7 +277,9 @@ Content.copyAsync = function(self, src, dst)
 	Content_copyAsync(self, src, dst, function()
 		loaded = true
 	end)
-	wait(function() return loaded end)
+	wait(function()
+		return loaded
+	end)
 end
 
 local Cache = builtin.Cache
@@ -284,11 +291,13 @@ Cache.loadAsync = function(self, target, handler)
 	if type(target) == "table" then
 		files = target
 	else
-		files = {target}
+		files = {
+			target
+		}
 	end
 	local count = 0
 	local total = #files
-	for i = 1,total do
+	for i = 1, total do
 		Cache_loadAsync(self, files[i], function()
 			if handler then
 				handler(files[i])
@@ -296,7 +305,9 @@ Cache.loadAsync = function(self, target, handler)
 			count = count + 1
 		end)
 	end
-	wait(function() return count == total end)
+	wait(function()
+		return count == total
+	end)
 end
 
 local RenderTarget = builtin.RenderTarget
@@ -308,7 +319,9 @@ RenderTarget.saveAsync = function(self, filename)
 	RenderTarget_saveAsync(self, filename, function()
 		saved = true
 	end)
-	wait(function() return saved end)
+	wait(function()
+		return saved
+	end)
 end
 
 local DB_queryAsync = DB.queryAsync
@@ -316,12 +329,16 @@ DB.queryAsync = function(self, ...)
 	local _, mainThread = coroutine.running()
 	assert(not mainThread, "DB.queryAsync should be run in a thread")
 	local result
-	local args = {...}
+	local args = {
+		...
+	}
 	table_insert(args, 1, function(data)
 		result = data
 	end)
 	DB_queryAsync(self, unpack(args))
-	wait(function() return result end)
+	wait(function()
+		return result
+	end)
 	return result
 end
 
@@ -330,12 +347,16 @@ DB.insertAsync = function(self, ...)
 	local _, mainThread = coroutine.running()
 	assert(not mainThread, "DB.insertAsync should be run in a thread")
 	local result
-	local args = {...}
+	local args = {
+		...
+	}
 	table_insert(args, function(res)
 		result = res
 	end)
 	DB_insertAsync(self, unpack(args))
-	wait(function() return result ~= nil end)
+	wait(function()
+		return result ~= nil
+	end)
 	return result
 end
 
@@ -344,12 +365,16 @@ DB.execAsync = function(self, ...)
 	local _, mainThread = coroutine.running()
 	assert(not mainThread, "DB.execAsync should be run in a thread")
 	local result
-	local args = {...}
+	local args = {
+		...
+	}
 	table_insert(args, function(res)
 		result = res
 	end)
 	DB_execAsync(self, unpack(args))
-	wait(function() return result ~= nil end)
+	wait(function()
+		return result ~= nil
+	end)
 	return result
 end
 
@@ -361,7 +386,9 @@ Wasm.executeMainFileAsync = function(self, filename)
 	Wasm_executeMainFileAsync(self, filename, function(res)
 		result = res
 	end)
-	wait(function() return result ~= nil end)
+	wait(function()
+		return result ~= nil
+	end)
 	return result
 end
 
@@ -370,23 +397,23 @@ end
 local Action = builtin.Action
 local Node = builtin.Node
 local Node_runAction = Node.runAction
-Node.runAction = function(self,action)
+Node.runAction = function(self, action)
 	if type(action) == "table" then
-		Node_runAction(self,Action(action))
+		Node_runAction(self, Action(action))
 	else
-		Node_runAction(self,action)
+		Node_runAction(self, action)
 	end
 end
 local Node_perform = Node.perform
-Node.perform = function(self,action)
+Node.perform = function(self, action)
 	if type(action) == "table" then
-		Node_perform(self,Action(action))
+		Node_perform(self, Action(action))
 	else
-		Node_perform(self,action)
+		Node_perform(self, action)
 	end
 end
 
-for _,actionName in ipairs{
+for _, actionName in ipairs {
 	"X",
 	"Y",
 	"Z",
@@ -409,10 +436,13 @@ for _,actionName in ipairs{
 	"Delay",
 	"Event",
 	"Spawn",
-	"Sequence",
+	"Sequence"
 } do
 	builtin[actionName] = function(...)
-		return {actionName, ...}
+		return {
+			actionName,
+			...
+		}
 	end
 end
 
@@ -423,15 +453,11 @@ local ScaleX = builtin.ScaleX
 local ScaleY = builtin.ScaleY
 
 builtin.Move = function(duration, start, stop, ease)
-	return Spawn(
-		X(duration, start.x, stop.x, ease),
-		Y(duration, start.y, stop.y, ease))
+	return Spawn(X(duration, start.x, stop.x, ease), Y(duration, start.y, stop.y, ease))
 end
 
 builtin.Scale = function(duration, start, stop, ease)
-	return Spawn(
-		ScaleX(duration, start, stop, ease),
-		ScaleY(duration, start, stop, ease))
+	return Spawn(ScaleX(duration, start, stop, ease), ScaleY(duration, start, stop, ease))
 end
 
 -- fix array indicing
@@ -439,20 +465,20 @@ end
 local Array = builtin.Array
 local Array_index = Array.__index
 local Array_get = Array.get
-Array.__index = function(self,key)
+Array.__index = function(self, key)
 	if type(key) == "number" then
-		return Array_get(self,key)
+		return Array_get(self, key)
 	end
-	return Array_index(self,key)
+	return Array_index(self, key)
 end
 
 local Array_newindex = Array.__newindex
 local Array_set = Array.set
-Array.__newindex = function(self,key,value)
+Array.__newindex = function(self, key, value)
 	if type(key) == "number" then
-		Array_set(self,key,value)
+		Array_set(self, key, value)
 	else
-		Array_newindex(self,key,value)
+		Array_newindex(self, key, value)
 	end
 end
 Array.__len = function(self)
@@ -464,10 +490,12 @@ end
 local Dictionary = builtin.Dictionary
 local Dictionary_index = Dictionary.__index
 local Dictionary_get = Dictionary.get
-Dictionary.__index = function(self,key)
-	local item = Dictionary_get(self,key)
-	if item ~= nil then return item end
-	return Dictionary_index(self,key)
+Dictionary.__index = function(self, key)
+	local item = Dictionary_get(self, key)
+	if item ~= nil then
+		return item
+	end
+	return Dictionary_index(self, key)
 end
 
 Dictionary.__newindex = Dictionary.set
@@ -521,7 +549,9 @@ end
 
 local Entity_getOld = Entity.getOld
 local Entity_oldValues
-Entity_oldValues = setmetatable({false}, {
+Entity_oldValues = setmetatable({
+	false
+}, {
 	__mode = "v",
 	__index = function(_, key)
 		local index = Entity_tryGetComIndex(key)
@@ -542,7 +572,9 @@ Entity.__index = function(self, key)
 	end
 	local index = Entity_tryGetComIndex(key)
 	local item = Entity_get(self, index)
-	if item ~= nil then return item end
+	if item ~= nil then
+		return item
+	end
 	return Entity_index(self, key)
 end
 
@@ -556,23 +588,18 @@ end
 
 local UnitAction = builtin.Platformer.UnitAction
 local UnitAction_add = UnitAction.add
-local function dummy() end
+local function dummy()
+end
 UnitAction.add = function(self, name, params)
-	UnitAction_add(self, name,
-		params.priority,
-		params.reaction,
-		params.recovery,
-		params.queued or false,
-		params.available,
-		params.create,
-		params.stop or dummy)
+	UnitAction_add(self, name, params.priority, params.reaction, params.recovery, params.queued or false, params.available,
+		params.create, params.stop or dummy)
 end
 
 -- ImGui pair call wrappers
 
 local ImGui = builtin.ImGui
 
-local closeVar = setmetatable({},{
+local closeVar = setmetatable({}, {
 	__close = function(self)
 		self[#self]()
 		self[#self] = nil
@@ -581,14 +608,16 @@ local closeVar = setmetatable({},{
 
 local function pairCallA(beginFunc, endFunc)
 	return function(...)
-		local args = {...}
+		local args = {
+			...
+		}
 		local callFunc = table_remove(args)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		local began = beginFunc(unpack(args))
 		closeVar[#closeVar + 1] = endFunc
-		local _ <close> = closeVar
+		local _<close> = closeVar
 		if began then
 			callFunc()
 		end
@@ -597,14 +626,16 @@ end
 
 local function pairCallB(beginFunc, endFunc)
 	return function(...)
-		local args = {...}
+		local args = {
+			...
+		}
 		local callFunc = table_remove(args)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		if beginFunc(unpack(args)) then
 			closeVar[#closeVar + 1] = endFunc
-			local _ <close> = closeVar
+			local _<close> = closeVar
 			callFunc()
 		end
 	end
@@ -612,67 +643,69 @@ end
 
 local function pairCallC(beginFunc, endFunc)
 	return function(...)
-		local args = {...}
+		local args = {
+			...
+		}
 		local callFunc = table_remove(args)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		beginFunc(unpack(args))
 		closeVar[#closeVar + 1] = endFunc
-		local _ <close> = closeVar
+		local _<close> = closeVar
 		callFunc()
 	end
 end
 
-ImGui.Begin = pairCallA(ImGui.Begin,ImGui.End)
+ImGui.Begin = pairCallA(ImGui.Begin, ImGui.End)
 ImGui.End = nil
-ImGui.BeginChild = pairCallA(ImGui.BeginChild,ImGui.EndChild)
+ImGui.BeginChild = pairCallA(ImGui.BeginChild, ImGui.EndChild)
 ImGui.EndChild = nil
-ImGui.BeginChildFrame = pairCallA(ImGui.BeginChildFrame,ImGui.EndChildFrame)
+ImGui.BeginChildFrame = pairCallA(ImGui.BeginChildFrame, ImGui.EndChildFrame)
 ImGui.EndChildFrame = nil
-ImGui.BeginPopup = pairCallB(ImGui.BeginPopup,ImGui.EndPopup)
-ImGui.BeginPopupModal = pairCallB(ImGui.BeginPopupModal,ImGui.EndPopup)
-ImGui.BeginPopupContextItem = pairCallB(ImGui.BeginPopupContextItem,ImGui.EndPopup)
-ImGui.BeginPopupContextWindow = pairCallB(ImGui.BeginPopupContextWindow,ImGui.EndPopup)
-ImGui.BeginPopupContextVoid = pairCallB(ImGui.BeginPopupContextVoid,ImGui.EndPopup)
+ImGui.BeginPopup = pairCallB(ImGui.BeginPopup, ImGui.EndPopup)
+ImGui.BeginPopupModal = pairCallB(ImGui.BeginPopupModal, ImGui.EndPopup)
+ImGui.BeginPopupContextItem = pairCallB(ImGui.BeginPopupContextItem, ImGui.EndPopup)
+ImGui.BeginPopupContextWindow = pairCallB(ImGui.BeginPopupContextWindow, ImGui.EndPopup)
+ImGui.BeginPopupContextVoid = pairCallB(ImGui.BeginPopupContextVoid, ImGui.EndPopup)
 ImGui.EndPopup = nil
-ImGui.BeginGroup = pairCallC(ImGui.BeginGroup,ImGui.EndGroup)
+ImGui.BeginGroup = pairCallC(ImGui.BeginGroup, ImGui.EndGroup)
 ImGui.EndGroup = nil
-ImGui.BeginTooltip = pairCallC(ImGui.BeginTooltip,ImGui.EndTooltip)
+ImGui.BeginTooltip = pairCallC(ImGui.BeginTooltip, ImGui.EndTooltip)
 ImGui.EndTooltip = nil
-ImGui.BeginMainMenuBar = pairCallC(ImGui.BeginMainMenuBar,ImGui.EndMainMenuBar)
+ImGui.BeginMainMenuBar = pairCallC(ImGui.BeginMainMenuBar, ImGui.EndMainMenuBar)
 ImGui.EndMainMenuBar = nil
-ImGui.BeginMenuBar = pairCallC(ImGui.BeginMenuBar,ImGui.EndMenuBar)
+ImGui.BeginMenuBar = pairCallC(ImGui.BeginMenuBar, ImGui.EndMenuBar)
 ImGui.EndMenuBar = nil
-ImGui.BeginMenu = pairCallC(ImGui.BeginMenu,ImGui.EndMenu)
+ImGui.BeginMenu = pairCallC(ImGui.BeginMenu, ImGui.EndMenu)
 ImGui.EndMenu = nil
-ImGui.PushStyleColor = pairCallC(ImGui.PushStyleColor,ImGui.PopStyleColor)
+ImGui.PushStyleColor = pairCallC(ImGui.PushStyleColor, ImGui.PopStyleColor)
 ImGui.PopStyleColor = nil
-ImGui.PushStyleVar = pairCallC(ImGui.PushStyleVar,ImGui.PopStyleVar)
+ImGui.PushStyleVar = pairCallC(ImGui.PushStyleVar, ImGui.PopStyleVar)
 ImGui.PopStyleVar = nil
-ImGui.PushItemWidth = pairCallC(ImGui.PushItemWidth,ImGui.PopItemWidth)
+ImGui.PushItemWidth = pairCallC(ImGui.PushItemWidth, ImGui.PopItemWidth)
 ImGui.PopItemWidth = nil
-ImGui.PushTextWrapPos = pairCallC(ImGui.PushTextWrapPos,ImGui.PopTextWrapPos)
+ImGui.PushTextWrapPos = pairCallC(ImGui.PushTextWrapPos, ImGui.PopTextWrapPos)
 ImGui.PopTextWrapPos = nil
-ImGui.PushAllowKeyboardFocus = pairCallC(ImGui.PushAllowKeyboardFocus,ImGui.PopAllowKeyboardFocus)
+ImGui.PushAllowKeyboardFocus = pairCallC(ImGui.PushAllowKeyboardFocus, ImGui.PopAllowKeyboardFocus)
 ImGui.PopAllowKeyboardFocus = nil
-ImGui.PushButtonRepeat = pairCallC(ImGui.PushButtonRepeat,ImGui.PopButtonRepeat)
+ImGui.PushButtonRepeat = pairCallC(ImGui.PushButtonRepeat, ImGui.PopButtonRepeat)
 ImGui.PopButtonRepeat = nil
-ImGui.PushID = pairCallC(ImGui.PushID,ImGui.PopID)
+ImGui.PushID = pairCallC(ImGui.PushID, ImGui.PopID)
 ImGui.PopID = nil
-ImGui.TreePush = pairCallC(ImGui.TreePush,ImGui.TreePop)
+ImGui.TreePush = pairCallC(ImGui.TreePush, ImGui.TreePop)
 ImGui.TreePop = nil
-ImGui.PushClipRect = pairCallC(ImGui.PushClipRect,ImGui.PopClipRect)
+ImGui.PushClipRect = pairCallC(ImGui.PushClipRect, ImGui.PopClipRect)
 ImGui.PopClipRect = nil
-ImGui.BeginTable = pairCallB(ImGui.BeginTable,ImGui.EndTable)
+ImGui.BeginTable = pairCallB(ImGui.BeginTable, ImGui.EndTable)
 ImGui.EndTable = nil
 
 -- ML
 
 local BuildDecisionTreeAsync = builtin.ML.BuildDecisionTreeAsync
-builtin.ML.BuildDecisionTreeAsync = function(data,maxDepth,handler)
+builtin.ML.BuildDecisionTreeAsync = function(data, maxDepth, handler)
 	local accuracy, err
-	BuildDecisionTreeAsync(data,maxDepth,function(...)
+	BuildDecisionTreeAsync(data, maxDepth, function(...)
 		if not accuracy then
 			accuracy = select(1, ...)
 			if accuracy < 0 then
@@ -683,7 +716,9 @@ builtin.ML.BuildDecisionTreeAsync = function(data,maxDepth,handler)
 			handler(...)
 		end
 	end)
-	wait(function() return accuracy or err end)
+	wait(function()
+		return accuracy or err
+	end)
 	return accuracy, err
 end
 
@@ -692,10 +727,12 @@ end
 local Blackboard = builtin.Platformer.Behavior.Blackboard
 local Blackboard_index = Blackboard.__index
 local Blackboard_get = Blackboard.get
-Blackboard.__index = function(self,key)
-	local item = Blackboard_get(self,key)
-	if item ~= nil then return item end
-	return Blackboard_index(self,key)
+Blackboard.__index = function(self, key)
+	local item = Blackboard_get(self, key)
+	if item ~= nil then
+		return item
+	end
+	return Blackboard_index(self, key)
 end
 
 Blackboard.__newindex = Blackboard.set
@@ -707,7 +744,8 @@ builtin.Vec2.__tostring = function(self)
 end
 
 builtin.Rect.__tostring = function(self)
-	return "Rect(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ", " .. tostring(self.width) .. ", " .. tostring(self.height) .. ")"
+	return "Rect(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ", " .. tostring(self.width) .. ", "
+		       .. tostring(self.height) .. ")"
 end
 
 builtin.Size.__tostring = function(self)
@@ -731,8 +769,8 @@ end
 _G.p = yue.p
 builtin.p = yue.p
 
-local function disallowAssignGlobal(_,name)
-	error("Disallow creating global variable \""..name.."\".")
+local function disallowAssignGlobal(_, name)
+	error("Disallow creating global variable \"" .. name .. "\".")
 end
 
 local function Dorothy(...)
@@ -741,7 +779,7 @@ local function Dorothy(...)
 	else
 		local envs
 		envs = {
-			__index = function(_,key)
+			__index = function(_, key)
 				for i = 1, #envs do
 					local item = rawget(envs, i)[key]
 					if item ~= nil then
@@ -751,28 +789,33 @@ local function Dorothy(...)
 				return nil
 			end,
 			__newindex = disallowAssignGlobal,
-			builtin,...
+			builtin,
+			...
 		}
-		return setmetatable(envs,envs)
+		return setmetatable(envs, envs)
 	end
 end
 _G.Dorothy = Dorothy
 builtin.Dorothy = Dorothy
 
-for k,v in pairs(_G) do
+for k, v in pairs(_G) do
 	builtin[k] = v
 end
-setmetatable(package.loaded,{__index=builtin})
+setmetatable(package.loaded, {
+	__index = builtin
+})
 
 local globals = {} -- available global value storage
 _G.globals = globals
 builtin.globals = globals
 
-local builtinEnvMeta = {__newindex = disallowAssignGlobal}
-setmetatable(_G,builtinEnvMeta)
-setmetatable(builtin,builtinEnvMeta)
+local builtinEnvMeta = {
+	__newindex = disallowAssignGlobal
+}
+setmetatable(_G, builtinEnvMeta)
+setmetatable(builtin, builtinEnvMeta)
 
 -- default GC setting
 
---collectgarbage("incremental", 100, 5000)
+-- collectgarbage("incremental", 100, 5000)
 collectgarbage("generational", 20, 100)
