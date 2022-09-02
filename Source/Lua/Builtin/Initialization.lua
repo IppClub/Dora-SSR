@@ -50,7 +50,7 @@ do
 			local lastTime = App.eclapsedTime
 			local loaded
 			Profiler.level = Profiler.level + 1
-			local _<close> = setmetatable({}, {
+			local _ <close> = setmetatable({}, {
 				__close = function()
 					if type(loaded) ~= "string" then
 						local deltaTime = App.eclapsedTime - lastTime
@@ -68,7 +68,7 @@ do
 	_G.require = function(name)
 		local lastTime = App.eclapsedTime
 		Profiler.level = Profiler.level + 1
-		local _<close> = setmetatable({}, {
+		local _ <close> = setmetatable({}, {
 			__close = function()
 				local deltaTime = App.eclapsedTime - lastTime
 				builtin.emit(EventName, "Loader", name, Profiler.level, deltaTime)
@@ -84,6 +84,8 @@ end
 local coroutine_yield = coroutine.yield
 local coroutine_create = coroutine.create
 local coroutine_resume = coroutine.resume
+local coroutine_close = coroutine.close
+local coroutine_status = coroutine.status
 local table_insert = table.insert
 local table_remove = table.remove
 local table_concat = table.concat
@@ -143,14 +145,20 @@ local function cycle(duration, work)
 	end
 end
 
-local function Routine_end()
-	return true
+local function Routine_close(routine)
+	if type(routine) == "thread" then
+		local status = coroutine_status(routine)
+		if status == "dead" or status == "suspended" then
+			coroutine_close(routine)
+		end
+	end
 end
 local Routine = {
 	remove = function(self, routine)
 		for i = 1, #self do
 			if self[i] == routine then
-				self[i] = Routine_end
+				Routine_close(routine)
+				self[i] = false
 				return true
 			end
 		end
@@ -158,7 +166,7 @@ local Routine = {
 	end,
 	clear = function(self)
 		while #self > 0 do
-			table_remove(self)
+			Routine_close(table_remove(self))
 		end
 	end
 }
@@ -174,10 +182,13 @@ Director.postScheduler:schedule(function()
 	local i, count = 1, #Routine
 	while i <= count do
 		local routine = Routine[i]
-		local success, result = coroutine_resume(routine)
-		if not success then
-			coroutine.close(routine)
-			print(result)
+		local success, result = false, true
+		if routine then
+			success, result = coroutine_resume(routine)
+			if not success then
+				coroutine_close(routine)
+				print(result)
+			end
 		end
 		if (success and result) or (not success) then
 			Routine[i] = Routine[count]
@@ -453,11 +464,17 @@ local ScaleX = builtin.ScaleX
 local ScaleY = builtin.ScaleY
 
 builtin.Move = function(duration, start, stop, ease)
-	return Spawn(X(duration, start.x, stop.x, ease), Y(duration, start.y, stop.y, ease))
+	return Spawn(
+		X(duration, start.x, stop.x, ease),
+		Y(duration, start.y, stop.y, ease)
+	)
 end
 
 builtin.Scale = function(duration, start, stop, ease)
-	return Spawn(ScaleX(duration, start, stop, ease), ScaleY(duration, start, stop, ease))
+	return Spawn(
+		ScaleX(duration, start, stop, ease),
+		ScaleY(duration, start, stop, ease)
+	)
 end
 
 -- fix array indicing
@@ -549,9 +566,7 @@ end
 
 local Entity_getOld = Entity.getOld
 local Entity_oldValues
-Entity_oldValues = setmetatable({
-	false
-}, {
+Entity_oldValues = setmetatable({ false }, {
 	__mode = "v",
 	__index = function(_, key)
 		local index = Entity_tryGetComIndex(key)
@@ -588,11 +603,18 @@ end
 
 local UnitAction = builtin.Platformer.UnitAction
 local UnitAction_add = UnitAction.add
-local function dummy()
-end
+local function dummy() end
 UnitAction.add = function(self, name, params)
-	UnitAction_add(self, name, params.priority, params.reaction, params.recovery, params.queued or false, params.available,
-		params.create, params.stop or dummy)
+	UnitAction_add(
+		self, name,
+		params.priority,
+		params.reaction,
+		params.recovery,
+		params.queued or false,
+		params.available,
+		params.create,
+		params.stop or dummy
+	)
 end
 
 -- ImGui pair call wrappers
@@ -608,16 +630,14 @@ local closeVar = setmetatable({}, {
 
 local function pairCallA(beginFunc, endFunc)
 	return function(...)
-		local args = {
-			...
-		}
+		local args = { ... }
 		local callFunc = table_remove(args)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		local began = beginFunc(unpack(args))
 		closeVar[#closeVar + 1] = endFunc
-		local _<close> = closeVar
+		local _ <close> = closeVar
 		if began then
 			callFunc()
 		end
@@ -626,16 +646,14 @@ end
 
 local function pairCallB(beginFunc, endFunc)
 	return function(...)
-		local args = {
-			...
-		}
+		local args = { ... }
 		local callFunc = table_remove(args)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		if beginFunc(unpack(args)) then
 			closeVar[#closeVar + 1] = endFunc
-			local _<close> = closeVar
+			local _ <close> = closeVar
 			callFunc()
 		end
 	end
@@ -643,16 +661,14 @@ end
 
 local function pairCallC(beginFunc, endFunc)
 	return function(...)
-		local args = {
-			...
-		}
+		local args = { ... }
 		local callFunc = table_remove(args)
 		if type(callFunc) ~= "function" then
 			error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 		end
 		beginFunc(unpack(args))
 		closeVar[#closeVar + 1] = endFunc
-		local _<close> = closeVar
+		local _ <close> = closeVar
 		callFunc()
 	end
 end
@@ -744,8 +760,11 @@ builtin.Vec2.__tostring = function(self)
 end
 
 builtin.Rect.__tostring = function(self)
-	return "Rect(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ", " .. tostring(self.width) .. ", "
-		       .. tostring(self.height) .. ")"
+	return "Rect("
+		.. tostring(self.x) .. ", "
+		.. tostring(self.y) .. ", "
+		.. tostring(self.width) .. ", "
+		.. tostring(self.height) .. ")"
 end
 
 builtin.Size.__tostring = function(self)
@@ -801,17 +820,13 @@ builtin.Dorothy = Dorothy
 for k, v in pairs(_G) do
 	builtin[k] = v
 end
-setmetatable(package.loaded, {
-	__index = builtin
-})
+setmetatable(package.loaded, { __index = builtin })
 
 local globals = {} -- available global value storage
 _G.globals = globals
 builtin.globals = globals
 
-local builtinEnvMeta = {
-	__newindex = disallowAssignGlobal
-}
+local builtinEnvMeta = { __newindex = disallowAssignGlobal }
 setmetatable(_G, builtinEnvMeta)
 setmetatable(builtin, builtinEnvMeta)
 
