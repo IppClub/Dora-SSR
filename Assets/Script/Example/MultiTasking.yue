@@ -1,0 +1,54 @@
+_ENV = Dorothy!
+
+thread ->
+	print "thread 1"
+	yueCodes = Content\loadAsync "Script/Example/MultiTasking.yue"
+	sleep 2
+	import "yue"
+	luaCodes = yue.to_lua yueCodes
+	print luaCodes
+	print "thread 1 done"
+
+	thread ->
+		print "thread 2 stared"
+		repeat
+			print "thread 2 Time passed: #{string.format "%.2fs", App.totalTime}"
+			sleep 1
+		until false
+
+threadLoop ->
+	print "thread 3"
+	sleep math.random 3
+	print "do nothing"
+	sleep 0.2
+
+with Node!
+	\schedule once ->
+		sleep 5
+		print "5 seconds later"
+		\schedule loop ->
+			sleep 3
+			print "another 3 seconds"
+	\addTo Director.entry
+
+-- example codes ends here, some test ui below --
+
+_ENV = Dorothy builtin.ImGui
+
+Director.entry\addChild with Node!
+	windowFlags =
+		* "NoDecoration"
+		* "AlwaysAutoResize"
+		* "NoSavedSettings"
+		* "NoFocusOnAppearing"
+		* "NoNav"
+		* "NoMove"
+	\schedule ->
+		const :width = App.visualSize
+		SetNextWindowBgAlpha 0.35
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+		Begin "Multi-tasking", windowFlags, ->
+			Text "Multi-tasking"
+			Separator!
+			TextWrapped "Basic Dorothy multi-tasking usage. Powered by View outputs in log window!"

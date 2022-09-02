@@ -73,12 +73,12 @@ local type = type
 	print(inst.__base == BaseClass) -- true
 ]]
 
-local CppInst<const> = 0
-local Getter<const> = 1
-local Setter<const> = 2
+local CppInst <const> = 0
+local Getter <const> = 1
+local Setter <const> = 2
 
-local ClassField<const> = 1
-local ObjectField<const> = 2
+local ClassField <const> = 1
+local ObjectField <const> = 2
 
 local function __call(cls, ...)
 	local inst = {}

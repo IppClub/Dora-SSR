@@ -221,7 +221,16 @@ scaleContent = false
 isInEntry = true
 currentEntryName = nil
 
+footerWindow = nil
+entryWindow = nil
+
 allClear = ->
+	for routine in *Routine
+		switch routine
+			when footerWindow, entryWindow
+				continue
+			else
+				Routine\remove routine
 	for module in *moduleCache
 		package.loaded[module] = nil
 	moduleCache = {}
@@ -334,7 +343,7 @@ windowFlags =
 	* "NoSavedSettings"
 	* "NoBringToFrontOnFocus"
 initFooter = true
-threadLoop ->
+footerWindow = threadLoop ->
 	App\shutdown! if Keyboard\isKeyDown "Escape"
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
@@ -405,7 +414,6 @@ threadLoop ->
 			SameLine!
 			if Button "Reload", Vec2 70, 30
 				doClean!
-				Routine\clear!
 				allClear!
 				_G.require = oldRequire
 				builtin.require = oldRequire
@@ -417,6 +425,7 @@ threadLoop ->
 					* Path "Script", "Lib"
 					* Path "Script", "Lib", "Dora"
 				Director.systemScheduler\schedule ->
+					Routine\clear!
 					oldRequire "Dev.Entry"
 					true
 		else
@@ -449,7 +458,7 @@ threadLoop ->
 				ShowConsole!
 
 cyan = Color 0xff00ffff
-threadLoop ->
+entryWindow = threadLoop ->
 	return unless showEntry
 	return unless isInEntry
 	:width, :height = App.visualSize
