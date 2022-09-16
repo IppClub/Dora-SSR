@@ -2054,7 +2054,7 @@ int DB_transaction(lua_State* L) {
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_transaction'", nullptr);
 #endif
-		std::vector<std::pair<std::string, std::vector<std::vector<Own<Value>>>>> sqls;
+		std::vector<std::pair<std::string, std::deque<std::vector<Own<Value>>>>> sqls;
 		int itemCount = s_cast<int>(lua_rawlen(L, 2));
 		sqls.resize(itemCount);
 		for (int i = 0; i < itemCount; i++) {
@@ -2103,14 +2103,12 @@ int DB_transaction(lua_State* L) {
 			}
 			lua_pop(L, 1);
 		}
-		bool result = self->transaction([&]() {
+		bool result = self->transaction([&](SQLite::Database* db) {
 			for (const auto& sql : sqls) {
 				if (sql.second.empty()) {
-					self->exec(sql.first);
+					DB::exec(db, sql.first);
 				} else {
-					for (const auto& arg : sql.second) {
-						self->exec(sql.first, arg);
-					}
+					DB::exec(db, sql.first, sql.second);
 				}
 			}
 		});
@@ -2202,9 +2200,9 @@ int DB_insert(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_insert'", nullptr);
 #endif
 		auto tableName = tolua_toslice(L, 2, nullptr);
-		std::deque<std::vector<Own<Value>>> values;
+		std::deque<std::vector<Own<Value>>> rows;
 		int size = s_cast<int>(lua_rawlen(L, 3));
-		values.resize(size);
+		rows.resize(size);
 		for (int i = 0; i < size; i++) {
 			lua_rawgeti(L, 3, i + 1);
 #ifndef TOLUA_RELEASE
@@ -2213,7 +2211,7 @@ int DB_insert(lua_State* L) {
 			}
 #endif
 			int colSize = s_cast<int>(lua_rawlen(L, -1));
-			auto& row = values[i];
+			auto& row = rows[i];
 			row.resize(colSize);
 			for (int j = 0; j < colSize; j++) {
 				lua_rawgeti(L, -1, j + 1);
@@ -2222,16 +2220,11 @@ int DB_insert(lua_State* L) {
 			}
 			lua_pop(L, 1);
 		}
-#ifndef TOLUA_RELEASE
-		try {
-#endif
-			self->insert(tableName, values);
-			return 0;
-#ifndef TOLUA_RELEASE
-		} catch (std::exception& e) {
-			luaL_error(L, e.what());
-		}
-#endif
+		bool result = SharedDB.transaction([&](SQLite::Database* db) {
+			DB::insert(db, tableName, rows);
+		});
+		lua_pushboolean(L, result ? 1 : 0);
+		return 1;
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
@@ -2257,27 +2250,53 @@ int DB_exec(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_update'", nullptr);
 #endif
 		auto sql = tolua_toslice(L, 2, nullptr);
-		std::vector<Own<Value>> values;
+		std::deque<std::vector<Own<Value>>> rows;
 		if (lua_istable(L, 3) != 0) {
-			int size = s_cast<int>(lua_rawlen(L, 3));
-			values.resize(size);
-			for (int i = 0; i < size; i++) {
+			int rowCount = s_cast<int>(lua_rawlen(L, 3));
+			if (rowCount == 0) {
+				int rowChanged = self->exec(sql);
+				lua_pushinteger(L, rowChanged);
+				return 1;
+			}
+			lua_rawgeti(L, 3, 1);
+			if (lua_istable(L, -1) == 0) {
+				lua_pop(L, 1);
+				std::vector<Own<Value>> args;
+				args.resize(rowCount);
+				for (int i = 0; i < rowCount; i++) {
+					lua_rawgeti(L, 3, i + 1);
+					args[i] = Dora_getDBValue(L, -1);
+					lua_pop(L, 1);
+				}
+				int rowChanged = self->exec(sql, args);
+				lua_pushinteger(L, rowChanged);
+				return 1;
+			}
+			lua_pop(L, 1);
+#ifndef TOLUA_REALEASE
+			if (!tolua_istablearray(L, 3, rowCount, 0, &tolua_err)) {
+				goto tolua_lerror;
+			}
+#endif
+			for (int i = 0; i < rowCount; i++) {
 				lua_rawgeti(L, 3, i + 1);
-				values[i] = Dora_getDBValue(L, -1);
+				auto& row = rows.emplace_back();
+				int size = s_cast<int>(lua_rawlen(L, -1));
+				row.resize(size);
+				for (int j = 0; j < size; j++) {
+					lua_rawgeti(L, -1, i + 1);
+					row[i] = Dora_getDBValue(L, -1);
+					lua_pop(L, 1);
+				}
 				lua_pop(L, 1);
 			}
 		}
-#ifndef TOLUA_RELEASE
-		try {
-#endif
-			int result = self->exec(sql, values);
-			lua_pushinteger(L, result);
-			return 1;
-#ifndef TOLUA_RELEASE
-		} catch (std::exception& e) {
-			luaL_error(L, e.what());
-		}
-#endif
+		int rowChanged = 0;
+		SharedDB.transaction([&](SQLite::Database* db) {
+			rowChanged = DB::exec(db, sql, rows);
+		});
+		lua_pushinteger(L, rowChanged);
+		return 1;
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
@@ -2362,9 +2381,9 @@ int DB_insertAsync(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
 #endif
 		auto tableName = tolua_toslice(L, 2, nullptr);
-		std::deque<std::vector<Own<Value>>> values;
+		std::deque<std::vector<Own<Value>>> rows;
 		int size = s_cast<int>(lua_rawlen(L, 3));
-		values.resize(size);
+		rows.resize(size);
 		for (int i = 0; i < size; i++) {
 			lua_rawgeti(L, 3, i + 1);
 #ifndef TOLUA_RELEASE
@@ -2373,7 +2392,7 @@ int DB_insertAsync(lua_State* L) {
 			}
 #endif
 			int colSize = s_cast<int>(lua_rawlen(L, -1));
-			auto& row = values[i];
+			auto& row = rows[i];
 			row.resize(colSize);
 			for (int j = 0; j < colSize; j++) {
 				lua_rawgeti(L, -1, j + 1);
@@ -2383,7 +2402,7 @@ int DB_insertAsync(lua_State* L) {
 			lua_pop(L, 1);
 		}
 		LuaFunction<void> callback(tolua_ref_function(L, 4));
-		self->insertAsync(tableName, std::move(values), callback);
+		self->insertAsync(tableName, std::move(rows), callback);
 		return 0;
 	}
 tolua_lerror:
@@ -2441,7 +2460,7 @@ int DB_insertAsync01(lua_State* L) {
 				[excelFile, names, startRow, excelData, size]() {
 					auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
 					if (workbook->read()) {
-						bool result = SharedDB.transaction([&]() {
+						bool result = SharedDB.transaction([&](SQLite::Database* db) {
 							const auto& strs = workbook->shared_strings();
 							for (auto& worksheet : *workbook) {
 								if (auto it = std::find_if(names->begin(), names->end(),
@@ -2461,7 +2480,7 @@ int DB_insertAsync01(lua_State* L) {
 										valueHolder += '?';
 										if (i != worksheet.max_col() - 1) valueHolder += ',';
 									}
-									SQLite::Statement query(*SharedDB.getPtr(), fmt::format("INSERT INTO {} VALUES ({})", it->first, valueHolder));
+									SQLite::Statement query(*db, fmt::format("INSERT INTO {} VALUES ({})", it->first, valueHolder));
 									int rowIndex = 0;
 									for (const auto& row : worksheet) {
 										if (rowIndex < startRow) {
@@ -2527,21 +2546,47 @@ int DB_execAsync(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_select'", nullptr);
 #endif
 		auto sql = tolua_toslice(L, 2, nullptr);
-		std::vector<Own<Value>> values;
+		std::deque<std::vector<Own<Value>>> rows;
 		int funcId = 0;
 		if (lua_istable(L, 3) != 0) {
-			int size = s_cast<int>(lua_rawlen(L, 3));
-			values.resize(size);
-			for (int i = 0; i < size; i++) {
-				lua_rawgeti(L, 3, i + 1);
-				values[i] = Dora_getDBValue(L, -1);
-				lua_pop(L, 1);
+			int rowCount = s_cast<int>(lua_rawlen(L, 3));
+			if (rowCount > 0) {
+				lua_rawgeti(L, 3, 1);
+				if (lua_istable(L, -1) == 0) {
+					lua_pop(L, 1);
+					auto& args = rows.emplace_back();
+					args.resize(rowCount);
+					for (int i = 0; i < rowCount; i++) {
+						lua_rawgeti(L, 3, i + 1);
+						args[i] = Dora_getDBValue(L, -1);
+						lua_pop(L, 1);
+					}
+				} else {
+					lua_pop(L, 1);
+#ifndef TOLUA_REALEASE
+					if (!tolua_istablearray(L, 3, rowCount, 0, &tolua_err)) {
+						goto tolua_lerror;
+					}
+#endif
+					for (int i = 0; i < rowCount; i++) {
+						lua_rawgeti(L, 3, i + 1);
+						auto& row = rows.emplace_back();
+						int size = s_cast<int>(lua_rawlen(L, -1));
+						row.resize(size);
+						for (int j = 0; j < size; j++) {
+							lua_rawgeti(L, -1, j + 1);
+							row[i] = Dora_getDBValue(L, -1);
+							lua_pop(L, 1);
+						}
+						lua_pop(L, 1);
+					}
+				}
 			}
 			funcId = tolua_ref_function(L, 4);
 		} else
 			funcId = tolua_ref_function(L, 3);
 		LuaFunction<void> callback(funcId);
-		self->execAsync(sql, std::move(values), callback);
+		self->execAsync(sql, std::move(rows), callback);
 		return 0;
 	}
 #ifndef TOLUA_RELEASE

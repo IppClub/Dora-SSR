@@ -16,8 +16,8 @@ static int64_t db_query_with_params(int64_t sql, int64_t param, int32_t with_col
 static void db_insert(int64_t table_name, int64_t record) {
 	db_do_insert(*str_from(table_name), *r_cast<DBRecord*>(record));
 }
-static int32_t db_exec_with_params(int64_t sql, int64_t param) {
-	return db_do_exec_with_params(*str_from(sql), r_cast<Array*>(param));
+static int32_t db_exec_with_records(int64_t sql, int64_t record) {
+	return db_do_exec_with_records(*str_from(sql), *r_cast<DBRecord*>(record));
 }
 static void db_query_with_params_async(int64_t sql, int64_t param, int32_t with_columns, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
@@ -41,12 +41,12 @@ static void db_insert_async(int64_t table_name, int64_t record, int32_t func, in
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void db_exec_async(int64_t sql, int64_t param, int32_t func, int64_t stack) {
+static void db_exec_async(int64_t sql, int64_t record, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	db_do_exec_async(*str_from(sql), r_cast<Array*>(param), [func, args, deref](int64_t rowChanges) {
+	db_do_exec_async(*str_from(sql), *r_cast<DBRecord*>(record), [func, args, deref](int64_t rowChanges) {
 		args->clear();
 		args->push(rowChanges);
 		SharedWasmRuntime.invoke(func);
@@ -59,7 +59,7 @@ static void linkDB(wasm3::module& mod) {
 	mod.link_optional("*", "db_query", db_query);
 	mod.link_optional("*", "db_query_with_params", db_query_with_params);
 	mod.link_optional("*", "db_insert", db_insert);
-	mod.link_optional("*", "db_exec_with_params", db_exec_with_params);
+	mod.link_optional("*", "db_exec_with_records", db_exec_with_records);
 	mod.link_optional("*", "db_query_with_params_async", db_query_with_params_async);
 	mod.link_optional("*", "db_insert_async", db_insert_async);
 	mod.link_optional("*", "db_exec_async", db_exec_async);

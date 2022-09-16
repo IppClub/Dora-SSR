@@ -52,10 +52,6 @@ DB::DB() {
 
 DB::~DB() { }
 
-SQLite::Database* DB::getPtr() const {
-	return _database.get();
-}
-
 bool DB::exist(String tableName) const {
 	try {
 		int result = 0;
@@ -67,15 +63,47 @@ bool DB::exist(String tableName) const {
 		}
 		return result == 0 ? false : true;
 	} catch (std::exception& e) {
-		Warn("failed to execute DB transaction: {}", e.what());
+		Warn("failed to execute DB query: {}", e.what());
 		return false;
 	}
 }
 
-bool DB::transaction(const std::function<void()>& sqls) {
+int DB::exec(String sql) {
+	try {
+		return exec(_database.get(), sql);
+	} catch (std::exception& e) {
+		Warn("failed to execute DB SQL: {}", e.what());
+		return false;
+	}
+}
+
+int DB::exec(String sql, const std::vector<Own<Value>>& args) {
+	try {
+		return exec(_database.get(), sql, args);
+	} catch (std::exception& e) {
+		Warn("failed to execute DB SQL: {}", e.what());
+		return false;
+	}
+}
+
+int DB::exec(String sql, const std::deque<std::vector<Own<Value>>>& rows) {
+	int result = 0;
+	transaction([&](SQLite::Database* db) {
+		result = exec(db, sql, rows);
+	});
+	return result;
+}
+
+bool DB::insert(String tableName, const std::deque<std::vector<Own<Value>>>& rows) {
+	return transaction([&](SQLite::Database* db) {
+		insert(db, tableName, rows);
+	});
+}
+
+bool DB::transaction(const std::function<void(SQLite::Database*)>& sqls) {
 	try {
 		SQLite::Transaction transaction(*_database);
-		sqls();
+		sqls(_database.get());
 		transaction.commit();
 		return true;
 	} catch (std::exception& e) {
@@ -135,30 +163,44 @@ std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<
 	return result;
 }
 
-void DB::insert(String tableName, const std::deque<std::vector<Own<Value>>>& values) {
-	if (values.empty() || values.front().empty()) return;
+void DB::insert(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& rows) {
+	if (rows.empty() || rows.front().empty()) return;
 	std::string valueHolder;
-	for (size_t i = 0; i < values.front().size(); i++) {
+	for (size_t i = 0; i < rows.front().size(); i++) {
 		valueHolder += '?';
-		if (i != values.front().size() - 1) valueHolder += ',';
+		if (i != rows.front().size() - 1) valueHolder += ',';
 	}
-	SQLite::Statement query(*_database, fmt::format("INSERT INTO {} VALUES ({})", tableName.toString(), valueHolder));
-	for (const auto& row : values) {
+	SQLite::Statement query(*db, fmt::format("INSERT INTO {} VALUES ({})", tableName.toString(), valueHolder));
+	for (const auto& row : rows) {
 		bindValues(query, row);
 		query.exec();
 		query.reset();
 	}
 }
 
-int DB::exec(String sql) {
-	SQLite::Statement query(*_database, sql);
+int DB::exec(SQLite::Database* db, String sql) {
+	SQLite::Statement query(*db, sql);
 	return query.exec();
 }
 
-int DB::exec(String sql, const std::vector<Own<Value>>& values) {
-	SQLite::Statement query(*_database, sql);
-	bindValues(query, values);
+int DB::exec(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args) {
+	SQLite::Statement query(*db, sql);
+	bindValues(query, args);
 	return query.exec();
+}
+
+int DB::exec(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows) {
+	SQLite::Statement query(*db, sql);
+	if (rows.empty()) {
+		return query.exec();
+	}
+	int rowChanged = 0;
+	for (const auto& row : rows) {
+		bindValues(query, row);
+		rowChanged += query.exec();
+		query.reset();
+	}
+	return rowChanged;
 }
 
 void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<Own<Value>>>&)>& callback) {
@@ -170,7 +212,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 				auto result = SharedDB.query(sqlStr, *argsPtr, withColumns);
 				return Values::alloc(std::move(result));
 			} catch (std::exception& e) {
-				Warn("failed to execute DB transaction: {}", e.what());
+				Warn("failed to execute DB query: {}", e.what());
 				return Values::alloc(std::deque<std::vector<Own<Value>>>());
 			}
 		},
@@ -181,13 +223,13 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 		});
 }
 
-void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback) {
+void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(bool)>& callback) {
 	std::string tableStr(tableName);
-	auto valuesPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(values));
+	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
 	SharedAsyncThread.run(
-		[tableStr, valuesPtr]() {
-			bool result = SharedDB.transaction([&]() {
-				SharedDB.insert(tableStr, *valuesPtr);
+		[tableStr, rowsPtr]() {
+			bool result = SharedDB.transaction([&](SQLite::Database* db) {
+				DB::insert(db, tableStr, *rowsPtr);
 			});
 			return Values::alloc(result);
 		},
@@ -198,17 +240,22 @@ void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& val
 		});
 }
 
-void DB::execAsync(String sql, std::vector<Own<Value>>&& values, const std::function<void(int)>& callback) {
+void DB::execAsync(String sql, std::vector<Own<Value>>&& args, const std::function<void(int)>& callback) {
+	std::deque<std::vector<Own<Value>>> rows;
+	auto& row = rows.emplace_back();
+	row = std::move(args);
+	execAsync(sql, std::move(rows), callback);
+}
+
+void DB::execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(int)>& callback) {
 	std::string sqlStr(sql);
-	auto valuesPtr = std::make_shared<std::vector<Own<Value>>>(std::move(values));
+	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
 	SharedAsyncThread.run(
-		[sqlStr, valuesPtr]() {
+		[sqlStr, rowsPtr]() {
 			int result = 0;
-			try {
-				result = SharedDB.exec(sqlStr, *valuesPtr);
-			} catch (std::exception& e) {
-				Warn("failed to execute DB transaction: {}", e.what());
-			}
+			SharedDB.transaction([&](SQLite::Database* db) {
+				result += DB::exec(db, sqlStr, *rowsPtr);
+			});
 			return Values::alloc(result);
 		},
 		[callback](Own<Values> values) {

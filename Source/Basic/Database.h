@@ -20,17 +20,24 @@ class Value;
 
 class DB {
 public:
-	PROPERTY_READONLY(SQLite::Database*, Ptr);
 	virtual ~DB();
 	bool exist(String tableName) const;
-	bool transaction(const std::function<void()>& func);
-	std::deque<std::vector<Own<Value>>> query(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
-	void insert(String tableName, const std::deque<std::vector<Own<Value>>>& values);
 	int exec(String sql);
-	int exec(String sql, const std::vector<Own<Value>>& values);
+	int exec(String sql, const std::vector<Own<Value>>& args);
+	int exec(String sql, const std::deque<std::vector<Own<Value>>>& rows);
+	bool insert(String tableName, const std::deque<std::vector<Own<Value>>>& rows);
+	std::deque<std::vector<Own<Value>>> query(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
 	void queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<Own<Value>>>& result)>& callback);
-	void insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& values, const std::function<void(bool)>& callback);
-	void execAsync(String sql, std::vector<Own<Value>>&& values, const std::function<void(int)>& callback);
+	void insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(bool)>& callback);
+	void execAsync(String sql, std::vector<Own<Value>>&& args, const std::function<void(int)>& callback);
+	void execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(int)>& callback);
+
+public:
+	bool transaction(const std::function<void(SQLite::Database*)>& func);
+	static void insert(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& values);
+	static int exec(SQLite::Database* db, String sql);
+	static int exec(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);
+	static int exec(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows);
 
 protected:
 	DB();
