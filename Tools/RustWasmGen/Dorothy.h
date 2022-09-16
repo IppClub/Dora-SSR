@@ -946,10 +946,10 @@ singleton class DB
 	outside DBRecord db_do_query @ query(string sql, bool withColumns);
 	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* param, bool withColumns);
 	outside void db_do_insert @ insert(string tableName, DBRecord record);
-	outside int32_t db_do_exec_with_params @ execWithParams(string sql, Array* param);
+	outside int32_t db_do_exec_with_records @ execWithRecords(string sql, DBRecord record);
 	outside void db_do_query_with_params_async @ queryWithParamsAsync(string sql, Array* param, bool withColumns, function<void(DBRecord result)> callback);
 	outside void db_do_insert_async @ insertAsync(string tableName, DBRecord record, function<void(bool result)> callback);
-	outside void db_do_exec_async @ execAsync(string sql, Array* param, function<void(int64_t rowChanges)> callback);
+	outside void db_do_exec_async @ execAsync(string sql, DBRecord record, function<void(int64_t rowChanges)> callback);
 };
 
 object class MLQLearner @ QLearner

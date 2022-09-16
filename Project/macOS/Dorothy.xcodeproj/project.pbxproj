@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -3056,7 +3056,7 @@
 		3CC81FDE1D966770008C8B77 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1400;
 				ORGANIZATIONNAME = Dorothy;
 				TargetAttributes = {
 					3CC81FE51D966770008C8B77 = {
@@ -3106,6 +3106,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		3C1676B322115A3F00892CD4 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -3571,6 +3572,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -3629,6 +3631,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -3657,6 +3660,7 @@
 				CLANG_WARN_VEXING_PARSE = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -3671,7 +3675,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
@@ -3688,7 +3695,21 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua $(SRCROOT)/../../Source/3rdParty/soloud $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/dragonBones $(SRCROOT)/../../Source/3rdParty/wasm3";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Source",
+					"$(SRCROOT)/../../Source/3rdParty",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx",
+					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
+					"$(SRCROOT)/../../Source/3rdParty/Lua",
+					"$(SRCROOT)/../../Source/3rdParty/soloud",
+					"$(SRCROOT)/../../Source/3rdParty/Zip",
+					"$(SRCROOT)/../../Source/3rdParty/imgui",
+					"$(SRCROOT)/../../Source/3rdParty/implot",
+					"$(SRCROOT)/../../Source/3rdParty/sqlite",
+					"$(SRCROOT)/../../Source/3rdParty/dragonBones",
+					"$(SRCROOT)/../../Source/3rdParty/wasm3",
+				);
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
@@ -3702,6 +3723,7 @@
 				CLANG_WARN_VEXING_PARSE = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -3715,7 +3737,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
@@ -3732,7 +3757,21 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../Source $(SRCROOT)/../../Source/3rdParty $(SRCROOT)/../../Source/3rdParty/bgfx/Header $(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx $(SRCROOT)/../../Source/3rdParty/SDL2/Header $(SRCROOT)/../../Source/3rdParty/Lua $(SRCROOT)/../../Source/3rdParty/soloud $(SRCROOT)/../../Source/3rdParty/Zip $(SRCROOT)/../../Source/3rdParty/imgui $(SRCROOT)/../../Source/3rdParty/implot $(SRCROOT)/../../Source/3rdParty/sqlite $(SRCROOT)/../../Source/3rdParty/dragonBones $(SRCROOT)/../../Source/3rdParty/wasm3";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Source",
+					"$(SRCROOT)/../../Source/3rdParty",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx",
+					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
+					"$(SRCROOT)/../../Source/3rdParty/Lua",
+					"$(SRCROOT)/../../Source/3rdParty/soloud",
+					"$(SRCROOT)/../../Source/3rdParty/Zip",
+					"$(SRCROOT)/../../Source/3rdParty/imgui",
+					"$(SRCROOT)/../../Source/3rdParty/implot",
+					"$(SRCROOT)/../../Source/3rdParty/sqlite",
+					"$(SRCROOT)/../../Source/3rdParty/dragonBones",
+					"$(SRCROOT)/../../Source/3rdParty/wasm3",
+				);
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;

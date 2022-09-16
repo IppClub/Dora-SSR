@@ -5,10 +5,10 @@ extern "C" {
 	fn db_query(sql: i64, with_columns: i32) -> i64;
 	fn db_query_with_params(sql: i64, param: i64, with_columns: i32) -> i64;
 	fn db_insert(table_name: i64, record: i64);
-	fn db_exec_with_params(sql: i64, param: i64) -> i32;
+	fn db_exec_with_records(sql: i64, record: i64) -> i32;
 	fn db_query_with_params_async(sql: i64, param: i64, with_columns: i32, func: i32, stack: i64);
 	fn db_insert_async(table_name: i64, record: i64, func: i32, stack: i64);
-	fn db_exec_async(sql: i64, param: i64, func: i32, stack: i64);
+	fn db_exec_async(sql: i64, record: i64, func: i32, stack: i64);
 }
 use crate::dora::IObject;
 pub struct DB { }
@@ -31,8 +31,8 @@ impl DB {
 	pub fn insert(table_name: &str, record: crate::dora::DBRecord) {
 		unsafe { db_insert(crate::dora::from_string(table_name), record.raw()); }
 	}
-	pub fn exec_with_params(sql: &str, param: &crate::dora::Array) -> i32 {
-		unsafe { return db_exec_with_params(crate::dora::from_string(sql), param.raw()); }
+	pub fn exec_with_records(sql: &str, record: crate::dora::DBRecord) -> i32 {
+		unsafe { return db_exec_with_records(crate::dora::from_string(sql), record.raw()); }
 	}
 	pub fn query_with_params_async(sql: &str, param: &crate::dora::Array, with_columns: bool, mut callback: Box<dyn FnMut(crate::dora::DBRecord)>) {
 		let mut stack = crate::dora::CallStack::new();
@@ -50,12 +50,12 @@ impl DB {
 		}));
 		unsafe { db_insert_async(crate::dora::from_string(table_name), record.raw(), func_id, stack_raw); }
 	}
-	pub fn exec_async(sql: &str, param: &crate::dora::Array, mut callback: Box<dyn FnMut(i64)>) {
+	pub fn exec_async(sql: &str, record: crate::dora::DBRecord, mut callback: Box<dyn FnMut(i64)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
 			callback(stack.pop_i64().unwrap())
 		}));
-		unsafe { db_exec_async(crate::dora::from_string(sql), param.raw(), func_id, stack_raw); }
+		unsafe { db_exec_async(crate::dora::from_string(sql), record.raw(), func_id, stack_raw); }
 	}
 }
