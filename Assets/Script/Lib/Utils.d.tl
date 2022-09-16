@@ -28,10 +28,12 @@ local record Struct
 	metamethod __newindex: function(self: Struct, key: string, item: any)
 end
 local record StructClass
-	metamethod __call: function(cls: StructClass, values: table): Struct
+	metamethod __call: function(cls: StructClass, values?: table): Struct
 end
 local record StructHelper
 	type Type = Struct
+	type RecordEvent = Struct.RecordEvent
+	type ArrayEvent = Struct.ArrayEvent
 	metamethod __index: function(self: StructClass, ...: string): function(...: string): StructClass
 	load: function(cls: StructHelper, input: string): Struct
 	load: function(cls: StructHelper, input: table): Struct

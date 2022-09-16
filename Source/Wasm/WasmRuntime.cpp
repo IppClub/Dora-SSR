@@ -1015,17 +1015,15 @@ struct DBQuery {
 		auto& query = queries.emplace_back();
 		query.first = sql;
 	}
-	std::list<std::pair<std::string, std::vector<std::vector<Own<Value>>>>> queries;
+	std::list<std::pair<std::string, std::deque<std::vector<Own<Value>>>>> queries;
 };
 static bool db_do_transaction(DBQuery& query) {
-	return SharedDB.transaction([&]() {
+	return SharedDB.transaction([&](SQLite::Database* db) {
 		for (const auto& sql : query.queries) {
 			if (sql.second.empty()) {
-				SharedDB.exec(sql.first);
+				DB::exec(db, sql.first);
 			} else {
-				for (const auto& arg : sql.second) {
-					SharedDB.exec(sql.first, arg);
-				}
+				DB::exec(db, sql.first, sql.second);
 			}
 		}
 	});
@@ -1050,12 +1048,8 @@ static DBRecord db_do_query_with_params(String sql, Array* param, bool withColum
 static void db_do_insert(String tableName, const DBRecord& record) {
 	SharedDB.insert(tableName, record.records);
 }
-static int32_t db_do_exec_with_params(String sql, Array* param) {
-	std::vector<Own<Value>> args;
-	for (size_t i = 0; i < param->getCount(); ++i) {
-		args.emplace_back(param->get(i)->clone());
-	}
-	return SharedDB.exec(sql, args);
+static int32_t db_do_exec_with_records(String sql, const DBRecord& record) {
+	return SharedDB.exec(sql, record.records);
 }
 static void db_do_query_with_params_async(String sql, Array* param, bool withColumns, const std::function<void(DBRecord& result)>& callback) {
 	std::vector<Own<Value>> args;
@@ -1070,12 +1064,8 @@ static void db_do_query_with_params_async(String sql, Array* param, bool withCol
 static void db_do_insert_async(String tableName, DBRecord& record, const std::function<void(bool)>& callback) {
 	SharedDB.insertAsync(tableName, std::move(record.records), callback);
 }
-static void db_do_exec_async(String sql, Array* param, const std::function<void(int64_t)>& callback) {
-	std::vector<Own<Value>> args;
-	for (size_t i = 0; i < param->getCount(); ++i) {
-		args.emplace_back(param->get(i)->clone());
-	}
-	SharedDB.execAsync(sql, std::move(args), [callback](int rows) {
+static void db_do_exec_async(String sql, DBRecord& record, const std::function<void(int64_t)>& callback) {
+	SharedDB.execAsync(sql, std::move(record.records), [callback](int rows) {
 		callback(s_cast<int64_t>(rows));
 	});
 }

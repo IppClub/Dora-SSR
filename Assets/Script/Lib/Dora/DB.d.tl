@@ -17,8 +17,9 @@ local record DB
 		withColumn?: boolean --[[false]]
 	): {Row}
 	insert: function(self: DB, tableName: string, values: {Row})
-	exec: function(self: DB, sql: string, args: Row): integer
 	exec: function(self: DB, sql: string): integer
+	exec: function(self: DB, sql: string, values: Row): integer
+	exec: function(self: DB, sql: string, values: {Row}): integer
 	insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
 	insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startRow: integer): boolean
 	insertAsync: function(self: DB, tableSheets: {{string, string}}, excelFile: string, startRow: integer): boolean
@@ -33,7 +34,7 @@ local record DB
 		sql: string,
 		withColumn?: boolean --[[false]]
 	): {Row}
-	execAsync: function(self: DB, sql: string, args: Row): integer
+	execAsync: function(self: DB, sql: string, values: {Row}): integer
 	execAsync: function(self: DB, sql: string): integer
 end
 local db: DB

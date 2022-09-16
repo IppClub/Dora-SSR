@@ -269,7 +269,7 @@ public:
 			_history.push_back(codes);
 			LogPrint(codes + '\n');
 			codes.insert(0,
-				"rawset builtin, '_REPL', index#: builtin unless builtin._REPL\n"
+				"rawset builtin, '_REPL', <index>: builtin unless builtin._REPL\n"
 				"_ENV = builtin._REPL\n"
 				"global *\n"_slice);
 			lua_State* L = SharedLuaEngine.getState();
