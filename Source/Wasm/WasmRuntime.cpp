@@ -1021,9 +1021,9 @@ static bool db_do_transaction(DBQuery& query) {
 	return SharedDB.transaction([&](SQLite::Database* db) {
 		for (const auto& sql : query.queries) {
 			if (sql.second.empty()) {
-				DB::exec(db, sql.first);
+				DB::execUnsafe(db, sql.first);
 			} else {
-				DB::exec(db, sql.first, sql.second);
+				DB::execUnsafe(db, sql.first, sql.second);
 			}
 		}
 	});

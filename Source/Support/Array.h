@@ -15,6 +15,7 @@ NS_DOROTHY_BEGIN
 
 class Array : public Object {
 public:
+	Array(const Array&) = delete;
 	PROPERTY_READONLY(size_t, Count);
 	PROPERTY_READONLY(size_t, Capacity);
 	PROPERTY_READONLY_CREF(Own<Value>, Last);
@@ -40,6 +41,7 @@ public:
 	void insert(size_t index, Own<Value>&& value);
 	bool removeAt(size_t index);
 	bool fastRemoveAt(size_t index);
+	const std::vector<Own<Value>>& data() const;
 	std::vector<Own<Value>>& data();
 	CREATE_FUNC(Array);
 

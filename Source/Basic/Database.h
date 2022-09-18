@@ -34,10 +34,10 @@ public:
 
 public:
 	bool transaction(const std::function<void(SQLite::Database*)>& func);
-	static void insert(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& values);
-	static int exec(SQLite::Database* db, String sql);
-	static int exec(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);
-	static int exec(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows);
+	static void insertUnsafe(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& values);
+	static int execUnsafe(SQLite::Database* db, String sql);
+	static int execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);
+	static int execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows);
 
 protected:
 	DB();
