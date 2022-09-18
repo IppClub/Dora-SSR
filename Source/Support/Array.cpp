@@ -162,6 +162,10 @@ bool Array::fastRemoveAt(size_t index) {
 	return false;
 }
 
+const std::vector<Own<Value>>& Array::data() const {
+	return _data;
+}
+
 std::vector<Own<Value>>& Array::data() {
 	return _data;
 }
